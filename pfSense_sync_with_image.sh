@@ -1,8 +1,36 @@
 #!/bin/sh
 
-# Sync host system with pfSense image
-
 $DESTDIRROOT=/home/sullrich/pfsense
+
+# mini_httpd.c patch
+# Download mini_httpd.c patch from m0n0wall site if doesnt exist.
+if [ ! -e /usr/ports/www/mini_httpd/files/patch-mini_httpd.c ]; then
+  cd /usr/ports/www/mini_httpd/files && fetch http://m0n0.ch/wall/downloads/mini_httpd.c.patch
+  mv /usr/ports/www/mini_httpd/files/mini_httpd.c.patch /usr/ports/www/mini_httpd/files/patch-mini_httpd.c
+fi
+
+# atareinit
+if [ ! -e $DESTDIRROOT/usr/local/sbin/atareinit ]; then
+  fetch http://m0n0.ch/wall/downloads/atareinit.c
+  gcc -o $DESTDIRROOT/usr/local/sbin/atareinit atareinit.c
+  rm atareinit.c
+fi
+
+# minicron
+if [ ! -e $DESTDIRROOT/usr/local/minicron ]; then
+    fetch http://m0n0.ch/wall/downloads/minicron.c
+    gcc -o $DESTDIRROOT/usr/local/minicron minicron.c
+    rm minicron.c
+fi
+
+# bpalogin
+if [ ! -e $DESTDIRROOT/usr/local/sbin/bpalogin ]; then
+    fetch http://bpalogin.sourceforge.net/download/bpalogin-2.0.2.tar.gz
+    tar xzvpf bpalogin-2.0.2.tar.gz
+    cd bpalogin-2.0.2 && ./configure && make
+    cp bpalogin $DESTDIRROOT/usr/local/sbin/bpalogin
+    cd .. rm -rf bpa*
+fi
 
 PACKAGES="/usr/ports/net/mpd \
     /usr/ports/security/racoon \
@@ -21,6 +49,7 @@ PACKAGES="/usr/ports/net/mpd \
 #cd $package && make install
 #done
 
+# copy files from host to pfSense skeleton image.
 cp /usr/local/bin/ez-ipupdate $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/msntp $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/runmsntp.sh $DESTDIRROOT/usr/local/bin/
