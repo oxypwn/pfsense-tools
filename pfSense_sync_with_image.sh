@@ -1,6 +1,6 @@
 #!/bin/sh
 
-$DESTDIRROOT=/home/sullrich/pfsense
+DESTDIRROOT=/home/sullrich/pfSense
 
 # mini_httpd.c patch
 # Download mini_httpd.c patch from m0n0wall site if doesnt exist.
@@ -51,16 +51,18 @@ PACKAGES="/usr/ports/net/mpd \
 #done
 
 # copy files from host to pfSense skeleton image.
+mkdir -p $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/ez-ipupdate $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/msntp $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/runmsntp.sh $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/wol $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/minicron $DESTDIRROOT/usr/local/bin/
-cp /usr/local/bin/php $DESTDIRROOT/usr/local/bin/
+#cp /usr/local/bin/php $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/verifysig $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/links $DESTDIRROOT/usr/local/bin/
 chmod a+x $DESTDIRROOT/usr/local/bin/*
 
+mkdir -p $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/atareinit $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/dhcpd $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/mini_httpd $DESTDIRROOT/usr/local/sbin/
@@ -77,6 +79,7 @@ cp /usr/local/sbin/openvpn $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/snmpd $DESTDIRROOT/usr/local/sbin/
 chmod a+x $DESTDIRROOT/usr/local/sbin/*
 
+mkdir -p $DESTDIRROOT/sbin/
 cp /sbin/adjkerntz $DESTDIRROOT/sbin/
 cp /sbin/init $DESTDIRROOT/sbin/
 cp /sbin/kldunload $DESTDIRROOT/sbin/
@@ -115,6 +118,7 @@ cp /sbin/mount_msdos $DESTDIRROOT/sbin/
 cp /sbin/reboot $DESTDIRROOT/sbin/
 chmod a+x $DESTDIRROOT/sbin/*
 
+mkdir -p $DESTDIRROOT/bin
 cp /bin/[ $DESTDIRROOT/bin/
 cp /bin/date $DESTDIRROOT/bin/
 cp /bin/expr $DESTDIRROOT/bin/
@@ -137,10 +141,11 @@ cp /bin/sh $DESTDIRROOT/bin/
 cp /bin/test $DESTDIRROOT/bin/
 chmod a+x $DESTDIRROOT/$DESTDIRROOT/bin/*
 
+mkdir -p $DESTDIRROOT/usr/sbin
 cp /usr/sbin/ancontrol $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/chroot $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/pccardd $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/syslogd $DESTDIRROOT/usr/sbin/
+#cp /usr/sbin/syslogd $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/arp $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/clog $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/pwd_mkdb $DESTDIRROOT/usr/sbin/
@@ -150,6 +155,7 @@ cp /usr/sbin/dev_mkdb $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/setkey $DESTDIRROOT/usr/sbin/
 chmod a+x $DESTDIRROOT/ $DESTDIRROOT/usr/sbin/*
 
+mkdir -p $DESTDIRROOT/usr/bin/
 cp /usr/bin/gunzip $DESTDIRROOT/usr/bin/
 cp /usr/bin/killall $DESTDIRROOT/usr/bin/
 cp /usr/bin/netstat $DESTDIRROOT/usr/bin/
@@ -165,6 +171,7 @@ cp /usr/bin/top $DESTDIRROOT/usr/bin/
 cp /usr/bin/uptime $DESTDIRROOT/usr/bin/
 chmod a+x $DESTDIRROOT/ $DESTDIRROOT/usr/bin/*
 
+mkdir -p $DESTDIRROOT/usr/lib/
 cp /usr/lib/libc.so.4 $DESTDIRROOT/usr/lib/
 cp /usr/lib/libkvm.so.2 $DESTDIRROOT/usr/lib/
 cp /usr/lib/libskey.so.2 $DESTDIRROOT/usr/lib/
