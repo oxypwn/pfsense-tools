@@ -39,7 +39,9 @@ $cli->setCredentials($user, $password);
 
 // Send our message and get our response.
 $resp = $cli->send($msg);
+if($resp) print "Configuration restored on remote system.\n";
 
+/* Uncomment for more debugging.
 if (!$resp) {
     echo 'Communication error: ' . $cli->errstr;
     exit;
@@ -49,3 +51,9 @@ if ($resp->faultCode()) {
     echo 'Fault Code: ' . $resp->faultCode() . "\n";
     echo 'Fault Reason: ' . $resp->faultString() . "\n";
 }
+*/
+
+// Call filter_configure() after we change the section.
+$msg = new XML_RPC_Message('pfsense.filter_configure', array(new XML_RPC_Value($password, 'string')));
+$resp = $cli->send($msg);
+if($resp) print "filter_configure() run on remote system.\n";
