@@ -9,7 +9,8 @@ fi
 echo "#!/bin/sh" > /home/sullrich/pfSense/script
 echo ln -s /cf/conf /conf >> /home/sullrich/pfSense/script
 echo ln -s /conf /cf/conf >> /home/sullrich/pfSense/script
-echo ln -s /var/run/htpasswd /usr/local/www/htpasswd >> /home/sullrich/pfSense/script
+echo ln -s /var/run/htpasswd /usr/local/www/.htpasswd >> /home/sullrich/pfSense/script
+echo rm /etc/resolv.conf >> /home/sullrich/pfSense/script
 echo ln -s /var/run/resolv.conf /etc/resolv.conf >> /home/sullrich/pfSense/script
 echo ln -s /lib/libm.so.3 /lib/libm.so.2 >> /home/sullrich/pfSense/script
 echo ln -s /lib/libc.so.5 /lib/libc.so.4 >> /home/sullrich/pfSense/script
