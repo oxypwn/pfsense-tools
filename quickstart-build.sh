@@ -21,9 +21,9 @@ cd $CVSPATH && cvs -d $CVSROOT co $CVSREPO
         $CVSPATH/docbook/book.xml
 
 #  copy files into place for www
-cp $CVSPATH/docbook/$CSSFILE $WWWPATH/docbook
-cp $CVSPATH/docbook/*.png $WWWPATH/docbook
-cp $CVSPATH/docbook/*.html $WWWPATH/docbook
-cp -R $CVSPATH/docbook/screens/* $WWWPATH/docbook/screens/
-cp -R $CVSPATH/docbook/icons/* $WWWPATH/docbook/icons/
-cp -R $CVSPATH/docbook/networkdiagrams/* $WWWPATH/docbook/networkdiagrams/
+cp $CVSPATH/$CVSREPO/docbook/$CSSFILE $WWWPATH/docbook
+cp $CVSPATH/$CVSREPO/docbook/*.png $WWWPATH/docbook
+cp $CVSPATH/$CVSREPO/docbook/*.html $WWWPATH/docbook
+cp -R $CVSPATH/$CVSREPO/docbook/screens/* $WWWPATH/docbook/screens/
+cp -R $CVSPATH/$CVSREPO/icons/* $WWWPATH/docbook/icons/
+cp -R $CVSPATH/$CVSREPO/networkdiagrams/* $WWWPATH/docbook/networkdiagrams/
