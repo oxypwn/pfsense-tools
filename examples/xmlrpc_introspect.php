@@ -29,10 +29,8 @@ $c->setDebug(0);
 $c->setCredentials('admin', $password);
 
 $v=rpc_call($c, $f);
-print "<h2>methods available at http://" . $c->server . ":" . 
-$c->port . $c->path .  "</h2>\n";
+print "<h2>Methods exposed by xmlrpc.php</h2>\n";
 if ($v) {
-	
 	for($i=0; $i<$v->arraysize(); $i++) {
 		$mname=$v->arraymem($i);
 		print "<H3>" . $mname->scalarval() . "</H3>\n";
