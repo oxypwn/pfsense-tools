@@ -4,7 +4,7 @@
 <?php
 include("xmlrpc_client.inc");
 
-$password = 'pfSense';
+$password = 'wooden';
 
 function rpc_call($client, $msg) {
 	$r=$client->send($msg);
@@ -25,7 +25,7 @@ function rpc_call($client, $msg) {
 
 $f=new XML_RPC_Message('system.listMethods');
 $c=new XML_RPC_Client("/xmlrpc.php", "192.168.1.2", 80);
-$c->setDebug(0);
+$c->setDebug(1);
 $c->setCredentials('admin', $password);
 
 $v=rpc_call($c, $f);
@@ -54,12 +54,21 @@ if ($v) {
 				for($j=0; $j<$w->arraysize(); $j++) {
 					$x=$w->arraymem($j);
 					$ret=$x->arraymem(0);
-					print "<CODE>" . $ret->scalarval() . " " . 
-						$mname->scalarval() ."(";
+					if($ret->kindOf() == 'scalar') {
+						print "<CODE>" . $ret->scalarval() . " " . 
+							$mname->scalarval() ."(";
+					} else {
+						print "<CODE>" . $ret->kindOf() . " " .
+							$mname->scalarval() ."(";
+					}
 					if ($x->arraysize()>1) {
 						for($k=1; $k<$x->arraysize(); $k++) {
 							$y=$x->arraymem($k);
-							print $y->scalarval();
+							if($y->kindOf() == 'scalar') {
+								print $y->scalarval();
+							} else {
+								print $y->kindOf();
+							}
 							if ($k<$x->arraysize()-1) {
 								print ", ";
 							}
