@@ -20,7 +20,7 @@ cd $CVSPATH && cvs -d $CVSROOT co doc
         $CVSPATH/docbook/book.xml
 
 #  copy files into place for www
-cp $CVSPATH/docbook/m0n0doc.css $WWWPATH/docbook
+cp $CVSPATH/docbook/$CSSFILE $WWWPATH/docbook
 cp $CVSPATH/docbook/*.png $WWWPATH/docbook
 cp $CVSPATH/docbook/*.html $WWWPATH/docbook
 cp -R $CVSPATH/docbook/screens/* $WWWPATH/docbook/screens/
