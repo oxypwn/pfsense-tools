@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo
+
 FreeSBIE=/usr/local/livefs
 
 chflags -R noschg /tmp/ 2>/dev/null
@@ -54,37 +56,57 @@ echo Running mdconfig
 disklabel -BR md91 /home/sullrich/pfSense/boot/label.proto_wrap
 
 echo Running newfs
-newfs /dev/md91
 newfs /dev/md91a
 newfs /dev/md91d
 
-echo Mounting /tmp/root
-mount /dev/md91d /tmp/root
-echo Mounting /tmp/cf
-mount /dev/md91a /tmp/cf
-
-echo Populating /tmp/root
-echo livefs
+echo -n "Mounting -> [ /tmp/root "
+mount /dev/md91a /tmp/root
+echo -n "/tmp/cf "
+mount /dev/md91d /tmp/cf
+echo "]"
+echo -n "Populating /tmp/root -> [ "
+echo -n "livefs "
 cd /usr/local/livefs/ && tar czPf /home/sullrich/livefs.tgz .
 cd /tmp/root && tar xzPf /home/sullrich/livefs.tgz
-echo pfSense
+echo -n "pfSense "
 cd /home/sullrich/pfSense && tar czPf /home/sullrich/pfSense.tgz .
 cd /tmp/root && tar xzPf /home/sullrich/pfSense.tgz
+echo "]"
 
-echo /dev/ad0		/		ufs	rw		1 \
+echo /dev/ad0		/		ufs	ro		1 \
 	1 > /tmp/root/etc/fstab
-echo /dev/ad0a /cf ufs ro 1 1 >> /tmp/root/etc/fstab
+echo /dev/ad0a		/cf		ufs	ro		1 \
+	1 >> /tmp/root/etc/fstab
+echo md			/tmp		mfs	rw,-s4m		1 \
+	1 >> /tmp/root/etc/fstab
 
 mv /tmp/root/cf /tmp/cf/
+echo -n "Config directory: "
 ls /tmp/cf/cf/conf
+
+rm -rf /tmp/root/var/run
+rm -rf /tmp/root/var/log
+rm -rf /tmp/root/var/etc
+rm -rf /tmp/root/var/tmp
+
+# setup symlinks
+echo "#!/bin/sh" > /tmp/root/script
+echo "ln -s /tmp /var/tmp" >> /tmp/root/script
+echo "ln -s /tmp /var/run" >> /tmp/root/script
+echo "ln -s /tmp /var/etc" >> /tmp/root/script
+echo "ln -s /tmp /var/log" >> /tmp/root/script
+echo "ln -s /cf/conf /conf" >> /tmp/root/script
+chmod a+x /tmp/root/script
+chroot /tmp/root/ /script
 
 cd /home/sullrich/tools && umount /tmp/root
 cd /home/sullrich/tools && umount /tmp/cf
 /sbin/mdconfig -d -u 91
 
-echo GZipping image.bin
+echo gzipping image.bin
 gzip -9 image.bin
 mv image.bin.gz pfSense-128-megs.bin.gz
+echo -n "Image size: "
 ls -la pfSense-128-megs.bin.gz
 
 echo Cleaning up /tmp/
