@@ -23,16 +23,17 @@ echo Running DD
 echo Running mdconfig
 /sbin/mdconfig -a -t vnode -u91 -f image.bin
 echo Running newfs
-fdisk /dev/md91
-newfs /dev/md91
+fdisk -I /dev/md91
+fdisk -B /dev/md91
+fdisk -a -1
 disklabel -BR md91 /usr/local/livefs/boot/label.proto_wrap
+disklabel /dev/md91
+newfs /dev/md91
 mount /dev/md91 /tmp/mnt
 cd /usr/local/livefs/ && tar czPf /home/sullrich/livefs.tgz .
 cd /tmp/mnt && tar xzPf /home/sullrich/livefs.tgz .
 cd /home/sullrich/tools
 umount /tmp/mnt
-#fdisk -B -b /boot/boot0 md91
-boot0cfg -B -v -o packet /dev/md91
 /sbin/mdconfig -d -u 91
 gzip -9 image.bin
 mv image.bin.gz pfSense-128-megs.bin.gz
