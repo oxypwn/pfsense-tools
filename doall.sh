@@ -1,43 +1,52 @@
 #!/bin/sh
 
-FREESBIEBASEDIR=/usr/local/livefs
-LOCALDIR=/home/sullrich/freesbie
-PATHISO=/home/sullrich/freesbie/FreeSBIE.iso
+# pfSense master builder script
+# (C)2005 Scott Ullrich and the pfSense project
+# All rights reserved.
+
+. ../freesbie/config.sh
+. ../freesbie/.common.sh
+
+PFSENSECVS=/home/sullrich/pfSense
+
+# XXX: these above values should also be defined in
+#      $LOCALDIR/config.sh
 
 cd /home/sullrich
-rm -rf /home/sullrich/pfSense
+rm -rf $PFSENSECVS
 cvs -d:ext:sullrich@216.135.66.16:/cvsroot co pfSense
 
+# XXX: when we finally support these platforms, automate this.
 # if platform == net45xx/wrap ###########################
 #rm pfSense/usr/local/www/trigger_initial_wizard
 #ls -la pfSense/usr/local/www/trigger_initial_wizard
 #echo net45xx >> pfSense/usr/local/www/platform
 #sleep 3
-# end if ################################################
+# end if ############################################XXX#
 
-cd /home/sullrich/pfSense
-if [ ! -e /home/sullrich/pfSense/libexec ]; then
-        mkdir -p /home/sullrich/pfSense/libexec
+cd $PFSENSECVS
+if [ ! -e $PFSENSECVS/libexec ]; then
+        mkdir -p $PFSENSECVS/libexec
 fi
-cp /usr/lib/libkrb5.so.7 $$LOCALDIR/usr/lib/
-mkdir -p $$LOCALDIR/var/run
-echo "#!/bin/sh" > /home/sullrich/pfSense/script
-echo rm /etc/resolv.conf >> /home/sullrich/pfSense/script
-echo rm /etc/hosts >> /home/sullrich/pfSense/script
-echo ln -s /cf/conf /conf >> /home/sullrich/pfSense/script
-echo ln -s /conf /cf/conf >> /home/sullrich/pfSense/script
-echo ln -s /var/run/htpasswd /usr/local/www/.htpasswd >> /home/sullrich/pfSense/script
-echo ln -s /var/etc/hosts /etc/hosts >> /home/sullrich/pfSense/script
-echo ln -s /var/etc/resolv.conf /etc/resolv.conf >> /home/sullrich/pfSense/script
-echo ln -s /lib/libm.so.3 /lib/libm.so.2 >> /home/sullrich/pfSense/script
-echo ln -s /lib/libc.so.5 /lib/libc.so.4 >> /home/sullrich/pfSense/script
-cat /home/sullrich/pfSense/script
-chmod a+x /home/sullrich/pfSense/script
-chroot /home/sullrich/pfSense/ /script
-find /home/sullrich/pfSense && find /home/sullrich/pfSense -name CVS -exec rm -rf {} \;
-rm /home/sullrich/pfSense.tgz
-cd /home/sullrich/pfSense & tar czvPf /home/sullrich/pfSense.tgz .
-cd /home/sullrich/freesbie
+cp /usr/lib/libkrb5.so.7 $LOCALDIR/usr/lib/
+mkdir -p $LOCALDIR/var/run
+echo "#!/bin/sh" > $PFSENSECVS/script
+echo rm /etc/resolv.conf >> $PFSENSECVS/script
+echo rm /etc/hosts >> $PFSENSECVS/script
+echo ln -s /cf/conf /conf >> $PFSENSECVS/script
+echo ln -s /conf /cf/conf >> $PFSENSECVS/script
+echo ln -s /var/run/htpasswd /usr/local/www/.htpasswd >> $PFSENSECVS/script
+echo ln -s /var/etc/hosts /etc/hosts >> $PFSENSECVS/script
+echo ln -s /var/etc/resolv.conf /etc/resolv.conf >> $PFSENSECVS/script
+echo ln -s /lib/libm.so.3 /lib/libm.so.2 >> $PFSENSECVS/script
+echo ln -s /lib/libc.so.5 /lib/libc.so.4 >> $PFSENSECVS/script
+cat $PFSENSECVS/script
+chmod a+x $PFSENSECVS/script
+chroot $PFSENSECVS/ /script
+find $PFSENSECVS && find $PFSENSECVS -name CVS -exec rm -rf {} \;
+rm $PFSENSECVS.tgz
+cd $PFSENSECVS & tar czvPf $PFSENSECVS.tgz .
+cd $LOCALDIR
 ./0.rmdir.sh
 ./1.mkdir.sh
 #./2.buildworld.sh
@@ -46,25 +55,31 @@ cd /home/sullrich/freesbie
 ./5.patchfiles.sh
 ./6.packages.sh
 ./7.customuser.sh
-cp /sbin/pf* $$LOCALDIR/sbin
-chmod a+x $$LOCALDIR/sbin/pf*
-cp /home/sullrich/freesbie/files/gettytab $$LOCALDIR/etc/
-cp /sbin/ip* $$LOCALDIR/sbin/
-cp /usr/sbin/ip* $$LOCALDIR/usr/sbin/
-rm -rf $$LOCALDIR/dist/pfSense.tgz
-cp /home/sullrich/pfSense.tgz $$LOCALDIR/dist/
-cp /home/sullrich/freesbie/files/ip* $$LOCALDIR/boot/kernel/
-cp /home/sullrich/freesbie/files/dummynet* $$LOCALDIR/boot/kernel/
-cp /usr/lib/libstdc* $$LOCALDIR/usr/lib/
-cp /home/sullrich/freesbie/files/foobar/ttys $$LOCALDIR/etc/ttys
-mkdir -p $$LOCALDIR/usr/local/share/dfuibe_installer
-cp /home/sullrich/freesbie/files/sources.conf $$LOCALDIR/usr/local/share/dfuibe_installer/sources.conf
-cp /home/sullrich/freesbie/files/loader.rc $$LOCALDIR/boot/loader.rc
-rm -rf $$LOCALDIR/etc/shells
-cp /home/sullrich/freesbie/files/shells $$LOCALDIR/etc/shells
-echo exit > $$LOCALDIR/root/.xcustom.sh
-echo hint.acpi.0.disabled=\"1\" >> $$LOCALDIR/boot/device.hints
-echo "-m -P" >> $$LOCALDIR/boot.config
+
+# restore values if overwritten accidently.
+. ../freesbie/config.sh
+. ../freesbie/.common.sh
+
+cp /sbin/pf* /usr/local/livefs/sbin
+chmod a+x /usr/local/livefs/sbin/pf*
+cp /home/sullrich/freesbie/files/gettytab /usr/local/livefs/etc/
+cp /sbin/ip* /usr/local/livefs/sbin/
+cp /usr/sbin/ip* /usr/local/livefs/usr/sbin/
+rm -rf /usr/local/livefs/dist/pfSense.tgz
+cp /home/sullrich/pfSense.tgz /usr/local/livefs/dist/
+cp /home/sullrich/freesbie/files/ip* /usr/local/livefs/boot/kernel/
+cp /home/sullrich/freesbie/files/dummynet* /usr/local/livefs/boot/kernel/
+cp /usr/lib/libstdc* /usr/local/livefs/usr/lib/
+cp /home/sullrich/freesbie/files/foobar/ttys /usr/local/livefs/etc/ttys
+mkdir -p /usr/local/livefs/usr/local/share/dfuibe_installer
+cp /home/sullrich/freesbie/files/sources.conf /usr/local/livefs/usr/local/share/dfuibe_installer/
+sources.conf
+cp /home/sullrich/freesbie/files/loader.rc /usr/local/livefs/boot/loader.rc
+rm -rf /usr/local/livefs/etc/shells
+cp /home/sullrich/freesbie/files/shells /usr/local/livefs/etc/shells
+echo exit > /usr/local/livefs/root/.xcustom.sh
+echo hint.acpi.0.disabled=\"1\" >> /usr/local/livefs/boot/device.hints
+echo "-m -P" >> /usr/local/livefs/boot.config
 # trim off some extra fat.
 ./8.preparefs.sh
 ./81.mkiso.sh
