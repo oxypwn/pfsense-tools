@@ -49,7 +49,7 @@ cd $PFSENSECVS & tar czvPf $PFSENSECVS.tgz .
 cd $LOCALDIR
 ./0.rmdir.sh
 ./1.mkdir.sh
-#./2.buildworld.sh
+./2.buildworld.sh
 ./3.installworld.sh
 ./4.kernel.sh
 ./5.patchfiles.sh
@@ -60,26 +60,26 @@ cd $LOCALDIR
 . ../freesbie/config.sh
 . ../freesbie/.common.sh
 
-cp /sbin/pf* /usr/local/livefs/sbin
-chmod a+x /usr/local/livefs/sbin/pf*
-cp /home/sullrich/freesbie/files/gettytab /usr/local/livefs/etc/
-cp /sbin/ip* /usr/local/livefs/sbin/
-cp /usr/sbin/ip* /usr/local/livefs/usr/sbin/
-rm -rf /usr/local/livefs/dist/pfSense.tgz
-cp /home/sullrich/pfSense.tgz /usr/local/livefs/dist/
-cp /home/sullrich/freesbie/files/ip* /usr/local/livefs/boot/kernel/
-cp /home/sullrich/freesbie/files/dummynet* /usr/local/livefs/boot/kernel/
-cp /usr/lib/libstdc* /usr/local/livefs/usr/lib/
-cp /home/sullrich/freesbie/files/foobar/ttys /usr/local/livefs/etc/ttys
-mkdir -p /usr/local/livefs/usr/local/share/dfuibe_installer
-cp /home/sullrich/freesbie/files/sources.conf /usr/local/livefs/usr/local/share/dfuibe_installer/
+cp /sbin/pf* $FREESBIEBASEDIR/sbin
+chmod a+x $FREESBIEBASEDIR/sbin/pf*
+cp /home/sullrich/freesbie/files/gettytab $FREESBIEBASEDIR/etc/
+cp /sbin/ip* $FREESBIEBASEDIR/sbin/
+cp /usr/sbin/ip* $FREESBIEBASEDIR/usr/sbin/
+rm -rf $FREESBIEBASEDIR/dist/pfSense.tgz
+cp /home/sullrich/pfSense.tgz $FREESBIEBASEDIR/dist/
+cp /home/sullrich/freesbie/files/ip* $FREESBIEBASEDIR/boot/kernel/
+cp /home/sullrich/freesbie/files/dummynet* $FREESBIEBASEDIR/boot/kernel/
+cp /usr/lib/libstdc* $FREESBIEBASEDIR/usr/lib/
+cp /home/sullrich/freesbie/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
+mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer
+cp /home/sullrich/freesbie/files/sources.conf $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/
 sources.conf
-cp /home/sullrich/freesbie/files/loader.rc /usr/local/livefs/boot/loader.rc
-rm -rf /usr/local/livefs/etc/shells
-cp /home/sullrich/freesbie/files/shells /usr/local/livefs/etc/shells
-echo exit > /usr/local/livefs/root/.xcustom.sh
-echo hint.acpi.0.disabled=\"1\" >> /usr/local/livefs/boot/device.hints
-echo "-m -P" >> /usr/local/livefs/boot.config
+cp /home/sullrich/freesbie/files/loader.rc $FREESBIEBASEDIR/boot/loader.rc
+rm -rf $FREESBIEBASEDIR/etc/shells
+cp /home/sullrich/freesbie/files/shells $FREESBIEBASEDIR/etc/shells
+echo exit > $FREESBIEBASEDIR/root/.xcustom.sh
+echo hint.acpi.0.disabled=\"1\" >> $FREESBIEBASEDIR/boot/device.hints
+echo "-m -P" >> $FREESBIEBASEDIR/boot.config
 # trim off some extra fat.
 ./8.preparefs.sh
 ./81.mkiso.sh
