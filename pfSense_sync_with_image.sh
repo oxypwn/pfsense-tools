@@ -5,8 +5,10 @@ DESTDIRROOT=/home/sullrich/pfSense
 # mini_httpd.c patch
 # Download mini_httpd.c patch from m0n0wall site if doesnt exist.
 if [ ! -e /usr/ports/www/mini_httpd/files/patch-mini_httpd.c ]; then
-  cd /usr/ports/www/mini_httpd/files && fetch http://m0n0.ch/wall/downloads/mini_httpd.c.patch
-  mv /usr/ports/www/mini_httpd/files/mini_httpd.c.patch /usr/ports/www/mini_httpd/files/patch-mini_httpd.c
+  cd /usr/ports/www/mini_httpd/files && \
+	fetch http://m0n0.ch/wall/downloads/mini_httpd.c.patch
+  mv /usr/ports/www/mini_httpd/files/mini_httpd.c.patch \
+	/usr/ports/www/mini_httpd/files/patch-mini_httpd.c
 fi
 
 # atareinit
