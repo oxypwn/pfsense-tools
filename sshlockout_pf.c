@@ -29,6 +29,7 @@
 #include <syslog.h>
 
 static void lockout(char *str);
+int check_for_string(char *str, char buf[1024]);
 
 int
 main(int ac, char **av)
@@ -42,37 +43,36 @@ main(int ac, char **av)
    freopen("/dev/null", "w", stderr);
 
    while (fgets(buf, sizeof(buf), stdin) != NULL) {
+       /* if this is not sshd related, continue on without processing */
        if (strstr(buf, "sshd") == NULL)
            continue;
-       if ((str = strstr(buf, "Failed password for root from")) != NULL ||
-           (str = strstr(buf, "Failed password for admin from")) != NULL) {
-           while (*str && (*str < '0' || *str > '9'))
-               ++str;
-           lockout(str);
-           continue;
-       }
-       if ((str = strstr(buf, "Failed password for invalid user")) != NULL) {
-           str += 32;
-           while (*str == ' ')
-               ++str;
-           while (*str && *str != ' ')
-               ++str;
-           if (strncmp(str, " from", 5) == 0)
-               lockout(str + 5);
-           continue;
-       }
-       if ((str = strstr(buf, "Illegal user")) != NULL) {
+
+       check_for_string("Failed password for root from", buf);
+       check_for_string("Failed password for admin from", buf);
+       check_for_string("Failed password for invalid user", buf);
+       check_for_string("Illegal user", buf);
+       check_for_string("authentication error for", buf);
+
+   }
+   syslog(LOG_ERR, "sshlockout exiting");
+   return(0);
+}
+
+int
+check_for_string(char *str, char buf[1024])
+{
+      if ((str = strstr(buf, str)) != NULL) {
            str += 12;
            while (*str == ' ')
                ++str;
            while (*str && *str != ' ')
                ++str;
-           if (strncmp(str, " from", 5) == 0)
+           if (strncmp(str, " from", 5) == 0) {
                lockout(str + 5);
+               return(1);
+           }
        }
-   }
-   syslog(LOG_ERR, "sshlockout exiting");
-   return(0);
+       return(0);
 }
 
 static void
