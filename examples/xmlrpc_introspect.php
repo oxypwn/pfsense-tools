@@ -1,5 +1,5 @@
 <html>
-<head><title>xmlrpc</title></head>
+<head><title>pfSense XMLRPC methods</title></head>
 <body>
 <?php
 include("xmlrpc_client.inc");
