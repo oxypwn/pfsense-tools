@@ -45,8 +45,7 @@ main(int ac, char **av)
        if (strstr(buf, "sshd") == NULL)
            continue;
        if ((str = strstr(buf, "Failed password for root from")) != NULL ||
-           (str = strstr(buf, "Failed password for admin from")) != NULL
-       ) {
+           (str = strstr(buf, "Failed password for admin from")) != NULL) {
            while (*str && (*str < '0' || *str > '9'))
                ++str;
            lockout(str);
@@ -83,8 +82,10 @@ lockout(char *str)
    char buf[256];
 
    if (sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) == 4) {
-       syslog(LOG_ERR, "Detected Illegal ssh login attempt, locking out %d.%d.%d.%d\n", n1, n2, n3, n4);
-       snprintf(buf, sizeof(buf), "/sbin/pfctl -t sshlockout -T add %d.%d.%d.%d", n1, n2, n3, n4);
+       syslog(LOG_ERR, "Illegal ssh login attempt, locking out %d.%d.%d.%d\n", \
+         n1, n2, n3, n4);
+       snprintf(buf, sizeof(buf), "/sbin/pfctl -t sshlockout -T add %d.%d.%d.%d", \
+         n1, n2, n3, n4);
        system(buf);
    }
 }
