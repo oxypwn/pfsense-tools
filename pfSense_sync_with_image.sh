@@ -32,6 +32,11 @@ if [ ! -e $DESTDIRROOT/usr/local/sbin/bpalogin ]; then
     cd .. rm -rf bpa*
 fi
 
+cd /home/sullrich/pfSense/bin && \
+for item in * ; do
+        cd /usr/src/bin/$item && make clean && make  && make install
+done
+
 PACKAGES="/usr/ports/net/mpd \
     /usr/ports/security/racoon \
     /usr/ports/net/wol \
@@ -46,19 +51,18 @@ PACKAGES="/usr/ports/net/mpd \
     /usr/ports/www/links"
 
 # Uncomment this to automatically install packages.
-#for package in $PACKAGES; do
-#cd $package && make install
-#done
+for package in $PACKAGES; do
+cd $package && make clean install WITHOUT_X11=yes BATCH=yes
+done
+rm -rf /var/db/pkg/*
 
 # copy files from host to pfSense skeleton image.
 mkdir -p $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/ez-ipupdate $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/msntp $DESTDIRROOT/usr/local/bin/
-cp /usr/local/bin/runmsntp.sh $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/wol $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/minicron $DESTDIRROOT/usr/local/bin/
 #cp /usr/local/bin/php $DESTDIRROOT/usr/local/bin/
-cp /usr/local/bin/verifysig $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/links $DESTDIRROOT/usr/local/bin/
 chmod a+x $DESTDIRROOT/usr/local/bin/*
 
@@ -66,13 +70,9 @@ mkdir -p $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/atareinit $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/dhcpd $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/mini_httpd $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/ppp-linkup $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/vpn-linkdown $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/bpalogin $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/dhcrelay $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/mpd $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/racoon $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/vpn-linkup $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/choparp $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/dnsmasq $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/openvpn $DESTDIRROOT/usr/local/sbin/
@@ -83,7 +83,6 @@ mkdir -p $DESTDIRROOT/sbin/
 cp /sbin/adjkerntz $DESTDIRROOT/sbin/
 cp /sbin/init $DESTDIRROOT/sbin/
 cp /sbin/kldunload $DESTDIRROOT/sbin/
-cp /sbin/mount_null $DESTDIRROOT/sbin/
 cp /sbin/route $DESTDIRROOT/sbin/
 cp /sbin/dhclient $DESTDIRROOT/sbin/
 cp /sbin/ipf $DESTDIRROOT/sbin/
@@ -97,13 +96,9 @@ cp /sbin/mount_std $DESTDIRROOT/sbin/
 cp /sbin/sysctl $DESTDIRROOT/sbin/
 cp /sbin/dmesg $DESTDIRROOT/sbin/
 cp /sbin/ipfstat $DESTDIRROOT/sbin/
-cp /sbin/mount_fdesc $DESTDIRROOT/sbin/
-cp /sbin/mount_umap $DESTDIRROOT/sbin/
 cp /sbin/umount $DESTDIRROOT/sbin/
 cp /sbin/fastboot $DESTDIRROOT/sbin/
 cp /sbin/ipfw $DESTDIRROOT/sbin/
-cp /sbin/mount_kernfs $DESTDIRROOT/sbin/
-cp /sbin/mount_union $DESTDIRROOT/sbin/
 cp /sbin/fasthalt $DESTDIRROOT/sbin/
 cp /sbin/ipmon $DESTDIRROOT/sbin/
 cp /sbin/mount_linprocfs $DESTDIRROOT/sbin/
@@ -114,7 +109,6 @@ cp /sbin/mount_mfs $DESTDIRROOT/sbin/
 cp /sbin/ping $DESTDIRROOT/sbin/
 cp /sbin/ifconfig $DESTDIRROOT/sbin/
 cp /sbin/kldload $DESTDIRROOT/sbin/
-cp /sbin/mount_msdos $DESTDIRROOT/sbin/
 cp /sbin/reboot $DESTDIRROOT/sbin/
 chmod a+x $DESTDIRROOT/sbin/*
 
