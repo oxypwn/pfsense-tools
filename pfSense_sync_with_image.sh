@@ -42,7 +42,8 @@ PACKAGES="/usr/ports/net/mpd \
     /usr/ports/net-mgmt/choparp \
     /usr/ports/dns/dnsmasq \
     /usr/ports/security/openvpn \
-    /usr/ports/net-mgmt/net-snmp4"
+    /usr/ports/net-mgmt/net-snmp4 \
+    /usr/ports/www/links"
 
 # Uncomment this to automatically install packages.
 #for package in $PACKAGES; do
@@ -57,6 +58,8 @@ cp /usr/local/bin/wol $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/minicron $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/php $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/verifysig $DESTDIRROOT/usr/local/bin/
+cp /usr/local/bin/links $DESTDIRROOT/usr/local/bin/
+chmod a+x $DESTDIRROOT/usr/local/bin/*
 
 cp /usr/local/sbin/atareinit $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/dhcpd $DESTDIRROOT/usr/local/sbin/
@@ -72,6 +75,7 @@ cp /usr/local/sbin/choparp $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/dnsmasq $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/openvpn $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/snmpd $DESTDIRROOT/usr/local/sbin/
+chmod a+x $DESTDIRROOT/usr/local/sbin/*
 
 cp /sbin/adjkerntz $DESTDIRROOT/sbin/
 cp /sbin/init $DESTDIRROOT/sbin/
@@ -109,6 +113,7 @@ cp /sbin/ifconfig $DESTDIRROOT/sbin/
 cp /sbin/kldload $DESTDIRROOT/sbin/
 cp /sbin/mount_msdos $DESTDIRROOT/sbin/
 cp /sbin/reboot $DESTDIRROOT/sbin/
+chmod a+x $DESTDIRROOT/sbin/*
 
 cp /bin/[ $DESTDIRROOT/bin/
 cp /bin/date $DESTDIRROOT/bin/
@@ -130,6 +135,7 @@ cp /bin/echo $DESTDIRROOT/bin/
 cp /bin/ls $DESTDIRROOT/bin/
 cp /bin/sh $DESTDIRROOT/bin/
 cp /bin/test $DESTDIRROOT/bin/
+chmod a+x $DESTDIRROOT/$DESTDIRROOT/bin/*
 
 cp /usr/sbin/ancontrol $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/chroot $DESTDIRROOT/usr/sbin/
@@ -142,6 +148,7 @@ cp /usr/sbin/wicontrol $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/chown $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/dev_mkdb $DESTDIRROOT/usr/sbin/
 cp /usr/sbin/setkey $DESTDIRROOT/usr/sbin/
+chmod a+x $DESTDIRROOT/ $DESTDIRROOT/usr/sbin/*
 
 cp /usr/bin/gunzip $DESTDIRROOT/usr/bin/
 cp /usr/bin/killall $DESTDIRROOT/usr/bin/
@@ -156,6 +163,7 @@ cp /usr/bin/nohup $DESTDIRROOT/usr/bin/
 cp /usr/bin/tail $DESTDIRROOT/usr/bin/
 cp /usr/bin/top $DESTDIRROOT/usr/bin/
 cp /usr/bin/uptime $DESTDIRROOT/usr/bin/
+chmod a+x $DESTDIRROOT/ $DESTDIRROOT/usr/bin/*
 
 cp /usr/lib/libc.so.4 $DESTDIRROOT/usr/lib/
 cp /usr/lib/libkvm.so.2 $DESTDIRROOT/usr/lib/
