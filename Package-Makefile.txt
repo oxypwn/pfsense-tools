@@ -1,0 +1,22 @@
+PORTNAME=       pure-ftpd-pfSense
+PORTVERSION=    0.0.20041214
+PORTREVISION=   1
+CATEGORIES=     sysutils
+MASTER_SITES=   http://www.pfsense.com/packages/pfSense/
+DISTNAME=       ${PORTNAME}-${PORTVERSION:S/0.0.//}
+
+MAINTAINER=     geekgod@geekgod.com
+COMMENT=        pfSense pure-ftpd helper scripts
+
+USE_BZIP2=      yes
+NO_BUILD=       yes
+
+WRKSRC=         ${WRKDIR}
+
+do-install:
+        @${MKDIR} ${DATADIR}
+        @${MKDIR} $/usr/local/pkg
+        @ cd ${WRKSRC}/pure-ftpd-pfSense && ${FIND} * -type f -print | \
+                ${CPIO} --quiet -pdum -R ${BINOWN}:${BINGRP} /usr/local/pkg
+
+.include <bsd.port.mk>

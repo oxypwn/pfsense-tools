@@ -1,0 +1,16 @@
+CHANGELOG
+
+12/12/04:
+* converted return_menu to return_ext_menu in fbegin.inc.
+* fixed interfaces left menu from not displaying additional interfaces by saving and restoring config value.
+* equipped edit.php with the pfSense theme so it looks uniform
+* Add pkg.php which will parse the package xml file and present an interface (see http://www.pfsense.com/screens/pkg.JPG )
+* Correct behavior of pkg_mgr.php when multiple packages are included
+* Other minor cleanups
+* Added progress bar.  Needs to be converted from green -> pfSense red
+* Automatically focus to command box and filename box
+* Bring edit.php and exec.php up to speed in terms of matching other pages
+* Add edit.php and exec.php to Diagnostics menu item
+
+* Bring xmlparse_pkg.inc up to speed on array values
+*
