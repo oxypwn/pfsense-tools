@@ -1,9 +1,9 @@
 /*
 * SSHLOCKOUT_PF.C
-* 
+*
 * Written by Matthew Dillon
 * Modified to use PF tables by Scott Ullrich
-* 
+*
 * Use: pipe syslog auth output to this program.  e.g. in /etc/syslog.conf:
 *
 *  auth.info;authpriv.info                         /var/log/auth.log
@@ -16,9 +16,8 @@
 * table <sshlockout> persist
 * block in log quick from <sshlockout> to any label "sshlockout"
 *
-* *VERY* simplistic.  ipfw entries do not timeout, duplicate entries may
-* occur (though normally not since ssh won't see new connections from
-* the IP otherwise), there are no checks made for local IPs or nets,
+* *VERY* simplistic.  ip table entries do not timeout, there are
+* no checks made for local IPs or nets,
 * or for prior successful logins, etc.
 */
 
