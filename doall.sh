@@ -62,26 +62,25 @@ cd $LOCALDIR
 
 cp /sbin/pf* $FREESBIEBASEDIR/sbin
 chmod a+x $FREESBIEBASEDIR/sbin/pf*
-cp /home/sullrich/freesbie/files/gettytab $FREESBIEBASEDIR/etc/
+cp $LOCALDIR/files/gettytab $FREESBIEBASEDIR/etc/
 cp /sbin/ip* $FREESBIEBASEDIR/sbin/
 cp /usr/sbin/ip* $FREESBIEBASEDIR/usr/sbin/
 rm -rf $FREESBIEBASEDIR/dist/pfSense.tgz
 cp /home/sullrich/pfSense.tgz $FREESBIEBASEDIR/dist/
-cp /home/sullrich/freesbie/files/ip* $FREESBIEBASEDIR/boot/kernel/
-cp /home/sullrich/freesbie/files/dummynet* $FREESBIEBASEDIR/boot/kernel/
+cp $LOCALDIR/files/ip* $FREESBIEBASEDIR/boot/kernel/
+cp $LOCALDIR/files/dummynet* $FREESBIEBASEDIR/boot/kernel/
 cp /usr/lib/libstdc* $FREESBIEBASEDIR/usr/lib/
-cp /home/sullrich/freesbie/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
+cp $LOCALDIR/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
 mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer
-cp /home/sullrich/freesbie/files/sources.conf $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/
-sources.conf
-cp /home/sullrich/freesbie/files/loader.rc $FREESBIEBASEDIR/boot/loader.rc
+cp $LOCALDIR/files/sources.conf \
+        $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
+cp $LOCALDIR/files/loader.rc $FREESBIEBASEDIR/boot/loader.rc
 rm -rf $FREESBIEBASEDIR/etc/shells
-cp /home/sullrich/freesbie/files/shells $FREESBIEBASEDIR/etc/shells
+cp $LOCALDIR/files/shells $FREESBIEBASEDIR/etc/shells
 echo exit > $FREESBIEBASEDIR/root/.xcustom.sh
 echo hint.acpi.0.disabled=\"1\" >> $FREESBIEBASEDIR/boot/device.hints
-echo "-m -P" >> $FREESBIEBASEDIR/boot.config
 # trim off some extra fat.
 ./8.preparefs.sh
 ./81.mkiso.sh
 
-/home/sullrich/tools/copy_files_to_pfSense_Site.sh
+../tools/copy_files_to_pfSense_Site.sh
