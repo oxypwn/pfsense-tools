@@ -171,22 +171,4 @@ cp /usr/bin/top $DESTDIRROOT/usr/bin/
 cp /usr/bin/uptime $DESTDIRROOT/usr/bin/
 chmod a+x $DESTDIRROOT/ $DESTDIRROOT/usr/bin/*
 
-mkdir -p $DESTDIRROOT/usr/lib/
-cp /usr/lib/libc.so.4 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libkvm.so.2 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libskey.so.2 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libcrypt.so.2 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libm.so.2 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libssl.so.3 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libcrypto.so.3 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libmd.so.2 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libutil.so.3 $DESTDIRROOT/usr/lib/$DESTDIRROOT/usr/lib/
-cp /usr/lib/libedit.so.3 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libncurses.so.5 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libwrap.so.3 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libipsec.so.1 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libnetgraph.so.1 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libz.so.2 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libipx.so.2 $DESTDIRROOT/usr/lib/
-cp /usr/lib/libradius.so.1 $DESTDIRROOT/usr/lib/
 
