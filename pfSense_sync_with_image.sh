@@ -21,7 +21,7 @@ fi
 # minicron
 if [ ! -e $DESTDIRROOT/usr/local/minicron ]; then
     fetch http://m0n0.ch/wall/downloads/minicron.c
-    gcc -o $DESTDIRROOT/usr/local/minicron minicron.c
+    gcc -o $DESTDIRROOT/usr/local/bin/minicron minicron.c
     rm minicron.c
 fi
 
