@@ -107,6 +107,8 @@ cp /home/sullrich/pfSense/cf/conf/* /tmp/cf/conf/
 echo -n "Config directory: "
 ls /tmp/cf/conf
 
+echo "wrap" > /tmp/root/etc/platform
+
 echo -n "Unmounting: [ "
 echo -n "/tmp/root "
 cd /home/sullrich/tools && umount /tmp/root
