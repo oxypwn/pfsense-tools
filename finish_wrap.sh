@@ -73,16 +73,12 @@ cd /home/sullrich/pfSense && tar czPf /home/sullrich/pfSense.tgz .
 cd /tmp/root && tar xzPf /home/sullrich/pfSense.tgz
 echo "]"
 
-echo /dev/ad0		/		ufs	ro		1 \
+echo /dev/ad0a		/		ufs	ro		1 \
 	1 > /tmp/root/etc/fstab
-echo /dev/ad0a		/cf		ufs	ro		1 \
+echo /dev/ad0d		/cf		ufs	ro		1 \
 	1 >> /tmp/root/etc/fstab
-echo md			/tmp		mfs	rw,-s4m		1 \
+echo md			/tmp		mfs	rw,-s16m		1 \
 	1 >> /tmp/root/etc/fstab
-
-mv /tmp/root/cf /tmp/cf/
-echo -n "Config directory: "
-ls /tmp/cf/cf/conf
 
 rm -rf /tmp/root/var/run
 rm -rf /tmp/root/var/log
@@ -99,9 +95,26 @@ echo "ln -s /cf/conf /conf" >> /tmp/root/script
 chmod a+x /tmp/root/script
 chroot /tmp/root/ /script
 
+mkdir -p /tmp/root/cf /tmp/root/usr/savecore
+
+rm -rf /home/sullrich/pfSense/cf/conf/CVS
+cp /home/sullrich/pfSense/cf/conf/* \
+	/tmp/root/cf/conf/
+
+mkdir -p /tmp/cf/conf
+cp /home/sullrich/pfSense/cf/conf/* /tmp/cf/conf/
+
+echo -n "Config directory: "
+ls /tmp/cf/conf
+
+echo -n "Unmounting: [ "
+echo -n "/tmp/root "
 cd /home/sullrich/tools && umount /tmp/root
+echo -n "/tmp/cf "
 cd /home/sullrich/tools && umount /tmp/cf
+echo -n "md "
 /sbin/mdconfig -d -u 91
+echo "]"
 
 echo gzipping image.bin
 gzip -9 image.bin
@@ -112,4 +125,3 @@ ls -la pfSense-128-megs.bin.gz
 echo Cleaning up /tmp/
 rm -rf /tmp/root
 rm -rf /tmp/cf
-
