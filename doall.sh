@@ -1,6 +1,8 @@
 #!/bin/sh
+rm -rf /home/sullrich/pfSense
+cd /home/sullrich
+cvs -d:ext:sullrich@216.135.66.16:/cvsroot co pfSense
 cd /home/sullrich/pfSense
-cd /home/sullrich/pfSense & cvs update
 cp /bin/ln /home/sullrich/pfSense/bin && chmod a+x /home/sullrich/pfSense/bin/*
 echo "#!/bin/sh" > /home/sullrich/pfSense/script
 echo ln -s /cf/conf /conf >> /home/sullrich/pfSense/script
