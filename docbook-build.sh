@@ -12,7 +12,7 @@ cd $CVSPATH && cvs -d $CVSROOT co docbook
         --stringparam section.autolabel 1 \
         --stringparam section.label.includes.component.label 1 \
         --stringparam toc.max.depth 2 \
-        --stringparam html.stylesheet m0n0doc.css \
+        --stringparam html.stylesheet pfsensedoc.css \
         --stringparam chunker.output.indent yes \
         --stringparam base.dir $WWWPATH/docbook/ \
         /usr/local/docbook-xsl-1.61.3/html/chunk.xsl \
