@@ -2,6 +2,14 @@
 cd /home/sullrich
 rm -rf /home/sullrich/pfSense
 cvs -d:ext:sullrich@216.135.66.16:/cvsroot co pfSense
+
+# if platform == net45xx/wrap ###########################
+#rm pfSense/usr/local/www/trigger_initial_wizard
+#ls -la pfSense/usr/local/www/trigger_initial_wizard
+#echo net45xx >> pfSense/usr/local/www/platform
+#sleep 3
+# end if ################################################
+
 cd /home/sullrich/pfSense
 if [ ! -e /home/sullrich/pfSense/libexec ]; then
 	mkdir -p /home/sullrich/pfSense/libexec
@@ -51,6 +59,7 @@ rm -rf /usr/local/livefs/etc/shells
 cp /home/sullrich/freesbie/files/shells /usr/local/livefs/etc/shells
 echo exit > /usr/local/livefs/root/.xcustom.sh
 echo hint.acpi.0.disabled=\"1\" >> /usr/local/livefs/boot/device.hints
+echo "-m -P" >> /usr/local/livefs/boot.config
 # trim off some extra fat.
 ./8.preparefs.sh
 ./81.mkiso.sh
