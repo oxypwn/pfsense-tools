@@ -2,6 +2,9 @@
 
 FreeSBIE=/usr/local/livefs
 
+rm -rf /tmp/*
+rm -rf /tmp/*.*
+
 echo
 
 umount /tmp 2>/dev/null
@@ -50,8 +53,9 @@ echo Running mdconfig
 disklabel -BR md91 /home/sullrich/pfSense/boot/label.proto_wrap
 echo Running newfs
 newfs /dev/md91
+newfs /dev/md91a
 echo Mounting /tmp
-mount /dev/md91 /tmp
+mount /dev/md91a /tmp
 
 echo Populating /tmp/
 echo livefs
@@ -63,7 +67,9 @@ cd /tmp/ && tar xzPf /home/sullrich/pfSense.tgz
 
 echo /dev/ad0		/		ufs	rw		1 \
 	1 > /tmp/etc/fstab
-#echo /dev/ad0 /cf ufs ro 1 1 >> /tmp/etc/fstab
+echo /dev/ad0a /cf ufs ro 1 1 >> /tmp/etc/fstab
+
+ls /tmp/cf/conf
 
 cd /home/sullrich/tools && umount /tmp
 /sbin/mdconfig -d -u 91
