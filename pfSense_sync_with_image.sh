@@ -4,6 +4,23 @@
 
 $DESTDIRROOT=/home/sullrich/pfsense
 
+PACKAGES="/usr/ports/net/mpd \
+    /usr/ports/security/racoon \
+    /usr/ports/net/wol \
+    /usr/ports/dns/ez-ipupdate \
+    /usr/ports/net/msntp \
+    /usr/ports/net/isc-dhcp3-server \
+    /usr/ports/www/mini_httpd \
+    /usr/ports/net-mgmt/choparp \
+    /usr/ports/dns/dnsmasq \
+    /usr/ports/security/openvpn \
+    /usr/ports/net-mgmt/net-snmp4"
+
+# Uncomment this to automatically install packages.
+#for package in $PACKAGES; do
+#cd $package && make install
+#done
+
 cp /usr/local/bin/ez-ipupdate $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/msntp $DESTDIRROOT/usr/local/bin/
 cp /usr/local/bin/runmsntp.sh $DESTDIRROOT/usr/local/bin/
@@ -14,8 +31,8 @@ cp /usr/local/bin/verifysig $DESTDIRROOT/usr/local/bin/
 
 cp /usr/local/sbin/atareinit $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/dhcpd $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/mini_httpd $DESTDIRROOT/usr/local/sbin/ 
-cp /usr/local/sbin/ppp-linkup $DESTDIRROOT/usr/local/sbin/ 
+cp /usr/local/sbin/mini_httpd $DESTDIRROOT/usr/local/sbin/
+cp /usr/local/sbin/ppp-linkup $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/vpn-linkdown $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/bpalogin $DESTDIRROOT/usr/local/sbin/
 cp /usr/local/sbin/dhcrelay $DESTDIRROOT/usr/local/sbin/
@@ -51,7 +68,7 @@ cp /sbin/fastboot $DESTDIRROOT/sbin/
 cp /sbin/ipfw $DESTDIRROOT/sbin/
 cp /sbin/mount_kernfs $DESTDIRROOT/sbin/
 cp /sbin/mount_union $DESTDIRROOT/sbin/
-cp /sbin/fasthalt $DESTDIRROOT/sbin/ 
+cp /sbin/fasthalt $DESTDIRROOT/sbin/
 cp /sbin/ipmon $DESTDIRROOT/sbin/
 cp /sbin/mount_linprocfs $DESTDIRROOT/sbin/
 cp /sbin/nologin $DESTDIRROOT/sbin/
@@ -72,17 +89,17 @@ cp /bin/sleep $DESTDIRROOT/bin/
 cp /bin/cat $DESTDIRROOT/bin/
 cp /bin/dd $DESTDIRROOT/bin/
 cp /bin/hostname $DESTDIRROOT/bin/
-cp /bin/ps $DESTDIRROOT/bin/ 
+cp /bin/ps $DESTDIRROOT/bin/
 cp /bin/stty $DESTDIRROOT/bin/
 cp /bin/chmod $DESTDIRROOT/bin/
 cp /bin/df $DESTDIRROOT/bin/
 cp /bin/kill $DESTDIRROOT/bin/
 cp /bin/rm $DESTDIRROOT/bin/
 cp /bin/sync $DESTDIRROOT/bin/
-cp /bin/cp $DESTDIRROOT/bin/ 
+cp /bin/cp $DESTDIRROOT/bin/
 cp /bin/echo $DESTDIRROOT/bin/
 cp /bin/ls $DESTDIRROOT/bin/
-cp /bin/sh $DESTDIRROOT/bin/ 
+cp /bin/sh $DESTDIRROOT/bin/
 cp /bin/test $DESTDIRROOT/bin/
 
 cp /usr/sbin/ancontrol $DESTDIRROOT/usr/sbin/
