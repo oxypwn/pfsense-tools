@@ -5,7 +5,7 @@ CVSROOT=:ext:username@cvs.pfsense.com:/cvsroot
 WWWPATH=$ROOTPATH/wwwroot
 
 # update from CVS
-cd $CVSPATH && cvs -d $CVSROOT co docbook
+cd $CVSPATH && cvs -d $CVSROOT co doc
 
 # build html files
 /usr/local/bin/xsltproc \
