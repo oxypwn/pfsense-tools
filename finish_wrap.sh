@@ -2,18 +2,18 @@
 
 FreeSBIE=/usr/local/livefs
 
-rm -rf /tmp/*
-rm -rf /tmp/*.*
+chflags -R noschg /tmp/ 2>/dev/null
+rm -rf /tmp/* 2>/dev/null
+rm -rf /tmp/root/*.* 2>/dev/null
+rm -rf /tmp/cf/*.* 2>/dev/null
+mkdir -p /tmp/root 2>/dev/null
+mkdir -p /tmp/cf 2>/dev/null
 
-echo
-
-umount /tmp 2>/dev/null
+umount /tmp/root 2>/dev/null
+umount /tmp/cf 2>/dev/null
 mdconfig -d -u 91 2>/dev/null
 
 cd /home/sullrich
-
-chflags -R noschg /tmp/
-rm -rf /tmp/*
 
 cp /home/sullrich/pfSense/boot/device.hints_wrap \
         /usr/local/livefs/boot/device.hints
@@ -46,38 +46,48 @@ cd /home/sullrich/tools
 echo Calculating size of /usr/local/livefs...
 du -H -d0 /usr/local/livefs
 cd /home/sullrich/tools
+
 echo Running DD
 /bin/dd if=/dev/zero of=image.bin bs=1k count=111072
 echo Running mdconfig
 /sbin/mdconfig -a -t vnode -u91 -f image.bin
 disklabel -BR md91 /home/sullrich/pfSense/boot/label.proto_wrap
+
 echo Running newfs
 newfs /dev/md91
 newfs /dev/md91a
-echo Mounting /tmp
-mount /dev/md91a /tmp
+newfs /dev/md91d
 
-echo Populating /tmp/
+echo Mounting /tmp/root
+mount /dev/md91d /tmp/root
+echo Mounting /tmp/cf
+mount /dev/md91a /tmp/cf
+
+echo Populating /tmp/root
 echo livefs
 cd /usr/local/livefs/ && tar czPf /home/sullrich/livefs.tgz .
-cd /tmp/ && tar xzPf /home/sullrich/livefs.tgz
+cd /tmp/root && tar xzPf /home/sullrich/livefs.tgz
 echo pfSense
 cd /home/sullrich/pfSense && tar czPf /home/sullrich/pfSense.tgz .
-cd /tmp/ && tar xzPf /home/sullrich/pfSense.tgz
+cd /tmp/root && tar xzPf /home/sullrich/pfSense.tgz
 
 echo /dev/ad0		/		ufs	rw		1 \
-	1 > /tmp/etc/fstab
-echo /dev/ad0a /cf ufs ro 1 1 >> /tmp/etc/fstab
+	1 > /tmp/root/etc/fstab
+echo /dev/ad0a /cf ufs ro 1 1 >> /tmp/root/etc/fstab
 
-ls /tmp/cf/conf
+mv /tmp/root/cf /tmp/cf/
+ls /tmp/cf/cf/conf
 
-cd /home/sullrich/tools && umount /tmp
+cd /home/sullrich/tools && umount /tmp/root
+cd /home/sullrich/tools && umount /tmp/cf
 /sbin/mdconfig -d -u 91
 
 echo GZipping image.bin
 gzip -9 image.bin
 mv image.bin.gz pfSense-128-megs.bin.gz
 ls -la pfSense-128-megs.bin.gz
+
 echo Cleaning up /tmp/
-rm -rf /tmp/*
-rm -rf /tmp/*.*
+rm -rf /tmp/root
+rm -rf /tmp/cf
+
