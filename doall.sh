@@ -6,6 +6,7 @@ cd /home/sullrich/pfSense
 if [ ! -e /home/sullrich/pfSense/libexec ]; then
 	mkdir -p /home/sullrich/pfSense/libexec
 fi
+cp /usr/lib/libkrb5.so.7 /usr/local/livefs/usr/lib/
 echo "#!/bin/sh" > /home/sullrich/pfSense/script
 echo ln -s /cf/conf /conf >> /home/sullrich/pfSense/script
 echo ln -s /conf /cf/conf >> /home/sullrich/pfSense/script
@@ -37,12 +38,17 @@ cp /usr/sbin/ip* /usr/local/livefs/usr/sbin/
 cp /home/sullrich/pfSense.tgz /usr/local/livefs/dist/
 cp /home/sullrich/freesbie/files/ip* /usr/local/livefs/boot/kernel/
 cp /home/sullrich/freesbie/files/dummynet* /usr/local/livefs/boot/kernel/
+mkdir -p /usr/local/livefs/usr/local/share/dfuibe_installer
+cp /home/sullrich/freesbie/files/sources.conf /usr/local/livefs/usr/local/share/dfuibe_installer/sources.conf
 rm -rf /usr/local/livefs/etc/shells
 cp /home/sullrich/freesbie/files/shells /usr/local/livefs/etc/shells
 echo exit > /usr/local/livefs/root/.xcustom.sh
+# trim off some extra fat.
+rm -rf /usr/local/livefs/usr/include
+rm -rf /usr/local/livefs/usr/local/include
 ./8.preparefs.sh
 ./81.mkiso.sh
 echo Copying ISO to 10.0.250.50:~sullrich ... CTRL-C to abort.
 scp /home/sullrich/freesbie/FreeSBIE.iso sullrich@10.0.250.50:~
 echo Copying ISO to www.livebsd.com ... CTRL-C to abort.
-scp -C /home/sullrich/freesbie/FreeSBIE.iso sullrich@www.pfsense.com:/usr/local/www/pfsense/pfSense-0.1.iso
+scp -C /home/sullrich/freesbie/FreeSBIE.iso sullrich@www.pfsense.com:/usr/local/www/pfsense/pfSense-0.2.iso
