@@ -13,6 +13,7 @@
 * using PF's tables.
 *
 * setup a rule in your pf ruleset (near the top) similar to:
+* table <sshlockout> persist
 * block in log quick from <sshlockout> to any label "sshlockout"
 *
 * *VERY* simplistic.  ipfw entries do not timeout, duplicate entries may
