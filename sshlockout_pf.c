@@ -83,10 +83,8 @@ lockout(char *str)
    char buf[256];
 
    if (sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) == 4) {
-       syslog(LOG_ERR, "Detected Illegal ssh login attempt, locking out
-%d.%d.%d.%d\n", n1, n2, n3, n4);
-       snprintf(buf, sizeof(buf), "/sbin/pfctl -t sshlockout -T add %d.%d.%d.%d
-", n1, n2, n3, n4);
+       syslog(LOG_ERR, "Detected Illegal ssh login attempt, locking out %d.%d.%d.%d\n", n1, n2, n3, n4);
+       snprintf(buf, sizeof(buf), "/sbin/pfctl -t sshlockout -T add %d.%d.%d.%d", n1, n2, n3, n4);
        system(buf);
    }
 }
