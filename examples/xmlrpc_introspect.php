@@ -25,7 +25,6 @@ function rpc_call($client, $msg) {
 
 $f=new XML_RPC_Message('system.listMethods');
 $c=new XML_RPC_Client("/xmlrpc.php", "192.168.1.2", 80);
-$c->setDebug(1);
 $c->setCredentials('admin', $password);
 
 $v=rpc_call($c, $f);
