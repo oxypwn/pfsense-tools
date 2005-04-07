@@ -65,7 +65,7 @@ function get_firmware_version($raw_params) {
 
 $server = new XML_RPC_Server(
         array(
-	    'pfsense.check_firmware_version' =>	array('function' => 'get_firmware_version',
+	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version',
 							'signature' => $get_firmware_version_sig,
 							'docstring' => $get_firmware_version_doc)
         )
