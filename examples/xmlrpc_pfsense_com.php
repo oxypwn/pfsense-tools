@@ -68,15 +68,16 @@ function xmlrpc_array_to_php($array) {
 }
 
 $get_firmware_version_sig = array(array(array(), string, string));
+$get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with four strings - a valid pfSense platform and the caller\'s current firmware, kernel, and base versions, respectively. This method returns the current firmware version, the current kernel version, the current base version, and any additional data.';
 
 function get_firmware_version($raw_params) {
 	$params = xmlrpc_params_to_php($raw_params);
-	$current_firmware_version = trim(file_get_contents('./version'));
-	$current_base_version = trim(file_get_contents('./version_base'));
+	$current_firmware_version = trim(file_get_contents('../version'));
+	$current_base_version = trim(file_get_contents('../version_base'));
 	if($params[0] == 'wrap+soekris') {
-		$current_kernel_version = trim(file_get_contents('./version_wrapsoekris'));
+		$current_kernel_version = trim(file_get_contents('../version_wrapsoekris'));
 	} else {
-		$current_kernel_version = trim(file_get_contents('./version_pfsense'));
+		$current_kernel_version = trim(file_get_contents('../version_pfsense'));
 	}
 	if($params[1] != $current_firmware_version || $params[2] != $current_kernel_version || $params[3] != $current_base_version) {
 			$sendcomment = true;
