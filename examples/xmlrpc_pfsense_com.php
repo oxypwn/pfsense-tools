@@ -73,7 +73,6 @@ function get_firmware_version($raw_params) {
 	$params = xmlrpc_params_to_php($raw_params);
 	$current_firmware_version = trim(file_get_contents('./version'));
 	$current_base_version = trim(file_get_contents('./version_base'));
-	$current_pfsense_kernel = trim(file_get_contents('./version_pfsense'));
 	if($params[0] == 'wrap+soekris') {
 		$current_kernel_version = trim(file_get_contents('./version_wrapsoekris'));
 	} else {
