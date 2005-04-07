@@ -1,7 +1,9 @@
 #!/usr/local/bin/php
 <?php
-/* $Id$ */
 /*
+
+	$Id$
+
         xmlrpc_pfsense_com.php
         Copyright (C) 2005 Colin Smith
         All rights reserved.
@@ -36,32 +38,67 @@ require_once("xmlrpc_server.inc");
  *   XXX: This function does not currently handle XML_RPC_Value objects of type "struct".
  */
 function xmlrpc_params_to_php($params) {
-	$array = array();
-	for($i = 0; $i < $params->getNumParams(); $i++) {
-		$value = $params->getParam($i);
-		if($value->kindOf() == "scalar") {
-			$array[] = $value->scalarval();
-		} elseif($value->kindOf() == "array") {
-			$array[] = xmlrpc_array_to_php($value);
-		}
-	}
-	return $array;
+        $array = array();
+        for($i = 0; $i < $params->getNumParams(); $i++) {
+                $value = $params->getParam($i);
+                if($value->kindOf() == "scalar") {
+                        $array[] = $value->scalarval();
+                } elseif($value->kindOf() == "array") {
+                        $array[] = xmlrpc_array_to_php($value);
+                }
+        }
+        return $array;
 }
 
-$get_firmware_version_doc = 'Check the current firmware and base system versions against the versions provided. This method must be called with two parameters: a string containing the local system\'s firmware version followed by a string containing the system\'s base version. This method will return a string containing the current firmware version, a string containing the current base version, and a string containing any additional data.';
-$get_firmware_version_sig = array(array(string, string, string));
+/*
+ *   xmlrpc_array_to_php: Convert an XMLRPC array into a PHP array and return it.
+ */
+function xmlrpc_array_to_php($array) {
+        $return = array();
+        $array_length = $array->arraysize();
+        for($i = 0; $i < $array->arraysize(); $i++) {
+                $value = $array->arraymem($i);
+                if($value->kindOf() == "scalar") {
+                        $return[] = $value->scalarval();
+                } elseif($value->kindOf() == "array") {
+                        $return[] = xmlrpc_array_to_php($value);
+                }
+        }
+        return $return;
+}
+
+$get_firmware_version_sig = array(array(array(), string, string));
 
 function get_firmware_version($raw_params) {
-	$current_firmware_version = trim(file_get_contents('../version'));
-	$current_base_version = trim(file_get_contents('../base_version'));
-	$response = array(new XML_RPC_Value($current_firmware_version, 'string'),
-			  new XML_RPC_Value($current_base_version, 'string')); 
-	if(($params[0] != $current_firmware_version) or ($params[1] != $current_base_version)) {
-		$response[] = new XML_RPC_Value(file_get_contents('../version_comment'), 'string');
+	$params = xmlrpc_params_to_php($raw_params);
+	$current_firmware_version = trim(file_get_contents('./version'));
+	$current_base_version = trim(file_get_contents('./version_base'));
+	$current_pfsense_kernel = trim(file_get_contents('./version_pfsense'));
+	if($params[0] == 'wrap+soekris') {
+		$current_kernel_version = trim(file_get_contents('./version_wrapsoekris'));
+	} else {
+		$current_kernel_version = trim(file_get_contents('./version_pfsense'));
+	}
+	if($params[1] != $current_firmware_version || $params[2] != $current_kernel_version || $params[3] != $current_base_version) {
+			$sendcomment = true;
+	}
+	if($sendcomment == true) {
+		$comments = file_get_contents('./version_comment');
+		$response = new XML_RPC_Value(array(new XML_RPC_Value($current_firmware_version, 'string'),
+						    new XML_RPC_Value($current_kernel_version, 'string'),
+						    new XML_RPC_Value($current_base_version, 'string'),
+						    new XML_RPC_Value($comments, 'string')
+					     ), 'array'
+			    );
+	} else {
+		$response = new XML_RPC_Value(array(new XML_RPC_Value($current_firmware_version, 'string'),
+						    new XML_RPC_Value($current_kernel_version, 'string');
+                                                    new XML_RPC_Value($current_base_version, 'string')
+					     ), 'array'
+			    );
 	}
 	return new XML_RPC_Response($response);
 }
-	
 
 $server = new XML_RPC_Server(
         array(
