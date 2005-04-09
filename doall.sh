@@ -4,6 +4,8 @@
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
 
+#set -e -u
+
 . ../freesbie/config.sh
 . ../freesbie/.common.sh
 
@@ -17,7 +19,7 @@ cd $PFSENSECVS
 if [ ! -e $PFSENSECVS/libexec ]; then
         mkdir -p $PFSENSECVS/libexec
 fi
-cp /usr/lib/libkrb5.so.7 $LOCALDIR/usr/lib/
+#cp /usr/lib/libkrb5.so.7 $LOCALDIR/usr/lib/
 mkdir -p $LOCALDIR/var/run
 echo "#!/bin/sh" > $PFSENSECVS/script
 echo rm /etc/resolv.conf >> $PFSENSECVS/script
@@ -32,15 +34,23 @@ echo ln -s /lib/libc.so.5 /lib/libc.so.4 >> $PFSENSECVS/script
 cat $PFSENSECVS/script
 chmod a+x $PFSENSECVS/script
 chroot $PFSENSECVS/ /script
-find $PFSENSECVS && find $PFSENSECVS -name CVS -exec rm -rf {} \;
-rm $PFSENSECVS.tgz
+#find $PFSENSECVS -name CVS -exec rm -rf {} \;
+rm -rf $PFSENSECVS.tgz
 cd $PFSENSECVS & tar czvPf $PFSENSECVS.tgz .
 cd $LOCALDIR
 ./0.rmdir.sh
 ./1.mkdir.sh
 #./2.buildworld.sh
+if [ "$?" != "0" ]; then
+    echo "Something went wrong."
+    exit 1;
+fi
 ./3.installworld.sh
 ./4.kernel.sh FREESBIE.5
+if [ "$?" != "0" ]; then
+    echo "Something went wrong."
+    exit 1;
+fi
 ./5.patchfiles.sh
 ./6.packages.sh
 ./7.customuser.sh
@@ -62,7 +72,7 @@ cp /usr/lib/libstdc* $FREESBIEBASEDIR/usr/lib/
 cp $LOCALDIR/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
 mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer
 cp $LOCALDIR/files/sources.conf \
-        $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
+$FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
 cp $LOCALDIR/files/loader.rc $FREESBIEBASEDIR/boot/loader.rc
 rm -rf $FREESBIEBASEDIR/etc/shells
 cp $LOCALDIR/files/shells $FREESBIEBASEDIR/etc/shells
@@ -74,9 +84,12 @@ version_kernel=`cat /usr/local/livefs/etc/version_kernel`
 version_base=`cat /usr/local/livefs/etc/version_base`
 version=`cat /usr/local/livefs/etc/version`
 
-
 # trim off some extra fat.
 ./8.preparefs.sh
+if [ "$?" != "0" ]; then
+    echo "Something went wrong."
+    exit 1;
+fi
 ./81.mkiso.sh
 
 # XXX: tar up base and kernel for pfsense versions
@@ -88,7 +101,7 @@ tar czpf /base-${version_base}.tgz .
 cd /home/sullrich/pfSense/
 tar zcpf /pfSense-${version}.tgz .
 
-
+exit
 
 
 
@@ -111,6 +124,11 @@ sleep 4
 echo -n .
 sleep 3
 echo .
+sleep 1
+echo -n .
+sleep 1
+echo -n .
+sleep 1
 
 
 
