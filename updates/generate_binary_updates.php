@@ -32,7 +32,7 @@ if($debug == false)
 /* detect if user passed in a .tgz for previous version dir */
 if(stristr($previous_version_dir,".tgz") == true) {
 	$dir = str_replace(".tgz","", $previous_version_dir);
-	echo "\nTar Gzipped file detected.\nPreparing /tmp/{$dir} ...";
+	echo "\nTar Gzipped file detected.\nPreparing {$dir} ...";
 	system("mkdir -p {$dir}");
 	system("tar xzPf {$previous_version_dir} -C {$dir}");
 	$previous_version_dir=$dir;
@@ -42,7 +42,7 @@ if(stristr($previous_version_dir,".tgz") == true) {
 /* detect if user passed in a .tgz for new version dir */
 if(stristr($new_version_dir,".tgz") == true) {
 	$dir = str_replace(".tgz","", $new_version_dir);
-	echo "\nTar Gzipped file detected.\nPreparing /tmp/{$dir} ...";
+	echo "\nTar Gzipped file detected.\nPreparing {$dir} ...";
 	system("mkdir -p {$dir}");
 	system("tar xzPf {$new_version_dir} -C {$dir}");
 	$new_version_dir=$dir;
