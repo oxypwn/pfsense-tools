@@ -88,7 +88,7 @@ exec("cd {$location_to_bin_patches} && tar czpf /tmp/binary_diffs.tgz .");
 if($debug == false) system("rm -rf {$previous_version_dir}");
 if($debug == false) system("rm -rf {$new_version_dir}");
 
-echo "\n";
+echo "\n\nCalculating binary diffs update size ...\n";
 system("ls -la /tmp/binary_diffs.tgz");
 echo "\n";
 
@@ -106,13 +106,6 @@ function create_diffs_for_dir($pvd, $nvd, $ltbp) {
 		if(is_dir($pvd . "/" . $pv)) {
 			if(!is_dir("{$ltbp}/{$pv}"))
 				mkdir("{$ltbp}/{$pv}");
-			$first_arg  = $pvd  . "/" . $pv . "/";
-			$second_arg = $nvd  . "/" . $pv . "/";
-			$third_arg  = $ltbp . "/" . $pv . "/";
-			$first_arg = str_replace("//","/",$first_arg);
-			$second_arg = str_replace("//","/",$second_arg);
-			$third_arg = str_replace("//","/",$third_arg);
-			$spawning = "{$first_arg}, {$second_arg}, {$third_arg}\n";
 		}
 		if(is_file($working_with)) {
 			$string_to_exec = "{$path_to_bsdiff} {$pvd}/{$pv} {$nvd}/{$pv} {$ltbp}/{$pv}";
