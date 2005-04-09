@@ -38,9 +38,9 @@ cd $PFSENSECVS & tar czvPf $PFSENSECVS.tgz .
 cd $LOCALDIR
 ./0.rmdir.sh
 ./1.mkdir.sh
-./2.buildworld.sh
+#./2.buildworld.sh
 ./3.installworld.sh
-./4.kernel.sh FREESBIE-5
+./4.kernel.sh FREESBIE.5
 ./5.patchfiles.sh
 ./6.packages.sh
 ./7.customuser.sh
@@ -69,20 +69,26 @@ cp $LOCALDIR/files/shells $FREESBIEBASEDIR/etc/shells
 echo exit > $FREESBIEBASEDIR/root/.xcustom.sh
 touch $FREESBIEBASEDIR/root/.hushlogin
 echo hint.acpi.0.disabled=\"1\" >> $FREESBIEBASEDIR/boot/device.hints
+
+version_kernel=`cat /usr/local/livefs/etc/version_kernel`
+version_base=`cat /usr/local/livefs/etc/version_base`
+version=`cat /usr/local/livefs/etc/version`
+
+
 # trim off some extra fat.
 ./8.preparefs.sh
 ./81.mkiso.sh
 
 # XXX: tar up base and kernel for pfsense versions
-version_kernel=`cat /usr/local/livefs/etc/version_kernel`
-version_base=`cat /usr/local/livefs/version_base`
-version=`cat /usr/local/livefs/version`
+echo Creating tarballs...
 cd /usr/local/livefs
-tar czvpf /kernel-${version_kernel}.tgz /usr/local/livefs/boot/
+tar czpf /kernel-${version_kernel}.tgz /usr/local/livefs/boot/
 rm -rf /usr/local/livefs/boot/
-tar czvpf /base-${version_base}.tgz .
+tar czpf /base-${version_base}.tgz .
 cd /home/sullrich/pfSense/
-tar zcvpf /pfSense-${version}.tgz .
+tar zcpf /pfSense-${version}.tgz .
+
+
 
 
 
@@ -91,7 +97,20 @@ tar zcvpf /pfSense-${version}.tgz .
 # ------------------------------
 # ------ EMBEDDED BUILDER ------
 # ------------------------------
+echo
+echo
 echo Starting Embedded Builder ...
+echo -n ctrl-c now to abort.
+sleep 1
+echo -n .
+sleep 1 
+echo -n .
+sleep 1 
+echo -n .
+sleep 4 
+echo -n .
+sleep 3
+echo .
 
 
 
@@ -132,7 +151,7 @@ cd $PFSENSECVS & tar czvPf $PFSENSECVS.tgz .
 cd $LOCALDIR
 ./0.rmdir.sh
 ./1.mkdir.sh
-./2.buildworld.sh
+#./2.buildworld.sh
 ./3.installworld.sh
 ./4.kernel.sh FREESBIE.5.WRAP-SOEKRIS
 ./5.patchfiles.sh
@@ -167,13 +186,13 @@ echo hint.acpi.0.disabled=\"1\" >> $FREESBIEBASEDIR/boot/device.hints
 
 # XXX: tar up kernel and world for embedded updates
 version_kernel=`cat /usr/local/livefs/etc/version_kernel`
-version_base=`cat /usr/local/livefs/version_base`
-version=`cat /usr/local/livefs/version`
+version_base=`cat /usr/local/livefs/etc/version_base`
+version=`cat /usr/local/livefs/etc/version`
 cd /usr/local/livefs
 tar czvpf /kernel-${version_kernel}-wrap-soekris.tgz /usr/local/livefs/boot/
 rm -rf /usr/local/livefs/boot/
 tar czvpf /base-${version_base}-wrap-soekris.tgz .
 
 # Finish up wrap configuration
-./finish_wrap.sh
+/home/sullrich/tools/finish_wrap.sh
 
