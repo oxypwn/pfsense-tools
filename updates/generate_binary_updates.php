@@ -27,12 +27,12 @@ echo "New bin patches dir:  {$location_to_bin_patches}\n";
 echo "\n";
 
 if($debug == false)
-	echo "Debug is off.  Output is supressed.\n\n";
+	echo "Debug is off.  Output is surpressed.\n";
 
 /* detect if user passed in a .tgz for previous version dir */
 if(stristr($previous_version_dir,".tgz") == true) {
 	$dir = str_replace(".tgz","", $previous_version_dir);
-	echo "Tar Gzipped file detected.  Preparing /tmp/{$dir} ...";
+	echo "\nTar Gzipped file detected.\nPreparing /tmp/{$dir} ...";
 	system("mkdir -p {$dir}");
 	system("tar xzPf {$previous_version_dir} -C {$dir}");
 	$previous_version_dir=$dir;
@@ -42,7 +42,7 @@ if(stristr($previous_version_dir,".tgz") == true) {
 /* detect if user passed in a .tgz for new version dir */
 if(stristr($new_version_dir,".tgz") == true) {
 	$dir = str_replace(".tgz","", $new_version_dir);
-	echo "Tar Gzipped file detected.  Preparing /tmp/{$dir} ...";
+	echo "\nTar Gzipped file detected.\nPreparing /tmp/{$dir} ...";
 	system("mkdir -p {$dir}");
 	system("tar xzPf {$new_version_dir} -C {$dir}");
 	$new_version_dir=$dir;
@@ -76,15 +76,21 @@ if(!is_dir($location_to_bin_patches)) {
 	mkdir($location_to_bin_patches);
 }
 
+echo "\nStarting binary diff process ... Please wait ...";
+
 /* startup the routines with the initial passed directories */
 create_diffs_for_dir($previous_version_dir, $new_version_dir, $location_to_bin_patches);
 
 /* tar gzip the new patch directory */
-exec("cd {$location_to_bin_patches} && tar czvpf /tmp/binary_diffs.tgz .");
+exec("cd {$location_to_bin_patches} && tar czpf /tmp/binary_diffs.tgz .");
 
 /* if debug is off, lets cleanup after ourselves */
 if($debug == false) system("rm -rf {$previous_version_dir}");
 if($debug == false) system("rm -rf {$new_version_dir}");
+
+echo "\n";
+system("ls -la /tmp/binary_diffs.tgz");
+echo "\n";
 
 function create_diffs_for_dir($pvd, $nvd, $ltbp) {
 	if($debug == true)
