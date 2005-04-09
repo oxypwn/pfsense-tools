@@ -12,11 +12,13 @@
 /* location to bsdiff binary */
 $path_to_bsdiff		 = "/usr/local/bin/bsdiff";
 /* uncomment to enable lots of spamming */
-$debug 			 = true;
+$debug 			 = false;
 
 $previous_version_dir	 = $argv[1];
 $new_version_dir	 = $argv[2];
-$location_to_bin_patches = $argv[3];
+$location_to_bin_patches = "/tmp/patches";
+
+system("mkdir -p {$location_to_bin_patches}");
 
 echo "\npfSense binary patch creation system is now starting.\n";
 echo "\nPrevious version dir: {$previous_version_dir}\n";
@@ -30,19 +32,21 @@ if($debug == false)
 /* detect if user passed in a .tgz for previous version dir */
 if(stristr($previous_version_dir,".tgz") == true) {
 	$dir = str_replace(".tgz","", $previous_version_dir);
-	echo "Tar Gzipped file detected.  Preparing /tmp/{$dir}\n";
-	system("mkdir -p /tmp/{$dir}");
-	ststen("cd /tmp/{$dir} && tar xzPf {$previous_version_dir}");
+	echo "Tar Gzipped file detected.  Preparing /tmp/{$dir} ...";
+	system("mkdir -p {$dir}");
+	system("tar xzPf {$previous_version_dir} -C {$dir}");
 	$previous_version_dir=$dir;
+	echo "\n";
 }
 
 /* detect if user passed in a .tgz for new version dir */
 if(stristr($new_version_dir,".tgz") == true) {
 	$dir = str_replace(".tgz","", $new_version_dir);
-	echo "Tar Gzipped file detected.  Preparing /tmp/{$dir}\n";
-	system("mkdir -p /tmp/{$dir}");
-	ststen("cd /tmp/{$dir} && tar xzPf {$new_version_dir}");
+	echo "Tar Gzipped file detected.  Preparing /tmp/{$dir} ...";
+	system("mkdir -p {$dir}");
+	system("tar xzPf {$new_version_dir} -C {$dir}");
 	$new_version_dir=$dir;
+	echo "\n";
 }
 
 /* check to make sure that the directories exist */
@@ -77,6 +81,10 @@ create_diffs_for_dir($previous_version_dir, $new_version_dir, $location_to_bin_p
 
 /* tar gzip the new patch directory */
 exec("cd {$location_to_bin_patches} && tar czvpf /tmp/binary_diffs.tgz .");
+
+/* if debug is off, lets cleanup after ourselves */
+if($debug == false) system("rm -rf {$previous_version_dir}");
+if($debug == false) system("rm -rf {$new_version_dir}");
 
 function create_diffs_for_dir($pvd, $nvd, $ltbp) {
 	if($debug == true)
