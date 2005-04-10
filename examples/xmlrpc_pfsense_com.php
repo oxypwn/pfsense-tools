@@ -71,35 +71,52 @@ $get_firmware_version_sig = array(array(array(), string, string));
 $get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with four strings - a valid pfSense platform and the caller\'s current firmware, kernel, and base versions, respectively. This method returns the current firmware version, the current kernel version, the current base version, and any additional data.';
 
 function get_firmware_version($raw_params) {
+	// Variables.
+	$path_to_version_files = '../';
+	$return_comments = false;
+
+	// Locations of version files.
+	$path_to_firmware_version = $path_to_version_files . 'version';
+	$path_to_base_version = $path_to_version_files . 'version_base';
+	$path_to_wrapsoekris_version = $path_to_version_files . 'version_wrapsoekris';
+	$path_to_pfsense_version = $path_to_version_files . 'version_pfsense';
+	$path_to_comments = $path_to_version_files . 'version_comment';
+	
 	$params = xmlrpc_params_to_php($raw_params);
-	$current_firmware_version = trim(file_get_contents('../version'));
-	$current_base_version = trim(file_get_contents('../version_base'));
+	$current_firmware_version = trim(file_get_contents($path_to_firmware_version));
+	$current_base_version = trim(file_get_contents($path_to_base_version));
+
 	if($params[0] == 'wrap+soekris') {
-		$current_kernel_version = trim(file_get_contents('../version_wrapsoekris'));
+		$current_kernel_version = trim(file_get_contents($path_to_wrapsoekris_version));
 	} else {
-		$current_kernel_version = trim(file_get_contents('../version_pfsense'));
+		$current_kernel_version = trim(file_get_contents($path_to_pfsense_version));
 	}
 	if($params[1] != $current_firmware_version || $params[2] != $current_kernel_version || $params[3] != $current_base_version) {
-			$sendcomment = true;
+			$version_mismatch = true;
 	}
-	if($sendcomment == true) {
-		$comments = file_get_contents('./version_comment');
-		$response = new XML_RPC_Value(array(new XML_RPC_Value($current_firmware_version, 'string'),
+	if(($version_mismatch == true) and ($return_comments == true)) {
+		$comments = file_get_contents($path_to_comments);
+		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean'),
+						    new XML_RPC_Value($current_firmware_version, 'string'),
 						    new XML_RPC_Value($current_kernel_version, 'string'),
 						    new XML_RPC_Value($current_base_version, 'string'),
 						    new XML_RPC_Value($comments, 'string')
 					     ), 'array'
 			    );
-	} else {
-		$response = new XML_RPC_Value(array(new XML_RPC_Value($current_firmware_version, 'string'),
-						    new XML_RPC_Value($current_kernel_version, 'string');
+	} elseif($version_mismatch == true) {
+		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean'),
+						    new XML_RPC_Value($current_firmware_version, 'string'),
+						    new XML_RPC_Value($current_kernel_version, 'string'),
                                                     new XML_RPC_Value($current_base_version, 'string')
+					     ), 'array'
+			    );
+	} else {
+		$response = new XML_RPC_Value(array(new XML_RPC_Value(false, 'boolean')
 					     ), 'array'
 			    );
 	}
 	return new XML_RPC_Response($response);
 }
-
 $server = new XML_RPC_Server(
         array(
 	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version',
