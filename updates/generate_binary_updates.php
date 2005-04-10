@@ -33,8 +33,8 @@ if($debug == false)
 if(stristr($previous_version_dir,".tgz") == true) {
 	$dir = str_replace(".tgz","", $previous_version_dir);
 	echo "\nTar Gzipped file detected.\nPreparing {$dir} ...";
-	system("mkdir -p {$dir}");
-	system("tar xzPf {$previous_version_dir} -C {$dir}");
+	system("cd /tmp/ && mkdir -p {$dir}");
+	system("cd /tmp/ && tar xzPf {$previous_version_dir} -C {$dir}");
 	$previous_version_dir=$dir;
 	echo "\n";
 }
@@ -43,8 +43,8 @@ if(stristr($previous_version_dir,".tgz") == true) {
 if(stristr($new_version_dir,".tgz") == true) {
 	$dir = str_replace(".tgz","", $new_version_dir);
 	echo "\nTar Gzipped file detected.\nPreparing {$dir} ...";
-	system("mkdir -p {$dir}");
-	system("tar xzPf {$new_version_dir} -C {$dir}");
+	system("cd /tmp/ && mkdir -p {$dir}");
+	system("cd /tmp/ && tar xzPf {$new_version_dir} -C {$dir}");
 	$new_version_dir=$dir;
 	echo "\n";
 }
@@ -82,7 +82,7 @@ echo "\nStarting binary diff process ... Please wait ...";
 create_diffs_for_dir($previous_version_dir, $new_version_dir, $location_to_bin_patches);
 
 /* tar gzip the new patch directory */
-exec("cd {$location_to_bin_patches} && tar czpf /tmp/binary_diffs.tgz .");
+exec("cd /tmp/ && cd {$location_to_bin_patches} && tar czpf /tmp/binary_diffs.tgz .");
 
 /* if debug is off, lets cleanup after ourselves */
 if($debug == false) system("rm -rf {$previous_version_dir}");
@@ -118,7 +118,7 @@ function create_diffs_for_dir($pvd, $nvd, $ltbp) {
 				$old_md5   = md5_file("{$pvd}/{$pv}");
 			if(file_exists("{$nvd}/{$pv}"))
 				$new_md5   = md5_file("{$pvd}/{$pv}");
-			if(file_exists("{$pvd}/{$pv}"))
+			if(file_exists("{$ltbp}/{$pv}"))
 				$patch_md5 = md5_file("{$ltbp}/{$pv}");
 			//if($old_md5)
 			//	system("echo {$old_md5} > {$ltbp}/{$pv}.old_md5");
