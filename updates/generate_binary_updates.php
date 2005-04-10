@@ -99,6 +99,7 @@ function create_diffs_for_dir($pvd, $nvd, $ltbp) {
 	$pvda = return_files_and_dirs_as_array($pvd);
 	foreach($pvda as $pv) {
 		/* if item is directory, lets start recursion */
+		echo ".";
 		$working_with = $pvd . "/" . $pv;
 		$working_with = str_replace("//","/",$working_with);
 		if($debug == true)
