@@ -98,8 +98,8 @@ mkdir -p $UPDATES
 # XXX: tar up base and kernel for pfsense versions
 echo Creating tarballs...
 cd /usr/local/livefs
-tar czpf /$UPDATES$UPDATES/kernel-${version_kernel}.tgz /usr/local/livefs/boot/
-rm -rf /usr/local/livefs/boot/
+tar czpf /$UPDATES$UPDATES/kernel-${version_kernel}.tgz boot/
+rm -rf boot/
 tar czpf /$UPDATES/base-${version_base}.tgz .
 cd /home/sullrich/pfSense/
 tar zcpf /$UPDATES/pfSense-${version}.tgz .
