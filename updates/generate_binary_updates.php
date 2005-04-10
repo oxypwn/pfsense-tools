@@ -120,12 +120,12 @@ function create_diffs_for_dir($pvd, $nvd, $ltbp) {
 				$new_md5   = md5_file("{$pvd}/{$pv}");
 			if(file_exists("{$pvd}/{$pv}"))
 				$patch_md5 = md5_file("{$ltbp}/{$pv}");
-			if($old_md5)
-				system("echo {$old_md5} > {$ltbp}/{$pv}.old_md5");
-			if($new_md5)
-				system("echo {$new_md5} > {$ltbp}/{$pv}.new_md5");
-			if($patch_md5)
-				system("echo {$patch_md5} > {$ltbp}/{$pv}.patch_md5");
+			//if($old_md5)
+			//	system("echo {$old_md5} > {$ltbp}/{$pv}.old_md5");
+			//if($new_md5)
+			//	system("echo {$new_md5} > {$ltbp}/{$pv}.new_md5");
+			//if($patch_md5)
+			//	system("echo {$patch_md5} > {$ltbp}/{$pv}.patch_md5");
 		}
 	}
 }
