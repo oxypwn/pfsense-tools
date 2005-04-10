@@ -109,7 +109,7 @@ function create_diffs_for_dir($pvd, $nvd, $ltbp) {
 				mkdir("{$ltbp}/{$pv}");
 		}
 		if(is_file($working_with)) {
-			$string_to_exec = "{$path_to_bsdiff} {$pvd}/{$pv} {$nvd}/{$pv} {$ltbp}/{$pv}";
+			$string_to_exec = "{$path_to_bsdiff} {$pvd}/{$pv} {$nvd}/{$pv} {$ltbp}/{$pv} 2>/dev/null";
 			$string_to_exec = str_replace("//","/",$string_to_exec);
 			if($debug == true)
 				echo "Running {$string_to_exec} ...\n";
