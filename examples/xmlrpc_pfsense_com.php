@@ -71,8 +71,8 @@ $get_firmware_version_doc = 'Method used to get the current firmware, kernel, an
 
 function get_firmware_version($raw_params) {
 	// Variables.
-	$path_to_version_files = './';
-	$return_comments = false;
+	$path_to_version_files = './xmlrpc/';
+	$return_comments = true;
 
 	// Locations of version files.
 	$path_to_firmware_version = $path_to_version_files . 'version';
