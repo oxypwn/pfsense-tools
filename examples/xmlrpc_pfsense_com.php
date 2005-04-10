@@ -1,4 +1,3 @@
-#!/usr/local/bin/php
 <?php
 /*
 
@@ -67,12 +66,12 @@ function xmlrpc_array_to_php($array) {
         return $return;
 }
 
-$get_firmware_version_sig = array(array(array(), string, string));
+$get_firmware_version_sig = array(array(array(), string, string, string, string));
 $get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with four strings - a valid pfSense platform and the caller\'s current firmware, kernel, and base versions, respectively. This method returns the current firmware version, the current kernel version, the current base version, and any additional data.';
 
 function get_firmware_version($raw_params) {
 	// Variables.
-	$path_to_version_files = '../';
+	$path_to_version_files = './';
 	$return_comments = false;
 
 	// Locations of version files.
