@@ -61,6 +61,7 @@ fi
 . ../freesbie/.common.sh
 
 cp /sbin/pf* $FREESBIEBASEDIR/sbin
+cp /sbin/pf* /home/sullrich/pfSense/sbin/
 chmod a+x $FREESBIEBASEDIR/sbin/pf*
 cp $LOCALDIR/files/gettytab $FREESBIEBASEDIR/etc/
 cp /sbin/ip* $FREESBIEBASEDIR/sbin/
@@ -81,9 +82,9 @@ echo exit > $FREESBIEBASEDIR/root/.xcustom.sh
 touch $FREESBIEBASEDIR/root/.hushlogin
 echo hint.acpi.0.disabled=\"1\" >> $FREESBIEBASEDIR/boot/device.hints
 
-version_kernel=`cat /usr/local/livefs/etc/version_kernel`
-version_base=`cat /usr/local/livefs/etc/version_base`
-version=`cat /usr/local/livefs/etc/version`
+version_kernel=`cat /home/sullrich/pfSense/etc/version_kernel`
+version_base=`cat /home/sullrich/pfSense/etc/version_base`
+version=`cat /home/sullrich/pfSense/etc/version`
 
 # trim off some extra fat.
 ./8.preparefs.sh
@@ -98,7 +99,8 @@ mkdir -p $UPDATES
 # XXX: tar up base and kernel for pfsense versions
 echo Creating tarballs...
 cd /usr/local/livefs
-tar czpf /$UPDATES$UPDATES/kernel-${version_kernel}.tgz boot/
+rm -rf cf
+tar czpf /$UPDATES/kernel-${version_kernel}.tgz boot/
 rm -rf boot/
 tar czpf /$UPDATES/base-${version_base}.tgz .
 cd /home/sullrich/pfSense/
