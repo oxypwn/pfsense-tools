@@ -74,43 +74,77 @@ function get_firmware_version($raw_params) {
 	$path_to_version_files = './xmlrpc/';
 	$return_comments = true;
 
-	// Locations of version files.
-	$path_to_firmware_version = $path_to_version_files . 'version';
-	$path_to_base_version = $path_to_version_files . 'version_base';
-	$path_to_wrapsoekris_version = $path_to_version_files . 'version_wrapsoekris';
-	$path_to_pfsense_version = $path_to_version_files . 'version_pfsense';
-	$path_to_comments = $path_to_version_files . 'version_comment';
+	$foobar = explode("\n", trim(file_get_contents('foobar.txt')));
+
+	// Locations of version manifest files.
+	$path_to_firmware_manifest = $path_to_version_files . 'version';			// pfSense firmware version
+	$path_to_base_manifest = $path_to_version_files . 'version_base';			// base system version
+	$path_to_wrapsoekris_manifest = $path_to_version_files . 'version_wrapsoekris';		// wrapsoekris kernel version
+	$path_to_pfsense_manifest = $path_to_version_files . 'version_pfsense';			// pfsense kernel version
+	$path_to_comments = $path_to_version_files . 'version_comment';				// pfSense comments
 	
 	$params = xmlrpc_params_to_php($raw_params);
-	$current_firmware_version = trim(file_get_contents($path_to_firmware_version));
-	$current_base_version = trim(file_get_contents($path_to_base_version));
+	$current_firmware_versions = explode("\n", trim(file_get_contents($path_to_firmware_manifest)));
+	$current_base_versions = explode("\n", trim(file_get_contents($path_to_base_version)));
 
 	if($params[0] == 'wrap+soekris') {
-		$current_kernel_version = trim(file_get_contents($path_to_wrapsoekris_version));
+		$current_kernel_versions = explode("\n", trim(file_get_contents($path_to_wrapsoekris_manifest)));
 	} else {
-		$current_kernel_version = trim(file_get_contents($path_to_pfsense_version));
+		$current_kernel_versions = explode("\n", trim(file_get_contents($path_to_pfsense_manifest)));
 	}
-	if($params[1] != $current_firmware_version || $params[2] != $current_kernel_version || $params[3] != $current_base_version) {
-			$version_mismatch = true;
+	
+	// Assume the client is up to date before running checks.
+	$firmware_to_download = array(false);
+	$kernel_to_download = array(false);
+	$base_to_download = array(false);
+
+	if($current_firmware_versions[count($current_firmware_versions) - 1] != $params[1]) { // The client isn't running the latest firmware.
+		for($i = 0; count($current_firmware_versions) - 1; $i++) {
+			if($params[1] == $current_firmware_versions[$i]) {
+				$firmware_to_download = array_slice($current_firmware_versions, $i + 1);
+			}
+		}
+		if(!is_array($firmware_to_download)) $firmware_to_download = array(-1);
 	}
-	if(($version_mismatch == true) and ($return_comments == true)) {
-		$comments = file_get_contents($path_to_comments);
+
+	if($current_kernel_versions[count($current_kernel_versions) - 1] != $params[2]) { // The client isn't running the latest kernel.
+		for($i = 0; count($current_kernel_versions) - 1; $i++) {
+			if($params[2] == $current_kernel_versions[$i]) {
+				$kernel_to_download = array_slice($current_kernel_versions, $i + 1);
+			}
+		}
+		if(!is_array($kernel_to_download)) $kernel_to_download = array(-1);
+	}
+
+	if($current_base_versions[count($current_base_versions) -1] != $params[3]) { // The client isn't running the latest base.
+                for($i = 0; count($current_base_versions) - 1; $i++) {
+                        if($params[3] == $current_base_versions[$i]) {
+                                $base_to_download = array_slice($current_base_versions, $i + 1);
+                        }
+                }
+		if(!is_array($base_to_download)) $base_to_download = array(-1);
+        }
+
+	if(is_string($firmware_to_download[0]) || is_string($kernel_to_download[0]) || is_string($base_to_download[0])) $version_mismatch == true;
+	
+	if($return_comments == true && $version_mismatch == true) {
+		$comments = trim(file_get_contents($path_to_comments));
 		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean'),
-						    new XML_RPC_Value($current_firmware_version, 'string'),
-						    new XML_RPC_Value($current_kernel_version, 'string'),
-						    new XML_RPC_Value($current_base_version, 'string'),
+						    new XML_RPC_Value($firmware_to_download, 'array'),
+						    new XML_RPC_Value($kernel_to_download, 'array'),
+						    new XML_RPC_Value($base_to_download, 'array'),
 						    new XML_RPC_Value($comments, 'string')
 					     ), 'array'
 			    );
 	} elseif($version_mismatch == true) {
 		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean'),
-						    new XML_RPC_Value($current_firmware_version, 'string'),
-						    new XML_RPC_Value($current_kernel_version, 'string'),
-                                                    new XML_RPC_Value($current_base_version, 'string')
+						    new XML_RPC_Value($firmware_to_download, 'array'),
+                                                    new XML_RPC_Value($kernel_to_download, 'array'), 
+                                                    new XML_RPC_Value($base_to_download, 'array')
 					     ), 'array'
 			    );
 	} else {
-		$response = new XML_RPC_Value(array(new XML_RPC_Value(false, 'boolean')
+		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean')
 					     ), 'array'
 			    );
 	}
