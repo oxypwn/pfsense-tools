@@ -18,9 +18,9 @@ scp ${FREESBIEDIR}/FreeSBIE.iso ${SCPUSERNAME}@10.0.250.50:~
 
 # Copy image to web site
 echo Copying ISO to ${DSTWEBSITE} ... CTRL-C to abort.
-scp -C ${FREESBIEDIR}/${SRCISO} $SCPUSERNAME@/{$DSTWEBSITE}/${DSTISO}
+scp -C ${FREESBIEDIR}/${SRCISO} ${SCPUSERNAME}@/${DSTWEBSITE}/${DSTISO}
 
-cd $LIVEFS
+cd ${LIVEFS}
 rm -rf ${LIVEFS}/conf*
 rm ${LIVEFS}/usr/local/www/trigger_initial_wizard
 rm ${LIVEFS}/etc/master.passwd
