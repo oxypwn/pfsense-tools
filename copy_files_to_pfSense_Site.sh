@@ -18,7 +18,7 @@ scp ${FREESBIEDIR}/FreeSBIE.iso ${SCPUSERNAME}@10.0.250.50:~
 
 # Copy image to web site
 echo Copying ISO to ${DSTWEBSITE} ... CTRL-C to abort.
-scp -C ${FREESBIEDIR}/${SRCISO} ${SCPUSERNAME}@/${DSTWEBSITE}/${DSTISO}
+scp -C ${FREESBIEDIR}/${SRCISO} ${SCPUSERNAME}@${DSTWEBSITE}/${DSTISO}
 
 cd ${LIVEFS}
 rm -rf ${LIVEFS}/conf*
@@ -31,8 +31,8 @@ rm ${LIVEFS}/boot/loader.conf
 rm ${LIVEFS}/boot/loader.rc
 cd ${LIVEFS} && tar czvPf ${UPDATESDIR}/${FILENAME} .
 
-echo Copying pfSenseUpdate-${PVERSUFFIX}.tgz to updates folder/
-scp -C ${UPDATESDIR}/pfSenseUpdate-${PVERSUFFIX}.tgz \
+echo Copying $FILENAME to updates folder/
+scp -C ${UPDATESDIR}/$FILENAME \
         ${SCPUSERNAME}@216.135.66.16:${WEBSITEWWWDIR}/updates/
 
 echo Updating MD5
