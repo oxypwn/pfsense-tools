@@ -68,6 +68,30 @@ function xmlrpc_array_to_php($array) {
         return $return;
 }
 
+/*
+ *   php_value_to_xmlrpc: Convert a PHP value into an
+ */
+
+function php_value_to_xmlrpc($value, $force_array = false) {
+	if(gettype($value) == "array") {
+		$toreturn = array();
+		foreach($value as $aval) {
+			if(gettype($aval) == "array") {
+				$toreturn[] = php_value_to_xmlrpc($aval);
+			} else {
+				$toreturn[] = new XML_RPC_Value($aval, gettype($aval));
+			}
+		}
+		return new XML_RPC_Value($toreturn, "array");
+	} else {
+		if($force_array == true) {
+			return new XML_RPC_Value(array(new XML_RPC_Value($value, gettype($value))), "array");
+		} else {
+			return new XML_RPC_Value($value, gettype($value));
+		}
+	}
+}
+
 $get_firmware_version_sig = array(array(array(), string, string, string, string));
 $get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with four strings - a valid pfSense platform and the caller\'s current firmware, kernel, and base versions, respectively. This method returns the current firmware version, the current kernel version, the current base version, and any additional data.';
 
@@ -76,6 +100,8 @@ function get_firmware_version($raw_params) {
 	$path_to_version_files = './xmlrpc/';
 	$return_comments = false;
 
+	$log = fopen("/tmp/4newxmlrpclog.log", "w");
+
 	// Locations of version manifest files.
 	$path_to_firmware_manifest = $path_to_version_files . 'version';			// pfSense firmware version
 	$path_to_base_manifest = $path_to_version_files . 'version_base';			// base system version
@@ -83,9 +109,13 @@ function get_firmware_version($raw_params) {
 	$path_to_pfsense_manifest = $path_to_version_files . 'version_pfsense';			// pfsense kernel version
 	$path_to_comments = $path_to_version_files . 'version_comment';				// pfSense comments
 
+	fwrite($log, "Parsed version manifest paths.\n");
+	
 	$params = xmlrpc_params_to_php($raw_params);
+	fwrite($log, "Converted params.\n");
 	if($current_firmware_versions = file($path_to_firmware_manifest)) $gotfirmware = true;
 	if($current_base_versions = file($path_to_base_version)) $gotbase = true;
+	fwrite($log, "Parsed first version manifests.\n");
 
 	if($params[0] == 'wrap+soekris') {
 		if($current_kernel_versions = file($path_to_wrapsoekris_manifest)) $gotkernel = true;
@@ -140,17 +170,17 @@ function get_firmware_version($raw_params) {
 	if($return_comments == true && $version_mismatch == true) {
 		$comments = trim(file_get_contents($path_to_comments));
 		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean'),
-						    new XML_RPC_Value($firmware_to_download, 'array'),
-						    new XML_RPC_Value($kernel_to_download, 'array'),
-						    new XML_RPC_Value($base_to_download, 'array'),
+						    php_value_to_xmlrpc($firmware_to_download),
+						    php_value_to_xmlrpc($kernel_to_download),
+						    php_value_to_xmlrpc($base_to_download),
 						    new XML_RPC_Value($comments, 'string')
 					     ), 'array'
 			    );
 	} elseif($version_mismatch == true) {
 		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean'),
-						    new XML_RPC_Value($firmware_to_download, 'array'),
-                                                    new XML_RPC_Value($kernel_to_download, 'array'), 
-                                                    new XML_RPC_Value($base_to_download, 'array')
+						    php_value_to_xmlrpc($firmware_to_download),     
+                                                    php_value_to_xmlrpc($kernel_to_download),
+                                                    php_value_to_xmlrpc($base_to_download)
 					     ), 'array'
 			    );
 	} else {
@@ -158,13 +188,14 @@ function get_firmware_version($raw_params) {
 					     ), 'array'
 			    );
 	}
+	fclose($log);
 	return new XML_RPC_Response($response);
 }
 
 $server = new XML_RPC_Server(
         array(
 	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version',
-							'signature' => $get_firmware_version_sig,
+//							'signature' => $get_firmware_version_sig,
 							'docstring' => $get_firmware_version_doc)
         )
 );
