@@ -132,7 +132,7 @@ function get_firmware_version($raw_params) {
 		if($current_firmware_versions[count($current_firmware_versions) - 1] != $params[1]) { // The client isn't running the latest firmware.
 			for($i = 0; $i < count($current_firmware_versions); $i++) {
 				if($params[1] == trim($current_firmware_versions[$i])) {
-					$firmware_to_download = array_slice($current_firmware_versions, $i);
+					$firmware_to_download = array_slice($current_firmware_versions, $i + 1);
 					$version_mismatch = true;
 				}
 			}
@@ -145,7 +145,7 @@ function get_firmware_version($raw_params) {
 		if($current_kernel_versions[count($current_kernel_versions) - 1] != $params[2]) { // The client isn't running the latest kernel.
 			for($i = 0; $i < count($current_kernel_versions); $i++) {
 				if($params[2] == trim($current_kernel_versions[$i])) {
-					$kernel_to_download = array_slice($current_kernel_versions, $i);
+					$kernel_to_download = array_slice($current_kernel_versions, $i + 1);
 					$version_mismatch = true;
 				}
 			}
@@ -158,7 +158,7 @@ function get_firmware_version($raw_params) {
 		if($current_base_versions[count($current_base_versions) -1] != $params[3]) { // The client isn't running the latest base.
 			for($i = 0; $i < count($current_base_versions); $i++) {
 				if($params[3] == trim($current_base_versions[$i])) {
-					$base_to_download = array_slice($current_base_versions, $i);
+					$base_to_download = array_slice($current_base_versions, $i + 1);
         				$version_mismatch = true;
 				}
 			}
@@ -195,7 +195,7 @@ function get_firmware_version($raw_params) {
 $server = new XML_RPC_Server(
         array(
 	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version',
-//							'signature' => $get_firmware_version_sig,
+							'signature' => $get_firmware_version_sig,
 							'docstring' => $get_firmware_version_doc)
         )
 );
