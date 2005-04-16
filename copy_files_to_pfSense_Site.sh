@@ -22,6 +22,8 @@ scp -C ${FREESBIEDIR}/${SRCISO} ${SCPUSERNAME}@${DSTWEBSITE}/${DSTISO}
 
 cd ${LIVEFS}
 rm -rf ${LIVEFS}/conf*
+echo Removing pfSense.tgz used by installer..
+find . -name pfSense.tgz -exec rm {} \;
 rm ${LIVEFS}/usr/local/www/trigger_initial_wizard
 rm ${LIVEFS}/etc/master.passwd
 rm ${LIVEFS}/etc/passwd
@@ -29,6 +31,7 @@ rm ${LIVEFS}/etc/ttys
 rm ${LIVEFS}/boot/device.hints
 rm ${LIVEFS}/boot/loader.conf
 rm ${LIVEFS}/boot/loader.rc
+rm -rf ${LIVEFS}/conf/
 cd ${LIVEFS} && tar czvPf ${UPDATESDIR}/${FILENAME} .
 
 echo Copying $FILENAME to updates folder/
