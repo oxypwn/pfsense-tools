@@ -15,7 +15,10 @@ umount /tmp/root 2>/dev/null
 umount /tmp/cf 2>/dev/null
 mdconfig -d -u 91 2>/dev/null
 
-cd /home/sullrich
+cd /home/sullrich 
+
+rm -rf pfSense
+cvs -d:ext:sullrich@216.135.66.16:/cvsroot co pfSense
 
 cp /home/sullrich/pfSense/boot/device.hints_wrap \
         /usr/local/livefs/boot/device.hints

@@ -42,17 +42,17 @@ cd $PFSENSECVS & tar czvPf $PFSENSECVS.tgz .
 cd $LOCALDIR
 ./0.rmdir.sh
 ./1.mkdir.sh
-./2.buildworld.sh
+#./2.buildworld.sh
+./3.installworld.sh
 
 cp -P -R /home/sullrich/pfSense/* /usr/local/livefs/
 rm /usr/local/livefs/etc/hosts
 
-./3.installworld.sh
 ./4.kernel.sh FREESBIE.5
 ./5.patchfiles.sh
 ./6.packages.sh
 ./7.customuser.sh
-./71.bsdinstaller.sh
+#./71.bsdinstaller.sh
 
 # restore values if overwritten accidently.
 . ../freesbie/config.sh
@@ -82,24 +82,14 @@ version_kernel=`cat /home/sullrich/pfSense/etc/version_kernel`
 version_base=`cat /home/sullrich/pfSense/etc/version_base`
 version=`cat /home/sullrich/pfSense/etc/version`
 
-./8.preparefs.sh
+#./8.preparefs.sh
 if [ "$?" != "0" ]; then
     echo "Something went wrong."
     exit 1;
 fi
-./81.mkiso.sh
+#./81.mkiso.sh
 
 mkdir -p $UPDATES
-
-# XXX: tar up base and kernel for pfsense versions
-echo Creating tarballs...
-cd /usr/local/livefs
-rm -rf cf
-tar czpf /$UPDATES/kernel-${version_kernel}.tgz boot/
-rm -rf boot/
-tar czpf /$UPDATES/base-${version_base}.tgz .
-cd /home/sullrich/pfSense/
-tar zcpf /$UPDATES/pfSense-${version}.tgz .
 
 #/home/sullrich/tools/copy_files_to_pfSense_Site.sh
 

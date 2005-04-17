@@ -17,35 +17,34 @@ cd ${LIVEFS}
 rm -rf ${LIVEFS}/conf*
 echo Removing pfSense.tgz used by installer..
 find . -name pfSense.tgz -exec rm {} \;
-rm ${LIVEFS}/usr/local/www/trigger_initial_wizard
-rm ${LIVEFS}/etc/master.passwd
-rm ${LIVEFS}/etc/passwd
-rm ${LIVEFS}/etc/fstab
-rm ${LIVEFS}/etc/ttys
-rm ${LIVEFS}/etc/fstab
-rm ${LIVEFS}/boot/device.hints
-rm ${LIVEFS}/boot/loader.conf
-rm ${LIVEFS}/boot/loader.rc
-rm -rf ${LIVEFS}/conf
-rm -rf ${LIVEFS}/conf/
-cd ${LIVEFS} && tar czvPf ${UPDATESDIR}/${FILENAME} .
+rm ${LIVEFS}usr/local/www/trigger_initial_wizard 2>/dev/null
+rm ${LIVEFS}etc/master.passwd 2>/dev/null
+rm ${LIVEFS}etc/passwd 2>/dev/null
+rm ${LIVEFS}etc/fstab 2>/dev/null
+rm ${LIVEFS}etc/ttys 2>/dev/null
+rm ${LIVEFS}etc/fstab 2>/dev/null
+rm ${LIVEFS}boot/device.hints 2>/dev/null
+rm ${LIVEFS}boot/loader.conf 2>/dev/null
+rm ${LIVEFS}boot/loader.rc 2>/dev/null
+rm -rf ${LIVEFS}conf/ 2>/dev/null
+rm -rf ${LIVEFS}cf/ 2>/dev/null
+
+echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
+cd ${LIVEFS} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 # Copy image to root of developers box
-echo Copying ISO to 10.0.250.50:~${SCPUSERNAME} ... CTRL-C to abort.
+echo ; echo Copying ISO to 10.0.250.50:~${SCPUSERNAME} ... CTRL-C to abort.
 scp ${FREESBIEDIR}/FreeSBIE.iso ${SCPUSERNAME}@10.0.250.50:~
 
-
 # Copy image to web site
-echo Copying ISO to ${DSTWEBSITE} ... CTRL-C to abort.
+echo ; echo Copying ISO to ${DSTWEBSITE} ... CTRL-C to abort.
 scp -C ${FREESBIEDIR}/${SRCISO} ${SCPUSERNAME}@${DSTWEBSITE}/${DSTISO}
 
-
-echo Copying $FILENAME to updates folder/
+echo ; echo Copying $FILENAME to updates folder/
 scp -C ${UPDATESDIR}/$FILENAME \
         ${SCPUSERNAME}@216.135.66.16:${WEBSITEWWWDIR}/updates/
 
-
-echo Updating MD5
+echo ; echo Updating MD5
 ssh ${SCPUSERNAME}@216.135.66.16 "rm ${WEBSITEWWWDIR}/latest.tgz ; \
 	md5 ${WEBSITEWWWDIR}/updates/${FILENAME} .\
             > ${WEBSITEWWWDIR}/latest.tgz.md5 ; \
@@ -53,7 +52,7 @@ ssh ${SCPUSERNAME}@216.135.66.16 "rm ${WEBSITEWWWDIR}/latest.tgz ; \
 	${WEBSITEWWWDIR}/latest.tgz"
 
 
-echo Copying ${LIVEFS}/etc/version to server
+echo ; echo Copying ${LIVEFS}/etc/version to server
 scp ${LIVEFS}/etc/version ${SCPUSERNAME}@216.135.66.16:${WEBSITEWWWDIR}/pfSense/
 
 
