@@ -66,8 +66,6 @@ cp /sbin/ip* $FREESBIEBASEDIR/sbin/
 cp /usr/sbin/ip* $FREESBIEBASEDIR/usr/sbin/
 rm -rf $FREESBIEBASEDIR/dist/pfSense.tgz
 cp /home/sullrich/pfSense.tgz $FREESBIEBASEDIR/dist/
-cp $LOCALDIR/files/ip* $FREESBIEBASEDIR/boot/kernel/
-cp $LOCALDIR/files/dummynet* $FREESBIEBASEDIR/boot/kernel/
 cp /usr/lib/libstdc* $FREESBIEBASEDIR/usr/lib/
 cp $LOCALDIR/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
 mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer
@@ -84,12 +82,12 @@ version_kernel=`cat /home/sullrich/pfSense/etc/version_kernel`
 version_base=`cat /home/sullrich/pfSense/etc/version_base`
 version=`cat /home/sullrich/pfSense/etc/version`
 
-#./8.preparefs.sh
+./8.preparefs.sh
 if [ "$?" != "0" ]; then
     echo "Something went wrong."
     exit 1;
 fi
-#./81.mkiso.sh
+./81.mkiso.sh
 
 mkdir -p $UPDATES
 
