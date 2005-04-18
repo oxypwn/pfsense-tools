@@ -87,6 +87,7 @@ rm -rf /tmp/root/var/run
 rm -rf /tmp/root/var/log
 rm -rf /tmp/root/var/etc
 rm -rf /tmp/root/var/tmp
+rm -rf /tmp/root/var/db
 
 # setup symlinks
 echo "#!/bin/sh" > /tmp/root/script
@@ -94,6 +95,7 @@ echo "ln -s /tmp /var/tmp" >> /tmp/root/script
 echo "ln -s /tmp /var/run" >> /tmp/root/script
 echo "ln -s /tmp /var/etc" >> /tmp/root/script
 echo "ln -s /tmp /var/log" >> /tmp/root/script
+echo "ln -s /tmp /var/db"  >> /tmp/root/script
 echo "ln -s /cf/conf /conf" >> /tmp/root/script
 chmod a+x /tmp/root/script
 chroot /tmp/root/ /script
