@@ -27,7 +27,7 @@
         ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
         POSSIBILITY OF SUCH DAMAGE.
 
-	TODO: The arrays that we're returning need to have only XML_RPC_Value elements. Write a recursive function to handle this.
+	TODO: Use a loop to handle all of the different update sections (base, kernel, etc.) instead of using an individual block for each. This will leave us room to expand our update system in the future if necessary.
 
 */
 
