@@ -28,6 +28,11 @@ rm ${LIVEFS}boot/loader.conf 2>/dev/null
 rm ${LIVEFS}boot/loader.rc 2>/dev/null
 rm -rf ${LIVEFS}conf/ 2>/dev/null
 rm -rf ${LIVEFS}cf/ 2>/dev/null
+echo > ${LIVEFS}root/.tcshrc
+# Setup login environment
+echo > ${LIVEFS}root/.shrc
+echo "/etc/rc.initial" >> ${LIVEFS}root/.shrc
+echo "exit" >> ${LIVEFS}root/.shrc
 
 echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 cd ${LIVEFS} && tar czPf ${UPDATESDIR}/${FILENAME} .
