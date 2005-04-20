@@ -35,36 +35,39 @@ require_once("xmlrpc_server.inc");
 
 /*
  *   xmlrpc_params_to_php: Convert params array passed from XMLRPC server into a PHP array and return it.
- *
- *   XXX: This function does not currently handle XML_RPC_Value objects of type "struct".
  */
 function xmlrpc_params_to_php($params) {
         $array = array();
         for($i = 0; $i < $params->getNumParams(); $i++) {
                 $value = $params->getParam($i);
-                if($value->kindOf() == "scalar") {
-                        $array[] = $value->scalarval();
-                } elseif($value->kindOf() == "array") {
-                        $array[] = xmlrpc_array_to_php($value);
-                }
+		$array[] = xmlrpc_value_to_php($value);
         }
         return $array;
 }
 
 /*
- *   xmlrpc_array_to_php: Convert an XMLRPC array into a PHP array and return it.
+ *   xmlrpc_value_to_php: Convert an XMLRPC value into a PHP scalar/array and return it.
  */
-function xmlrpc_array_to_php($array) {
-        $return = array();
-        $array_length = $array->arraysize();
-        for($i = 0; $i < $array->arraysize(); $i++) {
-                $value = $array->arraymem($i);
-                if($value->kindOf() == "scalar") {
-                        $return[] = $value->scalarval();
-                } elseif($value->kindOf() == "array") {
+function xmlrpc_value_to_php($raw_value) {
+	switch($raw_value->kindOf()) {
+	case "scalar":
+		$return = $raw_value->scalarval();
+		break;
+	case "array":
+		$return = array();
+		for($i = 0; $i < $raw_value->arraysize(); $i++) {
+			$value = $raw_value->arraymem($i);
                         $return[] = xmlrpc_array_to_php($value);
                 }
-        }
+		break;
+	case "struct":
+		$return = array();
+		for($i = 0; $i < $raw_value->arraysize(); $i++) {
+			list($key, $value) = $raw_value->structeach();
+			$return[$key] = xmlrpc_value_to_php($value);
+		}
+		break;
+	}
         return $return;
 }
 
