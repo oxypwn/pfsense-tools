@@ -69,19 +69,15 @@ function xmlrpc_array_to_php($array) {
 }
 
 /*
- *   php_value_to_xmlrpc: Convert a PHP value into an
+ *   php_value_to_xmlrpc: Convert a PHP scalar or array into its XMLRPC equivalent.
  */
 
 function php_value_to_xmlrpc($value, $force_array = false) {
 	if(gettype($value) == "array") {
 		$toreturn = array();
-		foreach($value as $aval) {
-			if(gettype($aval) == "array") {
-				$toreturn[] = php_value_to_xmlrpc($aval);
-			} else {
-				$toreturn[] = new XML_RPC_Value($aval, gettype($aval));
-			}
-		}
+		foreach($value as $key => $val) {
+			$toreturn[$key] = php_value_to_xmlrpc($val);
+                }
 		return new XML_RPC_Value($toreturn, "array");
 	} else {
 		if($force_array == true) {
