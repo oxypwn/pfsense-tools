@@ -27,70 +27,13 @@
         ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
         POSSIBILITY OF SUCH DAMAGE.
 
-	TODO: Use a loop to handle all of the different update sections (base, kernel, etc.) instead of using an individual block for each. This will leave us room to expand our update system in the future if necessary.
-
+	TODO:
+		* Use a loop to handle all of the different update sections (base, kernel, etc.)
+		* Return a struct instead on a numerically indexed array.
 */
 
 require_once("xmlrpc_server.inc");
-
-/*
- *   xmlrpc_params_to_php: Convert params array passed from XMLRPC server into a PHP array and return it.
- */
-function xmlrpc_params_to_php($params) {
-        $array = array();
-        for($i = 0; $i < $params->getNumParams(); $i++) {
-                $value = $params->getParam($i);
-		$array[] = xmlrpc_value_to_php($value);
-        }
-        return $array;
-}
-
-/*
- *   xmlrpc_value_to_php: Convert an XMLRPC value into a PHP scalar/array and return it.
- */
-function xmlrpc_value_to_php($raw_value) {
-	switch($raw_value->kindOf()) {
-	case "scalar":
-		$return = $raw_value->scalarval();
-		break;
-	case "array":
-		$return = array();
-		for($i = 0; $i < $raw_value->arraysize(); $i++) {
-			$value = $raw_value->arraymem($i);
-                        $return[] = xmlrpc_array_to_php($value);
-                }
-		break;
-	case "struct":
-		$return = array();
-		for($i = 0; $i < $raw_value->arraysize(); $i++) {
-			list($key, $value) = $raw_value->structeach();
-			$return[$key] = xmlrpc_value_to_php($value);
-		}
-		break;
-	}
-        return $return;
-}
-
-/*
- *   php_value_to_xmlrpc: Convert a PHP scalar or array into its XMLRPC equivalent.
- */
-function php_value_to_xmlrpc($value, $force_array = false) {
-	if(gettype($value) == "array") {
-		$xmlrpc_type = "array";
-		$toreturn = array();
-		foreach($value as $key => $val) {
-			if(is_string($key)) $xmlrpc_type = "struct";
-			$toreturn[$key] = php_value_to_xmlrpc($val);
-                }
-		return new XML_RPC_Value($toreturn, $xmlrpc_type);
-	} else {
-		if($force_array == true) {
-			return new XML_RPC_Value(array(new XML_RPC_Value($value, gettype($value))), "array");
-		} else {
-			return new XML_RPC_Value($value, gettype($value));
-		}
-	}
-}
+require_once("xmlrpc.inc");
 
 $get_firmware_version_sig = array(array(array(), string, string, string, string));
 $get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with four strings - a valid pfSense platform and the caller\'s current firmware, kernel, and base versions, respectively. This method returns the current firmware version, the current kernel version, the current base version, and any additional data.';
