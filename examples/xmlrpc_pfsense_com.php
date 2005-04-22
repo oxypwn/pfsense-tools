@@ -40,11 +40,12 @@ require_once("xmlrpc.inc");
 $get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with an array. This method returns an array.';
 
 function get_firmware_version($raw_params) {
+	$log = fopen("/home/colin/xmlrpc.log", "w");
 	// Variables.
 	$path_to_files = './xmlrpc/';
 	$toreturn = array();
-	$params = xmlrpc_params_to_php($raw_params);
-
+	$params = array_shift(xmlrpc_params_to_php($raw_params));
+	fwrite($log, print_r($params, true));
 	// Categories to update
 	$categories = array(
 				'firmware',
@@ -56,6 +57,8 @@ function get_firmware_version($raw_params) {
 	global $pkg_listtags;
 	$pkg_listtags = array_merge($pkg_listtags, $categories); 
 
+	fwrite($log, print_r($pkg_listtags, true));
+
 	// Version manifest filenames.
 	$versions = array(
 				'firmware' => 'version',
@@ -65,18 +68,22 @@ function get_firmware_version($raw_params) {
 							'pfsense' => 'version_pfsense'
 						)
 			);
+	fwrite($log, print_r($versions, true));
 
 	// Load the version manifests into the versions array and initialize our returned struct.
 	foreach($versions as $key => $value) {
 		$toreturn[$key] = 1;
 		if(is_array($value)) {
 			foreach($value as $subkey => $subval) {
+				fwrite($log, "OMGOMG");
 				$versions[$key][$subkey] = parse_xml_config_pkg($path_to_files . $subval, "pfsenseupdates");
 			}
 		} else {
-			$versions[$key] = parse_xml_config_pkg($path_to_files . $subval, "pfsenseupdates");
+			$versions[$key] = parse_xml_config_pkg($path_to_files . $value, "pfsenseupdates");
 		}
 	}
+
+	fwrite($log, print_r($toreturn, true));
 
 	// Loop through our version manifest array and determine whether or not we have a version conflict.
 	foreach($versions as $key => $value) {
@@ -90,8 +97,8 @@ function get_firmware_version($raw_params) {
 			}
 		}
 	}
-
-	$response = php_value_to_xmlrpc($versions);
+	$response = php_value_to_xmlrpc($toreturn);
+	fwrite($log, print_r($response, true));
 	return new XML_RPC_Response($response);
 }
 
