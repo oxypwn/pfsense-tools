@@ -33,112 +33,72 @@
 */
 
 require_once("xmlrpc_server.inc");
+require_once("xmlparse_pkg.inc");
 require_once("xmlrpc.inc");
 
-$get_firmware_version_sig = array(array(array(), string, string, string, string));
-$get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with four strings - a valid pfSense platform and the caller\'s current firmware, kernel, and base versions, respectively. This method returns the current firmware version, the current kernel version, the current base version, and any additional data.';
+//$get_firmware_version_sig = array(array(array(), array()));
+$get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with an array. This method returns an array.';
 
 function get_firmware_version($raw_params) {
 	// Variables.
-	$path_to_version_files = './xmlrpc/';
-	$return_comments = false;
-
-	$log = fopen("/tmp/4newxmlrpclog.log", "w");
-
-	// Locations of version manifest files.
-	$path_to_firmware_manifest = $path_to_version_files . 'version';			// pfSense firmware version
-	$path_to_base_manifest = $path_to_version_files . 'version_base';			// base system version
-	$path_to_wrapsoekris_manifest = $path_to_version_files . 'version_wrapsoekris';		// wrapsoekris kernel version
-	$path_to_pfsense_manifest = $path_to_version_files . 'version_pfsense';			// pfsense kernel version
-	$path_to_comments = $path_to_version_files . 'version_comment';				// pfSense comments
-
-	fwrite($log, "Parsed version manifest paths.\n");
-	
+	$path_to_files = './xmlrpc/';
+	$toreturn = array();
 	$params = xmlrpc_params_to_php($raw_params);
-	fwrite($log, "Converted params.\n");
-	if($current_firmware_versions = file($path_to_firmware_manifest)) $gotfirmware = true;
-	if($current_base_versions = file($path_to_base_version)) $gotbase = true;
-	fwrite($log, "Parsed first version manifests.\n");
 
-	if($params[0] == 'wrap+soekris') {
-		if($current_kernel_versions = file($path_to_wrapsoekris_manifest)) $gotkernel = true;
-	} else {
-		if($current_kernel_versions = file($path_to_pfsense_manifest)) $gotkernel = true;
+	// Categories to update
+	$categories = array(
+				'firmware',
+				'kernel',
+				'base'
+			);
+
+	// Push update categories onto the XML parser.
+	global $pkg_listtags;
+	$pkg_listtags = array_merge($pkg_listtags, $categories); 
+
+	// Version manifest filenames.
+	$versions = array(
+				'firmware' => 'version',
+				'base' => 'version_base',
+				'kernel' => array(
+							'wrapsoekris' => 'version_wrapsoekris',
+							'pfsense' => 'version_pfsense'
+						)
+			);
+
+	// Load the version manifests into the versions array and initialize our returned struct.
+	foreach($versions as $key => $value) {
+		$toreturn[$key] = 1;
+		if(is_array($value)) {
+			foreach($value as $subkey => $subval) {
+				$versions[$key][$subkey] = parse_xml_config_pkg($path_to_files . $subval, "pfsenseupdates");
+			}
+		} else {
+			$versions[$key] = parse_xml_config_pkg($path_to_files . $subval, "pfsenseupdates");
+		}
 	}
-	
-	// Assume the client is up to date before running checks.
-	$firmware_to_download = array(1);
-	$kernel_to_download = array(1);
-	$base_to_download = array(1);
 
-	if($gotfirmware == true) {
-		if($current_firmware_versions[count($current_firmware_versions) - 1] != $params[1]) { // The client isn't running the latest firmware.
-			for($i = 0; $i < count($current_firmware_versions); $i++) {
-				if($params[1] == trim($current_firmware_versions[$i])) {
-					$firmware_to_download = array_slice($current_firmware_versions, $i + 1);
-					$version_mismatch = true;
+	// Loop through our version manifest array and determine whether or not we have a version conflict.
+	foreach($versions as $key => $value) {
+		foreach($value as $subkey => $subval) {
+			if(!stristr($params[$key], $subval[count($subval) - 1]['version'])) {
+				for($i = 0; $i < count($subval); $i++) {
+					if($params[$key] == $subval[$i]) {
+						$toreturn[$key] = array_slice($subval, $i + 1);
+					}
 				}
 			}
 		}
-	} else {
-		$firmware_to_download = array(-1);
-	}
-	
-	if($gotkernel == true) {
-		if($current_kernel_versions[count($current_kernel_versions) - 1] != $params[2]) { // The client isn't running the latest kernel.
-			for($i = 0; $i < count($current_kernel_versions); $i++) {
-				if($params[2] == trim($current_kernel_versions[$i])) {
-					$kernel_to_download = array_slice($current_kernel_versions, $i + 1);
-					$version_mismatch = true;
-				}
-			}
-		}
-	} else {
-		$kernel_to_download = array(-1);
 	}
 
-	if($gotbase = true) {
-		if($current_base_versions[count($current_base_versions) -1] != $params[3]) { // The client isn't running the latest base.
-			for($i = 0; $i < count($current_base_versions); $i++) {
-				if($params[3] == trim($current_base_versions[$i])) {
-					$base_to_download = array_slice($current_base_versions, $i + 1);
-        				$version_mismatch = true;
-				}
-			}
-		}
-	} else {
-		$base_to_download = array(-1);
-	}
-
-	if($return_comments == true && $version_mismatch == true) {
-		$comments = trim(file_get_contents($path_to_comments));
-		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean'),
-						    php_value_to_xmlrpc($firmware_to_download),
-						    php_value_to_xmlrpc($kernel_to_download),
-						    php_value_to_xmlrpc($base_to_download),
-						    new XML_RPC_Value($comments, 'string')
-					     ), 'array'
-			    );
-	} elseif($version_mismatch == true) {
-		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean'),
-						    php_value_to_xmlrpc($firmware_to_download),     
-                                                    php_value_to_xmlrpc($kernel_to_download),
-                                                    php_value_to_xmlrpc($base_to_download)
-					     ), 'array'
-			    );
-	} else {
-		$response = new XML_RPC_Value(array(new XML_RPC_Value($version_mismatch, 'boolean')
-					     ), 'array'
-			    );
-	}
-	fclose($log);
+	$response = php_value_to_xmlrpc($versions);
 	return new XML_RPC_Response($response);
 }
 
 $server = new XML_RPC_Server(
         array(
 	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version',
-							'signature' => $get_firmware_version_sig,
+//							'signature' => $get_firmware_version_sig,
 							'docstring' => $get_firmware_version_doc)
         )
 );
