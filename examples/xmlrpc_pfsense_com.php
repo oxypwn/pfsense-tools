@@ -61,42 +61,31 @@ function get_firmware_version($raw_params) {
 
 	// Version manifest filenames.
 	$versions = array(
-				'firmware' => 'version',
-				'base' => 'version_base',
-				'kernel' => array(
-							'wrapsoekris' => 'version_wrapsoekris',
-							'pfsense' => 'version_pfsense'
-						)
+				'firmware'	=> 'version',
+				'base'		=> 'version_base',
+				'kernel'	=> 'version_' . $params['platform']
 			);
 	fwrite($log, print_r($versions, true));
 
 	// Load the version manifests into the versions array and initialize our returned struct.
 	foreach($versions as $key => $value) {
 		$toreturn[$key] = 1;
-		if(is_array($value)) {
-			foreach($value as $subkey => $subval) {
-				fwrite($log, "OMGOMG");
-				$versions[$key][$subkey] = parse_xml_config_pkg($path_to_files . $subval, "pfsenseupdates");
+		$versions[$key] = parse_xml_config_pkg($path_to_files . $value, "pfsenseupdates");
+		if(is_array($versions[$key])) {
+			if($versions[$key][count($versions[$key]) -1] != $params[$key]) {
+				for($i = 0; $i < count($versions[$key]); $i++) {
+					if(stristr($params[$key]['version'], $versions[$key][$i]['version'])) {
+						$toreturn[$key] = array_slice($versions[$key], $i + 1);
+					}
+				}
+				if(!is_array($toreturn[$key][0])) $toreturn[$key] = $versions[$key];
 			}
 		} else {
-			$versions[$key] = parse_xml_config_pkg($path_to_files . $value, "pfsenseupdates");
+			$toreturn[$key] = -1;
 		}
 	}
 
 	fwrite($log, print_r($toreturn, true));
-
-	// Loop through our version manifest array and determine whether or not we have a version conflict.
-	foreach($versions as $key => $value) {
-		foreach($value as $subkey => $subval) {
-			if(!stristr($params[$key], $subval[count($subval) - 1]['version'])) {
-				for($i = 0; $i < count($subval); $i++) {
-					if($params[$key] == $subval[$i]) {
-						$toreturn[$key] = array_slice($subval, $i + 1);
-					}
-				}
-			}
-		}
-	}
 	$response = php_value_to_xmlrpc($toreturn);
 	fwrite($log, print_r($response, true));
 	return new XML_RPC_Response($response);
