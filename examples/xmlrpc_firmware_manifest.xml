@@ -1,0 +1,12 @@
+<pfsenseupdates>
+	<firmware>
+		<version>0.60</version>
+		<name>EjectEjectEject</name>
+		<forcefull/>
+	</firmware>
+	<firmware>
+		<version>0.60.1</version>
+		<name>EjectEjectEject-#1</name>
+		<forcediff/>
+	</firmware>
+</pfsenseupdates>
