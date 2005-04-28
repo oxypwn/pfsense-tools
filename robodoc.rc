@@ -1,0 +1,18 @@
+# $Id$
+#
+# pfSense robodoc.rc
+# Colin Smith
+
+options:
+    --src ./pfSense
+    --doc ./pfsense_output
+    --html
+    --singledoc
+    --index
+ignore files:
+    README
+    CVS
+    *.bak
+    *~
+    *.test
+    *.new
