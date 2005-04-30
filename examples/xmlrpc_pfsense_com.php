@@ -40,12 +40,11 @@ require_once("xmlrpc.inc");
 $get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with an array. This method returns an array.';
 
 function get_firmware_version($raw_params) {
-	$log = fopen("/home/colin/xmlrpc.log", "w");
+	$log = fopen("./xmlrpc.log", "a");
 	// Variables.
 	$path_to_files = './xmlrpc/';
 	$toreturn = array();
 	$params = array_shift(xmlrpc_params_to_php($raw_params));
-	fwrite($log, print_r($params, true));
 	// Categories to update
 	$categories = array(
 				'firmware',
@@ -57,37 +56,37 @@ function get_firmware_version($raw_params) {
 	global $pkg_listtags;
 	$pkg_listtags = array_merge($pkg_listtags, $categories); 
 
-	fwrite($log, print_r($pkg_listtags, true));
-
 	// Version manifest filenames.
 	$versions = array(
 				'firmware'	=> 'version',
 				'base'		=> 'version_base',
 				'kernel'	=> 'version_' . $params['platform']
 			);
-	fwrite($log, print_r($versions, true));
 
 	// Load the version manifests into the versions array and initialize our returned struct.
 	foreach($versions as $key => $value) {
 		$toreturn[$key] = 1;
 		$versions[$key] = parse_xml_config_pkg($path_to_files . $value, "pfsenseupdates");
+		$versions[$key] = $versions[$key][$key];
 		if(is_array($versions[$key])) {
-			if($versions[$key][count($versions[$key]) -1] != $params[$key]) {
+			fwrite($log, print_r($versions[$key], true));
+			fwrite($log, print_r($params[$key], true));
+			if(!stristr($versions[$key][count($versions[$key]) - 1]['version'], $params[$key]['version'])) {
 				for($i = 0; $i < count($versions[$key]); $i++) {
 					if(stristr($params[$key]['version'], $versions[$key][$i]['version'])) {
 						$toreturn[$key] = array_slice($versions[$key], $i + 1);
 					}
 				}
 				if(!is_array($toreturn[$key][0])) $toreturn[$key] = $versions[$key];
+			} else {
+				$toreturn[$key] = true;
 			}
 		} else {
 			$toreturn[$key] = -1;
 		}
 	}
 
-	fwrite($log, print_r($toreturn, true));
 	$response = php_value_to_xmlrpc($toreturn);
-	fwrite($log, print_r($response, true));
 	return new XML_RPC_Response($response);
 }
 
