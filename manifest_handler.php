@@ -10,7 +10,6 @@ include("xmlparse_pkg.inc");
 
 // Tweakables
 $pkg_listtags = array_merge($pkg_listtags, array("firmware", "kernel", "base"));
-print_r($pkg_listtags);
 $xml_rootobj = "pfsenseupdates";
 
 if($argc == 1) {
