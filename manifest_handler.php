@@ -45,11 +45,13 @@ USAGE;
 			if($argv[5] == "-f") $toarray["fullonly"] = "";
 			if($argv[5] == "-p" and $argv[6] != "") $toarray["platform"] = $argv[6];
 			$xml[$axmlobj][] = $toarray;
-			print_r($xml);
 		} else {
 			die("Missing arguments.\n");
 		}
 	}
+	$fout = fopen($argv[1], "w");
+	fwrite($fout, dump_xml_config_pkg($xml, $xml_rootobj));
+	fclose($fout);
 }
 
 ?>
