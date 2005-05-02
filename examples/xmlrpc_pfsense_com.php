@@ -57,6 +57,7 @@ function get_firmware_version($raw_params) {
 	$pkg_listtags = array_merge($pkg_listtags, $categories); 
 
 	// Version manifest filenames.
+	if($params['platform'] == "") $params['platform'] = "pfsense";
 	$versions = array(
 				'firmware'	=> 'version',
 				'base'		=> 'version_base',
@@ -64,22 +65,24 @@ function get_firmware_version($raw_params) {
 			);
 
 	// Load the version manifests into the versions array and initialize our returned struct.
-	foreach($versions as $key => $value) {
-		$toreturn[$key] = 1;
-		$versions[$key] = parse_xml_config_pkg($path_to_files . $value, "pfsenseupdates");
-		$versions[$key] = $versions[$key][$key];
-		if(is_array($versions[$key])) {
-			fwrite($log, print_r($versions[$key], true));
-			fwrite($log, print_r($params[$key], true));
-			if(!stristr($versions[$key][count($versions[$key]) - 1]['version'], $params[$key]['version'])) {
-				for($i = 0; $i < count($versions[$key]); $i++) {
-					if(stristr($params[$key]['version'], $versions[$key][$i]['version'])) {
-						$toreturn[$key] = array_slice($versions[$key], $i + 1);
+	foreach($params as $key => $value) {
+		if(array_key_exists($key, $versions)) {
+			$toreturn[$key] = 1;
+			$versions[$key] = parse_xml_config_pkg($path_to_files . $versions[$key], "pfsenseupdates");
+			$versions[$key] = $versions[$key][$key];
+			if(is_array($versions[$key])) {
+				fwrite($log, print_r($versions[$key], true));
+				fwrite($log, print_r($params[$key], true));
+				if(!stristr($versions[$key][count($versions[$key]) - 1]['version'], $params[$key]['version'])) {
+					for($i = 0; $i < count($versions[$key]); $i++) {
+						if(stristr($params[$key]['version'], $versions[$key][$i]['version'])) {
+							$toreturn[$key] = array_slice($versions[$key], $i + 1);
+						}
 					}
+					if(!is_array($toreturn[$key][0])) $toreturn[$key] = $versions[$key];
+				} else {
+					$toreturn[$key] = true;
 				}
-				if(!is_array($toreturn[$key][0])) $toreturn[$key] = $versions[$key];
-			} else {
-				$toreturn[$key] = true;
 			}
 		} else {
 			$toreturn[$key] = -1;
