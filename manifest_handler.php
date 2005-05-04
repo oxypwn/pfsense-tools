@@ -15,18 +15,19 @@ $xml_rootobj = "pfsenseupdates";
 if($argc == 1) {
 	$usage = <<<USAGE
 Usage:
-manifest_handler.php filename [-i] [-a version name -d/f -p platform]
+manifest_handler.php filename [-i] [-a version name -d/f -b branch -p platform]
 
 filename - path to manifest
 i - interactive mode (add, edit, delete)
 a - add a new version
 	version 	- desired version number
 	name		- release name
-	d	 	- binary diffs must be used
-	f		- full update must be used
+	d	 	- bdiff release
+	f		- full (latest.tgz-style) release
+	b branch	- branch name (beta, release, stable)
 	p platform	- (optional) this update is only usable on a certain platform.
 USAGE;
-	print $usage;
+	print $usage . "\n";
 	exit;
 } elseif(stristr($argv[2], "a")) {
 	if(file_exists($argv[1])) {
@@ -42,7 +43,8 @@ USAGE;
 					);
 			if($argv[5] == "-d") $toarray["diff"] = "";
 			if($argv[5] == "-f") $toarray["full"] = "";
-			if($argv[5] == "-p" and $argv[6] != "") $toarray["platform"] = $argv[6];
+			if($argv[6] == "-b" and $argv[6] != "") $toarray[$argv[6]] = "";
+			if($argv[7] == "-p" and $argv[8] != "") $toarray["platform"] = $argv[6];
 			$xml[$axmlobj][] = $toarray;
 		} else {
 			die("Missing arguments.\n");
