@@ -75,6 +75,8 @@ function get_firmware_version($raw_params) {
 					for($i = 0; $i < count($versions[$key]); $i++) {
 						if(stristr($versions[$key][$i]['version'], $params[$key]['version'])) {
 							$toreturn[$key] = array_slice($versions[$key], $i + 1);
+							foreach($toreturn[$key] as $aindex => $akey) if(array_key_exists('full', $akey)) $toparse = $aindex;
+							$toreturn[$key] = array_slice($versions[$key], $toparse + 1);
 						}
 					}
 					if(!is_array($toreturn[$key][0])) $toreturn[$key] = $versions[$key];
