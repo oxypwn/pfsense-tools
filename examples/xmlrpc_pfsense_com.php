@@ -55,8 +55,8 @@ function get_firmware_version($raw_params) {
 
 	// Branches to track
 	$branches = array(
-				'stable',
-				'beta'
+				'stable' => array('stable'),
+				'beta' => array('stable', 'beta')
 			);
 
 	// Push update categories onto the XML parser.
@@ -84,12 +84,14 @@ function get_firmware_version($raw_params) {
 							$toreturn[$key] = array_slice($versions[$key], $i + 1);
 							foreach($toreturn[$key] as $aindex => $akey) if(array_key_exists('full', $akey)) $toparse[0] = $aindex;
 							$toreturn[$key] = array_slice($versions[$key], $toparse[0] + 1);
-							foreach($branches as $abranch) {
+							foreach($branches as $abranch => $usebranch) {
 								if($params[$key][$abranch] != "") {
 									foreach($toreturn[$key] as $aindex => $akey) {
-										$toparse = array();
-										if(array_key_exists($abranch, $akey)) {
-											$toparse[] = $akey;
+										foreach($usebranch as $chkbranch) {
+											$toparse = array();
+											if(array_key_exists($chkbranch, $akey)) {
+												$toparse[] = $akey;
+											}
 										}
 									}
 									$toreturn[$key] = $toparse;
