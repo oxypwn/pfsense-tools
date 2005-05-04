@@ -43,6 +43,7 @@ function get_firmware_version($raw_params) {
 	// Variables.
 	$path_to_files = './xmlrpc/';
 	$toreturn = array();
+	$toparse = array();
 	$params = array_shift(xmlrpc_params_to_php($raw_params));
 	
 	// Categories to update
@@ -50,6 +51,12 @@ function get_firmware_version($raw_params) {
 				'firmware',
 				'kernel',
 				'base'
+			);
+
+	// Branches to track
+	$branches = array(
+				'stable',
+				'beta'
 			);
 
 	// Push update categories onto the XML parser.
@@ -75,8 +82,19 @@ function get_firmware_version($raw_params) {
 					for($i = 0; $i < count($versions[$key]); $i++) {
 						if(stristr($versions[$key][$i]['version'], $params[$key]['version'])) {
 							$toreturn[$key] = array_slice($versions[$key], $i + 1);
-							foreach($toreturn[$key] as $aindex => $akey) if(array_key_exists('full', $akey)) $toparse = $aindex;
-							$toreturn[$key] = array_slice($versions[$key], $toparse + 1);
+							foreach($toreturn[$key] as $aindex => $akey) if(array_key_exists('full', $akey)) $toparse[0] = $aindex;
+							$toreturn[$key] = array_slice($versions[$key], $toparse[0] + 1);
+							foreach($branches as $abranch) {
+								if($params[$key][$abranch] != "") {
+									foreach($toreturn[$key] as $aindex => $akey) {
+										$toparse = array();
+										if(array_key_exists($abranch, $akey)) {
+											$toparse[] = $akey;
+										}
+									}
+									$toreturn[$key] = $toparse;
+								}
+							}
 						}
 					}
 					if(!is_array($toreturn[$key][0])) $toreturn[$key] = $versions[$key];
