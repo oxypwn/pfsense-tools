@@ -40,11 +40,11 @@ require_once("xmlrpc.inc");
 $get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with an array. This method returns an array.';
 
 function get_firmware_version($raw_params) {
-	$log = fopen("./xmlrpc.log", "a");
 	// Variables.
 	$path_to_files = './xmlrpc/';
 	$toreturn = array();
 	$params = array_shift(xmlrpc_params_to_php($raw_params));
+	
 	// Categories to update
 	$categories = array(
 				'firmware',
@@ -57,7 +57,7 @@ function get_firmware_version($raw_params) {
 	$pkg_listtags = array_merge($pkg_listtags, $categories); 
 
 	// Version manifest filenames.
-	if($params['platform'] == "") $params['platform'] = "pfsense";
+	if($params['platform'] == "") $params['platform'] = "pfSense";
 	$versions = array(
 				'firmware'	=> 'version',
 				'base'		=> 'version_base',
@@ -66,16 +66,14 @@ function get_firmware_version($raw_params) {
 
 	// Load the version manifests into the versions array and initialize our returned struct.
 	foreach($params as $key => $value) {
-		if(array_key_exists($key, $versions)) {
+		if(isset($versions[$key])) {
 			$toreturn[$key] = 1;
 			$versions[$key] = parse_xml_config_pkg($path_to_files . $versions[$key], "pfsenseupdates");
 			$versions[$key] = $versions[$key][$key];
 			if(is_array($versions[$key])) {
-				fwrite($log, print_r($versions[$key], true));
-				fwrite($log, print_r($params[$key], true));
 				if(!stristr($versions[$key][count($versions[$key]) - 1]['version'], $params[$key]['version'])) {
 					for($i = 0; $i < count($versions[$key]); $i++) {
-						if(stristr($params[$key]['version'], $versions[$key][$i]['version'])) {
+						if(stristr($versions[$key][$i]['version'], $params[$key]['version'])) {
 							$toreturn[$key] = array_slice($versions[$key], $i + 1);
 						}
 					}
@@ -84,11 +82,8 @@ function get_firmware_version($raw_params) {
 					$toreturn[$key] = true;
 				}
 			}
-		} else {
-			$toreturn[$key] = -1;
 		}
 	}
-
 	$response = php_value_to_xmlrpc($toreturn);
 	return new XML_RPC_Response($response);
 }
