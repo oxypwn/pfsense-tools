@@ -22,8 +22,8 @@ i - interactive mode (add, edit, delete)
 a - add a new version
 	version 	- desired version number
 	name		- release name
-	d	 	- (optional) binary diffs must be used
-	f		- (optional) full update must be used
+	d	 	- binary diffs must be used
+	f		- full update must be used
 	p platform	- (optional) this update is only usable on a certain platform.
 USAGE;
 	print $usage;
@@ -40,8 +40,8 @@ USAGE;
 						"version" => $argv[3],
 						"name"	  => $argv[4]
 					);
-			if($argv[5] == "-d") $toarray["diffonly"] = "";
-			if($argv[5] == "-f") $toarray["fullonly"] = "";
+			if($argv[5] == "-d") $toarray["diff"] = "";
+			if($argv[5] == "-f") $toarray["full"] = "";
 			if($argv[5] == "-p" and $argv[6] != "") $toarray["platform"] = $argv[6];
 			$xml[$axmlobj][] = $toarray;
 		} else {
