@@ -43,6 +43,7 @@ function get_firmware_version($raw_params) {
 	// Variables.
 	$path_to_files = './xmlrpc/';
 	$toreturn = array();
+	$working = array();
 	$toparse = array();
 	$params = array_shift(xmlrpc_params_to_php($raw_params));
 	
@@ -73,39 +74,43 @@ function get_firmware_version($raw_params) {
 
 	// Load the version manifests into the versions array and initialize our returned struct.
 	foreach($params as $key => $value) {
-		if(isset($versions[$key])) {
+		if(isset($versions[$key])) { // Filter out other params like "platform"
 			$toreturn[$key] = 1;
 			$versions[$key] = parse_xml_config_pkg($path_to_files . $versions[$key], "pfsenseupdates");
 			$versions[$key] = $versions[$key][$key];
-			if(is_array($versions[$key])) {
+			if(is_array($versions[$key])) { // If we successfully parsed the XML, start processing versions
 				if(!stristr($versions[$key][count($versions[$key]) - 1]['version'], $params[$key]['version'])) {
 					for($i = 0; $i < count($versions[$key]); $i++) {
 						if(stristr($versions[$key][$i]['version'], $params[$key]['version'])) {
 							$toreturn[$key] = array_slice($versions[$key], $i + 1);
-							foreach($toreturn[$key] as $aindex => $akey) if(array_key_exists('full', $akey)) $toparse[0] = $aindex;
-							$toreturn[$key] = array_slice($versions[$key], $toparse[0] + 1);
-							foreach($branches as $abranch => $usebranch) {
-								if($params[$key][$abranch] != "") {
-									foreach($toreturn[$key] as $aindex => $akey) {
-										foreach($usebranch as $chkbranch) {
-											$toparse = array();
-											if(array_key_exists($chkbranch, $akey)) {
-												$toparse[] = $akey;
-											}
-										}
-									}
-									$toreturn[$key] = $toparse;
-								}
-							}
+							foreach($toreturn[$key] as $aindex => $akey)
+								if(array_key_exists('full', $akey))
+									$toreturn[$key] = array_slice($versions[$key], $aindex + 1);
 						}
 					}
-					if(!is_array($toreturn[$key][0])) $toreturn[$key] = $versions[$key];
+					if(!is_array($toreturn[$key][0]))
+						$toreturn[$key] = $versions[$key];
 				} else {
 					$toreturn[$key] = true;
 				}
 			}
 		}
 	}
+
+	// Now that we have our base array, process branches.
+	foreach($toreturn as $key => $val) {
+		if($params[$key]['branch'] != "") {
+			$toparse = array();
+			foreach($val as $aval) {
+				$branch = $params[$key]['branch'];
+				$branch = $branches[$branch];
+				if(in_array($aval['branch'], $branch)) $toparse[] = $aval;
+			}
+			$toreturn[$key] = $toparse;
+			if(!is_array($toreturn[$key][0])) $toreturn[$key] = true;
+		}
+	}
+
 	$response = php_value_to_xmlrpc($toreturn);
 	return new XML_RPC_Response($response);
 }
