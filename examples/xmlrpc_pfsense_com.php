@@ -79,9 +79,9 @@ function get_firmware_version($raw_params) {
 			$versions[$key] = parse_xml_config_pkg($path_to_files . $versions[$key], "pfsenseupdates");
 			$versions[$key] = $versions[$key][$key];
 			if(is_array($versions[$key])) { // If we successfully parsed the XML, start processing versions
-				if(!stristr($versions[$key][count($versions[$key]) - 1]['version'], $params[$key]['version'])) {
+				if(!stristr($params[$key]['version'], $versions[$key][count($versions[$key]) - 1]['version'])) {
 					for($i = 0; $i < count($versions[$key]); $i++) {
-						if(stristr($versions[$key][$i]['version'], $params[$key]['version'])) {
+						if(stristr($params[$key]['version'], $versions[$key][$i]['version']) != "") {
 							$toreturn[$key] = array_slice($versions[$key], $i + 1);
 							foreach($toreturn[$key] as $aindex => $akey)
 								if(array_key_exists('full', $akey))
