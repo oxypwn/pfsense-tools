@@ -1,12 +1,12 @@
 #!/bin/sh
 
-VERSION=0.60
+VERSION=0.62.1
 PRODUCTNAME=pfSense
 SCPUSERNAME=sullrich
 DSTISO=pfSense-$VERSION.iso
 LIVEFS=/usr/local/livefs/
-PVERSUFFIX=`date "+%Y.%m%d"`-`cat /home/sullrich/pfSense/etc/version`
-FILENAME=${PRODUCTNAME}-Full-Update-${VERSION}-${PVERSUFFIX}.tgz
+PVERSUFFIX=`cat /home/sullrich/pfSense/etc/version`
+FILENAME=${PRODUCTNAME}-Full-Update-${PVERSUFFIX}.tgz
 SRCISO=FreeSBIE.iso
 DSTWEBSITE=www.pfsense.com:/usr/local/www/pfsense/Etomite0.6/downloads/
 UPDATESDIR=/home/sullrich/updates/
@@ -19,6 +19,8 @@ echo Removing pfSense.tgz used by installer..
 find . -name pfSense.tgz -exec rm {} \;
 rm ${LIVEFS}usr/local/www/trigger_initial_wizard 2>/dev/null
 rm ${LIVEFS}etc/master.passwd 2>/dev/null
+rm ${LIVEFS}etc/pwd.db 2>/dev/null
+rm ${LIVEFS}etc/spwd.db 2>/dev/null
 rm ${LIVEFS}etc/passwd 2>/dev/null
 rm ${LIVEFS}etc/fstab 2>/dev/null
 rm ${LIVEFS}etc/ttys 2>/dev/null
