@@ -44,7 +44,8 @@ cd $LOCALDIR
 #./2.buildworld.sh
 ./3.installworld.sh
 
-cp -P -R /home/sullrich/pfSense/* /usr/local/livefs/
+cd /home/sullrich/pfSense/ && tar czvPf /tmp/pfSense.tgz
+cd /usr/local/livefs && tar xzvpf /tmp/pfSense.tgz
 rm /usr/local/livefs/etc/hosts
 
 ./4.kernel.sh FREESBIE.5
