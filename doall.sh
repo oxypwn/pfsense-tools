@@ -28,7 +28,6 @@ echo rm /etc/resolv.conf >> $PFSENSECVS/script
 echo rm /etc/hosts >> $PFSENSECVS/script
 echo ln -s /cf/conf /conf >> $PFSENSECVS/script
 echo ln -s /conf /cf/conf >> $PFSENSECVS/script
-echo ln -s /var/run/htpasswd /usr/local/www/.htpasswd >> $PFSENSECVS/script
 echo ln -s /var/etc/hosts /etc/hosts >> $PFSENSECVS/script
 echo ln -s /var/etc/resolv.conf /etc/resolv.conf >> $PFSENSECVS/script
 echo ln -s /lib/libm.so.3 /lib/libm.so.2 >> $PFSENSECVS/script
