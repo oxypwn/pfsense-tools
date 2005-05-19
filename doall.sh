@@ -51,6 +51,14 @@ rm /usr/local/livefs/etc/hosts
 cd /home/sullrich/freesbie
 
 ./4.kernel.sh FREESBIE.5
+#./4.kernel.sh FREESBIE.5.WRAP-SOEKRIS
+
+cp /home/sullrich/pfSense/boot/kernel/ipfw.ko.$RELEASE \
+	/usr/local/livefs/boot/kernel/ipfw.ko
+
+cp /sbin/brconfig /usr/local/livefs/sbin/
+chmod a+rx /usr/local/livefs/sbin/brconfig
+
 ./5.patchfiles.sh
 ./6.packages.sh
 ./7.customuser.sh
