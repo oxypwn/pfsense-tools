@@ -50,8 +50,8 @@ rm /usr/local/livefs/etc/hosts
 
 cd /home/sullrich/freesbie
 
-./4.kernel.sh FREESBIE.5
-#./4.kernel.sh FREESBIE.5.WRAP-SOEKRIS
+#./4.kernel.sh FREESBIE.5
+./4.kernel.sh FREESBIE.5.WRAP-SOEKRIS
 
 cp /home/sullrich/pfSense/boot/kernel/ipfw.ko.$RELEASE \
 	/usr/local/livefs/boot/kernel/ipfw.ko
@@ -77,7 +77,7 @@ cp /usr/sbin/ip* $FREESBIEBASEDIR/usr/sbin/
 rm -rf $FREESBIEBASEDIR/dist/pfSense.tgz
 cp /home/sullrich/pfSense.tgz $FREESBIEBASEDIR/dist/
 cp /usr/lib/libstdc* $FREESBIEBASEDIR/usr/lib/
-cp $LOCALDIR/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
+#cp $LOCALDIR/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
 mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer
 cp $LOCALDIR/files/sources.conf \
 $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
