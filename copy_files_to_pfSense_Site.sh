@@ -36,6 +36,8 @@ echo > ${LIVEFS}root/.shrc
 echo "/etc/rc.initial" >> ${LIVEFS}root/.shrc
 echo "exit" >> ${LIVEFS}root/.shrc
 
+echo `date` > /usr/local/livefs/etc/version.buildtime
+
 echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 cd ${LIVEFS} && tar czPf ${UPDATESDIR}/${FILENAME} .
 

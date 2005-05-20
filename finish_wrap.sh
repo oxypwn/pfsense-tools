@@ -27,6 +27,8 @@ cp /home/sullrich/pfSense/boot/loader.conf_wrap \
 cp /home/sullrich/pfSense/etc/ttys_wrap \
 	/usr/local/livefs/etc/
 
+echo `date` > /usr/local/livefs/etc/version.buildtime
+
 mkdir  $FreeSBIE/dev 2>/dev/null
 rm -f $FreeSBIE/etc/rc.d/freesbie_1st 2>/dev/null
 rm -f $FreeSBIE/usr/local/share/freesbie/files/000.freesbie_2nd.sh 2>/dev/null
