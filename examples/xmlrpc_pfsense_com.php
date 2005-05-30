@@ -26,14 +26,10 @@
         CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
         ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
         POSSIBILITY OF SUCH DAMAGE.
-
-	TODO:
-		* Use a loop to handle all of the different update sections (base, kernel, etc.)
-		* Return a struct instead on a numerically indexed array.
 */
 
 require_once("xmlrpc_server.inc");
-require_once("xmlparse_pkg.inc");
+require_once("xmlparse.inc");
 require_once("xmlrpc.inc");
 
 //$get_firmware_version_sig = array(array(array(), array()));
@@ -76,7 +72,7 @@ function get_firmware_version($raw_params) {
 	foreach($params as $key => $value) {
 		if(isset($versions[$key])) { // Filter out other params like "platform"
 			$toreturn[$key] = 1;
-			$versions[$key] = parse_xml_config_pkg($path_to_files . $versions[$key], "pfsenseupdates");
+			$versions[$key] = parse_xml_config($path_to_files . $versions[$key], "pfsenseupdates");
 			$versions[$key] = $versions[$key][$key];
 			if(is_array($versions[$key])) { // If we successfully parsed the XML, start processing versions
 				if(!stristr($params[$key]['version'], $versions[$key][count($versions[$key]) - 1]['version'])) {
@@ -112,6 +108,38 @@ function get_firmware_version($raw_params) {
 	}
 
 	$response = php_value_to_xmlrpc($toreturn);
+	return new XML_RPC_Response($response);
+}
+
+function get_pkgs($raw_params) {
+	$path_to_files = '../packages/';
+	$pkg_rootobj = 'pfsensepkgs';
+	$apkgs = array();
+	$toreturn = array();
+	
+	$params = xmlrpc_params_to_php($raw_params);
+
+	$pkg_config = parse_xml_config($path_to_files . 'pkg_config.xml', $pkg_rootobj);
+	if($params['pkg'] != 'all') {
+		foreach($pkg_config['packages'] as $key => $pkg) {
+			if(in_array($pkg['name'], $params['pkg']))
+				$apkgs[$pkg['name']] = $pkg;
+		}
+	} else {
+		foreach($pkg_config['packages'] as $key => $pkg) {
+			$apkgs[$pkg['name']] = $pkg;
+		}
+	}
+	if($params['info'] != 'all') {
+		foreach($apkgs as $pkgname => $pkg) {
+			foreach($pkg as $pkgkey => $pkgent) {
+				if(in_array($pkgkey, $params['info'])) $toreturn[$pkgname][$pkgkey] = $pkgent;
+			}
+		}
+		$response = php_value_to_xmlrpc($toreturn);
+	} else {
+		$response = php_value_to_xmlrpc($apkgs);
+	}
 	return new XML_RPC_Response($response);
 }
 
