@@ -117,16 +117,16 @@ function get_pkgs($raw_params) {
 	$apkgs = array();
 	$toreturn = array();
 	
-	$params = xmlrpc_params_to_php($raw_params);
+	$params = array_shift(xmlrpc_params_to_php($raw_params));
 
 	$pkg_config = parse_xml_config($path_to_files . 'pkg_config.xml', $pkg_rootobj);
 	if($params['pkg'] != 'all') {
-		foreach($pkg_config['packages'] as $key => $pkg) {
+		foreach($pkg_config['packages']['package'] as $pkg) {
 			if(in_array($pkg['name'], $params['pkg']))
 				$apkgs[$pkg['name']] = $pkg;
 		}
 	} else {
-		foreach($pkg_config['packages'] as $key => $pkg) {
+		foreach($pkg_config['packages']['package'] as $key => $pkg) {
 			$apkgs[$pkg['name']] = $pkg;
 		}
 	}
@@ -147,7 +147,8 @@ $server = new XML_RPC_Server(
         array(
 	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version',
 //							'signature' => $get_firmware_version_sig,
-							'docstring' => $get_firmware_version_doc)
+							'docstring' => $get_firmware_version_doc),
+	    'pfsense.get_pkgs'		   =>   array('function' => 'get_pkgs')
         )
 );
 ?>
