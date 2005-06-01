@@ -83,7 +83,7 @@ echo /dev/ad0a		/		ufs	ro		1 \
 echo /dev/ad0d		/cf		ufs	ro		1 \
 	1 >> /tmp/root/etc/fstab
 echo md			/tmp		mfs	rw,-s16m		1 \
-	1 >> /tmp/root/etc/fstab
+	0 >> /tmp/root/etc/fstab
 
 rm -rf /tmp/root/var/run
 rm -rf /tmp/root/var/log
