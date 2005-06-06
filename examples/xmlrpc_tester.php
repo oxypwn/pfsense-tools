@@ -5,6 +5,7 @@
  * pfSense XMLRPC test program.
  * Colin Smith
  * *insert pfSense license etc here*
+ * $Revision$
  */
 
 require_once("xmlrpc_client.inc");
