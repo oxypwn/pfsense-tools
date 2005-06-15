@@ -32,6 +32,8 @@ echo ln -s /var/etc/hosts /etc/hosts >> $PFSENSECVS/script
 echo ln -s /var/etc/resolv.conf /etc/resolv.conf >> $PFSENSECVS/script
 echo ln -s /lib/libm.so.3 /lib/libm.so.2 >> $PFSENSECVS/script
 echo ln -s /lib/libc.so.5 /lib/libc.so.4 >> $PFSENSECVS/script
+echo ln -s /lib/libc.so.6 /lib/libc.so.5 >> $PFSENSECVS/script
+
 cat $PFSENSECVS/script
 chmod a+x $PFSENSECVS/script
 chroot $PFSENSECVS/ /script
@@ -44,19 +46,20 @@ cd $LOCALDIR
 #./2.buildworld.sh
 ./3.installworld.sh
 
+# nuke some extra stuff
+find /usr/local/livefs -name sysinstall -exec rm -rf {} \;
+
 cd /home/sullrich/pfSense/ && tar czvPf /tmp/pfSense.tgz .
 cd /usr/local/livefs && tar xzvpf /tmp/pfSense.tgz
 rm /usr/local/livefs/etc/hosts
 
 cd /home/sullrich/freesbie
 
-#./4.kernel.sh FREESBIE.5
-./4.kernel.sh FREESBIE.5.WRAP-SOEKRIS
-
-cp /home/sullrich/pfSense/boot/kernel/ipfw.ko.$RELEASE \
-	/usr/local/livefs/boot/kernel/ipfw.ko
+#./4.kernel.sh pfSense.6
+./4.kernel.sh pfSense_wrap.6
 
 cp /sbin/brconfig /usr/local/livefs/sbin/
+cp /usr/sbin/bsnmpd /usr/local/livefs/sbin/
 chmod a+rx /usr/local/livefs/sbin/brconfig
 
 ./5.patchfiles.sh
@@ -70,36 +73,47 @@ chmod a+rx /usr/local/livefs/sbin/brconfig
 
 cp /sbin/pf* $FREESBIEBASEDIR/sbin
 cp /sbin/pf* /home/sullrich/pfSense/sbin/
-chmod a+x $FREESBIEBASEDIR/sbin/pf*
+chmod a+rx $FREESBIEBASEDIR/sbin/pf*
 cp $LOCALDIR/files/gettytab $FREESBIEBASEDIR/etc/
-cp /sbin/ip* $FREESBIEBASEDIR/sbin/
-cp /usr/sbin/ip* $FREESBIEBASEDIR/usr/sbin/
 rm -rf $FREESBIEBASEDIR/dist/pfSense.tgz
 cp /home/sullrich/pfSense.tgz $FREESBIEBASEDIR/dist/
 cp /usr/lib/libstdc* $FREESBIEBASEDIR/usr/lib/
-#cp $LOCALDIR/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
+
+cp $LOCALDIR/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
+cp $LOCALDIR/files/loader.rc $FREESBIEBASEDIR/boot/loader.rc
+echo hint.acpi.0.disabled=\"1\" >> $FREESBIEBASEDIR/boot/device.hints
+cp /boot/defaults/loader.conf $FREESBIEBASEDIR/boot/loader.conf
+cp /boot/beastie.4th /usr/local/livefs/boot/
+
 mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer
 cp $LOCALDIR/files/sources.conf \
-$FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
-cp $LOCALDIR/files/loader.rc $FREESBIEBASEDIR/boot/loader.rc
+	$FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
 rm -rf $FREESBIEBASEDIR/etc/shells
 cp $LOCALDIR/files/shells $FREESBIEBASEDIR/etc/shells
 echo exit > $FREESBIEBASEDIR/root/.xcustom.sh
 touch $FREESBIEBASEDIR/root/.hushlogin
-echo hint.acpi.0.disabled=\"1\" >> $FREESBIEBASEDIR/boot/device.hints
+cp $FREESBIEBASEDIR/lib/libc.so.6 $FREESBIEBASEDIR/lib/libc.so.5
+cp $FREESBIEBASEDIR/lib/libc.so.6 $FREESBIEBASEDIR/lib/libc.so.4
+
+# extra stuff for man pages
+# cp /usr/bin/groff /usr/bin/groff /usr/bin/tbl /usr/local/livefs/usr/bin/
+
+# bsnmpd related
+mkdir -p /usr/local/livefs/usr/share/snmp/defs/
+cp -R /usr/share/snmp/defs/ /usr/local/livefs/usr/share/snmp/defs/
 
 version_kernel=`cat /home/sullrich/pfSense/etc/version_kernel`
 version_base=`cat /home/sullrich/pfSense/etc/version_base`
 version=`cat /home/sullrich/pfSense/etc/version`
 
-#./8.preparefs.sh
-if [ "$?" != "0" ]; then
-    echo "Something went wrong."
-    exit 1;
-fi
-#./81.mkiso.sh
+# pf related binaries
+cd /usr/src/sbin/pfctl && make && make install && cd /home/sullrich/freesbie
+cd /usr/src/sbin/pflogd && make && make install && cd /home/sullrich/freesbie
+cp /sbin/pfctl /usr/local/livefs/sbin/
+cp /sbin/pflogd /usr/local/livefs/sbin/
+
+./8.preparefs.sh
+./81.mkiso.sh
 
 mkdir -p $UPDATES
-
-#/home/sullrich/tools/copy_files_to_pfSense_Site.sh
 
