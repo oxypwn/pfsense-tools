@@ -17,7 +17,7 @@ $dirs = glob($argv[1]);
 if(!is_array($dirs)) $dirs = array($dirs);
 
 function check_dir($dir) {
-	global $tocheck;
+	global $tocheck, $exitabnormal;
 	if(is_dir($dir)) {
 		if($dh = opendir($dir)) {
 			while (($file = readdir($dh)) !== false) {
@@ -29,6 +29,7 @@ function check_dir($dir) {
 						$phpout = "";
 						exec("/usr/bin/env php -l {$dir}/{$file} 2>&1", $phpout);
 						if(!stristr($phpout[0], "No syntax errors detected in")) {
+							$exitabnormal = true;
 							print "{$dir}{$file}\n-----";
 							foreach($phpout as $errline) {
 								print "{$errline}\n";
@@ -45,4 +46,10 @@ function check_dir($dir) {
 
 foreach($dirs as $todo) {
 	check_dir($todo);
+}
+
+if($exitabnormal) {
+	exit(-1);
+} else {
+	exit(0);
 }
