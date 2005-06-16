@@ -1,6 +1,6 @@
 #!/bin/sh
 
-VERSION=0.62.1
+VERSION=0.67.8
 PRODUCTNAME=pfSense
 SCPUSERNAME=sullrich
 DSTISO=pfSense-$VERSION.iso
