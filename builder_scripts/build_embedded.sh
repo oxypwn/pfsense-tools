@@ -13,19 +13,11 @@ set -e -u		# uncomment me if you want to exit on shell errors
 . ../../freesbie/config.sh
 . ../../freesbie/.common.sh
 
+# Suck in local vars
+. ./pfsense_common.sh
+
 # Suck in script helper functions
 . ./builder_common.sh
-
-# This is the base working directory for all builder
-# operations
-BASE_DIR=/home/pfSense
-
-# This is the directory where the latest pfSense cvs co 
-# is checked out to.
-CVS_CO_DIR=$BASE_DIR/pfSense
-
-# This is the user that has access to the pfSense repo
-CVS_USER=sullrich
 
 # Checkout pfSense information and set our version variables.
 cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense >/dev/null

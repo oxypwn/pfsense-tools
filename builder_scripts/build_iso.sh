@@ -4,13 +4,11 @@
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
 
-set -e -u		# uncomment me if you want to exit on shell errors
+#set -e -u		# uncomment me if you want to exit on shell errors
 
 # If config.sh does not exist, lets run the freesbie config script
 # to prompt for the values.
-if [ ! -e ../../freesbie/config.sh ]; then
-	../../freesbie/freesbie
-fi
+[ -e ../../freesbie/config.sh ] || ../../freesbie/freesbie
 
 # Read in FreeSBIE configuration variables and set:
 #   FREESBIEBASEDIR=/usr/local/livefs
@@ -19,19 +17,11 @@ fi
 . ../../freesbie/config.sh
 . ../../freesbie/.common.sh
 
+# Suck in local vars
+. ./pfsense_common.sh
+
 # Suck in script helper functions
 . ./builder_common.sh
-
-# This is the base working directory for all builder
-# operations
-BASE_DIR=/home/pfSense
-
-# This is the directory where the latest pfSense cvs co 
-# is checked out to.
-CVS_CO_DIR=$BASE_DIR/pfSense
-
-# This is the user that has access to the pfSense repo
-CVS_USER=sullrich
 
 # Checkout pfSense information and set our version variables.
 cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense >/dev/null
@@ -47,7 +37,7 @@ $LOCALDIR/0.rmdir.sh
 
 $LOCALDIR/1.mkdir.sh
 
-$LOCALDIR/2.buildworld.sh		# This can be remarked out if completed
+#$LOCALDIR/2.buildworld.sh		# This can be remarked out if completed
 					# prior to this build
 $LOCALDIR/3.installworld.sh
 

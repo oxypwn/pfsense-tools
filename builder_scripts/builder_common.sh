@@ -2,6 +2,8 @@
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
+	cd $LOCALDIR
+
 	mkdir -p $CVS_CO_DIR/libexec
 	cp /libexec/ld-elf.so.1 $CVS_CO_DIR/libexec/ld-elf.so.1
 	cp /lib/libedit* $CVS_CO_DIR/lib/
@@ -61,27 +63,74 @@ populate_extra() {
 	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
 }
 
+fixup_updates() {
+	VERSION=`cat $CVS_CO_DIR/etc/version.buildtime`
+	PRODUCTNAME=pfSense
+	DSTISO=pfSense-$VERSION.iso
+	FILENAME=${PRODUCTNAME}-Full-Update-${VERSION}.tgz
+
+	cd ${FREESBIEBASEDIR}
+	rm -rf ${FREESBIEBASEDIR}/conf*
+	echo Removing pfSense.tgz used by installer..
+	find . -name pfSense.tgz -exec rm {} \;
+	rm ${FREESBIEBASEDIR}usr/local/www/trigger_initial_wizard 2>/dev/null
+	rm ${FREESBIEBASEDIR}etc/master.passwd 2>/dev/null
+	rm ${FREESBIEBASEDIR}etc/pwd.db 2>/dev/null
+	rm ${FREESBIEBASEDIR}etc/spwd.db 2>/dev/null
+	rm ${FREESBIEBASEDIR}etc/passwd 2>/dev/null
+	rm ${FREESBIEBASEDIR}etc/fstab 2>/dev/null
+	rm ${FREESBIEBASEDIR}etc/ttys 2>/dev/null
+	rm ${FREESBIEBASEDIR}etc/fstab 2>/dev/null
+	rm ${FREESBIEBASEDIR}boot/device.hints 2>/dev/null
+	rm ${FREESBIEBASEDIR}boot/loader.conf 2>/dev/null
+	rm ${FREESBIEBASEDIR}boot/loader.rc 2>/dev/null
+	rm -rf ${FREESBIEBASEDIR}conf/ 2>/dev/null
+	rm -rf ${FREESBIEBASEDIR}cf/ 2>/dev/null
+	echo > ${FREESBIEBASEDIR}root/.tcshrc
+	# Setup login environment
+	echo > ${FREESBIEBASEDIR}root/.shrc
+	echo "/etc/rc.initial" >> ${FREESBIEBASEDIR}root/.shrc
+	echo "exit" >> ${FREESBIEBASEDIR}root/.shrc
+
+	echo `date` > /usr/local/livefs/etc/version.buildtime
+
+	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
+	cd ${FREESBIEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
+
+}
+
 # Create tarball of pfSense cvs directory
 create_pfSense_tarball() {
+	cd $LOCALDIR
+
 	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
 }
 
 # Copy tarball of pfSense cvs directory to FreeSBIE custom directory
 copy_pfSesne_tarball_to_custom_directory() {
+	cd $LOCALDIR
+
 	tar xzvPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
+}
+
+copy__pfSesne_tarball_to_freesbiebasedir() {
+	cd $LOCALDIR
+
+	tar xzvPf /tmp/pfSense.tgz -C  $FREESBIEBASEDIR
 }
 
 # Set image as a CDROM type image
 set_image_as_cdrom() {
+	cd $LOCALDIR
+
 	echo cdrom > $CVS_CO_DIR/etc/platform
 }
 
 # Set image as a WRAP type image
 set_image_as_wrap() {
+	cd $LOCALDIR
+
         echo wrap > $CVS_CO_DIR/etc/platform
 }
-
-
-
 
 
