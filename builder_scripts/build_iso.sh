@@ -6,6 +6,12 @@
 
 set -e -u		# uncomment me if you want to exit on shell errors
 
+# If config.sh does not exist, lets run the freesbie config script
+# to prompt for the values.
+if [ ! -e ../../freesbie/config.sh ]; then
+	../../freesbie/freesbie
+fi
+
 # Read in FreeSBIE configuration variables and set:
 #   FREESBIEBASEDIR=/usr/local/livefs
 #   LOCALDIR=/home/pfSense/freesbie
