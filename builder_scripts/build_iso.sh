@@ -18,7 +18,7 @@
 . ../../freesbie/.common.sh
 
 # Suck in local vars
-. ./pfsense_common.sh
+. ./pfsense_local.sh
 
 # Suck in script helper functions
 . ./builder_common.sh
