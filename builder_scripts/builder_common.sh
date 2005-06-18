@@ -13,10 +13,10 @@ populate_extra() {
 	cp /bin/ln /bin/rm $CVS_CO_DIR/bin/
 	mkdir -p $LOCALDIR/var/run
 	echo "#!/bin/sh" > $CVS_CO_DIR/script
-	echo ln -s /cf/conf /conf >> $CVS_CO_DIR/script
-	echo ln -s /conf /cf/conf >> $CVS_CO_DIR/script
-	echo ln -s /var/etc/hosts /etc/hosts >> $CVS_CO_DIR/script
-	echo ln -s /lib/libm.so.3 /lib/libm.so.2 >> $CVS_CO_DIR/script
+	#echo ln -s /cf/conf /conf >> $CVS_CO_DIR/script
+	#echo ln -s /conf /cf/conf >> $CVS_CO_DIR/script
+	#echo ln -s /var/etc/hosts /etc/hosts >> $CVS_CO_DIR/script
+	#echo ln -s /lib/libm.so.3 /lib/libm.so.2 >> $CVS_CO_DIR/script
 	cat $CVS_CO_DIR/script
 	chmod a+x $CVS_CO_DIR/script
 	chroot $CVS_CO_DIR/ /bin/sh /script
@@ -37,6 +37,7 @@ populate_extra() {
 	find $CVS_CO_DIR -type d -name CVS -exec rm -rf {}/* \;
 
 	# Copy BSD Installer sources manifest
+	mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/
 	cp $LOCALDIR/files/sources.conf \
 		$FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
 
@@ -82,7 +83,7 @@ fixup_updates() {
 	rm ${FREESBIEBASEDIR}etc/ttys 2>/dev/null
 	rm ${FREESBIEBASEDIR}etc/fstab 2>/dev/null
 	rm ${FREESBIEBASEDIR}boot/device.hints 2>/dev/null
-	rm ${FREESBIEBASEDIR}boot/loader.conf 2>/dev/null
+	#rm ${FREESBIEBASEDIR}boot/loader.conf 2>/dev/null
 	rm ${FREESBIEBASEDIR}boot/loader.rc 2>/dev/null
 	rm -rf ${FREESBIEBASEDIR}conf/ 2>/dev/null
 	rm -rf ${FREESBIEBASEDIR}cf/ 2>/dev/null
@@ -102,7 +103,9 @@ fixup_updates() {
 # Create tarball of pfSense cvs directory
 create_pfSense_tarball() {
 	cd $LOCALDIR
+
 	rm -rf $CVS_CO_DIR/boot/
+
 	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
 }
 
@@ -110,13 +113,15 @@ create_pfSense_tarball() {
 copy_pfSesne_tarball_to_custom_directory() {
 	cd $LOCALDIR
 
-	tar xzvPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
+	tar xzPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
+
+	rm -rf $LOCALDIR/files/custom/boot/
 }
 
 copy__pfSesne_tarball_to_freesbiebasedir() {
 	cd $LOCALDIR
 
-	tar xzvPf /tmp/pfSense.tgz -C  $FREESBIEBASEDIR
+	tar xzPf /tmp/pfSense.tgz -C  $FREESBIEBASEDIR
 }
 
 # Set image as a CDROM type image

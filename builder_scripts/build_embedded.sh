@@ -37,6 +37,7 @@ $LOCALDIR/2.buildworld.sh		# This can be remarked out if completed
 					# prior to this build
 $LOCALDIR/3.installworld.sh
 
+KERNCONF=pfSense_wrap.6
 $LOCALDIR/4.kernel.sh pfSense.6
 
 $LOCALDIR/5.patchfiles.sh
