@@ -12,14 +12,6 @@ populate_extra() {
 	cp /lib/libc* $CVS_CO_DIR/lib/
 	cp /bin/ln /bin/rm $CVS_CO_DIR/bin/
 	mkdir -p $LOCALDIR/var/run
-	echo "#!/bin/sh" > $CVS_CO_DIR/script
-	#echo ln -s /cf/conf /conf >> $CVS_CO_DIR/script
-	#echo ln -s /conf /cf/conf >> $CVS_CO_DIR/script
-	#echo ln -s /var/etc/hosts /etc/hosts >> $CVS_CO_DIR/script
-	#echo ln -s /lib/libm.so.3 /lib/libm.so.2 >> $CVS_CO_DIR/script
-	cat $CVS_CO_DIR/script
-	chmod a+x $CVS_CO_DIR/script
-	chroot $CVS_CO_DIR/ /bin/sh /script
 
 	echo exit > $CVS_CO_DIR/root/.xcustom.sh
 	touch $CVS_CO_DIR/root/.hushlogin
@@ -62,6 +54,10 @@ populate_extra() {
 	cp $LOCALDIR/files/gettytab $CVS_CO_DIR/etc/
 	mkdir -p $CVS_CO_DIR/usr/lib $CVS_CO_DIR/lib
 	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
+
+	echo md                 /tmp            mfs     rw,-s16m                1 \
+		0 >> $CVS_CO_DIR/etc/fstab
+
 }
 
 fixup_updates() {

@@ -4,9 +4,9 @@
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
 
-#set -e -u		# uncomment me if you want to exit on shell errors
+# set -e -u		# uncomment me if you want to exit on shell errors
 
-set -x
+# set -x
 
 # If config.sh does not exist, lets run the freesbie config script
 # to prompt for the values.
@@ -26,7 +26,7 @@ set -x
 . ./builder_common.sh
 
 # Checkout pfSense information and set our version variables.
-cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense >/dev/null
+cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense 
 
 # Calculate versions
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
@@ -51,7 +51,7 @@ echo ">>> Phase 2"
 echo ">>> Phase 3"
 $LOCALDIR/3.installworld.sh
 
-echo "Phase 4"
+echo ">>> Phase 4"
 $LOCALDIR/4.kernel.sh
 
 echo ">>> Phase 5"
@@ -72,13 +72,12 @@ copy_pfSesne_tarball_to_custom_directory
 
 echo ">>> Phase 7"
 $LOCALDIR/7.customuser.sh
+$LOCALDIR/71.bsdinstaller.sh
 
 echo ">>> Phase 8"
 $LOCALDIR/8.preparefs.sh
 
 echo ">>> Phase 8.1"
 $LOCALDIR/81.mkiso.sh
-
-
 
 

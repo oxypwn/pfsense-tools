@@ -1,6 +1,6 @@
 # This is the base working directory for all builder
 # operations
-BASE_DIR=/home/pfSense
+BASE_DIR=/home/pfsense
 
 # This is the directory where the latest pfSense cvs co
 # is checked out to.
