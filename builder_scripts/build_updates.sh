@@ -43,13 +43,13 @@ $LOCALDIR/5.patchfiles.sh
 
 $LOCALDIR/6.packages.sh
 
-$LOCALDIR/7.customuser.sh
-
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
 set_image_as_cdrom
 create_pfSense_tarball
 copy__pfSesne_tarball_to_freesbiebasedir
+
+$LOCALDIR/7.customuser.sh
 
 $LOCALDIR/8.preparefs.sh
 

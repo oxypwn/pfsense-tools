@@ -8,7 +8,7 @@
 
 # If config.sh does not exist, lets run the freesbie config script
 # to prompt for the values.
-[ -e ../../freesbie/config.sh ] || ../../freesbie/freesbie
+[ -f ../../freesbie/config.sh ] || ../../freesbie/freesbie
 
 # Read in FreeSBIE configuration variables and set:
 #   FREESBIEBASEDIR=/usr/local/livefs
@@ -47,13 +47,13 @@ $LOCALDIR/5.patchfiles.sh
 
 $LOCALDIR/6.packages.sh
 
-$LOCALDIR/7.customuser.sh
-
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
 set_image_as_cdrom
 create_pfSense_tarball
 copy_pfSesne_tarball_to_custom_directory
+
+$LOCALDIR/7.customuser.sh
 
 $LOCALDIR/8.preparefs.sh
 

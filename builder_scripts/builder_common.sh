@@ -102,7 +102,7 @@ fixup_updates() {
 # Create tarball of pfSense cvs directory
 create_pfSense_tarball() {
 	cd $LOCALDIR
-
+	rm -rf $CVS_CO_DIR/boot/
 	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
 }
 
