@@ -30,6 +30,8 @@ populate_extra() {
 	# Nuke CVS dirs
 	find $CVS_CO_DIR -type d -name CVS -exec rm -rf {}/* \;
 
+	cp $LOCALDIR/files/scripts/pfi $FREESBIEBASEDIR/scripts/
+
 	# Copy BSD Installer sources manifest
 	mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/
 	cp $LOCALDIR/files/sources.conf \
@@ -50,14 +52,13 @@ populate_extra() {
 
 	cd /usr/src/sbin/pfctl && make && make install
 	cd /usr/src/sbin/pflogd && make && make install
+	mkdir -p $CVS_CO_DIR/sbin/
 	cp /sbin/pf* $CVS_CO_DIR/sbin/
 	chmod a+rx $CVS_CO_DIR/sbin/pf*
 
 	cp $LOCALDIR/files/gettytab $CVS_CO_DIR/etc/
 	mkdir -p $CVS_CO_DIR/usr/lib $CVS_CO_DIR/lib
 	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
-
-	rm ${CVS_CO_DIR}/usr/local/www/trigger_initial_wizard 2>/dev/null
 
 	echo md                 /tmp            mfs     rw,-s16m                1 \
 		0 >> $CVS_CO_DIR/etc/fstab
@@ -74,7 +75,6 @@ fixup_updates() {
 	rm -rf ${FREESBIEBASEDIR}/conf*
 	echo Removing pfSense.tgz used by installer..
 	find . -name pfSense.tgz -exec rm {} \;
-	rm ${FREESBIEBASEDIR}usr/local/www/trigger_initial_wizard 2>/dev/null
 	rm ${FREESBIEBASEDIR}etc/master.passwd 2>/dev/null
 	rm ${FREESBIEBASEDIR}etc/pwd.db 2>/dev/null
 	rm ${FREESBIEBASEDIR}etc/spwd.db 2>/dev/null
