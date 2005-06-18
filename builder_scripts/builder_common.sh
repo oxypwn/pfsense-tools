@@ -60,6 +60,11 @@ populate_extra() {
 	mkdir -p $CVS_CO_DIR/usr/lib $CVS_CO_DIR/lib
 	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
 
+	# Setup login environment
+	echo > $CVS_CO_DIR/root/.shrc
+	echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.shrc
+	echo "exit" >> $CVS_CO_DIR/root/.shrc
+
 	echo md                 /tmp            mfs     rw,-s16m                1 \
 		0 >> $CVS_CO_DIR/etc/fstab
 
