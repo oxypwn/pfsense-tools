@@ -5,6 +5,8 @@ populate_extra() {
 	cd $LOCALDIR
 
 	mkdir -p $CVS_CO_DIR/libexec
+	mkdir -p $CVS_CO_DIR/lib
+	mkdir -p $CVS_CO_DIR/bin
 	cp /libexec/ld-elf.so.1 $CVS_CO_DIR/libexec/ld-elf.so.1
 	cp /lib/libedit* $CVS_CO_DIR/lib/
 	cp /bin/sh $CVS_CO_DIR/bin/
@@ -54,6 +56,8 @@ populate_extra() {
 	cp $LOCALDIR/files/gettytab $CVS_CO_DIR/etc/
 	mkdir -p $CVS_CO_DIR/usr/lib $CVS_CO_DIR/lib
 	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
+
+	rm ${CVS_CO_DIR}/usr/local/www/trigger_initial_wizard 2>/dev/null
 
 	echo md                 /tmp            mfs     rw,-s16m                1 \
 		0 >> $CVS_CO_DIR/etc/fstab
