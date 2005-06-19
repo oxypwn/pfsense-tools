@@ -48,6 +48,7 @@ else
 	echo Starting backend...
 	/usr/local/sbin/dfuibe_installer -o /FreeSBIE/ \
 		>/tmp/installerconsole.log 2>&1 &
+	sleep 1
 	echo Starting NCURSES frontend...
 	/usr/local/sbin/dfuife_curses
 fi
