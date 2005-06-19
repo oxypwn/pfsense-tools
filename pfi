@@ -31,7 +31,7 @@ get_config_xml()
 
 look_for_config_xml_config_msdos()
 {
-	for try_device in da0s1 da1s1 fd0 fd1; do
+	for try_device in da0 da1 da0s1 da1s1 fd0 fd1; do
 		echo -n "Looking for config.xml on /dev/${try_device}..."
 		if [ ! -e /dev/${try_device} ]; then
 			echo " does not exist."
@@ -87,7 +87,7 @@ look_for_pfi_config_msdos()
 {
 	[ -r /etc/pfi.conf ] && return 0
 
-	for try_device in da0s1 da1s1 fd0 fd1; do
+	for try_device in da0 da1 da0s1 da1s1 fd0 fd1; do
 		echo -n "Looking for pfi.conf on /dev/${try_device}..."
 		if [ ! -e /dev/${try_device} ]; then
 			echo " does not exist."
