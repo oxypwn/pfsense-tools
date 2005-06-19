@@ -143,12 +143,29 @@ function get_pkgs($raw_params) {
 	return new XML_RPC_Response($response);
 }
 
+function get_pkg_sizes($raw_params) {
+	$path_to_files = '../packages/';
+	$cache_name = 'pkg_depends.cache';
+	$params = array_shift(xmlrpc_params_to_php($raw_params));
+	$sizes = unserialize(file_get_contents($path_to_files . $cache_name));
+	if($params['pkg'] != 'all') {
+		foreach($sizes as $pkg => $sizes) {
+			if(in_array($pkg, $params['pkg'])) {
+				$toreturn[$pkg] = $sizes;
+			}
+		}
+		return new XML_RPC_Response(php_value_to_xmlrpc($toreturn));
+	} else {
+		return new XML_RPC_Response(php_value_to_xmlrpc($sizes));
+	}
+	return new XML_RPC_Response(new XML_RPC_Value('error', 'string'));
+}
+
 $server = new XML_RPC_Server(
         array(
-	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version',
-//							'signature' => $get_firmware_version_sig,
-							'docstring' => $get_firmware_version_doc),
-	    'pfsense.get_pkgs'		   =>   array('function' => 'get_pkgs')
+	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version'),
+	    'pfsense.get_pkgs'		   =>   array('function' => 'get_pkgs'),
+	    'pfsense.get_pkg_sizes'	   =>   array('function' => 'get_pkg_sizes')
         )
 );
 ?>
