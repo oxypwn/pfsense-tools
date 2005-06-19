@@ -37,7 +37,7 @@ look_for_config_xml_config_msdos()
 			echo " does not exist."
 			return 1;
 		fi
-		if mount -t msdos -o rdonly /dev/$try_device /mnt ; then
+		if mount -t msdos /dev/$try_device /mnt ; then
 			echo -n " /dev/$try_device ok..."
 			if get_config_xml /mnt /dev/$try_device; then
 			    echo " ... found!"
