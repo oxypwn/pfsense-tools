@@ -20,6 +20,9 @@ get_config_xml()
 	if [ -r $1/config.xml ]; then
 		echo " found!"
                 ln -s $1 /conf
+		rm -rf /cf
+		mkdir -p /cf/conf
+		ln -s $1 /cf/conf
 		return 0
 	else
 		return 1
