@@ -30,7 +30,9 @@ populate_extra() {
 	# Nuke CVS dirs
 	find $CVS_CO_DIR -type d -name CVS -exec rm -rf {}/* \;
 
-	cp $LOCALDIR/files/scripts/pfi $FREESBIEBASEDIR/scripts/
+	cp $BASE_DIR/tools/pfi $FREESBIEBASEDIR/scripts/
+	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/
+	chmod a+rx $FREESBIEBASEDIR/scripts/*
 
 	# Copy BSD Installer sources manifest
 	mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/
@@ -119,6 +121,8 @@ create_pfSense_tarball() {
 # Copy tarball of pfSense cvs directory to FreeSBIE custom directory
 copy_pfSesne_tarball_to_custom_directory() {
 	cd $LOCALDIR
+
+	rm -rf $LOCALDIR/files/custom/
 
 	tar xzPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
 
