@@ -19,7 +19,6 @@ get_config_xml()
 {
 	if [ -r $1/config.xml ]; then
 		echo " found!"
-                rm /conf
                 ln -s $1 /conf
 		return 0
 	else
