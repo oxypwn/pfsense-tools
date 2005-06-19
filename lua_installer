@@ -1,5 +1,36 @@
 #!/bin/sh
 
+# Launch BSD Installer with fake "installer root"
+# Copyright 2004 BSD Installer Project and the FreeSBIE project
+# This file is placed under the BSD license.
+
+echo
+echo "Launching pfSense Installer..."
+echo
+
+/usr/bin/killall syslogd 2>/dev/null 2>&1
+
+sysctl kern.geom.debugflags=16
+
+ln -s /FreeSBIE/tftpdroot /tmp/tftpdroot
+echo "Mounting /FreeSBIE/dev..."
+mount_devfs devfs /FreeSBIE/dev
+
+echo "Mounting /FreeSBIE/usr..."
+MD_LOCAL=`mdconfig -a -t vnode -f /FreeSBIE/uzip/usr.uzip`
+mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/usr
+
+echo "Mounting /FreeSBIE/var..."
+MD_LOCAL=`mdconfig -a -f /FreeSBIE/uzip/var.uzip`
+mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/var
+
+mount -t unionfs /.var /FreeSBIE/var
+
+# Let's access this now to prevent the "RockRidge" message
+# during the actual install
+ls /FreeSBIE/usr >/dev/null 2>&1
+ls /FreeSBIE/var >/dev/null 2>&1
+
 echo Launching LUA Installer...
 /usr/local/bin/lua /usr/local/share/dfuibe_lua/main.lua \
     dir.root=/FreeSBIE/ \
