@@ -64,6 +64,8 @@ populate_extra() {
 	echo > $CVS_CO_DIR/root/.shrc
 	echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.shrc
 	echo "exit" >> $CVS_CO_DIR/root/.shrc
+	echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.profile
+	echo "exit" >> $CVS_CO_DIR/root/.profile
 
 	echo md                 /tmp            mfs     rw,-s16m                1 \
 		0 >> $CVS_CO_DIR/etc/fstab
