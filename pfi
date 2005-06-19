@@ -45,7 +45,6 @@ look_for_config_xml_config_msdos()
 		if mount -t msdos /dev/$try_device /mnt/cf ; then
 			echo -n " /dev/$try_device ok..."
 			if get_config_xml /mnt/cf /dev/$try_device; then
-			    echo " ... found!"
 			    return 0
 			fi
 		fi
