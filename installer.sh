@@ -12,41 +12,36 @@ echo
 
 sysctl kern.geom.debugflags=16
 
-echo pass in quick all   > /tmp/tmp
-echo pass out quick all >> /tmp/tmp
-ipf -f /tmp/tmp 2>/dev/null
-pfctl -f /tmp/tmp 2>/dev/null
+ln -s /FreeSBIE/tftpdroot /tmp/tftpdroot
+echo "Mounting /FreeSBIE/dev..."
+mount_devfs devfs /FreeSBIE/dev
 
-for FILE in "/FreeSBIE/" ; do
-	find $FILE >/dev/null 2>&1
-done
+echo "Mounting /FreeSBIE/usr..."
+MD_LOCAL=`mdconfig -a -t vnode -f /FreeSBIE/uzip/usr.uzip`
+mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/usr
 
-# Launch the curses based frontend
+echo "Mounting /FreeSBIE/var..."
+MD_LOCAL=`mdconfig -a -f /FreeSBIE/uzip/var.uzip`
+mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/var
 
-if [ -e /tmp/thttpd.conf ]; then
-	clear
-	echo
-	echo
-	echo pfi has setup pfSense for CGI Installer mode.
-	echo
-	echo "THTTPD is running and ready for an install on:"
-	echo
-	/sbin/ifconfig | grep "inet " | cut -d" " -f 2
-	echo
-	/usr/local/sbin/dfuibe_installer -o /FreeSBIE/ \
-		>/tmp/installerconsole.log 2>&1
-else
-	echo
-	echo Starting keyboard map picker...
-	/usr/sbin/kbdmap
-	echo Starting backend...
-	/usr/local/sbin/dfuibe_installer -o /FreeSBIE/ \
-		>/tmp/installerconsole.log 2>&1 &
-	sleep 1
-	echo Starting NCURSES frontend...
-	/usr/local/sbin/dfuife_curses
-fi
+mount -t unionfs /.var /FreeSBIE/var
 
+# Let's access this now to prevent the "RockRidge" message
+# during the actual install
+ls /FreeSBIE/usr >/dev/null 2>&1
+ls /FreeSBIE/var >/dev/null 2>&1
+
+echo Starting backend...
+/usr/local/sbin/dfuibe_installer -o /FreeSBIE/ \
+	>/tmp/installerconsole.log 2>&1 &
+
+sleep 1
+
+echo Starting NCURSES frontend...
+/usr/local/sbin/dfuife_curses
+
+echo
+echo
 echo
 echo
 echo
