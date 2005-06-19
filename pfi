@@ -23,6 +23,7 @@ get_config_xml()
 		rm -rf /cf
 		mkdir -p /cf/conf
 		ln -s $1 /cf/conf
+		ln -s $1 /conf
 		return 0
 	else
 		return 1
@@ -31,19 +32,18 @@ get_config_xml()
 
 look_for_config_xml_config_msdos()
 {
+	mkdir -p /tmp/cf
 	for try_device in da0 da1 da0s1 da1s1 fd0 fd1; do
 		echo -n "Looking for config.xml on /dev/${try_device}..."
 		if [ ! -e /dev/${try_device} ]; then
 			echo " does not exist."
 			return 1;
 		fi
-		if mount -t msdos /dev/$try_device /mnt ; then
+		if mount -t msdos /dev/$try_device /tmp/cf ; then
 			echo -n " /dev/$try_device ok..."
-			if get_config_xml /mnt /dev/$try_device; then
+			if get_config_xml /tmp/cf /dev/$try_device; then
 			    echo " ... found!"
-				exit
 			fi
-			umount /mnt
 		fi
 		echo " not found"
 	done
