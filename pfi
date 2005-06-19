@@ -19,6 +19,9 @@ get_config_xml()
 {
 	if [ -r $1/config.xml ]; then
 		echo " found!"
+		# Now that we have found config.xml lets apply
+		# some symlinks to /cf/ and /conf so that pfSense
+		# can find and use the configuration files.
                 ln -s $1 /conf
 		rm -rf /cf
 		mkdir -p /cf/conf
@@ -37,12 +40,13 @@ look_for_config_xml_config_msdos()
 		echo -n "Looking for config.xml on /dev/${try_device}..."
 		if [ ! -e /dev/${try_device} ]; then
 			echo " does not exist."
-			return 1;
+			return 1
 		fi
 		if mount -t msdos /dev/$try_device /tmp/cf ; then
 			echo -n " /dev/$try_device ok..."
 			if get_config_xml /tmp/cf /dev/$try_device; then
 			    echo " ... found!"
+			    return 0
 			fi
 		fi
 		echo " not found"
