@@ -15,6 +15,39 @@ start_cmd="pfi_start"
 stop_cmd=":"
 thttpd_location="/scripts/thttpd"
 
+get_config_xml()
+{
+	if [ -r $1/config.xml ]; then
+		echo " found!"
+                rm /conf
+                ln -s $1 /conf
+		return 0
+	else
+		return 1
+	fi
+}
+
+look_for_config_xml_config_msdos()
+{
+	for try_device in da0s1 da1s1 fd0 fd1; do
+		echo -n "Looking for config.xml on /dev/${try_device}..."
+		if [ ! -e /dev/${try_device} ]; then
+			echo " does not exist."
+			return 1;
+		fi
+		if mount -t msdos -o rdonly /dev/$try_device /mnt ; then
+			echo -n " /dev/$try_device ok..."
+			if get_config_xml /mnt /dev/$try_device; then
+				umount /mnt
+				return 0
+			fi
+			umount /mnt
+		fi
+		echo " not found"
+	done
+	return 1
+}
+
 get_pfi_config()
 {
 	[ -r /etc/pfi.conf ] && return 0
@@ -106,6 +139,7 @@ pfi_start()
 
 	look_for_pfi_config_cd9660
 	look_for_pfi_config_msdos
+        look_for_config_xml_config_msdos    # look for pfsense config.xml
 
 	if [ ! -r /etc/pfi.conf ]; then
 		echo '' >/etc/pfi.conf
