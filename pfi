@@ -40,8 +40,8 @@ look_for_config_xml_config_msdos()
 		if mount -t msdos -o rdonly /dev/$try_device /mnt ; then
 			echo -n " /dev/$try_device ok..."
 			if get_config_xml /mnt /dev/$try_device; then
-				umount /mnt
-				return 0
+			    echo " ... found!"
+				exit
 			fi
 			umount /mnt
 		fi
