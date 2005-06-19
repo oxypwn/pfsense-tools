@@ -1,7 +1,9 @@
 #!/bin/sh
 
 echo Launching LUA Installer...
-/usr/local/bin/lua /usr/local/share/dfuibe_lua/main.lua dir.root=/FreeSBIE/  >/dev/null 2>&1 &
+/usr/local/bin/lua /usr/local/share/dfuibe_lua/main.lua \
+    dir.root=/FreeSBIE/ \
+    >/dev/null 2>&1 &
 
 echo Launghing Installer NCurses frontend...
 /usr/local/sbin/dfuife_curses

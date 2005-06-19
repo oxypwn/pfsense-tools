@@ -22,9 +22,9 @@ get_config_xml()
 		# Now that we have found config.xml lets apply
 		# some symlinks to /cf/ and /conf so that pfSense
 		# can find and use the configuration files.
-                ln -s $1 /conf
-		rm -rf /cf
+		rm -rf /cf/
 		mkdir -p /cf/conf
+                ln -s $1 /conf
 		ln -s $1 /cf/conf
 		ln -s $1 /conf
 		return 0

@@ -21,12 +21,6 @@ for FILE in "/FreeSBIE/" ; do
 	find $FILE >/dev/null 2>&1
 done
 
-# Launch the backend
-#lua /usr/local/share/dfuibe_lua/dfuibe.lua \
-	#dir.root=/FreeSBIE/ \
-	#scripts/demo/ \
-	#>/dev/null 2>&1 &
-
 # Launch the curses based frontend
 
 if [ -e /tmp/thttpd.conf ]; then
