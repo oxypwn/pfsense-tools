@@ -33,6 +33,9 @@ populate_extra() {
 	cp $BASE_DIR/tools/pfi $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/installer.sh $FREESBIEBASEDIR/scripts/
+	cp $BASE_DIR/tools/after_installation_routines.sh \
+		$FREESBIEBASEDIR/usr/local/bin/
+
 	chmod a+rx $FREESBIEBASEDIR/scripts/*
 
 	# Copy BSD Installer sources manifest
