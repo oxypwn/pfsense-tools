@@ -32,6 +32,7 @@ populate_extra() {
 
 	cp $BASE_DIR/tools/pfi $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/
+	cp $BASE_DIR/tools/installer.sh $FREESBIEBASEDIR/scripts/
 	chmod a+rx $FREESBIEBASEDIR/scripts/*
 
 	# Copy BSD Installer sources manifest
@@ -122,7 +123,7 @@ create_pfSense_tarball() {
 copy_pfSesne_tarball_to_custom_directory() {
 	cd $LOCALDIR
 
-	rm -rf $LOCALDIR/files/custom/
+	rm -rf $LOCALDIR/files/custom/*
 
 	tar xzPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
 
