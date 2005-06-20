@@ -6,7 +6,7 @@
  * Colin Smith
  */
 
-include("xmlparse_pkg.inc");
+include("xmlparse.inc");
 
 // Tweakables
 $pkg_listtags = array_merge($pkg_listtags, array("firmware", "kernel", "base"));
@@ -51,7 +51,7 @@ USAGE;
 		}
 	}
 	$fout = fopen($argv[1], "w");
-	fwrite($fout, dump_xml_config_pkg($xml, $xml_rootobj));
+	fwrite($fout, dump_xml_config($xml, $xml_rootobj));
 	fclose($fout);
 }
 

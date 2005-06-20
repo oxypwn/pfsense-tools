@@ -10,7 +10,7 @@
 require_once("xmlrpc_client.inc");
 require_once("config.inc");
 require_once("functions.inc");
-require_once("xmlparse_pkg.inc");
+require_once("xmlparse.inc");
 
 $user = 'admin';
 $password = 'pfsense';
