@@ -33,6 +33,7 @@ populate_extra() {
 	cp $BASE_DIR/tools/pfi $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/installer.sh $FREESBIEBASEDIR/scripts/
+	mkdir -p $FREESBIEBASEDIR/usr/local/bin/
 	cp $BASE_DIR/tools/after_installation_routines.sh \
 		$FREESBIEBASEDIR/usr/local/bin/
 

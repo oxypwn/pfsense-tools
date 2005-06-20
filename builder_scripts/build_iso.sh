@@ -45,7 +45,7 @@ echo ">>> Phase 1"
 $LOCALDIR/1.mkdir.sh
 
 echo ">>> Phase 2"
-#$LOCALDIR/2.buildworld.sh		# This can be remarked out if completed
+$LOCALDIR/2.buildworld.sh		# This can be remarked out if completed
 					# prior to this build
 
 echo ">>> Phase 3"
