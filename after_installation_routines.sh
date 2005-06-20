@@ -18,6 +18,15 @@ rm /FreeSBIE/mnt/etc/rc.conf
 rm /FreeSBIE/mnt/etc/rc.firewall*
 rm /FreeSBIE/mnt/etc/rc.sendmail
 
+# Set platform back to pfSense to prevent freesbie_1st
+# from running
+echo pfSense > /FreeSBIE/mnt/etc/platform
+
+# Copy the current running systems config.xml to the
+# target installation area.
+mkdir -p /FreeSBIE/mnt/cf/conf
+cp /cf/conf/* /FreeSBIE/mnt/cf/conf
+
 # Prevent the system from asking for these twice
 touch /FreeSBIE/mnt/root/.part_mount
 touch /FreeSBIE/mnt/root/.first_time
