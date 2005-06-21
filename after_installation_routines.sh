@@ -1,7 +1,6 @@
 #!/bin/sh
 
 # Lets cleanup from fake root environment
-mkdir  /FreeSBIE/mnt/dev
 rm -f /FreeSBIE/mnt/etc/rc.d/freesbie_1st
 rm -f /FreeSBIE/mnt/usr/local/share/freesbie/files/000.freesbie_2nd.sh
 rm -rf /FreeSBIE/mnt/cloop
@@ -39,17 +38,14 @@ cd /FreeSBIE/mnt/var && bzcat /FreeSBIE/dist/FreeSBIE.var.dist.bz2  | mtree -PUr
 
 cd /FreeSBIE/mnt && rm FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
 
-# comment this out. we now have a full system on livecd
-#tar xzvpf /FreeSBIE/dist/pfSense.tgz -C /FreeSBIE/mnt
-
-echo "" > /FreeSBIE/mnt/etc/motd
+rm /FreeSBIE/mnt/etc/motd
 
 #echo /etc/rc.initial > /FreeSBIE/mnt/root/.shrc
 #echo exit >> /FreeSBIE/mnt/root/.shrc
 
 # Set platform back to pfSense to prevent freesbie_1st
 # from running
-echo pfSense > /FreeSBIE/mnt/etc/platform
+echo "pfSense" > /FreeSBIE/mnt/etc/platform
 
 chroot /FreeSBIE/mnt/ ln -s /config.xml /cf/conf/config.xml
 # Self destruct myself.
