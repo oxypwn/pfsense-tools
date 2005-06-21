@@ -53,6 +53,11 @@ populate_extra() {
 	# Update shells
 	cp $LOCALDIR/files/shells $FREESBIEBASEDIR/etc/shells
 
+	echo "#!/bin/sh" > $FREESBIEBASEDIR/script
+	echo "/bin/ln -s /cf/conf /conf" >> $FREESBIEBASEDIR/script
+	chmod a+rx $FREESBIEBASEDIR/script
+	chroot $FREESBIEBASEDIR /script
+
 	# Make sure we're not running any x mojo
 	echo exit > $FREESBIEBASEDIR/root/.xcustom.sh
 
@@ -82,6 +87,9 @@ populate_extra() {
 
 	echo md                 /tmp            mfs     rw,-s16m                1 \
 		0 >> $CVS_CO_DIR/etc/fstab
+
+	# Trigger the pfSense wizzard
+	echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
 }
 
