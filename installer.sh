@@ -48,11 +48,11 @@ echo
 echo
 echo
 echo
-echo "Once the system reboots you will be asked to associate your network"
-echo "interfaces as either WAN, LAN or OPT."
 echo
-echo After assigning network interfaces and rebooting you should be able to
-echo browse http://192.168.1.1 on your LAN interface for further configuration.
+echo
+echo "pfSense is now rebooting"
+echo "After reboot and the console menu is displayed, open a web"
+echo "browser and try to surf to http://192.168.1.1"
 echo
 echo Rebooting in 3 seconds.  CTRL-C to abort.
 sleep 1
@@ -62,4 +62,6 @@ echo Rebooting in 1 second..  CTRL-C to abort.
 sleep 1
 echo
 echo pfSense is now rebooting.
+
 shutdown -r now
+
