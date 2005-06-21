@@ -25,6 +25,10 @@ set -x
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Remove staging area files
+rm -rf $LOCALDIR/files/custom/*
+rm -rf $BASE_DIR/pfSense
+
 # Checkout pfSense information and set our version variables.
 cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense 
 

@@ -21,7 +21,14 @@ rm /FreeSBIE/mnt/etc/rc.sendmail
 # Copy the current running systems config.xml to the
 # target installation area.
 mkdir -p /FreeSBIE/mnt/cf/conf
-cp /cf/conf/* /FreeSBIE/mnt/cf/conf
+cp /cf/conf/* /FreeSBIE/mnt/cf/conf/
+
+# Chroot in and create link
+echo "#!/bin/sh" >> /FreeSBIE/mnt/script
+echo "/bin/ln -s /cf/conf /conf" >> /FreeSBIE/mnt/script
+chmod a+rx /FreeSBIE/mnt/script
+chroot /FreeSBIE/mnt/ /bin/sh /FreeSBIE/mnt/script
+rm /FreeSBIE/mnt/script
 
 # Prevent the system from asking for these twice
 touch /FreeSBIE/mnt/root/.part_mount
