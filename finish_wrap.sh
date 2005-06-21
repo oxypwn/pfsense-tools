@@ -30,6 +30,8 @@ cp /home/sullrich/pfSense/etc/ttys_wrap \
 echo `date` > /usr/local/livefs/etc/version.buildtime
 echo "" > /usr/local/livefs/etc/motd
 
+mkdir -p /usr/local/livefs/cf/conf/backup
+
 mkdir  $FreeSBIE/dev 2>/dev/null
 rm -f $FreeSBIE/etc/rc.d/freesbie_1st 2>/dev/null
 rm -f $FreeSBIE/usr/local/share/freesbie/files/000.freesbie_2nd.sh 2>/dev/null
