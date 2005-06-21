@@ -35,7 +35,7 @@ populate_extra() {
 	cp $BASE_DIR/tools/installer.sh $FREESBIEBASEDIR/scripts/
 	mkdir -p $FREESBIEBASEDIR/usr/local/bin/
 	cp $BASE_DIR/tools/after_installation_routines.sh \
-		$FREESBIEBASEDIR/usr/local/bin/
+		$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
 
 	chmod a+rx $FREESBIEBASEDIR/scripts/*
 
