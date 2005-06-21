@@ -33,9 +33,15 @@ populate_extra() {
 	cp $BASE_DIR/tools/pfi $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/installer.sh $FREESBIEBASEDIR/scripts/
+
+	mkdir -p $LOCALDIR/files/custom/usr/local/bin
 	mkdir -p $FREESBIEBASEDIR/usr/local/bin/
+
 	cp $BASE_DIR/tools/after_installation_routines.sh \
-		$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
+		$LOCALDIR/files/custom/usr/local/bin/after_installation_routines.sh
+
+	cp $BASE_DIR/tools/after_installation_routines.sh \
+		$FREESBIEBASEDIR/usr/local/bin/after_installation_routines.sh
 
 	chmod a+rx $FREESBIEBASEDIR/scripts/*
 
@@ -137,7 +143,7 @@ copy_pfSesne_tarball_to_custom_directory() {
 copy__pfSesne_tarball_to_freesbiebasedir() {
 	cd $LOCALDIR
 
-	tar xzPf /tmp/pfSense.tgz -C  $FREESBIEBASEDIR
+	tar xzPf /tmp/pfSense.tgz -C $FREESBIEBASEDIR
 }
 
 # Set image as a CDROM type image
