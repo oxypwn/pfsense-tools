@@ -18,10 +18,6 @@ rm /FreeSBIE/mnt/etc/rc.conf
 rm /FreeSBIE/mnt/etc/rc.firewall*
 rm /FreeSBIE/mnt/etc/rc.sendmail
 
-# Set platform back to pfSense to prevent freesbie_1st
-# from running
-echo pfSense > /FreeSBIE/mnt/etc/platform
-
 # Copy the current running systems config.xml to the
 # target installation area.
 mkdir -p /FreeSBIE/mnt/cf/conf
@@ -44,11 +40,15 @@ cd /FreeSBIE/mnt && rm FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
 
 fdisk -B -b /FreeSBIE/mnt/boot/boot
 
-tar xzvpf /FreeSBIE/dist/pfSense.tgz -C /FreeSBIE/mnt
+#tar xzvpf /FreeSBIE/dist/pfSense.tgz -C /FreeSBIE/mnt
 
 echo > /FreeSBIE/mnt/etc/motd
 echo /etc/rc.initial > /FreeSBIE/mnt/root/.shrc
 echo exit >> /FreeSBIE/mnt/root/.shrc
+
+# Set platform back to pfSense to prevent freesbie_1st
+# from running
+echo pfSense > /FreeSBIE/mnt/etc/platform
 
 chroot /FreeSBIE/mnt/ ln -s /config.xml /cf/conf/config.xml
 # Self destruct myself.
