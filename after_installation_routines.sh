@@ -11,6 +11,7 @@ rm /FreeSBIE/mnt/root/.tcshrc
 rm /FreeSBIE/mnt/root/.message*
 rm /FreeSBIE/mnt/etc/rc.conf
 touch /FreeSBIE/mnt/etc/rc.conf
+
 # Zap some unneeded rc stuff
 rm -rf /FreeSBIE/mnt/etc/rc.subr
 rm -rf /FreeSBIE/mnt/etc/rc.d
@@ -38,13 +39,13 @@ cd /FreeSBIE/mnt/var && bzcat /FreeSBIE/dist/FreeSBIE.var.dist.bz2  | mtree -PUr
 
 cd /FreeSBIE/mnt && rm FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
 
-fdisk -B -b /FreeSBIE/mnt/boot/boot
-
+# comment this out. we now have a full system on livecd
 #tar xzvpf /FreeSBIE/dist/pfSense.tgz -C /FreeSBIE/mnt
 
-echo > /FreeSBIE/mnt/etc/motd
-echo /etc/rc.initial > /FreeSBIE/mnt/root/.shrc
-echo exit >> /FreeSBIE/mnt/root/.shrc
+echo "" > /FreeSBIE/mnt/etc/motd
+
+#echo /etc/rc.initial > /FreeSBIE/mnt/root/.shrc
+#echo exit >> /FreeSBIE/mnt/root/.shrc
 
 # Set platform back to pfSense to prevent freesbie_1st
 # from running
