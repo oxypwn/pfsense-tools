@@ -32,7 +32,7 @@ ls /FreeSBIE/usr >/dev/null 2>&1
 ls /FreeSBIE/var >/dev/null 2>&1
 
 echo Launching LUA Installer...
-/usr/local/bin/lua /usr/local/share/dfuibe_lua/main.lua \
+/usr/local/bin/lua50c51 /usr/local/share/dfuibe_lua/main.lua \
     dir.root=/FreeSBIE/ \
     >/dev/null 2>&1 &
 
