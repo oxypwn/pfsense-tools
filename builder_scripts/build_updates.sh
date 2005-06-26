@@ -19,6 +19,13 @@ set -e -u		# uncomment me if you want to exit on shell errors
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Define the Kernel file we're using
+export KERNCONF=pfSense.6
+
+# Remove staging area files
+rm -rf $LOCALDIR/files/custom/*
+rm -rf $BASE_DIR/pfSense
+
 # Checkout pfSense information and set our version variables.
 cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense >/dev/null
 
@@ -50,11 +57,4 @@ create_pfSense_tarball
 copy__pfSesne_tarball_to_freesbiebasedir
 
 $LOCALDIR/7.customuser.sh
-
-$LOCALDIR/8.preparefs.sh
-
-$LOCALDIR/81.mkiso.sh
-
-
-
 
