@@ -4,7 +4,7 @@
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
 
-set -e -u		# uncomment me if you want to exit on shell errors
+#set -e -u		# uncomment me if you want to exit on shell errors
 
 # Read in FreeSBIE configuration variables and set:
 #   FREESBIEBASEDIR=/usr/local/livefs
@@ -27,7 +27,7 @@ rm -rf $LOCALDIR/files/custom/*
 rm -rf $BASE_DIR/pfSense
 
 # Checkout pfSense information and set our version variables.
-cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense >/dev/null
+cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense 
 
 # Calculate versions
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
@@ -40,8 +40,8 @@ $LOCALDIR/0.rmdir.sh
 
 $LOCALDIR/1.mkdir.sh
 
-$LOCALDIR/2.buildworld.sh		# This can be remarked out if completed
-					# prior to this build
+$LOCALDIR/2.buildworld.sh		
+
 $LOCALDIR/3.installworld.sh
 
 $LOCALDIR/4.kernel.sh pfSense.6
@@ -52,9 +52,10 @@ $LOCALDIR/6.packages.sh
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
-set_image_as_cdrom
 create_pfSense_tarball
-copy__pfSesne_tarball_to_freesbiebasedir
+copy_pfSense_tarball_to_freesbiebasedir
+fixup_updates
+create_pfSense_Full_update_tarball
 
 $LOCALDIR/7.customuser.sh
 

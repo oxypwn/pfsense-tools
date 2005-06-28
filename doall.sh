@@ -9,10 +9,13 @@
 . ../freesbie/config.sh
 . ../freesbie/.common.sh
 
-PFSENSECVS=/home/pfSense/pfSense
-UPDATES=/home/pfSense/updates
+# Define the Kernel file we're using
+export KERNCONF=pfSense.6
 
-cd /home/pfSense
+PFSENSECVS=/home/pfsense/pfSense
+UPDATES=/home/pfsense/updates
+
+cd /home/pfsense
 rm -rf $PFSENSECVS
 
 cvs -d:ext:sullrich@216.135.66.16:/cvsroot co pfSense
@@ -38,7 +41,7 @@ echo Nuking CVS...
 find $PFSENSECVS -type d -name CVS -exec rm -rf {}/* \;
 find $PFSENSECVS -type d -name CVS -exec rm -rf {} \;
 rm -rf $PFSENSECVS.tgz
-cd $PFSENSECVS/ && tar czPf /home/pfSense/pfSense.tgz .
+cd $PFSENSECVS/ && tar czPf /home/pfsense/pfSense.tgz .
 
 cd $LOCALDIR
 ./0.rmdir.sh
@@ -49,13 +52,13 @@ cd $LOCALDIR
 # nuke some extra stuff
 find /usr/local/livefs -name sysinstall -exec rm -rf {} \;
 
-cd /home/pfSense/pfSense/ && tar czPf /tmp/pfSense.tgz .
+cd /home/pfsense/pfSense/ && tar czPf /tmp/pfSense.tgz .
 
 # Uncomment for wrap builds.
 cd /usr/local/livefs && tar xzpf /tmp/pfSense.tgz
 rm /usr/local/livefs/etc/hosts
 
-cd /home/pfSense/freesbie
+cd /home/pfsense/freesbie
 
 ./4.kernel.sh pfSense.6
 #./4.kernel.sh pfSense_wrap.6
@@ -74,19 +77,12 @@ chmod a+rx /usr/local/livefs/sbin/brconfig
 . ../freesbie/.common.sh
 
 cp /sbin/pf* $FREESBIEBASEDIR/sbin
-cp /sbin/pf* /home/pfSense/pfSense/sbin/
+cp /sbin/pf* /home/pfsense/pfSense/sbin/
 chmod a+rx $FREESBIEBASEDIR/sbin/pf*
 cp $LOCALDIR/files/gettytab $FREESBIEBASEDIR/etc/
 rm -rf $FREESBIEBASEDIR/dist/pfSense.tgz
-cp /home/pfSense/pfSense.tgz $FREESBIEBASEDIR/dist/
+cp /home/pfsense/pfSense.tgz $FREESBIEBASEDIR/dist/
 cp /usr/lib/libstdc* $FREESBIEBASEDIR/usr/lib/
-
-cp $LOCALDIR/files/foobar/ttys $FREESBIEBASEDIR/etc/ttys
-
-#cp $LOCALDIR/files/loader.rc $FREESBIEBASEDIR/boot/loader.rc
-#echo hint.acpi.0.disabled=\"1\" >> $FREESBIEBASEDIR/boot/device.hints
-#cp /boot/defaults/loader.conf $FREESBIEBASEDIR/boot/loader.conf
-#cp /boot/beastie.4th /usr/local/livefs/boot/
 
 mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer
 cp $LOCALDIR/files/sources.conf \
@@ -98,22 +94,21 @@ touch $FREESBIEBASEDIR/root/.hushlogin
 cp $FREESBIEBASEDIR/lib/libc.so.6 $FREESBIEBASEDIR/lib/libc.so.5
 cp $FREESBIEBASEDIR/lib/libc.so.6 $FREESBIEBASEDIR/lib/libc.so.4
 
-# extra stuff for man pages
-# cp /usr/bin/groff /usr/bin/groff /usr/bin/tbl /usr/local/livefs/usr/bin/
-
 # bsnmpd related
 mkdir -p /usr/local/livefs/usr/share/snmp/defs/
 cp -R /usr/share/snmp/defs/ /usr/local/livefs/usr/share/snmp/defs/
 
-version_kernel=`cat /home/pfSense/pfSense/etc/version_kernel`
-version_base=`cat /home/pfSense/pfSense/etc/version_base`
-version=`cat /home/pfSense/pfSense/etc/version`
+version_kernel=`cat /home/pfsense/pfSense/etc/version_kernel`
+version_base=`cat /home/pfsense/pfSense/etc/version_base`
+version=`cat /home/pfsense/pfSense/etc/version`
 
 # pf related binaries
-cd /usr/src/sbin/pfctl && make && make install && cd /home/pfSense/freesbie
-cd /usr/src/sbin/pflogd && make && make install && cd /home/pfSense/freesbie
+cd /usr/src/sbin/pfctl && make && make install && cd /home/pfsense/freesbie
+cd /usr/src/sbin/pflogd && make && make install && cd /home/pfsense/freesbie
 cp /sbin/pfctl /usr/local/livefs/sbin/
 cp /sbin/pflogd /usr/local/livefs/sbin/
+cp /sbin/devd /usr/local/livefs/sbin/devd
+chmod a+rx /usr/local/livefs/sbin/*
 
 # Set buildtime
 date > /usr/local/livefs/etc/version.buildtime

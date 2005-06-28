@@ -49,8 +49,7 @@ echo ">>> Phase 1"
 $LOCALDIR/1.mkdir.sh
 
 echo ">>> Phase 2"
-$LOCALDIR/2.buildworld.sh		# This can be remarked out if completed
-					# prior to this build
+$LOCALDIR/2.buildworld.sh
 
 echo ">>> Phase 3"
 $LOCALDIR/3.installworld.sh
@@ -72,7 +71,7 @@ set_image_as_cdrom
 echo ">>> Phase create_pfSense_tarball"
 create_pfSense_tarball
 echo ">>> Phase copy_pfSesne_tarball_to_custom_directory"
-copy_pfSesne_tarball_to_custom_directory
+copy_pfSense_tarball_to_custom_directory
 
 echo ">>> Phase 7"
 $LOCALDIR/7.customuser.sh

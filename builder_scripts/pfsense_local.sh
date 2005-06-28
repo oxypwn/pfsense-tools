@@ -9,3 +9,4 @@ CVS_CO_DIR=$BASE_DIR/pfSense
 # This is the user that has access to the pfSense repo
 CVS_USER=sullrich
 
+UPDATESDIR=$BASE_DIR/updates
