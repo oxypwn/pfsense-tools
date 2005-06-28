@@ -138,6 +138,7 @@ look_for_pfi_config_cd9660()
 
 pfi_start()
 {
+	echo
 	echo "Starting pfi..."
 
 	# Get the pfi.conf file off the pfi media and into /etc/pfi.conf.
