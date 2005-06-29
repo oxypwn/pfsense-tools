@@ -53,12 +53,13 @@ function get_firmware_version($raw_params) {
 	// Branches to track
 	$branches = array(
 				'stable' => array('stable'),
-				'beta' => array('stable', 'beta')
+				'beta' => array('stable', 'beta'),
+				'alpha' => array('stable', 'beta', 'alpha')
 			);
 
 	// Push update categories onto the XML parser.
-	global $pkg_listtags;
-	$pkg_listtags = array_merge($pkg_listtags, $categories); 
+	global $listtags;
+	$listtags = array_merge($listtags, $categories); 
 
 	// Version manifest filenames.
 	if($params['platform'] == "") $params['platform'] = "pfSense";
@@ -94,17 +95,21 @@ function get_firmware_version($raw_params) {
 	}
 
 	// Now that we have our base array, process branches.
-	foreach($toreturn as $key => $val) {
-		if($params[$key]['branch'] != "") {
+	if($params['branch']) {
+		$branch = $branches[$params['branch']];
+		foreach($toreturn as $key => $val) {
+			if(!is_array($val)) {
+				$toput[$key] = $val;
+				continue;
+			}
 			$toparse = array();
 			foreach($val as $aval) {
-				$branch = $params[$key]['branch'];
-				$branch = $branches[$branch];
 				if(in_array($aval['branch'], $branch)) $toparse[] = $aval;
 			}
-			$toreturn[$key] = $toparse;
-			if(!is_array($toreturn[$key][0])) $toreturn[$key] = true;
+			$toput[$key] = $toparse;
+			if(!is_array($toput[$key][0])) $toput[$key] = 1;
 		}
+		$toreturn = $toput;
 	}
 
 	$response = php_value_to_xmlrpc($toreturn);
