@@ -31,6 +31,9 @@ mount -t unionfs /.var /FreeSBIE/var
 ls /FreeSBIE/usr >/dev/null 2>&1
 ls /FreeSBIE/var >/dev/null 2>&1
 
+/sbin/ifconfig lo0 127.0.0.1/24
+/sbin/ifconfig lo0 up
+
 echo Starting backend...
 /usr/local/sbin/dfuibe_installer -o /FreeSBIE/ \
 	>/tmp/installerconsole.log 2>&1 &
