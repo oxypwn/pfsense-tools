@@ -40,7 +40,7 @@ echo Starting backend...
 
 echo Starting NCURSES frontend...
 
-sleep 5
+sleep 2 
 
 /usr/local/sbin/dfuife_curses
 
