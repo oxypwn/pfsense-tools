@@ -5,7 +5,7 @@
 	Colin Smith
 	print $pfSense_license;
 
-	This generates unified diffs that should be applied with -p2
+	This generates unified diffs that should be applied with -p1
 */
 
 $category = "Firmware";
@@ -16,24 +16,36 @@ exec(
 	$dates
 );
 
+print_r($dates);
 /* get the date we'll be passing to cvs rdiff */
 $todiff = $dates[1];
 
-/* get the new and old version */
+/* get the new and old version
 exec(
 	"cvs -d /cvsroot/ diff -D '{$dates[1]}' -D '{$dates[0]}' pfSense/etc/version",
 	$diffout
 );
 
-/* parse cvs diff output */
 $newver = trim(array_pop(explode('>', array_shift(preg_grep('/\>/i', $diffout)))));
 $oldver = trim(array_pop(explode('<', array_shift(preg_grep('/\</i', $diffout)))));
+*/
+
+$newver = `cat pfSense/etc/version`;
 
 exec(
-	"cvs -d /cvsroot/ rdiff -D {$todiff} pfSense",
+	"cvs -d /cvsroot/ diff -u -D '{$todiff}' pfSense/etc/ 2> /dev/null",
 	$rdiffout
 );
-
+/*
+print_r($rdiffout);
+$tostrip = array_keys(preg_grep('/^Index:/', $rdiffout));
+print_r($tostrip);
+for($i = count($tostrip); $i >= 0; $i--) {
+	print $tostrip[$i];
+	array_splice($rdiffout, $tostrip[$i], 6);
+	print_r($rdiffout);
+}
+*/
 $fout = fopen("./pfSense-Diff-{$category}-Update-{$newver}.txt", "w");
 foreach($rdiffout as $line) {
 	fwrite($fout, $line . "\n");
