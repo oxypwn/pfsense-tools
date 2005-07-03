@@ -98,6 +98,11 @@ populate_extra() {
 	make
 	make install DESTDIR=$FREESBIEBASEDIR
 
+	# NDIS
+        cd /usr/src/sys/modules/ndis
+        make
+        make install DESTDIR=$FREESBIEBASEDIR
+
 }
 
 fixup_updates() {
@@ -109,6 +114,10 @@ fixup_updates() {
 	rm -rf ${FREESBIEBASEDIR}/cf
 	rm -rf ${FREESBIEBASEDIR}/conf*
 	rm -rf ${FREESBIEBASEDIR}/boot/boot*
+	rm -rf ${FREESBIEBASEDIR}/etc/rc.conf
+	rm -rf ${FREESBIEBASEDIR}/etc/motd
+	rm -rf ${CVS_CO_DIR}/etc/rc.conf
+	rm -rf ${CVS_CO_DIR}/etc/motd
 	#rm -rf ${CVS_CO_DIR}/boot/boot/load*
 	find ${CVS_CO_DIR} -name CVS -exec rm {} \;
 
@@ -133,7 +142,8 @@ fixup_updates() {
 	echo "exit" >> ${FREESBIEBASEDIR}/root/.shrc
 
 	# Nuke the trigger wizard script
-	rm $CVS_CO_DIR/trigger_initial_wizard
+	rm ${CVS_CO_DIR}/trigger_initial_wizard
+	rm ${FREESBIEBASEDIR}/trigger_initial_wizard
 
 	echo `date` > /usr/local/livefs/etc/version.buildtime
 
@@ -213,7 +223,7 @@ fixup_wrap() {
     echo "]"
     echo -n "Populating /tmp/root -> [ "
     echo -n "livefs "
-    cd $FREESBIEISODIR/ && tar czPf /home/pfsense/livefs.tgz .
+    cd $FREESBIEBASEDIR/ && tar czPf /home/pfsense/livefs.tgz .
     cd /tmp/root && tar xzPf /home/pfsense/livefs.tgz
     echo -n "pfSense "
     cd /home/pfsense/pfSense && tar czPf /home/pfsense/pfSense.tgz .
