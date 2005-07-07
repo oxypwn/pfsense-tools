@@ -29,4 +29,4 @@ echo "done."
 
 echo -n "Cleaning up... "
 rm manifest_*
-rm "done."
+echo "done."
