@@ -26,3 +26,7 @@ tar rf pfSense-Firmware-Manifest-$1.tar manifest_*
 gzip pfSense-Firmware-Manifest-$1.tar
 mv pfSense-Firmware-Manifest-$1.tar.gz pfSense-Firmware-Manifest-$1.tgz
 echo "done."
+
+echo -n "Cleaning up... "
+rm manifest_*
+rm "done."
