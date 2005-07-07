@@ -5,8 +5,7 @@
 # Colin Smith
 
 CATEGORY="Firmware"
-DIFFTIME=`cvs -d /cvsroot/ log pfSense/etc/version | grep 'date:' | cut -d ';' -f 1 | head -n 2 | awk '{ print $2, $3 }'
-| tail -n 1`
+DIFFTIME=`cvs -d /cvsroot/ log pfSense/etc/version | grep 'date:' | cut -d ';' -f 1 | head -n 2 | awk '{ print $2, $3 }' | tail -n 1`
 NEWVER=`cat pfSense/etc/version`
 
 make_diff() {
