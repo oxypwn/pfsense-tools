@@ -20,6 +20,7 @@ rm /FreeSBIE/mnt/etc/rc.sendmail
 # target installation area.
 mkdir -p /FreeSBIE/mnt/cf/conf
 cp /cf/conf/* /FreeSBIE/mnt/cf/conf/
+cp /cf/conf.default/* /FreeSBIE/mnt/conf.default/
 
 # Chroot in and create link
 echo "#!/bin/sh" >> /FreeSBIE/mnt/script
@@ -38,8 +39,8 @@ cat /boot/loader.conf | grep -v ^mfsroot > /FreeSBIE/mnt/boot/loader.conf
 
 # Enable permission for playback.
 cd /FreeSBIE/mnt && bzcat /FreeSBIE/dist/FreeSBIE.root.dist.bz2 | mtree -PU -p /FreeSBIE/mnt
-cd /FreeSBIE/mnt/usr && bzcat /FreeSBIE/dist/FreeSBIE.usr.dist.bz2  | mtree -PUr -p /FreeSBIE/mnt/usr
-cd /FreeSBIE/mnt/var && bzcat /FreeSBIE/dist/FreeSBIE.var.dist.bz2  | mtree -PUr -p /FreeSBIE/mnt/var
+cd /FreeSBIE/mnt/usr && bzcat /FreeSBIE/dist/FreeSBIE.usr.dist.bz2 | mtree -PUr -p /FreeSBIE/mnt/usr
+cd /FreeSBIE/mnt/var && bzcat /FreeSBIE/dist/FreeSBIE.var.dist.bz2 | mtree -PUr -p /FreeSBIE/mnt/var
 
 cd /FreeSBIE/mnt && rm FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
 
