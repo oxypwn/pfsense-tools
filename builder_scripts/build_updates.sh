@@ -44,7 +44,7 @@ $LOCALDIR/2.buildworld.sh
 
 $LOCALDIR/3.installworld.sh
 
-$LOCALDIR/4.kernel.sh pfSense.6
+$LOCALDIR/4.kernel.sh $KERNCONF
 
 $LOCALDIR/5.patchfiles.sh
 
