@@ -201,16 +201,14 @@ fixup_wrap() {
     echo exit >> $FREESBIEISODIR/root/.shrc
     rm -f $FREESBIEISODIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
     
-    cd /home/pfsense/tools
     echo Calculating size of /usr/local/livefs...
     du -H -d0 /usr/local/livefs
-    cd /home/pfsense/tools
     
     echo Running DD
     /bin/dd if=/dev/zero of=image.bin bs=1k count=111072
     echo Running mdconfig
     /sbin/mdconfig -a -t vnode -u91 -f image.bin
-    disklabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
+    /sbin/disklabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
     
     echo Running newfs
     newfs /dev/md91a
@@ -399,3 +397,47 @@ clone_system_only()
   echo " [DONE]"
 }
 
+checkout_pfSense() {
+        echo ">>> Getting pfSense"
+        rm -rf $CVS_CO_DIR
+        cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense
+}
+
+checkout_freesbie() {
+        echo ">>> Getting FreeSBIE"
+        rm -rf $LOCALDIR
+        cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co freesbie
+}
+
+print_flags() {
+        if [ $BE_VERBOSE = "yes" ]
+        then
+                echo "Current flags:"
+                printf "\tbuilder.sh\n"
+                printf "\t\tCVS User: %s\n" $CVS_USER
+                printf "\t\tVerbosity: %s\n" $BE_VERBOSE
+                printf "\t\tTargets:%s\n" "$TARGETS"
+                printf "\tconfig.sh\n"
+                printf "\t\tLiveFS dir: %s\n" $FREESBIEBASEDIR
+                printf "\t\tFreeSBIE dir: %s\n" $LOCALDIR
+                printf "\t\tISO dir: %s\n" $PATHISO
+                printf "\tpfsense_local.sh\n"
+                printf "\t\tBase dir: %s\n" $BASE_DIR
+                printf "\t\tCheckout dir: %s\n\n" $CVS_CO_DIR
+        fi
+}
+
+clear_custom() {
+        echo ">> Clearing custom/*"
+        rm -rf $LOCALDIR/files/custom/*
+}
+
+backup_pfSense() {
+        echo ">>> Backing up pfSense repo"
+        cp -R $CVS_CO_DIR $BASE_DIR/pfSense_bak
+}
+
+restore_pfSense() {
+        echo ">>> Restoring pfSense repo"
+        cp -R $BASE_DIR/pfSense_bak $CVS_CO_DIR
+}
