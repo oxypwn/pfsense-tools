@@ -1,5 +1,13 @@
+
+/*
+ *   check_reload_status.c
+ *   part of the pfSense project
+ *   (C)2005 Scott Ullrich
+ *   All rights reserved
+ *
+ */
+
 #include <sys/stat.h>
-#include <unistd.h>
 
 /* Check if file exists */
 int fexist(char * filename)
