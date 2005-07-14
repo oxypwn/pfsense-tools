@@ -6,6 +6,8 @@
 
 #set -e -u		# uncomment me if you want to exit on shell errors
 
+CUWD=`/bin/pwd`
+
 # Read in FreeSBIE configuration variables and set:
 #   FREESBIEBASEDIR=/usr/local/livefs
 #   LOCALDIR=/home/pfSense/freesbie
@@ -21,6 +23,7 @@
 
 # Define the Kernel file we're using
 export KERNCONF=pfSense.6
+#export KERNCONF=pfSense_wrap.6
 
 # Remove staging area files
 rm -rf $LOCALDIR/files/custom/*
@@ -55,7 +58,9 @@ populate_extra
 create_pfSense_tarball
 copy_pfSense_tarball_to_freesbiebasedir
 fixup_updates
+
+cd $CUWD && $LOCALDIR/7.customuser.sh
+
 create_pfSense_Full_update_tarball
 
-$LOCALDIR/7.customuser.sh
 

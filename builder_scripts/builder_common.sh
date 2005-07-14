@@ -66,8 +66,8 @@ populate_extra() {
 	cp $FREESBIEBASEDIR/lib/libc.so.6 $FREESBIEBASEDIR/lib/libc.so.5
 	cp $FREESBIEBASEDIR/lib/libc.so.6 $FREESBIEBASEDIR/lib/libc.so.4
 
-	cd /usr/src/sbin/pfctl && make && make install
-	cd /usr/src/sbin/pflogd && make && make install
+	cd /usr/src/sbin/pfctl && make clean && make && make install
+	cd /usr/src/sbin/pflogd && make clean && make && make install
 	mkdir -p $CVS_CO_DIR/sbin/
 	cp /sbin/pf* $CVS_CO_DIR/sbin/
 	chmod a+rx $CVS_CO_DIR/sbin/pf*
@@ -93,6 +93,9 @@ populate_extra() {
 	# Trigger the pfSense wizzard
 	echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
+	mkdir -p $FREESBIEBASEDIR/conf.default
+	cp $CVS_CO_DIR/conf.default/* $FREESBIEBASEDIR/conf.default/
+
 	# Make sure ACPI is all ready
 	cd /usr/src/sys/modules/acpi
 	make
@@ -112,10 +115,14 @@ fixup_updates() {
 
 	cd ${FREESBIEBASEDIR}
 	rm -rf ${FREESBIEBASEDIR}/cf
-	rm -rf ${FREESBIEBASEDIR}/conf*
+	rm -rf ${CVS_CO_DIR}/cf
+	rm -rf ${FREESBIEBASEDIR}/conf
+	rm -rf ${CVS_CO_DIR}/conf
 	rm -rf ${FREESBIEBASEDIR}/boot/boot*
 	rm -rf ${FREESBIEBASEDIR}/etc/rc.conf
 	rm -rf ${FREESBIEBASEDIR}/etc/motd
+	rm -rf ${FREESBIEBASEDIR}/trigger*
+	rm -rf ${CVS_CO_DIR}/trigger*
 	rm -rf ${CVS_CO_DIR}/etc/rc.conf
 	rm -rf ${CVS_CO_DIR}/etc/motd
 	#rm -rf ${CVS_CO_DIR}/boot/boot/load*
@@ -124,10 +131,14 @@ fixup_updates() {
 
 	echo Removing pfSense.tgz used by installer..
 	find . -name pfSense.tgz -exec rm {} \;
-	rm ${FREESBIEBASEDIR}/etc/master.passwd 2>/dev/null
 	rm ${FREESBIEBASEDIR}/etc/pwd.db 2>/dev/null
+	rm ${FREESBIEBASEDIR}/etc/group 2>/dev/null
 	rm ${FREESBIEBASEDIR}/etc/spwd.db 2>/dev/null
 	rm ${FREESBIEBASEDIR}/etc/passwd 2>/dev/null
+	rm ${FREESBIEBASEDIR}/etc/master.passwd 2>/dev/null
+	rm -rf ${CVS_CO_DIR}/etc/group
+	rm -rf ${CVS_CO_DIR}/etc/passwd
+	rm -rf ${CVS_CO_DIR}/etc/master.passwd
 	rm ${FREESBIEBASEDIR}/etc/fstab 2>/dev/null
 	rm ${FREESBIEBASEDIR}/etc/ttys 2>/dev/null
 	rm ${FREESBIEBASEDIR}/etc/fstab 2>/dev/null
@@ -221,11 +232,11 @@ fixup_wrap() {
     echo "]"
     echo -n "Populating /tmp/root -> [ "
     echo -n "livefs "
-    cd $FREESBIEBASEDIR/ && tar czPf /home/pfsense/livefs.tgz .
-    cd /tmp/root && tar xzPf /home/pfsense/livefs.tgz
+    cd $FREESBIEBASEDIR/ && tar  czPf /home/pfsense/livefs.tgz .
+    cd /tmp/root && tar xzPf  /home/pfsense/livefs.tgz
     echo -n "pfSense "
-    cd /home/pfsense/pfSense && tar czPf /home/pfsense/pfSense.tgz .
-    cd /tmp/root && tar xzPf /home/pfsense/pfSense.tgz
+    cd /home/pfsense/pfSense && tar  czPf /home/pfsense/pfSense.tgz .
+    cd /tmp/root && tar  xzPf /home/pfsense/pfSense.tgz
     echo "]"
     
     echo /dev/ad0a          /               ufs     ro              1 \
@@ -293,7 +304,7 @@ create_pfSense_Full_update_tarball() {
 
         echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 
-        cd ${FREESBIEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
+        cd ${FREESBIEBASEDIR} && tar  czPf ${UPDATESDIR}/${FILENAME} .
 }
 
 # Create tarball of pfSense cvs directory
@@ -302,7 +313,7 @@ create_pfSense_tarball() {
 
 	rm -rf $CVS_CO_DIR/boot/
 
-	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
+	cd $CVS_CO_DIR && tar  czPf /tmp/pfSense.tgz .
 }
 
 # Copy tarball of pfSense cvs directory to FreeSBIE custom directory
@@ -311,7 +322,7 @@ copy_pfSense_tarball_to_custom_directory() {
 
 	rm -rf $LOCALDIR/files/custom/*
 
-	tar xzPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
+	tar  xzPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
 
 	rm -rf $LOCALDIR/files/custom/boot/
 }
@@ -319,7 +330,7 @@ copy_pfSense_tarball_to_custom_directory() {
 copy_pfSense_tarball_to_freesbiebasedir() {
 	cd $LOCALDIR
 
-	tar xzPf /tmp/pfSense.tgz -C $FREESBIEBASEDIR
+	tar  xzPf /tmp/pfSense.tgz -C $FREESBIEBASEDIR
 }
 
 # Set image as a CDROM type image
