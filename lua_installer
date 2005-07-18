@@ -40,3 +40,33 @@ echo Launching LUA Installer...
 
 echo Launghing Installer NCurses frontend...
 /usr/local/sbin/dfuife_curses
+
+
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo
+echo "pfSense is now rebooting"
+echo "After reboot and the console menu is displayed, open a web"
+echo "browser and try to surf to http://192.168.1.1"
+echo
+echo "The default username and password is admin / pfsense "
+echo 
+
+echo Rebooting in 3 seconds.  CTRL-C to abort.
+sleep 1
+echo Rebooting in 2 seconds.  CTRL-C to abort.
+sleep 1
+echo Rebooting in 1 second..  CTRL-C to abort.
+sleep 1
+echo
+echo pfSense is now rebooting.
+
+shutdown -r now
+
