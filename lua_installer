@@ -31,6 +31,8 @@ mount -t unionfs /.var /FreeSBIE/var
 ls /FreeSBIE/usr >/dev/null 2>&1
 ls /FreeSBIE/var >/dev/null 2>&1
 
+ln -s /var/log/dmesg.boot /var/run/dmesg.boot
+
 echo Launching LUA Installer...
 /usr/local/bin/lua50c51 /usr/local/share/dfuibe_lua/main.lua \
     dir.root=/FreeSBIE/ \
