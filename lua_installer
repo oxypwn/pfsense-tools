@@ -36,6 +36,7 @@ ln -s /var/log/dmesg.boot /var/run/dmesg.boot
 echo Launching LUA Installer...
 /usr/local/bin/lua50c51 /usr/local/share/dfuibe_lua/main.lua \
     dir.root=/FreeSBIE/ \
+    option.booted_from_install_media=true \
     >/dev/null 2>&1 &
 
 echo Launghing Installer NCurses frontend...
