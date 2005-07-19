@@ -8,7 +8,7 @@ return {
 	--
 	-- Name of the install media in use.
 	--
-	media_name		= "LiveCD",
+	media_name		= "pfSense",
 
 	--
 	-- Whether crashdumps (to a suitable swap partition) will be
