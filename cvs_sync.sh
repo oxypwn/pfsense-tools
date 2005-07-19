@@ -26,7 +26,7 @@ if [ -r $1 ]; then
     mkdir -p $TMPDIR
     cd $TMPDIR/.. && cvs -d:ext:${CVSUSER}@216.135.66.16:/cvsroot co pfSense        
 else
-    cd $TMPDIR && cvs -d:ext:${CVSUSER}@216.135.66.16:/cvsroot update
+    cd $TMPDIR && cvs -d:ext:${CVSUSER}@216.135.66.16:/cvsroot update -d
 fi
 
 cd ${TMPDIR}
