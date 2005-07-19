@@ -26,10 +26,10 @@ return {
                 host = "http://www.pfSense.com"
                 file = "/updates/latest.tgz"
                 -- XXX: how do we output a notice .. Downloading... Bleh.
-                outputfile = "/tmp/latest.tgz"
+                outputfile = "/mnt/tmp/latest.tgz"
                 download(host, file, outputfile)
                 cmds = CmdChain.new()
-                cmds:add("tar xzpf -U -C /mnt/")
+                cmds:add("tar xzpf /mnt/tmp/latest.tgz -U -C /mnt/")
                 -- XXX: how do we output a notice "Extracing update..."
                 cms:execute()
         end
