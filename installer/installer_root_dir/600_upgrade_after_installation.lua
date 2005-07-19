@@ -1,7 +1,6 @@
 return {
     id = "upgrade_pfsense",
     name = _("Upgrade pfSense"),
-    req_state = { "net_if" },
     effect = function(step)
 
 	local response = App.ui:present{
@@ -50,6 +49,17 @@ return {
           end
           c:close()
           io.close
+        end
+
+        if cmds:execute() then
+                --
+                -- success!  
+                --
+                App.ui:inform(
+                    _("pfSense has been installed successfully!" ..
+                      "After the reboot surf into 192.168.1.1 " ..
+                      "with the username admin and the password " ..
+                      "pfsense."))
         end
 
         return step:next()
