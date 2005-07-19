@@ -9,7 +9,7 @@
 
 return {
         cmds = CmdChain.new()
-        filename = "/usr/local/bin/after_installation_routines.sh";
+        filename = "/usr/local/bin/after_installation_routines.sh"
         mode = "r"
         
         io.open (filename [, mode])
