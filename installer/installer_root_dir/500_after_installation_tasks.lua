@@ -30,5 +30,7 @@ return {
                       "with the username admin and the password " ..
                       "pfsense."))
         end
+        
+        return step:next()
 
 }
