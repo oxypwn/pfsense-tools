@@ -4,11 +4,10 @@
 #  Written by Scott Ullrich
 #  (C)2005 Scott Ullrich
 #  Part of the pfSense project
-#  For users of cvs accounts to keep your test machine
-#  up to date
-
-# **** SET THIS! ****
-# CVSUSER=sullrich
+#  For users of cvs accounts to keep your test machine up to date
+#  
+#  Usage example: setenv CVSUSER sullrich && ./cvs_sync.sh
+#                 setenv CVSUSER sullrich && ./cvs_sync.sh update
 
 if [ "$CVSUSER" = "" ]; then
     echo
@@ -27,10 +26,9 @@ if [ -r $1 ]; then
     mkdir -p $TMPDIR
     cd $TMPDIR/.. && cvs -d:ext:${CVSUSER}@216.135.66.16:/cvsroot co pfSense        
 else
-    cd $TMPDIR/.. && cvs -d:ext:${CVSUSER}@216.135.66.16:/cvsroot update
+    cd $TMPDIR && cvs -d:ext:${CVSUSER}@216.135.66.16:/cvsroot update
 fi
 
-cd $TMPDIR/pfSense
 cd ${TMPDIR}
 find . -name pfSense.tgz -exec rm {} \; 2>/dev/null
 rm -rf ${TMPDIR}/conf*
@@ -48,13 +46,10 @@ rm -rf ${TMPDIR}cf/ 2>/dev/null
 rm -rf ${TMPDIR}root/.shrc
 rm -rf ${TMPDIR}root/.tcshrc
 
-echo "Nuking CVS folders..."
-find $TMPDIR -name CVS -exec rm -rf {} \; 2>/dev/null
-
 echo "Installing new files..."
 cd $TMPDIR
 for FILE in *
 do
         DIR=`echo $FILE | cut -d/ -f2`
-        cd $TMPDIR && install $TMPDIR$DIR/* /$DIR/
+        cd $TMPDIR && install $TMPDIR$DIR/* /$DIR/ 2>/dev/null
 done
