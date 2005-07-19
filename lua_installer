@@ -40,6 +40,7 @@ echo Launching LUA Installer...
     >/dev/null 2>&1 &
 
 echo Launghing Installer NCurses frontend...
+sleep 1
 /usr/local/sbin/dfuife_curses
 
 
