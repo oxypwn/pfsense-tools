@@ -13,7 +13,7 @@ function download (host, file, outputfile)
     io.write(s)
   end
   c:close()
-  io.close
+  io.close()
 end
 
 return {
