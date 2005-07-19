@@ -15,20 +15,21 @@ umount /tmp/root 2>/dev/null
 umount /tmp/cf 2>/dev/null
 mdconfig -d -u 91 2>/dev/null
 
-cd /home/sullrich 
+cd /home/pfsense
 
 rm -rf pfSense
 cvs -d:ext:sullrich@216.135.66.16:/cvsroot co pfSense
 
-cp /home/sullrich/pfSense/boot/device.hints_wrap \
+cp /home/pfsense/pfSense/boot/device.hints_wrap \
         /usr/local/livefs/boot/device.hints
-cp /home/sullrich/pfSense/boot/loader.conf_wrap \
+cp /home/pfsense/pfSense/boot/loader.conf_wrap \
         /usr/local/livefs/boot/loader.conf
-cp /home/sullrich/pfSense/etc/ttys_wrap \
+cp /home/pfsense/pfSense/etc/ttys_wrap \
 	/usr/local/livefs/etc/
 
 echo `date` > /usr/local/livefs/etc/version.buildtime
 echo "" > /usr/local/livefs/etc/motd
+echo "" > /home/pfsense/pfSense/etc/motd
 
 mkdir -p /usr/local/livefs/cf/conf/backup
 
@@ -38,9 +39,10 @@ rm -f $FreeSBIE/usr/local/share/freesbie/files/000.freesbie_2nd.sh 2>/dev/null
 rm -rf $FreeSBIE/cloop 2>/dev/null
 rm -rf $FreeSBIE/dist 2>/dev/null
 rm -f $FreeSBIE/etc/rc.local 2>/dev/null
-rm $FreeSBIE/root/.tcshrc 2>/dev/null
 rm $FreeSBIE/root/.message* 2>/dev/null
 rm $FreeSBIE/etc/rc.conf 2>/dev/null
+rm $FreeSBIE/root/.tcshrc 2>/dev/null
+rm $FreeSBIE/etc/motd 2>/dev/null
 touch $FreeSBIE/etc/rc.conf 2>/dev/null
 
 # Prevent the system from asking for these twice
@@ -52,16 +54,16 @@ echo /etc/rc.initial > $FreeSBIE/root/.shrc
 echo exit >> $FreeSBIE/root/.shrc
 rm -f $FreeSBIE/usr/local/bin/after_installation_routines.sh 2>/dev/null
 
-cd /home/sullrich/tools
+cd /home/pfsense/tools
 echo Calculating size of /usr/local/livefs...
 du -H -d0 /usr/local/livefs
-cd /home/sullrich/tools
+cd /home/pfsense/tools
 
 echo Running DD
 /bin/dd if=/dev/zero of=image.bin bs=1k count=111072
 echo Running mdconfig
 /sbin/mdconfig -a -t vnode -u91 -f image.bin
-disklabel -BR md91 /home/sullrich/pfSense/boot/label.proto_wrap
+disklabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
 
 echo Running newfs
 newfs /dev/md91a
@@ -74,11 +76,11 @@ mount /dev/md91d /tmp/cf
 echo "]"
 echo -n "Populating /tmp/root -> [ "
 echo -n "livefs "
-cd /usr/local/livefs/ && tar czPf /home/sullrich/livefs.tgz .
-cd /tmp/root && tar xzPf /home/sullrich/livefs.tgz
+cd /usr/local/livefs/ && tar czPf /home/pfsense/livefs.tgz .
+cd /tmp/root && tar xzPf /home/pfsense/livefs.tgz
 echo -n "pfSense "
-cd /home/sullrich/pfSense && tar czPf /home/sullrich/pfSense.tgz .
-cd /tmp/root && tar xzPf /home/sullrich/pfSense.tgz
+cd /home/pfsense/pfSense && tar czPf /home/pfsense/pfSense.tgz .
+cd /tmp/root && tar xzPf /home/pfsense/pfSense.tgz
 echo "]"
 
 echo /dev/ad0a		/		ufs	ro		1 \
@@ -107,12 +109,12 @@ chroot /tmp/root/ /script
 
 mkdir -p /tmp/root/cf /tmp/root/usr/savecore
 
-rm -rf /home/sullrich/pfSense/cf/conf/CVS
-cp /home/sullrich/pfSense/cf/conf/* \
+rm -rf /home/pfsense/pfSense/cf/conf/CVS
+cp /home/pfsense/pfSense/cf/conf/* \
 	/tmp/root/cf/conf/
 
 mkdir -p /tmp/cf/conf
-cp /home/sullrich/pfSense/cf/conf/* /tmp/cf/conf/
+cp /home/pfsense/pfSense/cf/conf/* /tmp/cf/conf/
 
 echo -n "Config directory: "
 ls /tmp/cf/conf
@@ -121,9 +123,9 @@ echo "wrap" > /tmp/root/etc/platform
 
 echo -n "Unmounting: [ "
 echo -n "/tmp/root "
-cd /home/sullrich/tools && umount /tmp/root
+cd /home/pfsense/tools && umount /tmp/root
 echo -n "/tmp/cf "
-cd /home/sullrich/tools && umount /tmp/cf
+cd /home/pfsense/tools && umount /tmp/cf
 echo -n "md "
 /sbin/mdconfig -d -u 91
 echo "]"

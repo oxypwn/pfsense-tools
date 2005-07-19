@@ -25,8 +25,9 @@ get_config_xml()
 		rm -rf /cf/
 		rm -rf /conf/
 		mkdir /cf/
-		ln -s $1 /cf/conf
-		ln -s /cf/conf /conf
+		ln -s $1 /cf/conf 2>/dev/null
+		ln -s /cf/conf $1 2>/dev/null
+		ln -s /cf/conf /conf 2>/dev/null
 		return 0
 	else
 		return 1

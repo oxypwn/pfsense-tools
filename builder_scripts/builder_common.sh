@@ -25,6 +25,10 @@ populate_extra() {
 	mkdir -p $CVS_CO_DIR/usr/share/snmp/defs/
 	cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
 
+	# Add lua installer items
+	cp $BASE_DIR/tools/installer/conf/* $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/conf/
+	cp $BASE_DIR/tools/installer/installer_root_dir/* $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/
+
 	# Set buildtime
 	date > $CVS_CO_DIR/etc/version.buildtime
 
@@ -136,6 +140,10 @@ fixup_updates() {
 	rm ${FREESBIEBASEDIR}/etc/spwd.db 2>/dev/null
 	rm ${FREESBIEBASEDIR}/etc/passwd 2>/dev/null
 	rm ${FREESBIEBASEDIR}/etc/master.passwd 2>/dev/null
+	rm ${FREESBIEBASEDIR}/etc/pwd.db
+	rm ${FREESBIEBASEDIR}/etc/spwd.db
+	rm -rf ${CVS_CO_DIR}/etc/pwd.db
+	rm -rf ${CVS_CO_DIR}/etc/spwd.db
 	rm -rf ${CVS_CO_DIR}/etc/group
 	rm -rf ${CVS_CO_DIR}/etc/passwd
 	rm -rf ${CVS_CO_DIR}/etc/master.passwd
@@ -153,14 +161,16 @@ fixup_updates() {
 	echo "exit" >> ${FREESBIEBASEDIR}/root/.shrc
 
 	# Nuke the trigger wizard script
-	rm ${CVS_CO_DIR}/trigger_initial_wizard
-	rm ${FREESBIEBASEDIR}/trigger_initial_wizard
+	rm -f ${CVS_CO_DIR}/trigger_initial_wizard
+	rm -f ${FREESBIEBASEDIR}/trigger_initial_wizard
 
 	echo `date` > /usr/local/livefs/etc/version.buildtime
 
 }
 
 fixup_wrap() {
+
+    CURRENT_WD=`pwd`
 
     # Checkout pfSense information and set our version variables.
     rm -rf $BASE_DIR/pfSense
@@ -201,7 +211,7 @@ fixup_wrap() {
     touch $FREESBIEISODIR/etc/rc.conf 2>/dev/null
 
     # Nuke the trigger wizard script
-    rm $CVS_CO_DIR/trigger_initial_wizard
+    rm -f $CVS_CO_DIR/trigger_initial_wizard
     
     # Prevent the system from asking for these twice
     touch $FREESBIEISODIR/root/.part_mount
@@ -216,9 +226,9 @@ fixup_wrap() {
     du -H -d0 /usr/local/livefs
     
     echo Running DD
-    /bin/dd if=/dev/zero of=image.bin bs=1k count=111072
+    /bin/dd if=/dev/zero of=/tmp/image.bin bs=1k count=111072
     echo Running mdconfig
-    /sbin/mdconfig -a -t vnode -u91 -f image.bin
+    /sbin/mdconfig -a -t vnode -u91 -f /tmp/image.bin
     /sbin/disklabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
     
     echo Running newfs
@@ -287,8 +297,7 @@ fixup_wrap() {
     echo "]"
     
     echo gzipping image.bin
-    gzip -9 image.bin
-    mv image.bin.gz pfSense-128-megs.bin.gz
+    cd /tmp/ && gzip -9 image.bin
     echo -n "Image size: "
     ls -la pfSense-128-megs.bin.gz
     
@@ -296,6 +305,8 @@ fixup_wrap() {
     
     rm -rf /tmp/root
     rm -rf /tmp/cf/
+
+    cd $CURRENT_WD
 
 }
 
