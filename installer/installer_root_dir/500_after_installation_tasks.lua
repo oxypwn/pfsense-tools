@@ -22,11 +22,13 @@ return {
         
         if cmds:execute() then
                 --
-                -- success!  we should output a bunch
-                --           of instructions here via a input box
-                --           telling them to surf into 192.168.1.1
-                --           with a username of root and password
-                --           of pfsense
+                -- success!  
                 --
+                App.ui:inform(
+                    _("pfSense has been installed successfully!" ..
+                      "After the reboot surf into 192.168.1.1 " ..
+                      "with the username admin and the password " ..
+                      "pfsense."))
         end
+
 }
