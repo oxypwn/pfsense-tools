@@ -39,7 +39,7 @@ return {
 --                                                -- "Format Disk" step in
 --                                                -- embedded apps, etc.
 
-
+	["*/configure/*"] = "ignore", 		  -- do not configure, we've already did it.
 
 
 }
