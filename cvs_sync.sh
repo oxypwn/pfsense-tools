@@ -32,7 +32,7 @@ fi
 
 cd $TMPDIR/pfSense
 cd ${TMPDIR}
-find . -name pfSense.tgz -exec rm {} \;
+find . -name pfSense.tgz -exec rm {} \; 2>/dev/null
 rm -rf ${TMPDIR}/conf*
 rm ${TMPDIR}usr/local/www/trigger_initial_wizard 2>/dev/null
 rm ${TMPDIR}etc/master.passwd 2>/dev/null
