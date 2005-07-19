@@ -8,16 +8,19 @@
 --
 
 return {
-        cmds = CmdChain.new()
-        filename = "/usr/local/bin/after_installation_routines.sh"
-        mode = "r"
+    id = "pfsense_after_install",
+    name = _("pfSense After Installation Routines"),
+    effect = function(step)
+        local cmds = CmdChain.new()
+        local filename = "/usr/local/bin/after_installation_routines.sh"
+	local line
         
-        io.open (filename [, mode])
-        routines = io.read("*all")         -- read the whole file
-        io.close
-        
-        for spd in routines do
-                cmds:add("${spd}")
+        for line in io.lines(filename) do
+		cmds:set_replacements{
+		    line = line,
+		    base = App.state.target:get_base()
+		}
+                cmds:add("${line}")
         end
         
         if cmds:execute() then
