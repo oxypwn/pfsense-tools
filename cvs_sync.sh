@@ -8,16 +8,19 @@
 #  up to date
 
 # **** SET THIS! ****
-#CVSUSER=sullrich
+# CVSUSER=sullrich
+
+if [ "$CVSUSER" = "" ]; then
+    echo
+    echo "You must export the variable CVSUSER as your cvs login name"
+    echo
+    echo "Example: setenv CVSUSER sullrich && ./cvs_sync.sh"
+    echo
+    exit
+fi
 
 # Temporary directory where we will check out to.
 TMPDIR=/tmp/pfSense/
-
-/sbin/killall syslogd
-
-if [ ! -r $CVSUSER ]; then
-    CVSUSER=`whoami`
-fi
 
 if [ -r $1 ]; then
     rm -rf $TMPDIR
@@ -45,19 +48,13 @@ rm -rf ${TMPDIR}cf/ 2>/dev/null
 rm -rf ${TMPDIR}root/.shrc
 rm -rf ${TMPDIR}root/.tcshrc
 
-cd $TMPDIR
+echo "Nuking CVS folders..."
+find $TMPDIR -name CVS -exec rm -rf {} \;
 
+echo "Installing new files..."
+cd $TMPDIR
 for FILE in *
 do
         DIR=`echo $FILE | cut -d/ -f2`
         cd $TMPDIR && cp -P -R $TMPDIR$DIR/* /$DIR/
 done
-
-clog -i -s 10000 /var/log/system.log
-clog -i -s 10000 /var/log/filter.log
-clog -i -s 10000 /var/log/dhcpd.log
-clog -i -s 10000 /var/log/vpn.log
-clog -i -s 10000 /var/log/portalauth.log
-
-/usr/sbin/syslogd
-/bin/chmod 0600 /var/log/system.log /var/log/filter.log /var/log/dhcpd.log /var/log/vpn.log /var/log/portalauth.log
