@@ -1,8 +1,6 @@
 return {
     id = "upgrade_pfsense",
     name = _("Upgrade pfSense"),
-    effect = function(step)
-
 	local response = App.ui:present{
 	    name = _("Upgrade pfSense?"),
 	    short_desc =
@@ -19,7 +17,7 @@ return {
 		}
 	    }
 	}
-
+	effect = function(step)
 	if response.action_id == "ok" then
                 --- lets upgrade pfsense!
                 host = "http://www.pfSense.com"
@@ -32,9 +30,7 @@ return {
                 -- XXX: how do we output a notice "Extracing update..."
                 cms:execute()
         end
-
         --- lua download routines.  download the files.
-
         function download (host, file, outputfile)
           local c = assert(socket.connect(host, 80))
           local count = 0    -- counts number of bytes read
@@ -50,7 +46,6 @@ return {
           c:close()
           io.close
         end
-
         if cmds:execute() then
                 --
                 -- success!  
@@ -61,7 +56,5 @@ return {
                       "with the username admin and the password " ..
                       "pfsense."))
         end
-
         return step:next()
-
 }
