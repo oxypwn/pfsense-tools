@@ -39,6 +39,10 @@ return function(part_cap, ram_cap)
 	-- return an appropriate list of suggested mountpoints.
 	--
 
+	--
+	-- pfSense: We want to only setup / and swap.
+	--
+
 	return {
 		{ mountpoint = "/",     capstring = "*" },
 		{ mountpoint = "swap",  capstring = swap },

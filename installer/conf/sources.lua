@@ -30,8 +30,7 @@ return {
 	"usr/games",
 	"usr/include",
 	"usr/lib",
---	"usr/local",	-- we should use mtree to generate the hier for
---	"usr/X11R6",	-- these, then use pkg_add to populate them.
+	"usr/local",
 	"usr/libdata",
 	"usr/libexec",
 	"usr/obj",
