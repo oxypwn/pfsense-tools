@@ -33,7 +33,7 @@ rm /FreeSBIE/mnt/script
 touch /FreeSBIE/mnt/root/.part_mount
 touch /FreeSBIE/mnt/root/.first_time
 
-# Update boot loader
+# Updating boot loader
 cp -R /boot/* /FreeSBIE/mnt/boot/
 cat /boot/loader.conf | grep -v ^mfsroot > /FreeSBIE/mnt/boot/loader.conf
 
@@ -52,6 +52,5 @@ echo "pfSense" > /FreeSBIE/mnt/etc/platform
 
 chroot /FreeSBIE/mnt/ ln -s /config.xml /cf/conf/config.xml
 # Self destruct myself.
-if [ -e "/FreeSBIE/mnt/usr/local/bin/after_installation_routines.sh" ];then
-        rm -f /FreeSBIE/mnt/usr/local/bin/after_installation_routines.sh
-fi
+rm -f /FreeSBIE/mnt/usr/local/bin/after_installation_routines.sh
+
