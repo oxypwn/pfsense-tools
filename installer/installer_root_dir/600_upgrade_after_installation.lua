@@ -1,5 +1,6 @@
-
---- lua download routines.  download the files.
+--
+-- lua download routines.  download the files.
+--
 function download (host, file, outputfile)
   local c = assert(socket.connect(host, 80))
   local count = 0    -- counts number of bytes read
@@ -58,4 +59,5 @@ return {
                       "pfsense."))
         end
         return step:next()
+    end
 }

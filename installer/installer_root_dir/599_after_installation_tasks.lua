@@ -2,9 +2,10 @@
 --
 --  pfSense after installation routines
 --
---  Read in /usr/local/bin/after_installation_routines.sh
---  to an array named  routines.   for through this array
---  and add a command to the cmds object then execute.
+--  Loop through io.lines(filename) and
+--  run each command listed in file.
+--
+--  This file cleans up after a normal install.
 --
 
 return {
