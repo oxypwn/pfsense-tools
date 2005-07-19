@@ -23,6 +23,8 @@ return {
                 cmds:add("${line}")
         end
         
+	cmds:execute()
+	
         return step:next()
 
 }
