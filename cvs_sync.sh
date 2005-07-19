@@ -49,7 +49,7 @@ rm -rf ${TMPDIR}root/.shrc
 rm -rf ${TMPDIR}root/.tcshrc
 
 echo "Nuking CVS folders..."
-find $TMPDIR -name CVS -exec rm -rf {} \;
+find $TMPDIR -name CVS -exec rm -rf {} \; 2>/dev/null
 
 echo "Installing new files..."
 cd $TMPDIR
