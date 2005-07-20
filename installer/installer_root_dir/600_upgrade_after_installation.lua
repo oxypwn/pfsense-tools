@@ -47,17 +47,13 @@ return {
                 cmds:add("tar xzpf /mnt/tmp/latest.tgz -U -C /mnt/")
                 -- XXX: how do we output a notice "Extracing update..."
                 cms:execute()
-        end
-        if cmds:execute() then
-                --
-                -- success!  
-                --
-                App.ui:inform(
-                    _("pfSense has been installed successfully!" ..
-                      "After the reboot surf into 192.168.1.1 " ..
-                      "with the username admin and the password " ..
-                      "pfsense."))
-        end
+        end        
+	-- success!
+	App.ui:inform(
+	    _("pfSense has been installed successfully!" ..
+	      "After the reboot surf into 192.168.1.1 " ..
+	      "with the username admin and the password " ..
+	      "pfsense."))
         return step:next()
     end
 }
