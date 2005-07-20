@@ -19,5 +19,5 @@ return {
         -- Whether the user should be warned about the ramifications
         -- of omitting certain mountpoints such as /tmp, /usr, &c.
         --
-        warn_omit_subpartitions = true,
+        warn_omit_subpartitions = false,
 }
