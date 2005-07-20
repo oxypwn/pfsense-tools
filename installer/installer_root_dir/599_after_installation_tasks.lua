@@ -21,7 +21,7 @@ return {
 		    line = line,
 		    base = App.state.target:get_base()
 		}
-		if string.find(line, "^%#") then
+		if not string.find(line, "^%#") then
 		    cmds:add("${line}")
 		end
         end
