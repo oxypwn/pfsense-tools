@@ -44,5 +44,7 @@ return {
 	["*/pit/configure_console"] = "ignore",
 
 	["*/install/finished"] = "ignore",
+	
+	["main/configure_installed_system"] = "ignore",
 
 }
