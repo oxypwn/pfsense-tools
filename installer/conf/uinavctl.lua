@@ -27,17 +27,7 @@
 return {
 	["*/install/format_disk"] = "ignore",	  -- do not do the "Format
 						  -- Disk" step on install
-	["*/install/select_packages"] = "ignore", -- do not do the "Select
-						  -- Packages" step on install
-
---						  -- examples follow:
---	["*/welcome"] = "ignore",		  -- no "welcome" items at all
-
---	["*/install/partition_disk"] = "ignore",  -- Don't show the Partition
---      ["*/install/select_part"] = "ignore",     -- Editor or selection.
---                                                -- Used in combination with
---                                                -- "Format Disk" step in
---                                                -- embedded apps, etc.
+	["*/install/select_packages"] = "ignore", -- do not do the "Select Packages" step on install
 
 	["*/configure/*"] = "ignore", 		  -- do not configure, we've already did it.
 
@@ -48,5 +38,16 @@ return {
 	["main/configure_installed_system"] = "ignore",
 	
 	["main/upgrade_installed_system"] = "ignore",
+	
+	
+
+--						  -- examples follow:
+--	["*/welcome"] = "ignore",		  -- no "welcome" items at all
+
+--	["*/install/partition_disk"] = "ignore",  -- Don't show the Partition
+--      ["*/install/select_part"] = "ignore",     -- Editor or selection.
+--                                                -- Used in combination with
+--                                                -- "Format Disk" step in
+--                                                -- embedded apps, etc.
 
 }
