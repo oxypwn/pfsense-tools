@@ -41,5 +41,8 @@ return {
 
 	["*/configure/*"] = "ignore", 		  -- do not configure, we've already did it.
 
+	["*/pit/configure_console"],
+
+	["*/install/finished"],
 
 }
