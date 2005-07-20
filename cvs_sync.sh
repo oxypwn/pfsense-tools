@@ -51,6 +51,8 @@ cd $TMPDIR
 for FILE in *
 do
         DIR=`echo $FILE | cut -d/ -f2`
-        cd $TMPDIR && install $TMPDIR$DIR/* /$DIR/ 2>/dev/null
+        cd $TMPDIR && install $TMPDIR$DIR/* /$DIR/
+        cd $TMPDIR && cp -P -R $TMPDIR$DIR/* /$DIR/
         echo "install $TMPDIR$DIR/* /$DIR/"
 done
+
