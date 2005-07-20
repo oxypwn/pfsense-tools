@@ -52,4 +52,5 @@ for FILE in *
 do
         DIR=`echo $FILE | cut -d/ -f2`
         cd $TMPDIR && install $TMPDIR$DIR/* /$DIR/ 2>/dev/null
+        echo "install $TMPDIR$DIR/* /$DIR/"
 done
