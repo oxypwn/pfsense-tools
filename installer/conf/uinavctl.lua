@@ -46,5 +46,7 @@ return {
 	["*/install/finished"] = "ignore",
 	
 	["main/configure_installed_system"] = "ignore",
+	
+	["main/upgrade_installed_system"] = "ignore",
 
 }
