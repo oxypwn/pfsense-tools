@@ -39,7 +39,7 @@ return {
 	
 	["main/upgrade_installed_system"] = "ignore",
 	
-	
+	["main/*netboot*"] = "ignore",
 
 --						  -- examples follow:
 --	["*/welcome"] = "ignore",		  -- no "welcome" items at all
