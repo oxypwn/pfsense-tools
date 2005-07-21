@@ -91,7 +91,7 @@ return {
                 cmds = CmdChain.new()
                 cmds:add("tar xzpf /FreeSBIE/mnt/usr/latest.tgz -U -C /FreeSBIE/mnt/")
                 -- XXX: integrate progress bar somehow for execute command
-                cms:execute()
+                cmds:execute()
         end        
 	-- success!
 	App.ui:inform(
