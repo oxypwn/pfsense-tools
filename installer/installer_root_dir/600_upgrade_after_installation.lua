@@ -17,17 +17,21 @@ function download (host, file, outputfile)
   end
   local count = 0    -- counts number of bytes read
   c:send("GET " .. file .. " HTTP/1.0\r\n\r\n")
-  io.open (outputfile, "w")
+  handle = io.open(outputfile, "w")
   while true do
     local s, status = receive(c)
-    count = count + string.len(s)
     if status == "closed" then break end
-    io.write(s)
+    count = count + string.len(s)
+    handle:write(s)
   end
   c:close()
-  io.close()
+  handle:close()
   -- return the number of bytes read
   return count
+end
+
+function receive (connection)
+	return connection:receive(2^10)
 end
 
 return {
@@ -37,7 +41,7 @@ return {
 	local response = App.ui:present{
 	    name = _("Upgrade pfSense?"),
 	    short_desc =
-	        _("Would you like to upgrade pfSense to the latest version? "),
+	        _("Would you like to upgrade pfSense to the latest version?  The system will pause while downloading the updates."),
 	    actions = {
 		{
 		    id = "ok",
