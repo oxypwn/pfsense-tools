@@ -3,7 +3,10 @@
 --
 require "socket"
 function download (host, file, outputfile)
-  local c = assert(socket.connect(host, 80))
+  local c = socket.connect(host, 80)
+  if not c then
+    return
+  end
   local count = 0    -- counts number of bytes read
   c:send("GET " .. file .. " HTTP/1.0\r\n\r\n")
   io.open (outputfile, "w")
@@ -15,6 +18,7 @@ function download (host, file, outputfile)
   end
   c:close()
   io.close()
+  return 1
 end
 
 return {
@@ -39,11 +43,18 @@ return {
 	}
 	if response.action_id == "ok" then
                 --- lets upgrade pfsense!
-                host = "http://www.pfSense.com"
-                file = "/updates/latest.tgz"
+                local host = "http://www.pfSense.com"
+                local file = "/updates/latest.tgz"
+		local status = 0
                 -- XXX: how do we output a notice .. Downloading... Bleh.
                 outputfile = "/mnt/tmp/latest.tgz"
-                download(host, file, outputfile)
+                status = download(host, file, outputfile)
+		if not status then
+		    App.ui:inform(
+			_("There was an error connecting to the pfSense update site." ...
+			  "Please upgrade pfSense manually from the webConfigurator"))
+		    return step:next()
+		end
                 cmds = CmdChain.new()
                 cmds:add("tar xzpf /mnt/tmp/latest.tgz -U -C /mnt/")
                 -- XXX: how do we output a notice "Extracing update..."
