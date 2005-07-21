@@ -23,7 +23,7 @@ function download (host, file, outputfile)
   pr:start()  
   local count = 0    -- counts number of bytes read
   c:send("GET " .. file .. " HTTP/1.0\r\n\r\n")
-  handle = io.open(outputfile, "w")
+  handle = io.open(outputfile, "wb")
   while true do
     local s, status = receive(c)
     handle:write(s)
