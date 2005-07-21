@@ -5,7 +5,7 @@ require "socket"
 
 ip = socket.dns.toip("www.pfsense.com")
 if not ip then
-    return step:next() 
+    return
 end
 
 function download (host, file, outputfile)
