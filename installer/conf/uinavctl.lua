@@ -33,6 +33,8 @@ return {
 
 	["*/pit/configure_console"] = "ignore",
 
+	["*/install/ready_to_install"] = "ignore",
+
 	["*/install/finished"] = "ignore",
 	
 	["main/configure_installed_system"] = "ignore",
