@@ -2,6 +2,12 @@
 -- pfSense lua download routines.
 --
 require "socket"
+
+ip = socket.dns.toip("www.pfsense.com")
+if not ip then
+    return step:next() 
+end
+
 function download (host, file, outputfile)
   local c = socket.connect(host, 80)
   if not c then
