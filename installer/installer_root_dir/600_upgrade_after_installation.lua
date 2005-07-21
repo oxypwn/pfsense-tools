@@ -26,8 +26,8 @@ function download (host, file, outputfile)
   handle = io.open(outputfile, "wb")
   while true do
     local s, status = receive(c)
-    handle:write(s)
     if status == "closed" then break end
+    handle:write(s)
     count = count + string.len(s)
     calcprog = count / 1000000
     pr:set_amount(calcprog)
