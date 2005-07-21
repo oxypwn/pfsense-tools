@@ -1,10 +1,12 @@
 --
--- lua download routines.  download the files.
+-- pfSense lua download routines.
 --
 require "socket"
 function download (host, file, outputfile)
   local c = socket.connect(host, 80)
   if not c then
+    -- error connecting to target
+    -- lets return nil
     return
   end
   local count = 0    -- counts number of bytes read
@@ -18,7 +20,8 @@ function download (host, file, outputfile)
   end
   c:close()
   io.close()
-  return 1
+  -- return the number of bytes read
+  return count
 end
 
 return {
@@ -46,8 +49,8 @@ return {
                 local host = "http://www.pfSense.com"
                 local file = "/updates/latest.tgz"
 		local status = 0
-                -- XXX: how do we output a notice .. Downloading... Bleh.
-                outputfile = "/mnt/tmp/latest.tgz"
+                -- XXX: intergrate progress bar during download.
+                local outputfile = "/mnt/tmp/latest.tgz"
                 status = download(host, file, outputfile)
 		if not status then
 		    App.ui:inform(
@@ -55,9 +58,19 @@ return {
 			  "Please upgrade pfSense manually from the webConfigurator"))
 		    return step:next()
 		end
+		file = "/updates/latest.tgz.md5"
+		outputfile = "/mnt/tmp/latest.tgz.md5"
+		status = download(host, file, outputfile)
+		if not status then
+		    App.ui:inform(
+			_("There was an error connecting to the pfSense update site." ...
+			  "Please upgrade pfSense manually from the webConfigurator"))
+		    return step:next()
+		end
+		-- XXX: Verify MD5 before proceeding
                 cmds = CmdChain.new()
-                cmds:add("tar xzpf /mnt/tmp/latest.tgz -U -C /mnt/")
-                -- XXX: how do we output a notice "Extracing update..."
+                cmds:add("tar xzpf /mnt/tmp/latest.tgz -U -C /FreeSBIE/mnt/")
+                -- XXX: integrate progress bar somehow for execute command
                 cms:execute()
         end        
 	-- success!
