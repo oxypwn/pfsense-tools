@@ -60,7 +60,7 @@ return {
                 status = download(host, file, outputfile)
 		if not status then
 		    App.ui:inform(
-			_("There was an error connecting to the pfSense update site." ...
+			_("There was an error connecting to the pfSense update site." ..
 			  "Please upgrade pfSense manually from the webConfigurator"))
 		    return step:next()
 		end
@@ -69,7 +69,7 @@ return {
 		status = download(host, file, outputfile)
 		if not status then
 		    App.ui:inform(
-			_("There was an error connecting to the pfSense update site." ...
+			_("There was an error connecting to the pfSense update site." ..
 			  "Please upgrade pfSense manually from the webConfigurator"))
 		    return step:next()
 		end
