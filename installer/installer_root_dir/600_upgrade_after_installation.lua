@@ -26,9 +26,9 @@ function download (host, file, outputfile)
   handle = io.open(outputfile, "w")
   while true do
     local s, status = receive(c)
+    handle:write(s)
     if status == "closed" then break end
     count = count + string.len(s)
-    handle:write(s)
     calcprog = count / 1000000
     pr:set_amount(calcprog)
     pr:update()    
@@ -79,7 +79,7 @@ return {
 		    return step:next()
 		end
 		file = "/updates/latest.tgz.md5"
-		outputfile = "/mnt/tmp/latest.tgz.md5"
+		outputfile = "/FreeSBIE/mnt/usr/latest.tgz.md5"
 		status = download(host, file, outputfile)
 		if not status then
 		    App.ui:inform(
