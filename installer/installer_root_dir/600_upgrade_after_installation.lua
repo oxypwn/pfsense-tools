@@ -10,11 +10,17 @@ end
 
 function download (host, file, outputfile)
   local c = socket.connect(host, 80)
+  local pr
+  local calcprog = 1
   if not c then
     -- error connecting to target
     -- lets return nil
     return
   end
+  pr = App.ui:new_progress_bar{
+      title = _("Downloading Updates...")
+  }
+  pr:start()  
   local count = 0    -- counts number of bytes read
   c:send("GET " .. file .. " HTTP/1.0\r\n\r\n")
   handle = io.open(outputfile, "w")
@@ -23,10 +29,14 @@ function download (host, file, outputfile)
     if status == "closed" then break end
     count = count + string.len(s)
     handle:write(s)
+    calcprog = 400000 / 1000
+    pr:set_amount((calcprog))
+    pr:update()    
   end
   c:close()
   handle:close()
   -- return the number of bytes read
+  pr:stop()
   return count
 end
 
@@ -60,7 +70,7 @@ return {
                 local file = "/updates/latest.tgz"
 		local status = 0
                 -- XXX: intergrate progress bar during download.
-                local outputfile = "/mnt/tmp/latest.tgz"
+                local outputfile = "/FreeSBIE/mnt/usr/latest.tgz"
                 status = download(host, file, outputfile)
 		if not status then
 		    App.ui:inform(
@@ -79,7 +89,7 @@ return {
 		end
 		-- XXX: Verify MD5 before proceeding
                 cmds = CmdChain.new()
-                cmds:add("tar xzpf /mnt/tmp/latest.tgz -U -C /FreeSBIE/mnt/")
+                cmds:add("tar xzpf /FreeSBIE/mnt/usr/latest.tgz -U -C /FreeSBIE/mnt/")
                 -- XXX: integrate progress bar somehow for execute command
                 cms:execute()
         end        
