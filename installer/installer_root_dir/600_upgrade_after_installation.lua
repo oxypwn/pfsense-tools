@@ -56,7 +56,7 @@ return {
 	}
 	if response.action_id == "ok" then
                 --- lets upgrade pfsense!
-                local host = "http://www.pfSense.com"
+                local host = "www.pfSense.com"
                 local file = "/updates/latest.tgz"
 		local status = 0
                 -- XXX: intergrate progress bar during download.
