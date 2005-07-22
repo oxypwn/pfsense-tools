@@ -33,6 +33,7 @@ function download (host, file, outputfile)
     if s then
         handle:write(s)
     end
+    if not status then break end
     if status == "closed" then break end
     count = count + string.len(s)
     calcprog = count / 1000000
@@ -47,7 +48,7 @@ function download (host, file, outputfile)
 end
 
 function receive (connection)
-	return connection:receive(10)
+        return connection:receive("*a")
 end
 
 return {
