@@ -24,10 +24,16 @@ function download (host, file, outputfile)
   local count = 0    -- counts number of bytes read
   c:send("GET " .. file .. " HTTP/1.0\r\n\r\n")
   handle = io.open(outputfile, "wb")
+  while 1 do
+        l = c:receive()
+        if l == "" then break end
+  end  
   while true do
     local s, status = receive(c)
+    if s then
+        handle:write(s)
+    end
     if status == "closed" then break end
-    handle:write(s)
     count = count + string.len(s)
     calcprog = count / 1000000
     pr:set_amount(calcprog)
@@ -41,7 +47,7 @@ function download (host, file, outputfile)
 end
 
 function receive (connection)
-	return connection:receive(2^10)
+	return connection:receive(2)
 end
 
 return {
