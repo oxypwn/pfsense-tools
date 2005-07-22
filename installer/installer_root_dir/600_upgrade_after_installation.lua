@@ -47,7 +47,7 @@ function download (host, file, outputfile)
 end
 
 function receive (connection)
-	return connection:receive()
+	return connection:receive(10)
 end
 
 return {
