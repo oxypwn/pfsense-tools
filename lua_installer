@@ -12,6 +12,9 @@ echo
 
 sysctl kern.geom.debugflags=16
 
+/sbin/ifconfig lo0 127.0.0.1/24
+/sbin/ifconfig lo0 up
+
 ln -s /FreeSBIE/tftpdroot /tmp/tftpdroot
 echo "Mounting /FreeSBIE/dev..."
 mount_devfs devfs /FreeSBIE/dev
