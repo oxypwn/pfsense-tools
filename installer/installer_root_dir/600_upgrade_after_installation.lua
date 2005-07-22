@@ -49,83 +49,6 @@ function download (host, file, outputfile)
   return count
 end
 
-
-
--- Concat the contents of the parameter list,
--- separated by the string delimiter (just like in pertl)
--- example: strjoin(", ", {"Anna", "Bob", "Charlie", "Dolores"})
-function strjoin(delimiter, list)
-  local len = getn(list)
-  if len == 0 then 
-    return "" 
-  end
-  local string = list[1]
-  for i = 2, len do 
-    string = string .. delimiter .. list[i] 
-  end
-  return string
-end
-
--- Split text into a list consisting of the strings in text,
--- separated by strings matching delimiter (which may be a pattern). 
--- example: strsplit(",%s*", "Anna, Bob, Charlie,Dolores")
-function strsplit(delimiter, text)
-  local list = {}
-  local pos = 1
-  if strfind("", delimiter, 1) then -- this would result in endless loops
-    error("delimiter matches empty string!")
-  end
-  while 1 do
-    local first, last = strfind(text, delimiter, pos)
-    if first then -- found?
-      tinsert(list, strsub(text, pos, first-1))
-      pos = last+1
-    else
-      tinsert(list, strsub(text, pos))
-      break
-    end
-  end
-  return list
-end
-
-function select_mirror(filename)
-        local actions, ni, ifname
-        if not tab then tab = {} end
-        local ui = tab.ui or App.ui
-        local id = tab.id or "select_mirror"
-        local name = tab.name or _("Select Mirror")
-        local short_desc = tab.short_desc or _(
-            "Please select a mirror closest to you."
-        )
-        actions = {}
-        for line in io.lines(outputfile) do
-                splititems = strsplit("\t%s*", line)
-                table.insert(actions, {
-                    id = line,
-                    name = ""
-                })
-        end
-        table.insert(actions, {
-            id = "cancel",
-            name = _("Cancel"),
-            accelerator = "ESC"
-        })
-
-        ifname = App.ui:present({
-            id = id,
-            name =  name,
-            short_desc = short_desc,
-            role = "menu",
-            actions = actions
-        }).action_id
-
-        if ifname == "cancel" then
-                return nil
-        else
-                return nis:get(ifname)
-        end
-end
-
 return {
     id = "upgrade_pfsense",
     name = _("Upgrade pfSense"),
@@ -148,12 +71,6 @@ return {
 	    }
 	}
 	if response.action_id == "ok" then
-                --- download mirrors file
-                local host = "www.pfSense.com"
-                local file = "mirrors.txt"
-		local status = 0
-                local outputfile = "/FreeSBIE/mnt/usr/mirrors.txt"
-                host = select_mirror("/FreeSBIE/mnt/usr/mirrors.txt")                
                 --- lets upgrade pfsense!
                 host = "www.pfSense.com"
                 file = "/updates/latest.tgz"
