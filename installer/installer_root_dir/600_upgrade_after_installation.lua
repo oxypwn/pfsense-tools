@@ -57,7 +57,9 @@ return {
 	local response = App.ui:present{
 	    name = _("Upgrade pfSense?"),
 	    short_desc =
-	        _("Would you like to upgrade pfSense to the latest version?  The system will pause while downloading the updates."),
+	        _("Installation completed.\n\n" ..
+                  "Would you like to upgrade pfSense to the latest version?" ..
+                  "The system will pause while downloading the updates."),
 	    actions = {
 		{
 		    id = "ok",
