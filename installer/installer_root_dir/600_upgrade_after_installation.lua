@@ -47,7 +47,7 @@ function download (host, file, outputfile)
 end
 
 function receive (connection)
-	return connection:receive(2)
+	return connection:receive()
 end
 
 return {
@@ -58,8 +58,7 @@ return {
 	    name = _("Upgrade pfSense?"),
 	    short_desc =
 	        _("Installation completed.\n\n" ..
-                  "Would you like to upgrade pfSense to the latest version?" ..
-                  "The system will pause while downloading the updates."),
+                  "Would you like to upgrade pfSense to the latest version?"),
 	    actions = {
 		{
 		    id = "ok",
