@@ -25,6 +25,9 @@
 -- that fact in mind.
 
 return {
+
+	["*/welcome"] = "ignore",		  -- no "welcome" items at all
+
 	["*/install/format_disk"] = "ignore",	  -- do not do the "Format
 						  -- Disk" step on install
 	["*/install/select_packages"] = "ignore", -- do not do the "Select Packages" step on install
@@ -44,8 +47,7 @@ return {
 	["main/*netboot*"] = "ignore",
 
 --						  -- examples follow:
---	["*/welcome"] = "ignore",		  -- no "welcome" items at all
-
+	
 --	["*/install/partition_disk"] = "ignore",  -- Don't show the Partition
 --      ["*/install/select_part"] = "ignore",     -- Editor or selection.
 --                                                -- Used in combination with
