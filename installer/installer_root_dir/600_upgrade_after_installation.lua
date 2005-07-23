@@ -33,7 +33,6 @@ function download (host, file, outputfile)
     if s then
         handle:write(s)
     end
-    if not status then break end
     if status == "closed" then break end
     if s then
         count = count + string.len(s)
