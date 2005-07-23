@@ -36,6 +36,8 @@ return {
 
 	["*/pit/configure_console"] = "ignore",
 
+	["main/install/confirm_install_os"] = "ignore",
+
 	["main/install/warn_omitted_subpartitions"] = "ignore",
 
 	["main/install/finished"] = "ignore",
