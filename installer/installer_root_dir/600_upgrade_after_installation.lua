@@ -20,7 +20,8 @@ function download (host, file, outputfile)
   pr = App.ui:new_progress_bar{
       title = _("Downloading Updates...")
   }
-  pr:start()  
+  pr:start()
+  local filesize
   local count = 0    -- counts number of bytes read
   c:send("GET " .. file .. " HTTP/1.0\r\n\r\n")
   handle = io.open(outputfile, "wb")
@@ -36,7 +37,7 @@ function download (host, file, outputfile)
     if status == "closed" then break end
     if s then
         count = count + string.len(s)
-        calcprog = count / 190000
+        calcprog = count / 1000000
         pr:set_amount(calcprog)
         pr:update()
     end
