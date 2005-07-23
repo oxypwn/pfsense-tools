@@ -29,7 +29,7 @@ function download (host, file, outputfile)
         if l == "" then break end
   end  
   while true do
-    local s, status = c:receive(2^10)
+    local s, status = c:receive(10)
     if s then
         handle:write(s)
     end
