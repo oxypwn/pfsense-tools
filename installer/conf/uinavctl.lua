@@ -36,6 +36,8 @@ return {
 
 	["*/pit/configure_console"] = "ignore",
 
+	["main/install/warn_omitted_subpartitions"] = "ignore",
+
 	["main/install/finished"] = "ignore",
 	
 	["main/install/select_additional_filesystems"] = "ignore", 
