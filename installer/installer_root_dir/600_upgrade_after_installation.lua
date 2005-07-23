@@ -29,7 +29,7 @@ function download (host, file, outputfile)
         if l == "" then break end
   end  
   while true do
-    local s, status = c:receive(10)
+    local s, status = c:receive(100)
     if s then
         handle:write(s)
     end
@@ -75,7 +75,6 @@ return {
                 file = "/updates/latest.tgz"
 		status = 0
                 outputfile = "/FreeSBIE/mnt/usr/latest.tgz"
-                -- XXX: intergrate progress bar during download.
                 status = download(host, file, outputfile)
 		if not status then
 		    App.ui:inform(
