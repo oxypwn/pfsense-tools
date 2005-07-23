@@ -33,7 +33,9 @@ return {
 
 	["*/pit/configure_console"] = "ignore",
 
-	["*/install/finished"] = "ignore",
+	["main/install/finished"] = "ignore",
+	
+	["main/install/select_additional_filesystems"] = "ignore", 
 	
 	["main/configure_installed_system"] = "ignore",
 	
