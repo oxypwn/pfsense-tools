@@ -28,8 +28,9 @@ return {
 
 	["*/welcome"] = "ignore",		  -- no "welcome" items at all
 
-	["*/install/format_disk"] = "ignore",	  -- do not do the "Format
-						  -- Disk" step on install
+	--["*/install/format_disk"] = "ignore",	  -- do not do the "Format
+	--					  -- Disk" step on install
+
 	["*/install/select_packages"] = "ignore", -- do not do the "Select Packages" step on install
 
 	["*/configure/*"] = "ignore", 		  -- do not configure, we've already did it.
