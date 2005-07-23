@@ -36,7 +36,7 @@ function download (host, file, outputfile)
     if status == "closed" then break end
     if s then
         count = count + string.len(s)
-        calcprog = count / 1000000
+        calcprog = count / 100000
         pr:set_amount(calcprog)
         pr:update()
     end
