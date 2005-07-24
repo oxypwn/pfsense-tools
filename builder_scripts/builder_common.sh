@@ -27,7 +27,8 @@ populate_extra() {
 
 	# Add lua installer items
 	cp $BASE_DIR/tools/installer/conf/* $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/conf/
-	cp $BASE_DIR/tools/installer/installer_root_dir/* $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/
+	cp $BASE_DIR/tools/installer/installer_root_dir/* $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/install
+	#rm $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/install/600_*
 
 	# Set buildtime
 	date > $CVS_CO_DIR/etc/version.buildtime
@@ -100,6 +101,15 @@ populate_extra() {
 	mkdir -p $FREESBIEBASEDIR/conf.default
 	cp $CVS_CO_DIR/conf.default/* $FREESBIEBASEDIR/conf.default/
 
+	mkdir -p ${FREESBIEBASEDIR}/usr/local/livefs/lib/
+
+	cp /usr/lib/libcrypt.so ${FREESBIEBASEDIR}/usr/lib/libcrypt.so.2
+	cp /usr/lib/libm.so ${FREESBIEBASEDIR}/usr/lib/libm.so.3
+	cp /usr/lib/libssl.so ${FREESBIEBASEDIR}/usr/lib/libssl.so.3
+	cp /usr/lib/libcrypto.so ${FREESBIEBASEDIR}/usr/lib/libcrypto.so.3
+	cp /usr/lib/libz.so ${FREESBIEBASEDIR}/usr/lib/libz.so.2
+	cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
+
 	# Make sure ACPI is all ready
 	cd /usr/src/sys/modules/acpi
 	make
@@ -164,6 +174,15 @@ fixup_updates() {
 	rm -f ${CVS_CO_DIR}/trigger_initial_wizard
 	rm -f ${FREESBIEBASEDIR}/trigger_initial_wizard
 
+	mkdir -p ${FREESBIEBASEDIR}/usr/local/livefs/lib/
+
+        cp /usr/lib/libcrypt.so ${FREESBIEBASEDIR}/usr/lib/libcrypt.so.2
+        cp /usr/lib/libm.so ${FREESBIEBASEDIR}/usr/lib/libm.so.3
+        cp /usr/lib/libssl.so ${FREESBIEBASEDIR}/usr/lib/libssl.so.3
+        cp /usr/lib/libcrypto.so ${FREESBIEBASEDIR}/usr/lib/libcrypto.so.3
+        cp /usr/lib/libz.so ${FREESBIEBASEDIR}/usr/lib/libz.so.2
+        cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
+
 	echo `date` > /usr/local/livefs/etc/version.buildtime
 
 }
@@ -174,7 +193,7 @@ fixup_wrap() {
 
     # Checkout pfSense information and set our version variables.
     rm -rf $BASE_DIR/pfSense
-    cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense
+    cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense
 
     chflags -R noschg /tmp/ 2>/dev/null
     rm -rf /tmp/* 2>/dev/null
@@ -324,7 +343,7 @@ create_pfSense_tarball() {
 
 	rm -rf $CVS_CO_DIR/boot/
 
-	cd $CVS_CO_DIR && tar  czPf /tmp/pfSense.tgz .
+	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
 }
 
 # Copy tarball of pfSense cvs directory to FreeSBIE custom directory
@@ -422,13 +441,12 @@ clone_system_only()
 checkout_pfSense() {
         echo ">>> Getting pfSense"
         rm -rf $CVS_CO_DIR
-        cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense
+	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense
 }
 
 checkout_freesbie() {
         echo ">>> Getting FreeSBIE"
         rm -rf $LOCALDIR
-        cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co freesbie
 }
 
 print_flags() {

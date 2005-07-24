@@ -29,8 +29,9 @@ set -x
 rm -rf $LOCALDIR/files/custom/*
 rm -rf $BASE_DIR/pfSense
 
-# Checkout pfSense information and set our version variables.
-cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense 
+# Update cvs depot
+rsync -avz sullrich@216.135.66.16:/cvsroot /home/pfsense/
+cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense
 
 # Calculate versions
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`

@@ -22,13 +22,16 @@
 # Define the Kernel file we're using
 export KERNCONF=pfSense_wrap.6
 
+# Update cvs depot
+rsync -avz sullrich@216.135.66.16:/cvsroot /home/pfsense/
+
 # Remove staging area files
 rm -rf $LOCALDIR/files/custom/*
 rm -rf $BASE_DIR/pfSense
 rm -rf $CVS_CO_DIR
 
 # Checkout pfSense information and set our version variables.
-cd $BASE_DIR && cvs -d:ext:$CVS_USER@216.135.66.16:/cvsroot co pfSense 
+cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense 
 
 # Calculate versions
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
