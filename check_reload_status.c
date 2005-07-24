@@ -27,11 +27,21 @@ int fexist(char * filename)
 
 int main(void) {
 	while(1) {
-		if(fexist("/tmp/filter_dirty") == 1) {
-			printf("%s","Reloading filter settings...");
-			system("/usr/local/bin/php /etc/rc.filter_configure >/dev/null");
-		}
-	sleep(5);
+	    if(fexist("/tmp/filter_dirty") == 1) {
+		    printf("%s","Reloading filter settings...");
+		    system("/usr/local/bin/php /etc/rc.filter_configure >/dev/null");
+	    }
+	    if(fexist("/tmp/reload_all") == 1) {
+		    printf("%s","Reloading filter settings...");
+		    system("/usr/local/bin/php /etc/rc.reload_all >/dev/null");
+		    system("/bin/rm /tmp/reload_all");
+	    }
+	    if(fexist("/tmp/reload_interfaces") == 1) {
+		    printf("%s","Reloading filter settings...");
+		    system("/usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
+		    system("/bin/rm /tmp/reload_interfaces");
+	    }
+	    sleep(5);
 	}
 	return 0;
 }
