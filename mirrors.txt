@@ -1,0 +1,5 @@
+#Hoster			Location		URL				CONTACT					STATUS		BACKBONE
+system42.net		Seattle, WA		http://system42.net/pfsense	ribo@system42.net			enabled		Peer1
+s0ur.co.uk		London, UK		http://pfsense.s0ur.co.uk	summat@gmail.com			enabled		Level3
+Sky Towser		Auckland, New Zealand	http://pfsense.fast.co.nz	Barry Murphy, barry@unix.co.nz		disabled	ALTER.NET
+Bluegrass.Net		Louisville, KY		http://www.pfsense.com/mirrors	Chris Buechler, cmb@pfsense.com		disabled	AT&T
