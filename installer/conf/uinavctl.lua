@@ -37,19 +37,19 @@ return {
 
 	["*/pit/configure_console"] = "ignore",
 
-	["main/install/confirm_install_os"] = "ignore",
+	["*/install/confirm_install_os"] = "ignore",
 
-	["main/install/warn_omitted_subpartitions"] = "ignore",
+	["*/install/warn_omitted_subpartitions"] = "ignore",
 
-	["main/install/finished"] = "ignore",
+	["*/install/finished"] = "ignore",
 	
-	["main/install/select_additional_filesystems"] = "ignore", 
+	["*/install/select_additional_filesystems"] = "ignore", 
 	
-	["main/configure_installed_system"] = "ignore",
+	["*/configure_installed_system"] = "ignore",
 	
-	["main/upgrade_installed_system"] = "ignore",
+	["*/upgrade_installed_system"] = "ignore",
 	
-	["main/*netboot*"] = "ignore",
+	["*/*netboot*"] = "ignore",
 
 --						  -- examples follow:
 	
