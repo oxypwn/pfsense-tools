@@ -28,16 +28,15 @@ return {
 
 	["*/welcome"] = "ignore",		  -- no "welcome" items at all
 	
-	["*/pit/*load_kernel_modules*"] = "ignore",
+	["*/pit/*load_kernel_modules*"] = "ignore", --do not ask about loading kernel modules
+	
+	["*/pit/configure_console"] = "ignore",
 
-	--["*/install/format_disk"] = "ignore",	  -- do not do the "Format
-	--					  -- Disk" step on install
+	--["*/install/format_disk"] = "ignore",	  -- do not do the "Format Disk" step on install
 
 	["*/install/select_packages"] = "ignore", -- do not do the "Select Packages" step on install
 
 	["*/configure/*"] = "ignore", 		  -- do not configure, we've already did it.
-
-	["*/pit/configure_console"] = "ignore",
 
 	["*/install/confirm_install_os"] = "ignore",
 
