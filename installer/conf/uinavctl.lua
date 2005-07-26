@@ -32,7 +32,7 @@ return {
 	
 	["*/pit/configure_console"] = "ignore",
 
-	--["*/install/format_disk"] = "ignore",	  -- do not do the "Format Disk" step on install
+	["*/install/format_disk"] = "ignore",	  -- do not do the "Format Disk" step on install
 
 	["*/install/select_packages"] = "ignore", -- do not do the "Select Packages" step on install
 
