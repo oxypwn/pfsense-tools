@@ -27,6 +27,8 @@
 return {
 
 	["*/welcome"] = "ignore",		  -- no "welcome" items at all
+	
+	["*/pit/*load_kernel_modules*"] = "ignore",
 
 	--["*/install/format_disk"] = "ignore",	  -- do not do the "Format
 	--					  -- Disk" step on install
