@@ -31,6 +31,8 @@ return {
 	["*/pit/*load_kernel_modules*"] = "ignore", --do not ask about loading kernel modules
 	
 	["*/pit/configure_console"] = "ignore",
+	
+	["*/pit/*configure_network*"] = "ignore",
 
 	["*/install/format_disk"] = "ignore",	  -- do not do the "Format Disk" step on install
 
