@@ -29,9 +29,9 @@ cp -R /boot/* /FreeSBIE/mnt/boot/
 cat /boot/loader.conf | grep -v ^mfsroot > /FreeSBIE/mnt/boot/loader.conf
 
 # Enable permission for playback.
-cd /FreeSBIE/mnt && bzcat /FreeSBIE/dist/FreeSBIE.root.dist.bz2 | mtree -PU -p /FreeSBIE/mnt
-cd /FreeSBIE/mnt/usr && bzcat /FreeSBIE/dist/FreeSBIE.usr.dist.bz2 | mtree -PUr -p /FreeSBIE/mnt/usr
-cd /FreeSBIE/mnt/var && bzcat /FreeSBIE/dist/FreeSBIE.var.dist.bz2 | mtree -PUr -p /FreeSBIE/mnt/var
+#   cd /FreeSBIE/mnt && bzcat /FreeSBIE/dist/FreeSBIE.root.dist.bz2 | mtree -PU -p /FreeSBIE/mnt
+#   cd /FreeSBIE/mnt/usr && bzcat /FreeSBIE/dist/FreeSBIE.usr.dist.bz2 | mtree -PUr -p /FreeSBIE/mnt/usr
+#   cd /FreeSBIE/mnt/var && bzcat /FreeSBIE/dist/FreeSBIE.var.dist.bz2 | mtree -PUr -p /FreeSBIE/mnt/var
 
 cd /FreeSBIE/mnt && rm -rf FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
 
