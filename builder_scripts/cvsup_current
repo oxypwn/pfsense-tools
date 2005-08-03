@@ -1,0 +1,23 @@
+#!/bin/sh
+
+CURRENTDIR=`pwd`
+cvsup /etc/current-supfile
+
+cd /usr/src/contrib/pf/pfctl
+patch < ~root/patches/parse.y
+
+#cd /usr/src/sys/netgraph
+#patch < ~root/patches/ng_ppp.c.patch
+
+cd $CURRENTDIR
+rm -rf /usr/obj/*
+
+cp /home/pfsense/freesbie/config_buildworld.sh \
+	/home/pfsense/freesbie/config.sh
+
+./build_updates.sh
+
+cp /home/pfsense/freesbie/config_nobuildworld.sh \
+	/home/pfsense/freesbie/config.sh
+
+
