@@ -52,7 +52,7 @@ $LOCALDIR/4.kernel.sh pfSense.6
 
 $LOCALDIR/5.patchfiles.sh
 
-$LOCALDIR/6.packages.sh
+#$LOCALDIR/6.packages.sh
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra

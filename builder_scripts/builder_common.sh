@@ -136,14 +136,13 @@ fixup_updates() {
 	rm -rf ${CVS_CO_DIR}/cf
 	rm -rf ${FREESBIEBASEDIR}/conf
 	rm -rf ${CVS_CO_DIR}/conf
-	rm -rf ${FREESBIEBASEDIR}/boot/*
+	rm -f ${FREESBIEBASEDIR}/boot/*
 	rm -rf ${FREESBIEBASEDIR}/etc/rc.conf
 	rm -rf ${FREESBIEBASEDIR}/etc/motd
 	rm -rf ${FREESBIEBASEDIR}/trigger*
 	rm -rf ${CVS_CO_DIR}/etc/rc.conf
 	rm -rf ${CVS_CO_DIR}/etc/motd
-	rm -rf ${CVS_CO_DIR}/boot/*
-	find /usr/local/ -name boot -exec rm -rf {} \;
+	rm -f ${CVS_CO_DIR}/boot/*
 	find ${CVS_CO_DIR} -name CVS -exec rm {} \;
 
 	echo Removing pfSense.tgz used by installer..
@@ -356,7 +355,7 @@ create_pfSense_Full_update_tarball() {
 create_pfSense_tarball() {
 	cd $LOCALDIR
 
-	rm -rf $CVS_CO_DIR/boot/
+	rm -f $CVS_CO_DIR/boot/*
 
 	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
 }
@@ -369,7 +368,7 @@ copy_pfSense_tarball_to_custom_directory() {
 
 	tar  xzPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
 
-	rm -rf $LOCALDIR/files/custom/boot/
+	rm -f $LOCALDIR/files/custom/boot/*
 }
 
 copy_pfSense_tarball_to_freesbiebasedir() {
