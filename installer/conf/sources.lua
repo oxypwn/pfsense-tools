@@ -20,7 +20,7 @@ return {
         "COPYRIGHT",
         "bin",
         "conf",
-        "conf.default"
+        "conf.default",
         "boot",
         "cdrom",
         "dev",
