@@ -9,6 +9,9 @@ patch < ~root/patches/parse.y
 #cd /usr/src/sys/netgraph
 #patch < ~root/patches/ng_ppp.c.patch
 
+cd /usr/src/sys/vm/
+patch < ~root/patches/vnode_pager.c.diff
+
 cd $CURRENTDIR
 rm -rf /usr/obj/*
 
