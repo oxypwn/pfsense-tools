@@ -10,9 +10,6 @@ echo
 echo "One moment please..."
 echo
 
-mkdir -p /FreeSBIE/var/log/
-find / -name dmesg.boot -exec cp {} /FreeSBIE/var/log/ \;
-
 /usr/bin/killall syslogd 2>/dev/null 2>&1
 
 sysctl kern.geom.debugflags=16
@@ -33,6 +30,9 @@ MD_LOCAL=`mdconfig -a -f /FreeSBIE/uzip/var.uzip`
 mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/var
 
 mount -t unionfs /.var /FreeSBIE/var
+
+mkdir -p /FreeSBIE/var/log/
+find / -name dmesg.boot -exec cp {} /FreeSBIE/var/log/ \;
 
 # Let's access this now to prevent the "RockRidge" message
 # during the actual install
