@@ -7,6 +7,10 @@
 echo
 echo "Launching pfSense Installer..."
 echo
+echo "One moment please..."
+echo
+
+find / -name dmesg.boot -exec cp {} /FreeSBIE/var/log/ \;
 
 /usr/bin/killall syslogd 2>/dev/null 2>&1
 
