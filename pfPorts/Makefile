@@ -12,6 +12,7 @@ SUBDIR += check_reload_status
 SUBDIR += choparp
 SUBDIR += ifstats
 SUBDIR += kbdcheck
+SUBDIR += pftpx
 SUBDIR += mini_httpd-pfsense
 SUBDIR += minicron
 SUBDIR += php4-pfsense
