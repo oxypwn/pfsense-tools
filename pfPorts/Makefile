@@ -10,7 +10,7 @@ SUBDIR += pfsense-lite
 SUBDIR += php4-pfsense
 SUBDIR += sshlockout_pf
 SUBDIR += stats
-SUBDIR += upload_progress_meter
+#SUBDIR += upload_progress_meter
 SUBDIR += verifysig
 SUBDIR += wol
 
