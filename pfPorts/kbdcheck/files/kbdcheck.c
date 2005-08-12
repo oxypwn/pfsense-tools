@@ -12,6 +12,7 @@ int main(void) {
 		close(fd);
 		printf("Enabling USB keyboard override...");
 		system("/usr/sbin/kbdcontrol -k /dev/ukbd0 < /dev/console");
-		printf("done.\n");
+		printf(" done.\n");
 	}
+	return 0;
 }
