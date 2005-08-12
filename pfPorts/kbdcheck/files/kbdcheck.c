@@ -10,6 +10,8 @@ int main(void) {
 	int fd;
 	if ((fd = open("/dev/ukbd0", O_RDONLY)) != -1) {
 		close(fd);
+		printf("Enabling USB override...");
 		system("kbdcontrol -k /dev/ukbd0 < /dev/console");
+		printf("done.\n");
 	}
 }
