@@ -1,14 +1,3 @@
-[BACK]Return to cmdnames.lua CVS log [TXT]	[DIR] Up to [installer] / installer / src / backend / lua / conf
-File: [installer] / installer / src / backend / lua / conf / cmdnames.lua (download)
-
-Revision 1.17, Thu Aug 11 18:09:28 2005 UTC (2 days ago) by cpressey
-Branch: MAIN
-CVS Tags: HEAD
-Changes since 1.16: +19 -6 lines
-
-Conditionalize location of MODULES_DIR for FreeBSD.  Also clean up the
-conditional logic and make the comments more useful.
-
 -- $Id$
 
 --

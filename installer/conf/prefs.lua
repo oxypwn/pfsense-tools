@@ -25,12 +25,6 @@ return {
 	enable_crashdumps	= true,
 
 	--
-	-- Whether the user should be warned about the ramifications
-	-- of omitting certain mountpoints such as /tmp, /usr, &c.
-	--
-	warn_omit_subpartitions	= false,
-
-	--
 	-- The filename suffix for package files, apropos to the
 	-- current operating system and/or package system in use.
 	-- XXX This should be organized better in the future.
