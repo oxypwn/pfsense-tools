@@ -1,5 +1,26 @@
--- Example command names conf file for dfuibe_lua backend.
+[BACK]Return to cmdnames.lua CVS log [TXT]	[DIR] Up to [installer] / installer / src / backend / lua / conf
+File: [installer] / installer / src / backend / lua / conf / cmdnames.lua (download)
+
+Revision 1.17, Thu Aug 11 18:09:28 2005 UTC (2 days ago) by cpressey
+Branch: MAIN
+CVS Tags: HEAD
+Changes since 1.16: +19 -6 lines
+
+Conditionalize location of MODULES_DIR for FreeBSD.  Also clean up the
+conditional logic and make the comments more useful.
+
 -- $Id$
+
+--
+-- Default configuration file for names of system commands
+-- used by the BSD Installer.
+--
+-- Note that some non-command files and directories are configurable
+-- here too.
+--
+-- The main table lists commands apropos for for DragonFly BSD.
+-- Conditional overrides for other BSD's are listed below it.
+--
 
 local cmd_names = {
 	SH		= "bin/sh",
@@ -15,7 +36,7 @@ local cmd_names = {
 	CAT		= "bin/cat",
 	TEST		= "bin/test",
 	TEST_DEV	= "bin/test -c",
-	CPDUP		= "bin/cpdup -o -vvv -I",
+	CPDUP		= "bin/cpdup -vvv -I",
 
 	ATACONTROL	= "sbin/atacontrol",
 	MOUNT		= "sbin/mount",
@@ -23,6 +44,7 @@ local cmd_names = {
 	UMOUNT		= "sbin/umount",
 	SWAPON		= "sbin/swapon",
 	DISKLABEL	= "sbin/disklabel",
+	MBRLABEL	= "sbin/mbrlabel",
 	NEWFS		= "sbin/newfs",
 	NEWFS_MSDOS	= "sbin/newfs_msdos",
 	FDISK		= "sbin/fdisk",
@@ -52,13 +74,15 @@ local cmd_names = {
 	FIND		= "usr/bin/find",
 	CHFLAGS		= "usr/bin/chflags",
 	XARGS		= "usr/bin/xargs",
+	MAKE		= "usr/bin/make",
+	TAR		= "usr/bin/tar",
 
 	PWD_MKDB	= "usr/sbin/pwd_mkdb",
 	CHROOT		= "usr/sbin/chroot",
 	VIDCONTROL	= "usr/sbin/vidcontrol",
 	KBDCONTROL	= "usr/sbin/kbdcontrol",
 	PW		= "usr/sbin/pw",
-	SWAPINFO	= "usr/sbin/swapinfo",
+	SWAPINFO	= "usr/sbin/pstat -s",
 	BOOT0CFG	= "usr/sbin/boot0cfg",
 	FDFORMAT	= "usr/sbin/fdformat",
 	MTREE		= "usr/sbin/mtree",
@@ -78,21 +102,23 @@ local cmd_names = {
 
 	-- These aren't commands, but they're configurable here nonetheless.
 
-	DMESG_BOOT	= "var/log/dmesg.boot",
-	
-	MODULES_DIR	= "boot/kernel/"
+	DMESG_BOOT	= "var/run/dmesg.boot",
+	MODULES_DIR	= "modules"
 }
 
 if App.os.name == "OpenBSD" then
 	cmd_names.TEST_DEV = "bin/test -b"
-end
-
-if App.os.name ~= "DragonFly" then
-	cmd_names.CPDUP = "usr/local/bin/cpdup -o -vvv"
+	-- ...
+elseif App.os.name == "FreeBSD" then
+	cmd_names.CPDUP = "usr/local/bin/cpdup -vvv -I"
 	cmd_names.DHCPD = "usr/local/sbin/dhcpd"
 	cmd_names.RPCBIND = "usr/sbin/rpcbind"
 	cmd_names.MOUNTD = "usr/sbin/mountd"
 	cmd_names.NFSD = "usr/sbin/nfsd"
+	cmd_names.MODULES_DIR = "boot/kernel"
+elseif App.os.name == "NetBSD" then
+	cmd_names.CPDUP = "usr/pkg/bin/cpdup -vvv -I"
+	-- ...
 end
 
 return cmd_names
