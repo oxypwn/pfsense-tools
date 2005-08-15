@@ -45,9 +45,9 @@
 
 return {
     install = {
+	"boot",
 	"COPYRIGHT",
 	"bin",
-	"boot",
         "conf",
         "conf.default",
 	"cdrom",
