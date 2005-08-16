@@ -1,4 +1,4 @@
-# New ports collection makefile for:	php4
+# New ports collection makefile for:	wol
 # Date created:				Tue Feb 18 11:17:13 CET 2003
 # Whom:					Alex Dupre <sysadmin@alexdupre.com>
 #
@@ -9,15 +9,11 @@ PORTNAME=	wol
 PORTVERSION=	0.7.1
 PORTREVISION?=	0
 CATEGORIES?=	sysutils
-MASTER_SITES=	${MASTER_SITE_SOURCEFORGE:S,$,:release,}
-MASTER_SITE_SUBDIR=	distributions/:release
-DISTNAME=	${PORTNAME}-${PORTVERSION:S/.r/RC/}
-DISTFILES=	${DISTNAME}${EXTRACT_SUFX}:release
+MASTER_SITES=	${MASTER_SITE_SOURCEFORGE}
+MASTER_SITE_SUBDIR=	ahh
 
 MAINTAINER?=	jebc@c4solutions.net
 COMMENT?=	Wake on Lan initiator
-
-#LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
 WHERE=          bin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
