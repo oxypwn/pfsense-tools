@@ -7,11 +7,11 @@ OSTYPE=-D$(UNAME)
 DEFINES=
 #DEFINES=-DDEBUG
 INCLUDES=-I.
-CC=gcc
-CFLAGS=-O -g -pthread -Wall $(OSTYPE) $(INCLUDES) $(DEFINES)
+#CC=gcc
+#CFLAGS=-O -g -pthread -Wall $(OSTYPE) $(INCLUDES) $(DEFINES)
 LD=gcc
 LDFLAGS=-pthread -Wall -g
-SUBDIR=tests
+#SUBDIR=tests
 PROG=slbd
 MAN=
 PREFIX=/usr/local
@@ -45,7 +45,8 @@ slbd:	service.o vsvc.o config.o printers.o vsvc_rules.o slbd.o pollers.o
 install:	install-slbd
 
 install-slbd:
-	cp $(PROG) $(PREFIX)/$(BINDIR)/$(PROG)
+	$(INSTALL) $(PROG) $(PREFIX)/$(BINDIR)/
+	mkdir -p $(PREFIX)/$(CONFDIR)
 	cp conf/slbdcap $(CONFFILE)
 
 config-clean:
