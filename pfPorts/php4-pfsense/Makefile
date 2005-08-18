@@ -5,6 +5,7 @@
 # $FreeBSD: ports/lang/php4/Makefile,v 1.88 2005/07/13 19:56:27 ale Exp $
 #
 
+PKGNAMESUFFIX=	-cgi
 PORTNAME=	php4
 PORTVERSION=	4.4.0
 PORTREVISION?=	0
@@ -16,35 +17,75 @@ MASTER_SITE_SUBDIR=	distributions/:release
 DISTNAME=	php-${PORTVERSION:S/.r/RC/}
 DISTFILES=	${DISTNAME}${EXTRACT_SUFX}:release
 
-MAINTAINER?=	jebc@c4solutions.net
-COMMENT?=	PHP Scripting Language for pfSense
+MAINTAINER?=	ale@FreeBSD.org
+COMMENT?=	PHP Scripting Language (Apache Module and CLI)
 
-CONFLICTS=      php4-4* php4-cgi-4* mod_php4-4*
-#LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
+LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
-WHERE=          bin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
+LIB_DEPENDS=   curl:${PORTSDIR}/ftp/curl
 
 USE_BZIP2=	yes
-GNU_CONFIGURE=	yes
 
-WITH_OPENSSL?=	yes
-WITH_CURL?=	yes
+GNU_CONFIGURE=	yes
+USE_BISON=	yes
+USE_REINPLACE=	yes
 
 CONFIGURE_ARGS=	--without-mysql \
 		--without-pear \
-		--enable-discard-path 
+		--with-openssl \
+		--with-curl \
+		--enable-discard-path
 
-.if defined(WITH_CURL)
-LIB_DEPENDS=   curl:${PORTSDIR}/ftp/curl
-CONFIGURE_ARGS+=--with-curl
+.if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
+PHP_SAPI=	full
+WITH_APACHE=	yes
+.else
+.if !defined(PKGNAMEPREFIX)
+PHP_SAPI=	${PKGNAMESUFFIX:S/-//}
+.else
+PHP_SAPI=	${PKGNAMEPREFIX:S/_//}
+WITH_APACHE=	yes
+.endif
 .endif
 
+EXT_DIR=	20020429
+
+CONFLICTS?=	php4-cli-4* mod_php4-4* php4-cgi-4*
+CONFLICTS+=	php5-5* php5-cli-5* mod_php5-5* php5-cgi-5*
+
+.if ${PHP_SAPI} == "cgi"
+SAPI_FILE=	bin/php
+.endif
+
+.include <bsd.port.pre.mk>
+
+
+PLIST_SUB+=	SAPI_FILE=${SAPI_FILE}
+
+_PORTSDIR!=	${REALPATH} ${PORTSDIR}
+PHP_PORT=	${.CURDIR:S|^${_PORTSDIR}||:S|^/||}
+
+post-patch:
+	@${TOUCH} ${WRKSRC}/ext/php_config.h
+	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
+
+post-build:
+	@${ECHO_CMD} "PHP_VER=4" > ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_EXT_DIR=${EXT_DIR}" >> ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_PORT=\$${PORTSDIR}/${PHP_PORT}" >> ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
 .if defined(WITH_OPENSSL)
-CONFIGURE_ARGS+=--with-openssl
+	@${ECHO_CMD} "PHP_EXT_INC=openssl" >> ${WRKDIR}/php.conf
 .endif
 
-do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php ${PREFIX}/${WHERE}/
+post-install:
+	@${INSTALL_DATA} ${WRKSRC}/php.ini-dist ${PREFIX}/etc
+	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
+	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
+	@${TOUCH} ${PREFIX}/include/php/ext/php_config.h
+.if defined(WITH_APACHE)
+	@${CAT} ${PKGMESSAGE}
+.endif
 
-.include <bsd.port.mk>
+.include <bsd.port.post.mk>
