@@ -1,0 +1,46 @@
+Quick install: 
+
+1. compile
+   This extension was tested with PHP versions 4.3.7/8/10 and 5.0.0/3
+
+phpize
+./configure
+make 
+make install
+   
+   Notice the directory where the extension was installed.
+
+2. edit your php.ini and add on line like this:
+
+extension=no-debug-non-zts-20020429/upload_progress_tracking.so
+
+it is possible that you will need to copy it somewhere else, or to edit the extension_dir directive
+in your php.ini to point to the correct path.
+
+mine looks like this:
+extension_dir = /usr/local/lib/php/extensions
+
+and I have the extension in this place: 
+/usr/local/lib/php/extensions/no-debug-non-zts-20020429/upload_progress_tracking.so
+
+3. edit php.ini or apache's httpd.conf to configure the upload-progress-tracking
+
+I have this in my httpd.conf:
+php_value upload_progress_tracking.store_method "file"
+php_value upload_progress_tracking.file 1
+php_value upload_progress_tracking.file.filename_template "/tmp/uploadbar/upl_%s.txt"
+
+
+4. don't forget to mkdir /tmp/uploadbar ; chmod 777 /tmp/uploadbar
+
+
+
+Contact
+--------
+To contact me with questions, patches or bugs, please send e-mail to
+Doru Petrescu <pdoru-php-upm@kappa.ro>
+                                                                                                    
+Visit http://pdoru.from.ro/upload-progress-meter for more info and the
+latest version.
+                                                                                                    
+
