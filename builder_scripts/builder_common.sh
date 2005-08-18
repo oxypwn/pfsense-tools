@@ -124,6 +124,27 @@ populate_extra() {
 	cd /usr/src/sys/modules/if_ndis
 	make
 	make install DESTDIR=$FREESBIEBASEDIR
+
+	cd /usr/src/sys/modules/padlock
+	make
+	make install DESTDIR=$FREESBIEBASEDIR
+
+	cd /usr/src/sys/modules/geom
+	make
+	make install DESTDIR=$FREESBIEBASEDIR
+
+	cd /usr/src/sys/modules/ipfw
+	make
+	make install
+
+	cd /usr/src/sys/modules/dummynet
+	make
+	make install
+
+	cd /usr/src/sys/modules/ipfw
+	make
+	make install
+
 }
 
 fixup_updates() {
@@ -332,7 +353,7 @@ fixup_wrap() {
     echo gzipping image.bin
     cd /tmp/ && gzip -9 image.bin
     echo -n "Image size: "
-    ls -la pfSense-128-megs.bin.gz
+    ls -la /tmp/image.bin.gz
     
     echo Cleaning up /tmp/
     

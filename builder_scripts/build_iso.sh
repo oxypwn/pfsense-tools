@@ -76,7 +76,7 @@ copy_pfSense_tarball_to_custom_directory
 
 echo ">>> Phase 7"
 $LOCALDIR/7.customuser.sh
-$LOCALDIR/71.bsdinstaller.sh
+#$LOCALDIR/71.bsdinstaller.sh
 
 echo ">>> Phase 8"
 $LOCALDIR/8.preparefs.sh
