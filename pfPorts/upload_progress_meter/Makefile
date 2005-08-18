@@ -16,16 +16,25 @@ EXTRACT_ONLY=	# empty
 MAINTAINER?=	jebc@c4solutions.net
 COMMENT?=	reinits ata channel 0
 
-WHERE=		lib/php/extensions/no-debug-non-zts-20020429/
-PLIST_FILES=    ${WHERE}/${PORTNAME}
+WHERE=		lib/php/extensions/no-debug-non-zts-20020429
+PLIST_FILES=    ${WHERE}/${PORTNAME}.so
+
+GNU_CONFIGURE=  yes
+
+PHP_AUTOCONF!=ls /usr/local/bin/autoconf* | head -1 | sed 's:/.*/::'
+PHP_AUTOHEADER!=ls /usr/local/bin/autoheader* | head -1 | sed 's:/.*/::'
 
 do-extract:
 	mkdir -p ${WRKSRC}
-
-do-build:
-	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	cp ${FILESDIR}/config.m4 ${WRKSRC}/
+	cp ${FILESDIR}/upload_progress_meter.c ${WRKSRC}/
+	cd ${WRKSRC} && \
+		PHP_AUTOCONF=${PHP_AUTOCONF} \
+		PHP_AUTOHEADER=${PHP_AUTOHEADER} \
+		phpize
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+	mkdir -p ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/modules/upload_progress_meter.so ${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>
