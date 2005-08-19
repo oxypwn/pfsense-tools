@@ -38,14 +38,8 @@ version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
-cd $LOCALDIR 
+cd $CVS_CO_DIR
 
-# Add extra files such as buildtime of version, bsnmpd, etc.
-populate_extra
-create_pfSense_tarball
-copy_pfSense_tarball_to_freesbiebasedir
-fixup_updates
-
-create_pfSense_Full_update_tarball
+create_pfSense_Small_update_tarball
 
 

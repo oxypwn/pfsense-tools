@@ -334,7 +334,7 @@ fixup_wrap() {
     cp /home/pfsense/pfSense/cf/conf/* /tmp/cf/conf/
     
     echo -n "Config directory: "
-    ls /tmp/cf/conf
+    ls -lah /tmp/cf/conf
     
     echo "wrap" > /tmp/root/etc/platform
     
@@ -353,7 +353,7 @@ fixup_wrap() {
     echo gzipping image.bin
     cd /tmp/ && gzip -9 image.bin
     echo -n "Image size: "
-    ls -la /tmp/image.bin.gz
+    ls -lah /tmp/image.bin.gz
     
     echo Cleaning up /tmp/
     
@@ -372,11 +372,30 @@ create_pfSense_Full_update_tarball() {
         cd ${FREESBIEBASEDIR} && tar  czPf ${UPDATESDIR}/${FILENAME} .
 }
 
+create_pfSense_Small_update_tarball() {
+	VERSION=`cat $CVS_CO_DIR/etc/version`
+	FILENAME=pfSense-Wrap-Update-${VERSION}.tgz
+
+	mkdir -p $UPDATESDIR
+
+	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
+
+	rm -rf ${CVS_CO_DIR}/usr/local/sbin ${CVS_CO_DIR}/usr/local/bin
+
+	du -hd0 ${CVS_CO_DIR}
+	
+	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
+
+	ls -lah ${UPDATESDIR}/${FILENAME}
+}
+
 # Create tarball of pfSense cvs directory
 create_pfSense_tarball() {
 	cd $LOCALDIR
 
 	rm -f $CVS_CO_DIR/boot/*
+
+	find $CVS_CO_DIR -name CVS -exec rm -rf {} \; 2>/dev/null
 
 	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
 }
