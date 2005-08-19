@@ -46,8 +46,8 @@ install:	install-slbd
 
 install-slbd:
 	$(INSTALL) $(PROG) $(PREFIX)/$(BINDIR)/
-	mkdir -p $(PREFIX)/$(CONFDIR)
-	cp conf/slbdcap $(CONFFILE)
+	#mkdir -p $(PREFIX)/$(CONFDIR)
+	#cp conf/slbdcap $(CONFFILE)
 
 config-clean:
 	rm -f config.o config_test config

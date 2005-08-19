@@ -11,12 +11,13 @@ PORTREVISION?=	0
 CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
-EXTRACT_ONLY=	# empty
+#EXTRACT_ONLY=	# empty
 
 MAINTAINER?=	jebc@c4solutions.net
 COMMENT?=	reinits ata channel 0
 
 RUN_DEPENDS+=   autoconf213:${PORTSDIR}/devel/autoconf213
+RUN_DEPENDS+=   libtool15:${PORTSDIR}/devel/libtool15
 RUN_DEPENDS+=   dhcpd:${PORTSDIR}/net/isc-dhcp3-server
 RUN_DEPENDS+=   dnsmasq:${PORTSDIR}/dns/dnsmasq
 RUN_DEPENDS+=   mpd:${PORTSDIR}/net/mpd
@@ -40,8 +41,11 @@ RUN_DEPENDS+=   sshlockout_pf:${PORTSDIR}/pfPorts/sshlockout_pf
 #RUN_DEPENDS+=   stats:${PORTSDIR}/pfPorts/stats
 RUN_DEPENDS+=   verifysig:${PORTSDIR}/pfPorts/verifysig
 RUN_DEPENDS+=   wol:${PORTSDIR}/pfPorts/wol
-RUN_DEPENDS+=   upload_progress_meter:${PORTSDIR}/pfPorts/upload_progress_meter
+RUN_DEPENDS+=   ${PREFIX}/lib/php/extensions/no-debug-non-zts-20020429/upload_progress_meter.so:${PORTSDIR}/pfPorts/upload_progress_meter
 
-NO_BUILD=	yes
+
+NO_WRKSUBDIR=	YES
+NO_BUILD=	YES
+do-install: # empty
 
 .include <bsd.port.mk>
