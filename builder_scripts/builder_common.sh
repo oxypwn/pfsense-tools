@@ -199,6 +199,9 @@ fixup_updates() {
 
 	mkdir -p ${FREESBIEBASEDIR}/usr/local/livefs/lib/
 
+	cp /usr/bin/dig ${FREESBIEBASEDIR}/usr/bin/dig
+	cp /usr/bin/host ${FREESBIEBASEDIR}/usr/bin/host
+
         cp /usr/lib/libcrypt.so ${FREESBIEBASEDIR}/usr/lib/libcrypt.so.2
         cp /usr/lib/libm.so ${FREESBIEBASEDIR}/usr/lib/libm.so.3
         cp /usr/lib/libssl.so ${FREESBIEBASEDIR}/usr/lib/libssl.so.3
