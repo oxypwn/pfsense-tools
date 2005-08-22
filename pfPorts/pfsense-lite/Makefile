@@ -23,6 +23,7 @@ RUN_DEPENDS+=   dnsmasq:${PORTSDIR}/dns/dnsmasq
 RUN_DEPENDS+=   mpd:${PORTSDIR}/net/mpd
 RUN_DEPENDS+=   olsrd:${PORTSDIR}/net/olsrd
 RUN_DEPENDS+=   pftop:${PORTSDIR}/sysutils/pftop
+RUN_DEPENDS+=   openvpn:${PORTSDIR}/security/openvpn
 
 RUN_DEPENDS+=   atareinit:${PORTSDIR}/pfPorts/atareinit
 RUN_DEPENDS+=   beep:${PORTSDIR}/pfPorts/beep
@@ -30,6 +31,7 @@ RUN_DEPENDS+=   check_reload_status:${PORTSDIR}/pfPorts/check_reload_status
 RUN_DEPENDS+=   choparp:${PORTSDIR}/pfPorts/choparp
 RUN_DEPENDS+=   expiretable:${PORTSDIR}/pfPorts/expiretable
 RUN_DEPENDS+=   ifstats:${PORTSDIR}/pfPorts/ifstats
+RUN_DEPENDS+=   racoon:${PORTSDIR}/pfPorts/ipsec-tools
 RUN_DEPENDS+=   kbdcheck:${PORTSDIR}/pfPorts/kbdcheck
 RUN_DEPENDS+=   mini_httpd:${PORTSDIR}/pfPorts/mini_httpd-pfsense
 RUN_DEPENDS+=   minicron:${PORTSDIR}/pfPorts/minicron

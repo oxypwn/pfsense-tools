@@ -1,0 +1,37 @@
+include/libipsec/libpfkey.h
+include/racoon/admin.h
+include/racoon/evt.h
+include/racoon/gcmalloc.h
+include/racoon/ipsec_doi.h
+include/racoon/isakmp.h
+include/racoon/isakmp_cfg.h
+include/racoon/isakmp_unity.h
+include/racoon/isakmp_var.h
+include/racoon/isakmp_xauth.h
+include/racoon/misc.h
+include/racoon/racoonctl.h
+include/racoon/schedule.h
+include/racoon/sockmisc.h
+include/racoon/var.h
+include/racoon/vmbuf.h
+lib/libipsec.a
+lib/libipsec.la
+lib/libracoon.a
+lib/libracoon.la
+man/man3/ipsec_set_policy.3
+man/man3/ipsec_strerror.3
+man/man5/racoon.conf.5
+man/man8/plainrsa-gen.8
+man/man8/racoon.8
+man/man8/racoonctl.8
+man/man8/setkey.8
+sbin/plainrsa-gen
+sbin/racoon
+sbin/racoonctl
+sbin/setkey
+@dirrm var/racoon
+@dirrm var
+@dirrm share/nls/en_US.US-ASCII
+@dirrm share/nls/POSIX
+@dirrm include/racoon
+@dirrm include/libipsec
