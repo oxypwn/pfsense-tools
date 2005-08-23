@@ -31,8 +31,9 @@ mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/var
 
 mount -t unionfs /.var /FreeSBIE/var
 
-mkdir -p /FreeSBIE/var/log/
+mkdir -p /FreeSBIE/var/log/ /FreeSBIE/var/run/
 find / -name dmesg.boot -exec cp {} /FreeSBIE/var/log/ \;
+find / -name dmesg.boot -exec cp {} /FreeSBIE/var/run/ \;
 
 # Let's access this now to prevent the "RockRidge" message
 # during the actual install
