@@ -35,7 +35,9 @@ populate_extra() {
 
 	cp $BASE_DIR/tools/pfi $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/
+	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/installer
 	cp $BASE_DIR/tools/installer.sh $FREESBIEBASEDIR/scripts/
+	chmod a+rx $FREESBIEBASEDIR/scripts/*
 
 	mkdir -p $LOCALDIR/files/custom/usr/local/bin
 	mkdir -p $FREESBIEBASEDIR/usr/local/bin/
@@ -135,15 +137,17 @@ populate_extra() {
 
 	cd /usr/src/sys/modules/ipfw
 	make
-	make install
+	make install DESTDIR=$FREESBIEBASEDIR
 
 	cd /usr/src/sys/modules/dummynet
 	make
-	make install
+	make install DESTDIR=$FREESBIEBASEDIR
 
+	setenv IPFIREWALL_DEFAULT_TO_ACCEPT yes
+	setenv IPV6FIREWALL_DEFAULT_TO_ACCEPT yes
 	cd /usr/src/sys/modules/ipfw
-	make
-	make install
+	make IPFIREWALL_DEFAULT_TO_ACCEPT=yes
+	env IPFIREWALL_DEFAULT_TO_ACCEPT=yes && make install DESTDIR=$FREESBIEBASEDIR
 
 }
 

@@ -6,13 +6,8 @@ cvsup /etc/current-supfile
 cd /usr/src/contrib/pf/pfctl
 patch < ~root/patches/parse.y
 
-#cd /usr/src/sys/vm/
-#patch < ~root/patches/vnode_pager.c.diff
-
-#cd /usr/src/sys/opencrypto/
-#patch < /root/patches/xform.c.diff
-#cd /usr/src/sys/crypto/rijndael/
-#patch < /root/patches/rijndael-alg-fst.c.diff
+cd /usr/src/sys/modules/ipfw
+patch < ~root/patches/ipfw.diff
 
 cd $CURRENTDIR
 rm -rf /usr/obj/*
@@ -20,16 +15,8 @@ rm -rf /usr/obj/*
 cp /home/pfsense/freesbie/config_buildworld.sh \
 	/home/pfsense/freesbie/config.sh
 
-mkdir -p /usr/src/sys/crypto/via/
-mkdir -p /usr/src/sys/modules/padlock/
-cp /root/patches/padlock.c /usr/src/sys/crypto/via/
-cp /root/patches/sys_modules_padlock_Makefile \
-	/usr/src/sys/modules/padlock/Makefile
-cp /root/patches/modules_makefile /usr/src/sys/modules/Makefile
-
 ./build_updates.sh
 
 cp /home/pfsense/freesbie/config_nobuildworld.sh \
 	/home/pfsense/freesbie/config.sh
-
 
