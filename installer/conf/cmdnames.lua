@@ -91,7 +91,7 @@ local cmd_names = {
 
 	-- These aren't commands, but they're configurable here nonetheless.
 
-	DMESG_BOOT	= "var/run/dmesg.boot",
+	DMESG_BOOT	= "var/log/dmesg.boot",
 	MODULES_DIR	= "modules"
 }
 
