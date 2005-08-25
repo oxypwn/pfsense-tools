@@ -255,7 +255,9 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	r.dst.addr.v.a.addr.v4 = v->addr.sin_addr;
 	r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
 	r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
-	r.rpool.opts = PF_POOL_ROUNDROBIN | PF_POOL_STICKYADDR | PF_POOL_RANDOM;
+	/* the next line enabled round robin, sticky address and random */
+	//r.rpool.opts = PF_POOL_ROUNDROBIN | PF_POOL_STICKYADDR | PF_POOL_RANDOM;
+	r.rpool.opts = PF_POOL_ROUNDROBIN;
 	//memcpy(r.anchorname, anchorname, PF_ANCHOR_NAME_SIZE);
 
 	TAILQ_INIT(&r.rpool.list);
