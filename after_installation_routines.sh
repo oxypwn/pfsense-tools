@@ -35,6 +35,9 @@ rm -f /FreeSBIE/mnt/etc/motd
 # Set platform back to pfSense to prevent freesbie_1st from running
 echo "pfSense" > /FreeSBIE/mnt/etc/platform
 
+# Remove TCSHRC installer alias
+echo "" > /FreeSBIE/mnt/root/.tcshrc
+
 # Self destruct myself.
 rm -f /FreeSBIE/mnt/usr/local/bin/after_installation_routines.sh
 
