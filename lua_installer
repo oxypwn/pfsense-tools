@@ -13,6 +13,7 @@ echo
 /usr/bin/killall syslogd 2>/dev/null 2>&1
 
 sysctl kern.geom.debugflags=16
+sysctl kern.geom.label.debug=1
 
 /sbin/ifconfig lo0 127.0.0.1/24
 /sbin/ifconfig lo0 up
