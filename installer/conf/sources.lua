@@ -50,7 +50,6 @@ return {
 	"bin",
         "conf",
         "conf.default",
-	"cdrom",
 	"dev",
 	"etc",
 	{ src = "etc.hdd", dest = "etc" },  -- install media config differs
