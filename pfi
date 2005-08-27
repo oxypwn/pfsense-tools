@@ -49,7 +49,6 @@ look_for_config_xml_config_msdos()
 			    return 0
 			fi
 		fi
-		echo " not found"
 	done
 	return 1
 }
@@ -107,7 +106,6 @@ look_for_pfi_config_msdos()
 			fi
 			umount /mnt
 		fi
-		echo " not found"
 	done
 	return 1
 }
@@ -119,7 +117,6 @@ look_for_pfi_config_cd9660()
 	for try_device in acd0c; do
 		echo -n "Looking for pfi.conf on /dev/${try_device}..."
 		if [ ! -e /dev/${try_device} ]; then
-			echo " not found."
 			return 1
 			#( cd /dev && ./MAKEDEV ${try_device} )
 		fi
@@ -132,7 +129,6 @@ look_for_pfi_config_cd9660()
 			fi
 			umount /mnt
 		fi
-		echo " not found"
 	done
 	return 1
 }
