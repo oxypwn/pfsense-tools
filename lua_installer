@@ -44,7 +44,7 @@ ln -s /var/log/dmesg.boot /var/run/dmesg.boot
 
 echo Launching LUA Installer...    
 /usr/local/bin/lua50c51 \
-    /usr/local/share/dfuibe_lua/dfuibe_lua/main.lua \
+    /usr/local/share/dfuibe_lua/main.lua \
     /usr/local/share/dfuibe_lua/conf/BSDInstaller.lua \
     /usr/local/share/dfuibe_lua/conf/FreeBSD.lua \ 
     /usr/local/share/dfuibe_lua/conf/pfSense.lua \
@@ -54,6 +54,24 @@ echo Launching Installer NCurses frontend...
 sleep 1
 /usr/local/sbin/dfuife_curses
 
+# Check for a failed install and offer to blast logs to developers
+#if [ ! -e /tmp/install_complete ]; then
+#    echo
+#    echo "WARNING!  Installation did not complete as planned."
+#    echo
+#    echo "Would you like to email the installer logs to the pfSense developers"
+#    echo -n "so that they can take a look for obvious errors/bugs [N]? "
+#   read ANSWER
+#   if [ "${ANSWER}" = "Y" -o "${ANSWER}" = "y" ]; then
+#        echo -n "Sending reports, please wait."
+#        tar czvpf installer_logs.tgz /tmp/*
+#        echo -n "."
+#        php /scripts/lua_installer_email_failed_logs.php
+#   else
+#        echo "Reports are not being sent."
+#   fi
+#   rm /tmp/install_complete
+#fi
 
 echo
 echo
