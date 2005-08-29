@@ -42,8 +42,11 @@ ls /FreeSBIE/var >/dev/null 2>&1
 
 ln -s /var/log/dmesg.boot /var/run/dmesg.boot
 
-echo Launching LUA Installer...    
-/usr/local/bin/lua50c51 \
+echo Launching LUA Installer...
+echo "LUA_CPATH='/usr/local/lib/lua/5.0/?.so' exec /usr/local/bin/lua50 -l/usr/local/share/lua/5.0/compat-5.1.lua $* >/dev/null 2>&1 &" > /tmp/lua50c51
+chmod a+rx /tmp/lua50c51
+
+/tmp/lua50c51 \
     /usr/local/share/dfuibe_lua/main.lua \
     /usr/local/share/dfuibe_lua/conf/BSDInstaller.lua \
     /usr/local/share/dfuibe_lua/conf/FreeBSD.lua \ 
