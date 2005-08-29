@@ -43,3 +43,6 @@ find /FreeSBIE/mnt/ -name installer -or -name lua_installer -exec rm {} \;
 # Self destruct myself.
 rm -f /FreeSBIE/mnt/usr/local/bin/after_installation_routines.sh
 
+# Let parent script know that a install really happened
+touch /tmp/install_complete
+
