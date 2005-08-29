@@ -40,7 +40,6 @@ look_for_config_xml_config_msdos()
 	for try_device in fd0 da0 da0s1 da1 da1s1 da2 da2s1 da3 da3s1 da4 da4s1 da5 da5s1 fd1; do
 		echo -n "Looking for config.xml on /dev/${try_device}..."
 		if [ ! -e /dev/${try_device} ]; then
-			echo " does not exist."
 			return 1
 		fi
 		if mount -t msdos /dev/$try_device /mnt/cf ; then
@@ -93,7 +92,6 @@ look_for_pfi_config_msdos()
 	for try_device in da0 da1 da0s1 da1s1 fd0 fd1; do
 		echo -n "Looking for pfi.conf on /dev/${try_device}..."
 		if [ ! -e /dev/${try_device} ]; then
-			echo " does not exist."
 			return 1;
 			#( cd /dev && ./MAKEDEV ${try_device} )
 		fi
