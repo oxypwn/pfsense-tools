@@ -42,10 +42,12 @@ ls /FreeSBIE/var >/dev/null 2>&1
 
 ln -s /var/log/dmesg.boot /var/run/dmesg.boot
 
-echo Launching LUA Installer...
-/usr/local/bin/lua50c51 /usr/local/share/dfuibe_lua/main.lua \
-    dir.root=/FreeSBIE/ \
-    option.booted_from_install_media=true \
+echo Launching LUA Installer...    
+/usr/local/bin/lua50c51 \
+    /usr/local/share/dfuibe_lua/dfuibe_lua/main.lua \
+    /usr/local/share/dfuibe_lua/conf/BSDInstaller.lua \
+    /usr/local/share/dfuibe_lua/conf/FreeBSD.lua \ 
+    /usr/local/share/dfuibe_lua/conf/pfSense.lua \
     >/dev/null 2>&1 &
 
 echo Launching Installer NCurses frontend...
