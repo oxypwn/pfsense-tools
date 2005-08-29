@@ -37,6 +37,8 @@ echo "pfSense" > /FreeSBIE/mnt/etc/platform
 
 # Remove TCSHRC installer alias
 echo "" > /FreeSBIE/mnt/root/.tcshrc
+rm -rf /FreeSBIE/mnt/scripts
+find /FreeSBIE/mnt/ -name installer -or -name lua_installer -exec rm {} \;
 
 # Self destruct myself.
 rm -f /FreeSBIE/mnt/usr/local/bin/after_installation_routines.sh
