@@ -48,8 +48,10 @@ echo -n "LUA_CPATH='/usr/local/lib/lua/5.0/?.so' exec /usr/local/bin/lua50 -l/us
 echo "/usr/local/share/dfuibe_lua/main.lua \
 /usr/local/share/dfuibe_lua/conf/BSDInstaller.lua \
 /usr/local/share/dfuibe_lua/conf/FreeBSD.lua \
-/usr/local/share/dfuibe_lua/conf/pfSense.lua \
->/dev/null 2>&1 &" >> /tmp/lua50c51
+/usr/local/share/dfuibe_lua/conf/pfSense.lua " >> /tmp/lua50c51
+#>/dev/null 2>&1 &" >> /tmp/lua50c51
+
+sh /tmp/lua50c51 >/dev/null 2>&1 &
 
 echo Launching Installer NCurses frontend...
 sleep 1
