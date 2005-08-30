@@ -51,7 +51,7 @@ install_items = {
         "etc",
         "libexec",
         "lib",
-        "kernel",
+--        "kernel",
         "modules",
         "root",
         "rescue",
@@ -88,5 +88,5 @@ booted_from_install_media=true
 
 dir = { root = "/FreeSBIE/", tmp = "/tmp/" }
 
-use_cpdup = true
+use_cpdup = false
 
