@@ -88,5 +88,5 @@ booted_from_install_media=true
 
 dir = { root = "/FreeSBIE/", tmp = "/tmp/" }
 
-
+use_cpdup = false
 
