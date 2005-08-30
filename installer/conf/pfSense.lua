@@ -52,7 +52,7 @@ install_items = {
         "libexec",
         "lib",
 --        "kernel",
-        "modules",
+--        "modules",
         "root",
         "rescue",
         "sbin",
