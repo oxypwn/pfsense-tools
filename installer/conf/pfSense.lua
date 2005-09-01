@@ -61,8 +61,6 @@ install_items = {
         "var"
 }
 
-use_cpdup = true
-
 ui_nav_control = {
 	["*/welcome"] = "ignore",                 -- do not show any "welcome" items
 
@@ -88,5 +86,4 @@ booted_from_install_media=true
 
 dir = { root = "/FreeSBIE/", tmp = "/tmp/" }
 
-use_cpdup = false
-
+use_cpdup = true
