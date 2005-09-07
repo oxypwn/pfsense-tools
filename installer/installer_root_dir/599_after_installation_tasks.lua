@@ -26,9 +26,8 @@ return {
 		end
         end
 
-        cmds:add("echo ${root}${YES} | ${root}${FDISK} -B " ..
-	    self:get_raw_device_name() ..
-	    " > /FreeSBIE/mnt/etc/init_bootloader.sh")
+	-- move backed up bsdlabel command into place
+        cmds:add("mv /tmp/init_bootloader.sh /FreeSBIE/mnt/etc/")
 
 	cmds:execute()
 	
