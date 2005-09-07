@@ -25,11 +25,17 @@ return {
 		    cmds:add("${line}")
 		end
         end
-        
+
+        cmds:add("echo ${root}${YES} | ${root}${FDISK} -B " ..
+	    self:get_raw_device_name() ..
+	    " > /FreeSBIE/mnt/etc/init_bootloader.sh")
+
 	cmds:execute()
 	
         return step:next()
 
     end
+
+    
 
 }
