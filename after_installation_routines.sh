@@ -24,6 +24,8 @@ touch /FreeSBIE/mnt/root/.first_time
 # Updating boot loader
 #cp -R /boot/* /FreeSBIE/mnt/boot/
 cat /boot/loader.conf | grep -v ^mfsroot > /FreeSBIE/mnt/boot/loader.conf
+echo debug.acpi.disable=\"thermal\" >> /FreeSBIE/mnt/boot/loader.conf
+
 
 cd /FreeSBIE/mnt && rm -rf FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
 
