@@ -80,7 +80,6 @@ retry:
 		status = -1;
 		goto bail;
 	}
-	syslog(LOG_ERR, "service_starttcp: using socket %d", fd);
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
 		syslog(LOG_ERR, "service_starttcp: fcntl could not set fd "
 		    "non-blocking");
