@@ -62,6 +62,7 @@ struct service_t {
 		int	code;
 		char	data[MAXRESPLEN];
 	} poll_response;	/* the required response code/string */
+	status_t	prevstatus;
 };
 
 /* definitions for service-marking macros */
@@ -76,6 +77,7 @@ struct service_t {
 #define setservice_rmpolltype(a,b)	(a->polltype &= ~b)
 #define getservice_polltype(a)		(a->polltype)
 #define getservice_status(a)		(a->status)
+#define getservice_prevstatus(a)	(a->prevstatus)
 
 int init_service(struct service_t *);
 int lock_service(struct service_t *);
