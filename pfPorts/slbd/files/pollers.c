@@ -486,7 +486,7 @@ void vsvc_threadpoll(void *p) {
 			}
 		}
 		fclose(file);
-		/* BLM: this gets hit for every polling iteration, disable for now */
+
 		if(needs_filter_configure == 1) {
 			syslog(LOG_ERR, "Service changed status, reloading filter policy");
 		 	system("touch /tmp/filter_dirty");
