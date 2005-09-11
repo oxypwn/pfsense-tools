@@ -405,18 +405,20 @@ struct timeval i2tv(int i) {
 
 
 void vsvc_threadpoll(void *p) {
-	int i;
+	int i, needs_filter_configure;
 	polltype_t polltype;
 	struct vsvc_t *v;
 
 	v = (struct vsvc_t *) p;
 	
 	while (1) {
+		needs_filter_configure = 0;
 		for (i = 0; i < v->services_len; i++) {
 			polltype = getservice_polltype(v->services[i]);
 			if (polltype & \
 			   (SVCPOLL_HTTPGET|SVCPOLL_HTTPHEAD|SVCPOLL_HTTPPOST)){
 				if (service_pollhttp(v->services[i])) {
+					needs_filter_configure = 1;
 #ifdef DEBUG
 					warnx("Failed HTTP poll for vsvc %d"
 					      ", svc %d", v->id, i);
@@ -426,6 +428,7 @@ void vsvc_threadpoll(void *p) {
 			}
 			else if (polltype & SVCPOLL_TCP) { 
 				if (service_polltcp(v->services[i])) {
+					needs_filter_configure = 1;
 #ifdef DEBUG
 					warnx("Failed TCP poll for vsvc %d"
 					      ", svc %d", v->id, i);
@@ -458,6 +461,11 @@ void vsvc_threadpoll(void *p) {
 			}
 		}
 		fclose(file);
+		/* BLM: this gets hit for every polling iteration, disable for now */
+		/*
+		 * if(needs_filter_configure == 1) 
+		 * 	system("touch /tmp/filter_dirty");
+		 */
 
 		if (poll(NULL, 0, poll_interval)) 
 #ifdef DEBUG
