@@ -65,8 +65,10 @@ static char    *httprequest_f =	"%s %s HTTP/1.0\r\n"
 
 int service_starttcp(struct service_t *s) {
 	int fd = 0xDEADBEEF, result, status;
+	int retry = 0;
 	struct pollfd pfd;
 
+retry:
 	if ((fd = socket(AF_INET, SOCK_STREAM, 6)) == -1) {
 		syslog(LOG_ERR, "service_starttcp: Could not create socket "
 		    "for service %s:%d",
@@ -78,6 +80,7 @@ int service_starttcp(struct service_t *s) {
 		status = -1;
 		goto bail;
 	}
+	syslog(LOG_ERR, "service_starttcp: using socket %d", fd);
 	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1) {
 		syslog(LOG_ERR, "service_starttcp: fcntl could not set fd "
 		    "non-blocking");
@@ -88,17 +91,30 @@ int service_starttcp(struct service_t *s) {
 		goto bail;
 	}
 
-	if (connect(fd, (struct sockaddr *) &s->addr,
-	    sizeof(struct sockaddr_in)) == -1 && errno != EINPROGRESS) {
-		lock_service(s);
-		setservice_down(s);
-		unlock_service(s);
-		syslog(LOG_ERR, "Poll failed to start TCP to %s:%d",
-		    inet_ntoa(getservice_inaddr(s)), getservice_port(s));
+	if (connect(fd, (struct sockaddr *) &s->addr, sizeof(struct sockaddr_in)) == -1) {
+		switch(errno) {
+			case EINPROGRESS:
+				break;
+			case EPERM:	/* We retry here as this is semi-common */
+				if (retry++ <= 5) {
+					/* Close socket */
+					close(fd);
 #ifdef DEBUG
-		warn("connect(2) failed for the wrong reason");
+					warn("connect(2) failed because of EPERM...retrying...");
 #endif
-		status = -1;
+					goto retry;
+				}
+			default:
+				lock_service(s);
+				setservice_down(s);
+				unlock_service(s);
+				syslog(LOG_ERR, "Poll failed to start TCP to %s:%d during connect() (%s)",
+		    		inet_ntoa(getservice_inaddr(s)), getservice_port(s), strerror(errno));
+#ifdef DEBUG
+				warn("connect(2) failed for the wrong reason");
+#endif
+				status = -1;
+		}
 	}
 
 	memset(&pfd, 0x0, sizeof(pfd));
@@ -115,9 +131,9 @@ int service_starttcp(struct service_t *s) {
 			goto bail;
 		case 0:
 			/* 0 events => timeout */
-			syslog(LOG_ERR, "Poll failed to start TCP to %s:%d",
+			syslog(LOG_ERR, "Poll failed to start TCP to %s:%d during poll() (%s)",
 			    inet_ntoa(getservice_inaddr(s)),
-			    getservice_port(s));
+			    getservice_port(s), strerror(errno));
 			lock_service(s);
 			setservice_down(s);
 			unlock_service(s);
@@ -137,8 +153,8 @@ int service_starttcp(struct service_t *s) {
 				setservice_down(s);
 				unlock_service(s);
 				syslog(LOG_ERR, "Poll failed to start TCP to "
-				    "%s:%d", inet_ntoa(getservice_inaddr(s)),
-				    getservice_port(s));
+				    "%s:%d in default (%s)", inet_ntoa(getservice_inaddr(s)),
+				    getservice_port(s), strerror(errno));
 				status = -2;
 				goto bail;
 			}
@@ -265,9 +281,9 @@ int service_polltcp(struct service_t *s) {
 	fd = service_starttcp(s);
 	switch (fd) {
 		case -2:
-			syslog(LOG_ERR, "Poll failed TCP for %s:%d", 
+			syslog(LOG_ERR, "Poll failed TCP for %s:%d after starttcp (%s)", 
 			    inet_ntoa(getservice_inaddr(s)),
-			    getservice_port(s));
+			    getservice_port(s), strerror(errno));
 			lock_service(s);
 			setservice_down(s);
 			unlock_service(s);
@@ -390,20 +406,18 @@ struct timeval i2tv(int i) {
 
 
 void vsvc_threadpoll(void *p) {
-	int i, needs_filter_configure;
+	int i;
 	polltype_t polltype;
 	struct vsvc_t *v;
 
 	v = (struct vsvc_t *) p;
 	
 	while (1) {
-		needs_filter_configure = 0;
 		for (i = 0; i < v->services_len; i++) {
 			polltype = getservice_polltype(v->services[i]);
 			if (polltype & \
 			   (SVCPOLL_HTTPGET|SVCPOLL_HTTPHEAD|SVCPOLL_HTTPPOST)){
 				if (service_pollhttp(v->services[i])) {
-					needs_filter_configure = 1;
 #ifdef DEBUG
 					warnx("Failed HTTP poll for vsvc %d"
 					      ", svc %d", v->id, i);
@@ -412,7 +426,6 @@ void vsvc_threadpoll(void *p) {
 				}
 			}
 			else if (polltype & SVCPOLL_TCP) { 
-				needs_filter_configure = 1;
 				if (service_polltcp(v->services[i])) {
 #ifdef DEBUG
 					warnx("Failed TCP poll for vsvc %d"
@@ -446,8 +459,6 @@ void vsvc_threadpoll(void *p) {
 			}
 		}
 		fclose(file);
-		if(needs_filter_configure == 1) 
-			system("touch /tmp/filter_dirty");
 
 		if (poll(NULL, 0, poll_interval)) 
 #ifdef DEBUG
