@@ -48,3 +48,5 @@ rm -f /FreeSBIE/mnt/usr/local/bin/after_installation_routines.sh
 # Let parent script know that a install really happened
 touch /tmp/install_complete
 
+#Sync disks
+/bin/sync
