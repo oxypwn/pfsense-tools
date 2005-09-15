@@ -143,6 +143,14 @@ populate_extra() {
 	make
 	make install DESTDIR=$FREESBIEBASEDIR
 
+	cd /usr/src/usr.sbin/watchdogd
+	make 
+	make install DESTDIR=$FREESBIEBASEDIR
+
+	cd /usr/src/usr.sbin/watchdog
+	make
+	make install DESTDIR=$FREESBIEBASEDIR
+
 	setenv IPFIREWALL_DEFAULT_TO_ACCEPT yes
 	setenv IPV6FIREWALL_DEFAULT_TO_ACCEPT yes
 	cd /usr/src/sys/modules/ipfw
@@ -192,6 +200,7 @@ fixup_updates() {
 	rm -rf ${FREESBIEBASEDIR}/conf/ 2>/dev/null
 	rm -rf ${FREESBIEBASEDIR}/cf/ 2>/dev/null
 	echo > ${FREESBIEBASEDIR}/root/.tcshrc
+	echo "alias installer /scripts/lua_installer" > ${FREESBIEBASEDIR}/root/.tcshrc
 	# Setup login environment
 	echo > ${FREESBIEBASEDIR}/root/.shrc
 	echo "/etc/rc.initial" >> ${FREESBIEBASEDIR}/root/.shrc
@@ -264,6 +273,7 @@ fixup_wrap() {
     rm -rf $FREESBIEISODIR/dist 2>/dev/null
     rm -f $FREESBIEISODIR/etc/rc.local 2>/dev/null
     rm $FREESBIEISODIR/root/.tcshrc 2>/dev/null
+    echo "alias installer /scripts/lua_installer" > $FREESBIEISODIR/root/.tcshrc
     rm $FREESBIEISODIR/root/.message* 2>/dev/null
     rm $FREESBIEISODIR/etc/rc.conf 2>/dev/null
     touch $FREESBIEISODIR/etc/rc.conf 2>/dev/null
@@ -287,7 +297,8 @@ fixup_wrap() {
     /bin/dd if=/dev/zero of=/tmp/image.bin bs=1k count=111072
     echo Running mdconfig
     /sbin/mdconfig -a -t vnode -u91 -f /tmp/image.bin
-    /sbin/disklabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
+    #/sbin/disklabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
+    /sbin/bsdlabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
     
     echo Running newfs
     newfs /dev/md91a
@@ -381,7 +392,7 @@ create_pfSense_Full_update_tarball() {
 
 create_pfSense_Small_update_tarball() {
 	VERSION=`cat $CVS_CO_DIR/etc/version`
-	FILENAME=pfSense-Wrap-Update-${VERSION}.tgz
+	FILENAME=pfSense-Mini-Wrap-Update-${VERSION}.tgz
 
 	mkdir -p $UPDATESDIR
 
