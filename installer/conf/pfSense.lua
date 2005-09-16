@@ -38,8 +38,7 @@ mountpoints = function(part_cap, ram_cap)
 end
 
 cmd_names = cmd_names + {
-	DMESG_BOOT = "var/log/dmesg.boot",
-	DISKLABEL = "sbin/bsdlabel"
+	DMESG_BOOT = "var/log/dmesg.boot"
 }
 
 install_items = {
