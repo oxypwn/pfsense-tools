@@ -34,6 +34,7 @@ CONFIGURE_ARGS=	--without-mysql \
 		--without-pear \
 		--with-openssl \
 		--with-curl \
+		--enable-fastcgi \
 		--enable-discard-path
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
@@ -49,6 +50,8 @@ WITH_APACHE=	yes
 .endif
 
 EXT_DIR=	20020429
+WITH_OPENSSL=	yes
+CFLAGS=		-static
 
 CONFLICTS?=	php4-cli-4* mod_php4-4* php4-cgi-4*
 CONFLICTS+=	php5-5* php5-cli-5* mod_php5-5* php5-cgi-5*
