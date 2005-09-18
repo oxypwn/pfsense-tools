@@ -30,12 +30,13 @@ GNU_CONFIGURE=	yes
 USE_BISON=	yes
 USE_REINPLACE=	yes
 
-CONFIGURE_ARGS=	--without-mysql \
+CONFIGURE_ARGS+=--without-mysql \
 		--without-pear \
 		--with-openssl \
 		--with-curl \
 		--enable-fastcgi \
-		--enable-discard-path
+		--enable-force-cgi-redirect \
+		--enable-discard-path 
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
 PHP_SAPI=	full
