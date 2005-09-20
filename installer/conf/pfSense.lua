@@ -54,7 +54,7 @@ install_items = {
 --        "kernel",
 --        "modules",
         "root",
-        "rescue",
+--        "rescue",
         "sbin",
         "sys",
         "usr",
