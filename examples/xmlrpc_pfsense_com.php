@@ -32,7 +32,7 @@ require_once("xmlrpc_server.inc");
 require_once("xmlparse.inc");
 require_once("xmlrpc.inc");
 
-//$get_firmware_version_sig = array(array(array(), array()));
+//$get_firmware_version_sig = array(array($XML_RPC_Array, $XML_RPC_Array));
 $get_firmware_version_doc = 'Method used to get the current firmware, kernel, and base system versions. This must be called with an array. This method returns an array.';
 
 function get_firmware_version($raw_params) {
@@ -107,7 +107,6 @@ function get_firmware_version($raw_params) {
 				if(in_array($aval['branch'], $branch)) $toparse[] = $aval;
 			}
 			$toput[$key] = $toparse;
-			if(!is_array($toput[$key][0])) $toput[$key] = 1;
 		}
 		$toreturn = $toput;
 	}
@@ -124,7 +123,7 @@ function get_pkgs($raw_params) {
 	
 	$params = array_shift(xmlrpc_params_to_php($raw_params));
 
-	$pkg_config = parse_xml_config($path_to_files . 'pkg_config.xml', $pkg_rootobj);
+	$pkg_config = parse_xml_config_pkg($path_to_files . 'pkg_config.xml', $pkg_rootobj);
 	if($params['pkg'] != 'all') {
 		foreach($pkg_config['packages']['package'] as $pkg) {
 			if(in_array($pkg['name'], $params['pkg']))
@@ -148,6 +147,7 @@ function get_pkgs($raw_params) {
 	return new XML_RPC_Response($response);
 }
 
+/*
 function get_pkg_sizes($raw_params) {
 	$path_to_files = '../packages/';
 	$cache_name = 'pkg_depends.cache';
@@ -165,12 +165,13 @@ function get_pkg_sizes($raw_params) {
 	}
 	return new XML_RPC_Response(new XML_RPC_Value('error', 'string'));
 }
+*/
 
 $server = new XML_RPC_Server(
         array(
 	    'pfsense.get_firmware_version' =>	array('function' => 'get_firmware_version'),
-	    'pfsense.get_pkgs'		   =>   array('function' => 'get_pkgs'),
-	    'pfsense.get_pkg_sizes'	   =>   array('function' => 'get_pkg_sizes')
+	    'pfsense.get_pkgs'		   =>   array('function' => 'get_pkgs')
+//	    'pfsense.get_pkg_sizes'	   =>   array('function' => 'get_pkg_sizes')
         )
 );
 ?>
