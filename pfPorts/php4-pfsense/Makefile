@@ -33,7 +33,6 @@ CONFIGURE_ARGS+=--without-mysql \
 		--without-pear \
 		--with-openssl \
 		--with-curl \
-		--enable-force-cgi-redirect \
 		--enable-discard-path 
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
