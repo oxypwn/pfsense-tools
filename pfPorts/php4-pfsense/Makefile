@@ -25,7 +25,6 @@ LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 LIB_DEPENDS=   curl:${PORTSDIR}/ftp/curl
 
 USE_BZIP2=	yes
-
 GNU_CONFIGURE=	yes
 USE_BISON=	yes
 USE_REINPLACE=	yes
@@ -34,7 +33,6 @@ CONFIGURE_ARGS+=--without-mysql \
 		--without-pear \
 		--with-openssl \
 		--with-curl \
-		--enable-fastcgi \
 		--enable-force-cgi-redirect \
 		--enable-discard-path 
 
@@ -52,7 +50,6 @@ WITH_APACHE=	yes
 
 EXT_DIR=	20020429
 WITH_OPENSSL=	yes
-CFLAGS=		-static
 
 CONFLICTS?=	php4-cli-4* mod_php4-4* php4-cgi-4*
 CONFLICTS+=	php5-5* php5-cli-5* mod_php5-5* php5-cgi-5*
