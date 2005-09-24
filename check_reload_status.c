@@ -8,6 +8,7 @@
  */
 
 #include <sys/stat.h>
+#include <sys/stdio.h>
 
 /* Check if file exists */
 int fexist(char * filename)
@@ -28,16 +29,16 @@ int fexist(char * filename)
 int main(void) {
 	while(1) {
 	    if(fexist("/tmp/filter_dirty") == 1) {
-		    printf("%s","Reloading filter settings...");
+		    printf("Reloading filter settings...\n");
 		    system("/usr/local/bin/php /etc/rc.filter_configure >/dev/null");
 	    }
 	    if(fexist("/tmp/reload_all") == 1) {
-		    printf("%s","Reloading filter settings...");
+		    printf("Reloading filter settings...\n");
 		    system("/usr/local/bin/php /etc/rc.reload_all >/dev/null");
 		    system("/bin/rm /tmp/reload_all");
 	    }
 	    if(fexist("/tmp/reload_interfaces") == 1) {
-		    printf("%s","Reloading filter settings...");
+		    printf("Reloading filter settings...\n");
 		    system("/usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
 		    system("/bin/rm /tmp/reload_interfaces");
 	    }
