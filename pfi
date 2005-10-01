@@ -46,8 +46,8 @@ look_for_config_xml_config_msdos()
 			echo -n " /dev/$try_device ok..."
 			# Note for later that this device is capable
 			# of having config.xml on it for perm. storage
-			mkdir -p /var/db/pfi/
-			touch /var/db/pfi/capable_${try_device}
+			/bin/mkdir -p /var/db/pfi/
+			/usr/bin/touch /var/db/pfi/capable_${try_device}
 			# look for config.xml, if its found return 0
 			if get_config_xml /mnt/cf /dev/$try_device; then
 			    return 0
