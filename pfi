@@ -28,8 +28,10 @@ get_config_xml()
 		ln -s $1 /cf/conf 2>/dev/null
 		ln -s /cf/conf $1 2>/dev/null
 		ln -s /cf/conf /conf 2>/dev/null
+		echo
 		return 0
 	else
+		echo
 		return 1
 	fi
 }
@@ -54,6 +56,7 @@ look_for_config_xml_config_msdos()
 			fi
 		fi
 	done
+	echo
 	return 1
 }
 
@@ -112,6 +115,7 @@ look_for_pfi_config_msdos()
 			umount /mnt
 		fi
 	done
+	echo
 	return 1
 }
 
