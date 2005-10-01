@@ -45,7 +45,7 @@ look_for_config_xml_config_msdos()
 			return 1
 		fi
 		if mount -t msdos /dev/$try_device /mnt/cf ; then
-			echo -n " /dev/$try_device ok..."
+			echo " /dev/$try_device ok..."
 			# Note for later that this device is capable
 			# of having config.xml on it for perm. storage
 			/bin/mkdir -p /var/db/pfi/
@@ -105,7 +105,7 @@ look_for_pfi_config_msdos()
 			#( cd /dev && ./MAKEDEV ${try_device} )
 		fi
 		if mount -t msdos -o rdonly /dev/$try_device /mnt ; then
-			echo -n " /dev/$try_device ok..."
+			echo " /dev/$try_device ok..."
 			get_authorized_hosts
 			if get_pfi_config /mnt /dev/$try_device; then
 				umount /mnt
@@ -131,7 +131,7 @@ look_for_pfi_config_cd9660()
 			#( cd /dev && ./MAKEDEV ${try_device} )
 		fi
 		if mount_cd9660 /dev/$try_device /mnt ; then
-			echo -n " /dev/$try_device ok..."
+			echo " /dev/$try_device ok..."
 			get_authorized_hosts
 			if get_pfi_config /mnt /dev/$try_device; then
 				umount /mnt
