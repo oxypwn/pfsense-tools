@@ -18,7 +18,7 @@ thttpd_location="/scripts/thttpd"
 get_config_xml()
 {
 	if [ -r $1/config.xml ]; then
-		echo "Found config.xml on $1"
+		echo -n "Found config.xml on $1"
 		# Now that we have found config.xml lets apply
 		# some symlinks to /cf/ and /conf so that pfSense
 		# can find and use the configuration files.
@@ -65,7 +65,7 @@ get_pfi_config()
 	[ -r /etc/pfi.conf ] && return 0
 
 	if [ -r $1/pfi.conf ]; then
-		echo "Found pfi.conf on $1"
+		echo -n "Found pfi.conf on $1"
 		tr -d "\r" < $1/pfi.conf > /etc/pfi.conf
 		echo "pfi_found_on_device='$2'" >> /etc/pfi.conf
 		echo "#@@@@@" >>/etc/rc.conf
