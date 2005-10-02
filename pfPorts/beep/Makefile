@@ -1,31 +1,25 @@
-# New ports collection makefile for:	php4
-# Date created:				Tue Feb 18 11:17:13 CET 2003
-# Whom:					Alex Dupre <sysadmin@alexdupre.com>
+# New ports collection makefile for:	beep
+# Date Created:				June 9, 2002
+# Whom:					Tyler Spivey
 #
-# $FreeBSD: ports/lang/php4/Makefile,v 1.88 2005/07/13 19:56:27 ale Exp $
-#
+# $FreeBSD: ports/audio/beep/Makefile,v 1.6 2004/01/26 17:05:30 pav Exp $
 
 PORTNAME=	beep
-PORTVERSION=	0.0.2
-PORTREVISION?=	0
-CATEGORIES?=	sysutils
-MASTER_SITES=	# empty
-DISTFILES=	# none
-EXTRACT_ONLY=	# empty
+PORTVERSION=	1.0
+CATEGORIES=	audio
+MASTER_SITES=	ftp://ftp.ugh.net.au/pub/unix/beep/ \
+		ftp://ftp.megamirror.com/pub/ugh/unix/beep/ \
+		http://ftp.megamirror.com/pub/ugh/unix/beep/
 
-MAINTAINER?=	jebc@c4solutions.net
-COMMENT?=	reinits ata channel 0
+MAINTAINER=	ports@FreeBSD.org
+COMMENT=	Beeps a certain duration and pitch out of the PC Speaker
 
-WHERE=		bin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
+MAN1=		beep.1
+MANCOMPRESSED=	maybe
+WRKSRC=		${WRKDIR}/${PORTNAME}
 
-do-extract:
-	mkdir -p ${WRKSRC}
+ONLY_FOR_ARCHS=	i386
 
-do-build:
-	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
-
-do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+PLIST_FILES=	bin/beep
 
 .include <bsd.port.mk>
