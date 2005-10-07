@@ -72,7 +72,7 @@ ui_nav_control = {
 	["*/pit/configure_console"] = "ignore",   -- do not ask about console
 	["*/pit/configure_network"] = "ignore",   -- do not ask about network
 
-	["*/install/format_disk"] = "ignore",     -- do not do the "Format Disk" step on install
+	--["*/install/format_disk"] = "ignore",     -- do not do the "Format Disk" step on install
 	["*/install/select_packages"] = "ignore", -- do not do the "Select Packages" step on install
 	["*/install/confirm_install_os"] = "ignore",
 	["*/install/warn_omitted_subpartitions"] = "ignore",
