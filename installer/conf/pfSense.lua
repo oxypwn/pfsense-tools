@@ -7,7 +7,7 @@
 
 product = {
 	name = "pfSense",
-	version = "0.83.whatever"
+	version = "0.86.4"
 }
 
 mountpoints = function(part_cap, ram_cap)
