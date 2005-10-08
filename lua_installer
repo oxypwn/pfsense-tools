@@ -54,9 +54,10 @@ echo "/usr/local/share/dfuibe_lua/main.lua \
 
 sh /tmp/lua50c51 >/dev/null 2>&1 &
 
-echo Launching Installer NCurses frontend...
 sleep 1
-/usr/local/sbin/dfuife_curses
+
+echo Launching Installer NCurses frontend...
+TERM=cons25 && /usr/local/sbin/dfuife_curses
 
 # Check for a failed install and offer to blast logs to developers
 #if [ ! -e /tmp/install_complete ]; then
