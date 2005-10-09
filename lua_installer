@@ -78,6 +78,9 @@ TERM=cons25 && /usr/local/sbin/dfuife_curses
 #   rm /tmp/install_complete
 #fi
 
+/usr/sbin/vidcontrol -S on
+/usr/sbin/vidcontrol -s 1
+
 echo
 echo
 echo
@@ -104,5 +107,5 @@ sleep 1
 echo
 echo pfSense is now rebooting.
 
-shutdown -r now
+reboot
 
