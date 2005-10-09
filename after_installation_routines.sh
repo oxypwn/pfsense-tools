@@ -51,8 +51,14 @@ touch /tmp/install_complete
 chmod a-w /FreeSBIE/mnt/boot/loader.rc
 chflags schg /FreeSBIE/mnt/boot/loader.rc
 
-mkdir /FreeSBIE/mnt/var/installer_logs
-cp /tmp/* /FreeSBIE/mnt/var/installer_logs
+mkdir -p /FreeSBIE/mnt/var/installer_logs
+cp /tmp/install.disklabel /FreeSBIE/mnt/var/installer_logs
+cp /tmp/bootup_messages /FreeSBIE/mnt/var/installer_logs
+cp /tmp/install.disklabel.ad0s1 /FreeSBIE/mnt/var/installer_logs
+cp /tmp/installer.log /FreeSBIE/mnt/var/installer_logs
+cp /tmp/init_bootloader.sh /FreeSBIE/mnt/var/installer_logs
+cp /tmp/install-session.sh /FreeSBIE/mnt/var/installer_logs
+cp /tmp/new.fdisk /FreeSBIE/mnt/var/installer_logs
 
 #Sync disks
 /bin/sync
