@@ -51,5 +51,8 @@ touch /tmp/install_complete
 chmod a-w /FreeSBIE/mnt/boot/loader.rc
 chflags schg /FreeSBIE/mnt/boot/loader.rc
 
+mkdir /FreeSBIE/mnt/var/installer_logs
+cp /tmp/* /FreeSBIE/mnt/var/installer_logs
+
 #Sync disks
 /bin/sync
