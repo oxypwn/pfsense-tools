@@ -31,7 +31,7 @@ echo "Mounting /FreeSBIE/var..."
 MD_LOCAL=`mdconfig -a -f /FreeSBIE/uzip/var.uzip`
 mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/var
 
-mount -t unionfs /.var /FreeSBIE/var
+#mount -t unionfs /.var /FreeSBIE/var
 
 mkdir -p /FreeSBIE/var/log/
 find / -name dmesg.boot -exec cp {} /FreeSBIE/var/log/ \;
