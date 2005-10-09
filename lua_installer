@@ -78,9 +78,16 @@ TERM=cons25 && /usr/local/sbin/dfuife_curses
 #   rm /tmp/install_complete
 #fi
 
-/usr/sbin/vidcontrol -S on
-/usr/sbin/vidcontrol -s 1
+/usr/sbin/vidcontrol -S on 2>/dev/null
+/usr/sbin/vidcontrol -s 1 2>/dev/null
 
+clear
+
+echo
+echo
+echo
+echo
+echo
 echo
 echo
 echo
