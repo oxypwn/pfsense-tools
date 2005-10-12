@@ -86,6 +86,6 @@ booted_from_install_media=true
 
 dir = { root = "/FreeSBIE/", tmp = "/tmp/" }
 
-part_min = "100M"
+limits.part_min = "100M"
 
 use_cpdup = true
