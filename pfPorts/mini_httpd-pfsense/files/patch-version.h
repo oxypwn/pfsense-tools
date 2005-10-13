@@ -5,7 +5,7 @@
  #define _VERSION_H_
  
 -#define SERVER_SOFTWARE "mini_httpd/1.19 19dec2003"
-+#define SERVER_SOFTWARE "mini_httpd/1.19/bhoc 23sep2004"
++#define SERVER_SOFTWARE "mini_httpd/1.19/bhoc+m0n0_1.2+billm 12oct2005"
  #define SERVER_URL "http://www.acme.com/software/mini_httpd/"
  
  #endif /* _VERSION_H_ */

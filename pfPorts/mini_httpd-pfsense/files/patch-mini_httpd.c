@@ -1,5 +1,5 @@
---- mini_httpd.c.orig	Wed Dec  3 18:27:22 2003
-+++ mini_httpd.c	Mon May  2 20:12:57 2005
+--- mini_httpd.c.orig	Wed Oct 12 21:42:22 2005
++++ mini_httpd.c	Wed Oct 12 21:41:26 2005
 @@ -73,8 +73,10 @@
  extern char* crypt( const char* key, const char* setting );
  
@@ -246,23 +246,20 @@
  #endif /* TCP_NOPUSH */
  
  #ifdef USE_SSL
-@@ -1215,11 +1259,13 @@
- 	send_error( 400, "Bad Request", "", "Can't parse request." );
-     *protocol++ = '\0';
-     protocol += strspn( protocol, " \t\012\015" );
-+    if (!captivemode) {
-     query = strchr( path, '?' );
-     if ( query == (char*) 0 )
- 	query = "";
-     else
- 	*query++ = '\0';
-+	}
- 
-     /* Parse the rest of the request headers. */
-     while ( ( line = get_request_line() ) != (char*) 0 )
-@@ -1287,6 +1333,38 @@
-     else
- 	send_error( 501, "Not Implemented", "", "That method is not implemented." );
+@@ -1179,7 +1223,9 @@
+ 	if ( SSL_accept( ssl ) == 0 )
+ 	    {
+ 	    ERR_print_errors_fp( stderr );
+-	    exit( 1 );
++	    SSL_free( ssl );
++	    alarm(0);
++	    return;
+ 	    }
+ 	}
+ #endif /* USE_SSL */
+@@ -1201,6 +1247,21 @@
+ 	    break;
+ 	}
  
 +	if(http_error == 503) {
 +		add_headers(
@@ -279,6 +276,27 @@
 +		return ;
 +	}	
 +
+     /* Parse the first line of the request. */
+     method_str = get_request_line();
+     if ( method_str == (char*) 0 )
+@@ -1215,11 +1276,13 @@
+ 	send_error( 400, "Bad Request", "", "Can't parse request." );
+     *protocol++ = '\0';
+     protocol += strspn( protocol, " \t\012\015" );
++    if (!captivemode) {
+     query = strchr( path, '?' );
+     if ( query == (char*) 0 )
+ 	query = "";
+     else
+ 	*query++ = '\0';
++	}
+ 
+     /* Parse the rest of the request headers. */
+     while ( ( line = get_request_line() ) != (char*) 0 )
+@@ -1287,6 +1350,23 @@
+     else
+ 	send_error( 501, "Not Implemented", "", "That method is not implemented." );
+ 
 +	if (captivemode) {
 +		/* only accept GET in captive portal mode */
 +		captive_reqpath = path;		
@@ -299,7 +317,7 @@
      strdecode( path, path );
      if ( path[0] != '/' )
  	send_error( 400, "Bad Request", "", "Bad filename." );
-@@ -1344,23 +1422,28 @@
+@@ -1344,23 +1424,28 @@
  	    }
  
  	/* Check for an index file. */
@@ -335,7 +353,7 @@
  #ifdef USE_SSL
      SSL_free( ssl );
  #endif /* USE_SSL */
-@@ -1544,6 +1627,7 @@
+@@ -1544,6 +1629,7 @@
      char buf[10000];
      size_t buflen;
      char* contents;
@@ -343,7 +361,7 @@
      size_t contents_size, contents_len;
  #ifdef HAVE_SCANDIR
      int n, i;
-@@ -1624,7 +1708,8 @@
+@@ -1624,7 +1710,8 @@
  	SERVER_URL, SERVER_SOFTWARE );
      add_to_buf( &contents, &contents_size, &contents_len, buf, buflen );
  
@@ -353,7 +371,7 @@
      if ( method != METHOD_HEAD )
  	add_to_response( contents, contents_len );
      send_response();
-@@ -2116,7 +2201,9 @@
+@@ -2116,7 +2203,9 @@
      static char* envp[50];
      int envn;
      char* cp;
@@ -363,7 +381,7 @@
  
      envn = 0;
      envp[envn++] = build_env( "PATH=%s", CGI_PATH );
-@@ -2134,11 +2221,19 @@
+@@ -2134,11 +2223,19 @@
      envp[envn++] = build_env( "SERVER_PORT=%s", buf );
      envp[envn++] = build_env(
  	"REQUEST_METHOD=%s", get_method_str( method ) );
@@ -385,7 +403,7 @@
  	envp[envn++] = build_env( "PATH_TRANSLATED=%s", buf );
  	}
      if ( query[0] != '\0' )
-@@ -2162,11 +2257,23 @@
+@@ -2162,11 +2259,23 @@
  	}
      if ( remoteuser != (char*) 0 )
  	envp[envn++] = build_env( "REMOTE_USER=%s", remoteuser );
@@ -409,7 +427,7 @@
      envp[envn] = (char*) 0;
      return envp;
      }
-@@ -2213,40 +2320,50 @@
+@@ -2213,40 +2322,50 @@
      FILE* fp;
      char* cryp;
  
@@ -481,7 +499,7 @@
  
      /* Open the password file. */
      fp = fopen( authpath, "r" );
-@@ -2272,15 +2389,18 @@
+@@ -2272,15 +2391,18 @@
  	    continue;
  	*cryp++ = '\0';
  	/* Is this the right user? */
@@ -503,7 +521,7 @@
  		return;
  		}
  	    else
-@@ -2336,13 +2456,13 @@
+@@ -2336,13 +2458,13 @@
  static void
  send_error( int s, char* title, char* extra_header, char* text )
      {
@@ -520,7 +538,7 @@
      send_response();
  
  #ifdef USE_SSL
-@@ -2378,14 +2498,15 @@
+@@ -2378,14 +2500,15 @@
      /* Send built-in error page. */
      buflen = snprintf(
  	buf, sizeof(buf), "\
@@ -540,7 +558,7 @@
      }
  
  
-@@ -2416,7 +2537,7 @@
+@@ -2416,7 +2539,7 @@
      {
      char buf[500];
      int buflen;
@@ -549,7 +567,7 @@
      if ( match( "**MSIE**", useragent ) )
  	{
  	int n;
-@@ -2430,13 +2551,10 @@
+@@ -2430,13 +2553,10 @@
  	buflen = snprintf( buf, sizeof(buf), "-->\n" );
  	add_to_response( buf, buflen );
  	}
@@ -566,7 +584,7 @@
      add_to_response( buf, buflen );
      }
  
-@@ -2457,8 +2575,10 @@
+@@ -2457,8 +2577,10 @@
      start_response();
      buflen = snprintf( buf, sizeof(buf), "%s %d %s\015\012", protocol, status, title );
      add_to_response( buf, buflen );
@@ -577,7 +595,7 @@
      now = time( (time_t*) 0 );
      (void) strftime( timebuf, sizeof(timebuf), rfc1123_fmt, gmtime( &now ) );
      buflen = snprintf( buf, sizeof(buf), "Date: %s\015\012", timebuf );
-@@ -2725,9 +2845,10 @@
+@@ -2725,9 +2847,10 @@
      /* If we're vhosting, prepend the hostname to the url.  This is
      ** a little weird, perhaps writing separate log files for
      ** each vhost would make more sense.
@@ -589,7 +607,7 @@
      else
  	(void) snprintf( url, sizeof(url), "%s", path );
      /* Format the bytes. */
-@@ -3034,8 +3155,10 @@
+@@ -3034,8 +3157,10 @@
      {
      /* Don't need to set up the handler again, since it's a one-shot. */
  
@@ -600,7 +618,7 @@
      closelog();
      exit( 1 );
      }
-@@ -3096,6 +3219,7 @@
+@@ -3096,6 +3221,7 @@
  		}
  	    break;
  	    }
@@ -608,7 +626,7 @@
  	}
  
      /* Restore previous errno. */
-@@ -3128,7 +3252,9 @@
+@@ -3128,7 +3254,9 @@
  static void
  handle_read_timeout( int sig )
      {
