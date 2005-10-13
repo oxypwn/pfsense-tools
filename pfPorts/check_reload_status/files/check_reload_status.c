@@ -39,6 +39,9 @@ int main(void) {
 		    system("/usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
 		    system("/bin/rm /tmp/reload_interfaces");
 	    }
+	    if(fexist("/tmp/start_sshd") == 1) {
+		    system("/etc/sshd");
+	    }	    
 	    sleep(5);
 	}
 	return 0;
