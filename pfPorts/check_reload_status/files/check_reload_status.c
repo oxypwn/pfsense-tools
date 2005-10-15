@@ -5,6 +5,13 @@
  *   (C)2005 Scott Ullrich
  *   All rights reserved
  *
+ *   This file monitors for certain files to
+ *   appear in /tmp and then takes action on them.
+ *   It's a mini-daemon of sorts to kick off filter
+ *   reloads, sshd starting, etc.   It may be expanded
+ *   down to the road to kick off any type of tasks that
+ *   take up too much time from the GUI perspective.
+ *   
  */
 
 #include <sys/stat.h>
