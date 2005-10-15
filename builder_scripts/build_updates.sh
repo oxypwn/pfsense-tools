@@ -31,7 +31,7 @@ rm -rf $BASE_DIR/pfSense
 
 # Update cvs depot
 rsync -avz sullrich@216.135.66.16:/cvsroot /home/pfsense/
-cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense
+cd $BASE_DIR && cvs -r RELENG_1 -d /home/pfsense/cvsroot co pfSense
 
 # Calculate versions
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`

@@ -14,6 +14,10 @@ populate_extra() {
 	cp /bin/sh $CVS_CO_DIR/bin/
 	cp /lib/libncurses.so.5 $CVS_CO_DIR/lib/
 	cp /bin/ln /bin/rm $CVS_CO_DIR/bin/
+
+	cp /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
+	cp /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
+
 	mkdir -p $LOCALDIR/var/run
 
 	echo exit > $CVS_CO_DIR/root/.xcustom.sh

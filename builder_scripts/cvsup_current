@@ -1,13 +1,30 @@
 #!/bin/sh
 
 CURRENTDIR=`pwd`
+
+# bootlua
+#rm -rf /usr/src/sys/boot/*
+
 cvsup /etc/current-supfile
 
+# Traffic shaper fixes for pfctl
 cd /usr/src/contrib/pf/pfctl
 patch < ~root/patches/parse.y
 
+# Making ipfw default to allow all
 cd /usr/src/sys/modules/ipfw
 patch < ~root/patches/ipfw.diff
+
+cd /usr/src/
+patch < /root/patches/altq-vlan.diff
+
+# Crypto fix http://www.freebsd.org/cgi/query-pr.cgi?pr=86598
+echo crypto fix for via chipsets...
+cd /usr/src/crypto/openssl/crypto/engine
+patch < /root/patches/eng_padlock.c.diff
+
+cd /usr/src/sys
+patch < /root/patches/natt.diff
 
 cd $CURRENTDIR
 rm -rf /usr/obj/*
@@ -15,6 +32,7 @@ rm -rf /usr/obj/*
 cp /home/pfsense/freesbie/config_buildworld.sh \
 	/home/pfsense/freesbie/config.sh
 
+cd $CURRENTDIR
 ./build_updates.sh
 
 cp /home/pfsense/freesbie/config_nobuildworld.sh \
