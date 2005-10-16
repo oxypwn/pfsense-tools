@@ -517,7 +517,7 @@ clone_system_only()
 checkout_pfSense() {
         echo ">>> Getting pfSense"
         rm -rf $CVS_CO_DIR
-	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense
+	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r RELENG_1
 }
 
 checkout_freesbie() {
