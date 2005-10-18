@@ -237,7 +237,7 @@ fixup_wrap() {
 
     # Checkout pfSense information and set our version variables.
     rm -rf $BASE_DIR/pfSense
-    cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense
+    cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r RELENG_1 pfSense
 
     chflags -R noschg /tmp/ 2>/dev/null
     rm -rf /tmp/* 2>/dev/null
