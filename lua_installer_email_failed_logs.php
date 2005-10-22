@@ -1,6 +1,6 @@
 <?php
 
-f0s
+f0sx
 
 $type = array('gif'  => 'image/gif',
                        'jpg'  => 'image/jpeg',
