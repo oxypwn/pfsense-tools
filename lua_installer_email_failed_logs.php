@@ -1,6 +1,6 @@
 <?php
 
-afasa
+afasas
 
 
 $type = array('gif'  => 'image/gif',
