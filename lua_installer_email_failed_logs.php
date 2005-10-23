@@ -1,8 +1,5 @@
 <?php
 
-afasas
-sssss
-
 $type = array('gif'  => 'image/gif',
                        'jpg'  => 'image/jpeg',
                        'jpeg' => 'image/jpeg',
