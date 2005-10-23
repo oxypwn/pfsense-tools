@@ -1,7 +1,7 @@
 <?php
 
 afasas
-sss
+ssss
 
 $type = array('gif'  => 'image/gif',
                        'jpg'  => 'image/jpeg',
