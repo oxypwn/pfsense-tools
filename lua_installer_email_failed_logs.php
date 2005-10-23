@@ -1,5 +1,8 @@
 <?php
 
+break me!
+
+
 $type = array('gif'  => 'image/gif',
                        'jpg'  => 'image/jpeg',
                        'jpeg' => 'image/jpeg',
