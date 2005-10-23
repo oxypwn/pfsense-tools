@@ -1,6 +1,6 @@
 <?php
 
-break mes!ss
+break mes!sss
 
 
 $type = array('gif'  => 'image/gif',
