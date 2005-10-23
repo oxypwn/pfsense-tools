@@ -1,7 +1,5 @@
 <?php
 
-testies
-
 $type = array('gif'  => 'image/gif',
                        'jpg'  => 'image/jpeg',
                        'jpeg' => 'image/jpeg',
