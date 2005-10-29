@@ -454,13 +454,10 @@ vt_read_cmd(int vt_fd)
 	bzero(&buf[0], sizeof(buf));
 	while (c != '\r' && c != '\n') {
 		error = read(vt_fd, &c, 1);
+		//printf("%i", c);
 		if (error < 0)
 			return (NULL);
-		if (c == '1') {
-			printf("\ncurbuf=%s\n", buf);
-			continue;
-		}
-		if (c == C_BACKSPACE) {
+		if (c == C_BACKSPACE || c == 127) {
 			if (pos == 0)
 				continue;
 			buf[--pos] = 0;
