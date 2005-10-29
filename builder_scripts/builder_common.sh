@@ -117,6 +117,15 @@ populate_extra() {
 	cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
 	cp /lib/libutil.so.5 ${FREESBIEBASEDIR}/lib/libutil.so.4
 
+	# Install all netgraph modules
+	cd /usr/src/sys/modules/netgraph/
+	make
+	make install DESTDIR=$FREESBIEBASEDIR
+
+	cd /usr/src/usr.sbin/authpf
+	make
+	make install DESTDIR=$FREESBIEBASEDIR
+
 	# Make sure ACPI is all ready
 	cd /usr/src/sys/modules/acpi
 	make
