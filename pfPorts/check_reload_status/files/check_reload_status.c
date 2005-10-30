@@ -48,6 +48,7 @@ int main(void) {
 	    }
 	    if(fexist("/tmp/start_sshd") == 1) {
 		    system("/etc/sshd");
+		    system("/bin/rm /tmp/start_sshd");
 	    }	    
 	    sleep(5);
 	}
