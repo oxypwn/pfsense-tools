@@ -71,8 +71,8 @@ ui_nav_control = {
 	["*/load_kernel_modules"] = "ignore", -- do not ask about loading kernel modules
 	["*/pit/configure_console"] = "ignore",   -- do not ask about console
 	["*/pit/configure_network"] = "ignore",   -- do not ask about network
-
-	--["*/install/format_disk"] = "ignore",     -- do not do the "Format Disk" step on install
+	["*/install/partition_disk.lua"] = "ignore",   -- do not ask about partition disk
+	["*/install/format_disk"] = "ignore",     -- do not do the "Format Disk" step on install
 	["*/install/select_packages"] = "ignore", -- do not do the "Select Packages" step on install
 	["*/install/confirm_install_os"] = "ignore",
 	["*/install/warn_omitted_subpartitions"] = "ignore",
