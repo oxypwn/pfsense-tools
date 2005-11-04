@@ -116,6 +116,13 @@ populate_extra() {
 	cp /usr/lib/libz.so ${FREESBIEBASEDIR}/usr/lib/libz.so.2
 	cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
 	cp /lib/libutil.so.5 ${FREESBIEBASEDIR}/lib/libutil.so.4
+	cp /usr/local/lib/libnetsnmpagent.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+	cp /usr/local/lib/libnetsnmphelpers.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+	cp /usr/local/lib/libnetsnmp.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+
+	cp /usr/lib/libpthread.so.1 ${FREESBIEBASEDIR}/usr/lib/
+	cp /usr/local/lib/libevent-1.1a.so.1 ${FREESBIEBASEDIR}/usr/local/lib/
+	cp /usr/local/lib/libnetsnmpmibs.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
 
 	# Install all netgraph modules
 	cd /usr/src/sys/modules/netgraph/
@@ -235,6 +242,13 @@ fixup_updates() {
         cp /usr/lib/libz.so ${FREESBIEBASEDIR}/usr/lib/libz.so.2
         cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
 	cp /lib/libutil.so.5 ${FREESBIEBASEDIR}/lib/libutil.so.4
+	cp /usr/local/lib/libnetsnmpagent.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+        cp /usr/local/lib/libnetsnmphelpers.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+        cp /usr/local/lib/libnetsnmp.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+
+        cp /usr/lib/libpthread.so.1 ${FREESBIEBASEDIR}/usr/lib/
+        cp /usr/local/lib/libevent-1.1a.so.1 ${FREESBIEBASEDIR}/usr/local/lib/
+        cp /usr/local/lib/libnetsnmpmibs.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
 
 	echo `date` > /usr/local/livefs/etc/version.buildtime
 
@@ -266,7 +280,14 @@ fixup_wrap() {
     cp /usr/lib/libz.so ${FREESBIEBASEDIR}/usr/lib/libz.so.2
     cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
     cp /lib/libutil.so.5 ${FREESBIEBASEDIR}/lib/libutil.so.4
-   
+    cp /usr/local/lib/libnetsnmpagent.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+    cp /usr/local/lib/libnetsnmphelpers.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+    cp /usr/local/lib/libnetsnmp.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+  
+    cp /usr/lib/libpthread.so.1 ${FREESBIEBASEDIR}/usr/lib/
+    cp /usr/local/lib/libevent-1.1a.so.1 ${FREESBIEBASEDIR}/usr/local/lib/
+    cp /usr/local/lib/libnetsnmpmibs.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+ 
     cp $CVS_CO_DIR/boot/device.hints_wrap \
             $FREESBIEISODIR/boot/device.hints
     cp $CVS_CO_DIR/boot/loader.conf_wrap \

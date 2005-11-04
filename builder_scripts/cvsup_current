@@ -33,16 +33,27 @@ cd /usr/src/sys/netgraph/
 patch < /root/patches/ng_iface.diff
 
 cd /usr/src/sys/net80211/
-patch -p4 < /root/patches/net80211.patch
+patch < /root/patches/net80211.patch
 
 cd /usr/src/sys/dev/ath/
 patch < /root/patches/ath.patch
 
+cd /usr/src/sys/dev/ath/
+patch < /root/patches/if_ath.c.diff
+
 cp /root/patches/ath_hal-20051019/freebsd/* \
 	/usr/src/sys/contrib/dev/ath/freebsd/
 
+cp /root/patches/ath_hal-20051019/* \
+	/usr/src/sys/contrib/dev/ath/ 2>/dev/null
+
+cp /root/patches/ath_hal-20051019/public/* \
+	/usr/src/sys/contrib/dev/ath/public/
+
+echo -n Cleaning up previous build environemnt...Please wait...
 cd $CURRENTDIR
 rm -rf /usr/obj/*
+echo Done!
 
 cp /home/pfsense/freesbie/config_buildworld.sh \
 	/home/pfsense/freesbie/config.sh
