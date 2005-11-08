@@ -412,6 +412,8 @@ fixup_wrap() {
     rm -rf /tmp/root
     rm -rf /tmp/cf/
 
+    gzsig sign ~/.ssh/id_dsa /tmp/image.bin.gz
+
     cd $CURRENT_WD
 
 }
