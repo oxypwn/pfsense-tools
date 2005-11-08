@@ -422,6 +422,9 @@ create_pfSense_Full_update_tarball() {
         echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 
         cd ${FREESBIEBASEDIR} && tar  czPf ${UPDATESDIR}/${FILENAME} .
+
+	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+
 }
 
 create_pfSense_Small_update_tarball() {
@@ -439,6 +442,9 @@ create_pfSense_Small_update_tarball() {
 	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
+
+	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+
 }
 
 # Create tarball of pfSense cvs directory
