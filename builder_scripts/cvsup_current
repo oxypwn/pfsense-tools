@@ -23,14 +23,8 @@ echo crypto fix for via chipsets...
 cd /usr/src/crypto/openssl/crypto/engine
 patch < /root/patches/eng_padlock.c.diff
 
-#cd /usr/src/sys
-#patch < /root/patches/freebsd6-natt.diff
-
 cd /usr/src/contrib/bsnmp/snmp_mibII/
 patch < /root/patches/mibII-interfaces.c.diff
-
-cd /usr/src/sys/netgraph/
-patch < /root/patches/ng_iface.diff
 
 cd /usr/src/sys/net80211/
 patch < /root/patches/net80211.patch
@@ -40,6 +34,9 @@ patch < /root/patches/ath.patch
 
 cd /usr/src/sys/dev/ath/
 patch < /root/patches/if_ath.c.diff
+
+cd /usr/src/sys
+patch < /root/patches/geom_vfs.c.diff
 
 cp /root/patches/ath_hal-20051019/freebsd/* \
 	/usr/src/sys/contrib/dev/ath/freebsd/
