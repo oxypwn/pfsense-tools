@@ -36,7 +36,7 @@ populate_extra() {
 
 	# Set buildtime
 	date > $CVS_CO_DIR/etc/version.buildtime
-
+	mkdir -p $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/pfi $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/
 	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/installer
