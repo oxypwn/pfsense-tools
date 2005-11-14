@@ -43,11 +43,11 @@ populate_extra() {
 	cp $BASE_DIR/tools/installer.sh $FREESBIEBASEDIR/scripts/
 	chmod a+rx $FREESBIEBASEDIR/scripts/*
 
-	mkdir -p $LOCALDIR/files/custom/usr/local/bin
+	mkdir -p $LOCALDIR/customroot/usr/local/bin
 	mkdir -p $FREESBIEBASEDIR/usr/local/bin/
 
 	cp $BASE_DIR/tools/after_installation_routines.sh \
-		$LOCALDIR/files/custom/usr/local/bin/after_installation_routines.sh
+		$LOCALDIR/customroot/usr/local/bin/after_installation_routines.sh
 
 	cp $BASE_DIR/tools/after_installation_routines.sh \
 		$FREESBIEBASEDIR/usr/local/bin/after_installation_routines.sh
@@ -56,11 +56,11 @@ populate_extra() {
 
 	# Copy BSD Installer sources manifest
 	mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/
-	cp $LOCALDIR/files/sources.conf \
+	cp $LOCALDIR/customroot/sources.conf \
 		$FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
 
 	# Update shells
-	cp $LOCALDIR/files/shells $FREESBIEBASEDIR/etc/shells
+	cp $LOCALDIR/customroot/shells $FREESBIEBASEDIR/etc/shells
 
 	echo "#!/bin/sh" > $FREESBIEBASEDIR/script
 	echo "/bin/ln -s /cf/conf /conf" >> $FREESBIEBASEDIR/script
@@ -83,7 +83,6 @@ populate_extra() {
 	cp /sbin/pf* $CVS_CO_DIR/sbin/
 	chmod a+rx $CVS_CO_DIR/sbin/pf*
 
-	cp $LOCALDIR/files/gettytab $CVS_CO_DIR/etc/
 	mkdir -p $CVS_CO_DIR/usr/lib $CVS_CO_DIR/lib
 	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
 
@@ -302,7 +301,6 @@ fixup_wrap() {
     
     mkdir  $FREESBIEISODIR/dev 2>/dev/null
     rm -f $FREESBIEISODIR/etc/rc.d/freesbie_1st 2>/dev/null
-    rm -f $FREESBIEISODIR/usr/local/share/freesbie/files/000.freesbie_2nd.sh 2>/dev/null
     rm -rf $FREESBIEISODIR/cloop 2>/dev/null
     rm -rf $FREESBIEISODIR/dist 2>/dev/null
     rm -f $FREESBIEISODIR/etc/rc.local 2>/dev/null
@@ -462,11 +460,11 @@ create_pfSense_tarball() {
 copy_pfSense_tarball_to_custom_directory() {
 	cd $LOCALDIR
 
-	rm -rf $LOCALDIR/files/custom/*
+	rm -rf $LOCALDIR/customroot/*
 
-	tar  xzPf /tmp/pfSense.tgz -C $LOCALDIR/files/custom/
+	tar  xzPf /tmp/pfSense.tgz -C $LOCALDIR/customroot/
 
-	rm -f $LOCALDIR/files/custom/boot/*
+	rm -f $LOCALDIR/customroot/boot/*
 }
 
 copy_pfSense_tarball_to_freesbiebasedir() {
@@ -581,7 +579,7 @@ print_flags() {
 
 clear_custom() {
         echo ">> Clearing custom/*"
-        rm -rf $LOCALDIR/files/custom/*
+        rm -rf $LOCALDIR/customroot/*
 }
 
 backup_pfSense() {
