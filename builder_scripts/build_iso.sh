@@ -12,12 +12,7 @@
 # to prompt for the values.
 [ -f ../../freesbie/config.sh ] || ../../freesbie/freesbie
 
-# Read in FreeSBIE configuration variables and set:
-#   FREESBIEBASEDIR=/usr/local/livefs
-#   LOCALDIR=/home/pfSense/freesbie
-#   PATHISO=/home/pfSense/freesbie/FreeSBIE.iso
-. ../../freesbie/config.sh
-. ../../freesbie/.common.sh
+
 
 # Suck in local vars
 . ./pfsense_local.sh
