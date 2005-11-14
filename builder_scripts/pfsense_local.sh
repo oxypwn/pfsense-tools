@@ -10,3 +10,10 @@ CVS_CO_DIR=$BASE_DIR/pfSense
 CVS_USER=sullrich
 
 UPDATESDIR=$BASE_DIR/updates
+
+FREESBIEBASEDIR=/usr/local/freesbie-fs
+
+FREESBIEISODIR=/usr/local/freesbie-clone
+
+LOCALDIR=/home/pfsense/pfsense-build
+

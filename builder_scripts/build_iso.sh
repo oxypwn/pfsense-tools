@@ -15,7 +15,7 @@ set -x
 . ./builder_common.sh
 
 # Remove staging area files
-rm -rf $LOCALDIR/files/custom/*
+rm -rf $LOCALDIR/customroot/*
 rm -rf $BASE_DIR/pfSense
 
 # Update cvs depot
@@ -32,9 +32,6 @@ export KERNCONF=pfSense.6
 
 cd $LOCALDIR 
 
-# Invoke FreeSBIE2 rebuild command
-./rebuild
-
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 populate_extra
@@ -45,3 +42,5 @@ create_pfSense_tarball
 echo ">>> Phase copy_pfSesne_tarball_to_custom_directory"
 copy_pfSense_tarball_to_custom_directory
 
+# Invoke FreeSBIE2 rebuild command
+./rebuild
