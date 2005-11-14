@@ -6,5 +6,7 @@ do
 	rm /home/pfsense/freesbie2/$i
 done
 
+mkdir -p /home/pfsense/tools/pfsense-build/customroot
+
 sh -x pfsense.sh
 qemu -cdrom /usr/obj/FreeSBIE.iso
