@@ -47,4 +47,4 @@ cd /var/db/pkg && ls | grep cpdup >> $LOCALDIR/packages
 
 # Invoke FreeSBIE2 rebuild command
 cd $LOCALDIR 
-./pfsense.sh
+./rebuild
