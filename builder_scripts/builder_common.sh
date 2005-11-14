@@ -463,6 +463,7 @@ copy_pfSense_tarball_to_custom_directory() {
 	rm -rf $LOCALDIR/customroot/*
 
 	rm -rf $LOCALDIR/cf/conf/config.xml
+	rm -rf $LOCALDIR/conf/config.xml
 
 	tar  xzPf /tmp/pfSense.tgz -C $LOCALDIR/customroot/
 
