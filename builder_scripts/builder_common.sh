@@ -69,6 +69,7 @@ populate_extra() {
 	chroot $FREESBIEBASEDIR /script
 
 	# Make sure we're not running any x mojo
+	mkdir -p $FREESBIEBASEDIR/root
 	echo exit > $FREESBIEBASEDIR/root/.xcustom.sh
 
 	# Supress extra spam when logging in
