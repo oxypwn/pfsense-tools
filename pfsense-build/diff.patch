@@ -1,0 +1,110 @@
+diff -ur home/pfsense/freesbie/extra/customroot/etc/rc.cdrom pfsense-build/customroot/etc/rc.cdrom
+--- home/pfsense/freesbie/extra/customroot/etc/rc.cdrom Fri Jul  8 22:55:49 2005
++++ pfsense-build/customroot/etc/rc.cdrom       Thu Nov 10 02:51:52 2005
+@@ -3,44 +3,41 @@
+ # rc.cdrom - livedisc specific routines
+ # For pfSense
+
+-# Run some FreeSBIE routines
+-/etc/rc.d/freesbie_1st
++set -x
++
++# Run some initialization routines
++/etc/rc.d/uzip start
++
++# Initialize MFS for /var. Partly taken from /etc/rc.d/var
++if (/bin/mkdir -p /var/.diskless 2> /dev/null); then
++       rmdir /var/.diskless
++else
++        varsize="32m"
++       mdmfs -S -M -s ${varsize} md /var
++fi
++
++
++for i in tmp etcmfs rootmfs; do
++       if [ -f /etc/rc.d/$i ]; then
++               sh /etc/rc.d/$i start
++       fi
++done
+
+ # Start PFI
+ /bin/sh /scripts/pfi start
+
+-# If PFI did not find a config, this will not be
+-# a directory.  Go ahead and populate with stock
++# If PFI did not find a config, we should create
++# a tiny mfs under /conf and populate with stock
+ # configuration.
+-if [ ! -f /cf/conf/config.xml ]; then
+-    mkdir -p /cf/conf
+-    echo "Copying /FreeSBIE/cf/conf/* /cf/conf/"
+-    /rescue/cp /FreeSBIE/cf/conf/* /cf/conf/
+-fi
+-
+-# If by this time /conf doesn't exist then lets
+-# go ahead and link /conf to /cf/conf
+-if [ ! -L /conf ]; then
+-    /rescue/ln -s /cf/conf /conf
+-fi
+-
+-# Create factory default restore directory
+-/bin/mkdir -p /conf.default/
+
+-# If the default config.xml and ez-ipupdate.cache do not exist,
+-# lets populate them from the default (factory configuration)
+-# files.
+-if [ ! -f /cf/conf/config.xml ]; then
+-    echo "Copying config.xml to /cf/conf/"
+-    /rescue/cp /FreeSBIE/cf/conf/config.xml /cf/conf/
+-fi
+-if [ ! -f /conf.default/config.xml ]; then
+-    echo "Copying config.xml to /conf.default/conf/"
+-    /rescue/cp /FreeSBIE/conf.default/config.xml /conf.default/config.xml
+-fi
+-if [ ! -f /cf/conf/ez-ipupdate.cache ]; then
+-    echo "Copying ez-ipupdate.cache to /cf/conf/"
+-    /rescue/cp /FreeSBIE/cf/conf/ez-ipupdate.cache /cf/conf/ez-ipupdate.cache
++if [ ! -f /conf/config.xml ]; then
++       echo "Generating a MFS /conf partition"
++       partsize="3m"
++       device=$(mdconfig -a -t malloc -s ${partsize})
++       newfs /dev/${device} > /dev/null 2>&1
++       mount /dev/${device} /conf
++       cp /cf/conf/* /conf
++       mount_nullfs /conf /cf/conf
+ fi
+
+ # Create some needed directories
+Only in pfsense-build/customroot/mnt: cf
+diff -ur home/pfsense/freesbie/extra/customroot/scripts/pfi pfsense-build/customroot/scripts/pfi
+--- home/pfsense/freesbie/extra/customroot/scripts/pfi  Thu Sep 15 22:46:22 2005
++++ pfsense-build/customroot/scripts/pfi        Thu Nov 10 02:51:28 2005
+@@ -19,15 +19,10 @@
+ {
+       if [ -r $1/config.xml ]; then
+               echo " found!"
+-               # Now that we have found config.xml lets apply
+-               # some symlinks to /cf/ and /conf so that pfSense
+-               # can find and use the configuration files.
+-               rm -rf /cf/
+-               rm -rf /conf/
+-               mkdir /cf/
+-               ln -s $1 /cf/conf 2>/dev/null
+-               ln -s /cf/conf $1 2>/dev/null
+-               ln -s /cf/conf /conf 2>/dev/null
++               # Now that we have found config.xml lets mount
++               # the device in nullfs under /cf/conf and /conf
++               mount_nullfs $1 /cf/conf
++               mount_nullfs $1 /conf
+               return 0
+       else
+               return 1
+@@ -36,7 +31,6 @@
+
+ look_for_config_xml_config_msdos()
+ {
+-       mkdir -p /mnt/cf
+       for try_device in fd0 da0 da0s1 da1 da1s1 da2 da2s1 da3 da3s1 da4 da4s1 da5 da5s1 fd1; do
+               echo -n "Looking for config.xml on /dev/${try_device}..."
+               if [ ! -e /dev/${try_device} ]; then
+
