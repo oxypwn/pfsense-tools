@@ -468,7 +468,8 @@ copy_pfSense_tarball_to_custom_directory() {
 
 	rm -f $LOCALDIR/customroot/boot/*
 	rm -rf $LOCALDIR/customroot/cf/conf/config.xml
-	rm -rf $LOCALDIR/customroot/conf/config.xml	
+	rm -rf $LOCALDIR/customroot/conf/config.xml
+	rm -rf $LOCALDIR/customroot/conf
 	
 }
 
