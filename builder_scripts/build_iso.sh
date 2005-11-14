@@ -17,6 +17,8 @@ set -x
 # Remove staging area files
 rm -rf $LOCALDIR/customroot/*
 rm -rf $BASE_DIR/pfSense
+rm -rf $FREESBIEBASEDIR
+rm -rf $FREESBIEISODIR
 
 # Update cvs depot
 rsync -avz sullrich@216.135.66.16:/cvsroot /home/pfsense/
