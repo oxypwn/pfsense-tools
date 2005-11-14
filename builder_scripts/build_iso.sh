@@ -42,6 +42,8 @@ create_pfSense_tarball
 echo ">>> Phase copy_pfSesne_tarball_to_custom_directory"
 copy_pfSense_tarball_to_custom_directory
 
+cd /var/db/pkg && ls > $LOCALDIR/packages
+
 # Invoke FreeSBIE2 rebuild command
 cd $LOCALDIR 
 ./rebuild
