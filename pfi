@@ -19,15 +19,10 @@ get_config_xml()
 {
 	if [ -r $1/config.xml ]; then
 		echo -n "Found config.xml on $1"
-		# Now that we have found config.xml lets apply
-		# some symlinks to /cf/ and /conf so that pfSense
-		# can find and use the configuration files.
-		rm -rf /cf/
-		rm -rf /conf/
-		mkdir /cf/
-		ln -s $1 /cf/conf 2>/dev/null
-		ln -s /cf/conf $1 2>/dev/null
-		ln -s /cf/conf /conf 2>/dev/null
+		# Now that we have found config.xml lets mount
+		# the device in nullfs under /cf/conf and /conf
+		mount_nullfs $1 /cf/conf
+		mount_nullfs $1 /conf
 		echo
 		return 0
 	else
