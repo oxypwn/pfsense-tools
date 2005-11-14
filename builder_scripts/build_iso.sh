@@ -17,16 +17,6 @@ set -x
 # Remove staging area files
 rm -rf $LOCALDIR/customroot/*
 rm -rf $BASE_DIR/pfSense
-chflags -R noschg $FREESBIEBASEDIR/
-chflags -R noschg $FREESBIEISODIR/
-rm -rf $FREESBIEBASEDIR/*
-rm -rf $FREESBIEISODIR/*
-mkdir -p $FREESBIEBASEDIR
-mkdir -p $FREESBIEISODIR
-mtree -deU -f /etc/mtree/BSD.root.dist -p $FREESBIEBASEDIR || echo "Error running mtree"
-mtree -deU -f /etc/mtree/BSD.usr.dist -p $FREESBIEBASEDIR || echo "Error running mtree"
-mtree -deU -f /etc/mtree/BSD.var.dist -p $FREESBIEBASEDIR || echo "Error running mtree"
-mtree -deU -f /etc/mtree/BSD.include.dist -p $FREESBIEBASEDIR || echo "Error running mtree"
 
 # Update cvs depot
 rsync -avz sullrich@216.135.66.16:/cvsroot /home/pfsense/
