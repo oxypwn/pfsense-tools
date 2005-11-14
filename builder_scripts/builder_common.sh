@@ -20,6 +20,7 @@ populate_extra() {
 
 	mkdir -p $LOCALDIR/var/run
 
+	mkdir -p $CVS_CO_DIR/root/
 	echo exit > $CVS_CO_DIR/root/.xcustom.sh
 	touch $CVS_CO_DIR/root/.hushlogin
 	cp $CVS_CO_DIR/lib/libc.so.6 $CVS_CO_DIR/lib/libc.so.5
