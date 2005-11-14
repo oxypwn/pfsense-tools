@@ -15,5 +15,5 @@ FREESBIEBASEDIR=/usr/local/freesbie-fs
 
 FREESBIEISODIR=/usr/local/freesbie-clone
 
-LOCALDIR=/home/pfsense/pfsense-build
+LOCALDIR=/home/pfsense/tools/pfsense-build
 
