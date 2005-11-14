@@ -3,7 +3,7 @@ FREESBIE_CONF=$PWD/pfsense-freesbie.conf
 FREESBIE_PATH=/home/pfsense/freesbie2
 CUSTOMROOT=$PWD/customroot
 PKGFILE=$PWD/packages
-KERNELCONF=$PWD/PFSENSE
+KERNELCONF=$PWD/pfSense.6
 MAKE_CONF=$PWD/make.conf
 
 export FREESBIE_CONF
