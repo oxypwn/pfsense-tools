@@ -41,6 +41,9 @@ patch < /root/patches/geom_vfs.c.diff
 cd /usr/src/sbin/dhclient
 patch < /root/patches/errwarn.c.diff
 
+cd /usr/src/sys/dev/ata/
+patch < /root/patches/ata-chipset.c.diff
+
 cp /root/patches/ath_hal-20051019/freebsd/* \
 	/usr/src/sys/contrib/dev/ath/freebsd/
 
