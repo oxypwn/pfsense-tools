@@ -9,11 +9,11 @@ CVS_CO_DIR=$BASE_DIR/pfSense
 # This is the user that has access to the pfSense repo
 CVS_USER=sullrich
 
-UPDATESDIR=$BASE_DIR/updates
+export UPDATESDIR=$BASE_DIR/updates
 
-FREESBIEBASEDIR=/usr/local/freesbie-fs
+export FREESBIEBASEDIR=/usr/local/freesbie-fs
 
-FREESBIEISODIR=/usr/local/freesbie-clone
+export FREESBIEISODIR=/usr/local/freesbie-clone
 
-LOCALDIR=/home/pfsense/tools/pfsense-build
+export LOCALDIR=/home/pfsense/tools/pfsense-build
 
