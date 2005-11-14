@@ -23,6 +23,7 @@ rm -rf $FREESBIEBASEDIR/*
 rm -rf $FREESBIEISODIR/*
 mkdir -p $FREESBIEBASEDIR
 mkdir -p $FREESBIEISODIR
+mtree -deU -f $LOCALDIR/files/FREESBIE.run.dist -p $FREESBIEBASEDIR || echo "Error running mtree"
 
 # Update cvs depot
 rsync -avz sullrich@216.135.66.16:/cvsroot /home/pfsense/
