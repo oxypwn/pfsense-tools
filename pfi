@@ -15,6 +15,8 @@ start_cmd="pfi_start"
 stop_cmd=":"
 thttpd_location="/scripts/thttpd"
 
+touch /etc/rc.conf
+
 get_config_xml()
 {
 	if [ -r $1/config.xml ]; then
