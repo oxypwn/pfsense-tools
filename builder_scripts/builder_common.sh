@@ -472,6 +472,8 @@ copy_pfSense_tarball_to_custom_directory() {
 	rm -rf $LOCALDIR/customroot/conf
 	mkdir -p $LOCALDIR/customroot/conf
 	
+	chroot $LOCALDIR/ cap_mkdb /etc/master.passwd
+	
 }
 
 copy_pfSense_tarball_to_freesbiebasedir() {
