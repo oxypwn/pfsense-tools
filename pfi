@@ -33,20 +33,20 @@ get_config_xml()
 
 look_for_config_xml_config_msdos()
 {
-	mkdir -p /mnt/cf
+	mkdir -p /tmp/mnt/cf
 	for try_device in da0 da0s1 da1 da1s1 da2 da2s1 da3 da3s1 da4 da4s1 da5 da5s1 fd0 fd1; do
 		if [ ! -e /dev/${try_device} ]; then
 			return 1
 		fi
 		echo -n "Looking for config.xml on /dev/${try_device}..."
-		if mount -t msdos /dev/$try_device /mnt/cf ; then
+		if mount -t msdos /dev/$try_device /tmp/mnt/cf ; then
 			echo " /dev/$try_device ok..."
 			# Note for later that this device is capable
 			# of having config.xml on it for perm. storage
 			/bin/mkdir -p /var/db/pfi/
 			/usr/bin/touch /var/db/pfi/capable_${try_device}
 			# look for config.xml, if its found return 0
-			if get_config_xml /mnt/cf /dev/$try_device; then
+			if get_config_xml /tmp/mnt/cf /dev/$try_device; then
 			    return 0
 			fi
 		fi
@@ -96,15 +96,15 @@ look_for_pfi_config_msdos()
 			return 1;
 		fi
 		echo -n "Looking for pfi.conf on /dev/${try_device}..."
-		if mount -t msdos -o rdonly /dev/$try_device /mnt ; then
+		if mount -t msdos -o rdonly /dev/$try_device /tmp/mnt ; then
 			echo " /dev/$try_device ok..."
 			get_authorized_hosts
-			if get_pfi_config /mnt /dev/$try_device; then
-				umount /mnt
+			if get_pfi_config /tmp/mnt /dev/$try_device; then
+				umount /tmp/mnt
 				echo
 				return 0
 			fi
-			umount /mnt
+			umount /tmp/mnt
 		fi
 	done
 	echo
@@ -122,15 +122,15 @@ look_for_pfi_config_cd9660()
 			return 1
 			#( cd /dev && ./MAKEDEV ${try_device} )
 		fi
-		if mount_cd9660 /dev/$try_device /mnt ; then
+		if mount_cd9660 /dev/$try_device /tmp/mnt ; then
 			echo " /dev/$try_device ok..."
 			get_authorized_hosts
-			if get_pfi_config /mnt /dev/$try_device; then
-				umount /mnt
+			if get_pfi_config /tmp/mnt /dev/$try_device; then
+				umount /tmp/mnt
 				echo 
 				return 0
 			fi
-			umount /mnt
+			umount /tmp/mnt
 		fi
 	done
 	return 1
