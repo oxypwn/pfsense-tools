@@ -58,41 +58,13 @@ populate_extra() {
 	echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.profile
 	echo "exit" >> $CVS_CO_DIR/root/.profile
 
-	echo md                 /tmp            mfs     rw,-s16m                1 \
-		0 >> $CVS_CO_DIR/etc/fstab
-
 	# Trigger the pfSense wizzard
 	echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
-	# Compile section starts here. Use our own make.conf
-	#
-	export __MAKE_CONF=${MAKE_CONF}
-
-	# Compile various modules
-	modules="netgraph acpi ndis if_ndis padlock geom ipfw dummynet"
-	for i in $modules; do
-		cd ${SRCDIR}/sys/modules/${i}/ && \
-		  make clean && \
-		  make depend && \
-		  make all && \
-		  make install DESTDIR=$CVS_CO_DIR && \
-		  make clean
-	done
-
-	# Compile various utilities
-	utils="sbin/pfctl sbin/pflogd usr.sbin/authpf usr.sbin/watchdog usr.sbin/watchdogd"
-	for i in $utils; do
-		cd ${SRCDIR}/${i} && \
-		  make clean && \
-		  make depend && \
-		  make all && \
-		  make install DESTDIR=$CVS_CO_DIR && \
-		  make clean
-	
-	done	
-	
 	# Nuke CVS dirs
-        find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 
+	set +e
+        find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
+	set -e
 
 }
 
@@ -365,8 +337,6 @@ create_pfSense_Small_update_tarball() {
 
 # Create tarball of pfSense cvs directory
 create_pfSense_tarball() {
-	cd $LOCALDIR
-
 	rm -f $CVS_CO_DIR/boot/*
 
 	find $CVS_CO_DIR -name CVS -exec rm -rf {} \; 2>/dev/null
@@ -376,8 +346,6 @@ create_pfSense_tarball() {
 
 # Copy tarball of pfSense cvs directory to FreeSBIE custom directory
 copy_pfSense_tarball_to_custom_directory() {
-	cd $LOCALDIR
-
 	rm -rf $LOCALDIR/customroot/*
 
 	tar  xzPf /tmp/pfSense.tgz -C $LOCALDIR/customroot/

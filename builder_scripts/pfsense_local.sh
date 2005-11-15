@@ -2,11 +2,11 @@
 # operations
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
 
-export CUSTOMROOT=${CUSTOMROOT:-${BASE_DIR}/tools/builder_scripts/customroot}
-
 # This is the directory where the latest pfSense cvs co
 # is checked out to.
 export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/pfSense}
+
+export CUSTOMROOT=${CUSTOMROOT:-${CVS_CO_DIR}}
 
 # This is the user that has access to the pfSense repo
 export CVS_USER=${CVS_USER:-sullrich}
@@ -28,3 +28,4 @@ export FREESBIE_PATH=${FREESBIE_PATH:-/home/pfsense/freesbie2}
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.6}
 export MAKE_CONF=${MAKE_CONF:-$PWD/conf/make.conf}
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
+export PKGFILE=${PKGFILE:-$PWD/conf/packages}

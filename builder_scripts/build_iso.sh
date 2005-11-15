@@ -4,9 +4,7 @@
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
 
-# set -e -u		# uncomment me if you want to exit on shell errors
-
-set -x
+set -e -u		# uncomment me if you want to exit on shell errors
 
 # Suck in local vars
 . ./pfsense_local.sh
@@ -59,14 +57,13 @@ echo ">>> Phase populate_extra"
 ( populate_extra )
 echo ">>> Phase set_image_as_cdrom"
 ( set_image_as_cdrom )
-echo ">>> Phase create_pfSense_tarball"
-( create_pfSense_tarball )
-echo ">>> Phase copy_pfSesne_tarball_to_custom_directory"
-( copy_pfSense_tarball_to_custom_directory )
 
 rm -f conf/packages
+
+set +e # grep could fail
 (cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
 (cd /var/db/pkg && ls | grep cpdup) >> conf/packages
+set -e
 
 # Invoke FreeSBIE2 toolchain
 freesbie_make iso
