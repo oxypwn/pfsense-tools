@@ -60,6 +60,7 @@ populate_extra() {
 	# Nuke CVS dirs and boot/ content
 	set +e
         find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
+	[ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 	set -e
 
 }
