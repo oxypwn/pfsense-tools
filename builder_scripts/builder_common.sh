@@ -3,15 +3,9 @@
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
         
-	mkdir -p $CVS_CO_DIR/libexec
-	mkdir -p $CVS_CO_DIR/lib
-	mkdir -p $CVS_CO_DIR/bin
-	cp /lib/libedit* $CVS_CO_DIR/lib/
-	cp /bin/sh $CVS_CO_DIR/bin/
-	cp /bin/ln /bin/rm $CVS_CO_DIR/bin/
-
 	cp /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
 	cp /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
+	cp /usr/local/lib/libevent-1.1a.so.1 ${CVS_CO_DIR}/usr/local/lib/
 
 	mkdir -p $CVS_CO_DIR/var/run
 
@@ -53,9 +47,6 @@ populate_extra() {
 	# Supress extra spam when logging in
 	touch $CVS_CO_DIR/root/.hushlogin
 
-	mkdir -p $CVS_CO_DIR/usr/lib $CVS_CO_DIR/lib
-	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
-
 	# Copy devd into place
 	cp /sbin/devd $CVS_CO_DIR/sbin/
 	chmod a+rx $CVS_CO_DIR/sbin/devd
@@ -73,31 +64,11 @@ populate_extra() {
 	# Trigger the pfSense wizzard
 	echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
-	mkdir -p ${CVS_CO_DIR}/usr/local/livefs/lib/
-
-	cp /usr/lib/libcrypt.so ${CVS_CO_DIR}/usr/lib/libcrypt.so.2
-	cp /usr/lib/libm.so ${CVS_CO_DIR}/usr/lib/libm.so.3
-	cp /usr/lib/libssl.so ${CVS_CO_DIR}/usr/lib/libssl.so.3
-	cp /usr/lib/libcrypto.so ${CVS_CO_DIR}/usr/lib/libcrypto.so.3
-	cp /usr/lib/libz.so ${CVS_CO_DIR}/usr/lib/libz.so.2
-	cp /usr/lib/libc.so ${CVS_CO_DIR}/usr/lib/libc.so.5
-	cp /lib/libutil.so.5 ${CVS_CO_DIR}/lib/libutil.so.4
-	cp /usr/local/lib/libnetsnmpagent.so.7 ${CVS_CO_DIR}/usr/local/lib/
-	cp /usr/local/lib/libnetsnmphelpers.so.7 ${CVS_CO_DIR}/usr/local/lib/
-	cp /usr/local/lib/libnetsnmp.so.7 ${CVS_CO_DIR}/usr/local/lib/
-
-	cp /usr/lib/libpthread.so.1 ${CVS_CO_DIR}/usr/lib/
-	cp /usr/local/lib/libevent-1.1a.so.1 ${CVS_CO_DIR}/usr/local/lib/
-	cp /usr/local/lib/libnetsnmpmibs.so.7 ${CVS_CO_DIR}/usr/local/lib/
-
-
 	# Compile section starts here. Use our own make.conf
 	#
 	export __MAKE_CONF=${MAKE_CONF}
 
 	# Compile various modules
-	export IPFIREWALL_DEFAULT_TO_ACCEPT=yes
-	export IPV6FIREWALL_DEFAULT_TO_ACCEPT=yes
 	modules="netgraph acpi ndis if_ndis padlock geom ipfw dummynet"
 	for i in $modules; do
 		cd ${SRCDIR}/sys/modules/${i}/ && \
