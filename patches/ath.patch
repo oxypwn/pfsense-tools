@@ -1,0 +1,595 @@
+Index: if_ath.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/ath/if_ath.c,v
+retrieving revision 1.104
+diff -u -r1.104 if_ath.c
+--- if_ath.c	16 Sep 2005 10:09:23 -0000	1.104
++++ if_ath.c	28 Sep 2005 00:31:35 -0000
+@@ -806,15 +806,32 @@
+ 	KASSERT(ic->ic_opmode == IEEE80211_M_STA,
+ 		("unexpect operating mode %u", ic->ic_opmode));
+ 	if (ic->ic_state == IEEE80211_S_RUN) {
+-		/*
+-		 * Rather than go directly to scan state, try to
+-		 * reassociate first.  If that fails then the state
+-		 * machine will drop us into scanning after timing
+-		 * out waiting for a probe response.
+-		 */
+-		NET_LOCK_GIANT();
+-		ieee80211_new_state(ic, IEEE80211_S_ASSOC, -1);
+-		NET_UNLOCK_GIANT();
++		u_int64_t lastrx = sc->sc_lastrx;
++		u_int64_t tsf = ath_hal_gettsf64(sc->sc_ah);
++
++		DPRINTF(sc, ATH_DEBUG_BEACON,
++		    "%s: tsf %llu lastrx %lld (%llu) bmiss %u\n",
++		    __func__, tsf, tsf - lastrx, lastrx,
++		    ic->ic_bmisstimeout*1024);
++		/*
++		 * Workaround phantom bmiss interrupts by sanity-checking
++		 * the time of our last rx'd frame.  If it is within the
++		 * beacon miss interval then ignore the interrupt.  If it's
++		 * truly a bmiss we'll get another interrupt soon and that'll
++		 * be dispatched up for processing.
++		 */
++		if (tsf - lastrx > ic->ic_bmisstimeout*1024) {
++			/*
++			 * Rather than go directly to scan state, try to
++			 * reassociate first.  If that fails then the state
++			 * machine will drop us into scanning after timing
++			 * out waiting for a response.
++			 */
++			NET_LOCK_GIANT();
++			ieee80211_new_state(ic, IEEE80211_S_ASSOC, -1);
++			NET_UNLOCK_GIANT();
++		} else
++			sc->sc_stats.ast_bmiss_phantom++;
+ 	}
+ }
+ 
+@@ -828,7 +845,7 @@
+ 		CHANNEL_B,		/* IEEE80211_MODE_11B */
+ 		CHANNEL_PUREG,		/* IEEE80211_MODE_11G */
+ 		0,			/* IEEE80211_MODE_FH */
+-		CHANNEL_T,		/* IEEE80211_MODE_TURBO_A */
++		CHANNEL_108A,		/* IEEE80211_MODE_TURBO_A */
+ 		CHANNEL_108G		/* IEEE80211_MODE_TURBO_G */
+ 	};
+ 	enum ieee80211_phymode mode = ieee80211_chan2mode(ic, chan);
+@@ -883,6 +900,8 @@
+ 	 * state cached in the driver.
+ 	 */
+ 	sc->sc_diversity = ath_hal_getdiversity(ah);
++	sc->sc_calinterval = 1;
++	sc->sc_caltries = 0;
+ 
+ 	/*
+ 	 * Setup the hardware after reset: the key cache
+@@ -995,7 +1014,7 @@
+ 		 * (and system).  This varies by chip and is mostly an
+ 		 * issue with newer parts that go to sleep more quickly.
+ 		 */
+-		ath_hal_setpower(sc->sc_ah, HAL_PM_FULL_SLEEP, 0);
++		ath_hal_setpower(sc->sc_ah, HAL_PM_FULL_SLEEP);
+ 	}
+ 	ATH_UNLOCK(sc);
+ }
+@@ -1033,6 +1052,8 @@
+ 			__func__, status);
+ 	ath_update_txpow(sc);		/* update tx power state */
+ 	sc->sc_diversity = ath_hal_getdiversity(ah);
++	sc->sc_calinterval = 1;
++	sc->sc_caltries = 0;
+ 	if (ath_startrecv(sc) != 0)	/* restart recv */
+ 		if_printf(ifp, "%s: unable to start recv logic\n", __func__);
+ 	/*
+@@ -1073,7 +1094,7 @@
+ 			STAILQ_REMOVE_HEAD(&sc->sc_txbuf, bf_list);
+ 		ATH_TXBUF_UNLOCK(sc);
+ 		if (bf == NULL) {
+-			DPRINTF(sc, ATH_DEBUG_ANY, "%s: out of xmit buffers\n",
++			DPRINTF(sc, ATH_DEBUG_XMIT, "%s: out of xmit buffers\n",
+ 				__func__);
+ 			sc->sc_stats.ast_tx_qstop++;
+ 			ifp->if_drv_flags |= IFF_DRV_OACTIVE;
+@@ -1089,7 +1110,7 @@
+ 			 * No data frames go out unless we're associated.
+ 			 */
+ 			if (ic->ic_state != IEEE80211_S_RUN) {
+-				DPRINTF(sc, ATH_DEBUG_ANY,
++				DPRINTF(sc, ATH_DEBUG_XMIT,
+ 					"%s: ignore data packet, state %u\n",
+ 					__func__, ic->ic_state);
+ 				sc->sc_stats.ast_tx_discard++;
+@@ -1147,7 +1168,7 @@
+ 			 */
+ 			m = ieee80211_encap(ic, m, ni);
+ 			if (m == NULL) {
+-				DPRINTF(sc, ATH_DEBUG_ANY,
++				DPRINTF(sc, ATH_DEBUG_XMIT,
+ 					"%s: encapsulation failure\n",
+ 					__func__);
+ 				sc->sc_stats.ast_tx_encap++;
+@@ -2631,13 +2652,14 @@
+ 	struct mbuf *m;
+ 	struct ieee80211_node *ni;
+ 	struct ath_node *an;
+-	int len, type;
++	int len, type, ngood;
+ 	u_int phyerr;
+ 	HAL_STATUS status;
+ 
+ 	NET_LOCK_GIANT();		/* XXX */
+ 
+ 	DPRINTF(sc, ATH_DEBUG_RX_PROC, "%s: pending %u\n", __func__, npending);
++	ngood = 0;
+ 	do {
+ 		bf = STAILQ_FIRST(&sc->sc_rxbuf);
+ 		if (bf == NULL) {		/* NB: shouldn't happen */
+@@ -2652,7 +2674,7 @@
+ 		m = bf->bf_m;
+ 		if (m == NULL) {		/* NB: shouldn't happen */
+ 			if_printf(ifp, "%s: no mbuf!\n", __func__);
+-			continue;
++			break;
+ 		}
+ 		/* XXX sync descriptor memory */
+ 		/*
+@@ -2854,12 +2876,22 @@
+ 			} else if (ticks - sc->sc_ledevent >= sc->sc_ledidle)
+ 				ath_led_event(sc, ATH_LED_POLL);
+ 		}
++		/*
++		 * Arrange to update the last rx timestamp only for
++		 * frames from our ap when operating in station mode.
++		 * This assumes the rx key is always setup when associated.
++		 */
++		if (ic->ic_opmode == IEEE80211_M_STA &&
++		    ds->ds_rxstat.rs_keyix != HAL_RXKEYIX_INVALID)
++			ngood++;
+ rx_next:
+ 		STAILQ_INSERT_TAIL(&sc->sc_rxbuf, bf, bf_list);
+ 	} while (ath_rxbuf_init(sc, bf) == 0);
+ 
+ 	/* rx signal state monitoring */
+-	ath_hal_rxmonitor(ah, &ATH_NODE(ic->ic_bss)->an_halstats);
++	ath_hal_rxmonitor(ah, &ATH_NODE(ic->ic_bss)->an_halstats, &sc->sc_curchan);
++	if (ngood)
++		sc->sc_lastrx = ath_hal_gettsf64(ah);
+ 
+ 	NET_UNLOCK_GIANT();		/* XXX */
+ #undef PA2DESC
+@@ -3599,7 +3631,7 @@
+ /*
+  * Process completed xmit descriptors from the specified queue.
+  */
+-static void
++static int
+ ath_tx_processq(struct ath_softc *sc, struct ath_txq *txq)
+ {
+ 	struct ath_hal *ah = sc->sc_ah;
+@@ -3608,13 +3640,14 @@
+ 	struct ath_desc *ds, *ds0;
+ 	struct ieee80211_node *ni;
+ 	struct ath_node *an;
+-	int sr, lr, pri;
++	int sr, lr, pri, nacked;
+ 	HAL_STATUS status;
+ 
+ 	DPRINTF(sc, ATH_DEBUG_TX_PROC, "%s: tx queue %u head %p link %p\n",
+ 		__func__, txq->axq_qnum,
+ 		(caddr_t)(uintptr_t) ath_hal_gettxbuf(sc->sc_ah, txq->axq_qnum),
+ 		txq->axq_link);
++	nacked = 0;
+ 	for (;;) {
+ 		ATH_TXQ_LOCK(txq);
+ 		txq->axq_intrcnt = 0;	/* reset periodic desc intr count */
+@@ -3675,8 +3708,15 @@
+ 			 * Hand the descriptor to the rate control algorithm.
+ 			 */
+ 			if ((ds->ds_txstat.ts_status & HAL_TXERR_FILT) == 0 &&
+-			    (bf->bf_flags & HAL_TXDESC_NOACK) == 0)
++			    (bf->bf_flags & HAL_TXDESC_NOACK) == 0) {
++				/*
++				 * If frame was ack'd update the last rx time
++				 * used to workaround phantom bmiss interrupts.
++				 */
++				if (ds->ds_txstat.ts_status == 0)
++					nacked++;
+ 				ath_rate_tx_complete(sc, an, ds, ds0);
++			}
+ 			/*
+ 			 * Reclaim reference to node.
+ 			 *
+@@ -3697,6 +3737,7 @@
+ 		STAILQ_INSERT_TAIL(&sc->sc_txbuf, bf, bf_list);
+ 		ATH_TXBUF_UNLOCK(sc);
+ 	}
++	return nacked;
+ }
+ 
+ /*
+@@ -3709,7 +3750,8 @@
+ 	struct ath_softc *sc = arg;
+ 	struct ifnet *ifp = sc->sc_ifp;
+ 
+-	ath_tx_processq(sc, &sc->sc_txq[0]);
++	if (ath_tx_processq(sc, &sc->sc_txq[0]))
++		sc->sc_lastrx = ath_hal_gettsf64(sc->sc_ah);
+ 	ath_tx_processq(sc, sc->sc_cabq);
+ 	ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
+ 	sc->sc_tx_timer = 0;
+@@ -3729,14 +3771,17 @@
+ {
+ 	struct ath_softc *sc = arg;
+ 	struct ifnet *ifp = sc->sc_ifp;
++	int nacked;
+ 
+ 	/*
+ 	 * Process each active queue.
+ 	 */
+-	ath_tx_processq(sc, &sc->sc_txq[0]);
+-	ath_tx_processq(sc, &sc->sc_txq[1]);
+-	ath_tx_processq(sc, &sc->sc_txq[2]);
+-	ath_tx_processq(sc, &sc->sc_txq[3]);
++	nacked = ath_tx_processq(sc, &sc->sc_txq[0])
++	       + ath_tx_processq(sc, &sc->sc_txq[1])
++	       + ath_tx_processq(sc, &sc->sc_txq[2])
++	       + ath_tx_processq(sc, &sc->sc_txq[3]);
++	if (nacked)
++		sc->sc_lastrx = ath_hal_gettsf64(sc->sc_ah);
+ 	ath_tx_processq(sc, sc->sc_cabq);
+ 
+ 	ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
+@@ -3756,15 +3801,18 @@
+ {
+ 	struct ath_softc *sc = arg;
+ 	struct ifnet *ifp = sc->sc_ifp;
+-	int i;
++	int i, nacked;
+ 
+ 	/*
+ 	 * Process each active queue.
+ 	 */
+ 	/* XXX faster to read ISR_S0_S and ISR_S1_S to determine q's? */
++	nacked = 0;
+ 	for (i = 0; i < HAL_NUM_TX_QUEUES; i++)
+ 		if (ATH_TXQ_SETUP(sc, i))
+-			ath_tx_processq(sc, &sc->sc_txq[i]);
++			nacked += ath_tx_processq(sc, &sc->sc_txq[i]);
++	if (nacked)
++		sc->sc_lastrx = ath_hal_gettsf64(sc->sc_ah);
+ 
+ 	ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
+ 	sc->sc_tx_timer = 0;
+@@ -3980,10 +4028,11 @@
+ 
+ 	DPRINTF(sc, ATH_DEBUG_RESET, "%s: %u (%u MHz) -> %u (%u MHz)\n",
+ 	    __func__,
+-	    ath_hal_mhz2ieee(sc->sc_curchan.channel,
++	    ath_hal_mhz2ieee(ah, sc->sc_curchan.channel,
+ 		sc->sc_curchan.channelFlags),
+ 	    	sc->sc_curchan.channel,
+-	    ath_hal_mhz2ieee(hchan.channel, hchan.channelFlags), hchan.channel);
++	    ath_hal_mhz2ieee(ah, hchan.channel, hchan.channelFlags),
++		hchan.channel);
+ 	if (hchan.channel != sc->sc_curchan.channel ||
+ 	    hchan.channelFlags != sc->sc_curchan.channelFlags) {
+ 		HAL_STATUS status;
+@@ -3998,21 +4047,24 @@
+ 		ath_draintxq(sc);		/* clear pending tx frames */
+ 		ath_stoprecv(sc);		/* turn off frame recv */
+ 		if (!ath_hal_reset(ah, ic->ic_opmode, &hchan, AH_TRUE, &status)) {
+-			if_printf(ic->ic_ifp, "ath_chan_set: unable to reset "
+-				"channel %u (%u Mhz)\n",
+-				ieee80211_chan2ieee(ic, chan), chan->ic_freq);
++			if_printf(ic->ic_ifp, "%s: unable to reset "
++				"channel %u (%u Mhz, flags 0x%x)\n", __func__,
++				ieee80211_chan2ieee(ic, chan),
++				chan->ic_freq, chan->ic_flags);
+ 			return EIO;
+ 		}
+ 		sc->sc_curchan = hchan;
+ 		ath_update_txpow(sc);		/* update tx power state */
+ 		sc->sc_diversity = ath_hal_getdiversity(ah);
++		sc->sc_calinterval = 1;
++		sc->sc_caltries = 0;
+ 
+ 		/*
+ 		 * Re-enable rx framework.
+ 		 */
+ 		if (ath_startrecv(sc) != 0) {
+ 			if_printf(ic->ic_ifp,
+-				"ath_chan_set: unable to restart recv logic\n");
++				"%s: unable to restart recv logic\n", __func__);
+ 			return EIO;
+ 		}
+ 
+@@ -4050,27 +4102,50 @@
+ {
+ 	struct ath_softc *sc = arg;
+ 	struct ath_hal *ah = sc->sc_ah;
++	HAL_BOOL iqCalDone;
+ 
+ 	sc->sc_stats.ast_per_cal++;
+ 
+-	DPRINTF(sc, ATH_DEBUG_CALIBRATE, "%s: channel %u/%x\n",
+-		__func__, sc->sc_curchan.channel, sc->sc_curchan.channelFlags);
+-
+ 	if (ath_hal_getrfgain(ah) == HAL_RFGAIN_NEED_CHANGE) {
+ 		/*
+ 		 * Rfgain is out of bounds, reset the chip
+ 		 * to load new gain values.
+ 		 */
++		DPRINTF(sc, ATH_DEBUG_CALIBRATE,
++			"%s: rfgain change\n", __func__);
+ 		sc->sc_stats.ast_per_rfgain++;
+ 		ath_reset(sc->sc_ifp);
+ 	}
+-	if (!ath_hal_calibrate(ah, &sc->sc_curchan)) {
++	if (!ath_hal_calibrate(ah, &sc->sc_curchan, &iqCalDone)) {
+ 		DPRINTF(sc, ATH_DEBUG_ANY,
+ 			"%s: calibration of channel %u failed\n",
+ 			__func__, sc->sc_curchan.channel);
+ 		sc->sc_stats.ast_per_calfail++;
+ 	}
+-	callout_reset(&sc->sc_cal_ch, ath_calinterval * hz, ath_calibrate, sc);
++	/*
++	 * Poll more frequently when the IQ calibration is in
++	 * progress to speedup loading the final settings. 
++	 * We temper this aggressive polling with an exponential
++	 * back off after 4 tries up to ath_calinterval.
++	 */
++	if (iqCalDone || sc->sc_calinterval >= ath_calinterval) {
++		sc->sc_caltries = 0;
++		sc->sc_calinterval = ath_calinterval;
++	} else if (sc->sc_caltries > 4) {
++		sc->sc_caltries = 0;
++		sc->sc_calinterval <<= 1;
++		if (sc->sc_calinterval > ath_calinterval)
++			sc->sc_calinterval = ath_calinterval;
++	}
++	KASSERT(0 < sc->sc_calinterval && sc->sc_calinterval <= ath_calinterval,
++		("bad calibration interval %u", sc->sc_calinterval));
++
++	DPRINTF(sc, ATH_DEBUG_CALIBRATE,
++		"%s: next +%u (%siqCalDone tries %u)\n", __func__,
++		sc->sc_calinterval, iqCalDone ? "" : "!", sc->sc_caltries);
++	sc->sc_caltries++;
++	callout_reset(&sc->sc_cal_ch, sc->sc_calinterval * hz,
++		ath_calibrate, sc);
+ }
+ 
+ static int
+@@ -4203,7 +4278,7 @@
+ 	 */
+ 	if (nstate == IEEE80211_S_RUN) {
+ 		/* start periodic recalibration timer */
+-		callout_reset(&sc->sc_cal_ch, ath_calinterval * hz,
++		callout_reset(&sc->sc_cal_ch, sc->sc_calinterval * hz,
+ 			ath_calibrate, sc);
+ 	} else if (nstate == IEEE80211_S_SCAN) {
+ 		/* start ap/neighbor scan timer */
+@@ -4270,6 +4345,7 @@
+ ath_getchannels(struct ath_softc *sc, u_int cc,
+ 	HAL_BOOL outdoor, HAL_BOOL xchanmode)
+ {
++#define	COMPAT	(CHANNEL_ALL_NOTURBO|CHANNEL_PASSIVE)
+ 	struct ieee80211com *ic = &sc->sc_ic;
+ 	struct ifnet *ifp = sc->sc_ifp;
+ 	struct ath_hal *ah = sc->sc_ah;
+@@ -4283,6 +4359,7 @@
+ 		return ENOMEM;
+ 	}
+ 	if (!ath_hal_init_channels(ah, chans, IEEE80211_CHAN_MAX, &nchan,
++	    NULL, 0, NULL,
+ 	    cc, HAL_MODE_ALL, outdoor, xchanmode)) {
+ 		u_int32_t rd;
+ 
+@@ -4299,23 +4376,42 @@
+ 	 */
+ 	for (i = 0; i < nchan; i++) {
+ 		HAL_CHANNEL *c = &chans[i];
+-		ix = ath_hal_mhz2ieee(c->channel, c->channelFlags);
++		u_int16_t flags;
++
++		ix = ath_hal_mhz2ieee(ah, c->channel, c->channelFlags);
+ 		if (ix > IEEE80211_CHAN_MAX) {
+-			if_printf(ifp, "bad hal channel %u (%u/%x) ignored\n",
++			if_printf(ifp, "bad hal channel %d (%u/%x) ignored\n",
+ 				ix, c->channel, c->channelFlags);
+ 			continue;
+ 		}
+-		/* NB: flags are known to be compatible */
++		if (ix < 0) {
++			/* XXX can't handle stuff <2400 right now */
++			if (bootverbose)
++				if_printf(ifp, "hal channel %d (%u/%x) "
++				    "cannot be handled; ignored\n",
++				    ix, c->channel, c->channelFlags);
++			continue;
++		}
++		/*
++		 * Calculate net80211 flags; most are compatible
++		 * but some need massaging.  Note the static turbo
++		 * conversion can be removed once net80211 is updated
++		 * to understand static vs. dynamic turbo.
++		 */
++		flags = c->channelFlags & COMPAT;
++		if (c->channelFlags & CHANNEL_STURBO)
++			flags |= IEEE80211_CHAN_TURBO;
+ 		if (ic->ic_channels[ix].ic_freq == 0) {
+ 			ic->ic_channels[ix].ic_freq = c->channel;
+-			ic->ic_channels[ix].ic_flags = c->channelFlags;
++			ic->ic_channels[ix].ic_flags = flags;
+ 		} else {
+ 			/* channels overlap; e.g. 11g and 11b */
+-			ic->ic_channels[ix].ic_flags |= c->channelFlags;
++			ic->ic_channels[ix].ic_flags |= flags;
+ 		}
+ 	}
+ 	free(chans, M_TEMP);
+ 	return 0;
++#undef COMPAT
+ }
+ 
+ static void
+@@ -4842,6 +4938,33 @@
+ 	return !ath_hal_settpc(sc->sc_ah, tpc) ? EINVAL : 0;
+ }
+ 
++static int
++ath_sysctl_rfkill(SYSCTL_HANDLER_ARGS)
++{
++	struct ath_softc *sc = arg1;
++	u_int rfkill = ath_hal_getrfkill(sc->sc_ah);
++	int error;
++
++	error = sysctl_handle_int(oidp, &rfkill, 0, req);
++	if (error || !req->newptr)
++		return error;
++	return !ath_hal_setrfkill(sc->sc_ah, rfkill) ? EINVAL : 0;
++}
++
++static int
++ath_sysctl_rfsilent(SYSCTL_HANDLER_ARGS)
++{
++	struct ath_softc *sc = arg1;
++	u_int rfsilent;
++	int error;
++
++	ath_hal_getrfsilent(sc->sc_ah, &rfsilent);
++	error = sysctl_handle_int(oidp, &rfsilent, 0, req);
++	if (error || !req->newptr)
++		return error;
++	return !ath_hal_setrfsilent(sc->sc_ah, rfsilent) ? EINVAL : 0;
++}
++
+ static void
+ ath_sysctlattach(struct ath_softc *sc)
+ {
+@@ -4907,6 +5030,14 @@
+ 		SYSCTL_ADD_PROC(ctx, SYSCTL_CHILDREN(tree), OID_AUTO,
+ 			"tpc", CTLTYPE_INT | CTLFLAG_RW, sc, 0,
+ 			ath_sysctl_tpc, "I", "enable/disable per-packet TPC");
++	if (ath_hal_hasrfsilent(ah)) {
++		SYSCTL_ADD_PROC(ctx, SYSCTL_CHILDREN(tree), OID_AUTO,
++			"rfsilent", CTLTYPE_INT | CTLFLAG_RW, sc, 0,
++			ath_sysctl_rfsilent, "I", "h/w RF silent config");
++		SYSCTL_ADD_PROC(ctx, SYSCTL_CHILDREN(tree), OID_AUTO,
++			"rfkill", CTLTYPE_INT | CTLFLAG_RW, sc, 0,
++			ath_sysctl_rfkill, "I", "enable/disable RF kill switch");
++	}
+ }
+ 
+ static void
+Index: if_athioctl.h
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/ath/if_athioctl.h,v
+retrieving revision 1.10
+diff -u -r1.10 if_athioctl.h
+--- if_athioctl.h	30 Mar 2005 20:13:08 -0000	1.10
++++ if_athioctl.h	27 Sep 2005 16:16:20 -0000
+@@ -46,6 +46,7 @@
+ 	u_int32_t	ast_watchdog;	/* device reset by watchdog */
+ 	u_int32_t	ast_hardware;	/* fatal hardware error interrupts */
+ 	u_int32_t	ast_bmiss;	/* beacon miss interrupts */
++	u_int32_t	ast_bmiss_phantom;/* beacon miss interrupts */
+ 	u_int32_t	ast_bstuck;	/* beacon stuck interrupts */
+ 	u_int32_t	ast_rxorn;	/* rx overrun interrupts */
+ 	u_int32_t	ast_rxeol;	/* rx eol interrupts */
+@@ -105,6 +106,7 @@
+ 	u_int32_t	ast_ant_txswitch;/* tx antenna switches */
+ 	u_int32_t	ast_ant_rx[8];	/* rx frames with antenna */
+ 	u_int32_t	ast_ant_tx[8];	/* tx frames with antenna */
++	u_int32_t	ast_pad[32];
+ };
+ 
+ #define	SIOCGATHSTATS	_IOWR('i', 137, struct ifreq)
+Index: if_athvar.h
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/ath/if_athvar.h,v
+retrieving revision 1.29
+diff -u -r1.29 if_athvar.h
+--- if_athvar.h	8 Aug 2005 18:46:36 -0000	1.29
++++ if_athvar.h	27 Sep 2005 15:12:41 -0000
+@@ -255,6 +255,7 @@
+ 	struct task		sc_rxorntask;	/* rxorn int processing */
+ 	u_int8_t		sc_defant;	/* current default antenna */
+ 	u_int8_t		sc_rxotherant;	/* rx's on non-default antenna*/
++	u_int64_t		sc_lastrx;	/* tsf of last rx'd frame */
+ 
+ 	struct ath_descdma	sc_txdma;	/* TX descriptors */
+ 	ath_bufhead		sc_txbuf;	/* transmit buffer */
+@@ -282,6 +283,8 @@
+ 	} sc_updateslot;			/* slot time update fsm */
+ 
+ 	struct callout		sc_cal_ch;	/* callout handle for cals */
++	int			sc_calinterval;	/* current polling interval */
++	int			sc_caltries;	/* cals at current interval */
+ 	struct callout		sc_scan_ch;	/* callout handle for scan */
+ };
+ #define	sc_tx_th		u_tx_rt.th
+@@ -336,8 +339,8 @@
+ 	((*(_ah)->ah_getPendingInterrupts)((_ah), (_pmask)))
+ #define	ath_hal_updatetxtriglevel(_ah, _inc) \
+ 	((*(_ah)->ah_updateTxTrigLevel)((_ah), (_inc)))
+-#define	ath_hal_setpower(_ah, _mode, _sleepduration) \
+-	((*(_ah)->ah_setPowerMode)((_ah), (_mode), AH_TRUE, (_sleepduration)))
++#define	ath_hal_setpower(_ah, _mode) \
++	((*(_ah)->ah_setPowerMode)((_ah), (_mode), AH_TRUE))
+ #define	ath_hal_keycachesize(_ah) \
+ 	((*(_ah)->ah_getKeyCacheSize)((_ah)))
+ #define	ath_hal_keyreset(_ah, _ix) \
+@@ -378,8 +381,8 @@
+ 	((*(_ah)->ah_startTxDma)((_ah), (_q)))
+ #define	ath_hal_setchannel(_ah, _chan) \
+ 	((*(_ah)->ah_setChannel)((_ah), (_chan)))
+-#define	ath_hal_calibrate(_ah, _chan) \
+-	((*(_ah)->ah_perCalibration)((_ah), (_chan)))
++#define	ath_hal_calibrate(_ah, _chan, _iqcal) \
++	((*(_ah)->ah_perCalibration)((_ah), (_chan), (_iqcal)))
+ #define	ath_hal_setledstate(_ah, _state) \
+ 	((*(_ah)->ah_setLedState)((_ah), (_state)))
+ #define	ath_hal_beaconinit(_ah, _nextb, _bperiod) \
+@@ -421,8 +424,8 @@
+ 	((*(_ah)->ah_getDefAntenna)((_ah)))
+ #define	ath_hal_setdefantenna(_ah, _ant) \
+ 	((*(_ah)->ah_setDefAntenna)((_ah), (_ant)))
+-#define	ath_hal_rxmonitor(_ah, _arg) \
+-	((*(_ah)->ah_rxMonitor)((_ah), (_arg)))
++#define	ath_hal_rxmonitor(_ah, _arg, _chan) \
++	((*(_ah)->ah_rxMonitor)((_ah), (_arg), (_chan)))
+ #define	ath_hal_mibevent(_ah, _stats) \
+ 	((*(_ah)->ah_procMibEvent)((_ah), (_stats)))
+ #define	ath_hal_setslottime(_ah, _us) \
+@@ -493,17 +496,27 @@
+ #else
+ #define	ath_hal_getmcastkeysearch(_ah)	0
+ #endif
++#define	ath_hal_hasrfsilent(_ah) \
++	(ath_hal_getcapability(_ah, HAL_CAP_RFSILENT, 0, NULL) == HAL_OK)
++#define	ath_hal_getrfkill(_ah) \
++	(ath_hal_getcapability(_ah, HAL_CAP_RFSILENT, 1, NULL) == HAL_OK)
++#define	ath_hal_setrfkill(_ah, _onoff) \
++	ath_hal_setcapability(_ah, HAL_CAP_RFSILENT, 1, _onoff, NULL)
++#define	ath_hal_getrfsilent(_ah, _prfsilent) \
++	(ath_hal_getcapability(_ah, HAL_CAP_RFSILENT, 2, _prfsilent) == HAL_OK)
++#define	ath_hal_setrfsilent(_ah, _rfsilent) \
++	ath_hal_setcapability(_ah, HAL_CAP_RFSILENT, 2, _rfsilent, NULL)
+ 
+ #define	ath_hal_setuprxdesc(_ah, _ds, _size, _intreq) \
+ 	((*(_ah)->ah_setupRxDesc)((_ah), (_ds), (_size), (_intreq)))
+ #define	ath_hal_rxprocdesc(_ah, _ds, _dspa, _dsnext) \
+-	((*(_ah)->ah_procRxDesc)((_ah), (_ds), (_dspa), (_dsnext)))
++	((*(_ah)->ah_procRxDesc)((_ah), (_ds), (_dspa), (_dsnext), 0))
+ #define	ath_hal_setuptxdesc(_ah, _ds, _plen, _hlen, _atype, _txpow, \
+ 		_txr0, _txtr0, _keyix, _ant, _flags, \
+ 		_rtsrate, _rtsdura) \
+ 	((*(_ah)->ah_setupTxDesc)((_ah), (_ds), (_plen), (_hlen), (_atype), \
+ 		(_txpow), (_txr0), (_txtr0), (_keyix), (_ant), \
+-		(_flags), (_rtsrate), (_rtsdura)))
++		(_flags), (_rtsrate), (_rtsdura), 0, 0, 0))
+ #define	ath_hal_setupxtxdesc(_ah, _ds, \
+ 		_txr1, _txtr1, _txr2, _txtr2, _txr3, _txtr3) \
+ 	((*(_ah)->ah_setupXTxDesc)((_ah), (_ds), \

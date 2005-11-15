@@ -1,0 +1,11 @@
+--- if_re.c.orig	Fri Oct  7 23:37:58 2005
++++ if_re.c	Fri Oct  7 23:38:06 2005
+@@ -2283,7 +2283,7 @@
+ 	struct rl_softc		*sc = ifp->if_softc;
+ 	struct ifreq		*ifr = (struct ifreq *) data;
+ 	struct mii_data		*mii;
+-	int			error;
++	int			error=0;
+ 
+ 	switch (command) {
+ 	case SIOCSIFMTU:

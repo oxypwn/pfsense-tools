@@ -1,0 +1,10 @@
+# $FreeBSD$
+
+.PATH: ${.CURDIR}/../../crypto/via
+
+KMOD=	padlock
+SRCS=	padlock.c
+CFLAGS+=-DINVARIANTS -DINVARIANT_SUPPORT
+
+.include <bsd.kmod.mk>
+

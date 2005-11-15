@@ -1,0 +1,18 @@
+Index: pf_ioctl.c
+===================================================================
+RCS file: /cvs/src/sys/net/pf_ioctl.c,v
+retrieving revision 1.152
+diff -u -r1.152 pf_ioctl.c
+--- pf_ioctl.c  5 Aug 2005 09:03:19 -0000       1.152
++++ pf_ioctl.c  5 Aug 2005 11:21:40 -0000
+@@ -2195,6 +2195,10 @@
+       case DIOCADDADDR: {
+               struct pfioc_pooladdr   *pp = (struct pfioc_pooladdr *)addr;
+
++               if(pp->ticket != ticket_pabuf) {
++                       error = EBUSY;
++                       break;
++               }
+ #ifndef INET
+               if (pp->af == AF_INET) {
+                       error = EAFNOSUPPORT;

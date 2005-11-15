@@ -1,0 +1,35 @@
+Index: storage.lua
+===================================================================
+RCS file: /usr/local/cvsroot/installer/src/backend/lua/lib/storage.lua,v
+retrieving revision 1.176
+diff -u -r1.176 storage.lua
+--- storage.lua	2 Sep 2005 03:01:15 -0000	1.176
++++ storage.lua	14 Sep 2005 23:17:28 -0000
+@@ -1038,6 +1038,27 @@
+ 			tag = self
+ 		    }
+ 		)
++
++		-- change to boot1
++		cmds:add("${root}${YES} | ${root}${FDISK} -B -b /boot/boot1 " ..
++		    self:get_raw_device_name())
++
++		-- backup boot loader command for replay 
++		-- by upgrade scritps
++		cmds:add("echo \"/usr/bin/yes | /sbin/fdisk -B " ..
++		    self:get_raw_device_name() ..
++		    "\" > /tmp/init_bootloader.sh")
++
++		-- set active partition
++		cmds:add("${root}${YES} | ${root}${FDISK} -a " ..
++		    self:get_raw_device_name())
++
++		-- backup set active partition for replay
++		-- by upgrade scripts
++		cmds:add("echo \"/sbin/fdisk -a " ..
++		self:get_raw_device_name() ..
++                    "\" >> /tmp/init_bootloader.sh")
++
+ 	end
+ 
+ 	--

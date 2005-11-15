@@ -1,0 +1,56 @@
+--- errwarn.c.orig	Sun Nov 13 21:21:08 2005
++++ errwarn.c	Sun Nov 13 21:21:22 2005
+@@ -68,9 +68,7 @@
+ 	vsnprintf(mbuf, sizeof(mbuf), fbuf, list);
+ 	va_end(list);
+ 
+-#ifndef DEBUG
+ 	syslog(log_priority | LOG_ERR, "%s", mbuf);
+-#endif
+ 
+ 	/* Also log it to stderr? */
+ 	if (log_perror) {
+@@ -100,9 +98,7 @@
+ 	vsnprintf(mbuf, sizeof(mbuf), fbuf, list);
+ 	va_end(list);
+ 
+-#ifndef DEBUG
+ 	syslog(log_priority | LOG_ERR, "%s", mbuf);
+-#endif
+ 
+ 	if (log_perror) {
+ 		write(2, mbuf, strlen(mbuf));
+@@ -126,9 +122,7 @@
+ 	vsnprintf(mbuf, sizeof(mbuf), fbuf, list);
+ 	va_end(list);
+ 
+-#ifndef DEBUG
+ 	syslog(log_priority | LOG_INFO, "%s", mbuf);
+-#endif
+ 
+ 	if (log_perror) {
+ 		write(2, mbuf, strlen(mbuf));
+@@ -152,9 +146,7 @@
+ 	vsnprintf(mbuf, sizeof(mbuf), fbuf, list);
+ 	va_end(list);
+ 
+-#ifndef DEBUG
+ 	syslog(log_priority | LOG_DEBUG, "%s", mbuf);
+-#endif
+ 
+ 	if (log_perror) {
+ 		write(2, mbuf, strlen(mbuf));
+@@ -214,13 +206,11 @@
+ 	vsnprintf(mbuf, sizeof(mbuf), fbuf, list);
+ 	va_end(list);
+ 
+-#ifndef DEBUG
+ 	syslog(log_priority | LOG_ERR, "%s", mbuf);
+ 	syslog(log_priority | LOG_ERR, "%s", token_line);
+ 	if (lexline < 81)
+ 		syslog(log_priority | LOG_ERR,
+ 		    "%s^", &spaces[sizeof(spaces) - lexchar]);
+-#endif
+ 
+ 	if (log_perror) {
+ 		write(2, mbuf, strlen(mbuf));

@@ -1,0 +1,40 @@
+--- ng_ppp.c.orig	Sun Jul 10 20:29:26 2005
++++ ng_ppp.c	Sun Jul 10 20:32:40 2005
+@@ -749,7 +749,11 @@
+ 	case HOOK_INDEX_VJC_VJIP:
+ 		if (priv->conf.enableCompression
+ 		    && priv->hooks[HOOK_INDEX_COMPRESS] != NULL) {
+-			if ((m = ng_ppp_addproto(m, proto, 0)) == NULL) {
++			if ((m = ng_ppp_addproto(m, proto,
++			/* Get the PFC enable from the first link (RFC1990) */
++			    priv->links[priv->activeLinks[0]]
++			    .conf.enableProtoComp
++			    )) == NULL) {
+ 				NGI_M(item) = NULL;
+ 				NG_FREE_ITEM(item);
+ 				return (ENOBUFS);
+@@ -762,7 +766,11 @@
+ 	case HOOK_INDEX_COMPRESS:
+ 		if (priv->conf.enableEncryption
+ 		    && priv->hooks[HOOK_INDEX_ENCRYPT] != NULL) {
+-			if ((m = ng_ppp_addproto(m, proto, 1)) == NULL) {
++			if ((m = ng_ppp_addproto(m, proto,
++			/* Get the PFC enable from the first link (RFC1990) */
++			    priv->links[priv->activeLinks[0]]
++			    .conf.enableProtoComp
++			    )) == NULL) {
+ 				NGI_M(item) = NULL;
+ 				NG_FREE_ITEM(item);
+ 				return (ENOBUFS);
+@@ -994,8 +1002,9 @@
+ 
+ 	/* Prepend protocol number, possibly compressed */
+ 	if ((m = ng_ppp_addproto(m, proto,
+-	    linkNum == NG_PPP_BUNDLE_LINKNUM
+-	      || link->conf.enableProtoComp)) == NULL) {
++	    /* On a bundle, get the PFC enable from the first link (RFC1990) */
++	    (link ? link
++	    : &priv->links[priv->activeLinks[0]])->conf.enableProtoComp)) == NULL) {
+ 		NG_FREE_ITEM(item);
+ 		return (ENOBUFS);
+ 	}

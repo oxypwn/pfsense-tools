@@ -1,0 +1,17 @@
+--- errwarn.c	Sat Sep 10 17:01:16 2005
++++ errwarn.c.new	Fri Nov 11 23:09:03 2005
+@@ -68,9 +68,12 @@
+ 	vsnprintf(mbuf, sizeof(mbuf), fbuf, list);
+ 	va_end(list);
+ 
+-#ifndef DEBUG
+ 	syslog(log_priority | LOG_ERR, "%s", mbuf);
+-#endif
++
++	if(sizeof(mbuf) == 0) {
++		syslog(LOG_CRIT, "error() called with no error string.  ignoring.");
++		return;
++	}
+ 
+ 	/* Also log it to stderr? */
+ 	if (log_perror) {

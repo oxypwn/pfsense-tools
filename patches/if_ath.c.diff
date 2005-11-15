@@ -1,0 +1,11 @@
+--- /usr/src/sys/dev/ath/if_ath.c.orig	Fri Nov  4 18:20:51 2005
++++ /usr/src/sys/dev/ath/if_ath.c	Fri Nov  4 18:21:13 2005
+@@ -4367,7 +4367,7 @@
+ 		if_printf(ifp, "unable to collect channel list from hal; "
+ 			"regdomain likely %u country code %u\n", rd, cc);
+ 		free(chans, M_TEMP);
+-		return EINVAL;
++		return 0;
+ 	}
+ 
+ 	/*
