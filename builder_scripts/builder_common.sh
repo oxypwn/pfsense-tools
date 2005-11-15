@@ -47,10 +47,6 @@ populate_extra() {
 	# Supress extra spam when logging in
 	touch $CVS_CO_DIR/root/.hushlogin
 
-	# Copy devd into place
-	cp /sbin/devd $CVS_CO_DIR/sbin/
-	chmod a+rx $CVS_CO_DIR/sbin/devd
-
 	# Setup login environment
 	echo > $CVS_CO_DIR/root/.shrc
 	echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.shrc
@@ -61,7 +57,7 @@ populate_extra() {
 	# Trigger the pfSense wizzard
 	echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
-	# Nuke CVS dirs
+	# Nuke CVS dirs and boot/ content
 	set +e
         find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
 	set -e
