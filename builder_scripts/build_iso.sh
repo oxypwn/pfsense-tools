@@ -43,7 +43,7 @@ echo ">>> Phase create_pfSense_tarball"
 echo ">>> Phase copy_pfSesne_tarball_to_custom_directory"
 ( copy_pfSense_tarball_to_custom_directory )
 
-rm conf/packages
+rm -f conf/packages
 (cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
 (cd /var/db/pkg && ls | grep cpdup) >> conf/packages
 
