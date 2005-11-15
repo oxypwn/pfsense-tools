@@ -26,22 +26,22 @@ elif [ -z "${SKIP_CHECKOUT:-}" ]; then
 fi
 
 # Calculate versions
-version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
-version_base=`cat $CVS_CO_DIR/etc/version_base`
-version=`cat $CVS_CO_DIR/etc/version`
+export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
+export version_base=`cat $CVS_CO_DIR/etc/version_base`
+export version=`cat $CVS_CO_DIR/etc/version`
 
 # Define the Kernel file we're using
 export KERNCONF=pfSense.6
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
-populate_extra
+( populate_extra )
 echo ">>> Phase set_image_as_cdrom"
-set_image_as_cdrom
+( set_image_as_cdrom )
 echo ">>> Phase create_pfSense_tarball"
-create_pfSense_tarball
+( create_pfSense_tarball )
 echo ">>> Phase copy_pfSesne_tarball_to_custom_directory"
-copy_pfSense_tarball_to_custom_directory
+( copy_pfSense_tarball_to_custom_directory )
 
 rm conf/packages
 (cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
