@@ -9,12 +9,12 @@ export CUSTOMROOT=${BASE_DIR}/tools/builder_scripts/customroot
 export CVS_CO_DIR=$BASE_DIR/pfSense
 
 # This is the user that has access to the pfSense repo
-export CVS_USER=satu
+export CVS_USER=sullrich
 
 # pfSense repo IP address. Tipically cvs.pfsense.org,
 # but somebody could use a ssh tunnel and specify
 # a different one
-export CVS_IP=127.0.0.1
+export CVS_IP=cvs.pfsense.org
 
 export UPDATESDIR=$BASE_DIR/updates
 
