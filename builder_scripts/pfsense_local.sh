@@ -22,10 +22,13 @@ export PFSENSEBASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 
 export PFSENSEISODIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
+
 export SRCDIR=${SRCDIR:-/usr/src}
 export FREESBIE_CONF=${FREESBIE_CONF:-${PWD}/conf/pfsense-freesbie.conf}
 export FREESBIE_PATH=${FREESBIE_PATH:-/home/pfsense/freesbie2}
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.6}
 export MAKE_CONF=${MAKE_CONF:-$PWD/conf/make.conf}
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
+export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
+export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
