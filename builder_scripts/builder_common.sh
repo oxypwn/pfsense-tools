@@ -3,35 +3,30 @@
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
         
-	# Nuke CVS dirs
-        find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2>/dev/null
-
 	mkdir -p $CVS_CO_DIR/libexec
 	mkdir -p $CVS_CO_DIR/lib
 	mkdir -p $CVS_CO_DIR/bin
 	cp /lib/libedit* $CVS_CO_DIR/lib/
 	cp /bin/sh $CVS_CO_DIR/bin/
-	cp /lib/libncurses.so.5 $CVS_CO_DIR/lib/
 	cp /bin/ln /bin/rm $CVS_CO_DIR/bin/
 
 	cp /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
 	cp /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
 
-	mkdir -p $LOCALDIR/var/run
+	mkdir -p $CVS_CO_DIR/var/run
 
 	mkdir -p $CVS_CO_DIR/root/
 	echo exit > $CVS_CO_DIR/root/.xcustom.sh
 	touch $CVS_CO_DIR/root/.hushlogin
-	cp $CVS_CO_DIR/lib/libc.so.6 $CVS_CO_DIR/lib/libc.so.5
-	cp $CVS_CO_DIR/lib/libc.so.6 $CVS_CO_DIR/lib/libc.so.4
 
 	# bsnmpd
 	mkdir -p $CVS_CO_DIR/usr/share/snmp/defs/
 	cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
 
 	# Add lua installer items
-	cp $BASE_DIR/tools/installer/conf/* $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
-	cp $BASE_DIR/tools/installer/installer_root_dir/* $CVS_CO_DIR/usr/local/share/dfuibe_lua/install
+	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+	cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+	cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install
 
 	# Set buildtime
 	date > $CVS_CO_DIR/etc/version.buildtime
@@ -57,11 +52,6 @@ populate_extra() {
 
 	# Supress extra spam when logging in
 	touch $CVS_CO_DIR/root/.hushlogin
-
-	# Copy libraries since some files are compiled with older libc
-	# XXX setup a libmap.conf to handle this
-	cp $CVS_CO_DIR/lib/libc.so.6 $CVS_CO_DIR/lib/libc.so.5
-	cp $CVS_CO_DIR/lib/libc.so.6 $CVS_CO_DIR/lib/libc.so.4
 
 	mkdir -p $CVS_CO_DIR/usr/lib $CVS_CO_DIR/lib
 	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
@@ -129,6 +119,10 @@ populate_extra() {
 		  make clean
 	
 	done	
+	
+	# Nuke CVS dirs
+        find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 
+
 }
 
 fixup_updates() {
