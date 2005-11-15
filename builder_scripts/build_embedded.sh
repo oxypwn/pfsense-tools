@@ -31,7 +31,7 @@ rm -rf $BASE_DIR/pfSense
 rm -rf $CVS_CO_DIR
 
 # Checkout pfSense information and set our version variables.
-cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r RELENG_1 pfSense 
+cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense 
 
 # Calculate versions
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`

@@ -145,7 +145,7 @@ fixup_wrap() {
 
     # Checkout pfSense information and set our version variables.
     rm -rf $BASE_DIR/pfSense
-    cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r RELENG_1 pfSense
+    cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense
 
     chflags -R noschg /tmp/ 2>/dev/null
     rm -rf /tmp/* 2>/dev/null
@@ -436,7 +436,7 @@ clone_system_only()
 checkout_pfSense() {
         echo ">>> Getting pfSense"
         rm -rf $CVS_CO_DIR
-	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r RELENG_1
+	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
 }
 
 checkout_freesbie() {

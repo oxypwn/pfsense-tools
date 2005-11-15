@@ -20,10 +20,10 @@ freesbie_make cleandir
 if [ -z "${SKIP_RSYNC:-}" ]; then
 	rm -rf $BASE_DIR/pfSense
 	rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
-	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r RELENG_1 pfSense)
+	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 elif [ -z "${SKIP_CHECKOUT:-}" ]; then
 	rm -rf $BASE_DIR/pfSense
-	(cd $BASE_DIR && cvs -d :ext:${CVS_USER}@${CVS_IP}:/cvsroot co -r RELENG_1 pfSense)
+	(cd $BASE_DIR && cvs -d :ext:${CVS_USER}@${CVS_IP}:/cvsroot co -r ${PFSENSETAG} pfSense)
 fi
 
 # Calculate versions

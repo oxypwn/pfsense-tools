@@ -22,6 +22,9 @@ export PFSENSEBASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 
 export PFSENSEISODIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
+# pfSense cvs tag to build
+
+export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 export SRCDIR=${SRCDIR:-/usr/src}
 export FREESBIE_CONF=${FREESBIE_CONF:-${PWD}/conf/pfsense-freesbie.conf}
