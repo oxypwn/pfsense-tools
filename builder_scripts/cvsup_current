@@ -9,11 +9,11 @@ cvsup /etc/current-supfile
 
 # Traffic shaper fixes for pfctl
 cd /usr/src/contrib/pf/pfctl
-patch < ~root/patches/parse.y
+patch < /home/pfsense/tools/patches//parse.y
 
 # Making ipfw default to allow all
 cd /usr/src/sys/modules/ipfw
-patch < ~root/patches/ipfw.diff
+patch < /home/pfsense/tools/patches/ipfw.diff
 
 cd /usr/src/
 patch < /home/pfsense/tools/patches/altq-vlan.diff
