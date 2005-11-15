@@ -33,8 +33,26 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
-# Define the Kernel file we're using
-export KERNCONF=pfSense.6
+# Check if the world and kernel are already built and set
+# the NO variables accordingly
+objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
+build_id=`basename ${KERNELCONF}`
+if [ -f "${objdir}/${build_id}.world.done" ]; then
+	export NO_BUILDWORLD=yo
+fi
+if [ -f "${objdir}/${build_id}.kernel.done" ]; then
+	export NO_BUILDKERNEL=yo
+fi
+
+# Make world
+freesbie_make buildworld
+touch ${objdir}/${build_id}.world.done
+
+# Make kernel
+freesbie_make buildkernel
+touch ${objdir}/${build_id}.kernel.done
+
+freesbie_make installkernel installworld
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
