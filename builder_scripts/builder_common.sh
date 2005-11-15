@@ -2,9 +2,8 @@
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
-	cd $LOCALDIR
-
-        # Nuke CVS dirs
+        
+	# Nuke CVS dirs
         find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2>/dev/null
 
 	mkdir -p $CVS_CO_DIR/libexec
@@ -31,66 +30,45 @@ populate_extra() {
 	cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
 
 	# Add lua installer items
-	cp $BASE_DIR/tools/installer/conf/* $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/conf/
-	cp $BASE_DIR/tools/installer/installer_root_dir/* $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/install
-	#rm $FREESBIEBASEDIR/usr/local/share/dfuibe_lua/install/600_*
+	cp $BASE_DIR/tools/installer/conf/* $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
+	cp $BASE_DIR/tools/installer/installer_root_dir/* $CVS_CO_DIR/usr/local/share/dfuibe_lua/install
 
 	# Set buildtime
 	date > $CVS_CO_DIR/etc/version.buildtime
-	mkdir -p $FREESBIEBASEDIR/scripts/
-	cp $BASE_DIR/tools/pfi $FREESBIEBASEDIR/scripts/
-	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/
-	cp $BASE_DIR/tools/lua_installer $FREESBIEBASEDIR/scripts/installer
-	cp $BASE_DIR/tools/installer.sh $FREESBIEBASEDIR/scripts/
-	chmod a+rx $FREESBIEBASEDIR/scripts/*
+	mkdir -p $CVS_CO_DIR/scripts/
+	cp $BASE_DIR/tools/pfi $CVS_CO_DIR/scripts/
+	cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
+	cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
+	cp $BASE_DIR/tools/installer.sh $CVS_CO_DIR/scripts/
+	chmod a+rx $CVS_CO_DIR/scripts/*
 
-	mkdir -p $LOCALDIR/customroot/usr/local/bin
-	mkdir -p $FREESBIEBASEDIR/usr/local/bin/
-
-	cp $BASE_DIR/tools/after_installation_routines.sh \
-		$LOCALDIR/customroot/usr/local/bin/after_installation_routines.sh
+	mkdir -p $CVS_CO_DIR/usr/local/bin/
 
 	cp $BASE_DIR/tools/after_installation_routines.sh \
-		$FREESBIEBASEDIR/usr/local/bin/after_installation_routines.sh
+		$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
 
-	chmod a+rx $FREESBIEBASEDIR/scripts/*
+	chmod a+rx $CVS_CO_DIR/scripts/*
 
 	# Copy BSD Installer sources manifest
-	mkdir -p $FREESBIEBASEDIR/usr/local/share/dfuibe_installer/
-	cp $LOCALDIR/customroot/sources.conf \
-		$FREESBIEBASEDIR/usr/local/share/dfuibe_installer/sources.conf
-
-	# Update shells
-	cp $LOCALDIR/customroot/shells $FREESBIEBASEDIR/etc/shells
-
-	echo "#!/bin/sh" > $FREESBIEBASEDIR/script
-	echo "/bin/ln -s /cf/conf /conf" >> $FREESBIEBASEDIR/script
-	chmod a+rx $FREESBIEBASEDIR/script
-	chroot $FREESBIEBASEDIR /script
-
+	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_installer/
+	
 	# Make sure we're not running any x mojo
-	mkdir -p $FREESBIEBASEDIR/root
-	echo exit > $FREESBIEBASEDIR/root/.xcustom.sh
+	mkdir -p $CVS_CO_DIR/root
 
 	# Supress extra spam when logging in
-	touch $FREESBIEBASEDIR/root/.hushlogin
+	touch $CVS_CO_DIR/root/.hushlogin
 
 	# Copy libraries since some files are compiled with older libc
-	cp $FREESBIEBASEDIR/lib/libc.so.6 $FREESBIEBASEDIR/lib/libc.so.5
-	cp $FREESBIEBASEDIR/lib/libc.so.6 $FREESBIEBASEDIR/lib/libc.so.4
-
-	cd /usr/src/sbin/pfctl && make clean && make && make install
-	cd /usr/src/sbin/pflogd && make clean && make && make install
-	mkdir -p $CVS_CO_DIR/sbin/
-	cp /sbin/pf* $CVS_CO_DIR/sbin/
-	chmod a+rx $CVS_CO_DIR/sbin/pf*
+	# XXX setup a libmap.conf to handle this
+	cp $CVS_CO_DIR/lib/libc.so.6 $CVS_CO_DIR/lib/libc.so.5
+	cp $CVS_CO_DIR/lib/libc.so.6 $CVS_CO_DIR/lib/libc.so.4
 
 	mkdir -p $CVS_CO_DIR/usr/lib $CVS_CO_DIR/lib
 	cp /usr/lib/libstdc* $CVS_CO_DIR/usr/lib/
 
 	# Copy devd into place
-	cp /sbin/devd $FREESBIEBASEDIR/sbin/
-	chmod a+rx $FREESBIEBASEDIR/sbin/devd
+	cp /sbin/devd $CVS_CO_DIR/sbin/
+	chmod a+rx $CVS_CO_DIR/sbin/devd
 
 	# Setup login environment
 	echo > $CVS_CO_DIR/root/.shrc
@@ -105,79 +83,52 @@ populate_extra() {
 	# Trigger the pfSense wizzard
 	echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
-	mkdir -p $FREESBIEBASEDIR/conf.default
-	cp $CVS_CO_DIR/conf.default/* $FREESBIEBASEDIR/conf.default/
+	mkdir -p ${CVS_CO_DIR}/usr/local/livefs/lib/
 
-	mkdir -p ${FREESBIEBASEDIR}/usr/local/livefs/lib/
+	cp /usr/lib/libcrypt.so ${CVS_CO_DIR}/usr/lib/libcrypt.so.2
+	cp /usr/lib/libm.so ${CVS_CO_DIR}/usr/lib/libm.so.3
+	cp /usr/lib/libssl.so ${CVS_CO_DIR}/usr/lib/libssl.so.3
+	cp /usr/lib/libcrypto.so ${CVS_CO_DIR}/usr/lib/libcrypto.so.3
+	cp /usr/lib/libz.so ${CVS_CO_DIR}/usr/lib/libz.so.2
+	cp /usr/lib/libc.so ${CVS_CO_DIR}/usr/lib/libc.so.5
+	cp /lib/libutil.so.5 ${CVS_CO_DIR}/lib/libutil.so.4
+	cp /usr/local/lib/libnetsnmpagent.so.7 ${CVS_CO_DIR}/usr/local/lib/
+	cp /usr/local/lib/libnetsnmphelpers.so.7 ${CVS_CO_DIR}/usr/local/lib/
+	cp /usr/local/lib/libnetsnmp.so.7 ${CVS_CO_DIR}/usr/local/lib/
 
-	cp /usr/lib/libcrypt.so ${FREESBIEBASEDIR}/usr/lib/libcrypt.so.2
-	cp /usr/lib/libm.so ${FREESBIEBASEDIR}/usr/lib/libm.so.3
-	cp /usr/lib/libssl.so ${FREESBIEBASEDIR}/usr/lib/libssl.so.3
-	cp /usr/lib/libcrypto.so ${FREESBIEBASEDIR}/usr/lib/libcrypto.so.3
-	cp /usr/lib/libz.so ${FREESBIEBASEDIR}/usr/lib/libz.so.2
-	cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
-	cp /lib/libutil.so.5 ${FREESBIEBASEDIR}/lib/libutil.so.4
-	cp /usr/local/lib/libnetsnmpagent.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-	cp /usr/local/lib/libnetsnmphelpers.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-	cp /usr/local/lib/libnetsnmp.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
+	cp /usr/lib/libpthread.so.1 ${CVS_CO_DIR}/usr/lib/
+	cp /usr/local/lib/libevent-1.1a.so.1 ${CVS_CO_DIR}/usr/local/lib/
+	cp /usr/local/lib/libnetsnmpmibs.so.7 ${CVS_CO_DIR}/usr/local/lib/
 
-	cp /usr/lib/libpthread.so.1 ${FREESBIEBASEDIR}/usr/lib/
-	cp /usr/local/lib/libevent-1.1a.so.1 ${FREESBIEBASEDIR}/usr/local/lib/
-	cp /usr/local/lib/libnetsnmpmibs.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
 
-	# Install all netgraph modules
-	cd /usr/src/sys/modules/netgraph/
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
+	# Compile section starts here. Use our own make.conf
+	#
+	export __MAKE_CONF=${MAKE_CONF}
 
-	cd /usr/src/usr.sbin/authpf
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
+	# Compile various modules
+	export IPFIREWALL_DEFAULT_TO_ACCEPT=yes
+	export IPV6FIREWALL_DEFAULT_TO_ACCEPT=yes
+	modules="netgraph acpi ndis if_ndis padlock geom ipfw dummynet"
+	for i in $modules; do
+		cd ${SRCDIR}/sys/modules/${i}/ && \
+		  make clean && \
+		  make depend && \
+		  make all && \
+		  make install DESTDIR=$CVS_CO_DIR && \
+		  make clean
+	done
 
-	# Make sure ACPI is all ready
-	cd /usr/src/sys/modules/acpi
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
-
-	# NDIS
-        cd /usr/src/sys/modules/ndis
-        make
-        make install DESTDIR=$FREESBIEBASEDIR
-
-	cd /usr/src/sys/modules/if_ndis
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
-
-	cd /usr/src/sys/modules/padlock
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
-
-	cd /usr/src/sys/modules/geom
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
-
-	cd /usr/src/sys/modules/ipfw
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
-
-	cd /usr/src/sys/modules/dummynet
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
-
-	cd /usr/src/usr.sbin/watchdogd
-	make 
-	make install DESTDIR=$FREESBIEBASEDIR
-
-	cd /usr/src/usr.sbin/watchdog
-	make
-	make install DESTDIR=$FREESBIEBASEDIR
-
-	setenv IPFIREWALL_DEFAULT_TO_ACCEPT yes
-	setenv IPV6FIREWALL_DEFAULT_TO_ACCEPT yes
-	cd /usr/src/sys/modules/ipfw
-	make IPFIREWALL_DEFAULT_TO_ACCEPT=yes
-	env IPFIREWALL_DEFAULT_TO_ACCEPT=yes && make install DESTDIR=$FREESBIEBASEDIR
-
+	# Compile various utilities
+	utils="sbin/pfctl sbin/pflogd usr.sbin/authpf usr.sbin/watchdog usr.sbin/watchdogd"
+	for i in $utils; do
+		cd ${SRCDIR}/${i} && \
+		  make clean && \
+		  make depend && \
+		  make all && \
+		  make install DESTDIR=$CVS_CO_DIR && \
+		  make clean
+	
+	done	
 }
 
 fixup_updates() {
@@ -484,15 +435,11 @@ copy_pfSense_tarball_to_freesbiebasedir() {
 
 # Set image as a CDROM type image
 set_image_as_cdrom() {
-	cd $LOCALDIR
-
 	echo cdrom > $CVS_CO_DIR/etc/platform
 }
 
 # Set image as a WRAP type image
 set_image_as_wrap() {
-	cd $LOCALDIR
-
         echo wrap > $CVS_CO_DIR/etc/platform
 }
 
