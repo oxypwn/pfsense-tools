@@ -512,3 +512,7 @@ restore_pfSense() {
         echo ">>> Restoring pfSense repo"
         cp -R $BASE_DIR/pfSense_bak $CVS_CO_DIR
 }
+
+freesbie_make() {
+	(cd ${FREESBIE_PATH} && make $*)
+}

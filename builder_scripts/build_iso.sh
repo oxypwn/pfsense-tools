@@ -14,6 +14,9 @@ set -x
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Clean out directories
+freesbie_make cleandir
+
 # Update cvs depot. If SKIP_RSYNC is defined, skip the RSYNC update.
 # If also SKIP_CHECKOUT is defined, don't update the tree at all
 if [ -z "${SKIP_RSYNC:-}" ]; then
@@ -48,6 +51,4 @@ rm -f conf/packages
 (cd /var/db/pkg && ls | grep cpdup) >> conf/packages
 
 # Invoke FreeSBIE2 toolchain
-cd $FREESBIE_PATH
-
-make iso
+freesbie_make iso
