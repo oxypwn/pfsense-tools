@@ -55,15 +55,8 @@ freesbie_make installkernel installworld
 # Checkout pfSense information and set our version variables.
 (cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 
-# Calculate versions
-version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
-version_base=`cat $CVS_CO_DIR/etc/version_base`
-version=`cat $CVS_CO_DIR/etc/version`
-
 # Add extra files such as buildtime of version, bsnmpd, etc.
-populate_extra
-
-clone_system_only
+echo ">>> Phase populate_extra"
+( populate_extra )
 
 fixup_wrap
-
