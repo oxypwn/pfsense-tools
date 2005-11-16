@@ -4,14 +4,7 @@
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
 
-#set -e -u		# uncomment me if you want to exit on shell errors
-
-# Read in FreeSBIE configuration variables and set:
-#   FREESBIEBASEDIR=/usr/local/livefs
-#   LOCALDIR=/home/pfSense/freesbie
-#   PATHISO=/home/pfSense/freesbie/FreeSBIE.iso
-. ../../freesbie/config.sh
-. ../../freesbie/.common.sh
+set -e -u		# uncomment me if you want to exit on shell errors
 
 # Suck in local vars
 . ./pfsense_local.sh
