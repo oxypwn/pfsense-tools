@@ -1,5 +1,5 @@
 #!/bin/sh
-set -x
+
 IFNAME="bridge0"
 EMUNAME="$1"
 
@@ -12,7 +12,7 @@ then
         fi
 fi
 
-ifconfig -l | grep $IFNAME
+ifconfig -l | grep $IFNAME > /dev/null
 
 if [ $? = 0 ]; then
 	if [ "$EMUNAME" = "tap0" ]; then
