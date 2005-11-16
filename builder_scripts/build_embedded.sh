@@ -62,8 +62,6 @@ version=`cat $CVS_CO_DIR/etc/version`
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
-create_pfSense_tarball
-copy_pfSense_tarball_to_freesbiebasedir
 
 clone_system_only
 
