@@ -33,5 +33,5 @@ export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.6}
 export MAKE_CONF=${MAKE_CONF:-$PWD/conf/make.conf}
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
-export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
+export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
