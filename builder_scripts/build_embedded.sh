@@ -15,13 +15,26 @@ set -e -u		# uncomment me if you want to exit on shell errors
 # Define the Kernel file we're using
 export KERNCONF=pfSense_wrap.6
 
-# Update cvs depot
-rsync -avz sullrich@216.135.66.16:/cvsroot /home/pfsense/
+# Update cvs depot. If SKIP_RSYNC is defined, skip the RSYNC update.
+# If also SKIP_CHECKOUT is defined, don't update the tree at all
+if [ -z "${SKIP_RSYNC:-}" ]; then
+	rm -rf $BASE_DIR/pfSense
+	rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
+	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+elif [ -z "${SKIP_CHECKOUT:-}" ]; then
+	rm -rf $BASE_DIR/pfSense
+	(cd $BASE_DIR && cvs -d :ext:${CVS_USER}@${CVS_IP}:/cvsroot co -r ${PFSENSETAG} pfSense)
+fi
 
-# Remove staging area files
-rm -rf $LOCALDIR/files/custom/*
-rm -rf $BASE_DIR/pfSense
-rm -rf $CVS_CO_DIR
+# Make world
+freesbie_make buildworld
+touch ${objdir}/${build_id}.world.done
+
+# Make kernel
+freesbie_make buildkernel
+touch ${objdir}/${build_id}.kernel.done
+
+freesbie_make installkernel installworld
 
 # Checkout pfSense information and set our version variables.
 cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense 
@@ -31,28 +44,10 @@ version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
-cd $LOCALDIR 
-
-$LOCALDIR/0.rmdir.sh
-
-$LOCALDIR/1.mkdir.sh
-
-$LOCALDIR/2.buildworld.sh		
-
-$LOCALDIR/3.installworld.sh
-
-$LOCALDIR/4.kernel.sh pfSense.6
-
-$LOCALDIR/5.patchfiles.sh
-
-#$LOCALDIR/6.packages.sh
-
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
 create_pfSense_tarball
 copy_pfSense_tarball_to_freesbiebasedir
-
-$LOCALDIR/7.customuser.sh
 
 clone_system_only
 
