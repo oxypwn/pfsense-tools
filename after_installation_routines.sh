@@ -31,9 +31,6 @@ cd /mnt && rm -rf FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
 
 rm -f /mnt/etc/motd
 
-#chroot /mnt ln -s /cf/conf /conf
-#chroot /mnt ln -s /conf /cf/conf
-
 # Set platform back to pfSense to prevent freesbie_1st from running
 echo "pfSense" > /mnt/etc/platform
 
