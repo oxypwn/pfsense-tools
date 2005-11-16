@@ -12,6 +12,9 @@ set -e -u		# uncomment me if you want to exit on shell errors
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
+export EXTRA="etcmfs rootmfs ${EXTRA:-}" 
+
 # Clean out directories
 freesbie_make cleandir
 

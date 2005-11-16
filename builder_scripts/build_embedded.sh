@@ -56,12 +56,9 @@ freesbie_make installkernel installworld
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
 
-rm -f conf/packages
+# Packages list should be empty
+echo > conf/packages
 
-set +e # grep could fail
-(cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
-(cd /var/db/pkg && ls | grep cpdup) >> conf/packages
-set -e
  
 #fixup_wrap
 
