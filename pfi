@@ -39,7 +39,7 @@ look_for_config_xml_config_msdos()
 		if [ ! -e /dev/${try_device} ]; then
 			continue
 		fi
-		echo "$try_device "
+		echo -n "$try_device "
 		if mount -t msdos /dev/$try_device /tmp/mnt/cf 2>/dev/null ; then
 			echo "[found] "
 			# Note for later that this device is capable
