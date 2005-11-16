@@ -82,8 +82,8 @@ ui_nav_control = {
 
 booted_from_install_media=true
 
-dir = { root = "/FreeSBIE/", tmp = "/tmp/" }
+dir = { root = "/", tmp = "/tmp/" }
 
-limits.part_min = "100M"
+limits.part_min = "80M"
 
 use_cpdup = true
