@@ -4,14 +4,7 @@
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
 
-#set -e -u		# uncomment me if you want to exit on shell errors
-
-# Read in FreeSBIE configuration variables and set:
-#   FREESBIEBASEDIR=/usr/local/livefs
-#   LOCALDIR=/home/pfSense/freesbie
-#   PATHISO=/home/pfSense/freesbie/FreeSBIE.iso
-. ../../freesbie/config.sh
-. ../../freesbie/.common.sh
+set -e -u
 
 # Suck in local vars
 . ./pfsense_local.sh
@@ -19,49 +12,58 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
-# Define the Kernel file we're using
-export KERNCONF=pfSense_wrap.6
+# Clean out directories
+freesbie_make cleandir
 
-# Update cvs depot
-rsync -avz sullrich@216.135.66.16:/cvsroot /home/pfsense/
 
-# Remove staging area files
-rm -rf $LOCALDIR/files/custom/*
-rm -rf $BASE_DIR/pfSense
-rm -rf $CVS_CO_DIR
-
-# Checkout pfSense information and set our version variables.
-cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r RELENG_1 pfSense 
+# Update cvs depot. If SKIP_RSYNC is defined, skip the RSYNC update.
+# If also SKIP_CHECKOUT is defined, don't update the tree at all
+if [ -z "${SKIP_RSYNC:-}" ]; then
+	rm -rf $BASE_DIR/pfSense
+	rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
+	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+elif [ -z "${SKIP_CHECKOUT:-}" ]; then
+	rm -rf $BASE_DIR/pfSense
+	(cd $BASE_DIR && cvs -d :ext:${CVS_USER}@${CVS_IP}:/cvsroot co -r ${PFSENSETAG} pfSense)
+fi
 
 # Calculate versions
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
-cd $LOCALDIR 
+# Check if the world and kernel are already built and set
+# the NO variables accordingly
+objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
+build_id=`basename ${KERNELCONF}`
+if [ -f "${objdir}/${build_id}.world.done" ]; then
+	export NO_BUILDWORLD=yo
+fi
+if [ -f "${objdir}/${build_id}.kernel.done" ]; then
+	export NO_BUILDKERNEL=yo
+fi
 
-$LOCALDIR/0.rmdir.sh
+# Make world
+freesbie_make buildworld
+touch ${objdir}/${build_id}.world.done
 
-$LOCALDIR/1.mkdir.sh
+# Make kernel
+freesbie_make buildkernel
+touch ${objdir}/${build_id}.kernel.done
 
-$LOCALDIR/2.buildworld.sh		
-
-$LOCALDIR/3.installworld.sh
-
-$LOCALDIR/4.kernel.sh pfSense.6
-
-$LOCALDIR/5.patchfiles.sh
-
-#$LOCALDIR/6.packages.sh
+freesbie_make installkernel installworld
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
-create_pfSense_tarball
-copy_pfSense_tarball_to_freesbiebasedir
 
-$LOCALDIR/7.customuser.sh
+rm -f conf/packages
 
-clone_system_only
+set +e # grep could fail
+(cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
+(cd /var/db/pkg && ls | grep cpdup) >> conf/packages
+set -e
+ 
+#fixup_wrap
 
-fixup_wrap
-
+# Invoke FreeSBIE2 toolchain
+freesbie_make img
