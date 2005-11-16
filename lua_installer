@@ -19,27 +19,27 @@ sysctl net.link.ether.inet.log_arp_wrong_iface=0 >/dev/null
 /sbin/ifconfig lo0 127.0.0.1/24
 /sbin/ifconfig lo0 up
 
-ln -s /FreeSBIE/tftpdroot /tmp/tftpdroot 2>/dev/null
-echo "Mounting /FreeSBIE/dev..."
-mount_devfs devfs /FreeSBIE/dev
+#ln -s /FreeSBIE/tftpdroot /tmp/tftpdroot 2>/dev/null
+#echo "Mounting /FreeSBIE/dev..."
+#mount_devfs devfs /FreeSBIE/dev
 
-echo "Mounting /FreeSBIE/usr..."
-MD_LOCAL=`mdconfig -a -t vnode -f /FreeSBIE/uzip/usr.uzip`
-mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/usr
+#echo "Mounting /FreeSBIE/usr..."
+#MD_LOCAL=`mdconfig -a -t vnode -f /FreeSBIE/uzip/usr.uzip`
+#mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/usr
 
-echo "Mounting /FreeSBIE/var..."
-MD_LOCAL=`mdconfig -a -f /FreeSBIE/uzip/var.uzip`
-mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/var
+#echo "Mounting /FreeSBIE/var..."
+#MD_LOCAL=`mdconfig -a -f /FreeSBIE/uzip/var.uzip`
+#mount -r /dev/$MD_LOCAL.uzip /FreeSBIE/var
 
-mount -t unionfs /.var /FreeSBIE/var
+#mount -t unionfs /.var /FreeSBIE/var
 
-mkdir -p /FreeSBIE/var/log/
-find / -name dmesg.boot -exec cp {} /FreeSBIE/var/log/ \;
+#mkdir -p /FreeSBIE/var/log/
+#find / -name dmesg.boot -exec cp {} /FreeSBIE/var/log/ \;
 
 # Let's access this now to prevent the "RockRidge" message
 # during the actual install
-ls /FreeSBIE/usr >/dev/null 2>&1
-ls /FreeSBIE/var >/dev/null 2>&1
+#ls /FreeSBIE/usr >/dev/null 2>&1
+#ls /FreeSBIE/var >/dev/null 2>&1
 
 ln -s /var/log/dmesg.boot /var/run/dmesg.boot
 
