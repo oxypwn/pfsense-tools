@@ -59,7 +59,7 @@ echo ">>> Phase set_image_as_cdrom"
 ( set_image_as_cdrom )
 
 mkdir ${CVS_CO_DIR}/boot && echo console=\"comconsole\" >> ${CVS_CO_DIR}/boot/loader.conf
-echo "-D" >> ${CVS_CO_DIR}/
+echo "-D" >> ${CVS_CO_DIR}/boot.config
 
 rm -f conf/packages
 
