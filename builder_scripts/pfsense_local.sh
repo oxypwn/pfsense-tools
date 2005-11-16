@@ -29,6 +29,7 @@ export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 export FREESBIE_PATH=${FREESBIE_PATH:-/home/pfsense/freesbie2}
 
 # export variables used by freesbie2
+export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should be override our variables
 export SRCDIR=${SRCDIR:-/usr/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
