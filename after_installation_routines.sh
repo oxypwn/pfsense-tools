@@ -1,64 +1,64 @@
 #!/bin/sh
 
 # Lets cleanup from fake root environment
-rm -rf /FreeSBIE/mnt/cloop
-rm -rf /FreeSBIE/mnt/dist
-rm -f /FreeSBIE/mnt/etc/rc.d/freesbie_1st
-rm -f /FreeSBIE/mnt/usr/local/share/freesbie/files/000.freesbie_2nd.sh
-rm -f /FreeSBIE/mnt/etc/rc.local
-rm -f /FreeSBIE/mnt/root/.tcshrc
-rm -f /FreeSBIE/mnt/etc/rc.conf
-rm -f /FreeSBIE/mnt/etc/rc.conf
-rm -f /FreeSBIE/mnt/etc/rc.firewall
-rm -f /FreeSBIE/mnt/etc/rc.sendmail
-touch /FreeSBIE/mnt/etc/rc.conf
+rm -rf /mnt/cloop
+rm -rf /mnt/dist
+rm -f /mnt/etc/rc.d/freesbie_1st
+rm -f /mnt/usr/local/share/freesbie/files/000.freesbie_2nd.sh
+rm -f /mnt/etc/rc.local
+rm -f /mnt/root/.tcshrc
+rm -f /mnt/etc/rc.conf
+rm -f /mnt/etc/rc.conf
+rm -f /mnt/etc/rc.firewall
+rm -f /mnt/etc/rc.sendmail
+touch /mnt/etc/rc.conf
 
 # Copy the current running systems config.xml to the target installation area.
-mkdir -p /FreeSBIE/mnt/cf/conf
-cp /cf/conf/* /FreeSBIE/mnt/cf/conf/
+mkdir -p /mnt/cf/conf
+cp /cf/conf/* /mnt/cf/conf/
 
 # Prevent the system from asking for these twice
-touch /FreeSBIE/mnt/root/.part_mount
-touch /FreeSBIE/mnt/root/.first_time
+touch /mnt/root/.part_mount
+touch /mnt/root/.first_time
 
 # Updating boot loader
-#cp -R /boot/* /FreeSBIE/mnt/boot/
-cat /boot/loader.conf | grep -v ^mfsroot > /FreeSBIE/mnt/boot/loader.conf
-echo debug.acpi.disable=\"thermal\" >> /FreeSBIE/mnt/boot/loader.conf
+#cp -R /boot/* /mnt/boot/
+cat /boot/loader.conf | grep -v ^mfsroot > /mnt/boot/loader.conf
+echo debug.acpi.disable=\"thermal\" >> /mnt/boot/loader.conf
 
 
-cd /FreeSBIE/mnt && rm -rf FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
+cd /mnt && rm -rf FreeSBIE/ cloop/ dist/ boot/mfsroot.gz
 
-rm -f /FreeSBIE/mnt/etc/motd
+rm -f /mnt/etc/motd
 
-#chroot /FreeSBIE/mnt ln -s /cf/conf /conf
-#chroot /FreeSBIE/mnt ln -s /conf /cf/conf
+#chroot /mnt ln -s /cf/conf /conf
+#chroot /mnt ln -s /conf /cf/conf
 
 # Set platform back to pfSense to prevent freesbie_1st from running
-echo "pfSense" > /FreeSBIE/mnt/etc/platform
+echo "pfSense" > /mnt/etc/platform
 
 # Remove TCSHRC installer alias
-echo "" > /FreeSBIE/mnt/root/.tcshrc
-rm -rf /FreeSBIE/mnt/scripts
-find /FreeSBIE/mnt/ -name installer -or -name lua_installer -exec rm {} \;
+echo "" > /mnt/root/.tcshrc
+rm -rf /mnt/scripts
+find /mnt/ -name installer -or -name lua_installer -exec rm {} \;
 
 # Self destruct myself.
-rm -f /FreeSBIE/mnt/usr/local/bin/after_installation_routines.sh
+rm -f /mnt/usr/local/bin/after_installation_routines.sh
 
 # Let parent script know that a install really happened
 touch /tmp/install_complete
 
-chmod a-w /FreeSBIE/mnt/boot/loader.rc
-chflags schg /FreeSBIE/mnt/boot/loader.rc
+chmod a-w /mnt/boot/loader.rc
+chflags schg /mnt/boot/loader.rc
 
-mkdir -p /FreeSBIE/mnt/var/installer_logs
-cp /tmp/install.disklabel /FreeSBIE/mnt/var/installer_logs
-cp /tmp/bootup_messages /FreeSBIE/mnt/var/installer_logs
-cp /tmp/install.disklabel* /FreeSBIE/mnt/var/installer_logs
-cp /tmp/installer.log /FreeSBIE/mnt/var/installer_logs
-cp /tmp/init_bootloader.sh /FreeSBIE/mnt/var/installer_logs
-cp /tmp/install-session.sh /FreeSBIE/mnt/var/installer_logs
-cp /tmp/new.fdisk /FreeSBIE/mnt/var/installer_logs
+mkdir -p /mnt/var/installer_logs
+cp /tmp/install.disklabel /mnt/var/installer_logs
+cp /tmp/bootup_messages /mnt/var/installer_logs
+cp /tmp/install.disklabel* /mnt/var/installer_logs
+cp /tmp/installer.log /mnt/var/installer_logs
+cp /tmp/init_bootloader.sh /mnt/var/installer_logs
+cp /tmp/install-session.sh /mnt/var/installer_logs
+cp /tmp/new.fdisk /mnt/var/installer_logs
 
 #Sync disks
 /bin/sync
