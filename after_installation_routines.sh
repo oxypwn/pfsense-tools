@@ -50,7 +50,6 @@ cp /tmp/install.disklabel /mnt/var/installer_logs
 cp /tmp/bootup_messages /mnt/var/installer_logs
 cp /tmp/install.disklabel* /mnt/var/installer_logs
 cp /tmp/installer.log /mnt/var/installer_logs
-cp /tmp/init_bootloader.sh /mnt/var/installer_logs
 cp /tmp/install-session.sh /mnt/var/installer_logs
 cp /tmp/new.fdisk /mnt/var/installer_logs
 
