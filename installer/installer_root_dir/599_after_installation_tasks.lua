@@ -26,9 +26,6 @@ return {
 		end
         end
 
-	-- move backed up bsdlabel command into place
-        cmds:add("mv /tmp/init_bootloader.sh /FreeSBIE/mnt/etc/")
-
 	cmds:execute()
 	
         return step:next()
