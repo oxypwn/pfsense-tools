@@ -12,8 +12,8 @@ set -e -u
 # Suck in script helper functions
 . ./builder_common.sh
 
-# Use pfSense.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.6}
+# Use pfSense_wrap.6 as kernel configuration file
+export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 
 # Clean out directories
 freesbie_make cleandir
