@@ -12,6 +12,9 @@ set -e -u		# uncomment me if you want to exit on shell errors
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Use pfSense.6 as kernel configuration file
+export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.6}
+
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="etcmfs rootmfs ${EXTRA:-}" 
 
