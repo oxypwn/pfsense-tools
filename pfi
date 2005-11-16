@@ -25,10 +25,8 @@ get_config_xml()
 		# the device in nullfs under /cf/conf and /conf
 		mount_nullfs $1 /cf/conf
 		mount_nullfs $1 /conf
-		echo
 		return 0
 	else
-		echo
 		return 1
 	fi
 }
