@@ -37,7 +37,7 @@ touch ${objdir}/${build_id}.kernel.done
 freesbie_make installkernel installworld
 
 # Checkout pfSense information and set our version variables.
-cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense 
+(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 
 # Calculate versions
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
