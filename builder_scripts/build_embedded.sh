@@ -118,8 +118,8 @@ printf "d:\t${CONFSIZE}\t${AVAILSIZE}\tunused\t0\t0\t0\n" >> ${TMPFILE}
 
 bsdlabel -RB ${DEVICE}s1 ${TMPFILE}
 
-newfs -b 4096 -f 512 -i 8192 -L ${UFS_LABEL} -O1 -U ${DEVICE}s1a
-newfs -b 4096 -f 512 -i 8192 -L ${CONF_LABEL} -O1 -U ${DEVICE}s1d
+newfs -b 4096 -f 512 -i 8192 -L ${UFS_LABEL} -O1 ${DEVICE}s1a
+newfs -b 4096 -f 512 -i 8192 -L ${CONF_LABEL} -O1 ${DEVICE}s1d
 bsdlabel ${DEVICE}s1 > ${TMPFILE}
 cat ${TMPFILE}
 
