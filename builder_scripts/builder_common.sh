@@ -163,7 +163,7 @@ fixup_wrap() {
     echo exit >> $CVS_CO_DIR/root/.shrc
     rm -f $CVS_CO_DIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
     
-    echo "wrap" > $CVS_CO_DIR/etc/platform
+    echo "embedded" > $CVS_CO_DIR/etc/platform
 }
 
 create_pfSense_Full_update_tarball() {
@@ -231,11 +231,6 @@ copy_pfSense_tarball_to_freesbiebasedir() {
 # Set image as a CDROM type image
 set_image_as_cdrom() {
 	echo cdrom > $CVS_CO_DIR/etc/platform
-}
-
-# Set image as a WRAP type image
-set_image_as_wrap() {
-        echo wrap > $CVS_CO_DIR/etc/platform
 }
 
 #Create a copy of FREESBIEBASEDIR. This is useful to modify the live filesystem
