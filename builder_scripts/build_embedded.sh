@@ -63,7 +63,7 @@ populate_extra
 echo > conf/packages
 
  
-#fixup_wrap
+fixup_wrap
 
 # Invoke FreeSBIE2 toolchain
 freesbie_make clonefs

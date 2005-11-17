@@ -61,7 +61,6 @@ populate_extra() {
 	# Nuke CVS dirs and boot/ content
 	set +e
         find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
-	[ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 	set -e
 
 }
@@ -143,163 +142,28 @@ fixup_updates() {
 
 fixup_wrap() {
 
-    CURRENT_WD=`pwd`
+    mv $CVS_CO_DIR/boot/device.hints_wrap \
+            $CVS_CO_DIR/boot/device.hints
+    mv $CVS_CO_DIR/boot/loader.conf_wrap \
+            $CVS_CO_DIR/boot/loader.conf
+    mv $CVS_CO_DIR/etc/ttys_wrap \
+            $CVS_CO_DIR/etc/ttys
 
-    # Checkout pfSense information and set our version variables.
-    rm -rf $BASE_DIR/pfSense
-    cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense
-
-    chflags -R noschg /tmp/ 2>/dev/null
-    rm -rf /tmp/* 2>/dev/null
-    rm -rf /tmp/root/*.* 2>/dev/null
-    rm -rf /tmp/cf/*.* 2>/dev/null
-    mkdir -p /tmp/root 2>/dev/null
-    mkdir -p /tmp/cf 2>/dev/null
+    rm ${CVS_CO_DIR}/boot/label.proto_wrap 
     
-    umount /tmp/root 2>/dev/null
-    umount /tmp/cf 2>/dev/null
-    mdconfig -d -u 91 2>/dev/null
-     
-    cp /usr/lib/libcrypt.so ${FREESBIEBASEDIR}/usr/lib/libcrypt.so.2
-    cp /usr/lib/libm.so ${FREESBIEBASEDIR}/usr/lib/libm.so.3
-    cp /usr/lib/libssl.so ${FREESBIEBASEDIR}/usr/lib/libssl.so.3
-    cp /usr/lib/libcrypto.so ${FREESBIEBASEDIR}/usr/lib/libcrypto.so.3
-    cp /usr/lib/libz.so ${FREESBIEBASEDIR}/usr/lib/libz.so.2
-    cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
-    cp /lib/libutil.so.5 ${FREESBIEBASEDIR}/lib/libutil.so.4
-    cp /usr/local/lib/libnetsnmpagent.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-    cp /usr/local/lib/libnetsnmphelpers.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-    cp /usr/local/lib/libnetsnmp.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-  
-    cp /usr/lib/libpthread.so.1 ${FREESBIEBASEDIR}/usr/lib/
-    cp /usr/local/lib/libevent-1.1a.so.1 ${FREESBIEBASEDIR}/usr/local/lib/
-    cp /usr/local/lib/libnetsnmpmibs.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
- 
-    cp $CVS_CO_DIR/boot/device.hints_wrap \
-            $FREESBIEISODIR/boot/device.hints
-    cp $CVS_CO_DIR/boot/loader.conf_wrap \
-            $FREESBIEISODIR/boot/loader.conf
-    cp $CVS_CO_DIR/etc/ttys_wrap \
-            $FREESBIEISODIR/etc/
+    echo `date` > $CVS_CO_DIR/etc/version.buildtime
+    echo "" > $CVS_CO_DIR/etc/motd
     
-    echo `date` > $FREESBIEISODIR/etc/version.buildtime
-    echo "" > $FREESBIEISODIR/etc/motd
+    mkdir -p $CVS_CO_DIR/cf/conf/backup
     
-    mkdir -p $FREESBIEISODIR/cf/conf/backup
-    
-    mkdir  $FREESBIEISODIR/dev 2>/dev/null
-    rm -f $FREESBIEISODIR/etc/rc.d/freesbie_1st 2>/dev/null
-    rm -rf $FREESBIEISODIR/cloop 2>/dev/null
-    rm -rf $FREESBIEISODIR/dist 2>/dev/null
-    rm -f $FREESBIEISODIR/etc/rc.local 2>/dev/null
-    rm $FREESBIEISODIR/root/.tcshrc 2>/dev/null
-    echo "alias installer /scripts/lua_installer" > $FREESBIEISODIR/root/.tcshrc
-    rm $FREESBIEISODIR/root/.message* 2>/dev/null
-    rm $FREESBIEISODIR/etc/rc.conf 2>/dev/null
-    touch $FREESBIEISODIR/etc/rc.conf 2>/dev/null
-
     # Nuke the trigger wizard script
     rm -f $CVS_CO_DIR/trigger_initial_wizard
     
-    # Prevent the system from asking for these twice
-    touch $FREESBIEISODIR/root/.part_mount
-    touch $FREESBIEISODIR/root/.first_time
+    echo /etc/rc.initial > $CVS_CO_DIR/root/.shrc
+    echo exit >> $CVS_CO_DIR/root/.shrc
+    rm -f $CVS_CO_DIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
     
-    echo > $FREESBIEISODIR/etc/motd
-    echo /etc/rc.initial > $FREESBIEISODIR/root/.shrc
-    echo exit >> $FREESBIEISODIR/root/.shrc
-    rm -f $FREESBIEISODIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
-    
-    echo Calculating size of /usr/local/livefs...
-    du -H -d0 /usr/local/livefs
-    
-    echo Running DD
-    /bin/dd if=/dev/zero of=/tmp/image.bin bs=1k count=111072
-    echo Running mdconfig
-    /sbin/mdconfig -a -t vnode -u91 -f /tmp/image.bin
-    #/sbin/disklabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
-    /sbin/bsdlabel -BR md91 /home/pfsense/pfSense/boot/label.proto_wrap
-    
-    echo Running newfs
-    newfs /dev/md91a
-    newfs /dev/md91d
-    
-    echo -n "Mounting -> [ /tmp/root "
-    mount /dev/md91a /tmp/root
-    echo -n "/tmp/cf "
-    mount /dev/md91d /tmp/cf
-    echo "]"
-    echo -n "Populating /tmp/root -> [ "
-    echo -n "livefs "
-    cd $FREESBIEBASEDIR/ && tar  czPf /home/pfsense/livefs.tgz .
-    cd /tmp/root && tar xzPf  /home/pfsense/livefs.tgz
-    echo -n "pfSense "
-    cd /home/pfsense/pfSense && tar  czPf /home/pfsense/pfSense.tgz .
-    cd /tmp/root && tar  xzPf /home/pfsense/pfSense.tgz
-    echo "]"
-    
-    echo /dev/ad0a          /               ufs     ro              1 \
-            1 > /tmp/root/etc/fstab
-    echo /dev/ad0d          /cf             ufs     ro              1 \
-            1 >> /tmp/root/etc/fstab
-    echo md                 /tmp            mfs     rw,-s16m                1 \
-            0 >> /tmp/root/etc/fstab
-    
-    rm -rf /tmp/root/var/run
-    rm -rf /tmp/root/var/log
-    rm -rf /tmp/root/var/etc
-    rm -rf /tmp/root/var/tmp
-    rm -rf /tmp/root/var/db
-    
-    # setup symlinks
-    echo "#!/bin/sh" > /tmp/root/script
-    echo "ln -s /tmp /var/tmp" >> /tmp/root/script
-    echo "ln -s /tmp /var/run" >> /tmp/root/script
-    echo "ln -s /tmp /var/etc" >> /tmp/root/script
-    echo "ln -s /tmp /var/log" >> /tmp/root/script
-    echo "ln -s /tmp /var/db"  >> /tmp/root/script
-    echo "ln -s /cf/conf /conf" >> /tmp/root/script
-    chmod a+x /tmp/root/script
-    chroot /tmp/root/ /script
-    
-    mkdir -p /tmp/root/cf /tmp/root/usr/savecore
-    
-    rm -rf /home/pfsense/pfSense/cf/conf/CVS
-    cp /home/pfsense/pfSense/cf/conf/* \
-            /tmp/root/cf/conf/
-    
-    mkdir -p /tmp/cf/conf
-    cp /home/pfsense/pfSense/cf/conf/* /tmp/cf/conf/
-    
-    echo -n "Config directory: "
-    ls -lah /tmp/cf/conf
-    
-    echo "wrap" > /tmp/root/etc/platform
-    
-    /sbin/fsck -y /dev/md91a
-    /sbin/fsck -y /dev/md91d
-
-    echo -n "Unmounting: [ "
-    echo -n "/tmp/root "
-    cd /home/pfsense/tools && umount /tmp/root
-    echo -n "/tmp/cf "
-    cd /home/pfsense/tools && umount /tmp/cf
-    echo -n "md "
-    /sbin/mdconfig -d -u 91
-    echo "]"
-    
-    echo gzipping image.bin
-    cd /tmp/ && gzip -9 image.bin
-    echo -n "Image size: "
-    ls -lah /tmp/image.bin.gz
-    
-    echo Cleaning up /tmp/
-    
-    rm -rf /tmp/root
-    rm -rf /tmp/cf/
-
-    cd $CURRENT_WD
-
+    echo "wrap" > $CVS_CO_DIR/etc/platform
 }
 
 create_pfSense_Full_update_tarball() {

@@ -58,6 +58,9 @@ echo ">>> Phase populate_extra"
 echo ">>> Phase set_image_as_cdrom"
 ( set_image_as_cdrom )
 
+# Nuke the boot directory
+[ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
+
 mkdir ${CVS_CO_DIR}/boot && echo console=\"comconsole\" >> ${CVS_CO_DIR}/boot/loader.conf
 echo "-D" >> ${CVS_CO_DIR}/boot.config
 
