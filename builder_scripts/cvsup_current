@@ -68,6 +68,9 @@ patch < ${PATCHDIR}/errwarn.c.diff
 cd ${SRCDIR}/sys/dev/ata/
 patch < ${PATCHDIR}/ata-chipset.c.diff
 
+cd ${SRCDIR}/sys/netinet/
+patch < ${PATCHDIR}/ip_carp.c.diff
+
 cp ${PATCHDIR}/ath_hal-20051019/freebsd/* \
 	${SRCDIR}/sys/contrib/dev/ath/freebsd/
 
