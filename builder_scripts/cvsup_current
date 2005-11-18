@@ -82,15 +82,10 @@ cp ${PATCHDIR}/ath_hal-20051019/public/* \
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
-rm -rf /usr/obj/*
+rm -rf /usr/obj*
 echo Done!
 
-cp /home/pfsense/freesbie/config_buildworld.sh \
-	/home/pfsense/freesbie/config.sh
-
 cd ${CURRENTDIR}
-./build_updates.sh
+./build_iso.sh
 
-cp /home/pfsense/freesbie/config_nobuildworld.sh \
-	/home/pfsense/freesbie/config.sh
 
