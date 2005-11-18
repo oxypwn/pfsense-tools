@@ -82,9 +82,13 @@ SECTS=${SECTS:-111072}  # Total number of sectors
 SECTT=${SECTT:-32}      # Sectors/track
 HEADS=${HEADS:-16}      # Heads
 
-CONFSIZE=${CONFSIZE:-"16480"} # Sectors reserved to /cf partition
-                              # Size must be >= 8 Mbytes for FAT16
-                              # partitions
+# Sectors reserved to /cf partition
+if [ -z "${MSDOS_CONF:-}" ]; then
+	CONFSIZE=${CONFSIZE:-"4096"}
+else
+	# Size must be >= 8 Mbytes for FAT16 partitions
+	CONFSIZE=${CONFSIZE:-"16480"}
+fi
 
 # Temp file and directory to be used later
 TMPFILE=`mktemp -t freesbie`
