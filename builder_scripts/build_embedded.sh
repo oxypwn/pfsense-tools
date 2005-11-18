@@ -71,12 +71,20 @@ freesbie_make clonefs
 echo "#### Building bootable UFS image ####"
 
 UFS_LABEL=${FREESBIE_LABEL:-"pfSense"} # UFS label
-CONF_LABEL=${CONF_LABEL:-"pfSenseConf"} # UFS label
+if [ -z "${MSDOS_CONF:-}" ]; then
+	CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
+else
+	CONF_LABEL=${CONF_LABEL:-"PFSENSECFG"} # FAT label
+fi
+
 # Default parameters for the image, use diskinfo(1) to obtain yours
 SECTS=${SECTS:-111072}  # Total number of sectors
 SECTT=${SECTT:-32}      # Sectors/track
 HEADS=${HEADS:-16}      # Heads
 
+CONFSIZE=${CONFSIZE:-"16480"} # Sectors reserved to /cf partition
+                              # Size must be >= 8 Mbytes for FAT16
+                              # partitions
 
 # Temp file and directory to be used later
 TMPFILE=`mktemp -t freesbie`
@@ -98,41 +106,54 @@ dd if=/dev/zero of=${IMGPATH} count=${SECTS}
 DEVICE=`mdconfig -a -t vnode -f ${IMGPATH} -x ${SECTT} -y ${HEADS}`
 rm -f ${IMGPATH}
 
+rootoffset=${SECTT}
+rootsize=$((${SECTS} - ${CONFSIZE} - ${SECTT}))
+confoffset=$((${SECTS} - ${CONFSIZE}))
+confsize=${CONFSIZE}
+
 echo "g c${CYLINDERS} h${HEADS} s${SECTT}" > ${TMPFILE}
-echo "p 1 165 ${SECTT} $((${SECTS} - ${SECTT}))" >> ${TMPFILE}
+echo "p 1 165 ${rootoffset} ${rootsize}" >> ${TMPFILE}
+if [ -z "${MSDOS_CONF:-}" ]; then
+	echo "p 2 165 ${confoffset} ${confsize}" >> ${TMPFILE}
+else
+	echo "p 2 4 ${confoffset} ${confsize}" >> ${TMPFILE}
+fi
 echo "a 1" >> ${TMPFILE}
 
+cat ${TMPFILE}
 fdisk -BI ${DEVICE}
 fdisk -i -v -f ${TMPFILE} ${DEVICE}
 
-SLICESIZE=$(fdisk ${DEVICE} | grep ", size" | awk '{print $4}')
-
-CONFSIZE=4096 # counted in 512-byte blocks
-
-AVAILSIZE=$((${SLICESIZE} - ${CONFSIZE}))
-
-printf "a:\t${AVAILSIZE}\t0\tunused\t0\t0\t0\n" > ${TMPFILE} 
-printf "c:\t${SLICESIZE}\t0\tunused\t0\t0\t0\n" >> ${TMPFILE} 
-printf "d:\t${CONFSIZE}\t${AVAILSIZE}\tunused\t0\t0\t0\n" >> ${TMPFILE} 
-
-
-bsdlabel -RB ${DEVICE}s1 ${TMPFILE}
-
+bsdlabel -w -B ${DEVICE}s1
 newfs -b 4096 -f 512 -i 8192 -L ${UFS_LABEL} -O1 ${DEVICE}s1a
-newfs -b 4096 -f 512 -i 8192 -L ${CONF_LABEL} -O1 ${DEVICE}s1d
-bsdlabel ${DEVICE}s1 > ${TMPFILE}
-cat ${TMPFILE}
+
+if [ -z "${MSDOS_CONF:-}" ]; then
+	bsdlabel -w -B ${DEVICE}s2
+	newfs -b 4096 -f 512 -i 8192 -L ${CONF_LABEL} -O1 ${DEVICE}s2a
+else
+	newfs_msdos -F 16 -L ${CONF_LABEL} ${DEVICE}s2
+fi
+
 
 mount /dev/${DEVICE}s1a ${TMPDIR}
 mkdir ${TMPDIR}/cf
-mount /dev/${DEVICE}s1d ${TMPDIR}/cf
+if [ -z "${MSDOS_CONF:-}" ]; then
+	mount /dev/${DEVICE}s2a ${TMPDIR}/cf
+else
+	mount_msdosfs -l /dev/${DEVICE}s2 ${TMPDIR}/cf
+fi
+
 
 echo "Writing files..."
 
 cd ${CLONEDIR}
-find . -print -depth | cpio -dump -v ${TMPDIR}
+find . -print -depth | cpio -dump ${TMPDIR}
 echo "/dev/ufs/${UFS_LABEL} / ufs ro 1 1" > ${TMPDIR}/etc/fstab
-echo "/dev/ufs/${CONF_LABEL} /cf ufs ro 1 1" >> ${TMPDIR}/etc/fstab
+if [ -z "${MSDOS_CONF:-}" ]; then
+	echo "/dev/ufs/${CONF_LABEL} /cf ufs ro 1 1" >> ${TMPDIR}/etc/fstab
+else
+	echo "/dev/msdosfs/${CONF_LABEL} /cf msdosfs rw,-l 1 1" >> ${TMPDIR}/etc/fstab
+fi
 
 umount ${TMPDIR}/cf
 umount ${TMPDIR}
@@ -146,3 +167,4 @@ rm -f ${TMPFILE}
 rm -rf ${TMPDIR}
 
 ls -lh ${IMGPATH}
+
