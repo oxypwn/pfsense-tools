@@ -58,7 +58,7 @@ populate_extra() {
 	# Trigger the pfSense wizzard
 	echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
-	# Nuke CVS dirs and boot/ content
+	# Nuke CVS dirs
 	set +e
         find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
 	set -e
@@ -66,78 +66,39 @@ populate_extra() {
 }
 
 fixup_updates() {
-	VERSION=`cat $CVS_CO_DIR/etc/version`
-	DSTISO=pfSense-$VERSION.iso
-	FILENAME=pfSense-Full-Update-${VERSION}.tgz
 
-	cd ${FREESBIEBASEDIR}
-	rm -rf ${FREESBIEBASEDIR}/cf
-	rm -rf ${CVS_CO_DIR}/cf
-	rm -rf ${FREESBIEBASEDIR}/conf
-	rm -rf ${CVS_CO_DIR}/conf
-	rm -f ${FREESBIEBASEDIR}/boot/*
-	rm -rf ${FREESBIEBASEDIR}/etc/rc.conf
-	rm -rf ${FREESBIEBASEDIR}/etc/motd
-	rm -rf ${FREESBIEBASEDIR}/trigger*
-	rm -rf ${CVS_CO_DIR}/etc/rc.conf
-	rm -rf ${CVS_CO_DIR}/etc/motd
-	rm -f ${CVS_CO_DIR}/boot/*
-	find ${CVS_CO_DIR} -name CVS -exec rm {} \;
+	cd ${PFSENSEBASEDIR}
+	rm -rf ${PFSENSEBASEDIR}/cf
+	rm -rf ${PFSENSEBASEDIR}/conf
+	find ${PFSENSEBASEDIR}/boot/ -type f -depth 1 -exec rm {} \;
+	rm -rf ${PFSENSEBASEDIR}/etc/rc.conf
+	rm -rf ${PFSENSEBASEDIR}/etc/motd
+	rm -rf ${PFSENSEBASEDIR}/trigger*
 
 	echo Removing pfSense.tgz used by installer..
-	find . -name pfSense.tgz -exec rm {} \;
-	rm -f ${FREESBIEBASEDIR}/etc/pwd.db 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/etc/group 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/etc/spwd.db 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/etc/passwd 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/etc/master.passwd 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/etc/pwd.db
-	rm -f ${FREESBIEBASEDIR}/etc/spwd.db
-	rm -rf ${CVS_CO_DIR}/etc/pwd.db
-	rm -rf ${CVS_CO_DIR}/etc/spwd.db
-	rm -rf ${CVS_CO_DIR}/etc/group
-	rm -rf ${CVS_CO_DIR}/etc/passwd
-	rm -rf ${CVS_CO_DIR}/etc/master.passwd
-	rm -f ${FREESBIEBASEDIR}/etc/fstab 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/etc/ttys 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/etc/fstab 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/boot/device.hints 2>/dev/null
-	rm -f ${FREESBIEBASEDIR}/boot/loader.rc 2>/dev/null
-	rm -rf ${FREESBIEBASEDIR}/conf/ 2>/dev/null
-	rm -rf ${FREESBIEBASEDIR}/cf/ 2>/dev/null
-	echo > ${FREESBIEBASEDIR}/root/.tcshrc
-	echo "alias installer /scripts/lua_installer" > ${FREESBIEBASEDIR}/root/.tcshrc
+	find ${PFSENSEBASEDIR} -name pfSense.tgz -exec rm {} \;
+	rm -f ${PFSENSEBASEDIR}/etc/pwd.db 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/group 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/spwd.db 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/passwd 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/master.passwd 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/fstab 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
+	echo > ${PFSENSEBASEDIR}/root/.tcshrc
+	echo "alias installer /scripts/lua_installer" > ${PFSENSEBASEDIR}/root/.tcshrc
 	# Setup login environment
-	echo > ${FREESBIEBASEDIR}/root/.shrc
-	echo "/etc/rc.initial" >> ${FREESBIEBASEDIR}/root/.shrc
-	echo "exit" >> ${FREESBIEBASEDIR}/root/.shrc
+	echo > ${PFSENSEBASEDIR}/root/.shrc
+	echo "/etc/rc.initial" >> ${PFSENSEBASEDIR}/root/.shrc
+	echo "exit" >> ${PFSENSEBASEDIR}/root/.shrc
 
 	# Nuke the trigger wizard script
-	rm -f ${CVS_CO_DIR}/trigger_initial_wizard
-	rm -f ${FREESBIEBASEDIR}/trigger_initial_wizard
+	rm -f ${PFSENSEBASEDIR}/trigger_initial_wizard
 
-	mkdir -p ${FREESBIEBASEDIR}/usr/local/livefs/lib/
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/livefs/lib/
 
-	cp /usr/bin/dig ${FREESBIEBASEDIR}/usr/bin/dig
-	cp /usr/bin/host ${FREESBIEBASEDIR}/usr/bin/host
+        cp /usr/local/lib/libevent-1.1a.so.1 ${PFSENSEBASEDIR}/usr/local/lib/
 
-        cp /usr/lib/libcrypt.so ${FREESBIEBASEDIR}/usr/lib/libcrypt.so.2
-        cp /usr/lib/libm.so ${FREESBIEBASEDIR}/usr/lib/libm.so.3
-        cp /usr/lib/libssl.so ${FREESBIEBASEDIR}/usr/lib/libssl.so.3
-        cp /usr/lib/libcrypto.so ${FREESBIEBASEDIR}/usr/lib/libcrypto.so.3
-        cp /usr/lib/libz.so ${FREESBIEBASEDIR}/usr/lib/libz.so.2
-        cp /usr/lib/libc.so ${FREESBIEBASEDIR}/usr/lib/libc.so.5
-	cp /lib/libutil.so.5 ${FREESBIEBASEDIR}/lib/libutil.so.4
-	cp /usr/local/lib/libnetsnmpagent.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-        cp /usr/local/lib/libnetsnmphelpers.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-        cp /usr/local/lib/libnetsnmp.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-
-        cp /usr/lib/libpthread.so.1 ${FREESBIEBASEDIR}/usr/lib/
-        cp /usr/local/lib/libevent-1.1a.so.1 ${FREESBIEBASEDIR}/usr/local/lib/
-        cp /usr/local/lib/libnetsnmpmibs.so.7 ${FREESBIEBASEDIR}/usr/local/lib/
-
-	echo `date` > /usr/local/livefs/etc/version.buildtime
-
+	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
 }
 
 fixup_wrap() {
@@ -167,14 +128,15 @@ fixup_wrap() {
 }
 
 create_pfSense_Full_update_tarball() {
+	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
+	FILENAME=pfSense-Full-Update-${VERSION}.tgz
 	mkdir -p $UPDATESDIR
 
         echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 
-        cd ${FREESBIEBASEDIR} && tar  czPf ${UPDATESDIR}/${FILENAME} .
+        cd ${PFSENSEBASEDIR} && tar  czPf ${UPDATESDIR}/${FILENAME} .
 
 	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
-
 }
 
 create_pfSense_Small_update_tarball() {
