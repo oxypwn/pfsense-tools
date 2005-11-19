@@ -1,3 +1,6 @@
+# Set this to enable developer builds (READ: LARGE BUILDS)
+#export MINIMAL=NO
+
 # This is the base working directory for all builder
 # operations
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
