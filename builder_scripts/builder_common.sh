@@ -154,6 +154,10 @@ create_pfSense_Small_update_tarball() {
 
 	du -hd0 ${CVS_CO_DIR}
 	
+	rm -f ${CVS_CO_DIR}/etc/platform
+	rm -f ${CVS_CO_DIR}/etc/*passwd*
+	rm -f ${CVS_CO_DIR}/etc/pw*
+	
 	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
