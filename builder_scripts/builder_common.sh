@@ -74,7 +74,6 @@ fixup_updates() {
 	rm -rf ${PFSENSEBASEDIR}/etc/rc.conf
 	rm -rf ${PFSENSEBASEDIR}/etc/motd
 	rm -rf ${PFSENSEBASEDIR}/trigger*
-
 	echo Removing pfSense.tgz used by installer..
 	find ${PFSENSEBASEDIR} -name pfSense.tgz -exec rm {} \;
 	rm -f ${PFSENSEBASEDIR}/etc/pwd.db 2>/dev/null
@@ -84,6 +83,7 @@ fixup_updates() {
 	rm -f ${PFSENSEBASEDIR}/etc/master.passwd 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/fstab 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/platform 2>/dev/null
 	echo > ${PFSENSEBASEDIR}/root/.tcshrc
 	echo "alias installer /scripts/lua_installer" > ${PFSENSEBASEDIR}/root/.tcshrc
 	# Setup login environment
