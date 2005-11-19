@@ -27,7 +27,7 @@ cvsup /etc/current-supfile
 
 # clog source and usr.sbin/Makefile patch
 cd ${SRCDIR}/usr.sbin/
-tar xzf ${PATCHDIR}/clog-1.0.1-tar.gz
+tar xzf ${PATCHDIR}/clog-1.0.1.tar.gz
 cd ${SRCDIR}/
 patch -p1 < ${PATCHDIR}/clog-makefile.patch
 
