@@ -87,7 +87,7 @@ if [ -z "${MSDOS_CONF:-}" ]; then
 	CONFSIZE=${CONFSIZE:-"4096"}
 else
 	# Size must be >= 8 Mbytes for FAT16 partitions
-	CONFSIZE=${CONFSIZE:-"16480"}
+	CONFSIZE=${CONFSIZE:-"16980"}
 fi
 
 # Temp file and directory to be used later
@@ -110,41 +110,51 @@ dd if=/dev/zero of=${IMGPATH} count=${SECTS}
 DEVICE=`mdconfig -a -t vnode -f ${IMGPATH} -x ${SECTT} -y ${HEADS}`
 rm -f ${IMGPATH}
 
-rootoffset=${SECTT}
-rootsize=$((${SECTS} - ${CONFSIZE} - ${SECTT}))
-confoffset=$((${SECTS} - ${CONFSIZE}))
-confsize=${CONFSIZE}
-
-echo "g c${CYLINDERS} h${HEADS} s${SECTT}" > ${TMPFILE}
-echo "p 1 165 ${rootoffset} ${rootsize}" >> ${TMPFILE}
 if [ -z "${MSDOS_CONF:-}" ]; then
+	rootoffset=${SECTT}
+	rootsize=$((${SECTS} - ${CONFSIZE} - ${SECTT}))
+	confoffset=$((${SECTS} - ${CONFSIZE}))
+	confsize=${CONFSIZE}
+
+	echo "g c${CYLINDERS} h${HEADS} s${SECTT}" > ${TMPFILE}
+	echo "p 1 165 ${rootoffset} ${rootsize}" >> ${TMPFILE}
 	echo "p 2 165 ${confoffset} ${confsize}" >> ${TMPFILE}
+	echo "a 1" >> ${TMPFILE}
 else
-	echo "p 2 4 ${confoffset} ${confsize}" >> ${TMPFILE}
+	rootoffset=$((${SECTT} + ${CONFSIZE}))
+	rootsize=$((${SECTS} - ${CONFSIZE} - ${SECTT}))
+	confsize=${CONFSIZE}
+	confoffset=${SECTT}
+
+	echo "g c${CYLINDERS} h${HEADS} s${SECTT}" > ${TMPFILE}
+	echo "p 1 4 ${confoffset} ${confsize}" >> ${TMPFILE}
+	echo "p 2 165 ${rootoffset} ${rootsize}" >> ${TMPFILE}
+	echo "a 1" >> ${TMPFILE}
 fi
-echo "a 1" >> ${TMPFILE}
 
 cat ${TMPFILE}
 fdisk -BI ${DEVICE}
 fdisk -i -v -f ${TMPFILE} ${DEVICE}
 
-bsdlabel -w -B ${DEVICE}s1
-newfs -b 4096 -f 512 -i 8192 -L ${UFS_LABEL} -O1 ${DEVICE}s1a
-
 if [ -z "${MSDOS_CONF:-}" ]; then
+	bsdlabel -w -B ${DEVICE}s1
+	newfs -b 4096 -f 512 -i 8192 -L ${UFS_LABEL} -O1 ${DEVICE}s1a
 	bsdlabel -w -B ${DEVICE}s2
 	newfs -b 4096 -f 512 -i 8192 -L ${CONF_LABEL} -O1 ${DEVICE}s2a
+	mount /dev/${DEVICE}s1a ${TMPDIR}
 else
-	newfs_msdos -F 16 -L ${CONF_LABEL} ${DEVICE}s2
+	newfs_msdos -F 16 -L ${CONF_LABEL} ${DEVICE}s1
+	bsdlabel -w -B ${DEVICE}s2
+	newfs -b 4096 -f 512 -i 8192 -L ${UFS_LABEL} -O1 ${DEVICE}s2a
+	mount /dev/${DEVICE}s2a ${TMPDIR}
 fi
 
 
-mount /dev/${DEVICE}s1a ${TMPDIR}
 mkdir ${TMPDIR}/cf
 if [ -z "${MSDOS_CONF:-}" ]; then
 	mount /dev/${DEVICE}s2a ${TMPDIR}/cf
 else
-	mount_msdosfs -l /dev/${DEVICE}s2 ${TMPDIR}/cf
+	mount_msdosfs -l /dev/${DEVICE}s1 ${TMPDIR}/cf
 fi
 
 
@@ -161,6 +171,11 @@ fi
 
 umount ${TMPDIR}/cf
 umount ${TMPDIR}
+
+if [ ! -z "${MSDOS_CONF:-}" ]; then
+	# Install the boot loader in MBR, if we are using msdos partition
+	boot0cfg -B -b ${CLONEDIR}/boot/boot0sio -o packet -s 2 -t 1 ${DEVICE}
+fi
 
 echo "Dumping image to ${IMGPATH}..."
 
