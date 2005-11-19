@@ -144,7 +144,7 @@ create_pfSense_Full_update_tarball() {
 
 create_pfSense_Small_update_tarball() {
 	VERSION=`cat $CVS_CO_DIR/etc/version`
-	FILENAME=pfSense-Mini-Wrap-Update-${VERSION}.tgz
+	FILENAME=pfSense-Mini-Embedded-Update-${VERSION}.tgz
 
 	mkdir -p $UPDATESDIR
 
