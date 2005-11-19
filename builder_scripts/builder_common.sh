@@ -125,6 +125,9 @@ fixup_wrap() {
     rm -f $CVS_CO_DIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
     
     echo "embedded" > $CVS_CO_DIR/etc/platform
+
+    rm -rf $CVS_CO_DIR/conf
+    ln -s /cf/conf $CVS_CO_DIR/conf
 }
 
 create_pfSense_Full_update_tarball() {
