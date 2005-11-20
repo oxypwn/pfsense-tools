@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# Common functions to be used by build scripts
+#
+# $Id$
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
@@ -62,6 +66,12 @@ populate_extra() {
 	set +e
         find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
 	set -e
+
+	# Enable debug if requested
+	if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
+	    touch ${CVS_CO_DIR}/debugging
+	fi
+
 
 }
 
@@ -325,5 +335,38 @@ update_cvs_depot() {
 	rm -rf $BASE_DIR/pfSense
 	(cd $BASE_DIR && cvs -d :ext:${CVS_USER}@${CVS_IP}:/cvsroot co -r ${PFSENSETAG} pfSense)
     fi
+}
+
+make_world_kernel() {
+    # Check if the world and kernel are already built and set
+    # the NO variables accordingly
+    objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
+    build_id_w=`basename ${KERNELCONF}`
+    build_id_k=${build_id_w}
+    
+    # If PFSENSE_DEBUG is set, build debug kernel, if a .DEBUG kernel
+    # configuration file exists
+    if [ ! -z "${PFSENSE_DEBUG:-}" -a -f ${KERNELCONF}.DEBUG ]; then
+	# Yes, use it
+	export KERNELCONF=${KERNELCONF}.DEBUG
+	build_id_k=${build_id_w}.DEBUG
+    fi
+
+    if [ -f "${objdir}/${build_id_w}.world.done" ]; then
+	export NO_BUILDWORLD=yo
+    fi
+    if [ -f "${objdir}/${build_id_k}.kernel.done" ]; then
+	export NO_BUILDKERNEL=yo
+    fi
+
+    # Make world
+    freesbie_make buildworld
+    touch ${objdir}/${build_id_w}.world.done
+    
+    # Make kernel
+    freesbie_make buildkernel
+    touch ${objdir}/${build_id_k}.kernel.done
+
+    freesbie_make installkernel installworld
 }
 

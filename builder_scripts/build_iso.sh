@@ -3,8 +3,10 @@
 # pfSense master builder script
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
+#
+# $Id$
 
-set -e -u		# uncomment me if you want to exit on shell errors
+set -e -u
 
 # Suck in local vars
 . ./pfsense_local.sh
@@ -21,6 +23,7 @@ export EXTRA="etcmfs rootmfs ${EXTRA:-}"
 # Clean out directories
 freesbie_make cleandir
 
+# Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
 
 # Calculate versions
@@ -28,26 +31,8 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
-# Check if the world and kernel are already built and set
-# the NO variables accordingly
-objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-build_id=`basename ${KERNELCONF}`
-if [ -f "${objdir}/${build_id}.world.done" ]; then
-	export NO_BUILDWORLD=yo
-fi
-if [ -f "${objdir}/${build_id}.kernel.done" ]; then
-	export NO_BUILDKERNEL=yo
-fi
-
-# Make world
-freesbie_make buildworld
-touch ${objdir}/${build_id}.world.done
-
-# Make kernel
-freesbie_make buildkernel
-touch ${objdir}/${build_id}.kernel.done
-
-freesbie_make installkernel installworld
+# Build if needed and install world and kernel
+make_world_kernel
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"

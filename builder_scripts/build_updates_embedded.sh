@@ -3,6 +3,8 @@
 # pfSense master builder script
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
+#
+# $Id$
 
 set -e -u
 
@@ -12,6 +14,7 @@ set -e -u
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
 
 # Calculate versions

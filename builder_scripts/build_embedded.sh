@@ -3,6 +3,8 @@
 # pfSense master builder script
 # (C)2005 Scott Ullrich and the pfSense project
 # All rights reserved.
+#
+# $Id$
 
 set -e -u
 
@@ -18,6 +20,7 @@ export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 # Clean out directories
 freesbie_make cleandir
 
+# Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
 
 # Calculate versions
@@ -25,48 +28,16 @@ version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
-# Check if the world and kernel are already built and set
-# the NO variables accordingly
-objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-build_id_w=`basename ${KERNELCONF}`
-
-# If PFSENSE_DEBUG is set, build debug kernel
-if [ -z "${PFSENSE_DEBUG:-}" ]; then
-	build_id_k=${build_id_w}
-else
-	export KERNELCONF=${KERNELCONF}.DEBUG
-	build_id_k=${build_id_w}.DEBUG
-fi
-
-if [ -f "${objdir}/${build_id_w}.world.done" ]; then
-	export NO_BUILDWORLD=yo
-fi
-if [ -f "${objdir}/${build_id_k}.kernel.done" ]; then
-	export NO_BUILDKERNEL=yo
-fi
-
-# Make world
-freesbie_make buildworld
-touch ${objdir}/${build_id_w}.world.done
-	
-# Make kernel
-freesbie_make buildkernel
-touch ${objdir}/${build_id_k}.kernel.done
-
-freesbie_make installkernel installworld
+# Build if needed and install world and kernel
+make_world_kernel
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
 
 # Packages list should be empty
 echo > conf/packages
-
  
 fixup_wrap
-
-if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
-	touch ${CVS_CO_DIR}/debugging
-fi
 
 # Invoke FreeSBIE2 toolchain
 freesbie_make clonefs
