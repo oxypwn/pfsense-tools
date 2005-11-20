@@ -124,6 +124,8 @@ fixup_wrap() {
     echo exit >> $CVS_CO_DIR/root/.shrc
     rm -f $CVS_CO_DIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
     
+    touch $CVS_CO_DIR/conf/trigger_initial_wizard
+    
     echo "embedded" > $CVS_CO_DIR/etc/platform
 
     rm -rf $CVS_CO_DIR/conf
@@ -199,6 +201,7 @@ copy_pfSense_tarball_to_freesbiebasedir() {
 
 # Set image as a CDROM type image
 set_image_as_cdrom() {
+	touch $CVS_CO_DIR/conf/trigger_initial_wizard
 	echo cdrom > $CVS_CO_DIR/etc/platform
 }
 
