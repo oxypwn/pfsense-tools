@@ -79,8 +79,8 @@ fi
 
 # Default parameters for the image, use diskinfo(1) to obtain yours
 SECTS=${SECTS:-111072}  # Total number of sectors
-SECTT=${SECTT:-32}      # Sectors/track
-HEADS=${HEADS:-16}      # Heads
+SECTT=${SECTT:-63}      # Sectors/track
+HEADS=${HEADS:-32}      # Heads
 
 # Sectors reserved to /cf partition
 if [ -z "${MSDOS_CONF:-}" ]; then
@@ -129,7 +129,7 @@ else
 	echo "g c${CYLINDERS} h${HEADS} s${SECTT}" > ${TMPFILE}
 	echo "p 1 4 ${confoffset} ${confsize}" >> ${TMPFILE}
 	echo "p 2 165 ${rootoffset} ${rootsize}" >> ${TMPFILE}
-	echo "a 1" >> ${TMPFILE}
+	echo "a 2" >> ${TMPFILE}
 fi
 
 cat ${TMPFILE}
