@@ -38,21 +38,30 @@ version=`cat $CVS_CO_DIR/etc/version`
 # Check if the world and kernel are already built and set
 # the NO variables accordingly
 objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-build_id=`basename ${KERNELCONF}`
-if [ -f "${objdir}/${build_id}.world.done" ]; then
+build_id_w=`basename ${KERNELCONF}`
+
+# If PFSENSE_DEBUG is set, build debug kernel
+if [ -z "${PFSENSE_DEBUG:-}" ]; then
+	build_id_k=${build_id_w}
+else
+	export KERNELCONF=${KERNELCONF}.DEBUG
+	build_id_k=${build_id_w}.DEBUG
+fi
+
+if [ -f "${objdir}/${build_id_w}.world.done" ]; then
 	export NO_BUILDWORLD=yo
 fi
-if [ -f "${objdir}/${build_id}.kernel.done" ]; then
+if [ -f "${objdir}/${build_id_k}.kernel.done" ]; then
 	export NO_BUILDKERNEL=yo
 fi
 
 # Make world
 freesbie_make buildworld
-touch ${objdir}/${build_id}.world.done
-
+touch ${objdir}/${build_id_w}.world.done
+	
 # Make kernel
 freesbie_make buildkernel
-touch ${objdir}/${build_id}.kernel.done
+touch ${objdir}/${build_id_k}.kernel.done
 
 freesbie_make installkernel installworld
 
@@ -64,6 +73,10 @@ echo > conf/packages
 
  
 fixup_wrap
+
+if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
+	touch ${CVS_CO_DIR}/debugging
+fi
 
 # Invoke FreeSBIE2 toolchain
 freesbie_make clonefs
