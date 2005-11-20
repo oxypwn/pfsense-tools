@@ -6,73 +6,74 @@
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
-        
-	cp /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
-	cp /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
-	cp /usr/local/lib/libevent-1.1a.so.1 ${CVS_CO_DIR}/usr/local/lib/
+    # Make devd
+    ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} \
+	make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
 
-	mkdir -p $CVS_CO_DIR/var/run
+    cp /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
+    cp /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
+    cp /usr/local/lib/libevent-1.1a.so.1 ${CVS_CO_DIR}/usr/local/lib/
 
-	mkdir -p $CVS_CO_DIR/root/
-	echo exit > $CVS_CO_DIR/root/.xcustom.sh
-	touch $CVS_CO_DIR/root/.hushlogin
+    mkdir -p $CVS_CO_DIR/var/run
 
-	# bsnmpd
-	mkdir -p $CVS_CO_DIR/usr/share/snmp/defs/
-	cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
+    mkdir -p $CVS_CO_DIR/root/
+    echo exit > $CVS_CO_DIR/root/.xcustom.sh
+    touch $CVS_CO_DIR/root/.hushlogin
 
-	# Add lua installer items
-	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-	cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-	cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install
+    # bsnmpd
+    mkdir -p $CVS_CO_DIR/usr/share/snmp/defs/
+    cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
 
-	# Set buildtime
-	date > $CVS_CO_DIR/etc/version.buildtime
-	mkdir -p $CVS_CO_DIR/scripts/
-	mkdir -p $CVS_CO_DIR/conf
-	cp $BASE_DIR/tools/pfi $CVS_CO_DIR/scripts/
-	cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
-	cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
-	cp $BASE_DIR/tools/installer.sh $CVS_CO_DIR/scripts/
-	chmod a+rx $CVS_CO_DIR/scripts/*
+    # Add lua installer items
+    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+    cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+    cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install
 
-	mkdir -p $CVS_CO_DIR/usr/local/bin/
+    # Set buildtime
+    date > $CVS_CO_DIR/etc/version.buildtime
+    mkdir -p $CVS_CO_DIR/scripts/
+    mkdir -p $CVS_CO_DIR/conf
+    cp $BASE_DIR/tools/pfi $CVS_CO_DIR/scripts/
+    cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
+    cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
+    cp $BASE_DIR/tools/installer.sh $CVS_CO_DIR/scripts/
+    chmod a+rx $CVS_CO_DIR/scripts/*
 
-	cp $BASE_DIR/tools/after_installation_routines.sh \
-		$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
+    mkdir -p $CVS_CO_DIR/usr/local/bin/
 
-	chmod a+rx $CVS_CO_DIR/scripts/*
+    cp $BASE_DIR/tools/after_installation_routines.sh \
+	$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
 
-	# Copy BSD Installer sources manifest
-	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_installer/
-	
-	# Make sure we're not running any x mojo
-	mkdir -p $CVS_CO_DIR/root
+    chmod a+rx $CVS_CO_DIR/scripts/*
 
-	# Supress extra spam when logging in
-	touch $CVS_CO_DIR/root/.hushlogin
+    # Copy BSD Installer sources manifest
+    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_installer/
 
-	# Setup login environment
-	echo > $CVS_CO_DIR/root/.shrc
-	echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.shrc
-	echo "exit" >> $CVS_CO_DIR/root/.shrc
-	echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.profile
-	echo "exit" >> $CVS_CO_DIR/root/.profile
+    # Make sure we're not running any x mojo
+    mkdir -p $CVS_CO_DIR/root
 
-	# Trigger the pfSense wizzard
-	echo "true" > $CVS_CO_DIR/trigger_initial_wizard
+    # Suppress extra spam when logging in
+    touch $CVS_CO_DIR/root/.hushlogin
 
-	# Nuke CVS dirs
-	set +e
-        find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
-	set -e
+    # Setup login environment
+    echo > $CVS_CO_DIR/root/.shrc
+    echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.shrc
+    echo "exit" >> $CVS_CO_DIR/root/.shrc
+    echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.profile
+    echo "exit" >> $CVS_CO_DIR/root/.profile
 
-	# Enable debug if requested
-	if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
-	    touch ${CVS_CO_DIR}/debugging
-	fi
+    # Trigger the pfSense wizzard
+    echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
+    # Nuke CVS dirs
+    set +e
+    find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
+    set -e
 
+    # Enable debug if requested
+    if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
+	touch ${CVS_CO_DIR}/debugging
+    fi
 }
 
 fixup_updates() {
