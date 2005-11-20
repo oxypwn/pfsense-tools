@@ -313,3 +313,17 @@ restore_pfSense() {
 freesbie_make() {
 	(cd ${FREESBIE_PATH} && make $*)
 }
+
+update_cvs_depot() {
+    # Update cvs depot. If SKIP_RSYNC is defined, skip the RSYNC update.
+    # If also SKIP_CHECKOUT is defined, don't update the tree at all
+    if [ -z "${SKIP_RSYNC:-}" ]; then
+	rm -rf $BASE_DIR/pfSense
+	rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
+	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+    elif [ -z "${SKIP_CHECKOUT:-}" ]; then
+	rm -rf $BASE_DIR/pfSense
+	(cd $BASE_DIR && cvs -d :ext:${CVS_USER}@${CVS_IP}:/cvsroot co -r ${PFSENSETAG} pfSense)
+    fi
+}
+
