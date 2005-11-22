@@ -45,119 +45,53 @@ freesbie_make clonefs
 echo "#### Building bootable UFS image ####"
 
 UFS_LABEL=${FREESBIE_LABEL:-"pfSense"} # UFS label
-if [ -z "${MSDOS_CONF:-}" ]; then
-	CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
-else
-	CONF_LABEL=${CONF_LABEL:-"PFSENSECFG"} # FAT label
-fi
+CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 
-# Default parameters for the image, use diskinfo(1) to obtain yours
-SECTS=${SECTS:-111072}  # Total number of sectors
-SECTT=${SECTT:-63}      # Sectors/track
-HEADS=${HEADS:-32}      # Heads
+# Root partition size
+# XXX auto-calculate ROOTSIZE?
+ROOTSIZE=${ROOTSIZE:-"106976"}  # Total number of sectors
+CONFSIZE=${CONFSIZE:-"4096"}
 
-# Sectors reserved to /cf partition
-if [ -z "${MSDOS_CONF:-}" ]; then
-	CONFSIZE=${CONFSIZE:-"4096"}
-else
-	# Size must be >= 8 Mbytes for FAT16 partitions
-	CONFSIZE=${CONFSIZE:-"16980"}
-fi
-
+SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
 # Temp file and directory to be used later
 TMPFILE=`mktemp -t freesbie`
 TMPDIR=`mktemp -d -t freesbie`
-
-# Size of cylinder in sectors
-CYLSIZE=$((${SECTT} * ${HEADS}))
-
-# Number of cylinders
-CYLINDERS=$((${SECTS} / ${CYLSIZE}))
-
-# Recalculate number of available sectors
-SECTS=$((${CYLINDERS} * ${CYLSIZE}))
 
 echo "Initializing image..."
 dd if=/dev/zero of=${IMGPATH} count=${SECTS}
 
 # Attach the md device
-DEVICE=`mdconfig -a -t vnode -f ${IMGPATH} -x ${SECTT} -y ${HEADS}`
-rm -f ${IMGPATH}
+DEVICE=`mdconfig -a -t vnode -f ${IMGPATH}`
 
-if [ -z "${MSDOS_CONF:-}" ]; then
-	rootoffset=${SECTT}
-	rootsize=$((${SECTS} - ${CONFSIZE} - ${SECTT}))
-	confoffset=$((${SECTS} - ${CONFSIZE}))
-	confsize=${CONFSIZE}
+cat > ${TMPFILE} <<EOF
+a:	*	0	4.2BSD	1024	8192	99
+c:	${SECTS}	0	unused	0	0
+d:	${CONFSIZE}	*	4.2BSD	1024	8192	99
+EOF
 
-	echo "g c${CYLINDERS} h${HEADS} s${SECTT}" > ${TMPFILE}
-	echo "p 1 165 ${rootoffset} ${rootsize}" >> ${TMPFILE}
-	echo "p 2 165 ${confoffset} ${confsize}" >> ${TMPFILE}
-	echo "a 1" >> ${TMPFILE}
-else
-	rootoffset=$((${SECTT} + ${CONFSIZE}))
-	rootsize=$((${SECTS} - ${CONFSIZE} - ${SECTT}))
-	confsize=${CONFSIZE}
-	confoffset=${SECTT}
+bsdlabel -BR ${DEVICE} ${TMPFILE}
 
-	echo "g c${CYLINDERS} h${HEADS} s${SECTT}" > ${TMPFILE}
-	echo "p 1 4 ${confoffset} ${confsize}" >> ${TMPFILE}
-	echo "p 2 165 ${rootoffset} ${rootsize}" >> ${TMPFILE}
-	echo "a 2" >> ${TMPFILE}
-fi
-
-cat ${TMPFILE}
-fdisk -BI ${DEVICE}
-fdisk -i -v -f ${TMPFILE} ${DEVICE}
-
-if [ -z "${MSDOS_CONF:-}" ]; then
-	bsdlabel -w -B ${DEVICE}s1
-	newfs -b 4096 -f 512 -i 8192 -L ${UFS_LABEL} -O1 ${DEVICE}s1a
-	bsdlabel -w -B ${DEVICE}s2
-	newfs -b 4096 -f 512 -i 8192 -L ${CONF_LABEL} -O1 ${DEVICE}s2a
-	mount /dev/${DEVICE}s1a ${TMPDIR}
-else
-	newfs_msdos -F 16 -L ${CONF_LABEL} ${DEVICE}s1
-	bsdlabel -w -B ${DEVICE}s2
-	newfs -b 4096 -f 512 -i 8192 -L ${UFS_LABEL} -O1 ${DEVICE}s2a
-	mount /dev/${DEVICE}s2a ${TMPDIR}
-fi
+newfs -L ${UFS_LABEL} -O1 /dev/${DEVICE}a
+newfs -L ${CONF_LABEL} -O1 /dev/${DEVICE}d
 
 
+mount /dev/${DEVICE}a ${TMPDIR}
 mkdir ${TMPDIR}/cf
-if [ -z "${MSDOS_CONF:-}" ]; then
-	mount /dev/${DEVICE}s2a ${TMPDIR}/cf
-else
-	mount_msdosfs -l /dev/${DEVICE}s1 ${TMPDIR}/cf
-fi
-
+mount /dev/${DEVICE}d ${TMPDIR}/cf
 
 echo "Writing files..."
 
 cd ${CLONEDIR}
 find . -print -depth | cpio -dump ${TMPDIR}
+
 echo "/dev/ufs/${UFS_LABEL} / ufs ro 1 1" > ${TMPDIR}/etc/fstab
-if [ -z "${MSDOS_CONF:-}" ]; then
-	echo "/dev/ufs/${CONF_LABEL} /cf ufs ro 1 1" >> ${TMPDIR}/etc/fstab
-else
-	echo "/dev/msdosfs/${CONF_LABEL} /cf msdosfs rw,-l 1 1" >> ${TMPDIR}/etc/fstab
-fi
+echo "/dev/ufs/${CONF_LABEL} /cf ufs ro 1 1" >> ${TMPDIR}/etc/fstab
 
 umount ${TMPDIR}/cf
 umount ${TMPDIR}
-
-if [ ! -z "${MSDOS_CONF:-}" ]; then
-	# Install the boot loader in MBR, if we are using msdos partition
-	boot0cfg -B -b ${CLONEDIR}/boot/boot0sio -o packet -s 2 -t 1 ${DEVICE}
-fi
-
-echo "Dumping image to ${IMGPATH}..."
-
-dd if=/dev/${DEVICE} of=${IMGPATH} bs=64k
 
 mdconfig -d -u ${DEVICE}
 rm -f ${TMPFILE}
 rm -rf ${TMPDIR}
 
 ls -lh ${IMGPATH}
-
