@@ -111,7 +111,7 @@ cd ${CURRENTDIR}
 rm -rf /usr/obj*
 echo Done!
 
-echo Starting pfSense build.  Sit back and have a beer (but not cheap beer)...
+echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
 
 cd ${CURRENTDIR}
 ./build_iso.sh
