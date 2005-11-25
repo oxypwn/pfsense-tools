@@ -41,13 +41,14 @@ look_for_config_xml_config_msdos()
 		fi
 		echo -n "$try_device "
 		if mount -t msdos /dev/$try_device /tmp/mnt/cf 2>/dev/null ; then
-			echo -n "[found] "
+			echo -n "[found msdos] "
 			# Note for later that this device is capable
 			# of having config.xml on it for perm. storage
 			/bin/mkdir -p /var/db/pfi/
 			/usr/bin/touch /var/db/pfi/capable_${try_device}
 			# look for config.xml, if its found return 0
 			if get_config_xml /tmp/mnt/cf /dev/$try_device; then
+				echo -n "[found config.xml] "
 			    return 0
 			fi
 		fi
