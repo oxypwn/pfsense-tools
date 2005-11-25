@@ -103,7 +103,11 @@ look_for_pfi_config_msdos()
 			echo -n "[found] "
 			get_authorized_hosts
 			if get_pfi_config /tmp/mnt /dev/$try_device; then
-				umount /tmp/mnt
+				#umount /tmp/mnt
+				rm -rf /conf/*.*
+				rm -rf /cf/*.*
+				/sbin/mount_nullfs /tmp/mnt/cf/conf /conf
+				/sbin/mount_nullfs /tmp/mnt/cf /cf
 				echo -n "[found] "
 				return 0
 			fi
