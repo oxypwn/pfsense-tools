@@ -25,7 +25,11 @@ get_config_xml()
 		# the device in nullfs under /cf/conf and /conf
 		mount_nullfs /tmp/mnt/cf /cf
 		mount_nullfs /tmp/mnt/cf/conf /conf
-		/bin/sh
+		if [ ! -r /cf/conf/config.xml ]; then
+			echo
+			echo "Something went wrong.  Launching shell!";
+			/bin/sh
+		fi
 		return 0
 	else
 		return 1
