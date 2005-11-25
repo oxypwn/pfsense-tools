@@ -23,8 +23,8 @@ get_config_xml()
 		echo -n "[config.xml on $1]"
 		# Now that we have found config.xml lets mount
 		# the device in nullfs under /cf/conf and /conf
-		mount_nullfs $1 /cf/conf
-		mount_nullfs $1 /conf
+		mount_nullfs /tmp/mnt/cf /cf
+		mount_nullfs /tmp/mnt/cf/conf /conf
 		/bin/sh
 		return 0
 	else
