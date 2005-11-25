@@ -30,6 +30,7 @@ get_config_xml()
 			echo "Something went wrong.  Launching shell!";
 			/bin/sh
 		fi
+		echo
 		return 0
 	else
 		return 1
