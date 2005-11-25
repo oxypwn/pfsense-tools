@@ -20,7 +20,7 @@ touch /etc/rc.conf
 get_config_xml()
 {
 	if [ -r $1/conf/config.xml ]; then
-		echo -n "Found config.xml on $1"
+		echo -n "[config.xml on $1]"
 		# Now that we have found config.xml lets mount
 		# the device in nullfs under /cf/conf and /conf
 		mount_nullfs $1 /cf/conf
@@ -48,7 +48,6 @@ look_for_config_xml_config_msdos()
 			/usr/bin/touch /var/db/pfi/capable_${try_device}
 			# look for config.xml, if its found return 0
 			if get_config_xml /tmp/mnt/cf /dev/$try_device; then
-				echo -n "[found config.xml] "
 			    return 0
 			fi
 		fi
