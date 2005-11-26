@@ -17,6 +17,7 @@ set -e -u
 # Use pfSense_wrap.6 as kernel configuration file
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 export NO_COMPRESSEDFS=yes
+export PRUNE_LIST="${PWD}/remove.list"
 
 # Clean out directories
 freesbie_make cleandir
