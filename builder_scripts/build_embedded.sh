@@ -16,6 +16,7 @@ set -e -u
 
 # Use pfSense_wrap.6 as kernel configuration file
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+export NO_COMPRESSEDFS=yes
 
 # Clean out directories
 freesbie_make cleandir
@@ -49,7 +50,7 @@ CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 
 # Root partition size
 # XXX auto-calculate ROOTSIZE?
-ROOTSIZE=${ROOTSIZE:-"106976"}  # Total number of sectors
+ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
 CONFSIZE=${CONFSIZE:-"4096"}
 
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
