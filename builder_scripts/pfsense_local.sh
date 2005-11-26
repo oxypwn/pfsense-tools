@@ -45,4 +45,4 @@ export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfSense
 export EXTRA="${EXTRA:-"customroot buildmodules"}"
-export BUILDMODULES="netgraph acpi ndis if_ndis padlock geom ipfw dummynet"
+export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet"
