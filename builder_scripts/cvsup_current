@@ -96,7 +96,7 @@ patch < ${PATCHDIR}/pfil.c.diff
 
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051019/freebsd/* \
-	${SRCDIR}/sys/contrib/dev/ath/freebsd/
+	${SRCDIR}/sys/contrib/dev/ath/freebsd/ 2>/dev/null
 
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051019/* \
@@ -104,7 +104,7 @@ cp ${PATCHDIR}/ath_hal-20051019/* \
 
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051019/public/* \
-	${SRCDIR}/sys/contrib/dev/ath/public/
+	${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
