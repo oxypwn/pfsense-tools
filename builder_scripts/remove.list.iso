@@ -67,11 +67,9 @@
 ./sbin/gstripe
 ./sbin/gvinum
 ./sbin/mksnap_ffs
-./sbin/mount_cd9660
 ./sbin/mount_ext2fs
 ./sbin/mount_fdescfs
 ./sbin/mount_linprocfs
-./sbin/mount_msdosfs
 ./sbin/mount_nfs
 ./sbin/mount_nfs4
 ./sbin/mount_ntfs
