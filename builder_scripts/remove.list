@@ -487,7 +487,6 @@
 ./usr/sbin/mrouted
 ./usr/sbin/mtest
 ./usr/sbin/mtrace
-./usr/sbin/mtree
 ./usr/sbin/ndp
 ./usr/sbin/newsyslog
 ./usr/sbin/nfsd
