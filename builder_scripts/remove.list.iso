@@ -49,7 +49,6 @@
 ./sbin/dumpfs
 ./sbin/dumpon
 ./sbin/ffsinfo
-./sbin/fsck_msdosfs
 ./sbin/fsdb
 ./sbin/fsirand
 ./sbin/gbde
