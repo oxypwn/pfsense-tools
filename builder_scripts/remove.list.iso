@@ -328,7 +328,6 @@
 ./usr/lib/libdevinfo.so*
 ./usr/lib/libdevstat.so*
 ./usr/lib/libdialog.so*
-./usr/lib/libfetch.so*
 ./usr/lib/libform.so*
 ./usr/lib/libftpio.so*
 ./usr/lib/libhistory.so*
