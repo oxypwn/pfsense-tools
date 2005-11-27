@@ -156,7 +156,6 @@
 ./usr/bin/ex
 ./usr/bin/expand
 ./usr/bin/fc
-./usr/bin/fetch
 ./usr/bin/fg
 ./usr/bin/file
 ./usr/bin/file2c
