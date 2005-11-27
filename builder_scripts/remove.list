@@ -81,7 +81,6 @@
 ./sbin/mount_umapfs
 ./sbin/mount_unionfs
 ./sbin/natd
-./sbin/newfs
 ./sbin/newfs_msdos
 ./sbin/nextboot
 ./sbin/nfsiod
@@ -354,19 +353,9 @@
 ./usr/lib/libthr.so*
 ./usr/lib/libthread_db.so*
 ./usr/lib/libtinfo.so*
-./usr/lib/libufs.so*
 ./usr/lib/libugidfw.so*
 ./usr/lib/libvgl.so*
 ./usr/lib/pam_*
-
-
-
-
-
-
-
-
-
 
 ./usr/libdata
 
