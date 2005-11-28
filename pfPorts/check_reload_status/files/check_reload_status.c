@@ -48,7 +48,7 @@ int main(void) {
 			    fputs(buf, stdout);
 			fclose(f);
 		    }
-		    sprintf(temp, "/etc/rc.newwanip %s", buf);
+		    sprintf(temp, "/usr/local/bin/php /etc/rc.newwanip %s", buf);
 		    system(temp);
 		    system("/bin/rm /tmp/rc.newwanip");
 	    }	  
