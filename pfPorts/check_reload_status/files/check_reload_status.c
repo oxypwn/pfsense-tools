@@ -69,7 +69,7 @@ int main(void) {
 		    system("/bin/rm /tmp/start_sshd");
 	    }
 	    if(fexist("/tmp/update_dyndns") == 1) {
-		    system("/etc/rc.dyndns.update");
+		    system("/usr/local/bin/php /etc/rc.dyndns.update");
 		    system("/bin/rm /tmp/update_dyndns");
 	    }	    
 	    sleep(5);
