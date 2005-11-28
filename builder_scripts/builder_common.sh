@@ -163,7 +163,14 @@ create_pfSense_Small_update_tarball() {
 
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 
-	rm -rf ${CVS_CO_DIR}/usr/local/sbin ${CVS_CO_DIR}/usr/local/bin
+	cp ${CVS_CO_DIR}/usr/local/sbin/check_reload_status /tmp/
+	cp ${CVS_CO_DIR}/usr/local/sbin/mpd /tmp/
+
+	rm -rf ${CVS_CO_DIR}/usr/local/sbin/*
+	rm -rf ${CVS_CO_DIR}/usr/local/bin/*
+	cp /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
+	cp /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
+	chmod a+rx ${CVS_CO_DIR}/usr/local/sbin/*
 
 	du -hd0 ${CVS_CO_DIR}
 	
