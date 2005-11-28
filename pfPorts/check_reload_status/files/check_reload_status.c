@@ -16,6 +16,7 @@
 
 #include <sys/stat.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /* Check if file exists */
 int fexist(char * filename)
@@ -34,7 +35,23 @@ int fexist(char * filename)
 } 
 
 int main(void) {
+	char argument[255];
+	char temp[255];
+	FILE *f;
 	while(1) {
+	    if(fexist("/tmp/rc.newwanip") == 1) {
+		    char buf[FILENAME_MAX + 2];
+		    if (!(f = fopen("/tmp/rc.newwanip", "r"))) {
+			    fprintf(stderr, "Could not open fnames for input.\n");
+		    } else {
+			while (fgets(buf, sizeof buf, f))
+			    fputs(buf, stdout);
+			fclose(f);
+		    }
+		    sprintf(temp, "/etc/rc.newwanip %s", buf);
+		    system(temp);
+		    system("/bin/rm /tmp/rc.newwanip");
+	    }	  
 	    if(fexist("/tmp/filter_dirty") == 1) {
 		    system("/usr/local/bin/php /etc/rc.filter_configure >/dev/null");
 		    system("/bin/rm /tmp/filter_dirty");
@@ -59,3 +76,5 @@ int main(void) {
 	}
 	return 0;
 }
+
+
