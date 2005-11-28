@@ -42,7 +42,7 @@ int main(void) {
 	    if(fexist("/tmp/rc.newwanip") == 1) {
 		    char buf[FILENAME_MAX + 2];
 		    if (!(f = fopen("/tmp/rc.newwanip", "r"))) {
-			    fprintf(stderr, "Could not open fnames for input.\n");
+			    fprintf(stderr, "Could not open /tmp/rc.newwanip for input.\n");
 		    } else {
 			while (fgets(buf, sizeof buf, f))
 			    fputs(buf, stdout);
