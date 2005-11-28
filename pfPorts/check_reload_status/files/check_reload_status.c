@@ -37,6 +37,7 @@ int main(void) {
 	while(1) {
 	    if(fexist("/tmp/filter_dirty") == 1) {
 		    system("/usr/local/bin/php /etc/rc.filter_configure >/dev/null");
+		    system("/bin/rm /tmp/filter_dirty");
 	    }
 	    if(fexist("/tmp/reload_all") == 1) {
 		    system("/usr/local/bin/php /etc/rc.reload_all >/dev/null");
@@ -49,6 +50,10 @@ int main(void) {
 	    if(fexist("/tmp/start_sshd") == 1) {
 		    system("/etc/sshd");
 		    system("/bin/rm /tmp/start_sshd");
+	    }
+	    if(fexist("/tmp/update_dyndns") == 1) {
+		    system("/etc/rc.dyndns.update");
+		    system("/bin/rm /tmp/update_dyndns");
 	    }	    
 	    sleep(5);
 	}
