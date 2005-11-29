@@ -974,6 +974,3 @@
 ./usr/src
 ./var/*
 ./sys
-./scripts/lua_installer
-./scripts/installer
-./scripts/installer.sh
