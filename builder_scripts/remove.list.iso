@@ -402,7 +402,6 @@
 ./usr/libexec/vfontedpr
 
 ./usr/include
-./usr/local/share
 
 ./usr/sbin/IPXrouted
 ./usr/sbin/ac
