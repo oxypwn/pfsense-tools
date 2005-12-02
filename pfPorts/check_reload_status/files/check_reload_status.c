@@ -54,7 +54,7 @@ int main(void) {
 	    }	  
 	    if(fexist("/tmp/filter_dirty") == 1) {
 		    system("/usr/local/bin/php /etc/rc.filter_configure >/dev/null");
-		    system("/bin/rm /tmp/filter_dirty");
+		    system("/bin/rm -f /tmp/filter_dirty");
 	    }
 	    if(fexist("/tmp/reload_all") == 1) {
 		    system("/usr/local/bin/php /etc/rc.reload_all >/dev/null");
