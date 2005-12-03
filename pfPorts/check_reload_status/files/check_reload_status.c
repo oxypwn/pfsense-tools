@@ -71,7 +71,19 @@ int main(void) {
 	    if(fexist("/tmp/update_dyndns") == 1) {
 		    system("/usr/local/bin/php /etc/rc.dyndns.update");
 		    system("/bin/rm /tmp/update_dyndns");
-	    }	    
+	    }
+	    if(fexist("/tmp/interfaces_wan_configure") == 1) {
+		    system("/usr/local/bin/php /etc/interfaces_wan_configure");
+		    system("/tmp/interfaces_wan_configure");
+	    }
+	    if(fexist("/tmp/interfaces_wan_configure") == 1) {
+		    system("/usr/local/bin/php /etc/interfaces_wan_configure");
+		    system("/tmp/interfaces_wan_configure");
+	    }
+	    if(fexist("/tmp/interfaces_opt_configure") == 1) {
+		    system("/usr/local/bin/php /etc/interfaces_opt_configure");
+		    system("/tmp/interfaces_opt_configure");
+	    }
 	    sleep(5);
 	}
 	return 0;
