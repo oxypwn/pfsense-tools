@@ -53,35 +53,35 @@ int main(void) {
 		    system("/bin/rm /tmp/rc.newwanip");
 	    }	  
 	    if(fexist("/tmp/filter_dirty") == 1) {
-		    system("/usr/local/bin/php /etc/rc.filter_configure >/dev/null");
+		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure >/dev/null");
 		    system("/bin/rm -f /tmp/filter_dirty");
 	    }
 	    if(fexist("/tmp/reload_all") == 1) {
-		    system("/usr/local/bin/php /etc/rc.reload_all >/dev/null");
+		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all >/dev/null");
 		    system("/bin/rm /tmp/reload_all");
 	    }
 	    if(fexist("/tmp/reload_interfaces") == 1) {
-		    system("/usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
+		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
 		    system("/bin/rm /tmp/reload_interfaces");
 	    }
 	    if(fexist("/tmp/start_sshd") == 1) {
-		    system("/etc/sshd");
+		    system("/usr/bin/nice -n20 /etc/sshd");
 		    system("/bin/rm /tmp/start_sshd");
 	    }
 	    if(fexist("/tmp/update_dyndns") == 1) {
-		    system("/usr/local/bin/php /etc/rc.dyndns.update");
+		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update");
 		    system("/bin/rm /tmp/update_dyndns");
 	    }
 	    if(fexist("/tmp/interfaces_wan_configure") == 1) {
-		    system("/usr/local/bin/php /etc/interfaces_wan_configure");
+		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
 		    system("/tmp/interfaces_wan_configure");
 	    }
 	    if(fexist("/tmp/interfaces_wan_configure") == 1) {
-		    system("/usr/local/bin/php /etc/interfaces_wan_configure");
+		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
 		    system("/tmp/interfaces_wan_configure");
 	    }
 	    if(fexist("/tmp/interfaces_opt_configure") == 1) {
-		    system("/usr/local/bin/php /etc/interfaces_opt_configure");
+		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
 		    system("/tmp/interfaces_opt_configure");
 	    }
 	    sleep(5);
