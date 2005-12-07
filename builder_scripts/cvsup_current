@@ -82,10 +82,6 @@ patch < ${PATCHDIR}/errwarn.c.diff
 cd ${SRCDIR}/sys/dev/ata/
 patch < ${PATCHDIR}/ata-chipset.c.diff
 
-# Certain switch (begins with a N) carp master arp fix by BillM
-cd ${SRCDIR}/sys/netinet/
-patch < ${PATCHDIR}/ip_carp.c.diff
-
 # Captive portal inbound nat fix
 cd ${SRCDIR}/sys/netinet
 patch < ${PATCHDIR}/ip_input.c.diff
