@@ -47,7 +47,7 @@ cd ${SRCDIR}/sys/modules/ipfw
 patch < ${PATCHDIR}/ipfw.diff
 
 # Allow ALTQ and VLANS to play nicely
-cd ${SRCDIR}/
+cd ${SRCDIR}/sys/net/
 patch < ${PATCHDIR}/altq-vlan.diff
 
 # Crypto fix http://www.freebsd.org/cgi/query-pr.cgi?pr=86598
