@@ -56,10 +56,7 @@ patch < ${PATCHDIR}/eng_padlock.c.diff
 
 # Fix for BSNMPD
 cd ${SRCDIR}/contrib/bsnmp/snmp_mibII/
-#patch < ${PATCHDIR}/mibII-interfaces.c.diff
-
-cd /usr/src/contrib/bsnmp/snmp_mibII/
-patch < ${PATCHDIR}/mibII_interfaces.c.1130101189.diff
+patch < ${PATCHDIR}/mibII-interfaces.c.diff
 
 # Newest HAL
 cd ${SRCDIR}/sys/net80211/
