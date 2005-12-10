@@ -432,6 +432,9 @@ options         DEVICE_POLLING
 
 options         ZERO_COPY_SOCKETS
 
+# Kbdmux
+device		kbdmux
+
 makeoptions	DEBUG=-g		# Build kernel with gdb(1) debug symbols
 
 options		KDB			# Enable kernel debugger support. 	 

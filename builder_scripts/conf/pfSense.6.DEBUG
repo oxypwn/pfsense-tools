@@ -404,6 +404,9 @@ options         ZERO_COPY_SOCKETS
 # Needed for FreeSBIE 2
 options         NULLFS
 
+# Kbdmux
+device		kbdmux
+
 makeoptions	DEBUG=-g		# Build kernel with gdb(1) debug symbols
 
 options		KDB			# Enable kernel debugger support. 	 
