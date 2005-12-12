@@ -333,21 +333,24 @@ freesbie_make() {
 }
 
 update_cvs_depot() {
-    # Update cvs depot. If SKIP_RSYNC is defined, skip the RSYNC update.
+    # Update cvs depot. If SKIP_RSYNC is defined, skip the RSYNC update
+    # and prompt if the operator would like to download cvs.tgz from pfsense.com.
     # If also SKIP_CHECKOUT is defined, don't update the tree at all
     if [ -z "${SKIP_RSYNC:-}" ]; then
 	rm -rf $BASE_DIR/pfSense
 	rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
 	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
     else
-	echo
-	echo "NOTE!  This option will download a 75+ megabyte file!"
-	echo
+	echo "NOTE!  This option will download a 48+ megabyte file!"
         echo -n "Do you want to sync with pfSense.com cvs.tgz? [N/y]: "
         read ANSWER
         if [ "${ANSWER}" = "Y" -o "${ANSWER}" = "y" ]; then
-		(cd $BASE_DIR && fetch http://www.pfsense.com/cvs.tgz && cvs update tools -d && cvs update pfSense -d)
-        fi	
+		echo "Downloading from pfSense.com ... This may take a moment!"
+		(cd $BASE_DIR && fetch -o $BASE_DIR/cvs.tgz http://www.pfsense.com/cvs.tgz)
+		(cd $BASE_DIR/tools && cvs update -d)
+		(cd $BASE_DIR/pfSense && cvs update -d pfSense)
+		(rm $BASE_DIR/cvs.tgz)
+        fi
     fi
     if [ -z "${SKIP_CHECKOUT:-}" ]; then
 	rm -rf $BASE_DIR/pfSense
