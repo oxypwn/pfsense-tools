@@ -55,8 +55,8 @@ cd ${SRCDIR}/crypto/openssl/crypto/engine
 patch < ${PATCHDIR}/eng_padlock.c.diff
 
 # Fix for BSNMPD
-cd /usr/src/contrib/bsnmp/snmp_mibII/ 	 
-patch < ${PATCHDIR}/mibII_interfaces.c.1130101189.diff
+cd ${SRCDIR}/contrib/bsnmp/snmp_mibII/
+patch < ${PATCHDIR}/mibII-interfaces.c.diff
 
 # SnmpMonitoringModulesStatus 
 # http://wikitest.freebsd.org/moin.cgi/SnmpMonitoringModulesStatus
