@@ -339,7 +339,17 @@ update_cvs_depot() {
 	rm -rf $BASE_DIR/pfSense
 	rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
 	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-    elif [ -z "${SKIP_CHECKOUT:-}" ]; then
+    else
+	echo
+	echo "NOTE!  This option will download a 75+ megabyte file!"
+	echo
+        echo -n "Do you want to sync with pfSense.com cvs.tgz? [N/y]: "
+        read ANSWER
+        if [ "${ANSWER}" = "Y" -o "${ANSWER}" = "y" ]; then
+		(cd $BASE_DIR && fetch http://www.pfsense.com/cvs.tgz && cvs update tools -d && cvs update pfSense -d)
+        fi	
+    fi
+    if [ -z "${SKIP_CHECKOUT:-}" ]; then
 	rm -rf $BASE_DIR/pfSense
 	(cd $BASE_DIR && cvs -d :ext:${CVS_USER}@${CVS_IP}:/cvsroot co -r ${PFSENSETAG} pfSense)
     fi
