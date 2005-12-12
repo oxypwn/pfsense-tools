@@ -347,7 +347,7 @@ update_cvs_depot() {
         if [ "${ANSWER}" = "Y" -o "${ANSWER}" = "y" ]; then
 		echo "Downloading from pfSense.com ... This may take a moment!"
 		(cd $BASE_DIR && fetch -o $BASE_DIR/cvs.tgz http://www.pfsense.com/cvs.tgz)
-		(cd $BASE_DIR && tar xzvpf cvs.tgz)
+		(cd $BASE_DIR && tar xzpf cvs.tgz)
 		(cd $BASE_DIR/tools && cvs -d /home/pfsense/cvsroot update -d)
 		(cd $BASE_DIR/pfSense && cvs -d /home/pfsense/cvsroot update -d)
 		(rm $BASE_DIR/cvs.tgz)
