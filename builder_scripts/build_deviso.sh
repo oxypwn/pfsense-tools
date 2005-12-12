@@ -8,7 +8,8 @@ set -e -u
 
 # Set extra before pfsense_local.sh will do
 # Add comconsole to the list
-export EXTRA="comconsole customroot"
+#export EXTRA="comconsole customroot"
+export EXTRA="customroot"
 
 export MAKE_CONF="${PWD}/conf/make.conf.developer"
 
