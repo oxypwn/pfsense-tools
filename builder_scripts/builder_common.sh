@@ -348,8 +348,8 @@ update_cvs_depot() {
 		echo "Downloading from pfSense.com ... This may take a moment!"
 		(cd $BASE_DIR && fetch -o $BASE_DIR/cvs.tgz http://www.pfsense.com/cvs.tgz)
 		(cd $BASE_DIR && tar xzvpf cvs.tgz)
-		(cd $BASE_DIR/tools && cvs update -d)
-		(cd $BASE_DIR/pfSense && cvs update -d pfSense)
+		(cd $BASE_DIR/tools && cvs -d /home/pfsense/cvsroot update -d)
+		(cd $BASE_DIR/pfSense && cvs /home/pfsense/cvsroot update -d pfSense)
 		(rm $BASE_DIR/cvs.tgz)
         fi
     fi
