@@ -352,7 +352,9 @@ update_cvs_depot() {
 		(rm $BASE_DIR/cvs.tgz)
         fi
     fi
-    if [ -z "${SKIP_CHECKOUT:-}" ]; then
+    if [ -z "${SKIP_RSYNC:-}" ]; then
+    
+    elif [ -z "${SKIP_CHECKOUT:-}" ]; then
 	rm -rf $BASE_DIR/pfSense
 	(cd $BASE_DIR && cvs -d :ext:${CVS_USER}@${CVS_IP}:/cvsroot co -r ${PFSENSETAG} pfSense)
     fi
