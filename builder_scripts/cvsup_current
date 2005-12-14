@@ -92,14 +92,6 @@ patch < ${PATCHDIR}/errwarn.c.diff
 cd ${SRCDIR}/sys/dev/ata/
 patch < ${PATCHDIR}/ata-chipset.c.diff
 
-# Captive portal inbound nat fix
-cd ${SRCDIR}/sys/netinet
-patch < ${PATCHDIR}/ip_input.c.diff
-
-# Captive portal inbound nat fix
-cd ${SRCDIR}/sys/net
-patch < ${PATCHDIR}/pfil.c.diff
-
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051019/freebsd/* \
 	${SRCDIR}/sys/contrib/dev/ath/freebsd/ 2>/dev/null
