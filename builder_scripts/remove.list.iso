@@ -540,7 +540,6 @@
 ./usr/sbin/setextattr
 ./usr/sbin/setfmac
 ./usr/sbin/setfsmac
-./usr/sbin/setkey
 ./usr/sbin/setpmac
 ./usr/sbin/sicontrol
 ./usr/sbin/sliplogin
