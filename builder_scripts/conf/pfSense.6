@@ -9,7 +9,8 @@ ident		pfSense
 # To statically compile in device wiring instead of /boot/device.hints
 #hints		"GENERIC.hints"		# Default places to look for devices.
 
-options 	SCHED_ULE		# ULE scheduler
+options 	SCHED_4BSD		# 4BSD scheduler
+#options 	SCHED_ULE		# ULE scheduler
 #options 	PREEMPTION		# Enable kernel thread preemption
 options 	INET			# InterNETworking
 options 	INET6			# IPv6 communications protocols
