@@ -501,7 +501,6 @@
 ./usr/sbin/ntptime
 ./usr/sbin/ntptrace
 ./usr/sbin/pccardc
-./usr/sbin/pciconf
 ./usr/sbin/periodic
 ./usr/sbin/pkg_add
 ./usr/sbin/pkg_check
