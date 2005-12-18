@@ -93,7 +93,7 @@ fixup_updates() {
 	rm -f ${PFSENSEBASEDIR}/etc/passwd 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/master.passwd 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/fstab 2>/dev/null
-	rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
+	#rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/platform 2>/dev/null
 	echo > ${PFSENSEBASEDIR}/root/.tcshrc
 	echo "alias installer /scripts/lua_installer" > ${PFSENSEBASEDIR}/root/.tcshrc

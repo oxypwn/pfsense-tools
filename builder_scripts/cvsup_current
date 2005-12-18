@@ -33,7 +33,7 @@ fi
 #rm -rf ${SRCDIR}/sys/boot/*
 
 # CVSUP RELENG_6
-cvsup /etc/current-supfile
+cvsup ./stable-supfile
 
 # clog source and usr.sbin/Makefile patch
 cd ${SRCDIR}/usr.sbin/

@@ -20,8 +20,6 @@ export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="etcmfs rootmfs ${EXTRA:-}" 
 
-export PRUNE_LIST=${PRUNE_LIST:-"${PWD}/remove.list.iso"}
-
 # Clean out directories
 freesbie_make cleandir
 
