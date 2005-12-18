@@ -85,7 +85,7 @@ patch < ${PATCHDIR}/geom_vfs.c.diff
 
 # Turn on extra debugging
 cd ${SRCDIR}/sbin/dhclient
-cp ${PATCHDIR}/dhclient.c .
+#cp ${PATCHDIR}/dhclient.c .
 patch < ${PATCHDIR}/errwarn.c.diff
 
 # Fixes some Dell PE machines + sata drives
