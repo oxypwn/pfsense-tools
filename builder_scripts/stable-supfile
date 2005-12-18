@@ -1,4 +1,4 @@
-*default host=cvsup.livebsd.com
+*default host=cvsup2.freebsd.org
 *default base=/var/db
 *default prefix=/usr
 *default release=cvs tag=RELENG_6
