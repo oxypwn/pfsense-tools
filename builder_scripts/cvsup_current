@@ -64,7 +64,7 @@ patch < ${PATCHDIR}/mibII-interfaces.c.diff
 # SnmpMonitoringModulesStatus 
 # http://wikitest.freebsd.org/moin.cgi/SnmpMonitoringModulesStatus
 cd /usr/src/
-patch -p2 < bsnmp.diff
+patch -p2 < ${PATCHDIR}/bsnmp.diff
 
 
 # Newest HAL
@@ -103,6 +103,11 @@ cp ${PATCHDIR}/ath_hal-20051019/* \
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051019/public/* \
 	${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
+
+
+# SNMP Walk workaround
+cd /usr/src/
+patch < /home/pfsense/tools/patches/pf_snmp.patch
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
