@@ -1,5 +1,5 @@
---- usr.sbin/bsnmpd/modules/snmp_pf/pf_tree.def.orig	Mon Mar 14 16:16:39 2005
-+++ usr.sbin/bsnmpd/modules/snmp_pf/pf_tree.def	Sun Dec 18 14:12:46 2005
+--- usr.sbin/bsnmpd/modules/snmp_pf/pf_tree.def.orig	Sun Dec 18 14:37:25 2005
++++ usr.sbin/bsnmpd/modules/snmp_pf/pf_tree.def	Sun Dec 18 14:37:44 2005
 @@ -155,22 +155,22 @@
  		    (20 pfTablesTblPktsOutXPass COUNTER64 GET)
  		  )
@@ -39,12 +39,12 @@
  	      )
  	      (10 pfAltq
  	        (1 pfAltqQueueNumber INTEGER32 pf_altq GET)
---- usr.sbin/bsnmpd/modules/snmp_pf/pf_snmp.c.orig	Sun Dec 18 14:14:57 2005
-+++ usr.sbin/bsnmpd/modules/snmp_pf/pf_snmp.c	Sun Dec 18 14:15:22 2005
-@@ -771,12 +771,14 @@
- 
+--- usr.sbin/bsnmpd/modules/snmp_pf/pf_snmp.c.orig	Sun Dec 18 14:36:49 2005
++++ usr.sbin/bsnmpd/modules/snmp_pf/pf_snmp.c	Sun Dec 18 14:37:07 2005
+@@ -772,12 +772,14 @@
  	return (SNMP_ERR_NOERROR);
  }
+ 
 +/*
  int
  pf_tbladdr(struct snmp_context __unused *ctx, struct snmp_value __unused *val,
