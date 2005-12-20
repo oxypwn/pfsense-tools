@@ -1,10 +1,8 @@
-*default host=cvsup2.freebsd.org
+*default host=cvsup.livebsd.com
 *default base=/var/db
 *default prefix=/usr
 *default release=cvs tag=RELENG_6
-*default release=cvs date=2005.12.17.19.45.00
-
-#*default release=cvs date=2005.12.11.12.45.00
+*default release=cvs date=2005.12.20.17.30.00
 *default delete use-rel-suffix
 *default compress
 src-all
