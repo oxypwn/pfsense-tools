@@ -61,10 +61,8 @@ patch < ${PATCHDIR}/eng_padlock.c.diff
 cd ${SRCDIR}/contrib/bsnmp/snmp_mibII/
 patch < ${PATCHDIR}/mibII-interfaces.c.diff
 
-# SnmpMonitoringModulesStatus 
-# http://wikitest.freebsd.org/moin.cgi/SnmpMonitoringModulesStatus
 cd /usr/src/
-patch -p2 < ${PATCHDIR}/bsnmp.diff
+patch < ${PATCHDIR}/pf.snmp
 
 
 # Newest HAL
@@ -85,7 +83,6 @@ patch < ${PATCHDIR}/geom_vfs.c.diff
 
 # Turn on extra debugging
 cd ${SRCDIR}/sbin/dhclient
-#cp ${PATCHDIR}/dhclient.c .
 patch < ${PATCHDIR}/errwarn.c.diff
 
 # Fixes some Dell PE machines + sata drives
@@ -107,7 +104,7 @@ cp ${PATCHDIR}/ath_hal-20051019/public/* \
 
 # SNMP Walk workaround
 cd /usr/src/
-patch < /home/pfsense/tools/patches/pf_snmp.patch
+patch < ${PATCHDIR}/pf_snmp.patch
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
