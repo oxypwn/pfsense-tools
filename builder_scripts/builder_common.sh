@@ -341,17 +341,7 @@ update_cvs_depot() {
 	rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
 	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
     else
-	echo "NOTE!  This option will download a 48+ megabyte file!"
-        echo -n "Do you want to sync with pfSense.com cvs.tgz? [N/y]: "
-        read ANSWER
-        if [ "${ANSWER}" = "Y" -o "${ANSWER}" = "y" ]; then
-		echo "Downloading from pfSense.com ... This may take a moment!"
-		(cd $BASE_DIR && fetch -o $BASE_DIR/cvs.tgz http://www.pfsense.com/cvs.tgz)
-		(cd $BASE_DIR && tar xzpf cvs.tgz)
-		(cd $BASE_DIR/tools && cvs -d /home/pfsense/cvsroot update -d)
-		(cd $BASE_DIR/pfSense && cvs -d /home/pfsense/cvsroot update -d)
-		(rm $BASE_DIR/cvs.tgz)
-        fi
+	cvsup pfSense-supfile
     fi
 }
 
