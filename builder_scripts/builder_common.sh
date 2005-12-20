@@ -342,8 +342,9 @@ update_cvs_depot() {
 	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
     else
 	cvsup pfSense-supfile
-	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot update -r ${PFSENSETAG} pfSense -d)
-	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot update -r ${PFSENSETAG} tools -d)
+	rm -rf pfSense
+	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense -d)
+	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot update tools -d)
     fi
 }
 
