@@ -23,6 +23,7 @@ touch /mnt/root/.first_time
 
 # Updating boot loader
 echo debug.acpi.disable=\"thermal\" >> /mnt/boot/loader.conf
+echo autoboot_delay=\"1\" >> /mnt/boot/loader.conf
 
 cd /mnt && rm -rf cloop/ dist/ boot/mfsroot.gz
 
