@@ -106,6 +106,10 @@ cp ${PATCHDIR}/ath_hal-20051019/public/* \
 cd /usr/src/
 patch < ${PATCHDIR}/pf_snmp.patch
 
+# Workaround minor PF issues
+cd /usr/src/sys/contrib/pf/net
+patch < /home/pfsense/tools/patches/pf_state_conn.RELENG_6-2.diff
+
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*
