@@ -44,5 +44,31 @@ export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfSense
-export EXTRA="${EXTRA:-"customroot buildmodules"}"
+export EXTRA="${EXTRA:-"customroot buildmodules installports"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet"
+
+export PORTS_PATH="/home/pfsense/tools/pfports"
+export INSTALL_PORTS="atareinit \
+	beep \
+	check_reload_status \
+	choparp dhcpd dnsmasq \
+	dnsmasq \
+	expiretable \
+	ifstats \
+	ipsec-tools \
+	kbdcheck \
+	lighttpd \	
+	minicron \
+	mpd \
+	olsrd \
+	pftop \
+	pftpx \
+	php4-pfsense \
+	racoon \
+	sasyncd \
+	slbd \
+	sshlockout_pf \	
+	stats \
+	vtsh \
+	wol"
+
