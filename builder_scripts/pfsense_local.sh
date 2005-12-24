@@ -47,7 +47,7 @@ export FREESBIE_LABEL=pfSense
 export EXTRA="${EXTRA:-"customroot buildmodules installports"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet"
 
-export PORTS_PATH="/home/pfsense/tools/pfports"
+export PORTSDIR="/home/pfsense/tools/pfPorts"
 export INSTALL_PORTS="atareinit \
 	beep \
 	check_reload_status \
