@@ -36,9 +36,9 @@ make_world_kernel
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra
 
-# Packages list should be empty
-echo > conf/packages
- 
+# Only include Lighty in packages list
+(cd /var/db/pkg && ls | grep lighttpd) > conf/packages
+
 fixup_wrap
 
 # Invoke FreeSBIE2 toolchain

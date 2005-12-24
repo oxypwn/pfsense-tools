@@ -47,6 +47,7 @@ rm -f conf/packages
 
 set +e # grep could fail
 (cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
+(cd /var/db/pkg && ls | grep lighttpd) > conf/packages
 (cd /var/db/pkg && ls | grep cpdup) >> conf/packages
 set -e
 
