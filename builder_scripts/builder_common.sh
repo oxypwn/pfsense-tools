@@ -37,6 +37,8 @@ populate_extra() {
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
     cp $BASE_DIR/tools/installer.sh $CVS_CO_DIR/scripts/
+    cp /sbin/setkey $CVS_CO_DIR/sbin/setkey
+    chmod a+rx $CVS_CO_DIR/sbin/setkey
     chmod a+rx $CVS_CO_DIR/scripts/*
 
     mkdir -p $CVS_CO_DIR/usr/local/bin/
