@@ -44,7 +44,7 @@ export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfSense
-export EXTRA="${EXTRA:-"customroot buildmodules installports"}"
+export EXTRA="${EXTRA:-"customroot buildmodules"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet"
 
 export PORTSDIR="/home/pfsense/tools/pfPorts"
