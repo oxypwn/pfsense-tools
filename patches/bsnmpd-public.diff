@@ -1,0 +1,14 @@
+--- contrib/bsnmp/snmpd/main.c.orig     Thu Dec 22 00:13:21 2005
++++ contrib/bsnmp/snmpd/main.c  Thu Dec 22 00:13:42 2005
+@@ -1457,8 +1457,8 @@
+        /*
+         * Get standard communities
+         */
+-       (void)comm_define(1, "SNMP read", NULL, "public");
+-       (void)comm_define(2, "SNMP write", NULL, "public");
++       (void)comm_define(1, "SNMP read", NULL, NULL);
++       (void)comm_define(2, "SNMP write", NULL, NULL);
+        community = COMM_INITIALIZE;
+
+        trap_reqid = reqid_allocate(512, NULL);
+
