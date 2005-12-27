@@ -968,5 +968,4 @@
 ./usr/share/zoneinfo/Pacific
 ./usr/share/zoneinfo/SystemV
 ./usr/src
-./var/*
 ./sys
