@@ -533,7 +533,6 @@
 ./usr/sbin/sntp
 ./usr/sbin/spkrtest
 ./usr/sbin/spray
-./usr/sbin/swapinfo
 ./usr/sbin/sysinstall
 ./usr/sbin/tcpdchk
 ./usr/sbin/tcpdmatch
