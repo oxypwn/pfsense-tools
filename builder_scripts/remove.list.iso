@@ -508,8 +508,6 @@
 ./usr/sbin/powerd
 #XXX ppp? pppd?
 ./usr/sbin/procctl
-./usr/sbin/pstat
-
 
 ./usr/sbin/quot
 ./usr/sbin/quotaoff
