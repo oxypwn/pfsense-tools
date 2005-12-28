@@ -101,14 +101,14 @@ cp ${PATCHDIR}/ath_hal-20051019/* \
 cp ${PATCHDIR}/ath_hal-20051019/public/* \
 	${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
 
-
-# SNMP Walk workaround
-cd /usr/src/
-patch < ${PATCHDIR}/pf_snmp.patch
-
 # Workaround minor PF issues
 cd /usr/src/sys/contrib/pf/net
-patch < /home/pfsense/tools/patches/pf_state_conn.RELENG_6-2.diff
+patch < ${PATCHDIR}/pf_state_conn.RELENG_6-2.diff
+
+# Fix BSNMD public community string (previously hard coded)
+cd /usr/src/contrib/bsnmp/snmpd/
+patch < ${PATCHDIR}/bsnmpd-public.diff
+
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
