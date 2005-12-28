@@ -412,7 +412,6 @@
 ./usr/sbin/apm
 ./usr/sbin/apmd
 ./usr/sbin/asf
-./usr/sbin/boot0cfg
 ./usr/sbin/bootparamd
 ./usr/sbin/bootpef
 ./usr/sbin/bootptest
