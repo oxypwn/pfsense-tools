@@ -45,12 +45,10 @@
 ./root/.xcustom.sh
 
 ./sbin/badsect
-./sbin/bsdlabel
 ./sbin/camcontrol
 ./sbin/ccdconfig
 ./sbin/clri
 ./sbin/comcontrol
-./sbin/disklabel
 ./sbin/dump
 ./sbin/dumpfs
 ./sbin/dumpon
