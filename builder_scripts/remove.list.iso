@@ -41,7 +41,6 @@
 
 ./lib/libalias.so.5
 ./lib/libcam.so.3
-./lib/libsbuf.so.3
 
 ./root/.xcustom.sh
 
