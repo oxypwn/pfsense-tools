@@ -62,7 +62,7 @@ cd ${SRCDIR}/contrib/bsnmp/snmp_mibII/
 patch < ${PATCHDIR}/mibII-interfaces.c.diff
 
 cd /usr/src/
-patch < ${PATCHDIR}/pf.snmp.patch
+patch < ${PATCHDIR}/pf_snmp.patch
 
 
 # Newest HAL
