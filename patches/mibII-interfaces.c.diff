@@ -14,7 +14,7 @@ diff -u -p -r1.1.1.6 -r1.1.1.7
   *
   * Interfaces group.
   */
-@@ -280,8 +280,22 @@ op_ifentry(struct snmp_context *ctx, str
+@@ -280,8 +280,23 @@ op_ifentry(struct snmp_context *ctx, str
  		break;
  
  	  case LEAF_ifOperStatus:
@@ -28,11 +28,12 @@ diff -u -p -r1.1.1.6 -r1.1.1.7
 +		 * this as 'waiting for an external event' (plugging in the
 +		 * cable) and hence return 'dormant'.
 +		 */
-+		if (ifp->mib.ifmd_flags & IFF_RUNNING) {
++		if ((ifp->mib.ifmd_flags & IFF_RUNNING) && 
++		    (ifp->mib.ifmd_flags & IFF_UP)) {
 +			if (ifp->mib.ifmd_data.ifi_link_state ==
 +			    LINK_STATE_DOWN)
 +				value->v.integer = 5;   /* state dormant */
-+			else
++			else if (ifp->mib.ifmd_flags & IFF_UP)
 +				value->v.integer = 1;   /* state up */
 +		} else
 +			value->v.integer = 2;   /* state down */
