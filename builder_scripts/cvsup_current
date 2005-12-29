@@ -109,6 +109,9 @@ patch < ${PATCHDIR}/pf_state_conn.RELENG_6-2.diff
 cd /usr/src/contrib/bsnmp/snmpd/
 patch < ${PATCHDIR}/bsnmpd-public.diff
 
+# Allow ZeroConf like traffic to pass (NONIP)
+cd /usr/src/sys/net/
+patch < ${PATCHDIR}/if_bridge.c.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
