@@ -54,5 +54,8 @@ cp /tmp/installer.log /mnt/var/installer_logs
 cp /tmp/install-session.sh /mnt/var/installer_logs
 cp /tmp/new.fdisk /mnt/var/installer_logs
 
+mkdir -p /mnt/var/db/pkg
+cp -R /var/db/pkg/* /mnt/var/db/pkg
+
 #Sync disks
 /bin/sync
