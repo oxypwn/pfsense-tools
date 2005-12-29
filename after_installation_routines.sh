@@ -55,7 +55,7 @@ cp /tmp/install-session.sh /mnt/var/installer_logs
 cp /tmp/new.fdisk /mnt/var/installer_logs
 
 mkdir -p /mnt/var/db/pkg
-cp -R /var/db/pkg/* /mnt/var/db/pkg
+cd /var/db/pkg ; tar -cpf - . | (cd /mnt/var/db/pkg ; tar -xpf -)
 
 #Sync disks
 /bin/sync
