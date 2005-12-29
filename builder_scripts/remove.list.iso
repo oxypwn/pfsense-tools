@@ -49,9 +49,6 @@
 ./sbin/ccdconfig
 ./sbin/clri
 ./sbin/comcontrol
-./sbin/dump
-./sbin/dumpfs
-./sbin/dumpon
 ./sbin/ffsinfo
 ./sbin/fsdb
 ./sbin/fsirand
