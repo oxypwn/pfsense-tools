@@ -55,8 +55,7 @@ install_items = {
         "sbin",
         "sys",
         "usr",
-        "var",
-	"var/db/pkg"
+        "var"
 }
 
 ui_nav_control = {
