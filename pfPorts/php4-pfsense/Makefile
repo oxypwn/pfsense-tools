@@ -33,7 +33,12 @@ CONFIGURE_ARGS+=--without-mysql \
 		--without-pear \
 		--with-openssl \
 		--with-curl \
-		--enable-discard-path 
+		--enable-fastcgi \
+		--enable-force-cgi-redirect 
+
+CONFIGURE_ARGS+=--with-ldap=${LOCALBASE}
+
+USE_OPENLDAP=   yes
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
 PHP_SAPI=	full
