@@ -28,6 +28,8 @@ USE_BZIP2=	yes
 GNU_CONFIGURE=	yes
 USE_BISON=	yes
 USE_REINPLACE=	yes
+USE_OPENSSL=    yes
+#USE_OPENLDAP=   yes
 
 CONFIGURE_ARGS+=--without-mysql \
 		--without-pear \
@@ -35,10 +37,6 @@ CONFIGURE_ARGS+=--without-mysql \
 		--with-curl \
 		--enable-fastcgi \
 		--enable-force-cgi-redirect 
-
-CONFIGURE_ARGS+=--with-ldap=${LOCALBASE}
-
-USE_OPENLDAP=   yes
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
 PHP_SAPI=	full
