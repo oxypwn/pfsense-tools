@@ -525,7 +525,7 @@ void vsvc_threadpoll(void *p) {
 		 */
 		FILE *file;
 		char tempstr[255];
-		sprintf(tempstr, "/tmp/%s.pool", v->poolname);
+		snprintf(tempstr, 254, "/tmp/%s.pool", v->poolname);
 		file=fopen(tempstr,"w");
 		/* loop through and make /tmp/$poolname.info */
 		for (i = 0; i < v->services_len; i++) {
