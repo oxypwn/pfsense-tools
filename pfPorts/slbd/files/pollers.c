@@ -417,6 +417,50 @@ bail:
 	return(status);
 }
 
+
+int service_pollicmp(struct service_t *s) {
+	int res, status;
+    char cmd[128];
+    
+	if ((getservice_status(s) & SVCSTATUS_ACTIVE) == 0) {
+		syslog(LOG_ERR, "service_polltcp: reached unreachable code");
+		return(-1);
+	}
+	
+    /* XXX: billm - we're taking the cheap way out */
+    snprintf(cmd, 127, "/sbin/ping -c 1 -t 1 -q -Q %s >/dev/null", inet_ntoa(getservice_inaddr(s)));
+    res = system(cmd);	
+    
+	switch (res) {
+        case 0:
+			if (s->prevstatus != s->status) {
+				syslog(LOG_ERR, "ICMP poll succeeded for %s, marking service UP", 
+					inet_ntoa(getservice_inaddr(s)));
+			}
+			
+			lock_service(s);
+			setservice_up(s);
+			unlock_service(s);
+			break;
+		default:
+			if (s->prevstatus != s->status) {
+				syslog(LOG_ERR, "ICMP poll failed for %s, marking service DOWN", 
+					inet_ntoa(getservice_inaddr(s)));
+			}
+			lock_service(s);
+			setservice_down(s);
+			unlock_service(s);
+			status = -2;
+			goto bail;
+	}
+
+	status = 0;
+bail:
+	return(0);
+}
+
+
+
 struct timeval i2tv(int i) {
 	struct timeval tv;
 
@@ -458,6 +502,15 @@ void vsvc_threadpoll(void *p) {
 #endif
 				}
 				
+			}
+			else if (polltype & SVCPOLL_PING) { 
+				if (service_pollicmp(v->services[i])) {
+#ifdef DEBUG
+					warnx("Failed ICMP poll for vsvc %d"
+					      ", svc %d", v->id, i);
+					print_service(v->services[i]);
+#endif
+				}
 			}
 			/* TODO: add non-TCP/HTTP poll */
 			/* pfSense specific - set filter configure if status changed */
@@ -502,4 +555,3 @@ void vsvc_threadpoll(void *p) {
 	}
 
 }
-
