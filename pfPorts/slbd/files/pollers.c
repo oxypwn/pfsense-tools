@@ -480,6 +480,11 @@ void vsvc_threadpoll(void *p) {
 	v = (struct vsvc_t *) p;
 	
 	while (1) {
+		/*  pfSense specific */
+		FILE *file;
+		char tempstr[255];
+		/*  pfSense specific */
+
 		for (i = 0; i < v->services_len; i++) {
 			v->services[i]->prevstatus = v->services[i]->status;
 			polltype = getservice_polltype(v->services[i]);
@@ -523,8 +528,6 @@ void vsvc_threadpoll(void *p) {
 		 *   so that the filter code can make the necessary
 		 *   adjustments
 		 */
-		FILE *file;
-		char tempstr[255];
 		snprintf(tempstr, 254, "/tmp/%s.pool", v->poolname);
 		file=fopen(tempstr,"w");
 		/* loop through and make /tmp/$poolname.info */
