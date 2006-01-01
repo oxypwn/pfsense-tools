@@ -256,8 +256,11 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
 	r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
 	/* the next line enabled round robin, sticky address and random */
-	//r.rpool.opts = PF_POOL_ROUNDROBIN | PF_POOL_STICKYADDR; 
-	r.rpool.opts = PF_POOL_ROUNDROBIN;
+	if(fexist("/tmp/use_pf_pool__stickyaddr") == 1) {	
+		r.rpool.opts = PF_POOL_ROUNDROBIN | PF_POOL_STICKYADDR;
+	} else {
+		r.rpool.opts = PF_POOL_ROUNDROBIN;
+	}
 	//memcpy(r.anchorname, anchorname, PF_ANCHOR_NAME_SIZE);
 
 	TAILQ_INIT(&r.rpool.list);
@@ -374,3 +377,19 @@ int vsvc_ruleupdate(struct vsvc_t *v) {
 	/* XXX BROKEN */
 	return(0);
 }
+
+/* Check if file exists */
+int fexist(char * filename)
+{
+  struct stat buf;
+
+  if (( stat (filename, &buf)) < 0)
+    return (0);
+
+  if (! S_ISREG(buf.st_mode)) {
+    return (0);
+  }
+
+  return(1);
+
+} 
