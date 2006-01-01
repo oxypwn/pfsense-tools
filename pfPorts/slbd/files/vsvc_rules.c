@@ -243,7 +243,7 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	struct pfioc_pooladdr pa;
 
 	memset(&r, 0x0, sizeof(r));
-	memset(&r, 0x0, sizeof(r));
+	//memset(&r, 0x0, sizeof(r));
 
 	/* see parse.y:2297 for building base RDR */
 	r.action = PF_RDR;
@@ -253,10 +253,9 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	r.dst.port[0] = v->addr.sin_port;
 	r.dst.port[1] = v->addr.sin_port;
 	r.dst.addr.v.a.addr.v4 = v->addr.sin_addr;
-	r.dst.addr.v.a.addr.v4 = v->addr.sin_addr;
+	//r.dst.addr.v.a.addr.v4 = v->addr.sin_addr;
 	r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
-	r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
-	/* the next line enabled round robin, sticky address and random */
+	//r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
 	if(fexist("/tmp/use_pf_pool__stickyaddr") == 1) {	
 		r.rpool.opts = PF_POOL_ROUNDROBIN | PF_POOL_STICKYADDR;
 	} else {
