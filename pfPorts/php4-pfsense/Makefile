@@ -29,12 +29,12 @@ GNU_CONFIGURE=	yes
 USE_BISON=	yes
 USE_REINPLACE=	yes
 USE_OPENSSL=    yes
-#USE_OPENLDAP=   yes
 
 CONFIGURE_ARGS+=--without-mysql \
 		--without-pear \
 		--with-openssl \
 		--with-curl \
+		--enable-pcntl \
 		--enable-fastcgi \
 		--enable-force-cgi-redirect 
 
