@@ -423,7 +423,7 @@ int service_pollicmp(struct service_t *s) {
     char cmd[128];
     
 	if ((getservice_status(s) & SVCSTATUS_ACTIVE) == 0) {
-		syslog(LOG_ERR, "service_polltcp: reached unreachable code");
+		syslog(LOG_ERR, "service_pollicmp: reached unreachable code");
 		return(-1);
 	}
 	
