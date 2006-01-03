@@ -103,15 +103,16 @@ cp ${PATCHDIR}/ath_hal-20051019/public/* \
 
 # Workaround minor PF issues
 cd /usr/src/sys/contrib/pf/net
-patch < ${PATCHDIR}/pf_state_conn.RELENG_6-2.diff
+#patch < ${PATCHDIR}/pf_state_conn.RELENG_6-2.diff
 
 # Fix BSNMD public community string (previously hard coded)
 cd /usr/src/contrib/bsnmp/snmpd/
 patch < ${PATCHDIR}/bsnmpd-public.diff
 
-# Allow ZeroConf like traffic to pass (NONIP)
-cd /usr/src/sys/net/
-patch < ${PATCHDIR}/if_bridge.c.diff
+# uRPF 
+cd /usr/src/sys/netinet
+patch < ${PATCHDIR}/ip_input.urpf.diff
+
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
