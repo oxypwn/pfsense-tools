@@ -1,0 +1,109 @@
+--- ip_input.c	Tue Jan  3 01:15:10 2006
++++ ip_input.c.urpf	Tue Jan  3 01:15:42 2006
+@@ -157,6 +157,29 @@
+ SYSCTL_INT(_net_inet_ip, OID_AUTO, check_interface, CTLFLAG_RW,
+     &ip_checkinterface, 0, "Verify packet arrives on correct interface");
+ 
++/*
++ * unicast Reverse Path Filtering checks source address of incoming
++ * packet. We basically check for spoofed source IP address.
++ *
++ * if net.inet.ip.urpf is set to 0, check is disabled.
++ *
++ * if net.inet.ip.urpf is set to 1, we perform 'loose' uRPF check -
++ * meaning packet is dropped if:
++ *  - it came with source address of the network present in routing 
++ *    table but marked as RTF_REJECT or RTF_BLACKHOLE
++ *  - it came with source address of the network present in routing
++ *    table but on other interface
++ *
++ * packet will pass checks if:
++ *  - it came on LOOPBACK or CARP iface
++ *  - it's not present in routing table but there is default route
++ *    pointing to a interface it came from
++ */
++
++static int      ip_urpf = 0;
++SYSCTL_INT(_net_inet_ip, OID_AUTO, urpf, CTLFLAG_RW,
++    &ip_urpf, 0, "Do unicast Reverse-Path filtering check");
++
+ #ifdef DIAGNOSTIC
+ static int	ipprintfs = 0;
+ #endif
+@@ -305,6 +328,51 @@
+ }
+ 
+ /*
++ * This function is copy of the ip_fw2.c code
++ */
++
++static int
++verify_path(struct in_addr src, struct ifnet *ifp)
++{
++        struct route ro;
++        struct sockaddr_in *dst;
++
++        bzero(&ro, sizeof(ro));
++
++        dst = (struct sockaddr_in *)&(ro.ro_dst);
++        dst->sin_family = AF_INET;
++        dst->sin_len = sizeof(*dst);
++        dst->sin_addr = src;
++        rtalloc_ign(&ro, RTF_CLONING);
++
++        if (ro.ro_rt == NULL)
++                return 0;
++
++        /* if ifp is provided, check for equality with rtentry */
++        if (ifp != NULL && ro.ro_rt->rt_ifp != ifp) {
++                RTFREE(ro.ro_rt);
++                return 0;
++        }
++
++        /* if no ifp provided, check if rtentry is not default route */
++        if (ifp == NULL &&
++             satosin(rt_key(ro.ro_rt))->sin_addr.s_addr == INADDR_ANY) {
++                RTFREE(ro.ro_rt);
++                return 0;
++        }
++
++        /* or if this is a blackhole/reject route */
++        if (ifp == NULL && ro.ro_rt->rt_flags & (RTF_REJECT|RTF_BLACKHOLE)) {
++                RTFREE(ro.ro_rt);
++                return 0;
++        }
++
++        /* found valid route */
++        RTFREE(ro.ro_rt);
++        return 1;
++}
++
++/*
+  * Ip input routine.  Checksum and byte swap header.  If fragmented
+  * try to reassemble.  Process options.  Pass to next level.
+  */
+@@ -368,6 +436,24 @@
+ 		}
+ 		ip = mtod(m, struct ip *);
+ 	}
++
++        /*
++         *  uRPF check
++         */
++
++        if( ip_urpf &&
++            ((m->m_pkthdr.rcvif->if_flags & IFF_LOOPBACK) == 0) &&
++#ifdef DEV_CARP
++            !m->m_pkthdr.rcvif->if_carp &&
++#endif
++            !verify_path( ip->ip_src, m->m_pkthdr.rcvif) )
++        {
++                ipstat.ips_badaddr++;
++                log(LOG_WARNING, "uRPF check failed for source address %s via %s\n",
++                    inet_ntoa(ip->ip_src),
++                    m->m_pkthdr.rcvif->if_xname );
++                goto bad;
++        }
+ 
+ 	/* 127/8 must not appear on wire - RFC1122 */
+ 	if ((ntohl(ip->ip_dst.s_addr) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET ||
