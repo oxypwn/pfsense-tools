@@ -256,7 +256,7 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	//r.dst.addr.v.a.addr.v4 = v->addr.sin_addr;
 	r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
 	//r.dst.addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
-	if(fexist("/tmp/use_pf_pool__stickyaddr") == 1) {	
+	if(fexist("/var/etc/use_pf_pool__stickyaddr") == 1) {	
 		r.rpool.opts = PF_POOL_ROUNDROBIN | PF_POOL_STICKYADDR;
 	} else {
 		r.rpool.opts = PF_POOL_ROUNDROBIN;
