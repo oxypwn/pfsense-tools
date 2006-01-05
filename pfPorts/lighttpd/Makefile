@@ -2,11 +2,12 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.26 2005/09/01 14:49:48 garga Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.33 2006/01/04 23:40:57 edwin Exp $
 #
 
 PORTNAME=	lighttpd
-PORTVERSION=	1.4.3
+PORTVERSION=	1.4.8
+PORTREVISION=	1
 CATEGORIES=	www
 MASTER_SITES=	http://www.lighttpd.net/download/ \
 		http://dl.fkb.wormulon.net/lighttpd/ \
@@ -17,27 +18,28 @@ COMMENT=	A secure, fast, compliant, and very flexible Web Server
 
 LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
 
-USE_AUTOCONF_VER=	259
+USE_AUTOTOOLS=	autoconf:259 libtool:15
 USE_REINPLACE=		yes
 USE_RC_SUBR=		lighttpd.sh
-USE_LIBTOOL_VER=	15
 USE_GNOME=		lthack
 CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
-CONFIGURE_ENV=		CPPFLAGS=-I${PREFIX}/include LIBS=-L${PREFIX}/lib
 CONFIGURE_ARGS=		--libdir=${PREFIX}/lib/lighttpd
 
 MAN1=		lighttpd.1 spawn-fcgi.1
 
-OPTIONS=	OPENSSL		"Enable SSL support"	on \
+OPTIONS=	OPENSSL		"Enable SSL support"	on  \
 		OPENLDAP	"Enable LDAP support"	off \
 		MYSQL		"Enable MYSQL support"	off \
-		IPV6		"Disable IPV6 support"	off
+		IPV6		"Enable IPV6 support"	on \
+		CML		"Enable Cache Meta Language support" off
 
 .include <bsd.port.pre.mk>
 
 .if !defined(WITHOUT_OPENSSL)
 .include "${PORTSDIR}/Mk/bsd.openssl.mk"
-CONFIGURE_ARGS+=	--with-openssl
+CONFIGURE_ARGS+=	--with-openssl \
+			--with-openssl-includes=${OPENSSLINC} \
+			--with-openssl-libs=${OPENSSLLIB}
 .endif
 
 .if defined(WITH_OPENLDAP)
@@ -50,12 +52,21 @@ USE_MYSQL=	yes
 CONFIGURE_ARGS+=	--with-mysql
 .endif
 
-.if defined(WITH_IPV6)
+.if defined(WITHOUT_IPV6)
 CONFIGURE_ARGS+=	--disable-ipv6
 .endif
 
+.if defined(WITH_CML)
+LIB_DEPENDS+=		lua.5:${PORTSDIR}/lang/lua
+CONFIGURE_ARGS+=	--with-lua
+CONFIGURE_ENV+=		CFLAGS=-I${LOCALBASE}/include LDFLAGS=-L/${LOCALBASE}/lib
+.endif
+
 post-install:
-	@${INSTALL_DATA} ${FILESDIR}/lighttpd.conf.sample ${PREFIX}/etc/
+	@${INSTALL_DATA} ${FILESDIR}/lighttpd.conf.sample ${PREFIX}/etc
+.if !exists(${PREFIX}/etc/lighttpd.conf)
+	@${INSTALL_DATA} ${FILESDIR}/lighttpd.conf.sample ${PREFIX}/etc/lighttpd.conf
+.endif
 	@${LIBTOOL} --finish ${PREFIX}/lib
 
 .include <bsd.port.post.mk>
