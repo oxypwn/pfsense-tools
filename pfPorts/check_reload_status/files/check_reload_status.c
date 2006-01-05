@@ -74,16 +74,20 @@ int main(void) {
 	    }
 	    if(fexist("/tmp/interfaces_wan_configure") == 1) {
 		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
-		    system("/tmp/interfaces_wan_configure");
+		    system("/bin/rm  /tmp/interfaces_wan_configure");
 	    }
 	    if(fexist("/tmp/interfaces_wan_configure") == 1) {
 		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
-		    system("/tmp/interfaces_wan_configure");
+		    system("/bin/rm /tmp/interfaces_wan_configure");
 	    }
 	    if(fexist("/tmp/interfaces_opt_configure") == 1) {
 		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
-		    system("/tmp/interfaces_opt_configure");
+		    system("/bin/rm /tmp/interfaces_opt_configure");
 	    }
+	    if(fexist("/tmp/restart_webgui") == 1) {
+		    system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
+		    system("/bin/rm /tmp/restart_webgui");
+	    }	    
 	    sleep(5);
 	}
 	return 0;
