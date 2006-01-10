@@ -1,0 +1,326 @@
+Index: if_em.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/em/if_em.c,v
+retrieving revision 1.94
+diff -u -r1.94 if_em.c
+--- if_em.c	22 Dec 2005 09:09:39 -0000	1.94
++++ if_em.c	25 Dec 2005 00:23:17 -0000
+@@ -139,6 +139,7 @@
+ static int  em_detach(device_t);
+ static int  em_shutdown(device_t);
+ static void em_intr(void *);
++static void em_intr_fast(void *);
+ static void em_start(struct ifnet *);
+ static int  em_ioctl(struct ifnet *, u_long, caddr_t);
+ static void em_watchdog(struct ifnet *);
+@@ -165,7 +166,7 @@
+ static void em_clean_transmit_interrupts(struct adapter *);
+ static int  em_allocate_receive_structures(struct adapter *);
+ static int  em_allocate_transmit_structures(struct adapter *);
+-static void em_process_receive_interrupts(struct adapter *, int);
++static int em_process_receive_interrupts(struct adapter *, int);
+ #ifndef __NO_STRICT_ALIGNMENT
+ static int  em_fixup_rx(struct adapter *);
+ #endif
+@@ -206,6 +207,8 @@
+ static void em_add_int_delay_sysctl(struct adapter *, const char *,
+ 				    const char *, struct em_int_delay_info *,
+ 				    int, int);
++static void em_handle_rxtx(void *context, int pending);
++static void em_link_thread(void *arg);
+ #ifdef DEVICE_POLLING
+ static poll_handler_t em_poll;
+ #endif
+@@ -428,7 +431,6 @@
+ 	 */
+ 	adapter->hw.report_tx_early = 1;
+ 
+-
+ 	if (em_allocate_pci_resources(adapter)) {
+ 		printf("em%d: Allocation of PCI resources failed\n", 
+ 		       adapter->unit);
+@@ -562,6 +564,14 @@
+ 	adapter->in_detach = 1;
+ 	em_stop(adapter);
+ 	em_phy_hw_reset(&adapter->hw);
++
++	/* Kill the link handler thread. */
++	adapter->flags |= EM_FLAG_DETACH;
++	if (adapter->link_thread != NULL) {
++		wakeup(adapter->link_thread);
++		msleep(adapter->link_thread, &adapter->mtx, 0, "emdetach", 0);
++	}
++
+ 	EM_UNLOCK(adapter);
+         ether_ifdetach(adapter->ifp);
+ 
+@@ -1016,12 +1026,118 @@
+ }
+ #endif /* DEVICE_POLLING */
+ 
++static void
++em_link_thread(void *arg)
++{
++	struct adapter	*adapter = arg;
++	struct ifnet *ifp;
++
++	ifp = adapter->ifp;
++
++	EM_LOCK(adapter);
++
++	while ((adapter->flags & EM_FLAG_DETACH) == 0) {
++		msleep(adapter->link_thread, &adapter->mtx, 0, "emlink", 0);
++
++		if (adapter->flags & EM_FLAG_DETACH)
++			break;
++		callout_stop(&adapter->timer);
++		adapter->hw.get_link_status = 1;
++		em_check_for_link(&adapter->hw);
++		em_print_link_status(adapter);
++		callout_reset(&adapter->timer, hz, em_local_timer,
++		    adapter);
++	}
++
++	EM_UNLOCK(adapter);
++	kthread_exit(0);
++	return;
++}
++
++static void
++em_handle_rxtx(void *context, int pending)
++{
++	struct adapter	*adapter = context;
++	struct ifnet	*ifp;
++
++	ifp = adapter->ifp;
++
++	/*
++	 * TODO:
++	 * It should be possible to run this without needing the lock.
++	 */
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING) {
++		if (em_process_receive_interrupts(adapter, 100) != 0)
++			taskqueue_enqueue(adapter->tq, &adapter->rxtx_task);
++		EM_LOCK(adapter);
++		em_clean_transmit_interrupts(adapter);
++
++		if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++			em_start_locked(ifp);
++		EM_UNLOCK(adapter);
++	}
++
++	em_enable_intr(adapter);
++	return;
++}
++
+ /*********************************************************************
+  *
+  *  Interrupt Service routine  
+  *
+  **********************************************************************/
+ static void
++em_intr_fast(void *arg)
++{
++	struct adapter	*adapter = arg;
++	struct ifnet	*ifp;
++	uint32_t	reg_icr;
++
++	ifp = adapter->ifp;  
++
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING) {
++		return;
++	}
++#endif /* DEVICE_POLLING */
++
++	reg_icr = E1000_READ_REG(&adapter->hw, ICR);
++
++	/* Hot eject?  */
++	if (reg_icr == 0xffffffff)
++		return;
++
++	/* Definitely not our interrupt.  */
++	if (reg_icr == 0x0)
++		return;
++
++	/*
++	 * Starting with the 82571 chip, bit 31 should be used to
++	 * determine whether the interrupt belongs to us.
++	 */
++	if (adapter->hw.mac_type >= em_82571 &&
++	    (reg_icr & E1000_ICR_INT_ASSERTED) == 0)
++		return;
++
++	/*
++	 * Mask interrupts until the taskqueue is finished running.  This is
++	 * cheap, just assume that it is needed.  This also works around the
++	 * MSI message reordering errata on certain systems.
++	 */
++	em_disable_intr(adapter);
++	taskqueue_enqueue(adapter->tq, &adapter->rxtx_task);
++
++	/* Link status change */
++	if (reg_icr & (E1000_ICR_RXSEQ | E1000_ICR_LSC))
++		wakeup(adapter->link_thread);
++
++	if (reg_icr & E1000_ICR_RXO) {
++		adapter->rx_overruns++;
++	}
++	return;
++}
++
++static void
+ em_intr(void *arg)
+ {
+ 	struct adapter	*adapter = arg;
+@@ -1861,13 +1977,43 @@
+ 		       adapter->unit);
+ 		return(ENXIO);
+ 	}
++
++	/*
++	 * Try allocating a fast interrupt and the associated deferred
++	 * processing contexts.  If that doesn't work, try just using an
++	 * ithread.
++	 */
+ 	if (bus_setup_intr(dev, adapter->res_interrupt,
+-			   INTR_TYPE_NET | INTR_MPSAFE,
+-			   (void (*)(void *)) em_intr, adapter,
+-			   &adapter->int_handler_tag)) {
+-		printf("em%d: Error registering interrupt handler!\n", 
+-		       adapter->unit);
+-		return(ENXIO);
++			   INTR_TYPE_NET | INTR_FAST, em_intr_fast, adapter,
++			   &adapter->int_handler_tag) == 0) {
++
++		/* Init the deferred processing contexts. */
++		TASK_INIT(&adapter->rxtx_task, 0, em_handle_rxtx, adapter);
++		adapter->tq = taskqueue_create_fast("em_taskq", M_NOWAIT,
++			taskqueue_thread_enqueue,
++			&adapter->tq, &adapter->tqproc);
++		kthread_create(taskqueue_thread_loop,
++			&adapter->tq, &adapter->tqproc,
++			0, 0, "%s taskq", device_get_nameunit(adapter->dev));
++
++		if (kthread_create(em_link_thread, adapter,
++		    &adapter->link_thread, 0, 0, "em%d_link", adapter->unit)) {
++
++			/* Can't create the thread, so use the slow handler. */
++			bus_teardown_intr(dev, adapter->res_interrupt,
++					  adapter->int_handler_tag);
++			adapter->int_handler_tag = NULL;
++		}
++	}
++	if (adapter->int_handler_tag == NULL) {
++		if (bus_setup_intr(dev, adapter->res_interrupt,
++				   INTR_TYPE_NET | INTR_MPSAFE,
++				   em_intr, adapter,
++				   &adapter->int_handler_tag)) {
++			printf("em%d: Error registering interrupt handler!\n", 
++			       adapter->unit);
++			return(ENXIO);
++		}
+ 	}
+ 
+ 	adapter->hw.back = &adapter->osdep;
+@@ -1880,6 +2026,9 @@
+ {
+ 	device_t dev = adapter->dev;
+ 
++	if (adapter->tq != NULL) {
++		taskqueue_free(adapter->tq);
++	}
+ 	if (adapter->res_interrupt != NULL) {
+ 		bus_teardown_intr(dev, adapter->res_interrupt, 
+ 				  adapter->int_handler_tag);
+@@ -2853,7 +3002,7 @@
+  *  count < 0.
+  *
+  *********************************************************************/
+-static void
++static int
+ em_process_receive_interrupts(struct adapter * adapter, int count)
+ {
+ 	struct ifnet        *ifp;
+@@ -2866,8 +3015,6 @@
+ 	/* Pointer to the receive descriptor being examined. */
+ 	struct em_rx_desc   *current_desc;
+ 
+-	mtx_assert(&adapter->mtx, MA_OWNED);
+-
+ 	ifp = adapter->ifp;
+ 	i = adapter->next_rx_desc_to_check;
+         current_desc = &adapter->rx_desc_base[i];
+@@ -2875,7 +3022,7 @@
+ 	    BUS_DMASYNC_POSTREAD);
+ 
+ 	if (!((current_desc->status) & E1000_RXD_STAT_DD)) {
+-		return;
++		return (0);
+ 	}
+ 
+ 	while ((current_desc->status & E1000_RXD_STAT_DD) &&
+@@ -3001,23 +3148,26 @@
+ 		bus_dmamap_sync(adapter->rxdma.dma_tag, adapter->rxdma.dma_map,
+ 		    BUS_DMASYNC_PREREAD | BUS_DMASYNC_PREWRITE);
+  
+-		/* Advance the E1000's Receive Queue #0  "Tail Pointer". */
+-                E1000_WRITE_REG(&adapter->hw, RDT, i);
+-
+                 /* Advance our pointers to the next descriptor */
+ 		if (++i == adapter->num_rx_desc)
+ 			i = 0;
+ 		if (m != NULL) {
+ 			adapter->next_rx_desc_to_check = i;
+-			EM_UNLOCK(adapter);
+ 			(*ifp->if_input)(ifp, m);
+-			EM_LOCK(adapter);
+ 			i = adapter->next_rx_desc_to_check;
+ 		}
+ 		current_desc = &adapter->rx_desc_base[i];
+ 	}
+ 	adapter->next_rx_desc_to_check = i;
+-	return;
++
++	/* Advance the E1000's Receive Queue #0  "Tail Pointer". */
++	if (--i < 0) i = adapter->num_rx_desc - 1;
++	E1000_WRITE_REG(&adapter->hw, RDT, i);
++
++	if (!((current_desc->status) & E1000_RXD_STAT_DD)) {
++		return (0);
++	}
++	return (1);
+ }
+ 
+ #ifndef __NO_STRICT_ALIGNMENT
+Index: if_em.h
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/em/if_em.h,v
+retrieving revision 1.40
+diff -u -r1.40 if_em.h
+--- if_em.h	21 Nov 2005 04:17:43 -0000	1.40
++++ if_em.h	25 Dec 2005 00:09:16 -0000
+@@ -48,6 +48,8 @@
+ #include <sys/socket.h>
+ #include <sys/sockio.h>
+ #include <sys/sysctl.h>
++#include <sys/taskqueue.h>
++#include <sys/kthread.h>
+ 
+ #include <machine/bus.h>
+ #include <sys/rman.h>
+@@ -334,6 +336,14 @@
+ 	u_int8_t        unit;
+ 	struct mtx	mtx;
+ 	int		em_insert_vlan_header;
++	struct proc	*link_thread;
++	struct task	rxtx_task;
++	struct taskqueue *tq;		/* private task queue */
++	struct proc	*tqproc;	/* thread handling sc_tq */
++
++	/* Driver state flags */
++	#define		EM_FLAG_DETACH		0x01
++	int		flags;
+ 
+ 	/* Info about the board itself */
+ 	u_int32_t       part_num;

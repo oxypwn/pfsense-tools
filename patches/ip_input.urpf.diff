@@ -23,7 +23,7 @@
 + *    pointing to a interface it came from
 + */
 +
-+static int      ip_urpf = 0;
++static int      ip_urpf = 1;
 +SYSCTL_INT(_net_inet_ip, OID_AUTO, urpf, CTLFLAG_RW,
 +    &ip_urpf, 0, "Do unicast Reverse-Path filtering check");
 +
