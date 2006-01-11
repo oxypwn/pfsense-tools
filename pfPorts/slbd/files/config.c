@@ -71,12 +71,26 @@ cgetusedb(int new_usedb)
         return(old_usedb);
 }
 
+int
+is_port(char *str)
+{
+	long lval;
+
+	errno = 0;
+	lval = strtol(str, NULL, 10);
+	if (((errno == ERANGE) && (lval == LONG_MAX || lval == LONG_MIN)) || (lval > 65535))
+		return -1;
+	else
+		return (int) lval;
+}
+
 int vsvc_getconfig(char *cfile) {
-	int i = 0, j = 0, result = 0, rport;
+	int i, j, result, rport, vipport;
 	char *buf, *str, *data = NULL;
 	char vipstring[VIPLEN];
 	struct vsvc_t *v;
 	static char   *configfiles[2] = { CONFIG_FILE , NULL };
+	i = j = result = rport = vipport = 0;
 
 	SLIST_INIT(&virtualservices);
 
@@ -110,9 +124,6 @@ int vsvc_getconfig(char *cfile) {
 			errx(1, "unresolved tc= thing");
 			break;
 		case 1:
-			cgetstr(buf, "sitedown", &str);
-			free(str);
-			
 			v = malloc(sizeof(struct vsvc_t));
 			if (v == NULL)
 				warn("Could not allocate memory for v");
@@ -133,38 +144,45 @@ int vsvc_getconfig(char *cfile) {
 				syslog(LOG_ERR, "VIP %s not found", str);
 				err(1, "vip %s not found", str);
 			}
-			strlcpy(v->name, str, MAXNAMELEN+1);
+			strlcpy(v->name, str, MAXNAMELEN);
 			/* get vip */
 			if (vsvc_setinaddr(v, str)) {
 				syslog(LOG_ERR, "Couldn't set VIP for %s", str);
 				err(1, "could not set vip for %s",
 				    str);
 			}
+			if (str != NULL)
+				free(str);
+
 			/* get port */
 			if (cgetstr(buf, "vip-port", &str) <= 0) {
 				syslog(LOG_ERR, "Invalid port for VIP %s",
 				    v->name);
 				err(1, "invalid port for vip %s", v->name);
 			}
-			if (vsvc_setport(v, (in_port_t)
-			    strtol(str, NULL, 10))) {
-				syslog(LOG_ERR, "Invalid port for vip %s", 
-				    v->name);
-				err(1, "invalid port for vip %s", v->name);
+			else {
+				if (((vipport = is_port(str)) != -1) ||
+				  (vsvc_setport(v, (in_port_t) vipport))) {
+					syslog(LOG_ERR, "Invalid port for vip %s", 
+				    		v->name);
+					err(1, "invalid port for vip %s", v->name);
+				}
 			}
-			free(str);
-
+			if (str != NULL)
+				free(str);
 			syslog(LOG_INFO, "VIP %s:%d configured as \"%s\"",
 			    inet_ntoa(vsvc_getinaddr(v)), vsvc_getport(v),
 			    v->name);
 
+			/* get poolname */
                         if (cgetstr(buf, "poolname", &str) <= 0) {
                                 syslog(LOG_ERR, "Invalid poolname for vip %s",
                                     v->name);
                                 err(1, "invalid pooolname for vip %s", v->name);
                         }
-			strlcpy(v->poolname, str, MAXNAMELEN+1);
-			free(str);
+			strlcpy(v->poolname, str, MAXNAMELEN);
+			if (str != NULL)
+				free(str);
 
 			/* get sitedown host */
 			if (cgetstr(buf, "sitedown", &str) <= 0) {
@@ -176,7 +194,9 @@ int vsvc_getconfig(char *cfile) {
 				syslog(LOG_ERR, "Couldn't inet_aton(sitedown)");
 				err(1, "couldn't inet_aton(sitedown)");
 			}
-			free(str);
+			if (str != NULL)
+				free(str);
+
 			if (cgetstr(buf, "sitedown-port", &str) <= 0) {
 				syslog(LOG_ERR, "Invalid sitedown-port for "
 				    "VIP %s", v->name);
@@ -185,14 +205,6 @@ int vsvc_getconfig(char *cfile) {
 				v->sitedown.sin_port = htons((in_port_t)
 				    strtol(str, NULL, 10));
 				free(str);
-			}
-
-			/* we assume port 80 for sitedown if not set */
-			if (v->sitedown.sin_port <= 0) {
-				syslog(LOG_ERR, "Invalid sitedown-port for "
-				    "VIP %s, assuming port 80", v->name);
-				v->sitedown.sin_port = \
-				    htons((unsigned short) 80);
 			}
 
 			syslog(LOG_INFO, "VIP %s:%d sitedown at %s:%d",
@@ -216,7 +228,8 @@ int vsvc_getconfig(char *cfile) {
 				    "for vip %s", v->name);
 			}
 			v->services_len = (u_int32_t) strtol(str, NULL, 10);
-			free(str);
+			if (str != NULL)
+				free(str);
 			
 			v->services = calloc(v->services_len,
 				sizeof(struct service_t *));
@@ -248,13 +261,17 @@ int vsvc_getconfig(char *cfile) {
 #endif
 						setservice_tcpexpect(
 						    v->services[j], str, data);
-						free(str);
-						free(data);
-						/* XXX might not free something
-						 * if we have && them both
-						 * together */
+						if (str != NULL)
+							free(str);
+						if (data != NULL)
+							free(data);
 					}
 					else {
+						if (str != NULL)
+							free(str);
+						if (data != NULL)
+							free(data);
+
 						setservice_tcppoll(
 						    v->services[j]);
 					}
@@ -267,11 +284,17 @@ int vsvc_getconfig(char *cfile) {
 					cgetstr(buf, "expect", &data)) {
 					setservice_httpget(v->services[j],
 					    str, data);
-					free(str);
-					free(data);
+					if (str != NULL)
+						free(str);
+					if (data != NULL)
+						free(data);
 					setservice_addpolltype(v->services[j],
 					    SVCPOLL_HTTPGET);
 				}
+				if (str != NULL)
+					free(str);
+				if (data != NULL)
+					free(data);
 
 				if (cgetcap(buf, "httphead", ':') != NULL && \
 					cgetstr(buf, "url", &str) &&
