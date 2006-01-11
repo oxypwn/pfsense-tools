@@ -482,7 +482,7 @@ void vsvc_threadpoll(void *p) {
 	while (1) {
 		/*  pfSense specific */
 		FILE *file;
-		char tempstr[255];
+		char filename[MAXPATHLEN+1];
 		/*  pfSense specific */
 
 		for (i = 0; i < v->services_len; i++) {
@@ -528,8 +528,8 @@ void vsvc_threadpoll(void *p) {
 		 *   so that the filter code can make the necessary
 		 *   adjustments
 		 */
-		snprintf(tempstr, 254, "/tmp/%s.pool", v->poolname);
-		file=fopen(tempstr,"w");
+		snprintf(filename, MAXPATHLEN, "/tmp/%s.pool", v->poolname);
+		file=fopen(filename,"w");
 		/* loop through and make /tmp/$poolname.info */
 		for (i = 0; i < v->services_len; i++) {
 			//if ((getservice_status(v->services[i]) & SVCSTATUS_ACTIVE) == 0 ) {
@@ -537,8 +537,7 @@ void vsvc_threadpoll(void *p) {
 			  (SVCSTATUS_ACTIVE|SVCSTATUS_UP)) {
 				/* service is down, do nothing */
 			} else {
-				 sprintf(tempstr, "%s\n", inet_ntoa(getservice_inaddr(v->services[i])));
-				 fprintf(file,tempstr);
+				 fprintf(file, "%s\n", inet_ntoa(getservice_inaddr(v->services[i])));
 			}
 		}
 		fclose(file);
