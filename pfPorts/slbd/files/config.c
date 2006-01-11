@@ -72,14 +72,17 @@ cgetusedb(int new_usedb)
 
 int vsvc_getconfig(char *cfile) {
 	int i = 0, j = 0, result = 0, rport;
-	char *buf, *str, *data, vipstring[VIPLEN];
+	char *buf, *str, *data = NULL;
+	char vipstring[VIPLEN];
 	struct vsvc_t *v;
 
 	SLIST_INIT(&virtualservices);
 
 	cgetusedb(0); /* no unpredictable .db file behavior. */
 
+#ifndef vsvc_getcap
 #define	vsvc_getcap(a)	(cgetstr(buf, a, &str) > 0 ? str : NULL)
+#endif
 
 	if (cfile != NULL)
 		configfiles[0] = cfile;
@@ -109,6 +112,8 @@ int vsvc_getconfig(char *cfile) {
 			free(str);
 			
 			v = malloc(sizeof(struct vsvc_t));
+			if (v == NULL)
+				warn("Could not allocate memory for v");
 			memset(v, 0x0, sizeof(struct vsvc_t));
 
 			vsvc_init(v);
@@ -213,11 +218,10 @@ int vsvc_getconfig(char *cfile) {
 			for (j = 0; j < v->services_len; j++) {
 				v->services[j] = \
 					malloc(sizeof(struct service_t));
-#ifdef DEBUG
 				if (v->services[j] == NULL)
 				    warn("Could not allocate memory for "
 				        "v->services[j]");
-#endif
+				memset(v->services[j], 0x0, sizeof(struct service_t));
 				if (init_service(v->services[j])) {
 					syslog(LOG_ERR, "Could not initialize "
 					    "service %d for VIP %s", j,
@@ -234,8 +238,8 @@ int vsvc_getconfig(char *cfile) {
 					if (cgetstr(buf, "send", &str) > 0 &&
 					    cgetstr(buf, "expect", &data) > 0) {
 #ifdef DEBUG
-						warnx(str);
-						warnx(data);
+						warnx("%s", str);
+						warnx("%s", data);
 #endif
 						setservice_tcpexpect(
 						    v->services[j], str, data);
@@ -359,7 +363,6 @@ int vsvc_getconfig(char *cfile) {
 		result = cgetnext(&buf, configfiles);
 	}
 	/* else printf("we read %d records.\n", i); */
-#undef vsvc_getcap(a,b,c)
 
 	return(0);
 }
