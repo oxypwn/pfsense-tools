@@ -471,19 +471,19 @@ struct timeval i2tv(int i) {
 
 
 void vsvc_threadpoll(void *p) {
-	int i, needs_filter_configure;
+	int i;
 	polltype_t polltype;
-	struct vsvc_t *v;
+	struct vsvc_t *v = p;
+#ifdef PFSENSE
+	int needs_filter_configure = 0;
+#endif
 
-	needs_filter_configure = 0;
-
-	v = (struct vsvc_t *) p;
-	
 	while (1) {
-		/*  pfSense specific */
+
+#ifdef PFSENSE
 		FILE *file;
 		char filename[MAXPATHLEN+1];
-		/*  pfSense specific */
+#endif
 
 		for (i = 0; i < v->services_len; i++) {
 			v->services[i]->prevstatus = v->services[i]->status;
@@ -518,16 +518,19 @@ void vsvc_threadpoll(void *p) {
 				}
 			}
 			/* TODO: add non-TCP/HTTP poll */
-			/* pfSense specific - set filter configure if status changed */
+#ifdef PFSENSE
 			if (getservice_status(v->services[i]) != getservice_prevstatus(v->services[i])) 
 				needs_filter_configure = 1;
+#endif
 		}
 
-		/*  pfSense specific
-		 *   loop through and output the status of the pools
-		 *   so that the filter code can make the necessary
-		 *   adjustments
-		 */
+#ifdef PFSENSE
+		/*  
+		*   loop through and output the status of the pools
+		*   so that the filter code can make the necessary
+		*   adjustments
+		*/
+
 		snprintf(filename, MAXPATHLEN, "/tmp/%s.pool", v->poolname);
 		file=fopen(filename,"w");
 		/* loop through and make /tmp/$poolname.info */
@@ -547,6 +550,7 @@ void vsvc_threadpoll(void *p) {
 		 	system("touch /tmp/filter_dirty");
 			needs_filter_configure = 0;
 		}
+#endif
 
 		if (poll(NULL, 0, poll_interval)) 
 #ifdef DEBUG
@@ -555,5 +559,4 @@ void vsvc_threadpoll(void *p) {
 			do { } while (0);
 #endif
 	}
-
 }
