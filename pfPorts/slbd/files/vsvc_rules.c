@@ -85,6 +85,10 @@
 #include "printers.h"
 
 char anchorname[PF_ANCHOR_NAME_SIZE] = "slb";
+#ifdef OpenBSD3_5
+char rulesetname[PF_RULESET_NAME_SIZE] = "main";
+#endif
+
 struct pfio {
         int dev;
         int flags;
@@ -198,6 +202,9 @@ int vsvc_ruleinit(void) {
 	}
 	pte->rs_num = PF_RULESET_RDR;
 	memcpy(&pte->anchor, anchorname, PF_ANCHOR_NAME_SIZE);
+#ifdef OpenBSD3_5
+        memcpy(&pte->ruleset, rulesetname, PF_RULESET_NAME_SIZE);
+#endif
 #ifdef DEBUG
 	warnx("Loading rules into anchor %s",
 	    pte->anchor);
@@ -289,7 +296,9 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	} else {
 		r.rpool.opts = PF_POOL_ROUNDROBIN;
 	}
-	//memcpy(r.anchorname, anchorname, PF_ANCHOR_NAME_SIZE);
+#ifdef OpenBSD3_5
+        memcpy(r.anchorname, anchorname, PF_ANCHOR_NAME_SIZE);
+#endif
 
 	TAILQ_INIT(&r.rpool.list);
 	for (i = 0, n = 0; i < v->services_len; i++) {
@@ -329,6 +338,9 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	}
 	pa.af = AF_INET;
 	memcpy(pa.anchor, anchorname, PF_ANCHOR_NAME_SIZE);
+#ifdef OpenBSD3_5
+        memcpy(pa.ruleset, rulesetname, PF_RULESET_NAME_SIZE);
+#endif
 
 	/* sitedown */
 	if (n == 0) {
@@ -371,6 +383,9 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	/* prepare the pfioc_rule for ioctl */
 	memset(&pr, 0x0, sizeof(pr));
 	memcpy(pr.anchor, anchorname, PF_ANCHOR_NAME_SIZE);
+#ifdef OpenBSD3_5
+        memcpy(pr.ruleset, rulesetname, PF_RULESET_NAME_SIZE);
+#endif
 	pr.action = PF_RDR;
 	pr.ticket = io.ticket;
 	pr.pool_ticket = pa.ticket;
@@ -378,7 +393,9 @@ int vsvc_ruleadd(struct vsvc_t *v) {
 	memcpy(&pr.rule, &r, sizeof(pr.rule));
 	/* XXX we have to work around the fact that PF can't handle
 	    an anchorname inside the pr.rule in 3.5; fixed in -current prolly */
-	//memset(&pr.rule.anchorname, 0x0, PF_ANCHOR_NAME_SIZE);
+#ifdef OpenBSD3_5
+        memset(&pr.rule.anchorname, 0x0, PF_ANCHOR_NAME_SIZE);
+#endif
 
 	if (ioctl(io.dev, DIOCADDRULE, &pr)) {
 		syslog(LOG_ERR, "DIOCADDRULE failed: %s", strerror(errno));

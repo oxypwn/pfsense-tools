@@ -124,6 +124,9 @@ int vsvc_getconfig(char *cfile) {
 
 			/* set anchor and ruleset */
 			memcpy(v->anchor, anchorname, sizeof(v->anchor));
+#ifdef OpenBSD3_5
+                        memcpy(v->ruleset, rulesetname, sizeof(v->ruleset));
+#endif
 
 			/* snag vip number */
 			if (cgetstr(buf, "vip", &str) <= 0)  {

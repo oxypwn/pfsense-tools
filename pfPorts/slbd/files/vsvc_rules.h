@@ -35,6 +35,9 @@
 */
 
 extern char *anchorname;
+#ifdef OpenBSD3_5
+extern char *anchorname;
+#endif
 
 int		vsvc_ruleinit(void);
 int		vsvc_rulefetch(struct vsvc_t *, struct pf_rule *);

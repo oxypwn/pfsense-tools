@@ -46,6 +46,9 @@ struct vsvc_t {
 #define MAXNAMELEN 255
 	char			name[MAXNAMELEN+1];
 	char			anchor[PF_ANCHOR_NAME_SIZE];
+#ifdef OpenBSD3_5
+        char                    ruleset[PF_RULESET_NAME_SIZE];
+#endif
 	struct sockaddr_in	addr;
 	struct sockaddr_in	sitedown;
 	struct service_t      **services;  /* to service_t[services_len] */
