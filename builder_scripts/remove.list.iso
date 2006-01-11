@@ -404,7 +404,6 @@
 ./usr/sbin/amd
 ./usr/sbin/amq
 ./usr/sbin/apm
-./usr/sbin/apmd
 ./usr/sbin/asf
 ./usr/sbin/bootparamd
 ./usr/sbin/bootpef
