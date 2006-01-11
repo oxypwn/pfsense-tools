@@ -9,6 +9,7 @@ DEFINES=
 INCLUDES=-I.
 #CC=gcc
 #CFLAGS=-O -g -pthread -Wall $(OSTYPE) $(INCLUDES) $(DEFINES)
+#CFLAGS=-O -g -pthread -Wall
 LD=gcc
 LDFLAGS=-pthread -Wall -g
 #SUBDIR=tests
@@ -38,9 +39,9 @@ vsvc_rules:	vsvc_rules.o vsvc.o
 service-clean:
 	rm -f service.o
 
-slbd:	service.o vsvc.o config.o printers.o vsvc_rules.o slbd.o pollers.o
-	$(LD) $(LDFLAGS) -o slbd slbd.o service.o vsvc.o config.o printers.o \
-		vsvc_rules.o pollers.o
+slbd:	service.o vsvc.o vsvc_rules.o config.o printers.o slbd.o pollers.o
+	$(LD) $(LDFLAGS) -o slbd slbd.o service.o vsvc.o vsvc_rules.o \
+		config.o printers.o pollers.o
 
 install:	install-slbd
 

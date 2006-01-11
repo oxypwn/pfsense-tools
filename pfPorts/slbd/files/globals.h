@@ -30,7 +30,4 @@
  *
  */
 
-static char anchorname[PF_ANCHOR_NAME_SIZE] = "slb";
-
 extern SLIST_HEAD(, vsvc_t) virtualservices;
-

@@ -33,8 +33,7 @@
 /* needs globals.h, service.h, vsvc.h */
 
 #define VIPLEN	10
-
-static char   *configfiles[2] = { "/var/etc/slbdcap" , NULL };
+#define CONFIG_FILE "/var/etc/slbdcap"
 
 int	vsvc_getconfig(char *);
 

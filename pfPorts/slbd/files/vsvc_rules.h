@@ -34,13 +34,7 @@
  * needs globals.h service.h vsvc.h pfctl/pfctl.h pfctl/pfctl_parser.h
 */
 
-struct pfio {
-	int dev;
-	int flags;
-#define PFIO_UP		0x0001
-	int ticket;		/* may not be necessary */
-	pthread_mutex_t lock;
-} io;
+extern char *anchorname;
 
 int		vsvc_ruleinit(void);
 int		vsvc_rulefetch(struct vsvc_t *, struct pf_rule *);

@@ -56,8 +56,6 @@
 #include "printers.h"
 #include "pollers.h"
 
-extern char *anchorname;
-
 SLIST_HEAD(, vsvc_t) virtualservices;
 
 void sigignore(int signal) {

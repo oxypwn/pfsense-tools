@@ -51,6 +51,7 @@
 #include "globals.h"
 #include "service.h"
 #include "vsvc.h"
+#include "vsvc_rules.h"
 #include "config.h"
 #include "printers.h"
 
@@ -75,6 +76,7 @@ int vsvc_getconfig(char *cfile) {
 	char *buf, *str, *data = NULL;
 	char vipstring[VIPLEN];
 	struct vsvc_t *v;
+	static char   *configfiles[2] = { CONFIG_FILE , NULL };
 
 	SLIST_INIT(&virtualservices);
 

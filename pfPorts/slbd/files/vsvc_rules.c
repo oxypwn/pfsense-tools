@@ -83,7 +83,35 @@
 #include "service.h"
 #include "vsvc.h"
 #include "printers.h"
-#include "vsvc_rules.h"
+
+char anchorname[PF_ANCHOR_NAME_SIZE] = "slb";
+struct pfio {
+        int dev;
+        int flags;
+#define PFIO_UP         0x0001
+        int ticket;             /* may not be necessary */
+        pthread_mutex_t lock;
+} io;
+
+
+int                vsvc_ruleadd(struct vsvc_t *);
+
+
+/* Check if file exists */
+int fexist(char * filename)
+{
+  struct stat buf;
+
+  if (( stat (filename, &buf)) < 0)
+    return (0);
+
+  if (! S_ISREG(buf.st_mode)) {
+    return (0);
+  }
+
+  return(1);
+
+} 
 
 int vsvc_pfctlstart(void) {
 	int dev;
@@ -153,9 +181,9 @@ bail:
 
 int vsvc_ruleinit(void) {
 	int status;
-	struct vsvc_t *vf;
+	struct vsvc_t *vf = NULL;
 	struct pfioc_trans pt;
-	struct pfioc_trans_e *pte;
+	struct pfioc_trans_e *pte = NULL;
 
 	if (vsvc_pfctllock()) {
 		status = 1;
@@ -377,19 +405,3 @@ int vsvc_ruleupdate(struct vsvc_t *v) {
 	/* XXX BROKEN */
 	return(0);
 }
-
-/* Check if file exists */
-int fexist(char * filename)
-{
-  struct stat buf;
-
-  if (( stat (filename, &buf)) < 0)
-    return (0);
-
-  if (! S_ISREG(buf.st_mode)) {
-    return (0);
-  }
-
-  return(1);
-
-} 
