@@ -84,6 +84,9 @@ int main(int argc, char **argv) {
 	daemon(0,0);
 #endif
 
+	/* initialize timezone */
+	tzset();
+
 	openlog("slbd", (LOG_PERROR|LOG_PID), LOG_LOCAL1);
 
 	while ((ch = getopt(argc, argv, "c:r:p:")) != -1) {
