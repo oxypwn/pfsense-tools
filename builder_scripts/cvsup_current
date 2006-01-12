@@ -90,15 +90,15 @@ cd ${SRCDIR}/sys/dev/ata/
 patch < ${PATCHDIR}/ata-chipset.c.diff
 
 # Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20051019/freebsd/* \
+cp ${PATCHDIR}/ath_hal-20051212/freebsd/* \
 	${SRCDIR}/sys/contrib/dev/ath/freebsd/ 2>/dev/null
 
 # Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20051019/* \
+cp ${PATCHDIR}/ath_hal-20051212/* \
 	${SRCDIR}/sys/contrib/dev/ath/ 2>/dev/null
 
 # Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20051019/public/* \
+cp ${PATCHDIR}/ath_hal-20051212/public/* \
 	${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
 
 # Workaround minor PF issues
@@ -108,11 +108,6 @@ cd /usr/src/sys/contrib/pf/net
 # Fix BSNMD public community string (previously hard coded)
 cd /usr/src/contrib/bsnmp/snmpd/
 patch < ${PATCHDIR}/bsnmpd-public.diff
-
-# uRPF 
-cd /usr/src/sys/netinet
-patch < ${PATCHDIR}/ip_input.urpf.diff
-
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
