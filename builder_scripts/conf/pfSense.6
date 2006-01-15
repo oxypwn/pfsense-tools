@@ -37,9 +37,9 @@ options 	SYSVMSG			# SYSV-style message queues
 options 	SYSVSEM			# SYSV-style semaphores
 options 	_KPOSIX_PRIORITY_SCHEDULING # POSIX P1003_1B real-time extensions
 options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
-options 	AHC_REG_PRETTY_PRINT	# Print register bitfields in debug
+#options 	AHC_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~128k to driver.
-options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
+#options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~215k to driver.
 options 	ADAPTIVE_GIANT		# Giant mutex is adaptive.
 
@@ -212,11 +212,21 @@ device		xe		# Xircom pccard Ethernet
 
 # Wireless NIC cards
 device		wlan		# 802.11 support
-device		an		# Aironet 4500/4800 802.11 wireless NICs.
+device		wlan_wep
+device		wlan_ccmp
+device		wlan_tkip
+device		wlan_xauth
+device		wlan_acl
+device		ath
+device		ath_rate_sample
+device		ath_hal
+device		an              # Aironet 4500/4800 802.11 wireless NICs.
 device		awi		# BayStack 660 and others
+#device		iwi                     # Intel PRO/Wireless 2200BG
 device		ral		# Ralink Technology RT2500 wireless NICs.
-device		wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-#device		wl		# Older non 802.11 Wavelan wireless NIC.
+device		wi              # WaveLAN/Intersil/Symbol 802.11 wireless NICs.
+device		wl              # Older non 802.11 Wavelan wireless NIC.
+
 
 # Pseudo devices.
 device		loop		# Network loopback
@@ -247,12 +257,13 @@ device		ugen		# Generic
 # Uncommented by request of colin
 #device		uhid		# "Human Interface Devices"
 device		ukbd		# Keyboard
-device		ulpt		# Printer
+#device		ulpt		# Printer
 device		umass		# Disks/Mass storage - Requires scbus and da
-device		ums		# Mouse
+#device		ums		# Mouse
 device		ural		# Ralink Technology RT2500USB wireless NICs
-device		urio		# Diamond Rio 500 MP3 player
-device		uscanner	# Scanners
+#device		urio		# Diamond Rio 500 MP3 player
+#device		uscanner	# Scanners
+
 # USB Ethernet, requires miibus
 device		aue		# ADMtek USB Ethernet
 device		axe		# ASIX Electronics USB Ethernet
@@ -265,6 +276,8 @@ device		rue		# RealTek RTL8150 USB Ethernet
 device		firewire	# FireWire bus code
 device		sbp		# SCSI over FireWire (Requires scbus and da)
 device		fwe		# Ethernet over FireWire (non-standard!)
+
+# pfSense addons
 
 options         COMPAT_FREEBSD5
 
@@ -280,116 +293,87 @@ options         IPFIREWALL_FORWARD
 options         IPFIREWALL_VERBOSE
 options         IPFIREWALL_VERBOSE_LIMIT
 
-device          carp
-device          pf
-device          pflog
-device          pfsync
-device          vlan
-device          gre
+device		carp
+device		pf
+device		pflog
+device		pfsync
+device		vlan
+device		gre
 
-options         IPSTEALTH
-options         TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
-
-options         GEOM_UZIP
+options		IPSTEALTH
+options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
+options		GEOM_UZIP
 options		GEOM_LABEL
 
-options         INCLUDE_CONFIG_FILE
-options 	_KPOSIX_PRIORITY_SCHEDULING # POSIX real-time extensions
+options		INCLUDE_CONFIG_FILE
 
-options         BRIDGE
-options         NETGRAPH                #netgraph(4) system
-options         NETGRAPH_ASYNC
-options         NETGRAPH_BPF
-options         NETGRAPH_BRIDGE
-options         NETGRAPH_CISCO
-options         NETGRAPH_ECHO
-options         NETGRAPH_ETHER
-options         NETGRAPH_FRAME_RELAY
-options         NETGRAPH_HOLE
+options		BRIDGE
+options		NETGRAPH                #netgraph(4) system
+options		NETGRAPH_ASYNC
+options		NETGRAPH_BPF
+options		NETGRAPH_BRIDGE
+options		NETGRAPH_CISCO
+options		NETGRAPH_ECHO
+options		NETGRAPH_ETHER
+options		NETGRAPH_FRAME_RELAY
+options		NETGRAPH_HOLE
+options		NETGRAPH_IFACE
+options		NETGRAPH_KSOCKET
+options		NETGRAPH_L2TP
+options		NETGRAPH_LMI
+options		NETGRAPH_MPPC_ENCRYPTION
+options		NETGRAPH_ONE2MANY
+options		NETGRAPH_PPP
+options		NETGRAPH_PPPOE
+options		NETGRAPH_PPTPGRE
+options		NETGRAPH_RFC1490
+options		NETGRAPH_SOCKET
+options		NETGRAPH_TEE
+options		NETGRAPH_TTY
+options		NETGRAPH_UI
+options		NETGRAPH_VJC
 
-options         NETGRAPH_IFACE
-options         NETGRAPH_KSOCKET
-options         NETGRAPH_L2TP
-options         NETGRAPH_LMI
-options         NETGRAPH_MPPC_ENCRYPTION
-options         NETGRAPH_ONE2MANY
-options         NETGRAPH_PPP
-options         NETGRAPH_PPPOE
-options         NETGRAPH_PPTPGRE
-options         NETGRAPH_RFC1490
-options         NETGRAPH_SOCKET
-options         NETGRAPH_TEE
-options         NETGRAPH_TTY
 
-options         NETGRAPH_UI
-options         NETGRAPH_VJC
-
-options         FAST_IPSEC
+options		FAST_IPSEC
 #options		IPSEC_NAT_T
 
-# Wireless NIC cards
-#device          wlan_tkip
-device          an              # Aironet 4500/4800 802.11 wireless NICs.
-device          awi             # BayStack 660 and others
-device          wi              # WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-device          wl              # Older non 802.11 Wavelan wireless NIC.
-options         FAST_IPSEC
+device		crypto          # core crypto support
+device		cryptodev       # /dev/crypto for access to h/w
+device		rndtest         # FIPS 140-2 entropy tester
+device		hifn            # Hifn 7951, 7781, etc.
+options		HIFN_DEBUG      # enable debugging support: hw.hifn.debug
+options		HIFN_RNDTEST    # enable rndtest support
+device		ubsec           # Broadcom 5501, 5601, 58xx
 
-device          crypto          # core crypto support
-device          cryptodev       # /dev/crypto for access to h/w
-device          rndtest         # FIPS 140-2 entropy tester
-device          hifn            # Hifn 7951, 7781, etc.
-options         HIFN_DEBUG      # enable debugging support: hw.hifn.debug
-options         HIFN_RNDTEST    # enable rndtest support
-device          ubsec           # Broadcom 5501, 5601, 58xx
+options		ALTQ
+options		ALTQ_CBQ
+options		ALTQ_RED
+options		ALTQ_RIO
+options		ALTQ_HFSC
+options		ALTQ_CDNR
+options		ALTQ_PRIQ
 
-options         ALTQ
-options         ALTQ_CBQ
-options         ALTQ_RED
-options         ALTQ_RIO
-options         ALTQ_HFSC
-options         ALTQ_CDNR
-options         ALTQ_PRIQ
-
-device          ath
-device          ath_rate_sample
-device          ath_hal
-device          speaker
-device          an
-device          awi
-#device          iwi                     # Intel PRO/Wireless 2200BG
-device          wi
-device          wlan
-device          wlan_wep
-device          wlan_ccmp
-device          wlan_tkip
-device          wlan_xauth
-device          wlan_acl
 
 # Bridging
-device          if_bridge
+device		if_bridge
 
-options         MSGMNB=8192     # max # of bytes in a queue
-options         MSGMNI=40       # number of message queue identifiers
-options         MSGSEG=512      # number of message segments per queue
-options         MSGSSZ=32       # size of a message segment
-options         MSGTQL=2048     # max messages in system
+options		MSGMNB=8192     # max # of bytes in a queue
+options		MSGMNI=40       # number of message queue identifiers
+options		MSGSEG=512      # number of message segments per queue
+options		MSGSSZ=32       # size of a message segment
+options		MSGTQL=2048     # max messages in system
 
-device          tap
-
-device          hme
-
-options         DEVICE_POLLING
-
-options         ZERO_COPY_SOCKETS
+device		tap
+device		hme
 
 # Needed for FreeSBIE 2
-options         NULLFS
+options		NULLFS
 
 # Kbdmux
 device		kbdmux
 
-device          uhci            # UHCI PCI->USB interface
-device          ohci            # OHCI PCI->USB interface
-device          usb             # USB Bus (required)
-device          ugen            # Generic
+device          speaker
+
+options         DEVICE_POLLING
+
+options         ZERO_COPY_SOCKETS
