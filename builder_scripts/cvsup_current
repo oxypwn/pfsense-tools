@@ -64,18 +64,9 @@ patch < ${PATCHDIR}/mibII-interfaces.c.diff
 cd /usr/src/
 patch < ${PATCHDIR}/pf_snmp.patch
 
-
-# Newest HAL
-cd ${SRCDIR}/sys/net80211/
-patch < ${PATCHDIR}/net80211.patch
-
 # Newest HAL
 cd ${SRCDIR}/sys/dev/ath/
 patch < ${PATCHDIR}/ath.patch
-
-# Newest HAL
-cd ${SRCDIR}/sys/dev/ath/
-patch < ${PATCHDIR}/if_ath.c.diff
 
 # Eliminate the silly error on embedded ro mounts
 cd ${SRCDIR}/sys
@@ -92,18 +83,12 @@ patch < ${PATCHDIR}/ata-chipset.c.diff
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051212/freebsd/* \
 	${SRCDIR}/sys/contrib/dev/ath/freebsd/ 2>/dev/null
-
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051212/* \
 	${SRCDIR}/sys/contrib/dev/ath/ 2>/dev/null
-
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051212/public/* \
 	${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
-
-# Workaround minor PF issues
-cd /usr/src/sys/contrib/pf/net
-#patch < ${PATCHDIR}/pf_state_conn.RELENG_6-2.diff
 
 # Fix BSNMD public community string (previously hard coded)
 cd /usr/src/contrib/bsnmp/snmpd/
