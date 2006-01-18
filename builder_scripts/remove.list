@@ -5,7 +5,8 @@
 ./bin/red
 ./bin/setfacl
 ./boot/kernel/acpi_*.ko
-
+./boot/device.hints_wrap
+./boot/loader.conf_wrap
 
 ./etc/bluetooth
 ./etc/gnats
@@ -30,6 +31,7 @@
 ./etc/periodic/monthly/*
 ./etc/periodic/security/*
 ./etc/periodic/weekly/*
+./etc/ttys_wrap
 
 ./lib/geom/geom_concat.so
 ./lib/geom/geom_eli.so

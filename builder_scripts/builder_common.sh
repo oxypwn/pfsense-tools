@@ -116,15 +116,13 @@ fixup_updates() {
 
 fixup_wrap() {
 
-    mv $CVS_CO_DIR/boot/device.hints_wrap \
+    cp $CVS_CO_DIR/boot/device.hints_wrap \
             $CVS_CO_DIR/boot/device.hints
-    mv $CVS_CO_DIR/boot/loader.conf_wrap \
+    cp $CVS_CO_DIR/boot/loader.conf_wrap \
             $CVS_CO_DIR/boot/loader.conf
-    mv $CVS_CO_DIR/etc/ttys_wrap \
+    cp $CVS_CO_DIR/etc/ttys_wrap \
             $CVS_CO_DIR/etc/ttys
 
-    rm ${CVS_CO_DIR}/boot/label.proto_wrap 
-    
     echo `date` > $CVS_CO_DIR/etc/version.buildtime
     echo "" > $CVS_CO_DIR/etc/motd
     
