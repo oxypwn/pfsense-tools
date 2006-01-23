@@ -17,6 +17,9 @@ set -e -u
 # Use pfSense.6 as kernel configuration file
 export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
 
+# Use normal make.conf
+export MAKE_CONF="${PWD}/conf/make.conf"
+
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs" 
 
