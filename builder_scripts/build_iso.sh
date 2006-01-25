@@ -23,6 +23,9 @@ export MAKE_CONF="${PWD}/conf/make.conf"
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs" 
 
+export PRUNE_LIST="${PWD}/remove.list.iso"
+
+
 # Clean out directories
 freesbie_make cleandir
 
