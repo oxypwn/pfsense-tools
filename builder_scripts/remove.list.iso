@@ -70,7 +70,6 @@
 ./sbin/gvinum
 ./sbin/mksnap_ffs
 ./sbin/mount_ext2fs
-./sbin/mount_fdescfs
 ./sbin/mount_linprocfs
 ./sbin/mount_nfs
 ./sbin/mount_nfs4
