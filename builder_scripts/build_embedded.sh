@@ -8,6 +8,8 @@
 
 set -e -u
 
+rm -rf /usr/obj*
+
 # Suck in local vars
 . ./pfsense_local.sh
 

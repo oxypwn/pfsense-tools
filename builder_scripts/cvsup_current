@@ -58,11 +58,11 @@ cd ${SRCDIR}/crypto/openssl/crypto/engine
 patch < ${PATCHDIR}/eng_padlock.c.diff
 
 # Fix for BSNMPD
-cd ${SRCDIR}/contrib/bsnmp/snmp_mibII/
-patch < ${PATCHDIR}/mibII-interfaces.c.diff
+#cd ${SRCDIR}/contrib/bsnmp/snmp_mibII/
+#patch < ${PATCHDIR}/mibII-interfaces.c.diff
 
-cd /usr/src/
-patch < ${PATCHDIR}/pf_snmp.patch
+#cd /usr/src/
+#patch < ${PATCHDIR}/pf_snmp.patch
 
 # Newest HAL
 cd ${SRCDIR}/sys/dev/ath/
@@ -77,8 +77,8 @@ cd ${SRCDIR}/sbin/dhclient
 patch < ${PATCHDIR}/errwarn.c.diff
 
 # Fixes some Dell PE machines + sata drives
-cd ${SRCDIR}/sys/dev/ata/
-patch < ${PATCHDIR}/ata-chipset.c.diff
+#cd ${SRCDIR}/sys/dev/ata/
+#patch < ${PATCHDIR}/ata-chipset.c.diff
 
 # Newest ATH HAL
 cp ${PATCHDIR}/ath_hal-20051212/freebsd/* \
@@ -91,13 +91,22 @@ cp ${PATCHDIR}/ath_hal-20051212/public/* \
 	${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
 
 # Fix BSNMD public community string (previously hard coded)
-cd /usr/src/contrib/bsnmp/snmpd/
-patch < ${PATCHDIR}/bsnmpd-public.diff
+#cd /usr/src/contrib/bsnmp/snmpd/
+#patch < ${PATCHDIR}/bsnmpd-public.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*
 echo Done!
+
+# Complicate matters quite a bit by copying bsnmpd
+# from the current tree which includes lots of needed
+# bsnmpd improvements
+cp -R /current/src/contrib/bsnmp/* /usr/src/contrib/bsnmp/
+cp -R /current/src/usr.sbin/bsnmpd/* /usr/src/usr.sbin/bsnmpd/
+cp /current/src/share/mk/bsd.snmpmod.mk /usr/src/share/mk/
+cp /current/src/sys/net/if_mib.c /usr/src/sys/net/
+cp /current/src/sys/net/if_mib.h /usr/src/sys/net/
 
 echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
 
