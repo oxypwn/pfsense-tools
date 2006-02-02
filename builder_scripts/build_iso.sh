@@ -29,7 +29,9 @@ export PRUNE_LIST="${PWD}/remove.list.iso"
 # /usr/obj.pfSense/ since full uses a different
 # make.conf
 if [ -f /usr/obj.pfSense/pfSense_wrap.6.world.done ]; then
+	echo -n "Removing /usr/obj* since embedded build performed prior..."
 	rm -rf /usr/obj*
+	echo "done."
 fi
 
 # Clean out directories
