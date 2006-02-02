@@ -8,7 +8,12 @@
 
 set -e -u
 
-rm -rf /usr/obj*
+# If a full build has been performed we need to nuke
+# /usr/obj.pfSense/ since embedded uses a different
+# make.conf
+if [ -f /usr/obj.pfSense/pfSense.6.world.done ]; then
+	rm -rf /usr/obj*
+fi
 
 # Suck in local vars
 . ./pfsense_local.sh
