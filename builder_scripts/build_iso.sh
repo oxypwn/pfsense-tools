@@ -28,7 +28,7 @@ export PRUNE_LIST="${PWD}/remove.list.iso"
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
 # make.conf
-if [ -f pfSense_wrap.6.world.done ]; then
+if [ -f /usr/obj.pfSense/pfSense_wrap.6.world.done ]; then
 	rm -rf /usr/obj*
 fi
 
