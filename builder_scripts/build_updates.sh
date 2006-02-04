@@ -23,6 +23,15 @@ export MAKE_CONF="${PWD}/conf/make.conf"
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs etcmfs" 
 
+# If a embedded build has been performed we need to nuke
+# /usr/obj.pfSense/ since full uses a different
+# make.conf
+if [ -f /usr/obj.pfSense/pfSense_wrap.6.world.done ]; then
+	echo -n "Removing /usr/obj* since embedded build performed prior..."
+	rm -rf /usr/obj*
+	echo "done."
+fi
+
 # Clean out directories
 freesbie_make cleandir
 

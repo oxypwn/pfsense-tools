@@ -14,6 +14,15 @@ set -e -u
 # Suck in script helper functions
 . ./builder_common.sh
 
+# If a full build has been performed we need to nuke
+# /usr/obj.pfSense/ since embedded uses a different
+# make.conf
+if [ -f /usr/obj.pfSense/pfSense.6.world.done ]; then
+	echo -n "Removing /usr/obj* since full build performed prior..."
+	rm -rf /usr/obj*
+	echo "done."
+fi
+
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
 
