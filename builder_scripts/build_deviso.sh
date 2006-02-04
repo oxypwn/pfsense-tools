@@ -32,9 +32,7 @@ fi
 
 if [ -f "${objdir}/${build_id_w}.world.done" ]; then
     rm -f ${objdir}/${build_id_w}.world.done
-fi
-if [ -f "${objdir}/${build_id_k}.kernel.done" ]; then
-    rm -f ${objdir}/${build_id_k}.kernel.done
+    rm -rf /usr/obj*
 fi
 
 sh -x ./build_iso.sh
