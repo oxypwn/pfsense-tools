@@ -8,7 +8,7 @@ set -e -u
 
 # Set extra before pfsense_local.sh will do
 # Add comconsole to the list
-#export EXTRA="comconsole customroot"
+# export EXTRA="comconsole customroot"
 export EXTRA="customroot"
 
 export MAKE_CONF="${PWD}/conf/make.conf.developer"
@@ -34,19 +34,6 @@ if [ -f "${objdir}/${build_id_w}.world.done" ]; then
     rm -f ${objdir}/${build_id_w}.world.done
     rm -rf /usr/obj*
 fi
-
-#!/bin/sh
-
-# pfSense master builder script
-# (C)2005 Scott Ullrich and the pfSense project
-# All rights reserved.
-#
-# $Id$
-
-set -e -u
-
-# Suck in local vars
-. ./pfsense_local.sh
 
 # Suck in script helper functions
 . ./builder_common.sh
