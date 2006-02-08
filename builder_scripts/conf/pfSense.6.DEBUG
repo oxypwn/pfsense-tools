@@ -349,6 +349,7 @@ options         ALTQ_RIO
 options         ALTQ_HFSC
 options         ALTQ_CDNR
 options         ALTQ_PRIQ
+options		ALTQ_NOPCC	# Required for SMP builds !!
 
 device          ath
 device          ath_rate_sample
