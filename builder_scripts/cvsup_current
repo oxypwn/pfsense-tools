@@ -80,19 +80,15 @@ patch < ${PATCHDIR}/errwarn.c.diff
 #cd ${SRCDIR}/sys/dev/ata/
 #patch < ${PATCHDIR}/ata-chipset.c.diff
 
-# Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20051212/freebsd/* \
+## Newest ATH HAL
+cp ${PATCHDIR}/ath_hal-20060209/freebsd/* \
 	${SRCDIR}/sys/contrib/dev/ath/freebsd/ 2>/dev/null
 # Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20051212/* \
+cp ${PATCHDIR}/ath_hal-20060209/* \
 	${SRCDIR}/sys/contrib/dev/ath/ 2>/dev/null
 # Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20051212/public/* \
+cp ${PATCHDIR}/ath_hal-20060209/public/* \
 	${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
-
-# Fix BSNMD public community string (previously hard coded)
-#cd /usr/src/contrib/bsnmp/snmpd/
-#patch < ${PATCHDIR}/bsnmpd-public.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
