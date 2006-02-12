@@ -17,6 +17,12 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
+
+#define LOGFILE		"/var/log/check_reload_status"
+#define TMPDIR		"/tmp"
+
+static char _sccsid[] = { " $Id$ " };
 
 /* Check if file exists */
 int fexist(char * filename)
@@ -37,60 +43,75 @@ int fexist(char * filename)
 int main(void) {
 	char argument[255];
 	char temp[255];
-	FILE *f;
-	while(1) {
-	    if(fexist("/tmp/rc.newwanip") == 1) {
-		    char buf[FILENAME_MAX + 2];
-		    if (!(f = fopen("/tmp/rc.newwanip", "r"))) {
-			    fprintf(stderr, "Could not open /tmp/rc.newwanip for input.\n");
-		    } else {
-			while (fgets(buf, sizeof buf, f))
-			    fputs(buf, stdout);
-			fclose(f);
-		    }
-		    sprintf(temp, "/usr/local/bin/php /etc/rc.newwanip %s", buf);
-		    system(temp);
-		    system("/bin/rm /tmp/rc.newwanip");
-	    }	  
-	    if(fexist("/tmp/filter_dirty") == 1) {
-		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure >/dev/null");
-		    system("/bin/rm -f /tmp/filter_dirty");
-	    }
-	    if(fexist("/tmp/reload_all") == 1) {
-		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all >/dev/null");
-		    system("/bin/rm /tmp/reload_all");
-	    }
-	    if(fexist("/tmp/reload_interfaces") == 1) {
-		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
-		    system("/bin/rm /tmp/reload_interfaces");
-	    }
-	    if(fexist("/tmp/start_sshd") == 1) {
-		    system("/usr/bin/nice -n20 /etc/sshd");
-		    system("/bin/rm /tmp/start_sshd");
-	    }
-	    if(fexist("/tmp/update_dyndns") == 1) {
-		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update");
-		    system("/bin/rm /tmp/update_dyndns");
-	    }
-	    if(fexist("/tmp/interfaces_wan_configure") == 1) {
-		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
-		    system("/bin/rm  /tmp/interfaces_wan_configure");
-	    }
-	    if(fexist("/tmp/interfaces_wan_configure") == 1) {
-		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
-		    system("/bin/rm /tmp/interfaces_wan_configure");
-	    }
-	    if(fexist("/tmp/interfaces_opt_configure") == 1) {
-		    system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
-		    system("/bin/rm /tmp/interfaces_opt_configure");
-	    }
-	    if(fexist("/tmp/restart_webgui") == 1) {
-		    system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
-		    system("/bin/rm /tmp/restart_webgui");
-	    }	    
-	    sleep(5);
+	FILE *f;	
+	/* daemonize */
+	if( fork() == 0 ) {
+	  /* close stdin and stderr */
+	  fclose( stdin );
+	  fclose( stdout );
+	  /* loop forever until the cows come home */
+	  while(1) {
+	      if(fexist("/tmp/rc.newwanip") == 1) {
+		      char buf[FILENAME_MAX + 2];
+		      if (!(f = fopen("/tmp/rc.newwanip", "r"))) {
+			      fprintf(stderr, "Could not open /tmp/rc.newwanip for input.\n");
+		      } else {
+			  while (fgets(buf, sizeof buf, f))
+			      fputs(buf, stdout);
+			  fclose(f);
+		      }
+		      sprintf(temp, "/usr/local/bin/php /etc/rc.newwanip %s", buf);
+		      system(temp);
+		      system("/bin/rm /tmp/rc.newwanip");
+	      }	  
+	      if(fexist("/tmp/filter_dirty") == 1) {
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure >/dev/null");
+		      system("/bin/rm -f /tmp/filter_dirty");
+	      }
+	      if(fexist("/tmp/reload_all") == 1) {
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all >/dev/null");
+		      system("/bin/rm /tmp/reload_all");
+	      }
+	      if(fexist("/tmp/reload_interfaces") == 1) {
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
+		      system("/bin/rm /tmp/reload_interfaces");
+	      }
+	      if(fexist("/tmp/start_sshd") == 1) {
+		      system("/usr/bin/nice -n20 /etc/sshd");
+		      system("/bin/rm /tmp/start_sshd");
+	      }
+	      if(fexist("/tmp/update_dyndns") == 1) {
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update");
+		      system("/bin/rm /tmp/update_dyndns");
+	      }
+	      if(fexist("/tmp/interfaces_wan_configure") == 1) {
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
+		      system("/bin/rm  /tmp/interfaces_wan_configure");
+	      }
+	      if(fexist("/tmp/interfaces_wan_configure") == 1) {
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
+		      system("/bin/rm /tmp/interfaces_wan_configure");
+	      }
+	      if(fexist("/tmp/interfaces_opt_configure") == 1) {
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
+		      system("/bin/rm /tmp/interfaces_opt_configure");
+	      }
+	      if(fexist("/tmp/restart_webgui") == 1) {
+		      system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
+		      system("/bin/rm /tmp/restart_webgui");
+	      }	    
+	      sleep(5);
+	  }
+	} else {
+	      /* Exit parent process */
+	      if( signal( SIGINT, SIG_DFL ) != SIG_DFL )
+		      signal( SIGINT, SIG_DFL );
+	      if( signal( SIGKILL, SIG_DFL ) != SIG_DFL )
+		      signal( SIGKILL, SIG_DFL );
+	      exit( 0 );	  
 	}
-	return 0;
+	exit( 0 );
+	return( 0 );
 }
 
 
