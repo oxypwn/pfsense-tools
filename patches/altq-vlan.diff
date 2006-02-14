@@ -1,6 +1,6 @@
---- if_vlan.c.orig	Wed Dec  7 18:17:36 2005
-+++ if_vlan.c	Wed Dec  7 18:19:27 2005
-@@ -383,7 +383,9 @@
+--- if_vlan.c.orig	Tue Feb 14 23:34:31 2006
++++ if_vlan.c	Tue Feb 14 23:36:19 2006
+@@ -394,7 +394,9 @@
  	ifp->if_init = vlan_ifinit;
  	ifp->if_start = vlan_start;
  	ifp->if_ioctl = vlan_ioctl;
@@ -8,10 +8,10 @@
 +        IFQ_SET_MAXLEN(&ifp->if_snd, ifqmaxlen);
 +        ifp->if_snd.ifq_drv_maxlen = 0;
 +        IFQ_SET_READY(&ifp->if_snd);
+ 	ifp->if_flags = VLAN_IFFLAGS;
  	ether_ifattach(ifp, eaddr);
  	/* Now undo some of the damage... */
- 	ifp->if_baudrate = 0;
-@@ -428,11 +430,15 @@
+@@ -440,11 +442,15 @@
  {
  	int unit;
  	struct ifvlan *ifv = ifp->if_softc;
@@ -27,7 +27,7 @@
  	vlan_unconfig(ifp);
  	VLAN_UNLOCK();
  
-@@ -472,11 +478,21 @@
+@@ -484,11 +490,21 @@
  	struct mbuf *m;
  	int error;
  
