@@ -62,7 +62,7 @@ mkdir -p /mnt/var/db/pkg
 cd /var/db/pkg ; tar -cpf - . | (cd /mnt/var/db/pkg ; tar -xpf -)
 
 # If the platform is vmware, lets do some fixups.
-if [ -e /var/IS_VMWARE ]; then; echo "kern.timecounter.hardware=i8254" >> /mnt/etc/sysctl.conf; echo hint.apic.0.disabled="1" >> /mnt/boot/loader.conf; echo kern.hz="100" >> /mnt/boot/loader.conf; fi;
+if [ -e /var/IS_VMWARE ]; then echo "kern.timecounter.hardware=i8254" >> /mnt/etc/sysctl.conf; echo hint.apic.0.disabled="1" >> /mnt/boot/loader.conf; echo kern.hz="100" >> /mnt/boot/loader.conf; fi;
 
 #Sync disks
 /bin/sync
