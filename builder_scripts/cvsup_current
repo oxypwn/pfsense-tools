@@ -64,10 +64,6 @@ patch < ${PATCHDIR}/eng_padlock.c.diff
 #cd /usr/src/
 #patch < ${PATCHDIR}/pf_snmp.patch
 
-# Newest HAL
-cd ${SRCDIR}/sys/dev/ath/
-patch < ${PATCHDIR}/ath.patch
-
 # Eliminate the silly error on embedded ro mounts
 cd ${SRCDIR}/sys
 patch < ${PATCHDIR}/geom_vfs.c.diff
@@ -80,15 +76,19 @@ patch < ${PATCHDIR}/errwarn.c.diff
 #cd ${SRCDIR}/sys/dev/ata/
 #patch < ${PATCHDIR}/ata-chipset.c.diff
 
+# Newest HAL
+#cd ${SRCDIR}/sys/dev/ath/
+#patch < ${PATCHDIR}/ath.patch
+
 ## Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20060209/freebsd/* \
-	${SRCDIR}/sys/contrib/dev/ath/freebsd/ 2>/dev/null
+#cp ${PATCHDIR}/ath_hal-20051212/freebsd/* \
+	#${SRCDIR}/sys/contrib/dev/ath/freebsd/ 2>/dev/null
 # Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20060209/* \
-	${SRCDIR}/sys/contrib/dev/ath/ 2>/dev/null
+#cp ${PATCHDIR}/ath_hal-20051212/* \
+	#${SRCDIR}/sys/contrib/dev/ath/ 2>/dev/null
 # Newest ATH HAL
-cp ${PATCHDIR}/ath_hal-20060209/public/* \
-	${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
+#cp ${PATCHDIR}/ath_hal-20051212/public/* \
+	#${SRCDIR}/sys/contrib/dev/ath/public/ 2>/dev/null
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
