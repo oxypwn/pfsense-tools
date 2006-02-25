@@ -29,9 +29,6 @@ if [ ! -d "${SRCDIR}" ]; then
 	exit 1
 fi
 
-# Lua BSDInstaller.  Not fully finished.
-#rm -rf ${SRCDIR}/sys/boot/*
-
 # CVSUP RELENG_6
 cvsup ./stable-supfile
 
