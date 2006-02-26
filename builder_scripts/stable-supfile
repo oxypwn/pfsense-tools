@@ -3,7 +3,7 @@
 *default host=cvsup2.freebsd.org
 *default prefix=/usr
 *default release=cvs tag=RELENG_6
-*default release=cvs date=2006.02.25.17.30.00
+*default release=cvs date=2006.02.25.19.55.00
 *default delete use-rel-suffix
 *default compress
 src-all
