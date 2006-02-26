@@ -1,0 +1,12 @@
+--- main/php_config.h.in.orig	Sun Oct 30 12:06:40 2005
++++ main/php_config.h.in	Wed Nov 16 09:18:14 2005
+@@ -2606,6 +2606,9 @@
+ /* Whether to build zip as dynamic module */
+ #undef COMPILE_DL_ZIP
+ 
++/* Include external shared modules configurations */
++#include "ext/php_config.h"
++
+ /* Define if int32_t type is present.  */
+ #undef HAVE_INT32_T
+ 
