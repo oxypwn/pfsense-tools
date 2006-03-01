@@ -57,6 +57,7 @@
 ./sbin/dump
 ./sbin/dumpfs
 ./sbin/dumpon
+./sbin/fdisk
 ./sbin/ffsinfo
 ./sbin/fsck_msdosfs
 ./sbin/fsdb
