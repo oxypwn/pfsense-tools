@@ -59,6 +59,8 @@ cd ${CURRENTDIR}
 rm -rf /usr/obj*
 echo Done!
 
+cp /current/src/sys/geom/label/g_label_ufs.c /usr/src/sys/geom/label/g_label_ufs.c
+
 # Complicate matters quite a bit by copying bsnmpd
 # from the current tree which includes lots of needed
 # bsnmpd improvements
