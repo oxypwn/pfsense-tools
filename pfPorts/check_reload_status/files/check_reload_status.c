@@ -47,7 +47,7 @@ int main(void) {
 	char temp[255];
 	int cycle_time;
 	FILE *f;
-	cycle_time = CYCLE;
+	cycle_time = (int)CYCLE;
 	/* daemonize */
 	if( fork() == 0 ) {
 	  /* close stdin and stderr */
