@@ -338,15 +338,21 @@ update_cvs_depot() {
     # and prompt if the operator would like to download cvs.tgz from pfsense.com.
     # If also SKIP_CHECKOUT is defined, don't update the tree at all
     if [ -z "${SKIP_RSYNC:-}" ]; then
-	rm -rf $BASE_DIR/pfSense
-	rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
-	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-    else
-	cvsup pfSense-supfile
-	rm -rf pfSense
-	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot update -d tools)
+		rm -rf $BASE_DIR/pfSense
+		rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
+		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+		else
+		cvsup pfSense-supfile
+		rm -rf pfSense
+		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot update -d tools)
     fi
+	# if a custom config.xml is needed, copy it into place.
+	if [ "${CUSTOM_CONFIG_XML:-}" ]; then
+		echo Using custom config.xml from ${CUSTOM_CONFIG_XML} ...
+		cp ${CUSTOM_CONFIG_XML} /home/pfsense/cvsroot/cf/conf/
+		cp ${CUSTOM_CONFIG_XML} /home/pfsense/cvsroot/conf.default/
+	fi
 }
 
 make_world_kernel() {

@@ -48,3 +48,5 @@ export FREESBIE_LABEL=pfSense
 export EXTRA="${EXTRA:-"customroot buildmodules"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs"
 
+# Use a custom config.xml.   Helpful for vendors rolling their own custom images.
+#CUSTOM_CONFIG_XML=/path/to/custom/config.xml
