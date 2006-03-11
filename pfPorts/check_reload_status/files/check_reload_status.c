@@ -23,7 +23,7 @@
 #define TMPDIR		"/tmp"
 
 /* Default cycle time value 1 minute */
-#define CYCLE		"5"
+#define CYCLE		5
 
 static char _sccsid[] = { " $Id$ " };
 
@@ -47,7 +47,7 @@ int main(void) {
 	char temp[255];
 	int cycle_time;
 	FILE *f;
-	cycle_time = (int)CYCLE;
+	cycle_time = CYCLE;
 	/* daemonize */
 	if( fork() == 0 ) {
 	  /* close stdin and stderr */
