@@ -23,7 +23,7 @@
 #define TMPDIR		"/tmp"
 
 /* Default cycle time value 1 minute */
-#define CYCLE		"60"
+#define CYCLE		"5"
 
 static char _sccsid[] = { " $Id$ " };
 
