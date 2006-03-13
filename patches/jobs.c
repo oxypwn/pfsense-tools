@@ -7,7 +7,7 @@
 -				return;
 +				out2str("We are sorry.  We need to logout now, please type 0 at the prompt");
 +				system("touch /tmp/ttybug");
-+				exit;
++				exit(-1);
  			}
  			if (initialpgrp == -1)
  				initialpgrp = getpgrp();
