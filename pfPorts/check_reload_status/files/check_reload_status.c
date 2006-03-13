@@ -55,6 +55,23 @@ int main(void) {
 	  fclose( stdout );
 	  /* loop forever until the cows come home */
 	  while(1) {
+	      if(fexist("/tmp/restart_webgui") == 1) {
+		      system("/bin/rm /tmp/restart_webgui");
+		      system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
+	      }
+	      if(fexist("/tmp/rc_linkup") == 1) {
+		      char buf[FILENAME_MAX + 2];
+		      if (!(f = fopen("/tmp/rc.linkup", "r"))) {
+			      fprintf(stderr, "Could not open /tmp/rc.linkup for input.\n");
+		      } else {
+			  while (fgets(buf, sizeof buf, f))
+			      fputs(buf, stdout);
+				  fclose(f);
+		      }
+		      system("/bin/rm /tmp/rc.linkup");
+		      sprintf(temp, "/usr/local/bin/php /etc/rc.linkup %s", buf);
+		      system(temp);
+	      }		  
 	      if(fexist("/tmp/rc.newwanip") == 1) {
 		      char buf[FILENAME_MAX + 2];
 		      if (!(f = fopen("/tmp/rc.newwanip", "r"))) {
@@ -80,10 +97,6 @@ int main(void) {
 		      system("/bin/rm /tmp/reload_interfaces");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
 	      }
-	      if(fexist("/tmp/start_sshd") == 1) {
-		      system("/bin/rm /tmp/start_sshd");
-		      system("/usr/bin/nice -n20 /etc/sshd");
-	      }
 	      if(fexist("/tmp/update_dyndns") == 1) {
 		      system("/bin/rm /tmp/update_dyndns");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update");
@@ -100,23 +113,10 @@ int main(void) {
 		      system("/bin/rm /tmp/interfaces_opt_configure");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
 	      }
-	      if(fexist("/tmp/restart_webgui") == 1) {
-		      system("/bin/rm /tmp/restart_webgui");
-		      system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
-	      }
-	      if(fexist("/tmp/rc_linkup") == 1) {
-		      char buf[FILENAME_MAX + 2];
-		      if (!(f = fopen("/tmp/rc.linkup", "r"))) {
-			      fprintf(stderr, "Could not open /tmp/rc.linkup for input.\n");
-		      } else {
-			  while (fgets(buf, sizeof buf, f))
-			      fputs(buf, stdout);
-				  fclose(f);
-		      }
-		      system("/bin/rm /tmp/rc.linkup");
-		      sprintf(temp, "/usr/local/bin/php /etc/rc.linkup %s", buf);
-		      system(temp);
-	      }	   
+	      if(fexist("/tmp/start_sshd") == 1) {
+		      system("/bin/rm /tmp/start_sshd");
+		      system("/usr/bin/nice -n20 /etc/sshd");
+	      }		  
 	      sleep( cycle_time );
 	  }
 	} else {
