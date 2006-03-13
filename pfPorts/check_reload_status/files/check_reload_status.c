@@ -59,7 +59,7 @@ int main(void) {
 		      system("/bin/rm /tmp/restart_webgui");
 		      system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
 	      }
-	      if(fexist("/tmp/rc_linkup") == 1) {
+	      if(fexist("/tmp/rc.linkup") == 1) {
 		      char buf[FILENAME_MAX + 2];
 		      if (!(f = fopen("/tmp/rc.linkup", "r"))) {
 			      fprintf(stderr, "Could not open /tmp/rc.linkup for input.\n");
