@@ -5,7 +5,7 @@
  out:				out2str("sh: can't access tty; job control turned off\n");
  				mflag = 0;
 -				return;
-+				out2str("We are sorry.  We need to logout now as we have lost job control aka CTRL-C. a");
++				out2str("We are sorry.  We need to logout now as we have lost job control aka CTRL-C.");
 +				system("touch /tmp/ttybug");
 +				exit(-1);
  			}
