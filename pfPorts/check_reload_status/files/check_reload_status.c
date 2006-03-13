@@ -103,7 +103,20 @@ int main(void) {
 	      if(fexist("/tmp/restart_webgui") == 1) {
 		      system("/bin/rm /tmp/restart_webgui");
 		      system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
-	      }	    
+	      }
+	      if(fexist("/tmp/rc_linkup") == 1) {
+		      char buf[FILENAME_MAX + 2];
+		      if (!(f = fopen("/tmp/rc.linkup", "r"))) {
+			      fprintf(stderr, "Could not open /tmp/rc.linkup for input.\n");
+		      } else {
+			  while (fgets(buf, sizeof buf, f))
+			      fputs(buf, stdout);
+				  fclose(f);
+		      }
+		      system("/bin/rm /tmp/rc.linkup");
+		      sprintf(temp, "/usr/local/bin/php /etc/rc.linkup %s", buf);
+		      system(temp);
+	      }	   
 	      sleep( cycle_time );
 	  }
 	} else {
