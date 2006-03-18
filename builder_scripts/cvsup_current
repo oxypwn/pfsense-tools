@@ -30,6 +30,8 @@ if [ ! -d "${SRCDIR}" ]; then
 fi
 
 # CVSUP RELENG_6
+mkdir -p /current
+cvsup ./current-supfile
 cvsup ./stable-supfile
 
 # clog source and usr.sbin/Makefile patch
