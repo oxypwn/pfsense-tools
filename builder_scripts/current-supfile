@@ -1,6 +1,6 @@
-*default host=cvsup.livebsd.com
-#*default host=cvsup2.freebsd.org
-*default release=cvs date=2006.01.25.19.55.00
+*default host=cvsup2.freebsd.org
+#*default host=cvsup.livebsd.com
+*default release=cvs date=2006.03.17.17.10.00
 *default base=/var/db
 *default prefix=/current
 *default release=cvs tag=.
