@@ -131,11 +131,11 @@ include("head.inc");
 
 <form action="" method="post" name="iform">
 
-
-<div id="indicator" style="display:none;margin-top:0px;">
+<div style="height:40px;padding-top:10px;">
+	<div id="indicator" style="display:none;margin-top:0px;">
 	<img alt="Indicator" src="/themes/metallic/images/misc/loader.gif" /> Updating form ...
+	</div>
 </div>
-
 
 Drag items to create form:
 <div id="cart" class="cart" style="clear:left; height:132px;margin-top:10px;">  
@@ -161,12 +161,11 @@ Toolbox
 
 <script type="text/javascript">
 	Droppables.add('cart', {accept:'toolbox',
-							onDrop:function(element){new Ajax.Updater('items', '/shop/add',
-								{onLoading:function(request){Element.show('indicator')},
-									onComplete:function(request){Element.hide('indicator')},
-										parameters:'id=' + encodeURIComponent(element.id),
-											evalScripts:true, asynchronous:true})},
-												hoverclass:'cart-active'})
+							hoverclass:'cart-active',
+							onDrop:function(element){
+								alert(element.id);
+							}
+				   });
 </script>
 
 <br>
