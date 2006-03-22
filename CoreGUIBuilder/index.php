@@ -151,8 +151,9 @@ include("head.inc");
 
 Drag items to create form:
 <div id="formcanvas" class="formcanvas" style="clear:left; height:500px;margin-top:10px;">
-	<table width="100%" border="0" id="formcanvas_table">
-		<tbody id="formcanvas_tbody"></tbody>
+	<table width="100%" border="0" name="formcanvas_table" id="formcanvas_table">
+		<tbody name="formcanvas_tbody" id="formcanvas_tbody">
+		</tbody>
 	</table>
 </div>
 
@@ -160,11 +161,11 @@ Drag items to create form:
 
 Toolbox
 <div id="toolbox" class="toolboxborder">
-	<div class="toolbox" name="textarea" id="textarea">Textarea<br><textarea name="textarea_control"></textarea></div>
+	<div onDblClick="OnDropForm('textarea', 0)" class="toolbox" name="textarea" id="textarea">Textarea<br><textarea name="textarea_control"></textarea></div>
 	<br>
-	<div class="toolbox" name="input" id="input">Input<br><input name="input_control"></div>
+	<div onDblClick="OnDropForm('input', 0)"    class="toolbox" name="input" id="input">Input<br><input name="input_control"></div>
 	<br>
-	<div class="toolbox" name="checkbox" id="checkbox">Checkbox<br><input name="checkbox"></div>
+	<div onDblClick="OnDropForm('checkbox', 0)" class="toolbox" name="checkbox" id="checkbox">Checkbox<br><input name="checkbox"></div>
 </div>
 
 <script type="text/javascript">
@@ -183,24 +184,50 @@ Toolbox
 </script>
 
 <script type="text/javascript">
+	/* how many items have been added to the form canvas? */
+	var form_elements = 0;
+
+	/*  properties holds each "element" in the forms
+     *  variables, such as field name, caption,
+     *  etc.
+     */
+	function FORM_ELEMENTS(field_name, left_caption, right_caption) {
+		this.field_name = field_name;
+		this.left_caption = left_caption;
+		this.right_caption = right_caption;
+	}
+
+	/* setup an array that holds the item info such as text description, etc */
+	var form_elements_properties = Array();
+	
 	function OnDropForm(element_id, positionY, field) {
 		var table = document.getElementById("formcanvas_table");
 		var tbody = document.getElementById('formcanvas_table').getElementsByTagName('tbody')[0];
-		var row = document.createElement('TR');
-		var cell1 = document.createElement('TD');
-		var cell2 = document.createElement('TD');
-		cell1.innerHTML = 'Testing';
+		var row = document.createElement('tr');
+		row.setAttribute("id", "formcanvas_row_" + form_elements);
+		var cell1 = document.createElement('td');
+		var cell2 = document.createElement('td');
+		cell1.innerHTML = 'Click me to edit...';
 		cell1.setAttribute("class", "vncellreq");
 		cell2.innerHTML = newCanvasItem('Test', field, element_id);
 		cell2.setAttribute("class", "vtable");
 		row.appendChild(cell1);
 		row.appendChild(cell2);
-		tbody.appendChild(row); 
+		tbody.appendChild(row);
+		/* create a new javascript object on our form element tracking array */
+		form_elements_properties[form_elements] = new FORM_ELEMENTS( 'field_name', 'Click me to edit...', element_id);
+		/* make the new element draggable in its container */
+		new Draggable('formcanvas_row_' + form_elements, {revert:false})
+		form_elements++;
+		/* allow the form canvas area to be resortable */
+		Sortable.create('formcanvas_tbody',{dropOnEmpty:true,tag:'tr'});
 	}
+
+	/* convert a field type to beginning html */
 	function newCanvasItem(text, field, element_id) {
 		switch(element_id) {
 			case "textarea":
-				return "<textarea rows='2' cols='2'></textarea>";
+				return "<textarea></textarea>";
 			break;
 			case "input":
 				return "<input>";
@@ -210,6 +237,17 @@ Toolbox
 			break;
 		}
 	}
+
+	/* delete a form canvas element (aka row) */
+	function deleterow(rowid) {
+		var table = document.getElementById("formcanvas_table");
+		var tr = document.getElementById(rowid);
+		table.deleteRow();
+		form_elements--;
+	}
+	
+	
+	
 </script>
 
 <br>
