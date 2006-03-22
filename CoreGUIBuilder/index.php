@@ -39,6 +39,12 @@ include("head.inc");
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <link href="/styles/script.aculo.us.css" media="screen" rel="Stylesheet" type="text/css" />
 	<style type="text/css">
+		div.about_screen {
+		  background-color:#990000;
+		  padding:8px;
+		  width:98%;
+		  z-order:100;
+		}			
 		div.toolboxborder {
 			position: absolute;
 			top: 89px;
@@ -142,7 +148,22 @@ include("head.inc");
 
 <p class="pgtitle"><?=$pgtitle?></font></p>
 
-<form action="" method="post" name="iform">
+<form action="index.php" method="post" name="iform">
+
+<div id="about_screen" name="about_screen" class="about_screen" onClick="closeAboutScreen();">
+	<table width="100%">
+	  <tr><td>
+	    <center>
+		<font color="white">
+		<a href="#" style="color:white" onClick="closeAboutScreen()">
+		<h2>Welcome to CoreGUIBuilder!</h2>
+		<p>
+		CoreGUIBuilder aides you in rapidly designing a CoreGUIBuilder XML based form.
+		</a>
+		</font>
+	  </td></tr>
+	</table>
+</div>
 
 <div>
 	<div id="indicator" style="display:none;margin-top:0px;">
@@ -150,8 +171,9 @@ include("head.inc");
 	</div>
 </div>
 
-Drag items to create form:
+
 <div id="formcanvas" class="formcanvas" style="clear:left; height:500px;margin-top:10px;">
+	Drag items to create form:
 	<table width="100%" border="0" name="formcanvas_table" id="formcanvas_table">
 		<tbody name="formcanvas_tbody" id="formcanvas_tbody">
 		</tbody>
@@ -160,21 +182,27 @@ Drag items to create form:
 
 <p>
 
-<div id="toolbox" class="toolboxborder">
+<div id="toolbox" name="toolbox" class="toolboxborder">
+	<font color="black">
 	Toolbox<p>
-	<div onDblClick="OnDropForm('textarea', 0)" class="toolbox" name="textarea" id="textarea">Textarea<br><textarea name="textarea_control"></textarea></div>
+	<div onDblClick="OnDropForm('textarea',  0)" class="toolbox" name="textarea" id="textarea">Textarea<br><textarea name="textarea_control"></textarea></div>
 	<br>
-	<div onDblClick="OnDropForm('input', 0)"    class="toolbox" name="input" id="input">Input<br><input name="input_control"></div>
+	<div onDblClick="OnDropForm('input',     0)" class="toolbox" name="input" id="input">Input<br><input name="input_control"></div>
 	<br>
-	<div onDblClick="OnDropForm('checkbox', 0)" class="toolbox" name="checkbox" id="checkbox">Checkbox<br><input type="checkbox" name="checkbox"></div>
+
+	<div onDblClick="OnDropForm('password',  0)" class="toolbox" name="input" id="input">Password<br><input name="password"></div>
 	<br>
-	<div onDblClick="OnDropForm('select', 0)" class="toolbox" name="select" id="select">Select box<br><select><option>OPTION1</option></select></div>
+
+	<div onDblClick="OnDropForm('checkbox',  0)" class="toolbox" name="checkbox" id="checkbox">Checkbox<br><input type="checkbox" name="checkbox"></div>
+	<br>
+	<div onDblClick="OnDropForm('select',    0)" class="toolbox" name="select" id="select">Select box<br><select><option>OPTION1</option></select></div>
 	<br>
 	<div onDblClick="OnDropForm('interfaces_select', 0)" class="toolbox" name="interfaces_select" id="interfaces_select">Interfaces selection<br><select><option>WAN</option><option>LAN</option></select></div>
 </div>
 
 <script type="text/javascript">
 	/* init the draggables */
+	
 	new Draggable('textarea',			{revert:true})
 	new Draggable('input',				{revert:true})
 	new Draggable('checkbox',			{revert:true})
@@ -257,7 +285,24 @@ Drag items to create form:
 		form_elements--;
 	}
 	
+	function expandAboutScreen() {
+		$('formcanvas').style.visibility = 'hidden';
+		$('toolbox').style.visibility = 'hidden';
+		$('about_screen').style.visibility = 'visible';
+		$('about_screen').style.display = 'none';	
+		new Effect.SlideDown('about_screen', {duration:.5});
+	}
 	
+	function closeAboutScreen() {
+		new Effect.SlideUp('about_screen', {duration:.5});
+		$('about_screen').style.visibility="hidden";
+		$('formcanvas').style.visibility = 'visible';
+		$('toolbox').style.visibility = 'visible';
+		return false;
+	}	
+	
+	/* expand about screen on bootup */
+	expandAboutScreen();
 	
 </script>
 
