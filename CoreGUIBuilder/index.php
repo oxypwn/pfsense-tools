@@ -40,18 +40,19 @@ include("head.inc");
   <link href="/styles/script.aculo.us.css" media="screen" rel="Stylesheet" type="text/css" />
 	<style type="text/css">
 		div.toolboxborder {
-		  clear:both;
+			position: absolute;
+			top: 89px;
+			left: 450px;
 		  border:1px solid #eeeeee;
 		  background-color:white;
 		  padding:8px;
-		  width:500px;
+		  width:200px;
 		}		
 		div.formcanvas {
-		  clear:both;
 		  border:1px solid #990000;
 		  background-color:white;
 		  padding:8px;
-		  width:500px;
+		  width:400px;
 		  height:500px;
 		}		
 		span.title {
@@ -159,20 +160,26 @@ Drag items to create form:
 
 <p>
 
-Toolbox
 <div id="toolbox" class="toolboxborder">
+	Toolbox<p>
 	<div onDblClick="OnDropForm('textarea', 0)" class="toolbox" name="textarea" id="textarea">Textarea<br><textarea name="textarea_control"></textarea></div>
 	<br>
 	<div onDblClick="OnDropForm('input', 0)"    class="toolbox" name="input" id="input">Input<br><input name="input_control"></div>
 	<br>
-	<div onDblClick="OnDropForm('checkbox', 0)" class="toolbox" name="checkbox" id="checkbox">Checkbox<br><input name="checkbox"></div>
+	<div onDblClick="OnDropForm('checkbox', 0)" class="toolbox" name="checkbox" id="checkbox">Checkbox<br><input type="checkbox" name="checkbox"></div>
+	<br>
+	<div onDblClick="OnDropForm('select', 0)" class="toolbox" name="select" id="select">Select box<br><select><option>OPTION1</option></select></div>
+	<br>
+	<div onDblClick="OnDropForm('interfaces_select', 0)" class="toolbox" name="interfaces_select" id="interfaces_select">Interfaces selection<br><select><option>WAN</option><option>LAN</option></select></div>
 </div>
 
 <script type="text/javascript">
 	/* init the draggables */
-	new Draggable('textarea', {revert:true})
-	new Draggable('input', 	  {revert:true})
-	new Draggable('checkbox', {revert:true})
+	new Draggable('textarea',			{revert:true})
+	new Draggable('input',				{revert:true})
+	new Draggable('checkbox',			{revert:true})
+	new Draggable('select',   			{revert:true})
+	new Draggable('interfaces_select',	{revert:true})
 	/* init the droppable */
 	Droppables.add('formcanvas', {
 									accept:'toolbox',
@@ -230,10 +237,14 @@ Toolbox
 				return "<textarea></textarea>";
 			break;
 			case "input":
-				return "<input>";
+				return "<input></input>";
 			break;
 			case "checkbox":
-				return "<input type='checkbox'>";
+				return "<input type='checkbox'></input>";
+			case "select":
+				return "<select><option>OPTION1</option></select>";
+			case "interfaces_select":
+				return "<select><option>WAN</option><option>LAN</option></select>";
 			break;
 		}
 	}
