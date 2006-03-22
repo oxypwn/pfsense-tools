@@ -1,7 +1,7 @@
 <?php
 /* $Id$ */
 /*
-	index.php - CoreGUI Builder Application
+	index.php - CoreGUIBuilder Application
 	Copyright (C) 2006 Scott Ullrich
 	All rights reserved.
 
@@ -46,7 +46,7 @@ include("head.inc");
 		  padding:8px;
 		  width:500px;
 		}		
-		div.cart {
+		div.formcanvas {
 		  clear:both;
 		  border:1px solid #990000;
 		  background-color:white;
@@ -112,9 +112,21 @@ include("head.inc");
 		  border:1px solid #888;
 		  cursor:move;
 		}
-		div.cart-active {
+		div.formcanvas-active {
 		  background-color: #FFF4D8;
 		}
+		.vncellreqCore {
+			float:left;
+			background-color: #DDDDDD;
+			padding-right: 20px;
+			padding-left: 8px;
+			font-weight: bold;
+			border-bottom: 1px solid #999999;
+		}
+		.vtableCore {
+			float:right;
+			border-bottom: 1px solid #999999;
+		}		
 	</style>
 	<script src="/javascript/scriptaculous/prototype.js" type="text/javascript"></script>
 	<script src="/javascript/scriptaculous/effects.js" type="text/javascript"></script>
@@ -131,17 +143,17 @@ include("head.inc");
 
 <form action="" method="post" name="iform">
 
-<div style="height:40px;padding-top:10px;">
+<div>
 	<div id="indicator" style="display:none;margin-top:0px;">
 	<img alt="Indicator" src="/themes/metallic/images/misc/loader.gif" /> Updating form ...
 	</div>
 </div>
 
 Drag items to create form:
-<div id="cart" class="cart" style="clear:left; height:132px;margin-top:10px;">  
-  <div id="items">
-  </div>
-  <div style="clear:both;"></div>
+<div id="formcanvas" class="formcanvas" style="clear:left; height:500px;margin-top:10px;">
+	<table width="100%" border="0" id="formcanvas_table">
+		<tbody id="formcanvas_tbody"></tbody>
+	</table>
 </div>
 
 <p>
@@ -155,17 +167,49 @@ Toolbox
 	<div class="toolbox" name="checkbox" id="checkbox">Checkbox<br><input name="checkbox"></div>
 </div>
 
-<script type="text/javascript">new Draggable('textarea', {revert:true})</script>
-<script type="text/javascript">new Draggable('input', {revert:true})</script>
-<script type="text/javascript">new Draggable('checkbox', {revert:true})</script>
+<script type="text/javascript">
+	/* init the draggables */
+	new Draggable('textarea', {revert:true})
+	new Draggable('input', 	  {revert:true})
+	new Draggable('checkbox', {revert:true})
+	/* init the droppable */
+	Droppables.add('formcanvas', {
+									accept:'toolbox',
+									hoverclass:'formcanvas-active',
+									onDrop:function(element, ethelist, ev){
+									OnDropForm(element.id, Event.pointerY(ev))
+								 }
+				   });
+</script>
 
 <script type="text/javascript">
-	Droppables.add('cart', {accept:'toolbox',
-							hoverclass:'cart-active',
-							onDrop:function(element){
-								alert(element.id);
-							}
-				   });
+	function OnDropForm(element_id, positionY, field) {
+		var table = document.getElementById("formcanvas_table");
+		var tbody = document.getElementById('formcanvas_table').getElementsByTagName('tbody')[0];
+		var row = document.createElement('TR');
+		var cell1 = document.createElement('TD');
+		var cell2 = document.createElement('TD');
+		cell1.innerHTML = 'Testing';
+		cell1.setAttribute("class", "vncellreq");
+		cell2.innerHTML = newCanvasItem('Test', field, element_id);
+		cell2.setAttribute("class", "vtable");
+		row.appendChild(cell1);
+		row.appendChild(cell2);
+		tbody.appendChild(row); 
+	}
+	function newCanvasItem(text, field, element_id) {
+		switch(element_id) {
+			case "textarea":
+				return "<textarea rows='2' cols='2'></textarea>";
+			break;
+			case "input":
+				return "<input>";
+			break;
+			case "checkbox":
+				return "<input type='checkbox'>";
+			break;
+		}
+	}
 </script>
 
 <br>
@@ -174,10 +218,3 @@ Toolbox
 
 </body>
 </html>
-
-
-
-
-
-
-
