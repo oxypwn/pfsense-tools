@@ -35,6 +35,7 @@ if($_POST['myparam']) {
 /* paths to used libraries */
 $path_to_scriptaculous = "/javascript/scriptaculous";
 $path_to_prototype     = "/javascript/prototype";
+$path_to_css           = "";
 
 $pgtitle = "CoreGUIBuilder";
 
@@ -43,11 +44,10 @@ $closehead = false;
 ?>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <link rel="stylesheet" href="/gui.css" media="all" />
+  <link rel="stylesheet" href="<?=$path_to_css?>/gui.css" media="all" />
   <link href="/styles/script.aculo.us.css" media="screen" rel="Stylesheet" type="text/css" />
 	<style type="text/css">
 		div.about_screen {
-		  background-color:#990000;
 		  padding:8px;
 		  width:98%;
 		}			
@@ -160,19 +160,29 @@ $closehead = false;
 
 <body link="#000000" vlink="#000000" alink="#000000">
 
-<p class="pgtitle"><?=$pgtitle?></font></p>
+<p class="pgtitle" id="pgtitle" name="pgtitle" style="visibility:hidden"><?=$pgtitle?></font></p>
 
 <form action="index.php" method="post" name="iform">
 
 <div id="about_screen" name="about_screen" class="about_screen" onClick="closeAboutScreen();">
-	<table width="100%">
+	<center><img src="logo.gif"></center><br>&nbsp;
+	<table width="100%" bgcolor="#990000">
 	  <tr><td>
 	    <center>
 		<font color="white">
-		<a href="#" style="color:white" onClick="closeAboutScreen()">
-		<h2>Welcome to CoreGUIBuilder!</h2>
-		<p>
-		CoreGUIBuilder aides you in rapidly designing a CoreGUIBuilder XML based form.
+		<a href="#" style="color:white" onClick="closeAboutScreen()">		
+		<h1>Welcome to CoreGUIBuilder!</h1>
+		<p><b>
+		<table width="400">
+		  <tr><td>
+			<font color="white">
+				CoreGUIBuilder aides you in rapidly designing a CoreGUI XML based form.  With CoreGUIBUilder you can
+				drag and drop interface elements onto a virtual canvas.  Set their properties and CoreGUIBuilder will
+				automatically generate XML that can be used in your CoreGUI application/form.
+			</font>	
+			</td>
+		  </tr>
+		</table>
 		</a>
 		</font>
 	  </td></tr>
@@ -238,9 +248,10 @@ $closehead = false;
 
 <font color="black">
 
-<b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
-
-<p onClick="toggle_source()">Show XML</p>
+<div id="infofooter" name="infofooter" style="visibility:hidden">
+	<b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
+	<p onClick="toggle_source()">Show XML</p>
+</div>
 
 <div id="sourceview" name="sourceview">
 	<textarea id="sourceviewta" name="sourceviewta" rows="1%" cols="1%">
@@ -353,7 +364,7 @@ $closehead = false;
 		$('sourceview').style.visibility = 'hidden';
 		$('about_screen').style.visibility = 'visible';
 		$('about_screen').style.display = 'none';	
-		new Effect.SlideDown('about_screen', {duration:.5});
+		new Effect.SlideDown('about_screen', {duration:1});
 	}
 
 	function toggle_source() {
@@ -381,7 +392,9 @@ $closehead = false;
 	
 	function show_main_form() {
 		$('formcanvas').style.visibility = 'visible';
-		$('toolbox').style.visibility = 'visible';	
+		$('toolbox').style.visibility = 'visible';
+		$('infofooter').style.visibility = 'visible';
+		$('pgtitle').style.visibility = 'visible';
 	}
 	
 	function closeAboutScreen() {
