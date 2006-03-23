@@ -393,7 +393,7 @@ include("head.inc");
 		newXML = newXML + '\t<fields>\n';
 		/* enumerate all items on formcanvas */
 		for(x=0; x<form_elements; x++) {
-			var field_name = form_elements_properties[x].left_caption);
+			var field_name = form_elements_properties[x].left_caption;
 			var field_descr = form_elements_properties[x].right_caption;
 			var field_size = form_elements_properties[x].size;
 			var element_id = form_elements_properties[x].element_id;			
