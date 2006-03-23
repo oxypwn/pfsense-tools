@@ -38,10 +38,10 @@ $pgtitle = "CoreGUIBuilder";
 
 $closehead = false;
 
-include("head.inc");
-
 ?>
+<head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="/gui.css" media="all" />
   <link href="/styles/script.aculo.us.css" media="screen" rel="Stylesheet" type="text/css" />
 	<style type="text/css">
 		div.about_screen {
@@ -51,7 +51,7 @@ include("head.inc");
 		}			
 		div.toolboxborder {
 			position: absolute;
-			top: 69px;
+			top: 49px;
 			left: 460px;
 		  border:1px solid #eeeeee;
 		  background-color:white;
@@ -66,11 +66,14 @@ include("head.inc");
 		  height:900px;
 		}
 		div.sourceview {
+		  position:absolute;
+		  top: 1px;
+		  left: 1px;
 		  border:1px solid #990000;
 		  background-color:white;
 		  padding:8px;
-		  width:700px;
-		  height:700px;
+		  width:1px;
+		  height:1px;
 		}			
 		span.title {
 		  margin:0;
@@ -155,8 +158,6 @@ include("head.inc");
 
 <body link="#000000" vlink="#000000" alink="#000000">
 
-<?php include("fbegin.inc"); ?>
-
 <p class="pgtitle"><?=$pgtitle?></font></p>
 
 <form action="index.php" method="post" name="iform">
@@ -189,9 +190,6 @@ include("head.inc");
 		<tbody name="formcanvas_tbody" id="formcanvas_tbody">
 		</tbody>
 	</table>
-</div>
-
-<div id="sourceview" name="sourceview">
 </div>
 
 <p>
@@ -232,6 +230,24 @@ include("head.inc");
 									OnDropForm(element.id, Event.pointerY(ev))
 								 }
 				   });
+</script>
+
+<br>
+
+<font color="black">
+
+<b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
+
+<p onClick="toggle_source()">Show XML</p>
+
+<div id="sourceview" name="sourceview">
+	<textarea id="sourceviewta" name="sourceviewta" rows="1%" cols="1%">
+	</textarea>
+</div>
+
+<script language="javascript">
+	$('sourceview').style.visibility = 'hidden';
+	$('sourceviewta').style.visibility = 'hidden';
 </script>
 
 <script type="text/javascript">
@@ -290,6 +306,13 @@ include("head.inc");
 		form_elements++;		
 		/* allow the form canvas area to be resortable */
 		Sortable.create('formcanvas_tbody',{dropOnEmpty:true,tag:'tr'});
+		/* resize formcanvas */
+		resize_formcanvas();
+	}
+	
+	function resize_formcanvas() {
+		/* resize main area to fit all of the elements */
+		$('formcanvas').style.height = 300 + (40 * form_elements);	
 	}
 	
 	/* convert a field type to beginning html */
@@ -336,11 +359,21 @@ include("head.inc");
 			$('toolbox').style.visibility = 'hidden';
 			$('formcanvas').style.visibility = 'hidden';
 			$('sourceview').style.visibility = 'visible';
-			$('sourceview').innerHTML = formCanvas2XML();
+			$('sourceview').style.width = '100%';
+			$('sourceview').style.height = '100%';
+			$('sourceviewta').style.visibility = 'visible';
+			$('sourceviewta').rows = "30";
+			$('sourceviewta').cols = "100";
+			$('sourceviewta').innerHTML = formCanvas2XML();
 		} else {
 			$('toolbox').style.visibility = 'visible';
 			$('formcanvas').style.visibility = 'visible';
 			$('sourceview').style.visibility = 'hidden';
+			$('sourceviewta').style.visibility = 'hidden';
+			$('sourceview').style.width = '1';
+			$('sourceview').style.height = '1';
+			$('sourceviewta').rows = "1";
+			$('sourceviewta').cols = "1";
 		}
 	}
 	
@@ -437,17 +470,9 @@ include("head.inc");
 	/* expand about screen on bootup */
 	expandAboutScreen();
 	
+	resize_formcanvas();
+	
 </script>
-
-<br>
-
-<font color="black">
-
-<b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
-
-<p onClick="alert(formCanvas2XML())">Show XML</p>
-
-<?php include("fend.inc"); ?>
 
 </body>
 </html>
