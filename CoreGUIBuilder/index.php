@@ -57,8 +57,8 @@ $closehead = false;
 		}			
 		div.toolboxborder {
 			position: absolute;
-			top: 49px;
-			left: 460px;
+			top: 48px;
+			left: 560px;
 		  border:1px solid #eeeeee;
 		  background-color:white;
 		  padding:8px;
@@ -68,7 +68,7 @@ $closehead = false;
 		  border:1px solid #990000;
 		  background-color:white;
 		  padding:8px;
-		  width:420px;
+		  width:520px;
 		  height:900px;
 		}
 		div.sourceview {
@@ -180,9 +180,17 @@ $closehead = false;
 		<table width="400">
 		  <tr><td>
 			<font color="white">
+			  <center>
 				CoreGUIBuilder aides you in rapidly designing a CoreGUI XML based form.  With CoreGUIBUilder you can
 				drag and drop interface elements onto a virtual canvas.  Set their properties and CoreGUIBuilder will
 				automatically generate XML that can be used in your CoreGUI application/form.
+				<p>
+				To use CoreGUIBuilder, simply drag the Toolbox elements onto the form, edit any areas that say
+				Click here to edit and then click Show XML to show the generated XML.  This XML can then be used
+				by the pfSense CoreGUI engine.
+				<p>
+				<b>Click anywhere on the red area to begin</b>
+			  </center>
 			</font>	
 			</td>
 		  </tr>
@@ -191,6 +199,7 @@ $closehead = false;
 		</font>
 	  </td></tr>
 	</table>
+	<div><center><br>&nbsp;<a href="http://www.spreadfirefox.com/?q=affiliates&id=0&t=57"><img border="0" alt="Get Firefox!" title="Get Firefox!" src="http://sfx-images.mozilla.org/affiliates/Buttons/180x60/blank.gif"/></a></div>
 </div>
 
 <div>
@@ -329,7 +338,7 @@ $closehead = false;
 	
 	function resize_formcanvas() {
 		/* resize main area to fit all of the elements */
-		$('formcanvas').style.height = 300 + (40 * form_elements);	
+		$('formcanvas').style.height = 400 + (40 * form_elements);	
 	}
 	
 	/* convert a field type to beginning html */
