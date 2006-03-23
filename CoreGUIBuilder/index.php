@@ -37,7 +37,11 @@ $path_to_scriptaculous = "/javascript/scriptaculous";
 $path_to_prototype     = "/javascript/prototype";
 $path_to_css           = "";
 
-$pgtitle = "CoreGUIBuilder";
+//$path_to_scriptaculous = "http://www.pfsense.com/~sullrich/javascript/scriptaculous";
+//$path_to_prototype     = "http://www.pfsense.com/~sullrich/javascript/prototype";
+//$path_to_css           = "http://www.pfsense.com/~sullrich/";
+
+$pgtitle = "CoreGUIBuilder alpha1";
 
 $closehead = false;
 
@@ -486,6 +490,10 @@ $closehead = false;
 	expandAboutScreen();
 	
 	resize_formcanvas();
+
+	if(navigator.appName == "Microsoft Internet Explorer") {
+		alert("Warning!!\n\nIE does not work very well with this app.\n\nUse FireFox for a better experience!\n\nhttp://www.getfirefox.com");	
+	}
 	
 </script>
 
