@@ -64,7 +64,14 @@ include("head.inc");
 		  padding:8px;
 		  width:420px;
 		  height:900px;
-		}		
+		}
+		div.sourceview {
+		  border:1px solid #990000;
+		  background-color:white;
+		  padding:8px;
+		  width:700px;
+		  height:700px;
+		}			
 		span.title {
 		  margin:0;
 		  padding:0;
@@ -184,6 +191,9 @@ include("head.inc");
 	</table>
 </div>
 
+<div id="sourceview" name="sourceview">
+</div>
+
 <p>
 
 <div id="toolbox" name="toolbox" class="toolboxborder">
@@ -232,12 +242,12 @@ include("head.inc");
      *  variables, such as field name, caption,
      *  etc.
      */
-	function FORM_ELEMENTS(field_name, left_caption, right_caption, element_id) {
+	function FORM_ELEMENTS(field_name, left_caption, right_caption, element_id, size) {
 		this.field_name = field_name;
 		this.element_id = element_id;
 		this.left_caption = left_caption;
 		this.right_caption = right_caption;
-		
+		this.size = size;
 	}
 
 	/* setup an array that holds the item info such as text description, etc */
@@ -253,7 +263,7 @@ include("head.inc");
 			var cell1 = document.createElement('td');
 			cell1.setAttribute("colspan", "2");
 			row.setAttribute("bgcolor", "#990000");
-			cell1.innerHTML = '<div style="color:white" name="' + form_elements + '_headerbar" id="' + form_elements + '_headerbar">Click me to edit...</div>';
+			cell1.innerHTML = '<div style="color:white" name="' + form_elements + '_headerbar" id="' + form_elements + '_headerbar">Click me to edit header...</div>';
 			row.appendChild(cell1);
 			tbody.appendChild(row);
 			new Ajax.InPlaceEditor(form_elements + '_headerbar', 'index.php', { callback: function(form, value) { updateHeaderCaption(form.id, value); return '&myparam=' + escape(value) }});
@@ -262,9 +272,9 @@ include("head.inc");
 			row.setAttribute("id", "formcanvas_row_" + form_elements);
 			var cell1 = document.createElement('td');
 			var cell2 = document.createElement('td');
-			cell1.innerHTML = '<p name="' + form_elements + '_left_caption" id="' + form_elements + '_left_caption">Click me to edit...</p>';
+			cell1.innerHTML = '<p name="' + form_elements + '_left_caption" id="' + form_elements + '_left_caption">Click me to edit fieldname...</p>';
 			cell1.setAttribute("class", "vncellreq");
-			cell2.innerHTML = newCanvasItem('Test', field, element_id) + '<p><p name="' + form_elements + '_right_caption" id="' + form_elements + '_right_caption">Click me to edit...</p>';
+			cell2.innerHTML = newCanvasItem('Test', field, element_id) + '<p><p name="' + form_elements + '_right_caption" id="' + form_elements + '_right_caption">Click me to edit Description...</p>';
 			cell2.setAttribute("class", "vtable");
 			row.appendChild(cell1);
 			row.appendChild(cell2);
@@ -273,7 +283,7 @@ include("head.inc");
 			new Ajax.InPlaceEditor(form_elements + '_right_caption', 'index.php', { callback: function(form, value) { updateRightCaption(form.id, value); return '&myparam=' + escape(value) }});	
 		}
 		/* create a new javascript object on our form element tracking array */
-		form_elements_properties[form_elements] = new FORM_ELEMENTS( 'field_name', 'Click me to edit...', 'Click me to edit...' , element_id);
+		form_elements_properties[form_elements] = new FORM_ELEMENTS( 'field_name', 'Click me to edit fieldname...', 'Click me to edit description...' , element_id);
 		/* make the new element draggable in its container */
 		new Draggable('formcanvas_row_' + form_elements, {revert:false})
 		/* we now have another control.  ++ our controller count */
@@ -315,9 +325,23 @@ include("head.inc");
 	function expandAboutScreen() {
 		$('formcanvas').style.visibility = 'hidden';
 		$('toolbox').style.visibility = 'hidden';
+		$('sourceview').style.visibility = 'hidden';
 		$('about_screen').style.visibility = 'visible';
 		$('about_screen').style.display = 'none';	
 		new Effect.SlideDown('about_screen', {duration:.5});
+	}
+
+	function toggle_source() {
+		if($('sourceview').style.visibility == 'hidden') {
+			$('toolbox').style.visibility = 'hidden';
+			$('formcanvas').style.visibility = 'hidden';
+			$('sourceview').style.visibility = 'visible';
+			$('sourceview').innerHTML = formCanvas2XML();
+		} else {
+			$('toolbox').style.visibility = 'visible';
+			$('formcanvas').style.visibility = 'visible';
+			$('sourceview').style.visibility = 'hidden';
+		}
 	}
 	
 	function show_main_form() {
@@ -327,7 +351,6 @@ include("head.inc");
 	
 	function closeAboutScreen() {
 		new Effect.SlideUp('about_screen', {duration:.5});		
-		//$('about_screen').style.visibility="hidden";
         window.setTimeout('show_main_form()', 700);
 		return false;
 	}	
@@ -353,6 +376,64 @@ include("head.inc");
 		form_elements_properties[id].right_caption = value;
 	}
 	
+	function formCanvas2XML() {
+		var x;
+		var newXML;
+		var form_name;
+		var form_version;
+		var form_title;
+		var field_size;
+		var field_type;
+		newXML = '';
+		newXML = newXML + '<packagegui>\n';
+		newXML = newXML + '\t<name>' + form_name + '</name>\n';
+		newXML = newXML + '\t<version>' + form_version + '</version>\n';
+		newXML = newXML + '\t<title>' + form_title + '</title>\n';
+		newXML = newXML + "\t<configpath>['installedpackages']['" + form_name + "']['config']</configpath>\n";
+		newXML = newXML + '\t<fields>\n';
+		/* enumerate all items on formcanvas */
+		for(x=0; x<form_elements; x++) {
+			var field_name = form_elements_properties[x].left_caption);
+			var field_descr = form_elements_properties[x].right_caption;
+			var field_size = form_elements_properties[x].size;
+			var element_id = form_elements_properties[x].element_id;			
+			/* replace default strings with '' */
+			field_name = field_name.replace("Click me to edit fieldname...", "");			
+			field_name = stripspecialchars(field_name);
+			field_descr = field_descr.replace("Click me to edit description...", "");
+			newXML = newXML + '\t<field>\n';
+			newXML = newXML + '\t\t<fielddescr>' + field_descr + '</fielddescr>\n';
+			newXML = newXML + '\t\t<fieldname>' + field_name + '</fieldname>\n';
+			newXML = newXML + '\t\t<description>' + field_descr + '</description>\n';
+			newXML = newXML + '\t\t<type>' + element_id + '</type>\n';
+			if(field_size) 
+				newXML = newXML + '\t\t<size>' + field_size + '</size>\n';
+			newXML = newXML + '\t</field>\n';
+		}
+		newXML = newXML + '\t</fields>\n';
+		newXML = newXML + '\t<!-- php hooks -->\n';
+		newXML = newXML + '\t<include_file></include_file>\n';
+		newXML = newXML + '\t<custom_delete_php_command>\n';
+		newXML = newXML + '\t</custom_delete_php_command>\n';
+		newXML = newXML + '\t<custom_php_resync_config_command>\n';
+		newXML = newXML + '\t</custom_php_resync_config_command>\n';
+		newXML = newXML + '\t<custom_php_install_command>\n';
+		newXML = newXML + '\t</custom_php_install_command>\n';
+		newXML = newXML + '\t<custom_php_deinstall_command>\n';
+		newXML = newXML + '\t</custom_php_deinstall_command>\n';
+		newXML = newXML + '</packagegui>\n';
+		return newXML;
+	}
+	
+	function stripspecialchars(field) {
+		var strip_array = new Array();
+		strip_array[0] = " ";
+		for (var tostrip in strip_array) {
+			var newfield = field.replace(" ", "");
+		}
+		return newfield;
+	}
+	
 	/* expand about screen on bootup */
 	expandAboutScreen();
 	
@@ -360,7 +441,11 @@ include("head.inc");
 
 <br>
 
+<font color="black">
+
 <b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
+
+<p onClick="alert(formCanvas2XML())">Show XML</p>
 
 <?php include("fend.inc"); ?>
 
