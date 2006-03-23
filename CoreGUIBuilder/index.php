@@ -32,7 +32,9 @@ if($_POST['myparam']) {
 	exit;
 }
 
-require("guiconfig.inc");
+/* paths to used libraries */
+$path_to_scriptaculous = "/javascript/scriptaculous";
+$path_to_prototype     = "/javascript/prototype";
 
 $pgtitle = "CoreGUIBuilder";
 
@@ -149,11 +151,11 @@ $closehead = false;
 			border-bottom: 1px solid #999999;
 		}		
 	</style>
-	<script src="/javascript/scriptaculous/prototype.js" type="text/javascript"></script>
-	<script src="/javascript/scriptaculous/effects.js" type="text/javascript"></script>
-	<script src="/javascript/scriptaculous/dragdrop.js" type="text/javascript"></script>
-	<script src="/javascript/scriptaculous/controls.js" type="text/javascript"></script>
-	<script src="/javascript/scriptaculous/scriptaculous.js" type="text/javascript"></script>
+	<script src="<?=$path_to_scriptaculous?>/prototype.js" type="text/javascript"></script>
+	<script src="<?=$path_to_scriptaculous?>/effects.js" type="text/javascript"></script>
+	<script src="<?=$path_to_scriptaculous?>/dragdrop.js" type="text/javascript"></script>
+	<script src="<?=$path_to_scriptaculous?>/controls.js" type="text/javascript"></script>
+	<script src="<?=$path_to_scriptaculous?>/scriptaculous.js" type="text/javascript"></script>
 </head>
 
 <body link="#000000" vlink="#000000" alink="#000000">
