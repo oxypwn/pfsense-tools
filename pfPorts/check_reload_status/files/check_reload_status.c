@@ -40,7 +40,13 @@ int fexist(char * filename)
   }
 
   return(1);
-} 
+}
+
+void kill_ghost_shells(void) {
+  system("kill -9 `ps awux | grep \"(sh)\" | grep -v grep | cut -d\" \" -f5`");
+  system("kill -9 `ps awux | grep \"(sh)\" | grep -v grep | cut -d\" \" -f5`");
+  system("kill -9 `ps awux | grep \"(sh)\" | grep -v grep | cut -d\" \" -f5`");
+}
 
 int main(void) {
 	char argument[255];
@@ -97,11 +103,13 @@ int main(void) {
 			  system("echo /tmp/reload_all > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_all");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all >/dev/null");
+			  
 	      }
 	      if(fexist("/tmp/reload_interfaces") == 1) {
 			  system("echo /tmp/reload_interfaces > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_interfaces");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
+			  
 	      }
 	      if(fexist("/tmp/update_dyndns") == 1) {
 			  system("echo /tmp/update_dyndns > /tmp/check_reload_status");
@@ -117,6 +125,7 @@ int main(void) {
 			  system("echo /tmp/interfaces_opt_configure > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/interfaces_opt_configure");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
+			  
 	      }
 	      if(fexist("/tmp/start_sshd") == 1) {
 			  system("echo /tmp/start_sshd > /tmp/check_reload_status");
