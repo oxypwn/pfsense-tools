@@ -43,9 +43,9 @@ int fexist(char * filename)
 }
 
 void kill_ghost_shells(void) {
-  system("kill -9 `ps awux | grep \"(sh)\" | grep -v grep | cut -d\" \" -f5`");
-  system("kill -9 `ps awux | grep \"(sh)\" | grep -v grep | cut -d\" \" -f5`");
-  system("kill -9 `ps awux | grep \"(sh)\" | grep -v grep | cut -d\" \" -f5`");
+  system("/bin/sh /usr/local/bin/kill_ghosts.sh");
+  system("/bin/sh /usr/local/bin/kill_ghosts.sh");
+  system("/bin/sh /usr/local/bin/kill_ghosts.sh");
 }
 
 int main(void) {
