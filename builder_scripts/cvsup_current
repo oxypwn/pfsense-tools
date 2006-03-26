@@ -30,8 +30,6 @@ if [ ! -d "${SRCDIR}" ]; then
 fi
 
 # CVSUP RELENG_6
-mkdir -p /current
-cvsup ./current-supfile
 cvsup ./stable-supfile
 
 # clog source and usr.sbin/Makefile patch
@@ -56,16 +54,6 @@ patch < ${PATCHDIR}/altq-vlan.diff
 cd ${SRCDIR}/sys
 patch < ${PATCHDIR}/geom_vfs.c.diff
 
-echo -n Cleaning up previous build environemnt...Please wait...
-cd ${CURRENTDIR}
-rm -rf /usr/obj*
-echo Done!
-
-cp /current/src/sys/geom/label/g_label_ufs.c /usr/src/sys/geom/label/g_label_ufs.c
-
-cd /usr/src/bin/sh
-patch < ${PATCHDIR}/jobs.c
-
 # Complicate matters quite a bit by copying bsnmpd
 # from the current tree which includes lots of needed
 # bsnmpd improvements
@@ -74,6 +62,14 @@ cp -R /current/src/usr.sbin/bsnmpd/* /usr/src/usr.sbin/bsnmpd/
 cp /current/src/share/mk/bsd.snmpmod.mk /usr/src/share/mk/
 cp /current/src/sys/net/if_mib.c /usr/src/sys/net/
 cp /current/src/sys/net/if_mib.h /usr/src/sys/net/
+cp ${PATCHDIR}/bsnmpd_Makefile ${SRCDIR}/usr.sbin/bsnmpd/modules/Makefile
+
+echo -n Cleaning up previous build environemnt...Please wait...
+cd ${CURRENTDIR}
+rm -rf /usr/obj*
+echo Done!
+
+cp /current/src/sys/geom/label/g_label_ufs.c /usr/src/sys/geom/label/g_label_ufs.c
 
 echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
 
