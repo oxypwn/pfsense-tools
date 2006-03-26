@@ -406,7 +406,25 @@
 ./usr/libexec/vfontedpr
 
 ./usr/include
-./usr/local/share
+
+./usr/local/share/aclocal
+./usr/local/share/cvsup
+./usr/local/share/dfuibe_installer
+./usr/local/share/dfuibe_lua
+./usr/local/share/dfuife_curses
+./usr/local/share/dict
+./usr/local/share/doc
+./usr/local/share/emacs
+./usr/local/share/examples
+./usr/local/share/java
+./usr/local/share/locale
+./usr/local/share/lua
+./usr/local/share/misc
+./usr/local/share/nls
+./usr/local/share/openldap
+./usr/local/share/sgml
+./usr/local/share/skel
+./usr/local/share/xml
 
 ./usr/sbin/IPXrouted
 ./usr/sbin/ac
