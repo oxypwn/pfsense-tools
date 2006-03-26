@@ -44,8 +44,6 @@ int fexist(char * filename)
 
 void kill_ghost_shells(void) {
   system("/bin/sh /usr/local/bin/kill_ghosts.sh");
-  system("/bin/sh /usr/local/bin/kill_ghosts.sh");
-  system("/bin/sh /usr/local/bin/kill_ghosts.sh");
 }
 
 int main(void) {
