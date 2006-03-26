@@ -95,17 +95,17 @@ int main(void) {
 	      }	  
 	      if(fexist("/tmp/filter_dirty") == 1) {
 		      system("/bin/rm -f /tmp/filter_dirty");
-		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure >/dev/null");
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure");
 	      }
 	      if(fexist("/tmp/reload_all") == 1) {
 			  system("echo /tmp/reload_all > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_all");
-		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all >/dev/null");
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all");
 	      }
 	      if(fexist("/tmp/reload_interfaces") == 1) {
 			  system("echo /tmp/reload_interfaces > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_interfaces");
-		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");			  
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces");			  
 	      }
 	      if(fexist("/tmp/update_dyndns") == 1) {
 			  system("echo /tmp/update_dyndns > /tmp/check_reload_status");
