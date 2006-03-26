@@ -101,15 +101,11 @@ int main(void) {
 			  system("echo /tmp/reload_all > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_all");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all >/dev/null");
-			  kill_ghost_shells();
-			  
 	      }
 	      if(fexist("/tmp/reload_interfaces") == 1) {
 			  system("echo /tmp/reload_interfaces > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_interfaces");
-		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");
-			  kill_ghost_shells();
-			  
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces >/dev/null");			  
 	      }
 	      if(fexist("/tmp/update_dyndns") == 1) {
 			  system("echo /tmp/update_dyndns > /tmp/check_reload_status");
@@ -120,14 +116,11 @@ int main(void) {
 			  system("echo /tmp/interfaces_wan_configure > /tmp/check_reload_status");
 		      system("/bin/rm  /tmp/interfaces_wan_configure");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
-			  kill_ghost_shells();
 	      }
 	      if(fexist("/tmp/interfaces_opt_configure") == 1) {
 			  system("echo /tmp/interfaces_opt_configure > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/interfaces_opt_configure");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
-			  kill_ghost_shells();
-			  
 	      }
 	      if(fexist("/tmp/start_sshd") == 1) {
 			  system("echo /tmp/start_sshd > /tmp/check_reload_status");
