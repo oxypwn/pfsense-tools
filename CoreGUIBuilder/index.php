@@ -35,6 +35,7 @@ if($_POST['myparam']) {
 /* paths to used libraries */
 $path_to_scriptaculous = "/javascript/scriptaculous";
 $path_to_prototype     = "/javascript/prototype";
+$path_to_tabber 	   = "";
 $path_to_css           = "";
 
 //$path_to_scriptaculous = "http://www.pfsense.com/~sullrich/javascript/scriptaculous";
@@ -48,6 +49,7 @@ $closehead = false;
 ?>
 <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <link rel="stylesheet" href="example.css" media="all" />
   <link rel="stylesheet" href="<?=$path_to_css?>/gui.css" media="all" />
   <link href="/styles/script.aculo.us.css" media="screen" rel="Stylesheet" type="text/css" />
 	<style type="text/css">
@@ -57,8 +59,8 @@ $closehead = false;
 		}			
 		div.toolboxborder {
 		  position: absolute;
-		  top: 48px;
-		  left: 560px;
+		  top: 83px;
+		  left: 570px;
 		  border:1px solid #eeeeee;
 		  background-color:white;
 		  padding:8px;
@@ -66,10 +68,10 @@ $closehead = false;
 		}
 		div.propertiesbox {
 		  position: absolute;
-		  top: 410px;
-		  left: 560px;
+		  top: 445px;
+		  left: 570px;
 		  visibility:hidden;
-		  border:1px solid #eeeeee;
+		  border:1px #eeeeee;
 		  background-color:white;
 		  padding:8px;
 		  width:200px;
@@ -80,74 +82,6 @@ $closehead = false;
 		  padding:8px;
 		  width:530px;
 		  height:930px;
-		}
-		div.sourceview {
-		  position: absolute;
-		  top: 48px;
-		  left: 1px;
-		  border:1px solid #0088cc;
-		  background-color:white;
-		  padding:8px;
-		  width:1px;
-		  height:1px;
-		}			
-		span.title {
-		  margin:0;
-		  padding:0;
-		  padding-top:10px;
-		  font-size: 12px;
-		  color: #444;
-		  font-weight:normal;
-		}	
-		div.auto_complete {
-		  position:absolute;
-		  width:250px;
-		  background-color:white;
-		  border:1px solid #888;
-		  margin:0px;
-		  padding:0px;
-		}
-		ul.contacts  {
-		  list-style-type: none;
-		  margin:0px;
-		  padding:0px;
-		}
-		ul.contacts li.selected { background-color: #ffb; }
-		li.contact {
-		  list-style-type: none;
-		  display:block;
-		  margin:0;
-		  padding:2px;
-		  height:32px;
-		}
-		li.contact div.image {
-		  float:left;
-		  width:32px;
-		  height:32px;
-		  margin-right:8px;
-		}
-		li.contact div.name {
-		  font-weight:bold;
-		  font-size:12px;
-		  line-height:1.2em;
-		}
-		li.contact div.email {
-		  font-size:10px;
-		  color:#888;
-		}
-		#list {
-		  margin:0;
-		  margin-top:10px;
-		  padding:0;
-		  list-style-type: none;
-		  width:250px;
-		}
-		#list li {
-		  margin:0;
-		  margin-bottom:4px;
-		  padding:5px;
-		  border:1px solid #888;
-		  cursor:move;
 		}
 		div.formcanvas-active {
 		  background-color: #FFF4D8;
@@ -165,11 +99,15 @@ $closehead = false;
 			border-bottom: 1px solid #999999;
 		}		
 	</style>
+	
+	
 	<script src="<?=$path_to_scriptaculous?>/prototype.js" type="text/javascript"></script>
 	<script src="<?=$path_to_scriptaculous?>/effects.js" type="text/javascript"></script>
 	<script src="<?=$path_to_scriptaculous?>/dragdrop.js" type="text/javascript"></script>
 	<script src="<?=$path_to_scriptaculous?>/controls.js" type="text/javascript"></script>
 	<script src="<?=$path_to_scriptaculous?>/scriptaculous.js" type="text/javascript"></script>
+	<script src="tabber.js" type="text/javascript"></script>
+
 </head>
 
 <body link="#000000" vlink="#000000" alink="#000000">
@@ -212,12 +150,15 @@ $closehead = false;
 	<div><center><br>&nbsp;<a href="http://www.spreadfirefox.com/?q=affiliates&id=0&t=57"><img border="0" alt="Get Firefox!" title="Get Firefox!" src="http://sfx-images.mozilla.org/affiliates/Buttons/180x60/blank.gif"/></a></div>
 </div>
 
+<div id="tabber" name="tabber" class="tabber">
+
+<div id="tab1" class="tabbertab" title="Canvas">
+
 <div>
 	<div id="indicator" style="display:none;margin-top:0px;">
 	<img alt="Indicator" src="/themes/metallic/images/misc/loader.gif" /> Updating form ...
 	</div>
 </div>
-
 
 <div id="formcanvas" class="formcanvas" style="clear:left; height:500px;margin-top:10px;">
 	<b>Drag items to create form:</b><p>
@@ -260,6 +201,23 @@ $closehead = false;
 	</div>
 </div>
 
+<br>
+
+<font color="black">
+
+<div id="infofooter" name="infofooter" style="visibility:hidden">
+	<b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
+</div>
+
+<p>&nbsp;
+
+</div>
+
+<div id="tab2" class="tabbertab" title="Source">
+	<textarea id="sourceviewta" style="width:500px;height:500px" name="sourceviewta" id="src" rows="30" cols="90"></textarea>	
+</div>
+
+</div>
 <script type="text/javascript">
 	var field_order = new Array();
 	/* init the draggables */
@@ -278,28 +236,7 @@ $closehead = false;
 									OnDropForm(element.id, Event.pointerY(ev))
 								 }
 				   });
-</script>
 
-<br>
-
-<font color="black">
-
-<div id="infofooter" name="infofooter" style="visibility:hidden">
-	<b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
-	<p onClick="toggle_source()">Show XML</p>
-</div>
-
-<div id="sourceview" name="sourceview">
-	<textarea id="sourceviewta" name="sourceviewta" rows="1%" cols="1%">
-	</textarea>
-</div>
-
-<script language="javascript">
-	$('sourceview').style.visibility = 'hidden';
-	$('sourceviewta').style.visibility = 'hidden';
-</script>
-
-<script type="text/javascript">
 	/* how many items have been added to the form canvas? */
 	var form_elements = 0;
 
@@ -359,6 +296,8 @@ $closehead = false;
 		Sortable.create('formcanvas_tbody',{"onUpdate":updateOrder, dropOnEmpty:true,tag:'tr'});
 		/* resize formcanvas */
 		resize_formcanvas();
+		
+		toggle_source();
 	}
 	
 	function updateOrder() {
@@ -420,44 +359,18 @@ $closehead = false;
 	function expandAboutScreen() {
 		$('formcanvas').style.visibility = 'hidden';
 		$('toolbox').style.visibility = 'hidden';
-		$('sourceview').style.visibility = 'hidden';
 		$('about_screen').style.visibility = 'visible';
-		$('about_screen').style.display = 'none';	
+		$('about_screen').style.display = 'none';
+		$('tabber').style.visibility = 'hidden';
 		new Effect.SlideDown('about_screen', {duration:1});
 	}
 
 	function toggle_source() {
 		if(form_elements == 0) {
-			alert('Sorry but the form canvas is empty!');
 			return;
 		}
-		if($('sourceview').style.visibility == 'hidden') {
-			$('toolbox').style.visibility = 'hidden';
-			$('formcanvas').style.visibility = 'hidden';
-			$('propertiesbox').style.visibility = 'hidden';
-			$('sourceviewta').style.visibility = 'visible';
-			$('sourceview').style.visibility = 'visible';
-			$('sourceviewta').rows = "30";
-			$('sourceviewta').cols = "100";
-			$('sourceview').style.width = '100%';
-			$('sourceview').style.height = '100%';
-			$('sourceview').style.top = 0;
-			$('sourceview').style.left = 0;
-			$('sourceviewta').style.top = 0;
-			$('sourceviewta').style.left = 0;
-			updateOrder();
-			$('sourceviewta').innerHTML = formCanvas2XML();
-		} else {
-			$('sourceview').style.visibility = 'hidden';
-			$('sourceviewta').style.visibility = 'hidden';
-			$('propertiesbox').style.visibility = 'visible';
-			$('toolbox').style.visibility = 'visible';
-			$('formcanvas').style.visibility = 'visible';			
-			$('sourceview').style.width = '1';
-			$('sourceview').style.height = '1';
-			$('sourceviewta').rows = "1";
-			$('sourceviewta').cols = "1";
-		}
+		updateOrder();
+		$('sourceviewta').value = formCanvas2XML();
 	}
 	
 	function show_main_form() {
@@ -469,6 +382,7 @@ $closehead = false;
 	}
 	
 	function closeAboutScreen() {
+		$('tabber').style.visibility = 'visible';
 		new Effect.SlideUp('about_screen', {duration:.5});		
         window.setTimeout('show_main_form()', 700);
 		return false;
