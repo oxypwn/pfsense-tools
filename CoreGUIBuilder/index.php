@@ -214,7 +214,7 @@ $closehead = false;
 </div>
 
 <div id="tab2" class="tabbertab" title="Source">
-	<textarea id="sourceviewta" style="width:500px;height:500px" name="sourceviewta" id="src" rows="30" cols="90"></textarea>	
+	<textarea id="sourceviewta" name="sourceviewta" id="src" rows="30" cols="90"></textarea>	
 </div>
 
 </div>
@@ -293,11 +293,11 @@ $closehead = false;
 		form_elements++;		
 		/* allow the form canvas area to be resortable */
         
-		Sortable.create('formcanvas_tbody',{"onUpdate":updateOrder, dropOnEmpty:true,tag:'tr'});
+		Sortable.create('formcanvas_tbody',{"onUpdate":function(){ updateOrder(); update_source(); }, dropOnEmpty:true,tag:'tr'});
 		/* resize formcanvas */
 		resize_formcanvas();
-		
-		toggle_source();
+		updateOrder();
+		update_source();
 	}
 	
 	function updateOrder() {
@@ -310,6 +310,7 @@ $closehead = false;
 			seq = seq.replace("&","|");
 		}
 		field_order = seq.split("|");
+		update_source();
 	}
 	
 	function resize_formcanvas() {
@@ -365,11 +366,10 @@ $closehead = false;
 		new Effect.SlideDown('about_screen', {duration:1});
 	}
 
-	function toggle_source() {
+	function update_source() {
 		if(form_elements == 0) {
 			return;
 		}
-		updateOrder();
 		$('sourceviewta').value = formCanvas2XML();
 	}
 	
