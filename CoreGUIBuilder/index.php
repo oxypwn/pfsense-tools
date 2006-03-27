@@ -104,24 +104,24 @@ $closehead = false;
 			float:right;
 			border-bottom: 1px solid #999999;
 		}		
-	</style>
-	
-	
+	</style>	
 	<script src="<?=$path_to_scriptaculous?>/prototype.js" type="text/javascript"></script>
 	<script src="<?=$path_to_scriptaculous?>/effects.js" type="text/javascript"></script>
 	<script src="<?=$path_to_scriptaculous?>/dragdrop.js" type="text/javascript"></script>
 	<script src="<?=$path_to_scriptaculous?>/controls.js" type="text/javascript"></script>
 	<script src="<?=$path_to_scriptaculous?>/scriptaculous.js" type="text/javascript"></script>
 	<script src="tabber.js" type="text/javascript"></script>
-
 </head>
 
 <body link="#000000" vlink="#000000" alink="#000000">
 
-<p class="pgtitle" id="pgtitle" name="pgtitle" style="visibility:hidden"><?=$pgtitle?></font></p>
+<p class="pgtitle" id="pgtitle" name="pgtitle" style="visibility:hidden">
+	<?=$pgtitle?>
+</p>
 
 <form action="index.php" method="post" name="iform">
 
+<!-- start of initial about screen -->
 <div id="about_screen" name="about_screen" class="about_screen" onClick="closeAboutScreen();">
 	<center><img src="images/coreguilogo.gif"></center><br>&nbsp;
 	<table width="100%" bgcolor="#0088cc">
@@ -155,68 +155,60 @@ $closehead = false;
 	</table>
 	<div><center><p>For the best experience, use:<br><a href="http://www.spreadfirefox.com/?q=affiliates&id=0&t=57"><img border="0" alt="Get Firefox!" title="Get Firefox!" src="http://sfx-images.mozilla.org/affiliates/Buttons/180x60/blank.gif"/></a></div>
 </div>
+<!-- end of initial about screen -->
 
+<!-- start of tabs -->
 <div id="tabber" name="tabber" class="tabber">
-
-<div id="tab1" class="tabbertab" title="Canvas">
-
-<div>
-	<div id="indicator" style="display:none;margin-top:0px;">
-	<img alt="Indicator" src="/themes/metallic/images/misc/loader.gif" /> Updating form ...
+	<div id="tab1" class="tabbertab" title="Canvas">
+		<div>
+			<div id="indicator" style="display:none;margin-top:0px;">
+			<img alt="Indicator" src="/themes/metallic/images/misc/loader.gif" /> Updating form ...
+			</div>
+		</div>
+		<div id="formcanvas" class="formcanvas" style="clear:left; height:500px;margin-top:10px;">
+			<b>Drag items to create form:</b><p>
+			<table width="100%" border="0" name="formcanvas_table" id="formcanvas_table">
+				<tbody name="formcanvas_tbody" id="formcanvas_tbody">
+				</tbody>
+			</table>
+		</div>
+		<p>
+		<div id="toolbox" name="toolbox" class="toolboxborder">
+			<font color="black">
+			<b>Toolbox</b><p>
+			<div onDblClick="OnDropForm('headerbar', 0)" class="toolbox" name="headerbar" id="headerbar"><img src='images/header.gif'></div>
+			<div onDblClick="OnDropForm('textarea', 0)" class="toolbox" name="textarea" id="textarea"><img src='images/textarea.gif'></div>
+			<div onDblClick="OnDropForm('input', 0)" class="toolbox" name="input" id="input"><img src='images/inputfield.gif'></div>
+			<div onDblClick="OnDropForm('password', 0)" class="toolbox" name="password" id="password"><img src='images/passwordfield.gif'></div>
+			<div onDblClick="OnDropForm('checkbox', 0)" class="toolbox" name="checkbox" id="checkbox"><img src='images/checkbox.gif'></div>
+			<div onDblClick="OnDropForm('select', 0)" class="toolbox" name="select" id="select"><img src='images/optiondropdown.gif'></div>
+			<div onDblClick="OnDropForm('interfaces_select', 0)" class="toolbox" name="interfaces_select" id="interfaces_select"><img src='images/interfacedropdown.gif'></div>
+		</div>
+		<div id="propertiesbox" name="propertiesbox" class="propertiesbox">
+			<font color="black">
+			<b>Properties</b><p>
+			<div id="propbox" name="propbox">
+				<table width="100%" height="100">
+					<tr><td>
+						<!-- properties box here -->
+					</td></tr>
+				</table>
+			</div>
+		</div>
+		<br>
+		<font color="black">
+		<div id="infofooter" name="infofooter" style="visibility:hidden">
+			<b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
+		</div>
+		<br>&nbsp;
+	</div>
+	<div id="tab2" class="tabbertab" title="Source">
+		<textarea id="sourceviewta" name="sourceviewta" id="src" rows="35" cols="95"></textarea>	
 	</div>
 </div>
+<!-- end of tabs -->
 
-<div id="formcanvas" class="formcanvas" style="clear:left; height:500px;margin-top:10px;">
-	<b>Drag items to create form:</b><p>
-	<table width="100%" border="0" name="formcanvas_table" id="formcanvas_table">
-		<tbody name="formcanvas_tbody" id="formcanvas_tbody">
-		</tbody>
-	</table>
-</div>
-
-<p>
-
-<div id="toolbox" name="toolbox" class="toolboxborder">
-	<font color="black">
-	<b>Toolbox</b><p>
-	<div onDblClick="OnDropForm('headerbar', 0)" class="toolbox" name="headerbar" id="headerbar"><img src='images/header.gif'></div>
-	<div onDblClick="OnDropForm('textarea',  0)" class="toolbox" name="textarea" id="textarea"><img src='images/textarea.gif'></div>
-	<div onDblClick="OnDropForm('input',     0)" class="toolbox" name="input" id="input"><img src='images/inputfield.gif'></div>
-	<div onDblClick="OnDropForm('password',  0)" class="toolbox" name="password" id="password"><img src='images/passwordfield.gif'></div>
-	<div onDblClick="OnDropForm('checkbox',  0)" class="toolbox" name="checkbox" id="checkbox"><img src='images/checkbox.gif'></div>
-	<div onDblClick="OnDropForm('select',    0)" class="toolbox" name="select" id="select"><img src='images/optiondropdown.gif'></div>
-	<div onDblClick="OnDropForm('interfaces_select', 0)" class="toolbox" name="interfaces_select" id="interfaces_select"><img src='images/interfacedropdown.gif'></div>
-</div>
-
-<div id="propertiesbox" name="propertiesbox" class="propertiesbox">
-	<font color="black">
-	<b>Properties</b><p>
-	<div id="propbox" name="propbox">
-		<table width="100%" height="100">
-			<tr><td>
-				<!-- properties box here -->
-			</td></tr>
-		</table>
-	</div>
-</div>
-
-<br>
-
-<font color="black">
-
-<div id="infofooter" name="infofooter" style="visibility:hidden">
-	<b>NOTE:</b> "Click me to edit..." will be stripped out when the form is exported to XML.
-</div>
-
-<p>&nbsp;
-
-</div>
-
-<div id="tab2" class="tabbertab" title="Source">
-	<textarea id="sourceviewta" name="sourceviewta" id="src" rows="35" cols="95"></textarea>	
-</div>
-
-</div>
+<!-- start of javascript code -->
 <script type="text/javascript">
 	var field_order = new Array();
 	/* init the draggables */
@@ -282,21 +274,22 @@ $closehead = false;
 			row.appendChild(cell2);
 			tbody.appendChild(row);
 			if(element_id == 'select') {
+				/* setup special inplace editing of select controls */
+                // XXX: extend in place editor control to turn a select area
+                //      into a textarea.  after loosing focus split textarea contents
+                //      by \n and add items into select area replacing previous contents.
+			} else {
 				new Ajax.InPlaceEditor(form_elements + '_left_caption', 'index.php', { callback: function(form, value) { updateLeftCaption(form.id, value); return '&myparam=' + escape(value) }});
 				new Ajax.InPlaceEditor(form_elements + '_right_caption', 'index.php', { callback: function(form, value) { updateRightCaption(form.id, value); return '&myparam=' + escape(value) }});
-			} else {
-				/* setup special inplace editing of select controls */
-			
 			}
 		}
 		/* create a new javascript object on our form element tracking array */
 		form_elements_properties[form_elements] = new FORM_ELEMENTS( 'field_name', 'Click me to edit fieldname...', 'Click me to edit description...' , element_id);
 		/* make the new element draggable in its container */
 		new Draggable('formcanvas_row_' + form_elements, {revert:false})
-		/* we now have another control.  ++ our controller count */
+		/* we now have another canvas control.  ++ our controller count */
 		form_elements++;		
 		/* allow the form canvas area to be resortable */
-        
 		Sortable.create('formcanvas_tbody',{"onUpdate":function(){ updateOrder(); update_source(); }, dropOnEmpty:true,tag:'tr'});
 		/* resize formcanvas */
 		resize_formcanvas();
@@ -310,6 +303,10 @@ $closehead = false;
 		if(form_elements == 0)
 			return;
 		var seq = Sortable.serialize('formcanvas_tbody');
+		/*   convert what would have been a get calls parms into
+         *   an array.  we dont really need to get to the server
+         *   but we need this data to export xml field ordering
+         */
 		for(x=0; x< form_elements; x++) {
 			seq = seq.replace("formcanvas_tbody[]=","");
 			seq = seq.replace("row_","");
@@ -320,7 +317,7 @@ $closehead = false;
 	}
 	
 	function resize_formcanvas() {
-		/* resize main area to fit all of the elements */
+		/* resize main area to fit all of the elements as new items are added */
         if(form_elements > 5) 
 			$('formcanvas').style.height = 485 + (90 * (form_elements-5));
 		else
@@ -441,7 +438,6 @@ $closehead = false;
 		newXML = newXML + '\t<fields>\n';
 		/* enumerate all items on formcanvas */
 		for(x=0; x<form_elements; x++) {
-
 			var field_name  = form_elements_properties[field_order[x]].left_caption;
 			var field_descr = form_elements_properties[field_order[x]].right_caption;
 			var field_size  = form_elements_properties[field_order[x]].size;
@@ -485,7 +481,8 @@ $closehead = false;
 	
 	/* expand about screen on bootup */
 	expandAboutScreen();
-	
+
+	/* resize form on page load initally */	
 	resize_formcanvas();
 
 	if(navigator.appName == "Microsoft Internet Explorer") {
@@ -493,9 +490,7 @@ $closehead = false;
 	}
 
 </script>
+<!-- end of javascript code -->
 
 </body>
 </html>
-
-
-
