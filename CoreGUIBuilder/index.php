@@ -82,8 +82,8 @@ $closehead = false;
 		  height:930px;
 		}
 		div.sourceview {
-		  position:absolute;
-		  top: 1px;
+		  position: absolute;
+		  top: 48px;
 		  left: 1px;
 		  border:1px solid #0088cc;
 		  background-color:white;
@@ -362,6 +362,8 @@ $closehead = false;
 	}
 	
 	function updateOrder() {
+		if(form_elements == 0)
+			return;
 		var seq = Sortable.serialize('formcanvas_tbody');
 		for(x=0; x< form_elements; x++) {
 			seq = seq.replace("formcanvas_tbody[]=","");
@@ -425,6 +427,10 @@ $closehead = false;
 	}
 
 	function toggle_source() {
+		if(form_elements == 0) {
+			alert('Sorry but the form canvas is empty!');
+			return;
+		}
 		if($('sourceview').style.visibility == 'hidden') {
 			$('toolbox').style.visibility = 'hidden';
 			$('formcanvas').style.visibility = 'hidden';
@@ -435,6 +441,10 @@ $closehead = false;
 			$('sourceviewta').cols = "100";
 			$('sourceview').style.width = '100%';
 			$('sourceview').style.height = '100%';
+			$('sourceview').style.top = 0;
+			$('sourceview').style.left = 0;
+			$('sourceviewta').style.top = 0;
+			$('sourceviewta').style.left = 0;
 			updateOrder();
 			$('sourceviewta').innerHTML = formCanvas2XML();
 		} else {
