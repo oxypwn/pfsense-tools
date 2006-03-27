@@ -56,26 +56,36 @@ $closehead = false;
 		  width:98%;
 		}			
 		div.toolboxborder {
-			position: absolute;
-			top: 48px;
-			left: 560px;
+		  position: absolute;
+		  top: 48px;
+		  left: 560px;
 		  border:1px solid #eeeeee;
 		  background-color:white;
 		  padding:8px;
 		  width:200px;
-		}		
-		div.formcanvas {
-		  border:1px solid #990000;
+		}
+		div.propertiesbox {
+		  position: absolute;
+		  top: 410px;
+		  left: 560px;
+		  visibility:hidden;
+		  border:1px solid #eeeeee;
 		  background-color:white;
 		  padding:8px;
-		  width:520px;
-		  height:900px;
+		  width:200px;
+		}				
+		div.formcanvas {
+		  border:1px solid #0088cc;
+		  background-color:white;
+		  padding:8px;
+		  width:530px;
+		  height:930px;
 		}
 		div.sourceview {
 		  position:absolute;
 		  top: 1px;
 		  left: 1px;
-		  border:1px solid #990000;
+		  border:1px solid #0088cc;
 		  background-color:white;
 		  padding:8px;
 		  width:1px;
@@ -170,7 +180,7 @@ $closehead = false;
 
 <div id="about_screen" name="about_screen" class="about_screen" onClick="closeAboutScreen();">
 	<center><img src="logo.gif"></center><br>&nbsp;
-	<table width="100%" bgcolor="#990000">
+	<table width="100%" bgcolor="#0088cc">
 	  <tr><td>
 	    <center>
 		<font color="white">
@@ -189,7 +199,7 @@ $closehead = false;
 				Click here to edit and then click Show XML to show the generated XML.  This XML can then be used
 				by the pfSense CoreGUI engine.
 				<p>
-				<b>Click anywhere on the red area to begin</b>
+				<b>Click here to begin.</b>
 			  </center>
 			</font>	
 			</td>
@@ -222,7 +232,7 @@ $closehead = false;
 <div id="toolbox" name="toolbox" class="toolboxborder">
 	<font color="black">
 	<b>Toolbox</b><p>
-	<div onDblClick="OnDropForm('textarea',  0)" class="toolbox" name="textarea" id="textarea">Textarea<br><textarea name="textarea_control"></textarea></div>
+	<div onDblClick="OnDropForm('textarea',  0)" class="toolbox" name="textarea" id="textarea">Textarea<br><textarea rows="1" name="textarea_control"></textarea></div>
 	<br>
 	<div onDblClick="OnDropForm('input',     0)" class="toolbox" name="input" id="input">Input<br><input name="input_control"></div>
 	<br>
@@ -234,11 +244,24 @@ $closehead = false;
 	<br>
 	<div onDblClick="OnDropForm('interfaces_select', 0)" class="toolbox" name="interfaces_select" id="interfaces_select">Interfaces selection<br><select><option>WAN</option><option>LAN</option></select></div>
 	<br>
-	<div onDblClick="OnDropForm('headerbar', 0)" class="toolbox" name="headerbar" id="headerbar" style="background-color:#990000"><font color="white">Header</div>
+	<div onDblClick="OnDropForm('headerbar', 0)" class="toolbox" name="headerbar" id="headerbar" style="background-color:#0088cc"><font color="white">Header</div>
 	<br>
 </div>
 
+<div id="propertiesbox" name="propertiesbox" class="propertiesbox">
+	<font color="black">
+	<b>Properties</b><p>
+	<div id="propbox" name="propbox">
+		<table width="100%" height="100">
+			<tr><td>
+				<!-- properties box here -->
+			</td></tr>
+		</table>
+	</div>
+</div>
+
 <script type="text/javascript">
+	var field_order = new Array();
 	/* init the draggables */
 	new Draggable('textarea',			{revert:true})
 	new Draggable('input',				{revert:true})
@@ -280,16 +303,17 @@ $closehead = false;
 	/* how many items have been added to the form canvas? */
 	var form_elements = 0;
 
-	/*  properties holds each "element" in the forms
-     *  variables, such as field name, caption,
-     *  etc.
+	/*   properties holds each "element" in the forms
+     *   variables, such as field name, caption,
+     *   etc.  Clever use of javascript to create
+     *   an object.
      */
 	function FORM_ELEMENTS(field_name, left_caption, right_caption, element_id, size) {
-		this.field_name = field_name;
-		this.element_id = element_id;
-		this.left_caption = left_caption;
-		this.right_caption = right_caption;
-		this.size = size;
+		this.field_name     = field_name;
+		this.element_id     = element_id;
+		this.left_caption   = left_caption;
+		this.right_caption  = right_caption;
+		this.size           = size;
 	}
 
 	/* setup an array that holds the item info such as text description, etc */
@@ -304,7 +328,7 @@ $closehead = false;
 			row.setAttribute("id", "formcanvas_row_" + form_elements);
 			var cell1 = document.createElement('td');
 			cell1.setAttribute("colspan", "2");
-			row.setAttribute("bgcolor", "#990000");
+			row.setAttribute("bgcolor", "#0088cc");
 			cell1.innerHTML = '<div style="color:white" name="' + form_elements + '_headerbar" id="' + form_elements + '_headerbar">Click me to edit header...</div>';
 			row.appendChild(cell1);
 			tbody.appendChild(row);
@@ -316,13 +340,13 @@ $closehead = false;
 			var cell2 = document.createElement('td');
 			cell1.innerHTML = '<p name="' + form_elements + '_left_caption" id="' + form_elements + '_left_caption">Click me to edit fieldname...</p>';
 			cell1.setAttribute("class", "vncellreq");
-			cell2.innerHTML = newCanvasItem('Test', field, element_id) + '<p><p name="' + form_elements + '_right_caption" id="' + form_elements + '_right_caption">Click me to edit Description...</p>';
+			cell2.innerHTML = newCanvasItem('Click me to edit Description...', field, element_id) + '<p><p name="' + form_elements + '_right_caption" id="' + form_elements + '_right_caption">Click me to edit Description...</p>';
 			cell2.setAttribute("class", "vtable");
 			row.appendChild(cell1);
 			row.appendChild(cell2);
 			tbody.appendChild(row);
 			new Ajax.InPlaceEditor(form_elements + '_left_caption', 'index.php', { callback: function(form, value) { updateLeftCaption(form.id, value); return '&myparam=' + escape(value) }});
-			new Ajax.InPlaceEditor(form_elements + '_right_caption', 'index.php', { callback: function(form, value) { updateRightCaption(form.id, value); return '&myparam=' + escape(value) }});	
+			new Ajax.InPlaceEditor(form_elements + '_right_caption', 'index.php', { callback: function(form, value) { updateRightCaption(form.id, value); return '&myparam=' + escape(value) }});
 		}
 		/* create a new javascript object on our form element tracking array */
 		form_elements_properties[form_elements] = new FORM_ELEMENTS( 'field_name', 'Click me to edit fieldname...', 'Click me to edit description...' , element_id);
@@ -331,31 +355,51 @@ $closehead = false;
 		/* we now have another control.  ++ our controller count */
 		form_elements++;		
 		/* allow the form canvas area to be resortable */
-		Sortable.create('formcanvas_tbody',{dropOnEmpty:true,tag:'tr'});
+        
+		Sortable.create('formcanvas_tbody',{"onUpdate":updateOrder, dropOnEmpty:true,tag:'tr'});
 		/* resize formcanvas */
 		resize_formcanvas();
 	}
 	
+	function updateOrder(text) {
+		var seq = Sortable.serialize('formcanvas_tbody');
+		for(x=0; x< form_elements; x++) {
+			seq = seq.replace("formcanvas_tbody[]=","");
+			seq = seq.replace("row_","");
+			seq = seq.replace("&","|");
+		}
+		field_order = seq.split("|");
+	}
+	
 	function resize_formcanvas() {
 		/* resize main area to fit all of the elements */
-		$('formcanvas').style.height = 400 + (40 * form_elements);	
+        if(form_elements > 5) 
+			$('formcanvas').style.height = 485 + (90 * (form_elements-5));
+		else
+			$('formcanvas').style.height = 485;
 	}
 	
 	/* convert a field type to beginning html */
 	function newCanvasItem(text, field, element_id) {
 		switch(element_id) {
 			case "textarea":
-				return "<textarea></textarea>";
+				fieldname = form_elements + '_textarea';
+				return "<textarea id='" + fieldname + "' name='" + fieldname + "'></textarea>";
 			case "input":
-				return "<input></input>";
+				fieldname = form_elements + '_input';
+				return "<input id='" + fieldname + "' name='" + fieldname + "'></input>";
 			case "password":
-				return "<input type=\"password\"></input>";
+				fieldname = form_elements + '_password';
+				return "<input id='" + fieldname + "' name='" + fieldname + "' type=\"password\"></input>";
 			case "checkbox":
-				return "<input type='checkbox'></input>";
+				fieldname = form_elements + '_checkbox';
+				return "<input id='" + fieldname + "' name='" + fieldname + "' type='checkbox'></input>";
 			case "select":
-				return "<select><option>OPTION1</option></select>";
+				fieldname = form_elements + '_select';
+				return "<select name='" + fieldname + "'><option>OPTION1</option></select>";
 			case "interfaces_select":
-				return "<select><option>WAN</option><option>LAN</option></select>";
+				fieldname = form_elements + '_interfaces_select';
+				return "<select id='" + fieldname + "' name='" + fieldname + "'><option>WAN</option><option>LAN</option></select>";
 			case "headerbar":
 				return "";
 			/* default fallback case */
@@ -384,18 +428,20 @@ $closehead = false;
 		if($('sourceview').style.visibility == 'hidden') {
 			$('toolbox').style.visibility = 'hidden';
 			$('formcanvas').style.visibility = 'hidden';
-			$('sourceview').style.visibility = 'visible';
-			$('sourceview').style.width = '100%';
-			$('sourceview').style.height = '100%';
+			$('propertiesbox').style.visibility = 'hidden';
 			$('sourceviewta').style.visibility = 'visible';
+			$('sourceview').style.visibility = 'visible';
 			$('sourceviewta').rows = "30";
 			$('sourceviewta').cols = "100";
+			$('sourceview').style.width = '100%';
+			$('sourceview').style.height = '100%';			
 			$('sourceviewta').innerHTML = formCanvas2XML();
 		} else {
-			$('toolbox').style.visibility = 'visible';
-			$('formcanvas').style.visibility = 'visible';
 			$('sourceview').style.visibility = 'hidden';
 			$('sourceviewta').style.visibility = 'hidden';
+			$('propertiesbox').style.visibility = 'visible';
+			$('toolbox').style.visibility = 'visible';
+			$('formcanvas').style.visibility = 'visible';			
 			$('sourceview').style.width = '1';
 			$('sourceview').style.height = '1';
 			$('sourceviewta').rows = "1";
@@ -408,6 +454,7 @@ $closehead = false;
 		$('toolbox').style.visibility = 'visible';
 		$('infofooter').style.visibility = 'visible';
 		$('pgtitle').style.visibility = 'visible';
+		$('propertiesbox').style.visibility = 'visible';
 	}
 	
 	function closeAboutScreen() {
@@ -421,6 +468,7 @@ $closehead = false;
 		var formid_split = formid.split("_");
 		var id = formid_split[0];
 		form_elements_properties[id].left_caption = value;
+		form_elements_properties[id].right_caption = value;
 	}
 	
 	/* callback used after in place editing for the left caption area */
@@ -454,10 +502,11 @@ $closehead = false;
 		newXML = newXML + '\t<fields>\n';
 		/* enumerate all items on formcanvas */
 		for(x=0; x<form_elements; x++) {
-			var field_name = form_elements_properties[x].left_caption;
-			var field_descr = form_elements_properties[x].right_caption;
-			var field_size = form_elements_properties[x].size;
-			var element_id = form_elements_properties[x].element_id;			
+
+			var field_name  = form_elements_properties[field_order[x]].left_caption;
+			var field_descr = form_elements_properties[field_order[x]].right_caption;
+			var field_size  = form_elements_properties[field_order[x]].size;
+			var element_id  = form_elements_properties[field_order[x]].element_id;			
 			/* replace default strings with '' */
 			field_name = field_name.replace("Click me to edit fieldname...", "");			
 			field_name = stripspecialchars(field_name);
