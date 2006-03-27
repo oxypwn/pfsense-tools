@@ -350,6 +350,8 @@ $closehead = false;
 		var tr = document.getElementById(rowid);
 		table.deleteRow();
 		form_elements--;
+		updateOrder();
+		update_source();
 	}
 	
 	function expandAboutScreen() {
@@ -389,6 +391,8 @@ $closehead = false;
 		var id = formid_split[0];
 		form_elements_properties[id].left_caption = value;
 		form_elements_properties[id].right_caption = value;
+		updateOrder();
+		update_source();		
 	}
 	
 	/* callback used after in place editing for the left caption area */
@@ -396,6 +400,8 @@ $closehead = false;
 		var formid_split = formid.split("_");
 		var id = formid_split[0];
 		form_elements_properties[id].left_caption = value;
+		updateOrder();
+		update_source();		
 	}
 
 	/* callback used after in place editing for the right caption area */
@@ -403,6 +409,8 @@ $closehead = false;
 		var formid_split = formid.split("_");
 		var id = formid_split[0];
 		form_elements_properties[id].right_caption = value;
+		updateOrder();
+		update_source();		
 	}
 	
 	function formCanvas2XML() {
