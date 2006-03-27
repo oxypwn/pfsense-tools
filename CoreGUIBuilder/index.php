@@ -361,7 +361,7 @@ $closehead = false;
 		resize_formcanvas();
 	}
 	
-	function updateOrder(text) {
+	function updateOrder() {
 		var seq = Sortable.serialize('formcanvas_tbody');
 		for(x=0; x< form_elements; x++) {
 			seq = seq.replace("formcanvas_tbody[]=","");
@@ -434,7 +434,8 @@ $closehead = false;
 			$('sourceviewta').rows = "30";
 			$('sourceviewta').cols = "100";
 			$('sourceview').style.width = '100%';
-			$('sourceview').style.height = '100%';			
+			$('sourceview').style.height = '100%';
+			updateOrder();
 			$('sourceviewta').innerHTML = formCanvas2XML();
 		} else {
 			$('sourceview').style.visibility = 'hidden';
