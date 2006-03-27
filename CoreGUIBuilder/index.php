@@ -214,7 +214,7 @@ $closehead = false;
 </div>
 
 <div id="tab2" class="tabbertab" title="Source">
-	<textarea id="sourceviewta" name="sourceviewta" id="src" rows="30" cols="90"></textarea>	
+	<textarea id="sourceviewta" name="sourceviewta" id="src" rows="35" cols="95"></textarea>	
 </div>
 
 </div>
@@ -296,7 +296,9 @@ $closehead = false;
 		Sortable.create('formcanvas_tbody',{"onUpdate":function(){ updateOrder(); update_source(); }, dropOnEmpty:true,tag:'tr'});
 		/* resize formcanvas */
 		resize_formcanvas();
+		/* update canvas order */
 		updateOrder();
+		/* sync current xml source with text editor window */
 		update_source();
 	}
 	
