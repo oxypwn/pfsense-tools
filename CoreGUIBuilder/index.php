@@ -53,6 +53,12 @@ $closehead = false;
   <link rel="stylesheet" href="<?=$path_to_css?>/gui.css" media="all" />
   <link href="/styles/script.aculo.us.css" media="screen" rel="Stylesheet" type="text/css" />
 	<style type="text/css">
+		form.inplaceeditor-form input[type="submit"] { /* The submit button */
+		  margin-left:1em;
+		}		
+		form.inplaceeditor-form a { /* The cancel link */
+		  margin-left:1em;
+		}	
 		div.about_screen {
 		  padding:8px;
 		  width:98%;
@@ -147,7 +153,7 @@ $closehead = false;
 		</font>
 	  </td></tr>
 	</table>
-	<div><center><br>&nbsp;<a href="http://www.spreadfirefox.com/?q=affiliates&id=0&t=57"><img border="0" alt="Get Firefox!" title="Get Firefox!" src="http://sfx-images.mozilla.org/affiliates/Buttons/180x60/blank.gif"/></a></div>
+	<div><center><p>For the best experience, use:<br><a href="http://www.spreadfirefox.com/?q=affiliates&id=0&t=57"><img border="0" alt="Get Firefox!" title="Get Firefox!" src="http://sfx-images.mozilla.org/affiliates/Buttons/180x60/blank.gif"/></a></div>
 </div>
 
 <div id="tabber" name="tabber" class="tabber">
@@ -275,8 +281,13 @@ $closehead = false;
 			row.appendChild(cell1);
 			row.appendChild(cell2);
 			tbody.appendChild(row);
-			new Ajax.InPlaceEditor(form_elements + '_left_caption', 'index.php', { callback: function(form, value) { updateLeftCaption(form.id, value); return '&myparam=' + escape(value) }});
-			new Ajax.InPlaceEditor(form_elements + '_right_caption', 'index.php', { callback: function(form, value) { updateRightCaption(form.id, value); return '&myparam=' + escape(value) }});
+			if(element_id == 'select') {
+				new Ajax.InPlaceEditor(form_elements + '_left_caption', 'index.php', { callback: function(form, value) { updateLeftCaption(form.id, value); return '&myparam=' + escape(value) }});
+				new Ajax.InPlaceEditor(form_elements + '_right_caption', 'index.php', { callback: function(form, value) { updateRightCaption(form.id, value); return '&myparam=' + escape(value) }});
+			} else {
+				/* setup special inplace editing of select controls */
+			
+			}
 		}
 		/* create a new javascript object on our form element tracking array */
 		form_elements_properties[form_elements] = new FORM_ELEMENTS( 'field_name', 'Click me to edit fieldname...', 'Click me to edit description...' , element_id);
@@ -441,7 +452,7 @@ $closehead = false;
 			field_descr = field_descr.replace("Click me to edit description...", "");
 			newXML = newXML + '\t<field>\n';
 			newXML = newXML + '\t\t<fielddescr>' + field_descr + '</fielddescr>\n';
-			newXML = newXML + '\t\t<fieldname>' + field_name + '</fieldname>\n';
+			newXML = newXML + '\t\t<fieldname>' + field_name.toLowerCase() + '</fieldname>\n';
 			newXML = newXML + '\t\t<description>' + field_descr + '</description>\n';
 			newXML = newXML + '\t\t<type>' + element_id + '</type>\n';
 			if(field_size) 
@@ -480,7 +491,7 @@ $closehead = false;
 	if(navigator.appName == "Microsoft Internet Explorer") {
 		alert("Warning!!\n\nIE does not work very well with this app.\n\nUse FireFox for a better experience!\n\nhttp://www.getfirefox.com");	
 	}
-	
+
 </script>
 
 </body>
