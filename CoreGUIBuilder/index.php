@@ -64,7 +64,7 @@ $closehead = false;
 		  border:1px solid #eeeeee;
 		  background-color:white;
 		  padding:8px;
-		  width:200px;
+		  width:260px;
 		}
 		div.propertiesbox {
 		  position: absolute;
@@ -117,7 +117,7 @@ $closehead = false;
 <form action="index.php" method="post" name="iform">
 
 <div id="about_screen" name="about_screen" class="about_screen" onClick="closeAboutScreen();">
-	<center><img src="logo.gif"></center><br>&nbsp;
+	<center><img src="images/coreguilogo.gif"></center><br>&nbsp;
 	<table width="100%" bgcolor="#0088cc">
 	  <tr><td>
 	    <center>
@@ -173,20 +173,13 @@ $closehead = false;
 <div id="toolbox" name="toolbox" class="toolboxborder">
 	<font color="black">
 	<b>Toolbox</b><p>
-	<div onDblClick="OnDropForm('textarea',  0)" class="toolbox" name="textarea" id="textarea">Textarea<br><textarea rows="1" name="textarea_control"></textarea></div>
-	<br>
-	<div onDblClick="OnDropForm('input',     0)" class="toolbox" name="input" id="input">Input<br><input name="input_control"></div>
-	<br>
-	<div onDblClick="OnDropForm('password',  0)" class="toolbox" name="password" id="password">Password<br><input name="password"></div>
-	<br>
-	<div onDblClick="OnDropForm('checkbox',  0)" class="toolbox" name="checkbox" id="checkbox">Checkbox<br><input type="checkbox" name="checkbox"></div>
-	<br>
-	<div onDblClick="OnDropForm('select',    0)" class="toolbox" name="select" id="select">Select box<br><select><option>OPTION1</option></select></div>
-	<br>
-	<div onDblClick="OnDropForm('interfaces_select', 0)" class="toolbox" name="interfaces_select" id="interfaces_select">Interfaces selection<br><select><option>WAN</option><option>LAN</option></select></div>
-	<br>
-	<div onDblClick="OnDropForm('headerbar', 0)" class="toolbox" name="headerbar" id="headerbar" style="background-color:#0088cc"><font color="white">Header</div>
-	<br>
+	<div onDblClick="OnDropForm('headerbar', 0)" class="toolbox" name="headerbar" id="headerbar"><img src='images/header.gif'></div>
+	<div onDblClick="OnDropForm('textarea',  0)" class="toolbox" name="textarea" id="textarea"><img src='images/textarea.gif'></div>
+	<div onDblClick="OnDropForm('input',     0)" class="toolbox" name="input" id="input"><img src='images/inputfield.gif'></div>
+	<div onDblClick="OnDropForm('password',  0)" class="toolbox" name="password" id="password"><img src='images/passwordfield.gif'></div>
+	<div onDblClick="OnDropForm('checkbox',  0)" class="toolbox" name="checkbox" id="checkbox"><img src='images/checkbox.gif'></div>
+	<div onDblClick="OnDropForm('select',    0)" class="toolbox" name="select" id="select"><img src='images/optiondropdown.gif'></div>
+	<div onDblClick="OnDropForm('interfaces_select', 0)" class="toolbox" name="interfaces_select" id="interfaces_select"><img src='images/interfacedropdown.gif'></div>
 </div>
 
 <div id="propertiesbox" name="propertiesbox" class="propertiesbox">
@@ -380,7 +373,7 @@ $closehead = false;
 		$('toolbox').style.visibility = 'visible';
 		$('infofooter').style.visibility = 'visible';
 		$('pgtitle').style.visibility = 'visible';
-		$('propertiesbox').style.visibility = 'visible';
+		$('propertiesbox').style.visibility = 'hidden';
 	}
 	
 	function closeAboutScreen() {
