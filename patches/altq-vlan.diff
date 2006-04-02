@@ -1,17 +1,18 @@
---- if_vlan.c.orig	Tue Feb 14 23:34:31 2006
-+++ if_vlan.c	Tue Feb 14 23:36:19 2006
-@@ -394,7 +394,9 @@
+--- if_vlan.c	Wed Oct 26 19:57:04 2005
++++ if_vlan.c.orig	Sun Apr  2 04:20:47 2006
+@@ -383,8 +383,9 @@
  	ifp->if_init = vlan_ifinit;
  	ifp->if_start = vlan_start;
  	ifp->if_ioctl = vlan_ioctl;
 -	ifp->if_snd.ifq_maxlen = ifqmaxlen;
+-	ether_ifattach(ifp, eaddr);
 +        IFQ_SET_MAXLEN(&ifp->if_snd, ifqmaxlen);
 +        ifp->if_snd.ifq_drv_maxlen = 0;
 +        IFQ_SET_READY(&ifp->if_snd);
- 	ifp->if_flags = VLAN_IFFLAGS;
- 	ether_ifattach(ifp, eaddr);
  	/* Now undo some of the damage... */
-@@ -440,11 +442,15 @@
+ 	ifp->if_baudrate = 0;
+ 	ifp->if_type = IFT_L2VLAN;
+@@ -428,11 +429,15 @@
  {
  	int unit;
  	struct ifvlan *ifv = ifp->if_softc;
@@ -27,7 +28,7 @@
  	vlan_unconfig(ifp);
  	VLAN_UNLOCK();
  
-@@ -484,11 +490,21 @@
+@@ -464,12 +469,24 @@
  	struct mbuf *m;
  	int error;
  
@@ -41,9 +42,12 @@
 +               IFQ_UNLOCK(&ifp->if_snd);
 +       }
 +
++
++
  	ifv = ifp->if_softc;
  	p = ifv->ifv_p;
  
+ 	ifp->if_drv_flags |= IFF_DRV_OACTIVE;
  	for (;;) {
 -		IF_DEQUEUE(&ifp->if_snd, m);
 +		IFQ_DEQUEUE(&ifp->if_snd, m);
