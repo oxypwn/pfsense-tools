@@ -2,7 +2,7 @@
 
 # $Id$
 
-export DNO_ATM=yes
+#export DNO_ATM=yes
 
 # This is the base working directory for all builder
 # operations
@@ -50,3 +50,6 @@ export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs"
 
 # Use a custom config.xml.   Helpful for vendors rolling their own custom images.
 #CUSTOM_CONFIG_XML=/path/to/custom/config.xml
+
+MAKEJ=" "
+

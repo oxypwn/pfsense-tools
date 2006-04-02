@@ -54,16 +54,6 @@ patch < ${PATCHDIR}/altq-vlan.diff
 cd ${SRCDIR}/sys
 patch < ${PATCHDIR}/geom_vfs.c.diff
 
-# Complicate matters quite a bit by copying bsnmpd
-# from the current tree which includes lots of needed
-# bsnmpd improvements
-cp -R /current/src/contrib/bsnmp/* /usr/src/contrib/bsnmp/
-cp -R /current/src/usr.sbin/bsnmpd/* /usr/src/usr.sbin/bsnmpd/
-cp /current/src/share/mk/bsd.snmpmod.mk /usr/src/share/mk/
-cp /current/src/sys/net/if_mib.c /usr/src/sys/net/
-cp /current/src/sys/net/if_mib.h /usr/src/sys/net/
-cp ${PATCHDIR}/bsnmpd_Makefile ${SRCDIR}/usr.sbin/bsnmpd/modules/Makefile
-
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*
