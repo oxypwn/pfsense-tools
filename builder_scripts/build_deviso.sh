@@ -11,7 +11,7 @@ set -e -u
 # export EXTRA="comconsole customroot"
 export EXTRA="customroot"
 
-#export MAKE_CONF="${PWD}/conf/make.conf.developer"
+export MAKE_CONF="${PWD}/conf/make.conf.developer"
 
 export PRUNE_LIST="/dev/null"
 
