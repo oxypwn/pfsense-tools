@@ -5,7 +5,7 @@
 /*
  *  Generate binary updates
  *  Part of pfSense
- *  (C)2005 Scott Ullrich (sullrich@gmail.com)
+ *  (C)2005-2006 Scott Ullrich (sullrich@gmail.com)
  *  All rights reserved
  */
 

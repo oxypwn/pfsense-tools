@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # pfSense master builder script
-# (C)2005 Scott Ullrich and the pfSense project
+# (C)2005-2006 Scott Ullrich and the pfSense project
 # All rights reserved.
 #
 # $Id$
