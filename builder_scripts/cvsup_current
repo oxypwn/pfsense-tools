@@ -54,6 +54,10 @@ patch < ${PATCHDIR}/altq-vlan.diff
 cd ${SRCDIR}/sys
 patch < ${PATCHDIR}/geom_vfs.c.diff
 
+# Patch EM for fiber / carp
+cd ${SRCDIR}/sys/dev/em
+patch < ${PATCHDIR}/if_em.c.diff
+
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*
