@@ -1,5 +1,7 @@
 #!/bin/sh
 
+if [ -e /var/pfSenseDEV ]; then cp /scripts/dev_bootstrap.sh /mnt/usr/local/etc/rc.d/; chmod a+rx /mnt/usr/local/etc/rc.d/dev_bootstrap.sh; fi;
+
 # Lets cleanup from fake root environment
 rm -rf /mnt/cloop
 rm -rf /mnt/dist
