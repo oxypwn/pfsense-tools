@@ -16,7 +16,7 @@ export MAKE_CONF="${PWD}/conf/make.conf.developer"
 export PRUNE_LIST="/dev/null"
 
 # Use pfSense.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
+export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
 
 # Check if the world and kernel are already built and remove
 # lock files accordingly                                              
