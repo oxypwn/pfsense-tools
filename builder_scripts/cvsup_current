@@ -65,6 +65,7 @@ echo Done!
 
 echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
 
+[ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 cd ${CURRENTDIR}
 ./build_iso.sh
 
