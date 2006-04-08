@@ -82,7 +82,7 @@ if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 fi
 
 # Cvsup pfSense files
-cvsup -h `/usr/local/bin/fastest_cvsup` /tmp/bootstrap-supfile
+cvsup -h `/usr/local/bin/fastest_cvsup -q -Q -c all` /tmp/bootstrap-supfile
 
 # Cleanup after ourself
 rm /tmp/bootstrap-supfile
@@ -101,7 +101,7 @@ cvsup $HOME_PFSENSE/tools/builder_scripts/pfSense-supfile
 echo "SKIP_RSYNC=yo" >> $HOME_PFSENSE/tools/builder_scripts/pfsense_local.sh
 
 # Sync source tree
-cvsup -h `/usr/local/bin/fastest_cvsup` $HOME_PFSENSE/tools/builder_scripts/stable-supfile
+cvsup -h `/usr/local/bin/fastest_cvsup -q -Q -c all` $HOME_PFSENSE/tools/builder_scripts/stable-supfile
 
 cd $HOME_PFSENSE
 touch ~/.cvspass
