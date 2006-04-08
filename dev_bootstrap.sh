@@ -70,6 +70,10 @@ echo "SKIP_RSYNC=yo" > $HOME_PFSENSE/tools/builder_scripts/pfsense_local.sh
 # Sync source tree
 cvsup $HOME_PFSENSE/tools/builder_scripts/stable-supfile
 
+cd $HOME_PFSENSE
+touch ~/.cvspass
+cvs -z3 -d :pserver:anonymous@cvs.freesbie.org:/cvs co -P freesbie2
+
 # CVSSync
 cd $HOME_PFSENSE/tools/builder_scripts && sh $HOME_PFSENSE/tools/builder_scripts/cvsup_current
 
