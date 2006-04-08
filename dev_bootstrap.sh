@@ -1,19 +1,36 @@
 #!/bin/sh
 
 echo
-echo This script will bootstrap your pfSense Developers iso
-echo into a full fledged building environment.
+echo This script will bootstrap your pfSense Developers 
+echo iso into a full fledged building environment.
 echo
 echo This will take quite a while.  Go have a excellent beer.
 echo
+echo -n ">>> Press CTRL-C if you do not wish to go any further."
+sleep 1
+echo -n " "
+sleep 1
+echo -n "<"
+sleep 1
+echo -n "<"
+sleep 1
+echo "<"
+sleep 1
+echo
+echo "Beginning bootstrap.  Beer time!"
+echo
 
+# Set script debugging mode for a bit
 set -x
 
+# Set some shell variables
 CVSROOT="/home/pfsense/cvsroot"
 HOME_PFSENSE="/home/pfsense"
 
+# Create needed directories
 mkdir -p $HOME_PFSENSE
 mkdir -p $CVSROOT
+mkdir -p /usr/src/
 
 cd $HOME_PFSENSE
 
@@ -34,13 +51,22 @@ fi
 # Cvsup pfSense files
 cvsup /tmp/bootstrap-supfile
 
+# Cleanup after ourself
+rm /tmp/bootstrap-supfile
+
 # Checkout needed items
 cd $HOME_PFSENSE && cvs -d $CVSROOT co tools
 cd $HOME_PFSENSE && cvs -d $CVSROOT co pfSense
 cd $HOME_PFSENSE && cvs -d $CVSROOT co www
 
+# Make sure all scripts are executable
+chmod a+rx $HOME_PFSENSE/tools/builder_scripts/*
+
 # Make sure everything is set
 cvsup $HOME_PFSENSE/tools/builder_scripts/pfSense-supfile
+
+# Sync source tree
+cvsup $HOME_PFSENSE/tools/builder_scripts/stable-supfile
 
 # CVSSync
 sh $HOME_PFSENSE/tools/builder_scripts/cvsup_current
@@ -52,5 +78,4 @@ cvs_sync.sh releng_1
 if [ -d /usr/src/sys ]; then
 	rm -f /usr/local/etc/rc.d/dev_bootstrap.sh
 fi
-
 
