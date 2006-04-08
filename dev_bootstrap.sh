@@ -21,7 +21,7 @@ echo "Beginning bootstrap.  Beer time!"
 echo
 
 # Set script debugging mode for a bit
-set -x
+#set -x
 
 # Set some shell variables
 CVSROOT="/home/pfsense/cvsroot"
@@ -76,7 +76,11 @@ cvs -z3 -d :pserver:anonymous@cvs.freesbie.org:/cvs co -P freesbie2
 
 # CVSSync
 cd $HOME_PFSENSE/tools/builder_scripts
-echo "Now run:"
-echo sh ./cvsup_current
 
+echo "Bootstrap completed."
+echo
+
+echo "To build an iso type:"
+echo "sh ./cvsup_current"
+echo
 
