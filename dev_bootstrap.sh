@@ -69,7 +69,7 @@ cvsup $HOME_PFSENSE/tools/builder_scripts/pfSense-supfile
 cvsup $HOME_PFSENSE/tools/builder_scripts/stable-supfile
 
 # CVSSync
-sh $HOME_PFSENSE/tools/builder_scripts/cvsup_current
+cd $HOME_PFSENSE/tools/builder_scripts && sh $HOME_PFSENSE/tools/builder_scripts/cvsup_current
 
 # Bring this image up to date
 cvs_sync.sh releng_1
