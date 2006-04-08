@@ -7,11 +7,15 @@ echo
 echo This will take quite a while.  Go have a excellent beer.
 echo
 
-BUILDER_SCRIPTS="/home/pfsense/tools/builder_scripts"
-CVSROOT="/home/pfsense/cvsroot"
+set -x
 
-mkdir -p $BUILDER_SCRIPTS
+CVSROOT="/home/pfsense/cvsroot"
+HOME_PFSENSE="/home/pfsense"
+
+mkdir -p $HOME_PFSENSE
 mkdir -p $CVSROOT
+
+cd $HOME_PFSENSE
 
 # Create bootstrap supfile
 echo "*default host=cvs.pfsense.com" >/tmp/bootstrap-supfile
@@ -22,15 +26,31 @@ echo "pfSense" >>/tmp/bootstrap-supfile
 echo "*default compress" >>/tmp/bootstrap-supfile
 
 # Add cvsup
-pkg_add -r cvsup-without-gui
+if [ ! -f "/usr/local/bin/cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress"
+	/usr/sbin/pkg_add -r cvsup-without-gui
+fi
 
 # Cvsup pfSense files
 cvsup /tmp/bootstrap-supfile
 
+# Checkout needed items
+cd $HOME_PFSENSE && cvs -d $CVSROOT co tools
+cd $HOME_PFSENSE && cvs -d $CVSROOT co pfSense
+cd $HOME_PFSENSE && cvs -d $CVSROOT co www
+
 # Make sure everything is set
-cvsup $BUILDER_SCRIPTS/pfSense-supfile
+cvsup $HOME_PFSENSE/tools/builder_scripts/pfSense-supfile
 
 # CVSSync
-sh $BUILDER_SCRIPTS/cvsup_current
+sh $HOME_PFSENSE/tools/builder_scripts/cvsup_current
+
+# Bring this image up to date
+cvs_sync.sh releng_1
+
+# Self destruct script if hooked into official deviso
+if [ -d /usr/src/sys ]; then
+	rm -f /usr/local/etc/rc.d/dev_bootstrap.sh
+fi
 
 
