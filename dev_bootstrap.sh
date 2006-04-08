@@ -44,8 +44,8 @@ echo "*default compress" >>/tmp/bootstrap-supfile
 
 # Add cvsup
 if [ ! -f "/usr/local/bin/cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress"
-	/usr/sbin/pkg_add -r cvsup-without-gui
+	echo "Cannot find cvsup, pkg_add in progress..."
+	/usr/sbin/pkg_add -v -r cvsup-without-gui
 fi
 
 # Cvsup pfSense files
