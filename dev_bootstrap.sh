@@ -75,13 +75,8 @@ touch ~/.cvspass
 cvs -z3 -d :pserver:anonymous@cvs.freesbie.org:/cvs co -P freesbie2
 
 # CVSSync
-cd $HOME_PFSENSE/tools/builder_scripts && sh $HOME_PFSENSE/tools/builder_scripts/cvsup_current
+cd $HOME_PFSENSE/tools/builder_scripts
+echo "Now run:"
+echo sh ./cvsup_current
 
-# Bring this image up to date
-cvs_sync.sh releng_1
-
-# Self destruct script if hooked into official deviso
-if [ -d /usr/src/sys ]; then
-	rm -f /usr/local/etc/rc.d/dev_bootstrap.sh
-fi
 
