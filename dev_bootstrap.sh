@@ -113,3 +113,6 @@ sleep 1 ; echo -n "." ; sleep 1 ; echo "" ; sleep 1
 sleep 1 ; echo -n "." ; sleep 1 ; echo "" ; sleep 1
 
 cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current
+
+killall tail
+
