@@ -34,6 +34,7 @@ populate_extra() {
     mkdir -p $CVS_CO_DIR/scripts/
     mkdir -p $CVS_CO_DIR/conf
     cp $BASE_DIR/tools/pfi $CVS_CO_DIR/scripts/
+    cp $BASE_DIR/tools/dev_bootstrap.sh $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
     cp $BASE_DIR/tools/installer.sh $CVS_CO_DIR/scripts/
