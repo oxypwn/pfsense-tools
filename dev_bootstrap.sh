@@ -1,4 +1,12 @@
 #!/bin/sh
+#
+# pfSense developer iso bootstrap
+# Written by Scott Ullrich
+# Part of the pfSense project
+#
+# This script will bootstrap and build
+# an inital iso.
+#
 
 echo
 echo This script will bootstrap your pfSense Developers 
@@ -80,13 +88,16 @@ cd $HOME_PFSENSE/tools/builder_scripts
 echo "Bootstrap completed."
 
 echo
-echo "Beginning inital ISO build.  CTRL-C to abort."
+echo -n "Beginning initial ISO build.  CTRL-C to abort."
+echo .
 sleep 1
-echo
-sleep 2
-echo
-sleep 2
+echo .
+sleep 1
+echo .
+sleep 1
+echo .
+sleep 1
+echo 
+sleep 1
 
 cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current
-
-
