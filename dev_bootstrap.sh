@@ -65,7 +65,7 @@ chmod a+rx $HOME_PFSENSE/tools/builder_scripts/*
 # Make sure everything is set
 cvsup $HOME_PFSENSE/tools/builder_scripts/pfSense-supfile
 
-echo "SKIP_RSYNC=yo" > $HOME_PFSENSE/tools/builder_scripts/pfsense_local.sh
+echo "SKIP_RSYNC=yo" >> $HOME_PFSENSE/tools/builder_scripts/pfsense_local.sh
 
 # Sync source tree
 cvsup $HOME_PFSENSE/tools/builder_scripts/stable-supfile
