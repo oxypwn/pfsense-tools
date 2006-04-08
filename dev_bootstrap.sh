@@ -78,9 +78,15 @@ cvs -z3 -d :pserver:anonymous@cvs.freesbie.org:/cvs co -P freesbie2
 cd $HOME_PFSENSE/tools/builder_scripts
 
 echo "Bootstrap completed."
-echo
 
-echo "To build an iso type:"
-echo "cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current"
 echo
+echo "Beginning inital ISO build.  CTRL-C to abort."
+sleep 1
+echo
+sleep 2
+echo
+sleep 2
+
+cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current
+
 
