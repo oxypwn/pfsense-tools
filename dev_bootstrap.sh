@@ -69,14 +69,20 @@ if [ ! -f "/usr/local/bin/cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -v -r cvsup-without-gui
 fi
-# Failed, lets try with http
-if [ ! -f "/usr/local/bin/cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress (HTTP ..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -v -r http://ftp5.freebsd.org/ports/packages/All/cvsup-without-gui.tgz
+
+# Add cvsup
+if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress..."
+	/usr/sbin/pkg_add -v -r fastest_cvsup
+fi
+# Failed, lets try with passive mode
+if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -v -r fastest_cvsup
 fi
 
 # Cvsup pfSense files
-cvsup /tmp/bootstrap-supfile
+cvsup -h `/usr/local/bin/fastest_cvsup` /tmp/bootstrap-supfile
 
 # Cleanup after ourself
 rm /tmp/bootstrap-supfile
@@ -95,7 +101,7 @@ cvsup $HOME_PFSENSE/tools/builder_scripts/pfSense-supfile
 echo "SKIP_RSYNC=yo" >> $HOME_PFSENSE/tools/builder_scripts/pfsense_local.sh
 
 # Sync source tree
-cvsup $HOME_PFSENSE/tools/builder_scripts/stable-supfile
+cvsup -h `/usr/local/bin/fastest_cvsup` $HOME_PFSENSE/tools/builder_scripts/stable-supfile
 
 cd $HOME_PFSENSE
 touch ~/.cvspass
