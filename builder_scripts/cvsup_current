@@ -63,8 +63,6 @@ cd ${CURRENTDIR}
 rm -rf /usr/obj*
 echo Done!
 
-cp /current/src/sys/geom/label/g_label_ufs.c /usr/src/sys/geom/label/g_label_ufs.c
-
 echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
 
 cd ${CURRENTDIR}
