@@ -81,6 +81,6 @@ echo "Bootstrap completed."
 echo
 
 echo "To build an iso type:"
-echo "sh ./cvsup_current"
+echo "cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current"
 echo
 
