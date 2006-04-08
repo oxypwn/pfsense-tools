@@ -64,6 +64,16 @@ if [ ! -f "/usr/local/bin/cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress..."
 	/usr/sbin/pkg_add -v -r cvsup-without-gui
 fi
+# Failed, lets try with passive mode
+if [ ! -f "/usr/local/bin/cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -v -r cvsup-without-gui
+fi
+# Failed, lets try with http
+if [ ! -f "/usr/local/bin/cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress (HTTP ..."
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -v -r http://ftp5.freebsd.org/ports/packages/All/cvsup-without-gui.tgz
+fi
 
 # Cvsup pfSense files
 cvsup /tmp/bootstrap-supfile
