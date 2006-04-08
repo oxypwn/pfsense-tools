@@ -43,7 +43,7 @@ if [ `cat /var/log/dmesg.boot | grep VMware | wc -l` -gt 0 ]; then
 fi
 
 # Check if host is running on pfSenseDEV
-if [ `cat /var/log/dmesg.boot | grep pfSenseDEV | wc -l` -gt 0 ]; then
+if [ `cat /var/log/dmesg.boot | grep pfSense_Dev.6 | wc -l` -gt 0 ]; then
 		echo pfSense developer iso detected.
         touch /var/pfSenseDEV
 fi
