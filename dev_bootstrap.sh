@@ -8,25 +8,34 @@
 # an inital iso.
 #
 
+# Wait until bootup is finished
+echo -n "Bootstrap waiting for bootup to finish..."
+while [ -e /var/run/booting ]; do
+	echo -n "."
+	sleep 30
+done
+echo "."
 echo
+
 echo This script will bootstrap your pfSense Developers 
 echo iso into a full fledged building environment.
 echo
 echo This will take quite a while.  Go have a excellent beer.
 echo
 echo -n ">>> Press CTRL-C if you do not wish to go any further."
-sleep 1
+sleep 3
 echo -n " "
-sleep 1
+sleep 3
 echo -n "<"
-sleep 1
+sleep 3
 echo -n "<"
-sleep 1
+sleep 3
 echo "<"
-sleep 1
+sleep 3
 echo
 echo "Beginning bootstrap.  Beer time!"
 echo
+sleep 3
 
 # Set script debugging mode for a bit
 #set -x
