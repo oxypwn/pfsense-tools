@@ -38,7 +38,7 @@ echo
 sleep 3
 
 # Set script debugging mode for a bit
-#set -x
+# set -x
 
 # Set some shell variables
 CVSROOT="/home/pfsense/cvsroot"
@@ -62,27 +62,26 @@ echo "*default compress" >>/tmp/bootstrap-supfile
 # Add cvsup
 if [ ! -f "/usr/local/bin/cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress..."
-	/usr/sbin/pkg_add -v -r cvsup-without-gui
+	/usr/sbin/pkg_add -r cvsup-without-gui
 fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -v -r cvsup-without-gui
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cvsup-without-gui
 fi
 
 # Add cvsup
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress..."
-	/usr/sbin/pkg_add -v -r fastest_cvsup
+	/usr/sbin/pkg_add -r fastest_cvsup
 fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -v -r fastest_cvsup
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
 fi
 
 # Cvsup pfSense files
-echo "Finding fastest cvsup server and syncing FreeBSD source tree..."
 cvsup /tmp/bootstrap-supfile
 
 # Cleanup after ourself
@@ -103,7 +102,7 @@ echo "SKIP_RSYNC=yo" >> $HOME_PFSENSE/tools/builder_scripts/pfsense_local.sh
 
 # Sync source tree
 echo "Finding fastest cvsup server.  This will take a moment..."
-fastest_cvsup -q -c tld >/var/db/fastest_cvsup
+/usr/local/bin/fastest_cvsup -q -c tld >/var/db/fastest_cvsup
 
 # Sync FreeBSD tree with fastest server found
 cvsup -h `cat /var/db/fastest_cvsup` $HOME_PFSENSE/tools/builder_scripts/stable-supfile
@@ -112,11 +111,9 @@ cd $HOME_PFSENSE
 touch ~/.cvspass
 cvs -z3 -d :pserver:anonymous@cvs.freesbie.org:/cvs co -P freesbie2
 
-# CVSSync
 cd $HOME_PFSENSE/tools/builder_scripts
 
 echo "Bootstrap completed."
-
 echo
 echo -n "Beginning initial ISO build.  CTRL-C to abort."
 echo -n "." ; sleep 1 ; echo -n "." ; sleep 1 ; echo -n "."
@@ -125,5 +122,6 @@ sleep 1 ; echo -n "." ; sleep 1 ; echo "" ; sleep 1
 
 cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current
 
-killall tail
+# Kill off console tailing process if needed
+/usr/bin/killall tail
 
