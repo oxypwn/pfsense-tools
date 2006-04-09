@@ -30,7 +30,11 @@ if [ ! -d "${SRCDIR}" ]; then
 fi
 
 # CVSUP RELENG_6
-cvsup ./stable-supfile
+if [ -e /var/db/fastest_cvsup ]; then
+	cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
+else
+	cvsup ./stable-supfile
+fi
 
 # clog source and usr.sbin/Makefile patch
 cd ${SRCDIR}/usr.sbin/
