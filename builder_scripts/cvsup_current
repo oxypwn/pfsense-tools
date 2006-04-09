@@ -29,12 +29,20 @@ if [ ! -d "${SRCDIR}" ]; then
 	exit 1
 fi
 
-# CVSUP RELENG_6
-if [ -e /var/db/fastest_cvsup ]; then
-	cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
-else
-	cvsup ./stable-supfile
+# Add cvsup
+if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress..."
+	/usr/sbin/pkg_add -r fastest_cvsup
 fi
+# Failed, lets try with passive mode
+if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
+fi
+
+# CVSUP RELENG_6
+fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
 
 # clog source and usr.sbin/Makefile patch
 cd ${SRCDIR}/usr.sbin/
