@@ -59,26 +59,26 @@ echo "*default delete use-rel-suffix" >>/tmp/bootstrap-supfile
 echo "pfSense" >>/tmp/bootstrap-supfile
 echo "*default compress" >>/tmp/bootstrap-supfile
 
-# Add cvsup
-if [ ! -f "/usr/local/bin/cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress..."
-	/usr/sbin/pkg_add -r cvsup-without-gui
-fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cvsup-without-gui
 fi
-
 # Add cvsup
-if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
+if [ ! -f "/usr/local/bin/cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress..."
-	/usr/sbin/pkg_add -r fastest_cvsup
+	/usr/sbin/pkg_add -r cvsup-without-gui
 fi
+
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
+fi
+# Add cvsup
+if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress..."
+	/usr/sbin/pkg_add -r fastest_cvsup
 fi
 
 # Cvsup pfSense files
