@@ -117,7 +117,7 @@ echo "Bootstrap completed."
 echo
 echo -n "Beginning initial ISO build.  CTRL-C to abort."
 echo -n "." ; sleep 1 ; echo -n "." ; sleep 1 ; echo -n "."
-sleep 1 ; echo -n "." ; sleep 1 ; echo "" ; sleep 1
+sleep 1 ; echo -n "." ; sleep 1 ; echo -n "" ; sleep 1
 sleep 1 ; echo -n "." ; sleep 1 ; echo "" ; sleep 1
 
 cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current
