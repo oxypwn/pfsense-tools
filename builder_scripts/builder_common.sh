@@ -73,9 +73,12 @@ populate_extra() {
     find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
     set -e
 
+	# Setup RRD symlink
+	setup_rrd_symlink
+
     # Enable debug if requested
     if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
-	touch ${CVS_CO_DIR}/debugging
+		touch ${CVS_CO_DIR}/debugging
     fi
 }
 
@@ -211,6 +214,10 @@ copy_pfSense_tarball_to_custom_directory() {
 	
 	chroot $LOCALDIR/ cap_mkdb /etc/master.passwd
 	
+}
+
+setup_rrd_symlink() {
+	chroot $LOCALDIR ln -s /var/db/rrd /usr/local/www/rrd	
 }
 
 copy_pfSense_tarball_to_freesbiebasedir() {
