@@ -34,9 +34,10 @@ CONFIGURE_ARGS+=--without-mysql \
 		--without-pear \
 		--with-openssl \
 		--with-curl \
+		--with-gettext \
 		--enable-pcntl \
 		--enable-fastcgi \
-		--enable-force-cgi-redirect 
+		--enable-force-cgi-redirect
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
 PHP_SAPI=	full
