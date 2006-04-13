@@ -1,0 +1,37 @@
+===================================================================
+RCS file: /usr/local/www/cvsroot/FreeBSD/src/sys/dev/bce/if_bce.c,v
+retrieving revision 1.2
+retrieving revision 1.3
+diff -u -p -r1.2 -r1.3
+--- src/sys/dev/bce/if_bce.c	2006/04/10 20:04:21	1.2
++++ src/sys/dev/bce/if_bce.c	2006/04/13 14:12:26	1.3
+@@ -29,7 +29,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/dev/bce/if_bce.c,v 1.2 2006/04/10 20:04:21 ps Exp $");
++__FBSDID("$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/dev/bce/if_bce.c,v 1.3 2006/04/13 14:12:26 ru Exp $");
+ 
+ /*
+  * The following controllers are supported by this driver:
+@@ -4090,7 +4090,7 @@ bce_rx_intr(struct bce_softc *sc)
+ 		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->bce_rxcycles <= 0)
+ 				break;
+-			sc->rxcycles--;
++			sc->bce_rxcycles--;
+ 		}
+ #endif
+ 
+@@ -4973,6 +4973,10 @@ bce_ioctl(struct ifnet *ifp, u_long comm
+ 			error = ether_ioctl(ifp, command, data);
+ 			break;
+ 	}
++
++#ifdef DEVICE_POLLING
++bce_ioctl_exit:
++#endif
+ 
+ 	DBPRINT(sc, BCE_VERBOSE_RESET, "Exiting %s()\n", __FUNCTION__);
+ 
+
