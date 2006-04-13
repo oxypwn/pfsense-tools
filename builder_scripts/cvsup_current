@@ -75,9 +75,6 @@ rm -rf ${SRCDIR}/src/sys/net/natpt ${SRCDIR}/src/sys/modules/natpt ${SRCDIR}/src
 #cd ${SRCDIR}/
 #patch -p1 < ${PATCHDIR}/natpt.diff
 
-cd ${SRCDIR}/sys/dev/bce
-patch < ${PATCHDIR}/if_bce.c.diff
-
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*
