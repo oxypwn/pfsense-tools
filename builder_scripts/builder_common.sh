@@ -79,6 +79,37 @@ populate_extra() {
     fi
 }
 
+create_pfSense_BaseSystem_Small_update_tarball() {
+	VERSION=`cat $CVS_CO_DIR/etc/version`
+	FILENAME=pfSense-Mini-Embedded-BaseSystem-Update-${VERSION}.tgz
+
+	mkdir -p $UPDATESDIR
+
+	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
+
+	cp ${CVS_CO_DIR}/usr/local/sbin/check_reload_status /tmp/
+	cp ${CVS_CO_DIR}/usr/local/sbin/mpd /tmp/
+
+	rm -rf ${CVS_CO_DIR}/usr/local/sbin/*
+	rm -rf ${CVS_CO_DIR}/usr/local/bin/*
+	cp /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
+	cp /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
+	cp /sbin/setkey ${CVS_CO_DIR}/usr/local/sbin/
+	chmod a+rx ${CVS_CO_DIR}/usr/local/sbin/*
+
+	du -hd0 ${CVS_CO_DIR}
+	
+	rm -f ${CVS_CO_DIR}/etc/platform
+	rm -f ${CVS_CO_DIR}/etc/*passwd*
+	rm -f ${CVS_CO_DIR}/etc/pw*
+	
+	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
+
+	ls -lah ${UPDATESDIR}/${FILENAME}
+
+	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}	
+}
+
 fixup_updates() {
 
 	cd ${PFSENSEBASEDIR}
