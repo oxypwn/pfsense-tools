@@ -1,7 +1,7 @@
 /* 
  * $Id$
  *
- * Copyright (c) 2003, Christianity.com
+ * Copyright (c) 2003, Silas Partners
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
