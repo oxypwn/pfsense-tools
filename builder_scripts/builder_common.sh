@@ -209,9 +209,6 @@ copy_pfSense_tarball_to_custom_directory() {
 	rm -rf $LOCALDIR/customroot/conf
 	mkdir -p $LOCALDIR/customroot/conf
 
-	# Setup RRD symlink
-        setup_rrd_symlink
-
 	mkdir -p $LOCALDIR/var/db/
 	chroot $LOCALDIR /bin/ln -s /var/db/rrd /usr/local/www/rrd	
 
