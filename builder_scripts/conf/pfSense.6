@@ -11,7 +11,7 @@ ident		pfSense
 
 options 	SCHED_4BSD		# 4BSD scheduler
 #options 	SCHED_ULE		# ULE scheduler
-#options 	PREEMPTION		# Enable kernel thread preemption
+options 	PREEMPTION		# Enable kernel thread preemption
 options 	INET			# InterNETworking
 options 	INET6			# IPv6 communications protocols
 options 	FFS			# Berkeley Fast Filesystem
@@ -70,9 +70,9 @@ device		ahc		# AHA2940 and onboard AIC7xxx devices
 device		ahd		# AHA39320/29320 and onboard AIC79xx devices
 device		amd		# AMD 53C974 (Tekram DC-390(T))
 device		isp		# Qlogic family
-#device 	ispfw		# Firmware for QLogic HBAs- normally a module
+device 		ispfw		# Firmware for QLogic HBAs- normally a module
 device		mpt		# LSI-Logic MPT-Fusion
-#device		ncr		# NCR/Symbios Logic
+device		ncr		# NCR/Symbios Logic
 device		sym		# NCR/Symbios Logic (newer chipsets + those of `ncr')
 device		trm		# Tekram DC395U/UW/F DC315U adapters
 
@@ -379,3 +379,8 @@ device          speaker
 options         DEVICE_POLLING
 
 options         ZERO_COPY_SOCKETS
+
+#device         natpt
+
+device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
+
