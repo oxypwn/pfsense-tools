@@ -1,52 +1,130 @@
-                                                                                                                                                                                                                                                               
-Index: if_bridge.c
+Index: ../../net/if_bridge.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/if_bridge.c,v
-retrieving revision 1.42
-diff -u -p -r1.42 if_bridge.c
---- if_bridge.c	21 Dec 2005 21:29:45 -0000	1.42
-+++ if_bridge.c	29 Dec 2005 03:00:16 -0000
-@@ -260,9 +260,12 @@ static int	bridge_ip6_checkbasic(struct 
+retrieving revision 1.58
+diff -u -p -r1.58 if_bridge.c
+--- ../../net/if_bridge.c	26 Mar 2006 20:52:47 -0000	1.58
++++ ../../net/if_bridge.c	16 Apr 2006 05:23:03 -0000
+@@ -263,6 +263,8 @@ static int	bridge_ip_checkbasic(struct m
+ # ifdef INET6
+ static int	bridge_ip6_checkbasic(struct mbuf **mp);
+ # endif /* INET6 */
++static int	bridge_fragment(struct ifnet *, struct mbuf *,
++		    struct ether_header *, int, struct llc *);
+ 
  SYSCTL_DECL(_net_link);
  SYSCTL_NODE(_net_link, IFT_BRIDGE, bridge, CTLFLAG_RW, 0, "Bridge");
+@@ -1497,13 +1499,21 @@ bridge_stop(struct ifnet *ifp, int disab
+ __inline void
+ bridge_enqueue(struct bridge_softc *sc, struct ifnet *dst_ifp, struct mbuf *m)
+ {
+-	int len, err;
++	int len, err = 0;
+ 	short mflags;
++	struct mbuf *m0;
  
-+static int pfil_onlyip = 1; /* only pass IP[46] packets when pfil is enabled */
- static int pfil_bridge = 1; /* run pfil hooks on the bridge interface */
- static int pfil_member = 1; /* run pfil hooks on the member interface */
- static int pfil_ipfw = 0;   /* layer2 filter with ipfw */
-+SYSCTL_INT(_net_link_bridge, OID_AUTO, pfil_onlyip, CTLFLAG_RW,
-+    &pfil_onlyip, 0, "Only pass IP packets when pfil is enabled");
- SYSCTL_INT(_net_link_bridge, OID_AUTO, pfil_bridge, CTLFLAG_RW,
-     &pfil_bridge, 0, "Packet filter on the bridge interface");
- SYSCTL_INT(_net_link_bridge, OID_AUTO, pfil_member, CTLFLAG_RW,
-@@ -417,9 +420,11 @@ sysctl_pfil_ipfw(SYSCTL_HANDLER_ARGS)
- 		/*
- 		 * Disable pfil so that ipfw doesnt run twice, if the user
- 		 * really wants both then they can re-enable pfil_bridge and/or
--		 * pfil_member.
-+		 * pfil_member. Also allow non-ip packets as ipfw can filter by
-+		 * layer2 type.
- 		 */
- 		if (pfil_ipfw) {
-+			pfil_onlyip = 0;
- 			pfil_bridge = 0;
- 			pfil_member = 0;
+ 	len = m->m_pkthdr.len;
+ 	mflags = m->m_flags;
+ 
+-	IFQ_ENQUEUE(&dst_ifp->if_snd, m, err);
++	for (; m; m = m0) {
++		m0 = m->m_nextpkt;
++		m->m_nextpkt = NULL;
++		
++		if (err == 0)
++			IFQ_ENQUEUE(&dst_ifp->if_snd, m, err);
++	}
++
+ 	if (err == 0) {
+ 
+ 		sc->sc_ifp->if_opackets++;
+@@ -2761,13 +2771,24 @@ ipfwpass:
+ 			error = pfil_run_hooks(&inet_pfil_hook, mp, bifp,
+ 					dir, NULL);
+ 
+-		/* Restore ip and the fields ntohs()'d. */
+-		if (*mp != NULL && error == 0) {
+-			ip = mtod(*mp, struct ip *);
+-			ip->ip_len = htons(ip->ip_len);
+-			ip->ip_off = htons(ip->ip_off);
++		if (*mp == NULL || error != 0) /* filter may consume */
++			break;
++
++		/* check if we need to fragment the packet */
++		if (pfil_member && ifp != NULL && dir == PFIL_OUT) {
++			i = (*mp)->m_pkthdr.len;
++			if (i > ifp->if_mtu) {
++				error = bridge_fragment(ifp, *mp, &eh2, snap,
++					    &llc1);
++				return error;
++			}
  		}
-@@ -2545,11 +2550,11 @@ bridge_pfil(struct mbuf **mp, struct ifn
- 			break;
- 		default:
- 			/*
--			 * ipfw allows layer2 protocol filtering using
--			 * 'mac-type' so we will let the packet past, if
--			 * ipfw is disabled then drop it.
-+			 * Check to see if the user wants to pass non-ip
-+			 * packets, these will not be checked by pfil(9) and
-+			 * passed unconditionaly so the default is to drop.
- 			 */
--			if (!IPFW_LOADED || pfil_ipfw == 0)
-+			if (pfil_onlyip)
- 				goto bad;
- 	}
  
-
-
++		/* Restore ip and the fields ntohs()'d. */
++		ip = mtod(*mp, struct ip *);
++		ip->ip_len = htons(ip->ip_len);
++		ip->ip_off = htons(ip->ip_off);
++
+ 		break;
+ # ifdef INET6
+ 	case ETHERTYPE_IPV6 :
+@@ -2979,3 +3000,59 @@ bad:
+ 	return -1;
+ }
+ # endif /* INET6 */
++
++/*
++ * bridge_fragment:
++ *
++ *	Return a fragmented mbuf chain.
++ */
++static int
++bridge_fragment(struct ifnet *ifp, struct mbuf *m, struct ether_header *eh,
++    int hassnap, struct llc *llc)
++{
++	struct mbuf *m0;
++	int error = -1;
++	struct ip *ip;
++
++	if (m->m_len < sizeof(struct ip) &&
++	    (m = m_pullup(m, sizeof(struct ip))) == NULL)
++		goto dropit;
++	ip = mtod(m, struct ip *);
++
++	error = ip_fragment(ip, &m, ifp->if_mtu, ifp->if_hwassist,
++		    CSUM_DELAY_IP);
++	if (error)
++		goto dropit;
++
++	/* walk the chain and re-add the Ethernet header */
++	for (m0 = m; m0; m0 = m0->m_nextpkt) {
++		if (error == 0) {
++			if (hassnap) {
++				M_PREPEND(m0, sizeof(struct llc), M_DONTWAIT);
++				if (m0 == NULL) {
++					error = ENOBUFS;
++					continue;
++				}
++				bcopy(llc, mtod(m0, caddr_t),
++				    sizeof(struct llc));
++			}
++			M_PREPEND(m0, ETHER_HDR_LEN, M_DONTWAIT);
++			if (m0 == NULL) {
++				error = ENOBUFS;
++				continue;
++			}
++			bcopy(eh, mtod(m0, caddr_t), ETHER_HDR_LEN);
++		} else 
++			m_freem(m);
++	}
++
++	if (error == 0)
++		ipstat.ips_fragmented++;
++
++	return (error);
++
++dropit:
++	if (m != NULL)
++		m_freem(m);
++	return (error);
++}

@@ -71,9 +71,14 @@ patch < ${PATCHDIR}/geom_vfs.c.diff
 cd ${SRCDIR}/sys/dev/em
 patch < ${PATCHDIR}/if_em.c.diff
 
-rm -rf ${SRCDIR}/src/sys/net/natpt ${SRCDIR}/src/sys/modules/natpt ${SRCDIR}/src/share/man/man4/natpt.4
+#rm -rf ${SRCDIR}/src/sys/net/natpt ${SRCDIR}/src/sys/modules/natpt ${SRCDIR}/src/share/man/man4/natpt.4
 #cd ${SRCDIR}/
 #patch -p1 < ${PATCHDIR}/natpt.diff
+
+# Andrew Thompson's fragmented packet bridge patch
+cd ${SRCDIR}/sys/net/
+patch < ${PATCHDIR}/if_bridge.c.diff
+
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
