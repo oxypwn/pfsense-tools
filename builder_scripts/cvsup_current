@@ -42,8 +42,9 @@ fi
 
 # CVSUP RELENG_6
 fastest_cvsup -c tld -q > /var/db/fastest_cvsup
-echo -n "Fastest found server: " &&  cat /var/db/fastest_cvsup && echo
 cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
+fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # clog source and usr.sbin/Makefile patch
 cd ${SRCDIR}/usr.sbin/
