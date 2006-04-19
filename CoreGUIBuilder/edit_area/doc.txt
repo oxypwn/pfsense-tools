@@ -1,0 +1,59 @@
+Compatibility:
+
+IE 6 			(previous: unknown)
+Firefox 1.5 		(previous: unknown)
+Netscape 8 		(with IE render mode)
+Mozilla 1.7
+(Opera not working)
+
+Mac:
+Firefox 		(not perfect...)
+(Safari not working)
+
+
+Initialisation:
+
+Just copy that and remplace "id_of_textarea" by the id of the textarea you want to replace:
+<script language='Javascript' type="text/javascript" src='edit_area/edit_area.js'></script>
+<script language='Javascript' type='text/javascript'>
+editArea.initArea({
+		id: "id_of_textarea"
+		});
+</script>
+<textarea id="src" style="height: 350px; width: 800px" name='toto'>
+
+optionnal available parameters:
+	debug: (boolean) to start debug mode	(default: false)
+	font-size: (int) the size of the font in pt (not avalaible for IE) (default: 10)
+	line_selection: (boolean) if start with smart display mode on (better display but higher CPU charge (default: true)
+	do_highlight: (boolean) if start with highlight syntax (default: false)
+	toolbar: (string) a list of the controls that should appears in the toolbar  (default: "new_document, |, search, go_to_line, |, undo, redo, |, select_font, change_line_selection, highlight, reset_highlight, |, help")
+	begin_toolbar: (string) add controls at the beginning of the toolbar (default: "")
+	end_toolbar: (string) add controls at the end of the toolbar (default: "")
+	allow_resize: ("both", "no", "x", "y") determine if the user can resize the textarea's width(x) or height(y) or both(both) or none(no) (default: "both")
+	allow_toogle: (boolean) determine if it should make appears a button that allow to toogle the editor on/off (default: true)
+	save_callback: (string) the name of the function that should be called by the "save" control. This function will reveice one parameters that will contain the content of the textarea (default: "")
+	load_callback: (string) the name of the function that should be called by the "load" control. This function will receive one parameter that is the textarea element. (default: "")
+	language: (string) the language that will be used to display datas (eg: "en" or "fr") (default: "en")
+
+The width and the hight should be defined in the style attribute
+
+EG: of init
+editArea.initArea({
+		id: "src",
+		do_highlight: true,
+		toolbar: "new_document, save, |, search, go_to_line, |, undo, redo, |, select_font, change_line_selection, highlight, reset_highlight, |, help",
+		save_callback: "my_save"
+	});
+
+function my_save(content){
+	alert("content");
+}
+
+
+PHP Gzip Compression:
+If you have php on your serveur replace:
+<script language='Javascript' type="text/javascript" src='edit_area/edit_area.js'></script>
+By:
+<script language='Javascript' type="text/javascript" src='edit_area/edit_area_gzip.php'></script>
+It will make only one request all javascript scripts (instead of one for each .js file), and will reduce the total size by 75%
