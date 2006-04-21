@@ -75,6 +75,7 @@
 ./sbin/gnop
 ./sbin/gpt
 ./sbin/graid3
+./sbin/growfs
 ./sbin/gshsec
 ./sbin/gstripe
 ./sbin/gvinum
@@ -408,6 +409,10 @@
 ./usr/libexec/vfontedpr
 
 ./usr/include
+
+./usr/local/man
+
+./usr/local/bin/links
 
 ./usr/local/share/aclocal
 ./usr/local/share/cvsup
