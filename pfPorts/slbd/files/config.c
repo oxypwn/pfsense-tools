@@ -312,8 +312,11 @@ int vsvc_getconfig(char *cfile) {
 				 *  - add HTTP POST support
 				 */ 
 
-				if (cgetcap(buf, "ping", ':') != NULL)
+				if (cgetcap(buf, "ping", ':') != NULL) {
 					setservice_ping(v->services[j]);
+					setservice_addpolltype(v->services[j],
+					    SVCPOLL_PING);
+				}
 				
 				/*
 				 * set inaddr and port from config string
@@ -394,6 +397,3 @@ int vsvc_getconfig(char *cfile) {
 
 	return(0);
 }
-
-
-
