@@ -31,6 +31,11 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
+# Use pfSense_wrap.6 as kernel configuration file
+export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+export NO_COMPRESSEDFS=yes
+export PRUNE_LIST="${PWD}/remove.list"
+
 cd $CVS_CO_DIR
 
 # Nuke the boot directory
@@ -43,22 +48,25 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep cpdup) >> conf/packages
 set -e
 
+cd $CVS_CO_DIR
 create_pfSense_Small_update_tarball
-
-# Use pfSense_wrap.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
-export NO_COMPRESSEDFS=yes
-export PRUNE_LIST="${PWD}/remove.list"
 
 # Use embedded make.conf
 export MAKE_CONF="${PWD}/conf/make.conf.embedded"
 
+cd $CVS_CO_DIR
+
 # Clean out directories
 freesbie_make cleandir
 
+cd $CVS_CO_DIR
 # Build if needed and install world and kernel
-make_world_kernel
+#make_world_kernel
+
+# Invoke FreeSBIE2 toolchain
+freesbie_make extra
 
 fixup_updates
 
 create_pfSense_BaseSystem_Small_update_tarball
+
