@@ -72,12 +72,12 @@ fi
 
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress (PASSIVE FTP)..."
+	echo "Cannot find fastest_cvsup, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
 fi
 # Add cvsup
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress..."
+	echo "Cannot find fastest_cvsup, pkg_add in progress..."
 	/usr/sbin/pkg_add -r fastest_cvsup
 fi
 
@@ -126,6 +126,7 @@ cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current
 /usr/bin/killall tail
 
 # If iso completed, self destruct.
-if [ -f /usr/obj.pfsense/pfSense.iso ]; then
+if [ -f /usr/obj.pfSense/pfSense.iso ]; then
+	echo "Removing developer bootstrap..."
 	rm -rf /usr/local/etc/rc.d/dev_bootstrap.sh
 fi
