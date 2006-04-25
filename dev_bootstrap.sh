@@ -61,7 +61,7 @@ echo "*default compress" >>/tmp/bootstrap-supfile
 
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
+	echo "Cannot find cvsup, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cvsup-without-gui
 fi
 # Add cvsup
@@ -72,7 +72,7 @@ fi
 
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
+	echo "Cannot find cvsup, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
 fi
 # Add cvsup
@@ -125,3 +125,7 @@ cd $HOME_PFSENSE/tools/builder_scripts; sh ./cvsup_current
 # Kill off console tailing process if needed
 /usr/bin/killall tail
 
+# If iso completed, self destruct.
+if [ -f /usr/obj.pfsense/pfSense.iso ]; then
+	rm -rf /usr/local/etc/rc.d/dev_bootstrap.sh
+fi
