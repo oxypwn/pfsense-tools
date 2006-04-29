@@ -62,7 +62,8 @@ UFS_LABEL=${FREESBIE_LABEL:-"pfSense"} # UFS label
 CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 
 # Root partition size
-ROOTSIZE=${ROOTSIZE:-"116740"}  # Total number of sectors
+# ROOTSIZE=${ROOTSIZE:-"116740"}  # Total number of sectors - 59 megs
+ROOTSIZE=${ROOTSIZE:-"119990"}  # Total number of sectors - 61 megs
 CONFSIZE=${CONFSIZE:-"4096"}
 
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
