@@ -8,6 +8,8 @@
 ./boot/device.hints_wrap
 ./boot/loader.conf_wrap
 
+./boot/kernel/ng*
+
 ./etc/bluetooth
 ./etc/gnats
 ./etc/isdn
