@@ -9,6 +9,7 @@
 ./boot/loader.conf_wrap
 
 ./boot/kernel/ng*
+./boot/kernel/netgraph*
 
 ./etc/bluetooth
 ./etc/gnats
