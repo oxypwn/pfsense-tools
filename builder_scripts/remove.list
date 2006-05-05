@@ -185,8 +185,6 @@
 ./usr/bin/gcore
 ./usr/bin/gencat
 ./usr/bin/getconf
-./usr/bin/getopt
-./usr/bin/getopts
 ./usr/bin/gzexe
 ./usr/bin/hd
 ./usr/bin/hesinfo
