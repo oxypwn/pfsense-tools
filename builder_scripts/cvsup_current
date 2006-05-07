@@ -80,6 +80,11 @@ patch < ${PATCHDIR}/if_em.c.diff
 cd ${SRCDIR}/sys/net/
 patch < ${PATCHDIR}/if_bridge.c.diff
 
+# Be more like Windows and Linux and send our hostname in the host-name
+# option if none is given in the config file.  Also add #ifdefd out
+# support for sending a client ID based on our MAC address.
+cd ${SRCDIR}/sbin/dhclient
+patch < ${PATCHDIR}/dhclient.c.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
