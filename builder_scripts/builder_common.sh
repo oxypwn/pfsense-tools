@@ -71,6 +71,7 @@ populate_extra() {
     # Nuke CVS dirs
     set +e
     find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
+    find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
     set -e
 
     # Enable debug if requested
@@ -224,6 +225,7 @@ create_pfSense_tarball() {
 	rm -f $CVS_CO_DIR/boot/*
 
 	find $CVS_CO_DIR -name CVS -exec rm -rf {} \; 2>/dev/null
+	find $CVS_CO_DIR -name "_orange-flow" -exec rm -rf {} \; 2>/dev/null
 
 	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
 }
