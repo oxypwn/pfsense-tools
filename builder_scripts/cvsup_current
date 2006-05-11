@@ -86,6 +86,9 @@ patch < ${PATCHDIR}/if_bridge.c.diff
 cd ${SRCDIR}/sbin/dhclient
 patch < ${PATCHDIR}/dhclient.c.diff
 
+cd cd ${SRCDIR}/sys/net/
+patch < ${PATCHDIR}/if_gre.c.diff
+
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*
