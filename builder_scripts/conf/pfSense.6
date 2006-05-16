@@ -1,16 +1,36 @@
-# $Id$
+#
+# GENERIC -- Generic kernel configuration file for FreeBSD/i386
+#
+# For more information on this file, please read the handbook section on
+# Kernel Configuration Files:
+#
+#    http://www.FreeBSD.org/doc/en_US.ISO8859-1/books/handbook/kernelconfig-config.html
+#
+# The handbook is also available locally in /usr/share/doc/handbook
+# if you've installed the doc distribution, otherwise always see the
+# FreeBSD World Wide Web server (http://www.FreeBSD.org/) for the
+# latest information.
+#
+# An exhaustive list of options and more detailed explanations of the
+# device lines is also present in the ../../conf/NOTES and NOTES files.
+# If you are in doubt as to the purpose or necessity of a line, check first
+# in NOTES.
+#
+# $FreeBSD: src/sys/i386/conf/GENERIC,v 1.429.2.7.2.2 2006/05/01 00:15:12 scottl Exp $
 
 machine		i386
 cpu		I486_CPU
 cpu		I586_CPU
 cpu		I686_CPU
-ident		pfSense
+ident		GENERIC
 
 # To statically compile in device wiring instead of /boot/device.hints
 #hints		"GENERIC.hints"		# Default places to look for devices.
 
-options 	SCHED_4BSD		# 4BSD scheduler
+makeoptions	DEBUG=-g		# Build kernel with gdb(1) debug symbols
+
 #options 	SCHED_ULE		# ULE scheduler
+options 	SCHED_4BSD		# 4BSD scheduler
 options 	PREEMPTION		# Enable kernel thread preemption
 options 	INET			# InterNETworking
 options 	INET6			# IPv6 communications protocols
@@ -29,7 +49,7 @@ options 	PSEUDOFS		# Pseudo-filesystem framework
 options 	GEOM_GPT		# GUID Partition Tables.
 options 	COMPAT_43		# Compatible with BSD 4.3 [KEEP THIS!]
 options 	COMPAT_FREEBSD4		# Compatible with FreeBSD4
-options		COMPAT_FREEBSD5		# Compatible with FreeBSD5
+options 	COMPAT_FREEBSD5		# Compatible with FreeBSD5
 options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
 options 	KTRACE			# ktrace(1) support
 options 	SYSVSHM			# SYSV-style shared memory
@@ -37,18 +57,15 @@ options 	SYSVMSG			# SYSV-style message queues
 options 	SYSVSEM			# SYSV-style semaphores
 options 	_KPOSIX_PRIORITY_SCHEDULING # POSIX P1003_1B real-time extensions
 options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
-#options 	AHC_REG_PRETTY_PRINT	# Print register bitfields in debug
+options 	AHC_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~128k to driver.
-#options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
+options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~215k to driver.
 options 	ADAPTIVE_GIANT		# Giant mutex is adaptive.
 
-# To make an SMP kernel, the next two lines are needed
-options 	SMP			# Symmetric MultiProcessor Kernel
 device		apic			# I/O APIC
 
-# Bus support.  Do not remove isa, even if you have no isa slots
-device		isa
+# Bus support.
 device		eisa
 device		pci
 
@@ -70,9 +87,9 @@ device		ahc		# AHA2940 and onboard AIC7xxx devices
 device		ahd		# AHA39320/29320 and onboard AIC79xx devices
 device		amd		# AMD 53C974 (Tekram DC-390(T))
 device		isp		# Qlogic family
-device 		ispfw		# Firmware for QLogic HBAs- normally a module
+#device 	ispfw		# Firmware for QLogic HBAs- normally a module
 device		mpt		# LSI-Logic MPT-Fusion
-device		ncr		# NCR/Symbios Logic
+#device		ncr		# NCR/Symbios Logic
 device		sym		# NCR/Symbios Logic (newer chipsets + those of `ncr')
 device		trm		# Tekram DC395U/UW/F DC315U adapters
 
@@ -102,6 +119,7 @@ device		asr		# DPT SmartRAID V, VI and Adaptec SCSI RAID
 device		ciss		# Compaq Smart RAID 5*
 device		dpt		# DPT Smartcache III, IV - See NOTES for options
 device		hptmv		# Highpoint RocketRAID 182x
+device		rr232x		# Highpoint RocketRAID 232x
 device		iir		# Intel Integrated RAID
 device		ips		# IBM (Adaptec) ServeRAID
 device		mly		# Mylex AcceleRAID/eXtremeRAID
@@ -111,6 +129,7 @@ device		twa		# 3ware 9000 series PATA/SATA RAID
 device		aac		# Adaptec FSA RAID
 device		aacp		# SCSI passthrough for aac (requires CAM)
 device		ida		# Compaq Smart RAID
+device		mfi		# LSI MegaRAID SAS
 device		mlx		# Mylex DAC960 family
 device		pst		# Promise Supertrak SX6000
 device		twe		# 3ware ATA RAID
@@ -118,7 +137,9 @@ device		twe		# 3ware ATA RAID
 # atkbdc0 controls both the keyboard and the PS/2 mouse
 device		atkbdc		# AT keyboard controller
 device		atkbd		# AT keyboard
-#device		psm		# PS/2 mouse
+device		psm		# PS/2 mouse
+
+device		kbdmux		# keyboard multiplexer
 
 device		vga		# VGA video card driver
 
@@ -133,9 +154,6 @@ device		sc
 #options 	FAT_CURSOR	# start with block cursor
 
 device		agp		# support several AGP chipsets
-
-# Floating point support - do not disable.
-device		npx
 
 # Power management support (see NOTES for more options)
 #device		apm
@@ -155,6 +173,7 @@ device		sio		# 8250, 16[45]50 based serial ports
 device		ppc
 device		ppbus		# Parallel port bus (required)
 device		lpt		# Printer
+device		plip		# TCP/IP over parallel
 device		ppi		# Parallel port interface device
 #device		vpo		# Requires scbus and da
 
@@ -173,6 +192,7 @@ device		vx		# 3Com 3c590, 3c595 (``Vortex'')
 # PCI Ethernet NICs that use the common MII bus controller code.
 # NOTE: Be sure to keep the 'device miibus' line in order to use these NICs!
 device		miibus		# MII bus support
+device		bce		# Broadcom BCM5706/BCM5708 Gigabit Ethernet
 device		bfe		# Broadcom BCM440x 10/100 Ethernet
 device		bge		# Broadcom BCM570xx Gigabit Ethernet
 device		dc		# DEC/Intel 21143 and various workalikes
@@ -207,31 +227,16 @@ device		lnc		# NE2100, NE32-VL Lance Ethernet cards
 device		sn		# SMC's 9000 series of Ethernet chips
 device		xe		# Xircom pccard Ethernet
 
-# ISA devices that use the old ISA shims
-#device		le
-
 # Wireless NIC cards
 device		wlan		# 802.11 support
-device		wlan_wep
-device		wlan_ccmp
-device		wlan_tkip
-device		wlan_xauth
-device		wlan_acl
-device		ath
-device		ath_rate_sample
-device		ath_hal
-device		an              # Aironet 4500/4800 802.11 wireless NICs.
+device		an		# Aironet 4500/4800 802.11 wireless NICs.
 device		awi		# BayStack 660 and others
-#device		iwi                     # Intel PRO/Wireless 2200BG
 device		ral		# Ralink Technology RT2500 wireless NICs.
-device		wi              # WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-device		wl              # Older non 802.11 Wavelan wireless NIC.
-
+device		wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
+#device		wl		# Older non 802.11 Wavelan wireless NIC.
 
 # Pseudo devices.
 device		loop		# Network loopback
-device		mem		# Memory and kernel memory devices
-device		io		# I/O device
 device		random		# Entropy device
 device		ether		# Ethernet support
 device		sl		# Kernel SLIP
@@ -254,16 +259,14 @@ device		ehci		# EHCI PCI->USB interface (USB 2.0)
 device		usb		# USB Bus (required)
 #device		udbp		# USB Double Bulk Pipe devices
 device		ugen		# Generic
-# Uncommented by request of colin
-#device		uhid		# "Human Interface Devices"
+device		uhid		# "Human Interface Devices"
 device		ukbd		# Keyboard
-#device		ulpt		# Printer
+device		ulpt		# Printer
 device		umass		# Disks/Mass storage - Requires scbus and da
-#device		ums		# Mouse
+device		ums		# Mouse
 device		ural		# Ralink Technology RT2500USB wireless NICs
-#device		urio		# Diamond Rio 500 MP3 player
-#device		uscanner	# Scanners
-
+device		urio		# Diamond Rio 500 MP3 player
+device		uscanner	# Scanners
 # USB Ethernet, requires miibus
 device		aue		# ADMtek USB Ethernet
 device		axe		# ASIX Electronics USB Ethernet
@@ -293,86 +296,86 @@ options         IPFIREWALL_FORWARD
 options         IPFIREWALL_VERBOSE
 options         IPFIREWALL_VERBOSE_LIMIT
 
-device		carp
-device		pf
-device		pflog
-device		pfsync
-device		vlan
-device		gre
+device          carp
+device          pf
+device          pflog
+device          pfsync
+device          vlan
+device          gre
 
-options		IPSTEALTH
-options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
-options		GEOM_UZIP
-options		GEOM_LABEL
+options         IPSTEALTH
+options         TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
+options         GEOM_UZIP
+options         GEOM_LABEL
 
-options		INCLUDE_CONFIG_FILE
+options         INCLUDE_CONFIG_FILE
 
-#options		BRIDGE
-options		NETGRAPH                #netgraph(4) system
-options		NETGRAPH_ASYNC
-options		NETGRAPH_BPF
-options		NETGRAPH_BRIDGE
-options		NETGRAPH_CISCO
-options		NETGRAPH_ECHO
-options		NETGRAPH_ETHER
-options		NETGRAPH_FRAME_RELAY
-options		NETGRAPH_HOLE
-options		NETGRAPH_IFACE
-options		NETGRAPH_KSOCKET
+#options                BRIDGE
+options         NETGRAPH                #netgraph(4) system
+options         NETGRAPH_ASYNC
+options         NETGRAPH_BPF
+options         NETGRAPH_BRIDGE
+options         NETGRAPH_CISCO
+options         NETGRAPH_ECHO
+options         NETGRAPH_ETHER
+options         NETGRAPH_FRAME_RELAY
+options         NETGRAPH_HOLE
+options         NETGRAPH_IFACE
+options         NETGRAPH_KSOCKET
 
-options		NETGRAPH_LMI
-options		NETGRAPH_MPPC_ENCRYPTION
-options		NETGRAPH_ONE2MANY
-options		NETGRAPH_PPP
-options		NETGRAPH_PPPOE
-options		NETGRAPH_PPTPGRE
-options		NETGRAPH_RFC1490
-options		NETGRAPH_SOCKET
-options		NETGRAPH_TEE
-options		NETGRAPH_TTY
-options		NETGRAPH_UI
-options		NETGRAPH_VJC
+options         NETGRAPH_LMI
+options         NETGRAPH_MPPC_ENCRYPTION
+options         NETGRAPH_ONE2MANY
+options         NETGRAPH_PPP
+options         NETGRAPH_PPPOE
+options         NETGRAPH_PPTPGRE
+options         NETGRAPH_RFC1490
+options         NETGRAPH_SOCKET
+options         NETGRAPH_TEE
+options         NETGRAPH_TTY
+options         NETGRAPH_UI
+options         NETGRAPH_VJC
 
 device ubsa
 device ucom
-	 
-options		FAST_IPSEC
-#options		IPSEC_NAT_T
 
-device		crypto          # core crypto support
-device		cryptodev       # /dev/crypto for access to h/w
-device		rndtest         # FIPS 140-2 entropy tester
-device		hifn            # Hifn 7951, 7781, etc.
-options		HIFN_DEBUG      # enable debugging support: hw.hifn.debug
-options		HIFN_RNDTEST    # enable rndtest support
-device		ubsec           # Broadcom 5501, 5601, 58xx
+options         FAST_IPSEC
+#options                IPSEC_NAT_T
 
-options		ALTQ
-options		ALTQ_CBQ
-options		ALTQ_RED
-options		ALTQ_RIO
-options		ALTQ_HFSC
-options		ALTQ_PRIQ
-options		ALTQ_NOPCC	# Required for SMP builds !!
+device          crypto          # core crypto support
+device          cryptodev       # /dev/crypto for access to h/w
+device          rndtest         # FIPS 140-2 entropy tester
+device          hifn            # Hifn 7951, 7781, etc.
+options         HIFN_DEBUG      # enable debugging support: hw.hifn.debug
+options         HIFN_RNDTEST    # enable rndtest support
+device          ubsec           # Broadcom 5501, 5601, 58xx
+
+options         ALTQ
+options         ALTQ_CBQ
+options         ALTQ_RED
+options         ALTQ_RIO
+options         ALTQ_HFSC
+options         ALTQ_PRIQ
+options         ALTQ_NOPCC      # Required for SMP builds !!
 
 
 # Bridging
-device		if_bridge
+device          if_bridge
 
-options		MSGMNB=8192     # max # of bytes in a queue
-options		MSGMNI=40       # number of message queue identifiers
-options		MSGSEG=512      # number of message segments per queue
-options		MSGSSZ=32       # size of a message segment
-options		MSGTQL=2048     # max messages in system
+options         MSGMNB=8192     # max # of bytes in a queue
+options         MSGMNI=40       # number of message queue identifiers
+options         MSGSEG=512      # number of message segments per queue
+options         MSGSSZ=32       # size of a message segment
+options         MSGTQL=2048     # max messages in system
 
-device		tap
-device		hme
+device          tap
+device          hme
 
 # Needed for FreeSBIE 2
-options		NULLFS
+options         NULLFS
 
 # Kbdmux
-device		kbdmux
+device          kbdmux
 
 device          speaker
 
@@ -385,4 +388,8 @@ options         ZERO_COPY_SOCKETS
 device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
 
 options TCP_SIGNATURE
+
+# To make an SMP kernel, the next two lines are needed
+options         SMP                     # Symmetric MultiProcessor Kernel
+device          apic                    # I/O APIC
 
