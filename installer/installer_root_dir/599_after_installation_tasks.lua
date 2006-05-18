@@ -12,11 +12,11 @@ return {
     id = "pfsense_after_install",
     name = _("pfSense After Installation Routines"),
     effect = function(step)
-        local cmds = CmdChain.new()
-        local filename = "/usr/local/bin/after_installation_routines.sh"
+	local cmds = CmdChain.new()
+	local filename = "/usr/local/bin/after_installation_routines.sh"
 	local line
         
-        for line in io.lines(filename) do
+	for line in io.lines(filename) do
 		cmds:set_replacements{
 		    line = line,
 		    base = App.state.target:get_base()
@@ -24,11 +24,11 @@ return {
 		if not string.find(line, "^%#") then
 		    cmds:add("${line}")
 		end
-        end
+	end
 
 	cmds:execute()
 	
-        return step:next()
+	return step:next()
 
     end
 
