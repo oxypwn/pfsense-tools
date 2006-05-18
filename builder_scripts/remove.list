@@ -44,7 +44,6 @@
 ./lib/geom/geom_shsec.so
 ./lib/geom/geom_stripe.so
 
-./lib/libbsdxml.so.2
 ./lib/libcam.so.3
 
 ./root/.xcustom.sh
