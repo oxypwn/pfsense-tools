@@ -1,6 +1,6 @@
---- ata-chipset.c.orig	Mon Nov  7 18:53:43 2005
-+++ ata-chipset.c	Mon Nov  7 18:53:50 2005
-@@ -236,15 +236,34 @@
+--- ata-chipset.c.orig	Thu Mar 16 21:28:51 2006
++++ ata-chipset.c	Mon May 15 02:06:36 2006
+@@ -288,15 +288,34 @@
  static int
  ata_sata_connect(struct ata_channel *ch)
  {
@@ -31,14 +31,14 @@
 +	ATA_IDX_OUTL(ch, ATA_SERROR, error);
  	if ((status & ATA_SS_CONWELL_MASK) == ATA_SS_CONWELL_GEN1 ||
 -	    (status & ATA_SS_CONWELL_MASK) == ATA_SS_CONWELL_GEN2)
-+           (status & ATA_SS_CONWELL_MASK) == ATA_SS_CONWELL_GEN2) {
-+               something_there = 1;
++	    (status & ATA_SS_CONWELL_MASK) == ATA_SS_CONWELL_GEN2) {	
++	    something_there = 1;
  	    break;
 +	}
  	ata_udelay(10000);
      }
      if (timeout >= 100) {
-@@ -267,7 +286,7 @@
+@@ -319,7 +338,7 @@
      }
      if (bootverbose)
  	device_printf(ch->dev, "SATA connect ready time=%dms\n", timeout * 10);
@@ -47,9 +47,9 @@
  	if ((ATA_IDX_INB(ch, ATA_CYL_LSB) == ATAPI_MAGIC_LSB) &&
  	    (ATA_IDX_INB(ch, ATA_CYL_MSB) == ATAPI_MAGIC_MSB))
  	    ch->devices = ATA_ATAPI_MASTER;
-@@ -1657,6 +1676,13 @@
- 	    /* force all ports active "the legacy way" */
- 	    pci_write_config(dev, 0x92, pci_read_config(dev, 0x92, 2) | 0x0f,2);
+@@ -1650,6 +1669,12 @@
+ 	/* force all ports active "the legacy way" */
+ 	pci_write_config(dev, 0x92, pci_read_config(dev, 0x92, 2) | 0x0f,2);
  
 +           if (ctlr->chip->chipid == ATA_I82801GB_S1) {
 +               /* enable AHCI register compat mode */
@@ -57,23 +57,19 @@
 +               ATA_OUTL(ctlr->r_res2, 0x0C, ATA_INL(ctlr->r_res2, 0x0C) | 0xf);
 +           }
 +
-+
- 	    /* enable AHCI mode */
- 	    ATA_OUTL(ctlr->r_res2, ATA_AHCI_GHC, ATA_AHCI_GHC_AE);
+ 	ctlr->allocate = ata_intel_allocate;
+ 	ctlr->reset = ata_intel_reset;
  
-@@ -1845,10 +1871,13 @@
+@@ -1721,8 +1746,10 @@
      struct ata_channel *ch = device_get_softc(dev);
      int mask, timeout;
  
--    /* ICH6 has 4 SATA ports as master/slave on 2 channels so deal with pairs */
+-    /* ICH6 & ICH7 in compat mode has 4 SATA ports as master/slave on 2 ch's */
+-    if (ctlr->chip->cfg1) {
 +    /* ICH6/7 has 4 SATA ports as master/slave on 2 channels so deal with pairs */
-     if (ctlr->chip->chipid == ATA_I82801FB_S1 ||
- 	ctlr->chip->chipid == ATA_I82801FB_R1 ||
--	ctlr->chip->chipid == ATA_I82801FB_M) {
-+        ctlr->chip->chipid == ATA_I82801FB_M  ||
-+        ctlr->chip->chipid == ATA_I82801GB_S1 ||
-+        ctlr->chip->chipid == ATA_I82801GB_R1 ||
-+        ctlr->chip->chipid == ATA_I82801GB_M) {
++    if (ctlr->chip->cfg1 || ctlr->chip->chipid == ATA_I82801FB_M || ctlr->chip->chipid == ATA_I82801GB_S1 ||
++	 ctlr->chip->chipid == ATA_I82801GB_R1 ||
++	 ctlr->chip->chipid == ATA_I82801GB_M) {
  	mask = (0x0005 << ch->unit);
      }
      else {
