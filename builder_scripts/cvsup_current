@@ -12,14 +12,14 @@ CURRENTDIR=`pwd`
 if [ $PFSENSETAG = "HEAD" ]; then
 	# Remove patches items for if_enc
 	echo "HEAD build detected.  Removing older if_em.diff."
-	rm /usr/src/sys/conf/options.orig
-	rm /usr/src/sys/conf/files.orig
-	rm /usr/src/sys/net/if_types.h.orig	
-	rm /usr/src/sys/net/if_enc.c.orig
-	rm /usr/src/sys/netinet6/esp_input.c.orig
-	rm /usr/src/sys/netinet6/esp_output.c.orig
-	rm /usr/src/sys/netipsec/ipsec_input.c.orig
-	rm /usr/src/sys/netipsec/ipsec_output.c.orig
+	rm /usr/src/sys/conf/options
+	rm /usr/src/sys/conf/files
+	rm /usr/src/sys/net/if_types.h	
+	rm /usr/src/sys/net/if_enc.c
+	rm /usr/src/sys/netinet6/esp_input.c
+	rm /usr/src/sys/netinet6/esp_output.c
+	rm /usr/src/sys/netipsec/ipsec_input.c
+	rm /usr/src/sys/netipsec/ipsec_output.c
 fi
 
 # Update FreeSBIE2 files from CVS
