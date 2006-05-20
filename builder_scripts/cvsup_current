@@ -21,6 +21,8 @@ if [ $PFSENSETAG = "HEAD" ]; then
 	rm -f /usr/src/sys/netipsec/ipsec_input.c
 	rm -f /usr/src/sys/netipsec/ipsec_output.c
 	echo "Adding device enc to pfSense.6"
+	cat /home/pfsense/tools/builder_scripts/conf/pfSense.6 | grep -v "device enc"> /tmp/tmp
+	mv /tmp/tmp /home/pfsense/tools/builder_scripts/conf/pfSense.6
 	echo "device enc" >> /home/pfsense/tools/builder_scripts/conf/pfSense.6
 else
 	echo "Removing pfSense.6"
@@ -123,6 +125,8 @@ if [ $PFSENSETAG = "HEAD" ]; then
 	echo "HEAD build detected.  Including if_enc.diff"
 	cd ${SRCDIR}/sys
 	patch < ${PATCHDIR}/if_enc.diff
+	cd ${SRCDIR}/sys/netipsec
+	patch < ${PATCHDIR}/pfsense_enc.diff
 fi
 
 echo -n Cleaning up previous build environemnt...Please wait...
