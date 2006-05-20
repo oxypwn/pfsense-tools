@@ -115,7 +115,7 @@ cd ${SRCDIR}/sys/geom
 patch < ${PATCHDIR}/geom_ctl.c.diff
 
 if [ $PFSENSETAG = "HEAD" ]; then
-	echo "HEAD build detected.  Including if_em.diff"
+	echo "HEAD build detected.  Including if_enc.diff"
 	cd ${SRCDIR}/sys
 	patch < ${PATCHDIR}/if_enc.diff
 fi
