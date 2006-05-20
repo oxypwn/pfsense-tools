@@ -20,6 +20,9 @@ if [ $PFSENSETAG = "HEAD" ]; then
 	rm /usr/src/sys/netinet6/esp_output.c
 	rm /usr/src/sys/netipsec/ipsec_input.c
 	rm /usr/src/sys/netipsec/ipsec_output.c
+	echo "device enc" > /home/pfsense/tools/builder_scripts/conf/pfSense.6
+else
+	rm /home/pfsense/tools/builder_scripts/conf/pfSense.6
 fi
 
 # Update FreeSBIE2 files from CVS
