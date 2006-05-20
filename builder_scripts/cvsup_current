@@ -21,7 +21,7 @@ if [ $PFSENSETAG = "HEAD" ]; then
 	rm -f /usr/src/sys/netipsec/ipsec_input.c
 	rm -f /usr/src/sys/netipsec/ipsec_output.c
 	echo "Adding device enc to pfSense.6"
-	echo "device enc" > /home/pfsense/tools/builder_scripts/conf/pfSense.6
+	echo "device enc" >> /home/pfsense/tools/builder_scripts/conf/pfSense.6
 else
 	echo "Removing pfSense.6"
 	rm /home/pfsense/tools/builder_scripts/conf/pfSense.6
