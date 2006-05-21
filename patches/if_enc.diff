@@ -1,41 +1,40 @@
---- ./conf/options.orig	Thu Mar 16 15:27:31 2006
-+++ ./conf/options	Thu Mar 16 15:27:31 2006
-@@ -338,6 +338,7 @@ DEVICE_POLLING
- DEV_PF			opt_pf.h
- DEV_PFLOG		opt_pf.h
- DEV_PFSYNC		opt_pf.h
-+DEV_ENC			opt_enc.h
- ETHER_II		opt_ef.h
- ETHER_8023		opt_ef.h
- ETHER_8022		opt_ef.h
---- ./conf/files.orig	Thu Mar 16 15:27:31 2006
-+++ ./conf/files	Thu Mar 16 15:27:31 2006
-@@ -1450,6 +1450,7 @@ net/if_stf.c			optional stf
- net/if_tun.c			optional tun
- net/if_tap.c			optional tap
- net/if_vlan.c			optional vlan
-+net/if_enc.c			optional enc
- net/netisr.c			standard
- net/ppp_deflate.c		optional ppp_deflate
- net/ppp_tty.c			optional ppp
---- ./net/if_types.h.orig	Thu Mar 16 15:27:31 2006
-+++ ./net/if_types.h	Thu Mar 16 15:27:31 2006
+Index: conf/files
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files,v
+retrieving revision 1.1031.2.29
+diff -u -p -r1.1031.2.29 files
+--- conf/files	12 Apr 2006 17:45:24 -0000	1.1031.2.29
++++ conf/files	21 May 2006 21:43:16 -0000
+@@ -1678,6 +1678,7 @@ netinet6/route6.c		optional inet6
+ netinet6/scope6.c		optional inet6
+ netinet6/udp6_output.c		optional inet6
+ netinet6/udp6_usrreq.c		optional inet6
++netipsec/if_enc.c		optional fast_ipsec
+ netipsec/ipsec.c		optional fast_ipsec
+ netipsec/ipsec_input.c		optional fast_ipsec
+ netipsec/ipsec_mbuf.c		optional fast_ipsec
+Index: net/if_types.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_types.h,v
+retrieving revision 1.21
+diff -u -p -r1.21 if_types.h
+--- net/if_types.h	10 Jun 2005 16:49:19 -0000	1.21
++++ net/if_types.h	21 May 2006 22:10:08 -0000
 @@ -246,6 +246,7 @@
  #define	IFT_GIF		0xf0
  #define	IFT_PVC		0xf1
  #define	IFT_FAITH	0xf2
-+#define IFT_ENC		0xf4
++#define	IFT_ENC		0xf4
  #define	IFT_PFLOG	0xf6
  #define	IFT_PFSYNC	0xf7
  #define	IFT_CARP	0xf8	/* Common Address Redundancy Protocol */
---- ./net/if_enc.c.orig	Tue Mar 21 17:33:49 2006
-+++ ./net/if_enc.c	Tue Mar 21 17:32:45 2006
-@@ -0,0 +1,227 @@
-+#include "opt_atalk.h"
-+#include "opt_inet.h"
-+#include "opt_inet6.h"
-+#include "opt_ipx.h"
-+
+Index: netipsec/if_enc.c
+===================================================================
+RCS file: netipsec/if_enc.c
+diff -N netipsec/if_enc.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ netipsec/if_enc.c	21 May 2006 22:13:43 -0000
+@@ -0,0 +1,236 @@
 +#include <sys/param.h>
 +#include <sys/systm.h>
 +#include <sys/kernel.h>
@@ -51,69 +50,63 @@
 +#include <net/if.h>
 +#include <net/if_clone.h>
 +#include <net/if_types.h>
++#include <net/pfil.h>
 +#include <net/netisr.h>
-+#include <net/route.h>
 +#include <net/bpf.h>
 +#include <net/bpfdesc.h>
 +
-+#ifdef	INET
 +#include <netinet/in.h>
++#include <netinet/in_systm.h>
++#include <netinet/ip.h>
++#include <netinet/ip_var.h>
 +#include <netinet/in_var.h>
-+#endif
-+
-+#ifdef IPX
-+#include <netipx/ipx.h>
-+#include <netipx/ipx_if.h>
-+#endif
++#include "opt_inet6.h"
 +
 +#ifdef INET6
-+#ifndef INET
-+#include <netinet/in.h>
-+#endif
-+#include <netinet6/in6_var.h>
 +#include <netinet/ip6.h>
++#include <netinet6/ip6_var.h>
 +#endif
 +
-+#ifdef NETATALK
-+#include <netatalk/at.h>
-+#include <netatalk/at_var.h>
-+#endif
++#define ENCMTU		(1024+512)
++#define ENC_HDRLEN	12
 +
-+#include <net/if_enc.h>
++int		ipsec_dofilter = 0;
++struct ifnet	*ipsec_encif;
 +
-+#define ENCNAME	"enc"
++struct enchdr {
++	u_int32_t af;
++	u_int32_t spi;
++	u_int32_t flags;
++};
 +
 +struct enc_softc {
 +	struct	ifnet *sc_ifp;
-+	LIST_ENTRY(enc_softc) sc_next;
 +};
 +
 +int		encioctl(struct ifnet *, u_long, caddr_t);
-+static void	encrtrequest(int, struct rtentry *, struct rt_addrinfo *);
 +int		encoutput(struct ifnet *ifp, struct mbuf *m,
 +		    struct sockaddr *dst, struct rtentry *rt);
 +static int	enc_clone_create(struct if_clone *, int);
 +static void	enc_clone_destroy(struct ifnet *);
++struct mbuf	*ipsec_filter(struct mbuf *, int, int, int, int);
 +
-+struct ifnet *encif = NULL;			/* Used externally */
-+
-+static MALLOC_DEFINE(M_ENC, ENCNAME, "IPsec Enc Interface");
-+
-+static struct mtx enc_mtx;
-+static LIST_HEAD(enc_list, enc_softc) enc_list;
-+
-+IFC_SIMPLE_DECLARE(enc, 1);
++IFC_SIMPLE_DECLARE(enc, 0);
 +
 +static void
 +enc_clone_destroy(ifp)
 +	struct ifnet *ifp;
 +{
-+	struct enc_softc *sc;
-+	
-+	sc = ifp->if_softc;
 +
-+	/* XXX: destroying enc0 will lead to panics. */
-+	KASSERT(encif != ifp, ("%s: destroying enc0", __func__));
++	KASSERT(ipsec_encif == ifp, ("%s: unknown ifnet", __func__));
++
++	/* XXX This needs locking */
++	ipsec_dofilter = 0;
++	ipsec_encif = NULL;
++
++	bpfdetach(ifp);
++	if_detach(ifp);
++	if_free(ifp);
++
 +}
 +
 +static int
@@ -124,10 +117,13 @@
 +	struct ifnet *ifp;
 +	struct enc_softc *sc;
 +
-+	MALLOC(sc, struct enc_softc *, sizeof(*sc), M_ENC, M_WAITOK | M_ZERO);
++	if (ipsec_encif != NULL)
++		return (EBUSY);
++
++	sc = malloc(sizeof(*sc), M_DEVBUF, M_WAITOK|M_ZERO);
 +	ifp = sc->sc_ifp = if_alloc(IFT_ENC);
 +	if (ifp == NULL) {
-+		free(sc, M_ENC);
++		free(sc, M_DEVBUF);
 +		return (ENOSPC);
 +	}
 +
@@ -140,11 +136,8 @@
 +	ifp->if_softc = sc;
 +	if_attach(ifp);
 +	bpfattach(ifp, DLT_ENC, ENC_HDRLEN);
-+	mtx_lock(&enc_mtx);
-+	LIST_INSERT_HEAD(&enc_list, sc, sc_next);
-+	mtx_unlock(&enc_mtx);
-+	if (encif == NULL)
-+		encif = ifp;
++	ipsec_encif = ifp;
++	ipsec_dofilter = 1;
 +
 +	return (0);
 +}
@@ -154,13 +147,11 @@
 +{ 
 +	switch (type) { 
 +	case MOD_LOAD: 
-+		mtx_init(&enc_mtx, "enc_mtx", NULL, MTX_DEF);
-+		LIST_INIT(&enc_list);
 +		if_clone_attach(&enc_cloner);
 +		break; 
 +	case MOD_UNLOAD: 
-+		printf("enc module unload - not possible for this module type\n"); 
-+		return EINVAL; 
++		return EOPNOTSUPP; /* not yet */
++		break;
 +	default:
 +		return EOPNOTSUPP;
 +	} 
@@ -186,17 +177,6 @@
 +    return (0);
 +}
 +
-+/* ARGSUSED */
-+static void
-+encrtrequest(cmd, rt, info)
-+	int cmd;
-+	struct rtentry *rt;
-+	struct rt_addrinfo *info;
-+{
-+	RT_LOCK_ASSERT(rt);
-+	rt->rt_rmx.rmx_mtu = rt->rt_ifp->if_mtu;
-+}
-+
 +/*
 + * Process an ioctl request.
 + */
@@ -207,43 +187,12 @@
 +	u_long cmd;
 +	caddr_t data;
 +{
-+	register struct ifaddr *ifa;
 +	register struct ifreq *ifr = (struct ifreq *)data;
 +	register int error = 0;
 +
 +	switch (cmd) {
 +
 +	case SIOCSIFADDR:
-+		ifp->if_flags |= IFF_UP;
-+		ifp->if_drv_flags |= IFF_DRV_RUNNING;
-+		ifa = (struct ifaddr *)data;
-+		ifa->ifa_rtrequest = encrtrequest;
-+		/*
-+		 * Everything else is done at a higher level.
-+		 */
-+		break;
-+
-+	case SIOCADDMULTI:
-+	case SIOCDELMULTI:
-+		if (ifr == 0) {
-+			error = EAFNOSUPPORT;		/* XXX */
-+			break;
-+		}
-+		switch (ifr->ifr_addr.sa_family) {
-+
-+#ifdef INET
-+		case AF_INET:
-+			break;
-+#endif
-+#ifdef INET6
-+		case AF_INET6:
-+			break;
-+#endif
-+
-+		default:
-+			error = EAFNOSUPPORT;
-+			break;
-+		}
 +		break;
 +
 +	case SIOCSIFMTU:
@@ -251,6 +200,11 @@
 +		break;
 +
 +	case SIOCSIFFLAGS:
++		if (ifp->if_flags & IFF_UP)
++			ifp->if_drv_flags |= IFF_DRV_RUNNING;
++		else
++			ifp->if_drv_flags &= ~IFF_DRV_RUNNING;
++
 +		break;
 +
 +	default:
@@ -258,309 +212,180 @@
 +	}
 +	return (error);
 +}
---- ./net/if_enc.h.orig	Tue Mar 21 17:33:51 2006
-+++ ./net/if_enc.h	Tue Mar 21 17:32:45 2006
-@@ -0,0 +1,21 @@
-+#ifndef _NET_IF_ENC_H_
-+#define _NET_IF_ENC_H_
 +
-+#define ENCMTU		(1024+512)
-+#define ENC_HDRLEN	12
++struct mbuf *
++ipsec_filter(struct mbuf *m, int af, int spi, int flags, int dir)
++{
++	int error, i;
++	struct mbuf m1;
++	struct enchdr hdr;
++	struct ip *ip;
 +
-+/* XXX this define must have the same value as in OpenBSD
-+ */
-+#define M_CONF			0x0400	/* payload was encrypted (ESP-transport) */
-+#define M_AUTH			0x0800	/* payload was authenticated (AH or ESP auth) */
-+#define M_AUTH_AH		0x2000	/* header was authenticated (AH) */
++	KASSERT(ipsec_encif != NULL, ("enc interface is null"));
 +
-+struct enchdr {
-+	u_int32_t af;
-+	u_int32_t spi;
-+	u_int32_t flags;
-+};
-+
-+extern struct ifnet *encif;
-+
-+#endif /* _NET_IF_ENC_H_ */
---- ./netinet6/esp_input.c.orig	Thu Mar 16 15:27:31 2006
-+++ ./netinet6/esp_input.c	Thu Mar 16 15:27:31 2006
-@@ -36,6 +36,7 @@
- 
- #include "opt_inet.h"
- #include "opt_inet6.h"
-+#include "opt_enc.h"
- 
- #include <sys/param.h>
- #include <sys/systm.h>
-@@ -48,6 +49,8 @@
- #include <sys/syslog.h>
- 
- #include <net/if.h>
-+#include <net/if_enc.h>
-+#include <net/bpf.h>
- #include <net/route.h>
- #include <net/netisr.h>
- #include <machine/cpu.h>
-@@ -388,6 +391,34 @@ noreplaycheck:
- 			ipsecstat.in_nomem++;
- 			goto bad;
- 		}
-+#ifdef DEV_ENC
-+		m->m_pkthdr.rcvif = encif;
-+
-+		if (encif->if_bpf != NULL) {
-+			/*
-+			 * We need to prepend the address family as
-+			 * a four byte field.  Cons up a dummy header
-+			 * to pacify bpf.  This is safe because bpf
-+			 * will only read from the mbuf (i.e., it won't
-+			 * try to free it or keep a pointer a to it).
-+			 */
-+			struct mbuf m1;
-+			struct enchdr hdr;
-+
-+			hdr.af = AF_INET;
-+			hdr.spi = spi;
-+			hdr.flags = M_CONF;
-+			if ((m->m_flags & M_AUTHIPDGM) != 0)
-+				hdr.flags |= M_AUTH;
-+
-+			m1.m_flags = 0;
-+			m1.m_next = m;
-+			m1.m_len = ENC_HDRLEN;
-+			m1.m_data = (char *) &hdr;
-+
-+			bpf_mtap(encif->if_bpf, &m1);
-+		}
-+#endif
- 
- 		if (netisr_queue(NETISR_IP, m)) {	/* (0) on success. */
- 			ipsecstat.in_inval++;
-@@ -744,6 +775,35 @@ noreplaycheck:
- 			ipsec6stat.in_nomem++;
- 			goto bad;
- 		}
-+
-+#ifdef DEV_ENC
-+		m->m_pkthdr.rcvif = encif;
-+
-+		if (encif->if_bpf) {
-+			/*
-+			 * We need to prepend the address family as
-+			 * a four byte field.  Cons up a dummy header
-+			 * to pacify bpf.  This is safe because bpf
-+			 * will only read from the mbuf (i.e., it won't
-+			 * try to free it or keep a pointer a to it).
-+			 */
-+			struct mbuf m1;
-+			struct enchdr hdr;
-+
-+			hdr.af = AF_INET6;
-+			hdr.spi = spi;
-+			hdr.flags = M_CONF;
-+			if ((m->m_flags & M_AUTHIPDGM) != 0)
-+				hdr.flags |= M_AUTH;
-+
-+			m1.m_flags = 0;
-+			m1.m_next = m;
-+			m1.m_len = ENC_HDRLEN;
-+			m1.m_data = (char *) &hdr;
-+
-+			bpf_mtap(encif->if_bpf, &m1);
-+		}
-+#endif
- 
- 		if (netisr_queue(NETISR_IPV6, m)) {	/* (0) on success. */
- 			ipsec6stat.in_inval++;
---- ./netinet6/esp_output.c.orig	Thu Mar 16 15:27:31 2006
-+++ ./netinet6/esp_output.c	Thu Mar 16 15:27:31 2006
-@@ -32,6 +32,7 @@
- 
- #include "opt_inet.h"
- #include "opt_inet6.h"
-+#include "opt_enc.h"
- 
- /*
-  * RFC1827/2406 Encapsulated Security Payload.
-@@ -49,6 +50,8 @@
- #include <sys/syslog.h>
- 
- #include <net/if.h>
-+#include <net/if_enc.h>
-+#include <net/bpf.h>
- #include <net/route.h>
- 
- #include <netinet/in.h>
-@@ -196,6 +199,33 @@ esp_output(m, nexthdrp, md, isr, af)
- 	size_t extendsiz;
- 	int error = 0;
- 	struct ipsecstat *stat;
-+
-+#ifdef DEV_ENC
-+	if (encif->if_bpf) {
++	if (ipsec_encif->if_bpf) {
 +		/*
-+		 * We need to prepend the address family as
-+		 * a four byte field.  Cons up a dummy header
-+		 * to pacify bpf.  This is safe because bpf
-+		 * will only read from the mbuf (i.e., it won't
-+		 * try to free it or keep a pointer a to it).
++		 * We need to prepend the address family as a four byte field.
++		 * Cons up a dummy header to pacify bpf.  This is safe because
++		 * bpf will only read from the mbuf (i.e., it won't try to free
++		 * it or keep a pointer a to it).
 +		 */
-+		struct mbuf m1;
-+		struct enchdr hdr;
-+
 +		hdr.af = af;
-+		hdr.spi = sav->spi;
-+		hdr.flags = M_CONF;
-+		if (sav->alg_auth != SADB_AALG_NONE)
-+			hdr.flags |= M_AUTH;
++		hdr.spi = spi;
++		hdr.flags = flags;
 +
 +		m1.m_flags = 0;
 +		m1.m_next = m;
 +		m1.m_len = ENC_HDRLEN;
 +		m1.m_data = (char *) &hdr;
 +
-+		bpf_mtap(encif->if_bpf, &m1);
++		bpf_mtap(ipsec_encif->if_bpf, &m1);
 +	}
++
++	i = min(m->m_pkthdr.len, max_protohdr);
++	if (m->m_len < i) {
++		m = m_pullup(m, i);
++		if (m == NULL) {
++			printf("%s: m_pullup failed\n", __func__);
++			return (NULL);
++		}
++	}
++
++	ip = mtod(m, struct ip *);
++	switch (ip->ip_p) {
++		case IPPROTO_IPV4:
++			if (inet_pfil_hook.ph_busy_count >= 0)
++				error = pfil_run_hooks(&inet_pfil_hook, &m,
++				    ipsec_encif, dir, NULL);
++			break;
++
++#ifdef INET6
++		case IPPROTO_IPV6:
++			if (inet6_pfil_hook.ph_busy_count >= 0)
++				error = pfil_run_hooks(&inet6_pfil_hook, &m,
++				    ipsec_encif, dir, NULL);
++			break;
 +#endif
++	}
++
++	return (m);
++}
++
+Index: netipsec/ipsec.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/ipsec.h,v
+retrieving revision 1.8.2.1
+diff -u -p -r1.8.2.1 ipsec.h
+--- netipsec/ipsec.h	23 Mar 2006 23:24:32 -0000	1.8.2.1
++++ netipsec/ipsec.h	21 May 2006 21:50:51 -0000
+@@ -318,6 +318,12 @@ struct newipsecstat {
+ }
  
- 	switch (af) {
- #ifdef INET
---- ./netipsec/ipsec_input.c.orig	Thu Mar 16 15:27:31 2006
-+++ ./netipsec/ipsec_input.c	Thu Mar 16 15:27:31 2006
-@@ -43,6 +43,7 @@
- #include "opt_inet.h"
- #include "opt_inet6.h"
- #include "opt_ipsec.h"
-+#include "opt_enc.h"
+ #ifdef _KERNEL
++
++/* XXX this define must have the same value as in OpenBSD */
++#define IPSEC_M_CONF		0x0400	/* payload was encrypted (ESP-transport) */
++#define IPSEC_M_AUTH		0x0800	/* payload was authenticated (AH or ESP auth) */
++#define IPSEC_M_AUTH_AH		0x2000	/* header was authenticated (AH) */
++
+ struct ipsec_output_state {
+ 	struct mbuf *m;
+ 	struct route *ro;
+@@ -330,6 +336,7 @@ struct ipsec_history {
+ };
  
- #include <sys/param.h>
- #include <sys/systm.h>
-@@ -57,6 +58,8 @@
- #include <net/if.h>
- #include <net/route.h>
- #include <net/netisr.h>
-+#include <net/if_enc.h>
-+#include <net/bpf.h>
+ extern int ipsec_debug;
++extern int ipsec_dofilter;
  
- #include <netinet/in.h>
- #include <netinet/in_systm.h>
-@@ -443,6 +446,34 @@ ipsec4_common_input_cb(struct mbuf *m, s
- 	}
+ extern struct newipsecstat newipsecstat;
+ extern struct secpolicy ip4_def_policy;
+@@ -413,6 +420,7 @@ extern	void m_checkalignment(const char*
+ extern	struct mbuf *m_makespace(struct mbuf *m0, int skip, int hlen, int *off);
+ extern	caddr_t m_pad(struct mbuf *m, int n);
+ extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
++extern	struct mbuf *ipsec_filter(struct mbuf *, int, int, int, int);
+ #endif /* _KERNEL */
+ 
+ #ifndef _KERNEL
+Index: netipsec/ipsec_input.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/ipsec_input.c,v
+retrieving revision 1.9
+diff -u -p -r1.9 ipsec_input.c
+--- netipsec/ipsec_input.c	7 Jan 2005 01:45:46 -0000	1.9
++++ netipsec/ipsec_input.c	21 May 2006 21:39:48 -0000
+@@ -444,6 +444,19 @@ ipsec4_common_input_cb(struct mbuf *m, s
  
  	key_sa_recordxfer(sav, m);		/* record data transfer */
-+
-+#ifdef DEV_ENC
-+	m->m_pkthdr.rcvif = encif;
-+
-+	if (encif->if_bpf != NULL) {
-+		/*
-+		 * We need to prepend the address family as
-+		 * a four byte field.  Cons up a dummy header
-+		 * to pacify bpf.  This is safe because bpf
-+		 * will only read from the mbuf (i.e., it won't
-+		 * try to free it or keep a pointer a to it).
-+		 */
-+		struct mbuf m1;
-+		struct enchdr hdr;
-+
-+		hdr.af = af;
-+		hdr.spi = sav->spi;
-+		hdr.flags = M_CONF;
-+		if ((m->m_flags & M_AUTHIPDGM) != 0)
-+			hdr.flags |= M_AUTH;
-+
-+		m1.m_flags = 0;
-+		m1.m_next = m;
-+		m1.m_len = ENC_HDRLEN;
-+		m1.m_data = (char *) &hdr;
-+		bpf_mtap(encif->if_bpf, &m1);
-+	}
-+#endif
  
++	/* pass the mbuf to enc0 for bpf and pfil */
++	if (ipsec_dofilter) {
++		int flags;
++		flags = IPSEC_M_CONF;
++		if ((m->m_flags & M_AUTHIPDGM) != 0)
++			flags |= IPSEC_M_AUTH;
++
++		m = ipsec_filter(m, af, sav->spi, flags, 1);
++		if (m == NULL)
++			return (-1);
++	}
++
++
  	/*
  	 * Re-dispatch via software interrupt.
---- ./netipsec/ipsec_output.c.orig	Thu Mar 16 15:27:32 2006
-+++ ./netipsec/ipsec_output.c	Thu Mar 16 15:27:31 2006
-@@ -32,6 +32,7 @@
- #include "opt_inet.h"
- #include "opt_inet6.h"
- #include "opt_ipsec.h"
-+#include "opt_enc.h"
- 
- #include <sys/param.h>
- #include <sys/systm.h>
-@@ -44,6 +45,8 @@
- 
- #include <net/if.h>
- #include <net/route.h>
-+#include <net/if_enc.h>
-+#include <net/bpf.h>
- 
- #include <netinet/in.h>
- #include <netinet/in_systm.h>
-@@ -353,6 +356,32 @@ ipsec4_process_packet(
+ 	 */
+Index: netipsec/ipsec_output.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/ipsec_output.c,v
+retrieving revision 1.10
+diff -u -p -r1.10 ipsec_output.c
+--- netipsec/ipsec_output.c	20 Jan 2004 22:45:10 -0000	1.10
++++ netipsec/ipsec_output.c	21 May 2006 21:40:26 -0000
+@@ -353,6 +353,19 @@ ipsec4_process_packet(
  
  	IPSECREQUEST_LOCK(isr);		/* insure SA contents don't change */
  
-+#ifdef DEV_ENC
-+	if (encif->if_bpf) {
-+		/*
-+		 * We need to prepend the address family as
-+		 * a four byte field.  Cons up a dummy header
-+		 * to pacify bpf.  This is safe because bpf
-+		 * will only read from the mbuf (i.e., it won't
-+		 * try to free it or keep a pointer a to it).
-+		 */
-+		struct mbuf m1;
-+		struct enchdr hdr;
-+
-+		hdr.af = AF_INET;
-+		hdr.spi = sav->spi;
-+		hdr.flags = M_CONF;
++	sav = isr->sav;
++	/* pass the mbuf to enc0 for bpf and pfil */
++	if (ipsec_dofilter) {
++		int flags;
++		flags = IPSEC_M_CONF;
 +		if (sav->alg_auth != SADB_AALG_NONE)
-+			hdr.flags |= M_AUTH;
++			flags |= IPSEC_M_AUTH;
 +
-+		m1.m_flags = 0;
-+		m1.m_next = m;
-+		m1.m_len = ENC_HDRLEN;
-+		m1.m_data = (char *) &hdr;
-+		bpf_mtap(encif->if_bpf, &m1);
++		m = ipsec_filter(m, AF_INET, sav->spi, flags, 2);
++		if (m == NULL)
++			goto bad;
 +	}
-+#endif
 +
  	isr = ipsec_nextisr(m, isr, AF_INET, &saidx, &error);
  	if (isr == NULL)
  		goto bad;
-@@ -558,6 +587,32 @@ ipsec6_output_trans(
- 
+@@ -533,6 +546,7 @@ ipsec6_output_trans(
+ 	int flags,
+ 	int *tun)
+ {
++	struct secasvar *sav;
+ 	struct ipsecrequest *isr;
+ 	struct secasindex saidx;
+ 	int error = 0;
+@@ -559,6 +573,19 @@ ipsec6_output_trans(
  	*tun = 0;
  	m = state->m;
-+
-+#ifdef DEV_ENC
-+	if (encif->if_bpf) {
-+		/*
-+		 * We need to prepend the address family as
-+		 * a four byte field.  Cons up a dummy header
-+		 * to pacify bpf.  This is safe because bpf
-+		 * will only read from the mbuf (i.e., it won't
-+		 * try to free it or keep a pointer a to it).
-+		 */
-+		struct mbuf m1;
-+		struct enchdr hdr;
-+
-+		hdr.af = AF_INET6;
-+		hdr.spi = sav->spi;
-+		hdr.flags = M_CONF;
-+		if (sav->alg_auth != SADB_AALG_NONE)
-+			hdr.flags |= M_AUTH;
-+
-+		m1.m_flags = 0;
-+		m1.m_next = m;
-+		m1.m_len = ENC_HDRLEN;
-+		m1.m_data = (char *) &hdr;
-+		bpf_mtap(encif->if_bpf, &m1);
-+	}
-+#endif
  
++	sav = isr->sav;
++	/* pass the mbuf to enc0 for bpf and pfil */
++	if (ipsec_dofilter) {
++		int flags;
++		flags = IPSEC_M_CONF;
++		if (sav->alg_auth != SADB_AALG_NONE)
++			flags |= IPSEC_M_AUTH;
++
++		m = ipsec_filter(m, AF_INET, sav->spi, flags, 2);
++		if (m == NULL)
++			goto bad;
++	}
++
  	isr = ipsec_nextisr(m, isr, AF_INET6, &saidx, &error);
  	if (isr == NULL) {
+ #ifdef notdef
