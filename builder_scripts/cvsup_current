@@ -20,20 +20,6 @@ if [ $PFSENSETAG = "HEAD" ]; then
 	rm -f /usr/src/sys/netinet6/esp_output.c
 	rm -f /usr/src/sys/netipsec/ipsec_input.c
 	rm -f /usr/src/sys/netipsec/ipsec_output.c
-	# Add to pfSense.6 file
-	echo "Adding device enc to pfSense.6"
-	cat /home/pfsense/tools/builder_scripts/conf/pfSense.6 | grep -v "device enc"> /tmp/tmp
-	mv /tmp/tmp /home/pfsense/tools/builder_scripts/conf/pfSense.6
-	echo "device enc" >> /home/pfsense/tools/builder_scripts/conf/pfSense.6
-	# Add to pfSense_Dev.6 (Developers edition)
-	echo "Adding device enc to pfSense_Dev.6"
-	cat /home/pfsense/tools/builder_scripts/conf/pfSense_Dev.6 | grep -v "device enc"> /tmp/tmp
-	mv /tmp/tmp /home/pfsense/tools/builder_scripts/conf/pfSense_Dev.6
-	echo "device enc" >>/home/pfsense/tools/builder_scripts/conf/pfSense_Dev.6
-else
-	echo "Removing pfSense.6"
-	rm /home/pfsense/tools/builder_scripts/conf/pfSense.6
-	rm /home/pfsense/tools/builder_scripts/conf/pfSense_Dev.6
 fi
 
 # Update FreeSBIE2 files from CVS
