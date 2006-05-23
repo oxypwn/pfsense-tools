@@ -16,6 +16,7 @@ if [ $PFSENSETAG = "HEAD" ]; then
 	rm -f /usr/src/sys/conf/files
 	rm -f /usr/src/sys/net/if_types.h	
 	rm -f /usr/src/sys/net/if_enc.c
+	rm -f /usr/src/sys/netipsec/if_enc.c
 	rm -f /usr/src/sys/netinet6/esp_input.c
 	rm -f /usr/src/sys/netinet6/esp_output.c
 	rm -f /usr/src/sys/netipsec/ipsec_input.c
@@ -57,7 +58,7 @@ fi
 fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
 fastest_cvsup -c tld -q > /var/db/fastest_cvsup
-cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
+#cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # clog source and usr.sbin/Makefile patch
 cd ${SRCDIR}/usr.sbin/
