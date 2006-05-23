@@ -334,8 +334,8 @@ RCS file: /home/ncvs/src/sys/netipsec/ipsec_input.c,v
 retrieving revision 1.9
 diff -u -p -r1.9 ipsec_input.c
 --- netipsec/ipsec_input.c	7 Jan 2005 01:45:46 -0000	1.9
-+++ netipsec/ipsec_input.c	23 May 2006 02:45:12 -0000
-@@ -444,6 +444,21 @@ ipsec4_common_input_cb(struct mbuf *m, s
++++ netipsec/ipsec_input.c	23 May 2006 21:51:01 -0000
+@@ -444,6 +444,18 @@ ipsec4_common_input_cb(struct mbuf *m, s
  
  	key_sa_recordxfer(sav, m);		/* record data transfer */
  
@@ -348,9 +348,6 @@ diff -u -p -r1.9 ipsec_input.c
 +
 +		if ((error = ipsec_filter(&m, af, sav->spi, flags, 1)) != 0)
 +			return (error);
-+		
-+		if (m == NULL)
-+			return (EPERM);
 +	}
 +
 +
@@ -363,8 +360,8 @@ RCS file: /home/ncvs/src/sys/netipsec/ipsec_output.c,v
 retrieving revision 1.10
 diff -u -p -r1.10 ipsec_output.c
 --- netipsec/ipsec_output.c	20 Jan 2004 22:45:10 -0000	1.10
-+++ netipsec/ipsec_output.c	23 May 2006 21:33:48 -0000
-@@ -358,6 +358,23 @@ ipsec4_process_packet(
++++ netipsec/ipsec_output.c	23 May 2006 21:51:35 -0000
+@@ -358,6 +358,19 @@ ipsec4_process_packet(
  		goto bad;
  
  	sav = isr->sav;
@@ -379,16 +376,12 @@ diff -u -p -r1.10 ipsec_output.c
 +		error = ipsec_filter(&m, AF_INET, sav->spi, flags, 2);
 +		if (error != 0)
 +			goto bad;
-+		if (m == NULL) {
-+			error = EPERM;
-+			goto bad;
-+		}
 +	}
 +
  	if (!tunalready) {
  		union sockaddr_union *dst = &sav->sah->saidx.dst;
  		int setdf;
-@@ -533,6 +550,7 @@ ipsec6_output_trans(
+@@ -533,6 +546,7 @@ ipsec6_output_trans(
  	int flags,
  	int *tun)
  {
@@ -396,7 +389,7 @@ diff -u -p -r1.10 ipsec_output.c
  	struct ipsecrequest *isr;
  	struct secasindex saidx;
  	int error = 0;
-@@ -560,6 +578,24 @@ ipsec6_output_trans(
+@@ -560,6 +574,20 @@ ipsec6_output_trans(
  	m = state->m;
  
  	isr = ipsec_nextisr(m, isr, AF_INET6, &saidx, &error);
@@ -412,10 +405,6 @@ diff -u -p -r1.10 ipsec_output.c
 +		error = ipsec_filter(&m, AF_INET, sav->spi, flags, 2);
 +		if (error != 0)
 +			goto bad;
-+		if (m == NULL) {
-+			error = EPERM;
-+			goto bad;
-+		}
 +	}
 +
  	if (isr == NULL) {
