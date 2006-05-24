@@ -33,8 +33,8 @@ Index: netipsec/if_enc.c
 RCS file: netipsec/if_enc.c
 diff -N netipsec/if_enc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ netipsec/if_enc.c	24 May 2006 05:43:26 -0000
-@@ -0,0 +1,275 @@
++++ netipsec/if_enc.c	24 May 2006 18:57:31 -0000
+@@ -0,0 +1,278 @@
 +/*-
 + * Copyright (c) 2006
 + *
@@ -262,8 +262,11 @@ diff -N netipsec/if_enc.c
 +	}
 +
 +	/* Skip pfil(9) if no filters are loaded */
-+	if (inet_pfil_hook.ph_busy_count >= 0 ||
-+	    inet6_pfil_hook.ph_busy_count >= 0) 
++	if (inet_pfil_hook.ph_busy_count < 0
++#ifdef INET6
++	    && inet6_pfil_hook.ph_busy_count < 0
++#endif
++	    ) 
 +		return (0);
 +
 +	error = 0;
