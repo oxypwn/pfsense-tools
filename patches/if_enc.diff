@@ -33,8 +33,8 @@ Index: netipsec/if_enc.c
 RCS file: netipsec/if_enc.c
 diff -N netipsec/if_enc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ netipsec/if_enc.c	24 May 2006 18:57:31 -0000
-@@ -0,0 +1,278 @@
++++ netipsec/if_enc.c	25 May 2006 07:43:46 -0000
+@@ -0,0 +1,281 @@
 +/*-
 + * Copyright (c) 2006
 + *
@@ -168,25 +168,25 @@ diff -N netipsec/if_enc.c
 +}
 +
 +static int
-+enc_modevent(module_t mod, int type, void *data) 
-+{ 
-+	switch (type) { 
-+	case MOD_LOAD: 
++enc_modevent(module_t mod, int type, void *data)
++{
++	switch (type) {
++	case MOD_LOAD:
 +		if_clone_attach(&enc_cloner);
-+		break; 
++		break;
 +	case MOD_UNLOAD:
 +		/* not yet */
 +	default:
 +		return EOPNOTSUPP;
-+	} 
-+	return 0; 
-+} 
++	}
++	return 0;
++}
 +
-+static moduledata_t enc_mod = { 
-+	"enc", 
-+	enc_modevent, 
++static moduledata_t enc_mod = {
++	"enc",
++	enc_modevent,
 +	0
-+}; 
++};
 +
 +DECLARE_MODULE(enc, enc_mod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
 +
@@ -194,8 +194,8 @@ diff -N netipsec/if_enc.c
 +encoutput(struct ifnet *ifp, struct mbuf *m, struct sockaddr *dst,
 +    struct rtentry *rt)
 +{
-+    m_freem(m);
-+    return (0);
++	m_freem(m);
++	return (0);
 +}
 +
 +/*
@@ -233,6 +233,9 @@ diff -N netipsec/if_enc.c
 +
 +	KASSERT(ipsec_encif != NULL, ("enc interface is null"));
 +
++	if ((ipsec_encif->if_drv_flags & IFF_DRV_RUNNING) == 0)
++		return (0);
++
 +	if (ipsec_encif->if_bpf) {
 +		/*
 +		 * We need to prepend the address family as a four byte field.
@@ -266,7 +269,7 @@ diff -N netipsec/if_enc.c
 +#ifdef INET6
 +	    && inet6_pfil_hook.ph_busy_count < 0
 +#endif
-+	    ) 
++	    )
 +		return (0);
 +
 +	error = 0;
@@ -304,7 +307,7 @@ diff -N netipsec/if_enc.c
 +		return (error);
 +	if (error != 0)
 +		goto bad;
-+		
++
 +	return (error);
 +
 +bad:
