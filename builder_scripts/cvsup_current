@@ -58,7 +58,7 @@ fi
 fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
 fastest_cvsup -c tld -q > /var/db/fastest_cvsup
-#cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
+cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # clog source and usr.sbin/Makefile patch
 cd ${SRCDIR}/usr.sbin/
