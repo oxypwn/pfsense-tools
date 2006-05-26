@@ -84,7 +84,7 @@
 #include "vsvc.h"
 #include "printers.h"
 
-char anchorname[PF_ANCHOR_NAME_SIZE] = "slb";
+char *anchorname = "slb";
 #ifdef OpenBSD3_5
 char rulesetname[PF_RULESET_NAME_SIZE] = "main";
 #endif

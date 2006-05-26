@@ -4,12 +4,12 @@
 
 UNAME!=uname -sr | sed 's/[ \.]/_/g' | tr '[:lower:]' '[:upper:]'
 OSTYPE=-D$(UNAME)
-DEFINES=-DPFSENSE
-#DEFINES=-DDEBUG -DPFSENSE
+#DEFINES=-DPFSENSE
+DEFINES=-DDEBUG -DPFSENSE
 INCLUDES=-I.
 #CC=gcc
 #CFLAGS=-O -g -pthread -Wall $(OSTYPE) $(INCLUDES) $(DEFINES)
-CFLAGS = -O2 -fno-strict-aliasing -pipe -Wall $(DEFINES)
+CFLAGS = -g -O2 -fno-strict-aliasing -pipe -Wall $(DEFINES)
 LD=gcc
 LDFLAGS=-pthread -g
 #SUBDIR=tests
