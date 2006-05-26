@@ -80,4 +80,4 @@ set -e
 freesbie_make iso
 
 # Re-remove lockfiles after build
-rm -f ${objdir}/${build_id_w}.world.done ${objdir}/${build_id_k}.kernel.done
+#rm -f ${objdir}/${build_id_w}.world.done ${objdir}/${build_id_k}.kernel.done
