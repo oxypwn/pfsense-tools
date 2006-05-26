@@ -263,34 +263,33 @@ int vsvc_getconfig(char *cfile) {
 					}
 					setservice_addpolltype(v->services[j],
 					    SVCPOLL_TCP);
+					free(str);
+					free(data);
 				}
-				free(str);
-				free(data);
 
-				if (cgetcap(buf, "httpget", ':') != NULL && \
-					cgetstr(buf, "url", &str) && \
-					cgetstr(buf, "expect", &data)) {
-					setservice_httpget(v->services[j],
-					    str, data);
-					setservice_addpolltype(v->services[j],
-					    SVCPOLL_HTTPGET);
+				if (cgetcap(buf, "httpget", ':') != NULL) {
+					if(cgetstr(buf, "url", &str) && \
+					    cgetstr(buf, "expect", &data)) {
+						setservice_httpget(v->services[j],
+					    	    str, data);
+						setservice_addpolltype(v->services[j],
+					    	    SVCPOLL_HTTPGET);
+					}
+					free(str);
+					free(data);
 				}
-printf("foo\n");
-				free(str);
-printf("bar\n");
-				free(data);
-printf("foobar\n");
 
-				if (cgetcap(buf, "httphead", ':') != NULL && \
-					cgetstr(buf, "url", &str) &&
-					cgetstr(buf, "expect", &data)) {
-					setservice_httphead(v->services[j],
-					    str, data);
-					setservice_addpolltype(v->services[j],
-					    SVCPOLL_HTTPHEAD);
+				if (cgetcap(buf, "httphead", ':') != NULL) {
+					if (cgetstr(buf, "url", &str) && \
+					    cgetstr(buf, "expect", &data)) {
+						setservice_httphead(v->services[j],
+						    str, data);
+						setservice_addpolltype(v->services[j],
+						    SVCPOLL_HTTPHEAD);
+					}
+					free(str);
+					free(data);
 				}
-				free(str);
-				free(data);
 				
 				/* TODO:
 				 *  - add TCP poll/expect support
