@@ -33,10 +33,10 @@ Index: netipsec/if_enc.c
 RCS file: netipsec/if_enc.c
 diff -N netipsec/if_enc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ netipsec/if_enc.c	25 May 2006 07:43:46 -0000
-@@ -0,0 +1,281 @@
++++ netipsec/if_enc.c	27 May 2006 03:29:41 -0000
+@@ -0,0 +1,324 @@
 +/*-
-+ * Copyright (c) 2006
++ * Copyright (c) 2006 Andrew Thompson
 + *
 + * Redistribution and use in source and binary forms, with or without
 + * modification, are permitted provided that the following conditions
@@ -80,6 +80,7 @@ diff -N netipsec/if_enc.c
 +#include <net/if_clone.h>
 +#include <net/if_types.h>
 +#include <net/pfil.h>
++#include <net/route.h>
 +#include <net/netisr.h>
 +#include <net/bpf.h>
 +#include <net/bpfdesc.h>
@@ -96,17 +97,24 @@ diff -N netipsec/if_enc.c
 +#include <netinet6/ip6_var.h>
 +#endif
 +
++#include <netipsec/ipsec.h>
++
 +#define ENCMTU		(1024+512)
 +#define ENC_HDRLEN	12
 +
-+int		ipsec_dofilter = 0;
-+struct ifnet	*ipsec_encif;
++/* XXX this define must have the same value as in OpenBSD */
++#define M_CONF		0x0400	/* payload was encrypted (ESP-transport) */
++#define M_AUTH		0x0800	/* payload was authenticated (AH or ESP auth) */
++#define M_AUTH_AH	0x2000	/* header was authenticated (AH) */
 +
 +struct enchdr {
 +	u_int32_t af;
 +	u_int32_t spi;
 +	u_int32_t flags;
 +};
++
++struct ifnet	*encif;
++struct mtx	enc_mtx;
 +
 +struct enc_softc {
 +	struct	ifnet *sc_ifp;
@@ -117,7 +125,6 @@ diff -N netipsec/if_enc.c
 +		    struct sockaddr *dst, struct rtentry *rt);
 +static int	enc_clone_create(struct if_clone *, int);
 +static void	enc_clone_destroy(struct ifnet *);
-+int		ipsec_filter(struct mbuf **, int, int, int, int);
 +
 +IFC_SIMPLE_DECLARE(enc, 0);
 +
@@ -125,11 +132,11 @@ diff -N netipsec/if_enc.c
 +enc_clone_destroy(struct ifnet *ifp)
 +{
 +
-+	KASSERT(ipsec_encif == ifp, ("%s: unknown ifnet", __func__));
++	KASSERT(encif == ifp, ("%s: unknown ifnet", __func__));
 +
-+	/* XXX This needs locking */
-+	ipsec_dofilter = 0;
-+	ipsec_encif = NULL;
++	mtx_lock(&enc_mtx);
++	encif = NULL;
++	mtx_unlock(&enc_mtx);
 +
 +	bpfdetach(ifp);
 +	if_detach(ifp);
@@ -143,8 +150,10 @@ diff -N netipsec/if_enc.c
 +	struct ifnet *ifp;
 +	struct enc_softc *sc;
 +
-+	if (ipsec_encif != NULL)
++	mtx_lock(&enc_mtx);
++	if (encif != NULL)
 +		return (EBUSY);
++	mtx_unlock(&enc_mtx);
 +
 +	sc = malloc(sizeof(*sc), M_DEVBUF, M_WAITOK|M_ZERO);
 +	ifp = sc->sc_ifp = if_alloc(IFT_ENC);
@@ -161,8 +170,10 @@ diff -N netipsec/if_enc.c
 +	ifp->if_softc = sc;
 +	if_attach(ifp);
 +	bpfattach(ifp, DLT_ENC, ENC_HDRLEN);
-+	ipsec_encif = ifp;
-+	ipsec_dofilter = 1;
++
++	mtx_lock(&enc_mtx);
++	encif = ifp;
++	mtx_unlock(&enc_mtx);
 +
 +	return (0);
 +}
@@ -172,14 +183,16 @@ diff -N netipsec/if_enc.c
 +{
 +	switch (type) {
 +	case MOD_LOAD:
++		mtx_init(&enc_mtx, "enc mtx", NULL, MTX_DEF);
 +		if_clone_attach(&enc_cloner);
 +		break;
 +	case MOD_UNLOAD:
-+		/* not yet */
++		printf("enc module unload - not possible for this module\n"); 
++		return (EINVAL);
 +	default:
-+		return EOPNOTSUPP;
++		return (EOPNOTSUPP);
 +	}
-+	return 0;
++	return (0);
 +}
 +
 +static moduledata_t enc_mod = {
@@ -224,35 +237,15 @@ diff -N netipsec/if_enc.c
 +}
 +
 +int
-+ipsec_filter(struct mbuf **mp, int af, int spi, int flags, int dir)
++ipsec_filter(struct mbuf **mp, int dir)
 +{
 +	int error, i;
-+	struct mbuf m1;
-+	struct enchdr hdr;
 +	struct ip *ip;
 +
-+	KASSERT(ipsec_encif != NULL, ("enc interface is null"));
-+
-+	if ((ipsec_encif->if_drv_flags & IFF_DRV_RUNNING) == 0)
++	mtx_lock(&enc_mtx);
++	if (encif == NULL || (encif->if_drv_flags & IFF_DRV_RUNNING) == 0) {
++		mtx_unlock(&enc_mtx);
 +		return (0);
-+
-+	if (ipsec_encif->if_bpf) {
-+		/*
-+		 * We need to prepend the address family as a four byte field.
-+		 * Cons up a dummy header to pacify bpf.  This is safe because
-+		 * bpf will only read from the mbuf (i.e., it won't try to free
-+		 * it or keep a pointer a to it).
-+		 */
-+		hdr.af = af;
-+		hdr.spi = spi;
-+		hdr.flags = flags;
-+
-+		m1.m_flags = 0;
-+		m1.m_next = *mp;
-+		m1.m_len = ENC_HDRLEN;
-+		m1.m_data = (char *) &hdr;
-+
-+		bpf_mtap(ipsec_encif->if_bpf, &m1);
 +	}
 +
 +	i = min((*mp)->m_pkthdr.len, max_protohdr);
@@ -260,6 +253,7 @@ diff -N netipsec/if_enc.c
 +		*mp = m_pullup(*mp, i);
 +		if (*mp == NULL) {
 +			printf("%s: m_pullup failed\n", __func__);
++			mtx_unlock(&enc_mtx);
 +			return (-1);
 +		}
 +	}
@@ -269,12 +263,14 @@ diff -N netipsec/if_enc.c
 +#ifdef INET6
 +	    && inet6_pfil_hook.ph_busy_count < 0
 +#endif
-+	    )
++	    ) {
++		mtx_unlock(&enc_mtx);
 +		return (0);
++	}
 +
 +	error = 0;
 +	ip = mtod(*mp, struct ip *);
-+	switch (ip->ip_p) {
++	switch (ip->ip_v) {
 +		case IPPROTO_IPV4:
 +			/*
 +			 * before calling the firewall, swap fields the same as
@@ -283,8 +279,9 @@ diff -N netipsec/if_enc.c
 +			ip->ip_len = ntohs(ip->ip_len);
 +			ip->ip_off = ntohs(ip->ip_off);
 +
++			printf("passing to pfil from %s\n", encif->if_xname);
 +			error = pfil_run_hooks(&inet_pfil_hook, mp,
-+			    ipsec_encif, dir, NULL);
++			    encif, dir, NULL);
 +
 +			if (*mp == NULL || error != 0)
 +				break;
@@ -298,11 +295,14 @@ diff -N netipsec/if_enc.c
 +#ifdef INET6
 +		case IPPROTO_IPV6:
 +			error = pfil_run_hooks(&inet6_pfil_hook, mp,
-+			    ipsec_encif, dir, NULL);
++			    encif, dir, NULL);
 +			break;
 +#endif
++		default:
++			printf("%s: unknown IP version\n", __func__);
 +	}
 +
++	mtx_unlock(&enc_mtx);
 +	if (*mp == NULL)
 +		return (error);
 +	if (error != 0)
@@ -311,44 +311,68 @@ diff -N netipsec/if_enc.c
 +	return (error);
 +
 +bad:
++	mtx_unlock(&enc_mtx);
 +	m_freem(*mp);
 +	*mp = NULL;
 +	return (error);
 +}
 +
++void
++ipsec_bpf(struct mbuf *m, struct secasvar *sav, int af)
++{
++	int flags;
++	struct enchdr hdr;
++	struct mbuf m1;
++
++	KASSERT(sav != NULL, ("%s: sav is null", __func__));
++
++	mtx_lock(&enc_mtx);
++	if (encif == NULL || (encif->if_drv_flags & IFF_DRV_RUNNING) == 0) {
++		mtx_unlock(&enc_mtx);
++		return;
++	}
++
++	if (encif->if_bpf) {
++		flags = M_CONF;
++		/* XXX Check these flags 
++		if (sav->alg_auth != SADB_AALG_NONE)
++			flags |= M_AUTH;
++		*/
++
++		/*
++		 * We need to prepend the address family as a four byte
++		 * field.  Cons up a dummy header to pacify bpf.  This
++		 * is safe because bpf will only read from the mbuf
++		 * (i.e., it won't try to free it or keep a pointer a
++		 * to it).
++		 */
++		hdr.af = af;
++		hdr.spi = sav->spi;
++		hdr.flags = flags;
++
++		m1.m_flags = 0;
++		m1.m_next = m;
++		m1.m_len = ENC_HDRLEN;
++		m1.m_data = (char *) &hdr;
++
++		bpf_mtap(encif->if_bpf, &m1);
++	}
++	mtx_unlock(&enc_mtx);
++}
 Index: netipsec/ipsec.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/netipsec/ipsec.h,v
 retrieving revision 1.8.2.1
 diff -u -p -r1.8.2.1 ipsec.h
 --- netipsec/ipsec.h	23 Mar 2006 23:24:32 -0000	1.8.2.1
-+++ netipsec/ipsec.h	23 May 2006 02:43:06 -0000
-@@ -318,6 +318,12 @@ struct newipsecstat {
- }
- 
- #ifdef _KERNEL
-+
-+/* XXX this define must have the same value as in OpenBSD */
-+#define IPSEC_M_CONF		0x0400	/* payload was encrypted (ESP-transport) */
-+#define IPSEC_M_AUTH		0x0800	/* payload was authenticated (AH or ESP auth) */
-+#define IPSEC_M_AUTH_AH		0x2000	/* header was authenticated (AH) */
-+
- struct ipsec_output_state {
- 	struct mbuf *m;
- 	struct route *ro;
-@@ -330,6 +336,7 @@ struct ipsec_history {
- };
- 
- extern int ipsec_debug;
-+extern int ipsec_dofilter;
- 
- extern struct newipsecstat newipsecstat;
- extern struct secpolicy ip4_def_policy;
-@@ -413,6 +420,7 @@ extern	void m_checkalignment(const char*
++++ netipsec/ipsec.h	27 May 2006 00:07:07 -0000
+@@ -413,6 +413,9 @@ extern	void m_checkalignment(const char*
  extern	struct mbuf *m_makespace(struct mbuf *m0, int skip, int hlen, int *off);
  extern	caddr_t m_pad(struct mbuf *m, int n);
  extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
-+extern	int ipsec_filter(struct mbuf **, int, int, int, int);
++extern	int ipsec_filter(struct mbuf **, int);
++extern	void ipsec_bpf(struct mbuf *, struct secasvar *, int);
++
  #endif /* _KERNEL */
  
  #ifndef _KERNEL
@@ -358,79 +382,68 @@ RCS file: /home/ncvs/src/sys/netipsec/ipsec_input.c,v
 retrieving revision 1.9
 diff -u -p -r1.9 ipsec_input.c
 --- netipsec/ipsec_input.c	7 Jan 2005 01:45:46 -0000	1.9
-+++ netipsec/ipsec_input.c	23 May 2006 21:51:01 -0000
-@@ -444,6 +444,18 @@ ipsec4_common_input_cb(struct mbuf *m, s
- 
++++ netipsec/ipsec_input.c	27 May 2006 00:04:31 -0000
+@@ -445,6 +445,17 @@ ipsec4_common_input_cb(struct mbuf *m, s
  	key_sa_recordxfer(sav, m);		/* record data transfer */
  
-+	/* pass the mbuf to enc0 for bpf and pfil */
-+	if (ipsec_dofilter) {
-+		int flags;
-+		flags = IPSEC_M_CONF;
-+		if ((m->m_flags & M_AUTHIPDGM) != 0)
-+			flags |= IPSEC_M_AUTH;
-+
-+		if ((error = ipsec_filter(&m, af, sav->spi, flags, 1)) != 0)
-+			return (error);
-+	}
-+
-+
  	/*
++	 * Pass the mbuf to enc0 for bpf and pfil. We will filter the IPIP
++	 * packet later after it has been decapsulated.
++	 */
++	ipsec_bpf(m, sav, AF_INET);
++
++	if (prot != IPPROTO_IPIP)
++		if ((error = ipsec_filter(&m, 1)) != 0)
++			return (error);
++
++
++	/*
  	 * Re-dispatch via software interrupt.
  	 */
+ 	if ((error = netisr_queue(NETISR_IP, m))) {
 Index: netipsec/ipsec_output.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netipsec/ipsec_output.c,v
 retrieving revision 1.10
 diff -u -p -r1.10 ipsec_output.c
 --- netipsec/ipsec_output.c	20 Jan 2004 22:45:10 -0000	1.10
-+++ netipsec/ipsec_output.c	23 May 2006 21:51:35 -0000
-@@ -358,6 +358,19 @@ ipsec4_process_packet(
++++ netipsec/ipsec_output.c	27 May 2006 01:10:32 -0000
+@@ -358,6 +358,11 @@ ipsec4_process_packet(
  		goto bad;
  
  	sav = isr->sav;
-+	/* pass the mbuf to enc0 for bpf and pfil */
-+	if (ipsec_dofilter) {
-+		int flags;
-+		/* XXX Check these flags */
-+		flags = IPSEC_M_CONF;
-+		if (sav->alg_auth != SADB_AALG_NONE)
-+			flags |= IPSEC_M_AUTH;
 +
-+		error = ipsec_filter(&m, AF_INET, sav->spi, flags, 2);
-+		if (error != 0)
-+			goto bad;
-+	}
++	/* pass the mbuf to enc0 for packet filtering */
++	if ((error = ipsec_filter(&m, 2)) != 0)
++		goto bad;
 +
  	if (!tunalready) {
  		union sockaddr_union *dst = &sav->sah->saidx.dst;
  		int setdf;
-@@ -533,6 +546,7 @@ ipsec6_output_trans(
- 	int flags,
- 	int *tun)
- {
-+	struct secasvar *sav;
- 	struct ipsecrequest *isr;
- 	struct secasindex saidx;
- 	int error = 0;
-@@ -560,6 +574,20 @@ ipsec6_output_trans(
- 	m = state->m;
+@@ -455,6 +460,9 @@ ipsec4_process_packet(
+ 		}
+ 	}
  
- 	isr = ipsec_nextisr(m, isr, AF_INET6, &saidx, &error);
++	/* pass the mbuf to enc0 for bpf processing */
++	ipsec_bpf(m, sav, AF_INET);
 +
-+	sav = isr->sav;
-+	/* pass the mbuf to enc0 for bpf and pfil */
-+	if (ipsec_dofilter) {
-+		int flags;
-+		flags = IPSEC_M_CONF;
-+		if (sav->alg_auth != SADB_AALG_NONE)
-+			flags |= IPSEC_M_AUTH;
+ 	/*
+ 	 * Dispatch to the appropriate IPsec transform logic.  The
+ 	 * packet will be returned for transmission after crypto
+Index: netipsec/xform_ipip.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/xform_ipip.c,v
+retrieving revision 1.11.2.1
+diff -u -p -r1.11.2.1 xform_ipip.c
+--- netipsec/xform_ipip.c	1 Apr 2006 15:22:44 -0000	1.11.2.1
++++ netipsec/xform_ipip.c	26 May 2006 23:44:00 -0000
+@@ -345,6 +345,9 @@ _ipip_input(struct mbuf *m, int iphlen, 
+ 	/* Statistics */
+ 	ipipstat.ipips_ibytes += m->m_pkthdr.len - iphlen;
+ 
++	if (ipsec_filter(&m, 1) != 0)
++		return;
 +
-+		error = ipsec_filter(&m, AF_INET, sav->spi, flags, 2);
-+		if (error != 0)
-+			goto bad;
-+	}
-+
- 	if (isr == NULL) {
- #ifdef notdef
- 		/* XXX should notification be done for all errors ? */
+ 	/*
+ 	 * Interface pointer stays the same; if no IPsec processing has
+ 	 * been done (or will be done), this will point to a normal
