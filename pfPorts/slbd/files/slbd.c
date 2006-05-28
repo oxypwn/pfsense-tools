@@ -139,11 +139,13 @@ int main(int argc, char **argv) {
 
                         }
                         else if (polltype & SVCPOLL_PING) {
+                                if (service_pollicmp(v->services[i])) {
 #ifdef DEBUG
                                         warnx("Failed ICMP poll for vsvc %d"
                                               ", svc %d", v->id, i);
                                         print_service(v->services[i]);
 #endif
+				}
 			}
 #ifdef DEBUG
 			print_service(v->services[i]);
