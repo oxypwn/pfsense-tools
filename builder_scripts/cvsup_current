@@ -9,19 +9,16 @@
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
-if [ $PFSENSETAG = "HEAD" ]; then
-	# Remove patches items for if_enc
-	echo "HEAD build detected.  Removing older if_em.diff."
-	rm -f /usr/src/sys/conf/options
-	rm -f /usr/src/sys/conf/files
-	rm -f /usr/src/sys/net/if_types.h	
-	rm -f /usr/src/sys/net/if_enc.c
-	rm -f /usr/src/sys/netipsec/if_enc.c
-	rm -f /usr/src/sys/netinet6/esp_input.c
-	rm -f /usr/src/sys/netinet6/esp_output.c
-	rm -f /usr/src/sys/netipsec/ipsec_input.c
-	rm -f /usr/src/sys/netipsec/ipsec_output.c
-fi
+# Remove patches items for if_enc
+rm -f /usr/src/sys/conf/options
+rm -f /usr/src/sys/conf/files
+rm -f /usr/src/sys/net/if_types.h	
+rm -f /usr/src/sys/net/if_enc.c
+rm -f /usr/src/sys/netipsec/if_enc.c
+rm -f /usr/src/sys/netinet6/esp_input.c
+rm -f /usr/src/sys/netinet6/esp_output.c
+rm -f /usr/src/sys/netipsec/ipsec_input.c
+rm -f /usr/src/sys/netipsec/ipsec_output.c
 
 # Update FreeSBIE2 files from CVS
 cd ../../freesbie2 && cvs update && cd $CURRENTDIR
@@ -115,11 +112,8 @@ patch < ${PATCHDIR}/bsdlabel.c.diff
 cd ${SRCDIR}/sys/geom
 patch < ${PATCHDIR}/geom_ctl.c.diff
 
-if [ $PFSENSETAG = "HEAD" ]; then
-	echo "HEAD build detected.  Including if_enc.diff"
-	cd ${SRCDIR}/sys
-	patch < ${PATCHDIR}/if_enc.diff
-fi
+cd ${SRCDIR}/sys
+patch < ${PATCHDIR}/if_enc.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
