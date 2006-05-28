@@ -106,9 +106,9 @@ retry:
 			default:
 				lock_service(s);
 				setservice_down(s);
-				unlock_service(s);
 				syslog(LOG_ERR, "TCP poll failed to start to %s:%d during connect() (%s)",
 		    		inet_ntoa(getservice_inaddr(s)), getservice_port(s), strerror(errno));
+				unlock_service(s);
 #ifdef DEBUG
 				warn("connect(2) failed for the wrong reason");
 #endif
@@ -131,23 +131,25 @@ retry:
 		case 0:
 			switch(errno) {
 				case EINPROGRESS:
+					lock_service(s);
+					setservice_down(s);
 					if (s->prevstatus != s->status) {
 						syslog(LOG_ERR, "TCP poll still in progress to %s:%d, marking service DOWN",
 							inet_ntoa(getservice_inaddr(s)),
 							getservice_port(s));
 					}
-					lock_service(s);
-					setservice_down(s);
 					unlock_service(s);
 					status = -2;
 					goto bail;
 				default:
-					/* 0 events => timeout */
-					syslog(LOG_ERR, "TCP poll failed to start to %s:%d during poll() (%s), marking service DOWN",
-						inet_ntoa(getservice_inaddr(s)),
-						getservice_port(s), strerror(errno));
 					lock_service(s);
 					setservice_down(s);
+					/* 0 events => timeout */
+					if (s->prevstatus != s->status) {
+						syslog(LOG_ERR, "TCP poll failed to start to %s:%d during poll() (%s), marking service DOWN",
+						inet_ntoa(getservice_inaddr(s)),
+						getservice_port(s), strerror(errno));
+					}
 					unlock_service(s);
 					status = -2;
 					goto bail;
@@ -164,10 +166,10 @@ retry:
 			else {
 				lock_service(s);
 				setservice_down(s);
-				unlock_service(s);
 				syslog(LOG_ERR, "TCP poll failed to start to "
 				    "%s:%d in default (%s)", inet_ntoa(getservice_inaddr(s)),
 				    getservice_port(s), strerror(errno));
+				unlock_service(s);
 				status = -2;
 				goto bail;
 			}
@@ -187,13 +189,15 @@ int service_tcpexpect(struct service_t *s, int fd, char *send, char *expect) {
 
 	result = write(fd, send, strlen(send));
 	if (result == -1) {
-		syslog(LOG_ERR, "TCP poll failed send for %s:%d, marking service DOWN", 
-		    inet_ntoa(getservice_inaddr(s)), getservice_port(s));
+		lock_service(s);
+		setservice_down(s);
+		if (s->prevstatus != s->status) {
+			syslog(LOG_ERR, "TCP poll failed send for %s:%d, marking service DOWN", 
+		    	    inet_ntoa(getservice_inaddr(s)), getservice_port(s));
+		}
 #ifdef DEBUG
 		warn("write failed");
 #endif
-		lock_service(s);
-		setservice_down(s);
 		unlock_service(s);
 
 		status = -1;
@@ -241,14 +245,16 @@ int service_tcpexpect(struct service_t *s, int fd, char *send, char *expect) {
 		default:
 			result = read(fd, buf, BUFSIZ);
 			if (result == -1) {
-				syslog(LOG_ERR, "TCP poll failed expect for "
-				    "%s:%d, marking service DOWN", inet_ntoa(getservice_inaddr(s)),
-				    getservice_port(s));
+				lock_service(s);
+				setservice_down(s);
+				if (s->prevstatus != s->status) {
+					syslog(LOG_ERR, "TCP poll failed expect for "
+					    "%s:%d, marking service DOWN", inet_ntoa(getservice_inaddr(s)),
+					    getservice_port(s));
+				}
 #ifdef DEBUG
 				warn("read(2) failed with %d events", result);
 #endif
-				lock_service(s);
-				setservice_down(s);
 				unlock_service(s);
 				status = -1;
 				goto bail;
@@ -268,12 +274,14 @@ int service_tcpexpect(struct service_t *s, int fd, char *send, char *expect) {
 				unlock_service(s);
 			}
 			else {
-				syslog(LOG_ERR, "TCP poll failed expected "
-				    "string check for %s:%d, marking service DOWN", 
-				    inet_ntoa(getservice_inaddr(s)),
-				    getservice_port(s));
 				lock_service(s);
 				setservice_down(s);
+				if (s->prevstatus != s->status) {
+					syslog(LOG_ERR, "TCP poll failed expected "
+					    "string check for %s:%d, marking service DOWN", 
+					    inet_ntoa(getservice_inaddr(s)),
+					    getservice_port(s));
+				}
 				unlock_service(s);
 			}
 	}
@@ -286,21 +294,23 @@ bail:
 int service_polltcp(struct service_t *s) {
 	int fd = 0xDEADBEEF, status;
 
+	lock_service(s);
 	if ((getservice_status(s) & SVCSTATUS_ACTIVE) == 0) {
 		syslog(LOG_ERR, "service_polltcp: reached unreachable code");
 		return(-1);
 	}
+	unlock_service(s);
 	
 	fd = service_starttcp(s);
 	switch (fd) {
 		case -2:
-			if (s->prevstatus != s->status) {
-				syslog(LOG_ERR, "TCP poll failed for %s:%d, marking service DOWN", 
-					inet_ntoa(getservice_inaddr(s)),
-					getservice_port(s));
-			}
 			lock_service(s);
 			setservice_down(s);
+				if (s->prevstatus != s->status) {
+					syslog(LOG_ERR, "TCP poll failed for %s:%d, marking service DOWN", 
+						inet_ntoa(getservice_inaddr(s)),
+						getservice_port(s));
+				}
 			unlock_service(s);
 #ifdef DEBUG
 			warnx("Could not open TCP connection");
@@ -336,14 +346,14 @@ int service_polltcp(struct service_t *s) {
 #ifdef DEBUG
 				warnx("Content with open port, marking as up.");
 #endif
+				lock_service(s);
+				setservice_up(s);
 				if (s->prevstatus != s->status) {
 					syslog(LOG_ERR, "TCP poll succeeded for %s:%d, marking service UP", 
 						inet_ntoa(getservice_inaddr(s)),
 						getservice_port(s));
 				}
 				
-				lock_service(s);
-				setservice_up(s);
 				unlock_service(s);
 			}
 			break;
