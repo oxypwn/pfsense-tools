@@ -77,6 +77,7 @@ int main(int argc, char **argv) {
 	char *cfile = NULL;
 	pthread_t *t;
 	struct vsvc_t *v;
+	polltype_t polltype;
 
 #ifndef DEBUG
 	daemon(0,0);
@@ -110,19 +111,40 @@ int main(int argc, char **argv) {
 	signal(SIGPIPE, sigignore);
 	signal(SIGHUP, sigignore);
 
-	/*
-	SLIST_FOREACH(v, &virtualservices, next) {
-		printf("bleh %d\n", i++);
-	}
-	*/
-
 #ifdef DEBUG
 	warnx("Testing services");
 #endif
 	/* do one round through the tests */
 	SLIST_FOREACH(v, &virtualservices, next) {
 		for (i = 0; i < v->services_len; i++) {
-			service_pollhttp(v->services[i]);
+			polltype = getservice_polltype(v->services[i]);
+                        if (polltype & \
+                           (SVCPOLL_HTTPGET|SVCPOLL_HTTPHEAD|SVCPOLL_HTTPPOST)){
+                                if (service_pollhttp(v->services[i])) {
+#ifdef DEBUG
+                                        warnx("Failed HTTP poll for vsvc %d"
+                                              ", svc %d", v->id, i);
+                                        print_service(v->services[i]);
+#endif
+                                }
+                        }
+                        else if (polltype & SVCPOLL_TCP) {
+                                if (service_polltcp(v->services[i])) {
+#ifdef DEBUG
+                                        warnx("Failed TCP poll for vsvc %d"
+                                              ", svc %d", v->id, i);
+                                        print_service(v->services[i]);
+#endif
+                                }
+
+                        }
+                        else if (polltype & SVCPOLL_PING) {
+#ifdef DEBUG
+                                        warnx("Failed ICMP poll for vsvc %d"
+                                              ", svc %d", v->id, i);
+                                        print_service(v->services[i]);
+#endif
+			}
 #ifdef DEBUG
 			print_service(v->services[i]);
 #endif
