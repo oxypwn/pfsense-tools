@@ -49,6 +49,9 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <stdlib.h>
+#ifdef PFSENSE
+#include <sys/stat.h>
+#endif
 
 #include "service.h"
 #include "vsvc.h"
@@ -486,6 +489,7 @@ void vsvc_threadpoll(void *p) {
 	struct vsvc_t *v = p;
 #ifdef PFSENSE
 	int needs_filter_configure = 0;
+	struct stat sb;
 #endif
 
 	while (1) {
@@ -556,8 +560,12 @@ void vsvc_threadpoll(void *p) {
 		fclose(file);
 
 		if(needs_filter_configure == 1) {
-			syslog(LOG_ERR, "Service changed status, reloading filter policy");
-		 	system("touch /tmp/filter_dirty");
+			syslog(LOG_ERR, "Service %s changed status, reloading filter policy", v->poolname);
+			snprintf(filename, MAXPATHLEN, "/tmp/filter_dirty");
+			if (stat(filename, &sb)) {
+				file=fopen(filename,"w");
+				fclose(file);
+			}
 			needs_filter_configure = 0;
 		}
 #endif
