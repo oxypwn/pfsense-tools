@@ -433,22 +433,22 @@ int service_pollicmp(struct service_t *s) {
     
 	switch (res) {
 		case 0:
+			
+			lock_service(s);
+			setservice_up(s);
 			if (s->prevstatus != s->status) {
 				syslog(LOG_ERR, "ICMP poll succeeded for %s, marking service UP", 
 					inet_ntoa(getservice_inaddr(s)));
 			}
-			
-			lock_service(s);
-			setservice_up(s);
 			unlock_service(s);
 			break;
 		default:
+			lock_service(s);
+			setservice_down(s);
 			if (s->prevstatus != s->status) {
 				syslog(LOG_ERR, "ICMP poll failed for %s, marking service DOWN", 
 					inet_ntoa(getservice_inaddr(s)));
 			}
-			lock_service(s);
-			setservice_down(s);
 			unlock_service(s);
 			status = -2;
 			goto bail;
