@@ -30,7 +30,8 @@ populate_extra() {
     if [ $DEVIMAGE="yo" ]; then
     	echo "Adding back NetBoot installation services for dev image..."
     	cat $BASE_DIR/tools/installer/conf/pfSense.lua | grep -v "netboot"  >/tmp/tmp
-    	mv /tmp/tmp $CVS_CO_DIR/usr/local/share/dfuibe_lua/pfSense.lua
+    	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
+    	mv /tmp/tmp $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/pfSense.lua
 	else 
 		cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 	fi
