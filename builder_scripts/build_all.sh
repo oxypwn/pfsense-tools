@@ -14,17 +14,17 @@ export SKIP_RSYNC=yo
 
 # Update source against freebsd.org and pfsense.com
 # and build a iso
-./cvsup_current
+sh -x ./cvsup_current
 
 # Build general updates
-./build_updates.sh
+sh -x ./build_updates.sh
 
 # Build developer ISO
-./build_deviso.sh
+sh -x ./build_deviso.sh
 
 # Build embedded image
-./build_embedded.sh
+sh -x ./build_embedded.sh
 
 # Build embedded updates
-#./build_updates_embedded.sh
+sh -x #./build_updates_embedded.sh
 
