@@ -27,7 +27,7 @@ populate_extra() {
     # Add lua installer items
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
     
-    if [ $DEVIMAGE="yo" ]; then
+    if [ ! -z "${DEVIMAGE:-}" ]; then
     	echo "Adding back NetBoot installation services for dev image..."
     	cat $BASE_DIR/tools/installer/conf/pfSense.lua | grep -v "netboot"  >/tmp/tmp
     	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
