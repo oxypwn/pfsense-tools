@@ -115,6 +115,9 @@ patch < ${PATCHDIR}/geom_ctl.c.diff
 cd ${SRCDIR}/sys
 patch < ${PATCHDIR}/if_enc.diff
 
+cd ${SRCDIR}/sys/contrib/pf/net
+patch < ${PATCHDIR}/if_pfsync.c.diff
+
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*

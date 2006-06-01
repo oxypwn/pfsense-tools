@@ -1,0 +1,44 @@
+Index: if_pfsync.c
+===================================================================
+RCS file: /usr/store/mlaier/fcvs/src/sys/contrib/pf/net/if_pfsync.c,v
+retrieving revision 1.26
+diff -u -r1.26 if_pfsync.c
+--- if_pfsync.c	5 Dec 2005 11:58:31 -0000	1.26
++++ if_pfsync.c	1 Jun 2006 02:19:20 -0000
+@@ -1077,13 +1077,14 @@
+ 				sc->sc_statep_net.s = NULL;
+ 				splx(s);
+ 			}
++#ifdef __FreeBSD__
++			PF_UNLOCK();
++#endif
++			/* XXX: slight chance for a race */
+ 			if (imo->imo_num_memberships > 0) {
+ 				in_delmulti(imo->imo_membership[--imo->imo_num_memberships]);
+ 				imo->imo_multicast_ifp = NULL;
+ 			}
+-#ifdef __FreeBSD__
+-			PF_UNLOCK();
+-#endif
+ 			break;
+ 		}
+ 
+@@ -1112,10 +1113,16 @@
+ 		pfsync_setmtu(sc, sc->sc_if.if_mtu);
+ #endif
+ 
++#ifdef __FreeBSD__
++		PF_UNLOCK();
++#endif
+ 		if (imo->imo_num_memberships > 0) {
+ 			in_delmulti(imo->imo_membership[--imo->imo_num_memberships]);
+ 			imo->imo_multicast_ifp = NULL;
+ 		}
++#ifdef __FreeBSD__
++		PF_LOCK();
++#endif
+ 
+ 		if (sc->sc_sync_ifp &&
+ 		    sc->sc_sync_peer.s_addr == INADDR_PFSYNC_GROUP) {
+
+
