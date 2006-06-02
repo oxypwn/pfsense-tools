@@ -1,0 +1,27 @@
+===================================================================
+RCS file: /usr/local/www/cvsroot/FreeBSD/src/sys/vm/uma_core.c,v
+retrieving revision 1.119.2.15
+retrieving revision 1.119.2.16
+diff -u -p -r1.119.2.15 -r1.119.2.16
+--- src/sys/vm/uma_core.c	2006/02/14 03:37:58	1.119.2.15
++++ src/sys/vm/uma_core.c	2006/06/02 09:56:27	1.119.2.16
+@@ -48,7 +48,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/vm/uma_core.c,v 1.119.2.15 2006/02/14 03:37:58 rwatson Exp $");
++__FBSDID("$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/vm/uma_core.c,v 1.119.2.16 2006/06/02 09:56:27 rwatson Exp $");
+ 
+ /* I should really use ktr.. */
+ /*
+@@ -2417,8 +2417,7 @@ zfree_start:
+ 	 * If nothing else caught this, we'll just do an internal free.
+ 	 */
+ zfree_internal:
+-	uma_zfree_internal(zone, item, udata, SKIP_DTOR, ZFREE_STATFAIL |
+-	    ZFREE_STATFREE);
++	uma_zfree_internal(zone, item, udata, SKIP_DTOR, ZFREE_STATFREE);
+ 
+ 	return;
+ }
+
