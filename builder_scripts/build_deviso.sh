@@ -13,7 +13,7 @@ export EXTRA="customroot"
 
 export MAKE_CONF="${PWD}/conf/make.conf.developer"
 
-export PRUNE_LIST="/dev/null"
+export PRUNE_LIST=""
 
 # Use pfSense.6 as kernel configuration file
 export DEVIMAGE=yo
@@ -32,8 +32,8 @@ if [ ! -z "${PFSENSE_DEBUG:-}" -a -f ${KERNELCONF}.DEBUG ]; then
 fi
 
 if [ -f "${objdir}/${build_id_w}.world.done" ]; then
-    rm -f ${objdir}/${build_id_w}.world.done
-    rm -rf /usr/obj*
+    #rm -f ${objdir}/${build_id_w}.world.done
+    #rm -rf /usr/obj*
 fi
 
 # Suck in script helper functions
