@@ -121,6 +121,9 @@ patch < ${PATCHDIR}/if_pfsync.c.diff
 cd ${SRCDIR}/sys/vm
 patch < ${PATCHDIR}/uma_core.c.diff
 
+cd ${SRCDIR}/sys/
+patch < ${PATCHDIR}/bpf_fixes.diff
+
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*

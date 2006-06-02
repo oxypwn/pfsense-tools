@@ -1,0 +1,641 @@
+Index: dev/ath/if_ath.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/ath/if_ath.c,v
+retrieving revision 1.144
+diff -u -r1.144 if_ath.c
+--- dev/ath/if_ath.c	8 May 2006 20:11:09 -0000	1.144
++++ dev/ath/if_ath.c	1 Jun 2006 08:36:07 -0000
+@@ -2905,7 +2905,7 @@
+ 			 * pass decrypt+mic errors but others may be
+ 			 * interesting (e.g. crc).
+ 			 */
+-			if (sc->sc_drvbpf != NULL &&
++			if (bpf_peers_present(sc->sc_drvbpf) &&
+ 			    (ds->ds_rxstat.rs_status & sc->sc_monpass)) {
+ 				bus_dmamap_sync(sc->sc_dmat, bf->bf_dmamap,
+ 				    BUS_DMASYNC_POSTREAD);
+@@ -2936,7 +2936,8 @@
+ 
+ 		sc->sc_stats.ast_ant_rx[ds->ds_rxstat.rs_antenna]++;
+ 
+-		if (sc->sc_drvbpf != NULL && !ath_rx_tap(sc, m, ds, tsf, nf)) {
++		if (bpf_peers_present(sc->sc_drvbpf) &&
++		    !ath_rx_tap(sc, m, ds, tsf, nf)) {
+ 			m_freem(m);		/* XXX reclaim */
+ 			goto rx_next;
+ 		}
+@@ -3636,7 +3637,7 @@
+ 
+ 	if (ic->ic_rawbpf)
+ 		bpf_mtap(ic->ic_rawbpf, m0);
+-	if (sc->sc_drvbpf) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		u_int64_t tsf = ath_hal_gettsf64(ah);
+ 
+ 		sc->sc_tx_th.wt_tsf = htole64(tsf);
+Index: dev/ipw/if_ipw.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/ipw/if_ipw.c,v
+retrieving revision 1.19
+diff -u -r1.19 if_ipw.c
+--- dev/ipw/if_ipw.c	16 May 2006 14:36:27 -0000	1.19
++++ dev/ipw/if_ipw.c	1 Jun 2006 08:36:07 -0000
+@@ -1054,7 +1054,7 @@
+ 	m->m_pkthdr.rcvif = ifp;
+ 	m->m_pkthdr.len = m->m_len = le32toh(status->len);
+ 
+-	if (sc->sc_drvbpf != NULL) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		struct ipw_rx_radiotap_header *tap = &sc->sc_rxtap;
+ 
+ 		tap->wr_flags = 0;
+@@ -1328,7 +1328,7 @@
+ 		wh = mtod(m0, struct ieee80211_frame *);
+ 	}
+ 
+-	if (sc->sc_drvbpf != NULL) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		struct ipw_tx_radiotap_header *tap = &sc->sc_txtap;
+ 
+ 		tap->wt_flags = 0;
+Index: dev/iwi/if_iwi.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/iwi/if_iwi.c,v
+retrieving revision 1.36
+diff -u -r1.36 if_iwi.c
+--- dev/iwi/if_iwi.c	16 May 2006 14:36:27 -0000	1.36
++++ dev/iwi/if_iwi.c	1 Jun 2006 08:36:07 -0000
+@@ -1300,7 +1300,7 @@
+ 
+ 	m_adj(m, sizeof (struct iwi_hdr) + sizeof (struct iwi_frame));
+ 
+-	if (sc->sc_drvbpf != NULL) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		struct iwi_rx_radiotap_header *tap = &sc->sc_rxtap;
+ 
+ 		tap->wr_flags = 0;
+@@ -1829,7 +1829,7 @@
+ 		wh = mtod(m0, struct ieee80211_frame *);
+ 	}
+ 
+-	if (sc->sc_drvbpf != NULL) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		struct iwi_tx_radiotap_header *tap = &sc->sc_txtap;
+ 
+ 		tap->wt_flags = 0;
+Index: dev/usb/if_ural.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/usb/if_ural.c,v
+retrieving revision 1.38
+diff -u -r1.38 if_ural.c
+--- dev/usb/if_ural.c	16 May 2006 14:36:32 -0000	1.38
++++ dev/usb/if_ural.c	1 Jun 2006 08:36:08 -0000
+@@ -956,7 +956,7 @@
+ 	m->m_pkthdr.len = m->m_len = (le32toh(desc->flags) >> 16) & 0xfff;
+ 	m->m_flags |= M_HASFCS;	/* h/w leaves FCS */
+ 
+-	if (sc->sc_drvbpf != NULL) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		struct ural_rx_radiotap_header *tap = &sc->sc_rxtap;
+ 
+ 		tap->wr_flags = IEEE80211_RADIOTAP_F_FCS;   
+@@ -1204,7 +1204,7 @@
+ 			flags |= RAL_TX_TIMESTAMP;
+ 	}
+ 
+-	if (sc->sc_drvbpf != NULL) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		struct ural_tx_radiotap_header *tap = &sc->sc_txtap;
+ 
+ 		tap->wt_flags = 0;
+@@ -1293,7 +1293,7 @@
+ 		*(uint16_t *)wh->i_dur = htole16(dur);
+ 	}
+ 
+-	if (sc->sc_drvbpf != NULL) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		struct ural_tx_radiotap_header *tap = &sc->sc_txtap;
+ 
+ 		tap->wt_flags = 0;
+Index: dev/wi/if_wi.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/dev/wi/if_wi.c,v
+retrieving revision 1.195
+diff -u -r1.195 if_wi.c
+--- dev/wi/if_wi.c	16 May 2006 14:36:33 -0000	1.195
++++ dev/wi/if_wi.c	1 Jun 2006 08:39:33 -0000
+@@ -961,7 +961,7 @@
+                         wh = mtod(m0, struct ieee80211_frame *);
+ 		}
+ #if NBPFILTER > 0
+-		if (ic->ic_rawbpf)
++		if (bpf_peers_present(ic->ic_rawbpf))
+ 			bpf_mtap(ic->ic_rawbpf, m0);
+ #endif
+ 		frmhdr.wi_tx_ctl = htole16(WI_ENC_TX_802_11|WI_TXCNTL_TX_EX);
+@@ -980,7 +980,7 @@
+ 			frmhdr.wi_tx_ctl |= htole16(WI_TXCNTL_NOCRYPT);
+ 		}
+ #if NBPFILTER > 0
+-		if (sc->sc_drvbpf) {
++		if (bpf_peers_present(ic->ic_rawbpf)) {
+ 			sc->sc_tx_th.wt_rate =
+ 				ni->ni_rates.rs_rates[ni->ni_txrate];
+ 			bpf_mtap2(sc->sc_drvbpf,
+@@ -1534,7 +1534,7 @@
+ 	}
+ 
+ #if NBPFILTER > 0
+-	if (sc->sc_drvbpf) {
++	if (bpf_peers_present(sc->sc_drvbpf)) {
+ 		/* XXX replace divide by table */
+ 		sc->sc_rx_th.wr_rate = frmhdr.wi_rx_rate / 5;
+ 		sc->sc_rx_th.wr_antsignal = frmhdr.wi_rx_signal;
+Index: net/bpf.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/bpf.c,v
+retrieving revision 1.164
+diff -u -r1.164 bpf.c
+--- net/bpf.c	7 May 2006 03:21:43 -0000	1.164
++++ net/bpf.c	1 Jun 2006 08:36:08 -0000
+@@ -301,7 +301,6 @@
+ 	LIST_INSERT_HEAD(&bp->bif_dlist, d, bd_next);
+ 
+ 	bpf_bpfd_cnt++;
+-	*bp->bif_driverp = bp;
+ 	BPFIF_UNLOCK(bp);
+ }
+ 
+@@ -327,12 +326,6 @@
+ 	LIST_REMOVE(d, bd_next);
+ 
+ 	bpf_bpfd_cnt--;
+-	/*
+-	 * Let the driver know that there are no more listeners.
+-	 */
+-	if (LIST_EMPTY(&bp->bif_dlist))
+-		*bp->bif_driverp = NULL;
+-
+ 	d->bd_bif = NULL;
+ 	BPFD_UNLOCK(d);
+ 	BPFIF_UNLOCK(bp);
+@@ -1106,51 +1099,33 @@
+ 	struct ifnet *theywant;
+ 
+ 	theywant = ifunit(ifr->ifr_name);
+-	if (theywant == NULL)
+-		return ENXIO;
++	if (theywant == NULL || theywant->if_bpf == NULL)
++		return (ENXIO);
+ 
++	bp = theywant->if_bpf;
+ 	/*
+-	 * Look through attached interfaces for the named one.
++	 * Allocate the packet buffers if we need to.
++	 * If we're already attached to requested interface,
++	 * just flush the buffer.
+ 	 */
+-	mtx_lock(&bpf_mtx);
+-	LIST_FOREACH(bp, &bpf_iflist, bif_next) {
+-		struct ifnet *ifp = bp->bif_ifp;
+-
+-		if (ifp == NULL || ifp != theywant)
+-			continue;
+-		/* skip additional entry */
+-		if (bp->bif_driverp != &ifp->if_bpf)
+-			continue;
+-
+-		mtx_unlock(&bpf_mtx);
+-		/*
+-		 * We found the requested interface.
+-		 * Allocate the packet buffers if we need to.
+-		 * If we're already attached to requested interface,
+-		 * just flush the buffer.
+-		 */
+-		if (d->bd_sbuf == NULL) {
+-			error = bpf_allocbufs(d);
+-			if (error != 0)
+-				return (error);
+-		}
+-		if (bp != d->bd_bif) {
+-			if (d->bd_bif)
+-				/*
+-				 * Detach if attached to something else.
+-				 */
+-				bpf_detachd(d);
++	if (d->bd_sbuf == NULL) {
++		error = bpf_allocbufs(d);
++		if (error != 0)
++			return (error);
++	}
++	if (bp != d->bd_bif) {
++		if (d->bd_bif)
++			/*
++			 * Detach if attached to something else.
++			 */
++			bpf_detachd(d);
+ 
+-			bpf_attachd(d, bp);
+-		}
+-		BPFD_LOCK(d);
+-		reset_d(d);
+-		BPFD_UNLOCK(d);
+-		return (0);
++		bpf_attachd(d, bp);
+ 	}
+-	mtx_unlock(&bpf_mtx);
+-	/* Not found. */
+-	return (ENXIO);
++	BPFD_LOCK(d);
++	reset_d(d);
++	BPFD_UNLOCK(d);
++	return (0);
+ }
+ 
+ /*
+@@ -1272,13 +1247,6 @@
+ 	struct bpf_d *d;
+ 	u_int slen;
+ 
+-	/*
+-	 * Lockless read to avoid cost of locking the interface if there are
+-	 * no descriptors attached.
+-	 */
+-	if (LIST_EMPTY(&bp->bif_dlist))
+-		return;
+-
+ 	BPFIF_LOCK(bp);
+ 	LIST_FOREACH(d, &bp->bif_dlist, bd_next) {
+ 		BPFD_LOCK(d);
+@@ -1339,13 +1307,6 @@
+ 	struct bpf_d *d;
+ 	u_int pktlen, slen;
+ 
+-	/*
+-	 * Lockless read to avoid cost of locking the interface if there are
+-	 * no descriptors attached.
+-	 */
+-	if (LIST_EMPTY(&bp->bif_dlist))
+-		return;
+-
+ 	pktlen = m_length(m, NULL);
+ 
+ 	BPFIF_LOCK(bp);
+@@ -1391,13 +1352,6 @@
+ 	struct bpf_d *d;
+ 	u_int pktlen, slen;
+ 
+-	/*
+-	 * Lockless read to avoid cost of locking the interface if there are
+-	 * no descriptors attached.
+-	 */
+-	if (LIST_EMPTY(&bp->bif_dlist))
+-		return;
+-
+ 	pktlen = m_length(m, NULL);
+ 	/*
+ 	 * Craft on-stack mbuf suitable for passing to bpf_filter.
+@@ -1589,17 +1543,15 @@
+ 		panic("bpfattach");
+ 
+ 	LIST_INIT(&bp->bif_dlist);
+-	bp->bif_driverp = driverp;
+ 	bp->bif_ifp = ifp;
+ 	bp->bif_dlt = dlt;
+ 	mtx_init(&bp->bif_mtx, "bpf interface lock", NULL, MTX_DEF);
++	*driverp = bp;
+ 
+ 	mtx_lock(&bpf_mtx);
+ 	LIST_INSERT_HEAD(&bpf_iflist, bp, bif_next);
+ 	mtx_unlock(&bpf_mtx);
+ 
+-	*bp->bif_driverp = NULL;
+-
+ 	/*
+ 	 * Compute the length of the bpf header.  This is not necessarily
+ 	 * equal to SIZEOF_BPF_HDR because we want to insert spacing such
+Index: net/bpf.h
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/bpf.h,v
+retrieving revision 1.40
+diff -u -r1.40 bpf.h
+--- net/bpf.h	22 Aug 2005 19:35:48 -0000	1.40
++++ net/bpf.h	1 Jun 2006 08:36:08 -0000
+@@ -603,7 +603,18 @@
+ };
+ 
+ #ifdef _KERNEL
+-struct bpf_if;
++/*
++ * Descriptor associated with each attached hardware interface.
++ */
++struct bpf_if {
++	LIST_ENTRY(bpf_if)	bif_next;	/* list of all interfaces */
++	LIST_HEAD(, bpf_d)	bif_dlist;	/* descriptor list */
++	u_int bif_dlt;				/* link layer type */
++	u_int bif_hdrlen;		/* length of header (with padding) */
++	struct ifnet *bif_ifp;		/* corresponding interface */
++	struct mtx	bif_mtx;	/* mutex for interface */
++};
++
+ int	 bpf_validate(const struct bpf_insn *, int);
+ void	 bpf_tap(struct bpf_if *, u_char *, u_int);
+ void	 bpf_mtap(struct bpf_if *, struct mbuf *);
+@@ -615,18 +626,24 @@
+ void	 bpfilterattach(int);
+ u_int	 bpf_filter(const struct bpf_insn *, u_char *, u_int, u_int);
+ 
++static __inline int
++bpf_peers_present(struct bpf_if *bpf)
++{
++	return !LIST_EMPTY(&bpf->bif_dlist);
++}
++
+ #define	BPF_TAP(_ifp,_pkt,_pktlen) do {				\
+-	if ((_ifp)->if_bpf)					\
++	if (bpf_peers_present((_ifp)->if_bpf))			\
+ 		bpf_tap((_ifp)->if_bpf, (_pkt), (_pktlen));	\
+ } while (0)
+ #define	BPF_MTAP(_ifp,_m) do {					\
+-	if ((_ifp)->if_bpf) {					\
++	if (bpf_peers_present((_ifp)->if_bpf)) {		\
+ 		M_ASSERTVALID(_m);				\
+ 		bpf_mtap((_ifp)->if_bpf, (_m));			\
+ 	}							\
+ } while (0)
+ #define	BPF_MTAP2(_ifp,_data,_dlen,_m) do {			\
+-	if ((_ifp)->if_bpf) {					\
++	if (bpf_peers_present((_ifp)->if_bpf)) {		\
+ 		M_ASSERTVALID(_m);				\
+ 		bpf_mtap2((_ifp)->if_bpf,(_data),(_dlen),(_m));	\
+ 	}							\
+Index: net/bpfdesc.h
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/bpfdesc.h,v
+retrieving revision 1.33
+diff -u -r1.33 bpfdesc.h
+--- net/bpfdesc.h	6 Dec 2005 02:58:12 -0000	1.33
++++ net/bpfdesc.h	1 Jun 2006 08:36:08 -0000
+@@ -120,19 +120,6 @@
+ 	  (bd)->bd_slen != 0))
+ 
+ /*
+- * Descriptor associated with each attached hardware interface.
+- */
+-struct bpf_if {
+-	LIST_ENTRY(bpf_if)	bif_next;	/* list of all interfaces */
+-	LIST_HEAD(, bpf_d)	bif_dlist;	/* descriptor list */
+-	struct bpf_if **bif_driverp;	/* pointer into softc */
+-	u_int bif_dlt;			/* link layer type */
+-	u_int bif_hdrlen;		/* length of header (with padding) */
+-	struct ifnet *bif_ifp;		/* corresponding interface */
+-	struct mtx	bif_mtx;	/* mutex for interface */
+-};
+-
+-/*
+  * External representation of the bpf descriptor
+  */
+ struct xbpf_d {
+Index: net/if_disc.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/if_disc.c,v
+retrieving revision 1.51
+diff -u -r1.51 if_disc.c
+--- net/if_disc.c	11 Nov 2005 11:17:57 -0000	1.51
++++ net/if_disc.c	1 Jun 2006 08:36:08 -0000
+@@ -158,7 +158,7 @@
+ 		dst->sa_family = af;
+ 	}
+ 
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		u_int af = dst->sa_family;
+ 		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m);
+ 	}
+Index: net/if_gif.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/if_gif.c,v
+retrieving revision 1.58
+diff -u -r1.58 if_gif.c
+--- net/if_gif.c	30 Jan 2006 08:39:09 -0000	1.58
++++ net/if_gif.c	1 Jun 2006 08:36:08 -0000
+@@ -424,9 +424,7 @@
+ 	}
+ 
+ 	af = dst->sa_family;
+-	if (ifp->if_bpf) {
+-		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m);
+-	}
++	BPF_MTAP2(ifp, &af, sizeof(af), m);
+ 	ifp->if_opackets++;	
+ 	ifp->if_obytes += m->m_pkthdr.len;
+ 
+@@ -484,7 +482,7 @@
+ 	mac_create_mbuf_from_ifnet(ifp, m);
+ #endif
+ 
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		u_int32_t af1 = af;
+ 		bpf_mtap2(ifp->if_bpf, &af1, sizeof(af1), m);
+ 	}
+Index: net/if_gre.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/if_gre.c,v
+retrieving revision 1.41
+diff -u -r1.41 if_gre.c
+--- net/if_gre.c	11 May 2006 00:53:43 -0000	1.41
++++ net/if_gre.c	1 Jun 2006 08:36:08 -0000
+@@ -276,7 +276,7 @@
+ 		dst->sa_family = af;
+ 	}
+ 
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		af = dst->sa_family;
+ 		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m);
+ 	}
+Index: net/if_loop.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/if_loop.c,v
+retrieving revision 1.108
+diff -u -r1.108 if_loop.c
+--- net/if_loop.c	12 May 2006 05:04:45 -0000	1.108
++++ net/if_loop.c	1 Jun 2006 08:36:08 -0000
+@@ -259,7 +259,7 @@
+ 	m->m_pkthdr.rcvif = ifp;
+ 
+ 	/* Let BPF see incoming packet */
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		if (ifp->if_bpf->bif_dlt == DLT_NULL) {
+ 			u_int32_t af1 = af;	/* XXX beware sizeof(af) != 4 */
+ 			/*
+Index: net/if_sl.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/if_sl.c,v
+retrieving revision 1.131
+diff -u -r1.131 if_sl.c
+--- net/if_sl.c	16 Oct 2005 20:44:18 -0000	1.131
++++ net/if_sl.c	1 Jun 2006 08:36:08 -0000
+@@ -662,7 +662,7 @@
+ 		 * queueing, and the connection id compression will get
+ 		 * munged when this happens.
+ 		 */
+-		if (SL2IFP(sc)->if_bpf) {
++		if (bpf_peers_present(SL2IFP(sc)->if_bpf)) {
+ 			/*
+ 			 * We need to save the TCP/IP header before it's
+ 			 * compressed.  To avoid complicated code, we just
+@@ -696,7 +696,7 @@
+ 				*mtod(m, u_char *) |= sl_compress_tcp(m, ip,
+ 				    &sc->sc_comp, 1);
+ 		}
+-		if (SL2IFP(sc)->if_bpf && sc->bpfbuf) {
++		if (bpf_peers_present(SL2IFP(sc)->if_bpf) && sc->bpfbuf) {
+ 			/*
+ 			 * Put the SLIP pseudo-"link header" in place.  The
+ 			 * compressed header is now at the beginning of the
+@@ -922,7 +922,7 @@
+ 			/* less than min length packet - ignore */
+ 			goto newpack;
+ 
+-		if (SL2IFP(sc)->if_bpf) {
++		if (bpf_peers_present(SL2IFP(sc)->if_bpf)) {
+ 			/*
+ 			 * Save the compressed header, so we
+ 			 * can tack it on later.  Note that we
+@@ -961,7 +961,7 @@
+ 			} else
+ 				goto error;
+ 		}
+-		if (SL2IFP(sc)->if_bpf) {
++		if (bpf_peers_present(SL2IFP(sc)->if_bpf)) {
+ 			/*
+ 			 * Put the SLIP pseudo-"link header" in place.
+ 			 * We couldn't do this any earlier since
+Index: net/if_stf.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/if_stf.c,v
+retrieving revision 1.53
+diff -u -r1.53 if_stf.c
+--- net/if_stf.c	9 Nov 2005 13:29:14 -0000	1.53
++++ net/if_stf.c	1 Jun 2006 08:36:08 -0000
+@@ -476,7 +476,7 @@
+ 	}
+ 	bcopy(ptr, &in4, sizeof(in4));
+ 
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		/*
+ 		 * We need to prepend the address family as
+ 		 * a four byte field.  Cons up a dummy header
+@@ -723,7 +723,7 @@
+ 
+ 	m->m_pkthdr.rcvif = ifp;
+ 	
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		/*
+ 		 * We need to prepend the address family as
+ 		 * a four byte field.  Cons up a dummy header
+Index: net/if_tun.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net/if_tun.c,v
+retrieving revision 1.154
+diff -u -r1.154 if_tun.c
+--- net/if_tun.c	9 Aug 2005 10:19:58 -0000	1.154
++++ net/if_tun.c	1 Jun 2006 08:36:08 -0000
+@@ -509,7 +509,7 @@
+ 		dst->sa_family = af; 
+ 	}
+ 
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		af = dst->sa_family;
+ 		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m0);
+ 	}
+Index: net80211/ieee80211_input.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/net80211/ieee80211_input.c,v
+retrieving revision 1.90
+diff -u -r1.90 ieee80211_input.c
+--- net80211/ieee80211_input.c	7 Mar 2006 03:55:05 -0000	1.90
++++ net80211/ieee80211_input.c	1 Jun 2006 08:36:08 -0000
+@@ -422,7 +422,7 @@
+ 		}
+ 
+ 		/* copy to listener after decrypt */
+-		if (ic->ic_rawbpf)
++		if (bpf_peers_present(ic->ic_rawbpf))
+ 			bpf_mtap(ic->ic_rawbpf, m);
+ 
+ 		/*
+@@ -536,7 +536,7 @@
+ 			wh = mtod(m, struct ieee80211_frame *);
+ 			wh->i_fc[1] &= ~IEEE80211_FC1_WEP;
+ 		}
+-		if (ic->ic_rawbpf)
++		if (bpf_peers_present(ic->ic_rawbpf))
+ 			bpf_mtap(ic->ic_rawbpf, m);
+ 		(*ic->ic_recv_mgmt)(ic, m, ni, subtype, rssi, rstamp);
+ 		m_freem(m);
+@@ -563,7 +563,7 @@
+ 	ifp->if_ierrors++;
+ out:
+ 	if (m != NULL) {
+-		if (ic->ic_rawbpf)
++		if (bpf_peers_present(ic->ic_rawbpf))
+ 			bpf_mtap(ic->ic_rawbpf, m);
+ 		m_freem(m);
+ 	}
+@@ -719,7 +719,7 @@
+ 	return;
+   out:
+ 	if (m != NULL) {
+-		if (ic->ic_rawbpf)
++		if (bpf_peers_present(ic->ic_rawbpf))
+ 			bpf_mtap(ic->ic_rawbpf, m);
+ 		m_freem(m);
+ 	}
+Index: netinet/ip_carp.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.39
+diff -u -r1.39 ip_carp.c
+--- netinet/ip_carp.c	21 Mar 2006 14:29:48 -0000	1.39
++++ netinet/ip_carp.c	1 Jun 2006 08:36:08 -0000
+@@ -657,7 +657,7 @@
+ 	SC2IFP(sc)->if_ipackets++;
+ 	SC2IFP(sc)->if_ibytes += m->m_pkthdr.len;
+ 
+-	if (SC2IFP(sc)->if_bpf) {
++	if (bpf_peers_present(SC2IFP(sc)->if_bpf)) {
+ 		struct ip *ip = mtod(m, struct ip *);
+ 		uint32_t af1 = af;
+ 
+Index: netinet/ip_gre.c
+===================================================================
+RCS file: /usr/ncvs/src/sys/netinet/ip_gre.c,v
+retrieving revision 1.23
+diff -u -r1.23 ip_gre.c
+--- netinet/ip_gre.c	16 May 2006 11:15:22 -0000	1.23
++++ netinet/ip_gre.c	1 Jun 2006 08:36:08 -0000
+@@ -206,7 +206,7 @@
+ 	/* Unlike NetBSD, in FreeBSD m_adj() adjusts m->m_pkthdr.len as well */
+ 	m_adj(m, hlen);
+ 
+-	if (GRE2IFP(sc)->if_bpf) {
++	if (bpf_peers_present(GRE2IFP(sc)->if_bpf)) {
+ 		bpf_mtap2(GRE2IFP(sc)->if_bpf, &af, sizeof(af), m);
+ 	}
+ 
+@@ -289,7 +289,7 @@
+ 	ip->ip_sum = 0;
+ 	ip->ip_sum = in_cksum(m, (ip->ip_hl << 2));
+ 
+-	if (GRE2IFP(sc)->if_bpf) {
++	if (bpf_peers_present(GRE2IFP(sc)->if_bpf)) {
+ 		u_int32_t af = AF_INET;
+ 		bpf_mtap2(GRE2IFP(sc)->if_bpf, &af, sizeof(af), m);
+ 	}
