@@ -448,7 +448,7 @@ RCS file: /home/ncvs/src/sys/net/bpf.h,v
 retrieving revision 1.39.2.1
 diff -u -p -r1.39.2.1 bpf.h
 --- net/bpf.h	29 Sep 2005 23:48:04 -0000	1.39.2.1
-+++ net/bpf.h	3 Jun 2006 00:46:08 -0000
++++ net/bpf.h	3 Jun 2006 05:43:59 -0000
 @@ -603,7 +603,18 @@ struct bpf_dltlist {
  };
  
@@ -469,14 +469,18 @@ diff -u -p -r1.39.2.1 bpf.h
  int	 bpf_validate(const struct bpf_insn *, int);
  void	 bpf_tap(struct bpf_if *, u_char *, u_int);
  void	 bpf_mtap(struct bpf_if *, struct mbuf *);
-@@ -615,18 +626,24 @@ void	 bpfdetach(struct ifnet *);
+@@ -615,18 +626,28 @@ void	 bpfdetach(struct ifnet *);
  void	 bpfilterattach(int);
  u_int	 bpf_filter(const struct bpf_insn *, u_char *, u_int, u_int);
  
 +static __inline int
 +bpf_peers_present(struct bpf_if *bpf)
 +{
++#if defined(DEV_BPF) || defined(NETGRAPH_BPF)
 +	return !LIST_EMPTY(&bpf->bif_dlist);
++#else
++	return (0);
++#endif
 +}
 +
  #define	BPF_TAP(_ifp,_pkt,_pktlen) do {				\
