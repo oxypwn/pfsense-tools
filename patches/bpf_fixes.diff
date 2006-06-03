@@ -1,11 +1,11 @@
 Index: dev/ath/if_ath.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/dev/ath/if_ath.c,v
-retrieving revision 1.144
-diff -u -r1.144 if_ath.c
---- dev/ath/if_ath.c	8 May 2006 20:11:09 -0000	1.144
-+++ dev/ath/if_ath.c	1 Jun 2006 08:36:07 -0000
-@@ -2905,7 +2905,7 @@
+RCS file: /home/ncvs/src/sys/dev/ath/if_ath.c,v
+retrieving revision 1.94.2.16.2.2
+diff -u -p -r1.94.2.16.2.2 if_ath.c
+--- dev/ath/if_ath.c	2 May 2006 17:08:34 -0000	1.94.2.16.2.2
++++ dev/ath/if_ath.c	3 Jun 2006 00:46:47 -0000
+@@ -2900,7 +2900,7 @@ ath_rx_proc(void *arg, int npending)
  			 * pass decrypt+mic errors but others may be
  			 * interesting (e.g. crc).
  			 */
@@ -14,7 +14,7 @@ diff -u -r1.144 if_ath.c
  			    (ds->ds_rxstat.rs_status & sc->sc_monpass)) {
  				bus_dmamap_sync(sc->sc_dmat, bf->bf_dmamap,
  				    BUS_DMASYNC_POSTREAD);
-@@ -2936,7 +2936,8 @@
+@@ -2931,7 +2931,8 @@ rx_accept:
  
  		sc->sc_stats.ast_ant_rx[ds->ds_rxstat.rs_antenna]++;
  
@@ -24,23 +24,75 @@ diff -u -r1.144 if_ath.c
  			m_freem(m);		/* XXX reclaim */
  			goto rx_next;
  		}
-@@ -3636,7 +3637,7 @@
+@@ -3629,9 +3630,9 @@ ath_tx_start(struct ath_softc *sc, struc
+ 		ieee80211_dump_pkt(mtod(m0, caddr_t), m0->m_len,
+ 			sc->sc_hwmap[txrate].ieeerate, -1);
  
- 	if (ic->ic_rawbpf)
+-	if (ic->ic_rawbpf)
++	if (bpf_peers_present(ic->ic_rawbpf))
  		bpf_mtap(ic->ic_rawbpf, m0);
 -	if (sc->sc_drvbpf) {
 +	if (bpf_peers_present(sc->sc_drvbpf)) {
  		u_int64_t tsf = ath_hal_gettsf64(ah);
  
  		sc->sc_tx_th.wt_tsf = htole64(tsf);
+Index: dev/awi/awi.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/awi/awi.c,v
+retrieving revision 1.37.2.4
+diff -u -p -r1.37.2.4 awi.c
+--- dev/awi/awi.c	3 Sep 2005 22:46:42 -0000	1.37.2.4
++++ dev/awi/awi.c	3 Jun 2006 00:46:47 -0000
+@@ -796,8 +796,7 @@ awi_start(struct ifnet *ifp)
+ 			}
+ 			IFQ_DEQUEUE(&ifp->if_snd, m0);
+ #if NBPFILTER > 0
+-			if (ifp->if_bpf)
+-				bpf_mtap(ifp->if_bpf, m0);
++			BPF_MTAP(ifp, m0);
+ #endif
+ 			if ((ifp->if_flags & IFF_LINK0) || sc->sc_adhoc_ap)
+ 				m0 = awi_ether_encap(sc, m0);
+@@ -839,7 +838,7 @@ awi_start(struct ifnet *ifp)
+ 			ifp->if_opackets++;
+ 		}
+ #if NBPFILTER > 0
+-		if (ic->ic_rawbpf)
++		if (bpf_peers_present(ic->ic_rawbpf))
+ 			bpf_mtap(ic->ic_rawbpf, m0);
+ #endif
+ 		if (dowep) {
+Index: dev/gem/if_gem.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/gem/if_gem.c,v
+retrieving revision 1.29.2.5
+diff -u -p -r1.29.2.5 if_gem.c
+--- dev/gem/if_gem.c	5 Oct 2005 22:08:17 -0000	1.29.2.5
++++ dev/gem/if_gem.c	3 Jun 2006 00:46:47 -0000
+@@ -1205,8 +1205,7 @@ gem_start_locked(ifp)
+ 		bus_space_write_4(sc->sc_bustag, sc->sc_h, GEM_TX_KICK,
+ 			sc->sc_txnext);
+ 
+-		if (ifp->if_bpf != NULL)
+-			bpf_mtap(ifp->if_bpf, m0);
++		BPF_MTAP(ifp, m0);
+ 	} while (1);
+ 
+ 	if (txmfail == -1 || sc->sc_txfree == 0) {
 Index: dev/ipw/if_ipw.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/dev/ipw/if_ipw.c,v
-retrieving revision 1.19
-diff -u -r1.19 if_ipw.c
---- dev/ipw/if_ipw.c	16 May 2006 14:36:27 -0000	1.19
-+++ dev/ipw/if_ipw.c	1 Jun 2006 08:36:07 -0000
-@@ -1054,7 +1054,7 @@
+RCS file: /home/ncvs/src/sys/dev/ipw/if_ipw.c,v
+retrieving revision 1.7.2.4.2.1
+diff -u -p -r1.7.2.4.2.1 if_ipw.c
+--- dev/ipw/if_ipw.c	10 Apr 2006 18:29:31 -0000	1.7.2.4.2.1
++++ dev/ipw/if_ipw.c	3 Jun 2006 00:46:47 -0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/dev/ipw/if_ipw.c,v 1.7.2.4.2.1 2006/04/10 18:29:31 mlaier Exp $	*/
++/*	$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/dev/ipw/if_ipw.c,v 1.21 2006/06/02 23:14:39 sam Exp $	*/
+ 
+ /*-
+  * Copyright (c) 2004-2006
+@@ -1071,7 +1071,7 @@ ipw_data_intr(struct ipw_softc *sc, stru
  	m->m_pkthdr.rcvif = ifp;
  	m->m_pkthdr.len = m->m_len = le32toh(status->len);
  
@@ -49,7 +101,7 @@ diff -u -r1.19 if_ipw.c
  		struct ipw_rx_radiotap_header *tap = &sc->sc_rxtap;
  
  		tap->wr_flags = 0;
-@@ -1328,7 +1328,7 @@
+@@ -1348,7 +1348,7 @@ ipw_tx_start(struct ifnet *ifp, struct m
  		wh = mtod(m0, struct ieee80211_frame *);
  	}
  
@@ -58,23 +110,32 @@ diff -u -r1.19 if_ipw.c
  		struct ipw_tx_radiotap_header *tap = &sc->sc_txtap;
  
  		tap->wt_flags = 0;
+@@ -1516,7 +1516,7 @@ ipw_start(struct ifnet *ifp)
+ 			continue;
+ 		}
+ 
+-		if (ic->ic_rawbpf != NULL)
++		if (bpf_peers_present(ic->ic_rawbpf))
+ 			bpf_mtap(ic->ic_rawbpf, m0);
+ 
+ 		if (ipw_tx_start(ifp, m0, ni) != 0) {
 Index: dev/iwi/if_iwi.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/dev/iwi/if_iwi.c,v
-retrieving revision 1.36
-diff -u -r1.36 if_iwi.c
---- dev/iwi/if_iwi.c	16 May 2006 14:36:27 -0000	1.36
-+++ dev/iwi/if_iwi.c	1 Jun 2006 08:36:07 -0000
-@@ -1300,7 +1300,7 @@
- 
- 	m_adj(m, sizeof (struct iwi_hdr) + sizeof (struct iwi_frame));
+RCS file: /home/ncvs/src/sys/dev/iwi/if_iwi.c,v
+retrieving revision 1.8.2.6
+diff -u -p -r1.8.2.6 if_iwi.c
+--- dev/iwi/if_iwi.c	23 Feb 2006 02:06:46 -0000	1.8.2.6
++++ dev/iwi/if_iwi.c	3 Jun 2006 00:46:47 -0000
+@@ -1222,7 +1222,7 @@ iwi_frame_intr(struct iwi_softc *sc, str
+ 	if (ic->ic_state == IEEE80211_S_SCAN)
+ 		iwi_fix_channel(ic, m);
  
 -	if (sc->sc_drvbpf != NULL) {
 +	if (bpf_peers_present(sc->sc_drvbpf)) {
  		struct iwi_rx_radiotap_header *tap = &sc->sc_rxtap;
  
  		tap->wr_flags = 0;
-@@ -1829,7 +1829,7 @@
+@@ -1555,7 +1555,7 @@ iwi_tx_start(struct ifnet *ifp, struct m
  		wh = mtod(m0, struct ieee80211_frame *);
  	}
  
@@ -83,14 +144,63 @@ diff -u -r1.36 if_iwi.c
  		struct iwi_tx_radiotap_header *tap = &sc->sc_txtap;
  
  		tap->wt_flags = 0;
+@@ -1711,7 +1711,7 @@ iwi_start(struct ifnet *ifp)
+ 			continue;
+ 		}
+ 
+-		if (ic->ic_rawbpf != NULL)
++		if (bpf_peers_present(ic->ic_rawbpf))
+ 			bpf_mtap(ic->ic_rawbpf, m0);
+ 
+ 		if (iwi_tx_start(ifp, m0, ni, ac) != 0) {
+Index: dev/ral/if_ral.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ral/Attic/if_ral.c,v
+retrieving revision 1.10.2.7
+diff -u -p -r1.10.2.7 if_ral.c
+--- dev/ral/if_ral.c	25 Feb 2006 00:50:19 -0000	1.10.2.7
++++ dev/ral/if_ral.c	3 Jun 2006 01:06:51 -0000
+@@ -1517,7 +1517,7 @@ ral_beacon_expire(struct ral_softc *sc)
+ 
+ 	ieee80211_beacon_update(ic, data->ni, &sc->sc_bo, data->m, 1);
+ 
+-	if (ic->ic_rawbpf != NULL)
++	if (bpf_peers_present(ic->ic_rawbpf))
+ 		bpf_mtap(ic->ic_rawbpf, data->m);
+ 
+ 	ral_tx_bcn(sc, data->m, data->ni);
+@@ -2109,7 +2109,7 @@ ral_start(struct ifnet *ifp)
+ 			ni = (struct ieee80211_node *)m0->m_pkthdr.rcvif;
+ 			m0->m_pkthdr.rcvif = NULL;
+ 
+-			if (ic->ic_rawbpf != NULL)
++			if (bpf_peers_present(ic->ic_rawbpf))
+ 				bpf_mtap(ic->ic_rawbpf, m0);
+ 
+ 			if (ral_tx_mgt(sc, m0, ni) != 0)
+@@ -2145,7 +2145,7 @@ ral_start(struct ifnet *ifp)
+ 				continue;
+ 			}
+ 
+-			if (ic->ic_rawbpf != NULL)
++			if (bpf_peers_present(ic->ic_rawbpf))
+ 				bpf_mtap(ic->ic_rawbpf, m0);
+ 
+ 			if (ral_tx_data(sc, m0, ni) != 0) {
 Index: dev/usb/if_ural.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/dev/usb/if_ural.c,v
-retrieving revision 1.38
-diff -u -r1.38 if_ural.c
---- dev/usb/if_ural.c	16 May 2006 14:36:32 -0000	1.38
-+++ dev/usb/if_ural.c	1 Jun 2006 08:36:08 -0000
-@@ -956,7 +956,7 @@
+RCS file: /home/ncvs/src/sys/dev/usb/if_ural.c,v
+retrieving revision 1.10.2.7
+diff -u -p -r1.10.2.7 if_ural.c
+--- dev/usb/if_ural.c	3 Apr 2006 17:18:22 -0000	1.10.2.7
++++ dev/usb/if_ural.c	3 Jun 2006 00:47:27 -0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/dev/usb/if_ural.c,v 1.10.2.7 2006/04/03 17:18:22 sam Exp $	*/
++/*	$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/dev/usb/if_ural.c,v 1.40 2006/06/02 23:14:40 sam Exp $	*/
+ 
+ /*-
+  * Copyright (c) 2005, 2006
+@@ -957,7 +957,7 @@ ural_rxeof(usbd_xfer_handle xfer, usbd_p
  	m->m_pkthdr.len = m->m_len = (le32toh(desc->flags) >> 16) & 0xfff;
  	m->m_flags |= M_HASFCS;	/* h/w leaves FCS */
  
@@ -99,7 +209,7 @@ diff -u -r1.38 if_ural.c
  		struct ural_rx_radiotap_header *tap = &sc->sc_rxtap;
  
  		tap->wr_flags = IEEE80211_RADIOTAP_F_FCS;   
-@@ -1204,7 +1204,7 @@
+@@ -1205,7 +1205,7 @@ ural_tx_mgt(struct ural_softc *sc, struc
  			flags |= RAL_TX_TIMESTAMP;
  	}
  
@@ -108,7 +218,7 @@ diff -u -r1.38 if_ural.c
  		struct ural_tx_radiotap_header *tap = &sc->sc_txtap;
  
  		tap->wt_flags = 0;
-@@ -1293,7 +1293,7 @@
+@@ -1294,7 +1294,7 @@ ural_tx_data(struct ural_softc *sc, stru
  		*(uint16_t *)wh->i_dur = htole16(dur);
  	}
  
@@ -117,14 +227,32 @@ diff -u -r1.38 if_ural.c
  		struct ural_tx_radiotap_header *tap = &sc->sc_txtap;
  
  		tap->wt_flags = 0;
+@@ -1356,7 +1356,7 @@ ural_start(struct ifnet *ifp)
+ 			ni = (struct ieee80211_node *)m0->m_pkthdr.rcvif;
+ 			m0->m_pkthdr.rcvif = NULL;
+ 
+-			if (ic->ic_rawbpf != NULL)
++			if (bpf_peers_present(ic->ic_rawbpf))
+ 				bpf_mtap(ic->ic_rawbpf, m0);
+ 
+ 			if (ural_tx_mgt(sc, m0, ni) != 0)
+@@ -1392,7 +1392,7 @@ ural_start(struct ifnet *ifp)
+ 				continue;
+ 			}
+ 
+-			if (ic->ic_rawbpf != NULL)
++			if (bpf_peers_present(ic->ic_rawbpf))
+ 				bpf_mtap(ic->ic_rawbpf, m0);
+ 
+ 			if (ural_tx_data(sc, m0, ni) != 0) {
 Index: dev/wi/if_wi.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/dev/wi/if_wi.c,v
-retrieving revision 1.195
-diff -u -r1.195 if_wi.c
---- dev/wi/if_wi.c	16 May 2006 14:36:33 -0000	1.195
-+++ dev/wi/if_wi.c	1 Jun 2006 08:39:33 -0000
-@@ -961,7 +961,7 @@
+RCS file: /home/ncvs/src/sys/dev/wi/if_wi.c,v
+retrieving revision 1.180.2.7
+diff -u -p -r1.180.2.7 if_wi.c
+--- dev/wi/if_wi.c	5 Oct 2005 13:16:29 -0000	1.180.2.7
++++ dev/wi/if_wi.c	3 Jun 2006 00:46:08 -0000
+@@ -966,7 +966,7 @@ wi_start(struct ifnet *ifp)
                          wh = mtod(m0, struct ieee80211_frame *);
  		}
  #if NBPFILTER > 0
@@ -133,7 +261,7 @@ diff -u -r1.195 if_wi.c
  			bpf_mtap(ic->ic_rawbpf, m0);
  #endif
  		frmhdr.wi_tx_ctl = htole16(WI_ENC_TX_802_11|WI_TXCNTL_TX_EX);
-@@ -980,7 +980,7 @@
+@@ -985,7 +985,7 @@ wi_start(struct ifnet *ifp)
  			frmhdr.wi_tx_ctl |= htole16(WI_TXCNTL_NOCRYPT);
  		}
  #if NBPFILTER > 0
@@ -142,7 +270,7 @@ diff -u -r1.195 if_wi.c
  			sc->sc_tx_th.wt_rate =
  				ni->ni_rates.rs_rates[ni->ni_txrate];
  			bpf_mtap2(sc->sc_drvbpf,
-@@ -1534,7 +1534,7 @@
+@@ -1539,7 +1539,7 @@ wi_rx_intr(struct wi_softc *sc)
  	}
  
  #if NBPFILTER > 0
@@ -153,12 +281,12 @@ diff -u -r1.195 if_wi.c
  		sc->sc_rx_th.wr_antsignal = frmhdr.wi_rx_signal;
 Index: net/bpf.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/bpf.c,v
-retrieving revision 1.164
-diff -u -r1.164 bpf.c
---- net/bpf.c	7 May 2006 03:21:43 -0000	1.164
-+++ net/bpf.c	1 Jun 2006 08:36:08 -0000
-@@ -301,7 +301,6 @@
+RCS file: /home/ncvs/src/sys/net/bpf.c,v
+retrieving revision 1.153.2.6
+diff -u -p -r1.153.2.6 bpf.c
+--- net/bpf.c	1 Oct 2005 18:43:16 -0000	1.153.2.6
++++ net/bpf.c	3 Jun 2006 00:46:08 -0000
+@@ -298,7 +298,6 @@ bpf_attachd(d, bp)
  	LIST_INSERT_HEAD(&bp->bif_dlist, d, bd_next);
  
  	bpf_bpfd_cnt++;
@@ -166,7 +294,7 @@ diff -u -r1.164 bpf.c
  	BPFIF_UNLOCK(bp);
  }
  
-@@ -327,12 +326,6 @@
+@@ -324,12 +323,6 @@ bpf_detachd(d)
  	LIST_REMOVE(d, bd_next);
  
  	bpf_bpfd_cnt--;
@@ -179,7 +307,7 @@ diff -u -r1.164 bpf.c
  	d->bd_bif = NULL;
  	BPFD_UNLOCK(d);
  	BPFIF_UNLOCK(bp);
-@@ -1106,51 +1099,33 @@
+@@ -1079,51 +1072,33 @@ bpf_setif(d, ifr)
  	struct ifnet *theywant;
  
  	theywant = ifunit(ifr->ifr_name);
@@ -253,7 +381,7 @@ diff -u -r1.164 bpf.c
  }
  
  /*
-@@ -1272,13 +1247,6 @@
+@@ -1241,13 +1216,6 @@ bpf_tap(bp, pkt, pktlen)
  	struct bpf_d *d;
  	u_int slen;
  
@@ -267,7 +395,7 @@ diff -u -r1.164 bpf.c
  	BPFIF_LOCK(bp);
  	LIST_FOREACH(d, &bp->bif_dlist, bd_next) {
  		BPFD_LOCK(d);
-@@ -1339,13 +1307,6 @@
+@@ -1303,13 +1271,6 @@ bpf_mtap(bp, m)
  	struct bpf_d *d;
  	u_int pktlen, slen;
  
@@ -281,7 +409,7 @@ diff -u -r1.164 bpf.c
  	pktlen = m_length(m, NULL);
  
  	BPFIF_LOCK(bp);
-@@ -1391,13 +1352,6 @@
+@@ -1347,13 +1308,6 @@ bpf_mtap2(bp, data, dlen, m)
  	struct bpf_d *d;
  	u_int pktlen, slen;
  
@@ -295,7 +423,7 @@ diff -u -r1.164 bpf.c
  	pktlen = m_length(m, NULL);
  	/*
  	 * Craft on-stack mbuf suitable for passing to bpf_filter.
-@@ -1589,17 +1543,15 @@
+@@ -1541,17 +1495,15 @@ bpfattach2(ifp, dlt, hdrlen, driverp)
  		panic("bpfattach");
  
  	LIST_INIT(&bp->bif_dlist);
@@ -316,12 +444,12 @@ diff -u -r1.164 bpf.c
  	 * equal to SIZEOF_BPF_HDR because we want to insert spacing such
 Index: net/bpf.h
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/bpf.h,v
-retrieving revision 1.40
-diff -u -r1.40 bpf.h
---- net/bpf.h	22 Aug 2005 19:35:48 -0000	1.40
-+++ net/bpf.h	1 Jun 2006 08:36:08 -0000
-@@ -603,7 +603,18 @@
+RCS file: /home/ncvs/src/sys/net/bpf.h,v
+retrieving revision 1.39.2.1
+diff -u -p -r1.39.2.1 bpf.h
+--- net/bpf.h	29 Sep 2005 23:48:04 -0000	1.39.2.1
++++ net/bpf.h	3 Jun 2006 00:46:08 -0000
+@@ -603,7 +603,18 @@ struct bpf_dltlist {
  };
  
  #ifdef _KERNEL
@@ -341,7 +469,7 @@ diff -u -r1.40 bpf.h
  int	 bpf_validate(const struct bpf_insn *, int);
  void	 bpf_tap(struct bpf_if *, u_char *, u_int);
  void	 bpf_mtap(struct bpf_if *, struct mbuf *);
-@@ -615,18 +626,24 @@
+@@ -615,18 +626,24 @@ void	 bpfdetach(struct ifnet *);
  void	 bpfilterattach(int);
  u_int	 bpf_filter(const struct bpf_insn *, u_char *, u_int, u_int);
  
@@ -371,12 +499,12 @@ diff -u -r1.40 bpf.h
  	}							\
 Index: net/bpfdesc.h
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/bpfdesc.h,v
-retrieving revision 1.33
-diff -u -r1.33 bpfdesc.h
---- net/bpfdesc.h	6 Dec 2005 02:58:12 -0000	1.33
-+++ net/bpfdesc.h	1 Jun 2006 08:36:08 -0000
-@@ -120,19 +120,6 @@
+RCS file: /home/ncvs/src/sys/net/bpfdesc.h,v
+retrieving revision 1.29.2.2
+diff -u -p -r1.29.2.2 bpfdesc.h
+--- net/bpfdesc.h	29 Sep 2005 23:48:04 -0000	1.29.2.2
++++ net/bpfdesc.h	3 Jun 2006 00:46:08 -0000
+@@ -118,19 +118,6 @@ struct bpf_d {
  	  (bd)->bd_slen != 0))
  
  /*
@@ -398,12 +526,12 @@ diff -u -r1.33 bpfdesc.h
  struct xbpf_d {
 Index: net/if_disc.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/if_disc.c,v
-retrieving revision 1.51
-diff -u -r1.51 if_disc.c
---- net/if_disc.c	11 Nov 2005 11:17:57 -0000	1.51
-+++ net/if_disc.c	1 Jun 2006 08:36:08 -0000
-@@ -158,7 +158,7 @@
+RCS file: /home/ncvs/src/sys/net/if_disc.c,v
+retrieving revision 1.48.2.1
+diff -u -p -r1.48.2.1 if_disc.c
+--- net/if_disc.c	25 Nov 2005 14:41:31 -0000	1.48.2.1
++++ net/if_disc.c	3 Jun 2006 00:46:08 -0000
+@@ -187,7 +187,7 @@ discoutput(struct ifnet *ifp, struct mbu
  		dst->sa_family = af;
  	}
  
@@ -412,14 +540,55 @@ diff -u -r1.51 if_disc.c
  		u_int af = dst->sa_family;
  		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m);
  	}
+Index: net/if_faith.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_faith.c,v
+retrieving revision 1.36.2.1
+diff -u -p -r1.36.2.1 if_faith.c
+--- net/if_faith.c	25 Aug 2005 05:01:19 -0000	1.36.2.1
++++ net/if_faith.c	3 Jun 2006 00:47:27 -0000
+@@ -235,7 +235,7 @@ faithoutput(ifp, m, dst, rt)
+ 		dst->sa_family = af;
+ 	}
+ 
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		af = dst->sa_family;
+ 		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m);
+ 	}
+Index: net/if_fwsubr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_fwsubr.c,v
+retrieving revision 1.12.2.5
+diff -u -p -r1.12.2.5 if_fwsubr.c
+--- net/if_fwsubr.c	24 Jan 2006 06:30:51 -0000	1.12.2.5
++++ net/if_fwsubr.c	3 Jun 2006 00:47:27 -0000
+@@ -190,7 +190,7 @@ firewire_output(struct ifnet *ifp, struc
+ 	/*
+ 	 * Let BPF tap off a copy before we encapsulate.
+ 	 */
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		struct fw_bpfhdr h;
+ 		if (unicast)
+ 			bcopy(destfw, h.firewire_dhost, 8);
+@@ -565,7 +565,7 @@ firewire_input(struct ifnet *ifp, struct
+ 	 * Give bpf a chance at the packet. The link-level driver
+ 	 * should have left us a tag with the EUID of the sender.
+ 	 */
+-	if (ifp->if_bpf) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		struct fw_bpfhdr h;
+ 		struct m_tag *mtag;
+ 
 Index: net/if_gif.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/if_gif.c,v
-retrieving revision 1.58
-diff -u -r1.58 if_gif.c
---- net/if_gif.c	30 Jan 2006 08:39:09 -0000	1.58
-+++ net/if_gif.c	1 Jun 2006 08:36:08 -0000
-@@ -424,9 +424,7 @@
+RCS file: /home/ncvs/src/sys/net/if_gif.c,v
+retrieving revision 1.52.2.4
+diff -u -p -r1.52.2.4 if_gif.c
+--- net/if_gif.c	31 Jan 2006 15:56:46 -0000	1.52.2.4
++++ net/if_gif.c	3 Jun 2006 00:46:08 -0000
+@@ -441,9 +441,7 @@ gif_output(ifp, m, dst, rt)
  	}
  
  	af = dst->sa_family;
@@ -430,7 +599,7 @@ diff -u -r1.58 if_gif.c
  	ifp->if_opackets++;	
  	ifp->if_obytes += m->m_pkthdr.len;
  
-@@ -484,7 +482,7 @@
+@@ -501,7 +499,7 @@ gif_input(m, af, ifp)
  	mac_create_mbuf_from_ifnet(ifp, m);
  #endif
  
@@ -441,12 +610,12 @@ diff -u -r1.58 if_gif.c
  	}
 Index: net/if_gre.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/if_gre.c,v
-retrieving revision 1.41
-diff -u -r1.41 if_gre.c
---- net/if_gre.c	11 May 2006 00:53:43 -0000	1.41
-+++ net/if_gre.c	1 Jun 2006 08:36:08 -0000
-@@ -276,7 +276,7 @@
+RCS file: /home/ncvs/src/sys/net/if_gre.c,v
+retrieving revision 1.32.2.5
+diff -u -p -r1.32.2.5 if_gre.c
+--- net/if_gre.c	16 Feb 2006 01:08:40 -0000	1.32.2.5
++++ net/if_gre.c	3 Jun 2006 00:46:08 -0000
+@@ -282,7 +282,7 @@ gre_output(struct ifnet *ifp, struct mbu
  		dst->sa_family = af;
  	}
  
@@ -457,12 +626,12 @@ diff -u -r1.41 if_gre.c
  	}
 Index: net/if_loop.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/if_loop.c,v
-retrieving revision 1.108
-diff -u -r1.108 if_loop.c
---- net/if_loop.c	12 May 2006 05:04:45 -0000	1.108
-+++ net/if_loop.c	1 Jun 2006 08:36:08 -0000
-@@ -259,7 +259,7 @@
+RCS file: /home/ncvs/src/sys/net/if_loop.c,v
+retrieving revision 1.106.2.1
+diff -u -p -r1.106.2.1 if_loop.c
+--- net/if_loop.c	25 Aug 2005 05:01:20 -0000	1.106.2.1
++++ net/if_loop.c	3 Jun 2006 00:46:08 -0000
+@@ -259,7 +259,7 @@ if_simloop(ifp, m, af, hlen)
  	m->m_pkthdr.rcvif = ifp;
  
  	/* Let BPF see incoming packet */
@@ -473,12 +642,12 @@ diff -u -r1.108 if_loop.c
  			/*
 Index: net/if_sl.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/if_sl.c,v
-retrieving revision 1.131
-diff -u -r1.131 if_sl.c
---- net/if_sl.c	16 Oct 2005 20:44:18 -0000	1.131
-+++ net/if_sl.c	1 Jun 2006 08:36:08 -0000
-@@ -662,7 +662,7 @@
+RCS file: /home/ncvs/src/sys/net/if_sl.c,v
+retrieving revision 1.129
+diff -u -p -r1.129 if_sl.c
+--- net/if_sl.c	10 Jun 2005 16:49:18 -0000	1.129
++++ net/if_sl.c	3 Jun 2006 00:46:08 -0000
+@@ -662,7 +662,7 @@ sltstart(struct tty *tp)
  		 * queueing, and the connection id compression will get
  		 * munged when this happens.
  		 */
@@ -487,7 +656,7 @@ diff -u -r1.131 if_sl.c
  			/*
  			 * We need to save the TCP/IP header before it's
  			 * compressed.  To avoid complicated code, we just
-@@ -696,7 +696,7 @@
+@@ -696,7 +696,7 @@ sltstart(struct tty *tp)
  				*mtod(m, u_char *) |= sl_compress_tcp(m, ip,
  				    &sc->sc_comp, 1);
  		}
@@ -496,7 +665,7 @@ diff -u -r1.131 if_sl.c
  			/*
  			 * Put the SLIP pseudo-"link header" in place.  The
  			 * compressed header is now at the beginning of the
-@@ -922,7 +922,7 @@
+@@ -922,7 +922,7 @@ slinput(int c, struct tty *tp)
  			/* less than min length packet - ignore */
  			goto newpack;
  
@@ -505,7 +674,7 @@ diff -u -r1.131 if_sl.c
  			/*
  			 * Save the compressed header, so we
  			 * can tack it on later.  Note that we
-@@ -961,7 +961,7 @@
+@@ -961,7 +961,7 @@ slinput(int c, struct tty *tp)
  			} else
  				goto error;
  		}
@@ -516,12 +685,12 @@ diff -u -r1.131 if_sl.c
  			 * We couldn't do this any earlier since
 Index: net/if_stf.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/if_stf.c,v
-retrieving revision 1.53
-diff -u -r1.53 if_stf.c
---- net/if_stf.c	9 Nov 2005 13:29:14 -0000	1.53
-+++ net/if_stf.c	1 Jun 2006 08:36:08 -0000
-@@ -476,7 +476,7 @@
+RCS file: /home/ncvs/src/sys/net/if_stf.c,v
+retrieving revision 1.50.2.1
+diff -u -p -r1.50.2.1 if_stf.c
+--- net/if_stf.c	16 Nov 2005 10:31:21 -0000	1.50.2.1
++++ net/if_stf.c	3 Jun 2006 00:46:08 -0000
+@@ -509,7 +509,7 @@ stf_output(ifp, m, dst, rt)
  	}
  	bcopy(ptr, &in4, sizeof(in4));
  
@@ -530,7 +699,7 @@ diff -u -r1.53 if_stf.c
  		/*
  		 * We need to prepend the address family as
  		 * a four byte field.  Cons up a dummy header
-@@ -723,7 +723,7 @@
+@@ -756,7 +756,7 @@ in_stf_input(m, off)
  
  	m->m_pkthdr.rcvif = ifp;
  	
@@ -541,12 +710,12 @@ diff -u -r1.53 if_stf.c
  		 * a four byte field.  Cons up a dummy header
 Index: net/if_tun.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net/if_tun.c,v
-retrieving revision 1.154
-diff -u -r1.154 if_tun.c
---- net/if_tun.c	9 Aug 2005 10:19:58 -0000	1.154
-+++ net/if_tun.c	1 Jun 2006 08:36:08 -0000
-@@ -509,7 +509,7 @@
+RCS file: /home/ncvs/src/sys/net/if_tun.c,v
+retrieving revision 1.152.2.2
+diff -u -p -r1.152.2.2 if_tun.c
+--- net/if_tun.c	25 Aug 2005 05:01:20 -0000	1.152.2.2
++++ net/if_tun.c	3 Jun 2006 00:46:08 -0000
+@@ -509,7 +509,7 @@ tunoutput(
  		dst->sa_family = af; 
  	}
  
@@ -557,12 +726,12 @@ diff -u -r1.154 if_tun.c
  	}
 Index: net80211/ieee80211_input.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/net80211/ieee80211_input.c,v
-retrieving revision 1.90
-diff -u -r1.90 ieee80211_input.c
---- net80211/ieee80211_input.c	7 Mar 2006 03:55:05 -0000	1.90
-+++ net80211/ieee80211_input.c	1 Jun 2006 08:36:08 -0000
-@@ -422,7 +422,7 @@
+RCS file: /home/ncvs/src/sys/net80211/ieee80211_input.c,v
+retrieving revision 1.62.2.12
+diff -u -p -r1.62.2.12 ieee80211_input.c
+--- net80211/ieee80211_input.c	14 Mar 2006 23:24:02 -0000	1.62.2.12
++++ net80211/ieee80211_input.c	3 Jun 2006 00:46:08 -0000
+@@ -422,7 +422,7 @@ ieee80211_input(struct ieee80211com *ic,
  		}
  
  		/* copy to listener after decrypt */
@@ -571,7 +740,7 @@ diff -u -r1.90 ieee80211_input.c
  			bpf_mtap(ic->ic_rawbpf, m);
  
  		/*
-@@ -536,7 +536,7 @@
+@@ -536,7 +536,7 @@ ieee80211_input(struct ieee80211com *ic,
  			wh = mtod(m, struct ieee80211_frame *);
  			wh->i_fc[1] &= ~IEEE80211_FC1_WEP;
  		}
@@ -580,7 +749,7 @@ diff -u -r1.90 ieee80211_input.c
  			bpf_mtap(ic->ic_rawbpf, m);
  		(*ic->ic_recv_mgmt)(ic, m, ni, subtype, rssi, rstamp);
  		m_freem(m);
-@@ -563,7 +563,7 @@
+@@ -563,7 +563,7 @@ err:
  	ifp->if_ierrors++;
  out:
  	if (m != NULL) {
@@ -589,7 +758,7 @@ diff -u -r1.90 ieee80211_input.c
  			bpf_mtap(ic->ic_rawbpf, m);
  		m_freem(m);
  	}
-@@ -719,7 +719,7 @@
+@@ -719,7 +719,7 @@ ieee80211_deliver_data(struct ieee80211c
  	return;
    out:
  	if (m != NULL) {
@@ -598,14 +767,30 @@ diff -u -r1.90 ieee80211_input.c
  			bpf_mtap(ic->ic_rawbpf, m);
  		m_freem(m);
  	}
+Index: netgraph/ng_iface.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netgraph/ng_iface.c,v
+retrieving revision 1.43.2.2
+diff -u -p -r1.43.2.2 ng_iface.c
+--- netgraph/ng_iface.c	9 Nov 2005 11:36:07 -0000	1.43.2.2
++++ netgraph/ng_iface.c	3 Jun 2006 00:47:27 -0000
+@@ -418,7 +418,7 @@ static void
+ ng_iface_bpftap(struct ifnet *ifp, struct mbuf *m, sa_family_t family)
+ {
+ 	KASSERT(family != AF_UNSPEC, ("%s: family=AF_UNSPEC", __func__));
+-	if (ifp->if_bpf != NULL) {
++	if (bpf_peers_present(ifp->if_bpf)) {
+ 		int32_t family4 = (int32_t)family;
+ 		bpf_mtap2(ifp->if_bpf, &family4, sizeof(family4), m);
+ 	}
 Index: netinet/ip_carp.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/netinet/ip_carp.c,v
-retrieving revision 1.39
-diff -u -r1.39 ip_carp.c
---- netinet/ip_carp.c	21 Mar 2006 14:29:48 -0000	1.39
-+++ netinet/ip_carp.c	1 Jun 2006 08:36:08 -0000
-@@ -657,7 +657,7 @@
+RCS file: /home/ncvs/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.27.2.6
+diff -u -p -r1.27.2.6 ip_carp.c
+--- netinet/ip_carp.c	25 Dec 2005 21:59:20 -0000	1.27.2.6
++++ netinet/ip_carp.c	3 Jun 2006 00:46:08 -0000
+@@ -641,7 +641,7 @@ carp_input_c(struct mbuf *m, struct carp
  	SC2IFP(sc)->if_ipackets++;
  	SC2IFP(sc)->if_ibytes += m->m_pkthdr.len;
  
@@ -616,12 +801,12 @@ diff -u -r1.39 ip_carp.c
  
 Index: netinet/ip_gre.c
 ===================================================================
-RCS file: /usr/ncvs/src/sys/netinet/ip_gre.c,v
-retrieving revision 1.23
-diff -u -r1.23 ip_gre.c
---- netinet/ip_gre.c	16 May 2006 11:15:22 -0000	1.23
-+++ netinet/ip_gre.c	1 Jun 2006 08:36:08 -0000
-@@ -206,7 +206,7 @@
+RCS file: /home/ncvs/src/sys/netinet/ip_gre.c,v
+retrieving revision 1.19.2.2
+diff -u -p -r1.19.2.2 ip_gre.c
+--- netinet/ip_gre.c	27 Jan 2006 21:50:10 -0000	1.19.2.2
++++ netinet/ip_gre.c	3 Jun 2006 00:46:08 -0000
+@@ -207,7 +207,7 @@ gre_input2(struct mbuf *m ,int hlen, u_c
  	/* Unlike NetBSD, in FreeBSD m_adj() adjusts m->m_pkthdr.len as well */
  	m_adj(m, hlen);
  
@@ -630,7 +815,7 @@ diff -u -r1.23 ip_gre.c
  		bpf_mtap2(GRE2IFP(sc)->if_bpf, &af, sizeof(af), m);
  	}
  
-@@ -289,7 +289,7 @@
+@@ -289,7 +289,7 @@ gre_mobile_input(struct mbuf *m, int hle
  	ip->ip_sum = 0;
  	ip->ip_sum = in_cksum(m, (ip->ip_hl << 2));
  
