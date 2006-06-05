@@ -128,6 +128,13 @@ patch < ${PATCHDIR}/bpf_fixes.diff
 cd ${SRCDIR}/sys/netinet
 patch < ${PATCHDIR}/ip_output.c.diff
 
+cd ${SRCDIR}/sys/opencrypto
+patch < ${PATCHDIR}/crypto.c.diff
+
+builder# pwd
+cd ${SRCDIR}/sys/dev/usb
+patch < ${PATCHDIR}/if_aue.diff
+
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
 rm -rf /usr/obj*
