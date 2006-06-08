@@ -119,24 +119,33 @@ patch < ${PATCHDIR}/if_enc.diff
 cd ${SRCDIR}/sys/contrib/pf/net
 patch < ${PATCHDIR}/if_pfsync.c.diff
 
+# UMA Fix.  Scheduled for MFC.
 cd ${SRCDIR}/sys/vm
 patch < ${PATCHDIR}/uma_core.c.diff
 
+# BPF is prone to races, lets fix
 cd ${SRCDIR}/sys/
 patch < ${PATCHDIR}/bpf_fixes.diff
 
+# Fix obvious error
 cd ${SRCDIR}/sys/netinet
 patch < ${PATCHDIR}/ip_output.c.diff
 
+# Force crypto if hw device is present
+# instead of sometimes falling back to sw
 cd ${SRCDIR}/sys/opencrypto
 patch < ${PATCHDIR}/crypto.c.diff
+
+# Send zombie procs to /dev/null
+cd ${SRCDIR}/sbin/init
+patch < ${PATCHDIR}/init.c.diff
 
 # usb4freebsd
 # http://www.turbocat.net/~hselasky/usb4bsd/
 rm -rf ${SRCDIR}/sys/dev/usb2
 mkdir -p ${SRCDIR}/sys/dev/usb2
-cd ${SRCDIR}/sys
-patch < ${PATCHDIR}/usb4bsd.diff
+cd ${SRCDIR}
+patch -p2 < ${PATCHDIR}/usb4bsd.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
