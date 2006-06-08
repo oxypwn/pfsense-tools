@@ -131,9 +131,12 @@ patch < ${PATCHDIR}/ip_output.c.diff
 cd ${SRCDIR}/sys/opencrypto
 patch < ${PATCHDIR}/crypto.c.diff
 
-builder# pwd
-cd ${SRCDIR}/sys/dev/usb
-patch < ${PATCHDIR}/if_aue.diff
+# usb4freebsd
+# http://www.turbocat.net/~hselasky/usb4bsd/
+rm -rf ${SRCDIR}/sys/dev/usb2
+mkdir -p ${SRCDIR}/sys/dev/usb2
+cd ${SRCDIR}/sys
+patch < ${PATCHDIR}/usb4bsd.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
