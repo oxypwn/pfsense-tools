@@ -144,8 +144,8 @@ patch < ${PATCHDIR}/init.c.diff
 # http://www.turbocat.net/~hselasky/usb4bsd/
 rm -rf ${SRCDIR}/sys/dev/usb2
 mkdir -p ${SRCDIR}/sys/dev/usb2
-cd ${SRCDIR}
-patch -p2 < ${PATCHDIR}/usb4bsd.diff
+cd ${SRCDIR}/
+patch -p3 < ${PATCHDIR}/usb4bsd.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
