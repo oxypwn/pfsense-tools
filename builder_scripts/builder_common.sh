@@ -185,6 +185,19 @@ fixup_wrap() {
     ln -s /cf/conf $CVS_CO_DIR/conf
 }
 
+create_FreeBSD_system_update() {
+	VERSION="FreeBSD"
+	FILENAME=pfSense-Embedded-Update-${VERSION}.tgz
+	mkdir -p $UPDATESDIR
+
+	cd ${CLONEDIR}
+	echo "Creating ${UPDATESDIR}/${FILENAME} update file..."
+	tar czPf ${UPDATESDIR}/${FILENAME} .
+
+	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
+	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+}
+
 create_pfSense_Full_update_tarball() {
 	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
 	FILENAME=pfSense-Full-Update-${VERSION}.tgz
