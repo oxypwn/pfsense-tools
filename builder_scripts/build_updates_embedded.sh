@@ -51,22 +51,3 @@ set -e
 cd $CVS_CO_DIR
 create_pfSense_Small_update_tarball
 
-# Use embedded make.conf
-export MAKE_CONF="${PWD}/conf/make.conf.embedded"
-
-cd $CVS_CO_DIR
-
-# Clean out directories
-freesbie_make cleandir
-
-cd $CVS_CO_DIR
-# Build if needed and install world and kernel
-#make_world_kernel
-
-# Invoke FreeSBIE2 toolchain
-freesbie_make extra
-
-fixup_updates
-
-create_pfSense_BaseSystem_Small_update_tarball
-
