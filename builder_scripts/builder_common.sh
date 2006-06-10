@@ -191,6 +191,12 @@ create_FreeBSD_system_update() {
 	mkdir -p $UPDATESDIR
 
 	cd ${CLONEDIR}
+	# Remove some fat and or conflicting
+	# freebsd files
+	rm -rf etc/
+	rm -rf var/
+	rm -rf usr/share/
+	rm -rf root/
 	echo "Creating ${UPDATESDIR}/${FILENAME} update file..."
 	tar czPf ${UPDATESDIR}/${FILENAME} .
 
