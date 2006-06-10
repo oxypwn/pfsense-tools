@@ -23,6 +23,9 @@ export MAKE_CONF="${PWD}/conf/make.conf"
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs etcmfs" 
 
+# Items that we will remove before creating final .tgz archive
+export PRUNE_LIST="${PWD}/remove.list"
+
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
 # make.conf

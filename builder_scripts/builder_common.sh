@@ -190,10 +190,14 @@ create_pfSense_Full_update_tarball() {
 	FILENAME=pfSense-Full-Update-${VERSION}.tgz
 	mkdir -p $UPDATESDIR
 
-        echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
+	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
+	set +e
+	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
-        cd ${PFSENSEBASEDIR} && tar  czPf ${UPDATESDIR}/${FILENAME} .
-
+	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...	
+	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
+	
+	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 }
 
