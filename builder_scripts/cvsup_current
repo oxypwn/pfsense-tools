@@ -22,7 +22,7 @@ rm -f /usr/src/sys/netipsec/ipsec_input.c
 rm -f /usr/src/sys/netipsec/ipsec_output.c
 
 # Update FreeSBIE2 files from CVS
-cd ../../freesbie2 && cvs update && cd $CURRENTDIR
+cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
@@ -142,10 +142,10 @@ patch < ${PATCHDIR}/init.c.diff
 
 # usb4freebsd
 # http://www.turbocat.net/~hselasky/usb4bsd/
-rm -rf ${SRCDIR}/sys/dev/usb2
-mkdir -p ${SRCDIR}/sys/dev/usb2
-cd ${SRCDIR}/
-patch -p3 < ${PATCHDIR}/usb4bsd.diff
+# rm -rf ${SRCDIR}/sys/dev/usb2
+# mkdir -p ${SRCDIR}/sys/dev/usb2
+# cd ${SRCDIR}/
+# patch -p3 < ${PATCHDIR}/usb4bsd.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
