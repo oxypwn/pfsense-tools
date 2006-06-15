@@ -10,9 +10,9 @@ populate_extra() {
     ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} \
 	make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
 
-    cp /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
-    cp /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
-    cp /usr/local/lib/libevent-1.1a.so.1 ${CVS_CO_DIR}/usr/local/lib/
+    install -s /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
+    install -s /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
+    install -s /usr/local/lib/libevent-1.1a.so.1 ${CVS_CO_DIR}/usr/local/lib/
 
     mkdir -p $CVS_CO_DIR/var/run
 
@@ -47,7 +47,7 @@ populate_extra() {
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
     cp $BASE_DIR/tools/installer.sh $CVS_CO_DIR/scripts/
-    cp /sbin/setkey $CVS_CO_DIR/sbin/setkey
+    install -s /sbin/setkey $CVS_CO_DIR/sbin/setkey
     chmod a+rx $CVS_CO_DIR/sbin/setkey
     chmod a+rx $CVS_CO_DIR/scripts/*
 
@@ -102,9 +102,9 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 
 	rm -rf ${CVS_CO_DIR}/usr/local/sbin/*
 	rm -rf ${CVS_CO_DIR}/usr/local/bin/*
-	cp /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
-	cp /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
-	cp /sbin/setkey ${CVS_CO_DIR}/usr/local/sbin/
+	install -s /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
+	install -s /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
+	install -s /sbin/setkey ${CVS_CO_DIR}/usr/local/sbin/
 	chmod a+rx ${CVS_CO_DIR}/usr/local/sbin/*
 
 	du -hd0 ${CVS_CO_DIR}
@@ -151,7 +151,7 @@ fixup_updates() {
 
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/livefs/lib/
 
-        cp /usr/local/lib/libevent-1.1a.so.1 ${PFSENSEBASEDIR}/usr/local/lib/
+        install -s /usr/local/lib/libevent-1.1a.so.1 ${PFSENSEBASEDIR}/usr/local/lib/
 
 	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
 }
@@ -233,9 +233,9 @@ create_pfSense_Small_update_tarball() {
 
 	rm -rf ${CVS_CO_DIR}/usr/local/sbin/*
 	rm -rf ${CVS_CO_DIR}/usr/local/bin/*
-	cp /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
-	cp /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
-	cp /sbin/setkey ${CVS_CO_DIR}/usr/local/sbin/
+	install -s /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
+	install -s /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
+	install -s /sbin/setkey ${CVS_CO_DIR}/usr/local/sbin/
 	chmod a+rx ${CVS_CO_DIR}/usr/local/sbin/*
 
 	du -hd0 ${CVS_CO_DIR}

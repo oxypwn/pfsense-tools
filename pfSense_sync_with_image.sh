@@ -60,111 +60,111 @@ rm -rf /var/db/pkg/*
 
 # copy files from host to pfSense skeleton image.
 mkdir -p $DESTDIRROOT/usr/local/bin/
-cp /usr/local/bin/ez-ipupdate $DESTDIRROOT/usr/local/bin/
-cp /usr/local/bin/msntp $DESTDIRROOT/usr/local/bin/
-cp /usr/local/bin/wol $DESTDIRROOT/usr/local/bin/
-cp /usr/local/bin/minicron $DESTDIRROOT/usr/local/bin/
+install -s /usr/local/bin/ez-ipupdate $DESTDIRROOT/usr/local/bin/
+install -s /usr/local/bin/msntp $DESTDIRROOT/usr/local/bin/
+install -s /usr/local/bin/wol $DESTDIRROOT/usr/local/bin/
+install -s /usr/local/bin/minicron $DESTDIRROOT/usr/local/bin/
 #cp /usr/local/bin/php $DESTDIRROOT/usr/local/bin/
-cp /usr/local/bin/links $DESTDIRROOT/usr/local/bin/
+install -s /usr/local/bin/links $DESTDIRROOT/usr/local/bin/
 chmod a+x $DESTDIRROOT/usr/local/bin/*
 
 mkdir -p $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/atareinit $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/dhcpd $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/mini_httpd $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/bpalogin $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/mpd $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/racoon $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/choparp $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/dnsmasq $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/openvpn $DESTDIRROOT/usr/local/sbin/
-cp /usr/local/sbin/snmpd $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/atareinit $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/dhcpd $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/mini_httpd $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/bpalogin $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/mpd $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/racoon $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/choparp $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/dnsmasq $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/openvpn $DESTDIRROOT/usr/local/sbin/
+install -s /usr/local/sbin/snmpd $DESTDIRROOT/usr/local/sbin/
 chmod a+x $DESTDIRROOT/usr/local/sbin/*
 
 mkdir -p $DESTDIRROOT/sbin/
-cp /sbin/adjkerntz $DESTDIRROOT/sbin/
-cp /sbin/init $DESTDIRROOT/sbin/
-cp /sbin/kldunload $DESTDIRROOT/sbin/
-cp /sbin/route $DESTDIRROOT/sbin/
-cp /sbin/dhclient $DESTDIRROOT/sbin/
-cp /sbin/ipf $DESTDIRROOT/sbin/
-cp /sbin/ldconfig $DESTDIRROOT/sbin/
-cp /sbin/mount_procfs $DESTDIRROOT/sbin/
-cp /sbin/shutdown $DESTDIRROOT/sbin/
-cp /sbin/dhclient-script $DESTDIRROOT/sbin/
-cp /sbin/ipfs $DESTDIRROOT/sbin/
-cp /sbin/mount $DESTDIRROOT/sbin/
-cp /sbin/mount_std $DESTDIRROOT/sbin/
-cp /sbin/sysctl $DESTDIRROOT/sbin/
-cp /sbin/dmesg $DESTDIRROOT/sbin/
-cp /sbin/ipfstat $DESTDIRROOT/sbin/
-cp /sbin/umount $DESTDIRROOT/sbin/
-cp /sbin/fastboot $DESTDIRROOT/sbin/
-cp /sbin/ipfw $DESTDIRROOT/sbin/
-cp /sbin/fasthalt $DESTDIRROOT/sbin/
-cp /sbin/ipmon $DESTDIRROOT/sbin/
-cp /sbin/mount_linprocfs $DESTDIRROOT/sbin/
-cp /sbin/nologin $DESTDIRROOT/sbin/
-cp /sbin/halt $DESTDIRROOT/sbin/
-cp /sbin/ipnat $DESTDIRROOT/sbin/
-cp /sbin/mount_mfs $DESTDIRROOT/sbin/
-cp /sbin/ping $DESTDIRROOT/sbin/
-cp /sbin/ifconfig $DESTDIRROOT/sbin/
-cp /sbin/kldload $DESTDIRROOT/sbin/
-cp /sbin/reboot $DESTDIRROOT/sbin/
+install -s /sbin/adjkerntz $DESTDIRROOT/sbin/
+install -s /sbin/init $DESTDIRROOT/sbin/
+install -s /sbin/kldunload $DESTDIRROOT/sbin/
+install -s /sbin/route $DESTDIRROOT/sbin/
+install -s /sbin/dhclient $DESTDIRROOT/sbin/
+install -s /sbin/ipf $DESTDIRROOT/sbin/
+install -s /sbin/ldconfig $DESTDIRROOT/sbin/
+install -s /sbin/mount_procfs $DESTDIRROOT/sbin/
+install -s /sbin/shutdown $DESTDIRROOT/sbin/
+install -s /sbin/dhclient-script $DESTDIRROOT/sbin/
+install -s /sbin/ipfs $DESTDIRROOT/sbin/
+install -s /sbin/mount $DESTDIRROOT/sbin/
+install -s /sbin/mount_std $DESTDIRROOT/sbin/
+install -s /sbin/sysctl $DESTDIRROOT/sbin/
+install -s /sbin/dmesg $DESTDIRROOT/sbin/
+install -s /sbin/ipfstat $DESTDIRROOT/sbin/
+install -s /sbin/umount $DESTDIRROOT/sbin/
+install -s /sbin/fastboot $DESTDIRROOT/sbin/
+install -s /sbin/ipfw $DESTDIRROOT/sbin/
+install -s /sbin/fasthalt $DESTDIRROOT/sbin/
+install -s /sbin/ipmon $DESTDIRROOT/sbin/
+install -s /sbin/mount_linprocfs $DESTDIRROOT/sbin/
+install -s /sbin/nologin $DESTDIRROOT/sbin/
+install -s /sbin/halt $DESTDIRROOT/sbin/
+install -s /sbin/ipnat $DESTDIRROOT/sbin/
+install -s /sbin/mount_mfs $DESTDIRROOT/sbin/
+install -s /sbin/ping $DESTDIRROOT/sbin/
+install -s /sbin/ifconfig $DESTDIRROOT/sbin/
+install -s /sbin/kldload $DESTDIRROOT/sbin/
+install -s /sbin/reboot $DESTDIRROOT/sbin/
 chmod a+x $DESTDIRROOT/sbin/*
 
 mkdir -p $DESTDIRROOT/bin
-cp /bin/[ $DESTDIRROOT/bin/
-cp /bin/date $DESTDIRROOT/bin/
-cp /bin/expr $DESTDIRROOT/bin/
-cp /bin/mkdir $DESTDIRROOT/bin/
-cp /bin/sleep $DESTDIRROOT/bin/
-cp /bin/cat $DESTDIRROOT/bin/
-cp /bin/dd $DESTDIRROOT/bin/
-cp /bin/hostname $DESTDIRROOT/bin/
-cp /bin/ps $DESTDIRROOT/bin/
-cp /bin/stty $DESTDIRROOT/bin/
-cp /bin/chmod $DESTDIRROOT/bin/
-cp /bin/df $DESTDIRROOT/bin/
-cp /bin/kill $DESTDIRROOT/bin/
-cp /bin/rm $DESTDIRROOT/bin/
-cp /bin/sync $DESTDIRROOT/bin/
-cp /bin/cp $DESTDIRROOT/bin/
-cp /bin/echo $DESTDIRROOT/bin/
-cp /bin/ls $DESTDIRROOT/bin/
-cp /bin/sh $DESTDIRROOT/bin/
-cp /bin/test $DESTDIRROOT/bin/
+install -s /bin/[ $DESTDIRROOT/bin/
+install -s /bin/date $DESTDIRROOT/bin/
+install -s /bin/expr $DESTDIRROOT/bin/
+install -s /bin/mkdir $DESTDIRROOT/bin/
+install -s /bin/sleep $DESTDIRROOT/bin/
+install -s /bin/cat $DESTDIRROOT/bin/
+install -s /bin/dd $DESTDIRROOT/bin/
+install -s /bin/hostname $DESTDIRROOT/bin/
+install -s /bin/ps $DESTDIRROOT/bin/
+install -s /bin/stty $DESTDIRROOT/bin/
+install -s /bin/chmod $DESTDIRROOT/bin/
+install -s /bin/df $DESTDIRROOT/bin/
+install -s /bin/kill $DESTDIRROOT/bin/
+install -s /bin/rm $DESTDIRROOT/bin/
+install -s /bin/sync $DESTDIRROOT/bin/
+install -s /bin/cp $DESTDIRROOT/bin/
+install -s /bin/echo $DESTDIRROOT/bin/
+install -s /bin/ls $DESTDIRROOT/bin/
+install -s /bin/sh $DESTDIRROOT/bin/
+install -s /bin/test $DESTDIRROOT/bin/
 chmod a+x $DESTDIRROOT/$DESTDIRROOT/bin/*
 
 mkdir -p $DESTDIRROOT/usr/sbin
-cp /usr/sbin/ancontrol $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/chroot $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/pccardd $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/ancontrol $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/chroot $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/pccardd $DESTDIRROOT/usr/sbin/
 #cp /usr/sbin/syslogd $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/arp $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/clog $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/pwd_mkdb $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/wicontrol $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/chown $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/dev_mkdb $DESTDIRROOT/usr/sbin/
-cp /usr/sbin/setkey $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/arp $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/clog $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/pwd_mkdb $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/wicontrol $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/chown $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/dev_mkdb $DESTDIRROOT/usr/sbin/
+install -s /usr/sbin/setkey $DESTDIRROOT/usr/sbin/
 chmod a+x $DESTDIRROOT/ $DESTDIRROOT/usr/sbin/*
 
 mkdir -p $DESTDIRROOT/usr/bin/
-cp /usr/bin/gunzip $DESTDIRROOT/usr/bin/
-cp /usr/bin/killall $DESTDIRROOT/usr/bin/
-cp /usr/bin/netstat $DESTDIRROOT/usr/bin/
-cp /usr/bin/su $DESTDIRROOT/usr/bin/
-cp /usr/bin/tar $DESTDIRROOT/usr/bin/
-cp /usr/bin/touch $DESTDIRROOT/usr/bin/
-cp /usr/bin/w $DESTDIRROOT/usr/bin/
-cp /usr/bin/gzip $DESTDIRROOT/usr/bin/
-cp /usr/bin/logger $DESTDIRROOT/usr/bin/
-cp /usr/bin/nohup $DESTDIRROOT/usr/bin/
-cp /usr/bin/tail $DESTDIRROOT/usr/bin/
-cp /usr/bin/top $DESTDIRROOT/usr/bin/
-cp /usr/bin/uptime $DESTDIRROOT/usr/bin/
+install -s /usr/bin/gunzip $DESTDIRROOT/usr/bin/
+install -s /usr/bin/killall $DESTDIRROOT/usr/bin/
+install -s /usr/bin/netstat $DESTDIRROOT/usr/bin/
+install -s /usr/bin/su $DESTDIRROOT/usr/bin/
+install -s /usr/bin/tar $DESTDIRROOT/usr/bin/
+install -s /usr/bin/touch $DESTDIRROOT/usr/bin/
+install -s /usr/bin/w $DESTDIRROOT/usr/bin/
+install -s /usr/bin/gzip $DESTDIRROOT/usr/bin/
+install -s /usr/bin/logger $DESTDIRROOT/usr/bin/
+install -s /usr/bin/nohup $DESTDIRROOT/usr/bin/
+install -s /usr/bin/tail $DESTDIRROOT/usr/bin/
+install -s /usr/bin/top $DESTDIRROOT/usr/bin/
+install -s /usr/bin/uptime $DESTDIRROOT/usr/bin/
 chmod a+x $DESTDIRROOT/ $DESTDIRROOT/usr/bin/*
 
 
