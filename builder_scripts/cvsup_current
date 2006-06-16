@@ -90,7 +90,7 @@ patch < ${PATCHDIR}/if_em.c.diff
 
 # Andrew Thompson's fragmented packet bridge patch
 cd ${SRCDIR}/sys/net/
-patch < ${PATCHDIR}/if_bridge.c.diff
+patch -p1 < ${PATCHDIR}/if_bridge.c.diff
 
 # Be more like Windows and Linux and send our hostname in the host-name
 # option if none is given in the config file.  Also add #ifdefd out
