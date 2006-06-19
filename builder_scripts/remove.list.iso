@@ -496,6 +496,7 @@
 #XXX ppp? pppd?
 ./usr/sbin/procctl
 
+./usr/sbin/moused
 ./usr/sbin/quot
 ./usr/sbin/quotaoff
 ./usr/sbin/quotaon

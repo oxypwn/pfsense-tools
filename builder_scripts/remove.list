@@ -542,7 +542,7 @@
 ./usr/sbin/procctl
 ./usr/sbin/pstat
 
-
+./usr/sbin/moused
 ./usr/sbin/quot
 ./usr/sbin/quotaoff
 ./usr/sbin/quotaon
