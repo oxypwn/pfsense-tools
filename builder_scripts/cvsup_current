@@ -22,7 +22,7 @@ rm -f /usr/src/sys/netipsec/ipsec_input.c
 rm -f /usr/src/sys/netipsec/ipsec_output.c
 
 # Update FreeSBIE2 files from CVS
-cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
+#cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
@@ -149,6 +149,13 @@ patch < ${PATCHDIR}/if_ether.c.diff
 # mkdir -p ${SRCDIR}/sys/dev/usb2
 # cd ${SRCDIR}/
 # patch -p3 < ${PATCHDIR}/usb4bsd.diff
+
+cd ${SRCDIR}/sys/netinet
+patch < ${PATCHDIR}/tcp_input.c.diff
+
+# Make ESX happy
+cd ${SRCDIR}/sys/cam/
+patch < ${PATCHDIR}/cam_xpt.c.diff
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
