@@ -11,7 +11,7 @@
  *   reloads, sshd starting, etc.   It may be expanded
  *   down to the road to kick off any type of tasks that
  *   take up too much time from the GUI perspective.
- *   
+ *
  */
 
 #include <sys/stat.h>
@@ -61,9 +61,10 @@ int main(void) {
 	  /* loop forever until the cows come home */
 	  while(1) {
 	      if(fexist("/tmp/restart_webgui") == 1) {
-			  system("echo /tmp/restartwebgui > /tmp/check_reload_status");
-		      system("/bin/rm /tmp/restart_webgui");
-		      system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
+			sleep(5);
+			system("echo /tmp/restartwebgui > /tmp/check_reload_status");
+			system("/bin/rm /tmp/restart_webgui");
+			system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
 	      }
 	      if(fexist("/tmp/rc.linkup") == 1) {
 			  system("echo /tmp/rc.linkup > /tmp/check_reload_status");
@@ -78,7 +79,7 @@ int main(void) {
 		      system("/bin/rm /tmp/rc.linkup");
 		      sprintf(temp, "/usr/local/bin/php /etc/rc.linkup %s", buf);
 		      system(temp);
-	      }		  
+	      }
 	      if(fexist("/tmp/rc.newwanip") == 1) {
 			  system("echo /tmp/rc.newwanip > /tmp/check_reload_status");
 		      char buf[FILENAME_MAX + 2];
@@ -92,7 +93,7 @@ int main(void) {
 		      system("/bin/rm /tmp/rc.newwanip");
 		      sprintf(temp, "/usr/local/bin/php /etc/rc.newwanip %s", buf);
 		      system(temp);
-	      }	  
+	      }
 	      if(fexist("/tmp/filter_dirty") == 1) {
 		      system("/bin/rm -f /tmp/filter_dirty");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure");
@@ -105,7 +106,7 @@ int main(void) {
 	      if(fexist("/tmp/reload_interfaces") == 1) {
 			  system("echo /tmp/reload_interfaces > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_interfaces");
-		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces");			  
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces");
 	      }
 	      if(fexist("/tmp/update_dyndns") == 1) {
 			  system("echo /tmp/update_dyndns > /tmp/check_reload_status");
@@ -137,7 +138,7 @@ int main(void) {
 		      signal( SIGINT, SIG_DFL );
 	      if( signal( SIGKILL, SIG_DFL ) != SIG_DFL )
 		      signal( SIGKILL, SIG_DFL );
-	      exit( 0 );	  
+	      exit( 0 );
 	}
 	exit( 0 );
 	return( 0 );
