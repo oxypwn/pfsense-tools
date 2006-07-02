@@ -43,9 +43,10 @@ fi
 for LINE in `cat ${CURRENTDIR}/patches.$pfSense_version`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
-	echo "Removing ${PATCH_RM}"
-	if [ $PATCH_RM != "" ]; then
-		rm -rf ${SRCDIR}/${PATCH_RM}
+	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
+	if [ $PATCH_RM_LENGTH -gt "2" ]; then
+		echo "Removing ${SRCDIR}${PATCH_RM}"
+		rm -rf ${SRCDIR}${PATCH_RM}
 	fi
 done
 
@@ -75,9 +76,13 @@ do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
 	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
 	PATCH_FILE=`echo $LINE | cut -d~ -f3`
-	echo "Patching ${PATCH_FILE}"
-	cd ${SRCDIR}/${PATCH_DIRECTORY}
-	patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE}
+	PATCH_FILE_LEN=`echo $PATCH_FILE | wc -c`
+	if [ $PATCH_FILE_LEN -gt "2" ]; then
+		echo "Patching ${PATCH_FILE}"
+		cd ${SRCDIR}${PATCH_DIRECTORY}
+		patch -f ${PATCH_DEPTH} < ${PATCHDIR}${PATCH_FILE}
+
+	fi
 done
 
 echo -n Cleaning up previous build environemnt...Please wait...
