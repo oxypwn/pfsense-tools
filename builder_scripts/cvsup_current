@@ -29,11 +29,12 @@ if [ ! -d "${SRCDIR}" ]; then
 fi
 
 # Sanity check
-if [ $pfSense_version = "6" ]; then
+if [ $pfSense_version = "7" ]; then
 	if [ `uname -r | cut -d"." -f1` = "6" ]; then
 		echo
 		echo "Warning!  You are building FreeBSD 7 on 6."
 		echo "          This will most likely not work."
+		echo
 		sleep 5
 	fi
 fi
