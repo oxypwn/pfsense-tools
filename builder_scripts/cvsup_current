@@ -28,6 +28,16 @@ if [ ! -d "${SRCDIR}" ]; then
 	exit 1
 fi
 
+# Sanity check
+if [ $pfSense_version = "6" ]; then
+	if [ `uname -r | cut -d"." -f1` = "6" ]; then
+		echo
+		echo "Warning!  You are building FreeBSD 7 on 6."
+		echo "          This will most likely not work."
+		sleep 5
+	fi
+fi
+
 # Add cvsup
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress..."
