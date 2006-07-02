@@ -35,6 +35,10 @@ if [ $pfSense_version = "7" ]; then
 		echo "Warning!  You are building FreeBSD 7 on 6."
 		echo "          This will most likely not work."
 		echo
+		echo "You should buildworld and installworld and"
+		echo "upgrade your system to FreeBSD 7 before"
+		echo "attempting this operation."
+		echo
 		sleep 5
 	fi
 fi
