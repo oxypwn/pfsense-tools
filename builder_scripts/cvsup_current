@@ -52,110 +52,36 @@ if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
 fi
 
-# CVSUP RELENG_6
-fastest_cvsup -c tld -q > /var/db/fastest_cvsup
-cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
+if [ $pfSense_version = "6" ]; then
+	# CVSUP RELENG_6
+	echo "Using FreeBSD RELENG_6"
+	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+	cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
+fi
+if [ $pfSense_version = "7" ]; then
+        # CVSUP HEAD
+	echo "Using FreeBSD -HEAD"
+        fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+        cvsup -h `cat /var/db/fastest_cvsup` ./current-supfile
+fi
+
 fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
-# clog source and usr.sbin/Makefile patch
+# clog source
 cd ${SRCDIR}/usr.sbin/
 tar xzf ${PATCHDIR}/clog-1.0.1.tar.gz
-cd ${SRCDIR}/
-patch -p1 < ${PATCHDIR}/clog-makefile.patch
 
-# Traffic shaper fixes for pfctl - loosen anchor checks
-cd ${SRCDIR}/contrib/pf/pfctl
-patch < ${PATCHDIR}/parse.y
-
-# Making ipfw default to allow all
-cd ${SRCDIR}/sys/modules/ipfw
-patch < ${PATCHDIR}/ipfw.diff
-
-# Allow ALTQ and VLANS to play nicely
-cd ${SRCDIR}/sys/net/
-patch < ${PATCHDIR}/altq-vlan.diff
-
-# Eliminate the silly error on embedded ro mounts
-cd ${SRCDIR}/sys
-patch < ${PATCHDIR}/geom_vfs.c.diff
-
-# Patch EM for fiber / carp
-cd ${SRCDIR}/sys/dev/em
-patch < ${PATCHDIR}/if_em.c.diff
-
-#rm -rf ${SRCDIR}/src/sys/net/natpt ${SRCDIR}/src/sys/modules/natpt ${SRCDIR}/src/share/man/man4/natpt.4
-#cd ${SRCDIR}/
-#patch -p1 < ${PATCHDIR}/natpt.diff
-
-# Andrew Thompson's fragmented packet bridge patch
-cd ${SRCDIR}/sys/
-patch -p1 < ${PATCHDIR}/if_bridge.c.diff
-
-# Be more like Windows and Linux and send our hostname in the host-name
-# option if none is given in the config file.  Also add #ifdefd out
-# support for sending a client ID based on our MAC address.
-cd ${SRCDIR}/sbin/dhclient
-patch < ${PATCHDIR}/dhclient.c.diff
-
-cd ${SRCDIR}/sys/net/
-patch < ${PATCHDIR}/if_gre.c.diff
-
-cd ${SRCDIR}/sys/contrib/pf/net
-patch < ${PATCHDIR}/pf_ioctl.c.diff
-
-cd ${SRCDIR}/sbin/fdisk
-patch < ${PATCHDIR}/fdisk.c.diff
-
-cd ${SRCDIR}/sbin/bsdlabel
-patch < ${PATCHDIR}/bsdlabel.c.diff
-
-cd ${SRCDIR}/sys/geom
-patch < ${PATCHDIR}/geom_ctl.c.diff
-
-cd ${SRCDIR}/sys
-patch < ${PATCHDIR}/if_enc.diff
-
-cd ${SRCDIR}/sys/contrib/pf/net
-patch < ${PATCHDIR}/if_pfsync.c.diff
-
-# UMA Fix.  Scheduled for MFC.
-cd ${SRCDIR}/sys/vm
-patch < ${PATCHDIR}/uma_core.c.diff
-
-# BPF is prone to races, lets fix
-#cd ${SRCDIR}/sys/
-#patch < ${PATCHDIR}/bpf_fixes.diff
-
-# Fix obvious error
-cd ${SRCDIR}/sys/netinet
-patch < ${PATCHDIR}/ip_output.c.diff
-
-# Force crypto if hw device is present
-# instead of sometimes falling back to sw
-#cd ${SRCDIR}/sys/opencrypto
-#patch < ${PATCHDIR}/crypto.c.diff
-
-# Send zombie procs to /dev/null
-cd ${SRCDIR}/sbin/init
-patch < ${PATCHDIR}/init.c.diff
-
-cd ${SRCDIR}/sys/netinet
-patch < ${PATCHDIR}/if_ether.c.diff
-
-# usb4freebsd
-# http://www.turbocat.net/~hselasky/usb4bsd/
-# rm -rf ${SRCDIR}/sys/dev/usb2
-# mkdir -p ${SRCDIR}/sys/dev/usb2
-# cd ${SRCDIR}/
-# patch -p3 < ${PATCHDIR}/usb4bsd.diff
-
-cd ${SRCDIR}/sys/netinet
-patch < ${PATCHDIR}/tcp_input.c.diff
-
-# Make ESX happy
-cd ${SRCDIR}/sys/cam/
-patch < ${PATCHDIR}/cam_xpt.c.diff
+# Loop through and patch files
+for LINE in `cat ${CURRENTDIR}/patches.$pfSense_version`
+do
+        PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
+        PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
+        PATCH_FILE=`echo $LINE | cut -d~ -f3`
+	echo "Patching ${PATCH_FILE}"
+        cd ${SRCDIR}/${PATCH_DIRECTORY}
+        patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE}
+done
 
 echo -n Cleaning up previous build environemnt...Please wait...
 cd ${CURRENTDIR}
