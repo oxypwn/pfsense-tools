@@ -19,11 +19,17 @@ export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
 
 # Use normal make.conf
 export MAKE_CONF="${PWD}/conf/make.conf"
+if [ $pfSense_version = "7" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.7"
+fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs" 
 
 export PRUNE_LIST="${PWD}/remove.list.iso"
+if [ $pfSense_version = "7" ]; then
+	export PRUNE_LIST="${PWD}/remove.list.iso.7"
+fi
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different

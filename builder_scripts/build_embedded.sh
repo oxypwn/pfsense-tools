@@ -27,9 +27,15 @@ fi
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 export NO_COMPRESSEDFS=yes
 export PRUNE_LIST="${PWD}/remove.list"
+if [ $pfSense_version = "7" ]; then
+	export PRUNE_LIST="${PWD}/remove.list.7"
+fi
 
 # Use embedded make.conf
 export MAKE_CONF="${PWD}/conf/make.conf.embedded"
+if [ $pfSense_version = "7" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
+fi
 
 # Clean out directories
 freesbie_make cleandir

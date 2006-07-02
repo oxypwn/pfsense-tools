@@ -35,6 +35,9 @@ version=`cat $CVS_CO_DIR/etc/version`
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 export NO_COMPRESSEDFS=yes
 export PRUNE_LIST="${PWD}/remove.list"
+if [ $pfSense_version = "7" ]; then
+	export PRUNE_LIST="${PWD}/remove.list.7"
+fi
 
 cd $CVS_CO_DIR
 

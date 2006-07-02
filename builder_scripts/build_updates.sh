@@ -25,6 +25,9 @@ export EXTRA="${EXTRA:-} rootmfs etcmfs"
 
 # Items that we will remove before creating final .tgz archive
 export PRUNE_LIST="${PWD}/remove.list"
+if [ $pfSense_version = "7" ]; then
+	export PRUNE_LIST="${PWD}/remove.list.7"
+fi
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
