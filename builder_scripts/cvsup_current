@@ -9,7 +9,7 @@ CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
 # Update FreeSBIE2 files from CVS
-cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
+#cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
@@ -79,8 +79,8 @@ do
 	PATCH_FILE_LEN=`echo $PATCH_FILE | wc -c`
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		echo "Patching ${PATCH_FILE}"
-		cd ${SRCDIR}${PATCH_DIRECTORY}
-		patch -f ${PATCH_DEPTH} < ${PATCHDIR}${PATCH_FILE}
+		cd ${SRCDIR}/${PATCH_DIRECTORY}
+		patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE}
 
 	fi
 done
