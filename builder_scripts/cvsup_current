@@ -4,25 +4,12 @@
 #  * Syncs with FreeBSD
 #  * Applies pfSense specific patches
 #  * Rebuilds pfSense ISO
-#
 
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
-# Remove patches items for if_enc
-rm -f /usr/src/sys/conf/options
-rm -f /usr/src/sys/conf/files
-rm -f /usr/src/sys/net/if_types.h	
-rm -f /usr/src/sys/net/if_enc.c
-rm -f /usr/src/sys/netipsec/if_enc.c
-rm -f /usr/src/sys/netipsec/if_enc.c
-rm -f /usr/src/sys/netinet6/esp_input.c
-rm -f /usr/src/sys/netinet6/esp_output.c
-rm -f /usr/src/sys/netipsec/ipsec_input.c
-rm -f /usr/src/sys/netipsec/ipsec_output.c
-
 # Update FreeSBIE2 files from CVS
-#cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
+cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
@@ -52,6 +39,16 @@ if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
 fi
 
+# Loop through and remove files
+for LINE in `cat ${CURRENTDIR}/patches.$pfSense_version`
+do
+	PATCH_RM=`echo $LINE | cut -d~ -f4`
+	echo "Removing ${PATCH_RM}"
+	if [ $PATCH_RM != "" ]; then
+		rm -rf ${SRCDIR}/${PATCH_RM}
+	fi
+done
+
 if [ $pfSense_version = "6" ]; then
 	# CVSUP RELENG_6
 	echo "Using FreeBSD RELENG_6"
@@ -59,10 +56,10 @@ if [ $pfSense_version = "6" ]; then
 	cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
 fi
 if [ $pfSense_version = "7" ]; then
-        # CVSUP HEAD
+	# CVSUP HEAD
 	echo "Using FreeBSD -HEAD"
-        fastest_cvsup -c tld -q > /var/db/fastest_cvsup
-        cvsup -h `cat /var/db/fastest_cvsup` ./current-supfile
+	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+	cvsup -h `cat /var/db/fastest_cvsup` ./current-supfile
 fi
 
 fastest_cvsup -c tld -q > /var/db/fastest_cvsup
@@ -75,12 +72,12 @@ tar xzf ${PATCHDIR}/clog-1.0.1.tar.gz
 # Loop through and patch files
 for LINE in `cat ${CURRENTDIR}/patches.$pfSense_version`
 do
-        PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
-        PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
-        PATCH_FILE=`echo $LINE | cut -d~ -f3`
+	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
+	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
+	PATCH_FILE=`echo $LINE | cut -d~ -f3`
 	echo "Patching ${PATCH_FILE}"
-        cd ${SRCDIR}/${PATCH_DIRECTORY}
-        patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE}
+	cd ${SRCDIR}/${PATCH_DIRECTORY}
+	patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE}
 done
 
 echo -n Cleaning up previous build environemnt...Please wait...
@@ -93,5 +90,4 @@ echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 cd ${CURRENTDIR}
 ./build_iso.sh
-
 
