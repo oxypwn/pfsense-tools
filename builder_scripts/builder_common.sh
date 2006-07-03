@@ -26,16 +26,16 @@ populate_extra() {
 
     # Add lua installer items
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-    
+
     if [ ! -z "${DEVIMAGE:-}" ]; then
     	echo "Adding back NetBoot installation services for dev image..."
     	cat $BASE_DIR/tools/installer/conf/pfSense.lua | grep -v "netboot"  >/tmp/tmp
     	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
     	mv /tmp/tmp $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/pfSense.lua
-	else 
+	else
 		cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 	fi
-    
+
     cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install
 
     # Set buildtime
@@ -108,16 +108,16 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 	chmod a+rx ${CVS_CO_DIR}/usr/local/sbin/*
 
 	du -hd0 ${CVS_CO_DIR}
-	
+
 	rm -f ${CVS_CO_DIR}/etc/platform
 	rm -f ${CVS_CO_DIR}/etc/*passwd*
 	rm -f ${CVS_CO_DIR}/etc/pw*
-	
+
 	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
 
-	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}	
+	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 }
 
 fixup_updates() {
@@ -167,18 +167,18 @@ fixup_wrap() {
 
     echo `date` > $CVS_CO_DIR/etc/version.buildtime
     echo "" > $CVS_CO_DIR/etc/motd
-    
+
     mkdir -p $CVS_CO_DIR/cf/conf/backup
-    
+
     # Nuke the trigger wizard script
     rm -f $CVS_CO_DIR/trigger_initial_wizard
-    
+
     echo /etc/rc.initial > $CVS_CO_DIR/root/.shrc
     echo exit >> $CVS_CO_DIR/root/.shrc
     rm -f $CVS_CO_DIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
-    
+
     touch $CVS_CO_DIR/conf/trigger_initial_wizard
-    
+
     echo "embedded" > $CVS_CO_DIR/etc/platform
 
     rm -rf $CVS_CO_DIR/conf
@@ -213,9 +213,9 @@ create_pfSense_Full_update_tarball() {
 	set +e
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
-	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...	
+	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
-	
+
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 }
@@ -239,11 +239,11 @@ create_pfSense_Small_update_tarball() {
 	chmod a+rx ${CVS_CO_DIR}/usr/local/sbin/*
 
 	du -hd0 ${CVS_CO_DIR}
-	
+
 	rm -f ${CVS_CO_DIR}/etc/platform
 	rm -f ${CVS_CO_DIR}/etc/*passwd*
 	rm -f ${CVS_CO_DIR}/etc/pw*
-	
+
 	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
@@ -275,10 +275,10 @@ copy_pfSense_tarball_to_custom_directory() {
 	mkdir -p $LOCALDIR/customroot/conf
 
 	mkdir -p $LOCALDIR/var/db/
-	chroot $LOCALDIR /bin/ln -s /var/db/rrd /usr/local/www/rrd	
+	chroot $LOCALDIR /bin/ln -s /var/db/rrd /usr/local/www/rrd
 
 	chroot $LOCALDIR/ cap_mkdb /etc/master.passwd
-	
+
 }
 
 copy_pfSense_tarball_to_freesbiebasedir() {
@@ -413,6 +413,7 @@ update_cvs_depot() {
 		else
 		cvsup pfSense-supfile
 		rm -rf pfSense
+		rm -rf $BASE_DIR/pfSense
 		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot update -d tools)
     fi
@@ -430,7 +431,7 @@ make_world_kernel() {
     objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
     build_id_w=`basename ${KERNELCONF}`
     build_id_k=${build_id_w}
-    
+
     # If PFSENSE_DEBUG is set, build debug kernel, if a .DEBUG kernel
     # configuration file exists
     if [ ! -z "${PFSENSE_DEBUG:-}" -a -f ${KERNELCONF}.DEBUG ]; then
@@ -449,7 +450,7 @@ make_world_kernel() {
     # Make world
     freesbie_make buildworld
     touch ${objdir}/${build_id_w}.world.done
-    
+
     # Make kernel
     freesbie_make buildkernel
     touch ${objdir}/${build_id_k}.kernel.done
