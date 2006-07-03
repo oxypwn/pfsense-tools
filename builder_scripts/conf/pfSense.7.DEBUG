@@ -417,4 +417,6 @@ options		INVARIANT_SUPPORT	# Extra sanity checks of internal structures, require
 
 options         BREAK_TO_DEBUGGER
 
+# IPSEC filtering interface
+device 		enc
 

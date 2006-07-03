@@ -341,3 +341,6 @@ options         INVARIANT_SUPPORT       # Extra sanity checks of internal struct
 
 options         BREAK_TO_DEBUGGER
 
+
+# IPSEC filtering interface
+device 		enc
