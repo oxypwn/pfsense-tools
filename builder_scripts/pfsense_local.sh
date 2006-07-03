@@ -54,6 +54,7 @@ export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs"
 MAKEJ=" "
 
 # FreeBSD version.  6 or 7
-export pfSense_version="7"
+export pfSense_version="6"
 
-
+# Used by non pfSense developers
+# export SKIP_RSYNC=yes
