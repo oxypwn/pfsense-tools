@@ -54,6 +54,10 @@ export version=`cat $CVS_CO_DIR/etc/version`
 # Build if needed and install world and kernel
 make_world_kernel
 
+if [ $pfSense_version = "7" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.7.install"
+fi
+
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 ( populate_extra )
@@ -74,3 +78,4 @@ set -e
 
 # Invoke FreeSBIE2 toolchain
 freesbie_make iso
+

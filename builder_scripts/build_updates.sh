@@ -19,6 +19,9 @@ export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.6}
 
 # Use normal make.conf
 export MAKE_CONF="${PWD}/conf/make.conf"
+if [ $pfSense_version = "7" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.7"
+fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs etcmfs" 
@@ -51,6 +54,10 @@ export version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
 make_world_kernel
+
+if [ $pfSense_version = "7" ]; then
+        export MAKE_CONF="${PWD}/conf/make.conf.7.install"
+fi
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
