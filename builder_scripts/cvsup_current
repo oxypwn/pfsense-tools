@@ -9,7 +9,7 @@ CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
 # Update FreeSBIE2 files from CVS
-#cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
+cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
