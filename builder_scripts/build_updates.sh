@@ -16,6 +16,9 @@ set -e -u
 
 # Use pfSense.6 as kernel configuration file
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.6}
+if [ $pfSense_version = "7" ]; then
+	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.7}
+fi
 
 # Use normal make.conf
 export MAKE_CONF="${PWD}/conf/make.conf"

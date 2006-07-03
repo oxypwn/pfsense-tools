@@ -28,6 +28,10 @@ fi
 
 # Use pfSense_wrap.6 as kernel configuration file
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+if [ $pfSense_version = "7" ]; then
+	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
+fi
+
 export NO_COMPRESSEDFS=yes
 export PRUNE_LIST="${PWD}/remove.list"
 if [ $pfSense_version = "7" ]; then

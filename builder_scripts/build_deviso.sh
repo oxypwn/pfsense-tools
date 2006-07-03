@@ -21,6 +21,9 @@ export PRUNE_LIST=""
 # Use pfSense.6 as kernel configuration file
 export DEVIMAGE=yo
 export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
+if [ $pfSense_version = "7" ]; then
+	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.7"}
+fi
 
 # Check if the world and kernel are already built and remove
 # lock files accordingly
