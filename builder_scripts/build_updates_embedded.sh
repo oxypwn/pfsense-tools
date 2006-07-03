@@ -51,6 +51,9 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep cpdup) >> conf/packages
 set -e
 
+# Fixup library changes if needed
+fixup_libmap
+
 cd $CVS_CO_DIR
 create_pfSense_Small_update_tarball
 

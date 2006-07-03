@@ -24,7 +24,7 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
-export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs" 
+export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 
 export PRUNE_LIST="${PWD}/remove.list.iso"
 if [ $pfSense_version = "7" ]; then
@@ -63,6 +63,9 @@ echo ">>> Phase populate_extra"
 ( populate_extra )
 echo ">>> Phase set_image_as_cdrom"
 ( set_image_as_cdrom )
+
+# Fixup library changes if needed
+fixup_libmap
 
 # Nuke the boot directory
 [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot

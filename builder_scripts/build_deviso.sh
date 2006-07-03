@@ -23,7 +23,7 @@ export DEVIMAGE=yo
 export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
 
 # Check if the world and kernel are already built and remove
-# lock files accordingly                                              
+# lock files accordingly
 
 objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
 build_id_w=`basename ${KERNELCONF}`
@@ -46,7 +46,7 @@ fi
 export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
-export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs" 
+export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 
 # Clean out directories
 freesbie_make cleandir
@@ -67,6 +67,9 @@ echo ">>> Phase populate_extra"
 ( populate_extra )
 echo ">>> Phase set_image_as_cdrom"
 ( set_image_as_cdrom )
+
+# Fixup library changes if needed
+fixup_libmap
 
 # Nuke the boot directory
 [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot

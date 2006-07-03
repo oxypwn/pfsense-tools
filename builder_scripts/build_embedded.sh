@@ -67,6 +67,9 @@ fixup_wrap
 # Invoke FreeSBIE2 toolchain
 freesbie_make clonefs
 
+# Fixup library changes if needed
+fixup_libmap
+
 echo "#### Building bootable UFS image ####"
 
 UFS_LABEL=${FREESBIE_LABEL:-"pfSense"} # UFS label
@@ -75,7 +78,7 @@ CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 # Root partition size
 # ROOTSIZE=${ROOTSIZE:-"116740"}  # Total number of sectors - 59 megs
 if [ $pfSense_version = "7" ]; then
-	# 128 megs 
+	# 128 megs
 	ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
 	CONFSIZE=${CONFSIZE:-"4096"}
 fi
