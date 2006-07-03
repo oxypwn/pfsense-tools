@@ -424,7 +424,7 @@ update_cvs_depot() {
 		rm -rf pfSense
 		rm -rf $BASE_DIR/pfSense
 		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot update -d tools)
+		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot update -d)
     fi
 	# if a custom config.xml is needed, copy it into place.
 	if [ "${CUSTOM_CONFIG_XML:-}" ]; then
