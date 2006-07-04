@@ -52,7 +52,7 @@ if [ $pfSense_version = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
 fi
 if [ $pfSense_version = "7" ]; then
-	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
+	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.7"}
 fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
