@@ -10,8 +10,8 @@ CURRENTDIR=`pwd`
 
 # Remove old builder directories used by FreeSBIE 2
 echo -n Removing ${BASEDIR}
-rm -rf ${CLONEDIR}
-echo -n ${CLONEDIR}
+rm -rf "${CLONEDIR} "
+echo -n "${CLONEDIR} "
 rm -rf ${CLONEDIR}
 echo " done"
 
