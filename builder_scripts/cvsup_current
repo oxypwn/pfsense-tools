@@ -9,12 +9,14 @@ CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
 # Remove old builder directories used by FreeSBIE 2
-echo Removing ${BASEDIR}
+echo -n Removing ${BASEDIR}
 rm -rf ${CLONEDIR}
-echo Removing ${CLONEDIR}
+echo -n ${CLONEDIR}
 rm -rf ${CLONEDIR}
+echo " done"
 
 # Update FreeSBIE2 files from CVS
+echo "Updating FreeSBIE 2"
 cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
 
 # These are not needed -- they should be set in pfsense_local.sh
