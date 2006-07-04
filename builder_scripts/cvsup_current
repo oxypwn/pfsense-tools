@@ -13,7 +13,7 @@ echo -n Removing ${BASEDIR}
 rm -rf "${CLONEDIR} "
 echo -n "${CLONEDIR} "
 rm -rf ${CLONEDIR}
-echo " done"
+echo "done"
 
 # Update FreeSBIE2 files from CVS
 echo "Updating FreeSBIE 2"
