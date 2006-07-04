@@ -24,7 +24,9 @@ fi
 . ./builder_common.sh
 
 # Use pfSense_wrap.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+if [ $pfSense_version = "6" ]; then
+	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
@@ -36,7 +38,9 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 # Use embedded make.conf
-export MAKE_CONF="${PWD}/conf/make.conf.embedded"
+if [ $pfSense_version = "6" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
+fi
 if [ $pfSense_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
 fi
@@ -55,7 +59,9 @@ version=`cat $CVS_CO_DIR/etc/version`
 # Build if needed and install world and kernel
 make_world_kernel
 
-export MAKE_CONF="${PWD}/conf/make.conf.embedded.install"
+if [ $pfSense_version = "6" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.embedded.install"
+fi
 if [ $pfSense_version = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7.install"
 fi

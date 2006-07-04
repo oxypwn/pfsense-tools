@@ -27,13 +27,17 @@ fi
 . ./builder_common.sh
 
 # Use pfSense_wrap.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+if [ $pfSense_version = "6" ]; then
+	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
 
 export NO_COMPRESSEDFS=yes
-export PRUNE_LIST="${PWD}/remove.list"
+if [ $pfSense_version = "6" ]; then
+	export PRUNE_LIST="${PWD}/remove.list"
+fi
 if [ $pfSense_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.7"
 fi

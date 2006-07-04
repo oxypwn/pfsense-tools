@@ -32,7 +32,9 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Use pfSense_wrap.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+if [ $pfSense_version = "6" ]; then
+	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi

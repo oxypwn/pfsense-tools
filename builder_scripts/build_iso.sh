@@ -15,13 +15,17 @@ set -e -u
 . ./builder_common.sh
 
 # Use pfSense.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
+if [ $pfSense_version = "6" ]; then
+	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
+fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.7"}
 fi
 
 # Use normal make.conf
-export MAKE_CONF="${PWD}/conf/make.conf"
+if [ $pfSense_version = "6" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf"
+fi
 if [ $pfSense_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7"
 fi
@@ -29,7 +33,9 @@ fi
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 
-export PRUNE_LIST="${PWD}/remove.list.iso"
+if [ $pfSense_version = "6" ]; then
+	export PRUNE_LIST="${PWD}/remove.list.iso"
+fi
 if [ $pfSense_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.iso.7"
 fi

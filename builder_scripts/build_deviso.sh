@@ -20,7 +20,9 @@ export PRUNE_LIST=""
 
 # Use pfSense.6 as kernel configuration file
 export DEVIMAGE=yo
-export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
+if [ $pfSense_version = "6" ]; then
+	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
+fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.7"}
 fi
@@ -46,7 +48,12 @@ fi
 . ./builder_common.sh
 
 # Use pfSense.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
+if [ $pfSense_version = "6" ]; then
+	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
+fi
+if [ $pfSense_version = "7" ]; then
+	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
+fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
