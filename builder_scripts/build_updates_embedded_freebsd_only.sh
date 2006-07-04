@@ -34,7 +34,9 @@ if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
 
+# Do not compress FS
 export NO_COMPRESSEDFS=yes
+
 if [ $pfSense_version = "6" ]; then
 	export PRUNE_LIST="${PWD}/remove.list"
 fi
@@ -43,7 +45,9 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 # Use embedded make.conf
-export MAKE_CONF="${PWD}/conf/make.conf.embedded"
+if [ $pfSense_version = "6" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
+fi
 if [ $pfSense_version = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
 fi

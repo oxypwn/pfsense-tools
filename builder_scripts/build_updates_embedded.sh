@@ -38,8 +38,13 @@ fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
+
+# Do not compress FS
 export NO_COMPRESSEDFS=yes
-export PRUNE_LIST="${PWD}/remove.list"
+
+if [ $pfSense_version = "6" ]; then
+	export PRUNE_LIST="${PWD}/remove.list"
+fi
 if [ $pfSense_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.7"
 fi
