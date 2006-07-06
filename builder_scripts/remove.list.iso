@@ -61,7 +61,6 @@
 ./sbin/ggatec
 ./sbin/ggated
 ./sbin/ggatel
-./sbin/gmirror
 ./sbin/gnop
 ./sbin/gpt
 ./sbin/graid3
