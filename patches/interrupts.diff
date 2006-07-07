@@ -1,0 +1,40 @@
+--- //depot/vendor/freebsd/src/sys/i386/i386/io_apic.c	2005/11/16 20:30:33
++++ //depot/user/jhb/acpipci/i386/i386/io_apic.c	2005/11/21 19:21:59
+@@ -90,6 +90,7 @@
+ 	u_int io_masked:1;
+ 	int io_dest:5;
+ 	int io_bus:4;
++	uint32_t io_lowreg;
+ };
+ 
+ struct ioapic {
+@@ -208,9 +209,7 @@
+ 
+ 	mtx_lock_spin(&icu_lock);
+ 	if (intpin->io_masked) {
+-		flags = ioapic_read(io->io_addr,
+-		    IOAPIC_REDTBL_LO(intpin->io_intpin));
+-		flags &= ~(IOART_INTMASK);
++		flags = intpin->io_lowreg & ~IOART_INTMASK;
+ 		ioapic_write(io->io_addr, IOAPIC_REDTBL_LO(intpin->io_intpin),
+ 		    flags);
+ 		intpin->io_masked = 0;
+@@ -227,9 +226,7 @@
+ 
+ 	mtx_lock_spin(&icu_lock);
+ 	if (!intpin->io_masked && !intpin->io_edgetrigger) {
+-		flags = ioapic_read(io->io_addr,
+-		    IOAPIC_REDTBL_LO(intpin->io_intpin));
+-		flags |= IOART_INTMSET;
++		flags = intpin->io_lowreg | IOART_INTMSET;
+ 		ioapic_write(io->io_addr, IOAPIC_REDTBL_LO(intpin->io_intpin),
+ 		    flags);
+ 		intpin->io_masked = 1;
+@@ -320,6 +317,7 @@
+ 
+ 	/* Write the values to the APIC. */
+ 	mtx_lock_spin(&icu_lock);
++	intpin->io_lowreg = low;
+ 	ioapic_write(io->io_addr, IOAPIC_REDTBL_LO(intpin->io_intpin), low);
+ 	value = ioapic_read(io->io_addr, IOAPIC_REDTBL_HI(intpin->io_intpin));
+ 	value &= ~IOART_DEST;
