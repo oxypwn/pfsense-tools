@@ -8,7 +8,6 @@
 ./boot/device.hints_wrap
 ./boot/loader.conf_wrap
 
-
 ./etc/bluetooth
 ./etc/gnats
 ./etc/isdn
@@ -33,14 +32,6 @@
 ./etc/periodic/security/*
 ./etc/periodic/weekly/*
 ./etc/ttys_wrap
-
-./lib/geom/geom_concat.so
-./lib/geom/geom_eli.so
-./lib/geom/geom_mirror.so
-./lib/geom/geom_nop.so
-./lib/geom/geom_raid3.so
-./lib/geom/geom_shsec.so
-./lib/geom/geom_stripe.so
 
 ./lib/libcam.so.3
 
