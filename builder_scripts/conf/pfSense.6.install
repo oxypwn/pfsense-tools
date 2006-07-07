@@ -412,3 +412,9 @@ device          apic                    # I/O APIC
 # Allow gmirror to function
 options         GEOM_MIRROR
 options         GEOM_MBR
+
+options         PREEMPTION
+
+
+
+
