@@ -116,11 +116,6 @@ device		twe		# 3ware ATA RAID
 # Floating point support - do not disable.
 device		npx
 
-# Power management support (see NOTES for more options)
-#device		apm
-# Add suspend/resume support for the i8254.
-device		pmtimer
-
 # PCCARD (PCMCIA) support
 # PCMCIA and cardbus bridge support
 device		cbb		# cardbus (yenta) bridge
@@ -133,14 +128,7 @@ device		sio		# 8250, 16[45]50 based serial ports
 # Parallel port
 device		ppc
 device		ppbus		# Parallel port bus (required)
-#device		lpt		# Printer
 device		ppi		# Parallel port interface device
-#device		vpo		# Requires scbus and da
-
-# If you've got a "dumb" serial or parallel PCI card that is
-# supported by the puc(4) glue driver, uncomment the following
-# line to enable it (connects to the sio and/or ppc drivers):
-#device		puc
 
 # PCI Ethernet NICs.
 device		de		# DEC/Intel DC21x4x (``Tulip'')
@@ -173,22 +161,6 @@ device		vge		# VIA VT612x gigabit Ethernet
 device		vr		# VIA Rhine, Rhine II
 device		wb		# Winbond W89C840F
 device		xl		# 3Com 3c90x (``Boomerang'', ``Cyclone'')
-
-
-# ISA Ethernet NICs.  pccard NICs included.
-#device		cs		# Crystal Semiconductor CS89x0 NIC
-# 'device ed' requires 'device miibus'
-#device		ed		# NE[12]000, SMC Ultra, 3c503, DS8390 cards
-#device		ex		# Intel EtherExpress Pro/10 and Pro/10+
-#device		ep		# Etherlink III based cards
-#device		fe		# Fujitsu MB8696x based cards
-#device		ie		# EtherExpress 8/16, 3C507, StarLAN 10 etc.
-#device		lnc		# NE2100, NE32-VL Lance Ethernet cards
-#device		sn		# SMC's 9000 series of Ethernet chips
-#device		xe		# Xircom pccard Ethernet
-
-# ISA devices that use the old ISA shims
-#device		le
 
 # Wireless NIC cards
 device		wlan		# 802.11 support
@@ -230,17 +202,13 @@ device		bpf		# Berkeley packet filter
 device		uhci		# UHCI PCI->USB interface
 device		ohci		# OHCI PCI->USB interface
 device		ehci		# EHCI PCI->USB interface (USB 2.0)
-device		usb		# USB Bus (required)
+device		usb			# USB Bus (required)
 #device		udbp		# USB Double Bulk Pipe devices
 device		ugen		# Generic
 device		ucom
 # Uncommented at the request of colin
-#device		uhid		# "Human Interface Devices"
-#device		ulpt		# Printer
 device		umass		# Disks/Mass storage - Requires scbus and da
-device		ums		# Mouse
-#device		urio		# Diamond Rio 500 MP3 player
-#device		uscanner	# Scanners
+device		ums			# Mouse
 # USB Ethernet, requires miibus
 device		aue		# ADMtek USB Ethernet
 device		axe		# ASIX Electronics USB Ethernet
@@ -266,18 +234,14 @@ device		ath
 device		ath_rate_sample
 device		ath_hal
 device		an              # Aironet 4500/4800 802.11 wireless NICs.
-device		awi		# BayStack 660 and others
-#device		iwi                     # Intel PRO/Wireless 2200BG
-device		ral		# Ralink Technology RT2500 wireless NICs.
+device		awi				# BayStack 660 and others
+device		ral				# Ralink Technology RT2500 wireless NICs.
 device		wi              # WaveLAN/Intersil/Symbol 802.11 wireless NICs.
 device		wl              # Older non 802.11 Wavelan wireless NIC.
 
 device          tap
 device          gre
 
-#options        IPFIREWALL
-#options        DUMMYNET
-#options        IPDIVERT
 options         IPFIREWALL_DEFAULT_TO_ACCEPT
 options         IPFIREWALL_FORWARD
 options         IPFIREWALL_VERBOSE
@@ -290,9 +254,6 @@ options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
 options		GEOM_UZIP
 options		GEOM_LABEL
 
-#options		INCLUDE_CONFIG_FILE
-
-#options		BRIDGE
 options 	NETGRAPH		#netgraph(4) system
 options 	NETGRAPH_BPF
 options 	NETGRAPH_ETHER
@@ -356,7 +317,5 @@ options		ZERO_COPY_SOCKETS
 options 	HZ=100
 
 device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
-
-#device         natpt
 
 options TCP_SIGNATURE
