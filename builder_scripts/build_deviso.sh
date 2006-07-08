@@ -58,6 +58,9 @@ fi
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 
+unset NO_UNIONFS
+export UNION_DIRS="usr"
+
 # Clean out directories
 freesbie_make cleandir
 
