@@ -72,7 +72,7 @@ ui_nav_control = {
 	["*/install/confirm_install_os"] = "ignore",
 	["*/install/warn_omitted_subpartitions"] = "ignore",
 	["*/install/finished"] = "ignore",
-	["*/install/select_additional_filesystems"] = "ignore", 
+	["*/install/select_additional_filesystems"] = "ignore",
 
 	["*/configure/*"] = "ignore",             -- do not configure, we've already did it.
 }
@@ -82,5 +82,7 @@ booted_from_install_media=true
 dir = { root = "/", tmp = "/tmp/" }
 
 limits.part_min = "80M"
+
+offlimits_devices = { "fd%d+", "md%d+", "cd%d+", "union" }
 
 use_cpdup = true
