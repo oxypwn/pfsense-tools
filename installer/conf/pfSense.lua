@@ -85,6 +85,6 @@ limits.part_min = "80M"
 
 offlimits_devices = { "fd%d+", "md%d+", "cd%d+" }
 
-offlimits_mounts  = { "unionfs" }
+offlimits_mounts  = { "union" }
 
 use_cpdup = true
