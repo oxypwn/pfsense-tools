@@ -45,12 +45,12 @@ echo "/usr/local/share/dfuibe_lua/main.lua \
 
 sh /tmp/lua50c51 >/dev/null 2>&1 &
 
-/sbin/conscontrol mute off
-
 sleep 1
 
 echo Launching Installer NCurses frontend...
 TERM=cons25 && /usr/local/sbin/dfuife_curses
+
+/sbin/conscontrol mute off
 
 if [ ! -f /tmp/install_complete ]; then
 	echo Installation did not finish correctly.
@@ -79,7 +79,7 @@ echo "After reboot and the console menu is displayed, open a web"
 echo "browser and try to surf to the LAN ip address"
 echo
 echo "The default username and password is admin / pfsense "
-echo 
+echo
 
 echo Rebooting in 3 seconds.  CTRL-C to abort.
 sleep 1
