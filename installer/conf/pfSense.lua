@@ -83,6 +83,8 @@ dir = { root = "/", tmp = "/tmp/" }
 
 limits.part_min = "80M"
 
-offlimits_devices = { "fd%d+", "md%d+", "cd%d+", "union" }
+offlimits_devices = { "fd%d+", "md%d+", "cd%d+" }
+
+offlimits_mounts  = { "unionfs" }
 
 use_cpdup = true
