@@ -77,9 +77,6 @@ TERM=cons25 && /usr/local/sbin/dfuife_curses
 #   rm /tmp/install_complete
 #fi
 
-/usr/sbin/vidcontrol -S on 2>/dev/null
-/usr/sbin/vidcontrol -s 1 2>/dev/null
-
 if [ ! -f /tmp/install_complete ]; then
 	echo Installation did not finish correctly.
 	exit
