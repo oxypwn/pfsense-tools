@@ -47,7 +47,11 @@ echo "/usr/local/share/dfuibe_lua/main.lua \
 /usr/local/share/dfuibe_lua/conf/pfSense.lua " >> /tmp/lua50c51
 #>/dev/null 2>&1 &" >> /tmp/lua50c51
 
+/sbin/conscontrol mute on
+
 sh /tmp/lua50c51 >/dev/null 2>&1 &
+
+/sbin/conscontrol mute off
 
 sleep 1
 
