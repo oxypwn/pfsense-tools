@@ -31,11 +31,6 @@ if [ `cat /var/log/dmesg.boot | grep pfSense_Dev.6 | wc -l` -gt 0 ]; then
         touch /var/pfSenseDEV
 fi
 
-# Let's access this now to prevent the "RockRidge" message
-# during the actual install
-#ls /FreeSBIE/usr >/dev/null 2>&1
-#ls /FreeSBIE/var >/dev/null 2>&1
-
 ln -s /var/log/dmesg.boot /var/run/dmesg.boot
 
 echo Launching LUA Installer...
@@ -45,7 +40,6 @@ echo "/usr/local/share/dfuibe_lua/main.lua \
 /usr/local/share/dfuibe_lua/conf/BSDInstaller.lua \
 /usr/local/share/dfuibe_lua/conf/FreeBSD.lua \
 /usr/local/share/dfuibe_lua/conf/pfSense.lua " >> /tmp/lua50c51
-#>/dev/null 2>&1 &" >> /tmp/lua50c51
 
 /sbin/conscontrol mute on
 
@@ -57,25 +51,6 @@ sleep 1
 
 echo Launching Installer NCurses frontend...
 TERM=cons25 && /usr/local/sbin/dfuife_curses
-
-# Check for a failed install and offer to blast logs to developers
-#if [ ! -e /tmp/install_complete ]; then
-#    echo
-#    echo "WARNING!  Installation did not complete as planned."
-#    echo
-#    echo "Would you like to email the installer logs to the pfSense developers"
-#    echo -n "so that they can take a look for obvious errors/bugs [N]? "
-#   read ANSWER
-#   if [ "${ANSWER}" = "Y" -o "${ANSWER}" = "y" ]; then
-#        echo -n "Sending reports, please wait."
-#        tar czvpf installer_logs.tgz /tmp/*
-#        echo -n "."
-#        php /scripts/lua_installer_email_failed_logs.php
-#   else
-#        echo "Reports are not being sent."
-#   fi
-#   rm /tmp/install_complete
-#fi
 
 if [ ! -f /tmp/install_complete ]; then
 	echo Installation did not finish correctly.
