@@ -4,7 +4,7 @@ RCS file: /cvsroot/installer/src/backend/lua/conf/BSDInstaller.lua,v
 retrieving revision 1.13
 diff -u -r1.13 BSDInstaller.lua
 --- backend/lua/conf/BSDInstaller.lua	5 Oct 2005 21:29:03 -0000	1.13
-+++ backend/lua/conf/BSDInstaller.lua	11 Jul 2006 05:23:57 -0000
++++ backend/lua/conf/BSDInstaller.lua	11 Jul 2006 05:26:16 -0000
 @@ -154,7 +154,7 @@
      ["usr/local"] = "etc/mtree/BSD.local.dist",
      ["usr/X11R6"] = "etc/mtree/BSD.x11-4.dist"
@@ -37,7 +37,7 @@ RCS file: /cvsroot/installer/src/backend/lua/install/500_install_os.lua,v
 retrieving revision 1.81
 diff -u -r1.81 500_install_os.lua
 --- backend/lua/install/500_install_os.lua	22 Dec 2005 03:32:37 -0000	1.81
-+++ backend/lua/install/500_install_os.lua	11 Jul 2006 05:23:58 -0000
++++ backend/lua/install/500_install_os.lua	11 Jul 2006 05:26:16 -0000
 @@ -71,10 +71,12 @@
  		)
  		return step:prev()
@@ -67,7 +67,7 @@ RCS file: /cvsroot/installer/src/backend/lua/lib/storage.lua,v
 retrieving revision 1.184
 diff -u -r1.184 storage.lua
 --- backend/lua/lib/storage.lua	17 May 2006 21:30:03 -0000	1.184
-+++ backend/lua/lib/storage.lua	11 Jul 2006 05:23:59 -0000
++++ backend/lua/lib/storage.lua	11 Jul 2006 05:26:18 -0000
 @@ -16,7 +16,7 @@
  --    distribution.
  -- 3. Neither the names of the copyright holders nor the names of their
@@ -506,7 +506,7 @@ RCS file: /cvsroot/installer/src/backend/lua/lib/target_system.lua,v
 retrieving revision 1.59
 diff -u -r1.59 target_system.lua
 --- backend/lua/lib/target_system.lua	21 Dec 2005 23:00:33 -0000	1.59
-+++ backend/lua/lib/target_system.lua	11 Jul 2006 05:24:01 -0000
++++ backend/lua/lib/target_system.lua	11 Jul 2006 05:26:18 -0000
 @@ -15,7 +15,7 @@
  --    distribution.
  -- 3. Neither the names of the copyright holders nor the names of their
