@@ -8,6 +8,7 @@
 fixup_libmap() {
 	if [ $pfSense_version = "7" ]; then
 		echo -n "Overriding libc.so.6 -> libc.so.7"
+		mkdir -p ${CLONEDIR}/etc/
 		echo "libc.so.6         libc.so.7" > ${CLONEDIR}/etc/libmap.conf
 		echo "  done"
 	fi
