@@ -63,8 +63,6 @@ ui_nav_control = {
 
 	["*/configure_installed_system"] = "ignore", -- don't put these on
 	["*/upgrade_installed_system"] = "ignore",   -- the main menu...
-	["*/*netboot*"] = "ignore",
-
 	["*/load_kernel_modules"] = "ignore", -- do not ask about loading kernel modules
 	["*/pit/configure_console"] = "ignore",   -- do not ask about console
 	["*/pit/configure_network"] = "ignore",   -- do not ask about network
