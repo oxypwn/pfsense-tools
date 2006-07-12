@@ -37,15 +37,12 @@ populate_extra() {
     # Add lua installer items
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 
-    if [ ! -z "${DEVIMAGE:-}" ]; then
-    	echo "Adding back NetBoot installation services for dev image..."
-    	cat $BASE_DIR/tools/installer/conf/pfSense.lua | grep -v "netboot"  >/tmp/tmp
-    	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
-    	mv /tmp/tmp $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/pfSense.lua
-	else
-		cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-	fi
-
+	# This is now ready for general consumption! \o/
+	echo "Adding back NetBoot installation services..."
+	cat $BASE_DIR/tools/installer/conf/pfSense.lua | grep -v "netboot"  >/tmp/tmp
+	mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
+	mv /tmp/tmp $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/pfSense.lua
+	cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
     cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install
 
     # Set buildtime
