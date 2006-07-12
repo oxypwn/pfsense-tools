@@ -5,13 +5,6 @@ retrieving revision 1.41
 diff -u -p -r1.40 -r1.41
 --- src/sys/net/if_gre.c	2006/02/07 20:09:02	1.40
 +++ src/sys/net/if_gre.c	2006/05/11 00:53:43	1.41
-@@ -1,5 +1,5 @@
- /*	$NetBSD: if_gre.c,v 1.49 2003/12/11 00:22:29 itojun Exp $ */
--/*	 $FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/net/if_gre.c,v 1.40 2006/02/07 20:09:02 qingli Exp $ */
-+/*	 $FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/net/if_gre.c,v 1.41 2006/05/11 00:53:43 hsu Exp $ */
- 
- /*-
-  * Copyright (c) 1998 The NetBSD Foundation, Inc.
 @@ -294,7 +294,7 @@ gre_output(struct ifnet *ifp, struct mbu
  			 * RFC2004 specifies that fragmented diagrams shouldn't
  			 * be encapsulated.
