@@ -87,6 +87,11 @@ populate_extra() {
     find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
     set -e
 
+	# Extract custom overlay if it's defined.
+	if [ -z "${custom_overlay:-}" ]; then
+		tar xzpf $custom_overlay -C $CVS_CO_DIR
+	fi
+
     # Enable debug if requested
     if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
 		touch ${CVS_CO_DIR}/debugging
