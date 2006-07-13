@@ -89,7 +89,13 @@ populate_extra() {
 
 	# Extract custom overlay if it's defined.
 	if [ -z "${custom_overlay:-}" ]; then
-		tar xzpf $custom_overlay -C $CVS_CO_DIR
+		echo -n "Custom overlay defined - "
+		if [ -f $custom_overlay ]; then
+			echo "found, extracting..."
+			tar xzpf $custom_overlay -C $CVS_CO_DIR
+		else
+			echo " file not found $custom_overlay"
+		fi
 	fi
 
     # Enable debug if requested
