@@ -68,31 +68,15 @@ int main(void) {
 	      }
 	      if(fexist("/tmp/rc.linkup") == 1) {
 			  system("echo /tmp/rc.linkup > /tmp/check_reload_status");
-		      char buf[FILENAME_MAX + 2];
-		      if (!(f = fopen("/tmp/rc.linkup", "r"))) {
-			      fprintf(stderr, "Could not open /tmp/rc.linkup for input.\n");
-		      } else {
-			  while (fgets(buf, sizeof buf, f))
-			      fputs(buf, stdout);
-				  fclose(f);
-		      }
-		      system("/bin/rm /tmp/rc.linkup");
-		      sprintf(temp, "/usr/local/bin/php /etc/rc.linkup %s", buf);
+			  sprintf(temp, "/usr/local/bin/php /etc/rc.linkup `cat /tmp/rc.linkup`");
 		      system(temp);
+		      system("/bin/rm /tmp/rc.linkup");
 	      }
 	      if(fexist("/tmp/rc.newwanip") == 1) {
 			  system("echo /tmp/rc.newwanip > /tmp/check_reload_status");
-		      char buf[FILENAME_MAX + 2];
-		      if (!(f = fopen("/tmp/rc.newwanip", "r"))) {
-			      fprintf(stderr, "Could not open /tmp/rc.newwanip for input.\n");
-		      } else {
-			  while (fgets(buf, sizeof buf, f))
-			      fputs(buf, stdout);
-			  fclose(f);
-		      }
-		      system("/bin/rm /tmp/rc.newwanip");
-		      sprintf(temp, "/usr/local/bin/php /etc/rc.newwanip %s", buf);
+		      sprintf(temp, "/usr/local/bin/php /etc/rc.newwanip `cat /tmp/rc.newwanip`");
 		      system(temp);
+		      system("/bin/rm /tmp/rc.newwanip");
 	      }
 	      if(fexist("/tmp/filter_dirty") == 1) {
 		      system("/bin/rm -f /tmp/filter_dirty");
