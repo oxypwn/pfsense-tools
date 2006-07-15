@@ -61,6 +61,7 @@ int main(void) {
 	  /* loop forever until the cows come home */
 	  while(1) {
 	      if(fexist("/tmp/restart_webgui") == 1) {
+	        system("echo webConfigurator_Restart_Sleep > /tmp/check_reload_status");
 			sleep(5);
 			system("echo /tmp/restartwebgui > /tmp/check_reload_status");
 			system("/bin/rm /tmp/restart_webgui");
