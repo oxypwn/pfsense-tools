@@ -88,7 +88,7 @@ populate_extra() {
     set -e
 
 	# Extract custom overlay if it's defined.
-	if [ -z "${custom_overlay:-}" ]; then
+	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
 		if [ -f $custom_overlay ]; then
 			echo "found, extracting..."
