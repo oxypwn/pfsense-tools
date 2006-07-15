@@ -8,8 +8,8 @@
 fixup_libmap() {
 	if [ $pfSense_version = "7" ]; then
 		echo -n "Overriding libc.so.6 -> libc.so.7"
-		mkdir -p ${CLONEDIR}/etc/
-		echo "libc.so.6         libc.so.7" > ${CLONEDIR}/etc/libmap.conf
+		mkdir -p ${CVS_CO_DIR}/etc/
+		echo "libc.so.6         libc.so.7" > ${CVS_CO_DIR}/etc/libmap.conf
 		echo "  done"
 	fi
 }
@@ -97,6 +97,8 @@ populate_extra() {
 			echo " file not found $custom_overlay"
 		fi
 	fi
+
+	fixup_libmap
 
     # Enable debug if requested
     if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
@@ -373,6 +375,7 @@ checkout_pfSense() {
         echo ">>> Getting pfSense"
         rm -rf $CVS_CO_DIR
 	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
+	fixup_libmap
 }
 
 checkout_freesbie() {
@@ -425,12 +428,14 @@ update_cvs_depot() {
 		rm -rf $BASE_DIR/pfSense
 		rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
 		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+		fixup_libmap
 		else
 		cvsup pfSense-supfile
 		rm -rf pfSense
 		rm -rf $BASE_DIR/pfSense
 		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 		(cd $BASE_DIR/tools/ && cvs update -d)
+		fixup_libmap
     fi
 	# if a custom config.xml is needed, copy it into place.
 	if [ "${CUSTOM_CONFIG_XML:-}" ]; then
