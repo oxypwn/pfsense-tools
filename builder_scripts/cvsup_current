@@ -101,12 +101,18 @@ cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # CVSUP BSDInstaller
 echo "Cleaning up old BSDInstaller section..."
-rm -rf ${BASE_DIR}/installer/src/backend/lua/*
+rm -rf ${BASE_DIR}/installer/src/backend/lua/conf/BSDInstaller.lua
+rm -rf ${BASE_DIR}/installer/src/backend/lua/install/500_install_os
+rm -rf ${BASE_DIR}/installer/src/backend/lua/lib/storage.lua
+rm -rf ${BASE_DIR}/installer/src/backend/lua/lib/target_system.lua
+rm -rf ${BASE_DIR}/installer/src/backend/lua/500_create_geom_mirror.lua
+
 echo "Updating BSDInstaller collection..."
 cvsup bsdinstaller-supfile
 patch < ${BASE_DIR}/patches/bsdinstaller/bsdinstaller_gmirror.diff
 
 # clog source
+echo "Applying CLOG updates..."
 cd ${SRCDIR}/usr.sbin/
 tar xzf ${PATCHDIR}/clog-1.0.1.tar.gz
 
