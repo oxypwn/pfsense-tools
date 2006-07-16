@@ -1,11 +1,10 @@
-? 500_create_geom_mirror.lua
 Index: install/500_install_os.lua
 ===================================================================
 RCS file: /cvsroot/installer/src/backend/lua/install/500_install_os.lua,v
 retrieving revision 1.80
 diff -u -r1.80 500_install_os.lua
 --- install/500_install_os.lua	15 Sep 2005 05:14:53 -0000	1.80
-+++ install/500_install_os.lua	16 Jul 2006 01:49:28 -0000
++++ install/500_install_os.lua	16 Jul 2006 02:18:45 -0000
 @@ -1,4 +1,4 @@
 --- $Id$
 +-- $Id$
@@ -71,7 +70,7 @@ RCS file: /cvsroot/installer/src/backend/lua/lib/storage.lua,v
 retrieving revision 1.184
 diff -u -r1.184 storage.lua
 --- lib/storage.lua	17 May 2006 21:30:03 -0000	1.184
-+++ lib/storage.lua	16 Jul 2006 01:49:31 -0000
++++ lib/storage.lua	16 Jul 2006 02:18:47 -0000
 @@ -16,7 +16,7 @@
  --    distribution.
  -- 3. Neither the names of the copyright holders nor the names of their
@@ -539,7 +538,7 @@ RCS file: /cvsroot/installer/src/backend/lua/lib/target_system.lua,v
 retrieving revision 1.59
 diff -u -r1.59 target_system.lua
 --- lib/target_system.lua	21 Dec 2005 23:00:33 -0000	1.59
-+++ lib/target_system.lua	16 Jul 2006 01:49:32 -0000
++++ lib/target_system.lua	16 Jul 2006 02:18:47 -0000
 @@ -15,7 +15,7 @@
  --    distribution.
  -- 3. Neither the names of the copyright holders nor the names of their
