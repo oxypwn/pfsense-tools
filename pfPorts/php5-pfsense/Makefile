@@ -40,6 +40,7 @@ CONFIGURE_ARGS+=--without-mysql \
                 --enable-pcntl \
                 --enable-fastcgi \
                 --enable-reflection \
+                --enable-mbstring \
                 --enable-spl \
                 --program-prefix="" \
                 --enable-force-cgi-redirect
