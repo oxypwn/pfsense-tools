@@ -1,0 +1,21 @@
+#!/bin/sh
+
+set -e
+
+CURRENTDIR=`pwd`
+[ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
+
+# Update BSDInstaller
+echo "Updating BSDInstaller collection..."
+mkdir -p ${BASE_DIR}/installer
+(cd ${BASE_DIR}/installer && cvsup ${CURRENTDIR}/bsdinstaller-supfile)
+# Copy BSDInstaller build.conf
+cp ${BASE_DIR}/tools/installer/conf/build.conf \
+        ${BASE_DIR}/installer/installer/scripts/build/
+# Build BSDInstaller
+mkdir -p /usr/ports/packages/All
+(cd ${BASE_DIR}/installer/installer/scripts/build && \
+        ./create_installer_tarballs.sh && \
+        ./copy_ports_to_portsdir.sh && \
+        ./build_installer_packages.sh)
+
