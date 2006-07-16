@@ -1,0 +1,761 @@
+Index: src/backend/lua/conf/BSDInstaller.lua
+===================================================================
+RCS file: /cvsroot/installer/src/backend/lua/conf/BSDInstaller.lua,v
+retrieving revision 1.13
+diff -u -r1.13 BSDInstaller.lua
+--- src/backend/lua/conf/BSDInstaller.lua	5 Oct 2005 21:29:03 -0000	1.13
++++ src/backend/lua/conf/BSDInstaller.lua	15 Jul 2006 06:15:45 -0000
+@@ -154,7 +154,7 @@
+     ["usr/local"] = "etc/mtree/BSD.local.dist",
+     ["usr/X11R6"] = "etc/mtree/BSD.x11-4.dist"
+ }
+-    
++
+ --
+ -- upgrade_items: similar to "install_items", except for upgrading purposes
+ -- instead of initial installation.
+@@ -309,7 +309,7 @@
+ }
+ 
+ --
+--- limits: Limiting values specified by the installation; the most 
++-- limits: Limiting values specified by the installation; the most
+ -- significant of these is the minimum disk space required to
+ -- install the software.
+ --
+@@ -653,3 +653,7 @@
+ 
+ fatal_errors = false
+ 
++--
++-- Offlimits mount points.  BSDInstaller will ignore these mount points
++--
++-- offlimits_mounts  = { "unionfs" }
+Index: src/backend/lua/install/500_install_os.lua
+===================================================================
+RCS file: /cvsroot/installer/src/backend/lua/install/500_install_os.lua,v
+retrieving revision 1.81
+diff -u -r1.81 500_install_os.lua
+--- src/backend/lua/install/500_install_os.lua	22 Dec 2005 03:32:37 -0000	1.81
++++ src/backend/lua/install/500_install_os.lua	15 Jul 2006 06:15:45 -0000
+@@ -71,10 +71,12 @@
+ 		)
+ 		return step:prev()
+ 	end
++	local friendly_device_name = App.state.sel_part:get_device_name()
+ 	cmds:set_replacements{
+ 	    base = App.state.target:get_base(),
+ 	    logfile = App.conf.log_filename,
+-	    part = App.state.sel_part:get_device_name()
++	    part = temppart,
++		dirname = string.gsub(friendly_device_name, "/", "_")
+ 	}
+ 
+ 	--
+@@ -234,7 +236,7 @@
+ 	-- Backup the disklabel.
+ 	--
+ 	cmds:add(
+-	    "${root}${DISKLABEL} ${part} >${root}${base}/etc/disklabel.${part}"
++	    "${root}${DISKLABEL} ${part} >${root}${base}/etc/disklabel.${dirname}"
+ 	)
+ 
+ 	--
+Index: src/backend/lua/lib/storage.lua
+===================================================================
+RCS file: /cvsroot/installer/src/backend/lua/lib/storage.lua,v
+retrieving revision 1.184
+diff -u -r1.184 storage.lua
+--- src/backend/lua/lib/storage.lua	17 May 2006 21:30:03 -0000	1.184
++++ src/backend/lua/lib/storage.lua	15 Jul 2006 06:15:46 -0000
+@@ -16,7 +16,7 @@
+ --    distribution.
+ -- 3. Neither the names of the copyright holders nor the names of their
+ --    contributors may be used to endorse or promote products derived
+---    from this software without specific prior written permission. 
++--    from this software without specific prior written permission.
+ --
+ -- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -- ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES INCLUDING, BUT NOT
+@@ -242,21 +242,45 @@
+ 			App.log_warn("Couldn't open pty to '%s'", cmd)
+ 			return tab
+ 		end
+-		local line = pty:readline()
++		local probed_devices = pty:readline()
+ 		pty:close()
+-		App.log("`" .. cmd .. "` returned: " .. line)
++		App.log("`" .. cmd .. "` returned: " .. probed_devices)
++
++		--
++		-- If the platform is FreeBSD and /dev/mirror/ exists
++		-- then get a list of the GEOM Mirror volumes and add
++		-- to the selection list.
++		--
++		if App.conf.os.name == "FreeBSD" then
++			if (FileName.is_dir("/dev/mirror")) then
++				App.log("/dev/mirror exists.  Surveying.");
++				cmd = App.expand('${root}${FIND} /dev/mirror/* | ${root}${SED} "s/\\/dev\\/mirror/mirror/"')
++				local pty = Pty.Logged.open(cmd, App.log_string)
++				if not pty then
++					App.log_warn("Couldn't open pty to '%s'", cmd)
++					return tab
++				end
++				local probed_gmirror_devices = pty:readline()
++				pty:close()
++				App.log("`" .. cmd .. "` returned: " .. probed_gmirror_devices)
++				probed_devices = probed_gmirror_devices .. " " .. probed_devices
++			end
++		end
+ 
+ 		local disk_name
+-		for disk_name in string.gfind(line, "%s*(%w+)") do
++		for disk_name in string.gfind(probed_devices, "%s*([a-zA-Z/0-9]+)") do
+ 			local ok = true
+ 			local i, pattern
++			App.log("Testing " .. disk_name)
+ 			for i, pattern in ipairs(App.conf.offlimits_devices) do
+ 				if string.find(disk_name, "^" .. pattern .. "$") then
++					App.log("Device " .. disk_name .. " is listed as off limits");
+ 					ok = false
+ 				end
+ 			end
+ 			if ok then
+ 				local disk = Storage.Disk.new(self, disk_name)
++				App.log("Invoking survey for " .. disk_name)
+ 				if disk:survey() then
+ 					tab[disk_name] = disk
+ 				else
+@@ -363,12 +387,12 @@
+ 		local disk_name, dd
+ 		local list = {}
+ 		local i, n = 0, 0
+-		
++
+ 		for disk_name, dd in pairs(disk) do
+ 			table.insert(list, dd)
+ 			n = n + 1
+ 		end
+-		
++
+ 		table.sort(list, function(a, b)
+ 			return a:get_name() < b:get_name()
+ 		end)
+@@ -454,13 +478,20 @@
+ 			if fs_desc.mountpoint == dirname then
+ 				unmount_me = true
+ 			end
+-	
++
+ 			if string.sub(fs_desc.mountpoint, 1, string.len(dirname)) == dirname and
+ 			   string.len(dirname) < string.len(fs_desc.mountpoint) then
+ 				self:cmds_unmount_all_under(cmds, fs_desc.mountpoint, fs_descs)
+ 			end
+ 		end
+ 
++		for i, pattern in ipairs(App.conf.offlimits_mounts) do
++			if string.find(dirname, pattern) then
++				App.log("Mount " .. dirname .. " is listed as off limits");
++				unmount_me = false
++			end
++		end
++
+ 		if unmount_me then
+ 			cmds:add{
+ 			    cmdline = "${root}${UMOUNT} ${dirname}",
+@@ -481,7 +512,7 @@
+ 				return dd
+ 			end
+ 		end
+-		
++
+ 		return nil
+ 	end
+ 
+@@ -495,7 +526,7 @@
+ 		for dd in self:get_disks() do
+ 			n = n + 1
+ 		end
+-		
++
+ 		return n
+ 	end
+ 
+@@ -516,7 +547,7 @@
+ 		local pty, line
+ 		local swap = 0
+ 		local found, len, devname, amount
+-		
++
+ 		local cmd = App.expand("${root}${SWAPINFO} -k")
+ 		local pty = Pty.Logged.open(cmd, App.log_string)
+ 		line = pty:readline()
+@@ -529,7 +560,7 @@
+ 			line = pty:readline()
+ 		end
+ 		pty:close()
+-		
++
+ 		return Storage.Capacity.new(swap, "K")
+ 	end
+ 
+@@ -563,7 +594,7 @@
+ 		else
+ 			App.log_warn("couldn't open '%s'", bootmsgs_filename)
+ 		end
+-		
++
+ 		return nil
+ 	end
+ 
+@@ -937,13 +968,15 @@
+ 	-- this disk exists.
+ 	--
+ 	method.cmds_ensure_dev = function(self, cmds)
+-		cmds:add{
+-		    cmdline = "cd ${root}dev && ${root}${TEST_DEV} ${dev} || " ..
+-			      "${root}${SH} MAKEDEV ${dev}",
+-		    replacements = {
+-			dev = FileName.basename(self:get_device_name())
+-		    }
+-		}
++		if App.conf.os.name ~= "FreeBSD" then
++			cmds:add{
++			    cmdline = "cd ${root}dev && ${root}${TEST_DEV} ${dev} || " ..
++				      "${root}${SH} MAKEDEV ${dev}",
++			    replacements = {
++				dev = FileName.basename(self:get_device_name())
++			    }
++			}
++		end
+ 	end
+ 
+ 	--
+@@ -952,6 +985,7 @@
+ 	-- table with the appropriate information in it.
+ 	--
+ 	method.cmds_format = function(self, cmds)
++
+ 		self:cmds_ensure_dev(cmds)
+ 
+ 		--
+@@ -1090,7 +1124,7 @@
+ 		cmds:add("${root}${CAT} ${tmp}new.fdisk")
+ 
+ 		App.register_tmpfile("new.fdisk")
+-	
++
+ 		--
+ 		-- Execute the fdisk script.
+ 		--
+@@ -1125,15 +1159,16 @@
+ 			s = "-s 1 "
+ 		end
+ 
++		dev = FileName.basename(self:get_device_name())
+ 		cmds:add(
+ 		    {
+ 			cmdline = "${root}${BOOT0CFG} -B " ..
+-			    o .. s .. self:get_raw_device_name(),
++			    o .. s .. "/dev/" .. self:get_raw_device_name(),
+ 			failure = CmdChain.FAILURE_WARN,
+ 			tag = self
+ 		    },
+ 		    {
+-			cmdline = "${root}${BOOT0CFG} -v " ..
++			cmdline = "${root}${BOOT0CFG} -v /dev/" ..
+ 			    self:get_raw_device_name(),
+ 			failure = CmdChain.FAILURE_WARN,
+ 			tag = self
+@@ -1174,8 +1209,12 @@
+ 		cmds:add("${root}${MBRLABEL} -r -w ${dev}")
+                 cmds:add{
+                     cmdline = "${root}${DISKLABEL} -r ${dev} " ..
+-                              ">${tmp}install.disklabel.${dev}",
++                              ">${tmp}install.disklabel.${devicename}",
+ 		    failure_mode = CmdChain.FAILURE_IGNORE
++
++		}
++		cmds:set_replacements{
++			devicename = self:get_friendly_device_name()
+ 		}
+ 	end
+ 
+@@ -1425,7 +1464,7 @@
+ 			--
+ 			-- Check to see if this line is a start/size desc.
+ 			--
+-			local found, len, new_start, new_size = 
++			local found, len, new_start, new_size =
+ 			    string.find(line, "^%s*start%s*(%d+),%s*size%s*(%d+)")
+ 			if found then
+ 				start = new_start
+@@ -1469,7 +1508,7 @@
+ 			cyl, head, sec =
+ 			    probe_geometry_freebsd(self)
+ 		end
+-		
++
+ 		if not cyl or not head or not sec then
+ 			App.log_warn(
+ 			    "could not determine geometry of disk '%s'", name
+@@ -1570,7 +1609,7 @@
+ 		return sysid
+ 	end
+ 
+-	-- 
++	--
+ 	-- Return the partition's capacity as a Storage.Capacity object.
+ 	--
+ 	method.get_capacity = function(self)
+@@ -1652,7 +1691,7 @@
+ 		local letter, spd
+ 		local list = {}
+ 		local i, n = 0, 0
+-		
++
+ 		for letter, spd in pairs(subpart) do
+ 			table.insert(list, spd)
+ 		end
+@@ -1713,11 +1752,23 @@
+ 				return spd
+ 			end
+ 		end
+-		
++
+ 		return nil
+ 	end
+ 
+ 	--
++	-- Get friendly device name which has / replaced
++	-- with a _.  This allows for a friendly name that
++	-- is compatible with fstab and other items such as
++	-- filenames on the system
++	--
++	method.get_escaped_device_name = function(self)
++		local dev_name = self:get_device_name()
++		devicename = string.gsub(dev_name, "/", "_")
++		return dev_name
++	end
++
++	--
+ 	-- Determine whether any subpartition of this
+ 	-- partition is mounted somewhere in the filesystem.
+ 	--
+@@ -1770,16 +1821,18 @@
+ 		if App.conf.disklabel_on_disk then
+ 			return
+ 		end
+-
+-		cmds:add{
+-		    cmdline = "cd ${root}dev && ${root}${TEST_DEV} ${dev} || " ..
+-			      "${root}${SH} MAKEDEV ${dev}",
+-		    replacements = {
+-			dev = FileName.basename(self:get_device_name())
+-		    }
+-		}
++		if App.conf.os.name ~= "FreeBSD" then
++			cmds:add{
++			    cmdline = "cd ${root}dev && ${root}${TEST_DEV} ${dev} || " ..
++				      "${root}${SH} MAKEDEV ${dev}",
++			    replacements = {
++				dev = FileName.basename(self:get_device_name())
++			    }
++			}
++		end
+ 	end
+ 
++
+ 	--
+ 	-- Create commands to set the sysid (type) of this partition.
+ 	--
+@@ -1867,14 +1920,21 @@
+ 		    dev = self:get_raw_device_name()
+ 		}
+ 
++		if dev == nil then
++			dev = self:get_device_name()
++		end
++
+ 		--
+ 		-- Auto-disklabel the slice and make a record of the
+ 		-- fresh new disklabel we just applied.
+ 		--
+ 		cmds:add(
+ 		    "${root}${DISKLABEL} -B -r -w ${dev} auto",
+-		    "${root}${DISKLABEL} -r ${dev} >${tmp}install.disklabel.${dev}"
++		    "${root}${DISKLABEL} -r ${dev} >${tmp}install.disklabel.${devicename}"
+ 		)
++		cmds:set_replacements{
++				devicename = self:get_escaped_device_name()
++		}
+ 	end
+ 
+ 	--
+@@ -1914,14 +1974,16 @@
+ 		-- #        size   offset    fstype   [fsize bsize bps/cpg]
+ 		-- c:  2128833        0    unused        0     0       	# (Cyl.    0 - 2111*)
+ 		--
+-
+-		cmds:add(
++		cmds:add{
+ 		    "${root}${AWK} '$2==\"partitions:\" || cut { cut = 1 } !cut { print $0 }' " ..
+-		      "<${tmp}install.disklabel.${dev} >${tmp}install.disklabel",
++		      "<${tmp}install.disklabel.${devicename} >${tmp}install.disklabel",
+ 		    "${root}${ECHO} '${num_subparts} partitions:' >>${tmp}install.disklabel",
+ 		    "${root}${ECHO} '#        size   offset    fstype   [fsize bsize bps/cpg]' " ..
+-		      ">>${tmp}install.disklabel"
+-		)
++		      ">>${tmp}install.disklabel",
++				replacements = {
++				    devicename = self:get_escaped_device_name()
++				}
++		}
+ 
+ 		--
+ 		-- Write a line for each subpartition the user wants.
+@@ -1943,7 +2005,7 @@
+ 			-- expose the entire slice ('c:') and/or disk
+ 			-- ('d:' on Net/OpenBSD) from the initial disklabel
+ 			-- into the new disklabel we are making.
+-			--			    
++			--
+ 			local pattern =
+ 			    "^[[:space:]]*["				..
+ 			    table.concat(App.conf.window_subpartitions)	..
+@@ -1951,11 +2013,14 @@
+ 			cmds:add{
+ 			    cmdline =
+ 				"${root}${GREP} -E '${pattern}' "	..
+-				"${tmp}install.disklabel.${dev} "	..
++				"${tmp}install.disklabel.${devicename} "	..
+ 				">>${tmp}install.disklabel",
+-			    replacements = {
+-				pattern = pattern
+-			    }
++					replacements = {
++						pattern = pattern
++					}
++			}
++			cmds:set_replacements{
++				devicename = self:get_escaped_device_name()
+ 			}
+ 			already_copied_window_subparts = true
+ 		end
+@@ -2047,6 +2112,7 @@
+ 		-- Then create a snapshot of the disklabel we just created
+ 		-- for debugging inspection in the log.
+ 		--
++		dev = self:get_escaped_device_name()
+ 		cmds:add(
+ 		    "${root}${DISKLABEL} -R -r ${dev} ${tmp}install.disklabel",
+ 		    "${root}${DISKLABEL} ${dev}"
+@@ -2058,13 +2124,13 @@
+ 	-- the subpartitions that are described by the disklabel.
+ 	--
+ 	method.cmds_initialize_filesystems = function(self, cmds)
++
+ 		self:get_parent():cmds_ensure_dev(cmds)
+ 		self:cmds_ensure_dev(cmds)
+ 
+ 		for spd in self:get_subparts() do
+ 			if not spd:is_swap() then
+ 				spd:cmds_ensure_dev(cmds)
+-
+ 				if spd:is_softupdated() and App.conf.has_softupdates then
+ 					cmds:add("${root}${NEWFS} -U ${root}dev/" ..
+ 					    spd:get_device_name())
+@@ -2096,6 +2162,7 @@
+ 		end
+ 
+ 		self:cmds_ensure_dev(cmds)
++
+ 		--
+ 		-- NB: one cannot use "/dev/adXsY" here -
+ 		-- it must be in the form "adXsY".
+@@ -2147,7 +2214,9 @@
+ 
+ 		if sysid == 165 then
+ 			local len
+-			local cmd = App.expand("${root}${DISKLABEL} " .. parent:get_name() ..
++			local dev = parent:get_name()
++			local devicename = self:get_escaped_device_name()
++			local cmd = App.expand("${root}${DISKLABEL} " .. devicename ..
+ 			    "s" .. number)
+ 			local pty = Pty.Logged.open(cmd, App.log_string)
+ 			local line = pty:readline()
+@@ -2187,7 +2256,7 @@
+ 					line = pty:readline()
+ 				end
+ 			end
+-				
++
+ 			pty:close()
+ 		end
+ 	end
+@@ -2346,17 +2415,19 @@
+ 	--
+ 	method.cmds_ensure_dev = function(self, cmds)
+ 		if App.conf.disklabel_on_disk then -- XXX not quite right
+-                        return
+-                end
+-
+-		cmds:add{
+-		    cmdline = "cd ${root}dev && ${root}${TEST_DEV} ${dev} || " ..
+-			      "${root}${SH} MAKEDEV ${dev}",
+-		    replacements = {
+-			dev = FileName.basename(self:get_device_name())
+-		    }
+-		}
++			return
++		end
++		if App.conf.os.name ~= "FreeBSD" then
++			cmds:add{
++			    cmdline = "cd ${root}dev && ${root}${TEST_DEV} ${dev} || " ..
++				      "${root}${SH} MAKEDEV ${dev}",
++			    replacements = {
++				dev = FileName.basename(self:get_device_name())
++			    }
++			}
++		end
+ 	end
++
+ 
+ 	method.survey = function(self)
+ 		App.log("Surveying Subpartition on " .. parent:get_device_name() .. ": " ..
+Index: src/backend/lua/lib/target_system.lua
+===================================================================
+RCS file: /cvsroot/installer/src/backend/lua/lib/target_system.lua,v
+retrieving revision 1.59
+diff -u -r1.59 target_system.lua
+--- src/backend/lua/lib/target_system.lua	21 Dec 2005 23:00:33 -0000	1.59
++++ src/backend/lua/lib/target_system.lua	15 Jul 2006 06:15:47 -0000
+@@ -15,7 +15,7 @@
+ --    distribution.
+ -- 3. Neither the names of the copyright holders nor the names of their
+ --    contributors may be used to endorse or promote products derived
+---    from this software without specific prior written permission. 
++--    from this software without specific prior written permission.
+ --
+ -- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ -- ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES INCLUDING, BUT NOT
+@@ -120,7 +120,7 @@
+ 				    string.gsub(opt, "=", " ") .. " "
+ 			end
+ 		end
+-		
++
+ 		return result
+ 	end
+ 
+@@ -149,7 +149,7 @@
+ 		-- Create a command chain.
+ 		--
+ 		cmds = CmdChain.new()
+-	
++
+ 		--
+ 		-- Find the root subpartition of the partition.
+ 		-- It's always the first one, called "a".
+@@ -172,7 +172,7 @@
+ 		pd:get_parent():cmds_ensure_dev(cmds)
+ 		pd:cmds_ensure_dev(cmds)
+ 		spd:cmds_ensure_dev(cmds)
+-	
++
+ 		--
+ 		-- Make sure nothing is mounted under where we want
+ 		-- to mount this filesystem.
+@@ -189,7 +189,7 @@
+ 			base = base
+ 		    }
+ 		})
+-		
++
+ 		--
+ 		-- Do it.
+ 		--
+@@ -329,7 +329,7 @@
+ 					   "Copy-element must specify " ..
+ 					   "both 'src' and 'dest'")
+ 					return element.src, element.dest
+-				end				
++				end
+ 			else
+ 				return nil
+ 			end
+@@ -482,6 +482,7 @@
+ 		tab = tab or {}
+ 		local filename = tab.filename or "/etc/fstab"
+ 		local extra_fs = tab.extra_fs or {}
++		local current_mount_point
+ 
+ 		cmds:set_replacements{
+ 		    header = "# Device\t\tMountpoint\tFStype\tOptions\t\tDump\tPass#",
+@@ -724,7 +725,7 @@
+ 		-- Go through each of the mountpoints in our fstab,
+ 		-- and if it looks like we should, try mount it under base.
+ 		--
+-	
++
+ 		mtpts = {}
+ 		for mtpt, fsdesc in fstab do
+ 			table.insert(mtpts, mtpt)
+@@ -747,7 +748,7 @@
+ 				-- Swap partition.  Don't mount it.
+ 			elseif fsdesc.device == "swap" then
+ 				-- It's swap-backed.  mount_mfs it.
+-				
++
+ 				cmds:add({
+ 				    cmdline = "${root}${MOUNT_MFS} ${swap_opts} swap ${root}${base}${mtpt}",
+ 				    replacements = {
+@@ -777,7 +778,7 @@
+ 				)
+ 			end
+ 		end
+-	
++
+ 		is_mounted = cmds:execute()
+ 		return is_mounted
+ 	end
+Index: .project
+===================================================================
+RCS file: .project
+diff -N .project
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ .project	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,11 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<projectDescription>
++	<name>BSDInstaller</name>
++	<comment></comment>
++	<projects>
++	</projects>
++	<buildSpec>
++	</buildSpec>
++	<natures>
++	</natures>
++</projectDescription>
+Index: src/backend/lua/500_create_geom_mirror.lua
+===================================================================
+RCS file: src/backend/lua/500_create_geom_mirror.lua
+diff -N src/backend/lua/500_create_geom_mirror.lua
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ src/backend/lua/500_create_geom_mirror.lua	1 Jan 1970 00:00:00 -0000
+@@ -0,0 +1,114 @@
++-- $Id$
++
++if App.conf.os.name == "FreeBSD" then
++	--
++	-- FreeBSD specific module GEOM/GMirror
++	--
++	-- If more than two disks are detected, ask if the user wishes
++	-- to setup a GEOM/GMirror volume.  The volume will then appear
++	-- in the future select disk step.
++	--
++	if App.state.storage:get_disk_count() > 1 then
++
++		return {
++			   id = "setup_gmirror",
++			   name = _("Setup GEOM Mirror"),
++			   req_state = { "storage" },
++			   effect = function(step)
++
++		       -- Ask if user wnats a GEOM mirror to be created
++		       local response = App.ui:present{
++		           name = _("GEOM Mirror"),
++		           short_desc = _("Would you like to setup a GEOM mirror? "),
++		                   actions = {
++		                       {
++		                           id = "ok",
++		                           name = _("Yes, setup a GEOM mirror")
++		                       },
++		                       {
++		                           id = "cancel",
++		                           accelerator = "ESC",
++		                           name = _("No thanks")
++		                       }
++		           }
++		       }
++
++		       if response.action_id ~= "ok" then
++		               return Menu.CONTINUE
++		       end
++
++		       local DISK1
++		       local DISK2
++
++		       -- XXX: switch to a while loop and allow user to add more than 2 disks
++		       local dd = StorageUI.select_disk({
++		           sd = App.state.storage,
++		           short_desc = _(
++		               "Select the primary disk %s ",
++		               App.conf.product.name),
++		           cancel_desc = _("Cancel")
++		       })
++		       DISK1 = dd:get_name()
++
++		       -- XXX: switch to a while loop and allow user to add more than 2 disks
++		       local dd = StorageUI.select_disk({
++		           sd = App.state.storage,
++		           short_desc = _(
++		               "Select the disk on which the mirror of %s ",
++		               App.conf.product.name),
++		           cancel_desc = _("Cancel")
++		       })
++		       DISK2 = dd:get_name()
++
++		       -- Make sure disk 1 was selected
++		       if not DISK1 then
++		               return Menu.CONTINUE
++		       end
++
++		       -- Make sure disk 2 was selected
++		       if not DISK2 then
++		               return Menu.CONTINUE
++		       end
++
++		       if DISK1 == DISK2 then
++		               App.ui:inform(_(
++		                   "You need two unique disks to create a GEOM MIRROR.")
++		               )
++		               return Menu.CONTINUE
++		       end
++
++		       local cmds = CmdChain.new()
++		       -- XXX: switch to a while loop and allow user to add more than 2 disks
++			   cmds:add{
++		    	   cmdline = "/sbin/gmirror label -v -b split ${OS}Mirror ${DISK1} ${DISK2}",
++		    	   replacements = {
++		                            OS = App.conf.product.name,
++		                            DISK1 = DISK1,
++		                            DISK2 = DISK2
++		                      }
++			   }
++
++		       -- Finally execute the commands to create the gmirror
++		       if cmds:execute() then
++		               App.ui:inform(_(
++		                   "The GEOM mirror has been created with no errors.  " ..
++		                   "The mirror disk will now appear in the select disk step.")
++		               )
++		               -- Survey disks again, they have changed.
++		               App.state.storage:survey()
++		       else
++		               App.ui:inform(_(
++		                   "The GEOM mirror was NOT created due to errors.")
++		               )
++		       end
++
++		       return Menu.CONTINUE
++
++		   end
++
++		}
++
++	end -- end of device > 1 check
++
++end -- end of FreeBSD check
++
+
