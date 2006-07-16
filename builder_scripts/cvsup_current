@@ -101,20 +101,6 @@ fi
 echo "Updating FreeBSD ports collection..."
 cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
-# Update BSDInstaller
-echo "Updating BSDInstaller collection..."
-mkdir -p ${BASE_DIR}/installer
-cvsup bsdinstaller-supfile
-# Copy BSDInstaller build.conf
-cp ${BASE_DIR}/tools/installer/conf/build.conf \
-	${BASE_DIR}/installer/scripts/build/
-# Build BSDInstaller
-mkdir -p /usr/ports/packages/All
-(cd ${BASE_DIR}/installer/scripts/build && \
-	./create_installer_tarballs.sh && \
-	./copy_ports_to_portsdir.sh && \
-	./build_installer_packages.sh)
-
 # clog source
 echo "Applying CLOG updates..."
 (cd ${SRCDIR}/usr.sbin/ && \
