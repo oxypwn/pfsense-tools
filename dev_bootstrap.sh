@@ -17,7 +17,7 @@ done
 echo "."
 echo
 
-echo This script will bootstrap your pfSense Developers 
+echo This script will bootstrap your pfSense Developers
 echo iso into a full fledged building environment.
 echo
 echo This will take quite a while.  Go have a excellent beer.
@@ -112,6 +112,9 @@ touch ~/.cvspass
 cvs -z3 -d :pserver:anonymous@cvs.freesbie.org:/cvs co -P freesbie2
 
 cd $HOME_PFSENSE/tools/builder_scripts
+
+# Update BSDInstaller
+./cvsup_bsdinstaller
 
 echo "Bootstrap completed."
 echo
