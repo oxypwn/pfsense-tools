@@ -1,13 +1,13 @@
-# New ports collection makefile for:	php5
+# New ports collection makefile for:	php4
 # Date created:				Tue Feb 18 11:17:13 CET 2003
 # Whom:					Alex Dupre <sysadmin@alexdupre.com>
 #
-# $FreeBSD: ports/lang/php5/Makefile,v 1.88 2005/07/13 19:56:27 ale Exp $
+# $FreeBSD: ports/lang/php4/Makefile,v 1.88 2005/07/13 19:56:27 ale Exp $
 #
 
 PKGNAMESUFFIX=	-cgi
-PORTNAME=	php5
-PORTVERSION=    5.1.4
+PORTNAME=	php4
+PORTVERSION=	4.4.2
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP:S,$,:release,} \
@@ -53,6 +53,9 @@ WITH_APACHE=	yes
 
 EXT_DIR=	20020429
 WITH_OPENSSL=	yes
+
+CONFLICTS?=	php4-cli-4* mod_php4-4* php4-cgi-4*
+CONFLICTS+=	php5-5* php5-cli-5* mod_php5-5* php5-cgi-5*
 
 .if ${PHP_SAPI} == "cgi"
 SAPI_FILE=	bin/php
