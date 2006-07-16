@@ -96,10 +96,13 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 # CVSUp ports collection
+echo "Updating FreeBSD ports collection..."
 cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # CVSUP BSDInstaller
+echo "Cleaning up old BSDInstaller section..."
 rm -rf ${CURRENTDIR}/installer/src/backend/lua/*
+echo "Updating BSDInstaller collection..."
 cvsup bsdinstaller-supfile
 patch < ${CURRENTDIR}/patches/bsdinstaller/bsdinstaller_gmirror.diff
 
