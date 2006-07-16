@@ -31,13 +31,18 @@ USE_REINPLACE=	yes
 USE_OPENSSL=    yes
 
 CONFIGURE_ARGS+=--without-mysql \
-		--without-pear \
-		--with-openssl \
-		--with-curl \
-		--with-gettext \
-		--enable-pcntl \
-		--enable-fastcgi \
-		--enable-force-cgi-redirect
+                --without-pear \
+                --enable-libxml \
+                --with-libxml-dir=${LOCALBASE} \
+                --with-openssl \
+                --with-curl \
+                --with-gettext \
+                --enable-pcntl \
+                --enable-fastcgi \
+                --enable-reflection \
+                --enable-spl \
+                --program-prefix="" \
+                --enable-force-cgi-redirect
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
 PHP_SAPI=	full
