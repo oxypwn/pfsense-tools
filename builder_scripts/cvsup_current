@@ -5,6 +5,8 @@
 #  * Applies pfSense specific patches
 #  * Rebuilds pfSense ISO
 
+set -e -u
+
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
@@ -17,7 +19,7 @@ echo "done"
 
 # Update FreeSBIE2 files from CVS
 echo "Updating FreeSBIE 2"
-cd ../../freesbie2 && cvs update -d && cd $CURRENTDIR
+(cd ../../freesbie2 && cvs update -d)
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
@@ -99,15 +101,23 @@ fi
 echo "Updating FreeBSD ports collection..."
 cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
+# Update BSDInstaller
 echo "Updating BSDInstaller collection..."
 cvsup bsdinstaller-supfile
+# Copy BSDInstaller build.conf
 cp ${BASE_DIR}/tools/installer/conf/build.conf \
 	${BASE_DIR}/installer/scripts/build/
+# Build BSDInstaller
+mkdir -p /usr/ports/packages/All
+(cd ${BASE_DIR}/installer/scripts/build && \
+	./create_installer_tarballs.sh && \
+	./copy_ports_to_portsdir.sh && \
+	./build_installer_packages.sh)
 
 # clog source
 echo "Applying CLOG updates..."
-cd ${SRCDIR}/usr.sbin/
-tar xzf ${PATCHDIR}/clog-1.0.1.tar.gz
+(cd ${SRCDIR}/usr.sbin/ && \
+	tar xzf ${PATCHDIR}/clog-1.0.1.tar.gz)
 
 if [ $pfSense_version = "6" ]; then
 	# Custom dhclient - copy latest version from HEAD
@@ -125,8 +135,7 @@ do
 	MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		echo "Patching ${PATCH_FILE}"
-		cd ${SRCDIR}/${PATCH_DIRECTORY}
-		patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE}
+		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
 	fi
 	if [ $MOVE_FILE_LEN -gt "2" ]; then
 		#cp ${SRCDIR}/${MOVE_FILE} ${SRCDIR}/${PATCH_DIRECTORY}
@@ -134,13 +143,11 @@ do
 done
 
 echo -n Cleaning up previous build environemnt...Please wait...
-cd ${CURRENTDIR}
-rm -rf /usr/obj*
+(cd ${CURRENTDIR} && rm -rf /usr/obj*)
 echo Done!
 
 echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
 
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
-cd ${CURRENTDIR}
-./build_iso.sh
+(cd ${CURRENTDIR} && ./build_iso.sh)
 
