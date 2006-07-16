@@ -73,20 +73,27 @@ do
 	fi
 done
 
+# If override is in place, use it otherwise
+# locate fastest cvsup host
+if [ ! -z $OVERRIDE_FREEBSD_CVSUP_HOST ]; then
+	echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
+else
+	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+fi
+
+# CVSUp freebsd version
 if [ $pfSense_version = "6" ]; then
 	# CVSUP RELENG_6
 	echo "Using FreeBSD RELENG_6"
-	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 	cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
 fi
 if [ $pfSense_version = "7" ]; then
 	# CVSUP HEAD
 	echo "Using FreeBSD -HEAD"
-	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 	cvsup -h `cat /var/db/fastest_cvsup` ./current-supfile
 fi
 
-fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+# CVSUp ports collection
 cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # CVSUP BSDInstaller
