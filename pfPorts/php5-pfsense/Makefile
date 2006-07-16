@@ -96,4 +96,6 @@ post-install:
 	@${CAT} ${PKGMESSAGE}
 .endif
 
+LIB_DEPENDS+=  curl:${PORTSDIR}/ftp/curl
+
 .include <bsd.port.post.mk>
