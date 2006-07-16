@@ -101,7 +101,6 @@ cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 echo "Updating BSDInstaller collection..."
 cvsup bsdinstaller-supfile
-(cd ${BASE_DIR}/installer && patch < ${BASE_DIR}/tools/patches/bsdinstaller/bsdinstaller_gmirror.diff)
 
 # clog source
 echo "Applying CLOG updates..."
