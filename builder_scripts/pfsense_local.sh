@@ -61,5 +61,7 @@ export pfSense_version="6"
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
-# of the prepared image allowing for customization 
+# of the prepared image allowing for customization
 # export custom_overlay="/home/pfsense/custom_overlay.tgz"
+
+#export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
