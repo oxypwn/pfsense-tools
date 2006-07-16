@@ -1,0 +1,6 @@
+*default host=cvs.bsdinstaller.org
+*default base=/home/pfsense/installer
+*default release=cvs
+*default delete use-rel-suffix
+installer
+
