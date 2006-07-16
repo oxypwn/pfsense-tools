@@ -101,8 +101,8 @@ cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 echo "Updating BSDInstaller collection..."
 cvsup bsdinstaller-supfile
-cp ${BASEDIR}/tools/installer/conf/build.conf \
-	${BASEDIR}/installer/scripts/build/
+cp ${BASE_DIR}/tools/installer/conf/build.conf \
+	${BASE_DIR}/installer/scripts/build/
 
 # clog source
 echo "Applying CLOG updates..."
