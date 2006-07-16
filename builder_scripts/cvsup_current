@@ -101,10 +101,10 @@ cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # CVSUP BSDInstaller
 echo "Cleaning up old BSDInstaller section..."
-rm -rf ${CURRENTDIR}/installer/src/backend/lua/*
+rm -rf ${BASE_DIR}/installer/src/backend/lua/*
 echo "Updating BSDInstaller collection..."
 cvsup bsdinstaller-supfile
-patch < ${CURRENTDIR}/patches/bsdinstaller/bsdinstaller_gmirror.diff
+patch < ${BASE_DIR}/patches/bsdinstaller/bsdinstaller_gmirror.diff
 
 # clog source
 cd ${SRCDIR}/usr.sbin/
