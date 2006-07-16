@@ -44,6 +44,8 @@ CONFIGURE_ARGS+=--without-mysql \
                 --program-prefix="" \
                 --enable-force-cgi-redirect
 
+USE_GNOME=      libxml2
+
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
 PHP_SAPI=	full
 WITH_APACHE=	yes
