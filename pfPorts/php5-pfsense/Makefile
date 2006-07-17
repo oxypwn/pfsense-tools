@@ -46,6 +46,7 @@ CONFIGURE_ARGS+=--without-mysql \
                 --enable-fastcgi \
                 --enable-reflection \
                 --enable-mbstring \
+                --with-regex=php \                
                 --enable-spl
 
 USE_GNOME=      libxml2
