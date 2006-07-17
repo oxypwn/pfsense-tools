@@ -5,7 +5,7 @@
 #  * Applies pfSense specific patches
 #  * Rebuilds pfSense ISO
 
-set -e -u
+#set -e
 
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
@@ -77,7 +77,7 @@ done
 
 # If override is in place, use it otherwise
 # locate fastest cvsup host
-if [ ! -z $OVERRIDE_FREEBSD_CVSUP_HOST ]; then
+if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
 	echo "Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
 	echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
 else
