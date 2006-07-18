@@ -41,7 +41,6 @@ populate_extra() {
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
     cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
     cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
-    cp -r $BASE_DIR/installer/src/backend/lua/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
