@@ -448,12 +448,6 @@ update_cvs_depot() {
 		(cd $BASE_DIR/tools/ && cvs update -d)
 		fixup_libmap
     fi
-	# if a custom config.xml is needed, copy it into place.
-	if [ "${CUSTOM_CONFIG_XML:-}" ]; then
-		echo Using custom config.xml from ${CUSTOM_CONFIG_XML} ...
-		cp ${CUSTOM_CONFIG_XML} ${CVS_CO_DIR}/cf/conf/
-		cp ${CUSTOM_CONFIG_XML} ${CVS_CO_DIR}/conf.default/
-	fi
 }
 
 make_world_kernel() {

@@ -48,9 +48,6 @@ export FREESBIE_LABEL=pfSense
 export EXTRA="${EXTRA:-"customroot buildmodules"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs"
 
-# Use a custom config.xml.   Helpful for vendors rolling their own custom images.
-#CUSTOM_CONFIG_XML=/path/to/custom/config.xml
-
 MAKEJ=" "
 
 # FreeBSD version.  6 or 7
@@ -61,7 +58,10 @@ export pfSense_version="6"
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
-# of the prepared image allowing for customization
+# of the prepared image allowing for customization.
+#
+# Note: It is also possible to specify a directory instead of a
+#       gezipped tarball.
 # export custom_overlay="/home/pfsense/custom_overlay.tgz"
 
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
