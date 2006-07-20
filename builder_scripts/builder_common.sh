@@ -89,8 +89,20 @@ populate_extra() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
-		if [ -f $custom_overlay ]; then
-			echo "found, extracting..."
+                if [ -d $custom_overlay ]; then
+                        echo "found directory, copying..."
+                        for i in $custom_overlay/*
+                        do
+                            if [ -d $i ]; then
+                                echo "copying dir: $i ..."
+                                cp -R $i $CVS_CO_DIR
+                            else
+                                echo "copying file: $i ..."
+                                cp $i $CVS_CO_DIR
+                            fi
+                        done
+		elif [ -f $custom_overlay ]; then
+			echo "found file, extracting..."
 			tar xzpf $custom_overlay -C $CVS_CO_DIR
 		else
 			echo " file not found $custom_overlay"
@@ -439,8 +451,8 @@ update_cvs_depot() {
 	# if a custom config.xml is needed, copy it into place.
 	if [ "${CUSTOM_CONFIG_XML:-}" ]; then
 		echo Using custom config.xml from ${CUSTOM_CONFIG_XML} ...
-		cp ${CUSTOM_CONFIG_XML} ${BASE_DIR}/pfSense/cf/conf/
-		cp ${CUSTOM_CONFIG_XML} ${BASE_DIR}/pfSense/conf.default/
+		cp ${CUSTOM_CONFIG_XML} ${CVS_CO_DIR}/cf/conf/
+		cp ${CUSTOM_CONFIG_XML} ${CVS_CO_DIR}/conf.default/
 	fi
 }
 
