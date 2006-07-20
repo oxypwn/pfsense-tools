@@ -439,8 +439,8 @@ update_cvs_depot() {
 	# if a custom config.xml is needed, copy it into place.
 	if [ "${CUSTOM_CONFIG_XML:-}" ]; then
 		echo Using custom config.xml from ${CUSTOM_CONFIG_XML} ...
-		cp ${CUSTOM_CONFIG_XML} /home/pfsense/cvsroot/cf/conf/
-		cp ${CUSTOM_CONFIG_XML} /home/pfsense/cvsroot/conf.default/
+		cp ${CUSTOM_CONFIG_XML} ${BASE_DIR}/pfSense/cf/conf/
+		cp ${CUSTOM_CONFIG_XML} ${BASE_DIR}/pfSense/conf.default/
 	fi
 }
 
