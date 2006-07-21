@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.20.2.2
 diff -u -r1.20.2.2 pf_ioctl.c
 --- pf_ioctl.c	6 Mar 2006 16:10:18 -0000	1.20.2.2
-+++ pf_ioctl.c	21 Jul 2006 01:20:24 -0000
++++ pf_ioctl.c	21 Jul 2006 04:21:30 -0000
 @@ -1463,14 +1463,10 @@
  			break;
  		}
@@ -25,7 +25,7 @@ diff -u -r1.20.2.2 pf_ioctl.c
  			    (newrule->action == PF_BINAT) ||
  			    (newrule->rt > PF_FASTROUTE)) &&
 -			    !pcr->anchor[0])) &&
-+			    (newrule->rt > PF_FASTROUTE)) &&
++			    !newrule->anchor)) &&
  			    (TAILQ_FIRST(&newrule->rpool.list) == NULL))
  				error = EINVAL;
  
