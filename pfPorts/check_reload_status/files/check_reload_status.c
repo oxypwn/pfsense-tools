@@ -43,10 +43,8 @@ int fexist(char * filename)
 }
 
 int main(void) {
-	char argument[255];
 	char temp[255];
 	int cycle_time;
-	FILE *f;
 	cycle_time = CYCLE;
 	/* daemonize */
 	system("echo starting > /tmp/check_reload_status");
