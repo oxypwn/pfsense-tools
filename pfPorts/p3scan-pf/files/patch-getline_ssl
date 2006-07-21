@@ -1,0 +1,10 @@
+--- getline_ssl.c.org	Wed Jul 19 21:02:47 2006
++++ getline_ssl.c	Wed Jul 19 21:03:22 2006
+@@ -38,7 +38,6 @@
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <string.h>
+-#include <malloc.h>
+ #include <stdarg.h>
+ #include <fcntl.h>
+ #include <sys/time.h>
