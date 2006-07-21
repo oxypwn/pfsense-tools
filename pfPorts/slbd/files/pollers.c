@@ -546,18 +546,22 @@ void vsvc_threadpoll(void *p) {
 		*/
 
 		snprintf(filename, MAXPATHLEN, "/tmp/%s.pool", v->poolname);
-		file=fopen(filename,"w");
+		snprintf(filename, MAXPATHLEN, "/tmp/%s.pooldown", v->poolname);
+		fileup=fopen(filename,"w");
+		filedown=fopen(filename,"w");
 		/* loop through and make /tmp/$poolname.info */
 		for (i = 0; i < v->services_len; i++) {
 			//if ((getservice_status(v->services[i]) & SVCSTATUS_ACTIVE) == 0 ) {
 			if (getservice_status(v->services[i]) != \
 			  (SVCSTATUS_ACTIVE|SVCSTATUS_UP)) {
 				/* service is down, do nothing */
+				 fprintf(filedown, "%s\n", inet_ntoa(getservice_inaddr(v->services[i])));
 			} else {
-				 fprintf(file, "%s\n", inet_ntoa(getservice_inaddr(v->services[i])));
+				 fprintf(fileup, "%s\n", inet_ntoa(getservice_inaddr(v->services[i])));
 			}
 		}
-		fclose(file);
+		fclose(fileup);
+		fclose(filedown);
 
 		if(needs_filter_configure == 1) {
 			syslog(LOG_ERR, "Service %s changed status, reloading filter policy", v->poolname);
