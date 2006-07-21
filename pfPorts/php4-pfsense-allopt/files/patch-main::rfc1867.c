@@ -1,0 +1,95 @@
+diff -ubBr orig/php-4.3.10/main/rfc1867.c php-4.3.10/main/rfc1867.c
+--- main/rfc1867.c	2004-11-20 22:16:44.000000000 +0200
++++ main/rfc1867.c	2005-01-30 17:18:17.000000000 +0200
+@@ -128,6 +128,29 @@
+ #define UPLOAD_ERROR_D    4  /* No file uploaded */
+ #define UPLOAD_ERROR_E    6  /* Missing /tmp or similar directory */
+ 
++
++
++/* Defines for upload progress tracking callback */
++#define UPLOAD_START              0
++#define UPLOAD_UPDATE             0
++#define UPLOAD_DETECTED_NEW_FILE +1
++#define UPLOAD_DONE              -1
++
++#define UPLOAD_PROGRESS_UPDATE( progress, why )			\
++	if (upload_progress_tracking > 1) { 			\
++		upload_progress_callback( progress,		\
++				SG(read_post_bytes), SG(request_info).content_length, why );	\
++	}
++
++static void * (*upload_progress_callback)( void*, int, int, int) = NULL;
++PHPAPI int upload_progress_register_callback( void* callback)
++{
++   upload_progress_callback = callback;
++}
++/* end upload progress stuff */
++
++
++
+ void php_rfc1867_register_constants(TSRMLS_D)
+ {
+ 	REGISTER_MAIN_LONG_CONSTANT("UPLOAD_ERR_OK",         UPLOAD_ERROR_OK, CONST_CS | CONST_PERSISTENT);
+@@ -768,6 +791,11 @@
+ 
+ SAPI_API SAPI_POST_HANDLER_FUNC(rfc1867_post_handler)
+ {
++	void * progress = NULL;
++	int    upload_progress_tracking = 	/* 0=disabled, 1=active, 2=actualy tracking something */
++				SG(request_info).content_length && upload_progress_callback ? 1:0; 
++										
++
+ 	char *boundary, *s=NULL, *boundary_end = NULL, *start_arr=NULL, *array_index=NULL;
+ 	char *temp_filename=NULL, *lbuf=NULL, *abuf=NULL;
+ 	int boundary_len=0, total_bytes=0, cancel_upload=0, is_arr_upload=0, array_len=0, max_file_size=0, skip_upload=0;
+@@ -848,6 +876,7 @@
+ 		zend_llist_clean(&header);
+ 
+ 		if (!multipart_buffer_headers(mbuff, &header TSRMLS_CC)) {
++			UPLOAD_PROGRESS_UPDATE( progress, UPLOAD_DONE );
+ 			SAFE_RETURN;
+ 		}
+ 
+@@ -910,6 +939,11 @@
+ 					max_file_size = atol(value);
+ 				}
+ 
++				if (upload_progress_tracking == 1 && !strcmp(param, "UPLOAD_IDENTIFIER") ) {
++					  progress = upload_progress_callback( value, 0, SG(request_info).content_length, 0);
++					  upload_progress_tracking = progress ? 2:0;
++				}
++
+ 				efree(param);
+ 				efree(value);
+ 				continue;
+@@ -932,9 +966,12 @@
+ 				if (filename) {
+ 					efree(filename);
+ 				}
++ 				UPLOAD_PROGRESS_UPDATE( progress, UPLOAD_DONE );
+ 				SAFE_RETURN;
+ 			}
+ 			
++			UPLOAD_PROGRESS_UPDATE( progress, UPLOAD_DETECTED_NEW_FILE );
++			
+ 			/* New Rule: never repair potential malicious user input */
+ 			if (!skip_upload) {
+ 				char *tmp = param;
+@@ -983,6 +1020,8 @@
+ 
+ 			while (!cancel_upload && (blen = multipart_buffer_read(mbuff, buff, sizeof(buff) TSRMLS_CC)))
+ 			{
++				UPLOAD_PROGRESS_UPDATE( progress, UPLOAD_UPDATE );
++
+ 				if (PG(upload_max_filesize) > 0 && total_bytes > PG(upload_max_filesize)) {
+ 					sapi_module.sapi_error(E_WARNING, "upload_max_filesize of %ld bytes exceeded - file [%s=%s] not saved", PG(upload_max_filesize), param, filename);
+ 					cancel_upload = UPLOAD_ERROR_A;
+@@ -1203,6 +1242,7 @@
+ 		}
+ 	}
+ 
++	UPLOAD_PROGRESS_UPDATE( progress, UPLOAD_DONE );
+ 	SAFE_RETURN;
+ }
+ 
