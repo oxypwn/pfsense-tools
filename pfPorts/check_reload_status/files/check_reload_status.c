@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <syslog.h>
 
 #define LOGFILE		"/var/log/check_reload_status"
 #define TMPDIR		"/tmp"
@@ -47,6 +48,7 @@ int main(void) {
 	int cycle_time;
 	cycle_time = CYCLE;
 	/* daemonize */
+	syslog(LOG_NOTICE, "check_reload_status is starting");
 	system("echo starting > /tmp/check_reload_status");
 	if( fork() == 0 ) {
 	  /* close stdin and stderr */
@@ -55,6 +57,7 @@ int main(void) {
 	  /* loop forever until the cows come home */
 	  while(1) {
 	      if(fexist("/tmp/restart_webgui") == 1) {
+	      	syslog(LOG_NOTICE, "webConfigurator restart in progress");
 	        system("echo webConfigurator_Restart_Sleep > /tmp/check_reload_status");
 			sleep(5);
 			system("echo /tmp/restartwebgui > /tmp/check_reload_status");
@@ -62,47 +65,56 @@ int main(void) {
 			system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
 	      }
 	      if(fexist("/tmp/rc.linkup") == 1) {
+	      	  syslog(LOG_NOTICE, "rc.linkup starting");
 			  system("echo /tmp/rc.linkup > /tmp/check_reload_status");
 			  sprintf(temp, "/usr/local/bin/php /etc/rc.linkup `cat /tmp/rc.linkup`");
 		      system(temp);
 		      system("/bin/rm /tmp/rc.linkup");
 	      }
 	      if(fexist("/tmp/rc.newwanip") == 1) {
+		      syslog(LOG_NOTICE, "rc.newwanip starting");
 			  system("echo /tmp/rc.newwanip > /tmp/check_reload_status");
 		      sprintf(temp, "/usr/local/bin/php /etc/rc.newwanip `cat /tmp/rc.newwanip`");
 		      system(temp);
 		      system("/bin/rm /tmp/rc.newwanip");
 	      }
 	      if(fexist("/tmp/filter_dirty") == 1) {
+		      syslog(LOG_NOTICE, "reloading filter");
 		      system("/bin/rm -f /tmp/filter_dirty");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure");
 	      }
 	      if(fexist("/tmp/reload_all") == 1) {
+		      syslog(LOG_NOTICE, "reloading all");
 			  system("echo /tmp/reload_all > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_all");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all");
 	      }
 	      if(fexist("/tmp/reload_interfaces") == 1) {
+	      	  syslog(LOG_NOTICE, "reloading interfaces");
 			  system("echo /tmp/reload_interfaces > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_interfaces");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces");
 	      }
 	      if(fexist("/tmp/update_dyndns") == 1) {
+		      syslog(LOG_NOTICE, "updating dyndns");
 			  system("echo /tmp/update_dyndns > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/update_dyndns");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update");
 	      }
 	      if(fexist("/tmp/interfaces_wan_configure") == 1) {
+	      	  syslog(LOG_NOTICE, "configuring wan");
 			  system("echo /tmp/interfaces_wan_configure > /tmp/check_reload_status");
 		      system("/bin/rm  /tmp/interfaces_wan_configure");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
 	      }
 	      if(fexist("/tmp/interfaces_opt_configure") == 1) {
+	      	  syslog(LOG_NOTICE, "configuring opt");
 			  system("echo /tmp/interfaces_opt_configure > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/interfaces_opt_configure");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
 	      }
 	      if(fexist("/tmp/start_sshd") == 1) {
+		      syslog(LOG_NOTICE, "starting sshd");
 			  system("echo /tmp/start_sshd > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/start_sshd");
 		      system("/usr/bin/nice -n20 /etc/sshd");
@@ -120,6 +132,7 @@ int main(void) {
 		      signal( SIGKILL, SIG_DFL );
 	      exit( 0 );
 	}
+	syslog(LOG_NOTICE, "check_reload_status is stopping");
 	exit( 0 );
 	return( 0 );
 }
