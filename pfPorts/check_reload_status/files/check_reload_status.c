@@ -42,10 +42,6 @@ int fexist(char * filename)
   return(1);
 }
 
-void kill_ghost_shells(void) {
-  system("/bin/sh /usr/local/bin/kill_ghosts.sh");
-}
-
 int main(void) {
 	char argument[255];
 	char temp[255];
@@ -118,6 +114,7 @@ int main(void) {
 	  }
 	  system("echo exiting > /tmp/check_reload_status");
 	} else {
+		  system("echo forking > /tmp/check_reload_status");
 	      /* Exit parent process */
 	      if( signal( SIGINT, SIG_DFL ) != SIG_DFL )
 		      signal( SIGINT, SIG_DFL );
