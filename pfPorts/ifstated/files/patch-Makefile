@@ -1,0 +1,10 @@
+--- MakefileORIG	Sun Jul 23 05:25:24 2006
++++ Makefile	Sun Jul 23 05:25:28 2006
+@@ -8,6 +8,6 @@
+ CFLAGS+= -Wshadow -Wpointer-arith -Wcast-qual
+ YFLAGS=
+ MAN= ifstated.8
+-LDADD+=-lutil -levent
++LDADD+=-lutil 
+ 
+ .include <bsd.prog.mk>
