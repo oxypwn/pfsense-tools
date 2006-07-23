@@ -19,6 +19,8 @@ MAN8=		ifstated.8
 PLIST_FILES=	sbin/ifstated \
 		etc/ifstated.conf etc/rc.d/ifstated.sh
 
+.include <bsd.port.pre.mk>
+
 PKGMESSAGE=	${WRKDIR}/pkg-message
 
 USE_RC_SUBR=	yes
@@ -34,7 +36,9 @@ post-install:
 	${INSTALL_SCRIPT} ${WRKDIR}/ifstated.sh ${PREFIX}/etc/rc.d/ifstated.sh
 	@${CAT} ${PKGMESSAGE}
 
-.include <bsd.port.pre.mk>
+do-install:
+	${INSTALL_PROGRAM} ${WRKSRC}/ifstated ${PREFIX}/sbin
+	${INSTALL_MAN} ${WRKSRC}/ifstated.8 ${PREFIX}/man/man8
 
 .if ${OSVERSION} < 502113
 IGNORE=		need link state change notification changes from May 2004
