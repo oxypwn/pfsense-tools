@@ -75,6 +75,17 @@ if [ ! -f "/usr/local/lib/libpcre.so.0" ]; then
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r pcre
 fi
 
+# Add libevent
+if [ ! -f "/usr/local/lib/libevent-1.1a.so.1" ]; then
+	echo "Cannot find libevent, pkg_add in progress..."
+	/usr/sbin/pkg_add -r libevent
+fi
+# Failed, lets try with passive mode
+if [ ! -f "/usr/local/lib/libevent-1.1a.so.1" ]; then
+	echo "Cannot find libevent, pkg_add in progress (PASSITVE FTP)..."
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r libevent
+fi
+
 # Add cvsup
 if [ ! -f "/usr/local/bin/curl" ]; then
 	echo "Cannot find curl, pkg_add in progress..."
