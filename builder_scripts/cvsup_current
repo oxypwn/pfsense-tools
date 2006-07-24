@@ -119,6 +119,17 @@ if [ ! -f "/usr/local/bin/rsync" ]; then
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r rsync
 fi
 
+# Add cpdup
+if [ ! -f "/usr/local/bin/cpdup" ]; then
+	echo "Cannot find cpdup, pkg_add in progress..."
+	/usr/sbin/pkg_add -r cpdup
+fi
+# Failed, lets try with passive mode
+if [ ! -f "/usr/local/bin/cpdup" ]; then
+	echo "Cannot find cpdup, pkg_add in progress (PASSITVE FTP)..."
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cpdup
+fi
+
 # Loop through and remove files
 for LINE in `cat ${CURRENTDIR}/patches.$pfSense_version`
 do
