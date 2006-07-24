@@ -6,7 +6,7 @@
 #
 # $Id$
 
-set -e -u
+set -e -u 
 
 # If a full build has been performed we need to nuke
 # /usr/obj.pfSense/ since embedded uses a different
@@ -89,12 +89,25 @@ CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 # ROOTSIZE=${ROOTSIZE:-"116740"}  # Total number of sectors - 59 megs
 if [ $pfSense_version = "7" ]; then
         # 128 megs
+	unset ROOTSIZE
+	unset CONFSIZE
         ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
         CONFSIZE=${CONFSIZE:-"4096"}
 fi
 if [ $pfSense_version = "6" ]; then
         # 64 megs
+	unset ROOTSIZE
+	unset CONFSIZE
         ROOTSIZE=${ROOTSIZE:-"119990"}  # Total number of sectors - 61 megs
+        CONFSIZE=${CONFSIZE:-"4096"}
+fi
+
+if [ $PFSENSETAG = "HEAD" ]; then
+	# 128 megs
+	unset ROOTSIZE
+	unset CONFSIZE
+	echo "Building a -HEAD image, setting size to 128 megabytes..."
+        ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
         CONFSIZE=${CONFSIZE:-"4096"}
 fi
 
