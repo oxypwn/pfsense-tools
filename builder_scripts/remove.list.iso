@@ -379,7 +379,7 @@
 ./usr/libexec/sm.bin
 
 ./usr/libexec/tcpd
-./usr/libexec/telnetd s
+./usr/libexec/telnetd
 ./usr/libexec/vfontedpr
 
 ./usr/include
