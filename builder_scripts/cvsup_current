@@ -25,7 +25,11 @@ if [ ! -d $BASE_DIR/freesbie2 ]; then
 	echo "FreeSBIE2 doesn't exist.  We are fetching..."
 	mkdir -p /home/pfsense/
 	touch ~/.cvspass
-	echo "Please hit enter on the next line.  We only need to do it once!"
+	echo
+	echo
+	echo "*** Please hit enter on the next line.  We only need to do it once! ***"
+	echo
+	echo
 	cvs -d :pserver:anonymous@cvs.freesbie.org:/cvs login
 	(cd $BASE_DIR && cvs -z3 -d :pserver:anonymous@cvs.freesbie.org:/cvs co -P freesbie2)
 fi
@@ -67,6 +71,17 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 # Add cvsup
+if [ ! -f "/usr/local/bin/cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress..."
+	/usr/sbin/pkg_add -r cvsup-without-gui
+fi
+# Failed, lets try with passive mode
+if [ ! -f "/usr/local/bin/cvsup" ]; then
+	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cvsup-without-gui
+fi
+
+# Add fastest-cvsup
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 	echo "Cannot find cvsup, pkg_add in progress..."
 	/usr/sbin/pkg_add -r fastest_cvsup
