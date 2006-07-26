@@ -111,6 +111,10 @@ if [ $PFSENSETAG = "HEAD" ]; then
         CONFSIZE=${CONFSIZE:-"4096"}
 fi
 
+#        500 megabyte image.  Will be used later.
+#        ROOTSIZE=${ROOTSIZE:-"1019990"}  # Total number of sectors - 61 megs
+#        CONFSIZE=${CONFSIZE:-"4096"}
+
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
 # Temp file and directory to be used later
 TMPFILE=`mktemp -t freesbie`
