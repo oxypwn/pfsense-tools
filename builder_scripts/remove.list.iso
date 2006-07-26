@@ -460,7 +460,6 @@
 
 ./usr/sbin/mount_smbfs
 
-./usr/sbin/mountd
 ./usr/sbin/moused
 ./usr/sbin/mptable
 ./usr/sbin/mrinfo
