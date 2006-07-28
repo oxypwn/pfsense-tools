@@ -7,7 +7,7 @@
 
 product = {
 	name = "pfSense",
-	version = "1.0rc3"
+	version = "1.0rc2"
 }
 
 mountpoints = function(part_cap, ram_cap)
@@ -59,27 +59,26 @@ install_items = {
 }
 
 ui_nav_control = {
-	["*/welcome"] = "ignore",                 -- do not show any "welcome" items
-
-	["*/configure_installed_system"] = "ignore", -- don't put these on
-	["*/upgrade_installed_system"] = "ignore",   -- the main menu...
-	["*/load_kernel_modules"] = "ignore", -- do not ask about loading kernel modules
-	["*/pit/configure_console"] = "ignore",   -- do not ask about console
-	["*/pit/configure_network"] = "ignore",   -- do not ask about network
-	["*/install/select_packages"] = "ignore", -- do not do the "Select Packages" step on install
-	["*/install/confirm_install_os"] = "ignore",
-	["*/install/warn_omitted_subpartitions"] = "ignore",
-	["*/install/finished"] = "ignore",
-	["*/install/select_additional_filesystems"] = "ignore",
-
-	["*/configure/*"] = "ignore",             -- do not configure, we've already did it.
+	["*/welcome"] = "ignore",           	     			-- do not show any "welcome" items
+	["*/*netboot*"] = "ignore",					 			-- ignore netboot installation services
+	["*/configure_installed_system"] = "ignore", 			-- don't put these on
+	["*/upgrade_installed_system"] = "ignore",   			-- the main menu...
+	["*/load_kernel_modules"] = "ignore", 		 			-- do not ask about loading kernel modules
+	["*/pit/configure_console"] = "ignore",   	 			-- do not ask about console
+	["*/pit/configure_network"] = "ignore",   	 			-- do not ask about network
+	["*/install/select_packages"] = "ignore", 	 			-- do not do the "Select Packages" step on install
+	["*/install/confirm_install_os"] = "ignore",			-- no need to confirm os install
+	["*/install/warn_omitted_subpartitions"] = "ignore",	-- warn that /tmp /var and friends are being ommited
+	["*/install/finished"] = "ignore",						-- no need to extra spamming
+	["*/install/select_additional_filesystems"] = "ignore", -- do not include additional filesystems prompts
+	["*/configure/*"] = "ignore",             	 			-- do not configure, we've already did it.
 }
 
 booted_from_install_media=true
 
 dir = { root = "/", tmp = "/tmp/" }
 
-limits.part_min = "80M"
+limits.part_min = "100M"
 
 offlimits_devices = { "fd%d+", "md%d+", "cd%d+" }
 
