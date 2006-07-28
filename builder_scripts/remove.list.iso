@@ -68,7 +68,6 @@
 ./sbin/mount_std
 ./sbin/mount_udf
 ./sbin/mount_umapfs
-./sbin/mount_unionfs
 ./sbin/natd
 ./sbin/newfs_msdos
 ./sbin/nextboot
