@@ -115,12 +115,12 @@ if [ ! -f "/usr/local/sbin/lighttpd" ]; then
 fi
 
 # Add libevent
-if [ ! -f "/usr/local/lib/libevent-1.1a.so.1" ]; then
+if [ ! -f "/usr/local/lib/libevent-1.2.so" ]; then
 	echo "Cannot find libevent, pkg_add in progress..."
 	/usr/sbin/pkg_add -r libevent
 fi
 # Failed, lets try with passive mode
-if [ ! -f "/usr/local/lib/libevent-1.1a.so.1" ]; then
+if [ ! -f "/usr/local/lib/libevent-1.2.so" ]; then
 	echo "Cannot find libevent, pkg_add in progress (PASSITVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r libevent
 fi
