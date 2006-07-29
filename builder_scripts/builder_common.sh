@@ -22,7 +22,7 @@ populate_extra() {
 
     install -s /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
     install -s /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
-    install -s /usr/local/lib/libevent-1.1a.so.1 ${CVS_CO_DIR}/usr/local/lib/
+    install -s /usr/local/lib/libevent-1.2.so ${CVS_CO_DIR}/usr/local/lib/
 
     mkdir -p $CVS_CO_DIR/var/run
 
