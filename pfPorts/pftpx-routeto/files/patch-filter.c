@@ -1,5 +1,5 @@
 --- filter.c	Mon Mar 21 21:39:28 2005
-+++ /root/filter.c	Sat Jul 29 00:05:04 2006
++++ filter.c	Sat Jul 29 05:10:30 2006
 @@ -55,7 +55,8 @@
  
  int
@@ -10,13 +10,20 @@
  {
  	if (!src || !dst || !d_port) {
  		errno = EINVAL;
-@@ -66,6 +67,23 @@
+@@ -66,6 +67,30 @@
  		return (-1);
  
  	pfr.rule.direction = dir;
 +
 +	if (routeto_if && routeto) {
-+		pfr.rule.rt = PF_ROUTETO;
++		switch (dir) {
++		case PF_OUT: 
++			pfr.rule.rt = PF_ROUTETO;
++			break;
++		case PF_IN:
++			pfr.rule.rt = PF_REPLYTO;
++			break;
++		}
 +		if (routeto->sa_family == AF_INET) {
 +			memcpy(&pfp.addr.addr.v.a.addr.v4,
 +			    &satosin(routeto)->sin_addr.s_addr, 4);

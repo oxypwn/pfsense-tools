@@ -1,6 +1,6 @@
---- pftpx.c	Mon Mar 21 21:39:28 2005
-+++ /root/pftpx.c	Sat Jul 29 00:17:42 2006
-@@ -109,9 +109,9 @@
+--- pftpx.c	Sat Jul 29 00:56:05 2006
++++ pftpx.c	Sat Jul 29 05:06:44 2006
+@@ -161,9 +161,9 @@
  
  char ntop_buf[NTOP_BUFS][INET6_ADDRSTRLEN];
  
@@ -12,7 +12,7 @@
  int caught_sig, daemonize, id_count, ipv6_mode, loglevel, max_sessions,
      rfc_mode, session_count, timeout;
  extern char *__progname;
-@@ -378,13 +378,13 @@
+@@ -430,13 +430,13 @@
  			goto fail;
  
  		/* pass in from $client to $server port $port */
@@ -29,14 +29,14 @@
  			goto fail;
  	}
  
-@@ -420,13 +420,13 @@
+@@ -472,13 +472,13 @@
  		}
  
  		/* pass in from $server to $client port $port */
 -		if (add_filter(s->id, PF_IN, server_sa, client_sa, s->port) ==
 -		    -1)
 +		if (add_filter(s->id, PF_IN, server_sa, client_sa, s->port,
-+		    NULL, NULL) == -1)
++		     routeto_if, sstosa(&routeto_ss)) == -1)
  			goto fail;
  
  		/* pass out from $orig_server to $client port $port */
@@ -47,7 +47,7 @@
  			goto fail;
  	}
  
-@@ -794,12 +794,14 @@
+@@ -846,12 +846,14 @@
  	timeout		= 24 * 3600;
  	qname		= NULL;
  	rfc_mode	= 0;
@@ -63,7 +63,7 @@
  		switch (ch) {
  		case '6':
  			ipv6_mode = 1;
-@@ -845,6 +847,12 @@
+@@ -897,6 +899,12 @@
  			if (timeout < 0)
  				errx(1, "bad timeout");
  			break;
@@ -76,7 +76,7 @@
  		default:
  			usage();
  		}
-@@ -876,6 +884,22 @@
+@@ -928,6 +936,22 @@
  		    sock_ntop(sstosa(&fixed_proxy_ss)));
  		freeaddrinfo(res);
  	}
