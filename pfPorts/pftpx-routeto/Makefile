@@ -13,7 +13,7 @@ DISTNAME=	${PORTNAME}-${PORTVERSION}
 MAINTAINER=	geekgod@geekgod.com
 COMMENT=	Much enhanced ftp proxy for pf that supports most ftp protocols
 
-LIB_DEPENDS=	event-1.2:${PORTSDIR}/devel/libevent
+LIB_DEPENDS=	event-1.1a:${PORTSDIR}/devel/libevent
 
 MAN8=		pftpx.8
 
@@ -35,7 +35,7 @@ MAKE_ARGS=	LOCALBASE="${PREFIX}" OSLEVEL=35
 CFLAGS+=	-DHAVE_ALTQ=1 -DHAVE_RULE_ANCHOR=1
 .else
 MAKE_ARGS=	LOCALBASE="${PREFIX}" OSLEVEL=37
-CFLAGS+=	-DHAVE_ALTQ=1
+CFLAGS+=	-DHAVE_ALTQ=1 -static
 .endif
 
 do-install:
