@@ -1,0 +1,53 @@
+--- pfptx/Makefile	Sat Dec 24 12:58:45 2005
++++ heff/scratch/ftp/pfptx/Makefile	Sat Dec 24 14:24:22 2005
+@@ -6,25 +6,23 @@
+ 
+ PORTNAME=	pftpx
+ PORTVERSION=	0.8
+-PORTREVISION=	1
+-CATEGORIES=	net
++CATEGORIES=	ftp
+ MASTER_SITES=	http://www.sentia.org/downloads/
+ DISTNAME=	${PORTNAME}-${PORTVERSION}
+ 
+-BUILD_DEPENDS=	${LOCALBASE}/lib/libevent.a:${PORTSDIR}/devel/libevent
+-RUN_DEPENDS=	${LOCALBASE}/lib/libevent.a:${PORTSDIR}/devel/libevent
+-
+ MAINTAINER=	geekgod@geekgod.com
+ COMMENT=	Much enhanced ftp proxy for pf that supports most ftp protocols
+ 
++LIB_DEPENDS=	event-1.1a:${PORTSDIR}/devel/libevent
++
+ MAN8=		pftpx.8
+ 
+-MANCOMPRESSED=	no
++PLIST_FILES=    sbin/pftpx
+ 
+ .include <bsd.port.pre.mk>
+ 
+ .if ${OSVERSION} < 500000
+-IGNORE=		Only for 5.0 and above
++IGNORE=		only for 5.0 and above
+ .endif
+ 
+ .if ${OSVERSION} < 502116
+@@ -39,18 +37,6 @@
+ MAKE_ARGS=	LOCALBASE="${PREFIX}" OSLEVEL=37
+ CFLAGS+=	-DHAVE_ALTQ=1
+ .endif
+-
+-.if ${OSVERSION} < 502106
+-BUILD_DEPENDS=	${LOCALBASE}/include/pf/net/pfvar.h:${PORTSDIR}/security/pf
+-.if defined(WITH_ALTQ) && (${WITH_ALTQ} == "yes")
+-BUILD_DEPENDS+=${LOCALBASE}/include/pf/altq/altq.h:${PORTSDIR}/security/pf
+-.endif
+-RUN_DEPENDS=	${LOCALBASE}/modules/pf.ko:${PORTSDIR}/security/pf
+-
+-CFLAGS+=	-I${LOCALBASE}/include/pf
+-.endif
+-
+-PLIST_FILES=	sbin/pftpx
+ 
+ do-install:
+ 	${INSTALL_PROGRAM} ${WRKSRC}/pftpx ${PREFIX}/sbin
+
