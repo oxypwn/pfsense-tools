@@ -1,10 +1,10 @@
-# New ports collection makefile for:	pftpx
+# New ports collection makefile for:	pftpx-routeto
 # Date created:		27 June 2005
 # Whom:			Scott Ullrich (geekgod@geekgod.com)
 #
 # $FreeBSD: $
 
-PORTNAME=	pftpx
+PORTNAME=	pftpx-routeto
 PORTVERSION=	0.8
 CATEGORIES=	ftp
 MASTER_SITES=	http://www.sentia.org/downloads/
