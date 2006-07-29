@@ -43,7 +43,7 @@
 -		if (add_filter(s->id, PF_OUT, orig_sa, client_sa, s->port) ==
 -		    -1)
 +		if (add_filter(s->id, PF_OUT, orig_sa, client_sa, s->port,
-+		    routeto_if, sstosa(&routeto_ss)) == -1)
++		    NULL, NULL) == -1)
  			goto fail;
  	}
  
@@ -51,15 +51,15 @@
  	timeout		= 24 * 3600;
  	qname		= NULL;
  	rfc_mode	= 0;
-+	routeto		= "127.0.0.1";
-+	routeto_if	= "lo0";
++	routeto		= NULL;
++	routeto_if	= NULL;
  
  	/* Other initialization. */
  	session_count = 0;
  	id_count = 1;
  
 -	while ((ch = getopt(argc, argv, "6D:b:c:df:g:m:p:q:rt:")) != -1) {
-+	while ((ch = getopt(argc, argv, "6D:b:c:df:g:m:p:q:rt:i:2")) != -1) {
++	while ((ch = getopt(argc, argv, "6D:2:b:c:df:g:m:n:p:q:rt")) != -1) {
  		switch (ch) {
  		case '6':
  			ipv6_mode = 1;
@@ -70,7 +70,7 @@
 +                case '2':
 +                        routeto = optarg;
 +                        break;
-+                case 'i':
++                case 'n':
 +                        routeto_if = optarg;
 +                        break;
  		default:
