@@ -179,7 +179,7 @@ fixup_updates() {
 
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/livefs/lib/
 
-        install -s /usr/local/lib/libevent-1.1a.so.1 ${PFSENSEBASEDIR}/usr/local/lib/
+        install -s /usr/local/lib/libevent-1.2.so ${PFSENSEBASEDIR}/usr/local/lib/
 
 	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
 }
