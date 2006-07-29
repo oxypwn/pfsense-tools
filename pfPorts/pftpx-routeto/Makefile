@@ -4,7 +4,7 @@
 #
 # $FreeBSD: $
 
-PORTNAME=	pftpx-routeto
+PORTNAME=	pftpx
 PORTVERSION=	0.8
 CATEGORIES=	ftp
 MASTER_SITES=	http://www.sentia.org/downloads/
@@ -13,7 +13,7 @@ DISTNAME=	${PORTNAME}-${PORTVERSION}
 MAINTAINER=	geekgod@geekgod.com
 COMMENT=	Much enhanced ftp proxy for pf that supports most ftp protocols
 
-LIB_DEPENDS=	event-1.1a:${PORTSDIR}/devel/libevent
+LIB_DEPENDS=	event-1.2:${PORTSDIR}/devel/libevent
 
 MAN8=		pftpx.8
 
