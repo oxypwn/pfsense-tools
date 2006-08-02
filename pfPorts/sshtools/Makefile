@@ -29,18 +29,12 @@ NO_BUILD=		yes
 PORTDOCS=		instructions.htm SSHTools-small-logo2.gif LICENSE
 .endif
 
-PLIST_FILES=		/usr/local/www/java/SSHTermApplet-signed.jar \
-			/usr/local/www/java/SSHTermApplet-jdkbug-workaround-signed.jar
-#.if ${JAVA_PORT_VERSION} == "1.3.1"
-#PLIST_FILES+=		%%JAVAJARDIR%%/SSHTermApplet-jdk1.3.1-dependencies-signed.jar
-#.endif
-
 do-install:
 	@${MKDIR}	${PREFIX}/www/java
-	${INSTALL_DATA} ${INSTALL_WRKSRC}/SSHTermApplet-signed.jar /usr/local/www/java/
-	${INSTALL_DATA} ${INSTALL_WRKSRC}/SSHTermApplet-jdkbug-workaround-signed.jar /usr/local/www/java/
+	${INSTALL_DATA} ${WRKSRC}/SSHTermApplet-signed.jar /usr/local/www/java/
+	${INSTALL_DATA} ${WRKSRC}/SSHTermApplet-jdkbug-workaround-signed.jar /usr/local/www/java/
 #.if ${JAVA_PORT_VERSION} == "1.3.1"
-#	${INSTALL_DATA} ${INSTALL_WRKSRC}/SSHTermApplet-jdk1.3.1-dependencies-signed.jar ${JAVAJARDIR}/
+#	${INSTALL_DATA} ${WRKSRC}/SSHTermApplet-jdk1.3.1-dependencies-signed.jar ${JAVAJARDIR}/
 #.endif
 .if !defined(NOPORTDOCS)
 	@${MKDIR}	${PREFIX}/share/doc/${PORTNAME}	
