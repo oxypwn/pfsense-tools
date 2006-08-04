@@ -1,5 +1,5 @@
 --- p3scan.c.orig	Mon Dec 12 15:00:00 2005
-+++ p3scan.c	Wed Jul 19 23:09:24 2006
++++ p3scan.c	Fri Aug  4 17:32:07 2006
 @@ -41,36 +41,40 @@
  TODO: Wanted: white-list support
  TODO: Wanted: no iptables support
@@ -106,7 +106,7 @@
     int maybe_a_space; // signals a space in the keyword for setting USERNAME var
     int clientret, serverret;
     unsigned long len, smtpsze;
-@@ -1640,10 +1670,37 @@
+@@ -1640,10 +1670,38 @@
        }
     } else {
        if (htonl(INADDR_ANY) == config->targetaddr.sin_addr.s_addr) {
@@ -118,24 +118,25 @@
 +
 +         // Start kernel request
 +         dev = open("/dev/pf", O_RDWR);
-+         if (dev == -1)
++         if (dev == -1) {
 +           do_log(LOG_NOTICE, "open dev pf failed");
++         } else {
++           memset(&nl, 0, sizeof(struct pfioc_natlook));
++           nl.saddr.v4.s_addr      = p->client_addr.sin_addr.s_addr;
++           nl.sport                = p->client_addr.sin_port;
++           nl.daddr.v4.s_addr      = config->addr.sin_addr.s_addr;
++           nl.dport                = config->addr.sin_port;
++           nl.af                   = AF_INET;
++           nl.proto                = IPPROTO_TCP;
++           nl.direction            = PF_OUT;
 +
-+         memset(&nl, 0, sizeof(struct pfioc_natlook));
-+         nl.saddr.v4.s_addr      = p->client_addr.sin_addr.s_addr;
-+         nl.sport                = p->client_addr.sin_port;
-+         nl.daddr.v4.s_addr      = read_address(config->addr.sin_addr.s_addr);
-+         nl.dport                = htons(config->addr.sin_port);
-+         nl.af                   = AF_INET;
-+         nl.proto                = IPPROTO_TCP;
-+         nl.direction            = PF_OUT;
-+
-+         if (ioctl(dev, DIOCNATLOOK, &nl)) ;
++           if (ioctl(dev, DIOCNATLOOK, &nl)) ;
 +                
-+         p->server_addr.sin_addr.s_addr = nl.rdaddr.v4.s_addr;
-+         p->server_addr.sin_port = nl.rdport;
-+         // printf("internal host "); print_address(nl.rdaddr.v4.s_addr);
-+         // printf(":%u\n", ntohs(nl.rdport));
++           p->server_addr.sin_addr.s_addr = nl.rdaddr.v4.s_addr;
++           p->server_addr.sin_port = nl.rdport;
++           // printf("internal host "); print_address(nl.rdaddr.v4.s_addr);
++           // printf(":%u\n", ntohs(nl.rdport));
++         }
 +
 +         close(dev);
 +         /*
@@ -147,7 +148,7 @@
           /* try to avoid loop */
           if (((ntohl(p->server_addr.sin_addr.s_addr) == INADDR_LOOPBACK)
           && p->server_addr.sin_port == config->addr.sin_port )
-@@ -2882,7 +2939,7 @@
+@@ -2882,7 +2940,7 @@
     char * responsemsg;
     int virusdirlen=0;
     char chownit[100];
@@ -156,7 +157,7 @@
     int len=0;
     int ret=0;
     FILE * chowncmd;
-@@ -2920,7 +2977,10 @@
+@@ -2920,7 +2978,10 @@
        fclose(fp);
     }else do_log(LOG_CRIT, "ERR: Can't write PID to %s", PID_FILE);
     len=strlen(CHOWNCMD)+1+strlen(config->runasuser)+1+strlen(config->runasuser)+1+strlen(config->pidfile)+1;
