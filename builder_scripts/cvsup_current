@@ -5,7 +5,7 @@
 #  * Applies pfSense specific patches
 #  * Rebuilds pfSense ISO
 
-set -e -x
+#set -e -x
 
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
