@@ -1,44 +1,96 @@
 Index: if_pfsync.c
 ===================================================================
-RCS file: /usr/store/mlaier/fcvs/src/sys/contrib/pf/net/if_pfsync.c,v
-retrieving revision 1.26
-diff -u -r1.26 if_pfsync.c
---- if_pfsync.c	5 Dec 2005 11:58:31 -0000	1.26
-+++ if_pfsync.c	1 Jun 2006 02:19:20 -0000
-@@ -1077,13 +1077,14 @@
- 				sc->sc_statep_net.s = NULL;
- 				splx(s);
- 			}
-+#ifdef __FreeBSD__
-+			PF_UNLOCK();
-+#endif
-+			/* XXX: slight chance for a race */
- 			if (imo->imo_num_memberships > 0) {
- 				in_delmulti(imo->imo_membership[--imo->imo_num_memberships]);
- 				imo->imo_multicast_ifp = NULL;
- 			}
--#ifdef __FreeBSD__
--			PF_UNLOCK();
--#endif
- 			break;
- 		}
+RCS file: /home/ncvs/src/sys/contrib/pf/net/if_pfsync.c,v
+retrieving revision 1.19.2.3
+diff -u -r1.19.2.3 if_pfsync.c
+--- if_pfsync.c	17 Sep 2005 15:19:38 -0000	1.19.2.3
++++ if_pfsync.c	10 Aug 2006 18:03:28 -0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/pf/net/if_pfsync.c,v 1.19.2.3 2005/09/17 15:19:38 mlaier Exp $	*/
++/*	$FreeBSD: src/sys/contrib/pf/net/if_pfsync.c,v 1.19.2.4 2006/08/10 13:45:59 glebius Exp $	*/
+ /*	$OpenBSD: if_pfsync.c,v 1.46 2005/02/20 15:58:38 mcbride Exp $	*/
  
-@@ -1112,10 +1113,16 @@
- 		pfsync_setmtu(sc, sc->sc_if.if_mtu);
- #endif
+ /*
+@@ -210,6 +210,7 @@
+ 	sc->sc_statep.s = NULL;
+ 	sc->sc_statep_net.s = NULL;
+ 	sc->sc_maxupdates = 128;
++	sc->sc_sync_peer.s_addr = htonl(INADDR_PFSYNC_GROUP);
+ 	sc->sc_sendaddr.s_addr = htonl(INADDR_PFSYNC_GROUP);
+ 	sc->sc_ureq_received = 0;
+ 	sc->sc_ureq_sent = 0;
+@@ -1036,7 +1037,11 @@
+ 			return (error);
  
+ 		if (pfsyncr.pfsyncr_syncpeer.s_addr == 0)
 +#ifdef __FreeBSD__
-+		PF_UNLOCK();
++			sc->sc_sync_peer.s_addr = htonl(INADDR_PFSYNC_GROUP);
++#else
+ 			sc->sc_sync_peer.s_addr = INADDR_PFSYNC_GROUP;
 +#endif
- 		if (imo->imo_num_memberships > 0) {
- 			in_delmulti(imo->imo_membership[--imo->imo_num_memberships]);
- 			imo->imo_multicast_ifp = NULL;
+ 		else
+ 			sc->sc_sync_peer.s_addr =
+ 			    pfsyncr.pfsyncr_syncpeer.s_addr;
+@@ -1100,7 +1105,11 @@
  		}
-+#ifdef __FreeBSD__
-+		PF_LOCK();
-+#endif
  
  		if (sc->sc_sync_ifp &&
++#ifdef __FreeBSD__
++		    sc->sc_sync_peer.s_addr == htonl(INADDR_PFSYNC_GROUP)) {
++#else
  		    sc->sc_sync_peer.s_addr == INADDR_PFSYNC_GROUP) {
-
-
++#endif
+ 			struct in_addr addr;
+ 
+ 			if (!(sc->sc_sync_ifp->if_flags & IFF_MULTICAST)) {
+@@ -1134,7 +1143,11 @@
+ 		}
+ 
+ 		if (sc->sc_sync_ifp ||
++#ifdef __FreeBSD__
++		    sc->sc_sendaddr.s_addr != htonl(INADDR_PFSYNC_GROUP)) {
++#else
+ 		    sc->sc_sendaddr.s_addr != INADDR_PFSYNC_GROUP) {
++#endif
+ 			/* Request a full state table update. */
+ 			sc->sc_ureq_sent = time_uptime;
+ #if NCARP > 0
+@@ -1303,7 +1316,11 @@
+ 	 * hear, does it make a sound?
+ 	 */
+ 	if (ifp->if_bpf == NULL && sc->sc_sync_ifp == NULL &&
++#ifdef __FreeBSD__
++	    sc->sc_sync_peer.s_addr == htonl(INADDR_PFSYNC_GROUP)) {
++#else
+ 	    sc->sc_sync_peer.s_addr == INADDR_PFSYNC_GROUP) {
++#endif
+ 		/* Don't leave any stale pfsync packets hanging around. */
+ 		if (sc->sc_mbuf != NULL) {
+ 			m_freem(sc->sc_mbuf);
+@@ -1755,7 +1772,12 @@
+ 		sc->sc_statep_net.s = NULL;
+ 	}
+ 
+-	if (sc->sc_sync_ifp || sc->sc_sync_peer.s_addr != INADDR_PFSYNC_GROUP) {
++#ifdef __FreeBSD__
++	if (sc->sc_sync_ifp ||
++	    sc->sc_sync_peer.s_addr != htonl(INADDR_PFSYNC_GROUP)) {
++#else
++	if (sc->sc_sync_ifp ||sc->sc_sync_peer.s_addr != INADDR_PFSYNC_GROUP) {
++#endif
+ 		struct ip *ip;
+ 		struct sockaddr sa;
+ 
+@@ -1793,12 +1815,7 @@
+ #endif
+ 			m->m_flags |= M_MCAST;
+ 		ip->ip_dst = sc->sc_sendaddr;
+-#ifdef __FreeBSD__
+-		/* XXX_IMPORT */
+-		sc->sc_sendaddr.s_addr = htonl(sc->sc_sync_peer.s_addr);
+-#else
+ 		sc->sc_sendaddr.s_addr = sc->sc_sync_peer.s_addr;
+-#endif
+ 
+ 		pfsyncstats.pfsyncs_opackets++;
+ #ifdef __FreeBSD__
