@@ -222,11 +222,15 @@ welcome() {
 	echo "Please note that this upgrade will not verify a digital signature"
 	echo "During the upgrade but will verify CRC signatures during compression"
 	echo -n "extraction.   If you find this to be a problem, please press CTRL-C now"
-	sleep 1
+	sleep 2
 	echo -n "."
-	sleep 1
+	sleep 2
 	echo -n "."
-	sleep 1
+	sleep 2
+	echo "."
+	sleep 2
+	echo "."
+	sleep 2
 	echo "."
 }
 
