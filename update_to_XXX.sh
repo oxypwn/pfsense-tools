@@ -227,9 +227,9 @@ welcome() {
 	sleep 2
 	echo -n "."
 	sleep 2
-	echo "."
+	echo -n "."
 	sleep 2
-	echo "."
+	echo -n "."
 	sleep 2
 	echo "."
 }
