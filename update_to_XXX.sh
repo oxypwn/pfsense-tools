@@ -1,13 +1,13 @@
 #!/bin/sh
 
-#set -e -x
-
 # pfSense upgrade script
 # (C)2006 Scott Ullrich
 # All rights reserved.
 
 # This script will aide in upgrading
 # to a newer pfSense version
+
+# set -e -x
 
 # -- SETABLE VARIABLES
 # Previous version
@@ -20,7 +20,8 @@ KERNEL_UPDATE_NEEDED=1
 RULESET_CHANGES=1
 # Where will the updates be stored
 PATH_TO_UPDATE="http://www.pfsense.com/~sullrich"
-# Strict upgrades needed
+# Strict upgrades needed.  RC2a -> RC2b only, etc.
+# Set to 1 to enable otherwise loose mode is implied.
 STRICT_UPGRADE_NEEDED=0
 
 # -- NO SETABLE VARIABLES BEYOND THIS POINT!
@@ -117,6 +118,7 @@ reload_filter() {
 }
 
 test_filter_status() {
+	echo -n "Ensuring that new filter set is sane..."
 	pfctl -f /tmp/rules.debug
 	if [ $? -ne 0 ]; then
 		restore_backups
@@ -124,6 +126,7 @@ test_filter_status() {
 	    echo "You are now updated to $TARGET_VERSION"
 	    echo $TARGET_VERSION > /etc/version
 	fi
+	echo "done."
 }
 
 rw() {
@@ -147,7 +150,7 @@ check_upgrade_status() {
 		# upgrades are generally much larger.
 		GREPPED=`echo $VERSION | grep $PREVIOUS_VERSION | wc -l`
 		if [ $GREPPED -lt 1 ]; then
-		    echo "This upgrades series $PREVIOUS_VERSION only."
+		    echo "This upgrades $PREVIOUS_VERSION series only."
 		    exit
 		else
 		    echo "$PREVIOUS_VERSION detected.  Beginning update."
@@ -159,7 +162,7 @@ check_upgrade_status() {
 		# These upgrades can save space over a period
 		# of time.
 		if [ $VERSION != $PREVIOUS_VERSION ]; then
-		    echo "This upgrades version $PREVIOUS_VERSION strictly only."
+		    echo "This upgrades version $PREVIOUS_VERSION strict only."
 		    exit
 		else
 		    echo "$PREVIOUS_VERSION detected.  Beginning update."
@@ -210,7 +213,21 @@ reboot_if_needed() {
 }
 
 welcome() {
-	echo "One moment, we are going to upgrade to ${TARGET_VERSION}..."
+	echo "-----------------------------------------------------------------------"
+	echo "            Welcome to the pfSense generic upgrade script"
+	echo "-----------------------------------------------------------------------"
+	echo
+	echo "In a moment we will begin the upgrade to ${TARGET_VERSION}..."
+	echo
+	echo "Please note that this upgrade will not verify a digital signature"
+	echo "During the upgrade but will verify CRC signatures during compression"
+	echo -n "extraction.   If you find this to be a problem, please press CTRL-C now"
+	sleep 1
+	echo -n "."
+	sleep 1
+	echo -n "."
+	sleep 1
+	echo "."
 }
 
 check_upgrade_status
