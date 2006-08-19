@@ -35,6 +35,13 @@ VERSION=`cat /etc/version`
 # Kernel updates should be formatted as:
 #    ${PATH_TO_UPDATE}/${TARGET_VERSION}_${PLATFORM}_kernel.tgz
 
+handle_arguments() {
+	if [ -r $1 ]; then
+		PATH_TO_UPDATE=$1
+		echo "Setting PATH_TO_UPDATE to $1"
+	fi
+}
+
 restore_backups() {
 	echo
 	echo "*** Something bad happened.  Aborting!"
@@ -240,6 +247,7 @@ welcome() {
 	echo "."
 }
 
+handle_arguments
 check_upgrade_status
 welcome
 alert_reboot_needed
