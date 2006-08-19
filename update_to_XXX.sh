@@ -20,6 +20,8 @@ KERNEL_UPDATE_NEEDED=1
 RULESET_CHANGES=1
 # Where will the updates be stored
 PATH_TO_UPDATE="http://www.pfsense.com/~sullrich"
+# Strict upgrades needed
+STRICT_UPGRADE_NEEDED=0
 
 # -- NO SETABLE VARIABLES BEYOND THIS POINT!
 # Read in platform variable
@@ -138,12 +140,30 @@ ro() {
 }
 
 check_upgrade_status() {
-	GREPPED=`echo $VERSION | grep $PREVIOUS_VERSION | wc -l`
-	if [ $GREPPED -lt 1 ]; then
-	    echo "This upgrades version $PREVIOUS_VERSION only."
-	    exit
+	if [ $STRICT_UPGRADE_NEEDED -lt 1 ]; then
+		# If strict upgrades are not turned on
+		# allow the user to upgrade in the same
+		# series aka combined upgrade. These
+		# upgrades are generally much larger.
+		GREPPED=`echo $VERSION | grep $PREVIOUS_VERSION | wc -l`
+		if [ $GREPPED -lt 1 ]; then
+		    echo "This upgrades series $PREVIOUS_VERSION only."
+		    exit
+		else
+		    echo "$PREVIOUS_VERSION detected.  Beginning update."
+		fi
 	else
-	    echo "$PREVIOUS_VERSION detected.  Beginning update."
+		# Require strict upgrade.  These upgrades
+		# require a strict previous version to ensure
+		# that the correct files are put into place.
+		# These upgrades can save space over a period
+		# of time.
+		if [ $VERSION != $PREVIOUS_VERSION ]; then
+		    echo "This upgrades version $PREVIOUS_VERSION strictly only."
+		    exit
+		else
+		    echo "$PREVIOUS_VERSION detected.  Beginning update."
+		fi
 	fi
 }
 
