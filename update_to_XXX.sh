@@ -144,6 +144,7 @@ ro() {
 
 check_upgrade_status() {
 	if [ $STRICT_UPGRADE_NEEDED -lt 1 ]; then
+		echo
 		# If strict upgrades are not turned on
 		# allow the user to upgrade in the same
 		# series aka combined upgrade. These
