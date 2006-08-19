@@ -185,7 +185,9 @@ alert_reboot_needed() {
 	    	/usr/bin/clear
 	    fi
 	fi
+	echo
 	echo "Beginning upgrade and setting reboot needed flag."
+	echo
 }
 
 show_version_status() {
@@ -213,6 +215,7 @@ reboot_if_needed() {
 }
 
 welcome() {
+	echo
 	echo "-----------------------------------------------------------------------"
 	echo "            Welcome to the pfSense generic upgrade script"
 	echo "-----------------------------------------------------------------------"
@@ -220,8 +223,10 @@ welcome() {
 	echo "In a moment we will begin the upgrade to ${TARGET_VERSION}..."
 	echo
 	echo "Please note that this upgrade will not verify a digital signature"
-	echo "During the upgrade but will verify CRC signatures during compression"
-	echo -n "extraction.   If you find this to be a problem, please press CTRL-C now"
+	echo "during the upgrade but will verify CRC signatures during compression"
+	echo "extraction."
+	echo
+	echo -n "If you find this to be a problem, please press CTRL-C now"
 	sleep 2
 	echo -n "."
 	sleep 2
