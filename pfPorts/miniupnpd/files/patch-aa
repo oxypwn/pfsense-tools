@@ -1,0 +1,364 @@
+diff -urN miniupnpd-clean/miniupnpd.c miniupnpd-pfsense/miniupnpd.c
+--- miniupnpd-clean/miniupnpd.c	Fri Aug 18 18:32:27 2006
++++ miniupnpd-pfsense/miniupnpd.c	Sat Aug 19 17:55:11 2006
+@@ -54,7 +54,7 @@
+     memset(&sockname, 0, sizeof(struct sockaddr_in));
+     sockname.sin_family = AF_INET;
+     sockname.sin_port = htons(PORT);
+-	// NOTE : it seams it doesnt work when binding on the specific address
++	// NOTE : it seems it doesnt work when binding on the specific address
+     //sockname.sin_addr.s_addr = inet_addr(UPNP_MCAST_ADDR);
+     sockname.sin_addr.s_addr = htonl(INADDR_ANY);
+     //sockname.sin_addr.s_addr = inet_addr(ifaddr);
+@@ -126,9 +126,9 @@
+  */
+ 	snprintf(SSDPannounce, 256, "HTTP/1.1 200 OK\r\n"
+ 		"Cache-Control: max-age=120\r\n"
+-		//"ST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n"
++		// "ST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n"
+ 		"ST: upnp:rootdevice\r\n"
+-		//"USN: uuid:nanard-upnp-device::urn:schemas-upnp-org:service:WANIPConnection:1\r\n"
++		// "USN: uuid:pfsense-upnp-device::urn:schemas-upnp-org:service:WANIPConnection:1\r\n"
+ 		"USN: uuid:00000000-0000-0000-0000-000000000000::upnp:rootdevice\r\n"
+ 		"EXT:\r\n"
+ 		"Server: miniupnpd/1.0\r\n"
+@@ -251,7 +251,7 @@
+ 	{
+ 		fprintf(stderr, "Usage:\n\t"
+ 		        "%s -i ext_ifname -a listening_ip -p port [-l logfile]\n"
+-		        "\nNote:\n\tThere can be one or several litening_ips\n",
++		        "\nNote:\n\tThere can be one or several listening_ips\n",
+ 		        argv[0]);
+ 		return 1;
+ 	}
+@@ -335,9 +335,9 @@
+ 			}
+ 			else
+ 			{
+-				syslog(LOG_INFO, "HTTP connection from %s:%d",
++				/* syslog(LOG_INFO, "HTTP connection from %s:%d",
+ 				       inet_ntoa(clientname.sin_addr),
+-				   	   ntohs(clientname.sin_port) );
++				   	   ntohs(clientname.sin_port) ); */
+ 				if (fcntl(shttp, F_SETFL, O_NONBLOCK) < 0) {
+ 					syslog(LOG_ERR, "fcntl F_SETFL, O_NONBLOCK");
+ 				}
+diff -urN miniupnpd-clean/openbsd/obsdrdr.c miniupnpd-pfsense/openbsd/obsdrdr.c
+--- miniupnpd-clean/openbsd/obsdrdr.c	Mon Jun  5 11:13:53 2006
++++ miniupnpd-pfsense/openbsd/obsdrdr.c	Sat Aug 19 00:02:19 2006
+@@ -161,7 +161,7 @@
+ 
+ int
+ add_redirect_rule2(const char * ifname, unsigned short eport,
+-                   const char * iaddr, unsigned short iport, int proto)
++                   const char * iaddr, unsigned short iport, int proto, const char * desc)
+ {
+ 	int dev;
+ 	int r;
+@@ -203,6 +203,92 @@
+ 		inet_pton(AF_INET, iaddr, &a->addr.v.a.addr.v4.s_addr);
+ 		a->addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
+ 		TAILQ_INSERT_TAIL(&pcr.rule.rpool.list, a, entries);
++		memcpy(&pp.addr, a, sizeof(struct pf_pooladdr));
++		strlcpy(pcr.rule.label, desc, MAXPATHLEN);
++
++		if(ioctl(dev, DIOCADDADDR, &pp) < 0)
++		{
++			syslog(LOG_ERR, "ioctl(dev, DIOCADDADDR, ...): %m");
++			r = -1;
++		}
++		else
++		{
++			pcr.action = PF_CHANGE_GET_TICKET;
++        	if(ioctl(dev, DIOCCHANGERULE, &pcr) < 0)
++			{
++            	syslog(LOG_ERR, "ioctl(dev, DIOCCHANGERULE, ...) PF_CHANGE_GET_TICKET: %m");
++				r = -1;
++			}
++			else
++			{
++				pcr.action = PF_CHANGE_ADD_TAIL;
++				if(ioctl(dev, DIOCCHANGERULE, &pcr) < 0)
++				{
++					syslog(LOG_ERR, "ioctl(dev, DIOCCHANGERULE, ...) PF_CHANGE_ADD_TAIL: %m");
++					r = -1;
++				}
++			}
++		}
++		free(a);
++	}
++	close(dev);
++	return r;
++}
++
++int
++add_filter_rule2(const char * ifname, const char * iaddr, 
++		unsigned short eport, int proto, const char * desc)
++{
++	int dev;
++	int r;
++	struct pfioc_rule pcr;
++	struct pfioc_pooladdr pp;
++	struct pf_pooladdr *a;
++	dev = open("/dev/pf", O_RDWR);
++	if(dev<0)
++	{
++		syslog(LOG_ERR, "open(\"/dev/pf\"): %m");
++		return -1;
++	}
++	r = 0;
++	memset(&pcr, 0, sizeof(pcr));
++	strlcpy(pcr.anchor, anchor_name, MAXPATHLEN);
++
++	memset(&pp, 0, sizeof(pp));
++	strlcpy(pp.anchor, anchor_name, MAXPATHLEN);
++	if(ioctl(dev, DIOCBEGINADDRS, &pp) < 0)
++	{
++		syslog(LOG_ERR, "ioctl(dev, DIOCBEGINADDRS, ...): %m");
++		r = -1;
++	}
++	else
++	{
++		pcr.pool_ticket = pp.ticket;
++		
++		pcr.rule.dst.port_op = PF_OP_EQ;
++		pcr.rule.dst.port[0] = htons(eport);
++		pcr.rule.direction = PF_IN;
++		pcr.rule.action = PF_PASS;
++		pcr.rule.af = AF_INET;
++		strlcpy(pcr.rule.ifname, ifname, IFNAMSIZ);
++		pcr.rule.proto = proto;
++                pcr.rule.quick = 1;
++                pcr.rule.log = 1;
++                pcr.rule.keep_state = 1;
++		strlcpy(pcr.rule.label, desc, MAXPATHLEN);
++
++		pcr.rule.rpool.proxy_port[0] = eport;
++		a = calloc(1, sizeof(struct pf_pooladdr));
++		inet_pton(AF_INET, iaddr, &a->addr.v.a.addr.v4.s_addr);
++		a->addr.v.a.mask.v4.s_addr = htonl(INADDR_NONE);
++		memcpy(&pp.addr, a, sizeof(struct pf_pooladdr));
++		TAILQ_INIT(&pcr.rule.rpool.list);
++		inet_pton(AF_INET, iaddr, &a->addr.v.a.addr.v4.s_addr);
++		TAILQ_INSERT_TAIL(&pcr.rule.rpool.list, a, entries);
++		
++		/* we have any - any port = # keep state label */
++		/* we want any - iaddr port = # keep state label */
++		/* memcpy(&pcr.rule.dst, a, sizeof(struct pf_pooladdr)); */
+ 
+ 		memcpy(&pp.addr, a, sizeof(struct pf_pooladdr));
+ 		if(ioctl(dev, DIOCADDADDR, &pp) < 0)
+@@ -336,6 +422,61 @@
+ 		}
+ 		if( (eport == ntohs(pr.rule.dst.port[0]))
+ 		  && (eport == ntohs(pr.rule.dst.port[1]))
++		  && (pr.rule.proto == proto) )
++		{
++			pr.action = PF_CHANGE_GET_TICKET;
++        	if(ioctl(dev, DIOCCHANGERULE, &pr) < 0)
++			{
++            	syslog(LOG_ERR, "ioctl(dev, DIOCCHANGERULE, ...) PF_CHANGE_GET_TICKET: %m");
++				goto error;
++			}
++			pr.action = PF_CHANGE_REMOVE;
++			pr.nr = i;
++			if(ioctl(dev, DIOCCHANGERULE, &pr) < 0)
++			{
++				syslog(LOG_ERR, "ioctl(dev, DIOCCHANGERULE, ...) PF_CHANGE_REMOVE: %m");
++				goto error;
++			}
++			close(dev);
++			return 0;
++		}
++	}
++error:
++	close(dev);
++	return -1;
++}
++
++
++int
++delete_filter_rule(const char * ifname, unsigned short eport, int proto)
++{
++	int dev;
++	int i, n;
++	struct pfioc_rule pr;
++    dev = open("/dev/pf", O_RDWR);
++    if(dev<0)
++    {
++        syslog(LOG_ERR, "open(\"/dev/pf\"): %m");
++        return -1;
++    }
++	memset(&pr, 0, sizeof(pr));
++	strlcpy(pr.anchor, anchor_name, MAXPATHLEN);
++	pr.rule.action = PF_PASS;
++	if(ioctl(dev, DIOCGETRULES, &pr) < 0)
++	{
++		syslog(LOG_ERR, "ioctl(dev, DIOCGETRULES, ...): %m");
++		goto error;
++	}
++	n = pr.nr;
++	for(i=0; i<n; i++)
++	{
++		pr.nr = i;
++		if(ioctl(dev, DIOCGETRULE, &pr) < 0)
++		{
++			syslog(LOG_ERR, "ioctl(dev, DIOCGETRULE): %m");
++			goto error;
++		}
++		if( (eport == ntohs(pr.rule.dst.port[0]))
+ 		  && (pr.rule.proto == proto) )
+ 		{
+ 			pr.action = PF_CHANGE_GET_TICKET;
+diff -urN miniupnpd-clean/openbsd/obsdrdr.h miniupnpd-pfsense/openbsd/obsdrdr.h
+--- miniupnpd-clean/openbsd/obsdrdr.h	Mon Jun  5 11:13:54 2006
++++ miniupnpd-pfsense/openbsd/obsdrdr.h	Fri Aug 18 21:58:20 2006
+@@ -17,7 +17,14 @@
+  */
+ int
+ add_redirect_rule2(const char * ifname, unsigned short eport,
+-                   const char * iaddr, unsigned short iport, int proto);
++                   const char * iaddr, unsigned short iport, int proto, const char * desc);
++
++/* add_filter_rule2() uses DIOCCHANGERULE ioctl
++ * proto can take the values IPPROTO_UDP or IPPROTO_TCP
++ */
++int
++add_filter_rule2(const char * ifname, const char * iaddr,
++                    unsigned short eport, int proto, const char * desc);
+ 
+ /* get_redirect_rule() gets internal IP and port from
+  * interface, external port and protocl
+@@ -37,6 +44,10 @@
+ int
+ delete_redirect_rule(const char * ifname, unsigned short eport, int proto);
+ 
++/* delete_filter_rule()
++ */
++int
++delete_filter_rule(const char * ifname, unsigned short eport, int proto);
+ 
+ int
+ clear_redirect_rules(void);
+diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
+--- miniupnpd-clean/upnpdescgen.c	Thu Jul 13 18:03:57 2006
++++ miniupnpd-pfsense/upnpdescgen.c	Sun Aug 20 20:36:23 2006
+@@ -27,23 +27,23 @@
+ 	{"/major", {"1"}},
+ 	{"/minor", {"0"}},
+ 	{"/deviceType", {"urn:schemas-upnp-org:device:InternetGatewayDevice:1"}},
+-	{"/friendlyName", {"OpenBSD router"}},
+-	{"/manufacturer", {"OpenBSD"}},
+-	{"/manufacturerURL", {"http://www.openbsd.org/"}},
++	{"/friendlyName", {"pfSense router"}},
++	{"/manufacturer", {"pfSense"}},
++	{"/manufacturerURL", {"http://www.pfsense.com/"}},
+ 	// presentationURL
+-	{"/modelName", {"OpenBSD router"}},
++	{"/modelName", {"pfSense router"}},
+ 	{"/UDN", {(char *)uuid}},
+ 	{"serviceList", {INITHELPER(52,1)}},
+ 	{"deviceList", {INITHELPER(13,1)}},
+ 	{"device", {INITHELPER(14,13)}},
+ 	{"/deviceType", {"urn:schemas-upnp-org:device:WANDevice:1"}},
+ 	{"/friendlyName", {"WANDevice"}},
+-	{"/manufacturer", {"nanard"}},
+-	{"/manufacturerURL", {"http://miniupnp.free.fr/"}},
++	{"/manufacturer", {"pfSense"}},
++	{"/manufacturerURL", {"http://www.pfSense.com/"}},
+ 	{"/modelDescription" , {"WAN Device"}},
+ 	{"/modelName", {"WAN Device"}},
+ 	{"/modelNumber", {"1"}},
+-	{"/modelURL", {"http://miniupnp.free.fr/"}},
++	{"/modelURL", {"http://www.pfsense.com/"}},
+ 	{"/serialNumber", {"00000000"}},
+ 	{"/UDN", {(char *)uuid}},
+ 	{"/UPC", {"MINIUPNPD"}},
+@@ -59,12 +59,12 @@
+ 	{"device", {INITHELPER(34,12)}},
+ 	{"/deviceType", {"urn:schemas-upnp-org:device:WANConnectionDevice:1"}},
+ 	{"/friendlyName", {"WANConnectionDevice"}},
+-	{"/manufacturer", {"nanard"}},
+-	{"/manufacturerURL", {"http://miniupnp.free.fr/"}},
++	{"/manufacturer", {"pfSense"}},
++	{"/manufacturerURL", {"http://www.pfsense.com/"}},
+ 	{"/modelDescription", {"miniupnp daemon"}},
+ 	{"/modelName", {"miniupnpd"}},
+ 	{"/modelNumber", {"1"}},
+-	{"/modelURL", {"http://miniupnp.free.fr/"}},
++	{"/modelURL", {"http://www.pfsense.com/"}},
+ 	{"/serialNumber", {"000000000"}},
+ 	{"/UDN", {(char *)uuid}},
+ 	{"/UPC", {"MINIUPNPD"}},
+diff -urN miniupnpd-clean/upnpredirect.c miniupnpd-pfsense/upnpredirect.c
+--- miniupnpd-clean/upnpredirect.c	Thu Jul 13 18:03:57 2006
++++ miniupnpd-pfsense/upnpredirect.c	Sat Aug 19 16:58:17 2006
+@@ -37,15 +37,18 @@
+ 	                      iaddr_old, sizeof(iaddr_old), &iport_old);
+ 	if(r==0)
+ 	{
+-		syslog(LOG_INFO, "port %d protocol %s allready redirected to %s:%d",
++		syslog(LOG_INFO, "Port %d protocol %s allready redirected to %s:%d",
+ 	    	             (int)eport, protocol, iaddr_old, (int)iport_old);
+ 		return -1;
+ 	}
+ 	else
+ 	{
+-		syslog(LOG_INFO, "redirecting port %d to %s:%d protocol %s",
+-	    	             (int)eport, iaddr, (int)iport, protocol);
+-		add_redirect_rule2(ext_if_name, eport, iaddr, iport, proto);
++		/* syslog(LOG_INFO, "redirecting port %d to %s:%d protocol %s for: %s",
++	    	             (int)eport, iaddr, (int)iport, protocol, desc); */
++		add_redirect_rule2(ext_if_name, eport, iaddr, iport, proto, desc);
++		/* syslog(LOG_INFO, "create pass rule to %s:%d protocol %s for: %s",
++	    	             iaddr, (int)iport, protocol, desc); */
++		add_filter_rule2(ext_if_name, iaddr, eport, proto, desc);
+ 	}
+ 
+ 	return 0;
+@@ -63,8 +66,7 @@
+ 	return r;
+ }
+ 
+-int
+-upnp_get_redirection_infos_by_index(int index,
++int upnp_get_redirection_infos_by_index(int index,
+                                     unsigned short * eport, char * protocol,
+                                     unsigned short * iport, 
+                                     char * iaddr, int iaddrlen,
+@@ -86,12 +88,12 @@
+ 	}
+ }
+ 
+-int
+-upnp_delete_redirection(unsigned short eport, const char * protocol)
++int upnp_delete_redirection(unsigned short eport, const char * protocol)
+ {
+ 	int proto;
+ 	proto = proto_atoi(protocol);
+ 	delete_redirect_rule(ext_if_name, eport, proto);
++	delete_filter_rule(ext_if_name, eport, proto);
+ 	return 0;
+ }
+ 
+diff -urN miniupnpd-clean/upnpsoap.c miniupnpd-pfsense/upnpsoap.c
+--- miniupnpd-clean/upnpsoap.c	Thu Jul 20 00:48:46 2006
++++ miniupnpd-pfsense/upnpsoap.c	Sat Aug 19 16:57:38 2006
+@@ -211,7 +211,7 @@
+ 	ext_port = GetValueFromNameValueList(&data, "NewExternalPort");
+ 	protocol = GetValueFromNameValueList(&data, "NewProtocol");
+ 	desc = GetValueFromNameValueList(&data, "NewPortMappingDescription");
+-	syslog(LOG_INFO, "AddportMapping %s, description : %s", protocol, desc);
++	syslog(LOG_INFO, "AddportMapping %s, for %s, port %s, description : %s", protocol, int_ip, int_port, desc);
+ 	eport = (unsigned short)atoi(ext_port);
+ 	iport = (unsigned short)atoi(int_port);
+ 	r = upnp_redirect(eport, int_ip, iport, protocol, desc);
+@@ -455,7 +455,7 @@
+ 		}
+ 	}
+ 	//printf("-- unknown soap method--\n");
+-	syslog(LOG_NOTICE, "Unknown soap method");
++	syslog(LOG_NOTICE, "Unknown soap method: %s", action);
+ 	// TODO response
+ 	CloseSocket_upnphttp(h);
+ }
