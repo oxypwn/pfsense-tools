@@ -1,6 +1,56 @@
-diff -urN miniupnpd-clean/miniupnpd.c miniupnpd-pfsense/miniupnpd.c
---- miniupnpd-clean/miniupnpd.c	Fri Aug 18 18:32:27 2006
-+++ miniupnpd-pfsense/miniupnpd.c	Sat Aug 19 17:55:11 2006
+--- miniupnpd/getifaddr.c	Thu Jul 13 16:03:57 2006
++++ getifaddr.c	Sun Aug 20 20:49:47 2006
+@@ -13,15 +13,16 @@
+ #include <net/if.h>
+ #include <arpa/inet.h>
+ #include <netinet/in.h>
+-
++  
+ int
+-getifaddr(const char * ifname, char * buf, int len)
++getifaddr(const char * ifname, char * buf, int len, const char * use_ext_ip_addr)
+ {
+ 	//  SIOCGIFADDR struct ifreq *
+ 	int s;
+ 	struct ifreq ifr;
+ 	int ifrlen;
+ 	struct sockaddr_in * addr;
++	struct in_addr in_addr_struct, *ina;
+ 	ifrlen = sizeof(ifr);
+ 	s = socket(PF_INET, SOCK_DGRAM, 0);
+ 	if(s<0)
+@@ -36,8 +37,15 @@
+ 		close(s);
+ 		return -1;
+ 	}
+-	addr = (struct sockaddr_in *)&ifr.ifr_addr;
+-	if(!inet_ntop(AF_INET, &addr->sin_addr, buf, len))
++	if(use_ext_ip_addr != NULL)  {
++		inet_aton(use_ext_ip_addr, &in_addr_struct);
++		ina = &in_addr_struct;
++		syslog(LOG_ERR, "using external ip address %s", use_ext_ip_addr);
++	} else {
++		addr = (struct sockaddr_in *)&ifr.ifr_addr;
++		ina = &addr->sin_addr;
++	}
++	if(!inet_ntop(AF_INET, ina, buf, len))
+ 	{
+ 		syslog(LOG_ERR, "inet_ntop FAILED");
+ 		close(s);
+diff -ru miniupnpd/getifaddr.h getifaddr.h
+--- miniupnpd/getifaddr.h	Thu May 25 15:47:43 2006
++++ getifaddr.h	Sun Aug 20 21:50:42 2006
+@@ -3,7 +3,7 @@
+ #define __GETIFADDR_H__
+ 
+ int
+-getifaddr(const char * ifname, char * buf, int len);
++getifaddr(const char * ifname, char * buf, int len, const char * use_ext_ip_addr);
+ 
+ #endif
+ 
+--- miniupnpd/miniupnpd.c	Thu Jul 20 21:11:58 2006
++++ miniupnpd.c	Sun Aug 20 21:50:06 2006
 @@ -54,7 +54,7 @@
      memset(&sockname, 0, sizeof(struct sockaddr_in));
      sockname.sin_family = AF_INET;
@@ -10,19 +60,26 @@ diff -urN miniupnpd-clean/miniupnpd.c miniupnpd-pfsense/miniupnpd.c
      //sockname.sin_addr.s_addr = inet_addr(UPNP_MCAST_ADDR);
      sockname.sin_addr.s_addr = htonl(INADDR_ANY);
      //sockname.sin_addr.s_addr = inet_addr(ifaddr);
-@@ -126,9 +126,9 @@
-  */
- 	snprintf(SSDPannounce, 256, "HTTP/1.1 200 OK\r\n"
- 		"Cache-Control: max-age=120\r\n"
--		//"ST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n"
-+		// "ST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n"
- 		"ST: upnp:rootdevice\r\n"
--		//"USN: uuid:nanard-upnp-device::urn:schemas-upnp-org:service:WANIPConnection:1\r\n"
-+		// "USN: uuid:pfsense-upnp-device::urn:schemas-upnp-org:service:WANIPConnection:1\r\n"
- 		"USN: uuid:00000000-0000-0000-0000-000000000000::upnp:rootdevice\r\n"
- 		"EXT:\r\n"
- 		"Server: miniupnpd/1.0\r\n"
-@@ -251,7 +251,7 @@
+@@ -193,7 +193,7 @@
+ }
+ 
+ const char * ext_if_name = 0;
+-//const char * ext_ip_addr = 0;
++const char * use_ext_ip_addr;
+ char ext_ip_addr[INET_ADDRSTRLEN];
+ 
+ /* === main === */
+@@ -226,6 +226,9 @@
+ 		case 'i':
+ 			ext_if_name = argv[++i];
+ 			break;
++		case 'o':
++			use_ext_ip_addr = argv[++i];
++			break;
+ 		case 'p':
+ 			port = atoi(argv[++i]);
+ 			break;
+@@ -251,7 +254,7 @@
  	{
  		fprintf(stderr, "Usage:\n\t"
  		        "%s -i ext_ifname -a listening_ip -p port [-l logfile]\n"
@@ -31,21 +88,20 @@ diff -urN miniupnpd-clean/miniupnpd.c miniupnpd-pfsense/miniupnpd.c
  		        argv[0]);
  		return 1;
  	}
-@@ -335,9 +335,9 @@
- 			}
- 			else
- 			{
--				syslog(LOG_INFO, "HTTP connection from %s:%d",
-+				/* syslog(LOG_INFO, "HTTP connection from %s:%d",
- 				       inet_ntoa(clientname.sin_addr),
--				   	   ntohs(clientname.sin_port) );
-+				   	   ntohs(clientname.sin_port) ); */
- 				if (fcntl(shttp, F_SETFL, O_NONBLOCK) < 0) {
- 					syslog(LOG_ERR, "fcntl F_SETFL, O_NONBLOCK");
- 				}
-diff -urN miniupnpd-clean/openbsd/obsdrdr.c miniupnpd-pfsense/openbsd/obsdrdr.c
---- miniupnpd-clean/openbsd/obsdrdr.c	Mon Jun  5 11:13:53 2006
-+++ miniupnpd-pfsense/openbsd/obsdrdr.c	Sat Aug 19 00:02:19 2006
+@@ -263,9 +266,9 @@
+ 	}*/
+ 	daemonize();
+ 	// TODO : change LOG_LOCAL0 to LOG_DAEMON
+-	openlog("miniupnpd", LOG_PID|LOG_CONS, LOG_USER/*LOG_LOCAL0*/);
++	openlog("miniupnpd", LOG_PID|LOG_CONS, LOG_LOCAL6/*LOG_LOCAL0*/);
+ 	//ext_if_name = argv[1];
+-	if(getifaddr(ext_if_name, ext_ip_addr, sizeof(ext_ip_addr)) < 0)
++	if(getifaddr(ext_if_name, ext_ip_addr, sizeof(ext_ip_addr), use_ext_ip_addr) < 0)
+ 	{
+ 		syslog(LOG_ERR, "could not get ip address for interface %s. EXITING",
+ 			ext_if_name);
+--- miniupnpd/openbsd/obsdrdr.c	Mon Jun  5 09:13:53 2006
++++ openbsd/obsdrdr.c	Fri Aug 18 22:02:19 2006
 @@ -161,7 +161,7 @@
  
  int
@@ -210,9 +266,8 @@ diff -urN miniupnpd-clean/openbsd/obsdrdr.c miniupnpd-pfsense/openbsd/obsdrdr.c
  		  && (pr.rule.proto == proto) )
  		{
  			pr.action = PF_CHANGE_GET_TICKET;
-diff -urN miniupnpd-clean/openbsd/obsdrdr.h miniupnpd-pfsense/openbsd/obsdrdr.h
---- miniupnpd-clean/openbsd/obsdrdr.h	Mon Jun  5 11:13:54 2006
-+++ miniupnpd-pfsense/openbsd/obsdrdr.h	Fri Aug 18 21:58:20 2006
+--- miniupnpd/openbsd/obsdrdr.h	Mon Jun  5 09:13:54 2006
++++ openbsd/obsdrdr.h	Fri Aug 18 19:58:20 2006
 @@ -17,7 +17,14 @@
   */
  int
@@ -240,9 +295,8 @@ diff -urN miniupnpd-clean/openbsd/obsdrdr.h miniupnpd-pfsense/openbsd/obsdrdr.h
  
  int
  clear_redirect_rules(void);
-diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
---- miniupnpd-clean/upnpdescgen.c	Thu Jul 13 18:03:57 2006
-+++ miniupnpd-pfsense/upnpdescgen.c	Sun Aug 20 20:36:23 2006
+--- miniupnpd/upnpdescgen.c	Thu Jul 13 16:03:57 2006
++++ upnpdescgen.c	Fri Aug 18 13:49:35 2006
 @@ -27,23 +27,23 @@
  	{"/major", {"1"}},
  	{"/minor", {"0"}},
@@ -274,7 +328,7 @@ diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
  	{"/serialNumber", {"00000000"}},
  	{"/UDN", {(char *)uuid}},
  	{"/UPC", {"MINIUPNPD"}},
-@@ -59,12 +59,12 @@
+@@ -59,13 +59,13 @@
  	{"device", {INITHELPER(34,12)}},
  	{"/deviceType", {"urn:schemas-upnp-org:device:WANConnectionDevice:1"}},
  	{"/friendlyName", {"WANConnectionDevice"}},
@@ -286,32 +340,26 @@ diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
  	{"/modelName", {"miniupnpd"}},
  	{"/modelNumber", {"1"}},
 -	{"/modelURL", {"http://miniupnp.free.fr/"}},
+-	{"/serialNumber", {"000000000"}},
 +	{"/modelURL", {"http://www.pfsense.com/"}},
- 	{"/serialNumber", {"000000000"}},
++	{"/serialNumber", {"00000000"}},
  	{"/UDN", {(char *)uuid}},
  	{"/UPC", {"MINIUPNPD"}},
-diff -urN miniupnpd-clean/upnpredirect.c miniupnpd-pfsense/upnpredirect.c
---- miniupnpd-clean/upnpredirect.c	Thu Jul 13 18:03:57 2006
-+++ miniupnpd-pfsense/upnpredirect.c	Sat Aug 19 16:58:17 2006
-@@ -37,15 +37,18 @@
- 	                      iaddr_old, sizeof(iaddr_old), &iport_old);
- 	if(r==0)
- 	{
--		syslog(LOG_INFO, "port %d protocol %s allready redirected to %s:%d",
-+		syslog(LOG_INFO, "Port %d protocol %s allready redirected to %s:%d",
- 	    	             (int)eport, protocol, iaddr_old, (int)iport_old);
- 		return -1;
+ 	{"serviceList", {INITHELPER(46,1)}},
+--- miniupnpd/upnpredirect.c	Thu Jul 13 16:03:57 2006
++++ upnpredirect.c	Fri Aug 18 19:58:58 2006
+@@ -43,9 +43,12 @@
  	}
  	else
  	{
 -		syslog(LOG_INFO, "redirecting port %d to %s:%d protocol %s",
 -	    	             (int)eport, iaddr, (int)iport, protocol);
 -		add_redirect_rule2(ext_if_name, eport, iaddr, iport, proto);
-+		/* syslog(LOG_INFO, "redirecting port %d to %s:%d protocol %s for: %s",
-+	    	             (int)eport, iaddr, (int)iport, protocol, desc); */
++		syslog(LOG_INFO, "redirecting port %d to %s:%d protocol %s for: %s",
++	    	             (int)eport, iaddr, (int)iport, protocol, desc);
 +		add_redirect_rule2(ext_if_name, eport, iaddr, iport, proto, desc);
-+		/* syslog(LOG_INFO, "create pass rule to %s:%d protocol %s for: %s",
-+	    	             iaddr, (int)iport, protocol, desc); */
++		syslog(LOG_INFO, "create pass rule to %s:%d protocol %s for: %s",
++	    	             iaddr, (int)iport, protocol, desc);
 +		add_filter_rule2(ext_if_name, iaddr, eport, proto, desc);
  	}
  
@@ -341,9 +389,8 @@ diff -urN miniupnpd-clean/upnpredirect.c miniupnpd-pfsense/upnpredirect.c
  	return 0;
  }
  
-diff -urN miniupnpd-clean/upnpsoap.c miniupnpd-pfsense/upnpsoap.c
---- miniupnpd-clean/upnpsoap.c	Thu Jul 20 00:48:46 2006
-+++ miniupnpd-pfsense/upnpsoap.c	Sat Aug 19 16:57:38 2006
+--- miniupnpd/upnpsoap.c	Wed Jul 19 22:48:46 2006
++++ upnpsoap.c	Fri Aug 18 19:59:31 2006
 @@ -211,7 +211,7 @@
  	ext_port = GetValueFromNameValueList(&data, "NewExternalPort");
  	protocol = GetValueFromNameValueList(&data, "NewProtocol");
@@ -353,12 +400,3 @@ diff -urN miniupnpd-clean/upnpsoap.c miniupnpd-pfsense/upnpsoap.c
  	eport = (unsigned short)atoi(ext_port);
  	iport = (unsigned short)atoi(int_port);
  	r = upnp_redirect(eport, int_ip, iport, protocol, desc);
-@@ -455,7 +455,7 @@
- 		}
- 	}
- 	//printf("-- unknown soap method--\n");
--	syslog(LOG_NOTICE, "Unknown soap method");
-+	syslog(LOG_NOTICE, "Unknown soap method: %s", action);
- 	// TODO response
- 	CloseSocket_upnphttp(h);
- }
