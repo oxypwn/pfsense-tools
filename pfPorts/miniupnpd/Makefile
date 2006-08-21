@@ -8,13 +8,12 @@ PORTNAME=	miniupnpd
 PORTVERSION=	20060721
 CATEGORIES=	net
 MASTER_SITES=	http://miniupnp.free.fr/files/
-DISTNAME=	${PORTNAME}${PORTVERSION}
-
 DISTFILES=	miniupnpd20060721.tar.gz miniupnpc20060731.tar.gz
 
 MAINTAINER=	seth.mos@xs4all.nl
 COMMENT=	UPnP daemon for firewall interface
 
+WRKSRC=         ${WRKDIR}/${PORTNAME}
 USE_GMAKE=	yes
 
 PLIST_FILES=    sbin/miniupnpd
@@ -25,12 +24,7 @@ PLIST_FILES=    sbin/miniupnpd
 IGNORE=		only for 5.0 and above
 .endif
 
-pre-patch:
-	if [ -d work/miniupnpd ]; then mv work/miniupnpd ${WRKSRC}; fi
-
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin
 
 .include <bsd.port.post.mk>
-
-
