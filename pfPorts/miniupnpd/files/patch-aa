@@ -1,5 +1,6 @@
---- miniupnpd/getifaddr.c	Thu Jul 13 16:03:57 2006
-+++ getifaddr.c	Sun Aug 20 20:49:47 2006
+diff -urN miniupnpd-clean/getifaddr.c miniupnpd-pfsense2/getifaddr.c
+--- miniupnpd-clean/getifaddr.c	Thu Jul 13 18:03:57 2006
++++ miniupnpd-pfsense2/getifaddr.c	Tue Aug 22 23:14:37 2006
 @@ -13,15 +13,16 @@
  #include <net/if.h>
  #include <arpa/inet.h>
@@ -37,9 +38,9 @@
  	{
  		syslog(LOG_ERR, "inet_ntop FAILED");
  		close(s);
-diff -ru miniupnpd/getifaddr.h getifaddr.h
---- miniupnpd/getifaddr.h	Thu May 25 15:47:43 2006
-+++ getifaddr.h	Sun Aug 20 21:50:42 2006
+diff -urN miniupnpd-clean/getifaddr.h miniupnpd-pfsense2/getifaddr.h
+--- miniupnpd-clean/getifaddr.h	Thu May 25 17:47:43 2006
++++ miniupnpd-pfsense2/getifaddr.h	Tue Aug 22 23:14:37 2006
 @@ -3,7 +3,7 @@
  #define __GETIFADDR_H__
  
@@ -49,8 +50,9 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  
  #endif
  
---- miniupnpd/miniupnpd.c	Thu Jul 20 21:11:58 2006
-+++ miniupnpd.c	Sun Aug 20 21:50:06 2006
+diff -urN miniupnpd-clean/miniupnpd.c miniupnpd-pfsense2/miniupnpd.c
+--- miniupnpd-clean/miniupnpd.c	Fri Aug 18 18:32:27 2006
++++ miniupnpd-pfsense2/miniupnpd.c	Thu Aug 24 13:11:37 2006
 @@ -54,7 +54,7 @@
      memset(&sockname, 0, sizeof(struct sockaddr_in));
      sockname.sin_family = AF_INET;
@@ -60,6 +62,15 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
      //sockname.sin_addr.s_addr = inet_addr(UPNP_MCAST_ADDR);
      sockname.sin_addr.s_addr = htonl(INADDR_ANY);
      //sockname.sin_addr.s_addr = inet_addr(ifaddr);
+@@ -128,7 +128,7 @@
+ 		"Cache-Control: max-age=120\r\n"
+ 		//"ST: urn:schemas-upnp-org:device:InternetGatewayDevice:1\r\n"
+ 		"ST: upnp:rootdevice\r\n"
+-		//"USN: uuid:nanard-upnp-device::urn:schemas-upnp-org:service:WANIPConnection:1\r\n"
++		//"USN: uuid:pfsense-upnp-device::urn:schemas-upnp-org:service:WANIPConnection:1\r\n"
+ 		"USN: uuid:00000000-0000-0000-0000-000000000000::upnp:rootdevice\r\n"
+ 		"EXT:\r\n"
+ 		"Server: miniupnpd/1.0\r\n"
 @@ -193,7 +193,7 @@
  }
  
@@ -79,29 +90,41 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  		case 'p':
  			port = atoi(argv[++i]);
  			break;
-@@ -251,7 +254,7 @@
+@@ -250,8 +253,8 @@
+ 	if(!ext_if_name || !listen_addr || port<=0)
  	{
  		fprintf(stderr, "Usage:\n\t"
- 		        "%s -i ext_ifname -a listening_ip -p port [-l logfile]\n"
+-		        "%s -i ext_ifname -a listening_ip -p port [-l logfile]\n"
 -		        "\nNote:\n\tThere can be one or several litening_ips\n",
++		        "%s -i ext_ifname -a listening_ip -p port [-o outside_ip] [-l logfile]\n"
 +		        "\nNote:\n\tThere can be one or several listening_ips\n",
  		        argv[0]);
  		return 1;
  	}
-@@ -263,9 +266,9 @@
- 	}*/
- 	daemonize();
+@@ -265,7 +268,7 @@
  	// TODO : change LOG_LOCAL0 to LOG_DAEMON
--	openlog("miniupnpd", LOG_PID|LOG_CONS, LOG_USER/*LOG_LOCAL0*/);
-+	openlog("miniupnpd", LOG_PID|LOG_CONS, LOG_LOCAL6/*LOG_LOCAL0*/);
+ 	openlog("miniupnpd", LOG_PID|LOG_CONS, LOG_LOCAL6/*LOG_LOCAL0*/);
  	//ext_if_name = argv[1];
 -	if(getifaddr(ext_if_name, ext_ip_addr, sizeof(ext_ip_addr)) < 0)
 +	if(getifaddr(ext_if_name, ext_ip_addr, sizeof(ext_ip_addr), use_ext_ip_addr) < 0)
  	{
  		syslog(LOG_ERR, "could not get ip address for interface %s. EXITING",
  			ext_if_name);
---- miniupnpd/openbsd/obsdrdr.c	Mon Jun  5 09:13:53 2006
-+++ openbsd/obsdrdr.c	Fri Aug 18 22:02:19 2006
+@@ -335,9 +338,9 @@
+ 			}
+ 			else
+ 			{
+-				syslog(LOG_INFO, "HTTP connection from %s:%d",
++				/* syslog(LOG_INFO, "HTTP connection from %s:%d",
+ 				       inet_ntoa(clientname.sin_addr),
+-				   	   ntohs(clientname.sin_port) );
++				   	   ntohs(clientname.sin_port) ); */
+ 				if (fcntl(shttp, F_SETFL, O_NONBLOCK) < 0) {
+ 					syslog(LOG_ERR, "fcntl F_SETFL, O_NONBLOCK");
+ 				}
+diff -urN miniupnpd-clean/openbsd/obsdrdr.c miniupnpd-pfsense2/openbsd/obsdrdr.c
+--- miniupnpd-clean/openbsd/obsdrdr.c	Mon Jun  5 11:13:53 2006
++++ miniupnpd-pfsense2/openbsd/obsdrdr.c	Thu Aug 24 13:10:20 2006
 @@ -161,7 +161,7 @@
  
  int
@@ -210,7 +233,7 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  		  && (eport == ntohs(pr.rule.dst.port[1]))
 +		  && (pr.rule.proto == proto) )
 +		{
-+			pr.action = PF_CHANGE_GET_TICKET;
++		pr.action = PF_CHANGE_GET_TICKET;
 +        	if(ioctl(dev, DIOCCHANGERULE, &pr) < 0)
 +			{
 +            	syslog(LOG_ERR, "ioctl(dev, DIOCCHANGERULE, ...) PF_CHANGE_GET_TICKET: %m");
@@ -266,8 +289,9 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  		  && (pr.rule.proto == proto) )
  		{
  			pr.action = PF_CHANGE_GET_TICKET;
---- miniupnpd/openbsd/obsdrdr.h	Mon Jun  5 09:13:54 2006
-+++ openbsd/obsdrdr.h	Fri Aug 18 19:58:20 2006
+diff -urN miniupnpd-clean/openbsd/obsdrdr.h miniupnpd-pfsense2/openbsd/obsdrdr.h
+--- miniupnpd-clean/openbsd/obsdrdr.h	Mon Jun  5 11:13:54 2006
++++ miniupnpd-pfsense2/openbsd/obsdrdr.h	Tue Aug 22 23:08:51 2006
 @@ -17,7 +17,14 @@
   */
  int
@@ -295,8 +319,9 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  
  int
  clear_redirect_rules(void);
---- miniupnpd/upnpdescgen.c	Thu Jul 13 16:03:57 2006
-+++ upnpdescgen.c	Fri Aug 18 13:49:35 2006
+diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense2/upnpdescgen.c
+--- miniupnpd-clean/upnpdescgen.c	Thu Jul 13 18:03:57 2006
++++ miniupnpd-pfsense2/upnpdescgen.c	Tue Aug 22 23:08:51 2006
 @@ -27,23 +27,23 @@
  	{"/major", {"1"}},
  	{"/minor", {"0"}},
@@ -328,7 +353,7 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  	{"/serialNumber", {"00000000"}},
  	{"/UDN", {(char *)uuid}},
  	{"/UPC", {"MINIUPNPD"}},
-@@ -59,13 +59,13 @@
+@@ -59,12 +59,12 @@
  	{"device", {INITHELPER(34,12)}},
  	{"/deviceType", {"urn:schemas-upnp-org:device:WANConnectionDevice:1"}},
  	{"/friendlyName", {"WANConnectionDevice"}},
@@ -340,48 +365,37 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  	{"/modelName", {"miniupnpd"}},
  	{"/modelNumber", {"1"}},
 -	{"/modelURL", {"http://miniupnp.free.fr/"}},
--	{"/serialNumber", {"000000000"}},
 +	{"/modelURL", {"http://www.pfsense.com/"}},
-+	{"/serialNumber", {"00000000"}},
+ 	{"/serialNumber", {"000000000"}},
  	{"/UDN", {(char *)uuid}},
  	{"/UPC", {"MINIUPNPD"}},
- 	{"serviceList", {INITHELPER(46,1)}},
---- miniupnpd/upnpredirect.c	Thu Jul 13 16:03:57 2006
-+++ upnpredirect.c	Fri Aug 18 19:58:58 2006
-@@ -43,9 +43,12 @@
+diff -urN miniupnpd-clean/upnpredirect.c miniupnpd-pfsense2/upnpredirect.c
+--- miniupnpd-clean/upnpredirect.c	Thu Jul 13 18:03:57 2006
++++ miniupnpd-pfsense2/upnpredirect.c	Thu Aug 24 13:13:47 2006
+@@ -37,15 +37,18 @@
+ 	                      iaddr_old, sizeof(iaddr_old), &iport_old);
+ 	if(r==0)
+ 	{
+-		syslog(LOG_INFO, "port %d protocol %s allready redirected to %s:%d",
++		syslog(LOG_INFO, "Port %d protocol %s allready redirected to %s:%d",
+ 	    	             (int)eport, protocol, iaddr_old, (int)iport_old);
+ 		return -1;
  	}
  	else
  	{
 -		syslog(LOG_INFO, "redirecting port %d to %s:%d protocol %s",
 -	    	             (int)eport, iaddr, (int)iport, protocol);
 -		add_redirect_rule2(ext_if_name, eport, iaddr, iport, proto);
-+		syslog(LOG_INFO, "redirecting port %d to %s:%d protocol %s for: %s",
-+	    	             (int)eport, iaddr, (int)iport, protocol, desc);
++		/* syslog(LOG_INFO, "redirecting port %d to %s:%d protocol %s for: %s",
++	    	             (int)eport, iaddr, (int)iport, protocol, desc); */
 +		add_redirect_rule2(ext_if_name, eport, iaddr, iport, proto, desc);
-+		syslog(LOG_INFO, "create pass rule to %s:%d protocol %s for: %s",
-+	    	             iaddr, (int)iport, protocol, desc);
++		/* syslog(LOG_INFO, "create pass rule to %s:%d protocol %s for: %s",
++	    	             iaddr, (int)iport, protocol, desc); */
 +		add_filter_rule2(ext_if_name, iaddr, eport, proto, desc);
  	}
  
  	return 0;
-@@ -63,8 +66,7 @@
- 	return r;
- }
- 
--int
--upnp_get_redirection_infos_by_index(int index,
-+int upnp_get_redirection_infos_by_index(int index,
-                                     unsigned short * eport, char * protocol,
-                                     unsigned short * iport, 
-                                     char * iaddr, int iaddrlen,
-@@ -86,12 +88,12 @@
- 	}
- }
- 
--int
--upnp_delete_redirection(unsigned short eport, const char * protocol)
-+int upnp_delete_redirection(unsigned short eport, const char * protocol)
- {
+@@ -92,6 +95,7 @@
  	int proto;
  	proto = proto_atoi(protocol);
  	delete_redirect_rule(ext_if_name, eport, proto);
@@ -389,8 +403,9 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  	return 0;
  }
  
---- miniupnpd/upnpsoap.c	Wed Jul 19 22:48:46 2006
-+++ upnpsoap.c	Fri Aug 18 19:59:31 2006
+diff -urN miniupnpd-clean/upnpsoap.c miniupnpd-pfsense2/upnpsoap.c
+--- miniupnpd-clean/upnpsoap.c	Thu Jul 20 00:48:46 2006
++++ miniupnpd-pfsense2/upnpsoap.c	Tue Aug 22 23:08:51 2006
 @@ -211,7 +211,7 @@
  	ext_port = GetValueFromNameValueList(&data, "NewExternalPort");
  	protocol = GetValueFromNameValueList(&data, "NewProtocol");
@@ -400,3 +415,12 @@ diff -ru miniupnpd/getifaddr.h getifaddr.h
  	eport = (unsigned short)atoi(ext_port);
  	iport = (unsigned short)atoi(int_port);
  	r = upnp_redirect(eport, int_ip, iport, protocol, desc);
+@@ -455,7 +455,7 @@
+ 		}
+ 	}
+ 	//printf("-- unknown soap method--\n");
+-	syslog(LOG_NOTICE, "Unknown soap method");
++	syslog(LOG_NOTICE, "Unknown soap method: %s", action);
+ 	// TODO response
+ 	CloseSocket_upnphttp(h);
+ }
