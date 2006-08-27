@@ -1,0 +1,10 @@
+The DSL Modem Tool, as created by A. Matthoefer, is a useful utility
+for Diagnosis and Tuning of DSL Modems. Sadly, it only works on
+Windows. So I started reimplementing it on Linux.
+
+DMT-UX should be able to communicate with all Thomson Speedtouch
+Modems and compatible devices. It was tested successfully with:
+
+ * Thomson Speedtouch 516i V6
+
+WWW: http://www.spida.net/projects/dmt-ux/?lang=en

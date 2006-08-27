@@ -1,0 +1,11 @@
+etc/rc.d/dmt-ux.sh
+bin/p3scan
+share/dmt-ux/VeraBd.ttf
+share/dmt-ux/Vera.ttf
+share/dmt-ux/downstream-arrowhead.xpm
+share/dmt-ux/downstream-arrowsection.xpm
+share/dmt-ux/modem-local.xpm
+share/dmt-ux/modem-remote.xpm
+share/dmt-ux/upstream-arrowhead.xpm
+share/dmt-ux/upstream-arrowsection.xpm
+share/dmt-ux/world.xpm
