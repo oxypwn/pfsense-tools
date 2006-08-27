@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	dmt-ux
-PORTVERSION=	0.104
+PORTVERSION=	0.105
 CATEGORIES=	comms
 MASTER_SITES=	http://www.spida.net/%SUBDIR%/
 MASTER_SITE_SUBDIR=	/projects/${PORTNAME}/
@@ -26,13 +26,14 @@ SCRIPTS_ENV=	PKG_PREFIX=${PREFIX} NONEXISTENT=${NONEXISTENT} PASSWD=/etc/passwd
 SUB_FILES=	pkg-message
 PKGMESSAGE=	${WRKDIR}/pkg-message
 
-PORTDOCS=	License.GPL License.Bitstream README
+PORTDOCS=	Licence.GPL Licence.Bitstream README
 
 #MAN8=		dmt-ux.8
 MANCOMPRESSED=	yes
 XPM=		downstream-arrowhead \
 		downstream-arrowsection \
 		modem-local \
+		modem-remote \
 		upstream-arrowhead \
 		upstream-arrowsection \
 		world
@@ -62,6 +63,6 @@ do-install:
 
 post-install:
 	@${SETENV} ${SCRIPTS_ENV} ${SH} ${PKGINSTALL} ${PKGNAME} POST-INSTALL
-	@${CAT} ${PKGMESSAGE}
+#	@${CAT} ${PKGMESSAGE}
 
 .include <bsd.port.post.mk>
