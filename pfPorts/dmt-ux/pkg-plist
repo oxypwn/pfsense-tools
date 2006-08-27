@@ -1,5 +1,5 @@
 etc/rc.d/dmt-ux.sh
-bin/p3scan
+bin/dmt-ux
 share/dmt-ux/VeraBd.ttf
 share/dmt-ux/Vera.ttf
 share/dmt-ux/downstream-arrowhead.xpm

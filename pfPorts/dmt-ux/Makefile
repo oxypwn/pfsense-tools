@@ -2,7 +2,7 @@
 # Date created:				27. August 2006
 # Whom:	      				Daniel S. Haischt <me@daniel.stefan.haischt.name>
 #
-# $FreeBSD: ports/mail/p3scan/Makefile,v 1.8 2006/04/01 11:54:35 edwin Exp $
+# $I $
 #
 
 PORTNAME=	dmt-ux
