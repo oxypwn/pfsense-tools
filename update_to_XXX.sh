@@ -44,7 +44,7 @@ handle_arguments() {
 
 restore_backups() {
 	echo
-	echo "*** Something bad happened.  Aborting!"
+	echo " *** Something bad happened.  Aborting!"
 	echo
 	echo "Restoring backup..."
 	/etc/rc.conf_mount_rw
@@ -130,10 +130,10 @@ test_filter_status() {
 	if [ $? -ne 0 ]; then
 		restore_backups
 	else
+		echo " done."
 	    echo "You are now updated to $TARGET_VERSION"
 	    echo $TARGET_VERSION > /etc/version
 	fi
-	echo "done."
 }
 
 rw() {
