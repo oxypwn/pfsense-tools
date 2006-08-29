@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# pfSense upgrade script
+# pfSense generic upgrade script
 # (C)2006 Scott Ullrich
 # All rights reserved.
 
@@ -13,11 +13,11 @@
 # Previous version
 PREVIOUS_VERSION="RC2"
 # New version
-TARGET_VERSION="RC2f"
+TARGET_VERSION="RC2i"
 # Set to 1 to force a kernel update and reboot
-KERNEL_UPDATE_NEEDED=1
+KERNEL_UPDATE_NEEDED=0
 # Set to 1 if the ruleset will change after update
-RULESET_CHANGES=1
+RULESET_CHANGES=0
 # Where will the updates be stored
 PATH_TO_UPDATE="http://www.pfsense.com/~sullrich"
 # Strict upgrades needed.  RC2a -> RC2b only, etc.
@@ -35,11 +35,26 @@ VERSION=`cat /etc/version`
 # Kernel updates should be formatted as:
 #    ${PATH_TO_UPDATE}/${TARGET_VERSION}_${PLATFORM}_kernel.tgz
 
+shutdown_webserver() {
+	killall lighttpd
+}
+
+restart_webserver() {
+	/etc/rc.restart_webgui
+}
+
+ensure_exists() {
+        touch /usr/local/etc/php.ini
+        touch /usr/local/lib/php/extensions/no-debug-non-zts-20020429/apc.so
+}
+
+remove_old() {
+	rm -f /usr/local/lib/php/extensions/no-debug-non-zts-20020429/upload_progress_tracking.so
+	rm -f /usr/local/lib/php/extensions/no-debug-non-zts-20020429/bandaid.so
+}
+
 handle_arguments() {
-	if [ -r $1 ]; then
-		PATH_TO_UPDATE=$1
-		echo "Setting PATH_TO_UPDATE to $1"
-	fi
+	# XXX: todo
 }
 
 restore_backups() {
@@ -60,6 +75,7 @@ restore_backups() {
 	pfctl -f /tmp/rules.debug
 	echo "done."
 	echo "Script exiting due to errors."
+	restart_webserver
 	exit
 }
 
@@ -69,6 +85,7 @@ backup() {
 		| tar tvzpf - | awk '{ print $9 }' | tar czvfp /tmp/backup.tgz -T -)
 	if [ $? -ne 0 ]; then
 		echo "ERROR!  Could not create backup.  Exiting."
+		restart_webserver
 		exit
 	fi
 }
@@ -80,6 +97,7 @@ backup_kernel() {
 	        | tar tvzpf - | awk '{ print $9 }' | tar czvfp /tmp/backup_kernel.tgz -T -)
 		if [ $? -ne 0 ]; then
 			echo "ERROR!  Could not create backup.  Exiting."
+			restart_webserver
 			exit
 		fi
 	fi
@@ -87,7 +105,7 @@ backup_kernel() {
 
 update() {
 	echo "Now pulling down the update file, please wait..."
-	fetch -q -o - ${PATH_TO_UPDATE}/$TARGET_VERSION.tgz | tar xzvpf - -C /
+	fetch -q -o - ${PATH_TO_UPDATE}/$TARGET_VERSION.tgz | tar xzvpf - -U -C /
 	if [ $? -ne 0 ]; then
 		restore_backups
 	fi
@@ -97,7 +115,7 @@ update_kernel() {
 	if [ $KERNEL_UPDATE_NEEDED -gt 0 ]; then
 	    echo "Now pulling down the kernel update file, please wait..."
 	    fetch -q -o - ${PATH_TO_UPDATE}/${TARGET_VERSION}_${PLATFORM}_kernel.tgz \
-			| tar xzvpf - -C /
+			| tar xzvpf - -U -C /
 	fi
 	if [ $? -ne 0 ]; then
 		restore_backups
@@ -245,6 +263,7 @@ welcome() {
 	echo -n "."
 	sleep 2
 	echo "."
+	sleep 1
 }
 
 handle_arguments
@@ -252,6 +271,8 @@ check_upgrade_status
 welcome
 alert_reboot_needed
 rw
+remove_old
+ensure_exists
 backup
 backup_kernel
 update
@@ -260,5 +281,6 @@ reload_filter
 test_filter_status
 ro
 show_version_status
+restart_webserver
 reboot_if_needed
 
