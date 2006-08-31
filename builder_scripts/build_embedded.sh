@@ -87,14 +87,15 @@ CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 
 # Root partition size
 # ROOTSIZE=${ROOTSIZE:-"116740"}  # Total number of sectors - 59 megs
-if [ $pfSense_version = "7" ]; then
-        # 128 megs
-	unset ROOTSIZE
-	unset CONFSIZE
-        ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
-        CONFSIZE=${CONFSIZE:-"4096"}
-fi
-if [ $pfSense_version = "6" ]; then
+
+
+# 128 megs
+unset ROOTSIZE
+unset CONFSIZE
+ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
+CONFSIZE=${CONFSIZE:-"4096"}
+
+if [ $pfSense_version = "5" ]; then
         # 64 megs
 	unset ROOTSIZE
 	unset CONFSIZE
