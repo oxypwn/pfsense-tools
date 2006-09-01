@@ -92,7 +92,8 @@ CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 # 128 megs
 unset ROOTSIZE
 unset CONFSIZE
-ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
+ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors
+#ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
 CONFSIZE=${CONFSIZE:-"4096"}
 
 if [ $pfSense_version = "5" ]; then
