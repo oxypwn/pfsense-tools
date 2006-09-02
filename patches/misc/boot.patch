@@ -1,0 +1,44 @@
+Index: common/misc.c
+===================================================================
+RCS file: /usr/local/cvsroot/bootlua/common/misc.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 misc.c
+--- common/misc.c	21 Sep 2005 23:12:45 -0000	1.1.1.1
++++ common/misc.c	2 Oct 2005 23:01:43 -0000
+@@ -172,7 +172,7 @@
+     char	lbuf[80];
+ #define emit(fmt, args...)	{sprintf(lbuf, fmt , ## args); pager_output(lbuf);}
+ 
+-    pager_open();
++    /*pager_open();*/
+     for (line = region; line < (region + len); line += 16) {
+ 	emit("%08lx  ", (long) line);
+ 	
+@@ -198,7 +198,7 @@
+ 	}
+ 	emit("|\n");
+     }
+-    pager_close();
++    /*pager_close();*/
+ }
+ 
+ void
+Index: i386/libi386/biosdisk.c
+===================================================================
+RCS file: /usr/local/cvsroot/bootlua/i386/libi386/biosdisk.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 biosdisk.c
+--- i386/libi386/biosdisk.c	21 Sep 2005 23:13:02 -0000	1.1.1.1
++++ i386/libi386/biosdisk.c	2 Oct 2005 23:01:44 -0000
+@@ -373,8 +373,10 @@
+ 	return;
+     lp =(struct disklabel *)(&buf[0]);
+     if (lp->d_magic != DISKMAGIC) {
+-	sprintf(line, "%s: FFS  bad disklabel\n", prefix);
++	sprintf(line, "%s: FFS  bad disklabel (expected 0x%08x, found 0x%08x\n",
++	    prefix, DISKMAGIC, lp->d_magic);
+ 	pager_output(line);
++	hexdump(buf, BIOSDISK_SECSIZE);
+ 	return;
+     }
+     

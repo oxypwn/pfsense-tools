@@ -1,0 +1,3143 @@
+Index: amd64/amd64/trap.c
+===================================================================
+RCS file: /home/ncvs/src/sys/amd64/amd64/trap.c,v
+retrieving revision 1.289.2.1
+diff -u -r1.289.2.1 trap.c
+--- amd64/amd64/trap.c	3 Sep 2005 11:57:28 -0000	1.289.2.1
++++ amd64/amd64/trap.c	4 Oct 2005 14:20:06 -0000
+@@ -146,11 +146,6 @@
+ extern char *syscallnames[];
+ #endif
+ 
+-#ifdef DEVICE_POLLING
+-extern u_int32_t poll_in_trap;
+-extern int ether_poll(int count);
+-#endif /* DEVICE_POLLING */
+-
+ /*
+  * Exception, fault, and trap interface to the FreeBSD kernel.
+  * This common code is called from assembly language IDT gate entry
+@@ -241,11 +236,6 @@
+ 			trap_fatal(&frame, frame.tf_addr);
+ 	}
+ 
+-#ifdef	DEVICE_POLLING
+-	if (poll_in_trap)
+-		ether_poll(poll_in_trap);
+-#endif	/* DEVICE_POLLING */
+-
+         if (ISPL(frame.tf_cs) == SEL_UPL) {
+ 		/* user trap */
+ 
+Index: dev/em/if_em.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/em/if_em.c,v
+retrieving revision 1.65.2.3
+diff -u -r1.65.2.3 if_em.c
+--- dev/em/if_em.c	26 Sep 2005 14:46:10 -0000	1.65.2.3
++++ dev/em/if_em.c	4 Oct 2005 14:20:10 -0000
+@@ -197,6 +197,9 @@
+ static void em_add_int_delay_sysctl(struct adapter *, const char *,
+ 				    const char *, struct em_int_delay_info *,
+ 				    int, int);
++#ifdef DEVICE_POLLING
++static poll_handler_t em_poll;
++#endif
+ 
+ /*********************************************************************
+  *  FreeBSD Device Interface Entry Points                    
+@@ -526,6 +529,11 @@
+ 
+ 	INIT_DEBUGOUT("em_detach: begin");
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	EM_LOCK(adapter);
+ 	adapter->in_detach = 1;
+ 	em_stop(adapter);
+@@ -718,7 +726,7 @@
+ 				em_initialize_receive_unit(adapter);
+ 			}
+ #ifdef DEVICE_POLLING
+-                        if (!(ifp->if_flags & IFF_POLLING))
++                        if (!(ifp->if_capenable & IFCAP_POLLING))
+ #endif
+ 				em_enable_intr(adapter);
+ 			EM_UNLOCK(adapter);
+@@ -733,8 +741,26 @@
+ 		IOCTL_DEBUGOUT("ioctl rcv'd: SIOCSIFCAP (Set Capabilities)");
+ 		reinit = 0;
+ 		mask = ifr->ifr_reqcap ^ ifp->if_capenable;
+-		if (mask & IFCAP_POLLING)
+-			ifp->if_capenable ^= IFCAP_POLLING;
++#ifdef DEVICE_POLLING
++		if (mask & IFCAP_POLLING) {
++			if (ifr->ifr_reqcap & IFCAP_POLLING) {
++				error = ether_poll_register(em_poll, ifp);
++				if (error)
++					return(error);
++				EM_LOCK(adapter);
++				em_disable_intr(adapter);
++				ifp->if_capenable |= IFCAP_POLLING;
++				EM_UNLOCK(adapter);
++			} else {
++				error = ether_poll_deregister(ifp);
++				/* Enable interrupt even in error case */
++				EM_LOCK(adapter);
++				em_enable_intr(adapter);
++				ifp->if_capenable &= ~IFCAP_POLLING;
++				EM_UNLOCK(adapter);
++			}
++		}
++#endif
+ 		if (mask & IFCAP_HWCSUM) {
+ 			ifp->if_capenable ^= IFCAP_HWCSUM;
+ 			reinit = 1;
+@@ -896,7 +922,7 @@
+          * Only enable interrupts if we are not polling, make sure
+          * they are off otherwise.
+          */
+-        if (ifp->if_flags & IFF_POLLING)
++        if (ifp->if_capenable & IFCAP_POLLING)
+                 em_disable_intr(adapter);
+         else
+ #endif /* DEVICE_POLLING */
+@@ -921,8 +947,6 @@
+ 
+ 
+ #ifdef DEVICE_POLLING
+-static poll_handler_t em_poll;
+-        
+ static void     
+ em_poll_locked(struct ifnet *ifp, enum poll_cmd cmd, int count)
+ {
+@@ -931,14 +955,6 @@
+ 
+ 	mtx_assert(&adapter->mtx, MA_OWNED);
+ 
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-        if (cmd == POLL_DEREGISTER) {       /* final call, enable interrupts */
+-                em_enable_intr(adapter);
+-                return;
+-        }
+         if (cmd == POLL_AND_CHECK_STATUS) {
+                 reg_icr = E1000_READ_REG(&adapter->hw, ICR);
+                 if (reg_icr & (E1000_ICR_RXSEQ | E1000_ICR_LSC)) {
+@@ -949,13 +965,10 @@
+ 			callout_reset(&adapter->timer, hz, em_local_timer, adapter);
+                 }
+         }
+-        if (ifp->if_drv_flags & IFF_DRV_RUNNING) {
+-                em_process_receive_interrupts(adapter, count);
+-                em_clean_transmit_interrupts(adapter);
+-        }
++	em_process_receive_interrupts(adapter, count);
++	em_clean_transmit_interrupts(adapter);
+ 	
+-        if (ifp->if_drv_flags & IFF_DRV_RUNNING &&
+-	    !IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++        if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
+                 em_start_locked(ifp);
+ }
+         
+@@ -965,7 +978,8 @@
+         struct adapter *adapter = ifp->if_softc;
+ 
+ 	EM_LOCK(adapter);
+-	em_poll_locked(ifp, cmd, count);
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		em_poll_locked(ifp, cmd, count);
+ 	EM_UNLOCK(adapter);
+ }
+ #endif /* DEVICE_POLLING */
+@@ -988,18 +1002,10 @@
+         ifp = adapter->ifp;  
+ 
+ #ifdef DEVICE_POLLING
+-        if (ifp->if_flags & IFF_POLLING) {
++        if (ifp->if_capenable & IFCAP_POLLING) {
+ 		EM_UNLOCK(adapter);
+                 return;
+ 	}
+-
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(em_poll, ifp)) {
+-                em_disable_intr(adapter);
+-                em_poll_locked(ifp, 0, 1);
+-		EM_UNLOCK(adapter);
+-                return;
+-        }
+ #endif /* DEVICE_POLLING */
+ 
+ 	reg_icr = E1000_READ_REG(&adapter->hw, ICR);
+@@ -1974,7 +1980,6 @@
+ 
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+-	ifp->if_capenable |= IFCAP_POLLING;
+ #endif
+ 
+ 	/* 
+@@ -2909,12 +2914,14 @@
+ 						       adapter->fmp = NULL);
+  
+                                 if (adapter->fmp != NULL) {
++					struct mbuf *m = adapter->fmp;
++
++					adapter->fmp = NULL;
+ 					EM_UNLOCK(adapter);
+-                                        (*ifp->if_input)(ifp, adapter->fmp);
++                                        (*ifp->if_input)(ifp, m);
+ 					EM_LOCK(adapter);
+ 				}
+ #endif
+-                                adapter->fmp = NULL;
+                                 adapter->lmp = NULL;
+                         }
+ 		} else {
+Index: dev/firewire/00README
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/firewire/00README,v
+retrieving revision 1.1
+diff -u -r1.1 00README
+--- dev/firewire/00README	13 Sep 2002 12:31:56 -0000	1.1
++++ dev/firewire/00README	4 Oct 2005 14:20:10 -0000
+@@ -70,9 +70,6 @@
+ 
+ 	  It also has DEVICE_POLLING[5] support. To enable it, edit your
+ 	kernel config file and Makefile.fwe then rebuild kernel and if_fwe.ko.
+-	Note this driver checks kern.polling.enable only when enabling the
+-	interface. When you enable polling after the interface is up,
+-	try 'ifconfig fwe0 down;ifconfig fwe0 up'.
+ 
+ 5. FireWire for Kernel Hackers
+ 
+Index: dev/firewire/if_fwe.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/firewire/if_fwe.c,v
+retrieving revision 1.37.2.1
+diff -u -r1.37.2.1 if_fwe.c
+--- dev/firewire/if_fwe.c	25 Aug 2005 05:01:09 -0000	1.37.2.1
++++ dev/firewire/if_fwe.c	4 Oct 2005 14:20:10 -0000
+@@ -100,19 +100,6 @@
+ TUNABLE_INT("hw.firewire.fwe.rx_queue_len", &rx_queue_len);
+ 
+ #ifdef DEVICE_POLLING
+-#define FWE_POLL_REGISTER(func, fwe, ifp)			\
+-	if (ether_poll_register(func, ifp)) {			\
+-		struct firewire_comm *fc = (fwe)->fd.fc;	\
+-		fc->set_intr(fc, 0);				\
+-	}
+-
+-#define FWE_POLL_DEREGISTER(fwe, ifp)				\
+-	do {							\
+-		struct firewire_comm *fc = (fwe)->fd.fc;	\
+-		ether_poll_deregister(ifp);			\
+-		fc->set_intr(fc, 1);				\
+-	} while(0)						\
+-
+ static poll_handler_t fwe_poll;
+ 
+ static void
+@@ -121,19 +108,15 @@
+ 	struct fwe_softc *fwe;
+ 	struct firewire_comm *fc;
+ 
++	if (!(ifp->if_drv_flags & IFF_DRV_RUNNING))
++		return;
++
+ 	fwe = ((struct fwe_eth_softc *)ifp->if_softc)->fwe;
+ 	fc = fwe->fd.fc;
+-	if (cmd == POLL_DEREGISTER) {
+-		/* enable interrupts */
+-		fc->set_intr(fc, 1);
+-		return;
+-	}
+ 	fc->poll(fc, (cmd == POLL_AND_CHECK_STATUS)?0:1, count);
+ }
+-#else
+-#define FWE_POLL_REGISTER(func, fwe, ifp)
+-#define FWE_POLL_DEREGISTER(fwe, ifp)
+-#endif
++#endif /* DEVICE_POLLING */
++
+ static void
+ fwe_identify(driver_t *driver, device_t parent)
+ {
+@@ -242,7 +225,7 @@
+         /* Tell the upper layer(s) we support long frames. */
+ 	ifp->if_data.ifi_hdrlen = sizeof(struct ether_vlan_header);
+ #if defined(__FreeBSD__) && __FreeBSD_version >= 500000
+-	ifp->if_capabilities |= IFCAP_VLAN_MTU;
++	ifp->if_capabilities |= IFCAP_VLAN_MTU & IFCAP_POLLING;
+ 	ifp->if_capenable |= IFCAP_VLAN_MTU;
+ #endif
+ 
+@@ -262,8 +245,6 @@
+ 
+ 	fc = fwe->fd.fc;
+ 
+-	FWE_POLL_DEREGISTER(fwe, ifp);
+-
+ 	if (fwe->dma_ch >= 0) {
+ 		xferq = fc->ir[fwe->dma_ch];
+ 
+@@ -305,6 +286,11 @@
+ 
+ 	fwe = device_get_softc(dev);
+ 	ifp = fwe->eth_softc.ifp;
++
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
+ 	s = splimp();
+ 
+ 	fwe_stop(fwe);
+@@ -416,7 +402,6 @@
+ 	ifp->if_flags &= ~IFF_OACTIVE;
+ #endif
+ 
+-	FWE_POLL_REGISTER(fwe_poll, fwe, ifp);
+ #if 0
+ 	/* attempt to start output */
+ 	fwe_start(ifp);
+@@ -468,6 +453,34 @@
+ 						fwe->stream_ch, fwe->dma_ch);
+ 			splx(s);
+ 			break;
++		case SIOCSIFCAP:
++#ifdef DEVICE_POLLING
++		    {
++			struct ifreq *ifr = (struct ifreq *) data;
++			struct firewire_comm *fc = fc = fwe->fd.fc;
++
++			if (ifr->ifr_reqcap & IFCAP_POLLING &&
++			    !(ifp->if_capenable & IFCAP_POLLING)) {
++				error = ether_poll_register(fwe_poll, ifp);
++				if (error)
++					return(error);
++				/* Disable interrupts */
++				fc->set_intr(fc, 0);
++				ifp->if_capenable |= IFCAP_POLLING;
++				return (error);
++				
++			}
++			if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++			    ifp->if_capenable & IFCAP_POLLING) {
++				error = ether_poll_deregister(ifp);
++				/* Enable interrupts. */
++				fc->set_intr(fc, 1);
++				ifp->if_capenable &= ~IFCAP_POLLING;
++				return (error);
++			}
++		    }
++#endif /* DEVICE_POLLING */
++			break;
+ #if defined(__FreeBSD__) && __FreeBSD_version >= 500000
+ 		default:
+ #else
+@@ -634,9 +647,7 @@
+ 
+ 	fwe = (struct fwe_softc *)xferq->sc;
+ 	ifp = fwe->eth_softc.ifp;
+-#if 0
+-	FWE_POLL_REGISTER(fwe_poll, fwe, ifp);
+-#endif
++
+ 	while ((sxfer = STAILQ_FIRST(&xferq->stvalid)) != NULL) {
+ 		STAILQ_REMOVE_HEAD(&xferq->stvalid, link);
+ 		fp = mtod(sxfer->mbuf, struct fw_pkt *);
+Index: dev/firewire/if_fwip.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/firewire/if_fwip.c,v
+retrieving revision 1.7.2.2
+diff -u -r1.7.2.2 if_fwip.c
+--- dev/firewire/if_fwip.c	25 Aug 2005 05:01:09 -0000	1.7.2.2
++++ dev/firewire/if_fwip.c	4 Oct 2005 14:20:10 -0000
+@@ -107,19 +107,6 @@
+ TUNABLE_INT("hw.firewire.fwip.rx_queue_len", &rx_queue_len);
+ 
+ #ifdef DEVICE_POLLING
+-#define FWIP_POLL_REGISTER(func, fwip, ifp)			\
+-	if (ether_poll_register(func, ifp)) {			\
+-		struct firewire_comm *fc = (fwip)->fd.fc;	\
+-		fc->set_intr(fc, 0);				\
+-	}
+-
+-#define FWIP_POLL_DEREGISTER(fwip, ifp)				\
+-	do {							\
+-		struct firewire_comm *fc = (fwip)->fd.fc;	\
+-		ether_poll_deregister(ifp);			\
+-		fc->set_intr(fc, 1);				\
+-	} while(0)						\
+-
+ static poll_handler_t fwip_poll;
+ 
+ static void
+@@ -128,19 +115,15 @@
+ 	struct fwip_softc *fwip;
+ 	struct firewire_comm *fc;
+ 
++	if (!(ifp->if_drv_flags & IFF_DRV_RUNNING))
++		return;
++
+ 	fwip = ((struct fwip_eth_softc *)ifp->if_softc)->fwip;
+ 	fc = fwip->fd.fc;
+-	if (cmd == POLL_DEREGISTER) {
+-		/* enable interrupts */
+-		fc->set_intr(fc, 1);
+-		return;
+-	}
+ 	fc->poll(fc, (cmd == POLL_AND_CHECK_STATUS)?0:1, count);
+ }
+-#else
+-#define FWIP_POLL_REGISTER(func, fwip, ifp)
+-#define FWIP_POLL_DEREGISTER(fwip, ifp)
+-#endif
++#endif /* DEVICE_POLLING */
++
+ static void
+ fwip_identify(driver_t *driver, device_t parent)
+ {
+@@ -214,6 +197,9 @@
+ 	ifp->if_flags = (IFF_BROADCAST|IFF_SIMPLEX|IFF_MULTICAST|
+ 	    IFF_NEEDSGIANT);
+ 	ifp->if_snd.ifq_maxlen = TX_MAX_QUEUE;
++#ifdef DEVICE_POLLING
++	ifp->if_capabilities |= IFCAP_POLLING;
++#endif
+ 
+ 	s = splimp();
+ 	firewire_ifattach(ifp, hwaddr);
+@@ -234,8 +220,6 @@
+ 
+ 	fc = fwip->fd.fc;
+ 
+-	FWIP_POLL_DEREGISTER(fwip, ifp);
+-
+ 	if (fwip->dma_ch >= 0) {
+ 		xferq = fc->ir[fwip->dma_ch];
+ 
+@@ -279,14 +263,22 @@
+ fwip_detach(device_t dev)
+ {
+ 	struct fwip_softc *fwip;
++	struct ifnet *ifp;
+ 	int s;
+ 
+ 	fwip = (struct fwip_softc *)device_get_softc(dev);
++	ifp = fwip->fw_softc.fwip_ifp;
++
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	s = splimp();
+ 
+ 	fwip_stop(fwip);
+-	firewire_ifdetach(fwip->fw_softc.fwip_ifp);
+-	if_free(fwip->fw_softc.fwip_ifp);
++	firewire_ifdetach(ifp);
++	if_free(ifp);
+ 
+ 	splx(s);
+ 	return 0;
+@@ -408,7 +400,6 @@
+ 	ifp->if_flags &= ~IFF_OACTIVE;
+ #endif
+ 
+-	FWIP_POLL_REGISTER(fwip_poll, fwip, ifp);
+ #if 0
+ 	/* attempt to start output */
+ 	fwip_start(ifp);
+@@ -444,7 +435,34 @@
+ 	case SIOCADDMULTI:
+ 	case SIOCDELMULTI:
+ 		break;
+-
++	case SIOCSIFCAP:
++#ifdef DEVICE_POLLING
++	    {
++		struct ifreq *ifr = (struct ifreq *) data;
++		struct firewire_comm *fc = fc = fwip->fd.fc;
++
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(fwip_poll, ifp);
++			if (error)
++				return(error);
++			/* Disable interrupts */
++			fc->set_intr(fc, 0);
++			ifp->if_capenable |= IFCAP_POLLING;
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			fc->set_intr(fc, 1);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			return (error);
++		}
++	    }
++#endif /* DEVICE_POLLING */
++		break;
+ #if defined(__FreeBSD__) && __FreeBSD_version >= 500000
+ 	default:
+ #else
+@@ -757,9 +775,7 @@
+ 
+ 	fwip = (struct fwip_softc *)xferq->sc;
+ 	ifp = fwip->fw_softc.fwip_ifp;
+-#if 0
+-	FWIP_POLL_REGISTER(fwip_poll, fwip, ifp);
+-#endif
++
+ 	while ((sxfer = STAILQ_FIRST(&xferq->stvalid)) != NULL) {
+ 		STAILQ_REMOVE_HEAD(&xferq->stvalid, link);
+ 		fp = mtod(sxfer->mbuf, struct fw_pkt *);
+Index: dev/fxp/if_fxp.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/fxp/if_fxp.c,v
+retrieving revision 1.240.2.4
+diff -u -r1.240.2.4 if_fxp.c
+--- dev/fxp/if_fxp.c	26 Aug 2005 14:35:44 -0000	1.240.2.4
++++ dev/fxp/if_fxp.c	4 Oct 2005 14:20:10 -0000
+@@ -772,7 +772,6 @@
+ #ifdef DEVICE_POLLING
+ 	/* Inform the world we support polling. */
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+-	ifp->if_capenable |= IFCAP_POLLING;
+ #endif
+ 
+ 	/*
+@@ -893,6 +892,11 @@
+ {
+ 	struct fxp_softc *sc = device_get_softc(dev);
+ 
++#ifdef DEVICE_POLLING
++	if (sc->ifp->if_capenable & IFCAP_POLLING)   
++		ether_poll_deregister(sc->ifp);
++#endif
++
+ 	FXP_LOCK(sc);
+ 	sc->suspended = 1;	/* Do same thing as we do for suspend */
+ 	/*
+@@ -1450,15 +1454,11 @@
+ 	uint8_t statack;
+ 
+ 	FXP_LOCK(sc);
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-	if (cmd == POLL_DEREGISTER) {	/* final call, enable interrupts */
+-		CSR_WRITE_1(sc, FXP_CSR_SCB_INTRCNTL, 0);
++	if (!(ifp->if_drv_flags & IFF_DRV_RUNNING)) {
+ 		FXP_UNLOCK(sc);
+ 		return;
+ 	}
++
+ 	statack = FXP_SCB_STATACK_CXTNO | FXP_SCB_STATACK_CNA |
+ 	    FXP_SCB_STATACK_FR;
+ 	if (cmd == POLL_AND_CHECK_STATUS) {
+@@ -1497,18 +1497,10 @@
+ 	}
+ 
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING) {
++	if (ifp->if_capenable & IFCAP_POLLING) {
+ 		FXP_UNLOCK(sc);
+ 		return;
+ 	}
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(fxp_poll, ifp)) {
+-		/* disable interrupts */
+-		CSR_WRITE_1(sc, FXP_CSR_SCB_INTRCNTL, FXP_SCB_INTR_DISABLE);
+-		FXP_UNLOCK(sc);
+-		fxp_poll(ifp, 0, 1);
+-		return;
+-	}
+ #endif
+ 	while ((statack = CSR_READ_1(sc, FXP_CSR_SCB_STATACK)) != 0) {
+ 		/*
+@@ -1839,9 +1831,6 @@
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
+ 	ifp->if_timer = 0;
+ 
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif
+ 	/*
+ 	 * Cancel stats updater.
+ 	 */
+@@ -2165,7 +2154,7 @@
+ 	 * ... but only do that if we are not polling. And because (presumably)
+ 	 * the default is interrupts on, we need to disable them explicitly!
+ 	 */
+-	if ( ifp->if_flags & IFF_POLLING )
++	if (ifp->if_capenable & IFCAP_POLLING )
+ 		CSR_WRITE_1(sc, FXP_CSR_SCB_INTRCNTL, FXP_SCB_INTR_DISABLE);
+ 	else
+ #endif /* DEVICE_POLLING */
+@@ -2420,11 +2409,30 @@
+ 		break;
+ 
+ 	case SIOCSIFCAP:
+-		FXP_LOCK(sc);
+ 		mask = ifp->if_capenable ^ ifr->ifr_reqcap;
+-		if (mask & IFCAP_POLLING)
+-			ifp->if_capenable ^= IFCAP_POLLING;
++#ifdef DEVICE_POLLING
++		if (mask & IFCAP_POLLING) {
++			if (ifr->ifr_reqcap & IFCAP_POLLING) {
++				error = ether_poll_register(fxp_poll, ifp);
++				if (error)
++					return(error);
++				FXP_LOCK(sc);
++				CSR_WRITE_1(sc, FXP_CSR_SCB_INTRCNTL,
++				    FXP_SCB_INTR_DISABLE);
++				ifp->if_capenable |= IFCAP_POLLING;
++				FXP_UNLOCK(sc);
++			} else {
++				error = ether_poll_deregister(ifp);
++				/* Enable interrupts in any case */
++				FXP_LOCK(sc);
++				CSR_WRITE_1(sc, FXP_CSR_SCB_INTRCNTL, 0);
++				ifp->if_capenable &= ~IFCAP_POLLING;
++				FXP_UNLOCK(sc);
++			}
++		}
++#endif
+ 		if (mask & IFCAP_VLAN_MTU) {
++			FXP_LOCK(sc);
+ 			ifp->if_capenable ^= IFCAP_VLAN_MTU;
+ 			if (sc->revision != FXP_REV_82557)
+ 				flag = FXP_FLAG_LONG_PKT_EN;
+@@ -2433,8 +2441,8 @@
+ 			sc->flags ^= flag;
+ 			if (ifp->if_flags & IFF_UP)
+ 				fxp_init_body(sc);
++			FXP_UNLOCK(sc);
+ 		}
+-		FXP_UNLOCK(sc);
+ 		break;
+ 
+ 	default:
+Index: dev/ixgb/README
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ixgb/README,v
+retrieving revision 1.1
+diff -u -r1.1 README
+--- dev/ixgb/README	28 May 2004 00:22:58 -0000	1.1
++++ dev/ixgb/README	4 Oct 2005 14:20:10 -0000
+@@ -196,18 +196,17 @@
+         options DEVICE_POLLING
+         options HZ=1000
+ 
+-  At runtime, use the following command to turn on polling mode. Similarly,
+-  turn off polling mode by setting the variable to 0:
++  At runtime, use the following command to turn on polling mode.
+ 
+-        sysctl kern.polling.enable=1
++	ifconfig ixgb0 polling
+ 
++  Similarly, turn off polling mode by removing IFCAP_POLLING flag from
++  interface:
+ 
+-  NOTES: DEVICE POLLING is only valid for non-SMP kernels.
+-
+-         The driver has to be built into the kernel for DEVICE POLLING to be
+-         enabled in the driver.
+-
++        ifconfig ixgb0 -polling
+ 
++  The driver has to be built into the kernel for DEVICE POLLING to be
++  enabled in the driver.
+ 
+ Support
+ =======
+Index: dev/ixgb/if_ixgb.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ixgb/if_ixgb.c,v
+retrieving revision 1.10.2.3
+diff -u -r1.10.2.3 if_ixgb.c
+--- dev/ixgb/if_ixgb.c	25 Aug 2005 05:01:11 -0000	1.10.2.3
++++ dev/ixgb/if_ixgb.c	4 Oct 2005 14:20:10 -0000
+@@ -141,6 +141,9 @@
+ ixgb_dma_malloc(struct adapter *, bus_size_t,
+ 		struct ixgb_dma_alloc *, int);
+ static void     ixgb_dma_free(struct adapter *, struct ixgb_dma_alloc *);
++#ifdef DEVICE_POLLING
++static poll_handler_t ixgb_poll;
++#endif
+ 
+ /*********************************************************************
+  *  FreeBSD Device Interface Entry Points
+@@ -368,6 +371,11 @@
+ 
+ 	INIT_DEBUGOUT("ixgb_detach: begin");
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	IXGB_LOCK(adapter);
+ 	adapter->in_detach = 1;
+ 
+@@ -556,6 +564,26 @@
+ 	case SIOCSIFCAP:
+ 		IOCTL_DEBUGOUT("ioctl rcv'd: SIOCSIFCAP (Set Capabilities)");
+ 		mask = ifr->ifr_reqcap ^ ifp->if_capenable;
++#ifdef DEVICE_POLLING
++		if (mask & IFCAP_POLLING) {
++			if (ifr->ifr_reqcap & IFCAP_POLLING) {
++				error = ether_poll_register(ixgb_poll, ifp);
++				if (error)
++					return(error);
++				IXGB_LOCK(adapter);
++				ixgb_disable_intr(adapter);
++				ifp->if_capenable |= IFCAP_POLLING;
++				IXGB_UNLOCK(adapter);
++			} else {
++				error = ether_poll_deregister(ifp);
++				/* Enable interrupt even in error case */
++				IXGB_LOCK(adapter);
++				ixgb_enable_intr(adapter);
++				ifp->if_capenable &= ~IFCAP_POLLING;
++				IXGB_UNLOCK(adapter);
++			}
++		}
++#endif /* DEVICE_POLLING */
+ 		if (mask & IFCAP_HWCSUM) {
+ 			if (IFCAP_HWCSUM & ifp->if_capenable)
+ 				ifp->if_capenable &= ~IFCAP_HWCSUM;
+@@ -694,10 +722,10 @@
+ 	 * Only disable interrupts if we are polling, make sure they are on
+ 	 * otherwise.
+ 	 */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		ixgb_disable_intr(adapter);
+ 	else
+-#endif				/* DEVICE_POLLING */
++#endif
+ 		ixgb_enable_intr(adapter);
+ 
+ 	return;
+@@ -715,8 +743,6 @@
+ }
+ 
+ #ifdef DEVICE_POLLING
+-static poll_handler_t ixgb_poll;
+-
+ static void
+ ixgb_poll_locked(struct ifnet * ifp, enum poll_cmd cmd, int count)
+ {
+@@ -725,15 +751,6 @@
+ 
+ 	IXGB_LOCK_ASSERT(adapter);
+ 
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-
+-	if (cmd == POLL_DEREGISTER) {	/* final call, enable interrupts */
+-		ixgb_enable_intr(adapter);
+-		return;
+-	}
+ 	if (cmd == POLL_AND_CHECK_STATUS) {
+ 		reg_icr = IXGB_READ_REG(&adapter->hw, ICR);
+ 		if (reg_icr & (IXGB_INT_RXSEQ | IXGB_INT_LSC)) {
+@@ -744,12 +761,10 @@
+ 			    adapter);
+ 		}
+ 	}
+-	if (ifp->if_drv_flags & IFF_DRV_RUNNING) {
+-		ixgb_process_receive_interrupts(adapter, count);
+-		ixgb_clean_transmit_interrupts(adapter);
+-	}
+-	if (ifp->if_drv_flags & IFF_DRV_RUNNING &&
+-	    ifp->if_snd.ifq_head != NULL)
++	ixgb_process_receive_interrupts(adapter, count);
++	ixgb_clean_transmit_interrupts(adapter);
++
++	if (ifp->if_snd.ifq_head != NULL)
+ 		ixgb_start_locked(ifp);
+ }
+ 
+@@ -759,10 +774,11 @@
+ 	struct adapter *adapter = ifp->if_softc;
+ 
+ 	IXGB_LOCK(adapter);
+-	ixgb_poll_locked(ifp, cmd, count);
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		ixgb_poll_locked(ifp, cmd, count);
+ 	IXGB_UNLOCK(adapter);
+ }
+-#endif				/* DEVICE_POLLING */
++#endif /* DEVICE_POLLING */
+ 
+ /*********************************************************************
+  *
+@@ -784,19 +800,11 @@
+ 	ifp = adapter->ifp;
+ 
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING) {
+-		IXGB_UNLOCK(adapter);
+-		return;
+-	}
+-
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(ixgb_poll, ifp)) {
+-		ixgb_disable_intr(adapter);
+-		ixgb_poll_locked(ifp, 0, 1);
++	if (ifp->if_capenable & IFCAP_POLLING) {
+ 		IXGB_UNLOCK(adapter);
+ 		return;
+ 	}
+-#endif				/* DEVICE_POLLING */
++#endif
+ 
+ 	reg_icr = IXGB_READ_REG(&adapter->hw, ICR);
+ 	if (reg_icr == 0) {
+@@ -1354,9 +1362,6 @@
+ #endif
+ 
+ 	ifp->if_capabilities = IFCAP_HWCSUM;
+-#ifdef DEVICE_POLLING
+-	ifp->if_capabilities |= IFCAP_POLLING;
+-#endif
+ 
+ 	/*
+ 	 * Tell the upper layer(s) we support long frames.
+@@ -1369,6 +1374,10 @@
+ 
+ 	ifp->if_capenable = ifp->if_capabilities;
+ 
++#ifdef DEVICE_POLLING
++	ifp->if_capabilities |= IFCAP_POLLING;
++#endif
++
+ 	/*
+ 	 * Specify the media types supported by this adapter and register
+ 	 * callbacks to update media and link information
+Index: dev/nge/if_nge.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/nge/if_nge.c,v
+retrieving revision 1.75.2.2
+diff -u -r1.75.2.2 if_nge.c
+--- dev/nge/if_nge.c	25 Aug 2005 05:01:12 -0000	1.75.2.2
++++ dev/nge/if_nge.c	4 Oct 2005 14:20:10 -0000
+@@ -869,10 +869,10 @@
+ 	ifp->if_snd.ifq_maxlen = NGE_TX_LIST_CNT - 1;
+ 	ifp->if_hwassist = NGE_CSUM_FEATURES;
+ 	ifp->if_capabilities = IFCAP_HWCSUM | IFCAP_VLAN_HWTAGGING;
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif
+-	ifp->if_capenable = ifp->if_capabilities;
+ 
+ 	/*
+ 	 * Do MII setup.
+@@ -955,6 +955,10 @@
+ 	sc = device_get_softc(dev);
+ 	ifp = sc->nge_ifp;
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
+ 	NGE_LOCK(sc);
+ 	nge_reset(sc);
+ 	nge_stop(sc);
+@@ -1123,12 +1127,12 @@
+ 		u_int32_t		extsts;
+ 
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+ 		}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 		cur_rx = &sc->nge_ldata->nge_rx_list[i];
+ 		rxstat = cur_rx->nge_rxstat;
+@@ -1373,12 +1377,7 @@
+ 	struct  nge_softc *sc = ifp->if_softc;
+ 
+ 	NGE_LOCK(sc);
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-	if (cmd == POLL_DEREGISTER) {	/* final call, enable interrupts */
+-		CSR_WRITE_4(sc, NGE_IER, 1);
++	if (!(ifp->if_drv_flags & IFF_DRV_RUNNING)) {
+ 		NGE_UNLOCK(sc);
+ 		return;
+ 	}
+@@ -1430,18 +1429,11 @@
+ 
+ 	NGE_LOCK(sc);
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING) {
+-		NGE_UNLOCK(sc);
+-		return;
+-	}
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(nge_poll, ifp)) { /* ok, disable interrupts */
+-		CSR_WRITE_4(sc, NGE_IER, 0);
++	if (ifp->if_capenable & IFCAP_POLLING) {
+ 		NGE_UNLOCK(sc);
+-		nge_poll(ifp, 0, 1);
+ 		return;
+ 	}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	/* Supress unwanted interrupts */
+ 	if (!(ifp->if_flags & IFF_UP)) {
+@@ -1837,10 +1829,10 @@
+ 	 * ... only enable interrupts if we are not polling, make sure
+ 	 * they are off otherwise.
+ 	 */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		CSR_WRITE_4(sc, NGE_IER, 0);
+ 	else
+-#endif /* DEVICE_POLLING */
++#endif
+ 	CSR_WRITE_4(sc, NGE_IER, 1);
+ 
+ 	/* Enable receiver and transmitter. */
+@@ -2044,8 +2036,31 @@
+ 		}
+ 		break;
+ 	case SIOCSIFCAP:
+-		ifp->if_capenable &= ~IFCAP_POLLING;
+-		ifp->if_capenable |= ifr->ifr_reqcap & IFCAP_POLLING;
++#ifdef DEVICE_POLLING
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(nge_poll, ifp);
++			if (error)
++				return(error);
++			NGE_LOCK(sc);
++			/* Disable interrupts */
++			CSR_WRITE_4(sc, NGE_IER, 0);
++			ifp->if_capenable |= IFCAP_POLLING;
++			NGE_UNLOCK(sc);
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			NGE_LOCK(sc);
++			CSR_WRITE_4(sc, NGE_IER, 1);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			NGE_UNLOCK(sc);
++			return (error);
++		}
++#endif /* DEVICE_POLLING */
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+@@ -2102,9 +2117,6 @@
+ 	}
+ 
+ 	callout_stop(&sc->nge_stat_ch);
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif
+ 	CSR_WRITE_4(sc, NGE_IER, 0);
+ 	CSR_WRITE_4(sc, NGE_IMR, 0);
+ 	NGE_SETBIT(sc, NGE_CSR, NGE_CSR_TX_DISABLE|NGE_CSR_RX_DISABLE);
+Index: dev/re/if_re.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/re/if_re.c,v
+retrieving revision 1.46.2.3
+diff -u -r1.46.2.3 if_re.c
+--- dev/re/if_re.c	25 Aug 2005 05:01:14 -0000	1.46.2.3
++++ dev/re/if_re.c	4 Oct 2005 14:20:11 -0000
+@@ -1206,6 +1206,7 @@
+ 	ifp->if_start = re_start;
+ 	ifp->if_hwassist = /*RE_CSUM_FEATURES*/0;
+ 	ifp->if_capabilities |= IFCAP_HWCSUM|IFCAP_VLAN_HWTAGGING;
++	ifp->if_capenable = ifp->if_capabilities & ~IFCAP_HWCSUM;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif
+@@ -1218,7 +1219,6 @@
+ 	IFQ_SET_MAXLEN(&ifp->if_snd,  RL_IFQ_MAXLEN);
+ 	ifp->if_snd.ifq_drv_maxlen = RL_IFQ_MAXLEN;
+ 	IFQ_SET_READY(&ifp->if_snd);
+-	ifp->if_capenable = ifp->if_capabilities & ~IFCAP_HWCSUM;
+ 
+ 	callout_handle_init(&sc->rl_stat_ch);
+ 
+@@ -1274,6 +1274,10 @@
+ 	ifp = sc->rl_ifp;
+ 	KASSERT(mtx_initialized(&sc->rl_mtx), ("re mutex not initialized"));
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
+ 	attached = device_is_attached(dev);
+ 	/* These should only be active if attach succeeded */
+ 	if (attached)
+@@ -1779,7 +1783,8 @@
+ 	struct rl_softc *sc = ifp->if_softc;
+ 
+ 	RL_LOCK(sc);
+-	re_poll_locked(ifp, cmd, count);
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		re_poll_locked(ifp, cmd, count);
+ 	RL_UNLOCK(sc);
+ }
+ 
+@@ -1790,15 +1795,6 @@
+ 
+ 	RL_LOCK_ASSERT(sc);
+ 
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-	if (cmd == POLL_DEREGISTER) { /* final call, enable interrupts */
+-		CSR_WRITE_2(sc, RL_IMR, RL_INTRS_CPLUS);
+-		return;
+-	}
+-
+ 	sc->rxcycles = count;
+ 	re_rxeof(sc);
+ 	re_txeof(sc);
+@@ -1845,15 +1841,9 @@
+ 		goto done_locked;
+ 
+ #ifdef DEVICE_POLLING
+-	if  (ifp->if_flags & IFF_POLLING)
++	if  (ifp->if_capenable & IFCAP_POLLING)
+ 		goto done_locked;
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(re_poll, ifp)) { /* ok, disable interrupts */
+-		CSR_WRITE_2(sc, RL_IMR, 0x0000);
+-		re_poll_locked(ifp, 0, 1);
+-		goto done_locked;
+-	}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	for (;;) {
+ 
+@@ -2194,10 +2184,10 @@
+ 	/*
+ 	 * Disable interrupts if we are polling.
+ 	 */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		CSR_WRITE_2(sc, RL_IMR, 0);
+ 	else	/* otherwise ... */
+-#endif /* DEVICE_POLLING */
++#endif
+ 	/*
+ 	 * Enable interrupts.
+ 	 */
+@@ -2323,14 +2313,12 @@
+ 		else if (ifp->if_drv_flags & IFF_DRV_RUNNING)
+ 			re_stop(sc);
+ 		RL_UNLOCK(sc);
+-		error = 0;
+ 		break;
+ 	case SIOCADDMULTI:
+ 	case SIOCDELMULTI:
+ 		RL_LOCK(sc);
+ 		re_setmulti(sc);
+ 		RL_UNLOCK(sc);
+-		error = 0;
+ 		break;
+ 	case SIOCGIFMEDIA:
+ 	case SIOCSIFMEDIA:
+@@ -2338,15 +2326,42 @@
+ 		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
+ 		break;
+ 	case SIOCSIFCAP:
+-		ifp->if_capenable &= ~(IFCAP_HWCSUM | IFCAP_POLLING);
+-		ifp->if_capenable |=
+-		    ifr->ifr_reqcap & (IFCAP_HWCSUM | IFCAP_POLLING);
+-		if (ifp->if_capenable & IFCAP_TXCSUM)
+-			ifp->if_hwassist = RE_CSUM_FEATURES;
+-		else
+-			ifp->if_hwassist = 0;
+-		if (ifp->if_drv_flags & IFF_DRV_RUNNING)
+-			re_init(sc);
++	    {
++		int mask = ifr->ifr_reqcap ^ ifp->if_capenable;
++#ifdef DEVICE_POLLING
++		if (mask & IFCAP_POLLING) {
++			if (ifr->ifr_reqcap & IFCAP_POLLING) {
++				error = ether_poll_register(re_poll, ifp);
++				if (error)
++					return(error);
++				RL_LOCK(sc);
++				/* Disable interrupts */
++				CSR_WRITE_2(sc, RL_IMR, 0x0000);
++				ifp->if_capenable |= IFCAP_POLLING;
++				RL_UNLOCK(sc);
++				
++			} else {
++				error = ether_poll_deregister(ifp);
++				/* Enable interrupts. */
++				RL_LOCK(sc);
++				CSR_WRITE_2(sc, RL_IMR, RL_INTRS_CPLUS);
++				ifp->if_capenable &= ~IFCAP_POLLING;
++				RL_UNLOCK(sc);
++			}
++		}
++#endif /* DEVICE_POLLING */
++		if (mask & IFCAP_HWCSUM) {
++			RL_LOCK(sc);
++			ifp->if_capenable |= ifr->ifr_reqcap & IFCAP_HWCSUM;
++			if (ifp->if_capenable & IFCAP_TXCSUM)
++				ifp->if_hwassist = RE_CSUM_FEATURES;
++			else
++				ifp->if_hwassist = 0;
++			if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++				re_init_locked(sc);
++			RL_UNLOCK(sc);
++		}
++	    }
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+@@ -2392,9 +2407,6 @@
+ 
+ 	untimeout(re_tick, sc, sc->rl_stat_ch);
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif /* DEVICE_POLLING */
+ 
+ 	CSR_WRITE_1(sc, RL_COMMAND, 0x00);
+ 	CSR_WRITE_2(sc, RL_IMR, 0x0000);
+Index: dev/vge/if_vge.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/vge/if_vge.c,v
+retrieving revision 1.14.2.2
+diff -u -r1.14.2.2 if_vge.c
+--- dev/vge/if_vge.c	25 Aug 2005 05:01:17 -0000	1.14.2.2
++++ dev/vge/if_vge.c	4 Oct 2005 14:20:13 -0000
+@@ -1051,16 +1051,14 @@
+ 	ifp->if_start = vge_start;
+ 	ifp->if_hwassist = VGE_CSUM_FEATURES;
+ 	ifp->if_capabilities |= IFCAP_HWCSUM|IFCAP_VLAN_HWTAGGING;
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+-#ifdef IFCAP_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif
+-#endif
+ 	ifp->if_watchdog = vge_watchdog;
+ 	ifp->if_init = vge_init;
+ 	ifp->if_baudrate = 1000000000;
+ 	ifp->if_snd.ifq_maxlen = VGE_IFQ_MAXLEN;
+-	ifp->if_capenable = ifp->if_capabilities;
+ 
+ 	TASK_INIT(&sc->vge_txtask, 0, vge_tx_task, ifp);
+ 
+@@ -1105,6 +1103,11 @@
+ 	KASSERT(mtx_initialized(&sc->vge_mtx), ("vge mutex not initialized"));
+ 	ifp = sc->vge_ifp;
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	/* These should only be active if attach succeeded */
+ 	if (device_is_attached(dev)) {
+ 		vge_stop(sc);
+@@ -1350,12 +1353,12 @@
+ 	while (!VGE_OWN(&sc->vge_ldata.vge_rx_list[i])) {
+ 
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+ 		}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 		cur_rx = &sc->vge_ldata.vge_rx_list[i];
+ 		m = sc->vge_ldata.vge_rx_mbuf[i];
+@@ -1616,18 +1619,8 @@
+ 	struct vge_softc *sc = ifp->if_softc;
+ 
+ 	VGE_LOCK(sc);
+-#ifdef IFCAP_POLLING
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-#endif
+-	if (cmd == POLL_DEREGISTER) { /* final call, enable interrupts */
+-		CSR_WRITE_4(sc, VGE_IMR, VGE_INTRS);
+-		CSR_WRITE_4(sc, VGE_ISR, 0xFFFFFFFF);
+-		CSR_WRITE_1(sc, VGE_CRS3, VGE_CR3_INT_GMSK);
++	if (!(ifp->if_drv_flags & IFF_DRV_RUNNING))
+ 		goto done;
+-	}
+ 
+ 	sc->rxcycles = count;
+ 	vge_rxeof(sc);
+@@ -1691,20 +1684,11 @@
+ 	}
+ 
+ #ifdef DEVICE_POLLING
+-	if  (ifp->if_flags & IFF_POLLING)
+-		goto done;
+-	if (
+-#ifdef IFCAP_POLLING
+-	    (ifp->if_capenable & IFCAP_POLLING) &&
+-#endif
+-	    ether_poll_register(vge_poll, ifp)) { /* ok, disable interrupts */
+-		CSR_WRITE_4(sc, VGE_IMR, 0);
+-		CSR_WRITE_1(sc, VGE_CRC3, VGE_CR3_INT_GMSK);
+-		vge_poll(ifp, 0, 1);
+-		goto done;
++	if  (ifp->if_capenable & IFCAP_POLLING) {
++		VGE_UNLOCK(sc);
++		return;
+ 	}
+-
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	/* Disable interrupts */
+ 	CSR_WRITE_1(sc, VGE_CRC3, VGE_CR3_INT_GMSK);
+@@ -1744,9 +1728,6 @@
+ 	/* Re-enable interrupts */
+ 	CSR_WRITE_1(sc, VGE_CRS3, VGE_CR3_INT_GMSK);
+ 
+-#ifdef DEVICE_POLLING
+-done:
+-#endif
+ 	VGE_UNLOCK(sc);
+ 
+ #if __FreeBSD_version < 502114
+@@ -2103,11 +2084,11 @@
+ 	/*
+ 	 * Disable interrupts if we are polling.
+ 	 */
+-	if (ifp->if_flags & IFF_POLLING) {
++	if (ifp->if_capenable & IFCAP_POLLING) {
+ 		CSR_WRITE_4(sc, VGE_IMR, 0);
+ 		CSR_WRITE_1(sc, VGE_CRC3, VGE_CR3_INT_GMSK);
+ 	} else	/* otherwise ... */
+-#endif /* DEVICE_POLLING */
++#endif
+ 	{
+ 	/*
+ 	 * Enable interrupts.
+@@ -2267,23 +2248,42 @@
+ 		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
+ 		break;
+ 	case SIOCSIFCAP:
+-#ifdef IFCAP_POLLING
+-		ifp->if_capenable &= ~(IFCAP_HWCSUM | IFCAP_POLLING);
+-#else
+-		ifp->if_capenable &= ~(IFCAP_HWCSUM);
+-#endif
+-		ifp->if_capenable |=
+-#ifdef IFCAP_POLLING
+-		    ifr->ifr_reqcap & (IFCAP_HWCSUM | IFCAP_POLLING);
+-#else
+-		    ifr->ifr_reqcap & (IFCAP_HWCSUM);
+-#endif
+-		if (ifp->if_capenable & IFCAP_TXCSUM)
+-			ifp->if_hwassist = VGE_CSUM_FEATURES;
+-		else
+-			ifp->if_hwassist = 0;
+-		if (ifp->if_drv_flags & IFF_DRV_RUNNING)
+-			vge_init(sc);
++	    {
++		int mask = ifr->ifr_reqcap ^ ifp->if_capenable;
++#ifdef DEVICE_POLLING
++		if (mask & IFCAP_POLLING) {
++			if (ifr->ifr_reqcap & IFCAP_POLLING) {
++				error = ether_poll_register(vge_poll, ifp);
++				if (error)
++					return(error);
++				VGE_LOCK(sc);
++					/* Disable interrupts */
++				CSR_WRITE_4(sc, VGE_IMR, 0);
++				CSR_WRITE_1(sc, VGE_CRC3, VGE_CR3_INT_GMSK);
++				ifp->if_capenable |= IFCAP_POLLING;
++				VGE_UNLOCK(sc);
++			} else {
++				error = ether_poll_deregister(ifp);
++				/* Enable interrupts. */
++				VGE_LOCK(sc);
++				CSR_WRITE_4(sc, VGE_IMR, VGE_INTRS);
++				CSR_WRITE_4(sc, VGE_ISR, 0xFFFFFFFF);
++				CSR_WRITE_1(sc, VGE_CRS3, VGE_CR3_INT_GMSK);
++				ifp->if_capenable &= ~IFCAP_POLLING;
++				VGE_UNLOCK(sc);
++			}
++		}
++#endif /* DEVICE_POLLING */
++		if (mask & IFCAP_HWCSUM) {
++			ifp->if_capenable |= ifr->ifr_reqcap & (IFCAP_HWCSUM);
++			if (ifp->if_capenable & IFCAP_TXCSUM)
++				ifp->if_hwassist = VGE_CSUM_FEATURES;
++			else
++				ifp->if_hwassist = 0;
++			if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++				vge_init(sc);
++		}
++	    }
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+@@ -2330,9 +2330,6 @@
+ 	ifp->if_timer = 0;
+ 
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif /* DEVICE_POLLING */
+ 
+ 	CSR_WRITE_1(sc, VGE_CRC3, VGE_CR3_INT_GMSK);
+ 	CSR_WRITE_1(sc, VGE_CRS0, VGE_CR0_STOP);
+Index: i386/i386/trap.c
+===================================================================
+RCS file: /home/ncvs/src/sys/i386/i386/trap.c,v
+retrieving revision 1.277.2.1
+diff -u -r1.277.2.1 trap.c
+--- i386/i386/trap.c	28 Jul 2005 03:30:53 -0000	1.277.2.1
++++ i386/i386/trap.c	4 Oct 2005 14:20:15 -0000
+@@ -160,11 +160,6 @@
+ extern char *syscallnames[];
+ #endif
+ 
+-#ifdef DEVICE_POLLING
+-extern u_int32_t poll_in_trap;
+-extern int ether_poll(int count);
+-#endif /* DEVICE_POLLING */
+-
+ /*
+  * Exception, fault, and trap interface to the FreeBSD kernel.
+  * This common code is called from assembly language IDT gate entry
+@@ -272,11 +267,6 @@
+ 			trap_fatal(&frame, eva);
+ 	}
+ 
+-#ifdef	DEVICE_POLLING
+-	if (poll_in_trap)
+-		ether_poll(poll_in_trap);
+-#endif	/* DEVICE_POLLING */
+-
+         if ((ISPL(frame.tf_cs) == SEL_UPL) ||
+ 	    ((frame.tf_eflags & PSL_VM) && 
+ 		!(PCPU_GET(curpcb)->pcb_flags & PCB_VM86CALL))) {
+Index: kern/kern_poll.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/kern_poll.c,v
+retrieving revision 1.19.2.1
+diff -u -r1.19.2.1 kern_poll.c
+--- kern/kern_poll.c	25 Aug 2005 05:01:19 -0000	1.19.2.1
++++ kern/kern_poll.c	4 Oct 2005 14:20:18 -0000
+@@ -32,7 +32,9 @@
+ #include <sys/systm.h>
+ #include <sys/kernel.h>
+ #include <sys/socket.h>			/* needed by net/if.h		*/
++#include <sys/sockio.h>
+ #include <sys/sysctl.h>
++#include <sys/syslog.h>
+ 
+ #include <net/if.h>			/* for IFF_* flags		*/
+ #include <net/netisr.h>			/* for NETISR_POLL		*/
+@@ -43,14 +45,17 @@
+ 
+ static void netisr_poll(void);		/* the two netisr handlers      */
+ static void netisr_pollmore(void);
++static int poll_switch(SYSCTL_HANDLER_ARGS);
+ 
+ void hardclock_device_poll(void);	/* hook from hardclock		*/
+-void ether_poll(int);			/* polling while in trap	*/
++void ether_poll(int);			/* polling in idle loop		*/
++
++static struct mtx	poll_mtx;
+ 
+ /*
+  * Polling support for [network] device drivers.
+  *
+- * Drivers which support this feature try to register with the
++ * Drivers which support this feature can register with the
+  * polling code.
+  *
+  * If registration is successful, the driver must disable interrupts,
+@@ -63,10 +68,6 @@
+  *  POLL_AND_CHECK_STATUS: as above, plus check status registers or do
+  *	other more expensive operations. This command is issued periodically
+  *	but less frequently than POLL_ONLY.
+- *  POLL_DEREGISTER: deregister and return to interrupt mode.
+- *
+- * The first two commands are only issued if the interface is marked as
+- * 'IFF_UP and IFF_DRV_RUNNING', the last one only if IFF_DRV_RUNNING is set.
+  *
+  * The count limit specifies how much work the handler can do during the
+  * call -- typically this is the number of packets to be received, or
+@@ -74,11 +75,9 @@
+  * as the max time spent in the function grows roughly linearly with the
+  * count).
+  *
+- * Deregistration can be requested by the driver itself (typically in the
+- * *_stop() routine), or by the polling code, by invoking the handler.
+- *
+- * Polling can be globally enabled or disabled with the sysctl variable
+- * kern.polling.enable (default is 0, disabled)
++ * Polling is enabled and disabled via setting IFCAP_POLLING flag on
++ * the interface. The driver ioctl handler should register interface
++ * with polling and disable interrupts, if registration was successful.
+  *
+  * A second variable controls the sharing of CPU between polling/kernel
+  * network processing, and other activities (typically userlevel tasks):
+@@ -90,81 +89,160 @@
+  * The following constraints hold
+  *
+  *	1 <= poll_each_burst <= poll_burst <= poll_burst_max
+- *	0 <= poll_in_trap <= poll_each_burst
++ *	0 <= poll_each_burst
+  *	MIN_POLL_BURST_MAX <= poll_burst_max <= MAX_POLL_BURST_MAX
+  */
+ 
+ #define MIN_POLL_BURST_MAX	10
+ #define MAX_POLL_BURST_MAX	1000
+ 
++static uint32_t poll_burst = 5;
++static uint32_t poll_burst_max = 150;	/* good for 100Mbit net and HZ=1000 */
++static uint32_t poll_each_burst = 5;
++
+ SYSCTL_NODE(_kern, OID_AUTO, polling, CTLFLAG_RW, 0,
+ 	"Device polling parameters");
+ 
+-static u_int32_t poll_burst = 5;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, burst, CTLFLAG_RW,
++SYSCTL_UINT(_kern_polling, OID_AUTO, burst, CTLFLAG_RD,
+ 	&poll_burst, 0, "Current polling burst size");
+ 
+-static u_int32_t poll_each_burst = 5;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, each_burst, CTLFLAG_RW,
+-	&poll_each_burst, 0, "Max size of each burst");
+-
+-static u_int32_t poll_burst_max = 150;	/* good for 100Mbit net and HZ=1000 */
+-SYSCTL_UINT(_kern_polling, OID_AUTO, burst_max, CTLFLAG_RW,
+-	&poll_burst_max, 0, "Max Polling burst size");
++static int poll_burst_max_sysctl(SYSCTL_HANDLER_ARGS)
++{
++	uint32_t val = poll_burst_max;
++	int error;
++
++	error = sysctl_handle_int(oidp, &val, sizeof(int), req);
++	if (error || !req->newptr )
++		return (error);
++	if (val < MIN_POLL_BURST_MAX || val > MAX_POLL_BURST_MAX)
++		return (EINVAL);
++
++	mtx_lock(&poll_mtx);
++	poll_burst_max = val;
++	if (poll_burst > poll_burst_max)
++		poll_burst = poll_burst_max;
++	if (poll_each_burst > poll_burst_max)
++		poll_each_burst = MIN_POLL_BURST_MAX;
++	mtx_unlock(&poll_mtx);
+ 
+-static u_int32_t poll_in_idle_loop=0;	/* do we poll in idle loop ? */
++	return (0);
++}
++SYSCTL_PROC(_kern_polling, OID_AUTO, burst_max, CTLTYPE_UINT | CTLFLAG_RW,
++	0, sizeof(uint32_t), poll_burst_max_sysctl, "I", "Max Polling burst size");
++
++static int poll_each_burst_sysctl(SYSCTL_HANDLER_ARGS)
++{
++	uint32_t val = poll_each_burst;
++	int error;
++
++	error = sysctl_handle_int(oidp, &val, sizeof(int), req);
++	if (error || !req->newptr )
++		return (error);
++	if (val < 1)
++		return (EINVAL);
++
++	mtx_lock(&poll_mtx);
++	if (val > poll_burst_max) {
++		mtx_unlock(&poll_mtx);
++		return (EINVAL);
++	}
++	poll_each_burst = val;
++	mtx_unlock(&poll_mtx);
++
++	return (0);
++}
++SYSCTL_PROC(_kern_polling, OID_AUTO, each_burst, CTLTYPE_UINT | CTLFLAG_RW,
++	0, sizeof(uint32_t), poll_each_burst_sysctl, "I",
++	"Max size of each burst");
++
++static uint32_t poll_in_idle_loop=0;	/* do we poll in idle loop ? */
+ SYSCTL_UINT(_kern_polling, OID_AUTO, idle_poll, CTLFLAG_RW,
+ 	&poll_in_idle_loop, 0, "Enable device polling in idle loop");
+ 
+-u_int32_t poll_in_trap;			/* used in trap.c */
+-SYSCTL_UINT(_kern_polling, OID_AUTO, poll_in_trap, CTLFLAG_RW,
+-	&poll_in_trap, 0, "Poll burst size during a trap");
+-
+-static u_int32_t user_frac = 50;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, user_frac, CTLFLAG_RW,
+-	&user_frac, 0, "Desired user fraction of cpu time");
+-
+-static u_int32_t reg_frac = 20 ;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, reg_frac, CTLFLAG_RW,
+-	&reg_frac, 0, "Every this many cycles poll register");
++static uint32_t user_frac = 50;
++static int user_frac_sysctl(SYSCTL_HANDLER_ARGS)
++{
++	uint32_t val = user_frac;
++	int error;
++
++	error = sysctl_handle_int(oidp, &val, sizeof(int), req);
++	if (error || !req->newptr )
++		return (error);
++	if (val < 0 || val > 99)
++		return (EINVAL);
++
++	mtx_lock(&poll_mtx);
++	user_frac = val;
++	mtx_unlock(&poll_mtx);
++
++	return (0);
++}
++SYSCTL_PROC(_kern_polling, OID_AUTO, user_frac, CTLTYPE_UINT | CTLFLAG_RW,
++	0, sizeof(uint32_t), user_frac_sysctl, "I",
++	"Desired user fraction of cpu time");
++
++static uint32_t reg_frac_count = 0;
++static uint32_t reg_frac = 20 ;
++static int reg_frac_sysctl(SYSCTL_HANDLER_ARGS)
++{
++	uint32_t val = reg_frac;
++	int error;
++
++	error = sysctl_handle_int(oidp, &val, sizeof(int), req);
++	if (error || !req->newptr )
++		return (error);
++	if (val < 1 || val > hz)
++		return (EINVAL);
++
++	mtx_lock(&poll_mtx);
++	reg_frac = val;
++	if (reg_frac_count >= reg_frac)
++		reg_frac_count = 0;
++	mtx_unlock(&poll_mtx);
++
++	return (0);
++}
++SYSCTL_PROC(_kern_polling, OID_AUTO, reg_frac, CTLTYPE_UINT | CTLFLAG_RW,
++	0, sizeof(uint32_t), reg_frac_sysctl, "I",
++	"Every this many cycles check registers");
+ 
+-static u_int32_t short_ticks;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, short_ticks, CTLFLAG_RW,
++static uint32_t short_ticks;
++SYSCTL_UINT(_kern_polling, OID_AUTO, short_ticks, CTLFLAG_RD,
+ 	&short_ticks, 0, "Hardclock ticks shorter than they should be");
+ 
+-static u_int32_t lost_polls;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, lost_polls, CTLFLAG_RW,
++static uint32_t lost_polls;
++SYSCTL_UINT(_kern_polling, OID_AUTO, lost_polls, CTLFLAG_RD,
+ 	&lost_polls, 0, "How many times we would have lost a poll tick");
+ 
+-static u_int32_t pending_polls;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, pending_polls, CTLFLAG_RW,
++static uint32_t pending_polls;
++SYSCTL_UINT(_kern_polling, OID_AUTO, pending_polls, CTLFLAG_RD,
+ 	&pending_polls, 0, "Do we need to poll again");
+ 
+ static int residual_burst = 0;
+-SYSCTL_INT(_kern_polling, OID_AUTO, residual_burst, CTLFLAG_RW,
++SYSCTL_INT(_kern_polling, OID_AUTO, residual_burst, CTLFLAG_RD,
+ 	&residual_burst, 0, "# of residual cycles in burst");
+ 
+-static u_int32_t poll_handlers; /* next free entry in pr[]. */
++static uint32_t poll_handlers; /* next free entry in pr[]. */
+ SYSCTL_UINT(_kern_polling, OID_AUTO, handlers, CTLFLAG_RD,
+ 	&poll_handlers, 0, "Number of registered poll handlers");
+ 
+-static int polling = 0;		/* global polling enable */
+-SYSCTL_UINT(_kern_polling, OID_AUTO, enable, CTLFLAG_RW,
+-	&polling, 0, "Polling enabled");
++static int polling = 0;
++SYSCTL_PROC(_kern_polling, OID_AUTO, enable, CTLTYPE_UINT | CTLFLAG_RW,
++	0, sizeof(int), poll_switch, "I", "Switch polling for all interfaces");
+ 
+-static u_int32_t phase;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, phase, CTLFLAG_RW,
++static uint32_t phase;
++SYSCTL_UINT(_kern_polling, OID_AUTO, phase, CTLFLAG_RD,
+ 	&phase, 0, "Polling phase");
+ 
+-static u_int32_t suspect;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, suspect, CTLFLAG_RW,
++static uint32_t suspect;
++SYSCTL_UINT(_kern_polling, OID_AUTO, suspect, CTLFLAG_RD,
+ 	&suspect, 0, "suspect event");
+ 
+-static u_int32_t stalled;
+-SYSCTL_UINT(_kern_polling, OID_AUTO, stalled, CTLFLAG_RW,
++static uint32_t stalled;
++SYSCTL_UINT(_kern_polling, OID_AUTO, stalled, CTLFLAG_RD,
+ 	&stalled, 0, "potential stalls");
+ 
+-static u_int32_t idlepoll_sleeping; /* idlepoll is sleeping */
++static uint32_t idlepoll_sleeping; /* idlepoll is sleeping */
+ SYSCTL_UINT(_kern_polling, OID_AUTO, idlepoll_sleeping, CTLFLAG_RD,
+ 	&idlepoll_sleeping, 0, "idlepoll is sleeping");
+ 
+@@ -181,8 +259,11 @@
+ init_device_poll(void)
+ {
+ 
+-	netisr_register(NETISR_POLL, (netisr_t *)netisr_poll, NULL, 0);
+-	netisr_register(NETISR_POLLMORE, (netisr_t *)netisr_pollmore, NULL, 0);
++	mtx_init(&poll_mtx, "polling", NULL, MTX_DEF);
++	netisr_register(NETISR_POLL, (netisr_t *)netisr_poll, NULL,
++	    NETISR_MPSAFE);
++	netisr_register(NETISR_POLLMORE, (netisr_t *)netisr_pollmore, NULL,
++	    NETISR_MPSAFE);
+ }
+ SYSINIT(device_poll, SI_SUB_CLOCKS, SI_ORDER_MIDDLE, init_device_poll, NULL)
+ 
+@@ -239,23 +320,24 @@
+ }
+ 
+ /*
+- * ether_poll is called from the idle loop or from the trap handler.
++ * ether_poll is called from the idle loop.
+  */
+ void
+ ether_poll(int count)
+ {
+ 	int i;
+ 
+-	mtx_lock(&Giant);
++	NET_LOCK_GIANT();
++	mtx_lock(&poll_mtx);
+ 
+ 	if (count > poll_each_burst)
+ 		count = poll_each_burst;
++
+ 	for (i = 0 ; i < poll_handlers ; i++)
+-		if (pr[i].handler &&
+-		    (pr[i].ifp->if_flags & IFF_UP) &&
+-		    (pr[i].ifp->if_drv_flags & IFF_DRV_RUNNING))
+-			pr[i].handler(pr[i].ifp, 0, count); /* quick check */
+-	mtx_unlock(&Giant);
++		pr[i].handler(pr[i].ifp, POLL_ONLY, count);
++
++	mtx_unlock(&poll_mtx);
++	NET_UNLOCK_GIANT();
+ }
+ 
+ /*
+@@ -281,11 +363,14 @@
+ {
+ 	struct timeval t;
+ 	int kern_load;
+-	/* XXX run at splhigh() or equivalent */
+ 
++	NET_ASSERT_GIANT();
++
++	mtx_lock(&poll_mtx);
+ 	phase = 5;
+ 	if (residual_burst > 0) {
+ 		schednetisrbits(1 << NETISR_POLL | 1 << NETISR_POLLMORE);
++		mtx_unlock(&poll_mtx);
+ 		/* will run immediately on return, followed by netisrs */
+ 		return;
+ 	}
+@@ -317,107 +402,61 @@
+ 		schednetisrbits(1 << NETISR_POLL | 1 << NETISR_POLLMORE);
+ 		phase = 6;
+ 	}
++	mtx_unlock(&poll_mtx);
+ }
+ 
+ /*
+  * netisr_poll is scheduled by schednetisr when appropriate, typically once
+- * per tick. It is called at splnet() so first thing to do is to upgrade to
+- * splimp(), and call all registered handlers.
++ * per tick.
+  */
+ static void
+ netisr_poll(void)
+ {
+-	static int reg_frac_count;
+ 	int i, cycles;
+ 	enum poll_cmd arg = POLL_ONLY;
+-	mtx_lock(&Giant);
+ 
++	NET_ASSERT_GIANT();
++
++	mtx_lock(&poll_mtx);
+ 	phase = 3;
+ 	if (residual_burst == 0) { /* first call in this tick */
+ 		microuptime(&poll_start_t);
+-		/*
+-		 * Check that paremeters are consistent with runtime
+-		 * variables. Some of these tests could be done at sysctl
+-		 * time, but the savings would be very limited because we
+-		 * still have to check against reg_frac_count and
+-		 * poll_each_burst. So, instead of writing separate sysctl
+-		 * handlers, we do all here.
+-		 */
+-
+-		if (reg_frac > hz)
+-			reg_frac = hz;
+-		else if (reg_frac < 1)
+-			reg_frac = 1;
+-		if (reg_frac_count > reg_frac)
+-			reg_frac_count = reg_frac - 1;
+-		if (reg_frac_count-- == 0) {
++		if (++reg_frac_count == reg_frac) {
+ 			arg = POLL_AND_CHECK_STATUS;
+-			reg_frac_count = reg_frac - 1;
++			reg_frac_count = 0;
+ 		}
+-		if (poll_burst_max < MIN_POLL_BURST_MAX)
+-			poll_burst_max = MIN_POLL_BURST_MAX;
+-		else if (poll_burst_max > MAX_POLL_BURST_MAX)
+-			poll_burst_max = MAX_POLL_BURST_MAX;
+-
+-		if (poll_each_burst < 1)
+-			poll_each_burst = 1;
+-		else if (poll_each_burst > poll_burst_max)
+-			poll_each_burst = poll_burst_max;
+ 
+-		if (poll_burst > poll_burst_max)
+-			poll_burst = poll_burst_max;
+ 		residual_burst = poll_burst;
+ 	}
+ 	cycles = (residual_burst < poll_each_burst) ?
+ 		residual_burst : poll_each_burst;
+ 	residual_burst -= cycles;
+ 
+-	if (polling) {
+-		for (i = 0 ; i < poll_handlers ; i++)
+-			if (pr[i].handler &&
+-			    (pr[i].ifp->if_flags & IFF_UP) &&
+-			    (pr[i].ifp->if_drv_flags & IFF_DRV_RUNNING))
+-				pr[i].handler(pr[i].ifp, arg, cycles);
+-	} else {	/* unregister */
+-		for (i = 0 ; i < poll_handlers ; i++) {
+-			if (pr[i].handler &&
+-			    pr[i].ifp->if_drv_flags & IFF_DRV_RUNNING) {
+-				pr[i].ifp->if_flags &= ~IFF_POLLING;
+-				pr[i].handler(pr[i].ifp, POLL_DEREGISTER, 1);
+-			}
+-			pr[i].handler=NULL;
+-		}
+-		residual_burst = 0;
+-		poll_handlers = 0;
+-	}
+-	/* on -stable, schednetisr(NETISR_POLLMORE); */
++	for (i = 0 ; i < poll_handlers ; i++)
++		pr[i].handler(pr[i].ifp, arg, cycles);
++
+ 	phase = 4;
+-	mtx_unlock(&Giant);
++	mtx_unlock(&poll_mtx);
+ }
+ 
+ /*
+- * Try to register routine for polling. Returns 1 if successful
+- * (and polling should be enabled), 0 otherwise.
++ * Try to register routine for polling. Returns 0 if successful
++ * (and polling should be enabled), error code otherwise.
+  * A device is not supposed to register itself multiple times.
+  *
+- * This is called from within the *_intr() functions, so we do not need
+- * further locking.
++ * This is called from within the *_ioctl() functions.
+  */
+ int
+ ether_poll_register(poll_handler_t *h, struct ifnet *ifp)
+ {
+-	int s;
++	int i;
++
++	KASSERT(h != NULL, ("%s: handler is NULL", __func__));
++	KASSERT(ifp != NULL, ("%s: ifp is NULL", __func__));
+ 
+-	if (polling == 0) /* polling disabled, cannot register */
+-		return 0;
+-	if (h == NULL || ifp == NULL)		/* bad arguments	*/
+-		return 0;
+-	if ( !(ifp->if_flags & IFF_UP) )	/* must be up		*/
+-		return 0;
+-	if (ifp->if_flags & IFF_POLLING)	/* already polling	*/
+-		return 0;
++	NET_ASSERT_GIANT();
+ 
+-	s = splhigh();
++	mtx_lock(&poll_mtx);
+ 	if (poll_handlers >= POLL_LIST_LEN) {
+ 		/*
+ 		 * List full, cannot register more entries.
+@@ -427,57 +466,108 @@
+ 		 * anyways, so just report a few times and then give up.
+ 		 */
+ 		static int verbose = 10 ;
+-		splx(s);
+ 		if (verbose >0) {
+-			printf("poll handlers list full, "
+-				"maybe a broken driver ?\n");
++			log(LOG_ERR, "poll handlers list full, "
++			    "maybe a broken driver ?\n");
+ 			verbose--;
+ 		}
+-		return 0; /* no polling for you */
++		mtx_unlock(&poll_mtx);
++		return (ENOMEM); /* no polling for you */
+ 	}
+ 
++	for (i = 0 ; i < poll_handlers ; i++)
++		if (pr[i].ifp == ifp && pr[i].handler != NULL) {
++			mtx_unlock(&poll_mtx);
++			log(LOG_DEBUG, "ether_poll_register: %s: handler"
++			    " already registered\n", ifp->if_xname);
++			return (EEXIST);
++		}
++
+ 	pr[poll_handlers].handler = h;
+ 	pr[poll_handlers].ifp = ifp;
+ 	poll_handlers++;
+-	ifp->if_flags |= IFF_POLLING;
+-	splx(s);
++	mtx_unlock(&poll_mtx);
+ 	if (idlepoll_sleeping)
+ 		wakeup(&idlepoll_sleeping);
+-	return 1; /* polling enabled in next call */
++	return (0);
+ }
+ 
+ /*
+- * Remove interface from the polling list. Normally called by *_stop().
+- * It is not an error to call it with IFF_POLLING clear, the call is
+- * sufficiently rare to be preferable to save the space for the extra
+- * test in each driver in exchange of one additional function call.
++ * Remove interface from the polling list. Called from *_ioctl(), too.
+  */
+ int
+ ether_poll_deregister(struct ifnet *ifp)
+ {
+ 	int i;
+ 
+-	mtx_lock(&Giant);
+-	if ( !ifp || !(ifp->if_flags & IFF_POLLING) ) {
+-		mtx_unlock(&Giant);
+-		return 0;
+-	}
++	KASSERT(ifp != NULL, ("%s: ifp is NULL", __func__));
++
++	NET_ASSERT_GIANT();
++	mtx_lock(&poll_mtx);
++
+ 	for (i = 0 ; i < poll_handlers ; i++)
+ 		if (pr[i].ifp == ifp) /* found it */
+ 			break;
+-	ifp->if_flags &= ~IFF_POLLING; /* found or not... */
+ 	if (i == poll_handlers) {
+-		mtx_unlock(&Giant);
+-		printf("ether_poll_deregister: ifp not found!!!\n");
+-		return 0;
++		log(LOG_DEBUG, "ether_poll_deregister: %s: not found!\n",
++		    ifp->if_xname);
++		mtx_unlock(&poll_mtx);
++		return (ENOENT);
+ 	}
+ 	poll_handlers--;
+ 	if (i < poll_handlers) { /* Last entry replaces this one. */
+ 		pr[i].handler = pr[poll_handlers].handler;
+ 		pr[i].ifp = pr[poll_handlers].ifp;
+ 	}
+-	mtx_unlock(&Giant);
+-	return 1;
++	mtx_unlock(&poll_mtx);
++	return (0);
++}
++
++/*
++ * Legacy interface for turning polling on all interfaces at one time.
++ */
++static int
++poll_switch(SYSCTL_HANDLER_ARGS)
++{
++	struct ifnet *ifp;
++	int error;
++	int val = polling;
++
++	error = sysctl_handle_int(oidp, &val, sizeof(int), req);
++	if (error || !req->newptr )
++		return (error);
++
++	if (val == polling)
++		return (0);
++
++	if (val < 0 || val > 1)
++		return (EINVAL);
++
++	polling = val;
++
++	NET_LOCK_GIANT();
++	IFNET_RLOCK();
++	TAILQ_FOREACH(ifp, &ifnet, if_link) {
++		if (ifp->if_capabilities & IFCAP_POLLING) {
++			struct ifreq ifr;
++
++			if (val == 1)
++				ifr.ifr_reqcap =
++				    ifp->if_capenable | IFCAP_POLLING;
++			else
++				ifr.ifr_reqcap =
++				    ifp->if_capenable & ~IFCAP_POLLING;
++			IFF_LOCKGIANT(ifp);	/* LOR here */
++			(void) (*ifp->if_ioctl)(ifp, SIOCSIFCAP, (caddr_t)&ifr);
++			IFF_UNLOCKGIANT(ifp);
++		}
++	}
++	IFNET_RUNLOCK();
++	NET_UNLOCK_GIANT();
++
++	log(LOG_ERR, "kern.polling.enable is deprecated. Use ifconfig(8)");
++
++	return (0);
+ }
+ 
+ static void
+@@ -497,10 +587,7 @@
+ 	for (;;) {
+ 		if (poll_in_idle_loop && poll_handlers > 0) {
+ 			idlepoll_sleeping = 0;
+-			mtx_lock(&Giant);
+ 			ether_poll(poll_each_burst);
+-			mtx_unlock(&Giant);
+-			mtx_assert(&Giant, MA_NOTOWNED);
+ 			mtx_lock_spin(&sched_lock);
+ 			mi_switch(SW_VOL, NULL);
+ 			mtx_unlock_spin(&sched_lock);
+Index: net/if.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if.h,v
+retrieving revision 1.96.2.2
+diff -u -r1.96.2.2 if.h
+--- net/if.h	25 Aug 2005 05:02:28 -0000	1.96.2.2
++++ net/if.h	4 Oct 2005 14:20:32 -0000
+@@ -148,7 +148,7 @@
+ #define	IFF_LINK2	0x4000		/* per link layer defined bit */
+ #define	IFF_ALTPHYS	IFF_LINK2	/* use alternate physical connection */
+ #define	IFF_MULTICAST	0x8000		/* (i) supports multicast */
+-#define	IFF_POLLING	0x10000		/* (n) Interface is in polling mode. */
++/*			0x10000		*/
+ #define	IFF_PPROMISC	0x20000		/* (n) user-requested promisc mode */
+ #define	IFF_MONITOR	0x40000		/* (n) user-requested monitor mode */
+ #define	IFF_STATICARP	0x80000		/* (n) static ARP */
+@@ -166,8 +166,7 @@
+ /* flags set internally only: */
+ #define	IFF_CANTCHANGE \
+ 	(IFF_BROADCAST|IFF_POINTOPOINT|IFF_DRV_RUNNING|IFF_DRV_OACTIVE|\
+-	    IFF_SIMPLEX|IFF_MULTICAST|IFF_ALLMULTI|IFF_SMART|IFF_PROMISC|\
+-	    IFF_POLLING)
++	    IFF_SIMPLEX|IFF_MULTICAST|IFF_ALLMULTI|IFF_SMART|IFF_PROMISC)
+ 
+ /*
+  * Values for if_link_state.
+Index: net/if_var.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_var.h,v
+retrieving revision 1.98.2.4
+diff -u -r1.98.2.4 if_var.h
+--- net/if_var.h	25 Aug 2005 04:55:48 -0000	1.98.2.4
++++ net/if_var.h	4 Oct 2005 14:20:32 -0000
+@@ -660,7 +660,7 @@
+     LLADDR((struct sockaddr_dl *) ifaddr_byindex((ifp)->if_index)->ifa_addr)
+ 
+ #ifdef DEVICE_POLLING
+-enum poll_cmd {	POLL_ONLY, POLL_AND_CHECK_STATUS, POLL_DEREGISTER };
++enum poll_cmd {	POLL_ONLY, POLL_AND_CHECK_STATUS };
+ 
+ typedef	void poll_handler_t(struct ifnet *ifp, enum poll_cmd cmd, int count);
+ int    ether_poll_register(poll_handler_t *h, struct ifnet *ifp);
+Index: pci/if_dc.c
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_dc.c,v
+retrieving revision 1.160.2.4
+diff -u -r1.160.2.4 if_dc.c
+--- pci/if_dc.c	22 Sep 2005 12:46:01 -0000	1.160.2.4
++++ pci/if_dc.c	4 Oct 2005 14:20:35 -0000
+@@ -2262,10 +2262,10 @@
+ 	 */
+ 	ifp->if_data.ifi_hdrlen = sizeof(struct ether_vlan_header);
+ 	ifp->if_capabilities |= IFCAP_VLAN_MTU;
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif
+-	ifp->if_capenable = ifp->if_capabilities;
+ 
+ 	callout_init_mtx(&sc->dc_stat_ch, &sc->dc_mtx, 0);
+ 
+@@ -2337,6 +2337,11 @@
+ 
+ 	ifp = sc->dc_ifp;
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	/* These should only be active if attach succeeded */
+ 	if (device_is_attached(dev)) {
+ 		DC_LOCK(sc);
+@@ -2701,7 +2706,7 @@
+ 	while (!(le32toh(sc->dc_ldata->dc_rx_list[i].dc_status) &
+ 	    DC_RXSTAT_OWN)) {
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+@@ -3035,16 +3040,13 @@
+ {
+ 	struct dc_softc *sc = ifp->if_softc;
+ 
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-	if (cmd == POLL_DEREGISTER) { /* final call, enable interrupts */
+-		/* Re-enable interrupts. */
+-		CSR_WRITE_4(sc, DC_IMR, DC_INTRS);
++	DC_LOCK(sc);
++
++	if (!(ifp->if_drv_flags & IFF_DRV_RUNNING)) {
++		DC_UNLOCK(sc);
+ 		return;
+ 	}
+-	DC_LOCK(sc);
++
+ 	sc->rxcycles = count;
+ 	dc_rxeof(sc);
+ 	dc_txeof(sc);
+@@ -3108,12 +3110,9 @@
+ 	DC_LOCK(sc);
+ 	ifp = sc->dc_ifp;
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING)
+-		goto done;
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(dc_poll, ifp)) { /* ok, disable interrupts */
+-		CSR_WRITE_4(sc, DC_IMR, 0x00000000);
+-		goto done;
++	if (ifp->if_capenable & IFCAP_POLLING) {
++		DC_UNLOCK(sc);
++		return;
+ 	}
+ #endif
+ 
+@@ -3180,10 +3179,6 @@
+ 	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
+ 		dc_start_locked(ifp);
+ 
+-#ifdef DEVICE_POLLING
+-done:
+-#endif
+-
+ 	DC_UNLOCK(sc);
+ }
+ 
+@@ -3531,7 +3526,7 @@
+ 	 * the case of polling. Some cards (e.g. fxp) turn interrupts on
+ 	 * after a reset.
+ 	 */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		CSR_WRITE_4(sc, DC_IMR, 0x00000000);
+ 	else
+ #endif
+@@ -3683,10 +3678,31 @@
+ #endif
+ 		break;
+ 	case SIOCSIFCAP:
+-		DC_LOCK(sc);
+-		ifp->if_capenable &= ~IFCAP_POLLING;
+-		ifp->if_capenable |= ifr->ifr_reqcap & IFCAP_POLLING;
+-		DC_UNLOCK(sc);
++#ifdef DEVICE_POLLING
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(dc_poll, ifp);
++			if (error)
++				return(error);
++			DC_LOCK(sc);
++			/* Disable interrupts */
++			CSR_WRITE_4(sc, DC_IMR, 0x00000000);
++			ifp->if_capenable |= IFCAP_POLLING;
++			DC_UNLOCK(sc);
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			DC_LOCK(sc);
++			CSR_WRITE_4(sc, DC_IMR, DC_INTRS);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			DC_UNLOCK(sc);
++			return (error);
++		}
++#endif /* DEVICE_POLLING */
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+@@ -3741,9 +3757,6 @@
+ 	callout_stop(&sc->dc_stat_ch);
+ 
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif
+ 
+ 	DC_CLRBIT(sc, DC_NETCFG, (DC_NETCFG_RX_ON | DC_NETCFG_TX_ON));
+ 	CSR_WRITE_4(sc, DC_IMR, 0x00000000);
+Index: pci/if_rl.c
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_rl.c,v
+retrieving revision 1.152.2.2
+diff -u -r1.152.2.2 if_rl.c
+--- pci/if_rl.c	25 Aug 2005 05:01:23 -0000	1.152.2.2
++++ pci/if_rl.c	4 Oct 2005 14:20:35 -0000
+@@ -195,10 +195,8 @@
+ static void rl_miibus_statchg(device_t);
+ static int rl_miibus_writereg(device_t, int, int, int);
+ #ifdef DEVICE_POLLING
+-static void rl_poll(struct ifnet *ifp, enum poll_cmd cmd,
+-				 int count);
+-static void rl_poll_locked(struct ifnet *ifp, enum poll_cmd cmd,
+-				 int count);
++static void rl_poll(struct ifnet *ifp, enum poll_cmd cmd, int count);
++static void rl_poll_locked(struct ifnet *ifp, enum poll_cmd cmd, int count);
+ #endif
+ static int rl_probe(device_t);
+ static void rl_read_eeprom(struct rl_softc *, uint8_t *, int, int, int);
+@@ -965,10 +963,10 @@
+ 	ifp->if_init = rl_init;
+ 	ifp->if_baudrate = 10000000;
+ 	ifp->if_capabilities = IFCAP_VLAN_MTU;
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif
+-	ifp->if_capenable = ifp->if_capabilities;
+ 	IFQ_SET_MAXLEN(&ifp->if_snd, IFQ_MAXLEN);
+ 	ifp->if_snd.ifq_drv_maxlen = IFQ_MAXLEN;
+ 	IFQ_SET_READY(&ifp->if_snd);
+@@ -1014,6 +1012,10 @@
+ 	ifp = sc->rl_ifp;
+ 
+ 	KASSERT(mtx_initialized(&sc->rl_mtx), ("rl mutex not initialized"));
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
+ 	attached = device_is_attached(dev);
+ 	/* These should only be active if attach succeeded */
+ 	if (attached) {
+@@ -1127,12 +1129,12 @@
+ 
+ 	while((CSR_READ_1(sc, RL_COMMAND) & RL_CMD_EMPTY_RXBUF) == 0) {
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+ 		}
+-#endif /* DEVICE_POLLING */
++#endif
+ 		rxbufpos = sc->rl_cdata.rl_rx_buf + cur_rx;
+ 		rxstat = le32toh(*(uint32_t *)rxbufpos);
+ 
+@@ -1296,7 +1298,8 @@
+ 	struct rl_softc *sc = ifp->if_softc;
+ 
+ 	RL_LOCK(sc);
+-	rl_poll_locked(ifp, cmd, count);
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		rl_poll_locked(ifp, cmd, count);
+ 	RL_UNLOCK(sc);
+ }
+ 
+@@ -1307,17 +1310,6 @@
+ 
+ 	RL_LOCK_ASSERT(sc);
+ 
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-
+-	if (cmd == POLL_DEREGISTER) {
+-		/* Final call; enable interrupts. */
+-		CSR_WRITE_2(sc, RL_IMR, RL_INTRS);
+-		return;
+-	}
+-
+ 	sc->rxcycles = count;
+ 	rl_rxeof(sc);
+ 	rl_txeof(sc);
+@@ -1358,17 +1350,9 @@
+ 		goto done_locked;
+ 
+ #ifdef DEVICE_POLLING
+-	if  (ifp->if_flags & IFF_POLLING)
++	if  (ifp->if_capenable & IFCAP_POLLING)
+ 		goto done_locked;
+-
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(rl_poll, ifp)) {
+-		/* Disable interrupts. */
+-		CSR_WRITE_2(sc, RL_IMR, 0x0000);
+-		rl_poll_locked(ifp, 0, 1);
+-		goto done_locked;
+-	}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	for (;;) {
+ 		status = CSR_READ_2(sc, RL_ISR);
+@@ -1587,10 +1571,10 @@
+ 
+ #ifdef DEVICE_POLLING
+ 	/* Disable interrupts if we are polling. */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		CSR_WRITE_2(sc, RL_IMR, 0);
+ 	else
+-#endif /* DEVICE_POLLING */
++#endif
+ 	/* Enable interrupts. */
+ 	CSR_WRITE_2(sc, RL_IMR, RL_INTRS);
+ 
+@@ -1678,8 +1662,31 @@
+ 		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
+ 		break;
+ 	case SIOCSIFCAP:
+-		ifp->if_capenable &= ~IFCAP_POLLING;
+-		ifp->if_capenable |= ifr->ifr_reqcap & IFCAP_POLLING;
++#ifdef DEVICE_POLLING
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(rl_poll, ifp);
++			if (error)
++				return(error);
++			RL_LOCK(sc);
++			/* Disable interrupts */
++			CSR_WRITE_2(sc, RL_IMR, 0x0000);
++			ifp->if_capenable |= IFCAP_POLLING;
++			RL_UNLOCK(sc);
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			RL_LOCK(sc);
++			CSR_WRITE_2(sc, RL_IMR, RL_INTRS);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			RL_UNLOCK(sc);
++			return (error);
++		}
++#endif /* DEVICE_POLLING */
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+@@ -1721,9 +1728,6 @@
+ 	ifp->if_timer = 0;
+ 	untimeout(rl_tick, sc, sc->rl_stat_ch);
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif /* DEVICE_POLLING */
+ 
+ 	CSR_WRITE_1(sc, RL_COMMAND, 0x00);
+ 	CSR_WRITE_2(sc, RL_IMR, 0x0000);
+Index: pci/if_sf.c
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_sf.c,v
+retrieving revision 1.82.2.3
+diff -u -r1.82.2.3 if_sf.c
+--- pci/if_sf.c	26 Aug 2005 14:50:16 -0000	1.82.2.3
++++ pci/if_sf.c	4 Oct 2005 14:20:35 -0000
+@@ -165,11 +165,9 @@
+ static int sf_miibus_writereg(device_t, int, int, int);
+ static void sf_miibus_statchg(device_t);
+ #ifdef DEVICE_POLLING
+-static void sf_poll(struct ifnet *ifp, enum poll_cmd cmd,
+-				 int count);
+-static void sf_poll_locked(struct ifnet *ifp, enum poll_cmd cmd,
+-				 int count);
+-#endif /* DEVICE_POLLING */
++static void sf_poll(struct ifnet *ifp, enum poll_cmd cmd, int count);
++static void sf_poll_locked(struct ifnet *ifp, enum poll_cmd cmd, int count);
++#endif
+ 
+ static u_int32_t csr_read_4(struct sf_softc *, int);
+ static void csr_write_4(struct sf_softc *, int, u_int32_t);
+@@ -560,10 +558,31 @@
+ 		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
+ 		break;
+ 	case SIOCSIFCAP:
+-		SF_LOCK(sc);
+-		ifp->if_capenable &= ~IFCAP_POLLING;
+-		ifp->if_capenable |= ifr->ifr_reqcap & IFCAP_POLLING;
+-		SF_UNLOCK(sc);
++#ifdef DEVICE_POLLING
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(sf_poll, ifp);
++			if (error)
++				return(error);
++			SF_LOCK(sc);
++			/* Disable interrupts */
++			csr_write_4(sc, SF_IMR, 0x00000000);
++			ifp->if_capenable |= IFCAP_POLLING;
++			SF_UNLOCK(sc);
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			SF_LOCK(sc);
++			csr_write_4(sc, SF_IMR, SF_INTRS);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			SF_UNLOCK(sc);
++			return (error);
++		}
++#endif /* DEVICE_POLLING */
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+@@ -749,10 +768,10 @@
+ 	IFQ_SET_MAXLEN(&ifp->if_snd, SF_TX_DLIST_CNT - 1);
+ 	ifp->if_snd.ifq_drv_maxlen = SF_TX_DLIST_CNT - 1;
+ 	IFQ_SET_READY(&ifp->if_snd);
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+-#endif /* DEVICE_POLLING */
+-	ifp->if_capenable = ifp->if_capabilities;
++#endif
+ 
+ 	/*
+ 	 * Call MI attach routine.
+@@ -795,6 +814,11 @@
+ 	KASSERT(mtx_initialized(&sc->sf_mtx), ("sf mutex not initialized"));
+ 	ifp = sc->sf_ifp;
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++	
+ 	/* These should only be active if attach succeeded */
+ 	if (device_is_attached(dev)) {
+ 		SF_LOCK(sc);
+@@ -946,12 +970,12 @@
+ 		struct mbuf		*m0;
+ 
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+ 		}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 		cur_rx = &sc->sf_ldata->sf_rx_clist[cmpconsidx];
+ 		desc = &sc->sf_ldata->sf_rx_dlist_big[cur_rx->sf_endidx];
+@@ -1068,7 +1092,8 @@
+ 	struct sf_softc *sc = ifp->if_softc;
+ 
+ 	SF_LOCK(sc);
+-	sf_poll_locked(ifp, cmd, count);
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		sf_poll_locked(ifp, cmd, count);
+ 	SF_UNLOCK(sc);
+ }
+ 
+@@ -1079,17 +1104,6 @@
+ 
+ 	SF_LOCK_ASSERT(sc);
+ 
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-
+-	if (cmd == POLL_DEREGISTER) {
+-		/* Final call, enable interrupts. */
+-		csr_write_4(sc, SF_IMR, SF_INTRS);
+-		return;
+-	}
+-
+ 	sc->rxcycles = count;
+ 	sf_rxeof(sc);
+ 	sf_txeof(sc);
+@@ -1131,17 +1145,11 @@
+ 	ifp = sc->sf_ifp;
+ 
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING)
+-		goto done_locked;
+-
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(sf_poll, ifp)) {
+-		/* OK, disable interrupts. */
+-		csr_write_4(sc, SF_IMR, 0x00000000);
+-		sf_poll_locked(ifp, 0, 1);
+-		goto done_locked;
++	if (ifp->if_capenable & IFCAP_POLLING) {
++		SF_UNLOCK(sc);
++		return;
+ 	}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	if (!(csr_read_4(sc, SF_ISR_SHADOW) & SF_ISR_PCIINT_ASSERTED)) {
+ 		SF_UNLOCK(sc);
+@@ -1185,9 +1193,6 @@
+ 	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
+ 		sf_start_locked(ifp);
+ 
+-#ifdef DEVICE_POLLING
+-done_locked:
+-#endif /* DEVICE_POLLING */
+ 	SF_UNLOCK(sc);
+ }
+ 
+@@ -1296,10 +1301,10 @@
+ 
+ #ifdef DEVICE_POLLING
+ 	/* Disable interrupts if we are polling. */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		csr_write_4(sc, SF_IMR, 0x00000000);
+ 	else
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	/* Enable interrupts. */
+ 	csr_write_4(sc, SF_IMR, SF_INTRS);
+@@ -1478,10 +1483,6 @@
+ 
+ 	callout_stop(&sc->sf_stat_callout);
+ 
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif /* DEVICE_POLLING */
+-	
+ 	csr_write_4(sc, SF_GEN_ETH_CTL, 0);
+ 	csr_write_4(sc, SF_CQ_CONSIDX, 0);
+ 	csr_write_4(sc, SF_CQ_PRODIDX, 0);
+Index: pci/if_sis.c
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_sis.c,v
+retrieving revision 1.132.2.4
+diff -u -r1.132.2.4 if_sis.c
+--- pci/if_sis.c	29 Sep 2005 18:52:21 -0000	1.132.2.4
++++ pci/if_sis.c	4 Oct 2005 14:20:35 -0000
+@@ -1219,11 +1219,10 @@
+ 	 */
+ 	ifp->if_data.ifi_hdrlen = sizeof(struct ether_vlan_header);
+ 	ifp->if_capabilities |= IFCAP_VLAN_MTU;
+-
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif
+-	ifp->if_capenable = ifp->if_capabilities;
+ 
+ 	/* Hook interrupt last to avoid having to lock softc */
+ 	error = bus_setup_intr(dev, sc->sis_irq, INTR_TYPE_NET | INTR_MPSAFE,
+@@ -1260,6 +1259,11 @@
+ 	KASSERT(mtx_initialized(&sc->sis_mtx), ("sis mutex not initialized"));
+ 	ifp = sc->sis_ifp;
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	/* These should only be active if attach succeeded. */
+ 	if (device_is_attached(dev)) {
+ 		SIS_LOCK(sc);
+@@ -1409,12 +1413,12 @@
+ 	    cur_rx = cur_rx->sis_nextdesc) {
+ 
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+ 		}
+-#endif /* DEVICE_POLLING */
++#endif
+ 		rxstat = cur_rx->sis_rxstat;
+ 		bus_dmamap_sync(sc->sis_tag,
+ 		    cur_rx->sis_map, BUS_DMASYNC_POSTWRITE);
+@@ -1579,13 +1583,9 @@
+ 	struct	sis_softc *sc = ifp->if_softc;
+ 
+ 	SIS_LOCK(sc);
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-	if (cmd == POLL_DEREGISTER) { /* final call, enable interrupts */
+-		CSR_WRITE_4(sc, SIS_IER, 1);
+-		goto done;
++	if (!(ifp->if_drv_flags & IFF_DRV_RUNNING)) {
++		SIS_UNLOCK(sc);
++		return;
+ 	}
+ 
+ 	/*
+@@ -1618,7 +1618,7 @@
+ 			sis_initl(sc);
+ 		}
+ 	}
+-done:
++
+ 	SIS_UNLOCK(sc);
+ }
+ #endif /* DEVICE_POLLING */
+@@ -1638,14 +1638,11 @@
+ 
+ 	SIS_LOCK(sc);
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING)
+-		goto done;
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(sis_poll, ifp)) { /* ok, disable interrupts */
+-		CSR_WRITE_4(sc, SIS_IER, 0);
+-		goto done;
++	if (ifp->if_capenable & IFCAP_POLLING) {
++		SIS_UNLOCK(sc);
++		return;
+ 	}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	/* Disable interrupts. */
+ 	CSR_WRITE_4(sc, SIS_IER, 0);
+@@ -1684,9 +1681,6 @@
+ 	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
+ 		sis_startl(ifp);
+ 
+-#ifdef DEVICE_POLLING
+-done:
+-#endif /* DEVICE_POLLING */
+ 	SIS_UNLOCK(sc);
+ }
+ 
+@@ -2038,10 +2032,10 @@
+ 	 * ... only enable interrupts if we are not polling, make sure
+ 	 * they are off otherwise.
+ 	 */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		CSR_WRITE_4(sc, SIS_IER, 0);
+ 	else
+-#endif /* DEVICE_POLLING */
++#endif
+ 	CSR_WRITE_4(sc, SIS_IER, 1);
+ 
+ 	/* Enable receiver and transmitter. */
+@@ -2138,10 +2132,32 @@
+ 		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
+ 		break;
+ 	case SIOCSIFCAP:
+-		SIS_LOCK(sc);
+-		ifp->if_capenable &= ~IFCAP_POLLING;
+-		ifp->if_capenable |= ifr->ifr_reqcap & IFCAP_POLLING;
+-		SIS_UNLOCK(sc);
++		/* ok, disable interrupts */
++#ifdef DEVICE_POLLING
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(sis_poll, ifp);
++			if (error)
++				return(error);
++			SIS_LOCK(sc);
++			/* Disable interrupts */
++			CSR_WRITE_4(sc, SIS_IER, 0);
++			ifp->if_capenable |= IFCAP_POLLING;
++			SIS_UNLOCK(sc);
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			SIS_LOCK(sc);
++			CSR_WRITE_4(sc, SIS_IER, 1);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			SIS_UNLOCK(sc);
++			return (error);
++		}
++#endif /* DEVICE_POLLING */
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+@@ -2197,9 +2213,6 @@
+ 	callout_stop(&sc->sis_stat_ch);
+ 
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif
+ 	CSR_WRITE_4(sc, SIS_IER, 0);
+ 	CSR_WRITE_4(sc, SIS_IMR, 0);
+ 	CSR_READ_4(sc, SIS_ISR); /* clear any interrupts already pending */
+Index: pci/if_ste.c
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_ste.c,v
+retrieving revision 1.84.2.4
+diff -u -r1.84.2.4 if_ste.c
+--- pci/if_ste.c	15 Sep 2005 19:16:29 -0000	1.84.2.4
++++ pci/if_ste.c	4 Oct 2005 14:20:35 -0000
+@@ -621,7 +621,8 @@
+ 	struct ste_softc *sc = ifp->if_softc;
+ 
+ 	STE_LOCK(sc);
+-	ste_poll_locked(ifp, cmd, count);
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		ste_poll_locked(ifp, cmd, count);
+ 	STE_UNLOCK(sc);
+ }
+ 
+@@ -631,14 +632,6 @@
+ 	struct ste_softc *sc = ifp->if_softc;
+ 
+ 	STE_LOCK_ASSERT(sc);
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-	if (cmd == POLL_DEREGISTER) { /* final call, enable interrupts */
+-		CSR_WRITE_2(sc, STE_IMR, STE_INTRS);
+-		return;
+-	}
+ 
+ 	sc->rxcycles = count;
+ 	if (cmd == POLL_AND_CHECK_STATUS)
+@@ -685,15 +678,11 @@
+ 	ifp = sc->ste_ifp;
+ 
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING)
+-		goto done;
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(ste_poll, ifp)) { /* ok, disable interrupts */
+-		CSR_WRITE_2(sc, STE_IMR, 0);
+-		ste_poll_locked(ifp, 0, 1);
+-		goto done;
++	if (ifp->if_capenable & IFCAP_POLLING) {
++		STE_UNLOCK(sc);
++		return;
+ 	}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	/* See if this is really our interrupt. */
+ 	if (!(CSR_READ_2(sc, STE_ISR) & STE_ISR_INTLATCH)) {
+@@ -739,9 +728,6 @@
+ 	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
+ 		ste_start_locked(ifp);
+ 
+-#ifdef DEVICE_POLLING
+-done:
+-#endif /* DEVICE_POLLING */
+ 	STE_UNLOCK(sc);
+ 
+ 	return;
+@@ -791,12 +777,12 @@
+ 	while((rxstat = sc->ste_cdata.ste_rx_head->ste_ptr->ste_status)
+ 	      & STE_RXSTAT_DMADONE) {
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+ 		}
+-#endif /* DEVICE_POLLING */
++#endif
+ 		if ((STE_RX_LIST_CNT - count) < 3) {
+ 			break;
+ 		}
+@@ -1115,10 +1101,10 @@
+ 	 */
+ 	ifp->if_data.ifi_hdrlen = sizeof(struct ether_vlan_header);
+ 	ifp->if_capabilities |= IFCAP_VLAN_MTU;
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif
+-	ifp->if_capenable = ifp->if_capabilities;
+ 
+ 	/* Hook interrupt last to avoid having to lock softc */
+ 	error = bus_setup_intr(dev, sc->ste_irq, INTR_TYPE_NET | INTR_MPSAFE,
+@@ -1156,6 +1142,11 @@
+ 	KASSERT(mtx_initialized(&sc->ste_mtx), ("ste mutex not initialized"));
+ 	ifp = sc->ste_ifp;
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	/* These should only be active if attach succeeded */
+ 	if (device_is_attached(dev)) {
+ 		STE_LOCK(sc);
+@@ -1386,10 +1377,10 @@
+ 	CSR_WRITE_2(sc, STE_ISR, 0xFFFF);
+ #ifdef DEVICE_POLLING
+ 	/* Disable interrupts if we are polling. */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		CSR_WRITE_2(sc, STE_IMR, 0);
+ 	else   
+-#endif /* DEVICE_POLLING */
++#endif
+ 	/* Enable interrupts. */
+ 	CSR_WRITE_2(sc, STE_IMR, STE_INTRS);
+ 
+@@ -1418,9 +1409,6 @@
+ 
+ 	callout_stop(&sc->ste_stat_callout);
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING|IFF_DRV_OACTIVE);
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif /* DEVICE_POLLING */
+ 
+ 	CSR_WRITE_2(sc, STE_IMR, 0);
+ 	STE_SETBIT2(sc, STE_MACCTL1, STE_MACCTL1_TX_DISABLE);
+@@ -1539,10 +1527,31 @@
+ 		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
+ 		break;
+ 	case SIOCSIFCAP:
+-		STE_LOCK(sc);
+-		ifp->if_capenable &= ~IFCAP_POLLING;
+-		ifp->if_capenable |= ifr->ifr_reqcap & IFCAP_POLLING;
+-		STE_UNLOCK(sc);
++#ifdef DEVICE_POLLING
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(ste_poll, ifp);
++			if (error)
++				return(error);
++			STE_LOCK(sc);
++			/* Disable interrupts */
++			CSR_WRITE_2(sc, STE_IMR, 0);
++			ifp->if_capenable |= IFCAP_POLLING;
++			STE_UNLOCK(sc);
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			STE_LOCK(sc);
++			CSR_WRITE_2(sc, STE_IMR, STE_INTRS);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			STE_UNLOCK(sc);
++			return (error);
++		}
++#endif /* DEVICE_POLLING */
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+Index: pci/if_vr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_vr.c,v
+retrieving revision 1.104.2.2
+diff -u -r1.104.2.2 if_vr.c
+--- pci/if_vr.c	25 Aug 2005 05:01:24 -0000	1.104.2.2
++++ pci/if_vr.c	4 Oct 2005 14:20:35 -0000
+@@ -742,10 +742,10 @@
+ 	IFQ_SET_MAXLEN(&ifp->if_snd, VR_TX_LIST_CNT - 1);
+ 	ifp->if_snd.ifq_maxlen = VR_TX_LIST_CNT - 1;
+ 	IFQ_SET_READY(&ifp->if_snd);
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif
+-	ifp->if_capenable = ifp->if_capabilities;
+ 
+ 	/* Do MII setup. */
+ 	if (mii_phy_probe(dev, &sc->vr_miibus,
+@@ -795,6 +795,11 @@
+ 
+ 	KASSERT(mtx_initialized(&sc->vr_mtx), ("vr mutex not initialized"));
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	VR_LOCK(sc);
+ 
+ 	sc->suspended = 1;
+@@ -952,12 +957,12 @@
+ 	while (!((rxstat = sc->vr_cdata.vr_rx_head->vr_ptr->vr_status) &
+ 	    VR_RXSTAT_OWN)) {
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+ 		}
+-#endif /* DEVICE_POLLING */
++#endif
+ 		m0 = NULL;
+ 		cur_rx = sc->vr_cdata.vr_rx_head;
+ 		sc->vr_cdata.vr_rx_head = cur_rx->vr_nextdesc;
+@@ -1151,7 +1156,8 @@
+ 	struct vr_softc *sc = ifp->if_softc;
+ 
+ 	VR_LOCK(sc);
+-	vr_poll_locked(ifp, cmd, count);
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		vr_poll_locked(ifp, cmd, count);
+ 	VR_UNLOCK(sc);
+ }
+ 
+@@ -1162,17 +1168,6 @@
+ 
+ 	VR_LOCK_ASSERT(sc);
+ 
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-
+-	if (cmd == POLL_DEREGISTER) {
+-		/* Final call, enable interrupts. */
+-		CSR_WRITE_2(sc, VR_IMR, VR_INTRS);
+-		return;
+-	}
+-
+ 	sc->rxcycles = count;
+ 	vr_rxeof(sc);
+ 	vr_txeof(sc);
+@@ -1249,17 +1244,9 @@
+ 	}
+ 
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		goto done_locked;
+-
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(vr_poll, ifp)) {
+-		/* OK, disable interrupts. */
+-		CSR_WRITE_2(sc, VR_IMR, 0x0000);
+-		vr_poll_locked(ifp, 0, 1);
+-		goto done_locked;
+-	}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	/* Suppress unwanted interrupts. */
+ 	if (!(ifp->if_flags & IFF_UP)) {
+@@ -1534,10 +1521,10 @@
+ 	/*
+ 	 * Disable interrupts if we are polling.
+ 	 */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		CSR_WRITE_2(sc, VR_IMR, 0);
+ 	else
+-#endif /* DEVICE_POLLING */
++#endif
+ 	/*
+ 	 * Enable interrupts.
+ 	 */
+@@ -1615,7 +1602,31 @@
+ 		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
+ 		break;
+ 	case SIOCSIFCAP:
+-		ifp->if_capenable = ifr->ifr_reqcap;
++#ifdef DEVICE_POLLING
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(vr_poll, ifp);
++			if (error)
++				return(error);
++			VR_LOCK(sc);
++			/* Disable interrupts */
++			CSR_WRITE_2(sc, VR_IMR, 0x0000);
++			ifp->if_capenable |= IFCAP_POLLING;
++			VR_UNLOCK(sc);
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			VR_LOCK(sc);
++			CSR_WRITE_2(sc, VR_IMR, VR_INTRS);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			VR_UNLOCK(sc);
++			return (error);
++		}
++#endif /* DEVICE_POLLING */
+ 		break;
+ 	default:
+ 		error = ether_ioctl(ifp, command, data);
+@@ -1662,9 +1673,6 @@
+ 
+ 	untimeout(vr_tick, sc, sc->vr_stat_ch);
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif /* DEVICE_POLLING */
+ 
+ 	VR_SETBIT16(sc, VR_COMMAND, VR_CMD_STOP);
+ 	VR_CLRBIT16(sc, VR_COMMAND, (VR_CMD_RX_ON|VR_CMD_TX_ON));
+Index: pci/if_xl.c
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_xl.c,v
+retrieving revision 1.190.2.4
+diff -u -r1.190.2.4 if_xl.c
+--- pci/if_xl.c	26 Aug 2005 15:31:09 -0000	1.190.2.4
++++ pci/if_xl.c	4 Oct 2005 14:20:35 -0000
+@@ -249,7 +249,7 @@
+ #ifdef DEVICE_POLLING
+ static void xl_poll(struct ifnet *ifp, enum poll_cmd cmd, int count);
+ static void xl_poll_locked(struct ifnet *ifp, enum poll_cmd cmd, int count);
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ static int xl_ifmedia_upd(struct ifnet *);
+ static void xl_ifmedia_sts(struct ifnet *, struct ifmediareq *);
+@@ -1482,9 +1482,10 @@
+ 		ifp->if_capabilities |= IFCAP_HWCSUM;
+ #endif
+ 	}
++	ifp->if_capenable = ifp->if_capabilities;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+-#endif /* DEVICE_POLLING */
++#endif
+ 	ifp->if_start = xl_start;
+ 	ifp->if_watchdog = xl_watchdog;
+ 	ifp->if_init = xl_init;
+@@ -1492,7 +1493,6 @@
+ 	IFQ_SET_MAXLEN(&ifp->if_snd, XL_TX_LIST_CNT - 1);
+ 	ifp->if_snd.ifq_drv_maxlen = XL_TX_LIST_CNT - 1;
+ 	IFQ_SET_READY(&ifp->if_snd);
+-	ifp->if_capenable = ifp->if_capabilities;
+ 
+ 	/*
+ 	 * Now we have to see what sort of media we have.
+@@ -1686,6 +1686,11 @@
+ 
+ 	KASSERT(mtx_initialized(&sc->xl_mtx), ("xl mutex not initialized"));
+ 
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
+ 	if (sc->xl_flags & XL_FLAG_USE_MMIO) {
+ 		rid = XL_PCI_LOMEM;
+ 		res = SYS_RES_MEMORY;
+@@ -1955,12 +1960,12 @@
+ 	    BUS_DMASYNC_POSTREAD);
+ 	while ((rxstat = le32toh(sc->xl_cdata.xl_rx_head->xl_ptr->xl_status))) {
+ #ifdef DEVICE_POLLING
+-		if (ifp->if_flags & IFF_POLLING) {
++		if (ifp->if_capenable & IFCAP_POLLING) {
+ 			if (sc->rxcycles <= 0)
+ 				break;
+ 			sc->rxcycles--;
+ 		}
+-#endif /* DEVICE_POLLING */
++#endif
+ 		cur_rx = sc->xl_cdata.xl_rx_head;
+ 		sc->xl_cdata.xl_rx_head = cur_rx->xl_next;
+ 		total_len = rxstat & XL_RXSTAT_LENMASK;
+@@ -2270,24 +2275,11 @@
+ 	XL_LOCK(sc);
+ 
+ #ifdef DEVICE_POLLING
+-	if (ifp->if_flags & IFF_POLLING) {
++	if (ifp->if_capenable & IFCAP_POLLING) {
+ 		XL_UNLOCK(sc);
+ 		return;
+ 	}
+-
+-	if ((ifp->if_capenable & IFCAP_POLLING) &&
+-	    ether_poll_register(xl_poll, ifp)) {
+-		/* Disable interrupts. */
+-		CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ENB|0);
+-		CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ACK|0xFF);
+-		if (sc->xl_flags & XL_FLAG_FUNCREG)
+-			bus_space_write_4(sc->xl_ftag, sc->xl_fhandle,
+-			    4, 0x8000);
+-		xl_poll_locked(ifp, 0, 1);
+-		XL_UNLOCK(sc);
+-		return;
+-	}
+-#endif /* DEVICE_POLLING */
++#endif
+ 
+ 	while ((status = CSR_READ_2(sc, XL_STATUS)) & XL_INTRS &&
+ 	    status != 0xFFFF) {
+@@ -2346,7 +2338,8 @@
+ 	struct xl_softc *sc = ifp->if_softc;
+ 
+ 	XL_LOCK(sc);
+-	xl_poll_locked(ifp, cmd, count);
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		xl_poll_locked(ifp, cmd, count);
+ 	XL_UNLOCK(sc);
+ }
+ 
+@@ -2357,21 +2350,6 @@
+ 
+ 	XL_LOCK_ASSERT(sc);
+ 
+-	if (!(ifp->if_capenable & IFCAP_POLLING)) {
+-		ether_poll_deregister(ifp);
+-		cmd = POLL_DEREGISTER;
+-	}
+-
+-	if (cmd == POLL_DEREGISTER) {
+-		/* Final call; enable interrupts. */
+-		CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ACK|0xFF);
+-		CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ENB|XL_INTRS);
+-		if (sc->xl_flags & XL_FLAG_FUNCREG)
+-			bus_space_write_4(sc->xl_ftag, sc->xl_fhandle,
+-			    4, 0x8000);
+-		return;
+-	}
+-
+ 	sc->rxcycles = count;
+ 	xl_rxeof(sc);
+ 	if (sc->xl_type == XL_TYPE_905B)
+@@ -2984,10 +2962,10 @@
+ 	CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_STAT_ENB|XL_INTRS);
+ #ifdef DEVICE_POLLING
+ 	/* Disable interrupts if we are polling. */
+-	if (ifp->if_flags & IFF_POLLING)
++	if (ifp->if_capenable & IFCAP_POLLING)
+ 		CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ENB|0);
+ 	else
+-#endif /* DEVICE_POLLING */
++#endif
+ 	CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ENB|XL_INTRS);
+ 	if (sc->xl_flags & XL_FLAG_FUNCREG)
+ 	    bus_space_write_4(sc->xl_ftag, sc->xl_fhandle, 4, 0x8000);
+@@ -3199,6 +3177,35 @@
+ 			    &mii->mii_media, command);
+ 		break;
+ 	case SIOCSIFCAP:
++#ifdef DEVICE_POLLING
++		if (ifr->ifr_reqcap & IFCAP_POLLING &&
++		    !(ifp->if_capenable & IFCAP_POLLING)) {
++			error = ether_poll_register(xl_poll, ifp);
++			if (error)
++				return(error);
++			XL_LOCK(sc);
++			/* Disable interrupts */
++			CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ENB|0);
++			ifp->if_capenable |= IFCAP_POLLING;
++			XL_UNLOCK(sc);
++			return (error);
++			
++		}
++		if (!(ifr->ifr_reqcap & IFCAP_POLLING) &&
++		    ifp->if_capenable & IFCAP_POLLING) {
++			error = ether_poll_deregister(ifp);
++			/* Enable interrupts. */
++			XL_LOCK(sc);
++			CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ACK|0xFF);
++			CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_INTR_ENB|XL_INTRS);
++			if (sc->xl_flags & XL_FLAG_FUNCREG)
++				bus_space_write_4(sc->xl_ftag, sc->xl_fhandle,
++				    4, 0x8000);
++			ifp->if_capenable &= ~IFCAP_POLLING;
++			XL_UNLOCK(sc);
++			return (error);
++		}
++#endif /* DEVICE_POLLING */
+ 		XL_LOCK(sc);
+ 		ifp->if_capenable = ifr->ifr_reqcap;
+ 		if (ifp->if_capenable & IFCAP_TXCSUM)
+@@ -3263,9 +3270,6 @@
+ 	XL_LOCK_ASSERT(sc);
+ 
+ 	ifp->if_timer = 0;
+-#ifdef DEVICE_POLLING
+-	ether_poll_deregister(ifp);
+-#endif /* DEVICE_POLLING */
+ 
+ 	CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_RX_DISABLE);
+ 	CSR_WRITE_2(sc, XL_COMMAND, XL_CMD_STATS_DISABLE);

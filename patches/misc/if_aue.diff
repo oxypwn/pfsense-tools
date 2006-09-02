@@ -1,0 +1,42 @@
+Index: if_aue.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/if_aue.c,v
+retrieving revision 1.96
+diff -u -p -r1.96 if_aue.c
+--- if_aue.c	14 Feb 2006 12:44:55 -0000	1.96
++++ if_aue.c	4 Jun 2006 23:42:34 -0000
+@@ -524,6 +524,7 @@ aue_setmulti(struct aue_softc *sc)
+ 	struct ifnet		*ifp;
+ 	struct ifmultiaddr	*ifma;
+ 	u_int32_t		h = 0, i;
++	u_int8_t		hashtbl[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+ 
+ 	ifp = sc->aue_ifp;
+ 
+@@ -534,10 +535,6 @@ aue_setmulti(struct aue_softc *sc)
+ 
+ 	AUE_CLRBIT(sc, AUE_CTL0, AUE_CTL0_ALLMULTI);
+ 
+-	/* first, zot all the existing hash bits */
+-	for (i = 0; i < 8; i++)
+-		aue_csr_write_1(sc, AUE_MAR0 + i, 0);
+-
+ 	/* now program new ones */
+ 	IF_ADDR_LOCK(ifp);
+ #if __FreeBSD_version >= 500000
+@@ -550,10 +547,14 @@ aue_setmulti(struct aue_softc *sc)
+ 			continue;
+ 		h = ether_crc32_le(LLADDR((struct sockaddr_dl *)
+ 		    ifma->ifma_addr), ETHER_ADDR_LEN) & ((1 << AUE_BITS) - 1);
+-		AUE_SETBIT(sc, AUE_MAR + (h >> 3), 1 << (h & 0x7));
++		hashtbl[(h >> 3)] |=  1 << (h & 0x7);
+ 	}
+ 	IF_ADDR_UNLOCK(ifp);
+ 
++	/* write the hashtable */
++	for (i = 0; i < 8; i++)
++		aue_csr_write_1(sc, AUE_MAR0 + i, hashtbl[i]);
++
+ 	return;
+ }
+ 

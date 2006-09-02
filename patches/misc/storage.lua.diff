@@ -1,0 +1,21 @@
+--- storage.lua.orig	Tue Dec 20 23:58:08 2005
++++ storage.lua	Tue Dec 20 23:59:15 2005
+@@ -1030,6 +1030,7 @@
+ 		--
+ 		cmds:add("${root}${YES} | ${root}${FDISK} -B " ..
+ 		    self:get_raw_device_name())
++
+ 	end
+ 
+ 	--
+@@ -1139,6 +1140,10 @@
+ 			tag = self
+ 		    }
+ 		)
++
++		cmds:add("${root}${YES} | ${root}${FDISK} -B -b /boot/boot1 " ..
++			self:get_raw_device_name())
++
+ 	end
+ 
+ 	--
