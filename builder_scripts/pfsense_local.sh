@@ -17,7 +17,7 @@ export CUSTOMROOT=${CUSTOMROOT:-${CVS_CO_DIR}}
 # This is the user that has access to the pfSense repo
 export CVS_USER=${CVS_USER:-sullrich}
 
-# pfSense repo IP address. Tipically cvs.pfsense.org,
+# pfSense repo IP address. Typically cvs.pfsense.org,
 # but somebody could use a ssh tunnel and specify
 # a different one
 export CVS_IP=${CVS_IP:-cvs.pfsense.org}
