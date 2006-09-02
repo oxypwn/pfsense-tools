@@ -40,7 +40,7 @@ echo "Updating FreeSBIE 2"
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
-PATCHDIR=${PATCHDIR:-/home/pfsense/tools/patches}
+PATCHDIR=${PATCHDIR:-/home/pfsense/tools/patches/${freebsd_branch}}
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Sanity check
@@ -88,7 +88,7 @@ if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
+	echo "Cannot find cvsup, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
 fi
 
@@ -110,7 +110,7 @@ if [ ! -f "/usr/local/sbin/lighttpd" ]; then
 fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/sbin/lighttpd" ]; then
-	echo "Cannot find lighttpd, pkg_add in progress (PASSITVE FTP)..."
+	echo "Cannot find lighttpd, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r lighttpd
 fi
 
@@ -121,7 +121,7 @@ if [ ! -f "/usr/local/lib/libevent-1.2.so" ]; then
 fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/lib/libevent-1.2.so" ]; then
-	echo "Cannot find libevent, pkg_add in progress (PASSITVE FTP)..."
+	echo "Cannot find libevent, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/libevent-1.2.tbz
 fi
 
@@ -132,7 +132,7 @@ if [ ! -f "/usr/local/bin/curl" ]; then
 fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/curl" ]; then
-	echo "Cannot find curl, pkg_add in progress (PASSITVE FTP)..."
+	echo "Cannot find curl, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r curl
 fi
 
@@ -154,12 +154,12 @@ if [ ! -f "/usr/local/bin/cpdup" ]; then
 fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/cpdup" ]; then
-	echo "Cannot find cpdup, pkg_add in progress (PASSITVE FTP)..."
+	echo "Cannot find cpdup, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cpdup
 fi
 
 # Loop through and remove files
-for LINE in `cat ${CURRENTDIR}/patches.$pfSense_version`
+for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
 	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
@@ -180,16 +180,8 @@ else
 fi
 
 # CVSUp freebsd version
-if [ $pfSense_version = "6" ]; then
-	# CVSUP RELENG_6
-	echo "Using FreeBSD RELENG_6"
-	cvsup -h `cat /var/db/fastest_cvsup` ./stable-supfile
-fi
-if [ $pfSense_version = "7" ]; then
-	# CVSUP HEAD
-	echo "Using FreeBSD -HEAD"
-	cvsup -h `cat /var/db/fastest_cvsup` ./current-supfile
-fi
+echo "Using FreeBSD {$pfSense_version} branch ${freebsd_branch}"
+cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
 
 # CVSUp ports collection
 echo "Updating FreeBSD ports collection..."
@@ -201,7 +193,7 @@ echo "Applying CLOG updates..."
 	tar xzf ${PATCHDIR}/clog-1.0.1.tar.gz)
 
 # Loop through and patch files
-for LINE in `cat ${CURRENTDIR}/patches.$pfSense_version`
+for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
 do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
 	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
