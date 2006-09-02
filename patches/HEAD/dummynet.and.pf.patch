@@ -1,0 +1,79 @@
+--- /usr/src/sys/net/pfil.c	Mon May 23 14:07:16 2005
++++ /usr/src/sys/net/pfil.c	Wed Jul 12 11:29:21 2006
+@@ -357,10 +357,16 @@
+ 	 * insert the input list in reverse order of the output list
+ 	 * so that the same path is followed in or out of the kernel.
+ 	 */
+-	if (flags & PFIL_IN)
+-		TAILQ_INSERT_HEAD(list, pfh1, pfil_link);
++	if (flags & PFIL_FIRST)
++		if (flags & PFIL_IN)
++			TAILQ_INSERT_HEAD(list, pfh1, pfil_link);
++		else
++			TAILQ_INSERT_TAIL(list, pfh1, pfil_link);
+ 	else
+-		TAILQ_INSERT_TAIL(list, pfh1, pfil_link);
++		if (flags & PFIL_IN)
++			TAILQ_INSERT_TAIL(list, pfh1, pfil_link);
++		else
++			TAILQ_INSERT_HEAD(list, pfh1, pfil_link);
+ 
+ 	return 0;
+ }
+--- /usr/src/sys/net/pfil.h	Thu Jan  6 23:45:35 2005
++++ /usr/src/sys/net/pfil.h	Wed Jul 12 11:26:04 2006
+@@ -56,6 +56,7 @@
+ #define PFIL_IN		0x00000001
+ #define PFIL_OUT	0x00000002
+ #define PFIL_WAITOK	0x00000004
++#define PFIL_FIRST	0x00000008
+ #define PFIL_ALL	(PFIL_IN|PFIL_OUT)
+ 
+ typedef	TAILQ_HEAD(pfil_list, packet_filter_hook) pfil_list_t;
+--- /usr/src/sys/netinet/ip_dummynet.c	Thu Feb 23 05:28:15 2006
++++ /usr/src/sys/netinet/ip_dummynet.c	Wed Jul 12 12:35:14 2006
+@@ -768,7 +768,7 @@
+ 		pkt = dn_tag_get(m);
+ 		switch (pkt->dn_dir) {
+ 		case DN_TO_IP_OUT:
+-			ip_output(m, NULL, NULL, IP_FORWARDING, NULL, NULL);
++			ip_output(m, NULL, NULL, IP_FORWARDING | IP_NOPFIL, NULL, NULL);
+ 			break ;
+ 		  case DN_TO_IP_IN :
+ 			ip = mtod(m, struct ip *);
+--- /usr/src/sys/netinet/ip_fw_pfil.c	Sat Feb 11 06:19:37 2006
++++ /usr/src/sys/netinet/ip_fw_pfil.c	Wed Jul 12 11:30:06 2006
+@@ -433,8 +433,8 @@
+ 		return ENOENT;
+ #endif
+ 
+-	pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet);
+-	pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK, pfh_inet);
++	pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_FIRST | PFIL_WAITOK, pfh_inet);
++	pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_FIRST | PFIL_WAITOK, pfh_inet);
+ #ifdef INET6
+ 	pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet6);
+ 	pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK, pfh_inet6);
+--- /usr/src/sys/netinet/ip_output.c	Mon Jul  3 20:14:28 2006
++++ /usr/src/sys/netinet/ip_output.c	Wed Jul 12 12:35:51 2006
+@@ -658,6 +658,9 @@
+ spd_done:
+ #endif /* FAST_IPSEC */
+ 
++	if (flags & IP_NOPFIL)
++		goto passout;
++
+ 	/* Jump over all PFIL processing if hooks are not active. */
+ 	if (inet_pfil_hook.ph_busy_count == -1)
+ 		goto passout;
+--- /usr/src/sys/netinet/ip_var.h	Sat Jul  2 20:13:31 2005
++++ /usr/src/sys/netinet/ip_var.h	Wed Jul 12 14:12:36 2006
+@@ -130,6 +130,7 @@
+ #define	IP_FORWARDING		0x1		/* most of ip header exists */
+ #define	IP_RAWOUTPUT		0x2		/* raw ip header exists */
+ #define	IP_SENDONES		0x4		/* send all-ones broadcast */
++#define	IP_NOPFIL		0x8
+ #define	IP_ROUTETOIF		SO_DONTROUTE	/* bypass routing tables */
+ #define	IP_ALLOWBROADCAST	SO_BROADCAST	/* can send broadcast packets */
+ 
+
