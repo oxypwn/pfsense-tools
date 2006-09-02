@@ -210,7 +210,7 @@ do
 	fi
 done
 
-echo -n Cleaning up previous build environemnt...Please wait...
+echo -n Cleaning up previous build environment...Please wait...
 (cd ${CURRENTDIR} && rm -rf /usr/obj*)
 echo Done!
 
