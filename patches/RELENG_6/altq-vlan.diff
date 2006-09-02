@@ -1,0 +1,53 @@
+--- if_vlan.c.orig	Tue Feb 14 23:34:31 2006
++++ if_vlan.c	Tue Feb 14 23:36:19 2006
+@@ -394,7 +394,9 @@
+ 	ifp->if_init = vlan_ifinit;
+ 	ifp->if_start = vlan_start;
+ 	ifp->if_ioctl = vlan_ioctl;
+-	ifp->if_snd.ifq_maxlen = ifqmaxlen;
++        IFQ_SET_MAXLEN(&ifp->if_snd, ifqmaxlen);
++        ifp->if_snd.ifq_drv_maxlen = 0;
++        IFQ_SET_READY(&ifp->if_snd);
+ 	ifp->if_flags = VLAN_IFFLAGS;
+ 	ether_ifattach(ifp, eaddr);
+ 	/* Now undo some of the damage... */
+@@ -440,11 +442,15 @@
+ {
+ 	int unit;
+ 	struct ifvlan *ifv = ifp->if_softc;
++	int s;
+ 
+ 	unit = ifp->if_dunit;
+ 
+ 	VLAN_LOCK();
+ 	LIST_REMOVE(ifv, ifv_list);
++        s = splimp();
++        IFQ_PURGE(&ifp->if_snd);
++        splx(s);
+ 	vlan_unconfig(ifp);
+ 	VLAN_UNLOCK();
+ 
+@@ -484,11 +490,21 @@
+ 	struct mbuf *m;
+ 	int error;
+ 
++       if (ALTQ_IS_ENABLED(&ifp->if_snd)) {
++               IFQ_LOCK(&ifp->if_snd);
++               IFQ_POLL_NOLOCK(&ifp->if_snd, m);
++               if (m == NULL ) {
++                       IFQ_UNLOCK(&ifp->if_snd);
++                       return;
++               }
++               IFQ_UNLOCK(&ifp->if_snd);
++       }
++
+ 	ifv = ifp->if_softc;
+ 	p = ifv->ifv_p;
+ 
+ 	for (;;) {
+-		IF_DEQUEUE(&ifp->if_snd, m);
++		IFQ_DEQUEUE(&ifp->if_snd, m);
+ 		if (m == 0)
+ 			break;
+ 		BPF_MTAP(ifp, m);
+

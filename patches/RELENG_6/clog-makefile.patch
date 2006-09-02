@@ -1,0 +1,10 @@
+--- src/usr.sbin/Makefile.orig	Wed Aug 24 05:30:54 2005
++++ src/usr.sbin/Makefile	Wed Aug 24 05:31:14 2005
+@@ -27,6 +27,7 @@
+ 	chown \
+ 	chroot \
+ 	ckdist \
++	clog \
+ 	config \
+ 	cron \
+ 	crunch \

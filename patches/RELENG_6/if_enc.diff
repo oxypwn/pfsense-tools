@@ -1,0 +1,474 @@
+Index: conf/files
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files,v
+retrieving revision 1.1031.2.31
+diff -u -p -r1.1031.2.31 files
+--- conf/files	15 Jun 2006 17:57:49 -0000	1.1031.2.31
++++ conf/files	16 Jun 2006 21:35:38 -0000
+@@ -1385,6 +1385,7 @@ net/if_bridge.c			optional if_bridge
+ net/if_clone.c			standard
+ net/if_disc.c			optional disc
+ net/if_ef.c			optional ef
++net/if_enc.c			optional enc
+ net/if_ethersubr.c		optional ether
+ net/if_faith.c			optional faith
+ net/if_fddisubr.c		optional fddi
+Index: conf/options
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/options,v
+retrieving revision 1.510.2.10
+diff -u -p -r1.510.2.10 options
+--- conf/options	15 Jun 2006 17:57:49 -0000	1.510.2.10
++++ conf/options	16 Jun 2006 21:35:38 -0000
+@@ -336,6 +336,7 @@ BOOTP_NFSV3		opt_bootp.h
+ BOOTP_WIRED_TO		opt_bootp.h
+ BRIDGE			opt_bdg.h
+ DEVICE_POLLING
++DEV_ENC			opt_enc.h
+ DEV_PF			opt_pf.h
+ DEV_PFLOG		opt_pf.h
+ DEV_PFSYNC		opt_pf.h
+Index: net/if_enc.c
+===================================================================
+RCS file: net/if_enc.c
+diff -N net/if_enc.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ net/if_enc.c	5 Jul 2006 22:05:44 -0000
+@@ -0,0 +1,303 @@
++/*-
++ * Copyright (c) 2006 The FreeBSD Project.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ *
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ * $FreeBSD: src/sys/net/if_enc.c,v 1.4 2006/07/04 23:09:11 thompsa Exp $
++ */
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/kernel.h>
++#include <sys/malloc.h>
++#include <sys/mbuf.h>
++#include <sys/module.h>
++#include <machine/bus.h>
++#include <sys/rman.h>
++#include <sys/socket.h>
++#include <sys/sockio.h>
++#include <sys/sysctl.h>
++
++#include <net/if.h>
++#include <net/if_clone.h>
++#include <net/if_types.h>
++#include <net/pfil.h>
++#include <net/route.h>
++#include <net/netisr.h>
++#include <net/bpf.h>
++#include <net/bpfdesc.h>
++
++#include <netinet/in.h>
++#include <netinet/in_systm.h>
++#include <netinet/ip.h>
++#include <netinet/ip_var.h>
++#include <netinet/in_var.h>
++#include "opt_inet6.h"
++
++#ifdef INET6
++#include <netinet/ip6.h>
++#include <netinet6/ip6_var.h>
++#endif
++
++#include <netipsec/ipsec.h>
++
++#define ENCMTU		(1024+512)
++
++/* XXX this define must have the same value as in OpenBSD */
++#define M_CONF		0x0400	/* payload was encrypted (ESP-transport) */
++#define M_AUTH		0x0800	/* payload was authenticated (AH or ESP auth) */
++#define M_AUTH_AH	0x2000	/* header was authenticated (AH) */
++
++struct enchdr {
++	u_int32_t af;
++	u_int32_t spi;
++	u_int32_t flags;
++};
++
++static struct ifnet	*encif;
++static struct mtx	enc_mtx;
++
++struct enc_softc {
++	struct	ifnet *sc_ifp;
++};
++
++static int	enc_ioctl(struct ifnet *, u_long, caddr_t);
++static int	enc_output(struct ifnet *ifp, struct mbuf *m,
++		    struct sockaddr *dst, struct rtentry *rt);
++static int	enc_clone_create(struct if_clone *, int);
++static void	enc_clone_destroy(struct ifnet *);
++
++IFC_SIMPLE_DECLARE(enc, 1);
++
++static void
++enc_clone_destroy(struct ifnet *ifp)
++{
++	KASSERT(ifp != encif, ("%s: destroying encif", __func__));
++
++	bpfdetach(ifp);
++	if_detach(ifp);
++	if_free(ifp);
++}
++
++static int
++enc_clone_create(struct if_clone *ifc, int unit)
++{
++	struct ifnet *ifp;
++	struct enc_softc *sc;
++
++	sc = malloc(sizeof(*sc), M_DEVBUF, M_WAITOK|M_ZERO);
++	ifp = sc->sc_ifp = if_alloc(IFT_ENC);
++	if (ifp == NULL) {
++		free(sc, M_DEVBUF);
++		return (ENOSPC);
++	}
++
++	if_initname(ifp, ifc->ifc_name, unit);
++	ifp->if_mtu = ENCMTU;
++	ifp->if_ioctl = enc_ioctl;
++	ifp->if_output = enc_output;
++	ifp->if_snd.ifq_maxlen = ifqmaxlen;
++	ifp->if_softc = sc;
++	if_attach(ifp);
++	bpfattach(ifp, DLT_ENC, sizeof(struct enchdr));
++
++	mtx_lock(&enc_mtx);
++	/* grab a pointer to enc0, ignore the rest */
++	if (encif == NULL)
++		encif = ifp;
++	mtx_unlock(&enc_mtx);
++
++	return (0);
++}
++
++static int
++enc_modevent(module_t mod, int type, void *data)
++{
++	switch (type) {
++	case MOD_LOAD:
++		mtx_init(&enc_mtx, "enc mtx", NULL, MTX_DEF);
++		if_clone_attach(&enc_cloner);
++		break;
++	case MOD_UNLOAD:
++		printf("enc module unload - not possible for this module\n");
++		return (EINVAL);
++	default:
++		return (EOPNOTSUPP);
++	}
++	return (0);
++}
++
++static moduledata_t enc_mod = {
++	"enc",
++	enc_modevent,
++	0
++};
++
++DECLARE_MODULE(enc, enc_mod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
++
++static int
++enc_output(struct ifnet *ifp, struct mbuf *m, struct sockaddr *dst,
++    struct rtentry *rt)
++{
++	m_freem(m);
++	return (0);
++}
++
++/*
++ * Process an ioctl request.
++ */
++/* ARGSUSED */
++static int
++enc_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
++{
++	int error = 0;
++
++	mtx_lock(&enc_mtx);
++
++	switch (cmd) {
++
++	case SIOCSIFFLAGS:
++		if (ifp->if_flags & IFF_UP)
++			ifp->if_drv_flags |= IFF_DRV_RUNNING;
++		else
++			ifp->if_drv_flags &= ~IFF_DRV_RUNNING;
++
++		break;
++
++	default:
++		error = EINVAL;
++	}
++
++	mtx_unlock(&enc_mtx);
++	return (error);
++}
++
++int
++ipsec_filter(struct mbuf **mp, int dir)
++{
++	int error, i;
++	struct ip *ip;
++
++	KASSERT(encif != NULL, ("%s: encif is null", __func__));
++
++	if ((encif->if_drv_flags & IFF_DRV_RUNNING) == 0)
++		return (0);
++
++	/* Skip pfil(9) if no filters are loaded */
++	if (inet_pfil_hook.ph_busy_count < 0
++#ifdef INET6
++	    && inet6_pfil_hook.ph_busy_count < 0
++#endif
++	    ) {
++		return (0);
++	}
++
++	i = min((*mp)->m_pkthdr.len, max_protohdr);
++	if ((*mp)->m_len < i) {
++		*mp = m_pullup(*mp, i);
++		if (*mp == NULL) {
++			printf("%s: m_pullup failed\n", __func__);
++			return (-1);
++		}
++	}
++
++	error = 0;
++	ip = mtod(*mp, struct ip *);
++	switch (ip->ip_v) {
++		case 4:
++			/*
++			 * before calling the firewall, swap fields the same as
++			 * IP does. here we assume the header is contiguous
++			 */
++			ip->ip_len = ntohs(ip->ip_len);
++			ip->ip_off = ntohs(ip->ip_off);
++
++			error = pfil_run_hooks(&inet_pfil_hook, mp,
++			    encif, dir, NULL);
++
++			if (*mp == NULL || error != 0)
++				break;
++
++			/* restore byte ordering */
++			ip = mtod(*mp, struct ip *);
++			ip->ip_len = htons(ip->ip_len);
++			ip->ip_off = htons(ip->ip_off);
++			break;
++
++#ifdef INET6
++		case 6:
++			error = pfil_run_hooks(&inet6_pfil_hook, mp,
++			    encif, dir, NULL);
++			break;
++#endif
++		default:
++			printf("%s: unknown IP version\n", __func__);
++	}
++
++	if (*mp == NULL)
++		return (error);
++	if (error != 0)
++		goto bad;
++
++	return (error);
++
++bad:
++	m_freem(*mp);
++	*mp = NULL;
++	return (error);
++}
++
++void
++ipsec_bpf(struct mbuf *m, struct secasvar *sav, int af)
++{
++	int flags;
++	struct enchdr hdr;
++
++	KASSERT(encif != NULL, ("%s: encif is null", __func__));
++	KASSERT(sav != NULL, ("%s: sav is null", __func__));
++
++	if ((encif->if_drv_flags & IFF_DRV_RUNNING) == 0)
++		return;
++
++	if (encif->if_bpf) {
++		flags = 0;
++		if (sav->alg_enc != SADB_EALG_NONE)
++			flags |= M_CONF;
++		if (sav->alg_auth != SADB_AALG_NONE)
++			flags |= M_AUTH;
++
++		/*
++		 * We need to prepend the address family as a four byte
++		 * field.  Cons up a dummy header to pacify bpf.  This
++		 * is safe because bpf will only read from the mbuf
++		 * (i.e., it won't try to free it or keep a pointer a
++		 * to it).
++		 */
++		hdr.af = af;
++		hdr.spi = sav->spi;
++		hdr.flags = flags;
++
++		bpf_mtap2(encif->if_bpf, &hdr, sizeof(hdr), m);
++	}
++}
+Index: net/if_types.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_types.h,v
+retrieving revision 1.21
+diff -u -p -r1.21 if_types.h
+--- net/if_types.h	10 Jun 2005 16:49:19 -0000	1.21
++++ net/if_types.h	16 Jun 2006 21:35:38 -0000
+@@ -246,6 +246,7 @@
+ #define	IFT_GIF		0xf0
+ #define	IFT_PVC		0xf1
+ #define	IFT_FAITH	0xf2
++#define	IFT_ENC		0xf4
+ #define	IFT_PFLOG	0xf6
+ #define	IFT_PFSYNC	0xf7
+ #define	IFT_CARP	0xf8	/* Common Address Redundancy Protocol */
+Index: netipsec/ipsec.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/ipsec.h,v
+retrieving revision 1.8.2.1
+diff -u -p -r1.8.2.1 ipsec.h
+--- netipsec/ipsec.h	23 Mar 2006 23:24:32 -0000	1.8.2.1
++++ netipsec/ipsec.h	16 Jun 2006 21:35:38 -0000
+@@ -413,6 +413,8 @@ extern	void m_checkalignment(const char*
+ extern	struct mbuf *m_makespace(struct mbuf *m0, int skip, int hlen, int *off);
+ extern	caddr_t m_pad(struct mbuf *m, int n);
+ extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
++extern	int ipsec_filter(struct mbuf **, int);
++extern	void ipsec_bpf(struct mbuf *, struct secasvar *, int);
+ #endif /* _KERNEL */
+ 
+ #ifndef _KERNEL
+Index: netipsec/ipsec_input.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/ipsec_input.c,v
+retrieving revision 1.9.2.1
+diff -u -p -r1.9.2.1 ipsec_input.c
+--- netipsec/ipsec_input.c	15 Jun 2006 16:27:15 -0000	1.9.2.1
++++ netipsec/ipsec_input.c	16 Jun 2006 21:35:38 -0000
+@@ -43,6 +43,7 @@
+ #include "opt_inet.h"
+ #include "opt_inet6.h"
+ #include "opt_ipsec.h"
++#include "opt_enc.h"
+ 
+ #include <sys/param.h>
+ #include <sys/systm.h>
+@@ -442,6 +443,18 @@ ipsec4_common_input_cb(struct mbuf *m, s
+ 
+ 	key_sa_recordxfer(sav, m);		/* record data transfer */
+ 
++#ifdef DEV_ENC
++	/*
++	 * Pass the mbuf to enc0 for bpf and pfil. We will filter the IPIP
++	 * packet later after it has been decapsulated.
++	 */
++	ipsec_bpf(m, sav, AF_INET);
++
++	if (prot != IPPROTO_IPIP)
++		if ((error = ipsec_filter(&m, 1)) != 0)
++			return (error);
++#endif
++
+ 	/*
+ 	 * Re-dispatch via software interrupt.
+ 	 */
+Index: netipsec/ipsec_output.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/ipsec_output.c,v
+retrieving revision 1.10
+diff -u -p -r1.10 ipsec_output.c
+--- netipsec/ipsec_output.c	20 Jan 2004 22:45:10 -0000	1.10
++++ netipsec/ipsec_output.c	16 Jun 2006 21:35:38 -0000
+@@ -32,6 +32,7 @@
+ #include "opt_inet.h"
+ #include "opt_inet6.h"
+ #include "opt_ipsec.h"
++#include "opt_enc.h"
+ 
+ #include <sys/param.h>
+ #include <sys/systm.h>
+@@ -358,6 +359,13 @@ ipsec4_process_packet(
+ 		goto bad;
+ 
+ 	sav = isr->sav;
++
++#ifdef DEV_ENC
++	/* pass the mbuf to enc0 for packet filtering */
++	if ((error = ipsec_filter(&m, 2)) != 0)
++		goto bad;
++#endif
++
+ 	if (!tunalready) {
+ 		union sockaddr_union *dst = &sav->sah->saidx.dst;
+ 		int setdf;
+@@ -455,6 +463,11 @@ ipsec4_process_packet(
+ 		}
+ 	}
+ 
++#ifdef DEV_ENC
++	/* pass the mbuf to enc0 for bpf processing */
++	ipsec_bpf(m, sav, AF_INET);
++#endif
++
+ 	/*
+ 	 * Dispatch to the appropriate IPsec transform logic.  The
+ 	 * packet will be returned for transmission after crypto
+Index: netipsec/xform_ipip.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/xform_ipip.c,v
+retrieving revision 1.11.2.1
+diff -u -p -r1.11.2.1 xform_ipip.c
+--- netipsec/xform_ipip.c	1 Apr 2006 15:22:44 -0000	1.11.2.1
++++ netipsec/xform_ipip.c	16 Jun 2006 21:35:38 -0000
+@@ -41,6 +41,7 @@
+  */
+ #include "opt_inet.h"
+ #include "opt_inet6.h"
++#include "opt_enc.h"
+ 
+ #include <sys/param.h>
+ #include <sys/systm.h>
+@@ -345,6 +346,12 @@ _ipip_input(struct mbuf *m, int iphlen, 
+ 	/* Statistics */
+ 	ipipstat.ipips_ibytes += m->m_pkthdr.len - iphlen;
+ 
++#ifdef DEV_ENC
++	/* pass the mbuf to enc0 for packet filtering */
++	if (ipsec_filter(&m, 1) != 0)
++		return;
++#endif
++
+ 	/*
+ 	 * Interface pointer stays the same; if no IPsec processing has
+ 	 * been done (or will be done), this will point to a normal
