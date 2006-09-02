@@ -1,0 +1,12 @@
+--- if_em.c	Sat Mar 18 21:48:08 2006
++++ if_em.c.new	Thu Apr  6 18:25:40 2006
+@@ -2005,7 +2005,8 @@
+ 	}
+ 
+ 	em_check_for_link(&adapter->hw);
+-	if (E1000_READ_REG(&adapter->hw, STATUS) & E1000_STATUS_LU)
++        if (adapter->hw.media_type != em_media_type_fiber &&
++         (E1000_READ_REG(&adapter->hw, STATUS) & E1000_STATUS_LU))
+ 		adapter->link_active = 1;
+ 	else
+ 		adapter->link_active = 0;

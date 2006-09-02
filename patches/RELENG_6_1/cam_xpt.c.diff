@@ -1,0 +1,19 @@
+Index: cam_xpt.c
+===================================================================
+RCS file: /home/ncvs/src/sys/cam/cam_xpt.c,v
+retrieving revision 1.155.2.2
+diff -u -r1.155.2.2 cam_xpt.c
+--- cam_xpt.c	26 Feb 2006 22:38:39 -0000	1.155.2.2
++++ cam_xpt.c	24 Jun 2006 18:59:58 -0000
+@@ -387,6 +387,11 @@
+ 		/*quirks*/0, /*mintags*/0, /*maxtags*/0
+ 	},
+ 	{
++		/* Does not support other than LUN 0 */
++		{ T_DIRECT, SIP_MEDIA_FIXED, "VMware*", "VMware Virtu*", "*" },
++		CAM_QUIRK_NOLUNS, /*mintags*/0, /*maxtags*/0
++	},
++	{
+ 		/*
+ 		 * Broken tagged queuing drive.
+ 		 * Submitted by:
