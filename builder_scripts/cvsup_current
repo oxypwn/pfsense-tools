@@ -36,7 +36,7 @@ fi
 
 # Update FreeSBIE2 files from CVS
 echo "Updating FreeSBIE 2"
-(cd ../../freesbie2 && cvs update -d)
+#(cd ../../freesbie2 && cvs update -d)
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
