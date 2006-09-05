@@ -1,0 +1,274 @@
+Index: tcp_input.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_input.c,v
+retrieving revision 1.281.2.5
+diff -u -r1.281.2.5 tcp_input.c
+--- tcp_input.c	1 Mar 2006 21:13:29 -0000	1.281.2.5
++++ tcp_input.c	5 Sep 2006 21:18:59 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_input.c	8.12 (Berkeley) 5/24/95
+- * $FreeBSD: src/sys/netinet/tcp_input.c,v 1.281.2.5 2006/03/01 21:13:29 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_input.c,v 1.281.2.9 2006/09/05 19:16:10 mohans Exp $
+  */
+ 
+ #include "opt_ipfw.h"		/* for ipfw_fwd		*/
+@@ -201,6 +201,14 @@
+ 	    (tcp_delack_enabled || (tp->t_flags & TF_NEEDSYN)))
+ 
+ /* Initialize TCP reassembly queue */
++static void
++tcp_reass_zone_change(void *tag)
++{
++
++	tcp_reass_maxseg = nmbclusters / 16;
++	uma_zone_set_max(tcp_reass_zone, tcp_reass_maxseg);
++}
++
+ uma_zone_t	tcp_reass_zone;
+ void
+ tcp_reass_init()
+@@ -211,6 +219,8 @@
+ 	tcp_reass_zone = uma_zcreate("tcpreass", sizeof (struct tseg_qent),
+ 	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
+ 	uma_zone_set_max(tcp_reass_zone, tcp_reass_maxseg);
++	EVENTHANDLER_REGISTER(nmbclusters_change,
++	    tcp_reass_zone_change, NULL, EVENTHANDLER_PRI_ANY);
+ }
+ 
+ static int
+@@ -789,6 +799,7 @@
+ 		goto drop;
+ #endif
+ 	so = inp->inp_socket;
++	KASSERT(so != NULL, ("tcp_input: so == NULL"));
+ #ifdef TCPDEBUG
+ 	if (so->so_options & SO_DEBUG) {
+ 		ostate = tp->t_state;
+@@ -1771,6 +1782,8 @@
+ 		if (tp->t_state == TCPS_SYN_RECEIVED ||
+ 		    (tp->t_flags & TF_NEEDSYN))
+ 			goto step6;
++		else if (tp->t_flags & TF_ACKNOW)
++			goto dropafterack;
+ 		else
+ 			goto drop;
+ 	}
+@@ -2550,7 +2563,7 @@
+ 			    (tcp_seq)0, TH_RST|TH_ACK);
+ 	}
+ 
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	if (headlocked)
+ 		INP_INFO_WUNLOCK(&tcbinfo);
+@@ -2561,11 +2574,11 @@
+ 	 * Drop space held by incoming segment and return.
+ 	 */
+ #ifdef TCPDEBUG
+-	if (tp == 0 || (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
++	if (tp == NULL || (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
+ 		tcp_trace(TA_DROP, ostate, tp, (void *)tcp_saveipgen,
+ 			  &tcp_savetcp, 0);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	if (headlocked)
+ 		INP_INFO_WUNLOCK(&tcbinfo);
+@@ -3213,7 +3226,7 @@
+ 	if (thflags & TH_FIN) {
+ 		seq = th->th_seq + tlen + (thflags & TH_SYN ? 1 : 0);
+ 		if (seq + 1 == tw->rcv_nxt)
+-			tcp_timer_2msl_reset(tw, 2 * tcp_msl);
++			tcp_timer_2msl_reset(tw, 2 * tcp_msl, 1);
+ 	}
+ 
+ 	/*
+Index: tcp_subr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_subr.c,v
+retrieving revision 1.228.2.6
+diff -u -r1.228.2.6 tcp_subr.c
+--- tcp_subr.c	1 Mar 2006 21:13:29 -0000	1.228.2.6
++++ tcp_subr.c	5 Sep 2006 21:18:59 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_subr.c	8.2 (Berkeley) 5/24/95
+- * $FreeBSD: src/sys/netinet/tcp_subr.c,v 1.228.2.6 2006/03/01 21:13:29 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_subr.c,v 1.228.2.9 2006/09/05 19:18:42 mohans Exp $
+  */
+ 
+ #include "opt_compat.h"
+@@ -245,6 +245,15 @@
+ /*
+  * Tcp initialization
+  */
++static void
++tcp_zone_change(void *tag)
++{
++
++	uma_zone_set_max(tcbinfo.ipi_zone, maxsockets);
++	uma_zone_set_max(tcpcb_zone, maxsockets);
++	uma_zone_set_max(tcptw_zone, maxsockets / 5);
++}
++
+ void
+ tcp_init()
+ {
+@@ -304,6 +313,8 @@
+ 		SHUTDOWN_PRI_DEFAULT);
+ 	sack_hole_zone = uma_zcreate("sackhole", sizeof(struct sackhole),
+ 	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
++	EVENTHANDLER_REGISTER(maxsockets_change, tcp_zone_change, NULL,
++		EVENTHANDLER_PRI_ANY);
+ }
+ 
+ void
+@@ -1532,6 +1543,10 @@
+ 		tcpstat.tcps_mturesent++;
+ 		tp->t_rtttime = 0;
+ 		tp->snd_nxt = tp->snd_una;
++		tcp_free_sackholes(tp);
++		tp->snd_recover = tp->snd_max;
++		if (tp->sack_enable)
++			EXIT_FASTRECOVERY(tp);
+ 		tcp_output(tp);
+ 	}
+ 	return (inp);
+@@ -1718,7 +1733,7 @@
+ 		tcp_twrespond(tw, TH_ACK);
+ 	inp->inp_ppcb = (caddr_t)tw;
+ 	inp->inp_vflag |= INP_TIMEWAIT;
+-	tcp_timer_2msl_reset(tw, tw_time);
++	tcp_timer_2msl_reset(tw, tw_time, 0);
+ 	INP_UNLOCK(inp);
+ }
+ 
+Index: tcp_timer.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_timer.c,v
+retrieving revision 1.74.2.2
+diff -u -r1.74.2.2 tcp_timer.c
+--- tcp_timer.c	1 Mar 2006 21:08:53 -0000	1.74.2.2
++++ tcp_timer.c	5 Sep 2006 21:18:59 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_timer.c	8.2 (Berkeley) 5/24/95
+- * $FreeBSD: src/sys/netinet/tcp_timer.c,v 1.74.2.2 2006/03/01 21:08:53 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_timer.c,v 1.74.2.4 2006/09/05 19:16:10 mohans Exp $
+  */
+ 
+ #include "opt_inet6.h"
+@@ -195,11 +195,11 @@
+ 		tp = tcp_close(tp);
+ 
+ #ifdef TCPDEBUG
+-	if (tp && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
++	if (tp != NULL && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
+ 		tcp_trace(TA_USER, ostate, tp, (void *)0, (struct tcphdr *)0,
+ 			  PRU_SLOWTIMO);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	INP_INFO_WUNLOCK(&tcbinfo);
+ }
+@@ -232,14 +232,14 @@
+ }
+ 
+ void
+-tcp_timer_2msl_reset(struct tcptw *tw, int timeo)
++tcp_timer_2msl_reset(struct tcptw *tw, int timeo, int rearm)
+ {
+ 	int i;
+ 	struct tcptw *tw_tail;
+ 
+ 	INP_INFO_WLOCK_ASSERT(&tcbinfo);
+ 	INP_LOCK_ASSERT(tw->tw_inpcb);
+-	if (tw->tw_time != 0)
++	if (rearm)
+ 		LIST_REMOVE(tw, tw_2msl);
+ 	tw->tw_time = timeo + ticks;
+ 	i = timeo > tcp_msl ? 1 : 0;
+@@ -252,8 +252,7 @@
+ {
+ 
+ 	INP_INFO_WLOCK_ASSERT(&tcbinfo);
+-	if (tw->tw_time != 0)
+-		LIST_REMOVE(tw, tw_2msl);
++	LIST_REMOVE(tw, tw_2msl);
+ }
+ 
+ struct tcptw *
+@@ -353,11 +352,11 @@
+ 	tp = tcp_drop(tp, ETIMEDOUT);
+ 
+ #ifdef TCPDEBUG
+-	if (tp && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
++	if (tp != NULL && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
+ 		tcp_trace(TA_USER, ostate, tp, (void *)0, (struct tcphdr *)0,
+ 			  PRU_SLOWTIMO);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(tp->t_inpcb);
+ 	INP_INFO_WUNLOCK(&tcbinfo);
+ }
+@@ -412,11 +411,11 @@
+ 
+ out:
+ #ifdef TCPDEBUG
+-	if (tp && tp->t_inpcb->inp_socket->so_options & SO_DEBUG)
++	if (tp != NULL && tp->t_inpcb->inp_socket->so_options & SO_DEBUG)
+ 		tcp_trace(TA_USER, ostate, tp, (void *)0, (struct tcphdr *)0,
+ 			  PRU_SLOWTIMO);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	INP_INFO_WUNLOCK(&tcbinfo);
+ }
+@@ -560,11 +559,11 @@
+ 
+ out:
+ #ifdef TCPDEBUG
+-	if (tp && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
++	if (tp != NULL && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
+ 		tcp_trace(TA_USER, ostate, tp, (void *)0, (struct tcphdr *)0,
+ 			  PRU_SLOWTIMO);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	if (headlocked)
+ 		INP_INFO_WUNLOCK(&tcbinfo);
+Index: tcp_timer.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_timer.h,v
+retrieving revision 1.27.2.1
+diff -u -r1.27.2.1 tcp_timer.h
+--- tcp_timer.h	1 Mar 2006 21:13:29 -0000	1.27.2.1
++++ tcp_timer.h	5 Sep 2006 21:18:59 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_timer.h	8.1 (Berkeley) 6/10/93
+- * $FreeBSD: src/sys/netinet/tcp_timer.h,v 1.27.2.1 2006/03/01 21:13:29 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_timer.h,v 1.27.2.2 2006/09/05 19:16:10 mohans Exp $
+  */
+ 
+ #ifndef _NETINET_TCP_TIMER_H_
+@@ -156,7 +156,7 @@
+ void	tcp_timer_2msl(void *xtp);
+ struct tcptw *
+ 	tcp_timer_2msl_tw(int _reuse);		/* XXX temporary */
+-void	tcp_timer_2msl_reset(struct tcptw *_tw, int _timeo);
++void	tcp_timer_2msl_reset(struct tcptw *_tw, int _timeo, int rearm);
+ void	tcp_timer_2msl_stop(struct tcptw *_tw);
+ void	tcp_timer_keep(void *xtp);
+ void	tcp_timer_persist(void *xtp);
