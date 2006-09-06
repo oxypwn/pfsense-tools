@@ -1,0 +1,25 @@
+Index: vm_contig.c
+===================================================================
+RCS file: /home/ncvs/src/sys/vm/vm_contig.c,v
+retrieving revision 1.43.2.3.2.1
+diff -u -r1.43.2.3.2.1 vm_contig.c
+--- vm_contig.c	25 Apr 2006 15:29:50 -0000	1.43.2.3.2.1
++++ vm_contig.c	6 Sep 2006 01:01:15 -0000
+@@ -60,7 +60,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sys/vm/vm_contig.c,v 1.43.2.3.2.1 2006/04/25 15:29:50 scottl Exp $");
++__FBSDID("$FreeBSD: src/sys/vm/vm_contig.c,v 1.43.2.4 2006/04/25 15:04:29 scottl Exp $");
+ 
+ #include <sys/param.h>
+ #include <sys/systm.h>
+@@ -434,7 +434,7 @@
+ 				break;
+ 		}
+ 		/* There are no candidates at all. */
+-		if (i == -1) {
++		if (i < 0) {
+ 			vm_page_unlock_queues();
+ 			continue;
+ 		}
