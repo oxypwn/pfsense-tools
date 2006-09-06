@@ -20,12 +20,3 @@ diff -u -r1.20.2.2 pf_ioctl.c
  			error = EBUSY;
  			break;
  		}
-@@ -1793,7 +1789,7 @@
- 			    (newrule->action == PF_RDR) ||
- 			    (newrule->action == PF_BINAT) ||
- 			    (newrule->rt > PF_FASTROUTE)) &&
--			    !pcr->anchor[0])) &&
-+			    !newrule->anchor)) &&
- 			    (TAILQ_FIRST(&newrule->rpool.list) == NULL))
- 				error = EINVAL;
- 
