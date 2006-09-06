@@ -1,6 +1,6 @@
---- configure.in.orig	Wed Apr 26 16:08:26 2006
-+++ configure.in	Thu May  4 08:55:35 2006
-@@ -222,7 +222,6 @@
+--- configure.in.orig	Fri Sep  1 01:06:14 2006
++++ configure.in	Tue Sep  5 00:36:45 2006
+@@ -226,7 +226,6 @@
  dnl .
  dnl -------------------------------------------------------------------------
  
@@ -8,7 +8,7 @@
  PHP_HELP_SEPARATOR([SAPI modules:])
  PHP_SHLIB_SUFFIX_NAMES
  PHP_SAPI=default
-@@ -247,7 +246,6 @@
+@@ -251,7 +250,6 @@
  
  if test "$enable_maintainer_zts" = "yes"; then
    PTHREADS_ASSIGN_VARS
@@ -16,7 +16,7 @@
  fi
  
  if test "$PHP_ENABLE_FASTCGI" = "yes"; then
-@@ -1248,25 +1246,22 @@
+@@ -1266,25 +1264,22 @@
  INLINE_CFLAGS="$INLINE_CFLAGS $standard_libtool_flag"
  CXXFLAGS="$CXXFLAGS $standard_libtool_flag"
  

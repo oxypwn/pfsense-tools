@@ -1,5 +1,5 @@
---- Zend/zend.h.orig	Tue Nov 15 14:35:22 2005
-+++ Zend/zend.h	Fri Nov 25 09:31:48 2005
+--- Zend/zend.h.orig	Mon Aug  7 15:15:20 2006
++++ Zend/zend.h	Tue Sep  5 00:18:26 2006
 @@ -178,7 +178,7 @@
  #endif
  

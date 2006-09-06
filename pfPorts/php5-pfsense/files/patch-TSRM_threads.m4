@@ -1,5 +1,5 @@
---- TSRM/threads.m4.orig	Wed Apr 27 15:22:18 2005
-+++ TSRM/threads.m4	Wed May  3 10:02:34 2006
+--- TSRM/threads.m4.orig	Wed Apr 27 13:22:18 2005
++++ TSRM/threads.m4	Tue Sep  5 00:17:21 2006
 @@ -164,7 +164,7 @@
  dnl
  AC_DEFUN([PTHREADS_ASSIGN_VARS],[

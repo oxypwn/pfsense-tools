@@ -1,3 +1,4 @@
+bin/php
 bin/php-config
 bin/phpize
 etc/php.conf
@@ -7,7 +8,6 @@ include/php/TSRM/TSRM.h
 include/php/TSRM/acconfig.h
 include/php/TSRM/readdir.h
 include/php/TSRM/tsrm_config.h
-include/php/TSRM/tsrm_config.nw.h
 include/php/TSRM/tsrm_config.w32.h
 include/php/TSRM/tsrm_config_common.h
 include/php/TSRM/tsrm_nw.h
@@ -27,8 +27,6 @@ include/php/Zend/zend_constants.h
 include/php/Zend/zend_dynamic_array.h
 include/php/Zend/zend_errors.h
 include/php/Zend/zend_execute.h
-include/php/Zend/zend_execute_globals.h
-include/php/Zend/zend_execute_locks.h
 include/php/Zend/zend_extensions.h
 include/php/Zend/zend_fast_cache.h
 include/php/Zend/zend_globals.h
@@ -55,8 +53,6 @@ include/php/Zend/zend_static_allocator.h
 include/php/Zend/zend_strtod.h
 include/php/Zend/zend_types.h
 include/php/Zend/zend_variables.h
-include/php/acconfig.h
-include/php/ext/standard/aggregation.h
 include/php/ext/standard/base64.h
 include/php/ext/standard/basic_functions.h
 include/php/ext/standard/crc32.h
@@ -79,7 +75,6 @@ include/php/ext/standard/md5.h
 include/php/ext/standard/microtime.h
 include/php/ext/standard/pack.h
 include/php/ext/standard/pageinfo.h
-include/php/ext/standard/parsedate.h
 include/php/ext/standard/php_array.h
 include/php/ext/standard/php_assert.h
 include/php/ext/standard/php_browscap.h
@@ -97,7 +92,6 @@ include/php/ext/standard/php_link.h
 include/php/ext/standard/php_mail.h
 include/php/ext/standard/php_math.h
 include/php/ext/standard/php_metaphone.h
-include/php/ext/standard/php_parsedate.h
 include/php/ext/standard/php_rand.h
 include/php/ext/standard/php_smart_str.h
 include/php/ext/standard/php_smart_str_public.h
@@ -118,17 +112,14 @@ include/php/ext/standard/url_scanner_ex.h
 @unexec [ -s %D/include/php/ext/php_config.h ] || rm %D/include/php/ext/php_config.h
 include/php/main/SAPI.h
 include/php/main/build-defs.h
-include/php/main/config.nw.h
 include/php/main/config.w32.h
 include/php/main/fopen_wrappers.h
-include/php/main/internal_functions_registry.h
 include/php/main/logos.h
 include/php/main/php.h
 include/php/main/php3_compat.h
 include/php/main/php_compat.h
 include/php/main/php_config.h
 include/php/main/php_content_types.h
-include/php/main/php_embed.h
 include/php/main/php_globals.h
 include/php/main/php_ini.h
 include/php/main/php_logos.h
@@ -166,7 +157,6 @@ lib/php/build/mkdep.awk
 lib/php/build/phpize.m4
 lib/php/build/scan_makefile_in.awk
 lib/php/build/shtool
-%%SAPI_FILE%%
 @dirrm include/php/TSRM
 @dirrm include/php/Zend
 @dirrm include/php/ext/standard

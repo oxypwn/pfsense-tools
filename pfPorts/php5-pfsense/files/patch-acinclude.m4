@@ -1,5 +1,5 @@
---- acinclude.m4.orig	Mon Apr 10 14:17:36 2006
-+++ acinclude.m4	Thu May  4 08:10:56 2006
+--- acinclude.m4.orig	Fri Jun 16 08:01:03 2006
++++ acinclude.m4	Tue Sep  5 00:33:04 2006
 @@ -194,7 +194,7 @@
  dnl
  dnl which array to append to?
