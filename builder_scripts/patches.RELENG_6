@@ -6,7 +6,6 @@
 ~sbin/bsdlabel~bsdlabel.c.diff~
 ~sys/geom~geom_ctl.c.diff~
 ~sys/~bpf_fixes.diff~
-~sys/opencrypto~crypto.c.diff~
 ~sbin/init~init.c.diff~
 ~sys/netinet~if_ether.c.diff~
 ~sys/cam/~cam_xpt.c.diff~
