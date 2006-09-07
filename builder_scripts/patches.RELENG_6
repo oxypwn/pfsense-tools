@@ -5,25 +5,6 @@
 ~sbin/fdisk~fdisk.c.diff~
 ~sbin/bsdlabel~bsdlabel.c.diff~
 ~sys/geom~geom_ctl.c.diff~
-# RELENG_6 build works up to here - billm
-~sys~if_enc.diff~
-~sys/~bpf_fixes.diff~
-~sys/netinet~ip_output.c.diff~
-~sys/opencrypto~crypto.c.diff~
-~sbin/init~init.c.diff~
-~sys/netinet~if_ether.c.diff~
-~sys/cam/~cam_xpt.c.diff~
--p1~~clog-makefile.patch~
-~sys/i386/i386/~interrupts.diff~
-~sys/i386/i386/~local_apic.c.diff~
--p0~~unionfs6-p15.diff~
-~sys/nfsserver~nfs_serv.c.diff~
--p1~sys/~if_bridge.c.diff~
-~sys/modules/ipfw~ipfw.diff~
-~sys/dev/kbdmux~kbdmux.c.diff~
-~sys~esx.diff~
-~sys/fs/devfs~kernel-fix-devfs-deadlock.patch~
-~sys/netinet~tcp_fixes.diff~
 ~~~/sys/conf/options
 ~~~/sys/conf/files
 ~~~/sys/net/if_types.h
