@@ -13,4 +13,3 @@
 ~sys/nfsserver~nfs_serv.c.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/fs/devfs~kernel-fix-devfs-deadlock.patch~
-~sys/netinet~tcp_fixes.diff~
