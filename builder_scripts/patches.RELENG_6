@@ -7,9 +7,7 @@
 ~sys/geom~geom_ctl.c.diff~
 ~sys/~bpf_fixes.diff~
 ~sys/netinet~if_ether.c.diff~
-~sys/cam/~cam_xpt.c.diff~
 -p1~~clog-makefile.patch~
-~sys/i386/i386/~interrupts.diff~
 ~sys/i386/i386/~local_apic.c.diff~
 -p0~~unionfs6-p15.diff~
 ~sys/nfsserver~nfs_serv.c.diff~
