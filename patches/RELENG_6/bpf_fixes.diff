@@ -284,9 +284,9 @@ Index: net/bpf.c
 RCS file: /home/ncvs/src/sys/net/bpf.c,v
 retrieving revision 1.153.2.6
 diff -u -r1.153.2.6 bpf.c
---- net/bpf.c	1 Oct 2005 18:43:16 -0000	1.153.2.6
-+++ net/bpf.c	3 Jun 2006 20:19:06 -0000
-@@ -298,7 +298,6 @@
+--- net/bpf.c.orig	Fri Aug 18 15:58:16 2006
++++ net/bpf.c	Thu Sep  7 03:43:49 2006
+@@ -299,7 +299,6 @@
  	LIST_INSERT_HEAD(&bp->bif_dlist, d, bd_next);
  
  	bpf_bpfd_cnt++;
@@ -294,7 +294,7 @@ diff -u -r1.153.2.6 bpf.c
  	BPFIF_UNLOCK(bp);
  }
  
-@@ -324,12 +323,6 @@
+@@ -325,12 +324,6 @@
  	LIST_REMOVE(d, bd_next);
  
  	bpf_bpfd_cnt--;
@@ -307,7 +307,7 @@ diff -u -r1.153.2.6 bpf.c
  	d->bd_bif = NULL;
  	BPFD_UNLOCK(d);
  	BPFIF_UNLOCK(bp);
-@@ -1079,51 +1072,33 @@
+@@ -1080,51 +1073,33 @@
  	struct ifnet *theywant;
  
  	theywant = ifunit(ifr->ifr_name);
@@ -381,9 +381,9 @@ diff -u -r1.153.2.6 bpf.c
  }
  
  /*
-@@ -1241,13 +1216,6 @@
- 	struct bpf_d *d;
- 	u_int slen;
+@@ -1244,13 +1219,6 @@
+ 	int gottime;
+ 	struct timeval tv;
  
 -	/*
 -	 * Lockless read to avoid cost of locking the interface if there are
@@ -392,12 +392,12 @@ diff -u -r1.153.2.6 bpf.c
 -	if (LIST_EMPTY(&bp->bif_dlist))
 -		return;
 -
+ 	gottime = 0;
  	BPFIF_LOCK(bp);
  	LIST_FOREACH(d, &bp->bif_dlist, bd_next) {
- 		BPFD_LOCK(d);
-@@ -1303,13 +1271,6 @@
- 	struct bpf_d *d;
- 	u_int pktlen, slen;
+@@ -1315,13 +1283,6 @@
+ 
+ 	gottime = 0;
  
 -	/*
 -	 * Lockless read to avoid cost of locking the interface if there are
@@ -409,9 +409,9 @@ diff -u -r1.153.2.6 bpf.c
  	pktlen = m_length(m, NULL);
  
  	BPFIF_LOCK(bp);
-@@ -1347,13 +1308,6 @@
- 	struct bpf_d *d;
- 	u_int pktlen, slen;
+@@ -1367,13 +1328,6 @@
+ 
+ 	gottime = 0;
  
 -	/*
 -	 * Lockless read to avoid cost of locking the interface if there are
@@ -423,7 +423,7 @@ diff -u -r1.153.2.6 bpf.c
  	pktlen = m_length(m, NULL);
  	/*
  	 * Craft on-stack mbuf suitable for passing to bpf_filter.
-@@ -1541,17 +1495,15 @@
+@@ -1566,16 +1520,14 @@
  		panic("bpfattach");
  
  	LIST_INIT(&bp->bif_dlist);
@@ -436,12 +436,11 @@ diff -u -r1.153.2.6 bpf.c
  	mtx_lock(&bpf_mtx);
  	LIST_INSERT_HEAD(&bpf_iflist, bp, bif_next);
  	mtx_unlock(&bpf_mtx);
- 
--	*bp->bif_driverp = NULL;
 -
+-	*bp->bif_driverp = NULL;
+ 
  	/*
  	 * Compute the length of the bpf header.  This is not necessarily
- 	 * equal to SIZEOF_BPF_HDR because we want to insert spacing such
 Index: net/bpf.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/bpf.h,v
