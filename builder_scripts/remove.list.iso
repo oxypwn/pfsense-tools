@@ -1,7 +1,6 @@
 ./bin/chio
 ./bin/ed
 ./bin/getfacl
-./bin/rcp
 ./bin/red
 ./bin/setfacl
 ./boot/kernel/acpi_*.ko
@@ -466,7 +465,6 @@
 ./usr/sbin/mtrace
 ./usr/sbin/ndp
 ./usr/sbin/newsyslog
-./usr/sbin/nsupdate
 ./usr/sbin/ntp-keygen
 ./usr/sbin/ntpd
 ./usr/sbin/ntpdc
