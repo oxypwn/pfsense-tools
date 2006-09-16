@@ -10,13 +10,18 @@
  */
 
 /* location to bsdiff binary */
-$path_to_bsdiff		 = "/usr/local/bin/bsdiff";
+$path_to_bsdiff		= "/usr/local/bin/bsdiff";
 /* uncomment to enable lots of spamming */
-$debug 			 = false;
+$debug				= false;
 
-$previous_version_dir	 = $argv[1];
-$new_version_dir	 = $argv[2];
-$location_to_bin_patches = "/tmp/patches";
+$previous_version_dir		= $argv[1];
+$new_version_dir			= $argv[2];
+$location_to_bin_patches	= "/tmp/patches";
+
+if(!file_exists($path_to_bsdiff)) {
+	echo "Could not find {$path_to_bsdiff}\n\nexiting.\n";
+	exit;
+}
 
 system("mkdir -p {$location_to_bin_patches}");
 
