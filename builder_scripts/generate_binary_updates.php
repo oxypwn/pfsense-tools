@@ -19,8 +19,13 @@ $new_version_dir			= $argv[2];
 $location_to_bin_patches	= "/tmp/patches";
 
 if(!file_exists($path_to_bsdiff)) {
-	echo "Could not find {$path_to_bsdiff}\n\nexiting.\n";
-	exit;
+	if(is_dir("/usr/ports/misc/bsdiff")) {
+		echo "Building and installing bsdiff from ports...";
+		exec("cd /usr/ports/misc/bsdiff && make install");
+	} else {
+		echo "Could not find {$path_to_bsdiff}\n\nexiting.\n";
+		exit;
+	}
 }
 
 system("mkdir -p {$location_to_bin_patches}");
