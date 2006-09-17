@@ -24,7 +24,7 @@
 ~sys/dev/kbdmux~kbdmux.c.diff~
 ~sys~esx.diff~
 ~sys/fs/devfs~kernel-fix-devfs-deadlock.patch~
-~sys~freebsd6-ipsec-fastipsec-natt.diff~
+~sys/netinet~tcp_fixes.diff~
 ~~~/sys/conf/options
 ~~~/sys/conf/files
 ~~~/sys/net/if_types.h

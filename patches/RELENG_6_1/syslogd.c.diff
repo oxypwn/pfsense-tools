@@ -1,0 +1,10 @@
+--- syslogd.c_orig	Sat Sep 16 20:48:46 2006
++++ syslogd.c	Sat Sep 16 20:50:02 2006
+@@ -1136,6 +1136,7 @@
+ 		v->iov_base = wmsg;
+ 		v->iov_len = strlen(msg);
+ 	} else if (f->f_prevcount > 1) {
++		return;
+ 		v->iov_base = repbuf;
+ 		v->iov_len = snprintf(repbuf, sizeof repbuf,
+ 		    "last message repeated %d times", f->f_prevcount);
