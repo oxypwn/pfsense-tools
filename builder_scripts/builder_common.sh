@@ -50,8 +50,6 @@ populate_extra() {
     cp $BASE_DIR/tools/dev_bootstrap.sh $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
-    install -s /sbin/setkey $CVS_CO_DIR/sbin/setkey
-    chmod a+rx $CVS_CO_DIR/sbin/setkey
     chmod a+rx $CVS_CO_DIR/scripts/*
 
     mkdir -p $CVS_CO_DIR/usr/local/bin/
@@ -132,8 +130,6 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 	rm -rf ${CVS_CO_DIR}/usr/local/bin/*
 	install -s /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
 	install -s /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
-	install -s /sbin/setkey ${CVS_CO_DIR}/usr/local/sbin/
-	chmod a+rx ${CVS_CO_DIR}/usr/local/sbin/*
 
 	du -hd0 ${CVS_CO_DIR}
 
@@ -264,8 +260,6 @@ create_pfSense_Small_update_tarball() {
 	rm -rf ${CVS_CO_DIR}/usr/local/bin/*
 	install -s /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
 	install -s /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
-	install -s /sbin/setkey ${CVS_CO_DIR}/usr/local/sbin/
-	chmod a+rx ${CVS_CO_DIR}/usr/local/sbin/*
 
 	du -hd0 ${CVS_CO_DIR}
 
