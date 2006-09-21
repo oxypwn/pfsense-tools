@@ -25,8 +25,6 @@
 ~sys~esx.diff~
 ~sys/fs/devfs~kernel-fix-devfs-deadlock.patch~
 ~sys/netinet~tcp_fixes.diff~
-~sys~freebsd6-ipsec-fastipsec-natt.diff~
-~sys/netipsec~key.c.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~~~/sys/conf/options
 ~~~/sys/netinet/udp_var.h
