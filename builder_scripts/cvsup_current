@@ -159,7 +159,7 @@ if [ ! -f "/usr/local/bin/cpdup" ]; then
 fi
 
 # Add BSDInstaller
-if [ ! -f "/usr/local/share/dfuibe_lua" ]; then
+if [ ! -d "/usr/local/share/dfuibe_lua" ]; then
 	echo "Cannot find BSDInstaller, pkg_add in progress..."
 	/usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/bsdinstaller-2.0.2006.0728.tbz
 	/usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/lua-5.0.2_1.tbz
