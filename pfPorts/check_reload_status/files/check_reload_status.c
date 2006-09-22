@@ -80,6 +80,7 @@ int main(void) {
 	      }
 	      if(fexist("/tmp/filter_dirty") == 1) {
 		      syslog(LOG_NOTICE, "reloading filter");
+		      system("echo reloading_filter > /tmp/check_reload_status");
 		      system("/bin/rm -f /tmp/filter_dirty");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_sync");
 	      }
