@@ -81,7 +81,7 @@ int main(void) {
 	      if(fexist("/tmp/filter_dirty") == 1) {
 		      syslog(LOG_NOTICE, "reloading filter");
 		      system("/bin/rm -f /tmp/filter_dirty");
-		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure");
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_sync");
 	      }
 	      if(fexist("/tmp/reload_all") == 1) {
 		      syslog(LOG_NOTICE, "reloading all");
