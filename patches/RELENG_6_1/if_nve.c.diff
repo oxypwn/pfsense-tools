@@ -1,0 +1,36 @@
+Index: if_nve.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/nve/if_nve.c,v
+retrieving revision 1.7.2.8
+diff -u -r1.7.2.8 if_nve.c
+--- if_nve.c	25 Dec 2005 21:57:03 -0000	1.7.2.8
++++ if_nve.c	22 Sep 2006 15:57:43 -0000
+@@ -521,7 +521,9 @@
+ 	ifp->if_init = nve_init;
+ 	ifp->if_mtu = ETHERMTU;
+ 	ifp->if_baudrate = IF_Mbps(100);
+-	ifp->if_snd.ifq_maxlen = TX_RING_SIZE - 1;
++	IFQ_SET_MAXLEN(&ifp->if_snd, TX_RING_SIZE - 1);
++	ifp->if_snd.ifq_drv_maxlen = TX_RING_SIZE - 1;
++	IFQ_SET_READY(&ifp->if_snd);
+ 	ifp->if_capabilities |= IFCAP_VLAN_MTU;
+ 
+ 	/* Attach to OS's managers. */
+@@ -861,7 +863,7 @@
+ 		buf = &desc->buf;
+ 
+ 		/* Get next packet to send. */
+-		IF_DEQUEUE(&ifp->if_snd, m0);
++		IFQ_DRV_DEQUEUE(&ifp->if_snd, m0);
+ 
+ 		/* If nothing to send, return. */
+ 		if (m0 == NULL)
+@@ -929,7 +931,7 @@
+ 			    "nve_ifstart: transmit queue is full\n");
+ 			ifp->if_drv_flags |= IFF_DRV_OACTIVE;
+ 			bus_dmamap_unload(sc->mtag, buf->map);
+-			IF_PREPEND(&ifp->if_snd, buf->mbuf);
++			IFQ_DRV_PREPEND(&ifp->if_snd, buf->mbuf);
+ 			buf->mbuf = NULL;
+ 			return;
+ 

@@ -26,6 +26,7 @@
 ~sys/fs/devfs~kernel-fix-devfs-deadlock.patch~
 ~sys/netinet~tcp_fixes.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
+~sys/dev/nve~if_nve.c.diff~
 ~~~/sys/conf/options
 ~~~/sys/netinet/udp_var.h
 ~~~/sys/netinet/udp.h
