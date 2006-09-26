@@ -1,0 +1,16 @@
+Index: bpf.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/bpf.c,v
+retrieving revision 1.2.2.3
+diff -u -r1.2.2.3 bpf.c
+--- bpf.c	20 Dec 2005 21:11:16 -0000	1.2.2.3
++++ bpf.c	26 Sep 2006 04:11:18 -0000
+@@ -282,7 +282,7 @@
+ 	 */
+ 	do {
+ 		/* If the buffer is empty, fill it. */
+-		if (interface->rbuf_offset == interface->rbuf_len) {
++		if (interface->rbuf_offset >= interface->rbuf_len) {
+ 			length = read(interface->rfdesc, interface->rbuf,
+ 			    interface->rbuf_max);
+ 			if (length <= 0)
