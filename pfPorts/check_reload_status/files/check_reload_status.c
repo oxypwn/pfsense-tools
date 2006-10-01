@@ -44,7 +44,6 @@ int fexist(char * filename)
 }
 
 int main(void) {
-	char temp[255];
 	int cycle_time;
 	cycle_time = CYCLE;
 	/* daemonize */
@@ -67,15 +66,13 @@ int main(void) {
 	      if(fexist("/tmp/rc.linkup") == 1) {
 	      	  syslog(LOG_NOTICE, "rc.linkup starting");
 			  system("echo /tmp/rc.linkup > /tmp/check_reload_status");
-			  sprintf(temp, "/usr/local/bin/php /etc/rc.linkup `cat /tmp/rc.linkup`");
-		      system(temp);
+		      system("/usr/local/bin/php /etc/rc.linkup `cat /tmp/rc.linkup`");
 		      system("/bin/rm /tmp/rc.linkup");
 	      }
 	      if(fexist("/tmp/rc.newwanip") == 1) {
 		      syslog(LOG_NOTICE, "rc.newwanip starting");
 			  system("echo /tmp/rc.newwanip > /tmp/check_reload_status");
-		      sprintf(temp, "/usr/local/bin/php /etc/rc.newwanip `cat /tmp/rc.newwanip`");
-		      system(temp);
+		      system("/usr/local/bin/php /etc/rc.newwanip `cat /tmp/rc.newwanip`");
 		      system("/bin/rm /tmp/rc.newwanip");
 	      }
 	      if(fexist("/tmp/filter_dirty") == 1) {
