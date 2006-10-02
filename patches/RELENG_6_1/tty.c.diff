@@ -1,0 +1,24 @@
+Index: tty.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/tty.c,v
+retrieving revision 1.250.2.1
+diff -u -r1.250.2.1 tty.c
+--- tty.c	6 Nov 2005 16:09:32 -0000	1.250.2.1
++++ tty.c	30 Sep 2006 21:03:24 -0000
+@@ -334,7 +334,15 @@
+ 	tp->t_state = 0;
+ 	knlist_clear(&tp->t_rsel.si_note, 0);
+ 	knlist_clear(&tp->t_wsel.si_note, 0);
+-	ttyrel(tp);
++	/*
++	 * Any close with tp->t_refcnt == 1 is wrong and is
++	 * an indication of a locking bug somewhere and that
++	 * our open call has not been finished properly.
++	 * Instead of putting an assert here we skip decrementing
++	 * the refcount to work around any problems.
++	 */
++	if (tp->t_refcnt > 1)
++		ttyrel(tp);
+ 	splx(s);
+ 	return (0);
+ }

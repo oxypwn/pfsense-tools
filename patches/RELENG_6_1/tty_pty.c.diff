@@ -1,0 +1,25 @@
+Index: tty_pty.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/tty_pty.c,v
+retrieving revision 1.137.2.2
+diff -u -r1.137.2.2 tty_pty.c
+--- tty_pty.c	30 Mar 2006 16:46:56 -0000	1.137.2.2
++++ tty_pty.c	30 Sep 2006 21:13:31 -0000
+@@ -276,8 +276,15 @@
+ 	if (!dev->si_drv1)
+ 		return(ENXIO);
+ 	tp = dev->si_tty;
+-	if (tp->t_oproc)
+-		return (EIO);
++
++	if (tp->t_oproc) {
++		/*
++		 * Only return if we have a non empty
++		 * state to avoid leakage.
++		 */
++        	if (tp->t_state != 0x0 || tp->t_refcnt > 1)
++			return (EIO);
++	}
+ 	tp->t_timeout = -1;
+ 	tp->t_oproc = ptsstart;
+ 	tp->t_stop = ptsstop;
