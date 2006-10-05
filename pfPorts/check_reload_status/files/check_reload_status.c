@@ -117,6 +117,13 @@ int main(void) {
 		      system("/bin/rm /tmp/start_sshd");
 		      system("/usr/bin/nice -n20 /etc/sshd");
 	      }
+	      if(fexist("/tmp/start_ntpd") == 1) {
+		      syslog(LOG_NOTICE, "starting ntpd");
+		      system("/bin/rm /tmp/start_ntpd");
+		      system("/usr/bin/killall ntpd");
+		      sleep(3);
+		      system("sh -c \"/usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf\"");
+	      }
 		  system("echo sleeping > /tmp/check_reload_status");
 	      sleep( cycle_time );
 	  }
