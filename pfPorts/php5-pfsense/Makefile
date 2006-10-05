@@ -42,6 +42,7 @@ CONFIGURE_ARGS=	--with-config-file-scan-dir=${PREFIX}/lib/php \
 		--without-mysql \
 		--disable-all \
 		--disable-cli \
+		--enable-bcmath \
 		--enable-zend-multibyte=shared \
 		--enable-reflection=shared \
 		--enable-spl=yes \

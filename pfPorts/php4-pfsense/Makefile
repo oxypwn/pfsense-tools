@@ -36,6 +36,7 @@ CONFIGURE_ARGS+=--without-mysql \
 		--with-curl \
 		--enable-mbstring \
 		--with-gettext \
+		--enable-bcmath \
 		--enable-pcntl \
 		--enable-fastcgi \
 		--enable-force-cgi-redirect
