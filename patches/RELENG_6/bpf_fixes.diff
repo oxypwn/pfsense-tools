@@ -635,22 +635,6 @@ diff -u -r1.32.2.5 if_gre.c
  		af = dst->sa_family;
  		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m);
  	}
-Index: net/if_loop.c
-===================================================================
-RCS file: /home/ncvs/src/sys/net/if_loop.c,v
-retrieving revision 1.106.2.1
-diff -u -r1.106.2.1 if_loop.c
---- net/if_loop.c	25 Aug 2005 05:01:20 -0000	1.106.2.1
-+++ net/if_loop.c	3 Jun 2006 20:19:06 -0000
-@@ -259,7 +259,7 @@
- 	m->m_pkthdr.rcvif = ifp;
- 
- 	/* Let BPF see incoming packet */
--	if (ifp->if_bpf) {
-+	if (bpf_peers_present(ifp->if_bpf)) {
- 		if (ifp->if_bpf->bif_dlt == DLT_NULL) {
- 			u_int32_t af1 = af;	/* XXX beware sizeof(af) != 4 */
- 			/*
 Index: net/if_sl.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/if_sl.c,v

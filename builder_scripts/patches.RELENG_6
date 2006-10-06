@@ -13,7 +13,7 @@
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/fs/devfs~kernel-fix-devfs-deadlock.patch~
 ~sys~freebsd6-ipsec-fastipsec-natt.diff~
-~Sys/netipsec~key.c.diff~
+~sys/netipsec~key.c.diff~
 -p0~~hostapd_iapp.diff~
 ~~~/sys/conf/options
 ~~~/sys/netinet/udp_var.h
