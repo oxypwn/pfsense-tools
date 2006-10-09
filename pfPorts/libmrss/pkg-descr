@@ -1,0 +1,5 @@
+mRss is a C library for parsing, writing and creating RSS files or streams.
+This library can be also used not only in C or C++, but also in PHP with a PHP extension.
+
+Author:	Andrea Marchesini
+WWW:	http://www2.autistici.org/bakunin/libmrss/doc/

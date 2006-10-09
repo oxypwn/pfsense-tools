@@ -6,11 +6,11 @@
 #
 
 PORTNAME=	php5
-PORTVERSION=	5.2.0RC3
-PORTREVISION?=	RC3
+PORTVERSION=	5.2.0RC5
+#PORTREVISION?=	RC3
 CATEGORIES?=	lang devel www
-MASTER_SITES=	http://downloads.php.net/ilia/
-#MASTER_SITE_SUBDIR=	distributions/:release
+MASTER_SITES=	http://downloads.php.net/%SUBDIR%/
+MASTER_SITE_SUBDIR=	ilia
 DISTNAME=	php-${PORTVERSION:S/.r/RC/}
 DISTFILES=	${DISTNAME}${EXTRACT_SUFX}:release
 
@@ -42,7 +42,7 @@ CONFIGURE_ARGS=	--with-config-file-scan-dir=${PREFIX}/lib/php \
 		--without-mysql \
 		--disable-all \
 		--disable-cli \
-		--enable-bcmath \
+		--enable-bcmath=shared \
 		--enable-zend-multibyte=shared \
 		--enable-reflection=shared \
 		--enable-spl=yes \
