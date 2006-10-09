@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	lighttpd
-PORTVERSION=	1.4.11
+PORTVERSION=	1.4.13
 CATEGORIES=	www
 MASTER_SITES=	http://www.lighttpd.net/download/
 
@@ -18,7 +18,7 @@ LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
 USE_AUTOTOOLS=	autoconf:259 libtool:15
 GNU_CONFIGURE=	yes
 USE_GNOME=	lthack
-USE_RC_SUBR=	lighttpd.sh
+#USE_RC_SUBR=	lighttpd.sh
 CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd
 CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 
