@@ -15,6 +15,7 @@
 ~sys~freebsd6-ipsec-fastipsec-natt.diff~
 ~sys/netipsec~key.c.diff~
 -p0~~hostapd_iapp.diff~
+~~fix_kerberos.diff~
 ~~~/sys/conf/options
 ~~~/sys/netinet/udp_var.h
 ~~~/sys/netinet/udp.h
