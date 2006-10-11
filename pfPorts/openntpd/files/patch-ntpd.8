@@ -1,0 +1,55 @@
+
+$FreeBSD: ports/net/openntpd/files/patch-ntpd.8,v 1.4 2005/06/05 14:17:32 naddy Exp $
+
+--- ntpd.8.orig
++++ ntpd.8
+@@ -53,6 +53,20 @@
+ .Xr adjtime 2
+ will be logged.
+ .Pp
++.Nm
++is usually started at boot time, and can be enabled by
++setting the following in
++.Pa /etc/rc.conf :
++.Pp
++.Dl openntpd_enable=\&"YES\&"
++.Pp
++See
++.Xr rc 8
++and
++.Xr rc.conf 5
++for more information on the boot process
++and enabling daemons.
++.Pp
+ When
+ .Nm
+ starts up, it reads settings from a configuration file,
+@@ -72,7 +86,7 @@
+ .Ar file
+ as the configuration file,
+ instead of the default
+-.Pa /etc/ntpd.conf .
++.Pa %%PREFIX%%/etc/ntpd.conf .
+ .It Fl S
+ Do not set the time immediately at startup.
+ This is the default.
+@@ -86,8 +100,8 @@
+ .Nm .
+ .El
+ .Sh FILES
+-.Bl -tag -width "/etc/ntpd.confXXX" -compact
+-.It Pa /etc/ntpd.conf
++.Bl -tag -width "%%PREFIX%%/etc/ntpd.confXXX" -compact
++.It Pa %%PREFIX%%/etc/ntpd.conf
+ default
+ .Nm
+ configuration file
+@@ -96,6 +110,8 @@
+ .Xr date 1 ,
+ .Xr adjtime 2 ,
+ .Xr ntpd.conf 5 ,
++.Xr rc.conf 5 ,
++.Xr rc 8 ,
+ .Xr rdate 8 ,
+ .Xr timed 8
+ .Rs
