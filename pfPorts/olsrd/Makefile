@@ -2,7 +2,7 @@
 # Date created:		6 April 2005
 # Whom:			dave@dogwood.com
 #
-# $FreeBSD: ports/net/olsrd/Makefile,v 1.3 2005/11/14 17:07:07 sem Exp $
+# $FreeBSD: ports/net/olsrd/Makefile,v 1.5 2006/04/18 10:40:42 ehaupt Exp $
 #
 
 PORTNAME=	olsrd
@@ -41,6 +41,10 @@ MAKE_ARGS+=	INSTALL_PREFIX=${PREFIX}
 
 .if ${OSVERSION} < 502000
 IGNORE=		needs ieee80211.h headers
+.endif
+
+.if ${ARCH} == "amd64" || ${ARCH} == "ia64"
+CFLAGS+=	-fPIC
 .endif
 
 .if !defined(WITH_MULTI_IF)
