@@ -1,39 +1,176 @@
-# New ports collection makefile for:	wol
-# Date created:				Tue Feb 18 11:17:13 CET 2003
-# Whom:					Alex Dupre <sysadmin@alexdupre.com>
+# New ports collection makefile for:	ipsec-tools
+# Date created:		20 dec 2004
+# Whom:			vanhu
 #
-# $FreeBSD: ports/lang/php4/Makefile,v 1.88 2005/07/13 19:56:27 ale Exp $
-#
+# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.13 2006/06/16 16:02:54 pav Exp $
+
+# TODO: - libipsec issue ?
+#       - cleanup...
+#       - SYSCONFDIR
+#       - $LOCALBASE/sbin/setkey Vs /usr/sbin/setkey
 
 PORTNAME=	ipsec-tools
-PORTVERSION=	0.6.1
-PORTREVISION?=	0
-CATEGORIES?=	sysutils
+PORTVERSION=	0.6.6
+CATEGORIES=	security
 MASTER_SITES=	${MASTER_SITE_SOURCEFORGE}
-MASTER_SITE_SUBDIR=	${PORTNAME}
+MASTER_SITE_SUBDIR=	ipsec-tools
 
-MAINTAINER?=	jebc@c4solutions.net
-COMMENT?=	Wake on Lan initiator
+MAINTAINER=	vanhu@netasq.com
+COMMENT=	KAME racoon IKE daemon, ipsec-tools version
 
-WHERE=          bin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
+CONFLICTS=	racoon-[0-9]*
 
+USE_RC_SUBR=	racoon.sh
+USE_OPENSSL=	yes
 USE_BZIP2=	yes
+
 GNU_CONFIGURE=	yes
+INSTALLS_SHLIB=	yes
+CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
+CONFIGURE_ARGS=	--enable-shared --sysconfdir=${PREFIX}/etc/racoon \
+		--localstatedir=${STATEDIR:S/\/racoon//} \
+		--with-pkgversion=freebsd-${PORTVERSION}
 
-# for gssapi
-#RUN_DEPENDS+=	biconv:${PORTSDIR}/converters/iconv
+STATEDIR=	${DESTDIR}/var/db/racoon
+SUB_LIST+=	STATEDIR=${STATEDIR}
+PLIST_SUB+=	STATEDIR=${STATEDIR}
 
-CONFIGURE_ARGS+=--enable-adminport
-CONFIGURE_ARGS+=--enable-rc5
-CONFIGURE_ARGS+=--enable-idea
-#CONFIGURE_ARGS+=--enable-gssapi
-CONFIGURE_ARGS+=--enable-hybrid
-CONFIGURE_ARGS+=--enable-frag 
-CONFIGURE_ARGS+=--enable-stats
-CONFIGURE_ARGS+=--enable-dpd
-CONFIGURE_ARGS+=--enable-samode-unspec
-#do-install:
-#	${INSTALL_PROGRAM} ${WRKSRC}/src/wol ${PREFIX}/${WHERE}/
+OPTIONS=	DEBUG		"enable Debug support" on \
+		IPV6		"enable IPV6 support" on \
+		ADMINPORT	"enable Admin port" off \
+		STATS		"enable Statistics logging function" off \
+		DPD		"enable Dead Peer Detection" on \
+		NATT		"enable NAT-Traversal (kernel-patch required)" on \
+		FRAG		"enable IKE fragmentation payload support" on \
+		HYBRID		"enable Hybrid Mode-cfg and Xauth support" off \
+		PAM		"enable PAM authentication" off \
+		GSSAPI		"enable GSS-API authentication" off \
+		RADIUS		"enable Radius authentication" off \
+		SAUNSPEC	"enable Unspecified SA mode" off \
+		RC5		"enable RC5 encryption (patented)" off \
+		IDEA		"enable IDEA encryption (patented)" off
 
-.include <bsd.port.mk>
+MAN3=		ipsec_set_policy.3 ipsec_strerror.3
+MAN5=		racoon.conf.5
+MAN8=		racoon.8 racoonctl.8 setkey.8 plainrsa-gen.8
+
+PORTDOCS=	*
+
+.include <bsd.port.pre.mk>
+
+.ifdef(WITH_DEBUG)
+CONFIGURE_ARGS+=	--enable-debug
+.else
+CONFIGURE_ARGS+=	--disable-debug
+.endif
+
+.ifdef(WITH_IPV6)
+CONFIGURE_ARGS+=	--enable-ipv6
+.else
+CONFIGURE_ARGS+=	--disable-ipv6
+.endif
+
+.ifdef(WITH_ADMINPORT)
+CONFIGURE_ARGS+=	--enable-adminport
+.else
+CONFIGURE_ARGS+=	--disable-adminport
+.endif
+
+.ifdef(WITH_STATS)
+CONFIGURE_ARGS+=	--enable-stats
+.else
+CONFIGURE_ARGS+=	--disable-stats
+.endif
+
+.ifdef(WITH_DPD)
+CONFIGURE_ARGS+=	--enable-dpd
+.else
+CONFIGURE_ARGS+=	--disable-dpd
+.endif
+
+.ifdef(WITH_NATT)
+CONFIGURE_ARGS+=	--enable-natt=kernel
+.else
+CONFIGURE_ARGS+=	--disable-natt
+.endif
+
+.ifdef(WITH_FRAG)
+CONFIGURE_ARGS+=	--enable-frag
+.else
+CONFIGURE_ARGS+=	--disable-frag
+.endif
+
+.ifdef(WITH_HYBRID)
+CONFIGURE_ARGS+=	--enable-hybrid
+.else
+CONFIGURE_ARGS+=	--disable-hybrid
+.endif
+
+.ifdef(WITH_PAM)
+CONFIGURE_ARGS+=	--with-libpam
+.else
+CONFIGURE_ARGS+=	--without-libpam
+.endif
+
+.ifdef(WITH_GSSAPI)
+USE_ICONV=	yes
+CFLAGS+=	-I${LOCALBASE}/include
+LDFLAGS+=	-L${LOCALBASE}/lib
+CONFIGURE_ARGS+=	--enable-gssapi
+.else
+CONFIGURE_ARGS+=	--disable-gssapi
+.endif
+
+.ifdef(WITH_RADIUS)
+CONFIGURE_ARGS+=	--with-libradius
+.else
+CONFIGURE_ARGS+=	--without-libradius
+.endif
+
+.ifdef(WITH_SAUNSPEC)
+CONFIGURE_ARGS+=	--enable-samode-unspec
+.else
+CONFIGURE_ARGS+=	--disable-samode-unspec
+.endif
+
+.ifdef(WITH_RC5)
+CONFIGURE_ARGS+=	--enable-rc5
+.else
+CONFIGURE_ARGS+=	--disable-rc5
+.endif
+
+.ifdef(WITH_IDEA)
+CONFIGURE_ARGS+=	--enable-idea
+.else
+CONFIGURE_ARGS+=	--disable-idea
+.endif
+
+.ifdef(WITH_NATT)
+pre-configure:
+	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
+	@${ECHO_MSG} "===> ATTENTION: You need a kernel patch to enable NAT-Traversal functionality!"
+	@${ECHO_MSG} "===> You can download the patch here:"
+. if ${OSVERSION} < 500000
+	@${ECHO_MSG} "===>     http://ipsec-tools.sf.net/freebsd_nat-t.diff"
+. else
+	@${ECHO_MSG} "===>     http://ipsec-tools.sf.net/freebsd6-natt.diff"
+. endif
+	@${ECHO_MSG} "===> You might possibly have to do some steps manually if it fails to apply."
+	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
+	@sleep 3
+.endif
+
+post-install:
+	@if [ -z `/sbin/sysctl -a | ${GREP} -q ipsec && ${ECHO_CMD} ipsec` ]; then \
+	    ${ECHO_MSG} "WARNING: IPsec feature is disabled on this host"; \
+	    ${ECHO_MSG} "         You must build the kernel if you want to run racoon on the host"; \
+	fi ;
+	@${MKDIR} ${EXAMPLESDIR}
+	@${RM} -f ${WRKSRC}/src/racoon/samples/*.in
+	@${CP} -r ${WRKSRC}/src/racoon/samples/* ${EXAMPLESDIR}
+.if !defined(NOPORTDOCS)
+	@${MKDIR} ${DOCSDIR}
+	@${INSTALL_DATA} ${WRKSRC}/src/racoon/doc/* ${DOCSDIR}
+.endif
+
+.include <bsd.port.post.mk>
