@@ -7,7 +7,6 @@
 ~sbin/fdisk~fdisk.c.diff~
 ~sbin/bsdlabel~bsdlabel.c.diff~
 ~sys/geom~geom_ctl.c.diff~
-~sys~if_enc.diff~
 -p1~~clog-makefile.patch~
 -p1~sys/~if_bridge.c.diff~
 ~sys/modules/ipfw~ipfw.diff~
