@@ -8,22 +8,25 @@
 #
 
 SUBDIR += atareinit
-SUBDIR += beep
+# Not applicable to amd64
+#SUBDIR += beep
 SUBDIR += check_reload_status
 SUBDIR += choparp
-SUBDIR += dhcpd
-SUBDIR += dmt-ux
-SUBDIR += dnsmasq
+#SUBDIR += dmt-ux
+# Does not build on amd64?
+##SUBDIR += dnsmasq
 SUBDIR += expiretable
 SUBDIR += ifstated
 SUBDIR += ipsec-tools
 SUBDIR += isc-dhcp3-relay
 SUBDIR += isc-dhcp3-server
 SUBDIR += kbdcheck
-SUBDIR += libmrss
+# Does not build on amd64
+#SUBDIR += libmrss
 SUBDIR += lighttpd
 SUBDIR += minicron
-SUBDIR += miniupnpd
+# File not found?
+#SUBDIR += miniupnpd
 SUBDIR += mpd
 SUBDIR += olsrd
 SUBDIR += pftop
@@ -39,7 +42,6 @@ SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
 SUBDIR += sshtools
 SUBDIR += stats
-SUBDIR += upload_progress_meter
 SUBDIR += vtsh
 
 PORTSTOP=       yes
