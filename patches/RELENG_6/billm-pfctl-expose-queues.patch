@@ -248,3 +248,46 @@ diff -u -r1.11.2.1 pfvar.h
  #ifdef __FreeBSD__
  struct pf_ifspeed {
  	char			ifname[IFNAMSIZ];
+Index: pf_ioctl.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.20.2.2
+diff -u -r1.20.2.2 pf_ioctl.c
+--- pf_ioctl.c  6 Mar 2006 16:10:18 -0000       1.20.2.2
++++ pf_ioctl.c  21 Jul 2006 04:21:30 -0000
+@@ -1983,6 +1979,36 @@
+ 			ps->state.expire -= time_second;
+ 		else
+ 			ps->state.expire = 0;
++		break;
++	}
++
++	case DIOCSETSTATE: {
++		struct pfioc_state	*ps = (struct pfioc_state *)addr;
++		struct pf_state		*state;
++		u_int32_t		 nr;
++
++		nr = 0;
++		RB_FOREACH(state, pf_state_tree_id, &tree_id) {
++			if (nr >= ps->nr)
++				break;
++			nr++;
++		}
++		if (state == NULL) {
++			error = EBUSY;
++			break;
++		}
++		bcopy(&ps->state, state, sizeof(struct pf_state));
++
++		state->rule.ptr->nr = ps->state.rule.nr;
++		state->nat_rule.nr = (ps->state.nat_rule.ptr == NULL) ?
++			-1 : ps->state.nat_rule.nr;
++		state->anchor.nr = (ps->state.anchor.ptr == NULL) ?
++			-1 : ps->state.anchor.nr;
++		state->expire = pf_state_expires(&ps->state);
++		if (state->expire > time_second)
++			state->expire -= time_second;
++		else
++			state->expire = 0;
+ 		break;
+ 	}
