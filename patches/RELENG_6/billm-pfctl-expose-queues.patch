@@ -134,7 +134,7 @@ retrieving revision 1.34.2.2
 diff -u -r1.34.2.2 pf.c
 --- sys/contrib/pf/net/pf.c	12 Sep 2005 11:25:17 -0000	1.34.2.2
 +++ sys/contrib/pf/net/pf.c	7 Jan 2006 05:39:33 -0000
-@@ -3330,6 +3330,11 @@
+@@ -3370,6 +3370,11 @@
  			REASON_SET(&reason, PFRES_SYNPROXY);
  			return (PF_SYNPROXY_DROP);
  		}
@@ -146,7 +146,7 @@ diff -u -r1.34.2.2 pf.c
  	}
  
  	/* copy back packet headers if we performed NAT operations */
-@@ -3621,6 +3626,11 @@
+@@ -3661,6 +3666,11 @@
  			pf_tag_ref(tag);
  			s->tag = tag;
  		}
@@ -158,7 +158,7 @@ diff -u -r1.34.2.2 pf.c
  	}
  
  	/* copy back packet headers if we performed NAT operations */
-@@ -3925,6 +3935,11 @@
+@@ -3965,6 +3975,11 @@
  			pf_tag_ref(tag);
  			s->tag = tag;
  		}
@@ -170,7 +170,7 @@ diff -u -r1.34.2.2 pf.c
  	}
  
  #ifdef INET6
-@@ -4197,6 +4212,11 @@
+@@ -4237,6 +4252,11 @@
  			pf_tag_ref(tag);
  			s->tag = tag;
  		}
@@ -182,7 +182,7 @@ diff -u -r1.34.2.2 pf.c
  	}
  
  	return (PF_PASS);
-@@ -6555,7 +6575,7 @@
+@@ -6617,7 +6637,7 @@
  		pf_tag_packet(m, pf_get_tag(m), s->tag);
  
  #ifdef ALTQ
@@ -191,7 +191,7 @@ diff -u -r1.34.2.2 pf.c
  		struct m_tag	*mtag;
  		struct altq_tag	*atag;
  
-@@ -6563,9 +6583,9 @@
+@@ -6625,9 +6645,9 @@
  		if (mtag != NULL) {
  			atag = (struct altq_tag *)(mtag + 1);
  			if (pqid || pd.tos == IPTOS_LOWDELAY)
@@ -203,7 +203,7 @@ diff -u -r1.34.2.2 pf.c
  			/* add hints for ecn */
  			atag->af = AF_INET;
  			atag->hdr = h;
-@@ -6948,7 +6968,7 @@
+@@ -7010,7 +7030,7 @@
  		pf_tag_packet(m, pf_get_tag(m), s->tag);
  
  #ifdef ALTQ
@@ -212,7 +212,7 @@ diff -u -r1.34.2.2 pf.c
  		struct m_tag	*mtag;
  		struct altq_tag	*atag;
  
-@@ -6956,9 +6976,9 @@
+@@ -7018,9 +7038,9 @@
  		if (mtag != NULL) {
  			atag = (struct altq_tag *)(mtag + 1);
  			if (pd.tos == IPTOS_LOWDELAY)
@@ -240,3 +240,11 @@ diff -u -r1.11.2.1 pfvar.h
  };
  
  TAILQ_HEAD(pf_rulequeue, pf_rule);
+@@ -1477,6 +1479,7 @@
+ #define DIOCICLRISTATS  _IOWR('D', 88, struct pfioc_iface)
+ #define DIOCSETIFFLAG	_IOWR('D', 89, struct pfioc_iface)
+ #define DIOCCLRIFFLAG	_IOWR('D', 90, struct pfioc_iface)
++#define DIOCSETSTATE	_IOWR('D', 91, struct pfioc_state)
+ #ifdef __FreeBSD__
+ struct pf_ifspeed {
+ 	char			ifname[IFNAMSIZ];
