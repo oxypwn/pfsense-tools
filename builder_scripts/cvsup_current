@@ -40,7 +40,7 @@ echo "Updating FreeSBIE 2"
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
-PATCHDIR=${PATCHDIR:-/home/pfsense/tools/patches/${freebsd_branch}}
+PATCHDIR=${PATCHDIR:-${BASE_DIR}/tools/patches/${freebsd_branch}}
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Sanity check
