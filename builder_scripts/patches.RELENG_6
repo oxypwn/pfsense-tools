@@ -16,7 +16,6 @@
 ~sys/netipsec~key.c.diff~
 -p0~~hostapd_iapp.diff~
 -p0~~billm-pfctl-expose-queues.patch~
-~~fix_kerberos.diff~
 ~~~/sys/conf/options
 ~~~/sys/netinet/udp_var.h
 ~~~/sys/netinet/udp.h
