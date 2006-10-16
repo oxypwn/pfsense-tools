@@ -253,8 +253,8 @@ Index: pf_ioctl.c
 RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.20.2.2
 diff -u -r1.20.2.2 pf_ioctl.c
---- pf_ioctl.c  6 Mar 2006 16:10:18 -0000       1.20.2.2
-+++ pf_ioctl.c  21 Jul 2006 04:21:30 -0000
+--- sys/contrib/pf/net/pf_ioctl.c  6 Mar 2006 16:10:18 -0000       1.20.2.2
++++ sys/contrib/pf/net/pf_ioctl.c  21 Jul 2006 04:21:30 -0000
 @@ -1983,6 +1979,36 @@
  			ps->state.expire -= time_second;
  		else
