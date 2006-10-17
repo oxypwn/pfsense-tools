@@ -61,18 +61,21 @@ int main(void) {
 			sleep(5);
 			system("echo /tmp/restartwebgui > /tmp/check_reload_status");
 			system("/bin/rm /tmp/restart_webgui");
-			system("/usr/bin/nice -n20 /etc/rc.restart_webgui");
+			system("echo after /tmp/restartwebgui > /tmp/check_reload_status");
+			system("/usr/local/bin/php /etc/rc.restart_webgui");
 	      }
 	      if(fexist("/tmp/rc.linkup") == 1) {
 	      	  syslog(LOG_NOTICE, "rc.linkup starting");
 			  system("echo /tmp/rc.linkup > /tmp/check_reload_status");
-		      system("/usr/local/bin/php /etc/rc.linkup `cat /tmp/rc.linkup`");
+		      system("/etc/rc.linkup.sh");
+		      system("echo after /tmp/rc.linkup > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/rc.linkup");
 	      }
 	      if(fexist("/tmp/rc.newwanip") == 1) {
 		      syslog(LOG_NOTICE, "rc.newwanip starting");
 			  system("echo /tmp/rc.newwanip > /tmp/check_reload_status");
 		      system("/usr/local/bin/php /etc/rc.newwanip `cat /tmp/rc.newwanip`");
+		      system("echo after /tmp/rc.newwanip > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/rc.newwanip");
 	      }
 	      if(fexist("/tmp/filter_dirty") == 1) {
@@ -80,49 +83,58 @@ int main(void) {
 		      system("echo reloading_filter > /tmp/check_reload_status");
 		      system("/bin/rm -f /tmp/filter_dirty");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_sync");
+		      system("echo after reloading_filter > /tmp/check_reload_status");
 	      }
 	      if(fexist("/tmp/reload_all") == 1) {
 		      syslog(LOG_NOTICE, "reloading all");
 			  system("echo /tmp/reload_all > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_all");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all");
+		      system("echo after /tmp/reload_all > /tmp/check_reload_status");
 	      }
 	      if(fexist("/tmp/reload_interfaces") == 1) {
 	      	  syslog(LOG_NOTICE, "reloading interfaces");
 			  system("echo /tmp/reload_interfaces > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/reload_interfaces");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces");
+		       system("echo after /tmp/reload_interfaces > /tmp/check_reload_status");
 	      }
 	      if(fexist("/tmp/update_dyndns") == 1) {
 		      syslog(LOG_NOTICE, "updating dyndns");
 			  system("echo /tmp/update_dyndns > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/update_dyndns");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update");
+		      system("echo after /tmp/update_dyndns > /tmp/check_reload_status");
 	      }
 	      if(fexist("/tmp/interfaces_wan_configure") == 1) {
 	      	  syslog(LOG_NOTICE, "configuring wan");
 			  system("echo /tmp/interfaces_wan_configure > /tmp/check_reload_status");
 		      system("/bin/rm  /tmp/interfaces_wan_configure");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure");
+		      system("echo after /tmp/interfaces_wan_configure > /tmp/check_reload_status");
 	      }
 	      if(fexist("/tmp/interfaces_opt_configure") == 1) {
 	      	  syslog(LOG_NOTICE, "configuring opt");
 			  system("echo /tmp/interfaces_opt_configure > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/interfaces_opt_configure");
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_opt_configure");
+		      system("echo after /tmp/interfaces_opt_configure > /tmp/check_reload_status");
 	      }
 	      if(fexist("/tmp/start_sshd") == 1) {
 		      syslog(LOG_NOTICE, "starting sshd");
 			  system("echo /tmp/start_sshd > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/start_sshd");
 		      system("/usr/bin/nice -n20 /etc/sshd");
+		      system("echo after /tmp/start_sshd > /tmp/check_reload_status");
 	      }
 	      if(fexist("/tmp/start_ntpd") == 1) {
 		      syslog(LOG_NOTICE, "starting ntpd");
+		      system("echo /tmp/start_ntpd > /tmp/check_reload_status");
 		      system("/bin/rm /tmp/start_ntpd");
 		      system("/usr/bin/killall ntpd");
 		      sleep(3);
 		      system("/usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf");
+		      system("echo after /tmp/start_ntpd > /tmp/check_reload_status");
 	      }
 		  system("echo sleeping > /tmp/check_reload_status");
 	      sleep( cycle_time );
