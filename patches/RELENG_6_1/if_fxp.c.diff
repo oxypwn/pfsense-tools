@@ -1,0 +1,19 @@
+Index: if_fxp.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/fxp/if_fxp.c,v
+retrieving revision 1.240.2.8.2.1
+diff -u -r1.240.2.8.2.1 if_fxp.c
+--- if_fxp.c	16 Apr 2006 16:07:09 -0000	1.240.2.8.2.1
++++ if_fxp.c	24 Oct 2006 20:10:09 -0000
+@@ -2202,6 +2202,11 @@
+ 
+ 	mii = device_get_softc(sc->miibus);
+ 	FXP_LOCK(sc);
++	if (mii->mii_instance) {                                                
++		struct mii_softc	*miisc;                                 
++		LIST_FOREACH(miisc, &mii->mii_phys, mii_list)                   
++			mii_phy_reset(miisc);                                   
++	}                                      
+ 	mii_mediachg(mii);
+ 	FXP_UNLOCK(sc);
+ 	return (0);
