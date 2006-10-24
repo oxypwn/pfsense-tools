@@ -15,6 +15,8 @@
 ~sys~esx.diff~
 ~sys/dev/nve~if_nve.c.diff~
 ~sbin/dhclient~bpf.c.diff~
+~sys/dev/fxp~if_fxp.c.diff~
+~sys/dev/bge~bge.c.diff
 ~~~/sys/conf/options
 ~~~/sys/netinet/udp_var.h
 ~~~/sys/netinet/udp.h
