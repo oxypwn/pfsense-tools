@@ -1,7 +1,7 @@
-diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense4/upnpdescgen.c
---- miniupnpd-clean/upnpdescgen.c	Sun Sep 24 12:53:38 2006
-+++ miniupnpd-pfsense4/upnpdescgen.c	Mon Sep 25 20:59:06 2006
-@@ -45,8 +45,8 @@
+diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
+--- miniupnpd-clean/upnpdescgen.c	2006-10-23 14:15:52.000000000 -0400
++++ miniupnpd-pfsense/upnpdescgen.c	2006-10-24 23:55:39.809073300 -0400
+@@ -79,8 +79,8 @@
  	{"/minor", {"0"}},
  	{"/deviceType", {"urn:schemas-upnp-org:device:InternetGatewayDevice:1"}},
  	{"/friendlyName", {"BSD/pf router"}},	// required
@@ -12,11 +12,11 @@ diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense4/upnpdescgen.c
  	// presentationURL
  	// modelDescription = recommended
  	{"/modelName", {"BSD/pf router"}},	// required
-@@ -56,12 +56,12 @@
+@@ -90,12 +90,12 @@
  	{"device", {INITHELPER(14,13)}},
- 	{"/deviceType", {"urn:schemas-upnp-org:device:WANDevice:1"}},
+ 	{"/deviceType", {"urn:schemas-upnp-org:device:WANDevice:1"}}, // Required
  	{"/friendlyName", {"WANDevice"}},
--	{"/manufacturer", {"nanard"}},
+-	{"/manufacturer", {"miniupnp"}},
 -	{"/manufacturerURL", {"http://miniupnp.free.fr/"}},
 +	{"/manufacturer", {"pfSense"}},
 +	{"/manufacturerURL", {"http://pfSense.com/"}},
@@ -28,19 +28,26 @@ diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense4/upnpdescgen.c
  	{"/serialNumber", {"00000000"}},
  	{"/UDN", {(char *)uuid}},
  	{"/UPC", {"MINIUPNPD"}},
-@@ -77,12 +77,12 @@
+@@ -112,8 +112,8 @@
  	{"device", {INITHELPER(34,12)}},
  	{"/deviceType", {"urn:schemas-upnp-org:device:WANConnectionDevice:1"}},
  	{"/friendlyName", {"WANConnectionDevice"}},
--	{"/manufacturer", {"nanard"}},
+-	{"/manufacturer", {"miniupnp"}},
 -	{"/manufacturerURL", {"http://miniupnp.free.fr/"}},
 +	{"/manufacturer", {"pfSense"}},
 +	{"/manufacturerURL", {"http://pfSense.com/"}},
  	{"/modelDescription", {"miniupnp daemon"}},
  	{"/modelName", {"miniupnpd"}},
  	{"/modelNumber", {"1"}},
--	{"/modelURL", {"http://miniupnp.free.fr/"}},
-+	{"/modelURL", {"http://pfSense.com/"}},
- 	{"/serialNumber", {"000000000"}},
- 	{"/UDN", {(char *)uuid}},
- 	{"/UPC", {"MINIUPNPD"}},
+diff -urN miniupnpd-clean/upnpsoap.c miniupnpd-pfsense/upnpsoap.c
+--- miniupnpd-clean/upnpsoap.c	2006-10-23 14:15:52.000000000 -0400
++++ miniupnpd-pfsense/upnpsoap.c	2006-10-24 23:55:45.683960500 -0400
+@@ -475,7 +475,7 @@
+ 			i++;
+ 		}
+ 	}
+-	syslog(LOG_NOTICE, "Unknown soap method");
++	syslog(LOG_INFO, "Unknown soap method");
+ 	SoapError(h, 401, "Invalid Action");
+ }
+ 
