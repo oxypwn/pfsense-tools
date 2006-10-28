@@ -1,6 +1,6 @@
 diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
---- miniupnpd-clean/upnpdescgen.c	2006-10-23 14:15:52.000000000 -0400
-+++ miniupnpd-pfsense/upnpdescgen.c	2006-10-24 23:55:39.809073300 -0400
+--- miniupnpd-clean/upnpdescgen.c	2006-10-28 07:50:46.000000000 -0400
++++ miniupnpd-pfsense/upnpdescgen.c	2006-10-28 09:39:09.151249200 -0400
 @@ -79,8 +79,8 @@
  	{"/minor", {"0"}},
  	{"/deviceType", {"urn:schemas-upnp-org:device:InternetGatewayDevice:1"}},
@@ -39,15 +39,3 @@ diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
  	{"/modelDescription", {"miniupnp daemon"}},
  	{"/modelName", {"miniupnpd"}},
  	{"/modelNumber", {"1"}},
-diff -urN miniupnpd-clean/upnpsoap.c miniupnpd-pfsense/upnpsoap.c
---- miniupnpd-clean/upnpsoap.c	2006-10-23 14:15:52.000000000 -0400
-+++ miniupnpd-pfsense/upnpsoap.c	2006-10-24 23:55:45.683960500 -0400
-@@ -475,7 +475,7 @@
- 			i++;
- 		}
- 	}
--	syslog(LOG_NOTICE, "Unknown soap method");
-+	syslog(LOG_INFO, "Unknown soap method");
- 	SoapError(h, 401, "Invalid Action");
- }
- 
