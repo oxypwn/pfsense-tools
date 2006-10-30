@@ -5,10 +5,10 @@
 # $FreeBSD: $
 
 PORTNAME=	miniupnpd
-PORTVERSION=	20061028
+PORTVERSION=	20061029
 CATEGORIES=	net
 MASTER_SITES=	http://miniupnp.free.fr/files/
-DISTFILES=	miniupnpd20061028.tar.gz miniupnpc20060909.tar.gz
+DISTFILES=	miniupnpd20061029.tar.gz miniupnpc20060909.tar.gz
 
 MAINTAINER=	seth.mos@xs4all.nl
 COMMENT=	UPnP daemon for firewall interface
