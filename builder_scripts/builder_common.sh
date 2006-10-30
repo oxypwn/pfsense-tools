@@ -138,6 +138,9 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 	rm -f ${CVS_CO_DIR}/etc/pw*
 	rm -f ${CVS_CO_DIR}/etc/ttys
 
+	# Nuke /root/ directory contents
+	rm -rf ${CVS_CO_DIR}/root
+
 	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
