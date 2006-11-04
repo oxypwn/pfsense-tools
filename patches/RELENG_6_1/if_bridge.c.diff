@@ -20,7 +20,7 @@ RCS file: /home/ncvs/src/sys/net/if_bridge.c,v
 retrieving revision 1.11.2.28
 diff -u -p -r1.11.2.28 if_bridge.c
 --- sys/net/if_bridge.c	2 Apr 2006 04:41:53 -0000	1.11.2.28
-+++ sys/net/if_bridge.c	9 Jun 2006 01:11:16 -0000
++++ sys/net/if_bridge.c	4 Nov 2006 18:26:34 -0000
 @@ -84,6 +84,7 @@ __FBSDID("$FreeBSD$");
  
  #include "opt_inet.h"
@@ -73,7 +73,19 @@ diff -u -p -r1.11.2.28 if_bridge.c
  	if (err == 0) {
  
  		sc->sc_ifp->if_opackets++;
-@@ -2007,7 +2022,12 @@ bridge_input(struct ifnet *ifp, struct m
+@@ -1914,6 +1929,11 @@ bridge_input(struct ifnet *ifp, struct m
+ 		 * BPF_MTAP(&m->m_pkthdr.rcvif, m);
+ 		 */
+ 
++		/* Note where to send the reply to */
++		if (bif->bif_flags & IFBIF_LEARNING)
++			(void) bridge_rtupdate(sc,
++			    eh->ether_shost, ifp, 0, IFBAF_DYNAMIC);
++
+ 		/* Mark the packet as arriving on the bridge interface */
+ 		m->m_pkthdr.rcvif = bifp;
+ 		BPF_MTAP(bifp, m);
+@@ -2007,7 +2027,12 @@ bridge_input(struct ifnet *ifp, struct m
  			continue;
  		/* It is destined for us. */
  		if (memcmp(IF_LLADDR(bif->bif_ifp), eh->ether_dhost,
@@ -87,7 +99,7 @@ diff -u -p -r1.11.2.28 if_bridge.c
  			if (bif->bif_flags & IFBIF_LEARNING)
  				(void) bridge_rtupdate(sc,
  				    eh->ether_shost, ifp, 0, IFBAF_DYNAMIC);
-@@ -2018,7 +2038,12 @@ bridge_input(struct ifnet *ifp, struct m
+@@ -2018,7 +2043,12 @@ bridge_input(struct ifnet *ifp, struct m
  
  		/* We just received a packet that we sent out. */
  		if (memcmp(IF_LLADDR(bif->bif_ifp), eh->ether_shost,
@@ -101,7 +113,7 @@ diff -u -p -r1.11.2.28 if_bridge.c
  			BRIDGE_UNLOCK(sc);
  			m_freem(m);
  			return (NULL);
-@@ -2550,7 +2575,7 @@ bridge_rtnode_destroy(struct bridge_soft
+@@ -2550,7 +2580,7 @@ bridge_rtnode_destroy(struct bridge_soft
  static int
  bridge_pfil(struct mbuf **mp, struct ifnet *bifp, struct ifnet *ifp, int dir)
  {
@@ -110,7 +122,7 @@ diff -u -p -r1.11.2.28 if_bridge.c
  	struct ether_header *eh1, eh2;
  	struct ip_fw_args args;
  	struct ip *ip;
-@@ -2732,13 +2757,39 @@ ipfwpass:
+@@ -2732,13 +2762,39 @@ ipfwpass:
  			error = pfil_run_hooks(&inet_pfil_hook, mp, bifp,
  					dir, NULL);
  
@@ -155,7 +167,7 @@ diff -u -p -r1.11.2.28 if_bridge.c
  		break;
  # ifdef INET6
  	case ETHERTYPE_IPV6 :
-@@ -2950,3 +3001,59 @@ bad:
+@@ -2950,3 +3006,59 @@ bad:
  	return -1;
  }
  # endif /* INET6 */
