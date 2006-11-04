@@ -158,17 +158,25 @@ if [ ! -f "/usr/local/bin/cpdup" ]; then
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cpdup
 fi
 
+# Add lua
+if [ ! -d "/usr/local/bin/lua50c" ]; then
+	echo "Cannot find lua, pkg_add in progress ..."
+	/usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/lua-5.0.2_1.tbz
+fi
+# Failed, lets try with passive mode
+if [ ! -d "/usr/local/bin/lua50c" ]; then
+	echo "Cannot find lua, pkg_add in progress (PASSIVE FTP)..."
+	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/lua-5.0.2_1.tbz
+
 # Add BSDInstaller
 if [ ! -d "/usr/local/share/dfuibe_lua" ]; then
 	echo "Cannot find BSDInstaller, pkg_add in progress..."
 	/usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/bsdinstaller-2.0.2006.0728.tbz
-	/usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/lua-5.0.2_1.tbz
 fi
 # Failed, lets try with passive mode
 if [ ! -d "/usr/local/share/dfuibe_lua" ]; then
 	echo "Cannot find BSDInstaller, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/bsdinstaller-2.0.2006.0728.tbz
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/lua-5.0.2_1.tbz
 fi
 
 # Loop through and remove files
