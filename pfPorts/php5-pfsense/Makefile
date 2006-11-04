@@ -6,13 +6,20 @@
 #
 
 PORTNAME=	php5
-PORTVERSION=	5.2.0RC5
+PORTVERSION=	5.2.0
 #PORTREVISION?=	RC3
 CATEGORIES?=	lang devel www
-MASTER_SITES=	http://downloads.php.net/%SUBDIR%/
-MASTER_SITE_SUBDIR=	ilia
+MASTER_SITES=   ${MASTER_SITE_PHP:S,$,:release,} \
+		http://downloads.php.net/ilia/:release \
+		http://downloads.php.net/jani/:release \
+		http://www.pfsense.com/~dsh/%SUBDIR%/:patch
+MASTER_SITE_SUBDIR=	distributions/:release \
+			patches/:patch
 DISTNAME=	php-${PORTVERSION:S/.r/RC/}
-DISTFILES=	${DISTNAME}${EXTRACT_SUFX}:release
+DISTFILES=	${DISTNAME}${EXTRACT_SUFX}:release \
+		suhosin-patch-5.2.0-0.9.6.patch${EXTRACT_SUFX}:patch
+
+#EXTRA_PATCHES=	${FILESDIR}/suhosin-patch-5.2.0-0.9.6.patch
 
 MAINTAINER?=	ale@FreeBSD.org
 COMMENT?=	PHP Scripting Language (Apache Module and CLI)
@@ -37,6 +44,7 @@ CONFIGURE_ARGS=	--with-config-file-scan-dir=${PREFIX}/lib/php \
 		--with-zlib-dir=/usr \
 		--with-pcre-regex \
 		--with-bz2=shared,/usr \
+		--with-ncurses=shared,/usr \
 		--without-pear \
 		--without-sqlite \
 		--without-mysql \
@@ -69,6 +77,7 @@ CONFIGURE_ARGS=	--with-config-file-scan-dir=${PREFIX}/lib/php \
 		--enable-simplexml=shared \
 		--enable-tokenizer=shared \
 		--enable-ctype=shared \
+		--enable-suhosin=shared \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
@@ -92,6 +101,9 @@ CONFIGURE_ENV=	CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}" \
 #		pthreads_working="yes"
 
 MAKE_ENV+=	LDFLAGS="${LDFLAGS}"
+
+pre-patch:
+	mv ${WRKDIR}/suhosin-patch-5.2.0-0.9.6.patch ${FILESDIR}
 
 post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
@@ -118,6 +130,9 @@ post-install:
 .if !defined(WITHOUT_CGI) && defined(WITHOUT_CLI)
 	@${LN} -sf ${PREFIX}/bin/php-cgi ${PREFIX}/bin/php
 .endif
+
+pre-clean:
+	rm ${FILESDIR}/suhosin-patch-5.2.0-0.9.6.patch
 
 .else
 .include "${MASTERDIR}/Makefile.ext"
