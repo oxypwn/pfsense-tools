@@ -5,23 +5,22 @@
 # $FreeBSD: ports/lang/php5/Makefile,v 1.96 2006/05/07 14:47:28 ale Exp $
 #
 
-PORTNAME=	php5
-PORTVERSION=	5.2.0
-#PORTREVISION?=	RC3
-CATEGORIES?=	lang devel www
-MASTER_SITES=   ${MASTER_SITE_PHP:S,$,:release,} \
-		http://downloads.php.net/ilia/:release \
-		http://downloads.php.net/jani/:release
+PORTNAME=		php5
+PORTVERSION=		5.2.0
+CATEGORIES?=		lang devel www
+MASTER_SITES=   	${MASTER_SITE_PHP:S,$,:release,} \
+			http://downloads.php.net/ilia/:release \
+			http://downloads.php.net/jani/:release
 MASTER_SITE_SUBDIR=	distributions/:release
-DISTNAME=	php-${PORTVERSION:S/.r/RC/}
-DISTFILES=	${DISTNAME}${EXTRACT_SUFX}:release
+DISTNAME=		php-${PORTVERSION:S/.r/RC/}
+DISTFILES=		${DISTNAME}${EXTRACT_SUFX}:release
 
 MAINTAINER?=	ale@FreeBSD.org
 COMMENT?=	PHP Scripting Language (Apache Module and CLI)
 
 LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
-#USE_BZIP2=	yes
+USE_BZIP2=	yes
 .if !defined(PKGNAMESUFFIX)
 USE_AUTOTOOLS=	autoconf:259
 USE_GETOPT_LONG=yes
@@ -76,11 +75,24 @@ CONFIGURE_ARGS=	--with-config-file-scan-dir=${PREFIX}/lib/php \
 
 USE_GNOME=	libxml2
 
+OPTIONS=	SUHOSIN "Enable Suhosin protection system" off \
+		DEBUG "Enable debug" off \
+		IPV6 "Enable ipv6 support" on
+
 CONFLICTS=	php4-4*
 
 MAN1=		php-config.1 phpize.1
 
 .include <bsd.port.pre.mk>
+
+.if !defined(WITHOUT_SUHOSIN)
+PATCHFILES=		suhosin-patch-${PORTVERSION}-0.9.6.2.patch.gz
+PATCH_SITES=		http://www.hardened-php.net/suhosin/_media/
+PATCH_DIST_STRIP=	-p1
+PLIST_SUB+=		SUHOSIN=""
+.else
+PLIST_SUB+=		SUHOSIN="@comment "
+.endif
 
 PHP_SAPI=	cgi
 PLIST_SUB+=	CGI=""
@@ -95,6 +107,14 @@ CONFIGURE_ENV=	CFLAGS="${CFLAGS} ${PTHREAD_CFLAGS}" \
 #		pthreads_working="yes"
 
 MAKE_ENV+=	LDFLAGS="${LDFLAGS}"
+
+.if defined(WITH_DEBUG)
+CONFIGURE_ARGS+=--enable-debug
+.endif
+
+.if ${OSVERSION} < 400014 || defined(WITHOUT_IPV6)
+CONFIGURE_ARGS+=--disable-ipv6
+.endif
 
 post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
