@@ -1,0 +1,293 @@
+Index: contrib/pf/pfctl/pf_print_state.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pf_print_state.c,v
+retrieving revision 1.3
+diff -u -r1.3 pf_print_state.c
+--- contrib/pf/pfctl/pf_print_state.c	3 May 2005 16:55:20 -0000	1.3
++++ contrib/pf/pfctl/pf_print_state.c	7 Jan 2006 05:39:08 -0000
+@@ -298,6 +298,10 @@
+ 		printf("   id: %016llx creatorid: %08x\n",
+ 		    betoh64(s->id), ntohl(s->creatorid));
+ #endif
++	/* XXX billm: - figure out how to make this print only if altq is used */
++	if (opts & PF_OPT_VERBOSE2) {
++		printf("   queue: %s\n", qid_to_qname(s->qid));
++	}
+ 	}
+ }
+ 
+Index: contrib/pf/pfctl/pfctl.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl.c,v
+retrieving revision 1.6
+diff -u -r1.6 pfctl.c
+--- contrib/pf/pfctl/pfctl.c	3 May 2005 16:55:20 -0000	1.6
++++ contrib/pf/pfctl/pfctl.c	7 Jan 2006 05:39:13 -0000
+@@ -665,6 +665,9 @@
+ 	static int nattype[3] = { PF_NAT, PF_RDR, PF_BINAT };
+ 	int i, dotitle = opts & PF_OPT_SHOWALL;
+ 
++	/* XXX only load if altq is detected */
++	pfaltq_load(dev);
++
+ 	memset(&pr, 0, sizeof(pr));
+ 	memcpy(pr.anchor, anchorname, sizeof(pr.anchor));
+ 	for (i = 0; i < 3; i++) {
+Index: contrib/pf/pfctl/pfctl.h
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl.h,v
+retrieving revision 1.6
+diff -u -r1.6 pfctl.h
+--- contrib/pf/pfctl/pfctl.h	3 May 2005 16:55:20 -0000	1.6
++++ contrib/pf/pfctl/pfctl.h	7 Jan 2006 05:39:13 -0000
+@@ -114,6 +114,8 @@
+ void		 pfaltq_free(struct pf_altq *);
+ struct pf_altq	*pfaltq_lookup(const char *);
+ char		*rate2str(double);
++int		 pfaltq_load(int);
++char		*qid_to_qname(u_int32_t);
+ 
+ void	 print_addr(struct pf_addr_wrap *, sa_family_t, int);
+ void	 print_host(struct pf_state_host *, sa_family_t, int);
+Index: contrib/pf/pfctl/pfctl_altq.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
+retrieving revision 1.7
+diff -u -r1.7 pfctl_altq.c
+--- contrib/pf/pfctl/pfctl_altq.c	3 May 2005 16:55:20 -0000	1.7
++++ contrib/pf/pfctl/pfctl_altq.c	7 Jan 2006 05:39:14 -0000
+@@ -89,6 +89,33 @@
+ void		 print_hfsc_sc(const char *, u_int, u_int, u_int,
+ 		     const struct node_hfsc_sc *);
+ 
++int
++pfaltq_load(int dev)
++{
++       struct pfioc_altq        pa;
++       struct pf_altq          *altq;
++       u_int32_t                mnr, nr;
++
++       memset(&pa, 0, sizeof(pa));
++       if (ioctl(dev, DIOCGETALTQS, &pa)) {
++                warn("DIOCGETALTQS");
++                return (-1);
++        }
++
++       mnr = pa.nr;
++       for (nr = 0; nr < mnr; ++nr) {
++               pa.nr = nr;
++               if (ioctl(dev, DIOCGETALTQ, &pa)) {
++                        warn("DIOCGETALTQ");
++                        return (-1);
++                }
++               if ((altq = malloc(sizeof(*altq))) == NULL)
++                       err(1, "malloc");
++               memcpy(altq, &pa.altq, sizeof(struct pf_altq));
++               TAILQ_INSERT_TAIL(&altqs, altq, entries);
++       }
++       return (0);
++}
+ void
+ pfaltq_store(struct pf_altq *a)
+ {
+@@ -159,6 +186,36 @@
+ 	return (0);
+ }
+ 
++char *
++qid_to_qname(u_int32_t qid)
++{
++       struct pf_altq  *altq;
++       if (qid == 0) {
++               TAILQ_FOREACH(altq, &altqs, entries) {
++                       switch (altq->scheduler) {
++                       case ALTQT_CBQ:
++                               if (altq->pq_u.cbq_opts.flags & CBQCLF_DEFCLASS)
++                                       return altq->qname;
++                               break;
++                       case ALTQT_PRIQ:
++                               if (altq->pq_u.priq_opts.flags & PRCF_DEFAULTCLASS)
++                                       return altq->qname;
++                               break;
++                       case ALTQT_HFSC:
++                               if (altq->pq_u.hfsc_opts.flags & HFCF_DEFAULTCLASS)
++                                       return altq->qname;
++                               break;
++                       }
++               }
++       } else {
++               TAILQ_FOREACH(altq, &altqs, entries) {
++                       if (qid == altq->qid)
++                               return altq->qname;
++               }
++       }
++       return (NULL);
++}
++
+ void
+ print_altq(const struct pf_altq *a, unsigned level, struct node_queue_bw *bw,
+ 	struct node_queue_opt *qopts)
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.34.2.2
+diff -u -r1.34.2.2 pf.c
+--- sys/contrib/pf/net/pf.c	12 Sep 2005 11:25:17 -0000	1.34.2.2
++++ sys/contrib/pf/net/pf.c	7 Jan 2006 05:39:33 -0000
+@@ -3370,6 +3370,11 @@
+ 			REASON_SET(&reason, PFRES_SYNPROXY);
+ 			return (PF_SYNPROXY_DROP);
+ 		}
++#ifdef ALTQ
++		/* XXX billm - add qid's */
++		s->qid = r->qid;
++		s->pqid = r->pqid;
++#endif
+ 	}
+ 
+ 	/* copy back packet headers if we performed NAT operations */
+@@ -3661,6 +3666,11 @@
+ 			pf_tag_ref(tag);
+ 			s->tag = tag;
+ 		}
++#ifdef ALTQ
++		/* XXX billm - add qid's */
++		s->qid = r->qid;
++		s->pqid = r->pqid;
++#endif
+ 	}
+ 
+ 	/* copy back packet headers if we performed NAT operations */
+@@ -3965,6 +3975,11 @@
+ 			pf_tag_ref(tag);
+ 			s->tag = tag;
+ 		}
++#ifdef ALTQ
++		/* XXX billm - add qid's */
++		s->qid = r->qid;
++		s->pqid = r->pqid;
++#endif
+ 	}
+ 
+ #ifdef INET6
+@@ -4237,6 +4252,11 @@
+ 			pf_tag_ref(tag);
+ 			s->tag = tag;
+ 		}
++#ifdef ALTQ
++		/* XXX billm - add qid's */
++		s->qid = r->qid;
++		s->pqid = r->pqid;
++#endif
+ 	}
+ 
+ 	return (PF_PASS);
+@@ -6617,7 +6637,7 @@
+ 		pf_tag_packet(m, pf_get_tag(m), s->tag);
+ 
+ #ifdef ALTQ
+-	if (action == PF_PASS && r->qid) {
++	if (action == PF_PASS && s->qid) {
+ 		struct m_tag	*mtag;
+ 		struct altq_tag	*atag;
+ 
+@@ -6625,9 +6645,9 @@
+ 		if (mtag != NULL) {
+ 			atag = (struct altq_tag *)(mtag + 1);
+ 			if (pqid || pd.tos == IPTOS_LOWDELAY)
+-				atag->qid = r->pqid;
++				atag->qid = s->pqid;
+ 			else
+-				atag->qid = r->qid;
++				atag->qid = s->qid;
+ 			/* add hints for ecn */
+ 			atag->af = AF_INET;
+ 			atag->hdr = h;
+@@ -7010,7 +7030,7 @@
+ 		pf_tag_packet(m, pf_get_tag(m), s->tag);
+ 
+ #ifdef ALTQ
+-	if (action == PF_PASS && r->qid) {
++	if (action == PF_PASS && s->qid) {
+ 		struct m_tag	*mtag;
+ 		struct altq_tag	*atag;
+ 
+@@ -7018,9 +7038,9 @@
+ 		if (mtag != NULL) {
+ 			atag = (struct altq_tag *)(mtag + 1);
+ 			if (pd.tos == IPTOS_LOWDELAY)
+-				atag->qid = r->pqid;
++				atag->qid = s->pqid;
+ 			else
+-				atag->qid = r->qid;
++				atag->qid = s->qid;
+ 			/* add hints for ecn */
+ 			atag->af = AF_INET6;
+ 			atag->hdr = h;
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.11.2.1
+diff -u -r1.11.2.1 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	6 Aug 2005 01:52:35 -0000	1.11.2.1
++++ sys/contrib/pf/net/pfvar.h	7 Jan 2006 05:39:38 -0000
+@@ -797,6 +797,8 @@
+ #else
+ 	u_int8_t	 pad;
+ #endif
++	u_int32_t	qid;
++	u_int32_t	pqid;
+ };
+ 
+ TAILQ_HEAD(pf_rulequeue, pf_rule);
+@@ -1477,6 +1479,7 @@
+ #define DIOCICLRISTATS  _IOWR('D', 88, struct pfioc_iface)
+ #define DIOCSETIFFLAG	_IOWR('D', 89, struct pfioc_iface)
+ #define DIOCCLRIFFLAG	_IOWR('D', 90, struct pfioc_iface)
++#define DIOCSETSTATE	_IOWR('D', 91, struct pfioc_state)
+ #ifdef __FreeBSD__
+ struct pf_ifspeed {
+ 	char			ifname[IFNAMSIZ];
+Index: pf_ioctl.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.20.2.2
+diff -u -r1.20.2.2 pf_ioctl.c
+--- sys/contrib/pf/net/pf_ioctl.c  6 Mar 2006 16:10:18 -0000       1.20.2.2
++++ sys/contrib/pf/net/pf_ioctl.c  21 Jul 2006 04:21:30 -0000
+@@ -1983,6 +1979,36 @@
+ 			ps->state.expire -= time_second;
+ 		else
+ 			ps->state.expire = 0;
++		break;
++	}
++
++	case DIOCSETSTATE: {
++		struct pfioc_state	*ps = (struct pfioc_state *)addr;
++		struct pf_state		*state;
++		u_int32_t		 nr;
++
++		nr = 0;
++		RB_FOREACH(state, pf_state_tree_id, &tree_id) {
++			if (nr >= ps->nr)
++				break;
++			nr++;
++		}
++		if (state == NULL) {
++			error = EBUSY;
++			break;
++		}
++		bcopy(&ps->state, state, sizeof(struct pf_state));
++
++		state->rule.ptr->nr = ps->state.rule.nr;
++		state->nat_rule.nr = (ps->state.nat_rule.ptr == NULL) ?
++			-1 : ps->state.nat_rule.nr;
++		state->anchor.nr = (ps->state.anchor.ptr == NULL) ?
++			-1 : ps->state.anchor.nr;
++		state->expire = pf_state_expires(&ps->state);
++		if (state->expire > time_second)
++			state->expire -= time_second;
++		else
++			state->expire = 0;
+ 		break;
+ 	}

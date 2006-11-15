@@ -1,0 +1,17 @@
+diff -u -d -r1.109 bsdlabel.c
+--- bsdlabel.c	9 Sep 2004 07:46:53 -0000	1.109
++++ bsdlabel.c	5 Jan 2005 20:17:17 -0000
+@@ -223,8 +223,12 @@
+ 		dkname = argv[0];
+ 		asprintf(&specname, "%s%s", _PATH_DEV, argv[0]);
+ 	} else {
+-		dkname = strrchr(argv[0], '/');
+-		dkname++;
++		if (strncmp(argv[0], _PATH_DEV, strlen(_PATH_DEV)) == 0)
++			dkname = argv[0] + strlen(_PATH_DEV);
++		else {
++			dkname = strrchr(argv[0], '/');
++			dkname++;
++		}
+ 		specname = argv[0];
+ 	}
