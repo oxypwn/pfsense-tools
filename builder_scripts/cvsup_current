@@ -167,6 +167,7 @@ fi
 if [ ! -d "/usr/local/bin/lua50c" ]; then
 	echo "Cannot find lua, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/lua-5.0.2_1.tbz
+fi
 
 # Add BSDInstaller
 if [ ! -d "/usr/local/share/dfuibe_lua" ]; then
