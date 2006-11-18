@@ -422,3 +422,6 @@ options         BREAK_TO_DEBUGGER
 
 options         PREEMPTION
 
+options         NO_ADAPTIVE_MUTEXES
+
+

@@ -358,3 +358,7 @@ options         INVARIANT_SUPPORT       # Extra sanity checks of internal struct
 options         BREAK_TO_DEBUGGER
 
 options         PREEMPTION
+
+options         NO_ADAPTIVE_MUTEXES
+
+
