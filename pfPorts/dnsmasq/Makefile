@@ -1,23 +1,22 @@
 # New ports collection makefile for:	dnsmasq
-# Date created:				1 June 2003
-# Whom:					Steven Honson
+# Date created:							1 June 2003
+# Whom:									Steven Honson
 #
-# $FreeBSD: ports/dns/dnsmasq/Makefile,v 1.31 2006/08/21 11:51:06 miwi Exp $
-#
+# $FreeBSD: /repoman/r/pcvs/ports/dns/dnsmasq/Makefile,v 1.34 2006/11/08 09:28:24 farrokhi Exp $
 
 PORTNAME=	dnsmasq
-PORTVERSION=	2.33
-PORTREVISION=	1
+PORTVERSION=	2.35
 CATEGORIES=	dns ipv6
-MASTER_SITES=	${MASTER_SITE_GENTOO}
+MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/ \
+		${MASTER_SITE_GENTOO}
 MASTER_SITE_SUBDIR=	distfiles
 
-MAINTAINER=	babak@farrokhi.net
+MAINTAINER=	farrokhi@FreeBSD.org
 COMMENT=	Lightweight, easy to configure DNS forwarder and DHCP server
 
 MAN8=		dnsmasq.8
 
-docs=		CHANGELOG FAQ UPGRADING_to_2.0 doc.html setup.html
+docs=		CHANGELOG FAQ doc.html setup.html
 PORTDOCS=	${docs:T}
 
 RC_SCRIPTS_SUB=	PREFIX=${PREFIX} RC_SUBR=${RC_SUBR}
@@ -28,14 +27,14 @@ USE_GNOME=	pkgconfig
 MAKE_ENV=	LIBS="${LDFLAGS}" RPM_OPT_FLAGS="${CPPFLAGS}" COPTS="${CFLAGS}"
 MAKE_ARGS=	CC="${CC}" CFLAGS="${CFLAGS}" PREFIX="${PREFIX}"
 
-OPTIONS=	IPV6 "IPv6 support" off
+#OPTIONS=	IPV6 "IPv6 support" off
 OPTIONS+=	DBUS "D_BUS support" off
 
 .include <bsd.port.pre.mk>
 
-.if defined(WITHOUT_IPV6)
-CFLAGS+=	-DNO_IPV6
-.endif
+#.if defined(WITHOUT_IPV6)
+#CFLAGS+=	-DNO_IPV6
+#.endif
 
 .if defined(WITH_DBUS)
 LIB_DEPENDS+=	dbus-1:${PORTSDIR}/devel/dbus
