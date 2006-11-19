@@ -1,4 +1,4 @@
-@comment $FreeBSD: ports/www/lighttpd/pkg-plist,v 1.13 2006/03/15 14:58:35 garga Exp $
+@comment $FreeBSD: ports/www/lighttpd/pkg-plist,v 1.14 2006/09/26 09:07:17 clsung Exp $
 bin/spawn-fcgi
 @unexec if cmp -s %D/etc/lighttpd.conf %D/etc/lighttpd.conf.sample; then rm -f %D/etc/lighttpd.conf; fi
 etc/lighttpd.conf.sample
@@ -45,6 +45,9 @@ lib/lighttpd/mod_flv_streaming.so
 lib/lighttpd/mod_indexfile.a
 lib/lighttpd/mod_indexfile.la
 lib/lighttpd/mod_indexfile.so
+lib/lighttpd/mod_magnet.a
+lib/lighttpd/mod_magnet.la
+lib/lighttpd/mod_magnet.so
 lib/lighttpd/mod_mysql_vhost.a
 lib/lighttpd/mod_mysql_vhost.la
 lib/lighttpd/mod_mysql_vhost.so
