@@ -1,0 +1,85 @@
+Index: ip_input.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_input.c,v
+retrieving revision 1.301.2.7
+diff -u -r1.301.2.7 ip_input.c
+--- ip_input.c	4 Mar 2006 09:15:08 -0000	1.301.2.7
++++ ip_input.c	19 Nov 2006 17:15:00 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)ip_input.c	8.2 (Berkeley) 1/4/94
+- * $FreeBSD: src/sys/netinet/ip_input.c,v 1.301.2.7 2006/03/04 09:15:08 oleg Exp $
++ * $FreeBSD: src/sys/netinet/ip_input.c,v 1.301.2.10 2006/09/04 10:39:47 pjd Exp $
+  */
+ 
+ #include "opt_bootp.h"
+@@ -190,6 +190,7 @@
+ #define	IPQ_LOCK_ASSERT()	mtx_assert(&ipqlock, MA_OWNED)
+ 
+ static void	maxnipq_update(void);
++static void	ipq_zone_change(void *);
+ 
+ static int	maxnipq;	/* Administrative limit on # reass queues. */
+ static int	nipq = 0;	/* Total # of reass queues */
+@@ -298,6 +299,8 @@
+ 	ipport_tick(NULL);
+ 	EVENTHANDLER_REGISTER(shutdown_pre_sync, ip_fini, NULL,
+ 		SHUTDOWN_PRI_DEFAULT);
++	EVENTHANDLER_REGISTER(nmbclusters_change, ipq_zone_change,
++		NULL, EVENTHANDLER_PRI_ANY);
+ 
+ 	/* Initialize various other remaining things. */
+ 	ip_id = time_second & 0xffff;
+@@ -476,9 +479,6 @@
+ 		m->m_flags &= ~M_FASTFWD_OURS;
+ 		goto ours;
+ 	}
+-#ifndef IPFIREWALL_FORWARD_EXTENDED
+-	dchg = (m_tag_find(m, PACKET_TAG_IPFORWARD, NULL) != NULL);
+-#else
+ 	if ((dchg = (m_tag_find(m, PACKET_TAG_IPFORWARD, NULL) != NULL)) != 0) {
+ 		/*
+ 		 * Directly ship on the packet.  This allows to forward packets
+@@ -488,7 +488,6 @@
+ 		ip_forward(m, dchg);
+ 		return;
+ 	}
+-#endif /* IPFIREWALL_FORWARD_EXTENDED */
+ #endif /* IPFIREWALL_FORWARD */
+ 
+ passin:
+@@ -817,6 +816,16 @@
+ 		uma_zone_set_max(ipq_zone, 1);
+ }
+ 
++static void
++ipq_zone_change(void *tag)
++{
++
++	if (maxnipq > 0 && maxnipq < (nmbclusters / 32)) {
++		maxnipq = nmbclusters / 32;
++		maxnipq_update();
++	}
++}
++
+ static int
+ sysctl_maxnipq(SYSCTL_HANDLER_ARGS)
+ {
+@@ -966,6 +975,7 @@
+ #ifdef MAC
+ 		if (mac_init_ipq(fp, M_NOWAIT) != 0) {
+ 			uma_zfree(ipq_zone, fp);
++			fp = NULL;
+ 			goto dropfrag;
+ 		}
+ 		mac_create_ipq(m, fp);
+@@ -1990,8 +2000,6 @@
+ #else /* FAST_IPSEC */
+ 				KEY_FREESP(&sp);
+ #endif
+-				ipstat.ips_cantfrag++;
+-				break;
+ 			}
+ 		}
+ #endif /*IPSEC || FAST_IPSEC*/

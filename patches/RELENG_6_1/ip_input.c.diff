@@ -1,0 +1,2438 @@
+Index: if_ether.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/if_ether.c,v
+retrieving revision 1.137.2.12
+diff -u -r1.137.2.12 if_ether.c
+--- if_ether.c	22 Mar 2006 07:48:31 -0000	1.137.2.12
++++ if_ether.c	10 Jul 2006 01:03:23 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)if_ether.c	8.1 (Berkeley) 6/10/93
+- * $FreeBSD: src/sys/netinet/if_ether.c,v 1.137.2.12 2006/03/22 07:48:31 glebius Exp $
++ * $FreeBSD: src/sys/netinet/if_ether.c,v 1.137.2.13 2006/07/10 01:03:23 thompsa Exp $
+  */
+ 
+ /*
+@@ -865,10 +865,13 @@
+ 		} else {
+ 			/*
+ 			 * Return proxied ARP replies only on the interface
+-			 * where this network resides. Otherwise we may
+-			 * conflict with the host we are proxying for.
++			 * or bridge cluster where this network resides.
++			 * Otherwise we may conflict with the host we are
++			 * proxying for.
+ 			 */
+-			if (rt->rt_ifp != ifp) {
++			if (rt->rt_ifp != ifp &&
++				(rt->rt_ifp->if_bridge != ifp->if_bridge ||
++				ifp->if_bridge == NULL)) {
+ 				RT_UNLOCK(rt);
+ 				goto drop;
+ 			}
+Index: in.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/in.c,v
+retrieving revision 1.85.2.6
+diff -u -r1.85.2.6 in.c
+--- in.c	31 Jan 2006 16:11:37 -0000	1.85.2.6
++++ in.c	16 Nov 2006 17:57:13 -0000
+@@ -28,7 +28,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)in.c	8.4 (Berkeley) 1/9/95
+- * $FreeBSD: src/sys/netinet/in.c,v 1.85.2.6 2006/01/31 16:11:37 andre Exp $
++ * $FreeBSD: src/sys/netinet/in.c,v 1.85.2.7 2006/10/07 10:43:40 bms Exp $
+  */
+ 
+ #include "opt_carp.h"
+@@ -1025,13 +1025,23 @@
+ in_delmulti(inm)
+ 	register struct in_multi *inm;
+ {
+-	struct ifmultiaddr *ifma;
+-	struct in_multi my_inm;
+ 	struct ifnet *ifp;
+ 
+ 	ifp = inm->inm_ifp;
+ 	IFF_LOCKGIANT(ifp);
+ 	IN_MULTI_LOCK();
++	in_delmulti_locked(inm);
++	IN_MULTI_UNLOCK();
++	IFF_UNLOCKGIANT(ifp);
++}
++
++void
++in_delmulti_locked(inm)
++	register struct in_multi *inm;
++{
++	struct ifmultiaddr *ifma;
++	struct in_multi my_inm;
++
+ 	ifma = inm->inm_ifma;
+ 	my_inm.inm_ifp = NULL ; /* don't send the leave msg */
+ 	if (ifma->ifma_refcount == 1) {
+@@ -1050,6 +1060,24 @@
+ 	if_delmulti(ifma->ifma_ifp, ifma->ifma_addr);
+ 	if (my_inm.inm_ifp != NULL)
+ 		igmp_leavegroup(&my_inm);
++}
++
++/*
++ * Delete all multicast address records associated with the ifp.
++ */
++void
++in_delmulti_ifp(ifp)
++	register struct ifnet *ifp;
++{
++	struct in_multi *inm;
++	struct in_multi *oinm;
++
++	IFF_LOCKGIANT(ifp);
++	IN_MULTI_LOCK();
++	LIST_FOREACH_SAFE(inm, &in_multihead, inm_link, oinm) {
++		if (inm->inm_ifp == ifp)
++			in_delmulti_locked(inm);
++	}
+ 	IN_MULTI_UNLOCK();
+ 	IFF_UNLOCKGIANT(ifp);
+ }
+@@ -1064,4 +1092,5 @@
+ 
+ 	in_pcbpurgeif0(&ripcbinfo, ifp);
+ 	in_pcbpurgeif0(&udbinfo, ifp);
++	in_delmulti_ifp(ifp);
+ }
+Index: in_pcb.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/in_pcb.c,v
+retrieving revision 1.165.2.3
+diff -u -r1.165.2.3 in_pcb.c
+--- in_pcb.c	14 Feb 2006 22:09:27 -0000	1.165.2.3
++++ in_pcb.c	16 Nov 2006 17:57:13 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)in_pcb.c	8.4 (Berkeley) 5/24/95
+- * $FreeBSD: src/sys/netinet/in_pcb.c,v 1.165.2.3 2006/02/14 22:09:27 rwatson Exp $
++ * $FreeBSD: src/sys/netinet/in_pcb.c,v 1.165.2.5 2006/09/15 09:51:05 glebius Exp $
+  */
+ 
+ #include "opt_ipsec.h"
+@@ -329,8 +329,8 @@
+ 				return (EACCES);
+ 			if (jailed(cred))
+ 				prison = 1;
+-			if (so->so_cred->cr_uid != 0 &&
+-			    !IN_MULTICAST(ntohl(sin->sin_addr.s_addr))) {
++			if (!IN_MULTICAST(ntohl(sin->sin_addr.s_addr)) &&
++			    suser_cred(so->so_cred, SUSER_ALLOWJAIL) != 0) {
+ 				t = in_pcblookup_local(inp->inp_pcbinfo,
+ 				    sin->sin_addr, lport,
+ 				    prison ? 0 :  INPLOOKUP_WILDCARD);
+@@ -914,7 +914,6 @@
+ 		 * First see if this local port is in use by looking on the
+ 		 * port hash list.
+ 		 */
+-		retrylookup:
+ 		porthash = &pcbinfo->porthashbase[INP_PCBPORTHASH(lport,
+ 		    pcbinfo->porthashmask)];
+ 		LIST_FOREACH(phd, porthash, phd_hash) {
+@@ -947,18 +946,6 @@
+ 				if ((inp->inp_vflag & INP_IPV6) != 0)
+ 					wildcard += INP_LOOKUP_MAPPED_PCB_COST;
+ #endif
+-				/*
+-				 * Clean out old time_wait sockets if they
+-				 * are clogging up needed local ports.
+-				 */
+-				if ((inp->inp_vflag & INP_TIMEWAIT) != 0) {
+-					if (tcp_twrecycleable((struct tcptw *)inp->inp_ppcb)) {
+-						INP_LOCK(inp);
+-						tcp_twclose((struct tcptw *)inp->inp_ppcb, 0);
+-						match = NULL;
+-						goto retrylookup;
+-					}
+-				}
+ 				if (inp->inp_faddr.s_addr != INADDR_ANY)
+ 					wildcard++;
+ 				if (inp->inp_laddr.s_addr != INADDR_ANY) {
+Index: in_pcb.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/in_pcb.h,v
+retrieving revision 1.80.2.2
+diff -u -r1.80.2.2 in_pcb.h
+--- in_pcb.h	2 Oct 2005 15:45:47 -0000	1.80.2.2
++++ in_pcb.h	20 Aug 2006 19:28:43 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)in_pcb.h	8.1 (Berkeley) 6/10/93
+- * $FreeBSD: src/sys/netinet/in_pcb.h,v 1.80.2.2 2005/10/02 15:45:47 andre Exp $
++ * $FreeBSD: src/sys/netinet/in_pcb.h,v 1.80.2.4 2006/08/20 19:28:43 dwmalone Exp $
+  */
+ 
+ #ifndef _NETINET_IN_PCB_H_
+@@ -128,8 +128,8 @@
+ 	u_char	inp_vflag;		/* IP version flag (v4/v6) */
+ #define	INP_IPV4	0x1
+ #define	INP_IPV6	0x2
+-#define INP_IPV6PROTO	0x4		/* opened under IPv6 protocol */
+-#define INP_TIMEWAIT	0x8		/* .. probably doesn't go here */
++#define	INP_IPV6PROTO	0x4		/* opened under IPv6 protocol */
++#define	INP_TIMEWAIT	0x8		/* .. probably doesn't go here */
+ #define	INP_ONESBCAST	0x10		/* send all-ones broadcast */
+ 	u_char	inp_ip_ttl;		/* time to live proto */
+ 	u_char	inp_ip_p;		/* protocol proto */
+@@ -141,8 +141,8 @@
+ 		struct	mbuf *inp4_options;	/* IP options */
+ 		struct	ip_moptions *inp4_moptions; /* IP multicast options */
+ 	} inp_depend4;
+-#define inp_fport	inp_inc.inc_fport
+-#define inp_lport	inp_inc.inc_lport
++#define	inp_fport	inp_inc.inc_fport
++#define	inp_lport	inp_inc.inc_lport
+ #define	inp_faddr	inp_inc.inc_faddr
+ #define	inp_laddr	inp_inc.inc_laddr
+ #define	inp_ip_tos	inp_depend4.inp4_ip_tos
+@@ -329,6 +329,8 @@
+ #define	INP_CHECK_SOCKAF(so, af)	(INP_SOCKAF(so) == af)
+ 
+ #ifdef _KERNEL
++extern int	ipport_reservedhigh;
++extern int	ipport_reservedlow;
+ extern int	ipport_lowfirstauto;
+ extern int	ipport_lowlastauto;
+ extern int	ipport_firstauto;
+Index: in_var.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/in_var.h,v
+retrieving revision 1.53.2.2
+diff -u -r1.53.2.2 in_var.h
+--- in_var.h	24 Aug 2005 17:30:44 -0000	1.53.2.2
++++ in_var.h	16 Nov 2006 17:57:14 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)in_var.h	8.2 (Berkeley) 1/9/95
+- * $FreeBSD: src/sys/netinet/in_var.h,v 1.53.2.2 2005/08/24 17:30:44 rwatson Exp $
++ * $FreeBSD: src/sys/netinet/in_var.h,v 1.53.2.4 2006/10/07 10:43:40 bms Exp $
+  */
+ 
+ #ifndef _NETINET_IN_VAR_H_
+@@ -94,6 +94,19 @@
+ #define INADDR_HASH(x) \
+ 	(&in_ifaddrhashtbl[INADDR_HASHVAL(x) & in_ifaddrhmask])
+ 
++/*
++ * Macro for finding the internet address structure (in_ifaddr) corresponding
++ * corresponding to one of our IP addresses (in_addr).
++ */
++#define INADDR_TO_IFADDR(addr, ia) \
++	/* struct in_addr addr; */ \
++	/* struct in_ifaddr *ia; */ \
++do { \
++\
++	LIST_FOREACH(ia, INADDR_HASH((addr).s_addr), ia_hash) \
++		if (IA_SIN(ia)->sin_addr.s_addr == (addr).s_addr) \
++			break; \
++} while (0)
+ 
+ /*
+  * Macro for finding the interface (ifnet structure) corresponding to one
+@@ -105,9 +118,7 @@
+ { \
+ 	struct in_ifaddr *ia; \
+ \
+-	LIST_FOREACH(ia, INADDR_HASH((addr).s_addr), ia_hash) \
+-		if (IA_SIN(ia)->sin_addr.s_addr == (addr).s_addr) \
+-			break; \
++	INADDR_TO_IFADDR(addr, ia); \
+ 	(ifp) = (ia == NULL) ? NULL : ia->ia_ifp; \
+ }
+ 
+@@ -236,6 +247,8 @@
+ struct	route;
+ struct	in_multi *in_addmulti(struct in_addr *, struct ifnet *);
+ void	in_delmulti(struct in_multi *);
++void	in_delmulti_locked(struct in_multi *);
++void	in_delmulti_ifp(struct ifnet *ifp);
+ int	in_control(struct socket *, u_long, caddr_t, struct ifnet *,
+ 	    struct thread *);
+ void	in_rtqdrain(void);
+Index: ip_carp.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.27.2.6
+diff -u -r1.27.2.6 ip_carp.c
+--- ip_carp.c	25 Dec 2005 21:59:20 -0000	1.27.2.6
++++ ip_carp.c	10 Oct 2006 18:39:38 -0000
+@@ -1,4 +1,4 @@
+-/* 	$FreeBSD: src/sys/netinet/ip_carp.c,v 1.27.2.6 2005/12/25 21:59:20 mlaier Exp $ */
++/* 	$FreeBSD: src/sys/netinet/ip_carp.c,v 1.27.2.9 2006/10/10 18:39:38 bz Exp $ */
+ 
+ /*
+  * Copyright (c) 2002 Michael Shalayeff. All rights reserved.
+@@ -209,6 +209,7 @@
+ static int	carp_addrcount(struct carp_if *, struct in_ifaddr *, int);
+ enum	{ CARP_COUNT_MASTER, CARP_COUNT_RUNNING };
+ 
++static void	carp_multicast_cleanup(struct carp_softc *);
+ static int	carp_set_addr(struct carp_softc *, struct sockaddr_in *);
+ static int	carp_del_addr(struct carp_softc *, struct sockaddr_in *);
+ static void	carp_carpdev_state_locked(struct carp_if *);
+@@ -223,6 +224,8 @@
+ static struct mtx carp_mtx;
+ IFC_SIMPLE_DECLARE(carp, 0);
+ 
++static eventhandler_tag if_detach_event_tag;
++
+ static __inline u_int16_t
+ carp_cksum(struct mbuf *m, int len)
+ {
+@@ -372,6 +375,7 @@
+ #ifdef INET6
+ 	sc->sc_im6o.im6o_multicast_hlim = CARP_DFLTTL;
+ #endif
++	sc->sc_imo.imo_multicast_vif = -1;
+ 
+ 	callout_init(&sc->sc_ad_tmo, NET_CALLOUT_MPSAFE);
+ 	callout_init(&sc->sc_md_tmo, NET_CALLOUT_MPSAFE);
+@@ -399,63 +403,76 @@
+ carp_clone_destroy(struct ifnet *ifp)
+ {
+ 	struct carp_softc *sc = ifp->if_softc;
++
++	if (sc->sc_carpdev)
++		CARP_SCLOCK(sc);
++	carpdetach(sc);	
++	if (sc->sc_carpdev)
++		CARP_SCUNLOCK(sc);
++
++	mtx_lock(&carp_mtx);
++	LIST_REMOVE(sc, sc_next);
++	mtx_unlock(&carp_mtx);
++	bpfdetach(ifp);
++	if_detach(ifp);
++	if_free_type(ifp, IFT_ETHER);
++	free(sc, M_CARP);
++}
++
++static void
++carpdetach(struct carp_softc *sc)
++{
+ 	struct carp_if *cif;
+-	struct ip_moptions *imo = &sc->sc_imo;
+-#ifdef INET6
+-	struct ip6_moptions *im6o = &sc->sc_im6o;
+-#endif
+-	
+-/*	carpdetach(sc); */
+ 
+-	/*
+-	 * If an interface is destroyed which is suppressing the preemption,
+-	 * decrease the global counter, otherwise the host will never get
+-	 * out of the carp supressing state.
+-	 */
++	callout_stop(&sc->sc_ad_tmo);
++	callout_stop(&sc->sc_md_tmo);
++	callout_stop(&sc->sc_md6_tmo);
++
+ 	if (sc->sc_suppress)
+ 		carp_suppress_preempt--;
+ 	sc->sc_suppress = 0;
+ 
+-	callout_stop(&sc->sc_ad_tmo);
+-	callout_stop(&sc->sc_md_tmo);
+-	callout_stop(&sc->sc_md6_tmo);
++	if (sc->sc_sendad_errors >= CARP_SENDAD_MAX_ERRORS)
++		carp_suppress_preempt--;
++	sc->sc_sendad_errors = 0;
+ 
+-	if (imo->imo_num_memberships) {
+-		in_delmulti(imo->imo_membership[--imo->imo_num_memberships]);
+-		imo->imo_multicast_ifp = NULL;
+-	}
+-#ifdef INET6
+-	while (!LIST_EMPTY(&im6o->im6o_memberships)) {
+-		struct in6_multi_mship *imm =
+-		    LIST_FIRST(&im6o->im6o_memberships);
+-		LIST_REMOVE(imm, i6mm_chain);
+-		in6_leavegroup(imm);
+-	}
+-	im6o->im6o_multicast_ifp = NULL;
+-#endif
++	carp_set_state(sc, INIT);
++	SC2IFP(sc)->if_flags &= ~IFF_UP;
++	carp_setrun(sc, 0);
++	carp_multicast_cleanup(sc);
+ 
+-	/* Remove ourself from parents if_carp queue */
+-	if (sc->sc_carpdev && (cif = sc->sc_carpdev->if_carp)) {
+-		CARP_LOCK(cif);
++	if (sc->sc_carpdev != NULL) {
++		cif = (struct carp_if *)sc->sc_carpdev->if_carp;
++		CARP_LOCK_ASSERT(cif);
+ 		TAILQ_REMOVE(&cif->vhif_vrs, sc, sc_list);
+ 		if (!--cif->vhif_nvrs) {
++			ifpromisc(sc->sc_carpdev, 0);
+ 			sc->sc_carpdev->if_carp = NULL;
+ 			CARP_LOCK_DESTROY(cif);
+-			FREE(cif, M_CARP);
+-			ifpromisc(sc->sc_carpdev, 0);
+-			sc->sc_carpdev = NULL;
+-		} else {
+-			CARP_UNLOCK(cif);
++			FREE(cif, M_IFADDR);
+ 		}
+ 	}
++        sc->sc_carpdev = NULL;
++}
+ 
+-	mtx_lock(&carp_mtx);
+-	LIST_REMOVE(sc, sc_next);
+-	mtx_unlock(&carp_mtx);
+-	bpfdetach(ifp);
+-	if_detach(ifp);
+-	if_free_type(ifp, IFT_ETHER);
+-	free(sc, M_CARP);
++/* Detach an interface from the carp. */
++static void
++carp_ifdetach(void *arg __unused, struct ifnet *ifp)
++{
++	struct carp_if *cif = (struct carp_if *)ifp->if_carp;
++	struct carp_softc *sc, *nextsc;
++ 
++	if (cif == NULL)
++		return;
++
++	/*
++	 * XXX: At the end of for() cycle the lock will be destroyed.
++	 */
++	CARP_LOCK(cif);
++	for (sc = TAILQ_FIRST(&cif->vhif_vrs); sc; sc = nextsc) {
++		nextsc = TAILQ_NEXT(sc, sc_list);
++		carpdetach(sc);
++	}
+ }
+ 
+ /*
+@@ -751,42 +768,6 @@
+ 	return;
+ }
+ 
+-static void
+-carpdetach(struct carp_softc *sc)
+-{
+-	struct ifaddr *ifa;
+-
+-	callout_stop(&sc->sc_ad_tmo);
+-	callout_stop(&sc->sc_md_tmo);
+-	callout_stop(&sc->sc_md6_tmo);
+-
+-	while ((ifa = TAILQ_FIRST(&SC2IFP(sc)->if_addrlist)) != NULL)
+-		if (ifa->ifa_addr->sa_family == AF_INET) {
+-			struct in_ifaddr *ia = ifatoia(ifa);
+-
+-			carp_del_addr(sc, &ia->ia_addr);
+-
+-			/* ripped screaming from in_control(SIOCDIFADDR) */
+-			in_ifscrub(SC2IFP(sc), ia);
+-			TAILQ_REMOVE(&SC2IFP(sc)->if_addrlist, ifa, ifa_link);
+-			TAILQ_REMOVE(&in_ifaddrhead, ia, ia_link);
+-			IFAFREE((&ia->ia_ifa));
+-		}
+-}
+-
+-/* Detach an interface from the carp.  */
+-void
+-carp_ifdetach(struct ifnet *ifp)
+-{
+-	struct carp_softc *sc;
+-	struct carp_if *cif = (struct carp_if *)ifp->if_carp;
+-
+-	CARP_LOCK(cif);
+-	TAILQ_FOREACH(sc, &cif->vhif_vrs, sc_list)
+-		carpdetach(sc);
+-	CARP_UNLOCK(cif);
+-}
+-
+ static int
+ carp_prepare_ad(struct mbuf *m, struct carp_softc *sc, struct carp_header *ch)
+ {
+@@ -984,9 +965,14 @@
+ 		    sizeof(struct in6_addr));
+ 		/* set the multicast destination */
+ 
+-		ip6->ip6_dst.s6_addr8[0] = 0xff;
+-		ip6->ip6_dst.s6_addr8[1] = 0x02;
++		ip6->ip6_dst.s6_addr16[0] = htons(0xff02);
+ 		ip6->ip6_dst.s6_addr8[15] = 0x12;
++		if (in6_setscope(&ip6->ip6_dst, sc->sc_carpdev, NULL) != 0) {
++			SC2IFP(sc)->if_oerrors++;
++			m_freem(m);
++			CARP_LOG("%s: in6_setscope failed\n", __func__);
++			return;
++		}
+ 
+ 		ch_ptr = (struct carp_header *)(&ip6[1]);
+ 		bcopy(&ch, ch_ptr, sizeof(ch));
+@@ -1307,7 +1293,11 @@
+ {
+ 	struct timeval tv;
+ 
+-	if (sc->sc_carpdev)
++	if (sc->sc_carpdev == NULL) {
++		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
++		carp_set_state(sc, INIT);
++		return;
++	} else
+ 		CARP_SCLOCK_ASSERT(sc);
+ 
+ 	if (SC2IFP(sc)->if_flags & IFF_UP &&
+@@ -1374,6 +1364,37 @@
+ 	}
+ }
+ 
++void
++carp_multicast_cleanup(struct carp_softc *sc)
++{
++	struct ip_moptions *imo = &sc->sc_imo;
++#ifdef INET6
++	struct ip6_moptions *im6o = &sc->sc_im6o;
++#endif 
++	u_int16_t n = imo->imo_num_memberships;
++  
++	/* Clean up our own multicast memberships */
++	while (n-- > 0) {
++		if (imo->imo_membership[n] != NULL) {
++			in_delmulti(imo->imo_membership[n]);
++			imo->imo_membership[n] = NULL;
++		}
++	}
++	imo->imo_num_memberships = 0;
++	imo->imo_multicast_ifp = NULL;
++
++#ifdef INET6
++	while (!LIST_EMPTY(&im6o->im6o_memberships)) {
++		struct in6_multi_mship *imm =
++		    LIST_FIRST(&im6o->im6o_memberships);
++    
++		LIST_REMOVE(imm, i6mm_chain);
++		in6_leavegroup(imm);
++	}
++	im6o->im6o_multicast_ifp = NULL;
++#endif
++}
++
+ static int
+ carp_set_addr(struct carp_softc *sc, struct sockaddr_in *sin)
+ {
+@@ -2134,16 +2155,19 @@
+ static int
+ carp_modevent(module_t mod, int type, void *data)
+ {
+-	int error = 0;
+-
+ 	switch (type) {
+ 	case MOD_LOAD:
++		if_detach_event_tag = EVENTHANDLER_REGISTER(ifnet_departure_event,
++		    carp_ifdetach, NULL, EVENTHANDLER_PRI_ANY);
++		if (if_detach_event_tag == NULL)
++			return (ENOMEM);
+ 		mtx_init(&carp_mtx, "carp_mtx", NULL, MTX_DEF);
+ 		LIST_INIT(&carpif_list);
+ 		if_clone_attach(&carp_cloner);
+ 		break;
+ 
+ 	case MOD_UNLOAD:
++		EVENTHANDLER_DEREGISTER(ifnet_departure_event, if_detach_event_tag);
+ 		if_clone_detach(&carp_cloner);
+ 		while (!LIST_EMPTY(&carpif_list))
+ 			carp_clone_destroy(SC2IFP(LIST_FIRST(&carpif_list)));
+@@ -2151,11 +2175,10 @@
+ 		break;
+ 
+ 	default:
+-		error = EINVAL;
+-		break;
++		return (EINVAL);
+ 	}
+ 
+-	return error;
++	return (0);
+ }
+ 
+ static moduledata_t carp_mod = {
+Index: ip_carp.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_carp.h,v
+retrieving revision 1.1
+diff -u -r1.1 ip_carp.h
+--- ip_carp.h	22 Feb 2005 13:04:03 -0000	1.1
++++ ip_carp.h	16 Nov 2006 17:57:14 -0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/netinet/ip_carp.h,v 1.1 2005/02/22 13:04:03 glebius Exp $	*/
++/*	$FreeBSD: src/sys/netinet/ip_carp.h,v 1.1.4.1 2006/08/10 10:10:12 glebius Exp $	*/
+ /*	$OpenBSD: ip_carp.h,v 1.8 2004/07/29 22:12:15 mcbride Exp $	*/
+ 
+ /*
+@@ -148,7 +148,6 @@
+ }
+ 
+ #ifdef _KERNEL
+-void		 carp_ifdetach (struct ifnet *);
+ void		 carp_carpdev_state(void *);
+ void		 carp_input (struct mbuf *, int);
+ int		 carp6_input (struct mbuf **, int *, int);
+Index: ip_divert.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_divert.c,v
+retrieving revision 1.113.2.1
+diff -u -r1.113.2.1 ip_divert.c
+--- ip_divert.c	16 Nov 2005 10:31:22 -0000	1.113.2.1
++++ ip_divert.c	16 Nov 2006 17:57:14 -0000
+@@ -26,7 +26,7 @@
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+  *
+- * $FreeBSD: src/sys/netinet/ip_divert.c,v 1.113.2.1 2005/11/16 10:31:22 ru Exp $
++ * $FreeBSD: src/sys/netinet/ip_divert.c,v 1.113.2.2 2006/05/16 07:27:48 ps Exp $
+  */
+ 
+ #if !defined(KLD_MODULE)
+@@ -116,6 +116,13 @@
+ /*
+  * Initialize divert connection block queue.
+  */
++static void
++div_zone_change(void *tag)
++{
++
++	uma_zone_set_max(divcbinfo.ipi_zone, maxsockets);
++}
++
+ void
+ div_init(void)
+ {
+@@ -132,6 +139,8 @@
+ 	divcbinfo.ipi_zone = uma_zcreate("divcb", sizeof(struct inpcb),
+ 	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
+ 	uma_zone_set_max(divcbinfo.ipi_zone, maxsockets);
++	EVENTHANDLER_REGISTER(maxsockets_change, div_zone_change,
++		NULL, EVENTHANDLER_PRI_ANY);
+ }
+ 
+ /*
+Index: ip_dummynet.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_dummynet.c,v
+retrieving revision 1.93.2.4
+diff -u -r1.93.2.4 ip_dummynet.c
+--- ip_dummynet.c	23 Feb 2006 08:28:15 -0000	1.93.2.4
++++ ip_dummynet.c	16 Nov 2006 17:57:14 -0000
+@@ -24,7 +24,7 @@
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+  *
+- * $FreeBSD: src/sys/netinet/ip_dummynet.c,v 1.93.2.4 2006/02/23 08:28:15 ume Exp $
++ * $FreeBSD: src/sys/netinet/ip_dummynet.c,v 1.93.2.5 2006/07/29 08:24:12 oleg Exp $
+  */
+ 
+ #define	DUMMYNET_DEBUG
+@@ -1175,6 +1175,10 @@
+ 
+     if (cmd->opcode == O_LOG)
+ 	cmd += F_LEN(cmd);
++    if (cmd->opcode == O_ALTQ)
++	cmd += F_LEN(cmd);
++    if (cmd->opcode == O_TAG)
++	cmd += F_LEN(cmd);
+     is_pipe = (cmd->opcode == O_PIPE);
+ 
+     DUMMYNET_LOCK();
+Index: ip_fastfwd.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_fastfwd.c,v
+retrieving revision 1.28.2.2
+diff -u -r1.28.2.2 ip_fastfwd.c
+--- ip_fastfwd.c	29 Aug 2005 17:52:53 -0000	1.28.2.2
++++ ip_fastfwd.c	16 Nov 2006 17:57:14 -0000
+@@ -26,7 +26,7 @@
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+  *
+- * $FreeBSD: src/sys/netinet/ip_fastfwd.c,v 1.28.2.2 2005/08/29 17:52:53 andre Exp $
++ * $FreeBSD: src/sys/netinet/ip_fastfwd.c,v 1.28.2.4 2006/08/24 05:40:16 julian Exp $
+  */
+ 
+ /*
+@@ -475,8 +475,8 @@
+ 		 */
+ #ifdef IPFIREWALL_FORWARD
+ 		if (fwd_tag) {
+-			if (!in_localip(ip->ip_src) && !in_localaddr(ip->ip_dst))
+-				dest.s_addr = ((struct sockaddr_in *)(fwd_tag+1))->sin_addr.s_addr;
++			dest.s_addr = ((struct sockaddr_in *)
++				    (fwd_tag + 1))->sin_addr.s_addr;
+ 			m_tag_delete(m, fwd_tag);
+ 		}
+ #endif /* IPFIREWALL_FORWARD */
+Index: ip_fw.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_fw.h,v
+retrieving revision 1.100.2.3
+diff -u -r1.100.2.3 ip_fw.h
+--- ip_fw.h	17 Feb 2006 16:46:47 -0000	1.100.2.3
++++ ip_fw.h	16 Nov 2006 17:57:14 -0000
+@@ -22,7 +22,7 @@
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+  *
+- * $FreeBSD: src/sys/netinet/ip_fw.h,v 1.100.2.3 2006/02/17 16:46:47 ru Exp $
++ * $FreeBSD: src/sys/netinet/ip_fw.h,v 1.100.2.4 2006/07/29 08:24:12 oleg Exp $
+  */
+ 
+ #ifndef _IPFW2_H
+@@ -157,6 +157,9 @@
+ 
+ 	O_UNREACH6,		/* arg1=icmpv6 code arg (deny)  */
+ 
++	O_TAG,   		/* arg1=tag number */
++	O_TAGGED,		/* arg1=tag number */
++
+ 	O_LAST_OPCODE		/* not an opcode!		*/
+ };
+ 
+@@ -215,6 +218,8 @@
+  */
+ #define	F_INSN_SIZE(t)	((sizeof (t))/sizeof(u_int32_t))
+ 
++#define MTAG_IPFW	1148380143	/* IPFW-tagged cookie */
++
+ /*
+  * This is used to store an array of 16-bit entries (ports etc.)
+  */
+@@ -359,6 +364,7 @@
+  *  + if a rule has a "log" option, then the first action
+  *	(at ACTION_PTR(r)) MUST be O_LOG
+  *  + if a rule has an "altq" option, it comes after "log"
++ *  + if a rule has an O_TAG option, it comes after "log" and "altq"
+  *
+  * NOTE: we use a simple linked list of rules because we never need
+  * 	to delete a rule without scanning the list. We do not use
+Index: ip_fw2.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_fw2.c,v
+retrieving revision 1.106.2.12
+diff -u -r1.106.2.12 ip_fw2.c
+--- ip_fw2.c	9 Mar 2006 13:42:44 -0000	1.106.2.12
++++ ip_fw2.c	16 Nov 2006 17:57:14 -0000
+@@ -22,7 +22,7 @@
+  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  * SUCH DAMAGE.
+  *
+- * $FreeBSD: src/sys/netinet/ip_fw2.c,v 1.106.2.12 2006/03/09 13:42:44 glebius Exp $
++ * $FreeBSD: src/sys/netinet/ip_fw2.c,v 1.106.2.21 2006/10/10 18:39:38 bz Exp $
+  */
+ 
+ #define        DEB(x)
+@@ -43,6 +43,7 @@
+ #endif
+ #include "opt_inet6.h"
+ #include "opt_ipsec.h"
++#include "opt_mac.h"
+ 
+ #include <sys/param.h>
+ #include <sys/systm.h>
+@@ -51,6 +52,7 @@
+ #include <sys/mbuf.h>
+ #include <sys/kernel.h>
+ #include <sys/jail.h>
++#include <sys/mac.h>
+ #include <sys/module.h>
+ #include <sys/proc.h>
+ #include <sys/socket.h>
+@@ -71,6 +73,8 @@
+ #include <netinet/ip_fw.h>
+ #include <netinet/ip_divert.h>
+ #include <netinet/ip_dummynet.h>
++#include <netinet/ip_carp.h>
++#include <netinet/pim.h>
+ #include <netinet/tcp.h>
+ #include <netinet/tcp_timer.h>
+ #include <netinet/tcp_var.h>
+@@ -672,11 +676,11 @@
+ hash_packet6(struct ipfw_flow_id *id)
+ {
+ 	u_int32_t i;
+-	i = (id->dst_ip6.__u6_addr.__u6_addr32[0]) ^
+-	    (id->dst_ip6.__u6_addr.__u6_addr32[1]) ^
+-	    (id->dst_ip6.__u6_addr.__u6_addr32[2]) ^
++	i = (id->dst_ip6.__u6_addr.__u6_addr32[2]) ^
+ 	    (id->dst_ip6.__u6_addr.__u6_addr32[3]) ^
+-	    (id->dst_port) ^ (id->src_port) ^ (id->flow_id6);
++	    (id->src_ip6.__u6_addr.__u6_addr32[2]) ^
++	    (id->src_ip6.__u6_addr.__u6_addr32[3]) ^
++	    (id->dst_port) ^ (id->src_port);
+ 	return i;
+ }
+ 
+@@ -812,6 +816,9 @@
+ 		if (cmd->opcode == O_PROB)
+ 			cmd += F_LEN(cmd);
+ 
++		if (cmd->opcode == O_TAG)
++			cmd += F_LEN(cmd);
++
+ 		action = action2;
+ 		switch (cmd->opcode) {
+ 		case O_DENY:
+@@ -1445,62 +1452,72 @@
+  */
+ static int
+ install_state(struct ip_fw *rule, ipfw_insn_limit *cmd,
+-	struct ip_fw_args *args)
++    struct ip_fw_args *args, uint32_t tablearg)
+ {
+ 	static int last_log;
+ 
+ 	ipfw_dyn_rule *q;
+ 
+-	DEB(printf("ipfw: install state type %d 0x%08x %u -> 0x%08x %u\n",
+-	    cmd->o.opcode,
++	DEB(
++	printf("ipfw: %s: type %d 0x%08x %u -> 0x%08x %u\n",
++	    __func__, cmd->o.opcode,
+ 	    (args->f_id.src_ip), (args->f_id.src_port),
+-	    (args->f_id.dst_ip), (args->f_id.dst_port) );)
++	    (args->f_id.dst_ip), (args->f_id.dst_port));
++	)
+ 
+ 	IPFW_DYN_LOCK();
+ 
+ 	q = lookup_dyn_rule_locked(&args->f_id, NULL, NULL);
+ 
+-	if (q != NULL) { /* should never occur */
++	if (q != NULL) {	/* should never occur */
+ 		if (last_log != time_second) {
+ 			last_log = time_second;
+-			printf("ipfw: install_state: entry already present, done\n");
++			printf("ipfw: %s: entry already present, done\n",
++			    __func__);
+ 		}
+ 		IPFW_DYN_UNLOCK();
+-		return 0;
++		return (0);
+ 	}
+ 
+ 	if (dyn_count >= dyn_max)
+-		/*
+-		 * Run out of slots, try to remove any expired rule.
+-		 */
++		/* Run out of slots, try to remove any expired rule. */
+ 		remove_dyn_rule(NULL, (ipfw_dyn_rule *)1);
+ 
+ 	if (dyn_count >= dyn_max) {
+ 		if (last_log != time_second) {
+ 			last_log = time_second;
+-			printf("ipfw: install_state: Too many dynamic rules\n");
++			printf("ipfw: %s: Too many dynamic rules\n", __func__);
+ 		}
+ 		IPFW_DYN_UNLOCK();
+-		return 1; /* cannot install, notify caller */
++		return (1);	/* cannot install, notify caller */
+ 	}
+ 
+ 	switch (cmd->o.opcode) {
+-	case O_KEEP_STATE: /* bidir rule */
++	case O_KEEP_STATE:	/* bidir rule */
+ 		add_dyn_rule(&args->f_id, O_KEEP_STATE, rule);
+ 		break;
+ 
+-	case O_LIMIT: /* limit number of sessions */
+-	    {
+-		u_int16_t limit_mask = cmd->limit_mask;
++	case O_LIMIT: {		/* limit number of sessions */
+ 		struct ipfw_flow_id id;
+ 		ipfw_dyn_rule *parent;
++		uint32_t conn_limit;
++		uint16_t limit_mask = cmd->limit_mask;
+ 
+-		DEB(printf("ipfw: installing dyn-limit rule %d\n",
+-		    cmd->conn_limit);)
++		conn_limit = (cmd->conn_limit == IP_FW_TABLEARG) ?
++		    tablearg : cmd->conn_limit;
++		  
++		DEB(
++		if (cmd->conn_limit == IP_FW_TABLEARG)
++			printf("ipfw: %s: O_LIMIT rule, conn_limit: %u "
++			    "(tablearg)\n", __func__, conn_limit);
++		else
++			printf("ipfw: %s: O_LIMIT rule, conn_limit: %u\n",
++			    __func__, conn_limit);
++		)
+ 
+-		id.dst_ip = id.src_ip = 0;
+-		id.dst_port = id.src_port = 0;
++		id.dst_ip = id.src_ip = id.dst_port = id.src_port = 0;
+ 		id.proto = args->f_id.proto;
++		id.addr_type = args->f_id.addr_type;
+ 
+ 		if (IS_IP6_FLOW_ID (&(args->f_id))) {
+ 			if (limit_mask & DYN_SRC_ADDR)
+@@ -1517,38 +1534,40 @@
+ 			id.src_port = args->f_id.src_port;
+ 		if (limit_mask & DYN_DST_PORT)
+ 			id.dst_port = args->f_id.dst_port;
+-		parent = lookup_dyn_parent(&id, rule);
+-		if (parent == NULL) {
+-			printf("ipfw: add parent failed\n");
++		if ((parent = lookup_dyn_parent(&id, rule)) == NULL) {
++			printf("ipfw: %s: add parent failed\n", __func__);
+ 			IPFW_DYN_UNLOCK();
+-			return 1;
++			return (1);
+ 		}
+-		if (parent->count >= cmd->conn_limit) {
+-			/*
+-			 * See if we can remove some expired rule.
+-			 */
++
++		if (parent->count >= conn_limit) {
++			/* See if we can remove some expired rule. */
+ 			remove_dyn_rule(rule, parent);
+-			if (parent->count >= cmd->conn_limit) {
++			if (parent->count >= conn_limit) {
+ 				if (fw_verbose && last_log != time_second) {
+ 					last_log = time_second;
+ 					log(LOG_SECURITY | LOG_DEBUG,
+ 					    "drop session, too many entries\n");
+ 				}
+ 				IPFW_DYN_UNLOCK();
+-				return 1;
++				return (1);
+ 			}
+ 		}
+ 		add_dyn_rule(&args->f_id, O_LIMIT, (struct ip_fw *)parent);
+-	    }
+ 		break;
++	}
+ 	default:
+-		printf("ipfw: unknown dynamic rule type %u\n", cmd->o.opcode);
++		printf("ipfw: %s: unknown dynamic rule type %u\n",
++		    __func__, cmd->o.opcode);
+ 		IPFW_DYN_UNLOCK();
+-		return 1;
++		return (1);
+ 	}
+-	lookup_dyn_rule_locked(&args->f_id, NULL, NULL); /* XXX just set lifetime */
++
++	/* XXX just set lifetime */
++	lookup_dyn_rule_locked(&args->f_id, NULL, NULL);
++
+ 	IPFW_DYN_UNLOCK();
+-	return 0;
++	return (0);
+ }
+ 
+ /*
+@@ -1556,9 +1575,12 @@
+  * When flags & TH_RST, we are sending a RST packet, because of a
+  * "reset" action matched the packet.
+  * Otherwise we are sending a keepalive, and flags & TH_
++ * The 'replyto' mbuf is the mbuf being replied to, if any, and is required
++ * so that MAC can label the reply appropriately.
+  */
+ static struct mbuf *
+-send_pkt(struct ipfw_flow_id *id, u_int32_t seq, u_int32_t ack, int flags)
++send_pkt(struct mbuf *replyto, struct ipfw_flow_id *id, u_int32_t seq,
++    u_int32_t ack, int flags)
+ {
+ 	struct mbuf *m;
+ 	struct ip *ip;
+@@ -1568,6 +1590,16 @@
+ 	if (m == 0)
+ 		return (NULL);
+ 	m->m_pkthdr.rcvif = (struct ifnet *)0;
++
++#ifdef MAC
++	if (replyto != NULL)
++		mac_create_mbuf_netlayer(replyto, m);
++	else
++		mac_create_mbuf_from_firewall(m);
++#else
++	(void)replyto;		/* don't warn about unused arg */
++#endif
++
+ 	m->m_pkthdr.len = m->m_len = sizeof(struct ip) + sizeof(struct tcphdr);
+ 	m->m_data += max_linkhdr;
+ 
+@@ -1652,8 +1684,8 @@
+ 		    L3HDR(struct tcphdr, mtod(args->m, struct ip *));
+ 		if ( (tcp->th_flags & TH_RST) == 0) {
+ 			struct mbuf *m;
+-			m = send_pkt(&(args->f_id), ntohl(tcp->th_seq),
+-				ntohl(tcp->th_ack),
++			m = send_pkt(args->m, &(args->f_id),
++				ntohl(tcp->th_seq), ntohl(tcp->th_ack),
+ 				tcp->th_flags | TH_RST);
+ 			if (m != NULL)
+ 				ip_output(m, NULL, NULL, 0, NULL, NULL);
+@@ -1691,6 +1723,8 @@
+ 		cmd += F_LEN(cmd);
+ 	if (cmd->opcode == O_ALTQ)
+ 		cmd += F_LEN(cmd);
++	if (cmd->opcode == O_TAG)
++		cmd += F_LEN(cmd);
+ 	if ( cmd->opcode == O_SKIPTO )
+ 		for (rule = me->next; rule ; rule = rule->next)
+ 			if (rule->rulenum >= cmd->arg1)
+@@ -2203,7 +2237,10 @@
+ 
+ 			case IPPROTO_ROUTING:	/* RFC 2460 */
+ 				PULLUP_TO(hlen, ulp, struct ip6_rthdr);
+-				if (((struct ip6_rthdr *)ulp)->ip6r_type != 0) {
++				switch (((struct ip6_rthdr *)ulp)->ip6r_type) {
++				case 0:
++					break;
++				default:
+ 					printf("IPFW2: IPV6 - Unknown Routing "
+ 					    "Header type(%d)\n",
+ 					    ((struct ip6_rthdr *)ulp)->ip6r_type);
+@@ -2274,11 +2311,35 @@
+ 				PULLUP_TO(hlen, ulp, struct ip6_ext);
+ 				break;
+ 
++			case IPPROTO_PIM:
++				/* XXX PIM header check? */
++				PULLUP_TO(hlen, ulp, struct pim);
++				break;
++
++			case IPPROTO_CARP:
++				PULLUP_TO(hlen, ulp, struct carp_header);
++				if (((struct carp_header *)ulp)->carp_version !=
++				    CARP_VERSION) 
++					return (IP_FW_DENY);
++				if (((struct carp_header *)ulp)->carp_type !=
++				    CARP_ADVERTISEMENT) 
++					return (IP_FW_DENY);
++				break;
++
++			case IPPROTO_IPV6:	/* RFC 2893 */
++				PULLUP_TO(hlen, ulp, struct ip6_hdr);
++				break;
++
++			case IPPROTO_IPV4:	/* RFC 2893 */
++				PULLUP_TO(hlen, ulp, struct ip);
++				break;
++
+ 			default:
+ 				printf("IPFW2: IPV6 - Unknown Extension "
+ 				    "Header(%d), ext_hd=%x\n", proto, ext_hd);
+ 				if (fw_deny_unknown_exthdrs)
+ 				    return (IP_FW_DENY);
++				PULLUP_TO(hlen, ulp, struct ip6_ext);
+ 				break;
+ 			} /*switch */
+ 		}
+@@ -2870,22 +2931,25 @@
+ 				    &((ipfw_insn_ip6 *)cmd)->addr6);
+ 				break;
+ 			case O_IP6_SRC_MASK:
+-				if (is_ipv6) {
+-					ipfw_insn_ip6 *te = (ipfw_insn_ip6 *)cmd;
+-					struct in6_addr p = args->f_id.src_ip6;
+-
+-					APPLY_MASK(&p, &te->mask6);
+-					match = IN6_ARE_ADDR_EQUAL(&te->addr6, &p);
+-				}
+-				break;
+-
+ 			case O_IP6_DST_MASK:
+ 				if (is_ipv6) {
+-					ipfw_insn_ip6 *te = (ipfw_insn_ip6 *)cmd;
+-					struct in6_addr p = args->f_id.dst_ip6;
+-
+-					APPLY_MASK(&p, &te->mask6);
+-					match = IN6_ARE_ADDR_EQUAL(&te->addr6, &p);
++					int i = cmdlen - 1;
++					struct in6_addr p;
++					struct in6_addr *d =
++					    &((ipfw_insn_ip6 *)cmd)->addr6;
++
++					for (; !match && i > 0; d += 2,
++					    i -= F_INSN_SIZE(struct in6_addr)
++					    * 2) {
++						p = (cmd->opcode ==
++						    O_IP6_SRC_MASK) ?
++						    args->f_id.src_ip6:
++						    args->f_id.dst_ip6;
++						APPLY_MASK(&p, &d[1]);
++						match =
++						    IN6_ARE_ADDR_EQUAL(&d[0],
++						    &p);
++					}
+ 				}
+ 				break;
+ 
+@@ -2917,6 +2981,62 @@
+ 				match = is_ipv4;
+ 				break;
+ 
++			case O_TAG: {
++				uint32_t tag = (cmd->arg1 == IP_FW_TABLEARG) ?
++				    tablearg : cmd->arg1;
++
++				/* Packet is already tagged with this tag? */
++				mtag = m_tag_locate(m, MTAG_IPFW, tag, NULL);
++
++				/* We have `untag' action when F_NOT flag is
++				 * present. And we must remove this mtag from
++				 * mbuf and reset `match' to zero (`match' will
++				 * be inversed later).
++				 * Otherwise we should allocate new mtag and
++				 * push it into mbuf.
++				 */
++				if (cmd->len & F_NOT) { /* `untag' action */
++					if (mtag != NULL)
++						m_tag_delete(m, mtag);
++				} else if (mtag == NULL) {
++					if ((mtag = m_tag_alloc(MTAG_IPFW,
++					    tag, 0, M_NOWAIT)) != NULL)
++						m_tag_prepend(m, mtag);
++				}
++				match = (cmd->len & F_NOT) ? 0: 1;
++				break;
++			}
++
++			case O_TAGGED: {
++				uint32_t tag = (cmd->arg1 == IP_FW_TABLEARG) ?
++				    tablearg : cmd->arg1;
++
++				if (cmdlen == 1) {
++					match = m_tag_locate(m, MTAG_IPFW,
++					    tag, NULL) != NULL;
++					break;
++				}
++
++				/* we have ranges */
++				for (mtag = m_tag_first(m);
++				    mtag != NULL && !match;
++				    mtag = m_tag_next(m, mtag)) {
++					uint16_t *p;
++					int i;
++
++					if (mtag->m_tag_cookie != MTAG_IPFW)
++						continue;
++
++					p = ((ipfw_insn_u16 *)cmd)->ports;
++					i = cmdlen - 1;
++					for(; !match && i > 0; i--, p += 2)
++						match =
++						    mtag->m_tag_id >= p[0] &&
++						    mtag->m_tag_id <= p[1];
++				}
++				break;
++			}
++				
+ 			/*
+ 			 * The second set of opcodes represents 'actions',
+ 			 * i.e. the terminal part of a rule once the packet
+@@ -2936,7 +3056,7 @@
+ 			 *   or to the SKIPTO target ('goto again' after
+ 			 *   having set f, cmd and l), respectively.
+ 			 *
+-			 * O_LOG and O_ALTQ action parameters:
++			 * O_TAG, O_LOG and O_ALTQ action parameters:
+ 			 *   perform some action and set match = 1;
+ 			 *
+ 			 * O_LIMIT and O_KEEP_STATE: these opcodes are
+@@ -2961,7 +3081,7 @@
+ 			case O_LIMIT:
+ 			case O_KEEP_STATE:
+ 				if (install_state(f,
+-				    (ipfw_insn_limit *)cmd, args)) {
++				    (ipfw_insn_limit *)cmd, args, tablearg)) {
+ 					retval = IP_FW_DENY;
+ 					goto done; /* error/limit violation */
+ 				}
+@@ -3587,6 +3707,7 @@
+ 		case O_IP6:
+ #endif
+ 		case O_IP4:
++		case O_TAG:
+ 			if (cmdlen != F_INSN_SIZE(ipfw_insn))
+ 				goto bad_size;
+ 			break;
+@@ -3659,6 +3780,7 @@
+ 		case O_IPTTL:
+ 		case O_IPLEN:
+ 		case O_TCPDATALEN:
++		case O_TAGGED:
+ 			if (cmdlen < 1 || cmdlen > 31)
+ 				goto bad_size;
+ 			break;
+@@ -3941,9 +4063,10 @@
+ 		IPFW_WLOCK(&layer3_chain);
+ 		layer3_chain.reap = NULL;
+ 		free_chain(&layer3_chain, 0 /* keep default rule */);
+-		rule = layer3_chain.reap, layer3_chain.reap = NULL;
++		rule = layer3_chain.reap;
++		layer3_chain.reap = NULL;
+ 		IPFW_WUNLOCK(&layer3_chain);
+-		if (layer3_chain.reap != NULL)
++		if (rule != NULL)
+ 			reap_rules(rule);
+ 		break;
+ 
+@@ -4069,10 +4192,6 @@
+ 			}
+ 			size = sopt->sopt_valsize;
+ 			tbl = malloc(size, M_TEMP, M_WAITOK);
+-			if (tbl == NULL) {
+-				error = ENOMEM;
+-				break;
+-			}
+ 			error = sooptcopyin(sopt, tbl, size, sizeof(*tbl));
+ 			if (error) {
+ 				free(tbl, M_TEMP);
+@@ -4147,11 +4266,11 @@
+ 			if (TIME_LEQ(q->expire, time_second))
+ 				continue;	/* too late, rule expired */
+ 
+-			*mtailp = send_pkt(&(q->id), q->ack_rev - 1,
++			*mtailp = send_pkt(NULL, &(q->id), q->ack_rev - 1,
+ 				q->ack_fwd, TH_SYN);
+ 			if (*mtailp != NULL)
+ 				mtailp = &(*mtailp)->m_nextpkt;
+-			*mtailp = send_pkt(&(q->id), q->ack_fwd - 1,
++			*mtailp = send_pkt(NULL, &(q->id), q->ack_fwd - 1,
+ 				q->ack_rev, 0);
+ 			if (*mtailp != NULL)
+ 				mtailp = &(*mtailp)->m_nextpkt;
+Index: ip_gre.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_gre.c,v
+retrieving revision 1.19.2.2
+diff -u -r1.19.2.2 ip_gre.c
+--- ip_gre.c	27 Jan 2006 21:50:10 -0000	1.19.2.2
++++ ip_gre.c	10 Aug 2006 10:51:52 -0000
+@@ -1,5 +1,5 @@
+ /*	$NetBSD: ip_gre.c,v 1.29 2003/09/05 23:02:43 itojun Exp $ */
+-/*	 $FreeBSD: src/sys/netinet/ip_gre.c,v 1.19.2.2 2006/01/27 21:50:10 bz Exp $ */
++/*	 $FreeBSD: src/sys/netinet/ip_gre.c,v 1.19.2.3 2006/08/10 10:51:52 glebius Exp $ */
+ 
+ /*-
+  * Copyright (c) 1998 The NetBSD Foundation, Inc.
+@@ -95,7 +95,7 @@
+ 
+ static struct gre_softc *gre_lookup(struct mbuf *, u_int8_t);
+ 
+-static int	gre_input2(struct mbuf *, int, u_char);
++static struct mbuf *gre_input2(struct mbuf *, int, u_char);
+ 
+ /*
+  * De-encapsulate a packet and feed it back through ip input (this
+@@ -106,29 +106,27 @@
+ void
+ gre_input(struct mbuf *m, int off)
+ {
+-	int ret, proto;
++	int proto;
+ 
+ 	proto = (mtod(m, struct ip *))->ip_p;
+ 
+-	ret = gre_input2(m, off, proto);
++	m = gre_input2(m, off, proto);
++
+ 	/*
+-	 * ret == 0 : packet not processed, meaning that
+-	 * no matching tunnel that is up is found.
+-	 * we inject it to raw ip socket to see if anyone picks it up.
++	 * If no matching tunnel that is up is found. We inject
++	 * the mbuf to raw ip socket to see if anyone picks it up.
+ 	 */
+-	if (ret == 0)
++	if (m != NULL)
+ 		rip_input(m, off);
+ }
+ 
+ /*
+- * decapsulate.
+- * Does the real work and is called from gre_input() (above)
+- * returns 0 if packet is not yet processed
+- * and 1 if it needs no further processing
+- * proto is the protocol number of the "calling" foo_input()
+- * routine.
++ * Decapsulate. Does the real work and is called from gre_input()
++ * (above). Returns an mbuf back if packet is not yet processed,
++ * and NULL if it needs no further processing. proto is the protocol
++ * number of the "calling" foo_input() routine.
+  */
+-static int
++static struct mbuf *
+ gre_input2(struct mbuf *m ,int hlen, u_char proto)
+ {
+ 	struct greip *gip;
+@@ -139,13 +137,13 @@
+ 
+ 	if ((sc = gre_lookup(m, proto)) == NULL) {
+ 		/* No matching tunnel or tunnel is down. */
+-		return (0);
++		return (m);
+ 	}
+ 
+ 	if (m->m_len < sizeof(*gip)) {
+ 		m = m_pullup(m, sizeof(*gip));
+ 		if (m == NULL)
+-			return (ENOBUFS);
++			return (NULL);
+ 	}
+ 	gip = mtod(m, struct greip *);
+ 
+@@ -164,7 +162,7 @@
+ 			hlen += 4;
+ 		/* We don't support routing fields (variable length) */
+ 		if (flags & GRE_RP)
+-			return (0);
++			return (m);
+ 		if (flags & GRE_KP)
+ 			hlen += 4;
+ 		if (flags & GRE_SP)
+@@ -191,18 +189,19 @@
+ 			af = AF_APPLETALK;
+ 			break;
+ #endif
+-		default:	   /* others not yet supported */
+-			return (0);
++		default:
++			/* Others not yet supported. */
++			return (m);
+ 		}
+ 		break;
+ 	default:
+-		/* others not yet supported */
+-		return (0);
++		/* Others not yet supported. */
++		return (m);
+ 	}
+ 
+ 	if (hlen > m->m_pkthdr.len) {
+ 		m_freem(m);
+-		return (EINVAL);
++		return (NULL);
+ 	}
+ 	/* Unlike NetBSD, in FreeBSD m_adj() adjusts m->m_pkthdr.len as well */
+ 	m_adj(m, hlen);
+@@ -215,7 +214,8 @@
+ 
+ 	netisr_dispatch(isr, m);
+ 
+-	return (1);	/* packet is done, no further processing needed */
++	/* Packet is done, no further processing needed. */
++	return (NULL);
+ }
+ 
+ /*
+Index: ip_input.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_input.c,v
+retrieving revision 1.301.2.7
+diff -u -r1.301.2.7 ip_input.c
+--- ip_input.c	4 Mar 2006 09:15:08 -0000	1.301.2.7
++++ ip_input.c	19 Nov 2006 18:04:47 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)ip_input.c	8.2 (Berkeley) 1/4/94
+- * $FreeBSD: src/sys/netinet/ip_input.c,v 1.301.2.7 2006/03/04 09:15:08 oleg Exp $
++ * $FreeBSD: src/sys/netinet/ip_input.c,v 1.301.2.10 2006/09/04 10:39:47 pjd Exp $
+  */
+ 
+ #include "opt_bootp.h"
+@@ -190,6 +190,7 @@
+ #define	IPQ_LOCK_ASSERT()	mtx_assert(&ipqlock, MA_OWNED)
+ 
+ static void	maxnipq_update(void);
++static void	ipq_zone_change(void *);
+ 
+ static int	maxnipq;	/* Administrative limit on # reass queues. */
+ static int	nipq = 0;	/* Total # of reass queues */
+@@ -298,6 +299,8 @@
+ 	ipport_tick(NULL);
+ 	EVENTHANDLER_REGISTER(shutdown_pre_sync, ip_fini, NULL,
+ 		SHUTDOWN_PRI_DEFAULT);
++	EVENTHANDLER_REGISTER(nmbclusters_change, ipq_zone_change,
++		NULL, EVENTHANDLER_PRI_ANY);
+ 
+ 	/* Initialize various other remaining things. */
+ 	ip_id = time_second & 0xffff;
+@@ -476,9 +479,6 @@
+ 		m->m_flags &= ~M_FASTFWD_OURS;
+ 		goto ours;
+ 	}
+-#ifndef IPFIREWALL_FORWARD_EXTENDED
+-	dchg = (m_tag_find(m, PACKET_TAG_IPFORWARD, NULL) != NULL);
+-#else
+ 	if ((dchg = (m_tag_find(m, PACKET_TAG_IPFORWARD, NULL) != NULL)) != 0) {
+ 		/*
+ 		 * Directly ship on the packet.  This allows to forward packets
+@@ -488,7 +488,6 @@
+ 		ip_forward(m, dchg);
+ 		return;
+ 	}
+-#endif /* IPFIREWALL_FORWARD_EXTENDED */
+ #endif /* IPFIREWALL_FORWARD */
+ 
+ passin:
+@@ -817,6 +816,16 @@
+ 		uma_zone_set_max(ipq_zone, 1);
+ }
+ 
++static void
++ipq_zone_change(void *tag)
++{
++
++	if (maxnipq > 0 && maxnipq < (nmbclusters / 32)) {
++		maxnipq = nmbclusters / 32;
++		maxnipq_update();
++	}
++}
++
+ static int
+ sysctl_maxnipq(SYSCTL_HANDLER_ARGS)
+ {
+@@ -966,6 +975,7 @@
+ #ifdef MAC
+ 		if (mac_init_ipq(fp, M_NOWAIT) != 0) {
+ 			uma_zfree(ipq_zone, fp);
++			fp = NULL;
+ 			goto dropfrag;
+ 		}
+ 		mac_create_ipq(m, fp);
+@@ -1990,8 +2000,6 @@
+ #else /* FAST_IPSEC */
+ 				KEY_FREESP(&sp);
+ #endif
+-				ipstat.ips_cantfrag++;
+-				break;
+ 			}
+ 		}
+ #endif /*IPSEC || FAST_IPSEC*/
+Index: ip_mroute.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_mroute.c,v
+retrieving revision 1.111.2.2
+diff -u -r1.111.2.2 ip_mroute.c
+--- ip_mroute.c	31 Jan 2006 16:13:22 -0000	1.111.2.2
++++ ip_mroute.c	16 Nov 2006 17:57:14 -0000
+@@ -52,7 +52,7 @@
+  * and PIM-SMv2 and PIM-DM support, advanced API support,
+  * bandwidth metering and signaling
+  *
+- * $FreeBSD: src/sys/netinet/ip_mroute.c,v 1.111.2.2 2006/01/31 16:13:22 andre Exp $
++ * $FreeBSD: src/sys/netinet/ip_mroute.c,v 1.111.2.3 2006/10/07 10:45:05 bms Exp $
+  */
+ 
+ #include "opt_mac.h"
+@@ -123,6 +123,10 @@
+  * to cover not only the specific data structure but also related data
+  * structures.  It may be better to add more fine-grained locking later;
+  * it's not clear how performance-critical this code is.
++ *
++ * XXX: This module could particularly benefit from being cleaned
++ *      up to use the <sys/queue.h> macros.
++ *
+  */
+ 
+ static struct mrtstat	mrtstat;
+@@ -159,6 +163,8 @@
+ 
+ static u_char		nexpire[MFCTBLSIZ];
+ 
++static eventhandler_tag if_detach_event_tag = NULL;
++
+ static struct callout expire_upcalls_ch;
+ 
+ #define		EXPIRE_TIMEOUT	(hz / 4)	/* 4x / second		*/
+@@ -303,8 +309,10 @@
+ 
+ static int get_sg_cnt(struct sioc_sg_req *);
+ static int get_vif_cnt(struct sioc_vif_req *);
++static void if_detached_event(void *arg __unused, struct ifnet *);
+ static int ip_mrouter_init(struct socket *, int);
+ static int add_vif(struct vifctl *);
++static int del_vif_locked(vifi_t);
+ static int del_vif(vifi_t);
+ static int add_mfc(struct mfcctl2 *);
+ static int del_mfc(struct mfcctl2 *);
+@@ -651,6 +659,66 @@
+ 
+ static struct mtx mrouter_mtx;		/* used to synch init/done work */
+ 
++static void
++if_detached_event(void *arg __unused, struct ifnet *ifp)
++{
++    vifi_t vifi;
++    int i;
++    struct mfc *mfc;
++    struct mfc *nmfc;
++    struct mfc **ppmfc;	/* Pointer to previous node's next-pointer */
++    struct rtdetq *pq;
++    struct rtdetq *npq;
++
++    mtx_lock(&mrouter_mtx);
++    if (ip_mrouter == NULL) {
++	mtx_unlock(&mrouter_mtx);
++    }
++
++    /*
++     * Tear down multicast forwarder state associated with this ifnet.
++     * 1. Walk the vif list, matching vifs against this ifnet.
++     * 2. Walk the multicast forwarding cache (mfc) looking for
++     *    inner matches with this vif's index.
++     * 3. Free any pending mbufs for this mfc.
++     * 4. Free the associated mfc entry and state associated with this vif.
++     *    Be very careful about unlinking from a singly-linked list whose
++     *    "head node" is a pointer in a simple array.
++     * 5. Free vif state. This should disable ALLMULTI on the interface.
++     */
++    VIF_LOCK();
++    MFC_LOCK();
++    for (vifi = 0; vifi < numvifs; vifi++) {
++	if (viftable[vifi].v_ifp != ifp)
++		continue;
++	for (i = 0; i < MFCTBLSIZ; i++) {
++	    ppmfc = &mfctable[i];
++	    for (mfc = mfctable[i]; mfc != NULL; ) {
++		nmfc = mfc->mfc_next;
++		if (mfc->mfc_parent == vifi) {
++		    for (pq = mfc->mfc_stall; pq != NULL; ) {
++			npq = pq->next;
++			m_freem(pq->m);
++			free(pq, M_MRTABLE);
++			pq = npq;
++		    }
++		    free_bw_list(mfc->mfc_bw_meter);
++		    free(mfc, M_MRTABLE);
++		    *ppmfc = nmfc;
++		} else {
++		    ppmfc = &mfc->mfc_next;
++		}
++		mfc = nmfc;
++	    }
++	}
++	del_vif_locked(vifi);
++    }
++    MFC_UNLOCK();
++    VIF_UNLOCK();
++
++    mtx_unlock(&mrouter_mtx);
++}
++                        
+ /*
+  * Enable multicast routing
+  */
+@@ -674,6 +742,11 @@
+ 	return EADDRINUSE;
+     }
+ 
++    if_detach_event_tag = EVENTHANDLER_REGISTER(ifnet_departure_event, 
++        if_detached_event, NULL, EVENTHANDLER_PRI_ANY);
++    if (if_detach_event_tag == NULL)
++	return (ENOMEM);
++
+     callout_reset(&expire_upcalls_ch, EXPIRE_TIMEOUT, expire_upcalls, NULL);
+ 
+     callout_reset(&bw_upcalls_ch, BW_UPCALLS_PERIOD,
+@@ -748,6 +821,7 @@
+     numvifs = 0;
+     pim_assert = 0;
+     VIF_UNLOCK();
++    EVENTHANDLER_DEREGISTER(ifnet_departure_event, if_detach_event_tag);
+ 
+     /*
+      * Free all multicast forwarding cache entries.
+@@ -1085,19 +1159,17 @@
+  * Delete a vif from the vif table
+  */
+ static int
+-del_vif(vifi_t vifi)
++del_vif_locked(vifi_t vifi)
+ {
+     struct vif *vifp;
+ 
+-    VIF_LOCK();
++    VIF_LOCK_ASSERT();
+ 
+     if (vifi >= numvifs) {
+-	VIF_UNLOCK();
+ 	return EINVAL;
+     }
+     vifp = &viftable[vifi];
+     if (vifp->v_lcl_addr.s_addr == INADDR_ANY) {
+-	VIF_UNLOCK();
+ 	return EADDRNOTAVAIL;
+     }
+ 
+@@ -1136,9 +1208,19 @@
+ 	    break;
+     numvifs = vifi;
+ 
++    return 0;
++}
++
++static int
++del_vif(vifi_t vifi)
++{
++    int cc;
++
++    VIF_LOCK();
++    cc = del_vif_locked(vifi);
+     VIF_UNLOCK();
+ 
+-    return 0;
++    return cc;
+ }
+ 
+ /*
+Index: ip_output.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_output.c,v
+retrieving revision 1.242.2.8.2.1
+diff -u -r1.242.2.8.2.1 ip_output.c
+--- ip_output.c	28 Aug 2006 07:31:10 -0000	1.242.2.8.2.1
++++ ip_output.c	24 Oct 2006 13:23:03 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)ip_output.c	8.3 (Berkeley) 1/21/94
+- * $FreeBSD: src/sys/netinet/ip_output.c,v 1.242.2.8.2.1 2006/08/28 07:31:10 cperciva Exp $
++ * $FreeBSD: src/sys/netinet/ip_output.c,v 1.242.2.16 2006/10/24 13:23:03 rwatson Exp $
+  */
+ 
+ #include "opt_ipfw.h"
+@@ -168,7 +168,7 @@
+ 	 * will wrap around in less than 10 seconds at 100 Mbit/s on a
+ 	 * medium with MTU 1500.  See Steven M. Bellovin, "A Technique
+ 	 * for Counting NATted Hosts", Proc. IMW'02, available at
+-	 * <http://www.research.att.com/~smb/papers/fnat.pdf>.
++	 * <http://www.cs.columbia.edu/~smb/papers/fnat.pdf>.
+ 	 */
+ 	if ((flags & (IP_FORWARDING|IP_RAWOUTPUT)) == 0) {
+ 		ip->ip_v = IPVERSION;
+@@ -218,6 +218,17 @@
+ 		ifp = ia->ia_ifp;
+ 		ip->ip_ttl = 1;
+ 		isbroadcast = in_broadcast(dst->sin_addr, ifp);
++	} else if (flags & IP_SENDONES) {
++		if ((ia = ifatoia(ifa_ifwithbroadaddr(sintosa(dst)))) == NULL) {
++			ipstat.ips_noroute++;
++			error = ENETUNREACH;
++			goto bad;
++		}
++		ifp = ia->ia_ifp;
++		ip->ip_dst.s_addr = INADDR_BROADCAST;
++		dst->sin_addr = ip->ip_dst;
++		ip->ip_ttl = 1;
++		isbroadcast = 1;
+ 	} else if (IN_MULTICAST(ntohl(ip->ip_dst.s_addr)) &&
+ 	    imo != NULL && imo->imo_multicast_ifp != NULL) {
+ 		/*
+@@ -401,8 +412,6 @@
+ 			error = EMSGSIZE;
+ 			goto bad;
+ 		}
+-		if (flags & IP_SENDONES)
+-			ip->ip_dst.s_addr = INADDR_BROADCAST;
+ 		m->m_flags |= M_BCAST;
+ 	} else {
+ 		m->m_flags &= ~M_BCAST;
+@@ -711,20 +720,11 @@
+ 	/* Or forward to some other address? */
+ 	fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL);
+ 	if (fwd_tag) {
+-#ifndef IPFIREWALL_FORWARD_EXTENDED
+-		if (!in_localip(ip->ip_src) && !in_localaddr(ip->ip_dst)) {
+-#endif
+-			dst = (struct sockaddr_in *)&ro->ro_dst;
+-			bcopy((fwd_tag+1), dst, sizeof(struct sockaddr_in));
+-			m->m_flags |= M_SKIP_FIREWALL;
+-			m_tag_delete(m, fwd_tag);
+-			goto again;
+-#ifndef IPFIREWALL_FORWARD_EXTENDED
+-		} else {
+-			m_tag_delete(m, fwd_tag);
+-			/* Continue. */
+-		}
+-#endif
++		dst = (struct sockaddr_in *)&ro->ro_dst;
++		bcopy((fwd_tag+1), dst, sizeof(struct sockaddr_in));
++		m->m_flags |= M_SKIP_FIREWALL;
++		m_tag_delete(m, fwd_tag);
++		goto again;
+ 	}
+ #endif /* IPFIREWALL_FORWARD */
+ 
+@@ -1186,6 +1186,15 @@
+ 			m->m_len = sopt->sopt_valsize;
+ 			error = sooptcopyin(sopt, mtod(m, char *), m->m_len,
+ 					    m->m_len);
++			if (error) {
++				m_free(m);
++				break;
++			}
++			if (so->so_pcb == NULL) {
++				m_free(m);
++				error = EINVAL;
++				break;
++			}
+ 			INP_LOCK(inp);
+ 			error = ip_pcbopts(inp, sopt->sopt_name, m);
+ 			INP_UNLOCK(inp);
+@@ -1208,6 +1217,10 @@
+ 			if (error)
+ 				break;
+ 
++			if (so->so_pcb == NULL) {
++				error = EINVAL;
++				break;
++			}
+ 			switch (sopt->sopt_name) {
+ 			case IP_TOS:
+ 				inp->inp_ip_tos = optval;
+@@ -1282,6 +1295,10 @@
+ 			if (error)
+ 				break;
+ 
++			if (so->so_pcb == NULL) {
++				error = EINVAL;
++				break;
++			}
+ 			INP_LOCK(inp);
+ 			switch (optval) {
+ 			case IP_PORTRANGE_DEFAULT:
+@@ -1324,6 +1341,11 @@
+ 			req = mtod(m, caddr_t);
+ 			len = m->m_len;
+ 			optname = sopt->sopt_name;
++			if (so->so_pcb == NULL) {
++				m_free(m);
++				error = EINVAL;
++				break;
++			}
+ 			error = ipsec4_set_policy(inp, optname, req, len, priv);
+ 			m_freem(m);
+ 			break;
+Index: raw_ip.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/raw_ip.c,v
+retrieving revision 1.150.2.3
+diff -u -r1.150.2.3 raw_ip.c
+--- raw_ip.c	4 Nov 2005 18:34:45 -0000	1.150.2.3
++++ raw_ip.c	16 Nov 2006 17:57:16 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)raw_ip.c	8.7 (Berkeley) 5/15/95
+- * $FreeBSD: src/sys/netinet/raw_ip.c,v 1.150.2.3 2005/11/04 18:34:45 maxim Exp $
++ * $FreeBSD: src/sys/netinet/raw_ip.c,v 1.150.2.5 2006/10/06 20:26:06 andre Exp $
+  */
+ 
+ #include "opt_inet6.h"
+@@ -116,6 +116,13 @@
+ /*
+  * Initialize raw connection block q.
+  */
++static void
++rip_zone_change(void *tag)
++{
++
++	uma_zone_set_max(ripcbinfo.ipi_zone, maxsockets);
++}
++
+ void
+ rip_init()
+ {
+@@ -132,6 +139,8 @@
+ 	ripcbinfo.ipi_zone = uma_zcreate("ripcb", sizeof(struct inpcb),
+ 	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
+ 	uma_zone_set_max(ripcbinfo.ipi_zone, maxsockets);
++	EVENTHANDLER_REGISTER(maxsockets_change, rip_zone_change,
++		NULL, EVENTHANDLER_PRI_ANY);
+ }
+ 
+ static struct	sockaddr_in ripsrc = { sizeof(ripsrc), AF_INET };
+@@ -316,7 +325,7 @@
+ 		ipstat.ips_rawout++;
+ 	}
+ 
+-	if (inp->inp_vflag & INP_ONESBCAST)
++	if (inp->inp_flags & INP_ONESBCAST)
+ 		flags |= IP_SENDONES;
+ 
+ #ifdef MAC
+Index: tcp_input.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_input.c,v
+retrieving revision 1.281.2.5
+diff -u -r1.281.2.5 tcp_input.c
+--- tcp_input.c	1 Mar 2006 21:13:29 -0000	1.281.2.5
++++ tcp_input.c	16 Nov 2006 17:57:16 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_input.c	8.12 (Berkeley) 5/24/95
+- * $FreeBSD: src/sys/netinet/tcp_input.c,v 1.281.2.5 2006/03/01 21:13:29 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_input.c,v 1.281.2.11 2006/09/19 12:58:40 glebius Exp $
+  */
+ 
+ #include "opt_ipfw.h"		/* for ipfw_fwd		*/
+@@ -201,6 +201,14 @@
+ 	    (tcp_delack_enabled || (tp->t_flags & TF_NEEDSYN)))
+ 
+ /* Initialize TCP reassembly queue */
++static void
++tcp_reass_zone_change(void *tag)
++{
++
++	tcp_reass_maxseg = nmbclusters / 16;
++	uma_zone_set_max(tcp_reass_zone, tcp_reass_maxseg);
++}
++
+ uma_zone_t	tcp_reass_zone;
+ void
+ tcp_reass_init()
+@@ -211,6 +219,8 @@
+ 	tcp_reass_zone = uma_zcreate("tcpreass", sizeof (struct tseg_qent),
+ 	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
+ 	uma_zone_set_max(tcp_reass_zone, tcp_reass_maxseg);
++	EVENTHANDLER_REGISTER(nmbclusters_change,
++	    tcp_reass_zone_change, NULL, EVENTHANDLER_PRI_ANY);
+ }
+ 
+ static int
+@@ -789,6 +799,7 @@
+ 		goto drop;
+ #endif
+ 	so = inp->inp_socket;
++	KASSERT(so != NULL, ("tcp_input: so == NULL"));
+ #ifdef TCPDEBUG
+ 	if (so->so_options & SO_DEBUG) {
+ 		ostate = tp->t_state;
+@@ -1771,6 +1782,8 @@
+ 		if (tp->t_state == TCPS_SYN_RECEIVED ||
+ 		    (tp->t_flags & TF_NEEDSYN))
+ 			goto step6;
++		else if (tp->t_flags & TF_ACKNOW)
++			goto dropafterack;
+ 		else
+ 			goto drop;
+ 	}
+@@ -2550,7 +2563,7 @@
+ 			    (tcp_seq)0, TH_RST|TH_ACK);
+ 	}
+ 
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	if (headlocked)
+ 		INP_INFO_WUNLOCK(&tcbinfo);
+@@ -2561,11 +2574,11 @@
+ 	 * Drop space held by incoming segment and return.
+ 	 */
+ #ifdef TCPDEBUG
+-	if (tp == 0 || (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
++	if (tp == NULL || (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
+ 		tcp_trace(TA_DROP, ostate, tp, (void *)tcp_saveipgen,
+ 			  &tcp_savetcp, 0);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	if (headlocked)
+ 		INP_INFO_WUNLOCK(&tcbinfo);
+@@ -3154,7 +3167,7 @@
+ 	const int isipv6 = 0;
+ #endif
+ 
+-	/* tcbinfo lock required for tcp_twclose(), tcp_2msl_reset. */
++	/* tcbinfo lock required for tcp_twclose(), tcp_timer_2msl_reset(). */
+ 	INP_INFO_WLOCK_ASSERT(&tcbinfo);
+ 	INP_LOCK_ASSERT(tw->tw_inpcb);
+ 
+@@ -3197,7 +3210,7 @@
+ 	 * are above the previous ones.
+ 	 */
+ 	if ((thflags & TH_SYN) && SEQ_GT(th->th_seq, tw->rcv_nxt)) {
+-		(void) tcp_twclose(tw, 0);
++		tcp_twclose(tw, 0);
+ 		return (1);
+ 	}
+ 
+@@ -3213,7 +3226,7 @@
+ 	if (thflags & TH_FIN) {
+ 		seq = th->th_seq + tlen + (thflags & TH_SYN ? 1 : 0);
+ 		if (seq + 1 == tw->rcv_nxt)
+-			tcp_timer_2msl_reset(tw, 2 * tcp_msl);
++			tcp_timer_2msl_reset(tw, 1);
+ 	}
+ 
+ 	/*
+Index: tcp_subr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_subr.c,v
+retrieving revision 1.228.2.6
+diff -u -r1.228.2.6 tcp_subr.c
+--- tcp_subr.c	1 Mar 2006 21:13:29 -0000	1.228.2.6
++++ tcp_subr.c	16 Nov 2006 17:57:16 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_subr.c	8.2 (Berkeley) 5/24/95
+- * $FreeBSD: src/sys/netinet/tcp_subr.c,v 1.228.2.6 2006/03/01 21:13:29 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_subr.c,v 1.228.2.12 2006/10/01 05:33:50 silby Exp $
+  */
+ 
+ #include "opt_compat.h"
+@@ -177,6 +177,52 @@
+ SYSCTL_INT(_net_inet_tcp, OID_AUTO, isn_reseed_interval, CTLFLAG_RW,
+     &tcp_isn_reseed_interval, 0, "Seconds between reseeding of ISN secret");
+ 
++static uma_zone_t tcptw_zone;
++static int	maxtcptw;
++
++static int
++tcptw_auto_size(void)
++{
++	int halfrange;
++
++	/*
++	 * Max out at half the ephemeral port range so that TIME_WAIT
++	 * sockets don't tie up too many ephemeral ports.
++	 */
++	if (ipport_lastauto > ipport_firstauto)
++		halfrange = (ipport_lastauto - ipport_firstauto) / 2;
++	else
++		halfrange = (ipport_firstauto - ipport_lastauto) / 2;
++	/* Protect against goofy port ranges smaller than 32. */
++	return (imin(imax(halfrange, 32), maxsockets / 5));
++}
++
++static int
++sysctl_maxtcptw(SYSCTL_HANDLER_ARGS)
++{
++	int error, new;
++
++	if (maxtcptw == 0)
++		new = tcptw_auto_size();
++	else
++		new = maxtcptw;
++	error = sysctl_handle_int(oidp, &new, sizeof(int), req);
++	if (error == 0 && req->newptr)
++		if (new >= 32) {
++			maxtcptw = new;
++			uma_zone_set_max(tcptw_zone, maxtcptw);
++		}
++	return (error);
++}
++SYSCTL_PROC(_net_inet_tcp, OID_AUTO, maxtcptw, CTLTYPE_INT|CTLFLAG_RW,
++    &maxtcptw, 0, sysctl_maxtcptw, "IU",
++    "Maximum number of compressed TCP TIME_WAIT entries");
++
++static int	nolocaltimewait = 0;
++SYSCTL_INT(_net_inet_tcp, OID_AUTO, nolocaltimewait, CTLFLAG_RW,
++    &nolocaltimewait, 0, "Do not create compressed TCP TIME_WAIT entries"
++			 "for local connections");
++
+ /*
+  * TCP bandwidth limiting sysctls.  Note that the default lower bound of
+  * 1024 exists only for debugging.  A good production default would be
+@@ -239,12 +285,21 @@
+ };
+ 
+ static uma_zone_t tcpcb_zone;
+-static uma_zone_t tcptw_zone;
+ struct callout isn_callout;
+ 
+ /*
+  * Tcp initialization
+  */
++static void
++tcp_zone_change(void *tag)
++{
++
++	uma_zone_set_max(tcbinfo.ipi_zone, maxsockets);
++	uma_zone_set_max(tcpcb_zone, maxsockets);
++	if (maxtcptw == 0)
++		uma_zone_set_max(tcptw_zone, tcptw_auto_size());
++}
++
+ void
+ tcp_init()
+ {
+@@ -293,7 +348,11 @@
+ 	uma_zone_set_max(tcpcb_zone, maxsockets);
+ 	tcptw_zone = uma_zcreate("tcptw", sizeof(struct tcptw),
+ 	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
+-	uma_zone_set_max(tcptw_zone, maxsockets / 5);
++	TUNABLE_INT_FETCH("net.inet.tcp.maxtcptw", &maxtcptw);
++	if (maxtcptw == 0)
++		uma_zone_set_max(tcptw_zone, tcptw_auto_size());
++	else
++		uma_zone_set_max(tcptw_zone, maxtcptw);
+ 	tcp_timer_init();
+ 	syncache_init();
+ 	tcp_hc_init();
+@@ -304,6 +363,8 @@
+ 		SHUTDOWN_PRI_DEFAULT);
+ 	sack_hole_zone = uma_zcreate("sackhole", sizeof(struct sackhole),
+ 	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
++	EVENTHANDLER_REGISTER(maxsockets_change, tcp_zone_change, NULL,
++		EVENTHANDLER_PRI_ANY);
+ }
+ 
+ void
+@@ -1532,6 +1593,10 @@
+ 		tcpstat.tcps_mturesent++;
+ 		tp->t_rtttime = 0;
+ 		tp->snd_nxt = tp->snd_una;
++		tcp_free_sackholes(tp);
++		tp->snd_recover = tp->snd_max;
++		if (tp->sack_enable)
++			EXIT_FASTRECOVERY(tp);
+ 		tcp_output(tp);
+ 	}
+ 	return (inp);
+@@ -1659,12 +1724,17 @@
+ 	struct tcpcb *tp;
+ {
+ 	struct tcptw *tw;
+-	struct inpcb *inp;
+-	int tw_time, acknow;
++	struct inpcb *inp = tp->t_inpcb;
++	int acknow;
+ 	struct socket *so;
+ 
+ 	INP_INFO_WLOCK_ASSERT(&tcbinfo);	/* tcp_timer_2msl_reset(). */
+-	INP_LOCK_ASSERT(tp->t_inpcb);
++	INP_LOCK_ASSERT(inp);
++
++	if (nolocaltimewait && in_localip(inp->inp_faddr)) {
++		tcp_close(tp);
++		return;
++	}
+ 
+ 	tw = uma_zalloc(tcptw_zone, M_NOWAIT);
+ 	if (tw == NULL) {
+@@ -1674,7 +1744,6 @@
+ 			return;
+ 		}
+ 	}
+-	inp = tp->t_inpcb;
+ 	tw->tw_inpcb = inp;
+ 
+ 	/*
+@@ -1703,7 +1772,6 @@
+  * be used for fin-wait-2 state also, then we may need
+  * a ts_recent from the last segment.
+  */
+-	tw_time = 2 * tcp_msl;
+ 	acknow = tp->t_flags & TF_ACKNOW;
+ 	tcp_discardcb(tp);
+ 	so = inp->inp_socket;
+@@ -1718,10 +1786,11 @@
+ 		tcp_twrespond(tw, TH_ACK);
+ 	inp->inp_ppcb = (caddr_t)tw;
+ 	inp->inp_vflag |= INP_TIMEWAIT;
+-	tcp_timer_2msl_reset(tw, tw_time);
++	tcp_timer_2msl_reset(tw, 0);
+ 	INP_UNLOCK(inp);
+ }
+ 
++#if 0
+ /*
+  * The appromixate rate of ISN increase of Microsoft TCP stacks;
+  * the actual rate is slightly higher due to the addition of
+@@ -1736,10 +1805,6 @@
+  * Determine if the ISN we will generate has advanced beyond the last
+  * sequence number used by the previous connection.  If so, indicate
+  * that it is safe to recycle this tw socket by returning 1.
+- *
+- * XXXRW: This function should assert the inpcb lock as it does multiple
+- * non-atomic reads from the tcptw, but is currently called without it from
+- * in_pcb.c:in_pcblookup_local().
+  */
+ int
+ tcp_twrecycleable(struct tcptw *tw)
+@@ -1747,6 +1812,7 @@
+ 	tcp_seq new_iss = tw->iss;
+ 	tcp_seq new_irs = tw->irs;
+ 
++	INP_INFO_WLOCK_ASSERT(&tcbinfo);
+ 	new_iss += (ticks - tw->t_starttime) * (ISN_BYTES_PER_SECOND / hz);
+ 	new_irs += (ticks - tw->t_starttime) * (MS_ISN_BYTES_PER_SECOND / hz);
+ 
+@@ -1755,8 +1821,9 @@
+ 	else
+ 		return (0);
+ }
++#endif
+ 
+-struct tcptw *
++void
+ tcp_twclose(struct tcptw *tw, int reuse)
+ {
+ 	struct inpcb *inp;
+@@ -1778,9 +1845,8 @@
+ 	crfree(tw->tw_cred);
+ 	tw->tw_cred = NULL;
+ 	if (reuse)
+-		return (tw);
++		return;
+ 	uma_zfree(tcptw_zone, tw);
+-	return (NULL);
+ }
+ 
+ int
+Index: tcp_timer.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_timer.c,v
+retrieving revision 1.74.2.2
+diff -u -r1.74.2.2 tcp_timer.c
+--- tcp_timer.c	1 Mar 2006 21:08:53 -0000	1.74.2.2
++++ tcp_timer.c	16 Nov 2006 17:57:16 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_timer.c	8.2 (Berkeley) 5/24/95
+- * $FreeBSD: src/sys/netinet/tcp_timer.c,v 1.74.2.2 2006/03/01 21:08:53 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_timer.c,v 1.74.2.5 2006/09/15 09:51:05 glebius Exp $
+  */
+ 
+ #include "opt_inet6.h"
+@@ -195,56 +195,40 @@
+ 		tp = tcp_close(tp);
+ 
+ #ifdef TCPDEBUG
+-	if (tp && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
++	if (tp != NULL && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
+ 		tcp_trace(TA_USER, ostate, tp, (void *)0, (struct tcphdr *)0,
+ 			  PRU_SLOWTIMO);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	INP_INFO_WUNLOCK(&tcbinfo);
+ }
+ 
+ /*
+- * The timed wait lists contain references to each of the TCP sessions
+- * currently TIME_WAIT state.  The list pointers, including the list pointers
+- * in each tcptw structure, are protected using the global tcbinfo lock,
+- * which must be held over list iteration and modification.
++ * The timed wait queue contains references to each of the TCP sessions
++ * currently in the TIME_WAIT state.  The queue pointers, including the
++ * queue pointers in each tcptw structure, are protected using the global
++ * tcbinfo lock, which must be held over queue iteration and modification.
+  */
+-struct twlist {
+-	LIST_HEAD(, tcptw)	tw_list;
+-	struct tcptw	tw_tail;
+-};
+-#define TWLIST_NLISTS	2
+-static struct twlist twl_2msl[TWLIST_NLISTS];
+-static struct twlist *tw_2msl_list[] = { &twl_2msl[0], &twl_2msl[1], NULL };
++static TAILQ_HEAD(, tcptw)	twq_2msl;
+ 
+ void
+ tcp_timer_init(void)
+ {
+-	int i;
+-	struct twlist *twl;
+ 
+-	for (i = 0; i < TWLIST_NLISTS; i++) {
+-		twl = &twl_2msl[i];
+-		LIST_INIT(&twl->tw_list);
+-		LIST_INSERT_HEAD(&twl->tw_list, &twl->tw_tail, tw_2msl);
+-	}
++	TAILQ_INIT(&twq_2msl);
+ }
+ 
+ void
+-tcp_timer_2msl_reset(struct tcptw *tw, int timeo)
++tcp_timer_2msl_reset(struct tcptw *tw, int rearm)
+ {
+-	int i;
+-	struct tcptw *tw_tail;
+ 
+ 	INP_INFO_WLOCK_ASSERT(&tcbinfo);
+ 	INP_LOCK_ASSERT(tw->tw_inpcb);
+-	if (tw->tw_time != 0)
+-		LIST_REMOVE(tw, tw_2msl);
+-	tw->tw_time = timeo + ticks;
+-	i = timeo > tcp_msl ? 1 : 0;
+-	tw_tail = &twl_2msl[i].tw_tail;
+-	LIST_INSERT_BEFORE(tw_tail, tw, tw_2msl);
++	if (rearm)
++		TAILQ_REMOVE(&twq_2msl, tw, tw_2msl);
++	tw->tw_time = ticks + 2 * tcp_msl;
++	TAILQ_INSERT_TAIL(&twq_2msl, tw, tw_2msl);
+ }
+ 
+ void
+@@ -252,29 +236,23 @@
+ {
+ 
+ 	INP_INFO_WLOCK_ASSERT(&tcbinfo);
+-	if (tw->tw_time != 0)
+-		LIST_REMOVE(tw, tw_2msl);
++	TAILQ_REMOVE(&twq_2msl, tw, tw_2msl);
+ }
+ 
+ struct tcptw *
+ tcp_timer_2msl_tw(int reuse)
+ {
+-	struct tcptw *tw, *tw_tail;
+-	struct twlist *twl;
+-	int i;
++	struct tcptw *tw;
+ 
+ 	INP_INFO_WLOCK_ASSERT(&tcbinfo);
+-	for (i = 0; i < 2; i++) {
+-		twl = tw_2msl_list[i];
+-		tw_tail = &twl->tw_tail;
+-		for (;;) {
+-			tw = LIST_FIRST(&twl->tw_list);
+-			if (tw == tw_tail || (!reuse && tw->tw_time > ticks))
+-				break;
+-			INP_LOCK(tw->tw_inpcb);
+-			if (tcp_twclose(tw, reuse) != NULL)
+-				return (tw);
+-		}
++	for (;;) {
++		tw = TAILQ_FIRST(&twq_2msl);
++		if (tw == NULL || (!reuse && tw->tw_time > ticks))
++			break;
++		INP_LOCK(tw->tw_inpcb);
++		tcp_twclose(tw, reuse);
++		if (reuse)
++			return (tw);
+ 	}
+ 	return (NULL);
+ }
+@@ -353,11 +331,11 @@
+ 	tp = tcp_drop(tp, ETIMEDOUT);
+ 
+ #ifdef TCPDEBUG
+-	if (tp && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
++	if (tp != NULL && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
+ 		tcp_trace(TA_USER, ostate, tp, (void *)0, (struct tcphdr *)0,
+ 			  PRU_SLOWTIMO);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(tp->t_inpcb);
+ 	INP_INFO_WUNLOCK(&tcbinfo);
+ }
+@@ -412,11 +390,11 @@
+ 
+ out:
+ #ifdef TCPDEBUG
+-	if (tp && tp->t_inpcb->inp_socket->so_options & SO_DEBUG)
++	if (tp != NULL && tp->t_inpcb->inp_socket->so_options & SO_DEBUG)
+ 		tcp_trace(TA_USER, ostate, tp, (void *)0, (struct tcphdr *)0,
+ 			  PRU_SLOWTIMO);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	INP_INFO_WUNLOCK(&tcbinfo);
+ }
+@@ -560,11 +538,11 @@
+ 
+ out:
+ #ifdef TCPDEBUG
+-	if (tp && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
++	if (tp != NULL && (tp->t_inpcb->inp_socket->so_options & SO_DEBUG))
+ 		tcp_trace(TA_USER, ostate, tp, (void *)0, (struct tcphdr *)0,
+ 			  PRU_SLOWTIMO);
+ #endif
+-	if (tp)
++	if (tp != NULL)
+ 		INP_UNLOCK(inp);
+ 	if (headlocked)
+ 		INP_INFO_WUNLOCK(&tcbinfo);
+Index: tcp_timer.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_timer.h,v
+retrieving revision 1.27.2.1
+diff -u -r1.27.2.1 tcp_timer.h
+--- tcp_timer.h	1 Mar 2006 21:13:29 -0000	1.27.2.1
++++ tcp_timer.h	16 Nov 2006 17:57:16 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_timer.h	8.1 (Berkeley) 6/10/93
+- * $FreeBSD: src/sys/netinet/tcp_timer.h,v 1.27.2.1 2006/03/01 21:13:29 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_timer.h,v 1.27.2.3 2006/09/15 09:51:05 glebius Exp $
+  */
+ 
+ #ifndef _NETINET_TCP_TIMER_H_
+@@ -156,7 +156,7 @@
+ void	tcp_timer_2msl(void *xtp);
+ struct tcptw *
+ 	tcp_timer_2msl_tw(int _reuse);		/* XXX temporary */
+-void	tcp_timer_2msl_reset(struct tcptw *_tw, int _timeo);
++void	tcp_timer_2msl_reset(struct tcptw *_tw, int rearm);
+ void	tcp_timer_2msl_stop(struct tcptw *_tw);
+ void	tcp_timer_keep(void *xtp);
+ void	tcp_timer_persist(void *xtp);
+Index: tcp_usrreq.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_usrreq.c,v
+retrieving revision 1.124.2.2
+diff -u -r1.124.2.2 tcp_usrreq.c
+--- tcp_usrreq.c	4 Nov 2005 20:26:14 -0000	1.124.2.2
++++ tcp_usrreq.c	16 Nov 2006 17:57:16 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	From: @(#)tcp_usrreq.c	8.2 (Berkeley) 1/3/94
+- * $FreeBSD: src/sys/netinet/tcp_usrreq.c,v 1.124.2.2 2005/11/04 20:26:14 ume Exp $
++ * $FreeBSD: src/sys/netinet/tcp_usrreq.c,v 1.124.2.3 2006/09/27 09:24:44 mux Exp $
+  */
+ 
+ #include "opt_inet.h"
+@@ -1162,10 +1162,10 @@
+  * be set by the route).
+  */
+ u_long	tcp_sendspace = 1024*32;
+-SYSCTL_INT(_net_inet_tcp, TCPCTL_SENDSPACE, sendspace, CTLFLAG_RW,
++SYSCTL_ULONG(_net_inet_tcp, TCPCTL_SENDSPACE, sendspace, CTLFLAG_RW,
+     &tcp_sendspace , 0, "Maximum outgoing TCP datagram size");
+ u_long	tcp_recvspace = 1024*64;
+-SYSCTL_INT(_net_inet_tcp, TCPCTL_RECVSPACE, recvspace, CTLFLAG_RW,
++SYSCTL_ULONG(_net_inet_tcp, TCPCTL_RECVSPACE, recvspace, CTLFLAG_RW,
+     &tcp_recvspace , 0, "Maximum incoming TCP datagram size");
+ 
+ /*
+Index: tcp_var.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_var.h,v
+retrieving revision 1.126.2.1
+diff -u -r1.126.2.1 tcp_var.h
+--- tcp_var.h	1 Mar 2006 21:13:29 -0000	1.126.2.1
++++ tcp_var.h	16 Nov 2006 17:57:16 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)tcp_var.h	8.4 (Berkeley) 5/24/95
+- * $FreeBSD: src/sys/netinet/tcp_var.h,v 1.126.2.1 2006/03/01 21:13:29 andre Exp $
++ * $FreeBSD: src/sys/netinet/tcp_var.h,v 1.126.2.3 2006/09/19 12:58:40 glebius Exp $
+  */
+ 
+ #ifndef _NETINET_TCP_VAR_H_
+@@ -301,7 +301,7 @@
+ 	u_long		t_recent;
+ 	u_long		t_starttime;
+ 	int		tw_time;
+-	LIST_ENTRY(tcptw) tw_2msl;
++	TAILQ_ENTRY(tcptw) tw_2msl;
+ };
+ 
+ #define	intotcpcb(ip)	((struct tcpcb *)(ip)->inp_ppcb)
+@@ -520,8 +520,7 @@
+ 	 tcp_close(struct tcpcb *);
+ void	 tcp_twstart(struct tcpcb *);
+ int	 tcp_twrecycleable(struct tcptw *tw);
+-struct tcptw *
+-	 tcp_twclose(struct tcptw *_tw, int _reuse);
++void	 tcp_twclose(struct tcptw *_tw, int _reuse);
+ void	 tcp_ctlinput(int, struct sockaddr *, void *);
+ int	 tcp_ctloutput(struct socket *, struct sockopt *);
+ struct tcpcb *
+Index: udp_usrreq.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/udp_usrreq.c,v
+retrieving revision 1.175.2.5
+diff -u -r1.175.2.5 udp_usrreq.c
+--- udp_usrreq.c	14 Feb 2006 21:40:21 -0000	1.175.2.5
++++ udp_usrreq.c	6 Oct 2006 20:26:06 -0000
+@@ -27,7 +27,7 @@
+  * SUCH DAMAGE.
+  *
+  *	@(#)udp_usrreq.c	8.6 (Berkeley) 5/23/95
+- * $FreeBSD: src/sys/netinet/udp_usrreq.c,v 1.175.2.5 2006/02/14 21:40:21 rwatson Exp $
++ * $FreeBSD: src/sys/netinet/udp_usrreq.c,v 1.175.2.8 2006/10/06 20:26:06 andre Exp $
+  */
+ 
+ #include "opt_ipfw.h"
+@@ -38,6 +38,7 @@
+ #include <sys/param.h>
+ #include <sys/systm.h>
+ #include <sys/domain.h>
++#include <sys/eventhandler.h>
+ #include <sys/jail.h>
+ #include <sys/kernel.h>
+ #include <sys/lock.h>
+@@ -128,6 +129,13 @@
+ static	int udp_output(struct inpcb *, struct mbuf *, struct sockaddr *,
+ 		struct mbuf *, struct thread *);
+ 
++static void
++udp_zone_change(void *tag)
++{
++
++	uma_zone_set_max(udbinfo.ipi_zone, maxsockets);
++}
++
+ void
+ udp_init()
+ {
+@@ -140,6 +148,8 @@
+ 	udbinfo.ipi_zone = uma_zcreate("udpcb", sizeof(struct inpcb), NULL,
+ 	    NULL, NULL, NULL, UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
+ 	uma_zone_set_max(udbinfo.ipi_zone, maxsockets);
++	EVENTHANDLER_REGISTER(maxsockets_change, udp_zone_change, NULL,
++		EVENTHANDLER_PRI_ANY);
+ }
+ 
+ void
+@@ -877,14 +887,14 @@
+ 		ipflags |= IP_ROUTETOIF;
+ 	if (inp->inp_socket->so_options & SO_BROADCAST)
+ 		ipflags |= IP_ALLOWBROADCAST;
+-	if (inp->inp_vflag & INP_ONESBCAST)
++	if (inp->inp_flags & INP_ONESBCAST)
+ 		ipflags |= IP_SENDONES;
+ 
+ 	/*
+ 	 * Set up checksum and output datagram.
+ 	 */
+ 	if (udpcksum) {
+-		if (inp->inp_vflag & INP_ONESBCAST)
++		if (inp->inp_flags & INP_ONESBCAST)
+ 			faddr.s_addr = INADDR_BROADCAST;
+ 		ui->ui_sum = in_pseudo(ui->ui_src.s_addr, faddr.s_addr,
+ 		    htons((u_short)len + sizeof(struct udphdr) + IPPROTO_UDP));
+@@ -915,7 +925,7 @@
+ 
+ u_long	udp_sendspace = 9216;		/* really max datagram size */
+ 					/* 40 1K datagrams */
+-SYSCTL_INT(_net_inet_udp, UDPCTL_MAXDGRAM, maxdgram, CTLFLAG_RW,
++SYSCTL_ULONG(_net_inet_udp, UDPCTL_MAXDGRAM, maxdgram, CTLFLAG_RW,
+     &udp_sendspace, 0, "Maximum outgoing UDP datagram size");
+ 
+ u_long	udp_recvspace = 40 * (1024 +
+@@ -925,7 +935,7 @@
+ 				      sizeof(struct sockaddr_in)
+ #endif
+ 				      );
+-SYSCTL_INT(_net_inet_udp, UDPCTL_RECVSPACE, recvspace, CTLFLAG_RW,
++SYSCTL_ULONG(_net_inet_udp, UDPCTL_RECVSPACE, recvspace, CTLFLAG_RW,
+     &udp_recvspace, 0, "Maximum space for incoming UDP datagrams");
+ 
+ static int
