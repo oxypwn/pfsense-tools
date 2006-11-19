@@ -31,7 +31,6 @@ makeoptions	DEBUG=-g		# Build kernel with gdb(1) debug symbols
 
 #options 	SCHED_ULE		# ULE scheduler
 options 	SCHED_4BSD		# 4BSD scheduler
-#options 	PREEMPTION		# Enable kernel thread preemption
 options 	INET			# InterNETworking
 options 	INET6			# IPv6 communications protocols
 options 	FFS			# Berkeley Fast Filesystem
@@ -411,7 +410,7 @@ device          apic                    # I/O APIC
 options         GEOM_MIRROR
 options         GEOM_MBR
 
-options         PREEMPTION
+#options         PREEMPTION
 
 options         NO_ADAPTIVE_MUTEXES
 
