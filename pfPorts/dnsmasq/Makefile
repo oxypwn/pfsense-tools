@@ -32,6 +32,7 @@ OPTIONS+=	DBUS "D_BUS support" off
 
 .include <bsd.port.pre.mk>
 
+### Always compile with IPv6 support
 #.if defined(WITHOUT_IPV6)
 #CFLAGS+=	-DNO_IPV6
 #.endif
@@ -40,6 +41,9 @@ OPTIONS+=	DBUS "D_BUS support" off
 LIB_DEPENDS+=	dbus-1:${PORTSDIR}/devel/dbus
 CFLAGS+=	-DHAVE_DBUS
 .endif
+
+### We need the ISC leasefile reader
+CFLAGS+=        -DHAVE_ISC_READER
 
 USE_RC_SUBR=	dnsmasq.sh
 
