@@ -27,7 +27,7 @@ USE_GETOPT_LONG=yes
 LDFLAGS+=	-L${OPENSSLLIB} -lcrypto -lssl
 USE_OPENSSL=	yes
 
-CONFIGURE_ARGS=	--with-config-file-scan-dir=${PREFIX}/lib/php \
+CONFIGURE_ARGS=	--with-config-file-path=${LOCALBASE}/lib \
 		--with-regex=php \
 		--with-zend-vm=GOTO \
 		--with-openssl=${OPENSSLBASE} \
