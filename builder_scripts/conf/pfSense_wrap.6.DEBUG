@@ -358,5 +358,5 @@ options         BREAK_TO_DEBUGGER
 
 options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
 options         PREEMPTION
-options         NO_ADAPTIVE_MUTEXES
+#options         NO_ADAPTIVE_MUTEXES
 

@@ -413,6 +413,6 @@ options         GEOM_MIRROR
 options         GEOM_MBR
 
 options		PREEMPTION
-options         NO_ADAPTIVE_MUTEXES
+#options         NO_ADAPTIVE_MUTEXES
 options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
 
