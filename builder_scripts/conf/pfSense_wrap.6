@@ -319,6 +319,7 @@ device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
 
 options TCP_SIGNATURE
 
-#options		PREEMPTION
-
+options		PREEMPTION
 options         NO_ADAPTIVE_MUTEXES
+options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
+

@@ -410,7 +410,7 @@ device          apic                    # I/O APIC
 options         GEOM_MIRROR
 options         GEOM_MBR
 
-#options         PREEMPTION
-
+options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
+options         PREEMPTION
 options         NO_ADAPTIVE_MUTEXES
 

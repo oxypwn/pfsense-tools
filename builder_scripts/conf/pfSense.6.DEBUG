@@ -40,7 +40,6 @@ options 	AHC_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~128k to driver.
 options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~215k to driver.
-#options 	ADAPTIVE_GIANT		# Giant mutex is adaptive.
 
 # To make an SMP kernel, the next two lines are needed
 options 	SMP			# Symmetric MultiProcessor Kernel
@@ -421,7 +420,7 @@ options		INVARIANT_SUPPORT	# Extra sanity checks of internal structures, require
 options         BREAK_TO_DEBUGGER
 
 options         PREEMPTION
-
 options         NO_ADAPTIVE_MUTEXES
+options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
 
 
