@@ -34,7 +34,7 @@ if($_POST['myparam']) {
 
 /* paths to used libraries */
 $path_to_scriptaculous = "/javascript/scriptaculous";
-$path_to_prototype     = "/javascript/prototype";
+$path_to_prototype     = $path_to_scriptaculous;
 $path_to_tabber 	   = "";
 $path_to_css           = "";
 
