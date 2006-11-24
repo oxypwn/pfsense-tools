@@ -1,41 +1,41 @@
 diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
---- miniupnpd-clean/upnpdescgen.c	2006-10-28 07:50:46.000000000 -0400
-+++ miniupnpd-pfsense/upnpdescgen.c	2006-10-28 09:39:09.151249200 -0400
-@@ -79,8 +79,8 @@
- 	{"/minor", {"0"}},
- 	{"/deviceType", {"urn:schemas-upnp-org:device:InternetGatewayDevice:1"}},
- 	{"/friendlyName", {"BSD/pf router"}},	// required
--	{"/manufacturer", {"OpenBSD"}},		// required
--	{"/manufacturerURL", {"http://www.openbsd.org/"}},	// optional
-+	{"/manufacturer", {"pfSense"}},		// required
-+	{"/manufacturerURL", {"http://pfSense.com/"}},	// optional
- 	// presentationURL
- 	// modelDescription = recommended
- 	{"/modelName", {"BSD/pf router"}},	// required
-@@ -90,12 +90,12 @@
- 	{"device", {INITHELPER(14,13)}},
- 	{"/deviceType", {"urn:schemas-upnp-org:device:WANDevice:1"}}, // Required
- 	{"/friendlyName", {"WANDevice"}},
--	{"/manufacturer", {"miniupnp"}},
--	{"/manufacturerURL", {"http://miniupnp.free.fr/"}},
-+	{"/manufacturer", {"pfSense"}},
-+	{"/manufacturerURL", {"http://pfSense.com/"}},
- 	{"/modelDescription" , {"WAN Device"}},
- 	{"/modelName", {"WAN Device"}},
- 	{"/modelNumber", {"1"}},
--	{"/modelURL", {"http://miniupnp.free.fr/"}},
-+	{"/modelURL", {"http://pfSense.com/"}},
- 	{"/serialNumber", {"00000000"}},
- 	{"/UDN", {(char *)uuid}},
- 	{"/UPC", {"MINIUPNPD"}},
-@@ -112,8 +112,8 @@
- 	{"device", {INITHELPER(34,12)}},
- 	{"/deviceType", {"urn:schemas-upnp-org:device:WANConnectionDevice:1"}},
- 	{"/friendlyName", {"WANConnectionDevice"}},
--	{"/manufacturer", {"miniupnp"}},
--	{"/manufacturerURL", {"http://miniupnp.free.fr/"}},
-+	{"/manufacturer", {"pfSense"}},
-+	{"/manufacturerURL", {"http://pfSense.com/"}},
- 	{"/modelDescription", {"miniupnp daemon"}},
- 	{"/modelName", {"miniupnpd"}},
- 	{"/modelNumber", {"1"}},
+--- miniupnpd-clean/upnpdescgen.c	2006-11-19 17:32:58.000000000 -0500
++++ miniupnpd-pfsense/upnpdescgen.c	2006-11-20 11:32:04.000000000 -0500
+@@ -81,8 +81,8 @@
+ 	{"/minor", "0"},
+ 	{"/deviceType", "urn:schemas-upnp-org:device:InternetGatewayDevice:1"},
+ 	{"/friendlyName", "BSD/pf router"},	/* required */
+-	{"/manufacturer", "OpenBSD"},		/* required */
+-	{"/manufacturerURL", "http://www.openbsd.org/"},	/* optional */
++	{"/manufacturer", "pfSense"},		/* required */
++	{"/manufacturerURL", "http://pfSense.com/"},	/* optional */
+ 	/* presentationURL */
+ 	/* modelDescription = recommended */
+ 	{"/modelName", "BSD/pf router"},	/* required */
+@@ -92,12 +92,12 @@
+ 	{"device", INITHELPER(14,13)},
+ 	{"/deviceType", "urn:schemas-upnp-org:device:WANDevice:1"}, /* Required */
+ 	{"/friendlyName", "WANDevice"},
+-	{"/manufacturer", "miniupnp"},
+-	{"/manufacturerURL", "http://miniupnp.free.fr/"},
++	{"/manufacturer", "pfSense"},
++	{"/manufacturerURL", "http://pfSense.com/"},
+ 	{"/modelDescription" , "WAN Device"},
+ 	{"/modelName", "WAN Device"},
+ 	{"/modelNumber", "1"},
+-	{"/modelURL", "http://miniupnp.free.fr/"},
++	{"/modelURL", "http://pfSense.com/"},
+ 	{"/serialNumber", "00000000"},
+ 	{"/UDN", uuidvalue},
+ 	{"/UPC", "MINIUPNPD"},
+@@ -114,8 +114,8 @@
+ 	{"device", INITHELPER(34,12)},
+ 	{"/deviceType", "urn:schemas-upnp-org:device:WANConnectionDevice:1"},
+ 	{"/friendlyName", "WANConnectionDevice"},
+-	{"/manufacturer", "miniupnp"},
+-	{"/manufacturerURL", "http://miniupnp.free.fr/"},
++	{"/manufacturer", "pfSense"},
++	{"/manufacturerURL", "http://pfSense.com/"},
+ 	{"/modelDescription", "miniupnp daemon"},
+ 	{"/modelName", "miniupnpd"},
+ 	{"/modelNumber", "1"},
