@@ -53,6 +53,7 @@ int main(void) {
 	  /* close stdin and stderr */
 	  fclose( stdin );
 	  fclose( stdout );
+	  fclose( stderr );
 	  /* loop forever until the cows come home */
 	  while(1) {
 	      if(fexist("/tmp/restart_webgui") == 1) {
