@@ -1,0 +1,2723 @@
+diff -urN ../imspector-clean/badwordscontentplugin.cpp ./badwordscontentplugin.cpp
+--- ../imspector-clean/badwordscontentplugin.cpp	1969-12-31 19:00:00.000000000 -0500
++++ ./badwordscontentplugin.cpp	2006-12-01 14:38:56.000000000 -0500
+@@ -0,0 +1,104 @@
++/* IMSpector - Instant Messenger Transparent Proxy Service
++ * http://www.imspector.org/
++ * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
++ *          
++ * Released under the GPL v2. */
++
++#include "imspector.h"
++
++#define PLUGIN_NAME "Bad-word IMSpector content plugin"
++
++extern "C"
++{
++	bool initcontentplugin(struct contentplugininfo &pcontentplugininfo,
++		class Options &options, bool debugmode);
++	int contentfilter(char *originalbuffer, char *modifiedbuffer);
++};
++
++int readbadwords(std::string filename);
++
++std::vector<std::string> badwords;
++bool localdebugmode = false;
++
++bool initcontentplugin(struct contentplugininfo &contentplugininfo,
++	class Options &options, bool debugmode)
++{
++	if (options["badwords_filename"] == "") return false;
++
++	localdebugmode = debugmode;
++	
++	int count = readbadwords(options["badwords_filename"]);
++
++	if (count == -1) return false;
++	
++	syslog(LOG_INFO, "Loaded %d bad-words", count);
++
++	contentplugininfo.pluginname = PLUGIN_NAME;
++	
++	return true;
++}
++
++void closecontentplugin(void)
++{
++	return;
++}
++
++/* The main plugin function. See contentplugin.cpp. */
++int contentfilter(char *originalbuffer, char *modifiedbuffer)
++{
++	debugprint(localdebugmode, "Bad-words filtering before: original: %s ",	modifiedbuffer);
++
++	for (std::vector<std::string>::iterator i = badwords.begin();
++		i != badwords.end(); i++)
++	{
++		const char *needle = (*i).c_str();
++		size_t needlelength = (*i).length();
++		
++		char *s = modifiedbuffer;
++		
++		while ((s = strcasestr(s, needle)))
++		{
++			if (s > modifiedbuffer)
++			{
++				if (isalpha(*(s - 1)) && isalpha(*(s + needlelength)))
++				{
++					s++;
++					break;
++				}
++			}
++		
++			memset(s, (int) '*', needlelength);
++		}
++	}
++	
++	debugprint(localdebugmode, "Bad-words filtering after: modified: %s", modifiedbuffer);
++	
++	return 0;
++}
++
++int readbadwords(std::string filename)
++{
++	std::ifstream input(filename.c_str());
++	char buffer[STRING_SIZE];
++	int result = 0;
++	
++	memset(buffer, 0, STRING_SIZE);
++	
++	if (!input) return -1;
++	
++	while (input)
++	{	
++		if (!input.getline(buffer, STRING_SIZE)) break;
++			
++		stripnewline(buffer);
++		
++		if (!strlen(buffer)) break;
++		
++		badwords.push_back(buffer);
++		
++		result++;
++	}
++
++	return result;
++}
+diff -urN ../imspector-clean/contentplugin.cpp ./contentplugin.cpp
+--- ../imspector-clean/contentplugin.cpp	1969-12-31 19:00:00.000000000 -0500
++++ ./contentplugin.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -0,0 +1,61 @@
++/* IMSpector - Instant Messenger Transparent Proxy Service
++ * http://www.imspector.org/
++ * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ *          
++ * Released under the GPL v2. */
++
++#include "imspector.h"
++
++ContentPlugin::ContentPlugin()
++{
++	handle = NULL;
++}
++
++ContentPlugin::~ContentPlugin()
++{
++}
++
++bool ContentPlugin::loadplugin(std::string filename)
++{
++	handle = dlopen(filename.c_str(), RTLD_LAZY);
++	
++	if (!handle)
++	{
++		syslog(LOG_ERR, "dlopen(): %s\n", dlerror());
++		return false;
++	}
++	
++	initcontentplugin = (initcontentplugintype) dlsym(handle, "initcontentplugin");
++	closecontentplugin = (closecontentplugintype) dlsym(handle, "closecontentplugin");
++	contentfilter = (contentfiltertype) dlsym(handle, "contentfilter");
++	
++	if (!initcontentplugin || closecontentplugin || !contentfilter)
++	{
++		syslog(LOG_ERR, "dlsym(): %s\n", dlerror());
++		return false;
++	}
++	
++	return true;
++}
++
++bool ContentPlugin::unloadplugin(void)
++{
++	if (handle) dlclose(handle);
++	
++	return true;
++}
++
++bool ContentPlugin::callinitcontentplugin(class Options &options, bool debugmode)
++{
++	return (*initcontentplugin)(contentplugininfo, options, debugmode);
++}
++
++void ContentPlugin::callclosecontentplugin(void)
++{
++	return (*closecontentplugin)();
++}
++
++int ContentPlugin::callcontentfilter(char *originalbuffer, char *modifiedbuffer)
++{
++	return (*contentfilter)(originalbuffer, modifiedbuffer);
++}
+diff -urN ../imspector-clean/contentplugin.h ./contentplugin.h
+--- ../imspector-clean/contentplugin.h	1969-12-31 19:00:00.000000000 -0500
++++ ./contentplugin.h	2006-11-30 20:39:54.000000000 -0500
+@@ -0,0 +1,37 @@
++/* IMSpector - Instant Messenger Transparent Proxy Service
++ * http://www.imspector.org/
++ * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ *          
++ * Released under the GPL v2. */
++
++struct contentplugininfo
++{
++	std::string pluginname;
++};
++
++typedef bool (*initcontentplugintype)(struct contentplugininfo &contentplugininfo,
++	class Options &options, bool debugmode);
++typedef void (*closecontentplugintype)(void);
++typedef int (*contentfiltertype)(char *originalbuffer, char *modifiedbuffer);
++
++class ContentPlugin
++{
++	public:
++		struct contentplugininfo contentplugininfo;
++	
++		ContentPlugin();
++		~ContentPlugin();
++		bool loadplugin(std::string filename);
++		bool unloadplugin(void);
++		
++		bool callinitcontentplugin(class Options &options, bool debugmode);
++		void callclosecontentplugin(void);
++		int callcontentfilter(char *originalbuffer, char *modifiedbuffer);
++
++	private:
++		void *handle;
++
++		initcontentplugintype initcontentplugin;
++		closecontentplugintype closecontentplugin;
++		contentfiltertype contentfilter;
++};
+diff -urN ../imspector-clean/debugloggingplugin.cpp ./debugloggingplugin.cpp
+--- ../imspector-clean/debugloggingplugin.cpp	2006-11-01 19:42:46.000000000 -0500
++++ ./debugloggingplugin.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -1,12 +1,13 @@
+ /* IMSpector - Instant Messenger Transparent Proxy Service
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  *          
+  * Released under the GPL v2. */
+ 
+ #include "imspector.h"
+ 
+-#define PLUGIN_NAME "Debug Imspector logging plugin"
++#define PLUGIN_NAME "Debug IMSpector logging plugin"
+ 
+ extern "C"
+ {
+@@ -15,9 +16,13 @@
+ 	int logevents(std::vector<struct imevent> &imevents, std::string &clientaddress);
+ };
+ 
++bool localdebugmode = false;
++
+ bool initloggingplugin(struct loggingplugininfo &loggingplugininfo,
+ 	class Options &options, bool debugmode)
+ {
++	localdebugmode = debugmode;
++
+ 	if (!debugmode) return false;
+ 
+ 	loggingplugininfo.pluginname = PLUGIN_NAME;
+@@ -36,13 +41,31 @@
+ 	for (std::vector<struct imevent>::iterator i = imevents.begin();
+ 		i != imevents.end(); i++)
+ 	{
+-		syslog(LOG_DEBUG, PLUGIN_NAME ": Client address: %s", clientaddress.c_str());
+-		syslog(LOG_DEBUG, PLUGIN_NAME ": Timestamp: %d", (int)(*i).timestamp);
+-		syslog(LOG_DEBUG, PLUGIN_NAME ": Protocol: %s", (*i).protocolname.c_str());
+-		syslog(LOG_DEBUG, PLUGIN_NAME ": Type: %d", (*i).type);
+-		syslog(LOG_DEBUG, PLUGIN_NAME ": LocalID: %s", (*i).localid.c_str());
+-		syslog(LOG_DEBUG, PLUGIN_NAME ": RemoteID: %s", (*i).remoteid.c_str());
+-		syslog(LOG_DEBUG, PLUGIN_NAME ": Event data: %s", (*i).eventdata.c_str());
++		debugprint(localdebugmode, PLUGIN_NAME ": Client address: %s", clientaddress.c_str());
++		debugprint(localdebugmode, PLUGIN_NAME ": Timestamp: %d", (int)(*i).timestamp);
++		debugprint(localdebugmode, PLUGIN_NAME ": Protocol: %s", (*i).protocolname.c_str());
++
++		switch ((*i).type)
++		{
++			case TYPE_MSG_INCOMING:
++				debugprint(localdebugmode, PLUGIN_NAME ": Type: MSG_INCOMING");
++				break;
++			case TYPE_MSG_OUTGOING:
++				debugprint(localdebugmode, PLUGIN_NAME ": Type: MSG_OUTGOING");
++				break;
++			case TYPE_FILE_INCOMING:
++				debugprint(localdebugmode, PLUGIN_NAME ": Type: FILE_INCOMING");
++				break;
++			case TYPE_FILE_OUTGOING:
++				debugprint(localdebugmode, PLUGIN_NAME ": Type: FILE_OUTGOING");
++				break;				
++			default:
++				debugprint(localdebugmode, PLUGIN_NAME ": Type: NULL");
++		}		
++	
++		debugprint(localdebugmode, PLUGIN_NAME ": LocalID: %s", (*i).localid.c_str());
++		debugprint(localdebugmode, PLUGIN_NAME ": RemoteID: %s", (*i).remoteid.c_str());
++		debugprint(localdebugmode, PLUGIN_NAME ": Event data: %s", (*i).eventdata.c_str());
+ 	}
+ 
+ 	return 0;
+diff -urN ../imspector-clean/fileloggingplugin.cpp ./fileloggingplugin.cpp
+--- ../imspector-clean/fileloggingplugin.cpp	2006-11-01 14:12:14.000000000 -0500
++++ ./fileloggingplugin.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -1,12 +1,13 @@
+ /* IMSpector - Instant Messenger Transparent Proxy Service
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  *          
+  * Released under the GPL v2. */
+ 
+ #include "imspector.h"
+ 
+-#define PLUGIN_NAME "File Imspector logging plugin"
++#define PLUGIN_NAME "File IMSpector logging plugin"
+ 
+ extern "C"
+ {
+@@ -16,10 +17,13 @@
+ };
+ 
+ std::string fileloggingdir;
++bool localdebugmode = false;
+ 
+ bool initloggingplugin(struct loggingplugininfo &loggingplugininfo,
+ 	class Options &options, bool debugmode)
+ {
++	localdebugmode = debugmode;
++
+ 	loggingplugininfo.pluginname = PLUGIN_NAME;
+ 
+ 	if (options["file_logging_dir"] == "") return false;
+@@ -31,6 +35,7 @@
+ 
+ void closeloggingplugin(void)
+ {
++	return;
+ }
+ 
+ /* The main plugin function. See loggingplugin.cpp. */
+@@ -49,7 +54,22 @@
+ 			if (errno != EEXIST) return 1;
+ 		}
+ 
++		/* replace unkown with hyphenated client address */
++		if ((*i).localid == "Unknown")
++		{
++			std::string clientaddresshyp = clientaddress.substr(0, clientaddress.find(":", 0));		
++			
++			for (size_t j = 0; j < clientaddresshyp.length(); j++)
++				if (clientaddresshyp[j] == '.' || clientaddresshyp[j] == ':')
++					clientaddresshyp[j] = '-';
++
++			filename += "/" + clientaddresshyp;
++		}
++		else
++		{
+ 		filename += "/" + (*i).localid;
++		}
++		
+ 		if (strstr(filename.c_str(), "..")) return 1;
+ 		if (mkdir(filename.c_str(), 0777) < 0)
+ 		{
+@@ -74,7 +94,7 @@
+ 		if (!(hfile = fopen(filename.c_str(), "a"))) return 1;
+ 		
+ 		fprintf(hfile, "%s,", clientaddress.c_str());
+-		fprintf(hfile, "%d,", (*i).timestamp);
++		fprintf(hfile, "%ld,", (*i).timestamp);
+ 		fprintf(hfile, "%d,", (*i).type);
+ 		
+ 		std::string eventdata = (*i).eventdata;
+diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
+--- ../imspector-clean/icqprotocolplugin.cpp	2006-11-04 15:45:22.000000000 -0500
++++ ./icqprotocolplugin.cpp	2006-11-30 23:06:54.000000000 -0500
+@@ -1,22 +1,26 @@
+ /* IMSpector - Instant Messenger Transparent Proxy Service
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  *          
+  * Released under the GPL v2. */
+ 
+ #include "imspector.h"
+ 
+-#define PLUGIN_NAME "ICQ-AIM Imspector protocol plugin"
++#define PLUGIN_NAME "ICQ-AIM IMSpector protocol plugin"
+ #define PROTOCOL_NAME "ICQ-AIM"
+ #define PROTOCOL_PORT 5190
+ 
++#define COOKIE_SOCKET "/tmp/.imspectoricqcookie"
++
+ extern "C"
+ {
+ 	bool initprotocolplugin(struct protocolplugininfo &pprotocolplugininfo,
+ 		class Options &options, bool debugmode);
+ 	void closeprotocolplugin(void);
+-	int processpacket(bool outgoing, class Socket &incomingsock,
+-		char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents);
++	int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer, 
++		int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++		std::vector<struct messageextent> &messageextents);
+ };
+ 
+ #define GET_CALL_ARGS p, startp, lengthp
+@@ -44,32 +48,62 @@
+ 
+ #pragma pack()
+ 
+-int loginpacket(GET_ARGS, bool outgoing);
+-int servercookiepacket(GET_ARGS, bool outgoing);
+-int snacpacket(GET_ARGS, bool outgoing, std::vector<struct imevent> &imevents);
+-
+-int getmessage(char *value, int length, std::string &message);
+-
+-int getflap(GET_ARGS, struct flap *rc);
+-int getsnac(GET_ARGS, struct snac *rc);
+-int getbyte(GET_ARGS, uint8_t *rc);
+-int getbytes(GET_ARGS, char *bytes, int length);
+-int getword(GET_ARGS, uint16_t *rc);
+-int getlong(GET_ARGS, uint32_t *rc);
+-int getlengthbytes(GET_ARGS, char *string);
+-int gettlv(GET_ARGS, uint16_t *tag, uint16_t *length, char *value);
++int loginpacket(GET_ARGS, bool outgoing, bool md5login, std::string &clientaddress);
++int servercookiepacket(GET_ARGS, bool outgoing, std::string &clientaddress);
++int snacpacket(GET_ARGS, bool outgoing, std::vector<struct imevent> &imevents, std::string &clientaddress,
++	std::vector<struct messageextent> &messageextents);
++int getmessage(GET_ARGS, std::string &message, struct messageextent &messageextent);
++	
++bool getflap(GET_ARGS, struct flap *rc);
++bool getsnac(GET_ARGS, struct snac *rc);
++bool getbyte(GET_ARGS, uint8_t *rc);
++bool getbytes(GET_ARGS, char *bytes, int length);
++bool getword(GET_ARGS, uint16_t *rc);
++bool getlong(GET_ARGS, uint32_t *rc);
++bool getlengthbytes(GET_ARGS, char *string);
++bool gettlv(GET_ARGS, uint16_t *tag, uint16_t *length, char *value);
++bool gettlvptr(GET_ARGS, uint16_t *tag, uint16_t *length, char **value);
++ 
++void cookiemonster(void);
++bool setcookieuin(std::string hexcookie, std::string uin);
++std::string getcookieuin(std::string hexcookie);
++std::string cookietohex (int length, char *cookie);
+ 
+ std::string localid = "Unknown";
+ std::string remoteid = "Unknown";
+ int packetcount = 0;
+ bool tracing = false;
++bool localdebugmode = false;
+ 
+ bool initprotocolplugin(struct protocolplugininfo &protocolplugininfo,
+ 	class Options &options, bool debugmode)
+ {
++	if (options["icq_protocol"] != "on") return false;
++
++	localdebugmode = debugmode;
++
+ 	protocolplugininfo.pluginname = PLUGIN_NAME;
+ 	protocolplugininfo.protocolname = PROTOCOL_NAME;
+ 	protocolplugininfo.port = htons(PROTOCOL_PORT);
++
++	/* Fork off the cookier server process. */
++	switch (fork())
++	{
++		/* An error occured. */
++		case -1:
++			syslog(LOG_ERR, PROTOCOL_NAME ": Error: Fork failed: %s", strerror(errno));
++			return false;
++		
++		/* In the child. */
++		case 0:
++			cookiemonster();
++			debugprint(localdebugmode,  PROTOCOL_NAME ": Error: We should not come here");
++			return true;
++	
++		/* In the parent. */
++		default:
++			break;
++	}		
+ 	
+ 	if (options["icq_trace"] == "on") tracing = true;
+ 	
+@@ -82,8 +116,9 @@
+ }
+ 
+ /* The main plugin function. See protocolplugin.cpp. */
+-int processpacket(bool outgoing, class Socket &incomingsock,
+-	char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents)
++int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer, 
++	int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++	std::vector<struct messageextent> &messageextents)
+ {
+ 	char buffer[BUFFER_SIZE];
+ 	memset(buffer, 0, BUFFER_SIZE);
+@@ -92,9 +127,6 @@
+ 	if ((recvbufferlength = incomingsock.recvdata(buffer, BUFFER_SIZE)) < 0) return 1;
+ 	if (!recvbufferlength) return 1;
+ 
+-	memcpy(replybuffer, buffer, recvbufferlength);
+-	*replybufferlength = recvbufferlength;
+-
+ 	char *startp = buffer; char *p = startp;
+ 	int lengthp = recvbufferlength;
+ 	
+@@ -105,13 +137,16 @@
+ 	if (myflap.header == 0x2a)
+ 	{
+ 		if (myflap.channel == 1)
+-			loginpacket(&p, startp, lengthp, outgoing);
++			loginpacket(&p, startp, lengthp, outgoing, false, clientaddress);
+ 		if (myflap.channel == 4)
+-			servercookiepacket(&p, startp, lengthp, outgoing);
++			servercookiepacket(&p, startp, lengthp, outgoing, clientaddress);
+ 		if (myflap.channel == 2)
+-			snacpacket(&p, startp, lengthp, outgoing, imevents);
++			snacpacket(&p, startp, lengthp, outgoing, imevents, clientaddress, messageextents);
+ 	}
+ 	
++	memcpy(replybuffer, buffer, recvbufferlength);
++	*replybufferlength = recvbufferlength;
++	
+ 	if (tracing)
+ 	{
+ 		char filename[STRING_SIZE];
+@@ -132,65 +167,100 @@
+ 	return 0;
+ }
+ 
+-int loginpacket(GET_ARGS, bool outgoing)
++int loginpacket(GET_ARGS, bool outgoing, bool md5login, std::string &clientaddress)
+ {
+-	uint32_t dummy;
+-	if (!getlong(GET_CALL_ARGS, &dummy)) return 1;
+-
+ 	char uin[BUFFER_SIZE];
+ 	char password[BUFFER_SIZE];
+-	char profile[BUFFER_SIZE];
++	char clientid[BUFFER_SIZE];
+ 	char cookie[BUFFER_SIZE];
+ 	uint16_t mytag; uint16_t mylength;
+ 	char myvalue[BUFFER_SIZE];
++	int cookielen = 0;
+ 	
+ 	memset(uin, 0, BUFFER_SIZE);
+ 	memset(password, 0, BUFFER_SIZE);
+-	memset(profile, 0, BUFFER_SIZE);
++	memset(clientid, 0, BUFFER_SIZE);
+ 	memset(cookie, 0, BUFFER_SIZE);
+ 	memset(myvalue, 0, BUFFER_SIZE);
++
++	std::string roasted;	
++
++	char xordata[] =
++	{ 
++		0xF3, 0x26, 0x81, 0xC4, 0x39, 0x86, 0xDB, 0x92,
++		0x71, 0xA3, 0xB9, 0xE6, 0x53, 0x7A, 0x95, 0x7C,
++		'\0'
++	};	
++
++	if (!md5login)
++	{
++		uint32_t dummy;
++		if (!getlong(GET_CALL_ARGS, &dummy)) return 1;
++	}
+ 	
+ 	while (gettlv(GET_CALL_ARGS, &mytag, &mylength, myvalue))
+ 	{
+-		if (mytag == 1) memcpy(uin, myvalue, mylength);
+-		if (mytag == 2) memcpy(password, myvalue, mylength);
+-		if (mytag == 3) memcpy(profile, myvalue, mylength);
++		if (mytag == 1)	memcpy(uin, myvalue, mylength);
++		if (mytag == 2) 
++		{
++			memcpy(password, myvalue, mylength);
++			if (localdebugmode)
++				for(int i=0;i<mylength;i++)
++					roasted.push_back((char)(password[i] xor xordata[i%16]));
++		}
++		if (mytag == 3) memcpy(clientid, myvalue, mylength);
+ 		if (mytag == 6)
+ 		{
+ 			memcpy(cookie, myvalue, mylength);
+-			char filename[STRING_SIZE];
+-			memset(filename, 0, STRING_SIZE);
+-			snprintf(filename, STRING_SIZE - 1, TRACE_DIR "/clientcookie.%d.%d", getpid(), packetcount);
+-			int fd = -1;
+-			if ((fd = creat(filename, 0600)) > 0)
++			cookielen = mylength;
++			if (tracing)
+ 			{
+-				write(fd, cookie, mylength);
+-				close(fd);
++				char filename[STRING_SIZE];
++				memset(filename, 0, STRING_SIZE);
++				snprintf(filename, STRING_SIZE - 1, TRACE_DIR "/clientcookie.%d.%d", getpid(), packetcount);
++				int fd = -1;
++				if ((fd = creat(filename, 0600)) > 0)
++				{
++					write(fd, cookie, mylength);
++					close(fd);
++				}
+ 			}
+ 		}
+ 	}
+-	
+-	if (strlen(uin)) localid = uin;
+ 
+-#if 0
+-	char xordata[] =
+-	{ 
+-		0xF3, 0x26, 0x81, 0xC4, 0x39, 0x86, 0xDB, 0x92,
+-		0x71, 0xA3, 0xB9, 0xE6, 0x53, 0x7A, 0x95, 0x7C,
+-		'\0'
+-	};
+-#endif
++	/* first connect: clients sends uin and pass */
++	if (strlen(uin))
++	{
++		localid = uin;
++			
++		if (roasted != "")
++		{
++			debugprint(localdebugmode, PROTOCOL_NAME ": Login request, uin: %s, pass: %s", 
++				uin, roasted.c_str());
++		}
++		else
++			debugprint(localdebugmode, PROTOCOL_NAME ": Login request, uin: %s", uin);
++	}
++
++	/* second connect: client sends cookie */
++	if(strlen(cookie))
++	{
++		std::string tmpuin;
++		if ((tmpuin = getcookieuin(cookietohex(cookielen,cookie))) != "") 
++				localid = tmpuin;
++	}
+ 
+ 	return 0;
+ }	
+ 
+-int servercookiepacket(GET_ARGS, bool outgoing)
++int servercookiepacket(GET_ARGS, bool outgoing, std::string &clientaddress)
+ {
+ 	char uin[BUFFER_SIZE];
+ 	char bos[BUFFER_SIZE];
+ 	char cookie[BUFFER_SIZE];
+ 	uint16_t mytag; uint16_t mylength;
+ 	char myvalue[BUFFER_SIZE];
++	int cookielen = 0;
+ 	
+ 	memset(uin, 0, BUFFER_SIZE);
+ 	memset(bos, 0, BUFFER_SIZE);
+@@ -199,123 +269,215 @@
+ 	
+ 	while (gettlv(GET_CALL_ARGS, &mytag, &mylength, myvalue))
+ 	{
+-		if (mytag == 1) memcpy(uin, myvalue, mylength);
++		if (mytag == 1)	memcpy(uin, myvalue, mylength);
+ 		if (mytag == 5) memcpy(bos, myvalue, mylength);
+ 		if (mytag == 6)
+ 		{
+ 			memcpy(cookie, myvalue, mylength);
+-			char filename[STRING_SIZE];
+-			memset(filename, 0, STRING_SIZE);
+-			snprintf(filename, STRING_SIZE - 1, TRACE_DIR "/servercookie.%d.%d", getpid(), packetcount);
+-			int fd = -1;
+-			if ((fd = creat(filename, 0600)) > 0)
++			cookielen = mylength;
++			if (tracing)
+ 			{
+-				write(fd, cookie, mylength);
+-				close(fd);
++				char filename[STRING_SIZE];
++				memset(filename, 0, STRING_SIZE);
++				snprintf(filename, STRING_SIZE - 1, TRACE_DIR "/servercookie.%d.%d", getpid(), packetcount);
++				int fd = -1;
++				if ((fd = creat(filename, 0600)) > 0)
++				{
++					write(fd, cookie, mylength);
++					close(fd);
++				}
+ 			}
+ 		}
+ 	}
+ 	
+-	if (strlen(uin)) localid = uin;
++	/* first connect: server responds with uin and cookie */
++	if (strlen(uin))
++	{	
++		localid = uin;
++		
++		debugprint(localdebugmode, PROTOCOL_NAME ": Login response, uin: %s", uin);
++
++		if(strlen(cookie))
++			setcookieuin(cookietohex(cookielen,cookie), uin);		
++	}
+ 	
+-	return 1;
++	return 0;
+ }
+ 
+-int snacpacket(GET_ARGS, bool outgoing, std::vector<struct imevent> &imevents)
++int snacpacket(GET_ARGS, bool outgoing, std::vector<struct imevent> &imevents, std::string &clientaddress,
++	std::vector<struct messageextent> &messageextents)
+ {
+ 	struct snac mysnac;
+ 
+ 	if (!getsnac(p, startp, lengthp, &mysnac)) return 1;
+ 	ntohs(mysnac.family);
+ 
+-	syslog(LOG_DEBUG, "family: %04x subtype: %04x\n", mysnac.family, mysnac.subtype);	
++	switch (mysnac.family)
++	{
++		/* message */
++		case 4:
++			uint32_t msgid1; uint32_t msgid2;
++			if (!getlong(GET_CALL_ARGS, &msgid1)) return 1;
++			if (!getlong(GET_CALL_ARGS, &msgid2)) return 1;
++
++			uint16_t msgformat;
++			if (!getword(GET_CALL_ARGS, &msgformat)) return 1;
++
++			char mystring[BUFFER_SIZE];
++			if (!getlengthbytes(GET_CALL_ARGS, mystring)) return 1;
++			remoteid = mystring;
+ 			
+-	if (mysnac.family != 4) return 2;
++			switch (mysnac.subtype)
++			{
++				/* outgoing message */
++				case 6:
++					debugprint(localdebugmode, PROTOCOL_NAME ": Outgoing message, uin: %s remoteid: %s", 
++						localid.c_str(), remoteid.c_str());
++					break;
++					
++				/* incoming message */
++				case 7:
++					uint16_t msgwarnlvl, msgtlv;
++					if (!getword(GET_CALL_ARGS, &msgwarnlvl)) return 1;
++					if (!getword(GET_CALL_ARGS, &msgtlv)) return 1;
++					debugprint(localdebugmode, PROTOCOL_NAME ": Incoming message, uin: %s remoteid: %s",
++						localid.c_str(), remoteid.c_str());			
++					break;
++
++				/* typing notification */
++				case 0x0014:
++					uint16_t type;
++					if (!getword(GET_CALL_ARGS, &type)) return 1;
++					
++					switch (type)
++					{
++						/* typing finished */
++						case 0:
++							debugprint(localdebugmode, PROTOCOL_NAME ": Typing finished, uin: %s remoteid: %s", 
++								localid.c_str(), remoteid.c_str());
++							return 0;
++							
++						/* text typed */
++						case 1:
++							debugprint(localdebugmode, PROTOCOL_NAME ": Text typed, uin: %s remoteid: %s", 
++								localid.c_str(), remoteid.c_str());
++							return 0;
++							
++						/* typing begun */
++						case 2:
++							debugprint(localdebugmode, PROTOCOL_NAME ": Typing begun, uin: %s remoteid: %s", 
++								localid.c_str(), remoteid.c_str());
++							return 0;
++
++						/* not sure how to process */
++						default:
++							return 2;
++					}
++					
++					/* should not come here, handled in switch above */
++					return 2;
++					
++				/* not sure how to process */
++				default:
++					return 2;
++			}		
+ 
+-	uint32_t msgid1; uint32_t msgid2;
+-	
+-	if (!getlong(GET_CALL_ARGS, &msgid1)) return 1;
+-	if (!getlong(GET_CALL_ARGS, &msgid2)) return 1;
+-	
+-	uint16_t msgformat;
+-	if (!getword(GET_CALL_ARGS, &msgformat)) return 1;
+-	
+-	char mystring[BUFFER_SIZE];
+-	if (!getlengthbytes(GET_CALL_ARGS, mystring)) return 1;
+-	
+-	remoteid = mystring;
+-	
+-	if (mysnac.subtype == 6)
+-		syslog(LOG_DEBUG, PROTOCOL_NAME ": Outgoing message, remoteid: %s", remoteid.c_str());
+-	else if (mysnac.subtype == 7)
+-		syslog(LOG_DEBUG, PROTOCOL_NAME ": Incoming message, remoteid: %s", remoteid.c_str());
+-	else
+-		syslog(LOG_DEBUG, PROTOCOL_NAME ": Not a message");
+-	
+-	uint16_t mytag; uint16_t mylength;
+-	char myvalue[BUFFER_SIZE];
++			uint16_t mytag; uint16_t mylength;
++			char *myvalue;
+ 
+-	while (gettlv(GET_CALL_ARGS, &mytag, &mylength, myvalue))
+-	{
+-		syslog(LOG_DEBUG, PROTOCOL_NAME ": tag: %04x length: %04x", mytag, mylength);
+-		if (mytag == 2)
+-		{
+-			syslog(LOG_DEBUG, PROTOCOL_NAME ": found tag 2, the message string");
+-			std::string message;
+-			if (getmessage(myvalue, mylength, message)) return 1;
+-			
+-			struct imevent imevent;
+-		
+-			imevent.timestamp = time(NULL);
+-			imevent.protocolname = PROTOCOL_NAME;
+-			imevent.type = outgoing ? TYPE_MSG_OUTGOING : TYPE_MSG_INCOMING;
+-			imevent.localid = localid;
+-			imevent.remoteid = remoteid;
+-			imevent.eventdata = message;
+-			
+-			imevents.push_back(imevent);
++			while (gettlvptr(GET_CALL_ARGS, &mytag, &mylength, &myvalue))
++			{
++				if (mytag == 2)
++				{
++					debugprint(localdebugmode, PROTOCOL_NAME ": Message tag 2 found, len: %d", mylength);
++				
++					std::string message;
++					struct messageextent messageextent;
++					
++					if (getmessage(&myvalue, startp, lengthp, message, messageextent)) return 1;
++
++					struct imevent imevent;
++
++					imevent.timestamp = time(NULL);
++					imevent.protocolname = PROTOCOL_NAME;
++					imevent.type = outgoing ? TYPE_MSG_OUTGOING : TYPE_MSG_INCOMING;
++					imevent.localid = localid;
++					imevent.remoteid = remoteid;
++					imevent.eventdata = message;
++
++					imevents.push_back(imevent);
+ 
++					messageextents.push_back(messageextent);
++
++					break;
++				}
++			}
+ 			break;
+-		}
++
++		/* md5 login */
++		case 0x0017:
++		
++			switch (mysnac.subtype)
++			{
++				/* client request */
++				case 2:
++					loginpacket(GET_CALL_ARGS, outgoing, true, clientaddress);
++					break;
++					
++				/* server response */
++				case 3:
++					servercookiepacket(GET_CALL_ARGS, outgoing, clientaddress);
++					break;		
++					
++				/* not sure how to process */
++				default:
++					return 2;
++			}
++			break;
++
++		/* not sure how to process */
++		default:
++			debugprint(localdebugmode, PROTOCOL_NAME ": uin: %s, unknown family: %04x subtype: %04x", 
++				localid.c_str(), mysnac.family, mysnac.subtype);
++			return 2;
+ 	}
+-    
++
+ 	return 0;
+ }
+ 
+-int getmessage(char *value, int length, std::string &message)
++int getmessage(GET_ARGS, std::string &message, struct messageextent &messageextent)
+ {
+ 	uint16_t mytag; uint16_t mylength;
+-	char myvalue[BUFFER_SIZE];
++	char *myvalue;
++	uint32_t dummy;	
+ 
+-	char *startp = value;	char *p = startp;
+-	int lengthp = length;
+-	uint32_t dummy;
+-
+-	while (gettlv(&p, startp, lengthp, &mytag, &mylength, myvalue))
++	while (gettlvptr(GET_CALL_ARGS, &mytag, &mylength, &myvalue))
+ 	{
+ 		if (mytag == 0x0101)
+-		{
+-			char string[STRING_SIZE];
+-			memset(string, 0, STRING_SIZE);
++		{	
++			debugprint(localdebugmode, PROTOCOL_NAME ": Message string tag 0x0101 found, len: %d", mylength);
++			
++			char string[BUFFER_SIZE];
++			memset(string, 0, BUFFER_SIZE);
++				
++			if (!getlong(&myvalue, startp, lengthp, &dummy)) return 1;					
+ 
+-			startp = myvalue; lengthp = mylength;
+-			p = startp;
+-						
+-			if (!getlong(&p, startp, lengthp, &dummy)) return 1;
+-			if (!getbytes(&p, startp, lengthp, string, mylength - 4)) return 1;
++			messageextent.start = myvalue - startp; messageextent.length = mylength - 4;
+ 			
++			if (!getbytes(&myvalue, startp, lengthp, string, mylength - 4)) return 1;
++
+ 			message = string;
+ 			
+ 			return 0;
+ 		}
+ 	}
+ 	
+-	syslog(LOG_DEBUG, PLUGIN_NAME ":  tag 0101 not found");
++	debugprint(localdebugmode, PLUGIN_NAME ": Warning, message tag 0x0101 not found");
+ 	
+ 	return 2;
+ }
+ 	
+-int getflap(GET_ARGS, struct flap *rc)
++bool getflap(GET_ARGS, struct flap *rc)
+ {
+ 	GET_CHECK_P(sizeof(struct flap))
+ 	GET_TYPE(struct flap)
+@@ -323,10 +485,10 @@
+ 	rc->sequence = ntohs(rc->sequence);
+ 	rc->datalength = ntohs(rc->datalength);
+ 	
+-	return 1;
++	return true;
+ }
+ 
+-int getsnac(GET_ARGS, struct snac *rc)
++bool getsnac(GET_ARGS, struct snac *rc)
+ {
+ 	GET_CHECK_P(sizeof(struct snac))
+ 	GET_TYPE(struct snac)
+@@ -336,18 +498,18 @@
+ 	rc->flags = ntohs(rc->flags);
+ 	rc->requestid = ntohl(rc->requestid);
+ 
+-	return 1;
++	return true;
+ }
+ 
+-int getbyte(GET_ARGS, uint8_t *rc)
++bool getbyte(GET_ARGS, uint8_t *rc)
+ {
+ 	GET_CHECK_P(sizeof(uint8_t))
+ 	GET_TYPE(uint8_t)
+ 	
+-	return 1;
++	return true;
+ }
+ 
+-int getbytes(GET_ARGS, char *bytes, int length)
++bool getbytes(GET_ARGS, char *bytes, int length)
+ {
+ 	GET_CHECK_P(length)
+ 	
+@@ -355,46 +517,229 @@
+ 	bytes[length] = '\0';
+ 	*p += length;
+ 	
+-	return 1;
++	return true;
+ }
+ 
+-int getword(GET_ARGS, uint16_t *rc)
++bool getword(GET_ARGS, uint16_t *rc)
+ {
+ 	GET_CHECK_P(sizeof(uint16_t))
+ 	GET_TYPE(uint16_t)
+ 	
+ 	*rc = ntohs(*rc);
+ 	
+-	return 1;
++	return true;
+ }
+ 
+-int getlong(GET_ARGS, uint32_t *rc)
++bool getlong(GET_ARGS, uint32_t *rc)
+ {
+ 	GET_CHECK_P(sizeof(uint32_t))
+ 	GET_TYPE(uint32_t)
+ 	
+ 	*rc = ntohl(*rc);
+ 	
+-	return 1;
++	return true;
+ }
+ 
+-int getlengthbytes(GET_ARGS, char *string)
++bool getlengthbytes(GET_ARGS, char *string)
+ {
+ 	uint8_t length;
+ 	
+-	if (!getbyte(GET_CALL_ARGS, &length)) return 0;
+-	if (!getbytes(GET_CALL_ARGS, string, length)) return 0;
++	if (!getbyte(GET_CALL_ARGS, &length)) return false;
++	if (!getbytes(GET_CALL_ARGS, string, length)) return false;
+ 	
+-	return 1;
++	return true;
+ }
+ 
+-int gettlv(GET_ARGS, uint16_t *tag, uint16_t *length, char *value)
++bool gettlv(GET_ARGS, uint16_t *tag, uint16_t *length, char *value)
+ {
+-	if (!getword(GET_CALL_ARGS, tag)) return 0;
+-	if (!getword(GET_CALL_ARGS, length)) return 0;
++	if (!getword(GET_CALL_ARGS, tag)) return false;
++	if (!getword(GET_CALL_ARGS, length)) return false;
+ 	
+ 	if (value && length)
+-		if (!getbytes(GET_CALL_ARGS, value, *length)) return 0;
++		if (!getbytes(GET_CALL_ARGS, value, *length)) return false;
++		
++	return true;
++}
++
++bool gettlvptr(GET_ARGS, uint16_t *tag, uint16_t *length, char **value)
++{
++	if (!getword(GET_CALL_ARGS, tag)) return false;
++	if (!getword(GET_CALL_ARGS, length)) return false;
++	
++	if (length)
++	{
++		*value = *p;
++		*p += *length;
++	}
++	
++	return true;
++}
++
++void cookiemonster(void)
++{
++	std::map<std::string, std::string> uinmap;
++	class Socket cookiesock(AF_UNIX, SOCK_STREAM);
++		
++	if (!cookiesock.listensocket(COOKIE_SOCKET))
++	{
++		syslog(LOG_ERR, "Error: Couldn't bind to icq cookie socket");
++	}	
++
++	while (true)
++	{
++		std::string clientaddress;
++		std::string doaction;
++		std::string cookie;
++		class Socket clientsock(AF_UNIX, SOCK_STREAM);
++		char buffer[BUFFER_SIZE];
+ 		
+-	return 1;
++		if (!cookiesock.awaitconnection(clientsock, clientaddress)) continue;
++
++		memset(buffer, 0, BUFFER_SIZE);
++		if (clientsock.recvline(buffer, BUFFER_SIZE) < 0)
++		{
++			syslog(LOG_ERR, PROTOCOL_NAME ": Couldn't get command line from cookiemonster client");
++			continue;
++		}
++		
++		stripnewline(buffer);
++		doaction = buffer;	
++
++		memset(buffer, 0, BUFFER_SIZE);
++		if (clientsock.recvline(buffer, BUFFER_SIZE) < 0)
++		{
++			syslog(LOG_ERR, PROTOCOL_NAME ": Couldn't get cookie line from cookiemonster client");
++			continue;
++		}
++			
++		stripnewline(buffer);
++		cookie = buffer;		
++		
++		/* recv: set\n
++		 * recv: cookie\n 
++		 * recv: uin\n */
++		if (doaction == "set")
++		{
++			std::string uin;
++			
++			memset(buffer, 0, BUFFER_SIZE);
++			if (clientsock.recvline(buffer, BUFFER_SIZE) < 0)
++			{
++				syslog(LOG_ERR, PROTOCOL_NAME ": Couldn't get UIN line from cookiemonster client");
++				continue;
++			}
++			
++			stripnewline(buffer);
++			uin = buffer;
++
++			uinmap[cookie] = buffer;
++
++			debugprint(localdebugmode, PROTOCOL_NAME ": Stored cookie, uin: %s", uin.c_str());
++		}
++		
++		/* recv: get\n
++		 * recv: cookie\n
++		 * send: uin\n */
++		if (doaction == "get")
++		{		
++			std::string uin = "Unknown";
++
++			if (uinmap[cookie] != "")
++			{
++				uin = uinmap[cookie];
++				debugprint(localdebugmode, PROTOCOL_NAME ": Found cookie, uin: %s", uin.c_str());
++			}
++			
++			memset(buffer, 0, BUFFER_SIZE);
++			snprintf(buffer, BUFFER_SIZE - 1, "%s\n", uin.c_str());
++			
++			if (!clientsock.sendalldata(buffer, strlen(buffer)))
++			{
++				syslog(LOG_ERR, "Couldn't send UIN back to cookiemonster client");
++				continue;
++			}
++		}
++	}
++}
++
++bool setcookieuin(std::string hexcookie, std::string uin)
++{
++	char buffer[BUFFER_SIZE];
++	class Socket cookiesock(AF_UNIX, SOCK_STREAM);
++					
++	if (!cookiesock.connectsocket(COOKIE_SOCKET))
++	{
++		syslog(LOG_ERR, PROTOCOL_NAME ": Couldn't connect to cookie socket");
++		return false;
++	}
++
++	memset(buffer, 0, BUFFER_SIZE);
++	snprintf(buffer, BUFFER_SIZE - 1, "set\n%s\n%s\n", hexcookie.c_str(), uin.c_str());
++	
++	if (!cookiesock.sendalldata(buffer, strlen(buffer)))
++	{
++		syslog(LOG_ERR, PROTOCOL_NAME ": Couldn't send cookie set request");
++		cookiesock.closesocket();
++		return false;
++	}
++	
++	cookiesock.closesocket();
++	
++	return true;
++}
++
++std::string getcookieuin(std::string hexcookie)
++{
++	char buffer[BUFFER_SIZE];
++	class Socket cookiesock(AF_UNIX, SOCK_STREAM);
++
++	memset(buffer, 0, BUFFER_SIZE);
++
++	if (!cookiesock.connectsocket(COOKIE_SOCKET))
++	{
++		syslog(LOG_ERR, PROTOCOL_NAME ": Couldn't connect to cookie socket");
++		return "";	
++	}
++
++	memset(buffer, 0, BUFFER_SIZE);
++	snprintf(buffer, BUFFER_SIZE - 1, "get\n%s\n", hexcookie.c_str());
++
++	if (!cookiesock.sendalldata(buffer, strlen(buffer)))
++	{
++		syslog(LOG_ERR, PROTOCOL_NAME ": Couldn't send cookie get request");
++		cookiesock.closesocket();
++		return "";
++	}
++
++	memset(buffer, 0, BUFFER_SIZE);
++	if (!cookiesock.recvline(buffer, BUFFER_SIZE))
++	{
++		syslog(LOG_ERR, PROTOCOL_NAME ": Didn't get a response from cookiemonster");
++		cookiesock.closesocket();
++		return "";
++	}
++	
++	stripnewline(buffer);
++	
++	std::string uin;
++	if (strlen(buffer)) uin = buffer;
++	
++	cookiesock.closesocket();
++
++	return uin;
++}
++
++std::string cookietohex (int length, char *cookie)
++{
++	char hexchar[STRING_SIZE];
++	std::string hexcookie;
++	
++	for (int i=0;i<length;i++)
++	{
++		snprintf(hexchar, STRING_SIZE - 1, "%02x", cookie[i]);
++		hexcookie.push_back(hexchar[0]);
++		hexcookie.push_back(hexchar[1]);
++	}
++
++	return hexcookie;
+ }
+diff -urN ../imspector-clean/imspector.badwords ./imspector.badwords
+--- ../imspector-clean/imspector.badwords	1969-12-31 19:00:00.000000000 -0500
++++ ./imspector.badwords	2006-12-01 14:34:38.000000000 -0500
+@@ -0,0 +1,86 @@
++twat
++son-of-a-bitch
++shyty
++shytty
++shyte
++shyt
++shitz
++shity
++shitty
++shitting
++shitter
++shitted
++shiting
++shited
++shit
++sh1tz
++sh1tter
++sh1ts
++sh1ter
++sh1t
++sh!t
++schlong
++poonani
++polak
++polack
++polac
++piss off
++piss
++phuq
++phuks
++phukking
++phukker
++phukked
++phuking
++phuker
++phuked
++phuk
++phuck
++phuc
++kuntz
++kunts
++kunt
++fuks
++fukk
++fukin
++fuker
++fuken
++fukah
++fuk
++fudge packer
++fucks
++fuckme 
++fucking
++fuckin
++fucker
++fucked
++fuck
++cunt
++cock-suck
++cocksuck 
++cock-head
++cockhead
++cntz
++cnts
++bastard
++bassterds
++azzhole
++asswipe
++assholz
++asshole
++assh0le
++assface
++wanker
++wank
++bollock
++nobjockey
++feck
++fack
++beeatch
++mo fo
++fcuk
++shize
++clagnuts
++dickhead
++dickbrain
++kahnt
+diff -urN ../imspector-clean/imspector.conf ./imspector.conf
+--- ../imspector-clean/imspector.conf	2006-11-04 15:46:42.000000000 -0500
++++ ./imspector.conf	2006-12-02 02:17:16.763500000 -0500
+@@ -2,7 +2,7 @@
+ #port=16667
+ 
+ # This is the default location of protocol and logging plugins.
+-#plugin_dir=/usr/lib/imspector
++plugin_dir=/usr/local/lib/imspector
+ 
+ # For dropping privs - you probably want to do this.
+ #user=imspector
+@@ -11,6 +11,12 @@
+ # Location where the file logging plugin will start from.
+ file_logging_dir=/var/log/imspector
+ 
++# Will load enabled plugins in plugin_dir
++icq_protocol=on
++irc_protocol=on
++msn_protocol=on
++yahoo_protocol=on
++
+ # MySQL logging plugin stuff
+ #mysql_server=localhost
+ #mysql_database=imspector
+diff -urN ../imspector-clean/imspector.h ./imspector.h
+--- ../imspector-clean/imspector.h	2006-10-21 15:50:10.000000000 -0400
++++ ./imspector.h	2006-11-30 20:39:54.000000000 -0500
+@@ -1,6 +1,7 @@
+ /* IMSpector - Instant Messenger Transparent Proxy Service
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  *          
+  * Released under the GPL v2. */
+     
+@@ -13,22 +14,36 @@
+ #include <pwd.h>
+ #include <grp.h> 
+ #include <unistd.h>
++#include <signal.h>
++#include <stdarg.h>
+ 
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <sys/wait.h>
+ #include <sys/un.h>
+ #include <sys/errno.h>
++#include <sys/stat.h>
++#include <sys/ioctl.h>
++
++#include <net/if.h>
+ 
+ #include <netinet/in.h>
+ 
+ #include <arpa/inet.h>
+ 
++#if defined(__linux__)
+ #include <linux/netfilter_ipv4.h>
++#endif
++
++#if defined(__FreeBSD__) || defined(__OpenBSD__)
++#include <net/pfvar.h>
++#endif
+ 
+ #include <string>
+ #include <vector>
+ #include <map>
++#include <fstream>
++#include <iostream>
+ 
+ #define STRING_SIZE 1024
+ #define BUFFER_SIZE 65536
+@@ -41,5 +56,8 @@
+ 
+ #include "socket.h"
+ #include "options.h"
++#include "tools.h"
+ #include "protocolplugin.h"
+ #include "loggingplugin.h"
++#include "contentplugin.h"
++
+diff -urN ../imspector-clean/ircprotocolplugin.cpp ./ircprotocolplugin.cpp
+--- ../imspector-clean/ircprotocolplugin.cpp	2006-11-04 15:44:46.000000000 -0500
++++ ./ircprotocolplugin.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -6,7 +6,7 @@
+ 
+ #include "imspector.h"
+ 
+-#define PLUGIN_NAME "IRC Imspector protocol plugin"
++#define PLUGIN_NAME "IRC IMSpector protocol plugin"
+ #define PROTOCOL_NAME "IRC"
+ #define PROTOCOL_PORT 6667
+ 
+@@ -15,20 +15,26 @@
+ 	bool initprotocolplugin(struct protocolplugininfo &pprotocolplugininfo,
+ 		class Options &options, bool debugmode);
+ 	void closeprotocolplugin(void);
+-	int processpacket(bool outgoing, class Socket &incomingsock,
+-		char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents);
++	int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer, 
++		int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++		std::vector<struct messageextent> &messageextents);
+ };
+ 
+-char *ircchop(char* buffer, std::string &source, std::string &command, std::vector<std::string> &args, int &argc,
+-	std::string &message);
++char *ircchop(char* buffer, std::string &source, std::string &command, std::vector<std::string> &args, 
++	int &argc, std::string &message, struct messageextent &messageextent);
+ 	
+ std::string localid = "Unknown";
+ int packetcount = 0;
+ bool tracing = false;
++bool localdebugmode = false;
+ 
+ bool initprotocolplugin(struct protocolplugininfo &protocolplugininfo,
+ 	class Options &options, bool debugmode)
+ {
++	if (options["irc_protocol"] != "on") return false;
++
++	localdebugmode = debugmode;
++	
+ 	protocolplugininfo.pluginname = PLUGIN_NAME;
+ 	protocolplugininfo.protocolname = PROTOCOL_NAME;
+ 	protocolplugininfo.port = htons(PROTOCOL_PORT);
+@@ -44,8 +50,9 @@
+ }
+ 
+ /* The main plugin function. See protocolplugin.cpp. */
+-int processpacket(bool outgoing, class Socket &incomingsock,
+-	char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents)
++int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer, 
++	int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++	std::vector<struct messageextent> &messageextents)
+ {
+ 	char buffer[BUFFER_SIZE];
+ 	memset(buffer, 0, BUFFER_SIZE);
+@@ -54,7 +61,7 @@
+ 	if ((recvbufferlength = incomingsock.recvline(buffer, BUFFER_SIZE)) < 0) return 1;
+ 	if (!recvbufferlength) return 1;
+ 	
+-	syslog(LOG_DEBUG, PROTOCOL_NAME ": Got %s", buffer);
++	debugprint(localdebugmode, PROTOCOL_NAME ": Got %s", buffer);
+ 
+ 	std::string source;
+ 	std::string command;
+@@ -62,9 +69,10 @@
+ 	std::string message;
+ 
+ 	char *s;
+-	s = ircchop(buffer, source, command, args, argc, message);
++	struct messageextent messageextent;
++	s = ircchop(buffer, source, command, args, argc, message, messageextent);
+ 	
+-	syslog(LOG_DEBUG, PROTOCOL_NAME ": Command: %s Source: %s Message: %s", command.c_str(),
++	debugprint(localdebugmode, PROTOCOL_NAME ": Command: %s Source: %s Message: %s", command.c_str(),
+ 		source.c_str(), message.c_str());
+ 
+ 	/* Simple stuff: build the imevent and push it onto the list. */
+@@ -77,7 +85,7 @@
+ 		/* The local user is logging in. */
+ 		if (command == "NICK" && argc) 
+ 		{
+-			syslog(LOG_DEBUG, PROTOCOL_NAME ": %s is the local nick", args[0].c_str());
++			debugprint(localdebugmode, PROTOCOL_NAME ": %s is the local nick", args[0].c_str());
+ 			localid = args[0];
+ 		}
+ 	
+@@ -118,7 +126,12 @@
+ 			imevent.localid.begin(), tolower);
+ 	
+ 		imevents.push_back(imevent);
+-	}			
++	}
++	
++	if (imevent.type == TYPE_MSG_INCOMING || imevent.type == TYPE_MSG_OUTGOING)
++	{
++		messageextents.push_back(messageextent);
++	}
+ 
+ 	memcpy(replybuffer, buffer, recvbufferlength);
+ 	*replybufferlength = recvbufferlength;
+@@ -145,8 +158,8 @@
+ 	return 0;
+ }
+ 
+-char *ircchop(char* buffer, std::string &source, std::string &command, std::vector<std::string> &args, int &argc,
+-	std::string &message)
++char *ircchop(char *buffer, std::string &source, std::string &command, std::vector<std::string> &args,
++	int &argc, std::string &message, struct messageextent &messageextent)
+ {
+ 	char *s = buffer;
+ 	
+@@ -183,8 +196,12 @@
+ 	{
+ 		s++;
+ 		
++		messageextent.start = s - buffer; messageextent.length = 0;
+ 		for (; *s && *s != '\r' && *s != '\n'; s++)
++		{
+ 			message.push_back(*s);
++			messageextent.length++;
++		}
+ 	}
+ 	
+ 	/* Need to advance s to the start of the next line, skipping over the eol chars. */
+diff -urN ../imspector-clean/main.cpp ./main.cpp
+--- ../imspector-clean/main.cpp	2006-11-01 19:42:46.000000000 -0500
++++ ./main.cpp	2006-12-02 00:36:38.000000000 -0500
+@@ -1,6 +1,7 @@
+ /* IMSpector - Instant Messenger Transparent Proxy Service
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  * 
+  * Released under the GPL v2. */
+ 
+@@ -10,12 +11,14 @@
+ #define DEFAULT_PLUGIN_DIR "/usr/lib/imspector"
+ 
+ std::vector<class ProtocolPlugin> protocolplugins;
++std::vector<class ContentPlugin> contentplugins;
+ 
+ volatile bool quitting = false;
+ 
+ bool doproxy(class Options &options, bool debugmode, class Socket &clientsock, std::string &clientaddress);
+ bool loggingprocess(class Options &options, bool debugmode, class Socket &logsock);
+ bool logimevents(std::vector<struct imevent> &imevents, std::string &clientaddress);
++int runcontentfilters(char *buffer, std::vector<struct messageextent> &messageextents);
+ 
+ int getgidfromname(std::string name);
+ int getuidfromname(std::string name);
+@@ -51,6 +54,14 @@
+ 			debugmode = true;
+ 			continue;
+ 		}
++		/* Display usage. */
++		if (strcmp("-h", argv[c]) == 0 || strcmp("--help", argv[c]) == 0)
++		{
++			fprintf(stderr, "Usage:\n" \
++				"\t[-c configfile] [-d]\n" \
++				"\nNotes:\n\t With -d IMSpector will run in debug mode\n");
++			return 1;
++		}		
+ 		
+ 		fprintf(stderr, "Warning: Unrecognised argument: %s\n", argv[c]);
+ 	}
+@@ -147,19 +158,20 @@
+ 	
+ 	memset(&protocolpluginsglob, 0, sizeof(glob_t));
+ 	
+-	std::string pluginmatch = DEFAULT_PLUGIN_DIR;
+-	if (options["plugin_dir"] != "") pluginmatch = options["plugin_dir"];
+-	pluginmatch += "/*protocolplugin.so";
++	std::string protocolpluginmatch = DEFAULT_PLUGIN_DIR;
++	if (options["plugin_dir"] != "") protocolpluginmatch = options["plugin_dir"];
++	protocolpluginmatch += "/*protocolplugin.so";
+ 
+-	if (glob(pluginmatch.c_str(), GLOB_DOOFFS, NULL, &protocolpluginsglob))
++	if (glob(protocolpluginmatch.c_str(), GLOB_DOOFFS, NULL, &protocolpluginsglob))
+ 	{
+ 		syslog(LOG_ERR, "Error: Couldn't get list of protocol plugins");
+ 		return 1;
+ 	}
+ 
+ 	/* Load the plugins and push them onto a vector. */
+-	for (size_t c = 0; c < protocolpluginsglob.gl_pathc; c++)
++	for (size_t c = 0; c < (size_t) protocolpluginsglob.gl_pathc; c++)
+ 	{
++		/* If enabled load the plugin */
+ 		ProtocolPlugin myprotocolplugin;
+ 		if (!myprotocolplugin.loadplugin(protocolpluginsglob.gl_pathv[c])) { return 1; }
+ 		if (myprotocolplugin.callinitprotocolplugin(options, debugmode))
+@@ -169,6 +181,33 @@
+ 		}
+ 	}
+ 	
++	/* Glob the content filter plugins by a simple wildcard. */
++	glob_t contentpluginsglob;
++	
++	memset(&contentpluginsglob, 0, sizeof(glob_t));
++	
++	std::string contentpluginmatch = DEFAULT_PLUGIN_DIR;
++	if (options["plugin_dir"] != "") contentpluginmatch = options["plugin_dir"];
++	contentpluginmatch += "/*contentplugin.so";
++
++	if (glob(contentpluginmatch.c_str(), GLOB_DOOFFS, NULL, &contentpluginsglob))
++	{
++		syslog(LOG_ERR, "Error: Couldn't get list of content plugins");
++		return 1;
++	}
++
++	/* Load the plugins and push them onto a vector. */
++	for (size_t c = 0; c < (size_t) contentpluginsglob.gl_pathc; c++)
++	{
++		ContentPlugin mycontentplugin;
++		if (!mycontentplugin.loadplugin(contentpluginsglob.gl_pathv[c])) { return 1; }
++		if (mycontentplugin.callinitcontentplugin(options, debugmode))
++		{
++			syslog(LOG_INFO, "Content Plugin name: %s", mycontentplugin.contentplugininfo.pluginname.c_str());
++			contentplugins.push_back(mycontentplugin);
++		}
++	}
++	
+ 	struct sigaction sa;
+ 	memset(&sa, 0, sizeof(struct sigaction));
+ 
+@@ -185,6 +224,14 @@
+ 		syslog(LOG_ERR, "Error: Unable to set SIGTERM handler");
+ 		return 1;
+ 	}
++	
++	/* handle ctrl+c for debugging */
++	sa.sa_handler = sigterm;
++	if (sigaction(SIGINT, &sa, NULL))
++	{
++		syslog(LOG_ERR, "Error: Unable to set SIGTERM handler");
++		return 1;
++	}	
+ 		
+ 	class Socket loggingsock(AF_UNIX, SOCK_STREAM);
+ 
+@@ -205,7 +252,7 @@
+ 		/* In the child. */
+ 		case 0:
+ 			loggingprocess(options, debugmode, loggingsock);
+-			syslog(LOG_DEBUG, "Finished the logging process");
++			debugprint(debugmode, "Finished the logging process");
+ 			return 0;
+ 			
+ 		/* In the parent. */
+@@ -223,7 +270,7 @@
+ 		syslog(LOG_ERR, "Error: Couldn't bind to socket.");
+ 		return 1;
+ 	}
+-		
++
+ 	while (!quitting)
+ 	{
+ 		std::string clientaddress;
+@@ -231,7 +278,7 @@
+ 		
+ 		if (!serversock.awaitconnection(clientsock, clientaddress)) continue;
+ 		
+-		syslog(LOG_DEBUG, "Connection from: %s\n", clientaddress.c_str());
++		debugprint(debugmode, "Connection from: %s\n", clientaddress.c_str());
+ 
+ 		switch (fork())
+ 		{
+@@ -246,7 +293,7 @@
+ 			case 0:
+ 				doproxy(options, debugmode, clientsock, clientaddress);
+ 				clientsock.closesocket();
+-				syslog(LOG_DEBUG, "Finished with child");
++				debugprint(debugmode, "Finished with connection: %s\n", clientaddress.c_str());
+ 				return 0;
+ 				
+ 			/* In the parent. */
+@@ -267,6 +314,14 @@
+ 		syslog(LOG_ERR, "Error: Unable ignore SIGTERM");
+ 		return 1;
+ 	}
++	
++	/* handle ctrl+c for debugging */
++	sa.sa_handler = SIG_IGN;
++	if (sigaction(SIGINT, &sa, NULL))
++	{
++		syslog(LOG_ERR, "Error: Unable ignore SIGTERM");
++		return 1;
++	}	
+ 	kill(0, SIGTERM);
+ 	
+ 	syslog(LOG_INFO, "Good-bye");
+@@ -326,6 +381,7 @@
+ 		if (result == -1) break;
+ 		
+ 		std::vector<struct imevent> imevents;
++		std::vector<struct messageextent> messageextents;
+ 		char replybuffer[BUFFER_SIZE]; int replylength;
+ 		
+ 		memset(replybuffer, 0, BUFFER_SIZE);
+@@ -333,14 +389,18 @@
+ 		if (FD_ISSET(clientsock.getfd(), &rfds))
+ 		{
+ 			if (pprotocolplugin->callprocesspacket(true, clientsock, replybuffer,
+-				&replylength, imevents)) break;
++				&replylength, imevents, clientaddress, messageextents)) break;
++			if (messageextents.size() && contentplugins.size()) 
++				runcontentfilters(replybuffer, messageextents);
+ 			if (!(imserversock.sendalldata(replybuffer, replylength))) break;
+ 		}
+ 		
+ 		if (FD_ISSET(imserversock.getfd(), &rfds))
+ 		{
+ 			if (pprotocolplugin->callprocesspacket(false, imserversock, replybuffer,
+-				&replylength, imevents)) break;
++				&replylength, imevents, clientaddress, messageextents)) break;
++			if (messageextents.size() && contentplugins.size()) 
++				runcontentfilters(replybuffer, messageextents);
+ 			if (!(clientsock.sendalldata(replybuffer, replylength))) break;
+ 		}
+ 		
+@@ -378,10 +438,10 @@
+ 		return false;
+ 	}
+ 
+-	for (size_t c = 0; c < loggingpluginsglob.gl_pathc; c++)
++	for (size_t c = 0; c < (size_t) loggingpluginsglob.gl_pathc; c++)
+ 	{
+ 		LoggingPlugin myloggingplugin;
+-		if (!myloggingplugin.loadplugin(loggingpluginsglob.gl_pathv[c])) { return 1; }
++		if (!myloggingplugin.loadplugin(loggingpluginsglob.gl_pathv[c])) { return false; }
+ 		if (myloggingplugin.callinitloggingplugin(options, debugmode))
+ 		{
+ 			syslog(LOG_INFO, "Logging Plugin name: %s", myloggingplugin.loggingplugininfo.pluginname.c_str());
+@@ -405,7 +465,7 @@
+ 		
+ 		int imeventcount = atol(buffer);
+ 		
+-		syslog(LOG_DEBUG, "%d elements in imevents", imeventcount);
++		/* debugprint(debugmode, "%d elements in imevents", imeventcount); */
+ 		
+ 		for (int c = 0; c < imeventcount; c++)
+ 		{
+@@ -419,7 +479,7 @@
+ 				if ((clientsock.recvline(buffer, BUFFER_SIZE)) < 0) continue;
+ 				char *t = strchr(buffer, '\n'); if (t) *t = '\0';
+ 				
+-				syslog(LOG_DEBUG, "Logging received %d: %s", line, buffer);
++				/* debugprint(debugmode, "Logging received %d: %s", line, buffer); */
+ 				
+ 				switch (line)
+ 				{
+@@ -492,7 +552,7 @@
+ 	
+ 	memset(buffer, 0, BUFFER_SIZE);
+ 	
+-	snprintf(buffer, BUFFER_SIZE - 1, "%d\n", imevents.size());
++	snprintf(buffer, BUFFER_SIZE - 1, "%ld\n", (long)imevents.size());
+ 	
+ 	if (!loggingsock.sendalldata(buffer, strlen(buffer))) return false;
+ 
+@@ -526,6 +586,45 @@
+ 	return true;
+ }
+ 
++int runcontentfilters(char *buffer, std::vector<struct messageextent> &messageextents)
++{
++	char modifiablebuffer[BUFFER_SIZE];
++	char originalbuffer[BUFFER_SIZE];
++	
++	memset(modifiablebuffer, 0, BUFFER_SIZE);
++	memset(originalbuffer, 0, BUFFER_SIZE);
++	
++	/* Loop looking at each of the message extents. */
++	for (std::vector<struct messageextent>::iterator i = messageextents.begin();
++		i != messageextents.end(); i++)
++	{
++		syslog(LOG_DEBUG,"Content Filter, Start: %d Length: %d", (*i).start, (*i).length);
++	
++		/* Take a private copy of buffer. That way the plugins don't have to
++		 * care about the lengths. */
++		if ((*i).length < 0)
++			strncpy(modifiablebuffer, buffer + (*i).start, BUFFER_SIZE - 1);
++		else
++			strncpy(modifiablebuffer, buffer + (*i).start, (*i).length);
++		strncpy(originalbuffer, modifiablebuffer, BUFFER_SIZE - 1);
++		
++		/* Loop calling all the contentfilter plugins. */
++		for (std::vector<class ContentPlugin>::iterator j = contentplugins.begin();
++			j != contentplugins.end(); j++)
++		{
++			int rc;
++			
++			if ((rc = (*j).callcontentfilter(originalbuffer, modifiablebuffer)))
++				syslog(LOG_ERR, "Error: Unable to run content filter (%d) via %s", rc,
++					(*j).contentplugininfo.pluginname.c_str());
++		}
++			
++		strncpy(buffer + (*i).start, modifiablebuffer, strlen(modifiablebuffer));
++	}
++	
++	return 0;
++}
++
+ int getgidfromname(std::string name)
+ {
+ 	struct group *group = getgrnam(name.c_str());
+diff -urN ../imspector-clean/Makefile ./Makefile
+--- ../imspector-clean/Makefile	2006-11-04 15:46:18.000000000 -0500
++++ ./Makefile	2006-12-02 01:56:56.000000000 -0500
+@@ -1,28 +1,42 @@
+-# Default install prefix
+-PREFIX = /usr
++##########
++# If using FreeBSD or OpenBSD COMMENT the below lines
++#LIBS = -ldl
++#MYSQL_LIB = -L/usr/lib/mysql
++#PREFIX = /usr
++
++# If using FreeBSD or OpenBSD UNCOMMENT the below lines
++BSD_INCLUDE = -I/usr/local/include
++MYSQL_LIB = -L/usr/local/lib/mysql
++SQLITE_LIB = -L/usr/local/lib
++PREFIX = /usr/local
++ETC_PREFIX = $(PREFIX)
++
++# For any distro
++ADD_PLUGINS = mysqlloggingplugin.so
++##########
+ 
+ CXX = g++
+ 
+-CXXFLAGS = -Wall -O2
++CXXFLAGS = -Wall -O2 -fPIC
+ 
+-PLUGIN_FLAGS = -ldl -fPIC -shared -Wl,-soname,$@ -o $@
++PLUGIN_FLAGS = $(LIBS) -fPIC -shared -Wl,-soname,$@ -o $@
+ 
+-IMSPECTOR_OBJS = main.o protocolplugin.o loggingplugin.o
++IMSPECTOR_OBJS = main.o protocolplugin.o loggingplugin.o contentplugin.o
+ 
+-LIBIMSPECTOR_OBJS = socket.o options.o
++LIBIMSPECTOR_OBJS = socket.o options.o tools.o
+ 
+-PLUGINS = msnprotocolplugin.so icqprotocolplugin.so yahooprotocolplugin.so ircprotocolplugin.so fileloggingplugin.so debugloggingplugin.so
++PLUGINS = msnprotocolplugin.so icqprotocolplugin.so yahooprotocolplugin.so ircprotocolplugin.so fileloggingplugin.so debugloggingplugin.so badwordscontentplugin.so $(ADD_PLUGINS)
+ 
+ all: imspector $(PLUGINS)
+ 
+ clean:
+-	rm -f imspector libimspector.so $(PLUGINS) *.o
++	rm -f imspector libimspector.so $(PLUGINS) mysqlloggingplugin.so sqliteloggingplugin.so *.o
+ 
+ imspector: $(IMSPECTOR_OBJS) libimspector.so
+-	$(CXX) $(IMSPECTOR_OBJS) -ldl libimspector.so -o imspector
++	$(CXX) $(IMSPECTOR_OBJS) $(LIBS) libimspector.so -o imspector
+ 
+ libimspector.so: $(LIBIMSPECTOR_OBJS)
+-	$(CXX) $(LIBIMSPECTOR_OBJS) -ldl -fPIC -shared -Wl,-soname,libimspector.so -o libimspector.so
++	$(CXX) $(LIBIMSPECTOR_OBJS) $(LIBS) -fPIC -shared -Wl,-soname,libimspector.so -o libimspector.so
+ 
+ msnprotocolplugin.so: msnprotocolplugin.o libimspector.so
+ 	$(CXX) msnprotocolplugin.o libimspector.so $(PLUGIN_FLAGS)
+@@ -38,9 +52,12 @@
+ debugloggingplugin.so: debugloggingplugin.o libimspector.so
+ 	$(CXX) debugloggingplugin.o libimspector.so $(PLUGIN_FLAGS)
+ mysqlloggingplugin.so: mysqlloggingplugin.o libimspector.so
+-	$(CXX) mysqlloggingplugin.o libimspector.so $(PLUGIN_FLAGS) -L/usr/lib/mysql -lmysqlclient
++	$(CXX) mysqlloggingplugin.o libimspector.so $(PLUGIN_FLAGS) $(MYSQL_LIB) -lmysqlclient
+ sqliteloggingplugin.so: sqliteloggingplugin.o libimspector.so
+-	$(CXX) sqliteloggingplugin.o libimspector.so $(PLUGIN_FLAGS) -lsqlite3
++	$(CXX) sqliteloggingplugin.o libimspector.so $(PLUGIN_FLAGS) $(SQLITE_LIB) -lsqlite3
++
++badwordscontentplugin.so: badwordscontentplugin.o libimspector.so
++	$(CXX) badwordscontentplugin.o libimspector.so $(PLUGIN_FLAGS)
+ 
+ main.o: main.cpp
+ 	$(CXX) $(CXXFLAGS) main.cpp -c
+@@ -48,11 +65,15 @@
+ 	$(CXX) $(CXXFLAGS) protocolplugin.cpp -c
+ loggingplugin.o: loggingplugin.cpp
+ 	$(CXX) $(CXXFLAGS) loggingplugin.cpp -c
++contentplugin.o: contentplugin.cpp
++	$(CXX) $(CXXFLAGS) contentplugin.cpp -c
+ 
+ options.o: options.cpp
+ 	$(CXX) $(CXXFLAGS) options.cpp -c
+ socket.o: socket.cpp
+ 	$(CXX) $(CXXFLAGS) socket.cpp -c
++tools.o: tools.cpp
++	$(CXX) $(CXXFLAGS) tools.cpp -c
+ 
+ msnprotocolplugin.o: msnprotocolplugin.cpp
+ 	$(CXX) $(CXXFLAGS) msnprotocolplugin.cpp -c
+@@ -68,15 +89,20 @@
+ debugloggingplugin.o: debugloggingplugin.cpp
+ 	$(CXX) $(CXXFLAGS) debugloggingplugin.cpp -c
+ mysqlloggingplugin.o: mysqlloggingplugin.cpp
+-	$(CXX) $(CXXFLAGS) mysqlloggingplugin.cpp -c
++	$(CXX) $(CXXFLAGS) mysqlloggingplugin.cpp -c $(BSD_INCLUDE)
+ sqliteloggingplugin.o: sqliteloggingplugin.cpp
+-	$(CXX) $(CXXFLAGS) sqliteloggingplugin.cpp -c
++	$(CXX) $(CXXFLAGS) sqliteloggingplugin.cpp -c $(BSD_INCLUDE)
++
++badwordscontentplugin.o: badwordscontentplugin.cpp
++	$(CXX) $(CXXFLAGS) badwordscontentplugin.cpp -c
+ 
+ install: imspector libimspector.so $(PLUGINS)
+-	-install -D imspector $(PREFIX)/sbin/imspector
+-	-install -D libimspector.so $(PREFIX)/lib/libimspector.so
++	-install imspector $(PREFIX)/sbin/imspector
++	-install libimspector.so $(PREFIX)/lib/libimspector.so
++	-mkdir -p $(PREFIX)/lib/imspector
+ 	-(for PLUGIN in $(PLUGINS); do \
+-		install -D $$PLUGIN $(PREFIX)/lib/imspector/$$PLUGIN; \
++		install $$PLUGIN $(PREFIX)/lib/imspector/$$PLUGIN; \
+ 	done);
+-	-install -D imspector.conf /etc/imspector.conf
+-	-mkdir /var/log/imspector
++	-install imspector.conf $(ETC_PREFIX)/etc/imspector.conf
++	-install imspector.badwords $(ETC_PREFIX)/etc/imspector.badwords
++	-mkdir -p /var/log/imspector
+diff -urN ../imspector-clean/msnprotocolplugin.cpp ./msnprotocolplugin.cpp
+--- ../imspector-clean/msnprotocolplugin.cpp	2006-11-01 19:41:46.000000000 -0500
++++ ./msnprotocolplugin.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -6,7 +6,7 @@
+ 
+ #include "imspector.h"
+ 
+-#define PLUGIN_NAME "MSN Imspector protocol plugin"
++#define PLUGIN_NAME "MSN IMSpector protocol plugin"
+ #define PROTOCOL_NAME "MSN"
+ #define PROTOCOL_PORT 1863
+ 
+@@ -15,21 +15,61 @@
+ 	bool initprotocolplugin(struct protocolplugininfo &pprotocolplugininfo,
+ 		class Options &options, bool debugmode);
+ 	void closeprotocolplugin(void);
+-	int processpacket(bool outgoing, class Socket &incomingsock,
+-		char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents);
++	int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer, 
++		int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++		std::vector<struct messageextent> &messageextents);
+ };
+ 
++#pragma pack(2)
++
++struct p2pheader
++{
++	uint32_t sessionid;
++	uint32_t id;
++	uint64_t offset;
++	uint64_t datasize;
++	uint32_t messagesize;
++	uint32_t flags;
++	uint32_t ackid;
++	uint32_t ackuid;
++	uint64_t acksize;
++};
++
++struct context
++{
++	uint32_t headerlength;
++	uint32_t version;
++	uint64_t filesize;
++	uint32_t type;
++	uint16_t filename[260];
++};
++
++#pragma pack()
++
+ char *chopline(char* buffer, std::string &command, std::vector<std::string> &args, int &argc);
+-bool processmessage(bool outgoing, char *msg, std::vector<struct imevent> &imevents);
++bool processmessage(bool outgoing, int headerlength, char *msg, std::vector<struct imevent> &imevents,
++	std::vector<struct messageextent> &messageextents);
++char *getheadervalues(char *buffer, std::map<std::string, std::string> &headers);
++char *getstring(char *buffer, std::string &str);
++
++#define MSGTYPE_NULL 0
++#define MSGTYPE_PLAIN 1
++#define MSGTYPE_P2P 2
+ 
+ std::string localid = "Unknown";
+ std::string remoteid = "Unknown";
+ int packetcount = 0;
+ bool tracing = false;
++std::map<uint32_t, std::string> filetransfers;
++bool localdebugmode = false;
+ 
+ bool initprotocolplugin(struct protocolplugininfo &protocolplugininfo,
+ 	class Options &options, bool debugmode)
+ {
++	if (options["msn_protocol"] != "on") return false;
++
++	localdebugmode = debugmode;
++	
+ 	protocolplugininfo.pluginname = PLUGIN_NAME;
+ 	protocolplugininfo.protocolname = PROTOCOL_NAME;
+ 	protocolplugininfo.port = htons(PROTOCOL_PORT);
+@@ -45,8 +85,9 @@
+ }
+ 
+ /* The main plugin function. See protocolplugin.cpp. */
+-int processpacket(bool outgoing, class Socket &incomingsock,
+-	char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents)
++int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer, 
++	int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++	std::vector<struct messageextent> &messageextents)
+ {
+ 	char string[STRING_SIZE];
+ 	memset(string, 0, STRING_SIZE);
+@@ -55,7 +96,7 @@
+ 	if ((headerlength = incomingsock.recvline(string, STRING_SIZE)) < 0) return 1;
+ 	if (headerlength < 0) return 1;
+ 	
+-	syslog(LOG_DEBUG, PROTOCOL_NAME ": Got %d bytes of header\n", headerlength);
++	debugprint(localdebugmode, PROTOCOL_NAME ": Got %d bytes of header\n", headerlength);
+ 	
+ 	memcpy(replybuffer, string, headerlength);
+ 	*replybufferlength = headerlength;
+@@ -66,7 +107,7 @@
+ 	char *s;
+ 	s = chopline(string, command, args, argc);
+ 	
+-	syslog(LOG_DEBUG, PROTOCOL_NAME ": Command: %s\n", command.c_str());
++	debugprint(localdebugmode, PROTOCOL_NAME ": Command: %s\n", command.c_str());
+ 	
+ 	/* These are all ways of getting the party (ID) information. */
+ 	if (outgoing)
+@@ -105,7 +146,7 @@
+ 		if (!(incomingsock.recvalldata(msgbuffer, lengthint))) return 1;
+ 		
+ 		/* We get messages from "hotmail"  that we don't need to care about. */
+-		if (args[0] != "Hotmail") processmessage(outgoing, msgbuffer, imevents);
++		if (args[0] != "Hotmail") processmessage(outgoing, headerlength, msgbuffer, imevents, messageextents);
+ 		
+ 		/* Now we copy the msgbuffer back into the replybuffer, starting at the end
+ 		 * of the first line. This gives us a chance to modify msgbuffer when we do
+@@ -163,40 +204,190 @@
+ 	return s;
+ }
+ 
+-bool processmessage(bool outgoing, char *msg, std::vector<struct imevent> &imevents)
++bool processmessage(bool outgoing, int headerlength, char *msg, std::vector<struct imevent> &imevents,
++	std::vector<struct messageextent> &messageextents)
+ {
+-	char header[STRING_SIZE];
+-	memset(header, 0, STRING_SIZE);
++	std::map<std::string, std::string> headers;
+ 
+-	bool plaintext = false;
+-	char *start = msg; char *end;
+-	while ((end = strchr(start, '\r')))
+-	{
+-		strncpy(header, start, end - start);
+-		if (strncmp(header, "Content-Type: text/plain;", 25) == 0)
+-			plaintext = true;
+-		start = end + 2;
++	int msgtype = MSGTYPE_NULL;
+ 		
+-		if (*start == '\r') { break; }
+-	}
++	char *start = msg;
++	start = getheadervalues(start, headers);
+ 	
+-	start += 2;
++	const char *contenttype = headers["Content-Type"].c_str();
+ 			
+-	if (plaintext && *start && (strlen(start) > 0))
++	if (strncmp(contenttype, "text/plain;", 11) == 0)
++			msgtype = MSGTYPE_PLAIN;
++	if (strcmp(contenttype, "application/x-msnmsgrp2p") == 0)
++			msgtype = MSGTYPE_P2P;
++			
++	if (msgtype != MSGTYPE_NULL)
+ 	{
+ 		struct imevent imevent;
+ 		
+ 		imevent.timestamp = time(NULL);
+ 		imevent.protocolname = PROTOCOL_NAME;
+-		imevent.type = outgoing ? TYPE_MSG_OUTGOING : TYPE_MSG_INCOMING;
+ 		imevent.localid = localid;
+ 		imevent.remoteid = remoteid;
+-		imevent.eventdata = start;
+ 		
+-		imevents.push_back(imevent);
++		if (msgtype == MSGTYPE_PLAIN)
++		{
++			imevent.type = outgoing ? TYPE_MSG_OUTGOING : TYPE_MSG_INCOMING;
++			imevent.eventdata = start;
++			
++			struct messageextent messageextent;
++			
++			messageextent.start = start - msg + headerlength;
++			messageextent.length = -1; /* NULL terminated. */
++			
++			messageextents.push_back(messageextent);
++		}
++		if (msgtype == MSGTYPE_P2P)
++		{
++			debugprint(localdebugmode, PROTOCOL_NAME ": P2P");
++			
++			struct p2pheader p2pheader;
++			
++			memcpy(&p2pheader, start, sizeof(struct p2pheader));
++		
++			debugprint(localdebugmode, PROTOCOL_NAME ": sessionid: %u id: %u offset: %llu datasize: %llu messagesize: %u",
++				p2pheader.sessionid, p2pheader.id, p2pheader.offset, p2pheader.datasize,
++				p2pheader.messagesize);
++
++			start += sizeof(struct p2pheader);
++			
++			/* if Session ID is 0 then it is a "start transfer" message. */
++			if (!p2pheader.sessionid)
++			{
++				std::string invite;
++				
++				start = getstring(start, invite);
++							
++				if (strncmp(invite.c_str(), "INVITE ", 7) == 0)
++				{
++					debugprint(localdebugmode, PROTOCOL_NAME ": now onto header level two");
++					
++					std::map<std::string, std::string> headersleveltwo;
++					start = getheadervalues(start, headersleveltwo);
++					
++					debugprint(localdebugmode, PROTOCOL_NAME ": now onto header level three");
++					
++					std::map<std::string, std::string> headerslevelthree;
++					start = getheadervalues(start, headerslevelthree);
++					
++					/* AppID is 2 for normal file transfers. We will ignore buddy icons. */
++					if (headerslevelthree["AppID"] == "2")
++					{
++						struct context context;
++						
++						memset(&context, 0, sizeof(struct context));
++						
++						decodebase64(headerslevelthree["Context"], (uint8_t *) &context, sizeof(struct context));
++			
++						debugprint(localdebugmode, PROTOCOL_NAME ": headerlength: %u version: %u filesize: %llu type: %u",
++							context.headerlength, context.version, context.filesize, context.type);
++						
++						std::string filename;
++						
++						for (int c = 0; context.filename[c]; c++)
++							filename += context.filename[c];					
++						
++						std::string sessionid = headerslevelthree["SessionID"];
++						
++						if (sessionid != "")
++						{
++							debugprint(localdebugmode, PROTOCOL_NAME ": FT sessionid: %s filename: %s",
++								sessionid.c_str(), filename.c_str());
++							filetransfers[atol(sessionid.c_str())] = filename;
++						}
++						
++						char temp[STRING_SIZE];
++						
++						memset(temp, 0, STRING_SIZE);
++						
++						snprintf(temp, STRING_SIZE - 1, "%s %llu bytes", filename.c_str(), 
++							(long long unsigned int)context.filesize);
++						
++						imevent.type = outgoing ? TYPE_FILE_OUTGOING : TYPE_FILE_INCOMING;		
++						imevent.eventdata = temp;
++					}
++				}
++			}
++			else
++			{
++				/* There is a session ID. Look for a match to a in-progress transfer. */
++				std::string filename = filetransfers[p2pheader.sessionid];
++				
++				if (filename != "")
++				{
++					debugprint(localdebugmode, PROTOCOL_NAME ": got something for %s", filename.c_str());
++					filename = "/tmp/filetransfer/" + filename;
++					int fd = -1;
++					if ((fd = open(filename.c_str(), O_APPEND | O_CREAT, 0666)) > 0)
++					{
++						write(fd, start, p2pheader.messagesize);
++						close(fd);
++					}
++				}
++			}
++		}
++		
++		if (imevent.eventdata != "") imevents.push_back(imevent);
+ 		
+ 		return true;
+ 	}
+ 	
+ 	return false;
+ }
++
++char *getheadervalues(char *buffer, std::map<std::string, std::string> &headers)
++{
++	char *s = buffer;
++	
++	while (*s && *s != '\r')
++	{
++		std::string header, value;
++		
++		while (*s && *s != ':')
++		{
++			header += *s;
++			s++;
++		}
++		s++;
++		while (*s && *s == ' ') s++;
++		while (*s && *s != '\r')
++		{
++			value += *s;
++			s++;
++		}
++		
++		headers[header] = value;
++		
++		debugprint(localdebugmode, PROTOCOL_NAME ": header: %s value: %s", header.c_str(),
++			value.c_str());
++		
++		if (!*s) break;
++		
++		s += 2;
++		
++		if (*s && *s == '\r') break;
++	}
++
++	s += 2;
++	
++	return s;
++}
++
++char *getstring(char *buffer, std::string &str)
++{
++	char *s = buffer;
++
++	while (*s && *s != '\r')
++	{
++		str += *s;
++		s++;
++	}
++	s += 2;
++	
++	return s;
++}
+diff -urN ../imspector-clean/mysqlloggingplugin.cpp ./mysqlloggingplugin.cpp
+--- ../imspector-clean/mysqlloggingplugin.cpp	2006-10-15 13:30:58.000000000 -0400
++++ ./mysqlloggingplugin.cpp	2006-12-02 00:45:14.000000000 -0500
+@@ -1,6 +1,7 @@
+ /* IMSpector - Instant Messenger Transparent Proxy Service
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  *          
+  * Released under the GPL v2. */
+ 
+@@ -8,7 +9,19 @@
+ 
+ #include <mysql/mysql.h>
+ 
+-#define PLUGIN_NAME "MySQL Imspector logging plugin"
++#define PLUGIN_NAME "MySQL IMSpector logging plugin"
++#define PlUGIN_SHORT_NAME "MySQL"
++
++#define CREATE_TABLE "CREATE TABLE IF NOT EXISTS `messages` ( " \
++	"`id` int(11) NOT NULL auto_increment, " \
++	"`timestamp` int(11) NOT NULL default '0', " \
++	"`protocolname` text NOT NULL, " \
++	"`type` int(11) NOT NULL default '0', " \
++	"`localid` text NOT NULL, " \
++	"`remoteid` text NOT NULL, " \
++	"`eventdata` blob NOT NULL, " \
++	"PRIMARY KEY  (`id`) " \
++	") ENGINE=MyISAM AUTO_INCREMENT=1929 DEFAULT CHARSET=latin1"
+ 
+ #define INSERT_STATEMENT "INSERT INTO messages " \
+ 	"(id, timestamp, protocolname, type, localid, remoteid, eventdata) " \
+@@ -26,6 +39,8 @@
+ char remoteid[STRING_SIZE]; unsigned long remoteidlength;
+ char eventdata[BUFFER_SIZE]; unsigned long eventdatalength;
+ 
++bool localdebugmode = false;
++
+ extern "C"
+ {
+ 	bool initloggingplugin(struct loggingplugininfo &ploggingplugininfo,
+@@ -36,24 +51,45 @@
+ bool initloggingplugin(struct loggingplugininfo &loggingplugininfo,
+ 	class Options &options, bool debugmode)
+ {
++	localdebugmode = debugmode;
++
+ 	loggingplugininfo.pluginname = PLUGIN_NAME;
++
++	if (options["mysql_server"] == "") return false;
+ 	
+ 	conn = mysql_init(NULL);
+ 	
+ 	/* Connect to database */
+-	if (!mysql_real_connect(conn, options["mysql_server"].c_str(), options["mysql_user"].c_str(),
++	if (!mysql_real_connect(conn, options["mysql_server"].c_str(), options["mysql_username"].c_str(),
+ 		options["mysql_password"].c_str(), options["mysql_database"].c_str(), 0, NULL, 0))
+ 	{
++		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": Failed to connect to database, Error: %s", mysql_error(conn));
++		return false;
++	}
++
++	if (mysql_query(conn, CREATE_TABLE))
++	{
++		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": Failed to create table, Error: %s", mysql_error(conn));
+ 		return false;
+ 	}
+ 	
+ 	if (!(stmt = mysql_stmt_init(conn)))
++	{
++		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": mysql_stmt_init(), Error: out of memory");
+ 		return false;
++	}
+ 	
+ 	if (mysql_stmt_prepare(stmt, INSERT_STATEMENT, strlen(INSERT_STATEMENT)))
++	{
++		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": mysql_stmt_prepare(), Error: %s", mysql_stmt_error(stmt));
+ 		return false;
++	}
+ 		
+-	if (mysql_stmt_param_count(stmt) != NO_FIELDS) return false;
++	if (mysql_stmt_param_count(stmt) != NO_FIELDS)
++	{
++		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": mysql_stmt_param_count(), Error: invalid parameter count");
++		return false;
++	}
+ 	
+ 	memset(binds, 0, sizeof(MYSQL_BIND) * NO_FIELDS);
+ 	
+@@ -100,7 +136,10 @@
+ 
+ 	/* Bind the buffers */
+ 	if (mysql_stmt_bind_param(stmt, binds))
++	{
++		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": mysql_stmt_bind_param(), Error: %s", mysql_stmt_error(stmt));
+ 		return false;
++	}
+ 	
+ 	return true;
+ }
+@@ -136,7 +175,11 @@
+ 		eventdatalength = strlen(eventdata);
+ 
+ 		rc = mysql_stmt_execute(stmt);
+-		if (rc) return mysql_stmt_errno(stmt);
++		if (rc) 
++		{
++			syslog(LOG_ERR, PlUGIN_SHORT_NAME ": mysql_stmt_execute(), Error: %s", mysql_stmt_error(stmt));
++			return mysql_stmt_errno(stmt);
++		}
+ 	}
+ 
+ 	return 0;
+diff -urN ../imspector-clean/protocolplugin.cpp ./protocolplugin.cpp
+--- ../imspector-clean/protocolplugin.cpp	2006-10-15 13:30:58.000000000 -0400
++++ ./protocolplugin.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -55,9 +55,10 @@
+ 	return (*closeprotocolplugin)();
+ }
+ 
+-int ProtocolPlugin::callprocesspacket(bool outgoing, class Socket &incomingsock,
+-	char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents)
++int ProtocolPlugin::callprocesspacket(bool outgoing, class Socket &incomingsock, char *replybuffer,
++	int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++	std::vector<struct messageextent> &messageextents)
+ {
+ 	return (*processpacket)(outgoing, incomingsock, replybuffer,
+-		replybufferlength, imevents);
++		replybufferlength, imevents, clientaddress, messageextents);
+ }
+diff -urN ../imspector-clean/protocolplugin.h ./protocolplugin.h
+--- ../imspector-clean/protocolplugin.h	2006-11-01 19:41:14.000000000 -0500
++++ ./protocolplugin.h	2006-11-30 20:39:54.000000000 -0500
+@@ -28,11 +28,18 @@
+ 	std::string eventdata;
+ };
+ 
++struct messageextent
++{
++	int start;
++	int length;
++};
++
+ typedef bool (*initprotocolplugintype)(struct protocolplugininfo &protocolplugininfo,
+ 	class Options &options, bool debugmode);
+ typedef void (*closeprotocolplugintype)(void);
+-typedef int (*processpackettype)(bool outgoing, class Socket &incomingsock,
+-	char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents);
++typedef int (*processpackettype)(bool outgoing, class Socket &incomingsock, char *replybuffer, 
++	int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++	std::vector<struct messageextent> &messageextents);
+ 
+ class ProtocolPlugin
+ {
+@@ -46,8 +53,9 @@
+ 		
+ 		bool callinitprotocolplugin(class Options &options, bool debugmode);
+ 		void callcloseprotocolplugin(void);
+-		int callprocesspacket(bool outgoing, class Socket &incomingsock,
+-			char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents);
++		int callprocesspacket(bool outgoing, class Socket &incomingsock, char *replybuffer,
++			int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++			std::vector<struct messageextent> &messageextents);
+ 
+ 	private:
+ 		void *handle;
+diff -urN ../imspector-clean/socket.cpp ./socket.cpp
+--- ../imspector-clean/socket.cpp	2006-10-15 13:30:58.000000000 -0400
++++ ./socket.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -1,6 +1,7 @@
+ /* IMSpector - Instant Messenger Transparent Proxy Service
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  *          
+  * Released under the GPL v2. */
+ 
+@@ -79,10 +80,54 @@
+ 	struct sockaddr_in redirectsockaddr;
+ 	socklen_t redirectsockaddrlen = sizeof(struct sockaddr_in);
+ 
++#if defined(__FreeBSD__) || defined(__OpenBSD__)	
++	struct sockaddr_in clientsockaddr;
++	socklen_t clientsockaddrlen = sizeof(struct sockaddr_in);
++	
++	if (getpeername(fd, (struct sockaddr*) &clientsockaddr, &clientsockaddrlen) < 0)
++		return "";
++	
++	if (getsockname(fd, (struct sockaddr*) &redirectsockaddr, &redirectsockaddrlen) < 0)
++		return "";
++
++	int pffd;
++	
++	if ((pffd = open("/dev/pf", O_RDWR)) < 0)
++		return "";
++
++	struct pfioc_natlook nl;
++	
++	memset(&nl, 0, sizeof(struct pfioc_natlook));
++	
++	nl.saddr.v4.s_addr = clientsockaddr.sin_addr.s_addr;
++	nl.sport = clientsockaddr.sin_port;
++	nl.daddr.v4.s_addr = redirectsockaddr.sin_addr.s_addr;
++	nl.dport = redirectsockaddr.sin_port;
++	nl.af = AF_INET;
++	nl.proto = IPPROTO_TCP;
++	nl.direction = PF_OUT;
++	
++	if (ioctl(pffd, DIOCNATLOOK, &nl) < 0) 
++	{
++		close(pffd);
++		
++		return "";
++	}
++	else
++	{
++		close(pffd);
++		
++		redirectsockaddr.sin_port = nl.rdport;
++		redirectsockaddr.sin_addr = nl.rdaddr.v4;
++	
++		return sockaddrtostring((struct mysockaddr *) &redirectsockaddr);
++	}
++#else
+ 	if (getsockopt(fd, SOL_IP, SO_ORIGINAL_DST, &redirectsockaddr, &redirectsockaddrlen) < 0)
+ 		return "";
+ 	else
+ 		return sockaddrtostring((struct mysockaddr *) &redirectsockaddr);
++#endif			
+ }
+ 	
+ bool Socket::connectsocket(std::string remoteaddress)
+@@ -118,7 +163,7 @@
+ 	
+ 	while (totalsented < length)
+ 	{
+-		if ((sented = senddata(buffer + totalsented, length - totalsented)) < 0)
++		if ((sented = senddata(buffer + totalsented, length - totalsented)) < 1)
+ 			return false;
+ 		totalsented += sented;
+ 	}
+@@ -147,7 +192,7 @@
+ 	
+ 	while (totalrecved < length)
+ 	{
+-		if ((recved = recvdata(buffer + totalrecved, length - totalrecved)) < 0)
++		if ((recved = recvdata(buffer + totalrecved, length - totalrecved)) < 1)
+ 			return false;
+ 		totalrecved += recved;
+ 	}
+diff -urN ../imspector-clean/socket.h ./socket.h
+--- ../imspector-clean/socket.h	2006-10-15 13:30:58.000000000 -0400
++++ ./socket.h	2006-11-30 20:39:54.000000000 -0500
+@@ -1,12 +1,18 @@
+ /* IMSpector - Instant Messenger Transparent Proxy Service
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  *          
+  * Released under the GPL v2. */
+ 
+ struct mysockaddr
+ {
++#if defined (__FreeBSD__) || defined (__OpenBSD__)
++	unsigned char   sa_len;		
++	sa_family_t  sa_family;	
++#else
+ 	__SOCKADDR_COMMON (sa_);
++#endif
+ 	char sa_data[STRING_SIZE];
+ };
+ 
+diff -urN ../imspector-clean/sqliteloggingplugin.cpp ./sqliteloggingplugin.cpp
+--- ../imspector-clean/sqliteloggingplugin.cpp	2006-11-04 15:47:04.000000000 -0500
++++ ./sqliteloggingplugin.cpp	2006-12-01 10:16:36.000000000 -0500
+@@ -9,7 +9,7 @@
+ 
+ #include <sqlite3.h>
+ 
+-#define PLUGIN_NAME "SQLite Imspector logging plugin"
++#define PLUGIN_NAME "SQLite IMSpector logging plugin"
+ 
+ #define INSERT_STATEMENT "INSERT INTO messages " \
+ 	"(id, timestamp, protocolname, type, localid, remoteid, eventdata) " \
+@@ -18,6 +18,7 @@
+ 
+ sqlite3 *db;
+ sqlite3_stmt *insertstatement;
++bool localdebugmode = false;
+ 
+ extern "C"
+ {
+@@ -29,6 +30,8 @@
+ bool initloggingplugin(struct loggingplugininfo &loggingplugininfo,
+ 	class Options &options, bool debugmode)
+ {
++	localdebugmode = debugmode;
++
+ 	loggingplugininfo.pluginname = PLUGIN_NAME;
+ 
+ 	if (options["sqlite_file"] == "") return false;
+diff -urN ../imspector-clean/tools.cpp ./tools.cpp
+--- ../imspector-clean/tools.cpp	1969-12-31 19:00:00.000000000 -0500
++++ ./tools.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -0,0 +1,103 @@
++/* IMSpector - Instant Messenger Transparent Proxy Service
++ * http://www.imspector.org/
++ * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
++ *          
++ * Released under the GPL v2. */
++
++#include "imspector.h"
++
++void stripnewline(char *buffer)
++{
++	char *t = strchr(buffer, '\n'); if (t) *t = '\0';
++}
++
++void debugprint(bool debugflag, char *fmt, ...)
++{
++	if (!debugflag) return;
++
++	va_list argp;
++
++	va_start(argp, fmt);
++	vsyslog(LOG_DEBUG, fmt, argp);
++	va_end(argp);
++}
++
++int decodebase64(std::string line, uint8_t *buffer, int bufferlen)
++{
++	uint32_t quartet = 0;
++	uint8_t d;
++	int c = 0; int len = line.length() - 4;
++	
++	for (int i = 0; i < len && c < bufferlen - 3; i += 4)
++	{
++		quartet = 0;
++		d = decodebase64char(line[i + 0]);
++		quartet = quartet | d;
++		d = decodebase64char(line[i + 1]);
++		quartet = (quartet << 6) | d;
++		d = decodebase64char(line[i + 2]);
++		quartet = (quartet << 6) | d;
++		d = decodebase64char(line[i + 3]);
++		quartet = (quartet << 6) | d;
++		d = (quartet & 0xFF0000) >> 16;
++		buffer[c++] = (uint8_t) d;
++		d = (quartet & 0xFF00) >> 8;
++		buffer[c++] = (uint8_t) d;
++		d = quartet & 0xFF;
++		buffer[c++] = (uint8_t) d;
++	}
++	
++	return c;
++}
++
++uint8_t decodebase64char(char c)
++{
++	uint8_t i = '\0';
++	
++	switch (c)
++	{
++		case '+':
++			i = 62;
++			break;
++			
++		case '/':
++			i = 63;
++			break;
++			
++		case '=':
++			i = 0;
++			break;
++			
++		default:
++			/* Must be alphanumeric. */
++			i = '9' - c;
++			if (i > 0x3F)
++			{
++				/* It is under 9 */
++				i = 'Z' - c;
++				if (i > 0x3F)
++				{
++					/* It is after Z. */
++					i = 'z' - c;
++					if (i > 0x3F)
++						i = 0x80;
++					else
++						/* It is a-z. */
++						i = c - 71;
++				}
++				else
++					/* A-Z */
++					i = c - 65;
++			}
++			else 
++				i = c + 4;
++				
++			break;
++	}
++	
++	return i;
++}
++
++	
++	
+diff -urN ../imspector-clean/tools.h ./tools.h
+--- ../imspector-clean/tools.h	1969-12-31 19:00:00.000000000 -0500
++++ ./tools.h	2006-11-30 20:39:54.000000000 -0500
+@@ -0,0 +1,12 @@
++/* IMSpector - Instant Messenger Transparent Proxy Service
++ * http://www.imspector.org/
++ * (c) Lawrence Manning <lawrence@aslak.net>, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
++ *          
++ * Released under the GPL v2. */
++
++void stripnewline(char *buffer);
++void debugprint(bool debugflag, char *string, ...);
++int decodebase64(std::string line, uint8_t *buffer, int bufferlen);
++uint8_t decodebase64char(char c);
++
+diff -urN ../imspector-clean/yahooprotocolplugin.cpp ./yahooprotocolplugin.cpp
+--- ../imspector-clean/yahooprotocolplugin.cpp	2006-11-04 15:46:02.000000000 -0500
++++ ./yahooprotocolplugin.cpp	2006-11-30 20:39:54.000000000 -0500
+@@ -6,7 +6,7 @@
+ 
+ #include "imspector.h"
+ 
+-#define PLUGIN_NAME "Yahoo Imspector protocol plugin"
++#define PLUGIN_NAME "Yahoo IMSpector protocol plugin"
+ #define PROTOCOL_NAME "Yahoo"
+ #define PROTOCOL_PORT 5050
+ 
+@@ -15,8 +15,9 @@
+ 	bool initprotocolplugin(struct protocolplugininfo &pprotocolplugininfo,
+ 		class Options &options, bool debugmode);
+ 	void closeprotocolplugin(void);
+-	int processpacket(bool outgoing, class Socket &incomingsock,
+-		char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents);
++	int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer,
++		int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++		std::vector<struct messageextents> &messageextents);
+ };
+ 
+ #pragma pack(2)
+@@ -39,12 +40,17 @@
+ 
+ int packetcount = 0;
+ bool tracing = false;
++bool localdebugmode = false;
+ 
+ int gettagsandvalues(uint8_t *buffer, int length, std::map<std::string, std::string> &tagvalues);
+ 
+ bool initprotocolplugin(struct protocolplugininfo &protocolplugininfo,
+ 	class Options &options, bool debugmode)
+ {
++	if (options["yahoo_protocol"] != "on") return false;
++
++	localdebugmode = debugmode;
++	
+ 	protocolplugininfo.pluginname = PLUGIN_NAME;
+ 	protocolplugininfo.protocolname = PROTOCOL_NAME;
+ 	protocolplugininfo.port = htons(PROTOCOL_PORT);
+@@ -60,8 +66,9 @@
+ }
+ 
+ /* The main plugin function. See protocolplugin.cpp. */
+-int processpacket(bool outgoing, class Socket &incomingsock,
+-	char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents)
++int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer, 
++	int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
++	std::vector<struct messageextents> &messageextents)
+ {
+ 	struct header header;
+ 	memset(&header, 0, sizeof(struct header));
+@@ -78,8 +85,9 @@
+ 	header.status = ntohs(header.status);
+ 	header.session_id = ntohl(header.session_id);
+ 	
+-	syslog(LOG_DEBUG, PROTOCOL_NAME ": ID: %c %c %c %c verion: %d service: %04x pkt_len: %d", header.ymsg[0], header.ymsg[1],
+-		header.ymsg[2], header.ymsg[3], header.version, header.service, header.pkt_len);
++	debugprint(localdebugmode, PROTOCOL_NAME ": ID: %c %c %c %c verion: %d service: %04x pkt_len: %d",
++		header.ymsg[0], header.ymsg[1],	header.ymsg[2], header.ymsg[3], 
++		header.version, header.service, header.pkt_len);
+ 		
+ 	uint8_t buffer[BUFFER_SIZE];
+ 	
+@@ -181,7 +189,7 @@
+ 		tagvalues[tag] = value;
+ 		counter++;
+ 		
+-		syslog(LOG_DEBUG, PROTOCOL_NAME ": Tag: %s Value: %s", tag.c_str(), value.c_str());
++		debugprint(localdebugmode, PROTOCOL_NAME ": Tag: %s Value: %s", tag.c_str(), value.c_str());
+ 	}
+ 	
+ 	return counter;

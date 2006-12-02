@@ -1,0 +1,13 @@
+sbin/imspector
+etc/imspector.conf
+etc/imspector.badwords
+lib/libimspector.so
+lib/imspector/debugloggingplugin.so
+lib/imspector/fileloggingplugin.so
+lib/imspector/mysqlloggingplugin.so
+lib/imspector/icqprotocolplugin.so
+lib/imspector/ircprotocolplugin.so
+lib/imspector/msnprotocolplugin.so
+lib/imspector/yahooprotocolplugin.so
+lib/imspector/badwordscontentplugin.so
+@dirrm lib/imspector
