@@ -1,7 +1,7 @@
 diff -urN ../imspector-clean/badwordscontentplugin.cpp ./badwordscontentplugin.cpp
 --- ../imspector-clean/badwordscontentplugin.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ ./badwordscontentplugin.cpp	2006-12-01 14:38:56.000000000 -0500
-@@ -0,0 +1,104 @@
++++ ./badwordscontentplugin.cpp	2006-12-02 13:42:08.000000000 -0500
+@@ -0,0 +1,117 @@
 +/* IMSpector - Instant Messenger Transparent Proxy Service
 + * http://www.imspector.org/
 + * (c) Lawrence Manning <lawrence@aslak.net>, 2006
@@ -11,7 +11,10 @@ diff -urN ../imspector-clean/badwordscontentplugin.cpp ./badwordscontentplugin.c
 +
 +#include "imspector.h"
 +
-+#define PLUGIN_NAME "Bad-word IMSpector content plugin"
++#define PLUGIN_NAME "Bad-words IMSpector content plugin"
++#define PLUGIN_SHORT_NAME "Bad-words"
++
++#define DEFAULT_REPLACE_CHAR '*'
 +
 +extern "C"
 +{
@@ -23,6 +26,8 @@ diff -urN ../imspector-clean/badwordscontentplugin.cpp ./badwordscontentplugin.c
 +int readbadwords(std::string filename);
 +
 +std::vector<std::string> badwords;
++char replacecharacter = DEFAULT_REPLACE_CHAR;
++bool repalceall = false;
 +bool localdebugmode = false;
 +
 +bool initcontentplugin(struct contentplugininfo &contentplugininfo,
@@ -34,9 +39,18 @@ diff -urN ../imspector-clean/badwordscontentplugin.cpp ./badwordscontentplugin.c
 +	
 +	int count = readbadwords(options["badwords_filename"]);
 +
-+	if (count == -1) return false;
++	if (count == -1)
++	{
++		syslog(LOG_ERR, PLUGIN_SHORT_NAME ": Couldn't open bad words file %s",
++			options["badwords_filename"].c_str());
++		return false;
++	}
 +	
-+	syslog(LOG_INFO, "Loaded %d bad-words", count);
++	if (options["badwords_replace_character"] != "")
++		replacecharacter = options["badwords_replace_character"][0];
++		
++	syslog(LOG_INFO, PLUGIN_SHORT_NAME ": Loaded %d bad-words, replacing with '%c'",
++		count, replacecharacter);
 +
 +	contentplugininfo.pluginname = PLUGIN_NAME;
 +	
@@ -51,7 +65,8 @@ diff -urN ../imspector-clean/badwordscontentplugin.cpp ./badwordscontentplugin.c
 +/* The main plugin function. See contentplugin.cpp. */
 +int contentfilter(char *originalbuffer, char *modifiedbuffer)
 +{
-+	debugprint(localdebugmode, "Bad-words filtering before: original: %s ",	modifiedbuffer);
++	debugprint(localdebugmode, PLUGIN_SHORT_NAME ": filtering before: original: %s modified: %s",
++		originalbuffer, modifiedbuffer);
 +
 +	for (std::vector<std::string>::iterator i = badwords.begin();
 +		i != badwords.end(); i++)
@@ -68,15 +83,15 @@ diff -urN ../imspector-clean/badwordscontentplugin.cpp ./badwordscontentplugin.c
 +				if (isalpha(*(s - 1)) && isalpha(*(s + needlelength)))
 +				{
 +					s++;
-+					break;
++					continue;
 +				}
 +			}
 +		
-+			memset(s, (int) '*', needlelength);
++			memset(s, (int) replacecharacter, needlelength);
 +		}
 +	}
 +	
-+	debugprint(localdebugmode, "Bad-words filtering after: modified: %s", modifiedbuffer);
++	debugprint(localdebugmode, PLUGIN_SHORT_NAME ": filtering after: modified: %s", modifiedbuffer);
 +	
 +	return 0;
 +}
@@ -99,16 +114,104 @@ diff -urN ../imspector-clean/badwordscontentplugin.cpp ./badwordscontentplugin.c
 +		
 +		if (!strlen(buffer)) break;
 +		
-+		badwords.push_back(buffer);
-+		
-+		result++;
++		badwords.push_back(buffer); result++;
 +	}
 +
 +	return result;
 +}
+diff -urN ../imspector-clean/badwords.txt ./badwords.txt
+--- ../imspector-clean/badwords.txt	1969-12-31 19:00:00.000000000 -0500
++++ ./badwords.txt	2006-12-02 13:42:08.000000000 -0500
+@@ -0,0 +1,86 @@
++twat
++son-of-a-bitch
++shyty
++shytty
++shyte
++shyt
++shitz
++shity
++shitty
++shitting
++shitter
++shitted
++shiting
++shited
++shit
++sh1tz
++sh1tter
++sh1ts
++sh1ter
++sh1t
++sh!t
++schlong
++poonani
++polak
++polack
++polac
++piss off
++piss
++phuq
++phuks
++phukking
++phukker
++phukked
++phuking
++phuker
++phuked
++phuk
++phuck
++phuc
++kuntz
++kunts
++kunt
++fuks
++fukk
++fukin
++fuker
++fuken
++fukah
++fuk
++fudge packer
++fucks
++fuckme 
++fucking
++fuckin
++fucker
++fucked
++fuck
++cunt
++cock-suck
++cocksuck 
++cock-head
++cockhead
++cntz
++cnts
++bastard
++bassterds
++azzhole
++asswipe
++assholz
++asshole
++assh0le
++assface
++wanker
++wank
++bollock
++nobjockey
++feck
++fack
++beeatch
++mo fo
++fcuk
++shize
++clagnuts
++dickhead
++dickbrain
++kahnt
 diff -urN ../imspector-clean/contentplugin.cpp ./contentplugin.cpp
 --- ../imspector-clean/contentplugin.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ ./contentplugin.cpp	2006-11-30 20:39:54.000000000 -0500
++++ ./contentplugin.cpp	2006-12-02 13:42:08.000000000 -0500
 @@ -0,0 +1,61 @@
 +/* IMSpector - Instant Messenger Transparent Proxy Service
 + * http://www.imspector.org/
@@ -173,7 +276,7 @@ diff -urN ../imspector-clean/contentplugin.cpp ./contentplugin.cpp
 +}
 diff -urN ../imspector-clean/contentplugin.h ./contentplugin.h
 --- ../imspector-clean/contentplugin.h	1969-12-31 19:00:00.000000000 -0500
-+++ ./contentplugin.h	2006-11-30 20:39:54.000000000 -0500
++++ ./contentplugin.h	2006-12-02 13:42:08.000000000 -0500
 @@ -0,0 +1,37 @@
 +/* IMSpector - Instant Messenger Transparent Proxy Service
 + * http://www.imspector.org/
@@ -214,8 +317,8 @@ diff -urN ../imspector-clean/contentplugin.h ./contentplugin.h
 +};
 diff -urN ../imspector-clean/debugloggingplugin.cpp ./debugloggingplugin.cpp
 --- ../imspector-clean/debugloggingplugin.cpp	2006-11-01 19:42:46.000000000 -0500
-+++ ./debugloggingplugin.cpp	2006-11-30 20:39:54.000000000 -0500
-@@ -1,12 +1,13 @@
++++ ./debugloggingplugin.cpp	2006-12-02 13:42:08.000000000 -0500
+@@ -1,12 +1,14 @@
  /* IMSpector - Instant Messenger Transparent Proxy Service
   * http://www.imspector.org/
   * (c) Lawrence Manning <lawrence@aslak.net>, 2006
@@ -227,10 +330,11 @@ diff -urN ../imspector-clean/debugloggingplugin.cpp ./debugloggingplugin.cpp
  
 -#define PLUGIN_NAME "Debug Imspector logging plugin"
 +#define PLUGIN_NAME "Debug IMSpector logging plugin"
++#define PLUGIN_SHORT_NAME "Debug"
  
  extern "C"
  {
-@@ -15,9 +16,13 @@
+@@ -15,9 +17,13 @@
  	int logevents(std::vector<struct imevent> &imevents, std::string &clientaddress);
  };
  
@@ -244,7 +348,7 @@ diff -urN ../imspector-clean/debugloggingplugin.cpp ./debugloggingplugin.cpp
  	if (!debugmode) return false;
  
  	loggingplugininfo.pluginname = PLUGIN_NAME;
-@@ -36,13 +41,31 @@
+@@ -36,13 +42,31 @@
  	for (std::vector<struct imevent>::iterator i = imevents.begin();
  		i != imevents.end(); i++)
  	{
@@ -255,38 +359,38 @@ diff -urN ../imspector-clean/debugloggingplugin.cpp ./debugloggingplugin.cpp
 -		syslog(LOG_DEBUG, PLUGIN_NAME ": LocalID: %s", (*i).localid.c_str());
 -		syslog(LOG_DEBUG, PLUGIN_NAME ": RemoteID: %s", (*i).remoteid.c_str());
 -		syslog(LOG_DEBUG, PLUGIN_NAME ": Event data: %s", (*i).eventdata.c_str());
-+		debugprint(localdebugmode, PLUGIN_NAME ": Client address: %s", clientaddress.c_str());
-+		debugprint(localdebugmode, PLUGIN_NAME ": Timestamp: %d", (int)(*i).timestamp);
-+		debugprint(localdebugmode, PLUGIN_NAME ": Protocol: %s", (*i).protocolname.c_str());
++		debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: Client address: %s", clientaddress.c_str());
++		debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: Timestamp: %d", (int)(*i).timestamp);
++		debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: Protocol: %s", (*i).protocolname.c_str());
 +
 +		switch ((*i).type)
 +		{
 +			case TYPE_MSG_INCOMING:
-+				debugprint(localdebugmode, PLUGIN_NAME ": Type: MSG_INCOMING");
++				debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: Type: MSG_INCOMING");
 +				break;
 +			case TYPE_MSG_OUTGOING:
-+				debugprint(localdebugmode, PLUGIN_NAME ": Type: MSG_OUTGOING");
++				debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: Type: MSG_OUTGOING");
 +				break;
 +			case TYPE_FILE_INCOMING:
-+				debugprint(localdebugmode, PLUGIN_NAME ": Type: FILE_INCOMING");
++				debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: Type: FILE_INCOMING");
 +				break;
 +			case TYPE_FILE_OUTGOING:
-+				debugprint(localdebugmode, PLUGIN_NAME ": Type: FILE_OUTGOING");
++				debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: Type: FILE_OUTGOING");
 +				break;				
 +			default:
-+				debugprint(localdebugmode, PLUGIN_NAME ": Type: NULL");
++				debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Evnt: Type: NULL");
 +		}		
 +	
-+		debugprint(localdebugmode, PLUGIN_NAME ": LocalID: %s", (*i).localid.c_str());
-+		debugprint(localdebugmode, PLUGIN_NAME ": RemoteID: %s", (*i).remoteid.c_str());
-+		debugprint(localdebugmode, PLUGIN_NAME ": Event data: %s", (*i).eventdata.c_str());
++		debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: LocalID: %s", (*i).localid.c_str());
++		debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: RemoteID: %s", (*i).remoteid.c_str());
++		debugprint(localdebugmode, PLUGIN_SHORT_NAME ": Event: Data: %s", (*i).eventdata.c_str());
  	}
  
  	return 0;
 diff -urN ../imspector-clean/fileloggingplugin.cpp ./fileloggingplugin.cpp
 --- ../imspector-clean/fileloggingplugin.cpp	2006-11-01 14:12:14.000000000 -0500
-+++ ./fileloggingplugin.cpp	2006-11-30 20:39:54.000000000 -0500
-@@ -1,12 +1,13 @@
++++ ./fileloggingplugin.cpp	2006-12-02 13:42:08.000000000 -0500
+@@ -1,12 +1,14 @@
  /* IMSpector - Instant Messenger Transparent Proxy Service
   * http://www.imspector.org/
   * (c) Lawrence Manning <lawrence@aslak.net>, 2006
@@ -298,10 +402,11 @@ diff -urN ../imspector-clean/fileloggingplugin.cpp ./fileloggingplugin.cpp
  
 -#define PLUGIN_NAME "File Imspector logging plugin"
 +#define PLUGIN_NAME "File IMSpector logging plugin"
++#define PLUGIN_SHORT_NAME "File"
  
  extern "C"
  {
-@@ -16,10 +17,13 @@
+@@ -16,14 +18,17 @@
  };
  
  std::string fileloggingdir;
@@ -310,12 +415,17 @@ diff -urN ../imspector-clean/fileloggingplugin.cpp ./fileloggingplugin.cpp
  bool initloggingplugin(struct loggingplugininfo &loggingplugininfo,
  	class Options &options, bool debugmode)
  {
+-	loggingplugininfo.pluginname = PLUGIN_NAME;
 +	localdebugmode = debugmode;
-+
- 	loggingplugininfo.pluginname = PLUGIN_NAME;
  
  	if (options["file_logging_dir"] == "") return false;
-@@ -31,6 +35,7 @@
+ 
++	loggingplugininfo.pluginname = PLUGIN_NAME;
++
+ 	fileloggingdir = options["file_logging_dir"];
+ 		
+ 	return true;
+@@ -31,6 +36,7 @@
  
  void closeloggingplugin(void)
  {
@@ -323,30 +433,15 @@ diff -urN ../imspector-clean/fileloggingplugin.cpp ./fileloggingplugin.cpp
  }
  
  /* The main plugin function. See loggingplugin.cpp. */
-@@ -49,7 +54,22 @@
- 			if (errno != EEXIST) return 1;
+@@ -50,6 +56,7 @@
  		}
  
-+		/* replace unkown with hyphenated client address */
-+		if ((*i).localid == "Unknown")
-+		{
-+			std::string clientaddresshyp = clientaddress.substr(0, clientaddress.find(":", 0));		
-+			
-+			for (size_t j = 0; j < clientaddresshyp.length(); j++)
-+				if (clientaddresshyp[j] == '.' || clientaddresshyp[j] == ':')
-+					clientaddresshyp[j] = '-';
-+
-+			filename += "/" + clientaddresshyp;
-+		}
-+		else
-+		{
  		filename += "/" + (*i).localid;
-+		}
 +		
  		if (strstr(filename.c_str(), "..")) return 1;
  		if (mkdir(filename.c_str(), 0777) < 0)
  		{
-@@ -74,7 +94,7 @@
+@@ -74,7 +81,7 @@
  		if (!(hfile = fopen(filename.c_str(), "a"))) return 1;
  		
  		fprintf(hfile, "%s,", clientaddress.c_str());
@@ -357,7 +452,7 @@ diff -urN ../imspector-clean/fileloggingplugin.cpp ./fileloggingplugin.cpp
  		std::string eventdata = (*i).eventdata;
 diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
 --- ../imspector-clean/icqprotocolplugin.cpp	2006-11-04 15:45:22.000000000 -0500
-+++ ./icqprotocolplugin.cpp	2006-11-30 23:06:54.000000000 -0500
++++ ./icqprotocolplugin.cpp	2006-12-02 13:42:08.000000000 -0500
 @@ -1,22 +1,26 @@
  /* IMSpector - Instant Messenger Transparent Proxy Service
   * http://www.imspector.org/
@@ -423,8 +518,8 @@ diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
 +bool gettlvptr(GET_ARGS, uint16_t *tag, uint16_t *length, char **value);
 + 
 +void cookiemonster(void);
-+bool setcookieuin(std::string hexcookie, std::string uin);
-+std::string getcookieuin(std::string hexcookie);
++bool setcookieuin(std::string cookie, std::string uin);
++std::string getcookieuin(std::string cookie);
 +std::string cookietohex (int length, char *cookie);
  
  std::string localid = "Unknown";
@@ -888,13 +983,11 @@ diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
  	{
  		if (mytag == 0x0101)
 -		{
--			char string[STRING_SIZE];
--			memset(string, 0, STRING_SIZE);
 +		{	
 +			debugprint(localdebugmode, PROTOCOL_NAME ": Message string tag 0x0101 found, len: %d", mylength);
 +			
-+			char string[BUFFER_SIZE];
-+			memset(string, 0, BUFFER_SIZE);
+ 			char string[STRING_SIZE];
+ 			memset(string, 0, STRING_SIZE);
 +				
 +			if (!getlong(&myvalue, startp, lengthp, &dummy)) return 1;					
  
@@ -1123,7 +1216,7 @@ diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
 +	}
 +}
 +
-+bool setcookieuin(std::string hexcookie, std::string uin)
++bool setcookieuin(std::string cookie, std::string uin)
 +{
 +	char buffer[BUFFER_SIZE];
 +	class Socket cookiesock(AF_UNIX, SOCK_STREAM);
@@ -1135,7 +1228,7 @@ diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
 +	}
 +
 +	memset(buffer, 0, BUFFER_SIZE);
-+	snprintf(buffer, BUFFER_SIZE - 1, "set\n%s\n%s\n", hexcookie.c_str(), uin.c_str());
++	snprintf(buffer, BUFFER_SIZE - 1, "set\n%s\n%s\n", cookie.c_str(), uin.c_str());
 +	
 +	if (!cookiesock.sendalldata(buffer, strlen(buffer)))
 +	{
@@ -1149,7 +1242,7 @@ diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
 +	return true;
 +}
 +
-+std::string getcookieuin(std::string hexcookie)
++std::string getcookieuin(std::string cookie)
 +{
 +	char buffer[BUFFER_SIZE];
 +	class Socket cookiesock(AF_UNIX, SOCK_STREAM);
@@ -1163,7 +1256,7 @@ diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
 +	}
 +
 +	memset(buffer, 0, BUFFER_SIZE);
-+	snprintf(buffer, BUFFER_SIZE - 1, "get\n%s\n", hexcookie.c_str());
++	snprintf(buffer, BUFFER_SIZE - 1, "get\n%s\n", cookie.c_str());
 +
 +	if (!cookiesock.sendalldata(buffer, strlen(buffer)))
 +	{
@@ -1195,118 +1288,19 @@ diff -urN ../imspector-clean/icqprotocolplugin.cpp ./icqprotocolplugin.cpp
 +	char hexchar[STRING_SIZE];
 +	std::string hexcookie;
 +	
-+	for (int i=0;i<length;i++)
++	for (int i = 0; i < length; i++)
 +	{
-+		snprintf(hexchar, STRING_SIZE - 1, "%02x", cookie[i]);
++		sprintf(hexchar, "%02x", cookie[i]);
 +		hexcookie.push_back(hexchar[0]);
 +		hexcookie.push_back(hexchar[1]);
 +	}
 +
 +	return hexcookie;
  }
-diff -urN ../imspector-clean/imspector.badwords ./imspector.badwords
---- ../imspector-clean/imspector.badwords	1969-12-31 19:00:00.000000000 -0500
-+++ ./imspector.badwords	2006-12-01 14:34:38.000000000 -0500
-@@ -0,0 +1,86 @@
-+twat
-+son-of-a-bitch
-+shyty
-+shytty
-+shyte
-+shyt
-+shitz
-+shity
-+shitty
-+shitting
-+shitter
-+shitted
-+shiting
-+shited
-+shit
-+sh1tz
-+sh1tter
-+sh1ts
-+sh1ter
-+sh1t
-+sh!t
-+schlong
-+poonani
-+polak
-+polack
-+polac
-+piss off
-+piss
-+phuq
-+phuks
-+phukking
-+phukker
-+phukked
-+phuking
-+phuker
-+phuked
-+phuk
-+phuck
-+phuc
-+kuntz
-+kunts
-+kunt
-+fuks
-+fukk
-+fukin
-+fuker
-+fuken
-+fukah
-+fuk
-+fudge packer
-+fucks
-+fuckme 
-+fucking
-+fuckin
-+fucker
-+fucked
-+fuck
-+cunt
-+cock-suck
-+cocksuck 
-+cock-head
-+cockhead
-+cntz
-+cnts
-+bastard
-+bassterds
-+azzhole
-+asswipe
-+assholz
-+asshole
-+assh0le
-+assface
-+wanker
-+wank
-+bollock
-+nobjockey
-+feck
-+fack
-+beeatch
-+mo fo
-+fcuk
-+shize
-+clagnuts
-+dickhead
-+dickbrain
-+kahnt
 diff -urN ../imspector-clean/imspector.conf ./imspector.conf
 --- ../imspector-clean/imspector.conf	2006-11-04 15:46:42.000000000 -0500
-+++ ./imspector.conf	2006-12-02 02:17:16.763500000 -0500
-@@ -2,7 +2,7 @@
- #port=16667
- 
- # This is the default location of protocol and logging plugins.
--#plugin_dir=/usr/lib/imspector
-+plugin_dir=/usr/local/lib/imspector
- 
- # For dropping privs - you probably want to do this.
- #user=imspector
-@@ -11,6 +11,12 @@
++++ ./imspector.conf	2006-12-02 13:42:08.000000000 -0500
+@@ -11,6 +11,15 @@
  # Location where the file logging plugin will start from.
  file_logging_dir=/var/log/imspector
  
@@ -1316,12 +1310,15 @@ diff -urN ../imspector-clean/imspector.conf ./imspector.conf
 +msn_protocol=on
 +yahoo_protocol=on
 +
++# Bad words filtering
++#badwords_filename=/etc/imspector/badwords.txt
++
  # MySQL logging plugin stuff
  #mysql_server=localhost
  #mysql_database=imspector
 diff -urN ../imspector-clean/imspector.h ./imspector.h
 --- ../imspector-clean/imspector.h	2006-10-21 15:50:10.000000000 -0400
-+++ ./imspector.h	2006-11-30 20:39:54.000000000 -0500
++++ ./imspector.h	2006-12-02 13:42:08.000000000 -0500
 @@ -1,6 +1,7 @@
  /* IMSpector - Instant Messenger Transparent Proxy Service
   * http://www.imspector.org/
@@ -1367,7 +1364,7 @@ diff -urN ../imspector-clean/imspector.h ./imspector.h
  
  #define STRING_SIZE 1024
  #define BUFFER_SIZE 65536
-@@ -41,5 +56,8 @@
+@@ -41,5 +56,7 @@
  
  #include "socket.h"
  #include "options.h"
@@ -1375,10 +1372,9 @@ diff -urN ../imspector-clean/imspector.h ./imspector.h
  #include "protocolplugin.h"
  #include "loggingplugin.h"
 +#include "contentplugin.h"
-+
 diff -urN ../imspector-clean/ircprotocolplugin.cpp ./ircprotocolplugin.cpp
 --- ../imspector-clean/ircprotocolplugin.cpp	2006-11-04 15:44:46.000000000 -0500
-+++ ./ircprotocolplugin.cpp	2006-11-30 20:39:54.000000000 -0500
++++ ./ircprotocolplugin.cpp	2006-12-02 13:42:08.000000000 -0500
 @@ -6,7 +6,7 @@
  
  #include "imspector.h"
@@ -1502,8 +1498,8 @@ diff -urN ../imspector-clean/ircprotocolplugin.cpp ./ircprotocolplugin.cpp
  	/* Need to advance s to the start of the next line, skipping over the eol chars. */
 diff -urN ../imspector-clean/main.cpp ./main.cpp
 --- ../imspector-clean/main.cpp	2006-11-01 19:42:46.000000000 -0500
-+++ ./main.cpp	2006-12-02 00:36:38.000000000 -0500
-@@ -1,6 +1,7 @@
++++ ./main.cpp	2006-12-02 13:42:08.000000000 -0500
+@@ -1,21 +1,25 @@
  /* IMSpector - Instant Messenger Transparent Proxy Service
   * http://www.imspector.org/
   * (c) Lawrence Manning <lawrence@aslak.net>, 2006
@@ -1511,7 +1507,10 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
   * 
   * Released under the GPL v2. */
  
-@@ -10,12 +11,14 @@
+ #include "imspector.h"
+ 
++#define DEFAULT_CONFIG "/usr/etc/imspector/imspector.conf"
+ #define LOGGING_SOCKET "/tmp/.imspectorlog"
  #define DEFAULT_PLUGIN_DIR "/usr/lib/imspector"
  
  std::vector<class ProtocolPlugin> protocolplugins;
@@ -1526,7 +1525,16 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  
  int getgidfromname(std::string name);
  int getuidfromname(std::string name);
-@@ -51,6 +54,14 @@
+@@ -29,7 +33,7 @@
+ 
+ int main(int argc, char *argv[])
+ {
+-	std::string configfilename = "/etc/imspector.conf";
++	std::string configfilename = DEFAULT_CONFIG;
+ 	class Options options;
+ 	bool debugmode = false;
+ 	
+@@ -51,6 +55,16 @@
  			debugmode = true;
  			continue;
  		}
@@ -1534,14 +1542,16 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
 +		if (strcmp("-h", argv[c]) == 0 || strcmp("--help", argv[c]) == 0)
 +		{
 +			fprintf(stderr, "Usage:\n" \
-+				"\t[-c configfile] [-d]\n" \
-+				"\nNotes:\n\t With -d IMSpector will run in debug mode\n");
++				"\t%s [-c configfile] [-d]\n" \
++				"Notes:\n" \
++				"\tWith -d IMSpector will run in debug mode\n",
++				argv[0]);
 +			return 1;
 +		}		
  		
  		fprintf(stderr, "Warning: Unrecognised argument: %s\n", argv[c]);
  	}
-@@ -147,19 +158,20 @@
+@@ -147,19 +161,20 @@
  	
  	memset(&protocolpluginsglob, 0, sizeof(glob_t));
  	
@@ -1567,7 +1577,7 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  		ProtocolPlugin myprotocolplugin;
  		if (!myprotocolplugin.loadplugin(protocolpluginsglob.gl_pathv[c])) { return 1; }
  		if (myprotocolplugin.callinitprotocolplugin(options, debugmode))
-@@ -169,6 +181,33 @@
+@@ -169,6 +184,33 @@
  		}
  	}
  	
@@ -1601,12 +1611,19 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  	struct sigaction sa;
  	memset(&sa, 0, sizeof(struct sigaction));
  
-@@ -185,6 +224,14 @@
+@@ -179,12 +221,21 @@
+ 		return 1;
+ 	}
+ 	
++	/* Setup handler for SIGTERM. */
+ 	sa.sa_handler = sigterm;
+ 	if (sigaction(SIGTERM, &sa, NULL))
+ 	{
  		syslog(LOG_ERR, "Error: Unable to set SIGTERM handler");
  		return 1;
  	}
 +	
-+	/* handle ctrl+c for debugging */
++	/* Handle ctrl+c for debugging. Use the SIGTERM handler. */
 +	sa.sa_handler = sigterm;
 +	if (sigaction(SIGINT, &sa, NULL))
 +	{
@@ -1616,7 +1633,7 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  		
  	class Socket loggingsock(AF_UNIX, SOCK_STREAM);
  
-@@ -205,7 +252,7 @@
+@@ -205,7 +256,7 @@
  		/* In the child. */
  		case 0:
  			loggingprocess(options, debugmode, loggingsock);
@@ -1625,7 +1642,7 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  			return 0;
  			
  		/* In the parent. */
-@@ -223,7 +270,7 @@
+@@ -223,7 +274,7 @@
  		syslog(LOG_ERR, "Error: Couldn't bind to socket.");
  		return 1;
  	}
@@ -1634,7 +1651,7 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  	while (!quitting)
  	{
  		std::string clientaddress;
-@@ -231,7 +278,7 @@
+@@ -231,7 +282,7 @@
  		
  		if (!serversock.awaitconnection(clientsock, clientaddress)) continue;
  		
@@ -1643,21 +1660,21 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  
  		switch (fork())
  		{
-@@ -246,7 +293,7 @@
+@@ -246,7 +297,7 @@
  			case 0:
  				doproxy(options, debugmode, clientsock, clientaddress);
  				clientsock.closesocket();
 -				syslog(LOG_DEBUG, "Finished with child");
-+				debugprint(debugmode, "Finished with connection: %s\n", clientaddress.c_str());
++				debugprint(debugmode, "Finished with child: %s", clientaddress.c_str());
  				return 0;
  				
  			/* In the parent. */
-@@ -267,6 +314,14 @@
+@@ -267,6 +318,14 @@
  		syslog(LOG_ERR, "Error: Unable ignore SIGTERM");
  		return 1;
  	}
 +	
-+	/* handle ctrl+c for debugging */
++	/* Handle ctrl+c for debugging. */
 +	sa.sa_handler = SIG_IGN;
 +	if (sigaction(SIGINT, &sa, NULL))
 +	{
@@ -1667,7 +1684,16 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  	kill(0, SIGTERM);
  	
  	syslog(LOG_INFO, "Good-bye");
-@@ -326,6 +381,7 @@
+@@ -301,7 +360,7 @@
+ 	/* Dunno what to do with that thing. Caller will close for us. */
+ 	if (!pprotocolplugin) 
+ 	{
+-		syslog(LOG_INFO, "WTF is that? Connection to %s\n", redirectaddress.c_str());
++		syslog(LOG_ERR, "Don't know how to handle connection to %s\n", redirectaddress.c_str());
+ 		return false;
+ 	}
+ 
+@@ -326,6 +385,7 @@
  		if (result == -1) break;
  		
  		std::vector<struct imevent> imevents;
@@ -1675,7 +1701,7 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  		char replybuffer[BUFFER_SIZE]; int replylength;
  		
  		memset(replybuffer, 0, BUFFER_SIZE);
-@@ -333,14 +389,18 @@
+@@ -333,14 +393,18 @@
  		if (FD_ISSET(clientsock.getfd(), &rfds))
  		{
  			if (pprotocolplugin->callprocesspacket(true, clientsock, replybuffer,
@@ -1696,7 +1722,7 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  			if (!(clientsock.sendalldata(replybuffer, replylength))) break;
  		}
  		
-@@ -378,10 +438,10 @@
+@@ -378,10 +442,10 @@
  		return false;
  	}
  
@@ -1709,25 +1735,25 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  		if (myloggingplugin.callinitloggingplugin(options, debugmode))
  		{
  			syslog(LOG_INFO, "Logging Plugin name: %s", myloggingplugin.loggingplugininfo.pluginname.c_str());
-@@ -405,7 +465,7 @@
+@@ -405,7 +469,7 @@
  		
  		int imeventcount = atol(buffer);
  		
 -		syslog(LOG_DEBUG, "%d elements in imevents", imeventcount);
-+		/* debugprint(debugmode, "%d elements in imevents", imeventcount); */
++		debugprint(debugmode, "%d elements in imevents", imeventcount);
  		
  		for (int c = 0; c < imeventcount; c++)
  		{
-@@ -419,7 +479,7 @@
+@@ -419,8 +483,6 @@
  				if ((clientsock.recvline(buffer, BUFFER_SIZE)) < 0) continue;
  				char *t = strchr(buffer, '\n'); if (t) *t = '\0';
  				
 -				syslog(LOG_DEBUG, "Logging received %d: %s", line, buffer);
-+				/* debugprint(debugmode, "Logging received %d: %s", line, buffer); */
- 				
+-				
  				switch (line)
  				{
-@@ -492,7 +552,7 @@
+ 					case 0:
+@@ -492,7 +554,7 @@
  	
  	memset(buffer, 0, BUFFER_SIZE);
  	
@@ -1736,7 +1762,7 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  	
  	if (!loggingsock.sendalldata(buffer, strlen(buffer))) return false;
  
-@@ -526,6 +586,45 @@
+@@ -526,6 +588,43 @@
  	return true;
  }
  
@@ -1752,8 +1778,6 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
 +	for (std::vector<struct messageextent>::iterator i = messageextents.begin();
 +		i != messageextents.end(); i++)
 +	{
-+		syslog(LOG_DEBUG,"Content Filter, Start: %d Length: %d", (*i).start, (*i).length);
-+	
 +		/* Take a private copy of buffer. That way the plugins don't have to
 +		 * care about the lengths. */
 +		if ((*i).length < 0)
@@ -1782,29 +1806,55 @@ diff -urN ../imspector-clean/main.cpp ./main.cpp
  int getgidfromname(std::string name)
  {
  	struct group *group = getgrnam(name.c_str());
+@@ -542,6 +641,7 @@
+ 	return (int) user->pw_uid;
+ }
+ 
++/* Returns true if the pid pointed to by pidfilename is running. */
+ bool checkforrunning(std::string pidfilename)
+ {
+ 	bool rc = false;
+@@ -566,6 +666,7 @@
+ 	return rc;
+ }
+ 
++/* (Re)creates the pid file. */
+ bool writepidfile(std::string pidfilename)
+ {
+ 	unlink(pidfilename.c_str());
+@@ -604,6 +705,7 @@
+ 	return true;
+ }
+ 
++/* Fireman collects the falling children. */
+ void fireman(int signal)
+ {
+ 	int wstatus;
+@@ -611,6 +713,7 @@
+ 	while (wait3(&wstatus, WNOHANG, NULL) > 0);
+ }
+ 
++/* SIGTERM handler simply sets the quitting variable so the mainlop ends. */
+ void sigterm(int signal)
+ {
+ 	quitting = true;
 diff -urN ../imspector-clean/Makefile ./Makefile
 --- ../imspector-clean/Makefile	2006-11-04 15:46:18.000000000 -0500
-+++ ./Makefile	2006-12-02 01:56:56.000000000 -0500
-@@ -1,28 +1,42 @@
++++ ./Makefile	2006-12-02 13:42:08.000000000 -0500
+@@ -1,17 +1,26 @@
 -# Default install prefix
--PREFIX = /usr
 +##########
 +# If using FreeBSD or OpenBSD COMMENT the below lines
-+#LIBS = -ldl
-+#MYSQL_LIB = -L/usr/lib/mysql
-+#PREFIX = /usr
-+
++LIBS = -ldl
+ PREFIX = /usr
+ 
 +# If using FreeBSD or OpenBSD UNCOMMENT the below lines
-+BSD_INCLUDE = -I/usr/local/include
-+MYSQL_LIB = -L/usr/local/lib/mysql
-+SQLITE_LIB = -L/usr/local/lib
-+PREFIX = /usr/local
-+ETC_PREFIX = $(PREFIX)
++#PREFIX = /usr/local
 +
 +# For any distro
-+ADD_PLUGINS = mysqlloggingplugin.so
++#ADD_PLUGINS = mysqlloggingplugin.so sqliteloggingplugin.so
 +##########
- 
++
  CXX = g++
  
 -CXXFLAGS = -Wall -O2
@@ -1824,9 +1874,8 @@ diff -urN ../imspector-clean/Makefile ./Makefile
  
  all: imspector $(PLUGINS)
  
- clean:
--	rm -f imspector libimspector.so $(PLUGINS) *.o
-+	rm -f imspector libimspector.so $(PLUGINS) mysqlloggingplugin.so sqliteloggingplugin.so *.o
+@@ -19,10 +28,10 @@
+ 	rm -f imspector libimspector.so $(PLUGINS) *.o
  
  imspector: $(IMSPECTOR_OBJS) libimspector.so
 -	$(CXX) $(IMSPECTOR_OBJS) -ldl libimspector.so -o imspector
@@ -1838,22 +1887,22 @@ diff -urN ../imspector-clean/Makefile ./Makefile
  
  msnprotocolplugin.so: msnprotocolplugin.o libimspector.so
  	$(CXX) msnprotocolplugin.o libimspector.so $(PLUGIN_FLAGS)
-@@ -38,9 +52,12 @@
+@@ -38,9 +47,12 @@
  debugloggingplugin.so: debugloggingplugin.o libimspector.so
  	$(CXX) debugloggingplugin.o libimspector.so $(PLUGIN_FLAGS)
  mysqlloggingplugin.so: mysqlloggingplugin.o libimspector.so
 -	$(CXX) mysqlloggingplugin.o libimspector.so $(PLUGIN_FLAGS) -L/usr/lib/mysql -lmysqlclient
-+	$(CXX) mysqlloggingplugin.o libimspector.so $(PLUGIN_FLAGS) $(MYSQL_LIB) -lmysqlclient
++	$(CXX) mysqlloggingplugin.o libimspector.so $(PLUGIN_FLAGS) -L$(PREFIX)/lib/mysql -lmysqlclient
  sqliteloggingplugin.so: sqliteloggingplugin.o libimspector.so
 -	$(CXX) sqliteloggingplugin.o libimspector.so $(PLUGIN_FLAGS) -lsqlite3
-+	$(CXX) sqliteloggingplugin.o libimspector.so $(PLUGIN_FLAGS) $(SQLITE_LIB) -lsqlite3
++	$(CXX) sqliteloggingplugin.o libimspector.so $(PLUGIN_FLAGS) -L$(PREFIX)/lib -lsqlite3
 +
 +badwordscontentplugin.so: badwordscontentplugin.o libimspector.so
 +	$(CXX) badwordscontentplugin.o libimspector.so $(PLUGIN_FLAGS)
  
  main.o: main.cpp
  	$(CXX) $(CXXFLAGS) main.cpp -c
-@@ -48,11 +65,15 @@
+@@ -48,11 +60,15 @@
  	$(CXX) $(CXXFLAGS) protocolplugin.cpp -c
  loggingplugin.o: loggingplugin.cpp
  	$(CXX) $(CXXFLAGS) loggingplugin.cpp -c
@@ -1869,15 +1918,15 @@ diff -urN ../imspector-clean/Makefile ./Makefile
  
  msnprotocolplugin.o: msnprotocolplugin.cpp
  	$(CXX) $(CXXFLAGS) msnprotocolplugin.cpp -c
-@@ -68,15 +89,20 @@
+@@ -68,15 +84,21 @@
  debugloggingplugin.o: debugloggingplugin.cpp
  	$(CXX) $(CXXFLAGS) debugloggingplugin.cpp -c
  mysqlloggingplugin.o: mysqlloggingplugin.cpp
 -	$(CXX) $(CXXFLAGS) mysqlloggingplugin.cpp -c
-+	$(CXX) $(CXXFLAGS) mysqlloggingplugin.cpp -c $(BSD_INCLUDE)
++	$(CXX) $(CXXFLAGS) mysqlloggingplugin.cpp -c -I$(PREFIX)/include
  sqliteloggingplugin.o: sqliteloggingplugin.cpp
 -	$(CXX) $(CXXFLAGS) sqliteloggingplugin.cpp -c
-+	$(CXX) $(CXXFLAGS) sqliteloggingplugin.cpp -c $(BSD_INCLUDE)
++	$(CXX) $(CXXFLAGS) sqliteloggingplugin.cpp -c -I$(PREFIX)/include
 +
 +badwordscontentplugin.o: badwordscontentplugin.cpp
 +	$(CXX) $(CXXFLAGS) badwordscontentplugin.cpp -c
@@ -1894,12 +1943,13 @@ diff -urN ../imspector-clean/Makefile ./Makefile
  	done);
 -	-install -D imspector.conf /etc/imspector.conf
 -	-mkdir /var/log/imspector
-+	-install imspector.conf $(ETC_PREFIX)/etc/imspector.conf
-+	-install imspector.badwords $(ETC_PREFIX)/etc/imspector.badwords
++	-mkdir -p $(PREFIX)/etc/imspector
++	-install imspector.conf $(PREFIX)/etc/imspector/imspector.conf
++	-install badwords.txt $(PREFIX)/etc/imspector/badwords.txt
 +	-mkdir -p /var/log/imspector
 diff -urN ../imspector-clean/msnprotocolplugin.cpp ./msnprotocolplugin.cpp
 --- ../imspector-clean/msnprotocolplugin.cpp	2006-11-01 19:41:46.000000000 -0500
-+++ ./msnprotocolplugin.cpp	2006-11-30 20:39:54.000000000 -0500
++++ ./msnprotocolplugin.cpp	2006-12-02 13:42:08.000000000 -0500
 @@ -6,7 +6,7 @@
  
  #include "imspector.h"
@@ -2013,7 +2063,7 @@ diff -urN ../imspector-clean/msnprotocolplugin.cpp ./msnprotocolplugin.cpp
  		
  		/* Now we copy the msgbuffer back into the replybuffer, starting at the end
  		 * of the first line. This gives us a chance to modify msgbuffer when we do
-@@ -163,40 +204,190 @@
+@@ -163,40 +204,173 @@
  	return s;
  }
  
@@ -2144,23 +2194,6 @@ diff -urN ../imspector-clean/msnprotocolplugin.cpp ./msnprotocolplugin.cpp
 +					}
 +				}
 +			}
-+			else
-+			{
-+				/* There is a session ID. Look for a match to a in-progress transfer. */
-+				std::string filename = filetransfers[p2pheader.sessionid];
-+				
-+				if (filename != "")
-+				{
-+					debugprint(localdebugmode, PROTOCOL_NAME ": got something for %s", filename.c_str());
-+					filename = "/tmp/filetransfer/" + filename;
-+					int fd = -1;
-+					if ((fd = open(filename.c_str(), O_APPEND | O_CREAT, 0666)) > 0)
-+					{
-+						write(fd, start, p2pheader.messagesize);
-+						close(fd);
-+					}
-+				}
-+			}
 +		}
 +		
 +		if (imevent.eventdata != "") imevents.push_back(imevent);
@@ -2224,7 +2257,7 @@ diff -urN ../imspector-clean/msnprotocolplugin.cpp ./msnprotocolplugin.cpp
 +}
 diff -urN ../imspector-clean/mysqlloggingplugin.cpp ./mysqlloggingplugin.cpp
 --- ../imspector-clean/mysqlloggingplugin.cpp	2006-10-15 13:30:58.000000000 -0400
-+++ ./mysqlloggingplugin.cpp	2006-12-02 00:45:14.000000000 -0500
++++ ./mysqlloggingplugin.cpp	2006-12-02 13:42:08.000000000 -0500
 @@ -1,6 +1,7 @@
  /* IMSpector - Instant Messenger Transparent Proxy Service
   * http://www.imspector.org/
@@ -2280,13 +2313,13 @@ diff -urN ../imspector-clean/mysqlloggingplugin.cpp ./mysqlloggingplugin.cpp
 +	if (!mysql_real_connect(conn, options["mysql_server"].c_str(), options["mysql_username"].c_str(),
  		options["mysql_password"].c_str(), options["mysql_database"].c_str(), 0, NULL, 0))
  	{
-+		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": Failed to connect to database, Error: %s", mysql_error(conn));
++		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": Couldn't connect to database, Error: %s", mysql_error(conn));
 +		return false;
 +	}
 +
 +	if (mysql_query(conn, CREATE_TABLE))
 +	{
-+		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": Failed to create table, Error: %s", mysql_error(conn));
++		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": Couldn't create table, Error: %s", mysql_error(conn));
  		return false;
  	}
  	
@@ -2337,7 +2370,7 @@ diff -urN ../imspector-clean/mysqlloggingplugin.cpp ./mysqlloggingplugin.cpp
  	return 0;
 diff -urN ../imspector-clean/protocolplugin.cpp ./protocolplugin.cpp
 --- ../imspector-clean/protocolplugin.cpp	2006-10-15 13:30:58.000000000 -0400
-+++ ./protocolplugin.cpp	2006-11-30 20:39:54.000000000 -0500
++++ ./protocolplugin.cpp	2006-12-02 13:42:08.000000000 -0500
 @@ -55,9 +55,10 @@
  	return (*closeprotocolplugin)();
  }
@@ -2354,7 +2387,7 @@ diff -urN ../imspector-clean/protocolplugin.cpp ./protocolplugin.cpp
  }
 diff -urN ../imspector-clean/protocolplugin.h ./protocolplugin.h
 --- ../imspector-clean/protocolplugin.h	2006-11-01 19:41:14.000000000 -0500
-+++ ./protocolplugin.h	2006-11-30 20:39:54.000000000 -0500
++++ ./protocolplugin.h	2006-12-02 13:42:08.000000000 -0500
 @@ -28,11 +28,18 @@
  	std::string eventdata;
  };
@@ -2390,7 +2423,7 @@ diff -urN ../imspector-clean/protocolplugin.h ./protocolplugin.h
  		void *handle;
 diff -urN ../imspector-clean/socket.cpp ./socket.cpp
 --- ../imspector-clean/socket.cpp	2006-10-15 13:30:58.000000000 -0400
-+++ ./socket.cpp	2006-11-30 20:39:54.000000000 -0500
++++ ./socket.cpp	2006-12-02 13:42:08.000000000 -0500
 @@ -1,6 +1,7 @@
  /* IMSpector - Instant Messenger Transparent Proxy Service
   * http://www.imspector.org/
@@ -2474,7 +2507,7 @@ diff -urN ../imspector-clean/socket.cpp ./socket.cpp
  	}
 diff -urN ../imspector-clean/socket.h ./socket.h
 --- ../imspector-clean/socket.h	2006-10-15 13:30:58.000000000 -0400
-+++ ./socket.h	2006-11-30 20:39:54.000000000 -0500
++++ ./socket.h	2006-12-02 13:42:08.000000000 -0500
 @@ -1,12 +1,18 @@
  /* IMSpector - Instant Messenger Transparent Proxy Service
   * http://www.imspector.org/
@@ -2496,17 +2529,35 @@ diff -urN ../imspector-clean/socket.h ./socket.h
  
 diff -urN ../imspector-clean/sqliteloggingplugin.cpp ./sqliteloggingplugin.cpp
 --- ../imspector-clean/sqliteloggingplugin.cpp	2006-11-04 15:47:04.000000000 -0500
-+++ ./sqliteloggingplugin.cpp	2006-12-01 10:16:36.000000000 -0500
-@@ -9,7 +9,7 @@
++++ ./sqliteloggingplugin.cpp	2006-12-02 13:42:08.000000000 -0500
+@@ -2,6 +2,7 @@
+  * http://www.imspector.org/
+  * (c) Lawrence Manning <lawrence@aslak.net>, 2006
+  * (c) Tom Newton, 2006
++ * (c) Ryan Wagoner <ryan@wgnrs.dynu.com>, 2006
+  *          
+  * Released under the GPL v2. */
+ 
+@@ -9,7 +10,17 @@
  
  #include <sqlite3.h>
  
 -#define PLUGIN_NAME "SQLite Imspector logging plugin"
 +#define PLUGIN_NAME "SQLite IMSpector logging plugin"
++#define PLUGIN_SHORT_NAME "SQLite"
++
++#define CREATE_TABLE "CREATE TABLE IF NOT EXISTS messages ( " \
++	"id integer PRIMARY KEY AUTOINCREMENT, " \
++	"timestamp integer NOT NULL, " \
++	"protocolname text NOT NULL, " \
++	"type integer NOT NULL, " \
++	"localid text NOT NULL, " \
++	"remoteid text NOT NULL, " \
++	"eventdata blob NOT NULL );"
  
  #define INSERT_STATEMENT "INSERT INTO messages " \
  	"(id, timestamp, protocolname, type, localid, remoteid, eventdata) " \
-@@ -18,6 +18,7 @@
+@@ -18,6 +29,7 @@
  
  sqlite3 *db;
  sqlite3_stmt *insertstatement;
@@ -2514,7 +2565,7 @@ diff -urN ../imspector-clean/sqliteloggingplugin.cpp ./sqliteloggingplugin.cpp
  
  extern "C"
  {
-@@ -29,6 +30,8 @@
+@@ -29,17 +41,38 @@
  bool initloggingplugin(struct loggingplugininfo &loggingplugininfo,
  	class Options &options, bool debugmode)
  {
@@ -2523,10 +2574,44 @@ diff -urN ../imspector-clean/sqliteloggingplugin.cpp ./sqliteloggingplugin.cpp
  	loggingplugininfo.pluginname = PLUGIN_NAME;
  
  	if (options["sqlite_file"] == "") return false;
+ 	
+ 	int rc = sqlite3_open(options["sqlite_file"].c_str(), &db);
+-	if (rc != SQLITE_OK) return false;
++	if (rc != SQLITE_OK)
++	{
++		syslog(LOG_ERR, PLUGIN_SHORT_NAME ": Couldn't open DB, Error: %s", sqlite3_errmsg (db));
++		return false;
++	}
+ 
++	rc = sqlite3_exec (db, CREATE_TABLE, NULL, NULL, NULL);
++	if (rc != SQLITE_OK)
++	{
++		syslog(LOG_ERR, PLUGIN_SHORT_NAME ": Couldn't create table, Error: %s", sqlite3_errmsg (db));
++		return false;
++	}
++	
+ 	rc = sqlite3_prepare(db, INSERT_STATEMENT, -1, &insertstatement, 0);	
+-	if (rc != SQLITE_OK) return false;	
+-
+-	if (sqlite3_bind_parameter_count(insertstatement) != NO_FIELDS) return false;
++	if (rc != SQLITE_OK)
++	{
++		syslog(LOG_ERR, PLUGIN_SHORT_NAME ": sqlite3_preapre(), Error: %s", sqlite3_errmsg (db));
++		return false;
++	}
++	
++	if (sqlite3_bind_parameter_count(insertstatement) != NO_FIELDS)
++	{
++		syslog(LOG_ERR, PLUGIN_SHORT_NAME ": sqlite3_bind_parameter_count(), Error: invalid paramter count");
++		return false;
++	}
+ 	
+ 	return true;
+ }
 diff -urN ../imspector-clean/tools.cpp ./tools.cpp
 --- ../imspector-clean/tools.cpp	1969-12-31 19:00:00.000000000 -0500
-+++ ./tools.cpp	2006-11-30 20:39:54.000000000 -0500
-@@ -0,0 +1,103 @@
++++ ./tools.cpp	2006-12-02 13:42:08.000000000 -0500
+@@ -0,0 +1,102 @@
 +/* IMSpector - Instant Messenger Transparent Proxy Service
 + * http://www.imspector.org/
 + * (c) Lawrence Manning <lawrence@aslak.net>, 2006
@@ -2628,12 +2713,11 @@ diff -urN ../imspector-clean/tools.cpp ./tools.cpp
 +	return i;
 +}
 +
-+	
-+	
++
 diff -urN ../imspector-clean/tools.h ./tools.h
 --- ../imspector-clean/tools.h	1969-12-31 19:00:00.000000000 -0500
-+++ ./tools.h	2006-11-30 20:39:54.000000000 -0500
-@@ -0,0 +1,12 @@
++++ ./tools.h	2006-12-02 13:42:08.000000000 -0500
+@@ -0,0 +1,11 @@
 +/* IMSpector - Instant Messenger Transparent Proxy Service
 + * http://www.imspector.org/
 + * (c) Lawrence Manning <lawrence@aslak.net>, 2006
@@ -2645,10 +2729,9 @@ diff -urN ../imspector-clean/tools.h ./tools.h
 +void debugprint(bool debugflag, char *string, ...);
 +int decodebase64(std::string line, uint8_t *buffer, int bufferlen);
 +uint8_t decodebase64char(char c);
-+
 diff -urN ../imspector-clean/yahooprotocolplugin.cpp ./yahooprotocolplugin.cpp
 --- ../imspector-clean/yahooprotocolplugin.cpp	2006-11-04 15:46:02.000000000 -0500
-+++ ./yahooprotocolplugin.cpp	2006-11-30 20:39:54.000000000 -0500
++++ ./yahooprotocolplugin.cpp	2006-12-02 13:42:08.000000000 -0500
 @@ -6,7 +6,7 @@
  
  #include "imspector.h"
@@ -2666,17 +2749,30 @@ diff -urN ../imspector-clean/yahooprotocolplugin.cpp ./yahooprotocolplugin.cpp
 -		char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents);
 +	int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer,
 +		int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
-+		std::vector<struct messageextents> &messageextents);
++		std::vector<struct messageextent> &messageextents);
  };
  
  #pragma pack(2)
-@@ -39,12 +40,17 @@
+@@ -33,18 +34,29 @@
+ 
+ #pragma pack()
+ 
++struct tagvalue
++{
++	std::string text;
++	struct messageextent messageextent;
++};
++
+ #define YAHOO_SERVICE_MESSAGE 0x06
+ #define YAHOO_SERVICE_FILETRANSFER 0x46
+ #define YAHOO_SERVICE_P2PFILEXFER 0x4d
  
  int packetcount = 0;
  bool tracing = false;
 +bool localdebugmode = false;
  
- int gettagsandvalues(uint8_t *buffer, int length, std::map<std::string, std::string> &tagvalues);
+-int gettagsandvalues(uint8_t *buffer, int length, std::map<std::string, std::string> &tagvalues);
++int gettagsandvalues(uint8_t *buffer, int length, std::map<std::string, struct tagvalue> &tagvalues);
  
  bool initprotocolplugin(struct protocolplugininfo &protocolplugininfo,
  	class Options &options, bool debugmode)
@@ -2688,7 +2784,7 @@ diff -urN ../imspector-clean/yahooprotocolplugin.cpp ./yahooprotocolplugin.cpp
  	protocolplugininfo.pluginname = PLUGIN_NAME;
  	protocolplugininfo.protocolname = PROTOCOL_NAME;
  	protocolplugininfo.port = htons(PROTOCOL_PORT);
-@@ -60,8 +66,9 @@
+@@ -60,8 +72,9 @@
  }
  
  /* The main plugin function. See protocolplugin.cpp. */
@@ -2696,11 +2792,11 @@ diff -urN ../imspector-clean/yahooprotocolplugin.cpp ./yahooprotocolplugin.cpp
 -	char *replybuffer, int *replybufferlength, std::vector<struct imevent> &imevents)
 +int processpacket(bool outgoing, class Socket &incomingsock, char *replybuffer, 
 +	int *replybufferlength, std::vector<struct imevent> &imevents, std::string &clientaddress,
-+	std::vector<struct messageextents> &messageextents)
++	std::vector<struct messageextent> &messageextents)
  {
  	struct header header;
  	memset(&header, 0, sizeof(struct header));
-@@ -78,8 +85,9 @@
+@@ -78,8 +91,9 @@
  	header.status = ntohs(header.status);
  	header.session_id = ntohl(header.session_id);
  	
@@ -2712,12 +2808,92 @@ diff -urN ../imspector-clean/yahooprotocolplugin.cpp ./yahooprotocolplugin.cpp
  		
  	uint8_t buffer[BUFFER_SIZE];
  	
-@@ -181,7 +189,7 @@
- 		tagvalues[tag] = value;
+@@ -93,7 +107,7 @@
+ 	}
+ 
+ 	/* Split out the buffer into a list of tag and values. */
+-	std::map<std::string, std::string> tagvalues;
++	std::map<std::string, struct tagvalue> tagvalues;
+ 	gettagsandvalues(buffer, header.pkt_len, tagvalues);
+ 
+ 	/* Simple stuff: build the imevent and push it onto the list. */
+@@ -104,12 +118,14 @@
+ 	if (header.service == YAHOO_SERVICE_MESSAGE)
+ 	{
+ 		imevent.type = outgoing ? TYPE_MSG_OUTGOING : TYPE_MSG_INCOMING;
+-		imevent.eventdata = tagvalues["14"];
++		imevent.eventdata = tagvalues["14"].text;
++		
++		messageextents.push_back(tagvalues["14"].messageextent);
+ 	}
+ 	else if (header.service == YAHOO_SERVICE_P2PFILEXFER)
+ 	{
+ 		imevent.type = outgoing ? TYPE_FILE_OUTGOING : TYPE_FILE_INCOMING;
+-		imevent.eventdata = tagvalues["27"] + " " + tagvalues["28"] + " bytes";
++		imevent.eventdata = tagvalues["27"].text + " " + tagvalues["28"].text + " bytes";
+ 	}
+ 	
+ 	if (imevent.type != TYPE_NULL)
+@@ -119,15 +135,15 @@
+ 	
+ 		if (outgoing)
+ 		{
+-			imevent.localid = tagvalues["1"];
+-			imevent.remoteid = tagvalues["5"];
++			imevent.localid = tagvalues["1"].text;
++			imevent.remoteid = tagvalues["5"].text;
+ 		}
+ 		else
+ 		{
+-			imevent.localid = tagvalues["5"];
+-			imevent.remoteid = tagvalues["4"];
++			imevent.localid = tagvalues["5"].text;
++			imevent.remoteid = tagvalues["4"].text;
+ 		}
+-		
++
+ 		imevents.push_back(imevent);
+ 	}
+ 	
+@@ -154,14 +170,14 @@
+ }
+ 
+ /* Builds up a map of tag and values using the c080 markers. */
+-int gettagsandvalues(uint8_t *buffer, int length, std::map<std::string, std::string> &tagvalues)
++int gettagsandvalues(uint8_t *buffer, int length, std::map<std::string, struct tagvalue> &tagvalues)
+ {
+ 	int counter = 0;
+ 	uint8_t *p = (uint8_t *) buffer;
+ 	
+ 	while (p - buffer < length)
+ 	{
+-		std::string tag, value;		
++		std::string tag; struct tagvalue tagvalue;	
+ 		
+ 		while (!(p[0] == 0xc0 && p[1] == 0x80))
+ 		{
+@@ -170,18 +186,21 @@
+ 			p++;
+ 		}
+ 		p += 2;
++		tagvalue.messageextent.start = p - buffer + sizeof(struct header);
++		tagvalue.messageextent.length = 0;
+ 		while (!(p[0] == 0xc0 && p[1] == 0x80))
+ 		{
+ 			if (p - buffer >= length) break;
+-			value += *p;
++			tagvalue.text += *p;
++			tagvalue.messageextent.length++;
+ 			p++;
+ 		}
+ 		p += 2;
+ 		
+-		tagvalues[tag] = value;
++		tagvalues[tag] = tagvalue;
  		counter++;
  		
 -		syslog(LOG_DEBUG, PROTOCOL_NAME ": Tag: %s Value: %s", tag.c_str(), value.c_str());
-+		debugprint(localdebugmode, PROTOCOL_NAME ": Tag: %s Value: %s", tag.c_str(), value.c_str());
++		debugprint(localdebugmode, PROTOCOL_NAME ": Tag: %s Value: %s", tag.c_str(), tagvalue.text.c_str());
  	}
  	
  	return counter;

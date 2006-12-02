@@ -10,6 +10,8 @@ CATEGORIES=		net
 MASTER_SITES=	http://www.imspector.org/downloads/
 DISTFILES=		imspector-0.2.tar.gz
 
+LIB_DEPENDS=	mysqlclient.15:${PORTSDIR}/databases/mysql51-client
+
 MAINTAINER=		ryan@wgnrs.dynu.com
 COMMENT=		Instant Messenger transparent proxy with logging capabilities
 

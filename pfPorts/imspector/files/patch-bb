@@ -1,0 +1,42 @@
+diff -urN ../imspector-patch/imspector.conf ./imspector.conf
+--- ../imspector-patch/imspector.conf	2006-12-02 13:42:08.000000000 -0500
++++ ./imspector.conf	2006-12-02 13:43:02.000000000 -0500
+@@ -2,7 +2,7 @@
+ #port=16667
+ 
+ # This is the default location of protocol and logging plugins.
+-#plugin_dir=/usr/lib/imspector
++plugin_dir=/usr/local/lib/imspector
+ 
+ # For dropping privs - you probably want to do this.
+ #user=imspector
+@@ -18,7 +18,7 @@
+ yahoo_protocol=on
+ 
+ # Bad words filtering
+-#badwords_filename=/etc/imspector/badwords.txt
++badwords_filename=/usr/local/etc/imspector/badwords.txt
+ 
+ # MySQL logging plugin stuff
+ #mysql_server=localhost
+diff -urN ../imspector-patch/Makefile ./Makefile
+--- ../imspector-patch/Makefile	2006-12-02 13:42:08.000000000 -0500
++++ ./Makefile	2006-12-02 13:18:24.000000000 -0500
+@@ -1,13 +1,13 @@
+ ##########
+ # If using FreeBSD or OpenBSD COMMENT the below lines
+-LIBS = -ldl
+-PREFIX = /usr
++#LIBS = -ldl
++#PREFIX = /usr
+ 
+ # If using FreeBSD or OpenBSD UNCOMMENT the below lines
+-#PREFIX = /usr/local
++PREFIX = /usr/local
+ 
+ # For any distro
+-#ADD_PLUGINS = mysqlloggingplugin.so sqliteloggingplugin.so
++ADD_PLUGINS = mysqlloggingplugin.so #sqliteloggingplugin.so
+ ##########
+ 
+ CXX = g++
