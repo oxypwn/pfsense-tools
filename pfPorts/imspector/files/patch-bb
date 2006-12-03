@@ -40,3 +40,201 @@ diff -urN ../imspector-patch/Makefile ./Makefile
  ##########
  
  CXX = g++
+diff -urN ../imspector-patch/mysqlloggingplugin.cpp ./mysqlloggingplugin.cpp
+--- ../imspector-patch/mysqlloggingplugin.cpp	2006-12-02 13:42:08.000000000 -0500
++++ ./mysqlloggingplugin.cpp	2006-12-02 21:47:16.000000000 -0500
+@@ -8,6 +8,7 @@
+ #include "imspector.h"
+ 
+ #include <mysql/mysql.h>
++#include <mysql/errmsg.h>
+ 
+ #define PLUGIN_NAME "MySQL IMSpector logging plugin"
+ #define PlUGIN_SHORT_NAME "MySQL"
+@@ -28,6 +29,13 @@
+ 	"VALUES (0, ?, ?, ?, ?, ?, ?)"
+ #define NO_FIELDS 6
+ 
++extern "C"
++{
++	bool initloggingplugin(struct loggingplugininfo &ploggingplugininfo,
++		class Options &options, bool debugmode);
++	int logevents(std::vector<struct imevent> &imevents, std::string &clientaddress);
++};
++
+ MYSQL *conn;
+ MYSQL_STMT *stmt;
+ MYSQL_BIND binds[NO_FIELDS];
+@@ -40,13 +48,17 @@
+ char eventdata[BUFFER_SIZE]; unsigned long eventdatalength;
+ 
+ bool localdebugmode = false;
++bool connected = false;
++int retries = 0;
+ 
+-extern "C"
+-{
+-	bool initloggingplugin(struct loggingplugininfo &ploggingplugininfo,
+-		class Options &options, bool debugmode);
+-	int logevents(std::vector<struct imevent> &imevents, std::string &clientaddress);
+-};
++std::string server;
++std::string database;
++std::string username;
++std::string password;
++
++std::vector<struct imevent> mysqlevents;
++
++bool connectmysql(void);
+ 
+ bool initloggingplugin(struct loggingplugininfo &loggingplugininfo,
+ 	class Options &options, bool debugmode)
+@@ -56,12 +68,101 @@
+ 	loggingplugininfo.pluginname = PLUGIN_NAME;
+ 
+ 	if (options["mysql_server"] == "") return false;
++
++	server = options["mysql_server"];
++	database = options["mysql_database"];
++	username = options["mysql_username"];
++	password = options["mysql_password"];
+ 	
++	return connected = connectmysql();
++}
++
++void closeloggingplugin(void)
++{
++	mysql_close(conn);
++
++	return;
++}
++
++/* The main plugin function. See loggingplugin.cpp. */
++int logevents(std::vector<struct imevent> &imevents, std::string &clientaddress)
++{	
++	int rc = 0;
++
++	/* store imevents locally in case of sql connection error */
++	for (std::vector<struct imevent>::iterator i = imevents.begin(); i != imevents.end(); i++)
++		mysqlevents.push_back(*i);
++	
++	/* try and process local imevents */
++	while(mysqlevents.size())
++	{
++		struct imevent imevent = mysqlevents.front();
++			
++		timestamp = imevent.timestamp;
++		
++		memset(protocolname, 0, STRING_SIZE);
++		strncpy(protocolname, imevent.protocolname.c_str(), STRING_SIZE - 1);
++		protocolnamelength = strlen(protocolname);
++		
++		type = imevent.type;
++		
++		memset(localid, 0, STRING_SIZE);
++		strncpy(localid, imevent.localid.c_str(), STRING_SIZE - 1);
++		localidlength = strlen(localid);
++		
++		memset(remoteid, 0, STRING_SIZE);
++		strncpy(remoteid, imevent.remoteid.c_str(), STRING_SIZE - 1);
++		remoteidlength = strlen(remoteid);
++		
++		memset(eventdata, 0, BUFFER_SIZE);
++		strncpy(eventdata, imevent.eventdata.c_str(), BUFFER_SIZE - 1);
++		eventdatalength = strlen(eventdata);
++
++		/* if not connected try and connect */
++		if (!connected)
++		{
++			retries++;
++			if ((retries <= 2) || ((retries % 10) == 0))
++				if ( (connected = connectmysql()) )
++				{
++					syslog(LOG_NOTICE, PlUGIN_SHORT_NAME ":  Reconnected to database, "\
++						"Pending events will now be logged");
++					retries = 0;
++				}
++				/* still not able to connect, user will get the connection attempt errors,
++				 * lets not fill log with uneeded error messages */
++				else
++					return 0;			
++		}
++		
++		/* we're connected insert the data */
++		if (connected)
++		{				
++			if ( (rc = mysql_stmt_execute(stmt)) ) 
++			{
++				syslog(LOG_ERR, PlUGIN_SHORT_NAME ": mysql_stmt_execute(), Error: %s", mysql_stmt_error(stmt));
++			
++				/* connection lost */
++				if(mysql_stmt_errno(stmt) == CR_SERVER_LOST) 
++					connected=false;
++			
++				return mysql_stmt_errno(stmt);
++			}
++			else
++				mysqlevents.erase(mysqlevents.begin());
++		}
++	}
++
++	return 0;
++}
++
++bool connectmysql(void)
++{
+ 	conn = mysql_init(NULL);
+ 	
+ 	/* Connect to database */
+-	if (!mysql_real_connect(conn, options["mysql_server"].c_str(), options["mysql_username"].c_str(),
+-		options["mysql_password"].c_str(), options["mysql_database"].c_str(), 0, NULL, 0))
++	if (!mysql_real_connect(conn, server.c_str(), username.c_str(), password.c_str(), 
++		database.c_str(), 0, NULL, 0))
+ 	{
+ 		syslog(LOG_ERR, PlUGIN_SHORT_NAME ": Couldn't connect to database, Error: %s", mysql_error(conn));
+ 		return false;
+@@ -143,44 +244,3 @@
+ 	
+ 	return true;
+ }
+-
+-void closeloggingplugin(void)
+-{
+-	mysql_close(conn);
+-
+-	return;
+-}
+-
+-/* The main plugin function. See loggingplugin.cpp. */
+-int logevents(std::vector<struct imevent> &imevents, std::string &clientaddress)
+-{	
+-	int rc;
+-	
+-	for (std::vector<struct imevent>::iterator i = imevents.begin();
+-		i != imevents.end(); i++)
+-	{
+-		timestamp = (*i).timestamp;
+-		memset(protocolname, 0, STRING_SIZE);
+-		strncpy(protocolname, (*i).protocolname.c_str(), STRING_SIZE - 1);
+-		protocolnamelength = strlen(protocolname);
+-		type = (*i).type;
+-		memset(localid, 0, STRING_SIZE);
+-		strncpy(localid, (*i).localid.c_str(), STRING_SIZE - 1);
+-		localidlength = strlen(localid);
+-		memset(remoteid, 0, STRING_SIZE);
+-		strncpy(remoteid, (*i).remoteid.c_str(), STRING_SIZE - 1);
+-		remoteidlength = strlen(remoteid);
+-		memset(eventdata, 0, BUFFER_SIZE);
+-		strncpy(eventdata, (*i).eventdata.c_str(), BUFFER_SIZE - 1);
+-		eventdatalength = strlen(eventdata);
+-
+-		rc = mysql_stmt_execute(stmt);
+-		if (rc) 
+-		{
+-			syslog(LOG_ERR, PlUGIN_SHORT_NAME ": mysql_stmt_execute(), Error: %s", mysql_stmt_error(stmt));
+-			return mysql_stmt_errno(stmt);
+-		}
+-	}
+-
+-	return 0;
+-}

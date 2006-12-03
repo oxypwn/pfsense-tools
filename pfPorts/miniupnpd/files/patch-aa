@@ -1,6 +1,6 @@
-diff -urN miniupnpd-clean/upnpdescgen.c miniupnpd-pfsense/upnpdescgen.c
---- miniupnpd-clean/upnpdescgen.c	2006-11-19 17:32:58.000000000 -0500
-+++ miniupnpd-pfsense/upnpdescgen.c	2006-11-20 11:32:04.000000000 -0500
+diff -urN ../miniupnpd-clean/upnpdescgen.c ./upnpdescgen.c
+--- ../miniupnpd-clean/upnpdescgen.c	2006-11-19 17:32:58.000000000 -0500
++++ ./upnpdescgen.c	2006-11-28 21:22:30.000000000 -0500
 @@ -81,8 +81,8 @@
  	{"/minor", "0"},
  	{"/deviceType", "urn:schemas-upnp-org:device:InternetGatewayDevice:1"},

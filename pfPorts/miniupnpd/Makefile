@@ -4,27 +4,17 @@
 #
 # $FreeBSD: $
 
-PORTNAME=	miniupnpd
+PORTNAME=		miniupnpd
 PORTVERSION=	20061129
-CATEGORIES=	net
+CATEGORIES=		net
 MASTER_SITES=	http://miniupnp.free.fr/files/
-DISTFILES=	miniupnpd20061129.tar.gz
+DISTFILES=		miniupnpd20061129.tar.gz
 
-MAINTAINER=	seth.mos@xs4all.nl ryan@wgnrs.dynu.com
-COMMENT=	UPnP daemon for firewall interface
+MAINTAINER=		seth.mos@xs4all.nl ryan@wgnrs.dynu.com
+COMMENT=		UPnP daemon for firewall interface
 
 WRKSRC=         ${WRKDIR}/${PORTNAME}
-USE_GMAKE=	yes
 
 PLIST_FILES=    sbin/miniupnpd
 
-.include <bsd.port.pre.mk>
-
-.if ${OSVERSION} < 500000
-IGNORE=		only for 5.0 and above
-.endif
-
-do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin
-
-.include <bsd.port.post.mk>
+.include <bsd.port.mk>
