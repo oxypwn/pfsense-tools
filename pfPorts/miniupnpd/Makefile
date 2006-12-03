@@ -17,4 +17,13 @@ WRKSRC=         ${WRKDIR}/${PORTNAME}
 
 PLIST_FILES=    sbin/miniupnpd
 
-.include <bsd.port.mk>
+.include <bsd.port.pre.mk>
+
+.if ${OSVERSION} < 500000
+IGNORE=		only for 5.0 and above
+.endif
+
+do-install:
+	${INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin
+
+.include <bsd.port.post.mk>
