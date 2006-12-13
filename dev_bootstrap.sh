@@ -8,6 +8,17 @@
 # an inital iso.
 #
 
+case $1 in
+        start)
+                ;;
+        stop)
+                exit
+                ;;
+        restart)
+        		exit
+                ;;
+esac
+
 # Wait until bootup is finished
 echo -n "Bootstrap waiting for bootup to finish..."
 while [ -e /var/run/booting ]; do
