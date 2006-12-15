@@ -1,41 +1,28 @@
-diff -urN ../miniupnpd-clean/upnpdescgen.c ./upnpdescgen.c
---- ../miniupnpd-clean/upnpdescgen.c	2006-11-19 17:32:58.000000000 -0500
-+++ ./upnpdescgen.c	2006-11-28 21:22:30.000000000 -0500
-@@ -81,8 +81,8 @@
- 	{"/minor", "0"},
- 	{"/deviceType", "urn:schemas-upnp-org:device:InternetGatewayDevice:1"},
- 	{"/friendlyName", "BSD/pf router"},	/* required */
--	{"/manufacturer", "OpenBSD"},		/* required */
--	{"/manufacturerURL", "http://www.openbsd.org/"},	/* optional */
-+	{"/manufacturer", "pfSense"},		/* required */
-+	{"/manufacturerURL", "http://pfSense.com/"},	/* optional */
- 	/* presentationURL */
- 	/* modelDescription = recommended */
- 	{"/modelName", "BSD/pf router"},	/* required */
-@@ -92,12 +92,12 @@
- 	{"device", INITHELPER(14,13)},
- 	{"/deviceType", "urn:schemas-upnp-org:device:WANDevice:1"}, /* Required */
- 	{"/friendlyName", "WANDevice"},
--	{"/manufacturer", "miniupnp"},
--	{"/manufacturerURL", "http://miniupnp.free.fr/"},
-+	{"/manufacturer", "pfSense"},
-+	{"/manufacturerURL", "http://pfSense.com/"},
- 	{"/modelDescription" , "WAN Device"},
- 	{"/modelName", "WAN Device"},
- 	{"/modelNumber", "1"},
--	{"/modelURL", "http://miniupnp.free.fr/"},
-+	{"/modelURL", "http://pfSense.com/"},
- 	{"/serialNumber", "00000000"},
- 	{"/UDN", uuidvalue},
- 	{"/UPC", "MINIUPNPD"},
-@@ -114,8 +114,8 @@
- 	{"device", INITHELPER(34,12)},
- 	{"/deviceType", "urn:schemas-upnp-org:device:WANConnectionDevice:1"},
- 	{"/friendlyName", "WANConnectionDevice"},
--	{"/manufacturer", "miniupnp"},
--	{"/manufacturerURL", "http://miniupnp.free.fr/"},
-+	{"/manufacturer", "pfSense"},
-+	{"/manufacturerURL", "http://pfSense.com/"},
- 	{"/modelDescription", "miniupnp daemon"},
- 	{"/modelName", "miniupnpd"},
- 	{"/modelNumber", "1"},
+diff -urN miniupnpd-clean/upnpdescstrings.h miniupnpd-pfsense/upnpdescstrings.h
+--- miniupnpd-clean/upnpdescstrings.h	2006-12-02 10:34:10.000000000 -0500
++++ upnpdescstrings.h	2006-12-07 09:43:28.000000000 -0500
+@@ -10,17 +10,17 @@
+ #include "config.h"
+ 
+ /* strings used in the root device xml description */
+-#define ROOTDEV_FRIENDLYNAME	OS_NAME " router"
+-#define ROOTDEV_MANUFACTURER	OS_NAME
+-#define ROOTDEV_MANUFACTURERURL	OS_URL
+-#define ROOTDEV_MODELNAME		OS_NAME " router"
++#define ROOTDEV_FRIENDLYNAME	"pfSense router"
++#define ROOTDEV_MANUFACTURER	"pfSense"
++#define ROOTDEV_MANUFACTURERURL	"http://pfSense.com/"
++#define ROOTDEV_MODELNAME		"pfSense router"
+ #define WANDEV_FRIENDLYNAME		"WANDevice"
+-#define WANDEV_MANUFACTURER		"miniupnp"
+-#define WANDEV_MANUFACTURERURL	"http://miniupnp.free.fr/"
++#define WANDEV_MANUFACTURER		"pfSense"
++#define WANDEV_MANUFACTURERURL	"http://pfSense.com/"
+ #define WANDEV_MODELNAME		"WAN Device"
+ #define WANDEV_MODEDESCRIPTION	"WAN Device"
+ #define WANDEV_MODELNUMBER		"1"
+-#define WANDEV_MODELURL			"http://miniupnp.free.fr/"
++#define WANDEV_MODELURL			"http://pfSense.com/"
+ #define WANDEV_SERIALNUMBER		"00000000"
+ #define WANDEV_UPC				"MINIUPNPD"
+ #define WANCDEV_FRIENDLYNAME	"WANConnectionDevice"
