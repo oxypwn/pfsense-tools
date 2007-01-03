@@ -61,7 +61,8 @@ while [ /bin/true ]; do
 		setstatus "Setting build to -RELENG_1..."
 		set_source "-RELENG_1"
 		CURRENTLY_BUILDING=`cat /usr/local/www/CURRENTLY_BUILDING_PLATFORM.txt`
-		cp /root/pfsense_local_releng_1.sh /home/pfsense/tools/pfsense_local.sh
+		cp /root/pfsense_local_releng_1.sh \
+			/home/pfsense/tools//builder_scripts/pfsense_local.sh
 
 		update_sources
 		build_updates
@@ -74,7 +75,7 @@ while [ /bin/true ]; do
 		cp /home/pfsense/updates/* /usr/local/www/updates/
 
 		setstatus "Cleaning up..."
-		rm -rf /usr/obj.pfSense
+		rm -rf /usr/obj*
 
 		setstatus "Cooling down..."
 		sleep 500
@@ -84,7 +85,7 @@ while [ /bin/true ]; do
 		set_source "-HEAD"
 		CURRENTLY_BUILDING=`cat /usr/local/www/CURRENTLY_BUILDING_PLATFORM.txt`
 		cp /root/pfsense_local_releng_1_head.sh \
-			/home/pfsense/tools/pfsense_local.sh
+			/home/pfsense/tools//builder_scripts/pfsense_local.sh
 
 		cd /home/pfsense/tools/builder_scripts/
 
@@ -97,7 +98,7 @@ while [ /bin/true ]; do
 		cp /usr/obj.pfSense/pfSense.img.gz /usr/local/www/head/embedded/
 
 		setstatus "Cleaning up..."
-		rm -rf /usr/obj.pfSense
+		rm -rf /usr/obj*
 
 		setstatus "Cooling down..."
 		sleep 500
