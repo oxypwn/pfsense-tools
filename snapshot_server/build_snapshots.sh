@@ -17,12 +17,12 @@ PFSENSEOBJDIR=/usr/obj.pfSense/
 STAGINGAREA=/tmp/staging
 
 # Ensure directories exist
-mkdir -p /usr/local/www/data/updates \
-		 /usr/local/www/data/iso \
-		 /usr/local/www/data/embedded \
-		 /usr/local/www/data/head/updates \
-		 /usr/local/www/data/head/iso \
-		 /usr/local/www/data/head/embedded \
+mkdir -p $WEBDATAROOT/FreeBSD6/updates \
+		 $WEBDATAROOT/FreeBSD6/iso \
+		 $WEBDATAROOT/FreeBSD6/embedded \
+		 $WEBDATAROOT/FreeBSD6/head/updates \
+		 $WEBDATAROOT/FreeBSD6/data/head/iso \
+		 $WEBDATAROOT/FreeBSD6/data/head/embedded \
 		 /tmp/staging
 
 mkdir -p $WEBDATAROOT/FreeBSD7/iso/ \
@@ -161,7 +161,7 @@ setstatus() {
 		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 		STATUS=$1
 		echo "Currently building $CURRENTLY_BUILDING"
-		echo "Currently building $CURRENTLY_BUILDING" > /usr/local/www/data/status.txt
+		echo "Currently building $CURRENTLY_BUILDING" > $WEBDATAROOT/status.txt
 		uptime  >> $WEBDATAROOT/status.txt
 		echo    >> $WEBDATAROOT/status.txt
 		iostat  >> $WEBDATAROOT/status.txt
@@ -207,13 +207,13 @@ dobuilds() {
 
 		setstatus "Copying files for -RELENG_1 build..."
 		cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA
-		rm $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 
 		setstatus "Cleaning up..."
 		rm -rf /usr/obj*
+		rm $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 
 		setstatus "Cooling down..."
-		sleep 600
+		sleep 500
 }
 
 # Main builder loop
@@ -224,9 +224,9 @@ while [ /bin/true ]; do
 		set_freebsd_source "RELENG_6_2"
 		rm -f $STAGINGAREA/*
 		dobuilds
-		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/iso/
-		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/embedded/
-		cp $STAGINGAREA/*.tgz $WEBDATAROOT/updates/
+		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/FreeBSD6/iso/
+		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/FreeBSD6/embedded/
+		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/updates/
 		setstatus "Cleaning up..."
 		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
@@ -238,9 +238,9 @@ while [ /bin/true ]; do
 		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 		rm -f $STAGINGAREA/*
 		dobuilds
-		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/head/iso/
-		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/head/embedded/
-		cp $STAGINGAREA/*.tgz $WEBDATAROOT/head/updates/
+		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/FreeBSD6/head/iso/
+		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/FreeBSD6/head/embedded/
+		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/head/updates/
 		setstatus "Cleaning up..."
 		rm $STAGINGAREA/*
 		rm -rf /usr/obj*
