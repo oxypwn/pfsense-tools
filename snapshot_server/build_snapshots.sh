@@ -17,21 +17,30 @@ PFSENSEOBJDIR=/usr/obj.pfSense/
 STAGINGAREA=/tmp/staging
 
 # Ensure directories exist
-mkdir -p $WEBDATAROOT/FreeBSD6/updates \
-		 $WEBDATAROOT/FreeBSD6/iso \
-		 $WEBDATAROOT/FreeBSD6/embedded \
-		 $WEBDATAROOT/FreeBSD6/head/updates \
-		 $WEBDATAROOT/FreeBSD6/data/head/iso \
-		 $WEBDATAROOT/FreeBSD6/data/head/embedded \
+mkdir -p $WEBDATAROOT/FreeBSD6/RELENG_1/updates \
+		 $WEBDATAROOT/FreeBSD6/RELENG_1/iso \
+		 $WEBDATAROOT/FreeBSD6/RELENG_1/embedded \
+		 $WEBDATAROOT/FreeBSD6/RELENG_1/head/updates \
+		 $WEBDATAROOT/FreeBSD6/head/iso \
+		 $WEBDATAROOT/FreeBSD6/head/embedded \
 		 /tmp/staging
 
-mkdir -p $WEBDATAROOT/FreeBSD7/iso/ \
-		 $WEBDATAROOT/FreeBSD7/embedded/ \
-		 $WEBDATAROOT/FreeBSD7/updates/
+mkdir -p $WEBDATAROOT/FreeBSD7/RELENG_1/iso/ \
+		 $WEBDATAROOT/FreeBSD7/RELENG_1/embedded/ \
+		 $WEBDATAROOT/FreeBSD7/RELENG_1/updates/
 
 mkdir -p $WEBDATAROOT/FreeBSD7/head/iso/ \
 		 $WEBDATAROOT/FreeBSD7/head/embedded/ \
 		 $WEBDATAROOT/FreeBSD7/head/updates/
+
+touch $WEBROOT/-RELENG_1ISOSTATUS.txt
+touch $WEBROOT/-RELENG_1UPDATESSTATUS.txt
+touch $WEBROOT/-RELENG_1EMBEDDEDSTATUS.txt
+touch $WEBROOT/-RELENG_1STATUS.txt
+touch $WEBROOT/-HEADISOSTATUS.txt
+touch $WEBROOT/-HEADUPDATESSTATUS.txt
+touch $WEBROOT/-HEADEMBEDDEDSTATUS.txt
+touch $WEBROOT/-HEADSTATUS.txt
 
 rm -rf /usr/obj*
 
@@ -83,8 +92,7 @@ export PFSENSETAG="${PFSENSE_PLATFORM}"
 export FREESBIE_PATH=\${FREESBIE_PATH:-/home/pfsense/freesbie2}
 
 # export variables used by freesbie2
-export FREESBIE_CONF=\${FREESBIE_CONF:-/dev/null} # No configuration file should
-be override our variables
+export FREESBIE_CONF=\${FREESBIE_CONF:-/dev/null}
 export SRCDIR=\${SRCDIR:-/usr/src}
 export BASEDIR=\${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=\${PFSENSEISODIR:-/usr/local/pfsense-clone}
@@ -158,8 +166,7 @@ build_iso() {
 setstatus() {
 		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 		STATUS=$1
-		echo "Currently building $CURRENTLY_BUILDING"
-		echo "Currently building $CURRENTLY_BUILDING" > $WEBDATAROOT/status.txt
+		echo "$1" > $WEBDATAROOT/status.txt
 		uptime  >> $WEBDATAROOT/status.txt
 		echo    >> $WEBDATAROOT/status.txt
 		iostat  >> $WEBDATAROOT/status.txt
@@ -222,9 +229,9 @@ while [ /bin/true ]; do
 		set_freebsd_source "RELENG_6_2"
 		rm -f $STAGINGAREA/*
 		dobuilds
-		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/FreeBSD6/iso/
-		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/FreeBSD6/embedded/
-		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/updates/
+		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/FreeBSD6/RELENG_1/iso/
+		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/FreeBSD6/RELENG_1/embedded/
+		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
 		setstatus "Cleaning up..."
 		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
