@@ -37,10 +37,12 @@ rm -rf /usr/obj*
 
 set_pfsense_source() {
 	echo $1 > $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt
+	install_pfsense_local_sh
 }
 
 set_freebsd_source() {
 	echo $1 > $WEBROOT/FREEBSD_PLATFORM.txt
+	install_pfsense_local_sh
 }
 
 install_pfsense_local_sh() {
