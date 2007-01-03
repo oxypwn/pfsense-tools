@@ -9,7 +9,43 @@ mkdir -p /usr/local/www/data/head/embedded
 
 rm -rf /usr/obj*
 
+set_source() {
+	echo $1 > /usr/local/www/data/CURRENTLY_BUILDING_PLATFORM.txt
+}
+
+update_sources() {
+		CURRENTLY_BUILDING=`cat /usr/local/www/data/CURRENTLY_BUILDING_PLATFORM.txt`
+		setstatus "Updating sources and building $CURRENTLY_BUILDING ISO..."
+		cd /home/pfsense/tools/builder_scripts/
+		./cvsup_current
+		gzip /usr/obj.pfSense/pfSense.iso
+}
+
+build_embedded() {
+		CURRENTLY_BUILDING=`cat /usr/local/www/data/CURRENTLY_BUILDING_PLATFORM.txt`
+		setstatus "Building embedded $CURRENTLY_BUILDING ..."
+		cd /home/pfsense/tools/builder_scripts/
+		./build_embedded.sh
+		setstatus "Gzipping embedded $CURRENTLY_BUILDING ..."
+		gzip /usr/obj.pfSense/pfSense.img
+}
+
+build_updates() {
+		CURRENTLY_BUILDING=`cat /usr/local/www/data/CURRENTLY_BUILDING_PLATFORM.txt`
+		setstatus "Building updates..."
+		cd /home/pfsense/tools/builder_scripts/
+		./build_updates.sh
+}
+
+build_iso() {
+		CURRENTLY_BUILDING=`cat /usr/local/www/data/CURRENTLY_BUILDING_PLATFORM.txt`
+		setstatus "Building ISO..."
+		cd /home/pfsense/tools/builder_scripts/
+		./build_iso.sh
+}
+
 setstatus() {
+		CURRENTLY_BUILDING=`cat /usr/local/www/data/CURRENTLY_BUILDING_PLATFORM.txt`
 		STATUS=$1
 		echo $1
 		uptime >   /usr/local/www/data/status.txt
@@ -19,57 +55,38 @@ setstatus() {
 
 while [ /bin/true ]; do
 
-		# -- RELENG_1 -- TODO, MAKE THIS A FUNCTION!
-
+		# -- RELENG_1
+		set_source "-RELENG_1"
+		CURRENTLY_BUILDING=`cat /usr/local/www/data/CURRENTLY_BUILDING_PLATFORM.txt`
 		cp /root/pfsense_local_releng_1.sh /home/pfsense/tools/pfsense_local.sh
-		cd /home/pfsense/tools/builder_scripts/
 
-		setstatus "Updating sources and building -RELENG_1 ISO..."
-		./cvsup_current
-		setstatus "Building updates..."
-		./build_updates.sh
+		update_sources
+		build_updates
+		cp /usr/obj.pfSense/pfSense.iso.gz /usr/local/www/data/iso/
+
+		build_embedded
+		cp /usr/obj.pfSense/pfSense.img.gz /usr/local/www/data/embedded/
 
 		setstatus "Copying files for -RELENG_1 build..."
 		cp /home/pfsense/updates/* /usr/local/www/data/updates/
-		setstatus "Gzipping embedded image -RELENG_1..."
-		gzip /usr/obj.pfSense/pfSense.iso
-		cp /usr/obj.pfSense/pfSense.iso.gz /usr/local/www/data/iso/
-
-		setstatus "Building embedded -RELENG_1..."
-		./build_embedded.sh
-		setstatus "Gzipping embedded -RELENG_1..."
-		gzip /usr/obj.pfSense/pfSense.img
-		cp /usr/obj.pfSense/pfSense.img.gz /usr/local/www/data/embedded/
 
 		setstatus "Cleaning up..."
 		rm -rf /usr/obj.pfSense
 
-		setstatus "Cooling down... (before -RELENG_1 build)"
-		sleep 500
-
-		# ---- HEAD!!!!!!
-
+		# -- HEAD
 		setstatus "Setting build to -HEAD"
+		set_source "-HEAD"
+		CURRENTLY_BUILDING=`cat /usr/local/www/data/CURRENTLY_BUILDING_PLATFORM.txt`
 		cp /root/pfsense_local_releng_1_head.sh \
 			/home/pfsense/tools/pfsense_local.sh
 
 		cd /home/pfsense/tools/builder_scripts/
 
-		setstatus "Updating sources and building -HEAD ISO..."
-		./cvsup_current
-		setstatus "Building updates..."
-		./build_updates.sh
-
-		setstatus "Copying files..."
-		cp /home/pfsense/updates/* /usr/local/www/data/head/updates/
-		setstatus "Gzipping embedded -HEAD image..."
-		gzip /usr/obj.pfSense/pfSense.iso
+		update_sources
+		build_updates
 		cp /usr/obj.pfSense/pfSense.iso.gz /usr/local/www/data/head/iso/
-
-		setstatus "Building embedded..."
-		./build_embedded.sh
-		setstatus "Gzipping embedded..."
-		gzip /usr/obj.pfSense/pfSense.img
+		cp /home/pfsense/updates/* /usr/local/www/data/head/updates/
+		build_embedded
 		cp /usr/obj.pfSense/pfSense.img.gz /usr/local/www/data/head/embedded/
 
 		setstatus "Cleaning up..."
