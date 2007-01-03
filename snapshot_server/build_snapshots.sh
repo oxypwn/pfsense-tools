@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# pfSense snapshot building system
+# (C)2007 Scott Ullrich
+# All rights reserved
+#
+# This file is placed under the BSD License, 2 clause.
+
 # Ensure directories exist
 mkdir -p /usr/local/www/data/updates
 mkdir -p /usr/local/www/data/iso
@@ -38,7 +44,7 @@ build_embedded() {
 		./build_embedded.sh
 		setstatus "Gzipping embedded $CURRENTLY_BUILDING ..."
 		rm $PFSENSEOBJDIR/pfSense.img.gz
-		gzip $PFSENSEOBJDIR/pfSense.img		
+		gzip $PFSENSEOBJDIR/pfSense.img
 }
 
 build_updates() {
@@ -58,11 +64,15 @@ build_iso() {
 setstatus() {
 		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 		STATUS=$1
-		echo $1
+		echo $1		
 		echo "Currently building $CURRENTLY_BUILDING" > /usr/local/www/data/status.txt
-		uptime  >> /usr/local/www/status.txt
-		date    >> /usr/local/www/status.txt
-		echo $1 >> /usr/local/www/status.txt
+		uptime  >> $WEBDATAROOT/status.txt
+		echo    >> $WEBDATAROOT/status.txt
+		iostat  >> $WEBDATAROOT/status.txt
+		echo    >> $WEBDATAROOT/status.txt		
+		date    >> $WEBDATAROOT/status.txt
+		echo    >> $WEBDATAROOT/status.txt		
+		echo $1 >> $WEBDATAROOT/status.txt
 }
 
 while [ /bin/true ]; do
