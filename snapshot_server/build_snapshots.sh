@@ -46,13 +46,9 @@ set_freebsd_source() {
 install_pfsense_local_sh() {
 	FREEBSD_PLATFORM=`cat $WEBROOT/FREEBSD_PLATFORM.txt`
 	PFSENSE_PLATFORM=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-	cat <<<EOF >$BUILDERSCRIPTS/pfsense_local.sh
+	cat <<EOF >$BUILDERSCRIPTS/pfsense_local.sh
 
 #!/bin/sh
-
-# $Id$
-
-#export DNO_ATM=yes
 
 # This is the base working directory for all builder
 # operations
