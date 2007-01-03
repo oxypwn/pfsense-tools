@@ -28,7 +28,8 @@ build_embedded() {
 		cd /home/pfsense/tools/builder_scripts/
 		./build_embedded.sh
 		setstatus "Gzipping embedded $CURRENTLY_BUILDING ..."
-		gzip /usr/obj.pfSense/pfSense.img
+		rm /usr/obj.pfSense/pfSense.img.gz
+		gzip /usr/obj.pfSense/pfSense.img		
 }
 
 build_updates() {
@@ -66,13 +67,13 @@ while [ /bin/true ]; do
 
 		update_sources
 		build_updates
-		cp /usr/obj.pfSense/pfSense.iso.gz /usr/local/www/iso/
+		cp /usr/obj.pfSense/pfSense.iso.gz /usr/local/www/data/iso/
 
 		build_embedded
-		cp /usr/obj.pfSense/pfSense.img.gz /usr/local/www/embedded/
+		cp /usr/obj.pfSense/pfSense.img.gz /usr/local/www/data/embedded/
 
 		setstatus "Copying files for -RELENG_1 build..."
-		cp /home/pfsense/updates/* /usr/local/www/updates/
+		cp /home/pfsense/updates/* /usr/local/www/data/updates/
 
 		setstatus "Cleaning up..."
 		rm -rf /usr/obj*
@@ -85,17 +86,17 @@ while [ /bin/true ]; do
 		set_source "-HEAD"
 		CURRENTLY_BUILDING=`cat /usr/local/www/CURRENTLY_BUILDING_PLATFORM.txt`
 		cp /root/pfsense_local_releng_1_head.sh \
-			/home/pfsense/tools//builder_scripts/pfsense_local.sh
+			/home/pfsense/tools/builder_scripts/pfsense_local.sh
 
 		cd /home/pfsense/tools/builder_scripts/
 
 		update_sources
 		build_updates
-		cp /usr/obj.pfSense/pfSense.iso.gz /usr/local/www/head/iso/
-		cp /home/pfsense/updates/* /usr/local/www/head/updates/
+		cp /usr/obj.pfSense/pfSense.iso.gz /usr/local/www/data/head/iso/
+		cp /home/pfsense/updates/* /usr/local/www/data/head/updates/
 
 		build_embedded
-		cp /usr/obj.pfSense/pfSense.img.gz /usr/local/www/head/embedded/
+		cp /usr/obj.pfSense/pfSense.img.gz /usr/local/www/data/head/embedded/
 
 		setstatus "Cleaning up..."
 		rm -rf /usr/obj*
