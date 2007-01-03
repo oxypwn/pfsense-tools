@@ -35,7 +35,7 @@ mkdir -p $WEBDATAROOT/FreeBSD7/head/iso/ \
 
 rm -rf /usr/obj*
 
-set_source() {
+set_pfsense_source() {
 	echo $1 > $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt
 }
 
@@ -206,7 +206,8 @@ dobuilds() {
 		cp $PFSENSEOBJDIR/pfSense.img.gz $STAGINGAREA
 
 		setstatus "Copying files for -RELENG_1 build..."
-		cp $PFSENSEUPDATESDIR/* $WEBDATAROOT/updates/
+		cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA
+		rm $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 
 		setstatus "Cleaning up..."
 		rm -rf /usr/obj*
@@ -219,25 +220,28 @@ dobuilds() {
 while [ /bin/true ]; do
 		# -- pfSense RELENG_1 -- FreeBSD RELENG_6_2
 		setstatus "Setting build to -RELENG_1 FreeBSD RELENG_6_2..."
-		set_source "-RELENG_1"
+		set_pfsense_source "-RELENG_1"
 		set_freebsd_source "RELENG_6_2"
+		rm -f $STAGINGAREA/*
 		dobuilds
 		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/iso/
 		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/embedded/
-		cp $STAGINGAREA/* $WEBDATAROOT/updates/
-		rm $STAGINGAREA/*
+		cp $STAGINGAREA/*.tgz $WEBDATAROOT/updates/
 		setstatus "Cleaning up..."
+		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
 
 		# -- pfSense HEAD - FreeBSD RELENG_6_2
 		setstatus "Setting build to -HEAD FreeBSD RELENG_6_2..."
-		set_source "-HEAD"
+		set_pfsense_source "-HEAD"
 		set_freebsd_source "RELENG_6_2"
 		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+		rm -f $STAGINGAREA/*
+		dobuilds
 		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/head/iso/
 		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/head/embedded/
-		cp $STAGINGAREA/* $WEBDATAROOT/head/updates/
-		rm $STAGINGAREA/*
+		cp $STAGINGAREA/*.tgz $WEBDATAROOT/head/updates/
 		setstatus "Cleaning up..."
+		rm $STAGINGAREA/*
 		rm -rf /usr/obj*
 done
