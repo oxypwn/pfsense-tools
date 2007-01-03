@@ -225,7 +225,7 @@ dobuilds() {
 while [ /bin/true ]; do
 		# -- pfSense RELENG_1 -- FreeBSD RELENG_6_2
 		setstatus "Setting build to -RELENG_1 FreeBSD RELENG_6_2..."
-		set_pfsense_source "-RELENG_1"
+		set_pfsense_source "RELENG_1"
 		set_freebsd_source "RELENG_6_2"
 		rm -f $STAGINGAREA/*
 		dobuilds
@@ -238,7 +238,7 @@ while [ /bin/true ]; do
 
 		# -- pfSense HEAD - FreeBSD RELENG_6_2
 		setstatus "Setting build to -HEAD FreeBSD RELENG_6_2..."
-		set_pfsense_source "-HEAD"
+		set_pfsense_source "HEAD"
 		set_freebsd_source "RELENG_6_2"
 		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 		rm -f $STAGINGAREA/*
