@@ -15,34 +15,35 @@ SNAPSHOTSCRIPTSDIR=/root/
 PFSENSEUPDATESDIR=/home/pfsense/updates/
 PFSENSEOBJDIR=/usr/obj.pfSense/
 STAGINGAREA=/tmp/staging
+CVSROOT=/home/pfsense/cvsroot
 
 # Ensure directories exist
+mkdir -p $CVSROOT
+
 mkdir -p $WEBDATAROOT/FreeBSD6/RELENG_1/updates \
 		 $WEBDATAROOT/FreeBSD6/RELENG_1/iso \
 		 $WEBDATAROOT/FreeBSD6/RELENG_1/embedded \
-		 $WEBDATAROOT/FreeBSD6/RELENG_1/head/updates \
+		 $WEBDATAROOT/FreeBSD6/head/updates \
 		 $WEBDATAROOT/FreeBSD6/head/iso \
-		 $WEBDATAROOT/FreeBSD6/head/embedded \
-		 /tmp/staging
+		 $WEBDATAROOT/FreeBSD6/head/embedded
 
 mkdir -p $WEBDATAROOT/FreeBSD7/RELENG_1/iso/ \
 		 $WEBDATAROOT/FreeBSD7/RELENG_1/embedded/ \
-		 $WEBDATAROOT/FreeBSD7/RELENG_1/updates/
-
-mkdir -p $WEBDATAROOT/FreeBSD7/head/iso/ \
+		 $WEBDATAROOT/FreeBSD7/RELENG_1/updates/ \
+		 $WEBDATAROOT/FreeBSD7/head/iso/ \
 		 $WEBDATAROOT/FreeBSD7/head/embedded/ \
 		 $WEBDATAROOT/FreeBSD7/head/updates/
 
-touch $WEBROOT/-RELENG_1ISOSTATUS.txt
-touch $WEBROOT/-RELENG_1UPDATESSTATUS.txt
-touch $WEBROOT/-RELENG_1EMBEDDEDSTATUS.txt
-touch $WEBROOT/-RELENG_1STATUS.txt
-touch $WEBROOT/-HEADISOSTATUS.txt
-touch $WEBROOT/-HEADUPDATESSTATUS.txt
-touch $WEBROOT/-HEADEMBEDDEDSTATUS.txt
-touch $WEBROOT/-HEADSTATUS.txt
+touch $WEBROOT/-RELENG_1ISOSTATUS.txt \
+	  $WEBROOT/-RELENG_1UPDATESSTATUS.txt \
+	  $WEBROOT/-RELENG_1EMBEDDEDSTATUS.txt \
+	  $WEBROOT/-RELENG_1STATUS.txt \
+	  $WEBROOT/-HEADISOSTATUS.txt \
+	  $WEBROOT/-HEADUPDATESSTATUS.txt \
+	  $WEBROOT/-HEADEMBEDDEDSTATUS.txt \
+	  $WEBROOT/-HEADSTATUS.txt \
 
-rm -rf /usr/obj*
+mkdir -p /tmp/staging
 
 set_pfsense_source() {
 	echo $1 > $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt
@@ -133,7 +134,8 @@ update_sources() {
 		cd $BUILDERSCRIPTS
 		./cvsup_current
 		gzip $PFSENSEOBJDIR/pfSense.iso
-		echo "Sources updated for $CURRENTLY_BUILDING last completed at `date`" > $WEBROOT/$CURRENTLY_BUILDINGSTATUS.txt
+		echo "Sources updated for $CURRENTLY_BUILDING last completed at `date`" \
+			> $WEBROOT/$CURRENTLY_BUILDINGSTATUS.txt
 }
 
 build_embedded() {
@@ -141,10 +143,11 @@ build_embedded() {
 		setstatus "Building embedded $CURRENTLY_BUILDING ..."
 		cd $BUILDERSCRIPTS
 		./build_embedded.sh
-		setstatus "Gzipping embedded $CURRENTLY_BUILDING ..."
+		setstatus "GZipping embedded $CURRENTLY_BUILDING ..."
 		rm -f $PFSENSEOBJDIR/pfSense.img.gz
 		gzip $PFSENSEOBJDIR/pfSense.img
-		echo "Embedded for $CURRENTLY_BUILDING last completed at `date`" > $WEBROOT/$CURRENTLY_BUILDINGEMBEDDEDSTATUS.txt
+		echo "Embedded for $CURRENTLY_BUILDING last completed at `date`" \
+			> $WEBROOT/$CURRENTLY_BUILDINGEMBEDDEDSTATUS.txt
 }
 
 build_updates() {
@@ -152,7 +155,8 @@ build_updates() {
 		setstatus "Building updates..."
 		cd $BUILDERSCRIPTS
 		./build_updates.sh
-		echo "Updates for $CURRENTLY_BUILDING last completed at `date`" > $WEBROOT/$CURRENTLY_BUILDINGUPDATESSTATUS.txt
+		echo "Updates for $CURRENTLY_BUILDING last completed at `date`" \
+			> $WEBROOT/$CURRENTLY_BUILDINGUPDATESSTATUS.txt
 }
 
 build_iso() {
@@ -160,7 +164,8 @@ build_iso() {
 		setstatus "Building ISO..."
 		cd $BUILDERSCRIPTS
 		./build_iso.sh
-		echo "FULL ISO for $CURRENTLY_BUILDING last completed at `date`" > $WEBROOT/$CURRENTLY_BUILDINGISOSTATUS.txt
+		echo "FULL ISO for $CURRENTLY_BUILDING last completed at `date`" \
+			> $WEBROOT/$CURRENTLY_BUILDINGISOSTATUS.txt
 }
 
 setstatus() {
@@ -175,8 +180,10 @@ setstatus() {
 		echo    >> $WEBDATAROOT/status.txt
 		echo $1 >> $WEBDATAROOT/status.txt
 		echo    >> $WEBDATAROOT/status.txt
-		echo "-RELENG_1"   >> $WEBDATAROOT/status.txt
-		echo    >> $WEBDATAROOT/status.txt
+		echo "-RELENG_1 last known build status" \
+				>> $WEBDATAROOT/status.txt
+		echo \
+				>> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-RELENG_1ISOSTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-RELENG_1UPDATESSTATUS.txt \
@@ -185,17 +192,20 @@ setstatus() {
 			    >> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-RELENG_1STATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		echo    >> $WEBDATAROOT/status.txt
-		echo "-HEAD"   >> $WEBDATAROOT/status.txt
-		echo    >> $WEBDATAROOT/status.txt
+		echo \
+				>> $WEBDATAROOT/status.txt
+		echo "-HEAD last known build status" \
+				>> $WEBDATAROOT/status.txt
+		echo \
+				>> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-HEADISOSTATUS.txt \
-			>> $WEBDATAROOT/status.txt
+				>> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-HEADUPDATESSTATUS.txt \
-			>> $WEBDATAROOT/status.txt
+				>> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-HEADEMBEDDEDSTATUS.txt \
-			>> $WEBDATAROOT/status.txt
+				>> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-HEADSTATUS.txt \
-			>> $WEBDATAROOT/status.txt
+				>> $WEBDATAROOT/status.txt
 }
 
 dobuilds() {
@@ -203,23 +213,35 @@ dobuilds() {
 
 		cd $BUILDERSCRIPTS
 
+		# Update sources and build iso
 		update_sources
-		build_updates
-		cp $PFSENSEOBJDIR/pfSense.iso.gz $STAGINGAREA
 
+		# Build updates on same run as iso
+		build_updates
+
+		# Copy files before embedded, it wipes out usr.obj*
+		cp $PFSENSEOBJDIR/pfSense.iso.gz $STAGINGAREA/
+
+		# Build embedded version
 		build_embedded
-		cp $PFSENSEOBJDIR/pfSense.img.gz $STAGINGAREA
+		cp $PFSENSEOBJDIR/pfSense.img.gz $STAGINGAREA/
 
 		setstatus "Copying files for -RELENG_1 build..."
-		cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA
+		cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
 
 		setstatus "Cleaning up..."
 		rm -rf /usr/obj*
 		rm $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
-
-		setstatus "Cooling down..."
-		sleep 500
 }
+
+# Remove prior builds
+rm -rf /usr/obj*
+
+# Uncomment if builder problems appear
+#  rm -rf /home/pfsense/cvsroot
+#  rm -rf /home/pfsense/pfSense
+#  mkdir -p /home/pfsense/cvsroot
+#  cvsup $BUILDERSCRIPTS/pfSense-supfile
 
 # Main builder loop
 while [ /bin/true ]; do
@@ -235,6 +257,8 @@ while [ /bin/true ]; do
 		setstatus "Cleaning up..."
 		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
+		setstatus "Cooling down..." # Let machine rest a moment
+		sleep 500
 
 		# -- pfSense HEAD - FreeBSD RELENG_6_2
 		setstatus "Setting build to -HEAD FreeBSD RELENG_6_2..."
@@ -249,4 +273,6 @@ while [ /bin/true ]; do
 		setstatus "Cleaning up..."
 		rm $STAGINGAREA/*
 		rm -rf /usr/obj*
+		setstatus "Cooling down..." # Let machine rest a moment
+		sleep 500
 done
