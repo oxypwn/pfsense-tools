@@ -134,6 +134,7 @@ update_sources() {
 		cd $BUILDERSCRIPTS
 		./cvsup_current
 		gzip $PFSENSEOBJDIR/pfSense.iso
+		md5 $PFSENSEOBJDIR/pfSense.iso.gz > $PFSENSEOBJDIR/pfSense.iso.gz.md5
 		echo "Sources updated for $CURRENTLY_BUILDING last completed at `date`" \
 			> $WEBROOT/$CURRENTLY_BUILDINGSTATUS.txt
 }
@@ -146,6 +147,7 @@ build_embedded() {
 		setstatus "GZipping embedded $CURRENTLY_BUILDING ..."
 		rm -f $PFSENSEOBJDIR/pfSense.img.gz
 		gzip $PFSENSEOBJDIR/pfSense.img
+		md5 $PFSENSEOBJDIR/pfSense.img.gz > $PFSENSEOBJDIR/pfSense.img.gz.md5
 		echo "Embedded for $CURRENTLY_BUILDING last completed at `date`" \
 			> $WEBROOT/$CURRENTLY_BUILDINGEMBEDDEDSTATUS.txt
 }
@@ -155,6 +157,10 @@ build_updates() {
 		setstatus "Building updates..."
 		cd $BUILDERSCRIPTS
 		./build_updates.sh
+		for filename in $PFSENSEUPDATESDIR/*.tgz
+		do
+			md5 $filename > $PFSENSEUPDATESDIR/*.tgz.md5
+		done
 		echo "Updates for $CURRENTLY_BUILDING last completed at `date`" \
 			> $WEBROOT/$CURRENTLY_BUILDINGUPDATESSTATUS.txt
 }
@@ -220,14 +226,15 @@ dobuilds() {
 		build_updates
 
 		# Copy files before embedded, it wipes out usr.obj*
-		cp $PFSENSEOBJDIR/pfSense.iso.gz $STAGINGAREA/
+		cp $PFSENSEOBJDIR/pfSense.iso.* $STAGINGAREA/
 
 		# Build embedded version
 		build_embedded
-		cp $PFSENSEOBJDIR/pfSense.img.gz $STAGINGAREA/
+		cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
 
 		setstatus "Copying files for -RELENG_1 build..."
 		cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
+		cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
 
 		setstatus "Cleaning up..."
 		rm -rf /usr/obj*
@@ -251,9 +258,10 @@ while [ /bin/true ]; do
 		set_freebsd_source "RELENG_6_2"
 		rm -f $STAGINGAREA/*
 		dobuilds
-		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/FreeBSD6/RELENG_1/iso/
-		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/FreeBSD6/RELENG_1/embedded/
+		cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD6/RELENG_1/iso/
+		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/RELENG_1/embedded/
 		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
+		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
 		setstatus "Cleaning up..."
 		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
@@ -267,9 +275,10 @@ while [ /bin/true ]; do
 		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 		rm -f $STAGINGAREA/*
 		dobuilds
-		cp $STAGINGAREA/pfSense.iso.gz $WEBDATAROOT/FreeBSD6/head/iso/
-		cp $STAGINGAREA/pfSense.img.gz $WEBDATAROOT/FreeBSD6/head/embedded/
+		cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD6/head/iso/
+		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/head/embedded/
 		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/head/updates/
+		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/head/updates/	
 		setstatus "Cleaning up..."
 		rm $STAGINGAREA/*
 		rm -rf /usr/obj*
