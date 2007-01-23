@@ -159,7 +159,7 @@ build_updates() {
 		./build_updates.sh
 		for filename in $PFSENSEUPDATESDIR/*.tgz
 		do
-			md5 $filename > $PFSENSEUPDATESDIR/*.tgz.md5
+			md5 $filename > $PFSENSEUPDATESDIR/$filename.md5
 		done
 		echo "Updates for $CURRENTLY_BUILDING last completed at `date`" \
 			> $WEBROOT/$CURRENTLY_BUILDINGUPDATESSTATUS.txt
