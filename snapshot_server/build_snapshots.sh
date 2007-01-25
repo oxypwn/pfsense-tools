@@ -5,6 +5,9 @@
 # All rights reserved
 #
 # This file is placed under the BSD License, 2 clause.
+#
+# $Id$
+#
 
 # Local variables that are used by builder scripts
 WEBDATAROOT=/usr/local/www/data
@@ -159,7 +162,7 @@ build_updates() {
 		./build_updates.sh
 		for filename in $PFSENSEUPDATESDIR/*.tgz
 		do
-			md5 $filename > $PFSENSEUPDATESDIR/$filename.md5
+			md5  $filename > $filename.md5
 		done
 		echo "Updates for $CURRENTLY_BUILDING last completed at `date`" \
 			> $WEBROOT/$CURRENTLY_BUILDINGUPDATESSTATUS.txt
