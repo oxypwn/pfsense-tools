@@ -96,7 +96,6 @@
 ./usr/bin/b64encode
 ./usr/bin/banner
 ./usr/bin/batch
-./usr/bin/bc
 ./usr/bin/bdes
 ./usr/bin/bg
 ./usr/bin/biff
