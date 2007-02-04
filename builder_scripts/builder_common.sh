@@ -14,6 +14,15 @@ fixup_libmap() {
 	fi
 }
 
+recompile_pfPorts() {
+	if [ $pfSense_version = "7" ]; then
+		echo "Recompiling pfPorts..."
+		cd /home/pfsense/tools/pfPorts
+		make
+		make install DESTDIR=$CVS_CO_DIR/
+	fi
+}
+
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
     # Make devd
@@ -108,6 +117,7 @@ populate_extra() {
 	fi
 
 	fixup_libmap
+	recompile_pfPorts
 
     # Enable debug if requested
     if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
