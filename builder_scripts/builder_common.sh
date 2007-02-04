@@ -19,7 +19,7 @@ recompile_pfPorts() {
 		echo "Recompiling pfPorts..."
 		cd /home/pfsense/tools/pfPorts
 		make
-		make install DESTDIR=$CVS_CO_DIR/
+		make install DESTDIR=$CVS_CO_DIR/usr/local
 	fi
 }
 
