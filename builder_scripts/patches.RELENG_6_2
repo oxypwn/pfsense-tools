@@ -10,3 +10,4 @@
 ~contrib/pf/pfctl/~pfctl_altq.c.diff~
 ~sys/contrib/pf/net~pf_ioctl.c.diff~
 ~sbin/dhclient~dhclient.c.diff~
+~sys/i386~atomic.h.diff~
