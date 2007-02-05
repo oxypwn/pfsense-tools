@@ -30,6 +30,7 @@ SUBDIR += minicron
 SUBDIR += mpd
 SUBDIR += olsrd
 SUBDIR += pftop
+SUBDIR += libevent
 SUBDIR += pftpx
 SUBDIR += pftpx-routeto
 SUBDIR += php4-pfsense
