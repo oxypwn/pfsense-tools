@@ -17,11 +17,21 @@ fixup_libmap() {
 recompile_pfPorts() {
 	if [ $pfSense_version = "7" ]; then
 		echo "Recompiling pfPorts..."
+		# Install needed helper files to replicate pkgs
 		cp /usr/sbin/pkg_* $CVS_CO_DIR/usr/sbin/
+		cp /sbin/ldconfig $CVS_CO_DIR/sbin/
+		mkdir $CVS_CO_DIR/libexec/
+		mkdir $CVS_CO_DIR/lib/
+		cp /libexec/ld-elf.so.1 $CVS_CO_DIR/libexec/
+		cp /lib/libc.so.* $CVS_CO_DIR/lib/
+		# Mark as executable
+		chmod a+rx $CVS_CO_DIR/sbin/*
 		chmod a+rx $CVS_CO_DIR/usr/sbin/*
 		cd /home/pfsense/tools/pfPorts
+		# Build pfPorts
 		make
-		make install BATCH=yes DESTDIR=$CVS_CO_DIR/usr/local FORCE_PKG_REGISTER=yo
+		# Install pfPorts to the CO directory
+		make install BATCH=yes DESTDIR=$CVS_CO_DIR FORCE_PKG_REGISTER=yo
 	fi
 }
 
@@ -119,7 +129,6 @@ populate_extra() {
 	fi
 
 	fixup_libmap
-	recompile_pfPorts
 
     # Enable debug if requested
     if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
