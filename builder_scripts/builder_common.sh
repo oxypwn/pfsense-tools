@@ -17,6 +17,8 @@ fixup_libmap() {
 recompile_pfPorts() {
 	if [ $pfSense_version = "7" ]; then
 		echo "Recompiling pfPorts..."
+		cp /usr/sbin/pkg_* $CVS_CO_DIR/usr/sbin/
+		chmod a+rx $CVS_CO_DIR/usr/sbin/*
 		cd /home/pfsense/tools/pfPorts
 		make
 		make install BATCH=yes DESTDIR=$CVS_CO_DIR/usr/local FORCE_PKG_REGISTER=yo
