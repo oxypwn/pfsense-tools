@@ -256,6 +256,7 @@ rm -rf /usr/obj*
 # Main builder loop
 while [ /bin/true ]; do
 		# -- pfSense RELENG_1 -- FreeBSD RELENG_6_2
+		rm $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
 		setstatus "Setting build to -RELENG_1 FreeBSD RELENG_6_2..."
 		set_pfsense_source "RELENG_1"
 		set_freebsd_source "RELENG_6_2"
@@ -265,6 +266,7 @@ while [ /bin/true ]; do
 		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/RELENG_1/embedded/
 		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
 		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
+		rm $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
 		setstatus "Cleaning up..."
 		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
@@ -281,7 +283,7 @@ while [ /bin/true ]; do
 		cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD6/head/iso/
 		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/head/embedded/
 		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/head/updates/
-		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/head/updates/	
+		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/head/updates/
 		setstatus "Cleaning up..."
 		rm $STAGINGAREA/*
 		rm -rf /usr/obj*
