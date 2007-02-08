@@ -419,3 +419,7 @@ options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
 # Lighttpd
 options   ACCEPT_FILTER_HTTP
 
+# IPSEC filtering interface
+device 		enc
+
+
