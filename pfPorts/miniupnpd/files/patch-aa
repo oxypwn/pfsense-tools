@@ -1,22 +1,119 @@
---- ../miniupnpd-clean/upnpdescstrings.h	2007-01-27 10:53:24.000000000 -0500
-+++ upnpdescstrings.h	2007-01-27 22:03:16.000000000 -0500
-@@ -10,13 +10,13 @@
- #include "config.h"
+diff -urN ../miniupnpd-clean/genconfig.sh ./genconfig.sh
+--- ../miniupnpd-clean/genconfig.sh	2007-01-22 17:18:58.000000000 -0500
++++ ./genconfig.sh	2007-02-07 18:59:22.000000000 -0500
+@@ -1,5 +1,5 @@
+ #! /bin/sh
+-# $Id$
++# $Id$
+ # miniupnp daemon
+ # http://miniupnp.free.fr or http://miniupnp.tuxfamily.org/
+ # (c) 2006 Thomas Bernard
+@@ -9,9 +9,24 @@
+ RM="rm -f"
+ CONFIGFILE="config.h"
+ CONFIGMACRO="__CONFIG_H__"
++UPNP_VERSION=20070228
++
++# detecting the OS name and version
+ OS_NAME=`uname -s`
+ OS_VERSION=`uname -r`
  
- /* strings used in the root device xml description */
--#define ROOTDEV_FRIENDLYNAME		OS_NAME " router"
--#define ROOTDEV_MANUFACTURER		OS_NAME
--#define ROOTDEV_MANUFACTURERURL		OS_URL
--#define ROOTDEV_MODELNAME			OS_NAME " router"
--#define ROOTDEV_MODELDESCRIPTION	OS_NAME " router"
-+#define ROOTDEV_FRIENDLYNAME		"pfSense router"
-+#define ROOTDEV_MANUFACTURER		"pfSense"
-+#define ROOTDEV_MANUFACTURERURL		"http://pfSense.com/"
-+#define ROOTDEV_MODELNAME			"pfSense router"
-+#define ROOTDEV_MODELDESCRIPTION	"pfSense router"
- #define ROOTDEV_MODELNUMBER			"1"
--#define ROOTDEV_MODELURL			OS_URL
-+#define ROOTDEV_MODELURL			"http://pfSense.com/"
- #define ROOTDEV_SERIALNUMBER		"00000000"
++# Debian GNU/Linux special case
++if [ -f /etc/debian_version ]; then
++	OS_NAME=Debian
++	OS_VERSION=`cat /etc/debian_version`
++fi
++
++# pfSense special case
++if [ `cat /etc/platform` = "pfSense" ]; then
++	OS_NAME=pfSense
++	OS_VERSION=`cat /etc/version`
++fi
++
+ ${RM} ${CONFIGFILE}
  
- #define WANDEV_FRIENDLYNAME			"WANDevice"
+ echo "/* MiniUPnP Project" >> ${CONFIGFILE}
+@@ -21,28 +36,35 @@
+ echo "#ifndef $CONFIGMACRO" >> ${CONFIGFILE}
+ echo "#define $CONFIGMACRO" >> ${CONFIGFILE}
+ echo "" >> ${CONFIGFILE}
+-echo -e "#define OS_NAME\t\"$OS_NAME\"" >> ${CONFIGFILE}
++echo -e "#define UPNP_VERSION\t\"$UPNP_VERSION\"" >> ${CONFIGFILE}
++echo -e "#define OS_NAME\t\t\"$OS_NAME\"" >> ${CONFIGFILE}
+ echo -e "#define OS_VERSION\t\"$OS_NAME/$OS_VERSION\"" >> ${CONFIGFILE}
+ 
+ # OS Specific stuff
+-case `uname -s` in
++case $OS_NAME in
+ 	OpenBSD)
+-		echo -e "#define OS_URL\t\"http://www.openbsd.org/\"" >> ${CONFIGFILE}
+ 		MAJORVER=`echo $OS_VERSION | sed 's/\.[0-9]*//'`
+ 		#echo "OpenBSD majorversion=$MAJORVER"
+ 		# rtableid was introduced in OpenBSD 4.0
+ 		if [ $MAJORVER -ge 4 ]; then
+ 			echo "#define PFRULE_HAS_RTABLEID" >> ${CONFIGFILE}
+ 		fi
++		OS_URL=http://www.openbsd.org/
+ 		;;
+ 	FreeBSD)
+-		echo -e "#define OS_URL\t\"http://www.freebsd.org/\"" >> ${CONFIGFILE}
++		OS_URL=http://www.freebsd.org/
++		;;
++	pfSense)
++		OS_URL=http://www.pfsense.com/
+ 		;;
+ 	NetBSD)
+-		echo -e "#define OS_URL\t\"http://www.netbsd.org/\"" >> ${CONFIGFILE}
++		OS_URL=http://www.netbsd.org/
++		;;
++	Debian)
++		OS_URL=http://www.debian.org/
+ 		;;
+ 	Linux)
+-		echo -e "#define OS_URL\t\"http://www.kernel.org/\"" >> ${CONFIGFILE}
++		OS_URL=http://www.kernel.org/
+ 		;;
+ 	*)
+ 		echo "Unknown OS : $OS_NAME"
+@@ -51,6 +73,8 @@
+ 		;;
+ esac
+ 
++echo -e "#define OS_URL\t\t\"${OS_URL}\"" >> ${CONFIGFILE}
++
+ echo "" >> ${CONFIGFILE}
+ echo "#endif" >> ${CONFIGFILE}
+ 
+diff -urN ../miniupnpd-clean/upnpdescstrings.h ./upnpdescstrings.h
+--- ../miniupnpd-clean/upnpdescstrings.h	2007-02-07 17:58:02.000000000 -0500
++++ ./upnpdescstrings.h	2007-02-07 19:00:02.000000000 -0500
+@@ -22,7 +22,7 @@
+ #define WANDEV_MANUFACTURERURL		"http://miniupnp.free.fr/"
+ #define WANDEV_MODELNAME			"WAN Device"
+ #define WANDEV_MODELDESCRIPTION		"WAN Device"
+-#define WANDEV_MODELNUMBER			"20060207"
++#define WANDEV_MODELNUMBER			UPNP_VERSION
+ #define WANDEV_MODELURL				"http://miniupnp.free.fr/"
+ #define WANDEV_UPC					"MINIUPNPD"
+ 
+@@ -31,7 +31,7 @@
+ #define WANCDEV_MANUFACTURERURL		WANDEV_MANUFACTURERURL
+ #define WANCDEV_MODELNAME			"MiniUPnPd"
+ #define WANCDEV_MODELDESCRIPTION	"MiniUPnP daemon"
+-#define WANCDEV_MODELNUMBER			"20060207"
++#define WANCDEV_MODELNUMBER			UPNP_VERSION
+ #define WANCDEV_MODELURL			"http://miniupnp.free.fr/"
+ #define WANCDEV_UPC					"MINIUPNPD"
+ 
+diff -urN ../miniupnpd-clean/upnpglobalvars.h ./upnpglobalvars.h
+--- ../miniupnpd-clean/upnpglobalvars.h	2007-02-07 17:58:02.000000000 -0500
++++ ./upnpglobalvars.h	2007-02-07 19:07:44.000000000 -0500
+@@ -39,7 +39,7 @@
+ extern char uuidvalue[];
+ extern char serialnumber[];
+ 
+-#define MODELNUMBER_LEN (8)
++#define MODELNUMBER_LEN (32)
+ extern char modelnumber[];
+ 
+ #define PRESENTATIONURL_LEN (32)
