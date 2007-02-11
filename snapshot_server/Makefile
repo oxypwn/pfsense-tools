@@ -40,6 +40,8 @@ MD5?=					-md5
 MD5_CMD?=				/sbin/md5 ${MD5}
 CP_CMD?=				/bin/cp
 
+all: clean set_pfsense_source set_freebsd_source copy_files
+
 make_dirs:
 	@${MKDIR} ${CVSROOT}
 	@${MKDIR} ${WEBDATAROOT}/FreeBSD6/RELENG_1/updates \
@@ -195,7 +197,7 @@ setstatus:
 
 update_sources_status:
 	STATUS="Updating sources and building ${CURRENTLY_BUILDING} ISO..."
-	@${ECHO_MSG} "===> ${STATUS}
+	@${ECHO_MSG} "===> ${STATUS}"
 	@${ECHO_CMD} ${STATUS} > ${WEBDATAROOT}/status_msg.txt
 	
 update_sources: update_sources_status setstatus
@@ -238,7 +240,7 @@ build_embedded: build_embedded_status setstatus
 
 build_updates_status:
 	STATUS="Building updates..."
-	@${ECHO_MSG} "===> ${STATUS}
+	@${ECHO_MSG} "===> ${STATUS}"
 	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
 
 build_updates: build_updates_status setstatus update_sources
@@ -254,7 +256,7 @@ build_updates: build_updates_status setstatus update_sources
 
 build_iso_status:
 	STATUS="Building ISO..."
-	@${ECHO_MSG} "===> ${STATUS}
+	@${ECHO_MSG} "===> ${STATUS}"
 	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
 
 build_iso: build_iso_status setstatus
@@ -263,9 +265,7 @@ build_iso: build_iso_status setstatus
 	./build_iso.sh
 	@${ECHO_CMD} "FULL ISO for ${CURRENTLY_BUILDING} last completed at `date`" \
 				> ${WEBROOT}/${CURRENTLY_BUILDINGISOSTATUS}.txt
-				
-all: clean set_pfsense_source set_freebsd_source copy_files
-	
+
 dobuilds: update_sources
 	CURRENTLY_BUILDING=`cat ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt`
 	@${CD_CMD} ${BUILDERSCRIPTS}
@@ -279,7 +279,7 @@ copy_embedded_files: build_embedded
 
 copy_files_status:
 	STATUS="Copying files for -RELENG_1 build..."
-	@${ECHO_MSG} "===> ${STATUS}
+	@${ECHO_MSG} "===> ${STATUS}"
 	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
 
 copy_files: copy_files_status setstatus copy_iso_files copy_embedded_files
