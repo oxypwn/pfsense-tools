@@ -3,7 +3,8 @@
 #
 # $Id$
 #
-#	Makefile - Copyright (C) 2007, Daniel S. Haischt <me@daniel.stefan.haischt.name>.
+#	Makefile - Copyright (C) 2007,	Scott Ullrich
+#							Daniel S. Haischt <me@daniel.stefan.haischt.name>.
 #	This file is placed under the BSD License, 2 clause.
 #
 # Please view me with 4 column tabs!
@@ -55,7 +56,7 @@ make_dirs:
 		 ${WEBDATAROOT}/FreeBSD7/head/updates/
 	@${MKDIR} /tmp/staging
 
-touch_status_files:
+touch_status_files: make_dirs
 	@${TOUCH} ${TOUCH_FLAGS} ${WEBROOT}/-RELENG_1ISOSTATUS.txt \
 	  ${WEBROOT}/-RELENG_1UPDATESSTATUS.txt \
 	  ${WEBROOT}/-RELENG_1EMBEDDEDSTATUS.txt \
@@ -65,11 +66,23 @@ touch_status_files:
 	  ${WEBROOT}/-HEADEMBEDDEDSTATUS.txt \
 	  ${WEBROOT}/-HEADSTATUS.txt
 
-set_pfsense_source:
-	@${ECHO_CMD} $1 > ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt
+set_pfsense_source: touch_status_files set_version
+	@${ECHO_CMD} $WITH_PFSENSE_VERSION > ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt
 
-set_freebsd_source:
-	@${ECHO_CMD} $1 > ${WEBROOT}/FREEBSD_PLATFORM.txt
+set_freebsd_source: touch_status_files set_version
+	@${ECHO_CMD} $WITH_FREEBSD_VERSION > ${WEBROOT}/FREEBSD_PLATFORM.txt
+
+set_pfsense_version:
+.if defined(WITH_PFSENSE_VERSION)
+	WITH_PFSENSE_VERSION="RELENG_1"
+.endif
+
+set_freebsd_version:
+.if defined(WITH_FREEBSD_VERSION)
+	WITH_FREEBSD_VERSION="RELENG_6_2"
+.endif
+
+set_version: set_pfsense_version set_freebsd_version
 
 install_pfsense_local_sh:
 	FREEBSD_PLATFORM=`cat ${WEBROOT}/FREEBSD_PLATFORM.txt`
@@ -144,6 +157,7 @@ EOF
 
 setstatus:
 	CURRENTLY_BUILDING=`cat ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt`
+	STATUS=`cat ${WEBDATAROOT}/status_msg.txt`
 	@${ECHO_CMD} ${STATUS} > ${WEBDATAROOT}/status.txt
 	@${UPTIME_CMD} >> ${WEBDATAROOT}/status.txt
 	@${ECHO_CMD} >> ${WEBDATAROOT}/status.txt
@@ -179,10 +193,14 @@ setstatus:
 				>> ${WEBDATAROOT}/status.txt
 	@${CAT} ${WEBROOT}/-HEADSTATUS.txt \
 				>> ${WEBDATAROOT}/status.txt
+	@${RM_CMD} ${WEBDATAROOT}/status_msg.txt
 
-update_sources:
+update_sources_status:
+	STATUS="Updating sources and building ${CURRENTLY_BUILDING} ISO..."
+	@${ECHO_CMD} ${STATUS} > ${WEBDATAROOT}/status_msg.txt
+	
+update_sources: update_sources_status setstatus
 	CURRENTLY_BUILDING=`cat ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt`
-	STATUS="Updating sources and building $CURRENTLY_BUILDING ISO..."
 	@${CD_CMD} ${BUILDERSCRIPTS}
 	./cvsup_current
 	ISO_FILE=${PFSENSEOBJDIR}/pfSense.iso
@@ -196,9 +214,12 @@ update_sources:
 	@${ECHO_CMD} "Sources updated for ${CURRENTLY_BUILDING} last completed at `date`" \
 				> ${WEBROOT}/${CURRENTLY_BUILDINGSTATUS}.txt
 
-build_embedded:
+build_embedded_status:
+	STATUS="Building embedded ${CURRENTLY_BUILDING} ..."
+	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
+
+build_embedded: build_embedded_status setstatus
 	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-	STATUS="Building embedded $CURRENTLY_BUILDING ..."
 	@${CD_CMD} $BUILDERSCRIPTS
 	./build_embedded.sh
 	STATUS="Compressing embedded $CURRENTLY_BUILDING ..."
@@ -215,9 +236,12 @@ build_embedded:
 	@${ECHO_CMD} "Embedded for ${CURRENTLY_BUILDING} last completed at `date`" \
 				> ${WEBROOT}/${CURRENTLY_BUILDINGEMBEDDEDSTATUS}.txt
 
-build_updates:
-	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+build_updates_status:
 	STATUS="Building updates..."
+	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
+
+build_updates: build_updates_status setstatus update_sources
+	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	@${CD_CMD} ${BUILDERSCRIPTS}
 	./build_updates.sh
 	for filename in ${PFSENSEUPDATESDIR}/*.tgz
@@ -227,27 +251,35 @@ build_updates:
 	@${ECHO_CMD} "Updates for ${CURRENTLY_BUILDING last completed at `date`" \
 				> ${WEBROOT}/${CURRENTLY_BUILDINGUPDATESSTATUS}.txt
 
-build_iso:
-	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+build_iso_status:
 	STATUS="Building ISO..."
+	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
+
+build_iso: build_iso_status setstatus
+	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	@${CD_CMD} $BUILDERSCRIPTS
 	./build_iso.sh
 	@${ECHO_CMD} "FULL ISO for ${CURRENTLY_BUILDING} last completed at `date`" \
 				> ${WEBROOT}/${CURRENTLY_BUILDINGISOSTATUS}.txt
-
+				
+all: set_pfsense_source set_freebsd_source copy_files
+	
 dobuilds: update_sources
 	CURRENTLY_BUILDING=`cat ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt`
 	@${CD_CMD} ${BUILDERSCRIPTS}
 
-copy_iso_files: build_iso
+copy_iso_files: build_updates
 	# Copy files before embedded, it wipes out usr.obj*
 	@${CP_CMD} ${PFSENSEOBJDIR}/pfSense.iso.* ${STAGINGAREA}/
 
 copy_embedded_files: build_embedded
 	@${CP_CMD} ${PFSENSEOBJDIR}/pfSense.img.* ${STAGINGAREA}/
 
-copy_files:
+copy_files_status:
 	STATUS="Copying files for -RELENG_1 build..."
+	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
+
+copy_files: copy_files_status setstatus copy_iso_files copy_embedded_files
 	@${CP_CMD} ${PFSENSEUPDATESDIR}/*.tgz ${STAGINGAREA}/
 	@${CP_CMD} ${PFSENSEUPDATESDIR}/*.tgz.md5 ${STAGINGAREA}/
 
