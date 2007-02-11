@@ -67,18 +67,20 @@ touch_status_files: make_dirs
 	  ${WEBROOT}/-HEADSTATUS.txt
 
 set_pfsense_source: touch_status_files set_version
+	@${ECHO_MSG} "===> building pfSense version ${$WITH_PFSENSE_VERSION}
 	@${ECHO_CMD} $WITH_PFSENSE_VERSION > ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt
 
 set_freebsd_source: touch_status_files set_version
+	@${ECHO_MSG} "===> building FreeBSD version ${$WITH_FREEBSD_VERSION}
 	@${ECHO_CMD} $WITH_FREEBSD_VERSION > ${WEBROOT}/FREEBSD_PLATFORM.txt
 
 set_pfsense_version:
-.if defined(WITH_PFSENSE_VERSION)
+.ifndef WITH_PFSENSE_VERSION
 	WITH_PFSENSE_VERSION="RELENG_1"
 .endif
 
 set_freebsd_version:
-.if defined(WITH_FREEBSD_VERSION)
+.ifndef WITH_FREEBSD_VERSION
 	WITH_FREEBSD_VERSION="RELENG_6_2"
 .endif
 
@@ -87,73 +89,69 @@ set_version: set_pfsense_version set_freebsd_version
 install_pfsense_local_sh:
 	FREEBSD_PLATFORM=`cat ${WEBROOT}/FREEBSD_PLATFORM.txt`
 	PFSENSE_PLATFORM=`cat ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt`
-	@${CAT} <<EOF >${BUILDERSCRIPTS}/pfsense_local.sh
-
-#!/bin/sh
-
-# This is the base working directory for all builder
-# operations
-export BASE_DIR=\${BASE_DIR:-/home/pfsense}
-
-# This is the directory where the latest pfSense cvs co
-# is checked out to.
-export CVS_CO_DIR=\${CVS_CO_DIR:-\${BASE_DIR}/pfSense}
-
-export CUSTOMROOT=\${CUSTOMROOT:-\${CVS_CO_DIR}}
-
-# This is the user that has access to the pfSense repo
-export CVS_USER=\${CVS_USER:-sullrich}
-
-# pfSense repo IP address. Typically cvs.pfsense.org,
-# but somebody could use a ssh tunnel and specify
-# a different one
-export CVS_IP=\${CVS_IP:-cvs.pfsense.org}
-
-export UPDATESDIR=\${UPDATESDIR:-\$BASE_DIR/updates}
-
-export PFSENSEBASEDIR=\${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
-
-export PFSENSEISODIR=\${PFSENSEISODIR:-/usr/local/pfsense-clone}
-
-# pfSense cvs tag to build
-export PFSENSETAG="${PFSENSE_PLATFORM}"
-
-# FreeSBIE 2 toolkit path
-export FREESBIE_PATH=\${FREESBIE_PATH:-/home/pfsense/freesbie2}
-
-# export variables used by freesbie2
-export FREESBIE_CONF=\${FREESBIE_CONF:-/dev/null}
-export SRCDIR=\${SRCDIR:-/usr/src}
-export BASEDIR=\${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
-export CLONEDIR=\${PFSENSEISODIR:-/usr/local/pfsense-clone}
-export MAKEOBJDIRPREFIX=\${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
-export ISOPATH=\${ISOPATH:-\${MAKEOBJDIRPREFIX}/pfSense.iso}
-export IMGPATH=\${IMGPATH:-\${MAKEOBJDIRPREFIX}/pfSense.img}
-export PKGFILE=\${PKGFILE:-\$PWD/conf/packages}
-export FREESBIE_LABEL=pfSense
-export EXTRA="\${EXTRA:-"customroot buildmodules"}"
-export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs"
-
-MAKEJ=" "
-
-# FreeBSD version.  6 or 7
-export pfSense_version="6"
-export freebsd_branch="${FREEBSD_PLATFORM}"
-
-# Used by non pfSense developers
-export SKIP_RSYNC=yes
-
-# Custom overlay for people building or extending pfSense images.
-# The custom overlay tar gzipped file will be extracted over the root
-# of the prepared image allowing for customization.
-#
-# Note: It is also possible to specify a directory instead of a
-#       gezipped tarball.
-# export custom_overlay="/home/pfsense/custom_overlay.tgz"
-
-export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
-
-EOF
+	@${ECHO_CMD} "#!/bin/sh" >$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# This is the base working directory for all builder" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# operations >$BUILDERSCRIPTS/pfsense_local.sh" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export BASE_DIR=\${BASE_DIR:-/home/pfsense}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# This is the directory where the latest pfSense cvs co" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# is checked out to." >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export CVS_CO_DIR=\${CVS_CO_DIR:-\${BASE_DIR}/pfSense}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export CUSTOMROOT=\${CUSTOMROOT:-\${CVS_CO_DIR}}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# This is the user that has access to the pfSense repo" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export CVS_USER=\${CVS_USER:-sullrich}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# pfSense repo IP address. Typically cvs.pfsense.org," >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# but somebody could use a ssh tunnel and specify" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# a different one" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export CVS_IP=\${CVS_IP:-cvs.pfsense.org}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export UPDATESDIR=\${UPDATESDIR:-\$BASE_DIR/updates}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export PFSENSEBASEDIR=\${PFSENSEBASEDIR:-/usr/local/pfsense-fs}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export PFSENSEISODIR=\${PFSENSEISODIR:-/usr/local/pfsense-clone}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# pfSense cvs tag to build" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export PFSENSETAG=\"${PFSENSE_PLATFORM}\"" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# FreeSBIE 2 toolkit path" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export FREESBIE_PATH=\${FREESBIE_PATH:-/home/pfsense/freesbie2}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# export variables used by freesbie2" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export FREESBIE_CONF=\${FREESBIE_CONF:-/dev/null}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export SRCDIR=\${SRCDIR:-/usr/src}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export BASEDIR=\${PFSENSEBASEDIR:-/usr/local/pfsense-fs}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export CLONEDIR=\${PFSENSEISODIR:-/usr/local/pfsense-clone}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export MAKEOBJDIRPREFIX=\${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export ISOPATH=\${ISOPATH:-\${MAKEOBJDIRPREFIX}/pfSense.iso}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export IMGPATH=\${IMGPATH:-\${MAKEOBJDIRPREFIX}/pfSense.img}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export PKGFILE=\${PKGFILE:-\$PWD/conf/packages}" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export FREESBIE_LABEL=pfSense" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export EXTRA=\"\${EXTRA:-\"customroot buildmodules\"}\"" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export BUILDMODULES=\"netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs\""
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "MAKEJ=\" \"" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# FreeBSD version.  6 or 7" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export pfSense_version=\"6\"" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export freebsd_branch=\"${FREEBSD_PLATFORM}\"" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# Used by non pfSense developers" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export SKIP_RSYNC=yes" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# Custom overlay for people building or extending pfSense images." >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# The custom overlay tar gzipped file will be extracted over the root" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# of the prepared image allowing for customization." >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "#" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# Note: It is also possible to specify a directory instead of a" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "#       gezipped tarball." >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "# export custom_overlay=\"/home/pfsense/custom_overlay.tgz\"" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "" >>$BUILDERSCRIPTS/pfsense_local.sh
+	@${ECHO_CMD} "export OVERRIDE_FREEBSD_CVSUP_HOST=\"cvsup.livebsd.com\"" >>$BUILDERSCRIPTS/pfsense_local.sh
 
 setstatus:
 	CURRENTLY_BUILDING=`cat ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt`
@@ -197,6 +195,7 @@ setstatus:
 
 update_sources_status:
 	STATUS="Updating sources and building ${CURRENTLY_BUILDING} ISO..."
+	@${ECHO_MSG} "===> ${STATUS}
 	@${ECHO_CMD} ${STATUS} > ${WEBDATAROOT}/status_msg.txt
 	
 update_sources: update_sources_status setstatus
@@ -216,6 +215,7 @@ update_sources: update_sources_status setstatus
 
 build_embedded_status:
 	STATUS="Building embedded ${CURRENTLY_BUILDING} ..."
+	@${ECHO_MSG} "===> ${STATUS}"
 	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
 
 build_embedded: build_embedded_status setstatus
@@ -238,6 +238,7 @@ build_embedded: build_embedded_status setstatus
 
 build_updates_status:
 	STATUS="Building updates..."
+	@${ECHO_MSG} "===> ${STATUS}
 	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
 
 build_updates: build_updates_status setstatus update_sources
@@ -253,6 +254,7 @@ build_updates: build_updates_status setstatus update_sources
 
 build_iso_status:
 	STATUS="Building ISO..."
+	@${ECHO_MSG} "===> ${STATUS}
 	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
 
 build_iso: build_iso_status setstatus
@@ -262,7 +264,7 @@ build_iso: build_iso_status setstatus
 	@${ECHO_CMD} "FULL ISO for ${CURRENTLY_BUILDING} last completed at `date`" \
 				> ${WEBROOT}/${CURRENTLY_BUILDINGISOSTATUS}.txt
 				
-all: set_pfsense_source set_freebsd_source copy_files
+all: clean set_pfsense_source set_freebsd_source copy_files
 	
 dobuilds: update_sources
 	CURRENTLY_BUILDING=`cat ${WEBROOT}/CURRENTLY_BUILDING_PLATFORM.txt`
@@ -277,6 +279,7 @@ copy_embedded_files: build_embedded
 
 copy_files_status:
 	STATUS="Copying files for -RELENG_1 build..."
+	@${ECHO_MSG} "===> ${STATUS}
 	@${ECHO_CMD}${STATUS} > ${WEBDATAROOT}/status_msg.txt
 
 copy_files: copy_files_status setstatus copy_iso_files copy_embedded_files
