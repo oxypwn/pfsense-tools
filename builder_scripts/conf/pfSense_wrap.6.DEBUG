@@ -357,7 +357,7 @@ options         INVARIANT_SUPPORT       # Extra sanity checks of internal struct
 options         BREAK_TO_DEBUGGER
 
 options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
-options         PREEMPTION
+#options         PREEMPTION
 #options         NO_ADAPTIVE_MUTEXES
 
 # Lighttpd

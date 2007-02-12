@@ -419,7 +419,7 @@ options		INVARIANT_SUPPORT	# Extra sanity checks of internal structures, require
 
 options         BREAK_TO_DEBUGGER
 
-options         PREEMPTION
+#options         PREEMPTION
 #options         NO_ADAPTIVE_MUTEXES
 options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
 
