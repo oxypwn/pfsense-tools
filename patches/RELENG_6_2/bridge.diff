@@ -312,7 +312,7 @@ RCS file: /home/ncvs/src/sys/net/bridgestp.c,v
 retrieving revision 1.3.2.9
 diff -u -p -r1.3.2.9 bridgestp.c
 --- sys/net/bridgestp.c	21 Oct 2006 19:10:39 -0000	1.3.2.9
-+++ sys/net/bridgestp.c	16 Feb 2007 11:00:39 -0000
++++ sys/net/bridgestp.c	16 Feb 2007 11:15:41 -0000
 @@ -2,6 +2,7 @@
  
  /*
@@ -3197,7 +3197,7 @@ diff -u -p -r1.3.2.9 bridgestp.c
 +	bs->bs_hold_time = BSTP_DEFAULT_HOLD_TIME;
 +	bs->bs_migration_delay = BSTP_DEFAULT_MIGRATE_DELAY;
 +	bs->bs_txholdcount = BSTP_DEFAULT_HOLD_COUNT;
-+	bs->bs_protover = BSTP_PROTO_STP;
++	bs->bs_protover = BSTP_PROTO_RSTP;
 +	bs->bs_state_cb = state_callback;
 +	bs->bs_rtage_cb = rtage_callback;
 +
