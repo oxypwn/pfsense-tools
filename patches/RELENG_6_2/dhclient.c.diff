@@ -552,7 +552,7 @@ diff -u -r1.1.1.1.2.1 privsep.c
  
 +	/* danger danger, dhclient is about to exit */
 +	if (buf->rpos < buf->size) 
-+		system("touch /tmp/reload_interfaces");
++		system("/usr/bin/touch /tmp/reload_interfaces");
 +
  	if (buf->rpos < buf->size)
  		error("short write: wanted %lu got %ld bytes",
