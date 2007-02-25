@@ -1,0 +1,112 @@
+? .swp
+Index: if_pfsync.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/if_pfsync.c,v
+retrieving revision 1.32
+diff -u -p -r1.32 if_pfsync.c
+--- if_pfsync.c	29 Dec 2006 13:59:47 -0000	1.32
++++ if_pfsync.c	25 Feb 2007 16:11:03 -0000
+@@ -170,6 +170,9 @@ void	pfsync_timeout(void *);
+ void	pfsync_send_bus(struct pfsync_softc *, u_int8_t);
+ void	pfsync_bulk_update(void *);
+ void	pfsync_bulkfail(void *);
++#ifdef __FreeBSD__
++static void	pfsync_ifdetach(void *, struct ifnet *);
++#endif
+ 
+ int	pfsync_sync_ok;
+ #ifndef __FreeBSD__
+@@ -191,6 +194,9 @@ pfsync_clone_destroy(struct ifnet *ifp)
+         struct pfsync_softc *sc;
+ 
+ 	sc = ifp->if_softc;
++#ifdef __FreeBSD__
++	EVENTHANDLER_DEREGISTER(ifnet_departure_event, sc->sc_detachtag);
++#endif
+ 	callout_stop(&sc->sc_tmo);
+ 	callout_stop(&sc->sc_bulk_tmo);
+ 	callout_stop(&sc->sc_bulkfail_tmo);
+@@ -225,6 +231,16 @@ pfsync_clone_create(struct if_clone *ifc
+ 		return (ENOSPC);
+ 	}
+ 
++#ifdef __FreeBSD__
++	sc->sc_detachtag = EVENTHANDLER_REGISTER(ifnet_departure_event,
++	    pfsync_ifdetach, sc, EVENTHANDLER_PRI_ANY);
++	if (sc->sc_detachtag == NULL) {
++		if_free(ifp);
++		free(sc, M_PFSYNC);
++		return (ENOSPC);
++	}
++#endif
++
+ 	pfsync_sync_ok = 1;
+ 	sc->sc_mbuf = NULL;
+ 	sc->sc_mbuf_net = NULL;
+@@ -1870,6 +1886,35 @@ pfsync_sendout(sc)
+ 
+ #ifdef __FreeBSD__
+ static void
++pfsync_ifdetach(void *arg, struct ifnet *ifp)
++{
++	struct pfsync_softc *sc = (struct pfsync_softc *)arg;
++	struct ip_moptions *imo;
++
++	if (sc == NULL || sc->sc_sync_ifp != ifp)
++		return;		/* not for us; unlocked read */
++
++	PF_LOCK();
++
++	/* Deal with detaching an interface which went away. */
++	sc->sc_sync_ifp = NULL;
++	if (sc->sc_mbuf_net != NULL) {
++		s = splnet();
++		m_freem(sc->sc_mbuf_net);
++		sc->sc_mbuf_net = NULL;
++		sc->sc_statep_net.s = NULL;
++		splx(s);
++	}
++	imo = &sc->sc_imo;
++	if (imo->imo_num_memberships > 0) {
++		in_delmulti(imo->imo_membership[--imo->imo_num_memberships]);
++		imo->imo_multicast_ifp = NULL;
++	}
++
++	PF_UNLOCK();
++}
++
++static void
+ pfsync_senddef(void *arg)
+ {
+ 	struct pfsync_softc *sc = (struct pfsync_softc *)arg;
+@@ -1879,6 +1924,14 @@ pfsync_senddef(void *arg)
+ 		IF_DEQUEUE(&sc->sc_ifq, m);
+ 		if (m == NULL)
+ 			break;
++#if 1
++		/* XXX: paranoia */
++		if (sc->sc_sync_ifp == NULL) {
++			pfsyncstats.pfsyncs_oerrors++;
++			m_freem(m);
++			continue;
++		}
++#endif
+ 		if (ip_output(m, NULL, NULL, IP_RAWOUTPUT, &sc->sc_imo, NULL))
+ 			pfsyncstats.pfsyncs_oerrors++;
+ 	}
+Index: if_pfsync.h
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/if_pfsync.h,v
+retrieving revision 1.7
+diff -u -p -r1.7 if_pfsync.h
+--- if_pfsync.h	10 Jun 2005 17:23:49 -0000	1.7
++++ if_pfsync.h	25 Feb 2007 16:11:03 -0000
+@@ -181,6 +181,7 @@ struct pfsync_softc {
+ 	int			 sc_maxupdates;	/* number of updates/state */
+ #ifdef __FreeBSD__
+ 	LIST_ENTRY(pfsync_softc) sc_next;
++	eventhandler_tag	 sc_detachtag;
+ #endif
+ };
+ #endif
+
