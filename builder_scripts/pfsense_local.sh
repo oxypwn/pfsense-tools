@@ -45,7 +45,7 @@ export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfSense
-export EXTRA="${EXTRA:-"customroot buildmodules"}"
+export EXTRA="${EXTRA:-"customroot buildmodules installports"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs"
 
 MAKEJ=" "
@@ -66,3 +66,6 @@ export freebsd_branch="RELENG_6_1"
 # export custom_overlay="/home/pfsense/custom_overlay.tgz"
 
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
+                   
+#INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/pftpx-routeto pfPorts/kbdcheck pfPorts/php4-pfsense pfPorts/libevent pfPorts/php4-pfsense-allopt pfPorts/beep pfPorts/lighttpd pfPorts/bsdiff pfPorts/mini_httpd-pfsense pfPorts/racoon pfPorts/check_reload_status pfPorts/minicron pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/sasyncd pfPorts/dhcpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/ssh_tunnel_shell pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/openvpn pfPorts/sshtools pfPorts/ifstated pfPorts/p3scan-pf pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx"
+

@@ -236,6 +236,15 @@ echo -n Cleaning up previous build environment...Please wait...
 (cd ${CURRENTDIR} && rm -rf /usr/obj*)
 echo Done!
 
+# Check for pfPorts in /usr/ports
+if [ ! -d /usr/ports/pfPorts ]; then
+	if [ -d /home/pfsense/tools/pfPorts ]; then
+		echo -n "Populating /usr/ports/pfPorts..."
+		cp -R /home/pfsense/tools/pfPorts /usr/ports/
+		echo " done."
+	fi
+fi
+
 echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
 
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
