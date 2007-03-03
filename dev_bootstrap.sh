@@ -68,6 +68,8 @@ echo "*default base=/home/pfsense/cvsroot" >>/tmp/bootstrap-supfile
 echo "*default release=cvs" >>/tmp/bootstrap-supfile
 echo "*default delete use-rel-suffix" >>/tmp/bootstrap-supfile
 echo "pfSense" >>/tmp/bootstrap-supfile
+echo "tools" >>/tmp/bootstrap-supfile
+echo "www" >>/tmp/bootstrap-supfile
 echo "*default compress" >>/tmp/bootstrap-supfile
 
 # Failed, lets try with passive mode
