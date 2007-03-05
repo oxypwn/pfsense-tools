@@ -1,10 +1,68 @@
+Index: if_ral.c.rej
+===================================================================
+RCS file: if_ral.c.rej
+diff -N if_ral.c.rej
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ if_ral.c.rej	5 Mar 2007 21:03:23 -0000
+@@ -0,0 +1,51 @@
++***************
++*** 1517,1523 ****
++  
++  	ieee80211_beacon_update(ic, data->ni, &sc->sc_bo, data->m, 1);
++  
++- 	if (ic->ic_rawbpf != NULL)
++  		bpf_mtap(ic->ic_rawbpf, data->m);
++  
++  	ral_tx_bcn(sc, data->m, data->ni);
++--- 1517,1523 ----
++  
++  	ieee80211_beacon_update(ic, data->ni, &sc->sc_bo, data->m, 1);
++  
+++ 	if (bpf_peers_present(ic->ic_rawbpf))
++  		bpf_mtap(ic->ic_rawbpf, data->m);
++  
++  	ral_tx_bcn(sc, data->m, data->ni);
++***************
++*** 2109,2115 ****
++  			ni = (struct ieee80211_node *)m0->m_pkthdr.rcvif;
++  			m0->m_pkthdr.rcvif = NULL;
++  
++- 			if (ic->ic_rawbpf != NULL)
++  				bpf_mtap(ic->ic_rawbpf, m0);
++  
++  			if (ral_tx_mgt(sc, m0, ni) != 0)
++--- 2109,2115 ----
++  			ni = (struct ieee80211_node *)m0->m_pkthdr.rcvif;
++  			m0->m_pkthdr.rcvif = NULL;
++  
+++ 			if (bpf_peers_present(ic->ic_rawbpf))
++  				bpf_mtap(ic->ic_rawbpf, m0);
++  
++  			if (ral_tx_mgt(sc, m0, ni) != 0)
++***************
++*** 2145,2151 ****
++  				continue;
++  			}
++  
++- 			if (ic->ic_rawbpf != NULL)
++  				bpf_mtap(ic->ic_rawbpf, m0);
++  
++  			if (ral_tx_data(sc, m0, ni) != 0) {
++--- 2145,2151 ----
++  				continue;
++  			}
++  
+++ 			if (bpf_peers_present(ic->ic_rawbpf))
++  				bpf_mtap(ic->ic_rawbpf, m0);
++  
++  			if (ral_tx_data(sc, m0, ni) != 0) {
 Index: if_ral_pci.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/ral/if_ral_pci.c,v
 retrieving revision 1.1.2.1
 diff -u -b -r1.1.2.1 if_ral_pci.c
 --- if_ral_pci.c	25 Aug 2005 05:01:14 -0000	1.1.2.1
-+++ if_ral_pci.c	5 Mar 2007 15:17:58 -0000
++++ if_ral_pci.c	5 Mar 2007 21:03:23 -0000
 @@ -1,7 +1,7 @@
 -/*	$FreeBSD: src/sys/dev/ral/if_ral_pci.c,v 1.1.2.1 2005/08/25 05:01:14 rwatson Exp $	*/
 +/*	$FreeBSD: src/sys/dev/ral/if_ral_pci.c,v 1.1.2.2 2006/12/23 07:14:42 fjoe Exp $	*/
@@ -245,7 +303,7 @@ Index: rt2560.c
 RCS file: rt2560.c
 diff -N rt2560.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ rt2560.c	19 Jan 2007 23:01:30 -0000
++++ rt2560.c	5 Mar 2007 21:03:23 -0000
 @@ -0,0 +1,2724 @@
 +/*	$FreeBSD: src/sys/dev/ral/rt2560.c,v 1.9.2.2 2007/01/19 23:01:30 jhb Exp $	*/
 +
@@ -2976,7 +3034,7 @@ Index: rt2560reg.h
 RCS file: rt2560reg.h
 diff -N rt2560reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ rt2560reg.h	23 Dec 2006 07:14:42 -0000
++++ rt2560reg.h	5 Mar 2007 21:03:23 -0000
 @@ -0,0 +1,483 @@
 +/*	$FreeBSD: src/sys/dev/ral/rt2560reg.h,v 1.1.2.1 2006/12/23 07:14:42 fjoe Exp $	*/
 +
@@ -3466,7 +3524,7 @@ Index: rt2560var.h
 RCS file: rt2560var.h
 diff -N rt2560var.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ rt2560var.h	23 Dec 2006 07:14:42 -0000
++++ rt2560var.h	5 Mar 2007 21:03:23 -0000
 @@ -0,0 +1,169 @@
 +/*	$FreeBSD: src/sys/dev/ral/rt2560var.h,v 1.2.2.1 2006/12/23 07:14:42 fjoe Exp $	*/
 +
@@ -3642,7 +3700,7 @@ Index: rt2661.c
 RCS file: rt2661.c
 diff -N rt2661.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ rt2661.c	19 Jan 2007 23:01:30 -0000
++++ rt2661.c	5 Mar 2007 21:03:23 -0000
 @@ -0,0 +1,2906 @@
 +/*	$FreeBSD: src/sys/dev/ral/rt2661.c,v 1.10.2.2 2007/01/19 23:01:30 jhb Exp $	*/
 +
@@ -6555,7 +6613,7 @@ Index: rt2661_ucode.h
 RCS file: rt2661_ucode.h
 diff -N rt2661_ucode.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ rt2661_ucode.h	23 Dec 2006 07:14:42 -0000
++++ rt2661_ucode.h	5 Mar 2007 21:03:23 -0000
 @@ -0,0 +1,2268 @@
 +/*	$FreeBSD: src/sys/dev/ral/rt2661_ucode.h,v 1.1.2.1 2006/12/23 07:14:42 fjoe Exp $	*/
 +/*	OpenBSD: microcode.h,v 1.1 2006/01/09 20:03:40 damien Exp	*/
@@ -8830,7 +8888,7 @@ Index: rt2661reg.h
 RCS file: rt2661reg.h
 diff -N rt2661reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ rt2661reg.h	23 Dec 2006 07:14:42 -0000
++++ rt2661reg.h	5 Mar 2007 21:03:23 -0000
 @@ -0,0 +1,486 @@
 +/*	$FreeBSD: src/sys/dev/ral/rt2661reg.h,v 1.1.2.1 2006/12/23 07:14:42 fjoe Exp $	*/
 +
@@ -9323,7 +9381,7 @@ Index: rt2661var.h
 RCS file: rt2661var.h
 diff -N rt2661var.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ rt2661var.h	23 Dec 2006 07:14:42 -0000
++++ rt2661var.h	5 Mar 2007 21:03:23 -0000
 @@ -0,0 +1,171 @@
 +/*	$FreeBSD: src/sys/dev/ral/rt2661var.h,v 1.2.2.1 2006/12/23 07:14:42 fjoe Exp $	*/
 +
