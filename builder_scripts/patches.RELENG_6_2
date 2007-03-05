@@ -12,3 +12,4 @@
 ~sbin/dhclient~dhclient.c.diff~
 ~sys/i386/include~atomic.h.diff~
 -p0~~bridge.diff~
+~sys/dev/ral~ral.diff~
