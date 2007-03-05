@@ -409,8 +409,6 @@
 
 ./usr/local/man
 
-./usr/local/bin/links
-
 ./usr/local/share/aclocal
 ./usr/local/share/cvsup
 ./usr/local/share/dfuibe_installer
