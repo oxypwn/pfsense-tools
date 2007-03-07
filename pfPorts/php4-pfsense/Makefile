@@ -2,12 +2,11 @@
 # Date created:				Tue Feb 18 11:17:13 CET 2003
 # Whom:					Alex Dupre <sysadmin@alexdupre.com>
 #
-# $FreeBSD: ports/lang/php4/Makefile,v 1.88 2005/07/13 19:56:27 ale Exp $
+# $FreeBSD: ports/lang/php4/Makefile,v 1.113 2007/03/04 11:33:14 ale Exp $
 #
 
-PKGNAMESUFFIX=	-cgi
 PORTNAME=	php4
-PORTVERSION=	4.4.4
+PORTVERSION=	4.4.6
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP:S,$,:release,} \
@@ -22,66 +21,152 @@ COMMENT?=	PHP Scripting Language (Apache Module and CLI)
 
 LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
-LIB_DEPENDS=   curl:${PORTSDIR}/ftp/curl
-
 USE_BZIP2=	yes
-GNU_CONFIGURE=	yes
-USE_BISON=	yes
-USE_REINPLACE=	yes
-USE_OPENSSL=    yes
+.if !defined(PKGNAMESUFFIX)
+USE_AUTOTOOLS=	autoconf:259
+USE_GETOPT_LONG=yes
 
-CONFIGURE_ARGS+=--without-mysql \
-		--without-pear \
-		--with-openssl \
-		--with-curl \
-		--enable-mbstring \
-		--enable-bcmath \
-		--enable-pcntl \
-		--enable-fastcgi \
-		--enable-force-cgi-redirect
+CONFIGURE_ARGS=	--enable-versioning \
+		--enable-memory-limit \
+		--with-layout=GNU \
+		--with-config-file-scan-dir=${PREFIX}/etc/php \
+		--disable-all \
+		--program-prefix=""
 
-.if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
-PHP_SAPI=	full
-WITH_APACHE=	yes
-.else
-.if !defined(PKGNAMEPREFIX)
-PHP_SAPI=	${PKGNAMESUFFIX:S/-//}
-.else
-PHP_SAPI=	${PKGNAMEPREFIX:S/_//}
-WITH_APACHE=	yes
-.endif
-.endif
+OPTIONS=	CLI "Build CLI version" on \
+		CGI "Build CGI version" on \
+		APACHE "Build Apache module" off \
+		DEBUG "Enable debug" off \
+		SUHOSIN "Enable Suhosin protection system" on \
+		MULTIBYTE "Enable zend multibyte support" off \
+		IPV6 "Enable ipv6 support" on \
+		MAILHEAD "Enable mail header patch" off \
+		REDIRECT "Enable force-cgi-redirect support (CGI only)" off \
+		DISCARD "Enable discard-path support (CGI only)" off \
+		FASTCGI "Enable fastcgi support (CGI only)" on \
+		PATHINFO "Enable path-info-check support (CGI only)" on \
+		OPENSSL "Build static OpenSSL extension" off \
+		ZLIB "Build static zlib extension" off
 
-EXT_DIR=	20020429
-WITH_OPENSSL=	yes
+CONFLICTS=	php5-5*
 
-CONFLICTS?=	php4-cli-4* mod_php4-4* php4-cgi-4*
-CONFLICTS+=	php5-5* php5-cli-5* mod_php5-5* php5-cgi-5*
-
-.if ${PHP_SAPI} == "cgi"
-SAPI_FILE=	bin/php
-.endif
+MAN1=		php-config.1 phpize.1
 
 .include <bsd.port.pre.mk>
 
+PATCH_DIST_STRIP=	-p1
 
-PLIST_SUB+=	SAPI_FILE=${SAPI_FILE}
+.if !defined(WITHOUT_SUHOSIN)
+PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.6.patch.gz:suhosin
+PATCH_SITES+=	http://www.hardened-php.net/suhosin/_media/:suhosin
+PLIST_SUB+=	SUHOSIN=""
+.else
+PLIST_SUB+=	SUHOSIN="@comment "
+.endif
 
-_PORTSDIR!=	${REALPATH} ${PORTSDIR}
-PHP_PORT=	${.CURDIR:S|^${_PORTSDIR}||:S|^/||}
+.if defined(WITH_MAILHEAD)
+PATCHFILES+=	php-${PORTVERSION}-mail-header.patch:mail
+PATCH_SITES+=	http://choon.net/opensource/php/:mail
+.endif
+
+.if !defined(WITHOUT_CLI)
+PHP_SAPI+=	cli
+PLIST_SUB+=	CLI=""
+MAN1+=		php.1
+.else
+PLIST_SUB+=	CLI="@comment "
+CONFIGURE_ARGS+=--disable-cli
+.endif
+
+.if !defined(WITHOUT_CGI)
+PHP_SAPI+=	cgi
+PLIST_SUB+=	CGI=""
+.if defined(WITH_REDIRECT)
+CONFIGURE_ARGS+=--enable-force-cgi-redirect
+.endif
+.if defined(WITH_DISCARD)
+CONFIGURE_ARGS+=--enable-discard-path
+.endif
+.if !defined(WITHOUT_FASTCGI)
+CONFIGURE_ARGS+=--enable-fastcgi
+.endif
+.if defined(WITHOUT_PATHINFO)
+CONFIGURE_ARGS+=--disable-path-info-check
+.endif
+.else
+PLIST_SUB+=	CGI="@comment "
+CONFIGURE_ARGS+=--disable-cgi
+.endif
+
+.if defined(WITH_APACHE)
+PHP_SAPI+=	mod
+USE_APACHE=	1.3+
+.include "${PORTSDIR}/Mk/bsd.apache.mk"
+.if ${APACHE_VERSION} > 13
+CONFIGURE_ARGS+=--with-apxs2=${APXS}
+.else
+CONFIGURE_ARGS+=--with-apxs=${APXS}
+.endif
+PKGMESSAGE=	${PKGDIR}/pkg-message.mod
+MODULENAME=	lib${PORTNAME}
+SHORTMODNAME=	${PORTNAME}
+PLIST_SUB+=	APACHE=""
+.else
+PLIST_SUB+=	APACHE="@comment "
+.endif
+
+.if !defined(WITH_REGEX_TYPE) || ${WITH_REGEX_TYPE} == "php"
+CONFIGURE_ARGS+=--with-regex=php
+.elif defined(WITH_REGEX_TYPE) && ${WITH_REGEX_TYPE} == "system"
+CONFIGURE_ARGS+=--with-regex=system
+.elif defined(WITH_REGEX_TYPE) && ${WITH_REGEX_TYPE} == "apache"
+CONFIGURE_ARGS+=--with-regex=apache
+.endif
+
+CONFIGURE_ENV+=	ac_cv_pthreads_lib=${PTHREAD_LIBS} \
+		ac_cv_pthreads_cflags=${PTHREAD_CFLAGS} \
+		pthreads_working="yes"
+
+ MAKE_ENV+=      LDFLAGS="${LDFLAGS}"
+
+.if defined(WITH_OPENSSL)
+.include "${PORTSDIR}/Mk/bsd.openssl.mk"
+CONFIGURE_ARGS+=--with-openssl=${OPENSSLBASE} \
+		--with-openssl-dir=${OPENSSLBASE}
+LDFLAGS+=	-L${OPENSSLLIB} -lcrypto -lssl
+PHP_EXT_INC+=	openssl
+.endif
+
+.if defined(WITH_ZLIB)
+CONFIGURE_ARGS+=--with-zlib=/usr
+PHP_EXT_INC+=	zlib
+.endif
+
+.if defined(WITH_DEBUG)
+CONFIGURE_ARGS+=--enable-debug
+.endif
+
+.if defined(WITH_MULTIBYTE)
+CONFIGURE_ARGS+=--enable-zend-multibyte
+.endif
+
+.if ${OSVERSION} < 400014 || defined(WITHOUT_IPV6)
+CONFIGURE_ARGS+=--disable-ipv6
+.endif
 
 post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
 	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
 
+pre-configure:
+	@${CAT} ${WRKSRC}/acinclude.m4 ${WRKSRC}/build/libtool.m4 > ${WRKSRC}/aclocal.m4
+
 post-build:
 	@${ECHO_CMD} "PHP_VER=4" > ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_EXT_DIR=${EXT_DIR}" >> ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_PORT=\$${PORTSDIR}/${PHP_PORT}" >> ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
-.if defined(WITH_OPENSSL)
-	@${ECHO_CMD} "PHP_EXT_INC=openssl" >> ${WRKDIR}/php.conf
+.if defined(PHP_EXT_INC)
+	@${ECHO_CMD} "PHP_EXT_INC=${PHP_EXT_INC}" >> ${WRKDIR}/php.conf
 .endif
 
 post-install:
@@ -93,4 +178,7 @@ post-install:
 	@${CAT} ${PKGMESSAGE}
 .endif
 
+.else
+.include "${MASTERDIR}/Makefile.ext"
+.endif
 .include <bsd.port.post.mk>

@@ -1,3 +1,5 @@
+%%CLI%%bin/php
+%%CGI%%bin/php-cgi
 bin/php-config
 bin/phpize
 etc/php.conf
@@ -118,7 +120,6 @@ include/php/ext/standard/url_scanner_ex.h
 @unexec [ -s %D/include/php/ext/php_config.h ] || rm %D/include/php/ext/php_config.h
 include/php/main/SAPI.h
 include/php/main/build-defs.h
-include/php/main/config.nw.h
 include/php/main/config.w32.h
 include/php/main/fopen_wrappers.h
 include/php/main/internal_functions_registry.h
@@ -149,6 +150,9 @@ include/php/main/rfc1867.h
 include/php/main/safe_mode.h
 include/php/main/snprintf.h
 include/php/main/spprintf.h
+%%SUHOSIN%%include/php/main/suhosin_globals.h
+%%SUHOSIN%%include/php/main/suhosin_logo.h
+%%SUHOSIN%%include/php/main/suhosin_patch.h
 include/php/main/win95nt.h
 include/php/regex/cclass.h
 include/php/regex/cname.h
@@ -166,13 +170,15 @@ lib/php/build/mkdep.awk
 lib/php/build/phpize.m4
 lib/php/build/scan_makefile_in.awk
 lib/php/build/shtool
-%%SAPI_FILE%%
+%%APACHE%%%%APACHEMODDIR%%/%%AP_MODULE%%
+%%APACHE%%@exec %D/sbin/apxs -e -a -n %%AP_NAME%% %f
+%%APACHE%%@unexec %D/sbin/apxs -e -A -n %%AP_NAME%% %f
 @dirrm include/php/TSRM
 @dirrm include/php/Zend
 @dirrm include/php/ext/standard
-@unexec rmdir %D/include/php/ext 2> /dev/null || true
+@dirrmtry include/php/ext
 @dirrm include/php/main
 @dirrm include/php/regex
-@unexec rmdir %D/include/php 2> /dev/null || true
+@dirrmtry include/php
 @dirrm lib/php/build
-@unexec rmdir %D/lib/php 2> /dev/null || true
+@dirrmtry lib/php
