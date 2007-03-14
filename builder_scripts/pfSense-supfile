@@ -11,7 +11,7 @@ ports-base
 ports-archivers
 #ports-astro
 #ports-audio
-#ports-benchmarks
+ports-benchmarks
 #ports-biology
 #ports-cad
 #ports-chinese
@@ -42,7 +42,7 @@ ports-lang
 #ports-misc
 #ports-multimedia
 ports-net
-#ports-net-mgmt
+ports-net-mgmt
 #ports-news
 #ports-palm
 #ports-polish
