@@ -205,10 +205,6 @@ fi
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
 
-# CVSUp ports collection
-echo "Updating FreeBSD ports collection..."
-cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
-
 # clog source
 echo "Applying CLOG updates..."
 (cd ${SRCDIR}/usr.sbin/ && \
