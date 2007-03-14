@@ -1,0 +1,22 @@
+Index: sys/net/if_enc.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_enc.c,v
+retrieving revision 1.6
+diff -u -p -r1.6 if_enc.c
+--- sys/net/if_enc.c	29 Dec 2006 13:59:49 -0000	1.6
++++ sys/net/if_enc.c	14 Mar 2007 20:46:35 -0000
+@@ -204,6 +204,14 @@ ipsec_filter(struct mbuf **mp, int dir)
+ 	if ((encif->if_drv_flags & IFF_DRV_RUNNING) == 0)
+ 		return (0);
+ 
++	if (dir == PFIL_IN) {
++		encif->if_ipackets++;
++		encif->if_ibytes += (*mp)->m_pkthdr.len;
++	} else {
++		encif->if_opackets++;
++		encif->if_obytes += (*mp)->m_pkthdr.len;
++	}
++
+ 	/* Skip pfil(9) if no filters are loaded */
+ 	if (!(PFIL_HOOKED(&inet_pfil_hook)
+ #ifdef INET6
