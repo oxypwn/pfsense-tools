@@ -29,11 +29,19 @@ GNU_CONFIGURE=	yes
 USE_BISON=	yes
 USE_REINPLACE=	yes
 USE_OPENSSL=    yes
+WITH_PCRE=yes
+WITH_XML=yes
+WITH_SESSION=yes
 
 CONFIGURE_ARGS+=--without-mysql \
 		--without-pear \
 		--with-openssl \
 		--with-curl \
+		--with-xml \
+		--with-curl-dir=/usr/local \
+		--enable-xml \
+		--enable-session \
+		--enable-pcre \
 		--enable-mbstring \
 		--enable-bcmath \
 		--enable-pcntl \
