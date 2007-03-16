@@ -38,6 +38,7 @@ CONFIGURE_ARGS+=--without-mysql \
 		--with-openssl \
 		--with-curl \
 		--with-xml \
+		--with-radius \
 		--with-curl-dir=/usr/local \
 		--enable-xml \
 		--enable-session \
