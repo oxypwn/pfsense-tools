@@ -285,7 +285,6 @@
 ./usr/bin/vgrind
 ./usr/bin/view
 ./usr/bin/vis
-./usr/bin/vmstat
 ./usr/bin/wait
 ./usr/bin/what
 ./usr/bin/whatis
