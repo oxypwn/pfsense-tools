@@ -28,10 +28,12 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -lpthread -lsqlite3 -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c -I/usr/local/include/ -L/usr/local/lib
+	${CC} ${CFLAGS} -static -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c -I/usr/local/include/ -L/usr/local/lib -lsqlite3 -lpthread
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/log2lite ${PREFIX}/sbin
 	#${INSTALL_MAN} ${WRKSRC}/log2lite.8 ${PREFIX}/man/man8
 
+clean:
+	rm -rf ${WRKSRC}
 .include <bsd.port.post.mk>
