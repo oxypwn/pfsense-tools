@@ -1,25 +1,10 @@
-Index: ip_dummynet.c
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ip_dummynet.c,v
-retrieving revision 1.93.2.5
-diff -u -r1.93.2.5 ip_dummynet.c
---- ip_dummynet.c	29 Jul 2006 08:24:12 -0000	1.93.2.5
-+++ ip_dummynet.c	24 Mar 2007 21:00:22 -0000
-@@ -774,6 +774,7 @@
- 			ip = mtod(m, struct ip *);
- 			ip->ip_len = htons(ip->ip_len);
- 			ip->ip_off = htons(ip->ip_off);
-+			m->m_flags |= M_IPIN_SKIPPFIL;
- 			ip_input(m);
- 			break;
- #ifdef INET6
 Index: ip_input.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/ip_input.c,v
 retrieving revision 1.301.2.10
 diff -u -r1.301.2.10 ip_input.c
 --- ip_input.c	4 Sep 2006 10:39:47 -0000	1.301.2.10
-+++ ip_input.c	24 Mar 2007 21:00:22 -0000
++++ ip_input.c	24 Mar 2007 21:12:54 -0000
 @@ -389,18 +389,22 @@
  		}
  	}
