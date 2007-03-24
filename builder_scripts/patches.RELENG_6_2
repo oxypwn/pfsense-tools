@@ -13,5 +13,5 @@
 ~sys/i386/include~atomic.h.diff~
 -p0~~bridge.diff~
 ~sys/net/~if_enc.c.diff~
-~sys/netinet~ip_dummnet.c.diff~
+~sys/netinet~ip_dummynet.c.diff~
 ~sys/net~pfil.c.diff~
