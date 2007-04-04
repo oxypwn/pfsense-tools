@@ -276,6 +276,9 @@ device		rue		# RealTek RTL8150 USB Ethernet
 device		firewire	# FireWire bus code
 device		sbp		# SCSI over FireWire (Requires scbus and da)
 device		fwe		# Ethernet over FireWire (non-standard!)
+# Firewire ip
+device          fwip
+
 
 # pfSense addons
 
@@ -400,12 +403,6 @@ options         INVARIANT_SUPPORT       # Extra sanity checks of internal struct
 #options         WITNESS_SKIPSPIN        # Don't run witness on spinlocks for speed
 
 options         BREAK_TO_DEBUGGER
-
-# Firewire
-device          firewire        # FireWire bus code
-device          fwe
-# Firewire ip
-device          fwip
 
 # Requested by thompsa
 device          dcons
