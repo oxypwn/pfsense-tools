@@ -139,7 +139,7 @@ update_sources() {
 		gzip $PFSENSEOBJDIR/pfSense.iso
 		md5 $PFSENSEOBJDIR/pfSense.iso.gz > $PFSENSEOBJDIR/pfSense.iso.gz.md5
 		echo "Sources updated for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/$CURRENTLY_BUILDINGSTATUS.txt
+			> $WEBROOT/${CURRENTLY_BUILDING}STATUS.txt
 }
 
 build_embedded() {
@@ -152,7 +152,16 @@ build_embedded() {
 		gzip $PFSENSEOBJDIR/pfSense.img
 		md5 $PFSENSEOBJDIR/pfSense.img.gz > $PFSENSEOBJDIR/pfSense.img.gz.md5
 		echo "Embedded for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/$CURRENTLY_BUILDINGEMBEDDEDSTATUS.txt
+			> $WEBROOT/${CURRENTLY_BUILDING}EMBEDDEDSTATUS.txt
+}
+
+build_embedded_updates() {
+		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+		setstatus "Building embedded updates $CURRENTLY_BUILDING ..."
+		cd $BUILDERSCRIPTS
+		./build_updates_embedded.sh
+		echo "Embedded update for $CURRENTLY_BUILDING last completed at `date`" \
+			> $WEBROOT/${CURRENTLY_BUILDING}EMBEDDEDUPDATESTATUS.txt
 }
 
 build_updates() {
@@ -165,7 +174,7 @@ build_updates() {
 			md5  $filename > $filename.md5
 		done
 		echo "Updates for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/$CURRENTLY_BUILDINGUPDATESSTATUS.txt
+			> $WEBROOT/${CURRENTLY_BUILDING}UPDATESSTATUS.txt
 }
 
 build_iso() {
@@ -174,7 +183,7 @@ build_iso() {
 		cd $BUILDERSCRIPTS
 		./build_iso.sh
 		echo "FULL ISO for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/$CURRENTLY_BUILDINGISOSTATUS.txt
+			> $WEBROOT/${CURRENTLY_BUILDING}ISOSTATUS.txt
 }
 
 setstatus() {
@@ -198,6 +207,8 @@ setstatus() {
 		cat $WEBROOT/-RELENG_1UPDATESSTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-RELENG_1EMBEDDEDSTATUS.txt \
+			    >> $WEBDATAROOT/status.txt
+		cat $WEBROOT/-RELENG_1EMBEDDEDUPDATESTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
 		cat $WEBROOT/-RELENG_1STATUS.txt \
 			    >> $WEBDATAROOT/status.txt
@@ -233,6 +244,7 @@ dobuilds() {
 
 		# Build embedded version
 		build_embedded
+		build_embedded_updates
 		cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
 
 		setstatus "Copying files for -RELENG_1 build..."
