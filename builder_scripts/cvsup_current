@@ -204,6 +204,7 @@ fi
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
+cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # clog source
 echo "Applying CLOG updates..."
@@ -233,12 +234,10 @@ echo -n Cleaning up previous build environment...Please wait...
 echo Done!
 
 # Check for pfPorts in /usr/ports
-if [ ! -d /usr/ports/pfPorts ]; then
-	if [ -d /home/pfsense/tools/pfPorts ]; then
-		echo -n "Populating /usr/ports/pfPorts..."
-		cp -R /home/pfsense/tools/pfPorts /usr/ports/
-		echo " done."
-	fi
+if [ -d /home/pfsense/tools/pfPorts ]; then
+	echo -n "Populating /usr/ports/pfPorts..."
+	cp -R /home/pfsense/tools/pfPorts /usr/ports/
+	echo " done."
 fi
 
 echo "Starting pfSense build.  Sit back and have a beer (but not cheap beer)..."
