@@ -1,5 +1,5 @@
 *default base=/var/db
-*default host=cvsup2.freebsd.org
+#*default host=cvsup2.freebsd.org
 *default prefix=/usr
 *default release=cvs tag=.
 *default delete use-rel-suffix
