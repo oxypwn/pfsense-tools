@@ -163,8 +163,6 @@
 ./usr/bin/indent
 ./usr/bin/info
 ./usr/bin/infokey
-./usr/bin/install
-./usr/bin/install-info
 ./usr/bin/ipcrm
 ./usr/bin/ipcs
 ./usr/bin/jobs
