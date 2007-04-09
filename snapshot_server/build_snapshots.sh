@@ -270,7 +270,7 @@ while [ /bin/true ]; do
 		# -- pfSense RELENG_1 -- FreeBSD RELENG_6_2
 		rm $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
 		setstatus "Setting build to -RELENG_1 FreeBSD RELENG_6_2..."
-		set_pfsense_source "RELENG_1"
+		set_pfsense_source "RELENG_1_2"
 		set_freebsd_source "RELENG_6_2"
 		rm -f $STAGINGAREA/*
 		dobuilds
