@@ -226,14 +226,6 @@ device		ie		# EtherExpress 8/16, 3C507, StarLAN 10 etc.
 device		sn		# SMC's 9000 series of Ethernet chips
 device		xe		# Xircom pccard Ethernet
 
-# Wireless NIC cards
-device		wlan		# 802.11 support
-device		an		# Aironet 4500/4800 802.11 wireless NICs.
-device		awi		# BayStack 660 and others
-device		ral		# Ralink Technology RT2500 wireless NICs.
-device		wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-#device		wl		# Older non 802.11 Wavelan wireless NIC.
-
 # Pseudo devices.
 device		loop		# Network loopback
 device		random		# Entropy device
@@ -320,7 +312,7 @@ device          vlan
 device          gre
 
 options         IPSTEALTH
-options         TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
+#options         TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
 options         GEOM_UZIP
 options         GEOM_LABEL
 
@@ -391,7 +383,8 @@ device          hme
 options         NULLFS
 
 # Kbdmux
-device          kbdmux
+# Already in kernel
+#device          kbdmux
 
 device          speaker
 
@@ -401,7 +394,8 @@ options         ZERO_COPY_SOCKETS
 
 #device         natpt
 
-device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
+# Already in kernel
+#device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
 
 options TCP_SIGNATURE
 
