@@ -304,7 +304,8 @@ device		vlan
 device		gre
 
 options		IPSTEALTH
-options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
+# unknown option "TCP_DROP_SYNFIN" in FreeBSD CURRENT
+# options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
 options		GEOM_UZIP
 options		GEOM_LABEL
 
