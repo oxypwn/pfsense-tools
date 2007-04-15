@@ -23,24 +23,24 @@ CVSROOT=/home/pfsense/cvsroot
 # Ensure directories exist
 mkdir -p $CVSROOT
 
-mkdir -p $WEBDATAROOT/FreeBSD6/RELENG_1/updates \
-		 $WEBDATAROOT/FreeBSD6/RELENG_1/iso \
-		 $WEBDATAROOT/FreeBSD6/RELENG_1/embedded \
+mkdir -p $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates \
+		 $WEBDATAROOT/FreeBSD6/RELENG_1_2/iso \
+		 $WEBDATAROOT/FreeBSD6/RELENG_1_2/embedded \
 		 $WEBDATAROOT/FreeBSD6/head/updates \
 		 $WEBDATAROOT/FreeBSD6/head/iso \
 		 $WEBDATAROOT/FreeBSD6/head/embedded
 
-mkdir -p $WEBDATAROOT/FreeBSD7/RELENG_1/iso/ \
-		 $WEBDATAROOT/FreeBSD7/RELENG_1/embedded/ \
-		 $WEBDATAROOT/FreeBSD7/RELENG_1/updates/ \
+mkdir -p $WEBDATAROOT/FreeBSD7/RELENG_1_2/iso/ \
+		 $WEBDATAROOT/FreeBSD7/RELENG_1_2/embedded/ \
+		 $WEBDATAROOT/FreeBSD7/RELENG_1_2/updates/ \
 		 $WEBDATAROOT/FreeBSD7/head/iso/ \
 		 $WEBDATAROOT/FreeBSD7/head/embedded/ \
 		 $WEBDATAROOT/FreeBSD7/head/updates/
 
-touch $WEBROOT/-RELENG_1ISOSTATUS.txt \
-	  $WEBROOT/-RELENG_1UPDATESSTATUS.txt \
-	  $WEBROOT/-RELENG_1EMBEDDEDSTATUS.txt \
-	  $WEBROOT/-RELENG_1STATUS.txt \
+touch $WEBROOT/-RELENG_1_2ISOSTATUS.txt \
+	  $WEBROOT/-RELENG_1_2UPDATESSTATUS.txt \
+	  $WEBROOT/-RELENG_1_2EMBEDDEDSTATUS.txt \
+	  $WEBROOT/-RELENG_1_2STATUS.txt \
 	  $WEBROOT/-HEADISOSTATUS.txt \
 	  $WEBROOT/-HEADUPDATESSTATUS.txt \
 	  $WEBROOT/-HEADEMBEDDEDSTATUS.txt \
@@ -198,19 +198,19 @@ setstatus() {
 		echo    >> $WEBDATAROOT/status.txt
 		echo $1 >> $WEBDATAROOT/status.txt
 		echo    >> $WEBDATAROOT/status.txt
-		echo "-RELENG_1 last known build status" \
+		echo "-RELENG_1_2 last known build status" \
 				>> $WEBDATAROOT/status.txt
 		echo \
 				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1ISOSTATUS.txt \
+		cat $WEBROOT/-RELENG_1_2ISOSTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1UPDATESSTATUS.txt \
+		cat $WEBROOT/-RELENG_1_2UPDATESSTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1EMBEDDEDSTATUS.txt \
+		cat $WEBROOT/-RELENG_1_2EMBEDDEDSTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1EMBEDDEDUPDATESTATUS.txt \
+		cat $WEBROOT/-RELENG_1_2EMBEDDEDUPDATESTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1STATUS.txt \
+		cat $WEBROOT/-RELENG_1_2STATUS.txt \
 			    >> $WEBDATAROOT/status.txt
 		echo \
 				>> $WEBDATAROOT/status.txt
@@ -247,7 +247,7 @@ dobuilds() {
 		build_embedded_updates
 		cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
 
-		setstatus "Copying files for -RELENG_1 build..."
+		setstatus "Copying files for -RELENG_1_2 build..."
 		cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
 		cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
 
@@ -267,10 +267,26 @@ rm -rf /usr/obj*
 
 # Main builder loop
 while [ /bin/true ]; do
+		# -- pfSense RELENG_1_2 -- FreeBSD RELENG_6_2
+		rm $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
+		setstatus "Setting build to -RELENG_1_2 FreeBSD RELENG_6_2..."
+		set_pfsense_source "RELENG_1_2"
+		set_freebsd_source "RELENG_6_2"
+		rm -f $STAGINGAREA/*
+		dobuilds
+		cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD6/RELENG_1_2/iso/
+		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/RELENG_1_2/embedded/
+		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/
+		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/
+		rm $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
+		setstatus "Cleaning up..."
+		rm -f $STAGINGAREA/*
+		rm -rf /usr/obj*
+
 		# -- pfSense RELENG_1 -- FreeBSD RELENG_6_2
 		rm $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
 		setstatus "Setting build to -RELENG_1 FreeBSD RELENG_6_2..."
-		set_pfsense_source "RELENG_1_2"
+		set_pfsense_source "RELENG_1"
 		set_freebsd_source "RELENG_6_2"
 		rm -f $STAGINGAREA/*
 		dobuilds
@@ -282,8 +298,6 @@ while [ /bin/true ]; do
 		setstatus "Cleaning up..."
 		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
-		setstatus "Cooling down..." # Let machine rest a moment
-		sleep 500
 
 		# -- pfSense HEAD - FreeBSD RELENG_6_2
 		setstatus "Setting build to -HEAD FreeBSD RELENG_6_2..."
