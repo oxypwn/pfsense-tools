@@ -8,7 +8,6 @@
 ~sbin/bsdlabel~bsdlabel.c.diff~
 ~sys/geom~geom_ctl.c.diff~
 -p1~~clog-makefile.patch~
--p1~sys/~if_bridge.c.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/dev/kbdmux~kbdmux.c.diff~
 ~sys/cam/~cam_xpt.c.diff~
