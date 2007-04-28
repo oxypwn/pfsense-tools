@@ -12,7 +12,7 @@ diff -urN ../miniupnpd-clean/genconfig.sh ./genconfig.sh
  RM="rm -f"
  CONFIGFILE="config.h"
  CONFIGMACRO="__CONFIG_H__"
-+UPNP_VERSION=20070228
++UPNP_VERSION=20070412
 +
 +# detecting the OS name and version
  OS_NAME=`uname -s`
