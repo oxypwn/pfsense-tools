@@ -29,7 +29,7 @@ export PFSENSEBASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export PFSENSEISODIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
 # pfSense cvs tag to build
-export PFSENSETAG=${PFSENSETAG:-RELENG_1}
+export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 #export PFSENSETAG=${PFSENSETAG:-HEAD}
 
 # FreeSBIE 2 toolkit path
