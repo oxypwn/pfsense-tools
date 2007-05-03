@@ -67,5 +67,5 @@ export freebsd_branch="RELENG_6_2"
 
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
                    
-#export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/php4-pfsense-allopt pfPorts/beep pfPorts/lighttpd pfPorts/bsdiff pfPorts/mini_httpd-pfsense pfPorts/racoon pfPorts/check_reload_status pfPorts/minicron pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/sasyncd pfPorts/dhcpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/ssh_tunnel_shell pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/openvpn pfPorts/sshtools pfPorts/ifstated pfPorts/p3scan-pf pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx"
+#export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/ssh_tunnel_shell pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx"
 

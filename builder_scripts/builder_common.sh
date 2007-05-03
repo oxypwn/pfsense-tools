@@ -15,24 +15,25 @@ fixup_libmap() {
 }
 
 recompile_pfPorts() {
-	if [ $pfSense_version = "7" ]; then
-		echo "Recompiling pfPorts..."
-		# Install needed helper files to replicate pkgs
-		cp /usr/sbin/pkg_* $CVS_CO_DIR/usr/sbin/
-		cp /sbin/ldconfig $CVS_CO_DIR/sbin/
-		mkdir $CVS_CO_DIR/libexec/
-		mkdir $CVS_CO_DIR/lib/
-		cp /libexec/ld-elf.so.1 $CVS_CO_DIR/libexec/
-		cp /lib/libc.so.* $CVS_CO_DIR/lib/
-		# Mark as executable
-		chmod a+rx $CVS_CO_DIR/sbin/*
-		chmod a+rx $CVS_CO_DIR/usr/sbin/*
-		cd /home/pfsense/tools/pfPorts
-		# Build pfPorts
-		make
-		# Install pfPorts to the CO directory
-		make install BATCH=yes DESTDIR=$CVS_CO_DIR FORCE_PKG_REGISTER=yo
-	fi
+        pfSDESTINATIONDIR=/tmp/tmp
+        pfSPORTS_BASE_DIR=/home/pfsense/tools
+        mkdir -p $pfSDESTINATIONDIR
+        mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.usr.dist
+        mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.var.dist
+        mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.root.dist
+        rm /home/pfsense/tools/pfPorts/isc-dhcp3-server/files/patch-server::dhcpd.c
+        #rm -rf $pfSDESTINATIONDIR
+        for pfSPORT in $INSTALL_PORTS; do
+                echo "===> Operating on $pfSPORT..."
+                cd $pfSPORTS_BASE_DIR/$pfSPORT && make clean
+                cd $pfSPORTS_BASE_DIR/$pfSPORT && make PREFIX=$pfSDESTINATIONDIR
+                echo "===> Installing new port..."
+                cd $pfSPORTS_BASE_DIR/$pfSPORT && make install PREFIX=$pfSDESTINATIONDIR FORCE_PKG_REGISTER=yo
+        done
+        cd $pfSDESTINATIONDIR && tar czvpf /tmp/pfSenseports.tgz .
+        echo "Setting custom overlay to /tmp/pfSenseports.tgz"
+        export custom_overlay="/tmp/pfSenseports.tgz"
+        #rm -rf $pfSDESTINATIONDIR
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
