@@ -2,25 +2,25 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.43 2006/10/31 03:22:20 mnag Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.50 2007/04/14 14:41:53 mnag Exp $
 #
 
 PORTNAME=	lighttpd
-PORTVERSION=	1.4.13
+PORTVERSION=	1.4.15
 CATEGORIES=	www
 MASTER_SITES=	http://www.lighttpd.net/download/ \
 		http://mirrors.cat.pdx.edu/lighttpd/
 
-MAINTAINER=	hendrik@scholz.net
+MAINTAINER=	mnag@FreeBSD.org
 COMMENT=	A secure, fast, compliant, and very flexible Web Server
 
 LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
 
-USE_AUTOTOOLS=	autoconf:259 libtool:15
+USE_AUTOTOOLS=	libtool:15
 GNU_CONFIGURE=	yes
 USE_GNOME=	lthack
 USE_RC_SUBR=	lighttpd.sh
-CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd
+CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd --mandir=${PREFIX}/man
 CONFIGURE_ENV+=	CFLAGS="${CFLAGS}"
 CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 
@@ -34,11 +34,13 @@ OPTIONS=	BZIP2		"Enable Bzip2 support" off \
 		FAM		"Enable fam/gamin support" off \
 		GDBM		"Enable gdbm storage support" off \
 		IPV6		"Enable IPV6 support" on \
+		MAGNET		"Enable magnet support" off \
 		MEMCACHE	"Enable memcached storage support" off \
 		MYSQL		"Enable MYSQL support" off \
 		OPENLDAP	"Enable LDAP support" off \
 		OPENSSL		"Enable SSL support" on \
-		VALGRIND	"Enable valgrind support" off
+		VALGRIND	"Enable valgrind support" off \
+		WEBDAV		"Enable WebDAV support"	off
 
 .include <bsd.port.pre.mk>
 
@@ -60,7 +62,7 @@ CONFIGURE_ARGS+=	--with-bzip2
 .if defined(WITH_CML)
 USE_LUA=		yes
 CONFIGURE_ARGS+=	--with-lua
-CONFIGURE_ENV+=		LUA_CFLAGS="-I${LUA_INCDIR}" LUA_LIBS="-L${LUA_LIBDIR}"
+CONFIGURE_ENV+=		LUA_CFLAGS="-I${LUA_INCDIR}" LUA_LIBS="-L${LUA_LIBDIR} -llua"
 .endif
 
 .if defined(WITH_FAM)
@@ -76,6 +78,12 @@ CONFIGURE_ARGS+=	--with-gdbm
 
 .if defined(WITHOUT_IPV6)
 CONFIGURE_ARGS+=	--disable-ipv6
+.endif
+
+.if defined(WITH_MAGNET)
+USE_LUA=		5.1+
+CONFIGURE_ARGS+=	--with-lua
+CONFIGURE_ENV+=		LUA_CFLAGS="-I${LUA_INCDIR}" LUA_LIBS="-L${LUA_LIBDIR} -llua"
 .endif
 
 .if defined(WITH_MEMCACHE)
@@ -100,16 +108,37 @@ RUN_DEPENDS+=		valgrind:${PORTSDIR}/devel/valgrind
 CONFIGURE_ARGS+=	--with-valgrind
 .endif
 
+.if defined(WITH_WEBDAV)
+USE_GNOME+=		libxml2
+LIB_DEPENDS+=		uuid.1:${PORTSDIR}/misc/e2fsprogs-libuuid \
+			sqlite3.8:${PORTSDIR}/databases/sqlite3
+CONFIGURE_ARGS+=	--with-webdav-props --with-webdav-locks
+.endif
+
 SUB_LIST+=		REQUIRE="${_REQUIRE}"
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|-D_XOPEN_SOURCE=600||' -e 's|-std=gnu99||' \
-		${WRKSRC}/configure.in
+	@${REINPLACE_CMD} -e 's|-std=gnu99||' ${WRKSRC}/configure.in
+	@${REINPLACE_CMD} -E -e 's|(server.document-root.*=).*|\1 "${PREFIX}/www/data/"|' \
+		-e 's|(server.errorlog.*=).*|\1 "/var/log/lighttpd.error.log"|' \
+		-e 's|# server.event-handler|server.event-handler|' \
+		-e 's|(accesslog.filename.*=).*|\1 "/var/log/lighttpd.access.log"|' \
+		-e 's|#server.pid-file|server.pid-file|' \
+		-e 's|#server.username.*|server.username            = "www"|' \
+		-e 's|#server.groupname.*|server.groupname           = "www"|' \
+		-e 's|/usr/local/bin/php|${PREFIX}/bin/php-cgi|' \
+			${WRKSRC}/doc/lighttpd.conf
+.if !defined(WITHOUT_IPV6)
+	@${ECHO} "" >> ${WRKSRC}/doc/lighttpd.conf
+	@${ECHO} "# Enable IPV6 and IPV4 together" >> ${WRKSRC}/doc/lighttpd.conf
+	@${ECHO} "server.use-ipv6 = \"enable\"" >> ${WRKSRC}/doc/lighttpd.conf
+	@${ECHO} "\$$SERVER[\"socket\"] == \"0.0.0.0:80\" { }" >> ${WRKSRC}/doc/lighttpd.conf
+.endif
 
 post-install:
-	@${INSTALL_DATA} ${FILESDIR}/lighttpd.conf.sample ${PREFIX}/etc
+	@${INSTALL_DATA} ${WRKSRC}/doc/lighttpd.conf ${PREFIX}/etc/lighttpd.conf.sample
 .if !exists(${PREFIX}/etc/lighttpd.conf)
-	@${INSTALL_DATA} ${FILESDIR}/lighttpd.conf.sample ${PREFIX}/etc/lighttpd.conf
+	@${INSTALL_DATA} ${WRKSRC}/doc/lighttpd.conf ${PREFIX}/etc/lighttpd.conf
 .endif
 	@${LIBTOOL} --finish ${PREFIX}/lib
 

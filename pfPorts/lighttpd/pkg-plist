@@ -1,4 +1,4 @@
-@comment $FreeBSD: ports/www/lighttpd/pkg-plist,v 1.14 2006/09/26 09:07:17 clsung Exp $
+@comment $FreeBSD: ports/www/lighttpd/pkg-plist,v 1.15 2007/04/14 14:41:53 mnag Exp $
 bin/spawn-fcgi
 @unexec if cmp -s %D/etc/lighttpd.conf %D/etc/lighttpd.conf.sample; then rm -f %D/etc/lighttpd.conf; fi
 etc/lighttpd.conf.sample
@@ -36,6 +36,9 @@ lib/lighttpd/mod_evhost.so
 lib/lighttpd/mod_expire.a
 lib/lighttpd/mod_expire.la
 lib/lighttpd/mod_expire.so
+lib/lighttpd/mod_extforward.a
+lib/lighttpd/mod_extforward.la
+lib/lighttpd/mod_extforward.so
 lib/lighttpd/mod_fastcgi.a
 lib/lighttpd/mod_fastcgi.la
 lib/lighttpd/mod_fastcgi.so
