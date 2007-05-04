@@ -7,3 +7,4 @@ SIZE (suhosin-patch-4.4.6-0.9.6.patch.gz) = 21537
 MD5 (php-4.4.6-mail-header.patch) = b3e8b0e223edc035d11e77c4aae0c3ce
 SHA256 (php-4.4.6-mail-header.patch) = 41477b1e0020e5c62eb95d71415d2a99c34dd728a6e532813fb691b314cf2076
 SIZE (php-4.4.6-mail-header.patch) = 3420
+MD5 (php-4.4.7.tar.bz2) = 3f21b44d37a57ca3876d3aea713c700d
