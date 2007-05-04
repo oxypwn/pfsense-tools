@@ -69,3 +69,8 @@ export freebsd_branch="RELENG_6_2"
                    
 #export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/ssh_tunnel_shell pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx"
 
+if [ $pfSense_version = "7" ]; then
+	./build_ports.sh
+    echo "Setting custom overlay to /tmp/pfSenseports.tgz"
+    export custom_overlay="/tmp/pfSenseports.tgz"
+fi

@@ -62,6 +62,8 @@ export version=`cat $CVS_CO_DIR/etc/version`
 
 if [ $pfSense_version = "7" ]; then
 	./build_ports.sh
+    echo "Setting custom overlay to /tmp/pfSenseports.tgz"
+    export custom_overlay="/tmp/pfSenseports.tgz"
 fi
 
 # Build if needed and install world and kernel

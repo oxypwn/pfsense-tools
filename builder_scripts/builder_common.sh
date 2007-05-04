@@ -15,6 +15,7 @@ fixup_libmap() {
 }
 
 recompile_pfPorts() {
+		echo "===> Compiling pfPorts..."
         pfSDESTINATIONDIR=/tmp/tmp
         pfSPORTS_BASE_DIR=/home/pfsense/tools
         mkdir -p $pfSDESTINATIONDIR
@@ -22,18 +23,15 @@ recompile_pfPorts() {
         mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.var.dist
         mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.root.dist
         rm /home/pfsense/tools/pfPorts/isc-dhcp3-server/files/patch-server::dhcpd.c
-        #rm -rf $pfSDESTINATIONDIR
+        rm -rf $pfSDESTINATIONDIR
         for pfSPORT in $INSTALL_PORTS; do
                 echo "===> Operating on $pfSPORT..."
-                cd $pfSPORTS_BASE_DIR/$pfSPORT && make clean
                 cd $pfSPORTS_BASE_DIR/$pfSPORT && make PREFIX=$pfSDESTINATIONDIR
                 echo "===> Installing new port..."
                 cd $pfSPORTS_BASE_DIR/$pfSPORT && make install PREFIX=$pfSDESTINATIONDIR FORCE_PKG_REGISTER=yo
         done
         cd $pfSDESTINATIONDIR && tar czvpf /tmp/pfSenseports.tgz .
-        echo "Setting custom overlay to /tmp/pfSenseports.tgz"
-        export custom_overlay="/tmp/pfSenseports.tgz"
-        #rm -rf $pfSDESTINATIONDIR
+        rm -rf $pfSDESTINATIONDIR
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
