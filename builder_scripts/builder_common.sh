@@ -16,12 +16,13 @@ fixup_libmap() {
 
 recompile_pfPorts() {
 		echo "===> Compiling pfPorts..."
-        pfSDESTINATIONDIR=/tmp/tmp
+        pfSDESTINATIONDIR=/tmp/tmp/usr/local
         pfSPORTS_BASE_DIR=/home/pfsense/tools
         mkdir -p $pfSDESTINATIONDIR
         mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.usr.dist
         mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.var.dist
         mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.root.dist
+        mtree -PUer -q -p $pfSDESTINATIONDIR/usr < /etc/mtree/BSD.local.dist
         rm /home/pfsense/tools/pfPorts/isc-dhcp3-server/files/patch-server::dhcpd.c
         rm -rf $pfSDESTINATIONDIR
         for pfSPORT in $INSTALL_PORTS; do
@@ -32,6 +33,7 @@ recompile_pfPorts() {
         done
         cd $pfSDESTINATIONDIR && tar czvpf /tmp/pfSenseports.tgz .
         rm -rf $pfSDESTINATIONDIR
+        echo "===> End of pfPorts..."
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
