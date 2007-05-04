@@ -47,7 +47,8 @@ CONFIGURE_ARGS+=--without-mysql \
 		--enable-bcmath \
 		--enable-pcntl \
 		--enable-fastcgi \
-		--enable-force-cgi-redirect
+		--enable-force-cgi-redirect \
+		--with-config-file-path=/usr/local/lib
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
 PHP_SAPI=	full
