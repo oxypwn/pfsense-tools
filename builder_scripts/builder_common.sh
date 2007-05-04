@@ -42,7 +42,14 @@ populate_extra() {
     ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} NO_MAN=YES \
 	make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
 
-    install -s /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
+	if [ $pfSense_version = "7" ]; then
+		install -s /usr/local/lib/libcurl.so.4 $CVS_CO_DIR/usr/local/lib/
+	fi
+
+	if [ $pfSense_version = "6" ]; then
+		install -s /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
+	fi
+    
     install -s /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
     install -s /usr/local/lib/libevent-1.2.so ${CVS_CO_DIR}/usr/local/lib/
 
