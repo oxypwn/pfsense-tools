@@ -117,6 +117,8 @@ CONFIGURE_ARGS+=	--with-webdav-props --with-webdav-locks
 
 SUB_LIST+=		REQUIRE="${_REQUIRE}"
 
+CONFIGURE_ARGS+=	--prefix=/usr/local
+
 post-patch:
 	@${REINPLACE_CMD} -e 's|-std=gnu99||' ${WRKSRC}/configure.in
 	@${REINPLACE_CMD} -E -e 's|(server.document-root.*=).*|\1 "${PREFIX}/www/data/"|' \
