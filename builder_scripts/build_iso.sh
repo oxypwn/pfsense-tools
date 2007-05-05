@@ -14,6 +14,9 @@ set -e -u
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Allow old CVS_CO_DIR to be deleted later
+chflags -R noschg $CVS_CO_DIR
+
 # Use pfSense.6 as kernel configuration file
 if [ $pfSense_version = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
@@ -61,9 +64,7 @@ export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
 if [ $pfSense_version = "7" ]; then
-	./build_ports.sh
-    echo "Setting custom overlay to /tmp/pfSenseports.tgz"
-    export custom_overlay="/tmp/pfSenseports.tgz"
+	recompile_pfPorts
 fi
 
 # Build if needed and install world and kernel
@@ -85,13 +86,13 @@ fixup_libmap
 # Nuke the boot directory
 [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
-rm -f conf/packages
+rm -f $BASE_DIR/tools/builder_scripts/conf/packages
 
 set +e # grep could fail
-(cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
-(cd /var/db/pkg && ls | grep lighttpd) >> conf/packages
-(cd /var/db/pkg && ls | grep lua) >> conf/packages
-(cd /var/db/pkg && ls | grep cpdup) >> conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep lighttpd) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep cpdup) >> $BASE_DIR/tools/builder_scripts/conf/packages
 set -e
 
 # Invoke FreeSBIE2 toolchain

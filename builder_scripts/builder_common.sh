@@ -16,23 +16,28 @@ fixup_libmap() {
 
 recompile_pfPorts() {
 		echo "===> Compiling pfPorts..."
-        pfSDESTINATIONDIR=/tmp/tmp/usr/local
+		export FORCE_PKG_REGISTER=yo
+        pfSDESTINATIONDIR=/usr/local
         pfSPORTS_BASE_DIR=/home/pfsense/tools
         mkdir -p $pfSDESTINATIONDIR
-        mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.usr.dist
-        mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.var.dist
-        mtree -PUer -q -p $pfSDESTINATIONDIR < /etc/mtree/BSD.root.dist
-        mtree -PUer -q -p $pfSDESTINATIONDIR/usr < /etc/mtree/BSD.local.dist
+        mkdir -p $pfSDESTINATIONDIR/usr
+        mkdir -p $pfSDESTINATIONDIR/var
+        mkdir -p $pfSDESTINATIONDIR/root
+        mkdir -p $pfSDESTINATIONDIR/usr/local
+        mtree -PUer -q -p $pfSDESTINATIONDIR/usr < /etc/mtree/BSD.usr.dist
+        mtree -PUer -q -p $pfSDESTINATIONDIR/var/ < /etc/mtree/BSD.var.dist
+        mtree -PUer -q -p $pfSDESTINATIONDIR/root/ < /etc/mtree/BSD.root.dist
+		mkdir -p $pfSDESTINATIONDIR/usr/local
+        mtree -PUer -q -p $pfSDESTINATIONDIR/usr/local < /etc/mtree/BSD.local.dist		
         rm /home/pfsense/tools/pfPorts/isc-dhcp3-server/files/patch-server::dhcpd.c
-        rm -rf $pfSDESTINATIONDIR
+        export FORCE_PKG_REGISTER=yo
         for pfSPORT in $INSTALL_PORTS; do
                 echo "===> Operating on $pfSPORT..."
-                cd $pfSPORTS_BASE_DIR/$pfSPORT && make PREFIX=$pfSDESTINATIONDIR
+                (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo)
                 echo "===> Installing new port..."
-                cd $pfSPORTS_BASE_DIR/$pfSPORT && make install PREFIX=$pfSDESTINATIONDIR FORCE_PKG_REGISTER=yo
+                (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo)
         done
-        cd $pfSDESTINATIONDIR && tar czvpf /tmp/pfSenseports.tgz .
-        rm -rf $pfSDESTINATIONDIR
+        chflags -R noschg $pfSDESTINATIONDIR
         echo "===> End of pfPorts..."
 }
 
@@ -44,14 +49,15 @@ populate_extra() {
 
 	if [ $pfSense_version = "7" ]; then
 		install -s /usr/local/lib/libcurl.so.4 $CVS_CO_DIR/usr/local/lib/
+		install -s /usr/local/lib/libevent-1.2a.so ${CVS_CO_DIR}/usr/local/lib/
 	fi
 
 	if [ $pfSense_version = "6" ]; then
 		install -s /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
+		install -s /usr/local/lib/libevent-1.2.so ${CVS_CO_DIR}/usr/local/lib/
 	fi
     
     install -s /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
-    install -s /usr/local/lib/libevent-1.2.so ${CVS_CO_DIR}/usr/local/lib/
 
     mkdir -p $CVS_CO_DIR/var/run
 
@@ -113,6 +119,15 @@ populate_extra() {
     find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
     set -e
 
+	# Populate newer binaries if they exist from host
+	FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
+	for TEMPFILE in $FOUND_FILES; do
+		if [ -f /$TEMPFILE ]; then 
+			echo "**** cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
+			cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
+		fi
+	done
+	
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
