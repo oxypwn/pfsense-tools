@@ -62,35 +62,45 @@ populate_extra() {
     ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} NO_MAN=YES \
 	make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
 
+	mkdir ${CVS_CO_DIR}/lib
+
 	if [ -f /usr/local/lib/libcurl.so.3 ]; then
-		install -s /usr/local/lib/libcurl.so.3 $CVS_CO_DIR/usr/local/lib/
+		echo "Installing /usr/local/lib/libcurl.so.3"
+		install -s /usr/local/lib/libcurl.so.3 ${CVS_CO_DIR}/usr/local/lib/
 	fi
 
 	if [ -f /usr/local/lib/libcurl.so.4 ]; then
-		install -s /usr/local/lib/libcurl.so.4 $CVS_CO_DIR/usr/local/lib/
+		echo "Installing /usr/local/lib/libcurl.so.4"
+		install -s /usr/local/lib/libcurl.so.4 ${CVS_CO_DIR}/usr/local/lib/
 	fi
 
 	if [ -f /usr/local/lib/libevent-1.2a.so ]; then
+		echo "Installing /usr/local/lib/libevent-1.2a.so"
 		install -s /usr/local/lib/libevent-1.2a.so ${CVS_CO_DIR}/usr/local/lib/
 	fi
 
 	if [ -f /usr/local/lib/libevent-1.2.so ]; then
+		echo "Installing /usr/local/lib/libevent-1.2.so"
 		install -s /usr/local/lib/libevent-1.2.so ${CVS_CO_DIR}/usr/local/lib/
 	fi
 
-	if [ -f /usr/local/lib/libevent-1.2.so ]; then	
+	if [ -f /usr/local/lib/libevent-1.2.so.1 ]; then
+		echo "Installing /usr/local/lib/libevent-1.2.so.1"	
 		install -s /usr/local/lib/libevent-1.2.so.1 ${CVS_CO_DIR}/usr/local/lib/
 	fi
 
 	if [ -f /lib/libcrypto.so.4 ]; then
+		echo "Installing /usr/local/lib/libcyrpto.so.4"
 		install -s /lib/libcrypto.so.4 ${CVS_CO_DIR}/lib/
 	fi
 
 	if [ -f /lib/libcrypto.so.5 ]; then
+		echo "Installing /usr/local/lib/libcrypto.so.5"
 		install -s /lib/libcrypto.so.5 ${CVS_CO_DIR}/lib/
 	fi
-
-    install -s /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
+	
+	echo "Installing /usr/local/lib/libpcre.so.0"
+    install -s /usr/local/lib/libpcre.so.0 ${CVS_CO_DIR}/usr/local/lib/
 
     mkdir -p $CVS_CO_DIR/var/run
 
