@@ -17,6 +17,9 @@ fixup_libmap() {
 
 recompile_pfPorts() {
 		echo "===> Compiling pfPorts..."
+		if [ -f /etc/make.conf ]; then
+			mv /etc/make.conf /tmp/
+		fi
 		export FORCE_PKG_REGISTER=yo
         pfSDESTINATIONDIR=/usr/local
         pfSPORTS_BASE_DIR=/home/pfsense/tools
@@ -33,13 +36,26 @@ recompile_pfPorts() {
         rm /home/pfsense/tools/pfPorts/isc-dhcp3-server/files/patch-server::dhcpd.c
         export FORCE_PKG_REGISTER=yo
         for pfSPORT in $INSTALL_PORTS; do
-                echo "===> Operating on $pfSPORT..."
-                (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo)
-                echo "===> Installing new port..."
-                (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+        	echo > /etc/make.conf
+        	COMPILE_STATIC=""
+        	for STATIC in $STATIC_INSTALL_PORTS; do
+        		if [ "$STATIC" = "$pfSPORT" ]; then
+        			echo 'CFLAGS="-static"' >  /etc/make.conf
+        			echo 'LFLAGS="-static"' >> /etc/make.conf
+        			cat /etc/make.conf
+        			echo "===> $STATIC is marked for static compliation..."
+        		fi
+        	done
+            echo "===> Operating on $pfSPORT..."
+            (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo $COMPILE_STATIC)
+            echo "===> Installing new port..."
+            (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
         done
         chflags -R noschg $pfSDESTINATIONDIR
         echo "===> End of pfPorts..."
+        if [ -f /tmp/make.conf ]; then
+        	mv /tmp/make.conf /etc/
+        fi
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
@@ -63,7 +79,15 @@ populate_extra() {
 	if [ -f /usr/local/lib/libevent-1.2.so ]; then
 		install -s /usr/local/lib/libevent-1.2.so ${CVS_CO_DIR}/usr/local/lib/
 	fi
-    
+
+	if [ -f /lib/libcrypto.so.4 ]; then
+		install -s /lib/libcrypto.so.4 ${CVS_CO_DIR}/lib/
+	fi
+
+	if [ -f /lib/libcrypto.so.5 ]; then
+		install -s /lib/libcrypto.so.5 ${CVS_CO_DIR}/lib/
+	fi
+
     install -s /usr/local/lib/libpcre.so.0 $CVS_CO_DIR/usr/local/lib/
 
     mkdir -p $CVS_CO_DIR/var/run
