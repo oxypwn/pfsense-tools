@@ -41,8 +41,6 @@ recompile_pfPorts() {
         	for STATIC in $STATIC_INSTALL_PORTS; do
         		if [ "$STATIC" = "$pfSPORT" ]; then
         			echo 'CFLAGS="-static"' >  /etc/make.conf
-        			echo 'LFLAGS="-static"' >> /etc/make.conf
-        			cat /etc/make.conf
         			echo "===> $STATIC is marked for static compliation..."
         		fi
         	done
@@ -78,6 +76,10 @@ populate_extra() {
 
 	if [ -f /usr/local/lib/libevent-1.2.so ]; then
 		install -s /usr/local/lib/libevent-1.2.so ${CVS_CO_DIR}/usr/local/lib/
+	fi
+
+	if [ -f /usr/local/lib/libevent-1.2.so ]; then	
+		install -s /usr/local/lib/libevent-1.2.so.1 ${CVS_CO_DIR}/usr/local/lib/
 	fi
 
 	if [ -f /lib/libcrypto.so.4 ]; then
