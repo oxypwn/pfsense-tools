@@ -9,7 +9,8 @@ fixup_libmap() {
 	if [ $pfSense_version = "7" ]; then
 		echo -n "Overriding libc.so.6 -> libc.so.7"
 		mkdir -p ${CVS_CO_DIR}/etc/
-		echo "libc.so.6         libc.so.7" > ${CVS_CO_DIR}/etc/libmap.conf
+		echo "libc.so.6         libc.so.7" >  ${CVS_CO_DIR}/etc/libmap.conf
+		echo "libutil.so.5      libutil.so.6" >> ${CVS_CO_DIR}/etc/libmap.conf
 		echo "  done"
 	fi
 }
