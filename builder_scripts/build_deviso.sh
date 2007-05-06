@@ -47,6 +47,9 @@ fi
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Allow old CVS_CO_DIR to be deleted later
+chflags -R noschg $CVS_CO_DIR
+
 # Use pfSense.6 as kernel configuration file
 if [ $pfSense_version = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
@@ -71,6 +74,10 @@ update_cvs_depot
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
+
+if [ $pfSense_version = "7" ]; then
+	recompile_pfPorts
+fi
 
 export NO_KERNELCLEAN=yo
 
