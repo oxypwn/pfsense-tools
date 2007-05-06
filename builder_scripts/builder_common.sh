@@ -33,7 +33,7 @@ recompile_pfPorts() {
         export FORCE_PKG_REGISTER=yo
         for pfSPORT in $INSTALL_PORTS; do
                 echo "===> Operating on $pfSPORT..."
-                (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo)
+                (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo)
                 echo "===> Installing new port..."
                 (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo)
         done
