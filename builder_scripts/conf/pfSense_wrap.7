@@ -243,21 +243,6 @@ device		sbp		# SCSI over FireWire (Requires scbus and da)
 
 
 # pfsense addons
-device		wlan		# 802.11 support
-device		wlan_wep
-device		wlan_ccmp
-device		wlan_tkip
-device		wlan_xauth
-device		wlan_acl
-device		ath
-device		ath_rate_sample
-device		ath_hal
-device		an              # Aironet 4500/4800 802.11 wireless NICs.
-device		awi		# BayStack 660 and others
-#device		iwi                     # Intel PRO/Wireless 2200BG
-device		ral		# Ralink Technology RT2500 wireless NICs.
-device		wi              # WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-device		wl              # Older non 802.11 Wavelan wireless NIC.
 
 device          tap
 device          gre
@@ -272,7 +257,7 @@ options         IPFIREWALL_VERBOSE_LIMIT
 device		vlan
 
 options		IPSTEALTH
-options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
+#options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
 
 options		GEOM_UZIP
 options		GEOM_LABEL
@@ -305,7 +290,6 @@ options		NETGRAPH_MPPC_ENCRYPTION
 #options 	NETGRAPH_TEE
 
 device ubsa
-device ucom
 
 options		FAST_IPSEC
 
