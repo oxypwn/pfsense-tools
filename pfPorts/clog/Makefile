@@ -26,6 +26,6 @@ do-build:
 	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} /${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} /usr/${WHERE}/
 
 .include <bsd.port.mk>
