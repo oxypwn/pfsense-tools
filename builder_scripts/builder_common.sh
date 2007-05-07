@@ -212,6 +212,9 @@ populate_extra() {
 
 	fixup_libmap
 
+	rm $CVS_CO_DIR/etc/gettytab
+	rm $CVS_CO_DIR/etc/ttys
+
     # Enable debug if requested
     if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
 		touch ${CVS_CO_DIR}/debugging
