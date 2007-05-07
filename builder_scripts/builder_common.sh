@@ -89,10 +89,15 @@ populate_extra() {
 	fi
 
 	if [ -f /lib/libcrypto.so.5 ]; then
-		echo "Installing /usr/local/lib/libcrypto.so.5"
+		echo "Installing /lib/libcrypto.so.5"
 		install -s /lib/libcrypto.so.5 ${CVS_CO_DIR}/lib/
 	fi
-	
+
+	if [ -f /lib/libc.so.6 ]; then
+		echo "Installing /lib/libc.so.6"
+		install -s /lib/libc.so.6 ${CVS_CO_DIR}/lib/
+	fi
+
 	echo "Installing /usr/local/lib/libpcre.so.0"
     install -s /usr/local/lib/libpcre.so.0 ${CVS_CO_DIR}/usr/local/lib/
 
