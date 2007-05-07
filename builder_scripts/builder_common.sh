@@ -167,8 +167,16 @@ populate_extra() {
 		if [ -f /$TEMPFILE ]; then 
 			echo "**** cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
 			cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
+			NEEDEDLIBS=`ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`
+			for NEEDLIB in $NEEDEDLIBS; do
+				echo ">>>> Installing $NEEDLIB"
+				install $NEEDLIB ${CVS_CO_DIR}
+			done	
 		fi
 	done
+	
+	exit
+	die
 	
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
