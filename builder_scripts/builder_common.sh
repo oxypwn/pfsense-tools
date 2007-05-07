@@ -6,13 +6,7 @@
 
 # Fixup needed library changes above and beyond current release version if needed
 fixup_libmap() {
-	if [ $pfSense_version = "7" ]; then
-		echo -n "Overriding libc.so.6 -> libc.so.7"
-		mkdir -p ${CVS_CO_DIR}/etc/
-		echo "libc.so.6         libc.so.7" >  ${CVS_CO_DIR}/etc/libmap.conf
-		echo "libutil.so.5      libutil.so.6" >> ${CVS_CO_DIR}/etc/libmap.conf
-		echo "  done"
-	fi
+
 }
 
 recompile_pfPorts() {
@@ -265,8 +259,6 @@ fixup_updates() {
 	rm -f ${PFSENSEBASEDIR}/trigger_initial_wizard
 
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/livefs/lib/
-
-        install -s /usr/local/lib/libevent-1.2.so ${PFSENSEBASEDIR}/usr/local/lib/
 
 	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
 }
