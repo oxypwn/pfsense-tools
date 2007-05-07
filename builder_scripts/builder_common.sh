@@ -35,7 +35,7 @@ recompile_pfPorts() {
         	for STATIC in $STATIC_INSTALL_PORTS; do
         		if [ "$STATIC" = "$pfSPORT" ]; then
         			echo 'CFLAGS="-static"' >  /etc/make.conf
-        			echo "===> $STATIC is marked for static compliation..."
+        			echo "===> $STATIC is marked for static compilation..."
         		fi
         	done
             echo "===> Operating on $pfSPORT..."
@@ -48,15 +48,6 @@ recompile_pfPorts() {
         if [ -f /tmp/make.conf ]; then
         	mv /tmp/make.conf /etc/
         fi
-        if [ ! -f /usr/src/usr.sbin/syslogd_patched ]; then
-        	echo "===> Patching syslogd..."
-        	(cd /usr/src/usr.sbin/syslogd && patch < $BASE_DIR/tools/patches/RELENG_6_1/syslogd.c.diff)
-        	touch /usr/src/usr.sbin/syslogd_patched        	
-        fi
-        echo "===> Building syslogd..."
-        (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
-        echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
-        install /usr/sbin/syslogd $CVS_CO_DIR/
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
@@ -170,21 +161,31 @@ populate_extra() {
     find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
     set -e
 
+    if [ ! -f /usr/src/usr.sbin/syslogd_patched ]; then
+    	echo "===> Patching syslogd..."
+    	(cd /usr/src/usr.sbin/syslogd && patch < $BASE_DIR/tools/patches/RELENG_6_1/syslogd.c.diff)
+    	touch /usr/src/usr.sbin/syslogd_patched        	
+    fi
+    echo "===> Building syslogd..."
+    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
+    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
+    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
+
 	# Populate newer binaries if they exist from host
 	FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
+	NEEDEDLIBS="`ldd /usr/sbin/syslogd | grep "=>" | awk '{ print $3 }'`"
 	for TEMPFILE in $FOUND_FILES; do
 		if [ -f /$TEMPFILE ]; then 
 			echo "**** cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
 			cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
-			NEEDEDLIBS=`ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`
-			NEEDEDLIBS="$NEEDEDLIBS `ldd /usr/sbin/syslogd | grep "=>" | awk '{ print $3 }'`"
-			NEEDEDLIBS="$NEEDEDLIBS `ldd/usr/sbin/clog | grep "=>" | awk '{ print $3 }'`"
-			for NEEDLIB in $NEEDEDLIBS; do
-				echo ">>>> Installing $NEEDLIB"
-				install $NEEDLIB ${CVS_CO_DIR}
-			done	
+			NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"
 		fi
 	done
+	NEEDEDLIBS="$NEEDEDLIBS `ldd /usr/sbin/clog | grep "=>" | awk '{ print $3 }'`"
+	for NEEDLIB in $NEEDEDLIBS; do
+		echo ">>>> Installing $NEEDLIB..."
+		install $NEEDLIB ${CVS_CO_DIR}
+	done	
 	
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
