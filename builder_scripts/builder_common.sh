@@ -6,7 +6,7 @@
 
 # Fixup needed library changes above and beyond current release version if needed
 fixup_libmap() {
-
+	
 }
 
 recompile_pfPorts() {
@@ -48,6 +48,15 @@ recompile_pfPorts() {
         if [ -f /tmp/make.conf ]; then
         	mv /tmp/make.conf /etc/
         fi
+        if [ ! -f /usr/src/usr.sbin/syslogd_patched ]; then
+        	echo "===> Patching syslogd..."
+        	(cd /usr/src/usr.sbin/syslogd && patch < $BASE_DIR/tools/patches/RELENG_6_1/syslogd.c.diff)
+        	touch /usr/src/usr.sbin/syslogd_patched        	
+        fi
+        echo "===> Building syslogd..."
+        (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
+        echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
+        install /usr/sbin/syslogd $CVS_CO_DIR/
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
@@ -168,15 +177,14 @@ populate_extra() {
 			echo "**** cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
 			cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
 			NEEDEDLIBS=`ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`
+			NEEDEDLIBS="$NEEDEDLIBS `ldd /usr/sbin/syslogd | grep "=>" | awk '{ print $3 }'`"
+			NEEDEDLIBS="$NEEDEDLIBS `ldd/usr/sbin/clog | grep "=>" | awk '{ print $3 }'`"
 			for NEEDLIB in $NEEDEDLIBS; do
 				echo ">>>> Installing $NEEDLIB"
 				install $NEEDLIB ${CVS_CO_DIR}
 			done	
 		fi
 	done
-	
-	exit
-	die
 	
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
