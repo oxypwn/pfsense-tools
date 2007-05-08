@@ -8,9 +8,6 @@
 
 set -e -u
 
-chflags -R noschg /usr/local/pfsense*
-rm -rf /usr/local/pfsense*
-
 # If a full build has been performed we need to nuke
 # /usr/obj.pfSense/ since embedded uses a different
 # make.conf
@@ -25,6 +22,12 @@ fi
 
 # Suck in script helper functions
 . ./builder_common.sh
+
+# Allow old CVS_CO_DIR to be deleted later
+chflags -R noschg $CVS_CO_DIR
+
+chflags -R noschg /usr/local/pfsense*
+rm -rf /usr/local/pfsense*
 
 # Use pfSense_wrap.6 as kernel configuration file
 if [ $pfSense_version = "6" ]; then

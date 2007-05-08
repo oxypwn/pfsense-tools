@@ -14,6 +14,9 @@ set -e -u
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Allow old CVS_CO_DIR to be deleted later
+chflags -R noschg $CVS_CO_DIR
+
 # If a full build has been performed we need to nuke
 # /usr/obj.pfSense/ since embedded uses a different
 # make.conf
