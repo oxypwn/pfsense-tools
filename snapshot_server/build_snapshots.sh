@@ -59,8 +59,14 @@ set_freebsd_source() {
 }
 
 install_pfsense_local_sh() {
-	FREEBSD_PLATFORM=`cat $WEBROOT/FREEBSD_PLATFORM.txt`
-	PFSENSE_PLATFORM=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	if [ -f $WEBROOT/FREEBSD_PLATFORM.txt ]; then 
+		FREEBSD_PLATFORM=`cat $WEBROOT/FREEBSD_PLATFORM.txt`
+	else 
+		FREEBSD_PLATFORM="RELENG_6_2"
+	fi
+	if [ -f $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt ]; then
+		PFSENSE_PLATFORM=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`		
+	fi 
 	cat <<EOF >$BUILDERSCRIPTS/pfsense_local.sh
 
 #!/bin/sh
@@ -253,7 +259,7 @@ dobuilds() {
 
 		setstatus "Cleaning up..."
 		rm -rf /usr/obj*
-		rm $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
+		rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 }
 
 # Remove prior builds
@@ -268,7 +274,7 @@ rm -rf /usr/obj*
 # Main builder loop
 while [ /bin/true ]; do
 		# -- pfSense RELENG_1_2 -- FreeBSD RELENG_6_2
-		rm $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
+		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
 		setstatus "Setting build to -RELENG_1_2 FreeBSD RELENG_6_2..."
 		set_pfsense_source "RELENG_1_2"
 		set_freebsd_source "RELENG_6_2"
@@ -278,13 +284,13 @@ while [ /bin/true ]; do
 		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/RELENG_1_2/embedded/
 		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/
 		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/
-		rm $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
+		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
 		setstatus "Cleaning up..."
 		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
 
 		# -- pfSense RELENG_1 -- FreeBSD RELENG_6_2
-		rm $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
+		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
 		setstatus "Setting build to -RELENG_1 FreeBSD RELENG_6_2..."
 		set_pfsense_source "RELENG_1"
 		set_freebsd_source "RELENG_6_2"
@@ -294,7 +300,7 @@ while [ /bin/true ]; do
 		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/RELENG_1/embedded/
 		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
 		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
-		rm $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
+		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
 		setstatus "Cleaning up..."
 		rm -f $STAGINGAREA/*
 		rm -rf /usr/obj*
