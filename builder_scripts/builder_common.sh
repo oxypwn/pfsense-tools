@@ -161,15 +161,17 @@ populate_extra() {
     find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
     set -e
 
-    if [ ! -f /usr/src/usr.sbin/syslogd_patched ]; then
-    	echo "===> Patching syslogd..."
-    	(cd /usr/src/usr.sbin/syslogd && patch < $BASE_DIR/tools/patches/RELENG_6_1/syslogd.c.diff)
-    	touch /usr/src/usr.sbin/syslogd_patched        	
-    fi
-    echo "===> Building syslogd..."
-    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
-    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
-    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
+	if [ $pfSense_version = "7" ]; then
+	    if [ ! -f /usr/src/usr.sbin/syslogd_patched ]; then
+	    	echo "===> Patching syslogd..."
+	    	(cd /usr/src/usr.sbin/syslogd && patch < $BASE_DIR/tools/patches/RELENG_6_1/syslogd.c.diff)
+	    	touch /usr/src/usr.sbin/syslogd_patched        	
+	    fi
+	    echo "===> Building syslogd..."
+	    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
+	    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
+	    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
+	fi
 
 	# Populate newer binaries if they exist from host
 	FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
