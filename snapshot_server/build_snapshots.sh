@@ -9,6 +9,8 @@
 # $Id$
 #
 
+set -e -x
+
 # Local variables that are used by builder scripts
 WEBDATAROOT=/usr/local/www/data
 WEBROOT=/usr/local/www
@@ -37,14 +39,14 @@ mkdir -p $WEBDATAROOT/FreeBSD7/RELENG_1_2/iso/ \
 		 $WEBDATAROOT/FreeBSD7/head/embedded/ \
 		 $WEBDATAROOT/FreeBSD7/head/updates/
 
-touch $WEBROOT/-RELENG_1_2ISOSTATUS.txt \
-	  $WEBROOT/-RELENG_1_2UPDATESSTATUS.txt \
-	  $WEBROOT/-RELENG_1_2EMBEDDEDSTATUS.txt \
-	  $WEBROOT/-RELENG_1_2STATUS.txt \
-	  $WEBROOT/-HEADISOSTATUS.txt \
-	  $WEBROOT/-HEADUPDATESSTATUS.txt \
-	  $WEBROOT/-HEADEMBEDDEDSTATUS.txt \
-	  $WEBROOT/-HEADSTATUS.txt \
+touch $WEBROOT/RELENG_1_2ISOSTATUS.txt \
+	  $WEBROOT/RELENG_1_2UPDATESSTATUS.txt \
+	  $WEBROOT/RELENG_1_2EMBEDDEDSTATUS.txt \
+	  $WEBROOT/RELENG_1_2STATUS.txt \
+	  $WEBROOT/HEADISOSTATUS.txt \
+	  $WEBROOT/HEADUPDATESSTATUS.txt \
+	  $WEBROOT/HEADEMBEDDEDSTATUS.txt \
+	  $WEBROOT/HEADSTATUS.txt \
 
 mkdir -p /tmp/staging
 
@@ -133,6 +135,9 @@ export SKIP_RSYNC=yes
 
 export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 
+export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/libevent pfPorts/pftpx pfPorts/clog pfPorts/fping"
+export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
+
 EOF
 
 }
@@ -208,15 +213,15 @@ setstatus() {
 				>> $WEBDATAROOT/status.txt
 		echo \
 				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1_2ISOSTATUS.txt \
+		cat $WEBROOT/RELENG_1_2ISOSTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1_2UPDATESSTATUS.txt \
+		cat $WEBROOT/RELENG_1_2UPDATESSTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1_2EMBEDDEDSTATUS.txt \
+		cat $WEBROOT/RELENG_1_2EMBEDDEDSTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1_2EMBEDDEDUPDATESTATUS.txt \
+		cat $WEBROOT/RELENG_1_2EMBEDDEDUPDATESTATUS.txt \
 			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-RELENG_1_2STATUS.txt \
+		cat $WEBROOT/RELENG_1_2STATUS.txt \
 			    >> $WEBDATAROOT/status.txt
 		echo \
 				>> $WEBDATAROOT/status.txt
@@ -224,13 +229,13 @@ setstatus() {
 				>> $WEBDATAROOT/status.txt
 		echo \
 				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-HEADISOSTATUS.txt \
+		cat $WEBROOT/HEADISOSTATUS.txt \
 				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-HEADUPDATESSTATUS.txt \
+		cat $WEBROOT/HEADUPDATESSTATUS.txt \
 				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-HEADEMBEDDEDSTATUS.txt \
+		cat $WEBROOT/HEADEMBEDDEDSTATUS.txt \
 				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/-HEADSTATUS.txt \
+		cat $WEBROOT/HEADSTATUS.txt \
 				>> $WEBDATAROOT/status.txt
 }
 
