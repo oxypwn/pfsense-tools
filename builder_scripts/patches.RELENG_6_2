@@ -11,3 +11,4 @@
 ~sbin/dhclient~dhclient.c.diff~
 ~sys/i386/include~atomic.h.diff~
 ~sys/net/~if_enc.c.diff~
+~ng_fec_vlan.diff~
