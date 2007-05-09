@@ -1,0 +1,257 @@
+--- sys/netgraph/ng_fec.h.orig	Sat Aug 26 12:33:03 2006
++++ sys/netgraph/ng_fec.h	Sat Aug 26 12:33:33 2006
+@@ -92,11 +92,6 @@
+ #define NG_FEC_MTU_MAX			65535
+ #define NG_FEC_MTU_DEFAULT		1500
+ 
+-/* Special flags for mbufs. */
+-#define M_FEC_MAC			0x2000
+-#define M_FEC_INET			0x4000
+-#define M_FEC_INET6			0x8000
+-
+ /* Netgraph commands */
+ enum {
+ 	NGM_FEC_ADD_IFACE,
+--- sys/netgraph/ng_fec.c.orig	Sat Aug 26 12:32:57 2006
++++ sys/netgraph/ng_fec.c	Sat Aug 26 14:17:22 2006
+@@ -195,6 +195,8 @@
+ static void	ng_fec_tick(void *arg);
+ static int	ng_fec_addport(struct ng_fec_private *priv, char *iface);
+ static int	ng_fec_delport(struct ng_fec_private *priv, char *iface);
++static void 	ng_fec_update_opts(struct ng_fec_bundle *b,
++			struct ifnet *ifp);
+ 
+ #ifdef DEBUG
+ static void	ng_fec_print_ioctl(struct ifnet *ifp, int cmd, caddr_t data);
+@@ -439,9 +441,41 @@
+ 	new->fec_ifstat = -1;
+ 	TAILQ_INSERT_TAIL(&b->ng_fec_ports, new, fec_list);
+ 
++	ng_fec_update_opts(b, ifp);
++
+ 	return(0);
+ }
+ 
++/* Update interfaces capabilities in bundle */
++static void 
++ng_fec_update_opts(struct ng_fec_bundle *b, struct ifnet *ifp)
++{
++    	struct ng_fec_portlist *p;
++    	int with_hwtag = 0, with_mtu = 0;
++	/* See if the interface is already in the bundle */
++	TAILQ_FOREACH(p, &b->ng_fec_ports, fec_list) {
++	    	struct ifnet *bifp = p->fec_if;
++		if(bifp->if_capenable & IFCAP_VLAN_MTU)
++		    	with_mtu++;
++		if(bifp->if_capenable & IFCAP_VLAN_HWTAGGING)
++		    	with_hwtag++;
++	}
++	if(b->fec_ifcnt == 0) 
++	    	return;
++
++	if(b->fec_ifcnt > with_hwtag) 
++	    	ifp->if_capenable &= ~IFCAP_VLAN_HWTAGGING;
++	else 	
++	    	ifp->if_capenable |= IFCAP_VLAN_HWTAGGING;
++		
++	if(b->fec_ifcnt > with_mtu) 
++	    	ifp->if_capenable &= ~IFCAP_VLAN_MTU;
++	else 	
++	    	ifp->if_capenable |= IFCAP_VLAN_MTU;
++	
++	return;    
++}
++
+ static int
+ ng_fec_delport(struct ng_fec_private *priv, char *iface)
+ {
+@@ -504,6 +538,8 @@
+ 	if (b->fec_ifcnt == 0)
+ 		b->fec_if_output = NULL;
+ 
++	ng_fec_update_opts(b, ifp);
++
+ 	return(0);
+ }
+ 
+@@ -678,7 +714,8 @@
+ ng_fec_ioctl(struct ifnet *ifp, u_long command, caddr_t data)
+ {
+ 	struct ifreq *const ifr = (struct ifreq *) data;
+-	int s, error = 0;
++	int error = 0;
++	int ifcap;
+ 	struct ng_fec_private	*priv;
+ 	struct ng_fec_bundle	*b;
+ 
+@@ -688,7 +725,7 @@
+ #ifdef DEBUG
+ 	ng_fec_print_ioctl(ifp, command, data);
+ #endif
+-	s = splimp();
++	mtx_lock(&ng_fec_mtx);
+ 	switch (command) {
+ 
+ 	/* These two are mostly handled at a higher layer */
+@@ -745,12 +782,17 @@
+ 	case SIOCSIFPHYS:
+ 		error = EOPNOTSUPP;
+ 		break;
+-
++	case SIOCSIFCAP:
++		ifcap =  ifp->if_capenable;
++		ng_fec_update_opts(b, ifp);
++		if(ifcap != ifp->if_capenable)
++		    	ng_fec_init(priv);
++		break;
+ 	default:
+ 		error = EINVAL;
+ 		break;
+ 	}
+-	(void) splx(s);
++	mtx_unlock(&ng_fec_mtx);
+ 	return (error);
+ }
+ 
+@@ -840,40 +882,21 @@
+ 	}
+ 
+ 	b = &priv->fec_bundle;
+-
+ 	switch (b->fec_btype) {
+ 	case FEC_BTYPE_MAC:
+-		m->m_flags |= M_FEC_MAC;
+-		break;
+ #ifdef INET
+ 	case FEC_BTYPE_INET:
+-		/*
+-		 * We can't use the INET address port selection
+-		 * scheme if this isn't an INET packet.
+-		 */
+-		if (dst->sa_family == AF_INET)
+-			m->m_flags |= M_FEC_INET;
+ #ifdef INET6
+-		else if (dst->sa_family == AF_INET6)
+-			m->m_flags |= M_FEC_INET6;
++	case FEC_BTYPE_INET6:
+ #endif
+-		else {
+-#ifdef DEBUG
+-			if_printf(ifp, "can't do inet aggregation of non "
+-			    "inet packet\n");
+ #endif
+-			m->m_flags |= M_FEC_MAC;
+-		}
+ 		break;
+-#endif
+ 	default:
+-		if_printf(ifp, "bogus hash type: %d\n",
+-		    b->fec_btype);
++		if_printf(ifp, "bogus hash type: %d\n", b->fec_btype);
+ 		m_freem(m);
+ 		return(EINVAL);
+ 		break;
+ 	}
+-
+ 	/*
+ 	 * Pass the frame to the output vector for all the protocol
+ 	 * handling. This will put the ethernet header on the packet
+@@ -898,7 +921,6 @@
+ 	struct mbuf *m, struct ifnet **ifp)
+ {
+ 	struct ether_header	*eh;
+-	struct mbuf		*m0;
+ #ifdef INET
+ 	struct ip		*ip;
+ #ifdef INET6
+@@ -907,7 +929,7 @@
+ #endif
+ 
+ 	struct ng_fec_portlist	*p;
+-	int			port = 0, mask;
++	int			port = -1, mask;
+ 
+ 	/*
+ 	 * If there are only two ports, mask off all but the
+@@ -925,43 +947,39 @@
+ #endif
+ #endif
+ 
+-	/*
+-	 * The fg_fec_output() routine is supposed to leave a
+-	 * flag for us in the mbuf that tells us what hash to
+-	 * use, but sometimes a new mbuf is prepended to the
+-	 * chain, so we have to search every mbuf in the chain
+-	 * to find the flags.
+-	 */
+-	m0 = m;
+-	while (m0) {
+-		if (m0->m_flags & (M_FEC_MAC|M_FEC_INET|M_FEC_INET6))
+-			break;
+-		m0 = m0->m_next;
+-	}
+-	if (m0 == NULL)
+-		return(EINVAL);
+-
+-	switch (m0->m_flags & (M_FEC_MAC|M_FEC_INET|M_FEC_INET6)) {
+-	case M_FEC_MAC:
+-		port = (eh->ether_dhost[5] ^
+-		    eh->ether_shost[5]) & mask;
+-		break;
+ #ifdef INET
+-	case M_FEC_INET:
++	if(b->fec_btype == FEC_BTYPE_INET) {
++		if(eh->ether_type == ETHERTYPE_IP) {
++			switch(ip->ip_v) {
++			case 4:    
+ 		port = (ntohl(ip->ip_dst.s_addr) ^
+ 		    ntohl(ip->ip_src.s_addr)) & mask;
+ 		break;
+ #ifdef INET6
+-	case M_FEC_INET6:
++			case 6:	
+ 		port = (ip6->ip6_dst.s6_addr[15] ^
+ 		    ip6->ip6_dst.s6_addr[15]) & mask;
+ 		break;
+ #endif
+-#endif
+ 	default:
+-		return(EINVAL);
++#ifdef DEBUG			
++				printf("%s: can't do inet aggregation of "
++				    "inet packet with unknown ip version\n",
++				    __func__);
++#endif				
+ 			break;
+ 	}
++		} else {
++#ifdef DEBUG			
++			printf("%s: can't do inet aggregation of non "
++			    "inet packet\n", __func__);
++#endif				
++		}	
++#endif
++	}
++	if(port < 0)		
++		port = (eh->ether_dhost[5] ^
++		    eh->ether_shost[5]) & mask;
+ 
+ 	TAILQ_FOREACH(p, &b->ng_fec_ports, fec_list) {
+ 		if (port == p->fec_idx)
+@@ -1134,6 +1152,7 @@
+ 	ifp->if_addrlen = 0;			/* XXX */
+ 	ifp->if_hdrlen = 0;			/* XXX */
+ 	ifp->if_baudrate = 100000000;		/* XXX */
++	ifp->if_capabilities = IFCAP_VLAN_MTU | IFCAP_VLAN_HWTAGGING;
+ 	TAILQ_INIT(&ifp->if_addrhead); /* XXX useless - done in if_attach */
+ 
+ 	/* Give this node the same name as the interface (if possible) */
+@@ -1253,7 +1272,7 @@
+ 
+ 	switch (event) {
+ 	case MOD_LOAD:
+-		mtx_init(&ng_fec_mtx, "ng_fec", NULL, MTX_DEF);
++		mtx_init(&ng_fec_mtx, "ng_fec", MTX_NETWORK_LOCK, MTX_DEF);
+ 		break;
+ 	case MOD_UNLOAD:
+ 		mtx_destroy(&ng_fec_mtx);
