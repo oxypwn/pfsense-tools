@@ -1,2 +1,2 @@
 -p1~contrib/pf/pfctl~parse.y~
-~sys~ng_fec_vlan.diff~
+-p0~sys~ng_fec_vlan.diff~
