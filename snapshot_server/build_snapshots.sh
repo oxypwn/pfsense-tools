@@ -258,7 +258,6 @@ dobuilds() {
 
 		# Build embedded version
 		build_embedded
-		build_embedded_updates
 		cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
 
 		setstatus "Copying files for -RELENG_1_2 build..."
