@@ -56,7 +56,7 @@ populate_extra() {
     ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} NO_MAN=YES \
 	make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
 
-	mkdir ${CVS_CO_DIR}/lib
+	mkdir -p ${CVS_CO_DIR}/lib
 
 	if [ -f /usr/local/lib/libcurl.so.3 ]; then
 		echo "Installing /usr/local/lib/libcurl.so.3"
