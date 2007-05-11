@@ -488,7 +488,6 @@
 ./usr/sbin/rpc.statd
 ./usr/sbin/rpc.umntall
 ./usr/sbin/rrenumd
-./usr/sbin/rtadvd
 ./usr/sbin/rtprio
 ./usr/sbin/rtsold
 ./usr/sbin/rwhod
