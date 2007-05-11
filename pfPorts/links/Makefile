@@ -57,6 +57,8 @@ OPTIONS_MESG+=	"X11 graphics support disabled."
 MAN1=		links.1
 PLIST_FILES=	bin/links
 
+CONFIGURE_ARGS+=	--without-x
+
 pre-everything::
 		@${ECHO_MSG} ${OPTIONS_MESG}
 
