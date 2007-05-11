@@ -58,6 +58,7 @@ MAN1=		links.1
 PLIST_FILES=	bin/links
 
 CONFIGURE_ARGS+=	--without-x
+CONFIGURE_ARGS+=	--disable-graphics
 
 pre-everything::
 		@${ECHO_MSG} ${OPTIONS_MESG}
