@@ -1,0 +1,4615 @@
+Index: sbin/ifconfig/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sbin/ifconfig/Makefile,v
+retrieving revision 1.29
+diff -u -p -r1.29 Makefile
+--- sbin/ifconfig/Makefile	5 Jun 2005 03:32:51 -0000	1.29
++++ sbin/ifconfig/Makefile	16 May 2007 04:12:14 -0000
+@@ -27,6 +27,7 @@ SRCS+=	ifcarp.c		# SIOC[GS]VH support
+ SRCS+=	ifpfsync.c		# pfsync(4) support
+ 
+ SRCS+=	ifbridge.c		# bridge support
++SRCS+=	iflagg.c		# lagg support
+ 
+ .if !defined(RELEASE_CRUNCH)
+ SRCS+=	af_ipx.c		# IPX support
+Index: sbin/ifconfig/ifconfig.8
+===================================================================
+RCS file: /home/ncvs/src/sbin/ifconfig/ifconfig.8,v
+retrieving revision 1.95.2.23
+diff -u -p -r1.95.2.23 ifconfig.8
+--- sbin/ifconfig/ifconfig.8	1 Apr 2007 02:09:47 -0000	1.95.2.23
++++ sbin/ifconfig/ifconfig.8	16 May 2007 04:16:59 -0000
+@@ -28,7 +28,7 @@
+ .\"     From: @(#)ifconfig.8	8.3 (Berkeley) 1/5/94
+ .\" $FreeBSD$
+ .\"
+-.Dd February 4, 2007
++.Dd May 16, 2007
+ .Dt IFCONFIG 8
+ .Os
+ .Sh NAME
+@@ -1306,6 +1306,23 @@ cost to 0.
+ The minimum is 1 and the maximum is 200000000.
+ .El
+ .Pp
++The following parameters are specific to lagg interfaces:
++.Bl -tag -width indent
++.It Cm laggport Ar interface
++Add the interface named by
++.Ar interface
++as a port of the aggregation interface.
++.It Cm -laggport Ar interface
++Remove the interface named by
++.Ar interface
++from the aggregation interface.
++.It Cm laggproto Ar proto
++Set the aggregation protocol.
++The default is failover.
++The available options are failover, fec, lacp, loadbalance, roundrobin and
++none.
++.El
++.Pp
+ The following parameters are specific to IP tunnel interfaces,
+ .Xr gif 4 :
+ .Bl -tag -width indent
+Index: sbin/ifconfig/iflagg.c
+===================================================================
+RCS file: sbin/ifconfig/iflagg.c
+diff -N sbin/ifconfig/iflagg.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ sbin/ifconfig/iflagg.c	16 May 2007 04:11:37 -0000
+@@ -0,0 +1,153 @@
++/*-
++ */
++
++#ifndef lint
++static const char rcsid[] =
++  "$FreeBSD: src/sbin/ifconfig/iflagg.c,v 1.1 2007/04/17 00:35:09 thompsa Exp $";
++#endif /* not lint */
++
++#include <sys/param.h>
++#include <sys/ioctl.h>
++#include <sys/socket.h>
++#include <sys/sockio.h>
++
++#include <stdlib.h>
++#include <unistd.h>
++
++#include <net/ethernet.h>
++#include <net/if.h>
++#include <net/if_lagg.h>
++#include <net/route.h>
++
++#include <ctype.h>
++#include <stdio.h>
++#include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <err.h>
++#include <errno.h>
++
++#include "ifconfig.h"
++
++static void
++setlaggport(const char *val, int d, int s, const struct afswtch *afp)
++{
++	struct lagg_reqport rp;
++
++	bzero(&rp, sizeof(rp));
++	strlcpy(rp.rp_ifname, name, sizeof(rp.rp_ifname));
++	strlcpy(rp.rp_portname, val, sizeof(rp.rp_portname));
++
++	if (ioctl(s, SIOCSLAGGPORT, &rp))
++		err(1, "SIOCSLAGGPORT");
++}
++
++static void
++unsetlaggport(const char *val, int d, int s, const struct afswtch *afp)
++{
++	struct lagg_reqport rp;
++
++	bzero(&rp, sizeof(rp));
++	strlcpy(rp.rp_ifname, name, sizeof(rp.rp_ifname));
++	strlcpy(rp.rp_portname, val, sizeof(rp.rp_portname));
++
++	if (ioctl(s, SIOCSLAGGDELPORT, &rp))
++		err(1, "SIOCSLAGGDELPORT");
++}
++
++static void
++setlaggproto(const char *val, int d, int s, const struct afswtch *afp)
++{
++	struct lagg_protos tpr[] = LAGG_PROTOS;
++	struct lagg_reqall ra;
++	int i;
++
++	bzero(&ra, sizeof(ra));
++	ra.ra_proto = LAGG_PROTO_MAX;
++
++	for (i = 0; i < (sizeof(tpr) / sizeof(tpr[0])); i++) {
++		if (strcmp(val, tpr[i].tpr_name) == 0) {
++			ra.ra_proto = tpr[i].tpr_proto;
++			break;
++		}
++	}
++	if (ra.ra_proto == LAGG_PROTO_MAX)
++		errx(1, "Invalid aggregation protocol: %s", val);
++
++	strlcpy(ra.ra_ifname, name, sizeof(ra.ra_ifname));
++	if (ioctl(s, SIOCSLAGG, &ra) != 0)
++		err(1, "SIOCSLAGG");
++}
++
++static void
++lagg_status(int s)
++{
++	struct lagg_protos tpr[] = LAGG_PROTOS;
++	struct lagg_reqport rp, rpbuf[LAGG_MAX_PORTS];
++	struct lagg_reqall ra;
++	const char *proto = "<unknown>";
++	int i, isport = 0;
++
++	bzero(&rp, sizeof(rp));
++	bzero(&ra, sizeof(ra));
++
++	strlcpy(rp.rp_ifname, name, sizeof(rp.rp_ifname));
++	strlcpy(rp.rp_portname, name, sizeof(rp.rp_portname));
++
++	if (ioctl(s, SIOCGLAGGPORT, &rp) == 0)
++		isport = 1;
++
++	strlcpy(ra.ra_ifname, name, sizeof(ra.ra_ifname));
++	ra.ra_size = sizeof(rpbuf);
++	ra.ra_port = rpbuf;
++
++	if (ioctl(s, SIOCGLAGG, &ra) == 0) {
++		for (i = 0; i < (sizeof(tpr) / sizeof(tpr[0])); i++) {
++			if (ra.ra_proto == tpr[i].tpr_proto) {
++				proto = tpr[i].tpr_name;
++				break;
++			}
++		}
++
++		printf("\tlagg: laggproto %s", proto);
++		if (isport)
++			printf(" laggdev %s", rp.rp_ifname);
++		putchar('\n');
++
++		for (i = 0; i < ra.ra_ports; i++) {
++			printf("\t\tlaggport %s ", rpbuf[i].rp_portname);
++			printb("", rpbuf[i].rp_flags, LAGG_PORT_BITS);
++			putchar('\n');
++		}
++
++		if (0 /* XXX */) {
++			printf("\tsupported aggregation protocols:\n");
++			for (i = 0; i < (sizeof(tpr) / sizeof(tpr[0])); i++)
++				printf("\t\tlaggproto %s\n", tpr[i].tpr_name);
++		}
++	} else if (isport)
++		printf("\tlagg: laggdev %s\n", rp.rp_ifname);
++}
++
++static struct cmd lagg_cmds[] = {
++	DEF_CMD_ARG("laggport",		setlaggport),
++	DEF_CMD_ARG("-laggport",	unsetlaggport),
++	DEF_CMD_ARG("laggproto",	setlaggproto),
++};
++static struct afswtch af_lagg = {
++	.af_name	= "af_lagg",
++	.af_af		= AF_UNSPEC,
++	.af_other_status = lagg_status,
++};
++
++static __constructor void
++lagg_ctor(void)
++{
++#define	N(a)	(sizeof(a) / sizeof(a[0]))
++	int i;
++
++	for (i = 0; i < N(lagg_cmds);  i++)
++		cmd_register(&lagg_cmds[i]);
++	af_register(&af_lagg);
++#undef N
++}
+Index: share/man/man4/Makefile
+===================================================================
+RCS file: /home/ncvs/src/share/man/man4/Makefile,v
+retrieving revision 1.320.2.29
+diff -u -p -r1.320.2.29 Makefile
+--- share/man/man4/Makefile	15 May 2007 20:49:10 -0000	1.320.2.29
++++ share/man/man4/Makefile	16 May 2007 04:18:41 -0000
+@@ -136,6 +136,7 @@ MAN=	aac.4 \
+ 	kld.4 \
+ 	ktr.4 \
+ 	kue.4 \
++	lagg.4 \
+ 	le.4 \
+ 	led.4 \
+ 	lge.4 \
+@@ -452,6 +453,7 @@ MLINKS+=ipfirewall.4 ipaccounting.4 \
+ MLINKS+=ipw.4 if_ipw.4
+ MLINKS+=iwi.4 if_iwi.4
+ MLINKS+=kue.4 if_kue.4
++MLINKS+=lagg.4 trunk.4
+ MLINKS+=le.4 if_le.4
+ MLINKS+=lge.4 if_lge.4
+ MLINKS+=lo.4 loop.4
+Index: share/man/man4/lagg.4
+===================================================================
+RCS file: share/man/man4/lagg.4
+diff -N share/man/man4/lagg.4
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ share/man/man4/lagg.4	15 May 2007 08:30:33 -0000
+@@ -0,0 +1,174 @@
++.\"	$OpenBSD: trunk.4,v 1.18 2006/06/09 13:53:34 jmc Exp $
++.\"
++.\" Copyright (c) 2005, 2006 Reyk Floeter <reyk@openbsd.org>
++.\"
++.\" Permission to use, copy, modify, and distribute this software for any
++.\" purpose with or without fee is hereby granted, provided that the above
++.\" copyright notice and this permission notice appear in all copies.
++.\"
++.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++.\"
++.\" $FreeBSD: src/share/man/man4/lagg.4,v 1.3 2007/04/17 07:09:23 brueffer Exp $
++.\"
++.Dd April 17, 2007
++.Dt LAGG 4
++.Os
++.Sh NAME
++.Nm lagg
++.Nd link aggregation and link failover interface
++.Sh SYNOPSIS
++To compile this driver into the kernel,
++place the following line in your
++kernel configuration file:
++.Bd -ragged -offset indent
++.Cd "device lagg"
++.Ed
++.Pp
++Alternatively, to load the driver as a
++module at boot time, place the following line in
++.Xr loader.conf 5 :
++.Bd -literal -offset indent
++if_lagg_load="YES"
++.Ed
++.Sh DESCRIPTION
++The
++.Nm
++interface allows aggregation of multiple network interfaces as one virtual
++.Nm
++interface for the purpose of providing fault-tolerance and high-speed links.
++.Pp
++A
++.Nm
++interface can be created using the
++.Ic ifconfig lagg Ns Ar N Ic create
++command.
++It can use different link aggregation protocols specified
++using the
++.Ic laggproto Ar proto
++option.
++Child interfaces can be added using the
++.Ic laggport Ar child-iface
++option and removed using the
++.Ic -laggport Ar child-iface
++option.
++.Pp
++The driver currently supports the aggregation protocols
++.Ic failover
++(the default),
++.Ic fec ,
++.Ic lacp ,
++.Ic loadbalance ,
++.Ic roundrobin ,
++and
++.Ic none .
++The protocols determine which ports are used for outgoing traffic
++and whether a specific port accepts incoming traffic.
++The interface link state is used to validate if the port is active or
++not.
++.Bl -tag -width loadbalance
++.It Ic failover
++Sends and receives traffic only through the master port.
++If the master port becomes unavailable,
++the next active port is used.
++The first interface added is the master port;
++any interfaces added after that are used as failover devices.
++.It Ic fec
++Supports Cisco EtherChannel.
++This is a static setup and does not negotiate aggregation with the peer or
++exchange frames to monitor the link.
++.It Ic lacp
++Supports the IEEE 802.3ad Link Aggregation Control Protocol (LACP) and the
++Marker Protocol.
++LACP will negotiate a set of aggregable links with the peer in to one or more
++Link Aggregated Groups.
++Each LAG is composed of ports of the same speed, set to full-duplex operation.
++The traffic will be balanced across the ports in the LAG with the greatest
++total speed, in most cases there will only be one LAG which contains all ports.
++In the event of changes in physical connectivity, Link Aggregation will quickly
++converge to a new configuration.
++.It Ic loadbalance
++Balances outgoing traffic across the active ports based on hashed
++protocol header information and accepts incoming traffic from
++any active port.
++This is a static setup and does not negotiate aggregation with the peer or
++exchange frames to monitor the link.
++The hash includes the Ethernet source and destination address, and, if
++available, the VLAN tag, and the IP source and destination address.
++.It Ic roundrobin
++Distributes outgoing traffic using a round-robin scheduler
++through all active ports and accepts incoming traffic from
++any active port.
++.It Ic none
++This protocol is intended to do nothing: it disables any traffic without
++disabling the
++.Nm
++interface itself.
++.El
++.Pp
++Each
++.Nm
++interface is created at runtime using interface cloning.
++This is
++most easily done with the
++.Xr ifconfig 8
++.Cm create
++command or using the
++.Va cloned_interfaces
++variable in
++.Xr rc.conf 5 .
++.Sh EXAMPLES
++Create a 802.3ad link aggregation using LACP with two
++.Xr bge 4
++Gigabit Ethernet interfaces:
++.Bd -literal -offset indent
++# ifconfig bge0 up
++# ifconfig bge1 up
++# ifconfig lagg0 laggproto lacp laggport bge0 laggport bge1 \e
++	192.168.1.1 netmask 255.255.255.0
++.Ed
++.Pp
++The following example uses an active failover interface to set up roaming
++between wired and wireless networks using two network devices.
++Whenever the wired master interface is unplugged, the wireless failover
++device will be used:
++.Bd -literal -offset indent
++# ifconfig em0 up
++# ifconfig ath0 nwid my_net up
++# ifconfig lagg0 laggproto failover laggport em0 laggport ath0 \e
++	192.168.1.1 netmask 255.255.255.0
++.Ed
++.Sh SEE ALSO
++.Xr ng_fec 4 ,
++.Xr ng_one2many 4 ,
++.Xr ifconfig 8
++.Sh HISTORY
++The
++.Nm
++device first appeared in
++.Fx 7.0 .
++.Sh AUTHORS
++.An -nosplit
++The
++.Nm
++driver was written under the name
++.Nm trunk
++by
++.An Reyk Floeter Aq reyk@openbsd.org .
++The LACP implementation was written by
++.An YAMAMOTO Takashi
++for
++.Nx .
++.Sh BUGS
++There is no way to configure LACP administrative variables, including system
++and port priorities.
++The current implementation always performs active-mode LACP and uses 0x8000 as
++system and port priorities.
++.Pp
++WPA security does not currently work correctly with a wireless interface added
++to the lagg port.
+Index: sys/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/NOTES,v
+retrieving revision 1.1325.2.31
+diff -u -p -r1.1325.2.31 NOTES
+--- sys/conf/NOTES	13 May 2007 21:12:32 -0000	1.1325.2.31
++++ sys/conf/NOTES	16 May 2007 04:20:24 -0000
+@@ -666,6 +666,7 @@ device		ppp			#Point-to-point protocol
+ options 	PPP_BSDCOMP		#PPP BSD-compress support
+ options 	PPP_DEFLATE		#PPP zlib/deflate/gzip support
+ options 	PPP_FILTER		#enable bpf filtering (needs bpf)
++device		lagg			#Link aggregation interface
+ 
+ device		ef			# Multiple ethernet frames support
+ options 	ETHER_II		# enable Ethernet_II frame
+Index: sys/conf/files
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files,v
+retrieving revision 1.1031.2.58
+diff -u -p -r1.1031.2.58 files
+--- sys/conf/files	13 May 2007 21:11:39 -0000	1.1031.2.58
++++ sys/conf/files	16 May 2007 04:19:54 -0000
+@@ -1449,6 +1449,7 @@ net/bpf_filter.c		optional netgraph_bpf
+ net/bridge.c			optional bridge
+ net/bridgestp.c			optional if_bridge
+ net/bsd_comp.c			optional ppp_bsdcomp
++net/ieee8023ad_lacp.c		optional lagg
+ net/if.c			standard
+ net/if_arcsubr.c		optional arcnet
+ net/if_atmsubr.c		optional atm
+@@ -1465,6 +1466,7 @@ net/if_fwsubr.c			optional fwip
+ net/if_gif.c			optional gif
+ net/if_gre.c			optional gre
+ net/if_iso88025subr.c		optional token
++net/if_lagg.c			optional lagg
+ net/if_loop.c			optional loop
+ net/if_media.c			standard
+ net/if_mib.c			standard
+Index: sys/modules/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sys/modules/Makefile,v
+retrieving revision 1.450.2.30
+diff -u -p -r1.450.2.30 Makefile
+--- sys/modules/Makefile	21 Apr 2007 13:01:04 -0000	1.450.2.30
++++ sys/modules/Makefile	16 May 2007 19:22:49 -0000
+@@ -110,6 +110,7 @@ SUBDIR=	${_3dfx} \
+ 	if_faith \
+ 	if_gif \
+ 	if_gre \
++	if_lagg \
+ 	${_if_ndis} \
+ 	if_ppp \
+ 	if_sl \
+Index: sys/modules/if_lagg/Makefile
+===================================================================
+RCS file: sys/modules/if_lagg/Makefile
+diff -N sys/modules/if_lagg/Makefile
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ sys/modules/if_lagg/Makefile	15 May 2007 08:28:58 -0000
+@@ -0,0 +1,17 @@
++# $FreeBSD$
++
++.PATH:	${.CURDIR}/../../net
++KMOD=	if_lagg
++SRCS=	if_lagg.c ieee8023ad_lacp.c opt_inet.h opt_inet6.h
++
++.if !defined(KERNBUILDDIR)
++opt_inet.h:
++	echo "#define INET 1" > ${.TARGET}
++	
++.if !defined(NO_INET6)
++opt_inet6.h:
++	echo "#define INET6 1" > ${.TARGET}
++.endif
++.endif
++
++.include <bsd.kmod.mk>
+Index: sys/net/ethernet.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/ethernet.h,v
+retrieving revision 1.24.2.2
+diff -u -p -r1.24.2.2 ethernet.h
+--- sys/net/ethernet.h	1 Mar 2007 17:32:28 -0000	1.24.2.2
++++ sys/net/ethernet.h	16 May 2007 01:44:14 -0000
+@@ -316,6 +316,7 @@ CTASSERT(sizeof (struct ether_addr) == E
+ #define	ETHERTYPE_IPAS		0x876C	/* IP Autonomous Systems (RFC1701) */
+ #define	ETHERTYPE_SECUREDATA	0x876D	/* Secure Data (RFC1701) */
+ #define	ETHERTYPE_FLOWCONTROL	0x8808	/* 802.3x flow control packet */
++#define	ETHERTYPE_SLOW		0x8809	/* 802.3ad link aggregation (LACP) */
+ #define	ETHERTYPE_PPP		0x880B	/* PPP (obsolete by PPPOE) */
+ #define	ETHERTYPE_HITACHI	0x8820	/* Hitachi Cable (Optoelectronic Systems Laboratory) */
+ #define	ETHERTYPE_MPLS		0x8847	/* MPLS Unicast */
+Index: sys/net/ieee8023ad_lacp.c
+===================================================================
+RCS file: sys/net/ieee8023ad_lacp.c
+diff -N sys/net/ieee8023ad_lacp.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ sys/net/ieee8023ad_lacp.c	17 May 2007 00:00:48 -0000
+@@ -0,0 +1,1768 @@
++/*	$NetBSD: ieee8023ad_lacp.c,v 1.3 2005/12/11 12:24:54 christos Exp $	*/
++
++/*-
++ * Copyright (c)2005 YAMAMOTO Takashi,
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ */
++
++#include <sys/cdefs.h>
++__FBSDID("$FreeBSD: src/sys/net/ieee8023ad_lacp.c,v 1.4 2007/05/03 08:56:20 thompsa Exp $");
++
++#include <sys/param.h>
++#include <sys/callout.h>
++#include <sys/mbuf.h>
++#include <sys/systm.h>
++#include <sys/malloc.h>
++#include <sys/kernel.h> /* hz */
++#include <sys/socket.h> /* for net/if.h */
++#include <sys/sockio.h>
++#include <machine/stdarg.h>
++
++#include <net/if.h>
++#include <net/if_dl.h>
++#include <net/ethernet.h>
++#include <net/if_media.h>
++#include <net/if_types.h>
++
++#include <net/if_lagg.h>
++#include <net/ieee8023ad_lacp.h>
++
++/*
++ * actor system priority and port priority.
++ * XXX should be configurable.
++ */
++
++#define	LACP_SYSTEM_PRIO	0x8000
++#define	LACP_PORT_PRIO		0x8000
++
++const uint8_t ethermulticastaddr_slowprotocols[ETHER_ADDR_LEN] =
++    { 0x01, 0x80, 0xc2, 0x00, 0x00, 0x02 };
++
++static const struct tlv_template lacp_info_tlv_template[] = {
++	{ LACP_TYPE_ACTORINFO,
++	    sizeof(struct tlvhdr) + sizeof(struct lacp_peerinfo) },
++	{ LACP_TYPE_PARTNERINFO,
++	    sizeof(struct tlvhdr) + sizeof(struct lacp_peerinfo) },
++	{ LACP_TYPE_COLLECTORINFO,
++	    sizeof(struct tlvhdr) + sizeof(struct lacp_collectorinfo) },
++	{ 0, 0 },
++};
++
++typedef void (*lacp_timer_func_t)(struct lacp_port *);
++
++static const struct tlv_template marker_info_tlv_template[] = {
++	{ MARKER_TYPE_INFO, 16 },
++	{ 0, 0 },
++};
++
++static const struct tlv_template marker_response_tlv_template[] = {
++	{ MARKER_TYPE_RESPONSE, 16 },
++	{ 0, 0 },
++};
++
++static void	lacp_fill_actorinfo(struct lacp_port *, struct lacp_peerinfo *);
++
++static uint64_t	lacp_aggregator_bandwidth(struct lacp_aggregator *);
++static void	lacp_suppress_distributing(struct lacp_softc *,
++		    struct lacp_aggregator *);
++static void	lacp_transit_expire(void *);
++static void	lacp_select_active_aggregator(struct lacp_softc *);
++static uint16_t	lacp_compose_key(struct lacp_port *);
++static int	tlv_check(const void *, size_t, const struct tlvhdr *,
++		    const struct tlv_template *, boolean_t);
++static void	lacp_tick(void *);
++
++static void	lacp_fill_aggregator_id(struct lacp_aggregator *,
++		    const struct lacp_port *);
++static void	lacp_fill_aggregator_id_peer(struct lacp_peerinfo *,
++		    const struct lacp_peerinfo *);
++static int	lacp_aggregator_is_compatible(const struct lacp_aggregator *,
++		    const struct lacp_port *);
++static int	lacp_peerinfo_is_compatible(const struct lacp_peerinfo *,
++		    const struct lacp_peerinfo *);
++
++static struct lacp_aggregator *lacp_aggregator_get(struct lacp_softc *,
++		    struct lacp_port *);
++static void	lacp_aggregator_addref(struct lacp_softc *,
++		    struct lacp_aggregator *);
++static void	lacp_aggregator_delref(struct lacp_softc *,
++		    struct lacp_aggregator *);
++
++/* receive machine */
++
++static void	lacp_sm_rx(struct lacp_port *, const struct lacpdu *);
++static void	lacp_sm_rx_timer(struct lacp_port *);
++static void	lacp_sm_rx_set_expired(struct lacp_port *);
++static void	lacp_sm_rx_update_ntt(struct lacp_port *,
++		    const struct lacpdu *);
++static void	lacp_sm_rx_record_pdu(struct lacp_port *,
++		    const struct lacpdu *);
++static void	lacp_sm_rx_update_selected(struct lacp_port *,
++		    const struct lacpdu *);
++static void	lacp_sm_rx_record_default(struct lacp_port *);
++static void	lacp_sm_rx_update_default_selected(struct lacp_port *);
++static void	lacp_sm_rx_update_selected_from_peerinfo(struct lacp_port *,
++		    const struct lacp_peerinfo *);
++
++/* mux machine */
++
++static void	lacp_sm_mux(struct lacp_port *);
++static void	lacp_set_mux(struct lacp_port *, enum lacp_mux_state);
++static void	lacp_sm_mux_timer(struct lacp_port *);
++
++/* periodic transmit machine */
++
++static void	lacp_sm_ptx_update_timeout(struct lacp_port *, uint8_t);
++static void	lacp_sm_ptx_tx_schedule(struct lacp_port *);
++static void	lacp_sm_ptx_timer(struct lacp_port *);
++
++/* transmit machine */
++
++static void	lacp_sm_tx(struct lacp_port *);
++static void	lacp_sm_assert_ntt(struct lacp_port *);
++
++static void	lacp_run_timers(struct lacp_port *);
++static int	lacp_compare_peerinfo(const struct lacp_peerinfo *,
++		    const struct lacp_peerinfo *);
++static int	lacp_compare_systemid(const struct lacp_systemid *,
++		    const struct lacp_systemid *);
++static void	lacp_port_enable(struct lacp_port *);
++static void	lacp_port_disable(struct lacp_port *);
++static void	lacp_select(struct lacp_port *);
++static void	lacp_unselect(struct lacp_port *);
++static void	lacp_disable_collecting(struct lacp_port *);
++static void	lacp_enable_collecting(struct lacp_port *);
++static void	lacp_disable_distributing(struct lacp_port *);
++static void	lacp_enable_distributing(struct lacp_port *);
++static int	lacp_xmit_lacpdu(struct lacp_port *);
++
++#if defined(LACP_DEBUG)
++static void	lacp_dump_lacpdu(const struct lacpdu *);
++static const char *lacp_format_partner(const struct lacp_peerinfo *, char *,
++		    size_t);
++static const char *lacp_format_lagid(const struct lacp_peerinfo *,
++		    const struct lacp_peerinfo *, char *, size_t);
++static const char *lacp_format_lagid_aggregator(const struct lacp_aggregator *,
++		    char *, size_t);
++static const char *lacp_format_state(uint8_t, char *, size_t);
++static const char *lacp_format_mac(const uint8_t *, char *, size_t);
++static const char *lacp_format_systemid(const struct lacp_systemid *, char *,
++		    size_t);
++static const char *lacp_format_portid(const struct lacp_portid *, char *,
++		    size_t);
++static void	lacp_dprintf(const struct lacp_port *, const char *, ...)
++		    __attribute__((__format__(__printf__, 2, 3)));
++#define	LACP_DPRINTF(a)	lacp_dprintf a
++#else
++#define LACP_DPRINTF(a) /* nothing */
++#endif
++
++/*
++ * partner administration variables.
++ * XXX should be configurable.
++ */
++
++static const struct lacp_peerinfo lacp_partner_admin = {
++	.lip_systemid = { .lsi_prio = 0xffff },
++	.lip_portid = { .lpi_prio = 0xffff },
++#if 1
++	/* optimistic */
++	.lip_state = LACP_STATE_SYNC | LACP_STATE_AGGREGATION |
++	    LACP_STATE_COLLECTING | LACP_STATE_DISTRIBUTING,
++#else
++	/* pessimistic */
++	.lip_state = 0,
++#endif
++};
++
++static const lacp_timer_func_t lacp_timer_funcs[LACP_NTIMER] = {
++	[LACP_TIMER_CURRENT_WHILE] = lacp_sm_rx_timer,
++	[LACP_TIMER_PERIODIC] = lacp_sm_ptx_timer,
++	[LACP_TIMER_WAIT_WHILE] = lacp_sm_mux_timer,
++};
++
++/*
++ * lacp_input: process lacpdu
++ */
++int
++lacp_input(struct lagg_port *lgp, struct mbuf *m)
++{
++	struct lacp_port *lp = LACP_PORT(lgp);
++	struct lacpdu *du;
++	int error = 0;
++
++	LAGG_LOCK_ASSERT(lgp->lp_lagg);
++
++	if (__predict_false(lp->lp_flags & LACP_PORT_DETACHING)) {
++		goto bad;
++	}
++
++	if (m->m_pkthdr.len != sizeof(*du)) {
++		goto bad;
++	}
++
++	if (m->m_len < sizeof(*du)) {
++		m = m_pullup(m, sizeof(*du));
++		if (m == NULL) {
++			return (ENOMEM);
++		}
++	}
++
++	du = mtod(m, struct lacpdu *);
++
++	if (memcmp(&du->ldu_eh.ether_dhost,
++	    &ethermulticastaddr_slowprotocols, ETHER_ADDR_LEN)) {
++		goto bad;
++	}
++
++	/* XXX
++	KASSERT(du->ldu_sph.sph_subtype == SLOWPROTOCOLS_SUBTYPE_LACP,
++	    ("a very bad kassert!"));
++	*/
++
++	/*
++	 * ignore the version for compatibility with
++	 * the future protocol revisions.
++	 */
++
++#if 0
++	if (du->ldu_sph.sph_version != 1) {
++		goto bad;
++	}
++#endif
++
++	/*
++	 * ignore tlv types for compatibility with
++	 * the future protocol revisions.
++	 */
++
++	if (tlv_check(du, sizeof(*du), &du->ldu_tlv_actor,
++	    lacp_info_tlv_template, FALSE)) {
++		goto bad;
++	}
++
++#if defined(LACP_DEBUG)
++	LACP_DPRINTF((lp, "lacpdu receive\n"));
++	lacp_dump_lacpdu(du);
++#endif /* defined(LACP_DEBUG) */
++	lacp_sm_rx(lp, du);
++
++	m_freem(m);
++
++	return (error);
++
++bad:
++	m_freem(m);
++	return (EINVAL);
++}
++
++static void
++lacp_fill_actorinfo(struct lacp_port *lp, struct lacp_peerinfo *info)
++{
++	struct lagg_port *lgp = lp->lp_lagg;
++	struct lagg_softc *lgs = lgp->lp_lagg;
++
++	info->lip_systemid.lsi_prio = htons(LACP_SYSTEM_PRIO);
++	memcpy(&info->lip_systemid.lsi_mac,
++	    IF_LLADDR(lgs->sc_ifp), ETHER_ADDR_LEN);
++	info->lip_portid.lpi_prio = htons(LACP_PORT_PRIO);
++	info->lip_portid.lpi_portno = htons(lp->lp_ifp->if_index);
++	info->lip_state = lp->lp_state;
++}
++
++static int
++lacp_xmit_lacpdu(struct lacp_port *lp)
++{
++	struct lagg_port *lgp = lp->lp_lagg;
++	struct mbuf *m;
++	struct lacpdu *du;
++	int error;
++
++	LAGG_LOCK_ASSERT(lgp->lp_lagg);
++
++	m = m_gethdr(M_DONTWAIT, MT_DATA);
++	if (m == NULL) {
++		return (ENOMEM);
++	}
++	m->m_len = m->m_pkthdr.len = sizeof(*du);
++
++	du = mtod(m, struct lacpdu *);
++	memset(du, 0, sizeof(*du));
++
++	memcpy(&du->ldu_eh.ether_dhost, ethermulticastaddr_slowprotocols,
++	    ETHER_ADDR_LEN);
++	memcpy(&du->ldu_eh.ether_shost, lgp->lp_lladdr, ETHER_ADDR_LEN);
++	du->ldu_eh.ether_type = htons(ETHERTYPE_SLOW);
++
++	du->ldu_sph.sph_subtype = SLOWPROTOCOLS_SUBTYPE_LACP;
++	du->ldu_sph.sph_version = 1;
++
++	TLV_SET(&du->ldu_tlv_actor, LACP_TYPE_ACTORINFO, sizeof(du->ldu_actor));
++	du->ldu_actor = lp->lp_actor;
++
++	TLV_SET(&du->ldu_tlv_partner, LACP_TYPE_PARTNERINFO,
++	    sizeof(du->ldu_partner));
++	du->ldu_partner = lp->lp_partner;
++
++	TLV_SET(&du->ldu_tlv_collector, LACP_TYPE_COLLECTORINFO,
++	    sizeof(du->ldu_collector));
++	du->ldu_collector.lci_maxdelay = 0;
++
++#if defined(LACP_DEBUG)
++	LACP_DPRINTF((lp, "lacpdu transmit\n"));
++	lacp_dump_lacpdu(du);
++#endif /* defined(LACP_DEBUG) */
++
++	m->m_flags |= M_MCAST;
++
++	/*
++	 * XXX should use higher priority queue.
++	 * otherwise network congestion can break aggregation.
++	 */
++
++	error = lagg_enqueue(lp->lp_ifp, m);
++	return (error);
++}
++
++void
++lacp_linkstate(struct lagg_port *lgp)
++{
++	struct lacp_port *lp = LACP_PORT(lgp);
++	struct ifnet *ifp = lgp->lp_ifp;
++	struct ifmediareq ifmr;
++	int error = 0;
++	u_int media;
++	uint8_t old_state;
++	uint16_t old_key;
++
++	LAGG_LOCK_ASSERT(lgp->lp_lagg);
++
++	bzero((char *)&ifmr, sizeof(ifmr));
++	error = (*ifp->if_ioctl)(ifp, SIOCGIFMEDIA, (caddr_t)&ifmr);
++	if (error != 0)
++		return;
++
++	media = ifmr.ifm_active;
++	LACP_DPRINTF((lp, "media changed 0x%x -> 0x%x, ether = %d, fdx = %d, "
++	    "link = %d\n", lp->lp_media, media, IFM_TYPE(media) == IFM_ETHER,
++	    (media & IFM_FDX) != 0, ifp->if_link_state == LINK_STATE_UP));
++	old_state = lp->lp_state;
++	old_key = lp->lp_key;
++
++	lp->lp_media = media;
++	/* 
++	 * If the port is not an active full duplex Ethernet link then it can
++	 * not be aggregated.
++	 */
++	if (IFM_TYPE(media) != IFM_ETHER || (media & IFM_FDX) == 0 ||
++	    ifp->if_link_state != LINK_STATE_UP) {
++		lacp_port_disable(lp);
++	} else {
++		lacp_port_enable(lp);
++	}
++	lp->lp_key = lacp_compose_key(lp);
++
++	if (old_state != lp->lp_state || old_key != lp->lp_key) {
++		LACP_DPRINTF((lp, "-> UNSELECTED\n"));
++		lp->lp_selected = LACP_UNSELECTED;
++	}
++}
++
++static void
++lacp_tick(void *arg)
++{
++	struct lacp_softc *lsc = arg;
++	struct lacp_port *lp;
++
++	LIST_FOREACH(lp, &lsc->lsc_ports, lp_next) {
++		if ((lp->lp_state & LACP_STATE_AGGREGATION) == 0)
++			continue;
++
++		lacp_run_timers(lp);
++
++		lacp_select(lp);
++		lacp_sm_mux(lp);
++		lacp_sm_tx(lp);
++		lacp_sm_ptx_tx_schedule(lp);
++	}
++	callout_reset(&lsc->lsc_callout, hz, lacp_tick, lsc);
++}
++
++int
++lacp_port_create(struct lagg_port *lgp)
++{
++	struct lagg_softc *lgs = lgp->lp_lagg;
++	struct lacp_softc *lsc = LACP_SOFTC(lgs);
++	struct lacp_port *lp;
++	struct ifnet *ifp = lgp->lp_ifp;
++	struct sockaddr_dl sdl;
++	struct ifmultiaddr *rifma = NULL;
++	int error;
++
++	boolean_t active = TRUE; /* XXX should be configurable */
++	boolean_t fast = FALSE; /* XXX should be configurable */
++
++	LAGG_LOCK_ASSERT(lgs);
++
++	bzero((char *)&sdl, sizeof(sdl));
++	sdl.sdl_len = sizeof(sdl);
++	sdl.sdl_family = AF_LINK;
++	sdl.sdl_index = ifp->if_index;
++	sdl.sdl_type = IFT_ETHER;
++	sdl.sdl_alen = ETHER_ADDR_LEN;
++
++	bcopy(&ethermulticastaddr_slowprotocols,
++	    LLADDR(&sdl), ETHER_ADDR_LEN);
++	error = if_addmulti(ifp, (struct sockaddr *)&sdl, &rifma);
++	if (error) {
++		printf("%s: ADDMULTI failed on %s\n", __func__, lgp->lp_ifname);
++		return (error);
++	}
++
++	lp = malloc(sizeof(struct lacp_port),
++	    M_DEVBUF, M_NOWAIT|M_ZERO);
++	if (lp == NULL)
++		return (ENOMEM);
++
++	lgp->lp_psc = (caddr_t)lp;
++	lp->lp_ifp = ifp;
++	lp->lp_lagg = lgp;
++	lp->lp_lsc = lsc;
++
++	LIST_INSERT_HEAD(&lsc->lsc_ports, lp, lp_next);
++
++	lacp_fill_actorinfo(lp, &lp->lp_actor);
++	lp->lp_state =
++	    (active ? LACP_STATE_ACTIVITY : 0) |
++	    (fast ? LACP_STATE_TIMEOUT : 0);
++	lp->lp_aggregator = NULL;
++	lacp_linkstate(lgp);
++	lacp_sm_rx_set_expired(lp);
++
++	return (0);
++}
++
++void
++lacp_port_destroy(struct lagg_port *lgp)
++{
++	struct lacp_port *lp = LACP_PORT(lgp);
++	struct ifnet *ifp = lgp->lp_ifp;
++	struct sockaddr_dl sdl;
++	int i, error;
++
++	LAGG_LOCK_ASSERT(lgp->lp_lagg);
++
++	for (i = 0; i < LACP_NTIMER; i++) {
++		LACP_TIMER_DISARM(lp, i);
++	}
++
++	lacp_disable_collecting(lp);
++	lacp_disable_distributing(lp);
++	lacp_unselect(lp);
++	lgp->lp_flags &= ~LAGG_PORT_DISABLED;
++
++	bzero((char *)&sdl, sizeof(sdl));
++	sdl.sdl_len = sizeof(sdl);
++	sdl.sdl_family = AF_LINK;
++	sdl.sdl_index = ifp->if_index;
++	sdl.sdl_type = IFT_ETHER;
++	sdl.sdl_alen = ETHER_ADDR_LEN;
++
++	bcopy(&ethermulticastaddr_slowprotocols,
++	    LLADDR(&sdl), ETHER_ADDR_LEN);
++	error = if_delmulti(ifp, (struct sockaddr *)&sdl);
++	if (error)
++		printf("%s: DELMULTI failed on %s\n", __func__, lgp->lp_ifname);
++
++	LIST_REMOVE(lp, lp_next);
++	free(lp, M_DEVBUF);
++}
++
++int
++lacp_port_isactive(struct lagg_port *lgp)
++{
++	struct lacp_port *lp = LACP_PORT(lgp);
++	struct lacp_softc *lsc = lp->lp_lsc;
++	struct lacp_aggregator *la = lp->lp_aggregator;
++
++	/* This port is joined to the active aggregator */
++	if (la != NULL && la == lsc->lsc_active_aggregator)
++		return (1);
++
++	return (0);
++}
++
++static void
++lacp_disable_collecting(struct lacp_port *lp)
++{
++	struct lagg_port *lgp = lp->lp_lagg;
++
++	LACP_DPRINTF((lp, "collecting disabled\n"));
++
++	lp->lp_state &= ~LACP_STATE_COLLECTING;
++	lgp->lp_flags &= ~LAGG_PORT_COLLECTING;
++}
++
++static void
++lacp_enable_collecting(struct lacp_port *lp)
++{
++	struct lagg_port *lgp = lp->lp_lagg;
++
++	LACP_DPRINTF((lp, "collecting enabled\n"));
++
++	lp->lp_state |= LACP_STATE_COLLECTING;
++	lgp->lp_flags |= LAGG_PORT_COLLECTING;
++}
++
++static void
++lacp_disable_distributing(struct lacp_port *lp)
++{
++	struct lacp_aggregator *la = lp->lp_aggregator;
++	struct lacp_softc *lsc = lp->lp_lsc;
++	struct lagg_port *lgp = lp->lp_lagg;
++#if defined(LACP_DEBUG)
++	char buf[LACP_LAGIDSTR_MAX+1];
++#endif /* defined(LACP_DEBUG) */
++
++	LAGG_LOCK_ASSERT(lgp->lp_lagg);
++
++	if (la == NULL || (lp->lp_state & LACP_STATE_DISTRIBUTING) == 0) {
++		return;
++	}
++
++	KASSERT(!TAILQ_EMPTY(&la->la_ports), ("no aggregator ports"));
++	KASSERT(la->la_nports > 0, ("nports invalid (%d)", la->la_nports));
++	KASSERT(la->la_refcnt >= la->la_nports, ("aggregator refcnt invalid"));
++
++	LACP_DPRINTF((lp, "disable distributing on aggregator %s, "
++	    "nports %d -> %d\n",
++	    lacp_format_lagid_aggregator(la, buf, sizeof(buf)),
++	    la->la_nports, la->la_nports - 1));
++
++	TAILQ_REMOVE(&la->la_ports, lp, lp_dist_q);
++	la->la_nports--;
++
++	lacp_suppress_distributing(lsc, la);
++
++	lp->lp_state &= ~LACP_STATE_DISTRIBUTING;
++	lgp->lp_flags &= ~LAGG_PORT_DISTRIBUTING;
++
++	if (lsc->lsc_active_aggregator == la) {
++		lacp_select_active_aggregator(lsc);
++	}
++}
++
++static void
++lacp_enable_distributing(struct lacp_port *lp)
++{
++	struct lacp_aggregator *la = lp->lp_aggregator;
++	struct lacp_softc *lsc = lp->lp_lsc;
++	struct lagg_port *lgp = lp->lp_lagg;
++#if defined(LACP_DEBUG)
++	char buf[LACP_LAGIDSTR_MAX+1];
++#endif /* defined(LACP_DEBUG) */
++
++	LAGG_LOCK_ASSERT(lgp->lp_lagg);
++
++	if ((lp->lp_state & LACP_STATE_DISTRIBUTING) != 0) {
++		return;
++	}
++
++	LACP_DPRINTF((lp, "enable distributing on aggregator %s, "
++	    "nports %d -> %d\n",
++	    lacp_format_lagid_aggregator(la, buf, sizeof(buf)),
++	    la->la_nports, la->la_nports + 1));
++
++	KASSERT(la->la_refcnt > la->la_nports, ("aggregator refcnt invalid"));
++	TAILQ_INSERT_HEAD(&la->la_ports, lp, lp_dist_q);
++	la->la_nports++;
++
++	lacp_suppress_distributing(lsc, la);
++
++	lp->lp_state |= LACP_STATE_DISTRIBUTING;
++	lgp->lp_flags |= LAGG_PORT_DISTRIBUTING;
++
++	if (lsc->lsc_active_aggregator != la) {
++		lacp_select_active_aggregator(lsc);
++	}
++}
++
++static void
++lacp_transit_expire(void *vp)
++{
++	struct lacp_softc *lsc = vp;
++
++	LACP_DPRINTF((NULL, "%s\n", __func__));
++	lsc->lsc_suppress_distributing = FALSE;
++}
++
++int
++lacp_attach(struct lagg_softc *lgs)
++{
++	struct lacp_softc *lsc;
++
++	LAGG_LOCK_ASSERT(lgs);
++
++	lsc = malloc(sizeof(struct lacp_softc),
++	    M_DEVBUF, M_NOWAIT|M_ZERO);
++	if (lsc == NULL)
++		return (ENOMEM);
++
++	lgs->sc_psc = (caddr_t)lsc;
++	lsc->lsc_lagg = lgs;
++
++	lsc->lsc_hashkey = arc4random();
++	lsc->lsc_active_aggregator = NULL;
++	TAILQ_INIT(&lsc->lsc_aggregators);
++	LIST_INIT(&lsc->lsc_ports);
++
++	callout_init_mtx(&lsc->lsc_transit_callout, &lgs->sc_mtx, 0);
++	callout_init_mtx(&lsc->lsc_callout, &lgs->sc_mtx, 0);
++
++	/* if the lagg is already up then do the same */
++	if (lgs->sc_ifp->if_drv_flags & IFF_DRV_RUNNING)
++		lacp_init(lgs);
++
++	return (0);
++}
++
++int
++lacp_detach(struct lagg_softc *lgs)
++{
++	struct lacp_softc *lsc = LACP_SOFTC(lgs);
++
++	KASSERT(TAILQ_EMPTY(&lsc->lsc_aggregators),
++	    ("aggregators still active"));
++	KASSERT(lsc->lsc_active_aggregator == NULL,
++	    ("aggregator still attached"));
++
++	lgs->sc_psc = NULL;
++	callout_drain(&lsc->lsc_transit_callout);
++	callout_drain(&lsc->lsc_callout);
++
++	free(lsc, M_DEVBUF);
++	return (0);
++}
++
++void
++lacp_init(struct lagg_softc *lgs)
++{
++	struct lacp_softc *lsc = LACP_SOFTC(lgs);
++
++	callout_reset(&lsc->lsc_callout, hz, lacp_tick, lsc);
++}
++
++void
++lacp_stop(struct lagg_softc *lgs)
++{
++	struct lacp_softc *lsc = LACP_SOFTC(lgs);
++
++	callout_stop(&lsc->lsc_transit_callout);
++	callout_stop(&lsc->lsc_callout);
++}
++
++struct lagg_port *
++lacp_select_tx_port(struct lagg_softc *lgs, struct mbuf *m)
++{
++	struct lacp_softc *lsc = LACP_SOFTC(lgs);
++	struct lacp_aggregator *la;
++	struct lacp_port *lp;
++	uint32_t hash;
++	int nports;
++
++	LAGG_LOCK_ASSERT(lgs);
++
++	if (__predict_false(lsc->lsc_suppress_distributing)) {
++		LACP_DPRINTF((NULL, "%s: waiting transit\n", __func__));
++		return (NULL);
++	}
++
++	la = lsc->lsc_active_aggregator;
++	if (__predict_false(la == NULL)) {
++		LACP_DPRINTF((NULL, "%s: no active aggregator\n", __func__));
++		return (NULL);
++	}
++
++	nports = la->la_nports;
++	KASSERT(nports > 0, ("no ports available"));
++
++	hash = lagg_hashmbuf(m, lsc->lsc_hashkey);
++	hash %= nports;
++	lp = TAILQ_FIRST(&la->la_ports);
++	while (hash--) {
++		lp = TAILQ_NEXT(lp, lp_dist_q);
++	}
++
++	KASSERT((lp->lp_state & LACP_STATE_DISTRIBUTING) != 0,
++	    ("aggregated port is not distributing"));
++
++	return (lp->lp_lagg);
++}
++/*
++ * lacp_suppress_distributing: drop transmit packets for a while
++ * to preserve packet ordering.
++ */
++
++static void
++lacp_suppress_distributing(struct lacp_softc *lsc, struct lacp_aggregator *la)
++{
++	if (lsc->lsc_active_aggregator != la) {
++		return;
++	}
++
++	LACP_DPRINTF((NULL, "%s\n", __func__));
++	lsc->lsc_suppress_distributing = TRUE;
++	/* XXX should consider collector max delay */
++	callout_reset(&lsc->lsc_transit_callout,
++	    LACP_TRANSIT_DELAY * hz / 1000, lacp_transit_expire, lsc);
++}
++
++static int
++lacp_compare_peerinfo(const struct lacp_peerinfo *a,
++    const struct lacp_peerinfo *b)
++{
++	return (memcmp(a, b, offsetof(struct lacp_peerinfo, lip_state)));
++}
++
++static int
++lacp_compare_systemid(const struct lacp_systemid *a,
++    const struct lacp_systemid *b)
++{
++	return (memcmp(a, b, sizeof(*a)));
++}
++
++#if 0	/* unused */
++static int
++lacp_compare_portid(const struct lacp_portid *a,
++    const struct lacp_portid *b)
++{
++	return (memcmp(a, b, sizeof(*a)));
++}
++#endif
++
++static uint64_t
++lacp_aggregator_bandwidth(struct lacp_aggregator *la)
++{
++	struct lacp_port *lp;
++	uint64_t speed;
++
++	lp = TAILQ_FIRST(&la->la_ports);
++	if (lp == NULL) {
++		return (0);
++	}
++
++	speed = ifmedia_baudrate(lp->lp_media);
++	speed *= la->la_nports;
++	if (speed == 0) {
++		LACP_DPRINTF((lp, "speed 0? media=0x%x nports=%d\n",
++		    lp->lp_media, la->la_nports));
++	}
++
++	return (speed);
++}
++
++/*
++ * lacp_select_active_aggregator: select an aggregator to be used to transmit
++ * packets from lagg(4) interface.
++ */
++
++static void
++lacp_select_active_aggregator(struct lacp_softc *lsc)
++{
++	struct lacp_aggregator *la;
++	struct lacp_aggregator *best_la = NULL;
++	uint64_t best_speed = 0;
++#if defined(LACP_DEBUG)
++	char buf[LACP_LAGIDSTR_MAX+1];
++#endif /* defined(LACP_DEBUG) */
++
++	LACP_DPRINTF((NULL, "%s:\n", __func__));
++
++	TAILQ_FOREACH(la, &lsc->lsc_aggregators, la_q) {
++		uint64_t speed;
++
++		if (la->la_nports == 0) {
++			continue;
++		}
++
++		speed = lacp_aggregator_bandwidth(la);
++		LACP_DPRINTF((NULL, "%s, speed=%jd, nports=%d\n",
++		    lacp_format_lagid_aggregator(la, buf, sizeof(buf)),
++		    speed, la->la_nports));
++		if (speed > best_speed ||
++		    (speed == best_speed &&
++		    la == lsc->lsc_active_aggregator)) {
++			best_la = la;
++			best_speed = speed;
++		}
++	}
++
++	KASSERT(best_la == NULL || best_la->la_nports > 0,
++	    ("invalid aggregator refcnt"));
++	KASSERT(best_la == NULL || !TAILQ_EMPTY(&best_la->la_ports),
++	    ("invalid aggregator list"));
++
++#if defined(LACP_DEBUG)
++	if (lsc->lsc_active_aggregator != best_la) {
++		LACP_DPRINTF((NULL, "active aggregator changed\n"));
++		LACP_DPRINTF((NULL, "old %s\n",
++		    lacp_format_lagid_aggregator(lsc->lsc_active_aggregator,
++		    buf, sizeof(buf))));
++	} else {
++		LACP_DPRINTF((NULL, "active aggregator not changed\n"));
++	}
++	LACP_DPRINTF((NULL, "new %s\n",
++	    lacp_format_lagid_aggregator(best_la, buf, sizeof(buf))));
++#endif /* defined(LACP_DEBUG) */
++
++	if (lsc->lsc_active_aggregator != best_la) {
++		lsc->lsc_active_aggregator = best_la;
++		if (best_la) {
++			lacp_suppress_distributing(lsc, best_la);
++		}
++	}
++}
++
++static uint16_t
++lacp_compose_key(struct lacp_port *lp)
++{
++	struct lagg_port *lgp = lp->lp_lagg;
++	struct lagg_softc *lgs = lgp->lp_lagg;
++	u_int media = lp->lp_media;
++	uint16_t key;
++
++	if ((lp->lp_state & LACP_STATE_AGGREGATION) == 0) {
++
++		/*
++		 * non-aggregatable links should have unique keys.
++		 *
++		 * XXX this isn't really unique as if_index is 16 bit.
++		 */
++
++		/* bit 0..14:	(some bits of) if_index of this port */
++		key = lp->lp_ifp->if_index;
++		/* bit 15:	1 */
++		key |= 0x8000;
++	} else {
++		u_int subtype = IFM_SUBTYPE(media);
++
++		KASSERT(IFM_TYPE(media) == IFM_ETHER, ("invalid media type"));
++		KASSERT((media & IFM_FDX) != 0, ("aggregating HDX interface"));
++
++		/* bit 0..4:	IFM_SUBTYPE */
++		key = subtype;
++		/* bit 5..14:	(some bits of) if_index of lagg device */
++		key |= 0x7fe0 & ((lgs->sc_ifp->if_index) << 5);
++		/* bit 15:	0 */
++	}
++	return (htons(key));
++}
++
++static void
++lacp_aggregator_addref(struct lacp_softc *lsc, struct lacp_aggregator *la)
++{
++#if defined(LACP_DEBUG)
++	char buf[LACP_LAGIDSTR_MAX+1];
++#endif
++
++	LACP_DPRINTF((NULL, "%s: lagid=%s, refcnt %d -> %d\n",
++	    __func__,
++	    lacp_format_lagid(&la->la_actor, &la->la_partner,
++	    buf, sizeof(buf)),
++	    la->la_refcnt, la->la_refcnt + 1));
++
++	KASSERT(la->la_refcnt > 0, ("refcount <= 0"));
++	la->la_refcnt++;
++	KASSERT(la->la_refcnt > la->la_nports, ("invalid refcount"));
++}
++
++static void
++lacp_aggregator_delref(struct lacp_softc *lsc, struct lacp_aggregator *la)
++{
++#if defined(LACP_DEBUG)
++	char buf[LACP_LAGIDSTR_MAX+1];
++#endif
++
++	LACP_DPRINTF((NULL, "%s: lagid=%s, refcnt %d -> %d\n",
++	    __func__,
++	    lacp_format_lagid(&la->la_actor, &la->la_partner,
++	    buf, sizeof(buf)),
++	    la->la_refcnt, la->la_refcnt - 1));
++
++	KASSERT(la->la_refcnt > la->la_nports, ("invalid refcnt"));
++	la->la_refcnt--;
++	if (la->la_refcnt > 0) {
++		return;
++	}
++
++	KASSERT(la->la_refcnt == 0, ("refcount not zero"));
++	KASSERT(lsc->lsc_active_aggregator != la, ("aggregator active"));
++
++	TAILQ_REMOVE(&lsc->lsc_aggregators, la, la_q);
++
++	free(la, M_DEVBUF);
++}
++
++/*
++ * lacp_aggregator_get: allocate an aggregator.
++ */
++
++static struct lacp_aggregator *
++lacp_aggregator_get(struct lacp_softc *lsc, struct lacp_port *lp)
++{
++	struct lacp_aggregator *la;
++
++	la = malloc(sizeof(*la), M_DEVBUF, M_NOWAIT);
++	if (la) {
++		la->la_refcnt = 1;
++		la->la_nports = 0;
++		TAILQ_INIT(&la->la_ports);
++		la->la_pending = 0;
++		TAILQ_INSERT_TAIL(&lsc->lsc_aggregators, la, la_q);
++	}
++
++	return (la);
++}
++
++/*
++ * lacp_fill_aggregator_id: setup a newly allocated aggregator from a port.
++ */
++
++static void
++lacp_fill_aggregator_id(struct lacp_aggregator *la, const struct lacp_port *lp)
++{
++	lacp_fill_aggregator_id_peer(&la->la_partner, &lp->lp_partner);
++	lacp_fill_aggregator_id_peer(&la->la_actor, &lp->lp_actor);
++
++	la->la_actor.lip_state = lp->lp_state & LACP_STATE_AGGREGATION;
++}
++
++static void
++lacp_fill_aggregator_id_peer(struct lacp_peerinfo *lpi_aggr,
++    const struct lacp_peerinfo *lpi_port)
++{
++	memset(lpi_aggr, 0, sizeof(*lpi_aggr));
++	lpi_aggr->lip_systemid = lpi_port->lip_systemid;
++	lpi_aggr->lip_key = lpi_port->lip_key;
++}
++
++/*
++ * lacp_aggregator_is_compatible: check if a port can join to an aggregator.
++ */
++
++static int
++lacp_aggregator_is_compatible(const struct lacp_aggregator *la,
++    const struct lacp_port *lp)
++{
++	if (!(lp->lp_state & LACP_STATE_AGGREGATION) ||
++	    !(lp->lp_partner.lip_state & LACP_STATE_AGGREGATION)) {
++		return (0);
++	}
++
++	if (!(la->la_actor.lip_state & LACP_STATE_AGGREGATION)) {
++		return (0);
++	}
++
++	if (!lacp_peerinfo_is_compatible(&la->la_partner, &lp->lp_partner)) {
++		return (0);
++	}
++
++	if (!lacp_peerinfo_is_compatible(&la->la_actor, &lp->lp_actor)) {
++		return (0);
++	}
++
++	return (1);
++}
++
++static int
++lacp_peerinfo_is_compatible(const struct lacp_peerinfo *a,
++    const struct lacp_peerinfo *b)
++{
++	if (memcmp(&a->lip_systemid, &b->lip_systemid,
++	    sizeof(a->lip_systemid))) {
++		return (0);
++	}
++
++	if (memcmp(&a->lip_key, &b->lip_key, sizeof(a->lip_key))) {
++		return (0);
++	}
++
++	return (1);
++}
++
++static void
++lacp_port_enable(struct lacp_port *lp)
++{
++	struct lagg_port *lgp = lp->lp_lagg;
++
++	lp->lp_state |= LACP_STATE_AGGREGATION;
++	lgp->lp_flags &= ~LAGG_PORT_DISABLED;
++}
++
++static void
++lacp_port_disable(struct lacp_port *lp)
++{
++	struct lagg_port *lgp = lp->lp_lagg;
++
++	lacp_set_mux(lp, LACP_MUX_DETACHED);
++
++	lp->lp_state &= ~LACP_STATE_AGGREGATION;
++	lp->lp_selected = LACP_UNSELECTED;
++	lacp_sm_rx_record_default(lp);
++	lp->lp_partner.lip_state &= ~LACP_STATE_AGGREGATION;
++	lp->lp_state &= ~LACP_STATE_EXPIRED;
++	lgp->lp_flags |= LAGG_PORT_DISABLED;
++}
++
++/*
++ * lacp_select: select an aggregator.  create one if necessary.
++ */
++static void
++lacp_select(struct lacp_port *lp)
++{
++	struct lacp_softc *lsc = lp->lp_lsc;
++	struct lacp_aggregator *la;
++#if defined(LACP_DEBUG)
++	char buf[LACP_LAGIDSTR_MAX+1];
++#endif
++
++	if (lp->lp_aggregator) {
++		return;
++	}
++
++	KASSERT(!LACP_TIMER_ISARMED(lp, LACP_TIMER_WAIT_WHILE),
++	    ("timer_wait_while still active"));
++
++	LACP_DPRINTF((lp, "port lagid=%s\n",
++	    lacp_format_lagid(&lp->lp_actor, &lp->lp_partner,
++	    buf, sizeof(buf))));
++
++	TAILQ_FOREACH(la, &lsc->lsc_aggregators, la_q) {
++		if (lacp_aggregator_is_compatible(la, lp)) {
++			break;
++		}
++	}
++
++	if (la == NULL) {
++		la = lacp_aggregator_get(lsc, lp);
++		if (la == NULL) {
++			LACP_DPRINTF((lp, "aggregator creation failed\n"));
++
++			/*
++			 * will retry on the next tick.
++			 */
++
++			return;
++		}
++		lacp_fill_aggregator_id(la, lp);
++		LACP_DPRINTF((lp, "aggregator created\n"));
++	} else {
++		LACP_DPRINTF((lp, "compatible aggregator found\n"));
++		lacp_aggregator_addref(lsc, la);
++	}
++
++	LACP_DPRINTF((lp, "aggregator lagid=%s\n",
++	    lacp_format_lagid(&la->la_actor, &la->la_partner,
++	    buf, sizeof(buf))));
++
++	lp->lp_aggregator = la;
++	lp->lp_selected = LACP_SELECTED;
++}
++
++/*
++ * lacp_unselect: finish unselect/detach process.
++ */
++
++static void
++lacp_unselect(struct lacp_port *lp)
++{
++	struct lacp_softc *lsc = lp->lp_lsc;
++	struct lacp_aggregator *la = lp->lp_aggregator;
++
++	KASSERT(!LACP_TIMER_ISARMED(lp, LACP_TIMER_WAIT_WHILE),
++	    ("timer_wait_while still active"));
++
++	if (la == NULL) {
++		return;
++	}
++
++	lp->lp_aggregator = NULL;
++	lacp_aggregator_delref(lsc, la);
++}
++
++/* mux machine */
++
++static void
++lacp_sm_mux(struct lacp_port *lp)
++{
++	enum lacp_mux_state new_state;
++	boolean_t p_sync =
++		    (lp->lp_partner.lip_state & LACP_STATE_SYNC) != 0;
++	boolean_t p_collecting =
++	    (lp->lp_partner.lip_state & LACP_STATE_COLLECTING) != 0;
++	enum lacp_selected selected = lp->lp_selected;
++	struct lacp_aggregator *la;
++
++	/* LACP_DPRINTF((lp, "%s: state %d\n", __func__, lp->lp_mux_state)); */
++
++re_eval:
++	la = lp->lp_aggregator;
++	KASSERT(lp->lp_mux_state == LACP_MUX_DETACHED || la != NULL,
++	    ("MUX not detached"));
++	new_state = lp->lp_mux_state;
++	switch (lp->lp_mux_state) {
++	case LACP_MUX_DETACHED:
++		if (selected != LACP_UNSELECTED) {
++			new_state = LACP_MUX_WAITING;
++		}
++		break;
++	case LACP_MUX_WAITING:
++		KASSERT(la->la_pending > 0 ||
++		    !LACP_TIMER_ISARMED(lp, LACP_TIMER_WAIT_WHILE),
++		    ("timer_wait_while still active"));
++		if (selected == LACP_SELECTED && la->la_pending == 0) {
++			new_state = LACP_MUX_ATTACHED;
++		} else if (selected == LACP_UNSELECTED) {
++			new_state = LACP_MUX_DETACHED;
++		}
++		break;
++	case LACP_MUX_ATTACHED:
++		if (selected == LACP_SELECTED && p_sync) {
++			new_state = LACP_MUX_COLLECTING;
++		} else if (selected != LACP_SELECTED) {
++			new_state = LACP_MUX_DETACHED;
++		}
++		break;
++	case LACP_MUX_COLLECTING:
++		if (selected == LACP_SELECTED && p_sync && p_collecting) {
++			new_state = LACP_MUX_DISTRIBUTING;
++		} else if (selected != LACP_SELECTED || !p_sync) {
++			new_state = LACP_MUX_ATTACHED;
++		}
++		break;
++	case LACP_MUX_DISTRIBUTING:
++		if (selected != LACP_SELECTED || !p_sync || !p_collecting) {
++			new_state = LACP_MUX_COLLECTING;
++		}
++		break;
++	default:
++		panic("%s: unknown state", __func__);
++	}
++
++	if (lp->lp_mux_state == new_state) {
++		return;
++	}
++
++	lacp_set_mux(lp, new_state);
++	goto re_eval;
++}
++
++static void
++lacp_set_mux(struct lacp_port *lp, enum lacp_mux_state new_state)
++{
++	struct lacp_aggregator *la = lp->lp_aggregator;
++
++	if (lp->lp_mux_state == new_state) {
++		return;
++	}
++
++	switch (new_state) {
++	case LACP_MUX_DETACHED:
++		lp->lp_state &= ~LACP_STATE_SYNC;
++		lacp_disable_distributing(lp);
++		lacp_disable_collecting(lp);
++		lacp_sm_assert_ntt(lp);
++		/* cancel timer */
++		if (LACP_TIMER_ISARMED(lp, LACP_TIMER_WAIT_WHILE)) {
++			KASSERT(la->la_pending > 0,
++			    ("timer_wait_while not active"));
++			la->la_pending--;
++		}
++		LACP_TIMER_DISARM(lp, LACP_TIMER_WAIT_WHILE);
++		lacp_unselect(lp);
++		break;
++	case LACP_MUX_WAITING:
++		LACP_TIMER_ARM(lp, LACP_TIMER_WAIT_WHILE,
++		    LACP_AGGREGATE_WAIT_TIME);
++		la->la_pending++;
++		break;
++	case LACP_MUX_ATTACHED:
++		lp->lp_state |= LACP_STATE_SYNC;
++		lacp_disable_collecting(lp);
++		lacp_sm_assert_ntt(lp);
++		break;
++	case LACP_MUX_COLLECTING:
++		lacp_enable_collecting(lp);
++		lacp_disable_distributing(lp);
++		lacp_sm_assert_ntt(lp);
++		break;
++	case LACP_MUX_DISTRIBUTING:
++		lacp_enable_distributing(lp);
++		break;
++	default:
++		panic("%s: unknown state", __func__);
++	}
++
++	LACP_DPRINTF((lp, "mux_state %d -> %d\n", lp->lp_mux_state, new_state));
++
++	lp->lp_mux_state = new_state;
++}
++
++static void
++lacp_sm_mux_timer(struct lacp_port *lp)
++{
++	struct lacp_aggregator *la = lp->lp_aggregator;
++#if defined(LACP_DEBUG)
++	char buf[LACP_LAGIDSTR_MAX+1];
++#endif
++
++	KASSERT(la->la_pending > 0, ("no pending event"));
++
++	LACP_DPRINTF((lp, "%s: aggregator %s, pending %d -> %d\n", __func__,
++	    lacp_format_lagid(&la->la_actor, &la->la_partner,
++	    buf, sizeof(buf)),
++	    la->la_pending, la->la_pending - 1));
++
++	la->la_pending--;
++}
++
++/* periodic transmit machine */
++
++static void
++lacp_sm_ptx_update_timeout(struct lacp_port *lp, uint8_t oldpstate)
++{
++	if (LACP_STATE_EQ(oldpstate, lp->lp_partner.lip_state,
++	    LACP_STATE_TIMEOUT)) {
++		return;
++	}
++
++	LACP_DPRINTF((lp, "partner timeout changed\n"));
++
++	/*
++	 * FAST_PERIODIC -> SLOW_PERIODIC
++	 * or
++	 * SLOW_PERIODIC (-> PERIODIC_TX) -> FAST_PERIODIC
++	 *
++	 * let lacp_sm_ptx_tx_schedule to update timeout.
++	 */
++
++	LACP_TIMER_DISARM(lp, LACP_TIMER_PERIODIC);
++
++	/*
++	 * if timeout has been shortened, assert NTT.
++	 */
++
++	if ((lp->lp_partner.lip_state & LACP_STATE_TIMEOUT)) {
++		lacp_sm_assert_ntt(lp);
++	}
++}
++
++static void
++lacp_sm_ptx_tx_schedule(struct lacp_port *lp)
++{
++	int timeout;
++
++	if (!(lp->lp_state & LACP_STATE_ACTIVITY) &&
++	    !(lp->lp_partner.lip_state & LACP_STATE_ACTIVITY)) {
++
++		/*
++		 * NO_PERIODIC
++		 */
++
++		LACP_TIMER_DISARM(lp, LACP_TIMER_PERIODIC);
++		return;
++	}
++
++	if (LACP_TIMER_ISARMED(lp, LACP_TIMER_PERIODIC)) {
++		return;
++	}
++
++	timeout = (lp->lp_partner.lip_state & LACP_STATE_TIMEOUT) ?
++	    LACP_FAST_PERIODIC_TIME : LACP_SLOW_PERIODIC_TIME;
++
++	LACP_TIMER_ARM(lp, LACP_TIMER_PERIODIC, timeout);
++}
++
++static void
++lacp_sm_ptx_timer(struct lacp_port *lp)
++{
++	lacp_sm_assert_ntt(lp);
++}
++
++static void
++lacp_sm_rx(struct lacp_port *lp, const struct lacpdu *du)
++{
++	int timeout;
++
++	/*
++	 * check LACP_DISABLED first
++	 */
++
++	if (!(lp->lp_state & LACP_STATE_AGGREGATION)) {
++		return;
++	}
++
++	/*
++	 * check loopback condition.
++	 */
++
++	if (!lacp_compare_systemid(&du->ldu_actor.lip_systemid,
++	    &lp->lp_actor.lip_systemid)) {
++		return;
++	}
++
++	/*
++	 * EXPIRED, DEFAULTED, CURRENT -> CURRENT
++	 */
++
++	lacp_sm_rx_update_selected(lp, du);
++	lacp_sm_rx_update_ntt(lp, du);
++	lacp_sm_rx_record_pdu(lp, du);
++
++	timeout = (lp->lp_state & LACP_STATE_TIMEOUT) ?
++	    LACP_SHORT_TIMEOUT_TIME : LACP_LONG_TIMEOUT_TIME;
++	LACP_TIMER_ARM(lp, LACP_TIMER_CURRENT_WHILE, timeout);
++
++	lp->lp_state &= ~LACP_STATE_EXPIRED;
++
++	/*
++	 * kick transmit machine without waiting the next tick.
++	 */
++
++	lacp_sm_tx(lp);
++}
++
++static void
++lacp_sm_rx_set_expired(struct lacp_port *lp)
++{
++	lp->lp_partner.lip_state &= ~LACP_STATE_SYNC;
++	lp->lp_partner.lip_state |= LACP_STATE_TIMEOUT;
++	LACP_TIMER_ARM(lp, LACP_TIMER_CURRENT_WHILE, LACP_SHORT_TIMEOUT_TIME);
++	lp->lp_state |= LACP_STATE_EXPIRED;
++}
++
++static void
++lacp_sm_rx_timer(struct lacp_port *lp)
++{
++	if ((lp->lp_state & LACP_STATE_EXPIRED) == 0) {
++		/* CURRENT -> EXPIRED */
++		LACP_DPRINTF((lp, "%s: CURRENT -> EXPIRED\n", __func__));
++		lacp_sm_rx_set_expired(lp);
++	} else {
++		/* EXPIRED -> DEFAULTED */
++		LACP_DPRINTF((lp, "%s: EXPIRED -> DEFAULTED\n", __func__));
++		lacp_sm_rx_update_default_selected(lp);
++		lacp_sm_rx_record_default(lp);
++		lp->lp_state &= ~LACP_STATE_EXPIRED;
++	}
++}
++
++static void
++lacp_sm_rx_record_pdu(struct lacp_port *lp, const struct lacpdu *du)
++{
++	boolean_t active;
++	uint8_t oldpstate;
++#if defined(LACP_DEBUG)
++	char buf[LACP_STATESTR_MAX+1];
++#endif
++
++	/* LACP_DPRINTF((lp, "%s\n", __func__)); */
++
++	oldpstate = lp->lp_partner.lip_state;
++
++	active = (du->ldu_actor.lip_state & LACP_STATE_ACTIVITY)
++	    || ((lp->lp_state & LACP_STATE_ACTIVITY) &&
++	    (du->ldu_partner.lip_state & LACP_STATE_ACTIVITY));
++
++	lp->lp_partner = du->ldu_actor;
++	if (active &&
++	    ((LACP_STATE_EQ(lp->lp_state, du->ldu_partner.lip_state,
++	    LACP_STATE_AGGREGATION) &&
++	    !lacp_compare_peerinfo(&lp->lp_actor, &du->ldu_partner))
++	    || (du->ldu_partner.lip_state & LACP_STATE_AGGREGATION) == 0)) {
++		/* XXX nothing? */
++	} else {
++		lp->lp_partner.lip_state &= ~LACP_STATE_SYNC;
++	}
++
++	lp->lp_state &= ~LACP_STATE_DEFAULTED;
++
++	if (oldpstate != lp->lp_partner.lip_state) {
++		LACP_DPRINTF((lp, "old pstate %s\n",
++		    lacp_format_state(oldpstate, buf, sizeof(buf))));
++		LACP_DPRINTF((lp, "new pstate %s\n",
++		    lacp_format_state(lp->lp_partner.lip_state, buf,
++		    sizeof(buf))));
++	}
++
++	lacp_sm_ptx_update_timeout(lp, oldpstate);
++}
++
++static void
++lacp_sm_rx_update_ntt(struct lacp_port *lp, const struct lacpdu *du)
++{
++	/* LACP_DPRINTF((lp, "%s\n", __func__)); */
++
++	if (lacp_compare_peerinfo(&lp->lp_actor, &du->ldu_partner) ||
++	    !LACP_STATE_EQ(lp->lp_state, du->ldu_partner.lip_state,
++	    LACP_STATE_ACTIVITY | LACP_STATE_SYNC | LACP_STATE_AGGREGATION)) {
++		LACP_DPRINTF((lp, "%s: assert ntt\n", __func__));
++		lacp_sm_assert_ntt(lp);
++	}
++}
++
++static void
++lacp_sm_rx_record_default(struct lacp_port *lp)
++{
++	uint8_t oldpstate;
++
++	/* LACP_DPRINTF((lp, "%s\n", __func__)); */
++
++	oldpstate = lp->lp_partner.lip_state;
++	lp->lp_partner = lacp_partner_admin;
++	lp->lp_state |= LACP_STATE_DEFAULTED;
++	lacp_sm_ptx_update_timeout(lp, oldpstate);
++}
++
++static void
++lacp_sm_rx_update_selected_from_peerinfo(struct lacp_port *lp,
++    const struct lacp_peerinfo *info)
++{
++	/* LACP_DPRINTF((lp, "%s\n", __func__)); */
++
++	if (lacp_compare_peerinfo(&lp->lp_partner, info) ||
++	    !LACP_STATE_EQ(lp->lp_partner.lip_state, info->lip_state,
++	    LACP_STATE_AGGREGATION)) {
++		lp->lp_selected = LACP_UNSELECTED;
++		/* mux machine will clean up lp->lp_aggregator */
++	}
++}
++
++static void
++lacp_sm_rx_update_selected(struct lacp_port *lp, const struct lacpdu *du)
++{
++	/* LACP_DPRINTF((lp, "%s\n", __func__)); */
++
++	lacp_sm_rx_update_selected_from_peerinfo(lp, &du->ldu_actor);
++}
++
++static void
++lacp_sm_rx_update_default_selected(struct lacp_port *lp)
++{
++	/* LACP_DPRINTF((lp, "%s\n", __func__)); */
++
++	lacp_sm_rx_update_selected_from_peerinfo(lp, &lacp_partner_admin);
++}
++
++/* transmit machine */
++
++static void
++lacp_sm_tx(struct lacp_port *lp)
++{
++	int error;
++
++	if (!(lp->lp_state & LACP_STATE_AGGREGATION)
++#if 1
++	    || (!(lp->lp_state & LACP_STATE_ACTIVITY)
++	    && !(lp->lp_partner.lip_state & LACP_STATE_ACTIVITY))
++#endif
++	    ) {
++		lp->lp_flags &= ~LACP_PORT_NTT;
++	}
++
++	if (!(lp->lp_flags & LACP_PORT_NTT)) {
++		return;
++	}
++
++	/* Rate limit to 3 PDUs per LACP_FAST_PERIODIC_TIME */
++	if (ppsratecheck(&lp->lp_last_lacpdu, &lp->lp_lacpdu_sent,
++		    (3 / LACP_FAST_PERIODIC_TIME)) == 0) {
++		LACP_DPRINTF((lp, "rate limited pdu\n"));
++		return;
++	}
++
++	error = lacp_xmit_lacpdu(lp);
++
++	if (error == 0) {
++		lp->lp_flags &= ~LACP_PORT_NTT;
++	} else {
++		LACP_DPRINTF((lp, "lacpdu transmit failure, error %d\n",
++		    error));
++	}
++}
++
++static void
++lacp_sm_assert_ntt(struct lacp_port *lp)
++{
++
++	lp->lp_flags |= LACP_PORT_NTT;
++}
++
++static void
++lacp_run_timers(struct lacp_port *lp)
++{
++	int i;
++
++	for (i = 0; i < LACP_NTIMER; i++) {
++		KASSERT(lp->lp_timer[i] >= 0,
++		    ("invalid timer value %d", lp->lp_timer[i]));
++		if (lp->lp_timer[i] == 0) {
++			continue;
++		} else if (--lp->lp_timer[i] <= 0) {
++			if (lacp_timer_funcs[i]) {
++				(*lacp_timer_funcs[i])(lp);
++			}
++		}
++	}
++}
++
++int
++lacp_marker_input(struct lagg_port *lgp, struct mbuf *m)
++{
++	struct lacp_port *lp = LACP_PORT(lgp);
++	struct markerdu *mdu;
++	int error = 0;
++
++	LAGG_LOCK_ASSERT(lgp->lp_lagg);
++
++	if (__predict_false(lp->lp_flags & LACP_PORT_DETACHING)) {
++		goto bad;
++	}
++
++	if (m->m_pkthdr.len != sizeof(*mdu)) {
++		goto bad;
++	}
++
++	if (m->m_len < sizeof(*mdu)) {
++		m = m_pullup(m, sizeof(*mdu));
++		if (m == NULL) {
++			return (ENOMEM);
++		}
++	}
++
++	mdu = mtod(m, struct markerdu *);
++
++	if (memcmp(&mdu->mdu_eh.ether_dhost,
++	    &ethermulticastaddr_slowprotocols, ETHER_ADDR_LEN)) {
++		goto bad;
++	}
++
++	/* XXX
++	KASSERT(mdu->mdu_sph.sph_subtype == SLOWPROTOCOLS_SUBTYPE_MARKER,
++	    ("a very bad kassert!"));
++	*/
++
++	if (mdu->mdu_sph.sph_version != 1) {
++		goto bad;
++	}
++
++	switch (mdu->mdu_tlv.tlv_type) {
++	case MARKER_TYPE_INFO:
++		if (tlv_check(mdu, sizeof(*mdu), &mdu->mdu_tlv,
++		    marker_info_tlv_template, TRUE)) {
++			goto bad;
++		}
++		mdu->mdu_tlv.tlv_type = MARKER_TYPE_RESPONSE;
++		memcpy(&mdu->mdu_eh.ether_dhost,
++		    &ethermulticastaddr_slowprotocols, ETHER_ADDR_LEN);
++		memcpy(&mdu->mdu_eh.ether_shost,
++		    lgp->lp_lladdr, ETHER_ADDR_LEN);
++		error = lagg_enqueue(lp->lp_ifp, m);
++		break;
++
++	case MARKER_TYPE_RESPONSE:
++		if (tlv_check(mdu, sizeof(*mdu), &mdu->mdu_tlv,
++		    marker_response_tlv_template, TRUE)) {
++			goto bad;
++		}
++		/*
++		 * we are not interested in responses as
++		 * we don't have a marker sender.
++		 */
++		/* FALLTHROUGH */
++	default:
++		goto bad;
++	}
++
++	return (error);
++
++bad:
++	m_freem(m);
++	return (EINVAL);
++}
++
++static int
++tlv_check(const void *p, size_t size, const struct tlvhdr *tlv,
++    const struct tlv_template *tmpl, boolean_t check_type)
++{
++	while (/* CONSTCOND */ 1) {
++		if ((const char *)tlv - (const char *)p + sizeof(*tlv) > size) {
++			return (EINVAL);
++		}
++		if ((check_type && tlv->tlv_type != tmpl->tmpl_type) ||
++		    tlv->tlv_length != tmpl->tmpl_length) {
++			return (EINVAL);
++		}
++		if (tmpl->tmpl_type == 0) {
++			break;
++		}
++		tlv = (const struct tlvhdr *)
++		    ((const char *)tlv + tlv->tlv_length);
++		tmpl++;
++	}
++
++	return (0);
++}
++
++#if defined(LACP_DEBUG)
++const char *
++lacp_format_mac(const uint8_t *mac, char *buf, size_t buflen)
++{
++	snprintf(buf, buflen, "%02X-%02X-%02X-%02X-%02X-%02X",
++	    (int)mac[0],
++	    (int)mac[1],
++	    (int)mac[2],
++	    (int)mac[3],
++	    (int)mac[4],
++	    (int)mac[5]);
++
++	return (buf);
++}
++
++const char *
++lacp_format_systemid(const struct lacp_systemid *sysid,
++    char *buf, size_t buflen)
++{
++	char macbuf[LACP_MACSTR_MAX+1];
++
++	snprintf(buf, buflen, "%04X,%s",
++	    ntohs(sysid->lsi_prio),
++	    lacp_format_mac(sysid->lsi_mac, macbuf, sizeof(macbuf)));
++
++	return (buf);
++}
++
++const char *
++lacp_format_portid(const struct lacp_portid *portid, char *buf, size_t buflen)
++{
++	snprintf(buf, buflen, "%04X,%04X",
++	    ntohs(portid->lpi_prio),
++	    ntohs(portid->lpi_portno));
++
++	return (buf);
++}
++
++const char *
++lacp_format_partner(const struct lacp_peerinfo *peer, char *buf, size_t buflen)
++{
++	char sysid[LACP_SYSTEMIDSTR_MAX+1];
++	char portid[LACP_PORTIDSTR_MAX+1];
++
++	snprintf(buf, buflen, "(%s,%04X,%s)",
++	    lacp_format_systemid(&peer->lip_systemid, sysid, sizeof(sysid)),
++	    ntohs(peer->lip_key),
++	    lacp_format_portid(&peer->lip_portid, portid, sizeof(portid)));
++
++	return (buf);
++}
++
++const char *
++lacp_format_lagid(const struct lacp_peerinfo *a,
++    const struct lacp_peerinfo *b, char *buf, size_t buflen)
++{
++	char astr[LACP_PARTNERSTR_MAX+1];
++	char bstr[LACP_PARTNERSTR_MAX+1];
++
++#if 0
++	/*
++	 * there's a convention to display small numbered peer
++	 * in the left.
++	 */
++
++	if (lacp_compare_peerinfo(a, b) > 0) {
++		const struct lacp_peerinfo *t;
++
++		t = a;
++		a = b;
++		b = t;
++	}
++#endif
++
++	snprintf(buf, buflen, "[%s,%s]",
++	    lacp_format_partner(a, astr, sizeof(astr)),
++	    lacp_format_partner(b, bstr, sizeof(bstr)));
++
++	return (buf);
++}
++
++const char *
++lacp_format_lagid_aggregator(const struct lacp_aggregator *la,
++    char *buf, size_t buflen)
++{
++	if (la == NULL) {
++		return ("(none)");
++	}
++
++	return (lacp_format_lagid(&la->la_actor, &la->la_partner, buf, buflen));
++}
++
++const char *
++lacp_format_state(uint8_t state, char *buf, size_t buflen)
++{
++	snprintf(buf, buflen, "%b", state, LACP_STATE_BITS);
++	return (buf);
++}
++
++static void
++lacp_dump_lacpdu(const struct lacpdu *du)
++{
++	char buf[LACP_PARTNERSTR_MAX+1];
++	char buf2[LACP_STATESTR_MAX+1];
++
++	printf("actor=%s\n",
++	    lacp_format_partner(&du->ldu_actor, buf, sizeof(buf)));
++	printf("actor.state=%s\n",
++	    lacp_format_state(du->ldu_actor.lip_state, buf2, sizeof(buf2)));
++	printf("partner=%s\n",
++	    lacp_format_partner(&du->ldu_partner, buf, sizeof(buf)));
++	printf("partner.state=%s\n",
++	    lacp_format_state(du->ldu_partner.lip_state, buf2, sizeof(buf2)));
++
++	printf("maxdelay=%d\n", ntohs(du->ldu_collector.lci_maxdelay));
++}
++
++static void
++lacp_dprintf(const struct lacp_port *lp, const char *fmt, ...)
++{
++	va_list va;
++
++	if (lp) {
++		printf("%s: ", lp->lp_ifp->if_xname);
++	}
++
++	va_start(va, fmt);
++	vprintf(fmt, va);
++	va_end(va);
++}
++#endif
+Index: sys/net/ieee8023ad_lacp.h
+===================================================================
+RCS file: sys/net/ieee8023ad_lacp.h
+diff -N sys/net/ieee8023ad_lacp.h
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ sys/net/ieee8023ad_lacp.h	15 May 2007 21:59:26 -0000
+@@ -0,0 +1,289 @@
++/*	$NetBSD: ieee8023ad_impl.h,v 1.2 2005/12/10 23:21:39 elad Exp $	*/
++
++/*-
++ * Copyright (c)2005 YAMAMOTO Takashi,
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ * $FreeBSD: src/sys/net/ieee8023ad_lacp.h,v 1.2 2007/04/17 00:35:11 thompsa Exp $
++ */
++
++/*
++ * IEEE802.3ad LACP
++ *
++ * implementation details.
++ */
++
++#define	LACP_TIMER_CURRENT_WHILE	0
++#define	LACP_TIMER_PERIODIC		1
++#define	LACP_TIMER_WAIT_WHILE		2
++#define	LACP_NTIMER			3
++
++#define	LACP_TIMER_ARM(port, timer, val) \
++	(port)->lp_timer[(timer)] = (val)
++#define	LACP_TIMER_DISARM(port, timer) \
++	(port)->lp_timer[(timer)] = 0
++#define	LACP_TIMER_ISARMED(port, timer) \
++	((port)->lp_timer[(timer)] > 0)
++
++/*
++ * IEEE802.3ad LACP
++ *
++ * protocol definitions.
++ */
++
++#define	LACP_STATE_ACTIVITY	(1<<0)
++#define	LACP_STATE_TIMEOUT	(1<<1)
++#define	LACP_STATE_AGGREGATION	(1<<2)
++#define	LACP_STATE_SYNC		(1<<3)
++#define	LACP_STATE_COLLECTING	(1<<4)
++#define	LACP_STATE_DISTRIBUTING	(1<<5)
++#define	LACP_STATE_DEFAULTED	(1<<6)
++#define	LACP_STATE_EXPIRED	(1<<7)
++
++#define LACP_PORT_NTT		0x00000001
++#define LACP_PORT_PROMISC	0x00000004
++#define LACP_PORT_LADDRCHANGED	0x00000008
++#define LACP_PORT_ATTACHED	0x00000010
++#define LACP_PORT_LARVAL	0x00000020
++#define LACP_PORT_DETACHING	0x00000040
++
++#define	LACP_STATE_BITS		\
++	"\020"			\
++	"\001ACTIVITY"		\
++	"\002TIMEOUT"		\
++	"\003AGGREGATION"	\
++	"\004SYNC"		\
++	"\005COLLECTING"	\
++	"\006DISTRIBUTING"	\
++	"\007DEFAULTED"		\
++	"\010EXPIRED"
++
++/*
++ * IEEE802.3 slow protocols
++ *
++ * protocol (on-wire) definitions.
++ *
++ * XXX should be elsewhere.
++ */
++
++#define	SLOWPROTOCOLS_SUBTYPE_LACP	1
++#define	SLOWPROTOCOLS_SUBTYPE_MARKER	2
++
++struct slowprothdr {
++	uint8_t		sph_subtype;
++	uint8_t		sph_version;
++} __packed;
++
++/*
++ * TLV on-wire structure.
++ */
++
++struct tlvhdr {
++	uint8_t		tlv_type;
++	uint8_t		tlv_length;
++	/* uint8_t tlv_value[]; */
++} __packed;
++
++/*
++ * ... and our implementation.
++ */
++
++#define	TLV_SET(tlv, type, length) \
++	do { \
++		(tlv)->tlv_type = (type); \
++		(tlv)->tlv_length = sizeof(*tlv) + (length); \
++	} while (/*CONSTCOND*/0)
++
++struct tlv_template {
++	uint8_t			tmpl_type;
++	uint8_t			tmpl_length;
++};
++
++struct lacp_systemid {
++	uint16_t		lsi_prio;
++	uint8_t			lsi_mac[6];
++} __packed;
++
++struct lacp_portid {
++	uint16_t		lpi_prio;
++	uint16_t		lpi_portno;
++} __packed;
++
++struct lacp_peerinfo {
++	struct lacp_systemid 	lip_systemid;
++	uint16_t		lip_key;
++	struct lacp_portid 	lip_portid;
++	uint8_t			lip_state;
++	uint8_t			lip_resv[3];
++} __packed;
++
++struct lacp_collectorinfo {
++	uint16_t		lci_maxdelay;
++	uint8_t			lci_resv[12];
++} __packed;
++
++struct lacpdu {
++	struct ether_header	ldu_eh;
++	struct slowprothdr	ldu_sph;
++
++	struct tlvhdr		ldu_tlv_actor;
++	struct lacp_peerinfo	ldu_actor;
++	struct tlvhdr		ldu_tlv_partner;
++	struct lacp_peerinfo	ldu_partner;
++	struct tlvhdr		ldu_tlv_collector;
++	struct lacp_collectorinfo ldu_collector;
++	struct tlvhdr		ldu_tlv_term;
++	uint8_t			ldu_resv[50];
++} __packed;
++
++#define	LACP_TRANSIT_DELAY	1000	/* in msec */
++
++enum lacp_selected {
++	LACP_UNSELECTED,
++	LACP_STANDBY,	/* not used in this implementation */
++	LACP_SELECTED,
++};
++
++enum lacp_mux_state {
++	LACP_MUX_DETACHED,
++	LACP_MUX_WAITING,
++	LACP_MUX_ATTACHED,
++	LACP_MUX_COLLECTING,
++	LACP_MUX_DISTRIBUTING,
++};
++
++struct lacp_port {
++	TAILQ_ENTRY(lacp_port)	lp_dist_q;
++	LIST_ENTRY(lacp_port)	lp_next;
++	struct lacp_softc	*lp_lsc;
++	struct lagg_port	*lp_lagg;
++	struct ifnet		*lp_ifp;
++	struct lacp_peerinfo	lp_partner;
++	struct lacp_peerinfo	lp_actor;
++#define	lp_state	lp_actor.lip_state
++#define	lp_key		lp_actor.lip_key
++	struct timeval		lp_last_lacpdu;
++	int			lp_lacpdu_sent;
++	enum lacp_mux_state	lp_mux_state;
++	enum lacp_selected	lp_selected;
++	int			lp_flags;
++	u_int			lp_media; /* XXX redundant */
++	int			lp_timer[LACP_NTIMER];
++
++	struct lacp_aggregator	*lp_aggregator;
++};
++
++struct lacp_aggregator {
++	TAILQ_ENTRY(lacp_aggregator)	la_q;
++	int			la_refcnt; /* num of ports which selected us */
++	int			la_nports; /* num of distributing ports  */
++	TAILQ_HEAD(, lacp_port)	la_ports; /* distributing ports */
++	struct lacp_peerinfo	la_partner;
++	struct lacp_peerinfo	la_actor;
++	int			la_pending; /* number of ports which is waiting wait_while */
++};
++
++struct lacp_softc {
++	struct lagg_softc	*lsc_lagg;
++	struct lacp_aggregator	*lsc_active_aggregator;
++	TAILQ_HEAD(, lacp_aggregator) lsc_aggregators;
++	boolean_t		lsc_suppress_distributing;
++	struct callout		lsc_transit_callout;
++	struct callout		lsc_callout;
++	LIST_HEAD(, lacp_port)	lsc_ports;
++	u_int32_t		lsc_hashkey;
++};
++
++#define	LACP_TYPE_ACTORINFO	1
++#define	LACP_TYPE_PARTNERINFO	2
++#define	LACP_TYPE_COLLECTORINFO	3
++
++/* timeout values (in sec) */
++#define	LACP_FAST_PERIODIC_TIME		(1)
++#define	LACP_SLOW_PERIODIC_TIME		(30)
++#define	LACP_SHORT_TIMEOUT_TIME		(3 * LACP_FAST_PERIODIC_TIME)
++#define	LACP_LONG_TIMEOUT_TIME		(3 * LACP_SLOW_PERIODIC_TIME)
++#define	LACP_CHURN_DETECTION_TIME	(60)
++#define	LACP_AGGREGATE_WAIT_TIME	(2)
++
++/*
++int tlv_check(const void *, size_t, const struct tlvhdr *,
++    const struct tlv_template *, boolean_t);
++*/
++
++/*
++ * IEEE802.3ad marker protocol
++ *
++ * protocol (on-wire) definitions.
++ */
++
++struct markerdu {
++	struct ether_header	mdu_eh;
++	struct slowprothdr	mdu_sph;
++
++	struct tlvhdr		mdu_tlv;
++	uint16_t		mdu_rq_port;
++	uint8_t			mdu_rq_system[6];
++	uint8_t			mdu_rq_xid[4];
++	uint8_t			mdu_pad[2];
++
++	struct tlvhdr		mdu_tlv_term;
++	uint8_t			mdu_resv[90];
++} __packed;
++
++#define	MARKER_TYPE_INFO	1
++#define	MARKER_TYPE_RESPONSE	2
++
++#define	LACP_STATE_EQ(s1, s2, mask)	\
++	((((s1) ^ (s2)) & (mask)) == 0)
++
++#define	LACP_PORT(_lp)	((struct lacp_port *)(_lp)->lp_psc)
++#define	LACP_SOFTC(_sc)	((struct lacp_softc *)(_sc)->sc_psc)
++
++int 		lacp_input(struct lagg_port *, struct mbuf *);
++int		lacp_marker_input(struct lagg_port *, struct mbuf *);
++struct lagg_port *lacp_select_tx_port(struct lagg_softc *, struct mbuf *);
++int		lacp_attach(struct lagg_softc *);
++int		lacp_detach(struct lagg_softc *);
++void		lacp_init(struct lagg_softc *);
++void		lacp_stop(struct lagg_softc *);
++int		lacp_port_create(struct lagg_port *);
++void		lacp_port_destroy(struct lagg_port *);
++void		lacp_linkstate(struct lagg_port *);
++int		lacp_port_isactive(struct lagg_port *);
++
++/* following constants don't include terminating NUL */
++#define	LACP_MACSTR_MAX		(2*6 + 5)
++#define	LACP_SYSTEMPRIOSTR_MAX	(4)
++#define	LACP_SYSTEMIDSTR_MAX	(LACP_SYSTEMPRIOSTR_MAX + 1 + LACP_MACSTR_MAX)
++#define	LACP_PORTPRIOSTR_MAX	(4)
++#define	LACP_PORTNOSTR_MAX	(4)
++#define	LACP_PORTIDSTR_MAX	(LACP_PORTPRIOSTR_MAX + 1 + LACP_PORTNOSTR_MAX)
++#define	LACP_KEYSTR_MAX		(4)
++#define	LACP_PARTNERSTR_MAX	\
++	(1 + LACP_SYSTEMIDSTR_MAX + 1 + LACP_KEYSTR_MAX + 1 \
++	+ LACP_PORTIDSTR_MAX + 1)
++#define	LACP_LAGIDSTR_MAX	\
++	(1 + LACP_PARTNERSTR_MAX + 1 + LACP_PARTNERSTR_MAX + 1)
++#define	LACP_STATESTR_MAX	(255) /* XXX */
+Index: sys/net/if.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if.c,v
+retrieving revision 1.234.2.18
+diff -u -p -r1.234.2.18 if.c
+--- sys/net/if.c	8 Mar 2007 13:15:27 -0000	1.234.2.18
++++ sys/net/if.c	15 May 2007 08:26:05 -0000
+@@ -95,6 +95,7 @@ SYSCTL_INT(_net_link, OID_AUTO, log_link
+ 
+ void	(*bstp_linkstate_p)(struct ifnet *ifp, int state);
+ void	(*ng_ether_link_state_p)(struct ifnet *ifp, int state);
++void	(*lagg_linkstate_p)(struct ifnet *ifp, int state);
+ 
+ struct mbuf *(*tbr_dequeue_ptr)(struct ifaltq *, int) = NULL;
+ 
+@@ -1133,6 +1134,10 @@ do_link_state_change(void *arg, int pend
+ 		KASSERT(bstp_linkstate_p != NULL,("if_bridge bstp not loaded!"));
+ 		(*bstp_linkstate_p)(ifp, link_state);
+ 	}
++	if (ifp->if_lagg) {
++		KASSERT(lagg_linkstate_p != NULL,("if_lagg not loaded!"));
++		(*lagg_linkstate_p)(ifp, link_state);
++	}
+ 
+ 	devctl_notify("IFNET", ifp->if_xname,
+ 	    (link_state == LINK_STATE_UP) ? "LINK_UP" : "LINK_DOWN", NULL);
+@@ -2184,6 +2189,7 @@ if_setlladdr(struct ifnet *ifp, const u_
+ 		 */
+ 		/* FALLTHROUGH */
+ 	case IFT_ARCNET:
++	case IFT_IEEE8023ADLAG:
+ 		bcopy(lladdr, LLADDR(sdl), len);
+ 		break;
+ 	default:
+Index: sys/net/if_ethersubr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_ethersubr.c,v
+retrieving revision 1.193.2.13
+diff -u -p -r1.193.2.13 if_ethersubr.c
+--- sys/net/if_ethersubr.c	1 Mar 2007 17:32:28 -0000	1.193.2.13
++++ sys/net/if_ethersubr.c	15 May 2007 08:17:49 -0000
+@@ -120,6 +120,9 @@ int	(*bridge_output_p)(struct ifnet *, s
+ 		struct sockaddr *, struct rtentry *);
+ void	(*bridge_dn_p)(struct mbuf *, struct ifnet *);
+ 
++/* if_lagg(4) support */
++struct mbuf *(*lagg_input_p)(struct ifnet *, struct mbuf *); 
++
+ static const u_char etherbroadcastaddr[ETHER_ADDR_LEN] =
+ 			{ 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+ 
+@@ -589,6 +592,17 @@ ether_input(struct ifnet *ifp, struct mb
+ 		return;
+ 	}
+ 
++	/* Handle input from a lagg(4) port */
++	if (ifp->if_type == IFT_IEEE8023ADLAG) {
++		KASSERT(lagg_input_p != NULL,
++		    ("%s: if_lagg not loaded!", __func__));
++		m = (*lagg_input_p)(ifp, m);
++		if (m != NULL)
++			ifp = m->m_pkthdr.rcvif;
++		else
++			return;
++	}
++
+ 	/* Handle ng_ether(4) processing, if any */
+ 	if (IFP2AC(ifp)->ac_netgraph != NULL) {
+ 		(*ng_ether_input_p)(ifp, &m);
+Index: sys/net/if_lagg.c
+===================================================================
+RCS file: sys/net/if_lagg.c
+diff -N sys/net/if_lagg.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ sys/net/if_lagg.c	16 May 2007 04:27:43 -0000
+@@ -0,0 +1,1713 @@
++/*	$OpenBSD: if_trunk.c,v 1.30 2007/01/31 06:20:19 reyk Exp $	*/
++
++/*
++ * Copyright (c) 2005, 2006 Reyk Floeter <reyk@openbsd.org>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++
++#include <sys/cdefs.h>
++__FBSDID("$FreeBSD: src/sys/net/if_lagg.c,v 1.3 2007/05/03 08:56:20 thompsa Exp $");
++
++#include "opt_inet.h"
++#include "opt_inet6.h"
++
++#include <sys/param.h>
++#include <sys/kernel.h>
++#include <sys/malloc.h>
++#include <sys/mbuf.h>
++#include <sys/queue.h>
++#include <sys/socket.h>
++#include <sys/sockio.h>
++#include <sys/sysctl.h>
++#include <sys/module.h>
++#include <sys/systm.h>
++#include <sys/proc.h>
++#include <sys/taskqueue.h>
++
++#include <net/ethernet.h>
++#include <net/if.h>
++#include <net/if_clone.h>
++#include <net/if_arp.h>
++#include <net/if_dl.h>
++#include <net/if_llc.h>
++#include <net/if_media.h>
++#include <net/if_types.h>
++#include <net/if_var.h>
++#include <net/bpf.h>
++
++#ifdef INET
++#include <netinet/in.h>
++#include <netinet/in_systm.h>
++#include <netinet/if_ether.h>
++#include <netinet/ip.h>
++#endif
++
++#ifdef INET6
++#include <netinet/ip6.h>
++#endif
++
++#include <net/if_vlan_var.h>
++#include <net/if_lagg.h>
++#include <net/ieee8023ad_lacp.h>
++
++/* Special flags we should propagate to the lagg ports. */
++static struct {
++	int flag;
++	int (*func)(struct ifnet *, int);
++} lagg_pflags[] = {
++	{IFF_PROMISC, ifpromisc},
++	{IFF_ALLMULTI, if_allmulti},
++	{0, NULL}
++};
++
++SLIST_HEAD(__trhead, lagg_softc) lagg_list;	/* list of laggs */
++static struct mtx 	lagg_list_mtx;
++eventhandler_tag	lagg_detach_cookie = NULL;
++
++static int	lagg_clone_create(struct if_clone *, int);
++static void	lagg_clone_destroy(struct ifnet *);
++static void	lagg_lladdr(struct lagg_softc *, uint8_t *);
++static int	lagg_capabilities(struct lagg_softc *);
++static void	lagg_port_lladdr(struct lagg_port *, uint8_t *);
++static void	lagg_port_setlladdr(void *, int);
++static int	lagg_port_create(struct lagg_softc *, struct ifnet *);
++static int	lagg_port_destroy(struct lagg_port *, int);
++static struct mbuf *lagg_input(struct ifnet *, struct mbuf *);
++static void	lagg_port_state(struct ifnet *, int);
++static int	lagg_port_ioctl(struct ifnet *, u_long, caddr_t);
++static int	lagg_port_output(struct ifnet *, struct mbuf *,
++		    struct sockaddr *, struct rtentry *);
++static void	lagg_port_ifdetach(void *arg __unused, struct ifnet *);
++static int	lagg_port_checkstacking(struct lagg_softc *);
++static void	lagg_port2req(struct lagg_port *, struct lagg_reqport *);
++static void	lagg_init(void *);
++static void	lagg_stop(struct lagg_softc *);
++static int	lagg_ioctl(struct ifnet *, u_long, caddr_t);
++static int	lagg_ether_setmulti(struct lagg_softc *);
++static int	lagg_ether_cmdmulti(struct lagg_port *, int);
++static void	lagg_ether_purgemulti(struct lagg_softc *);
++static	int	lagg_setflag(struct lagg_port *, int, int,
++		    int (*func)(struct ifnet *, int));
++static	int	lagg_setflags(struct lagg_port *, int status);
++static void	lagg_start(struct ifnet *);
++static int	lagg_media_change(struct ifnet *);
++static void	lagg_media_status(struct ifnet *, struct ifmediareq *);
++static struct lagg_port *lagg_link_active(struct lagg_softc *,
++	    struct lagg_port *);
++static const void *lagg_gethdr(struct mbuf *, u_int, u_int, void *);
++
++IFC_SIMPLE_DECLARE(lagg, 0);
++
++/* Simple round robin */
++static int	lagg_rr_attach(struct lagg_softc *);
++static int	lagg_rr_detach(struct lagg_softc *);
++static void	lagg_rr_port_destroy(struct lagg_port *);
++static int	lagg_rr_start(struct lagg_softc *, struct mbuf *);
++static struct mbuf *lagg_rr_input(struct lagg_softc *, struct lagg_port *,
++		    struct mbuf *);
++
++/* Active failover */
++static int	lagg_fail_attach(struct lagg_softc *);
++static int	lagg_fail_detach(struct lagg_softc *);
++static int	lagg_fail_start(struct lagg_softc *, struct mbuf *);
++static struct mbuf *lagg_fail_input(struct lagg_softc *, struct lagg_port *,
++		    struct mbuf *);
++
++/* Loadbalancing */
++static int	lagg_lb_attach(struct lagg_softc *);
++static int	lagg_lb_detach(struct lagg_softc *);
++static int	lagg_lb_port_create(struct lagg_port *);
++static void	lagg_lb_port_destroy(struct lagg_port *);
++static int	lagg_lb_start(struct lagg_softc *, struct mbuf *);
++static struct mbuf *lagg_lb_input(struct lagg_softc *, struct lagg_port *,
++		    struct mbuf *);
++static int	lagg_lb_porttable(struct lagg_softc *, struct lagg_port *);
++
++/* 802.3ad LACP */
++static int	lagg_lacp_attach(struct lagg_softc *);
++static int	lagg_lacp_detach(struct lagg_softc *);
++static int	lagg_lacp_start(struct lagg_softc *, struct mbuf *);
++static struct mbuf *lagg_lacp_input(struct lagg_softc *, struct lagg_port *,
++		    struct mbuf *);
++static void	lagg_lacp_lladdr(struct lagg_softc *);
++
++/* lagg protocol table */
++static const struct {
++	int			ti_proto;
++	int			(*ti_attach)(struct lagg_softc *);
++} lagg_protos[] = {
++	{ LAGG_PROTO_ROUNDROBIN,	lagg_rr_attach },
++	{ LAGG_PROTO_FAILOVER,		lagg_fail_attach },
++	{ LAGG_PROTO_LOADBALANCE,	lagg_lb_attach },
++	{ LAGG_PROTO_ETHERCHANNEL,	lagg_lb_attach },
++	{ LAGG_PROTO_LACP,		lagg_lacp_attach },
++	{ LAGG_PROTO_NONE,		NULL }
++};
++
++
++/*
++ * Return a 32-bit hash of the given buffer.
++ * XXX Taken from sys/hash.h which is broken on RELENG_6.
++ */
++#define	HASHSTEP(x,c)	(((x << 5) + x) + (c))
++static __inline uint32_t
++hash32_buf(const void *buf, size_t len, uint32_t hash)
++{
++	const unsigned char *p = buf;
++
++	while (len--)
++		hash = HASHSTEP(hash, *p++);
++
++	return hash;
++}
++#undef HASHSTEP
++
++static int
++lagg_modevent(module_t mod, int type, void *data)
++{
++
++	switch (type) {
++	case MOD_LOAD:
++		mtx_init(&lagg_list_mtx, "if_lagg list", NULL, MTX_DEF);
++		SLIST_INIT(&lagg_list);
++		if_clone_attach(&lagg_cloner);
++		lagg_input_p = lagg_input;
++		lagg_linkstate_p = lagg_port_state;
++		lagg_detach_cookie = EVENTHANDLER_REGISTER(
++		    ifnet_departure_event, lagg_port_ifdetach, NULL,
++		    EVENTHANDLER_PRI_ANY);
++		break;
++	case MOD_UNLOAD:
++		EVENTHANDLER_DEREGISTER(ifnet_departure_event,
++		    lagg_detach_cookie);
++		if_clone_detach(&lagg_cloner);
++		while (!SLIST_EMPTY(&lagg_list))
++			lagg_clone_destroy(SLIST_FIRST(&lagg_list)->sc_ifp);
++		lagg_input_p = NULL;
++		lagg_linkstate_p = NULL;
++		mtx_destroy(&lagg_list_mtx);
++		break;
++	default:
++		return (EOPNOTSUPP);
++	}
++	return (0);
++}
++
++static moduledata_t lagg_mod = {
++	"if_lagg",
++	lagg_modevent,
++	0
++};
++
++DECLARE_MODULE(if_lagg, lagg_mod, SI_SUB_PSEUDO, SI_ORDER_ANY);
++
++static int
++lagg_clone_create(struct if_clone *ifc, int unit)
++{
++	struct lagg_softc *sc;
++	struct ifnet *ifp;
++	int i, error = 0;
++	static const u_char eaddr[6];	/* 00:00:00:00:00:00 */
++
++	sc = malloc(sizeof(*sc), M_DEVBUF, M_WAITOK|M_ZERO);
++	ifp = sc->sc_ifp = if_alloc(IFT_ETHER);
++	if (ifp == NULL) {
++		free(sc, M_DEVBUF);
++		return (ENOSPC);
++	}
++
++	sc->sc_proto = LAGG_PROTO_NONE;
++	for (i = 0; lagg_protos[i].ti_proto != LAGG_PROTO_NONE; i++) {
++		if (lagg_protos[i].ti_proto == LAGG_PROTO_DEFAULT) {
++			sc->sc_proto = lagg_protos[i].ti_proto;
++			if ((error = lagg_protos[i].ti_attach(sc)) != 0) {
++				if_free_type(ifp, IFT_ETHER);
++				free(sc, M_DEVBUF);
++				return (error);
++			}
++			break;
++		}
++	}
++	LAGG_LOCK_INIT(sc);
++	SLIST_INIT(&sc->sc_ports);
++	TASK_INIT(&sc->sc_lladdr_task, 0, lagg_port_setlladdr, sc);
++
++	/* Initialise pseudo media types */
++	ifmedia_init(&sc->sc_media, 0, lagg_media_change,
++	    lagg_media_status);
++	ifmedia_add(&sc->sc_media, IFM_ETHER | IFM_AUTO, 0, NULL);
++	ifmedia_set(&sc->sc_media, IFM_ETHER | IFM_AUTO);
++
++	if_initname(ifp, ifc->ifc_name, unit);
++	ifp->if_type = IFT_ETHER;
++	ifp->if_softc = sc;
++	ifp->if_start = lagg_start;
++	ifp->if_init = lagg_init;
++	ifp->if_ioctl = lagg_ioctl;
++	ifp->if_flags = IFF_SIMPLEX | IFF_BROADCAST | IFF_MULTICAST;
++
++	IFQ_SET_MAXLEN(&ifp->if_snd, ifqmaxlen);
++	ifp->if_snd.ifq_drv_maxlen = ifqmaxlen;
++	IFQ_SET_READY(&ifp->if_snd);
++
++	/*
++	 * Attach as an ordinary ethernet device, childs will be attached
++	 * as special device IFT_IEEE8023ADLAG.
++	 */
++	ether_ifattach(ifp, eaddr);
++
++	/* Insert into the global list of laggs */
++	mtx_lock(&lagg_list_mtx);
++	SLIST_INSERT_HEAD(&lagg_list, sc, sc_entries);
++	mtx_unlock(&lagg_list_mtx);
++
++	return (0);
++}
++
++static void
++lagg_clone_destroy(struct ifnet *ifp)
++{
++	struct lagg_softc *sc = (struct lagg_softc *)ifp->if_softc;
++	struct lagg_port *lp;
++
++	LAGG_LOCK(sc);
++
++	lagg_stop(sc);
++	ifp->if_flags &= ~IFF_UP;
++
++	/* Shutdown and remove lagg ports */
++	while ((lp = SLIST_FIRST(&sc->sc_ports)) != NULL)
++		lagg_port_destroy(lp, 1);
++	/* Unhook the aggregation protocol */
++	if (sc->sc_detach != NULL)
++		(*sc->sc_detach)(sc);
++
++	/* Remove any multicast groups that we may have joined. */
++	lagg_ether_purgemulti(sc);
++
++	LAGG_UNLOCK(sc);
++
++	ifmedia_removeall(&sc->sc_media);
++	ether_ifdetach(ifp);
++	if_free_type(ifp, IFT_ETHER);
++
++	mtx_lock(&lagg_list_mtx);
++	SLIST_REMOVE(&lagg_list, sc, lagg_softc, sc_entries);
++	mtx_unlock(&lagg_list_mtx);
++
++	taskqueue_drain(taskqueue_swi, &sc->sc_lladdr_task);
++	LAGG_LOCK_DESTROY(sc);
++	free(sc, M_DEVBUF);
++}
++
++static void
++lagg_lladdr(struct lagg_softc *sc, uint8_t *lladdr)
++{
++	struct ifnet *ifp = sc->sc_ifp;
++
++	if (memcmp(lladdr, IF_LLADDR(ifp), ETHER_ADDR_LEN) == 0)
++		return;
++
++	bcopy(lladdr, IF_LLADDR(ifp), ETHER_ADDR_LEN);
++	/* Let the protocol know the MAC has changed */
++	if (sc->sc_lladdr != NULL)
++		(*sc->sc_lladdr)(sc);
++}
++
++static int
++lagg_capabilities(struct lagg_softc *sc)
++{
++	struct lagg_port *lp;
++	int cap = ~0, priv;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	/* Preserve private capabilities */
++	priv = sc->sc_capabilities & IFCAP_LAGG_MASK;
++
++	/* Get capabilities from the lagg ports */
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++		cap &= lp->lp_capabilities;
++
++	if (sc->sc_ifflags & IFF_DEBUG) {
++		printf("%s: capabilities 0x%08x\n",
++		    sc->sc_ifname, cap == ~0 ? priv : (cap | priv));
++	}
++
++	return (cap == ~0 ? priv : (cap | priv));
++}
++
++static void
++lagg_port_lladdr(struct lagg_port *lp, uint8_t *lladdr)
++{
++	struct lagg_softc *sc = lp->lp_lagg;
++	struct ifnet *ifp = lp->lp_ifp;
++	struct lagg_llq *llq;
++	int pending = 0;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	if (lp->lp_detaching ||
++	    memcmp(lladdr, IF_LLADDR(ifp), ETHER_ADDR_LEN) == 0)
++		return;
++
++	/* Check to make sure its not already queued to be changed */
++	SLIST_FOREACH(llq, &sc->sc_llq_head, llq_entries) {
++		if (llq->llq_ifp == ifp) {
++			pending = 1;
++			break;
++		}
++	}
++
++	if (!pending) {
++		llq = malloc(sizeof(struct lagg_llq), M_DEVBUF, M_NOWAIT);
++		if (llq == NULL)	/* XXX what to do */
++			return;
++	}
++
++	/* Update the lladdr even if pending, it may have changed */
++	llq->llq_ifp = ifp;
++	bcopy(lladdr, llq->llq_lladdr, ETHER_ADDR_LEN);
++
++	if (!pending)
++		SLIST_INSERT_HEAD(&sc->sc_llq_head, llq, llq_entries);
++
++	taskqueue_enqueue(taskqueue_swi, &sc->sc_lladdr_task);
++}
++
++/*
++ * Set the interface MAC address from a taskqueue to avoid a LOR.
++ */
++static void
++lagg_port_setlladdr(void *arg, int pending)
++{
++	struct lagg_softc *sc = (struct lagg_softc *)arg;
++	struct lagg_llq *llq, *head;
++	struct ifnet *ifp;
++	int error;
++
++	/* Grab a local reference of the queue and remove it from the softc */
++	LAGG_LOCK(sc);
++	head = SLIST_FIRST(&sc->sc_llq_head);
++	SLIST_FIRST(&sc->sc_llq_head) = NULL;
++	LAGG_UNLOCK(sc);
++
++	/*
++	 * Traverse the queue and set the lladdr on each ifp. It is safe to do
++	 * unlocked as we have the only reference to it.
++	 */
++	for (llq = head; llq != NULL; llq = head) {
++		ifp = llq->llq_ifp;
++
++		/* Set the link layer address */
++		error = if_setlladdr(ifp, llq->llq_lladdr, ETHER_ADDR_LEN);
++		if (error)
++			printf("%s: setlladdr failed on %s\n", __func__,
++			    ifp->if_xname);
++
++		head = SLIST_NEXT(llq, llq_entries);
++		free(llq, M_DEVBUF);
++	}
++}
++
++static int
++lagg_port_create(struct lagg_softc *sc, struct ifnet *ifp)
++{
++	struct lagg_softc *sc_ptr;
++	struct lagg_port *lp;
++	int error = 0;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	/* Limit the maximal number of lagg ports */
++	if (sc->sc_count >= LAGG_MAX_PORTS)
++		return (ENOSPC);
++
++	/* New lagg port has to be in an idle state */
++	if (ifp->if_drv_flags & IFF_DRV_OACTIVE)
++		return (EBUSY);
++
++	/* Check if port has already been associated to a lagg */
++	if (ifp->if_lagg != NULL)
++		return (EBUSY);
++
++	/* XXX Disallow non-ethernet interfaces (this should be any of 802) */
++	if (ifp->if_type != IFT_ETHER)
++		return (EPROTONOSUPPORT);
++
++	if ((lp = malloc(sizeof(struct lagg_port),
++	    M_DEVBUF, M_NOWAIT|M_ZERO)) == NULL)
++		return (ENOMEM);
++
++	/* Check if port is a stacked lagg */
++	mtx_lock(&lagg_list_mtx);
++	SLIST_FOREACH(sc_ptr, &lagg_list, sc_entries) {
++		if (ifp == sc_ptr->sc_ifp) {
++			mtx_unlock(&lagg_list_mtx);
++			free(lp, M_DEVBUF);
++			return (EINVAL);
++			/* XXX disable stacking for the moment, its untested
++			lp->lp_flags |= LAGG_PORT_STACK;
++			if (lagg_port_checkstacking(sc_ptr) >=
++			    LAGG_MAX_STACKING) {
++				mtx_unlock(&lagg_list_mtx);
++				free(lp, M_DEVBUF);
++				return (E2BIG);
++			}
++			*/
++		}
++	}
++	mtx_unlock(&lagg_list_mtx);
++
++	/* Change the interface type */
++	lp->lp_iftype = ifp->if_type;
++	ifp->if_type = IFT_IEEE8023ADLAG;
++	ifp->if_lagg = lp;
++	lp->lp_ioctl = ifp->if_ioctl;
++	ifp->if_ioctl = lagg_port_ioctl;
++	lp->lp_output = ifp->if_output;
++	ifp->if_output = lagg_port_output;
++
++	lp->lp_ifp = ifp;
++	lp->lp_lagg = sc;
++
++	/* Save port link layer address */
++	bcopy(IF_LLADDR(ifp), lp->lp_lladdr, ETHER_ADDR_LEN);
++
++	if (SLIST_EMPTY(&sc->sc_ports)) {
++		sc->sc_primary = lp;
++		lagg_lladdr(sc, IF_LLADDR(ifp));
++	} else {
++		/* Update link layer address for this port */
++		lagg_port_lladdr(lp, IF_LLADDR(sc->sc_ifp));
++	}
++
++	/* Insert into the list of ports */
++	SLIST_INSERT_HEAD(&sc->sc_ports, lp, lp_entries);
++	sc->sc_count++;
++
++	/* Update lagg capabilities */
++	sc->sc_capabilities = lagg_capabilities(sc);
++
++	/* Add multicast addresses and interface flags to this port */
++	lagg_ether_cmdmulti(lp, 1);
++	lagg_setflags(lp, 1);
++
++	if (sc->sc_port_create != NULL)
++		error = (*sc->sc_port_create)(lp);
++	if (error) {
++		/* remove the port again, without calling sc_port_destroy */ 
++		lagg_port_destroy(lp, 0);
++		return (error);
++	}
++
++	return (error);
++}
++
++static int
++lagg_port_checkstacking(struct lagg_softc *sc)
++{
++	struct lagg_softc *sc_ptr;
++	struct lagg_port *lp;
++	int m = 0;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries) {
++		if (lp->lp_flags & LAGG_PORT_STACK) {
++			sc_ptr = (struct lagg_softc *)lp->lp_ifp->if_softc;
++			m = MAX(m, lagg_port_checkstacking(sc_ptr));
++		}
++	}
++
++	return (m + 1);
++}
++
++static int
++lagg_port_destroy(struct lagg_port *lp, int runpd)
++{
++	struct lagg_softc *sc = lp->lp_lagg;
++	struct lagg_port *lp_ptr;
++	struct lagg_llq *llq;
++	struct ifnet *ifp = lp->lp_ifp;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	if (runpd && sc->sc_port_destroy != NULL)
++		(*sc->sc_port_destroy)(lp);
++
++	/*
++	 * Remove multicast addresses and interface flags from this port and
++	 * reset the MAC address, skip if the interface is being detached.
++	 */
++	if (!lp->lp_detaching) {
++		lagg_ether_cmdmulti(lp, 0);
++		lagg_setflags(lp, 0);
++		lagg_port_lladdr(lp, lp->lp_lladdr);
++	}
++
++	/* Restore interface */
++	ifp->if_type = lp->lp_iftype;
++	ifp->if_ioctl = lp->lp_ioctl;
++	ifp->if_output = lp->lp_output;
++	ifp->if_lagg = NULL;
++
++	/* Finally, remove the port from the lagg */
++	SLIST_REMOVE(&sc->sc_ports, lp, lagg_port, lp_entries);
++	sc->sc_count--;
++
++	/* Update the primary interface */
++	if (lp == sc->sc_primary) {
++		uint8_t lladdr[ETHER_ADDR_LEN];
++
++		if ((lp_ptr = SLIST_FIRST(&sc->sc_ports)) == NULL) {
++			bzero(&lladdr, ETHER_ADDR_LEN);
++		} else {
++			bcopy(lp_ptr->lp_lladdr,
++			    lladdr, ETHER_ADDR_LEN);
++		}
++		lagg_lladdr(sc, lladdr);
++		sc->sc_primary = lp_ptr;
++
++		/* Update link layer address for each port */
++		SLIST_FOREACH(lp_ptr, &sc->sc_ports, lp_entries)
++			lagg_port_lladdr(lp_ptr, lladdr);
++	}
++
++	/* Remove any pending lladdr changes from the queue */
++	if (lp->lp_detaching) {
++		SLIST_FOREACH(llq, &sc->sc_llq_head, llq_entries) {
++			if (llq->llq_ifp == ifp) {
++				SLIST_REMOVE(&sc->sc_llq_head, llq, lagg_llq,
++				    llq_entries);
++				free(llq, M_DEVBUF);
++				break;	/* Only appears once */
++			}
++		}
++	}
++
++	if (lp->lp_ifflags)
++		if_printf(ifp, "%s: lp_ifflags unclean\n", __func__);
++
++	free(lp, M_DEVBUF);
++
++	/* Update lagg capabilities */
++	sc->sc_capabilities = lagg_capabilities(sc);
++
++	return (0);
++}
++
++static int
++lagg_port_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
++{
++	struct lagg_reqport *rp = (struct lagg_reqport *)data;
++	struct lagg_softc *sc;
++	struct lagg_port *lp = NULL;
++	int error = 0;
++
++	/* Should be checked by the caller */
++	if (ifp->if_type != IFT_IEEE8023ADLAG ||
++	    (lp = ifp->if_lagg) == NULL || (sc = lp->lp_lagg) == NULL)
++		goto fallback;
++
++	switch (cmd) {
++	case SIOCGLAGGPORT:
++		LAGG_LOCK(sc);
++		if (rp->rp_portname[0] == '\0' ||
++		    ifunit(rp->rp_portname) != ifp) {
++			error = EINVAL;
++			break;
++		}
++
++		if (lp->lp_lagg != sc) {
++			error = ENOENT;
++			break;
++		}
++
++		lagg_port2req(lp, rp);
++		LAGG_UNLOCK(sc);
++		break;
++	default:
++		goto fallback;
++	}
++
++	return (error);
++
++fallback:
++	if (lp->lp_ioctl != NULL)
++		return ((*lp->lp_ioctl)(ifp, cmd, data));
++
++	return (EINVAL);
++}
++
++static int
++lagg_port_output(struct ifnet *ifp, struct mbuf *m,
++	struct sockaddr *dst, struct rtentry *rt0)
++{
++	struct lagg_port *lp = ifp->if_lagg;
++	struct ether_header *eh;
++	short type = 0;
++
++	switch (dst->sa_family) {
++		case pseudo_AF_HDRCMPLT:
++		case AF_UNSPEC:
++			eh = (struct ether_header *)dst->sa_data;
++			type = eh->ether_type;
++			break;
++	}
++
++	/*
++	 * Only allow ethernet types required to initiate or maintain the link,
++	 * aggregated frames take a different path.
++	 */
++	switch (ntohs(type)) {
++		case ETHERTYPE_PAE:	/* EAPOL PAE/802.1x */
++			return ((*lp->lp_output)(ifp, m, dst, rt0));
++	}
++
++	/* drop any other frames */
++	m_freem(m);
++	return (EBUSY);
++}
++
++static void
++lagg_port_ifdetach(void *arg __unused, struct ifnet *ifp)
++{
++	struct lagg_port *lp;
++	struct lagg_softc *sc;
++
++	if ((lp = ifp->if_lagg) == NULL)
++		return;
++
++	sc = lp->lp_lagg;
++
++	LAGG_LOCK(sc);
++	lp->lp_detaching = 1;
++	lagg_port_destroy(lp, 1);
++	LAGG_UNLOCK(sc);
++}
++
++static void
++lagg_port2req(struct lagg_port *lp, struct lagg_reqport *rp)
++{
++	struct lagg_softc *sc = lp->lp_lagg;
++	strlcpy(rp->rp_ifname, sc->sc_ifname, sizeof(rp->rp_ifname));
++	strlcpy(rp->rp_portname, lp->lp_ifp->if_xname, sizeof(rp->rp_portname));
++	rp->rp_prio = lp->lp_prio;
++	rp->rp_flags = lp->lp_flags;
++
++	/* Add protocol specific flags */
++	switch (sc->sc_proto) {
++		case LAGG_PROTO_FAILOVER:
++			if (lp == sc->sc_primary)
++				rp->rp_flags |= LAGG_PORT_MASTER;
++			/* FALLTHROUGH */
++		case LAGG_PROTO_ROUNDROBIN:
++		case LAGG_PROTO_LOADBALANCE:
++		case LAGG_PROTO_ETHERCHANNEL:
++			if (LAGG_PORTACTIVE(lp))
++				rp->rp_flags |= LAGG_PORT_ACTIVE;
++			break;
++
++		case LAGG_PROTO_LACP:
++			/* LACP has a different definition of active */
++			if (lacp_port_isactive(lp))
++				rp->rp_flags |= LAGG_PORT_ACTIVE;
++			break;
++	}
++
++}
++
++static void
++lagg_init(void *xsc)
++{
++	struct lagg_softc *sc = (struct lagg_softc *)xsc;
++	struct lagg_port *lp;
++	struct ifnet *ifp = sc->sc_ifp;
++
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		return;
++
++	LAGG_LOCK(sc);
++
++	ifp->if_drv_flags |= IFF_DRV_RUNNING;
++	/* Update the port lladdrs */
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++		lagg_port_lladdr(lp, IF_LLADDR(ifp));
++
++	if (sc->sc_init != NULL)
++		(*sc->sc_init)(sc);
++
++	LAGG_UNLOCK(sc);
++}
++
++static void
++lagg_stop(struct lagg_softc *sc)
++{
++	struct ifnet *ifp = sc->sc_ifp;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	if ((ifp->if_drv_flags & IFF_DRV_RUNNING) == 0)
++		return;
++
++	ifp->if_drv_flags &= ~IFF_DRV_RUNNING;
++
++	if (sc->sc_stop != NULL)
++		(*sc->sc_stop)(sc);
++}
++
++static int
++lagg_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
++{
++	struct lagg_softc *sc = (struct lagg_softc *)ifp->if_softc;
++	struct lagg_reqall *ra = (struct lagg_reqall *)data;
++	struct lagg_reqport *rp = (struct lagg_reqport *)data, rpbuf;
++	struct ifreq *ifr = (struct ifreq *)data;
++	struct lagg_port *lp;
++	struct ifnet *tpif;
++	struct thread *td = curthread;
++	int i, error = 0, unlock = 1;
++
++	LAGG_LOCK(sc);
++
++	bzero(&rpbuf, sizeof(rpbuf));
++
++	switch (cmd) {
++	case SIOCGLAGG:
++		ra->ra_proto = sc->sc_proto;
++		ra->ra_ports = i = 0;
++		lp = SLIST_FIRST(&sc->sc_ports);
++		while (lp && ra->ra_size >=
++		    i + sizeof(struct lagg_reqport)) {
++			lagg_port2req(lp, &rpbuf);
++			error = copyout(&rpbuf, (caddr_t)ra->ra_port + i,
++			    sizeof(struct lagg_reqport));
++			if (error)
++				break;
++			i += sizeof(struct lagg_reqport);
++			ra->ra_ports++;
++			lp = SLIST_NEXT(lp, lp_entries);
++		}
++		break;
++	case SIOCSLAGG:
++		error = suser(td);
++		if (error)
++			break;
++		if (ra->ra_proto >= LAGG_PROTO_MAX) {
++			error = EPROTONOSUPPORT;
++			break;
++		}
++		if (sc->sc_proto != LAGG_PROTO_NONE) {
++			error = sc->sc_detach(sc);
++			/* Reset protocol and pointers */
++			sc->sc_proto = LAGG_PROTO_NONE;
++			sc->sc_detach = NULL;
++			sc->sc_start = NULL;
++			sc->sc_input = NULL;
++			sc->sc_port_create = NULL;
++			sc->sc_port_destroy = NULL;
++			sc->sc_linkstate = NULL;
++			sc->sc_init = NULL;
++			sc->sc_stop = NULL;
++			sc->sc_lladdr = NULL;
++		}
++		if (error != 0)
++			break;
++		for (i = 0; i < (sizeof(lagg_protos) /
++		    sizeof(lagg_protos[0])); i++) {
++			if (lagg_protos[i].ti_proto == ra->ra_proto) {
++				if (sc->sc_ifflags & IFF_DEBUG)
++					printf("%s: using proto %u\n",
++					    sc->sc_ifname,
++					    lagg_protos[i].ti_proto);
++				sc->sc_proto = lagg_protos[i].ti_proto;
++				if (sc->sc_proto != LAGG_PROTO_NONE)
++					error = lagg_protos[i].ti_attach(sc);
++				goto out;
++			}
++		}
++		error = EPROTONOSUPPORT;
++		break;
++	case SIOCGLAGGPORT:
++		if (rp->rp_portname[0] == '\0' ||
++		    (tpif = ifunit(rp->rp_portname)) == NULL) {
++			error = EINVAL;
++			break;
++		}
++
++		if ((lp = (struct lagg_port *)tpif->if_lagg) == NULL ||
++		    lp->lp_lagg != sc) {
++			error = ENOENT;
++			break;
++		}
++
++		lagg_port2req(lp, rp);
++		break;
++	case SIOCSLAGGPORT:
++		error = suser(td);
++		if (error)
++			break;
++		if (rp->rp_portname[0] == '\0' ||
++		    (tpif = ifunit(rp->rp_portname)) == NULL) {
++			error = EINVAL;
++			break;
++		}
++		error = lagg_port_create(sc, tpif);
++		break;
++	case SIOCSLAGGDELPORT:
++		error = suser(td);
++		if (error)
++			break;
++		if (rp->rp_portname[0] == '\0' ||
++		    (tpif = ifunit(rp->rp_portname)) == NULL) {
++			error = EINVAL;
++			break;
++		}
++
++		if ((lp = (struct lagg_port *)tpif->if_lagg) == NULL ||
++		    lp->lp_lagg != sc) {
++			error = ENOENT;
++			break;
++		}
++
++		error = lagg_port_destroy(lp, 1);
++		break;
++	case SIOCSIFFLAGS:
++		/* Set flags on ports too */
++		SLIST_FOREACH(lp, &sc->sc_ports, lp_entries) {
++			lagg_setflags(lp, 1);
++		}
++
++		if (!(ifp->if_flags & IFF_UP) &&
++		    (ifp->if_drv_flags & IFF_DRV_RUNNING)) {
++			/*
++			 * If interface is marked down and it is running,
++			 * then stop and disable it.
++			 */
++			lagg_stop(sc);
++		} else if ((ifp->if_flags & IFF_UP) &&
++		    !(ifp->if_drv_flags & IFF_DRV_RUNNING)) {
++			/*
++			 * If interface is marked up and it is stopped, then
++			 * start it.
++			 */
++			LAGG_UNLOCK(sc);
++			unlock = 0;
++			(*ifp->if_init)(sc);
++		}
++		break;
++	case SIOCADDMULTI:
++	case SIOCDELMULTI:
++		error = lagg_ether_setmulti(sc);
++		break;
++	case SIOCSIFMEDIA:
++	case SIOCGIFMEDIA:
++		LAGG_UNLOCK(sc);
++		unlock = 0;
++		error = ifmedia_ioctl(ifp, ifr, &sc->sc_media, cmd);
++		break;
++	default:
++		LAGG_UNLOCK(sc);
++		unlock = 0;
++		error = ether_ioctl(ifp, cmd, data);
++		break;
++	}
++
++out:
++	if (unlock)
++		LAGG_UNLOCK(sc);
++	return (error);
++}
++
++static int
++lagg_ether_setmulti(struct lagg_softc *sc)
++{
++	struct ifnet		*trifp = sc->sc_ifp;
++	struct ifnet		*ifp;
++	struct ifmultiaddr	*ifma, *rifma = NULL;
++	struct lagg_port	*lp;
++	struct lagg_mc		*mc;
++	struct sockaddr_dl	sdl;
++	int			error;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	bzero((char *)&sdl, sizeof(sdl));
++	sdl.sdl_len = sizeof(sdl);
++	sdl.sdl_family = AF_LINK;
++	sdl.sdl_type = IFT_ETHER;
++	sdl.sdl_alen = ETHER_ADDR_LEN;
++
++	/* First, remove any existing filter entries. */
++	lagg_ether_purgemulti(sc);
++
++	/* Now program new ones. */
++	TAILQ_FOREACH(ifma, &trifp->if_multiaddrs, ifma_link) {
++		if (ifma->ifma_addr->sa_family != AF_LINK)
++			continue;
++		mc = malloc(sizeof(struct lagg_mc), M_DEVBUF, M_NOWAIT);
++		if (mc == NULL)
++			return (ENOMEM);
++		bcopy(LLADDR((struct sockaddr_dl *)ifma->ifma_addr),
++		    (char *)&mc->mc_addr, ETHER_ADDR_LEN);
++		SLIST_INSERT_HEAD(&sc->sc_mc_head, mc, mc_entries);
++		bcopy(LLADDR((struct sockaddr_dl *)ifma->ifma_addr),
++		    LLADDR(&sdl), ETHER_ADDR_LEN);
++
++		/* do all the ports */
++		SLIST_FOREACH(lp, &sc->sc_ports, lp_entries) {
++			ifp = lp->lp_ifp;
++			sdl.sdl_index = ifp->if_index;
++			error = if_addmulti(ifp, (struct sockaddr *)&sdl, &rifma);
++			if (error)
++				return (error);
++		}	
++	}
++
++	return (0);
++}
++
++static int
++lagg_ether_cmdmulti(struct lagg_port *lp, int set)
++{
++	struct lagg_softc *sc = lp->lp_lagg;
++	struct ifnet *ifp = lp->lp_ifp;;
++	struct lagg_mc		*mc;
++	struct ifmultiaddr	*rifma = NULL;
++	struct sockaddr_dl	sdl;
++	int			error;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	bzero((char *)&sdl, sizeof(sdl));
++	sdl.sdl_len = sizeof(sdl);
++	sdl.sdl_family = AF_LINK;
++	sdl.sdl_type = IFT_ETHER;
++	sdl.sdl_alen = ETHER_ADDR_LEN;
++	sdl.sdl_index = ifp->if_index;
++
++	SLIST_FOREACH(mc, &sc->sc_mc_head, mc_entries) {
++		bcopy((char *)&mc->mc_addr, LLADDR(&sdl), ETHER_ADDR_LEN);
++
++		if (set)
++			error = if_addmulti(ifp, (struct sockaddr *)&sdl, &rifma);
++		else
++			error = if_delmulti(ifp, (struct sockaddr *)&sdl);
++
++		if (error) {
++			printf("cmdmulti error on %s, set = %d\n",
++			    ifp->if_xname, set);
++			return (error);
++		}
++	}
++	return (0);
++}
++
++static void
++lagg_ether_purgemulti(struct lagg_softc *sc)
++{
++	struct lagg_port *lp;
++	struct lagg_mc *mc;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	/* remove from ports */
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++		lagg_ether_cmdmulti(lp, 0);
++
++	while ((mc = SLIST_FIRST(&sc->sc_mc_head)) != NULL) {
++		SLIST_REMOVE(&sc->sc_mc_head, mc, lagg_mc, mc_entries);
++		free(mc, M_DEVBUF);
++	}
++}
++
++/* Handle a ref counted flag that should be set on the lagg port as well */
++static int
++lagg_setflag(struct lagg_port *lp, int flag, int status,
++	     int (*func)(struct ifnet *, int))
++{
++	struct lagg_softc *sc = lp->lp_lagg;
++	struct ifnet *trifp = sc->sc_ifp;
++	struct ifnet *ifp = lp->lp_ifp;
++	int error;
++
++	LAGG_LOCK_ASSERT(sc);
++
++	status = status ? (trifp->if_flags & flag) : 0;
++	/* Now "status" contains the flag value or 0 */
++
++	/*
++	 * See if recorded ports status is different from what
++	 * we want it to be.  If it is, flip it.  We record ports
++	 * status in lp_ifflags so that we won't clear ports flag
++	 * we haven't set.  In fact, we don't clear or set ports
++	 * flags directly, but get or release references to them.
++	 * That's why we can be sure that recorded flags still are
++	 * in accord with actual ports flags.
++	 */
++	if (status != (lp->lp_ifflags & flag)) {
++		error = (*func)(ifp, status);
++		if (error)
++			return (error);
++		lp->lp_ifflags &= ~flag;
++		lp->lp_ifflags |= status;
++	}
++	return (0);
++}
++
++/*
++ * Handle IFF_* flags that require certain changes on the lagg port
++ * if "status" is true, update ports flags respective to the lagg
++ * if "status" is false, forcedly clear the flags set on port.
++ */
++static int
++lagg_setflags(struct lagg_port *lp, int status)
++{
++	int error, i;
++	
++	for (i = 0; lagg_pflags[i].flag; i++) {
++		error = lagg_setflag(lp, lagg_pflags[i].flag,
++		    status, lagg_pflags[i].func);
++		if (error)
++			return (error);
++	}
++	return (0);
++}
++
++static void
++lagg_start(struct ifnet *ifp)
++{
++	struct lagg_softc *sc = (struct lagg_softc *)ifp->if_softc;
++	struct mbuf *m;
++	int error = 0;
++
++	for (;; error = 0) {
++		IFQ_DEQUEUE(&ifp->if_snd, m);
++		if (m == NULL)
++			break;
++
++		BPF_MTAP(ifp, m);
++
++		if (sc->sc_proto != LAGG_PROTO_NONE) {
++			LAGG_LOCK(sc);
++			error = (*sc->sc_start)(sc, m);
++			LAGG_UNLOCK(sc);
++		} else
++			m_free(m);
++
++		if (error == 0)
++			ifp->if_opackets++;
++		else
++			ifp->if_oerrors++;
++	}
++
++	return;
++}
++
++static struct mbuf *
++lagg_input(struct ifnet *ifp, struct mbuf *m)
++{
++	struct lagg_port *lp = ifp->if_lagg;
++	struct lagg_softc *sc = lp->lp_lagg;
++	struct ifnet *trifp = sc->sc_ifp;
++
++	if ((trifp->if_drv_flags & IFF_DRV_RUNNING) == 0 ||
++	    (lp->lp_flags & LAGG_PORT_DISABLED) ||
++	    sc->sc_proto == LAGG_PROTO_NONE) {
++		m_freem(m);
++		return (NULL);
++	}
++
++	LAGG_LOCK(sc);
++	BPF_MTAP(trifp, m);
++
++	m = (*sc->sc_input)(sc, lp, m);
++
++	if (m != NULL) {
++		ifp->if_ipackets++;
++		ifp->if_ibytes += m->m_pkthdr.len;
++		trifp->if_ipackets++;
++		trifp->if_ibytes += m->m_pkthdr.len;
++	}
++
++	LAGG_UNLOCK(sc);
++	return (m);
++}
++
++static int
++lagg_media_change(struct ifnet *ifp)
++{
++	struct lagg_softc *sc = (struct lagg_softc *)ifp->if_softc;
++
++	if (sc->sc_ifflags & IFF_DEBUG)
++		printf("%s\n", __func__);
++
++	/* Ignore */
++	return (0);
++}
++
++static void
++lagg_media_status(struct ifnet *ifp, struct ifmediareq *imr)
++{
++	struct lagg_softc *sc = (struct lagg_softc *)ifp->if_softc;
++	struct lagg_port *lp;
++
++	imr->ifm_status = IFM_AVALID;
++	imr->ifm_active = IFM_ETHER | IFM_AUTO;
++
++	LAGG_LOCK(sc);
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries) {
++		if (LAGG_PORTACTIVE(lp))
++			imr->ifm_status |= IFM_ACTIVE;
++	}
++	LAGG_UNLOCK(sc);
++}
++
++static void
++lagg_port_state(struct ifnet *ifp, int state)
++{
++	struct lagg_port *lp = (struct lagg_port *)ifp->if_lagg;
++	struct lagg_softc *sc = NULL;
++
++	if (lp != NULL)
++		sc = lp->lp_lagg;
++	if (sc == NULL)
++		return;
++
++	LAGG_LOCK(sc);
++	if (sc->sc_linkstate != NULL)
++		(*sc->sc_linkstate)(lp);
++	LAGG_UNLOCK(sc);
++}
++
++struct lagg_port *
++lagg_link_active(struct lagg_softc *sc, struct lagg_port *lp)
++{
++	struct lagg_port *lp_next, *rval = NULL;
++	// int new_link = LINK_STATE_DOWN;
++
++	LAGG_LOCK_ASSERT(sc);
++	/*
++	 * Search a port which reports an active link state.
++	 */
++
++	if (lp == NULL)
++		goto search;
++	if (LAGG_PORTACTIVE(lp)) {
++		rval = lp;
++		goto found;
++	}
++	if ((lp_next = SLIST_NEXT(lp, lp_entries)) != NULL &&
++	    LAGG_PORTACTIVE(lp_next)) {
++		rval = lp_next;
++		goto found;
++	}
++
++search:
++	SLIST_FOREACH(lp_next, &sc->sc_ports, lp_entries) {
++		if (LAGG_PORTACTIVE(lp_next)) {
++			rval = lp_next;
++			goto found;
++		}
++	}
++
++found:
++	if (rval != NULL) {
++		/*
++		 * The IEEE 802.1D standard assumes that a lagg with
++		 * multiple ports is always full duplex. This is valid
++		 * for load sharing laggs and if at least two links
++		 * are active. Unfortunately, checking the latter would
++		 * be too expensive at this point.
++		 XXX
++		if ((sc->sc_capabilities & IFCAP_LAGG_FULLDUPLEX) &&
++		    (sc->sc_count > 1))
++			new_link = LINK_STATE_FULL_DUPLEX;
++		else
++			new_link = rval->lp_link_state;
++		 */
++	}
++
++	return (rval);
++}
++
++static const void *
++lagg_gethdr(struct mbuf *m, u_int off, u_int len, void *buf)
++{
++	if (m->m_pkthdr.len < (off + len)) {
++		return (NULL);
++	} else if (m->m_len < (off + len)) {
++		m_copydata(m, off, len, buf);
++		return (buf);
++	}
++	return (mtod(m, char *) + off);
++}
++
++uint32_t
++lagg_hashmbuf(struct mbuf *m, uint32_t key)
++{
++	uint16_t etype;
++	uint32_t p = 0;
++	int off;
++	struct ether_header *eh;
++	struct ether_vlan_header vlanbuf;
++	const struct ether_vlan_header *vlan;
++	struct m_tag *mtag;
++	u_int tag;
++#ifdef INET
++	const struct ip *ip;
++	struct ip ipbuf;
++#endif
++#ifdef INET6
++	const struct ip6_hdr *ip6;
++	struct ip6_hdr ip6buf;
++	uint32_t flow;
++#endif
++
++	off = sizeof(*eh);
++	if (m->m_len < off)
++		goto out;
++	eh = mtod(m, struct ether_header *);
++	etype = ntohs(eh->ether_type);
++	p = hash32_buf(&eh->ether_shost, ETHER_ADDR_LEN, key);
++	p = hash32_buf(&eh->ether_dhost, ETHER_ADDR_LEN, p);
++
++	/* Special handling for encapsulating VLAN frames */
++	if (m->m_flags & M_VLANTAG) {
++		mtag = m_tag_locate(m, MTAG_VLAN, MTAG_VLAN_TAG, NULL);
++		KASSERT(mtag != NULL,
++			("%s: M_VLANTAG without m_tag", __func__));
++		tag = EVL_VLANOFTAG(VLAN_TAG_VALUE(mtag));
++		p = hash32_buf(&tag, sizeof(tag), p);
++	} else if (etype == ETHERTYPE_VLAN) {
++		vlan = lagg_gethdr(m, off,  sizeof(*vlan), &vlanbuf);
++		if (vlan == NULL) 
++			goto out;
++
++		p = hash32_buf(&vlan->evl_tag, sizeof(vlan->evl_tag), p);
++		etype = ntohs(vlan->evl_proto);
++		off += sizeof(*vlan) - sizeof(*eh);
++	}
++
++	switch (etype) {
++#ifdef INET
++	case ETHERTYPE_IP:
++		ip = lagg_gethdr(m, off, sizeof(*ip), &ipbuf);
++		if (ip == NULL)
++			goto out;
++
++		p = hash32_buf(&ip->ip_src, sizeof(struct in_addr), p);
++		p = hash32_buf(&ip->ip_dst, sizeof(struct in_addr), p);
++		break;
++#endif
++#ifdef INET6
++	case ETHERTYPE_IPV6:
++		ip6 = lagg_gethdr(m, off, sizeof(*ip6), &ip6buf);
++		if (ip6 == NULL)
++			goto out;
++
++		p = hash32_buf(&ip6->ip6_src, sizeof(struct in6_addr), p);
++		p = hash32_buf(&ip6->ip6_dst, sizeof(struct in6_addr), p);
++		flow = ip6->ip6_flow & IPV6_FLOWLABEL_MASK;
++		p = hash32_buf(&flow, sizeof(flow), p);	/* IPv6 flow label */
++		break;
++#endif
++	}
++out:
++	return (p);
++}
++
++int
++lagg_enqueue(struct ifnet *ifp, struct mbuf *m)
++{
++	int error = 0;
++
++	/* Send mbuf */
++	IFQ_ENQUEUE(&ifp->if_snd, m, error);
++	if (error)
++		return (error);
++	if ((ifp->if_drv_flags & IFF_DRV_OACTIVE) == 0)
++		(*ifp->if_start)(ifp);
++
++	ifp->if_obytes += m->m_pkthdr.len;
++	if (m->m_flags & M_MCAST)
++		ifp->if_omcasts++;
++
++	return (error);
++}
++
++/*
++ * Simple round robin aggregation
++ */
++
++static int
++lagg_rr_attach(struct lagg_softc *sc)
++{
++	struct lagg_port *lp;
++
++	sc->sc_detach = lagg_rr_detach;
++	sc->sc_start = lagg_rr_start;
++	sc->sc_input = lagg_rr_input;
++	sc->sc_port_create = NULL;
++	sc->sc_port_destroy = lagg_rr_port_destroy;
++	sc->sc_capabilities = IFCAP_LAGG_FULLDUPLEX;
++
++	lp = SLIST_FIRST(&sc->sc_ports);
++	sc->sc_psc = (caddr_t)lp;
++
++	return (0);
++}
++
++static int
++lagg_rr_detach(struct lagg_softc *sc)
++{
++	sc->sc_psc = NULL;
++	return (0);
++}
++
++static void
++lagg_rr_port_destroy(struct lagg_port *lp)
++{
++	struct lagg_softc *sc = lp->lp_lagg;
++
++	if (lp == (struct lagg_port *)sc->sc_psc)
++		sc->sc_psc = NULL;
++}
++
++static int
++lagg_rr_start(struct lagg_softc *sc, struct mbuf *m)
++{
++	struct lagg_port *lp = (struct lagg_port *)sc->sc_psc, *lp_next;
++	int error = 0;
++
++	if (lp == NULL && (lp = lagg_link_active(sc, NULL)) == NULL)
++		return (ENOENT);
++
++	/* Send mbuf */
++	error = lagg_enqueue(lp->lp_ifp, m);
++
++	/* Get next active port */
++	lp_next = lagg_link_active(sc, SLIST_NEXT(lp, lp_entries));
++	sc->sc_psc = (caddr_t)lp_next;
++
++	return (error);
++}
++
++static struct mbuf *
++lagg_rr_input(struct lagg_softc *sc, struct lagg_port *lp, struct mbuf *m)
++{
++	struct ifnet *ifp = sc->sc_ifp;
++
++	/* Just pass in the packet to our lagg device */
++	m->m_pkthdr.rcvif = ifp;
++
++	return (m);
++}
++
++/*
++ * Active failover
++ */
++
++static int
++lagg_fail_attach(struct lagg_softc *sc)
++{
++	sc->sc_detach = lagg_fail_detach;
++	sc->sc_start = lagg_fail_start;
++	sc->sc_input = lagg_fail_input;
++	sc->sc_port_create = NULL;
++	sc->sc_port_destroy = NULL;
++
++	return (0);
++}
++
++static int
++lagg_fail_detach(struct lagg_softc *sc)
++{
++	return (0);
++}
++
++static int
++lagg_fail_start(struct lagg_softc *sc, struct mbuf *m)
++{
++	struct lagg_port *lp;
++
++	/* Use the master port if active or the next available port */
++	if ((lp = lagg_link_active(sc, sc->sc_primary)) == NULL)
++		return (ENOENT);
++
++	/* Send mbuf */
++	return (lagg_enqueue(lp->lp_ifp, m));
++}
++
++static struct mbuf *
++lagg_fail_input(struct lagg_softc *sc, struct lagg_port *lp, struct mbuf *m)
++{
++	struct ifnet *ifp = sc->sc_ifp;
++	struct lagg_port *tmp_tp;
++
++	if (lp == sc->sc_primary) {
++		m->m_pkthdr.rcvif = ifp;
++		return (m);
++	}
++
++	if (sc->sc_primary->lp_link_state == LINK_STATE_DOWN) {
++		tmp_tp = lagg_link_active(sc, NULL);
++		/*
++		 * If tmp_tp is null, we've recieved a packet when all
++		 * our links are down. Weird, but process it anyways.
++		 */
++		if ((tmp_tp == NULL || tmp_tp == lp)) {
++			m->m_pkthdr.rcvif = ifp;
++			return (m);
++		}
++	}
++
++	m_freem(m);
++	return (NULL);
++}
++
++/*
++ * Loadbalancing
++ */
++
++static int
++lagg_lb_attach(struct lagg_softc *sc)
++{
++	struct lagg_port *lp;
++	struct lagg_lb *lb;
++
++	if ((lb = (struct lagg_lb *)malloc(sizeof(struct lagg_lb),
++	    M_DEVBUF, M_NOWAIT|M_ZERO)) == NULL)
++		return (ENOMEM);
++
++	sc->sc_detach = lagg_lb_detach;
++	sc->sc_start = lagg_lb_start;
++	sc->sc_input = lagg_lb_input;
++	sc->sc_port_create = lagg_lb_port_create;
++	sc->sc_port_destroy = lagg_lb_port_destroy;
++	sc->sc_capabilities = IFCAP_LAGG_FULLDUPLEX;
++
++	lb->lb_key = arc4random();
++	sc->sc_psc = (caddr_t)lb;
++
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++		lagg_lb_port_create(lp);
++
++	return (0);
++}
++
++static int
++lagg_lb_detach(struct lagg_softc *sc)
++{
++	struct lagg_lb *lb = (struct lagg_lb *)sc->sc_psc;
++	if (lb != NULL)
++		free(lb, M_DEVBUF);
++	return (0);
++}
++
++static int
++lagg_lb_porttable(struct lagg_softc *sc, struct lagg_port *lp)
++{
++	struct lagg_lb *lb = (struct lagg_lb *)sc->sc_psc;
++	struct lagg_port *lp_next;
++	int i = 0;
++
++	bzero(&lb->lb_ports, sizeof(lb->lb_ports));
++	SLIST_FOREACH(lp_next, &sc->sc_ports, lp_entries) {
++		if (lp_next == lp)
++			continue;
++		if (i >= LAGG_MAX_PORTS)
++			return (EINVAL);
++		if (sc->sc_ifflags & IFF_DEBUG)
++			printf("%s: port %s at index %d\n",
++			    sc->sc_ifname, lp_next->lp_ifname, i);
++		lb->lb_ports[i++] = lp_next;
++	}
++
++	return (0);
++}
++
++static int
++lagg_lb_port_create(struct lagg_port *lp)
++{
++	struct lagg_softc *sc = lp->lp_lagg;
++	return (lagg_lb_porttable(sc, NULL));
++}
++
++static void
++lagg_lb_port_destroy(struct lagg_port *lp)
++{
++	struct lagg_softc *sc = lp->lp_lagg;
++	lagg_lb_porttable(sc, lp);
++}
++
++static int
++lagg_lb_start(struct lagg_softc *sc, struct mbuf *m)
++{
++	struct lagg_lb *lb = (struct lagg_lb *)sc->sc_psc;
++	struct lagg_port *lp = NULL;
++	uint32_t p = 0;
++	int idx;
++
++	p = lagg_hashmbuf(m, lb->lb_key);
++	if ((idx = p % sc->sc_count) >= LAGG_MAX_PORTS)
++		return (EINVAL);
++	lp = lb->lb_ports[idx];
++
++	/*
++	 * Check the port's link state. This will return the next active
++	 * port if the link is down or the port is NULL.
++	 */
++	if ((lp = lagg_link_active(sc, lp)) == NULL)
++		return (ENOENT);
++
++	/* Send mbuf */
++	return (lagg_enqueue(lp->lp_ifp, m));
++}
++
++static struct mbuf *
++lagg_lb_input(struct lagg_softc *sc, struct lagg_port *lp, struct mbuf *m)
++{
++	struct ifnet *ifp = sc->sc_ifp;
++
++	/* Just pass in the packet to our lagg device */
++	m->m_pkthdr.rcvif = ifp;
++
++	return (m);
++}
++
++/*
++ * 802.3ad LACP
++ */
++
++static int
++lagg_lacp_attach(struct lagg_softc *sc)
++{
++	struct lagg_port *lp;
++	int error;
++
++	sc->sc_detach = lagg_lacp_detach;
++	sc->sc_port_create = lacp_port_create;
++	sc->sc_port_destroy = lacp_port_destroy;
++	sc->sc_linkstate = lacp_linkstate;
++	sc->sc_start = lagg_lacp_start;
++	sc->sc_input = lagg_lacp_input;
++	sc->sc_init = lacp_init;
++	sc->sc_stop = lacp_stop;
++	sc->sc_lladdr = lagg_lacp_lladdr;
++
++	error = lacp_attach(sc);
++	if (error)
++		return (error);
++
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++		lacp_port_create(lp);
++
++	return (error);
++}
++
++static int
++lagg_lacp_detach(struct lagg_softc *sc)
++{
++	struct lagg_port *lp;
++	int error;
++
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++		lacp_port_destroy(lp);
++
++	/* unlocking is safe here */
++	LAGG_UNLOCK(sc);
++	error = lacp_detach(sc);
++	LAGG_LOCK(sc);
++
++	return (error);
++}
++
++static void
++lagg_lacp_lladdr(struct lagg_softc *sc)
++{
++	struct lagg_port *lp;
++
++	/* purge all the lacp ports */
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++		lacp_port_destroy(lp);
++
++	/* add them back in */
++	SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++		lacp_port_create(lp);
++}
++
++static int
++lagg_lacp_start(struct lagg_softc *sc, struct mbuf *m)
++{
++	struct lagg_port *lp;
++
++	lp = lacp_select_tx_port(sc, m);
++	if (lp == NULL)
++		return (EBUSY);
++
++	/* Send mbuf */
++	return (lagg_enqueue(lp->lp_ifp, m));
++}
++
++static struct mbuf *
++lagg_lacp_input(struct lagg_softc *sc, struct lagg_port *lp, struct mbuf *m)
++{
++	struct ifnet *ifp = sc->sc_ifp;
++	struct ether_header *eh;
++	u_short etype;
++	uint8_t subtype;
++
++	eh = mtod(m, struct ether_header *);
++	etype = ntohs(eh->ether_type);
++
++	/* Tap off LACP control messages */
++	if (etype == ETHERTYPE_SLOW) {
++		if (m->m_pkthdr.len < sizeof(*eh) + sizeof(subtype)) {
++			m_freem(m);
++			return (NULL);
++		}
++
++		m_copydata(m, sizeof(*eh), sizeof(subtype), &subtype);
++		switch (subtype) {
++			case SLOWPROTOCOLS_SUBTYPE_LACP:
++				lacp_input(lp, m);
++				break;
++
++			case SLOWPROTOCOLS_SUBTYPE_MARKER:
++				lacp_marker_input(lp, m);
++				break;
++
++			default:
++				/* Unknown LACP packet type */
++				m_freem(m);
++				break;
++		}
++		return (NULL);
++	}
++
++	/*
++	 * If the port is not collecting or not in the active aggregator then
++	 * free and return.
++	 */
++	if ((lp->lp_flags & LAGG_PORT_COLLECTING) == 0 ||
++	    lacp_port_isactive(lp) == 0) {
++		m_freem(m);
++		return (NULL);
++	}
++
++	m->m_pkthdr.rcvif = ifp;
++	return (m);
++}
+Index: sys/net/if_lagg.h
+===================================================================
+RCS file: sys/net/if_lagg.h
+diff -N sys/net/if_lagg.h
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ sys/net/if_lagg.h	16 May 2007 03:53:22 -0000
+@@ -0,0 +1,221 @@
++/*	$OpenBSD: if_trunk.h,v 1.11 2007/01/31 06:20:19 reyk Exp $	*/
++
++/*
++ * Copyright (c) 2005, 2006 Reyk Floeter <reyk@openbsd.org>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ *
++ * $FreeBSD: src/sys/net/if_lagg.h,v 1.3 2007/05/03 09:07:36 thompsa Exp $
++ */
++
++#ifndef _NET_LAGG_H
++#define _NET_LAGG_H
++
++/*
++ * Global definitions
++ */
++
++#define LAGG_MAX_PORTS		32	/* logically */
++#define LAGG_MAX_NAMESIZE	32	/* name of a protocol */
++#define LAGG_MAX_STACKING	4	/* maximum number of stacked laggs */
++
++/* Port flags */
++#define LAGG_PORT_SLAVE		0x00000000	/* normal enslaved port */
++#define LAGG_PORT_MASTER	0x00000001	/* primary port */
++#define LAGG_PORT_STACK		0x00000002	/* stacked lagg port */
++#define LAGG_PORT_ACTIVE	0x00000004	/* port is active */
++#define LAGG_PORT_COLLECTING	0x00000008	/* port is receiving frames */
++#define LAGG_PORT_DISTRIBUTING	0x00000010	/* port is sending frames */
++#define LAGG_PORT_DISABLED	0x00000020	/* port is disabled */
++#define LAGG_PORT_GLOBAL	0x80000000	/* IOCTL: global flag */
++#define LAGG_PORT_BITS		"\20\01MASTER\02STACK\03ACTIVE\04COLLECTING" \
++				  "\05DISTRIBUTING\06DISABLED"
++
++/* Supported lagg PROTOs */
++#define	LAGG_PROTO_NONE		0	/* no lagg protocol defined */
++#define	LAGG_PROTO_ROUNDROBIN	1	/* simple round robin */
++#define	LAGG_PROTO_FAILOVER	2	/* active failover */
++#define	LAGG_PROTO_LOADBALANCE	3	/* loadbalance */
++#define	LAGG_PROTO_LACP		4	/* 802.3ad lacp */
++#define	LAGG_PROTO_ETHERCHANNEL	5	/* Cisco FEC */
++#define	LAGG_PROTO_MAX		6
++
++struct lagg_protos {
++	const char		*tpr_name;
++	int			tpr_proto;
++};
++
++#define	LAGG_PROTO_DEFAULT	LAGG_PROTO_FAILOVER
++#define LAGG_PROTOS	{						\
++	{ "failover",		LAGG_PROTO_FAILOVER },			\
++	{ "fec",		LAGG_PROTO_ETHERCHANNEL },		\
++	{ "lacp",		LAGG_PROTO_LACP },			\
++	{ "loadbalance",	LAGG_PROTO_LOADBALANCE },		\
++	{ "roundrobin",		LAGG_PROTO_ROUNDROBIN },		\
++	{ "none",		LAGG_PROTO_NONE },			\
++	{ "default",		LAGG_PROTO_DEFAULT }			\
++}
++
++/*
++ * lagg ioctls.
++ */
++
++/* lagg port settings */
++struct lagg_reqport {
++	char			rp_ifname[IFNAMSIZ];	/* name of the lagg */
++	char			rp_portname[IFNAMSIZ];	/* name of the port */
++	u_int32_t		rp_prio;		/* port priority */
++	u_int32_t		rp_flags;		/* port flags */
++};
++
++#define SIOCGLAGGPORT		_IOWR('i', 140, struct lagg_reqport)
++#define SIOCSLAGGPORT		 _IOW('i', 141, struct lagg_reqport)
++#define SIOCSLAGGDELPORT	 _IOW('i', 142, struct lagg_reqport)
++
++/* lagg, ports and options */
++struct lagg_reqall {
++	char			ra_ifname[IFNAMSIZ];	/* name of the lagg */
++	u_int			ra_proto;		/* lagg protocol */
++
++	size_t			ra_size;		/* size of buffer */
++	struct lagg_reqport	*ra_port;		/* allocated buffer */
++	int			ra_ports;		/* total port count */
++};
++
++#define SIOCGLAGG		_IOWR('i', 143, struct lagg_reqall)
++#define SIOCSLAGG		 _IOW('i', 144, struct lagg_reqall)
++
++#ifdef _KERNEL
++/*
++ * Internal kernel part
++ */
++
++#define lp_ifname		lp_ifp->if_xname	/* interface name */
++#define lp_link_state		lp_ifp->if_link_state	/* link state */
++#define lp_capabilities		lp_ifp->if_capabilities	/* capabilities */
++
++#define LAGG_PORTACTIVE(_tp)	(					\
++	((_tp)->lp_link_state == LINK_STATE_UP) &&			\
++	((_tp)->lp_ifp->if_flags & IFF_UP)					\
++)
++
++#define mc_enm	mc_u.mcu_enm
++
++struct lagg_ifreq {
++	union {
++		struct ifreq ifreq;
++		struct {
++			char ifr_name[IFNAMSIZ];
++			struct sockaddr_storage ifr_ss;
++		} ifreq_storage;
++	} ifreq;
++};
++
++#define sc_ifflags		sc_ifp->if_flags		/* flags */
++#define sc_ifname		sc_ifp->if_xname		/* name */
++#define sc_capabilities		sc_ifp->if_capabilities	/* capabilities */
++
++#define IFCAP_LAGG_MASK		0xffff0000	/* private capabilities */
++#define IFCAP_LAGG_FULLDUPLEX	0x00010000	/* full duplex with >1 ports */
++
++/* Private data used by the loadbalancing protocol */
++#define LAGG_LB_MAXKEYS	8
++struct lagg_lb {
++	u_int32_t		lb_key;
++	struct lagg_port	*lb_ports[LAGG_MAX_PORTS];
++};
++
++struct lagg_mc {
++	union {
++		struct ether_multi	*mcu_enm;
++	} mc_u;
++	struct sockaddr_storage		mc_addr;
++
++	SLIST_ENTRY(lagg_mc)		mc_entries;
++};
++
++/* List of interfaces to have the MAC address modified */
++struct lagg_llq {
++	struct ifnet		*llq_ifp;
++	uint8_t			llq_lladdr[ETHER_ADDR_LEN];
++	SLIST_ENTRY(lagg_llq)	llq_entries;
++};
++
++struct lagg_softc {
++	struct ifnet			*sc_ifp;	/* virtual interface */
++	struct mtx			sc_mtx;
++	int				sc_proto;	/* lagg protocol */
++	u_int				sc_count;	/* number of ports */
++	struct lagg_port		*sc_primary;	/* primary port */
++	struct ifmedia			sc_media;	/* media config */
++	caddr_t				sc_psc;		/* protocol data */
++
++	SLIST_HEAD(__tplhd, lagg_port)	sc_ports;	/* list of interfaces */
++	SLIST_ENTRY(lagg_softc)	sc_entries;
++
++	SLIST_HEAD(__mclhd, lagg_mc)	sc_mc_head;	/* multicast addresses */
++	struct task			sc_lladdr_task;
++	SLIST_HEAD(__llqhd, lagg_llq)	sc_llq_head;	/* interfaces to program
++							   the lladdr on */
++
++	/* lagg protocol callbacks */
++	int	(*sc_detach)(struct lagg_softc *);
++	int	(*sc_start)(struct lagg_softc *, struct mbuf *);
++	struct mbuf *(*sc_input)(struct lagg_softc *, struct lagg_port *,
++		    struct mbuf *);
++	int	(*sc_port_create)(struct lagg_port *);
++	void	(*sc_port_destroy)(struct lagg_port *);
++	void	(*sc_linkstate)(struct lagg_port *);
++	void	(*sc_init)(struct lagg_softc *);
++	void	(*sc_stop)(struct lagg_softc *);
++	void	(*sc_lladdr)(struct lagg_softc *);
++};
++
++struct lagg_port {
++	struct ifnet			*lp_ifp;	/* physical interface */
++	struct lagg_softc		*lp_lagg;	/* parent lagg */
++	uint8_t				lp_lladdr[ETHER_ADDR_LEN];
++
++	u_char				lp_iftype;	/* interface type */
++	uint32_t			lp_prio;	/* port priority */
++	uint32_t			lp_flags;	/* port flags */
++	int				lp_ifflags;	/* saved ifp flags */
++	void				*lh_cookie;	/* if state hook */
++	caddr_t				lp_psc;		/* protocol data */
++	int				lp_detaching;	/* ifnet is detaching */
++
++	/* Redirected callbacks */
++	int	(*lp_ioctl)(struct ifnet *, u_long, caddr_t);
++	int	(*lp_output)(struct ifnet *, struct mbuf *, struct sockaddr *,
++		     struct rtentry *);
++
++	SLIST_ENTRY(lagg_port)		lp_entries;
++};
++
++#define LAGG_LOCK_INIT(_tr)	mtx_init(&(_tr)->sc_mtx, "if_lagg", NULL, \
++				    MTX_DEF)
++#define LAGG_LOCK_DESTROY(_tr)	mtx_destroy(&(_tr)->sc_mtx)
++#define LAGG_LOCK(_tr)		mtx_lock(&(_tr)->sc_mtx)
++#define LAGG_UNLOCK(_tr)	mtx_unlock(&(_tr)->sc_mtx)
++#define LAGG_LOCKED(_tr)	mtx_owned(&(_tr)->sc_mtx)
++#define LAGG_LOCK_ASSERT(_tr)	mtx_assert(&(_tr)->sc_mtx, MA_OWNED)
++
++extern struct mbuf *(*lagg_input_p)(struct ifnet *, struct mbuf *);
++extern void	(*lagg_linkstate_p)(struct ifnet *, int );
++
++int		lagg_enqueue(struct ifnet *, struct mbuf *);
++uint32_t	lagg_hashmbuf(struct mbuf *, uint32_t);
++
++#endif /* _KERNEL */
++
++#endif /* _NET_LAGG_H */
+Index: sys/net/if_var.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_var.h,v
+retrieving revision 1.98.2.6
+diff -u -p -r1.98.2.6 if_var.h
+--- sys/net/if_var.h	6 Oct 2006 20:26:05 -0000	1.98.2.6
++++ sys/net/if_var.h	15 May 2007 08:22:53 -0000
+@@ -158,7 +158,7 @@ struct ifnet {
+ 		(void *);
+ 	int	(*if_resolvemulti)	/* validate/resolve multicast */
+ 		(struct ifnet *, struct sockaddr **, struct sockaddr *);
+-	void	*if_spare1;		/* spare pointer 1 */
++	void	*if_lagg;		/* lagg glue */
+ 	void	*if_spare2;		/* spare pointer 2 */
+ 	void	*if_spare3;		/* spare pointer 3 */
+ 	int	if_drv_flags;		/* driver-managed status flags */
