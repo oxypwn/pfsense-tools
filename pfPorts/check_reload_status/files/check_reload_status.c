@@ -49,11 +49,6 @@ int main(void) {
 	/* daemonize */
 	syslog(LOG_NOTICE, "check_reload_status is starting");
 	system("echo starting > /tmp/check_reload_status");
-	if( fork() == 0 ) {
-	  /* close stdin and stderr */
-	  fclose( stdin );
-	  fclose( stdout );
-	  fclose( stderr );
 	  /* loop forever until the cows come home */
 	  while(1) {
 	      if(fexist("/tmp/restart_webgui") == 1) {
@@ -141,15 +136,6 @@ int main(void) {
 	      sleep( cycle_time );
 	  }
 	  system("echo exiting > /tmp/check_reload_status");
-	} else {
-		  system("echo forking > /tmp/check_reload_status");
-	      /* Exit parent process */
-	      if( signal( SIGINT, SIG_DFL ) != SIG_DFL )
-		      signal( SIGINT, SIG_DFL );
-	      if( signal( SIGKILL, SIG_DFL ) != SIG_DFL )
-		      signal( SIGKILL, SIG_DFL );
-	      exit( 0 );
-	}
 	syslog(LOG_NOTICE, "check_reload_status is stopping");
 	exit( 0 );
 	return( 0 );
