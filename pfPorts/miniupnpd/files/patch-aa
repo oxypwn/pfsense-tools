@@ -1,119 +1,27 @@
 diff -urN ../miniupnpd-clean/genconfig.sh ./genconfig.sh
---- ../miniupnpd-clean/genconfig.sh	2007-01-22 17:18:58.000000000 -0500
-+++ ./genconfig.sh	2007-02-07 18:59:22.000000000 -0500
-@@ -1,5 +1,5 @@
- #! /bin/sh
--# $Id$
-+# $Id$
- # miniupnp daemon
- # http://miniupnp.free.fr or http://miniupnp.tuxfamily.org/
- # (c) 2006 Thomas Bernard
-@@ -9,9 +9,24 @@
- RM="rm -f"
- CONFIGFILE="config.h"
+--- ../miniupnpd-clean/genconfig.sh	2007-03-18 06:31:48.000000000 -0400
++++ ./genconfig.sh	2007-05-19 22:38:50.000000000 -0400
+@@ -11,9 +11,9 @@
  CONFIGMACRO="__CONFIG_H__"
+ 
+ # version reported in XML descritptions
+-UPNP_VERSION=20070228
 +UPNP_VERSION=20070412
-+
-+# detecting the OS name and version
+ # Facility to syslog
+-LOG_MINIUPNPD="LOG_DAEMON"
++LOG_MINIUPNPD="LOG_USER"
+ 
+ # detecting the OS name and version
  OS_NAME=`uname -s`
- OS_VERSION=`uname -r`
- 
-+# Debian GNU/Linux special case
-+if [ -f /etc/debian_version ]; then
-+	OS_NAME=Debian
-+	OS_VERSION=`cat /etc/debian_version`
-+fi
-+
-+# pfSense special case
-+if [ `cat /etc/platform` = "pfSense" ]; then
-+	OS_NAME=pfSense
-+	OS_VERSION=`cat /etc/version`
-+fi
-+
- ${RM} ${CONFIGFILE}
- 
- echo "/* MiniUPnP Project" >> ${CONFIGFILE}
-@@ -21,28 +36,35 @@
- echo "#ifndef $CONFIGMACRO" >> ${CONFIGFILE}
- echo "#define $CONFIGMACRO" >> ${CONFIGFILE}
- echo "" >> ${CONFIGFILE}
--echo -e "#define OS_NAME\t\"$OS_NAME\"" >> ${CONFIGFILE}
-+echo -e "#define UPNP_VERSION\t\"$UPNP_VERSION\"" >> ${CONFIGFILE}
-+echo -e "#define OS_NAME\t\t\"$OS_NAME\"" >> ${CONFIGFILE}
- echo -e "#define OS_VERSION\t\"$OS_NAME/$OS_VERSION\"" >> ${CONFIGFILE}
- 
- # OS Specific stuff
--case `uname -s` in
-+case $OS_NAME in
- 	OpenBSD)
--		echo -e "#define OS_URL\t\"http://www.openbsd.org/\"" >> ${CONFIGFILE}
- 		MAJORVER=`echo $OS_VERSION | sed 's/\.[0-9]*//'`
- 		#echo "OpenBSD majorversion=$MAJORVER"
- 		# rtableid was introduced in OpenBSD 4.0
- 		if [ $MAJORVER -ge 4 ]; then
- 			echo "#define PFRULE_HAS_RTABLEID" >> ${CONFIGFILE}
- 		fi
-+		OS_URL=http://www.openbsd.org/
- 		;;
- 	FreeBSD)
--		echo -e "#define OS_URL\t\"http://www.freebsd.org/\"" >> ${CONFIGFILE}
-+		OS_URL=http://www.freebsd.org/
-+		;;
-+	pfSense)
-+		OS_URL=http://www.pfsense.com/
- 		;;
- 	NetBSD)
--		echo -e "#define OS_URL\t\"http://www.netbsd.org/\"" >> ${CONFIGFILE}
-+		OS_URL=http://www.netbsd.org/
-+		;;
-+	Debian)
-+		OS_URL=http://www.debian.org/
- 		;;
- 	Linux)
--		echo -e "#define OS_URL\t\"http://www.kernel.org/\"" >> ${CONFIGFILE}
-+		OS_URL=http://www.kernel.org/
- 		;;
- 	*)
- 		echo "Unknown OS : $OS_NAME"
-@@ -51,6 +73,8 @@
- 		;;
- esac
- 
-+echo -e "#define OS_URL\t\t\"${OS_URL}\"" >> ${CONFIGFILE}
-+
- echo "" >> ${CONFIGFILE}
- echo "#endif" >> ${CONFIGFILE}
- 
-diff -urN ../miniupnpd-clean/upnpdescstrings.h ./upnpdescstrings.h
---- ../miniupnpd-clean/upnpdescstrings.h	2007-02-07 17:58:02.000000000 -0500
-+++ ./upnpdescstrings.h	2007-02-07 19:00:02.000000000 -0500
-@@ -22,7 +22,7 @@
- #define WANDEV_MANUFACTURERURL		"http://miniupnp.free.fr/"
- #define WANDEV_MODELNAME			"WAN Device"
- #define WANDEV_MODELDESCRIPTION		"WAN Device"
--#define WANDEV_MODELNUMBER			"20060207"
-+#define WANDEV_MODELNUMBER			UPNP_VERSION
- #define WANDEV_MODELURL				"http://miniupnp.free.fr/"
- #define WANDEV_UPC					"MINIUPNPD"
- 
-@@ -31,7 +31,7 @@
- #define WANCDEV_MANUFACTURERURL		WANDEV_MANUFACTURERURL
- #define WANCDEV_MODELNAME			"MiniUPnPd"
- #define WANCDEV_MODELDESCRIPTION	"MiniUPnP daemon"
--#define WANCDEV_MODELNUMBER			"20060207"
-+#define WANCDEV_MODELNUMBER			UPNP_VERSION
- #define WANCDEV_MODELURL			"http://miniupnp.free.fr/"
- #define WANCDEV_UPC					"MINIUPNPD"
- 
 diff -urN ../miniupnpd-clean/upnpglobalvars.h ./upnpglobalvars.h
---- ../miniupnpd-clean/upnpglobalvars.h	2007-02-07 17:58:02.000000000 -0500
-+++ ./upnpglobalvars.h	2007-02-07 19:07:44.000000000 -0500
-@@ -39,7 +39,7 @@
- extern char uuidvalue[];
+--- ../miniupnpd-clean/upnpglobalvars.h	2007-03-18 06:31:50.000000000 -0400
++++ ./upnpglobalvars.h	2007-05-19 22:44:18.979125000 -0400
+@@ -41,7 +41,7 @@
+ #define SERIALNUMBER_MAX_LEN (10)
  extern char serialnumber[];
  
--#define MODELNUMBER_LEN (8)
-+#define MODELNUMBER_LEN (32)
+-#define MODELNUMBER_MAX_LEN (32)
++#define MODELNUMBER_MAX_LEN (48)
  extern char modelnumber[];
  
- #define PRESENTATIONURL_LEN (32)
+ #define PRESENTATIONURL_MAX_LEN (64)
