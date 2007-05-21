@@ -10,6 +10,7 @@ fixup_libmap() {
 }
 
 recompile_pfPorts() {
+	if [ "$pfSense_version" = "7" ]; then
 		echo "===> Compiling pfPorts..."
 		if [ -f /etc/make.conf ]; then
 			mv /etc/make.conf /tmp/
@@ -48,6 +49,7 @@ recompile_pfPorts() {
         if [ -f /tmp/make.conf ]; then
         	mv /tmp/make.conf /etc/
         fi
+	fi
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
