@@ -173,9 +173,6 @@ populate_extra() {
 	    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
 	    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
 	    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
-	fi
-
-	if [ "$pfSense_version" = "7" ]; then
 
 		# Populate newer binaries if they exist from host
 		FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
