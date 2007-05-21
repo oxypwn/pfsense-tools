@@ -175,22 +175,25 @@ populate_extra() {
 	    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
 	fi
 
-	# Populate newer binaries if they exist from host
-	FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
-	NEEDEDLIBS="`ldd /usr/sbin/syslogd | grep "=>" | awk '{ print $3 }'`"
-	for TEMPFILE in $FOUND_FILES; do
-		if [ -f /$TEMPFILE ]; then 
-			echo "**** cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
-			cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
-			NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"
-		fi
-	done
-	NEEDEDLIBS="$NEEDEDLIBS `ldd /usr/sbin/clog | grep "=>" | awk '{ print $3 }'`"
-	for NEEDLIB in $NEEDEDLIBS; do
-		echo ">>>> Installing $NEEDLIB..."
-		install $NEEDLIB ${CVS_CO_DIR}
-	done	
-	
+	if [ "$pfSense_version" = "7" ]; then
+
+		# Populate newer binaries if they exist from host
+		FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
+		NEEDEDLIBS="`ldd /usr/sbin/syslogd | grep "=>" | awk '{ print $3 }'`"
+		for TEMPFILE in $FOUND_FILES; do
+			if [ -f /$TEMPFILE ]; then 
+				echo "**** cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
+				cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
+				NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"
+			fi
+		done
+		NEEDEDLIBS="$NEEDEDLIBS `ldd /usr/sbin/clog | grep "=>" | awk '{ print $3 }'`"
+		for NEEDLIB in $NEEDEDLIBS; do
+			echo ">>>> Installing $NEEDLIB..."
+			install $NEEDLIB ${CVS_CO_DIR}
+		done	
+	fi
+
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
