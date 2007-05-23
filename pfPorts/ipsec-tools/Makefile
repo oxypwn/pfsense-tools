@@ -2,7 +2,7 @@
 # Date created:		20 dec 2004
 # Whom:			vanhu
 #
-# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.13 2006/06/16 16:02:54 pav Exp $
+# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.16 2007/04/07 04:23:27 clsung Exp $
 
 # TODO: - libipsec issue ?
 #       - cleanup...
@@ -10,10 +10,9 @@
 #       - $LOCALBASE/sbin/setkey Vs /usr/sbin/setkey
 
 PORTNAME=	ipsec-tools
-PORTVERSION=	0.6.6
+PORTVERSION=	0.6.7
 CATEGORIES=	security
-MASTER_SITES=	${MASTER_SITE_SOURCEFORGE}
-MASTER_SITE_SUBDIR=	ipsec-tools
+MASTER_SITES=	SF
 
 MAINTAINER=	vanhu@netasq.com
 COMMENT=	KAME racoon IKE daemon, ipsec-tools version
@@ -24,8 +23,9 @@ USE_RC_SUBR=	racoon.sh
 USE_OPENSSL=	yes
 USE_BZIP2=	yes
 
+USE_AUTOTOOLS=	libtool:15
 GNU_CONFIGURE=	yes
-INSTALLS_SHLIB=	yes
+USE_LDCONFIG=	yes
 CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 CONFIGURE_ARGS=	--enable-shared --sysconfdir=${PREFIX}/etc/racoon \
 		--localstatedir=${STATEDIR:S/\/racoon//} \
@@ -41,6 +41,7 @@ OPTIONS=	DEBUG		"enable Debug support" on \
 		STATS		"enable Statistics logging function" off \
 		DPD		"enable Dead Peer Detection" on \
 		NATT		"enable NAT-Traversal (kernel-patch required)" on \
+		NATTF		"require NAT-Traversal (fail without kernel-patch)" off \
 		FRAG		"enable IKE fragmentation payload support" on \
 		HYBRID		"enable Hybrid Mode-cfg and Xauth support" off \
 		PAM		"enable PAM authentication" off \
@@ -88,7 +89,15 @@ CONFIGURE_ARGS+=	--enable-dpd
 CONFIGURE_ARGS+=	--disable-dpd
 .endif
 
+.ifdef(WITH_NATT)
+.	ifdef(WITH_NATTF)
+CONFIGURE_ARGS+=	--enable-natt=yes
+.	else
+CONFIGURE_ARGS+=	--enable-natt=kernel
+.	endif
+.else
 CONFIGURE_ARGS+=	--disable-natt
+.endif
 
 .ifdef(WITH_FRAG)
 CONFIGURE_ARGS+=	--enable-frag
