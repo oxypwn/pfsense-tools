@@ -1,12 +1,12 @@
 diff -urN ../miniupnpd-clean/genconfig.sh ./genconfig.sh
 --- ../miniupnpd-clean/genconfig.sh	2007-03-18 06:31:48.000000000 -0400
-+++ ./genconfig.sh	2007-05-19 22:38:50.000000000 -0400
++++ ./genconfig.sh	2007-05-22 20:58:08.401000000 -0400
 @@ -11,9 +11,9 @@
  CONFIGMACRO="__CONFIG_H__"
  
  # version reported in XML descritptions
 -UPNP_VERSION=20070228
-+UPNP_VERSION=20070412
++UPNP_VERSION=20070521
  # Facility to syslog
 -LOG_MINIUPNPD="LOG_DAEMON"
 +LOG_MINIUPNPD="LOG_USER"
@@ -15,7 +15,7 @@ diff -urN ../miniupnpd-clean/genconfig.sh ./genconfig.sh
  OS_NAME=`uname -s`
 diff -urN ../miniupnpd-clean/upnpglobalvars.h ./upnpglobalvars.h
 --- ../miniupnpd-clean/upnpglobalvars.h	2007-03-18 06:31:50.000000000 -0400
-+++ ./upnpglobalvars.h	2007-05-19 22:44:18.979125000 -0400
++++ ./upnpglobalvars.h	2007-05-22 20:57:18.000000000 -0400
 @@ -41,7 +41,7 @@
  #define SERIALNUMBER_MAX_LEN (10)
  extern char serialnumber[];
