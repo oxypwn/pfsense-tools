@@ -89,15 +89,7 @@ CONFIGURE_ARGS+=	--enable-dpd
 CONFIGURE_ARGS+=	--disable-dpd
 .endif
 
-.ifdef(WITH_NATT)
-.	ifdef(WITH_NATTF)
-CONFIGURE_ARGS+=	--enable-natt=yes
-.	else
-CONFIGURE_ARGS+=	--enable-natt=kernel
-.	endif
-.else
 CONFIGURE_ARGS+=	--disable-natt
-.endif
 
 .ifdef(WITH_FRAG)
 CONFIGURE_ARGS+=	--enable-frag
