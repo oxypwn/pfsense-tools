@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sbin/ifconfig/Makefile,v
 retrieving revision 1.29
 diff -u -p -r1.29 Makefile
 --- sbin/ifconfig/Makefile	5 Jun 2005 03:32:51 -0000	1.29
-+++ sbin/ifconfig/Makefile	16 May 2007 04:12:14 -0000
++++ sbin/ifconfig/Makefile	25 May 2007 04:37:28 -0000
 @@ -27,6 +27,7 @@ SRCS+=	ifcarp.c		# SIOC[GS]VH support
  SRCS+=	ifpfsync.c		# pfsync(4) support
  
@@ -16,21 +16,12 @@ diff -u -p -r1.29 Makefile
 Index: sbin/ifconfig/ifconfig.8
 ===================================================================
 RCS file: /home/ncvs/src/sbin/ifconfig/ifconfig.8,v
-retrieving revision 1.95.2.23
-diff -u -p -r1.95.2.23 ifconfig.8
---- sbin/ifconfig/ifconfig.8	1 Apr 2007 02:09:47 -0000	1.95.2.23
-+++ sbin/ifconfig/ifconfig.8	16 May 2007 04:16:59 -0000
-@@ -28,7 +28,7 @@
- .\"     From: @(#)ifconfig.8	8.3 (Berkeley) 1/5/94
- .\" $FreeBSD$
- .\"
--.Dd February 4, 2007
-+.Dd May 16, 2007
- .Dt IFCONFIG 8
- .Os
- .Sh NAME
-@@ -1306,6 +1306,23 @@ cost to 0.
- The minimum is 1 and the maximum is 200000000.
+retrieving revision 1.95.2.17
+diff -u -p -r1.95.2.17 ifconfig.8
+--- sbin/ifconfig/ifconfig.8	3 Nov 2006 09:14:24 -0000	1.95.2.17
++++ sbin/ifconfig/ifconfig.8	25 May 2007 04:37:28 -0000
+@@ -1245,6 +1245,23 @@ The default is 55.
+ The minimum is 0 and the maximum is 65535.
  .El
  .Pp
 +The following parameters are specific to lagg interfaces:
@@ -58,7 +49,7 @@ Index: sbin/ifconfig/iflagg.c
 RCS file: sbin/ifconfig/iflagg.c
 diff -N sbin/ifconfig/iflagg.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sbin/ifconfig/iflagg.c	16 May 2007 04:11:37 -0000
++++ sbin/ifconfig/iflagg.c	25 May 2007 04:37:28 -0000
 @@ -0,0 +1,153 @@
 +/*-
 + */
@@ -216,11 +207,11 @@ diff -N sbin/ifconfig/iflagg.c
 Index: share/man/man4/Makefile
 ===================================================================
 RCS file: /home/ncvs/src/share/man/man4/Makefile,v
-retrieving revision 1.320.2.29
-diff -u -p -r1.320.2.29 Makefile
---- share/man/man4/Makefile	15 May 2007 20:49:10 -0000	1.320.2.29
-+++ share/man/man4/Makefile	16 May 2007 04:18:41 -0000
-@@ -136,6 +136,7 @@ MAN=	aac.4 \
+retrieving revision 1.320.2.20.2.1
+diff -u -p -r1.320.2.20.2.1 Makefile
+--- share/man/man4/Makefile	27 Nov 2006 21:45:59 -0000	1.320.2.20.2.1
++++ share/man/man4/Makefile	25 May 2007 04:37:28 -0000
+@@ -135,6 +135,7 @@ MAN=	aac.4 \
  	kld.4 \
  	ktr.4 \
  	kue.4 \
@@ -228,7 +219,7 @@ diff -u -p -r1.320.2.29 Makefile
  	le.4 \
  	led.4 \
  	lge.4 \
-@@ -452,6 +453,7 @@ MLINKS+=ipfirewall.4 ipaccounting.4 \
+@@ -442,6 +443,7 @@ MLINKS+=ipfirewall.4 ipaccounting.4 \
  MLINKS+=ipw.4 if_ipw.4
  MLINKS+=iwi.4 if_iwi.4
  MLINKS+=kue.4 if_kue.4
@@ -241,7 +232,7 @@ Index: share/man/man4/lagg.4
 RCS file: share/man/man4/lagg.4
 diff -N share/man/man4/lagg.4
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ share/man/man4/lagg.4	15 May 2007 08:30:33 -0000
++++ share/man/man4/lagg.4	25 May 2007 04:37:28 -0000
 @@ -0,0 +1,174 @@
 +.\"	$OpenBSD: trunk.4,v 1.18 2006/06/09 13:53:34 jmc Exp $
 +.\"
@@ -420,11 +411,11 @@ diff -N share/man/man4/lagg.4
 Index: sys/conf/NOTES
 ===================================================================
 RCS file: /home/ncvs/src/sys/conf/NOTES,v
-retrieving revision 1.1325.2.31
-diff -u -p -r1.1325.2.31 NOTES
---- sys/conf/NOTES	13 May 2007 21:12:32 -0000	1.1325.2.31
-+++ sys/conf/NOTES	16 May 2007 04:20:24 -0000
-@@ -666,6 +666,7 @@ device		ppp			#Point-to-point protocol
+retrieving revision 1.1325.2.24
+diff -u -p -r1.1325.2.24 NOTES
+--- sys/conf/NOTES	21 Oct 2006 05:28:50 -0000	1.1325.2.24
++++ sys/conf/NOTES	25 May 2007 04:37:28 -0000
+@@ -661,6 +661,7 @@ device		ppp			#Point-to-point protocol
  options 	PPP_BSDCOMP		#PPP BSD-compress support
  options 	PPP_DEFLATE		#PPP zlib/deflate/gzip support
  options 	PPP_FILTER		#enable bpf filtering (needs bpf)
@@ -435,11 +426,11 @@ diff -u -p -r1.1325.2.31 NOTES
 Index: sys/conf/files
 ===================================================================
 RCS file: /home/ncvs/src/sys/conf/files,v
-retrieving revision 1.1031.2.58
-diff -u -p -r1.1031.2.58 files
---- sys/conf/files	13 May 2007 21:11:39 -0000	1.1031.2.58
-+++ sys/conf/files	16 May 2007 04:19:54 -0000
-@@ -1449,6 +1449,7 @@ net/bpf_filter.c		optional netgraph_bpf
+retrieving revision 1.1031.2.45
+diff -u -p -r1.1031.2.45 files
+--- sys/conf/files	21 Oct 2006 05:28:50 -0000	1.1031.2.45
++++ sys/conf/files	25 May 2007 04:37:28 -0000
+@@ -1426,6 +1426,7 @@ net/bpf_filter.c		optional netgraph_bpf
  net/bridge.c			optional bridge
  net/bridgestp.c			optional if_bridge
  net/bsd_comp.c			optional ppp_bsdcomp
@@ -447,7 +438,7 @@ diff -u -p -r1.1031.2.58 files
  net/if.c			standard
  net/if_arcsubr.c		optional arcnet
  net/if_atmsubr.c		optional atm
-@@ -1465,6 +1466,7 @@ net/if_fwsubr.c			optional fwip
+@@ -1441,6 +1442,7 @@ net/if_fwsubr.c			optional fwip
  net/if_gif.c			optional gif
  net/if_gre.c			optional gre
  net/if_iso88025subr.c		optional token
@@ -458,11 +449,11 @@ diff -u -p -r1.1031.2.58 files
 Index: sys/modules/Makefile
 ===================================================================
 RCS file: /home/ncvs/src/sys/modules/Makefile,v
-retrieving revision 1.450.2.30
-diff -u -p -r1.450.2.30 Makefile
---- sys/modules/Makefile	21 Apr 2007 13:01:04 -0000	1.450.2.30
-+++ sys/modules/Makefile	16 May 2007 19:22:49 -0000
-@@ -110,6 +110,7 @@ SUBDIR=	${_3dfx} \
+retrieving revision 1.450.2.25
+diff -u -p -r1.450.2.25 Makefile
+--- sys/modules/Makefile	4 Sep 2006 06:14:57 -0000	1.450.2.25
++++ sys/modules/Makefile	25 May 2007 04:37:28 -0000
+@@ -108,6 +108,7 @@ SUBDIR=	${_3dfx} \
  	if_faith \
  	if_gif \
  	if_gre \
@@ -475,7 +466,7 @@ Index: sys/modules/if_lagg/Makefile
 RCS file: sys/modules/if_lagg/Makefile
 diff -N sys/modules/if_lagg/Makefile
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/modules/if_lagg/Makefile	15 May 2007 08:28:58 -0000
++++ sys/modules/if_lagg/Makefile	25 May 2007 04:37:28 -0000
 @@ -0,0 +1,17 @@
 +# $FreeBSD$
 +
@@ -497,11 +488,11 @@ diff -N sys/modules/if_lagg/Makefile
 Index: sys/net/ethernet.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/ethernet.h,v
-retrieving revision 1.24.2.2
-diff -u -p -r1.24.2.2 ethernet.h
---- sys/net/ethernet.h	1 Mar 2007 17:32:28 -0000	1.24.2.2
-+++ sys/net/ethernet.h	16 May 2007 01:44:14 -0000
-@@ -316,6 +316,7 @@ CTASSERT(sizeof (struct ether_addr) == E
+retrieving revision 1.24
+diff -u -p -r1.24 ethernet.h
+--- sys/net/ethernet.h	5 Oct 2004 19:28:52 -0000	1.24
++++ sys/net/ethernet.h	25 May 2007 04:37:28 -0000
+@@ -311,6 +311,7 @@ struct	ether_addr {
  #define	ETHERTYPE_IPAS		0x876C	/* IP Autonomous Systems (RFC1701) */
  #define	ETHERTYPE_SECUREDATA	0x876D	/* Secure Data (RFC1701) */
  #define	ETHERTYPE_FLOWCONTROL	0x8808	/* 802.3x flow control packet */
@@ -514,8 +505,8 @@ Index: sys/net/ieee8023ad_lacp.c
 RCS file: sys/net/ieee8023ad_lacp.c
 diff -N sys/net/ieee8023ad_lacp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/net/ieee8023ad_lacp.c	17 May 2007 00:00:48 -0000
-@@ -0,0 +1,1768 @@
++++ sys/net/ieee8023ad_lacp.c	25 May 2007 04:46:22 -0000
+@@ -0,0 +1,1776 @@
 +/*	$NetBSD: ieee8023ad_lacp.c,v 1.3 2005/12/11 12:24:54 christos Exp $	*/
 +
 +/*-
@@ -1328,7 +1319,15 @@ diff -N sys/net/ieee8023ad_lacp.c
 +		LACP_DPRINTF((NULL, "%s, speed=%jd, nports=%d\n",
 +		    lacp_format_lagid_aggregator(la, buf, sizeof(buf)),
 +		    speed, la->la_nports));
-+		if (speed > best_speed ||
++
++		/* This aggregator is chosen if
++		 *      the partner has a better system priority
++		 *  or, the total aggregated speed is higher
++		 *  or, it is already the chosen aggregator
++		 */
++		if ((best_la != NULL && LACP_SYS_PRI(la->la_partner) <
++		     LACP_SYS_PRI(best_la->la_partner)) ||
++		    speed > best_speed ||
 +		    (speed == best_speed &&
 +		    la == lsc->lsc_active_aggregator)) {
 +			best_la = la;
@@ -2289,7 +2288,7 @@ Index: sys/net/ieee8023ad_lacp.h
 RCS file: sys/net/ieee8023ad_lacp.h
 diff -N sys/net/ieee8023ad_lacp.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/net/ieee8023ad_lacp.h	15 May 2007 21:59:26 -0000
++++ sys/net/ieee8023ad_lacp.h	25 May 2007 04:37:28 -0000
 @@ -0,0 +1,289 @@
 +/*	$NetBSD: ieee8023ad_impl.h,v 1.2 2005/12/10 23:21:39 elad Exp $	*/
 +
@@ -2583,10 +2582,10 @@ diff -N sys/net/ieee8023ad_lacp.h
 Index: sys/net/if.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/if.c,v
-retrieving revision 1.234.2.18
-diff -u -p -r1.234.2.18 if.c
---- sys/net/if.c	8 Mar 2007 13:15:27 -0000	1.234.2.18
-+++ sys/net/if.c	15 May 2007 08:26:05 -0000
+retrieving revision 1.234.2.17
+diff -u -p -r1.234.2.17 if.c
+--- sys/net/if.c	6 Oct 2006 20:26:05 -0000	1.234.2.17
++++ sys/net/if.c	25 May 2007 04:37:28 -0000
 @@ -95,6 +95,7 @@ SYSCTL_INT(_net_link, OID_AUTO, log_link
  
  void	(*bstp_linkstate_p)(struct ifnet *ifp, int state);
@@ -2595,7 +2594,7 @@ diff -u -p -r1.234.2.18 if.c
  
  struct mbuf *(*tbr_dequeue_ptr)(struct ifaltq *, int) = NULL;
  
-@@ -1133,6 +1134,10 @@ do_link_state_change(void *arg, int pend
+@@ -1119,6 +1120,10 @@ do_link_state_change(void *arg, int pend
  		KASSERT(bstp_linkstate_p != NULL,("if_bridge bstp not loaded!"));
  		(*bstp_linkstate_p)(ifp, link_state);
  	}
@@ -2606,7 +2605,7 @@ diff -u -p -r1.234.2.18 if.c
  
  	devctl_notify("IFNET", ifp->if_xname,
  	    (link_state == LINK_STATE_UP) ? "LINK_UP" : "LINK_DOWN", NULL);
-@@ -2184,6 +2189,7 @@ if_setlladdr(struct ifnet *ifp, const u_
+@@ -2165,6 +2170,7 @@ if_setlladdr(struct ifnet *ifp, const u_
  		 */
  		/* FALLTHROUGH */
  	case IFT_ARCNET:
@@ -2617,10 +2616,10 @@ diff -u -p -r1.234.2.18 if.c
 Index: sys/net/if_ethersubr.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/if_ethersubr.c,v
-retrieving revision 1.193.2.13
-diff -u -p -r1.193.2.13 if_ethersubr.c
---- sys/net/if_ethersubr.c	1 Mar 2007 17:32:28 -0000	1.193.2.13
-+++ sys/net/if_ethersubr.c	15 May 2007 08:17:49 -0000
+retrieving revision 1.193.2.12
+diff -u -p -r1.193.2.12 if_ethersubr.c
+--- sys/net/if_ethersubr.c	28 Aug 2006 02:54:14 -0000	1.193.2.12
++++ sys/net/if_ethersubr.c	25 May 2007 04:37:28 -0000
 @@ -120,6 +120,9 @@ int	(*bridge_output_p)(struct ifnet *, s
  		struct sockaddr *, struct rtentry *);
  void	(*bridge_dn_p)(struct mbuf *, struct ifnet *);
@@ -2654,8 +2653,8 @@ Index: sys/net/if_lagg.c
 RCS file: sys/net/if_lagg.c
 diff -N sys/net/if_lagg.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/net/if_lagg.c	16 May 2007 04:27:43 -0000
-@@ -0,0 +1,1713 @@
++++ sys/net/if_lagg.c	25 May 2007 04:45:38 -0000
+@@ -0,0 +1,1703 @@
 +/*	$OpenBSD: if_trunk.c,v 1.30 2007/01/31 06:20:19 reyk Exp $	*/
 +
 +/*
@@ -3762,13 +3761,15 @@ diff -N sys/net/if_lagg.c
 +			LAGG_LOCK(sc);
 +			error = (*sc->sc_start)(sc, m);
 +			LAGG_UNLOCK(sc);
-+		} else
-+			m_free(m);
++		else
++			m_freem(m);
 +
 +		if (error == 0)
 +			ifp->if_opackets++;
-+		else
++		else {
++			m_freem(m); /* sc_start failed */
 +			ifp->if_oerrors++;
++		}
 +	}
 +
 +	return;
@@ -3794,8 +3795,6 @@ diff -N sys/net/if_lagg.c
 +	m = (*sc->sc_input)(sc, lp, m);
 +
 +	if (m != NULL) {
-+		ifp->if_ipackets++;
-+		ifp->if_ibytes += m->m_pkthdr.len;
 +		trifp->if_ipackets++;
 +		trifp->if_ibytes += m->m_pkthdr.len;
 +	}
@@ -3992,17 +3991,7 @@ diff -N sys/net/if_lagg.c
 +{
 +	int error = 0;
 +
-+	/* Send mbuf */
-+	IFQ_ENQUEUE(&ifp->if_snd, m, error);
-+	if (error)
-+		return (error);
-+	if ((ifp->if_drv_flags & IFF_DRV_OACTIVE) == 0)
-+		(*ifp->if_start)(ifp);
-+
-+	ifp->if_obytes += m->m_pkthdr.len;
-+	if (m->m_flags & M_MCAST)
-+		ifp->if_omcasts++;
-+
++	IFQ_HANDOFF(ifp, m, error);
 +	return (error);
 +}
 +
@@ -4374,7 +4363,7 @@ Index: sys/net/if_lagg.h
 RCS file: sys/net/if_lagg.h
 diff -N sys/net/if_lagg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/net/if_lagg.h	16 May 2007 03:53:22 -0000
++++ sys/net/if_lagg.h	25 May 2007 04:37:28 -0000
 @@ -0,0 +1,221 @@
 +/*	$OpenBSD: if_trunk.h,v 1.11 2007/01/31 06:20:19 reyk Exp $	*/
 +
@@ -4603,7 +4592,7 @@ RCS file: /home/ncvs/src/sys/net/if_var.h,v
 retrieving revision 1.98.2.6
 diff -u -p -r1.98.2.6 if_var.h
 --- sys/net/if_var.h	6 Oct 2006 20:26:05 -0000	1.98.2.6
-+++ sys/net/if_var.h	15 May 2007 08:22:53 -0000
++++ sys/net/if_var.h	25 May 2007 04:37:28 -0000
 @@ -158,7 +158,7 @@ struct ifnet {
  		(void *);
  	int	(*if_resolvemulti)	/* validate/resolve multicast */
