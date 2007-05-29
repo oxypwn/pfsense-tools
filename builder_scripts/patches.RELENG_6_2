@@ -13,4 +13,3 @@
 ~sys/net/~if_enc.c.diff~
 ~~ng_fec_vlan.diff~
 ~~if_lagg.diff~
-~sys/boot~boot.patch~
