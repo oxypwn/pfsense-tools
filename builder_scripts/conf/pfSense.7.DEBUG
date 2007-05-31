@@ -428,3 +428,5 @@ device firmware
 options   ACCEPT_FILTER_HTTP
 
 
+device          lagg
+
