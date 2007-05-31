@@ -187,7 +187,7 @@ populate_extra() {
 		NEEDEDLIBS="$NEEDEDLIBS `ldd /usr/sbin/clog | grep "=>" | awk '{ print $3 }'`"
 		for NEEDLIB in $NEEDEDLIBS; do
 			echo ">>>> Installing $NEEDLIB..."
-			install $NEEDLIB ${CVS_CO_DIR}
+			install $NEEDLIB ${CVS_CO_DIR}/lib/
 		done	
 	fi
 
