@@ -213,6 +213,35 @@ populate_extra() {
 			echo " file not found $custom_overlay"
 		fi
 	fi
+	
+	# Test for pfSense_version & PFSENSETAG on 7.X & HEAD
+	if [ $pfSense_version = "7" && PFSENSETAG = "-HEAD" ]; then
+	# Extract FreeBSD 7.x custom overlay if it's defined as HEAD.
+        if [ ! -z "${7_HEAD_custom_overlay:-}" ]; then
+                echo -n "FreeBSD 7.x HEAD Custom overlay defined - "
+                if [ -d $7_HEAD_custom_overlay ]; then
+                        echo "found directory, copying..."
+                        for i in $7_HEAD_custom_overlay/*
+                        do
+                            if [ -d $i ]; then
+                                echo "copying dir: $i ..."
+                                cp -R $i $CVS_CO_DIR
+                            else
+                                echo "copying file: $i ..."
+                                cp $i $CVS_CO_DIR
+                            fi
+                        done
+                elif [ -f $7_HEAD_custom_overlay ]; then
+                        echo "found file, extracting..."
+                        tar xzpf $7_HEAD_custom_overlay -C $CVS_CO_DIR
+                else
+                        echo " file not found $7_HEAD_custom_overlay"
+                fi
+        fi
+
+            fi
+
+
 
 	fixup_libmap
 
