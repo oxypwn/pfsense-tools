@@ -190,11 +190,9 @@ SUB_LIST+=	NOLOGIN=/usr/sbin/nologin
 .else
 SUB_LIST+=	NOLOGIN=/sbin/nologin
 .endif
-.if !defined(WITHOUT_DHCP_PARANOIA)
+
 SUB_LIST+=	PARANOIA=YES
-.else
-SUB_LIST+=	PARANOIA=NO
-.endif
+
 .if !defined(WITHOUT_DHCP_JAIL)
 SUB_LIST+=	JAIL=YES
 .else
