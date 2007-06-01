@@ -2655,7 +2655,7 @@ Index: sys/net/if_lagg.c
 RCS file: sys/net/if_lagg.c
 diff -N sys/net/if_lagg.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/net/if_lagg.c	25 May 2007 04:45:38 -0000
++++ sys/net/if_lagg.c	1 Jun 2007 01:40:47 -0000
 @@ -0,0 +1,1703 @@
 +/*	$OpenBSD: if_trunk.c,v 1.30 2007/01/31 06:20:19 reyk Exp $	*/
 +
@@ -3763,7 +3763,7 @@ diff -N sys/net/if_lagg.c
 +			LAGG_LOCK(sc);
 +			error = (*sc->sc_start)(sc, m);
 +			LAGG_UNLOCK(sc);
-+		else
++		} else
 +			m_freem(m);
 +
 +		if (error == 0)
