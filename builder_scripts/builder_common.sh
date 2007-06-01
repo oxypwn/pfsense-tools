@@ -30,7 +30,28 @@ recompile_pfPorts() {
         mtree -PUer -q -p $pfSDESTINATIONDIR/usr/local < /etc/mtree/BSD.local.dist		
         rm /home/pfsense/tools/pfPorts/isc-dhcp3-server/files/patch-server::dhcpd.c
         export FORCE_PKG_REGISTER=yo
+	if [ "$PFSENSETAG" = "HEAD" ]; then
+		echo "===> Setting pfPorts to HEAD pfPorts..."
+	for pfSPORT in $INSTALL_PORTS_HEAD; do
+                echo "===> Build Process for Compiling pfPorts ..."
+                echo > /etc/make.conf
+                COMPILE_STATIC=""
+                for STATIC in $STATIC_INSTALL_PORTS; do
+                        if [ "$STATIC" = "$pfSPORT" ]; then
+                                echo 'CFLAGS="-static"' >  /etc/make.conf
+                                echo "===> $STATIC is marked for static compilation..."
+                        fi
+	done
+            echo "===> Operating on $pfSPORT..."
+            (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo $COMPILE_STATIC)
+            echo "===> Installing new port..."
+            (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+        done
+	elif
+	if [ "$PFSENSETAG" = "RELENG_1" ]; then
+		echo "===> Setting pfPorts to RELENG_1 pfPorts..."
         for pfSPORT in $INSTALL_PORTS; do
+		echo "===> Build Process for Compiling pfPorts ..."
         	echo > /etc/make.conf
         	COMPILE_STATIC=""
         	for STATIC in $STATIC_INSTALL_PORTS; do
@@ -50,8 +71,10 @@ recompile_pfPorts() {
         	mv /tmp/make.conf /etc/
         fi
 	fi
+	then
+fi
+fi
 }
-
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
     # Make devd
@@ -611,5 +634,3 @@ make_world_kernel() {
 
     freesbie_make installkernel installworld
 }
-
-

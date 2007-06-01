@@ -52,7 +52,7 @@ MAKEJ=" "
 
 # FreeBSD version.  6 or 7
 export pfSense_version="6"
-export freebsd_branch="RELENG_6_2"
+export freebsd_branch="RELENG_6"
 
 # Used by non pfSense developers
 export SKIP_RSYNC=yes
@@ -66,7 +66,10 @@ export SKIP_RSYNC=yes
 # export custom_overlay="/home/pfsense/custom_overlay.tgz"
 
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
+
+export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx pfPorts/clog pfPorts/fping pfPorts/links"
                    
-export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/libevent pfPorts/pftpx pfPorts/clog pfPorts/fping pfPorts/links"
+export INSTALL_PORTS_HEAD="pfPorts/isc-dhcp3-server pfPorts/php5-pfsense pfPorts/xcache pfPorts/libevent13 pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx pfPorts/clog pfPorts/fping"
+
 export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
 
