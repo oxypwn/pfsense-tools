@@ -2,19 +2,18 @@
 # Date created:				20 June 2001
 # Whom:					Pete Fritchman <petef@databits.net>
 #
-# $FreeBSD: ports/devel/libevent/Makefile,v 1.30 2007/02/01 02:41:27 kris Exp $
+# $FreeBSD: ports/devel/libevent/Makefile,v 1.31 2007/04/06 18:27:07 mnag Exp $
 #
 
 PORTNAME=	libevent
-PORTVERSION=	1.2a
+PORTVERSION=	1.3b
 CATEGORIES=	devel
 MASTER_SITES=	http://monkey.org/~provos/
 
 MAINTAINER=	mnag@FreeBSD.org
 COMMENT=	Provides an API to execute callback functions on certain events
 
-USE_AUTOTOOLS=	libtool:15
-USE_GETOPT_LONG=yes
+CONFIGURE_ARGS=	--mandir=${MANPREFIX}/man
 GNU_CONFIGURE=	yes
 USE_LDCONFIG=	yes
 
