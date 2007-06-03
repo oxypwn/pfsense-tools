@@ -6,7 +6,7 @@
 #
 
 PORTNAME=		php5
-PORTVERSION=		5.2.2
+PORTVERSION=		5.2.3
 CATEGORIES?=		lang devel www
 MASTER_SITES=   	${MASTER_SITE_PHP:S,$,:release,} \
 			http://downloads.php.net/ilia/:release \
@@ -75,7 +75,7 @@ CONFIGURE_ARGS=	--with-config-file-path=${LOCALBASE}/lib \
 
 USE_GNOME=	libxml2
 
-OPTIONS=	SUHOSIN "Enable Suhosin protection system" off \
+OPTIONS=	SUHOSIN "Enable Suhosin protection system" on \
 		DEBUG "Enable debug" off \
 		IPV6 "Enable ipv6 support" on
 
@@ -85,13 +85,15 @@ MAN1=		php-config.1 phpize.1
 
 .include <bsd.port.pre.mk>
 
-.if !defined(WITHOUT_SUHOSIN)
-PATCHFILES=		suhosin-patch-${PORTVERSION}-0.9.6.2.patch.gz
-PATCH_SITES=		http://www.hardened-php.net/suhosin/_media/
 PATCH_DIST_STRIP=	-p1
-PLIST_SUB+=		SUHOSIN=""
+
+.if !defined(WITHOUT_SUHOSIN)
+PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.6.2.patch.gz:suhosin
+PATCH_SITES+=	http://www.hardened-php.net/suhosin/_media/:suhosin \
+		${MASTER_SITE_LOCAL:S/%SUBDIR%\//erwin\/:suhosin/}
+PLIST_SUB+=	SUHOSIN=""
 .else
-PLIST_SUB+=		SUHOSIN="@comment "
+PLIST_SUB+=	SUHOSIN="@comment "
 .endif
 
 PHP_SAPI=	cgi
@@ -132,7 +134,7 @@ post-install:
 # TODO: This is a hack. It installs the PHP binary to /usr/local/bin
 #       cause for some reason it will be build by the PHP distribution
 #       but not installed.
-	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php ${PREFIX}/bin
+#	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php ${PREFIX}/bin
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-dist ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc

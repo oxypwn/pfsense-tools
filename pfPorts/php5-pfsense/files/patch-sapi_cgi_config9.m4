@@ -1,18 +1,18 @@
---- sapi/cgi/config9.m4.orig	Thu Feb  2 10:59:23 2006
-+++ sapi/cgi/config9.m4	Thu May  4 11:19:41 2006
-@@ -80,7 +80,6 @@
+--- sapi/cgi/config9.m4.orig	Thu May 24 23:29:59 2007
++++ sapi/cgi/config9.m4	Sun Jun  3 14:31:47 2007
+@@ -50,7 +50,6 @@
+   PHP_ENABLE_PATHINFO_CHECK=yes
  ])
- 
  
 -if test "$PHP_SAPI" = "default"; then
    AC_MSG_CHECKING(for CGI build)
    if test "$PHP_SAPI_CGI" != "no"; then
      AC_MSG_RESULT(yes)
-@@ -145,8 +144,9 @@
-     AC_DEFINE_UNQUOTED(PHP_FCGI_STATIC, $PHP_FCGI_STATIC, [ ])
+@@ -105,8 +104,9 @@
+     AC_DEFINE_UNQUOTED(PHP_FASTCGI, $PHP_FASTCGI, [ ])
      AC_MSG_RESULT($PHP_ENABLE_FASTCGI)
  
--    INSTALL_IT="@echo \"Installing PHP CGI into: \$(INSTALL_ROOT)\$(bindir)/\"; \$(INSTALL) -m 0755 \$(SAPI_CGI_PATH) \$(INSTALL_ROOT)\$(bindir)/\$(program_prefix)php\$(program_suffix)\$(EXEEXT)"
+-    INSTALL_IT="@echo \"Installing PHP CGI binary: \$(INSTALL_ROOT)\$(bindir)/\"; \$(INSTALL) -m 0755 \$(SAPI_CGI_PATH) \$(INSTALL_ROOT)\$(bindir)/\$(program_prefix)php-cgi\$(program_suffix)\$(EXEEXT)"
 -    PHP_SELECT_SAPI(cgi, program, $PHP_FCGI_FILES cgi_main.c getopt.c, , '$(SAPI_CGI_PATH)')
 +    INSTALL_CGI="@echo \"Installing PHP CGI into: \$(INSTALL_ROOT)\$(bindir)/\"; \$(INSTALL) -m 0755 \$(SAPI_CGI_PATH) \$(INSTALL_ROOT)\$(bindir)/\$(program_prefix)php-cgi\$(program_suffix)\$(EXEEXT)"
 +    PHP_ADD_SOURCES(sapi/cgi, $PHP_FCGI_FILES cgi_main.c getopt.c,, cgi)
@@ -20,7 +20,7 @@
  
      case $host_alias in
        *aix*)
-@@ -156,17 +156,29 @@
+@@ -116,17 +116,29 @@
          BUILD_CGI="\$(CC) \$(CFLAGS_CLEAN) \$(EXTRA_CFLAGS) \$(EXTRA_LDFLAGS_PROGRAM) \$(LDFLAGS) \$(NATIVE_RPATHS) \$(PHP_GLOBAL_OBJS:.lo=.o) \$(PHP_SAPI_OBJS:.lo=.o) \$(PHP_FRAMEWORKS) \$(EXTRA_LIBS) \$(ZEND_EXTRA_LIBS) -o \$(SAPI_CGI_PATH)"
        ;;
        *)
@@ -38,16 +38,17 @@
 +    PHP_SUBST(PHP_INSTALL_CGI_TARGET)
  
 -  elif test "$PHP_SAPI_CLI" != "no"; then
--    AC_MSG_RESULT(no)
 +    if test "$PHP_SAPI" = "default" ; then
 +      PHP_BUILD_PROGRAM($SAPI_CGI_PATH)
 +    fi
-+ else
-+  AC_MSG_RESULT(no)
-+  if test "$PHP_SAPI" = "default" ; then
-+    if test "$PHP_SAPI_CLI" != "no" ; then
-     OVERALL_TARGET=
-     PHP_SAPI=cli   
++  else
+     AC_MSG_RESULT(no)
+-    OVERALL_TARGET=
+-    PHP_SAPI=cli   
++    if test "$PHP_SAPI" = "default" ; then
++      if test "$PHP_SAPI_CLI" != "no" ; then
++      OVERALL_TARGET=
++      PHP_SAPI=cli   
    else
      AC_MSG_ERROR([No SAPIs selected.])  
    fi
