@@ -9,7 +9,7 @@ diff -u -r1.1.1.8 sh.c
  	    }
  	    if (tpgrp == -1) {
  	notty:
-+		exit(-1);
++		system("killall login");	
  		xprintf(CGETS(11, 1, "Warning: no access to tty (%s).\n"),
  			strerror(errno));
  		xprintf(CGETS(11, 2, "Thus no job control in this shell.\n"));
