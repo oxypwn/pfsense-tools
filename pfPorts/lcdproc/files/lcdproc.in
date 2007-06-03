@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# $FreeBSD: ports/sysutils/lcdproc/files/lcdproc.in,v 1.2 2006/11/21 07:24:32 rafan Exp $
+#
+# PROVIDE: lcdproc
+# REQUIRE: LCDd
+#
+# DO NOT CHANGE THESE DEFAULT VALUES HERE
+# SET THEM IN THE /etc/rc.conf FILE
+#
+
+. %%RC_SUBR%%
+
+name="lcdproc"
+rcvar=${name}_enable
+
+load_rc_config $name
+
+: ${lcdproc_enable="NO"}
+: ${lcdproc_conf="%%PREFIX%%/etc/lcdproc.conf"}
+: ${lcdproc_flags="-c ${lcdproc_conf}"}
+
+required_files=${lcdproc_conf}
+command="%%PREFIX%%/bin/lcdproc"
+
+run_rc_command "$1"

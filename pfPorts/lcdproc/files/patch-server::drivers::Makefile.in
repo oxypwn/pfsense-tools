@@ -1,0 +1,47 @@
+--- server/drivers/Makefile.in.orig	Fri Apr 27 10:40:28 2007
++++ server/drivers/Makefile.in	Sun Jun  3 17:36:52 2007
+@@ -396,7 +396,7 @@
+ glcdlib_SOURCES = lcd.h lcd_lib.h glcdlib.h glcdlib.c report.h
+ glk_SOURCES = lcd.h glk.c glk.h glkproto.c glkproto.h report.h
+ hd44780_SOURCES = lcd.h lcd_lib.h hd44780.h hd44780.c hd44780-drivers.h hd44780-low.h hd44780-charmap.h report.h adv_bignum.h
+-EXTRA_hd44780_SOURCES = hd44780-4bit.c hd44780-4bit.h hd44780-ext8bit.c hd44780-ext8bit.h lcd_sem.c lcd_sem.h hd44780-serialLpt.c hd44780-serialLpt.h hd44780-serial.c hd44780-serial.h hd44780-winamp.c hd44780-winamp.h hd44780-bwct-usb.c hd44780-bwct-usb.h hd44780-lcd2usb.c hd44780-lcd2usb.h hd44780-lis2.c hd44780-lis2.h hd44780-i2c.c hd44780-i2c.h port.h lpt-port.h timing.h
++EXTRA_hd44780_SOURCES = hd44780-4bit.c hd44780-4bit.h hd44780-ext8bit.c hd44780-ext8bit.h lcd_sem.c lcd_sem.h hd44780-serialLpt.c hd44780-serialLpt.h hd44780-serial.c hd44780-serial.h hd44780-winamp.c hd44780-winamp.h hd44780-ipc2u.c hd44780-ipc2u.h hd44780-bwct-usb.c hd44780-bwct-usb.h hd44780-lcd2usb.c hd44780-lcd2usb.h hd44780-lis2.c hd44780-lis2.h hd44780-i2c.c hd44780-i2c.h port.h lpt-port.h timing.h
+ icp_a106_SOURCES = lcd.h lcd_lib.h icp_a106.c icp_a106.h report.h
+ imon_SOURCES = lcd.h lcd_lib.h imon.h imon.c report.h
+ IOWarrior_SOURCES = lcd.h lcd_lib.h hd44780-charmap.h IOWarrior.c IOWarrior.h report.h adv_bignum.h
+@@ -648,6 +648,7 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hd44780-hd44780-serial.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hd44780-hd44780-serialLpt.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hd44780-hd44780-winamp.Po@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hd44780-hd44780-ipc2u.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hd44780-hd44780.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hd44780-lcd_sem.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/icp_a106.Po@am__quote@
+@@ -826,12 +827,27 @@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hd44780_CFLAGS) $(CFLAGS) -c -o hd44780-hd44780-winamp.o `test -f 'hd44780-winamp.c' || echo '$(srcdir)/'`hd44780-winamp.c
+ 
++hd44780-hd44780-ipc2u.o: hd44780-ipc2u.c
++@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hd44780_CFLAGS) $(CFLAGS) -MT hd44780-hd44780-ipc2u.o -MD -MP -MF "$(DEPDIR)/hd44780-hd44780-ipc2u.Tpo" -c -o hd44780-hd44780-ipc2u.o `test -f 'hd44780-ipc2u.c' || echo '$(srcdir)/'`hd44780-ipc2u.c; \
++@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/hd44780-hd44780-ipc2u.Tpo" "$(DEPDIR)/hd44780-hd44780-ipc2u.Po"; else rm -f "$(DEPDIR)/hd44780-hd44780-ipc2u.Tpo"; exit 1; fi
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hd44780-ipc2u.c' object='hd44780-hd44780-ipc2u.o' libtool=no @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hd44780_CFLAGS) $(CFLAGS) -c -o hd44780-hd44780-ipc2u.o `test -f 'hd44780-ipc2u.c' || echo '$(srcdir)/'`hd44780-ipc2u.c
++
++
+ hd44780-hd44780-winamp.obj: hd44780-winamp.c
+ @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hd44780_CFLAGS) $(CFLAGS) -MT hd44780-hd44780-winamp.obj -MD -MP -MF "$(DEPDIR)/hd44780-hd44780-winamp.Tpo" -c -o hd44780-hd44780-winamp.obj `if test -f 'hd44780-winamp.c'; then $(CYGPATH_W) 'hd44780-winamp.c'; else $(CYGPATH_W) '$(srcdir)/hd44780-winamp.c'; fi`; \
+ @am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/hd44780-hd44780-winamp.Tpo" "$(DEPDIR)/hd44780-hd44780-winamp.Po"; else rm -f "$(DEPDIR)/hd44780-hd44780-winamp.Tpo"; exit 1; fi
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hd44780-winamp.c' object='hd44780-hd44780-winamp.obj' libtool=no @AMDEPBACKSLASH@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hd44780_CFLAGS) $(CFLAGS) -c -o hd44780-hd44780-winamp.obj `if test -f 'hd44780-winamp.c'; then $(CYGPATH_W) 'hd44780-winamp.c'; else $(CYGPATH_W) '$(srcdir)/hd44780-winamp.c'; fi`
++
++hd44780-hd44780-ipc2u.obj: hd44780-ipc2u.c
++@am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hd44780_CFLAGS) $(CFLAGS) -MT hd44780-hd44780-ipc2u.obj -MD -MP -MF "$(DEPDIR)/hd44780-hd44780-ipc2u.Tpo" -c -o hd44780-hd44780-ipc2u.obj `if test -f 'hd44780-ipc2u.c'; then $(CYGPATH_W) 'hd44780-ipc2u.c'; else $(CYGPATH_W) '$(srcdir)/hd44780-ipc2u.c'; fi`; \
++@am__fastdepCC_TRUE@	then mv -f "$(DEPDIR)/hd44780-hd44780-ipc2u.Tpo" "$(DEPDIR)/hd44780-hd44780-ipc2u.Po"; else rm -f "$(DEPDIR)/hd44780-hd44780-ipc2u.Tpo"; exit 1; fi
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='hd44780-ipc2u.c' object='hd44780-hd44780-ipc2u.obj' libtool=no @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hd44780_CFLAGS) $(CFLAGS) -c -o hd44780-hd44780-ipc2u.obj `if test -f 'hd44780-ipc2u.c'; then $(CYGPATH_W) 'hd44780-ipc2u.c'; else $(CYGPATH_W) '$(srcdir)/hd44780-ipc2u.c'; fi`
+ 
+ hd44780-hd44780-bwct-usb.o: hd44780-bwct-usb.c
+ @am__fastdepCC_TRUE@	if $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hd44780_CFLAGS) $(CFLAGS) -MT hd44780-hd44780-bwct-usb.o -MD -MP -MF "$(DEPDIR)/hd44780-hd44780-bwct-usb.Tpo" -c -o hd44780-hd44780-bwct-usb.o `test -f 'hd44780-bwct-usb.c' || echo '$(srcdir)/'`hd44780-bwct-usb.c; \
