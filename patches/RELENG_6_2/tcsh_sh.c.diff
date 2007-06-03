@@ -1,0 +1,15 @@
+Index: sh.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/tcsh/sh.c,v
+retrieving revision 1.1.1.8
+diff -u -r1.1.1.8 sh.c
+--- sh.c	24 Apr 2005 19:41:07 -0000	1.1.1.8
++++ sh.c	3 Jun 2007 20:42:25 -0000
+@@ -1216,6 +1216,7 @@
+ 	    }
+ 	    if (tpgrp == -1) {
+ 	notty:
++		exit(-1);
+ 		xprintf(CGETS(11, 1, "Warning: no access to tty (%s).\n"),
+ 			strerror(errno));
+ 		xprintf(CGETS(11, 2, "Thus no job control in this shell.\n"));
