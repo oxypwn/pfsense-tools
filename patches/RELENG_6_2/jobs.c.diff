@@ -1,0 +1,27 @@
+Index: jobs.c
+===================================================================
+RCS file: /home/ncvs/src/bin/sh/jobs.c,v
+retrieving revision 1.68.2.2
+diff -u -r1.68.2.2 jobs.c
+--- jobs.c	12 Jan 2006 05:24:46 -0000	1.68.2.2
++++ jobs.c	3 Jun 2007 01:32:28 -0000
+@@ -763,8 +763,8 @@
+ 				pgrp = jp->ps[0].pid;
+ 			if (setpgid(0, pgrp) == 0 && mode == FORK_FG) {
+ 				/*** this causes superfluous TIOCSPGRPS ***/
+-				if (tcsetpgrp(ttyfd, pgrp) < 0)
+-					error("tcsetpgrp failed, errno=%d", errno);
++				if (tcsetpgrp(ttyfd, pgrp) < 0)	
++					exit(0);
+ 			}
+ 			setsignal(SIGTSTP);
+ 			setsignal(SIGTTOU);
+@@ -868,7 +868,7 @@
+ #if JOBS
+ 	if (jp->jobctl) {
+ 		if (tcsetpgrp(ttyfd, mypgrp) < 0)
+-			error("tcsetpgrp failed, errno=%d\n", errno);
++			exit(0);
+ 	}
+ 	if (jp->state == JOBSTOPPED)
+ 		setcurjob(jp);
