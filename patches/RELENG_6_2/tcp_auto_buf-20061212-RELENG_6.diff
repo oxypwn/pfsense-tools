@@ -1,0 +1,370 @@
+Index: kern/uipc_socket.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/uipc_socket.c,v
+retrieving revision 1.242.2.6.2.1
+diff -u -r1.242.2.6.2.1 uipc_socket.c
+--- kern/uipc_socket.c	22 Nov 2006 23:06:26 -0000	1.242.2.6.2.1
++++ kern/uipc_socket.c	20 Dec 2006 02:10:32 -0000
+@@ -223,6 +223,10 @@
+ 	knlist_init(&so->so_snd.sb_sel.si_note, SOCKBUF_MTX(&so->so_snd),
+ 	    NULL, NULL, NULL);
+ 	so->so_count = 1;
++	/*
++	 * Auto-sizing of socket buffers is managed by the protocols and
++	 * the appropriate flags must be set in the pru_attach function.
++	 */
+ 	error = (*prp->pr_usrreqs->pru_attach)(so, proto, td);
+ 	if (error) {
+ 		ACCEPT_LOCK();
+@@ -1636,6 +1640,8 @@
+ 					error = ENOBUFS;
+ 					goto bad;
+ 				}
++				(sopt->sopt_name == SO_SNDBUF ? &so->so_snd :
++				    &so->so_rcv)->sb_flags &= ~SB_AUTOSIZE;
+ 				break;
+ 
+ 			/*
+Index: kern/uipc_socket2.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/uipc_socket2.c,v
+retrieving revision 1.147.2.7
+diff -u -r1.147.2.7 uipc_socket2.c
+--- kern/uipc_socket2.c	6 Oct 2006 20:23:27 -0000	1.147.2.7
++++ kern/uipc_socket2.c	20 Dec 2006 02:07:32 -0000
+@@ -258,6 +258,8 @@
+ 	so->so_snd.sb_lowat = head->so_snd.sb_lowat;
+ 	so->so_rcv.sb_timeo = head->so_rcv.sb_timeo;
+ 	so->so_snd.sb_timeo = head->so_snd.sb_timeo;
++	so->so_rcv.sb_flags |= head->so_rcv.sb_flags & SB_AUTOSIZE;
++	so->so_snd.sb_flags |= head->so_snd.sb_flags & SB_AUTOSIZE;
+ 	so->so_state |= connstatus;
+ 	ACCEPT_LOCK();
+ 	if (connstatus) {
+Index: netinet/tcp_input.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_input.c,v
+retrieving revision 1.281.2.11
+diff -u -r1.281.2.11 tcp_input.c
+--- netinet/tcp_input.c	19 Sep 2006 12:58:40 -0000	1.281.2.11
++++ netinet/tcp_input.c	20 Dec 2006 02:15:17 -0000
+@@ -159,6 +159,18 @@
+ 	   &tcp_reass_overflows, 0,
+ 	   "Global number of TCP Segment Reassembly Queue Overflows");
+ 
++int	tcp_do_autorcvbuf = 1;
++SYSCTL_INT(_net_inet_tcp, OID_AUTO, recvbuf_auto, CTLFLAG_RW,
++	   &tcp_do_autorcvbuf, 0, "Enable automatic receive buffer sizing");
++
++int	tcp_autorcvbuf_inc = 16*1024;
++SYSCTL_INT(_net_inet_tcp, OID_AUTO, recvbuf_inc, CTLFLAG_RW,
++	   &tcp_autorcvbuf_inc, 0, "Incrementor step size of automatic receive buffer");
++
++int	tcp_autorcvbuf_max = 256*1024;
++SYSCTL_INT(_net_inet_tcp, OID_AUTO, recvbuf_max, CTLFLAG_RW,
++	   &tcp_autorcvbuf_max, 0, "Max size of automatic receive buffer");
++
+ struct inpcbhead tcb;
+ #define	tcb6	tcb  /* for KAME src sync over BSD*'s */
+ struct inpcbinfo tcbinfo;
+@@ -1265,6 +1277,8 @@
+ 		} else if (th->th_ack == tp->snd_una &&
+ 		    LIST_EMPTY(&tp->t_segq) &&
+ 		    tlen <= sbspace(&so->so_rcv)) {
++			int newsize = 0;	/* automatic sockbuf scaling */
++
+ 			KASSERT(headlocked, ("headlocked"));
+ 			INP_INFO_WUNLOCK(&tcbinfo);
+ 			headlocked = 0;
+@@ -1291,18 +1305,82 @@
+ 			tcpstat.tcps_rcvpack++;
+ 			tcpstat.tcps_rcvbyte += tlen;
+ 			ND6_HINT(tp);	/* some progress has been done */
+-			/*
+ #ifdef TCPDEBUG
+ 			if (so->so_options & SO_DEBUG)
+ 				tcp_trace(TA_INPUT, ostate, tp,
+ 				    (void *)tcp_saveipgen, &tcp_savetcp, 0);
+ #endif
+-			 * Add data to socket buffer.
+-			 */
++		/*
++		 * Automatic sizing of receive socket buffer.  Often the send
++		 * buffer size is not optimally adjusted to the actual network
++		 * conditions at hand (delay bandwidth product).  Setting the
++		 * buffer size too small limits throughput on links with high
++		 * bandwidth and high delay (eg. trans-continental/oceanic links).
++		 *
++		 * On the receive side the socket buffer memory is only rarely
++		 * used to any significant extent.  This allows us to be much
++		 * more aggressive in scaling the receive socket buffer.  For
++		 * the case that the buffer space is actually used to a large
++		 * extent and we run out of kernel memory we can simply drop
++		 * the new segments; TCP on the sender will just retransmit it
++		 * later.  Setting the buffer size too big may only consume too
++		 * much kernel memory if the application doesn't read() from
++		 * the socket or packet loss or reordering makes use of the
++		 * reassembly queue.
++		 *
++		 * The criteria to step up the receive buffer one notch are:
++		 *  1. the number of bytes received during the time it takes
++		 *     one timestamp to be reflected back to us (the RTT);
++		 *  2. received bytes per RTT is within seven eighth of the
++		 *     current socket buffer size;
++		 *  3. receive buffer size has not hit maximal automatic size;
++		 *  4. Profit!
++		 *
++		 * This algorithm does one step per RTT at most and only if
++		 * we receive a bulk stream w/o packet losses or reorderings.
++		 * Shrinking the buffer during idle times is not necessary as
++		 * it doesn't consume any memory when idle.
++		 */
++			if (tcp_do_autorcvbuf &&
++			    to.to_tsecr &&
++			    (so->so_rcv.sb_flags & SB_AUTOSIZE)) {
++				if (to.to_tsecr > tp->rfbuf_ts &&
++				    to.to_tsecr - tp->rfbuf_ts < hz) {
++					if (tp->rfbuf_cnt >
++					    (so->so_rcv.sb_hiwat / 8 * 7) &&
++					    so->so_rcv.sb_hiwat <
++					    tcp_autorcvbuf_max) {
++						newsize =
++						    min(so->so_rcv.sb_hiwat +
++						    tcp_autorcvbuf_inc,
++						    tcp_autorcvbuf_max);
++#if 1
++			log(LOG_DEBUG, "%s: hiwat %i, ref_ts %i, ts %i, "
++			    "count %i, new %i, max %i\n",
++			    __func__, so->so_rcv.sb_hiwat, tp->rfbuf_ts,
++			    to.to_tsecr, tp->rfbuf_cnt, newsize, (int)sb_max);
++#endif
++					}
++					/* Start over with next RTT. */
++					tp->rfbuf_ts = 0;
++					tp->rfbuf_cnt = 0;
++				} else
++					tp->rfbuf_cnt += tlen;	/* add up */
++			}
++
++			/* Add data to socket buffer. */
+ 			SOCKBUF_LOCK(&so->so_rcv);
+ 			if (so->so_rcv.sb_state & SBS_CANTRCVMORE) {
+ 				m_freem(m);
+ 			} else {
++				/*
++				 * Set new socket buffer size.
++				 * Give up when limit is reached.
++				 */
++				if (newsize)
++					if (!sbreserve_locked(&so->so_rcv,
++					    newsize, so, curthread))
++						so->so_rcv.sb_flags &= ~SB_AUTOSIZE;
+ 				m_adj(m, drop_hdrlen);	/* delayed header drop */
+ 				sbappendstream_locked(&so->so_rcv, m);
+ 			}
+@@ -1331,6 +1409,10 @@
+ 	tp->rcv_wnd = imax(win, (int)(tp->rcv_adv - tp->rcv_nxt));
+ 	}
+ 
++	/* Reset receive buffer auto scaling when not in bulk receive mode. */
++	tp->rfbuf_ts = 0;
++	tp->rfbuf_cnt = 0;
++
+ 	switch (tp->t_state) {
+ 
+ 	/*
+Index: netinet/tcp_output.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_output.c,v
+retrieving revision 1.112
+diff -u -r1.112 tcp_output.c
+--- netinet/tcp_output.c	21 May 2005 00:38:29 -0000	1.112
++++ netinet/tcp_output.c	20 Dec 2006 02:18:44 -0000
+@@ -49,6 +49,7 @@
+ #include <sys/socket.h>
+ #include <sys/socketvar.h>
+ #include <sys/sysctl.h>
++#include <sys/syslog.h>
+ 
+ #include <net/route.h>
+ 
+@@ -104,6 +105,18 @@
+ SYSCTL_INT(_net_inet_tcp, OID_AUTO, newreno, CTLFLAG_RW, &tcp_do_newreno,
+ 	0, "Enable NewReno Algorithms");
+ 
++int	tcp_do_autosndbuf = 1;
++SYSCTL_INT(_net_inet_tcp, OID_AUTO, sendbuf_auto, CTLFLAG_RW,
++	&tcp_do_autosndbuf, 0, "Enable automatic send buffer sizing");
++
++int	tcp_autosndbuf_inc = 8*1024;
++SYSCTL_INT(_net_inet_tcp, OID_AUTO, sendbuf_inc, CTLFLAG_RW,
++	&tcp_autosndbuf_inc, 0, "Incrementor step size of automatic send buffer");
++
++int	tcp_autosndbuf_max = 256*1024;
++SYSCTL_INT(_net_inet_tcp, OID_AUTO, sendbuf_max, CTLFLAG_RW,
++	&tcp_autosndbuf_max, 0, "Max size of automatic send buffer");
++
+ /*
+  * Tcp output routine: figure out what should be sent and send it.
+  */
+@@ -372,10 +385,58 @@
+ 		}
+ 	}
+ 
++	/* len will be >= 0 after this point. */
++	KASSERT(len >= 0, ("%s: len < 0", __func__));
++
++	/*
++	 * Automatic sizing of send socket buffer.  Often the send buffer
++	 * size is not optimally adjusted to the actual network conditions
++	 * at hand (delay bandwidth product).  Setting the buffer size too
++	 * small limits throughput on links with high bandwidth and high
++	 * delay (eg. trans-continental/oceanic links).  Setting the
++	 * buffer size too big consumes too much real kernel memory,
++	 * especially with many connections on busy servers.
++	 *
++	 * The criteria to step up the send buffer one notch are:
++	 *  1. receive window of remote host is larger than send buffer
++	 *     (with a fudge factor of 5/4th);
++	 *  2. send buffer is filled to 7/8th with data (so we actually
++	 *     have data to make use of it);
++	 *  3. send buffer fill has not hit maximal automatic size;
++	 *  4. our send window (slow start and cogestion controlled) is
++	 *     larger than sent but unacknowledged data in send buffer.
++	 *
++	 * The remote host receive window scaling factor may limit the
++	 * growing of the send buffer before it reaches its allowed
++	 * maximum.
++	 *
++	 * Optional: Shrink send buffer during idle periods together
++	 * with congestion window.  Requires another timer.  Has to
++	 * wait for upcoming tcp timer rewrite.
++	 */
++	if (tcp_do_autosndbuf && so->so_snd.sb_flags & SB_AUTOSIZE) {
++		if ((tp->snd_wnd / 4 * 5) >= so->so_snd.sb_hiwat &&
++		    so->so_snd.sb_cc >= (so->so_snd.sb_hiwat / 8 * 7) &&
++		    so->so_snd.sb_cc < tcp_autosndbuf_max &&
++		    sendwin >= (so->so_snd.sb_cc - (tp->snd_nxt - tp->snd_una))) {
++#if 1
++			log(LOG_DEBUG, "%s: inc sockbuf, old %i, new %i, "
++			    "sb_cc %i, snd_wnd %i, sendwnd %i\n",
++			    __func__, so->so_snd.sb_hiwat,
++			    so->so_snd.sb_hiwat + tcp_autosndbuf_inc,
++			    so->so_snd.sb_cc, (int)tp->snd_wnd, (int)sendwin);
++#endif
++			if (!sbreserve_locked(&so->so_snd,
++			    min(so->so_snd.sb_hiwat + tcp_autosndbuf_inc,
++			     tcp_autosndbuf_max), so, curthread))
++				so->so_snd.sb_flags &= ~SB_AUTOSIZE;
++		}
++	}
++
+ 	/*
+-	 * len will be >= 0 after this point.  Truncate to the maximum
+-	 * segment length and ensure that FIN is removed if the length
+-	 * no longer contains the last data byte.
++	 * Truncate to the maximum segment length or enable TCP Segmentation
++	 * Offloading (if supported by hardware) and ensure that FIN is removed
++	 * if the length no longer contains the last data byte.
+ 	 */
+ 	if (len > tp->t_maxseg) {
+ 		len = tp->t_maxseg;
+@@ -576,6 +637,10 @@
+ 		optlen += TCPOLEN_TSTAMP_APPA;
+ 	}
+ 
++	/* Set receive buffer autosizing timestamp. */
++	if (tp->rfbuf_ts == 0 && (so->so_rcv.sb_flags & SB_AUTOSIZE))
++		tp->rfbuf_ts = ticks;
++
+ #ifdef TCP_SIGNATURE
+ #ifdef INET6
+ 	if (!isipv6)
+Index: netinet/tcp_syncache.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_syncache.c,v
+retrieving revision 1.74.2.5
+diff -u -r1.74.2.5 tcp_syncache.c
+--- netinet/tcp_syncache.c	16 Feb 2006 01:06:22 -0000	1.74.2.5
++++ netinet/tcp_syncache.c	20 Dec 2006 02:19:57 -0000
+@@ -965,9 +965,15 @@
+ 		if (to->to_flags & TOF_SCALE) {
+ 			int wscale = 0;
+ 
+-			/* Compute proper scaling value from buffer space */
++			/*
++			 * Compute proper scaling value from buffer space:
++			 * Place window scale into sweet spot where it is
++			 * about one fourth of the MSS.  This allows us to
++			 * scale the receive buffer over a wide range while
++			 * not losing any efficiency or fine granularity.
++			 */
+ 			while (wscale < TCP_MAX_WINSHIFT &&
+-			    (TCP_MAXWIN << wscale) < so->so_rcv.sb_hiwat)
++			    (0x1 << wscale) < tcp_minmss)
+ 				wscale++;
+ 			sc->sc_request_r_scale = wscale;
+ 			sc->sc_requested_s_scale = to->to_requested_s_scale;
+Index: netinet/tcp_usrreq.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_usrreq.c,v
+retrieving revision 1.124.2.3.2.1
+diff -u -r1.124.2.3.2.1 tcp_usrreq.c
+--- netinet/tcp_usrreq.c	28 Nov 2006 23:19:18 -0000	1.124.2.3.2.1
++++ netinet/tcp_usrreq.c	20 Dec 2006 02:21:26 -0000
+@@ -882,9 +882,13 @@
+ 	inp->inp_laddr = laddr;
+ 	in_pcbrehash(inp);
+ 
+-	/* Compute window scaling to request.  */
++	/*
++	 * Compute window scaling to request:
++	 * Scale to fit into sweet spot.  See tcp_syncache.c.
++	 * XXX: This should be moved to tcp_output().
++	 */
+ 	while (tp->request_r_scale < TCP_MAX_WINSHIFT &&
+-	    (TCP_MAXWIN << tp->request_r_scale) < so->so_rcv.sb_hiwat)
++	    (0x1 << tp->request_r_scale) < tcp_minmss)       /* XXX */
+ 		tp->request_r_scale++;
+ 
+ 	soisconnecting(so);
+@@ -1191,6 +1195,8 @@
+ 		if (error)
+ 			return (error);
+ 	}
++	so->so_rcv.sb_flags |= SB_AUTOSIZE;
++	so->so_snd.sb_flags |= SB_AUTOSIZE;
+ 	error = in_pcballoc(so, &tcbinfo, "tcpinp");
+ 	if (error)
+ 		return (error);
+Index: netinet/tcp_var.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_var.h,v
+retrieving revision 1.126.2.3
+diff -u -r1.126.2.3 tcp_var.h
+--- netinet/tcp_var.h	19 Sep 2006 12:58:40 -0000	1.126.2.3
++++ netinet/tcp_var.h	20 Dec 2006 02:21:54 -0000
+@@ -200,6 +200,8 @@
+ 					   episode starts at this seq number */
+ 	struct sackhint	sackhint;	/* SACK scoreboard hint */
+ 	int	t_rttlow;		/* smallest observerved RTT */
++	u_int32_t	rfbuf_ts;	/* recv buffer autoscaling timestamp */
++	int	rfbuf_cnt;		/* recv buffer autoscaling byte count */
+ };
+ 
+ #define IN_FASTRECOVERY(tp)	(tp->t_flags & TF_FASTRECOVERY)
+Index: sys/socketvar.h
+===================================================================
+RCS file: /home/ncvs/src/sys/sys/socketvar.h,v
+retrieving revision 1.141.2.1
+diff -u -r1.141.2.1 socketvar.h
+--- sys/socketvar.h	28 Jun 2006 14:33:47 -0000	1.141.2.1
++++ sys/socketvar.h	20 Dec 2006 02:22:29 -0000
+@@ -128,6 +128,7 @@
+ #define	SB_NOINTR	0x40		/* operations not interruptible */
+ #define SB_AIO		0x80		/* AIO operations queued */
+ #define SB_KNOTE	0x100		/* kernel note attached */
++#define SB_AUTOSIZE	0x800		/* automatically size socket buffer */
+ 
+ 	void	(*so_upcall)(struct socket *, void *, int);
+ 	void	*so_upcallarg;
