@@ -16,4 +16,3 @@
 ~bin/sh~jobs.c.diff~
 ~sys/contrib/pf/net~pf10percent.c.diff~
 ~contrib/tcsh~tcsh_sh.c.diff~
-~sys/netinet~ip_carp.c~
