@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# This script is for testing only!
+# It will build a kernel for each patch line item and
+# then output the kernels to $KERNELOUTPUTDIR
+
 set -e -x
 
 CURRENTDIR=`pwd`
@@ -14,6 +18,8 @@ KERNCONF="pfSense_wrap.6"
 KERNELOUTPUTDIR="/usr/local/www/data/kernels/"
 PATHTOTESTKERNEL="/root/pfSense_wrap.6"
 CVSUPHOST="cvsup.livebsd.com"
+
+cp $PATHTOTESTKERNEL /usr/src/sys/i386/conf/
 
 for LINE in `cat /root/patches.$FBSDBRANCH` 
 do
@@ -34,8 +40,6 @@ do
 		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
 	fi
 
-	cp $PATHTOTESTKERNEL /usr/src/sys/i386/conf/
-
 	(cd /usr/src/ && make buildkernel KERNCONF=$KERNCONF && make installkernel KERNCONF=$KERNCONF)
 	gzip /boot/kernel/kernel
 	mv /boot/kernel/kernel.gz $KERNELOUTPUTDIR/kernel.gz-$PATCH_FILE
@@ -46,4 +50,8 @@ cvsup -h $CVSUPHOST /home/pfsense/tools/builder_scripts/$FBSDBRANCH-supfile
 (cd /usr/src/ && make buildkernel KERNCONF=$KERNCONF && make installkernel KERNCONF=$KERNCONF)
 gzip /boot/kernel/kernel
 mv /boot/kernel/kernel.gz $KERNELOUTPUTDIR/kernel.gz-NOPATCHES
+
+# Copy kernel building file over
+cp $PATHTOTESTKERNEL $KERNELOUTPUTDIR/
+cp /root/patches.$FBSDBRANCH $KERNELOUTPUTDIR/
 
