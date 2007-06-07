@@ -155,7 +155,7 @@ diff -uNr src_diff/contrib/pf/pfctl/parse.y src/contrib/pf/pfctl/parse.y
 +                yyerror("netgraph with block rule doesn't make sense");
 +                problems++;
 +        }
- 	if (r->tagname[0] && !r->keep_state &&
+ 	if ((r->tagname[0] || r->match_tagname[0]) && !r->keep_state &&
  	    r->action == PF_PASS) {
  		yyerror("tags cannot be used without keep state");
  		problems++;
