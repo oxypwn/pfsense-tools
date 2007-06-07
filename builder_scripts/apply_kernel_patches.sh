@@ -26,6 +26,9 @@ fi
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
 
+echo "Removing old patch rejects..."
+find /usr/src -name "*.rej" -exec rm {} \;
+
 # Loop through and patch files
 for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
 do
@@ -43,3 +46,6 @@ do
 		#cp ${SRCDIR}/${MOVE_FILE} ${SRCDIR}/${PATCH_DIRECTORY}
 	fi
 done
+
+echo "Finding patch rejects..."
+find /usr/src -name "*.rej"
