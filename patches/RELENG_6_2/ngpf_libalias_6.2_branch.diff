@@ -155,7 +155,7 @@ diff -uNr src_diff/contrib/pf/pfctl/parse.y src/contrib/pf/pfctl/parse.y
 +                yyerror("netgraph with block rule doesn't make sense");
 +                problems++;
 +        }
- 	if (r->tagname[0] && !r->keep_state &&
+ 	if ((r->tagname[0] || r->match_tagname[0]) && !r->keep_state &&
  	    r->action == PF_PASS) {
  		yyerror("tags cannot be used without keep state");
  		problems++;
@@ -224,9 +224,31 @@ diff -uNr src_diff/contrib/pf/pfctl/pfctl_parser.c src/contrib/pf/pfctl/pfctl_pa
  	if (r->tagname[0])
  		printf(" tag %s", r->tagname);
  	if (r->match_tagname[0]) {
+diff -uNr src_diff/sys/conf/files src/sys/conf/files
+--- src_diff/sys/conf/files	Thu Jun  7 22:44:38 2007
++++ src/sys/conf/files	Thu Jun  7 22:44:02 2007
+@@ -1632,6 +1632,7 @@
+ netgraph/ng_nat.c		optional netgraph_nat
+ netgraph/ng_one2many.c		optional netgraph_one2many
+ netgraph/ng_parse.c		optional netgraph
++netgraph/ng_pf.c		optional netgraph_pf
+ netgraph/ng_ppp.c		optional netgraph_ppp
+ netgraph/ng_pppoe.c		optional netgraph_pppoe
+ netgraph/ng_pptpgre.c		optional netgraph_pptpgre
+diff -uNr src_diff/sys/conf/options src/sys/conf/options
+--- src_diff/sys/conf/options	Thu Jun  7 22:44:50 2007
++++ src/sys/conf/options	Thu Jun  7 22:43:57 2007
+@@ -380,6 +380,7 @@
+ NCP
+ NETATALK		opt_atalk.h
+ NET_WITH_GIANT		opt_net.h
++PF_WITH_LIBALIAS	opt_pf.h
+ PPP_BSDCOMP		opt_ppp.h
+ PPP_DEFLATE		opt_ppp.h
+ PPP_FILTER		opt_ppp.h
 diff -uNr src_diff/sys/contrib/pf/net/pf.c src/sys/contrib/pf/net/pf.c
 --- src_diff/sys/contrib/pf/net/pf.c	Thu Jun  7 16:53:34 2007
-+++ src/sys/contrib/pf/net/pf.c	Thu Jun  7 17:59:32 2007
++++ src/sys/contrib/pf/net/pf.c	Thu Jun  7 22:45:16 2007
 @@ -118,6 +118,9 @@
  #include <sys/ucred.h>
  
@@ -317,35 +339,7 @@ diff -uNr src_diff/sys/contrib/pf/net/pf.c src/sys/contrib/pf/net/pf.c
  	PF_LOCK();
  #endif
  
-@@ -7009,6 +7064,27 @@
- 	if (s && s->tag)
- 		pf_tag_packet(m, pf_get_tag(m), s->tag);
- 
-+#ifdef __FreeBSD__
-+#ifdef PF_WITH_LIBALIAS
-+       if (action == PF_PASS && r->proxy) {
-+               if (pf_libalias_packet(m0, dir, r->proxy) == PF_DROP) {
-+                       PF_UNLOCK();
-+                       /*
-+                        * XXX: Maybe include some more info
-+                        * on the reason!
-+                        */
-+                       printf("%s: grrrrrr lodhu dhe pak\n", __func__);
-+                       REASON_SET(&reason, PFRES_MEMORY);
-+                       return (PF_DROP);
-+               }
-+               /* XXX: are these necessary?! */
-+               m = *m0;
-+               h = mtod(m, struct ip *);
-+               pd.tot_len = ntohs(h->ip_len);
-+       }
-+#endif
-+#endif
-+
- #ifdef ALTQ
- 	if (action == PF_PASS && r->qid) {
- 		struct m_tag	*mtag;
-@@ -7115,6 +7191,31 @@
+@@ -7115,6 +7170,31 @@
  		pf_route6(m0, r, dir, ifp, s);
  
  #ifdef __FreeBSD__
@@ -443,8 +437,8 @@ diff -uNr src_diff/sys/contrib/pf/net/pf_ioctl.c src/sys/contrib/pf/net/pf_ioctl
  #endif	/* __FreeBSD__ */
 diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_libalias.c
 --- src_diff/sys/contrib/pf/net/pf_libalias.c	Thu Jan  1 01:00:00 1970
-+++ src/sys/contrib/pf/net/pf_libalias.c	Wed Jun  6 18:30:32 2007
-@@ -0,0 +1,385 @@
++++ src/sys/contrib/pf/net/pf_libalias.c	Thu Jun  7 22:51:36 2007
+@@ -0,0 +1,388 @@
 +/*
 + * Copyright 2007, Ermal Lu<E7>i <ermal.luci@gmail.com>
 + * All rights reserved.
@@ -480,6 +474,7 @@ diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_li
 +#if defined(__FreeBSD__)
 +#include "opt_inet.h"
 +#include "opt_inet6.h"
++#include "opt_pf.h"
 +#endif
 +#include <sys/cdefs.h>
 +#include <sys/param.h>
@@ -512,6 +507,7 @@ diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_li
 +
 +#include <machine/in_cksum.h>
 +
++#ifdef PF_WITH_LIBALIAS
 +struct pf_libalias {
 +        TAILQ_ENTRY(pf_libalias) entries;
 +        struct libalias         *ins;           	/* libalias instance */
@@ -830,6 +826,7 @@ diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_li
 +	 return (retval);
 +}
 +
++#endif
 diff -uNr src_diff/sys/contrib/pf/net/pfvar.h src/sys/contrib/pf/net/pfvar.h
 --- src_diff/sys/contrib/pf/net/pfvar.h	Thu Jun  7 16:53:48 2007
 +++ src/sys/contrib/pf/net/pfvar.h	Thu Jun  7 17:59:57 2007
@@ -911,18 +908,16 @@ diff -uNr src_diff/sys/modules/netgraph/pf/Makefile src/sys/modules/netgraph/pf/
 +.include <bsd.kmod.mk>
 diff -uNr src_diff/sys/modules/pf/Makefile src/sys/modules/pf/Makefile
 --- src_diff/sys/modules/pf/Makefile	Thu Jun  7 16:54:37 2007
-+++ src/sys/modules/pf/Makefile	Thu Jun  7 18:01:17 2007
-@@ -10,6 +10,10 @@
++++ src/sys/modules/pf/Makefile	Thu Jun  7 23:16:46 2007
+@@ -5,7 +5,7 @@
+ 
+ KMOD=	pf
+ SRCS = 	pf.c pf_if.c pf_subr.c pf_osfp.c pf_ioctl.c pf_norm.c pf_table.c \
+-	in4_cksum.c \
++	pf_libalias.c in4_cksum.c \
+ 	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h opt_mac.h
  
  CFLAGS+=  -I${.CURDIR}/../../contrib/pf
- 
-+.if defined(PF_WITH_LIBALIAS)
-+SRCS +=        pf_libalias.c
-+.endif
-+
- .if !defined(KERNBUILDDIR)
- opt_inet.h:
- 	echo "#define INET 1" > opt_inet.h
 diff -uNr src_diff/sys/netgraph/ng_pf.c src/sys/netgraph/ng_pf.c
 --- src_diff/sys/netgraph/ng_pf.c	Thu Jan  1 01:00:00 1970
 +++ src/sys/netgraph/ng_pf.c	Sun Jun  3 20:41:50 2007
