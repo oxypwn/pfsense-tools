@@ -1,0 +1,721 @@
+diff -uNr src_diff/contrib/pf/pfctl/parse.y src/contrib/pf/pfctl/parse.y
+--- src_diff/contrib/pf/pfctl/parse.y	Thu Jun  7 16:55:16 2007
++++ src/contrib/pf/pfctl/parse.y	Fri Jun  8 16:53:58 2007
+@@ -206,6 +206,7 @@
+ 	char			*tag;
+ 	char			*match_tag;
+ 	u_int8_t		 match_tag_not;
++	u_int8_t		 proxy;
+ } filter_opts;
+ 
+ struct antispoof_opts {
+@@ -418,6 +419,7 @@
+ %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
+ %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
+ %token	TAGGED TAG IFBOUND GRBOUND FLOATING STATEPOLICY ROUTE
++%token	PROXY
+ %token	<v.string>		STRING
+ %token	<v.i>			PORTBINARY
+ %type	<v.interface>		interface if_list if_item_not if_item
+@@ -445,6 +447,7 @@
+ %type	<v.route>		route
+ %type	<v.redirection>		redirection redirpool
+ %type	<v.string>		label string tag
++%type	<v.number>		proxy
+ %type	<v.keep_state>		keep
+ %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
+ %type	<v.logquick>		logquick
+@@ -634,6 +637,7 @@
+ 					YYERROR;
+ 				}
+ 			r.match_tag_not = $8.match_tag_not;
++			r.proxy = $8.proxy;
+ 
+ 			decide_address_family($7.src.host, &r.af);
+ 			decide_address_family($7.dst.host, &r.af);
+@@ -1535,6 +1539,8 @@
+ 			r.prob = $9.prob;
+ 
+ 			r.af = $6;
++                        if ($9.proxy)
++                                r.proxy = $9.proxy;
+ 			if ($9.tag)
+ 				if (strlcpy(r.tagname, $9.tag,
+ 				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
+@@ -1925,6 +1931,9 @@
+ 			filter_opts.match_tag = $3;
+ 			filter_opts.match_tag_not = $1;
+ 		}
++                | PROXY number                          {
++                        filter_opts.proxy = $2;
++                }
+ 		| PROBABILITY STRING			{
+ 			char	*e;
+ 			double	 p = strtod($2, &e);
+@@ -3548,6 +3557,10 @@
+ 		| not TAGGED string	{ $$.neg = $1; $$.name = $3; }
+ 		;
+ 
++proxy           : /* empty */           { $$ = 0; }
++                | PROXY number          { $$ = $2; }
++                ;
++
+ route_host	: STRING			{
+ 			$$ = calloc(1, sizeof(struct node_host));
+ 			if ($$ == NULL)
+@@ -3804,6 +3817,15 @@
+ 		yyerror("tags cannot be used without keep state");
+ 		problems++;
+ 	}
++        if (r->action == PF_DROP && r->proxy) {
++                yyerror("proxy on block rules doesn't make sense");
++                problems++;
++        }
++        if ((r->proxy && r->ifname[0] == 0) ||
++                (r->proxy && !r->direction) {
++                yyerror("proxy needs both interface and direction");
++                problems++;
++        }
+ 	return (-problems);
+ }
+ 
+@@ -4647,6 +4669,7 @@
+ 		{ "priq",		PRIQ},
+ 		{ "probability",	PROBABILITY},
+ 		{ "proto",		PROTO},
++		{ "proxy",              PROXY},
+ 		{ "qlimit",		QLIMIT},
+ 		{ "queue",		QUEUE},
+ 		{ "quick",		QUICK},
+diff -uNr src_diff/contrib/pf/pfctl/pfctl_parser.c src/contrib/pf/pfctl/pfctl_parser.c
+--- src_diff/contrib/pf/pfctl/pfctl_parser.c	Thu Jun  7 16:55:24 2007
++++ src/contrib/pf/pfctl/pfctl_parser.c	Fri Jun  8 16:49:13 2007
+@@ -947,6 +947,8 @@
+ 		printf(" queue(%s, %s)", r->qname, r->pqname);
+ 	else if (r->qname[0])
+ 		printf(" queue %s", r->qname);
++        if (r->proxy)
++                printf(" proxy %u", r->proxy);
+ 	if (r->tagname[0])
+ 		printf(" tag %s", r->tagname);
+ 	if (r->match_tagname[0]) {
+diff -uNr src_diff/sys/conf/files src/sys/conf/files
+--- src_diff/sys/conf/files	Thu Jun  7 22:44:38 2007
++++ src/sys/conf/files	Fri Jun  8 16:52:21 2007
+@@ -290,6 +290,7 @@
+ contrib/pf/net/pf_norm.c	optional pf
+ contrib/pf/net/pf_table.c	optional pf
+ contrib/pf/net/pf_osfp.c	optional pf
++contrib/pf/net/pf_libalias.c	optional pf
+ contrib/pf/netinet/in4_cksum.c	optional pf inet
+ crypto/blowfish/bf_ecb.c	optional ipsec ipsec_esp
+ crypto/blowfish/bf_skey.c	optional crypto
+diff -uNr src_diff/sys/conf/options src/sys/conf/options
+--- src_diff/sys/conf/options	Thu Jun  7 22:44:50 2007
++++ src/sys/conf/options	Thu Jun  7 22:43:57 2007
+@@ -380,6 +380,7 @@
+ NCP
+ NETATALK		opt_atalk.h
+ NET_WITH_GIANT		opt_net.h
++PF_WITH_LIBALIAS	opt_pf.h
+ PPP_BSDCOMP		opt_ppp.h
+ PPP_DEFLATE		opt_ppp.h
+ PPP_FILTER		opt_ppp.h
+diff -uNr src_diff/sys/contrib/pf/net/pf.c src/sys/contrib/pf/net/pf.c
+--- src_diff/sys/contrib/pf/net/pf.c	Thu Jun  7 16:53:34 2007
++++ src/sys/contrib/pf/net/pf.c	Fri Jun  8 16:44:42 2007
+@@ -6616,6 +6616,27 @@
+ 	if (s && s->tag)
+ 		pf_tag_packet(m, pf_get_tag(m), s->tag);
+ 
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++       if (action == PF_PASS && r->proxy) {
++               if (pf_libalias_packet(m0, dir, r->proxy) == PF_DROP) {
++                       PF_UNLOCK();
++                       /*
++                        * XXX: Maybe include some more info
++                        * on the reason!
++                        */
++                       printf("%s: grrrrrr lodhu dhe pak\n", __func__);
++                       REASON_SET(&reason, PFRES_MEMORY);
++                       return (PF_DROP);
++               }
++               /* XXX: are these necessary?! */
++               m = *m0;
++               h = mtod(m, struct ip *);
++               pd.tot_len = ntohs(h->ip_len);
++       }
++#endif
++#endif
++
+ #ifdef ALTQ
+ 	if (action == PF_PASS && r->qid) {
+ 		struct m_tag	*mtag;
+diff -uNr src_diff/sys/contrib/pf/net/pf_ioctl.c src/sys/contrib/pf/net/pf_ioctl.c
+--- src_diff/sys/contrib/pf/net/pf_ioctl.c	Thu Jun  7 16:54:01 2007
++++ src/sys/contrib/pf/net/pf_ioctl.c	Thu Jun  7 17:59:23 2007
+@@ -840,6 +840,14 @@
+ 		return;
+ 	pf_tag_unref(rule->tag);
+ 	pf_tag_unref(rule->match_tag);
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++       PF_UNLOCK();
++       pf_libalias_unref(rule->proxy);
++       PF_LOCK();
++#endif
++#endif
++
+ #ifdef ALTQ
+ 	if (rule->pqid != rule->qid)
+ 		pf_qid_unref(rule->pqid);
+@@ -1530,6 +1538,18 @@
+ 				rule->pqid = rule->qid;
+ 		}
+ #endif
++
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++               if ((rule->proxy && !rule->direction) ||
++                               (rule->proxy && rule->ifname[0] == 0))
++                       error = EINVAL;
++               PF_UNLOCK();
++               if (pf_libalias_setup(rule->proxy, rule->ifname) == NULL)
++                       error =  EINVAL;
++               PF_LOCK();
++#endif
++#endif
+ 		if (rule->tagname[0])
+ 			if ((rule->tag = pf_tagname2tag(rule->tagname)) == 0)
+ 				error = EBUSY;
+@@ -1752,6 +1772,18 @@
+ 					newrule->pqid = newrule->qid;
+ 			}
+ #endif /* ALTQ */
++
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++                       if ((newrule->proxy && !newrule->direction) ||
++                               (newrule->proxy && newrule->ifname[0] == 0))
++                               error = EINVAL;
++                       PF_UNLOCK();
++                       if (pf_libalias_setup(newrule->proxy, newrule->ifname) == NULL)
++                               error =  EINVAL;
++                       PF_LOCK();
++#endif
++#endif
+ 			if (newrule->tagname[0])
+ 				if ((newrule->tag =
+ 				    pf_tagname2tag(newrule->tagname)) == 0)
+@@ -3598,4 +3630,7 @@
+ 
+ DECLARE_MODULE(pf, pf_mod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_FIRST);
+ MODULE_VERSION(pf, PF_MODVER);
++#ifdef PF_WITH_LIBALIAS
++MODULE_DEPEND(pf, libalias, 1, 1, 1);
++#endif
+ #endif	/* __FreeBSD__ */
+diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_libalias.c
+--- src_diff/sys/contrib/pf/net/pf_libalias.c	Thu Jan  1 01:00:00 1970
++++ src/sys/contrib/pf/net/pf_libalias.c	Fri Jun  8 18:23:50 2007
+@@ -0,0 +1,387 @@
++/*
++ * Copyright 2007, Ermal Lu<E7>i <ermal.luci@gmail.com>
++ * All rights reserved.
++ * 
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ * 	notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *      notice, this list of conditions and the following disclaimer in the
++ *      documentation and/or other materials provided with the distribution.
++ * 
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ * $FreeBSD$
++ */
++
++/*
++ * based on PF tags implementaion.
++ */
++
++#if defined(__FreeBSD__)
++#include "opt_inet.h"
++#include "opt_inet6.h"
++#include "opt_pf.h"
++#endif
++#include <sys/cdefs.h>
++#include <sys/param.h>
++#include <sys/systm.h>
++#ifdef __FreeBSD__
++#include <sys/malloc.h>
++#endif
++#include <sys/mbuf.h>
++#include <sys/kernel.h>
++#include <sys/socket.h>
++#include <sys/socketvar.h>
++
++
++#include <net/if.h>
++#include <net/if_types.h>
++
++#include <netinet/in.h>
++#include <netinet/in_var.h>
++#include <netinet/in_systm.h>
++#include <netinet/ip.h>
++#include <netinet/ip_var.h>
++#include <netinet/ip_icmp.h>
++#include <netinet/tcp.h>
++#include <netinet/udp.h>
++
++#include <net/pfvar.h>
++
++#include <netinet/libalias/alias.h>
++
++#include <machine/in_cksum.h>
++
++#ifdef PF_WITH_LIBALIAS
++struct pf_libalias {
++        TAILQ_ENTRY(pf_libalias) entries;
++        struct libalias         *ins;           	/* libalias instance */
++	char			ifname[IFNAMSIZ];	/* interface name */
++        u_int8_t                refcnt;         	/* Reference count */
++	u_int8_t		flags; 
++        int                     libins;         	/* library instance # */
++};
++#define PF_LIBALIAS_DYNIF	0x01
++
++TAILQ_HEAD(pf_libs, pf_libalias) pf_libs =
++                        TAILQ_HEAD_INITIALIZER(pf_libs);
++/*
++static void		 libalias_set_addr(struct libalias *, struct ifnet *);
++*/
++static void              libalias_unref(struct pf_libs *, u_int8_t);
++static struct libalias * libalias_setup(struct pf_libs *, u_int8_t, const char *);
++
++static eventhandler_tag ifaddr_event_tag;
++
++static void
++pf_libalias_ifaddr_change(void *arg __unused, struct ifnet *ifp) {
++	        struct pf_libalias	*ptr;
++		struct ifaddr 		*ifa;
++		struct in_addr		 ip;
++		
++		/* Check every instance entry... */
++		TAILQ_FOREACH(ptr, &pf_libs, entries) {
++			/* ...using nic 'ifp->if_xname' as dynamic alias address. */
++			if (strncmp(ptr->ifname, ifp->if_xname, IF_NAMESIZE) == 0) {
++				mtx_lock(&ifp->if_addr_mtx);
++				TAILQ_FOREACH(ifa, &ifp->if_addrlist, ifa_list) {
++					if (ifa->ifa_addr == NULL)
++						continue;
++					if (ifa->ifa_addr->sa_family != AF_INET)
++						continue;
++					ip = ((struct sockaddr_in *)
++							(ifa->ifa_addr))->sin_addr;
++					LibAliasSetAddress(ptr->ins, ip);
++				}
++				mtx_unlock(&ifp->if_addr_mtx);
++			}
++		}
++}
++
++
++/* XXX: any better way?! */
++static void 
++libalias_set_addr(struct libalias *lib, struct ifnet *ifp)
++{
++	struct ifaddr		*ifa;
++	struct in_addr		ip;
++	
++	mtx_lock(&ifp->if_addr_mtx);
++	TAILQ_FOREACH(ifa, &ifp->if_addrlist, ifa_list) {
++		if (ifa->ifa_addr == NULL)
++			continue;
++		if (ifa->ifa_addr->sa_family != AF_INET)
++			continue;
++		ip = ((struct sockaddr_in *)
++				(ifa->ifa_addr))->sin_addr;
++		LibAliasSetAddress(lib, ip);
++	}
++	mtx_unlock(&ifp->if_addr_mtx);
++
++}
++							
++static  struct libalias *
++libalias_setup(struct pf_libs *head, u_int8_t libins, const char *ifname)
++{
++	struct pf_libalias      *ins, *p = NULL;
++	struct pfi_kif		*pk; 
++	u_int8_t                 new_insid = 1;
++	struct in_addr		 addr;
++
++	TAILQ_FOREACH(ins, head, entries)
++		if (ins->libins == libins) {
++			ins->refcnt++;
++			return (ins->ins);
++		}
++
++	/* 
++	 * to avoid fragmentation, we do a linear search from the beginning
++	 * and take the first free slot we find. if there is none or the list
++	 * is empty, append a new entry at the end.
++	 */
++	
++	/* new entry */
++	if (!TAILQ_EMPTY(head))
++		for (p = TAILQ_FIRST(head); p != NULL && 
++			p->libins == new_insid; p = TAILQ_NEXT(p, entries))
++			new_insid = p->libins + 1;
++
++	pk = pfi_lookup_if(ifname);
++	if (pk == NULL)
++		return (NULL); /* XXX: We don't expect this to happen! */
++
++	/* allocate and fill new struct pf_libalias */
++	ins = (struct pf_libalias *)malloc(sizeof(struct pf_libalias),
++			M_TEMP, M_NOWAIT);
++	if (ins == NULL)
++		return (NULL);
++	bzero(ins, sizeof(struct pf_libalias));
++	
++	ins->ins = LibAliasInit(NULL);
++	if (ins->ins == NULL) {
++		free(ins, M_TEMP);
++		return (NULL);
++	}
++	
++	LibAliasSetMode(ins->ins, PKT_ALIAS_ONLY_MODULES, 
++		PKT_ALIAS_ONLY_MODULES);
++	libalias_set_addr(ins->ins, pk->pfik_ifp);
++	bzero(&addr, sizeof(addr));
++	LibAliasSetTarget(ins->ins, addr);
++	
++	/* XXX: Is this the right flag?! */
++	if (pk->pfik_flags & PFI_IFLAG_DYNAMIC)	{
++		p->flags |= PF_LIBALIAS_DYNIF;
++		ifaddr_event_tag = EVENTHANDLER_REGISTER(ifaddr_event, 
++				pf_libalias_ifaddr_change, NULL, 
++				EVENTHANDLER_PRI_ANY);
++	}
++
++	
++	/*
++	 * Here you can extend libalias(3) support for other modes.
++	 * Be aware that you have to extend the syntax too!!!
++	 */
++	ins->libins = new_insid;
++	ins->refcnt++;
++
++	if (p != NULL)  /* insert new entry before p */
++		TAILQ_INSERT_BEFORE(p, ins, entries);
++	else    /* either list empty or no free slot in between */
++		TAILQ_INSERT_TAIL(head, ins, entries);
++
++	return (ins->ins);
++}
++
++static  void
++libalias_unref(struct pf_libs *head, u_int8_t libins)
++{
++	struct pf_libalias      *p, *next;
++
++	if (libins == 0)
++		return;
++
++	for (p = TAILQ_FIRST(head); p != NULL; p = next) {
++		next = TAILQ_NEXT(p, entries);
++		if (libins == p->libins) {
++                       if (--p->refcnt == 0) {
++			       TAILQ_REMOVE(head, p, entries);
++			       LibAliasUninit(p->ins);
++			       if (p->flags & PF_LIBALIAS_DYNIF) { 
++				       EVENTHANDLER_DEREGISTER(
++						ifaddr_event, 
++					        ifaddr_event_tag);
++			       }
++			       free(p, M_TEMP);
++			}
++		break;	 
++	 	}
++	}
++}
++
++#if 0
++void
++pf_libalias_ref(u_int8_t libins)
++{
++	struct pf_libalias *t;
++
++	TAILQ_FOREACH(t, &pf_libs, entries)
++		if (t->libins == libins)
++			break;
++	
++	if (t != NULL)
++		t->refcnt++;
++}
++#endif
++
++void
++pf_libalias_unref(u_int8_t libins)
++{
++	        return (libalias_unref(&pf_libs, libins));
++}
++
++struct libalias *
++pf_libalias_setup(u_int8_t libins, const char *ifname)
++{
++	        return (libalias_setup(&pf_libs, libins, ifname));
++}
++
++/* This is copied from ip_fw2.c with some minor adaption */
++int
++pf_libalias_packet(struct mbuf **m, int dir, u_int8_t libins)
++{
++	struct mbuf             *mcl =  NULL;
++	struct libalias         *ins;
++	struct ip		*ip;
++	int                     retval = 0;
++	char                    *c;
++	/* XXX - libalias duct tape */
++	int                     ldt = 0;
++
++	ins = pf_libalias_setup(libins, NULL);
++	if (ins == NULL) {
++		retval = PF_DROP;
++		goto done;
++	}
++
++	if ((mcl = m_megapullup(*m, (*m)->m_pkthdr.len)) == NULL) {
++		retval = PF_DROP;
++		goto done;
++	}
++
++	ip = mtod(mcl, struct ip *);
++
++	/*
++	 * XXX - Libalias checksum offload 'duct tape':
++	 * locally generated packets have only pseudo-header checksum
++	 * calculatedi and libalias will screw it[1], so mark them for later fix.
++	 * Moreover there are cases when libalias modify tcp packet data[2], mark
++	 * it for later fix too.
++	 *
++	 * [1] libalias was never meant to run in kernel, so it doesn't have any
++	 * knowledge about checksum offloading, and it expects a packet with a full
++	 * internet checksum. Unfortunately, packets generated locally will have
++	 * just the pseudo header calculated, and when libalias tries to adjust the
++	 * checksum it will actually screw it.
++	 * [2] when libalias modify tcp's data content, full TCP checksum has to
++	 * be recomputed: the problem is that libalias doesn't have any idea
++	 * about checksum offloading To workaround this, we do not do checksumming
++	 * in LibAlias, but only mark the packets in th_x2 field. If we receive a
++	 * marked packet, we calculate correct checksum for it aware of offloading.
++	 * Why such a terrible hack instead of recalculating checksum for each
++	 * packet?  Because the previous checksum was not checked! Recalculating
++	 * checksums for EVERY packet will hide ALL transmission errors. Yes, marked
++	 * packets still suffer from this problem. But, sigh, natd(8) has this
++	 * problem, too.
++	 *
++	 * TODO: -make libalias mbuf aware (so it can handle delayed checksum and tso)
++	 */
++	
++         if (mcl->m_pkthdr.rcvif == NULL && 
++			 mcl->m_pkthdr.csum_flags & CSUM_DELAY_DATA)
++	                 ldt = 1;
++
++         c = mtod(mcl, char *);
++         if (dir == PF_IN) 
++	                 retval = LibAliasIn(ins, c, MCLBYTES);
++	 else 
++	                 retval = LibAliasOut(ins, c, MCLBYTES);
++	
++
++         if (retval != PKT_ALIAS_OK) {
++	                 /* XXX - should i add some logging? */
++	                 m_free(mcl);
++			 *m = NULL;
++			 retval = PF_DROP;
++			 goto done;
++	 }
++	
++	 retval = PF_PASS;
++
++	 mcl->m_pkthdr.len = mcl->m_len = ntohs(ip->ip_len);
++	 /*XXX - libalias checksum offload 'duct tape' (see above) */
++	 if ((ip->ip_off & htons(IP_OFFMASK)) == 0 &&
++			 ip->ip_p == IPPROTO_TCP) {
++		 struct tcphdr   *th;
++		 
++		 th = (struct tcphdr *)(ip + 1);
++		 if (th->th_x2)
++			 ldt = 1;
++
++	 }
++
++	 if (ldt) {
++		 struct tcphdr   *th;
++
++		 struct udphdr   *uh;
++		 u_short cksum;
++		 
++		 ip->ip_len = ntohs(ip->ip_len);
++		 cksum = in_pseudo(ip->ip_src.s_addr, ip->ip_dst.s_addr,
++			 htons(ip->ip_p + ip->ip_len - (ip->ip_hl << 2)));
++
++		 switch (ip->ip_p) {
++			 case IPPROTO_TCP:
++				 th = (struct tcphdr *)(ip + 1);
++				 /* Maybe it was set in libalias... */
++				 th->th_x2 = 0;
++				 th->th_sum = cksum;
++				 mcl->m_pkthdr.csum_data = 
++					 offsetof(struct tcphdr, th_sum);
++				 break;
++			 case IPPROTO_UDP:
++				 uh = (struct udphdr *)(ip + 1);
++				 uh->uh_sum = cksum;
++				 mcl->m_pkthdr.csum_data = 
++					 offsetof(struct udphdr, uh_sum);
++				 break;
++		 }
++
++		 /* No hw checksum offloading: do it by ourself. */
++		 if ((mcl->m_pkthdr.csum_flags & CSUM_DELAY_DATA) == 0) {
++			 in_delayed_cksum(mcl);
++			 mcl->m_pkthdr.csum_flags &= ~CSUM_DELAY_DATA;
++		 }
++
++		 ip->ip_len = htons(ip->ip_len);
++	 }
++	
++	 *m = mcl;
++done:
++	 return (retval);
++}
++
++#endif
+diff -uNr src_diff/sys/contrib/pf/net/pfvar.h src/sys/contrib/pf/net/pfvar.h
+--- src_diff/sys/contrib/pf/net/pfvar.h	Thu Jun  7 16:53:48 2007
++++ src/sys/contrib/pf/net/pfvar.h	Fri Jun  8 16:45:21 2007
+@@ -654,6 +654,11 @@
+ 	u_int8_t		 rt;
+ 	u_int8_t		 return_ttl;
+ 	u_int8_t		 tos;
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++       u_int8_t                 proxy;         /* libalias instance #*/
++#endif
++#endif
+ 	u_int8_t		 anchor_relative;
+ 	u_int8_t		 anchor_wildcard;
+ 
+@@ -1674,6 +1679,18 @@
+ 		    sa_family_t);
+ 
+ extern struct pfi_statehead	pfi_statehead;
++
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++#if 0
++void           pf_libalias_ref(u_int8_t);
++#endif
++void           pf_libalias_unref(u_int8_t);
++struct libalias        *
++               pf_libalias_setup(u_int8_t, const char *);
++int            pf_libalias_packet(struct mbuf **, int, u_int8_t);
++#endif
++#endif
+ 
+ u_int16_t	pf_tagname2tag(char *);
+ void		pf_tag2tagname(u_int16_t, char *);
+diff -uNr src_diff/sys/modules/pf/Makefile src/sys/modules/pf/Makefile
+--- src_diff/sys/modules/pf/Makefile	Thu Jun  7 16:54:37 2007
++++ src/sys/modules/pf/Makefile	Thu Jun  7 23:16:46 2007
+@@ -5,7 +5,7 @@
+ 
+ KMOD=	pf
+ SRCS = 	pf.c pf_if.c pf_subr.c pf_osfp.c pf_ioctl.c pf_norm.c pf_table.c \
+-	in4_cksum.c \
++	pf_libalias.c in4_cksum.c \
+ 	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h opt_mac.h
+ 
+ CFLAGS+=  -I${.CURDIR}/../../contrib/pf
+diff -uNr src_diff/sys/netinet/libalias/alias.c src/sys/netinet/libalias/alias.c
+--- src_diff/sys/netinet/libalias/alias.c	Thu Jun  7 16:56:01 2007
++++ src/sys/netinet/libalias/alias.c	Fri Jun  8 16:50:25 2007
+@@ -1180,7 +1180,11 @@
+ 	struct ip *pip;
+ 	int iresult;
+ 
+-	if (la->packetAliasMode & PKT_ALIAS_REVERSE) {
++        if (la->packetAliasMode & PKT_ALIAS_REVERSE
++#ifdef _KERNEL
++             && !(la->packetAliasMode & PKT_ALIAS_ONLY_MODULES)
++#endif
++        ) {
+ 		la->packetAliasMode &= ~PKT_ALIAS_REVERSE;
+ 		iresult = LibAliasOut(la, ptr, maxpacketsize);
+ 		la->packetAliasMode |= PKT_ALIAS_REVERSE;
+@@ -1274,7 +1278,11 @@
+ 	struct in_addr addr_save;
+ 	struct ip *pip;
+ 
+-	if (la->packetAliasMode & PKT_ALIAS_REVERSE) {
++        if (la->packetAliasMode & PKT_ALIAS_REVERSE
++#ifdef _KERNEL
++            && !(la->packetAliasMode & PKT_ALIAS_ONLY_MODULES)
++#endif
++        ) {
+ 		la->packetAliasMode &= ~PKT_ALIAS_REVERSE;
+ 		iresult = LibAliasIn(la, ptr, maxpacketsize);
+ 		la->packetAliasMode |= PKT_ALIAS_REVERSE;
+diff -uNr src_diff/sys/netinet/libalias/alias.h src/sys/netinet/libalias/alias.h
+--- src_diff/sys/netinet/libalias/alias.h	Thu Jun  7 16:56:08 2007
++++ src/sys/netinet/libalias/alias.h	Thu Jun  7 17:58:07 2007
+@@ -265,6 +265,8 @@
+  */
+ #define	PKT_ALIAS_REVERSE		0x80
+ 
++#define PKT_ALIAS_ONLY_MODULES         0x200
++
+ /* Function return codes. */
+ #define	PKT_ALIAS_ERROR			-1
+ #define	PKT_ALIAS_OK			1
+diff -uNr src_diff/sys/netinet/libalias/alias_db.c src/sys/netinet/libalias/alias_db.c
+--- src_diff/sys/netinet/libalias/alias_db.c	Thu Jun  7 16:56:04 2007
++++ src/sys/netinet/libalias/alias_db.c	Thu Jun  7 17:58:24 2007
+@@ -1557,7 +1557,9 @@
+ 
+ 		alias_addr = FindAliasAddress(la, src_addr);
+ 		lnk = AddLink(la, src_addr, dst_addr, alias_addr,
+-		    src_port, dst_port, GET_ALIAS_PORT,
++		    src_port, dst_port,
++                    la->packetAliasMode & PKT_ALIAS_ONLY_MODULES ? 0 :
++                    GET_ALIAS_PORT,
+ 		    link_type);
+ 	}
+ 	return (lnk);
+@@ -1573,7 +1575,9 @@
+ 	struct alias_link *lnk;
+ 
+ 	lnk = AddLink(la, src_addr, dst_addr, alias_addr,
+-	    src_call_id, 0, GET_ALIAS_PORT,
++	    src_call_id, 0,
++            la->packetAliasMode & PKT_ALIAS_ONLY_MODULES ? 0 :
++            GET_ALIAS_PORT,
+ 	    LINK_PPTP);
+ 
+ 	return (lnk);
