@@ -15,4 +15,3 @@
 ~sys~tcp_auto_buf-20061212-RELENG_6.diff~
 -p0~~if_lagg.diff~
 -p1~contrib/pf/pfctl~parse.y~
--p1~~ngpf_libalias_6.2_branch.diff~
