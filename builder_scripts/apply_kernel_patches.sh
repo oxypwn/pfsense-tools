@@ -48,4 +48,12 @@ do
 done
 
 echo "Finding patch rejects..."
-find /usr/src -name "*.rej"
+REJECTED_PATCHES=`find /usr/src -name "*.rej" | wc -l`
+if [ $REJECTED_PATCHES -gt 0 ]; then
+	echo
+	echo "WARNING!  Rejected patches found!  Please fix before building!"
+	echo 
+	find /usr/src -name "*.rej" 
+	echo
+fi
+
