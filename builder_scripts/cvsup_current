@@ -7,12 +7,6 @@
 
 #set -e -x
 
-OCCURANCES=`cat /etc/make.conf | grep NO_INET6 | wc -l`
-if [ $OCCURANCES -lt 1 ]; then
-        echo "NO_INET6=yes" >> /etc/make.conf
-        echo "==> Adding NO_INET6=yes to /etc/make.conf"
-fi
-
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
