@@ -281,7 +281,7 @@ diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_li
 +#include <netinet/tcp.h>
 +#include <netinet/udp.h>
 +
-+#include <net/pfvar.h>
++#include <contrib/pf/net/pfvar.h>
 +
 +#include <netinet/libalias/alias.h>
 +
