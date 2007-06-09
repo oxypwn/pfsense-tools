@@ -236,6 +236,16 @@ do
 	fi
 done
 
+BROKEN_PATCHES=`find /usr/src -name "*.rej" | wc -l`
+if [ $BROKEN_PATCHES -gt 0 ]; then 
+	echo "Cannot continue the build as broken patches where detected:"
+	find /usr/src -name "*.rej"
+	echo ""
+	echo "Please fix the broken patches to continue building pfSense..."
+	echo
+	exit
+fi
+
 echo -n Cleaning up previous build environment...Please wait...
 (cd ${CURRENTDIR} && rm -rf /usr/obj*)
 echo Done!
