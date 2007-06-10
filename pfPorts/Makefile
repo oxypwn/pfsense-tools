@@ -39,7 +39,6 @@ SUBDIR += pftpx-routeto
 SUBDIR += php5-pfsense
 #SUBDIR += php5-pfsense-allopt
 SUBDIR += rrdtool
-SUBDIR += sasyncd
 SUBDIR += slbd
 SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
