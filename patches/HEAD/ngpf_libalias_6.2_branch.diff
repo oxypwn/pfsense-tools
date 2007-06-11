@@ -1,224 +1,9 @@
-diff -uNr src_diff/contrib/pf/pfctl/parse.y src/contrib/pf/pfctl/parse.y
---- src_diff/contrib/pf/pfctl/parse.y	Thu Jun  7 16:55:16 2007
-+++ src/contrib/pf/pfctl/parse.y	Fri Jun  8 16:53:58 2007
-@@ -206,6 +206,7 @@
- 	char			*tag;
- 	char			*match_tag;
- 	u_int8_t		 match_tag_not;
-+	u_int8_t		 proxy;
- } filter_opts;
- 
- struct antispoof_opts {
-@@ -418,6 +419,7 @@
- %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
- %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
- %token	TAGGED TAG IFBOUND GRBOUND FLOATING STATEPOLICY ROUTE
-+%token	PROXY
- %token	<v.string>		STRING
- %token	<v.i>			PORTBINARY
- %type	<v.interface>		interface if_list if_item_not if_item
-@@ -445,6 +447,7 @@
- %type	<v.route>		route
- %type	<v.redirection>		redirection redirpool
- %type	<v.string>		label string tag
-+%type	<v.number>		proxy
- %type	<v.keep_state>		keep
- %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
- %type	<v.logquick>		logquick
-@@ -634,6 +637,7 @@
- 					YYERROR;
- 				}
- 			r.match_tag_not = $8.match_tag_not;
-+			r.proxy = $8.proxy;
- 
- 			decide_address_family($7.src.host, &r.af);
- 			decide_address_family($7.dst.host, &r.af);
-@@ -1535,6 +1539,8 @@
- 			r.prob = $9.prob;
- 
- 			r.af = $6;
-+                        if ($9.proxy)
-+                                r.proxy = $9.proxy;
- 			if ($9.tag)
- 				if (strlcpy(r.tagname, $9.tag,
- 				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
-@@ -1925,6 +1931,9 @@
- 			filter_opts.match_tag = $3;
- 			filter_opts.match_tag_not = $1;
- 		}
-+                | PROXY number                          {
-+                        filter_opts.proxy = $2;
-+                }
- 		| PROBABILITY STRING			{
- 			char	*e;
- 			double	 p = strtod($2, &e);
-@@ -3548,6 +3557,10 @@
- 		| not TAGGED string	{ $$.neg = $1; $$.name = $3; }
- 		;
- 
-+proxy           : /* empty */           { $$ = 0; }
-+                | PROXY number          { $$ = $2; }
-+                ;
-+
- route_host	: STRING			{
- 			$$ = calloc(1, sizeof(struct node_host));
- 			if ($$ == NULL)
-@@ -3804,6 +3817,15 @@
- 		yyerror("tags cannot be used without keep state");
- 		problems++;
- 	}
-+        if (r->action == PF_DROP && r->proxy) {
-+                yyerror("proxy on block rules doesn't make sense");
-+                problems++;
-+        }
-+        if ((r->proxy && r->ifname[0] == 0) ||
-+                (r->proxy && !r->direction) {
-+                yyerror("proxy needs both interface and direction");
-+                problems++;
-+        }
- 	return (-problems);
- }
- 
-@@ -4647,6 +4669,7 @@
- 		{ "priq",		PRIQ},
- 		{ "probability",	PROBABILITY},
- 		{ "proto",		PROTO},
-+		{ "proxy",              PROXY},
- 		{ "qlimit",		QLIMIT},
- 		{ "queue",		QUEUE},
- 		{ "quick",		QUICK},
-diff -uNr src_diff/contrib/pf/pfctl/pfctl_parser.c src/contrib/pf/pfctl/pfctl_parser.c
---- src_diff/contrib/pf/pfctl/pfctl_parser.c	Thu Jun  7 16:55:24 2007
-+++ src/contrib/pf/pfctl/pfctl_parser.c	Fri Jun  8 16:49:13 2007
-@@ -947,6 +947,8 @@
- 		printf(" queue(%s, %s)", r->qname, r->pqname);
- 	else if (r->qname[0])
- 		printf(" queue %s", r->qname);
-+        if (r->proxy)
-+                printf(" proxy %u", r->proxy);
- 	if (r->tagname[0])
- 		printf(" tag %s", r->tagname);
- 	if (r->match_tagname[0]) {
-diff -uNr src_diff/sys/conf/files src/sys/conf/files
---- src_diff/sys/conf/files	Thu Jun  7 22:44:38 2007
-+++ src/sys/conf/files	Fri Jun  8 16:52:21 2007
-@@ -290,6 +290,7 @@
- contrib/pf/net/pf_norm.c	optional pf
- contrib/pf/net/pf_table.c	optional pf
- contrib/pf/net/pf_osfp.c	optional pf
-+contrib/pf/net/pf_libalias.c	optional pf
- contrib/pf/netinet/in4_cksum.c	optional pf inet
- crypto/blowfish/bf_ecb.c	optional ipsec ipsec_esp
- crypto/blowfish/bf_skey.c	optional crypto
-diff -uNr src_diff/sys/conf/options src/sys/conf/options
---- src_diff/sys/conf/options	Thu Jun  7 22:44:50 2007
-+++ src/sys/conf/options	Thu Jun  7 22:43:57 2007
-@@ -380,6 +380,7 @@
- NCP
- NETATALK		opt_atalk.h
- NET_WITH_GIANT		opt_net.h
-+PF_WITH_LIBALIAS	opt_pf.h
- PPP_BSDCOMP		opt_ppp.h
- PPP_DEFLATE		opt_ppp.h
- PPP_FILTER		opt_ppp.h
-diff -uNr src_diff/sys/contrib/pf/net/pf.c src/sys/contrib/pf/net/pf.c
---- src_diff/sys/contrib/pf/net/pf.c	Thu Jun  7 16:53:34 2007
-+++ src/sys/contrib/pf/net/pf.c	Fri Jun  8 16:44:42 2007
-@@ -6616,6 +6616,27 @@
- 	if (s && s->tag)
- 		pf_tag_packet(m, pf_get_tag(m), s->tag);
- 
-+#ifdef __FreeBSD__
-+#ifdef PF_WITH_LIBALIAS
-+       if (action == PF_PASS && r->proxy) {
-+               if (pf_libalias_packet(m0, dir, r->proxy) == PF_DROP) {
-+                       PF_UNLOCK();
-+                       /*
-+                        * XXX: Maybe include some more info
-+                        * on the reason!
-+                        */
-+                       printf("%s: grrrrrr lodhu dhe pak\n", __func__);
-+                       REASON_SET(&reason, PFRES_MEMORY);
-+                       return (PF_DROP);
-+               }
-+               /* XXX: are these necessary?! */
-+               m = *m0;
-+               h = mtod(m, struct ip *);
-+               pd.tot_len = ntohs(h->ip_len);
-+       }
-+#endif
-+#endif
-+
- #ifdef ALTQ
- 	if (action == PF_PASS && r->qid) {
- 		struct m_tag	*mtag;
-diff -uNr src_diff/sys/contrib/pf/net/pf_ioctl.c src/sys/contrib/pf/net/pf_ioctl.c
---- src_diff/sys/contrib/pf/net/pf_ioctl.c	Thu Jun  7 16:54:01 2007
-+++ src/sys/contrib/pf/net/pf_ioctl.c	Thu Jun  7 17:59:23 2007
-@@ -840,6 +840,14 @@
- 		return;
- 	pf_tag_unref(rule->tag);
- 	pf_tag_unref(rule->match_tag);
-+#ifdef __FreeBSD__
-+#ifdef PF_WITH_LIBALIAS
-+       PF_UNLOCK();
-+       pf_libalias_unref(rule->proxy);
-+       PF_LOCK();
-+#endif
-+#endif
-+
- #ifdef ALTQ
- 	if (rule->pqid != rule->qid)
- 		pf_qid_unref(rule->pqid);
-@@ -1530,6 +1538,18 @@
- 				rule->pqid = rule->qid;
- 		}
- #endif
-+
-+#ifdef __FreeBSD__
-+#ifdef PF_WITH_LIBALIAS
-+               if ((rule->proxy && !rule->direction) ||
-+                               (rule->proxy && rule->ifname[0] == 0))
-+                       error = EINVAL;
-+               PF_UNLOCK();
-+               if (pf_libalias_setup(rule->proxy, rule->ifname) == NULL)
-+                       error =  EINVAL;
-+               PF_LOCK();
-+#endif
-+#endif
- 		if (rule->tagname[0])
- 			if ((rule->tag = pf_tagname2tag(rule->tagname)) == 0)
- 				error = EBUSY;
-@@ -1752,6 +1772,18 @@
- 					newrule->pqid = newrule->qid;
- 			}
- #endif /* ALTQ */
-+
-+#ifdef __FreeBSD__
-+#ifdef PF_WITH_LIBALIAS
-+                       if ((newrule->proxy && !newrule->direction) ||
-+                               (newrule->proxy && newrule->ifname[0] == 0))
-+                               error = EINVAL;
-+                       PF_UNLOCK();
-+                       if (pf_libalias_setup(newrule->proxy, newrule->ifname) == NULL)
-+                               error =  EINVAL;
-+                       PF_LOCK();
-+#endif
-+#endif
- 			if (newrule->tagname[0])
- 				if ((newrule->tag =
- 				    pf_tagname2tag(newrule->tagname)) == 0)
-@@ -3598,4 +3630,7 @@
- 
- DECLARE_MODULE(pf, pf_mod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_FIRST);
- MODULE_VERSION(pf, PF_MODVER);
-+#ifdef PF_WITH_LIBALIAS
-+MODULE_DEPEND(pf, libalias, 1, 1, 1);
-+#endif
- #endif	/* __FreeBSD__ */
-diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_libalias.c
---- src_diff/sys/contrib/pf/net/pf_libalias.c	Thu Jan  1 01:00:00 1970
-+++ src/sys/contrib/pf/net/pf_libalias.c	Fri Jun  8 18:23:50 2007
+Index: pf_libalias.c
+===================================================================
+RCS file: pf_libalias.c
+diff -N pf_libalias.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ pf_libalias.c	11 Jun 2007 21:12:07 -0000	1.1
 @@ -0,0 +1,387 @@
 +/*
 + * Copyright 2007, Ermal Lu<E7>i <ermal.luci@gmail.com>
@@ -281,7 +66,7 @@ diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_li
 +#include <netinet/tcp.h>
 +#include <netinet/udp.h>
 +
-+#include <contrib/pf/net/pfvar.h>
++#include <net/pfvar.h>
 +
 +#include <netinet/libalias/alias.h>
 +
@@ -607,71 +392,271 @@ diff -uNr src_diff/sys/contrib/pf/net/pf_libalias.c src/sys/contrib/pf/net/pf_li
 +}
 +
 +#endif
-diff -uNr src_diff/sys/contrib/pf/net/pfvar.h src/sys/contrib/pf/net/pfvar.h
---- src_diff/sys/contrib/pf/net/pfvar.h	Thu Jun  7 16:53:48 2007
-+++ src/sys/contrib/pf/net/pfvar.h	Fri Jun  8 16:45:21 2007
-@@ -654,6 +654,11 @@
+Index: src/contrib/pf/pfctl/parse.y
+===================================================================
+RCS file: /usr/myrepo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- src/contrib/pf/pfctl/parse.y	11 Jun 2007 19:10:29 -0000	1.1
++++ src/contrib/pf/pfctl/parse.y	11 Jun 2007 21:11:58 -0000	1.2
+@@ -206,6 +206,7 @@
+ 	char			*tag;
+ 	char			*match_tag;
+ 	u_int8_t		 match_tag_not;
++	u_int8_t		 proxy;
+ } filter_opts;
+ 
+ struct antispoof_opts {
+@@ -418,6 +419,7 @@
+ %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
+ %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
+ %token	TAGGED TAG IFBOUND GRBOUND FLOATING STATEPOLICY ROUTE
++%token	PROXY
+ %token	<v.string>		STRING
+ %token	<v.i>			PORTBINARY
+ %type	<v.interface>		interface if_list if_item_not if_item
+@@ -445,6 +447,7 @@
+ %type	<v.route>		route
+ %type	<v.redirection>		redirection redirpool
+ %type	<v.string>		label string tag
++%type	<v.number>		proxy
+ %type	<v.keep_state>		keep
+ %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
+ %type	<v.logquick>		logquick
+@@ -634,6 +637,7 @@
+ 					YYERROR;
+ 				}
+ 			r.match_tag_not = $8.match_tag_not;
++			r.proxy = $8.proxy;
+ 
+ 			decide_address_family($7.src.host, &r.af);
+ 			decide_address_family($7.dst.host, &r.af);
+@@ -1535,6 +1539,8 @@
+ 			r.prob = $9.prob;
+ 
+ 			r.af = $6;
++			if ($9.proxy)
++				r.proxy = $9.proxy;
+ 			if ($9.tag)
+ 				if (strlcpy(r.tagname, $9.tag,
+ 				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
+@@ -1925,6 +1931,9 @@
+ 			filter_opts.match_tag = $3;
+ 			filter_opts.match_tag_not = $1;
+ 		}
++		| PROXY number				{
++			filter_opts.proxy = $2;
++		}
+ 		| PROBABILITY STRING			{
+ 			char	*e;
+ 			double	 p = strtod($2, &e);
+@@ -3548,6 +3557,10 @@
+ 		| not TAGGED string	{ $$.neg = $1; $$.name = $3; }
+ 		;
+ 
++proxy		: /* empty */		{ $$ = 0; }
++		| PROXY number		{ $$ = $2;}
++		;
++
+ route_host	: STRING			{
+ 			$$ = calloc(1, sizeof(struct node_host));
+ 			if ($$ == NULL)
+@@ -3804,6 +3817,15 @@
+ 		yyerror("tags cannot be used without keep state");
+ 		problems++;
+ 	}
++	if (r->action == PF_DROP && r->proxy) {
++                yyerror("proxy on block rules doesn't make sense");
++                problems++;
++        }
++	if ((r->proxy && r->ifname[0] == 0) ||
++                (r->proxy && !r->direction)) {
++                yyerror("proxy needs both interface and direction");
++                problems++;
++        }
+ 	return (-problems);
+ }
+ 
+@@ -4647,6 +4669,7 @@
+ 		{ "priq",		PRIQ},
+ 		{ "probability",	PROBABILITY},
+ 		{ "proto",		PROTO},
++		{ "proxy",		PROXY},
+ 		{ "qlimit",		QLIMIT},
+ 		{ "queue",		QUEUE},
+ 		{ "quick",		QUICK},
+Index: src/contrib/pf/pfctl/pfctl_parser.c
+===================================================================
+RCS file: /usr/myrepo/src/contrib/pf/pfctl/pfctl_parser.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- src/contrib/pf/pfctl/pfctl_parser.c	11 Jun 2007 19:10:29 -0000	1.1
++++ src/contrib/pf/pfctl/pfctl_parser.c	11 Jun 2007 21:11:58 -0000	1.2
+@@ -954,6 +954,8 @@
+ 			printf(" !");
+ 		printf(" tagged %s", r->match_tagname);
+ 	}
++	if (r->proxy)
++		printf(" proxy %u", r->proxy);
+ 	if (!anchor_call[0] && (r->action == PF_NAT ||
+ 	    r->action == PF_BINAT || r->action == PF_RDR)) {
+ 		printf(" -> ");
+Index: src/sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /usr/myrepo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- src/sys/contrib/pf/net/pf.c	11 Jun 2007 19:12:08 -0000	1.1
++++ src/sys/contrib/pf/net/pf.c	11 Jun 2007 21:20:42 -0000	1.2
+@@ -6644,6 +6644,25 @@
+ 	if (s && s->tag)
+ 		pf_tag_packet(m, pf_get_tag(m), s->tag);
+ 
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++       if (action == PF_PASS && r->proxy) {
++               if (pf_libalias_packet(m0, dir, r->proxy) == PF_DROP) {
++                       PF_UNLOCK();
++                       /*
++                        * XXX: Maybe include some more info
++                        * on the reason!
++                        */
++                       REASON_SET(&reason, PFRES_MEMORY);
++                       return (PF_DROP);
++               }
++               /* XXX: are these necessary?! */
++               m = *m0;
++               h = mtod(m, struct ip *);
++               pd.tot_len = ntohs(h->ip_len);
++       }
++#endif
++#endif
+ #ifdef ALTQ
+ 	if (action == PF_PASS && r->qid) {
+ 		struct m_tag	*mtag;
+Index: src/sys/contrib/pf/net/pf_ioctl.c
+===================================================================
+RCS file: /usr/myrepo/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- src/sys/contrib/pf/net/pf_ioctl.c	11 Jun 2007 19:12:08 -0000	1.1
++++ src/sys/contrib/pf/net/pf_ioctl.c	11 Jun 2007 21:20:42 -0000	1.2
+@@ -857,6 +857,13 @@
+ 		return;
+ 	pf_tag_unref(rule->tag);
+ 	pf_tag_unref(rule->match_tag);
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++       PF_UNLOCK();
++       pf_libalias_unref(rule->proxy);
++       PF_LOCK();
++#endif
++#endif
+ #ifdef ALTQ
+ 	if (rule->pqid != rule->qid)
+ 		pf_qid_unref(rule->pqid);
+@@ -1553,6 +1560,19 @@
+ 				rule->pqid = rule->qid;
+ 		}
+ #endif
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++               if ((rule->proxy && !rule->direction) ||
++                               (rule->proxy && rule->ifname[0] == 0))
++                       error = EINVAL;
++       		else {
++        	       PF_UNLOCK();
++              	       if (pf_libalias_setup(rule->proxy, rule->ifname) == NULL)
++                      	 error =  EINVAL;
++               	       PF_LOCK();
++		}
++#endif
++#endif
+ 		if (rule->tagname[0])
+ 			if ((rule->tag = pf_tagname2tag(rule->tagname)) == 0)
+ 				error = EBUSY;
+@@ -1775,6 +1795,19 @@
+ 					newrule->pqid = newrule->qid;
+ 			}
+ #endif /* ALTQ */
++#ifdef __FreeBSD__
++#ifdef PF_WITH_LIBALIAS
++                       if ((newrule->proxy && !newrule->direction) ||
++                               (newrule->proxy && newrule->ifname[0] == 0))
++                               error = EINVAL;
++			else {
++                       		PF_UNLOCK();
++                       		if (pf_libalias_setup(newrule->proxy, newrule->ifname) == NULL)
++                               		error =  EINVAL;
++                       		PF_LOCK();
++			}
++#endif
++#endif
+ 			if (newrule->tagname[0])
+ 				if ((newrule->tag =
+ 				    pf_tagname2tag(newrule->tagname)) == 0)
+@@ -3621,4 +3654,7 @@
+ 
+ DECLARE_MODULE(pf, pf_mod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_FIRST);
+ MODULE_VERSION(pf, PF_MODVER);
++#ifdef PF_WITH_LIBALIAS
++MODULE_DEPEND(pf, libalias, 1, 1, 1);
++#endif
+ #endif	/* __FreeBSD__ */
+Index: src/sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /usr/myrepo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.1
+retrieving revision 1.3
+diff -u -r1.1 -r1.3
+--- src/sys/contrib/pf/net/pfvar.h	11 Jun 2007 19:12:08 -0000	1.1
++++ src/sys/contrib/pf/net/pfvar.h	11 Jun 2007 21:20:42 -0000	1.3
+@@ -654,6 +654,9 @@
  	u_int8_t		 rt;
  	u_int8_t		 return_ttl;
  	u_int8_t		 tos;
 +#ifdef __FreeBSD__
-+#ifdef PF_WITH_LIBALIAS
-+       u_int8_t                 proxy;         /* libalias instance #*/
-+#endif
++        u_int8_t                 proxy;         /* libalias instance #*/
 +#endif
  	u_int8_t		 anchor_relative;
  	u_int8_t		 anchor_wildcard;
  
-@@ -1674,6 +1679,18 @@
- 		    sa_family_t);
+@@ -1675,6 +1678,20 @@
  
  extern struct pfi_statehead	pfi_statehead;
-+
+ 
 +#ifdef __FreeBSD__
++#ifdef _KERNEL
 +#ifdef PF_WITH_LIBALIAS
 +#if 0
-+void           pf_libalias_ref(u_int8_t);
++void            pf_libalias_ref(u_int8_t);
 +#endif
-+void           pf_libalias_unref(u_int8_t);
-+struct libalias        *
-+               pf_libalias_setup(u_int8_t, const char *);
-+int            pf_libalias_packet(struct mbuf **, int, u_int8_t);
++void            pf_libalias_unref(u_int8_t);
++struct libalias *
++                pf_libalias_setup(u_int8_t, const char *);
++int             pf_libalias_packet(struct mbuf **, int, u_int8_t);
 +#endif
 +#endif
- 
++#endif
++		
  u_int16_t	pf_tagname2tag(char *);
  void		pf_tag2tagname(u_int16_t, char *);
-diff -uNr src_diff/sys/modules/pf/Makefile src/sys/modules/pf/Makefile
---- src_diff/sys/modules/pf/Makefile	Thu Jun  7 16:54:37 2007
-+++ src/sys/modules/pf/Makefile	Thu Jun  7 23:16:46 2007
-@@ -5,7 +5,7 @@
- 
- KMOD=	pf
- SRCS = 	pf.c pf_if.c pf_subr.c pf_osfp.c pf_ioctl.c pf_norm.c pf_table.c \
--	in4_cksum.c \
-+	pf_libalias.c in4_cksum.c \
- 	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h opt_mac.h
- 
- CFLAGS+=  -I${.CURDIR}/../../contrib/pf
-diff -uNr src_diff/sys/netinet/libalias/alias.c src/sys/netinet/libalias/alias.c
---- src_diff/sys/netinet/libalias/alias.c	Thu Jun  7 16:56:01 2007
-+++ src/sys/netinet/libalias/alias.c	Fri Jun  8 16:50:25 2007
-@@ -1180,7 +1180,11 @@
+ void		pf_tag_ref(u_int16_t);
+Index: src/sys/netinet/libalias/alias.c
+===================================================================
+RCS file: /usr/myrepo/src/sys/netinet/libalias/alias.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- src/sys/netinet/libalias/alias.c	11 Jun 2007 19:12:55 -0000	1.1
++++ src/sys/netinet/libalias/alias.c	11 Jun 2007 21:22:30 -0000	1.2
+@@ -1237,7 +1237,11 @@
  	struct ip *pip;
  	int iresult;
- 
--	if (la->packetAliasMode & PKT_ALIAS_REVERSE) {
-+        if (la->packetAliasMode & PKT_ALIAS_REVERSE
-+#ifdef _KERNEL
-+             && !(la->packetAliasMode & PKT_ALIAS_ONLY_MODULES)
-+#endif
-+        ) {
- 		la->packetAliasMode &= ~PKT_ALIAS_REVERSE;
- 		iresult = LibAliasOut(la, ptr, maxpacketsize);
- 		la->packetAliasMode |= PKT_ALIAS_REVERSE;
-@@ -1274,7 +1278,11 @@
- 	struct in_addr addr_save;
- 	struct ip *pip;
  
 -	if (la->packetAliasMode & PKT_ALIAS_REVERSE) {
 +        if (la->packetAliasMode & PKT_ALIAS_REVERSE
@@ -680,42 +665,65 @@ diff -uNr src_diff/sys/netinet/libalias/alias.c src/sys/netinet/libalias/alias.c
 +#endif
 +        ) {
  		la->packetAliasMode &= ~PKT_ALIAS_REVERSE;
- 		iresult = LibAliasIn(la, ptr, maxpacketsize);
+ 		iresult = LibAliasOutLocked(la, ptr, maxpacketsize, 1);
  		la->packetAliasMode |= PKT_ALIAS_REVERSE;
-diff -uNr src_diff/sys/netinet/libalias/alias.h src/sys/netinet/libalias/alias.h
---- src_diff/sys/netinet/libalias/alias.h	Thu Jun  7 16:56:08 2007
-+++ src/sys/netinet/libalias/alias.h	Thu Jun  7 17:58:07 2007
-@@ -265,6 +265,8 @@
+@@ -1360,7 +1364,11 @@
+ 	struct in_addr addr_save;
+ 	struct ip *pip;
+ 
+-	if (la->packetAliasMode & PKT_ALIAS_REVERSE) {
++        if (la->packetAliasMode & PKT_ALIAS_REVERSE
++#ifdef _KERNEL
++		&& !(la->packetAliasMode & PKT_ALIAS_ONLY_MODULES)
++#endif
++	) {
+ 		la->packetAliasMode &= ~PKT_ALIAS_REVERSE;
+ 		iresult = LibAliasInLocked(la, ptr, maxpacketsize);
+ 		la->packetAliasMode |= PKT_ALIAS_REVERSE;
+Index: src/sys/netinet/libalias/alias.h
+===================================================================
+RCS file: /usr/myrepo/src/sys/netinet/libalias/alias.h,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- src/sys/netinet/libalias/alias.h	11 Jun 2007 19:12:55 -0000	1.1
++++ src/sys/netinet/libalias/alias.h	11 Jun 2007 21:22:30 -0000	1.2
+@@ -274,6 +274,8 @@
   */
  #define	PKT_ALIAS_REVERSE		0x80
  
-+#define PKT_ALIAS_ONLY_MODULES         0x200
++#define PKT_ALIAS_ONLY_MODULES          0x200
 +
  /* Function return codes. */
  #define	PKT_ALIAS_ERROR			-1
  #define	PKT_ALIAS_OK			1
-diff -uNr src_diff/sys/netinet/libalias/alias_db.c src/sys/netinet/libalias/alias_db.c
---- src_diff/sys/netinet/libalias/alias_db.c	Thu Jun  7 16:56:04 2007
-+++ src/sys/netinet/libalias/alias_db.c	Thu Jun  7 17:58:24 2007
-@@ -1557,7 +1557,9 @@
+Index: src/sys/netinet/libalias/alias_db.c
+===================================================================
+RCS file: /usr/myrepo/src/sys/netinet/libalias/alias_db.c,v
+retrieving revision 1.1
+retrieving revision 1.2
+diff -u -r1.1 -r1.2
+--- src/sys/netinet/libalias/alias_db.c	11 Jun 2007 19:12:55 -0000	1.1
++++ src/sys/netinet/libalias/alias_db.c	11 Jun 2007 21:22:30 -0000	1.2
+@@ -1404,7 +1404,9 @@
+ 
+ 		alias_addr = FindAliasAddress(la, src_addr);
+ 		lnk = AddLink(la, src_addr, dst_addr, alias_addr,
+-		    id, NO_DEST_PORT, GET_ALIAS_ID,
++		    id, NO_DEST_PORT,
++                    la->packetAliasMode & PKT_ALIAS_ONLY_MODULES ? 0 :
++                    GET_ALIAS_ID,
+ 		    LINK_ICMP);
+ 	}
+ 	return (lnk);
+@@ -1589,7 +1591,9 @@
  
  		alias_addr = FindAliasAddress(la, src_addr);
  		lnk = AddLink(la, src_addr, dst_addr, alias_addr,
 -		    src_port, dst_port, GET_ALIAS_PORT,
-+		    src_port, dst_port,
++		    src_port, dst_port, NO_DEST_PORT,
 +                    la->packetAliasMode & PKT_ALIAS_ONLY_MODULES ? 0 :
-+                    GET_ALIAS_PORT,
++                    GET_ALIAS_ID,
  		    link_type);
  	}
- 	return (lnk);
-@@ -1573,7 +1575,9 @@
- 	struct alias_link *lnk;
- 
- 	lnk = AddLink(la, src_addr, dst_addr, alias_addr,
--	    src_call_id, 0, GET_ALIAS_PORT,
-+	    src_call_id, 0,
-+            la->packetAliasMode & PKT_ALIAS_ONLY_MODULES ? 0 :
-+            GET_ALIAS_PORT,
- 	    LINK_PPTP);
- 
  	return (lnk);
