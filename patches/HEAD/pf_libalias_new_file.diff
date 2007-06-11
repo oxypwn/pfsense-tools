@@ -1,0 +1,394 @@
+Index: pf_libalias.c
+===================================================================
+RCS file: pf_libalias.c
+diff -N pf_libalias.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ pf_libalias.c	11 Jun 2007 21:12:07 -0000	1.1
+@@ -0,0 +1,387 @@
++/*
++ * Copyright 2007, Ermal Lu<E7>i <ermal.luci@gmail.com>
++ * All rights reserved.
++ * 
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ * 	notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *      notice, this list of conditions and the following disclaimer in the
++ *      documentation and/or other materials provided with the distribution.
++ * 
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ * $FreeBSD$
++ */
++
++/*
++ * based on PF tags implementaion.
++ */
++
++#if defined(__FreeBSD__)
++#include "opt_inet.h"
++#include "opt_inet6.h"
++#include "opt_pf.h"
++#endif
++#include <sys/cdefs.h>
++#include <sys/param.h>
++#include <sys/systm.h>
++#ifdef __FreeBSD__
++#include <sys/malloc.h>
++#endif
++#include <sys/mbuf.h>
++#include <sys/kernel.h>
++#include <sys/socket.h>
++#include <sys/socketvar.h>
++
++
++#include <net/if.h>
++#include <net/if_types.h>
++
++#include <netinet/in.h>
++#include <netinet/in_var.h>
++#include <netinet/in_systm.h>
++#include <netinet/ip.h>
++#include <netinet/ip_var.h>
++#include <netinet/ip_icmp.h>
++#include <netinet/tcp.h>
++#include <netinet/udp.h>
++
++#include <net/pfvar.h>
++
++#include <netinet/libalias/alias.h>
++
++#include <machine/in_cksum.h>
++
++#ifdef PF_WITH_LIBALIAS
++struct pf_libalias {
++        TAILQ_ENTRY(pf_libalias) entries;
++        struct libalias         *ins;           	/* libalias instance */
++	char			ifname[IFNAMSIZ];	/* interface name */
++        u_int8_t                refcnt;         	/* Reference count */
++	u_int8_t		flags; 
++        int                     libins;         	/* library instance # */
++};
++#define PF_LIBALIAS_DYNIF	0x01
++
++TAILQ_HEAD(pf_libs, pf_libalias) pf_libs =
++                        TAILQ_HEAD_INITIALIZER(pf_libs);
++/*
++static void		 libalias_set_addr(struct libalias *, struct ifnet *);
++*/
++static void              libalias_unref(struct pf_libs *, u_int8_t);
++static struct libalias * libalias_setup(struct pf_libs *, u_int8_t, const char *);
++
++static eventhandler_tag ifaddr_event_tag;
++
++static void
++pf_libalias_ifaddr_change(void *arg __unused, struct ifnet *ifp) {
++	        struct pf_libalias	*ptr;
++		struct ifaddr 		*ifa;
++		struct in_addr		 ip;
++		
++		/* Check every instance entry... */
++		TAILQ_FOREACH(ptr, &pf_libs, entries) {
++			/* ...using nic 'ifp->if_xname' as dynamic alias address. */
++			if (strncmp(ptr->ifname, ifp->if_xname, IF_NAMESIZE) == 0) {
++				mtx_lock(&ifp->if_addr_mtx);
++				TAILQ_FOREACH(ifa, &ifp->if_addrlist, ifa_list) {
++					if (ifa->ifa_addr == NULL)
++						continue;
++					if (ifa->ifa_addr->sa_family != AF_INET)
++						continue;
++					ip = ((struct sockaddr_in *)
++							(ifa->ifa_addr))->sin_addr;
++					LibAliasSetAddress(ptr->ins, ip);
++				}
++				mtx_unlock(&ifp->if_addr_mtx);
++			}
++		}
++}
++
++
++/* XXX: any better way?! */
++static void 
++libalias_set_addr(struct libalias *lib, struct ifnet *ifp)
++{
++	struct ifaddr		*ifa;
++	struct in_addr		ip;
++	
++	mtx_lock(&ifp->if_addr_mtx);
++	TAILQ_FOREACH(ifa, &ifp->if_addrlist, ifa_list) {
++		if (ifa->ifa_addr == NULL)
++			continue;
++		if (ifa->ifa_addr->sa_family != AF_INET)
++			continue;
++		ip = ((struct sockaddr_in *)
++				(ifa->ifa_addr))->sin_addr;
++		LibAliasSetAddress(lib, ip);
++	}
++	mtx_unlock(&ifp->if_addr_mtx);
++
++}
++							
++static  struct libalias *
++libalias_setup(struct pf_libs *head, u_int8_t libins, const char *ifname)
++{
++	struct pf_libalias      *ins, *p = NULL;
++	struct pfi_kif		*pk; 
++	u_int8_t                 new_insid = 1;
++	struct in_addr		 addr;
++
++	TAILQ_FOREACH(ins, head, entries)
++		if (ins->libins == libins) {
++			ins->refcnt++;
++			return (ins->ins);
++		}
++
++	/* 
++	 * to avoid fragmentation, we do a linear search from the beginning
++	 * and take the first free slot we find. if there is none or the list
++	 * is empty, append a new entry at the end.
++	 */
++	
++	/* new entry */
++	if (!TAILQ_EMPTY(head))
++		for (p = TAILQ_FIRST(head); p != NULL && 
++			p->libins == new_insid; p = TAILQ_NEXT(p, entries))
++			new_insid = p->libins + 1;
++
++	pk = pfi_lookup_if(ifname);
++	if (pk == NULL)
++		return (NULL); /* XXX: We don't expect this to happen! */
++
++	/* allocate and fill new struct pf_libalias */
++	ins = (struct pf_libalias *)malloc(sizeof(struct pf_libalias),
++			M_TEMP, M_NOWAIT);
++	if (ins == NULL)
++		return (NULL);
++	bzero(ins, sizeof(struct pf_libalias));
++	
++	ins->ins = LibAliasInit(NULL);
++	if (ins->ins == NULL) {
++		free(ins, M_TEMP);
++		return (NULL);
++	}
++	
++	LibAliasSetMode(ins->ins, PKT_ALIAS_ONLY_MODULES, 
++		PKT_ALIAS_ONLY_MODULES);
++	libalias_set_addr(ins->ins, pk->pfik_ifp);
++	bzero(&addr, sizeof(addr));
++	LibAliasSetTarget(ins->ins, addr);
++	
++	/* XXX: Is this the right flag?! */
++	if (pk->pfik_flags & PFI_IFLAG_DYNAMIC)	{
++		p->flags |= PF_LIBALIAS_DYNIF;
++		ifaddr_event_tag = EVENTHANDLER_REGISTER(ifaddr_event, 
++				pf_libalias_ifaddr_change, NULL, 
++				EVENTHANDLER_PRI_ANY);
++	}
++
++	
++	/*
++	 * Here you can extend libalias(3) support for other modes.
++	 * Be aware that you have to extend the syntax too!!!
++	 */
++	ins->libins = new_insid;
++	ins->refcnt++;
++
++	if (p != NULL)  /* insert new entry before p */
++		TAILQ_INSERT_BEFORE(p, ins, entries);
++	else    /* either list empty or no free slot in between */
++		TAILQ_INSERT_TAIL(head, ins, entries);
++
++	return (ins->ins);
++}
++
++static  void
++libalias_unref(struct pf_libs *head, u_int8_t libins)
++{
++	struct pf_libalias      *p, *next;
++
++	if (libins == 0)
++		return;
++
++	for (p = TAILQ_FIRST(head); p != NULL; p = next) {
++		next = TAILQ_NEXT(p, entries);
++		if (libins == p->libins) {
++                       if (--p->refcnt == 0) {
++			       TAILQ_REMOVE(head, p, entries);
++			       LibAliasUninit(p->ins);
++			       if (p->flags & PF_LIBALIAS_DYNIF) { 
++				       EVENTHANDLER_DEREGISTER(
++						ifaddr_event, 
++					        ifaddr_event_tag);
++			       }
++			       free(p, M_TEMP);
++			}
++		break;	 
++	 	}
++	}
++}
++
++#if 0
++void
++pf_libalias_ref(u_int8_t libins)
++{
++	struct pf_libalias *t;
++
++	TAILQ_FOREACH(t, &pf_libs, entries)
++		if (t->libins == libins)
++			break;
++	
++	if (t != NULL)
++		t->refcnt++;
++}
++#endif
++
++void
++pf_libalias_unref(u_int8_t libins)
++{
++	        return (libalias_unref(&pf_libs, libins));
++}
++
++struct libalias *
++pf_libalias_setup(u_int8_t libins, const char *ifname)
++{
++	        return (libalias_setup(&pf_libs, libins, ifname));
++}
++
++/* This is copied from ip_fw2.c with some minor adaption */
++int
++pf_libalias_packet(struct mbuf **m, int dir, u_int8_t libins)
++{
++	struct mbuf             *mcl =  NULL;
++	struct libalias         *ins;
++	struct ip		*ip;
++	int                     retval = 0;
++	char                    *c;
++	/* XXX - libalias duct tape */
++	int                     ldt = 0;
++
++	ins = pf_libalias_setup(libins, NULL);
++	if (ins == NULL) {
++		retval = PF_DROP;
++		goto done;
++	}
++
++	if ((mcl = m_megapullup(*m, (*m)->m_pkthdr.len)) == NULL) {
++		retval = PF_DROP;
++		goto done;
++	}
++
++	ip = mtod(mcl, struct ip *);
++
++	/*
++	 * XXX - Libalias checksum offload 'duct tape':
++	 * locally generated packets have only pseudo-header checksum
++	 * calculatedi and libalias will screw it[1], so mark them for later fix.
++	 * Moreover there are cases when libalias modify tcp packet data[2], mark
++	 * it for later fix too.
++	 *
++	 * [1] libalias was never meant to run in kernel, so it doesn't have any
++	 * knowledge about checksum offloading, and it expects a packet with a full
++	 * internet checksum. Unfortunately, packets generated locally will have
++	 * just the pseudo header calculated, and when libalias tries to adjust the
++	 * checksum it will actually screw it.
++	 * [2] when libalias modify tcp's data content, full TCP checksum has to
++	 * be recomputed: the problem is that libalias doesn't have any idea
++	 * about checksum offloading To workaround this, we do not do checksumming
++	 * in LibAlias, but only mark the packets in th_x2 field. If we receive a
++	 * marked packet, we calculate correct checksum for it aware of offloading.
++	 * Why such a terrible hack instead of recalculating checksum for each
++	 * packet?  Because the previous checksum was not checked! Recalculating
++	 * checksums for EVERY packet will hide ALL transmission errors. Yes, marked
++	 * packets still suffer from this problem. But, sigh, natd(8) has this
++	 * problem, too.
++	 *
++	 * TODO: -make libalias mbuf aware (so it can handle delayed checksum and tso)
++	 */
++	
++         if (mcl->m_pkthdr.rcvif == NULL && 
++			 mcl->m_pkthdr.csum_flags & CSUM_DELAY_DATA)
++	                 ldt = 1;
++
++         c = mtod(mcl, char *);
++         if (dir == PF_IN) 
++	                 retval = LibAliasIn(ins, c, MCLBYTES);
++	 else 
++	                 retval = LibAliasOut(ins, c, MCLBYTES);
++	
++
++         if (retval != PKT_ALIAS_OK) {
++	                 /* XXX - should i add some logging? */
++	                 m_free(mcl);
++			 *m = NULL;
++			 retval = PF_DROP;
++			 goto done;
++	 }
++	
++	 retval = PF_PASS;
++
++	 mcl->m_pkthdr.len = mcl->m_len = ntohs(ip->ip_len);
++	 /*XXX - libalias checksum offload 'duct tape' (see above) */
++	 if ((ip->ip_off & htons(IP_OFFMASK)) == 0 &&
++			 ip->ip_p == IPPROTO_TCP) {
++		 struct tcphdr   *th;
++		 
++		 th = (struct tcphdr *)(ip + 1);
++		 if (th->th_x2)
++			 ldt = 1;
++
++	 }
++
++	 if (ldt) {
++		 struct tcphdr   *th;
++
++		 struct udphdr   *uh;
++		 u_short cksum;
++		 
++		 ip->ip_len = ntohs(ip->ip_len);
++		 cksum = in_pseudo(ip->ip_src.s_addr, ip->ip_dst.s_addr,
++			 htons(ip->ip_p + ip->ip_len - (ip->ip_hl << 2)));
++
++		 switch (ip->ip_p) {
++			 case IPPROTO_TCP:
++				 th = (struct tcphdr *)(ip + 1);
++				 /* Maybe it was set in libalias... */
++				 th->th_x2 = 0;
++				 th->th_sum = cksum;
++				 mcl->m_pkthdr.csum_data = 
++					 offsetof(struct tcphdr, th_sum);
++				 break;
++			 case IPPROTO_UDP:
++				 uh = (struct udphdr *)(ip + 1);
++				 uh->uh_sum = cksum;
++				 mcl->m_pkthdr.csum_data = 
++					 offsetof(struct udphdr, uh_sum);
++				 break;
++		 }
++
++		 /* No hw checksum offloading: do it by ourself. */
++		 if ((mcl->m_pkthdr.csum_flags & CSUM_DELAY_DATA) == 0) {
++			 in_delayed_cksum(mcl);
++			 mcl->m_pkthdr.csum_flags &= ~CSUM_DELAY_DATA;
++		 }
++
++		 ip->ip_len = htons(ip->ip_len);
++	 }
++	
++	 *m = mcl;
++done:
++	 return (retval);
++}
++
++#endif
