@@ -76,7 +76,6 @@ return {
 		    name = _("Packet mode?"),
 		    short_desc = _("Select this to use 'packet mode' to boot the disk"),
 		    control = "checkbox"
-		}
 	    },
 		{
 		    id = "usegrub",
