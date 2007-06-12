@@ -121,15 +121,14 @@ return {
 					-- execute Grub boot block installer
 					cmds:set_replacements{
 					    disk = disk
-					}					
+					}
+					cmds:add("sysctl kern.geom.debugflags=16")
 					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
 					cmds:add("echo \"default=0\" > /boot/grub/menu.lst")
 					cmds:add("echo \"timeout=5\" >> /boot/grub/menu.lst")
 					cmds:add("echo \"title pfSense\" >> /boot/grub/menu.lst")
 					cmds:add("echo \"	root (hd0,0,a)\" >> /boot/grub/menu.lst")
 					cmds:add("echo \"	kernel /boot/loader\" >> /boot/grub/menu.lst")
-					cmds:add("echo \"	makeactive\" >> /boot/grub/menu.lst")
-					cmds:add("echo \"	savedefault\" >> /boot/grub/menu.lst")
 					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
 					cmds:execute()
 				else
