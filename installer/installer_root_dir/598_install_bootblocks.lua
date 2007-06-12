@@ -122,7 +122,7 @@ return {
 					cmds:set_replacements{
 					    disk = disk
 					}					
-					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/boot/ /dev/${disk}")
+					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
 					cmds:execute()
 				else
 					dd = disk_ref[dataset.disk]
