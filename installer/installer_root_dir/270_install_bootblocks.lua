@@ -116,7 +116,6 @@ return {
 			if dataset.boot0cfg == "Y" then
 				if dataset.usegrub == "Y" then
 					-- execute Grub boot block installer
-					local cmds = CmdChain.new()
 					cmds:set_replacements{
 					    disk = disk_ref[dataset.disk],
 		    			base = App.state.target:get_base()
