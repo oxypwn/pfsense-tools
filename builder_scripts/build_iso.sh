@@ -71,7 +71,7 @@ fi
 make_world_kernel
 
 if [ $pfSense_version = "7" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.7.install"
+	export MAKE_CONF="${PWD}/conf/make.conf.7.install" s
 fi
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
@@ -93,6 +93,7 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep lighttpd) >> $BASE_DIR/tools/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep cpdup) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
 set -e
 
 # Invoke FreeSBIE2 toolchain
