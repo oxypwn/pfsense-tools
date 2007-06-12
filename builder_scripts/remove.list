@@ -136,7 +136,7 @@
 ./usr/bin/checknr
 ./usr/bin/chkey
 ./usr/bin/ci
-./usr/bin/cmp
+
 ./usr/bin/co
 ./usr/bin/col
 ./usr/bin/colcrt
