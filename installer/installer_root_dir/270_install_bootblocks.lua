@@ -116,8 +116,7 @@ return {
 				if dataset.usegrub == "Y" then
 					-- execute Grub boot block installer
 					cmds:set_replacements{
-					    disk = disk_ref[dataset.disk],
-		    			base = App.state.target:get_base()
+					    disk = disk_ref[dataset.disk]
 					}					
 					cmds:add("/usr/local/sbin/grub-install /dev/${disk}")
 					cmds:execute()
