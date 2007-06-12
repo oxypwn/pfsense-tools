@@ -35,6 +35,8 @@ return {
 		table.insert(datasets_list, dataset)
 	end
 
+	local disk1
+       
 	local response = App.ui:present({
 	    id = "install_bootstrap",
 	    name = _("Install Bootblock(s)"),
@@ -114,9 +116,11 @@ return {
 		for i, dataset in ipairs(response.datasets) do
 			if dataset.boot0cfg == "Y" then
 				if dataset.usegrub == "Y" then
+					dd = disk_ref[dataset.disk]
+					disk = dd:get_name()
 					-- execute Grub boot block installer
 					cmds:set_replacements{
-					    disk = disk_ref[dataset.disk]
+					    disk = disk
 					}					
 					cmds:add("/usr/local/sbin/grub-install /dev/${disk}")
 					cmds:execute()
