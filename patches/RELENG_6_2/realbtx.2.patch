@@ -1,0 +1,871 @@
+? boot/i386/btx/.arch-ids
+? boot/i386/btx/btx/.arch-ids
+? boot/i386/btx/btxldr/.arch-ids
+? boot/i386/btx/lib/.arch-ids
+Index: boot/i386/btx/btx/Makefile
+===================================================================
+RCS file: /usr/local/arch/ncvs/src/sys/boot/i386/btx/btx/Makefile,v
+retrieving revision 1.19
+diff -u -r1.19 Makefile
+--- boot/i386/btx/btx/Makefile	21 Dec 2004 08:47:13 -0000	1.19
++++ boot/i386/btx/btx/Makefile	3 Apr 2007 11:03:16 -0000
+@@ -5,10 +5,6 @@
+ NO_MAN=
+ SRCS=	btx.S
+ 
+-.if defined(PAGING)
+-CFLAGS+=-DPAGING
+-.endif
+-
+ .if defined(BOOT_BTX_NOHANG)
+ BOOT_BTX_FLAGS=0x1
+ .else
+Index: boot/i386/btx/btx/btx.S
+===================================================================
+RCS file: /usr/local/arch/ncvs/src/sys/boot/i386/btx/btx/btx.S,v
+retrieving revision 1.44
+diff -u -r1.44 btx.S
+--- boot/i386/btx/btx/btx.S	6 Dec 2006 17:45:35 -0000	1.44
++++ boot/i386/btx/btx/btx.S	3 Apr 2007 11:03:16 -0000
+@@ -21,12 +21,10 @@
+ 		.set MEM_BTX,0x1000		# Start of BTX memory
+ 		.set MEM_ESP0,0x1800		# Supervisor stack
+ 		.set MEM_BUF,0x1800		# Scratch buffer
+-		.set MEM_ESP1,0x1e00		# Link stack
+ 		.set MEM_IDT,0x1e00		# IDT
+-		.set MEM_TSS,0x1f98		# TSS
+-		.set MEM_MAP,0x2000		# I/O bit map
+-		.set MEM_DIR,0x4000		# Page directory
+-		.set MEM_TBL,0x5000		# Page tables
++		.set MEM_TSS,0x2598		# TSS
++		.set MEM_MAP,0x2600		# I/O bit map
++		.set MEM_TSS_END,0x6000		# 
+ 		.set MEM_ORG,0x9000		# BTX code
+ 		.set MEM_USR,0xa000		# Start of user memory
+ /*
+@@ -86,9 +84,8 @@
+  * Derivations, for brevity.
+  */
+ 		.set _ESP0H,MEM_ESP0>>0x8	# Byte 1 of ESP0
+-		.set _ESP1H,MEM_ESP1>>0x8	# Byte 1 of ESP1
+ 		.set _TSSIO,MEM_MAP-MEM_TSS	# TSS I/O base
+-		.set _TSSLM,MEM_DIR-MEM_TSS-1	# TSS limit
++		.set _TSSLM,MEM_TSS_END-MEM_TSS-1	# TSS limit
+ 		.set _IDTLM,MEM_TSS-MEM_IDT-1	# IDT limit
+ /*
+  * Code segment.
+@@ -103,7 +100,7 @@
+ 		.byte 0xe			# Header size
+ 		.ascii "BTX"			# Magic
+ 		.byte 0x1			# Major version
+-		.byte 0x1			# Minor version
++		.byte 0x2			# Minor version
+ 		.byte BTX_FLAGS			# Flags
+ 		.word PAG_CNT-MEM_ORG>>0xc	# Paging control
+ 		.word break-start		# Text size
+@@ -154,62 +151,19 @@
+ /*
+  * Initialize TSS.
+  */
+-init.4: 	movb $_ESP0H,TSS_ESP0+1(%di)	# Set ESP0
++init.4: 	movw $MEM_TSS,%di
++		movb $_ESP0H,TSS_ESP0+1(%di)	# Set ESP0
+ 		movb $SEL_SDATA,TSS_SS0(%di)	# Set SS0
+-		movb $_ESP1H,TSS_ESP1+1(%di)	# Set ESP1
+ 		movb $_TSSIO,TSS_MAP(%di)	# Set I/O bit map base
+-#ifdef PAGING
+-/*
+- * Create page directory.
+- */
+-		xor %edx,%edx			# Page
+-		mov $PAG_SIZ>>0x8,%dh		#  size
+-		xor %eax,%eax			# Zero
+-		mov $MEM_DIR,%di		# Page directory
+-		mov $PAG_CNT>>0xa,%cl		# Entries
+-		mov $MEM_TBL|0x7,%ax	 	# First entry
+-init.5: 	stosl				# Write entry
+-		add %dx,%ax			# To next
+-		loop init.5			# Till done
+-/*
+- * Create page tables.
+- */
+-		mov $MEM_TBL,%di		# Page table
+-		mov $PAG_CNT>>0x8,%ch		# Entries
+-		xor %ax,%ax			# Start address
+-init.6: 	mov $0x7,%al			# Set U:W:P flags
+-		cmp btx_hdr+0x8,%cx	 	# Standard user page?
+-		jb init.7			# Yes
+-		cmp $PAG_CNT-MEM_BTX>>0xc,%cx	# BTX memory?
+-		jae init.7			# No or first page
+-		and $~0x2,%al			# Clear W flag
+-		cmp $PAG_CNT-MEM_USR>>0xc,%cx	# User page zero?
+-		jne init.7			# No
+-		testb $0x80,btx_hdr+0x7		# Unmap it?
+-		jz init.7			# No
+-		and $~0x1,%al			# Clear P flag
+-init.7: 	stosl				# Set entry
+-		add %edx,%eax			# Next address
+-		loop init.6			# Till done
+-#endif
+ /*
+  * Bring up the system.
+  */
+-		mov $0x2820,%bx			# Set protected mode
++		mov $0x7008,%bx			# Set protected mode
+ 		callw setpic			#  IRQ offsets
+ 		lidt idtdesc	 		# Set IDT
+-#ifdef PAGING
+-		xor %eax,%eax			# Set base
+-		mov $MEM_DIR>>0x8,%ah		#  of page
+-		mov %eax,%cr3			#  directory
+-#endif
+ 		lgdt gdtdesc	 		# Set GDT
+ 		mov %cr0,%eax			# Switch to protected
+-#ifdef PAGING
+-		or $0x80000001,%eax             #  mode and enable paging
+-#else
+ 		inc %ax				#  mode
+-#endif
+ 		mov %eax,%cr0			#
+ 		ljmp $SEL_SCODE,$init.8		# To 32-bit code
+ 		.code32
+@@ -300,7 +254,7 @@
+ /*
+  * Set IRQ offsets by reprogramming 8259A PICs.
+  */
+-setpic: 	in $0x21,%al			# Save master
++setpic:		in $0x21,%al			# Save master
+ 		push %ax			#  IMR
+ 		in $0xa1,%al			# Save slave
+ 		push %ax			#  IMR
+@@ -325,10 +279,6 @@
+ 		retw				# To caller
+ 		.code32
+ /*
+- * Initiate return from V86 mode to user mode.
+- */
+-inthlt: 	hlt				# To supervisor mode
+-/*
+  * Exception jump table.
+  */
+ intx00: 	push $0x0			# Int 0x0: #DE
+@@ -346,30 +296,33 @@
+ 		push $0x7			# Int 0x7: #NM
+ 		jmp ex_noc			# Device not available
+ 		push $0x8			# Int 0x8: #DF
+-		jmp except			# Double fault
++		jmp ex_check			# Double fault
++		push $0x9
++		jmp int_hw
+ 		push $0xa			# Int 0xa: #TS
+-		jmp except			# Invalid TSS
++		jmp ex_check			# Invalid TSS
+ 		push $0xb			# Int 0xb: #NP
+-		jmp except			# Segment not present
++		jmp ex_check			# Segment not present
+ 		push $0xc			# Int 0xc: #SS
+-		jmp except			# Stack segment fault
++		jmp ex_check			# Stack segment fault
+ 		push $0xd			# Int 0xd: #GP
+-		jmp ex_v86			# General protection
++		jmp ex_check			# General protection
+ 		push $0xe			# Int 0xe: #PF
+-		jmp except			# Page fault
++		jmp ex_check			# Page fault
++		pushl $0xf
++		jmp int_hw
+ intx10: 	push $0x10			# Int 0x10: #MF
+ 		jmp ex_noc			# Floating-point error
+ /*
+- * Handle #GP exception.
+- */
+-ex_v86: 	testb $0x2,0x12(%esp,1) 	# V86 mode?
+-		jz except			# No
+-		jmp v86mon			# To monitor
+-/*
+  * Save a zero error code.
+  */
+ ex_noc: 	pushl (%esp,1)			# Duplicate int no
+ 		movb $0x0,0x4(%esp,1)		# Fake error code
++		jmp except
++
++ex_check:	cmpl $(MEM_ESP0-6*4),%esp
++		je int_hw
++		jmp except
+ /*
+  * Handle exception.
+  */
+@@ -418,234 +371,6 @@
+ except.2a:	jmp exit			# Exit
+ except.3:	leal 0x8(%esp,1),%esp		# Discard err, int no
+ 		iret				# From interrupt
+-/*
+- * Return to user mode from V86 mode.
+- */
+-intrtn: 	cld				# String ops inc
+-		pushl %ds			# Address
+-		popl %es			#  data
+-		leal 0x3c(%ebp),%edx		# V86 Segment registers
+-		movl MEM_TSS+TSS_ESP1,%esi	# Link stack pointer
+-		lodsl				# INT_V86 args pointer
+-		movl %esi,%ebx			# Saved exception frame
+-		testl %eax,%eax 		# INT_V86 args?
+-		jz intrtn.2			# No
+-		movl $MEM_USR,%edi		# User base
+-		movl 0x1c(%esi),%ebx		# User ESP
+-		movl %eax,(%edi,%ebx,1) 	# Restore to user stack
+-		leal 0x8(%edi,%eax,1),%edi	# Arg segment registers
+-		testb $0x4,-0x6(%edi)		# Return flags?
+-		jz intrtn.1			# No
+-		movl 0x30(%ebp),%eax		# Get V86 flags
+-		movw %ax,0x18(%esi)		# Set user flags
+-intrtn.1:	leal 0x10(%esi),%ebx		# Saved exception frame
+-		xchgl %edx,%esi 		# Segment registers
+-		movb $0x4,%cl			# Update seg regs
+-		rep				#  in INT_V86
+-		movsl				#  args
+-intrtn.2:	xchgl %edx,%esi			# Segment registers
+-		leal 0x28(%ebp),%edi		# Set up seg
+-		movb $0x4,%cl			#  regs for
+-		rep				#  later
+-		movsl				#  pop
+-		xchgl %ebx,%esi			# Restore exception
+-		movb $0x5,%cl			#  frame to
+-		rep				#  supervisor
+-		movsl				#  stack
+-		movl %esi,MEM_TSS+TSS_ESP1	# Link stack pointer
+-		popa				# Restore
+-		leal 0x8(%esp,1),%esp		# Discard err, int no
+-		popl %es			# Restore
+-		popl %ds			#  user
+-		popl %fs			#  segment
+-		popl %gs			#  registers
+-		iret				# To user mode
+-/*
+- * V86 monitor.
+- */
+-v86mon: 	cld				# String ops inc
+-		pushl $SEL_SDATA		# Set up for
+-		popl %ds			#  flat addressing
+-		pusha				# Save registers
+-		movl %esp,%ebp			# Address stack frame
+-		movzwl 0x2c(%ebp),%edi		# Load V86 CS
+-		shll $0x4,%edi			# To linear
+-		movl 0x28(%ebp),%esi		# Load V86 IP
+-		addl %edi,%esi			# Code pointer
+-		xorl %ecx,%ecx			# Zero
+-		movb $0x2,%cl			# 16-bit operands
+-		xorl %eax,%eax			# Zero
+-v86mon.1:	lodsb				# Get opcode
+-		cmpb $0x66,%al			# Operand size prefix?
+-		jne v86mon.2			# No
+-		movb $0x4,%cl			# 32-bit operands
+-		jmp v86mon.1			# Continue
+-v86mon.2:	cmpb $0xf4,%al			# HLT?
+-		jne v86mon.3			# No
+-		cmpl $inthlt+0x1,%esi		# Is inthlt?
+-		jne v86mon.7			# No (ignore)
+-		jmp intrtn			# Return to user mode
+-v86mon.3:	cmpb $0xf,%al			# Prefixed instruction?
+-		jne v86mon.4			# No
+-		cmpb $0x09,(%esi)		# Is it a WBINVD?
+-		je v86wbinvd			# Yes
+-		cmpb $0x30,(%esi)		# Is it a WRMSR?
+-		je v86wrmsr			# Yes
+-		cmpb $0x32,(%esi)		# Is it a RDMSR?
+-		je v86rdmsr			# Yes
+-		cmpb $0x20,(%esi)		# Is this a MOV reg,CRx?
+-		je v86mov			# Yes
+-v86mon.4:	cmpb $0xfa,%al			# CLI?
+-		je v86cli			# Yes
+-		cmpb $0xfb,%al			# STI?
+-		je v86sti			# Yes
+-		cmpb $0xcc,%al			# INT3?
+-		je v86mon.7			# Yes, ignore
+-		movzwl 0x38(%ebp),%ebx		# Load V86 SS
+-		shll $0x4,%ebx			# To offset
+-		pushl %ebx			# Save
+-		addl 0x34(%ebp),%ebx		# Add V86 SP
+-		movl 0x30(%ebp),%edx		# Load V86 flags
+-		cmpb $0x9c,%al			# PUSHF/PUSHFD?
+-		je v86pushf			# Yes
+-		cmpb $0x9d,%al			# POPF/POPFD?
+-		je v86popf			# Yes
+-		cmpb $0xcd,%al			# INT imm8?
+-		je v86intn			# Yes
+-		cmpb $0xcf,%al			# IRET/IRETD?
+-		je v86iret			# Yes
+-		popl %ebx			# Restore
+-		popa				# Restore
+-		jmp except			# Handle exception
+-v86mon.5:	movl %edx,0x30(%ebp)		# Save V86 flags
+-v86mon.6:	popl %edx			# V86 SS adjustment
+-		subl %edx,%ebx			# Save V86
+-		movl %ebx,0x34(%ebp)		#  SP
+-v86mon.7:	subl %edi,%esi			# From linear
+-		movl %esi,0x28(%ebp)		# Save V86 IP
+-		popa				# Restore
+-		leal 0x8(%esp,1),%esp		# Discard int no, error
+-		iret				# To V86 mode
+-/*
+- * Emulate MOV reg,CRx.
+- */
+-v86mov: 	movb 0x1(%esi),%bl		# Fetch Mod R/M byte
+-		testb $0x10,%bl			# Read CR2 or CR3?
+-		jnz v86mov.1			# Yes
+-		movl %cr0,%eax			# Read CR0
+-		testb $0x20,%bl			# Read CR4 instead?
+-		jz v86mov.2			# No
+-		movl %cr4,%eax			# Read CR4
+-		jmp v86mov.2
+-v86mov.1:	movl %cr2,%eax			# Read CR2
+-		testb $0x08,%bl			# Read CR3 instead?
+-		jz v86mov.2			# No
+-		movl %cr3,%eax			# Read CR3
+-v86mov.2:	andl $0x7,%ebx			# Compute offset in
+-		shl $2,%ebx			#  frame of destination
+-		neg %ebx			#  register
+-		movl %eax,0x1c(%ebp,%ebx,1)	# Store CR to reg
+-		incl %esi			# Adjust IP
+-/*
+- * Return from emulating a 0x0f prefixed instruction
+- */
+-v86preret:	incl %esi			# Adjust IP
+-		jmp v86mon.7			# Finish up
+-/*
+- * Emulate WBINVD
+- */
+-v86wbinvd:	wbinvd				# Write back and invalidate
+-						#  cache
+-		jmp v86preret			# Finish up
+-/*
+- * Emulate WRMSR
+- */
+-v86wrmsr:	movl 0x18(%ebp),%ecx		# Get user's %ecx (MSR to write)
+-		movl 0x14(%ebp),%edx		# Load the value
+-		movl 0x1c(%ebp),%eax		#  to write
+-		wrmsr				# Write MSR
+-		jmp v86preret			# Finish up
+-/*
+- * Emulate RDMSR
+- */
+-v86rdmsr:	movl 0x18(%ebp),%ecx		# MSR to read
+-		rdmsr				# Read the MSR
+-		movl %eax,0x1c(%ebp)		# Return the value of
+-		movl %edx,0x14(%ebp)		#  the MSR to the user
+-		jmp v86preret			# Finish up
+-/*
+- * Emulate CLI.
+- */
+-v86cli: 	andb $~0x2,0x31(%ebp)		# Clear IF
+-		jmp v86mon.7			# Finish up
+-/*
+- * Emulate STI.
+- */
+-v86sti: 	orb $0x2,0x31(%ebp)		# Set IF
+-		jmp v86mon.7			# Finish up
+-/*
+- * Emulate PUSHF/PUSHFD.
+- */
+-v86pushf:	subl %ecx,%ebx			# Adjust SP
+-		cmpb $0x4,%cl			# 32-bit
+-		je v86pushf.1			# Yes
+-		data16				# 16-bit
+-v86pushf.1:	movl %edx,(%ebx)		# Save flags
+-		jmp v86mon.6			# Finish up
+-/*
+- * Emulate IRET/IRETD.
+- */
+-v86iret:	movzwl (%ebx),%esi		# Load V86 IP
+-		movzwl 0x2(%ebx),%edi		# Load V86 CS
+-		leal 0x4(%ebx),%ebx		# Adjust SP
+-		movl %edi,0x2c(%ebp)		# Save V86 CS
+-		xorl %edi,%edi			# No ESI adjustment
+-/*
+- * Emulate POPF/POPFD (and remainder of IRET/IRETD).
+- */
+-v86popf:	cmpb $0x4,%cl			# 32-bit?
+-		je v86popf.1			# Yes
+-		movl %edx,%eax			# Initialize
+-		data16				# 16-bit
+-v86popf.1:	movl (%ebx),%eax		# Load flags
+-		addl %ecx,%ebx			# Adjust SP
+-		andl $V86_FLG,%eax		# Merge
+-		andl $~V86_FLG,%edx		#  the
+-		orl %eax,%edx			#  flags
+-		jmp v86mon.5			# Finish up
+-/*
+- * trap int 15, function 87
+- * reads %es:%si from saved registers on stack to find a GDT containing
+- * source and destination locations
+- * reads count of words from saved %cx
+- * returns success by setting %ah to 0
+- */
+-int15_87:	pushl %esi			# Save 
+-		pushl %edi			#  registers
+-		movl 0x3C(%ebp),%edi		# Load ES
+-		movzwl 0x4(%ebp),%eax		# Load user's SI
+-		shll $0x4,%edi			# EDI = (ES << 4) +
+-		addl %eax,%edi			#   SI
+-		movl 0x11(%edi),%eax		# Read base of
+-		movb 0x17(%edi),%al		#  GDT entry
+-		ror $8,%eax			#  for source
+-		xchgl %eax,%esi			#  into %esi
+-		movl 0x19(%edi),%eax		# Read base of
+-		movb 0x1f(%edi),%al		#  GDT entry for
+-		ror $8,%eax			#  destination
+-		xchgl %eax,%edi			#  into %edi
+-		pushl %ds			# Make:
+-		popl %es			# es = ds
+-		movzwl 0x18(%ebp),%ecx		# Get user's CX
+-		shll $0x1,%ecx			# Convert count from words
+-		rep				# repeat...
+-		movsb				#  perform copy.
+-		popl %edi			# Restore
+-		popl %esi			#  registers
+-		movb $0x0,0x1d(%ebp)		# set ah = 0 to indicate
+-						#  success
+-		andb $0xfe,%dl			# clear CF
+-		jmp v86mon.5			# Finish up
+ 
+ /*
+  * Reboot the machine by setting the reboot flag and exiting
+@@ -654,54 +379,9 @@
+ 		jmp exit			# Terminate BTX and reboot
+ 
+ /*
+- * Emulate INT imm8... also make sure to check if it's int 15/87
++ * Hardware interrupt jump table for slave PIC.
+  */
+-v86intn:	lodsb				# Get int no
+-		cmpb $0x19,%al			# is it int 19?
+-		je reboot			#  yes, reboot the machine
+-		cmpb $0x15,%al			# is it int 15?
+-		jne v86intn.1			#  no, skip parse
+-		cmpb $0x87,0x1d(%ebp)		# is it the memcpy subfunction?
+-		je int15_87			#  yes
+-		cmpw $0x4f53,0x1c(%ebp)		# is it the delete key callout?
+-		jne v86intn.1			#  no, handle the int normally
+-		movb BDA_KEYFLAGS,%ch		# get the shift key state
+-		andb $0xc,%ch			# mask off just Ctrl and Alt
+-		cmpb $0xc,%ch			# are both Ctrl and Alt down?
+-		je reboot			# yes, reboot the machine
+-v86intn.1:	subl %edi,%esi			# From
+-		shrl $0x4,%edi			#  linear
+-		movw %dx,-0x2(%ebx)		# Save flags
+-		movw %di,-0x4(%ebx)		# Save CS
+-		leal -0x6(%ebx),%ebx		# Adjust SP
+-		movw %si,(%ebx) 		# Save IP
+-		shll $0x2,%eax			# Scale
+-		movzwl (%eax),%esi		# Load IP
+-		movzwl 0x2(%eax),%edi		# Load CS
+-		movl %edi,0x2c(%ebp)		# Save CS
+-		xorl %edi,%edi			# No ESI adjustment
+-		andb $~0x1,%dh			# Clear TF
+-		jmp v86mon.5			# Finish up
+-/*
+- * Hardware interrupt jump table.
+- */
+-intx20: 	push $0x8			# Int 0x20: IRQ0
+-		jmp int_hw			# V86 int 0x8
+-		push $0x9			# Int 0x21: IRQ1
+-		jmp int_hw			# V86 int 0x9
+-		push $0xa			# Int 0x22: IRQ2
+-		jmp int_hw			# V86 int 0xa
+-		push $0xb			# Int 0x23: IRQ3
+-		jmp int_hw			# V86 int 0xb
+-		push $0xc			# Int 0x24: IRQ4
+-		jmp int_hw			# V86 int 0xc
+-		push $0xd			# Int 0x25: IRQ5
+-		jmp int_hw			# V86 int 0xd
+-		push $0xe			# Int 0x26: IRQ6
+-		jmp int_hw			# V86 int 0xe
+-		push $0xf			# Int 0x27: IRQ7
+-		jmp int_hw			# V86 int 0xf
+-		push $0x70			# Int 0x28: IRQ8
++intx70:		push $0x70			# Int 0x28: IRQ8
+ 		jmp int_hw			# V86 int 0x70
+ 		push $0x71			# Int 0x29: IRQ9
+ 		jmp int_hw			# V86 int 0x71
+@@ -717,127 +397,193 @@
+ 		jmp int_hw			# V86 int 0x76
+ 		push $0x77			# Int 0x2f: IRQ15
+ 		jmp int_hw			# V86 int 0x77
+-/*
+- * Reflect hardware interrupts.
+- */
+-int_hw: 	testb $0x2,0xe(%esp,1)		# V86 mode?
+-		jz intusr			# No
+-		pushl $SEL_SDATA		# Address
+-		popl %ds			#  data
+-		xchgl %eax,(%esp,1)		# Swap EAX, int no
+-		pushl %ebp			# Address
+-		movl %esp,%ebp			#  stack frame
+-		pushl %ebx			# Save
+-		shll $0x2,%eax			# Get int
+-		movl (%eax),%eax		#  vector
+-		subl $0x6,0x14(%ebp)		# Adjust V86 ESP
+-		movzwl 0x18(%ebp),%ebx		# V86 SS
+-		shll $0x4,%ebx			#  * 0x10
+-		addl 0x14(%ebp),%ebx		#  + V86 ESP
+-		xchgw %ax,0x8(%ebp)		# Swap V86 IP
+-		rorl $0x10,%eax 		# Swap words
+-		xchgw %ax,0xc(%ebp)		# Swap V86 CS
+-		roll $0x10,%eax 		# Swap words
+-		movl %eax,(%ebx)		# CS:IP for IRET
+-		movl 0x10(%ebp),%eax		# V86 flags
+-		movw %ax,0x4(%ebx)		# Flags for IRET
+-		andb $~0x3,0x11(%ebp)		# Clear IF, TF
+-		popl %ebx			# Restore
+-		popl %ebp			#  saved
+-		popl %eax			#  registers
+-		iret				# To V86 mode
+-/*
+- * Invoke V86 interrupt from user mode, with arguments.
+- */
+-intx31: 	stc				# Have btx_v86
+-		pushl %eax			# Missing int no
+-/*
+- * Invoke V86 interrupt from user mode.
+- */
+-intusr: 	std				# String ops dec
+-		pushl %eax			# Expand
+-		pushl %eax			#  stack
+-		pushl %eax			#  frame
+-		pusha				# Save
+-		pushl %gs			# Save
+-		movl %esp,%eax			#  seg regs
+-		pushl %fs			#  and
+-		pushl %ds			#  point
+-		pushl %es			#  to them
+-		push $SEL_SDATA			# Set up
+-		popl %ds			#  to
+-		pushl %ds			#  address
+-		popl %es			#  data
+-		movl $MEM_USR,%ebx		# User base
+-		movl %ebx,%edx			#  address
+-		jc intusr.1			# If btx_v86
+-		xorl %edx,%edx			# Control flags
+-		xorl %ebp,%ebp			# btx_v86 pointer
+-intusr.1:	leal 0x50(%esp,1),%esi		# Base of frame
+-		pushl %esi			# Save
+-		addl -0x4(%esi),%ebx		# User ESP
+-		movl MEM_TSS+TSS_ESP1,%edi	# Link stack pointer
+-		leal -0x4(%edi),%edi		# Adjust for push
+-		xorl %ecx,%ecx			# Zero
+-		movb $0x5,%cl			# Push exception
+-		rep				#  frame on
+-		movsl				#  link stack
+-		xchgl %eax,%esi 		# Saved seg regs
+-		movl 0x40(%esp,1),%eax		# Get int no
+-		testl %edx,%edx 		# Have btx_v86?
+-		jz intusr.2			# No
+-		movl (%ebx),%ebp		# btx_v86 pointer
+-		movb $0x4,%cl			# Count
+-		addl %ecx,%ebx			# Adjust for pop
+-		rep				# Push saved seg regs
+-		movsl				#  on link stack
+-		addl %ebp,%edx			# Flatten btx_v86 ptr
+-		leal 0x14(%edx),%esi		# Seg regs pointer
+-		movl 0x4(%edx),%eax		# Get int no/address
+-		movzwl 0x2(%edx),%edx		# Get control flags
+-intusr.2:	movl %ebp,(%edi)		# Push btx_v86 and
+-		movl %edi,MEM_TSS+TSS_ESP1	#  save link stack ptr
+-		popl %edi			# Base of frame
+-		xchgl %eax,%ebp 		# Save intno/address
+-		movl 0x48(%esp,1),%eax		# Get flags
+-		testb $0x2,%dl			# Simulate CALLF?
+-		jnz intusr.3			# Yes
+-		decl %ebx			# Push flags
+-		decl %ebx			#  on V86
+-		movw %ax,(%ebx) 		#  stack
+-intusr.3:	movb $0x4,%cl			# Count
+-		subl %ecx,%ebx			# Push return address
+-		movl $inthlt,(%ebx)		#  on V86 stack
+-		rep				# Copy seg regs to
+-		movsl				#  exception frame
+-		xchgl %eax,%ecx 		# Save flags
+-		movl %ebx,%eax			# User ESP
+-		subl $V86_STK,%eax		# Less bytes
+-		ja intusr.4			#  to
+-		xorl %eax,%eax			#  keep
+-intusr.4:	shrl $0x4,%eax			# Gives segment
+-		stosl				# Set SS
+-		shll $0x4,%eax			# To bytes
+-		xchgl %eax,%ebx 		# Swap
+-		subl %ebx,%eax			# Gives offset
+-		stosl				# Set ESP
+-		xchgl %eax,%ecx 		# Get flags
+-		btsl $0x11,%eax 		# Set VM
+-		andb $~0x1,%ah			# Clear TF
+-		stosl				# Set EFL
+-		xchgl %eax,%ebp 		# Get int no/address
+-		testb $0x1,%dl			# Address?
+-		jnz intusr.5			# Yes
+-		shll $0x2,%eax			# Scale
+-		movl (%eax),%eax		# Load int vector
+-intusr.5:	movl %eax,%ecx			# Save
+-		shrl $0x10,%eax 		# Gives segment
+-		stosl				# Set CS
+-		movw %cx,%ax			# Restore
+-		stosl				# Set EIP
+-		leal 0x10(%esp,1),%esp		# Discard seg regs
+-		popa				# Restore
+-		iret				# To V86 mode
++
++intx31r:	pushl $-1			# fake intno
++int_hw:		pushl %gs
++		pushl %fs
++		pushl %ds
++		pushl %es
++		subl $(7*4),%esp	# space for iret and tramp frames, rsegs
++		pushal
++		pushl $SEL_SDATA
++		popl %ds
++		pushl %ds
++		popl %es
++		cld
++		movl $MEM_USR, %ebx
++		movl %ebx, %edi
++		addl (23*4)(%esp),%edi	# %edi = pointer to user stack (linear)
++		movl $25,%ecx
++		movl %esp,%esi
++		# copy the frame to the user stack
++		movl $(25*4),%edx
++		subl %edx,%edi
++		rep movsl
++		addl (%edi),%ebx	# %ebx = pointer to __v86 (linear)
++		subl %edx,%edi
++	# form the return trampoline structure on user stack
++		movl (19*4)(%edi),%eax		# intno
++		movl $2,%ecx
++		cmpl $-1,%eax
++		jne intx31r.2
++intx31r.1:	movl (5*4)(%ebx),%edx		# rgs
++		movl %edx,(11*4)(%edi)
++		movl (4*4)(%ebx),%edx		# rfs
++		movl %edx,(10*4)(%edi)
++		movl (3*4)(%ebx),%edx		# rds
++		movl %edx,(9*4)(%edi)
++		movl (2*4)(%ebx),%edx		# res
++		movl %edx,(8*4)(%edi)
++		movl 4(%ebx),%eax		# v86.addr
++		movw $0x202,%cx
++		testb $0x2,2(%ebx)		# V86_CALLF
++		jne intx31r.3
++intx31r.2:	shll $2,%eax			# %eax = intno
++		movl (%eax),%eax
++		movl $rret,%esi
++		jmp set_tramp
++intx31r.3:	movl $callftramp,%esi
++		testb $0x1,2(%ebx)		# V86_ADDR
++		jne set_tramp
++		movl %eax,%edx
++		shrl $4,%edx
++		shll $4,%edx
++		subl %edx,%eax
++		shll $16,%edx
++		movw %ax,%dx
++		movl %edx,%eax
++set_tramp:	movl %eax,(12*4)(%edi)		# tramp addr
++		movw %cx,(12*4+4)(%edi)		# tramp flags
++		movl %esi,(13*4+2)(%edi)	# iret addr
++		movw $0x2,(14*4+2)(%edi)	# iret flags
++
++#if 0
++		movl (19*4)(%edi),%eax
++		cmpl $-1,%eax
++		jne 1f
++		movl $10,%eax
++		movb $0x8b,%bl
++		jmp 2f
++		movb $0xa2,%bl
++		cmp $0x70,%eax
++		jae 1f
++		subl $0x8,%eax
++		jmp 2f
++1:		subl $(0x70-0x8),%eax
++2:		xorl %ecx,%ecx
++		leal intstat(%ecx,%eax,4),%edx
++		incl (%edx)
++		movl (%edx),%edx
++		andl $0xf,%edx
++		cmpl $9,%edx
++		jbe 1f
++		addl $('A'-10),%edx
++		jmp 2f
++1:		addl $'0',%edx
++2:		movb %bl,%dh
++		movw %dx,(0xb8000+80-20)(%ecx,%eax,2)
++#endif
++		
++	# go to real mode
++	# %edi = start of stack frame
++go.to.real:	ljmpw $SEL_RCODE,$intx31r.r1
++		.code16
++intx31r.r1: 	movw $SEL_RDATA,%cx
++		movw %cx,%ss
++		movw %cx,%ds
++		movw %cx,%es
++		movw %cx,%fs
++		movw %cx,%gs
++		movl %cr0,%eax
++		andl $~0x1,%eax
++		movl %eax,%cr0
++		ljmp $0x0,$intx31r.r2
++intx31r.r2: # recalc rmode stack
++		movl %edi, %eax
++		subl $V86_STK,%eax
++		ja intx31r.r3
++		xorl %eax,%eax
++intx31r.r3:	shrl $0x4,%eax
++		movl %eax,%ecx
++		shll $0x4,%eax
++		subl %eax,%edi
++		movw %cx,%ss
++		movl %edi,%esp
++		lidt ivtdesc
++		popal
++		popl %es
++		popl %ds
++		popl %fs
++		popl %gs
++		iret
++		.code32
++
++		.code16
++callftramp:	pushw %bp	# for CALLF calls, remove flags from stack
++		movw %sp,%bp
++		movw %ax,2(%bp)
++		popw %bp
++		popw %ax
++rret:		cli
++		pushal
++		pushfl
++		pushl %gs
++		pushl %fs
++		pushl %ds
++		pushl %es
++		xorl %esi,%esi
++		movw %si,%ds
++		movw %si,%es
++		movw %ss,%si
++		shll $4,%esi
++		addl %esp,%esi			# %esi = start of saved frame
++		lidt idtdesc
++		lgdt gdtdesc
++		movl %cr0,%eax
++		orl $1,%eax
++		movl %eax,%cr0
++		ljmp $SEL_SCODE,$rret.1
++		.code32
++rret.1: 	xorl %ecx,%ecx
++		movb $SEL_SDATA,%cl
++		movl %ecx,%es
++		movl %ecx,%ds
++		movl %ecx,%ss
++		movl %esi,%esp
++		andb $~0x2,tss_desc+0x5		# clear TSS busy
++		movw $SEL_TSS,%cx
++		ltr %cx
++	# copy the v86 dump frame to v86
++		cmpl $-1,(17*4)(%esi)		# intno
++		jne rret.2
++		movl $MEM_USR,%ebx	# return from int $31
++		addl (23*4)(%esi),%ebx	# %ebx = pointer to __v86 (linear)
++		movl (3*4)(%esi),%edx	# rgs
++		movl %edx,(5*4)(%ebx)
++		movl (2*4)(%esi),%edx	# rfs
++		movl %edx,(4*4)(%ebx)
++		movl (1*4)(%esi),%edx	# rds
++		movl %edx,(3*4)(%ebx)
++		movl (%esi),%edx	# res
++		movl %edx,(2*4)(%ebx)
++		testb $0x4,2(%ebx)
++		jz rret.2
++		movw (4*4)(%esi),%dx	# eflags
++		orl $0x3202,%edx
++		andl $~0x1f4000,%edx
++		jmp rret.3
++rret.2:		movw $0x202,%dx
++rret.3:		movw %dx,(20*4)(%esi)
++		addl $(5*4),%esp	# remove the saved rsegs and eflags
++		popal
++		popl %es
++		popl %ds
++		popl %fs
++		popl %gs
++		movl %eax,(%esp)
++		popl %eax		# shut intno
++		iret
++
+ /*
+  * System Call.
+  */
+@@ -854,13 +600,6 @@
+ 		movl $MEM_USR,%eax		# User base address
+ 		addl 0xc(%esp,1),%eax		# Change to user
+ 		leal 0x4(%eax),%esp		#  stack
+-#ifdef PAGING
+-		movl %cr0,%eax			# Turn
+-		andl $~0x80000000,%eax		#  off
+-		movl %eax,%cr0			#  paging
+-		xorl %eax,%eax			# Flush
+-		movl %eax,%cr3			#  TLB
+-#endif
+ 		popl %eax			# Call
+ 		call *%eax			#  program
+ intx30.1:	orb $0x1,%ss:btx_hdr+0x7	# Flag reboot
+@@ -1097,7 +836,7 @@
+ 		.word 0xffff,0x0,0x9200,0x0	# SEL_RDATA
+ 		.word 0xffff,MEM_USR,0xfa00,0xcf# SEL_UCODE
+ 		.word 0xffff,MEM_USR,0xf200,0xcf# SEL_UDATA
+-		.word _TSSLM,MEM_TSS,0x8900,0x0 # SEL_TSS
++tss_desc:	.word _TSSLM,MEM_TSS,0x8900,0x0 # SEL_TSS
+ gdt.1:
+ /*
+  * Pseudo-descriptors.
+@@ -1109,15 +848,25 @@
+  * IDT construction control string.
+  */
+ idtctl: 	.byte 0x10,  0x8e		# Int 0x0-0xf
+-		.word 0x7dfb,intx00		#  (exceptions)
++		.word 0xfffb,intx00		#  (exceptions/hw)
+ 		.byte 0x10,  0x8e		# Int 0x10
+ 		.word 0x1,   intx10		#  (exception)
+-		.byte 0x10,  0x8e		# Int 0x20-0x2f
+-		.word 0xffff,intx20		#  (hardware)
++		.byte 0x10,  0			# Int 0x20-0x2f
++		.word 0x0,   0			#  (empty)
+ 		.byte 0x1,   0xee		# int 0x30
+ 		.word 0x1,   intx30		#  (system call)
+-		.byte 0x2,   0xee		# Int 0x31-0x32
+-		.word 0x1,   intx31		#  (V86, null)
++		.byte 0x1,   0xee		# Int 0x31
++		.word 0x1,   intx31r		#  (V86)
++		.byte 0xe,   0			# Int 0x32-0x3f
++		.word 0x0,   0			#  (empty)
++		.byte 0x10,  0			# Int 0x40-0x4f
++		.word 0x0,   0			#  (empty)
++		.byte 0x10,  0			# Int 0x50-0x5f
++		.word 0x0,   0			#  (empty)
++		.byte 0x10,  0			# Int 0x60-0x6f
++		.word 0x0,   0			#  (empty)
++		.byte 0x8,   0x8e		# Int 0x70-0x77
++		.word 0xff,  intx70		#  (hardware)
+ 		.byte 0x0			# End of string
+ /*
+  * Dump format string.
+@@ -1168,5 +917,12 @@
+ /*
+  * End of BTX memory.
+  */
++#if 0
++		.p2align 4
++intstat:	.rept 17
++		.word 0
++		.endr
++#endif
++	
+ 		.p2align 4
+ break:
