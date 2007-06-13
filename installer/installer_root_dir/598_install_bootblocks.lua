@@ -34,8 +34,6 @@ return {
 
 		table.insert(datasets_list, dataset)
 	end
-
-	local disk1
        
 	local response = App.ui:present({
 	    id = "install_bootstrap",
@@ -135,6 +133,11 @@ return {
 					dd = disk_ref[dataset.disk]
 					dd:cmds_install_bootblock(cmds,
 					    (dataset.packet == "Y"))
+					cmds:set_replacements{
+					    disk = disk
+					}
+					cmds:add("boot0cfg -B -b /boot/boot /dev/${disk}")
+					cmds:execute()
 				end
 			end
 		end
