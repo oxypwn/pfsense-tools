@@ -316,7 +316,7 @@ diff -u -r1.1 -r1.2
 +#include <netinet/tcp.h>
 +#include <netinet/udp.h>
 +
-+#include <net/pfvar.h>
++#include <contrib/pf/net/pfvar.h>
 +
 +#include <netinet/libalias/alias.h>
 +
@@ -681,6 +681,22 @@ diff -u -r1.1 -r1.2
  u_int16_t	pf_tagname2tag(char *);
  void		pf_tag2tagname(u_int16_t, char *);
  void		pf_tag_ref(u_int16_t);
+Index: sys/modules/pf/Makefile
+===================================================================
+RCS file: /home/eri/freebsd7-repo/./sys/modules/pf/Makefile,v
+retrieving revision 1.1
+diff -u -r1.1 Makefile
+--- sys/modules/pf/Makefile	12 Jun 2007 07:56:51 -0000	1.1
++++ sys/modules/pf/Makefile	12 Jun 2007 23:06:18 -0000
+@@ -7,7 +7,7 @@
+ 
+ KMOD=	pf
+ SRCS = 	pf.c pf_if.c pf_subr.c pf_osfp.c pf_ioctl.c pf_norm.c pf_table.c \
+-	in4_cksum.c \
++	pf_libalias.c in4_cksum.c \
+ 	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h opt_mac.h
+ 
+ CFLAGS+=  -I${.CURDIR}/../../contrib/pf
 Index: sys/netinet/libalias/alias.c
 ===================================================================
 RCS file: /home/eri/freebsd7-repo/./sys/netinet/libalias/alias.c,v
