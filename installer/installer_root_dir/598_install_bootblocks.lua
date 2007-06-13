@@ -128,7 +128,6 @@ return {
 					cmds:add("echo \"	root (hd0,0,a)\" >> /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"	kernel /boot/loader\" >> /mnt/boot/grub/menu.lst")
 					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
-					cmds:execute()
 				else
 					dd = disk_ref[dataset.disk]
 					dd:cmds_install_bootblock(cmds,
@@ -137,7 +136,6 @@ return {
 					    disk = disk
 					}
 					cmds:add("boot0cfg -B -b /boot/boot /dev/${disk}")
-					cmds:execute()
 				end
 			end
 		end
