@@ -1,0 +1,587 @@
+--- //depot/vendor/freebsd/src/contrib/libpcap/pf.h	2005/05/29 18:39:12
++++ //depot/user/mlaier/pfsrc/contrib/libpcap/pf.h	2007/06/16 00:22:41
+@@ -42,7 +42,16 @@
+ #define PFRES_SHORT	3		/* Dropping short packet */
+ #define PFRES_NORM	4		/* Dropping by normalizer */
+ #define PFRES_MEMORY	5		/* Dropped due to lacking mem */
+-#define PFRES_MAX	6		/* total+1 */
++#define	PFRES_TS	6		/* Bad TCP Timestamp (RFC1323) */
++#define	PFRES_CONGEST	7		/* Congestion (of ipintrq) */
++#define	PFRES_IPOPTIONS	8		/* IP option */
++#define	PFRES_PROTCKSUM	9		/* Protocol checksum invalid */
++#define	PFRES_BADSTATE	10		/* State mismatch */
++#define	PFRES_STATEINS	11		/* State insertion failure */
++#define	PFRES_MAXSTATES	12		/* State limit */
++#define	PFRES_SRCLIMIT	13		/* Source node/conn limit */
++#define	PFRES_SYNPROXY	14		/* SYN proxy */
++#define PFRES_MAX	15		/* total+1 */
+ 
+ #define PFRES_NAMES { \
+ 	"match", \
+@@ -51,6 +60,15 @@
+ 	"short", \
+ 	"normalize", \
+ 	"memory", \
++	"bad-timestamp", \
++	"congestion", \
++	"ip-option", \
++	"proto-cksum", \
++	"state-mismatch", \
++	"state-insert", \
++	"state-limit", \
++	"src-limit", \
++	"synproxy", \
+ 	NULL \
+ }
+ 
+@@ -71,6 +89,10 @@
+ 	char		ruleset[PF_RULESET_NAME_SIZE];
+ 	u_int32_t	rulenr;
+ 	u_int32_t	subrulenr;
++	uid_t		uid;
++	pid_t		pid;
++	uid_t		rule_uid;
++	pid_t		rule_pid;
+ 	u_int8_t	dir;
+ 	u_int8_t	pad[3];
+ };
+--- //depot/vendor/freebsd/src/contrib/tcpdump/pf.h	2005/05/29 18:39:12
++++ //depot/user/mlaier/pfsrc/contrib/tcpdump/pf.h	2007/06/16 00:22:41
+@@ -42,7 +42,16 @@
+ #define PFRES_SHORT	3		/* Dropping short packet */
+ #define PFRES_NORM	4		/* Dropping by normalizer */
+ #define PFRES_MEMORY	5		/* Dropped due to lacking mem */
+-#define PFRES_MAX	6		/* total+1 */
++#define	PFRES_TS	6		/* Bad TCP Timestamp (RFC1323) */
++#define	PFRES_CONGEST	7		/* Congestion (of ipintrq) */
++#define	PFRES_IPOPTIONS	8		/* IP option */
++#define	PFRES_PROTCKSUM	9		/* Protocol checksum invalid */
++#define	PFRES_BADSTATE	10		/* State mismatch */
++#define	PFRES_STATEINS	11		/* State insertion failure */
++#define	PFRES_MAXSTATES	12		/* State limit */
++#define	PFRES_SRCLIMIT	13		/* Source node/conn limit */
++#define	PFRES_SYNPROXY	14		/* SYN proxy */
++#define PFRES_MAX	15		/* total+1 */
+ 
+ #define PFRES_NAMES { \
+ 	"match", \
+@@ -51,6 +60,15 @@
+ 	"short", \
+ 	"normalize", \
+ 	"memory", \
++	"bad-timestamp", \
++	"congestion", \
++	"ip-option", \
++	"proto-cksum", \
++	"state-mismatch", \
++	"state-insert", \
++	"state-limit", \
++	"src-limit", \
++	"synproxy", \
+ 	NULL \
+ }
+ 
+@@ -71,6 +89,10 @@
+ 	char		ruleset[PF_RULESET_NAME_SIZE];
+ 	u_int32_t	rulenr;
+ 	u_int32_t	subrulenr;
++	uid_t		uid;
++	pid_t		pid;
++	uid_t		rule_uid;
++	pid_t		rule_pid;
+ 	u_int8_t	dir;
+ 	u_int8_t	pad[3];
+ };
+--- //depot/vendor/freebsd/src/contrib/tcpdump/print-pflog.c	2006/09/04 21:39:51
++++ //depot/user/mlaier/pfsrc/contrib/tcpdump/print-pflog.c	2007/06/16 00:22:41
+@@ -44,6 +44,15 @@
+ 	{ 3,	"3(short)" },
+ 	{ 4,	"4(normalize)" },
+ 	{ 5,	"5(memory)" },
++	{ 6,	"6(bad-timestamp)" }, \
++	{ 7,	"7(congestion)" }, \
++	{ 8,	"8(ip-option)" }, \
++	{ 9,	"9(proto-cksum)" }, \
++	{ 10,	"10(state-mismatch)" }, \
++	{ 11,	"11(state-insert)" }, \
++	{ 12,	"12(state-limit)" }, \
++	{ 13,	"13(src-limit)" }, \
++	{ 14,	"14(synproxy)" }, \
+ 	{ 0,	NULL }
+ };
+ 
+--- //depot/vendor/freebsd/src/libexec/Makefile	2006/03/17 19:37:53
++++ //depot/user/mlaier/pfsrc/libexec/Makefile	2007/06/23 15:10:38
+@@ -8,7 +8,6 @@
+ 	comsat \
+ 	fingerd \
+ 	ftpd \
+-	${_ftp-proxy} \
+ 	getty \
+ 	lukemftpd \
+ 	${_mail.local} \
+@@ -32,6 +31,7 @@
+ 	tcpd \
+ 	telnetd \
+ 	tftpd \
++	${_tftp-proxy} \
+ 	${_ypxfr}
+ 
+ .if ${MK_NIS} != "no"
+@@ -40,7 +40,7 @@
+ .endif
+ 
+ .if ${MK_PF} != "no"
+-_ftp-proxy=	ftp-proxy
++_tftp-proxy=	tftp-proxy
+ .endif
+ 
+ .if !defined(NO_PIC)
+--- //depot/vendor/freebsd/src/sbin/pfctl/Makefile	2006/04/13 14:39:22
++++ //depot/user/mlaier/pfsrc/sbin/pfctl/Makefile	2007/06/06 11:53:39
+@@ -1,6 +1,7 @@
+ # $FreeBSD: src/sbin/pfctl/Makefile,v 1.6 2006/04/13 12:49:24 ru Exp $
+ 
+ .PATH:	${.CURDIR}/../../contrib/pf/pfctl
++.PATH:	${.CURDIR}/../../sys/contrib/pf/net
+ .PATH:	${.CURDIR}/../../contrib/pf/man
+ 
+ PROG=	pfctl
+@@ -9,6 +10,7 @@
+ SRCS = pfctl.c parse.y pfctl_parser.c pf_print_state.c pfctl_altq.c
+ SRCS+= pfctl_osfp.c pfctl_radix.c pfctl_table.c pfctl_qstats.c
+ SRCS+= pfctl_optimize.c
++SRCS+= pf_ruleset.c
+ 
+ CFLAGS+= -Wall -Wmissing-prototypes -Wno-uninitialized
+ CFLAGS+= -Wstrict-prototypes -I${.CURDIR}/../../contrib/pf/pfctl
+--- //depot/vendor/freebsd/src/sys/conf/files	2007/06/16 05:06:03
++++ //depot/user/mlaier/pfsrc/sys/conf/files	2007/06/18 15:37:46
+@@ -327,16 +327,18 @@
+ 	compile-with "${NORMAL_C} -I$S/contrib/pf"
+ contrib/pf/net/pf_if.c		optional pf \
+ 	compile-with "${NORMAL_C} -I$S/contrib/pf"
+-contrib/pf/net/pf_subr.c	optional pf \
+-	compile-with "${NORMAL_C} -I$S/contrib/pf"
+ contrib/pf/net/pf_ioctl.c	optional pf \
+ 	compile-with "${NORMAL_C} -I$S/contrib/pf"
+ contrib/pf/net/pf_norm.c	optional pf \
+ 	compile-with "${NORMAL_C} -I$S/contrib/pf"
++contrib/pf/net/pf_osfp.c	optional pf \
++	compile-with "${NORMAL_C} -I$S/contrib/pf"
++contrib/pf/net/pf_ruleset.c	optional pf \
++	compile-with "${NORMAL_C} -I$S/contrib/pf"
++contrib/pf/net/pf_subr.c	optional pf \
++	compile-with "${NORMAL_C} -I$S/contrib/pf"
+ contrib/pf/net/pf_table.c	optional pf \
+ 	compile-with "${NORMAL_C} -I$S/contrib/pf"
+-contrib/pf/net/pf_osfp.c	optional pf \
+-	compile-with "${NORMAL_C} -I$S/contrib/pf"
+ contrib/pf/netinet/in4_cksum.c	optional pf inet
+ crypto/blowfish/bf_ecb.c	optional ipsec ipsec_esp
+ crypto/blowfish/bf_skey.c	optional crypto | ipsec ipsec_esp
+@@ -1577,7 +1579,8 @@
+ net/if_edsc.c			optional edsc
+ net/if_ef.c			optional ef
+ net/if_enc.c			optional enc
+-net/if_ethersubr.c		optional ether
++net/if_ethersubr.c		optional ether \
++	compile-with "${NORMAL_C} -I$S/contrib/pf"
+ net/if_faith.c			optional faith
+ net/if_fddisubr.c		optional fddi
+ net/if_fwsubr.c			optional fwip
+@@ -1818,7 +1821,8 @@
+ netinet/ip_ecn.c		optional inet | inet6
+ netinet/ip_encap.c		optional inet | inet6
+ netinet/ip_fastfwd.c		optional inet
+-netinet/ip_fw2.c		optional ipfirewall
++netinet/ip_fw2.c		optional ipfirewall \
++	compile-with "${NORMAL_C} -I$S/contrib/pf"
+ netinet/ip_fw_pfil.c		optional ipfirewall
+ netinet/ip_icmp.c		optional inet
+ netinet/ip_input.c		optional inet
+--- //depot/vendor/freebsd/src/sys/contrib/altq/altq/altq_cbq.c	2006/11/06 13:48:07
++++ //depot/user/mlaier/pfsrc/sys/contrib/altq/altq/altq_cbq.c	2007/06/12 17:02:28
+@@ -500,7 +500,7 @@
+ {
+ 	cbq_state_t	*cbqp = (cbq_state_t *)ifq->altq_disc;
+ 	struct rm_class	*cl;
+-	struct m_tag	*t;
++	struct pf_mtag	*t;
+ 	int		 len;
+ 
+ 	IFQ_LOCK_ASSERT(ifq);
+@@ -520,8 +520,8 @@
+ 		return (ENOBUFS);
+ 	}
+ 	cl = NULL;
+-	if ((t = m_tag_find(m, PACKET_TAG_PF_QID, NULL)) != NULL)
+-		cl = clh_to_clp(cbqp, ((struct altq_tag *)(t+1))->qid);
++	if ((t = pf_find_mtag(m)) != NULL)
++		cl = clh_to_clp(cbqp, t->qid);
+ #ifdef ALTQ3_COMPAT
+ 	else if ((ifq->altq_flags & ALTQF_CLASSIFY) && pktattr != NULL)
+ 		cl = pktattr->pattr_class;
+--- //depot/vendor/freebsd/src/sys/contrib/altq/altq/altq_hfsc.c	2006/11/06 13:48:07
++++ //depot/user/mlaier/pfsrc/sys/contrib/altq/altq/altq_hfsc.c	2007/06/12 17:02:28
+@@ -693,7 +693,7 @@
+ {
+ 	struct hfsc_if	*hif = (struct hfsc_if *)ifq->altq_disc;
+ 	struct hfsc_class *cl;
+-	struct m_tag *t;
++	struct pf_mtag *t;
+ 	int len;
+ 
+ 	IFQ_LOCK_ASSERT(ifq);
+@@ -713,8 +713,8 @@
+ 		return (ENOBUFS);
+ 	}
+ 	cl = NULL;
+-	if ((t = m_tag_find(m, PACKET_TAG_PF_QID, NULL)) != NULL)
+-		cl = clh_to_clp(hif, ((struct altq_tag *)(t+1))->qid);
++	if ((t = pf_find_mtag(m)) != NULL)
++		cl = clh_to_clp(hif, t->qid);
+ #ifdef ALTQ3_COMPAT
+ 	else if ((ifq->altq_flags & ALTQF_CLASSIFY) && pktattr != NULL)
+ 		cl = pktattr->pattr_class;
+--- //depot/vendor/freebsd/src/sys/contrib/altq/altq/altq_priq.c	2006/11/06 13:48:07
++++ //depot/user/mlaier/pfsrc/sys/contrib/altq/altq/altq_priq.c	2007/06/12 17:02:28
+@@ -461,7 +461,7 @@
+ {
+ 	struct priq_if	*pif = (struct priq_if *)ifq->altq_disc;
+ 	struct priq_class *cl;
+-	struct m_tag *t;
++	struct pf_mtag *t;
+ 	int len;
+ 
+ 	IFQ_LOCK_ASSERT(ifq);
+@@ -481,8 +481,8 @@
+ 		return (ENOBUFS);
+ 	}
+ 	cl = NULL;
+-	if ((t = m_tag_find(m, PACKET_TAG_PF_QID, NULL)) != NULL)
+-		cl = clh_to_clp(pif, ((struct altq_tag *)(t+1))->qid);
++	if ((t = pf_find_mtag(m)) != NULL)
++		cl = clh_to_clp(pif, t->qid);
+ #ifdef ALTQ3_COMPAT
+ 	else if ((ifq->altq_flags & ALTQF_CLASSIFY) && pktattr != NULL)
+ 		cl = pktattr->pattr_class;
+--- //depot/vendor/freebsd/src/sys/contrib/altq/altq/altq_red.c	2006/11/06 13:48:07
++++ //depot/user/mlaier/pfsrc/sys/contrib/altq/altq/altq_red.c	2007/06/12 17:02:28
+@@ -514,16 +514,12 @@
+ mark_ecn(struct mbuf *m, struct altq_pktattr *pktattr, int flags)
+ {
+ 	struct mbuf	*m0;
+-	struct m_tag	*t;
+-	struct altq_tag	*at;
++	struct pf_mtag	*at;
+ 	void		*hdr;
+ 	int		 af;
+ 
+-	t = m_tag_find(m, PACKET_TAG_PF_QID, NULL);
+-	if (t != NULL) {
+-		at = (struct altq_tag *)(t + 1);
+-		if (at == NULL)
+-			return (0);
++	at = pf_find_mtag(m);
++	if (at != NULL) {
+ 		af = at->af;
+ 		hdr = at->hdr;
+ #ifdef ALTQ3_COMPAT
+--- //depot/vendor/freebsd/src/sys/modules/ipfw/Makefile	2006/09/12 04:26:21
++++ //depot/user/mlaier/pfsrc/sys/modules/ipfw/Makefile	2007/06/12 17:02:28
+@@ -9,6 +9,7 @@
+ SRCS+=	opt_inet6.h opt_ipsec.h opt_mac.h
+ 
+ CFLAGS+= -DIPFIREWALL
++CFLAGS+= -I${.CURDIR}/../../contrib/pf
+ #
+ #If you want it verbose
+ #CFLAGS+= -DIPFIREWALL_VERBOSE
+--- //depot/vendor/freebsd/src/sys/modules/pf/Makefile	2006/09/12 04:26:21
++++ //depot/user/mlaier/pfsrc/sys/modules/pf/Makefile	2007/06/20 22:11:23
+@@ -7,6 +7,7 @@
+ 
+ KMOD=	pf
+ SRCS = 	pf.c pf_if.c pf_subr.c pf_osfp.c pf_ioctl.c pf_norm.c pf_table.c \
++	pf_ruleset.c \
+ 	in4_cksum.c \
+ 	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h opt_mac.h
+ 
+@@ -23,6 +24,11 @@
+ 
+ opt_bpf.h:
+ 	echo "#define DEV_BPF 1" > opt_bpf.h
++
++# pflog can be loaded as a module, have the additional checks turned on
++opt_pf.h:
++	echo "#define DEV_PF 1" > opt_pf.h
++	echo "#define DEF_PFLOG 1" >> opt_pf.h
+ .endif
+ 
+ .include <bsd.kmod.mk>
+--- //depot/vendor/freebsd/src/sys/net/if_ethersubr.c	2007/06/12 19:55:23
++++ //depot/user/mlaier/pfsrc/sys/net/if_ethersubr.c	2007/06/15 20:55:19
+@@ -60,6 +60,7 @@
+ #include <net/ethernet.h>
+ #include <net/if_bridgevar.h>
+ #include <net/if_vlan_var.h>
++#include <net/pf_mtag.h>
+ 
+ #if defined(INET) || defined(INET6)
+ #include <netinet/in.h>
+@@ -151,6 +152,7 @@
+ 	int error, hdrcmplt = 0;
+ 	u_char esrc[ETHER_ADDR_LEN], edst[ETHER_ADDR_LEN];
+ 	struct ether_header *eh;
++	struct pf_mtag *t;
+ 	int loop_copy = 1;
+ 	int hlen;	/* link layer header length */
+ 
+@@ -301,7 +303,7 @@
+ 	 * reasons and compatibility with the original behavior.
+ 	 */
+ 	if ((ifp->if_flags & IFF_SIMPLEX) && loop_copy &&
+-	    m_tag_find(m, PACKET_TAG_PF_ROUTED, NULL) == NULL) {
++	    ((t = pf_find_mtag(m)) == NULL || !t->routed)) {
+ 		int csum_flags = 0;
+ 
+ 		if (m->m_pkthdr.csum_flags & CSUM_IP)
+--- //depot/vendor/freebsd/src/sys/netinet/ip_fw2.c	2007/05/10 16:01:35
++++ //depot/user/mlaier/pfsrc/sys/netinet/ip_fw2.c	2007/06/12 17:02:28
+@@ -66,6 +66,7 @@
+ #include <net/if.h>
+ #include <net/radix.h>
+ #include <net/route.h>
++#include <net/pf_mtag.h>
+ #include <netinet/in.h>
+ #include <netinet/in_systm.h>
+ #include <netinet/in_var.h>
+@@ -3062,24 +3063,21 @@
+ 				break;
+ 
+ 			case O_ALTQ: {
+-				struct altq_tag *at;
++				struct pf_mtag *at;
+ 				ipfw_insn_altq *altq = (ipfw_insn_altq *)cmd;
+ 
+ 				match = 1;
+-				mtag = m_tag_find(m, PACKET_TAG_PF_QID, NULL);
+-				if (mtag != NULL)
++				at = pf_find_mtag(m);
++				if (at != NULL && at->qid != 0)
+ 					break;
+-				mtag = m_tag_get(PACKET_TAG_PF_QID,
+-						sizeof(struct altq_tag),
+-						M_NOWAIT);
+-				if (mtag == NULL) {
++				at = pf_get_mtag(m);
++				if (at == NULL) {
+ 					/*
+ 					 * Let the packet fall back to the
+ 					 * default ALTQ.
+ 					 */
+ 					break;
+ 				}
+-				at = (struct altq_tag *)(mtag+1);
+ 				at->qid = altq->qid;
+ 				if (is_ipv4)
+ 					at->af = AF_INET;
+--- //depot/vendor/freebsd/src/sys/netinet6/in6.h	2007/06/12 16:28:06
++++ //depot/user/mlaier/pfsrc/sys/netinet6/in6.h	2007/06/12 19:18:19
+@@ -350,6 +350,11 @@
+ #define IN6_IS_SCOPE_LINKLOCAL(a)	\
+ 	((IN6_IS_ADDR_LINKLOCAL(a)) ||	\
+ 	 (IN6_IS_ADDR_MC_LINKLOCAL(a)))
++#define	IN6_IS_SCOPE_EMBED(a)			\
++	((IN6_IS_ADDR_LINKLOCAL(a)) ||		\
++	 (IN6_IS_ADDR_MC_LINKLOCAL(a)) || 	\
++	 (IN6_IS_ADDR_MC_INTFACELOCAL(a)))
++                          
+ 
+ #define IFA6_IS_DEPRECATED(a) \
+ 	((a)->ia6_lifetime.ia6t_pltime != ND6_INFINITE_LIFETIME && \
+--- //depot/vendor/freebsd/src/sys/sys/mbuf.h	2007/06/11 18:27:06
++++ //depot/user/mlaier/pfsrc/sys/sys/mbuf.h	2007/06/12 19:18:19
+@@ -833,12 +833,8 @@
+ #define	PACKET_TAG_DIVERT			17 /* divert info */
+ #define	PACKET_TAG_IPFORWARD			18 /* ipforward info */
+ #define	PACKET_TAG_MACLABEL	(19 | MTAG_PERSISTENT) /* MAC label */
+-#define	PACKET_TAG_PF_ROUTED			21 /* PF routed, avoid loops */
+-#define	PACKET_TAG_PF_FRAGCACHE			22 /* PF fragment cached */
+-#define	PACKET_TAG_PF_QID			23 /* PF ALTQ queue id */
+-#define	PACKET_TAG_PF_TAG			24 /* PF tagged */
++#define	PACKET_TAG_PF				21 /* PF + ALTQ information */
+ #define	PACKET_TAG_RTSOCKFAM			25 /* rtsock sa family */
+-#define	PACKET_TAG_PF_TRANSLATE_LOCALHOST	26 /* PF translate localhost */
+ #define	PACKET_TAG_IPOPTIONS			27 /* Saved IP options */
+ #define	PACKET_TAG_CARP                         28 /* CARP info */
+ 
+--- //depot/vendor/freebsd/src/usr.sbin/Makefile	2007/01/29 07:42:01
++++ //depot/user/mlaier/pfsrc/usr.sbin/Makefile	2007/06/06 14:44:00
+@@ -56,6 +56,7 @@
+ 	fdwrite \
+ 	flowctl \
+ 	freebsd-update \
++	${_ftp-proxy} \
+ 	fwcontrol \
+ 	getfmac \
+ 	getpmac \
+@@ -229,6 +230,10 @@
+ _keyserv=	keyserv
+ .endif
+ 
++.if ${MK_PF} != "no"
++_ftp-proxy=	ftp-proxy
++.endif
++
+ .if ${MK_INET6} != "no"
+ _faithd=	faithd
+ _ip6addrctl=	ip6addrctl
+--- //depot/vendor/freebsd/src/usr.sbin/bsnmpd/modules/snmp_pf/pf_snmp.c	2005/11/30 21:37:39
++++ //depot/user/mlaier/pfsrc/usr.sbin/bsnmpd/modules/snmp_pf/pf_snmp.c	2007/06/06 15:22:20
+@@ -60,7 +60,7 @@
+ #define PFI_IFTYPE_DETACHED	2
+ 
+ struct pfi_entry {
+-	struct pfi_if	pfi;
++	struct pfi_kif	pfi;
+ 	u_int		index;
+ 	TAILQ_ENTRY(pfi_entry) link;
+ };
+@@ -544,83 +544,83 @@
+ 
+ 	switch (which) {
+ 		case LEAF_pfInterfacesIfDescr:
+-			return (string_get(val, e->pfi.pfif_name, -1));
++			return (string_get(val, e->pfi.pfik_name, -1));
+ 		case LEAF_pfInterfacesIfType:
+ 			val->v.integer = PFI_IFTYPE_INSTANCE;
+ 			break;
+ 		case LEAF_pfInterfacesIfTZero:
+ 			val->v.uint32 =
+-			    (time(NULL) - e->pfi.pfif_tzero) * 100;
++			    (time(NULL) - e->pfi.pfik_tzero) * 100;
+ 			break;
+ 		case LEAF_pfInterfacesIfRefsState:
+-			val->v.uint32 = e->pfi.pfif_states;
++			val->v.uint32 = e->pfi.pfik_states;
+ 			break;
+ 		case LEAF_pfInterfacesIfRefsRule:
+-			val->v.uint32 = e->pfi.pfif_rules;
++			val->v.uint32 = e->pfi.pfik_rules;
+ 			break;
+ 		case LEAF_pfInterfacesIf4BytesInPass:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_bytes[IPV4][IN][PASS];
++			    e->pfi.pfik_bytes[IPV4][IN][PASS];
+ 			break;
+ 		case LEAF_pfInterfacesIf4BytesInBlock:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_bytes[IPV4][IN][BLOCK];
++			    e->pfi.pfik_bytes[IPV4][IN][BLOCK];
+ 			break;
+ 		case LEAF_pfInterfacesIf4BytesOutPass:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_bytes[IPV4][OUT][PASS];
++			    e->pfi.pfik_bytes[IPV4][OUT][PASS];
+ 			break;
+ 		case LEAF_pfInterfacesIf4BytesOutBlock:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_bytes[IPV4][OUT][BLOCK];
++			    e->pfi.pfik_bytes[IPV4][OUT][BLOCK];
+ 			break;
+ 		case LEAF_pfInterfacesIf4PktsInPass:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_packets[IPV4][IN][PASS];
++			    e->pfi.pfik_packets[IPV4][IN][PASS];
+ 			break;
+ 		case LEAF_pfInterfacesIf4PktsInBlock:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_packets[IPV4][IN][BLOCK];
++			    e->pfi.pfik_packets[IPV4][IN][BLOCK];
+ 			break;
+ 		case LEAF_pfInterfacesIf4PktsOutPass:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_packets[IPV4][OUT][PASS];
++			    e->pfi.pfik_packets[IPV4][OUT][PASS];
+ 			break;
+ 		case LEAF_pfInterfacesIf4PktsOutBlock:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_packets[IPV4][OUT][BLOCK];
++			    e->pfi.pfik_packets[IPV4][OUT][BLOCK];
+ 			break;
+ 		case LEAF_pfInterfacesIf6BytesInPass:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_bytes[IPV6][IN][PASS];
++			    e->pfi.pfik_bytes[IPV6][IN][PASS];
+ 			break;
+ 		case LEAF_pfInterfacesIf6BytesInBlock:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_bytes[IPV6][IN][BLOCK];
++			    e->pfi.pfik_bytes[IPV6][IN][BLOCK];
+ 			break;
+ 		case LEAF_pfInterfacesIf6BytesOutPass:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_bytes[IPV6][OUT][PASS];
++			    e->pfi.pfik_bytes[IPV6][OUT][PASS];
+ 			break;
+ 		case LEAF_pfInterfacesIf6BytesOutBlock:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_bytes[IPV6][OUT][BLOCK];
++			    e->pfi.pfik_bytes[IPV6][OUT][BLOCK];
+ 			break;
+ 		case LEAF_pfInterfacesIf6PktsInPass:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_packets[IPV6][IN][PASS];
++			    e->pfi.pfik_packets[IPV6][IN][PASS];
+ 			break;
+ 		case LEAF_pfInterfacesIf6PktsInBlock:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_packets[IPV6][IN][BLOCK];
++			    e->pfi.pfik_packets[IPV6][IN][BLOCK];
+ 			break;
+ 		case LEAF_pfInterfacesIf6PktsOutPass:
+ 			val->v.counter64 =
+-			    e->pfi.pfif_packets[IPV6][OUT][PASS];
++			    e->pfi.pfik_packets[IPV6][OUT][PASS];
+ 			break;
+ 		case LEAF_pfInterfacesIf6PktsOutBlock:
+ 			val->v.counter64 = 
+-			    e->pfi.pfif_packets[IPV6][OUT][BLOCK];
++			    e->pfi.pfik_packets[IPV6][OUT][BLOCK];
+ 			break;
+ 
+ 		default:
+@@ -911,7 +911,7 @@
+ pfi_refresh(void)
+ {
+ 	struct pfioc_iface io;
+-	struct pfi_if *p = NULL;
++	struct pfi_kif *p = NULL;
+ 	struct pfi_entry *e;
+ 	int i, numifs = 1;
+ 
+@@ -925,11 +925,10 @@
+ 	}
+ 
+ 	bzero(&io, sizeof(io));
+-	io.pfiio_flags = PFI_FLAG_INSTANCE;
+-	io.pfiio_esize = sizeof(struct pfi_if);
++	io.pfiio_esize = sizeof(struct pfi_kif);
+ 
+ 	for (;;) {
+-		p = reallocf(p, numifs * sizeof(struct pfi_if));
++		p = reallocf(p, numifs * sizeof(struct pfi_kif));
+ 		if (p == NULL) {
+ 			syslog(LOG_ERR, "pfi_refresh(): reallocf() numifs=%d: %s",
+ 			    numifs, strerror(errno));
+@@ -955,7 +954,7 @@
+ 		if (e == NULL)
+ 			goto err1;
+ 		e->index = i + 1;
+-		memcpy(&e->pfi, p+i, sizeof(struct pfi_if));
++		memcpy(&e->pfi, p+i, sizeof(struct pfi_kif));
+ 		TAILQ_INSERT_TAIL(&pfi_table, e, link);
+ 	}
+ 
