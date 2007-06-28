@@ -9,7 +9,6 @@
 ~sbin/dhclient~dhclient.c.diff~
 ~sys/net/~if_enc.c.diff~
 ~bin/sh~jobs.c.diff~
-~sys/contrib/pf/net~pf10percent.c.diff~
 ~contrib/tcsh~tcsh_sh.c.diff~
 -p0~~if_lagg.diff~
 -p1~contrib/pf/pfctl~parse.y~
