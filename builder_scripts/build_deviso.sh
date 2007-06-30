@@ -103,6 +103,7 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep lighttpd) >> conf/packages
 (cd /var/db/pkg && ls | grep lua) >> conf/packages
 (cd /var/db/pkg && ls | grep cpdup) >> conf/packages
+(cd /var/db/pkg && ls | grep grub) >> conf/packages
 set -e
 
 # Invoke FreeSBIE2 toolchain
