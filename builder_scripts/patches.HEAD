@@ -1,1 +1,5 @@
+~~~libexec/tftp-proxy/*
+~~~contrib/pf
+~~~sys/contrib/pf
+~~~sys/modules/pf
 -p1~~pf.41.20070625.diff~
