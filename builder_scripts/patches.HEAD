@@ -5,4 +5,5 @@
 ~~~/contrib/tcpdump
 ~~~/lib/libipsec
 ~~~/share/mk/bsd.prog.mk
+~~~/usr.sbin/ftp-proxy/
 -p1~~pf.41.20070625.diff~
