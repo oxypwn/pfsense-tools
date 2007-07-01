@@ -159,12 +159,12 @@ if [ ! -f "/usr/local/bin/cpdup" ]; then
 fi
 
 # Add lua
-if [ ! -d "/usr/local/bin/lua50c" ]; then
+if [ ! -f "/usr/local/bin/lua50c" ]; then
 	echo "Cannot find lua, pkg_add in progress ..."
 	/usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/lua-5.0.2_1.tbz
 fi
 # Failed, lets try with passive mode
-if [ ! -d "/usr/local/bin/lua50c" ]; then
+if [ ! -f "/usr/local/bin/lua50c" ]; then
 	echo "Cannot find lua, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/lua-5.0.2_1.tbz
 fi
