@@ -8,6 +8,7 @@
 #
 
 SUBDIR += atareinit
+SUBDIR += grub
 SUBDIR += cpdup
 # Not applicable to amd64
 #SUBDIR += beep
