@@ -42,7 +42,6 @@ SUBDIR += rrdtool
 SUBDIR += slbd
 SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
-SUBDIR += sshtools
 SUBDIR += stats
 SUBDIR += vtsh
 SUBDIR += xcache
