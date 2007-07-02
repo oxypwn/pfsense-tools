@@ -196,6 +196,10 @@ populate_extra() {
 	    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
 	    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
 	    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
+		echo "===> Building clog..."
+		(cd /usr/src/usr.sbin/clog && make clean && make && make install)
+	    echo "===> Installing clog to $CVS_CO_DIR/usr/sbin/..."
+	    install /usr/sbin/clog $CVS_CO_DIR/usr/sbin/
 
 		# Populate newer binaries if they exist from host
 		FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
