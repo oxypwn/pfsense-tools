@@ -14,7 +14,7 @@ SUBDIR += check_reload_status
 SUBDIR += choparp
 #SUBDIR += dmt-ux
 # Does not build on amd64?
-##SUBDIR += dnsmasq
+SUBDIR += dnsmasq
 SUBDIR += expiretable
 SUBDIR += ifstated
 SUBDIR += ipsec-tools
