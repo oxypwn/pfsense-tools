@@ -204,6 +204,8 @@ populate_extra() {
 		# Populate newer binaries if they exist from host
 		FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
 		NEEDEDLIBS="`ldd /usr/sbin/syslogd | grep "=>" | awk '{ print $3 }'`"
+		NEEDEDLIBS="`ldd /usr/local/sbin/dfuife_curses | grep "=>" | awk '{ print $3 }'`"
+
 		for TEMPFILE in $FOUND_FILES; do
 			if [ -f /$TEMPFILE ]; then 
 				echo "**** cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
