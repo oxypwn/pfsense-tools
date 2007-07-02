@@ -172,12 +172,13 @@ fi
 # Add BSDInstaller
 if [ -f /home/pfsense/installer/scripts/build/build.conf ]; then
 	if [ ! -f "/usr/local/share/dfuibe_lua/200_install.lua" ]; then
-		(cd /usr/home/pfsense/installer/scripts/build && ./create_installer_tarballs.sh)
-		(cd /usr/home/pfsense/installer/scripts/build && ./copy_ports_to_portsdir.sh)
-		(cd /usr/home/pfsense/installer/scripts/build && find /home/pfsense -name "270_install_bootblocks.lua" -exec rm {} \;)
-		(cat /usr/home/pfsense/installer/ports/sysutils/bsdinstaller/Makefile | grep -v "270_install_bootblocks.lua" >/tmp/MakefileTMP)
-		(mv /tmp/MakefileTMP /usr/home/pfsense/installer/ports/sysutils/bsdinstaller/Makefile)
-		(cd /usr/home/pfsense/installer/scripts/build && ./build_installer_packages.sh)
+		echo "One moment, rebuilding BSDInstaller..."
+		(cd /home/pfsense/installer/scripts/build && ./create_installer_tarballs.sh)
+		(cd /home/pfsense/installer/scripts/build && find /home/pfsense/installer -name "270_install_bootblocks.lua" -exec rm {} \;)
+		(cat /home/pfsense/installer/ports/sysutils/bsdinstaller/Makefile | grep -v "270_install_bootblocks.lua" >/tmp/MakefileTMP)
+		(mv /tmp/MakefileTMP /home/pfsense/installer/ports/sysutils/bsdinstaller/Makefile)
+		(cd /home/pfsense/installer/scripts/build && ./copy_ports_to_portsdir.sh)
+		(cd /home/pfsense/installer/scripts/build && ./build_installer_packages.sh)
 	fi
 else
 	if [ ! -f "/usr/local/share/dfuibe_lua/200_install.lua" ]; then
