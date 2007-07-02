@@ -2,7 +2,7 @@
 # Date created:				20 July 1999
 # Whom:					Dmitry Sivachenko <dima@Chg.RU>
 #
-# $FreeBSD: ports/net/rrdtool/Makefile,v 1.66 2007/05/03 08:33:28 demon Exp $
+# $FreeBSD: ports/net/rrdtool/Makefile,v 1.67 2007/05/23 14:15:19 pav Exp $
 #
 
 PORTNAME=	rrdtool
@@ -25,7 +25,8 @@ USE_GMAKE=	yes
 
 CONFIGURE_ARGS=	--enable-perl-site-install --disable-tcl
 
-OPTIONS=	PYTHON_MODULE	"Build PYTHON bindings" off
+OPTIONS=	PYTHON_MODULE	"Build PYTHON bindings" off \
+		RUBY_MODULE	"Build RUBY bindings" off
 
 .include <bsd.port.pre.mk>
 .if defined(WITH_PYTHON_MODULE)
@@ -36,6 +37,16 @@ CONFIGURE_ARGS+=	--enable-python
 .else
 CONFIGURE_ARGS+=	--disable-python
 PLIST_SUB+=	WITH_PYTHON="@comment "
+.endif
+
+.if defined(WITH_RUBY_MODULE)
+USE_RUBY=	yes
+.include "${PORTSDIR}/Mk/bsd.ruby.mk"
+PLIST_SUB+=	WITH_RUBY=""
+CONFIGURE_ARGS+=	--enable-ruby
+.else
+CONFIGURE_ARGS+=	--disable-ruby
+PLIST_SUB+=	WITH_RUBY="@comment "
 .endif
 
 CONFIGURE_TARGET=--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
