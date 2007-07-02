@@ -8,6 +8,7 @@
 #
 
 SUBDIR += atareinit
+SUBDIR += cpdup
 # Not applicable to amd64
 #SUBDIR += beep
 SUBDIR += check_reload_status
