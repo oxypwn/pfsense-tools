@@ -180,7 +180,8 @@ if [ -f /home/pfsense/installer/scripts/build/build.conf ]; then
 		(cd /home/pfsense/installer/scripts/build && ./copy_ports_to_portsdir.sh)
 		(cd /home/pfsense/installer/scripts/build && ./build_installer_packages.sh)
 	else 
-		echo "Found /usr/local/share/dfuibe_lua/200_install.lua -- not rebuilding BSDInstaller..."
+		echo "-- Found /usr/local/share/dfuibe_lua/200_install.lua --"
+		echo "-- Not rebuilding BSDInstaller"
 	fi
 else
 	if [ ! -f "/usr/local/share/dfuibe_lua/200_install.lua" ]; then
