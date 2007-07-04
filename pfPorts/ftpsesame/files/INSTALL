@@ -1,0 +1,12 @@
+
+Quick: type "make", then "make install".
+
+Long:
+
+1. Type "make".
+
+2. Install 'ftpsesame' and 'ftpsesame.cat8' manually, or type
+   "make install" to install in /usr/local.
+
+3. Make sure your anchor in pf.conf looks like:
+	anchor "ftpsesame/*"

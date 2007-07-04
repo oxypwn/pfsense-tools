@@ -1,0 +1,243 @@
+.\"
+.\" Copyright (c) 2004 Camiel Dobbelaar, <cd@sentia.nl>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd January 2, 2004
+.Dt FTPSESAME 8
+.Os
+.Sh NAME
+.Nm ftpsesame
+.Nd automagic packet filter configurator for FTP
+.Sh SYNOPSIS
+.Nm ftpsesame
+.Op Fl d
+.Op Fl D Ar level
+.Op Fl i Ar interface
+.Op Fl t Ar tag
+.Op Fl q Ar queue
+.Op Ar expression
+.Sh DESCRIPTION
+.Nm
+tracks FTP control connections to be able to timely add
+.Xr pf 4
+packet filter rules that allow active and passive FTP data transfers
+to commence.
+This results in the efficiency of a packet filter, and the fine-grained
+control of a proxy.
+It can run on both FTP clients and FTP servers, or a firewall in front thereof.
+.Pp
+.Nm ftpsesame
+uses
+.Xr bpf 4
+to get a copy of the data inside FTP control connections passing
+the specified interface.
+This data is searched for negotiations about data connections.
+For passive mode, this is a port that a client should use to connect
+to a server.
+For active mode this is a port and an IP address that a server
+should use to connect to a client.
+.Pp
+Assuming the FTP control connection is from $client to $server, and
+$port is negotiated,
+.Nm ftpsesame
+adds one of the following rules to
+.Xr pf 4 ,
+inside an anchor named "ftpsesame".
+.Pp
+In case of active mode (PORT or EPRT):
+.Bd -literal -offset 2n
+pass in log quick inet proto tcp \e
+    from $server to $client port $port flags S/SAFR keep state
+.Ed
+.Pp
+In case of passive mode (PASV or EPSV):
+.Bd -literal -offset 2n
+pass in log quick inet proto tcp \e
+    from $client to $server port $port flags S/SAFR keep state
+.Ed
+.Pp
+In the special case of passive mode where the client is subject to
+NAT, an extra rule is added, where $client_real is the client's
+real IP address:
+.Bd -literal -offset 2n
+pass in log quick inet proto tcp \e
+    from $client_real to $server port $port flags S/SAFR keep state
+.Ed
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl D Ar level
+Debug level, ranging from 0 to 7.
+Higher is more verbose.
+The default is 5.
+(These levels correspond to the
+.Xr syslog 3
+levels.)
+.It Fl d
+Do not daemonize.
+The process will stay in the foreground, logging to stderr.
+.It Fl i Ar interface
+Listen on
+.Ar interface .
+.It Fl t Ar tag
+Create rules with tag
+.Ar tag .
+Also, option
+.Ar quick
+is not used.
+This way the anchor always returns to the main ruleset, with the
+tag set on approved FTP data connections.
+The tag can then be used in pass rules below the anchor.
+.It Fl q Ar queue
+Create rules with queue
+.Ar queue
+appended.
+.It Ar expression
+Selects the packets that
+.Xr bpf 4
+will pass on to
+.Nm ftpsesame.
+An expression consist of the primitives described in
+.Xr tcpdump 8 .
+For efficiency, the expression should narrow down the traffic as
+much as possible.
+The default is "tcp and port 21".
+.El
+.Sh CONFIGURATION EXAMPLES
+To use the rules set up by
+.Nm ftpsesame ,
+.Xr pf.conf 5
+should be modified to use the anchor.
+Below are examples that show most of the possibilities.
+.Bd -literal -offset 2n
+# (1) Allow internal LAN to access FTP servers anywhere.
+#     (passive mode only if $lan is subject to NAT, see below)
+# cmd: ftpsesame -i $ext_if
+anchor "ftpsesame/*" on { $int_if, $ext_if }
+pass in  quick on $int_if proto tcp from $lan to any port 21 keep state
+pass out quick on $ext_if proto tcp from $lan to any port 21 keep state
+
+# (2) Allow access to FTP servers in the DMZ, while queueing the data
+#     transfers.
+# cmd: ftpsesame -i $dmz_if -q ftp
+queue ftp bandwidth 10%
+# passive
+anchor "ftpsesame/*" in  on $ext_if proto tcp from any to { $ftp_servers }
+anchor "ftpsesame/*" out on $dmz_if proto tcp from any to { $ftp_servers }
+# active
+anchor "ftpsesame/*" in  on $dmz_if proto tcp from { $ftp_servers } to any
+anchor "ftpsesame/*" out on $ext_if proto tcp from { $ftp_servers } to any
+# ... rules for port 21 omitted ...
+
+# (3) Allow access to FTP servers in the DMZ, using tagging for fine
+#     grained control.
+# cmd: ftpsesame -i $dmz_if -t ftpok
+anchor "ftpsesame/*"
+# passive
+pass in  quick on $ext_if proto tcp from to any to $realftp \e
+    port > 49151 tagged ftpok keep state
+pass in  quick on $ext_if proto tcp from any to $msftp \e
+    port 1023 >< 5001 tagged ftpok keep state
+pass out quick on $dmz_if all tagged ftpok keep state
+# active
+pass in  quick on $dmz_if proto tcp from $realftp to any \e
+    tagged ftpok keep state
+pass in  quick on $dmz_if proto tcp from $msftp port 20 to any \e
+    tagged ftpok keep state
+pass out quick on $ext_if all tagged ftpok keep state
+# ... rules for port 21 omitted ...
+.Ed
+.Pp
+Keep state is mandatory on the control connection (port 21), because
+.Nm ftpsesame
+checks that these connections are in the statetable, before allowing
+data connections.
+.Sh NAT ISSUES
+To enable passive mode connections from clients subject to NAT,
+.Nm ftpsesame
+must listen on the interface where the NAT has already taken place,
+typically the external interface.
+Otherwise
+.Nm ftpsesame
+cannot add the extra rule with the real client address.
+Note that this does not have to be a problem, if there are other
+rules taking care of that.
+.Pp
+Active mode connections from clients subject to NAT are not supported,
+because it requires commands inside the control connection to be
+rewritten.
+.Xr ftp-proxy 8
+can be used for that purpose.
+.Sh SECURITY
+Ports below 1024 are not allowed.
+.Pp
+The negotiated IP address for active mode is ignored for security
+reasons.
+This makes third party file transfers impossible.
+.Pp
+.Nm ftpsesame
+checks that the ftp control connection is in the packet filter
+statetable before it will trust its contents.
+.Pp
+.Nm ftpsesame
+chroots to "/var/empty" and changes to user "proxy" to drop privileges.
+It does keep a file descriptor to both
+.Xr bpf 4
+and
+.Xr pf 4
+so it is still very powerful.
+.Pp
+The concept of rebuilding a TCP session from IP packets on a passive
+listener is fundamentally flawed.
+.Nm ftpsesame
+would need a full TCP stack that emulates each endpoint perfectly
+to be safe from all evasion techniques.
+.Xr ftp-proxy 8
+does not have this problem.
+Ofcourse
+.Nm ftpsesame
+tries hard to detect irregularities.
+The following are not allowed: IP options, IP fragments, ttl below
+2, lines without end-of-line marker.
+Also,
+.Nm ftpsesame
+only looks at the first line of whatever the server has to say in
+response to a client.
+.Pp
+It is recommended to run
+.Nm ftpsesame
+on an interface where packets from untrusted hosts are already
+scrubbed.
+Also, anchors and tags can be used to restrict the allowed addresses
+and portranges.
+.Sh CAVEATS
+There is always a slight delay before a rule gets added to the
+anchor.
+If the data connection is opened within this period, it will get blocked.
+If
+.Nm ftpsesame
+runs on a firewall between the client and server, this only introduces
+a slight delay, as TCP will retry within seconds.
+If
+.Nm ftpsesame
+runs on a client or server itself, the network stack reacts differently
+on blocked packets ("no route to host") and either active or passive
+may mode not work.
+.Sh SEE ALSO
+.Xr bpf 4 ,
+.Xr ftp 1 ,
+.Xr ftp-proxy 8 , 
+.Xr pf 4 ,
+.Xr pf.conf 5 ,
+.Xr tcpdump 8
