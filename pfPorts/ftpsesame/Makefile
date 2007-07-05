@@ -20,16 +20,13 @@ PLIST_FILES=    ${WHERE}/${PORTNAME}
 
 BUILD_DEPENDS+=     libpcap>=0.9.4:${PORTSDIR}/net/libpcap
 
-CFLAGS+=-I.
-CFLAGS+=-Wall -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith \
-        -Wno-uninitialized
-LDADD+= -lpcap
+LDADD+= -lpcap -lalias
 
 do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	(cd files && make)
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
