@@ -7,6 +7,7 @@
 #  To build pfSense simply type make in this directory.
 #
 
+SUBDIR += ftpsesame
 SUBDIR += atareinit
 SUBDIR += grub
 SUBDIR += cpdup
