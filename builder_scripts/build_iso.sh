@@ -6,7 +6,7 @@
 #
 # $Id$
 
-set -e -u
+#set -e -u -x
 
 # Suck in local vars
 . ./pfsense_local.sh
