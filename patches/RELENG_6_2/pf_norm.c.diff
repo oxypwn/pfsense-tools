@@ -1,0 +1,31 @@
+Index: pf_norm.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_norm.c,v
+retrieving revision 1.11.2.4
+diff -u -r1.11.2.4 pf_norm.c
+--- pf_norm.c	28 Mar 2006 15:06:03 -0000	1.11.2.4
++++ pf_norm.c	10 Jul 2007 17:45:33 -0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/pf/net/pf_norm.c,v 1.11.2.4 2006/03/28 15:06:03 mlaier Exp $	*/
++/*	$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/contrib/pf/net/pf_norm.c,v 1.11.2.5 2007/07/10 10:27:12 mlaier Exp $	*/
+ /*	$OpenBSD: pf_norm.c,v 1.97 2004/09/21 16:59:12 aaron Exp $ */
+ /*	add: $OpenBSD: pf_norm.c,v 1.106 2006/03/25 20:55:24 dhartmei Exp $ */
+ 
+@@ -560,8 +560,17 @@
+ 		m2 = frent->fr_m;
+ 		pool_put(&pf_frent_pl, frent);
+ 		pf_nfrents--;
++#ifdef __FreeBSD__
++		m->m_pkthdr.csum_flags &= m2->m_pkthdr.csum_flags;
++		m->m_pkthdr.csum_data += m2->m_pkthdr.csum_data;
++#endif
+ 		m_cat(m, m2);
+ 	}
++#ifdef __FreeBSD__
++	while (m->m_pkthdr.csum_data & 0xffff0000)
++		m->m_pkthdr.csum_data = (m->m_pkthdr.csum_data & 0xffff) +
++		    (m->m_pkthdr.csum_data >> 16);
++#endif
+ 
+ 	ip->ip_src = (*frag)->fr_src;
+ 	ip->ip_dst = (*frag)->fr_dst;
