@@ -132,12 +132,6 @@ diff -u -r1.281.2.11 tcp_input.c
 +						    min(so->so_rcv.sb_hiwat +
 +						    tcp_autorcvbuf_inc,
 +						    tcp_autorcvbuf_max);
-+#if 1
-+			log(LOG_DEBUG, "%s: hiwat %i, ref_ts %i, ts %i, "
-+			    "count %i, new %i, max %i\n",
-+			    __func__, so->so_rcv.sb_hiwat, tp->rfbuf_ts,
-+			    to.to_tsecr, tp->rfbuf_cnt, newsize, (int)sb_max);
-+#endif
 +					}
 +					/* Start over with next RTT. */
 +					tp->rfbuf_ts = 0;
@@ -245,13 +239,6 @@ diff -u -r1.112 tcp_output.c
 +		    so->so_snd.sb_cc >= (so->so_snd.sb_hiwat / 8 * 7) &&
 +		    so->so_snd.sb_cc < tcp_autosndbuf_max &&
 +		    sendwin >= (so->so_snd.sb_cc - (tp->snd_nxt - tp->snd_una))) {
-+#if 1
-+			log(LOG_DEBUG, "%s: inc sockbuf, old %i, new %i, "
-+			    "sb_cc %i, snd_wnd %i, sendwnd %i\n",
-+			    __func__, so->so_snd.sb_hiwat,
-+			    so->so_snd.sb_hiwat + tcp_autosndbuf_inc,
-+			    so->so_snd.sb_cc, (int)tp->snd_wnd, (int)sendwin);
-+#endif
 +			if (!sbreserve_locked(&so->so_snd,
 +			    min(so->so_snd.sb_hiwat + tcp_autosndbuf_inc,
 +			     tcp_autosndbuf_max), so, curthread))
