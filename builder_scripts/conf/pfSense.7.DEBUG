@@ -26,8 +26,6 @@ options 	CD9660			# ISO 9660 Filesystem
 options 	PROCFS			# Process filesystem (requires PSEUDOFS)
 options 	PSEUDOFS		# Pseudo-filesystem framework
 options 	COMPAT_43		# Compatible with BSD 4.3 [KEEP THIS!]
-options 	COMPAT_FREEBSD4		# Compatible with FreeBSD4
-options		COMPAT_FREEBSD5		# Compatible with FreeBSD5
 options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
 options 	KTRACE			# ktrace(1) support
 options 	SYSVSHM			# SYSV-style shared memory
@@ -263,8 +261,6 @@ device		firewire	# FireWire bus code
 device		sbp		# SCSI over FireWire (Requires scbus and da)
 device		fwe		# Ethernet over FireWire (non-standard!)
 
-options         COMPAT_FREEBSD5
-
 options         UNIONFS                 # Union filesystem
 
 device          bktr
@@ -320,7 +316,7 @@ options         NETGRAPH_TTY
 options         NETGRAPH_UI
 options         NETGRAPH_VJC
 
-options         FAST_IPSEC
+options         IPSEC
 #options		IPSEC_NAT_T
 
 # Wireless NIC cards

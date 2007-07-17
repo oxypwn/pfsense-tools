@@ -9,8 +9,6 @@ ident		pfSense-embedded
 # To statically compile in device wiring instead of /boot/device.hints
 #hints		"GENERIC.hints"		# Default places to look for devices.
 
-options		COMPAT_FREEBSD5
-
 options		CPU_GEODE
 options		CPU_SOEKRIS
 options		CPU_ELAN
@@ -35,7 +33,6 @@ options 	PROCFS			# Process filesystem (requires PSEUDOFS)
 options 	PSEUDOFS		# Pseudo-filesystem framework
 options 	GEOM_GPT		# GUID Partition Tables.
 options 	COMPAT_43		# Compatible with BSD 4.3 [KEEP THIS!]
-options 	COMPAT_FREEBSD4		# Compatible with FreeBSD4
 options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
 options 	KTRACE			# ktrace(1) support
 options 	SYSVSHM			# SYSV-style shared memory
@@ -289,7 +286,7 @@ options		NETGRAPH_MPPC_ENCRYPTION
 device ubsa
 device ucom
 
-options		FAST_IPSEC
+options		IPSEC
 
 options		ALTQ
 options		ALTQ_CBQ
