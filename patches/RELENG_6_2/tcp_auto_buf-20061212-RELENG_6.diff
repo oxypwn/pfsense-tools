@@ -1,11 +1,11 @@
 Index: kern/uipc_socket.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/kern/uipc_socket.c,v
-retrieving revision 1.242.2.6.2.1
-diff -u -r1.242.2.6.2.1 uipc_socket.c
---- kern/uipc_socket.c	22 Nov 2006 23:06:26 -0000	1.242.2.6.2.1
-+++ kern/uipc_socket.c	20 Dec 2006 02:10:32 -0000
-@@ -223,6 +223,10 @@
+retrieving revision 1.286
+diff -u -p -r1.286 uipc_socket.c
+--- kern/uipc_socket.c	22 Nov 2006 23:54:29 -0000	1.286
++++ kern/uipc_socket.c	12 Dec 2006 21:55:52 -0000
+@@ -367,6 +367,10 @@ socreate(dom, aso, type, proto, cred, td
  	knlist_init(&so->so_snd.sb_sel.si_note, SOCKBUF_MTX(&so->so_snd),
  	    NULL, NULL, NULL);
  	so->so_count = 1;
@@ -15,24 +15,8 @@ diff -u -r1.242.2.6.2.1 uipc_socket.c
 +	 */
  	error = (*prp->pr_usrreqs->pru_attach)(so, proto, td);
  	if (error) {
- 		ACCEPT_LOCK();
-@@ -1636,6 +1640,8 @@
- 					error = ENOBUFS;
- 					goto bad;
- 				}
-+				(sopt->sopt_name == SO_SNDBUF ? &so->so_snd :
-+				    &so->so_rcv)->sb_flags &= ~SB_AUTOSIZE;
- 				break;
- 
- 			/*
-Index: kern/uipc_socket2.c
-===================================================================
-RCS file: /home/ncvs/src/sys/kern/uipc_socket2.c,v
-retrieving revision 1.147.2.7
-diff -u -r1.147.2.7 uipc_socket2.c
---- kern/uipc_socket2.c	6 Oct 2006 20:23:27 -0000	1.147.2.7
-+++ kern/uipc_socket2.c	20 Dec 2006 02:07:32 -0000
-@@ -258,6 +258,8 @@
+ 		KASSERT(so->so_count == 1, ("socreate: so_count %d",
+@@ -441,6 +445,8 @@ sonewconn(head, connstatus)
  	so->so_snd.sb_lowat = head->so_snd.sb_lowat;
  	so->so_rcv.sb_timeo = head->so_rcv.sb_timeo;
  	so->so_snd.sb_timeo = head->so_snd.sb_timeo;
@@ -41,14 +25,23 @@ diff -u -r1.147.2.7 uipc_socket2.c
  	so->so_state |= connstatus;
  	ACCEPT_LOCK();
  	if (connstatus) {
+@@ -2107,6 +2316,8 @@ sosetopt(so, sopt)
+ 					error = ENOBUFS;
+ 					goto bad;
+ 				}
++				(sopt->sopt_name == SO_SNDBUF ? &so->so_snd :
++				    &so->so_rcv)->sb_flags &= ~SB_AUTOSIZE;
+ 				break;
+ 
+ 			/*
 Index: netinet/tcp_input.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/tcp_input.c,v
-retrieving revision 1.281.2.11
-diff -u -r1.281.2.11 tcp_input.c
---- netinet/tcp_input.c	19 Sep 2006 12:58:40 -0000	1.281.2.11
-+++ netinet/tcp_input.c	20 Dec 2006 02:15:17 -0000
-@@ -159,6 +159,18 @@
+retrieving revision 1.311
+diff -u -p -r1.311 tcp_input.c
+--- netinet/tcp_input.c	12 Dec 2006 12:17:56 -0000	1.311
++++ netinet/tcp_input.c	12 Dec 2006 21:56:04 -0000
+@@ -161,6 +161,18 @@ SYSCTL_INT(_net_inet_tcp_reass, OID_AUTO
  	   &tcp_reass_overflows, 0,
  	   "Global number of TCP Segment Reassembly Queue Overflows");
  
@@ -67,7 +60,7 @@ diff -u -r1.281.2.11 tcp_input.c
  struct inpcbhead tcb;
  #define	tcb6	tcb  /* for KAME src sync over BSD*'s */
  struct inpcbinfo tcbinfo;
-@@ -1265,6 +1277,8 @@
+@@ -1295,6 +1313,8 @@ after_listen:
  		} else if (th->th_ack == tp->snd_una &&
  		    LIST_EMPTY(&tp->t_segq) &&
  		    tlen <= sbspace(&so->so_rcv)) {
@@ -76,7 +69,7 @@ diff -u -r1.281.2.11 tcp_input.c
  			KASSERT(headlocked, ("headlocked"));
  			INP_INFO_WUNLOCK(&tcbinfo);
  			headlocked = 0;
-@@ -1291,18 +1305,82 @@
+@@ -1321,18 +1341,82 @@ after_listen:
  			tcpstat.tcps_rcvpack++;
  			tcpstat.tcps_rcvbyte += tlen;
  			ND6_HINT(tp);	/* some progress has been done */
@@ -132,6 +125,12 @@ diff -u -r1.281.2.11 tcp_input.c
 +						    min(so->so_rcv.sb_hiwat +
 +						    tcp_autorcvbuf_inc,
 +						    tcp_autorcvbuf_max);
++#if 1
++			log(LOG_DEBUG, "%s: hiwat %i, ref_ts %i, ts %i, "
++			    "count %i, new %i, max %i\n",
++			    __func__, so->so_rcv.sb_hiwat, tp->rfbuf_ts,
++			    to.to_tsecr, tp->rfbuf_cnt, newsize, (int)sb_max);
++#endif
 +					}
 +					/* Start over with next RTT. */
 +					tp->rfbuf_ts = 0;
@@ -156,7 +155,7 @@ diff -u -r1.281.2.11 tcp_input.c
  				m_adj(m, drop_hdrlen);	/* delayed header drop */
  				sbappendstream_locked(&so->so_rcv, m);
  			}
-@@ -1331,6 +1409,10 @@
+@@ -1361,6 +1445,10 @@ after_listen:
  	tp->rcv_wnd = imax(win, (int)(tp->rcv_adv - tp->rcv_nxt));
  	}
  
@@ -170,11 +169,11 @@ diff -u -r1.281.2.11 tcp_input.c
 Index: netinet/tcp_output.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/tcp_output.c,v
-retrieving revision 1.112
-diff -u -r1.112 tcp_output.c
---- netinet/tcp_output.c	21 May 2005 00:38:29 -0000	1.112
-+++ netinet/tcp_output.c	20 Dec 2006 02:18:44 -0000
-@@ -49,6 +49,7 @@
+retrieving revision 1.121
+diff -u -p -r1.121 tcp_output.c
+--- netinet/tcp_output.c	22 Oct 2006 11:52:16 -0000	1.121
++++ netinet/tcp_output.c	12 Dec 2006 21:56:04 -0000
+@@ -48,6 +48,7 @@
  #include <sys/socket.h>
  #include <sys/socketvar.h>
  #include <sys/sysctl.h>
@@ -182,9 +181,18 @@ diff -u -r1.112 tcp_output.c
  
  #include <net/route.h>
  
-@@ -104,6 +105,18 @@
- SYSCTL_INT(_net_inet_tcp, OID_AUTO, newreno, CTLFLAG_RW, &tcp_do_newreno,
- 	0, "Enable NewReno Algorithms");
+@@ -103,13 +104,26 @@ SYSCTL_INT(_net_inet_tcp, OID_AUTO, loca
+ 	&ss_fltsz_local, 1, "Slow start flight size for local networks");
+ 
+ int     tcp_do_newreno = 1;
+-SYSCTL_INT(_net_inet_tcp, OID_AUTO, newreno, CTLFLAG_RW, &tcp_do_newreno,
+-	0, "Enable NewReno Algorithms");
++SYSCTL_INT(_net_inet_tcp, OID_AUTO, newreno, CTLFLAG_RW,
++	&tcp_do_newreno, 0, "Enable NewReno Algorithms");
+ 
+ int	tcp_do_tso = 1;
+ SYSCTL_INT(_net_inet_tcp, OID_AUTO, tso, CTLFLAG_RW,
+ 	&tcp_do_tso, 0, "Enable TCP Segmentation Offload");
  
 +int	tcp_do_autosndbuf = 1;
 +SYSCTL_INT(_net_inet_tcp, OID_AUTO, sendbuf_auto, CTLFLAG_RW,
@@ -198,17 +206,22 @@ diff -u -r1.112 tcp_output.c
 +SYSCTL_INT(_net_inet_tcp, OID_AUTO, sendbuf_max, CTLFLAG_RW,
 +	&tcp_autosndbuf_max, 0, "Max size of automatic send buffer");
 +
++
  /*
   * Tcp output routine: figure out what should be sent and send it.
   */
-@@ -372,10 +385,58 @@
+@@ -380,11 +394,58 @@ after_sack_rexmit:
  		}
  	}
  
 +	/* len will be >= 0 after this point. */
 +	KASSERT(len >= 0, ("%s: len < 0", __func__));
 +
-+	/*
+ 	/*
+-	 * len will be >= 0 after this point.  Truncate to the maximum
+-	 * segment length or enable TCP Segmentation Offloading (if supported
+-	 * by hardware) and ensure that FIN is removed if the length no longer
+-	 * contains the last data byte.
 +	 * Automatic sizing of send socket buffer.  Often the send buffer
 +	 * size is not optimally adjusted to the actual network conditions
 +	 * at hand (delay bandwidth product).  Setting the buffer size too
@@ -239,6 +252,13 @@ diff -u -r1.112 tcp_output.c
 +		    so->so_snd.sb_cc >= (so->so_snd.sb_hiwat / 8 * 7) &&
 +		    so->so_snd.sb_cc < tcp_autosndbuf_max &&
 +		    sendwin >= (so->so_snd.sb_cc - (tp->snd_nxt - tp->snd_una))) {
++#if 1
++			log(LOG_DEBUG, "%s: inc sockbuf, old %i, new %i, "
++			    "sb_cc %i, snd_wnd %i, sendwnd %i\n",
++			    __func__, so->so_snd.sb_hiwat,
++			    so->so_snd.sb_hiwat + tcp_autosndbuf_inc,
++			    so->so_snd.sb_cc, (int)tp->snd_wnd, (int)sendwin);
++#endif
 +			if (!sbreserve_locked(&so->so_snd,
 +			    min(so->so_snd.sb_hiwat + tcp_autosndbuf_inc,
 +			     tcp_autosndbuf_max), so, curthread))
@@ -246,17 +266,14 @@ diff -u -r1.112 tcp_output.c
 +		}
 +	}
 +
- 	/*
--	 * len will be >= 0 after this point.  Truncate to the maximum
--	 * segment length and ensure that FIN is removed if the length
--	 * no longer contains the last data byte.
++	/*
 +	 * Truncate to the maximum segment length or enable TCP Segmentation
 +	 * Offloading (if supported by hardware) and ensure that FIN is removed
 +	 * if the length no longer contains the last data byte.
- 	 */
- 	if (len > tp->t_maxseg) {
- 		len = tp->t_maxseg;
-@@ -576,6 +637,10 @@
+ 	 *
+ 	 * TSO may only be used if we are in a pure bulk sending state.  The
+ 	 * presence of TCP-MD5, SACK retransmits, SACK advertizements and
+@@ -606,6 +705,10 @@ send:
  		optlen += TCPOLEN_TSTAMP_APPA;
  	}
  
@@ -270,11 +287,11 @@ diff -u -r1.112 tcp_output.c
 Index: netinet/tcp_syncache.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/tcp_syncache.c,v
-retrieving revision 1.74.2.5
-diff -u -r1.74.2.5 tcp_syncache.c
---- netinet/tcp_syncache.c	16 Feb 2006 01:06:22 -0000	1.74.2.5
-+++ netinet/tcp_syncache.c	20 Dec 2006 02:19:57 -0000
-@@ -965,9 +965,15 @@
+retrieving revision 1.102
+diff -u -p -r1.102 tcp_syncache.c
+--- netinet/tcp_syncache.c	22 Oct 2006 11:52:17 -0000	1.102
++++ netinet/tcp_syncache.c	12 Dec 2006 21:56:04 -0000
+@@ -983,9 +1011,15 @@ syncache_add(struct in_conninfo *inc, st
  		if (to->to_flags & TOF_SCALE) {
  			int wscale = 0;
  
@@ -287,19 +304,19 @@ diff -u -r1.74.2.5 tcp_syncache.c
 +			 * not losing any efficiency or fine granularity.
 +			 */
  			while (wscale < TCP_MAX_WINSHIFT &&
--			    (TCP_MAXWIN << wscale) < so->so_rcv.sb_hiwat)
-+			    (0x1 << wscale) < tcp_minmss)
+-			    (TCP_MAXWIN << wscale) < sb_hiwat)
++			    (0x1 << wscale) < tcp_minmss)	/* XXX */
  				wscale++;
- 			sc->sc_request_r_scale = wscale;
+ 			sc->sc_requested_r_scale = wscale;
  			sc->sc_requested_s_scale = to->to_requested_s_scale;
 Index: netinet/tcp_usrreq.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/tcp_usrreq.c,v
-retrieving revision 1.124.2.3.2.1
-diff -u -r1.124.2.3.2.1 tcp_usrreq.c
---- netinet/tcp_usrreq.c	28 Nov 2006 23:19:18 -0000	1.124.2.3.2.1
-+++ netinet/tcp_usrreq.c	20 Dec 2006 02:21:26 -0000
-@@ -882,9 +882,13 @@
+retrieving revision 1.142
+diff -u -p -r1.142 tcp_usrreq.c
+--- netinet/tcp_usrreq.c	22 Nov 2006 17:16:54 -0000	1.142
++++ netinet/tcp_usrreq.c	12 Dec 2006 21:56:05 -0000
+@@ -1131,9 +1134,13 @@ tcp_connect(tp, nam, td)
  	inp->inp_laddr = laddr;
  	in_pcbrehash(inp);
  
@@ -315,23 +332,23 @@ diff -u -r1.124.2.3.2.1 tcp_usrreq.c
  		tp->request_r_scale++;
  
  	soisconnecting(so);
-@@ -1191,6 +1195,8 @@
+@@ -1441,6 +1448,8 @@ tcp_attach(so)
  		if (error)
  			return (error);
  	}
 +	so->so_rcv.sb_flags |= SB_AUTOSIZE;
 +	so->so_snd.sb_flags |= SB_AUTOSIZE;
- 	error = in_pcballoc(so, &tcbinfo, "tcpinp");
- 	if (error)
- 		return (error);
+ 	INP_INFO_WLOCK(&tcbinfo);
+ 	error = in_pcballoc(so, &tcbinfo);
+ 	if (error) {
 Index: netinet/tcp_var.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/tcp_var.h,v
-retrieving revision 1.126.2.3
-diff -u -r1.126.2.3 tcp_var.h
---- netinet/tcp_var.h	19 Sep 2006 12:58:40 -0000	1.126.2.3
-+++ netinet/tcp_var.h	20 Dec 2006 02:21:54 -0000
-@@ -200,6 +200,8 @@
+retrieving revision 1.137
+diff -u -p -r1.137 tcp_var.h
+--- netinet/tcp_var.h	13 Sep 2006 13:08:27 -0000	1.137
++++ netinet/tcp_var.h	12 Dec 2006 21:56:05 -0000
+@@ -202,6 +202,8 @@ struct tcpcb {
  					   episode starts at this seq number */
  	struct sackhint	sackhint;	/* SACK scoreboard hint */
  	int	t_rttlow;		/* smallest observerved RTT */
@@ -343,11 +360,11 @@ diff -u -r1.126.2.3 tcp_var.h
 Index: sys/socketvar.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/sys/socketvar.h,v
-retrieving revision 1.141.2.1
-diff -u -r1.141.2.1 socketvar.h
---- sys/socketvar.h	28 Jun 2006 14:33:47 -0000	1.141.2.1
-+++ sys/socketvar.h	20 Dec 2006 02:22:29 -0000
-@@ -128,6 +128,7 @@
+retrieving revision 1.154
+diff -u -p -r1.154 socketvar.h
+--- sys/socketvar.h	1 Aug 2006 10:30:26 -0000	1.154
++++ sys/socketvar.h	16 Nov 2006 22:41:18 -0000
+@@ -128,6 +128,7 @@ struct socket {
  #define	SB_NOINTR	0x40		/* operations not interruptible */
  #define SB_AIO		0x80		/* AIO operations queued */
  #define SB_KNOTE	0x100		/* kernel note attached */
