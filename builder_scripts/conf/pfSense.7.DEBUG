@@ -10,7 +10,7 @@ ident		pfSenseDebug
 #hints		"GENERIC.hints"		# Default places to look for devices.
 
 options 	SCHED_ULE		# ULE scheduler
-#options 	PREEMPTION		# Enable kernel thread preemption
+options 	PREEMPTION		# Enable kernel thread preemption
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
 options 	FFS			# Berkeley Fast Filesystem
