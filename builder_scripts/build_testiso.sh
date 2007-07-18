@@ -2,7 +2,7 @@
 
 # $Id$
 
-set -e -u
+#set -e -u
 
 # Set extra before pfsense_local.sh will do
 # Add comconsole to the list

@@ -2,7 +2,7 @@
 
 # $Id$
 
-set -e -u
+#set -e -u
 
 . ./pfsense_local.sh
 

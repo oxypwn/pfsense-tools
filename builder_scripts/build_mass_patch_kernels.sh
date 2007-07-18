@@ -4,7 +4,7 @@
 # It will build a kernel for each patch line item and
 # then output the kernels to $KERNELOUTPUTDIR
 
-set -e -x
+#set -e -x
 
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
