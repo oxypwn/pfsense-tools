@@ -11,7 +11,7 @@
 ~bin/sh~jobs.c.diff~
 ~sys/contrib/pf/net~pf10percent.c.diff~
 ~contrib/tcsh~tcsh_sh.c.diff~
+~sys~tcp_auto_buf-20061212-RELENG_6.diff~
 -p0~~if_lagg.diff~
 -p1~contrib/pf/pfctl~parse.y~
 ~sys/dev/re~if_re.c~
-~sys/contrib/pf/net/~pf_norm.c.diff~
