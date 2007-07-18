@@ -425,3 +425,7 @@ device 		enc
 
 device          lagg
 
+# FireWire support
+device          firewire        # FireWire bus code
+device          sbp             # SCSI over FireWire (Requires scbus and da)
+device          fwe             # Ethernet over FireWire (non-standard!)
