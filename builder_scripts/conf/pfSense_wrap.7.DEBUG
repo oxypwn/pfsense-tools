@@ -214,7 +214,11 @@ device		ehci		# EHCI PCI->USB interface (USB 2.0)
 device		usb		# USB Bus (required)
 #device		udbp		# USB Double Bulk Pipe devices
 device		ugen		# Generic
-device		ucom
+
+# 3G devices
+device 			ucom
+device 			uplcom
+
 # Uncommented at the request of colin
 #device		uhid		# "Human Interface Devices"
 #device		ulpt		# Printer

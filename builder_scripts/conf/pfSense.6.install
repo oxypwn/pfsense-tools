@@ -352,7 +352,10 @@ options         NETGRAPH_UI
 options         NETGRAPH_VJC
 
 device ubsa
-device ucom
+
+# 3G devices
+device 			ucom
+device 			uplcom
 
 options         FAST_IPSEC
 #options                IPSEC_NAT_T

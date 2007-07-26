@@ -349,8 +349,11 @@ options         NETGRAPH_TTY
 options         NETGRAPH_UI
 options         NETGRAPH_VJC
 
-device ubsa
-device ucom
+device 			ubsa
+
+# 3G devices
+device 			ucom
+device 			uplcom
 
 options         FAST_IPSEC
 #device			enc

@@ -434,3 +434,8 @@ device          wlan_amrr
 device          firewire        # FireWire bus code
 device          sbp             # SCSI over FireWire (Requires scbus and da)
 device          fwe             # Ethernet over FireWire (non-standard!)
+
+# 3G devices
+device 			ucom
+device 			uplcom
+
