@@ -70,6 +70,18 @@ return {
 		    name = _("Install Bootblock?"),
 		    short_desc = _("Install a bootblock on this disk"),
 		    control = "checkbox"
+		},
+		{
+		    id = "packet",
+		    name = _("Packet mode?"),
+		    short_desc = _("Select this to use 'packet mode' to boot the disk"),
+		    control = "checkbox"
+	    },
+		{
+		    id = "usegrub",
+		    name = _("Use Grub"),
+		    short_desc = _("Select this to use Grub to boot the disk"),
+		    control = "checkbox"
 		}
 	    },
 	    	
@@ -101,20 +113,30 @@ return {
 
 		for i, dataset in ipairs(response.datasets) do
 			if dataset.boot0cfg == "Y" then
-				dd = disk_ref[dataset.disk]
-				disk = dd:get_name()
-				-- execute Grub boot block installer
-				cmds:set_replacements{
-				    disk = disk
-				}
-				cmds:add("sysctl kern.geom.debugflags=16")
-				cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
-				cmds:add("echo \"default=0\" > /mnt/boot/grub/menu.lst")
-				cmds:add("echo \"timeout=5\" >> /mnt/boot/grub/menu.lst")
-				cmds:add("echo \"title pfSense\" >> /mnt/boot/grub/menu.lst")
-				cmds:add("echo \"	root (hd0,0,a)\" >> /mnt/boot/grub/menu.lst")
-				cmds:add("echo \"	kernel /boot/loader\" >> /mnt/boot/grub/menu.lst")
-				cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
+				if dataset.usegrub == "Y" then
+					dd = disk_ref[dataset.disk]
+					disk = dd:get_name()
+					-- execute Grub boot block installer
+					cmds:set_replacements{
+					    disk = disk
+					}
+					cmds:add("sysctl kern.geom.debugflags=16")
+					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
+					cmds:add("echo \"default=0\" > /mnt/boot/grub/menu.lst")
+					cmds:add("echo \"timeout=5\" >> /mnt/boot/grub/menu.lst")
+					cmds:add("echo \"title pfSense\" >> /mnt/boot/grub/menu.lst")
+					cmds:add("echo \"	root (hd0,0,a)\" >> /mnt/boot/grub/menu.lst")
+					cmds:add("echo \"	kernel /boot/loader\" >> /mnt/boot/grub/menu.lst")
+					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
+				else
+					dd = disk_ref[dataset.disk]
+					dd:cmds_install_bootblock(cmds,
+					    (dataset.packet == "Y"))
+					cmds:set_replacements{
+					    disk = disk
+					}
+					cmds:add("boot0cfg -B -b /boot/boot /dev/${disk}")
+				end
 			end
 		end
 
