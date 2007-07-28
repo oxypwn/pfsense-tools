@@ -1,11 +1,14 @@
-Index: pf.c
-===================================================================
-RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.34.2.4
-diff -u -r1.34.2.4 pf.c
---- pf.c	19 Sep 2006 15:45:20 -0000	1.34.2.4
-+++ pf.c	25 Jul 2007 20:16:49 -0000
-@@ -170,6 +170,8 @@
+--- src/sys/contrib/pf/net/pf.c	2006/09/19 15:45:20	1.34.2.4
++++ src/sys/contrib/pf/net/pf.c	2007/07/28 22:32:57	1.34.2.5
+@@ -1,5 +1,5 @@
+-/*	$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/contrib/pf/net/pf.c,v 1.34.2.4 2006/09/19 15:45:20 csjp Exp $	*/
+-/*	$OpenBSD: pf.c,v 1.483 2005/03/15 17:38:43 dhartmei Exp $ */
++/*	$FreeBSD: /usr/local/www/cvsroot/FreeBSD/src/sys/contrib/pf/net/pf.c,v 1.34.2.5 2007/07/28 22:32:57 mlaier Exp $	*/
++/*	$OpenBSD: pf.c,v 1.502.2.1 2006/05/02 22:55:52 brad Exp $ */
+ 
+ /*
+  * Copyright (c) 2001 Daniel Hartmeier
+@@ -170,6 +170,8 @@ int			 pf_check_threshold(struct pf_thre
  void			 pf_change_ap(struct pf_addr *, u_int16_t *,
  			    u_int16_t *, u_int16_t *, struct pf_addr *,
  			    u_int16_t, u_int8_t, sa_family_t);
@@ -14,9 +17,9 @@ diff -u -r1.34.2.4 pf.c
  #ifdef INET6
  void			 pf_change_a6(struct pf_addr *, u_int16_t *,
  			    struct pf_addr *, u_int8_t);
-@@ -1568,6 +1570,63 @@
- 	}
+@@ -1483,6 +1485,63 @@ pf_change_a6(struct pf_addr *a, u_int16_
  }
+ #endif /* INET6 */
  
 +
 +/*
@@ -76,50 +79,13 @@ diff -u -r1.34.2.4 pf.c
 +}
 +
  void
- #ifdef __FreeBSD__
- pf_send_tcp(struct mbuf *replyto, const struct pf_rule *r, sa_family_t af,
-@@ -3149,20 +3208,30 @@
- 		if (((r->rule_flag & PFRULE_RETURNRST) ||
- 		    (r->rule_flag & PFRULE_RETURN)) &&
- 		    !(th->th_flags & TH_RST)) {
--			u_int32_t ack = ntohl(th->th_seq) + pd->p_len;
-+                       u_int32_t        ack = ntohl(th->th_seq) + pd->p_len;
-+                       struct ip       *h = mtod(m, struct ip *);
-+
-+                       if (pf_check_proto_cksum(m, off,
-+                           ntohs(h->ip_len) - off, IPPROTO_TCP, AF_INET))
-+                               REASON_SET(&reason, PFRES_PROTCKSUM);
-+                       else {
-+                               if (th->th_flags & TH_SYN)
-+                                       ack++;
-+                               if (th->th_flags & TH_FIN)
-+                                       ack++;
- 
--			if (th->th_flags & TH_SYN)
--				ack++;
--			if (th->th_flags & TH_FIN)
--				ack++;
- #ifdef __FreeBSD__
- 			pf_send_tcp(m, r, af, pd->dst,
- #else
- 			pf_send_tcp(r, af, pd->dst,
- #endif
--			    pd->src, th->th_dport, th->th_sport,
--			    ntohl(th->th_ack), ack, TH_RST|TH_ACK, 0, 0,
-+
-+                                   pd->src, th->th_dport, th->th_sport,
-+                                   ntohl(th->th_ack), ack, TH_RST|TH_ACK, 0, 0,
- 			    r->return_ttl, 1, pd->eh, kif->pfik_ifp);
-+
-+}
-+
- 		} else if ((af == AF_INET) && r->return_icmp)
- 			pf_send_icmp(m, r->return_icmp >> 8,
- 			    r->return_icmp & 255, af, r);
-@@ -4577,6 +4646,25 @@
+ pf_change_icmp(struct pf_addr *ia, u_int16_t *ip, struct pf_addr *oa,
+     struct pf_addr *na, u_int16_t np, u_int16_t *pc, u_int16_t *h2c,
+@@ -4576,6 +4635,25 @@ pf_test_state_tcp(struct pf_state **stat
+ 	}
  
  	ackskew = dst->seqlo - ack;
- 
++
 +
 +	/*
 +	 * Need to demodulate the sequence numbers in any TCP SACK options
@@ -138,73 +104,7 @@ diff -u -r1.34.2.4 pf.c
 +			copyback = 1;
 +	}
 +
-+
+ 
  #define MAXACKWINDOW (0xffff + 1500)	/* 1500 is an arbitrary fudge factor */
  	if (SEQ_GEQ(src->seqhi, end) &&
- 	    /* Last octet inside other's window space */
-@@ -6479,11 +6567,6 @@
- 			log = action != PF_PASS;
- 			goto done;
- 		}
--		if (dir == PF_IN && pf_check_proto_cksum(m, off,
--		    ntohs(h->ip_len) - off, IPPROTO_TCP, AF_INET)) {
--			action = PF_DROP;
--			goto done;
--		}
- 		pd.p_len = pd.tot_len - off - (th.th_off << 2);
- 		if ((th.th_flags & TH_ACK) && pd.p_len == 0)
- 			pqid = 1;
-@@ -6558,11 +6641,6 @@
- 			log = action != PF_PASS;
- 			goto done;
- 		}
--		if (dir == PF_IN && pf_check_proto_cksum(m, off,
--		    ntohs(h->ip_len) - off, IPPROTO_ICMP, AF_INET)) {
--			action = PF_DROP;
--			goto done;
--		}
- 		action = pf_test_state_icmp(&s, dir, kif, m, off, h, &pd,
- 		    &reason);
- 		if (action == PF_PASS) {
-@@ -6875,13 +6953,6 @@
- 			log = action != PF_PASS;
- 			goto done;
- 		}
--		if (dir == PF_IN && pf_check_proto_cksum(m, off,
--		    ntohs(h->ip6_plen) - (off - sizeof(struct ip6_hdr)),
--		    IPPROTO_TCP, AF_INET6)) {
--			action = PF_DROP;
--			REASON_SET(&reason, PFRES_PROTCKSUM);
--			goto done;
--		}
- 		pd.p_len = pd.tot_len - off - (th.th_off << 2);
- 		action = pf_normalize_tcp(dir, kif, m, 0, off, h, &pd);
- 		if (action == PF_DROP)
-@@ -6915,13 +6986,6 @@
- 			log = action != PF_PASS;
- 			goto done;
- 		}
--		if (dir == PF_IN && uh.uh_sum && pf_check_proto_cksum(m,
--		    off, ntohs(h->ip6_plen) - (off - sizeof(struct ip6_hdr)),
--		    IPPROTO_UDP, AF_INET6)) {
--			action = PF_DROP;
--			REASON_SET(&reason, PFRES_PROTCKSUM);
--			goto done;
--		}
- 		if (uh.uh_dport == 0 ||
- 		    ntohs(uh.uh_ulen) > m->m_pkthdr.len - off ||
- 		    ntohs(uh.uh_ulen) < sizeof(struct udphdr)) {
-@@ -6956,13 +7020,6 @@
- 			log = action != PF_PASS;
- 			goto done;
- 		}
--		if (dir == PF_IN && pf_check_proto_cksum(m, off,
--		    ntohs(h->ip6_plen) - (off - sizeof(struct ip6_hdr)),
--		    IPPROTO_ICMPV6, AF_INET6)) {
--			action = PF_DROP;
--			REASON_SET(&reason, PFRES_PROTCKSUM);
--			goto done;
--		}
- 		action = pf_test_state_icmp(&s, dir, kif,
- 		    m, off, h, &pd, &reason);
- 		if (action == PF_PASS) {
+
