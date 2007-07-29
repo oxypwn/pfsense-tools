@@ -1,11 +1,12 @@
 
 include         GENERIC
-ident           pfSense.7
+ident           pfSense7
+
+options SCHED_ULE					# add inULE scheduler
 
 # IPSEC filtering interface
 device 		   enc
 
-device		   wlan_amrr
 device		   wlan_xauth
 device		   wlan_acl
 
@@ -27,10 +28,7 @@ device          gre
 
 options         IPSTEALTH
 
-options         TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
-
 options         GEOM_UZIP
-options         GEOM_LABEL
 
 options         INCLUDE_CONFIG_FILE
 
@@ -109,15 +107,8 @@ options         ZERO_COPY_SOCKETS
 
 options TCP_SIGNATURE
 
-# To make an SMP kernel, the next two lines are needed
-options         SMP                     # Symmetric MultiProcessor Kernel
-device          apic                    # I/O APIC
-
 # Allow gmirror to function
 options         GEOM_MIRROR
-options         GEOM_MBR
-
-device firmware
 
 device          lagg
 
