@@ -74,6 +74,25 @@ if [ $pfSense_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7.install" s
 fi
 
+# Build extra kernels (embedded, developers edition, etc)
+mkdir -p /tmp/kernels/wrap
+mkdir -p /tmp/kernels/developers
+mkdir -p $CVS_CO_DIR/boot/kernel
+cp $BASE_DIR/tools/builder_scripts/conf/ /usr/src/sys/i386/conf/
+echo ">>> Builoding embedded kernel..."
+(cd /usr/src && make buildkernel KERNCONF=pfSense_wrap.$pfSense_version)
+(cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap)
+echo ">>> Builoding Developers kernel..."
+(cd /usr/src && make buildkernel KERNCONF=pfSense_Dev.$pfSense_version)
+(cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers)
+echo -n ">>> GZipping: embedded"
+gzip /tmp/kernels/wrap/boot/kernel/kernel
+echo -n " developers"
+gzip /tmp/kernels/developers/boot/kernel/kernel
+mv /tmp/kernels/wrap/boot/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_wrap.gz
+mv /tmp/kernels/wrap/boot/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_Dev.gz
+echo "."
+
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 ( populate_extra )
