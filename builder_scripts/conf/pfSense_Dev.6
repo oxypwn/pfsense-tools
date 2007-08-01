@@ -41,10 +41,6 @@ options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
 #options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~215k to driver.
 
-# To make an SMP kernel, the next two lines are needed
-options 	SMP			# Symmetric MultiProcessor Kernel
-device		apic			# I/O APIC
-
 # Bus support.  Do not remove isa, even if you have no isa slots
 device		isa
 device		eisa
@@ -358,7 +354,6 @@ options		ALTQ_RIO
 options		ALTQ_HFSC
 options		ALTQ_PRIQ
 options		ALTQ_NOPCC	# Required for SMP builds !!
-
 
 # Bridging
 device		if_bridge
