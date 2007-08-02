@@ -13,9 +13,9 @@ fixup_libmap() {
 # build_iso.sh routines.
 build_all_kernels() {
 	# Build extra kernels (embedded, developers edition, etc)
-	mkdir -p /tmp/kernels/wrap
-	mkdir -p /tmp/kernels/developers
-	mkdir -p /tmp/kernels/SMP
+	mkdir -p /tmp/kernels/wrap/boot/kernel
+	mkdir -p /tmp/kernels/developers/boot/kernel
+	mkdir -p /tmp/kernels/SMP/boot/kernel
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 	# Kernel will not install without these files
 	echo -n ">>> Populating"
@@ -39,15 +39,15 @@ build_all_kernels() {
 	echo "device		apic"" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version)
+	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
 	(cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
-	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version)
-	(cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/)
+	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
+	(cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version)
+	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
 	(cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
 	# GZIP kernels and make smaller
 	echo -n ">>> GZipping: embedded"
@@ -58,13 +58,13 @@ build_all_kernels() {
 	(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
 	echo -n " ."
 	# Move files into place
-	cp /tmp/kernels/wrap/boot/kernel/kernel.gz $PFSENSEBASEDIR/boot/kernel/kernel_wrap.gz
+	mkdir -p $PFSENSEBASEDIR/kernels
+	cp /tmp/kernels/wrap/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernels/kernel_wrap.gz
 	echo -n "."
-	cp /tmp/kernels/SMP/boot/kernel/kernel.gz $PFSENSEBASEDIR/boot/kernel/kernel_SMP.gz
+	cp /tmp/kernels/SMP/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernels/kernel_SMP.gz
 	echo -n "."
-	cp /tmp/kernels/developers/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernel/kernel_Dev.gz
+	cp /tmp/kernels/developers/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernels/kernel_Dev.gz
 	echo "."
-	#rm -rf /tmp/kernels
 }
 
 recompile_pfPorts() {
