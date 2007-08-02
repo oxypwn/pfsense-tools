@@ -67,70 +67,15 @@ if [ $pfSense_version = "7" ]; then
 	recompile_pfPorts
 fi
 
+if [ $pfSense_version = "7" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.7.install" 
+fi
+
 # Build if needed and install world and kernel
 make_world_kernel
 
-if [ $pfSense_version = "7" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.7.install" s
-fi
-
-# Build extra kernels (embedded, developers edition, etc)
-mkdir -p /tmp/kernels/wrap
-mkdir -p /tmp/kernels/developers
-mkdir -p /tmp/kernels/SMP
-mkdir -p $CVS_CO_DIR/boot/kernel
-cp /boot/device.hints /tmp/kernels/wrap/boot/device.hints
-cp /boot/device.hints /tmp/kernels/developers/boot/device.hints
-cp /boot/device.hints /tmp/kernels/SMP/boot/device.hints
-cp $BASE_DIR/tools/builder_scripts/conf/pfSense* \
-	/usr/src/sys/i386/conf/
-cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 \
-	/usr/src/sys/i386/conf/pfSense_SMP.6
-cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 \
-	/usr/src/sys/i386/conf/pfSense_SMP.7
-echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-# Add SMP and APIC options
-echo "options 		SMP"   >> \
-	/usr/src/sys/i386/conf/pfSense_SMP.6
-echo "options 		SMP"   >> \
-	/usr/src/sys/i386/conf/pfSense_SMP.7
-echo "device		apic"" >> \
-	/usr/src/sys/i386/conf/pfSense_SMP.6
-echo "device		apic"" >> \
-	/usr/src/sys/i386/conf/pfSense_SMP.7
-# Build embedded kernel
-echo ">>> Builoding embedded kernel..."
-(cd /usr/src && make buildkernel \
-	KERNCONF=pfSense_wrap.$pfSense_version)
-(cd /usr/src && make installkernel \	
-	KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
-# Build SMP kernel
-echo ">>> Builoding SMP kernel..."
-(cd /usr/src && make buildkernel \
-	KERNCONF=pfSense_SMP.$pfSense_version)
-(cd /usr/src && make installkernel \
-	KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/)
-# Build Developers kernel
-echo ">>> Builoding Developers kernel..."
-(cd /usr/src && make buildkernel \
-	KERNCONF=pfSense_Dev.$pfSense_version)
-(cd /usr/src && make installkernel \
-	KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
-# GZIP kernels and make smaller
-echo -n ">>> GZipping: embedded"
-gzip /tmp/kernels/wrap/boot/kernel/kernel
-echo -n " SMP"
-gzip /tmp/kernels/SMP/boot/kernel/kernel
-echo -n " developers"
-gzip /tmp/kernels/developers/boot/kernel/kernel
-echo -n "."
-mv /tmp/kernels/wrap/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_wrap.gz
-echo -n "."
-mv /tmp/kernels/SMP/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_SMP.gz
-echo -n "."
-mv /tmp/kernels/developers/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_Dev.gz
-echo "."
+# Build SMP, Embedded (wrap) and Developers edition kernels
+build_all_kernels
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
