@@ -58,12 +58,13 @@ build_all_kernels() {
 	(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
 	echo -n " ."
 	# Move files into place
-	cp /tmp/kernels/wrap/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_wrap.gz
+	cp /tmp/kernels/wrap/boot/kernel/kernel.gz $PFSENSEBASEDIR/boot/kernel/kernel_wrap.gz
 	echo -n "."
-	cp /tmp/kernels/SMP/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_SMP.gz
+	cp /tmp/kernels/SMP/boot/kernel/kernel.gz $PFSENSEBASEDIR/boot/kernel/kernel_SMP.gz
 	echo -n "."
-	cp /tmp/kernels/developers/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_Dev.gz
+	cp /tmp/kernels/developers/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernel/kernel_Dev.gz
 	echo "."
+	#rm -rf /tmp/kernels
 }
 
 recompile_pfPorts() {
