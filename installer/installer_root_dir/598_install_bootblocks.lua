@@ -136,7 +136,7 @@ return {
 					cmds:set_replacements{
 					    disk = disk
 					}
-					cmds:add("boot0cfg -B -b /boot/boot /dev/${disk}")
+					cmds:add("boot0cfg -B -b /boot/boot0 /dev/${disk}")
 				end
 			end
 		end
