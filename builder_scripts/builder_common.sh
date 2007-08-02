@@ -16,7 +16,7 @@ build_all_kernels() {
 	mkdir -p /tmp/kernels/wrap
 	mkdir -p /tmp/kernels/developers
 	mkdir -p /tmp/kernels/SMP
-	mkdir -p $CVS_CO_DIR/boot/kernel
+	mkdir -p $PFSENSEBASEDIR/boot/kernel
 	# Kernel will not install without these files
 	echo -n ">>> Populating"
 	echo -n " wrap"
