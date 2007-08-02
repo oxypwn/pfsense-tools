@@ -9,6 +9,12 @@ fixup_libmap() {
 	
 }
 
+# This routine builds all kernels during the 
+# build_iso.sh routines.
+build_all_kernels() {
+
+}
+
 recompile_pfPorts() {
 	if [ "$pfSense_version" = "7" ]; then
 		if [ "$PFSENSETAG" = "HEAD" ]; then
