@@ -17,9 +17,9 @@ build_all_kernels() {
 	mkdir -p /tmp/kernels/developers
 	mkdir -p /tmp/kernels/SMP
 	mkdir -p $CVS_CO_DIR/boot/kernel
-	cp /boot/device.hints /tmp/kernels/wrap/boot/device.hints
-	cp /boot/device.hints /tmp/kernels/developers/boot/device.hints
-	cp /boot/device.hints /tmp/kernels/SMP/boot/device.hints
+	cp /boot/* /tmp/kernels/wrap/boot/
+	cp /boot/* /tmp/kernels/developers/boot/
+	cp /boot/* /tmp/kernels/SMP/boot/
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* \
 		/usr/src/sys/i386/conf/
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 \
