@@ -15,8 +15,8 @@ return {
 	local datasets_list = {}
 	
 	local response = App.ui:present({
-	    id = "install_bootstrap",
-	    name = _("Install Bootblock(s)"),
+	    id = "install_kernel",
+	    name = _("Install Kernel(s)"),
 	    short_desc = _(
 		"You may now wish to install a custom Kernel configuration. ",
 		App.conf.product.name, App.conf.product.name),
