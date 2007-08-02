@@ -141,6 +141,9 @@ return {
 		end
 
 		if cmds:execute() then
+			App.ui:inform(_(
+			    "Bootblocks were successfully installed!"
+			))
 			return step:next()
 		else
 			App.ui:inform(_(
