@@ -132,6 +132,7 @@ return {
 					dd = disk_ref[dataset.disk]
 					dd:cmds_install_bootblock(cmds,
 					    (dataset.packet == "Y"))
+					disk = dd:get_name()
 					cmds:set_replacements{
 					    disk = disk
 					}
