@@ -53,21 +53,21 @@ return {
 
 	if response.action_id == "SMP" then
 		local cmds = CmdChain.new()
-		cmds:add("cp /mnt/kernels/kernel_SMP.gz /boot/kernel/kernel.gz")
+		cmds:add("cp /kernels/kernel_SMP.gz /boot/kernel/kernel.gz")
 		cmds:add("echo SMP > /mnt/boot/kernel/pfsense_kernel.txt")
 		cmds:execute()
 	end
 
 	if response.action_id == "Embedded" then
 		local cmds = CmdChain.new()
-		cmds:add("cp /mnt/kernels/kernel_wrap.gz /boot/kernel/kernel.gz")
+		cmds:add("cp /kernels/kernel_wrap.gz /boot/kernel/kernel.gz")
 		cmds:add("echo wrap > /mnt/boot/kernel/pfsense_kernel.txt")
 		cmds:execute()
 	end
 
 	if response.action_id == "Developers" then
 		local cmds = CmdChain.new()
-		cmds:add("cp /mnt/kernels/kernel_Dev.gz /boot/kernel/kernel.gz")
+		cmds:add("cp /kernels/kernel_Dev.gz /boot/kernel/kernel.gz")
 		cmds:add("echo Developers > /mnt/boot/kernel/pfsense_kernel.txt")
 		cmds:execute()
 	end

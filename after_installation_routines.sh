@@ -65,5 +65,8 @@ cd /var/db/pkg ; tar -cpf - . | (cd /mnt/var/db/pkg ; tar -xpf -)
 # If the platform is vmware, lets do some fixups.
 if [ -f /var/IS_VMWARE ]; then echo "" >> /mnt/etc/sysctl.conf; echo "kern.timecounter.hardware=i8254" >> /mnt/etc/sysctl.conf; echo hint.apic.0.disabled="1" >> /mnt/boot/loader.conf; echo kern.hz="100" >> /mnt/boot/loader.conf; fi;
 
+# Zap un-needed kernels
+rm -rf /kernels/*
+
 #Sync disks
 /bin/sync
