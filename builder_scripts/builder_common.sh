@@ -65,6 +65,7 @@ build_all_kernels() {
 	echo -n "."
 	cp /tmp/kernels/developers/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernels/kernel_Dev.gz
 	echo "."
+	rm -rf /tmp/kernels
 }
 
 recompile_pfPorts() {
