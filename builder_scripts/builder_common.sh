@@ -18,9 +18,10 @@ build_all_kernels() {
 	mkdir -p /tmp/kernels/SMP
 	mkdir -p $CVS_CO_DIR/boot/kernel
 	# Kernel will not install without these files
-	cp /boot/* /tmp/kernels/wrap/boot/
-	cp /boot/* /tmp/kernels/developers/boot/
-	cp /boot/* /tmp/kernels/SMP/boot/
+	cp -R /boot/* /tmp/kernels/wrap/boot/
+	cp -R /boot/* /tmp/kernels/developers/boot/
+	cp -R /boot/* /tmp/kernels/SMP/boot/
+	find /tmp/kernels -name kernel.gz -exec rm {} \;
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* \
 		/usr/src/sys/i386/conf/
