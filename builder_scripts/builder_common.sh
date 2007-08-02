@@ -426,6 +426,7 @@ fixup_wrap() {
     touch $CVS_CO_DIR/conf/trigger_initial_wizard
 
     echo "embedded" > $CVS_CO_DIR/etc/platform
+    echo "wrap" > /boot/kernel/pfsense_kernel.txt
 
     rm -rf $CVS_CO_DIR/conf
     ln -s /cf/conf $CVS_CO_DIR/conf
