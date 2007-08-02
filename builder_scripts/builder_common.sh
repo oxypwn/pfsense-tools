@@ -18,60 +18,51 @@ build_all_kernels() {
 	mkdir -p /tmp/kernels/SMP
 	mkdir -p $CVS_CO_DIR/boot/kernel
 	# Kernel will not install without these files
+	echo -n ">>> Populating"
+	echo -n " wrap"
 	cp -R /boot/* /tmp/kernels/wrap/boot/
+	echo -n " developers"
 	cp -R /boot/* /tmp/kernels/developers/boot/
+	echo -n " SMP"
 	cp -R /boot/* /tmp/kernels/SMP/boot/
-	find /tmp/kernels -name kernel.gz -exec rm {} \;
+	find /tmp/kernels/ -name kernel.gz -exec rm {} \;
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* \
-		/usr/src/sys/i386/conf/
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 \
-		/usr/src/sys/i386/conf/pfSense_SMP.6
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 \
-		/usr/src/sys/i386/conf/pfSense_SMP.7
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/i386/conf/pfSense_SMP.6
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 /usr/src/sys/i386/conf/pfSense_SMP.7
 	echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 	echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	# Add SMP and APIC options
-	echo "options 		SMP"   >> \
-		/usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "options 		SMP"   >> \
-		/usr/src/sys/i386/conf/pfSense_SMP.7
-	echo "device		apic"" >> \
-		/usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "device		apic"" >> \
-		/usr/src/sys/i386/conf/pfSense_SMP.7
+	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.6
+	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.7
+	echo "device		apic"" >> /usr/src/sys/i386/conf/pfSense_SMP.6
+	echo "device		apic"" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	# Build embedded kernel
-	echo ">>> Builoding embedded kernel..."
-	(cd /usr/src && make buildkernel \
-		KERNCONF=pfSense_wrap.$pfSense_version)
-	(cd /usr/src && make installkernel \	
-		KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
+	echo ">>> Building embedded kernel..."
+	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version)
+	(cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
 	# Build SMP kernel
-	echo ">>> Builoding SMP kernel..."
-	(cd /usr/src && make buildkernel \
-		KERNCONF=pfSense_SMP.$pfSense_version)
-	(cd /usr/src && make installkernel \
-		KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/)
+	echo ">>> Building SMP kernel..."
+	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version)
+	(cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/)
 	# Build Developers kernel
-	echo ">>> Builoding Developers kernel..."
-	(cd /usr/src && make buildkernel \
-		KERNCONF=pfSense_Dev.$pfSense_version)
-	(cd /usr/src && make installkernel \
-		KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
+	echo ">>> Building Developers kernel..."
+	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version)
+	(cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
 	# GZIP kernels and make smaller
 	echo -n ">>> GZipping: embedded"
-	gzip /tmp/kernels/wrap/boot/kernel/kernel
+	(cd /tmp/kernels/wrap/boot/kernel/ && gzip kernel)
 	echo -n " SMP"
-	gzip /tmp/kernels/SMP/boot/kernel/kernel
+	(cd /tmp/kernels/SMP/boot/kernel/ && gzip kernel)
 	echo -n " developers"
-	gzip /tmp/kernels/developers/boot/kernel/kernel
-	echo -n "."
+	(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
+	echo -n " ."
 	# Move files into place
-	mv /tmp/kernels/wrap/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_wrap.gz
+	cp /tmp/kernels/wrap/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_wrap.gz
 	echo -n "."
-	mv /tmp/kernels/SMP/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_SMP.gz
+	cp /tmp/kernels/SMP/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_SMP.gz
 	echo -n "."
-	mv /tmp/kernels/developers/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_Dev.gz
+	cp /tmp/kernels/developers/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_Dev.gz
 	echo "."
 }
 
