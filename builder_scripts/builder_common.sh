@@ -17,9 +17,11 @@ build_all_kernels() {
 	mkdir -p /tmp/kernels/developers
 	mkdir -p /tmp/kernels/SMP
 	mkdir -p $CVS_CO_DIR/boot/kernel
+	# Kernel will not install without these files
 	cp /boot/* /tmp/kernels/wrap/boot/
 	cp /boot/* /tmp/kernels/developers/boot/
 	cp /boot/* /tmp/kernels/SMP/boot/
+	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* \
 		/usr/src/sys/i386/conf/
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 \
@@ -63,6 +65,7 @@ build_all_kernels() {
 	echo -n " developers"
 	gzip /tmp/kernels/developers/boot/kernel/kernel
 	echo -n "."
+	# Move files into place
 	mv /tmp/kernels/wrap/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_wrap.gz
 	echo -n "."
 	mv /tmp/kernels/SMP/boot/kernel/kernel.gz $CVS_CO_DIR/boot/kernel/kernel_SMP.gz
