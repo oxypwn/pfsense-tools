@@ -234,6 +234,17 @@ do
 	fi
 done
 
+echo "Finding patch rejects..."
+REJECTED_PATCHES=`find /usr/src -name "*.rej" | wc -l`
+if [ $REJECTED_PATCHES -gt 0 ]; then
+	echo
+	echo "WARNING!  Rejected patches found!  Please fix before building!"
+	echo 
+	find /usr/src -name "*.rej" 
+	echo
+	exit -1
+fi
+
 echo -n Cleaning up previous build environment...Please wait...
 (cd ${CURRENTDIR} && rm -rf /usr/obj*)
 echo Done!
