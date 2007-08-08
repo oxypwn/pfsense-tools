@@ -29,7 +29,6 @@
 ./etc/periodic/monthly/*
 ./etc/periodic/security/*
 ./etc/periodic/weekly/*
-./etc/ttys_wrap
 
 ./lib/libcam.so.3
 
