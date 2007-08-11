@@ -860,7 +860,6 @@
 ./usr/share/security
 ./usr/share/sendmail
 ./usr/share/skel
-./usr/share/syscons
 ./usr/share/tabset
 ./usr/share/tmac
 ./usr/share/vi/catalog/dutch
