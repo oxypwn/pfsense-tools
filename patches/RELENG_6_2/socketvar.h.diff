@@ -1,0 +1,16 @@
+Index: socketvar.h
+===================================================================
+RCS file: /home/ncvs/src/sys/sys/socketvar.h,v
+retrieving revision 1.141.2.1
+diff -u -r1.141.2.1 socketvar.h
+--- socketvar.h	28 Jun 2006 14:33:47 -0000	1.141.2.1
++++ socketvar.h	20 Aug 2007 17:05:55 -0000
+@@ -115,7 +115,7 @@
+ /*
+  * Constants for sb_flags field of struct sockbuf.
+  */
+-#define	SB_MAX		(256*1024)	/* default for max chars in sockbuf */
++#define	SB_MAX		(1024*1024)	/* default for max chars in sockbuf */
+ /*
+  * Constants for sb_flags field of struct sockbuf.
+  */
