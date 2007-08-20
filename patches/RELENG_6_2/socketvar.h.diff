@@ -10,7 +10,7 @@ diff -u -r1.141.2.1 socketvar.h
   * Constants for sb_flags field of struct sockbuf.
   */
 -#define	SB_MAX		(256*1024)	/* default for max chars in sockbuf */
-+#define	SB_MAX		(1024*1024)	/* default for max chars in sockbuf */
++#define	SB_MAX		(512*1024)	/* default for max chars in sockbuf */
  /*
   * Constants for sb_flags field of struct sockbuf.
   */
