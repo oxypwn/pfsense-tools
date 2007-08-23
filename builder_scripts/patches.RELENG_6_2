@@ -18,3 +18,4 @@
 ~sys/dev/re~if_re.c~
 ~sys/contrib/pf/net~sack-mod.diff~
 ~sys/sys~socketvar.h.diff~
+~sys/contrib/pf/net~if_pfsync.c.diff~
