@@ -1,6 +1,6 @@
 *default host=cvs.bsdinstaller.org
 *default base=.
-*default tag=.
+*default tag=PRODUCTION_2_1
 *default release=cvs
 *default delete use-rel-suffix
 installer
