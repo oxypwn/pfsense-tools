@@ -1,4 +1,4 @@
-bin/php
+bin/php-cgi
 bin/php-config
 bin/phpize
 etc/php.conf

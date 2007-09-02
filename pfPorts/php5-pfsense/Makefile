@@ -6,7 +6,7 @@
 #
 
 PORTNAME=		php5
-PORTVERSION=		5.2.3
+PORTVERSION=		5.2.4
 CATEGORIES?=		lang devel www
 MASTER_SITES=   	${MASTER_SITE_PHP:S,$,:release,} \
 			http://downloads.php.net/ilia/:release \
