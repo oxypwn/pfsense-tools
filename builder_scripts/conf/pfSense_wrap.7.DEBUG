@@ -217,6 +217,7 @@ device		ugen		# Generic
 
 # 3G devices
 device 			ucom
+device                  ugencom
 device 			uplcom
 
 # Uncommented at the request of colin

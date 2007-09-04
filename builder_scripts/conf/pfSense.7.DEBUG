@@ -61,6 +61,7 @@ device ubsa
 
 # 3G devices
 device 			ucom
+device			ugencom
 device 			uplcom
 
 options         IPSEC
