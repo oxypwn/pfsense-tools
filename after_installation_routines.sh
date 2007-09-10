@@ -26,6 +26,8 @@ touch /mnt/root/.first_time
 # Updating boot loader
 echo autoboot_delay=\"1\" >> /mnt/boot/loader.conf
 
+echo kern.ipc.nmbclusters=\"0\" >> /mnt/boot/loader.conf
+
 cd /mnt && rm -rf cloop/ dist/ boot/mfsroot.gz
 
 rm -f /mnt/etc/motd
