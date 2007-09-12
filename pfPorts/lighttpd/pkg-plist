@@ -1,4 +1,4 @@
-@comment $FreeBSD: ports/www/lighttpd/pkg-plist,v 1.15 2007/04/14 14:41:53 mnag Exp $
+@comment $FreeBSD: ports/www/lighttpd/pkg-plist,v 1.16 2007/09/10 13:36:49 mnag Exp $
 bin/spawn-fcgi
 @unexec if cmp -s %D/etc/lighttpd.conf %D/etc/lighttpd.conf.sample; then rm -f %D/etc/lighttpd.conf; fi
 etc/lighttpd.conf.sample
@@ -100,4 +100,5 @@ lib/lighttpd/mod_webdav.a
 lib/lighttpd/mod_webdav.la
 lib/lighttpd/mod_webdav.so
 sbin/lighttpd
+sbin/lighttpd-angel
 @dirrm lib/lighttpd

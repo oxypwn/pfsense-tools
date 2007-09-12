@@ -2,11 +2,11 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.50 2007/04/14 14:41:53 mnag Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.56 2007/09/10 13:36:49 mnag Exp $
 #
 
 PORTNAME=	lighttpd
-PORTVERSION=	1.4.15
+PORTVERSION=	1.4.18
 CATEGORIES=	www
 MASTER_SITES=	http://www.lighttpd.net/download/ \
 		http://mirrors.cat.pdx.edu/lighttpd/
@@ -20,7 +20,7 @@ USE_AUTOTOOLS=	libtool:15
 GNU_CONFIGURE=	yes
 USE_GNOME=	lthack
 USE_RC_SUBR=	lighttpd.sh
-CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd --mandir=${PREFIX}/man
+CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd
 CONFIGURE_ENV+=	CFLAGS="${CFLAGS}"
 CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 
@@ -55,7 +55,6 @@ CONFIGURE_ARGS+=	--with-openssl \
 .endif
 
 .if defined(WITH_BZIP2)
-LIB_DEPENDS+=		bz2:${PORTSDIR}/archivers/bzip2
 CONFIGURE_ARGS+=	--with-bzip2
 .endif
 
@@ -116,8 +115,6 @@ CONFIGURE_ARGS+=	--with-webdav-props --with-webdav-locks
 .endif
 
 SUB_LIST+=		REQUIRE="${_REQUIRE}"
-
-CONFIGURE_ARGS+=	--prefix=/usr/local
 
 post-patch:
 	@${REINPLACE_CMD} -e 's|-std=gnu99||' ${WRKSRC}/configure.in

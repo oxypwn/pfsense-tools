@@ -134,14 +134,14 @@ post-install:
 # TODO: This is a hack. It installs the PHP binary to /usr/local/bin
 #       cause for some reason it will be build by the PHP distribution
 #       but not installed.
-#	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php ${PREFIX}/bin
+	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-dist ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
 	@${TOUCH} ${PREFIX}/include/php/ext/php_config.h
 # XXX Temporary hack
 .if !defined(WITHOUT_CGI) && defined(WITHOUT_CLI)
-	@${LN} -sf ${PREFIX}/bin/php-cgi ${PREFIX}/bin/php
+	@${MV} ${PREFIX}/bin/php-cgi ${PREFIX}/bin/php
 .endif
 
 .else
