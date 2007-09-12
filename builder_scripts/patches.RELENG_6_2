@@ -19,3 +19,4 @@
 ~sys/contrib/pf/net~sack-mod.diff~
 ~sys/contrib/pf/net~if_pfsync.c.diff~
 ~sys/sys~socketvar.h.diff~
+~sys~racoon-nattraversal-freebsd6.patch~
