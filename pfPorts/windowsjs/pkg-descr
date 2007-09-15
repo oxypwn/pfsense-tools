@@ -1,0 +1,8 @@
+This javascript class allows you to add window in a HTML page.
+
+This class is based on Prototype. The code is inspired by the 
+powerful script.aculo.us library. You can even use all script.aculo.us 
+effects to show and hide windows if you include effects.js file , 
+but it's not mandatory.
+
+URL: http://prototype-window.xilinus.com/
