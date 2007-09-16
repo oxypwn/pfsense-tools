@@ -1,0 +1,10 @@
+--- themes/alphacube.css.org	2007-09-16 18:19:36.000000000 +0000
++++ themes/alphacube.css	2007-09-16 18:20:12.000000000 +0000
+@@ -1,5 +1,6 @@
+ .overlay_alphacube {
+-	background-color: #85BBEF;
++	/* background-color: #85BBEF; */
++	background-color: #DFDFDF;
+ 	filter:alpha(opacity=60);
+ 	-moz-opacity: 0.6;
+ 	opacity: 0.6;
