@@ -40,6 +40,7 @@ CONFIGURE_ARGS+=--without-mysql \
 		--with-xml \
 		--with-radius \
 		--with-curl-dir=/usr/local \
+		--with-ldap=shared,/usr/local \
 		--enable-xml \
 		--enable-session \
 		--enable-pcre \

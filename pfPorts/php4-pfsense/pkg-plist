@@ -1,5 +1,4 @@
-%%CLI%%bin/php
-%%CGI%%bin/php-cgi
+bin/php
 bin/php-config
 bin/phpize
 etc/php.conf
@@ -150,9 +149,6 @@ include/php/main/rfc1867.h
 include/php/main/safe_mode.h
 include/php/main/snprintf.h
 include/php/main/spprintf.h
-%%SUHOSIN%%include/php/main/suhosin_globals.h
-%%SUHOSIN%%include/php/main/suhosin_logo.h
-%%SUHOSIN%%include/php/main/suhosin_patch.h
 include/php/main/win95nt.h
 include/php/regex/cclass.h
 include/php/regex/cname.h
@@ -170,9 +166,6 @@ lib/php/build/mkdep.awk
 lib/php/build/phpize.m4
 lib/php/build/scan_makefile_in.awk
 lib/php/build/shtool
-%%APACHE%%%%APACHEMODDIR%%/%%AP_MODULE%%
-%%APACHE%%@exec %D/sbin/apxs -e -a -n %%AP_NAME%% %f
-%%APACHE%%@unexec %D/sbin/apxs -e -A -n %%AP_NAME%% %f
 @dirrm include/php/TSRM
 @dirrm include/php/Zend
 @dirrm include/php/ext/standard

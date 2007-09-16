@@ -83,6 +83,10 @@ CONFLICTS=	php4-4*
 
 MAN1=		php-config.1 phpize.1
 
+.if ${PHP_SAPI} == "cgi"
+SAPI_FILE=      bin/php
+.endif
+
 .include <bsd.port.pre.mk>
 
 PATCH_DIST_STRIP=	-p1
@@ -134,15 +138,11 @@ post-install:
 # TODO: This is a hack. It installs the PHP binary to /usr/local/bin
 #       cause for some reason it will be build by the PHP distribution
 #       but not installed.
-	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin
+#	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-dist ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
 	@${TOUCH} ${PREFIX}/include/php/ext/php_config.h
-# XXX Temporary hack
-.if !defined(WITHOUT_CGI) && defined(WITHOUT_CLI)
-	@${MV} ${PREFIX}/bin/php-cgi ${PREFIX}/bin/php
-.endif
 
 .else
 .include "${MASTERDIR}/Makefile.ext"
