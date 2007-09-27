@@ -81,15 +81,17 @@ if [ ! -f "/usr/local/bin/cvsup" ]; then
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cvsup-without-gui
 fi
 
+if [ -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
 # Add fastest-cvsup
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress..."
+	echo "Cannot find fastest_cvsup, pkg_add in progress..."
 	/usr/sbin/pkg_add -r fastest_cvsup
 fi
 # Failed, lets try with passive mode
 if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress (PASSIVE FTP)..."
+	echo "Cannot find fastest_cvsup, pkg_add in progress (PASSIVE FTP)..."
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
+fi
 fi
 
 # Add pcre
@@ -114,7 +116,7 @@ if [ ! -f "/usr/local/sbin/lighttpd" ]; then
 	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r lighttpd
 fi
 
-# Add cvsup
+# Add curl
 if [ ! -f "/usr/local/bin/curl" ]; then
 	echo "Cannot find curl, pkg_add in progress..."
 	/usr/sbin/pkg_add -r curl
