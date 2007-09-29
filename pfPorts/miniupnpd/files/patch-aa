@@ -1,9 +1,12 @@
 diff -urN ../miniupnpd-clean/genconfig.sh ./genconfig.sh
 --- ../miniupnpd-clean/genconfig.sh	2007-08-28 13:52:38.000000000 -0400
-+++ ./genconfig.sh	2007-08-29 09:02:42.000000000 -0400
-@@ -13,7 +13,7 @@
++++ ./genconfig.sh	2007-09-27 15:07:51.638556800 -0400
+@@ -11,9 +11,9 @@
+ CONFIGMACRO="__CONFIG_H__"
+ 
  # version reported in XML descriptions
- UPNP_VERSION=20070827
+-UPNP_VERSION=20070827
++UPNP_VERSION=20070927
  # Facility to syslog
 -LOG_MINIUPNPD="LOG_DAEMON"
 +LOG_MINIUPNPD="LOG_USER"
