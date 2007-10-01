@@ -1,0 +1,1018 @@
+diff -rNu /home/src6/contrib/pf/net/pf_ioctl.c /home/pf_sysctl6/contrib/pf/net/pf_ioctl.c
+--- /home/src6/contrib/pf/net/pf_ioctl.c	2007-09-28 21:56:17.000000000 +0200
++++ /home/pf_sysctl6/contrib/pf/net/pf_ioctl.c	2007-09-28 21:47:07.000000000 +0200
+@@ -3474,8 +3474,10 @@
+ 	pfh_inet = pfil_head_get(PFIL_TYPE_AF, AF_INET);
+ 	if (pfh_inet == NULL)
+ 		return (ESRCH); /* XXX */
+-	pfil_add_hook(pf_check_in, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet);
+-	pfil_add_hook(pf_check_out, NULL, PFIL_OUT | PFIL_WAITOK, pfh_inet);
++	pfil_add_named_hook(pf_check_in, NULL, "pf", PFIL_IN | PFIL_WAITOK, 
++		pfh_inet);
++	pfil_add_named_hook(pf_check_out, NULL, "pf", 
++		PFIL_OUT | PFIL_WAITOK, pfh_inet);
+ #ifdef INET6
+ 	pfh_inet6 = pfil_head_get(PFIL_TYPE_AF, AF_INET6);
+ 	if (pfh_inet6 == NULL) {
+@@ -3485,8 +3487,10 @@
+ 		    pfh_inet);
+ 		return (ESRCH); /* XXX */
+ 	}
+-	pfil_add_hook(pf_check6_in, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet6);
+-	pfil_add_hook(pf_check6_out, NULL, PFIL_OUT | PFIL_WAITOK, pfh_inet6);
++	pfil_add_named_hook(pf_check6_in, NULL, "pf", PFIL_IN | PFIL_WAITOK, 
++		pfh_inet6);
++	pfil_add_named_hook(pf_check6_out, NULL, "pf", PFIL_OUT | PFIL_WAITOK, 
++		pfh_inet6);
+ #endif
+ 
+ 	pf_pfil_hooked = 1;
+diff -rNu /home/src6/net/pfil.c /home/pf_sysctl6/net/pfil.c
+--- /home/src6/net/pfil.c	2007-09-28 21:56:33.000000000 +0200
++++ /home/pf_sysctl6/net/pfil.c	2007-09-28 21:57:49.000000000 +0200
+@@ -1,7 +1,8 @@
+-/*	$FreeBSD: src/sys/net/pfil.c,v 1.13 2005/05/23 17:07:16 mlaier Exp $ */
++/*	$FreeBSD: src/sys/net/pfil.c,v 1.14 2006/02/02 03:13:15 csjp Exp $ */
+ /*	$NetBSD: pfil.c,v 1.20 2001/11/12 23:49:46 lukem Exp $	*/
+ 
+ /*-
++ * Copyright (c) 2005 Max Laier
+  * Copyright (c) 1996 Matthew R. Green
+  * All rights reserved.
+  *
+@@ -32,6 +33,8 @@
+ #include <sys/param.h>
+ #include <sys/kernel.h>
+ #include <sys/errno.h>
++#include <sys/sbuf.h>
++#include <sys/lock.h>
+ #include <sys/malloc.h>
+ #include <sys/socket.h>
+ #include <sys/socketvar.h>
+@@ -39,6 +42,7 @@
+ #include <sys/condvar.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
++#include <sys/sysctl.h>
+ #include <sys/proc.h>
+ #include <sys/queue.h>
+ 
+@@ -46,67 +50,19 @@
+ #include <net/pfil.h>
+ 
+ static struct mtx pfil_global_lock;
++static struct callout pfil_gc_tmo;
+ 
+-MTX_SYSINIT(pfil_heads_lock, &pfil_global_lock, "pfil_head_list lock", MTX_DEF);
+-
+-static int pfil_list_add(pfil_list_t *, struct packet_filter_hook *, int);
+-
+-static int pfil_list_remove(pfil_list_t *,
+-    int (*)(void *, struct mbuf **, struct ifnet *, int, struct inpcb *), void *);
++MTX_SYSINIT(pfil_heads_lock, &pfil_global_lock, "pfil lock", MTX_DEF);
+ 
+ LIST_HEAD(, pfil_head) pfil_head_list =
+-    LIST_HEAD_INITIALIZER(&pfil_head_list);
++	LIST_HEAD_INITIALIZER(pfil_head_list);
+ 
+-static __inline void
+-PFIL_RLOCK(struct pfil_head *ph)
+-{
+-	mtx_lock(&ph->ph_mtx);
+-	ph->ph_busy_count++;
+-	mtx_unlock(&ph->ph_mtx);
+-}
++STAILQ_HEAD(, packet_filter_list) pfil_gc_list =
++	STAILQ_HEAD_INITIALIZER(pfil_gc_list);
+ 
+-static __inline void
+-PFIL_RUNLOCK(struct pfil_head *ph)
+-{
+-	mtx_lock(&ph->ph_mtx);
+-	ph->ph_busy_count--;
+-	if (ph->ph_busy_count == 0 && ph->ph_want_write)
+-		cv_signal(&ph->ph_cv);
+-	mtx_unlock(&ph->ph_mtx);
+-}
+-
+-static __inline void
+-PFIL_WLOCK(struct pfil_head *ph)
+-{
+-	mtx_lock(&ph->ph_mtx);
+-	ph->ph_want_write = 1;
+-	while (ph->ph_busy_count > 0)
+-		cv_wait(&ph->ph_cv, &ph->ph_mtx);
+-}
+-
+-static __inline int
+-PFIL_TRY_WLOCK(struct pfil_head *ph)
+-{
+-	mtx_lock(&ph->ph_mtx);
+-	ph->ph_want_write = 1;
+-	if (ph->ph_busy_count > 0) {
+-		ph->ph_want_write = 0;
+-		mtx_unlock(&ph->ph_mtx);
+-		return EBUSY;
+-	}
+-	return 0;
+-}
+-
+-static __inline void
+-PFIL_WUNLOCK(struct pfil_head *ph)
+-{
+-	ph->ph_want_write = 0;
+-	cv_signal(&ph->ph_cv);
+-	mtx_unlock(&ph->ph_mtx);
+-}
+-
+-#define PFIL_LIST_LOCK() mtx_lock(&pfil_global_lock)
+-#define PFIL_LIST_UNLOCK() mtx_unlock(&pfil_global_lock)
++#define PFIL_LOCK()	mtx_lock(&pfil_global_lock)
++#define PFIL_UNLOCK()	mtx_unlock(&pfil_global_lock)
++static void pfil_gc(void *);
+ 
+ /*
+  * pfil_run_hooks() runs the specified packet filter hooks.
+@@ -115,33 +71,39 @@
+ pfil_run_hooks(struct pfil_head *ph, struct mbuf **mp, struct ifnet *ifp,
+     int dir, struct inpcb *inp)
+ {
++	struct packet_filter_list *pfl;
+ 	struct packet_filter_hook *pfh;
+ 	struct mbuf *m = *mp;
+-	int rv = 0;
++	int i, rv = 0;
+ 
+-	if (ph->ph_busy_count == -1)
+-		return (0);
+-	/*
+-	 * Prevent packet filtering from starving the modification of
+-	 * the packet filters. We would prefer a reader/writer locking
+-	 * mechanism with guaranteed ordering, though.
+-	 */
+-	if (ph->ph_want_write) {
+-		m_freem(*mp);
+-		*mp = NULL;
+-		return (ENOBUFS);
+-	}
+-
+-	PFIL_RLOCK(ph);
+-	for (pfh = pfil_hook_get(dir, ph); pfh != NULL;
+-	     pfh = TAILQ_NEXT(pfh, pfil_link)) {
+-		if (pfh->pfil_func != NULL) {
+-			rv = (*pfh->pfil_func)(pfh->pfil_arg, &m, ifp, dir, inp);
+-			if (rv != 0 || m == NULL)
+-				break;
+-		}
++	if (dir & PFIL_IN) {
++		pfl = (struct packet_filter_list *) atomic_load_acq_ptr(
++			(void *)&ph->ph_in);
++		if (pfl != NULL)
++			for (i = 0; i < pfl->pfl_size; i++) {
++				pfh = &pfl->pfl_hooks[i];
++				if (pfh->pfil_func != NULL) {
++					rv = (*pfh->pfil_func)(pfh->pfil_arg,
++				    	    &m, ifp, dir, inp);
++					if (rv != 0 || m == NULL)
++						break;
++				}
++			}
++	}
++	if ((dir & PFIL_OUT) && rv == 0) {
++		pfl = (struct packet_filter_list *)atomic_load_acq_ptr(
++			(void *)&ph->ph_out);
++		if (pfl != NULL)
++			for (i = 0; i < pfl->pfl_size; i++) {
++				pfh = &pfl->pfl_hooks[i];
++				if (pfh->pfil_func != NULL) {
++					rv = (*pfh->pfil_func)(pfh->pfil_arg,
++						&m, ifp, dir, inp);
++					if (rv != 0 || m == NULL)
++						break;
++				}	
++			}
+ 	}
+-	PFIL_RUNLOCK(ph);
+ 	
+ 	*mp = m;
+ 	return (rv);
+@@ -156,36 +118,144 @@
+ {
+ 	struct pfil_head *lph;
+ 
+-	PFIL_LIST_LOCK();
++	PFIL_LOCK();
++	if (LIST_EMPTY(&pfil_head_list))
++		callout_init_mtx(&pfil_gc_tmo, &pfil_global_lock,0);
+ 	LIST_FOREACH(lph, &pfil_head_list, ph_list)
+ 		if (ph->ph_type == lph->ph_type &&
+ 		    ph->ph_un.phu_val == lph->ph_un.phu_val) {
+-			PFIL_LIST_UNLOCK();
++			PFIL_UNLOCK();
+ 			return EEXIST;
+ 		}
+-	PFIL_LIST_UNLOCK();
+ 
+-	if (mtx_initialized(&ph->ph_mtx)) {	/* should not happen */
+-		KASSERT((0), ("%s: allready initialized!", __func__));
+-		return EBUSY;
+-	} else {
+-		ph->ph_busy_count = -1;
+-		ph->ph_want_write = 1;
+-		mtx_init(&ph->ph_mtx, "pfil_head_mtx", NULL, MTX_DEF);
+-		cv_init(&ph->ph_cv, "pfil_head_cv");
+-		mtx_lock(&ph->ph_mtx);			/* XXX: race? */
++	ph->ph_in = NULL;
++	ph->ph_out = NULL;
++
++	LIST_INSERT_HEAD(&pfil_head_list, ph, ph_list);
++
++	PFIL_UNLOCK();
++
++	return (0);
++}
++
++static int
++pfil_sysctl_handler(SYSCTL_HANDLER_ARGS)
++{
++	struct packet_filter_list *pfl, *npfl;
++	struct sbuf *sb;
++	char *new_order, *elm, *parse;
++	int i, j, err, hintlen;
++
++	hintlen = 0;
++	npfl = NULL;
++
++	pfl = (struct packet_filter_list *)atomic_load_acq_ptr(
++	    (void *)arg1);
++	if (pfl == NULL || pfl->pfl_size == 0)
++		err = SYSCTL_OUT(req, "empty", 6);
++	else {
++		sb = sbuf_new(NULL, NULL, 0, SBUF_AUTOEXTEND);
++		for (i = 0; i < pfl->pfl_size; i++) {
++			if (i > 0)
++				sbuf_printf(sb, ", ");
++			if (pfl->pfl_hooks[i].pfil_name)
++				sbuf_printf(sb, "%s",
++				    pfl->pfl_hooks[i].pfil_name);
++			else
++				sbuf_printf(sb, "N/A");
++		}
++
++		sbuf_finish(sb);
++		/* hint for sensible write buffer sizes */
++		hintlen = sbuf_len(sb) + (pfl->pfl_size * 2);
++		err = SYSCTL_OUT(req, sbuf_data(sb), sbuf_len(sb) + 1);
++		sbuf_delete(sb);
+ 	}
+ 
+-	TAILQ_INIT(&ph->ph_in);
+-	TAILQ_INIT(&ph->ph_out);
++	if (err || pfl == NULL || !req->newptr)
++		return (err);
++
++	if ((req->newlen - req->newidx) > hintlen)
++		return (E2BIG);
++	new_order = malloc(req->newlen - req->newidx + 1, M_TEMP,
++	    M_WAITOK|M_ZERO);
++	err = SYSCTL_IN(req, new_order, (req->newlen - req->newidx));
++	if (err)
++		goto error;
++
++	/* Get memory for new ordered hooks */
++	npfl = (struct packet_filter_list *)malloc(sizeof(*npfl), M_IFADDR,
++	    M_WAITOK);
++	npfl->pfl_size = pfl->pfl_size;
++	npfl->pfl_generation = pfl->pfl_generation + 1;
++	npfl->pfl_hooks = malloc(sizeof(struct packet_filter_hook) *
++	    npfl->pfl_size, M_IFADDR, M_WAITOK);
++
++	/* Parse request and collect hooks accordingly */
++	j = 0;
++	parse = new_order;
++	while ((elm = strsep(&parse, " \t,")) != NULL) {
++		if (*elm == '\0')
++			continue;
++		for (i = 0; i < pfl->pfl_size; i++)
++			if (strcmp(pfl->pfl_hooks[i].pfil_name ? 
++				pfl->pfl_hooks[i].pfil_name : "N/A", 
++				elm) == 0) {
++					npfl->pfl_hooks[j++] = 
++						pfl->pfl_hooks[i];
++					break;
++			}
++		if (j >= npfl->pfl_size)
++			break;
++	}
++	if (parse != NULL) {
++		err = EINVAL;
++		goto error;
++	}
++	npfl->pfl_size = j;
++	free(new_order, M_TEMP);
++
++	/* Lock - only one writer at a time */
++	PFIL_LOCK();
++	if (pfl->pfl_generation !=
++	    (*((struct packet_filter_list **)arg1))->pfl_generation) {
++		PFIL_UNLOCK();
++		err = EAGAIN;
++		goto error;
++	}
++	atomic_store_rel_ptr((volatile void *)arg1, (uintptr_t)npfl);
++	PFIL_UNLOCK();
++
++	/* free old memory */
++	tsleep(arg1, 0, "pfilrm", hz);
++	free(pfl->pfl_hooks, M_IFADDR);
++	free(pfl, M_IFADDR);
+ 
+-	PFIL_LIST_LOCK();
+-	LIST_INSERT_HEAD(&pfil_head_list, ph, ph_list);
+-	PFIL_LIST_UNLOCK();
+-	
+-	PFIL_WUNLOCK(ph);
+-	
+ 	return (0);
++error:
++	if (npfl != NULL) {
++		free(npfl->pfl_hooks, M_IFADDR);
++		free(npfl, M_IFADDR);
++	}
++	free(new_order, M_TEMP);
++	return (err);
++}
++
++void
++pfil_head_export_sysctl(struct pfil_head *ph, struct sysctl_oid_list *parent)
++{
++	struct sysctl_oid *root;
++
++	root = SYSCTL_ADD_NODE(&ph->ph_clist, parent, OID_AUTO, "pfil",
++	    CTLFLAG_RW, 0, "pfil(9) management");
++	SYSCTL_ADD_PROC(&ph->ph_clist, SYSCTL_CHILDREN(root), OID_AUTO,
++	    "inbound", CTLTYPE_STRING|CTLFLAG_RW|CTLFLAG_SECURE3,
++	    (void *)&ph->ph_in, 0, pfil_sysctl_handler, "A",
++	    "Inbound filter hooks");
++	SYSCTL_ADD_PROC(&ph->ph_clist, SYSCTL_CHILDREN(root), OID_AUTO,
++	    "outbound", CTLTYPE_STRING|CTLFLAG_RW|CTLFLAG_SECURE3,
++	    (void *)&ph->ph_out, 0, pfil_sysctl_handler, "A",
++	    "Outbound filter hooks");
+ }
+ 
+ /*
+@@ -195,25 +265,22 @@
+ int
+ pfil_head_unregister(struct pfil_head *ph)
+ {
+-	struct packet_filter_hook *pfh, *pfnext;
+-		
+-	PFIL_LIST_LOCK();
+-	/* 
+-	 * LIST_REMOVE is safe for unlocked pfil_heads in ph_list.
+-	 * No need to WLOCK all of them.
+-	 */
++	sysctl_ctx_free(&ph->ph_clist);
++
++	PFIL_LOCK();
+ 	LIST_REMOVE(ph, ph_list);
+-	PFIL_LIST_UNLOCK();
++	PFIL_UNLOCK();
++
++	if (ph->ph_in != NULL) {
++		free(ph->ph_in->pfl_hooks, M_IFADDR);
++		free(ph->ph_in, M_IFADDR);
++	}
++	if (ph->ph_out != NULL) {
++		free(ph->ph_out->pfl_hooks, M_IFADDR);
++		free(ph->ph_out, M_IFADDR);
++
++	}
+ 
+-	PFIL_WLOCK(ph);			/* XXX: may sleep (cv_wait)! */
+-	
+-	TAILQ_FOREACH_SAFE(pfh, &ph->ph_in, pfil_link, pfnext)
+-		free(pfh, M_IFADDR);
+-	TAILQ_FOREACH_SAFE(pfh, &ph->ph_out, pfil_link, pfnext)
+-		free(pfh, M_IFADDR);
+-	cv_destroy(&ph->ph_cv);
+-	mtx_destroy(&ph->ph_mtx);
+-	
+ 	return (0);
+ }
+ 
+@@ -225,15 +292,32 @@
+ {
+ 	struct pfil_head *ph;
+ 
+-	PFIL_LIST_LOCK();
++	PFIL_LOCK();
+ 	LIST_FOREACH(ph, &pfil_head_list, ph_list)
+ 		if (ph->ph_type == type && ph->ph_un.phu_val == val)
+ 			break;
+-	PFIL_LIST_UNLOCK();
++	PFIL_UNLOCK();
+ 	
+ 	return (ph);
+ }
+ 
++static void
++pfil_gc(void *arg) {
++	struct packet_filter_list *pfl;
++
++	pfl = STAILQ_FIRST(&pfil_gc_list);
++	STAILQ_REMOVE_HEAD(&pfil_gc_list, pfl_next);
++
++	free(pfl->pfl_hooks, M_IFADDR);
++	free(pfl, M_IFADDR);
++
++	if (!STAILQ_EMPTY(&pfil_gc_list))
++		callout_reset(&pfil_gc_tmo, hz, pfil_gc, NULL);
++	else
++		callout_deactivate(&pfil_gc_tmo);
++}
++
++
+ /*
+  * pfil_add_hook() adds a function to the packet filter hook.  the
+  * flags are:
+@@ -246,68 +330,155 @@
+ pfil_add_hook(int (*func)(void *, struct mbuf **, struct ifnet *, int, struct inpcb *),
+     void *arg, int flags, struct pfil_head *ph)
+ {
+-	struct packet_filter_hook *pfh1 = NULL;
+-	struct packet_filter_hook *pfh2 = NULL;
+-	int err;
+ 
+-	/* Get memory */
+-	if (flags & PFIL_IN) {
+-		pfh1 = (struct packet_filter_hook *)malloc(sizeof(*pfh1), 
+-		    M_IFADDR, (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
+-		if (pfh1 == NULL) {
+-			err = ENOMEM;
++	return (pfil_add_named_hook(func, arg, NULL, flags, ph));
++}
++
++int
++pfil_add_named_hook(int (*func)(void *, struct mbuf **, struct ifnet *, int,
++    struct inpcb *), void *arg, char *name, int flags, struct pfil_head *ph)
++{
++	struct packet_filter_list *pfl_i, *pfl_o, *opfl_i, *opfl_o;
++	int i, err;
++
++	pfl_i = pfl_o = NULL;
++
++	/* Get old filter lists */
++	opfl_i = (struct packet_filter_list *)atomic_load_acq_ptr((void *)
++	    &ph->ph_in);
++	opfl_o = (struct packet_filter_list *)atomic_load_acq_ptr((void *)
++	    &ph->ph_out);
++
++	/* Check for duplicates */
++	err = EEXIST;
++	if ((flags & PFIL_IN) && (opfl_i != NULL))
++		for (i = 0; i < opfl_i->pfl_size; i++)
++			if ((opfl_i->pfl_hooks[i].pfil_func == func) &&
++			    (opfl_i->pfl_hooks[i].pfil_arg == arg))
++				goto error;
++	if ((flags & PFIL_OUT) && (opfl_o != NULL))
++		for (i = 0; i < opfl_o->pfl_size; i++)
++			if ((opfl_o->pfl_hooks[i].pfil_func == func) &&
++			    (opfl_o->pfl_hooks[i].pfil_arg == arg))
++				goto error;
++ 
++ 	/* Get memory */
++	err = ENOMEM;
++ 	if (flags & PFIL_IN) {
++		pfl_i = (struct packet_filter_list *)malloc(sizeof(*pfl_i),
++ 		    M_IFADDR, (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
++		if (pfl_i == NULL)
++ 			goto error;
++		if (opfl_i != NULL) {
++			pfl_i->pfl_size = opfl_i->pfl_size + 1;
++			pfl_i->pfl_generation = opfl_i->pfl_generation + 1;
++		} else {
++			pfl_i->pfl_size = 1;
++			pfl_i->pfl_generation = 1;
++ 		}
++		pfl_i->pfl_hooks = malloc(sizeof(struct packet_filter_hook) *
++		    pfl_i->pfl_size, M_IFADDR,
++		    (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
++		if (pfl_i->pfl_hooks == NULL) 
+ 			goto error;
+-		}
++ 	}
++ 	if (flags & PFIL_OUT) {
++		pfl_o = (struct packet_filter_list *)malloc(sizeof(*pfl_o),
++ 		    M_IFADDR, (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
++		if (pfl_o == NULL)
++ 			goto error;
++		if (opfl_o != NULL) {
++			pfl_o->pfl_size = opfl_o->pfl_size + 1;
++			pfl_o->pfl_generation = opfl_o->pfl_generation + 1;
++		} else {
++			pfl_o->pfl_size = 1;
++			pfl_o->pfl_generation = 1;
++ 		}
++		pfl_o->pfl_hooks = malloc(sizeof(struct packet_filter_hook) *
++		    pfl_o->pfl_size, M_IFADDR,
++		    (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
++		if (pfl_o->pfl_hooks == NULL) 
++ 			goto error;
++ 	}
++ 
++	/* Copy old and add new hooks */
++ 	if (flags & PFIL_IN) {
++		pfl_i->pfl_hooks[0].pfil_func = func;
++		pfl_i->pfl_hooks[0].pfil_arg = arg;
++		pfl_i->pfl_hooks[0].pfil_name = name;
++		if (opfl_i != NULL)
++			bcopy(&opfl_i->pfl_hooks[0], &pfl_i->pfl_hooks[1],
++			    opfl_i->pfl_size *
++			    sizeof(struct packet_filter_hook));
++ 	}
++ 	if (flags & PFIL_OUT) {
++		pfl_o->pfl_hooks[pfl_o->pfl_size - 1].pfil_func = func;
++		pfl_o->pfl_hooks[pfl_o->pfl_size - 1].pfil_arg = arg;
++		pfl_o->pfl_hooks[pfl_o->pfl_size - 1].pfil_name = name;
++		if (opfl_o != NULL)
++			bcopy(&opfl_o->pfl_hooks[0], &pfl_o->pfl_hooks[0],
++			    opfl_o->pfl_size *
++			    sizeof(struct packet_filter_hook));
++ 	}
++ 
++	/* Lock - only one writer at a time */
++	PFIL_LOCK();
++	err = EAGAIN;
++	if ((flags & PFIL_IN) && (opfl_i != NULL) &&
++	    (opfl_i->pfl_generation != ph->ph_in->pfl_generation)) {
++		PFIL_UNLOCK();
++		goto error;
+ 	}
+-	if (flags & PFIL_OUT) {
+-		pfh2 = (struct packet_filter_hook *)malloc(sizeof(*pfh1),
+-		    M_IFADDR, (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
+-		if (pfh2 == NULL) {
+-			err = ENOMEM;
+-			goto error;
+-		}
++	if ((flags & PFIL_OUT) && (opfl_o != NULL) &&
++	    (opfl_o->pfl_generation != ph->ph_out->pfl_generation)) {
++		PFIL_UNLOCK();
++		goto error;
+ 	}
+-
+-	/* Lock */
+-	if (flags & PFIL_WAITOK)
+-		PFIL_WLOCK(ph);
+-	else {
+-		err = PFIL_TRY_WLOCK(ph);
+-		if (err)
+-			goto error;
++	if (flags & PFIL_IN)
++		atomic_store_rel_ptr((volatile void *)&ph->ph_in,
++		    (uintptr_t)pfl_i);
++	if (flags & PFIL_OUT)
++		atomic_store_rel_ptr((volatile void *)&ph->ph_out,
++		    (uintptr_t)pfl_o);
++
++	/* Put old hooks on the GC list and schedule a timeout */
++	if (!(flags & PFIL_WAITOK)) {
++		if (flags & PFIL_IN && opfl_i != NULL)
++			STAILQ_INSERT_TAIL(&pfil_gc_list, opfl_i, pfl_next);
++		if (flags & PFIL_IN && opfl_i != NULL)
++			STAILQ_INSERT_TAIL(&pfil_gc_list, opfl_o, pfl_next);
++		if (!callout_active(&pfil_gc_tmo))
++			callout_reset(&pfil_gc_tmo, hz, pfil_gc, NULL);
+ 	}
+-
+-	/* Add */
+-	if (flags & PFIL_IN) {
+-		pfh1->pfil_func = func;
+-		pfh1->pfil_arg = arg;
+-		err = pfil_list_add(&ph->ph_in, pfh1, flags & ~PFIL_OUT);
+-		if (err)
+-			goto done;
+-	}
+-	if (flags & PFIL_OUT) {
+-		pfh2->pfil_func = func;
+-		pfh2->pfil_arg = arg;
+-		err = pfil_list_add(&ph->ph_out, pfh2, flags & ~PFIL_IN);
+-		if (err) {
+-			if (flags & PFIL_IN)
+-				pfil_list_remove(&ph->ph_in, func, arg);
+-			goto done;
++	PFIL_UNLOCK();
++ 
++	/* free old memory */
++	if (flags & PFIL_WAITOK) {
++		tsleep(ph, 0, "pfilrm", hz);
++		if (flags & PFIL_IN && opfl_i != NULL) {
++			free(opfl_i->pfl_hooks, M_IFADDR);
++			free(opfl_i, M_IFADDR);
++		}
++		if (flags & PFIL_OUT && opfl_o != NULL) {
++			free(opfl_o->pfl_hooks, M_IFADDR);
++			free(opfl_o, M_IFADDR);
+ 		}
+ 	}
+ 
+-	ph->ph_busy_count = 0;
+-	PFIL_WUNLOCK(ph);
++	return (0);
++ error:
++	if (pfl_i != NULL) {
++		if (pfl_i->pfl_hooks)
++			free(pfl_i->pfl_hooks, M_IFADDR);
++		free(pfl_i, M_IFADDR);
++	}
++	if (pfl_o != NULL) {
++		if (pfl_o->pfl_hooks)
++			free(pfl_o->pfl_hooks, M_IFADDR);
++		free(pfl_o, M_IFADDR);
++	}
+ 
+-	return 0;
+-done:
+-	PFIL_WUNLOCK(ph);
+-error:
+-	if (pfh1 != NULL)
+-		free(pfh1, M_IFADDR);
+-	if (pfh2 != NULL)
+-		free(pfh2, M_IFADDR);
+-	return err;
++	return (err);
+ }
+ 
+ /*
+@@ -318,68 +489,140 @@
+ pfil_remove_hook(int (*func)(void *, struct mbuf **, struct ifnet *, int, struct inpcb *),
+     void *arg, int flags, struct pfil_head *ph)
+ {
+-	int err = 0;
+-
+-	if (flags & PFIL_WAITOK)
+-		PFIL_WLOCK(ph);
+-	else {
+-		err = PFIL_TRY_WLOCK(ph);
+-		if (err)
+-			return err;
+-	}
+-
+-	if (flags & PFIL_IN)
+-		err = pfil_list_remove(&ph->ph_in, func, arg);
+-	if ((err == 0) && (flags & PFIL_OUT))
+-		err = pfil_list_remove(&ph->ph_out, func, arg);
+ 
+-	if (TAILQ_EMPTY(&ph->ph_in) && TAILQ_EMPTY(&ph->ph_out))
+-		ph->ph_busy_count = -1;
++	struct packet_filter_list *pfl_i, *pfl_o, *opfl_i, *opfl_o;
++	int i, j, lflags, err;
+ 
+-	PFIL_WUNLOCK(ph);
+-	
+-	return err;
+-}
+-
+-static int
+-pfil_list_add(pfil_list_t *list, struct packet_filter_hook *pfh1, int flags)
+-{
+-	struct packet_filter_hook *pfh;
++	pfl_i = pfl_o = NULL;
+ 
+-	/*
+-	 * First make sure the hook is not already there.
+-	 */
+-	TAILQ_FOREACH(pfh, list, pfil_link)
+-		if (pfh->pfil_func == pfh1->pfil_func &&
+-		    pfh->pfil_arg == pfh1->pfil_arg)
+-			return EEXIST;
+-	/*
+-	 * insert the input list in reverse order of the output list
+-	 * so that the same path is followed in or out of the kernel.
+-	 */
+-	if (flags & PFIL_IN)
+-		TAILQ_INSERT_HEAD(list, pfh1, pfil_link);
+-	else
+-		TAILQ_INSERT_TAIL(list, pfh1, pfil_link);
++	/* Get old filter lists */
++	opfl_i = (struct packet_filter_list *)atomic_load_acq_ptr((void *)
++	    &ph->ph_in);
++	opfl_o = (struct packet_filter_list *)atomic_load_acq_ptr((void *)
++	    &ph->ph_out);
++
++	/* Check for existance, only delete when necessary */
++	lflags = 0;
++	if ((flags & PFIL_IN) && (opfl_i != NULL))
++		for (i = 0; i < opfl_i->pfl_size; i++)
++			if ((opfl_i->pfl_hooks[i].pfil_func == func) &&
++			    (opfl_i->pfl_hooks[i].pfil_arg == arg)) {
++				lflags |= PFIL_IN;
++				break;
++			}
++	if ((flags & PFIL_OUT) && (opfl_o != NULL))
++		for (i = 0; i < opfl_o->pfl_size; i++)
++			if ((opfl_o->pfl_hooks[i].pfil_func == func) &&
++			    (opfl_o->pfl_hooks[i].pfil_arg == arg)) {
++				lflags |= PFIL_OUT;
++				break;
++			}
++ 
++	if (!lflags & PFIL_ALL)
++		return (ENOENT);
++ 
++	/* Get memory */
++	err = ENOMEM;
++	if ((lflags & PFIL_IN) && (opfl_i->pfl_size > 1)) {
++		pfl_i = (struct packet_filter_list *)malloc(sizeof(*pfl_i),
++		    M_IFADDR, (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
++		if (pfl_i == NULL)
++			goto error;
++		pfl_i->pfl_size = opfl_i->pfl_size - 1;
++		pfl_i->pfl_generation = opfl_i->pfl_generation + 1;
++		pfl_i->pfl_hooks = malloc(sizeof(struct packet_filter_hook) *
++		    pfl_i->pfl_size, M_IFADDR,
++		    (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
++		if (pfl_i->pfl_hooks == NULL) 
++			goto error;
++	}
++	if ((lflags & PFIL_OUT) && (opfl_o->pfl_size > 1)) {
++		pfl_o = (struct packet_filter_list *)malloc(sizeof(*pfl_o),
++		    M_IFADDR, (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
++		if (pfl_o == NULL)
++			goto error;
++		pfl_o->pfl_size = opfl_o->pfl_size - 1;
++		pfl_o->pfl_generation = opfl_o->pfl_generation + 1;
++		pfl_o->pfl_hooks = malloc(sizeof(struct packet_filter_hook) *
++		    pfl_o->pfl_size, M_IFADDR,
++		    (flags & PFIL_WAITOK) ? M_WAITOK : M_NOWAIT);
++		if (pfl_o->pfl_hooks == NULL) 
++			goto error;
++	}
++ 
++	/* Copy old hooks but the one we are deleting */
++	if (lflags & PFIL_IN)
++		for (j = i = 0; i < opfl_i->pfl_size; i++) {
++			if ((opfl_i->pfl_hooks[i].pfil_func == func) &&
++			    (opfl_i->pfl_hooks[i].pfil_arg == arg))
++				continue;
++			pfl_i->pfl_hooks[j++] = opfl_i->pfl_hooks[i];
++		}
++	if (lflags & PFIL_OUT)
++		for (j = i = 0; i < opfl_o->pfl_size; i++) {
++			if ((opfl_o->pfl_hooks[i].pfil_func == func) &&
++			    (opfl_o->pfl_hooks[i].pfil_arg == arg))
++				continue;
++			pfl_o->pfl_hooks[j++] = opfl_o->pfl_hooks[i];
++		}
++ 
++	/* Lock - only one writer at a time */
++	PFIL_LOCK();
++	err = EAGAIN;
++	if ((flags & PFIL_IN) && (opfl_i != NULL) &&
++	    (opfl_i->pfl_generation != ph->ph_in->pfl_generation)) {
++		PFIL_UNLOCK();
++		goto error;
++	}
++	if ((flags & PFIL_OUT) && (opfl_o != NULL) &&
++	    (opfl_o->pfl_generation != ph->ph_out->pfl_generation)) {
++		PFIL_UNLOCK();
++		goto error;
++	}
++ 	if (flags & PFIL_IN)
++		atomic_store_rel_ptr((volatile void *)&ph->ph_in,
++		    (uintptr_t)pfl_i);
++	if (flags & PFIL_OUT)
++		atomic_store_rel_ptr((volatile void *)&ph->ph_out,
++		    (uintptr_t)pfl_o);
++
++	/* Put old hooks on the GC list and schedule a timeout */
++	if (!(flags & PFIL_WAITOK)) {
++		if (flags & PFIL_IN && opfl_i != NULL)
++			STAILQ_INSERT_TAIL(&pfil_gc_list, opfl_i, pfl_next);
++		if (flags & PFIL_IN && opfl_i != NULL)
++			STAILQ_INSERT_TAIL(&pfil_gc_list, opfl_o, pfl_next);
++		if (!callout_active(&pfil_gc_tmo))
++			callout_reset(&pfil_gc_tmo, hz, pfil_gc, NULL);
++	}
++	PFIL_UNLOCK();
++ 
++	/* free old memory */
++	if (flags & PFIL_WAITOK) {
++		tsleep(ph, 0, "pfilrm", hz);
++		if (flags & PFIL_IN && opfl_i != NULL) {
++			free(opfl_i->pfl_hooks, M_IFADDR);
++			free(opfl_i, M_IFADDR);
++		}
++		if (flags & PFIL_OUT && opfl_o != NULL) {
++			free(opfl_o->pfl_hooks, M_IFADDR);
++			free(opfl_o, M_IFADDR);
++		}
++	}
++	return (0);
++error:
++	if (pfl_i != NULL) {
++		if (pfl_i->pfl_hooks)
++			free(pfl_i->pfl_hooks, M_IFADDR);
++		free(pfl_i, M_IFADDR);
++	}
++	if (pfl_o != NULL) {
++		if (pfl_o->pfl_hooks)
++			free(pfl_o->pfl_hooks, M_IFADDR);
++		free(pfl_o, M_IFADDR);
++	}
+ 
+-	return 0;
++	return (err);
++ 
+ }
+ 
+-/*
+- * pfil_list_remove is an internal function that takes a function off the
+- * specified list.
+- */
+-static int
+-pfil_list_remove(pfil_list_t *list,
+-    int (*func)(void *, struct mbuf **, struct ifnet *, int, struct inpcb *), void *arg)
+-{
+-	struct packet_filter_hook *pfh;
+-
+-	TAILQ_FOREACH(pfh, list, pfil_link)
+-		if (pfh->pfil_func == func && pfh->pfil_arg == arg) {
+-			TAILQ_REMOVE(list, pfh, pfil_link);
+-			free(pfh, M_IFADDR);
+-			return 0;
+-		}
+-	return ENOENT;
+-}
+diff -rNu /home/src6/net/pfil.h /home/pf_sysctl6/net/pfil.h
+--- /home/src6/net/pfil.h	2007-09-28 21:56:33.000000000 +0200
++++ /home/pf_sysctl6/net/pfil.h	2007-09-28 21:46:08.000000000 +0200
+@@ -2,6 +2,7 @@
+ /*	$NetBSD: pfil.h,v 1.22 2003/06/23 12:57:08 martin Exp $	*/
+ 
+ /*-
++ * Copyright (c) 2005 Max Laier
+  * Copyright (c) 1996 Matthew R. Green
+  * All rights reserved.
+  *
+@@ -34,9 +35,6 @@
+ 
+ #include <sys/systm.h>
+ #include <sys/queue.h>
+-#include <sys/_lock.h>
+-#include <sys/_mutex.h>
+-#include <sys/condvar.h>	/* XXX */
+ 
+ struct mbuf;
+ struct ifnet;
+@@ -47,34 +45,36 @@
+  * possibly intercept the packet.
+  */
+ struct packet_filter_hook {
+-        TAILQ_ENTRY(packet_filter_hook) pfil_link;
+ 	int	(*pfil_func)(void *, struct mbuf **, struct ifnet *, int, struct inpcb *);
+ 	void	*pfil_arg;
+ 	int	pfil_flags;
++	char	*pfil_name;
+ };
+ 
++struct packet_filter_list {
++       STAILQ_ENTRY(packet_filter_list) pfl_next;
++       struct packet_filter_hook       *pfl_hooks;
++       int   pfl_size;
++       int   pfl_generation;
++};
++
++STAILQ_HEAD(pfil_gclist, packet_filter_list);
++
+ #define PFIL_IN		0x00000001
+ #define PFIL_OUT	0x00000002
+-#define PFIL_WAITOK	0x00000004
+ #define PFIL_ALL	(PFIL_IN|PFIL_OUT)
+ 
+ typedef	TAILQ_HEAD(pfil_list, packet_filter_hook) pfil_list_t;
+ 
++#define PFIL_WAITOK	0x00000004
++
+ #define	PFIL_TYPE_AF		1	/* key is AF_* type */
+ #define	PFIL_TYPE_IFNET		2	/* key is ifnet pointer */
+ 
+ struct pfil_head {
+-	pfil_list_t	ph_in;
+-	pfil_list_t	ph_out;
++        struct packet_filter_list       *ph_in;
++        struct packet_filter_list       *ph_out;
+ 	int		ph_type;
+-	/*
+-	 * Locking: use a busycounter per pfil_head.
+-	 * Use ph_busy_count = -1 to indicate pfil_head is empty.
+-	 */
+-	int		ph_busy_count;	/* count of threads with read lock */
+-	int		ph_want_write;	/* want write lock flag */
+-	struct cv	ph_cv;		/* for waking up writers */
+-	struct mtx	ph_mtx;		/* mutex on locking state */
+ 	union {
+ 		u_long		phu_val;
+ 		void		*phu_ptr;
+@@ -93,21 +93,9 @@
+ 	    struct ifnet *, int, struct inpcb *), void *, int, struct pfil_head *);
+ 
+ int	pfil_head_register(struct pfil_head *);
++void   pfil_head_export_sysctl(struct pfil_head *, struct sysctl_oid_list *);
+ int	pfil_head_unregister(struct pfil_head *);
+ 
+ struct pfil_head *pfil_head_get(int, u_long);
+ 
+-static __inline struct packet_filter_hook *
+-pfil_hook_get(int dir, struct pfil_head *ph)
+-{
+-	KASSERT(ph->ph_busy_count > 0, 
+-	    ("pfil_hook_get: called on unbusy pfil_head"));
+-	if (dir == PFIL_IN)
+-		return (TAILQ_FIRST(&ph->ph_in));
+-	else if (dir == PFIL_OUT)
+-		return (TAILQ_FIRST(&ph->ph_out));
+-	else
+-		return (NULL);
+-}
+-
+ #endif /* _NET_PFIL_H_ */
+diff -rNu /home/src6/netinet/ip_fastfwd.c /home/pf_sysctl6/netinet/ip_fastfwd.c
+--- /home/src6/netinet/ip_fastfwd.c	2007-09-28 21:56:29.000000000 +0200
++++ /home/pf_sysctl6/netinet/ip_fastfwd.c	2007-09-28 21:46:14.000000000 +0200
+@@ -344,7 +344,7 @@
+ 	/*
+ 	 * Run through list of ipfilter hooks for input packets
+ 	 */
+-	if (inet_pfil_hook.ph_busy_count == -1)
++	if (PFIL_IS_EMPTY(inet_pfil_hook))
+ 		goto passin;
+ 
+ 	if (pfil_run_hooks(&inet_pfil_hook, &m, m->m_pkthdr.rcvif, PFIL_IN, NULL) ||
+@@ -431,7 +431,7 @@
+ 	/*
+ 	 * Run through list of hooks for output packets.
+ 	 */
+-	if (inet_pfil_hook.ph_busy_count == -1)
++	if (PFIL_IS_EMPTY(inet_pfil_hook))
+ 		goto passout;
+ 
+ 	if (pfil_run_hooks(&inet_pfil_hook, &m, ifp, PFIL_OUT, NULL) || m == NULL) {
+diff -rNu /home/src6/netinet/ip_fw_pfil.c /home/pf_sysctl6/netinet/ip_fw_pfil.c
+--- /home/src6/netinet/ip_fw_pfil.c	2007-09-28 21:56:29.000000000 +0200
++++ /home/pf_sysctl6/netinet/ip_fw_pfil.c	2007-09-28 21:46:14.000000000 +0200
+@@ -433,11 +433,15 @@
+ 		return ENOENT;
+ #endif
+ 
+-	pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet);
+-	pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK, pfh_inet);
++	pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK, 
++		pfh_inet);
++	pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", 
++		PFIL_OUT | PFIL_WAITOK, pfh_inet);
+ #ifdef INET6
+-	pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet6);
+-	pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK, pfh_inet6);
++	pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK, 
++		pfh_inet6);
++	pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", 
++		PFIL_OUT | PFIL_WAITOK, pfh_inet6);
+ #endif
+ 
+ 	return 0;
+diff -rNu /home/src6/netinet/ip_input.c /home/pf_sysctl6/netinet/ip_input.c
+--- /home/src6/netinet/ip_input.c	2007-09-28 21:56:29.000000000 +0200
++++ /home/pf_sysctl6/netinet/ip_input.c	2007-09-28 21:46:14.000000000 +0200
+@@ -283,6 +283,9 @@
+ 	if ((i = pfil_head_register(&inet_pfil_hook)) != 0)
+ 		printf("%s: WARNING: unable to register pfil hook, "
+ 			"error %d\n", __func__, i);
++	else 
++		pfil_head_export_sysctl(&inet_pfil_hook,
++			SYSCTL_STATIC_CHILDREN(_net_inet_ip));
+ 
+ 	/* Initialize IP reassembly queue. */
+ 	IPQ_LOCK_INIT();
+@@ -461,7 +464,7 @@
+ 	 */
+ 
+ 	/* Jump over all PFIL processing if hooks are not active. */
+-	if (inet_pfil_hook.ph_busy_count == -1)
++	if (PFIL_IS_EMPTY(inet_pfil_hook))
+ 		goto passin;
+ 
+ 	odst = ip->ip_dst;
+diff -rNu /home/src6/netinet/ip_output.c /home/pf_sysctl6/netinet/ip_output.c
+--- /home/src6/netinet/ip_output.c	2007-09-28 21:56:29.000000000 +0200
++++ /home/pf_sysctl6/netinet/ip_output.c	2007-09-28 21:46:14.000000000 +0200
+@@ -671,7 +671,7 @@
+ #endif /* FAST_IPSEC */
+ 
+ 	/* Jump over all PFIL processing if hooks are not active. */
+-	if (inet_pfil_hook.ph_busy_count == -1)
++	if (PFIL_IS_EMPTY(inet_pfil_hook))
+ 		goto passout;
+ 
+ 	/* Run through list of hooks for output packets. */
