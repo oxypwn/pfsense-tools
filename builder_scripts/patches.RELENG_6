@@ -5,14 +5,9 @@
 ~sbin/fdisk~fdisk.c.diff~
 ~sbin/bsdlabel~bsdlabel.c.diff~
 ~sys/geom~geom_ctl.c.diff~
-~sys/~bpf_fixes.diff~
-~sys/netinet~if_ether.c.diff~
 -p1~~clog-makefile.patch~
-~sys/i386/i386/~local_apic.c.diff~
--p0~~unionfs6-p16.diff~
-~sys/modules/ipfw~ipfw.diff~
 ~sys~freebsd6-ipsec-fastipsec-natt.diff~
 ~sys/netipsec~key.c.diff~
 -p0~~hostapd_iapp.diff~
 -p0~~billm-pfctl-expose-queues.patch~
-~sys~pfil_lockless_sysctl6.diff~
+-p3~sys~pfil_lockless_sysctl6.diff~
