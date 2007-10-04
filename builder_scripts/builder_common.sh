@@ -339,9 +339,13 @@ populate_extra() {
 install_custom_packages() {
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
-		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/pkg"
+		# hack: trick pfSense
+		touch /etc/platform
+		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/captiveportal:${CVS_CO_DIR}/usr/local/pkg"
 		./pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
-		chroot ${PFSENSEBASEDIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst
+		chroot ${PFSENSEBASEDIR} ${PFSENSEBASEDIR}/tmp/pfspkg_installer -q -m install -l ${PFSENSEBASEDIR}/tmp/pkgfile.lst
+		# cleanup
+		rm /etc/platform
 	fi
 }
 

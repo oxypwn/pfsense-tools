@@ -80,6 +80,9 @@ build_all_kernels
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 ( populate_extra )
+# Add extra pfSense packages
+#echo ">>> Phase install_custom_packages"
+#( install_custom_packages )
 echo ">>> Phase set_image_as_cdrom"
 ( set_image_as_cdrom )
 
