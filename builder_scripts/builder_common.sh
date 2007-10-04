@@ -336,6 +336,15 @@ populate_extra() {
     fi
 }
 
+install_custom_packages() {
+	# Extra package list if defined.
+	if [ ! -z "${custom_package_list:-}" ]; then
+		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/pkg"
+		./pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
+		chroot ${PFSENSEBASEDIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst
+	fi
+}
+
 create_pfSense_BaseSystem_Small_update_tarball() {
 	VERSION=`cat $CVS_CO_DIR/etc/version`
 	FILENAME=pfSense-Mini-Embedded-BaseSystem-Update-${VERSION}.tgz

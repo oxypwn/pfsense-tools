@@ -63,7 +63,21 @@ export SKIP_RSYNC=yes
 #
 # Note: It is also possible to specify a directory instead of a
 #       gezipped tarball.
-# export custom_overlay="/home/pfsense/custom_overlay.tgz"
+#
+# Tarball overlay (please uncomment): 
+#export custom_overlay="/home/pfsense/custom_overlay.tgz"
+#
+# Directory overlay (please uncomment):
+#export custom_overlay="/home/pfsense/custom_overlay"
+
+# Package overlay. This gives people a change to build a pfSense
+# installable image that already contains certain pfSense packages.
+#
+# Needs to point to a text file containing comma sepperated package
+# names. Of course package names must be valid. Using non existent
+# package name would yield an error.
+#
+#export custom_package_list="/home/pfsense/custom_packages.lst"
 
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 
