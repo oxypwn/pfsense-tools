@@ -82,7 +82,7 @@ echo ">>> Phase populate_extra"
 ( populate_extra )
 # Add extra pfSense packages
 echo ">>> Phase install_custom_packages"
-( install_custom_packages )
+#( install_custom_packages )
 echo ">>> Phase set_image_as_cdrom"
 ( set_image_as_cdrom )
 

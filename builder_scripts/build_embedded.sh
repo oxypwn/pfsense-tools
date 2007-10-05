@@ -73,7 +73,7 @@ fi
 populate_extra
 
 # Add extra pfSense packages
-install_custom_packages
+#install_custom_packages
 
 # Only include Lighty in packages list
 (cd /var/db/pkg && ls | grep lighttpd) > conf/packages
