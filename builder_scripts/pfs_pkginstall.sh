@@ -44,19 +44,19 @@ install_custom_packages() {
 		# php.ini needed to make PHP argv capable
 		#
 		touch /etc/platform && \
-		mount -t devfs devfs ${PFSENSEISODIR}/dev && \
-		chroot ${PFSENSEISODIR} ln -s /cf/conf /conf && \
-		chroot ${PFSENSEISODIR} echo "register_argc_argv=1" > /tmp/php.ini
+		mount -t devfs devfs ${BASEDIR}/dev && \
+		chroot ${BASEDIR} ln -s /cf/conf /conf && \
+		chroot ${BASEDIR} echo "register_argc_argv=1" > /tmp/php.ini
 		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/captiveportal:${CVS_CO_DIR}/usr/local/pkg"
 		${FREESBIE_PATH}/scripts/custom/pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
-		chroot ${PFSENSEISODIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
+		chroot ${BASEDIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
 		# cleanup
-		chroot ${PFSENSEISODIR} /tmp/php.ini && \
-		chroot ${PFSENSEISODIR} rm /conf && \
-		umount  ${PFSENSEISODIR}/dev && \
+		chroot ${BASEDIR} /tmp/php.ini && \
+		chroot ${BASEDIR} rm /conf && \
+		umount  ${BASEDIR}/dev && \
 		rm /etc/platform
 	fi
 }
 
-. ${FREESBIE_PATH}/scripts/clonefs.sh && \
+. ${FREESBIE_PATH}/scripts/pkginstall.sh && \
 install_custom_packages
