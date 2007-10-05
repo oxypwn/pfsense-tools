@@ -1,4 +1,4 @@
-#!/usr/local/bin/php -q
+#!/usr/local/bin/php -c /tmp -q
 <?php
 /* $Id$ */
 /* ========================================================================== */
@@ -37,14 +37,19 @@
                                                                               */
 /* ========================================================================== */
 
+// currently not being used
 $beInteractive = false;
+// holds the PHP include path which will be used to search for PHP scripts
 $includePath = "";
+// holds a file location of a list file. the file contains a comma separated
+// list of pfSense package names.
 $listFile = "";
+// could be either 'config' or 'install'
 $mode = "config";
 
 // reads input from stdin
 function read() {
-	$fp = fopen("/dev/stdin", "r");
+  $fp = fopen("/dev/stdin", "r");
   $input = fgets($fp, 255);
   fclose($fp);
 
@@ -75,22 +80,27 @@ if ($includePath != "") {
 }
 
 // setup package list file interactively
-if (! file_exists($listFile) && $mode != "install") {
-	//require_once("guiconfig.inc");
+if (! file_exists($listFile) && $mode == "config") {
 	require_once("pkg-utils.inc");
-	
+
+	// borrowed from pkg_mgr_install.php	
 	$pkg_info = get_pkg_info('all', array('name', 'category', 'website', 'version', 'status', 'descr', 'maintainer', 'required_version'));
+	// get package names
 	$pkgListA = array_keys($pkg_info);
+	// turn names array into a string of comma separated values
 	$pkgList = implode(", ", $pkgListA);
 	
 	print("Available packages:\n");
 	print("===================\n");
 	print("{$pkgList}\n\n");
-	
+
+	// get the list of packages that should be installed from stdin	
 	print("Please provide a comma separated list of packages that should be added to the pfSense installable image:\n");
+	// turns the list provided by the user into an array of package names
 	$userPkgList = explode(", ", read());
 	$saneUserPkgList = array();
 	
+	// try to figure out whether the user provided package names are correct
 	foreach ($userPkgList as $package) {
 		if(! in_array($package, $pkgListA)) {
 			print("Package is not a pfSense package: {$package}\n");
@@ -98,24 +108,34 @@ if (! file_exists($listFile) && $mode != "install") {
 			$saneUserPkgList[] = $package;
 		}
 	}
-	
+
+	// finally dump the sane list of package names to a file	
 	file_put_contents("/usr/local/pfsense-fs/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
+	// copy this script to /usr/local/pfsense-fs/tmp
 	copy("pfspkg_installer", "/usr/local/pfsense-fs/tmp/pfspkg_installer");
+	// make the script executable
 	chmod("/usr/local/pfsense-fs/tmp/pfspkg_installer", 0755);
 // package list file already exists
-} else if ($mode != "install"){
+} else if ($mode == "config"){
+	// copy existing package list file 
 	copy($listFile, "/usr/local/pfsense-fs/tmp/pkgfile.lst");
+	// copy this script to /usr/local/pfsense-fs/tmp
 	copy("pfspkg_installer", "/usr/local/pfsense-fs/tmp/pfspkg_installer");
+	// make the script executable
 	chmod("/usr/local/pfsense-fs/tmp/pfspkg_installer", 0755);
 }
 
 // install the actual packages using the list file
 if (file_exists($listFile) && $mode == "install") {
+	require_once("config.inc");
 	require_once("pkg-utils.inc");
 
+	// load list of packages
 	$pkgList = file_get_contents($listFile);
+	// turn list of package names into an array
 	$pkgListA = explode(", ", $pkgList);
 	
+	// iterate over each list element and install the appropriate package
 	foreach ($pkgListA as $package) {
 		$status = install_package($package);
 		

@@ -339,12 +339,21 @@ populate_extra() {
 install_custom_packages() {
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
-		# hack: trick pfSense
-		touch /etc/platform
+		# Notes:
+		# ======
+		# /etc/platform is required cause some scripts are demanding for its existence
+		# devfs mount is required cause PHP requires /dev/stdin
+		# tried to fake symlink /conf
+		#
+		touch /etc/platform && \
+		mount -t devfs devfs ${PFSENSEBASEDIR}/dev && \
+		chroot ${PFSENSEBASEDIR} ln -s /cf/conf /conf
 		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/captiveportal:${CVS_CO_DIR}/usr/local/pkg"
 		./pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
-		chroot ${PFSENSEBASEDIR} ${PFSENSEBASEDIR}/tmp/pfspkg_installer -q -m install -l ${PFSENSEBASEDIR}/tmp/pkgfile.lst
+		chroot ${PFSENSEBASEDIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
 		# cleanup
+		chroot ${PFSENSEBASEDIR} rm /conf && \
+		umount  ${PFSENSEBASEDIR}/dev && \
 		rm /etc/platform
 	fi
 }
