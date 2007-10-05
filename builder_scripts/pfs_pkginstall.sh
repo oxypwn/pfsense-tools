@@ -58,5 +58,5 @@ install_custom_packages() {
 	fi
 }
 
-sh ${FREESBIE_PATH}/scripts/pkginstall.sh && \
+. ${FREESBIE_PATH}/scripts/pkginstall.sh && \
 install_custom_packages
