@@ -97,3 +97,5 @@ freesbie_make extra
 fixup_updates
 
 create_pfSense_Full_update_tarball
+create_pfSense_Embedded_update_tarball
+

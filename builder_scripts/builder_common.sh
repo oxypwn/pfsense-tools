@@ -479,12 +479,33 @@ create_FreeBSD_system_update() {
 
 create_pfSense_Full_update_tarball() {
 	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
-	FILENAME=pfSense-Full-And-Embedded-Update-${VERSION}.tgz
+	FILENAME=pfSense-Full-Update-${VERSION}.tgz
 	mkdir -p $UPDATESDIR
 
 	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
 	set +e
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
+
+	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
+	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
+
+	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
+	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+}
+
+create_pfSense_Embedded_update_tarball() {
+	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
+	FILENAME=pfSense-Full-Embedded-Update-${VERSION}.tgz
+	mkdir -p $UPDATESDIR
+
+	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
+	set +e
+	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
+
+	# Remove all other kernels and replace full kernel with the embedded
+	# kernel that was built during the builder process
+	mv ${PFSENSEBASEDIR}/kernels/kernel_wrap.gz ${PFSENSEBASEDIR}/boot/kernel/kernel.gz
+	rm -rf ${PFSENSEBASEDIR}/kernels/*
 
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
