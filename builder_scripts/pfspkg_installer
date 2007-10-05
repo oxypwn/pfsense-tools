@@ -43,7 +43,7 @@ $listFile = "";
 // could be either 'config' or 'install'
 $mode = "config";
 // hold the value of the dir which represents the final ISO contents
-$toDir = getenv("BASEDIR");
+$toDir = getenv("CLONEDIR");
 
 // reads input from stdin
 function read() {

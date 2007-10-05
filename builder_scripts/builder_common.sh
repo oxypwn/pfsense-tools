@@ -337,15 +337,25 @@ populate_extra() {
 }
 
 install_custom_packages() {
+	PLATFORM=`cat $CVS_CO_DIR/etc/platform`
+	DESTNAME="iso.sh"
+
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
-		cp ./pfs_pkginstall.sh ${FREESBIE_PATH}/scripts/custom/pkginstall.sh && \
-		chmod a+x ${FREESBIE_PATH}/scripts/custom/pkginstall.sh && \
+		# determine whether this is an embedded build
+		if [ ${PLATFORM} = "embedded" ]; then
+			${DESTNAME}="img.sh"
+		fi
+
+		# copy files in place
+		cp ./pfs_custom_pkginstall.sh ${FREESBIE_PATH}/scripts/custom/${DESTNAME} && \
+		chmod a+x ${FREESBIE_PATH}/scripts/custom/${DESTNAME} && \
 		cp ./pfspkg_installer ${FREESBIE_PATH}/scripts/custom && \
 		chmod a+x ${FREESBIE_PATH}/scripts/custom/pfspkg_installer
 	else
-		if [ -f ${FREESBIE_PATH}/scripts/custom/pkginstall.sh ]; then
-			rm ${FREESBIE_PATH}/scripts/custom/pkginstall.sh && \
+		# cleanup if files do exist
+		if [ -f ${FREESBIE_PATH}/scripts/custom/${DESTNAME} ]; then
+			rm ${FREESBIE_PATH}/scripts/custom/${DESTNAME} && \
 			rm ${FREESBIE_PATH}/scripts/custom/pfspkg_installer
 		fi
 	fi
