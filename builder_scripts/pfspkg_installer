@@ -106,19 +106,19 @@ if (! file_exists($listFile) && $mode == "config") {
 	}
 
 	// finally dump the sane list of package names to a file	
-	file_put_contents("/usr/local/pfsense-fs/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
-	// copy this script to /usr/local/pfsense-fs/tmp
-	copy("pfspkg_installer", "/usr/local/pfsense-fs/tmp/pfspkg_installer");
+	file_put_contents("/usr/local/pfsense-clone/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
+	// copy this script to /usr/local/pfsense-clone/tmp
+	copy("pfspkg_installer", "/usr/local/pfsense-clone/tmp/pfspkg_installer");
 	// make the script executable
-	chmod("/usr/local/pfsense-fs/tmp/pfspkg_installer", 0755);
+	chmod("/usr/local/pfsense-clone/tmp/pfspkg_installer", 0755);
 // package list file already exists
 } else if ($mode == "config"){
 	// copy existing package list file 
-	copy($listFile, "/usr/local/pfsense-fs/tmp/pkgfile.lst");
-	// copy this script to /usr/local/pfsense-fs/tmp
-	copy("pfspkg_installer", "/usr/local/pfsense-fs/tmp/pfspkg_installer");
+	copy($listFile, "/usr/local/pfsense-clone/tmp/pkgfile.lst");
+	// copy this script to /usr/local/pfsense-clone/tmp
+	copy("pfspkg_installer", "/usr/local/pfsense-clone/tmp/pfspkg_installer");
 	// make the script executable
-	chmod("/usr/local/pfsense-fs/tmp/pfspkg_installer", 0755);
+	chmod("/usr/local/pfsense-clone/tmp/pfspkg_installer", 0755);
 }
 
 // install the actual packages using the list file

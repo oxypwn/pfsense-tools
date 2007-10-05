@@ -339,13 +339,13 @@ populate_extra() {
 install_custom_packages() {
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
-		cp ./pfs_pkginstall.sh ${FREESBIE_PATH}/scripts/custom/pkginstall.sh && \
-		chmod a+x ${FREESBIE_PATH}/scripts/custom/pkginstall.sh && \
+		cp ./pfs_clonefs.sh ${FREESBIE_PATH}/scripts/custom/clonefs.sh && \
+		chmod a+x ${FREESBIE_PATH}/scripts/custom/clonefs.sh && \
 		cp ./pfspkg_installer ${FREESBIE_PATH}/scripts/custom && \
 		chmod a+x ${FREESBIE_PATH}/scripts/custom/pfspkg_installer
 	else
-		if [ -f ${FREESBIE_PATH}/scripts/custom/pkginstall.sh ]; then
-			rm ${FREESBIE_PATH}/scripts/custom/pkginstall.sh && \
+		if [ -f ${FREESBIE_PATH}/scripts/custom/clonefs.sh ]; then
+			rm ${FREESBIE_PATH}/scripts/custom/clonefs.sh && \
 			rm ${FREESBIE_PATH}/scripts/custom/pfspkg_installer
 		fi
 	fi
