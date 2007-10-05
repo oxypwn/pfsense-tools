@@ -48,7 +48,7 @@ install_custom_packages() {
 		chroot ${BASEDIR} ln -s /cf/conf /conf && \
 		chroot ${BASEDIR} echo "register_argc_argv=1" > /tmp/php.ini
 		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/captiveportal:${CVS_CO_DIR}/usr/local/pkg"
-		./pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
+		${FREESBIE_PATH}/scripts/custom/pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
 		chroot ${BASEDIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
 		# cleanup
 		chroot ${PFSENSEBASEDIR} /tmp/php.ini && \
