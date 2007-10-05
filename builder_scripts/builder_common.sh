@@ -339,25 +339,12 @@ populate_extra() {
 install_custom_packages() {
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
-		# Notes:
-		# ======
-		# /etc/platform is required cause some scripts are demanding for its existence
-		# devfs mount is required cause PHP requires /dev/stdin
-		# tried to fake symlink /conf
-		# php.ini needed to make PHP argv capable
-		#
-		touch /etc/platform && \
-		mount -t devfs devfs ${PFSENSEBASEDIR}/dev && \
-		chroot ${PFSENSEBASEDIR} ln -s /cf/conf /conf && \
-		chroot ${PFSENSEBASEDIR} echo "register_argc_argv=1" > /tmp/php.ini
-		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/captiveportal:${CVS_CO_DIR}/usr/local/pkg"
-		./pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
-		chroot ${PFSENSEBASEDIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
-		# cleanup
-		chroot ${PFSENSEBASEDIR} /tmp/php.ini && \
-		chroot ${PFSENSEBASEDIR} rm /conf && \
-		umount  ${PFSENSEBASEDIR}/dev && \
-		rm /etc/platform
+		cp ./pfs_pkginstall.sh ${FREESBIE_PATH}/scripts/custom && \
+		chmod a+x ${FREESBIE_PATH}/scripts/custom/pfs_pkginstall.sh
+	else
+		if [ -f ${FREESBIE_PATH}/scripts/custom/pfs_pkginstall.sh ]; then
+			rm ${FREESBIE_PATH}/scripts/custom/pfs_pkginstall.sh
+		fi
 	fi
 }
 
