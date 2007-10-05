@@ -42,6 +42,8 @@ $includePath = "";
 $listFile = "";
 // could be either 'config' or 'install'
 $mode = "config";
+// hold the value of the dir which represents the final ISO contents
+$toDir = getenv("BASEDIR");
 
 // reads input from stdin
 function read() {
@@ -106,19 +108,19 @@ if (! file_exists($listFile) && $mode == "config") {
 	}
 
 	// finally dump the sane list of package names to a file	
-	file_put_contents("/usr/local/pfsense-fs/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
+	file_put_contents("${toDir}/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
 	// copy this script to /usr/local/pfsense-fs/tmp
-	copy("pfspkg_installer", "/usr/local/pfsense-fs/tmp/pfspkg_installer");
+	copy("pfspkg_installer", "${toDir}/tmp/pfspkg_installer");
 	// make the script executable
-	chmod("/usr/local/pfsense-fs/tmp/pfspkg_installer", 0755);
+	chmod("${toDir}/tmp/pfspkg_installer", 0755);
 // package list file already exists
 } else if ($mode == "config"){
 	// copy existing package list file 
-	copy($listFile, "/usr/local/pfsense-fs/tmp/pkgfile.lst");
+	copy($listFile, "${toDir}/tmp/pkgfile.lst");
 	// copy this script to /usr/local/pfsense-fs/tmp
-	copy("pfspkg_installer", "/usr/local/pfsense-fs/tmp/pfspkg_installer");
+	copy("pfspkg_installer", "${toDir}/tmp/pfspkg_installer");
 	// make the script executable
-	chmod("/usr/local/pfsense-fs/tmp/pfspkg_installer", 0755);
+	chmod("${toDir}/tmp/pfspkg_installer", 0755);
 }
 
 // install the actual packages using the list file
