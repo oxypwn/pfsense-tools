@@ -344,14 +344,17 @@ install_custom_packages() {
 		# /etc/platform is required cause some scripts are demanding for its existence
 		# devfs mount is required cause PHP requires /dev/stdin
 		# tried to fake symlink /conf
+		# php.ini needed to make PHP argv capable
 		#
 		touch /etc/platform && \
 		mount -t devfs devfs ${PFSENSEBASEDIR}/dev && \
-		chroot ${PFSENSEBASEDIR} ln -s /cf/conf /conf
+		chroot ${PFSENSEBASEDIR} ln -s /cf/conf /conf && \
+		chroot ${PFSENSEBASEDIR} echo "register_argc_argv=1" > /tmp/php.ini
 		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/captiveportal:${CVS_CO_DIR}/usr/local/pkg"
 		./pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
 		chroot ${PFSENSEBASEDIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
 		# cleanup
+		chroot ${PFSENSEBASEDIR} /tmp/php.ini && \
 		chroot ${PFSENSEBASEDIR} rm /conf && \
 		umount  ${PFSENSEBASEDIR}/dev && \
 		rm /etc/platform
