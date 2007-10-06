@@ -35,7 +35,14 @@
 
 PLATFORM=`cat $CVS_CO_DIR/etc/platform`
 
-install_custom_packages() {
+#
+# Note: This function prepares the environment needed by the script pfspkg_installer
+#       The Freesbie system its finall executing pfspkg_installer in a chroot env.
+#
+install_custom_packages_setup() {
+	TODIR="${BASEDIR}"
+	DESTNAME="pkginstall.sh"
+
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
 		# Notes:
@@ -45,26 +52,113 @@ install_custom_packages() {
 		# tried to fake symlink /conf
 		# php.ini needed to make PHP argv capable
 		#
-		touch /etc/platform && \
-		mount -t devfs devfs ${BASEDIR}/dev && \
-		chroot ${CLONEDIR} ln -s /cf/conf /conf && \
-		chroot ${CLONEDIR} echo "register_argc_argv=1" > /tmp/php.ini
-		PHP_INC_PATH="${CVS_CO_DIR}/etc/inc:${CVS_CO_DIR}/usr/local/www:${CVS_CO_DIR}/usr/local/captiveportal:${CVS_CO_DIR}/usr/local/pkg"
-		${FREESBIE_PATH}/scripts/custom/pfspkg_installer -q -m config -p ${PHP_INC_PATH} -l ${custom_package_list} && \
-		chroot ${CLONEDIR} /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
-		# cleanup
-		chroot ${CLONEDIR} /tmp/php.ini && \
-		chroot ${CLONEDIR} rm /conf && \
-		umount  ${CLONEDIR}/dev && \
-		rm /etc/platform
+		echo "Installing custom packages to: ${TODIR} using platform type ${PLATFORM} ..."
+
+#		if [ ! -f ${TODIR}/etc/platform ]; then
+#			echo "installing temporary platform file to ${TODIR}/etc ..."	
+#			touch ${TODIR}/etc/platform
+#			touch ${TODIR}/tmp/remove_platform
+#		else
+#			echo "Using existing platform file from ${TODIR}/etc ..."
+#		fi
+
+		echo "Mounting temporary devfs filesystem to ${TODIR} ..."
+		mount -t devfs devfs ${TODIR}/dev
+
+		echo "Copying resolv.conf to ${TODIR} to enable pkg manager to resolve DNS names ..."
+		cp /etc/resolv.conf ${TODIR}/etc
+
+		if [ ${PLATFORM} != "embedded" ]; then
+			# test whether conf dir is already a symlink
+			if [ ! -f ${TODIR}/conf ]; then
+				# backup original conf dir
+				if [ -d ${TODIR}/conf ]; then
+					echo "Backing up conf dir to ${TODIR}/conf.org ..."
+					chroot ${TODIR} /bin/mv /conf /conf.org
+					touch ${TODIR}/tmp/restore_conf_dir
+				fi
+
+				# install the symlink as it would exist on a live system
+				echo "Symlinking ${TODIR}/cf/conf to ${TODIR}/conf ..."
+				chroot ${TODIR} /bin/ln -s /cf/conf /conf
+				touch ${TODIR}/tmp/remove_conf_symlink
+			else
+				# seems like we are already working with a conf dir that is a symlink
+				echo "Using existing conf dir from ${TODIR} ..."
+			fi
+
+			# now that we do have the symlink in place create
+			# a backup dir if necessary.
+			if [ ! -d ${TODIR}/cf/conf/backup ]; then
+				echo "Creating backup dir in ${TODIR}/cf/conf ..."
+				chroot ${TODIR} /bin/mkdir -p /cf/conf/backup
+				touch ${TODIR}/tmp/remove_backup
+			else
+				echo "Using existing backup dir from ${TODIR}/cf/conf ..."
+			fi
+		fi
+
+		echo "Installing temporary php.ini to ${TODIR}/tmp ..."
+		echo "register_argc_argv=1" > ${TODIR}/tmp/php.ini
+
+		echo "Installing custom pfSense package installer to ${TODIR}/tmp ..."
+		cp ./pfspkg_installer ${TODIR}/tmp
+		chmod a+x ${TODIR}/tmp/pfspkg_installer
 	fi
 }
 
-if [ ${PLATFORM} = "embedded" ]; then
-	install_custom_packages && \
-	. ${FREESBIE_PATH}/scripts/img.sh
-else
-	install_custom_packages && \
-	. ${FREESBIE_PATH}/scripts/iso.sh
+install_custom_packages_exec() {
+	DESTNAME="pkginstall.sh"
+
+	# setup script that will be run within the chroot env
+	cat > ${FREESBIE_PATH}/extra/customscripts/${DESTNAME} <<EOF
+#!/bin/sh
+#
+# Assemble package list if necessary
+#
+/tmp/pfspkg_installer -q -m config -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
+#
+# Exec PHP script which installs pfSense packages in place
+#
+/tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
+
+#
+# Cleanup
+#
+echo "Deleting temporary php.ini from /tmp"
+rm /tmp/php.ini
+
+if [ -f /tmp/remove_platform ]; then
+	echo "Removing temporary platform file from /etc ..."
+	rm /etc/platform
+	rm /tmp/remove_platform
 fi
+
+if [ -f /tmp/remove_backup ]; then
+	echo "Removing temporary backup dir from /conf ..."
+	rm -rf /cf/conf/backup
+	rm /tmp/remove_backup
+fi
+
+if [ -f /tmp/remove_conf_symlink ]; then
+	echo "Removing temporary conf dir ..."
+	rm /conf
+	rm /tmp/remove_conf_symlink
+	
+	if [ -f /tmp/restore_conf_dir ]; then
+		echo "Restoring original conf dir ..."
+		mv /conf.org /conf
+		rm /tmp/restore_conf_dir
+	fi
+fi
+
+echo "Removing temporary resolv.conf from /etc ..."
+rm /etc/resolv.conf
+
+EOF
+
+}
+
+install_custom_packages_setup
+install_custom_packages_exec
 

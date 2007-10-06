@@ -337,26 +337,20 @@ populate_extra() {
 }
 
 install_custom_packages() {
-	PLATFORM=`cat $CVS_CO_DIR/etc/platform`
-	DESTNAME="iso.sh"
+	DEVFS_MOUNT=`mount | grep /usr/local/pfsense-fs/dev`
+
+	if [ -n ${DEVFS_MOUNT} ]; then
+		umount ${BASEDIR}/dev
+	fi
 
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
-		# determine whether this is an embedded build
-		if [ ${PLATFORM} = "embedded" ]; then
-			${DESTNAME}="img.sh"
-		fi
-
-		# copy files in place
-		cp ./pfs_custom_pkginstall.sh ${FREESBIE_PATH}/scripts/custom/${DESTNAME} && \
-		chmod a+x ${FREESBIE_PATH}/scripts/custom/${DESTNAME} && \
-		cp ./pfspkg_installer ${FREESBIE_PATH}/scripts/custom && \
-		chmod a+x ${FREESBIE_PATH}/scripts/custom/pfspkg_installer
+		# execute setup script
+		./pfs_custom_pkginstall.sh
 	else
-		# cleanup if files do exist
-		if [ -f ${FREESBIE_PATH}/scripts/custom/${DESTNAME} ]; then
-			rm ${FREESBIE_PATH}/scripts/custom/${DESTNAME} && \
-			rm ${FREESBIE_PATH}/scripts/custom/pfspkg_installer
+		# cleanup if file does exist
+		if [ -f ${FREESBIE_PATH}/extra/customscripts/${DESTNAME} ]; then
+			rm ${FREESBIE_PATH}/extra/customscripts/${DESTNAME}
 		fi
 	fi
 }

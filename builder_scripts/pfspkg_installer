@@ -43,7 +43,7 @@ $listFile = "";
 // could be either 'config' or 'install'
 $mode = "config";
 // hold the value of the dir which represents the final ISO contents
-$toDir = getenv("CLONEDIR");
+$toDir = getenv("BASEDIR");
 
 // reads input from stdin
 function read() {
@@ -77,6 +77,8 @@ if ($includePath != "") {
         ini_set("include_path", $includePath);
 }
 
+print("Custom pfSense package installer runs in ${mode} mode.\n");
+
 // setup package list file interactively
 if (! file_exists($listFile) && $mode == "config") {
 	require_once("pkg-utils.inc");
@@ -108,19 +110,20 @@ if (! file_exists($listFile) && $mode == "config") {
 	}
 
 	// finally dump the sane list of package names to a file	
-	file_put_contents("${toDir}/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
+	file_put_contents("/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
 	// copy this script to /usr/local/pfsense-fs/tmp
-	copy("pfspkg_installer", "${toDir}/tmp/pfspkg_installer");
+	//copy("pfspkg_installer", "${toDir}/tmp/pfspkg_installer");
 	// make the script executable
-	chmod("${toDir}/tmp/pfspkg_installer", 0755);
+	//chmod("${toDir}/tmp/pfspkg_installer", 0755);
+
 // package list file already exists
 } else if ($mode == "config"){
 	// copy existing package list file 
-	copy($listFile, "${toDir}/tmp/pkgfile.lst");
+	copy($listFile, "/tmp/pkgfile.lst");
 	// copy this script to /usr/local/pfsense-fs/tmp
-	copy("pfspkg_installer", "${toDir}/tmp/pfspkg_installer");
+	//copy("pfspkg_installer", "${toDir}/tmp/pfspkg_installer");
 	// make the script executable
-	chmod("${toDir}/tmp/pfspkg_installer", 0755);
+	//chmod("${toDir}/tmp/pfspkg_installer", 0755);
 }
 
 // install the actual packages using the list file
@@ -138,9 +141,9 @@ if (file_exists($listFile) && $mode == "install") {
 		$status = install_package($package);
 		
 		if($status == -1) {
-			print("Installation of {$package} FAILED!\n");
+			print("\nInstallation of {$package} FAILED!\n");
 		} else {
-			print("Installation of {$package} completed.");
+			print("\nInstallation of {$package} completed.\n");
 		}
 	}
 }
