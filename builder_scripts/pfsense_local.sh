@@ -78,7 +78,7 @@ export SKIP_RSYNC=yes
 # names. Of course package names must be valid. Using non existent
 # package name would yield an error.
 #
-#export custom_package_list="/home/pfsense/custom_packages.lst"
+#export custom_package_list="arping, Developers"
 
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 

@@ -62,7 +62,11 @@ install_custom_packages_setup() {
 		/bin/cp /etc/resolv.conf ${TODIR}/etc
 
 		/bin/echo "Installing temporary php.ini to ${TODIR}/tmp ..."
-		/bin/echo "register_argc_argv=1" > ${TODIR}/tmp/php.ini
+		/bin/cp ${CVS_CO_DIR}/usr/local/lib/php.ini ${TODIR}/tmp
+		/bin/echo "register_argc_argv=1" >> ${TODIR}/tmp/php.ini
+
+		/bin/echo "Dumping contents of custom_package_list to ${TODIR}/tmp/pkgfile.lst ..."
+		/bin/echo ${custom_package_list} > ${TODIR}/tmp/pkgfile.lst
 
 		/bin/echo "Installing custom pfSense package installer to ${TODIR}/tmp ..."
 		/bin/cp ./pfspkg_installer ${TODIR}/tmp
@@ -76,9 +80,11 @@ install_custom_packages_exec() {
 	# setup script that will be run within the chroot env
 	/bin/cat > ${FREESBIE_PATH}/extra/customscripts/${DESTNAME} <<EOF
 #!/bin/sh
-# set to no if you do not want to delete any files that have
-# been created while having executed this script.
-CLEANUP="yes"
+#
+# ------------------------------------------------------------------------
+# ATTENTION: !!! This script is supposed to be run within a chroot env !!!
+# ------------------------------------------------------------------------
+#
 #
 # Setup
 #
@@ -118,50 +124,57 @@ fi
 #
 /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
 
-#
-# Cleanup
-#
-/bin/echo "Deleting temporary php.ini from /tmp"
-/bin/rm /tmp/php.ini
+install_custom_packages_clean() {
+	#
+	# Cleanup
+	#
+	/bin/echo "Deleting temporary php.ini from /tmp"
+	/bin/rm /tmp/php.ini
 
-if [ -f /tmp/remove_platform ]; then
-	/bin/echo "Removing temporary platform file from /etc ..."
-	/bin/rm /etc/platform
-	/bin/rm /tmp/remove_platform
-fi
-
-if [ -f /tmp/remove_backup ]; then
-	/bin/echo "Removing temporary backup dir from /conf ..."
-	/bin/rm -rf /conf/backup
-	/bin/rm /tmp/remove_backup
-fi
-
-if [ -f /tmp/remove_conf_symlink ]; then
-	/bin/echo "Removing temporary conf dir ..."
-	/bin/rm /conf
-	/bin/rm /tmp/remove_conf_symlink
-	
-	if [ -f /tmp/restore_conf_dir ]; then
-		/bin/echo "Restoring original conf dir ..."
-		/bin/mv /conf.org /conf
-		/bin/rm /tmp/restore_conf_dir
+	if [ -f /tmp/remove_platform ]; then
+		/bin/echo "Removing temporary platform file from /etc ..."
+		/bin/rm /etc/platform
+		/bin/rm /tmp/remove_platform
 	fi
-fi
 
-/bin/echo "Removing temporary resolv.conf from /etc ..."
-/bin/rm /etc/resolv.conf
+	if [ -f /tmp/remove_backup ]; then
+		/bin/echo "Removing temporary backup dir from /conf ..."
+		/bin/rm -rf /conf/backup
+		/bin/rm /tmp/remove_backup
+	fi
 
-/bin/echo "Removing pfspkg_installer script from /tmp ..."
-/bin/rm /tmp/pfspkg_installer
+	if [ -f /tmp/remove_conf_symlink ]; then
+		/bin/echo "Removing temporary conf dir ..."
+		/bin/rm /conf
+		/bin/rm /tmp/remove_conf_symlink
+	
+		if [ -f /tmp/restore_conf_dir ]; then
+			/bin/echo "Restoring original conf dir ..."
+			/bin/mv /conf.org /conf
+			/bin/rm /tmp/restore_conf_dir
+		fi
+	fi
 
-/bin/echo "Removing custom packages list file from /tmp ..."
-/bin/rm /tmp/pkgfile.lst
+	/bin/echo "Removing temporary resolv.conf from /etc ..."
+	/bin/rm /etc/resolv.conf
 
-/bin/echo "Removing possible package install leftover (*.tbz, *.log) ..."
-/bin/rm /tmp/*.log /tmp/*.tbz
+	/bin/echo "Removing pfspkg_installer script from /tmp ..."
+	/bin/rm /tmp/pfspkg_installer
 
-/bin/echo "Removing config.cache which was generating during package install ..."
-/bin/rm /tmp/*.cache
+	/bin/echo "Removing custom packages list file from /tmp ..."
+	/bin/rm /tmp/pkgfile.lst
+
+	/bin/echo "Removing possible package install leftover (*.tbz, *.log) ..."
+	/bin/rm /tmp/*.log /tmp/*.tbz
+
+	/bin/echo "Removing config.cache which was generating during package install ..."
+	/bin/rm /tmp/*.cache
+}
+
+#
+# Comment this line if you do not want to clean files from your system
+#
+install_custom_packages_clean
 
 EOF
 

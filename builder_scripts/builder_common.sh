@@ -338,6 +338,7 @@ populate_extra() {
 
 install_custom_packages() {
 	DEVFS_MOUNT=`mount | grep /usr/local/pfsense-fs/dev`
+	DESTNAME="pkginstall.sh"
 
 	if [ -n ${DEVFS_MOUNT} ]; then
 		umount ${BASEDIR}/dev
