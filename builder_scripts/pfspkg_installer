@@ -56,6 +56,39 @@ function read() {
   return str_replace("\n", "", $input);
 }
 
+function genPackageList() {
+	require_once("pkg-utils.inc");
+
+	// borrowed from pkg_mgr_install.php	
+	$pkg_info = get_pkg_info('all', array('name', 'category', 'website', 'version', 'status', 'descr', 'maintainer', 'required_version'));
+	// get package names
+	$pkgListA = array_keys($pkg_info);
+	// turn names array into a string of comma separated values
+	$pkgList = implode(", ", $pkgListA);
+	
+	print("Available packages:\n");
+	print("===================\n");
+	print("{$pkgList}\n\n");
+
+	// get the list of packages that should be installed from stdin	
+	print("Please provide a comma separated list of packages that should be added to the pfSense installable image:\n");
+	// turns the list provided by the user into an array of package names
+	$userPkgList = explode(",", read());
+	$saneUserPkgList = array();
+	
+	// try to figure out whether the user provided package names are correct
+	foreach ($userPkgList as $package) {
+		if(! in_array(trim($package), $pkgListA)) {
+			print("Package is not a pfSense package: {$package}\n");
+		} else {
+			$saneUserPkgList[] = $package;
+		}
+	}
+
+	// finally dump the sane list of package names to a file	
+	file_put_contents("/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
+}
+
 // iterate over the cmd line arguments
 for ($i = 0; $i < count($argv); $i++) {
 	$argument = $argv[$i];
@@ -83,49 +116,23 @@ print("Custom pfSense package installer runs in ${mode} mode.\n");
 
 // setup package list file interactively
 if (! file_exists($listFile) && $mode == "config") {
-	require_once("pkg-utils.inc");
-
-	// borrowed from pkg_mgr_install.php	
-	$pkg_info = get_pkg_info('all', array('name', 'category', 'website', 'version', 'status', 'descr', 'maintainer', 'required_version'));
-	// get package names
-	$pkgListA = array_keys($pkg_info);
-	// turn names array into a string of comma separated values
-	$pkgList = implode(", ", $pkgListA);
+	genPackageList();
 	
-	print("Available packages:\n");
-	print("===================\n");
-	print("{$pkgList}\n\n");
-
-	// get the list of packages that should be installed from stdin	
-	print("Please provide a comma separated list of packages that should be added to the pfSense installable image:\n");
-	// turns the list provided by the user into an array of package names
-	$userPkgList = explode(", ", read());
-	$saneUserPkgList = array();
-	
-	// try to figure out whether the user provided package names are correct
-	foreach ($userPkgList as $package) {
-		if(! in_array($package, $pkgListA)) {
-			print("Package is not a pfSense package: {$package}\n");
-		} else {
-			$saneUserPkgList[] = $package;
-		}
-	}
-
-	// finally dump the sane list of package names to a file	
-	file_put_contents("/tmp/pkgfile.lst", implode(", ", $saneUserPkgList));
-	// copy this script to /usr/local/pfsense-fs/tmp
-	//copy("pfspkg_installer", "${toDir}/tmp/pfspkg_installer");
-	// make the script executable
-	//chmod("${toDir}/tmp/pfspkg_installer", 0755);
-
 // package list file already exists
-} else if ($mode == "config"){
-	// copy existing package list file 
-	copy($listFile, "/tmp/pkgfile.lst");
-	// copy this script to /usr/local/pfsense-fs/tmp
-	//copy("pfspkg_installer", "${toDir}/tmp/pfspkg_installer");
-	// make the script executable
-	//chmod("${toDir}/tmp/pfspkg_installer", 0755);
+} else if (file_exists($listFile) && $mode == "config") {
+	// try to figure out whether the file contains valide contents
+	$fileContents = file_get_contents($listFile);
+	$myArray = explode(",", $fileContents);
+	
+	if (is_array($myArray) && count($myArray) == 0) {
+		// empty array
+		genPackageList();
+	} else if (! is_array($myArray)) {
+		// not an array at all
+		genPackageList();
+	} else {
+		print("Found " . count($myArray) . " valid packages within package list file.\n");
+	}
 }
 
 // install the actual packages using the list file
@@ -135,13 +142,15 @@ if (file_exists($listFile) && $mode == "install") {
 	require_once("xmlparse.inc");
 	
 	// load list of packages
-	$pkgList = file_get_contents($listFile);
+	$pkgList = str_replace(' ', '', file_get_contents($listFile));
 	// turn list of package names into an array
-	$pkgListA = explode(", ", $pkgList);
+	$pkgListA = explode(",", $pkgList);
+	
+	print("Found " . count($pkgListA) . " valid packages within package list file.\n");
 	
 	// iterate over each list element and install the appropriate package
 	foreach ($pkgListA as $package) {
-		$status = install_package($package);
+		$status = install_package(trim($package));
 		
 		if($status == -1) {
 			print("\nInstallation of {$package} FAILED!\n");
