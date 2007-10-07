@@ -44,6 +44,8 @@ $listFile = "";
 $mode = "config";
 // hold the value of the dir which represents the final ISO contents
 $toDir = getenv("BASEDIR");
+// omit JavaScript blurb
+$pkg_interface = "console";
 
 // reads input from stdin
 function read() {
@@ -130,7 +132,8 @@ if (! file_exists($listFile) && $mode == "config") {
 if (file_exists($listFile) && $mode == "install") {
 	require_once("config.inc");
 	require_once("pkg-utils.inc");
-
+	require_once("xmlparse.inc");
+	
 	// load list of packages
 	$pkgList = file_get_contents($listFile);
 	// turn list of package names into an array
@@ -146,6 +149,24 @@ if (file_exists($listFile) && $mode == "install") {
 			print("\nInstallation of {$package} completed.\n");
 		}
 	}
+
+	$config_from_cf = parse_xml_config("/cf/conf/config.xml", "pfsense");
+	$default_config = parse_xml_config("/conf.default/config.xml", "pfsense");
+	$installedpackages = null;
+
+	if (is_array($config_from_cf["installedpackages"])) {
+		$installedpackages =& $config_from_cf["installedpackages"];
+	} else if (is_array($default_config["installedpackages"])) {
+		$installedpackages =& $config_from_cf["installedpackages"];
+	}
+
+	// make sure any of the configs got the installedpackages section
+	$config_from_cf["installedpackages"] = $installedpackages;
+	$default_config["installedpackages"] = $installedpackages;
+
+	// write configs to file
+	file_put_contents("/cf/conf/config.xml", dump_xml_config($config_from_cf, "pfsense"));
+	file_put_contents("/conf.default/config.xml", dump_xml_config($default_config, "pfsense"));
 }
 
 ?>
