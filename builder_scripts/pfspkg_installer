@@ -150,6 +150,8 @@ if (file_exists($listFile) && $mode == "install") {
 	
 	// iterate over each list element and install the appropriate package
 	foreach ($pkgListA as $package) {
+		print("Currently installed packages: " . count($config["installedpackages"]["package"]) . "\n");
+		
 		$status = install_package(trim($package));
 		
 		if($status == -1) {
@@ -157,6 +159,8 @@ if (file_exists($listFile) && $mode == "install") {
 		} else {
 			print("\nInstallation of {$package} completed.\n");
 		}
+		
+		print("Currently installed packages: " . count($config["installedpackages"]["package"]) . "\n");
 	}
 
 	$config_from_cf = parse_xml_config("/cf/conf/config.xml", "pfsense");
