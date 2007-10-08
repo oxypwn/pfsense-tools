@@ -490,7 +490,7 @@ create_pfSense_Full_update_tarball() {
 
 create_pfSense_Embedded_update_tarball() {
 	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
-	FILENAME=pfSense-Full-Embedded-Update-${VERSION}.tgz
+	FILENAME=pfSense-Embedded-Update-${VERSION}.tgz
 	mkdir -p $UPDATESDIR
 
 	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
