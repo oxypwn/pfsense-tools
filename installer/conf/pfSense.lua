@@ -60,7 +60,6 @@ install_items = {
 
 ui_nav_control = {
 	["*/welcome"] = "ignore",           	     			-- do not show any "welcome" items
-	["*/*netboot*"] = "ignore",					 			-- ignore netboot installation services
 	["*/configure_installed_system"] = "ignore", 			-- don't put these on
 	["*/upgrade_installed_system"] = "ignore",   			-- the main menu...
 	["*/load_kernel_modules"] = "ignore", 		 			-- do not ask about loading kernel modules
