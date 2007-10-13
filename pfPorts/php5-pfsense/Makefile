@@ -22,7 +22,7 @@ LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
 USE_BZIP2=	yes
 .if !defined(PKGNAMESUFFIX)
-USE_AUTOTOOLS=	autoconf:259
+USE_AUTOTOOLS=	autoconf:261:env
 USE_GETOPT_LONG=yes
 LDFLAGS+=	-L${OPENSSLLIB} -lcrypto -lssl
 USE_OPENSSL=	yes
@@ -83,9 +83,9 @@ CONFLICTS=	php4-4*
 
 MAN1=		php-config.1 phpize.1
 
-.if ${PHP_SAPI} == "cgi"
+#.if ${PHP_SAPI} == "cgi"
 SAPI_FILE=      bin/php
-.endif
+#.endif
 
 .include <bsd.port.pre.mk>
 
