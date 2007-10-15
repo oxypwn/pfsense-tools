@@ -63,6 +63,9 @@ return {
 		cmds:add("cp /kernels/kernel_wrap.gz /mnt/boot/kernel/kernel.gz")
 		cmds:add("cp /etc/ttys_wrap /mnt/etc/ttys")
 		cmds:add("echo wrap > /mnt/boot/kernel/pfsense_kernel.txt")
+		-- turn on serial console
+		cmds:add("echo -D >> /mnt/boot.config")
+		cmds:add("echo console=\"comconsole\" >> /mnt/boot/loader.conf")
 		cmds:execute()
 	end
 
