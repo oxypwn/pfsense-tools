@@ -2,15 +2,15 @@
 # Date created:				20 July 1999
 # Whom:					Dmitry Sivachenko <dima@Chg.RU>
 #
-# $FreeBSD: ports/net/rrdtool/Makefile,v 1.67 2007/05/23 14:15:19 pav Exp $
+# $FreeBSD: ports/databases/rrdtool/Makefile,v 1.73 2007/10/07 05:44:56 linimon Exp $
 #
 
 PORTNAME=	rrdtool
 PORTVERSION=	1.2.23
-CATEGORIES=	net
+CATEGORIES=	databases graphics
 MASTER_SITES=	http://oss.oetiker.ch/rrdtool/pub/
 
-MAINTAINER=	demon@FreeBSD.org
+MAINTAINER=	bg1tpt@gmail.com
 COMMENT=	Round Robin Database Tools
 
 LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
@@ -18,15 +18,16 @@ LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
 		png.5:${PORTSDIR}/graphics/png
 
 USE_AUTOTOOLS=	libtool:15
-USE_PERL5=	yes
 USE_LDCONFIG=	yes
 GNU_CONFIGURE=	yes
 USE_GMAKE=	yes
+WANT_PERL=	yes
 
-CONFIGURE_ARGS=	--enable-perl-site-install --disable-tcl
+CONFIGURE_ARGS=	--disable-tcl
 
 OPTIONS=	PYTHON_MODULE	"Build PYTHON bindings" off \
-		RUBY_MODULE	"Build RUBY bindings" off
+		RUBY_MODULE	"Build RUBY bindings" off \
+		PERL_MODULE	"Build PERL module" on
 
 .include <bsd.port.pre.mk>
 .if defined(WITH_PYTHON_MODULE)
@@ -49,10 +50,19 @@ CONFIGURE_ARGS+=	--disable-ruby
 PLIST_SUB+=	WITH_RUBY="@comment "
 .endif
 
+.if !defined(WITHOUT_PERL_MODULE)
+USE_PERL5=	yes
+CONFIGURE_ARGS+=	--enable-perl --enable-perl-site-install
+PLIST_SUB+=	WITH_PERL=""
+.else
+CONFIGURE_ARGS+=	--disable-perl
+PLIST_SUB+=	WITH_PERL="@comment "
+.endif
+
 CONFIGURE_TARGET=--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 CPPFLAGS+=	-I${LOCALBASE}/include -I${LOCALBASE}/include/libart-2.0 -I${LOCALBASE}/include/freetype2
 LDFLAGS+=	-L${LOCALBASE}/lib
-CFLAGS:=	${CFLAGS:N-ffast-math}
+CFLAGS:=	${CFLAGS:N-ffast-math} -static
 CONFIGURE_ENV+=	CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}"
 
 MAN1=		bin_dec_hex.1 cdeftutorial.1 rpntutorial.1 rrd-beginners.1 \
@@ -61,8 +71,11 @@ MAN1=		bin_dec_hex.1 cdeftutorial.1 rpntutorial.1 rrd-beginners.1 \
 		rrdgraph_rpn.1 rrdinfo.1 rrdlast.1 rrdresize.1 rrdrestore.1 \
 		rrdthreads.1 rrdtool.1 rrdtune.1 rrdtutorial.1 rrdupdate.1 \
 		rrdxport.1 rrdlastupdate.1
+
+.if !defined(WITHOUT_PERL_MODULE)
 MAN3=		RRDp.3 RRDs.3
-MAN3PREFIX=	${TARGETDIR}/lib/perl5/${PERL_VERSION}
+MAN3PREFIX=	${PREFIX}/lib/perl5/${PERL_VERSION}
+.endif
 
 post-extract:
 .if defined(NOPORTDOCS)
