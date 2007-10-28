@@ -1,0 +1,11 @@
+share/doc/domtt/LICENSE
+share/doc/domtt/README
+share/doc/domtt/TODO
+share/doc/domtt/Changelog.html
+share/doc/domtt/HOWTO.html
+www/javascript/domTT/alphaAPI.js
+www/javascript/domTT/domLib.js
+www/javascript/domTT/domTT.js
+www/javascript/domTT/domTT_drag.js
+www/javascript/domTT/fadomatic.js
+www/javascript/domTT/behaviour.js
