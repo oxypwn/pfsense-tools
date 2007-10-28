@@ -80,7 +80,7 @@ export SKIP_RSYNC=yes
 #
 #export custom_package_list="arping, Developers"
 
-export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
+#export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 
 export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx pfPorts/clog pfPorts/fping pfPorts/links pfPorts/grub pfPorts/curl pfPorts/gettext"
                    
