@@ -78,8 +78,8 @@ populate_extra
 
 # Only include Lighty in packages list
 (cd /var/db/pkg && ls | grep lighttpd) > conf/packages
-(cd /var/db/pkg && ls | grep scriptaculous) > conf/packages
-(cd /var/db/pkg && ls | grep domtt) > conf/packages
+#(cd /var/db/pkg && ls | grep scriptaculous) > conf/packages
+#(cd /var/db/pkg && ls | grep domtt) > conf/packages
 
 fixup_wrap
 

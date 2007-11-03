@@ -90,8 +90,8 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
 (cd /var/db/pkg && ls | grep cpdup) >> conf/packages
 (cd /var/db/pkg && ls | grep rrdtool) >> conf/packages
-(cd /var/db/pkg && ls | grep domtt) >> conf/packages
-(cd /var/db/pkg && ls | grep scriptaculous) >> conf/packages
+#(cd /var/db/pkg && ls | grep domtt) >> conf/packages
+#(cd /var/db/pkg && ls | grep scriptaculous) >> conf/packages
 set -e
 
 # Invoke FreeSBIE2 toolchain
