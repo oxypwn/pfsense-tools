@@ -65,6 +65,7 @@ ui_nav_control = {
 	["*/load_kernel_modules"] = "ignore", 		 			-- do not ask about loading kernel modules
 	["*/pit/configure_console"] = "ignore",   	 			-- do not ask about console
 	["*/pit/configure_network"] = "ignore",   	 			-- do not ask about network
+	["*/*netboot*"] = "ignore",						-- ignore netboot installation services
 	["*/install/select_packages"] = "ignore", 	 			-- do not do the "Select Packages" step on install
 	["*/install/confirm_install_os"] = "ignore",			-- no need to confirm os install
 	["*/install/warn_omitted_subpartitions"] = "ignore",	-- warn that /tmp /var and friends are being ommited
