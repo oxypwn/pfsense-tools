@@ -37,6 +37,8 @@ build_all_kernels() {
 	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
+	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
 	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
