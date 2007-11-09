@@ -71,7 +71,8 @@ CONFIGURE_ARGS=	--with-config-file-path=${LOCALBASE}/lib \
 		--enable-simplexml=shared \
 		--enable-tokenizer=shared \
 		--enable-ctype=shared \
-		--program-prefix=""
+		--program-prefix="" \
+		--with-readline
 
 USE_GNOME=	libxml2
 
