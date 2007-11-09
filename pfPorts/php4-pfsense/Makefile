@@ -40,7 +40,6 @@ CONFIGURE_ARGS+=--without-mysql \
 		--with-xml \
 		--with-radius \
 		--with-curl-dir=/usr/local \
-		--with-ldap=shared,/usr/local \
 		--enable-xml \
 		--enable-session \
 		--enable-pcre \
@@ -49,7 +48,11 @@ CONFIGURE_ARGS+=--without-mysql \
 		--enable-pcntl \
 		--enable-fastcgi \
 		--enable-force-cgi-redirect \
-		--with-config-file-path=/usr/local/lib
+		--with-config-file-path=/usr/local/lib \
+		--with-readline
+
+# Figure this one out later.
+#--with-ldap=shared,/usr/local \
 
 .if !defined(PKGNAMEPREFIX) && !defined(PKGNAMESUFFIX)
 PHP_SAPI=	full
