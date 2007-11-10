@@ -20,4 +20,3 @@
 ~sys/sys~socketvar.h.diff~
 ~sys/i386/i386/~geode.c-error-led.diff~
 ~sys/kern~kern_fork.c.diff~
-~sys/dev/usb~ehci_pci.c.diff~
