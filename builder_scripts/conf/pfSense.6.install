@@ -399,7 +399,7 @@ device          speaker
 
 options         DEVICE_POLLING
 
-options         ZERO_COPY_SOCKETS
+#options         ZERO_COPY_SOCKETS
 
 #device         natpt
 
