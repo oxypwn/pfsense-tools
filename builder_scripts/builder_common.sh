@@ -305,7 +305,7 @@ populate_extra() {
 	fi
 	
 #	# Test for pfSense_version & PFSENSETAG on 7.X & RELENG_7
-#	if [ $pfSense_version = "7" && PFSENSETAG = "RELENG_7" ]; then
+#	if [ $pfSense_version = "7" && PFSENSETAG = "-RELENG_7" ]; then
 #	# Extract FreeBSD 7.x custom overlay if it's defined as RELENG_7.
 #        if [ ! -z "${7_HEAD_custom_overlay:-}" ]; then
 #                echo -n "FreeBSD 7.x HEAD Custom overlay defined - "

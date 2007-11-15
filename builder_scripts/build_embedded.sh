@@ -113,7 +113,7 @@ if [ $pfSense_version = "5" ]; then
         CONFSIZE=${CONFSIZE:-"4096"}
 fi
 
-if [ $PFSENSETAG = "HEAD" ]; then
+if [ $PFSENSETAG = "RELENG_7" ]; then
 	# 128 megs
 	unset ROOTSIZE
 	unset CONFSIZE

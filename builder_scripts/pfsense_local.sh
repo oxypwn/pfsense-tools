@@ -30,7 +30,7 @@ export PFSENSEISODIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
 # pfSense cvs tag to build
 export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
-#export PFSENSETAG=${PFSENSETAG:-HEAD}
+#export PFSENSETAG=${PFSENSETAG:-RELENG_7}
 
 # FreeSBIE 2 toolkit path
 export FREESBIE_PATH=${FREESBIE_PATH:-/home/pfsense/freesbie2}
