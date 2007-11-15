@@ -72,7 +72,7 @@ build_all_kernels() {
 
 recompile_pfPorts() {
 	if [ "$pfSense_version" = "7" ]; then
-		if [ "$PFSENSETAG" = "RELENG_7" ]; then
+		if [ "$PFSENSETAG" = "RELENG_1" ]; then
 			if [ -f /etc/make.conf ]; then
 				mv /etc/make.conf /tmp/
 			fi
@@ -92,7 +92,7 @@ recompile_pfPorts() {
 	        rm /home/pfsense/tools/pfPorts/isc-dhcp3-server/files/patch-server::dhcpd.c
 	        export FORCE_PKG_REGISTER=yo
 			echo "===> Compiling pfPorts..."
-			echo "===> Setting pfPorts to RELENG_7 pfPorts..."
+			echo "===> Setting pfPorts to RELENG_1 pfPorts..."
 			for pfSPORT in $INSTALL_PORTS_HEAD; do
                 echo "===> Build Process for Compiling pfPorts ..."
                 echo > /etc/make.conf
@@ -107,7 +107,7 @@ recompile_pfPorts() {
             (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo $COMPILE_STATIC)
             echo "===> Installing new port..."
             (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
-        done # RELENG_7 Tag Check
+        done # RELENG_1 Tag Check
 	elif # pfSense_version check
 	if [ "$PFSENSETAG" = "RELENG_1" ]; then
 		echo "===> Setting pfPorts to RELENG_1 pfPorts..."
@@ -304,9 +304,9 @@ populate_extra() {
 		fi
 	fi
 	
-#	# Test for pfSense_version & PFSENSETAG on 7.X & RELENG_7
-#	if [ $pfSense_version = "7" && PFSENSETAG = "-RELENG_7" ]; then
-#	# Extract FreeBSD 7.x custom overlay if it's defined as RELENG_7.
+#	# Test for pfSense_version & PFSENSETAG on 7.X & RELENG_1
+#	if [ $pfSense_version = "7" && PFSENSETAG = "-RELENG_1" ]; then
+#	# Extract FreeBSD 7.x custom overlay if it's defined as RELENG_1.
 #        if [ ! -z "${7_HEAD_custom_overlay:-}" ]; then
 #                echo -n "FreeBSD 7.x HEAD Custom overlay defined - "
 #                if [ -d $7_HEAD_custom_overlay ]; then
