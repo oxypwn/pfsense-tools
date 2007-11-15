@@ -66,13 +66,6 @@ return {
 		-- turn on serial console
 		cmds:add("echo -D >> /mnt/boot.config")
 		cmds:add("echo console=\"comconsole\" >> /mnt/boot/loader.conf")
-		cmds:add("echo \"serial --unit=0 --speed=9600\" > /mnt/boot/grub/menu.lst")
-		cmds:add("echo \"terminal serial\" >> /mnt/boot/grub/menu.lst")
-		cmds:add("echo \"default=0\" >> /mnt/boot/grub/menu.lst")
-		cmds:add("echo \"timeout=5\" >> /mnt/boot/grub/menu.lst")
-		cmds:add("echo \"title pfSense\" >> /mnt/boot/grub/menu.lst")
-		cmds:add("echo \"       root (hd0,0,a)\" >> /mnt/boot/grub/menu.lst")
-		cmds:add("echo \"       kernel /boot/loader\" >> /mnt/boot/grub/menu.lst")
 		cmds:execute()
 	end
 
