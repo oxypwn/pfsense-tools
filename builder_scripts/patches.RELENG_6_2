@@ -22,3 +22,7 @@
 ~sys/kern~kern_fork.c.diff~
 ~sys/i386/i386~vm_machdep.c.diff~
 ~sys/dev/usb~ehci_pci.c.diff~
+~sys/dev/usb/~pyramid-lcd-releng_6.diff~
+~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
+~lib/libipsec/~libipsec-pfkey.c-socketvar.diff~
+
