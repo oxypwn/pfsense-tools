@@ -1,0 +1,20 @@
+--- uftdi.c.orig	Thu Nov 15 19:45:15 2007
++++ uftdi.c	Fri Nov 16 23:31:08 2007
+@@ -163,7 +163,8 @@
+ 	     uaa->product == USB_PRODUCT_FTDI_MX2_3 ||
+ 	     uaa->product == USB_PRODUCT_FTDI_MX4_5 ||
+ 	     uaa->product == USB_PRODUCT_FTDI_LK202 ||
+-	     uaa->product == USB_PRODUCT_FTDI_LK204))
++	     uaa->product == USB_PRODUCT_FTDI_LK204 ||
++	     uaa->product == USB_PRODUCT_FTDI_KBS))
+ 		return (UMATCH_VENDOR_PRODUCT);
+ 	if (uaa->vendor == USB_VENDOR_SIIG2 &&
+ 	    (uaa->product == USB_PRODUCT_SIIG2_US2308))
+@@ -243,6 +244,7 @@
+ 		case USB_PRODUCT_FTDI_MX4_5:
+ 		case USB_PRODUCT_FTDI_LK202:
+ 		case USB_PRODUCT_FTDI_LK204:
++		case USB_PRODUCT_FTDI_KBS:
+ 			sc->sc_type = UFTDI_TYPE_8U232AM;
+ 			sc->sc_hdrlen = 0;
+ 			break;

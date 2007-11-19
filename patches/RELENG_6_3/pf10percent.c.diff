@@ -1,0 +1,107 @@
+--- pf.c.old	Mon Jun  4 00:09:31 2007
++++ pf.c	Mon Jun  4 02:15:24 2007
+@@ -3171,20 +3171,30 @@
+ 		if (((r->rule_flag & PFRULE_RETURNRST) ||
+ 		    (r->rule_flag & PFRULE_RETURN)) &&
+ 		    !(th->th_flags & TH_RST)) {
+-			u_int32_t ack = ntohl(th->th_seq) + pd->p_len;
++                       u_int32_t        ack = ntohl(th->th_seq) + pd->p_len;
++                       struct ip       *h = mtod(m, struct ip *);
++
++                       if (pf_check_proto_cksum(m, off,
++                           ntohs(h->ip_len) - off, IPPROTO_TCP, AF_INET))
++                               REASON_SET(&reason, PFRES_PROTCKSUM);
++                       else {
++                               if (th->th_flags & TH_SYN)
++                                       ack++;
++                               if (th->th_flags & TH_FIN)
++                                       ack++;
+ 
+-			if (th->th_flags & TH_SYN)
+-				ack++;
+-			if (th->th_flags & TH_FIN)
+-				ack++;
+ #ifdef __FreeBSD__
+ 			pf_send_tcp(m, r, af, pd->dst,
+ #else
+ 			pf_send_tcp(r, af, pd->dst,
+ #endif
+-			    pd->src, th->th_dport, th->th_sport,
+-			    ntohl(th->th_ack), ack, TH_RST|TH_ACK, 0, 0,
++
++                                   pd->src, th->th_dport, th->th_sport,
++                                   ntohl(th->th_ack), ack, TH_RST|TH_ACK, 0, 0,
+ 			    r->return_ttl, 1, pd->eh, kif->pfik_ifp);
++
++}
++
+ 		} else if ((af == AF_INET) && r->return_icmp)
+ 			pf_send_icmp(m, r->return_icmp >> 8,
+ 			    r->return_icmp & 255, af, r);
+@@ -6507,11 +6517,6 @@
+ 			log = action != PF_PASS;
+ 			goto done;
+ 		}
+-		if (dir == PF_IN && pf_check_proto_cksum(m, off,
+-		    ntohs(h->ip_len) - off, IPPROTO_TCP, AF_INET)) {
+-			action = PF_DROP;
+-			goto done;
+-		}
+ 		pd.p_len = pd.tot_len - off - (th.th_off << 2);
+ 		if ((th.th_flags & TH_ACK) && pd.p_len == 0)
+ 			pqid = 1;
+@@ -6586,11 +6591,6 @@
+ 			log = action != PF_PASS;
+ 			goto done;
+ 		}
+-		if (dir == PF_IN && pf_check_proto_cksum(m, off,
+-		    ntohs(h->ip_len) - off, IPPROTO_ICMP, AF_INET)) {
+-			action = PF_DROP;
+-			goto done;
+-		}
+ 		action = pf_test_state_icmp(&s, dir, kif, m, off, h, &pd,
+ 		    &reason);
+ 		if (action == PF_PASS) {
+@@ -6944,13 +6944,6 @@
+ 			log = action != PF_PASS;
+ 			goto done;
+ 		}
+-		if (dir == PF_IN && pf_check_proto_cksum(m, off,
+-		    ntohs(h->ip6_plen) - (off - sizeof(struct ip6_hdr)),
+-		    IPPROTO_TCP, AF_INET6)) {
+-			action = PF_DROP;
+-			REASON_SET(&reason, PFRES_PROTCKSUM);
+-			goto done;
+-		}
+ 		pd.p_len = pd.tot_len - off - (th.th_off << 2);
+ 		action = pf_normalize_tcp(dir, kif, m, 0, off, h, &pd);
+ 		if (action == PF_DROP)
+@@ -6984,13 +6977,6 @@
+ 			log = action != PF_PASS;
+ 			goto done;
+ 		}
+-		if (dir == PF_IN && uh.uh_sum && pf_check_proto_cksum(m,
+-		    off, ntohs(h->ip6_plen) - (off - sizeof(struct ip6_hdr)),
+-		    IPPROTO_UDP, AF_INET6)) {
+-			action = PF_DROP;
+-			REASON_SET(&reason, PFRES_PROTCKSUM);
+-			goto done;
+-		}
+ 		if (uh.uh_dport == 0 ||
+ 		    ntohs(uh.uh_ulen) > m->m_pkthdr.len - off ||
+ 		    ntohs(uh.uh_ulen) < sizeof(struct udphdr)) {
+@@ -7023,13 +7009,6 @@
+ 		if (!pf_pull_hdr(m, off, &ih, sizeof(ih),
+ 		    &action, &reason, AF_INET6)) {
+ 			log = action != PF_PASS;
+-			goto done;
+-		}
+-		if (dir == PF_IN && pf_check_proto_cksum(m, off,
+-		    ntohs(h->ip6_plen) - (off - sizeof(struct ip6_hdr)),
+-		    IPPROTO_ICMPV6, AF_INET6)) {
+-			action = PF_DROP;
+-			REASON_SET(&reason, PFRES_PROTCKSUM);
+ 			goto done;
+ 		}
+ 		action = pf_test_state_icmp(&s, dir, kif,
+

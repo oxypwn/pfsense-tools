@@ -1,0 +1,22 @@
+Index: pf_ioctl.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.20.2.2
+diff -u -r1.20.2.2 pf_ioctl.c
+--- pf_ioctl.c	6 Mar 2006 16:10:18 -0000	1.20.2.2
++++ pf_ioctl.c	21 Jul 2006 04:21:30 -0000
+@@ -1463,14 +1463,10 @@
+ 			break;
+ 		}
+ 		if (pr->ticket != ruleset->rules[rs_num].inactive.ticket) {
+-			printf("ticket: %d != [%d]%d\n", pr->ticket,
+-			    rs_num, ruleset->rules[rs_num].inactive.ticket);
+ 			error = EBUSY;
+ 			break;
+ 		}
+ 		if (pr->pool_ticket != ticket_pabuf) {
+-			printf("pool_ticket: %d != %d\n", pr->pool_ticket,
+-			    ticket_pabuf);
+ 			error = EBUSY;
+ 			break;
+ 		}
