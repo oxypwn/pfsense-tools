@@ -1,0 +1,18 @@
+Index: pf.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.34.2.4
+diff -u -r1.34.2.4 pf.c
+--- pf.c	19 Sep 2006 15:45:20 -0000	1.34.2.4
++++ pf.c	20 Nov 2007 18:04:17 -0000
+@@ -4634,8 +4634,8 @@
+ 		if (src->state >= TCPS_FIN_WAIT_2 &&
+ 		    dst->state >= TCPS_FIN_WAIT_2)
+ 			(*state)->timeout = PFTM_TCP_CLOSED;
+-		else if (src->state >= TCPS_FIN_WAIT_2 ||
+-		    dst->state >= TCPS_FIN_WAIT_2)
++		else if (src->state >= TCPS_CLOSING &&
++   		    dst->state >= TCPS_CLOSING)
+ 			(*state)->timeout = PFTM_TCP_FIN_WAIT;
+ 		else if (src->state < TCPS_ESTABLISHED ||
+ 		    dst->state < TCPS_ESTABLISHED)
