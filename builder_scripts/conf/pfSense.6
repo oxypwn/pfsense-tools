@@ -252,8 +252,9 @@ device		uhci		# UHCI PCI->USB interface
 device		ohci		# OHCI PCI->USB interface
 device		ehci		# EHCI PCI->USB interface (USB 2.0)
 device		usb		# USB Bus (required)
-#device		udbp		# USB Double Bulk Pipe devices
-device		ugen		# Generic
+device		udbp		# USB Double Bulk Pipe devices
+#device		ugen		# Generic
+device		uftdi		# LCD driver
 device		uhid		# "Human Interface Devices"
 device		ukbd		# Keyboard
 device		ulpt		# Printer
@@ -262,6 +263,12 @@ device		umass		# Disks/Mass storage - Requires scbus and da
 device		ural		# Ralink Technology RT2500USB wireless NICs
 #device		urio		# Diamond Rio 500 MP3 player
 #device		uscanner	# Scanners
+# 3G devices
+device		ubsa		# USB serial
+device		ucom		# USB serial
+device		uplcom		# USB serial
+
+
 # USB Ethernet, requires miibus
 device		aue		# ADMtek USB Ethernet
 device		axe		# ASIX Electronics USB Ethernet
@@ -347,12 +354,6 @@ options         NETGRAPH_TEE
 options         NETGRAPH_TTY
 options         NETGRAPH_UI
 options         NETGRAPH_VJC
-
-device 			ubsa
-
-# 3G devices
-device 			ucom
-device 			uplcom
 
 options         FAST_IPSEC
 #options         IPSEC_NAT_T
