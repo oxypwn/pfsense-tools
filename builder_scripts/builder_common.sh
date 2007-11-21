@@ -9,6 +9,13 @@ fixup_libmap() {
 	
 }
 
+check_for_clog() {
+	if [ ! -d /usr/src/usr.sbin/clog ]; then
+		echo "Could not find /usr/src/usr.sbin/clog.  Run cvsup_current.sh first!"
+		exit
+	fi
+}
+
 # This routine builds all kernels during the 
 # build_iso.sh routines.
 build_all_kernels() {
