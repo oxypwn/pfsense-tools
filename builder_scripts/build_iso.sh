@@ -77,8 +77,31 @@ fi
 # Build if needed and install world and kernel
 make_world_kernel
 
+# Check for freesbie builder issues
+if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
+	echo "Something has gone wrong!  Press ENTER to view log file."
+	read ans
+	more /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_buildworld
+	exit
+fi
+
+if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
+	echo "Something has gone wrong!  Press ENTER to view log file."
+	read ans
+	more /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld
+	exit
+fi
+
 # Build SMP, Embedded (wrap) and Developers edition kernels
 build_all_kernels
+
+# Check for freesbie builder issues
+if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
+	echo "Something has gone wrong!  Press ENTER to view log file."
+	read ans
+	more /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_kernelbuild 
+	exit
+fi
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
