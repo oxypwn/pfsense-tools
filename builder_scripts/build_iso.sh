@@ -70,12 +70,12 @@ if [ $pfSense_version = "7" ]; then
 	recompile_pfPorts
 fi
 
+# Build if needed and install world and kernel
+make_world_kernel
+
 if [ $pfSense_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7.install" 
 fi
-
-# Build if needed and install world and kernel
-make_world_kernel
 
 # Check for freesbie builder issues
 if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
