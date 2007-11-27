@@ -180,7 +180,6 @@
 ./usr/bin/gzexe
 ./usr/bin/hd
 ./usr/bin/hesinfo
-./usr/bin/hexdump
 ./usr/bin/ident
 ./usr/bin/indent
 ./usr/bin/info
