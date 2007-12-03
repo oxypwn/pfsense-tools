@@ -151,6 +151,10 @@ populate_extra() {
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
+	if [ -f /lib/pam_unix.so ]; then
+		install -s /lib/pam_unix.so ${CVS_CO_DIR}/lib/
+	fi
+	
 	if [ -f /usr/local/lib/libcurl.so.3 ]; then
 		echo "Installing /usr/local/lib/libcurl.so.3"
 		install -s /usr/local/lib/libcurl.so.3 ${CVS_CO_DIR}/usr/local/lib/
