@@ -208,7 +208,7 @@ else
 	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 fi
 
-if [ -d /usr/src ]; then
+if [ ! -d /usr/src ]; then
 	mkdir /usr/src
 fi
 
