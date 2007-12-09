@@ -1,34 +1,7 @@
-Index: contrib/pf/pflogd/pidfile.c
-===================================================================
-RCS file: /home/ncvs/src/contrib/pf/pflogd/pidfile.c,v
-retrieving revision 1.6
-diff -u -r1.6 pidfile.c
---- contrib/pf/pflogd/pidfile.c	3 Jul 2007 14:08:49 -0000	1.6
-+++ contrib/pf/pflogd/pidfile.c	9 Dec 2007 02:13:42 -0000
-@@ -1,4 +1,4 @@
--/*	$FreeBSD: src/contrib/pf/pflogd/pidfile.c,v 1.6 2007/07/03 14:08:49 mlaier Exp $ */
-+/*	$FreeBSD: src/contrib/pf/pflogd/pidfile.c,v 1.4 2005/05/03 16:55:20 mlaier Exp $ */
- /*	$OpenBSD: pidfile.c,v 1.5 2002/05/26 09:29:02 deraadt Exp $	*/
- /*	$NetBSD: pidfile.c,v 1.4 2001/02/19 22:43:42 cgd Exp $	*/
- 
-Index: contrib/pf/pflogd/pidfile.h
-===================================================================
-RCS file: /home/ncvs/src/contrib/pf/pflogd/pidfile.h,v
-retrieving revision 1.3
-diff -u -r1.3 pidfile.h
---- contrib/pf/pflogd/pidfile.h	3 Jul 2007 14:08:49 -0000	1.3
-+++ contrib/pf/pflogd/pidfile.h	9 Dec 2007 02:13:42 -0000
-@@ -1,3 +1 @@
--/* $FreeBSD: src/contrib/pf/pflogd/pidfile.h,v 1.3 2007/07/03 14:08:49 mlaier Exp $ */
--
- int pidfile(const char *);
-Index: sbin/ifconfig/ifcarp.c
-===================================================================
-RCS file: /home/ncvs/src/sbin/ifconfig/ifcarp.c,v
-retrieving revision 1.2
-diff -u -r1.2 ifcarp.c
---- sbin/ifconfig/ifcarp.c	22 Feb 2005 14:07:47 -0000	1.2
-+++ sbin/ifconfig/ifcarp.c	9 Dec 2007 02:13:42 -0000
+diff --git a/sbin/ifconfig/ifcarp.c b/sbin/ifconfig/ifcarp.c
+index 9c961b7..82dbd50 100644
+--- a/sbin/ifconfig/ifcarp.c
++++ b/sbin/ifconfig/ifcarp.c
 @@ -52,13 +52,7 @@
  
  static const char *carp_states[] = { CARP_STATES };
@@ -44,7 +17,7 @@ diff -u -r1.2 ifcarp.c
  carp_status(int s)
  {
  	const char *state;
-@@ -76,17 +70,17 @@
+@@ -76,17 +70,17 @@ carp_status(int s)
  		else
  			state = carp_states[carpr.carpr_state];
  
@@ -67,7 +40,7 @@ diff -u -r1.2 ifcarp.c
  {
  	struct carpreq carpr;
  
-@@ -105,8 +99,8 @@
+@@ -105,8 +99,8 @@ setcarp_passwd(const char *val, int d, int s, const struct afswtch *afp)
  	return;
  }
  
@@ -78,7 +51,7 @@ diff -u -r1.2 ifcarp.c
  {
  	int vhid;
  	struct carpreq carpr;
-@@ -130,8 +124,8 @@
+@@ -130,8 +124,8 @@ setcarp_vhid(const char *val, int d, int s, const struct afswtch *afp)
  	return;
  }
  
@@ -89,7 +62,7 @@ diff -u -r1.2 ifcarp.c
  {
  	int advskew;
  	struct carpreq carpr;
-@@ -152,8 +146,8 @@
+@@ -152,8 +146,8 @@ setcarp_advskew(const char *val, int d, int s, const struct afswtch *afp)
  	return;
  }
  
@@ -100,7 +73,7 @@ diff -u -r1.2 ifcarp.c
  {
  	int advbase;
  	struct carpreq carpr;
-@@ -174,11 +168,51 @@
+@@ -174,11 +168,51 @@ setcarp_advbase(const char *val, int d, int s, const struct afswtch *afp)
  	return;
  }
  
@@ -152,14 +125,21 @@ diff -u -r1.2 ifcarp.c
  };
  static struct afswtch af_carp = {
  	.af_name	= "af_carp",
-Index: sys/net/ethernet.h
-===================================================================
-RCS file: /home/ncvs/src/sys/net/ethernet.h,v
-retrieving revision 1.32.2.1
-diff -u -r1.32.2.1 ethernet.h
---- sys/net/ethernet.h	28 Oct 2007 16:24:16 -0000	1.32.2.1
-+++ sys/net/ethernet.h	9 Dec 2007 02:13:42 -0000
-@@ -380,6 +380,7 @@
+diff --git a/sys/amd64/conf/CARP b/sys/amd64/conf/CARP
+new file mode 100644
+index 0000000..710a970
+--- /dev/null
++++ b/sys/amd64/conf/CARP
+@@ -0,0 +1,4 @@
++include 	GENERIC
++ident 		CARP
++
++device		carp
+diff --git a/sys/net/ethernet.h b/sys/net/ethernet.h
+index 7d45ce3..e7a3450 100644
+--- a/sys/net/ethernet.h
++++ b/sys/net/ethernet.h
+@@ -380,6 +380,7 @@ extern	void ether_demux(struct ifnet *, struct mbuf *);
  extern	void ether_ifattach(struct ifnet *, const u_int8_t *);
  extern	void ether_ifdetach(struct ifnet *);
  extern	int  ether_ioctl(struct ifnet *, u_long, caddr_t);
@@ -167,14 +147,11 @@ diff -u -r1.32.2.1 ethernet.h
  extern	int  ether_output(struct ifnet *,
  		   struct mbuf *, struct sockaddr *, struct rtentry *);
  extern	int  ether_output_frame(struct ifnet *, struct mbuf *);
-Index: sys/net/if.c
-===================================================================
-RCS file: /home/ncvs/src/sys/net/if.c,v
-retrieving revision 1.273
-diff -u -r1.273 if.c
---- sys/net/if.c	27 Jul 2007 11:59:57 -0000	1.273
-+++ sys/net/if.c	9 Dec 2007 02:13:42 -0000
-@@ -1309,8 +1309,7 @@
+diff --git a/sys/net/if.c b/sys/net/if.c
+index 9db8935..9178a3d 100644
+--- a/sys/net/if.c
++++ b/sys/net/if.c
+@@ -1309,8 +1309,7 @@ if_unroute(struct ifnet *ifp, int flag, int fam)
  			pfctlinput(PRC_IFDOWN, ifa->ifa_addr);
  	if_qflush(&ifp->if_snd);
  #ifdef DEV_CARP
@@ -184,7 +161,7 @@ diff -u -r1.273 if.c
  #endif
  	rt_ifmsg(ifp);
  }
-@@ -1333,8 +1332,7 @@
+@@ -1333,8 +1332,7 @@ if_route(struct ifnet *ifp, int flag, int fam)
  		if (fam == PF_UNSPEC || (fam == ifa->ifa_addr->sa_family))
  			pfctlinput(PRC_IFUP, ifa->ifa_addr);
  #ifdef DEV_CARP
@@ -194,7 +171,7 @@ diff -u -r1.273 if.c
  #endif
  	rt_ifmsg(ifp);
  #ifdef INET6
-@@ -1386,8 +1384,7 @@
+@@ -1386,8 +1384,7 @@ do_link_state_change(void *arg, int pending)
  	    IFP2AC(ifp)->ac_netgraph != NULL)
  		(*ng_ether_link_state_p)(ifp, link_state);
  #ifdef DEV_CARP
@@ -204,14 +181,11 @@ diff -u -r1.273 if.c
  #endif
  	if (ifp->if_bridge) {
  		KASSERT(bstp_linkstate_p != NULL,("if_bridge bstp not loaded!"));
-Index: sys/net/if_ethersubr.c
-===================================================================
-RCS file: /home/ncvs/src/sys/net/if_ethersubr.c,v
-retrieving revision 1.236.2.1
-diff -u -r1.236.2.1 if_ethersubr.c
---- sys/net/if_ethersubr.c	28 Oct 2007 16:24:16 -0000	1.236.2.1
-+++ sys/net/if_ethersubr.c	9 Dec 2007 02:13:42 -0000
-@@ -153,6 +153,9 @@
+diff --git a/sys/net/if_ethersubr.c b/sys/net/if_ethersubr.c
+index 7023e9c..170bcc7 100644
+--- a/sys/net/if_ethersubr.c
++++ b/sys/net/if_ethersubr.c
+@@ -153,6 +153,9 @@ ether_output(struct ifnet *ifp, struct mbuf *m,
  	u_char esrc[ETHER_ADDR_LEN], edst[ETHER_ADDR_LEN];
  	struct ether_header *eh;
  	struct pf_mtag *t;
@@ -221,7 +195,7 @@ diff -u -r1.236.2.1 if_ethersubr.c
  	int loop_copy = 1;
  	int hlen;	/* link layer header length */
  
-@@ -162,6 +165,19 @@
+@@ -162,6 +165,19 @@ ether_output(struct ifnet *ifp, struct mbuf *m,
  		senderr(error);
  #endif
  
@@ -241,7 +215,7 @@ diff -u -r1.236.2.1 if_ethersubr.c
  	if (ifp->if_flags & IFF_MONITOR)
  		senderr(ENETDOWN);
  	if (!((ifp->if_flags & IFF_UP) &&
-@@ -172,7 +188,11 @@
+@@ -172,7 +188,11 @@ ether_output(struct ifnet *ifp, struct mbuf *m,
  	switch (dst->sa_family) {
  #ifdef INET
  	case AF_INET:
@@ -253,7 +227,7 @@ diff -u -r1.236.2.1 if_ethersubr.c
  		if (error)
  			return (error == EWOULDBLOCK ? 0 : error);
  		type = htons(ETHERTYPE_IP);
-@@ -293,6 +313,14 @@
+@@ -293,6 +313,14 @@ ether_output(struct ifnet *ifp, struct mbuf *m,
  		(void)memcpy(eh->ether_shost, IF_LLADDR(ifp),
  			sizeof(eh->ether_shost));
  
@@ -268,7 +242,7 @@ diff -u -r1.236.2.1 if_ethersubr.c
  	/*
  	 * If a simplex interface, and the packet is being sent to our
  	 * Ethernet address or a broadcast address, loopback a copy.
-@@ -351,12 +379,6 @@
+@@ -351,12 +379,6 @@ ether_output(struct ifnet *ifp, struct mbuf *m,
  		return (error);
  	}
  
@@ -281,7 +255,7 @@ diff -u -r1.236.2.1 if_ethersubr.c
  	/* Handle ng_ether(4) processing, if any */
  	if (IFP2AC(ifp)->ac_netgraph != NULL) {
  		KASSERT(ng_ether_output_p != NULL,
-@@ -506,7 +528,7 @@
+@@ -506,7 +528,7 @@ ether_ipfw_chk(struct mbuf **m0, struct ifnet *dst,
   * Process a received Ethernet packet; the packet is in the
   * mbuf chain m with the ethernet header at the front.
   */
@@ -290,7 +264,7 @@ diff -u -r1.236.2.1 if_ethersubr.c
  ether_input(struct ifnet *ifp, struct mbuf *m)
  {
  	struct ether_header *eh;
-@@ -658,19 +680,15 @@
+@@ -658,19 +680,15 @@ ether_input(struct ifnet *ifp, struct mbuf *m)
  	}
  
  #ifdef DEV_CARP
@@ -319,14 +293,11 @@ diff -u -r1.236.2.1 if_ethersubr.c
  #endif
  	{
  		/*
-Index: sys/net/if_loop.c
-===================================================================
-RCS file: /home/ncvs/src/sys/net/if_loop.c,v
-retrieving revision 1.112
-diff -u -r1.112 if_loop.c
---- sys/net/if_loop.c	9 Feb 2007 00:09:35 -0000	1.112
-+++ sys/net/if_loop.c	9 Dec 2007 02:13:42 -0000
-@@ -99,8 +99,6 @@
+diff --git a/sys/net/if_loop.c b/sys/net/if_loop.c
+index bd15bdf..1706f58 100644
+--- a/sys/net/if_loop.c
++++ b/sys/net/if_loop.c
+@@ -98,8 +98,6 @@ struct lo_softc {
  
  int		loioctl(struct ifnet *, u_long, caddr_t);
  static void	lortrequest(int, struct rtentry *, struct rt_addrinfo *);
@@ -335,14 +306,11 @@ diff -u -r1.112 if_loop.c
  static int	lo_clone_create(struct if_clone *, int, caddr_t);
  static void	lo_clone_destroy(struct ifnet *);
  
-Index: sys/net/if_var.h
-===================================================================
-RCS file: /home/ncvs/src/sys/net/if_var.h,v
-retrieving revision 1.115.2.1
-diff -u -r1.115.2.1 if_var.h
---- sys/net/if_var.h	7 Dec 2007 05:46:08 -0000	1.115.2.1
-+++ sys/net/if_var.h	9 Dec 2007 02:13:42 -0000
-@@ -131,7 +131,12 @@
+diff --git a/sys/net/if_var.h b/sys/net/if_var.h
+index 44a297e..b0da599 100644
+--- a/sys/net/if_var.h
++++ b/sys/net/if_var.h
+@@ -131,7 +131,12 @@ struct ifnet {
  		 */
  	struct	knlist if_klist;	/* events attached to this if */
  	int	if_pcount;		/* number of promiscuous listeners */
@@ -356,7 +324,7 @@ diff -u -r1.115.2.1 if_var.h
  	struct	bpf_if *if_bpf;		/* packet filter structure */
  	u_short	if_index;		/* numeric abbreviation for this if  */
  	short	if_timer;		/* time 'til if_watchdog called */
-@@ -692,6 +697,8 @@
+@@ -692,6 +697,8 @@ struct	ifaddr *ifa_ifwithroute(int, struct sockaddr *, struct sockaddr *);
  struct	ifaddr *ifaof_ifpforaddr(struct sockaddr *, struct ifnet *);
  
  int	if_simloop(struct ifnet *ifp, struct mbuf *m, int af, int hlen);
@@ -365,14 +333,11 @@ diff -u -r1.115.2.1 if_var.h
  
  typedef	void *if_com_alloc_t(u_char type, struct ifnet *ifp);
  typedef	void if_com_free_t(void *com, u_char type);
-Index: sys/netinet/if_ether.c
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet/if_ether.c,v
-retrieving revision 1.162
-diff -u -r1.162 if_ether.c
---- sys/netinet/if_ether.c	7 Oct 2007 20:44:22 -0000	1.162
-+++ sys/netinet/if_ether.c	9 Dec 2007 02:13:42 -0000
-@@ -110,7 +110,6 @@
+diff --git a/sys/netinet/if_ether.c b/sys/netinet/if_ether.c
+index 13f2c06..b4f667d 100644
+--- a/sys/netinet/if_ether.c
++++ b/sys/netinet/if_ether.c
+@@ -110,7 +110,6 @@ SYSCTL_INT(_net_link_ether_inet, OID_AUTO, proxyall, CTLFLAG_RW,
  	   &arp_proxyall, 0, "Enable proxy ARP for all suitable requests");
  
  static void	arp_init(void);
@@ -380,7 +345,7 @@ diff -u -r1.162 if_ether.c
  static void	arprequest(struct ifnet *,
  			struct in_addr *, struct in_addr *, u_char *);
  static void	arpintr(struct mbuf *);
-@@ -144,7 +143,7 @@
+@@ -144,7 +143,7 @@ arptimer(void *arg)
  /*
   * Parallel to llc_rtrequest.
   */
@@ -389,7 +354,17 @@ diff -u -r1.162 if_ether.c
  arp_rtrequest(int req, struct rtentry *rt, struct rt_addrinfo *info)
  {
  	struct sockaddr *gate;
-@@ -608,7 +607,8 @@
+@@ -575,9 +574,6 @@ in_arpinput(struct mbuf *m)
+ 	int op, rif_len;
+ 	int req_len;
+ 	int bridged = 0;
+-#ifdef DEV_CARP
+-	int carp_match = 0;
+-#endif
+ 
+ 	if (ifp->if_bridge)
+ 		bridged = 1;
+@@ -608,12 +604,11 @@ in_arpinput(struct mbuf *m)
  		    itaddr.s_addr == ia->ia_addr.sin_addr.s_addr)
  			goto match;
  #ifdef DEV_CARP
@@ -397,24 +372,30 @@ diff -u -r1.162 if_ether.c
 +		if (ifp->if_type != IFT_CARP && ifp->if_carp != NULL &&
 +		    ia->ia_ifp->if_type == IFT_CARP &&
  		    carp_iamatch(ifp->if_carp, ia, &isaddr, &enaddr) &&
- 		    itaddr.s_addr == ia->ia_addr.sin_addr.s_addr) {
- 			carp_match = 1;
-@@ -679,6 +679,7 @@
- 	    && (ifp->if_type != IFT_CARP || !carp_match)
+-		    itaddr.s_addr == ia->ia_addr.sin_addr.s_addr) {
+-			carp_match = 1;
++		    itaddr.s_addr == ia->ia_addr.sin_addr.s_addr)
+ 			goto match;
+-		}
+ #endif
+ 	}
+ 	LIST_FOREACH(ia, INADDR_HASH(isaddr.s_addr), ia_hash)
+@@ -676,7 +671,9 @@ match:
+ 	/* The following is not an error when doing bridging. */
+ 	if (!bridged && rt->rt_ifp != ifp
+ #ifdef DEV_CARP
+-	    && (ifp->if_type != IFT_CARP || !carp_match)
++	    && !(rt->rt_ifp->if_type == IFT_CARP &&
++	    rt->rt_ifp->if_carpdev == ifp) &&
++	    !(ifp->if_type == IFT_CARP && ifp->if_carpdev == rt->rt_ifp)
  #endif
  							) {
-+//		printf("arp: %s %d\n", ifp->if_xname, carp_match);
  		if (log_arp_wrong_iface)
- 			log(LOG_ERR, "arp: %s is on %s but got reply from %*D on %s\n",
- 			    inet_ntoa(isaddr),
-Index: sys/netinet/if_ether.h
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet/if_ether.h,v
-retrieving revision 1.32
-diff -u -r1.32 if_ether.h
---- sys/netinet/if_ether.h	22 Feb 2005 13:04:03 -0000	1.32
-+++ sys/netinet/if_ether.h	9 Dec 2007 02:13:42 -0000
-@@ -113,6 +113,7 @@
+diff --git a/sys/netinet/if_ether.h b/sys/netinet/if_ether.h
+index 9bc6b7b..8c36e02 100644
+--- a/sys/netinet/if_ether.h
++++ b/sys/netinet/if_ether.h
+@@ -113,6 +113,7 @@ int	arpresolve(struct ifnet *ifp, struct rtentry *rt,
  		struct mbuf *m, struct sockaddr *dst, u_char *desten);
  void	arp_ifinit(struct ifnet *, struct ifaddr *);
  void	arp_ifinit2(struct ifnet *, struct ifaddr *, u_char *);
@@ -422,14 +403,11 @@ diff -u -r1.32 if_ether.h
  #endif
  
  #endif
-Index: sys/netinet/in_proto.c
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet/in_proto.c,v
-retrieving revision 1.87
-diff -u -r1.87 in_proto.c
---- sys/netinet/in_proto.c	7 Oct 2007 20:44:22 -0000	1.87
-+++ sys/netinet/in_proto.c	9 Dec 2007 02:13:42 -0000
-@@ -318,7 +318,7 @@
+diff --git a/sys/netinet/in_proto.c b/sys/netinet/in_proto.c
+index 5239805..f642bb9 100644
+--- a/sys/netinet/in_proto.c
++++ b/sys/netinet/in_proto.c
+@@ -318,7 +318,7 @@ struct protosw inetsw[] = {
  	.pr_domain =		&inetdomain,
  	.pr_protocol =		IPPROTO_CARP,
  	.pr_flags =		PR_ATOMIC|PR_ADDR,
@@ -438,14 +416,11 @@ diff -u -r1.87 in_proto.c
  	.pr_output =		(pr_output_t*)rip_output,
  	.pr_ctloutput =		rip_ctloutput,
  	.pr_usrreqs =		&rip_usrreqs
-Index: sys/netinet/ip_carp.c
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ip_carp.c,v
-retrieving revision 1.52
-diff -u -r1.52 ip_carp.c
---- sys/netinet/ip_carp.c	7 Oct 2007 20:44:22 -0000	1.52
-+++ sys/netinet/ip_carp.c	9 Dec 2007 02:29:38 -0000
-@@ -92,11 +92,9 @@
+diff --git a/sys/netinet/ip_carp.c b/sys/netinet/ip_carp.c
+index c08d39f..aea3518 100644
+--- a/sys/netinet/ip_carp.c
++++ b/sys/netinet/ip_carp.c
+@@ -92,11 +92,9 @@ SYSCTL_DECL(_net_inet_carp);
  
  struct carp_softc {
  	struct ifnet	 	*sc_ifp;	/* Interface clue */
@@ -458,7 +433,7 @@ diff -u -r1.52 ip_carp.c
  	struct ip6_moptions 	 sc_im6o;
  #endif /* INET6 */
  	TAILQ_ENTRY(carp_softc)	 sc_list;
-@@ -159,7 +157,7 @@
+@@ -159,7 +157,7 @@ struct carp_if {
  	struct mtx	 vhif_mtx;
  };
  
@@ -467,7 +442,7 @@ diff -u -r1.52 ip_carp.c
  #define	SC2CIF(sc)		((struct carp_if *)(sc)->sc_carpdev->if_carp)
  
  /* lock per carp_if queue */
-@@ -190,7 +188,7 @@
+@@ -190,7 +188,7 @@ static void	carp_hmac_generate(struct carp_softc *, u_int32_t *,
  static int	carp_hmac_verify(struct carp_softc *, u_int32_t *,
  		    unsigned char *);
  static void	carp_setroute(struct carp_softc *, int);
@@ -476,7 +451,7 @@ diff -u -r1.52 ip_carp.c
  static int 	carp_clone_create(struct if_clone *, int, caddr_t);
  static void 	carp_clone_destroy(struct ifnet *);
  static void	carpdetach(struct carp_softc *, int);
-@@ -203,7 +201,7 @@
+@@ -203,7 +201,7 @@ static void	carp_send_arp(struct carp_softc *);
  static void	carp_master_down(void *);
  static void	carp_master_down_locked(struct carp_softc *);
  static int	carp_ioctl(struct ifnet *, u_long, caddr_t);
@@ -485,7 +460,7 @@ diff -u -r1.52 ip_carp.c
  		    struct rtentry *);
  static void	carp_start(struct ifnet *);
  static void	carp_setrun(struct carp_softc *, sa_family_t);
-@@ -212,13 +210,16 @@
+@@ -212,13 +210,16 @@ static int	carp_addrcount(struct carp_if *, struct in_ifaddr *, int);
  enum	{ CARP_COUNT_MASTER, CARP_COUNT_RUNNING };
  
  static void	carp_multicast_cleanup(struct carp_softc *);
@@ -502,7 +477,7 @@ diff -u -r1.52 ip_carp.c
  static int	carp_del_addr6(struct carp_softc *, struct sockaddr_in6 *);
  static void	carp_multicast6_cleanup(struct carp_softc *);
  #endif
-@@ -247,9 +248,9 @@
+@@ -247,9 +248,9 @@ carp_hmac_prepare(struct carp_softc *sc)
  #endif
  
  	if (sc->sc_carpdev)
@@ -514,7 +489,7 @@ diff -u -r1.52 ip_carp.c
  
  	/* compute ipad from key */
  	bzero(sc->sc_pad, sizeof(sc->sc_pad));
-@@ -285,8 +286,6 @@
+@@ -285,8 +286,6 @@ carp_hmac_prepare(struct carp_softc *sc)
  	for (i = 0; i < sizeof(sc->sc_pad); i++)
  		sc->sc_pad[i] ^= 0x36 ^ 0x5c;
  
@@ -523,17 +498,13 @@ diff -u -r1.52 ip_carp.c
  }
  
  static void
-@@ -334,13 +333,106 @@
+@@ -334,13 +333,106 @@ carp_setroute(struct carp_softc *sc, int cmd)
  	TAILQ_FOREACH(ifa, &SC2IFP(sc)->if_addrlist, ifa_list) {
  		if (ifa->ifa_addr->sa_family == AF_INET &&
  		    sc->sc_carpdev != NULL) {
 -			int count = carp_addrcount(
 -			    (struct carp_if *)sc->sc_carpdev->if_carp,
 -			    ifatoia(ifa), CARP_COUNT_MASTER);
--
--			if ((cmd == RTM_ADD && count == 1) ||
--			    (cmd == RTM_DELETE && count == 0))
--				rtinit(ifa, cmd, RTF_UP | RTF_HOST);
 +			int count = 0, error;
 +			struct sockaddr sa;
 +			struct rtentry *rt;
@@ -556,7 +527,10 @@ diff -u -r1.52 ip_carp.c
 +				    (cmd == RTM_DELETE && count != 0))
 +					continue;
 +			}
-+
+ 
+-			if ((cmd == RTM_ADD && count == 1) ||
+-			    (cmd == RTM_DELETE && count == 0))
+-				rtinit(ifa, cmd, RTF_UP | RTF_HOST);
 +			/* Remove the existing host route, if any */
 +			bzero(&info, sizeof(info));
 +			info.rti_info[RTAX_DST] = ifa->ifa_addr;
@@ -637,7 +611,7 @@ diff -u -r1.52 ip_carp.c
  		}
  #ifdef INET6
  		if (ifa->ifa_addr->sa_family == AF_INET6) {
-@@ -360,6 +452,7 @@
+@@ -360,6 +452,7 @@ carp_clone_create(struct if_clone *ifc, int unit, caddr_t params)
  
  	struct carp_softc *sc;
  	struct ifnet *ifp;
@@ -645,7 +619,7 @@ diff -u -r1.52 ip_carp.c
  
  	MALLOC(sc, struct carp_softc *, sizeof(*sc), M_CARP, M_WAITOK|M_ZERO);
  	ifp = SC2IFP(sc) = if_alloc(IFT_ETHER);
-@@ -391,16 +484,13 @@
+@@ -391,16 +484,13 @@ carp_clone_create(struct if_clone *ifc, int unit, caddr_t params)
  	
  	ifp->if_softc = sc;
  	if_initname(ifp, CARP_IFNAME, unit);
@@ -665,7 +639,7 @@ diff -u -r1.52 ip_carp.c
  	mtx_lock(&carp_mtx);
  	LIST_INSERT_HEAD(&carpif_list, sc, sc_next);
  	mtx_unlock(&carp_mtx);
-@@ -503,7 +593,7 @@
+@@ -503,7 +593,7 @@ carp_ifdetach(void *arg __unused, struct ifnet *ifp)
   * but it seems more efficient this way or not possible otherwise.
   */
  void
@@ -674,7 +648,7 @@ diff -u -r1.52 ip_carp.c
  {
  	struct ip *ip = mtod(m, struct ip *);
  	struct carp_header *ch;
-@@ -517,9 +607,9 @@
+@@ -517,9 +607,9 @@ carp_input(struct mbuf *m, int hlen)
  	}
  
  	/* check if received on a valid carp interface */
@@ -686,7 +660,7 @@ diff -u -r1.52 ip_carp.c
  		    "interface: %s\n",
  		    m->m_pkthdr.rcvif->if_xname);
  		m_freem(m);
-@@ -529,7 +619,7 @@
+@@ -529,7 +619,7 @@ carp_input(struct mbuf *m, int hlen)
  	/* verify that the IP TTL is 255.  */
  	if (ip->ip_ttl != CARP_DFLTTL) {
  		carpstats.carps_badttl++;
@@ -695,7 +669,7 @@ diff -u -r1.52 ip_carp.c
  		    ip->ip_ttl,
  		    m->m_pkthdr.rcvif->if_xname);
  		m_freem(m);
-@@ -540,7 +630,7 @@
+@@ -540,7 +630,7 @@ carp_input(struct mbuf *m, int hlen)
  
  	if (m->m_pkthdr.len < iplen + sizeof(*ch)) {
  		carpstats.carps_badlen++;
@@ -704,7 +678,7 @@ diff -u -r1.52 ip_carp.c
  		    "sizeof(struct carp_header)\n",
  		    m->m_len - sizeof(struct ip));
  		m_freem(m);
-@@ -550,7 +640,7 @@
+@@ -550,7 +640,7 @@ carp_input(struct mbuf *m, int hlen)
  	if (iplen + sizeof(*ch) < m->m_len) {
  		if ((m = m_pullup(m, iplen + sizeof(*ch))) == NULL) {
  			carpstats.carps_hdrops++;
@@ -713,7 +687,7 @@ diff -u -r1.52 ip_carp.c
  			return;
  		}
  		ip = mtod(m, struct ip *);
-@@ -564,7 +654,7 @@
+@@ -564,7 +654,7 @@ carp_input(struct mbuf *m, int hlen)
  	len = iplen + sizeof(*ch);
  	if (len > m->m_pkthdr.len) {
  		carpstats.carps_badlen++;
@@ -722,7 +696,7 @@ diff -u -r1.52 ip_carp.c
  		    m->m_pkthdr.len,
  		    m->m_pkthdr.rcvif->if_xname);
  		m_freem(m);
-@@ -582,19 +672,19 @@
+@@ -582,19 +672,19 @@ carp_input(struct mbuf *m, int hlen)
  	m->m_data += iplen;
  	if (carp_cksum(m, len - iplen)) {
  		carpstats.carps_badsum++;
@@ -745,7 +719,7 @@ diff -u -r1.52 ip_carp.c
  {
  	struct mbuf *m = *mp;
  	struct ip6_hdr *ip6 = mtod(m, struct ip6_hdr *);
-@@ -609,9 +699,9 @@
+@@ -609,9 +699,9 @@ carp6_input(struct mbuf **mp, int *offp, int proto)
  	}
  
  	/* check if received on a valid carp interface */
@@ -757,7 +731,7 @@ diff -u -r1.52 ip_carp.c
  		    "interface: %s\n",
  		    m->m_pkthdr.rcvif->if_xname);
  		m_freem(m);
-@@ -621,7 +711,7 @@
+@@ -621,7 +711,7 @@ carp6_input(struct mbuf **mp, int *offp, int proto)
  	/* verify that the IP TTL is 255 */
  	if (ip6->ip6_hlim != CARP_DFLTTL) {
  		carpstats.carps_badttl++;
@@ -766,7 +740,7 @@ diff -u -r1.52 ip_carp.c
  		    ip6->ip6_hlim,
  		    m->m_pkthdr.rcvif->if_xname);
  		m_freem(m);
-@@ -633,7 +723,7 @@
+@@ -633,7 +723,7 @@ carp6_input(struct mbuf **mp, int *offp, int proto)
  	IP6_EXTHDR_GET(ch, struct carp_header *, m, *offp, sizeof(*ch));
  	if (ch == NULL) {
  		carpstats.carps_badlen++;
@@ -775,7 +749,7 @@ diff -u -r1.52 ip_carp.c
  		return (IPPROTO_DONE);
  	}
  
-@@ -642,22 +732,22 @@
+@@ -642,22 +732,22 @@ carp6_input(struct mbuf **mp, int *offp, int proto)
  	m->m_data += *offp;
  	if (carp_cksum(m, sizeof(*ch))) {
  		carpstats.carps_badsum++;
@@ -802,7 +776,7 @@ diff -u -r1.52 ip_carp.c
  	struct carp_softc *sc;
  	u_int64_t tmp_counter;
  	struct timeval sc_tv, ch_tv;
-@@ -793,9 +883,6 @@
+@@ -793,9 +883,6 @@ carp_input_c(struct mbuf *m, struct carp_header *ch, sa_family_t af)
  static int
  carp_prepare_ad(struct mbuf *m, struct carp_softc *sc, struct carp_header *ch)
  {
@@ -812,7 +786,7 @@ diff -u -r1.52 ip_carp.c
  	if (sc->sc_init_counter) {
  		/* this could also be seconds since unix epoch */
  		sc->sc_counter = arc4random();
-@@ -809,16 +896,6 @@
+@@ -809,16 +896,6 @@ carp_prepare_ad(struct mbuf *m, struct carp_softc *sc, struct carp_header *ch)
  
  	carp_hmac_generate(sc, ch->carp_counter, ch->carp_md);
  
@@ -829,7 +803,7 @@ diff -u -r1.52 ip_carp.c
  	return (0);
  }
  
-@@ -859,6 +936,8 @@
+@@ -859,6 +936,8 @@ carp_send_ad_locked(struct carp_softc *sc)
  	struct carp_header *ch_ptr;
  	struct mbuf *m;
  	int len, advbase, advskew;
@@ -838,7 +812,7 @@ diff -u -r1.52 ip_carp.c
  
  	CARP_SCLOCK_ASSERT(sc);
  
-@@ -887,7 +966,7 @@
+@@ -887,7 +966,7 @@ carp_send_ad_locked(struct carp_softc *sc)
  	ch.carp_cksum = 0;
  
  #ifdef INET
@@ -847,7 +821,7 @@ diff -u -r1.52 ip_carp.c
  		struct ip *ip;
  
  		MGETHDR(m, M_DONTWAIT, MT_HEADER);
-@@ -916,7 +995,15 @@
+@@ -916,7 +995,15 @@ carp_send_ad_locked(struct carp_softc *sc)
  		ip->ip_ttl = CARP_DFLTTL;
  		ip->ip_p = IPPROTO_CARP;
  		ip->ip_sum = 0;
@@ -864,7 +838,7 @@ diff -u -r1.52 ip_carp.c
  		ip->ip_dst.s_addr = htonl(INADDR_CARP_GROUP);
  
  		ch_ptr = (struct carp_header *)(&ip[1]);
-@@ -959,7 +1046,7 @@
+@@ -959,7 +1046,7 @@ carp_send_ad_locked(struct carp_softc *sc)
  	}
  #endif /* INET */
  #ifdef INET6
@@ -873,7 +847,7 @@ diff -u -r1.52 ip_carp.c
  		struct ip6_hdr *ip6;
  
  		MGETHDR(m, M_DONTWAIT, MT_HEADER);
-@@ -983,8 +1070,15 @@
+@@ -983,8 +1070,15 @@ carp_send_ad_locked(struct carp_softc *sc)
  		ip6->ip6_vfc |= IPV6_VERSION;
  		ip6->ip6_hlim = CARP_DFLTTL;
  		ip6->ip6_nxt = IPPROTO_CARP;
@@ -891,7 +865,7 @@ diff -u -r1.52 ip_carp.c
  		/* set the multicast destination */
  
  		ip6->ip6_dst.s6_addr16[0] = htons(0xff02);
-@@ -1058,7 +1152,7 @@
+@@ -1058,7 +1152,7 @@ carp_send_arp(struct carp_softc *sc)
  			continue;
  
  /*		arprequest(sc->sc_carpdev, &in, &in, IF_LLADDR(sc->sc_ifp)); */
@@ -900,7 +874,7 @@ diff -u -r1.52 ip_carp.c
  
  		DELAY(1000);	/* XXX */
  	}
-@@ -1211,7 +1305,6 @@
+@@ -1211,7 +1305,6 @@ carp_iamatch6(void *v, struct in6_addr *taddr)
  void *
  carp_macmatch6(void *v, struct mbuf *m, const struct in6_addr *taddr)
  {
@@ -908,7 +882,7 @@ diff -u -r1.52 ip_carp.c
  	struct carp_if *cif = v;
  	struct carp_softc *sc;
  	struct ifaddr *ifa;
-@@ -1223,18 +1316,6 @@
+@@ -1223,18 +1316,6 @@ carp_macmatch6(void *v, struct mbuf *m, const struct in6_addr *taddr)
  			    &ifatoia6(ifa)->ia_addr.sin6_addr) &&
   			    (SC2IFP(sc)->if_flags & IFF_UP) &&
  			    (SC2IFP(sc)->if_drv_flags & IFF_DRV_RUNNING)) {
@@ -927,7 +901,7 @@ diff -u -r1.52 ip_carp.c
  				CARP_UNLOCK(cif);
  				return (IF_LLADDR(sc->sc_ifp));
  			}
-@@ -1423,15 +1504,116 @@
+@@ -1423,15 +1504,116 @@ carp_multicast6_cleanup(struct carp_softc *sc)
  #endif
  
  static int
@@ -1049,7 +1023,7 @@ diff -u -r1.52 ip_carp.c
  
  	if (sin->sin_addr.s_addr == 0) {
  		if (!(SC2IFP(sc)->if_flags & IFF_UP))
-@@ -1443,7 +1625,7 @@
+@@ -1443,7 +1625,7 @@ carp_set_addr(struct carp_softc *sc, struct sockaddr_in *sin)
  	}
  
  	/* we have to do it by hands to check we won't match on us */
@@ -1058,7 +1032,7 @@ diff -u -r1.52 ip_carp.c
  	TAILQ_FOREACH(ia, &in_ifaddrhead, ia_link) {
  		/* and, yeah, we need a multicast-capable iface too */
  		if (ia->ia_ifp != SC2IFP(sc) &&
-@@ -1451,106 +1633,65 @@
+@@ -1451,106 +1633,65 @@ carp_set_addr(struct carp_softc *sc, struct sockaddr_in *sin)
  		    (iaddr & ia->ia_subnetmask) == ia->ia_subnet) {
  			if (!ia_if)
  				ia_if = ia;
@@ -1207,7 +1181,7 @@ diff -u -r1.52 ip_carp.c
  }
  
  static int
-@@ -1587,12 +1728,8 @@
+@@ -1587,12 +1728,8 @@ static int
  carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
  {
  	struct ifnet *ifp;
@@ -1221,7 +1195,7 @@ diff -u -r1.52 ip_carp.c
  
  	if (IN6_IS_ADDR_UNSPECIFIED(&sin6->sin6_addr)) {
  		if (!(SC2IFP(sc)->if_flags & IFF_UP))
-@@ -1633,93 +1770,12 @@
+@@ -1633,93 +1770,12 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
  	ifp = ia->ia_ifp;
  
  	if (ifp == NULL || (ifp->if_flags & IFF_MULTICAST) == 0 ||
@@ -1317,7 +1291,7 @@ diff -u -r1.52 ip_carp.c
  	sc->sc_naddrs6++;
  	SC2IFP(sc)->if_flags |= IFF_UP;
  	if (own)
-@@ -1727,20 +1783,61 @@
+@@ -1727,20 +1783,61 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
  	carp_sc_state_locked(sc);
  	carp_setrun(sc, 0);
  
@@ -1390,7 +1364,7 @@ diff -u -r1.52 ip_carp.c
  }
  
  static int
-@@ -1786,7 +1883,8 @@
+@@ -1786,7 +1883,8 @@ carp_ioctl(struct ifnet *ifp, u_long cmd, caddr_t addr)
  	struct ifaddr *ifa;
  	struct ifreq *ifr;
  	struct ifaliasreq *ifra;
@@ -1400,7 +1374,7 @@ diff -u -r1.52 ip_carp.c
  
  	ifa = (struct ifaddr *)addr;
  	ifra = (struct ifaliasreq *)addr;
-@@ -1794,12 +1892,12 @@
+@@ -1794,12 +1892,12 @@ carp_ioctl(struct ifnet *ifp, u_long cmd, caddr_t addr)
  
  	switch (cmd) {
  	case SIOCSIFADDR:
@@ -1415,7 +1389,7 @@ diff -u -r1.52 ip_carp.c
  			error = carp_set_addr(sc, satosin(ifa->ifa_addr));
  			break;
  #endif /* INET */
-@@ -1815,29 +1913,8 @@
+@@ -1815,29 +1913,8 @@ carp_ioctl(struct ifnet *ifp, u_long cmd, caddr_t addr)
  		}
  		break;
  
@@ -1446,7 +1420,7 @@ diff -u -r1.52 ip_carp.c
  		switch (ifa->ifa_addr->sa_family) {
  #ifdef INET
  		case AF_INET:
-@@ -1881,6 +1958,14 @@
+@@ -1881,6 +1958,14 @@ carp_ioctl(struct ifnet *ifp, u_long cmd, caddr_t addr)
  		if ((error = copyin(ifr->ifr_data, &carpr, sizeof carpr)))
  			break;
  		error = 1;
@@ -1461,7 +1435,7 @@ diff -u -r1.52 ip_carp.c
  		if (sc->sc_carpdev) {
  			locked = 1;
  			CARP_SCLOCK(sc);
-@@ -1959,64 +2044,37 @@
+@@ -1959,64 +2044,37 @@ carp_ioctl(struct ifnet *ifp, u_long cmd, caddr_t addr)
  		if (error == 0)
  			bcopy(sc->sc_key, carpr.carpr_key,
  			    sizeof(carpr.carpr_key));
@@ -1543,7 +1517,7 @@ diff -u -r1.52 ip_carp.c
   * Start output on carp interface. This function should never be called.
   */
  static void
-@@ -2027,81 +2085,84 @@
+@@ -2027,81 +2085,84 @@ carp_start(struct ifnet *ifp)
  #endif
  }
  
@@ -1612,8 +1586,7 @@ diff -u -r1.52 ip_carp.c
  
 -	bcopy(mtag + 1, &carp_ifp, sizeof(struct ifnet *));
 -	sc = carp_ifp->if_softc;
-+	eh = mtod(m, struct ether_header *);
- 
+-
 -	/* Set the source MAC address to Virtual Router MAC Address */
 -	switch (ifp->if_type) {
 -	case IFT_ETHER:
@@ -1631,12 +1604,7 @@ diff -u -r1.52 ip_carp.c
 -		break;
 -	case IFT_FDDI: {
 -			struct fddi_header *fh;
-+	if ((ifp = carp_ourether(cif, eh, m->m_pkthdr.rcvif->if_type, 0)))
-+		;
-+	else if (m->m_flags & (M_BCAST|M_MCAST)) {
-+		struct carp_softc *vh;
-+		struct mbuf *m0;
- 
+-
 -			fh = mtod(m, struct fddi_header *);
 -			fh->fddi_shost[0] = 0;
 -			fh->fddi_shost[1] = 0;
@@ -1655,6 +1623,14 @@ diff -u -r1.52 ip_carp.c
 -			th->iso88025_shost[3] = 0x40000 >> (sc->sc_vhid - 1);
 -			th->iso88025_shost[4] = 0;
 -			th->iso88025_shost[5] = 0;
++	eh = mtod(m, struct ether_header *);
++
++	if ((ifp = carp_ourether(cif, eh, m->m_pkthdr.rcvif->if_type, 0)))
++		;
++	else if (m->m_flags & (M_BCAST|M_MCAST)) {
++		struct carp_softc *vh;
++		struct mbuf *m0;
++
 +		/*
 +		 * XXX Should really check the list of multicast addresses
 +		 * for each CARP interface _before_ copying.
@@ -1690,7 +1666,7 @@ diff -u -r1.52 ip_carp.c
  	return (0);
  }
  
-@@ -2131,9 +2192,14 @@
+@@ -2131,9 +2192,14 @@ carp_set_state(struct carp_softc *sc, int state)
  }
  
  void
@@ -1707,14 +1683,11 @@ diff -u -r1.52 ip_carp.c
  
  	CARP_LOCK(cif);
  	carp_carpdev_state_locked(cif);
-Index: sys/netinet/ip_carp.h
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ip_carp.h,v
-retrieving revision 1.3
-diff -u -r1.3 ip_carp.h
---- sys/netinet/ip_carp.h	1 Dec 2006 18:37:41 -0000	1.3
-+++ sys/netinet/ip_carp.h	9 Dec 2007 02:13:42 -0000
-@@ -117,6 +117,13 @@
+diff --git a/sys/netinet/ip_carp.h b/sys/netinet/ip_carp.h
+index 1688b01..3525ab9 100644
+--- a/sys/netinet/ip_carp.h
++++ b/sys/netinet/ip_carp.h
+@@ -117,6 +117,13 @@ struct carpstats {
  	uint64_t	carps_preempt;		/* if enabled, preemptions */
  };
  
@@ -1728,7 +1701,7 @@ diff -u -r1.3 ip_carp.h
  /*
   * Configuration structure for SIOCSVH SIOCGVH
   */
-@@ -128,6 +135,7 @@
+@@ -128,6 +135,7 @@ struct carpreq {
  	int		carpr_advskew;
  	int		carpr_advbase;
  	unsigned char	carpr_key[CARP_KEY_LEN];
@@ -1736,7 +1709,7 @@ diff -u -r1.3 ip_carp.h
  };
  #define	SIOCSVH	_IOWR('i', 245, struct ifreq)
  #define	SIOCGVH	_IOWR('i', 246, struct ifreq)
-@@ -152,15 +160,15 @@
+@@ -152,15 +160,15 @@ struct carpreq {
  }
  
  #ifdef _KERNEL
@@ -1759,14 +1732,11 @@ diff -u -r1.3 ip_carp.h
 +int		 carp_input(struct mbuf *);
  #endif
  #endif /* _IP_CARP_H */
-Index: sys/netinet6/in6_proto.c
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet6/in6_proto.c,v
-retrieving revision 1.46
-diff -u -r1.46 in6_proto.c
---- sys/netinet6/in6_proto.c	5 Jul 2007 16:29:39 -0000	1.46
-+++ sys/netinet6/in6_proto.c	9 Dec 2007 02:13:42 -0000
-@@ -319,7 +319,7 @@
+diff --git a/sys/netinet6/in6_proto.c b/sys/netinet6/in6_proto.c
+index 2230741..fbd022d 100644
+--- a/sys/netinet6/in6_proto.c
++++ b/sys/netinet6/in6_proto.c
+@@ -319,7 +319,7 @@ struct ip6protosw inet6sw[] = {
  	.pr_domain =		&inet6domain,
  	.pr_protocol =		IPPROTO_CARP,
  	.pr_flags =		PR_ATOMIC|PR_ADDR,
