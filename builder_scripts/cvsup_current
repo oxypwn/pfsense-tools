@@ -161,7 +161,7 @@ if [ ! -f "/usr/local/bin/lua50c" ]; then
 fi
 
 # Add BSDInstaller
-if [ -f /home/pfsense/installer/scripts/build/build.conf ]; then
+if [ ! -f /home/pfsense/installer/scripts/build/build.conf ]; then
 	if [ ! -f "/usr/local/share/dfuibe_lua/200_install.lua" ]; then
 		echo "Fetching BSDInstaller..."
 		cvsup ${CURRENTDIR}/bsdinstaller-supfile
@@ -176,17 +176,6 @@ if [ -f /home/pfsense/installer/scripts/build/build.conf ]; then
 		echo "-- Found /usr/local/share/dfuibe_lua/200_install.lua --"
 		echo "-- Not rebuilding BSDInstaller"
 	fi
-else
-	if [ ! -f "/usr/local/share/dfuibe_lua/200_install.lua" ]; then
-		echo "Cannot find BSDInstaller, pkg_add in progress..."
-		/usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/bsdinstaller-2.0.2006.0728.tbz
-	fi
-	# Failed, lets try with passive mode
-	if [ ! -f "/usr/local/share/dfuibe_lua/200_install.lua" ]; then
-		echo "Cannot find BSDInstaller, pkg_add in progress (PASSIVE FTP)..."
-		env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r http://www.pfsense.com/packages/All/bsdinstaller-2.0.2006.0728.tbz
-	fi
-
 fi
 
 # Loop through and remove files
