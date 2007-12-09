@@ -9,7 +9,8 @@ CURRENTDIR=`pwd`
 echo "Updating BSDInstaller collection..."
 cvsup ${CURRENTDIR}/bsdinstaller-supfile
 
-ln -s ${BASE_DIR}/tools/builder_scripts/installer ${BASE_DIR}/installer 
+mkdir ${BASE_DIR}/installer
+ln -s ${BASE_DIR}/tools/builder_scripts/installer ${BASE_DIR}/installer/installer
 
 # Copy BSDInstaller build.conf
 cp ${BASE_DIR}/tools/installer/conf/build.conf \
