@@ -1,0 +1,1777 @@
+Index: contrib/pf/pflogd/pidfile.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/pflogd/pidfile.c,v
+retrieving revision 1.6
+diff -u -r1.6 pidfile.c
+--- contrib/pf/pflogd/pidfile.c	3 Jul 2007 14:08:49 -0000	1.6
++++ contrib/pf/pflogd/pidfile.c	9 Dec 2007 02:13:42 -0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/contrib/pf/pflogd/pidfile.c,v 1.6 2007/07/03 14:08:49 mlaier Exp $ */
++/*	$FreeBSD: src/contrib/pf/pflogd/pidfile.c,v 1.4 2005/05/03 16:55:20 mlaier Exp $ */
+ /*	$OpenBSD: pidfile.c,v 1.5 2002/05/26 09:29:02 deraadt Exp $	*/
+ /*	$NetBSD: pidfile.c,v 1.4 2001/02/19 22:43:42 cgd Exp $	*/
+ 
+Index: contrib/pf/pflogd/pidfile.h
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/pflogd/pidfile.h,v
+retrieving revision 1.3
+diff -u -r1.3 pidfile.h
+--- contrib/pf/pflogd/pidfile.h	3 Jul 2007 14:08:49 -0000	1.3
++++ contrib/pf/pflogd/pidfile.h	9 Dec 2007 02:13:42 -0000
+@@ -1,3 +1 @@
+-/* $FreeBSD: src/contrib/pf/pflogd/pidfile.h,v 1.3 2007/07/03 14:08:49 mlaier Exp $ */
+-
+ int pidfile(const char *);
+Index: sbin/ifconfig/ifcarp.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/ifconfig/ifcarp.c,v
+retrieving revision 1.2
+diff -u -r1.2 ifcarp.c
+--- sbin/ifconfig/ifcarp.c	22 Feb 2005 14:07:47 -0000	1.2
++++ sbin/ifconfig/ifcarp.c	9 Dec 2007 02:13:42 -0000
+@@ -52,13 +52,7 @@
+ 
+ static const char *carp_states[] = { CARP_STATES };
+ 
+-void carp_status(int s);
+-void setcarp_advbase(const char *,int, int, const struct afswtch *rafp);
+-void setcarp_advskew(const char *, int, int, const struct afswtch *rafp);
+-void setcarp_passwd(const char *, int, int, const struct afswtch *rafp);
+-void setcarp_vhid(const char *, int, int, const struct afswtch *rafp);
+-
+-void
++static void
+ carp_status(int s)
+ {
+ 	const char *state;
+@@ -76,17 +70,17 @@
+ 		else
+ 			state = carp_states[carpr.carpr_state];
+ 
+-		printf("\tcarp: %s vhid %d advbase %d advskew %d\n",
+-		    state, carpr.carpr_vhid, carpr.carpr_advbase,
+-		    carpr.carpr_advskew);
++		printf("\tcarp: %s carpdev %s vhid %d advbase %d advskew %d\n",
++		    state, carpr.carpr_carpdev, carpr.carpr_vhid,
++		    carpr.carpr_advbase, carpr.carpr_advskew);
+ 	}
+ 
+ 	return;
+ 
+ }
+ 
+-void
+-setcarp_passwd(const char *val, int d, int s, const struct afswtch *afp)
++static
++DECL_CMD_FUNC(setcarp_passwd, val, d)
+ {
+ 	struct carpreq carpr;
+ 
+@@ -105,8 +99,8 @@
+ 	return;
+ }
+ 
+-void
+-setcarp_vhid(const char *val, int d, int s, const struct afswtch *afp)
++static
++DECL_CMD_FUNC(setcarp_vhid, val, d)
+ {
+ 	int vhid;
+ 	struct carpreq carpr;
+@@ -130,8 +124,8 @@
+ 	return;
+ }
+ 
+-void
+-setcarp_advskew(const char *val, int d, int s, const struct afswtch *afp)
++static
++DECL_CMD_FUNC(setcarp_advskew, val, d)
+ {
+ 	int advskew;
+ 	struct carpreq carpr;
+@@ -152,8 +146,8 @@
+ 	return;
+ }
+ 
+-void
+-setcarp_advbase(const char *val, int d, int s, const struct afswtch *afp)
++static
++DECL_CMD_FUNC(setcarp_advbase, val, d)
+ {
+ 	int advbase;
+ 	struct carpreq carpr;
+@@ -174,11 +168,51 @@
+ 	return;
+ }
+ 
++static
++DECL_CMD_FUNC(setcarp_carpdev, val, d)
++{
++	struct carpreq carpr;
++
++	memset((char *)&carpr, 0, sizeof(struct carpreq));
++	ifr.ifr_data = (caddr_t)&carpr;
++
++	if (ioctl(s, SIOCGVH, (caddr_t)&ifr) == -1)
++		err(1, "SIOCGVH");
++
++	strlcpy(carpr.carpr_carpdev, val, sizeof(carpr.carpr_carpdev));
++
++	if (ioctl(s, SIOCSVH, (caddr_t)&ifr) == -1)
++		err(1, "SIOCSVH");
++
++	return;
++}
++
++static
++DECL_CMD_FUNC(setcarp_unsetcarpdev, val, d)
++{
++	struct carpreq carpr;
++
++	memset((char *)&carpr, 0, sizeof(struct carpreq));
++	ifr.ifr_data = (caddr_t)&carpr;
++
++	if (ioctl(s, SIOCGVH, (caddr_t)&ifr) == -1)
++		err(1, "SIOCGVH");
++
++	memset(carpr.carpr_carpdev, 0, sizeof(carpr.carpr_carpdev));
++
++	if (ioctl(s, SIOCSVH, (caddr_t)&ifr) == -1)
++		err(1, "SIOCSVH");
++
++	return;
++}
++
+ static struct cmd carp_cmds[] = {
+ 	DEF_CMD_ARG("advbase",	setcarp_advbase),
+ 	DEF_CMD_ARG("advskew",	setcarp_advskew),
+ 	DEF_CMD_ARG("pass",	setcarp_passwd),
+ 	DEF_CMD_ARG("vhid",	setcarp_vhid),
++	DEF_CMD_ARG("carpdev",	setcarp_carpdev),
++	DEF_CMD_OPTARG("-carpdev",	setcarp_unsetcarpdev),
+ };
+ static struct afswtch af_carp = {
+ 	.af_name	= "af_carp",
+Index: sys/net/ethernet.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/ethernet.h,v
+retrieving revision 1.32.2.1
+diff -u -r1.32.2.1 ethernet.h
+--- sys/net/ethernet.h	28 Oct 2007 16:24:16 -0000	1.32.2.1
++++ sys/net/ethernet.h	9 Dec 2007 02:13:42 -0000
+@@ -380,6 +380,7 @@
+ extern	void ether_ifattach(struct ifnet *, const u_int8_t *);
+ extern	void ether_ifdetach(struct ifnet *);
+ extern	int  ether_ioctl(struct ifnet *, u_long, caddr_t);
++extern	void ether_input(struct ifnet *, struct mbuf *);
+ extern	int  ether_output(struct ifnet *,
+ 		   struct mbuf *, struct sockaddr *, struct rtentry *);
+ extern	int  ether_output_frame(struct ifnet *, struct mbuf *);
+Index: sys/net/if.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if.c,v
+retrieving revision 1.273
+diff -u -r1.273 if.c
+--- sys/net/if.c	27 Jul 2007 11:59:57 -0000	1.273
++++ sys/net/if.c	9 Dec 2007 02:13:42 -0000
+@@ -1309,8 +1309,7 @@
+ 			pfctlinput(PRC_IFDOWN, ifa->ifa_addr);
+ 	if_qflush(&ifp->if_snd);
+ #ifdef DEV_CARP
+-	if (ifp->if_carp)
+-		carp_carpdev_state(ifp->if_carp);
++	carp_carpdev_state(ifp);
+ #endif
+ 	rt_ifmsg(ifp);
+ }
+@@ -1333,8 +1332,7 @@
+ 		if (fam == PF_UNSPEC || (fam == ifa->ifa_addr->sa_family))
+ 			pfctlinput(PRC_IFUP, ifa->ifa_addr);
+ #ifdef DEV_CARP
+-	if (ifp->if_carp)
+-		carp_carpdev_state(ifp->if_carp);
++	carp_carpdev_state(ifp);
+ #endif
+ 	rt_ifmsg(ifp);
+ #ifdef INET6
+@@ -1386,8 +1384,7 @@
+ 	    IFP2AC(ifp)->ac_netgraph != NULL)
+ 		(*ng_ether_link_state_p)(ifp, link_state);
+ #ifdef DEV_CARP
+-	if (ifp->if_carp)
+-		carp_carpdev_state(ifp->if_carp);
++	carp_carpdev_state(ifp);
+ #endif
+ 	if (ifp->if_bridge) {
+ 		KASSERT(bstp_linkstate_p != NULL,("if_bridge bstp not loaded!"));
+Index: sys/net/if_ethersubr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_ethersubr.c,v
+retrieving revision 1.236.2.1
+diff -u -r1.236.2.1 if_ethersubr.c
+--- sys/net/if_ethersubr.c	28 Oct 2007 16:24:16 -0000	1.236.2.1
++++ sys/net/if_ethersubr.c	9 Dec 2007 02:13:42 -0000
+@@ -153,6 +153,9 @@
+ 	u_char esrc[ETHER_ADDR_LEN], edst[ETHER_ADDR_LEN];
+ 	struct ether_header *eh;
+ 	struct pf_mtag *t;
++#ifdef DEV_CARP
++	struct ifnet *ifp0 = ifp;
++#endif
+ 	int loop_copy = 1;
+ 	int hlen;	/* link layer header length */
+ 
+@@ -162,6 +165,19 @@
+ 		senderr(error);
+ #endif
+ 
++#ifdef DEV_CARP
++	if (ifp->if_type == IFT_CARP) {
++		struct ifaddr *ifa;
++
++		if (dst != NULL && ifp->if_link_state == LINK_STATE_UP &&
++		    (ifa = ifa_ifwithaddr(dst)) != NULL &&
++		    ifa->ifa_ifp == ifp)
++			return (looutput(ifp, m, dst, rt0));
++
++		ifp = ifp->if_carpdev;
++	}
++#endif
++
+ 	if (ifp->if_flags & IFF_MONITOR)
+ 		senderr(ENETDOWN);
+ 	if (!((ifp->if_flags & IFF_UP) &&
+@@ -172,7 +188,11 @@
+ 	switch (dst->sa_family) {
+ #ifdef INET
+ 	case AF_INET:
++#ifdef DEV_CARP
++		error = arpresolve(ifp0, rt0, m, dst, edst);
++#else
+ 		error = arpresolve(ifp, rt0, m, dst, edst);
++#endif
+ 		if (error)
+ 			return (error == EWOULDBLOCK ? 0 : error);
+ 		type = htons(ETHERTYPE_IP);
+@@ -293,6 +313,14 @@
+ 		(void)memcpy(eh->ether_shost, IF_LLADDR(ifp),
+ 			sizeof(eh->ether_shost));
+ 
++#ifdef DEV_CARP
++	if (ifp0 != ifp && ifp0->if_type == IFT_CARP) {
++		/* XXX: LINK1 */
++		(void)memcpy(eh->ether_shost, IF_LLADDR(ifp0),
++		    sizeof(eh->ether_shost));
++	}
++#endif
++
+ 	/*
+ 	 * If a simplex interface, and the packet is being sent to our
+ 	 * Ethernet address or a broadcast address, loopback a copy.
+@@ -351,12 +379,6 @@
+ 		return (error);
+ 	}
+ 
+-#ifdef DEV_CARP
+-	if (ifp->if_carp &&
+-	    (error = carp_output(ifp, m, dst, NULL)))
+-		goto bad;
+-#endif
+-
+ 	/* Handle ng_ether(4) processing, if any */
+ 	if (IFP2AC(ifp)->ac_netgraph != NULL) {
+ 		KASSERT(ng_ether_output_p != NULL,
+@@ -506,7 +528,7 @@
+  * Process a received Ethernet packet; the packet is in the
+  * mbuf chain m with the ethernet header at the front.
+  */
+-static void
++void
+ ether_input(struct ifnet *ifp, struct mbuf *m)
+ {
+ 	struct ether_header *eh;
+@@ -658,19 +680,15 @@
+ 	}
+ 
+ #ifdef DEV_CARP
+-	/*
+-	 * Clear M_PROMISC on frame so that carp(4) will see it when the
+-	 * mbuf flows up to Layer 3.
+-	 * FreeBSD's implementation of carp(4) uses the inprotosw
+-	 * to dispatch IPPROTO_CARP. carp(4) also allocates its own
+-	 * Ethernet addresses of the form 00:00:5e:00:01:xx, which
+-	 * is outside the scope of the M_PROMISC test below.
+-	 * TODO: Maintain a hash table of ethernet addresses other than
+-	 * ether_dhost which may be active on this ifp.
+-	 */
+-	if (ifp->if_carp && carp_forus(ifp->if_carp, eh->ether_dhost)) {
+-		m->m_flags &= ~M_PROMISC;
+-	} else
++	if (ifp->if_carp) {
++		if (ifp->if_type != IFT_CARP && (carp_input(m) == 0))
++			return;
++		else if (ifp->if_type == IFT_CARP &&
++		    /* XXX: LINK2 */
++		    m->m_flags & (M_BCAST | M_MCAST) &&
++		    !bcmp(IFP2AC(ifp), eh->ether_dhost, ETHER_ADDR_LEN))
++			m->m_flags &= ~(M_BCAST | M_MCAST);
++	}
+ #endif
+ 	{
+ 		/*
+Index: sys/net/if_loop.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_loop.c,v
+retrieving revision 1.112
+diff -u -r1.112 if_loop.c
+--- sys/net/if_loop.c	9 Feb 2007 00:09:35 -0000	1.112
++++ sys/net/if_loop.c	9 Dec 2007 02:13:42 -0000
+@@ -99,8 +99,6 @@
+ 
+ int		loioctl(struct ifnet *, u_long, caddr_t);
+ static void	lortrequest(int, struct rtentry *, struct rt_addrinfo *);
+-int		looutput(struct ifnet *ifp, struct mbuf *m,
+-		    struct sockaddr *dst, struct rtentry *rt);
+ static int	lo_clone_create(struct if_clone *, int, caddr_t);
+ static void	lo_clone_destroy(struct ifnet *);
+ 
+Index: sys/net/if_var.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_var.h,v
+retrieving revision 1.115.2.1
+diff -u -r1.115.2.1 if_var.h
+--- sys/net/if_var.h	7 Dec 2007 05:46:08 -0000	1.115.2.1
++++ sys/net/if_var.h	9 Dec 2007 02:13:42 -0000
+@@ -131,7 +131,12 @@
+ 		 */
+ 	struct	knlist if_klist;	/* events attached to this if */
+ 	int	if_pcount;		/* number of promiscuous listeners */
+-	struct	carp_if *if_carp;	/* carp interface structure */
++	union {
++		struct carp_if *carp_s;
++		struct ifnet *carp_d;
++	} if_carp_ptr;
++#define	if_carp		if_carp_ptr.carp_s
++#define	if_carpdev	if_carp_ptr.carp_d
+ 	struct	bpf_if *if_bpf;		/* packet filter structure */
+ 	u_short	if_index;		/* numeric abbreviation for this if  */
+ 	short	if_timer;		/* time 'til if_watchdog called */
+@@ -692,6 +697,8 @@
+ struct	ifaddr *ifaof_ifpforaddr(struct sockaddr *, struct ifnet *);
+ 
+ int	if_simloop(struct ifnet *ifp, struct mbuf *m, int af, int hlen);
++int	looutput(struct ifnet *ifp, struct mbuf *m, struct sockaddr *dst,
++	    struct rtentry *rt);
+ 
+ typedef	void *if_com_alloc_t(u_char type, struct ifnet *ifp);
+ typedef	void if_com_free_t(void *com, u_char type);
+Index: sys/netinet/if_ether.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/if_ether.c,v
+retrieving revision 1.162
+diff -u -r1.162 if_ether.c
+--- sys/netinet/if_ether.c	7 Oct 2007 20:44:22 -0000	1.162
++++ sys/netinet/if_ether.c	9 Dec 2007 02:13:42 -0000
+@@ -110,7 +110,6 @@
+ 	   &arp_proxyall, 0, "Enable proxy ARP for all suitable requests");
+ 
+ static void	arp_init(void);
+-static void	arp_rtrequest(int, struct rtentry *, struct rt_addrinfo *);
+ static void	arprequest(struct ifnet *,
+ 			struct in_addr *, struct in_addr *, u_char *);
+ static void	arpintr(struct mbuf *);
+@@ -144,7 +143,7 @@
+ /*
+  * Parallel to llc_rtrequest.
+  */
+-static void
++void
+ arp_rtrequest(int req, struct rtentry *rt, struct rt_addrinfo *info)
+ {
+ 	struct sockaddr *gate;
+@@ -608,7 +607,8 @@
+ 		    itaddr.s_addr == ia->ia_addr.sin_addr.s_addr)
+ 			goto match;
+ #ifdef DEV_CARP
+-		if (ifp->if_carp != NULL &&
++		if (ifp->if_type != IFT_CARP && ifp->if_carp != NULL &&
++		    ia->ia_ifp->if_type == IFT_CARP &&
+ 		    carp_iamatch(ifp->if_carp, ia, &isaddr, &enaddr) &&
+ 		    itaddr.s_addr == ia->ia_addr.sin_addr.s_addr) {
+ 			carp_match = 1;
+@@ -679,6 +679,7 @@
+ 	    && (ifp->if_type != IFT_CARP || !carp_match)
+ #endif
+ 							) {
++//		printf("arp: %s %d\n", ifp->if_xname, carp_match);
+ 		if (log_arp_wrong_iface)
+ 			log(LOG_ERR, "arp: %s is on %s but got reply from %*D on %s\n",
+ 			    inet_ntoa(isaddr),
+Index: sys/netinet/if_ether.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/if_ether.h,v
+retrieving revision 1.32
+diff -u -r1.32 if_ether.h
+--- sys/netinet/if_ether.h	22 Feb 2005 13:04:03 -0000	1.32
++++ sys/netinet/if_ether.h	9 Dec 2007 02:13:42 -0000
+@@ -113,6 +113,7 @@
+ 		struct mbuf *m, struct sockaddr *dst, u_char *desten);
+ void	arp_ifinit(struct ifnet *, struct ifaddr *);
+ void	arp_ifinit2(struct ifnet *, struct ifaddr *, u_char *);
++void	arp_rtrequest(int, struct rtentry *, struct rt_addrinfo *);
+ #endif
+ 
+ #endif
+Index: sys/netinet/in_proto.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/in_proto.c,v
+retrieving revision 1.87
+diff -u -r1.87 in_proto.c
+--- sys/netinet/in_proto.c	7 Oct 2007 20:44:22 -0000	1.87
++++ sys/netinet/in_proto.c	9 Dec 2007 02:13:42 -0000
+@@ -318,7 +318,7 @@
+ 	.pr_domain =		&inetdomain,
+ 	.pr_protocol =		IPPROTO_CARP,
+ 	.pr_flags =		PR_ATOMIC|PR_ADDR,
+-	.pr_input =		carp_input,
++	.pr_input =		carp_proto_input,
+ 	.pr_output =		(pr_output_t*)rip_output,
+ 	.pr_ctloutput =		rip_ctloutput,
+ 	.pr_usrreqs =		&rip_usrreqs
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.52
+diff -u -r1.52 ip_carp.c
+--- sys/netinet/ip_carp.c	7 Oct 2007 20:44:22 -0000	1.52
++++ sys/netinet/ip_carp.c	9 Dec 2007 02:29:38 -0000
+@@ -92,11 +92,9 @@
+ 
+ struct carp_softc {
+ 	struct ifnet	 	*sc_ifp;	/* Interface clue */
+-	struct ifnet		*sc_carpdev;	/* Pointer to parent interface */
+-	struct in_ifaddr 	*sc_ia;		/* primary iface address */
++#define	sc_carpdev sc_ifp->if_carpdev
+ 	struct ip_moptions 	 sc_imo;
+ #ifdef INET6
+-	struct in6_ifaddr 	*sc_ia6;	/* primary iface address v6 */
+ 	struct ip6_moptions 	 sc_im6o;
+ #endif /* INET6 */
+ 	TAILQ_ENTRY(carp_softc)	 sc_list;
+@@ -159,7 +157,7 @@
+ 	struct mtx	 vhif_mtx;
+ };
+ 
+-/* Get carp_if from softc. Valid after carp_set_addr{,6}. */
++/* Get carp_if from softc. Valid after carp_set_{addr[6],ifp}. */
+ #define	SC2CIF(sc)		((struct carp_if *)(sc)->sc_carpdev->if_carp)
+ 
+ /* lock per carp_if queue */
+@@ -190,7 +188,7 @@
+ static int	carp_hmac_verify(struct carp_softc *, u_int32_t *,
+ 		    unsigned char *);
+ static void	carp_setroute(struct carp_softc *, int);
+-static void	carp_input_c(struct mbuf *, struct carp_header *, sa_family_t);
++static void	carp_proto_input_c(struct mbuf *, struct carp_header *, sa_family_t);
+ static int 	carp_clone_create(struct if_clone *, int, caddr_t);
+ static void 	carp_clone_destroy(struct ifnet *);
+ static void	carpdetach(struct carp_softc *, int);
+@@ -203,7 +201,7 @@
+ static void	carp_master_down(void *);
+ static void	carp_master_down_locked(struct carp_softc *);
+ static int	carp_ioctl(struct ifnet *, u_long, caddr_t);
+-static int	carp_looutput(struct ifnet *, struct mbuf *, struct sockaddr *,
++static int	carp_output(struct ifnet *, struct mbuf *, struct sockaddr *,
+ 		    struct rtentry *);
+ static void	carp_start(struct ifnet *);
+ static void	carp_setrun(struct carp_softc *, sa_family_t);
+@@ -212,13 +210,16 @@
+ enum	{ CARP_COUNT_MASTER, CARP_COUNT_RUNNING };
+ 
+ static void	carp_multicast_cleanup(struct carp_softc *);
++static int	carp_set_ifp(struct carp_softc *, struct ifnet *);
+ static int	carp_set_addr(struct carp_softc *, struct sockaddr_in *);
++static int	carp_join_multicast(struct carp_softc *);
+ static int	carp_del_addr(struct carp_softc *, struct sockaddr_in *);
+ static void	carp_carpdev_state_locked(struct carp_if *);
+ static void	carp_sc_state_locked(struct carp_softc *);
+ #ifdef INET6
+ static void	carp_send_na(struct carp_softc *);
+ static int	carp_set_addr6(struct carp_softc *, struct sockaddr_in6 *);
++static int	carp_join_multicast6(struct carp_softc *);
+ static int	carp_del_addr6(struct carp_softc *, struct sockaddr_in6 *);
+ static void	carp_multicast6_cleanup(struct carp_softc *);
+ #endif
+@@ -247,9 +248,9 @@
+ #endif
+ 
+ 	if (sc->sc_carpdev)
+-		CARP_SCLOCK(sc);
++		CARP_SCLOCK_ASSERT(sc);
+ 
+-	/* XXX: possible race here */
++	/* XXX: possible race here - really? */
+ 
+ 	/* compute ipad from key */
+ 	bzero(sc->sc_pad, sizeof(sc->sc_pad));
+@@ -285,8 +286,6 @@
+ 	for (i = 0; i < sizeof(sc->sc_pad); i++)
+ 		sc->sc_pad[i] ^= 0x36 ^ 0x5c;
+ 
+-	if (sc->sc_carpdev)
+-		CARP_SCUNLOCK(sc);
+ }
+ 
+ static void
+@@ -334,13 +333,106 @@
+ 	TAILQ_FOREACH(ifa, &SC2IFP(sc)->if_addrlist, ifa_list) {
+ 		if (ifa->ifa_addr->sa_family == AF_INET &&
+ 		    sc->sc_carpdev != NULL) {
+-			int count = carp_addrcount(
+-			    (struct carp_if *)sc->sc_carpdev->if_carp,
+-			    ifatoia(ifa), CARP_COUNT_MASTER);
+-
+-			if ((cmd == RTM_ADD && count == 1) ||
+-			    (cmd == RTM_DELETE && count == 0))
+-				rtinit(ifa, cmd, RTF_UP | RTF_HOST);
++			int count = 0, error;
++			struct sockaddr sa;
++			struct rtentry *rt;
++			struct radix_node_head *rnh;
++			struct radix_node *rn;
++			struct rt_addrinfo info;
++			int hr_otherif, nr_ourif;
++
++			/*
++			 * Avoid screwing with the routes if there are other
++			 * carp interfaces which are master and have the same
++			 * address.
++			 */
++			if (sc->sc_carpdev != NULL &&
++			    sc->sc_carpdev->if_carp != NULL) {
++				count = carp_addrcount(
++				    (struct carp_if *)sc->sc_carpdev->if_carp,
++				    ifatoia(ifa), CARP_COUNT_MASTER);
++				if ((cmd == RTM_ADD && count != 1) ||
++				    (cmd == RTM_DELETE && count != 0))
++					continue;
++			}
++
++			/* Remove the existing host route, if any */
++			bzero(&info, sizeof(info));
++			info.rti_info[RTAX_DST] = ifa->ifa_addr;
++			info.rti_flags = RTF_HOST;
++			error = rtrequest1(RTM_DELETE, &info, NULL);
++			rt_missmsg(RTM_DELETE, &info, info.rti_flags, error);
++
++			/* Check for our address on another interface */
++			/* XXX cries for proper API */
++			rnh = rt_tables[ifa->ifa_addr->sa_family];
++			RADIX_NODE_HEAD_LOCK(rnh);
++			rn = rnh->rnh_matchaddr(ifa->ifa_addr, rnh);
++			rt = (struct rtentry *)rn;
++			hr_otherif = (rt && rt->rt_ifp != sc->sc_ifp &&
++			    rt->rt_flags & (RTF_CLONING|RTF_WASCLONED));
++
++			/* Check for a network route on our interface */
++			bcopy(ifa->ifa_addr, &sa, sizeof(sa));
++			satosin(&sa)->sin_addr.s_addr = satosin(ifa->ifa_netmask
++			    )->sin_addr.s_addr & satosin(&sa)->sin_addr.s_addr;
++			rn = rnh->rnh_lookup(&sa, ifa->ifa_netmask, rnh);
++			rt = (struct rtentry *)rn;
++			nr_ourif = (rt && rt->rt_ifp == sc->sc_ifp);
++			RADIX_NODE_HEAD_UNLOCK(rnh);
++
++			switch (cmd) {
++			case RTM_ADD:
++				if (hr_otherif) {
++					ifa->ifa_rtrequest = NULL;
++					ifa->ifa_flags &= ~RTF_CLONING;
++					bzero(&info, sizeof(info));
++					info.rti_info[RTAX_DST] =
++					    ifa->ifa_addr;
++					info.rti_info[RTAX_GATEWAY] =
++					    ifa->ifa_addr;
++					info.rti_flags = RTF_UP | RTF_HOST;
++					error = rtrequest1(RTM_ADD, &info,
++					    NULL);
++					rt_missmsg(RTM_ADD, &info,
++					    info.rti_flags, error);
++				}
++				if (!hr_otherif || nr_ourif || !rt) {
++					if (nr_ourif && !(rt->rt_flags &
++					    RTF_CLONING)) {
++						bzero(&info, sizeof(info));
++						info.rti_info[RTAX_DST] = &sa;
++						info.rti_info[RTAX_NETMASK] =
++						    ifa->ifa_netmask;
++						error = rtrequest1(RTM_DELETE,
++						    &info, NULL);
++						rt_missmsg(RTM_DELETE, &info,
++						    info.rti_flags, error);
++					}
++
++					ifa->ifa_rtrequest = arp_rtrequest;
++					ifa->ifa_flags |= RTF_CLONING;
++
++					bzero(&info, sizeof(info));
++					info.rti_info[RTAX_DST] = &sa;
++					info.rti_info[RTAX_GATEWAY] =
++					    ifa->ifa_addr;
++					info.rti_info[RTAX_NETMASK] =
++					    ifa->ifa_netmask;
++					error = rtrequest1(RTM_ADD, &info,
++					    NULL);
++					if (error == 0)
++						ifa->ifa_flags |= IFA_ROUTE;
++					rt_missmsg(RTM_ADD, &info,
++					    info.rti_flags, error);
++				}
++				break;
++			case RTM_DELETE:
++				break;
++			default:
++				break;
++			}
++			break;
+ 		}
+ #ifdef INET6
+ 		if (ifa->ifa_addr->sa_family == AF_INET6) {
+@@ -360,6 +452,7 @@
+ 
+ 	struct carp_softc *sc;
+ 	struct ifnet *ifp;
++	static const u_char eaddr[ETHER_ADDR_LEN]; /* 00:00:00:00:00:00 */
+ 
+ 	MALLOC(sc, struct carp_softc *, sizeof(*sc), M_CARP, M_WAITOK|M_ZERO);
+ 	ifp = SC2IFP(sc) = if_alloc(IFT_ETHER);
+@@ -391,16 +484,13 @@
+ 	
+ 	ifp->if_softc = sc;
+ 	if_initname(ifp, CARP_IFNAME, unit);
+-	ifp->if_mtu = ETHERMTU;
+-	ifp->if_flags = IFF_LOOPBACK;
++	ether_ifattach(ifp, eaddr);
++	ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST;
+ 	ifp->if_ioctl = carp_ioctl;
+-	ifp->if_output = carp_looutput;
++	ifp->if_output = carp_output;
+ 	ifp->if_start = carp_start;
+ 	ifp->if_type = IFT_CARP;
+ 	ifp->if_snd.ifq_maxlen = ifqmaxlen;
+-	ifp->if_hdrlen = 0;
+-	if_attach(ifp);
+-	bpfattach(SC2IFP(sc), DLT_NULL, sizeof(u_int32_t));
+ 	mtx_lock(&carp_mtx);
+ 	LIST_INSERT_HEAD(&carpif_list, sc, sc_next);
+ 	mtx_unlock(&carp_mtx);
+@@ -503,7 +593,7 @@
+  * but it seems more efficient this way or not possible otherwise.
+  */
+ void
+-carp_input(struct mbuf *m, int hlen)
++carp_proto_input(struct mbuf *m, int hlen)
+ {
+ 	struct ip *ip = mtod(m, struct ip *);
+ 	struct carp_header *ch;
+@@ -517,9 +607,9 @@
+ 	}
+ 
+ 	/* check if received on a valid carp interface */
+-	if (m->m_pkthdr.rcvif->if_carp == NULL) {
++	if (m->m_pkthdr.rcvif->if_type != IFT_CARP) {
+ 		carpstats.carps_badif++;
+-		CARP_LOG("carp_input: packet received on non-carp "
++		CARP_LOG("carp_proto_input: packet received on non-carp "
+ 		    "interface: %s\n",
+ 		    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+@@ -529,7 +619,7 @@
+ 	/* verify that the IP TTL is 255.  */
+ 	if (ip->ip_ttl != CARP_DFLTTL) {
+ 		carpstats.carps_badttl++;
+-		CARP_LOG("carp_input: received ttl %d != 255i on %s\n",
++		CARP_LOG("carp_proto_input: received ttl %d != 255i on %s\n",
+ 		    ip->ip_ttl,
+ 		    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+@@ -540,7 +630,7 @@
+ 
+ 	if (m->m_pkthdr.len < iplen + sizeof(*ch)) {
+ 		carpstats.carps_badlen++;
+-		CARP_LOG("carp_input: received len %zd < "
++		CARP_LOG("carp_proto_input: received len %zd < "
+ 		    "sizeof(struct carp_header)\n",
+ 		    m->m_len - sizeof(struct ip));
+ 		m_freem(m);
+@@ -550,7 +640,7 @@
+ 	if (iplen + sizeof(*ch) < m->m_len) {
+ 		if ((m = m_pullup(m, iplen + sizeof(*ch))) == NULL) {
+ 			carpstats.carps_hdrops++;
+-			CARP_LOG("carp_input: pullup failed\n");
++			CARP_LOG("carp_proto_input: pullup failed\n");
+ 			return;
+ 		}
+ 		ip = mtod(m, struct ip *);
+@@ -564,7 +654,7 @@
+ 	len = iplen + sizeof(*ch);
+ 	if (len > m->m_pkthdr.len) {
+ 		carpstats.carps_badlen++;
+-		CARP_LOG("carp_input: packet too short %d on %s\n",
++		CARP_LOG("carp_proto_input: packet too short %d on %s\n",
+ 		    m->m_pkthdr.len,
+ 		    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+@@ -582,19 +672,19 @@
+ 	m->m_data += iplen;
+ 	if (carp_cksum(m, len - iplen)) {
+ 		carpstats.carps_badsum++;
+-		CARP_LOG("carp_input: checksum failed on %s\n",
++		CARP_LOG("carp_proto_input: checksum failed on %s\n",
+ 		    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+ 		return;
+ 	}
+ 	m->m_data -= iplen;
+ 
+-	carp_input_c(m, ch, AF_INET);
++	carp_proto_input_c(m, ch, AF_INET);
+ }
+ 
+ #ifdef INET6
+ int
+-carp6_input(struct mbuf **mp, int *offp, int proto)
++carp6_proto_input(struct mbuf **mp, int *offp, int proto)
+ {
+ 	struct mbuf *m = *mp;
+ 	struct ip6_hdr *ip6 = mtod(m, struct ip6_hdr *);
+@@ -609,9 +699,9 @@
+ 	}
+ 
+ 	/* check if received on a valid carp interface */
+-	if (m->m_pkthdr.rcvif->if_carp == NULL) {
++	if (m->m_pkthdr.rcvif->if_type != IFT_CARP) {
+ 		carpstats.carps_badif++;
+-		CARP_LOG("carp6_input: packet received on non-carp "
++		CARP_LOG("carp6_proto_input: packet received on non-carp "
+ 		    "interface: %s\n",
+ 		    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+@@ -621,7 +711,7 @@
+ 	/* verify that the IP TTL is 255 */
+ 	if (ip6->ip6_hlim != CARP_DFLTTL) {
+ 		carpstats.carps_badttl++;
+-		CARP_LOG("carp6_input: received ttl %d != 255 on %s\n",
++		CARP_LOG("carp6_proto_input: received ttl %d != 255 on %s\n",
+ 		    ip6->ip6_hlim,
+ 		    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+@@ -633,7 +723,7 @@
+ 	IP6_EXTHDR_GET(ch, struct carp_header *, m, *offp, sizeof(*ch));
+ 	if (ch == NULL) {
+ 		carpstats.carps_badlen++;
+-		CARP_LOG("carp6_input: packet size %u too small\n", len);
++		CARP_LOG("carp6_proto_input: packet size %u too small\n", len);
+ 		return (IPPROTO_DONE);
+ 	}
+ 
+@@ -642,22 +732,22 @@
+ 	m->m_data += *offp;
+ 	if (carp_cksum(m, sizeof(*ch))) {
+ 		carpstats.carps_badsum++;
+-		CARP_LOG("carp6_input: checksum failed, on %s\n",
++		CARP_LOG("carp6_proto_input: checksum failed, on %s\n",
+ 		    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+ 		return (IPPROTO_DONE);
+ 	}
+ 	m->m_data -= *offp;
+ 
+-	carp_input_c(m, ch, AF_INET6);
++	carp_proto_input_c(m, ch, AF_INET6);
+ 	return (IPPROTO_DONE);
+ }
+ #endif /* INET6 */
+ 
+ static void
+-carp_input_c(struct mbuf *m, struct carp_header *ch, sa_family_t af)
++carp_proto_input_c(struct mbuf *m, struct carp_header *ch, sa_family_t af)
+ {
+-	struct ifnet *ifp = m->m_pkthdr.rcvif;
++	struct ifnet *ifp = m->m_pkthdr.rcvif->if_carpdev;
+ 	struct carp_softc *sc;
+ 	u_int64_t tmp_counter;
+ 	struct timeval sc_tv, ch_tv;
+@@ -793,9 +883,6 @@
+ static int
+ carp_prepare_ad(struct mbuf *m, struct carp_softc *sc, struct carp_header *ch)
+ {
+-	struct m_tag *mtag;
+-	struct ifnet *ifp = SC2IFP(sc);
+-
+ 	if (sc->sc_init_counter) {
+ 		/* this could also be seconds since unix epoch */
+ 		sc->sc_counter = arc4random();
+@@ -809,16 +896,6 @@
+ 
+ 	carp_hmac_generate(sc, ch->carp_counter, ch->carp_md);
+ 
+-	/* Tag packet for carp_output */
+-	mtag = m_tag_get(PACKET_TAG_CARP, sizeof(struct ifnet *), M_NOWAIT);
+-	if (mtag == NULL) {
+-		m_freem(m);
+-		SC2IFP(sc)->if_oerrors++;
+-		return (ENOMEM);
+-	}
+-	bcopy(&ifp, (caddr_t)(mtag + 1), sizeof(struct ifnet *));
+-	m_tag_prepend(m, mtag);
+-
+ 	return (0);
+ }
+ 
+@@ -859,6 +936,8 @@
+ 	struct carp_header *ch_ptr;
+ 	struct mbuf *m;
+ 	int len, advbase, advskew;
++	struct ifaddr *ifa;
++	struct sockaddr sa;
+ 
+ 	CARP_SCLOCK_ASSERT(sc);
+ 
+@@ -887,7 +966,7 @@
+ 	ch.carp_cksum = 0;
+ 
+ #ifdef INET
+-	if (sc->sc_ia) {
++	if (sc->sc_naddrs) {
+ 		struct ip *ip;
+ 
+ 		MGETHDR(m, M_DONTWAIT, MT_HEADER);
+@@ -916,7 +995,15 @@
+ 		ip->ip_ttl = CARP_DFLTTL;
+ 		ip->ip_p = IPPROTO_CARP;
+ 		ip->ip_sum = 0;
+-		ip->ip_src.s_addr = sc->sc_ia->ia_addr.sin_addr.s_addr;
++
++		bzero(&sa, sizeof(sa));
++		sa.sa_family = AF_INET;
++		ifa = ifaof_ifpforaddr(&sa, SC2IFP(sc));
++		if (ifa == NULL)
++			ip->ip_src.s_addr = 0;
++		else
++			ip->ip_src.s_addr =
++			    ifatoia(ifa)->ia_addr.sin_addr.s_addr;
+ 		ip->ip_dst.s_addr = htonl(INADDR_CARP_GROUP);
+ 
+ 		ch_ptr = (struct carp_header *)(&ip[1]);
+@@ -959,7 +1046,7 @@
+ 	}
+ #endif /* INET */
+ #ifdef INET6
+-	if (sc->sc_ia6) {
++	if (sc->sc_naddrs6) {
+ 		struct ip6_hdr *ip6;
+ 
+ 		MGETHDR(m, M_DONTWAIT, MT_HEADER);
+@@ -983,8 +1070,15 @@
+ 		ip6->ip6_vfc |= IPV6_VERSION;
+ 		ip6->ip6_hlim = CARP_DFLTTL;
+ 		ip6->ip6_nxt = IPPROTO_CARP;
+-		bcopy(&sc->sc_ia6->ia_addr.sin6_addr, &ip6->ip6_src,
+-		    sizeof(struct in6_addr));
++
++		bzero(&sa, sizeof(sa));
++		sa.sa_family = AF_INET6;
++		ifa = ifaof_ifpforaddr(&sa, SC2IFP(sc));
++		if (ifa == NULL)
++			bzero(&ip6->ip6_src, sizeof(struct in6_addr));
++		else
++			bcopy(ifatoia6(ifa)->ia_addr.sin6_addr.s6_addr,
++			    &ip6->ip6_src, sizeof(struct in6_addr));
+ 		/* set the multicast destination */
+ 
+ 		ip6->ip6_dst.s6_addr16[0] = htons(0xff02);
+@@ -1058,7 +1152,7 @@
+ 			continue;
+ 
+ /*		arprequest(sc->sc_carpdev, &in, &in, IF_LLADDR(sc->sc_ifp)); */
+-		arp_ifinit2(sc->sc_carpdev, ifa, IF_LLADDR(sc->sc_ifp));
++		arp_ifinit2(SC2IFP(sc), ifa, IF_LLADDR(sc->sc_ifp));
+ 
+ 		DELAY(1000);	/* XXX */
+ 	}
+@@ -1211,7 +1305,6 @@
+ void *
+ carp_macmatch6(void *v, struct mbuf *m, const struct in6_addr *taddr)
+ {
+-	struct m_tag *mtag;
+ 	struct carp_if *cif = v;
+ 	struct carp_softc *sc;
+ 	struct ifaddr *ifa;
+@@ -1223,18 +1316,6 @@
+ 			    &ifatoia6(ifa)->ia_addr.sin6_addr) &&
+  			    (SC2IFP(sc)->if_flags & IFF_UP) &&
+ 			    (SC2IFP(sc)->if_drv_flags & IFF_DRV_RUNNING)) {
+-				struct ifnet *ifp = SC2IFP(sc);
+-				mtag = m_tag_get(PACKET_TAG_CARP,
+-				    sizeof(struct ifnet *), M_NOWAIT);
+-				if (mtag == NULL) {
+-					/* better a bit than nothing */
+-					CARP_UNLOCK(cif);
+-					return (IF_LLADDR(sc->sc_ifp));
+-				}
+-				bcopy(&ifp, (caddr_t)(mtag + 1),
+-				    sizeof(struct ifnet *));
+-				m_tag_prepend(m, mtag);
+-
+ 				CARP_UNLOCK(cif);
+ 				return (IF_LLADDR(sc->sc_ifp));
+ 			}
+@@ -1423,15 +1504,116 @@
+ #endif
+ 
+ static int
++carp_set_ifp(struct carp_softc *sc, struct ifnet *ifp)
++{
++	struct carp_if *cif = NULL, *ncif = NULL;
++	struct carp_softc *vr, *after = NULL;
++	int myself = 0, error = 0;
++
++	if (ifp == sc->sc_carpdev)
++		return (0);
++
++	if (ifp != NULL) {
++		if ((ifp->if_flags & IFF_MULTICAST) == 0)
++			return (ENODEV);
++		if (ifp->if_type == IFT_CARP)
++			return (EINVAL);
++
++		if (ifp->if_carp == NULL) {
++			MALLOC(ncif, struct carp_if *, sizeof(*ncif), M_CARP,
++			    M_WAITOK|M_ZERO);
++			if (!ncif)
++				return (ENOBUFS);
++			if ((error = ifpromisc(ifp, 1))) {
++				FREE(ncif, M_CARP);
++				return (error);
++			}
++		} else {
++			cif = (struct carp_if *)ifp->if_carp;
++			CARP_LOCK(cif);
++			TAILQ_FOREACH(vr, &cif->vhif_vrs, sc_list)
++				if (vr != sc && vr->sc_vhid == sc->sc_vhid) {
++					CARP_UNLOCK(cif);
++					return (EINVAL);
++				}
++		}
++
++		/* detach from old interface */
++		if (sc->sc_carpdev != NULL) {
++			CARP_SCLOCK(sc);
++			carpdetach(sc, 1);
++		}
++
++		if (sc->sc_naddrs != 0 &&
++		    (error = carp_join_multicast(sc)) != 0)
++		    	goto cleanup;
++#ifdef INET6
++		if (sc->sc_naddrs6 != 0 &&
++		    (error = carp_join_multicast6(sc)) != 0) {
++		    	carp_multicast_cleanup(sc);
++		    	goto cleanup;
++		}
++#endif
++
++		/* attach carp glue to physical interface */
++		if (ncif != NULL) {
++			CARP_LOCK_INIT(ncif);
++			CARP_LOCK(ncif);
++			ncif->vhif_ifp = ifp;
++			TAILQ_INIT(&ncif->vhif_vrs);
++			TAILQ_INSERT_HEAD(&ncif->vhif_vrs, sc, sc_list);
++			ncif->vhif_nvrs++;
++			ifp->if_carp = ncif;
++			CARP_UNLOCK(ncif);
++		} else {
++			cif = (struct carp_if *)ifp->if_carp;
++			TAILQ_FOREACH(vr, &cif->vhif_vrs, sc_list) {
++				if (vr == sc)
++					myself = 1;
++				if (vr->sc_vhid < sc->sc_vhid)
++					after = vr;
++			}
++			if (!myself) {
++				if (after == NULL) {
++					TAILQ_INSERT_TAIL(&cif->vhif_vrs, sc,
++					    sc_list);
++				} else {
++					TAILQ_INSERT_AFTER(&cif->vhif_vrs,
++					    after, sc, sc_list);
++				}
++				cif->vhif_nvrs++;
++			}
++			CARP_UNLOCK(cif);
++		}
++
++		sc->sc_carpdev = ifp;
++		if (sc->sc_naddrs || sc->sc_naddrs6)
++			sc->sc_ifp->if_flags |= IFF_UP;
++		carp_carpdev_state(ifp);
++	} else {
++		CARP_SCLOCK(sc);
++		carpdetach(sc, 1);
++		SC2IFP(sc)->if_flags &= ~IFF_UP;
++		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
++	}
++
++	return (0);
++cleanup:
++	if (ncif)
++		FREE(ncif, M_CARP);
++	else
++		CARP_UNLOCK(cif);
++
++	return (error);
++}
++
++static int
+ carp_set_addr(struct carp_softc *sc, struct sockaddr_in *sin)
+ {
+-	struct ifnet *ifp;
+-	struct carp_if *cif;
++	struct ifnet *ifp = sc->sc_carpdev;
+ 	struct in_ifaddr *ia, *ia_if;
+-	struct ip_moptions *imo = &sc->sc_imo;
+-	struct in_addr addr;
+ 	u_long iaddr = htonl(sin->sin_addr.s_addr);
+-	int own, error;
++	int error;
+ 
+ 	if (sin->sin_addr.s_addr == 0) {
+ 		if (!(SC2IFP(sc)->if_flags & IFF_UP))
+@@ -1443,7 +1625,7 @@
+ 	}
+ 
+ 	/* we have to do it by hands to check we won't match on us */
+-	ia_if = NULL; own = 0;
++	ia_if = NULL;
+ 	TAILQ_FOREACH(ia, &in_ifaddrhead, ia_link) {
+ 		/* and, yeah, we need a multicast-capable iface too */
+ 		if (ia->ia_ifp != SC2IFP(sc) &&
+@@ -1451,106 +1633,65 @@
+ 		    (iaddr & ia->ia_subnetmask) == ia->ia_subnet) {
+ 			if (!ia_if)
+ 				ia_if = ia;
+-			if (sin->sin_addr.s_addr ==
+-			    ia->ia_addr.sin_addr.s_addr)
+-				own++;
+ 		}
+ 	}
+ 
+-	if (!ia_if)
+-		return (EADDRNOTAVAIL);
+-
+-	ia = ia_if;
+-	ifp = ia->ia_ifp;
+-
+-	if (ifp == NULL || (ifp->if_flags & IFF_MULTICAST) == 0 ||
+-	    (imo->imo_multicast_ifp && imo->imo_multicast_ifp != ifp))
+-		return (EADDRNOTAVAIL);
+-
+-	if (imo->imo_num_memberships == 0) {
+-		addr.s_addr = htonl(INADDR_CARP_GROUP);
+-		if ((imo->imo_membership[0] = in_addmulti(&addr, ifp)) == NULL)
+-			return (ENOBUFS);
+-		imo->imo_num_memberships++;
+-		imo->imo_multicast_ifp = ifp;
+-		imo->imo_multicast_ttl = CARP_DFLTTL;
+-		imo->imo_multicast_loop = 0;
+-	}
+-
+-	if (!ifp->if_carp) {
+-
+-		MALLOC(cif, struct carp_if *, sizeof(*cif), M_CARP,
+-		    M_WAITOK|M_ZERO);
+-		if (!cif) {
+-			error = ENOBUFS;
+-			goto cleanup;
+-		}
+-		if ((error = ifpromisc(ifp, 1))) {
+-			FREE(cif, M_CARP);
+-			goto cleanup;
++	if (ia_if) {
++		ia = ia_if;
++		if (ifp) {
++			if (ifp != ia->ia_ifp)
++				return (EADDRNOTAVAIL);
++		} else {
++			ifp = ia->ia_ifp;
+ 		}
+-		
+-		CARP_LOCK_INIT(cif);
+-		CARP_LOCK(cif);
+-		cif->vhif_ifp = ifp;
+-		TAILQ_INIT(&cif->vhif_vrs);
+-		ifp->if_carp = cif;
+-
+-	} else {
+-		struct carp_softc *vr;
+-
+-		cif = (struct carp_if *)ifp->if_carp;
+-		CARP_LOCK(cif);
+-		TAILQ_FOREACH(vr, &cif->vhif_vrs, sc_list)
+-			if (vr != sc && vr->sc_vhid == sc->sc_vhid) {
+-				CARP_UNLOCK(cif);
+-				error = EINVAL;
+-				goto cleanup;
+-			}
+ 	}
+-	sc->sc_ia = ia;
+-	sc->sc_carpdev = ifp;
+ 
+-	{ /* XXX prevent endless loop if already in queue */
+-	struct carp_softc *vr, *after = NULL;
+-	int myself = 0;
+-	cif = (struct carp_if *)ifp->if_carp;
++	if ((error = carp_set_ifp(sc, ifp)))
++		return (error);
+ 
+-	/* XXX: cif should not change, right? So we still hold the lock */
+-	CARP_LOCK_ASSERT(cif);
+-
+-	TAILQ_FOREACH(vr, &cif->vhif_vrs, sc_list) {
+-		if (vr == sc)
+-			myself = 1;
+-		if (vr->sc_vhid < sc->sc_vhid)
+-			after = vr;
+-	}
++	if (sc->sc_carpdev == NULL)
++		return (EADDRNOTAVAIL);
+ 
+-	if (!myself) {
+-		/* We're trying to keep things in order */
+-		if (after == NULL) {
+-			TAILQ_INSERT_TAIL(&cif->vhif_vrs, sc, sc_list);
+-		} else {
+-			TAILQ_INSERT_AFTER(&cif->vhif_vrs, after, sc, sc_list);
+-		}
+-		cif->vhif_nvrs++;
+-	}
++	CARP_SCLOCK(sc);
++	if (sc->sc_naddrs == 0 && (error = carp_join_multicast(sc)) != 0) {
++		CARP_SCUNLOCK(sc);
++		return (error);
+ 	}
+ 
+ 	sc->sc_naddrs++;
+ 	SC2IFP(sc)->if_flags |= IFF_UP;
+-	if (own)
+-		sc->sc_advskew = 0;
+ 	carp_sc_state_locked(sc);
+ 	carp_setrun(sc, 0);
+-
+-	CARP_UNLOCK(cif);
++	CARP_SCUNLOCK(sc);
+ 
+ 	return (0);
+ 
+-cleanup:
+-	in_delmulti(imo->imo_membership[--imo->imo_num_memberships]);
+-	return (error);
++/*
++ * XXX: cleanup multi?
++ * cleanup:
++ *	return (error);
++ */
++}
++
++static int
++carp_join_multicast(struct carp_softc *sc)
++{
++	struct ip_moptions *imo = &sc->sc_imo;
++	struct in_addr addr;
++
++	KASSERT(imo->imo_num_memberships == 0,
++	    ("carp_join_multicast: leftover multicast memberships"));
++
++	addr.s_addr = htonl(INADDR_CARP_GROUP);
++	if ((imo->imo_membership[0] =
++	    in_addmulti(&addr, SC2IFP(sc))) == NULL)
++		return (ENOBUFS);
++	imo->imo_num_memberships++;
++	imo->imo_multicast_ifp = SC2IFP(sc);
++	imo->imo_multicast_ttl = CARP_DFLTTL;
++	imo->imo_multicast_loop = 0;
++
++	return (0);
+ }
+ 
+ static int
+@@ -1587,12 +1728,8 @@
+ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
+ {
+ 	struct ifnet *ifp;
+-	struct carp_if *cif;
+ 	struct in6_ifaddr *ia, *ia_if;
+-	struct ip6_moptions *im6o = &sc->sc_im6o;
+-	struct in6_multi_mship *imm;
+-	struct in6_addr in6;
+-	int own, error;
++	int own;
+ 
+ 	if (IN6_IS_ADDR_UNSPECIFIED(&sin6->sin6_addr)) {
+ 		if (!(SC2IFP(sc)->if_flags & IFF_UP))
+@@ -1633,93 +1770,12 @@
+ 	ifp = ia->ia_ifp;
+ 
+ 	if (ifp == NULL || (ifp->if_flags & IFF_MULTICAST) == 0 ||
+-	    (im6o->im6o_multicast_ifp && im6o->im6o_multicast_ifp != ifp))
++	    (sc->sc_im6o.im6o_multicast_ifp &&
++	    sc->sc_im6o.im6o_multicast_ifp != ifp))
+ 		return (EADDRNOTAVAIL);
+ 
+-	if (!sc->sc_naddrs6) {
+-		im6o->im6o_multicast_ifp = ifp;
+-
+-		/* join CARP multicast address */
+-		bzero(&in6, sizeof(in6));
+-		in6.s6_addr16[0] = htons(0xff02);
+-		in6.s6_addr8[15] = 0x12;
+-		if (in6_setscope(&in6, ifp, NULL) != 0)
+-			goto cleanup;
+-		if ((imm = in6_joingroup(ifp, &in6, &error, 0)) == NULL)
+-			goto cleanup;
+-		LIST_INSERT_HEAD(&im6o->im6o_memberships, imm, i6mm_chain);
+-
+-		/* join solicited multicast address */
+-		bzero(&in6, sizeof(in6));
+-		in6.s6_addr16[0] = htons(0xff02);
+-		in6.s6_addr32[1] = 0;
+-		in6.s6_addr32[2] = htonl(1);
+-		in6.s6_addr32[3] = sin6->sin6_addr.s6_addr32[3];
+-		in6.s6_addr8[12] = 0xff;
+-		if (in6_setscope(&in6, ifp, NULL) != 0)
+-			goto cleanup;
+-		if ((imm = in6_joingroup(ifp, &in6, &error, 0)) == NULL)
+-			goto cleanup;
+-		LIST_INSERT_HEAD(&im6o->im6o_memberships, imm, i6mm_chain);
+-	}
+-
+-	if (!ifp->if_carp) {
+-		MALLOC(cif, struct carp_if *, sizeof(*cif), M_CARP,
+-		    M_WAITOK|M_ZERO);
+-		if (!cif) {
+-			error = ENOBUFS;
+-			goto cleanup;
+-		}
+-		if ((error = ifpromisc(ifp, 1))) {
+-			FREE(cif, M_CARP);
+-			goto cleanup;
+-		}
+-
+-		CARP_LOCK_INIT(cif);
+-		CARP_LOCK(cif);
+-		cif->vhif_ifp = ifp;
+-		TAILQ_INIT(&cif->vhif_vrs);
+-		ifp->if_carp = cif;
+-
+-	} else {
+-		struct carp_softc *vr;
+-
+-		cif = (struct carp_if *)ifp->if_carp;
+-		CARP_LOCK(cif);
+-		TAILQ_FOREACH(vr, &cif->vhif_vrs, sc_list)
+-			if (vr != sc && vr->sc_vhid == sc->sc_vhid) {
+-				CARP_UNLOCK(cif);
+-				error = EINVAL;
+-				goto cleanup;
+-			}
+-	}
+-	sc->sc_ia6 = ia;
+ 	sc->sc_carpdev = ifp;
+ 
+-	{ /* XXX prevent endless loop if already in queue */
+-	struct carp_softc *vr, *after = NULL;
+-	int myself = 0;
+-	cif = (struct carp_if *)ifp->if_carp;
+-	CARP_LOCK_ASSERT(cif);
+-
+-	TAILQ_FOREACH(vr, &cif->vhif_vrs, sc_list) {
+-		if (vr == sc)
+-			myself = 1;
+-		if (vr->sc_vhid < sc->sc_vhid)
+-			after = vr;
+-	}
+-
+-	if (!myself) {
+-		/* We're trying to keep things in order */
+-		if (after == NULL) {
+-			TAILQ_INSERT_TAIL(&cif->vhif_vrs, sc, sc_list);
+-		} else {
+-			TAILQ_INSERT_AFTER(&cif->vhif_vrs, after, sc, sc_list);
+-		}
+-		cif->vhif_nvrs++;
+-	}
+-	}
+-
+ 	sc->sc_naddrs6++;
+ 	SC2IFP(sc)->if_flags |= IFF_UP;
+ 	if (own)
+@@ -1727,20 +1783,61 @@
+ 	carp_sc_state_locked(sc);
+ 	carp_setrun(sc, 0);
+ 
+-	CARP_UNLOCK(cif);
+-
+ 	return (0);
+ 
+-cleanup:
+-	/* clean up multicast memberships */
+-	if (!sc->sc_naddrs6) {
+-		while (!LIST_EMPTY(&im6o->im6o_memberships)) {
+-			imm = LIST_FIRST(&im6o->im6o_memberships);
+-			LIST_REMOVE(imm, i6mm_chain);
+-			in6_leavegroup(imm);
+-		}
++/* XXX:
++ * cleanup:
++ *	 * clean up multicast memberships *
++ *	if (!sc->sc_naddrs6) {
++ *		while (!LIST_EMPTY(&im6o->im6o_memberships)) {
++ *			imm = LIST_FIRST(&im6o->im6o_memberships);
++ *			LIST_REMOVE(imm, i6mm_chain);
++ *			in6_leavegroup(imm);
++ *		}
++ *	}
++ *	return (error);
++ */
++}
++
++static int
++carp_join_multicast6(struct carp_softc *sc)
++{
++	struct ip6_moptions *im6o = &sc->sc_im6o;
++	struct in6_multi_mship *imm, *imm2;
++	struct in6_addr in6;
++	int error = 0;
++
++	/* join CARP multicast address */
++	bzero(&in6, sizeof(in6));
++	in6.s6_addr16[0] = htons(0xff02);
++	in6.s6_addr8[15] = 0x12;
++	if ((error = in6_setscope(&in6, sc->sc_carpdev, NULL)) != 0)
++		return (error);
++	if ((imm = in6_joingroup(sc->sc_carpdev, &in6, &error, 0)) == NULL)
++		return (error);
++
++	/* join solicited multicast address */
++	bzero(&in6, sizeof(in6));
++	in6.s6_addr16[0] = htons(0xff02);
++	in6.s6_addr32[1] = 0;
++	in6.s6_addr32[2] = htonl(1);
++	in6.s6_addr32[3] = 0; /* XXX: sin6->sin6_addr.s6_addr32[3]; */
++	in6.s6_addr8[12] = 0xff;
++	if ((error = in6_setscope(&in6, sc->sc_carpdev, NULL)) != 0) {
++		in6_leavegroup(imm);
++		return (error);
+ 	}
+-	return (error);
++	if ((imm2 = in6_joingroup(sc->sc_carpdev, &in6, &error, 0)) == NULL) {
++		in6_leavegroup(imm);
++		return (error);
++	}
++
++	im6o->im6o_multicast_ifp = sc->sc_carpdev;
++
++	LIST_INSERT_HEAD(&im6o->im6o_memberships, imm, i6mm_chain);
++	LIST_INSERT_HEAD(&im6o->im6o_memberships, imm2, i6mm_chain);
++
++	return (0);
+ }
+ 
+ static int
+@@ -1786,7 +1883,8 @@
+ 	struct ifaddr *ifa;
+ 	struct ifreq *ifr;
+ 	struct ifaliasreq *ifra;
+-	int locked = 0, error = 0;
++	struct ifnet *cdev = NULL;
++	int locked = 0, error = 0, changed = 0;
+ 
+ 	ifa = (struct ifaddr *)addr;
+ 	ifra = (struct ifaliasreq *)addr;
+@@ -1794,12 +1892,12 @@
+ 
+ 	switch (cmd) {
+ 	case SIOCSIFADDR:
++	case SIOCAIFADDR:
++		changed++;
+ 		switch (ifa->ifa_addr->sa_family) {
+ #ifdef INET
+ 		case AF_INET:
+ 			SC2IFP(sc)->if_flags |= IFF_UP;
+-			bcopy(ifa->ifa_addr, ifa->ifa_dstaddr,
+-			    sizeof(struct sockaddr));
+ 			error = carp_set_addr(sc, satosin(ifa->ifa_addr));
+ 			break;
+ #endif /* INET */
+@@ -1815,29 +1913,8 @@
+ 		}
+ 		break;
+ 
+-	case SIOCAIFADDR:
+-		switch (ifa->ifa_addr->sa_family) {
+-#ifdef INET
+-		case AF_INET:
+-			SC2IFP(sc)->if_flags |= IFF_UP;
+-			bcopy(ifa->ifa_addr, ifa->ifa_dstaddr,
+-			    sizeof(struct sockaddr));
+-			error = carp_set_addr(sc, satosin(&ifra->ifra_addr));
+-			break;
+-#endif /* INET */
+-#ifdef INET6
+-		case AF_INET6:
+-			SC2IFP(sc)->if_flags |= IFF_UP;
+-			error = carp_set_addr6(sc, satosin6(&ifra->ifra_addr));
+-			break;
+-#endif /* INET6 */
+-		default:
+-			error = EAFNOSUPPORT;
+-			break;
+-		}
+-		break;
+-
+ 	case SIOCDIFADDR:
++		changed++;
+ 		switch (ifa->ifa_addr->sa_family) {
+ #ifdef INET
+ 		case AF_INET:
+@@ -1881,6 +1958,14 @@
+ 		if ((error = copyin(ifr->ifr_data, &carpr, sizeof carpr)))
+ 			break;
+ 		error = 1;
++		changed++;
++		if (carpr.carpr_carpdev[0] != '\0' &&
++		    (cdev = ifunit(carpr.carpr_carpdev)) == NULL) {
++		    	error = EINVAL;
++		    	break;
++		}
++		if ((error = carp_set_ifp(sc, cdev)))
++			break;
+ 		if (sc->sc_carpdev) {
+ 			locked = 1;
+ 			CARP_SCLOCK(sc);
+@@ -1959,64 +2044,37 @@
+ 		if (error == 0)
+ 			bcopy(sc->sc_key, carpr.carpr_key,
+ 			    sizeof(carpr.carpr_key));
++		if (sc->sc_carpdev != NULL)
++			strlcpy(carpr.carpr_carpdev, sc->sc_carpdev->if_xname,
++			    CARPDEVNAMSIZ);
+ 		error = copyout(&carpr, ifr->ifr_data, sizeof(carpr));
+ 		break;
+ 
++	case SIOCADDMULTI:
++	case SIOCDELMULTI:
++		/* TODO: tell carpdev */
++		break;
++
+ 	default:
+ 		error = EINVAL;
+ 	}
+ 
++	if (changed) {
++		if (!locked && sc->sc_carpdev) {
++			/* XXX: This really shouldn't happen */
++			CARP_SCLOCK(sc);
++			locked = 1;
++		}
++		carp_hmac_prepare(sc);
++	}
++
+ 	if (locked)
+ 		CARP_SCUNLOCK(sc);
+ 
+-	carp_hmac_prepare(sc);
+-
+ 	return (error);
+ }
+ 
+ /*
+- * XXX: this is looutput. We should eventually use it from there.
+- */
+-static int
+-carp_looutput(struct ifnet *ifp, struct mbuf *m, struct sockaddr *dst,
+-    struct rtentry *rt)
+-{
+-	u_int32_t af;
+-
+-	M_ASSERTPKTHDR(m); /* check if we have the packet header */
+-
+-	if (rt && rt->rt_flags & (RTF_REJECT|RTF_BLACKHOLE)) {
+-		m_freem(m);
+-		return (rt->rt_flags & RTF_BLACKHOLE ? 0 :
+-			rt->rt_flags & RTF_HOST ? EHOSTUNREACH : ENETUNREACH);
+-	}
+-
+-	ifp->if_opackets++;
+-	ifp->if_obytes += m->m_pkthdr.len;
+-
+-	/* BPF writes need to be handled specially. */
+-	if (dst->sa_family == AF_UNSPEC) {
+-		bcopy(dst->sa_data, &af, sizeof(af));
+-		dst->sa_family = af;
+-	}
+-
+-#if 1	/* XXX */
+-	switch (dst->sa_family) {
+-	case AF_INET:
+-	case AF_INET6:
+-	case AF_IPX:
+-	case AF_APPLETALK:
+-		break;
+-	default:
+-		printf("carp_looutput: af=%d unexpected\n", dst->sa_family);
+-		m_freem(m);
+-		return (EAFNOSUPPORT);
+-	}
+-#endif
+-	return(if_simloop(ifp, m, dst->sa_family, 0));
+-}
+-
+-/*
+  * Start output on carp interface. This function should never be called.
+  */
+ static void
+@@ -2027,81 +2085,84 @@
+ #endif
+ }
+ 
+-int
++static int
+ carp_output(struct ifnet *ifp, struct mbuf *m, struct sockaddr *sa,
+     struct rtentry *rt)
+ {
+-	struct m_tag *mtag;
+-	struct carp_softc *sc;
+-	struct ifnet *carp_ifp;
++	struct carp_softc *sc = ifp->if_softc;
+ 
+-	if (!sa)
+-		return (0);
++	if (sc->sc_carpdev != NULL && sc->sc_state == MASTER)
++		return (sc->sc_carpdev->if_output(ifp, m, sa, rt));
++	else {
++		m_freem(m);
++		return (ENETUNREACH);
++	}
++}
+ 
+-	switch (sa->sa_family) {
+-#ifdef INET
+-	case AF_INET:
+-		break;
+-#endif /* INET */
+-#ifdef INET6
+-	case AF_INET6:
+-		break;
+-#endif /* INET6 */
+-	default:
+-		return (0);
++struct ifnet *
++carp_ourether(void *v, struct ether_header *eh, u_char iftype, int src)
++{
++	struct carp_if *cif = (struct carp_if *)v;
++	struct carp_softc *vh;
++	u_int8_t *ena;
++
++	if (src)
++		ena = (u_int8_t *)&eh->ether_shost;
++	else
++		ena = (u_int8_t *)&eh->ether_dhost;
++
++	TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list) {
++		if ((vh->sc_ifp->if_flags & (IFF_UP)) != (IFF_UP))
++			continue;
++		if ((vh->sc_state == MASTER /* || vh->sc_ifp->if_flags & IFF_LINK0 */)
++		    && !bcmp(ena, IF_LLADDR(vh->sc_ifp), ETHER_ADDR_LEN))
++			return (vh->sc_ifp);
+ 	}
++	return (NULL);
++}
+ 
+-	mtag = m_tag_find(m, PACKET_TAG_CARP, NULL);
+-	if (mtag == NULL)
+-		return (0);
++int
++carp_input(struct mbuf *m)
++{
++	struct ether_header *eh;
++	struct carp_if *cif = (struct carp_if *)m->m_pkthdr.rcvif->if_carp;
++	struct ifnet *ifp;
+ 
+-	bcopy(mtag + 1, &carp_ifp, sizeof(struct ifnet *));
+-	sc = carp_ifp->if_softc;
++	eh = mtod(m, struct ether_header *);
+ 
+-	/* Set the source MAC address to Virtual Router MAC Address */
+-	switch (ifp->if_type) {
+-	case IFT_ETHER:
+-	case IFT_L2VLAN: {
+-			struct ether_header *eh;
+-
+-			eh = mtod(m, struct ether_header *);
+-			eh->ether_shost[0] = 0;
+-			eh->ether_shost[1] = 0;
+-			eh->ether_shost[2] = 0x5e;
+-			eh->ether_shost[3] = 0;
+-			eh->ether_shost[4] = 1;
+-			eh->ether_shost[5] = sc->sc_vhid;
+-		}
+-		break;
+-	case IFT_FDDI: {
+-			struct fddi_header *fh;
++	if ((ifp = carp_ourether(cif, eh, m->m_pkthdr.rcvif->if_type, 0)))
++		;
++	else if (m->m_flags & (M_BCAST|M_MCAST)) {
++		struct carp_softc *vh;
++		struct mbuf *m0;
+ 
+-			fh = mtod(m, struct fddi_header *);
+-			fh->fddi_shost[0] = 0;
+-			fh->fddi_shost[1] = 0;
+-			fh->fddi_shost[2] = 0x5e;
+-			fh->fddi_shost[3] = 0;
+-			fh->fddi_shost[4] = 1;
+-			fh->fddi_shost[5] = sc->sc_vhid;
+-		}
+-		break;
+-	case IFT_ISO88025: {
+- 			struct iso88025_header *th;
+- 			th = mtod(m, struct iso88025_header *);
+-			th->iso88025_shost[0] = 3;
+-			th->iso88025_shost[1] = 0;
+-			th->iso88025_shost[2] = 0x40 >> (sc->sc_vhid - 1);
+-			th->iso88025_shost[3] = 0x40000 >> (sc->sc_vhid - 1);
+-			th->iso88025_shost[4] = 0;
+-			th->iso88025_shost[5] = 0;
++		/*
++		 * XXX Should really check the list of multicast addresses
++		 * for each CARP interface _before_ copying.
++		 */
++		TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list) {
++			m0 = m_dup(m, M_DONTWAIT);
++			if (m0 == NULL)
++				continue;
++			m0->m_pkthdr.rcvif = vh->sc_ifp;
++			ether_input(vh->sc_ifp, m0);
+ 		}
+-		break;
+-	default:
+-		printf("%s: carp is not supported for this interface type\n",
+-		    ifp->if_xname);
+-		return (EOPNOTSUPP);
++		return (1);
+ 	}
+ 
++	if (ifp == NULL)
++		return (1);
++
++	m->m_pkthdr.rcvif = ifp;
++
++#if 0 /* XXX: BPF */
++	if (ifp->if_bpf)
++		bpf_mtap_hdr(ifp->if_bpf, (char *)&eh, ETHER_HDR_LEN, m,
++		    BPF_DIRECTION_IN);
++#endif
++	ifp->if_ipackets++;
++	ether_input(ifp, m);
++
+ 	return (0);
+ }
+ 
+@@ -2131,9 +2192,14 @@
+ }
+ 
+ void
+-carp_carpdev_state(void *v)
++carp_carpdev_state(struct ifnet *ifp)
+ {
+-	struct carp_if *cif = v;
++	struct carp_if *cif;
++
++	if (ifp->if_type == IFT_CARP || ifp->if_carp == NULL)
++		return;
++
++	cif = ifp->if_carp;
+ 
+ 	CARP_LOCK(cif);
+ 	carp_carpdev_state_locked(cif);
+Index: sys/netinet/ip_carp.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_carp.h,v
+retrieving revision 1.3
+diff -u -r1.3 ip_carp.h
+--- sys/netinet/ip_carp.h	1 Dec 2006 18:37:41 -0000	1.3
++++ sys/netinet/ip_carp.h	9 Dec 2007 02:13:42 -0000
+@@ -117,6 +117,13 @@
+ 	uint64_t	carps_preempt;		/* if enabled, preemptions */
+ };
+ 
++#define	CARPDEVNAMSIZ	16
++#ifdef IFNAMSIZ
++#if CARPDEVNAMSIZ != IFNAMSIZ
++#error
++#endif
++#endif
++
+ /*
+  * Configuration structure for SIOCSVH SIOCGVH
+  */
+@@ -128,6 +135,7 @@
+ 	int		carpr_advskew;
+ 	int		carpr_advbase;
+ 	unsigned char	carpr_key[CARP_KEY_LEN];
++	char		carpr_carpdev[CARPDEVNAMSIZ];
+ };
+ #define	SIOCSVH	_IOWR('i', 245, struct ifreq)
+ #define	SIOCGVH	_IOWR('i', 246, struct ifreq)
+@@ -152,15 +160,15 @@
+ }
+ 
+ #ifdef _KERNEL
+-void		 carp_carpdev_state(void *);
+-void		 carp_input (struct mbuf *, int);
+-int		 carp6_input (struct mbuf **, int *, int);
+-int		 carp_output (struct ifnet *, struct mbuf *, struct sockaddr *,
+-		     struct rtentry *);
+-int		 carp_iamatch (void *, struct in_ifaddr *, struct in_addr *,
++void		 carp_carpdev_state(struct ifnet *);
++void		 carp_proto_input(struct mbuf *, int);
++int		 carp6_proto_input(struct mbuf **, int *, int);
++int		 carp_iamatch(void *, struct in_ifaddr *, struct in_addr *,
+ 		     u_int8_t **);
+ struct ifaddr	*carp_iamatch6(void *, struct in6_addr *);
+ void		*carp_macmatch6(void *, struct mbuf *, const struct in6_addr *);
+-struct	ifnet	*carp_forus (void *, void *);
++struct	ifnet	*carp_forus(void *, void *);
++struct ifnet	*carp_ourether(void *, struct ether_header *, u_char, int);
++int		 carp_input(struct mbuf *);
+ #endif
+ #endif /* _IP_CARP_H */
+Index: sys/netinet6/in6_proto.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet6/in6_proto.c,v
+retrieving revision 1.46
+diff -u -r1.46 in6_proto.c
+--- sys/netinet6/in6_proto.c	5 Jul 2007 16:29:39 -0000	1.46
++++ sys/netinet6/in6_proto.c	9 Dec 2007 02:13:42 -0000
+@@ -319,7 +319,7 @@
+ 	.pr_domain =		&inet6domain,
+ 	.pr_protocol =		IPPROTO_CARP,
+ 	.pr_flags =		PR_ATOMIC|PR_ADDR,
+-	.pr_input =		carp6_input,
++	.pr_input =		carp6_proto_input,
+ 	.pr_output =		rip6_output,
+ 	.pr_ctloutput =		rip6_ctloutput,
+ 	.pr_usrreqs =		&rip6_usrreqs
