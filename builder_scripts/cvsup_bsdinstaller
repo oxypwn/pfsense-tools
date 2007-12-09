@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+#set -e
 
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
@@ -8,10 +8,12 @@ CURRENTDIR=`pwd`
 # Update BSDInstaller
 echo "Updating BSDInstaller collection..."
 mkdir -p ${BASE_DIR}/installer
-(cd ${BASE_DIR}/installer && cvsup ${CURRENTDIR}/bsdinstaller-supfile)
+cvsup ${CURRENTDIR}/bsdinstaller-supfile
 
 mkdir -p {$BASE_DIR}/installer
-ln -s ${BASE_DIR}/installer ${BASE_DIR}/tools/builder_scripts/installer 
+
+ln -s ${BASE_DIR}/installer ${BASE_DIR}/tools/builder_scripts/installer 2>/dev/null
+
 
 # Copy BSDInstaller build.conf
 cp ${BASE_DIR}/tools/installer/conf/build.conf \

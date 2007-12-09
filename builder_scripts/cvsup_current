@@ -165,13 +165,7 @@ if [ ! -f /home/pfsense/installer/scripts/build/build.conf ]; then
 	if [ ! -f "/usr/local/share/dfuibe_lua/200_install.lua" ]; then
 		echo "Fetching BSDInstaller..."
 		cvsup ${CURRENTDIR}/bsdinstaller-supfile
-		echo "One moment, rebuilding BSDInstaller..."
-		(cd /home/pfsense/installer/scripts/build && ./create_installer_tarballs.sh)
-		(cd /home/pfsense/installer/scripts/build && find /home/pfsense/installer -name "270_install_bootblocks.lua" -exec rm {} \;)
-		(cat /home/pfsense/installer/ports/sysutils/bsdinstaller/Makefile | grep -v "270_install_bootblocks.lua" >/tmp/MakefileTMP)
-		(mv /tmp/MakefileTMP /home/pfsense/installer/ports/sysutils/bsdinstaller/Makefile)
-		(cd /home/pfsense/installer/scripts/build && ./copy_ports_to_portsdir.sh)
-		(cd /home/pfsense/installer/scripts/build && ./build_installer_packages.sh)
+		./cvsup_bsdinstaller
 	else 
 		echo "-- Found /usr/local/share/dfuibe_lua/200_install.lua --"
 		echo "-- Not rebuilding BSDInstaller"
@@ -249,13 +243,6 @@ echo -n Cleaning up previous build environment...Please wait...
 (cd ${CURRENTDIR} && rm -rf /usr/obj*)
 echo Done!
 
-echo
-echo 
-echo "     ___"
-echo " ___/ f \"
-echo "/ p \___/ Sense"
-echo "\___/   \"
-echo "    \___/"
 echo
 echo "Starting pfSense build.  Sit back and have a six pack of beer (but not cheap beer)..."
 echo
