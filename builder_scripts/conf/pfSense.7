@@ -2,7 +2,8 @@
 include         GENERIC
 ident           pfSense7
 
-options SCHED_ULE					# add inULE scheduler
+options SCHED_ULE                                       # add inULE scheduler
+nooptions         SCHED_4BSD
 
 # IPSEC filtering interface
 device 		   enc
