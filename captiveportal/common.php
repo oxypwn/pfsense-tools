@@ -1,5 +1,6 @@
 <?php
 
+$debug = false;
 $nic = "em1";
 $ips = "254";
 $ip = "192.168.1.";

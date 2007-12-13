@@ -11,6 +11,8 @@ for($y=$iterations; $y<$iterations; $y++) {
 		exec("wget -qO {$handle} --tries {$tries} --timeout ${timeout} --post-data '{$post_data}' '{$url}' --bind-address {$address}");
 		if($sleep_between > 0) 
 			sleep($sleep_between);
+		if($debug) 
+			exec("cat {$handle}\n");
 		unset($handle);
 	}
 	if($sleep_between_iterations>0) 
