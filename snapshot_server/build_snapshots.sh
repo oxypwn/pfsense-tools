@@ -280,6 +280,11 @@ rm -rf /usr/obj*
 
 # Main builder loop
 while [ /bin/true ]; do
+		if [ -d /home/pfsense/pfSense ]; then
+			echo "Clearing out previous pfSense checkout directory..."
+			chflags -R noschg /home/pfsense/pfSense
+			rm -rf /home/pfsense/pfSense
+		fi
 		# -- pfSense RELENG_1_2 -- FreeBSD RELENG_6_2
 		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
 		setstatus "Setting build to -RELENG_1_2 FreeBSD RELENG_6_2..."
