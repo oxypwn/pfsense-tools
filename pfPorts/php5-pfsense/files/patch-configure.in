@@ -1,5 +1,5 @@
---- configure.in.orig	Sun Jun  3 13:46:20 2007
-+++ configure.in	Sun Jun  3 13:54:37 2007
+--- configure.in.orig	Mon Jun  4 08:08:43 2007
++++ configure.in	Mon Jun  4 08:13:47 2007
 @@ -233,7 +233,6 @@
  dnl .
  dnl -------------------------------------------------------------------------
@@ -25,7 +25,7 @@
  
  exec_prefix=$old_exec_prefix
  libdir=$old_libdir
-@@ -1295,22 +1293,22 @@
+@@ -1295,22 +1293,19 @@
  INLINE_CFLAGS="$INLINE_CFLAGS $standard_libtool_flag"
  CXXFLAGS="$CXXFLAGS $standard_libtool_flag"
  
@@ -40,13 +40,9 @@
 -    ;;
 -  *)
 -    install_targets="install-sapi $PHP_INSTALL_CLI_TARGET $install_targets"
--    ;;
-+  apache)
-+     install_targets="install-sapi $install_targets"
-+     ;;
-+  apache2handler)
-+     install_targets="install-sapi $install_targets"
-+     ;;
++  apache|apache2handler)
++    install_targets="install-sapi $install_targets"
+     ;;
  esac
  
  PHP_SUBST(all_targets)

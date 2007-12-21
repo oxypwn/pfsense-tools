@@ -1,5 +1,5 @@
---- sapi/cgi/config9.m4.orig	2007-07-11 23:20:36.000000000 +0000
-+++ sapi/cgi/config9.m4	2007-09-02 16:12:49.000000000 +0000
+--- sapi/cgi/config9.m4.orig	Thu Jul 12 01:20:36 2007
++++ sapi/cgi/config9.m4	Wed Sep  5 07:55:06 2007
 @@ -25,7 +25,6 @@
  dnl
  dnl CGI setup
@@ -14,7 +14,7 @@
      dnl Set install target and select SAPI
 -    INSTALL_IT="@echo \"Installing PHP CGI binary: \$(INSTALL_ROOT)\$(bindir)/\"; \$(INSTALL) -m 0755 \$(SAPI_CGI_PATH) \$(INSTALL_ROOT)\$(bindir)/\$(program_prefix)php-cgi\$(program_suffix)\$(EXEEXT)"
 -    PHP_SELECT_SAPI(cgi, program, $PHP_FCGI_FILES cgi_main.c getopt.c,, '$(SAPI_CGI_PATH)')
-+    INSTALL_CGI="@echo \"Installing PHP CGI into: \$(INSTALL_ROOT)\$(bindir)/\"; \$(INSTALL) -m 0755 \$(SAPI_CGI_PATH) \$(INSTALL_ROOT)\$(bindir)/\$(program_prefix)php-cgi\$(program_suffix)\$(EXEEXT)"
++    INSTALL_CGI="@echo \"Installing PHP CGI binary: \$(INSTALL_ROOT)\$(bindir)/\"; \$(INSTALL) -m 0755 \$(SAPI_CGI_PATH) \$(INSTALL_ROOT)\$(bindir)/\$(program_prefix)php-cgi\$(program_suffix)\$(EXEEXT)"
 +    PHP_ADD_SOURCES(sapi/cgi, $PHP_FCGI_FILES cgi_main.c getopt.c,, cgi)
 +    PHP_ADD_SOURCES(/main, internal_functions.c,,cgi)
  
@@ -32,24 +32,22 @@
 +    PHP_CGI_TARGET="\$(SAPI_CGI_PATH)"
 +    PHP_INSTALL_CGI_TARGET="install-cgi"
      PHP_SUBST(BUILD_CGI)
--
--  elif test "$PHP_CLI" != "no"; then
 +    PHP_SUBST(INSTALL_CGI)
 +    PHP_SUBST(PHP_CGI_OBJS)
 +    PHP_SUBST(PHP_CGI_TARGET)
 +    PHP_SUBST(PHP_INSTALL_CGI_TARGET)
-+
-+     if test "$PHP_SAPI" = "default" ; then
-+       PHP_BUILD_PROGRAM($SAPI_CGI_PATH)
-+     fi
-+     else
-     AC_MSG_RESULT(no)
--    OVERALL_TARGET=
--    PHP_SAPI=cli   
+ 
+-  elif test "$PHP_CLI" != "no"; then
+-    AC_MSG_RESULT(no)
 +    if test "$PHP_SAPI" = "default" ; then
-+      if test "$PHP_SAPI_CLI" != "no" ; then
-+        OVERALL_TARGET=
-+        PHP_SAPI=cli
++      PHP_BUILD_PROGRAM($SAPI_CGI_PATH)
++    fi
++ else
++  AC_MSG_RESULT(no)
++  if test "$PHP_SAPI" = "default" ; then
++    if test "$PHP_CLI" != "no" ; then
+     OVERALL_TARGET=
+     PHP_SAPI=cli   
    else
      AC_MSG_ERROR([No SAPIs selected.])  
    fi
