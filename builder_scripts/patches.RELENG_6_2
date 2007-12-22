@@ -26,3 +26,4 @@
 ~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
 ~lib/libipsec/~libipsec-pfkey.c-socketvar.diff~
 ~sys/contrib/pf/net~pf.c.diff~
+~sys/i386/pci~pci_pir.c.diff~
