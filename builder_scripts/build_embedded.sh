@@ -103,11 +103,11 @@ CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 #		CONFSIZE=${CONFSIZE:-"4096"}
 ###############################################################################
 #		128 megabyte image.
-#		ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors
+#		ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megs
 #		CONFSIZE=${CONFSIZE:-"4096"}
 ###############################################################################
 #		500 megabyte image.  Will be used later.
-#		ROOTSIZE=${ROOTSIZE:-"1019990"}  # Total number of sectors - 61 megs
+#		ROOTSIZE=${ROOTSIZE:-"1019990"}  # Total number of sectors - 500 megs
 #		CONFSIZE=${CONFSIZE:-"4096"}
 ###############################################################################
 
