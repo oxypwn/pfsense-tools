@@ -97,37 +97,32 @@ echo "#### Building bootable UFS image ####"
 UFS_LABEL=${FREESBIE_LABEL:-"pfSense"} # UFS label
 CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 
-# Root partition size
-# ROOTSIZE=${ROOTSIZE:-"116740"}  # Total number of sectors - 59 megs
+###############################################################################
+#		59 megabyte image.
+#		ROOTSIZE=${ROOTSIZE:-"116740"}  # Total number of sectors - 59 megs
+#		CONFSIZE=${CONFSIZE:-"4096"}
+###############################################################################
+#		128 megabyte image.
+#		ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors
+#		CONFSIZE=${CONFSIZE:-"4096"}
+###############################################################################
+#		500 megabyte image.  Will be used later.
+#		ROOTSIZE=${ROOTSIZE:-"1019990"}  # Total number of sectors - 61 megs
+#		CONFSIZE=${CONFSIZE:-"4096"}
+###############################################################################
 
-
-# 128 megs
 unset ROOTSIZE
 unset CONFSIZE
-ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors
-#ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
+ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megabytes
 CONFSIZE=${CONFSIZE:-"4096"}
 
-if [ $pfSense_version = "5" ]; then
-        # 64 megs
+if [ $freebsd_branch = "RELENG_7" ]; then
 	unset ROOTSIZE
 	unset CONFSIZE
-        ROOTSIZE=${ROOTSIZE:-"119990"}  # Total number of sectors - 61 megs
-        CONFSIZE=${CONFSIZE:-"4096"}
+	echo "Building a -RELENG_7 image, setting size to 128 megabytes..."
+	ROOTSIZE=${ROOTSIZE:-"1019990"}  # Total number of sectors - 500 megabytes
+	CONFSIZE=${CONFSIZE:-"4096"}
 fi
-
-if [ $PFSENSETAG = "RELENG_7" ]; then
-	# 128 megs
-	unset ROOTSIZE
-	unset CONFSIZE
-	echo "Building a -HEAD image, setting size to 128 megabytes..."
-        ROOTSIZE=${ROOTSIZE:-"218048"}  # Total number of sectors
-        CONFSIZE=${CONFSIZE:-"4096"}
-fi
-
-#        500 megabyte image.  Will be used later.
-#        ROOTSIZE=${ROOTSIZE:-"1019990"}  # Total number of sectors - 61 megs
-#        CONFSIZE=${CONFSIZE:-"4096"}
 
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
 # Temp file and directory to be used later
