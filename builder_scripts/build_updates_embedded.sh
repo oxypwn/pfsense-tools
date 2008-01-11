@@ -19,6 +19,7 @@ check_for_clog
 
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
+rm -rf $CVS_CO_DIR
 
 # If a full build has been performed we need to nuke
 # /usr/obj.pfSense/ since embedded uses a different
