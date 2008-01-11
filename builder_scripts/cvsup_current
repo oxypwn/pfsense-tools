@@ -233,6 +233,10 @@ if [ -d $PFSENSEBASEDIR ]; then
 	chflags -R noschg ${PFSENSEBASEDIR}
 	(cd ${CURRENTDIR} && rm -rf ${PFSENSEBASEDIR})	
 fi
+if [ -d $PFSENSEISODIR ]; then 
+	chflags -R noschg ${PFSENSEISODIR}
+	(cd ${CURRENTDIR} && rm -rf ${PFSENSEISODIR})	
+fi
 (cd ${CURRENTDIR} && rm -rf /usr/obj*)
 echo "Done!"
 
