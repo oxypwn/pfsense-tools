@@ -87,6 +87,9 @@ export NO_KERNELCLEAN=yo
 # Build if needed and install world and kernel
 make_world_kernel
 
+# Build SMP, Embedded (wrap) and Developers edition kernels
+build_all_kernels
+
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 ( populate_extra )
