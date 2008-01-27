@@ -17,3 +17,4 @@
 ~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
 ~lib/libipsec/~libipsec-pfkey.c-socketvar.diff~
 ~sys/~freebsd-6.3-oneshot-dumps.diff~
+~contrib/pf/pfctl~pfctl_altq.c.diff~
