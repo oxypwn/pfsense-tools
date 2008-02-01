@@ -29,3 +29,4 @@
 ~sys/i386/pci~pci_pir.c.diff~
 ~sys/pci~if_vr.c.diff~
 ~sys/~freebsd-6.3-oneshot-dumps.diff~
+~sys/netinet/~ip_carp.c.diff~
