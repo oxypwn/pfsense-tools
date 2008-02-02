@@ -2,7 +2,7 @@
 # Date created:		20 dec 2004
 # Whom:			vanhu
 #
-# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.16 2007/04/07 04:23:27 clsung Exp $
+# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.19 2007/10/04 06:00:21 edwin Exp $
 
 # TODO: - libipsec issue ?
 #       - cleanup...
@@ -10,7 +10,7 @@
 #       - $LOCALBASE/sbin/setkey Vs /usr/sbin/setkey
 
 PORTNAME=	ipsec-tools
-PORTVERSION=	0.6.7
+PORTVERSION=	0.7
 CATEGORIES=	security
 MASTER_SITES=	SF
 
@@ -31,7 +31,7 @@ CONFIGURE_ARGS=	--enable-shared --sysconfdir=${PREFIX}/etc/racoon \
 		--localstatedir=${STATEDIR:S/\/racoon//} \
 		--with-pkgversion=freebsd-${PORTVERSION}
 
-STATEDIR=	${DESTDIR}/var/db/racoon
+STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
@@ -89,7 +89,15 @@ CONFIGURE_ARGS+=	--enable-dpd
 CONFIGURE_ARGS+=	--disable-dpd
 .endif
 
+.ifdef(WITH_NATT)
+.	ifdef(WITH_NATTF)
+CONFIGURE_ARGS+=	--enable-natt=yes
+.	else
+CONFIGURE_ARGS+=	--enable-natt=kernel
+.	endif
+.else
 CONFIGURE_ARGS+=	--disable-natt
+.endif
 
 .ifdef(WITH_FRAG)
 CONFIGURE_ARGS+=	--enable-frag
@@ -147,11 +155,7 @@ pre-configure:
 	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
 	@${ECHO_MSG} "===> ATTENTION: You need a kernel patch to enable NAT-Traversal functionality!"
 	@${ECHO_MSG} "===> You can download the patch here:"
-. if ${OSVERSION} < 500000
-	@${ECHO_MSG} "===>     http://ipsec-tools.sf.net/freebsd_nat-t.diff"
-. else
 	@${ECHO_MSG} "===>     http://ipsec-tools.sf.net/freebsd6-natt.diff"
-. endif
 	@${ECHO_MSG} "===> You might possibly have to do some steps manually if it fails to apply."
 	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
 	@sleep 3
