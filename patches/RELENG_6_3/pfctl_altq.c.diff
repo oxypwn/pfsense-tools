@@ -1,23 +1,21 @@
 Index: pfctl_altq.c
 ===================================================================
-RCS file: /home/eri/FreeBSD/src/contrib/pf/pfctl/pfctl_altq.c,v
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.7.2.1
 diff -u -r1.7.2.1 pfctl_altq.c
 --- pfctl_altq.c	3 Dec 2006 18:32:51 -0000	1.7.2.1
-+++ pfctl_altq.c	27 Jan 2008 19:32:36 -0000
-@@ -709,12 +709,14 @@
++++ pfctl_altq.c	3 Feb 2008 07:20:01 -0000
+@@ -709,13 +709,6 @@
  		return (-1);
  	}
  
-+#if 0
- 	if ((opts->rtsc_m1 < opts->rtsc_m2 && opts->rtsc_m1 != 0) ||
- 	    (opts->lssc_m1 < opts->lssc_m2 && opts->lssc_m1 != 0) ||
- 	    (opts->ulsc_m1 < opts->ulsc_m2 && opts->ulsc_m1 != 0)) {
- 		warnx("m1 must be zero for convex curve: %s", pa->qname);
- 		return (-1);
- 	}
-+#endif
- 
+-	if ((opts->rtsc_m1 < opts->rtsc_m2 && opts->rtsc_m1 != 0) ||
+-	    (opts->lssc_m1 < opts->lssc_m2 && opts->lssc_m1 != 0) ||
+-	    (opts->ulsc_m1 < opts->ulsc_m2 && opts->ulsc_m1 != 0)) {
+-		warnx("m1 must be zero for convex curve: %s", pa->qname);
+-		return (-1);
+-	}
+-
  	/*
  	 * admission control:
-
+ 	 * for the real-time service curve, the sum of the service curves
