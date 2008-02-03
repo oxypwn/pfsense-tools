@@ -205,7 +205,6 @@
 ./usr/bin/nvi
 ./usr/bin/nview
 ./usr/bin/objformat
-./usr/bin/od
 ./usr/bin/opieinfo
 ./usr/bin/opiekey
 ./usr/bin/opiepasswd
