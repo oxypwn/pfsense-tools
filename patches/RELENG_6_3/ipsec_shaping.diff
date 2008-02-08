@@ -1,0 +1,155 @@
+Index: sys/net/if_enc.c
+===================================================================
+RCS file: /home/eri/FreeBSD/src/sys/net/if_enc.c,v
+retrieving revision 1.5.2.2.2.1
+diff -u -r1.5.2.2.2.1 if_enc.c
+--- sys/net/if_enc.c	29 Dec 2007 17:29:11 -0000	1.5.2.2.2.1
++++ sys/net/if_enc.c	8 Feb 2008 17:24:41 -0000
+@@ -27,6 +27,7 @@
+  * $FreeBSD: src/sys/net/if_enc.c,v 1.5.2.2.2.1 2007/12/29 17:29:11 thompsa Exp $
+  */
+ 
++
+ #include <sys/param.h>
+ #include <sys/systm.h>
+ #include <sys/kernel.h>
+@@ -194,10 +195,11 @@
+ }
+ 
+ int
+-ipsec_filter(struct mbuf **mp, int dir)
++ipsec_filter(struct mbuf **mp, struct secasindex *saidx, int dir)
+ {
+ 	int error, i;
+ 	struct ip *ip;
++	struct m_tag *t;
+ 
+ 	KASSERT(encif != NULL, ("%s: encif is null", __func__));
+ 
+@@ -267,6 +269,9 @@
+ 	if (error != 0)
+ 		goto bad;
+ 
++	if (saidx && (t = m_tag_find(*mp, PACKET_TAG_PF_QID, NULL)) != NULL)
++		saidx->qid = t->qid;
++
+ 	return (error);
+ 
+ bad:
+Index: sys/netipsec/ipsec.h
+===================================================================
+RCS file: /home/eri/FreeBSD/src/sys/netipsec/ipsec.h,v
+retrieving revision 1.8.2.2
+diff -u -r1.8.2.2 ipsec.h
+--- sys/netipsec/ipsec.h	24 Jul 2006 23:20:59 -0000	1.8.2.2
++++ sys/netipsec/ipsec.h	8 Feb 2008 17:13:03 -0000
+@@ -413,7 +413,7 @@
+ extern	struct mbuf *m_makespace(struct mbuf *m0, int skip, int hlen, int *off);
+ extern	caddr_t m_pad(struct mbuf *m, int n);
+ extern	int m_striphdr(struct mbuf *m, int skip, int hlen);
+-extern	int ipsec_filter(struct mbuf **, int);
++extern	int ipsec_filter(struct mbuf **, struct secasindex *, int);
+ extern	void ipsec_bpf(struct mbuf *, struct secasvar *, int);
+ #endif /* _KERNEL */
+ 
+Index: sys/netipsec/ipsec_input.c
+===================================================================
+RCS file: /home/eri/FreeBSD/src/sys/netipsec/ipsec_input.c,v
+retrieving revision 1.9.2.2
+diff -u -r1.9.2.2 ipsec_input.c
+--- sys/netipsec/ipsec_input.c	24 Jul 2006 23:20:59 -0000	1.9.2.2
++++ sys/netipsec/ipsec_input.c	8 Feb 2008 16:53:05 -0000
+@@ -451,7 +451,7 @@
+ 	ipsec_bpf(m, sav, AF_INET);
+ 
+ 	if (prot != IPPROTO_IPIP)
+-		if ((error = ipsec_filter(&m, 1)) != 0)
++		if ((error = ipsec_filter(&m, &sav->sah->saidx, 1)) != 0)
+ 			return (error);
+ #endif
+ 
+Index: sys/netipsec/ipsec_output.c
+===================================================================
+RCS file: /home/eri/FreeBSD/src/sys/netipsec/ipsec_output.c,v
+retrieving revision 1.10.8.1
+diff -u -r1.10.8.1 ipsec_output.c
+--- sys/netipsec/ipsec_output.c	24 Jul 2006 23:20:59 -0000	1.10.8.1
++++ sys/netipsec/ipsec_output.c	8 Feb 2008 17:22:12 -0000
+@@ -44,6 +44,9 @@
+ #include <sys/syslog.h>
+ 
+ #include <net/if.h>
++#ifdef DEV_ENC
++#include <altq/if_altq.h>
++#endif
+ #include <net/route.h>
+ 
+ #include <netinet/in.h>
+@@ -160,6 +163,24 @@
+ 	}
+ 	key_sa_recordxfer(sav, m);		/* record data transfer */
+ 
++#ifdef DEV_ENC
++	/*
++         * Restore previous queue selected by the classifier for the
++         * packet.
++         */
++	if (saidx->qid) {
++		mtag = m_tag_get(PACKET_TAG_PF_QID, sizeof(struct altq_tag),
++			M_NOWAIT);
++        	if (mtag != NULL) { /* Safe to ignore */
++		        atag = (struct altq_tag *)(mtag + 1);
++	                atag->qid = saidx->qid;
++                	/* add hints for ecn */
++        	        atag->af = saidx->dst.sa.sa_family;
++	                atag->hdr = NULL; /* This should be safe! */
++                	m_tag_prepend(m, mtag);
++        	}
++	}
++#endif
+ 	/*
+ 	 * We're done with IPsec processing, transmit the packet using the
+ 	 * appropriate network protocol (IP or IPv6). SPD lookup will be
+@@ -362,7 +383,7 @@
+ 
+ #ifdef DEV_ENC
+ 	/* pass the mbuf to enc0 for packet filtering */
+-	if ((error = ipsec_filter(&m, 2)) != 0)
++	if ((error = ipsec_filter(&m, &sav->sah->saidx, 2)) != 0)
+ 		goto bad;
+ #endif
+ 
+Index: sys/netipsec/keydb.h
+===================================================================
+RCS file: /home/eri/FreeBSD/src/sys/netipsec/keydb.h,v
+retrieving revision 1.5
+diff -u -r1.5 keydb.h
+--- sys/netipsec/keydb.h	7 Jan 2005 01:45:46 -0000	1.5
++++ sys/netipsec/keydb.h	8 Feb 2008 17:12:01 -0000
+@@ -58,6 +58,9 @@
+ 	u_int8_t mode;			/* mode of protocol, see ipsec.h */
+ 	u_int32_t reqid;		/* reqid id who owned this SA */
+ 					/* see IPSEC_MANUAL_REQID_MAX. */
++	u_int32_t	qid;		/* used for ALTQ shaping inside */
++					/* tunnel */
++					
+ };
+ 
+ /* Security Association Data Base */
+Index: sys/netipsec/xform_ipip.c
+===================================================================
+RCS file: /home/eri/FreeBSD/src/sys/netipsec/xform_ipip.c,v
+retrieving revision 1.11.2.2
+diff -u -r1.11.2.2 xform_ipip.c
+--- sys/netipsec/xform_ipip.c	24 Jul 2006 23:20:59 -0000	1.11.2.2
++++ sys/netipsec/xform_ipip.c	8 Feb 2008 16:54:41 -0000
+@@ -348,7 +348,7 @@
+ 
+ #ifdef DEV_ENC
+ 	/* pass the mbuf to enc0 for packet filtering */
+-	if (ipsec_filter(&m, 1) != 0)
++	if (ipsec_filter(&m, NULL, 1) != 0)
+ 		return;
+ #endif
+ 
+
