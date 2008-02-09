@@ -19,3 +19,4 @@
 ~sys/~freebsd-6.3-oneshot-dumps-v2.diff~
 ~contrib/pf/pfctl~pfctl_altq.c.diff~
 ~sys/netinet/~ip_carp.c~
+~sys/dev/usb/usbdevs~aircard875u.diff~
