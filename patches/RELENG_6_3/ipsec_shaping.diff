@@ -4,16 +4,17 @@ RCS file: /home/eri/FreeBSD/src/sys/net/if_enc.c,v
 retrieving revision 1.5.2.2.2.1
 diff -u -r1.5.2.2.2.1 if_enc.c
 --- sys/net/if_enc.c	29 Dec 2007 17:29:11 -0000	1.5.2.2.2.1
-+++ sys/net/if_enc.c	8 Feb 2008 17:24:41 -0000
-@@ -27,6 +27,7 @@
-  * $FreeBSD: src/sys/net/if_enc.c,v 1.5.2.2.2.1 2007/12/29 17:29:11 thompsa Exp $
-  */
++++ sys/net/if_enc.c	10 Feb 2008 01:19:41 -0000
+@@ -48,6 +48,8 @@
+ #include <net/bpf.h>
+ #include <net/bpfdesc.h>
  
++#include <altq/if_altq.h>
 +
- #include <sys/param.h>
- #include <sys/systm.h>
- #include <sys/kernel.h>
-@@ -194,10 +195,11 @@
+ #include <netinet/in.h>
+ #include <netinet/in_systm.h>
+ #include <netinet/ip.h>
+@@ -194,10 +196,12 @@
  }
  
  int
@@ -23,15 +24,18 @@ diff -u -r1.5.2.2.2.1 if_enc.c
  	int error, i;
  	struct ip *ip;
 +	struct m_tag *t;
++	struct altq_tag *atag;
  
  	KASSERT(encif != NULL, ("%s: encif is null", __func__));
  
-@@ -267,6 +269,9 @@
+@@ -267,6 +271,11 @@
  	if (error != 0)
  		goto bad;
  
-+	if (saidx && (t = m_tag_find(*mp, PACKET_TAG_PF_QID, NULL)) != NULL)
-+		saidx->qid = t->qid;
++	if (saidx && (t = m_tag_find(*mp, PACKET_TAG_PF_QID, NULL)) != NULL) {
++		atag = (struct altq_tag *)(t + 1);
++		saidx->qid = atag->qid;
++	}
 +
  	return (error);
  
@@ -74,7 +78,7 @@ RCS file: /home/eri/FreeBSD/src/sys/netipsec/ipsec_output.c,v
 retrieving revision 1.10.8.1
 diff -u -r1.10.8.1 ipsec_output.c
 --- sys/netipsec/ipsec_output.c	24 Jul 2006 23:20:59 -0000	1.10.8.1
-+++ sys/netipsec/ipsec_output.c	8 Feb 2008 17:22:12 -0000
++++ sys/netipsec/ipsec_output.c	9 Feb 2008 17:49:47 -0000
 @@ -44,6 +44,9 @@
  #include <sys/syslog.h>
  
@@ -85,7 +89,7 @@ diff -u -r1.10.8.1 ipsec_output.c
  #include <net/route.h>
  
  #include <netinet/in.h>
-@@ -160,6 +163,24 @@
+@@ -160,6 +163,25 @@
  	}
  	key_sa_recordxfer(sav, m);		/* record data transfer */
  
@@ -98,6 +102,7 @@ diff -u -r1.10.8.1 ipsec_output.c
 +		mtag = m_tag_get(PACKET_TAG_PF_QID, sizeof(struct altq_tag),
 +			M_NOWAIT);
 +        	if (mtag != NULL) { /* Safe to ignore */
++			struct altq_tag *atag;
 +		        atag = (struct altq_tag *)(mtag + 1);
 +	                atag->qid = saidx->qid;
 +                	/* add hints for ecn */
@@ -110,7 +115,7 @@ diff -u -r1.10.8.1 ipsec_output.c
  	/*
  	 * We're done with IPsec processing, transmit the packet using the
  	 * appropriate network protocol (IP or IPv6). SPD lookup will be
-@@ -362,7 +383,7 @@
+@@ -362,7 +384,7 @@
  
  #ifdef DEV_ENC
  	/* pass the mbuf to enc0 for packet filtering */
@@ -152,4 +157,3 @@ diff -u -r1.11.2.2 xform_ipip.c
  		return;
  #endif
  
-
