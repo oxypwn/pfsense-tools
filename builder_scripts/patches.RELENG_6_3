@@ -20,3 +20,5 @@
 ~contrib/pf/pfctl~pfctl_altq.c.diff~
 ~sys/netinet/~ip_carp.c~
 ~~ipsec_shaping.diff~
+~sys/dev/usb/~aircard875u.diff~
+~sys/dev/usb/~ubsa.c.diff~
