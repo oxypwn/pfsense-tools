@@ -4,7 +4,7 @@
  
  /* Sierra Wireless products */
  product SIERRA MC5720		0x0218	MC5720 Wireless Modem
-+product SIERRA 875U             0x6820  875U Wireless Modem
++product SIERRA 875U 		0x6812	875U Wireless Modem
  
  /* Sigmatel products */
  product SIGMATEL I_BEAD100	0x8008	i-Bead 100 MP3 Player
