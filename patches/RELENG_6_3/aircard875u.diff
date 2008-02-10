@@ -1,12 +1,10 @@
---- usbdevs	2008-02-08 21:43:26.000000000 +0000
-+++ usbdevs	2008-02-08 21:43:02.000000000 +0000
-@@ -1542,6 +1542,9 @@
+--- usbdevs.orig	2008-02-10 16:00:28.000000000 +0000
++++ usbdevs	2008-02-10 16:00:52.000000000 +0000
+@@ -1541,6 +1541,7 @@
+ 
  /* Sierra Wireless products */
  product SIERRA MC5720		0x0218	MC5720 Wireless Modem
++product SIERRA 875U             0x6820  875U Wireless Modem
  
-+product SIERRA 875U   	        0x6820  875U Wireless Modem
-+
  /* Sigmatel products */
  product SIGMATEL I_BEAD100	0x8008	i-Bead 100 MP3 Player
- 
-
