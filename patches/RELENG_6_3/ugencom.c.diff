@@ -1,5 +1,5 @@
---- ugencom.c.orig	2008-02-10 20:04:51.000000000 +0000
-+++ ugencom.c	2005-05-12 03:07:59.000000000 +0000
+--- ugencom.c	2008-02-10 21:25:14.000000000 +0000
++++ ugencom.c	2008-02-10 21:13:22.000000000 +0000
 @@ -0,0 +1,452 @@
 +/*	$NetBSD: ugencom.c,v 1.21 2001/11/13 06:24:56 lukem Exp $	*/
 +
@@ -183,7 +183,7 @@
 +					  */
 +} ugencom_products [] = {
 +	/* Evil hack! */
-+	{ USB_VENDOR_AIRPRIME, USB_PRODUCT_AIRPRIME_PC5220, -1 },
++	{ USB_VENDOR_SIERRA, USB_PRODUCT_SIERRA_875U, -1 },
 +	{ 0, 0 }
 +};
 +
