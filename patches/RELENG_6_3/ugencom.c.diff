@@ -1,0 +1,455 @@
+--- ugencom.c.orig	2008-02-10 20:04:51.000000000 +0000
++++ ugencom.c	2005-05-12 03:07:59.000000000 +0000
+@@ -0,0 +1,452 @@
++/*	$NetBSD: ugencom.c,v 1.21 2001/11/13 06:24:56 lukem Exp $	*/
++
++/*-
++ * Copyright (c) 2001-2003, 2005 Shunsuke Akiyama <akiyama@jp.FreeBSD.org>.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ */
++
++#include <sys/cdefs.h>
++
++/*-
++ * Copyright (c) 2001 The NetBSD Foundation, Inc.
++ * All rights reserved.
++ *
++ * This code is derived from software contributed to The NetBSD Foundation
++ * by Ichiro FUKUHARA (ichiro@ichiro.org).
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. All advertising materials mentioning features or use of this software
++ *    must display the following acknowledgement:
++ *        This product includes software developed by the NetBSD
++ *        Foundation, Inc. and its contributors.
++ * 4. Neither the name of The NetBSD Foundation nor the names of its
++ *    contributors may be used to endorse or promote products derived
++ *    from this software without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE NETBSD FOUNDATION, INC. AND CONTRIBUTORS
++ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
++ * TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
++ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS
++ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
++ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ */
++
++/*
++ * This is a terribly hacked up version of the uplcom driver.  It
++ * probes the USB device for a set of bulk input/output ports, and
++ * maps them to a serial interface via ucom.
++ *
++ * Originally designed to allow FreeBSD to use the AirPrime, Inc. EVDO
++ * wireless modem, which presents itself as a USB hub with two USB
++ * serial adapters on it.  Because they're not really serial lines, it
++ * doesn't require any special handling to do things like set DTR, etc.
++ *
++ * Most of the code is lifted directly from uplcom.  There's probably
++ * a much better way to do this.
++ */
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/kernel.h>
++#include <sys/module.h>
++#include <sys/malloc.h>
++#include <sys/bus.h>
++#include <sys/ioccom.h>
++#include <sys/fcntl.h>
++#include <sys/conf.h>
++#include <sys/tty.h>
++#include <sys/file.h>
++#if __FreeBSD_version >= 500014
++#include <sys/selinfo.h>
++#else
++#include <sys/select.h>
++#endif
++#include <sys/proc.h>
++#include <sys/vnode.h>
++#include <sys/poll.h>
++#include <sys/sysctl.h>
++#include <sys/taskqueue.h>
++
++#include <machine/bus.h>
++
++#include <dev/usb/usb.h>
++#include <dev/usb/usbcdc.h>
++
++#include <dev/usb/usbdi.h>
++#include <dev/usb/usbdivar.h>
++#include <dev/usb/usbdi_util.h>
++#include "usbdevs.h"
++#include <dev/usb/usb_quirks.h>
++
++#include <dev/usb/ucomvar.h>
++
++SYSCTL_NODE(_hw_usb, OID_AUTO, ugencom, CTLFLAG_RW, 0, "USB ugencom");
++#ifdef USB_DEBUG
++static int	ugencomdebug = 0;
++SYSCTL_INT(_hw_usb_ugencom, OID_AUTO, debug, CTLFLAG_RW,
++	   &ugencomdebug, 0, "ugencom debug level");
++
++#define DPRINTFN(n, x)	do { \
++				if (ugencomdebug > (n)) \
++					logprintf x; \
++			} while (0)
++#else
++#define DPRINTFN(n, x)
++#endif
++#define DPRINTF(x) DPRINTFN(0, x)
++
++#define UGENCOM_MODVER			1	/* module version */
++
++#define	UGENCOM_CONFIG_INDEX		0
++#define	UGENCOM_IFACE_INDEX		0
++
++#ifndef UGENCOM_INTR_INTERVAL
++#define UGENCOM_INTR_INTERVAL		100	/* ms */
++#endif
++
++struct	ugencom_softc {
++	struct ucom_softc	sc_ucom;
++
++	int			sc_iface_number;	/* interface number */
++
++	usbd_interface_handle	sc_intr_iface;	/* interrupt interface */
++	int			sc_intr_number;	/* interrupt number */
++	int			sc_isize;
++
++
++
++	struct task		sc_task;
++};
++
++/*
++ * These are the maximum number of bytes transferred per frame.
++ * The output buffer size cannot be increased due to the size encoding.
++ */
++#define UGENCOMIBUFSIZE 256
++#define UGENCOMOBUFSIZE 256
++
++/*Static	int  ugencom_open(void *, int);*/
++Static	void ugencom_notify(void *, int);
++
++struct ucom_callback ugencom_callback = {
++	NULL,
++	NULL,
++	NULL,
++	NULL,
++	NULL,
++	NULL,
++	NULL,
++	NULL
++};
++
++static const struct ugencom_product {
++	uint16_t	vendor;
++	uint16_t	product;
++	int32_t		release;	 /* release is a 16bit entity,
++					  * if -1 is specified we "don't care"
++					  */
++} ugencom_products [] = {
++	/* Evil hack! */
++	{ USB_VENDOR_AIRPRIME, USB_PRODUCT_AIRPRIME_PC5220, -1 },
++	{ 0, 0 }
++};
++
++Static device_probe_t ugencom_match;
++Static device_attach_t ugencom_attach;
++Static device_detach_t ugencom_detach;
++
++Static device_method_t ugencom_methods[] = {
++	/* Device interface */
++	DEVMETHOD(device_probe, ugencom_match),
++	DEVMETHOD(device_attach, ugencom_attach),
++	DEVMETHOD(device_detach, ugencom_detach),
++	{ 0, 0 }
++};
++
++Static driver_t ugencom_driver = {
++	"ucom",
++	ugencom_methods,
++	sizeof (struct ugencom_softc)
++};
++
++DRIVER_MODULE(ugencom, uhub, ugencom_driver, ucom_devclass, usbd_driver_load, 0);
++MODULE_DEPEND(ugencom, usb, 1, 1, 1);
++MODULE_DEPEND(ugencom, ucom, UCOM_MINVER, UCOM_PREFVER, UCOM_MAXVER);
++MODULE_VERSION(ugencom, UGENCOM_MODVER);
++
++#if 0
++static int	ugencominterval = UGENCOM_INTR_INTERVAL;
++
++static int
++sysctl_hw_usb_ugencom_interval(SYSCTL_HANDLER_ARGS)
++{
++	int err, val;
++
++	val = ugencominterval;
++	err = sysctl_handle_int(oidp, &val, sizeof(val), req);
++	if (err != 0 || req->newptr == NULL)
++		return (err);
++	if (0 < val && val <= 1000)
++		ugencominterval = val;
++	else
++		err = EINVAL;
++
++	return (err);
++}
++
++SYSCTL_PROC(_hw_usb_ugencom, OID_AUTO, interval, CTLTYPE_INT | CTLFLAG_RW,
++	    0, sizeof(int), sysctl_hw_usb_ugencom_interval,
++	    "I", "ugencom interrupt pipe interval");
++#endif
++
++USB_MATCH(ugencom)
++{
++	USB_MATCH_START(ugencom, uaa);
++	int i;
++
++	if (uaa->iface != NULL)
++		return (UMATCH_NONE);
++
++	for (i = 0; ugencom_products[i].vendor != 0; i++) {
++		if (ugencom_products[i].vendor == uaa->vendor &&
++		    ugencom_products[i].product == uaa->product &&
++		    (ugencom_products[i].release == uaa->release ||
++		     ugencom_products[i].release == -1)) {
++			return (UMATCH_VENDOR_PRODUCT);
++		}
++	}
++	return (UMATCH_NONE);
++}
++
++USB_ATTACH(ugencom)
++{
++	USB_ATTACH_START(ugencom, sc, uaa);
++	usbd_device_handle dev = uaa->device;
++	struct ucom_softc *ucom;
++	usb_config_descriptor_t *cdesc;
++	usb_interface_descriptor_t *id;
++	usb_endpoint_descriptor_t *ed;
++	char *devinfo;
++	const char *devname;
++	usbd_status err;
++	int i;
++
++	devinfo = malloc(1024, M_USBDEV, M_WAITOK);
++	ucom = &sc->sc_ucom;
++
++	bzero(sc, sizeof (struct ugencom_softc));
++
++	usbd_devinfo(dev, 0, devinfo);
++	/* USB_ATTACH_SETUP; */
++	ucom->sc_dev = self;
++	device_set_desc_copy(self, devinfo);
++	/* USB_ATTACH_SETUP; */
++
++	ucom->sc_udev = dev;
++	ucom->sc_iface = uaa->iface;
++
++	devname = USBDEVNAME(ucom->sc_dev);
++	/* printf("%s: %s\n", devname, devinfo); */
++
++	DPRINTF(("ugencom attach: sc = %p\n", sc));
++
++	/* initialize endpoints */
++	ucom->sc_bulkin_no = ucom->sc_bulkout_no = -1;
++	sc->sc_intr_number = -1;
++
++	/* Move the device into the configured state. */
++	err = usbd_set_config_index(dev, UGENCOM_CONFIG_INDEX, 1);
++	if (err) {
++		printf("%s: failed to set configuration: %s\n",
++			devname, usbd_errstr(err));
++		ucom->sc_dying = 1;
++		goto error;
++	}
++
++	/* get the config descriptor */
++	cdesc = usbd_get_config_descriptor(ucom->sc_udev);
++
++	if (cdesc == NULL) {
++		printf("%s: failed to get configuration descriptor\n",
++			USBDEVNAME(ucom->sc_dev));
++		ucom->sc_dying = 1;
++		goto error;
++	}
++
++	/* get the (first/common) interface */
++	err = usbd_device2interface_handle(dev, UGENCOM_IFACE_INDEX,
++					   &ucom->sc_iface);
++	if (err) {
++		printf("%s: failed to get interface: %s\n",
++			devname, usbd_errstr(err));
++		ucom->sc_dying = 1;
++		goto error;
++	}
++
++	/* Find the interrupt endpoints */
++
++	id = usbd_get_interface_descriptor(ucom->sc_iface);
++	sc->sc_iface_number = id->bInterfaceNumber;
++
++	for (i = 0; i < id->bNumEndpoints; i++) {
++		ed = usbd_interface2endpoint_descriptor(ucom->sc_iface, i);
++		if (ed == NULL) {
++			printf("%s: no endpoint descriptor for %d\n",
++				USBDEVNAME(ucom->sc_dev), i);
++			ucom->sc_dying = 1;
++			goto error;
++		}
++
++		if (UE_GET_DIR(ed->bEndpointAddress) == UE_DIR_IN &&
++		    UE_GET_XFERTYPE(ed->bmAttributes) == UE_INTERRUPT) {
++			sc->sc_intr_number = ed->bEndpointAddress;
++			sc->sc_isize = UGETW(ed->wMaxPacketSize);
++		}
++	}
++
++	if (sc->sc_intr_number == -1) {
++		printf("%s: Could not find interrupt in\n",
++			USBDEVNAME(ucom->sc_dev));
++		ucom->sc_dying = 1;
++		goto error;
++	}
++
++	/* keep interface for interrupt */
++	sc->sc_intr_iface = ucom->sc_iface;
++
++	/*
++	 * USB-RSAQ1 has two interface
++	 *
++	 *  USB-RSAQ1       | USB-RSAQ2
++	 * -----------------+-----------------
++	 * Interface 0      |Interface 0
++	 *  Interrupt(0x81) | Interrupt(0x81)
++	 * -----------------+ BulkIN(0x02)
++	 * Interface 1	    | BulkOUT(0x83)
++	 *   BulkIN(0x02)   |
++	 *   BulkOUT(0x83)  |
++	 */
++	DPRINTF(("%s:  Found %d interfaces\n",
++		USBDEVNAME(ucom->sc_dev), cdesc->bNumInterface));
++
++	/* Find the bulk{in,out} endpoints */
++
++	id = usbd_get_interface_descriptor(ucom->sc_iface);
++	sc->sc_iface_number = id->bInterfaceNumber;
++
++	for (i = 0; i < id->bNumEndpoints; i++) {
++		ed = usbd_interface2endpoint_descriptor(ucom->sc_iface, i);
++		if (ed == NULL) {
++			printf("%s: no endpoint descriptor for %d\n",
++				USBDEVNAME(ucom->sc_dev), i);
++			ucom->sc_dying = 1;
++			goto error;
++		}
++
++		if (UE_GET_DIR(ed->bEndpointAddress) == UE_DIR_IN &&
++		    UE_GET_XFERTYPE(ed->bmAttributes) == UE_BULK) {
++			ucom->sc_bulkin_no = ed->bEndpointAddress;
++#if 0
++			printf("%s:  Setting bulkin_no to %d - %x\n",
++				USBDEVNAME(ucom->sc_dev), i,
++				ed->bEndpointAddress);
++#endif
++		} else if (UE_GET_DIR(ed->bEndpointAddress) == UE_DIR_OUT &&
++		    UE_GET_XFERTYPE(ed->bmAttributes) == UE_BULK) {
++			ucom->sc_bulkout_no = ed->bEndpointAddress;
++		}
++	}
++
++	if (ucom->sc_bulkin_no == -1) {
++		printf("%s: Could not find data bulk in\n",
++			USBDEVNAME(ucom->sc_dev));
++		ucom->sc_dying = 1;
++		goto error;
++	}
++
++	if (ucom->sc_bulkout_no == -1) {
++		printf("%s: Could not find data bulk out\n",
++			USBDEVNAME(ucom->sc_dev));
++		ucom->sc_dying = 1;
++		goto error;
++	}
++
++	ucom->sc_parent = sc;
++	ucom->sc_portno = UCOM_UNK_PORTNO;
++	/* bulkin, bulkout set above */
++	ucom->sc_ibufsize = UGENCOMIBUFSIZE;
++	ucom->sc_obufsize = UGENCOMOBUFSIZE;
++	ucom->sc_ibufsizepad = UGENCOMIBUFSIZE;
++	ucom->sc_opkthdrlen = 0;
++	ucom->sc_callback = &ugencom_callback;
++
++	DPRINTF(("ugencom: in = 0x%x, out = 0x%x, intr = 0x%x\n",
++		 ucom->sc_bulkin_no, ucom->sc_bulkout_no, sc->sc_intr_number));
++
++	TASK_INIT(&sc->sc_task, 0, ugencom_notify, sc);
++	ucom_attach(&sc->sc_ucom);
++
++	free(devinfo, M_USBDEV);
++	USB_ATTACH_SUCCESS_RETURN;
++
++error:
++	free(devinfo, M_USBDEV);
++	USB_ATTACH_ERROR_RETURN;
++}
++
++USB_DETACH(ugencom)
++{
++	USB_DETACH_START(ugencom, sc);
++	int rv = 0;
++
++	DPRINTF(("ugencom_detach: sc = %p\n", sc));
++
++	rv = ucom_detach(&sc->sc_ucom);
++
++	return (rv);
++}
++
++Static void
++ugencom_notify(void *arg, int count)
++{
++	struct ugencom_softc *sc;
++
++	sc = (struct ugencom_softc *)arg;
++	if (sc->sc_ucom.sc_dying)
++		return;
++	ucom_status_change(&sc->sc_ucom);
++}
++

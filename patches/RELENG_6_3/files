@@ -1,0 +1,10 @@
+--- files.orig	2008-02-10 20:00:08.000000000 +0000
++++ files	2008-02-10 20:00:30.000000000 +0000
+@@ -1044,6 +1044,7 @@
+ dev/usb/umodem.c		optional umodem
+ dev/usb/ums.c			optional ums
+ dev/usb/uplcom.c		optional uplcom ucom
++dev/usb/ugencom.c 		optional ugencom ucom
+ dev/usb/urio.c			optional urio
+ dev/usb/usb.c			optional usb
+ dev/usb/usb_ethersubr.c		optional usb
