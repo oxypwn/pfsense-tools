@@ -21,4 +21,4 @@
 ~sys/netinet/~ip_carp.c~
 ~~ipsec_shaping.diff~
 ~sys/dev/usb/~aircard875u.diff~
-~dev/usb/~umodem.c.diff~
+~sys/dev/usb/~umodem.c.diff~
