@@ -143,6 +143,7 @@ recompile_pfPorts() {
 fi
 fi
 }
+
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
     # Make devd
@@ -214,7 +215,12 @@ populate_extra() {
     # This is now ready for general consumption! \o/
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
     cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-    cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
+
+	if [ $pfSense_version = "7" ]; then
+    	cp -r $BASE_DIR/tools/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
+	else 
+		cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
+	fi
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
