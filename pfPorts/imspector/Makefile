@@ -5,13 +5,10 @@
 # $FreeBSD: $
 
 PORTNAME=		imspector
-PORTVERSION=	0.3
+PORTVERSION=	0.4
 CATEGORIES=		net
 MASTER_SITES=	http://www.imspector.org/downloads/
-DISTFILES=		imspector-0.3.tar.gz
-
-HAS_CONFIGURE=	yes
-CONFIGURE_ARGS=	--prefix=/usr/local --enable-pf --with-mysql=/usr/local
+DISTFILES=		imspector-0.4.tar.gz
 
 LIB_DEPENDS=	mysqlclient.15:${PORTSDIR}/databases/mysql51-client
 
