@@ -362,7 +362,9 @@ install_custom_packages() {
 	DESTNAME="pkginstall.sh"
 
 	if [ -n ${DEVFS_MOUNT} ]; then
-		umount ${BASEDIR}/dev
+		if [ -d ${BASEDIR}/dev
+			umount ${BASEDIR}/dev
+		fi
 	fi
 
 	# Extra package list if defined.
