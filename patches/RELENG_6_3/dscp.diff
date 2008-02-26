@@ -1,0 +1,327 @@
+Index: contrib/pf/pfctl/parse.y
+===================================================================
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.7
+diff -u -r1.7 parse.y
+--- contrib/pf/pfctl/parse.y	3 May 2005 16:55:20 -0000	1.7
++++ contrib/pf/pfctl/parse.y	26 Feb 2008 23:30:26 -0000
+@@ -184,6 +184,7 @@
+ #define FOM_TOS		0x04
+ #define FOM_KEEP	0x08
+ #define FOM_SRCTRACK	0x10
++#define FOM_DSCP	0x20
+ 	struct node_uid		*uid;
+ 	struct node_gid		*gid;
+ 	struct {
+@@ -194,6 +195,7 @@
+ 	} flags;
+ 	struct node_icmp	*icmpspec;
+ 	u_int32_t		 tos;
++	u_int32_t		 dscp;
+ 	u_int32_t		 prob;
+ 	struct {
+ 		int			 action;
+@@ -406,7 +408,7 @@
+ %token	RETURNRST RETURNICMP RETURNICMP6 PROTO INET INET6 ALL ANY ICMPTYPE
+ %token	ICMP6TYPE CODE KEEP MODULATE STATE PORT RDR NAT BINAT ARROW NODF
+ %token	MINTTL ERROR ALLOWOPTS FASTROUTE FILENAME ROUTETO DUPTO REPLYTO NO LABEL
+-%token	NOROUTE FRAGMENT USER GROUP MAXMSS MAXIMUM TTL TOS DROP TABLE
++%token	NOROUTE FRAGMENT USER GROUP MAXMSS MAXIMUM TTL TOS DSCP DROP TABLE
+ %token	REASSEMBLE FRAGDROP FRAGCROP ANCHOR NATANCHOR RDRANCHOR BINATANCHOR
+ %token	SET OPTIMIZATION TIMEOUT LIMIT LOGINTERFACE BLOCKPOLICY RANDOMID
+ %token	REQUIREORDER SYNPROXY FINGERPRINTS NOSYNC DEBUG SKIP HOSTID
+@@ -422,7 +424,7 @@
+ %token	<v.i>			PORTBINARY
+ %type	<v.interface>		interface if_list if_item_not if_item
+ %type	<v.number>		number icmptype icmp6type uid gid
+-%type	<v.number>		tos not yesno natpass
++%type	<v.number>		tos dscp not yesno natpass
+ %type	<v.i>			no dir log af fragcache sourcetrack flush
+ %type	<v.i>			unaryop statelock
+ %type	<v.b>			action nataction scrubaction
+@@ -1580,7 +1582,14 @@
+ #endif
+ 			}
+ 
+-			r.tos = $9.tos;
++			if ($9.tos) {
++				r.tos = $9.tos;
++				r.rule_flag |= PFRULE_TOS;
++			}
++			if ($9.dscp) {
++				r.tos = $9.dscp;
++				r.rule_flag |= PFRULE_DSCP;
++			}
+ 			r.keep_state = $9.keep.action;
+ 			o = $9.keep.options;
+ 			while (o) {
+@@ -1889,6 +1898,14 @@
+ 			filter_opts.marker |= FOM_TOS;
+ 			filter_opts.tos = $1;
+ 		}
++		| dscp {
++			if (filter_opts.marker & FOM_DSCP) {
++				yyerror("dscp cannot be redefined");
++				YYERROR;
++			}
++			filter_opts.marker |= FOM_DSCP;
++			filter_opts.dscp = $1;
++		}
+ 		| keep {
+ 			if (filter_opts.marker & FOM_KEEP) {
+ 				yyerror("modulate or keep cannot be redefined");
+@@ -2831,6 +2848,46 @@
+ 		}
+ 		;
+ 
++dscp		: DSCP STRING			{
++                        if (!strcmp($2, "EF"))
++                                $$ = DSCP_EF;
++                        else if (!strcmp($2, "af11"))
++                                $$ = DSCP_AF11;
++                        else if (!strcmp($2, "af12"))
++                                $$ = DSCP_AF12;
++                        else if (!strcmp($2, "af13"))
++                                $$ = DSCP_AF13;
++                        else if (!strcmp($2, "af21"))
++                                $$ = DSCP_AF21;
++                        else if (!strcmp($2, "af22"))
++                                $$ = DSCP_AF22;
++                        else if (!strcmp($2, "af23"))
++                                $$ = DSCP_AF23;
++                        else if (!strcmp($2, "af31"))
++                                $$ = DSCP_AF31;
++                        else if (!strcmp($2, "af32"))
++                                $$ = DSCP_AF32;
++                        else if (!strcmp($2, "af33"))
++                                $$ = DSCP_AF33;
++                        else if (!strcmp($2, "af41"))
++                                $$ = DSCP_AF41;
++                        else if (!strcmp($2, "af42"))
++                                $$ = DSCP_AF42;
++                        else if (!strcmp($2, "af43"))
++                                $$ = DSCP_AF43;
++                        else if ($2[0] == '0' && $2[1] == 'x')
++                                $$ = strtoul($2, NULL, 16);
++                        else
++                                $$ = strtoul($2, NULL, 10);
++                        if (!$$ || $$ > 64) {
++                                yyerror("illegal dscp value %s", $2);
++                                free($2);
++                                YYERROR;
++                        }
++                        free($2);
++                }
++		;
++
+ sourcetrack	: SOURCETRACK		{ $$ = PF_SRCTRACK; }
+ 		| SOURCETRACK GLOBAL	{ $$ = PF_SRCTRACK_GLOBAL; }
+ 		| SOURCETRACK RULE	{ $$ = PF_SRCTRACK_RULE; }
+@@ -3804,6 +3861,10 @@
+ 		yyerror("tags cannot be used without keep state");
+ 		problems++;
+ 	}
++	if ((r->rule_flag & PFRULE_TOS) && (r->rule_flag & PFRULE_DSCP)) {
++		yyerror("tos and dscp cannot be used together");
++		problems++;
++	}
+ 	return (-problems);
+ }
+ 
+@@ -4593,6 +4654,7 @@
+ 		{ "debug",		DEBUG},
+ 		{ "drop",		DROP},
+ 		{ "drop-ovl",		FRAGDROP},
++		{ "dscp",		DSCP},
+ 		{ "dup-to",		DUPTO},
+ 		{ "fastroute",		FASTROUTE},
+ 		{ "file",		FILENAME},
+Index: contrib/pf/pfctl/pfctl_altq.c
+===================================================================
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl_altq.c,v
+retrieving revision 1.7.2.1
+diff -u -r1.7.2.1 pfctl_altq.c
+--- contrib/pf/pfctl/pfctl_altq.c	3 Dec 2006 18:32:51 -0000	1.7.2.1
++++ contrib/pf/pfctl/pfctl_altq.c	26 Feb 2008 21:09:48 -0000
+@@ -709,13 +709,6 @@
+ 		return (-1);
+ 	}
+ 
+-	if ((opts->rtsc_m1 < opts->rtsc_m2 && opts->rtsc_m1 != 0) ||
+-	    (opts->lssc_m1 < opts->lssc_m2 && opts->lssc_m1 != 0) ||
+-	    (opts->ulsc_m1 < opts->ulsc_m2 && opts->ulsc_m1 != 0)) {
+-		warnx("m1 must be zero for convex curve: %s", pa->qname);
+-		return (-1);
+-	}
+-
+ 	/*
+ 	 * admission control:
+ 	 * for the real-time service curve, the sum of the service curves
+Index: contrib/pf/pfctl/pfctl_parser.c
+===================================================================
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.c,v
+retrieving revision 1.7
+diff -u -r1.7 pfctl_parser.c
+--- contrib/pf/pfctl/pfctl_parser.c	3 May 2005 16:55:20 -0000	1.7
++++ contrib/pf/pfctl/pfctl_parser.c	26 Feb 2008 23:28:43 -0000
+@@ -798,8 +798,10 @@
+ 				printf(" code %u", r->code-1);
+ 		}
+ 	}
+-	if (r->tos)
++	if (r->tos && (r->rule_flag & PFRULE_TOS))
+ 		printf(" tos 0x%2.2x", r->tos);
++       if (r->tos && (r->rule_flag & PFRULE_DSCP))
++                printf(" dscp 0x%2.2x", r->tos & DSCP_MASK);
+ 	if (r->keep_state == PF_STATE_NORMAL)
+ 		printf(" keep state");
+ 	else if (r->keep_state == PF_STATE_MODULATE)
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.34.2.8
+diff -u -r1.34.2.8 pf.c
+--- sys/contrib/pf/net/pf.c	21 Nov 2007 13:52:04 -0000	1.34.2.8
++++ sys/contrib/pf/net/pf.c	26 Feb 2008 22:29:37 -0000
+@@ -3128,7 +3128,10 @@
+ 		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
+ 		    r->dst.port[0], r->dst.port[1], th->th_dport))
+ 			r = r->skip[PF_SKIP_DST_PORT].ptr;
+-		else if (r->tos && !(r->tos & pd->tos))
++		else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++			r = TAILQ_NEXT(r, entries);
++		else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
++			!(r->tos & (pd->tos & DSCP_MASK))) 
+ 			r = TAILQ_NEXT(r, entries);
+ 		else if (r->rule_flag & PFRULE_FRAGMENT)
+ 			r = TAILQ_NEXT(r, entries);
+@@ -3524,8 +3527,11 @@
+ 		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
+ 		    r->dst.port[0], r->dst.port[1], uh->uh_dport))
+ 			r = r->skip[PF_SKIP_DST_PORT].ptr;
+-		else if (r->tos && !(r->tos & pd->tos))
+-			r = TAILQ_NEXT(r, entries);
++                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                        r = TAILQ_NEXT(r, entries);
++                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
++                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        r = TAILQ_NEXT(r, entries);
+ 		else if (r->rule_flag & PFRULE_FRAGMENT)
+ 			r = TAILQ_NEXT(r, entries);
+ 		else if (r->uid.op && (lookup != -1 || (lookup =
+@@ -3868,8 +3874,11 @@
+ 			r = TAILQ_NEXT(r, entries);
+ 		else if (r->code && r->code != icmpcode + 1)
+ 			r = TAILQ_NEXT(r, entries);
+-		else if (r->tos && !(r->tos & pd->tos))
+-			r = TAILQ_NEXT(r, entries);
++                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                        r = TAILQ_NEXT(r, entries);
++                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
++                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        r = TAILQ_NEXT(r, entries);
+ 		else if (r->rule_flag & PFRULE_FRAGMENT)
+ 			r = TAILQ_NEXT(r, entries);
+ 		else if (r->prob && r->prob <= arc4random())
+@@ -4120,8 +4129,11 @@
+ 			r = r->skip[PF_SKIP_SRC_ADDR].ptr;
+ 		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af, r->dst.neg))
+ 			r = r->skip[PF_SKIP_DST_ADDR].ptr;
+-		else if (r->tos && !(r->tos & pd->tos))
+-			r = TAILQ_NEXT(r, entries);
++                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                        r = TAILQ_NEXT(r, entries);
++                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
++                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        r = TAILQ_NEXT(r, entries);
+ 		else if (r->rule_flag & PFRULE_FRAGMENT)
+ 			r = TAILQ_NEXT(r, entries);
+ 		else if (r->prob && r->prob <= arc4random())
+@@ -4330,8 +4342,11 @@
+ 			r = r->skip[PF_SKIP_SRC_ADDR].ptr;
+ 		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af, r->dst.neg))
+ 			r = r->skip[PF_SKIP_DST_ADDR].ptr;
+-		else if (r->tos && !(r->tos & pd->tos))
+-			r = TAILQ_NEXT(r, entries);
++                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                        r = TAILQ_NEXT(r, entries);
++                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
++                        !(r->tos & (pd->tos & DSCP_MASK)))
++                        r = TAILQ_NEXT(r, entries);
+ 		else if (r->src.port_op || r->dst.port_op ||
+ 		    r->flagset || r->type || r->code ||
+ 		    r->os_fingerprint != PF_OSFP_ANY)
+@@ -6701,7 +6716,7 @@
+ 		mtag = m_tag_get(PACKET_TAG_PF_QID, sizeof(*atag), M_NOWAIT);
+ 		if (mtag != NULL) {
+ 			atag = (struct altq_tag *)(mtag + 1);
+-			if (pqid || pd.tos == IPTOS_LOWDELAY)
++			if (pqid || ((r->rule_flag & PFRULE_TOS) && pd.tos == IPTOS_LOWDELAY))
+ 				atag->qid = r->pqid;
+ 			else
+ 				atag->qid = r->qid;
+@@ -6898,7 +6913,7 @@
+ 	PF_ACPY(&pd.baddr, dir == PF_OUT ? pd.src : pd.dst, AF_INET6);
+ 	pd.ip_sum = NULL;
+ 	pd.af = AF_INET6;
+-	pd.tos = 0;
++	pd.tos = (ntohl(h->ip6_flow) >> 20) & DSCP_MASK;
+ 	pd.tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
+ 	pd.eh = eh;
+ 
+@@ -7094,7 +7109,7 @@
+ 		mtag = m_tag_get(PACKET_TAG_PF_QID, sizeof(*atag), M_NOWAIT);
+ 		if (mtag != NULL) {
+ 			atag = (struct altq_tag *)(mtag + 1);
+-			if (pd.tos == IPTOS_LOWDELAY)
++			if ((r->rule_flag & PFRULE_TOS) && pd.tos == IPTOS_LOWDELAY)
+ 				atag->qid = r->pqid;
+ 			else
+ 				atag->qid = r->qid;
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.11.2.2
+diff -u -r1.11.2.2 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	30 Dec 2005 00:50:18 -0000	1.11.2.2
++++ sys/contrib/pf/net/pfvar.h	26 Feb 2008 19:54:22 -0000
+@@ -653,6 +653,27 @@
+ 	u_int8_t		 allow_opts;
+ 	u_int8_t		 rt;
+ 	u_int8_t		 return_ttl;
++#ifndef DSCP_EF
++/* Copied from altq_cdnr.h */
++/* diffserve code points */
++#define DSCP_MASK       0xfc
++#define DSCP_CUMASK     0x03
++#define DSCP_EF         0xb8
++#define DSCP_AF11       0x28
++#define DSCP_AF12       0x30
++#define DSCP_AF13       0x38
++#define DSCP_AF21       0x48
++#define DSCP_AF22       0x50
++#define DSCP_AF23       0x58
++#define DSCP_AF31       0x68
++#define DSCP_AF32       0x70
++#define DSCP_AF33       0x78
++#define DSCP_AF41       0x88
++#define DSCP_AF42       0x90
++#define DSCP_AF43       0x98
++#define AF_CLASSMASK            0xe0
++#define AF_DROPPRECMASK         0x18
++#endif
+ 	u_int8_t		 tos;
+ 	u_int8_t		 anchor_relative;
+ 	u_int8_t		 anchor_wildcard;
+@@ -679,6 +700,10 @@
+ #define PFRULE_RANDOMID		0x0800
+ #define PFRULE_REASSEMBLE_TCP	0x1000
+ 
++/* rule flags for TOS or DSCP differentiation */
++#define PFRULE_TOS		0x2000
++#define PFRULE_DSCP		0x4000
++
+ /* rule flags again */
+ #define PFRULE_IFBOUND		0x00010000	/* if-bound */
+ #define PFRULE_GRBOUND		0x00020000	/* group-bound */
+
