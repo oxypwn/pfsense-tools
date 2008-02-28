@@ -1,0 +1,16 @@
+--- ieee80211_input.c.orig	2008-01-11 21:49:26 +0800
++++ ieee80211_input.c	2008-01-11 21:52:34 +0800
+@@ -685,8 +685,11 @@ ieee80211_deliver_data(struct ieee80211c
+ 				ieee80211_free_node(sta);
+ 			}
+ 		}
+-		if (m1 != NULL)
+-			IF_HANDOFF(&ifp->if_snd, m1, ifp);
++		if (m1 != NULL) {
++			int error;
++
++			IFQ_HANDOFF(ifp, m1, error);
++		}
+ 	}
+ 	if (m != NULL) {
+ 		m->m_pkthdr.rcvif = ifp;
