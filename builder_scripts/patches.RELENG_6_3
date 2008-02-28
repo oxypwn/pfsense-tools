@@ -22,3 +22,4 @@
 ~sys/dev/usb/~aircard875u.diff~
 ~sys/dev/usb/~umodem.c.diff~
 ~~dscp.diff~
+~sys/net80211/~ieee80211_input.c.6_3.diff~
