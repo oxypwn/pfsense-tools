@@ -1,0 +1,25 @@
+Index: if_ethersubr.c
+===================================================================
+RCS file: /home/eri/mine/FreeBSD/src/sys/net/if_ethersubr.c,v
+retrieving revision 1.193.2.12
+diff -u -r1.193.2.12 if_ethersubr.c
+--- if_ethersubr.c	28 Aug 2006 02:54:14 -0000	1.193.2.12
++++ if_ethersubr.c	4 Mar 2008 22:09:28 -0000
+@@ -536,17 +536,6 @@
+ 	}
+ 	eh = mtod(m, struct ether_header *);
+ 	etype = ntohs(eh->ether_type);
+-	if (m->m_pkthdr.len >
+-	    ETHER_MAX_FRAME(ifp, etype, m->m_flags & M_HASFCS)) {
+-		if_printf(ifp, "discard oversize frame "
+-				"(ether type %x flags %x len %u > max %lu)\n",
+-				etype, m->m_flags, m->m_pkthdr.len,
+-				ETHER_MAX_FRAME(ifp, etype,
+-						m->m_flags & M_HASFCS));
+-		ifp->if_ierrors++;
+-		m_freem(m);
+-		return;
+-	}
+ 	if (m->m_pkthdr.rcvif == NULL) {
+ 		if_printf(ifp, "discard frame w/o interface pointer\n");
+ 		ifp->if_ierrors++;
