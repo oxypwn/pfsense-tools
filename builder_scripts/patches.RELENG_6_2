@@ -30,4 +30,4 @@
 ~sys/pci~if_vr.c.diff~
 ~sys/~freebsd-6.3-oneshot-dumps-v2.diff~
 ~sys/netinet/~ip_carp.c~
-~sys/net~if_ethrsubr.c.diff~
+~sys/net~if_ethersubr.c.diff~
