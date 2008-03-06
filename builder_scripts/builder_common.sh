@@ -46,18 +46,24 @@ build_all_kernels() {
 	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-	# Build embedded kernel
-	echo ">>> Building embedded kernel..."
-	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
-	(cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
-	# Build SMP kernel
-	echo ">>> Building SMP kernel..."
-	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
-	(cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
-	# Build Developers kernel
-	echo ">>> Building Developers kernel..."
-	(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
-	(cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
+	if [ ! -d /tmp/kernels/wrap/ ]; then 
+		# Build embedded kernel
+		echo ">>> Building embedded kernel..."
+		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
+		(cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
+	fi 
+	if [ ! -d /tmp/kernels/SMP/ ]; then 
+		# Build SMP kernel
+		echo ">>> Building SMP kernel..."
+		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
+		(cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
+	fi
+	if [ ! -d /tmp/kernels/developers/ ]; then 
+		# Build Developers kernel
+		echo ">>> Building Developers kernel..."
+		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
+		(cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
+	fi
 	# GZIP kernels and make smaller
 	echo -n ">>> GZipping: embedded"
 	(cd /tmp/kernels/wrap/boot/kernel/ && gzip kernel)
