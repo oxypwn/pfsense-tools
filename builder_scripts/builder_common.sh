@@ -101,7 +101,6 @@ recompile_pfPorts() {
 			echo "===> Compiling pfPorts..."
 			echo "===> Setting pfPorts to RELENG_1 pfPorts..."
 			for pfSPORT in $INSTALL_PORTS_HEAD; do
-                echo "===> Build Process for Compiling pfPorts ..."
                 echo > /etc/make.conf
                 COMPILE_STATIC=""
                 for STATIC in $STATIC_INSTALL_PORTS; do
@@ -112,7 +111,6 @@ recompile_pfPorts() {
 				done
             echo "===> Operating on $pfSPORT..."
             (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo $COMPILE_STATIC)
-            echo "===> Installing new port..."
             (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
         done # RELENG_1 Tag Check
 	elif # pfSense_version check
