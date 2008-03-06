@@ -65,6 +65,7 @@ build_all_kernels() {
 		(cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
 	fi
 	# GZIP kernels and make smaller
+	echo
 	echo -n ">>> GZipping: embedded"
 	(cd /tmp/kernels/wrap/boot/kernel/ && gzip kernel)
 	echo -n " SMP"
