@@ -1,0 +1,27 @@
+Index: pfil.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/pfil.c,v
+retrieving revision 1.13
+diff -u -r1.13 pfil.c
+--- pfil.c	23 May 2005 17:07:16 -0000	1.13
++++ pfil.c	24 Mar 2007 20:50:12 -0000
+@@ -354,13 +354,15 @@
+ 		    pfh->pfil_arg == pfh1->pfil_arg)
+ 			return EEXIST;
+ 	/*
+-	 * insert the input list in reverse order of the output list
+-	 * so that the same path is followed in or out of the kernel.
++	 * m0n0wall: insert hooks in reverse order (with respect to default
++	 * FreeBSD behavior) to ensure that the dynamically loaded ipfw
++	 * is called before ipfilter for outbound and after ipfilter for
++	 * inbound packets (due to NAT).
+ 	 */
+ 	if (flags & PFIL_IN)
+-		TAILQ_INSERT_HEAD(list, pfh1, pfil_link);
+-	else
+ 		TAILQ_INSERT_TAIL(list, pfh1, pfil_link);
++	else
++		TAILQ_INSERT_HEAD(list, pfh1, pfil_link);
+ 
+ 	return 0;
+ }

@@ -1,0 +1,24 @@
+Index: if_pfsync.c
+===================================================================
+RCS file: /usr/store/mlaier/fcvs/src/sys/contrib/pf/net/if_pfsync.c,v
+retrieving revision 1.19.2.5
+diff -u -r1.19.2.5 if_pfsync.c
+--- if_pfsync.c	19 Jan 2007 23:01:26 -0000	1.19.2.5
++++ if_pfsync.c	22 Aug 2007 22:05:04 -0000
+@@ -1842,13 +1842,14 @@
+ {
+ 	struct pfsync_softc *sc = (struct pfsync_softc *)arg;
+ 	struct mbuf *m;
++	int error;
+ 
+ 	for(;;) {
+ 		IF_DEQUEUE(&sc->sc_ifq, m);
+ 		if (m == NULL)
+ 			break;
+-		if (ip_output(m, NULL, NULL, IP_RAWOUTPUT, &sc->sc_imo, NULL))
+-			pfsyncstats.pfsyncs_oerrors++;
++		if ((error = ip_output(m, NULL, NULL, IP_RAWOUTPUT, &sc->sc_imo, NULL)))
++			printf("pfsync_senddef: ip_output %d\n", error);
+ 	}
+ }
+

@@ -1,0 +1,11 @@
+--- if_em.c.orig	2007-11-09 15:46:08.000000000 -0500
++++ if_em.c	2007-11-09 15:46:21.000000000 -0500
+@@ -309,6 +309,8 @@
+  *  Tunable default values.
+  *********************************************************************/
+ 
++#define EM_FAST_INTR 1
++
+ #define E1000_TICKS_TO_USECS(ticks)	((1024 * (ticks) + 500) / 1000)
+ #define E1000_USECS_TO_TICKS(usecs)	((1000 * (usecs) + 512) / 1024)
+ #define M_TSO_LEN		66  /* mbuf with just hdr and TSO pkthdr */

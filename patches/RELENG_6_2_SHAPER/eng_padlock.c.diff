@@ -1,0 +1,26 @@
+--- eng_padlock.c	2005/04/04 17:05:06	1.12
++++ eng_padlock.c	2005/04/14 07:41:29	1.13
+@@ -395,10 +395,10 @@
+ "	jnc	1f\n"
+ "	cmp	%2,%1\n"
+ "	je	1f\n"
+-"	mov	%2,%0\n"
+ "	popfl\n"
+ "	sub	$4,%%esp\n"
+-"1:	add	$4,%%esp"
++"1:	add	$4,%%esp\n"
++"	mov	%2,%0"
+ 	:"+m"(padlock_saved_context)
+ 	: "r"(padlock_saved_context), "r"(cdata) : "cc");
+ }
+@@ -521,10 +521,10 @@
+ 		jnc	skip
+ 		cmp	ecx,padlock_saved_context
+ 		je	skip
+-		mov	padlock_saved_context,ecx
+ 		popfd
+ 		sub	esp,4
+ 	skip:	add	esp,4
++		mov	padlock_saved_context,ecx
+ 		}
+ }

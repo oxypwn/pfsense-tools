@@ -1,0 +1,20 @@
+Index: dev/usb/usbdevs
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
+retrieving revision 1.232.2.17
+diff -u -r1.232.2.17 usbdevs
+--- dev/usb/usbdevs	14 Nov 2006 12:54:38 -0000	1.232.2.17
++++ dev/usb/usbdevs	28 Jul 2007 22:46:59 -0000
+@@ -1714,3 +1714,12 @@
+ /* ZyXEL Communication Co. products */
+ product ZYXEL OMNI56K		0x1500	Omni 56K Plus
+ product ZYXEL 980N		0x2011	Scorpion-980N keyboard
++
++
++vendor AIRPRIME			0x0f3d	AirPrime, Incorporated
++vendor NOVATEL			0x1410	Novatel
++/* AirPrime products */
++product	AIRPRIME PC5220		0x0112	CDMA Wireless PC Card
++/* Novatel products */
++product NOVATEL PC620		0x1110	CDMA Wireless PC Card
++

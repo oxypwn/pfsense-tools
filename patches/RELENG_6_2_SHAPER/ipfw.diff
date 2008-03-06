@@ -1,0 +1,18 @@
+--- MakefileORIG	Thu Sep 22 21:37:58 2005
++++ Makefile	Thu Sep 22 21:38:31 2005
+@@ -6,13 +6,7 @@
+ SRCS=	ip_fw2.c ip_fw_pfil.c
+ 
+ CFLAGS+= -DIPFIREWALL
+-#
+-#If you want it verbose
+-#CFLAGS+= -DIPFIREWALL_VERBOSE
+-#CFLAGS+= -DIPFIREWALL_VERBOSE_LIMIT=100
+-#
+-#If you want it to pass all packets by default
+-#CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
+-#
++CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
++CFLAGS+= -DIPFIREWALL_FORWARD
+ 
+ .include <bsd.kmod.mk>

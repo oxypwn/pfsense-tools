@@ -1,0 +1,15 @@
+Index: if_vr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_vr.c,v
+retrieving revision 1.104.2.6
+diff -u -r1.104.2.6 if_vr.c
+--- if_vr.c	17 Mar 2006 21:30:57 -0000	1.104.2.6
++++ if_vr.c	4 Jan 2008 18:37:06 -0000
+@@ -705,6 +705,7 @@
+ 	ifp->if_snd.ifq_maxlen = VR_TX_LIST_CNT - 1;
+ 	IFQ_SET_READY(&ifp->if_snd);
+ 	ifp->if_capenable = ifp->if_capabilities;
++	ifp->if_capabilities |= IFCAP_VLAN_MTU;
+ #ifdef DEVICE_POLLING
+ 	ifp->if_capabilities |= IFCAP_POLLING;
+ #endif

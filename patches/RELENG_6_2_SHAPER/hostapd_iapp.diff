@@ -1,0 +1,143 @@
+Index: usr.sbin/wpa/hostapd/Makefile
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/wpa/hostapd/Makefile,v
+retrieving revision 1.2
+diff -u -r1.2 Makefile
+--- usr.sbin/wpa/hostapd/Makefile	17 Jun 2005 05:37:08 -0000	1.2
++++ usr.sbin/wpa/hostapd/Makefile	6 Oct 2006 03:07:36 -0000
+@@ -7,13 +7,13 @@
+ SRCS=	hostapd.c eloop.c ieee802_1x.c eapol_sm.c radius.c md5.c rc4.c \
+ 	common.c ieee802_11.c config.c ieee802_11_auth.c accounting.c \
+ 	sta_info.c radius_client.c sha1.c wpa.c aes_wrap.c tls_none.c \
+-	ctrl_iface.c driver_conf.c l2_packet.c driver_freebsd.c
++	ctrl_iface.c driver_conf.c l2_packet.c driver_freebsd.c iapp.c
+ CLEANFILES=driver_conf.c
+ 
+ MAN=	hostapd.8 hostapd.conf.5
+ 
+ CFLAGS+= -I${.CURDIR} -I${HOSTAPD_DISTDIR}
+-CFLAGS+= -DCONFIG_DRIVER_BSD
++CFLAGS+= -DCONFIG_DRIVER_BSD -DCONFIG_IAPP
+ DPADD+=	${LIBPCAP}
+ LDADD+=	-lpcap
+ 
+Index: contrib/hostapd/iapp.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/hostapd/iapp.c,v
+retrieving revision 1.1.1.2
+diff -u -r1.1.1.2 iapp.c
+--- contrib/hostapd/iapp.c	7 Mar 2006 05:46:50 -0000	1.1.1.2
++++ contrib/hostapd/iapp.c	6 Oct 2006 03:07:55 -0000
+@@ -38,15 +38,18 @@
+ #include <string.h>
+ #include <unistd.h>
+ #include <netinet/in.h>
+-#include <net/if.h>
+ #include <sys/ioctl.h>
+ #include <sys/socket.h>
++#include <net/if.h>
+ #include <arpa/inet.h>
++#ifndef __FreeBSD__
+ #ifdef USE_KERNEL_HEADERS
+ #include <linux/if_packet.h>
+ #else /* USE_KERNEL_HEADERS */
+ #include <netpacket/packet.h>
+ #endif /* USE_KERNEL_HEADERS */
++#endif /* __FreeBSD__ */
++#include <netdb.h>
+ 
+ #include "hostapd.h"
+ #include "ieee802_11.h"
+@@ -60,6 +63,12 @@
+ #define IAPP_UDP_PORT 3517
+ #define IAPP_TCP_PORT 3517
+ 
++#ifdef __FreeBSD__
++#define SOL_IP getprotobyname("IP")->p_proto
++#define PF_PACKET       AF_LINK
++#define AF_PACKET       AF_LINK
++#endif /* __FreeBSD__ */
++
+ struct iapp_hdr {
+ 	u8 version;
+ 	u8 command;
+@@ -381,11 +390,16 @@
+ struct iapp_data * iapp_init(struct hostapd_data *hapd, const char *iface)
+ {
+ 	struct ifreq ifr;
++#ifndef __FreeBSD__
+ 	struct sockaddr_ll addr;
++	struct ip_mreqn mreq;
++#else
++	struct sockaddr addr;
++	struct ip_mreq mreq;
++#endif /* __FreeBSD__ */
+ 	int ifindex;
+ 	struct sockaddr_in *paddr, uaddr;
+ 	struct iapp_data *iapp;
+-	struct ip_mreqn mreq;
+ 
+ 	iapp = malloc(sizeof(*iapp));
+ 	if (iapp == NULL)
+@@ -412,7 +426,9 @@
+ 		iapp_deinit(iapp);
+ 		return NULL;
+ 	}
++#ifndef __FreeBSD__
+ 	ifindex = ifr.ifr_ifindex;
++#endif
+ 
+ 	if (ioctl(iapp->udp_sock, SIOCGIFADDR, &ifr) != 0) {
+ 		perror("ioctl(SIOCGIFADDR)");
+@@ -454,8 +470,12 @@
+ 
+ 	memset(&mreq, 0, sizeof(mreq));
+ 	mreq.imr_multiaddr = iapp->multicast;
++#ifndef __FreeBSD__
+ 	mreq.imr_address.s_addr = INADDR_ANY;
+ 	mreq.imr_ifindex = 0;
++#else
++	mreq.imr_interface.s_addr = INADDR_ANY;
++#endif
+ 	if (setsockopt(iapp->udp_sock, SOL_IP, IP_ADD_MEMBERSHIP, &mreq,
+ 		       sizeof(mreq)) < 0) {
+ 		perror("setsockopt[UDP,IP_ADD_MEMBERSHIP]");
+@@ -469,8 +489,12 @@
+ 	}
+ 
+ 	memset(&addr, 0, sizeof(addr));
++#ifndef __FreeBSD__
+ 	addr.sll_family = AF_PACKET;
+ 	addr.sll_ifindex = ifindex;
++#else
++	addr.sa_family = AF_PACKET;
++#endif /* __FreeBSD__ */
+ 	if (bind(iapp->packet_sock, (struct sockaddr *) &addr,
+ 		 sizeof(addr)) < 0) {
+ 		perror("bind[PACKET]");
+@@ -496,7 +520,11 @@
+ 
+ void iapp_deinit(struct iapp_data *iapp)
+ {
++#ifndef __FreeBSD__
+ 	struct ip_mreqn mreq;
++#else
++	struct ip_mreq mreq;
++#endif /* ! __FreeBSD__ */
+ 
+ 	if (iapp == NULL)
+ 		return;
+@@ -504,8 +532,12 @@
+ 	if (iapp->udp_sock >= 0) {
+ 		memset(&mreq, 0, sizeof(mreq));
+ 		mreq.imr_multiaddr = iapp->multicast;
+-		mreq.imr_address.s_addr = INADDR_ANY;
++#ifndef __FreeBSD__
+ 		mreq.imr_ifindex = 0;
++		mreq.imr_address.s_addr = INADDR_ANY;
++#else
++	mreq.imr_interface.s_addr = INADDR_ANY;
++#endif /* ! __FreeBSD__ */
+ 		if (setsockopt(iapp->udp_sock, SOL_IP, IP_DROP_MEMBERSHIP,
+ 			       &mreq, sizeof(mreq)) < 0) {
+ 			perror("setsockopt[UDP,IP_DEL_MEMBERSHIP]");

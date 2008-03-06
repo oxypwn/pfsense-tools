@@ -1,0 +1,617 @@
+Index: alloc.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/alloc.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 alloc.c
+--- alloc.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ alloc.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/alloc.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/alloc.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ 
+Index: bpf.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/bpf.c,v
+retrieving revision 1.2.2.4
+diff -u -r1.2.2.4 bpf.c
+--- bpf.c	29 Sep 2006 03:07:41 -0000	1.2.2.4
++++ bpf.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/bpf.c,v 1.2.2.4 2006/09/29 03:07:41 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/bpf.c,v 1.7 2006/09/26 01:02:02 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ #include <sys/ioctl.h>
+Index: clparse.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/clparse.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 clparse.c
+--- clparse.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ clparse.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/clparse.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/clparse.c,v 1.3 2007/02/09 17:50:26 emaste Exp $");
+ 
+ #include "dhcpd.h"
+ #include "dhctoken.h"
+@@ -90,6 +90,8 @@
+ 	top_level_config.requested_options
+ 	    [top_level_config.requested_option_count++] = DHO_TIME_OFFSET;
+ 	top_level_config.requested_options
++	    [top_level_config.requested_option_count++] = DHO_CLASSLESS_ROUTES;
++	top_level_config.requested_options
+ 	    [top_level_config.requested_option_count++] = DHO_ROUTERS;
+ 	top_level_config.requested_options
+ 	    [top_level_config.requested_option_count++] = DHO_DOMAIN_NAME;
+Index: conflex.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/conflex.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 conflex.c
+--- conflex.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ conflex.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/conflex.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/conflex.c,v 1.4 2005/08/26 01:25:59 brooks Exp $");
+ 
+ #include <ctype.h>
+ 
+Index: convert.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/convert.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 convert.c
+--- convert.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ convert.c	20 Feb 2007 01:46:31 -0000
+@@ -44,7 +44,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/convert.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/convert.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ 
+Index: dhclient-script
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/dhclient-script,v
+retrieving revision 1.4.2.4
+diff -u -r1.4.2.4 dhclient-script
+--- dhclient-script	13 May 2006 03:24:00 -0000	1.4.2.4
++++ dhclient-script	20 Feb 2007 01:46:31 -0000
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ #
+ # $OpenBSD: dhclient-script,v 1.6 2004/05/06 18:22:41 claudio Exp $
+-# $FreeBSD: src/sbin/dhclient/dhclient-script,v 1.4.2.4 2006/05/13 03:24:00 brooks Exp $
++# $FreeBSD: src/sbin/dhclient/dhclient-script,v 1.15 2007/02/09 17:50:26 emaste Exp $
+ #
+ # Copyright (c) 2003 Kenneth R Westerback <krw@openbsd.org>
+ #
+@@ -86,8 +86,43 @@
+ 	fi
+ }
+ 
++fill_classless_routes() {
++	set $1
++	while [ $# -gt 5 ]; do
++		if [ $1 -eq 0 ]; then
++			route="default"
++		elif [ $1 -le 8 ]; then
++			route="$2.0.0.0/$1"
++			shift
++		elif [ $1 -le 16 ]; then
++			route="$2.$3.0.0/$1"
++			shift; shift
++		elif [ $1 -le 24 ]; then
++			route="$2.$3.$4.0/$1"
++			shift; shift; shift
++		else
++			route="$2.$3.$4.$5/$1"
++			shift; shift; shift; shift
++		fi
++		shift
++		router="$1.$2.$3.$4"
++		classless_routes="$classless_routes $route $router"
++		shift; shift; shift; shift
++	done
++}
++
+ delete_old_routes() {
+ 	#route delete "$old_ip_address" $LOCALHOST >/dev/null 2>&1
++	if [ -n "$old_classless_routes" ]; then
++		fill_classless_routes "$old_classless_routes"
++		set $classless_routes
++		while [ $# -gt 1 ]; do
++			route delete "$1" "$2"
++			shift; shift
++		done
++		return 0;
++	fi
++
+ 	for router in $old_routers; do
+ 		if [ $if_defaultroute = x -o $if_defaultroute = $interface ]; then
+ 			route delete default $route >/dev/null 2>&1
+@@ -107,6 +142,31 @@
+ 
+ add_new_routes() {
+ 	#route add $new_ip_address $LOCALHOST >/dev/null 2>&1
++
++	# RFC 3442: If the DHCP server returns both a Classless Static
++	# Routes option and a Router option, the DHCP client MUST ignore
++	# the Router option.
++	#
++	# DHCP clients that support this option (Classless Static Routes)
++	# MUST NOT install the routes specified in the Static Routes
++	# option (option code 33) if both a Static Routes option and the
++	# Classless Static Routes option are provided.
++
++	if [ -n "$new_classless_routes" ]; then
++		fill_classless_routes "$new_classless_routes"
++		$LOGGER "New Classless Static Routes ($interface): $classless_routes"
++		set $classless_routes
++		while [ $# -gt 1 ]; do
++			if [ "0.0.0.0" = "$2" ]; then
++				route add "$1" -iface "$interface"
++			else
++				route add "$1" "$2"
++			fi
++			shift; shift
++		done
++		return
++	fi
++
+ 	for router in $new_routers; do
+ 		if [ "$new_ip_address" = "$router" ]; then
+ 			route add default -iface $router >/dev/null 2>&1
+Index: dhclient.8
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/dhclient.8,v
+retrieving revision 1.2.2.3
+diff -u -r1.2.2.3 dhclient.8
+--- dhclient.8	24 Jan 2006 06:03:16 -0000	1.2.2.3
++++ dhclient.8	20 Feb 2007 01:46:31 -0000
+@@ -36,7 +36,7 @@
+ .\" see ``http://www.isc.org/isc''.  To learn more about Vixie
+ .\" Enterprises, see ``http://www.vix.com''.
+ .\"
+-.\" $FreeBSD: src/sbin/dhclient/dhclient.8,v 1.2.2.3 2006/01/24 06:03:16 brooks Exp $
++.\" $FreeBSD: src/sbin/dhclient/dhclient.8,v 1.8 2006/08/21 16:31:31 brian Exp $
+ .\"
+ .Dd July 22, 2005
+ .Dt DHCLIENT 8
+Index: dhclient.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/dhclient.c,v
+retrieving revision 1.6.2.5
+diff -u -r1.6.2.5 dhclient.c
+--- dhclient.c	13 May 2006 03:42:01 -0000	1.6.2.5
++++ dhclient.c	20 Feb 2007 01:46:31 -0000
+@@ -54,7 +54,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/dhclient.c,v 1.6.2.5 2006/05/13 03:42:01 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/dhclient.c,v 1.21 2007/02/09 17:50:26 emaste Exp $");
+ 
+ #include "dhcpd.h"
+ #include "privsep.h"
+@@ -115,6 +115,7 @@
+ void		 routehandler(struct protocol *);
+ void		 usage(void);
+ int		 check_option(struct client_lease *l, int option);
++int		 check_classless_option(unsigned char *data, int len);
+ int		 ipv4addrs(char * buf);
+ int		 res_hnok(const char *dn);
+ int		 check_search(const char *srch);
+@@ -301,7 +302,7 @@
+ 	openlog(__progname, LOG_PID | LOG_NDELAY, DHCPD_LOG_FACILITY);
+ 	setlogmask(LOG_UPTO(LOG_INFO));
+ 
+-	while ((ch = getopt(argc, argv, "bc:dl:nqu")) != -1)
++	while ((ch = getopt(argc, argv, "bc:dl:qu")) != -1)
+ 		switch (ch) {
+ 		case 'b':
+ 			immediate_daemon = 1;
+@@ -437,7 +438,7 @@
+ {
+ 	extern char	*__progname;
+ 
+-	fprintf(stderr, "usage: %s [-dqu] ", __progname);
++	fprintf(stderr, "usage: %s [-bdqu] ", __progname);
+ 	fprintf(stderr, "[-c conffile] [-l leasefile] interface\n");
+ 	exit(1);
+ }
+@@ -1480,7 +1481,6 @@
+ 		}
+ 	}
+ 
+-#ifdef SEND_CLIENT_IDENTIFIER	
+ 	/* set unique client identifier */
+ 	char client_ident[sizeof(struct hardware)];
+ 	if (!options[DHO_DHCP_CLIENT_IDENTIFIER]) {
+@@ -1494,7 +1494,6 @@
+ 		options[DHO_DHCP_CLIENT_IDENTIFIER]->buf_size = hwlen+1;
+ 		options[DHO_DHCP_CLIENT_IDENTIFIER]->timeout = 0xFFFFFFFF;
+ 	}
+-#endif	
+ 
+ 	/* Set up the option buffer... */
+ 	ip->client->packet_length = cons_options(NULL, &ip->client->packet, 0,
+@@ -1606,7 +1605,6 @@
+ 		}
+ 	}
+ 
+-#ifdef SEND_CLIENT_IDENTIFIER	
+ 	/* set unique client identifier */
+ 	char client_ident[sizeof(struct hardware)];
+ 	if (!options[DHO_DHCP_CLIENT_IDENTIFIER]) {
+@@ -1620,7 +1618,6 @@
+ 		options[DHO_DHCP_CLIENT_IDENTIFIER]->buf_size = hwlen+1;
+ 		options[DHO_DHCP_CLIENT_IDENTIFIER]->timeout = 0xFFFFFFFF;
+ 	}
+-#endif	
+ 
+ 	/* Set up the option buffer... */
+ 	ip->client->packet_length = cons_options(NULL, &ip->client->packet, 0,
+@@ -2322,7 +2319,6 @@
+ 			    sbuf, opbuf);
+ 			l->options[option].len = 0;
+ 			free(l->options[option].data);
+-			return (0);
+ 		}
+ 		return (1);
+ 	case DHO_DOMAIN_NAME:
+@@ -2379,12 +2375,79 @@
+ 	case DHO_DHCP_USER_CLASS_ID:
+ 	case DHO_END:
+ 		return (1);
++	case DHO_CLASSLESS_ROUTES:
++		return (check_classless_option(l->options[option].data,
++		    l->options[option].len));
+ 	default:
+ 		warning("unknown dhcp option value 0x%x", option);
+ 		return (unknown_ok);
+ 	}
+ }
+ 
++/* RFC 3442 The Classless Static Routes option checks */
++int
++check_classless_option(unsigned char *data, int len)
++{
++	int i = 0;
++	unsigned char width;
++	in_addr_t addr, mask;
++
++	if (len < 5) {
++		warning("Too small length: %d", len);
++		return (0);
++	}
++	while(i < len) {
++		width = data[i++];
++		if (width == 0) {
++			i += 4;
++			continue;
++		} else if (width < 9) {
++			addr =  (in_addr_t)(data[i] 	<< 24);
++			i += 1;
++		} else if (width < 17) {
++			addr =  (in_addr_t)(data[i] 	<< 24) +
++				(in_addr_t)(data[i + 1]	<< 16);
++			i += 2;
++		} else if (width < 25) {
++			addr =  (in_addr_t)(data[i] 	<< 24) +
++				(in_addr_t)(data[i + 1]	<< 16) +
++				(in_addr_t)(data[i + 2]	<< 8);
++			i += 3;
++		} else if (width < 33) {
++			addr =  (in_addr_t)(data[i] 	<< 24) +
++				(in_addr_t)(data[i + 1]	<< 16) +
++				(in_addr_t)(data[i + 2]	<< 8)  +
++				data[i + 3];
++			i += 4;
++		} else {
++			warning("Incorrect subnet width: %d", width);
++			return (0);
++		}
++		mask = (in_addr_t)(~0) << (32 - width);
++		addr = ntohl(addr);
++		mask = ntohl(mask);
++
++		/*
++		 * From RFC 3442:
++		 * ... After deriving a subnet number and subnet mask
++		 * from each destination descriptor, the DHCP client
++		 * MUST zero any bits in the subnet number where the
++		 * corresponding bit in the mask is zero...
++		 */
++		if ((addr & mask) != addr) {
++			addr &= mask;
++			data[i - 1] = (unsigned char)(
++				(addr >> (((32 - width)/8)*8)) & 0xFF);
++		} 
++		i += 4;
++	}
++	if (i > len) {
++		warning("Incorrect data length: %d (must be %d)", len, i);
++		return (0);
++	}
++	return (1);
++}
++
+ int
+ res_hnok(const char *dn)
+ {
+Index: dhclient.conf
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/dhclient.conf,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 dhclient.conf
+--- dhclient.conf	7 Jun 2005 04:05:07 -0000	1.1.1.1
++++ dhclient.conf	20 Feb 2007 01:46:31 -0000
+@@ -1,10 +1,13 @@
++# $FreeBSD: src/sbin/dhclient/dhclient.conf,v 1.3 2007/02/09 17:50:26 emaste Exp $
++
+ send host-name "andare.fugue.com";
+ send dhcp-client-identifier 1:0:a0:24:ab:fb:9c;
+ send dhcp-lease-time 3600;
+ supersede domain-name "fugue.com home.vix.com";
+ prepend domain-name-servers 127.0.0.1;
+-request subnet-mask, broadcast-address, time-offset, routers,
+-	domain-name, domain-name-servers, host-name;
++request subnet-mask, broadcast-address, time-offset,
++	classless-routes, routers, domain-name,
++	domain-name-servers, host-name;
+ require subnet-mask, domain-name-servers;
+ timeout 60;
+ retry 60;
+Index: dhcp-options.5
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/dhcp-options.5,v
+retrieving revision 1.2.2.1
+diff -u -r1.2.2.1 dhcp-options.5
+--- dhcp-options.5	15 Feb 2006 14:58:59 -0000	1.2.2.1
++++ dhcp-options.5	20 Feb 2007 01:46:31 -0000
+@@ -36,7 +36,7 @@
+ .\" see ``http://www.isc.org/isc''.  To learn more about Vixie
+ .\" Enterprises, see ``http://www.vix.com''.
+ .\"
+-.\" $FreeBSD: src/sbin/dhclient/dhcp-options.5,v 1.2.2.1 2006/02/15 14:58:59 jcamou Exp $
++.\" $FreeBSD: src/sbin/dhclient/dhcp-options.5,v 1.3 2006/02/06 19:22:34 jcamou Exp $
+ .\"
+ .Dd January 1, 1995
+ .Dt DHCP-OPTIONS 5
+Index: dhcp.h
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/dhcp.h,v
+retrieving revision 1.2
+diff -u -r1.2 dhcp.h
+--- dhcp.h	30 Jun 2005 05:50:52 -0000	1.2
++++ dhcp.h	20 Feb 2007 01:46:31 -0000
+@@ -1,5 +1,5 @@
+ /*	$OpenBSD: dhcp.h,v 1.5 2004/05/04 15:49:49 deraadt Exp $	*/
+-/*	$FreeBSD: src/sbin/dhclient/dhcp.h,v 1.2 2005/06/30 05:50:52 brooks Exp $	*/
++/*	$FreeBSD: src/sbin/dhclient/dhcp.h,v 1.3 2007/02/09 17:50:26 emaste Exp $	*/
+ 
+ /* Protocol structures... */
+ 
+@@ -162,6 +162,7 @@
+ #define DHO_FINGER_SERVER		73
+ #define DHO_IRC_SERVER			74
+ #define DHO_DHCP_USER_CLASS_ID		77
++#define DHO_CLASSLESS_ROUTES		121
+ #define DHO_END				255
+ 
+ /* DHCP message types. */
+Index: dispatch.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/dispatch.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 dispatch.c
+--- dispatch.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ dispatch.c	20 Feb 2007 01:46:31 -0000
+@@ -40,7 +40,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/dispatch.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/dispatch.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ 
+Index: errwarn.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/errwarn.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 errwarn.c
+--- errwarn.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ errwarn.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/errwarn.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/errwarn.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include <errno.h>
+ 
+Index: hash.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/hash.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 hash.c
+--- hash.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ hash.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/hash.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/hash.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ 
+Index: inet.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/inet.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 inet.c
+--- inet.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ inet.c	20 Feb 2007 01:46:31 -0000
+@@ -43,7 +43,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/inet.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/inet.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ 
+Index: options.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/options.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 options.c
+--- options.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ options.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/options.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/options.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include <ctype.h>
+ 
+Index: packet.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/packet.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 packet.c
+--- packet.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ packet.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/packet.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/packet.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ 
+Index: parse.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/parse.c,v
+retrieving revision 1.2.2.1
+diff -u -r1.2.2.1 parse.c
+--- parse.c	10 Sep 2005 17:01:16 -0000	1.2.2.1
++++ parse.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/parse.c,v 1.2.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/parse.c,v 1.3 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ #include "dhctoken.h"
+Index: privsep.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/privsep.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 privsep.c
+--- privsep.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ privsep.c	20 Feb 2007 01:47:17 -0000
+@@ -17,7 +17,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/privsep.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/privsep.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ #include "privsep.h"
+@@ -64,6 +64,10 @@
+ 		}
+ 	} while (n == -1 && (errno == EAGAIN || errno == EINTR));
+ 
++	/* danger danger, dhclient is about to exit */
++	if (buf->rpos < buf->size) 
++		system("/usr/bin/touch /tmp/reload_interfaces");
++
+ 	if (buf->rpos < buf->size)
+ 		error("short write: wanted %lu got %ld bytes",
+ 		    (unsigned long)buf->size, (long)buf->rpos);
+Index: tables.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/tables.c,v
+retrieving revision 1.1.1.1.2.2
+diff -u -r1.1.1.1.2.2 tables.c
+--- tables.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.2
++++ tables.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/tables.c,v 1.1.1.1.2.2 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/tables.c,v 1.4 2007/02/09 17:50:26 emaste Exp $");
+ 
+ #include "dhcpd.h"
+ 
+@@ -186,7 +186,7 @@
+ 	{ "option-118", "X",				&dhcp_universe, 118 },
+ 	{ "option-119", "X",				&dhcp_universe, 119 },
+ 	{ "option-120", "X",				&dhcp_universe, 120 },
+-	{ "option-121", "X",				&dhcp_universe, 121 },
++	{ "classless-routes", "BA",			&dhcp_universe, 121 },
+ 	{ "option-122", "X",				&dhcp_universe, 122 },
+ 	{ "option-123", "X",				&dhcp_universe, 123 },
+ 	{ "option-124", "X",				&dhcp_universe, 124 },
+@@ -337,6 +337,7 @@
+ 	DHO_DHCP_CLIENT_IDENTIFIER,
+ 	DHO_SUBNET_MASK,
+ 	DHO_TIME_OFFSET,
++	DHO_CLASSLESS_ROUTES,
+ 	DHO_ROUTERS,
+ 	DHO_TIME_SERVERS,
+ 	DHO_NAME_SERVERS,
+@@ -392,7 +393,7 @@
+ 	78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92,
+ 	93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106,
+ 	107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118,
+-	119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
++	119, 120, 122, 123, 124, 125, 126, 127, 128, 129, 130,
+ 	131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142,
+ 	143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154,
+ 	155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166,
+Index: tree.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/tree.c,v
+retrieving revision 1.1.1.1.2.1
+diff -u -r1.1.1.1.2.1 tree.c
+--- tree.c	10 Sep 2005 17:01:16 -0000	1.1.1.1.2.1
++++ tree.c	20 Feb 2007 01:46:31 -0000
+@@ -41,7 +41,7 @@
+  */
+ 
+ #include <sys/cdefs.h>
+-__FBSDID("$FreeBSD: src/sbin/dhclient/tree.c,v 1.1.1.1.2.1 2005/09/10 17:01:16 brooks Exp $");
++__FBSDID("$FreeBSD: src/sbin/dhclient/tree.c,v 1.2 2005/08/23 23:59:55 brooks Exp $");
+ 
+ #include "dhcpd.h"
+ 
