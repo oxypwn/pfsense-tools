@@ -291,7 +291,7 @@ populate_extra() {
 		NEEDEDLIBS="`ldd /usr/sbin/syslogd | grep "=>" | awk '{ print $3 }'`"
 		NEEDEDLIBS="`ldd /usr/local/sbin/dfuife_curses | grep "=>" | awk '{ print $3 }'`"
 		
-		echo "Populating newer binaries found on host jail/os..."
+		echo ">>>> Populating newer binaries found on host jail/os..."
 		for TEMPFILE in $FOUND_FILES; do
 			if [ -f /$TEMPFILE ]; then 
 				cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
