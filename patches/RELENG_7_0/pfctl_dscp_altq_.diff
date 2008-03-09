@@ -183,73 +183,68 @@ RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	7 Mar 2008 19:28:08 -0000
-@@ -3305,8 +3305,10 @@
++++ sys/contrib/pf/net/pf.c	9 Mar 2008 21:43:59 -0000
+@@ -3305,7 +3305,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
 -		else if (r->tos && !(r->tos == pd->tos))
--			r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
 +                        !(r->tos & (pd->tos & DSCP_MASK)))
+ 			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
- 		else if ((r->flagset & th->th_flags) != r->flags)
-@@ -3727,8 +3729,10 @@
+@@ -3727,7 +3730,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], uh->uh_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
 -		else if (r->tos && !(r->tos == pd->tos))
--			r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
 +                        !(r->tos & (pd->tos & DSCP_MASK)))
+ 			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
- 		else if (r->uid.op && (pd->lookup.done || (pd->lookup.done =
-@@ -4082,8 +4086,10 @@
+@@ -4082,7 +4088,10 @@
  			r = TAILQ_NEXT(r, entries);
  		else if (r->code && r->code != icmpcode + 1)
  			r = TAILQ_NEXT(r, entries);
 -		else if (r->tos && !(r->tos == pd->tos))
--			r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
 +                        !(r->tos & (pd->tos & DSCP_MASK)))
+ 			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
- 		else if (r->prob && r->prob <= arc4random())
-@@ -4341,8 +4347,10 @@
+@@ -4341,7 +4350,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
 -		else if (r->tos && !(r->tos == pd->tos))
--			r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
 +                        !(r->tos & (pd->tos & DSCP_MASK)))
+ 			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
- 		else if (r->prob && r->prob <= arc4random())
-@@ -4558,8 +4566,10 @@
+@@ -4558,7 +4570,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
 -		else if (r->tos && !(r->tos == pd->tos))
--			r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
 +                        r = TAILQ_NEXT(r, entries);
 +                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
 +                        !(r->tos & (pd->tos & DSCP_MASK)))
+ 			r = TAILQ_NEXT(r, entries);
  		else if (r->os_fingerprint != PF_OSFP_ANY)
  			r = TAILQ_NEXT(r, entries);
- 		else if (pd->proto == IPPROTO_UDP &&
-@@ -6983,7 +6993,7 @@
+@@ -6983,7 +6998,7 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -258,7 +253,7 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7212,7 +7222,7 @@
+@@ -7212,7 +7227,7 @@
  	PF_ACPY(&pd.baddr, dir == PF_OUT ? pd.src : pd.dst, AF_INET6);
  	pd.ip_sum = NULL;
  	pd.af = AF_INET6;
@@ -267,7 +262,7 @@ diff -u -r1.46.2.1 pf.c
  	pd.tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
  	pd.eh = eh;
  
-@@ -7444,7 +7454,7 @@
+@@ -7444,7 +7459,7 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -322,4 +317,3 @@ diff -u -r1.16 pfvar.h
  /* rule flags again */
  #define PFRULE_IFBOUND		0x00010000	/* if-bound */
  
-
