@@ -49,18 +49,21 @@ build_all_kernels() {
 	if [ ! -d /tmp/kernels/wrap/ ]; then 
 		# Build embedded kernel
 		echo ">>> Building embedded kernel..."
+		rm -rf /usr/obj
 		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
 		(cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
 	fi 
 	if [ ! -d /tmp/kernels/SMP/ ]; then 
 		# Build SMP kernel
 		echo ">>> Building SMP kernel..."
+		rm -rf /usr/obj
 		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
 		(cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
 	fi
 	if [ ! -d /tmp/kernels/developers/ ]; then 
 		# Build Developers kernel
 		echo ">>> Building Developers kernel..."
+		rm -rf /usr/obj
 		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
 		(cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
 	fi
