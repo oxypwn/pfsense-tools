@@ -72,83 +72,53 @@ if [ $pfSense_version = "7" ]; then
 	fi
 fi
 
+# CVSUp freebsd version
+echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
+cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
+cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
+
 # Add cvsup
 if [ ! -f "/usr/local/bin/cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress..."
-	/usr/sbin/pkg_add -r cvsup-without-gui
-fi
-# Failed, lets try with passive mode
-if [ ! -f "/usr/local/bin/cvsup" ]; then
-	echo "Cannot find cvsup, pkg_add in progress (PASSITVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cvsup-without-gui
+	echo "Cannot find cvsup, building from ports..."
+	(cd /usr/ports/net/cvsup-without-gui && make install FORCE_PKG_REGISTER=yo)
 fi
 
 if [ -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
-# Add fastest-cvsup
-if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-	echo "Cannot find fastest_cvsup, pkg_add in progress..."
-	/usr/sbin/pkg_add -r fastest_cvsup
-fi
-# Failed, lets try with passive mode
-if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-	echo "Cannot find fastest_cvsup, pkg_add in progress (PASSIVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r fastest_cvsup
-fi
+	# Add fastest-cvsup
+	if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
+		echo "Cannot find fastest_cvsup, building from ports..."
+		(cd /usr/ports/sysutils/fastest_cvsup/ && make install FORCE_PKG_REGISTER=yo)
+	fi
 fi
 
 # Add pcre
 if [ ! -f "/usr/local/lib/libpcre.so.0" ]; then
-	echo "Cannot find pcre, pkg_add in progress..."
-	/usr/sbin/pkg_add -r pcre
-fi
-# Failed, lets try with passive mode
-if [ ! -f "/usr/local/lib/libpcre.so.0" ]; then
-	echo "Cannot find pcre, pkg_add in progress (PASSITVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r pcre
+	echo "Cannot find pcre, building from ports..."
+	(cd /usr/ports/devel/pcre && make install FORCE_PKG_REGISTER=yo)
 fi
 
 # Add lighttpd
 if [ ! -f "/usr/local/sbin/lighttpd" ]; then
-	echo "Cannot find lighttpd, pkg_add in progress..."
-	/usr/sbin/pkg_add -r lighttpd
-fi
-# Failed, lets try with passive mode
-if [ ! -f "/usr/local/sbin/lighttpd" ]; then
-	echo "Cannot find lighttpd, pkg_add in progress (PASSIVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r lighttpd
+	echo "Cannot find lighttpd, building from ports..."
+	(cd /usr/ports/www/lighttpd && make install FORCE_PKG_REGISTER=yo)
 fi
 
 # Add curl
 if [ ! -f "/usr/local/bin/curl" ]; then
-	echo "Cannot find curl, pkg_add in progress..."
-	/usr/sbin/pkg_add -r curl
-fi
-# Failed, lets try with passive mode
-if [ ! -f "/usr/local/bin/curl" ]; then
-	echo "Cannot find curl, pkg_add in progress (PASSIVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r curl
+	echo "Cannot find curl, building from ports..."
+	(cd /usr/ports/ftp/curl && make install FORCE_PKG_REGISTER=yo)
 fi
 
 # Add rsync
 if [ ! -f "/usr/local/bin/rsync" ]; then
-	echo "Cannot find rsync, pkg_add in progress..."
-	/usr/sbin/pkg_add -r rsync
-fi
-# Failed, lets try with passive mode
-if [ ! -f "/usr/local/bin/rsync" ]; then
-	echo "Cannot find rsync, pkg_add in progress (PASSITVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r rsync
+	echo "Cannot find rsync, building from ports..."
+	(cd /usr/ports/net/rsync && make install FORCE_PKG_REGISTER=yo)
 fi
 
 # Add cpdup
 if [ ! -f "/usr/local/bin/cpdup" ]; then
-	echo "Cannot find cpdup, pkg_add in progress..."
-	/usr/sbin/pkg_add -r cpdup
-fi
-# Failed, lets try with passive mode
-if [ ! -f "/usr/local/bin/cpdup" ]; then
-	echo "Cannot find cpdup, pkg_add in progress (PASSIVE FTP)..."
-	env FTP_PASSIVE_MODE=yes /usr/sbin/pkg_add -r cpdup
+	echo "Cannot find cpdup, building from ports..."
+	(cd /usr/ports/sysutils/cpdup/ && make install FORCE_PKG_REGISTER=yo)
 fi
 
 # Add BSDInstaller
@@ -187,11 +157,6 @@ fi
 if [ ! -d /usr/src ]; then
 	mkdir /usr/src
 fi
-
-# CVSUp freebsd version
-echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
-cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
-cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # clog source
 echo "Applying CLOG updates..."
