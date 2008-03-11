@@ -4,21 +4,17 @@ RCS file: /home/ncvs/src/usr.sbin/syslogd/syslogd.c,v
 retrieving revision 1.152
 diff -u -r1.152 syslogd.c
 --- syslogd.c	29 Sep 2006 17:36:38 -0000	1.152
-+++ syslogd.c	11 Mar 2008 23:16:27 -0000
-@@ -86,6 +86,7 @@
- #include <sys/time.h>
- #include <sys/resource.h>
- #include <sys/syslimits.h>
-+#include <sys/mman.h>
- #include <sys/types.h>
++++ syslogd.c	11 Mar 2008 23:35:43 -0000
+@@ -108,6 +108,8 @@
+ #include <utmp.h>
  
- #include <netinet/in.h>
-@@ -113,9 +114,12 @@
- #define SYSLOG_NAMES
- #include <sys/syslog.h>
- 
+ #include "pathnames.h"
 +#include "../clog/clog.h"
 +
+ #include "ttymsg.h"
+ 
+ #define SYSLOG_NAMES
+@@ -116,6 +118,7 @@
  const char	*ConfFile = _PATH_LOGCONF;
  const char	*PidFile = _PATH_LOGPID;
  const char	ctty[] = _PATH_CONSOLE;
@@ -26,7 +22,7 @@ diff -u -r1.152 syslogd.c
  
  #define	dprintf		if (Debug) printf
  
-@@ -181,6 +185,11 @@
+@@ -181,6 +184,11 @@
  			char	f_pname[MAXPATHLEN];
  			pid_t	f_pid;
  		} f_pipe;
@@ -38,11 +34,9 @@ diff -u -r1.152 syslogd.c
  	} f_un;
  	char	f_prevline[MAXSVLINE];		/* last message logged */
  	char	f_lasttime[16];			/* time of last occurrence */
-@@ -259,10 +268,12 @@
- #define F_USERS		5		/* list of users */
+@@ -260,9 +268,10 @@
  #define F_WALL		6		/* everyone logged on */
  #define F_PIPE		7		/* pipe to program */
-+#define F_RING		8		/* ring buffer (circular log) */
  
 -const char *TypeNames[8] = {
 +const char *TypeNames[9] = {
@@ -53,7 +47,7 @@ diff -u -r1.152 syslogd.c
  };
  
  static struct filed *Files;	/* Log files that we write to */
-@@ -324,6 +335,8 @@
+@@ -324,6 +333,8 @@
  static void	printline(const char *, char *);
  static void	printsys(char *);
  static int	p_open(const char *, pid_t *);
@@ -62,16 +56,16 @@ diff -u -r1.152 syslogd.c
  static void	readklog(void);
  static void	reapchild(int);
  static void	usage(void);
-@@ -1252,6 +1265,23 @@
+@@ -1251,7 +1262,21 @@
+ 			needdofsync = 1;
  		}
  		break;
- 
-+  
+-
 + 	case F_RING:
 + 		dprintf(" %s\n", f->f_un.f_ring.f_rname);
 + 		v->iov_base = "\n";
-+		v->iov_len = 1;
-+		if (rbwritev(f, iov, 7)==-1) {
++ 		v->iov_len = 1;
++ 		if (rbwritev(f, iov, 7)==-1) {
 + 			int e = errno;
 + 			(void)munmap(f->f_un.f_ring.f_footer,sizeof(struct clog_footer));
 + 			(void)close(f->f_file);
@@ -82,31 +76,10 @@ diff -u -r1.152 syslogd.c
 + 
 + 		break;
 + 
-+
  	case F_PIPE:
  		dprintf(" %s\n", f->f_un.f_pipe.f_pname);
  		v->iov_base = lf;
-@@ -1276,6 +1306,8 @@
- 		}
- 		break;
- 
-+
-+
- 	case F_CONSOLE:
- 		if (flags & IGN_CONS) {
- 			dprintf(" (ignored)\n");
-@@ -1564,6 +1596,10 @@
- 			}
- 			f->f_un.f_pipe.f_pid = 0;
- 			break;
-+ 		case F_RING:
-+ 			(void)munmap(f->f_un.f_ring.f_footer,sizeof(struct clog_footer));
-+ 			(void)close(f->f_file);
-+ 			break;
- 		}
- 		next = f->f_next;
- 		if (f->f_program) free(f->f_program);
-@@ -1694,6 +1730,10 @@
+@@ -1694,6 +1719,10 @@
  				}
  				break;
  
@@ -117,7 +90,7 @@ diff -u -r1.152 syslogd.c
  			case F_PIPE:
  				printf("%s", f->f_un.f_pipe.f_pname);
  				break;
-@@ -1744,6 +1784,7 @@
+@@ -1744,6 +1773,7 @@
  	const char *p, *q;
  	char *bp;
  	char buf[MAXLINE], ebuf[100];
@@ -125,7 +98,7 @@ diff -u -r1.152 syslogd.c
  
  	dprintf("cfline(\"%s\", f, \"%s\", \"%s\")\n", line, prog, host);
  
-@@ -1951,6 +1992,38 @@
+@@ -1951,6 +1981,38 @@
  		}
  		break;
  
@@ -164,7 +137,7 @@ diff -u -r1.152 syslogd.c
  	case '|':
  		f->f_un.f_pipe.f_pid = 0;
  		(void)strlcpy(f->f_un.f_fname, p + 1, sizeof(f->f_un.f_fname));
-@@ -2644,6 +2717,49 @@
+@@ -2644,6 +2706,49 @@
  	return (socks);
  }
  
@@ -210,7 +183,7 @@ diff -u -r1.152 syslogd.c
 + 	f->f_un.f_ring.f_footer->cf_lock = 0;
 + 	return out;
 + }
-+ 
++
  static void
  double_rbuf(int fd)
  {
