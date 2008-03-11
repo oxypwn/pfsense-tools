@@ -4,8 +4,16 @@ RCS file: /home/ncvs/src/usr.sbin/syslogd/syslogd.c,v
 retrieving revision 1.152
 diff -u -r1.152 syslogd.c
 --- syslogd.c	29 Sep 2006 17:36:38 -0000	1.152
-+++ syslogd.c	11 Mar 2008 23:37:34 -0000
-@@ -108,6 +108,8 @@
++++ syslogd.c	11 Mar 2008 23:51:55 -0000
+@@ -87,6 +87,7 @@
+ #include <sys/resource.h>
+ #include <sys/syslimits.h>
+ #include <sys/types.h>
++#include <sys/mman.h>
+ 
+ #include <netinet/in.h>
+ #include <netdb.h>
+@@ -108,6 +109,8 @@
  #include <utmp.h>
  
  #include "pathnames.h"
@@ -14,7 +22,7 @@ diff -u -r1.152 syslogd.c
  #include "ttymsg.h"
  
  #define SYSLOG_NAMES
-@@ -116,6 +118,7 @@
+@@ -116,6 +119,7 @@
  const char	*ConfFile = _PATH_LOGCONF;
  const char	*PidFile = _PATH_LOGPID;
  const char	ctty[] = _PATH_CONSOLE;
@@ -22,7 +30,7 @@ diff -u -r1.152 syslogd.c
  
  #define	dprintf		if (Debug) printf
  
-@@ -181,6 +184,11 @@
+@@ -181,6 +185,11 @@
  			char	f_pname[MAXPATHLEN];
  			pid_t	f_pid;
  		} f_pipe;
@@ -34,7 +42,7 @@ diff -u -r1.152 syslogd.c
  	} f_un;
  	char	f_prevline[MAXSVLINE];		/* last message logged */
  	char	f_lasttime[16];			/* time of last occurrence */
-@@ -259,10 +267,12 @@
+@@ -259,10 +268,12 @@
  #define F_USERS		5		/* list of users */
  #define F_WALL		6		/* everyone logged on */
  #define F_PIPE		7		/* pipe to program */
@@ -49,7 +57,7 @@ diff -u -r1.152 syslogd.c
  };
  
  static struct filed *Files;	/* Log files that we write to */
-@@ -324,6 +334,8 @@
+@@ -324,6 +335,8 @@
  static void	printline(const char *, char *);
  static void	printsys(char *);
  static int	p_open(const char *, pid_t *);
@@ -58,7 +66,7 @@ diff -u -r1.152 syslogd.c
  static void	readklog(void);
  static void	reapchild(int);
  static void	usage(void);
-@@ -1251,7 +1263,21 @@
+@@ -1251,7 +1264,21 @@
  			needdofsync = 1;
  		}
  		break;
@@ -81,7 +89,7 @@ diff -u -r1.152 syslogd.c
  	case F_PIPE:
  		dprintf(" %s\n", f->f_un.f_pipe.f_pname);
  		v->iov_base = lf;
-@@ -1694,6 +1720,10 @@
+@@ -1694,6 +1721,10 @@
  				}
  				break;
  
@@ -92,7 +100,7 @@ diff -u -r1.152 syslogd.c
  			case F_PIPE:
  				printf("%s", f->f_un.f_pipe.f_pname);
  				break;
-@@ -1744,6 +1774,7 @@
+@@ -1744,6 +1775,7 @@
  	const char *p, *q;
  	char *bp;
  	char buf[MAXLINE], ebuf[100];
@@ -100,7 +108,7 @@ diff -u -r1.152 syslogd.c
  
  	dprintf("cfline(\"%s\", f, \"%s\", \"%s\")\n", line, prog, host);
  
-@@ -1951,6 +1982,38 @@
+@@ -1951,6 +1983,38 @@
  		}
  		break;
  
@@ -139,7 +147,7 @@ diff -u -r1.152 syslogd.c
  	case '|':
  		f->f_un.f_pipe.f_pid = 0;
  		(void)strlcpy(f->f_un.f_fname, p + 1, sizeof(f->f_un.f_fname));
-@@ -2644,6 +2707,49 @@
+@@ -2644,6 +2708,49 @@
  	return (socks);
  }
  
