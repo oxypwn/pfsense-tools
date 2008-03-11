@@ -68,8 +68,14 @@ if [ $pfSense_version = "7" ]; then
 		echo "upgrade your system to FreeBSD 7 before"
 		echo "attempting this operation."
 		echo
-		sleep 5
+		echo "Sleeping for 15 seconds while you think this over..."
+		echo
+		sleep 15
 	fi
+fi
+
+if [ ! -d /usr/src ]; then
+	mkdir /usr/src
 fi
 
 # CVSUp freebsd version
@@ -152,10 +158,6 @@ if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
 else
 	echo "Finding fastest CVSUp host... Please wait..."
 	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
-fi
-
-if [ ! -d /usr/src ]; then
-	mkdir /usr/src
 fi
 
 # clog source
