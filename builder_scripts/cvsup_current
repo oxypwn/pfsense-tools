@@ -19,6 +19,8 @@ echo -n Removing "${BASEDIR} "
 rm -rf "${CLONEDIR}/*"
 echo -n "${CLONEDIR}/*"
 rm -rf ${CLONEDIR}/*
+chflags -R noschg /tmp/kernels/*
+rm -rf /tmp/kernels/*
 echo "done"
 
 if [ ! -d $BASE_DIR/freesbie2 ]; then
