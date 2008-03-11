@@ -85,6 +85,12 @@ echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
 cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
+# Ensure cdrtools are installed
+if [ ! -f /usr/local/bin/mkisofs ]; then
+	echo "Cannot find cvsup, building from ports..."
+	(cd /usr/ports/sysutils/cdrtools && make install FORCE_PKG_REGISTER=yo)	
+fi
+
 # Add cvsup
 if [ ! -f "/usr/local/bin/cvsup" ]; then
 	echo "Cannot find cvsup, building from ports..."
