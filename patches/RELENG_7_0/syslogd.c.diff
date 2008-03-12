@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/usr.sbin/syslogd/syslogd.c,v
 retrieving revision 1.152
 diff -u -r1.152 syslogd.c
 --- syslogd.c	29 Sep 2006 17:36:38 -0000	1.152
-+++ syslogd.c	11 Mar 2008 23:51:55 -0000
++++ syslogd.c	12 Mar 2008 00:02:55 -0000
 @@ -87,6 +87,7 @@
  #include <sys/resource.h>
  #include <sys/syslimits.h>
@@ -89,7 +89,18 @@ diff -u -r1.152 syslogd.c
  	case F_PIPE:
  		dprintf(" %s\n", f->f_un.f_pipe.f_pname);
  		v->iov_base = lf;
-@@ -1694,6 +1721,10 @@
+@@ -1564,6 +1591,10 @@
+ 			}
+ 			f->f_un.f_pipe.f_pid = 0;
+ 			break;
++ 		case F_RING:
++ 			(void)munmap(f->f_un.f_ring.f_footer,sizeof(struct clog_footer));
++ 			(void)close(f->f_file);
++ 			break;
+ 		}
+ 		next = f->f_next;
+ 		if (f->f_program) free(f->f_program);
+@@ -1694,6 +1725,10 @@
  				}
  				break;
  
@@ -100,7 +111,7 @@ diff -u -r1.152 syslogd.c
  			case F_PIPE:
  				printf("%s", f->f_un.f_pipe.f_pname);
  				break;
-@@ -1744,6 +1775,7 @@
+@@ -1744,6 +1779,7 @@
  	const char *p, *q;
  	char *bp;
  	char buf[MAXLINE], ebuf[100];
@@ -108,7 +119,7 @@ diff -u -r1.152 syslogd.c
  
  	dprintf("cfline(\"%s\", f, \"%s\", \"%s\")\n", line, prog, host);
  
-@@ -1951,6 +1983,38 @@
+@@ -1951,6 +1987,38 @@
  		}
  		break;
  
@@ -147,7 +158,7 @@ diff -u -r1.152 syslogd.c
  	case '|':
  		f->f_un.f_pipe.f_pid = 0;
  		(void)strlcpy(f->f_un.f_fname, p + 1, sizeof(f->f_un.f_fname));
-@@ -2644,6 +2708,49 @@
+@@ -2644,6 +2712,49 @@
  	return (socks);
  }
  
