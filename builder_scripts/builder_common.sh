@@ -275,7 +275,7 @@ populate_extra() {
 	if [ $pfSense_version = "7" ]; then
 	    if [ ! -f /usr/src/usr.sbin/syslogd_patched ]; then
 	    	echo "===> Patching syslogd..."
-	    	(cd /usr/src/usr.sbin/syslogd && patch < $BASE_DIR/tools/patches/RELENG_6_1/syslogd.c.diff)
+	    	(cd /usr/src/usr.sbin/syslogd && patch < $BASE_DIR/tools/patches/RELENG_7_0/syslogd.c.diff)
 	    	touch /usr/src/usr.sbin/syslogd_patched        	
 	    fi
 	    echo "===> Building syslogd..."
