@@ -183,12 +183,12 @@ RCS file: /home/eri/mine/FreeBSD/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	13 Mar 2008 23:57:56 -0000
++++ sys/conf/files	16 Mar 2008 23:48:23 -0000
 @@ -332,6 +332,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf \
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
-+contrib/pf/net/pf_pptp.c 	optional pf
++contrib/pf/net/pf_pptp.c 	optional pf \
 +	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/netinet/in4_cksum.c	optional pf inet
  crypto/blowfish/bf_ecb.c	optional ipsec 
