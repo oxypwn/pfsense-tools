@@ -80,11 +80,6 @@ if [ ! -d /usr/src ]; then
 	mkdir /usr/src
 fi
 
-# CVSUp freebsd version
-echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
-cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
-cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
-
 # Ensure cdrtools are installed
 if [ ! -f /usr/local/bin/mkisofs ]; then
 	echo "Cannot find cvsup, building from ports..."
@@ -146,6 +141,11 @@ if [ ! -f /home/pfsense/installer/scripts/build/build.conf ]; then
 		echo "-- Not rebuilding BSDInstaller"
 	fi
 fi
+
+# CVSUp freebsd version
+echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
+cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
+cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 
 # Loop through and remove files
 for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
