@@ -142,6 +142,16 @@ if [ ! -f /home/pfsense/installer/scripts/build/build.conf ]; then
 	fi
 fi
 
+# If override is in place, use it otherwise
+# locate fastest cvsup host
+if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
+	echo "Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
+	echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
+else
+	echo "Finding fastest CVSUp host... Please wait..."
+	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+fi
+
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
@@ -157,16 +167,6 @@ do
 		rm -rf ${SRCDIR}${PATCH_RM}
 	fi
 done
-
-# If override is in place, use it otherwise
-# locate fastest cvsup host
-if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
-	echo "Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
-	echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
-else
-	echo "Finding fastest CVSUp host... Please wait..."
-	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
-fi
 
 # clog source
 echo "Applying CLOG updates..."
