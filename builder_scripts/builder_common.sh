@@ -503,7 +503,7 @@ create_FreeBSD_system_update() {
 
 create_pfSense_Full_update_tarball() {
 	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
-	FILENAME=pfSense-Full-Update-${VERSION}.tgz
+	FILENAME=pfSense-Full-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
 
 	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
@@ -519,7 +519,7 @@ create_pfSense_Full_update_tarball() {
 
 create_pfSense_Embedded_update_tarball() {
 	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
-	FILENAME=pfSense-Embedded-Update-${VERSION}.tgz
+	FILENAME=pfSense-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
 
 	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
@@ -540,7 +540,7 @@ create_pfSense_Embedded_update_tarball() {
 
 create_pfSense_Small_update_tarball() {
 	VERSION=`cat $CVS_CO_DIR/etc/version`
-	FILENAME=pfSense-Mini-Embedded-Update-${VERSION}.tgz
+	FILENAME=pfSense-Mini-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 
 	mkdir -p $UPDATESDIR
 
