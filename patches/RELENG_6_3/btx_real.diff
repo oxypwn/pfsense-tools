@@ -1,16 +1,16 @@
 Index: btx.S
 ===================================================================
 RCS file: /home/ncvs/src/sys/boot/i386/btx/btx/btx.S,v
-retrieving revision 1.44
-diff -u -r1.44 btx.S
---- btx.S	6 Dec 2006 17:45:35 -0000	1.44
-+++ btx.S	10 Mar 2008 22:37:39 -0000
+retrieving revision 1.38.2.2
+diff -u -r1.38.2.2 btx.S
+--- btx.S	7 Dec 2006 22:26:51 -0000	1.38.2.2
++++ btx.S	19 Mar 2008 18:07:07 -0000
 @@ -12,7 +12,7 @@
   * warranties of merchantability and fitness for a particular
   * purpose.
   *
-- * $FreeBSD: src/sys/boot/i386/btx/btx/btx.S,v 1.44 2006/12/06 17:45:35 jhb Exp $
-+ * $FreeBSD: src/sys/boot/i386/btx/btx/btx.S,v 1.46 2008/03/10 21:43:31 jhb Exp $
+- * $FreeBSD: src/sys/boot/i386/btx/btx/btx.S,v 1.38.2.2 2006/12/07 22:26:51 jhb Exp $
++ * $FreeBSD: src/sys/boot/i386/btx/btx/btx.S,v 1.38.2.3 2008/03/18 17:44:28 jhb Exp $
   */
  
  /*
