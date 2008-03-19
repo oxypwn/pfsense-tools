@@ -148,7 +148,8 @@ update_sources() {
 		cd $BUILDERSCRIPTS
 		./cvsup_current
 		gzip $PFSENSEOBJDIR/pfSense.iso
-		md5 $PFSENSEOBJDIR/pfSense.iso.gz > $PFSENSEOBJDIR/pfSense.iso.gz.md5
+		mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz
+		md5 pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
 		echo "Sources updated for $CURRENTLY_BUILDING last completed at `date`" \
 			> $WEBROOT/${CURRENTLY_BUILDING}STATUS.txt
 }
@@ -159,9 +160,9 @@ build_embedded() {
 		cd $BUILDERSCRIPTS
 		./build_embedded.sh
 		setstatus "GZipping embedded $CURRENTLY_BUILDING ..."
-		rm -f $PFSENSEOBJDIR/pfSense.img.gz
-		gzip $PFSENSEOBJDIR/pfSense.img
-		md5 $PFSENSEOBJDIR/pfSense.img.gz > $PFSENSEOBJDIR/pfSense.img.gz.md5
+		rm -f $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz
+		gzip $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img
+		md5 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz.md5
 		echo "Embedded for $CURRENTLY_BUILDING last completed at `date`" \
 			> $WEBROOT/${CURRENTLY_BUILDING}EMBEDDEDSTATUS.txt
 }
@@ -254,7 +255,7 @@ dobuilds() {
 		build_updates
 
 		# Copy files before embedded, it wipes out usr.obj*
-		cp $PFSENSEOBJDIR/pfSense.iso.* $STAGINGAREA/
+		cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
 
 		# Build embedded version
 		build_embedded
