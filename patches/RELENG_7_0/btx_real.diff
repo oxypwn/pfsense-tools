@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/boot/i386/btx/btx/btx.S,v
 retrieving revision 1.44
 diff -u -r1.44 btx.S
 --- btx.S	6 Dec 2006 17:45:35 -0000	1.44
-+++ btx.S	21 Mar 2008 17:01:45 -0000
++++ btx.S	21 Mar 2008 17:05:06 -0000
 @@ -12,7 +12,7 @@
   * warranties of merchantability and fitness for a particular
   * purpose.
