@@ -273,11 +273,6 @@ populate_extra() {
     set -e
 
 	if [ $pfSense_version = "7" ]; then
-	    if [ ! -f /usr/src/usr.sbin/syslogd_patched ]; then
-	    	echo "===> Patching syslogd..."
-	    	(cd /usr/src/usr.sbin/syslogd && patch < $BASE_DIR/tools/patches/RELENG_7_0/syslogd.c.diff)
-	    	touch /usr/src/usr.sbin/syslogd_patched        	
-	    fi
 	    echo "===> Building syslogd..."
 	    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
 	    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
