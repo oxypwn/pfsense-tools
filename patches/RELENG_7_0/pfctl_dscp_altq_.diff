@@ -199,7 +199,7 @@ RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	16 Mar 2008 23:21:15 -0000
++++ sys/contrib/pf/net/pf.c	24 Mar 2008 22:16:47 -0000
 @@ -3305,7 +3305,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
@@ -267,7 +267,7 @@ diff -u -r1.46.2.1 pf.c
 +		/* XXX: This are here until a pluggable framework for NAT is finished */
 +        	if (ntohs(pd.hdr.tcp->th_dport) == PPTP_CONTROL_PORT_NUMBER
 +              		|| ntohs(pd.hdr.tcp->th_sport) == PPTP_CONTROL_PORT_NUMBER)
-+               		pf_get_pptp_translation(&pd, m, (void *)pd.hdr.tcp, dir,
++               		pf_get_pptp_translation(&pd, m, off, (void *)pd.hdr.tcp, dir,
 +                       		dir == PF_OUT ? s->gwy.port : s->lan.port);
  		break;
  	}
@@ -277,7 +277,7 @@ diff -u -r1.46.2.1 pf.c
  			    &pd, &a, &ruleset, &ipintrq);
  #endif
 +	        if (h->ip_p == IPPROTO_GRE)
-+               		pf_get_gre_translation(&pd, m, (void *)h, dir, 0);
++               		pf_get_gre_translation(&pd, m, off, (void *)h, dir, 0);
  		break;
  	}
  
@@ -313,11 +313,11 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	23 Mar 2008 00:00:31 -0000
++++ sys/contrib/pf/net/pf_pptp.c	24 Mar 2008 22:18:23 -0000
 @@ -0,0 +1,318 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
-+ * Copyright (c) 2008 Ermal LuÃ§i
++ * Copyright (c) 2008 Ermal Luçi
 + * All rights reserved.
 + *
 + * Subject to the following obligations and disclaimer of warranty, use and
@@ -507,11 +507,11 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +};
 +
 +void
-+pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, void *p,
++pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, int off, void *p,
 +	int dir, u_int16_t nport)
 +{
 +	struct pptpCallIds *cptr;
-+        u_int16_t ctl_type;     /* control message type */
++        u_int16_t ctl_type;     
 +        struct pptpMsgHead *hptr = NULL;
 +	struct pptpCodes *codes = NULL;
 +	u_int16_t *pcall_id = NULL;
@@ -525,7 +525,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +	th = (struct tcphdr *)p;
 +
 +        /* Move up to PPTP message header */
-+	m_copydata(m, th->th_off << 2, sizeof(struct pptpMsgHead), (void *)hptr);
++	m_copydata(m, off + (th->th_off << 2), sizeof(struct pptpMsgHead), (void *)hptr);
 +
 +        /* Return the control message type */
 +        ctl_type = ntohs(hptr->type);
@@ -589,19 +589,19 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +                        th->th_sum = pf_cksum_fixup(th->th_sum,
 +                                        *pcall_id, ctl_type, 0);
 +        	}
-+		} else { /* Connection refused/closed */
++		} else { /* Connection refused or closed */
 +			pf_pptp_remove_entry(ctl_type, nport);
 +			return;
 +		} 
 +
-+	m_copyback(m, (th->th_off << 2) + sizeof(struct pptpMsgHead), 
++	m_copyback(m, off + (th->th_off << 2) + sizeof(struct pptpMsgHead), 
 +		sizeof(struct pptpCallIds), (caddr_t)cptr);	
 +
 +	return;
 +} 
 +
 +void
-+pf_get_gre_translation(struct pf_pdesc *pd, struct mbuf *m, void *p,
++pf_get_gre_translation(struct pf_pdesc *pd, struct mbuf *m, int off, void *p,
 +        int dir, u_int16_t nport /* unused */)
 +{
 +        struct grehdr *gr = NULL;
@@ -609,7 +609,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +	struct ip *iphdr;
 +
 +	iphdr = (struct ip *)p;
-+	m_copydata(m, iphdr->ip_hl << 2, sizeof(struct grehdr), (void *)gr);
++	m_copydata(m, off, sizeof(struct grehdr), (void *)gr);
 +
 +        /* Check GRE header bits. */
 +        if ((ntohl(*((u_int32_t *) gr)) & PPTP_INIT_MASK) != PPTP_INIT_VALUE)
@@ -631,7 +631,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +                                        ncallid, bcallid, 0);
 +	}
 +	
-+	m_copyback(m, iphdr->ip_hl * 4, sizeof(struct grehdr), (caddr_t)gr);
++	m_copyback(m, off, sizeof(struct grehdr), (caddr_t)gr);
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
@@ -639,7 +639,7 @@ RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	16 Mar 2008 23:05:46 -0000
++++ sys/contrib/pf/net/pfvar.h	24 Mar 2008 22:17:01 -0000
 @@ -672,6 +672,27 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -685,8 +685,8 @@ diff -u -r1.16 pfvar.h
  
 +/* XXX: This are here until a pluggable framework for NAT is finished */
 +#define PPTP_CONTROL_PORT_NUMBER 1723
-+void	pf_get_pptp_translation(struct pf_pdesc *, struct mbuf *, void *, int, u_int16_t);
-+void	pf_get_gre_translation(struct pf_pdesc *, struct mbuf *, void *, int, u_int16_t);
++void	pf_get_pptp_translation(struct pf_pdesc *, struct mbuf *, int, void *, int, u_int16_t);
++void	pf_get_gre_translation(struct pf_pdesc *, struct mbuf *, int, void *, int, u_int16_t);
 +
  extern struct pfi_statehead	 pfi_statehead;
  extern struct pfi_kif		*pfi_all;
@@ -707,4 +707,3 @@ diff -u -r1.13 Makefile
  	in4_cksum.c \
  	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h opt_mac.h
  
-
