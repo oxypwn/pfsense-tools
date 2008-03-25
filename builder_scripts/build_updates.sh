@@ -82,9 +82,6 @@ build_all_kernels
 echo ">>> Phase populate_extra"
 ( populate_extra )
 
-# Fixup library changes if needed
-fixup_libmap
-
 # Nuke the boot directory
 [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
@@ -102,6 +99,9 @@ set -e
 freesbie_make extra
 
 fixup_updates
+
+# Fixup library changes if needed
+fixup_libmap
 
 create_pfSense_Full_update_tarball
 create_pfSense_Embedded_update_tarball
