@@ -117,11 +117,11 @@ unset CONFSIZE
 ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megabytes
 CONFSIZE=${CONFSIZE:-"4096"}
 
-if [ $freebsd_branch = "RELENG_7" ]; then
+if [ $pfSense_version = "7" ]; then
 	unset ROOTSIZE
 	unset CONFSIZE
-	echo "Building a -RELENG_7 image, setting size to 500 megabytes..."
-	ROOTSIZE=${ROOTSIZE:-"1019990"}  # Total number of sectors - 500 megabytes
+	echo "Building a -RELENG_7 image, setting size to 256 megabytes..."
+	ROOTSIZE=${ROOTSIZE:-"470096"}  # Total number of sectors - 256 megabytes
 	CONFSIZE=${CONFSIZE:-"4096"}
 fi
 
