@@ -48,7 +48,8 @@ if [ $pfSense_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
 fi
 if [ $pfSense_version = "7" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
+	cp ${PWD}/conf/make.conf.embedded.7 ~
+	export MAKE_CONF="~/make.conf.embedded.7"
 fi
 
 # Clean out directories
