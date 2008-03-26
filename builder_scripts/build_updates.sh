@@ -68,10 +68,6 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
-if [ $pfSense_version = "7" ]; then
-        export MAKE_CONF="${PWD}/conf/make.conf.7.install"
-fi
-
 # Build if needed and install world and kernel
 make_world_kernel
 
