@@ -313,8 +313,8 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	24 Mar 2008 22:18:23 -0000
-@@ -0,0 +1,318 @@
++++ sys/contrib/pf/net/pf_pptp.c	26 Mar 2008 18:31:40 -0000
+@@ -0,0 +1,322 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
 + * Copyright (c) 2008 Ermal Luçi
@@ -512,7 +512,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +{
 +	struct pptpCallIds *cptr;
 +        u_int16_t ctl_type;     
-+        struct pptpMsgHead *hptr = NULL;
++        struct pptpMsgHead hptr, *tst = NULL;
 +	struct pptpCodes *codes = NULL;
 +	u_int16_t *pcall_id = NULL;
 +	struct tcphdr *th = NULL; 
@@ -525,14 +525,16 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +	th = (struct tcphdr *)p;
 +
 +        /* Move up to PPTP message header */
-+	m_copydata(m, off + (th->th_off << 2), sizeof(struct pptpMsgHead), (void *)hptr);
++	if (!pf_pull_hdr(m, off + (th->th_off << 2), &hptr, 
++			sizeof(struct pptpMsgHead), NULL, NULL, AF_INET))
++		return;
 +
 +        /* Return the control message type */
-+        ctl_type = ntohs(hptr->type);
++        ctl_type = ntohs(hptr.type);
 +
 +        /* Verify PPTP Control Message */
-+        if ((ntohs(hptr->msgType) != PPTP_CTRL_MSG_TYPE) ||
-+            (ntohl(hptr->magic) != PPTP_MAGIC))
++        if ((ntohs(hptr.msgType) != PPTP_CTRL_MSG_TYPE) ||
++            (ntohl(hptr.magic) != PPTP_MAGIC))
 +                return;
 +
 +        /* Verify data length. */
@@ -541,7 +543,8 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +                sizeof(struct pptpCodes))))
 +                return;
 +
-+        cptr = (struct pptpCallIds *) (hptr + 1);
++	tst = &hptr;
++        cptr = (struct pptpCallIds *) (tst + 1);
 +        /* Verify valid PPTP control message */
 +        if (cptr == NULL)
 +                return;
@@ -604,34 +607,35 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +pf_get_gre_translation(struct pf_pdesc *pd, struct mbuf *m, int off, void *p,
 +        int dir, u_int16_t nport /* unused */)
 +{
-+        struct grehdr *gr = NULL;
++        struct grehdr gr;
 +	u_int16_t ncallid, bcallid;
-+	struct ip *iphdr;
++	struct ip *iphdr = (struct ip *) p;
 +
-+	iphdr = (struct ip *)p;
-+	m_copydata(m, off, sizeof(struct grehdr), (void *)gr);
++	if (!pf_pull_hdr(m, off, &gr, sizeof(struct grehdr),
++			NULL, NULL, AF_INET))
++		return;
 +
 +        /* Check GRE header bits. */
-+        if ((ntohl(*((u_int32_t *) gr)) & PPTP_INIT_MASK) != PPTP_INIT_VALUE)
++        if ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) != PPTP_INIT_VALUE)
 +                return;
 +
 +	if (dir == PF_OUT) {
-+		bcallid = gr->gh_call_id;
++		bcallid = gr.gh_call_id;
 +		if ((ncallid = pf_pptp_find_entry(bcallid)) == 0)
 +			return; /* XXX */
-+		gr->gh_call_id = ncallid;
++		gr.gh_call_id = ncallid;
 +		iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
 +                                        bcallid, ncallid, 0);
 +	} else {
-+                ncallid = gr->gh_call_id;
++                ncallid = gr.gh_call_id;
 +                if ((bcallid = pf_pptp_find_entry(ncallid)) == 0)
 +                        return; /* XXX */
-+                gr->gh_call_id = bcallid;
++                gr.gh_call_id = bcallid;
 +                iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
 +                                        ncallid, bcallid, 0);
 +	}
 +	
-+	m_copyback(m, off, sizeof(struct grehdr), (caddr_t)gr);
++	m_copyback(m, off, sizeof(struct grehdr), (caddr_t)&gr);
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
