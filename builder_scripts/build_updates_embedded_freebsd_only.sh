@@ -56,6 +56,7 @@ if [ $pfSense_version = "6" ]; then
 fi
 if [ $pfSense_version = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
+        export SRC_CONF="${PWD}/conf/make.conf.embedded.7"
 fi
 
 export EXTRA=""

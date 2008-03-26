@@ -44,6 +44,7 @@ if [ $pfSense_version = "6" ]; then
 fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
+	export SRC_CONF="${PWD}/conf/make.conf.developer.7"	
 fi
 
 # Do not compress FS

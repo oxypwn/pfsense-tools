@@ -50,6 +50,7 @@ fi
 if [ $pfSense_version = "7" ]; then
 	cp ${PWD}/conf/make.conf.embedded.7 ~
 	export MAKE_CONF="~/make.conf.embedded.7"
+	export SRC_CONF="~/make.conf.embedded.7"	
 fi
 
 # Clean out directories

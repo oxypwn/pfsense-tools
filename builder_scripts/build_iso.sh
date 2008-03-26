@@ -35,6 +35,7 @@ fi
 if [ $pfSense_version = "7" ]; then
 	cp ${PWD}/conf/make.conf.7 ~/
 	export MAKE_CONF="~/make.conf.7"
+	export SRC_CONF="~/make.conf.7"
 fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2

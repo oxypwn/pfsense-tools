@@ -11,9 +11,12 @@
 # export EXTRA="comconsole customroot"
 export EXTRA="customroot"
 
-export MAKE_CONF="${PWD}/conf/make.conf.developer"
+if [ $pfSense_version = "6" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.developer"
+fi
 if [ $pfSense_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.developer.7"
+	export SRC_CONF="${PWD}/conf/make.conf.developer.7"
 fi
 
 export PRUNE_LIST=""
