@@ -288,7 +288,8 @@ populate_extra() {
 		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/bin/ -type f)`"
 		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/sbin/ -type f)`"
 		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/bin -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/sbin/ -type f)`"		
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/sbin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/lib/ -type f)`"
 		NEEDEDLIBS=""
 		echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 		for TEMPFILE in $FOUND_FILES; do
@@ -313,6 +314,7 @@ populate_extra() {
 				echo "install $NEEDLIB ${CVS_CO_DIR}${NEEDLIB}"
 			fi
 		done
+		
 
 	fi
 		
