@@ -282,25 +282,40 @@ populate_extra() {
 	    echo "===> Installing clog to $CVS_CO_DIR/usr/sbin/..."
 	    install /usr/sbin/clog $CVS_CO_DIR/usr/sbin/
 
-		# Populate newer binaries if they exist from host
-		FOUND_FILES=`(cd ${CVS_CO_DIR} && find usr/local -type f)`
-		NEEDEDLIBS="`ldd /usr/sbin/syslogd | grep "=>" | awk '{ print $3 }'`"
-		NEEDEDLIBS="`ldd /usr/local/sbin/dfuife_curses | grep "=>" | awk '{ print $3 }'`"
-		
-		echo ">>>> Populating newer binaries found on host jail/os..."
+		# Process base system libraries
+		FOUND_FILES="`(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
+		#FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/bin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/sbin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/bin -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/sbin/ -type f)`"		
+		NEEDEDLIBS=""
+		echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 		for TEMPFILE in $FOUND_FILES; do
-			if [ -f /$TEMPFILE ]; then 
-				cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
-				NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"
+			if [ -f /$TEMPFILE ]; then
+				FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+				if [ "$FILETYPE" -gt 0 ]; then
+					NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
+					cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
+					echo "cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
+				fi
+			else
+				FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+				if [ "$FILETYPE" -gt 0 ]; then
+					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
+				fi
+			fi
+		done		
+		echo ">>>> Installing collected library information (usr/local), please wait..."
+		for NEEDLIB in $NEEDEDLIBS; do
+			if [ -f $NEEDLIB ]; then 
+				install $NEEDLIB ${CVS_CO_DIR}${NEEDLIB}
+				echo "install $NEEDLIB ${CVS_CO_DIR}${NEEDLIB}"
 			fi
 		done
-		NEEDEDLIBS="$NEEDEDLIBS `ldd /usr/sbin/clog | grep "=>" | awk '{ print $3 }'`"
-		echo ">>>> Installing collected library information, please wait..."
-		for NEEDLIB in $NEEDEDLIBS; do
-			install $NEEDLIB ${CVS_CO_DIR}/lib/
-		done	
-	fi
 
+	fi
+		
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
