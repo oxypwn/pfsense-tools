@@ -285,7 +285,7 @@ populate_extra() {
 		# Process base system libraries
 		FOUND_FILES="`(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
 		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find lib/ -type f)`"
-		#FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
 		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/bin/ -type f)`"
 		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/sbin/ -type f)`"
 		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/bin/ -type f)`"
