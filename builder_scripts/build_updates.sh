@@ -31,6 +31,7 @@ fi
 # Use normal make.conf
 if [ $pfSense_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf"
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf"	
 fi
 if [ $pfSense_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7"

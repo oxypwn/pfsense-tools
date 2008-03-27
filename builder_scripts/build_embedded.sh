@@ -46,11 +46,12 @@ fi
 # Use embedded make.conf
 if [ $pfSense_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded"	
 fi
 if [ $pfSense_version = "7" ]; then
-	export MAKE_CONF="${PWD}/conf//make.conf.embedded.7"
-	export SRC_CONF="${PWD}/conf//make.conf.embedded.7"
-	export SRC_CONF_INSTALL="${PWD}/conf//make.conf.embedded.7.install"
+	export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
+	export SRC_CONF="${PWD}/conf/make.conf.embedded.7"
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.7.install"
 fi
 
 # Clean out directories
@@ -71,7 +72,7 @@ if [ $pfSense_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded.install"
 fi
 if [ $pfSense_version = "7" ]; then
-        export MAKE_CONF="${PWD}/conf/make.conf.embedded.7.install"
+	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
 fi
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
