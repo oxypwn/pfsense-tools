@@ -266,11 +266,11 @@ populate_extra() {
     # Trigger the pfSense wizzard
     echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
-    # Nuke CVS dirs
     set +e
+
+    # Nuke CVS dirs
     find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
     find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
-    set -e
 
 	if [ $pfSense_version = "7" ]; then
 	    echo "===> Building syslogd..."
@@ -281,6 +281,17 @@ populate_extra() {
 		(cd /usr/src/usr.sbin/clog && make clean && make && make install)
 	    echo "===> Installing clog to $CVS_CO_DIR/usr/sbin/..."
 	    install /usr/sbin/clog $CVS_CO_DIR/usr/sbin/
+	
+		# Populate PHP if it exists locally
+		if [ -d /usr/local/lib/php/20060613/ ]; then
+			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
+				echo "Copying newer PHP binary and libraries..."
+				cp /usr/local/lib/php/20060613/* ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/					
+			fi
+		fi
+
+		mkdir -p ${CVS_CO_DIR}/bin
+		mkdir -p ${CVS_CO_DIR}/usr/bin
 
 		# Process base system libraries
 		FOUND_FILES="`(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
@@ -299,8 +310,8 @@ populate_extra() {
 				FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
 				if [ "$FILETYPE" -gt 0 ]; then
 					NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
-					cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE
-					echo "cp /$TEMPFILE ${CVS_CO_DIR}/$TEMPFILE"
+					cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
+					echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
 				fi
 			else
 				FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
@@ -312,11 +323,11 @@ populate_extra() {
 		echo ">>>> Installing collected library information (usr/local), please wait..."
 		for NEEDLIB in $NEEDEDLIBS; do
 			if [ -f $NEEDLIB ]; then 
-				install $NEEDLIB ${CVS_CO_DIR}${NEEDLIB}
-				echo "install $NEEDLIB ${CVS_CO_DIR}${NEEDLIB}"
+				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
+				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
 			fi
 		done
-		
+	    set -e
 
 	fi
 		
@@ -785,3 +796,4 @@ make_world_kernel() {
 
     freesbie_make installkernel installworld
 }
+
