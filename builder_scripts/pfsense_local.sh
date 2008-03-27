@@ -88,3 +88,4 @@ export INSTALL_PORTS_HEAD="pfPorts/isc-dhcp3-server pfPorts/php5-pfsense pfPorts
 
 export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
 
+export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
