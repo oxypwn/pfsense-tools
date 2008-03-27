@@ -13,6 +13,7 @@ export EXTRA="customroot"
 
 if [ $pfSense_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.developer"
+	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf.developer"	
 fi
 if [ $pfSense_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.developer.7"
