@@ -36,8 +36,8 @@ SUBDIR += pftop
 #SUBDIR += libevent
 SUBDIR += libevent13
 SUBDIR += pftpx
-SUBDIR += pftpx-routeto
-SUBDIR += php4-pfsense
+#SUBDIR += pftpx-routeto
+#SUBDIR += php4-pfsense
 #SUBDIR += php4-pfsense-allopt
 #SUBDIR += php5-pfsense
 #SUBDIR += php5-pfsense-allopt
@@ -47,7 +47,8 @@ SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
 SUBDIR += stats
 SUBDIR += vtsh
-SUBDIR += xcache
+SUBDIR += pecl-APC
+SUBDIR += pecl-radius
 
 PORTSTOP=       yes
 
