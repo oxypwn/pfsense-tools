@@ -11,12 +11,9 @@ SUBDIR += ftpsesame
 SUBDIR += atareinit
 SUBDIR += grub
 SUBDIR += cpdup
-# Not applicable to amd64
-#SUBDIR += beep
+SUBDIR += beep
 SUBDIR += check_reload_status
 SUBDIR += choparp
-#SUBDIR += dmt-ux
-# Does not build on amd64?
 SUBDIR += dnsmasq
 SUBDIR += expiretable
 SUBDIR += ifstated
@@ -24,29 +21,24 @@ SUBDIR += ipsec-tools
 SUBDIR += isc-dhcp3-relay
 SUBDIR += isc-dhcp3-server
 SUBDIR += kbdcheck
-# Does not build on amd64
-#SUBDIR += libmrss
 SUBDIR += lighttpd
 SUBDIR += minicron
-# File not found?
-#SUBDIR += miniupnpd
+SUBDIR += miniupnpd
 SUBDIR += mpd
 SUBDIR += olsrd
 SUBDIR += pftop
-#SUBDIR += libevent
 SUBDIR += libevent13
 SUBDIR += pftpx
-#SUBDIR += pftpx-routeto
-#SUBDIR += php4-pfsense
-#SUBDIR += php4-pfsense-allopt
-#SUBDIR += php5-pfsense
-#SUBDIR += php5-pfsense-allopt
 SUBDIR += rrdtool
 SUBDIR += slbd
 SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
 SUBDIR += stats
 SUBDIR += vtsh
+SUBDIR += pftpx
+SUBDIR += php5
+SUBDIR += php5-gettext
+SUBDIR += php5-readline
 SUBDIR += pecl-APC
 SUBDIR += pecl-radius
 
