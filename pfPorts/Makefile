@@ -20,7 +20,6 @@ SUBDIR += ifstated
 SUBDIR += ipsec-tools
 SUBDIR += isc-dhcp3-relay
 SUBDIR += isc-dhcp3-server
-SUBDIR += kbdcheck
 SUBDIR += lighttpd
 SUBDIR += minicron
 SUBDIR += miniupnpd
