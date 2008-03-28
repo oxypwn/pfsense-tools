@@ -76,10 +76,6 @@ make_world_kernel
 # Build SMP, Embedded (wrap) and Developers edition kernels
 build_all_kernels
 
-# Add extra files such as buildtime of version, bsnmpd, etc.
-echo ">>> Phase populate_extra"
-( populate_extra )
-
 # Nuke the boot directory
 [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
@@ -95,6 +91,10 @@ set -e
 
 # Invoke FreeSBIE2 toolchain
 freesbie_make extra
+
+# Add extra files such as buildtime of version, bsnmpd, etc.
+echo ">>> Phase populate_extra"
+( populate_extra )
 
 fixup_updates
 
