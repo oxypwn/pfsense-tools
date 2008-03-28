@@ -281,14 +281,6 @@ populate_extra() {
 		(cd /usr/src/usr.sbin/clog && make clean && make && make install)
 	    echo "===> Installing clog to $CVS_CO_DIR/usr/sbin/..."
 	    install /usr/sbin/clog $CVS_CO_DIR/usr/sbin/
-	
-		# Populate PHP if it exists locally
-		if [ -d /usr/local/lib/php/20060613/ ]; then
-			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
-				echo "Copying newer PHP binary and libraries..."
-				cp /usr/local/lib/php/20060613/* ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/					
-			fi
-		fi
 
 		mkdir -p ${CVS_CO_DIR}/bin
 		mkdir -p ${CVS_CO_DIR}/usr/bin
@@ -327,6 +319,15 @@ populate_extra() {
 				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
 			fi
 		done
+		
+		# Populate PHP if it exists locally
+		if [ -d /usr/local/lib/php/20060613/ ]; then
+			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
+				echo "Copying newer PHP binary and libraries..."
+				cp /usr/local/lib/php/20060613/* ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/					
+			fi
+		fi
+				
 	    set -e
 
 	fi
