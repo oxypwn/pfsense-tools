@@ -285,6 +285,19 @@ populate_extra() {
 		mkdir -p ${CVS_CO_DIR}/bin
 		mkdir -p ${CVS_CO_DIR}/usr/bin
 
+		# Populate PHP if it exists locally
+		if [ -d /usr/local/lib/php/20060613/ ]; then
+			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
+				echo "Copying newer PHP binary and libraries..."
+				if [ -e /usr/local/bin/php-cgi ]; then
+					echo "Found php-cgi on local system, copying to staging area..."
+					cp /usr/local/bin/php-cgi /usr/local/pfsense-fs/usr/local/bin/php
+					chmod a+rx /usr/local/pfsense-fs/usr/local/bin/php
+				fi
+				cp -R "/usr/local/lib/php/20060613/" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
+			fi
+		fi
+
 		# Process base system libraries
 		FOUND_FILES="`(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
 		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find lib/ -type f)`"
@@ -324,10 +337,10 @@ populate_extra() {
 		if [ -d /usr/local/lib/php/20060613/ ]; then
 			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
 				echo "Copying newer PHP binary and libraries..."
-				cp "/usr/local/lib/php/20060613/*" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
+				cp -R "/usr/local/lib/php/20060613/" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
 			fi
 		fi
-				
+
 	    set -e
 
 	fi
