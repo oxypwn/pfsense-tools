@@ -7,7 +7,7 @@
 
 CATEGORIES=	devel
 
-MASTERDIR=	${.CURDIR}/../../lang/php5
+MASTERDIR=	${.CURDIR}/../php5
 
 PKGNAMESUFFIX=	-gettext
 
