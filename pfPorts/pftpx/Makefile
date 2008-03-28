@@ -13,8 +13,6 @@ DISTNAME=	${PORTNAME}-${PORTVERSION}
 MAINTAINER=	geekgod@geekgod.com
 COMMENT=	Much enhanced ftp proxy for pf that supports most ftp protocols
 
-LIB_DEPENDS=	event-1.3b:${PORTSDIR}/devel/libevent
-
 MAN8=		pftpx.8
 
 PLIST_FILES=    sbin/pftpx
