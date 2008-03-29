@@ -70,6 +70,9 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
+# Recompile pfPorts
+recompile_pfPorts
+
 # Build if needed and install world and kernel
 make_world_kernel
 
