@@ -10,6 +10,9 @@
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
+# Suck in script helper functions
+. ./builder_common.sh
+
 if [ ! -d $BASE_DIR ]; then
 	mkdir -p $BASE_DIR
 fi
@@ -220,6 +223,9 @@ echo "Done!"
 echo
 echo "Starting pfSense build.  Sit back and have a six pack of beer (but not cheap beer)..."
 echo
+
+# Recompile pfPorts
+recompile_pfPorts
 
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 (cd ${CURRENTDIR} && ./build_iso.sh)

@@ -82,68 +82,41 @@ build_all_kernels() {
 }
 
 recompile_pfPorts() {
-	if [ "$pfSense_version" = "7" ]; then
-		if [ "$PFSENSETAG" = "RELENG_1" ]; then
-			if [ -f /etc/make.conf ]; then
-				mv /etc/make.conf /tmp/
-			fi
-			export FORCE_PKG_REGISTER=yo
-	        pfSDESTINATIONDIR=/usr/local
-	        pfSPORTS_BASE_DIR=/home/pfsense/tools
-	        mkdir -p $pfSDESTINATIONDIR
-	        mkdir -p $pfSDESTINATIONDIR/usr
-	        mkdir -p $pfSDESTINATIONDIR/var
-	        mkdir -p $pfSDESTINATIONDIR/root
-	        mkdir -p $pfSDESTINATIONDIR/usr/local
-	        mtree -PUer -q -p $pfSDESTINATIONDIR/usr < /etc/mtree/BSD.usr.dist
-	        mtree -PUer -q -p $pfSDESTINATIONDIR/var/ < /etc/mtree/BSD.var.dist
-	        mtree -PUer -q -p $pfSDESTINATIONDIR/root/ < /etc/mtree/BSD.root.dist
-			mkdir -p $pfSDESTINATIONDIR/usr/local
-	        mtree -PUer -q -p $pfSDESTINATIONDIR/usr/local < /etc/mtree/BSD.local.dist		
-	        rm /home/pfsense/tools/pfPorts/isc-dhcp3-server/files/patch-server::dhcpd.c
-	        export FORCE_PKG_REGISTER=yo
-			echo "===> Compiling pfPorts..."
-			echo "===> Setting pfPorts to RELENG_1 pfPorts..."
-			for pfSPORT in $INSTALL_PORTS_HEAD; do
-                echo > /etc/make.conf
-                COMPILE_STATIC=""
-                for STATIC in $STATIC_INSTALL_PORTS; do
-                        if [ "$STATIC" = "$pfSPORT" ]; then
-                                echo 'CFLAGS="-static"' >  /etc/make.conf
-                                echo "===> $STATIC is marked for static compilation..."
-                        fi
-				done
-            echo "===> Operating on $pfSPORT..."
-            (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo $COMPILE_STATIC)
-            (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
-        done # RELENG_1 Tag Check
-	elif # pfSense_version check
-	if [ "$PFSENSETAG" = "RELENG_1" ]; then
-		echo "===> Setting pfPorts to RELENG_1 pfPorts..."
-        for pfSPORT in $INSTALL_PORTS; do
-		echo "===> Build Process for Compiling pfPorts ..."
-        	echo > /etc/make.conf
-        	COMPILE_STATIC=""
-        	for STATIC in $STATIC_INSTALL_PORTS; do
-        		if [ "$STATIC" = "$pfSPORT" ]; then
-        			echo 'CFLAGS="-static"' >  /etc/make.conf
-        			echo "===> $STATIC is marked for static compilation..."
-        		fi
-        	done
-            echo "===> Operating on $pfSPORT..."
-            (cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo $COMPILE_STATIC)
-            echo "===> Installing new port..."
-            (cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
-        done
-        chflags -R noschg $pfSDESTINATIONDIR
-        echo "===> End of pfPorts..."
-        if [ -f /tmp/make.conf ]; then
-        	mv /tmp/make.conf /etc/
-        fi
+	echo "===> Compiling pfPorts..."
+	if [ -f /etc/make.conf ]; then
+		mv /etc/make.conf /tmp/
 	fi
-	then
-fi
-fi
+	export FORCE_PKG_REGISTER=yo
+	pfSDESTINATIONDIR=/usr/local
+	pfSPORTS_BASE_DIR=/home/pfsense/tools
+	mkdir -p $pfSDESTINATIONDIR
+	mkdir -p $pfSDESTINATIONDIR/usr
+	mkdir -p $pfSDESTINATIONDIR/var
+	mkdir -p $pfSDESTINATIONDIR/root
+	mkdir -p $pfSDESTINATIONDIR/usr/local
+	mtree -PUer -q -p $pfSDESTINATIONDIR/usr < /etc/mtree/BSD.usr.dist
+	mtree -PUer -q -p $pfSDESTINATIONDIR/var/ < /etc/mtree/BSD.var.dist
+	mtree -PUer -q -p $pfSDESTINATIONDIR/root/ < /etc/mtree/BSD.root.dist
+	mtree -PUer -q -p $pfSDESTINATIONDIR/usr/local < /etc/mtree/BSD.local.dist
+	for pfSPORT in $INSTALL_PORTS; do
+		echo > /etc/make.conf
+		COMPILE_STATIC=""
+		for STATIC in $STATIC_INSTALL_PORTS; do
+			if [ "$STATIC" = "$pfSPORT" ]; then
+				echo 'CFLAGS="-static"' >  /etc/make.conf
+				echo "===> $STATIC is marked for static compilation..."
+			fi
+		done
+		echo "===> Operating on $pfSPORT..."
+		(cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo $COMPILE_STATIC)
+		echo "===> Installing new port..."
+		(cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	done
+	chflags -R noschg $pfSDESTINATIONDIR
+	if [ -f /tmp/make.conf ]; then
+		mv /tmp/make.conf /etc/
+	fi
+	echo "===> End of pfPorts..."	
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
