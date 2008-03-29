@@ -24,11 +24,11 @@ SUBDIR += lighttpd
 SUBDIR += minicron
 SUBDIR += miniupnpd
 SUBDIR += mpd
-SUBDIR += olsrd
+#SUBDIR += olsrd
 SUBDIR += pftop
 SUBDIR += libevent
 SUBDIR += pftpx
-SUBDIR += rrdtool
+#SUBDIR += rrdtool
 SUBDIR += slbd
 SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
@@ -40,6 +40,7 @@ SUBDIR += php5-gettext
 SUBDIR += php5-readline
 SUBDIR += pecl-APC
 SUBDIR += pecl-radius
+SUBDIR += php5-pcre
 
 PORTSTOP=       yes
 
