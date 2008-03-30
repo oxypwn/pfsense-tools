@@ -641,7 +641,7 @@ print_flags() {
 	printf "\t\t\tpfsense_local.sh\n"
 	printf "\t\t\t\tBase dir: %s\n" $BASE_DIR
 	printf "\t\t\t\tCheckout dir: %s\n" $CVS_CO_DIR
-	printf "\t\t\t\tCustom root: %s " $CUSTOMROOT
+	printf "\t\t\t\tCustom root: %s\n" $CUSTOMROOT
 	printf "\t\t\t\tCVS IP address %s\n " $CVS_IP
 	printf "\t\t\t\tUpdates directory %s\n " $IPDATESDIR
 	printf "\t\t\t\tpfSense Base Directory %s\n" $PFSENSEBASEDIR
