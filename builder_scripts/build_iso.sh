@@ -69,8 +69,13 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
-# Build if needed and install world and kernel
-make_world_kernel
+# Invoke FreeSBIE2 toolchain
+
+# Prepare object directry
+freesbie_make obj
+
+# Build freebsd world
+freesbie_make buildworld
 
 # Check for freesbie builder issues
 if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
@@ -86,6 +91,15 @@ if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
 	more /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld
 	exit
 fi
+
+# Install freebsd world
+freesbie_make installworld
+
+# Build freebsd / psense kerenl
+freesbie_make buildkernel
+
+# Install freebsd / pfsense kernel
+freesbie_make installkernel
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
 build_all_kernels
@@ -108,7 +122,7 @@ echo ">>> Phase set_image_as_cdrom"
 fixup_libmap
 
 # Nuke the boot directory
-#[ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
+# [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
 rm -f $BASE_DIR/tools/builder_scripts/conf/packages
 
@@ -119,23 +133,6 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep cpdup) >> $BASE_DIR/tools/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
 set -e
-
-# Invoke FreeSBIE2 toolchain
-
-# Prepare object directry
-freesbie_make obj
-
-# Build freebsd world
-freesbie_make buildworld
-
-# Install freebsd world
-freesbie_make installworld
-
-# Build freebsd / psense kerenl
-freesbie_make buildkernel
-
-# Install freebsd / pfsense kernel
-freesbie_make installkernel
 
 # Install custom packages
 freesbie_make pkginstall
