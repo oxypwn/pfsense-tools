@@ -642,6 +642,9 @@ print_flags() {
 	printf "\t\tBase dir: %s\n" $BASE_DIR
 	printf "\t\tCheckout dir: %s\n\n" $CVS_CO_DIR
 
+	echo "Sleeping for 5 seconds..."
+	sleep 5
+
 }
 
 clear_custom() {
