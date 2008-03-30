@@ -49,18 +49,18 @@ build_all_kernels() {
 		# Build embedded kernel
 		echo ">>> Building embedded kernel..."
 		rm -rf /usr/obj
-		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
-		(cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
+		(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
+		(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
 		# Build SMP kernel
 		echo ">>> Building SMP kernel..."
 		rm -rf /usr/obj
-		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
-		(cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
+		(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
+		(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
 		# Build Developers kernel
 		echo ">>> Building Developers kernel..."
 		rm -rf /usr/obj
-		(cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
-		(cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
+		(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
+		(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
 	# GZIP kernels and make smaller
 	echo
 	echo -n ">>> GZipping: embedded"
