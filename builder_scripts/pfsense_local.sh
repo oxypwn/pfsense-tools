@@ -28,10 +28,6 @@ export PFSENSEBASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 
 export PFSENSEISODIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
-# pfSense cvs tag to build
-export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
-#export PFSENSETAG=${PFSENSETAG:-RELENG_1}
-
 # FreeSBIE 2 toolkit path
 export FREESBIE_PATH=${FREESBIE_PATH:-/home/pfsense/freesbie2}
 
@@ -50,10 +46,6 @@ export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
 
 MAKEJ=" "
-
-# FreeBSD version.  6 or 7
-export pfSense_version="6"
-export freebsd_branch="RELENG_6_3"
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
@@ -86,3 +78,15 @@ export INSTALL_PORTS_HEAD="pfPorts/isc-dhcp3-server pfPorts/php5-pfsense pfPorts
 export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
 
 export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
+
+
+#### User settable options follow ### 
+
+# FreeBSD version.  6 or 7
+export pfSense_version="6"
+export freebsd_branch="RELENG_6_3"
+
+# pfSense cvs tag to build
+export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
+# export PFSENSETAG=${PFSENSETAG:-RELENG_1}
+
