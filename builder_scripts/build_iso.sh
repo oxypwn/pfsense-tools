@@ -72,10 +72,6 @@ export version=`cat $CVS_CO_DIR/etc/version`
 # Build if needed and install world and kernel
 make_world_kernel
 
-if [ $pfSense_version = "7" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.7.install" 
-fi
-
 # Check for freesbie builder issues
 if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
 	echo "Something has gone wrong!  Press ENTER to view log file."
@@ -108,15 +104,11 @@ echo ">>> Phase install_custom_packages"
 echo ">>> Phase set_image_as_cdrom"
 ( set_image_as_cdrom )
 
-# Add extra files such as buildtime of version, bsnmpd, etc.
-echo ">>> Phase populate_extra"
-( populate_extra )
-
 # Fixup library changes if needed
 fixup_libmap
 
 # Nuke the boot directory
-[ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
+#[ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
 rm -f $BASE_DIR/tools/builder_scripts/conf/packages
 
@@ -126,11 +118,39 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep cpdup) >> $BASE_DIR/tools/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
-#(cd /var/db/pkg && ls | grep scriptaculous) >> $BASE_DIR/tools/builder_scripts/conf/packages
-#(cd /var/db/pkg && ls | grep domtt) >> $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep rrdtool) >> $BASE_DIR/tools/builder_scripts/conf/packages
 set -e
 
 # Invoke FreeSBIE2 toolchain
+
+# Prepare object directry
+freesbie_make obj
+
+# Build freebsd world
+freesbie_make buildworld
+
+# Install freebsd world
+freesbie_make installworld
+
+# Build freebsd / psense kerenl
+freesbie_make buildkernel
+
+# Install freebsd / pfsense kernel
+freesbie_make installkernel
+
+# Install custom packages
+freesbie_make pkginstall
+
+# Overlay pfsense checkout on top of FreeSBIE image
+# using the customroot plugin
+freesbie_make extra
+
+# Add extra files such as buildtime of version, bsnmpd, etc.
+echo ">>> Phase populate_extra"
+( populate_extra )
+
+# Prepare /usr/local/pfsense-clonefs
+freesbie_make clonefs
+
+# Finalize iso
 freesbie_make iso
 
