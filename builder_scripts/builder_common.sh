@@ -46,21 +46,21 @@ build_all_kernels() {
 	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-		# Build embedded kernel
-		echo ">>> Building embedded kernel..."
-		rm -rf /usr/obj
-		(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
-		(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
-		# Build SMP kernel
-		echo ">>> Building SMP kernel..."
-		rm -rf /usr/obj
-		(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
-		(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
-		# Build Developers kernel
-		echo ">>> Building Developers kernel..."
-		rm -rf /usr/obj
-		(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
-		(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
+	# Build embedded kernel
+	echo ">>> Building embedded kernel..."
+	rm -rf /usr/obj
+	(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
+	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
+	# Build SMP kernel
+	echo ">>> Building SMP kernel..."
+	rm -rf /usr/obj
+	(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
+	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
+	# Build Developers kernel
+	echo ">>> Building Developers kernel..."
+	rm -rf /usr/obj
+	(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
+	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
 	# GZIP kernels and make smaller
 	echo
 	echo -n ">>> GZipping: embedded"
@@ -266,18 +266,18 @@ populate_extra() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
-                if [ -d $custom_overlay ]; then
-                        echo "found directory, copying..."
-                        for i in $custom_overlay/*
-                        do
-                            if [ -d $i ]; then
-                                echo "copying dir: $i ..."
-                                cp -R $i $CVS_CO_DIR
-                            else
-                                echo "copying file: $i ..."
-                                cp $i $CVS_CO_DIR
-                            fi
-                        done
+        if [ -d $custom_overlay ]; then
+			echo "found directory, copying..."
+			for i in $custom_overlay/*
+			do
+			    if [ -d $i ]; then
+			        echo "copying dir: $i ..."
+			        cp -R $i $CVS_CO_DIR
+			    else
+			        echo "copying file: $i ..."
+			        cp $i $CVS_CO_DIR
+			    fi
+			done
 		elif [ -f $custom_overlay ]; then
 			echo "found file, extracting..."
 			tar xzpf $custom_overlay -C $CVS_CO_DIR
@@ -390,6 +390,7 @@ fixup_updates() {
 
 fixup_wrap() {
 
+	echo "Fixing up WRAP Specific items..."
     cp $CVS_CO_DIR/boot/device.hints_wrap \
             $CVS_CO_DIR/boot/device.hints
     cp $CVS_CO_DIR/boot/loader.conf_wrap \
@@ -627,20 +628,20 @@ checkout_freesbie() {
 }
 
 print_flags() {
-	if [ $BE_VERBOSE = "yes" ]; then
-		echo "Current flags:"
-		printf "\tbuilder.sh\n"
-		printf "\t\tCVS User: %s\n" $CVS_USER
-		printf "\t\tVerbosity: %s\n" $BE_VERBOSE
-		printf "\t\tTargets:%s\n" "$TARGETS"
-		printf "\tconfig.sh\n"
-		printf "\t\tLiveFS dir: %s\n" $FREESBIEBASEDIR
-		printf "\t\tFreeSBIE dir: %s\n" $LOCALDIR
-		printf "\t\tISO dir: %s\n" $PATHISO
-		printf "\tpfsense_local.sh\n"
-		printf "\t\tBase dir: %s\n" $BASE_DIR
-		printf "\t\tCheckout dir: %s\n\n" $CVS_CO_DIR
-	fi
+
+	echo "Current flags:"
+	printf "\tbuilder.sh\n"
+	printf "\t\tCVS User: %s\n" $CVS_USER
+	printf "\t\tVerbosity: %s\n" $BE_VERBOSE
+	printf "\t\tTargets:%s\n" "$TARGETS"
+	printf "\tconfig.sh\n"
+	printf "\t\tLiveFS dir: %s\n" $FREESBIEBASEDIR
+	printf "\t\tFreeSBIE dir: %s\n" $LOCALDIR
+	printf "\t\tISO dir: %s\n" $PATHISO
+	printf "\tpfsense_local.sh\n"
+	printf "\t\tBase dir: %s\n" $BASE_DIR
+	printf "\t\tCheckout dir: %s\n\n" $CVS_CO_DIR
+
 }
 
 clear_custom() {
