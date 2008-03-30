@@ -53,10 +53,7 @@ MAKEJ=" "
 
 # FreeBSD version.  6 or 7
 export pfSense_version="6"
-export freebsd_branch="RELENG_6_2"
-
-# Used by non pfSense developers
-export SKIP_RSYNC=yes
+export freebsd_branch="RELENG_6_3"
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
