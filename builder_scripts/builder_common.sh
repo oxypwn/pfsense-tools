@@ -629,34 +629,31 @@ checkout_freesbie() {
 
 print_flags() {
 
-	echo "Current flags:"
-	printf "\tbuilder.sh\n"
-	printf "\t\t\t\tCVS User: %s\n" $CVS_USER
-	printf "\t\t\t\tVerbosity: %s\n" $BE_VERBOSE
-	printf "\t\t\t\tTargets:%s\n" "$TARGETS"
-	printf "\t\t\tconfig.sh\n"
-	printf "\t\t\t\tLiveFS dir: %s\n" $FREESBIEBASEDIR
-	printf "\t\t\t\tFreeSBIE dir: %s\n" $LOCALDIR
-	printf "\t\t\t\tISO dir: %s\n" $PATHISO
-	printf "\t\t\tpfsense_local.sh\n"
-	printf "\t\t\t\tBase dir: %s\n" $BASE_DIR
-	printf "\t\t\t\tCheckout dir: %s\n" $CVS_CO_DIR
-	printf "\t\t\t\tCustom root: %s\n" $CUSTOMROOT
-	printf "\t\t\t\tCVS IP address %s\n " $CVS_IP
-	printf "\t\t\t\tUpdates directory %s\n " $IPDATESDIR
-	printf "\t\t\t\tpfSense Base Directory %s\n" $PFSENSEBASEDIR
-	printf "\t\t\t\tpfSense ISO Directory %s\n" $PFSENSEISODIR
-	printf "\t\t\t\tFreeSBIE path %s\n" $FREESBIE_PATH
-	printf "\t\t\t\tFreeSBIE conf %s\n" $FREESBIE_CONF
-	printf "\t\t\t\tSource DIR %s\n" $SRCDIR
-	printf "\t\t\t\tClone DIR %s\n" $CLONEDIR
-	printf "\t\t\t\tMAKEOBJDIRPREFIX %s\n" $MAKEOBJDIRPREFIX
-	printf "\t\t\t\tEXTRA %s\n" $EXTRA
-	printf "\t\t\t\tBUILDMODULES %s\n" $BUILDMODULES
-	printf "\t\t\t\tCustom Overlay %s\n" $custom_overlay
-	printf "\t\t\t\tpfSense version %s\n" $pfSense_version
-	printf "\t\t\t\tFreeBSD branch %s\n" $freebsd_branch
-	printf "\t\t\t\tpfSense TAG %s\n" $PFSENSETAG	
+	printf "builder.sh\n"
+	printf "           CVS User: %s\n" $CVS_USER
+	printf "          Verbosity: %s\n" $BE_VERBOSE
+	printf "            Targets: %s\n" "$TARGETS"
+	printf "         LiveFS dir: %s\n" $FREESBIEBASEDIR
+	printf "       FreeSBIE dir: %s\n" $LOCALDIR
+	printf "            ISO dir: %s\n" $PATHISO
+	printf "           Base dir: %s\n" $BASE_DIR
+	printf "       Checkout dir: %s\n" $CVS_CO_DIR
+	printf "        Custom root: %s\n" $CUSTOMROOT
+	printf "     CVS IP address: %s\n" $CVS_IP
+	printf "  Updates directory: %s\n" $IPDATESDIR
+	printf " pfS Base Directory: %s\n" $PFSENSEBASEDIR
+	printf "  pfS ISO Directory: %s\n" $PFSENSEISODIR
+	printf "      FreeSBIE path: %s\n" $FREESBIE_PATH
+	printf "      FreeSBIE conf: %s\n" $FREESBIE_CONF
+	printf "         Source DIR: %s\n" $SRCDIR
+	printf "          Clone DIR: %s\n" $CLONEDIR
+	printf "   MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
+	printf "              EXTRA: %s\n" $EXTRA
+	printf "       BUILDMODULES: %s\n" $BUILDMODULES
+	printf "     Custom Overlay: %s\n" $custom_overlay
+	printf "    pfSense version: %s\n" $pfSense_version
+	printf "     FreeBSD branch: %s\n" $freebsd_branch
+	printf "        pfSense TAG: %s\n" $PFSENSETAG	
 
 	echo "Sleeping for 5 seconds..."
 	sleep 5
