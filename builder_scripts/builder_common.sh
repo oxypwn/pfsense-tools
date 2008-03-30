@@ -629,33 +629,32 @@ checkout_freesbie() {
 
 print_flags() {
 
-	printf "builder.sh\n"
-	printf "           CVS User: %s\n" $CVS_USER
-	printf "          Verbosity: %s\n" $BE_VERBOSE
-	printf "            Targets: %s\n" "$TARGETS"
-	printf "         LiveFS dir: %s\n" $FREESBIEBASEDIR
-	printf "       FreeSBIE dir: %s\n" $LOCALDIR
-	printf "            ISO dir: %s\n" $PATHISO
-	printf "           Base dir: %s\n" $BASE_DIR
-	printf "       Checkout dir: %s\n" $CVS_CO_DIR
-	printf "        Custom root: %s\n" $CUSTOMROOT
-	printf "     CVS IP address: %s\n" $CVS_IP
-	printf "  Updates directory: %s\n" $IPDATESDIR
-	printf " pfS Base Directory: %s\n" $PFSENSEBASEDIR
-	printf "  pfS ISO Directory: %s\n" $PFSENSEISODIR
-	printf "      FreeSBIE path: %s\n" $FREESBIE_PATH
-	printf "      FreeSBIE conf: %s\n" $FREESBIE_CONF
-	printf "         Source DIR: %s\n" $SRCDIR
-	printf "          Clone DIR: %s\n" $CLONEDIR
-	printf "   MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
-	printf "              EXTRA: %s\n" $EXTRA
-	printf "       BUILDMODULES: %s\n" $BUILDMODULES
-	printf "     Custom Overlay: %s\n" $custom_overlay
-	printf "    pfSense version: %s\n" $pfSense_version
-	printf "     FreeBSD branch: %s\n" $freebsd_branch
-	printf "        pfSense TAG: %s\n" $PFSENSETAG	
+	printf "         CVS User: %s\n" $CVS_USER
+	printf "        Verbosity: %s\n" $BE_VERBOSE
+	printf "          Targets: %s\n" $TARGETS
+	printf "       LiveFS dir: %s\n" $FREESBIEBASEDIR
+	printf "     FreeSBIE dir: %s\n" $LOCALDIR
+	printf "          ISO dir: %s\n" $PATHISO
+	printf "         Base dir: %s\n" $BASE_DIR
+	printf "     Checkout dir: %s\n" $CVS_CO_DIR
+	printf "      Custom root: %s\n" $CUSTOMROOT
+	printf "   CVS IP address: %s\n" $CVS_IP
+	printf "      Updates dir: %s\n" $UPDATESDIR
+	printf "     pfS Base dir: %s\n" $PFSENSEBASEDIR
+	printf "    FreeSBIE path: %s\n" $FREESBIE_PATH
+	printf "    FreeSBIE conf: %s\n" $FREESBIE_CONF
+	printf "       Source DIR: %s\n" $SRCDIR
+	printf "        Clone DIR: %s\n" $CLONEDIR
+	printf "   Custom overlay: %s\n" $custom_overlay
+	printf "  pfSense version: %s\n" $pfSense_version
+	printf "   FreeBSD branch: %s\n" $freebsd_branch
+	printf "      pfSense Tag: %s\n" $PFSENSETAG
+	printf " MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
+	printf "            EXTRA: %s\n" $EXTRA
+	printf "     BUILDMODULES: %s\n" $BUILDMODULES
 
 	echo "Sleeping for 5 seconds..."
+
 	sleep 5
 
 }
