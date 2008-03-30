@@ -9,6 +9,16 @@ fixup_libmap() {
 	
 }
 
+print_error_pfS() {
+    echo "Something went wrong, check errors!" >&2
+    [ -n "${LOGFILE:-}" ] && \
+        echo "Log saved on ${LOGFILE}" >&2
+    report_error
+    cat $LOGFILE
+    kill $$ # XXX exit 1 won't work.
+    sleep 999
+}
+
 check_for_clog() {
 	if [ ! -d /usr/src/usr.sbin/clog ]; then
 		echo "Could not find /usr/src/usr.sbin/clog.  Run cvsup_current.sh first!"
@@ -51,21 +61,21 @@ build_all_kernels() {
 	rm -rf /usr/obj	
 	LOGFILE="/tmp/pfSense_wrap.$pfSense_version.txt"
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_wrap.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF}"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error;) | grep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
 	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
 	rm -rf /usr/obj
 	LOGFILE="/tmp/pfSense_SMP.$pfSense_version.txt"	
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_SMP.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF}"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error;) | grep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
 	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
 	rm -rf /usr/obj
 	LOGFILE="/tmp/pfSense_Dev.txt"
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_Dev.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF}"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error;) | grep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
 	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
 	# GZIP kernels and make smaller
 	echo
@@ -565,10 +575,10 @@ clone_system_only()
 {
 	echo -n "Cloning $FREESBIEBASEDIR to $FREESBIEISODIR..."
 
-	mkdir -p $FREESBIEISODIR || print_error
+	mkdir -p $FREESBIEISODIR || print_error_pfS
 	if [ -r $FREESBIEISODIR ]; then
-	      chflags -R noschg $FREESBIEISODIR || print_error
-	      rm -rf $FREESBIEISODIR/* || print_error
+	      chflags -R noschg $FREESBIEISODIR || print_error_pfS
+	      rm -rf $FREESBIEISODIR/* || print_error_pfS
 	fi
 
 	#We are making files containing /usr and /var partition
