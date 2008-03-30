@@ -70,15 +70,11 @@ build_all_kernels() {
 	echo -n " developers"
 	(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
 	echo -n " ."
-	# Move files into place
-	mkdir -p $PFSENSEBASEDIR/kernels
-	cp /tmp/kernels/wrap/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernels/kernel_wrap.gz
-	echo -n "."
-	cp /tmp/kernels/SMP/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernels/kernel_SMP.gz
-	echo -n "."
-	cp /tmp/kernels/developers/boot/kernel/kernel.gz $PFSENSEBASEDIR/kernels/kernel_Dev.gz
-	echo "."
-	rm -rf /tmp/kernels
+	
+	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 
+	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
+	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
+	
 }
 
 recompile_pfPorts() {
@@ -352,25 +348,27 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 
 fixup_updates() {
 
+	# This step should be the last step before tarring the update, or 
+	# rolling an iso.
+	
+	#find ${PFSENSEBASEDIR}/boot/ -type f -depth 1 -exec rm {} \;
+
 	cd ${PFSENSEBASEDIR}
 	rm -rf ${PFSENSEBASEDIR}/cf
 	rm -rf ${PFSENSEBASEDIR}/conf
-	find ${PFSENSEBASEDIR}/boot/ -type f -depth 1 -exec rm {} \;
-	rm -rf ${PFSENSEBASEDIR}/etc/rc.conf
-	rm -rf ${PFSENSEBASEDIR}/etc/motd
-	rm -rf ${PFSENSEBASEDIR}/trigger*
-	echo Removing pfSense.tgz used by installer..
-	find ${PFSENSEBASEDIR} -name pfSense.tgz -exec rm {} \;
+	rm -f ${PFSENSEBASEDIR}/etc/rc.conf
+	rm -f ${PFSENSEBASEDIR}/etc/motd
 	rm -f ${PFSENSEBASEDIR}/etc/pwd.db 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/group 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/spwd.db 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/passwd 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/master.passwd 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/fstab 2>/dev/null
-	#rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/platform 2>/dev/null
 	echo > ${PFSENSEBASEDIR}/root/.tcshrc
 	echo "alias installer /scripts/lua_installer" > ${PFSENSEBASEDIR}/root/.tcshrc
+	
 	# Setup login environment
 	echo > ${PFSENSEBASEDIR}/root/.shrc
 	echo "/etc/rc.initial" >> ${PFSENSEBASEDIR}/root/.shrc
@@ -382,6 +380,10 @@ fixup_updates() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/livefs/lib/
 
 	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
+
+	echo Removing pfSense.tgz used by installer..
+	find ${PFSENSEBASEDIR} -name pfSense.tgz -exec rm {} \;
+
 }
 
 fixup_wrap() {

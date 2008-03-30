@@ -139,6 +139,9 @@ freesbie_make extra
 echo ">>> Phase populate_extra"
 ( populate_extra )
 
+# Fixup_updates should be run after populate_extra
+fixup_updates
+
 # Prepare /usr/local/pfsense-clonefs
 freesbie_make clonefs
 
