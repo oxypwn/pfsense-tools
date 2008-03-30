@@ -667,23 +667,13 @@ freesbie_make() {
 }
 
 update_cvs_depot() {
-    # Update cvs depot. If SKIP_RSYNC is defined, skip the RSYNC update
-    # and prompt if the operator would like to download cvs.tgz from pfsense.com.
-    # If also SKIP_CHECKOUT is defined, don't update the tree at all
-    if [ -z "${SKIP_RSYNC:-}" ]; then
-		echo "Rsyncing pfSense depot..."
-		rm -rf $BASE_DIR/pfSense
-		rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
-		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-	else
-		echo "Launching cvsup pfSense-supfile..."
-		cvsup pfSense-supfile
-		rm -rf pfSense
-		echo "Updating ${BASE_DIR}/pfSense..."
-		rm -rf $BASE_DIR/pfSense
-		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-		(cd $BASE_DIR/tools/ && cvs update -d)
-    fi
+	echo "Launching cvsup pfSense-supfile..."
+	cvsup pfSense-supfile
+	rm -rf pfSense
+	echo "Updating ${BASE_DIR}/pfSense..."
+	rm -rf $BASE_DIR/pfSense
+	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+	(cd $BASE_DIR/tools/ && cvs update -d)
 }
 
 make_world_kernel() {
