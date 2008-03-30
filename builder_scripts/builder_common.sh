@@ -48,18 +48,24 @@ build_all_kernels() {
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	rm -rf /usr/obj
-	(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
+	rm -rf /usr/obj	
+	LOGFILE="/tmp/pfSense_wrap.$pfSense_version.txt"
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_wrap.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF}"
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error;) | grep '^>>>'
 	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
 	rm -rf /usr/obj
-	(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
+	LOGFILE="/tmp/pfSense_SMP.$pfSense_version.txt"	
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_SMP.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF}"
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error;) | grep '^>>>'
 	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
 	rm -rf /usr/obj
-	(cd /usr/src && make buildkernel __MAKE_CONF=${MAKE_CONF} SRCCONF=${SRC_CONF} NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
+	LOGFILE="/tmp/pfSense_Dev.txt"
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_Dev.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF}"
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error;) | grep '^>>>'
 	(cd /usr/src && make installkernel SRCCONF=${SRC_CONF_INSTALL} KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
 	# GZIP kernels and make smaller
 	echo
