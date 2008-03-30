@@ -345,8 +345,9 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
-
-	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	if [ -e /usr/local/sbin/gzsig ]; then 
+		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	fi
 }
 
 fixup_updates() {
@@ -429,7 +430,9 @@ create_FreeBSD_system_update() {
 	tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
-	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	if [ -e /usr/local/sbin/gzsig ]; then 	
+		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	fi
 }
 
 create_pfSense_Full_update_tarball() {
@@ -445,7 +448,9 @@ create_pfSense_Full_update_tarball() {
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
-	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	if [ -e /usr/local/sbin/gzsig ]; then 
+		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	fi
 }
 
 create_pfSense_Embedded_update_tarball() {
@@ -466,7 +471,9 @@ create_pfSense_Embedded_update_tarball() {
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
-	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	if [ -e /usr/local/sbin/gzsig ]; then 
+		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	fi
 }
 
 create_pfSense_Small_update_tarball() {
@@ -496,7 +503,9 @@ create_pfSense_Small_update_tarball() {
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
 
-	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	if [ -e /usr/local/sbin/gzsig ]; then 
+		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	fi
 
 }
 
@@ -531,7 +540,6 @@ copy_pfSense_tarball_to_custom_directory() {
 
 copy_pfSense_tarball_to_freesbiebasedir() {
 	cd $LOCALDIR
-
 	tar  xzPf /tmp/pfSense.tgz -C $FREESBIEBASEDIR
 }
 
@@ -544,107 +552,106 @@ set_image_as_cdrom() {
 #Create a copy of FREESBIEBASEDIR. This is useful to modify the live filesystem
 clone_system_only()
 {
-  echo -n "Cloning $FREESBIEBASEDIR to $FREESBIEISODIR..."
+	echo -n "Cloning $FREESBIEBASEDIR to $FREESBIEISODIR..."
 
-  mkdir -p $FREESBIEISODIR || print_error
-  if [ -r $FREESBIEISODIR ]; then
-        chflags -R noschg $FREESBIEISODIR || print_error
-        rm -rf $FREESBIEISODIR/* || print_error
-  fi
+	mkdir -p $FREESBIEISODIR || print_error
+	if [ -r $FREESBIEISODIR ]; then
+	      chflags -R noschg $FREESBIEISODIR || print_error
+	      rm -rf $FREESBIEISODIR/* || print_error
+	fi
 
-  #We are making files containing /usr and /var partition
+	#We are making files containing /usr and /var partition
 
-  #Before uzip'ing filesystems, we have to save the directories tree
-  mkdir -p $FREESBIEISODIR/dist
-  mtree -Pcdp $FREESBIEBASEDIR/usr > $FREESBIEISODIR/dist/FreeSBIE.usr.dirs
-  mtree -Pcdp $FREESBIEBASEDIR/var > $FREESBIEISODIR/dist/FreeSBIE.var.dirs
+	#Before uzip'ing filesystems, we have to save the directories tree
+	mkdir -p $FREESBIEISODIR/dist
+	mtree -Pcdp $FREESBIEBASEDIR/usr > $FREESBIEISODIR/dist/FreeSBIE.usr.dirs
+	mtree -Pcdp $FREESBIEBASEDIR/var > $FREESBIEISODIR/dist/FreeSBIE.var.dirs
 
-  #Define a function to create the vnode $1 of the size expected for
-  #$FREESBIEBASEDIR/$2 directory, mount it under $FREESBIEISODIR/$2
-  #and print the md device
-  create_vnode() {
-      UFSFILE=$1
-      CLONEDIR=$FREESBIEBASEDIR/$2
-      MOUNTPOINT=$FREESBIEISODIR/$2
-      cd $CLONEDIR
-      FSSIZE=$((`du -kd 0 | cut -f 1` + 94000))
-      dd if=/dev/zero of=$UFSFILE bs=1k count=$FSSIZE > /dev/null 2>&1
+	#Define a function to create the vnode $1 of the size expected for
+	#$FREESBIEBASEDIR/$2 directory, mount it under $FREESBIEISODIR/$2
+	#and print the md device
+	create_vnode() {
+	    UFSFILE=$1
+	    CLONEDIR=$FREESBIEBASEDIR/$2
+	    MOUNTPOINT=$FREESBIEISODIR/$2
+	    cd $CLONEDIR
+	    FSSIZE=$((`du -kd 0 | cut -f 1` + 94000))
+	    dd if=/dev/zero of=$UFSFILE bs=1k count=$FSSIZE > /dev/null 2>&1
 
-      DEVICE=/dev/`mdconfig -a -t vnode -f $UFSFILE`
-      newfs $DEVICE > /dev/null 2>&1
-      mkdir -p $MOUNTPOINT
-      mount -o noatime ${DEVICE} $MOUNTPOINT
-      echo ${DEVICE}
-  }
+	    DEVICE=/dev/`mdconfig -a -t vnode -f $UFSFILE`
+	    newfs $DEVICE > /dev/null 2>&1
+	    mkdir -p $MOUNTPOINT
+	    mount -o noatime ${DEVICE} $MOUNTPOINT
+	    echo ${DEVICE}
+	}
 
-  #Umount and detach md devices passed as parameters
-  umount_devices() {
-      for i in $@; do
-          umount ${i}
-          mdconfig -d -u ${i}
-      done
-  }
+	#Umount and detach md devices passed as parameters
+	umount_devices() {
+	    for i in $@; do
+	        umount ${i}
+	        mdconfig -d -u ${i}
+	    done
+	}
 
-  mkdir -p $FREESBIEISODIR/uzip
-  MDDEVICES=`create_vnode $FREESBIEISODIR/uzip/usr.ufs usr`
-  MDDEVICES="$MDDEVICES `create_vnode $FREESBIEISODIR/uzip/var.ufs var`"
+	mkdir -p $FREESBIEISODIR/uzip
+	MDDEVICES=`create_vnode $FREESBIEISODIR/uzip/usr.ufs usr`
+	MDDEVICES="$MDDEVICES `create_vnode $FREESBIEISODIR/uzip/var.ufs var`"
 
-  trap "umount_devices $MDDEVICES; exit 1" INT
+	trap "umount_devices $MDDEVICES; exit 1" INT
 
-  cd $FREESBIEBASEDIR
+	cd $FREESBIEBASEDIR
 
-  find . -print -depth | cpio --quiet -pudm $FREESBIEISODIR
+	find . -print -depth | cpio --quiet -pudm $FREESBIEISODIR
 
-  umount_devices $MDDEVICES
+	umount_devices $MDDEVICES
 
-  trap "" INT
+	trap "" INT
 
-  echo " [DONE]"
+	echo " [DONE]"
 }
 
 checkout_pfSense() {
-        echo ">>> Getting pfSense"
-        rm -rf $CVS_CO_DIR
+	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
+	rm -rf $CVS_CO_DIR
 	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
 	fixup_libmap
 }
 
 checkout_freesbie() {
-        echo ">>> Getting FreeSBIE"
-        rm -rf $LOCALDIR
+	echo ">>> Getting FreeSBIE"
+	rm -rf $LOCALDIR
 }
 
 print_flags() {
-        if [ $BE_VERBOSE = "yes" ]
-        then
-                echo "Current flags:"
-                printf "\tbuilder.sh\n"
-                printf "\t\tCVS User: %s\n" $CVS_USER
-                printf "\t\tVerbosity: %s\n" $BE_VERBOSE
-                printf "\t\tTargets:%s\n" "$TARGETS"
-                printf "\tconfig.sh\n"
-                printf "\t\tLiveFS dir: %s\n" $FREESBIEBASEDIR
-                printf "\t\tFreeSBIE dir: %s\n" $LOCALDIR
-                printf "\t\tISO dir: %s\n" $PATHISO
-                printf "\tpfsense_local.sh\n"
-                printf "\t\tBase dir: %s\n" $BASE_DIR
-                printf "\t\tCheckout dir: %s\n\n" $CVS_CO_DIR
-        fi
+	if [ $BE_VERBOSE = "yes" ]; then
+		echo "Current flags:"
+		printf "\tbuilder.sh\n"
+		printf "\t\tCVS User: %s\n" $CVS_USER
+		printf "\t\tVerbosity: %s\n" $BE_VERBOSE
+		printf "\t\tTargets:%s\n" "$TARGETS"
+		printf "\tconfig.sh\n"
+		printf "\t\tLiveFS dir: %s\n" $FREESBIEBASEDIR
+		printf "\t\tFreeSBIE dir: %s\n" $LOCALDIR
+		printf "\t\tISO dir: %s\n" $PATHISO
+		printf "\tpfsense_local.sh\n"
+		printf "\t\tBase dir: %s\n" $BASE_DIR
+		printf "\t\tCheckout dir: %s\n\n" $CVS_CO_DIR
+	fi
 }
 
 clear_custom() {
-        echo ">> Clearing custom/*"
-        rm -rf $LOCALDIR/customroot/*
+	echo ">> Clearing custom/*"
+	rm -rf $LOCALDIR/customroot/*
 }
 
 backup_pfSense() {
-        echo ">>> Backing up pfSense repo"
-        cp -R $CVS_CO_DIR $BASE_DIR/pfSense_bak
+	echo ">>> Backing up pfSense repo"
+	cp -R $CVS_CO_DIR $BASE_DIR/pfSense_bak
 }
 
 restore_pfSense() {
-        echo ">>> Restoring pfSense repo"
-        cp -R $BASE_DIR/pfSense_bak $CVS_CO_DIR
+	echo ">>> Restoring pfSense repo"
+	cp -R $BASE_DIR/pfSense_bak $CVS_CO_DIR
 }
 
 freesbie_make() {
@@ -656,17 +663,18 @@ update_cvs_depot() {
     # and prompt if the operator would like to download cvs.tgz from pfsense.com.
     # If also SKIP_CHECKOUT is defined, don't update the tree at all
     if [ -z "${SKIP_RSYNC:-}" ]; then
+		echo "Rsyncing pfSense depot..."
 		rm -rf $BASE_DIR/pfSense
 		rsync -avz ${CVS_USER}@${CVS_IP}:/cvsroot /home/pfsense/
 		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-		fixup_libmap
-		else
+	else
+		echo "Launching cvsup pfSense-supfile..."
 		cvsup pfSense-supfile
 		rm -rf pfSense
+		echo "Updating ${BASE_DIR}/pfSense..."
 		rm -rf $BASE_DIR/pfSense
 		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 		(cd $BASE_DIR/tools/ && cvs update -d)
-		fixup_libmap
     fi
 }
 
@@ -680,16 +688,17 @@ make_world_kernel() {
     # If PFSENSE_DEBUG is set, build debug kernel, if a .DEBUG kernel
     # configuration file exists
     if [ ! -z "${PFSENSE_DEBUG:-}" -a -f ${KERNELCONF}.DEBUG ]; then
-	# Yes, use it
-	export KERNELCONF=${KERNELCONF}.DEBUG
-	build_id_k=${build_id_w}.DEBUG
+		# Yes, use it
+		export KERNELCONF=${KERNELCONF}.DEBUG
+		build_id_k=${build_id_w}.DEBUG
     fi
 
     if [ -f "${objdir}/${build_id_w}.world.done" ]; then
-	export NO_BUILDWORLD=yo
+		export NO_BUILDWORLD=yo
     fi
+
     if [ -f "${objdir}/${build_id_k}.kernel.done" ]; then
-	export NO_BUILDKERNEL=yo
+		export NO_BUILDKERNEL=yo
     fi
 
     # Make world
@@ -700,6 +709,7 @@ make_world_kernel() {
     freesbie_make buildkernel
     touch ${objdir}/${build_id_k}.kernel.done
 
-    freesbie_make installkernel installworld
+	freesbie_make installworld
+    freesbie_make installkernel 
 }
 

@@ -92,14 +92,8 @@ if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
 	exit
 fi
 
-# Install freebsd world
-freesbie_make installworld
-
-# Build freebsd / psense kerenl
-freesbie_make buildkernel
-
-# Install freebsd / pfsense kernel
-freesbie_make installkernel
+# Build world, kernel and install
+make_world_kernel
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
 build_all_kernels
