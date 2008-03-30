@@ -131,56 +131,14 @@ populate_extra() {
 		install -s /lib/pam_unix.so ${CVS_CO_DIR}/lib/
 	fi
 	
-	cp /lib/libm.so.* ${CVS_CO_DIR}/lib/
-	cp /lib//libz.so.* ${CVS_CO_DIR}/lib/
-	cp /lib/libc.so.* ${CVS_CO_DIR}/lib/
-	
-	if [ -f /usr/local/lib/libcurl.so.3 ]; then
-		echo "Installing /usr/local/lib/libcurl.so.3"
-		install -s /usr/local/lib/libcurl.so.3 ${CVS_CO_DIR}/usr/local/lib/
-	fi
-
-	if [ -f /usr/local/lib/libcurl.so.4 ]; then
-		echo "Installing /usr/local/lib/libcurl.so.4"
-		install -s /usr/local/lib/libcurl.so.4 ${CVS_CO_DIR}/usr/local/lib/
-	fi
-
-	if [ -f /usr/local/lib/libevent-1.2a.so ]; then
-		echo "Installing /usr/local/lib/libevent-1.2a.so"
-		install -s /usr/local/lib/libevent-1.2a.so ${CVS_CO_DIR}/usr/local/lib/
-	fi
-
-	if [ -f /usr/local/lib/libevent-1.2.so ]; then
-		echo "Installing /usr/local/lib/libevent-1.2.so"
-		install -s /usr/local/lib/libevent-1.2.so ${CVS_CO_DIR}/usr/local/lib/
-	fi
-
-	if [ -f /usr/local/lib/libevent-1.2.so.1 ]; then
-		echo "Installing /usr/local/lib/libevent-1.2.so.1"	
-		install -s /usr/local/lib/libevent-1.2.so.1 ${CVS_CO_DIR}/usr/local/lib/
-	fi
-
-	if [ -f /lib/libcrypto.so.4 ]; then
-		echo "Installing /usr/local/lib/libcyrpto.so.4"
-		install -s /lib/libcrypto.so.4 ${CVS_CO_DIR}/lib/
-	fi
-
-	if [ -f /lib/libcrypto.so.5 ]; then
-		echo "Installing /lib/libcrypto.so.5"
-		install -s /lib/libcrypto.so.5 ${CVS_CO_DIR}/lib/
-	fi
-
-	if [ -f /lib/libc.so.6 ]; then
-		echo "Installing /lib/libc.so.6"
-		install -s /lib/libc.so.6 ${CVS_CO_DIR}/lib/
-	fi
-
-	echo "Installing /usr/local/lib/libpcre.so.0"
-    install -s /usr/local/lib/libpcre.so.0 ${CVS_CO_DIR}/usr/local/lib/
-
     mkdir -p $CVS_CO_DIR/var/run
-
     mkdir -p $CVS_CO_DIR/root/
+    mkdir -p $CVS_CO_DIR/scripts/
+    mkdir -p $CVS_CO_DIR/conf
+    mkdir -p $CVS_CO_DIR/usr/local/bin/
+    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_installer/
+    mkdir -p $CVS_CO_DIR/root
+
     echo exit > $CVS_CO_DIR/root/.xcustom.sh
     touch $CVS_CO_DIR/root/.hushlogin
 
@@ -205,26 +163,14 @@ populate_extra() {
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
-    mkdir -p $CVS_CO_DIR/scripts/
-    mkdir -p $CVS_CO_DIR/conf
     cp $BASE_DIR/tools/pfi $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/dev_bootstrap.sh $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
     chmod a+rx $CVS_CO_DIR/scripts/*
-
-    mkdir -p $CVS_CO_DIR/usr/local/bin/
-
     cp $BASE_DIR/tools/after_installation_routines.sh \
 	$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
-
     chmod a+rx $CVS_CO_DIR/scripts/*
-
-    # Copy BSD Installer sources manifest
-    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_installer/
-
-    # Make sure we're not running any x mojo
-    mkdir -p $CVS_CO_DIR/root
 
     # Suppress extra spam when logging in
     touch $CVS_CO_DIR/root/.hushlogin
@@ -239,6 +185,7 @@ populate_extra() {
     # Trigger the pfSense wizzard
     echo "true" > $CVS_CO_DIR/trigger_initial_wizard
 
+	# Turn off error checking
     set +e
 
     # Nuke CVS dirs
@@ -341,32 +288,6 @@ populate_extra() {
 		fi
 	fi
 	
-#	# Test for pfSense_version & PFSENSETAG on 7.X & RELENG_1
-#	if [ $pfSense_version = "7" && PFSENSETAG = "-RELENG_1" ]; then
-#	# Extract FreeBSD 7.x custom overlay if it's defined as RELENG_1.
-#        if [ ! -z "${7_HEAD_custom_overlay:-}" ]; then
-#                echo -n "FreeBSD 7.x HEAD Custom overlay defined - "
-#                if [ -d $7_HEAD_custom_overlay ]; then
-#                        echo "found directory, copying..."
-#                        for i in $7_HEAD_custom_overlay/*
-#                        do
-#                            if [ -d $i ]; then
-#                                echo "copying dir: $i ..."
-#                                cp -R $i $CVS_CO_DIR
-#                            else
-#                                echo "copying file: $i ..."
-#                                cp $i $CVS_CO_DIR
-#                            fi
-#                        done
-#                elif [ -f $7_HEAD_custom_overlay ]; then
-#                        echo "found file, extracting..."
-#                        tar xzpf $7_HEAD_custom_overlay -C $CVS_CO_DIR
-#                else
-#                        echo " file not found $7_HEAD_custom_overlay"
-#                fi
-#        fi
-#            fi
-
 	fixup_libmap
 
     # Enable debug if requested
