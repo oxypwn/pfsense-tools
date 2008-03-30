@@ -1,10 +1,12 @@
+? pf_dscp_altq_.diff
+? pf_dscp_altq_pptp(6).diff
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/parse.y,v
+RCS file: /home/ncvs/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.8
 diff -u -r1.8 parse.y
 --- contrib/pf/pfctl/parse.y	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/parse.y	7 Mar 2008 19:22:02 -0000
++++ contrib/pf/pfctl/parse.y	30 Mar 2008 17:48:37 -0000
 @@ -184,6 +184,7 @@
  #define FOM_TOS		0x04
  #define FOM_KEEP	0x08
@@ -138,11 +140,11 @@ diff -u -r1.8 parse.y
  		{ "file",		FILENAME},
 Index: contrib/pf/pfctl/pfctl_altq.c
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl_altq.c,v
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.9
 diff -u -r1.9 pfctl_altq.c
 --- contrib/pf/pfctl/pfctl_altq.c	3 Jul 2007 12:30:02 -0000	1.9
-+++ contrib/pf/pfctl/pfctl_altq.c	7 Mar 2008 19:19:29 -0000
++++ contrib/pf/pfctl/pfctl_altq.c	30 Mar 2008 17:48:37 -0000
 @@ -690,13 +690,6 @@
  		return (-1);
  	}
@@ -159,11 +161,11 @@ diff -u -r1.9 pfctl_altq.c
  	 * for the real-time service curve, the sum of the service curves
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.8
 diff -u -r1.8 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/pfctl_parser.c	7 Mar 2008 19:23:29 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	30 Mar 2008 17:48:38 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -179,11 +181,11 @@ diff -u -r1.8 pfctl_parser.c
  	else if (r->keep_state == PF_STATE_NORMAL)
 Index: sys/conf/files
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/sys/conf/files,v
+RCS file: /home/ncvs/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	16 Mar 2008 23:48:23 -0000
++++ sys/conf/files	30 Mar 2008 17:48:38 -0000
 @@ -332,6 +332,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf \
@@ -195,11 +197,11 @@ diff -u -r1.1243.2.2 files
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pf.c,v
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	24 Mar 2008 22:16:47 -0000
++++ sys/contrib/pf/net/pf.c	30 Mar 2008 17:48:40 -0000
 @@ -3305,7 +3305,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
@@ -260,28 +262,32 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->os_fingerprint != PF_OSFP_ANY)
  			r = TAILQ_NEXT(r, entries);
-@@ -6869,6 +6884,11 @@
+@@ -6869,6 +6884,15 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
 +		/* XXX: This are here until a pluggable framework for NAT is finished */
-+        	if (ntohs(pd.hdr.tcp->th_dport) == PPTP_CONTROL_PORT_NUMBER
-+              		|| ntohs(pd.hdr.tcp->th_sport) == PPTP_CONTROL_PORT_NUMBER)
-+               		pf_get_pptp_translation(&pd, m, off, (void *)pd.hdr.tcp, dir,
-+                       		dir == PF_OUT ? s->gwy.port : s->lan.port);
++        	if (s != NULL && s->nat_rule.ptr != NULL) {
++			if (ntohs(pd.hdr.tcp->th_dport) == PPTP_CONTROL_PORT_NUMBER)
++ 				pf_get_pptp_translation(&pd, m, off, (void *)pd.hdr.tcp, dir,
++					pd.hdr.tcp->th_sport);
++              		else if (ntohs(pd.hdr.tcp->th_sport) == PPTP_CONTROL_PORT_NUMBER)
++               			pf_get_pptp_translation(&pd, m, off, (void *)pd.hdr.tcp, dir,
++					pd.hdr.tcp->th_dport);
++		}
  		break;
  	}
  
-@@ -6965,6 +6985,8 @@
+@@ -6965,6 +6989,8 @@
  			action = pf_test_other(&r, &s, dir, kif, m, off, h,
  			    &pd, &a, &ruleset, &ipintrq);
  #endif
-+	        if (h->ip_p == IPPROTO_GRE)
++	        if (s != NULL && s->nat_rule.ptr != NULL && h->ip_p == IPPROTO_GRE)
 +               		pf_get_gre_translation(&pd, m, off, (void *)h, dir, 0);
  		break;
  	}
  
-@@ -6983,7 +7005,7 @@
+@@ -6983,7 +7009,7 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -290,7 +296,7 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7212,7 +7234,7 @@
+@@ -7212,7 +7238,7 @@
  	PF_ACPY(&pd.baddr, dir == PF_OUT ? pd.src : pd.dst, AF_INET6);
  	pd.ip_sum = NULL;
  	pd.af = AF_INET6;
@@ -299,7 +305,7 @@ diff -u -r1.46.2.1 pf.c
  	pd.tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
  	pd.eh = eh;
  
-@@ -7444,7 +7466,7 @@
+@@ -7444,7 +7470,7 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -313,8 +319,8 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	26 Mar 2008 18:31:40 -0000
-@@ -0,0 +1,322 @@
++++ sys/contrib/pf/net/pf_pptp.c	30 Mar 2008 17:48:40 -0000
+@@ -0,0 +1,302 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
 + * Copyright (c) 2008 Ermal Luçi
@@ -556,46 +562,35 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +        case PPTP_SetLinkInfo:
 +                pcall_id = &cptr->cid1;
 +                break; 
-+        case PPTP_OutCallReply:
 +        case PPTP_OutCallRequest:
 +        case PPTP_InCallRequest:
++		pcall_id = &cptr->cid2;
++		ctl_type = cptr->cid2;
++		break;
++        case PPTP_OutCallReply:
 +        case PPTP_InCallReply:
-+		if (dir == PF_OUT) {
-+			pcall_id = &cptr->cid1;
-+			ctl_type = cptr->cid1;
-+		} else {
-+			pcall_id = &cptr->cid2;
-+			ctl_type = cptr->cid2;
-+		}
++		pcall_id = &cptr->cid1;
++		ctl_type = cptr->cid1;
 +		break;
 +	case PPTP_CallClearRequest:
 +        case PPTP_CallDiscNotify:
 +                pf_pptp_remove_entry(cptr->cid1, nport);
-+                break;
++		/* FALLTHROUGH */
 +        default:
 +                return;
 +        }
 +
-+		codes = (struct pptpCodes *) (cptr + 1);
-+		if (codes->resCode == 1) {
-+		if (dir == PF_OUT) {
-+			*pcall_id = nport;
-+			if (pf_pptp_find_entry(ctl_type) == 0)
-+				pf_pptp_add_entry(ctl_type, nport);
-+			th->th_sum = pf_cksum_fixup(th->th_sum, 
-+					ctl_type, nport, 0);
-+		} else {
-+			if ((*pcall_id = pf_pptp_get_entry(ctl_type)) == 0) { /* XXX */
-+				*pcall_id = ctl_type;
-+				return;
-+			}
-+                        th->th_sum = pf_cksum_fixup(th->th_sum,
-+                                        *pcall_id, ctl_type, 0);
-+        	}
-+		} else { /* Connection refused or closed */
-+			pf_pptp_remove_entry(ctl_type, nport);
-+			return;
-+		} 
++	codes = (struct pptpCodes *) (cptr + 1);
++	if (codes->resCode == 1) {
++		*pcall_id = nport;
++		if (pf_pptp_find_entry(ctl_type) == 0)
++			pf_pptp_add_entry(ctl_type, nport);
++		th->th_sum = pf_cksum_fixup(th->th_sum, 
++				ctl_type, nport, 0);
++	} else { /* Connection refused or closed */
++		pf_pptp_remove_entry(ctl_type, nport);
++		return;
++	} 
 +
 +	m_copyback(m, off + (th->th_off << 2) + sizeof(struct pptpMsgHead), 
 +		sizeof(struct pptpCallIds), (caddr_t)cptr);	
@@ -619,31 +614,22 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +        if ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) != PPTP_INIT_VALUE)
 +                return;
 +
-+	if (dir == PF_OUT) {
-+		bcallid = gr.gh_call_id;
-+		if ((ncallid = pf_pptp_find_entry(bcallid)) == 0)
-+			return; /* XXX */
-+		gr.gh_call_id = ncallid;
-+		iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
-+                                        bcallid, ncallid, 0);
-+	} else {
-+                ncallid = gr.gh_call_id;
-+                if ((bcallid = pf_pptp_find_entry(ncallid)) == 0)
-+                        return; /* XXX */
-+                gr.gh_call_id = bcallid;
-+                iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
-+                                        ncallid, bcallid, 0);
-+	}
++	bcallid = gr.gh_call_id;
++	if ((ncallid = pf_pptp_find_entry(bcallid)) == 0)
++		return; /* XXX */
++	gr.gh_call_id = ncallid;
++	iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
++        			bcallid, ncallid, 0);
 +	
 +	m_copyback(m, off, sizeof(struct grehdr), (caddr_t)&gr);
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	24 Mar 2008 22:17:01 -0000
++++ sys/contrib/pf/net/pfvar.h	30 Mar 2008 17:48:40 -0000
 @@ -672,6 +672,27 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -683,25 +669,25 @@ diff -u -r1.16 pfvar.h
  /* rule flags again */
  #define PFRULE_IFBOUND		0x00010000	/* if-bound */
  
-@@ -1708,6 +1733,11 @@
+@@ -1707,6 +1732,11 @@
+ int	pfr_ina_commit(struct pfr_table *, u_int32_t, int *, int *, int);
  int	pfr_ina_define(struct pfr_table *, struct pfr_addr *, int, int *,
  	    int *, u_int32_t, int);
- 
++
 +/* XXX: This are here until a pluggable framework for NAT is finished */
 +#define PPTP_CONTROL_PORT_NUMBER 1723
 +void	pf_get_pptp_translation(struct pf_pdesc *, struct mbuf *, int, void *, int, u_int16_t);
 +void	pf_get_gre_translation(struct pf_pdesc *, struct mbuf *, int, void *, int, u_int16_t);
-+
+ 
  extern struct pfi_statehead	 pfi_statehead;
  extern struct pfi_kif		*pfi_all;
- 
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/sys/modules/pf/Makefile,v
+RCS file: /home/ncvs/src/sys/modules/pf/Makefile,v
 retrieving revision 1.13
 diff -u -r1.13 Makefile
 --- sys/modules/pf/Makefile	3 Jul 2007 12:46:06 -0000	1.13
-+++ sys/modules/pf/Makefile	13 Mar 2008 23:56:37 -0000
++++ sys/modules/pf/Makefile	30 Mar 2008 17:48:40 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
