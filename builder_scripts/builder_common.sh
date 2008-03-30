@@ -127,8 +127,8 @@ populate_extra() {
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
-	if [ -f /lib/pam_unix.so ]; then
-		install -s /lib/pam_unix.so ${CVS_CO_DIR}/lib/
+	if [ -f /usr/lib/pam_unix.so ]; then
+		install -s /usr/lib/pam_unix.so ${CVS_CO_DIR}/usr/lib/
 	fi
 	
     mkdir -p $CVS_CO_DIR/var/run
@@ -287,8 +287,6 @@ populate_extra() {
 			echo " file not found $custom_overlay"
 		fi
 	fi
-	
-	fixup_libmap
 
     # Enable debug if requested
     if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
