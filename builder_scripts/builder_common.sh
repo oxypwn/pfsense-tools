@@ -55,30 +55,29 @@ build_all_kernels() {
 	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	rm -rf /usr/obj.pfSense_wrap
-	LOGFILE="/tmp/pfSense_wrap.$pfSense_version.txt"
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_wrap.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_wrap"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} __MAKE_CONF=${MAKE_CONF} TARGET_ARCH=${ARCH} DESTDIR=/tmp/kernels/wrap/ SRCCONF=${SRC_CONF_INSTALL} MAKEOBJDIRPREFIX=/usr/obj.pfSense_wrap"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
+	rm -rf /usr/obj
+	LOGFILE=/tmp/buildkernel.wrap
+	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
+	LOGFILE=/tmp/installkernel.wrap
+	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
-	rm -rf /usr/obj.pfSense_SMP
-	LOGFILE="/tmp/pfSense_SMP.$pfSense_version.txt"	
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_SMP.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_SMP"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} __MAKE_CONF=${MAKE_CONF} TARGET_ARCH=${ARCH} DESTDIR=/tmp/kernels/SMP/ SRCCONF=${SRC_CONF_INSTALL} MAKEOBJDIRPREFIX=/usr/obj.pfSense_SMP"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
+	rm -rf /usr/obj
+	LOGFILE=/tmp/buildkernel.smp
+	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
+	LOGFILE=/tmp/installkernel.smp
+	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	rm -rf /usr/obj.pfSense_Dev
-	LOGFILE="/tmp/pfSense_Dev.txt"
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_Dev.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_Dev"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} __MAKE_CONF=${MAKE_CONF} TARGET_ARCH=${ARCH} DESTDIR=/tmp/kernels/developers/ SRCCONF=${SRC_CONF_INSTALL} MAKEOBJDIRPREFIX=/usr/obj.pfSense_Dev"
-	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
+	rm -rf /usr/obj
+	LOGFILE=/tmp/buildkernel.dev
+	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
+	LOGFILE=/tmp/installkernel.dev
+	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
+
 	# GZIP kernels and make smaller
 	echo
 	echo -n ">>> GZipping: embedded"
