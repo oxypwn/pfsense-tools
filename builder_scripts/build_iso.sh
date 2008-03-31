@@ -14,9 +14,6 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
-# Show flags
-print_flags
-
 # Make sure cvsup_current has been run first 
 check_for_clog
 
@@ -78,7 +75,7 @@ export version=`cat $CVS_CO_DIR/etc/version`
 freesbie_make obj
 
 # Build freebsd world
-freesbie_make buildworld
+make_world_kernel
 
 # Check for freesbie builder issues
 if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
@@ -94,6 +91,9 @@ if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
 	more /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld
 	exit
 fi
+
+# Show flags
+print_flags
 
 # Build world, kernel and install
 make_world_kernel
