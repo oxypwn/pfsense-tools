@@ -19,12 +19,16 @@ fi
 
 # Remove old builder directories used by FreeSBIE 2
 echo -n Removing "${BASEDIR} "
-rm -rf "${CLONEDIR}/*"
-echo -n "${CLONEDIR}/*"
-rm -rf ${CLONEDIR}/*
+if [ -d "$CLONEDIR" ]; then
+	rm -rf "${CLONEDIR}/*"
+	echo -n "${CLONEDIR}/*"
+	rm -rf ${CLONEDIR}/*
+fi
 echo -n " Kernels "
-chflags -R noschg /tmp/kernels/*
-rm -rf /tmp/kernels/*
+if [ -d /tmp/kernels/ ]; then
+	chflags -R noschg /tmp/kernels/*
+	rm -rf /tmp/kernels/*
+fi
 echo "done"
 
 if [ ! -d $BASE_DIR/freesbie2 ]; then
@@ -158,9 +162,13 @@ fi
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
+echo "Updating FreeBSD ports files..."
 cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
+echo "Updating FreeSBIE2-pfSense edition..."
+cvsup -h cvsup.pfsense.org freesbie2-supfile
 
 # Loop through and remove files
+echo "Removing needed files listed in ${CURRENTDIR}/patches.${freebsd_branch}"
 for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
@@ -180,6 +188,7 @@ echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
 
 # Loop through and patch files
+echo "Applying patches from ${CURRENTDIR}/patches.${freebsd_branch}..."
 for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
 do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
@@ -208,7 +217,7 @@ if [ $REJECTED_PATCHES -gt 0 ]; then
 	exit -1
 fi
 
-echo -n Cleaning up previous build environment...Please wait...
+echo -n "Cleaning up previous build environment...Please wait..."
 if [ -d $PFSENSEBASEDIR ]; then 
 	chflags -R noschg ${PFSENSEBASEDIR}
 	(cd ${CURRENTDIR} && rm -rf ${PFSENSEBASEDIR})	
@@ -220,13 +229,17 @@ fi
 (cd ${CURRENTDIR} && rm -rf /usr/obj*)
 echo "Done!"
 
+# Recompile pfPorts
+echo "Recompiling all binaries needed by pfSense (pfPorts)..."
+recompile_pfPorts
+
+print_flags
+
 echo
 echo "Starting pfSense build.  Sit back and have a six pack of beer (but not cheap beer)..."
 echo
 
-# Recompile pfPorts
-recompile_pfPorts
-
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
+echo ">>> Executing ${CURRENTDIR}/build_iso.sh..."
 (cd ${CURRENTDIR} && ./build_iso.sh)
 
