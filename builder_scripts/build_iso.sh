@@ -92,9 +92,6 @@ if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
 	exit
 fi
 
-# Show flags
-print_flags
-
 # Build world, kernel and install
 make_world_kernel
 
@@ -134,16 +131,13 @@ set -e
 # Install custom packages
 freesbie_make pkginstall
 
-# Overlay pfsense checkout on top of FreeSBIE image
-# using the customroot plugin
-freesbie_make extra
-
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 ( populate_extra )
 
-# Fixup_updates should be run after populate_extra
-fixup_updates
+# Overlay pfsense checkout on top of FreeSBIE image
+# using the customroot plugin
+freesbie_make extra
 
 # Prepare /usr/local/pfsense-clonefs
 freesbie_make clonefs
