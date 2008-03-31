@@ -13,7 +13,6 @@ print_error_pfS() {
     echo "Something went wrong, check errors!" >&2
     [ -n "${LOGFILE:-}" ] && \
         echo "Log saved on ${LOGFILE}" >&2
-    report_error
     cat $LOGFILE
     kill $$ # XXX exit 1 won't work.
     sleep 999
