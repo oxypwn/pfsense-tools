@@ -57,7 +57,7 @@ build_all_kernels() {
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	rm -rf /usr/obj	
+	rm -rf /usr/obj.pfSense_wrap
 	LOGFILE="/tmp/pfSense_wrap.$pfSense_version.txt"
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_wrap.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_wrap"
 	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
@@ -65,7 +65,7 @@ build_all_kernels() {
 	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
-	rm -rf /usr/obj
+	rm -rf /usr/obj.pfSense_SMP
 	LOGFILE="/tmp/pfSense_SMP.$pfSense_version.txt"	
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_SMP.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_SMP"
 	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
@@ -73,7 +73,7 @@ build_all_kernels() {
 	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	rm -rf /usr/obj
+	rm -rf /usr/obj.pfSense_Dev
 	LOGFILE="/tmp/pfSense_Dev.txt"
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_Dev.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_Dev"
 	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
