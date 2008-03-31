@@ -62,7 +62,7 @@ build_all_kernels() {
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_wrap.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_wrap"
 	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} __MAKE_CONF=${MAKE_CONF} TARGET_ARCH=${ARCH} DESTDIR=/tmp/kernels/wrap/ SRCCONF=${SRC_CONF_INSTALL} MAKEOBJDIRPREFIX=/usr/obj.pfSense_wrap"
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
 	rm -rf /usr/obj
@@ -70,7 +70,7 @@ build_all_kernels() {
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_SMP.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_SMP"
 	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} __MAKE_CONF=${MAKE_CONF} TARGET_ARCH=${ARCH} DESTDIR=/tmp/kernels/SMP/ SRCCONF=${SRC_CONF_INSTALL} MAKEOBJDIRPREFIX=/usr/obj.pfSense_SMP"
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
 	rm -rf /usr/obj
@@ -78,7 +78,7 @@ build_all_kernels() {
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} KERNCONF=pfSense_Dev.$pfSense_version TARGET_ARCH=${ARCH} SRCCONF=${SRC_CONF} __MAKE_CONF=${MAKE_CONF} MAKEOBJDIRPREFIX=/usr/obj.pfSense_Dev"
 	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make $makeargs buildkernel || print_error_pfS;) | grep '^>>>'
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} __MAKE_CONF=${MAKE_CONF} TARGET_ARCH=${ARCH} DESTDIR=/tmp/kernels/developers/ SRCCONF=${SRC_CONF_INSTALL} MAKEOBJDIRPREFIX=/usr/obj.pfSense_Dev"
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE cd /usr/src && make ${makeargs:-} installkernel || print_error_pfS;) | grep '^>>>'
 	# GZIP kernels and make smaller
 	echo
 	echo -n ">>> GZipping: embedded"
