@@ -1,5 +1,7 @@
 # $Id$
 
+makeoptions MODULES_OVERRIDE="acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
+
 machine		i386
 cpu		I486_CPU
 cpu		I586_CPU
