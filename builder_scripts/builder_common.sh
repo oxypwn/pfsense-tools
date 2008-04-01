@@ -87,6 +87,7 @@ build_all_kernels() {
 	echo -n " developers"
 	(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
 	echo -n " ."
+	mkdir -p $PFSENSEBASEDIR/kernels/
 	# Nuke symbols
     if [ -z "${PFSENSE_DEBUG:-}" ]; then
 		echo "Finding .symbol files and moving to /dev/null"
