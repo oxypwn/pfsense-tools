@@ -1,6 +1,8 @@
 
+makeoptions MODULES_OVERRIDE="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
+
 include         GENERIC
-ident           pfSense7
+ident           pfSense7-Dev
 
 options SCHED_ULE                                       # add inULE scheduler
 nooptions         SCHED_4BSD

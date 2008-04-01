@@ -1,9 +1,11 @@
 # $Id$
 
+makeoptions MODULES_OVERRIDE="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
+
 machine		i386
-cpu		I486_CPU
-cpu		I586_CPU
-cpu		I686_CPU
+cpu			I486_CPU
+cpu			I586_CPU
+cpu			I686_CPU
 ident		pfSense-embedded
 
 # To statically compile in device wiring instead of /boot/device.hints
@@ -12,11 +14,9 @@ ident		pfSense-embedded
 options		CPU_GEODE
 options		CPU_SOEKRIS
 options		CPU_ELAN
-#options		CPU_ELAN_PPS
-#options		CPU_ELAN_XTAL=32768000
 
-options SCHED_ULE                                       # add inULE scheduler
-nooptions         SCHED_4BSD
+options 	SCHED_ULE                                       # ULE scheduler
+nooptions	SCHED_4BSD
 
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
