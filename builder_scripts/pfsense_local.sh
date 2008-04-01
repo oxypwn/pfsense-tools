@@ -44,6 +44,7 @@ export FREESBIE_LABEL=pfSense
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
 export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
+export MODULESOVERRIDE="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
 
 MAKEJ=" "
 
@@ -78,8 +79,6 @@ export INSTALL_PORTS_HEAD="pfPorts/isc-dhcp3-server pfPorts/php5-pfsense pfPorts
 export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
 
 export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
-
-export MODULESOVERRIDE="acpi apm"
 
 #### User settable options follow ### 
 
