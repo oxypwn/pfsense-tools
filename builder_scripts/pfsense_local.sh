@@ -44,7 +44,6 @@ export FREESBIE_LABEL=pfSense
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
 export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
-export MODULESOVERRIDE="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
 
 MAKEJ=" "
 
