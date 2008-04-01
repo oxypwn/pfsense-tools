@@ -87,7 +87,12 @@ build_all_kernels() {
 	echo -n " developers"
 	(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
 	echo -n " ."
-	mkdir -p $PFSENSEBASEDIR/kernels
+	# Nuke symbols
+    if [ -z "${PFSENSE_DEBUG:-}" ]; then
+		echo "Finding .symbol files and moving to /dev/null"
+		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
+		find /tmp/kernels -name "*.symbols" -exec rm {} \;
+    fi
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 
 	echo -n " ."
 	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
