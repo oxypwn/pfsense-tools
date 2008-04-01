@@ -90,7 +90,7 @@ build_all_kernels() {
 	mkdir -p $PFSENSEBASEDIR/kernels/
 	# Nuke symbols
     if [ -z "${PFSENSE_DEBUG:-}" ]; then
-		echo "Finding .symbol files and moving to /dev/null"
+		echo -n " . "
 		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
 		find /tmp/kernels -name "*.symbols" -exec rm {} \;
     fi
