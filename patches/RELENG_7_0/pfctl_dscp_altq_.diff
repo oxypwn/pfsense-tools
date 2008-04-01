@@ -6,7 +6,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.8
 diff -u -r1.8 parse.y
 --- contrib/pf/pfctl/parse.y	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/parse.y	1 Apr 2008 19:30:10 -0000
++++ contrib/pf/pfctl/parse.y	1 Apr 2008 22:40:43 -0000
 @@ -184,6 +184,7 @@
  #define FOM_TOS		0x04
  #define FOM_KEEP	0x08
@@ -144,7 +144,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.9
 diff -u -r1.9 pfctl_altq.c
 --- contrib/pf/pfctl/pfctl_altq.c	3 Jul 2007 12:30:02 -0000	1.9
-+++ contrib/pf/pfctl/pfctl_altq.c	1 Apr 2008 19:30:10 -0000
++++ contrib/pf/pfctl/pfctl_altq.c	1 Apr 2008 22:40:43 -0000
 @@ -690,13 +690,6 @@
  		return (-1);
  	}
@@ -165,7 +165,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.8
 diff -u -r1.8 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/pfctl_parser.c	1 Apr 2008 19:30:11 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	1 Apr 2008 22:40:44 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -185,7 +185,7 @@ RCS file: /home/ncvs/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	1 Apr 2008 19:30:11 -0000
++++ sys/conf/files	1 Apr 2008 22:40:44 -0000
 @@ -332,6 +332,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf \
@@ -201,7 +201,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	1 Apr 2008 19:30:12 -0000
++++ sys/contrib/pf/net/pf.c	1 Apr 2008 22:40:45 -0000
 @@ -3305,7 +3305,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
@@ -319,8 +319,8 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	1 Apr 2008 19:30:12 -0000
-@@ -0,0 +1,235 @@
++++ sys/contrib/pf/net/pf_pptp.c	1 Apr 2008 22:40:45 -0000
+@@ -0,0 +1,225 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
 + * Copyright (c) 2008 Ermal Luçi
@@ -491,26 +491,16 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +
 +        /* Modify certain PPTP messages */
 +        switch (ctl_type) {
-+        case PPTP_WanErrorNotify:
-+        case PPTP_InCallConn:
-+        case PPTP_SetLinkInfo:
 +        case PPTP_OutCallReply:
-+        case PPTP_InCallRequest:
++        /* case PPTP_InCallRequest: */
 +                pcall_id = &cptr->cid1;
 +                ctl_type = cptr->cid1;
 +                break; 
 +        case PPTP_OutCallRequest:
-+        case PPTP_InCallReply:
-+		if (dir == PF_IN) {
-+			pcall_id = &cptr->cid2;
-+			ctl_type = cptr->cid2;
-+		} else {
-+                        pcall_id = &cptr->cid1;
-+                        ctl_type = cptr->cid1;
-+		}
++        /* case PPTP_InCallReply: */
++		pcall_id = &cptr->cid2;
++		ctl_type = cptr->cid2;
 +		break;
-+	case PPTP_CallClearRequest:
-+        case PPTP_CallDiscNotify:
 +        default:
 +                return;
 +        }
@@ -519,7 +509,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +		if (dir == PF_OUT) {
 +			*pcall_id = nport;
 +			s->lan.pad = ctl_type;
-+		} else
++		} else if (s->lan.pad)
 +			*pcall_id = s->lan.pad;
 +		th->th_sum = pf_cksum_fixup(th->th_sum, 
 +				ctl_type, nport, 0);
@@ -562,7 +552,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	1 Apr 2008 19:30:13 -0000
++++ sys/contrib/pf/net/pfvar.h	1 Apr 2008 22:40:46 -0000
 @@ -672,6 +672,27 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -620,7 +610,7 @@ RCS file: /home/ncvs/src/sys/modules/pf/Makefile,v
 retrieving revision 1.13
 diff -u -r1.13 Makefile
 --- sys/modules/pf/Makefile	3 Jul 2007 12:46:06 -0000	1.13
-+++ sys/modules/pf/Makefile	1 Apr 2008 19:30:13 -0000
++++ sys/modules/pf/Makefile	1 Apr 2008 22:40:46 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
