@@ -79,6 +79,7 @@ export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
 
 export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 
+export MODULESOVERRIDE="acpi apm"
 
 #### User settable options follow ### 
 
