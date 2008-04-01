@@ -87,6 +87,7 @@ build_all_kernels() {
 	echo -n " developers"
 	(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
 	echo -n " ."
+	mkdir -p $PFSENSEBASEDIR/kernels
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 
 	echo -n " ."
 	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
