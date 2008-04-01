@@ -32,11 +32,12 @@ fi
 if [ $pfSense_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf"
 	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"	
+	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"
 fi
 if [ $pfSense_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF="${PWD}/conf/make.conf.7"
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"	
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
 fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2

@@ -46,6 +46,7 @@ fi
 # Use embedded make.conf
 if [ $pfSense_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
+	export SRC_CONF="${PWD}/conf/make.conf.embedded"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded"	
 fi
 if [ $pfSense_version = "7" ]; then
@@ -67,13 +68,6 @@ version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
 make_world_kernel
-
-if [ $pfSense_version = "6" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.embedded.install"
-fi
-if [ $pfSense_version = "7" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
-fi
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra

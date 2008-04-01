@@ -34,6 +34,7 @@ fi
 # Use normal make.conf
 if [ $pfSense_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf"
+	export SRC_CONF="${PWD}/conf/make.conf"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf"	
 fi
 if [ $pfSense_version = "7" ]; then
@@ -92,13 +93,15 @@ set +e # grep could fail
 #(cd /var/db/pkg && ls | grep scriptaculous) >> conf/packages
 set -e
 
-# Invoke FreeSBIE2 toolchain
+# Invoke FreeSBIE2 toolchain, populate /usr/local/pfsense-fs
 freesbie_make extra
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 ( populate_extra )
 
+# Remove stuff that could have been modified on installation
+# such as /etc/ttys, /conf/config.xml, etc
 fixup_updates
 
 # Fixup library changes if needed
