@@ -203,6 +203,12 @@ populate_extra() {
     echo "exit" >> $CVS_CO_DIR/root/.shrc
     echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.profile
     echo "exit" >> $CVS_CO_DIR/root/.profile
+	mkdir -p $PFSENSEBASEDIR/root
+    echo > $PFSENSEBASEDIR/root/.shrc
+    echo "/etc/rc.initial" >> $PFSENSEBASEDIR/root/.shrc
+    echo "exit" >> $PFSENSEBASEDIR/root/.shrc
+    echo "/etc/rc.initial" >> $PFSENSEBASEDIR/root/.profile
+    echo "exit" >> $PFSENSEBASEDIR/root/.profile
 
 	# Turn off error checking
     set +e
@@ -358,9 +364,6 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 	rm -f ${CVS_CO_DIR}/etc/pw*
 	rm -f ${CVS_CO_DIR}/etc/ttys
 
-	# Nuke /root/ directory contents
-	rm -rf ${CVS_CO_DIR}/root
-
 	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
@@ -451,7 +454,6 @@ create_FreeBSD_system_update() {
 	rm -rf etc/
 	rm -rf var/
 	rm -rf usr/share/
-	rm -rf root/
 	echo "Creating ${UPDATESDIR}/${FILENAME} update file..."
 	tar czPf ${UPDATESDIR}/${FILENAME} .
 
