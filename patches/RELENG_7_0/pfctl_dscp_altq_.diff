@@ -6,7 +6,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.8
 diff -u -r1.8 parse.y
 --- contrib/pf/pfctl/parse.y	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/parse.y	31 Mar 2008 18:22:22 -0000
++++ contrib/pf/pfctl/parse.y	1 Apr 2008 16:10:24 -0000
 @@ -184,6 +184,7 @@
  #define FOM_TOS		0x04
  #define FOM_KEEP	0x08
@@ -144,7 +144,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.9
 diff -u -r1.9 pfctl_altq.c
 --- contrib/pf/pfctl/pfctl_altq.c	3 Jul 2007 12:30:02 -0000	1.9
-+++ contrib/pf/pfctl/pfctl_altq.c	31 Mar 2008 18:22:22 -0000
++++ contrib/pf/pfctl/pfctl_altq.c	1 Apr 2008 16:10:24 -0000
 @@ -690,13 +690,6 @@
  		return (-1);
  	}
@@ -165,7 +165,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.8
 diff -u -r1.8 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/pfctl_parser.c	31 Mar 2008 18:22:23 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	1 Apr 2008 16:10:24 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -185,7 +185,7 @@ RCS file: /home/ncvs/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	31 Mar 2008 18:22:23 -0000
++++ sys/conf/files	1 Apr 2008 16:10:25 -0000
 @@ -332,6 +332,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf \
@@ -201,7 +201,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	31 Mar 2008 18:22:24 -0000
++++ sys/contrib/pf/net/pf.c	1 Apr 2008 16:10:26 -0000
 @@ -3305,7 +3305,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
@@ -269,10 +269,10 @@ diff -u -r1.46.2.1 pf.c
 +		/* XXX: This are here until a pluggable framework for NAT is finished */
 +        	if (s != NULL && s->nat_rule.ptr != NULL) {
 +			if (ntohs(pd.hdr.tcp->th_dport) == PPTP_CONTROL_PORT_NUMBER)
-+ 				pf_get_pptp_translation(&pd, m, off, (void *)pd.hdr.tcp, dir,
++ 				pf_get_pptp_translation(&pd, m, off, s, (void *)&th, dir,
 +					pd.hdr.tcp->th_sport);
 +              		else if (ntohs(pd.hdr.tcp->th_sport) == PPTP_CONTROL_PORT_NUMBER)
-+               			pf_get_pptp_translation(&pd, m, off, (void *)pd.hdr.tcp, dir,
++               			pf_get_pptp_translation(&pd, m, off, s, (void *)&th, dir,
 +					pd.hdr.tcp->th_dport);
 +		}
  		break;
@@ -319,8 +319,8 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	31 Mar 2008 18:22:24 -0000
-@@ -0,0 +1,316 @@
++++ sys/contrib/pf/net/pf_pptp.c	1 Apr 2008 16:10:26 -0000
+@@ -0,0 +1,237 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
 + * Copyright (c) 2008 Ermal Luçi
@@ -389,74 +389,6 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +#define PPTP_MAGIC              0x1a2b3c4d
 +#define PPTP_CTRL_MSG_TYPE      1
 +
-+struct pf_saved_callid {
-+	SLIST_ENTRY(pf_saved_callid)	_entry;
-+	u_int16_t			bcallid;
-+	u_int16_t			ncallid;
-+};	
-+
-+SLIST_HEAD(saved_callids, pf_saved_callid) saved_callids =
-+	SLIST_HEAD_INITIALIZER(saved_callids);
-+                      
-+static int pf_pptp_initialized = 0;
-+
-+static int 
-+pf_pptp_add_entry(u_int16_t bcallid, u_int16_t ncallid)
-+{
-+	struct pf_saved_callid *newentry;
-+
-+	newentry = malloc(sizeof(*newentry), M_TEMP, M_NOWAIT);
-+	if (newentry == NULL)
-+		return (-1); /* XXX */
-+
-+	newentry->bcallid = bcallid;
-+	newentry->ncallid = ncallid;
-+
-+	SLIST_INSERT_HEAD(&saved_callids, newentry, _entry);
-+	
-+	return (0);
-+}
-+ 
-+#if 0
-+static u_int16_t
-+pf_pptp_get_entry(u_int16_t ncallid) 
-+{
-+	struct pf_saved_callid *entry;
-+
-+	SLIST_FOREACH(entry, &saved_callids, _entry)
-+		if (entry->ncallid == ncallid)
-+			return (entry->bcallid);
-+
-+	return (0);
-+}
-+#endif
-+
-+static u_int16_t
-+pf_pptp_find_entry(u_int16_t bcallid)
-+{
-+	struct pf_saved_callid *entry;
-+
-+	SLIST_FOREACH(entry, &saved_callids, _entry)
-+		if (entry->bcallid == bcallid)
-+			return (entry->ncallid);
-+
-+	return (0);
-+}
-+
-+static void
-+pf_pptp_remove_entry(u_int16_t bcallid, u_int16_t ncallid) 
-+{
-+	struct pf_saved_callid *entry, *entry_temp;
-+
-+	SLIST_FOREACH_SAFE(entry, &saved_callids, _entry, entry_temp) {
-+		if (entry->bcallid == bcallid && entry->ncallid == ncallid) {
-+			SLIST_REMOVE(&saved_callids, entry, pf_saved_callid, _entry);
-+			free(entry, M_TEMP);
-+			break;
-+		}
-+	}
-+}
-+
 +/*
 + * PPTP definitions
 + */
@@ -516,8 +448,8 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +};
 +
 +void
-+pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, int off, void *p,
-+	int dir, u_int16_t nport)
++pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, int off, struct pf_state *s,
++	void *p, int dir, u_int16_t nport)
 +{
 +	struct pptpCallIds *cptr;
 +        u_int16_t ctl_type;     
@@ -525,11 +457,6 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +	struct pptpCodes *codes = NULL;
 +	u_int16_t *pcall_id = NULL;
 +	struct tcphdr *th = NULL; 
-+
-+	if (pf_pptp_initialized == 0) {
-+		pf_pptp_initialized  = 1;
-+		SLIST_INIT(&saved_callids);
-+	}
 +
 +        /* Verify data length */
 +        if (pd->tot_len < (int)(sizeof(struct pptpMsgHead) + sizeof(struct pptpCallIds)))
@@ -571,7 +498,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +        case PPTP_OutCallRequest:
 +        case PPTP_InCallRequest:
 +                pcall_id = &cptr->cid1;
-+                ctl_type = cptr->cid1;
++                s->lan.pad = cptr->cid1;
 +                break; 
 +        case PPTP_OutCallReply:
 +        case PPTP_InCallReply:
@@ -585,23 +512,21 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +		break;
 +	case PPTP_CallClearRequest:
 +        case PPTP_CallDiscNotify:
-+                pf_pptp_remove_entry(cptr->cid1, nport);
-+		/* FALLTHROUGH */
 +        default:
 +                return;
 +        }
 +
 +	codes = (struct pptpCodes *) (cptr + 1);
 +	if (codes->resCode == 1) {
-+		*pcall_id = nport;
-+		if (pf_pptp_find_entry(ctl_type) == 0)
-+			pf_pptp_add_entry(ctl_type, nport);
++		/* Let pf state table save the translation */
++		if (dir == PF_OUT) {
++			*pcall_id = nport;
++			s->lan.pad = ctl_type;
++		} else
++			*pcall_id = s->lan.pad;
 +		th->th_sum = pf_cksum_fixup(th->th_sum, 
 +				ctl_type, nport, 0);
-+	} else { /* Connection refused or closed */
-+		pf_pptp_remove_entry(ctl_type, nport);
-+		return;
-+	} 
++	}
 +
 +	m_copyback(m, off + (th->th_off << 2) + sizeof(struct pptpMsgHead), 
 +		sizeof(struct pptpCallIds), (caddr_t)cptr);	
@@ -614,11 +539,8 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +        int dir, u_int16_t nport /* unused */)
 +{
 +        struct grehdr gr;
-+	u_int16_t ncallid, bcallid;
++	u_int16_t bcallid;
 +	struct ip *iphdr = (struct ip *) p;
-+
-+	if (pf_pptp_initialized == 0)
-+		return;
 +
 +	if (!pf_pull_hdr(m, off, &gr, sizeof(struct grehdr),
 +			NULL, NULL, AF_INET))
@@ -629,11 +551,10 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +                return;
 +
 +	bcallid = gr.gh_call_id;
-+	if ((ncallid = pf_pptp_find_entry(bcallid)) == 0)
-+		return; /* XXX */
-+	gr.gh_call_id = ncallid;
++	if (dir == PF_IN)
++		gr.gh_call_id = 0;
 +	iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
-+        			bcallid, ncallid, 0);
++        			bcallid, 0, 0);
 +	
 +	m_copyback(m, off, sizeof(struct grehdr), (caddr_t)&gr);
 +}
@@ -643,7 +564,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	31 Mar 2008 18:22:25 -0000
++++ sys/contrib/pf/net/pfvar.h	1 Apr 2008 16:10:26 -0000
 @@ -672,6 +672,27 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -690,7 +611,7 @@ diff -u -r1.16 pfvar.h
 +
 +/* XXX: This are here until a pluggable framework for NAT is finished */
 +#define PPTP_CONTROL_PORT_NUMBER 1723
-+void	pf_get_pptp_translation(struct pf_pdesc *, struct mbuf *, int, void *, int, u_int16_t);
++void	pf_get_pptp_translation(struct pf_pdesc *, struct mbuf *, int, struct pf_state *, void *, int, u_int16_t);
 +void	pf_get_gre_translation(struct pf_pdesc *, struct mbuf *, int, void *, int, u_int16_t);
  
  extern struct pfi_statehead	 pfi_statehead;
@@ -701,7 +622,7 @@ RCS file: /home/ncvs/src/sys/modules/pf/Makefile,v
 retrieving revision 1.13
 diff -u -r1.13 Makefile
 --- sys/modules/pf/Makefile	3 Jul 2007 12:46:06 -0000	1.13
-+++ sys/modules/pf/Makefile	31 Mar 2008 18:22:25 -0000
++++ sys/modules/pf/Makefile	1 Apr 2008 16:10:27 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
