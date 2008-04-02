@@ -22,6 +22,8 @@ fi
 
 export PRUNE_LIST=""
 
+export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense.Dev}
+
 # Use pfSense.6 as kernel configuration file
 export DEVIMAGE=yo
 if [ $pfSense_version = "6" ]; then

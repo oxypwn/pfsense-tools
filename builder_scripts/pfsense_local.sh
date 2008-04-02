@@ -36,7 +36,6 @@ export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should 
 export SRCDIR=${SRCDIR:-/usr/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
-export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}

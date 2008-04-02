@@ -50,20 +50,13 @@ if [ $pfSense_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.iso.7"
 fi
 
-# If a embedded build has been performed we need to nuke
-# /usr/obj.pfSense/ since full uses a different
-# make.conf
-if [ -f /usr/obj.pfSense/pfSense_wrap.6.world.done ]; then
-	echo -n "Removing /usr/obj* since embedded build performed prior..."
-	rm -rf /usr/obj.pfSense/*
-	echo "done."
-fi
-
 # Clean out directories
 freesbie_make cleandir
 
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
+
+export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense.iso}
 
 # Calculate versions
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
