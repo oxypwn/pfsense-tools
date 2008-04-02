@@ -2,12 +2,11 @@
 # Date created:		23 June 2003
 # Whom:			Max Laier <max@love2party.net>
 #
-# $FreeBSD: ports/sysutils/pftop/Makefile,v 1.7 2005/09/14 23:27:00 pav Exp $
+# $FreeBSD: ports/sysutils/pftop/Makefile,v 1.10 2008/04/01 15:10:34 mlaier Exp $
 #
 
 PORTNAME=	pftop
-PORTVERSION=	0.5
-PORTREVISION=	2
+PORTVERSION=	0.7
 CATEGORIES=	sysutils net
 MASTER_SITES=	http://www.eee.metu.edu.tr/~canacar/
 DISTNAME=	${PORTNAME}-${PORTVERSION}
@@ -22,7 +21,7 @@ MANCOMPRESSED=	no
 .include <bsd.port.pre.mk>
 
 .if ${OSVERSION} < 502106
-IGNORE=		Only for 5.3 and above
+IGNORE=		only for 5.3 and above
 .endif
 
 .if ${OSVERSION} < 502116
@@ -33,12 +32,23 @@ CFLAGS+=	-DHAVE_ALTQ=1
 .elif ${OSVERSION} < 600025
 MAKE_ARGS=	LOCALBASE="${PREFIX}" OSLEVEL=35
 CFLAGS+=	-DHAVE_ALTQ=1 -DHAVE_RULE_ANCHOR=1
-.else
+.elif ${OSVERSION} < 700049
 MAKE_ARGS=	LOCALBASE="${PREFIX}" OSLEVEL=37
+CFLAGS+=	-DHAVE_ALTQ=1
+.else
+MAKE_ARGS=	LOCALBASE="${PREFIX}" OSLEVEL=41
 CFLAGS+=	-DHAVE_ALTQ=1
 .endif
 
 PLIST_FILES=	sbin/pftop
+
+post-patch:
+	@${REINPLACE_CMD} -e 's|<sys/queue.h>|"${FILESDIR}/queue.h"|g' \
+	    ${WRKSRC}/engine.c
+	@${REINPLACE_CMD} -e 's|__dead|__dead2|g' ${WRKSRC}/sf-gencode.h
+	@${REINPLACE_CMD} -e 's|__dead|__dead2|g' ${WRKSRC}/sf-gencode.c
+	@${REINPLACE_CMD} -e 's|#include <net/if_pflog.h>||g' \
+	    ${WRKSRC}/sf-gencode.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/pftop ${PREFIX}/sbin
