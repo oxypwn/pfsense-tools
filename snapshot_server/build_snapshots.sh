@@ -9,47 +9,49 @@
 # $Id$
 #
 
+# Set verbose + debug
 set -e -x
 
 # Local variables that are used by builder scripts
+PFSENSEOBJDIR=/usr/obj.pfSense/
+MAKEOBJDIRPREFIX=/usr/obj.pfSense/
 WEBDATAROOT=/usr/local/www/data
 WEBROOT=/usr/local/www
 TOOLDIR=/home/pfsense/tools
 BUILDERSCRIPTS=/home/pfsense/tools/builder_scripts
 SNAPSHOTSCRIPTSDIR=/root/
 PFSENSEUPDATESDIR=/home/pfsense/updates/
-PFSENSEOBJDIR=/usr/obj.pfSense/
-MAKEOBJDIRPREFIX=/usr/obj.pfSense/
 STAGINGAREA=/tmp/staging
 CVSROOT=/home/pfsense/cvsroot
+PFSENSEHOMEDIR=/home/pfsense
+PFSENSECVSROOT=${PFSENSEHOMEDIR}/cvsroot
+PFSENSECHECKOUTDIR=${PFSENSEHOMEDIR}/pfSense
 
 # Ensure directories exist
 mkdir -p $CVSROOT
+mkdir -p $STAGINGAREA
+mkdir -p $WEBROOT
 
-mkdir -p $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates \
-		 $WEBDATAROOT/FreeBSD6/RELENG_1_2/iso \
-		 $WEBDATAROOT/FreeBSD6/RELENG_1_2/embedded \
-		 $WEBDATAROOT/FreeBSD6/head/updates \
-		 $WEBDATAROOT/FreeBSD6/head/iso \
-		 $WEBDATAROOT/FreeBSD6/head/embedded
+# Create extra structures
+create_webdata_structure
 
-mkdir -p $WEBDATAROOT/FreeBSD7/RELENG_1_2/iso/ \
-		 $WEBDATAROOT/FreeBSD7/RELENG_1_2/embedded/ \
-		 $WEBDATAROOT/FreeBSD7/RELENG_1_2/updates/ \
-		 $WEBDATAROOT/FreeBSD7/head/iso/ \
-		 $WEBDATAROOT/FreeBSD7/head/embedded/ \
-		 $WEBDATAROOT/FreeBSD7/head/updates/
+# Source pfSense / FreeSBIE variables
+. $BUILDERSCRIPTS/builder_common.sh
+. $BUILDERSCRIPTS/pfsense_local.sh
 
-touch $WEBROOT/RELENG_1_2ISOSTATUS.txt \
-	  $WEBROOT/RELENG_1_2UPDATESSTATUS.txt \
-	  $WEBROOT/RELENG_1_2EMBEDDEDSTATUS.txt \
-	  $WEBROOT/RELENG_1_2STATUS.txt \
-	  $WEBROOT/HEADISOSTATUS.txt \
-	  $WEBROOT/HEADUPDATESSTATUS.txt \
-	  $WEBROOT/HEADEMBEDDEDSTATUS.txt \
-	  $WEBROOT/HEADSTATUS.txt \
+# Ensure a fresh environment, please.
+rm -rf $PFSENSECVSROOT
+rm -rf $PFSENSECHECKOUTDIR
+mkdir -p $PFSENSECVSROOT
 
-mkdir -p /tmp/staging
+# Sync with pfsense.org
+cvsup $BUILDERSCRIPTS/pfSense-supfile
+
+create_webdata_structure() {
+	mkdir -p $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates
+	mkdir -p $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/iso 
+	mkdir -p $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/embedded 
+}
 
 set_pfsense_source() {
 	echo $1 > $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt
@@ -61,15 +63,16 @@ set_freebsd_source() {
 	install_pfsense_local_sh
 }
 
+set_freebsd_version() {
+	echo $1 > $WEBROOT/FREEBSD_VERSION.txt
+	install_pfsense_local_sh
+}
+
 install_pfsense_local_sh() {
-	if [ -f $WEBROOT/FREEBSD_PLATFORM.txt ]; then 
-		FREEBSD_PLATFORM=`cat $WEBROOT/FREEBSD_PLATFORM.txt`
-	else 
-		FREEBSD_PLATFORM="RELENG_6_2"
-	fi
-	if [ -f $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt ]; then
-		PFSENSE_PLATFORM=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`		
-	fi 
+	FREEBSD_PLATFORM=`cat $WEBROOT/FREEBSD_PLATFORM.txt`
+	PFSENSE_PLATFORM=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	FREEBSD_VERSION=`cat $WEBROOT/FREEBSD_VERSION.txt`
+
 	cat <<EOF >$BUILDERSCRIPTS/pfsense_local.sh
 
 #!/bin/sh
@@ -98,9 +101,6 @@ export PFSENSEBASEDIR=\${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 
 export PFSENSEISODIR=\${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
-# pfSense cvs tag to build
-export PFSENSETAG="${PFSENSE_PLATFORM}"
-
 # FreeSBIE 2 toolkit path
 export FREESBIE_PATH=\${FREESBIE_PATH:-/home/pfsense/freesbie2}
 
@@ -118,10 +118,6 @@ export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs"
 
 MAKEJ=" "
 
-# FreeBSD version.  6 or 7
-export pfSense_version="6"
-export freebsd_branch="${FREEBSD_PLATFORM}"
-
 # Used by non pfSense developers
 export SKIP_RSYNC=yes
 
@@ -138,200 +134,114 @@ export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/libevent pfPorts/pftpx pfPorts/clog pfPorts/fping"
 export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
 
+# FreeBSD version.  6 or 7
+export pfSense_version="${FREEBSD_VERSION}"
+export freebsd_branch="${FREEBSD_PLATFORM}"
+
+# pfSense cvs tag to build
+export PFSENSETAG="${PFSENSE_PLATFORM}"
+
 EOF
 
 }
 
 update_sources() {
-		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-		setstatus "Updating sources and building $CURRENTLY_BUILDING ISO..."
-		cd $BUILDERSCRIPTS
-		./cvsup_current
-		gzip $PFSENSEOBJDIR/pfSense.iso
-		mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz
-		md5 pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
-		echo "Sources updated for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/${CURRENTLY_BUILDING}STATUS.txt
+	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	cd $BUILDERSCRIPTS 
+	./cvsup_current
+	gzip $PFSENSEOBJDIR/pfSense.iso
+	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz
+	md5 pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
 }
 
 build_embedded() {
-		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-		setstatus "Building embedded $CURRENTLY_BUILDING ..."
-		cd $BUILDERSCRIPTS
-		./build_embedded.sh
-		setstatus "GZipping embedded $CURRENTLY_BUILDING ..."
-		rm -f $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz
-		gzip $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img
-		md5 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz.md5
-		echo "Embedded for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/${CURRENTLY_BUILDING}EMBEDDEDSTATUS.txt
+	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	cd $BUILDERSCRIPTS 
+	./build_embedded.sh
+	rm -f $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz
+	gzip $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img
+	md5 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz.md5
 }
 
 build_embedded_updates() {
-		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-		setstatus "Building embedded updates $CURRENTLY_BUILDING ..."
-		cd $BUILDERSCRIPTS
-		./build_updates_embedded.sh
-		echo "Embedded update for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/${CURRENTLY_BUILDING}EMBEDDEDUPDATESTATUS.txt
+	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	cd $BUILDERSCRIPTS
+	./build_updates_embedded.sh
 }
 
 build_updates() {
-		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-		setstatus "Building updates..."
-		cd $BUILDERSCRIPTS
-		./build_updates.sh
-		for filename in $PFSENSEUPDATESDIR/*.tgz
-		do
-			if [ -f $filename ]; then 
-				echo "Creating MD5 summary for $filename"
-				md5 $filename > $filename.md5
-			fi
-		done
-		echo "Updates for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/${CURRENTLY_BUILDING}UPDATESSTATUS.txt
+	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	cd $BUILDERSCRIPTS 
+	./build_updates.sh
+	for filename in $PFSENSEUPDATESDIR/*.tgz
+	do
+		if [ -f $filename ]; then 
+			echo "Creating MD5 summary for $filename"
+			md5 $filename > $filename.md5
+		fi
+	done
 }
 
 build_iso() {
-		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-		setstatus "Building ISO..."
-		cd $BUILDERSCRIPTS
-		./build_iso.sh
-		echo "FULL ISO for $CURRENTLY_BUILDING last completed at `date`" \
-			> $WEBROOT/${CURRENTLY_BUILDING}ISOSTATUS.txt
-}
-
-setstatus() {
-		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-		STATUS=$1
-		echo "$1" > $WEBDATAROOT/status.txt
-		uptime  >> $WEBDATAROOT/status.txt
-		echo    >> $WEBDATAROOT/status.txt
-		iostat  >> $WEBDATAROOT/status.txt
-		echo    >> $WEBDATAROOT/status.txt
-		date    >> $WEBDATAROOT/status.txt
-		echo    >> $WEBDATAROOT/status.txt
-		echo $1 >> $WEBDATAROOT/status.txt
-		echo    >> $WEBDATAROOT/status.txt
-		echo "-RELENG_1_2 last known build status" \
-				>> $WEBDATAROOT/status.txt
-		echo \
-				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/RELENG_1_2ISOSTATUS.txt \
-			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/RELENG_1_2UPDATESSTATUS.txt \
-			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/RELENG_1_2EMBEDDEDSTATUS.txt \
-			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/RELENG_1_2EMBEDDEDUPDATESTATUS.txt \
-			    >> $WEBDATAROOT/status.txt
-		cat $WEBROOT/RELENG_1_2STATUS.txt \
-			    >> $WEBDATAROOT/status.txt
-		echo \
-				>> $WEBDATAROOT/status.txt
-		echo "-HEAD last known build status" \
-				>> $WEBDATAROOT/status.txt
-		echo \
-				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/HEADISOSTATUS.txt \
-				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/HEADUPDATESSTATUS.txt \
-				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/HEADEMBEDDEDSTATUS.txt \
-				>> $WEBDATAROOT/status.txt
-		cat $WEBROOT/HEADSTATUS.txt \
-				>> $WEBDATAROOT/status.txt
+	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	cd $BUILDERSCRIPTS && ./build_iso.sh
 }
 
 dobuilds() {
-		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 
-		cd $BUILDERSCRIPTS
+	cd $BUILDERSCRIPTS
 
-		# Update sources and build iso
-		update_sources
+	# Update sources and build iso
+	update_sources
 
-		# Build updates on same run as iso
-		build_updates
+	# Build updates on same run as iso
+	build_updates
 
-		# Copy files before embedded, it wipes out usr.obj*
-		cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
+	# Copy files before embedded, it wipes out usr.obj*
+	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
 
-		# Build embedded version
-		build_embedded
-		cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
+	# Build embedded version
+	build_embedded
+	cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
 
-		setstatus "Copying files for -RELENG_1_2 build..."
-		cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
-		cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
+	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
+	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
 
-		setstatus "Cleaning up..."
-		rm -rf /usr/obj*
-		rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
+	rm -rf /usr/obj*
+	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 }
-
-# Remove prior builds
-rm -rf /usr/obj*
-
-# Uncomment if builder problems appear
-#  rm -rf /home/pfsense/cvsroot
-#  rm -rf /home/pfsense/pfSense
-#  mkdir -p /home/pfsense/cvsroot
-#  cvsup $BUILDERSCRIPTS/pfSense-supfile
 
 # Main builder loop
 while [ /bin/true ]; do
-		if [ -d /home/pfsense/pfSense ]; then
-			echo "Clearing out previous pfSense checkout directory..."
-			chflags -R noschg /home/pfsense/pfSense
-			rm -rf /home/pfsense/pfSense
-		fi
-		# -- pfSense RELENG_1_2 -- FreeBSD RELENG_6_2
-		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
-		setstatus "Setting build to -RELENG_1_2 FreeBSD RELENG_6_2..."
-		set_pfsense_source "RELENG_1_2"
-		set_freebsd_source "RELENG_6_2"
-		rm -f $STAGINGAREA/*
-		dobuilds
-		cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD6/RELENG_1_2/iso/
-		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/RELENG_1_2/embedded/
-		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/
-		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/
-		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1_2/updates/*HEAD*
-		setstatus "Cleaning up..."
-		rm -f $STAGINGAREA/*
-		rm -rf /usr/obj*
+	if [ -d /home/pfsense/pfSense ]; then
+		echo "Clearing out previous pfSense checkout directory..."
+		chflags -R noschg /home/pfsense/pfSense
+		rm -rf /home/pfsense/pfSense
+	fi
 
-		# -- pfSense RELENG_1 -- FreeBSD RELENG_6_2
-		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
-		setstatus "Setting build to -RELENG_1 FreeBSD RELENG_6_2..."
-		set_pfsense_source "RELENG_1"
-		set_freebsd_source "RELENG_6_2"
-		rm -f $STAGINGAREA/*
-		dobuilds
-		cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD6/RELENG_1/iso/
-		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/RELENG_1/embedded/
-		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
-		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/RELENG_1/updates/
-		rm -f $WEBDATAROOT/FreeBSD6/RELENG_1/updates/*HEAD*
-		setstatus "Cleaning up..."
-		rm -f $STAGINGAREA/*
-		rm -rf /usr/obj*
+	# --- begin pfSense RELENG_1_2 -- FreeBSD RELENG_6_3
+	# --
+	# Remove prior builds
+	rm -rf /usr/obj*
+	set_pfsense_source "RELENG_1_2"
+	set_freebsd_source "RELENG_6_3"
+	set_freebsd_version "6"
+	rm -f $STAGINGAREA/*
+	print_flags
+	dobuilds
+	cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/iso/
+	cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/embedded/
+	cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates/
+	cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates/
+	#    pfsense.com only.
+	#    echo "scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/"
+	#    scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	#    scp $STAGINGAREA/pfSense.img* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	#    scp $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	#    pfsense.com only.
+	# --
+	# --- end pfSense RELENG_1_2 -- FreeBSD RELENG_6_3
 
-		# -- pfSense HEAD - FreeBSD RELENG_6_2
-		setstatus "Setting build to -HEAD FreeBSD RELENG_6_2..."
-		set_pfsense_source "HEAD"
-		set_freebsd_source "RELENG_6_2"
-		CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-		rm -f $STAGINGAREA/*
-		dobuilds
-		cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD6/head/iso/
-		cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD6/head/embedded/
-		cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD6/head/updates/
-		cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD6/head/updates/
-		setstatus "Cleaning up..."
-		rm $STAGINGAREA/*
-		rm -rf /usr/obj*
-		setstatus "Cooling down..." # Let machine rest a moment
-		sleep 500
+	sleep 500
 done
