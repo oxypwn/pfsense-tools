@@ -364,7 +364,7 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 	rm -f ${CVS_CO_DIR}/etc/pw*
 	rm -f ${CVS_CO_DIR}/etc/ttys
 
-	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
+	( cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} . )
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
 	if [ -e /usr/local/sbin/gzsig ]; then 
@@ -378,6 +378,8 @@ fixup_updates() {
 	# rolling an iso.
 	
 	#find ${PFSENSEBASEDIR}/boot/ -type f -depth 1 -exec rm {} \;
+
+	PREVIOUSDIR=`pwd`
 
 	cd ${PFSENSEBASEDIR}
 	rm -rf ${PFSENSEBASEDIR}/cf
@@ -409,6 +411,8 @@ fixup_updates() {
 
 	echo Removing pfSense.tgz used by installer..
 	find ${PFSENSEBASEDIR} -name pfSense.tgz -exec rm {} \;
+
+	cd $PREVIOUSDIR
 
 }
 
@@ -448,6 +452,8 @@ create_FreeBSD_system_update() {
 	FILENAME=pfSense-Embedded-Update-${VERSION}.tgz
 	mkdir -p $UPDATESDIR
 
+	PREVIOUSDIR=`pwd`
+
 	cd ${CLONEDIR}
 	# Remove some fat and or conflicting
 	# freebsd files
@@ -461,12 +467,17 @@ create_FreeBSD_system_update() {
 	if [ -e /usr/local/sbin/gzsig ]; then 	
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
+	
+	cd $PREVIOUSDIR
+	
 }
 
 create_pfSense_Full_update_tarball() {
 	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
 	FILENAME=pfSense-Full-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
+
+	PREVIOUSDIR=`pwd`
 
 	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
 	set +e
@@ -479,12 +490,16 @@ create_pfSense_Full_update_tarball() {
 	if [ -e /usr/local/sbin/gzsig ]; then 
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
+
+	cd $PREVIOUSDIR
 }
 
 create_pfSense_Embedded_update_tarball() {
 	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
 	FILENAME=pfSense-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
+
+	PREVIOUSDIR=`pwd`
 
 	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
 	set +e
@@ -502,11 +517,16 @@ create_pfSense_Embedded_update_tarball() {
 	if [ -e /usr/local/sbin/gzsig ]; then 
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
+	
+	cd $PREVIOUSDIR
+	
 }
 
 create_pfSense_Small_update_tarball() {
 	VERSION=`cat $CVS_CO_DIR/etc/version`
 	FILENAME=pfSense-Mini-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
+
+	PREVIOUSDIR=`pwd`
 
 	mkdir -p $UPDATESDIR
 
@@ -535,16 +555,22 @@ create_pfSense_Small_update_tarball() {
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 
+	cd $PREVIOUSDIR
+
 }
 
 # Create tarball of pfSense cvs directory
 create_pfSense_tarball() {
 	rm -f $CVS_CO_DIR/boot/*
 
+	PREVIOUSDIR=`pwd`
+
 	find $CVS_CO_DIR -name CVS -exec rm -rf {} \; 2>/dev/null
 	find $CVS_CO_DIR -name "_orange-flow" -exec rm -rf {} \; 2>/dev/null
 
 	cd $CVS_CO_DIR && tar czPf /tmp/pfSense.tgz .
+
+	cd $PREVIOUSDIR
 }
 
 # Copy tarball of pfSense cvs directory to FreeSBIE custom directory
@@ -567,8 +593,10 @@ copy_pfSense_tarball_to_custom_directory() {
 }
 
 copy_pfSense_tarball_to_freesbiebasedir() {
+	PREVIOUSDIR=`pwd`
 	cd $LOCALDIR
 	tar  xzPf /tmp/pfSense.tgz -C $FREESBIEBASEDIR
+	cd $PREVIOUSDIR
 }
 
 # Set image as a CDROM type image
@@ -580,6 +608,9 @@ set_image_as_cdrom() {
 #Create a copy of FREESBIEBASEDIR. This is useful to modify the live filesystem
 clone_system_only()
 {
+
+	PREVIOUSDIR=`pwd`
+
 	echo -n "Cloning $FREESBIEBASEDIR to $FREESBIEISODIR..."
 
 	mkdir -p $FREESBIEISODIR || print_error_pfS
@@ -636,13 +667,17 @@ clone_system_only()
 	trap "" INT
 
 	echo " [DONE]"
+	
+	cd $PREVIOUSDIR
 }
 
 checkout_pfSense() {
+	PREVIOUSDIR=`pwd`
 	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
 	rm -rf $CVS_CO_DIR
 	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
 	fixup_libmap
+	cd $PREVIOUSDIR
 }
 
 checkout_freesbie() {
