@@ -212,36 +212,45 @@ dobuilds() {
 	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 }
 
-# Main builder loop
-while [ /bin/true ]; do
+cp_files() {
+	cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/iso/
+	cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/embedded/
+	cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates/
+	cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates/
+}
+
+scp_files() {
+	echo "scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/"
+	scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	scp $STAGINGAREA/pfSense.img* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	scp $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+}
+
+cleanup_builds() {
+	# Remove prior builds
+	echo "Cleaning up after prior builds..."
+	rm -rf /usr/obj*
+	rm -f $STAGINGAREA/*
 	if [ -d /home/pfsense/pfSense ]; then
 		echo "Clearing out previous pfSense checkout directory..."
 		chflags -R noschg /home/pfsense/pfSense
 		rm -rf /home/pfsense/pfSense
 	fi
+}
+
+# Main builder loop - lets do this forever until the cows come home.
+while [ /bin/true ]; do
 
 	# --- begin pfSense RELENG_1_2 -- FreeBSD RELENG_6_3
-	# --
-	# Remove prior builds
-	rm -rf /usr/obj*
 	set_pfsense_source "RELENG_1_2"
 	set_freebsd_source "RELENG_6_3"
 	set_freebsd_version "6"
-	rm -f $STAGINGAREA/*
+	cleanup_builds
 	print_flags
 	dobuilds
-	cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/iso/
-	cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/embedded/
-	cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates/
-	cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates/
-	#    pfsense.com only.
-	#    echo "scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/"
-	#    scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
-	#    scp $STAGINGAREA/pfSense.img* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
-	#    scp $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
-	#    pfsense.com only.
-	# --
+	cp_files
+	scp_files
 	# --- end pfSense RELENG_1_2 -- FreeBSD RELENG_6_3
 
-	sleep 500
+	sleep 500	# give the box a break.
 done
