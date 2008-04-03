@@ -238,6 +238,19 @@ cleanup_builds() {
 	fi
 }
 
+build_loop_operations() {
+	# --- Items we need to run for a complete build run ---
+	# Cleanup prior builds
+	cleanup_builds
+	# Output builder flags
+	print_flags
+	# Do the builds
+	dobuilds
+	# Copy/SCP images
+	cp_files
+	scp_files
+}
+
 # Main builder loop - lets do this forever until the cows come home.
 while [ /bin/true ]; do
 
@@ -245,11 +258,7 @@ while [ /bin/true ]; do
 	set_pfsense_source "RELENG_1_2"
 	set_freebsd_source "RELENG_6_3"
 	set_freebsd_version "6"
-	cleanup_builds
-	print_flags
-	dobuilds
-	cp_files
-	scp_files
+	build_loop_operations	
 	# --- end pfSense RELENG_1_2 -- FreeBSD RELENG_6_3
 
 	sleep 500	# give the box a break.
