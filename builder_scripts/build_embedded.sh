@@ -17,6 +17,9 @@
 # Make sure cvsup_current has been run first 
 check_for_clog
 
+# Output build flags
+print_flags
+
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 

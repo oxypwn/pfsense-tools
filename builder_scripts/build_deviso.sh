@@ -6,6 +6,12 @@
 
 . ./pfsense_local.sh
 
+# Suck in script helper functions
+. ./builder_common.sh
+
+# Output build flags
+print_flags
+
 # Set extra before pfsense_local.sh will do
 # Add comconsole to the list
 # export EXTRA="comconsole customroot"

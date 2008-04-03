@@ -14,6 +14,9 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Output build flags
+print_flags
+
 # Make sure cvsup_current has been run first 
 check_for_clog
 
