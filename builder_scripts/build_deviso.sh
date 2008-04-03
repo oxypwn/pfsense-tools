@@ -104,9 +104,9 @@ build_all_kernels
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
-( populate_extra )
+populate_extra
 echo ">>> Phase set_image_as_cdrom"
-( set_image_as_cdrom )
+set_image_as_cdrom
 
 # Fixup library changes if needed
 fixup_libmap

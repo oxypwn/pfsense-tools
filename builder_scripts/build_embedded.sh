@@ -137,7 +137,6 @@ bsdlabel -BR ${DEVICE} ${TMPFILE}
 newfs -L ${UFS_LABEL} -O1 /dev/${DEVICE}a
 newfs -L ${CONF_LABEL} -O1 /dev/${DEVICE}d
 
-
 mount /dev/${DEVICE}a ${TMPDIR}
 mkdir ${TMPDIR}/cf
 mount /dev/${DEVICE}d ${TMPDIR}/cf

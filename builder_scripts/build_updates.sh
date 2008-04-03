@@ -89,7 +89,7 @@ freesbie_make extra
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
-( populate_extra )
+populate_extra
 
 # Remove stuff that could have been modified on installation
 # such as /etc/ttys, /conf/config.xml, etc
