@@ -28,7 +28,7 @@ if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
 
-export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense.Embedded}
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Embedded"
 
 export NO_COMPRESSEDFS=yes
 export PRUNE_LIST="${PWD}/remove.list"

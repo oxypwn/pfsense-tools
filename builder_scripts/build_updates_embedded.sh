@@ -33,7 +33,7 @@ fi
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
 
-export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense.Embedded}
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Embedded"
 
 # Calculate versions
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`

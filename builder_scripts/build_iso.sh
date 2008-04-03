@@ -17,6 +17,8 @@
 # Make sure cvsup_current has been run first 
 check_for_clog
 
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
+
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 
@@ -55,8 +57,6 @@ freesbie_make cleandir
 
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
-
-export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense.iso}
 
 # Calculate versions
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`

@@ -22,7 +22,7 @@ fi
 
 export PRUNE_LIST=""
 
-export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense.Dev}
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Dev"
 
 # Use pfSense.6 as kernel configuration file
 export DEVIMAGE=yo

@@ -8,20 +8,13 @@
 
 #set -e -u
 
-# If a full build has been performed we need to nuke
-# /usr/obj.pfSense/ since embedded uses a different
-# make.conf
-if [ -f /usr/obj.pfSense/pfSense.6.world.done ]; then
-	echo -n "Removing /usr/obj* since full build performed prior..."
-	rm -rf /usr/obj*
-	echo "done."
-fi
-
 # Suck in local vars
 . ./pfsense_local.sh
 
 # Suck in script helper functions
 . ./builder_common.sh
+
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso.embedded"
 
 # Make sure cvsup_current has been run first 
 check_for_clog
