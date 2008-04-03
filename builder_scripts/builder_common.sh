@@ -144,8 +144,7 @@ recompile_pfPorts() {
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
     # Make devd
-    ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} NO_MAN=YES \
-	make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
+    ( cd ${SRCDIR}/sbin/devd; make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
@@ -689,10 +688,6 @@ print_flags() {
 
 	printf "         CVS User: %s\n" $CVS_USER
 	printf "        Verbosity: %s\n" $BE_VERBOSE
-	printf "          Targets: %s\n" $TARGETS
-	printf "       LiveFS dir: %s\n" $FREESBIEBASEDIR
-	printf "     FreeSBIE dir: %s\n" $LOCALDIR
-	printf "          ISO dir: %s\n" $PATHISO
 	printf "         Base dir: %s\n" $BASE_DIR
 	printf "     Checkout dir: %s\n" $CVS_CO_DIR
 	printf "      Custom root: %s\n" $CUSTOMROOT
