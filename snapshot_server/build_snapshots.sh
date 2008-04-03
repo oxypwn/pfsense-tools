@@ -143,7 +143,6 @@ EOF
 }
 
 update_sources() {
-	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	cd $BUILDERSCRIPTS 
 	./cvsup_current
 	gzip $PFSENSEOBJDIR/pfSense.iso
@@ -152,7 +151,7 @@ update_sources() {
 }
 
 build_embedded() {
-	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
+	rm -rf /usr/obj*
 	cd $BUILDERSCRIPTS 
 	./build_embedded.sh
 	rm -f $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz
@@ -161,13 +160,11 @@ build_embedded() {
 }
 
 build_embedded_updates() {
-	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	cd $BUILDERSCRIPTS
 	./build_updates_embedded.sh
 }
 
 build_updates() {
-	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	cd $BUILDERSCRIPTS 
 	./build_updates.sh
 	for filename in $PFSENSEUPDATESDIR/*.tgz
@@ -180,33 +177,31 @@ build_updates() {
 }
 
 build_iso() {
-	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	cd $BUILDERSCRIPTS && ./build_iso.sh
 }
 
 dobuilds() {
-	CURRENTLY_BUILDING=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
-
 	cd $BUILDERSCRIPTS
-
 	# Update sources and build iso
 	update_sources
-
 	# Build updates on same run as iso
 	build_updates
-
 	# Copy files before embedded, it wipes out usr.obj*
-	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
-
+	copy_to_staging_first
 	# Build embedded version
 	build_embedded
-	cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
+	# Copy to staging
+	copy_to_staging_second
+}
 
+copy_to_staging_first() {
+	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
 	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
 	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
+}
 
-	rm -rf /usr/obj*
-	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
+copy_to_staging_second() {
+	cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
 }
 
 cp_files() {
@@ -217,7 +212,6 @@ cp_files() {
 }
 
 scp_files() {
-	echo "scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/"
 	scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp $STAGINGAREA/pfSense.img* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
@@ -228,6 +222,7 @@ cleanup_builds() {
 	echo "Cleaning up after prior builds..."
 	rm -rf /usr/obj*
 	rm -f $STAGINGAREA/*
+	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 	if [ -d /home/pfsense/pfSense ]; then
 		echo "Clearing out previous pfSense checkout directory..."
 		chflags -R noschg /home/pfsense/pfSense
