@@ -1,5 +1,5 @@
 #!/bin/sh
-
+#
 # pfSense snapshot building system
 # (C)2007, 2008 Scott Ullrich
 # All rights reserved
@@ -71,7 +71,6 @@ install_pfsense_local_sh() {
 	FREEBSD_VERSION=`cat $WEBROOT/FREEBSD_VERSION.txt`
 
 	cat <<EOF >$BUILDERSCRIPTS/pfsense_local.sh
-
 #!/bin/sh
 
 # This is the base working directory for all builder
@@ -177,7 +176,8 @@ build_updates() {
 }
 
 build_iso() {
-	cd $BUILDERSCRIPTS && ./build_iso.sh
+	cd $BUILDERSCRIPTS
+	./build_iso.sh
 }
 
 dobuilds() {
@@ -187,20 +187,20 @@ dobuilds() {
 	# Build updates on same run as iso
 	build_updates
 	# Copy files before embedded, it wipes out usr.obj*
-	copy_to_staging_first
+	copy_to_staging_iso_updates
 	# Build embedded version
 	build_embedded
 	# Copy to staging
-	copy_to_staging_second
+	copy_to_staging_embedded
 }
 
-copy_to_staging_first() {
+copy_to_staging_iso_updates() {
 	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
 	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
 	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
 }
 
-copy_to_staging_second() {
+copy_to_staging_embedded() {
 	cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
 }
 
