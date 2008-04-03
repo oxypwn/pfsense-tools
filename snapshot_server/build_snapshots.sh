@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # pfSense snapshot building system
-# (C)2007 Scott Ullrich
+# (C)2007, 2008 Scott Ullrich
 # All rights reserved
 #
 # This file is placed under the BSD License, 2 clause.
@@ -17,23 +17,19 @@ PFSENSEOBJDIR=/usr/obj.pfSense/
 MAKEOBJDIRPREFIX=/usr/obj.pfSense/
 WEBDATAROOT=/usr/local/www/data
 WEBROOT=/usr/local/www
-TOOLDIR=/home/pfsense/tools
-BUILDERSCRIPTS=/home/pfsense/tools/builder_scripts
 SNAPSHOTSCRIPTSDIR=/root/
-PFSENSEUPDATESDIR=/home/pfsense/updates/
 STAGINGAREA=/tmp/staging
-CVSROOT=/home/pfsense/cvsroot
 PFSENSEHOMEDIR=/home/pfsense
 PFSENSECVSROOT=${PFSENSEHOMEDIR}/cvsroot
 PFSENSECHECKOUTDIR=${PFSENSEHOMEDIR}/pfSense
+PFSENSEUPDATESDIR=${PFSENSEHOMEDIR}/updates/
+BUILDERSCRIPTS=${PFSENSEHOMEDIR}/tools/builder_scripts
+TOOLDIR=${PFSENSEHOMEDIR}/tools
 
 # Ensure directories exist
-mkdir -p $CVSROOT
+mkdir -p $PFSENSECVSROOT
 mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
-
-# Create extra structures
-create_webdata_structure
 
 # Source pfSense / FreeSBIE variables
 . $BUILDERSCRIPTS/builder_common.sh
@@ -43,6 +39,7 @@ create_webdata_structure
 rm -rf $PFSENSECVSROOT
 rm -rf $PFSENSECHECKOUTDIR
 mkdir -p $PFSENSECVSROOT
+mkdir -p $PFSENSECHECKOUTDIR
 
 # Sync with pfsense.org
 cvsup $BUILDERSCRIPTS/pfSense-supfile
@@ -240,6 +237,8 @@ cleanup_builds() {
 
 build_loop_operations() {
 	# --- Items we need to run for a complete build run ---
+	# Create extra structures
+	create_webdata_structure
 	# Cleanup prior builds
 	cleanup_builds
 	# Output builder flags
