@@ -8,13 +8,13 @@
 
 #set -e -u
 
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso.embedded"
+
 # Suck in local vars
 . ./pfsense_local.sh
 
 # Suck in script helper functions
 . ./builder_common.sh
-
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso.embedded"
 
 # Make sure cvsup_current has been run first 
 check_for_clog

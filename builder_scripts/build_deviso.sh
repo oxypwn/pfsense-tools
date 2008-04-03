@@ -4,6 +4,8 @@
 
 #set -e -u
 
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Dev"
+
 . ./pfsense_local.sh
 
 # Suck in script helper functions
@@ -27,8 +29,6 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 export PRUNE_LIST=""
-
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Dev"
 
 # Use pfSense.6 as kernel configuration file
 export DEVIMAGE=yo

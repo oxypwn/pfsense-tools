@@ -8,6 +8,8 @@
 
 #set -e -u
 
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Embedded"
+
 # Suck in local vars
 . ./pfsense_local.sh
 
@@ -35,8 +37,6 @@ fi
 
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
-
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Embedded"
 
 # Calculate versions
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`

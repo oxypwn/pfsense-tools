@@ -8,6 +8,8 @@
 
 #set -e -u
 
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
+
 # Suck in local vars
 . ./pfsense_local.sh
 
@@ -22,8 +24,6 @@ check_for_clog
 
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
-
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
 
 # Use pfSense.6 as kernel configuration file
 if [ $pfSense_version = "6" ]; then

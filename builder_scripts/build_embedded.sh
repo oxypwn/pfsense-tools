@@ -8,6 +8,8 @@
 
 #set -e -u 
 
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Embedded"
+
 # Suck in local vars
 . ./pfsense_local.sh
 
@@ -30,8 +32,6 @@ fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
-
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Embedded"
 
 export NO_COMPRESSEDFS=yes
 export PRUNE_LIST="${PWD}/remove.list"

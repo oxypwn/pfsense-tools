@@ -8,6 +8,8 @@
 
 #set -e -u -x
 
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
+
 # Suck in local vars
 . ./pfsense_local.sh
 
@@ -19,8 +21,6 @@ check_for_clog
 
 # Output build flags
 print_flags
-
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
 
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
