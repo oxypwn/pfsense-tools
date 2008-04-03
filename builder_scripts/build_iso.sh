@@ -105,9 +105,9 @@ fi
 
 # Add extra pfSense packages
 echo ">>> Phase install_custom_packages"
-( install_custom_packages )
+install_custom_packages
 echo ">>> Phase set_image_as_cdrom"
-( set_image_as_cdrom )
+set_image_as_cdrom
 
 # Fixup library changes if needed
 fixup_libmap
@@ -130,7 +130,7 @@ freesbie_make pkginstall
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
-( populate_extra )
+populate_extra
 
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
