@@ -144,7 +144,8 @@ recompile_pfPorts() {
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
     # Make devd
-    ( cd ${SRCDIR}/sbin/devd; make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
+    ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} NO_MAN=YES \
+	make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
