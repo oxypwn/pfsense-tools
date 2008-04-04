@@ -7,6 +7,8 @@
 
 #set -e -x
 
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
+
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
