@@ -75,17 +75,17 @@ freesbie_make obj
 make_world_kernel
 
 # Check for freesbie builder issues
-if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
+if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
 	echo "Something has gone wrong!  Press ENTER to view log file."
 	read ans
-	more /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_buildworld
+	more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_buildworld
 	exit
 fi
 
-if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
+if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
 	echo "Something has gone wrong!  Press ENTER to view log file."
 	read ans
-	more /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_installworld
+	more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_installworld
 	exit
 fi
 
@@ -96,10 +96,10 @@ make_world_kernel
 build_all_kernels
 
 # Check for freesbie builder issues
-if [ -f /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
+if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
 	echo "Something has gone wrong!  Press ENTER to view log file."
 	read ans
-	more /usr/obj.pfSense/usr/home/pfsense/freesbie2/.tmp_kernelbuild 
+	more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild 
 	exit
 fi
 
