@@ -165,6 +165,8 @@ populate_extra() {
 	mkdir -p $PFSENSEBASEDIR/usr/local/sbin	
 	mkdir -p $PFSENSEBASEDIR/usr/local/lib
 	mkdir -p $PFSENSEBASEDIR/usr/local/etc
+	mkdir -p $PFSENSEBASEDIR/usr/local/lib/php/20060613/
+	mkdir -p $PFSENSEBASEDIR/usr/local/lib/lighttpd/
 
     echo exit > $CVS_CO_DIR/root/.xcustom.sh
     touch $CVS_CO_DIR/root/.hushlogin
