@@ -161,6 +161,11 @@ populate_extra() {
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_installer/
     mkdir -p $CVS_CO_DIR/root
 
+	mkdir -p $PFSENSEBASEDIR/usr/local/bin
+	mkdir -p $PFSENSEBASEDIR/usr/local/sbin	
+	mkdir -p $PFSENSEBASEDIR/usr/local/lib
+	mkdir -p $PFSENSEBASEDIR/usr/local/etc
+
     echo exit > $CVS_CO_DIR/root/.xcustom.sh
     touch $CVS_CO_DIR/root/.hushlogin
 
