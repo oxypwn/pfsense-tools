@@ -153,21 +153,13 @@ populate_extra() {
 		install -s /usr/lib/pam_unix.so ${CVS_CO_DIR}/usr/lib/
 	fi
 	
-    mkdir -p $CVS_CO_DIR/var/run
-    mkdir -p $CVS_CO_DIR/root/
-    mkdir -p $CVS_CO_DIR/scripts/
-    mkdir -p $CVS_CO_DIR/conf
-    mkdir -p $CVS_CO_DIR/usr/local/bin/
-    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_installer/
-    mkdir -p $CVS_CO_DIR/root
-
-	mkdir -p $PFSENSEBASEDIR/usr/local/bin
-	mkdir -p $PFSENSEBASEDIR/usr/local/sbin	
-	mkdir -p $PFSENSEBASEDIR/usr/local/lib
-	mkdir -p $PFSENSEBASEDIR/usr/local/etc
-	mkdir -p $PFSENSEBASEDIR/usr/local/lib/php/20060613/
-	mkdir -p $PFSENSEBASEDIR/usr/local/lib/lighttpd/
-
+	STRUCTURE_TO_CREATE="var/run root scripts conf usr/local/share/dfuibe_installer root usr/local/bin usr/local/sbin usr/local/lib usr/local/etc usr/local/lib/php/20060613 usr/local/lib/lighttpd"
+	
+	for TEMPDIR in $STRUCTURE_TO_CREATE; do	
+		mkdir -p ${CVS_CO_DIR}/${TEMPDIR}
+		mkdir -p ${PFSENSEBASEDIR}/${TEMPDIR}
+	done
+	
     echo exit > $CVS_CO_DIR/root/.xcustom.sh
     touch $CVS_CO_DIR/root/.hushlogin
 
