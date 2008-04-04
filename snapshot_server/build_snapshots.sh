@@ -9,40 +9,48 @@
 # $Id$
 #
 
-# Set verbose + debug
-set -e -x
+# Set verbose
+set -x
+
+# Set debug
+set -e 
+
+export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
 
 # Local variables that are used by builder scripts
-PFSENSEOBJDIR=/usr/obj.pfSense/
-MAKEOBJDIRPREFIX=/usr/obj.pfSense/
+PFSENSEOBJDIR=/usr/obj.pfSense
+MAKEOBJDIRPREFIX=/usr/obj.pfSense
 WEBDATAROOT=/usr/local/www/data
 WEBROOT=/usr/local/www
-SNAPSHOTSCRIPTSDIR=/root/
+SNAPSHOTSCRIPTSDIR=/root
 STAGINGAREA=/tmp/staging
 PFSENSEHOMEDIR=/home/pfsense
 PFSENSECVSROOT=${PFSENSEHOMEDIR}/cvsroot
 PFSENSECHECKOUTDIR=${PFSENSEHOMEDIR}/pfSense
-PFSENSEUPDATESDIR=${PFSENSEHOMEDIR}/updates/
-BUILDERSCRIPTS=${PFSENSEHOMEDIR}/tools/builder_scripts
+PFSENSEUPDATESDIR=${PFSENSEHOMEDIR}/updates
 TOOLDIR=${PFSENSEHOMEDIR}/tools
-
-# Ensure directories exist
-mkdir -p $PFSENSECVSROOT
-mkdir -p $STAGINGAREA
-mkdir -p $WEBROOT
+BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 
 # Source pfSense / FreeSBIE variables
 . $BUILDERSCRIPTS/builder_common.sh
 . $BUILDERSCRIPTS/pfsense_local.sh
 
 # Ensure a fresh environment, please.
-rm -rf $PFSENSECVSROOT
-rm -rf $PFSENSECHECKOUTDIR
+# rm -rf $PFSENSECVSROOT
+# rm -rf $PFSENSECHECKOUTDIR
+
+# Ensure directories exist
 mkdir -p $PFSENSECVSROOT
 mkdir -p $PFSENSECHECKOUTDIR
+mkdir -p $STAGINGAREA
+mkdir -p $WEBROOT
 
 # Sync with pfsense.org
 cvsup $BUILDERSCRIPTS/pfSense-supfile
+cvsup $BUILDERSCRIPTS/freesbie2-supfile
+
+rm $BUILDERSCRIPTS/pfsense_local.sh
+cd $BUILDERSCRIPTS && cvs up -d
 
 create_webdata_structure() {
 	mkdir -p $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates
@@ -66,79 +74,25 @@ set_freebsd_version() {
 }
 
 install_pfsense_local_sh() {
+	# Customizes pfsense_local.sh
+	touch $WEBROOT/FREEBSD_PLATFORM.txt
+	touch $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt
+	touch $WEBROOT/FREEBSD_VERSION.txt
 	FREEBSD_PLATFORM=`cat $WEBROOT/FREEBSD_PLATFORM.txt`
 	PFSENSE_PLATFORM=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	FREEBSD_VERSION=`cat $WEBROOT/FREEBSD_VERSION.txt`
-
-	cat <<EOF >$BUILDERSCRIPTS/pfsense_local.sh
-#!/bin/sh
-
-# This is the base working directory for all builder
-# operations
-export BASE_DIR=\${BASE_DIR:-/home/pfsense}
-
-# This is the directory where the latest pfSense cvs co
-# is checked out to.
-export CVS_CO_DIR=\${CVS_CO_DIR:-\${BASE_DIR}/pfSense}
-
-export CUSTOMROOT=\${CUSTOMROOT:-\${CVS_CO_DIR}}
-
-# This is the user that has access to the pfSense repo
-export CVS_USER=\${CVS_USER:-sullrich}
-
-# pfSense repo IP address. Typically cvs.pfsense.org,
-# but somebody could use a ssh tunnel and specify
-# a different one
-export CVS_IP=\${CVS_IP:-cvs.pfsense.org}
-
-export UPDATESDIR=\${UPDATESDIR:-\$BASE_DIR/updates}
-
-export PFSENSEBASEDIR=\${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
-
-export PFSENSEISODIR=\${PFSENSEISODIR:-/usr/local/pfsense-clone}
-
-# FreeSBIE 2 toolkit path
-export FREESBIE_PATH=\${FREESBIE_PATH:-/home/pfsense/freesbie2}
-
-# export variables used by freesbie2
-export FREESBIE_CONF=\${FREESBIE_CONF:-/dev/null}
-export SRCDIR=\${SRCDIR:-/usr/src}
-export BASEDIR=\${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
-export CLONEDIR=\${PFSENSEISODIR:-/usr/local/pfsense-clone}
-export ISOPATH=\${ISOPATH:-\${MAKEOBJDIRPREFIX}/pfSense.iso}
-export IMGPATH=\${IMGPATH:-\${MAKEOBJDIRPREFIX}/pfSense.img}
-export PKGFILE=\${PKGFILE:-\$PWD/conf/packages}
-export FREESBIE_LABEL=pfSense
-export EXTRA="\${EXTRA:-"customroot buildmodules"}"
-export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs"
-
-MAKEJ=" "
-
-# Used by non pfSense developers
-export SKIP_RSYNC=yes
-
-# Custom overlay for people building or extending pfSense images.
-# The custom overlay tar gzipped file will be extracted over the root
-# of the prepared image allowing for customization.
-#
-# Note: It is also possible to specify a directory instead of a
-#       gezipped tarball.
-# export custom_overlay="/home/pfsense/custom_overlay.tgz"
-
-export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
-
-export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/libevent pfPorts/pftpx pfPorts/clog pfPorts/fping"
-export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
-
-# FreeBSD version.  6 or 7
-export pfSense_version="${FREEBSD_VERSION}"
-export freebsd_branch="${FREEBSD_PLATFORM}"
-
-# pfSense cvs tag to build
-export PFSENSETAG="${PFSENSE_PLATFORM}"
-
-EOF
-
+	# Strip dynamic values
+	cat $BUILDERSCRIPTS/pfsense_local.sh | \
+		grep -v pfSense_version | \
+		grep -v freebsd_branch | \
+		grep -v PFSENSETAG | \
+		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense_local.sh
+	mv /tmp/pfsense_local.sh $BUILDERSCRIPTS/pfsense_local.sh
+	# Add our custom dynamic values
+	echo export pfSense_version="${FREEBSD_VERSION}" >> $BUILDERSCRIPTS/pfsense_local.sh
+	echo export freebsd_branch="${FREEBSD_PLATFORM}" >> $BUILDERSCRIPTS/pfsense_local.sh
+	echo export PFSENSETAG="${PFSENSE_PLATFORM}" >> $BUILDERSCRIPTS/pfsense_local.sh
+	echo export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com" >> $BUILDERSCRIPTS/pfsense_local.sh
 }
 
 update_sources() {
@@ -248,12 +202,12 @@ build_loop_operations() {
 # Main builder loop - lets do this forever until the cows come home.
 while [ /bin/true ]; do
 
-	# --- begin pfSense RELENG_1_2 -- FreeBSD RELENG_6_3
-	set_pfsense_source "RELENG_1_2"
-	set_freebsd_source "RELENG_6_3"
-	set_freebsd_version "6"
+	# --- begin pfSense RELENG_1 -- FreeBSD RELENG_7
+	set_pfsense_source "RELENG_1"
+	set_freebsd_source "RELENG_7_0"
+	set_freebsd_version "7"
 	build_loop_operations	
-	# --- end pfSense RELENG_1_2 -- FreeBSD RELENG_6_3
+	# --- end pfSense RELENG_1 -- FreeBSD RELENG_7
 
 	sleep 500	# give the box a break.
 done
