@@ -708,6 +708,8 @@ print_flags() {
 	printf " MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
 	printf "            EXTRA: %s\n" $EXTRA
 	printf "     BUILDMODULES: %s\n" $BUILDMODULES
+	printf "          ISOPATH: %s\n" $ISOPATH
+	printf "          IMGPATH: %s\n" $IMGPATH
 
 	echo "Sleeping for 5 seconds..."
 
