@@ -393,6 +393,8 @@ fixup_updates() {
 	rm -f ${PFSENSEBASEDIR}/etc/fstab 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/platform 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
+
 	echo > ${PFSENSEBASEDIR}/root/.tcshrc
 	echo "alias installer /scripts/lua_installer" > ${PFSENSEBASEDIR}/root/.tcshrc
 	
@@ -480,6 +482,11 @@ create_pfSense_Full_update_tarball() {
 
 	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
 	set +e
+	
+	# Ensure that we do not step on /root/ scripts that
+	# control auto login, console menu, etc.
+	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
+		
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
