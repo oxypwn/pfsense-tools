@@ -5,13 +5,15 @@
 #  * Applies pfSense specific patches
 #  * Rebuilds pfSense ISO
 
-#set -e -x
+# Crank up error reporting
+set -x
+set -e
 
+# Set CURRENTDIR
 CURRENTDIR=`pwd`
-[ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
-# Suck in script helper functions
-. ./builder_common.sh
+[ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
+[ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/builder_common.sh
 
 if [ ! -d $BASE_DIR ]; then
 	mkdir -p $BASE_DIR
@@ -24,8 +26,8 @@ if [ -d "$CLONEDIR" ]; then
 	echo -n "${CLONEDIR}/*"
 	rm -rf ${CLONEDIR}/*
 fi
-echo -n " Kernels "
-if [ -d /tmp/kernels/ ]; then
+echo -n " /tmp/kernels "
+if [ -d /tmp/kernels ]; then
 	chflags -R noschg /tmp/kernels
 	rm -rf /tmp/kernels
 fi
@@ -183,9 +185,6 @@ do
 		echo "Patching ${PATCH_FILE}"
 		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
 	fi
-	if [ $MOVE_FILE_LEN -gt "2" ]; then
-		#cp ${SRCDIR}/${MOVE_FILE} ${SRCDIR}/${PATCH_DIRECTORY}
-	fi
 done
 
 echo "Finding patch rejects..."
@@ -200,7 +199,7 @@ if [ $REJECTED_PATCHES -gt 0 ]; then
 fi
 
 echo -n "Cleaning up previous build environment...Please wait..."
-if [ -d $PFSENSEBASEDIR ]; then 
+if [ -d $PFSENSEBASEDIR/* ]; then 
 	chflags -R noschg ${PFSENSEBASEDIR}
 	(cd ${CURRENTDIR} && rm -rf ${PFSENSEBASEDIR})	
 fi
@@ -212,8 +211,10 @@ fi
 echo "Done!"
 
 # Recompile pfPorts
+set +e
 echo "Recompiling all binaries needed by pfSense (pfPorts)..."
 recompile_pfPorts
+set -e
 
 print_flags
 
