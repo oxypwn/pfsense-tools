@@ -26,8 +26,8 @@ if [ -d "$CLONEDIR" ]; then
 fi
 echo -n " Kernels "
 if [ -d /tmp/kernels/ ]; then
-	chflags -R noschg /tmp/kernels/*
-	rm -rf /tmp/kernels/*
+	chflags -R noschg /tmp/kernels
+	rm -rf /tmp/kernels
 fi
 echo "done"
 
