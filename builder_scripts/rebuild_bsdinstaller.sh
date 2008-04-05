@@ -2,7 +2,7 @@
 
 echo "Rebuilding BSDInstaller..."
 
-mkdir -p conf
+mkdir -p /home/pfsense/tools/builder_scripts/conf
 
 PREVIOUSDIR=`pwd`
 
