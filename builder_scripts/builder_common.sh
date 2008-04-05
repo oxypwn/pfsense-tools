@@ -319,9 +319,9 @@ populate_extra() {
 }
 
 install_custom_packages() {
-	set +e
+
 	DEVFS_MOUNT=`mount | grep ${BASEDIR}/dev | wc -l | awk '{ print $1 }'`
-	set -e
+
 	if [ "$DEVFS_MOUNT" -lt 1 ]; then
 		echo "Mounting devfs ${BASEDIR}/dev ..."
 		mount -t devfs devfs ${BASEDIR}/dev
@@ -340,6 +340,7 @@ install_custom_packages() {
 		fi
 	fi
 
+	# Clean up after ourselves.
 	umount ${BASEDIR}/dev
 
 }
