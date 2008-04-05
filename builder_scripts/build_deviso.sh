@@ -4,8 +4,6 @@
 
 #set -e -u
 
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.Dev"
-
 . ./pfsense_local.sh
 
 # Suck in script helper functions
