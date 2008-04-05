@@ -109,31 +109,11 @@ recompile_pfPorts() {
 		mv /etc/make.conf /tmp/
 	fi
 	export FORCE_PKG_REGISTER=yo
-	pfSDESTINATIONDIR=/usr/local
-	pfSPORTS_BASE_DIR=/home/pfsense/tools
-	mkdir -p $pfSDESTINATIONDIR
-	mkdir -p $pfSDESTINATIONDIR/usr
-	mkdir -p $pfSDESTINATIONDIR/var
-	mkdir -p $pfSDESTINATIONDIR/root
-	mkdir -p $pfSDESTINATIONDIR/usr/local
-	mtree -PUer -q -p $pfSDESTINATIONDIR/usr < /etc/mtree/BSD.usr.dist
-	mtree -PUer -q -p $pfSDESTINATIONDIR/var/ < /etc/mtree/BSD.var.dist
-	mtree -PUer -q -p $pfSDESTINATIONDIR/root/ < /etc/mtree/BSD.root.dist
-	mtree -PUer -q -p $pfSDESTINATIONDIR/usr/local < /etc/mtree/BSD.local.dist
-	for pfSPORT in $INSTALL_PORTS; do
-		echo > /etc/make.conf
-		COMPILE_STATIC=""
-		for STATIC in $STATIC_INSTALL_PORTS; do
-			if [ "$STATIC" = "$pfSPORT" ]; then
-				echo 'CFLAGS="-static"' >  /etc/make.conf
-				echo "===> $STATIC is marked for static compilation..."
-			fi
-		done
-		echo "===> Operating on $pfSPORT..."
-		(cd $pfSPORTS_BASE_DIR/$pfSPORT && make FORCE_PKG_REGISTER=yo BATCH=yo $COMPILE_STATIC)
-		echo "===> Installing new port..."
-		(cd $pfSPORTS_BASE_DIR/$pfSPORT && make install FORCE_PKG_REGISTER=yo BATCH=yo)
-	done
+	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
+	echo "===> Operating on $pfSPORT..."
+	( cd $pfSPORTS_BASE_DIR && make FORCE_PKG_REGISTER=yo BATCH=yo )
+	echo "===> Installing new port..."
+	( cd $pfSPORTS_BASE_DIR && make install FORCE_PKG_REGISTER=yo BATCH=yo )
 	chflags -R noschg $pfSDESTINATIONDIR
 	if [ -f /tmp/make.conf ]; then
 		mv /tmp/make.conf /etc/

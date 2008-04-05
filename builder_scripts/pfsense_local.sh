@@ -82,12 +82,6 @@ export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 
-export INSTALL_PORTS="pfPorts/isc-dhcp3-server pfPorts/php4-pfsense pfPorts/libevent pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/ipsec-tools pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx pfPorts/clog pfPorts/fping pfPorts/links pfPorts/grub pfPorts/curl pfPorts/gettext"
-                   
-export INSTALL_PORTS_HEAD="pfPorts/isc-dhcp3-server pfPorts/php5-pfsense pfPorts/xcache pfPorts/libevent13 pfPorts/beep pfPorts/lighttpd pfPorts/check_reload_status pfPorts/minicron pfPorts/libart_lgpl pfPorts/rrdtool pfPorts/choparp pfPorts/miniupnpd pfPorts/mpd pfPorts/slbd pfPorts/olsrd pfPorts/dnsmasq pfPorts/openntpd pfPorts/sshlockout_pf pfPorts/expiretable pfPorts/lzo2 pfPorts/openvpn pfPorts/pecl-APC pfPorts/pftop pfPorts/vtsh pfPorts/isc-dhcp3-relay pfPorts/pftpx pfPorts/clog pfPorts/fping pfPorts/grub pfPorts/curl pfPorts/gettext pfPorts/rrdtool"
-
-export STATIC_INSTALL_PORTS="pfPorts/ipsec-tools"
-
 export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 
 #### User settable options follow ### 
