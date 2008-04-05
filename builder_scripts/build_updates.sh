@@ -6,7 +6,9 @@
 #
 # $Id$
 
-#set -e -u
+# Crank up error reporting, debugging.
+set -e 
+set -x
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
@@ -30,7 +32,9 @@ print_flags
 check_for_clog
 
 # Allow old CVS_CO_DIR to be deleted later
-chflags -R noschg $CVS_CO_DIR
+if [ -d $CVS_CO_DIR ]; then
+	chflags -R noschg $CVS_CO_DIR
+fi
 
 # Use pfSense.6 as kernel configuration file
 if [ $pfSense_version = "6" ]; then

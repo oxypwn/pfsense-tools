@@ -4,7 +4,10 @@
 #
 # $Id$
 
-# Fixup needed library changes above and beyond current release version if needed
+# Crank up error reporting, debugging.
+set -e 
+set -x
+
 fixup_libmap() {
 	
 }
