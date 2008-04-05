@@ -144,7 +144,7 @@ echo "Fetching BSDInstaller..."
 cvsup ${CURRENTDIR}/bsdinstaller-supfile
 ./cvsup_bsdinstaller
 echo "Rebuilding BSDInstaller..."
-./rebuild_bsdinstaller
+./rebuild_bsdinstaller.sh
 
 # If override is in place, use it otherwise
 # locate fastest cvsup host
