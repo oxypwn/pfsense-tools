@@ -17,8 +17,4 @@ cp ${BASE_DIR}/tools/installer/conf/build.conf \
         ${BASE_DIR}/installer/installer/scripts/build/
 # Build BSDInstaller
 mkdir -p /usr/ports/packages/All
-(cd ${BASE_DIR}/installer/installer/scripts/build && \
-        ./create_installer_tarballs.sh && \
-        ./copy_ports_to_portsdir.sh && \
-        ./build_installer_packages.sh)
 
