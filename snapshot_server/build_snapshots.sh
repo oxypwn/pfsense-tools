@@ -15,8 +15,6 @@ set -x
 # Set debug
 set -e 
 
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
-
 # Local variables that are used by builder scripts
 PFSENSEOBJDIR=/usr/obj.pfSense
 MAKEOBJDIRPREFIX=/usr/obj.pfSense
