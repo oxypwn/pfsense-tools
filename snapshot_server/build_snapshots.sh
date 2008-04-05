@@ -107,9 +107,6 @@ build_embedded() {
 	rm -f $PFSENSEOBJDIR/pfSense-${DATESTRING}.img.gz
 	cd $BUILDERSCRIPTS 
 	./build_embedded.sh
-	mv $PFSENSEOBJDIR/pfSense.img $PFSENSEOBJDIR/pfSense-${DATESTRING}.img
-	gzip $PFSENSEOBJDIR/pfSense-${DATESTRING}.img
-	md5 $PFSENSEOBJDIR/pfSense-${DATESTRING}.img.gz > $PFSENSEOBJDIR/pfSense-${DATESTRING}.img.gz.md5
 }
 
 build_embedded_updates() {
@@ -155,19 +152,23 @@ copy_to_staging_iso_updates() {
 }
 
 copy_to_staging_embedded() {
-	cp $PFSENSEOBJDIR/pfSense.img.* $STAGINGAREA/
+	cp $PFSENSEOBJDIR/pfSense.img $STAGINGAREA/ 
+	DATESTRING=`date "+%Y%m%d-%H%M"`
+	rm -f $STAGINGAREA/pfSense-${DATESTRING}.img.gz
+	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${DATESTRING}.img
+	gzip $STAGINGAREA/pfSense-${DATESTRING}.img
+	md5 $STAGINGAREA/pfSense-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${DATESTRING}.img.gz.md5
 }
 
 cp_files() {
-	cp $STAGINGAREA/pfSense.iso.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/iso/
-	cp $STAGINGAREA/pfSense.img.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/embedded/
+	cp $STAGINGAREA/pfSense-*.iso.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/iso/
+	cp $STAGINGAREA/pfSense-*.img.* $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/embedded/
 	cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates/
 	cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates/
 }
 
 scp_files() {
-	scp $STAGINGAREA/pfSense.iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
-	scp $STAGINGAREA/pfSense.img* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	scp $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 }
 
