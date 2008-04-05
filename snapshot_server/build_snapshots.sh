@@ -98,7 +98,7 @@ update_sources() {
 	./cvsup_current
 	gzip $PFSENSEOBJDIR/pfSense.iso
 	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz
-	md5 pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
+	md5 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
 }
 
 build_embedded() {
