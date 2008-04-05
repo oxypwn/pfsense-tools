@@ -110,6 +110,16 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
 	exit
 fi
 
+rm -f $BASE_DIR/tools/builder_scripts/conf/packages
+
+set +e # grep could fail
+(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep lighttpd) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep cpdup) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
+set -e
+
 # Add extra pfSense packages
 echo ">>> Phase install_custom_packages"
 install_custom_packages
@@ -121,16 +131,6 @@ fixup_libmap
 
 # Nuke the boot directory
 # [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
-
-rm -f $BASE_DIR/tools/builder_scripts/conf/packages
-
-set +e # grep could fail
-(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep lighttpd) >> $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep cpdup) >> $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
-set -e
 
 # Install custom packages
 freesbie_make pkginstall
