@@ -103,11 +103,13 @@ update_sources() {
 
 build_embedded() {
 	rm -rf /usr/obj*
+	DATESTRING=`date "+%Y%m%d-%H%M"`
+	rm -f $PFSENSEOBJDIR/pfSense-${DATESTRING}.img.gz
 	cd $BUILDERSCRIPTS 
 	./build_embedded.sh
-	rm -f $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz
-	gzip $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img
-	md5 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.img.gz.md5
+	mv $PFSENSEOBJDIR/pfSense.img $PFSENSEOBJDIR/pfSense-${DATESTRING}.img
+	gzip $PFSENSEOBJDIR/pfSense-${DATESTRING}.img
+	md5 $PFSENSEOBJDIR/pfSense-${DATESTRING}.img.gz > $PFSENSEOBJDIR/pfSense-${DATESTRING}.img.gz.md5
 }
 
 build_embedded_updates() {
