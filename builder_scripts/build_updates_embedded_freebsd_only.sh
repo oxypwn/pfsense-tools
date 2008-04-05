@@ -8,8 +8,6 @@
 
 #set -e -u
 
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso.embedded"
-
 # Suck in local vars
 . ./pfsense_local.sh
 

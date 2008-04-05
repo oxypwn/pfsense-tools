@@ -8,8 +8,6 @@
 
 #set -e -u -x
 
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
-
 # Suck in local vars
 . ./pfsense_local.sh
 
@@ -31,6 +29,15 @@ if [ $pfSense_version = "6" ]; then
 fi
 if [ $pfSense_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.7"}
+fi
+
+# If a embedded build has been performed we need to nuke
+# /usr/obj.pfSense/ since full uses a different
+# make.conf
+if [ -f /usr/obj.pfSense/pfSense_wrap.6.world.done ]; then
+	echo -n "Removing /usr/obj* since embedded build performed prior..."
+	rm -rf /usr/obj.pfSense/*
+	echo "done."
 fi
 
 # Use normal make.conf
