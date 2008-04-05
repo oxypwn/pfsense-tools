@@ -7,8 +7,6 @@
 
 #set -e -x
 
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense.iso"
-
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
@@ -32,23 +30,6 @@ if [ -d /tmp/kernels/ ]; then
 	rm -rf /tmp/kernels/*
 fi
 echo "done"
-
-if [ ! -d $BASE_DIR/freesbie2 ]; then
-	echo "FreeSBIE2 doesn't exist.  We are fetching..."
-	mkdir -p /home/pfsense/
-	touch ~/.cvspass
-	echo
-	echo
-	echo "*** Please hit enter on the next line.  We only need to do this once! ***"
-	echo
-	echo
-	cvs -d :pserver:anonymous@cvs.freesbie.org:/cvs login
-	(cd $BASE_DIR && cvs -z3 -d :pserver:anonymous@cvs.freesbie.org:/cvs co -P freesbie2)
-fi
-
-# Update FreeSBIE2 files from CVS
-echo "Updating FreeSBIE 2"
-(cd ../../freesbie2 && cvs update -d)
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
@@ -162,7 +143,11 @@ cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
 echo "Updating FreeBSD ports files..."
 cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 echo "Updating FreeSBIE2-pfSense edition..."
-cvsup -h cvsup.pfsense.org freesbie2-supfile
+cvsup freesbie2-supfile
+
+# Update FreeSBIE2 files from CVS
+echo "Updating FreeSBIE2"
+( cd ../../freesbie2 && cvs update -d )
 
 # Loop through and remove files
 echo "Removing needed files listed in ${CURRENTDIR}/patches.${freebsd_branch}"
