@@ -319,15 +319,16 @@ populate_extra() {
 }
 
 install_custom_packages() {
-	DEVFS_MOUNT=`mount | grep /usr/local/pfsense-fs/dev`
-	DESTNAME="pkginstall.sh"
-
-	if [ -n ${DEVFS_MOUNT} ]; then
-		if [ -d ${BASEDIR}/dev ]; then
-			umount ${BASEDIR}/dev
-		fi
+	set +e
+	DEVFS_MOUNT=`mount | grep ${BASEDIR}/dev | wc -l | awk '{ print $1 }'`
+	set -e
+	if [ "$DEVFS_MOUNT" -lt 1 ]; then
+		echo "Mounting devfs ${BASEDIR}/dev ..."
+		mount -t devfs devfs ${BASEDIR}/dev
 	fi
-
+		
+	DESTNAME="pkginstall.sh"
+	
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
 		# execute setup script
@@ -338,6 +339,9 @@ install_custom_packages() {
 			rm ${FREESBIE_PATH}/extra/customscripts/${DESTNAME}
 		fi
 	fi
+
+	umount ${BASEDIR}/dev
+
 }
 
 create_pfSense_BaseSystem_Small_update_tarball() {
@@ -403,9 +407,6 @@ fixup_updates() {
 	echo "/etc/rc.initial" >> ${PFSENSEBASEDIR}/root/.shrc
 	echo "exit" >> ${PFSENSEBASEDIR}/root/.shrc
 
-	# Nuke the trigger wizard script
-	rm -f ${PFSENSEBASEDIR}/trigger_initial_wizard
-
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/livefs/lib/
 
 	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
@@ -432,14 +433,9 @@ fixup_wrap() {
 
     mkdir -p $CVS_CO_DIR/cf/conf/backup
 
-    # Nuke the trigger wizard script
-    rm -f $CVS_CO_DIR/trigger_initial_wizard
-
     echo /etc/rc.initial > $CVS_CO_DIR/root/.shrc
     echo exit >> $CVS_CO_DIR/root/.shrc
     rm -f $CVS_CO_DIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
-
-    touch $CVS_CO_DIR/conf/trigger_initial_wizard
 
     echo "embedded" > $CVS_CO_DIR/etc/platform
     echo "wrap" > /boot/kernel/pfsense_kernel.txt
@@ -607,7 +603,6 @@ copy_pfSense_tarball_to_freesbiebasedir() {
 
 # Set image as a CDROM type image
 set_image_as_cdrom() {
-	touch $CVS_CO_DIR/conf/trigger_initial_wizard
 	echo cdrom > $CVS_CO_DIR/etc/platform
 }
 
