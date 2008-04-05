@@ -23,7 +23,9 @@ check_for_clog
 print_flags
 
 # Allow old CVS_CO_DIR to be deleted later
-chflags -R noschg $CVS_CO_DIR
+if [ -d $CVS_CO_DIR ]; then 
+	chflags -R noschg $CVS_CO_DIR
+fi 
 
 # Use pfSense.6 as kernel configuration file
 if [ $pfSense_version = "6" ]; then
