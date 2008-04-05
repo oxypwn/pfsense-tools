@@ -4,14 +4,21 @@
 
 #export DNO_ATM=yes
 
-# This is the base working directory for all builder
-# operations
+# Leave near the top.  
+export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
+
+# Generally /home/pfsense
+export BASE_DIR=${BASE_DIR:-/home/pfsense}
+
+# This is the base working directory for all builder operations
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
 
 # This is the directory where the latest pfSense cvs co
 # is checked out to.
 export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/pfSense}
 
+# Where pfSense is checked out.  This directory will
+# be overlayed onto the image later in the process
 export CUSTOMROOT=${CUSTOMROOT:-${CVS_CO_DIR}}
 
 # This is the user that has access to the pfSense repo
@@ -36,16 +43,20 @@ export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should 
 export SRCDIR=${SRCDIR:-/usr/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
-export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
-export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfSense
+
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
 export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
+
+# Extra modules that we want (FreeBSD)
 export BUILDMODULES="netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
-export MAKEOBJDIRPREFIX="/usr/obj.pfSense"
 
 MAKEJ=" "
+
+# Must be defined after MAKEOBJDIRPREFIX!
+export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
+export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
