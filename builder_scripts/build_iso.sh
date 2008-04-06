@@ -67,9 +67,11 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 # Clean out directories
+echo ">>> Cleaning up old directories..."
 freesbie_make cleandir
 
 # Checkout a fresh copy from pfsense cvs depot
+echo ">>> Updating pfSense CVS depot..."
 update_cvs_depot
 
 # Calculate versions
@@ -80,10 +82,8 @@ export version=`cat $CVS_CO_DIR/etc/version`
 # Invoke FreeSBIE2 toolchain
 
 # Prepare object directry
+echo ">>> Preparing object directory..."
 freesbie_make obj
-
-# Build freebsd world
-make_world_kernel
 
 # Check for freesbie builder issues
 if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
@@ -101,9 +101,11 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
 fi
 
 # Build world, kernel and install
+echo ">>> Building world and kernels..."
 make_world_kernel
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
+echo ">>> Building all extra kernels..."
 build_all_kernels
 
 # Check for freesbie builder issues
@@ -128,6 +130,7 @@ fixup_libmap
 
 rm -f $BASE_DIR/tools/builder_scripts/conf/packages
 
+echo ">>> Searching for packages..."
 set +e # grep could fail
 (cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep lighttpd) >> $BASE_DIR/tools/builder_scripts/conf/packages
@@ -136,20 +139,27 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
 set -e
 
+echo ">>> Installing packages: " 
+cat $BASE_DIR/tools/builder_scripts/conf/packages
+
 # Install custom packages
+echo ">>> Installing custom packageas..."
 freesbie_make pkginstall
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
-echo ">>> Phase populate_extra"
+echo ">>> Phase populate_extra..."
 populate_extra
 
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
+echo ">>> Merging extra items..."
 freesbie_make extra
 
 # Prepare /usr/local/pfsense-clonefs
+echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
 # Finalize iso
+echo ">>> Finalizing iso..."
 freesbie_make iso
 
