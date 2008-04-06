@@ -49,6 +49,7 @@ install_items = {
         "conf.default",
         "dev",
         "etc",
+		"kernels",
         "libexec",
         "lib",
         "root",
