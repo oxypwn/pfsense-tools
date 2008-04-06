@@ -268,8 +268,6 @@ populate_extra() {
 			fi
 		fi
 
-	    set -e
-
 	fi
 		
 	# Extract custom overlay if it's defined.

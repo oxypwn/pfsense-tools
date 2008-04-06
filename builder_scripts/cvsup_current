@@ -214,7 +214,6 @@ echo "Done!"
 set +e
 echo "Recompiling all binaries needed by pfSense (pfPorts)..."
 recompile_pfPorts
-set -e
 
 print_flags
 
