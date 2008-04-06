@@ -71,7 +71,7 @@ return {
 
 	if response.action_id == "Developers" then
 		local cmds = CmdChain.new()
-		cmds:add("tar xzpf /kernels/kernel_Dev.gz /mnt/boot/")
+		cmds:add("tar xzpf /kernels/kernel_Dev.gz -C /mnt/boot/")
 		cmds:add("echo Developers > /mnt/boot/kernel/pfsense_kernel.txt")
 		cmds:execute()
 	end
