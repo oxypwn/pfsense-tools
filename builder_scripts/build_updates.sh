@@ -7,8 +7,8 @@
 # $Id$
 
 # Crank up error reporting, debugging.
-set -e 
-set -x
+#set -e 
+#set -x
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different

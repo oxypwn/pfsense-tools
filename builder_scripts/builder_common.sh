@@ -5,8 +5,8 @@
 # $Id$
 
 # Crank up error reporting, debugging.
-set -e 
-set -x
+#set -e 
+#set -x
 
 fixup_libmap() {
 	

@@ -6,8 +6,8 @@
 #  * Rebuilds pfSense ISO
 
 # Crank up error reporting
-set -x
-set -e
+#set -x
+#set -e
 
 # Set CURRENTDIR
 CURRENTDIR=`pwd`
