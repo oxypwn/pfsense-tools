@@ -2,11 +2,11 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.56 2007/09/10 13:36:49 mnag Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.58 2008/03/16 21:01:10 mnag Exp $
 #
 
 PORTNAME=	lighttpd
-PORTVERSION=	1.4.18
+PORTVERSION=	1.4.19
 CATEGORIES=	www
 MASTER_SITES=	http://www.lighttpd.net/download/ \
 		http://mirrors.cat.pdx.edu/lighttpd/
@@ -16,6 +16,7 @@ COMMENT=	A secure, fast, compliant, and very flexible Web Server
 
 LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
 
+USE_BZIP2=	yes
 USE_AUTOTOOLS=	libtool:15
 GNU_CONFIGURE=	yes
 USE_GNOME=	lthack
