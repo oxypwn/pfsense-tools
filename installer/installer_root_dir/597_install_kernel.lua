@@ -53,14 +53,14 @@ return {
 
 	if response.action_id == "SMP" then
 		local cmds = CmdChain.new()
-		cmds:add("cp /kernels/kernel_SMP.gz /mnt/boot/kernel/kernel.gz")
+		cmds:add("tar xzpf /kernels/kernel_SMP.gz -C /mnt/boot/")
 		cmds:add("echo SMP > /mnt/boot/kernel/pfsense_kernel.txt")
 		cmds:execute()
 	end
 
 	if response.action_id == "Embedded" then
 		local cmds = CmdChain.new()
-		cmds:add("cp /kernels/kernel_wrap.gz /mnt/boot/kernel/kernel.gz")
+		cmds:add("tar xzpf /kernels/kernel_wrap.gz -C /mnt/boot/")
 		cmds:add("cp /etc/ttys_wrap /mnt/etc/ttys")
 		cmds:add("echo wrap > /mnt/boot/kernel/pfsense_kernel.txt")
 		-- turn on serial console
@@ -71,7 +71,7 @@ return {
 
 	if response.action_id == "Developers" then
 		local cmds = CmdChain.new()
-		cmds:add("cp /kernels/kernel_Dev.gz /mnt/boot/kernel/kernel.gz")
+		cmds:add("tar xzpf /kernels/kernel_Dev.gz -C /mnt/boot/")
 		cmds:add("echo Developers > /mnt/boot/kernel/pfsense_kernel.txt")
 		cmds:execute()
 	end
