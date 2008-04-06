@@ -97,7 +97,7 @@ build_all_kernels() {
 		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
 		find /tmp/kernels -name "*.symbols" -exec rm {} \;
     fi
-	find /tmp/kernels -name kernel.old -exec rm -rf {} \;
+	find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 
 	echo -n " ."
 	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
