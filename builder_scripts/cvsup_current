@@ -223,5 +223,5 @@ echo
 
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 echo ">>> Executing ${CURRENTDIR}/build_iso.sh..."
-(cd ${CURRENTDIR} && ./build_iso.sh)
+(su - root -c cd ${CURRENTDIR} && ./build_iso.sh)
 
