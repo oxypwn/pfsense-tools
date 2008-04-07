@@ -30,6 +30,10 @@ TOOLDIR=${PFSENSEHOMEDIR}/tools
 BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 
 # Source pfSense / FreeSBIE variables
+# *** DO NOT SOURCE BUILDER_COMMON.SH!
+# *** IT WILL BREAK EVERYTHING FOR 
+# *** SOME UNKNOWN REASON.
+# ***                       04/07/2008
 . $BUILDERSCRIPTS/pfsense_local.sh
 
 # Ensure a fresh environment, please.
