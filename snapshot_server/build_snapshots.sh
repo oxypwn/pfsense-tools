@@ -30,7 +30,6 @@ TOOLDIR=${PFSENSEHOMEDIR}/tools
 BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 
 # Source pfSense / FreeSBIE variables
-. $BUILDERSCRIPTS/builder_common.sh
 . $BUILDERSCRIPTS/pfsense_local.sh
 
 # Ensure a fresh environment, please.
@@ -192,8 +191,6 @@ build_loop_operations() {
 	create_webdata_structure
 	# Cleanup prior builds
 	cleanup_builds
-	# Output builder flags
-	print_flags
 	# Do the builds
 	dobuilds
 	# Copy/SCP images
