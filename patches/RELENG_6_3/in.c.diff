@@ -1,0 +1,15 @@
+Index: in.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/in.c,v
+retrieving revision 1.85.2.9
+diff -u -r1.85.2.9 in.c
+--- in.c	7 Jul 2007 00:54:46 -0000	1.85.2.9
++++ in.c	8 Apr 2008 17:49:49 -0000
+@@ -991,7 +991,6 @@
+ 	 * a new record.  Otherwise, we are done.
+ 	 */
+ 	if (ifma->ifma_protospec != NULL) {
+-		if_delmulti_ent(ifma);	/* We don't need another reference */
+ 		IN_MULTI_UNLOCK();
+ 		IFF_UNLOCKGIANT(ifp);
+ 		return ifma->ifma_protospec;
