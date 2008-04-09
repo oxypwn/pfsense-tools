@@ -1,0 +1,15 @@
+Index: ubsa.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/ubsa.c,v
+retrieving revision 1.32
+diff -u -r1.32 ubsa.c
+--- ubsa.c	22 Jun 2007 05:56:05 -0000	1.32
++++ ubsa.c	9 Apr 2008 22:59:55 -0000
+@@ -234,6 +234,7 @@
+ 	{ USB_VENDOR_OPTION, USB_PRODUCT_OPTION_GT3GPLUS },
+ 	/* Huawei Mobile */
+ 	{ USB_VENDOR_HUAWEI, USB_PRODUCT_HUAWEI_MOBILE },
++	{ USB_VENDOR_SIERRA, USB_PRODUCT_SIERRA_875U },
+ 	{ 0, 0 }
+ };
+ 
