@@ -6,5 +6,3 @@
 ~sys/netinet~tcp_output.c.diff~
 ~~pfctl_dscp_altq_.diff~
 ~sys/~patch-natt-freebsd7-2008-03-11.diff~
-~sys/dev/usb/~aircard875u.diff~
-~sys/dev/usb/~umodem.c.diff~
