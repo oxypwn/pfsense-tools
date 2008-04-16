@@ -10,3 +10,4 @@
 ~sys/dev/usb/~aircard875u.diff~
 ~sys/dev/usb/~ubsa.c.diff~
 ~sbin/fdisk~fdisk.c.diff~
+~sys/modules/ipfw~ipfw.diff~
