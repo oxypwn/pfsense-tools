@@ -1,36 +1,62 @@
 # New ports collection makefile for:	mpd
-# Date created:				25 Feb 1999
+# Date created:				20 Sep 2005
 # Whom:					Archie Cobbs
 #
-# $FreeBSD: ports/net/mpd/Makefile,v 1.51 2007/02/12 07:57:25 sem Exp $
+# $FreeBSD: ports/net/mpd4/Makefile,v 1.17 2008/01/06 23:48:46 sem Exp $
 #
 
 PORTNAME=	mpd
-PORTVERSION=	3.18
-PORTREVISION=	5
+DISTVERSION=	4.4
 CATEGORIES=	net
-MASTER_SITES=	${MASTER_SITE_LOCAL}
-MASTER_SITE_SUBDIR=	archie
-DIST_SUBDIR=	mpd
+MASTER_SITES=	SF
+MASTER_SITE_SUBDIR=	mpd
+DIST_SUBDIR=	mpd4
 
-MAINTAINER=	ports@FreeBSD.org
-COMMENT=	Multi-link PPP daemon based on netgraph(4) [legacy version]
+MAINTAINER=	mav@FreeBSD.org
+COMMENT=	Multi-link PPP daemon based on netgraph(4)
 
-# lang/mpd
-CONFLICTS=	mpd-[^3]*
+LIB_DEPENDS=	pdel.0:${PORTSDIR}/devel/libpdel
 
-MTREE_FILE=	${FILESDIR}/mpd.mtree
-MAN8=		mpd.8
-MANCOMPRESSED=	maybe
+LATEST_LINK=	mpd4
+
+OPTIONS=	NG_CAR "Use ng_car kernel module from port (< 7.0 only)" off\
+		NG_IPACCT "Use ng_ipacct kernel module from port" off
+
+HAS_CONFIGURE=	YES
+CONFIGURE_WRKSRC=	"${WRKSRC}/src"
 
 USE_OPENSSL=	yes
-MAKE_ENV=	COPTS="${COPTS} -I${OPENSSLINC}" LDADD="${LDADD} -L${OPENSSLLIB}"
 
-USE_RC_SUBR=	mpd
+.include <bsd.port.pre.mk>
 
-pre-build:
-	@${ECHO}
-	@${ECHO} "Use WITH_OPENSSL_PORT=yes if you use OPENSSL from ports"
-	@${ECHO}
+.if ${OSVERSION} < 700041 && defined(WITH_NG_CAR)
+BUILD_DEPENDS+=	${LOCALBASE}/include/netgraph/ng_car.h:${PORTSDIR}/net/ng_car
+.if exists(${KMODDIR}/ng_car.ko)
+RUN_DEPENDS+=	${KMODDIR}/ng_car.ko:${PORTSDIR}/net/ng_car
+.else
+RUN_DEPENDS+=	/boot/modules/ng_car.ko:${PORTSDIR}/net/ng_car
+.endif
+.endif
 
-.include <bsd.port.mk>
+.if defined(WITH_NG_IPACCT)
+BUILD_DEPENDS+=	${LOCALBASE}/include/netgraph/ng_ipacct.h:${PORTSDIR}/net-mgmt/ng_ipacct
+.if exists(${KMODDIR}/ng_ipacct.ko)
+RUN_DEPENDS+=	${KMODDIR}/ng_ipacct.ko:${PORTSDIR}/net-mgmt/ng_ipacct
+.else
+RUN_DEPENDS+=	/boot/modules/ng_ipacct.ko:${PORTSDIR}/net-mgmt/ng_ipacct
+.endif
+.endif
+
+MTREE_FILE=	${FILESDIR}/mpd4.mtree
+MAN8=		mpd4.8
+MANCOMPRESSED=	maybe
+USE_RC_SUBR=	mpd4.sh
+HTMLNUM!=	jot 67 1
+CONFSUF=	conf links secret script
+DOCSDIR=	${PREFIX}/share/doc/mpd4
+PORTDOCS=	${HTMLNUM:S/^/mpd/:S/$/.html/} mpd.html mpd.ps README	\
+		mpd_toc.html
+PLIST_DIRS=	etc/mpd4
+PLIST_FILES=	${CONFSUF:S/^/etc\/mpd4\/mpd./:S/$/.sample/} sbin/mpd4
+
+.include <bsd.port.post.mk>
