@@ -433,3 +433,5 @@ device          fwe             # Ethernet over FireWire (non-standard!)
 device 			ucom
 device 			uplcom
 
+device		safe
+
