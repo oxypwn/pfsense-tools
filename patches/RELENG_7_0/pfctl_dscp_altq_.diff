@@ -6,7 +6,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.8
 diff -u -r1.8 parse.y
 --- contrib/pf/pfctl/parse.y	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/parse.y	2 Apr 2008 17:54:30 -0000
++++ contrib/pf/pfctl/parse.y	19 Apr 2008 13:49:47 -0000
 @@ -184,6 +184,7 @@
  #define FOM_TOS		0x04
  #define FOM_KEEP	0x08
@@ -144,7 +144,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.9
 diff -u -r1.9 pfctl_altq.c
 --- contrib/pf/pfctl/pfctl_altq.c	3 Jul 2007 12:30:02 -0000	1.9
-+++ contrib/pf/pfctl/pfctl_altq.c	2 Apr 2008 17:54:30 -0000
++++ contrib/pf/pfctl/pfctl_altq.c	19 Apr 2008 13:49:47 -0000
 @@ -690,13 +690,6 @@
  		return (-1);
  	}
@@ -165,7 +165,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.8
 diff -u -r1.8 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/pfctl_parser.c	2 Apr 2008 17:54:30 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	19 Apr 2008 13:49:48 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -185,7 +185,7 @@ RCS file: /home/ncvs/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	2 Apr 2008 17:54:31 -0000
++++ sys/conf/files	19 Apr 2008 13:49:48 -0000
 @@ -332,6 +332,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf \
@@ -201,7 +201,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	2 Apr 2008 17:54:33 -0000
++++ sys/contrib/pf/net/pf.c	19 Apr 2008 13:49:50 -0000
 @@ -3305,7 +3305,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
@@ -319,8 +319,8 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	2 Apr 2008 17:54:33 -0000
-@@ -0,0 +1,219 @@
++++ sys/contrib/pf/net/pf_pptp.c	19 Apr 2008 13:49:50 -0000
+@@ -0,0 +1,320 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
 + * Copyright (c) 2008 Ermal Luçi
@@ -389,6 +389,72 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +#define PPTP_MAGIC              0x1a2b3c4d
 +#define PPTP_CTRL_MSG_TYPE      1
 +
++struct pf_saved_callid {
++	SLIST_ENTRY(pf_saved_callid)	_entry;
++	u_int16_t			bcallid;
++	u_int16_t			ncallid;
++};	
++
++SLIST_HEAD(saved_callids, pf_saved_callid) saved_callids =
++	SLIST_HEAD_INITIALIZER(saved_callids);
++                      
++static int pf_pptp_initialized = 0;
++
++static int 
++pf_pptp_add_entry(u_int16_t bcallid, u_int16_t ncallid)
++{
++	struct pf_saved_callid *newentry;
++
++	newentry = malloc(sizeof(*newentry), M_TEMP, M_NOWAIT);
++	if (newentry == NULL)
++		return (-1); /* XXX */
++
++	newentry->bcallid = bcallid;
++	newentry->ncallid = ncallid;
++
++	SLIST_INSERT_HEAD(&saved_callids, newentry, _entry);
++	
++	return (0);
++}
++ 
++static u_int16_t
++pf_pptp_get_entry(u_int16_t ncallid) 
++{
++	struct pf_saved_callid *entry;
++
++	SLIST_FOREACH(entry, &saved_callids, _entry)
++		if (entry->ncallid == ncallid)
++			return (entry->bcallid);
++
++	return (0);
++}
++
++static u_int16_t
++pf_pptp_find_entry(u_int16_t bcallid)
++{
++	struct pf_saved_callid *entry;
++
++	SLIST_FOREACH(entry, &saved_callids, _entry)
++		if (entry->bcallid == bcallid)
++			return (entry->ncallid);
++
++	return (0);
++}
++
++static void
++pf_pptp_remove_entry(u_int16_t bcallid, u_int16_t ncallid) 
++{
++	struct pf_saved_callid *entry, *entry_temp;
++
++	SLIST_FOREACH_SAFE(entry, &saved_callids, _entry, entry_temp) {
++		if (entry->bcallid == bcallid && entry->ncallid == ncallid) {
++			SLIST_REMOVE(&saved_callids, entry, pf_saved_callid, _entry);
++			free(entry, M_TEMP);
++			break;
++		}
++	}
++}
++
 +/*
 + * PPTP definitions
 + */
@@ -435,11 +501,8 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +        u_int32_t       magic;  /* magic cookie */
 +        u_int16_t       type;   /* control message type */
 +        u_int16_t       resv0;  /* reserved */
-+};
-+
-+struct pptpCodes {
-+        u_int8_t        resCode;/* Result Code */
-+        u_int8_t        errCode;/* Error Code */
++        u_int16_t       cid1;   /* Call ID field #1 */
++        u_int16_t       cid2;   /* Call ID field #2 */
 +};
 +
 +struct pptpCallIds {
@@ -448,16 +511,21 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +};
 +
 +void
-+pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, int off, struct pf_state *s,
-+	void *p, int dir, u_int16_t nport)
++pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, int off, void *p,
++	int dir, u_int16_t nport)
 +{
-+	struct pptpCallIds *cptr;
 +        u_int16_t ctl_type;     
-+        struct pptpMsgHead hptr, *tst = NULL;
++        struct pptpMsgHead hptr;
++	u_int16_t pcall_id;
 +	struct tcphdr *th = NULL; 
 +
++	if (pf_pptp_initialized == 0) {
++		pf_pptp_initialized  = 1;
++		SLIST_INIT(&saved_callids);
++	}
++
 +        /* Verify data length */
-+        if (pd->tot_len < (int)(sizeof(struct pptpMsgHead) + sizeof(struct pptpCallIds)))
++        if (pd->p_len < (int)(sizeof(struct pptpMsgHead)))
 +                return;
 +
 +	/* NB: We assume pf(4) has done its checks. */
@@ -465,51 +533,75 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +
 +        /* Move up to PPTP message header */
 +	if (!pf_pull_hdr(m, off + (th->th_off << 2), &hptr, 
-+			sizeof(struct pptpMsgHead), NULL, NULL, AF_INET))
++			sizeof(struct pptpMsgHead), NULL, NULL, AF_INET)) 
 +		return;
 +
 +        /* Return the control message type */
-+	ctl_type = ntohs(hptr.type);
++        ctl_type = ntohs(hptr.type);
 +
 +        /* Verify PPTP Control Message */
 +        if ((ntohs(hptr.msgType) != PPTP_CTRL_MSG_TYPE) ||
 +            (ntohl(hptr.magic) != PPTP_MAGIC))
 +                return;
 +
-+        /* Verify data length. */
-+        if ((ctl_type == PPTP_OutCallReply || ctl_type == PPTP_InCallReply) &&
-+            (pd->tot_len < (int)(sizeof(struct pptpMsgHead) + sizeof(struct pptpCallIds) +
-+                sizeof(struct pptpCodes))))
-+                return;
-+
-+	tst = &hptr;
-+        cptr = (struct pptpCallIds *) (tst + 1);
-+        /* Verify valid PPTP control message */
-+        if (cptr == NULL)
-+                return;
-+
 +        /* Modify certain PPTP messages */
 +        switch (ctl_type) {
-+        case PPTP_OutCallReply:
-+        case PPTP_InCallRequest: 
-+		ctl_type = cptr->cid1;
-+                cptr->cid1 = 0;
-+		th->th_sum = pf_cksum_fixup(th->th_sum, 
-+				ctl_type, cptr->cid2, 0);
-+                break; 
++/* Keep this just for debugging */
++#if 0
++	case PPTP_InCallRequest:
++		printf("type InCallRequest\n");
++		return;
++	case PPTP_InCallReply:
++		printf("type InCallReply\n");
++		return;
++	case PPTP_EchoRequest:
++		printf("EchoRequest\n");
++		return;
++	case PPTP_EchoReply:
++		printf("EchoReply\n");
++		return;
++	case PPTP_StartCtrlConnRequest:
++		printf("PPTP_StartCtrlConnRequest\n");
++		return;
++	case PPTP_StartCtrlConnReply:
++		printf("PPTP_StartCtrlConnReply - dir = %s\n", dir == PF_IN ? "PF_IN" : "PF_OUT");
++		return;
++	case PPTP_StopCtrlConnRequest:
++		printf("PPTP_StopCtrlConnRequest\n");
++		return;
++	case PPTP_StopCtrlConnReply:
++		printf("PPTP_StopCtrlConnReply\n");
++		return;
++#endif 
 +        case PPTP_OutCallRequest:
-+        case PPTP_InCallReply: 
-+		ctl_type = cptr->cid1;
-+		cptr->cid1 = nport;
-+		th->th_sum = pf_cksum_fixup(th->th_sum,
-+                               ctl_type, cptr->cid1, 0);
++		if (pf_pptp_find_entry(ctl_type) == 0)
++			pf_pptp_add_entry(ctl_type, nport);
++
++		hptr.cid1 = htons(nport);
++       		th->th_sum = pf_cksum_fixup(th->th_sum,
++                        htons(ctl_type), hptr.cid1, 0);
++                break; 
++        case PPTP_OutCallReply:
++		if ( (pcall_id = pf_pptp_get_entry(ctl_type)) == 0)
++			return;
++			hptr.cid2 = htons(pcall_id);
++       		th->th_sum = pf_cksum_fixup(th->th_sum,
++                        htons(ctl_type), hptr.cid2, 0);
 +		break;
++	case PPTP_CallClearRequest:
++        case PPTP_WanErrorNotify:
++        case PPTP_CallDiscNotify:
++                pf_pptp_remove_entry(hptr.cid1, nport);
++		/* FALLTHROUGH */
 +        default:
 +                return;
 +        }
 +
-+	m_copyback(m, off + (th->th_off << 2) + sizeof(struct pptpMsgHead), 
-+		sizeof(struct pptpCallIds), (caddr_t)cptr);	
++	/* Update real packet tcp checksum */
++	m_copyback(m, off, sizeof(struct tcphdr), (caddr_t)th); 
++	/* Update real packet call id's; Can we reduce the size of copying?! */
++	m_copyback(m, off + (th->th_off << 2), sizeof(struct pptpMsgHead), 
++		(caddr_t)&hptr);	
 +
 +	return;
 +} 
@@ -519,12 +611,15 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +        int dir, u_int16_t nport /* unused */)
 +{
 +        struct grehdr gr;
-+	u_int16_t bcallid;
++	u_int16_t ncallid, bcallid;
 +	struct ip *iphdr = (struct ip *) p;
-+	
++
 +	if (dir != PF_IN)
 +		return;
-+		
++
++	if (pf_pptp_initialized == 0)
++		return;
++
 +	if (!pf_pull_hdr(m, off, &gr, sizeof(struct grehdr),
 +			NULL, NULL, AF_INET))
 +		return;
@@ -532,12 +627,18 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +        /* Check GRE header bits. */
 +        if ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) != PPTP_INIT_VALUE)
 +                return;
-+
-+	bcallid = gr.gh_call_id;
-+	gr.gh_call_id = 0;
-+	iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
-+        			bcallid, 0, 0);
 +	
++	bcallid = ntohs(gr.gh_call_id);
++	if ((ncallid = pf_pptp_get_entry(bcallid)) == 0)
++		return; /* XXX */
++
++	gr.gh_call_id = htons(ncallid);
++	iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
++        			htons(bcallid), gr.gh_call_id, 0);
++	
++	/* Update real packet ip header */
++	m_copyback(m, 0, sizeof(struct ip), (caddr_t)iphdr);
++	/* Update real packet gre header */
 +	m_copyback(m, off, sizeof(struct grehdr), (caddr_t)&gr);
 +}
 Index: sys/contrib/pf/net/pfvar.h
@@ -546,7 +647,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	2 Apr 2008 17:54:33 -0000
++++ sys/contrib/pf/net/pfvar.h	19 Apr 2008 13:49:50 -0000
 @@ -672,6 +672,27 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -604,7 +705,7 @@ RCS file: /home/ncvs/src/sys/modules/pf/Makefile,v
 retrieving revision 1.13
 diff -u -r1.13 Makefile
 --- sys/modules/pf/Makefile	3 Jul 2007 12:46:06 -0000	1.13
-+++ sys/modules/pf/Makefile	2 Apr 2008 17:54:34 -0000
++++ sys/modules/pf/Makefile	19 Apr 2008 13:49:50 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
