@@ -6,7 +6,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.8
 diff -u -r1.8 parse.y
 --- contrib/pf/pfctl/parse.y	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/parse.y	19 Apr 2008 18:41:05 -0000
++++ contrib/pf/pfctl/parse.y	19 Apr 2008 20:44:46 -0000
 @@ -184,6 +184,7 @@
  #define FOM_TOS		0x04
  #define FOM_KEEP	0x08
@@ -138,13 +138,142 @@ diff -u -r1.8 parse.y
  		{ "dup-to",		DUPTO},
  		{ "fastroute",		FASTROUTE},
  		{ "file",		FILENAME},
+Index: contrib/pf/pfctl/pfctl.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl.c,v
+retrieving revision 1.7
+diff -u -r1.7 pfctl.c
+--- contrib/pf/pfctl/pfctl.c	3 Jul 2007 12:30:02 -0000	1.7
++++ contrib/pf/pfctl/pfctl.c	19 Apr 2008 20:44:46 -0000
+@@ -76,6 +76,7 @@
+ void	 pfctl_addrprefix(char *, struct pf_addr *);
+ int	 pfctl_kill_src_nodes(int, const char *, int);
+ int	 pfctl_kill_states(int, const char *, int);
++int      pfctl_kill_ifstates(int, const char *, int);
+ void	 pfctl_init_options(struct pfctl *);
+ int	 pfctl_load_options(struct pfctl *);
+ int	 pfctl_load_limit(struct pfctl *, unsigned int, unsigned int);
+@@ -119,6 +120,8 @@
+ char		*src_node_kill[2];
+ int		 state_killers;
+ char		*state_kill[2];
++int		 if_kills;
++int		*if_kill;
+ int		 loadopt;
+ int		 altqsupport;
+ 
+@@ -551,6 +554,68 @@
+ }
+ 
+ int
++pfctl_kill_ifstates(int dev, const char *iface, int opts)
++{
++       struct pfioc_state_kill psk;
++       struct addrinfo *res[2], *resp[2];
++       struct sockaddr last_src, last_dst;
++       int killed, sources;
++       int ret_ga;
++
++       killed = sources = 0;
++
++       memset(&psk, 0, sizeof(psk));
++       memset(&psk.psk_src.addr.v.a.mask, 0xff,
++           sizeof(psk.psk_src.addr.v.a.mask));
++       memset(&last_src, 0xff, sizeof(last_src));
++       memset(&last_dst, 0xff, sizeof(last_dst));
++       if (iface != NULL && strlcpy(psk.psk_ifname, iface,
++           sizeof(psk.psk_ifname)) >= sizeof(psk.psk_ifname))
++               errx(1, "invalid interface: %s", iface);
++
++       pfctl_addrprefix(if_kill, &psk.psk_src.addr.v.a.mask);
++
++       if ((ret_ga = getaddrinfo(if_kill, NULL, NULL, &res[0]))) {
++               errx(1, "getaddrinfo: %s", gai_strerror(ret_ga));
++               /* NOTREACHED */
++       }
++       for (resp[0] = res[0]; resp[0]; resp[0] = resp[0]->ai_next) {
++               if (resp[0]->ai_addr == NULL)
++                       continue;
++               /* We get lots of duplicates.  Catch the easy ones */
++               if (memcmp(&last_src, resp[0]->ai_addr, sizeof(last_src)) == 0)
++                       continue;
++               last_src = *(struct sockaddr *)resp[0]->ai_addr;
++
++               psk.psk_af = resp[0]->ai_family;
++               sources++;
++
++               if (psk.psk_af == AF_INET)
++                       psk.psk_src.addr.v.a.addr.v4 =
++                           ((struct sockaddr_in *)resp[0]->ai_addr)->sin_addr;
++               else if (psk.psk_af == AF_INET6)
++                       psk.psk_src.addr.v.a.addr.v6 =
++                           ((struct sockaddr_in6 *)resp[0]->ai_addr)->
++                           sin6_addr;
++               else
++                       errx(1, "Unknown address family %d", psk.psk_af);
++
++               if (ioctl(dev, DIOCKILLIFSTATES, &psk))
++                       err(1, "DIOCKILLIFSTATES");
++               killed += psk.psk_af;
++               /* fixup psk.psk_af */
++               psk.psk_af = res[0]->ai_family;
++       }
++
++       freeaddrinfo(res[0]);
++
++       if ((opts & PF_OPT_QUIET) == 0)
++               fprintf(stderr, "killed %d states from %d gateway\n",
++                   killed, sources);
++       return (0);
++}
++
++int
+ pfctl_kill_states(int dev, const char *iface, int opts)
+ {
+ 	struct pfioc_state_kill psk;
+@@ -1978,7 +2043,7 @@
+ 		usage();
+ 
+ 	while ((ch = getopt(argc, argv,
+-	    "a:AdD:eqf:F:ghi:k:K:mnNOo::p:rRs:t:T:vx:z")) != -1) {
++	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::p:rRs:t:T:vx:z")) != -1) {
+ 		switch (ch) {
+ 		case 'a':
+ 			anchoropt = optarg;
+@@ -2010,6 +2075,16 @@
+ 		case 'i':
+ 			ifaceopt = optarg;
+ 			break;
++		case 'b':
++			if (if_kills >= 1) {
++				warnx("can only specify -b once");
++				usage();
++				/* NOTREACHED */
++			}
++			if_kill = optarg;
++			if_kills++;
++			mode = O_RDWR;
++			break;
+ 		case 'k':
+ 			if (state_killers >= 2) {
+ 				warnx("can only specify -k twice");
+@@ -2303,6 +2378,9 @@
+ 
+ 	if (src_node_killers)
+ 		pfctl_kill_src_nodes(dev, ifaceopt, opts);
++
++	if (if_kills)
++		pfctl_kill_ifstates(dev, ifaceopt, opts);
+ 
+ 	if (tblcmdopt != NULL) {
+ 		error = pfctl_command_tables(argc, argv, tableopt,
 Index: contrib/pf/pfctl/pfctl_altq.c
 ===================================================================
 RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.9
 diff -u -r1.9 pfctl_altq.c
 --- contrib/pf/pfctl/pfctl_altq.c	3 Jul 2007 12:30:02 -0000	1.9
-+++ contrib/pf/pfctl/pfctl_altq.c	19 Apr 2008 18:41:05 -0000
++++ contrib/pf/pfctl/pfctl_altq.c	19 Apr 2008 20:44:46 -0000
 @@ -690,13 +690,6 @@
  		return (-1);
  	}
@@ -165,7 +294,7 @@ RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.8
 diff -u -r1.8 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/pfctl_parser.c	19 Apr 2008 18:41:05 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	19 Apr 2008 20:44:47 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -185,7 +314,7 @@ RCS file: /home/ncvs/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	19 Apr 2008 18:41:06 -0000
++++ sys/conf/files	19 Apr 2008 20:44:47 -0000
 @@ -332,6 +332,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf \
@@ -201,7 +330,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	19 Apr 2008 18:41:07 -0000
++++ sys/contrib/pf/net/pf.c	19 Apr 2008 20:44:48 -0000
 @@ -3305,7 +3305,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
@@ -314,12 +443,59 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
+Index: sys/contrib/pf/net/pf_ioctl.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.28.2.1
+diff -u -r1.28.2.1 pf_ioctl.c
+--- sys/contrib/pf/net/pf_ioctl.c	25 Nov 2007 19:26:46 -0000	1.28.2.1
++++ sys/contrib/pf/net/pf_ioctl.c	19 Apr 2008 20:44:49 -0000
+@@ -1877,6 +1877,39 @@
+ 		break;
+ 	}
+ 
++	case DIOCKILLIFSTATES: {
++               struct pf_state         *state, *nexts;
++               struct pf_state_host    *src;
++               struct pfioc_state_kill *psk = (struct pfioc_state_kill *)addr;
++               int                      killed = 0;
++
++               for (state = RB_MIN(pf_state_tree_id, &tree_id); state;
++                   state = nexts) {
++                       nexts = RB_NEXT(pf_state_tree_id, &tree_id, state);
++
++                       src = &state->gwy;
++                       if ((!psk->psk_af || state->af == psk->psk_af)
++                           && (!psk->psk_proto || psk->psk_proto ==
++                           state->proto) &&
++                           PF_MATCHA(psk->psk_src.neg,
++                           &psk->psk_src.addr.v.a.addr,
++                           &psk->psk_src.addr.v.a.mask,
++                           &src->addr, state->af) &&
++                           (!psk->psk_ifname[0] || !strcmp(psk->psk_ifname,
++                           state->u.s.kif->pfik_name))) {
++#if NPFSYNC > 0
++                               /* send immediate delete of state */
++                               pfsync_delete_state(state);
++                               state->sync_flags |= PFSTATE_NOSYNC;
++#endif
++                               pf_unlink_state(state);
++                               killed++;
++                       }
++               }
++               psk->psk_af = killed;
++               break;
++       }
++
+ 	case DIOCKILLSTATES: {
+ 		struct pf_state		*state, *nexts;
+ 		struct pf_state_host	*src, *dst;
 Index: sys/contrib/pf/net/pf_pptp.c
 ===================================================================
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	19 Apr 2008 18:41:07 -0000
++++ sys/contrib/pf/net/pf_pptp.c	19 Apr 2008 20:44:49 -0000
 @@ -0,0 +1,317 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
@@ -644,7 +820,7 @@ RCS file: /home/ncvs/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	19 Apr 2008 18:41:07 -0000
++++ sys/contrib/pf/net/pfvar.h	19 Apr 2008 20:44:49 -0000
 @@ -672,6 +672,27 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -684,7 +860,15 @@ diff -u -r1.16 pfvar.h
  /* rule flags again */
  #define PFRULE_IFBOUND		0x00010000	/* if-bound */
  
-@@ -1707,6 +1732,11 @@
+@@ -1535,6 +1560,7 @@
+ #define DIOCSETIFFLAG	_IOWR('D', 89, struct pfioc_iface)
+ #define DIOCCLRIFFLAG	_IOWR('D', 90, struct pfioc_iface)
+ #define DIOCKILLSRCNODES	_IOWR('D', 91, struct pfioc_src_node_kill)
++#define DIOCKILLIFSTATES  _IOWR('D', 92, struct pfioc_state_kill)
+ #ifdef __FreeBSD__
+ struct pf_ifspeed {
+ 	char			ifname[IFNAMSIZ];
+@@ -1707,6 +1733,11 @@
  int	pfr_ina_commit(struct pfr_table *, u_int32_t, int *, int *, int);
  int	pfr_ina_define(struct pfr_table *, struct pfr_addr *, int, int *,
  	    int *, u_int32_t, int);
@@ -702,7 +886,7 @@ RCS file: /home/ncvs/src/sys/modules/pf/Makefile,v
 retrieving revision 1.13
 diff -u -r1.13 Makefile
 --- sys/modules/pf/Makefile	3 Jul 2007 12:46:06 -0000	1.13
-+++ sys/modules/pf/Makefile	19 Apr 2008 18:41:07 -0000
++++ sys/modules/pf/Makefile	19 Apr 2008 20:44:49 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
