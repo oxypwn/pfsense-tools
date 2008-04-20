@@ -1111,7 +1111,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	20 Apr 2008 13:41:31 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	20 Apr 2008 14:29:16 -0000
 @@ -0,0 +1,901 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1215,7 +1215,6 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +#include <sys/errno.h>
 +#include <sys/kernel.h>
 +#include <sys/queue.h>
-+#include <sys/thread.h>
 +
 +#include <net/if.h>
 +#include <netinet/in.h>
@@ -1233,7 +1232,7 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +static struct fairq_class *fairq_class_create(struct fairq_if *, int, int, u_int, struct fairq_opts *, int);
 +static int	fairq_class_destroy(struct fairq_class *);
 +static int	fairq_enqueue(struct ifaltq *, struct mbuf *, struct altq_pktattr *);
-+static struct mbuf *fairq_dequeue(struct ifaltq *, struct mbuf *, int);
++static struct mbuf *fairq_dequeue(struct ifaltq *, int);
 +
 +static int	fairq_addq(struct fairq_class *, struct mbuf *, u_int32_t);
 +static struct mbuf *fairq_getq(struct fairq_class *, uint64_t);
@@ -1269,6 +1268,7 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +		return (EINVAL);
 +	if (!ALTQ_IS_READY(&ifp->if_snd))
 +		return (ENODEV);
++
 +
 +	MALLOC(pif, struct fairq_if *, sizeof(struct fairq_if),
 +		M_DEVBUF, M_WAITOK);
@@ -1448,7 +1448,7 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +		if (cl->cl_head)
 +			fairq_purgeq(cl);
 +		IFQ_UNLOCK(cl->cl_pif->pif_ifq);
-+		splx(s)
++		splx(s);
 +#ifdef ALTQ_RIO
 +		if (cl->cl_qtype == Q_RIO)
 +			rio_destroy((rio_t *)cl->cl_red);
@@ -1466,7 +1466,8 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +		cl->cl_nbuckets = nbuckets;
 +		cl->cl_nbucket_mask = nbuckets - 1;
 +
-+		MALLOC(cl->cl_buckets, u_int *, (sizeof(u_int * cl->cl_nbuckets),
++		MALLOC(cl->cl_buckets, struct fairq_bucket *, 
++			sizeof(struct fairq_bucket) * cl->cl_nbuckets,
 +			M_DEVBUF, M_WAITOK);
 +		if (cl->cl_buckets == NULL)
 +			goto err_buckets;
@@ -1532,16 +1533,16 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +	return (cl);
 +
 +err_buckets:
-+	if (cl->buckets != NULL)
++	if (cl->cl_buckets != NULL)
 +		FREE(cl->cl_buckets, M_DEVBUF);
 +err_ret:
 +        if (cl->cl_red != NULL) {
 +#ifdef ALTQ_RIO
-+                if (q_is_rio(cl->cl_q))
++                if (cl->cl_qtype == Q_RIO)
 +                        rio_destroy((rio_t *)cl->cl_red);
 +#endif
 +#ifdef ALTQ_RED
-+               if (q_is_red(cl->cl_q))
++               if (cl->cl_qtype == Q_RED)
 +                       red_destroy(cl->cl_red);
 +#endif
 +        }
@@ -1607,7 +1608,6 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +	struct fairq_if *pif = (struct fairq_if *)ifq->altq_disc;
 +	struct fairq_class *cl;
 +	struct pf_mtag *t;
-+	int error;
 +	int len;
 +
 +	IFQ_LOCK_ASSERT(ifq);
@@ -1616,7 +1616,7 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +	if ((m->m_flags & M_PKTHDR) == 0) {
 +		/* should not happen */
 +		printf("altq: packet for %s does not have pkthdr\n",
-+			ifq->altq_if[->if_xname);
++			ifq->altq_ifp->if_xname);
 +		m_freem(m);
 +		return (ENOBUFS);
 +	}
@@ -1653,13 +1653,13 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 + *	after ALTDQ_POLL.
 + */
 +static struct mbuf *
-+fairq_dequeue(struct ifaltq *ifq, struct mbuf *mpolled, int op)
++fairq_dequeue(struct ifaltq *ifq, int op)
 +{
 +	struct fairq_if *pif = (struct fairq_if *)ifq->altq_disc;
 +	struct fairq_class *cl;
 +	struct fairq_class *best_cl;
 +	struct mbuf *best_m;
-+	struct mbuf *m;
++	struct mbuf *m = NULL;
 +	uint64_t cur_time = read_machclk();
 +	int pri;
 +	int hit_limit;
