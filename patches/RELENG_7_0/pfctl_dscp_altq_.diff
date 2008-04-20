@@ -289,7 +289,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.7
 diff -u -r1.7 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	3 Jul 2007 12:30:02 -0000	1.7
-+++ contrib/pf/pfctl/pfctl.c	20 Apr 2008 11:33:57 -0000
++++ contrib/pf/pfctl/pfctl.c	20 Apr 2008 13:10:20 -0000
 @@ -76,6 +76,7 @@
  void	 pfctl_addrprefix(char *, struct pf_addr *);
  int	 pfctl_kill_src_nodes(int, const char *, int);
@@ -303,7 +303,7 @@ diff -u -r1.7 pfctl.c
  int		 state_killers;
  char		*state_kill[2];
 +int		 if_kills;
-+int		*if_kill;
++char		*if_kill;
  int		 loadopt;
  int		 altqsupport;
  
@@ -1081,7 +1081,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	20 Apr 2008 12:50:27 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	20 Apr 2008 13:11:36 -0000
 @@ -0,0 +1,902 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1191,9 +1191,9 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +#include <net/ifq_var.h>
 +#include <netinet/in.h>
 +
-+#include <net/pf/pfvar.h>
-+#include <net/altq/altq.h>
-+#include <net/altq/altq_fairq.h>
++#include <net/pfvar.h>
++#include <altq/altq.h>
++#include <altq/altq_fairq.h>
 +
 +/*
 + * function prototypes
@@ -1990,7 +1990,7 @@ Index: sys/contrib/altq/altq/altq_fairq.h
 RCS file: sys/contrib/altq/altq/altq_fairq.h
 diff -N sys/contrib/altq/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.h	9 Apr 2008 22:05:32 -0000
++++ sys/contrib/altq/altq/altq_fairq.h	20 Apr 2008 13:11:12 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -2031,11 +2031,11 @@ diff -N sys/contrib/altq/altq/altq_fairq.h
 +#ifndef _ALTQ_ALTQ_FAIRQ_H_
 +#define	_ALTQ_ALTQ_FAIRQ_H_
 +
-+#include <net/altq/altq.h>
-+#include <net/altq/altq_classq.h>
-+#include <net/altq/altq_red.h>
-+#include <net/altq/altq_rio.h>
-+#include <net/altq/altq_rmclass.h>
++#include <altq/altq.h>
++#include <altq/altq_classq.h>
++#include <altq/altq_red.h>
++#include <altq/altq_rio.h>
++#include <altq/altq_rmclass.h>
 +
 +#define	FAIRQ_MAX_BUCKETS	2048	/* maximum number of sorting buckets */
 +#define	FAIRQ_MAXPRI		RM_MAXPRIO
