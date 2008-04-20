@@ -938,7 +938,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	20 Apr 2008 11:37:26 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	20 Apr 2008 12:50:27 -0000
 @@ -0,0 +1,902 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1063,7 +1063,7 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +static int	fairq_enqueue(struct ifaltq *, struct mbuf *, struct altq_pktattr *);
 +static struct mbuf *fairq_dequeue(struct ifaltq *, struct mbuf *, int);
 +
-+static int	fairq_addq(struct fairq_class *, struct mbuf *, u_int32_t qid);
++static int	fairq_addq(struct fairq_class *, struct mbuf *, u_int32_t);
 +static struct mbuf *fairq_getq(struct fairq_class *, uint64_t);
 +static struct mbuf *fairq_pollq(struct fairq_class *, uint64_t, int *);
 +static fairq_bucket_t *fairq_selectq(struct fairq_class *, int);
@@ -2090,11 +2090,12 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	20 Apr 2008 11:17:51 -0000
-@@ -605,6 +605,20 @@
++++ sys/contrib/pf/net/pf.c	20 Apr 2008 12:50:50 -0000
+@@ -605,6 +605,22 @@
  	return (0);
  }
  
++#ifdef ALTQ
 +/* XXX: revisit this with ALTQ_WFQ/dummynet */
 +static int
 +pf_state_hash(struct pf_state *s)
@@ -2108,11 +2109,12 @@ diff -u -r1.46.2.1 pf.c
 +		hv = 1;
 +	return (hv);
 +}
++#endif
 +
  #ifdef INET6
  void
  pf_addrcpy(struct pf_addr *dst, struct pf_addr *src, sa_family_t af)
-@@ -3305,7 +3319,10 @@
+@@ -3305,7 +3321,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
@@ -2124,7 +2126,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -3727,7 +3744,10 @@
+@@ -3727,7 +3746,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], uh->uh_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
@@ -2136,7 +2138,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -4082,7 +4102,10 @@
+@@ -4082,7 +4104,10 @@
  			r = TAILQ_NEXT(r, entries);
  		else if (r->code && r->code != icmpcode + 1)
  			r = TAILQ_NEXT(r, entries);
@@ -2148,7 +2150,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -4341,7 +4364,10 @@
+@@ -4341,7 +4366,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
@@ -2160,7 +2162,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -4558,7 +4584,10 @@
+@@ -4558,7 +4586,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
@@ -2172,7 +2174,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->os_fingerprint != PF_OSFP_ANY)
  			r = TAILQ_NEXT(r, entries);
-@@ -6869,6 +6898,15 @@
+@@ -6869,6 +6900,15 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -2188,7 +2190,7 @@ diff -u -r1.46.2.1 pf.c
  		break;
  	}
  
-@@ -6965,6 +7003,8 @@
+@@ -6965,6 +7005,8 @@
  			action = pf_test_other(&r, &s, dir, kif, m, off, h,
  			    &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -2197,7 +2199,7 @@ diff -u -r1.46.2.1 pf.c
  		break;
  	}
  
-@@ -6983,7 +7023,9 @@
+@@ -6983,7 +7025,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2208,7 +2210,7 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7212,7 +7254,7 @@
+@@ -7212,7 +7256,7 @@
  	PF_ACPY(&pd.baddr, dir == PF_OUT ? pd.src : pd.dst, AF_INET6);
  	pd.ip_sum = NULL;
  	pd.af = AF_INET6;
@@ -2217,7 +2219,7 @@ diff -u -r1.46.2.1 pf.c
  	pd.tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
  	pd.eh = eh;
  
-@@ -7444,7 +7486,9 @@
+@@ -7444,7 +7488,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
