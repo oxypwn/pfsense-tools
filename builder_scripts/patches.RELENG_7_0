@@ -1,4 +1,6 @@
 ~~~/sys/contrib/pf/net/pf_pptp.c
+~~~/sys/contrib/altq/altq/altq_fairq.h
+~~~/sys/contrib/altq/altq/altq_fairq.c
 -p1~~carpdev_7.diff~
 ~sys/netinet~tcp_var.h.diff~
 ~sys/boot/i386/btx/btx~btx_real.diff~
