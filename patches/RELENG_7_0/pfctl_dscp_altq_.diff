@@ -1034,6 +1034,21 @@ diff -N sbin/pfctl/missing/altq/altq_fairq.h
 +#endif /* _KERNEL */
 +
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
+Index: sys/conf/NOTES
+===================================================================
+RCS file: /home/eri/development/FreeBSD/src/sys/conf/NOTES,v
+retrieving revision 1.1454
+diff -u -r1.1454 NOTES
+--- sys/conf/NOTES	26 Sep 2007 21:14:17 -0000	1.1454
++++ sys/conf/NOTES	20 Apr 2008 13:32:38 -0000
+@@ -608,6 +608,7 @@
+ options 	ALTQ_RED	# Random Early Detection
+ options 	ALTQ_RIO	# RED In/Out
+ options 	ALTQ_HFSC	# Hierarchical Packet Scheduler
++options		ALTQ_FAIRQ	# Fair Packet Scheduler
+ options 	ALTQ_CDNR	# Traffic conditioner
+ options 	ALTQ_PRIQ	# Priority Queueing
+ options 	ALTQ_NOPCC	# Required if the TSC is unusable
 Index: sys/conf/files
 ===================================================================
 RCS file: /home/eri/development/FreeBSD/src/sys/conf/files,v
@@ -1059,6 +1074,21 @@ diff -u -r1.1243.2.2 files
  contrib/pf/netinet/in4_cksum.c	optional pf inet
  crypto/blowfish/bf_ecb.c	optional ipsec 
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
+Index: sys/conf/options
+===================================================================
+RCS file: /home/eri/development/FreeBSD/src/sys/conf/options,v
+retrieving revision 1.608
+diff -u -r1.608 options
+--- sys/conf/options	23 Sep 2007 07:34:23 -0000	1.608
++++ sys/conf/options	20 Apr 2008 13:32:17 -0000
+@@ -339,6 +339,7 @@
+ ALTQ_RED		opt_altq.h
+ ALTQ_RIO		opt_altq.h
+ ALTQ_HFSC		opt_altq.h
++ALTQ_FAIRQ		opt_altq.h
+ ALTQ_CDNR		opt_altq.h
+ ALTQ_PRIQ		opt_altq.h
+ ALTQ_NOPCC		opt_altq.h
 Index: sys/contrib/altq/altq/altq.h
 ===================================================================
 RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq.h,v
