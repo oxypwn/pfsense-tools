@@ -4,7 +4,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.8
 diff -u -r1.8 parse.y
 --- contrib/pf/pfctl/parse.y	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/parse.y	21 Apr 2008 19:55:23 -0000
++++ contrib/pf/pfctl/parse.y	27 Apr 2008 22:48:30 -0000
 @@ -44,6 +44,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -288,7 +288,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.7
 diff -u -r1.7 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	3 Jul 2007 12:30:02 -0000	1.7
-+++ contrib/pf/pfctl/pfctl.c	20 Apr 2008 13:10:20 -0000
++++ contrib/pf/pfctl/pfctl.c	27 Apr 2008 22:48:31 -0000
 @@ -76,6 +76,7 @@
  void	 pfctl_addrprefix(char *, struct pf_addr *);
  int	 pfctl_kill_src_nodes(int, const char *, int);
@@ -426,7 +426,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.9
 diff -u -r1.9 pfctl_altq.c
 --- contrib/pf/pfctl/pfctl_altq.c	3 Jul 2007 12:30:02 -0000	1.9
-+++ contrib/pf/pfctl/pfctl_altq.c	20 Apr 2008 10:58:57 -0000
++++ contrib/pf/pfctl/pfctl_altq.c	27 Apr 2008 22:48:31 -0000
 @@ -42,6 +42,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -763,7 +763,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.8
 diff -u -r1.8 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/pfctl_parser.c	7 Mar 2008 19:23:29 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	27 Apr 2008 22:48:31 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -783,7 +783,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.h,v
 retrieving revision 1.7
 diff -u -r1.7 pfctl_parser.h
 --- contrib/pf/pfctl/pfctl_parser.h	3 Jul 2007 12:30:02 -0000	1.7
-+++ contrib/pf/pfctl/pfctl_parser.h	20 Apr 2008 11:04:11 -0000
++++ contrib/pf/pfctl/pfctl_parser.h	27 Apr 2008 22:48:31 -0000
 @@ -149,12 +149,27 @@
  	int			flags;
  };
@@ -818,7 +818,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_qstats.c,v
 retrieving revision 1.6
 diff -u -r1.6 pfctl_qstats.c
 --- contrib/pf/pfctl/pfctl_qstats.c	3 May 2005 16:55:20 -0000	1.6
-+++ contrib/pf/pfctl/pfctl_qstats.c	20 Apr 2008 13:23:24 -0000
++++ contrib/pf/pfctl/pfctl_qstats.c	27 Apr 2008 22:48:31 -0000
 @@ -38,6 +38,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -895,7 +895,7 @@ Index: sbin/pfctl/missing/altq/altq_fairq.h
 RCS file: sbin/pfctl/missing/altq/altq_fairq.h
 diff -N sbin/pfctl/missing/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sbin/pfctl/missing/altq/altq_fairq.h	20 Apr 2008 13:13:23 -0000
++++ sbin/pfctl/missing/altq/altq_fairq.h	27 Apr 2008 22:48:31 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1039,7 +1039,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/conf/NOTES,v
 retrieving revision 1.1454
 diff -u -r1.1454 NOTES
 --- sys/conf/NOTES	26 Sep 2007 21:14:17 -0000	1.1454
-+++ sys/conf/NOTES	20 Apr 2008 13:32:38 -0000
++++ sys/conf/NOTES	27 Apr 2008 22:48:31 -0000
 @@ -608,6 +608,7 @@
  options 	ALTQ_RED	# Random Early Detection
  options 	ALTQ_RIO	# RED In/Out
@@ -1054,7 +1054,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	20 Apr 2008 11:47:39 -0000
++++ sys/conf/files	27 Apr 2008 22:48:31 -0000
 @@ -108,6 +108,8 @@
  contrib/altq/altq/altq_cdnr.c	optional altq
  contrib/altq/altq/altq_hfsc.c	optional altq \
@@ -1079,7 +1079,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/conf/options,v
 retrieving revision 1.608
 diff -u -r1.608 options
 --- sys/conf/options	23 Sep 2007 07:34:23 -0000	1.608
-+++ sys/conf/options	20 Apr 2008 13:32:17 -0000
++++ sys/conf/options	27 Apr 2008 22:48:31 -0000
 @@ -339,6 +339,7 @@
  ALTQ_RED		opt_altq.h
  ALTQ_RIO		opt_altq.h
@@ -1094,7 +1094,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq.h,v
 retrieving revision 1.2
 diff -u -r1.2 altq.h
 --- sys/contrib/altq/altq/altq.h	12 Jun 2004 00:57:20 -0000	1.2
-+++ sys/contrib/altq/altq/altq.h	20 Apr 2008 11:40:34 -0000
++++ sys/contrib/altq/altq/altq.h	27 Apr 2008 22:48:31 -0000
 @@ -63,7 +63,8 @@
  #define	ALTQT_BLUE		10	/* blue */
  #define	ALTQT_PRIQ		11	/* priority queue */
@@ -1110,7 +1110,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	21 Apr 2008 19:53:43 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	27 Apr 2008 22:49:34 -0000
 @@ -0,0 +1,905 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1470,7 +1470,7 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +			M_DEVBUF, M_WAITOK);
 +		if (cl->cl_buckets == NULL)
 +			goto err_buckets;
-+		bzero(cl->cl_buckets, sizeof(struct fairq_buckets) *
++		bzero(cl->cl_buckets, sizeof(struct fairq_bucket) *
 +			cl->cl_nbuckets);
 +		cl->cl_head = NULL;
 +	}
@@ -2022,7 +2022,7 @@ Index: sys/contrib/altq/altq/altq_fairq.h
 RCS file: sys/contrib/altq/altq/altq_fairq.h
 diff -N sys/contrib/altq/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.h	20 Apr 2008 13:11:12 -0000
++++ sys/contrib/altq/altq/altq_fairq.h	27 Apr 2008 22:48:31 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -2166,7 +2166,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq_subr.c,v
 retrieving revision 1.10
 diff -u -r1.10 altq_subr.c
 --- sys/contrib/altq/altq/altq_subr.c	12 Jul 2007 17:00:51 -0000	1.10
-+++ sys/contrib/altq/altq/altq_subr.c	20 Apr 2008 11:46:45 -0000
++++ sys/contrib/altq/altq/altq_subr.c	27 Apr 2008 22:48:31 -0000
 @@ -544,6 +544,11 @@
  		error = hfsc_pfattach(a);
  		break;
@@ -2245,7 +2245,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq_var.h,v
 retrieving revision 1.2
 diff -u -r1.2 altq_var.h
 --- sys/contrib/altq/altq/altq_var.h	21 Feb 2005 17:11:09 -0000	1.2
-+++ sys/contrib/altq/altq/altq_var.h	20 Apr 2008 11:41:30 -0000
++++ sys/contrib/altq/altq/altq_var.h	27 Apr 2008 22:48:31 -0000
 @@ -261,5 +261,12 @@
  int	hfsc_remove_queue(struct pf_altq *);
  int	hfsc_getqstats(struct pf_altq *, void *, int *);
@@ -2265,7 +2265,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	20 Apr 2008 12:50:50 -0000
++++ sys/contrib/pf/net/pf.c	27 Apr 2008 22:48:31 -0000
 @@ -605,6 +605,22 @@
  	return (0);
  }
@@ -2411,7 +2411,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.28.2.1
 diff -u -r1.28.2.1 pf_ioctl.c
 --- sys/contrib/pf/net/pf_ioctl.c	25 Nov 2007 19:26:46 -0000	1.28.2.1
-+++ sys/contrib/pf/net/pf_ioctl.c	20 Apr 2008 11:18:35 -0000
++++ sys/contrib/pf/net/pf_ioctl.c	27 Apr 2008 22:48:31 -0000
 @@ -1928,6 +1928,39 @@
  		break;
  	}
@@ -2458,7 +2458,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.1
 diff -u -r1.1 pf_mtag.h
 --- sys/contrib/pf/net/pf_mtag.h	3 Jul 2007 12:46:06 -0000	1.1
-+++ sys/contrib/pf/net/pf_mtag.h	20 Apr 2008 11:12:11 -0000
++++ sys/contrib/pf/net/pf_mtag.h	27 Apr 2008 22:48:31 -0000
 @@ -42,6 +42,7 @@
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
  	u_int		 rtableid;	/* alternate routing table id */
@@ -2472,7 +2472,7 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	20 Apr 2008 11:24:06 -0000
++++ sys/contrib/pf/net/pf_pptp.c	27 Apr 2008 22:48:31 -0000
 @@ -0,0 +1,317 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
@@ -2797,7 +2797,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	20 Apr 2008 11:22:16 -0000
++++ sys/contrib/pf/net/pfvar.h	27 Apr 2008 22:48:31 -0000
 @@ -672,6 +672,27 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -2895,7 +2895,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/modules/pf/Makefile,v
 retrieving revision 1.13
 diff -u -r1.13 Makefile
 --- sys/modules/pf/Makefile	3 Jul 2007 12:46:06 -0000	1.13
-+++ sys/modules/pf/Makefile	13 Mar 2008 23:56:37 -0000
++++ sys/modules/pf/Makefile	27 Apr 2008 22:48:31 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
