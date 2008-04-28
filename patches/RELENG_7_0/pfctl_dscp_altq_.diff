@@ -1110,7 +1110,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	27 Apr 2008 22:49:34 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	28 Apr 2008 21:57:26 -0000
 @@ -0,0 +1,905 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1606,7 +1606,7 @@ diff -N sys/contrib/altq/altq/altq_fairq.c
 +fairq_enqueue(struct ifaltq *ifq, struct mbuf *m, struct altq_pktattr *pktattr)
 +{
 +	struct fairq_if *pif = (struct fairq_if *)ifq->altq_disc;
-+	struct fairq_class *cl;
++	struct fairq_class *cl = NULL; /* Make compiler happy */
 +	struct pf_mtag *t;
 +	u_int32_t qid_hash = 0;
 +	int len;
