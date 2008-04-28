@@ -1,0 +1,108 @@
+! 
+! MFC equivalent of:
+!  rev. 1.335 ip_input.c, rev. 1.10 ip_ipsec.c, rev. 1.3 ip_ipsec.h
+!  
+!  Take the route mtu into account, if available, when sending an
+!  ICMP unreach, frag needed.  Up to now we only looked at the
+!  interface MTU. Make sure to only use the minimum of the two.
+!  
+!  In case IPSEC is compiled in, loop the mtu through ip_ipsec_mtu()
+!  to avoid any further conditional maths.
+!  
+!  Without this, PMTU was broken in those cases when there was a
+!  route with a lower MTU than the MTU of the outgoing interface.
+!  
+! PR: kern/122338
+! Requested by:		Scott Ullrich/pfSense
+! Tested by:		
+!  
+Index: sys/netinet/ip_input.c
+===================================================================
+RCS file: /shared/mirror/FreeBSD/r/ncvs/src/sys/netinet/ip_input.c,v
+retrieving revision 1.301.2.15
+diff -u -p -r1.301.2.15 ip_input.c
+--- sys/netinet/ip_input.c	17 Dec 2007 10:01:14 -0000	1.301.2.15
++++ sys/netinet/ip_input.c	28 Apr 2008 21:12:10 -0000
+@@ -1799,6 +1799,7 @@ ip_forward(struct mbuf *m, int srcrt)
+ 	struct in_ifaddr *ia = NULL;
+ 	struct mbuf *mcopy;
+ 	struct in_addr dest;
++	struct route ro;
+ 	int error, type = 0, code = 0, mtu = 0;
+ 
+ #ifdef DIAGNOSTIC
+@@ -1885,7 +1886,6 @@ ip_forward(struct mbuf *m, int srcrt)
+ 	dest.s_addr = 0;
+ 	if (!srcrt && ipsendredirects && ia->ia_ifp == m->m_pkthdr.rcvif) {
+ 		struct sockaddr_in *sin;
+-		struct route ro;
+ 		struct rtentry *rt;
+ 
+ 		bzero(&ro, sizeof(ro));
+@@ -1921,7 +1921,20 @@ ip_forward(struct mbuf *m, int srcrt)
+ 			RTFREE(rt);
+ 	}
+ 
+-	error = ip_output(m, NULL, NULL, IP_FORWARDING, NULL, NULL);
++	/*
++	 * Try to cache the route MTU from ip_output so we can consider it for
++	 * the ICMP_UNREACH_NEEDFRAG "Next-Hop MTU" field described in RFC1191.
++	 */
++	bzero(&ro, sizeof(ro));
++	rtalloc_ign(&ro, RTF_CLONING);
++
++	error = ip_output(m, NULL, &ro, IP_FORWARDING, NULL, NULL);
++
++	if (error == EMSGSIZE && ro.ro_rt)
++		mtu = ro.ro_rt->rt_rmx.rmx_mtu;
++	if (ro.ro_rt)
++		RTFREE(ro.ro_rt);
++
+ 	if (error)
+ 		ipstat.ips_cantforward++;
+ 	else {
+@@ -1966,7 +1979,7 @@ ip_forward(struct mbuf *m, int srcrt)
+ 			struct secpolicy *sp = NULL;
+ 			int ipsecerror;
+ 			int ipsechdr;
+-			struct route *ro;
++			struct route *rop;
+ 
+ #ifdef IPSEC
+ 			sp = ipsec4_getpolicybyaddr(mcopy,
+@@ -1992,12 +2005,12 @@ ip_forward(struct mbuf *m, int srcrt)
+ 				if (sp->req != NULL
+ 				 && sp->req->sav != NULL
+ 				 && sp->req->sav->sah != NULL) {
+-					ro = &sp->req->sav->sah->sa_route;
+-					if (ro->ro_rt && ro->ro_rt->rt_ifp) {
++					rop = &sp->req->sav->sah->sa_route;
++					if (rop->ro_rt && rop->ro_rt->rt_ifp) {
+ 						mtu =
+-						    ro->ro_rt->rt_rmx.rmx_mtu ?
+-						    ro->ro_rt->rt_rmx.rmx_mtu :
+-						    ro->ro_rt->rt_ifp->if_mtu;
++						    rop->ro_rt->rt_rmx.rmx_mtu ?
++						    rop->ro_rt->rt_rmx.rmx_mtu :
++						    rop->ro_rt->rt_ifp->if_mtu;
+ 						mtu -= ipsechdr;
+ 					}
+ 				}
+@@ -2011,11 +2024,16 @@ ip_forward(struct mbuf *m, int srcrt)
+ 		}
+ #endif /*IPSEC || FAST_IPSEC*/
+ 		/*
++		 * If the MTU was set before make sure we are below the
++		 * interface MTU.
+ 		 * If the MTU wasn't set before use the interface mtu or
+ 		 * fall back to the next smaller mtu step compared to the
+ 		 * current packet size.
+ 		 */
+-		if (mtu == 0) {
++		if (mtu != 0) {
++			if (ia != NULL)
++				mtu = min(mtu, ia->ia_ifp->if_mtu);
++		} else {
+ 			if (ia != NULL)
+ 				mtu = ia->ia_ifp->if_mtu;
+ 			else
