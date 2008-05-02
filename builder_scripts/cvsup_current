@@ -9,6 +9,12 @@
 #set -x
 #set -e
 
+# No ports exist, use portsnap to bootstrap.
+if [ ! -d "/usr/ports/" ]; then
+	/usr/sbin/portsnap fetch
+	/usr/sbin/portsnap extract
+fi
+
 # Set CURRENTDIR
 CURRENTDIR=`pwd`
 
@@ -142,8 +148,6 @@ fi
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
-echo "Updating FreeBSD ports files..."
-cvsup -h `cat /var/db/fastest_cvsup` ./ports-supfile
 echo "Updating FreeSBIE2-pfSense edition..."
 cvsup freesbie2-supfile
 
