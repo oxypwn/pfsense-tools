@@ -96,7 +96,7 @@ CONFIGURE_ARGS+=--with-gd \
 		--with-png-dir=${LOCALBASE} \
 		--with-zlib-dir=/usr
 .	if !defined(WITHOUT_X11)
-CONFIGURE_ARGS+=--with-xpm-dir=${X11BASE}
+CONFIGURE_ARGS+=--with-xpm-dir=${LOCALBASE}
 .	endif
 
 OPTIONS=	T1LIB "Include T1lib support" on \
@@ -602,7 +602,7 @@ LIB_DEPENDS+=	ct.4:${PORTSDIR}/databases/freetds
 .	if defined(WITH_SNMP4) || exists(${LOCALBASE}/lib/libsnmp.so.4)
 LIB_DEPENDS+=   snmp.4:${PORTSDIR}/net-mgmt/net-snmp4
 .	else
-LIB_DEPENDS+=   netsnmp.10:${PORTSDIR}/net-mgmt/net-snmp
+LIB_DEPENDS+=   netsnmp.16:${PORTSDIR}/net-mgmt/net-snmp
 .	endif
 .endif
 

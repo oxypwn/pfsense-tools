@@ -2,12 +2,12 @@
 # Date created:				Tue Feb 18 11:17:13 CET 2003
 # Whom:					Alex Dupre <sysadmin@alexdupre.com>
 #
-# $FreeBSD: ports/lang/php5/Makefile,v 1.125 2008/03/20 09:51:33 pav Exp $
+# $FreeBSD: ports/lang/php5/Makefile,v 1.126 2008/05/02 08:52:07 ale Exp $
 #
 
 PORTNAME=	php5
-PORTVERSION=	5.2.5
-PORTREVISION?=	1
+PORTVERSION=	5.2.6
+PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
@@ -63,7 +63,8 @@ PLIST_SUB+=	SUHOSIN="@comment "
 .endif
 
 .if defined(WITH_MAILHEAD)
-PATCHFILES+=	php-${PORTVERSION}-mail-header.patch:mail
+#PATCHFILES+=	php-${PORTVERSION}-mail-header.patch:mail
+PATCHFILES+=	php-5.2.5-mail-header.patch:mail
 PATCH_SITES+=	http://choon.net/opensource/php/:mail
 .endif
 
