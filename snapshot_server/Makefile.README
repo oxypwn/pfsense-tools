@@ -1,4 +1,0 @@
-Possible Invocation:
---------------------
-
-sudo make -f Makefile USE_BZIP2=yes WITH_PFSENSE_VERSION=HEAD WITH_FREEBSD_VERSION=RELENG_6_2
