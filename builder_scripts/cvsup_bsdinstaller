@@ -7,7 +7,7 @@ if [ ! -d "/usr/ports" ]; then
 	portsnap extract
 fi
 
-(cd /usr/ports/sysutils/cpdup && make install package FORCE_PKG_REGISTER=yo)
+(cd /usr/ports/sysutils/cpdup && make clean install package FORCE_PKG_REGISTER=yo)
 
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
@@ -16,7 +16,7 @@ CURRENTDIR=`pwd`
 echo "Updating BSDInstaller collection..."
 cvsup ${CURRENTDIR}/bsdinstaller-supfile
 
-mkdir ${BASE_DIR}/installer
+mkdir -p ${BASE_DIR}/installer
 ln -s ${BASE_DIR}/tools/builder_scripts/installer ${BASE_DIR}/installer/installer 2>/dev/null
 
 # Copy BSDInstaller build.conf
