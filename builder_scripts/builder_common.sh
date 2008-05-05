@@ -279,8 +279,6 @@ populate_extra() {
     find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
     find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
 
-	overlay_host_binaries
-
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
