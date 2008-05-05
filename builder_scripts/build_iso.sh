@@ -155,13 +155,12 @@ populate_extra
 echo ">>> Merging extra items..."
 freesbie_make extra
 
+# Overlay host binaries
+overlay_host_binaries
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
-
-# Overlay host binaries on top of image
-echo ">>> Overlaying binaries..."
-overlay_host_binaries
 
 # Compress /usr/local contents
 echo ">>> Compressing filesystem..."
