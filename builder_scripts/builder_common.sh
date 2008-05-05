@@ -125,6 +125,85 @@ recompile_pfPorts() {
 	echo "===> End of pfPorts..."	
 }
 
+overlay_host_binaries() {
+	if [ $pfSense_version = "7" ]; then
+	    echo "===> Building syslogd..."
+	    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
+	    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
+	    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
+		echo "===> Building clog..."
+		(cd /usr/src/usr.sbin/clog && make clean && make && make install)
+	    echo "===> Installing clog to $CVS_CO_DIR/usr/sbin/..."
+	    install /usr/sbin/clog $CVS_CO_DIR/usr/sbin/
+
+		mkdir -p ${CVS_CO_DIR}/bin
+		mkdir -p ${CVS_CO_DIR}/usr/bin
+
+		# Populate PHP if it exists locally
+		if [ -d /usr/local/lib/php/20060613/ ]; then
+			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
+				echo "Copying newer PHP binary and libraries..."
+				if [ -e /usr/local/bin/php-cgi ]; then
+					echo "Found php-cgi on local system, copying to staging area..."
+					cp /usr/local/bin/php-cgi /usr/local/pfsense-fs/usr/local/bin/php
+					chmod a+rx /usr/local/pfsense-fs/usr/local/bin/php
+				fi
+				cp -R "/usr/local/lib/php/20060613/" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
+			fi
+		fi
+
+		# Process base system libraries
+		FOUND_FILES="`(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find lib/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/bin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/sbin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/bin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/sbin/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/lib/ -type f)`"
+		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/lib/ -type f)`"
+		NEEDEDLIBS=""
+		echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
+		for TEMPFILE in $FOUND_FILES; do
+			if [ -f /$TEMPFILE ]; then
+				FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+				if [ "$FILETYPE" -gt 0 ]; then
+					NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
+					cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
+					echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
+					if [ -d $CLONEDIR ]; then
+						cp /$NEEDLIB ${CLONEDIR}$NEEDLIB				
+					fi					
+				fi
+			else
+				FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+				if [ "$FILETYPE" -gt 0 ]; then
+					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
+				fi
+			fi
+		done		
+		echo ">>>> Installing collected library information (usr/local), please wait..."
+		for NEEDLIB in $NEEDEDLIBS; do
+			if [ -f $NEEDLIB ]; then 
+				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
+				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
+				if [ -d $CLONEDIR ]; then
+					install $NEEDLIB ${CLONEDIR}${NEEDLIB}					
+				fi
+			fi
+		done
+	
+		# Populate PHP if it exists locally
+		if [ -d /usr/local/lib/php/20060613/ ]; then
+			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
+				echo "Copying newer PHP binary and libraries..."
+				cp -R "/usr/local/lib/php/20060613/" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
+			fi
+		fi
+
+	fi
+}
+
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
     # Make devd
@@ -200,77 +279,8 @@ populate_extra() {
     find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
     find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
 
-	if [ $pfSense_version = "7" ]; then
-	    echo "===> Building syslogd..."
-	    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
-	    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
-	    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
-		echo "===> Building clog..."
-		(cd /usr/src/usr.sbin/clog && make clean && make && make install)
-	    echo "===> Installing clog to $CVS_CO_DIR/usr/sbin/..."
-	    install /usr/sbin/clog $CVS_CO_DIR/usr/sbin/
+	overlay_host_binaries
 
-		mkdir -p ${CVS_CO_DIR}/bin
-		mkdir -p ${CVS_CO_DIR}/usr/bin
-
-		# Populate PHP if it exists locally
-		if [ -d /usr/local/lib/php/20060613/ ]; then
-			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
-				echo "Copying newer PHP binary and libraries..."
-				if [ -e /usr/local/bin/php-cgi ]; then
-					echo "Found php-cgi on local system, copying to staging area..."
-					cp /usr/local/bin/php-cgi /usr/local/pfsense-fs/usr/local/bin/php
-					chmod a+rx /usr/local/pfsense-fs/usr/local/bin/php
-				fi
-				cp -R "/usr/local/lib/php/20060613/" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
-			fi
-		fi
-
-		# Process base system libraries
-		FOUND_FILES="`(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find lib/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/bin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/sbin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/bin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/sbin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/lib/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/lib/ -type f)`"
-		NEEDEDLIBS=""
-		echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
-		for TEMPFILE in $FOUND_FILES; do
-			if [ -f /$TEMPFILE ]; then
-				FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
-				if [ "$FILETYPE" -gt 0 ]; then
-					NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
-					cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
-					echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
-				fi
-			else
-				FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
-				if [ "$FILETYPE" -gt 0 ]; then
-					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
-				fi
-			fi
-		done		
-		echo ">>>> Installing collected library information (usr/local), please wait..."
-		for NEEDLIB in $NEEDEDLIBS; do
-			if [ -f $NEEDLIB ]; then 
-				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
-				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
-			fi
-		done
-		
-		# Populate PHP if it exists locally
-		if [ -d /usr/local/lib/php/20060613/ ]; then
-			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
-				echo "Copying newer PHP binary and libraries..."
-				cp -R "/usr/local/lib/php/20060613/" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
-			fi
-		fi
-
-	fi
-		
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
