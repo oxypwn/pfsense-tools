@@ -109,6 +109,9 @@ fixup_updates
 # Fixup library changes if needed
 fixup_libmap
 
+# Overlay host binaries
+overlay_host_binaries
+
 create_pfSense_Full_update_tarball
 create_pfSense_Embedded_update_tarball
 
