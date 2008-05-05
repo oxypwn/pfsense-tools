@@ -159,6 +159,14 @@ freesbie_make extra
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
+# Overlay host binaries on top of image
+echo ">>> Overlaying binaries..."
+overlay_host_binaries
+
+# Compress /usr/local contents
+echo ">>> Compressing filesystem..."
+freesbie_make compressfs
+
 # Finalize iso
 echo ">>> Finalizing iso..."
 freesbie_make iso
