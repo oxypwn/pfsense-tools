@@ -149,14 +149,14 @@ overlay_host_binaries() {
 		# images where the PHP extension path has changed.
 		if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
 			echo "Backcopy extensions for older PHP location..."
-			cp -R "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/" "/usr/local/lib/php/20060613/" 
+			cp -R "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/*" "/usr/local/lib/php/20060613/" 
 		fi
 		
 		# Populate PHP if it exists locally		
 		if [ -d /usr/local/lib/php/20060613/ ]; then
 			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
 				echo "Copying newer PHP binary and libraries..."
-				cp -R "/usr/local/lib/php/20060613/" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
+				cp -R "/usr/local/lib/php/20060613/*" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
 			fi		
 		fi
 
