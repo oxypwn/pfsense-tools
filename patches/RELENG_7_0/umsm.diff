@@ -5,7 +5,7 @@ RCS file: /home/ncvs/src/sys/conf/files,v
 retrieving revision 1.1243.2.21
 diff -u -r1.1243.2.21 files
 --- sys/conf/files	8 May 2008 17:25:22 -0000	1.1243.2.21
-+++ sys/conf/files	10 May 2008 16:43:15 -0000
++++ sys/conf/files	10 May 2008 16:55:29 -0000
 @@ -1148,6 +1148,7 @@
  dev/usb/umct.c			optional umct
  dev/usb/umodem.c		optional umodem
@@ -19,7 +19,7 @@ Index: sys/dev/usb/umsm.c
 RCS file: sys/dev/usb/umsm.c
 diff -N sys/dev/usb/umsm.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/usb/umsm.c	10 May 2008 16:43:15 -0000
++++ sys/dev/usb/umsm.c	10 May 2008 16:55:29 -0000
 @@ -0,0 +1,412 @@
 +/*	$OpenBSD: umsm.c,v 1.24 2008/05/09 13:31:47 jsg Exp $	*/
 +
@@ -142,7 +142,7 @@ diff -N sys/dev/usb/umsm.c
 +	{ USB_VENDOR_SIERRA,	USB_PRODUCT_SIERRA_EM5625 },
 +	{ USB_VENDOR_SIERRA,	USB_PRODUCT_SIERRA_AIRCARD580 },
 +	{ USB_VENDOR_SIERRA,	USB_PRODUCT_SIERRA_AIRCARD_595 },
-+	{ USB_VENDOR_SIERRA,	USB_PRODUCT_SIERRA_AIRCARD875U },
++	{ USB_VENDOR_SIERRA,	USB_PRODUCT_SIERRA_AC875U },
 +	{ USB_VENDOR_SIERRA,	USB_PRODUCT_SIERRA_MC5720_2 },
 +	{ USB_VENDOR_SIERRA,	USB_PRODUCT_SIERRA_MC5725 },
 +	{ USB_VENDOR_SIERRA,	USB_PRODUCT_SIERRA_MC8755 },
@@ -439,7 +439,7 @@ RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
 retrieving revision 1.328.2.9
 diff -u -r1.328.2.9 usbdevs
 --- sys/dev/usb/usbdevs	25 Apr 2008 16:40:18 -0000	1.328.2.9
-+++ sys/dev/usb/usbdevs	10 May 2008 16:43:16 -0000
++++ sys/dev/usb/usbdevs	10 May 2008 16:55:31 -0000
 @@ -827,6 +827,8 @@
  
  /* AnyData products */
