@@ -2,6 +2,7 @@
 ~~~/sys/contrib/altq/altq/altq_fairq.h
 ~~~/sys/contrib/altq/altq/altq_fairq.c
 ~~~/sbin/pfctl/missing/altq/altq_fairq.h
+~~~/sys/dev/usb/umsm.c
 -p1~~carpdev_7.diff~
 ~sys/netinet~tcp_var.h.diff~
 ~sys/boot/i386/btx/btx~btx_real.diff~
@@ -16,3 +17,4 @@
 ~sbin/fdisk~fdisk.c.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.diff~
+~~umsm.diff~
