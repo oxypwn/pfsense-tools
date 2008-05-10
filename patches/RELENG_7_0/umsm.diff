@@ -5,7 +5,7 @@ RCS file: /home/ncvs/src/sys/conf/files,v
 retrieving revision 1.1243.2.21
 diff -u -r1.1243.2.21 files
 --- sys/conf/files	8 May 2008 17:25:22 -0000	1.1243.2.21
-+++ sys/conf/files	10 May 2008 17:42:16 -0000
++++ sys/conf/files	10 May 2008 18:01:56 -0000
 @@ -1148,6 +1148,7 @@
  dev/usb/umct.c			optional umct
  dev/usb/umodem.c		optional umodem
@@ -19,7 +19,7 @@ Index: sys/dev/usb/umsm.c
 RCS file: sys/dev/usb/umsm.c
 diff -N sys/dev/usb/umsm.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/usb/umsm.c	10 May 2008 17:42:16 -0000
++++ sys/dev/usb/umsm.c	10 May 2008 18:01:56 -0000
 @@ -0,0 +1,412 @@
 +/*	$OpenBSD: umsm.c,v 1.24 2008/05/09 13:31:47 jsg Exp $	*/
 +
@@ -439,7 +439,7 @@ RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
 retrieving revision 1.328.2.1.2.1
 diff -u -r1.328.2.1.2.1 usbdevs
 --- sys/dev/usb/usbdevs	7 Jan 2008 23:12:45 -0000	1.328.2.1.2.1
-+++ sys/dev/usb/usbdevs	10 May 2008 17:42:17 -0000
++++ sys/dev/usb/usbdevs	10 May 2008 18:01:58 -0000
 @@ -578,6 +578,7 @@
  vendor CISCOLINKSYS	0x13b1	Cisco-Linksys
  vendor SHARK		0x13d2	Shark
@@ -511,7 +511,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  
  /* Qtronix products */
  product QTRONIX 980N		0x2011	Scorpion-980N keyboard
-@@ -2021,6 +2041,16 @@
+@@ -2021,6 +2041,17 @@
  /* Sierra Wireless products */
  product SIERRA AIRCARD580	0x0112	Sierra Wireless AirCard 580
  product SIERRA MC5720		0x0218	MC5720 Wireless Modem
@@ -523,6 +523,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
 +product SIERRA MC8755_2         0x6802  MC8755
 +product SIERRA MC8765          	0x6803  MC8765
 +product SIERRA MC8755          	0x6804  MC8755 HSDPA
++product SIERRA MC8775           0x6812  MC8775 HSDPA
 +product SIERRA MC8755_3         0x6813  MC8755 HSDPA
 +product SIERRA AIRCARD_875      0x6820  Aircard 875 HSDPA
  
