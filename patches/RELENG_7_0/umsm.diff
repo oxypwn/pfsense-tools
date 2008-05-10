@@ -1,12 +1,11 @@
-? sys/modules/umsm/Makefile
 Index: sys/conf/files
 ===================================================================
-RCS file: /home/ncvs/src/sys/conf/files,v
-retrieving revision 1.1243.2.21
-diff -u -r1.1243.2.21 files
---- sys/conf/files	8 May 2008 17:25:22 -0000	1.1243.2.21
-+++ sys/conf/files	10 May 2008 18:01:56 -0000
-@@ -1148,6 +1148,7 @@
+RCS file: /home/eri/development/FreeBSD/src/sys/conf/files,v
+retrieving revision 1.1243.2.2
+diff -u -r1.1243.2.2 files
+--- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
++++ sys/conf/files	10 May 2008 18:32:44 -0000
+@@ -1132,6 +1132,7 @@
  dev/usb/umct.c			optional umct
  dev/usb/umodem.c		optional umodem
  dev/usb/ums.c			optional ums
@@ -19,12 +18,13 @@ Index: sys/dev/usb/umsm.c
 RCS file: sys/dev/usb/umsm.c
 diff -N sys/dev/usb/umsm.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/usb/umsm.c	10 May 2008 18:01:56 -0000
-@@ -0,0 +1,412 @@
++++ sys/dev/usb/umsm.c	10 May 2008 18:35:40 -0000
+@@ -0,0 +1,413 @@
 +/*	$OpenBSD: umsm.c,v 1.24 2008/05/09 13:31:47 jsg Exp $	*/
 +
 +/*
 + * Copyright (c) 2006 Jonathan Gray <jsg@openbsd.org>
++ * Copyright (c) 2008 Ermal Luçi
 + *
 + * Permission to use, copy, modify, and distribute this software for any
 + * purpose with or without fee is hereby granted, provided that the above
@@ -435,11 +435,11 @@ diff -N sys/dev/usb/umsm.c
 +}
 Index: sys/dev/usb/usbdevs
 ===================================================================
-RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
+RCS file: /home/eri/development/FreeBSD/src/sys/dev/usb/usbdevs,v
 retrieving revision 1.328.2.1.2.1
 diff -u -r1.328.2.1.2.1 usbdevs
 --- sys/dev/usb/usbdevs	7 Jan 2008 23:12:45 -0000	1.328.2.1.2.1
-+++ sys/dev/usb/usbdevs	10 May 2008 18:01:58 -0000
++++ sys/dev/usb/usbdevs	10 May 2008 18:32:45 -0000
 @@ -578,6 +578,7 @@
  vendor CISCOLINKSYS	0x13b1	Cisco-Linksys
  vendor SHARK		0x13d2	Shark
@@ -529,3 +529,19 @@ diff -u -r1.328.2.1.2.1 usbdevs
  
  /* Sigmatel products */
  product SIGMATEL I_BEAD100	0x8008	i-Bead 100 MP3 Player
+Index: sys/modules/umsm/Makefile
+===================================================================
+RCS file: sys/modules/umsm/Makefile
+diff -N sys/modules/umsm/Makefile
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ sys/modules/umsm/Makefile	10 May 2008 18:34:17 -0000
+@@ -0,0 +1,9 @@
++# $FreeBSD$
++
++S=	${.CURDIR}/../..
++.PATH: $S/dev/usb
++
++KMOD=	umsm
++SRCS=	umsm.c ucomvar.h opt_usb.h device_if.h bus_if.h usbdevs.h
++
++.include <bsd.kmod.mk>
