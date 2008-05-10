@@ -12,8 +12,6 @@
 ~~ipsec_altq.diff~
 ~sys/~patch-natt-freebsd7-2008-03-11.diff~
 ~sys/netinet/~ipsec_mtu_fixes.diff~
-~sys/dev/usb/~aircard875u.diff~
-~sys/dev/usb/~ubsa.c.diff~
 ~sbin/fdisk~fdisk.c.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.diff~
