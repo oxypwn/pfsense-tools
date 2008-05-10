@@ -67,7 +67,7 @@ device 			uplcom
 device          uftdi
 device          uvscom
 device          umodem
-
+device		umsm
 
 options         IPSEC
 #options                IPSEC_NAT_T
