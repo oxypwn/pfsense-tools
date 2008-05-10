@@ -5,7 +5,7 @@ RCS file: /home/ncvs/src/sys/conf/files,v
 retrieving revision 1.1243.2.21
 diff -u -r1.1243.2.21 files
 --- sys/conf/files	8 May 2008 17:25:22 -0000	1.1243.2.21
-+++ sys/conf/files	10 May 2008 16:55:29 -0000
++++ sys/conf/files	10 May 2008 17:42:16 -0000
 @@ -1148,6 +1148,7 @@
  dev/usb/umct.c			optional umct
  dev/usb/umodem.c		optional umodem
@@ -19,7 +19,7 @@ Index: sys/dev/usb/umsm.c
 RCS file: sys/dev/usb/umsm.c
 diff -N sys/dev/usb/umsm.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/usb/umsm.c	10 May 2008 16:55:29 -0000
++++ sys/dev/usb/umsm.c	10 May 2008 17:42:16 -0000
 @@ -0,0 +1,412 @@
 +/*	$OpenBSD: umsm.c,v 1.24 2008/05/09 13:31:47 jsg Exp $	*/
 +
@@ -436,11 +436,27 @@ diff -N sys/dev/usb/umsm.c
 Index: sys/dev/usb/usbdevs
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
-retrieving revision 1.328.2.9
-diff -u -r1.328.2.9 usbdevs
---- sys/dev/usb/usbdevs	25 Apr 2008 16:40:18 -0000	1.328.2.9
-+++ sys/dev/usb/usbdevs	10 May 2008 16:55:31 -0000
-@@ -827,6 +827,8 @@
+retrieving revision 1.328.2.1.2.1
+diff -u -r1.328.2.1.2.1 usbdevs
+--- sys/dev/usb/usbdevs	7 Jan 2008 23:12:45 -0000	1.328.2.1.2.1
++++ sys/dev/usb/usbdevs	10 May 2008 17:42:17 -0000
+@@ -578,6 +578,7 @@
+ vendor CISCOLINKSYS	0x13b1	Cisco-Linksys
+ vendor SHARK		0x13d2	Shark
+ vendor NOVATEL		0x1410	Novatel Wireless
++vendor MERLIN		0x1416	Merlin
+ vendor WISTRONNEWEB	0x1435	Wistron NeWeb
+ vendor RADIOSHACK	0x1453	Radio Shack
+ vendor HUAWEI3COM	0x1472	Huawei-3Com
+@@ -611,6 +612,7 @@
+ vendor AMIT		0x18c5	AMIT
+ vendor QCOM		0x18e8	Qcom
+ vendor LINKSYS3		0x1915	Linksys
++vendor QUALCOMMINC     0x19d2  Qualcomm, Incorporated
+ vendor DLINK		0x2001	D-Link
+ vendor PLANEX2		0x2019	Planex Communications
+ vendor ERICSSON		0x2282	Ericsson
+@@ -824,6 +826,8 @@
  
  /* AnyData products */
  product ANYDATA ADU_E100X	0x6501	CDMA 2000 1xRTT/EV-DO USB Modem
@@ -449,7 +465,7 @@ diff -u -r1.328.2.9 usbdevs
  
  /* AOX, Inc. products */
  product AOX USB101		0x0008	Ethernet
-@@ -1081,6 +1083,7 @@
+@@ -1078,6 +1082,7 @@
  product DELL PORT		0x0058	Port Replicator
  product DELL BC02		0x8000	BC02 Bluetooth USB Adapter
  product DELL TM350		0x8103	TrueMobile 350 Bluetooth USB Adapter
@@ -457,7 +473,7 @@ diff -u -r1.328.2.9 usbdevs
  
  /* Delorme Paublishing products */
  product DELORME EARTHMATE	0x0100	Earthmate GPS
-@@ -1388,6 +1391,7 @@
+@@ -1381,6 +1386,7 @@
  
  /* HUAWEI products */
  product HUAWEI MOBILE		0x1001	Huawei Mobile
@@ -465,30 +481,41 @@ diff -u -r1.328.2.9 usbdevs
  
  /* HUAWEI 3com products */
  product HUAWEI3COM WUB320G	0x0009	Aolynk WUB320g
-@@ -1779,6 +1783,10 @@
- product NOVATEL U720		0x2110	Merlin U720
- product NOVATEL U727		0x4100	Merlin U727 CDMA
+@@ -1762,8 +1768,19 @@
+ 
+ /* Novatel Wireless products */
+ product NOVATEL CDMA_MODEM	0x1110	Novatel Wireless Merlin CDMA
++product NOVATEL V620           	0x1110  Merlin V620
++product NOVATEL V720           	0x1130  Merlin V720
++product NOVATEL V740           	0x1120  Merlin V740
++product NOVATEL U720           	0x2110  Merlin U720
+ product NOVATEL U740		0x1400	Merlin U740
  product NOVATEL2 FLEXPACKGPS	0x0100	NovAtel FlexPack GPS receiver
 +product NOVATEL EXPRESSCARD    	0x1100  ExpressCard 3G
 +product NOVATEL S720           	0x1130  S720
 +product NOVATEL ES620          	0x2100  ES620 CDMA
 +product NOVATEL XU870          	0x1430  XU870
++
++ /* Merlin products */
++product	MERLIN V620		0x1110	Merlin V620
  
- /* Merlin products */
- product	MERLIN V620		0x1110	Merlin V620
-@@ -1929,6 +1937,8 @@
+ /* Olympus products */
+ product OLYMPUS C1		0x0102	C-1 Digital Camera
+@@ -1910,6 +1927,9 @@
+ product QUALCOMM CDMA_MSM	0x6000	CDMA Technologies MSM phone
  product QUALCOMM2 RWT_FCT	0x3100	RWT FCT-CDMA 2000 1xRTT modem
  product QUALCOMM2 CDMA_MSM	0x3196	CDMA Technologies MSM modem
- product QUALCOMMINC CDMA_MSM	0x0001	CDMA Technologies MSM modem
 +product QUALCOMM MSM_DRIVER    	0x1000  MSM driver
 +product QUALCOMM MSM_HSDPA     	0x6613  HSDPA MSM
++product QUALCOMMINC CDMA_MSM   	0x0001  CDMA Technologies MSM modem
  
  /* Qtronix products */
  product QTRONIX 980N		0x2011	Scorpion-980N keyboard
-@@ -2041,6 +2051,15 @@
+@@ -2021,6 +2041,16 @@
+ /* Sierra Wireless products */
  product SIERRA AIRCARD580	0x0112	Sierra Wireless AirCard 580
  product SIERRA MC5720		0x0218	MC5720 Wireless Modem
- product SIERRA AC875U		0x6812	AC875U HSDPA USB Modem
++product SIERRA AC875U          	0x6812  AC875U HSDPA USB Modem
 +product SIERRA EM5625          	0x0017  EM5625
 +product SIERRA MC5720_2         0x0018  MC5720
 +product SIERRA AIRCARD_595      0x0019  AirCard 595
