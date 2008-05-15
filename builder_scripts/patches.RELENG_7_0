@@ -16,3 +16,4 @@
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.diff~
 ~~umsm.diff~
+~sbin/dhclient~bpf.c.diff~

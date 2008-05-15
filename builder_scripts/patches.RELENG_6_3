@@ -26,4 +26,4 @@
 ~sys/boot/i386/btx/btx~btx_real.diff~
 ~sys/netinet~in.c.diff~
 ~~20080428-01-RELENG_6_MFC_ip_input_ipsec_route_mtu.diff~
-
+~sbin/dhclient~bpf.c.diff~
