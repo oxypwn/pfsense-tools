@@ -2265,7 +2265,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	15 May 2008 22:31:09 -0000
++++ sys/contrib/pf/net/pf.c	15 May 2008 22:56:05 -0000
 @@ -263,7 +263,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
@@ -2447,7 +2447,7 @@ diff -u -r1.46.2.1 pf.c
 +		/* XXX: This are here until a pluggable framework for NAT is finished */
 +       		if (s != NULL && s->nat_rule.ptr != NULL) {
 +			if (ntohs(th.th_dport) == PPTP_CONTROL_PORT_NUMBER)
-+ 				pf_get_pptp_translation(&pd, m, off, (void *)&th, dir,
++ 				pf_get_pptp_translation(&pd, m, s, off, (void *)&th, dir,
 +					th.th_sport);
 +              		else if (ntohs(th.th_sport) == PPTP_CONTROL_PORT_NUMBER)
 +              			pf_get_pptp_translation(&pd, m, s, off, (void *)&th, dir,
