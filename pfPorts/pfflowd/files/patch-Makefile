@@ -1,0 +1,22 @@
+--- Makefile	Mon Feb 16 16:30:46 2004
++++ Makefile	Thu Aug 19 22:08:28 2004
+@@ -7,7 +7,7 @@
+ LIBS=-lpcap -lutil #-lefence
+ LDFLAGS=-g
+ 
+-CFLAGS=-g -O $(WARNFLAGS)
++CFLAGS=-g -O -I /usr/local/include/pf
+ 
+ # Uncomment this if you are using pfflowd on OpenBSD <=3.4
+ #CFLAGS+=-DOLD_PFSYNC
+@@ -16,8 +16,8 @@
+ 
+ all: $(TARGETS)
+ 
+-pfflowd: pfflowd.o
+-	$(CC) $(LDFLAGS) -o $@ pfflowd.o  $(LIBS)
++pfflowd: pfflowd.o pidfile.o
++	$(CC) $(LDFLAGS) -o $@ pfflowd.o pidfile.o $(LIBS)
+ 
+ clean:
+ 	rm -f $(TARGETS) *.o core *.core
