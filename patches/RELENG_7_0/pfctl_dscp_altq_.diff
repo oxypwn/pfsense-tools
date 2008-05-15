@@ -4,7 +4,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.8
 diff -u -r1.8 parse.y
 --- contrib/pf/pfctl/parse.y	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/parse.y	27 Apr 2008 22:48:30 -0000
++++ contrib/pf/pfctl/parse.y	15 May 2008 17:23:16 -0000
 @@ -44,6 +44,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -288,7 +288,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.7
 diff -u -r1.7 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	3 Jul 2007 12:30:02 -0000	1.7
-+++ contrib/pf/pfctl/pfctl.c	27 Apr 2008 22:48:31 -0000
++++ contrib/pf/pfctl/pfctl.c	15 May 2008 17:23:16 -0000
 @@ -76,6 +76,7 @@
  void	 pfctl_addrprefix(char *, struct pf_addr *);
  int	 pfctl_kill_src_nodes(int, const char *, int);
@@ -426,7 +426,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.9
 diff -u -r1.9 pfctl_altq.c
 --- contrib/pf/pfctl/pfctl_altq.c	3 Jul 2007 12:30:02 -0000	1.9
-+++ contrib/pf/pfctl/pfctl_altq.c	27 Apr 2008 22:48:31 -0000
++++ contrib/pf/pfctl/pfctl_altq.c	15 May 2008 17:23:16 -0000
 @@ -42,6 +42,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -763,7 +763,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.8
 diff -u -r1.8 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/pfctl_parser.c	27 Apr 2008 22:48:31 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	15 May 2008 17:23:16 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -783,7 +783,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.h,v
 retrieving revision 1.7
 diff -u -r1.7 pfctl_parser.h
 --- contrib/pf/pfctl/pfctl_parser.h	3 Jul 2007 12:30:02 -0000	1.7
-+++ contrib/pf/pfctl/pfctl_parser.h	27 Apr 2008 22:48:31 -0000
++++ contrib/pf/pfctl/pfctl_parser.h	15 May 2008 17:23:16 -0000
 @@ -149,12 +149,27 @@
  	int			flags;
  };
@@ -818,7 +818,7 @@ RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_qstats.c,v
 retrieving revision 1.6
 diff -u -r1.6 pfctl_qstats.c
 --- contrib/pf/pfctl/pfctl_qstats.c	3 May 2005 16:55:20 -0000	1.6
-+++ contrib/pf/pfctl/pfctl_qstats.c	27 Apr 2008 22:48:31 -0000
++++ contrib/pf/pfctl/pfctl_qstats.c	15 May 2008 17:23:16 -0000
 @@ -38,6 +38,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -895,7 +895,7 @@ Index: sbin/pfctl/missing/altq/altq_fairq.h
 RCS file: sbin/pfctl/missing/altq/altq_fairq.h
 diff -N sbin/pfctl/missing/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sbin/pfctl/missing/altq/altq_fairq.h	27 Apr 2008 22:48:31 -0000
++++ sbin/pfctl/missing/altq/altq_fairq.h	15 May 2008 17:23:16 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1039,7 +1039,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/conf/NOTES,v
 retrieving revision 1.1454
 diff -u -r1.1454 NOTES
 --- sys/conf/NOTES	26 Sep 2007 21:14:17 -0000	1.1454
-+++ sys/conf/NOTES	27 Apr 2008 22:48:31 -0000
++++ sys/conf/NOTES	15 May 2008 17:23:16 -0000
 @@ -608,6 +608,7 @@
  options 	ALTQ_RED	# Random Early Detection
  options 	ALTQ_RIO	# RED In/Out
@@ -1054,7 +1054,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	27 Apr 2008 22:48:31 -0000
++++ sys/conf/files	15 May 2008 17:23:16 -0000
 @@ -108,6 +108,8 @@
  contrib/altq/altq/altq_cdnr.c	optional altq
  contrib/altq/altq/altq_hfsc.c	optional altq \
@@ -1079,7 +1079,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/conf/options,v
 retrieving revision 1.608
 diff -u -r1.608 options
 --- sys/conf/options	23 Sep 2007 07:34:23 -0000	1.608
-+++ sys/conf/options	27 Apr 2008 22:48:31 -0000
++++ sys/conf/options	15 May 2008 17:23:16 -0000
 @@ -339,6 +339,7 @@
  ALTQ_RED		opt_altq.h
  ALTQ_RIO		opt_altq.h
@@ -1094,7 +1094,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq.h,v
 retrieving revision 1.2
 diff -u -r1.2 altq.h
 --- sys/contrib/altq/altq/altq.h	12 Jun 2004 00:57:20 -0000	1.2
-+++ sys/contrib/altq/altq/altq.h	27 Apr 2008 22:48:31 -0000
++++ sys/contrib/altq/altq/altq.h	15 May 2008 17:23:16 -0000
 @@ -63,7 +63,8 @@
  #define	ALTQT_BLUE		10	/* blue */
  #define	ALTQT_PRIQ		11	/* priority queue */
@@ -1110,7 +1110,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	28 Apr 2008 21:57:26 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	15 May 2008 17:23:16 -0000
 @@ -0,0 +1,905 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -2022,7 +2022,7 @@ Index: sys/contrib/altq/altq/altq_fairq.h
 RCS file: sys/contrib/altq/altq/altq_fairq.h
 diff -N sys/contrib/altq/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.h	27 Apr 2008 22:48:31 -0000
++++ sys/contrib/altq/altq/altq_fairq.h	15 May 2008 17:23:16 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -2166,7 +2166,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq_subr.c,v
 retrieving revision 1.10
 diff -u -r1.10 altq_subr.c
 --- sys/contrib/altq/altq/altq_subr.c	12 Jul 2007 17:00:51 -0000	1.10
-+++ sys/contrib/altq/altq/altq_subr.c	27 Apr 2008 22:48:31 -0000
++++ sys/contrib/altq/altq/altq_subr.c	15 May 2008 17:23:16 -0000
 @@ -544,6 +544,11 @@
  		error = hfsc_pfattach(a);
  		break;
@@ -2245,7 +2245,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq_var.h,v
 retrieving revision 1.2
 diff -u -r1.2 altq_var.h
 --- sys/contrib/altq/altq/altq_var.h	21 Feb 2005 17:11:09 -0000	1.2
-+++ sys/contrib/altq/altq/altq_var.h	27 Apr 2008 22:48:31 -0000
++++ sys/contrib/altq/altq/altq_var.h	15 May 2008 17:23:16 -0000
 @@ -261,5 +261,12 @@
  int	hfsc_remove_queue(struct pf_altq *);
  int	hfsc_getqstats(struct pf_altq *, void *, int *);
@@ -2265,8 +2265,17 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	27 Apr 2008 22:48:31 -0000
-@@ -605,6 +605,22 @@
++++ sys/contrib/pf/net/pf.c	15 May 2008 17:34:41 -0000
+@@ -295,8 +295,6 @@
+ 			    sa_family_t);
+ u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
+ 				u_int16_t);
+-void			 pf_set_rt_ifp(struct pf_state *,
+-			    struct pf_addr *);
+ int			 pf_check_proto_cksum(struct mbuf *, int, int,
+ 			    u_int8_t, sa_family_t);
+ int			 pf_addr_wrap_neq(struct pf_addr_wrap *,
+@@ -605,6 +603,22 @@
  	return (0);
  }
  
@@ -2289,7 +2298,7 @@ diff -u -r1.46.2.1 pf.c
  #ifdef INET6
  void
  pf_addrcpy(struct pf_addr *dst, struct pf_addr *src, sa_family_t af)
-@@ -3305,7 +3321,10 @@
+@@ -3305,7 +3319,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
@@ -2301,7 +2310,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -3727,7 +3746,10 @@
+@@ -3727,7 +3744,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], uh->uh_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
@@ -2313,7 +2322,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -4082,7 +4104,10 @@
+@@ -4082,7 +4102,10 @@
  			r = TAILQ_NEXT(r, entries);
  		else if (r->code && r->code != icmpcode + 1)
  			r = TAILQ_NEXT(r, entries);
@@ -2325,7 +2334,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -4341,7 +4366,10 @@
+@@ -4341,7 +4364,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
@@ -2337,7 +2346,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -4558,7 +4586,10 @@
+@@ -4558,7 +4584,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
@@ -2349,32 +2358,76 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->os_fingerprint != PF_OSFP_ANY)
  			r = TAILQ_NEXT(r, entries);
-@@ -6869,6 +6900,15 @@
+@@ -5761,10 +5790,18 @@
+ 
+ int
+ pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
+-    struct pf_pdesc *pd)
++    struct mbuf *m, int off, void *h, struct pf_pdesc *pd)
+ {
+ 	struct pf_state_peer	*src, *dst;
+ 	struct pf_state_cmp	 key;
++	struct pf_grehdr         gr;
++        u_int16_t                callid = 0;
++
++        if (pd->proto == IPPROTO_GRE &&
++                pf_pull_hdr(m, off, &gr, sizeof(gr), NULL, NULL, pd->af)  != NULL &&
++                /* Check GRE header bits. */
++                ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) == PPTP_INIT_VALUE)) 
++                callid = gr.gh_call_id;
+ 
+ 	key.af = pd->af;
+ 	key.proto = pd->proto;
+@@ -5772,7 +5809,7 @@
+ 		PF_ACPY(&key.ext.addr, pd->src, key.af);
+ 		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
+ 		key.ext.port = 0;
+-		key.gwy.port = 0;
++		key.gwy.port = callid;
+ 	} else {
+ 		PF_ACPY(&key.lan.addr, pd->src, key.af);
+ 		PF_ACPY(&key.ext.addr, pd->dst, key.af);
+@@ -5820,7 +5857,14 @@
+ 				break;
+ #endif /* INET6 */
+ 			}
+-		else
++		else {
++                        if (callid && (*state)->gwy.pad) {
++                                gr.gh_call_id = (*state)->gwy.pad;
++                                *pd->ip_sum = pf_cksum_fixup(*pd->ip_sum,
++                                                callid, gr.gh_call_id, 0);
++                                m_copyback(m, off, sizeof(gr), (caddr_t)&gr);
++                        }
++
+ 			switch (pd->af) {
+ #ifdef INET
+ 			case AF_INET:
+@@ -5835,6 +5879,7 @@
+ 				break;
+ #endif /* INET6 */
+ 			}
++		}
+ 	}
+ 
+ 	return (PF_PASS);
+@@ -6869,6 +6914,15 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
 +		/* XXX: This are here until a pluggable framework for NAT is finished */
 +       		if (s != NULL && s->nat_rule.ptr != NULL) {
-+			if (ntohs(pd.hdr.tcp->th_dport) == PPTP_CONTROL_PORT_NUMBER)
++			if (ntohs(th.th_dport) == PPTP_CONTROL_PORT_NUMBER)
 + 				pf_get_pptp_translation(&pd, m, off, (void *)&th, dir,
-+					pd.hdr.tcp->th_sport);
-+              		else if (ntohs(pd.hdr.tcp->th_sport) == PPTP_CONTROL_PORT_NUMBER)
-+              			pf_get_pptp_translation(&pd, m, off, (void *)&th, dir,
-+					pd.hdr.tcp->th_dport);
++					th.th_sport);
++              		else if (ntohs(th.th_sport) == PPTP_CONTROL_PORT_NUMBER)
++              			pf_get_pptp_translation(&pd, m, s, off, (void *)&th, dir,
++					th.th_dport);
 +		}
  		break;
  	}
  
-@@ -6965,6 +7005,8 @@
- 			action = pf_test_other(&r, &s, dir, kif, m, off, h,
- 			    &pd, &a, &ruleset, &ipintrq);
- #endif
-+	        if (s != NULL && s->nat_rule.ptr != NULL && h->ip_p == IPPROTO_GRE)
-+               		pf_get_gre_translation(&pd, m, off, (void *)h, dir, 0);
- 		break;
- 	}
- 
-@@ -6983,7 +7025,9 @@
+@@ -6983,7 +7037,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2385,7 +2438,7 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7212,7 +7256,7 @@
+@@ -7212,7 +7268,7 @@
  	PF_ACPY(&pd.baddr, dir == PF_OUT ? pd.src : pd.dst, AF_INET6);
  	pd.ip_sum = NULL;
  	pd.af = AF_INET6;
@@ -2394,7 +2447,7 @@ diff -u -r1.46.2.1 pf.c
  	pd.tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
  	pd.eh = eh;
  
-@@ -7444,7 +7488,9 @@
+@@ -7444,7 +7500,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2411,7 +2464,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.28.2.1
 diff -u -r1.28.2.1 pf_ioctl.c
 --- sys/contrib/pf/net/pf_ioctl.c	25 Nov 2007 19:26:46 -0000	1.28.2.1
-+++ sys/contrib/pf/net/pf_ioctl.c	27 Apr 2008 22:48:31 -0000
++++ sys/contrib/pf/net/pf_ioctl.c	15 May 2008 17:23:16 -0000
 @@ -1928,6 +1928,39 @@
  		break;
  	}
@@ -2458,7 +2511,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.1
 diff -u -r1.1 pf_mtag.h
 --- sys/contrib/pf/net/pf_mtag.h	3 Jul 2007 12:46:06 -0000	1.1
-+++ sys/contrib/pf/net/pf_mtag.h	27 Apr 2008 22:48:31 -0000
++++ sys/contrib/pf/net/pf_mtag.h	15 May 2008 17:23:16 -0000
 @@ -42,6 +42,7 @@
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
  	u_int		 rtableid;	/* alternate routing table id */
@@ -2472,8 +2525,8 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	27 Apr 2008 22:48:31 -0000
-@@ -0,0 +1,317 @@
++++ sys/contrib/pf/net/pf_pptp.c	15 May 2008 17:46:14 -0000
+@@ -0,0 +1,250 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
 + * Copyright (c) 2008 Ermal Luçi
@@ -2509,31 +2562,45 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 + * OF SUCH DAMAGE.
 + */
 +
++#include "opt_inet.h"
++#include "opt_inet6.h"
++
 +#include <sys/param.h>
 +#include <sys/systm.h>
 +#include <sys/mbuf.h>
-+#include <sys/filio.h>
 +#include <sys/socket.h>
-+#include <sys/socketvar.h>
-+#include <sys/kernel.h>
-+#include <sys/queue.h>
 +
 +#include <sys/endian.h>
 +
 +#include <net/if.h>
-+#include <net/if_types.h>
-+#include <net/bpf.h>
-+#include <net/route.h>
 +
 +#include <netinet/in.h>
-+#include <netinet/in_var.h>
 +#include <netinet/in_systm.h>
 +#include <netinet/ip.h>
-+#include <netinet/ip_var.h>
 +#include <netinet/tcp.h>
-+#include <netinet/tcp_seq.h>
 +
 +#include <net/pfvar.h>
++
++#define BOUND_IFACE(r, k) \
++        ((r)->rule_flag & PFRULE_IFBOUND) ? (k) : pfi_all
++
++#define STATE_INC_COUNTERS(s)                           \
++        do {                                            \
++                s->rule.ptr->states++;                  \
++                if (s->anchor.ptr != NULL)              \
++                        s->anchor.ptr->states++;        \
++                if (s->nat_rule.ptr != NULL)            \
++                        s->nat_rule.ptr->states++;      \
++        } while (0)
++
++#define STATE_DEC_COUNTERS(s)                           \
++        do {                                            \
++                if (s->nat_rule.ptr != NULL)            \
++                        s->nat_rule.ptr->states--;      \
++                if (s->anchor.ptr != NULL)              \
++                        s->anchor.ptr->states--;        \
++                s->rule.ptr->states--;                  \
++        } while (0)
 +
 +/*
 + * The data structures here and some of the logic in the code is based
@@ -2542,93 +2609,9 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +#define PPTP_MAGIC              0x1a2b3c4d
 +#define PPTP_CTRL_MSG_TYPE      1
 +
-+struct pf_saved_callid {
-+	SLIST_ENTRY(pf_saved_callid)	_entry;
-+	u_int16_t			bcallid;
-+	u_int16_t			ncallid;
-+};	
-+
-+SLIST_HEAD(saved_callids, pf_saved_callid) saved_callids =
-+	SLIST_HEAD_INITIALIZER(saved_callids);
-+                      
-+static int pf_pptp_initialized = 0;
-+
-+static int 
-+pf_pptp_add_entry(u_int16_t bcallid, u_int16_t ncallid)
-+{
-+	struct pf_saved_callid *newentry;
-+
-+	newentry = malloc(sizeof(*newentry), M_TEMP, M_NOWAIT);
-+	if (newentry == NULL)
-+		return (-1); /* XXX */
-+
-+	newentry->bcallid = bcallid;
-+	newentry->ncallid = ncallid;
-+
-+	SLIST_INSERT_HEAD(&saved_callids, newentry, _entry);
-+	
-+	return (0);
-+}
-+ 
-+static u_int16_t
-+pf_pptp_get_entry(u_int16_t ncallid) 
-+{
-+	struct pf_saved_callid *entry;
-+
-+	SLIST_FOREACH(entry, &saved_callids, _entry)
-+		if (entry->ncallid == ncallid)
-+			return (entry->bcallid);
-+
-+	return (0);
-+}
-+
-+static u_int16_t
-+pf_pptp_find_entry(u_int16_t bcallid)
-+{
-+	struct pf_saved_callid *entry;
-+
-+	SLIST_FOREACH(entry, &saved_callids, _entry)
-+		if (entry->bcallid == bcallid)
-+			return (entry->ncallid);
-+
-+	return (0);
-+}
-+
-+static void
-+pf_pptp_remove_entry(u_int16_t bcallid, u_int16_t ncallid) 
-+{
-+	struct pf_saved_callid *entry, *entry_temp;
-+
-+	SLIST_FOREACH_SAFE(entry, &saved_callids, _entry, entry_temp) {
-+		if (entry->bcallid == bcallid && entry->ncallid == ncallid) {
-+			SLIST_REMOVE(&saved_callids, entry, pf_saved_callid, _entry);
-+			free(entry, M_TEMP);
-+			break;
-+		}
-+	}
-+}
-+
 +/*
 + * PPTP definitions
 + */
-+
-+struct grehdr {                 /* Enhanced GRE header. */
-+        u_int16_t       gh_flags;       /* Flags. */
-+        u_int16_t       gh_protocol;    /* Protocol type. */
-+        u_int16_t       gh_length;      /* Payload length. */
-+        u_int16_t       gh_call_id;     /* Call ID. */
-+        u_int32_t       gh_seq_no;      /* Sequence number (optional). */
-+        u_int32_t       gh_ack_no;      /* Acknowledgment number
-+                                         * (optional). */
-+};
-+
-+/* The PPTP protocol ID used in the GRE 'proto' field. */
-+#define PPTP_GRE_PROTO          0x880b
-+
-+/* Bits that must be set a certain way in all PPTP/GRE packets. */
-+#define PPTP_INIT_VALUE         ((0x2001 << 16) | PPTP_GRE_PROTO)
-+#define PPTP_INIT_MASK          0xef7fffff
-+
 +enum {
 +        PPTP_StartCtrlConnRequest = 1,
 +        PPTP_StartCtrlConnReply = 2,
@@ -2659,18 +2642,14 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +};
 +
 +void
-+pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, int off, void *p,
-+	int dir, u_int16_t nport)
++pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state, 
++	int off, void *p, int dir, u_int16_t nport)
 +{
-+        u_int16_t ctl_type;     
 +        struct pptpMsgHead hptr;
-+	u_int16_t pcall_id;
 +	struct tcphdr *th = NULL; 
-+
-+	if (pf_pptp_initialized == 0) {
-+		pf_pptp_initialized  = 1;
-+		SLIST_INIT(&saved_callids);
-+	}
++	struct pf_state *s;
++        u_int16_t ctl_type;     
++	u_int16_t pcall_id = 0; /* Make compiler happy */
 +
 +        /* Verify data length */
 +        if (pd->p_len < (int)(sizeof(struct pptpMsgHead)))
@@ -2694,55 +2673,29 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +
 +        /* Modify certain PPTP messages */
 +        switch (ctl_type) {
-+/* Keep this just for debugging */
-+#if 0
-+	case PPTP_InCallRequest:
-+		printf("type InCallRequest\n");
-+		return;
-+	case PPTP_InCallReply:
-+		printf("type InCallReply\n");
-+		return;
-+	case PPTP_EchoRequest:
-+		printf("EchoRequest\n");
-+		return;
-+	case PPTP_EchoReply:
-+		printf("EchoReply\n");
-+		return;
-+	case PPTP_StartCtrlConnRequest:
-+		printf("PPTP_StartCtrlConnRequest\n");
-+		return;
-+	case PPTP_StartCtrlConnReply:
-+		printf("PPTP_StartCtrlConnReply - dir = %s\n", dir == PF_IN ? "PF_IN" : "PF_OUT");
-+		return;
-+	case PPTP_StopCtrlConnRequest:
-+		printf("PPTP_StopCtrlConnRequest\n");
-+		return;
-+	case PPTP_StopCtrlConnReply:
-+		printf("PPTP_StopCtrlConnReply\n");
-+		return;
-+#endif 
 +        case PPTP_OutCallRequest:
-+		ctl_type = ntohs(hptr.cid1);
-+		if (pf_pptp_find_entry(ctl_type) == 0)
-+			pf_pptp_add_entry(ctl_type, nport);
-+
-+		hptr.cid1 = htons(nport);
++		pcall_id = hptr.cid1;
++		hptr.cid1 = nport;
++		state->lan.pad = pcall_id;
 +       		th->th_sum = pf_cksum_fixup(th->th_sum,
-+                        htons(ctl_type), hptr.cid1, 0);
++                        pcall_id, hptr.cid1, 0);
 +                break; 
-+        case PPTP_OutCallReply:
-+		ctl_type = ntohs(hptr.cid2);
-+		if ( (pcall_id = pf_pptp_get_entry(ctl_type)) == 0)
++	case PPTP_WanErrorNotify: /* XXX: Is this needed?! */
++	case PPTP_SetLinkInfo:
++		if (dir == PF_IN) {
++			pcall_id = hptr.cid2;
++                	hptr.cid1 = state->lan.pad;
++                	th->th_sum = pf_cksum_fixup(th->th_sum,
++                        	pcall_id, hptr.cid1, 0);
++		} else
 +			return;
-+			hptr.cid2 = htons(pcall_id);
-+       		th->th_sum = pf_cksum_fixup(th->th_sum,
-+                        htons(ctl_type), hptr.cid2, 0);
 +		break;
-+	case PPTP_CallClearRequest:
-+        case PPTP_WanErrorNotify:
-+        case PPTP_CallDiscNotify:
-+                pf_pptp_remove_entry(hptr.cid1, nport);
-+		/* FALLTHROUGH */
++        case PPTP_OutCallReply:
++		pcall_id = hptr.cid2;
++		hptr.cid2 = state->lan.pad;
++       		th->th_sum = pf_cksum_fixup(th->th_sum,
++                        pcall_id, hptr.cid2, 0);
++		break;
 +        default:
 +                return;
 +        }
@@ -2753,43 +2706,76 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +	m_copyback(m, off + (th->th_off << 2), sizeof(struct pptpMsgHead), 
 +		(caddr_t)&hptr);	
 +
++	
++	/* 
++	 * Insert states for the GRE tunnel of PPTP.
++	 * This allows us to be sure that pf does not confuse it with some
++	 * other GRE tunnel.
++	 */
++	if (ctl_type == PPTP_OutCallReply) {
++                s = pool_get(&pf_state_pl, PR_NOWAIT);
++                if (s == NULL) {
++#if 0
++                        REASON_SET(&reason, PFRES_MEMORY);
++#endif
++                        return;
++                }
++                bzero(s, sizeof(*s));
++                s->rule.ptr = state->rule.ptr;
++                s->nat_rule.ptr = state->nat_rule.ptr;
++                s->anchor.ptr = state->anchor.ptr;
++                STATE_INC_COUNTERS(s);
++                s->log = state->log;
++                s->proto = IPPROTO_GRE;
++                s->direction = state->direction == PF_IN ? PF_OUT : PF_IN;
++                s->af = state->af;
++                PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++                PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++		s->gwy.port = pcall_id;
++		s->gwy.pad = hptr.cid2;
++                s->src.state = PFOTHERS_NO_TRAFFIC;
++                s->dst.state = PFOTHERS_NO_TRAFFIC;
++                s->creation = time_second;
++                s->expire = time_second;
++                s->timeout = PFTM_OTHER_FIRST_PACKET;
++                pf_set_rt_ifp(s, pd->src);
++                if (pf_insert_state(BOUND_IFACE(s->rule.ptr, s->rt_kif), s)) {
++                        STATE_DEC_COUNTERS(s);
++                        pool_put(&pf_state_pl, s);
++		}
++
++                s = pool_get(&pf_state_pl, PR_NOWAIT);
++                if (s == NULL) {
++#if 0
++                        REASON_SET(&reason, PFRES_MEMORY);
++#endif
++                        return;
++                }
++                bzero(s, sizeof(*s));
++                s->rule.ptr = state->rule.ptr;
++                s->anchor.ptr = state->anchor.ptr;
++                STATE_INC_COUNTERS(s);
++                s->log = state->log;
++                s->proto = IPPROTO_GRE;
++                s->direction = state->direction; 
++                s->af = state->af;
++                PF_ACPY(&s->gwy.addr, &state->ext.addr, pd->af);
++                s->gwy.port = hptr.cid1;
++                PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
++                PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
++                s->src.state = PFOTHERS_NO_TRAFFIC;
++                s->dst.state = PFOTHERS_NO_TRAFFIC;
++                s->creation = time_second;
++                s->expire = time_second;
++                s->timeout = PFTM_OTHER_FIRST_PACKET;
++                pf_set_rt_ifp(s, pd->src);
++                if (pf_insert_state(BOUND_IFACE(s->rule.ptr, s->rt_kif), s)) {
++                        STATE_DEC_COUNTERS(s);
++                        pool_put(&pf_state_pl, s);
++		}
++       	}
 +	return;
-+} 
-+
-+void
-+pf_get_gre_translation(struct pf_pdesc *pd, struct mbuf *m, int off, void *p,
-+        int dir, u_int16_t nport /* unused */)
-+{
-+        struct grehdr gr;
-+	u_int16_t ncallid, bcallid;
-+	struct ip *iphdr = (struct ip *) p;
-+
-+	if (dir != PF_IN)
-+		return;
-+
-+	if (pf_pptp_initialized == 0)
-+		return;
-+
-+	if (!pf_pull_hdr(m, off, &gr, sizeof(struct grehdr),
-+			NULL, NULL, AF_INET))
-+		return;
-+
-+        /* Check GRE header bits. */
-+        if ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) != PPTP_INIT_VALUE)
-+                return;
-+	
-+	bcallid = ntohs(gr.gh_call_id);
-+	if ((ncallid = pf_pptp_get_entry(bcallid)) == 0)
-+		return; /* XXX */
-+
-+	gr.gh_call_id = htons(ncallid);
-+	iphdr->ip_sum = pf_cksum_fixup(iphdr->ip_sum,
-+        			htons(bcallid), gr.gh_call_id, 0);
-+	
-+	/* Update real packet ip header */
-+	m_copyback(m, 0, sizeof(struct ip), (caddr_t)iphdr);
-+	/* Update real packet gre header */
-+	m_copyback(m, off, sizeof(struct grehdr), (caddr_t)&gr);
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
@@ -2797,7 +2783,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	27 Apr 2008 22:48:31 -0000
++++ sys/contrib/pf/net/pfvar.h	15 May 2008 17:34:26 -0000
 @@ -672,6 +672,27 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -2877,14 +2863,34 @@ diff -u -r1.16 pfvar.h
  
  #ifdef _KERNEL
  RB_HEAD(pf_src_tree, pf_src_node);
-@@ -1708,6 +1752,11 @@
+@@ -1708,6 +1752,31 @@
  int	pfr_ina_define(struct pfr_table *, struct pfr_addr *, int, int *,
  	    int *, u_int32_t, int);
  
++void    pf_set_rt_ifp(struct pf_state *, struct pf_addr *);
++
 +/* XXX: This are here until a pluggable framework for NAT is finished */
 +#define PPTP_CONTROL_PORT_NUMBER 1723
-+void	pf_get_pptp_translation(struct pf_pdesc *, struct mbuf *, int, void *, int, u_int16_t);
-+void	pf_get_gre_translation(struct pf_pdesc *, struct mbuf *, int, void *, int, u_int16_t);
++#define FTP_CONTROL_PORT_NUMBER 21
++struct pf_grehdr {                 /* Enhanced GRE header. */
++        u_int16_t       gh_flags;       /* Flags. */
++        u_int16_t       gh_protocol;    /* Protocol type. */
++        u_int16_t       gh_length;      /* Payload length. */
++        u_int16_t       gh_call_id;     /* Call ID. */
++        u_int32_t       gh_seq_no;      /* Sequence number (optional). */
++        u_int32_t       gh_ack_no;      /* Acknowledgment number
++                                         * (optional). */
++};
++
++/* The PPTP protocol ID used in the GRE 'proto' field. */
++#define PPTP_GRE_PROTO          0x880b
++
++/* Bits that must be set a certain way in all PPTP/GRE packets. */
++#define PPTP_INIT_VALUE         ((0x2001 << 16) | PPTP_GRE_PROTO)
++#define PPTP_INIT_MASK          0xef7fffff
++
++void    pf_get_pptp_translation(struct pf_pdesc *, struct mbuf *,
++                struct pf_state *, int, void *, int, u_int16_t);
 +
  extern struct pfi_statehead	 pfi_statehead;
  extern struct pfi_kif		*pfi_all;
@@ -2895,7 +2901,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/modules/pf/Makefile,v
 retrieving revision 1.13
 diff -u -r1.13 Makefile
 --- sys/modules/pf/Makefile	3 Jul 2007 12:46:06 -0000	1.13
-+++ sys/modules/pf/Makefile	27 Apr 2008 22:48:31 -0000
++++ sys/modules/pf/Makefile	15 May 2008 17:23:16 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
