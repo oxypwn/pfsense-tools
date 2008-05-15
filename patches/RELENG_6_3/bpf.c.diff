@@ -1,0 +1,29 @@
+Index: bpf.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/dhclient/bpf.c,v
+retrieving revision 1.2.2.4
+diff -u -r1.2.2.4 bpf.c
+--- bpf.c	29 Sep 2006 03:07:41 -0000	1.2.2.4
++++ bpf.c	15 May 2008 03:36:30 -0000
+@@ -245,6 +245,21 @@
+ 	unsigned char buf[256];
+ 	struct iovec iov[2];
+ 	int result, bufp = 0;
++	int sock;
++
++	if (to->sin_addr.s_addr != INADDR_BROADCAST) {
++		note("SENDING DIRECT");
++		/* We know who the server is, send the packet via
++		   normal socket interface */
++
++		if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) >= 0) {
++			result = sendto (sock, (char *)raw, len, 0,
++					 (struct sockaddr *)to, sizeof *to);
++			close(sock);
++			if (result > 0)
++				return result;
++			}
++		}
+ 
+ 	/* Assemble the headers... */
+ 	assemble_hw_header(interface, buf, &bufp, hto);
