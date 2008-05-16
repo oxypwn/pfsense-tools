@@ -3,6 +3,7 @@
 ~~~/sys/contrib/altq/altq/altq_fairq.c
 ~~~/sbin/pfctl/missing/altq/altq_fairq.h
 ~~~/sys/dev/usb/umsm.c
+~~~/sys/modules/umsm/Makefile
 -p1~~carpdev_7.diff~
 ~sys/netinet~tcp_var.h.diff~
 ~sys/boot/i386/btx/btx~btx_real.diff~
