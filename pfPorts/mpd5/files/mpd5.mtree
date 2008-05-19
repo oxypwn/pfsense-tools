@@ -1,0 +1,28 @@
+# $FreeBSD: ports/net/mpd5/files/mpd5.mtree,v 1.1 2007/10/24 13:31:37 sem Exp $
+
+/set type=dir uname=root gname=wheel mode=0755
+.
+    etc
+	rc.d
+	..
+    ..
+    sbin
+    ..
+    etc
+	mpd5
+	..
+    ..
+    man
+        cat8            uname=man
+        ..
+        man8
+        ..
+    ..
+    share
+        doc
+	    mpd5
+	    ..
+        ..
+    ..
+..
+
