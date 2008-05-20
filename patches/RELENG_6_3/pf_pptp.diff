@@ -1,0 +1,489 @@
+Index: sys/conf/files
+===================================================================
+RCS file: /home/eri/development/FreeBSD/src/sys/conf/files,v
+retrieving revision 1.1031.2.69
+diff -u -r1.1031.2.69 files
+--- sys/conf/files	5 Oct 2007 22:49:06 -0000	1.1031.2.69
++++ sys/conf/files	20 May 2008 17:46:10 -0000
+@@ -291,6 +291,7 @@
+ contrib/pf/net/pf_norm.c	optional pf
+ contrib/pf/net/pf_table.c	optional pf
+ contrib/pf/net/pf_osfp.c	optional pf
++contrib/pf/net/pf_pptp.c	optional pf
+ contrib/pf/netinet/in4_cksum.c	optional pf inet
+ crypto/blowfish/bf_ecb.c	optional ipsec ipsec_esp
+ crypto/blowfish/bf_skey.c	optional crypto
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.34.2.8
+diff -u -r1.34.2.8 pf.c
+--- sys/contrib/pf/net/pf.c	21 Nov 2007 13:52:04 -0000	1.34.2.8
++++ sys/contrib/pf/net/pf.c	20 May 2008 17:55:26 -0000
+@@ -241,7 +241,8 @@
+ 			    struct pfi_kif *, struct mbuf *, int,
+ 			    void *, struct pf_pdesc *, u_short *);
+ int			 pf_test_state_other(struct pf_state **, int,
+-			    struct pfi_kif *, struct pf_pdesc *);
++			    struct pfi_kif *, struct mbuf *m, int,
++			    void *, struct pf_pdesc *);
+ struct pf_tag		*pf_get_tag(struct mbuf *);
+ int			 pf_match_tag(struct mbuf *, struct pf_rule *,
+ 			     struct pf_tag **, int *);
+@@ -271,8 +272,6 @@
+ 			    sa_family_t);
+ u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
+ 				u_int16_t);
+-void			 pf_set_rt_ifp(struct pf_state *,
+-			    struct pf_addr *);
+ int			 pf_check_proto_cksum(struct mbuf *, int, int,
+ 			    u_int8_t, sa_family_t);
+ int			 pf_addr_wrap_neq(struct pf_addr_wrap *,
+@@ -4046,6 +4045,7 @@
+ 	struct pf_ruleset	*ruleset = NULL;
+ 	struct pf_src_node	*nsn = NULL;
+ 	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
++	struct pf_grehdr         gr;
+ 	sa_family_t		 af = pd->af;
+ 	u_short			 reason;
+ 	struct pf_tag		*pftag = NULL;
+@@ -4257,6 +4257,15 @@
+ 		if (direction == PF_OUT) {
+ 			PF_ACPY(&s->gwy.addr, saddr, af);
+ 			PF_ACPY(&s->ext.addr, daddr, af);
++
++                        if (pd->proto == IPPROTO_GRE &&
++                                pf_pull_hdr(m, off, &gr, sizeof(gr),
++                                        NULL, NULL, pd->af)  != NULL &&
++                                /* Check GRE header bits. */
++                                ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK)
++                                == PPTP_INIT_VALUE))
++                                s->gwy.port = gr.gh_call_id;
++
+ 			if (nr != NULL)
+ 				PF_ACPY(&s->lan.addr, &pd->baddr, af);
+ 			else
+@@ -5509,10 +5518,18 @@
+ 
+ int
+ pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
+-    struct pf_pdesc *pd)
++    struct mbuf *m, int off, void *h, struct pf_pdesc *pd)
+ {
+ 	struct pf_state_peer	*src, *dst;
+ 	struct pf_state		 key;
++	struct pf_grehdr         gr;
++        u_int16_t                callid = 0;
++
++        if (pd->proto == IPPROTO_GRE &&
++                pf_pull_hdr(m, off, &gr, sizeof(gr), NULL, NULL, pd->af)  != NULL &&
++                /* Check GRE header bits. */
++                ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) == PPTP_INIT_VALUE))
++                callid = gr.gh_call_id;
+ 
+ 	key.af = pd->af;
+ 	key.proto = pd->proto;
+@@ -5520,7 +5537,7 @@
+ 		PF_ACPY(&key.ext.addr, pd->src, key.af);
+ 		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
+ 		key.ext.port = 0;
+-		key.gwy.port = 0;
++		key.gwy.port = callid;
+ 	} else {
+ 		PF_ACPY(&key.lan.addr, pd->src, key.af);
+ 		PF_ACPY(&key.ext.addr, pd->dst, key.af);
+@@ -5568,7 +5585,14 @@
+ 				break;
+ #endif /* INET6 */
+ 			}
+-		else
++		else {
++                        if (callid && (*state)->gwy.pad) {
++                                gr.gh_call_id = (*state)->gwy.pad;
++                                *pd->ip_sum = pf_cksum_fixup(*pd->ip_sum,
++                                                callid, gr.gh_call_id, 0);
++                                m_copyback(m, off, sizeof(gr), (caddr_t)&gr);
++                        }
++
+ 			switch (pd->af) {
+ #ifdef INET
+ 			case AF_INET:
+@@ -5583,6 +5607,7 @@
+ 				break;
+ #endif /* INET6 */
+ 			}
++		}
+ 	}
+ 
+ 	return (PF_PASS);
+@@ -6584,6 +6609,16 @@
+ 			action = pf_test_tcp(&r, &s, dir, kif,
+ 			    m, off, h, &pd, &a, &ruleset, &ipintrq);
+ #endif
++                /* XXX: This are here until a pluggable framework for NAT is finished */
++                if (s != NULL && s->nat_rule.ptr != NULL) {
++                        if (ntohs(th.th_dport) == PPTP_CONTROL_PORT_NUMBER)
++                                pf_get_pptp_translation(&pd, m, s, off, (void *)&th, dir,
++                                        th.th_sport);
++                        else if (ntohs(th.th_sport) == PPTP_CONTROL_PORT_NUMBER)
++                                pf_get_pptp_translation(&pd, m, s, off, (void *)&th, dir,
++                                        th.th_dport);
++                }
++
+ 		break;
+ 	}
+ 
+@@ -6661,7 +6696,7 @@
+ 	}
+ 
+ 	default:
+-		action = pf_test_state_other(&s, dir, kif, &pd);
++		action = pf_test_state_other(&s, dir, kif, m, off, h, &pd);
+ 		if (action == PF_PASS) {
+ #if NPFSYNC
+ 			pfsync_update_state(s);
+@@ -7061,7 +7096,7 @@
+ 	}
+ 
+ 	default:
+-		action = pf_test_state_other(&s, dir, kif, &pd);
++		action = pf_test_state_other(&s, dir, kif, m, off, h, &pd);
+ 		if (action == PF_PASS) {
+ #if NPFSYNC
+ 			pfsync_update_state(s);
+Index: sys/contrib/pf/net/pf_pptp.c
+===================================================================
+RCS file: sys/contrib/pf/net/pf_pptp.c
+diff -N sys/contrib/pf/net/pf_pptp.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ sys/contrib/pf/net/pf_pptp.c	20 May 2008 17:43:57 -0000
+@@ -0,0 +1,275 @@
++/*
++ * Copyright (c) 2000 Whistle Communications, Inc.
++ * All rights reserved.
++ *
++ * Subject to the following obligations and disclaimer of warranty, use and
++ * redistribution of this software, in source or object code forms, with or
++ * without modifications are expressly permitted by Whistle Communications;
++ * provided, however, that:
++ * 1. Any and all reproductions of the source or object code must include the
++ *    copyright notice above and the following disclaimer of warranties; and
++ * 2. No rights are granted, in any manner or form, to use Whistle
++ *    Communications, Inc. trademarks, including the mark "WHISTLE
++ *    COMMUNICATIONS" on advertising, endorsements, or otherwise except as
++ *    such appears in the above copyright notice or in the software.
++ *
++ * THIS SOFTWARE IS BEING PROVIDED BY WHISTLE COMMUNICATIONS "AS IS", AND
++ * TO THE MAXIMUM EXTENT PERMITTED BY LAW, WHISTLE COMMUNICATIONS MAKES NO
++ * REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, REGARDING THIS SOFTWARE,
++ * INCLUDING WITHOUT LIMITATION, ANY AND ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT.
++ * WHISTLE COMMUNICATIONS DOES NOT WARRANT, GUARANTEE, OR MAKE ANY
++ * REPRESENTATIONS REGARDING THE USE OF, OR THE RESULTS OF THE USE OF THIS
++ * SOFTWARE IN TERMS OF ITS CORRECTNESS, ACCURACY, RELIABILITY OR OTHERWISE.
++ * IN NO EVENT SHALL WHISTLE COMMUNICATIONS BE LIABLE FOR ANY DAMAGES
++ * RESULTING FROM OR ARISING OUT OF ANY USE OF THIS SOFTWARE, INCLUDING
++ * WITHOUT LIMITATION, ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
++ * PUNITIVE, OR CONSEQUENTIAL DAMAGES, PROCUREMENT OF SUBSTITUTE GOODS OR
++ * SERVICES, LOSS OF USE, DATA OR PROFITS, HOWEVER CAUSED AND UNDER ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF WHISTLE COMMUNICATIONS IS ADVISED OF THE POSSIBILITY
++ * OF SUCH DAMAGE.
++ */
++
++/*
++ * Copyright (c) 2008 Ermal Luçi
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ * 
++ * 1. Redistributions of source code must retain the above copyright notice,
++ *   this list of conditions and the following disclaimer.
++ *
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *   notice, this list of conditions and the following disclaimer in the
++ *   documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
++ * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
++ * AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
++ * AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
++ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
++ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
++ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
++ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
++ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
++ * POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#include "opt_inet.h"
++#include "opt_inet6.h"
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/mbuf.h>
++#include <sys/socket.h>
++
++#include <sys/endian.h>
++
++#include <net/if.h>
++
++#include <netinet/in.h>
++#include <netinet/in_systm.h>
++#include <netinet/ip.h>
++#include <netinet/tcp.h>
++
++#include <net/pfvar.h>
++
++#define BOUND_IFACE(r, k) \
++        ((r)->rule_flag & PFRULE_IFBOUND) ? (k) : pfi_all
++
++#define STATE_INC_COUNTERS(s)                           \
++        do {                                            \
++                s->rule.ptr->states++;                  \
++                if (s->anchor.ptr != NULL)              \
++                        s->anchor.ptr->states++;        \
++                if (s->nat_rule.ptr != NULL)            \
++                        s->nat_rule.ptr->states++;      \
++        } while (0)
++
++#define STATE_DEC_COUNTERS(s)                           \
++        do {                                            \
++                if (s->nat_rule.ptr != NULL)            \
++                        s->nat_rule.ptr->states--;      \
++                if (s->anchor.ptr != NULL)              \
++                        s->anchor.ptr->states--;        \
++                s->rule.ptr->states--;                  \
++        } while (0)
++
++/*
++ * The data structures here and some of the logic in the code is based
++ * on alias_pptp.c of libalias. 
++ */
++#define PPTP_MAGIC              0x1a2b3c4d
++#define PPTP_CTRL_MSG_TYPE      1
++
++/*
++ * PPTP definitions
++ */
++enum {
++        PPTP_StartCtrlConnRequest = 1,
++        PPTP_StartCtrlConnReply = 2,
++        PPTP_StopCtrlConnRequest = 3,
++        PPTP_StopCtrlConnReply = 4,
++        PPTP_EchoRequest = 5,
++        PPTP_EchoReply = 6,
++        PPTP_OutCallRequest = 7,
++        PPTP_OutCallReply = 8,
++        PPTP_InCallRequest = 9,
++        PPTP_InCallReply = 10,
++        PPTP_InCallConn = 11,
++        PPTP_CallClearRequest = 12,
++        PPTP_CallDiscNotify = 13,
++        PPTP_WanErrorNotify = 14,
++        PPTP_SetLinkInfo = 15
++};
++
++ /* Message structures */
++struct pptpMsgHead {
++        u_int16_t       length; /* total length */
++        u_int16_t       msgType;/* PPTP message type */
++        u_int32_t       magic;  /* magic cookie */
++        u_int16_t       type;   /* control message type */
++        u_int16_t       resv0;  /* reserved */
++        u_int16_t       cid1;   /* Call ID field #1 */
++        u_int16_t       cid2;   /* Call ID field #2 */
++};
++
++void
++pf_get_pptp_translation(struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state, 
++	int off, void *p, int dir, u_int16_t nport)
++{
++        struct pptpMsgHead hptr;
++	struct tcphdr *th = NULL; 
++	struct pf_state *s;
++        u_int16_t ctl_type;     
++	u_int16_t pcall_id = 0; /* Make compiler happy */
++
++        /* Verify data length */
++        if (pd->p_len < (int)(sizeof(struct pptpMsgHead)))
++                return;
++
++	/* NB: We assume pf(4) has done its checks. */
++	th = (struct tcphdr *)p;
++
++        /* Move up to PPTP message header */
++	if (!pf_pull_hdr(m, off + (th->th_off << 2), &hptr, 
++			sizeof(struct pptpMsgHead), NULL, NULL, AF_INET)) 
++		return;
++
++        /* Return the control message type */
++        ctl_type = ntohs(hptr.type);
++
++        /* Verify PPTP Control Message */
++        if ((ntohs(hptr.msgType) != PPTP_CTRL_MSG_TYPE) ||
++            (ntohl(hptr.magic) != PPTP_MAGIC))
++                return;
++
++        /* Modify certain PPTP messages */
++        switch (ctl_type) {
++        case PPTP_OutCallRequest:
++		pcall_id = hptr.cid1;
++		hptr.cid1 = nport;
++		state->lan.pad = pcall_id;
++       		th->th_sum = pf_cksum_fixup(th->th_sum,
++                        pcall_id, hptr.cid1, 0);
++                break; 
++	case PPTP_WanErrorNotify: /* XXX: Is this needed?! */
++	case PPTP_SetLinkInfo:
++		if (dir == PF_IN) {
++			pcall_id = hptr.cid2;
++                	hptr.cid1 = state->lan.pad;
++                	th->th_sum = pf_cksum_fixup(th->th_sum,
++                        	pcall_id, hptr.cid1, 0);
++		} else
++			return;
++		break;
++        case PPTP_OutCallReply:
++		pcall_id = hptr.cid2;
++		hptr.cid2 = state->lan.pad;
++       		th->th_sum = pf_cksum_fixup(th->th_sum,
++                        pcall_id, hptr.cid2, 0);
++		break;
++        default:
++                return;
++        }
++
++	/* Update real packet tcp checksum */
++	m_copyback(m, off, sizeof(struct tcphdr), (caddr_t)th); 
++	/* Update real packet call id's; Can we reduce the size of copying?! */
++	m_copyback(m, off + (th->th_off << 2), sizeof(struct pptpMsgHead), 
++		(caddr_t)&hptr);	
++
++	
++	/* 
++	 * Insert states for the GRE tunnel of PPTP.
++	 * This allows us to be sure that pf does not confuse it with some
++	 * other GRE tunnel.
++	 */
++	if (ctl_type == PPTP_OutCallReply) {
++                s = pool_get(&pf_state_pl, PR_NOWAIT);
++                if (s == NULL) {
++#if 0
++                        REASON_SET(&reason, PFRES_MEMORY);
++#endif
++                        return;
++                }
++                bzero(s, sizeof(*s));
++                s->rule.ptr = state->rule.ptr;
++                s->nat_rule.ptr = state->nat_rule.ptr;
++                s->anchor.ptr = state->anchor.ptr;
++                STATE_INC_COUNTERS(s);
++                s->log = state->log;
++                s->proto = IPPROTO_GRE;
++                s->direction = state->direction == PF_IN ? PF_OUT : PF_IN;
++                s->af = state->af;
++                PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++                PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++		s->gwy.port = pcall_id;
++		s->gwy.pad = hptr.cid2;
++                s->src.state = PFOTHERS_NO_TRAFFIC;
++                s->dst.state = PFOTHERS_NO_TRAFFIC;
++                s->creation = time_second;
++                s->expire = time_second;
++                s->timeout = PFTM_OTHER_FIRST_PACKET;
++                pf_set_rt_ifp(s, pd->src);
++                if (pf_insert_state(BOUND_IFACE(s->rule.ptr, s->rt_kif), s)) {
++                        STATE_DEC_COUNTERS(s);
++                        pool_put(&pf_state_pl, s);
++		}
++
++                s = pool_get(&pf_state_pl, PR_NOWAIT);
++                if (s == NULL) {
++#if 0
++                        REASON_SET(&reason, PFRES_MEMORY);
++#endif
++                        return;
++                }
++                bzero(s, sizeof(*s));
++                s->rule.ptr = state->rule.ptr;
++                s->anchor.ptr = state->anchor.ptr;
++                STATE_INC_COUNTERS(s);
++                s->log = state->log;
++                s->proto = IPPROTO_GRE;
++                s->direction = state->direction; 
++                s->af = state->af;
++                PF_ACPY(&s->gwy.addr, &state->ext.addr, pd->af);
++                s->gwy.port = hptr.cid1;
++                PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
++                PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
++                s->src.state = PFOTHERS_NO_TRAFFIC;
++                s->dst.state = PFOTHERS_NO_TRAFFIC;
++                s->creation = time_second;
++                s->expire = time_second;
++                s->timeout = PFTM_OTHER_FIRST_PACKET;
++                pf_set_rt_ifp(s, pd->src);
++                if (pf_insert_state(BOUND_IFACE(s->rule.ptr, s->rt_kif), s)) {
++                        STATE_DEC_COUNTERS(s);
++                        pool_put(&pf_state_pl, s);
++		}
++       	}
++	return;
++}
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.11.2.2
+diff -u -r1.11.2.2 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	30 Dec 2005 00:50:18 -0000	1.11.2.2
++++ sys/contrib/pf/net/pfvar.h	20 May 2008 17:43:15 -0000
+@@ -1648,6 +1648,31 @@
+ int	pfr_ina_define(struct pfr_table *, struct pfr_addr *, int, int *,
+ 	    int *, u_int32_t, int);
+ 
++void    pf_set_rt_ifp(struct pf_state *, struct pf_addr *);
++
++/* XXX: This are here until a pluggable framework for NAT is finished */
++#define PPTP_CONTROL_PORT_NUMBER 1723
++#define FTP_CONTROL_PORT_NUMBER 21
++struct pf_grehdr {                 /* Enhanced GRE header. */
++        u_int16_t       gh_flags;       /* Flags. */
++        u_int16_t       gh_protocol;    /* Protocol type. */
++        u_int16_t       gh_length;      /* Payload length. */
++        u_int16_t       gh_call_id;     /* Call ID. */
++        u_int32_t       gh_seq_no;      /* Sequence number (optional). */
++        u_int32_t       gh_ack_no;      /* Acknowledgment number
++                                         * (optional). */
++};
++
++/* The PPTP protocol ID used in the GRE 'proto' field. */
++#define PPTP_GRE_PROTO          0x880b
++
++/* Bits that must be set a certain way in all PPTP/GRE packets. */
++#define PPTP_INIT_VALUE         ((0x2001 << 16) | PPTP_GRE_PROTO)
++#define PPTP_INIT_MASK          0xef7fffff
++
++void    pf_get_pptp_translation(struct pf_pdesc *, struct mbuf *,
++                struct pf_state *, int, void *, int, u_int16_t);
++
+ void		 pfi_initialize(void);
+ #ifdef __FreeBSD__
+ void		 pfi_cleanup(void);
+Index: sys/modules/pf/Makefile
+===================================================================
+RCS file: /home/eri/development/FreeBSD/src/sys/modules/pf/Makefile,v
+retrieving revision 1.7.2.3
+diff -u -r1.7.2.3 Makefile
+--- sys/modules/pf/Makefile	19 Sep 2006 15:45:21 -0000	1.7.2.3
++++ sys/modules/pf/Makefile	20 May 2008 17:45:17 -0000
+@@ -5,6 +5,7 @@
+ 
+ KMOD=	pf
+ SRCS = 	pf.c pf_if.c pf_subr.c pf_osfp.c pf_ioctl.c pf_norm.c pf_table.c \
++	pf_pptp.c \
+ 	in4_cksum.c \
+ 	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h opt_mac.h
+ 
