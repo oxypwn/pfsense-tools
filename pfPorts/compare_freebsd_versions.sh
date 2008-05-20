@@ -1,11 +1,12 @@
 #!/bin/sh
 
+if [ -f /tmp/pfSensePortCompare ]; then
+        rm /tmp/pfSensePortCompare
+fi
+touch /tmp/pfSensePortCompare
+
 for DIRECTORY in *; do
 	if [ -e $DIRECTORY/Makefile ]; then
-		if [ -f /tmp/pfSensePortCompare ]; then
-		        rm /tmp/pfSensePortCompare
-		fi
-		touch /tmp/pfSensePortCompare
 		echo -n "$DIRECTORY $VERSION Finding PORT directory ... "
 		PORTDIR=`find /usr/ports -name $DIRECTORY`
 		if [ -e "$PORTDIR/Makefile" ]; then
