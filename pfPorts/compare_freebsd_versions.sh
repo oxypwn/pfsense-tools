@@ -14,7 +14,7 @@ for DIRECTORY in *; do
 			echo -n "$PORTDIR"
 			PORTVERSION=`cat $PORTDIR/Makefile | grep "PORTVERSION\=" | awk '{ print $2 }' | grep -v ":" | grep -v "{"`
 			if [ "$VERSION" != "$PORTVERSION" ]; then
-				echo "$DIRECTORY   $VERSION     $PORTVVERSION" >> /tmp/pfSensePortCompare
+				echo "$DIRECTORY   $VERSION     $PORTVERSION" >> /tmp/pfSensePortCompare
 			fi
 				echo "    $VERSION - $PORTVERSION"
 		else 
