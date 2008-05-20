@@ -156,8 +156,8 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	20 May 2008 17:43:57 -0000
-@@ -0,0 +1,275 @@
++++ sys/contrib/pf/net/pf_pptp.c	20 May 2008 20:15:25 -0000
+@@ -0,0 +1,277 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
 + * All rights reserved.
@@ -237,8 +237,10 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +
 +#include <net/pfvar.h>
 +
-+#define BOUND_IFACE(r, k) \
-+        ((r)->rule_flag & PFRULE_IFBOUND) ? (k) : pfi_all
++#define BOUND_IFACE(r, k) (((r)->rule_flag & PFRULE_IFBOUND) ? (k) :   \
++        ((r)->rule_flag & PFRULE_GRBOUND) ? (k)->pfik_parent :         \
++        (k)->pfik_parent->pfik_parent)
++
 +
 +#define STATE_INC_COUNTERS(s)                           \
 +        do {                                            \
