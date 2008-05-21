@@ -19,7 +19,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.34.2.8
 diff -u -r1.34.2.8 pf.c
 --- sys/contrib/pf/net/pf.c	21 Nov 2007 13:52:04 -0000	1.34.2.8
-+++ sys/contrib/pf/net/pf.c	20 May 2008 17:55:26 -0000
++++ sys/contrib/pf/net/pf.c	21 May 2008 17:13:36 -0000
 @@ -241,7 +241,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
@@ -47,23 +47,22 @@ diff -u -r1.34.2.8 pf.c
  	sa_family_t		 af = pd->af;
  	u_short			 reason;
  	struct pf_tag		*pftag = NULL;
-@@ -4257,6 +4257,15 @@
- 		if (direction == PF_OUT) {
- 			PF_ACPY(&s->gwy.addr, saddr, af);
- 			PF_ACPY(&s->ext.addr, daddr, af);
-+
-+                        if (pd->proto == IPPROTO_GRE &&
-+                                pf_pull_hdr(m, off, &gr, sizeof(gr),
-+                                        NULL, NULL, pd->af)  != NULL &&
-+                                /* Check GRE header bits. */
-+                                ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK)
-+                                == PPTP_INIT_VALUE))
-+                                s->gwy.port = gr.gh_call_id;
-+
- 			if (nr != NULL)
- 				PF_ACPY(&s->lan.addr, &pd->baddr, af);
+@@ -4269,6 +4269,14 @@
  			else
-@@ -5509,10 +5518,18 @@
+ 				PF_ACPY(&s->gwy.addr, &s->lan.addr, af);
+ 		}
++		if (pd->proto == IPPROTO_GRE &&
++                	pf_pull_hdr(m, off, &gr, sizeof(gr),
++                        NULL, NULL, pd->af)  != NULL &&
++                        /* Check GRE header bits. */
++                        ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK)
++                        == PPTP_INIT_VALUE))
++                        s->gwy.port = gr.gh_call_id;
++
+ 		s->src.state = PFOTHERS_SINGLE;
+ 		s->dst.state = PFOTHERS_NO_TRAFFIC;
+ 		s->creation = time_second;
+@@ -5509,10 +5517,18 @@
  
  int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -83,7 +82,7 @@ diff -u -r1.34.2.8 pf.c
  
  	key.af = pd->af;
  	key.proto = pd->proto;
-@@ -5520,7 +5537,7 @@
+@@ -5520,7 +5536,7 @@
  		PF_ACPY(&key.ext.addr, pd->src, key.af);
  		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
  		key.ext.port = 0;
@@ -92,7 +91,7 @@ diff -u -r1.34.2.8 pf.c
  	} else {
  		PF_ACPY(&key.lan.addr, pd->src, key.af);
  		PF_ACPY(&key.ext.addr, pd->dst, key.af);
-@@ -5568,7 +5585,14 @@
+@@ -5568,7 +5584,14 @@
  				break;
  #endif /* INET6 */
  			}
@@ -108,7 +107,7 @@ diff -u -r1.34.2.8 pf.c
  			switch (pd->af) {
  #ifdef INET
  			case AF_INET:
-@@ -5583,6 +5607,7 @@
+@@ -5583,6 +5606,7 @@
  				break;
  #endif /* INET6 */
  			}
@@ -116,12 +115,13 @@ diff -u -r1.34.2.8 pf.c
  	}
  
  	return (PF_PASS);
-@@ -6584,6 +6609,16 @@
+@@ -6584,6 +6608,17 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
 +                /* XXX: This are here until a pluggable framework for NAT is finished */
-+                if (s != NULL && s->nat_rule.ptr != NULL) {
++                if (s != NULL && s->nat_rule.ptr != NULL &&
++			s->nat_rule.ptr->action == PF_NAT) {
 +                        if (ntohs(th.th_dport) == PPTP_CONTROL_PORT_NUMBER)
 +                                pf_get_pptp_translation(&pd, m, s, off, (void *)&th, dir,
 +                                        th.th_sport);
