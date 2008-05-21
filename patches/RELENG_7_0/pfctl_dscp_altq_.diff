@@ -2265,7 +2265,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	21 May 2008 17:17:16 -0000
++++ sys/contrib/pf/net/pf.c	21 May 2008 17:37:22 -0000
 @@ -263,7 +263,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
@@ -2498,17 +2498,23 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7090,6 +7167,9 @@
+@@ -7086,9 +7163,14 @@
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt)
++	} else if (r->rt) 
  		/* pf_route can free the mbuf causing *m0 to become NULL */
  		pf_route(m0, r, dir, ifp, s, &pd);
- 
-+        pd.pf_mtag->flags |= dir == PF_IN ? PF_IN_TAG_GENERATED :
++	
++	if (m0 != NULL) {
++        	pd.pf_mtag->flags |= dir == PF_IN ? PF_IN_TAG_GENERATED :
 +        			PF_OUT_TAG_GENERATED;
-+
++	}
+ 
  #ifdef __FreeBSD__
  	PF_UNLOCK();
- #endif
-@@ -7144,6 +7224,16 @@
+@@ -7144,6 +7226,16 @@
  	if (pd.pf_mtag->flags & PF_TAG_GENERATED)
  		return (PF_PASS);
  
@@ -2525,7 +2531,7 @@ diff -u -r1.46.2.1 pf.c
  #ifdef __FreeBSD__
  	/* XXX_IMPORT: later */
  #else
-@@ -7212,7 +7302,7 @@
+@@ -7212,7 +7304,7 @@
  	PF_ACPY(&pd.baddr, dir == PF_OUT ? pd.src : pd.dst, AF_INET6);
  	pd.ip_sum = NULL;
  	pd.af = AF_INET6;
@@ -2534,7 +2540,7 @@ diff -u -r1.46.2.1 pf.c
  	pd.tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
  	pd.eh = eh;
  
-@@ -7409,7 +7499,7 @@
+@@ -7409,7 +7501,7 @@
  	}
  
  	default:
@@ -2543,7 +2549,7 @@ diff -u -r1.46.2.1 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -7444,7 +7534,9 @@
+@@ -7444,7 +7536,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2554,16 +2560,22 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7546,6 +7638,9 @@
+@@ -7542,9 +7636,14 @@
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt)
++	} else if (r->rt) {
  		/* pf_route6 can free the mbuf causing *m0 to become NULL */
  		pf_route6(m0, r, dir, ifp, s, &pd);
- 
-+        pd.pf_mtag->flags |= dir == PF_IN ? PF_IN_TAG_GENERATED :
++	
++	if (m0 != NULL) {
++        	pd.pf_mtag->flags |= dir == PF_IN ? PF_IN_TAG_GENERATED :
 +                                PF_OUT_TAG_GENERATED;
-+
++	}
+ 
  #ifdef __FreeBSD__
  	PF_UNLOCK();
- #endif
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
 RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf_ioctl.c,v
