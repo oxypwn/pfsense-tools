@@ -2265,7 +2265,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	21 May 2008 17:37:22 -0000
++++ sys/contrib/pf/net/pf.c	22 May 2008 06:00:55 -0000
 @@ -263,7 +263,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
@@ -2565,7 +2565,7 @@ diff -u -r1.46.2.1 pf.c
  		*m0 = NULL;
  		action = PF_PASS;
 -	} else if (r->rt)
-+	} else if (r->rt) {
++	} else if (r->rt) 
  		/* pf_route6 can free the mbuf causing *m0 to become NULL */
  		pf_route6(m0, r, dir, ifp, s, &pd);
 +	
