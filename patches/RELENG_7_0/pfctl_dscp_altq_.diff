@@ -2265,7 +2265,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	23 May 2008 06:31:45 -0000
++++ sys/contrib/pf/net/pf.c	23 May 2008 06:36:47 -0000
 @@ -263,7 +263,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
@@ -2400,8 +2400,8 @@ diff -u -r1.46.2.1 pf.c
 +         * This avoids packet loops in the stack as is the case
 +         * with dummynet(4) packets.
 +         */
-+        if ((dir == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
-+                (dir == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
++        if ((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
++                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
 +                return (PF_PASS);
  
  	if (direction == (*state)->direction) {
@@ -2414,8 +2414,8 @@ diff -u -r1.46.2.1 pf.c
 +         * This avoids packet loops in the stack as is the case
 +         * with dummynet(4) packets.
 +         */
-+        if ((dir == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
-+                (dir == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
++        if ((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
++                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
 +                return (PF_PASS);
 +
  	if (direction == (*state)->direction) {
@@ -2429,8 +2429,8 @@ diff -u -r1.46.2.1 pf.c
 +        	 * This avoids packet loops in the stack as is the case
 +         	* with dummynet(4) packets.
 +         	*/
-+        	if ((dir == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
-+                	(dir == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
++        	if ((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
++                	(direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
 +                	return (PF_PASS);
 +
  		(*state)->expire = time_second;
@@ -2473,8 +2473,8 @@ diff -u -r1.46.2.1 pf.c
 +         * This avoids packet loops in the stack as is the case
 +         * with dummynet(4) packets.
 +         */
-+        if ((dir == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
-+                (dir == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
++        if ((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
++                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
 +                return (PF_PASS);
 +
  	if (direction == (*state)->direction) {
