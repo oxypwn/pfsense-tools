@@ -2265,7 +2265,7 @@ RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	23 May 2008 06:36:47 -0000
++++ sys/contrib/pf/net/pf.c	24 May 2008 18:42:33 -0000
 @@ -263,7 +263,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
@@ -2391,7 +2391,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->os_fingerprint != PF_OSFP_ANY)
  			r = TAILQ_NEXT(r, entries);
-@@ -4643,6 +4682,14 @@
+@@ -4643,6 +4682,15 @@
  	}
  
  	STATE_LOOKUP();
@@ -2400,13 +2400,14 @@ diff -u -r1.46.2.1 pf.c
 +         * This avoids packet loops in the stack as is the case
 +         * with dummynet(4) packets.
 +         */
-+        if ((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
-+                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
++        if (((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
++                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) &&
++		(*state)->rule.ptr->kif != NULL && (*state)->rule.ptr->kif == kif) 
 +                return (PF_PASS);
  
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
-@@ -5133,6 +5180,14 @@
+@@ -5133,6 +5181,15 @@
  
  	STATE_LOOKUP();
  
@@ -2414,29 +2415,34 @@ diff -u -r1.46.2.1 pf.c
 +         * This avoids packet loops in the stack as is the case
 +         * with dummynet(4) packets.
 +         */
-+        if ((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
-+                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
++        if (((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
++                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) &&
++                (*state)->rule.ptr->kif != NULL && (*state)->rule.ptr->kif == kif)
 +                return (PF_PASS);
 +
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
  		dst = &(*state)->dst;
-@@ -5233,6 +5288,14 @@
+@@ -5233,6 +5290,18 @@
  
  		STATE_LOOKUP();
  
 + 	       /*
-+        	 * This avoids packet loops in the stack as is the case
++        	* This avoids packet loops in the stack as is the case
 +         	* with dummynet(4) packets.
 +         	*/
-+        	if ((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
-+                	(direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
++        	if (((direction == PF_IN && 
++			pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
++                	(direction == PF_OUT && 
++			pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) &&
++                	(*state)->rule.ptr->kif != NULL && 
++			(*state)->rule.ptr->kif == kif)
 +                	return (PF_PASS);
 +
  		(*state)->expire = time_second;
  		(*state)->timeout = PFTM_ICMP_ERROR_REPLY;
  
-@@ -5761,10 +5824,18 @@
+@@ -5761,10 +5830,18 @@
  
  int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -2456,7 +2462,7 @@ diff -u -r1.46.2.1 pf.c
  
  	key.af = pd->af;
  	key.proto = pd->proto;
-@@ -5772,7 +5843,7 @@
+@@ -5772,7 +5849,7 @@
  		PF_ACPY(&key.ext.addr, pd->src, key.af);
  		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
  		key.ext.port = 0;
@@ -2465,7 +2471,7 @@ diff -u -r1.46.2.1 pf.c
  	} else {
  		PF_ACPY(&key.lan.addr, pd->src, key.af);
  		PF_ACPY(&key.ext.addr, pd->dst, key.af);
-@@ -5782,6 +5853,14 @@
+@@ -5782,6 +5859,15 @@
  
  	STATE_LOOKUP();
  
@@ -2473,14 +2479,15 @@ diff -u -r1.46.2.1 pf.c
 +         * This avoids packet loops in the stack as is the case
 +         * with dummynet(4) packets.
 +         */
-+        if ((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
-+                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) 
++        if (((direction == PF_IN && pd->pf_mtag->flags & PF_IN_TAG_GENERATED) ||
++                (direction == PF_OUT && pd->pf_mtag->flags & PF_OUT_TAG_GENERATED)) &&
++                (*state)->rule.ptr->kif != NULL && (*state)->rule.ptr->kif == kif)
 +                return (PF_PASS);
 +
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
  		dst = &(*state)->dst;
-@@ -5820,7 +5899,14 @@
+@@ -5820,7 +5906,14 @@
  				break;
  #endif /* INET6 */
  			}
@@ -2496,7 +2503,7 @@ diff -u -r1.46.2.1 pf.c
  			switch (pd->af) {
  #ifdef INET
  			case AF_INET:
-@@ -5835,6 +5921,7 @@
+@@ -5835,6 +5928,7 @@
  				break;
  #endif /* INET6 */
  			}
@@ -2504,7 +2511,7 @@ diff -u -r1.46.2.1 pf.c
  	}
  
  	return (PF_PASS);
-@@ -6869,6 +6956,16 @@
+@@ -6869,6 +6963,16 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -2521,7 +2528,7 @@ diff -u -r1.46.2.1 pf.c
  		break;
  	}
  
-@@ -6949,7 +7046,7 @@
+@@ -6949,7 +7053,7 @@
  	}
  
  	default:
@@ -2530,7 +2537,7 @@ diff -u -r1.46.2.1 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -6983,7 +7080,9 @@
+@@ -6983,7 +7087,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2541,7 +2548,7 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7086,9 +7185,14 @@
+@@ -7086,9 +7192,14 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
@@ -2557,7 +2564,7 @@ diff -u -r1.46.2.1 pf.c
  
  #ifdef __FreeBSD__
  	PF_UNLOCK();
-@@ -7212,7 +7316,7 @@
+@@ -7212,7 +7323,7 @@
  	PF_ACPY(&pd.baddr, dir == PF_OUT ? pd.src : pd.dst, AF_INET6);
  	pd.ip_sum = NULL;
  	pd.af = AF_INET6;
@@ -2566,7 +2573,7 @@ diff -u -r1.46.2.1 pf.c
  	pd.tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
  	pd.eh = eh;
  
-@@ -7409,7 +7513,7 @@
+@@ -7409,7 +7520,7 @@
  	}
  
  	default:
@@ -2575,7 +2582,7 @@ diff -u -r1.46.2.1 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -7444,7 +7548,9 @@
+@@ -7444,7 +7555,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2586,7 +2593,7 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7542,9 +7648,14 @@
+@@ -7542,9 +7655,14 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
