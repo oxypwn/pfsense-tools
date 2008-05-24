@@ -130,8 +130,8 @@ build_updates() {
 		fi
 	done
 	LATESTFILENAME="`ls $PFSENSEUPDATESDIR/*.tgz | grep Full | grep -v md5 | grep -v sha256 | tail -n1`"
-	cp $LATESTFILENAME latest.tgz
-	sha256 latest.tgz > latest.tgz.sha256
+	cp $LATESTFILENAME $PFSENSEUPDATESDIR/latest.tgz
+	sha256 $PFSENSEUPDATESDIR/latest.tgz > $PFSENSEUPDATESDIR/latest.tgz.sha256
 }
 
 build_iso() {
