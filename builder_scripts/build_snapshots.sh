@@ -102,6 +102,7 @@ update_sources() {
 	gzip $PFSENSEOBJDIR/pfSense.iso
 	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz
 	md5 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
+	sha256 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.sha256
 }
 
 build_embedded() {
@@ -125,8 +126,12 @@ build_updates() {
 		if [ -f $filename ]; then 
 			echo "Creating MD5 summary for $filename"
 			md5 $filename > $filename.md5
+			sha256 $filename > $filename.sha256
 		fi
 	done
+	LATESTFILENAME=`ls | grep Full | grep -v md5 | grep -v sha256 | tail -n1`
+	cp $LATESTFILENAME latest.tgz
+	sha256 latest.tgz > latest.tgz.sha256
 }
 
 build_iso() {
@@ -152,6 +157,7 @@ copy_to_staging_iso_updates() {
 	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
 	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
 	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
+	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/
 }
 
 copy_to_staging_embedded() {
@@ -161,6 +167,7 @@ copy_to_staging_embedded() {
 	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${DATESTRING}.img
 	gzip $STAGINGAREA/pfSense-${DATESTRING}.img
 	md5 $STAGINGAREA/pfSense-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${DATESTRING}.img.gz.md5
+	sha256 $STAGINGAREA/pfSense-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${DATESTRING}.img.gz.sha256
 }
 
 cp_files() {
@@ -169,12 +176,17 @@ cp_files() {
 	cp $STAGINGAREA/*.gz $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	cp $STAGINGAREA/*.tgz.sha256 $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 }
 
 scp_files() {
 	scp $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	scp $STAGINGAREA/*.sha256 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
+	scp $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/_updaters
+	date > datetime
+	scp $STAGINGAREA/datetime snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/_updaters/verison
 }
 
 cleanup_builds() {
