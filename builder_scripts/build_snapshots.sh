@@ -129,7 +129,7 @@ build_updates() {
 			sha256 $filename > $filename.sha256
 		fi
 	done
-	LATESTFILENAME=`ls | grep Full | grep -v md5 | grep -v sha256 | tail -n1`
+	LATESTFILENAME="`ls $PFSENSEUPDATESDIR/*.tgz | grep Full | grep -v md5 | grep -v sha256 | tail -n1`"
 	cp $LATESTFILENAME latest.tgz
 	sha256 latest.tgz > latest.tgz.sha256
 }
