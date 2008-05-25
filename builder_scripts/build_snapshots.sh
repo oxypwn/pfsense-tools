@@ -185,7 +185,7 @@ scp_files() {
 	scp $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp $STAGINGAREA/*.sha256 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/_updaters
-	date > datetime
+	date >$STAGINGAREA/datetime
 	scp $STAGINGAREA/datetime snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/_updaters/verison
 }
 
