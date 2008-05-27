@@ -78,13 +78,15 @@ make_world_kernel
 populate_extra
 
 # Add extra pfSense packages
-#
-#install_custom_packages
+install_custom_packages
 
 # Only include Lighty in packages list
 (cd /var/db/pkg && ls | grep lighttpd) > conf/packages
 
 fixup_wrap
+
+# Install custom overlay
+install_custom_overlay
 
 # Invoke FreeSBIE2 toolchain
 freesbie_make clonefs

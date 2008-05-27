@@ -287,10 +287,19 @@ populate_extra() {
     find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
     find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
 
+	install_custom_overlay
+	
+    # Enable debug if requested
+    if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
+		touch ${CVS_CO_DIR}/debugging
+    fi
+}
+
+install_custom_overlay() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
-        if [ -d $custom_overlay ]; then
+	    if [ -d $custom_overlay ]; then
 			echo "found directory, copying..."
 			for i in $custom_overlay/*
 			do
