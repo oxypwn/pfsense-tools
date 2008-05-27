@@ -85,8 +85,17 @@ install_custom_packages
 
 fixup_wrap
 
-# Install custom overlay
-install_custom_overlay
+# Add extra files such as buildtime of version, bsnmpd, etc.
+echo ">>> Phase populate_extra..."
+populate_extra
+
+# Overlay pfsense checkout on top of FreeSBIE image
+# using the customroot plugin
+echo ">>> Merging extra items..."
+freesbie_make extra
+
+# Overlay host binaries
+overlay_host_binaries
 
 # Invoke FreeSBIE2 toolchain
 freesbie_make clonefs
