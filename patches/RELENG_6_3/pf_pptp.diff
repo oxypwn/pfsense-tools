@@ -156,7 +156,7 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	29 May 2008 18:47:12 -0000
++++ sys/contrib/pf/net/pf_pptp.c	29 May 2008 20:57:06 -0000
 @@ -0,0 +1,272 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
@@ -423,7 +423,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +                s->expire = time_second;
 +                s->timeout = PFTM_OTHER_FIRST_PACKET;
 +                pf_set_rt_ifp(s, pd->src);
-+                if (pf_insert_state(state->u.s.kif), s)) {
++                if (pf_insert_state(state->u.s.kif, s)) {
 +                        STATE_DEC_COUNTERS(s);
 +                        pool_put(&pf_state_pl, s);
 +		}
