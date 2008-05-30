@@ -29,3 +29,4 @@
 ~sbin/dhclient~bpf.c.diff~
 ~~~/sys/contrib/pf/net/pf_pptp.c
 ~~pf_pptp.diff~
+~sys/dev/nve~nve.diff~
