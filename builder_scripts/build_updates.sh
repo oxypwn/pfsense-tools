@@ -112,6 +112,10 @@ fixup_libmap
 # Overlay host binaries
 overlay_host_binaries
 
+# Make sure loader.conf is nuked
+find $BASE_DIR -name loader.conf -exec rm {} \;
+find $CLONEDIR -name loader.conf -exec rm {} \;
+
 create_pfSense_Full_update_tarball
 create_pfSense_Embedded_update_tarball
 
