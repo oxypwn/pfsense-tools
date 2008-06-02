@@ -101,11 +101,11 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
 fi
 
 # Build world, kernel and install
-echo ">>> Building world and kernels... $pfSense_version  $freebsd_branch"
+echo ">>> Building world and kernels... $pfSense_version  $freebsd_branch ..."
 make_world_kernel
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building all extra kernels..."
+echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
 build_all_kernels
 
 # Check for freesbie builder issues
