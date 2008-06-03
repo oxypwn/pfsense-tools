@@ -92,6 +92,6 @@ export freebsd_branch="RELENG_6_3"
 export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 # export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
-export MAKEJ_WORLD="-j4"
-export MAKEJ_KERNEL"-j4"
+export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
+export MAKEJ_KERNEL=${MAKEJ_KERNEL:-"-j2"}
 
