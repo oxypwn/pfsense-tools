@@ -92,17 +92,17 @@ if [ $pfSense_version = "7" ]; then
 	recompile_pfPorts
 fi
 
-export NO_KERNELCLEAN=yo
-
-# Build if needed and install world and kernel
+# Build world, kernel and install
+echo ">>> Building world and kernels... $pfSense_version  $freebsd_branch ..."
 make_world_kernel
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
+echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
 build_all_kernels
 
-# Add extra files such as buildtime of version, bsnmpd, etc.
-echo ">>> Phase populate_extra"
-populate_extra
+# Add extra pfSense packages
+echo ">>> Phase install_custom_packages"
+install_custom_packages
 echo ">>> Phase set_image_as_cdrom"
 set_image_as_cdrom
 
@@ -110,20 +110,43 @@ set_image_as_cdrom
 fixup_libmap
 
 # Nuke the boot directory
-[ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
+# [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
-rm -f conf/packages
+rm -f $BASE_DIR/tools/builder_scripts/conf/packages
 
+echo ">>> Searching for packages..."
 set +e # grep could fail
-(cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
-(cd /var/db/pkg && ls | grep lighttpd) >> conf/packages
-(cd /var/db/pkg && ls | grep lua) >> conf/packages
-(cd /var/db/pkg && ls | grep cpdup) >> conf/packages
-(cd /var/db/pkg && ls | grep grub) >> conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep lighttpd) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep cpdup) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
 set -e
 
-# Invoke FreeSBIE2 toolchain
+echo ">>> Installing packages: " 
+cat $BASE_DIR/tools/builder_scripts/conf/packages
+
+# Install custom packages
+echo ">>> Installing custom packageas..."
+freesbie_make pkginstall
+
+# Add extra files such as buildtime of version, bsnmpd, etc.
+echo ">>> Phase populate_extra..."
+populate_extra
+
+# Overlay pfsense checkout on top of FreeSBIE image
+# using the customroot plugin
+echo ">>> Merging extra items..."
+freesbie_make extra
+
+# Overlay host binaries
+overlay_host_binaries
+
+# Prepare /usr/local/pfsense-clonefs
+echo ">>> Cloning filesystem..."
+freesbie_make clonefs
+
+# Finalize iso
+echo ">>> Finalizing iso..."
 freesbie_make iso
 
-# Re-remove lockfiles after build
-#rm -f ${objdir}/${build_id_w}.world.done ${objdir}/${build_id_k}.kernel.done
