@@ -52,8 +52,6 @@ export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
 # Extra modules that we want (FreeBSD)
 export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
 
-MAKEJ=" "
-
 # Must be defined after MAKEOBJDIRPREFIX!
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
@@ -93,4 +91,7 @@ export freebsd_branch="RELENG_6_3"
 # pfSense cvs tag to build
 export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 # export PFSENSETAG=${PFSENSETAG:-RELENG_1}
+
+export MAKEJ_WORLD="-j4"
+export MAKEJ_KERNEL"-j4"
 
