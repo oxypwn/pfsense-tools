@@ -142,6 +142,8 @@ set -e
 echo ">>> Installing packages: " 
 cat $BASE_DIR/tools/builder_scripts/conf/packages
 
+rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
+
 # Install custom packages
 echo ">>> Installing custom packageas..."
 freesbie_make pkginstall
