@@ -1,6 +1,6 @@
 Index: sys/conf/files
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/conf/files,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/conf/files,v
 retrieving revision 1.1031.2.69
 diff -u -r1.1031.2.69 files
 --- sys/conf/files	5 Oct 2007 22:49:06 -0000	1.1031.2.69
@@ -15,7 +15,7 @@ diff -u -r1.1031.2.69 files
  crypto/blowfish/bf_skey.c	optional crypto
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.34.2.8
 diff -u -r1.34.2.8 pf.c
 --- sys/contrib/pf/net/pf.c	21 Nov 2007 13:52:04 -0000	1.34.2.8
@@ -156,8 +156,8 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	29 May 2008 20:57:06 -0000
-@@ -0,0 +1,272 @@
++++ sys/contrib/pf/net/pf_pptp.c	4 Jun 2008 19:05:15 -0000
+@@ -0,0 +1,273 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
 + * All rights reserved.
@@ -407,6 +407,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +                }
 +                bzero(s, sizeof(*s));
 +                s->rule.ptr = state->rule.ptr;
++		s->nat_rule.ptr = state->nat_rule.ptr;
 +                s->anchor.ptr = state->anchor.ptr;
 +                STATE_INC_COUNTERS(s);
 +                s->log = state->log;
@@ -432,7 +433,7 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.11.2.2
 diff -u -r1.11.2.2 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	30 Dec 2005 00:50:18 -0000	1.11.2.2
@@ -471,7 +472,7 @@ diff -u -r1.11.2.2 pfvar.h
  void		 pfi_cleanup(void);
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/modules/pf/Makefile,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/modules/pf/Makefile,v
 retrieving revision 1.7.2.3
 diff -u -r1.7.2.3 Makefile
 --- sys/modules/pf/Makefile	19 Sep 2006 15:45:21 -0000	1.7.2.3
