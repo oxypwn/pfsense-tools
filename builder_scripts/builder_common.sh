@@ -119,7 +119,7 @@ recompile_pfPorts() {
 	( cd $pfSPORTS_BASE_DIR && make FORCE_PKG_REGISTER=yo BATCH=yo )
 	echo "===> Installing new port..."
 	( cd $pfSPORTS_BASE_DIR && make install FORCE_PKG_REGISTER=yo BATCH=yo )
-	if [ ${MKCNF}x" = "pfPortsx" ]; then
+	if [ "${MKCNF}x" = "pfPortsx" ]; then
 		mv /tmp/make.conf /etc/
 	fi
 	echo "===> End of pfPorts..."	
