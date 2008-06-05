@@ -153,7 +153,11 @@ cvsup freesbie2-supfile
 
 # Update FreeSBIE2 files from CVS
 echo "Updating FreeSBIE2"
-( cd ../../freesbie2 && cvs update -d )
+if [ -d $CURRENTDIR/freesbie2 ]; then
+	( cvs -d $CURRENTDIR/cvsroot co freesbie2 )
+else
+	( cd $CURRENTDIR/freesbie2 && cvs up -d )
+fi
 
 # Loop through and remove files
 echo "Removing needed files listed in ${CURRENTDIR}/patches.${freebsd_branch}"
