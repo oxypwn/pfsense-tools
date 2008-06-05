@@ -80,7 +80,7 @@ fi
 
 # Ensure cdrtools are installed
 if [ ! -f /usr/local/bin/mkisofs ]; then
-	echo "Cannot find cvsup, building from ports..."
+	echo "Cannot find mkisofs, building from ports..."
 	(cd /usr/ports/sysutils/cdrtools && make install FORCE_PKG_REGISTER=yo BATCH=yo)	
 fi
 
