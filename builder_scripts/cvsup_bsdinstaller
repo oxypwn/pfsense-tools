@@ -7,7 +7,8 @@ if [ ! -d "/usr/ports" ]; then
 	portsnap extract
 fi
 
-(cd /usr/ports/sysutils/cpdup && make clean install package FORCE_PKG_REGISTER=yo)
+(cd /usr/ports/sysutils/cpdup && make clean FORCE_PKG_REGISTER=yo)
+(cd /usr/ports/sysutils/cpdup && make install FORCE_PKG_REGISTER=yo)
 
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
