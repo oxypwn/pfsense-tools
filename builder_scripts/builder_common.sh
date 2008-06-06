@@ -101,14 +101,16 @@ build_all_kernels() {
 			find /tmp/kernels -name "*.symbols" -exec rm {} \;
 	    fi
 		find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
-		(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 
-		echo -n " ."
-		(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
-		echo -n " ."	
-		(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
-		echo " . done."
+		echo -n " . done..."
 
 	fi
+	echo -n "Installing kernels"
+	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
+	echo -n " ."
+	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
+	echo -n " ."	
+	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
+	echo " done."
 	
 }
 
