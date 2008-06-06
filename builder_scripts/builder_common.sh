@@ -31,79 +31,84 @@ check_for_clog() {
 # This routine builds all kernels during the 
 # build_iso.sh routines.
 build_all_kernels() {
-	# Build extra kernels (embedded, developers edition, etc)
-	mkdir -p /tmp/kernels/wrap/boot/kernel
-	mkdir -p /tmp/kernels/developers/boot/kernel
-	mkdir -p /tmp/kernels/SMP/boot/kernel
-	mkdir -p $PFSENSEBASEDIR/boot/kernel
-	# Kernel will not install without these files
-	echo -n ">>> Populating"
-	echo -n " wrap"
-	cp -R /boot/* /tmp/kernels/wrap/boot/
-	echo -n " developers"
-	cp -R /boot/* /tmp/kernels/developers/boot/
-	echo -n " SMP"
-	cp -R /boot/* /tmp/kernels/SMP/boot/
-	find /tmp/kernels/ -name kernel.gz -exec rm {} \;
-	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/i386/conf/pfSense_SMP.6
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 /usr/src/sys/i386/conf/pfSense_SMP.7
-	echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-	# Add SMP and APIC options
-	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.7
-	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 
-	# Build embedded kernel
-	echo ">>> Building embedded kernel..."
-	rm -rf /usr/obj
-	LOGFILE=/tmp/buildkernel.wrap
-	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
-	LOGFILE=/tmp/installkernel.wrap
-	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
-	# Build SMP kernel
-	echo ">>> Building SMP kernel..."
-	rm -rf /usr/obj
-	LOGFILE=/tmp/buildkernel.smp
-	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
-	LOGFILE=/tmp/installkernel.smp
-	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
-	# Build Developers kernel
-	echo ">>> Building Developers kernel..."
-	rm -rf /usr/obj
-	LOGFILE=/tmp/buildkernel.dev
-	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
-	LOGFILE=/tmp/installkernel.dev
-	(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
+	if [ ! -f /tmp/kernels/SMP/boot/kernel/kernel.gz ]; then
 
-	# GZIP kernels and make smaller
-	echo
-	echo -n ">>> GZipping: embedded"
-	(cd /tmp/kernels/wrap/boot/kernel/ && gzip kernel)
-	echo -n " SMP"
-	(cd /tmp/kernels/SMP/boot/kernel/ && gzip kernel)
-	echo -n " developers"
-	(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
-	echo -n " ."
-	mkdir -p $PFSENSEBASEDIR/kernels/
-	# Nuke symbols
-    if [ -z "${PFSENSE_DEBUG:-}" ]; then
-		echo -n " . "
-		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
-		find /tmp/kernels -name "*.symbols" -exec rm {} \;
-    fi
-	find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
-	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 
-	echo -n " ."
-	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
-	echo -n " ."	
-	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
-	echo " . done."
+		# Build extra kernels (embedded, developers edition, etc)
+		mkdir -p /tmp/kernels/wrap/boot/kernel
+		mkdir -p /tmp/kernels/developers/boot/kernel
+		mkdir -p /tmp/kernels/SMP/boot/kernel
+		mkdir -p $PFSENSEBASEDIR/boot/kernel
+		# Kernel will not install without these files
+		echo -n ">>> Populating"
+		echo -n " wrap"
+		cp -R /boot/* /tmp/kernels/wrap/boot/
+		echo -n " developers"
+		cp -R /boot/* /tmp/kernels/developers/boot/
+		echo -n " SMP"
+		cp -R /boot/* /tmp/kernels/SMP/boot/
+		find /tmp/kernels/ -name kernel.gz -exec rm {} \;
+		# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/i386/conf/pfSense_SMP.6
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 /usr/src/sys/i386/conf/pfSense_SMP.7
+		echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.6
+		echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+		# Add SMP and APIC options
+		echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.6
+		echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.7
+		echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.6
+		echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+		echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
+		echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+
+		# Build embedded kernel
+		echo ">>> Building embedded kernel..."
+		rm -rf /usr/obj
+		LOGFILE=/tmp/buildkernel.wrap
+		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
+		LOGFILE=/tmp/installkernel.wrap
+		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
+		# Build SMP kernel
+		echo ">>> Building SMP kernel..."
+		rm -rf /usr/obj
+		LOGFILE=/tmp/buildkernel.smp
+		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
+		LOGFILE=/tmp/installkernel.smp
+		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
+		# Build Developers kernel
+		echo ">>> Building Developers kernel..."
+		rm -rf /usr/obj
+		LOGFILE=/tmp/buildkernel.dev
+		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
+		LOGFILE=/tmp/installkernel.dev
+		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
+
+		# GZIP kernels and make smaller
+		echo
+		echo -n ">>> GZipping: embedded"
+		(cd /tmp/kernels/wrap/boot/kernel/ && gzip kernel)
+		echo -n " SMP"
+		(cd /tmp/kernels/SMP/boot/kernel/ && gzip kernel)
+		echo -n " developers"
+		(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
+		echo -n " ."
+		mkdir -p $PFSENSEBASEDIR/kernels/
+		# Nuke symbols
+	    if [ -z "${PFSENSE_DEBUG:-}" ]; then
+			echo -n " . "
+			find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
+			find /tmp/kernels -name "*.symbols" -exec rm {} \;
+	    fi
+		find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
+		(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 
+		echo -n " ."
+		(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
+		echo -n " ."	
+		(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
+		echo " . done."
+
+	fi
 	
 }
 
