@@ -29,6 +29,7 @@ SUBDIR += pftop
 SUBDIR += libevent
 SUBDIR += pftpx
 #SUBDIR += rrdtool
+SUBDIR += relayd
 SUBDIR += slbd
 SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf

@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# $FreeBSD: ports/net/relayd/files/relayd.in,v 1.1 2008/01/20 21:38:26 kuriyama Exp $
+#
+# PROVIDE: relayd
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# relayd_enable (bool):
+#
+# relayd_flags:
+#
+
+. %%RC_SUBR%%
+
+name=relayd
+rcvar=${name}_enable
+
+load_rc_config $name
+
+: ${relayd_enable="NO"}
+: ${relayd_flags=""}
+
+command="%%PREFIX%%/sbin/relayd"
+command_args="${relayd_flags}"
+
+run_rc_command "$1"
