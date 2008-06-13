@@ -27,7 +27,5 @@
 ~sys/netinet~in.c.diff~
 ~~20080428-01-RELENG_6_MFC_ip_input_ipsec_route_mtu.diff~
 ~sbin/dhclient~bpf.c.diff~
-~~~/sys/contrib/pf/net/pf_pptp.c
-~~pf_pptp.diff~
 ~sys/dev/nve~nve.diff~
 ~contrib/pf/pfctl~pfctl_queue_onetime.diff~
