@@ -426,9 +426,11 @@ fixup_updates() {
 
 	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
 
-	echo Removing pfSense.tgz used by installer..
-	find ${PFSENSEBASEDIR} -name pfSense.tgz -exec rm {} \;
-
+	if [ -d "${PFSENSEBASEDIR}" ]; then 
+		echo Removing pfSense.tgz used by installer..
+		find ${PFSENSEBASEDIR} -name pfSense.tgz -exec rm {} \;
+	fi 
+	
 	cd $PREVIOUSDIR
 
 }
