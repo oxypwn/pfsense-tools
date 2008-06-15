@@ -153,7 +153,7 @@ cvsup freesbie2-supfile
 
 # Update FreeSBIE2 files from CVS
 echo "Updating FreeSBIE2"
-if [ -d $CURRENTDIR/freesbie2 ]; then
+if [ ! -d $CURRENTDIR/freesbie2 ]; then
 	( cvs -d $CURRENTDIR/cvsroot co freesbie2 )
 else
 	( cd $CURRENTDIR/freesbie2 && cvs up -d )
