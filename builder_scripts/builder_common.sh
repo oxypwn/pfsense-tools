@@ -62,6 +62,13 @@ build_all_kernels() {
 		echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 		echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 
+		# Build uniprocessor kernel
+		echo ">>> Building uniprocessor kernel..."
+		rm -rf /usr/obj
+		LOGFILE=/tmp/buildkernel.uniprocessor
+		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense.$pfSense_version) 
+		LOGFILE=/tmp/installkernel.uniprocessor
+		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense.$pfSense_version DESTDIR=/tmp/kernels/uniprocessor/)
 		# Build embedded kernel
 		echo ">>> Building embedded kernel..."
 		rm -rf /usr/obj
@@ -106,6 +113,8 @@ build_all_kernels() {
 
 	fi
 	echo -n " Installing kernels"
+	(cd /tmp/kernels/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .) 	
+	echo -n "."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
 	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
