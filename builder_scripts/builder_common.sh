@@ -92,24 +92,27 @@ build_all_kernels() {
 		(cd /tmp/kernels/SMP/boot/kernel/ && gzip kernel)
 		echo -n " developers"
 		(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
-		echo -n " ."
+		echo -n "."
 		mkdir -p $PFSENSEBASEDIR/kernels/
 		# Nuke symbols
 	    if [ -z "${PFSENSE_DEBUG:-}" ]; then
-			echo -n " . "
+			echo -n "."
 			find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
+			echo -n "."
 			find /tmp/kernels -name "*.symbols" -exec rm {} \;
 	    fi
 		find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
-		echo -n " . done..."
+		echo -n ".done."
 
 	fi
-	echo -n "Installing kernels"
+	echo -n " Installing kernels"
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
-	echo -n " ."
+	echo -n "."
 	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
-	echo -n " ."	
+	echo -n "."	
 	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
+	echo -n "."
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
 	echo " done."
 	
 }
