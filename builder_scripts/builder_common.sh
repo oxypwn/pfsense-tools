@@ -231,6 +231,19 @@ overlay_host_binaries() {
 	fi
 }
 
+report_zero_sized_files() {
+objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
+	if [ -f $objdir/zero_sized_files.txt ]; then 
+		cat $objdir/zero_sized_files.txt
+		rm $objdir/zero_sized_files.txt
+	fi
+}
+
+check_for_zero_size_files() {
+	objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
+	find $PFSENSEBASEDIR -size 0 -exec echo "WARNING: {} is 0 sized" >> $objdir/zero_sized_files.txt \;
+}
+
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 populate_extra() {
     # Make devd

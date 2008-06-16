@@ -142,6 +142,7 @@ freesbie_make extra
 
 # Overlay host binaries
 overlay_host_binaries
+check_for_zero_size_files
 
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
@@ -151,3 +152,4 @@ freesbie_make clonefs
 echo ">>> Finalizing iso..."
 freesbie_make iso
 
+report_zero_sized_files

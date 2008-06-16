@@ -98,6 +98,7 @@ freesbie_make extra
 overlay_host_binaries
 
 # Invoke FreeSBIE2 toolchain
+check_for_zero_size_files
 freesbie_make clonefs
 
 # Fixup library changes if needed
@@ -177,3 +178,5 @@ rm -f ${TMPFILE}
 rm -rf ${TMPDIR}
 
 ls -lh ${IMGPATH}
+
+report_zero_sized_files

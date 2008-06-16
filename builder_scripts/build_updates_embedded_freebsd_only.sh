@@ -78,6 +78,8 @@ rm -f conf/packages
 
 #fixup_wrap
 
+check_for_zero_size_files
+
 # Invoke FreeSBIE2 toolchain
 freesbie_make clonefs
 
