@@ -29,7 +29,6 @@ return {
 	    actions = {
 		{
 		    id = "Default",
-			accelerator = "ESC",
 		    name = _("Uniprocessor kernel (one processor)")
 		},
 		{
@@ -50,6 +49,13 @@ return {
 	    multiple = "true",
 	    extensible = "false"
 	})
+
+	if response.action_id == "Default" then
+		local cmds = CmdChain.new()
+		cmds:add("tar xzpf /kernels/kernel_uniprocessor.gz -C /mnt/boot/")
+		cmds:add("echo UP > /mnt/boot/kernel/pfsense_kernel.txt")
+		cmds:execute()
+	end
 
 	if response.action_id == "SMP" then
 		local cmds = CmdChain.new()
