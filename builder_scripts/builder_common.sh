@@ -61,36 +61,43 @@ build_all_kernels() {
 		echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 		echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 		echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-
+				
 		# Build uniprocessor kernel
 		echo ">>> Building uniprocessor kernel..."
-		rm -rf /usr/obj
-		LOGFILE=/tmp/buildkernel.uniprocessor
-		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense.$pfSense_version) 
-		LOGFILE=/tmp/installkernel.uniprocessor
-		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense.$pfSense_version DESTDIR=/tmp/kernels/uniprocessor/)
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_buildkernel
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_installkernel
+		unset KERNEL_DESTDIR
+		KERNEL_DESTDIR="/tmp/kernels/uniprocessor/boot/"
+		freesbie_make buildkernel
+		freesbie_make installkernel
+	
 		# Build embedded kernel
 		echo ">>> Building embedded kernel..."
-		rm -rf /usr/obj
-		LOGFILE=/tmp/buildkernel.wrap
-		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_wrap.$pfSense_version) 
-		LOGFILE=/tmp/installkernel.wrap
-		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_wrap.$pfSense_version DESTDIR=/tmp/kernels/wrap/)
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_buildkernel
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_installkernel
+		unset KERNEL_DESTDIR
+		KERNEL_DESTDIR="/tmp/kernels/wrap/boot/"
+		freesbie_make buildkernel
+		freesbie_make installkernel
+
 		# Build SMP kernel
 		echo ">>> Building SMP kernel..."
-		rm -rf /usr/obj
-		LOGFILE=/tmp/buildkernel.smp
-		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_SMP.$pfSense_version) 
-		LOGFILE=/tmp/installkernel.smp
-		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_SMP.$pfSense_version DESTDIR=/tmp/kernels/SMP/) 
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_buildkernel
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_installkernel
+		unset KERNEL_DESTDIR
+		KERNEL_DESTDIR="/tmp/kernels/SMP/boot/"
+		freesbie_make buildkernel
+		freesbie_make installkernel
+
 		# Build Developers kernel
 		echo ">>> Building Developers kernel..."
-		rm -rf /usr/obj
-		LOGFILE=/tmp/buildkernel.dev
-		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make buildkernel NO_KERNELCLEAN=yo KERNCONF=pfSense_Dev.$pfSense_version) 
-		LOGFILE=/tmp/installkernel.dev
-		(cd /usr/src && script -aq $LOGFILE cd /usr/src && make installkernel KERNCONF=pfSense_Dev.$pfSense_version DESTDIR=/tmp/kernels/developers/)
-
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_buildkernel
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_installkernel
+		unset KERNEL_DESTDIR
+		KERNEL_DESTDIR="/tmp/kernels/developers/boot/"
+		freesbie_make buildkernel
+		freesbie_make installkernel
+		
 		# GZIP kernels and make smaller
 		echo
 		echo -n ">>> GZipping: embedded"
@@ -786,6 +793,34 @@ update_cvs_depot() {
 	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 	(cd $BASE_DIR/tools/ && cvs update -d)
 }
+
+make_world() {
+    # Check if the world and kernel are already built and set
+    # the NO variables accordingly
+    objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
+    build_id_w=`basename ${KERNELCONF}`
+    build_id_k=${build_id_w}
+
+    # If PFSENSE_DEBUG is set, build debug kernel, if a .DEBUG kernel
+    # configuration file exists
+    if [ ! -z "${PFSENSE_DEBUG:-}" -a -f ${KERNELCONF}.DEBUG ]; then
+		# Yes, use it
+		export KERNELCONF=${KERNELCONF}.DEBUG
+		build_id_k=${build_id_w}.DEBUG
+    fi
+
+    if [ -f "${objdir}/${build_id_w}.world.done" ]; then
+		export NO_BUILDWORLD=yo
+    fi
+
+    # Make world
+    freesbie_make buildworld
+    touch ${objdir}/${build_id_w}.world.done
+
+	freesbie_make installworld
+
+}
+
 
 make_world_kernel() {
     # Check if the world and kernel are already built and set

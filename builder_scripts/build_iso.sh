@@ -102,7 +102,7 @@ fi
 
 # Build world, kernel and install
 echo ">>> Building world and kernels... $pfSense_version  $freebsd_branch ..."
-make_world_kernel
+make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
 echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
