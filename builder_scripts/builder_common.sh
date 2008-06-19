@@ -38,16 +38,17 @@ build_all_kernels() {
 		mkdir -p /tmp/kernels/wrap/boot/kernel
 		mkdir -p /tmp/kernels/developers/boot/kernel
 		mkdir -p /tmp/kernels/SMP/boot/kernel
+		mkdir -p /tmp/kernels/uniprocessor/boot/
 		mkdir -p $PFSENSEBASEDIR/boot/kernel
 		# Kernel will not install without these files
-		echo -n ">>> Populating"
-		echo -n " wrap"
-		cp -R /boot/* /tmp/kernels/wrap/boot/
-		echo -n " developers"
-		cp -R /boot/* /tmp/kernels/developers/boot/
-		echo -n " SMP"
-		cp -R /boot/* /tmp/kernels/SMP/boot/
-		find /tmp/kernels/ -name kernel.gz -exec rm {} \;
+		#echo -n ">>> Populating"
+		#echo -n " wrap"
+		#cp -R /boot/* /tmp/kernels/wrap/boot/
+		#echo -n " developers"
+		#cp -R /boot/* /tmp/kernels/developers/boot/
+		#echo -n " SMP"
+		#cp -R /boot/* /tmp/kernels/SMP/boot/
+		#find /tmp/kernels/ -name kernel.gz -exec rm {} \;
 		# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/i386/conf/pfSense_SMP.6
@@ -64,37 +65,45 @@ build_all_kernels() {
 				
 		# Build uniprocessor kernel
 		echo ">>> Building uniprocessor kernel..."
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_buildkernel
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_installkernel
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+		unset KERNCONF
+		unset KERNELCONF
+		export KERNCONF=pfSense.${pfSense_version}
 		unset KERNEL_DESTDIR
-		KERNEL_DESTDIR="/tmp/kernels/uniprocessor/boot/"
+		export KERNEL_DESTDIR="/tmp/kernels/uniprocessor/boot/"
 		freesbie_make buildkernel
 		freesbie_make installkernel
 	
 		# Build embedded kernel
 		echo ">>> Building embedded kernel..."
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_buildkernel
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_installkernel
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+		unset KERNCONF
+		unset KERNELCONF		
+		export KERNCONF=pfSense_wrap.${pfSense_version}
 		unset KERNEL_DESTDIR
-		KERNEL_DESTDIR="/tmp/kernels/wrap/boot/"
+		export KERNEL_DESTDIR="/tmp/kernels/wrap/boot/"
 		freesbie_make buildkernel
 		freesbie_make installkernel
 
 		# Build SMP kernel
 		echo ">>> Building SMP kernel..."
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_buildkernel
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_installkernel
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+		unset KERNCONF
+		unset KERNELCONF		
+		export KERNCONF=pfSense_SMP.${pfSense_version}
 		unset KERNEL_DESTDIR
-		KERNEL_DESTDIR="/tmp/kernels/SMP/boot/"
+		export KERNEL_DESTDIR="/tmp/kernels/SMP/boot/"
 		freesbie_make buildkernel
 		freesbie_make installkernel
 
 		# Build Developers kernel
 		echo ">>> Building Developers kernel..."
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_buildkernel
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.done_installkernel
+		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+		unset KERNCONF
+		unset KERNELCONF
+		export KERNCONF=pfSense_Dev.${pfSense_version}
 		unset KERNEL_DESTDIR
-		KERNEL_DESTDIR="/tmp/kernels/developers/boot/"
+		export KERNEL_DESTDIR="/tmp/kernels/developers/boot/"
 		freesbie_make buildkernel
 		freesbie_make installkernel
 		
