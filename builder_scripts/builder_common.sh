@@ -40,21 +40,14 @@ build_all_kernels() {
 		mkdir -p /tmp/kernels/SMP/boot/kernel
 		mkdir -p /tmp/kernels/uniprocessor/boot/
 		mkdir -p $PFSENSEBASEDIR/boot/kernel
-		# Kernel will not install without these files
-		#echo -n ">>> Populating"
-		#echo -n " wrap"
-		#cp -R /boot/* /tmp/kernels/wrap/boot/
-		#echo -n " developers"
-		#cp -R /boot/* /tmp/kernels/developers/boot/
-		#echo -n " SMP"
-		#cp -R /boot/* /tmp/kernels/SMP/boot/
-		#find /tmp/kernels/ -name kernel.gz -exec rm {} \;
+
 		# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/i386/conf/pfSense_SMP.6
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 /usr/src/sys/i386/conf/pfSense_SMP.7
 		echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 		echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+
 		# Add SMP and APIC options
 		echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.6
 		echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.7
@@ -70,7 +63,7 @@ build_all_kernels() {
 		unset KERNELCONF
 		export KERNCONF=pfSense.${pfSense_version}
 		unset KERNEL_DESTDIR
-		export KERNEL_DESTDIR="/tmp/kernels/uniprocessor/boot/"
+		export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 		freesbie_make buildkernel
 		freesbie_make installkernel
 	
@@ -81,7 +74,7 @@ build_all_kernels() {
 		unset KERNELCONF		
 		export KERNCONF=pfSense_wrap.${pfSense_version}
 		unset KERNEL_DESTDIR
-		export KERNEL_DESTDIR="/tmp/kernels/wrap/boot/"
+		export KERNEL_DESTDIR="/tmp/kernels/wrap"
 		freesbie_make buildkernel
 		freesbie_make installkernel
 
@@ -92,7 +85,7 @@ build_all_kernels() {
 		unset KERNELCONF		
 		export KERNCONF=pfSense_SMP.${pfSense_version}
 		unset KERNEL_DESTDIR
-		export KERNEL_DESTDIR="/tmp/kernels/SMP/boot/"
+		export KERNEL_DESTDIR="/tmp/kernels/SMP"
 		freesbie_make buildkernel
 		freesbie_make installkernel
 
@@ -103,21 +96,15 @@ build_all_kernels() {
 		unset KERNELCONF
 		export KERNCONF=pfSense_Dev.${pfSense_version}
 		unset KERNEL_DESTDIR
-		export KERNEL_DESTDIR="/tmp/kernels/developers/boot/"
+		export KERNEL_DESTDIR="/tmp/kernels/developers"
 		freesbie_make buildkernel
 		freesbie_make installkernel
-		
-		# GZIP kernels and make smaller
-		echo
-		echo -n ">>> GZipping: embedded"
-		(cd /tmp/kernels/wrap/boot/kernel/ && gzip kernel)
-		echo -n " SMP"
-		(cd /tmp/kernels/SMP/boot/kernel/ && gzip kernel)
-		echo -n " developers"
-		(cd /tmp/kernels/developers/boot/kernel/ && gzip kernel)
-		echo -n "."
+
+		# Create area where kernels will be copied on LiveCD
 		mkdir -p $PFSENSEBASEDIR/kernels/
+
 		# Nuke symbols
+		echo -n ">>> Cleaning up .symbols..."
 	    if [ -z "${PFSENSE_DEBUG:-}" ]; then
 			echo -n "."
 			find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
@@ -125,10 +112,10 @@ build_all_kernels() {
 			find /tmp/kernels -name "*.symbols" -exec rm {} \;
 	    fi
 		find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
-		echo -n ".done."
+		echo "done."
 
 	fi
-	echo -n " Installing kernels"
+	echo -n ">>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .) 	
 	echo -n "."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
