@@ -32,89 +32,86 @@ check_for_clog() {
 # build_iso.sh routines.
 build_all_kernels() {
 
-	if [ ! -f /tmp/kernels/SMP/boot/kernel/kernel.gz ]; then
+	# Build extra kernels (embedded, developers edition, etc)
+	mkdir -p /tmp/kernels/wrap/boot/kernel
+	mkdir -p /tmp/kernels/developers/boot/kernel
+	mkdir -p /tmp/kernels/SMP/boot/kernel
+	mkdir -p /tmp/kernels/uniprocessor/boot/
+	mkdir -p $PFSENSEBASEDIR/boot/kernel
 
-		# Build extra kernels (embedded, developers edition, etc)
-		mkdir -p /tmp/kernels/wrap/boot/kernel
-		mkdir -p /tmp/kernels/developers/boot/kernel
-		mkdir -p /tmp/kernels/SMP/boot/kernel
-		mkdir -p /tmp/kernels/uniprocessor/boot/
-		mkdir -p $PFSENSEBASEDIR/boot/kernel
+	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/i386/conf/pfSense_SMP.6
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 /usr/src/sys/i386/conf/pfSense_SMP.7
+	echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.6
+	echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 
-		# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/i386/conf/pfSense_SMP.6
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 /usr/src/sys/i386/conf/pfSense_SMP.7
-		echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-		echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+	# Add SMP and APIC options
+	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.6
+	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.7
+	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.6
+	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
+	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+			
+	# Build uniprocessor kernel
+	echo ">>> Building uniprocessor kernel..."
+	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	unset KERNCONF
+	unset KERNELCONF
+	export KERNCONF=pfSense.${pfSense_version}
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
+	freesbie_make buildkernel
+	freesbie_make installkernel
 
-		# Add SMP and APIC options
-		echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.6
-		echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.7
-		echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-		echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-		echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-		echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-				
-		# Build uniprocessor kernel
-		echo ">>> Building uniprocessor kernel..."
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
-		unset KERNCONF
-		unset KERNELCONF
-		export KERNCONF=pfSense.${pfSense_version}
-		unset KERNEL_DESTDIR
-		export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
-		freesbie_make buildkernel
-		freesbie_make installkernel
-	
-		# Build embedded kernel
-		echo ">>> Building embedded kernel..."
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
-		unset KERNCONF
-		unset KERNELCONF		
-		export KERNCONF=pfSense_wrap.${pfSense_version}
-		unset KERNEL_DESTDIR
-		export KERNEL_DESTDIR="/tmp/kernels/wrap"
-		freesbie_make buildkernel
-		freesbie_make installkernel
+	# Build embedded kernel
+	echo ">>> Building embedded kernel..."
+	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	unset KERNCONF
+	unset KERNELCONF		
+	export KERNCONF=pfSense_wrap.${pfSense_version}
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/wrap"
+	freesbie_make buildkernel
+	freesbie_make installkernel
 
-		# Build SMP kernel
-		echo ">>> Building SMP kernel..."
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
-		unset KERNCONF
-		unset KERNELCONF		
-		export KERNCONF=pfSense_SMP.${pfSense_version}
-		unset KERNEL_DESTDIR
-		export KERNEL_DESTDIR="/tmp/kernels/SMP"
-		freesbie_make buildkernel
-		freesbie_make installkernel
+	# Build SMP kernel
+	echo ">>> Building SMP kernel..."
+	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	unset KERNCONF
+	unset KERNELCONF		
+	export KERNCONF=pfSense_SMP.${pfSense_version}
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/SMP"
+	freesbie_make buildkernel
+	freesbie_make installkernel
 
-		# Build Developers kernel
-		echo ">>> Building Developers kernel..."
-		rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
-		unset KERNCONF
-		unset KERNELCONF
-		export KERNCONF=pfSense_Dev.${pfSense_version}
-		unset KERNEL_DESTDIR
-		export KERNEL_DESTDIR="/tmp/kernels/developers"
-		freesbie_make buildkernel
-		freesbie_make installkernel
+	# Build Developers kernel
+	echo ">>> Building Developers kernel..."
+	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	unset KERNCONF
+	unset KERNELCONF
+	export KERNCONF=pfSense_Dev.${pfSense_version}
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	freesbie_make buildkernel
+	freesbie_make installkernel
 
-		# Create area where kernels will be copied on LiveCD
-		mkdir -p $PFSENSEBASEDIR/kernels/
+	# Create area where kernels will be copied on LiveCD
+	mkdir -p $PFSENSEBASEDIR/kernels/
 
-		# Nuke symbols
-		echo -n ">>> Cleaning up .symbols..."
-	    if [ -z "${PFSENSE_DEBUG:-}" ]; then
-			echo -n "."
-			find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
-			echo -n "."
-			find /tmp/kernels -name "*.symbols" -exec rm {} \;
-	    fi
-		find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
-		echo "done."
+	# Nuke symbols
+	echo -n ">>> Cleaning up .symbols..."
+    if [ -z "${PFSENSE_DEBUG:-}" ]; then
+		echo -n "."
+		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
+		echo -n "."
+		find /tmp/kernels -name "*.symbols" -exec rm {} \;
+    fi
+	find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
+	echo "done."
 
-	fi
 	echo -n ">>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .) 	
 	echo -n "."
@@ -244,7 +241,7 @@ objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
 
 check_for_zero_size_files() {
 	objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-	find $PFSENSEBASEDIR -size 0 -exec echo "WARNING: {} is 0 sized" >> $objdir/zero_sized_files.txt \;
+	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $objdir/zero_sized_files.txt \;
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
