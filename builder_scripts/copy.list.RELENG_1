@@ -2,7 +2,7 @@ sbin/setkey
 usr/sbin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
-usr/lib/libexec
+usr/lib/libexec/ftp-proxy
 usr/local/bin/ez-ipupdate
 usr/local/bin/atareinit
 usr/local/bin/athstats
@@ -54,8 +54,6 @@ usr/local/sbin/relayd
 usr/local/sbin/sasyncd
 usr/local/sbin/sshlockout_pf
 usr/local/sbin/vtsh
-usr/local/lib/lighttpd
-usr/local/lib/php
 usr/local/lib/olsrd_dyn_gw_plain.so.0.4
 usr/local/lib/libevent-1.3b.so.1
 usr/local/lib/olsrd_dot_draw.so.0.3
