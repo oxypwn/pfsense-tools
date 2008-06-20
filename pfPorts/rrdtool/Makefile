@@ -2,11 +2,11 @@
 # Date created:				20 July 1999
 # Whom:					Dmitry Sivachenko <dima@Chg.RU>
 #
-# $FreeBSD: ports/databases/rrdtool/Makefile,v 1.73 2007/10/07 05:44:56 linimon Exp $
+# $FreeBSD: ports/databases/rrdtool/Makefile,v 1.74 2008/01/23 02:56:54 nemoliu Exp $
 #
 
 PORTNAME=	rrdtool
-PORTVERSION=	1.2.23
+PORTVERSION=	1.2.26
 CATEGORIES=	databases graphics
 MASTER_SITES=	http://oss.oetiker.ch/rrdtool/pub/
 
@@ -62,7 +62,7 @@ PLIST_SUB+=	WITH_PERL="@comment "
 CONFIGURE_TARGET=--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 CPPFLAGS+=	-I${LOCALBASE}/include -I${LOCALBASE}/include/libart-2.0 -I${LOCALBASE}/include/freetype2
 LDFLAGS+=	-L${LOCALBASE}/lib
-CFLAGS:=	${CFLAGS:N-ffast-math} -static
+CFLAGS:=	${CFLAGS:N-ffast-math}
 CONFIGURE_ENV+=	CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}"
 
 MAN1=		bin_dec_hex.1 cdeftutorial.1 rpntutorial.1 rrd-beginners.1 \
