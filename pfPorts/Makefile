@@ -45,6 +45,7 @@ SUBDIR += php5-pcre
 SUBDIR += openvpn
 SUBDIR += zip
 SUBDIR += links
+SUBDIR += dnswatch
 
 PORTSTOP=       yes
 
