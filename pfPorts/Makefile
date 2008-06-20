@@ -46,7 +46,7 @@ SUBDIR += openvpn
 SUBDIR += zip
 SUBDIR += links
 SUBDIR += dnswatch
-
+SUBDIR += verifysig
 PORTSTOP=       yes
 
 .include <bsd.port.subdir.mk>
