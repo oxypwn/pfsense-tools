@@ -43,7 +43,6 @@ usr/local/sbin/racoonctl
 usr/local/sbin/slbd
 usr/local/sbin/relayctl
 usr/local/sbin/relayd
-usr/local/sbin/sasyncd
 usr/local/sbin/sshlockout_pf
 usr/local/lib/olsrd_dyn_gw_plain.so.0.4
 usr/local/lib/libevent-1.3b.so.1
