@@ -16,8 +16,7 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	cd files && make
-#${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
 	cd files && make install
