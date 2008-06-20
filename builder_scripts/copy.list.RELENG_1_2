@@ -14,7 +14,6 @@ usr/local/bin/links
 usr/local/bin/php
 usr/local/bin/rrdtool
 usr/local/sbin/expiretable
-usr/local/sbin/atareinit
 usr/local/sbin/bpalogin
 usr/local/sbin/choparp
 usr/local/sbin/dhcpd
