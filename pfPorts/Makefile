@@ -49,6 +49,7 @@ SUBDIR += dnswatch
 SUBDIR += verifysig
 SUBDIR += athstats
 SUBDIR += openntpd
+SUBDIR += ftp-proxy
 
 PORTSTOP=       yes
 
