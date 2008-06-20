@@ -6,8 +6,8 @@ usr/sbin/syslogd
 usr/lib/libexec/ftp-proxy
 usr/local/bin/athstats
 usr/local/bin/beep
-usr/local/bin/bsdiff
-usr/local/bin/bspatch
+usr/bin/bsdiff
+usr/bin/bspatch
 usr/local/bin/cpdup
 usr/local/bin/minicron
 usr/local/bin/verifysig
