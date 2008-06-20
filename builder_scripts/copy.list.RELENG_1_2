@@ -3,8 +3,6 @@ usr/sbin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
 usr/lib/libexec/ftp-proxy
-usr/local/bin/ez-ipupdate
-usr/local/bin/atareinit
 usr/local/bin/athstats
 usr/local/bin/beep
 usr/local/bin/bsdiff
