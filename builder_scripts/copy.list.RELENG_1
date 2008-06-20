@@ -26,7 +26,6 @@ usr/local/sbin/dnsmasq
 usr/local/sbin/dnswatch
 usr/local/sbin/env4801
 usr/local/sbin/ftp-proxy
-usr/local/sbin/fping
 usr/local/sbin/ftpsesame
 usr/local/sbin/gzsig
 usr/local/sbin/lighttpd
