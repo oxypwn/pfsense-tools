@@ -56,7 +56,7 @@ build_all_kernels() {
 			
 	# Build uniprocessor kernel
 	echo ">>> Building uniprocessor kernel..."
-	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense.${pfSense_version}
