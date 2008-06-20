@@ -2,13 +2,14 @@
 # Date created:		6 April 2005
 # Whom:			dave@dogwood.com
 #
-# $FreeBSD: ports/net/olsrd/Makefile,v 1.5 2006/04/18 10:40:42 ehaupt Exp $
+# $FreeBSD: ports/net/olsrd/Makefile,v 1.8 2007/10/24 15:51:10 jhay Exp $
 #
 
 PORTNAME=	olsrd
-PORTVERSION=	0.4.10
+PORTVERSION=	0.5.4
 CATEGORIES=	net
-MASTER_SITES=	http://www.olsr.org/releases/0.4/
+MASTER_SITES=	http://www.olsr.org/releases/0.5/ \
+		http://bernd.petrovitsch.priv.at/olsr-ng/
 
 MAINTAINER=	dave@dogwood.com
 COMMENT=	OLSR routing daemon
@@ -19,7 +20,8 @@ BUILD_DEPENDS=	makedepend:${PORTSDIR}/devel/makedepend
 BUILD_DEPENDS+=	libnet*>=1.1.2,1:${PORTSDIR}/net/libnet
 .endif
 
-USE_BISON=	yes
+USE_BZIP2=	yes
+USE_BISON=	build
 USE_GMAKE=	yes
 
 USE_RC_SUBR=	olsrd.sh
@@ -34,14 +36,10 @@ INSTALL_TARGET=	install_all
 MAKE_ARGS+=	LIBNET=1
 .endif
 .if defined(PREFIX)
-MAKE_ARGS+=	INSTALL_PREFIX=${PREFIX}
+MAKE_ARGS+=	PREFIX=${PREFIX}
 .endif
 
 .include <bsd.port.pre.mk>
-
-.if ${OSVERSION} < 502000
-IGNORE=		needs ieee80211.h headers
-.endif
 
 .if ${ARCH} == "amd64" || ${ARCH} == "ia64"
 CFLAGS+=	-fPIC
