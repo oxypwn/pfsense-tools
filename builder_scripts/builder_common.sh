@@ -76,17 +76,6 @@ build_all_kernels() {
 	freesbie_make buildkernel
 	freesbie_make installkernel
 
-	# Build SMP kernel
-	echo ">>> Building SMP kernel..."
-	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
-	unset KERNCONF
-	unset KERNELCONF		
-	export KERNCONF=pfSense_SMP.${pfSense_version}
-	unset KERNEL_DESTDIR
-	export KERNEL_DESTDIR="/tmp/kernels/SMP"
-	freesbie_make buildkernel
-	freesbie_make installkernel
-
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
 	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
@@ -95,6 +84,17 @@ build_all_kernels() {
 	export KERNCONF=pfSense_Dev.${pfSense_version}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	freesbie_make buildkernel
+	freesbie_make installkernel
+	
+	# Build SMP kernel
+	echo ">>> Building SMP kernel..."
+	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	unset KERNCONF
+	unset KERNELCONF		
+	export KERNCONF=pfSense_SMP.${pfSense_version}
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	freesbie_make buildkernel
 	freesbie_make installkernel
 
