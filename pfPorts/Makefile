@@ -48,6 +48,7 @@ SUBDIR += links
 SUBDIR += dnswatch
 SUBDIR += verifysig
 SUBDIR += athstats
+SUBDIR += openntpd
 
 PORTSTOP=       yes
 
