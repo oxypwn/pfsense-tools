@@ -35,7 +35,6 @@ usr/local/sbin/lighttpd-angel
 usr/local/sbin/ftpsesame
 usr/local/sbin/gzsig
 usr/local/sbin/ifstated
-usr/local/sbin/ppp-linkup
 usr/local/sbin/lighttpd
 usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
