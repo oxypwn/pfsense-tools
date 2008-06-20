@@ -1,4 +1,5 @@
 sbin/setkey
+usr/bin/host
 usr/sbin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
