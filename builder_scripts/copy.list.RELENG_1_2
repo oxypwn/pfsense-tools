@@ -1,5 +1,5 @@
 sbin/setkey
-usr/sbin/nsupdate
+usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
 usr/lib/libexec/ftp-proxy
