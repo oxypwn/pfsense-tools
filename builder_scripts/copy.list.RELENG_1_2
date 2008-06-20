@@ -21,7 +21,6 @@ usr/local/sbin/dhcpd
 usr/local/sbin/check_reload_status
 usr/local/sbin/dhcrelay
 usr/local/sbin/dnsmasq
-usr/local/sbin/env4801
 usr/local/sbin/fping
 usr/local/sbin/ftpsesame
 usr/local/sbin/lighttpd
