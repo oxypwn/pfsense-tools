@@ -156,7 +156,15 @@ overlay_host_binaries() {
 	    install /usr/sbin/clog $CVS_CO_DIR/usr/sbin/
 
 		mkdir -p ${CVS_CO_DIR}/bin
+		mkdir -p ${CVS_CO_DIR}/sbin
 		mkdir -p ${CVS_CO_DIR}/usr/bin
+		mkdir -p ${CVS_CO_DIR}/usr/sbin
+		mkdir -p ${CVS_CO_DIR}/usr/lib
+		mkdir -p ${CVS_CO_DIR}/usr/libexec
+		mkdir -p ${CVS_CO_DIR}/usr/local/bin
+		mkdir -p ${CVS_CO_DIR}/usr/local/sbin
+		mkdir -p ${CVS_CO_DIR}/usr/local/lib
+		mkdir -p ${CVS_CO_DIR}/usr/local/libexec
 
 		if [ -e /usr/local/bin/php-cgi ]; then
 			echo "Found php-cgi on local system, copying to staging area..."
@@ -180,15 +188,7 @@ overlay_host_binaries() {
 		fi
 
 		# Process base system libraries
-		FOUND_FILES="`(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find lib/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find sbin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/bin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/sbin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/bin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/sbin/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/lib/ -type f)`"
-		FOUND_FILES="$FOUND_FILES `(cd ${CVS_CO_DIR} && find usr/local/lib/ -type f)`"
+		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 		NEEDEDLIBS=""
 		echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 		for TEMPFILE in $FOUND_FILES; do
