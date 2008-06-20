@@ -47,6 +47,8 @@ SUBDIR += zip
 SUBDIR += links
 SUBDIR += dnswatch
 SUBDIR += verifysig
+SUBDIR += athstats
+
 PORTSTOP=       yes
 
 .include <bsd.port.subdir.mk>
