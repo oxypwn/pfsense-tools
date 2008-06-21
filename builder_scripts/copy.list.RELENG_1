@@ -38,6 +38,10 @@ usr/local/sbin/slbd
 usr/local/sbin/relayctl
 usr/local/sbin/relayd
 usr/local/sbin/sshlockout_pf
+usr/local/lib/lighttpd/mod_access.so
+usr/local/lib/lighttpd/mod_accesslog.so
+usr/local/lib/lighttpd/mod_fastcgi.so
+usr/local/lib/lighttpd/mod_cgi.so
 usr/local/lib/php/20060613/apc.so			
 usr/local/lib/php/20060613/gettext.so
 usr/local/lib/php/20060613/pcre.so
