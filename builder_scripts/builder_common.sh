@@ -134,6 +134,8 @@ recompile_pfPorts() {
 		MKCNF="pfPorts"
 	fi
 	export FORCE_PKG_REGISTER=yo
+	# Copy pfPort for the branch
+	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
 	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
 	echo "===> Operating on $pfSPORT..."
 	( cd $pfSPORTS_BASE_DIR && make FORCE_PKG_REGISTER=yo BATCH=yo )
