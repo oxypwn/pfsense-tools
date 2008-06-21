@@ -249,12 +249,12 @@ check_for_zero_size_files() {
 populate_extra() {
     # Make devd
     ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} NO_MAN=YES \
-	make clean; make depend; make all; make DESTDIR=$CVS_CO_DIR install )
+	make clean; make depend; make all; make DESTDIR=$PFSENSEBASEDIR install )
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
 	if [ -f /usr/lib/pam_unix.so ]; then
-		install -s /usr/lib/pam_unix.so ${CVS_CO_DIR}/usr/lib/
+		install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/
 	fi
 	
 	STRUCTURE_TO_CREATE="var/run root scripts conf usr/local/share/dfuibe_installer root usr/local/bin usr/local/sbin usr/local/lib usr/local/etc usr/local/lib/php/20060613 usr/local/lib/lighttpd"
