@@ -175,21 +175,6 @@ overlay_host_binaries() {
 			chmod a+rx /usr/local/pfsense-fs/usr/local/bin/php
 		fi
 
-		# Backwards copy PHP extensions for the case where we are installing 1.2 on to 7
-		# images where the PHP extension path has changed.
-		if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
-			echo "Backcopy extensions for older PHP location..."
-			cp -R "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/*" "${PFSENSEBASEDIR}/usr/local/lib/php/20060613/" 
-		fi
-		
-		# Populate PHP if it exists locally		
-		if [ -d /usr/local/lib/php/20060613/ ]; then
-			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
-				echo "Copying newer PHP binary and libraries..."
-				cp -R "/usr/local/lib/php/20060613/*" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
-			fi		
-		fi
-
 		# Process base system libraries
 		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 		NEEDEDLIBS=""
@@ -227,14 +212,6 @@ overlay_host_binaries() {
 			fi
 		done
 	
-		# Populate PHP if it exists locally
-		if [ -d /usr/local/lib/php/20060613/ ]; then
-			if [ -d "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429" ]; then
-				echo "Copying newer PHP binary and libraries..."
-				cp -R "/usr/local/lib/php/20060613/" "${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/"
-			fi
-		fi
-
 	fi
 }
 
