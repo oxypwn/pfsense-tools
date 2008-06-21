@@ -44,6 +44,8 @@ usr/local/lib/lighttpd/mod_fastcgi.so
 usr/local/lib/lighttpd/mod_cgi.so
 usr/local/lib/lighttpd/mod_indexfile.so
 usr/local/lib/lighttpd/mod_dirlisting.so
+usr/local/lib/lighttpd/mod_staticfile.so
+
 usr/local/lib/php/20060613/apc.so
 usr/local/lib/php/20060613/pcre.so
 usr/local/lib/php/20060613/bz2.so
