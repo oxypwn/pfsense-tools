@@ -211,6 +211,7 @@ overlay_host_binaries() {
 			fi
 		done		
 		echo ">>>> Installing collected library information (usr/local), please wait..."
+		NEEDEDLIBS=`echo ${NEEDEDLIBS} |sort -u`
 		for NEEDLIB in $NEEDEDLIBS; do
 			if [ -f $NEEDLIB ]; then 
 				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
