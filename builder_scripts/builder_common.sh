@@ -151,23 +151,23 @@ overlay_host_binaries() {
 	if [ $pfSense_version = "7" ]; then
 	    echo "===> Building syslogd..."
 	    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
-	    echo "===> Installing syslogd to $CVS_CO_DIR/usr/sbin/..."
-	    install /usr/sbin/syslogd $CVS_CO_DIR/usr/sbin/
+	    echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
+	    install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
 		echo "===> Building clog..."
 		(cd /usr/src/usr.sbin/clog && make clean && make && make install)
-	    echo "===> Installing clog to $CVS_CO_DIR/usr/sbin/..."
-	    install /usr/sbin/clog $CVS_CO_DIR/usr/sbin/
+	    echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
+	    install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
 
-		mkdir -p ${CVS_CO_DIR}/bin
-		mkdir -p ${CVS_CO_DIR}/sbin
-		mkdir -p ${CVS_CO_DIR}/usr/bin
-		mkdir -p ${CVS_CO_DIR}/usr/sbin
-		mkdir -p ${CVS_CO_DIR}/usr/lib
-		mkdir -p ${CVS_CO_DIR}/usr/libexec
-		mkdir -p ${CVS_CO_DIR}/usr/local/bin
-		mkdir -p ${CVS_CO_DIR}/usr/local/sbin
-		mkdir -p ${CVS_CO_DIR}/usr/local/lib
-		mkdir -p ${CVS_CO_DIR}/usr/local/libexec
+		mkdir -p ${PFSENSEBASEDIR}/bin
+		mkdir -p ${PFSENSEBASEDIR}/sbin
+		mkdir -p ${PFSENSEBASEDIR}/usr/bin
+		mkdir -p ${PFSENSEBASEDIR}/usr/sbin
+		mkdir -p ${PFSENSEBASEDIR}/usr/lib
+		mkdir -p ${PFSENSEBASEDIR}/usr/libexec
+		mkdir -p ${PFSENSEBASEDIR}/usr/local/bin
+		mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
+		mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
+		mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
 
 		if [ -e /usr/local/bin/php-cgi ]; then
 			echo "Found php-cgi on local system, copying to staging area..."
@@ -187,14 +187,16 @@ overlay_host_binaries() {
 					echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
 					cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
 					if [ -d $CLONEDIR ]; then
-						echo "cp /$NEEDLIB ${CLONEDIR}$NEEDLIB"
-						cp /$NEEDLIB ${CLONEDIR}$NEEDLIB				
+						echo "cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB"
+						cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB				
 					fi					
 				fi
 			else
-				FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
-				if [ "$FILETYPE" -gt 0 ]; then
-					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
+				if [ -f ${CVS_CO_DIR}/$TEMPFILE ]; then
+					FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+					if [ "$FILETYPE" -gt 0 ]; then
+						NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
+					fi
 				fi
 			fi
 		done		
@@ -206,8 +208,8 @@ overlay_host_binaries() {
 				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
 				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
 				if [ -d $CLONEDIR ]; then
-					echo "install $NEEDLIB ${CLONEDIR}${NEEDLIB}"
-					install $NEEDLIB ${CLONEDIR}${NEEDLIB}					
+					echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
+					install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}					
 				fi
 			fi
 		done
