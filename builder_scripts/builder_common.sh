@@ -197,9 +197,10 @@ overlay_host_binaries() {
 				FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
 				if [ "$FILETYPE" -gt 0 ]; then
 					NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
-					cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
 					echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
+					cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
 					if [ -d $CLONEDIR ]; then
+						echo "cp /$NEEDLIB ${CLONEDIR}$NEEDLIB"
 						cp /$NEEDLIB ${CLONEDIR}$NEEDLIB				
 					fi					
 				fi
@@ -211,12 +212,14 @@ overlay_host_binaries() {
 			fi
 		done		
 		echo ">>>> Installing collected library information (usr/local), please wait..."
-		NEEDEDLIBS=`echo ${NEEDEDLIBS} |sort -u`
+		# Unique the libraries so we only copy them once
+		NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
 		for NEEDLIB in $NEEDEDLIBS; do
 			if [ -f $NEEDLIB ]; then 
-				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
 				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
+				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
 				if [ -d $CLONEDIR ]; then
+					echo "install $NEEDLIB ${CLONEDIR}${NEEDLIB}"
 					install $NEEDLIB ${CLONEDIR}${NEEDLIB}					
 				fi
 			fi
