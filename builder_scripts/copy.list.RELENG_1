@@ -43,7 +43,7 @@ usr/local/lib/lighttpd/mod_accesslog.so
 usr/local/lib/lighttpd/mod_fastcgi.so
 usr/local/lib/lighttpd/mod_cgi.so
 usr/local/lib/lighttpd/mod_indexfile.so
-usr/local/lib/lighttpd/dirlisting.so
+usr/local/lib/lighttpd/mod_dirlisting.so
 usr/local/lib/php/20060613/apc.so
 usr/local/lib/php/20060613/pcre.so
 usr/local/lib/php/20060613/bz2.so
@@ -57,6 +57,7 @@ usr/local/lib/php/20060613/posix.so
 usr/local/lib/php/20060613/readline.so
 usr/local/lib/php/20060613/session.so
 usr/local/lib/php/20060613/shmop.so
+usr/local/lib/php/20060613/simplexml.so
 usr/local/lib/php/20060613/sysvmsg.so
 usr/local/lib/php/20060613/sysvsem.so
 usr/local/lib/php/20060613/sysvshm.so
