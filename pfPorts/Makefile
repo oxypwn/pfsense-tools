@@ -36,12 +36,33 @@ SUBDIR += sshlockout_pf
 SUBDIR += stats
 SUBDIR += vtsh
 SUBDIR += pftpx
+
+# FreeBSD 7 
 SUBDIR += php5
-SUBDIR += php5-gettext
-SUBDIR += php5-readline
 SUBDIR += pecl-APC
-SUBDIR += pecl-radius
+SUBDIR += php5-bz2
+SUBDIR += php5-ctype
+SUBDIR += php5-curl
+SUBDIR += php5-gettext
+SUBDIR += php5-ldap
+SUBDIR += php5-mbstring
+SUBDIR += php5-pcntl
 SUBDIR += php5-pcre
+SUBDIR += php5-pfsense
+SUBDIR += php5-pfsense-allopt
+SUBDIR += php5-posix
+SUBDIR += pecl-radius
+SUBDIR += php5-readline
+SUBDIR += php5-session
+SUBDIR += php5-shmop
+SUBDIR += php5-sysvmsg
+SUBDIR += php5-sysvsem
+SUBDIR += php5-sysvshm
+SUBDIR += php5-tokenizer
+SUBDIR += php5-xml
+SUBDIR += php5-zlib
+# -- End FreeBSD 7
+
 SUBDIR += openvpn
 SUBDIR += zip
 SUBDIR += links
