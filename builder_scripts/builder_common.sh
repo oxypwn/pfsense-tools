@@ -169,12 +169,6 @@ overlay_host_binaries() {
 		mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
 		mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
 
-		if [ -e /usr/local/bin/php-cgi ]; then
-			echo "Found php-cgi on local system, copying to staging area..."
-			cp /usr/local/bin/php-cgi /usr/local/pfsense-fs/usr/local/bin/php
-			chmod a+rx /usr/local/pfsense-fs/usr/local/bin/php
-		fi
-
 		# Process base system libraries
 		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 		NEEDEDLIBS=""
