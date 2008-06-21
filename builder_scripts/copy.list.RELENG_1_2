@@ -13,6 +13,7 @@ usr/local/bin/verifysig
 usr/local/bin/links
 usr/local/bin/php
 usr/local/bin/rrdtool
+usr/local/lib/php/20060613/
 usr/local/sbin/expiretable
 usr/local/sbin/bpalogin
 usr/local/sbin/choparp
