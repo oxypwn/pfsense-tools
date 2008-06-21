@@ -53,6 +53,7 @@ SUBDIR += php5-posix
 SUBDIR += pecl-radius
 SUBDIR += php5-readline
 SUBDIR += php5-session
+SUBDIR += php5-simplexml
 SUBDIR += php5-shmop
 SUBDIR += php5-sysvmsg
 SUBDIR += php5-sysvsem
