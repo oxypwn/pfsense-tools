@@ -43,6 +43,7 @@ usr/local/lib/lighttpd/mod_accesslog.so
 usr/local/lib/lighttpd/mod_fastcgi.so
 usr/local/lib/lighttpd/mod_cgi.so
 usr/local/lib/lighttpd/mod_indexfile.so
+usr/local/lib/lighttpd/dirlisting.so
 usr/local/lib/php/20060613/apc.so			
 usr/local/lib/php/20060613/gettext.so
 usr/local/lib/php/20060613/pcre.so
