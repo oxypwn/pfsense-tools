@@ -135,6 +135,8 @@ recompile_pfPorts() {
 		MKCNF="pfPorts"
 	fi
 	export FORCE_PKG_REGISTER=yo
+	echo ">>> Special building rrdtool from recompile_pfPorts()..."
+	(cd /usr/ports/databases/rrdtool && make && make install FORCE_PKG_REGISTER=yo)
 	# Copy pfPort for the branch
 	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
 	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
