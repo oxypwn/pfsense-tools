@@ -24,3 +24,4 @@ install:
 	cp /usr/local/bin/php-cgi /usr/local/bin/php
 	chmod a+rx /usr/local/bin/php-cgi
 
+clean:
