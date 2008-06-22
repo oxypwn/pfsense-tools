@@ -33,6 +33,8 @@ build_embedded_kernel() {
 	mkdir -p /tmp/kernels/wrap/boot/kernel
 	mkdir -p $PFSENSEBASEDIR/kernels/
 	cp /boot/device.hints /tmp/kernels/wrap/boot/
+	cp /boot/loader.conf /tmp/kernels/wrap/boot/loader.conf:
+	
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
 
@@ -67,10 +69,15 @@ build_all_kernels() {
 	mkdir -p /tmp/kernels/uniprocessor/boot/
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 	
+	cp /boot/device.hints /tmp/kernels/wrap/boot/
 	cp /boot/device.hints /tmp/kernels/uniprocessor/boot/
 	cp /boot/device.hints /tmp/kernels/SMP/boot/kernel
 	cp /boot/device.hints /tmp/kernels/developers/boot/kernel
-	cp /boot/device.hints /tmp/kernels/wrap/boot/
+
+	cp /boot/loader.conf /tmp/kernels/wrap/boot/
+	cp /boot/loader.conf /tmp/kernels/uniprocessor/boot/
+	cp /boot/loader.conf /tmp/kernels/SMP/boot/kernel
+	cp /boot/loader.conf /tmp/kernels/developers/boot/kernel
 
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
