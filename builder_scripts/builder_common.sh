@@ -31,6 +31,8 @@ check_for_clog() {
 build_embedded_kernel() {
 	
 	mkdir -p /tmp/kernels/wrap/boot/kernel
+	mkdir -p $PFSENSEBASEDIR/kernels/
+	
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
 
