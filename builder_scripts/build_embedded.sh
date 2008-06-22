@@ -34,14 +34,6 @@ print_flags
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 
-# Use pfSense_wrap.6 as kernel configuration file
-if [ $pfSense_version = "6" ]; then
-	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
-fi
-if [ $pfSense_version = "7" ]; then
-	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
-fi
-
 export NO_COMPRESSEDFS=yes
 export PRUNE_LIST="${PWD}/remove.list"
 if [ $pfSense_version = "7" ]; then
@@ -72,7 +64,10 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
-make_world_kernel
+make_world
+
+# Build embedded kernel
+build_embedded_kernel
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 populate_extra

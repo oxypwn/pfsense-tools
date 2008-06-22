@@ -28,6 +28,32 @@ check_for_clog() {
 	fi
 }
 
+build_embedded_kernel() {
+	
+	mkdir -p /tmp/kernels/wrap/boot/kernel
+	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
+
+	# Build embedded kernel
+	echo ">>> Building embedded kernel..."
+	rm $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	unset KERNCONF
+	unset KERNELCONF		
+	export KERNCONF=pfSense_wrap.${pfSense_version}
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/wrap"
+	freesbie_make buildkernel
+	freesbie_make installkernel
+
+	echo -n ">>> Installing kernels to LiveCD area..."
+	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
+	echo -n "."
+	chflags -R noschg $PFSENSEBASEDIR/boot/
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap.gz -C $PFSENSEBASEDIR/boot/)
+	echo "done."
+
+}
+
 # This routine builds all kernels during the 
 # build_iso.sh routines.
 build_all_kernels() {
