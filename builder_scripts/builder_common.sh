@@ -35,6 +35,7 @@ build_embedded_kernel() {
 	
 	mkdir -p /tmp/kernels/wrap/boot/defaults
 	mkdir -p /tmp/kernels/wrap/boot/kernel
+
 	mkdir -p $PFSENSEBASEDIR/kernels/
 
 	# 6.x is picky on destdir=
@@ -77,6 +78,13 @@ build_all_kernels() {
 	mkdir -p /tmp/kernels/developers/boot/kernel
 	mkdir -p /tmp/kernels/SMP/boot/kernel
 	mkdir -p /tmp/kernels/uniprocessor/boot/
+
+	mkdir -p /tmp/kernels/wrap/boot/defaults/
+	mkdir -p /tmp/kernels/developers/boot/defaults/
+	mkdir -p /tmp/kernels/SMP/boot/defaults/
+	mkdir -p /tmp/kernels/uniprocessor/boot/defaults/
+
+
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 
 	# 6.x is picky on destdir=	
