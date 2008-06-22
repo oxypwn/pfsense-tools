@@ -28,7 +28,6 @@ SUBDIR += olsrd
 SUBDIR += pftop
 SUBDIR += libevent13
 SUBDIR += pftpx
-SUBDIR += rrdtool
 SUBDIR += relayd
 SUBDIR += slbd
 SUBDIR += ssh_tunnel_shell
