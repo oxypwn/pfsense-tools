@@ -28,31 +28,7 @@ fi
 
 export PRUNE_LIST=""
 
-# Use pfSense.6 as kernel configuration file
 export DEVIMAGE=yo
-if [ $pfSense_version = "6" ]; then
-	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
-fi
-if [ $pfSense_version = "7" ]; then
-	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.7"}
-fi
-
-# Check if the world and kernel are already built and remove
-# lock files accordingly
-
-objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-build_id_w=`basename ${KERNELCONF}`
-build_id_k=${build_id_w}
-
-# If PFSENSE_DEBUG is set, remove the ${build_id_k}.DEBUG file
-if [ ! -z "${PFSENSE_DEBUG:-}" -a -f ${KERNELCONF}.DEBUG ]; then
-    build_id_k=${build_id_w}.DEBUG
-fi
-
-if [ -f "${objdir}/${build_id_w}.world.done" ]; then
-    #rm -f ${objdir}/${build_id_w}.world.done
-    #rm -rf /usr/obj*
-fi
 
 # Suck in script helper functions
 . ./builder_common.sh
@@ -62,14 +38,6 @@ check_for_clog
 
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
-
-# Use pfSense.6 as kernel configuration file
-if [ $pfSense_version = "6" ]; then
-	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.6"}
-fi
-if [ $pfSense_version = "7" ]; then
-	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense_Dev.7"}
-fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
@@ -108,9 +76,6 @@ set_image_as_cdrom
 
 # Fixup library changes if needed
 fixup_libmap
-
-# Nuke the boot directory
-# [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
 rm -f $BASE_DIR/tools/builder_scripts/conf/packages
 
