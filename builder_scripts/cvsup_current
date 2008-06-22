@@ -196,7 +196,7 @@ do
 	MOVE_FILE=`echo $LINE | cut -d~ -f4`
 	MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
 	DIR_CREATE=`echo $LINE | cut -d~ -f5`
-	if [ $DIR_CREATE != "" ]; then
+	if [ "$DIR_CREATE" != "" ]; then
 		mkdir -p ${SRCDIR}/${DIR_CREATE}
 	fi
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
