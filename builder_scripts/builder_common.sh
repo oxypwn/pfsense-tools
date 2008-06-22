@@ -192,7 +192,7 @@ build_all_kernels() {
 	
 }
 
-recompile_orts() {
+recompile_pfPorts() {
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
 		mv /etc/make.conf /tmp/
