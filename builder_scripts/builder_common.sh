@@ -29,11 +29,18 @@ check_for_clog() {
 }
 
 build_embedded_kernel() {
+
+	# 6.x is picky on destdir=
+	touch /boot/loader.conf
 	
+	mkdir -p /tmp/kernels/wrap/boot/defaults
 	mkdir -p /tmp/kernels/wrap/boot/kernel
 	mkdir -p $PFSENSEBASEDIR/kernels/
+
+	# 6.x is picky on destdir=
 	cp /boot/device.hints /tmp/kernels/wrap/boot/
 	cp /boot/loader.conf /tmp/kernels/wrap/boot/loader.conf:
+	cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/loader.conf
 	
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
@@ -62,22 +69,26 @@ build_embedded_kernel() {
 # build_iso.sh routines.
 build_all_kernels() {
 
+	# 6.x is picky on destdir=
+	touch /boot/loader.conf
+
 	# Build extra kernels (embedded, developers edition, etc)
 	mkdir -p /tmp/kernels/wrap/boot/kernel
 	mkdir -p /tmp/kernels/developers/boot/kernel
 	mkdir -p /tmp/kernels/SMP/boot/kernel
 	mkdir -p /tmp/kernels/uniprocessor/boot/
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
-	
+
+	# 6.x is picky on destdir=	
 	cp /boot/device.hints /tmp/kernels/wrap/boot/
 	cp /boot/device.hints /tmp/kernels/uniprocessor/boot/
-	cp /boot/device.hints /tmp/kernels/SMP/boot/kernel
-	cp /boot/device.hints /tmp/kernels/developers/boot/kernel
+	cp /boot/device.hints /tmp/kernels/SMP/boot/
+	cp /boot/device.hints /tmp/kernels/developers/boot/
 
-	cp /boot/loader.conf /tmp/kernels/wrap/boot/
-	cp /boot/loader.conf /tmp/kernels/uniprocessor/boot/
-	cp /boot/loader.conf /tmp/kernels/SMP/boot/kernel
-	cp /boot/loader.conf /tmp/kernels/developers/boot/kernel
+	cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/
+	cp /boot/defaults/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
+	cp /boot/defaults/loader.conf /tmp/kernels/SMP/boot/defaults/
+	cp /boot/defaults/loader.conf /tmp/kernels/developers/boot/defaults/
 
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
