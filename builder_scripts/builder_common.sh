@@ -38,6 +38,8 @@ build_embedded_kernel() {
 
 	mkdir -p $PFSENSEBASEDIR/kernels/
 
+	touch /tmp/kernels/wrap/boot/defaults/loader.conf
+
 	# 6.x is picky on destdir=
 	cp /boot/device.hints /tmp/kernels/wrap/boot/
 	cp /boot/loader.conf /tmp/kernels/wrap/boot/loader.conf:
@@ -84,6 +86,10 @@ build_all_kernels() {
 	mkdir -p /tmp/kernels/SMP/boot/defaults/
 	mkdir -p /tmp/kernels/uniprocessor/boot/defaults/
 
+	touch /tmp/kernels/wrap/boot/defaults/loader.conf
+	touch /tmp/kernels/developers/boot/defaults/loader.conf
+	touch  /tmp/kernels/SMP/boot/defaults/loader.conf
+	touch  /tmp/kernels/uniprocessor/boot/defaults/loader.conf
 
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 
@@ -894,4 +900,5 @@ make_world_kernel() {
 	freesbie_make installworld
     freesbie_make installkernel 
 }
+
 
