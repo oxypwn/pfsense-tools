@@ -19,4 +19,9 @@
 # Make sure cvsup_current has been run first 
 check_for_clog
 
+(cd ${pfSPORTS_BASE_DIR} && make deinstall)
+(cd ${pfSPORTS_BASE_DIR} && make clean distclean)
+
 recompile_pfPorts
+
+
