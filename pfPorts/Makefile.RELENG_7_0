@@ -9,7 +9,6 @@
 
 SUBDIR += ftpsesame
 SUBDIR += atareinit
-SUBDIR += grub
 SUBDIR += cpdup
 SUBDIR += beep
 SUBDIR += check_reload_status

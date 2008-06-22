@@ -127,7 +127,7 @@ build_all_kernels() {
 	
 }
 
-recompile_pfPorts() {
+recompile_orts() {
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
 		mv /etc/make.conf /tmp/
@@ -137,6 +137,8 @@ recompile_pfPorts() {
 	export FORCE_PKG_REGISTER=yo
 	echo ">>> Special building rrdtool from recompile_pfPorts()..."
 	(cd /usr/ports/databases/rrdtool && make && make install FORCE_PKG_REGISTER=yo)
+	echo ">>> Special building grub from recompile_pfPorts()..."
+	(cd /usr/ports/sysutils/grub && make && make install FORCE_PKG_REGISTER=yo)
 	# Copy pfPort for the branch
 	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
 	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
