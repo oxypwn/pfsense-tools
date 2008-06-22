@@ -49,6 +49,10 @@ do
 	PATCH_FILE_LEN=`echo $PATCH_FILE | wc -c`
 	MOVE_FILE=`echo $LINE | cut -d~ -f4`
 	MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
+	DIR_CREATE=`echo $LINE | cut -d~ -f5`
+	if [ $DIR_CREATE != "" ]; then
+		mkdir -p ${SRCDIR}/${DIR_CREATE}
+	fi
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		echo "Patching ${PATCH_FILE}"
 		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
