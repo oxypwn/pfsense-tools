@@ -211,6 +211,7 @@ overlay_host_binaries() {
 					NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
 					echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
 					cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
+					chmod a+rx ${PFSENSEBASEDIR}/$TEMPFILE
 					if [ -d $CLONEDIR ]; then
 						echo "cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB"
 						cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB				
