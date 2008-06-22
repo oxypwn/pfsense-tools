@@ -1,6 +1,23 @@
---- src/ngfunc.c.orig	2008-04-16 13:29:08.000000000 -0400
-+++ src/ngfunc.c	2008-04-16 13:29:16.000000000 -0400
-@@ -249,6 +249,7 @@
+--- srcold/ngfunc.c	2008-06-22 02:04:00.000000000 +0200
++++ src/ngfunc.c	2008-06-22 02:14:35.000000000 +0200
+@@ -30,14 +30,14 @@
+ #ifdef __DragonFly__
+ #include <netgraph/socket/ng_socket.h>
+ #include <netgraph/ksocket/ng_ksocket.h>
+-#include <netgraph/iface/ng_iface.h>
++#include "ng_iface.h"
+ #include <netgraph/vjc/ng_vjc.h>
+ #include <netgraph/bpf/ng_bpf.h>
+ #include <netgraph/tee/ng_tee.h>
+ #else
+ #include <netgraph/ng_socket.h>
+ #include <netgraph/ng_ksocket.h>
+-#include <netgraph/ng_iface.h>
++#include "ng_iface.h"
+ #include <netgraph/ng_vjc.h>
+ #include <netgraph/ng_bpf.h>
+ #include <netgraph/ng_tee.h>
+@@ -252,6 +252,7 @@
        struct ng_mesg	reply;
    }			u;
    char		path[NG_PATHLEN + 1];
@@ -8,7 +25,7 @@
    char		*eptr;
    int		ifnum;
  
-@@ -258,9 +259,10 @@
+@@ -261,9 +262,10 @@
    ifnum = (int)strtoul(ifname + strlen(NG_IFACE_IFACE_NAME), &eptr, 10);
    if (ifnum < 0 || *eptr != '\0')
      return(-1);
@@ -20,7 +37,7 @@
    if (NgSendMsg(b->csock, path, NGM_GENERIC_COOKIE, NGM_NODEINFO, NULL, 0) < 0)
      return(0);
    if (NgRecvMsg(b->csock, &u.reply, sizeof(u), NULL) < 0) {
-@@ -270,7 +272,7 @@
+@@ -273,7 +275,7 @@
  
    /* It exists */
    if (buf != NULL)
@@ -29,7 +46,7 @@
    return(1);
  }
  
-@@ -294,30 +296,10 @@
+@@ -297,30 +299,10 @@
    struct nodeinfo	*const ni = (struct nodeinfo *)(void *)u.reply.data;
    struct ngm_rmhook	rm;
    struct ngm_mkpeer	mp;
@@ -62,7 +79,7 @@
    /* Create iface node (as a temporary peer of the socket node) */
    snprintf(mp.type, sizeof(mp.type), "%s", NG_IFACE_NODE_TYPE);
    snprintf(mp.ourhook, sizeof(mp.ourhook), "%s", TEMPHOOK);
-@@ -328,7 +310,6 @@
+@@ -331,7 +313,6 @@
        b->name, NG_IFACE_NODE_TYPE, ".", mp.ourhook, strerror(errno)));
      return(-1);
    }
@@ -70,7 +87,7 @@
    /* Get the new node's name */
    if (NgSendMsg(b->csock, TEMPHOOK,
        NGM_GENERIC_COOKIE, NGM_NODEINFO, NULL, 0) < 0) {
-@@ -342,6 +323,28 @@
+@@ -345,6 +326,28 @@
      rtn = -1;
      goto done;
    }
@@ -99,7 +116,7 @@
    snprintf(buf, max, "%s", ni->name);
  
  done:
-@@ -355,7 +358,7 @@
+@@ -358,7 +361,7 @@
    }
  
    /* Done */
