@@ -171,9 +171,14 @@ for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
 	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
+	DIR_CREATE=`echo $LINE | cut -d~ -f5`
 	if [ $PATCH_RM_LENGTH -gt "2" ]; then
 		echo "Removing ${SRCDIR}${PATCH_RM}"
 		rm -rf ${SRCDIR}${PATCH_RM}
+	fi
+	if [ "$DIR_CREATE" != "" ]; then
+		echo "Creating ${SRCDIR}/${PATCH_RM}"
+		mkdir -p ${SRCDIR}/${DIR_CREATE}
 	fi
 done
 
@@ -195,10 +200,6 @@ do
 	PATCH_FILE_LEN=`echo $PATCH_FILE | wc -c`
 	MOVE_FILE=`echo $LINE | cut -d~ -f4`
 	MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
-	DIR_CREATE=`echo $LINE | cut -d~ -f5`
-	if [ "$DIR_CREATE" != "" ]; then
-		mkdir -p ${SRCDIR}/${DIR_CREATE}
-	fi
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		echo "Patching ${PATCH_FILE}"
 		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})

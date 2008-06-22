@@ -20,3 +20,5 @@
 ~sbin/dhclient~bpf.c.diff~
 ~sys/contrib/pf/net~pf_table.c.diff~
 ~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
+~~~~sys/modules/glxsb
+~sys/modules/glxsb~glxsb.diff~
