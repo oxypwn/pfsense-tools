@@ -155,8 +155,14 @@ cvsup freesbie2-supfile
 echo "Updating FreeSBIE2"
 if [ ! -d $CURRENTDIR/freesbie2 ]; then
 	( cvs -d /home/pfsense/cvsroot co freesbie2 )
-else
-	( cd $CURRENTDIR/freesbie2 && cvs up -d )
+else	
+	if [ ! -d $CURRENTDIR/freesbie2/pfSense-version ]; then
+		# Currently not using pfSense version, start over.
+		rm -rf $CURRENTDIR/freesbie2
+		( cd $CURRENTDIR/freesbie2 && cvs up -d )
+	else
+		( cd $CURRENTDIR/freesbie2 && cvs up -d )
+	fi
 fi
 
 # Loop through and remove files
