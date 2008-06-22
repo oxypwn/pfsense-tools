@@ -64,11 +64,15 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
-make_world_kernel
+make_world
+
 
 if [ $pfSense_version = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7.install"
 fi
+
+echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
+build_all_kernels
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 #populate_extra
