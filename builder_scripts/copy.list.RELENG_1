@@ -26,7 +26,7 @@ usr/local/sbin/ftpsesame
 usr/local/sbin/lighttpd
 usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
-usr/local/sbin/mpd
+usr/local/sbin/mpd4
 usr/local/sbin/ntpd
 usr/local/sbin/olsrd
 usr/local/sbin/openvpn
