@@ -64,6 +64,7 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
+echo ">>> Building world and kernels for Embedded... $pfSense_version  $freebsd_branch ..."
 make_world
 
 # Build embedded kernel

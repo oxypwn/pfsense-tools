@@ -61,7 +61,7 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 # Build world, kernel and install
-echo ">>> Building world and kernels... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building world and kernels for DevISO... $pfSense_version  $freebsd_branch ..."
 make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels

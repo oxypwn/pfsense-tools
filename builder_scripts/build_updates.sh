@@ -79,8 +79,8 @@ export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
-echo ">>> Building world and kernels... $pfSense_version  $freebsd_branch ..."
-make_world_kernel
+echo ">>> Building world and kernels for updates... $pfSense_version  $freebsd_branch ..."
+make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
 echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
