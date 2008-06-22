@@ -842,63 +842,17 @@ make_world() {
     # Check if the world and kernel are already built and set
     # the NO variables accordingly
     objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-    build_id_w=`basename ${KERNELCONF}`
-    build_id_k=${build_id_w}
 
-    # If PFSENSE_DEBUG is set, build debug kernel, if a .DEBUG kernel
-    # configuration file exists
-    if [ ! -z "${PFSENSE_DEBUG:-}" -a -f ${KERNELCONF}.DEBUG ]; then
-		# Yes, use it
-		export KERNELCONF=${KERNELCONF}.DEBUG
-		build_id_k=${build_id_w}.DEBUG
-    fi
-
-    if [ -f "${objdir}/${build_id_w}.world.done" ]; then
+    if [ -f "${objdir}/.world.done" ]; then
 		export NO_BUILDWORLD=yo
     fi
 
     # Make world
     freesbie_make buildworld
-    touch ${objdir}/${build_id_w}.world.done
+    touch ${objdir}/.world.done
 
 	freesbie_make installworld
 
-}
-
-
-make_world_kernel() {
-    # Check if the world and kernel are already built and set
-    # the NO variables accordingly
-    objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-    build_id_w=`basename ${KERNELCONF}`
-    build_id_k=${build_id_w}
-
-    # If PFSENSE_DEBUG is set, build debug kernel, if a .DEBUG kernel
-    # configuration file exists
-    if [ ! -z "${PFSENSE_DEBUG:-}" -a -f ${KERNELCONF}.DEBUG ]; then
-		# Yes, use it
-		export KERNELCONF=${KERNELCONF}.DEBUG
-		build_id_k=${build_id_w}.DEBUG
-    fi
-
-    if [ -f "${objdir}/${build_id_w}.world.done" ]; then
-		export NO_BUILDWORLD=yo
-    fi
-
-    if [ -f "${objdir}/${build_id_k}.kernel.done" ]; then
-		export NO_BUILDKERNEL=yo
-    fi
-
-    # Make world
-    freesbie_make buildworld
-    touch ${objdir}/${build_id_w}.world.done
-
-    # Make kernel
-    freesbie_make buildkernel
-    touch ${objdir}/${build_id_k}.kernel.done
-
-	freesbie_make installworld
-    freesbie_make installkernel 
 }
 
 
