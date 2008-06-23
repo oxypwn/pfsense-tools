@@ -29,3 +29,4 @@
 ~sbin/dhclient~bpf.c.diff~
 ~sys/dev/nve~nve.diff~
 ~contrib/pf/pfctl~pfctl_queue_onetime.diff~
+~sys/contrib/pf/net~pf_table.c.diff~
