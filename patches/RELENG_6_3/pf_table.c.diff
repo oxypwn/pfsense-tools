@@ -1,0 +1,23 @@
+Index: pf_table.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_table.c,v
+retrieving revision 1.7
+diff -u -r1.7 pf_table.c
+--- pf_table.c	4 May 2005 15:29:28 -0000	1.7
++++ pf_table.c	23 Jun 2008 23:13:08 -0000
+@@ -1,5 +1,5 @@
+ /*	$FreeBSD: src/sys/contrib/pf/net/pf_table.c,v 1.7 2005/05/04 15:29:28 mlaier Exp $	*/
+-/*	$OpenBSD: pf_table.c,v 1.62 2004/12/07 18:02:04 mcbride Exp $	*/
++/*	$OpenBSD: pf_table.c,v 1.68 2006/05/02 10:08:45 dhartmei Exp $	*/
+ 
+ /*
+  * Copyright (c) 2002 Cedric Berger
+@@ -2182,7 +2182,7 @@
+ 	bzero(&tbl, sizeof(tbl));
+ 	strlcpy(tbl.pfrt_name, name, sizeof(tbl.pfrt_name));
+ 	if (ac != NULL)
+-		strlcpy(tbl.pfrt_anchor, ac->name, sizeof(tbl.pfrt_anchor));
++		strlcpy(tbl.pfrt_anchor, ac->path, sizeof(tbl.pfrt_anchor));
+ 	kt = pfr_lookup_table(&tbl);
+ 	if (kt == NULL) {
+ 		kt = pfr_create_ktable(&tbl, time_second, 1);
