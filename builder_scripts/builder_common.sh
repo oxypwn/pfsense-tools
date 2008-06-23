@@ -218,68 +218,66 @@ recompile_pfPorts() {
 }
 
 overlay_host_binaries() {
-	if [ $pfSense_version = "7" ]; then
-	    echo "===> Building syslogd..."
-	    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
-	    echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
-	    install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
-		echo "===> Building clog..."
-		(cd /usr/src/usr.sbin/clog && make clean && make && make install)
-	    echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-	    install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
+    echo "===> Building syslogd..."
+    (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
+    echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
+    install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+	echo "===> Building clog..."
+	(cd /usr/src/usr.sbin/clog && make clean && make && make install)
+    echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
+    install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
 
-		mkdir -p ${PFSENSEBASEDIR}/bin
-		mkdir -p ${PFSENSEBASEDIR}/sbin
-		mkdir -p ${PFSENSEBASEDIR}/usr/bin
-		mkdir -p ${PFSENSEBASEDIR}/usr/sbin
-		mkdir -p ${PFSENSEBASEDIR}/usr/lib
-		mkdir -p ${PFSENSEBASEDIR}/usr/libexec
-		mkdir -p ${PFSENSEBASEDIR}/usr/local/bin
-		mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
-		mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
-		mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
+	mkdir -p ${PFSENSEBASEDIR}/bin
+	mkdir -p ${PFSENSEBASEDIR}/sbin
+	mkdir -p ${PFSENSEBASEDIR}/usr/bin
+	mkdir -p ${PFSENSEBASEDIR}/usr/sbin
+	mkdir -p ${PFSENSEBASEDIR}/usr/lib
+	mkdir -p ${PFSENSEBASEDIR}/usr/libexec
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/bin
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
 
-		# Process base system libraries
-		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
-		NEEDEDLIBS=""
-		echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
-		for TEMPFILE in $FOUND_FILES; do
-			if [ -f /$TEMPFILE ]; then
-				FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
-				if [ "$FILETYPE" -gt 0 ]; then
-					NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
-					echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
-					cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
-					chmod a+rx ${PFSENSEBASEDIR}/$TEMPFILE
-					if [ -d $CLONEDIR ]; then
-						echo "cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB"
-						cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB				
-					fi					
-				fi
-			else
-				if [ -f ${CVS_CO_DIR}/$TEMPFILE ]; then
-					FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
-					if [ "$FILETYPE" -gt 0 ]; then
-						NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
-					fi
-				fi
-			fi
-		done		
-		echo ">>>> Installing collected library information (usr/local), please wait..."
-		# Unique the libraries so we only copy them once
-		NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
-		for NEEDLIB in $NEEDEDLIBS; do
-			if [ -f $NEEDLIB ]; then 
-				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
-				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
+	# Process base system libraries
+	FOUND_FILES=`cat copy.list.${PFSENSETAG}`
+	NEEDEDLIBS=""
+	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
+	for TEMPFILE in $FOUND_FILES; do
+		if [ -f /$TEMPFILE ]; then
+			FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+			if [ "$FILETYPE" -gt 0 ]; then
+				NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
+				echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
+				cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
+				chmod a+rx ${PFSENSEBASEDIR}/$TEMPFILE
 				if [ -d $CLONEDIR ]; then
-					echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
-					install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}					
+					echo "cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB"
+					cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB				
+				fi					
+			fi
+		else
+			if [ -f ${CVS_CO_DIR}/$TEMPFILE ]; then
+				FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+				if [ "$FILETYPE" -gt 0 ]; then
+					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
 				fi
 			fi
-		done
+		fi
+	done		
+	echo ">>>> Installing collected library information (usr/local), please wait..."
+	# Unique the libraries so we only copy them once
+	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
+	for NEEDLIB in $NEEDEDLIBS; do
+		if [ -f $NEEDLIB ]; then 
+			echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
+			install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
+			if [ -d $CLONEDIR ]; then
+				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
+				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}					
+			fi
+		fi
+	done
 	
-	fi
 }
 
 report_zero_sized_files() {
