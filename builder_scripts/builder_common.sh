@@ -198,7 +198,12 @@ recompile_pfPorts() {
 		echo "PFSENSE_HOST_BIN_PATH is not defined.  Please update pfsense_local.sh"
 		exit 1
 	fi
-	
+
+	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
+
+	# Copy pfPort for the branch
+	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
+		
 	# Backup host pkg db
 	if [ -d /var/db/pkg ]; then 
 		echo "===> Backing up host pkg DB..."
@@ -237,13 +242,11 @@ recompile_pfPorts() {
 	echo ">>> Special building grub from recompile_pfPorts()..."
 	(cd /usr/ports/sysutils/grub && make && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
 
-	# Copy pfPort for the branch
-	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
-	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
 	echo "===> Operating on $pfSPORT..."
 	( cd $pfSPORTS_BASE_DIR && make FORCE_PKG_REGISTER=yo BATCH=yo )
 	echo "===> Installing new port..."
 	( cd $pfSPORTS_BASE_DIR && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo BATCH=yo )
+
 	if [ "${MKCNF}x" = "pfPortsx" ]; then
 		mv /tmp/make.conf /etc/
 	fi
