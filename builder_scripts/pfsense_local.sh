@@ -11,7 +11,7 @@ export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
 
 # path to pfPorts
-export pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
+export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-/home/pfsense/tools/pfPorts}
 
 # This is the base working directory for all builder operations
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
