@@ -199,8 +199,6 @@ recompile_pfPorts() {
 		exit 1
 	fi
 
-	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
-
 	# Copy pfPort for the branch
 	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
 		

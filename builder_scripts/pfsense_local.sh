@@ -10,6 +10,9 @@ export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
 # Generally /home/pfsense
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
 
+# path to pfPorts
+export pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
+
 # This is the base working directory for all builder operations
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
 
@@ -56,6 +59,7 @@ export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdesc
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 
+# Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH="/usr/local/pfsense-bin/"
 
 # Custom overlay for people building or extending pfSense images.
