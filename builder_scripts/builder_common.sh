@@ -1,3 +1,4 @@
+pfP
 #!/bin/sh
 #
 # Common functions to be used by build scripts
@@ -195,10 +196,12 @@ build_all_kernels() {
 recompile_pfPorts() {
 
 	# Backup host pkg db
-	echo "===> Backing up host pkg DB..."
-	mkdir -p /tmp/vardbpkg
-	mv /var/db/pkg /tmp/vardbpkg/
-
+	if [ -d /var/db/pkg ]; then 
+		echo "===> Backing up host pkg DB..."
+		mkdir -p /tmp/vardbpkg
+		mv /var/db/pkg /tmp/vardbpkg/
+	fi
+	
 	# Zero out DB
 	rm -rf /var/db/pkg/*
 	
@@ -209,6 +212,7 @@ recompile_pfPorts() {
 	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr/sbin
 	mkdir -p ${PFSENSE_HOST_BIN_PATH}/lib	
 	mkdir -p ${PFSENSE_HOST_BIN_PATH}/libexec/
+
 	cp -R ${PFSENSE_HOST_BIN_PATH}/lib ${PFSENSE_HOST_BIN_PATH}/lib/
 	cp -R /libexec/* ${PFSENSE_HOST_BIN_PATH}/libexec/
 	cp -R /lib/* ${PFSENSE_HOST_BIN_PATH}/lib/	
@@ -220,10 +224,12 @@ recompile_pfPorts() {
 		MKCNF="pfPorts"
 	fi
 	export FORCE_PKG_REGISTER=yo
+
 	echo ">>> Special building rrdtool from recompile_pfPorts()..."
 	(cd /usr/ports/databases/rrdtool && make && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
 	echo ">>> Special building grub from recompile_pfPorts()..."
 	(cd /usr/ports/sysutils/grub && make && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
+
 	# Copy pfPort for the branch
 	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
 	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
@@ -236,7 +242,7 @@ recompile_pfPorts() {
 	fi
 
 	echo "===> Restoroing parent pkg DB..."
-	mv /tmp/vardbpkg /var/db/pkg/
+	mv /tmp/vardbpkg/pkg /var/db/
 
 	echo "===> End of pfPorts..."
 	
