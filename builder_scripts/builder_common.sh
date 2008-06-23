@@ -194,6 +194,11 @@ build_all_kernels() {
 
 recompile_pfPorts() {
 
+	if [ -z "${PFSENSE_HOST_BIN_PATH:-}" ]; then
+		echo "PFSENSE_HOST_BIN_PATH is not defined.  Please update pfsense_local.sh"
+		exit 1
+	fi
+	
 	# Backup host pkg db
 	if [ -d /var/db/pkg ]; then 
 		echo "===> Backing up host pkg DB..."
@@ -204,17 +209,20 @@ recompile_pfPorts() {
 	# Zero out DB
 	rm -rf /var/db/pkg/*
 	
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}/bin
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}/sbin	
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr/bin
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr/sbin
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}/lib	
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}/libexec/
-
-	cp -R ${PFSENSE_HOST_BIN_PATH}/lib ${PFSENSE_HOST_BIN_PATH}/lib/
+	# Create directories
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr/local
+	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/ < /etc/mtree/BSD.root.dist
+	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/usr < /etc/mtree/BSD.usr.dist
+	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/usr/local < /etc/mtree/BSD.local.dist
+	
+	# Copy a couple of needed files
 	cp -R /libexec/* ${PFSENSE_HOST_BIN_PATH}/libexec/
 	cp -R /lib/* ${PFSENSE_HOST_BIN_PATH}/lib/	
+	cp /usr/sbin/pkg* ${PFSENSE_HOST_BIN_PATH}/usr/sbin/
+	cp /bin/sh ${PFSENSE_HOST_BIN_PATH}/bin/
+	chmod a+rx ${PFSENSE_HOST_BIN_PATH}/usr/sbin/*
+	chmod a+rx ${PFSENSE_HOST_BIN_PATH}/bin/*
 	
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
