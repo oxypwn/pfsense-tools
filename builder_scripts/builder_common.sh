@@ -193,12 +193,25 @@ build_all_kernels() {
 }
 
 recompile_pfPorts() {
+
 	# Backup host pkg db
-	mkdir /tmp/vardbpkg
-	mv /var/db/pkg/ /tmp/vardbpkg
+	echo "===> Backing up host pkg DB..."
+	mkdir -p /tmp/vardbpkg
+	mv /var/db/pkg /tmp/vardbpkg/
 
 	# Zero out DB
 	rm -rf /var/db/pkg/*
+	
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}/bin
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}/sbin	
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr/bin
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr/sbin
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}/lib	
+	mkdir -p ${PFSENSE_HOST_BIN_PATH}/libexec/
+	cp -R ${PFSENSE_HOST_BIN_PATH}/lib ${PFSENSE_HOST_BIN_PATH}/lib/
+	cp -R /libexec/* ${PFSENSE_HOST_BIN_PATH}/libexec/
+	cp -R /lib/* ${PFSENSE_HOST_BIN_PATH}/lib/	
 	
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
@@ -221,7 +234,10 @@ recompile_pfPorts() {
 	if [ "${MKCNF}x" = "pfPortsx" ]; then
 		mv /tmp/make.conf /etc/
 	fi
+
+	echo "===> Restoroing parent pkg DB..."
 	mv /tmp/vardbpkg /var/db/pkg/
+
 	echo "===> End of pfPorts..."
 	
 }
