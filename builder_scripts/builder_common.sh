@@ -205,7 +205,7 @@ recompile_pfPorts() {
 	# Backup host pkg db
 	if [ -d /var/db/pkg ]; then 
 		echo "===> Backing up host pkg DB..."
-		(cd /var/db/pkg && tar czvf /tmp/vardbpkg.tgz .)
+		(cd /var/db/pkg && tar czf /tmp/vardbpkg.tgz .)
 	fi
 	
 	# Zero out DB
@@ -252,7 +252,7 @@ recompile_pfPorts() {
 	if [ -d /tmp/vardbpkg/pkg ]; then 
 		echo "===> Restoring parent pkg DB..."
 		rm -rf /var/db/pkg/*
-		(cd /var/db/pkg && tar xzvf /tmp/vardbpkg.tgz)
+		(cd /var/db/pkg/ && tar xzf /tmp/vardbpkg.tgz)
 	fi
 	echo "===> End of pfPorts..."
 	
