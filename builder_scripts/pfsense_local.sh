@@ -60,7 +60,7 @@ export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 
 # Binary staging area for pfSense specific binaries.
-export PFSENSE_HOST_BIN_PATH="/usr/local/pfsense-bin/"
+export PFSENSE_HOST_BIN_PATH="/usr/local/pfsense-bin/usr/local/"
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root

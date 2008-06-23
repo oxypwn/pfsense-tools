@@ -205,8 +205,7 @@ recompile_pfPorts() {
 	# Backup host pkg db
 	if [ -d /var/db/pkg ]; then 
 		echo "===> Backing up host pkg DB..."
-		mkdir -p /tmp/vardbpkg
-		mv /var/db/pkg /tmp/vardbpkg/
+		(cd /var/db/pkg && tar czvf /tmp/vardbpkg.tgz .)
 	fi
 	
 	# Zero out DB
@@ -220,12 +219,13 @@ recompile_pfPorts() {
 	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/usr/local < /etc/mtree/BSD.local.dist
 	
 	# Copy a couple of needed files
-	cp -R /libexec/* ${PFSENSE_HOST_BIN_PATH}/libexec/
-	cp -R /lib/* ${PFSENSE_HOST_BIN_PATH}/lib/	
-	cp /usr/sbin/pkg* ${PFSENSE_HOST_BIN_PATH}/usr/sbin/
-	cp /bin/sh ${PFSENSE_HOST_BIN_PATH}/bin/
-	chmod a+rx ${PFSENSE_HOST_BIN_PATH}/usr/sbin/*
-	chmod a+rx ${PFSENSE_HOST_BIN_PATH}/bin/*
+	#cp -R /libexec/* ${PFSENSE_HOST_BIN_PATH}/libexec/
+	#cp -R /lib/* ${PFSENSE_HOST_BIN_PATH}/lib/	
+	#cp /usr/sbin/pkg* ${PFSENSE_HOST_BIN_PATH}/usr/sbin/
+	#cp /bin/sh ${PFSENSE_HOST_BIN_PATH}/bin/
+	#cp /usr/bin/env ${PFSENSE_HOST_BIN_PATH}/usr/bin/
+	#chmod a+rx ${PFSENSE_HOST_BIN_PATH}/usr/sbin/*
+	#chmod a+rx ${PFSENSE_HOST_BIN_PATH}/bin/*
 	
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
@@ -236,22 +236,23 @@ recompile_pfPorts() {
 	export FORCE_PKG_REGISTER=yo
 
 	echo ">>> Special building rrdtool from recompile_pfPorts()..."
-	(cd /usr/ports/databases/rrdtool && make && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/databases/rrdtool && make PREFIX=${PFSENSE_HOST_BIN_PATH} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
 	echo ">>> Special building grub from recompile_pfPorts()..."
-	(cd /usr/ports/sysutils/grub && make && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/sysutils/grub && make PREFIX=${PFSENSE_HOST_BIN_PATH} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
 
 	echo "===> Operating on $pfSPORT..."
-	( cd $pfSPORTS_BASE_DIR && make FORCE_PKG_REGISTER=yo BATCH=yo )
+	( cd $pfSPORTS_BASE_DIR && make PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo BATCH=yo )
 	echo "===> Installing new port..."
-	( cd $pfSPORTS_BASE_DIR && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo BATCH=yo )
+	( cd $pfSPORTS_BASE_DIR && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo BATCH=yo )
 
 	if [ "${MKCNF}x" = "pfPortsx" ]; then
 		mv /tmp/make.conf /etc/
 	fi
 
 	if [ -d /tmp/vardbpkg/pkg ]; then 
-		echo "===> Restoroing parent pkg DB..."
-		mv /tmp/vardbpkg/pkg /var/db/
+		echo "===> Restoring parent pkg DB..."
+		rm -rf /var/db/pkg/*
+		(cd /var/db/pkg && tar xzvf /tmp/vardbpkg.tgz)
 	fi
 	echo "===> End of pfPorts..."
 	
