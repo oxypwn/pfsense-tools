@@ -1573,3 +1573,4 @@ diff -N glxsb_hash.c
 +		ses->ses_octx = NULL;
 +	}
 +}
+Makefile
