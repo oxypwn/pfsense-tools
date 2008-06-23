@@ -1,4 +1,3 @@
-pfP
 #!/bin/sh
 #
 # Common functions to be used by build scripts
@@ -241,9 +240,10 @@ recompile_pfPorts() {
 		mv /tmp/make.conf /etc/
 	fi
 
-	echo "===> Restoroing parent pkg DB..."
-	mv /tmp/vardbpkg/pkg /var/db/
-
+	if [ -d /tmp/vardbpkg/pkg ]; then 
+		echo "===> Restoroing parent pkg DB..."
+		mv /tmp/vardbpkg/pkg /var/db/
+	fi
 	echo "===> End of pfPorts..."
 	
 }
