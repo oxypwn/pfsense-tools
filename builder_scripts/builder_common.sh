@@ -200,7 +200,7 @@ recompile_pfPorts() {
 	fi
 
 	# Copy pfPort for the branch
-	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
+	cp ${pfSPORTS_BASE_DIR}/Makefile.${freebsd_branch} ${pfSPORTS_BASE_DIR}/Makefile
 		
 	# Backup host pkg db
 	if [ -d /var/db/pkg ]; then 
