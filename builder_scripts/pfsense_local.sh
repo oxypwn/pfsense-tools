@@ -56,6 +56,8 @@ export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdesc
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 
+export PFSENSE_HOST_BIN_PATH="/usr/local/pfsense-bin/"
+
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
 # of the prepared image allowing for customization.

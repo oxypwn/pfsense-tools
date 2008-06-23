@@ -193,6 +193,13 @@ build_all_kernels() {
 }
 
 recompile_pfPorts() {
+	# Backup host pkg db
+	mkdir /tmp/vardbpkg
+	mv /var/db/pkg/ /tmp/vardbpkg
+
+	# Zero out DB
+	rm -rf /var/db/pkg/*
+	
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
 		mv /etc/make.conf /tmp/
@@ -201,20 +208,22 @@ recompile_pfPorts() {
 	fi
 	export FORCE_PKG_REGISTER=yo
 	echo ">>> Special building rrdtool from recompile_pfPorts()..."
-	(cd /usr/ports/databases/rrdtool && make && make install FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/databases/rrdtool && make && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
 	echo ">>> Special building grub from recompile_pfPorts()..."
-	(cd /usr/ports/sysutils/grub && make && make install FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/sysutils/grub && make && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
 	# Copy pfPort for the branch
 	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
 	pfSPORTS_BASE_DIR=/home/pfsense/tools/pfPorts
 	echo "===> Operating on $pfSPORT..."
 	( cd $pfSPORTS_BASE_DIR && make FORCE_PKG_REGISTER=yo BATCH=yo )
 	echo "===> Installing new port..."
-	( cd $pfSPORTS_BASE_DIR && make install FORCE_PKG_REGISTER=yo BATCH=yo )
+	( cd $pfSPORTS_BASE_DIR && make install DESTDIR=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo BATCH=yo )
 	if [ "${MKCNF}x" = "pfPortsx" ]; then
 		mv /tmp/make.conf /etc/
 	fi
-	echo "===> End of pfPorts..."	
+	mv /tmp/vardbpkg /var/db/pkg/
+	echo "===> End of pfPorts..."
+	
 }
 
 overlay_host_binaries() {
@@ -243,23 +252,23 @@ overlay_host_binaries() {
 	NEEDEDLIBS=""
 	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
-		if [ -f /$TEMPFILE ]; then
+		if [ -f /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
 			if [ "$FILETYPE" -gt 0 ]; then
-				NEEDEDLIBS="$NEEDEDLIBS `ldd /$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
-				echo "cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE"
-				cp /$TEMPFILE ${PFSENSEBASEDIR}/$TEMPFILE
-				chmod a+rx ${PFSENSEBASEDIR}/$TEMPFILE
+				NEEDEDLIBS="$NEEDEDLIBS `ldd /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
+				echo "cp /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE"
+				cp /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
+				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				if [ -d $CLONEDIR ]; then
-					echo "cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB"
-					cp /$NEEDLIB ${PFSENSEBASEDIR}$NEEDLIB				
+					echo "cp /$NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
+					cp /$NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
 				fi					
 			fi
 		else
-			if [ -f ${CVS_CO_DIR}/$TEMPFILE ]; then
-				FILETYPE=`file ${CVS_CO_DIR}/$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+			if [ -f ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ]; then
+				FILETYPE=`file ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep dynamically | wc -l | awk '{ print $1 }'`
 				if [ "$FILETYPE" -gt 0 ]; then
-					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/$TEMPFILE | grep "=>" | awk '{ print $3 }'`"									
+					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
 				fi
 			fi
 		fi
