@@ -27,7 +27,6 @@ SUBDIR += olsrd
 SUBDIR += pftop
 SUBDIR += libevent13
 SUBDIR += pftpx
-SUBDIR += relayd
 SUBDIR += slbd
 SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
