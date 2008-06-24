@@ -7,7 +7,7 @@
 
 CATEGORIES=	devel
 
-MASTERDIR=	${.CURDIR}/../../lang/php4
+MASTERDIR=	${.CURDIR}/../php4
 
 PKGNAMESUFFIX=	-pcre
 
