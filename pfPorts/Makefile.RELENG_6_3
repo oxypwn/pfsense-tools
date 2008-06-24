@@ -7,6 +7,9 @@
 #  To build pfSense simply type make in this directory.
 #
 
+SUBDIR += libart_lgpl
+SUBDIR += cairo
+SUBDIR += rrdtool
 SUBDIR += lzo2
 SUBDIR += ftpsesame
 SUBDIR += atareinit
