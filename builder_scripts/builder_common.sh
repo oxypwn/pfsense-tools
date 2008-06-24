@@ -227,14 +227,14 @@ recompile_pfPorts() {
 	export FORCE_PKG_REGISTER=yo
 
 	echo ">>> Special building rrdtool from recompile_pfPorts()..."
-	(cd /usr/ports/databases/rrdtool && make PREFIX=${PFSENSE_HOST_BIN_PATH} ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/databases/rrdtool && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
 	echo ">>> Special building grub from recompile_pfPorts()..."
-	(cd /usr/ports/sysutils/grub && make PREFIX=${PFSENSE_HOST_BIN_PATH} ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/sysutils/grub && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
 
 	echo "===> Operating on $pfSPORT..."
-	( cd $pfSPORTS_BASE_DIR && make PREFIX=${PFSENSE_HOST_BIN_PATH} ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
+	( cd ${pfSPORTS_BASE_DIR} && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
 	echo "===> Installing new port..."
-	( cd $pfSPORTS_BASE_DIR && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo BATCH=yo )
+	( cd ${pfSPORTS_BASE_DIR} && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo BATCH=yo )
 
 	if [ "${MKCNF}x" = "pfPortsx" ]; then
 		mv /tmp/make.conf /etc/
@@ -275,9 +275,11 @@ overlay_host_binaries() {
 	NEEDEDLIBS=""
 	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
+		echo -n "--> Looking for /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE}"
 		if [ -f /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
 			if [ "$FILETYPE" -gt 0 ]; then
+				echo -n " found."
 				NEEDEDLIBS="$NEEDEDLIBS `ldd /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
 				echo "cp /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE"
 				cp /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
@@ -288,6 +290,7 @@ overlay_host_binaries() {
 				fi					
 			fi
 		else
+			echo ""
 			if [ -f ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ]; then
 				FILETYPE=`file ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep dynamically | wc -l | awk '{ print $1 }'`
 				if [ "$FILETYPE" -gt 0 ]; then
