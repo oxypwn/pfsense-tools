@@ -22,7 +22,7 @@ SUBDIR += isc-dhcp3-server
 SUBDIR += lighttpd
 SUBDIR += minicron
 SUBDIR += miniupnpd
-SUBDIR += mpd4
+SUBDIR += mpd
 SUBDIR += olsrd
 SUBDIR += pftop
 SUBDIR += libevent13
@@ -41,6 +41,26 @@ SUBDIR += verifysig
 SUBDIR += athstats
 SUBDIR += openntpd
 SUBDIR += ftp-proxy
+
+SUBDIR += php4
+SUBDIR += pecl-APC
+SUBDIR += php4-bz2
+SUBDIR += php4-ctype
+SUBDIR += php4-curl
+SUBDIR += php4-gettext
+SUBDIR += php4-ldap
+SUBDIR += php4-mbstring
+SUBDIR += php4-pcntl
+SUBDIR += php4-pcre
+SUBDIR += php4-posix
+SUBDIR += pecl-radius
+SUBDIR += php4-readline
+SUBDIR += php4-session
+SUBDIR += php4-simplexml
+SUBDIR += php4-xml
+SUBDIR += php4-zlib
+SUBDIR += php4-tokenizer
+SUBDIR += php4-install-all
 
 PORTSTOP=       yes
 
