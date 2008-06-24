@@ -226,8 +226,8 @@ recompile_pfPorts() {
 	fi
 	export FORCE_PKG_REGISTER=yo
 
-	#echo ">>> Special building rrdtool from recompile_pfPorts()..."
-	#(cd /usr/ports/databases/rrdtool && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
+	echo ">>> Special building rrdtool from recompile_pfPorts()..."
+	(cd /usr/ports/databases/rrdtool && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
 	echo ">>> Special building grub from recompile_pfPorts()..."
 	(cd /usr/ports/sysutils/grub && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
 
