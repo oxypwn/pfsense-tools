@@ -25,3 +25,7 @@ install:
 	chmod a+rx /usr/local/bin/php-cgi
 
 clean:
+
+deinstall:
+
+
