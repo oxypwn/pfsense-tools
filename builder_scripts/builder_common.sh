@@ -227,12 +227,12 @@ recompile_pfPorts() {
 	export FORCE_PKG_REGISTER=yo
 
 	echo ">>> Special building rrdtool from recompile_pfPorts()..."
-	(cd /usr/ports/databases/rrdtool && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/databases/rrdtool && make ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
 	echo ">>> Special building grub from recompile_pfPorts()..."
-	(cd /usr/ports/sysutils/grub && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/sysutils/grub && make ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
 
 	echo "===> Operating on $pfSPORT..."
-	( cd ${pfSPORTS_BASE_DIR} && make PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
+	( cd ${pfSPORTS_BASE_DIR} && make ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
 	echo "===> Installing new port..."
 	( cd ${pfSPORTS_BASE_DIR} && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo BATCH=yo )
 
