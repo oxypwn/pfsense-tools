@@ -33,7 +33,6 @@ SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
 SUBDIR += stats
 SUBDIR += vtsh
-SUBDIR += pftpx
 
 # FreeBSD 7 
 SUBDIR += php5
