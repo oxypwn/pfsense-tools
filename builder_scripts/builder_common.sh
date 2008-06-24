@@ -275,11 +275,9 @@ overlay_host_binaries() {
 	NEEDEDLIBS=""
 	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
-		echo -n "--> Looking for /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE}"
 		if [ -f /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
 			if [ "$FILETYPE" -gt 0 ]; then
-				echo -n " found."
 				NEEDEDLIBS="$NEEDEDLIBS `ldd /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
 				echo "cp /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE"
 				cp /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
@@ -290,7 +288,6 @@ overlay_host_binaries() {
 				fi					
 			fi
 		else
-			echo ""
 			if [ -f ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ]; then
 				FILETYPE=`file ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep dynamically | wc -l | awk '{ print $1 }'`
 				if [ "$FILETYPE" -gt 0 ]; then
