@@ -100,6 +100,7 @@ export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
+export MAKEJ_PORTS=${MAKEJ_KERNEL:-"-j4"}
 
 export NO_CLEAN=${NO_CLEAN:-"yo"}
 export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}

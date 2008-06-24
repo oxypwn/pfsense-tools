@@ -218,15 +218,6 @@ recompile_pfPorts() {
 	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/usr < /etc/mtree/BSD.usr.dist
 	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/usr/local < /etc/mtree/BSD.local.dist
 	
-	# Copy a couple of needed files
-	#cp -R /libexec/* ${PFSENSE_HOST_BIN_PATH}/libexec/
-	#cp -R /lib/* ${PFSENSE_HOST_BIN_PATH}/lib/	
-	#cp /usr/sbin/pkg* ${PFSENSE_HOST_BIN_PATH}/usr/sbin/
-	#cp /bin/sh ${PFSENSE_HOST_BIN_PATH}/bin/
-	#cp /usr/bin/env ${PFSENSE_HOST_BIN_PATH}/usr/bin/
-	#chmod a+rx ${PFSENSE_HOST_BIN_PATH}/usr/sbin/*
-	#chmod a+rx ${PFSENSE_HOST_BIN_PATH}/bin/*
-	
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
 		mv /etc/make.conf /tmp/
@@ -236,12 +227,12 @@ recompile_pfPorts() {
 	export FORCE_PKG_REGISTER=yo
 
 	echo ">>> Special building rrdtool from recompile_pfPorts()..."
-	(cd /usr/ports/databases/rrdtool && make PREFIX=${PFSENSE_HOST_BIN_PATH} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/databases/rrdtool && make PREFIX=${PFSENSE_HOST_BIN_PATH} ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
 	echo ">>> Special building grub from recompile_pfPorts()..."
-	(cd /usr/ports/sysutils/grub && make PREFIX=${PFSENSE_HOST_BIN_PATH} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/sysutils/grub && make PREFIX=${PFSENSE_HOST_BIN_PATH} ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo)
 
 	echo "===> Operating on $pfSPORT..."
-	( cd $pfSPORTS_BASE_DIR && make PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo BATCH=yo )
+	( cd $pfSPORTS_BASE_DIR && make PREFIX=${PFSENSE_HOST_BIN_PATH} ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
 	echo "===> Installing new port..."
 	( cd $pfSPORTS_BASE_DIR && make install PREFIX=${PFSENSE_HOST_BIN_PATH} FORCE_PKG_REGISTER=yo BATCH=yo )
 
