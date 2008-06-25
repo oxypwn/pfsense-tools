@@ -153,7 +153,7 @@ fi
 # Add cpdup
 if [ ! -f "/usr/local/bin/cpdup" ]; then
 	echo "Cannot find cpdup, building from ports..."
-	(cd /usr/ports/sysutils/cpdup/ deinstall clean  && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	(cd /usr/ports/sysutils/cpdup/ && make deinstall clean install FORCE_PKG_REGISTER=yo BATCH=yo)
 	if [ ! -f "/usr/local/bin/cpdup" ]; then
 		echo "Something went wrong while attempting installation of cpdup."
 		exit 1
