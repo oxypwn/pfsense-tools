@@ -2,11 +2,11 @@
 # Date created:				20 July 1999
 # Whom:					Dmitry Sivachenko <dima@Chg.RU>
 #
-# $FreeBSD: ports/databases/rrdtool/Makefile,v 1.74 2008/01/23 02:56:54 nemoliu Exp $
+# $FreeBSD: ports/databases/rrdtool/Makefile,v 1.76 2008/06/24 12:33:24 rafan Exp $
 #
 
 PORTNAME=	rrdtool
-PORTVERSION=	1.2.26
+PORTVERSION=	1.3.0
 CATEGORIES=	databases graphics
 MASTER_SITES=	http://oss.oetiker.ch/rrdtool/pub/
 
@@ -14,8 +14,12 @@ MAINTAINER=	bg1tpt@gmail.com
 COMMENT=	Round Robin Database Tools
 
 LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
-		art_lgpl_2.5:${PORTSDIR}/graphics/libart_lgpl \
-		png.5:${PORTSDIR}/graphics/png
+		cairo.2:${PORTSDIR}/graphics/cairo \
+		png.5:${PORTSDIR}/graphics/png \
+		xml2.5:${PORTSDIR}/textproc/libxml2 \
+		pangocairo-1\.0.0:${PORTSDIR}/x11-toolkits/pango
+
+CONFLICTS=	rrdtool-1.0*
 
 USE_AUTOTOOLS=	libtool:15
 USE_LDCONFIG=	yes
@@ -60,7 +64,7 @@ PLIST_SUB+=	WITH_PERL="@comment "
 .endif
 
 CONFIGURE_TARGET=--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
-CPPFLAGS+=	-I${LOCALBASE}/include -I${LOCALBASE}/include/libart-2.0 -I${LOCALBASE}/include/freetype2
+CPPFLAGS+=	-I${LOCALBASE}/include -I${LOCALBASE}/include/freetype2
 LDFLAGS+=	-L${LOCALBASE}/lib
 CFLAGS:=	${CFLAGS:N-ffast-math}
 CONFIGURE_ENV+=	CPPFLAGS="${CPPFLAGS}" LDFLAGS="${LDFLAGS}"
