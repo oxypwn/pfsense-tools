@@ -10,21 +10,11 @@
 #set -e 
 #set -x
 
-# Suck in local vars
-. ./pfsense_local.sh
-
-# Suck in script helper functions
-. ./builder_common.sh
-
 MAKEJ_PORTS=""
-
-# Make sure cvsup_current has been run first 
-check_for_clog
+pfSPORTS_BASE_DIR="/home/pfsense/tools/pfPorts"
 
 (cd ${pfSPORTS_BASE_DIR} && make deinstall)
 (cd ${pfSPORTS_BASE_DIR} && make clean distclean)
-
-
 	
 # Backup host pkg db
 if [ -d /var/db/pkg ]; then 
