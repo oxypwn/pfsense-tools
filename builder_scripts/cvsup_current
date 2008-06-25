@@ -148,8 +148,6 @@ fi
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
-echo "Updating FreeSBIE2-pfSense edition..."
-cvsup freesbie2-supfile
 
 # Update FreeSBIE2 files from CVS
 echo "Updating FreeSBIE2"
@@ -159,7 +157,7 @@ else
 	if [ ! -d $CURRENTDIR/freesbie2/pfSense-version ]; then
 		# Currently not using pfSense version, start over.
 		rm -rf $CURRENTDIR/freesbie2
-		( cd $CURRENTDIR/freesbie2 && cvs up -d )
+		( cd $CURRENTDIR/ && cvs co freesbie2 )
 	else
 		( cd $CURRENTDIR/freesbie2 && cvs up -d )
 	fi
