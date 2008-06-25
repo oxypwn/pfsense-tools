@@ -195,45 +195,9 @@ build_all_kernels() {
 recompile_pfPorts() {
 
 	# Copy pfPort for the branch
-	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
-		
-	# Backup host pkg db
-	if [ -d /var/db/pkg ]; then 
-		echo "===> Backing up host pkg DB..."
-		(cd /var/db/pkg && tar czf /tmp/vardbpkg.tgz .)
-	fi
+	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile	
 	
-	# Zero out DB
-	rm -rf /var/db/pkg/*
-		
-	echo "===> Compiling pfPorts..."
-	if [ -f /etc/make.conf ]; then
-		mv /etc/make.conf /tmp/
-		echo "WITHOUT_X11=yo" >> /etc/make.conf
-		MKCNF="pfPorts"
-	fi
-	export FORCE_PKG_REGISTER=yo
-
-	echo ">>> Special building rrdtool from recompile_pfPorts()..."
-	(cd /usr/ports/databases/rrdtool && make ${MAKEJ_PORTS} BATCH=yo && make install FORCE_PKG_REGISTER=yo)
-	echo ">>> Special building grub from recompile_pfPorts()..."
-	(cd /usr/ports/sysutils/grub && make ${MAKEJ_PORTS} BATCH=yo && make install FORCE_PKG_REGISTER=yo)
-
-	echo "===> Operating on $pfSPORT..."
-	( cd ${pfSPORTS_BASE_DIR} && make ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
-	echo "===> Installing new port..."
-	( cd ${pfSPORTS_BASE_DIR} && make install FORCE_PKG_REGISTER=yo BATCH=yo )
-
-	if [ "${MKCNF}x" = "pfPortsx" ]; then
-		mv /tmp/make.conf /etc/
-	fi
-
-	if [ -d /tmp/vardbpkg/pkg ]; then 
-		echo "===> Restoring parent pkg DB..."
-		rm -rf /var/db/pkg/*
-		(cd /var/db/pkg/ && tar xzf /tmp/vardbpkg.tgz)
-	fi
-	echo "===> End of pfPorts..."
+	( su - root -c ${CURRENTDIR}/build_pfPorts.sh )
 	
 }
 
