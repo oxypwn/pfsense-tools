@@ -81,13 +81,21 @@ fi
 # Ensure cdrtools are installed
 if [ ! -f /usr/local/bin/mkisofs ]; then
 	echo "Cannot find mkisofs, building from ports..."
-	(cd /usr/ports/sysutils/cdrtools && make install FORCE_PKG_REGISTER=yo BATCH=yo)	
+	(cd /usr/ports/sysutils/cdrtools && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	if [ ! -f /usr/local/bin/mkisofs ]; then
+		echo "Something went wrong while attempting installation of mkisofs."
+		exit 1
+	fi 
 fi
 
 # Add cvsup
 if [ ! -f "/usr/local/bin/cvsup" ]; then
 	echo "Cannot find cvsup, building from ports..."
 	(cd /usr/ports/net/cvsup-without-gui && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	if [ ! -f "/usr/local/bin/cvsup" ]; then
+		echo "Something went wrong while attempting installation of cvsup."
+		exit 1
+	fi
 fi
 
 if [ -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
@@ -95,6 +103,10 @@ if [ -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
 	if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
 		echo "Cannot find fastest_cvsup, building from ports..."
 		(cd /usr/ports/sysutils/fastest_cvsup/ && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+		if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
+			echo "Something went wrong while attempting installation of cvsup."
+			exit 1
+		fi
 	fi
 fi
 
@@ -102,30 +114,50 @@ fi
 if [ ! -f "/usr/local/lib/libpcre.so.0" ]; then
 	echo "Cannot find pcre, building from ports..."
 	(cd /usr/ports/devel/pcre && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	if [ ! -f "/usr/local/lib/libpcre.so.0" ]; then
+		echo "Something went wrong while attempting installation of cvsup."
+		exit 1
+	fi
 fi
 
 # Add lighttpd
 if [ ! -f "/usr/local/sbin/lighttpd" ]; then
 	echo "Cannot find lighttpd, building from ports..."
 	(cd /usr/ports/www/lighttpd && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	if [ ! -f "/usr/local/sbin/lighttpd" ]; then
+		echo "Something went wrong while attempting installation of lighttpd."
+		exit 1
+	fi
 fi
 
 # Add curl
 if [ ! -f "/usr/local/bin/curl" ]; then
 	echo "Cannot find curl, building from ports..."
 	(cd /usr/ports/ftp/curl && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	if [ ! -f "/usr/local/bin/curl" ]; then
+		echo "Something went wrong while attempting installation of curl."
+		exit 1
+	fi
 fi
 
 # Add rsync
 if [ ! -f "/usr/local/bin/rsync" ]; then
 	echo "Cannot find rsync, building from ports..."
 	(cd /usr/ports/net/rsync && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	if [ ! -f "/usr/local/bin/rsync" ]; then
+		echo "Something went wrong while attempting installation of rsync."
+		exit 1
+	fi
 fi
 
 # Add cpdup
 if [ ! -f "/usr/local/bin/cpdup" ]; then
 	echo "Cannot find cpdup, building from ports..."
 	(cd /usr/ports/sysutils/cpdup/ && make install FORCE_PKG_REGISTER=yo BATCH=yo)
+	if [ ! -f "/usr/local/bin/cpdup" ]; then
+		echo "Something went wrong while attempting installation of cpdup."
+		exit 1
+	fi
 fi
 
 # Add BSDInstaller
