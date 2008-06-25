@@ -33,6 +33,7 @@ SUBDIR += ssh_tunnel_shell
 SUBDIR += sshlockout_pf
 SUBDIR += stats
 SUBDIR += vtsh
+SUBDIR += libevent13
 SUBDIR += pftpx
 SUBDIR += openvpn
 SUBDIR += zip
