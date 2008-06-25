@@ -33,11 +33,6 @@ if [ -f /etc/make.conf ]; then
 fi
 export FORCE_PKG_REGISTER=yo
 
-echo ">>> Special building rrdtool from recompile_pfPorts()..."
-(cd /usr/ports/databases/rrdtool && make ${MAKEJ_PORTS} BATCH=yo && make install FORCE_PKG_REGISTER=yo)
-echo ">>> Special building grub from recompile_pfPorts()..."
-(cd /usr/ports/sysutils/grub && make ${MAKEJ_PORTS} BATCH=yo && make install FORCE_PKG_REGISTER=yo)
-
 echo "===> Operating on $pfSPORT..."
 ( cd ${pfSPORTS_BASE_DIR} && make ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
 echo "===> Installing new port..."
