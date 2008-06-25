@@ -108,8 +108,8 @@ export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
 # Package overlay. This gives people a chance to build a pfSense
 # installable image that already contains certain pfSense packages.
 #
-# Needs to point to a text file containing comma sepperated package
-# names. Of course package names must be valid. Using non existent
+# Needs to contain comma separated package names. Of course
+# package names must be valid. Using non existent
 # package name would yield an error.
 #
 #export custom_package_list="arping, Developers"
