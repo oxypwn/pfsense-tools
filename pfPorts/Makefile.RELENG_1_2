@@ -1,0 +1,69 @@
+#
+#  pfSense pfPorts
+#
+#  This directory holds port structures for common pfSense items
+#  such as add on programs and the base system itself.
+#
+#  To build pfSense simply type make in this directory.
+#
+
+SUBDIR += lzo2
+SUBDIR += ftpsesame
+SUBDIR += atareinit
+SUBDIR += cpdup
+SUBDIR += beep
+SUBDIR += check_reload_status
+SUBDIR += choparp
+SUBDIR += dnsmasq
+SUBDIR += expiretable
+SUBDIR += ifstated
+SUBDIR += ipsec-tools
+SUBDIR += isc-dhcp3-relay
+SUBDIR += isc-dhcp3-server
+SUBDIR += lighttpd
+SUBDIR += minicron
+SUBDIR += miniupnpd
+SUBDIR += mpd
+SUBDIR += olsrd
+SUBDIR += pftop
+SUBDIR += libevent13
+SUBDIR += pftpx
+SUBDIR += slbd
+SUBDIR += ssh_tunnel_shell
+SUBDIR += sshlockout_pf
+SUBDIR += stats
+SUBDIR += vtsh
+SUBDIR += pftpx
+SUBDIR += openvpn
+SUBDIR += zip
+SUBDIR += links
+SUBDIR += dnswatch
+SUBDIR += verifysig
+SUBDIR += athstats
+SUBDIR += openntpd
+SUBDIR += ftp-proxy
+
+SUBDIR += php4
+SUBDIR += pecl-APC
+SUBDIR += php4-bz2
+SUBDIR += php4-ctype
+SUBDIR += php4-curl
+SUBDIR += php4-gettext
+SUBDIR += php4-ldap
+SUBDIR += php4-mbstring
+SUBDIR += php4-pcntl
+SUBDIR += php4-pcre
+SUBDIR += php4-posix
+SUBDIR += pecl-radius
+SUBDIR += php4-readline
+SUBDIR += php4-session
+SUBDIR += php4-simplexml
+SUBDIR += php4-xml
+SUBDIR += php4-zlib
+SUBDIR += php4-tokenizer
+SUBDIR += php4-install-all
+
+PORTSTOP=       yes
+
+.include <bsd.port.subdir.mk>
+
