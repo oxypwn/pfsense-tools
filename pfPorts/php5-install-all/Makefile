@@ -25,3 +25,9 @@ install:
 	chmod a+rx /usr/local/pfsense-bin/usr/local/bin/php-cgi
 
 clean:
+
+deinstall:
+
+distclean:
+
+
