@@ -75,9 +75,9 @@ export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 
 #### User settable options follow ### 
 
-# FreeBSD version.  6 or 7
-export pfSense_version="6"
-export freebsd_branch="RELENG_6_3"
+# FreeBSD version.
+export pfSense_version="7"
+export freebsd_branch="RELENG_7_0"
 
 # pfSense cvs tag to build
 export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
