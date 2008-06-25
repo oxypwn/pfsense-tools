@@ -194,11 +194,6 @@ build_all_kernels() {
 
 recompile_pfPorts() {
 
-	if [ -z "${PFSENSE_HOST_BIN_PATH:-}" ]; then
-		echo "PFSENSE_HOST_BIN_PATH is not defined.  Please update pfsense_local.sh"
-		exit 1
-	fi
-
 	# Copy pfPort for the branch
 	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
 		
@@ -210,14 +205,7 @@ recompile_pfPorts() {
 	
 	# Zero out DB
 	rm -rf /var/db/pkg/*
-	
-	# Create directories
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr
-	mkdir -p ${PFSENSE_HOST_BIN_PATH}/usr/local
-	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/ < /etc/mtree/BSD.root.dist
-	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/usr < /etc/mtree/BSD.usr.dist
-	mtree -PUer -q -p ${PFSENSE_HOST_BIN_PATH}/usr/local < /etc/mtree/BSD.local.dist
-	
+		
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
 		mv /etc/make.conf /tmp/
@@ -275,12 +263,12 @@ overlay_host_binaries() {
 	NEEDEDLIBS=""
 	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
-		if [ -f /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ]; then
+		if [ -f /${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
 			if [ "$FILETYPE" -gt 0 ]; then
-				NEEDEDLIBS="$NEEDEDLIBS `ldd /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
-				echo "cp /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE"
-				cp /${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
+				NEEDEDLIBS="$NEEDEDLIBS `ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
+				echo "cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE"
+				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
 				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				if [ -d $CLONEDIR ]; then
 					echo "cp /$NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
@@ -288,10 +276,10 @@ overlay_host_binaries() {
 				fi					
 			fi
 		else
-			if [ -f ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} ]; then
-				FILETYPE=`file ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep dynamically | wc -l | awk '{ print $1 }'`
+			if [ -f ${CVS_CO_DIR}/${TEMPFILE} ]; then
+				FILETYPE=`file ${CVS_CO_DIR}/${TEMPFILE} | grep dynamically | wc -l | awk '{ print $1 }'`
 				if [ "$FILETYPE" -gt 0 ]; then
-					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/${PFSENSE_HOST_BIN_PATH}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
+					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
 				fi
 			fi
 		fi
