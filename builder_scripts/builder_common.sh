@@ -200,7 +200,7 @@ recompile_pfPorts() {
 	fi
 
 	# Copy pfPort for the branch
-	cp ${pfSPORTS_BASE_DIR}/Makefile.${freebsd_branch} ${pfSPORTS_BASE_DIR}/Makefile
+	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile
 		
 	# Backup host pkg db
 	if [ -d /var/db/pkg ]; then 
@@ -227,14 +227,14 @@ recompile_pfPorts() {
 	export FORCE_PKG_REGISTER=yo
 
 	echo ">>> Special building rrdtool from recompile_pfPorts()..."
-	(cd /usr/ports/databases/rrdtool && make ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/databases/rrdtool && make ${MAKEJ_PORTS} BATCH=yo && make install FORCE_PKG_REGISTER=yo)
 	echo ">>> Special building grub from recompile_pfPorts()..."
-	(cd /usr/ports/sysutils/grub && make ${MAKEJ_PORTS} BATCH=yo && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo)
+	(cd /usr/ports/sysutils/grub && make ${MAKEJ_PORTS} BATCH=yo && make install FORCE_PKG_REGISTER=yo)
 
 	echo "===> Operating on $pfSPORT..."
 	( cd ${pfSPORTS_BASE_DIR} && make ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
 	echo "===> Installing new port..."
-	( cd ${pfSPORTS_BASE_DIR} && make install PREFIX=${PFSENSE_HOST_BIN_PATH}/usr/local FORCE_PKG_REGISTER=yo BATCH=yo )
+	( cd ${pfSPORTS_BASE_DIR} && make install FORCE_PKG_REGISTER=yo BATCH=yo )
 
 	if [ "${MKCNF}x" = "pfPortsx" ]; then
 		mv /tmp/make.conf /etc/
