@@ -194,9 +194,6 @@ build_all_kernels() {
 
 recompile_pfPorts() {
 
-	# Copy pfPort for the branch
-	cp ${pfSPORTS_BASE_DIR}/Makefile.${PFSENSETAG} ${pfSPORTS_BASE_DIR}/Makefile	
-	
 	( su - root -c ${CURRENTDIR}/build_pfPorts.sh )
 	
 }

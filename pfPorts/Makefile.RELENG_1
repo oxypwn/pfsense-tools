@@ -1,82 +1,70 @@
-#
-#  pfSense pfPorts
-#
-#  This directory holds port structures for common pfSense items
-#  such as add on programs and the base system itself.
-#
-#  To build pfSense simply type make in this directory.
-#
+#!/bin/sh
 
-SUBDIR += grub
-SUBDIR += rrdtool
-SUBDIR += ftpsesame
-SUBDIR += atareinit
-SUBDIR += cpdup
-SUBDIR += beep
-SUBDIR += check_reload_status
-SUBDIR += choparp
-SUBDIR += dnsmasq
-SUBDIR += expiretable
-SUBDIR += ifstated
-SUBDIR += ipsec-tools
-SUBDIR += isc-dhcp3-relay
-SUBDIR += isc-dhcp3-server
-SUBDIR += lighttpd
-SUBDIR += minicron
-SUBDIR += miniupnpd
-SUBDIR += mpd4
-SUBDIR += olsrd
-SUBDIR += pftop
-SUBDIR += libevent
-SUBDIR += pftpx
-SUBDIR += relayd
-SUBDIR += slbd
-SUBDIR += ssh_tunnel_shell
-SUBDIR += sshlockout_pf
-SUBDIR += stats
-SUBDIR += vtsh
+PORTSTOBUILD += grub
+PORTSTOBUILD += rrdtool
+PORTSTOBUILD += ftpsesame
+PORTSTOBUILD += atareinit
+PORTSTOBUILD += cpdup
+PORTSTOBUILD += beep
+PORTSTOBUILD += check_reload_status
+PORTSTOBUILD += choparp
+PORTSTOBUILD += dnsmasq
+PORTSTOBUILD += expiretable
+PORTSTOBUILD += ifstated
+PORTSTOBUILD += ipsec-tools
+PORTSTOBUILD += isc-dhcp3-relay
+PORTSTOBUILD += isc-dhcp3-server
+PORTSTOBUILD += lighttpd
+PORTSTOBUILD += minicron
+PORTSTOBUILD += miniupnpd
+PORTSTOBUILD += mpd4
+PORTSTOBUILD += olsrd
+PORTSTOBUILD += pftop
+PORTSTOBUILD += libevent
+PORTSTOBUILD += pftpx
+PORTSTOBUILD += relayd
+PORTSTOBUILD += slbd
+PORTSTOBUILD += ssh_tunnel_shell
+PORTSTOBUILD += sshlockout_pf
+PORTSTOBUILD += stats
+PORTSTOBUILD += vtsh
 
 # FreeBSD 7 
-SUBDIR += php5
-SUBDIR += pecl-APC
-SUBDIR += php5-bz2
-SUBDIR += php5-ctype
-SUBDIR += php5-curl
-SUBDIR += php5-gettext
-SUBDIR += php5-ldap
-SUBDIR += php5-mbstring
-SUBDIR += php5-pcntl
-SUBDIR += php5-pcre
-SUBDIR += php5-pfsense\
-SUBDIR += php5-posix
-SUBDIR += pecl-radius
-SUBDIR += php5-readline
-SUBDIR += php5-session
-SUBDIR += php5-simplexml
-SUBDIR += php5-shmop
-SUBDIR += php5-sysvmsg
-SUBDIR += php5-sysvsem
-SUBDIR += php5-sysvshm
-SUBDIR += php5-tokenizer
-SUBDIR += php5-xml
-SUBDIR += php5-zlib
-SUBDIR += php5-install-all
+PORTSTOBUILD += php5
+PORTSTOBUILD += pecl-APC
+PORTSTOBUILD += php5-bz2
+PORTSTOBUILD += php5-ctype
+PORTSTOBUILD += php5-curl
+PORTSTOBUILD += php5-gettext
+PORTSTOBUILD += php5-ldap
+PORTSTOBUILD += php5-mbstring
+PORTSTOBUILD += php5-pcntl
+PORTSTOBUILD += php5-pcre
+PORTSTOBUILD += php5-pfsense\
+PORTSTOBUILD += php5-posix
+PORTSTOBUILD += pecl-radius
+PORTSTOBUILD += php5-readline
+PORTSTOBUILD += php5-session
+PORTSTOBUILD += php5-simplexml
+PORTSTOBUILD += php5-shmop
+PORTSTOBUILD += php5-sysvmsg
+PORTSTOBUILD += php5-sysvsem
+PORTSTOBUILD += php5-sysvshm
+PORTSTOBUILD += php5-tokenizer
+PORTSTOBUILD += php5-xml
+PORTSTOBUILD += php5-zlib
+PORTSTOBUILD += php5-install-all
 # -- End FreeBSD 7
 
-SUBDIR += openvpn
-SUBDIR += zip
-SUBDIR += links
-SUBDIR += dnswatch
-SUBDIR += verifysig
-SUBDIR += athstats
-SUBDIR += openntpd
-SUBDIR += ftp-proxy
+PORTSTOBUILD += openvpn
+PORTSTOBUILD += zip
+PORTSTOBUILD += links
+PORTSTOBUILD += dnswatch
+PORTSTOBUILD += verifysig
+PORTSTOBUILD += athstats
+PORTSTOBUILD += openntpd
+PORTSTOBUILD += ftp-proxy
 
-PORTSTOP=       yes
-
-post-install:
-	mkdir /usr/local/lib/php/20060613/
-	cp /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* /usr/local/lib/php/20060613/
-
-.include <bsd.port.subdir.mk>
-
+for PORT in $PORTSTOBUILD; do
+	cd $PORT && make
+done
