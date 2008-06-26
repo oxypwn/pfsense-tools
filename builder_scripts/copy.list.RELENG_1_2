@@ -10,6 +10,7 @@ usr/local/bin/cpdup
 usr/local/bin/minicron
 usr/local/bin/verifysig
 usr/local/bin/links
+usr/local/bin/lua50
 usr/local/bin/php
 usr/local/bin/rrdtool
 usr/local/sbin/expiretable
