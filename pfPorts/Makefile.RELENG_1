@@ -1,70 +1,82 @@
 #!/bin/sh
 
-PORTSTOBUILD += grub
-PORTSTOBUILD += rrdtool
-PORTSTOBUILD += ftpsesame
-PORTSTOBUILD += atareinit
-PORTSTOBUILD += cpdup
-PORTSTOBUILD += beep
-PORTSTOBUILD += check_reload_status
-PORTSTOBUILD += choparp
-PORTSTOBUILD += dnsmasq
-PORTSTOBUILD += expiretable
-PORTSTOBUILD += ifstated
-PORTSTOBUILD += ipsec-tools
-PORTSTOBUILD += isc-dhcp3-relay
-PORTSTOBUILD += isc-dhcp3-server
-PORTSTOBUILD += lighttpd
-PORTSTOBUILD += minicron
-PORTSTOBUILD += miniupnpd
-PORTSTOBUILD += mpd4
-PORTSTOBUILD += olsrd
-PORTSTOBUILD += pftop
-PORTSTOBUILD += libevent
-PORTSTOBUILD += pftpx
-PORTSTOBUILD += relayd
-PORTSTOBUILD += slbd
-PORTSTOBUILD += ssh_tunnel_shell
-PORTSTOBUILD += sshlockout_pf
-PORTSTOBUILD += stats
-PORTSTOBUILD += vtsh
+#set -e
+#set -x
 
-# FreeBSD 7 
-PORTSTOBUILD += php5
-PORTSTOBUILD += pecl-APC
-PORTSTOBUILD += php5-bz2
-PORTSTOBUILD += php5-ctype
-PORTSTOBUILD += php5-curl
-PORTSTOBUILD += php5-gettext
-PORTSTOBUILD += php5-ldap
-PORTSTOBUILD += php5-mbstring
-PORTSTOBUILD += php5-pcntl
-PORTSTOBUILD += php5-pcre
-PORTSTOBUILD += php5-pfsense\
-PORTSTOBUILD += php5-posix
-PORTSTOBUILD += pecl-radius
-PORTSTOBUILD += php5-readline
-PORTSTOBUILD += php5-session
-PORTSTOBUILD += php5-simplexml
-PORTSTOBUILD += php5-shmop
-PORTSTOBUILD += php5-sysvmsg
-PORTSTOBUILD += php5-sysvsem
-PORTSTOBUILD += php5-sysvshm
-PORTSTOBUILD += php5-tokenizer
-PORTSTOBUILD += php5-xml
-PORTSTOBUILD += php5-zlib
-PORTSTOBUILD += php5-install-all
-# -- End FreeBSD 7
-
-PORTSTOBUILD += openvpn
-PORTSTOBUILD += zip
-PORTSTOBUILD += links
-PORTSTOBUILD += dnswatch
-PORTSTOBUILD += verifysig
-PORTSTOBUILD += athstats
-PORTSTOBUILD += openntpd
-PORTSTOBUILD += ftp-proxy
+PORTSTOBUILD="grub \
+	rrdtool \
+	ftpsesame \
+	atareinit \
+	cpdup \
+	beep \
+	check_reload_status \
+	choparp \
+	dnsmasq \
+	expiretable \
+	ifstated \
+	ipsec-tools \
+	isc-dhcp3-relay \
+	isc-dhcp3-server \
+	lighttpd \
+	minicron \
+	miniupnpd \
+	mpd4 \
+	olsrd \
+	pftop \
+	libevent \
+	pftpx \
+	relayd \
+	slbd \
+	ssh_tunnel_shell \
+	sshlockout_pf \
+	stats \
+	vtsh \
+	php5 \
+	pecl-APC \
+	php5-bz2 \
+	php5-ctype \
+	php5-curl \
+	php5-gettext \
+	php5-ldap \
+	php5-mbstring \
+	php5-pcntl \
+	php5-pcre \
+	php5-pfsense \
+	php5-posix \
+	pecl-radius \
+	php5-readline \
+	php5-session \
+	php5-simplexml \
+	php5-shmop \
+	php5-sysvmsg \
+	php5-sysvsem \
+	php5-sysvshm \
+	php5-tokenizer \
+	php5-xml \
+	php5-zlib \
+	php5-install-all \
+	openvpn \
+	zip \
+	links \
+	dnswatch \
+	verifysig \
+	athstats \
+	openntpd \
+	ftp-proxy"
 
 for PORT in $PORTSTOBUILD; do
-	cd $PORT && make
+	echo "Finding $PORT..."
+	DOESPORTEXIST=`find /usr/ports -name $PORT | grep -v pfPorts`
+	if [ "${DOESPORTEXIST}x" != "x" ]; then
+		echo "Found port.  Copying and building..."
+		rm -rf $DOESPORTEXIST/*
+		mkdir -p $DOESPORTEXIST
+		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
+		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo)
+		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install)
+	else
+		echo "Port not found, building from pfPorts..."
+		( cd $PORT && make BATCH=yo FORCE_PKG_REGISTER=yo )
+		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install)
+	fi
 done

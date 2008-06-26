@@ -10,43 +10,12 @@
 #set -e 
 #set -x
 
-MAKEJ_PORTS=""
-pfSPORTS_BASE_DIR="/home/pfsense/tools/pfPorts"
+# Suck in local vars
+. ./pfsense_local.sh
 
-(cd ${pfSPORTS_BASE_DIR} && make deinstall)
-(cd ${pfSPORTS_BASE_DIR} && make clean distclean)
-	
-# Backup host pkg db
-if [ -d /var/db/pkg ]; then 
-	echo "===> Backing up host pkg DB..."
-	(cd /var/db/pkg && tar czf /tmp/vardbpkg.tgz .)
-fi
+# Suck in script helper functions
+. ./builder_common.sh
 
-# Zero out DB
-rm -rf /var/db/pkg/*
-	
-echo "===> Compiling pfPorts..."
-if [ -f /etc/make.conf ]; then
-	mv /etc/make.conf /tmp/
-	echo "WITHOUT_X11=yo" >> /etc/make.conf
-	MKCNF="pfPorts"
-fi
-export FORCE_PKG_REGISTER=yo
-
-echo "===> Operating on $pfSPORT..."
-( cd ${pfSPORTS_BASE_DIR} && make ${MAKEJ_PORTS} FORCE_PKG_REGISTER=yo BATCH=yo )
-echo "===> Installing new port..."
-( cd ${pfSPORTS_BASE_DIR} && make install FORCE_PKG_REGISTER=yo BATCH=yo )
-
-if [ "${MKCNF}x" = "pfPortsx" ]; then
-	mv /tmp/make.conf /etc/
-fi
-
-if [ -d /tmp/vardbpkg/pkg ]; then 
-	echo "===> Restoring parent pkg DB..."
-	rm -rf /var/db/pkg/*
-	(cd /var/db/pkg/ && tar xzf /tmp/vardbpkg.tgz)
-fi
-echo "===> End of pfPorts..."
+recompile_pfPorts
 
 

@@ -1,64 +1,79 @@
 #!/bin/sh
 
-PORTSTOBUILD += grub
-PORTSTOBUILD += rrdtool
-PORTSTOBUILD += lzo2
-PORTSTOBUILD += ftpsesame
-PORTSTOBUILD += atareinit
-PORTSTOBUILD += cpdup
-PORTSTOBUILD += beep
-PORTSTOBUILD += check_reload_status
-PORTSTOBUILD += choparp
-PORTSTOBUILD += dnsmasq
-PORTSTOBUILD += expiretable
-PORTSTOBUILD += ifstated
-PORTSTOBUILD += ipsec-tools
-PORTSTOBUILD += isc-dhcp3-relay
-PORTSTOBUILD += isc-dhcp3-server
-PORTSTOBUILD += lighttpd
-PORTSTOBUILD += minicron
-PORTSTOBUILD += miniupnpd
-PORTSTOBUILD += mpd
-PORTSTOBUILD += olsrd
-PORTSTOBUILD += pftop
-PORTSTOBUILD += libevent13
-PORTSTOBUILD += pftpx
-PORTSTOBUILD += slbd
-PORTSTOBUILD += ssh_tunnel_shell
-PORTSTOBUILD += sshlockout_pf
-PORTSTOBUILD += stats
-PORTSTOBUILD += vtsh
-PORTSTOBUILD += libevent
-PORTSTOBUILD += pftpx
-PORTSTOBUILD += openvpn
-PORTSTOBUILD += zip
-PORTSTOBUILD += links
-PORTSTOBUILD += dnswatch
-PORTSTOBUILD += verifysig
-PORTSTOBUILD += athstats
-PORTSTOBUILD += openntpd
-PORTSTOBUILD += ftp-proxy
+#set -e
+#set -x
 
-PORTSTOBUILD += php4
-PORTSTOBUILD += pecl-APC
-PORTSTOBUILD += php4-bz2
-PORTSTOBUILD += php4-ctype
-PORTSTOBUILD += php4-curl
-PORTSTOBUILD += php4-gettext
-PORTSTOBUILD += php4-ldap
-PORTSTOBUILD += php4-mbstring
-PORTSTOBUILD += php4-pcntl
-PORTSTOBUILD += php4-pcre
-PORTSTOBUILD += php4-posix
-PORTSTOBUILD += pecl-radius
-PORTSTOBUILD += php4-readline
-PORTSTOBUILD += php4-session
-PORTSTOBUILD += php4-simplexml
-PORTSTOBUILD += php4-xml
-PORTSTOBUILD += php4-zlib
-PORTSTOBUILD += php4-tokenizer
-PORTSTOBUILD += php4-install-all
+PORTSTOBUILD="grub \
+	rrdtool \
+	lzo2 \
+	ftpsesame \
+	atareinit \
+	cpdup \
+	beep \
+	check_reload_status \
+	choparp \
+	dnsmasq \
+	expiretable \
+	ifstated \
+	ipsec-tools \
+	isc-dhcp3-relay \
+	isc-dhcp3-server \
+	lighttpd \
+	minicron \
+	miniupnpd \
+	mpd \
+	olsrd \
+	pftop \
+	libevent13 \
+	pftpx \
+	slbd \
+	ssh_tunnel_shell \
+	sshlockout_pf \
+	stats \
+	vtsh \
+	libevent \
+	pftpx \
+	openvpn \
+	zip \
+	links \
+	dnswatch \
+	verifysig \
+	athstats \
+	openntpd \
+	ftp-proxy \
+	php4 \
+	pecl-APC \
+	php4-bz2 \
+	php4-ctype \
+	php4-curl \
+	php4-gettext \
+	php4-ldap \
+	php4-mbstring \
+	php4-pcntl \
+	php4-pcre \
+	php4-posix \
+	pecl-radius \
+	php4-readline \
+	php4-session \
+	php4-simplexml \
+	php4-xml \
+	php4-zlib \
+	php4-tokenizer \
+	php4-install-all"
 
 for PORT in $PORTSTOBUILD; do
-	cd $PORT && make
+	echo "Finding $PORT..."
+	DOESPORTEXIST=`find /usr/ports -name $PORT | grep -v pfPorts`
+	if [ "${DOESPORTEXIST}x" != "x" ]; then
+		echo "Found port.  Copying and building..."
+		rm -rf $DOESPORTEXIST/*
+		mkdir -p $DOESPORTEXIST
+		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
+		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo)
+		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install)
+	else
+		echo "Port not found, building from pfPorts..."
+		( cd $PORT && make BATCH=yo FORCE_PKG_REGISTER=yo )
+		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install)
+	fi
 done
