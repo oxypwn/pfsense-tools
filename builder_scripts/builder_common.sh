@@ -199,10 +199,6 @@ recompile_pfPorts() {
 
 	rm -rf ${pfSPORTS_BASE_DIR}
 	mkdir ${pfSPORTS_BASE_DIR}
-	cp -R ${pfSPORTS_COPY_BASE_DIR}/* ${pfSPORTS_BASE_DIR}
-
-	( cd ${pfSPORTS_BASE_DIR} && make deinstall )
-	( cd ${pfSPORTS_BASE_DIR} && make clean distclean )
 	
 	# Backup host pkg db
 	if [ -d /var/db/pkg ]; then 
