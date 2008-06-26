@@ -7,7 +7,7 @@
 
 CATEGORIES=	devel
 
-MASTERDIR=	${.CURDIR}/../php4
+MASTERDIR=	${.CURDIR}/../../lang/php4
 
 PKGNAMESUFFIX=	-readline
 
