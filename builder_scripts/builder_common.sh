@@ -242,13 +242,18 @@ overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
+	
+	# Temporary hack for RELENG_1_2
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 
 	# Process base system libraries
 	FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 	NEEDEDLIBS=""
 	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
+		echo "Looking for /${TEMPFILE} "
 		if [ -f /${TEMPFILE} ]; then
+			echo " Found $TEMPFILE"
 			FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
 			if [ "$FILETYPE" -gt 0 ]; then
 				NEEDEDLIBS="$NEEDEDLIBS `ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
@@ -258,9 +263,13 @@ overlay_host_binaries() {
 				if [ -d $CLONEDIR ]; then
 					echo "cp /$NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
 					cp /$NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
-				fi					
+				fi
+			else 
+				echo "Binary does not contain libraries, copying..."
+				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
 			fi
 		else
+			echo "Could not find ${TEMPFILE}"
 			if [ -f ${CVS_CO_DIR}/${TEMPFILE} ]; then
 				FILETYPE=`file ${CVS_CO_DIR}/${TEMPFILE} | grep dynamically | wc -l | awk '{ print $1 }'`
 				if [ "$FILETYPE" -gt 0 ]; then
