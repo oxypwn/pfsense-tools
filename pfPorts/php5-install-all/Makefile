@@ -16,7 +16,7 @@ all:
 	[ ! -f /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* ] || \
 		cp /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* /usr/local/lib/php/20060613/
 	cp /usr/local/bin/php-cgi /usr/local/bin/php
-	chmod a+rx /usr/local/bin/php-cgi
+	chmod a+rx /usr/local/bin/php
 
 install:
 	mkdir -p /usr/local/lib/php/20060613
@@ -24,7 +24,7 @@ install:
 	[ ! -f /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* ] || \
 		cp /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* /usr/local/lib/php/20060613/
 	cp /usr/local/bin/php-cgi /usr/local/pfsense-bin/usr/local/bin/php
-	chmod a+rx /usr/local/bin/php-cgi
+	chmod a+rx /usr/local/bin/php
 
 clean:
 
