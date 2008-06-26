@@ -46,7 +46,6 @@ PORTSTOBUILD="grub \
 	php4-bz2 \
 	php4-ctype \
 	php4-curl \
-	php4-gettext \
 	php4-ldap \
 	php4-mbstring \
 	php4-pcntl \
