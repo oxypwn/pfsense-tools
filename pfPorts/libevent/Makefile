@@ -17,7 +17,7 @@ MAINTAINER=	ijliao@FreeBSD.org
 COMMENT=	Network Daemon Services for libevent
 
 BUILD_DEPENDS=	${LOCALBASE}/lib/libarena.a:${PORTSDIR}/devel/libarena
-LIB_DEPENDS=	event-1.3e:${PORTSDIR}/devel/libevent \
+LIB_DEPENDS=	event:${PORTSDIR}/devel/libevent \
 		cares.1:${PORTSDIR}/dns/c-ares
 RUN_DEPENDS=	${LOCALBASE}/lib/libarena.a:${PORTSDIR}/devel/libarena
 
