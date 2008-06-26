@@ -12,14 +12,16 @@ CATEGORIES?=	lang devel www
 DISTNAME=	php-${PORTVERSION}
 all:
 	mkdir -p /usr/local/lib/php/20020429/
-	[ ! -f /usr/local/lib/php/20020429/* ] || cp /usr/local/lib/php/20020429/* \
+	mkdir -p /usr/local/lib/php/extensions/no-debug-non-zts-20020429/
+	cp /usr/local/lib/php/20020429/* \
 		/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 	cp /usr/local/bin/php-cgi /usr/local/bin/php
 	chmod a+rx /usr/local/bin/php
 	
 install:
 	mkdir -p /usr/local/lib/php/20020429/
-	[ ! -f /usr/local/lib/php/20020429/* ] || cp /usr/local/lib/php/20020429/* \
+	mkdir -p /usr/local/lib/php/extensions/no-debug-non-zts-20020429/
+	cp /usr/local/lib/php/20020429/* \
 		/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 	cp /usr/local/bin/php-cgi /usr/local/bin/php
 	chmod a+rx /usr/local/bin/php
