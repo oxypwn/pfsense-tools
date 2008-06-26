@@ -6,23 +6,23 @@
 #
 
 PORTNAME=	php4
-PORTVERSION=	5.2.6
+PORTVERSION=	4.4.8
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 DISTNAME=	php-${PORTVERSION}
 all:
-	mkdir -p /usr/local/lib/php/20060613
-	cp /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* \
-		/usr/local/lib/php/20060613/
+	mkdir -p /usr/local/lib/php/20020429/
+	[ ! -f /usr/local/lib/php/20020429/* ] || cp /usr/local/lib/php/20020429/* \
+		/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 	cp /usr/local/bin/php-cgi /usr/local/bin/php
-	chmod a+rx /usr/local/bin/php-cgi
-
+	chmod a+rx /usr/local/bin/php
+	
 install:
-	mkdir -p /usr/local/lib/php/20060613
-	cp /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* \
-		/usr/local/lib/php/20060613/
+	mkdir -p /usr/local/lib/php/20020429/
+	[ ! -f /usr/local/lib/php/20020429/* ] || cp /usr/local/lib/php/20020429/* \
+		/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 	cp /usr/local/bin/php-cgi /usr/local/bin/php
-	chmod a+rx /usr/local/bin/php-cgi
+	chmod a+rx /usr/local/bin/php
 
 clean:
 
