@@ -65,7 +65,7 @@ PORTSTOBUILD="grub \
 	ftp-proxy"
 
 find /usr/ports/ -name work -type d | xargs rm -rf
-find /home/pfsense/tools/pfPorts/ | xargs rm -rf
+find /home/pfsense/tools/pfPorts/ -name work -type d | xargs rm -rf
 
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
