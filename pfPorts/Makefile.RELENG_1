@@ -41,7 +41,6 @@ PORTSTOBUILD="grub \
 	php5-mbstring \
 	php5-pcntl \
 	php5-pcre \
-	php5-pfsense \
 	php5-posix \
 	pecl-radius \
 	php5-readline \
