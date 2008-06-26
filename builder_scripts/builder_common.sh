@@ -201,12 +201,6 @@ recompile_pfPorts() {
 	rm -rf ${pfSPORTS_BASE_DIR}
 	mkdir ${pfSPORTS_BASE_DIR}
 	
-	# Backup host pkg db
-	if [ -d /var/db/pkg ]; then 
-		echo "===> Backing up host pkg DB..."
-		( cd /var/db/pkg && tar czf /tmp/vardbpkg.tgz . )
-	fi
-
 	# Zero out DB
 	rm -rf /var/db/pkg/*
 	
@@ -224,11 +218,6 @@ recompile_pfPorts() {
 		mv /tmp/make.conf /etc/
 	fi
 
-	if [ -d /tmp/vardbpkg/pkg ]; then 
-		echo "===> Restoring parent pkg DB..."
-		rm -rf /var/db/pkg/*
-		( cd /var/db/pkg/ && tar xzf /tmp/vardbpkg.tgz )
-	fi
 	echo "===> End of pfPorts..."
 	
 }
