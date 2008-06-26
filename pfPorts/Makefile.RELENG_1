@@ -75,6 +75,6 @@ for PORT in $PORTSTOBUILD; do
 		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install )
 	else
 		echo "Port not found, building from pfPorts..."
-		( cd $PORT && make BATCH=yo FORCE_PKG_REGISTER=yo install )
+		( cd /home/pfsense/tools/pfPorts/$PORT && make BATCH=yo FORCE_PKG_REGISTER=yo install )
 	fi
 done
