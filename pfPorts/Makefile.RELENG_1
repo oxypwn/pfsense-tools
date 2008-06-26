@@ -66,12 +66,13 @@ PORTSTOBUILD="grub \
 
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
-	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts`
+	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
 		rm -rf $DOESPORTEXIST
 		mkdir -p $DOESPORTEXIST
-		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST
+		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
+		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo)
 		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install)
 	else

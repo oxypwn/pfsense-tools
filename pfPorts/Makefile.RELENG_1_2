@@ -63,7 +63,7 @@ PORTSTOBUILD="grub \
 
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
-	DOESPORTEXIST=`find /usr/ports -name $PORT | grep -v pfPorts`
+	DOESPORTEXIST=`find /usr/ports -name $PORT | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
 		rm -rf $DOESPORTEXIST
