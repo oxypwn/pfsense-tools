@@ -168,11 +168,6 @@ post-install:
 .if defined(WITH_APACHE)
 	@${CAT} ${PKGMESSAGE}
 .endif
-	mkdir -p /usr/local/lib/php/20060613/
-	cp /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* \
-		/usr/local/lib/php/20060613/
-	cp /usr/local/bin/php-cgi /usr/local/bin/php
-	chmod a+rx /usr/local/bin/php-cgi
 
 .else
 .include "${MASTERDIR}/Makefile.ext"
