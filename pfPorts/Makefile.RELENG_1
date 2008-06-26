@@ -69,9 +69,10 @@ for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
-		if [ -f /home/pfsense/tools/pfPorts/useports ]; then
+		if [ -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
 			echo "Found /home/pfsense/tools/pfPorts/useports ... Not removing target port directory."
 		else
+			echo "Removing ${DOESPORTEXIST}..."
 			rm -rf $DOESPORTEXIST
 			mkdir -p $DOESPORTEXIST			
 		fi
