@@ -24,7 +24,7 @@ PORTSTOBUILD="grub \
 	mpd \
 	olsrd \
 	pftop \
-	libevent13 \
+	libevent \
 	pftpx \
 	slbd \
 	ssh_tunnel_shell \
