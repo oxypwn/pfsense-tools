@@ -17,8 +17,9 @@ print_error_pfS() {
     [ -n "${LOGFILE:-}" ] && \
         echo "Log saved on ${LOGFILE}" >&2
     cat $LOGFILE
+    sleep 99999
     kill $$ # XXX exit 1 won't work.
-    sleep 999
+
 }
 
 check_for_clog() {
