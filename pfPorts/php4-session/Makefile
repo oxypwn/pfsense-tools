@@ -7,7 +7,7 @@
 
 CATEGORIES=	www
 
-MASTERDIR=	${.CURDIR}/../../lang/php4
+MASTERDIR=	/usr/ports/lang/php4
 
 PKGNAMESUFFIX=	-session
 

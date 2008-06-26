@@ -7,7 +7,7 @@
 
 CATEGORIES=	sysutils
 
-MASTERDIR=	${.CURDIR}/../php4
+MASTERDIR=	/usr/ports/lang/php4
 
 PKGNAMESUFFIX=	-posix
 

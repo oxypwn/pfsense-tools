@@ -7,7 +7,7 @@
 
 CATEGORIES=	ftp
 
-MASTERDIR=	${.CURDIR}/../../lang/php4
+MASTERDIR=	/usr/ports/lang/php4
 
 PKGNAMESUFFIX=	-curl
 
