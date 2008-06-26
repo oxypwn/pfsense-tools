@@ -7,7 +7,7 @@
 
 CATEGORIES=	textproc
 
-MASTERDIR=	${.CURDIR}/../php4
+MASTERDIR=	${.CURDIR}/../../lang/php4
 
 PKGNAMESUFFIX=	-ctype
 

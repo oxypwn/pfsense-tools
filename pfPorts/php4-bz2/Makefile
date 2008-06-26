@@ -7,7 +7,7 @@
 
 CATEGORIES=	archivers
 
-MASTERDIR=	${.CURDIR}/../php4
+MASTERDIR=	${.CURDIR}/../../lang/php4
 
 PKGNAMESUFFIX=	-bz2
 

@@ -7,7 +7,7 @@
 
 CATEGORIES=	devel
 
-MASTERDIR=	${.CURDIR}/../php5
+MASTERDIR=	${.CURDIR}/../../lang/php5
 
 PKGNAMESUFFIX=	-sysvshm
 

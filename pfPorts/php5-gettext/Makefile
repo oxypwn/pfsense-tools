@@ -2,12 +2,13 @@
 # Date created:			7 Jul 2004
 # Whom:				Alex Dupre <ale@FreeBSD.org>
 #
-# $FreeBSD: ports/devel/php5-gettext/Makefile,v 1.1 2004/07/19 09:02:02 ale Exp $
+# $FreeBSD: ports/devel/php5-gettext/Makefile,v 1.2 2008/06/06 13:21:41 edwin Exp $
 #
 
+PORTREVISION=	1
 CATEGORIES=	devel
 
-MASTERDIR=	${.CURDIR}/../php5
+MASTERDIR=	${.CURDIR}/../../lang/php5
 
 PKGNAMESUFFIX=	-gettext
 

@@ -1,14 +1,14 @@
-# New ports collection makefile for:	php5-ctype
+# New ports collection makefile for:	php5-curl
 # Date created:			7 Jul 2004
 # Whom:				Alex Dupre <ale@FreeBSD.org>
 #
-# $FreeBSD: ports/textproc/php5-ctype/Makefile,v 1.1 2004/07/19 09:21:05 ale Exp $
+# $FreeBSD: ports/ftp/php5-curl/Makefile,v 1.3 2007/03/11 21:57:26 ale Exp $
 #
 
-CATEGORIES=	textproc
+CATEGORIES=	ftp
 
-MASTERDIR=	${.CURDIR}/../php5
+MASTERDIR=	${.CURDIR}/../../lang/php5
 
-PKGNAMESUFFIX=	-ctype
+PKGNAMESUFFIX=	-curl
 
 .include "${MASTERDIR}/Makefile"
