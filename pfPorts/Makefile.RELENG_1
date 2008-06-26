@@ -70,7 +70,7 @@ CURRENTDIR=`pwd`
 
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
-	DOESPORTEXIST=`make search name=${PORT} | grep "Path:" | awk '{ print $2 }'`
+	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
 		if [ -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
