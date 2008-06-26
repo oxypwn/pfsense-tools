@@ -33,6 +33,7 @@ PORTSTOBUILD="grub \
 	vtsh \
 	php5 \
 	pecl-APC \
+	php5-bcmath \
 	php5-bz2 \
 	php5-ctype \
 	php5-curl \
