@@ -61,14 +61,17 @@ PORTSTOBUILD="grub \
 	php4-tokenizer \
 	php4-install-all"
 
+find /usr/ports/ -name work -type d | xargs rm -rf
+find /home/pfsense/tools/pfPorts/ | xargs rm -rf
+
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT | grep -v pfPorts`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
-		rm -rf $DOESPORTEXIST/*
+		rm -rf $DOESPORTEXIST
 		mkdir -p $DOESPORTEXIST
-		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
+		cp -R /home/pfsense/tools/pfPorts/$PORT/ $DOESPORTEXIST
 		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo)
 		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install)
 	else
