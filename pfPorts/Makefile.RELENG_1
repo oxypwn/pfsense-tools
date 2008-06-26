@@ -68,8 +68,12 @@ for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
-		rm -rf $DOESPORTEXIST
-		mkdir -p $DOESPORTEXIST
+		if [ -f /home/pfsense/tools/pfPorts/useports ]; then
+			echo "Found /home/pfsense/tools/pfPorts/useports ... Not removing target port directory."
+		else
+			rm -rf $DOESPORTEXIST
+			mkdir -p $DOESPORTEXIST			
+		fi
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install )
