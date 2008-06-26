@@ -22,8 +22,6 @@ usr/local/sbin/dhcrelay
 usr/local/sbin/dnsmasq
 usr/local/sbin/fping
 usr/local/sbin/ftpsesame
-usr/local/sbin/grub
-usr/local/sbin/grub-install
 usr/local/sbin/lighttpd
 usr/local/lib/lighttpd/mod_access.so
 usr/local/lib/lighttpd/mod_accesslog.so
