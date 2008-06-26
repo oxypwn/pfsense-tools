@@ -64,9 +64,6 @@ PORTSTOBUILD="grub \
 	openntpd \
 	ftp-proxy"
 
-find /usr/ports/ -name work -type d | xargs rm -rf
-find /home/pfsense/tools/pfPorts/ -name work -type d | xargs rm -rf
-
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts`
