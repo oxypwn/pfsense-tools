@@ -1,7 +1,7 @@
 
 CATEGORIES=	textproc
 
-MASTERDIR=	/usr/ports/lanh/php4
+MASTERDIR=	/usr/ports/lang/php4
 
 PKGNAMESUFFIX=	-simplexml
 
