@@ -43,7 +43,7 @@ PORTSTOBUILD="grub \
 	ftp-proxy \
 	php4 \
 	pecl-APC \
-	php-bcmath \
+	php4-bcmath \
 	php4-bz2 \
 	php4-ctype \
 	php4-curl \
