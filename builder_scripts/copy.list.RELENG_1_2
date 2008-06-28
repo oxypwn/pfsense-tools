@@ -32,6 +32,8 @@ usr/local/lib/php/extensions/no-debug-non-zts-20020429/curl.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/gettext.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/mbstring.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/pcntl.so
+usr/local/lib/php/extensions/no-debug-non-zts-20020429/openssl.so
+usr/local/lib/php/extensions/no-debug-non-zts-20020429/overload.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/posix.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/radius.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/readline.so
