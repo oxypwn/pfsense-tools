@@ -51,7 +51,6 @@ PORTSTOBUILD="grub \
 	php4-mbstring \
 	php4-overload \
 	php4-openssl \
-	php4-standard \
 	php4-tokenizer \	
 	php4-pcntl \
 	php4-pcre \
