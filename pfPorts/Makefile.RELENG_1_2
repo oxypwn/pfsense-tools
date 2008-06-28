@@ -67,6 +67,9 @@ PORTSTOBUILD="grub \
 
 CURRENTDIR=`pwd`
 
+# pfSense is english based.
+rm -rf /usr/ports/chinese/links
+
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
