@@ -60,7 +60,6 @@ PORTSTOBUILD="grub \
 	php4-simplexml \
 	php4-xml \
 	php4-zlib \
-	php4-tokenizer \
 	php4-install-all"
 
 ( cd /usr/ports && make fetchindex )
