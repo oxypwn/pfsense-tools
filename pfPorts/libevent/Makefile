@@ -6,7 +6,7 @@
 # $FreeBSD: ports/net/libevnet/Makefile,v 1.4 2008/01/02 23:43:01 mnag Exp $
 #
 
-PORTNAME=	libevnet
+PORTNAME=		libevent
 PORTVERSION=	0.3.8
 PORTREVISION=	2
 CATEGORIES=	net
