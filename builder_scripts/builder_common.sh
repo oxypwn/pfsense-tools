@@ -201,9 +201,6 @@ recompile_pfPorts() {
 	rm -rf ${pfSPORTS_BASE_DIR}
 	mkdir ${pfSPORTS_BASE_DIR}
 	
-	# Zero out DB
-	rm -rf /var/db/pkg/*
-	
 	echo "===> Compiling pfPorts..."
 	if [ -f /etc/make.conf ]; then
 		mv /etc/make.conf /tmp/
