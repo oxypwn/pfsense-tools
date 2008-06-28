@@ -31,7 +31,6 @@ PORTSTOBUILD="grub \
 	sshlockout_pf \
 	stats \
 	vtsh \
-	libevent \
 	pftpx \
 	openvpn \
 	zip \
