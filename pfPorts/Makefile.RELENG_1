@@ -54,7 +54,6 @@ PORTSTOBUILD="grub \
 	php5-tokenizer \
 	php5-xml \
 	php5-zlib \
-	php5-install-all \
 	openvpn \
 	zip \
 	links \
@@ -62,7 +61,8 @@ PORTSTOBUILD="grub \
 	verifysig \
 	athstats \
 	openntpd \
-	ftp-proxy"
+	ftp-proxy \
+	php5-install-all"
 
 CURRENTDIR=`pwd`
 
