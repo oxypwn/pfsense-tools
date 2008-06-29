@@ -53,6 +53,11 @@ cvsup $BUILDERSCRIPTS/freesbie2-supfile
 rm $BUILDERSCRIPTS/pfsense_local.sh
 cd $BUILDERSCRIPTS && cvs up -d
 
+if [ -f /tmp/pfSense_do_not_build_pfPorts ]; then
+	echo "--> Removing /tmp/pfSense_do_not_build_pfPorts..."
+	rm /tmp/pfSense_do_not_build_pfPorts
+fi
+
 create_webdata_structure() {
 	mkdir -p $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates
 	mkdir -p $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/iso 
@@ -99,6 +104,7 @@ install_pfsense_local_sh() {
 update_sources() {
 	cd $BUILDERSCRIPTS 
 	./cvsup_current
+	touch /tmp/pfSense_do_not_build_pfPorts
 	gzip $PFSENSEOBJDIR/pfSense.iso
 	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz
 	md5 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
@@ -227,3 +233,5 @@ while [ /bin/true ]; do
 
 	sleep 500	# give the box a break.
 done
+
+rm -f /tmp/pfSense_do_not_build_pfPorts

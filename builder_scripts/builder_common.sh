@@ -195,28 +195,33 @@ build_all_kernels() {
 
 recompile_pfPorts() {
 
-	pfSPORTS_COPY_BASE_DIR="/home/pfsense/tools/pfPorts"
-	pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
+	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then 
 
-	rm -rf ${pfSPORTS_BASE_DIR}
-	mkdir ${pfSPORTS_BASE_DIR}
+		pfSPORTS_COPY_BASE_DIR="/home/pfsense/tools/pfPorts"
+		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
+
+		rm -rf ${pfSPORTS_BASE_DIR}
+		mkdir ${pfSPORTS_BASE_DIR}
 	
-	echo "===> Compiling pfPorts..."
-	if [ -f /etc/make.conf ]; then
-		mv /etc/make.conf /tmp/
-		echo "WITHOUT_X11=yo" >> /etc/make.conf
-		MKCNF="pfPorts"
-	fi
-	export FORCE_PKG_REGISTER=yo
+		echo "===> Compiling pfPorts..."
+		if [ -f /etc/make.conf ]; then
+			mv /etc/make.conf /tmp/
+			echo "WITHOUT_X11=yo" >> /etc/make.conf
+			MKCNF="pfPorts"
+		fi
+		export FORCE_PKG_REGISTER=yo
 
-	( sh ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} )
+		( sh ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} )
 
-	if [ "${MKCNF}x" = "pfPortsx" ]; then
-		mv /tmp/make.conf /etc/
-	fi
+		if [ "${MKCNF}x" = "pfPortsx" ]; then
+			mv /tmp/make.conf /etc/
+		fi
 
-	echo "===> End of pfPorts..."
+		echo "===> End of pfPorts..."
 	
+	else
+		echo "/tmp/pfSense_do_not_build_pfPorts is set, skipping pfPorts build..."
+	fi
 }
 
 overlay_host_binaries() {
