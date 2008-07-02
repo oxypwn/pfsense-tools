@@ -783,8 +783,15 @@ checkout_pfSense() {
 	PREVIOUSDIR=`pwd`
 	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
 	rm -rf $CVS_CO_DIR
-	cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
-	fixup_libmap
+	if [ $USE_GIT = "" ]; do
+		cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
+	else
+		echo "Using GIT to checkout ${PFSENSETAG}"
+		if [ "${PFSENSETAG}" != "HEAD" ]; do
+			cd $BASE_DIR && git checkout ${PFSENSETAG}
+		done
+		fixup_libmap
+	done
 	cd $PREVIOUSDIR
 }
 
@@ -843,14 +850,20 @@ freesbie_make() {
 }
 
 update_cvs_depot() {
-	echo "Launching cvsup pfSense-supfile..."
-	cvsup pfSense-supfile
-	rm -rf pfSense
-	echo "Updating ${BASE_DIR}/pfSense..."
-	rm -rf $BASE_DIR/pfSense
-	(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-	(cd $BASE_DIR/tools/ && cvs update -d)
+	if [ $USE_GIT = "" ]; do
+		echo "Launching cvsup pfSense-supfile..."
+		cvsup pfSense-supfile
+		rm -rf pfSense
+		echo "Updating ${BASE_DIR}/pfSense..."
+		rm -rf $BASE_DIR/pfSense
+		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+		(cd $BASE_DIR/tools/ && cvs update -d)
+	else 
+		echo "Cloning REPO using GIT..."
+		git clone ${GIT_REPO} pfSense
+	done
 }
+
 
 make_world() {
     # Check if the world and kernel are already built and set
