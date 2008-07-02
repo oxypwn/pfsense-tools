@@ -93,8 +93,8 @@ export NO_CLEAN=${NO_CLEAN:-"yo"}
 export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
 
 # Set to something other than "" to enable.
-export USE_GIT=${USE_GIT}:-""
-export GIT_REPO=${GIT_REPO}:-"http://gitweb.pfsense.org/pfsense-import-test-minus-binaries/mainline.git pfSense"
+#export USE_GIT=${USE_GIT:-""}
+#export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense-import-test-minus-binaries/mainline.git pfSense"}
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
