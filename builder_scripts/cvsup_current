@@ -171,9 +171,14 @@ if [ ! -f "/usr/local/bin/git" ]; then
 fi
 
 # Add BSDInstaller
-echo "Fetching BSDInstaller..."
-cvsup ${CURRENTDIR}/bsdinstaller-supfile
-./cvsup_bsdinstaller
+if [ -z "${USE_GIT:-}" ]; then
+	echo "Fetching BSDInstaller using CVSUP..."
+	cvsup ${CURRENTDIR}/bsdinstaller-supfile
+	./cvsup_bsdinstaller
+else 
+	echo "Fetching BSDInstaller using GIT..."
+	# XXX: add GIT checkout code here.
+fi
 echo "Rebuilding BSDInstaller..."
 (su - root -c ${CURRENTDIR}/rebuild_bsdinstaller.sh)
 
@@ -190,20 +195,25 @@ fi
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
-cvsup freesbie2-supfile
 
-# Update FreeSBIE2 files from CVS
-echo "Updating FreeSBIE2"
-if [ ! -d $CURRENTDIR/freesbie2 ]; then
-	( cvs -d /home/pfsense/cvsroot co freesbie2 )
-else	
-	if [ ! -f $CURRENTDIR/freesbie2/pfSense-version ]; then
-		# Currently not using pfSense version, start over.
-		rm -rf $CURRENTDIR/freesbie2
-		( cd $CURRENTDIR/ && cvs co freesbie2 )
-	else
-		( cd $CURRENTDIR/freesbie2 && cvs up -d )
+if [ -z "${USE_GIT:-}" ]; then
+	cvsup freesbie2-supfile
+	# Update FreeSBIE2 files from CVS
+	echo "Updating FreeSBIE2"
+	if [ ! -d $CURRENTDIR/freesbie2 ]; then
+		( cvs -d /home/pfsense/cvsroot co freesbie2 )
+	else	
+		if [ ! -f $CURRENTDIR/freesbie2/pfSense-version ]; then
+			# Currently not using pfSense version, start over.
+			rm -rf $CURRENTDIR/freesbie2
+			( cd $CURRENTDIR/ && cvs co freesbie2 )
+		else
+			( cd $CURRENTDIR/freesbie2 && cvs up -d )
+		fi
 	fi
+else 
+	echo ">>> Using GIT to checkout FreeSBIE2..."
+	# XXX: add GIT checkout code here.
 fi
 
 # Loop through and remove files
