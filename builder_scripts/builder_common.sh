@@ -252,7 +252,7 @@ overlay_host_binaries() {
 	FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 	NEEDEDLIBS=""
 	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
-	for TEMPFILE in $FOUND_FILES; do
+	for TEMPFILE in $FOUND_FILES; then
 		echo "Looking for /${TEMPFILE} "
 		if [ -f /${TEMPFILE} ]; then
 			echo " Found $TEMPFILE"
@@ -783,11 +783,11 @@ checkout_pfSense() {
 	PREVIOUSDIR=`pwd`
 	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
 	rm -rf $CVS_CO_DIR
-	if [ $USE_GIT = "" ]; do
+	if [ $USE_GIT = "" ]; then
 		cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
 	else
 		echo "Using GIT to checkout ${PFSENSETAG}"
-		if [ "${PFSENSETAG}" != "HEAD" ]; do
+		if [ "${PFSENSETAG}" != "HEAD" ]; then
 			cd $BASE_DIR && git checkout ${PFSENSETAG}
 		done
 		fixup_libmap
@@ -850,7 +850,7 @@ freesbie_make() {
 }
 
 update_cvs_depot() {
-	if [ $USE_GIT = "" ]; do
+	if [ $USE_GIT = "" ]; then
 		echo "Launching cvsup pfSense-supfile..."
 		cvsup pfSense-supfile
 		rm -rf pfSense
