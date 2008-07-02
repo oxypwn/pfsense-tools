@@ -9,7 +9,7 @@ CFLAGS+= -Wall -Wstrict-prototypes -Wmissing-prototypes -Wpointer-arith \
          -Wno-uninitialized
 DPADD+= ${LIBEVENT}
 
-LIB_DEPENDS=    event-1.3d:${PORTSDIR}/devel/libevent
+LIB_DEPENDS=    event:${PORTSDIR}/devel/libevent
 LDADD+= -L/usr/local/lib -levent 
 LIBEVENT_LIB	= -L${LOCALBASE}/lib -levent 
 

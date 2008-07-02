@@ -47,6 +47,7 @@ usr/local/lib/php/extensions/no-debug-non-zts-20020429/tokenizer.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/xml.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/ldap.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/zlib.so
+usr/local/lib/libevent-1.3e.so.1
 usr/local/lib/lighttpd/mod_access.so
 usr/local/lib/lighttpd/mod_accesslog.so
 usr/local/lib/lighttpd/mod_fastcgi.so
