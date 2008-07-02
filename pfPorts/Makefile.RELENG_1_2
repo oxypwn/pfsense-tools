@@ -31,7 +31,6 @@ PORTSTOBUILD="grub \
 	sshlockout_pf \
 	stats \
 	vtsh \
-	pftpx \
 	openvpn \
 	zip \
 	links \
@@ -57,7 +56,6 @@ PORTSTOBUILD="grub \
 	pecl-radius \
 	php4-readline \
 	php4-session \
-	php4-simplexml \
 	php4-xml \
 	php4-zlib \
 	php4-install-all"
