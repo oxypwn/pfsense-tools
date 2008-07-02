@@ -19,7 +19,7 @@ fi
 CURRENTDIR=`pwd`
 
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
-[ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/builder_common.sh
+[ -r "${CURRENTDIR}/builder_common.sh" ] && . ${CURRENTDIR}/builder_common.sh
 
 if [ ! -d $BASE_DIR ]; then
 	mkdir -p $BASE_DIR
@@ -156,6 +156,16 @@ if [ ! -f "/usr/local/bin/cpdup" ]; then
 	(cd /usr/ports/sysutils/cpdup/ && make deinstall clean install FORCE_PKG_REGISTER=yo BATCH=yo)
 	if [ ! -f "/usr/local/bin/cpdup" ]; then
 		echo "Something went wrong while attempting installation of cpdup."
+		exit 1
+	fi
+fi
+
+# Add git
+if [ ! -f "/usr/local/bin/git" ]; then
+	echo "Cannot find git, building from ports..."
+	(cd /usr/ports/devel/git/ && make deinstall clean install FORCE_PKG_REGISTER=yo BATCH=yo)
+	if [ ! -f "/usr/local/bin/git" ]; then
+		echo "Something went wrong while attempting installation of git."
 		exit 1
 	fi
 fi
