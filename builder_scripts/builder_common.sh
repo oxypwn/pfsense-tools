@@ -252,7 +252,7 @@ overlay_host_binaries() {
 	FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 	NEEDEDLIBS=""
 	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
-	for TEMPFILE in $FOUND_FILES; then
+	for TEMPFILE in $FOUND_FILES; do
 		echo "Looking for /${TEMPFILE} "
 		if [ -f /${TEMPFILE} ]; then
 			echo " Found $TEMPFILE"
@@ -789,9 +789,9 @@ checkout_pfSense() {
 		echo "Using GIT to checkout ${PFSENSETAG}"
 		if [ "${PFSENSETAG}" != "HEAD" ]; then
 			cd $BASE_DIR && git checkout ${PFSENSETAG}
-		done
+		fi
 		fixup_libmap
-	done
+	fi
 	cd $PREVIOUSDIR
 }
 
@@ -861,7 +861,7 @@ update_cvs_depot() {
 	else 
 		echo "Cloning REPO using GIT..."
 		git clone ${GIT_REPO} pfSense
-	done
+	fi
 }
 
 
