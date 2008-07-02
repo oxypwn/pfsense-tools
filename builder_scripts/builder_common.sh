@@ -783,7 +783,7 @@ checkout_pfSense() {
 	PREVIOUSDIR=`pwd`
 	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
 	rm -rf $CVS_CO_DIR
-	if [ $USE_GIT = "" ]; then
+	if [ "$USE_GIT" != "" ]; then
 		cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
 	else
 		echo "Using GIT to checkout ${PFSENSETAG}"
@@ -850,7 +850,7 @@ freesbie_make() {
 }
 
 update_cvs_depot() {
-	if [ $USE_GIT = "" ]; then
+	if [ "$USE_GIT" != "" ]; then
 		echo "Launching cvsup pfSense-supfile..."
 		cvsup pfSense-supfile
 		rm -rf pfSense
