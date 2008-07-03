@@ -177,7 +177,7 @@ if [ -z "${USE_GIT:-}" ]; then
 	./cvsup_bsdinstaller
 else 
 	echo "Fetching BSDInstaller using GIT..."
-	# XXX: add GIT checkout code here.
+	git checkout "${GIT_REPO_BSDINSTALLER}"
 fi
 echo "Rebuilding BSDInstaller..."
 (su - root -c ${CURRENTDIR}/rebuild_bsdinstaller.sh)
@@ -213,7 +213,7 @@ if [ -z "${USE_GIT:-}" ]; then
 	fi
 else 
 	echo ">>> Using GIT to checkout FreeSBIE2..."
-	# XXX: add GIT checkout code here.
+	git checkout "${GIT_REPO_FREESBIE2}"
 fi
 
 # Loop through and remove files

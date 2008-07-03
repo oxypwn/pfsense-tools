@@ -92,9 +92,11 @@ export MAKEJ_PORTS=${MAKEJ_PORTS:-"-j1"}
 export NO_CLEAN=${NO_CLEAN:-"yo"}
 export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
 
-# Set to something other than "" to enable.
-#export USE_GIT=${USE_GIT:-""}
+# GIT pfSense, BSDInstaller & FreeSBIE settings
+#export USE_GIT=${USE_GIT:-"yo"}
 #export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense-import-test-minus-binaries/mainline.git pfSense"}
+#export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
+#export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root

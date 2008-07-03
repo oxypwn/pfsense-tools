@@ -18,7 +18,7 @@ print_error_pfS() {
         echo "Log saved on ${LOGFILE}" >&2
     cat $LOGFILE
     sleep 99999
-    kill $$ # XXX exit 1 won't work.
+    kill $$ # NOTE: exit 1 won't work.
 
 }
 
