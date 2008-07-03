@@ -211,7 +211,8 @@ recompile_pfPorts() {
 		fi
 		export FORCE_PKG_REGISTER=yo
 
-		( su - root -c sh ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} )
+		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
+		( su - root -c ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} )
 
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			mv /tmp/make.conf /etc/
