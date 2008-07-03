@@ -850,7 +850,7 @@ freesbie_make() {
 }
 
 update_cvs_depot() {
-		if [ ! -z "${USE_GIT:-}" ]; then
+	if [ -z "${USE_GIT:-}" ]; then
 		echo "Launching cvsup pfSense-supfile..."
 		cvsup pfSense-supfile
 		rm -rf pfSense
