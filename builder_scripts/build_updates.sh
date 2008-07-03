@@ -37,20 +37,20 @@ if [ -d $CVS_CO_DIR ]; then
 fi
 
 # Use pfSense.6 as kernel configuration file
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.6}
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.7}
 fi
 
 # Use normal make.conf
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf"
 	export SRC_CONF="${PWD}/conf/make.conf"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf"	
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
@@ -60,10 +60,10 @@ fi
 export EXTRA="${EXTRA:-} rootmfs etcmfs"
 
 # Items that we will remove before creating final .tgz archive
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export PRUNE_LIST="${PWD}/remove.list"
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.7"
 fi
 
@@ -79,11 +79,11 @@ export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
-echo ">>> Building world and kernels for updates... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building world and kernels for updates... $FreeBSD_version  $freebsd_branch ..."
 make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building all extra kernels... $FreeBSD_version  $freebsd_branch ..."
 build_all_kernels
 
 # Nuke the boot directory

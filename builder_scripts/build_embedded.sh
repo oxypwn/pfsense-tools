@@ -36,17 +36,17 @@ chflags -R noschg $CVS_CO_DIR
 
 export NO_COMPRESSEDFS=yes
 export PRUNE_LIST="${PWD}/remove.list"
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.7"
 fi
 
 # Use embedded make.conf
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
 	export SRC_CONF="${PWD}/conf/make.conf.embedded"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded"	
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
 	export SRC_CONF="${PWD}/conf/make.conf.embedded.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.7.install"
@@ -64,7 +64,7 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
-echo ">>> Building world and kernels for Embedded... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building world and kernels for Embedded... $FreeBSD_version  $freebsd_branch ..."
 make_world
 
 # Build embedded kernel
@@ -124,7 +124,7 @@ unset CONFSIZE
 ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megabytes
 CONFSIZE=${CONFSIZE:-"4096"}
 
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	unset ROOTSIZE
 	unset CONFSIZE
 	echo "Building a -RELENG_7 image, setting size to 256 megabytes..."

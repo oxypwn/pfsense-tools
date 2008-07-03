@@ -17,11 +17,11 @@ print_flags
 # export EXTRA="comconsole customroot"
 export EXTRA="customroot"
 
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.developer"
 	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf.developer"	
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.developer.7"
 	export SRC_CONF="${PWD}/conf/make.conf.developer.7"
 fi
@@ -56,16 +56,16 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	recompile_pfPorts
 fi
 
 # Build world, kernel and install
-echo ">>> Building world and kernels for DevISO... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building world and kernels for DevISO... $FreeBSD_version  $freebsd_branch ..."
 make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building all extra kernels... $FreeBSD_version  $freebsd_branch ..."
 build_all_kernels
 
 # Add extra pfSense packages

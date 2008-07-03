@@ -28,10 +28,10 @@ if [ -d $CVS_CO_DIR ]; then
 fi 
 
 # Use pfSense.6 as kernel configuration file
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.7"}
 fi
 
@@ -45,12 +45,12 @@ if [ -f /usr/obj.pfSense/pfSense_wrap.6.world.done ]; then
 fi
 
 # Use normal make.conf
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf"
 	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"	
 	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
@@ -59,10 +59,10 @@ fi
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.iso"
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.iso.7"
 fi
 
@@ -101,11 +101,11 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
 fi
 
 # Build world, kernel and install
-echo ">>> Building world and kernels for ISO... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building world and kernels for ISO... $FreeBSD_version  $freebsd_branch ..."
 make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building all extra kernels... $FreeBSD_version  $freebsd_branch ..."
 build_all_kernels
 
 # Check for freesbie builder issues

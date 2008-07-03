@@ -54,7 +54,7 @@ build_embedded_kernel() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
-	export KERNCONF=pfSense_wrap.${pfSense_version}
+	export KERNCONF=pfSense_wrap.${FreeBSD_version}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
@@ -125,7 +125,7 @@ build_all_kernels() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
-	export KERNCONF=pfSense.${pfSense_version}
+	export KERNCONF=pfSense.${FreeBSD_version}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	freesbie_make buildkernel
@@ -136,7 +136,7 @@ build_all_kernels() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
-	export KERNCONF=pfSense_wrap.${pfSense_version}
+	export KERNCONF=pfSense_wrap.${FreeBSD_version}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
@@ -147,7 +147,7 @@ build_all_kernels() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
-	export KERNCONF=pfSense_Dev.${pfSense_version}
+	export KERNCONF=pfSense_Dev.${FreeBSD_version}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	freesbie_make buildkernel
@@ -158,7 +158,7 @@ build_all_kernels() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
-	export KERNCONF=pfSense_SMP.${pfSense_version}
+	export KERNCONF=pfSense_SMP.${FreeBSD_version}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	freesbie_make buildkernel
@@ -342,7 +342,7 @@ populate_extra() {
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
     cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 
-	if [ $pfSense_version = "7" ]; then
+	if [ $FreeBSD_version = "7" ]; then
 		echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
     	cp -r $BASE_DIR/tools/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
 	else 
@@ -817,7 +817,7 @@ print_flags() {
 	printf "       Source DIR: %s\n" $SRCDIR
 	printf "        Clone DIR: %s\n" $CLONEDIR
 	printf "   Custom overlay: %s\n" $custom_overlay
-	printf "  pfSense version: %s\n" $pfSense_version
+	printf "  pfSense version: %s\n" $FreeBSD_version
 	printf "   FreeBSD branch: %s\n" $freebsd_branch
 	printf "      pfSense Tag: %s\n" $PFSENSETAG
 	printf " MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX

@@ -42,10 +42,10 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Use pfSense_wrap.6 as kernel configuration file
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 	export SRC_CONF="${PWD}/conf/make.conf.developer.7"	
 fi
@@ -53,10 +53,10 @@ fi
 # Do not compress FS
 export NO_COMPRESSEDFS=yes
 
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export PRUNE_LIST="${PWD}/remove.list"
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.7"
 fi
 

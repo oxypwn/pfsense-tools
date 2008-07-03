@@ -24,28 +24,28 @@ chflags -R noschg /usr/local/pfsense*
 rm -rf /usr/local/pfsense*
 
 # Use pfSense_wrap.6 as kernel configuration file
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
 
 # Do not compress FS
 export NO_COMPRESSEDFS=yes
 
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export PRUNE_LIST="${PWD}/remove.list"
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
 	export PRUNE_LIST="${PWD}/remove.list.7"
 fi
 
 # Use embedded make.conf
-if [ $pfSense_version = "6" ]; then
+if [ $FreeBSD_version = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
 fi
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
         export SRC_CONF="${PWD}/conf/make.conf.embedded.7"
 fi
@@ -67,11 +67,11 @@ version=`cat $CVS_CO_DIR/etc/version`
 make_world
 
 
-if [ $pfSense_version = "7" ]; then
+if [ $FreeBSD_version = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7.install"
 fi
 
-echo ">>> Building all extra kernels... $pfSense_version  $freebsd_branch ..."
+echo ">>> Building all extra kernels... $FreeBSD_version  $freebsd_branch ..."
 build_all_kernels
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
