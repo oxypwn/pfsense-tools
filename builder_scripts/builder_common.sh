@@ -784,11 +784,13 @@ checkout_pfSense() {
 	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
 	rm -rf $CVS_CO_DIR
 	if [ -z "${USE_GIT:-}" ]; then
-		cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co pfSense -r ${PFSENSETAG}
+		(cd $BASE_DIR && cvs -d ${BASE_DIR}/cvsroot co pfSense -r ${PFSENSETAG})
 	else
 		echo "Using GIT to checkout ${PFSENSETAG}"
+		# XXX: do we need to revert the co to HEAD if it has been 
+		#      checked out on another branch?
 		if [ "${PFSENSETAG}" != "HEAD" ]; then
-			cd $BASE_DIR && git checkout ${PFSENSETAG}
+			(cd $BASE_DIR && git checkout ${PFSENSETAG})
 		fi
 		fixup_libmap
 	fi
@@ -856,14 +858,13 @@ update_cvs_depot() {
 		rm -rf pfSense
 		echo "Updating ${BASE_DIR}/pfSense..."
 		rm -rf $BASE_DIR/pfSense
-		(cd $BASE_DIR && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
-		(cd $BASE_DIR/tools/ && cvs update -d)
+		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+		(cd ${BASE_DIR}/tools/ && cvs update -d)
 	else 
 		echo "Cloning REPO using GIT..."
-		git clone ${GIT_REPO} pfSense
+		(cd ${BASE_DIR} && git clone ${GIT_REPO} pfSense)
 	fi
 }
-
 
 make_world() {
     # Check if the world and kernel are already built and set
@@ -881,5 +882,3 @@ make_world() {
 	freesbie_make installworld
 
 }
-
-
