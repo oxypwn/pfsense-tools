@@ -8,7 +8,7 @@
 PORTREVISION=	1
 CATEGORIES=	devel
 
-MASTERDIR=	${.CURDIR}/../../lang/php5
+MASTERDIR=	/usr/ports/lang/php5
 
 PKGNAMESUFFIX=	-gettext
 

@@ -7,7 +7,7 @@
 
 CATEGORIES=	math
 
-MASTERDIR=	${.CURDIR}/../../lang/php5
+MASTERDIR=	/usr/ports/lang/php5
 
 PKGNAMESUFFIX=	-bcmath
 

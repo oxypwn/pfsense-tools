@@ -7,7 +7,7 @@
 
 CATEGORIES=	archivers
 
-MASTERDIR=	${.CURDIR}/../../lang/php5
+MASTERDIR=	/usr/ports/lang/php5
 
 PKGNAMESUFFIX=	-bz2
 
