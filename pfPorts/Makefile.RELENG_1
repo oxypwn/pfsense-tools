@@ -64,6 +64,8 @@ PORTSTOBUILD="grub \
 	ftp-proxy \
 	php5-install-all"
 
+MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+
 CURRENTDIR=`pwd`
 
 ( cd /usr/ports && make fetchindex )
@@ -86,12 +88,12 @@ for PORT in $PORTSTOBUILD; do
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		( cd $DOESPORTEXIST && make clean )
-		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo )
+		( cd $DOESPORTEXIST && make $MAKEJ_PORTS BATCH=yo FORCE_PKG_REGISTER=yo )
 		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install )
 	else
 		echo "Port not found, building from pfPorts..."
 		( cd /home/pfsense/tools/pfPorts/$PORT && make clean )
-		( cd /home/pfsense/tools/pfPorts/$PORT && make BATCH=yo FORCE_PKG_REGISTER=yo )
+		( cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS BATCH=yo FORCE_PKG_REGISTER=yo )
 		( cd /home/pfsense/tools/pfPorts/$PORT && make BATCH=yo FORCE_PKG_REGISTER=yo install )
 	fi
 done
