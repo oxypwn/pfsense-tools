@@ -77,6 +77,7 @@ export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 
 # FreeBSD version.
 export pfSense_version="7"
+export FreeBSD_version="7"
 export freebsd_branch="RELENG_7_0"
 
 # pfSense cvs tag to build
