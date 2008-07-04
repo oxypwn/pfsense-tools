@@ -77,6 +77,14 @@ for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
+		( cd $DOESPORTEXIST && make clean )
+	fi
+done
+
+for PORT in $PORTSTOBUILD; do
+	echo "Finding $PORT..."
+	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
+	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
 		if [ -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
 			echo "Found /home/pfsense/tools/pfPorts/useports ... Not removing target port directory."
@@ -88,13 +96,11 @@ for PORT in $PORTSTOBUILD; do
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		echo "Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		( cd $DOESPORTEXIST && make clean )
 		( cd $DOESPORTEXIST && make $MAKEJ_PORTS BATCH=yo FORCE_PKG_REGISTER=yo )
 		( cd $DOESPORTEXIST && make BATCH=yo FORCE_PKG_REGISTER=yo install )
 	else
 		echo "Port not found, building from pfPorts..."
 		echo "Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		( cd /home/pfsense/tools/pfPorts/$PORT && make clean )
 		( cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS BATCH=yo FORCE_PKG_REGISTER=yo )
 		( cd /home/pfsense/tools/pfPorts/$PORT && make BATCH=yo FORCE_PKG_REGISTER=yo install )
 	fi
