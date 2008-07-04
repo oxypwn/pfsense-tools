@@ -74,6 +74,8 @@ for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		( cd $DOESPORTEXIST && make clean )
+	else 
+		( cd /home/pfsense/tools/pfPorts/$PORT && make clean)
 	fi
 done
 
