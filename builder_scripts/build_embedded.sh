@@ -83,9 +83,6 @@ install_custom_packages
 echo ">>> Phase populate_extra..."
 populate_extra
 
-# Must be run after populate_extra
-fixup_wrap
-
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
 echo ">>> Merging extra items..."
@@ -93,6 +90,9 @@ freesbie_make extra
 
 # Overlay host binaries
 overlay_host_binaries
+
+# Must be run after overlay_host_binaries and freesbie_make extra
+fixup_wrap
 
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
