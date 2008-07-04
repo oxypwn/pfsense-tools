@@ -530,26 +530,24 @@ fixup_wrap() {
 
 	echo "Fixing up WRAP Specific items..."
     cp $CVS_CO_DIR/boot/device.hints_wrap \
-            $CVS_CO_DIR/boot/device.hints
+            $PFSENSEBASEDIR/boot/device.hints
     cp $CVS_CO_DIR/boot/loader.conf_wrap \
-            $CVS_CO_DIR/boot/loader.conf
+            $PFSENSEBASEDIR/boot/loader.conf
     cp $CVS_CO_DIR/etc/ttys_wrap \
-            $CVS_CO_DIR/etc/ttys
+            $PFSENSEBASEDIR/etc/ttys
 
-    echo `date` > $CVS_CO_DIR/etc/version.buildtime
-    echo "" > $CVS_CO_DIR/etc/motd
+    echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
+    echo "" > $PFSENSEBASEDIR/etc/motd
 
-    mkdir -p $CVS_CO_DIR/cf/conf/backup
+    mkdir -p $PFSENSEBASEDIR/cf/conf/backup
 
-    echo /etc/rc.initial > $CVS_CO_DIR/root/.shrc
-    echo exit >> $CVS_CO_DIR/root/.shrc
-    rm -f $CVS_CO_DIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
+    echo /etc/rc.initial > $PFSENSEBASEDIR/root/.shrc
+    echo exit >> $PFSENSEBASEDIR/root/.shrc
+    rm -f $PFSENSEBASEDIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
 
-    echo "embedded" > $CVS_CO_DIR/etc/platform
-    echo "wrap" > /boot/kernel/pfsense_kernel.txt
+    echo "embedded" > $PFSENSEBASEDIR/etc/platform
+    echo "wrap" > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt
 
-    rm -rf $CVS_CO_DIR/conf
-    ln -s /cf/conf $CVS_CO_DIR/conf
 }
 
 create_FreeBSD_system_update() {

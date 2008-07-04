@@ -79,11 +79,12 @@ install_custom_packages
 # Only include Lighty in packages list
 (cd /var/db/pkg && ls | grep lighttpd) > conf/packages
 
-fixup_wrap
-
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
 populate_extra
+
+# Must be run after populate_extra
+fixup_wrap
 
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
