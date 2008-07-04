@@ -68,7 +68,9 @@ MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 
 CURRENTDIR=`pwd`
 
-( cd /usr/ports && make fetchindex )
+if [ ! -d /usr/ports/INDEX-7.bz2 ]; then 
+	( cd /usr/ports && make fetchindex )
+fi
 
 # pfSense is english based.
 rm -rf /usr/ports/chinese/links
