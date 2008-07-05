@@ -1,3 +1,7 @@
+~~~/sys/modules/et/Makefile
+~~~/sys/dev/et/if_et.c
+~~~/sys/dev/et/if_etreg.h
+~~~/sys/dev/et/if_etvar.h
 ~~~/sys/contrib/pf/net/pf_pptp.c
 ~~~/sys/contrib/altq/altq/altq_fairq.h
 ~~~/sys/contrib/altq/altq/altq_fairq.c
@@ -24,3 +28,4 @@
 ~~~~sys/modules/glxsb
 ~sys/modules/glxsb~glxsb.diff~
 ~sys/modules~Makefile~
+~sys~if_et.c.diff~
