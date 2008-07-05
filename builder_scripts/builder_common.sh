@@ -548,6 +548,8 @@ fixup_wrap() {
     echo "embedded" > $PFSENSEBASEDIR/etc/platform
     echo "wrap" > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt
 
+	echo "-D" >> $PFSENSEBASEDIR/boot.config
+
 }
 
 create_FreeBSD_system_update() {
