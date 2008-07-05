@@ -1,5 +1,5 @@
---- ipsec-tools/src/racoon/isakmp_inf.c	2008-04-23 11:39:30.000000000 +0200
-+++ ipsec-tools-0.7-cvs2/src/racoon/isakmp_inf.c	2008-04-23 12:57:53.000000000 +0200
+--- src/racoon/isakmp_inf.c	2008-04-23 11:39:30.000000000 +0200
++++ src/racoon/isakmp_inf.c	2008-04-23 12:57:53.000000000 +0200
 @@ -1129,7 +1129,7 @@
  		if (!iph1)
  			continue;

@@ -1,5 +1,5 @@
---- ipsec-tools/src/racoon/isakmp.c	2008-04-23 11:39:29.000000000 +0200
-+++ ipsec-tools-0.7-cvs2/src/racoon/isakmp.c	2008-04-23 12:43:50.000000000 +0200
+--- src/racoon/isakmp.c	2008-04-23 11:39:29.000000000 +0200
++++ src/racoon/isakmp.c	2008-04-23 12:43:50.000000000 +0200
 @@ -3358,7 +3358,7 @@
  	struct ph2handle *iph2;
  	struct ph1handle *new_iph1;
