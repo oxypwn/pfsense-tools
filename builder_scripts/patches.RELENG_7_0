@@ -26,6 +26,8 @@
 ~sys/contrib/pf/net~pf_table.c.diff~
 ~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
 ~~~~sys/modules/glxsb
+~~~~sys/modules/et
+~~~~sys/dev/et
 ~sys/modules/glxsb~glxsb.diff~
 ~sys/modules~Makefile~
 ~sys~if_et.c.diff~
