@@ -367,3 +367,7 @@ device          fwe             # Ethernet over FireWire (non-standard!)
 device		safe
 
 device		uart
+
+# et(4) for AGERE ET1310 fastE and gigE
+device		et
+
