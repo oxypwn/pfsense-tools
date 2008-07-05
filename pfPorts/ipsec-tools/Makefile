@@ -43,11 +43,11 @@ OPTIONS=	DEBUG		"enable Debug support" on \
 		NATT		"enable NAT-Traversal (kernel-patch required)" on \
 		NATTF		"require NAT-Traversal (fail without kernel-patch)" off \
 		FRAG		"enable IKE fragmentation payload support" on \
-		HYBRID		"enable Hybrid Mode-cfg and Xauth support" off \
+		HYBRID		"enable Hybrid Mode-cfg and Xauth support" on \
 		PAM		"enable PAM authentication" off \
 		GSSAPI		"enable GSS-API authentication" off \
-		RADIUS		"enable Radius authentication" off \
-		SAUNSPEC	"enable Unspecified SA mode" off \
+		RADIUS		"enable Radius authentication" on \
+		SAUNSPEC	"enable Unspecified SA mode" on \
 		RC5		"enable RC5 encryption (patented)" off \
 		IDEA		"enable IDEA encryption (patented)" off
 
