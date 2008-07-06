@@ -302,7 +302,7 @@ if [ -d $PFSENSEISODIR ]; then
 	(cd ${CURRENTDIR} && rm -rf ${PFSENSEISODIR})	
 fi
 echo -n " . "
-(cd ${CURRENTDIR} && rm -rf /usr/obj.pfSense/*)
+(cd ${CURRENTDIR} && rm -rf /usr/obj.pfSense/* && rm -f /usr/obj.pfSense/.*)
 echo "Done!"
 
 # Recompile pfPorts
