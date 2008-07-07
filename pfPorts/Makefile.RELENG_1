@@ -4,6 +4,8 @@
 #set -x
 
 PORTSTOBUILD="grub \
+	cairo \
+	pango \
 	rrdtool \
 	ftpsesame \
 	atareinit \
