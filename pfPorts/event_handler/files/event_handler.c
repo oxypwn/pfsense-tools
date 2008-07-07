@@ -1,4 +1,7 @@
+/* Based on code from http://www.monkeys.com/freeware/kqueue-echo.c */
 /* echo.c - Simple `echo' server for N clients written using kqueue/kevent.  */
+
+/* Modifications and adaption by Ermal Luçi */
 
 #include <stdio.h>
 #include <stdlib.h>
