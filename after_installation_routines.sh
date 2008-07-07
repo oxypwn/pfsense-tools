@@ -56,11 +56,6 @@ cp /tmp/installer.log /mnt/var/installer_logs
 cp /tmp/install-session.sh /mnt/var/installer_logs
 cp /tmp/new.fdisk /mnt/var/installer_logs
 
-# Make sure malloc.conf is not set for debugging
-# and increase the pages to 32
-rm /etc/malloc.conf
-ln -s "aj" /etc/malloc.conf
-
 mkdir -p /mnt/var/db/pkg
 cd /var/db/pkg ; tar -cpf - . | (cd /mnt/var/db/pkg ; tar -xpf -)
 
