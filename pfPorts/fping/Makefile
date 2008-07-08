@@ -3,11 +3,12 @@
 # Date created:			  Tue Mar 25, 1997
 # Whom:				  David O'Brien (obrien@NUXI.com)
 #
-# $FreeBSD: ports/net/fping/Makefile,v 1.24 2007/03/23 20:36:00 pav Exp $
+# $FreeBSD: ports/net/fping/Makefile,v 1.25 2007/09/08 13:31:21 edwin Exp $
 #
 
 PORTNAME=	fping
 PORTVERSION=	2.4b2
+PORTREVISION=	1
 CATEGORIES=	net ipv6
 MASTER_SITES=	http://keyserver.kjsl.com/~jharris/distfiles/
 #MASTER_SITES=	http://www.fping.com/download/
