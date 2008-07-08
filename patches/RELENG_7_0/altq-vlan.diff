@@ -4,7 +4,7 @@ RCS file: /home/cvsupd/src/sys/net/if_vlan.c,v
 retrieving revision 1.124.2.1
 diff -u -r1.124.2.1 if_vlan.c
 --- if_vlan.c	28 Oct 2007 16:24:16 -0000	1.124.2.1
-+++ if_vlan.c	8 Jul 2008 02:46:08 -0000
++++ if_vlan.c	8 Jul 2008 05:26:07 -0000
 @@ -721,7 +721,12 @@
  	ifp->if_init = vlan_init;
  	ifp->if_start = vlan_start;
@@ -24,13 +24,13 @@ diff -u -r1.124.2.1 if_vlan.c
  	struct ifvlan *ifv = ifp->if_softc;
  	int unit = ifp->if_dunit;
 +	int s;
++
++        s = splimp();
++        IFQ_PURGE(&ifp->if_snd);
++        splx(s);
  
  	ether_ifdetach(ifp);	/* first, remove it from system-wide lists */
  	vlan_unconfig(ifp);	/* now it can be unconfigured and freed */
-+
-+	s = splimp();
-+	IFQ_PURGE(&ifp->if_snd);
-+	splx(s);
 +
  	if_free_type(ifp, IFT_ETHER);
  	free(ifv, M_VLAN);
