@@ -47,6 +47,7 @@ OPTIONS=	DEBUG		"enable Debug support" on \
 		PAM		"enable PAM authentication" off \
 		GSSAPI		"enable GSS-API authentication" off \
 		RADIUS		"enable Radius authentication" on \
+		LDAP		"enable LDAP authentication" on \
 		SAUNSPEC	"enable Unspecified SA mode" on \
 		RC5		"enable RC5 encryption (patented)" off \
 		IDEA		"enable IDEA encryption (patented)" off
@@ -130,6 +131,13 @@ CONFIGURE_ARGS+=	--disable-gssapi
 CONFIGURE_ARGS+=	--with-libradius
 .else
 CONFIGURE_ARGS+=	--without-libradius
+.endif
+
+.ifdef(WITH_LDAP)
+USE_OPENLDAP=   YES
+CONFIGURE_ARGS+=	--with-libldap=${LOCALBASE}
+.else
+CONFIGURE_ARGS+=	--without-libldap
 .endif
 
 .ifdef(WITH_SAUNSPEC)
