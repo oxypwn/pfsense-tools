@@ -1,4 +1,3 @@
-sbin/setkey
 usr/bin/host
 usr/bin/nsupdate
 usr/sbin/clog

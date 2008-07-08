@@ -1,4 +1,3 @@
-sbin/setkey
 usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
