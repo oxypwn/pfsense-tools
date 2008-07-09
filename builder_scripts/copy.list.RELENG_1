@@ -32,7 +32,6 @@ usr/local/sbin/openvpn
 usr/local/sbin/pftop
 usr/local/sbin/racoon
 usr/local/sbin/racoonctl
-usr/local/sbin/slbd
 usr/local/sbin/relayctl
 usr/local/sbin/relayd
 usr/local/sbin/sshlockout_pf
