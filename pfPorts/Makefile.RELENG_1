@@ -27,7 +27,6 @@ PORTSTOBUILD="grub \
 	pftpx \
 	relayd \
 	fping \
-	slbd \
 	ssh_tunnel_shell \
 	sshlockout_pf \
 	stats \
