@@ -5,9 +5,9 @@
 # $FreeBSD: /repoman/r/pcvs/ports/dns/dnsmasq/Makefile,v 1.34 2006/11/08 09:28:24 farrokhi Exp $
 
 PORTNAME=	dnsmasq
-PORTVERSION=	2.35
+PORTVERSION=	2.43rc3
 CATEGORIES=	dns ipv6
-MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/ \
+MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/release-candidates/ \
 		${MASTER_SITE_GENTOO}
 MASTER_SITE_SUBDIR=	distfiles
 
