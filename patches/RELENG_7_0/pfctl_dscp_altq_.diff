@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/parse.y,v
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.8
 diff -u -r1.8 parse.y
 --- contrib/pf/pfctl/parse.y	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/parse.y	15 May 2008 17:23:16 -0000
++++ contrib/pf/pfctl/parse.y	9 Jul 2008 20:44:16 -0000
 @@ -44,6 +44,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -284,11 +284,11 @@ diff -u -r1.8 parse.y
  		{ "icmp6-type",		ICMP6TYPE},
 Index: contrib/pf/pfctl/pfctl.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl.c,v
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.7
 diff -u -r1.7 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	3 Jul 2007 12:30:02 -0000	1.7
-+++ contrib/pf/pfctl/pfctl.c	1 Jun 2008 16:25:09 -0000
++++ contrib/pf/pfctl/pfctl.c	9 Jul 2008 20:44:16 -0000
 @@ -76,6 +76,7 @@
  void	 pfctl_addrprefix(char *, struct pf_addr *);
  int	 pfctl_kill_src_nodes(int, const char *, int);
@@ -422,11 +422,11 @@ diff -u -r1.7 pfctl.c
  		    tblcmdopt, rulesopt, anchorname, opts);
 Index: contrib/pf/pfctl/pfctl_altq.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_altq.c,v
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.9
 diff -u -r1.9 pfctl_altq.c
 --- contrib/pf/pfctl/pfctl_altq.c	3 Jul 2007 12:30:02 -0000	1.9
-+++ contrib/pf/pfctl/pfctl_altq.c	15 May 2008 17:23:16 -0000
++++ contrib/pf/pfctl/pfctl_altq.c	9 Jul 2008 20:44:16 -0000
 @@ -42,6 +42,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -759,11 +759,11 @@ diff -u -r1.9 pfctl_altq.c
 +}
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.8
 diff -u -r1.8 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	3 Jul 2007 12:30:02 -0000	1.8
-+++ contrib/pf/pfctl/pfctl_parser.c	15 May 2008 17:23:16 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	9 Jul 2008 20:44:16 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -779,11 +779,11 @@ diff -u -r1.8 pfctl_parser.c
  	else if (r->keep_state == PF_STATE_NORMAL)
 Index: contrib/pf/pfctl/pfctl_parser.h
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.h,v
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl_parser.h,v
 retrieving revision 1.7
 diff -u -r1.7 pfctl_parser.h
 --- contrib/pf/pfctl/pfctl_parser.h	3 Jul 2007 12:30:02 -0000	1.7
-+++ contrib/pf/pfctl/pfctl_parser.h	15 May 2008 17:23:16 -0000
++++ contrib/pf/pfctl/pfctl_parser.h	9 Jul 2008 20:44:16 -0000
 @@ -149,12 +149,27 @@
  	int			flags;
  };
@@ -814,11 +814,11 @@ diff -u -r1.7 pfctl_parser.h
  
 Index: contrib/pf/pfctl/pfctl_qstats.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/contrib/pf/pfctl/pfctl_qstats.c,v
+RCS file: /home/eri/mine/FreeBSD/src/contrib/pf/pfctl/pfctl_qstats.c,v
 retrieving revision 1.6
 diff -u -r1.6 pfctl_qstats.c
 --- contrib/pf/pfctl/pfctl_qstats.c	3 May 2005 16:55:20 -0000	1.6
-+++ contrib/pf/pfctl/pfctl_qstats.c	1 Jun 2008 16:39:00 -0000
++++ contrib/pf/pfctl/pfctl_qstats.c	9 Jul 2008 20:44:16 -0000
 @@ -38,6 +38,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -914,7 +914,7 @@ Index: sbin/pfctl/missing/altq/altq_fairq.h
 RCS file: sbin/pfctl/missing/altq/altq_fairq.h
 diff -N sbin/pfctl/missing/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sbin/pfctl/missing/altq/altq_fairq.h	15 May 2008 17:23:16 -0000
++++ sbin/pfctl/missing/altq/altq_fairq.h	9 Jul 2008 20:59:49 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1054,11 +1054,11 @@ diff -N sbin/pfctl/missing/altq/altq_fairq.h
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
 Index: sys/conf/NOTES
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/conf/NOTES,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/conf/NOTES,v
 retrieving revision 1.1454
 diff -u -r1.1454 NOTES
 --- sys/conf/NOTES	26 Sep 2007 21:14:17 -0000	1.1454
-+++ sys/conf/NOTES	15 May 2008 17:23:16 -0000
++++ sys/conf/NOTES	9 Jul 2008 20:44:16 -0000
 @@ -608,6 +608,7 @@
  options 	ALTQ_RED	# Random Early Detection
  options 	ALTQ_RIO	# RED In/Out
@@ -1069,11 +1069,11 @@ diff -u -r1.1454 NOTES
  options 	ALTQ_NOPCC	# Required if the TSC is unusable
 Index: sys/conf/files
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/conf/files,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/conf/files,v
 retrieving revision 1.1243.2.2
 diff -u -r1.1243.2.2 files
 --- sys/conf/files	6 Dec 2007 10:15:29 -0000	1.1243.2.2
-+++ sys/conf/files	15 May 2008 17:23:16 -0000
++++ sys/conf/files	9 Jul 2008 20:44:16 -0000
 @@ -108,6 +108,8 @@
  contrib/altq/altq/altq_cdnr.c	optional altq
  contrib/altq/altq/altq_hfsc.c	optional altq \
@@ -1094,11 +1094,11 @@ diff -u -r1.1243.2.2 files
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 Index: sys/conf/options
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/conf/options,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/conf/options,v
 retrieving revision 1.608
 diff -u -r1.608 options
 --- sys/conf/options	23 Sep 2007 07:34:23 -0000	1.608
-+++ sys/conf/options	15 May 2008 17:23:16 -0000
++++ sys/conf/options	9 Jul 2008 20:44:16 -0000
 @@ -339,6 +339,7 @@
  ALTQ_RED		opt_altq.h
  ALTQ_RIO		opt_altq.h
@@ -1109,11 +1109,11 @@ diff -u -r1.608 options
  ALTQ_NOPCC		opt_altq.h
 Index: sys/contrib/altq/altq/altq.h
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq.h,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/altq/altq/altq.h,v
 retrieving revision 1.2
 diff -u -r1.2 altq.h
 --- sys/contrib/altq/altq/altq.h	12 Jun 2004 00:57:20 -0000	1.2
-+++ sys/contrib/altq/altq/altq.h	15 May 2008 17:23:16 -0000
++++ sys/contrib/altq/altq/altq.h	9 Jul 2008 20:44:16 -0000
 @@ -63,7 +63,8 @@
  #define	ALTQT_BLUE		10	/* blue */
  #define	ALTQT_PRIQ		11	/* priority queue */
@@ -1129,7 +1129,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	15 May 2008 17:23:16 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	9 Jul 2008 20:44:16 -0000
 @@ -0,0 +1,905 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -2041,7 +2041,7 @@ Index: sys/contrib/altq/altq/altq_fairq.h
 RCS file: sys/contrib/altq/altq/altq_fairq.h
 diff -N sys/contrib/altq/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.h	15 May 2008 17:23:16 -0000
++++ sys/contrib/altq/altq/altq_fairq.h	9 Jul 2008 20:44:17 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -2181,11 +2181,11 @@ diff -N sys/contrib/altq/altq/altq_fairq.h
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
 Index: sys/contrib/altq/altq/altq_subr.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq_subr.c,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/altq/altq/altq_subr.c,v
 retrieving revision 1.10
 diff -u -r1.10 altq_subr.c
 --- sys/contrib/altq/altq/altq_subr.c	12 Jul 2007 17:00:51 -0000	1.10
-+++ sys/contrib/altq/altq/altq_subr.c	15 May 2008 17:23:16 -0000
++++ sys/contrib/altq/altq/altq_subr.c	9 Jul 2008 20:44:17 -0000
 @@ -544,6 +544,11 @@
  		error = hfsc_pfattach(a);
  		break;
@@ -2260,11 +2260,11 @@ diff -u -r1.10 altq_subr.c
  	}
 Index: sys/contrib/altq/altq/altq_var.h
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/altq/altq/altq_var.h,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/altq/altq/altq_var.h,v
 retrieving revision 1.2
 diff -u -r1.2 altq_var.h
 --- sys/contrib/altq/altq/altq_var.h	21 Feb 2005 17:11:09 -0000	1.2
-+++ sys/contrib/altq/altq/altq_var.h	15 May 2008 17:23:16 -0000
++++ sys/contrib/altq/altq/altq_var.h	9 Jul 2008 20:44:17 -0000
 @@ -261,5 +261,12 @@
  int	hfsc_remove_queue(struct pf_altq *);
  int	hfsc_getqstats(struct pf_altq *, void *, int *);
@@ -2280,11 +2280,11 @@ diff -u -r1.2 altq_var.h
  #endif /* _ALTQ_ALTQ_VAR_H_ */
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf.c,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.46.2.1
 diff -u -r1.46.2.1 pf.c
 --- sys/contrib/pf/net/pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
-+++ sys/contrib/pf/net/pf.c	27 May 2008 21:21:05 -0000
++++ sys/contrib/pf/net/pf.c	9 Jul 2008 21:27:14 -0000
 @@ -263,7 +263,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
@@ -2363,15 +2363,17 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -4266,6 +4290,7 @@
+@@ -4266,6 +4290,9 @@
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_src_node	*nsn = NULL;
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
++#if 0
 +	struct pf_grehdr         gr;
++#endif
  	sa_family_t		 af = pd->af;
  	u_short			 reason;
  	int			 tag = -1, rtableid = -1;
-@@ -4341,7 +4366,10 @@
+@@ -4341,7 +4368,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
@@ -2383,10 +2385,11 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -4496,6 +4524,14 @@
+@@ -4496,6 +4526,16 @@
  			else
  				PF_ACPY(&s->gwy.addr, &s->lan.addr, af);
  		}
++#if 0
 +		if (pd->proto == IPPROTO_GRE &&
 +                	pf_pull_hdr(m, off, &gr, sizeof(gr),
 +                        NULL, NULL, pd->af)  != NULL &&
@@ -2394,11 +2397,12 @@ diff -u -r1.46.2.1 pf.c
 +                        ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK)
 +                        == PPTP_INIT_VALUE))
 +                        s->gwy.port = gr.gh_call_id;
++#endif
 +
  		s->src.state = PFOTHERS_SINGLE;
  		s->dst.state = PFOTHERS_NO_TRAFFIC;
  		s->creation = time_second;
-@@ -4558,7 +4594,10 @@
+@@ -4558,7 +4598,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
@@ -2410,7 +2414,7 @@ diff -u -r1.46.2.1 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->os_fingerprint != PF_OSFP_ANY)
  			r = TAILQ_NEXT(r, entries);
-@@ -4643,7 +4682,7 @@
+@@ -4643,7 +4686,7 @@
  	}
  
  	STATE_LOOKUP();
@@ -2419,7 +2423,30 @@ diff -u -r1.46.2.1 pf.c
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
  		dst = &(*state)->dst;
-@@ -5761,10 +5800,18 @@
+@@ -4759,6 +4802,22 @@
+ 		}
+ 	}
+ 
++        if (((th->th_flags & (TH_SYN|TH_ACK)) == TH_SYN) &&
++            dst->state >= TCPS_FIN_WAIT_2 &&
++            src->state >= TCPS_FIN_WAIT_2) {
++                if (pf_status.debug >= PF_DEBUG_MISC) {
++                        printf("pf: state reuse ");
++                        pf_print_state(*state);
++                        pf_print_flags(th->th_flags);
++                        printf("\n");
++                }
++                /* XXX make sure it's the same direction ?? */
++                (*state)->src.state = (*state)->dst.state = TCPS_CLOSED;
++                pf_unlink_state(*state);
++                *state = NULL;
++                return (PF_DROP);
++        }
++
+ 	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
+ 		sws = src->wscale & PF_WSCALE_MASK;
+ 		dws = dst->wscale & PF_WSCALE_MASK;
+@@ -5761,10 +5820,20 @@
  
  int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -2431,15 +2458,17 @@ diff -u -r1.46.2.1 pf.c
 +	struct pf_grehdr         gr;
 +        u_int16_t                callid = 0;
 +
++#if 0
 +        if (pd->proto == IPPROTO_GRE &&
 +                pf_pull_hdr(m, off, &gr, sizeof(gr), NULL, NULL, pd->af)  != NULL &&
 +                /* Check GRE header bits. */
 +                ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) == PPTP_INIT_VALUE)) 
 +                callid = gr.gh_call_id;
++#endif
  
  	key.af = pd->af;
  	key.proto = pd->proto;
-@@ -5772,7 +5819,7 @@
+@@ -5772,7 +5841,7 @@
  		PF_ACPY(&key.ext.addr, pd->src, key.af);
  		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
  		key.ext.port = 0;
@@ -2448,7 +2477,7 @@ diff -u -r1.46.2.1 pf.c
  	} else {
  		PF_ACPY(&key.lan.addr, pd->src, key.af);
  		PF_ACPY(&key.ext.addr, pd->dst, key.af);
-@@ -5782,8 +5829,8 @@
+@@ -5782,8 +5851,8 @@
  
  	STATE_LOOKUP();
  
@@ -2459,7 +2488,7 @@ diff -u -r1.46.2.1 pf.c
  		dst = &(*state)->dst;
  	} else {
  		src = &(*state)->dst;
-@@ -5820,7 +5867,14 @@
+@@ -5820,7 +5889,14 @@
  				break;
  #endif /* INET6 */
  			}
@@ -2475,7 +2504,7 @@ diff -u -r1.46.2.1 pf.c
  			switch (pd->af) {
  #ifdef INET
  			case AF_INET:
-@@ -5835,6 +5889,7 @@
+@@ -5835,6 +5911,7 @@
  				break;
  #endif /* INET6 */
  			}
@@ -2483,10 +2512,11 @@ diff -u -r1.46.2.1 pf.c
  	}
  
  	return (PF_PASS);
-@@ -6869,6 +6924,16 @@
+@@ -6869,6 +6946,18 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
++#if 0
 +		/* XXX: This are here until a pluggable framework for NAT is finished */
 +       		if (s != NULL && s->nat_rule.ptr != NULL &&
 +			s->nat_rule.ptr->action != PF_BINAT) {
@@ -2497,10 +2527,11 @@ diff -u -r1.46.2.1 pf.c
 +              			pf_get_pptp_translation(&pd, m, s, off, (void *)&th, dir,
 +					th.th_dport);
 +		}
++#endif
  		break;
  	}
  
-@@ -6949,7 +7014,7 @@
+@@ -6949,7 +7038,7 @@
  	}
  
  	default:
@@ -2509,7 +2540,7 @@ diff -u -r1.46.2.1 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -6983,7 +7048,9 @@
+@@ -6983,7 +7072,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2520,7 +2551,7 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7086,10 +7153,10 @@
+@@ -7086,10 +7177,10 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
@@ -2533,7 +2564,7 @@ diff -u -r1.46.2.1 pf.c
  #ifdef __FreeBSD__
  	PF_UNLOCK();
  #endif
-@@ -7212,7 +7279,7 @@
+@@ -7212,7 +7303,7 @@
  	PF_ACPY(&pd.baddr, dir == PF_OUT ? pd.src : pd.dst, AF_INET6);
  	pd.ip_sum = NULL;
  	pd.af = AF_INET6;
@@ -2542,7 +2573,7 @@ diff -u -r1.46.2.1 pf.c
  	pd.tot_len = ntohs(h->ip6_plen) + sizeof(struct ip6_hdr);
  	pd.eh = eh;
  
-@@ -7409,7 +7476,7 @@
+@@ -7409,7 +7500,7 @@
  	}
  
  	default:
@@ -2551,7 +2582,7 @@ diff -u -r1.46.2.1 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -7444,7 +7511,9 @@
+@@ -7444,7 +7535,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2562,7 +2593,7 @@ diff -u -r1.46.2.1 pf.c
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
-@@ -7542,10 +7611,10 @@
+@@ -7542,10 +7635,10 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
@@ -2577,11 +2608,11 @@ diff -u -r1.46.2.1 pf.c
  #endif
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf_ioctl.c,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.28.2.1
 diff -u -r1.28.2.1 pf_ioctl.c
 --- sys/contrib/pf/net/pf_ioctl.c	25 Nov 2007 19:26:46 -0000	1.28.2.1
-+++ sys/contrib/pf/net/pf_ioctl.c	27 May 2008 21:25:29 -0000
++++ sys/contrib/pf/net/pf_ioctl.c	9 Jul 2008 20:44:17 -0000
 @@ -1928,6 +1928,39 @@
  		break;
  	}
@@ -2686,11 +2717,11 @@ diff -u -r1.28.2.1 pf_ioctl.c
  	pf_pfil_hooked = 1;
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pf_mtag.h,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.1
 diff -u -r1.1 pf_mtag.h
 --- sys/contrib/pf/net/pf_mtag.h	3 Jul 2007 12:46:06 -0000	1.1
-+++ sys/contrib/pf/net/pf_mtag.h	15 May 2008 22:31:36 -0000
++++ sys/contrib/pf/net/pf_mtag.h	9 Jul 2008 20:44:17 -0000
 @@ -37,11 +37,14 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -2711,7 +2742,7 @@ Index: sys/contrib/pf/net/pf_pptp.c
 RCS file: sys/contrib/pf/net/pf_pptp.c
 diff -N sys/contrib/pf/net/pf_pptp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_pptp.c	2 Jun 2008 19:43:03 -0000
++++ sys/contrib/pf/net/pf_pptp.c	9 Jul 2008 20:44:17 -0000
 @@ -0,0 +1,275 @@
 +/*
 + * Copyright (c) 2000 Whistle Communications, Inc.
@@ -2990,11 +3021,11 @@ diff -N sys/contrib/pf/net/pf_pptp.c
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	3 Jul 2007 12:58:33 -0000	1.16
-+++ sys/contrib/pf/net/pfvar.h	27 May 2008 21:26:31 -0000
++++ sys/contrib/pf/net/pfvar.h	9 Jul 2008 20:44:17 -0000
 @@ -57,6 +57,9 @@
  
  #ifdef __FreeBSD__
@@ -3118,11 +3149,11 @@ diff -u -r1.16 pfvar.h
  
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/modules/pf/Makefile,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/modules/pf/Makefile,v
 retrieving revision 1.13
 diff -u -r1.13 Makefile
 --- sys/modules/pf/Makefile	3 Jul 2007 12:46:06 -0000	1.13
-+++ sys/modules/pf/Makefile	15 May 2008 17:23:16 -0000
++++ sys/modules/pf/Makefile	9 Jul 2008 20:44:17 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
@@ -3134,11 +3165,11 @@ diff -u -r1.13 Makefile
  
 Index: sys/net/pfil.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/net/pfil.c,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/net/pfil.c,v
 retrieving revision 1.14
 diff -u -r1.14 pfil.c
 --- sys/net/pfil.c	2 Feb 2006 03:13:15 -0000	1.14
-+++ sys/net/pfil.c	19 May 2008 21:46:14 -0000
++++ sys/net/pfil.c	9 Jul 2008 20:44:17 -0000
 @@ -34,6 +34,7 @@
  #include <sys/errno.h>
  #include <sys/lock.h>
@@ -3315,11 +3346,11 @@ diff -u -r1.14 pfil.c
  			if (flags & PFIL_IN)
 Index: sys/net/pfil.h
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/net/pfil.h,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/net/pfil.h,v
 retrieving revision 1.16
 diff -u -r1.16 pfil.h
 --- sys/net/pfil.h	8 Jun 2007 12:43:25 -0000	1.16
-+++ sys/net/pfil.h	19 May 2008 21:36:52 -0000
++++ sys/net/pfil.h	9 Jul 2008 20:44:17 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
@@ -3367,11 +3398,11 @@ diff -u -r1.16 pfil.h
  struct pfil_head *pfil_head_get(int, u_long);
 Index: sys/netinet/ip_dummynet.h
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/netinet/ip_dummynet.h,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/netinet/ip_dummynet.h,v
 retrieving revision 1.40
 diff -u -r1.40 ip_dummynet.h
 --- sys/netinet/ip_dummynet.h	17 Jun 2007 00:33:34 -0000	1.40
-+++ sys/netinet/ip_dummynet.h	27 May 2008 21:27:43 -0000
++++ sys/netinet/ip_dummynet.h	9 Jul 2008 20:44:17 -0000
 @@ -113,7 +113,7 @@
   */
  struct dn_pkt_tag {
@@ -3394,11 +3425,11 @@ diff -u -r1.40 ip_dummynet.h
      struct _ip6dn_args ip6opt;	/* XXX ipv6 options			*/
 Index: sys/netinet/ip_fw_pfil.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/netinet/ip_fw_pfil.c,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/netinet/ip_fw_pfil.c,v
 retrieving revision 1.25
 diff -u -r1.25 ip_fw_pfil.c
 --- sys/netinet/ip_fw_pfil.c	7 Oct 2007 20:44:23 -0000	1.25
-+++ sys/netinet/ip_fw_pfil.c	19 May 2008 21:40:49 -0000
++++ sys/netinet/ip_fw_pfil.c	9 Jul 2008 20:44:17 -0000
 @@ -428,8 +428,10 @@
  	if (pfh_inet == NULL)
  		return ENOENT;
@@ -3427,11 +3458,11 @@ diff -u -r1.25 ip_fw_pfil.c
  }
 Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/netinet/ip_input.c,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/netinet/ip_input.c,v
 retrieving revision 1.332.2.1
 diff -u -r1.332.2.1 ip_input.c
 --- sys/netinet/ip_input.c	19 Dec 2007 08:10:30 -0000	1.332.2.1
-+++ sys/netinet/ip_input.c	19 May 2008 21:35:59 -0000
++++ sys/netinet/ip_input.c	9 Jul 2008 20:44:17 -0000
 @@ -244,6 +244,9 @@
  	if ((i = pfil_head_register(&inet_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
@@ -3444,11 +3475,11 @@ diff -u -r1.332.2.1 ip_input.c
  	IPQ_LOCK_INIT();
 Index: sys/netinet6/ip6_input.c
 ===================================================================
-RCS file: /home/eri/development/FreeBSD/src/sys/netinet6/ip6_input.c,v
+RCS file: /home/eri/mine/FreeBSD/src/sys/netinet6/ip6_input.c,v
 retrieving revision 1.95
 diff -u -r1.95 ip6_input.c
 --- sys/netinet6/ip6_input.c	5 Jul 2007 16:29:40 -0000	1.95
-+++ sys/netinet6/ip6_input.c	19 May 2008 21:35:34 -0000
++++ sys/netinet6/ip6_input.c	9 Jul 2008 20:44:17 -0000
 @@ -124,6 +124,7 @@
  
  int ip6_ours_check_algorithm;
