@@ -181,9 +181,9 @@ fi
 # Add git
 if [ ! -f "/usr/local/bin/git" ]; then
 	echo "Cannot find git, building from ports..."
-	(cd /usr/ports/devel/git/ && make deinstall clean)
-	(cd /usr/ports/devel/git/ && make ${MAKEJ_PORTS} BATCH=yo)
-	(cd /usr/ports/devel/git/ && make install FORCE_PKG_REGISTER=yo BATCH=yo)	
+	(cd /usr/ports/devel/git/ && make -DBATCH deinstall clean)
+	(cd /usr/ports/devel/git/ && make ${MAKEJ_PORTS} -DBATCH -DWITHOUT_GUI)
+	(cd /usr/ports/devel/git/ && make install -DWITHOUT_GUI -DFORCE_PKG_REGISTER -DBATCH)	
 	if [ ! -f "/usr/local/bin/git" ]; then
 		echo "Something went wrong while attempting installation of git."
 		exit 1
