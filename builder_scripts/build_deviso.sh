@@ -56,10 +56,6 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
-if [ $FreeBSD_version = "7" ]; then
-	recompile_pfPorts
-fi
-
 # Build world, kernel and install
 echo ">>> Building world and kernels for DevISO... $FreeBSD_version  $freebsd_branch ..."
 make_world
