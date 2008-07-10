@@ -113,7 +113,7 @@ RCS file: /home/eri/mine/FreeBSD/src/sys/net/if.h,v
 retrieving revision 1.108
 diff -u -r1.108 if.h
 --- sys/net/if.h	11 Jun 2007 20:08:11 -0000	1.108
-+++ sys/net/if.h	10 Jul 2008 17:55:00 -0000
++++ sys/net/if.h	10 Jul 2008 18:31:03 -0000
 @@ -27,7 +27,7 @@
   * SUCH DAMAGE.
   *
@@ -123,17 +123,7 @@ diff -u -r1.108 if.h
   */
  
  #ifndef _NET_IF_H_
-@@ -163,7 +163,8 @@
- /* flags set internally only: */
- #define	IFF_CANTCHANGE \
- 	(IFF_BROADCAST|IFF_POINTOPOINT|IFF_DRV_RUNNING|IFF_DRV_OACTIVE|\
--	    IFF_SIMPLEX|IFF_MULTICAST|IFF_ALLMULTI|IFF_SMART|IFF_PROMISC)
-+	    IFF_SIMPLEX|IFF_MULTICAST|IFF_ALLMULTI|IFF_SMART|IFF_PROMISC|\
-+	    IFF_NEEDSGIANT)
- 
- /*
-  * Values for if_link_state.
-@@ -209,9 +210,13 @@
+@@ -209,9 +209,13 @@
  #define	IFCAP_TSO4		0x0100	/* can do TCP Segmentation Offload */
  #define	IFCAP_TSO6		0x0200	/* can do TCP6 Segmentation Offload */
  #define	IFCAP_LRO		0x0400	/* can do Large Receive Offload */
