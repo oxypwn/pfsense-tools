@@ -13,7 +13,11 @@ fixup_libmap() {
 }
 
 print_error_pfS() {
+	echo
+	echo "####################################"
     echo "Something went wrong, check errors!" >&2
+	echo "####################################"
+	echo
     [ -n "${LOGFILE:-}" ] && \
         echo "Log saved on ${LOGFILE}" >&2
     cat $LOGFILE
@@ -188,7 +192,14 @@ build_all_kernels() {
 	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz -C $PFSENSEBASEDIR/boot/)
+	
+	# Install DEV ISO kernel if we are building a dev iso
+	if [ -z "${IS_DEV_ISO:-}" ]; then
+		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
+	else 
+		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz -C $PFSENSEBASEDIR/boot/)
+	fi
+	
 	echo "done."
 	
 }
@@ -221,7 +232,9 @@ recompile_pfPorts() {
 		echo "===> End of pfPorts..."
 	
 	else
+		echo
 		echo "/tmp/pfSense_do_not_build_pfPorts is set, skipping pfPorts build..."
+		echo
 	fi
 }
 

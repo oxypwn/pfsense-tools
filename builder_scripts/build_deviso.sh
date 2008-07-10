@@ -26,6 +26,8 @@ if [ $FreeBSD_version = "7" ]; then
 	export SRC_CONF="${PWD}/conf/make.conf.developer.7"
 fi
 
+export IS_DEV_ISO=yo
+
 export PRUNE_LIST=""
 
 export DEVIMAGE=yo
