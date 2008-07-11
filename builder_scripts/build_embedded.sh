@@ -125,14 +125,6 @@ unset CONFSIZE
 ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megabytes
 CONFSIZE=${CONFSIZE:-"4096"}
 
-if [ $FreeBSD_version = "7" ]; then
-	unset ROOTSIZE
-	unset CONFSIZE
-	echo "Building a -RELENG_7 image, setting size to 256 megabytes..."
-	ROOTSIZE=${ROOTSIZE:-"470096"}  # Total number of sectors - 256 megabytes
-	CONFSIZE=${CONFSIZE:-"4096"}
-fi
-
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
 # Temp file and directory to be used later
 TMPFILE=`mktemp -t freesbie`
