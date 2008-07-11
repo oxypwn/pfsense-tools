@@ -1540,6 +1540,38 @@ diff -u -r1.1.1.1 pfvar.h
  	u_int32_t		 rt_listid;
  	u_int32_t		 nr;
  	u_int32_t		 prob;
+Index: sys/net/if_bridge.c
+===================================================================
+RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/net/if_bridge.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_bridge.c
+--- sys/net/if_bridge.c	10 Jul 2008 18:39:37 -0000	1.1.1.1
++++ sys/net/if_bridge.c	11 Jul 2008 16:55:55 -0000
+@@ -2982,7 +2982,7 @@
+ 			 * packet will return to us via bridge_dummynet().
+ 			 */
+ 			args.oif = ifp;
+-			ip_dn_io_ptr(*mp, DN_TO_IFB_FWD, &args);
++			ip_dn_io_ptr(*mp, DN_TO_IFB_FWD, &args, DN_CLIENT_IPFW);
+ 			return (error);
+ 		}
+ 
+Index: sys/net/if_ethersubr.c
+===================================================================
+RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/net/if_ethersubr.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_ethersubr.c
+--- sys/net/if_ethersubr.c	10 Jul 2008 18:39:38 -0000	1.1.1.1
++++ sys/net/if_ethersubr.c	11 Jul 2008 16:56:35 -0000
+@@ -491,7 +491,7 @@
+ 			 */
+ 			*m0 = NULL ;
+ 		}
+-		ip_dn_io_ptr(m, dst ? DN_TO_ETH_OUT: DN_TO_ETH_DEMUX, &args);
++		ip_dn_io_ptr(m, dst ? DN_TO_ETH_OUT: DN_TO_ETH_DEMUX, &args, DN_CLIENT_IPFW);
+ 		return 0;
+ 	}
+ 	/*
 Index: sys/netinet/ip_dummynet.c
 ===================================================================
 RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_dummynet.c,v
