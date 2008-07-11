@@ -1325,16 +1325,46 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf.c
 --- sys/contrib/pf/net/pf.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf.c	11 Jul 2008 16:09:11 -0000
-@@ -6803,6 +6803,7 @@
++++ sys/contrib/pf/net/pf.c	11 Jul 2008 18:23:15 -0000
+@@ -135,6 +135,9 @@
+ #include <netinet/icmp6.h>
+ #include <netinet6/nd6.h>
+ #ifdef __FreeBSD__
++#include <netinet/ip_fw.h>
++#include <netinet/ip_dummynet.h>
++
+ #include <netinet6/ip6_var.h>
+ #include <netinet6/in6_pcb.h>
+ #endif
+@@ -342,6 +345,8 @@
+ 		    (*state)->rt_kif != NULL &&				\
+ 		    (*state)->rt_kif != kif)				\
+ 			return (PF_PASS);				\
++		if (pd->pf_mtag->flags & PF_DN_TAG_PRESENT)		\
++			return (PF_PASS);				\
+ 	} while (0)
+ 
+ #define	STATE_TRANSLATE(s) \
+@@ -6164,6 +6169,9 @@
+ 	} else {
+ 		if ((r->rt == PF_REPLYTO) == (r->direction == dir))
+ 			return;
++		else if ((r->rt == PF_ROUTETO) && (r->direction != dir) &&
++			r->rpool.opts & PF_POOL_STICKYADDR)
++			return; 
+ 		m0 = *m;
+ 	}
+ 
+@@ -6803,6 +6811,8 @@
  	int			 off, dirndx, pqid = 0;
  
  #ifdef __FreeBSD__
++	struct m_tag *dn_tag;
 +	struct ip_fw_args	 dnflow;
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -6829,6 +6830,7 @@
+@@ -6829,6 +6839,7 @@
  		PF_UNLOCK();
  		return (PF_PASS);
  	}
@@ -1342,7 +1372,24 @@ diff -u -r1.1.1.1 pf.c
  #else
  	if (pd.pf_mtag->flags & PF_TAG_GENERATED)
  		return (PF_PASS);
-@@ -6912,6 +6914,13 @@
+@@ -6873,8 +6884,15 @@
+ 		goto done;
+ 	}
+ 
++        dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL);
++        if (dn_tag != NULL &&
++                ((struct dn_pkt_tag *)dn_tag+1)->dn_client == DN_CLIENT_PF) {
++		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
++                m_tag_delete(m, dn_tag);
++        }
++
+ 	/* We do IP header normalization and packet reassembly here */
+-	if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
++	else if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 		action = PF_DROP;
+ 		goto done;
+ 	}
+@@ -6912,6 +6930,13 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1356,7 +1403,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -6965,6 +6974,12 @@
+@@ -6965,6 +6990,12 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1369,7 +1416,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7006,6 +7021,7 @@
+@@ -7006,6 +7037,7 @@
  		struct icmp	ih;
  
  		pd.hdr.icmp = &ih;
@@ -1377,19 +1424,19 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &ih, ICMP_MINLEN,
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7182,6 +7198,33 @@
+@@ -7182,6 +7214,33 @@
  		pf_route(m0, r, dir, ifp, s, &pd);
  	
  #ifdef __FreeBSD__
-+	if (r->dnpipe && DUMMYNET_LOADED) {
++	if (action == PF_PASS && r->dnpipe && DUMMYNET_LOADED &&
++		!(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
 +			struct ip_fw dummyrule;
 +
 +      			dummyrule.cmd->opcode = 
 +				r->dntype == DN_IS_PIPE ? O_PIPE : O_QUEUE;
 +			dummyrule.act_ofs = 0;
 +			dummyrule.cmd_len = 1;
-+			if (action == PF_PASS && (
-+				pqid || (pd.tos & IPTOS_LOWDELAY))) 
++			if (dir == PF_OUT)
 +				dnflow.cookie = r->pdnpipe;
 +			else 
 +				dnflow.cookie = r->dnpipe;
@@ -1411,15 +1458,34 @@ diff -u -r1.1.1.1 pf.c
  	PF_UNLOCK();
  #endif
  
-@@ -7210,6 +7253,7 @@
+@@ -7210,6 +7269,8 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
++	struct m_tag *dn_tag;
 +	struct ip_fw_args	 dnflow;
  	PF_LOCK();
  #endif
  
-@@ -7385,6 +7429,12 @@
+@@ -7278,8 +7339,16 @@
+ 		goto done;
+ 	}
+ 
++	dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL);
++        if (dn_tag != NULL &&
++                ((struct dn_pkt_tag *)dn_tag+1)->dn_client == DN_CLIENT_PF) {
++                pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
++                m_tag_delete(m, dn_tag);
++        }
++
++
+ 	/* We do IP header normalization and packet reassembly here */
+-	if (pf_normalize_ip6(m0, dir, kif, &reason, &pd) != PF_PASS) {
++	else if (pf_normalize_ip6(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 		action = PF_DROP;
+ 		goto done;
+ 	}
+@@ -7385,6 +7454,12 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1432,7 +1498,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7425,6 +7475,11 @@
+@@ -7425,6 +7500,11 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1444,19 +1510,19 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7640,8 +7695,33 @@
+@@ -7640,8 +7720,33 @@
  		pf_route6(m0, r, dir, ifp, s, &pd);
  	
  #ifdef __FreeBSD__
-+	if (r->dnpipe && DUMMYNET_LOADED) {
++        if (action == PF_PASS && r->dnpipe && DUMMYNET_LOADED &&
++                !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
 +			struct ip_fw dummyrule;
 +
 +      			dummyrule.cmd->opcode = 
 +				r->dntype == DN_IS_PIPE ? O_PIPE : O_QUEUE;
 +			dummyrule.act_ofs = 0;
 +			dummyrule.cmd_len = 1;
-+			if (action == PF_PASS && (
-+				pd.tos & IPTOS_LOWDELAY)) 
++			if (dir == PF_OUT)
 +				dnflow.cookie = r->pdnpipe;
 +			else 
 +				dnflow.cookie = r->dnpipe;
@@ -1484,8 +1550,42 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_ioctl.c
 --- sys/contrib/pf/net/pf_ioctl.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf_ioctl.c	10 Jul 2008 19:35:59 -0000
-@@ -3615,6 +3615,7 @@
++++ sys/contrib/pf/net/pf_ioctl.c	11 Jul 2008 17:57:09 -0000
+@@ -3555,17 +3555,8 @@
+ 	 * byte order. 
+ 	 */
+ 	struct ip *h = NULL;
+-	struct m_tag *dn_tag;
+ 	int chk;
+ 
+-        dn_tag = m_tag_find(*m, PACKET_TAG_DUMMYNET, NULL);
+-        if (dn_tag != NULL &&
+-                ((struct dn_pkt_tag *)(dn_tag+1))->dn_dir == DN_TO_IP_IN) {
+-                if (((struct dn_pkt_tag *)dn_tag+1)->dn_client == DN_CLIENT_PF)
+-                        m_tag_delete(*m, dn_tag);
+-                return (PF_PASS);
+-        }
+-
+ 	if ((*m)->m_pkthdr.len >= (int)sizeof(struct ip)) {
+ 		/* if m_pkthdr.len is less than ip header, pf will handle. */
+ 		h = mtod(*m, struct ip *);
+@@ -3599,22 +3590,14 @@
+ 	 * byte order. 
+ 	 */
+ 	struct ip *h = NULL;
+-	struct m_tag *dn_tag;
+ 	int chk;
+ 
+-        dn_tag = m_tag_find(*m, PACKET_TAG_DUMMYNET, NULL);
+-        if (dn_tag != NULL &&
+-                ((struct dn_pkt_tag *)(dn_tag+1))->dn_dir == DN_TO_IP_OUT) {
+-                if (((struct dn_pkt_tag *)dn_tag+1)->dn_client == DN_CLIENT_PF)
+-                        m_tag_delete(*m, dn_tag);
+-                return (PF_PASS);
+-        }
+-
+ 	/* We need a proper CSUM befor we start (s. OpenBSD ip_output) */
+ 	if ((*m)->m_pkthdr.csum_flags & CSUM_DELAY_DATA) {
  		in_delayed_cksum(*m);
  		(*m)->m_pkthdr.csum_flags &= ~CSUM_DELAY_DATA;
  	}
@@ -1493,44 +1593,50 @@ diff -u -r1.1.1.1 pf_ioctl.c
  	if ((*m)->m_pkthdr.len >= (int)sizeof(*h)) {
  		/* if m_pkthdr.len is less than ip header, pf will handle. */
  		h = mtod(*m, struct ip *);
-@@ -3644,6 +3645,14 @@
+@@ -3644,7 +3627,7 @@
  	 * IPv6 is not affected by ip_len/ip_off byte order changes.
  	 */
  	int chk;
-+	struct m_tag *dn_tag;
+-
 +	
-+	dn_tag = m_tag_find(*m, PACKET_TAG_DUMMYNET, NULL);
-+	if (dn_tag != NULL && 
-+		((struct dn_pkt_tag *)(dn_tag+1))->dn_dir == DN_TO_IP6_IN) {
-+		m_tag_delete(*m, dn_tag);
-+                return (PF_PASS);
-+        }
- 
  	/*
  	 * In case of loopback traffic IPv6 uses the real interface in
-@@ -3667,6 +3676,14 @@
- 	 * IPv6 does not affected ip_len/ip_off byte order changes.
- 	 */
- 	int chk;
-+	struct m_tag *dn_tag;
-+
-+	dn_tag = m_tag_find(*m, PACKET_TAG_DUMMYNET, NULL);
-+	if (dn_tag != NULL && 
-+		((struct dn_pkt_tag *)(dn_tag+1))->dn_dir == DN_TO_IP6_OUT) {
-+		m_tag_delete(*m, dn_tag);
-+                return (PF_PASS);
-+        }
+ 	 * order to support scoped addresses. In order to support stateful
+Index: sys/contrib/pf/net/pf_mtag.h
+===================================================================
+RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf_mtag.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf_mtag.h
+--- sys/contrib/pf/net/pf_mtag.h	10 Jul 2008 18:39:39 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_mtag.h	11 Jul 2008 17:41:45 -0000
+@@ -37,8 +37,7 @@
+ #define	PF_TAG_GENERATED		0x01
+ #define	PF_TAG_FRAGCACHE		0x02
+ #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
+-#define PF_IN_TAG_GENERATED             0x08
+-#define PF_OUT_TAG_GENERATED            0x10
++#define PF_DN_TAG_PRESENT	        0x08
  
- 	/* We need a proper CSUM befor we start (s. OpenBSD ip_output) */
- 	if ((*m)->m_pkthdr.csum_flags & CSUM_DELAY_DATA) {
+ struct pf_mtag {
+ 	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pfvar.h	10 Jul 2008 19:38:25 -0000
-@@ -635,6 +635,9 @@
++++ sys/contrib/pf/net/pfvar.h	11 Jul 2008 17:56:15 -0000
+@@ -57,9 +57,6 @@
+ 
+ #ifdef __FreeBSD__
+ #include <netinet/in.h>
+-
+-#include <netinet/ip_fw.h>
+-#include <netinet/ip_dummynet.h>
+ #endif
+ 
+ #include <netinet/tcp_fsm.h>
+@@ -635,6 +632,9 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
  	u_int32_t		 pqid;
@@ -1578,7 +1684,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_dummyn
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
 --- sys/netinet/ip_dummynet.c	10 Jul 2008 18:39:38 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.c	11 Jul 2008 16:08:32 -0000
++++ sys/netinet/ip_dummynet.c	11 Jul 2008 17:14:51 -0000
 @@ -84,6 +84,9 @@
  #include <netinet/ip6.h>       /* for ip6_input, ip6_output prototypes */
  #include <netinet6/ip6_var.h>
@@ -1671,15 +1777,6 @@ diff -u -r1.1.1.1 ip_dummynet.c
  	TASK_INIT(&dn_task, 0, dummynet_task, NULL);
  	dn_tq = taskqueue_create_fast("dummynet", M_NOWAIT,
  	    taskqueue_thread_enqueue, &dn_tq);
-@@ -2149,7 +2166,7 @@
- {
- 	ip_dn_ctl_ptr = NULL;
- 	ip_dn_io_ptr = NULL;
--	ip_dn_ruledel_ptr = NULL;
-+	ip_dn_ruledel_ptr = NULL
- 
- 	DUMMYNET_LOCK();
- 	callout_stop(&dn_timeout);
 @@ -2197,5 +2214,4 @@
  	NULL
  };
