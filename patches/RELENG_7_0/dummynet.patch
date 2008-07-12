@@ -603,7 +603,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/contrib/pf/pfctl/pfct
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.c	12 Jul 2008 21:35:08 -0000
++++ contrib/pf/pfctl/pfctl.c	12 Jul 2008 22:05:22 -0000
 @@ -46,6 +46,9 @@
  #include <altq/altq.h>
  #include <sys/sysctl.h>
@@ -655,7 +655,16 @@ diff -u -r1.1.1.1 pfctl.c
  	"Interfaces", "labels", "timeouts", "memory", "Tables", "osfp",
  	"all", NULL
  };
-@@ -370,6 +378,21 @@
+@@ -286,6 +294,8 @@
+ 			if (errno != ENOENT)
+ 				err(1, "DIOCSTOPALTQ");
+ 
++	pfctl_clear_dummynet(0, opts);
++
+ 	return (0);
+ }
+ 
+@@ -370,6 +380,21 @@
  }
  
  int
@@ -677,7 +686,7 @@ diff -u -r1.1.1.1 pfctl.c
  pfctl_clear_src_nodes(int dev, int opts)
  {
  	if (ioctl(dev, DIOCCLRSRCNODES))
-@@ -804,6 +827,10 @@
+@@ -804,6 +829,10 @@
  
  		printf("  [ queue: qname=%s qid=%u pqname=%s pqid=%u ]\n",
  		    rule->qname, rule->qid, rule->pqname, rule->pqid);
@@ -688,7 +697,7 @@ diff -u -r1.1.1.1 pfctl.c
  	}
  	if (opts & PF_OPT_VERBOSE) {
  		printf("  [ Evaluations: %-8llu  Packets: %-8llu  "
-@@ -1413,6 +1440,24 @@
+@@ -1413,6 +1442,24 @@
  }
  
  int
@@ -713,7 +722,7 @@ diff -u -r1.1.1.1 pfctl.c
  pfctl_rules(int dev, char *filename, FILE *fin, int opts, int optimize,
      char *anchorname, struct pfr_buffer *trans)
  {
-@@ -1979,6 +2024,21 @@
+@@ -1979,6 +2026,21 @@
  }
  
  int
@@ -735,7 +744,7 @@ diff -u -r1.1.1.1 pfctl.c
  pfctl_show_anchors(int dev, int opts, char *anchorname)
  {
  	struct pfioc_ruleset	 pr;
-@@ -2043,7 +2103,7 @@
+@@ -2043,7 +2105,7 @@
  		usage();
  
  	while ((ch = getopt(argc, argv,
@@ -744,7 +753,7 @@ diff -u -r1.1.1.1 pfctl.c
  		switch (ch) {
  		case 'a':
  			anchoropt = optarg;
-@@ -2125,6 +2185,9 @@
+@@ -2125,6 +2187,9 @@
  		case 'A':
  			loadopt |= PFCTL_FLAG_ALTQ;
  			break;
@@ -754,7 +763,7 @@ diff -u -r1.1.1.1 pfctl.c
  		case 'R':
  			loadopt |= PFCTL_FLAG_FILTER;
  			break;
-@@ -2239,6 +2302,11 @@
+@@ -2239,6 +2304,11 @@
  		if (dev == -1)
  			err(1, "%s", pf_device);
  		altqsupport = pfctl_test_altqsupport(dev, opts);
@@ -766,7 +775,7 @@ diff -u -r1.1.1.1 pfctl.c
  	} else {
  		dev = open(pf_device, O_RDONLY);
  		if (dev >= 0)
-@@ -2251,6 +2319,10 @@
+@@ -2251,6 +2321,10 @@
  #else
  		altqsupport = 1;
  #endif
@@ -777,7 +786,7 @@ diff -u -r1.1.1.1 pfctl.c
  	}
  
  	if (opts & PF_OPT_DISABLE)
-@@ -2280,6 +2352,9 @@
+@@ -2280,6 +2354,9 @@
  			pfctl_show_altq(dev, ifaceopt, opts,
  			    opts & PF_OPT_VERBOSE2);
  			break;
@@ -787,7 +796,7 @@ diff -u -r1.1.1.1 pfctl.c
  		case 's':
  			pfctl_show_states(dev, ifaceopt, opts);
  			break;
-@@ -2302,6 +2377,7 @@
+@@ -2302,6 +2379,7 @@
  			pfctl_show_nat(dev, opts, anchorname);
  			pfctl_show_rules(dev, path, opts, 0, anchorname, 0);
  			pfctl_show_altq(dev, ifaceopt, opts, 0);
@@ -795,7 +804,7 @@ diff -u -r1.1.1.1 pfctl.c
  			pfctl_show_states(dev, ifaceopt, opts);
  			pfctl_show_src_nodes(dev, opts);
  			pfctl_show_status(dev, opts);
-@@ -2343,6 +2419,9 @@
+@@ -2343,6 +2421,9 @@
  		case 'q':
  			pfctl_clear_altq(dev, opts);
  			break;
@@ -805,7 +814,7 @@ diff -u -r1.1.1.1 pfctl.c
  		case 's':
  			pfctl_clear_states(dev, ifaceopt, opts);
  			break;
-@@ -2358,6 +2437,7 @@
+@@ -2358,6 +2439,7 @@
  			pfctl_clear_tables(anchorname, opts);
  			if (!*anchorname) {
  				pfctl_clear_altq(dev, opts);
@@ -813,7 +822,7 @@ diff -u -r1.1.1.1 pfctl.c
  				pfctl_clear_states(dev, ifaceopt, opts);
  				pfctl_clear_src_nodes(dev, opts);
  				pfctl_clear_stats(dev, opts);
-@@ -2453,6 +2533,9 @@
+@@ -2453,6 +2535,9 @@
  			break;
  		}
  	}
