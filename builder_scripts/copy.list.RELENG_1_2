@@ -68,4 +68,7 @@ usr/local/lib/olsrd_nameservice.so.0.3
 usr/local/lib/olsrd_pgraph.so.1.1
 usr/local/lib/olsrd_secure.so.0.5
 usr/local/lib/olsrd_txtinfo.so.0.1
-usr/local/share/rrdtool/fonts/DejaVuSansMono-Roman.ttf
+usr/local/sbin/setkey
+usr/local/share/rrdtool/fonts/DejaVuSansMono-Roman.ttf 
+usr/local/lib/libipsec.so
+usr/local/lib/libipsec.so.0
