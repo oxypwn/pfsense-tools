@@ -225,6 +225,9 @@ recompile_pfPorts() {
 		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
 		( su - root -c ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} )
 
+		echo "Rebuilding includes..."
+		( cd /usr/src && make includes )
+		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			mv /tmp/make.conf /etc/
 		fi
