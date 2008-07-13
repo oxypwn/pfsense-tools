@@ -195,9 +195,9 @@ build_all_kernels() {
 	
 	# Install DEV ISO kernel if we are building a dev iso
 	if [ -z "${IS_DEV_ISO:-}" ]; then
-		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
-	else 
 		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz -C $PFSENSEBASEDIR/boot/)
+	else 
+		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 	fi
 	
 	echo "done."
