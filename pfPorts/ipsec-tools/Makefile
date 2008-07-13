@@ -48,7 +48,7 @@ OPTIONS=	DEBUG		"enable Debug support" on \
 		HYBRID		"enable Hybrid Mode-cfg and Xauth support" on \
 		PAM		"enable PAM authentication" off \
 		GSSAPI		"enable GSS-API authentication" off \
-		RADIUS		"enable Radius authentication" on \
+		RADIUS		"enable Radius authentication" off \
 		LDAP		"enable LDAP authentication" on \
 		SAUNSPEC	"enable Unspecified SA mode" on \
 		RC5		"enable RC5 encryption (patented)" off \
