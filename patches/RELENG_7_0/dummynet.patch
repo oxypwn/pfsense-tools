@@ -852,7 +852,7 @@ Index: contrib/pf/pfctl/pfctl_dn.c
 RCS file: contrib/pf/pfctl/pfctl_dn.c
 diff -N contrib/pf/pfctl/pfctl_dn.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ contrib/pf/pfctl/pfctl_dn.c	12 Jul 2008 21:36:08 -0000
++++ contrib/pf/pfctl/pfctl_dn.c	18 Jul 2008 16:31:10 -0000
 @@ -0,0 +1,397 @@
 +/*
 + * Copyright (c) 2007 Ermal Luçi
@@ -1166,7 +1166,7 @@ diff -N contrib/pf/pfctl/pfctl_dn.c
 +{
 +	if (p->pipe_nr != 0) { /* This is a pipe */
 +		printf("dnpipe %d", p->pipe_nr);
-+		if (p->bandwidth) 
++		if (p->bandwidth >= 1000000) 
 +			printf(" bandwidth %dMb", p->bandwidth/1000000);
 +	        else if (p->bandwidth >= 1000)
 +         	        printf(" bandwidth %dKb", p->bandwidth/1000);
