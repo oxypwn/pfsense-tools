@@ -126,7 +126,7 @@ build_all_kernels() {
 			
 	# Build uniprocessor kernel
 	echo ">>> Building uniprocessor kernel..."
-	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense.${FreeBSD_version}
@@ -137,7 +137,7 @@ build_all_kernels() {
 
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_wrap.${FreeBSD_version}
@@ -148,7 +148,7 @@ build_all_kernels() {
 
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FreeBSD_version}
@@ -159,7 +159,7 @@ build_all_kernels() {
 	
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
-	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_SMP.${FreeBSD_version}
@@ -208,6 +208,17 @@ recompile_pfPorts() {
 
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then 
 
+		echo
+		echo
+		echo "WARNING!  We are about to run make includes."
+		echo "          If you do not wish for this command press CTRL+C now!"
+		echo 
+		sleep 5
+		# Since we are using NAT-T we need to run this prior
+		# to the build.  Once NAT-T is included in FreeBSD
+		# we can remove this step. 
+		( cd /usr/src && make includes )
+		
 		pfSPORTS_COPY_BASE_DIR="/home/pfsense/tools/pfPorts"
 		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
 
