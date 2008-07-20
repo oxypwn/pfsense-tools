@@ -61,7 +61,13 @@ PORTSTOBUILD="grub \
 	php4-zlib \
 	php4-install-all"
 
-MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+if [ -f pfsense_local.sh ]; then
+	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+else 
+	if [ -f ../builder_scripts/pfsense_local.sh ]; then
+		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
+	fi
+fi
 
 if [ ! -d /usr/ports/INDEX-7.bz2 ]; then 
 	( cd /usr/ports && make fetchindex )

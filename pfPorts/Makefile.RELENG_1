@@ -64,7 +64,13 @@ PORTSTOBUILD="grub \
 	ftp-proxy \
 	php5-install-all"
 
-MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+if [ -f pfsense_local.sh ]; then
+	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+else 
+	if [ -f ../builder_scripts/pfsense_local.sh ]; then
+		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
+	fi
+fi
 
 CURRENTDIR=`pwd`
 
