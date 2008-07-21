@@ -30,5 +30,6 @@
 ~sys/modules~Makefile~
 ~sys~if_et.c.diff~
 ~sys/net/~altq-vlan.diff~
+~sys/dev/bge/~if_bge.c.diff~
 ~~vr.patch~
 ~~carp.diff~
