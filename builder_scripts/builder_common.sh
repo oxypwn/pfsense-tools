@@ -126,7 +126,7 @@ build_all_kernels() {
 			
 	# Build uniprocessor kernel
 	echo ">>> Building uniprocessor kernel..."
-	rm -f $MAKEOBJDIRPREFIX/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense.${FreeBSD_version}
@@ -137,7 +137,7 @@ build_all_kernels() {
 
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	rm -f $MAKEOBJDIRPREFIX/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_wrap.${FreeBSD_version}
@@ -148,7 +148,7 @@ build_all_kernels() {
 
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	rm -f $MAKEOBJDIRPREFIX/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FreeBSD_version}
@@ -159,7 +159,8 @@ build_all_kernels() {
 	
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
-	rm -f $MAKEOBJDIRPREFIX/home/pfsense/freesbie2/.*kernel*
+	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
+		
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_SMP.${FreeBSD_version}
