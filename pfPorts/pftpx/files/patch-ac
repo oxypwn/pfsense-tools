@@ -1,0 +1,11 @@
+--- pftpxold.c	2008-07-22 20:37:00.000000000 +0000
++++ pftpx.c	2008-07-22 20:37:08.000000000 +0000
+@@ -44,7 +44,7 @@
+ 
+ #define CONNECT_TIMEOUT	30
+ #define MIN_PORT	1024
+-#define MAX_LINE	500
++#define MAX_LINE	1512
+ #define MAX_LOGLINE	300
+ #define NTOP_BUFS	3
+ #define TCP_BACKLOG	10

@@ -63,7 +63,7 @@
 
 #define CONNECT_TIMEOUT	30
 #define MIN_PORT	1024
-#define MAX_LINE	500
+#define MAX_LINE	1516
 #define MAX_LOGLINE	300
 #define NTOP_BUFS	3
 #define TCP_BACKLOG	10
