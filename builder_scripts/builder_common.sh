@@ -230,6 +230,7 @@ recompile_pfPorts() {
 		if [ -f /etc/make.conf ]; then
 			mv /etc/make.conf /tmp/
 			echo "WITHOUT_X11=yo" >> /etc/make.conf
+			echo "CFLAGS=-O"
 			MKCNF="pfPorts"
 		fi
 		export FORCE_PKG_REGISTER=yo
