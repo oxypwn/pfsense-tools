@@ -146,13 +146,13 @@ RCS file: /home/eri/mine/FreeBSD/src/sys/pci/Attic/if_vr.c,v
 retrieving revision 1.126.2.1
 diff -u -r1.126.2.1 if_vr.c
 --- sys/pci/if_vr.c	12 Oct 2007 03:41:54 -0000	1.126.2.1
-+++ sys/pci/if_vr.c	10 Jul 2008 17:36:22 -0000
++++ sys/pci/if_vr.c	23 Jul 2008 19:22:26 -0000
 @@ -31,7 +31,7 @@
   */
  
  #include <sys/cdefs.h>
 -__FBSDID("$FreeBSD: src/sys/pci/if_vr.c,v 1.126.2.1 2007/10/12 03:41:54 yongari Exp $");
-+__FBSDID("$FreeBSD: src/sys/dev/vr/if_vr.c,v 1.130.2.1 2008/04/11 03:41:58 yongari Exp $");
++__FBSDID("$FreeBSD: src/sys/dev/vr/if_vr.c,v 1.130.2.3 2008/07/23 08:18:42 yongari Exp $");
  
  /*
   * VIA Rhine fast ethernet PCI NIC driver
@@ -236,7 +236,7 @@ diff -u -r1.126.2.1 if_vr.c
  	    "VIA VT6105M Rhine III 10/100BaseTX" },
  	{ DELTA_VENDORID, DELTA_DEVICEID_RHINE_II,
  	    VR_Q_NEEDALIGN,
-@@ -141,74 +144,69 @@
+@@ -141,74 +144,70 @@
  	{ 0, 0, 0, NULL }
  };
  
@@ -320,7 +320,8 @@ diff -u -r1.126.2.1 if_vr.c
 -static void vr_setcfg(struct vr_softc *, int);
 -static void vr_setmulti(struct vr_softc *);
 +static void vr_link_task(void *, int);
-+static int vr_setperf(struct vr_softc *, int, uint8_t *);
++static void vr_cam_mask(struct vr_softc *, uint32_t, int);
++static int vr_cam_data(struct vr_softc *, int, int, uint8_t *);
 +static void vr_set_filter(struct vr_softc *);
  static void vr_reset(const struct vr_softc *);
 -static int vr_list_rx_init(struct vr_softc *);
@@ -354,7 +355,7 @@ diff -u -r1.126.2.1 if_vr.c
  
  static device_method_t vr_methods[] = {
  	/* Device interface */
-@@ -216,6 +214,8 @@
+@@ -216,6 +215,8 @@
  	DEVMETHOD(device_attach,	vr_attach),
  	DEVMETHOD(device_detach, 	vr_detach),
  	DEVMETHOD(device_shutdown,	vr_shutdown),
@@ -363,7 +364,7 @@ diff -u -r1.126.2.1 if_vr.c
  
  	/* bus interface */
  	DEVMETHOD(bus_print_child,	bus_generic_print_child),
-@@ -225,8 +225,9 @@
+@@ -225,8 +226,9 @@
  	DEVMETHOD(miibus_readreg,	vr_miibus_readreg),
  	DEVMETHOD(miibus_writereg,	vr_miibus_writereg),
  	DEVMETHOD(miibus_statchg,	vr_miibus_statchg),
@@ -374,7 +375,7 @@ diff -u -r1.126.2.1 if_vr.c
  };
  
  static driver_t vr_driver = {
-@@ -239,233 +240,316 @@
+@@ -239,233 +241,330 @@
  
  DRIVER_MODULE(vr, pci, vr_driver, vr_devclass, 0, 0);
  DRIVER_MODULE(miibus, vr, miibus_driver, miibus_devclass, 0, 0);
@@ -605,33 +606,49 @@ diff -u -r1.126.2.1 if_vr.c
 +	VR_UNLOCK(sc);
  }
  
--static void
++
+ static void
 -vr_miibus_statchg(device_t dev)
-+/*
-+ * Copy the address 'mac' into the perfect RX filter entry at
-+ * offset 'idx.' The perfect filter only has 32 entries so do
-+ * some sanity tests.
-+ */
-+static int
-+vr_setperf(struct vr_softc *sc, int idx, uint8_t *mac)
++vr_cam_mask(struct vr_softc *sc, uint32_t mask, int type)
  {
 -	struct mii_data		*mii;
 -	struct vr_softc		*sc = device_get_softc(dev);
-+	int	i;
  
 -	mii = device_get_softc(sc->vr_miibus);
 -	vr_setcfg(sc, mii->mii_media_active);
-+	if (idx < 0 || idx >= VR_CAM_MCAST_CNT || mac == NULL)
-+		return (EINVAL);
++	if (type == VR_MCAST_CAM)
++		CSR_WRITE_1(sc, VR_CAMCTL, VR_CAMCTL_ENA | VR_CAMCTL_MCAST);
++	else
++		CSR_WRITE_1(sc, VR_CAMCTL, VR_CAMCTL_ENA | VR_CAMCTL_VLAN);
++	CSR_WRITE_4(sc, VR_CAMMASK, mask);
++	CSR_WRITE_1(sc, VR_CAMCTL, 0);
++}
++
++static int
++vr_cam_data(struct vr_softc *sc, int type, int idx, uint8_t *mac)
++{
++	int	i;
++
++	if (type == VR_MCAST_CAM) {
++		if (idx < 0 || idx >= VR_CAM_MCAST_CNT || mac == NULL)
++			return (EINVAL);
++		CSR_WRITE_1(sc, VR_CAMCTL, VR_CAMCTL_ENA | VR_CAMCTL_MCAST);
++	} else
++		CSR_WRITE_1(sc, VR_CAMCTL, VR_CAMCTL_ENA | VR_CAMCTL_VLAN);
 +
 +	/* Set CAM entry address. */
 +	CSR_WRITE_1(sc, VR_CAMADDR, idx);
 +	/* Set CAM entry data. */
-+	for (i = 0; i < ETHER_ADDR_LEN; i++)
-+		CSR_WRITE_1(sc, VR_MAR0 + i, mac[i]);
++	if (type == VR_MCAST_CAM) {
++		for (i = 0; i < ETHER_ADDR_LEN; i++)
++			CSR_WRITE_1(sc, VR_MCAM0 + i, mac[i]);
++	} else {
++		CSR_WRITE_1(sc, VR_VCAM0, mac[0]);
++		CSR_WRITE_1(sc, VR_VCAM1, mac[1]);
++	}
++	DELAY(10);
 +	/* Write CAM and wait for self-clear of VR_CAMCTL_WRITE bit. */
-+	CSR_WRITE_1(sc, VR_CAMCTL,
-+	    VR_CAMCTL_ENA | VR_CAMCTL_MCAST | VR_CAMCTL_WRITE);
++	CSR_WRITE_1(sc, VR_CAMCTL, VR_CAMCTL_ENA | VR_CAMCTL_WRITE);
 +	for (i = 0; i < VR_TIMEOUT; i++) {
 +		DELAY(1);
 +		if ((CSR_READ_1(sc, VR_CAMCTL) & VR_CAMCTL_WRITE) == 0)
@@ -641,6 +658,7 @@ diff -u -r1.126.2.1 if_vr.c
 +	if (i == VR_TIMEOUT)
 +		device_printf(sc->vr_dev, "%s: setting CAM filter timeout!\n",
 +		    __func__);
++	CSR_WRITE_1(sc, VR_CAMCTL, 0);
 +
 +	return (i == VR_TIMEOUT ? ETIMEDOUT : 0);
  }
@@ -687,6 +705,7 @@ diff -u -r1.126.2.1 if_vr.c
 -
  	/* Now program new ones. */
 +	error = 0;
++	mcnt = 0;
  	IF_ADDR_LOCK(ifp);
 -	TAILQ_FOREACH(ifma, &ifp->if_multiaddrs, ifma_link) {
 -		if (ifma->ifma_addr->sa_family != AF_LINK)
@@ -704,12 +723,10 @@ diff -u -r1.126.2.1 if_vr.c
 +		 * 32 entries multicast perfect filter.
 +		 */
 +		cam_mask = 0;
-+		mcnt = 0;
-+		CSR_WRITE_1(sc, VR_CAMCTL, VR_CAMCTL_ENA | VR_CAMCTL_MCAST);
 +		TAILQ_FOREACH(ifma, &ifp->if_multiaddrs, ifma_link) {
 +			if (ifma->ifma_addr->sa_family != AF_LINK)
 +				continue;
-+			error = vr_setperf(sc, mcnt,
++			error = vr_cam_data(sc, VR_MCAST_CAM, mcnt,
 +			    LLADDR((struct sockaddr_dl *)ifma->ifma_addr));
 +			if (error != 0) {
 +				cam_mask = 0;
@@ -718,19 +735,16 @@ diff -u -r1.126.2.1 if_vr.c
 +			cam_mask |= 1 << mcnt;
 +			mcnt++;
 +		}
-+		/* Enable multicast CAM entries depending on mask. */
-+		CSR_WRITE_1(sc, VR_CAMMASK, cam_mask);
-+		/* Accessing CAM done. */
-+		CSR_WRITE_1(sc, VR_CAMCTL, 0);
++		vr_cam_mask(sc, VR_MCAST_CAM, cam_mask);
 +	}
 +
-+	mcnt = 0;
 +	if ((sc->vr_quirks & VR_Q_CAM) == 0 || error != 0) {
 +		/*
 +		 * If there are too many multicast addresses or
 +		 * setting multicast CAM filter failed, use hash
 +		 * table based filtering.
 +		 */
++		mcnt = 0;
 +		TAILQ_FOREACH(ifma, &ifp->if_multiaddrs, ifma_link) {
 +			if (ifma->ifma_addr->sa_family != AF_LINK)
 +				continue;
@@ -827,7 +841,7 @@ diff -u -r1.126.2.1 if_vr.c
  }
  
  /*
-@@ -508,13 +592,12 @@
+@@ -508,13 +607,12 @@
  static int
  vr_attach(device_t dev)
  {
@@ -844,7 +858,7 @@ diff -u -r1.126.2.1 if_vr.c
  
  	sc = device_get_softc(dev);
  	sc->vr_dev = dev;
-@@ -526,23 +609,32 @@
+@@ -526,23 +624,32 @@
  	mtx_init(&sc->vr_mtx, device_get_nameunit(dev), MTX_NETWORK_LOCK,
  	    MTX_DEF);
  	callout_init_mtx(&sc->vr_stat_callout, &sc->vr_mtx, 0);
@@ -883,7 +897,7 @@ diff -u -r1.126.2.1 if_vr.c
  	rid = 0;
  	sc->vr_irq = bus_alloc_resource_any(dev, SYS_RES_IRQ, &rid,
  	    RF_SHAREABLE | RF_ACTIVE);
-@@ -556,34 +648,48 @@
+@@ -556,34 +663,48 @@
  	/* Allocate ifnet structure. */
  	ifp = sc->vr_ifp = if_alloc(IFT_ETHER);
  	if (ifp == NULL) {
@@ -944,7 +958,7 @@ diff -u -r1.126.2.1 if_vr.c
  #ifdef DEVICE_POLLING
  	ifp->if_capabilities |= IFCAP_POLLING;
  #endif
-@@ -596,38 +702,74 @@
+@@ -596,38 +717,74 @@
  	if (pci_find_extcap(dev, PCIY_PMG, &pmc) == 0)
  		VR_CLRBIT(sc, VR_STICKHW, (VR_STICKHW_DS0|VR_STICKHW_DS1));
  
@@ -1035,7 +1049,7 @@ diff -u -r1.126.2.1 if_vr.c
  	/* Do MII setup. */
  	if (mii_phy_probe(dev, &sc->vr_miibus,
  	    vr_ifmedia_upd, vr_ifmedia_sts)) {
-@@ -638,10 +780,14 @@
+@@ -638,10 +795,14 @@
  
  	/* Call MI attach routine. */
  	ether_ifattach(ifp, eaddr);
@@ -1053,7 +1067,7 @@ diff -u -r1.126.2.1 if_vr.c
  	error = bus_setup_intr(dev, sc->vr_irq, INTR_TYPE_NET | INTR_MPSAFE,
  	    NULL, vr_intr, sc, &sc->vr_intrhand);
  
-@@ -674,17 +820,18 @@
+@@ -674,17 +835,18 @@
  	KASSERT(mtx_initialized(&sc->vr_mtx), ("vr mutex not initialized"));
  
  #ifdef DEVICE_POLLING
@@ -1075,7 +1089,7 @@ diff -u -r1.126.2.1 if_vr.c
  		ether_ifdetach(ifp);
  	}
  	if (sc->vr_miibus)
-@@ -696,114 +843,438 @@
+@@ -696,115 +858,439 @@
  	if (sc->vr_irq)
  		bus_release_resource(dev, SYS_RES_IRQ, 0, sc->vr_irq);
  	if (sc->vr_res)
@@ -1150,20 +1164,6 @@ diff -u -r1.126.2.1 if_vr.c
 -	VR_LOCK_ASSERT(sc);
 -
 -	ld = sc->vr_ldata;
--
--	for (i = 0; i < VR_RX_LIST_CNT; i++) {
--		if (vr_newbuf(&ld->vr_rx_list[i], NULL) == ENOBUFS)
--			return (ENOBUFS);
--		if (i == (VR_RX_LIST_CNT - 1)) {
--			ld->vr_rx_list[i].vr_next = &ld->vr_rx_list[0];
--			ld->vr_rx_list[i].vr_nextphys =
--					vtophys(&ld->vr_rx_list[0]);
--		} else {
--			ld->vr_rx_list[i].vr_next =
--					&ld->vr_rx_list[i + 1];
--			ld->vr_rx_list[i].vr_nextphys =
--					vtophys(&ld->vr_rx_list[i + 1]);
--		}
 +	struct vr_dmamap_arg	ctx;
 +	struct vr_txdesc	*txd;
 +	struct vr_rxdesc	*rxd;
@@ -1203,9 +1203,21 @@ diff -u -r1.126.2.1 if_vr.c
 +	if (error != 0) {
 +		device_printf(sc->vr_dev, "failed to create Tx ring DMA tag\n");
 +		goto fail;
- 	}
++	}
  
--	sc->vr_rx_head = &ld->vr_rx_list[0];
+-	for (i = 0; i < VR_RX_LIST_CNT; i++) {
+-		if (vr_newbuf(&ld->vr_rx_list[i], NULL) == ENOBUFS)
+-			return (ENOBUFS);
+-		if (i == (VR_RX_LIST_CNT - 1)) {
+-			ld->vr_rx_list[i].vr_next = &ld->vr_rx_list[0];
+-			ld->vr_rx_list[i].vr_nextphys =
+-					vtophys(&ld->vr_rx_list[0]);
+-		} else {
+-			ld->vr_rx_list[i].vr_next =
+-					&ld->vr_rx_list[i + 1];
+-			ld->vr_rx_list[i].vr_nextphys =
+-					vtophys(&ld->vr_rx_list[i + 1]);
+-		}
 +	/* Create tag for Rx ring. */
 +	error = bus_dma_tag_create(
 +	    sc->vr_cdata.vr_parent_tag,	/* parent */
@@ -1222,10 +1234,9 @@ diff -u -r1.126.2.1 if_vr.c
 +	if (error != 0) {
 +		device_printf(sc->vr_dev, "failed to create Rx ring DMA tag\n");
 +		goto fail;
-+	}
+ 	}
  
--	return (0);
--}
+-	sc->vr_rx_head = &ld->vr_rx_list[0];
 +	if ((sc->vr_quirks & VR_Q_NEEDALIGN) != 0)
 +		tx_alignment = sizeof(uint32_t);
 +	else
@@ -1248,17 +1259,8 @@ diff -u -r1.126.2.1 if_vr.c
 +		goto fail;
 +	}
  
--/*
-- * Initialize an RX descriptor and attach an MBUF cluster.
-- * Note: the length fields are only 11 bits wide, which means the
-- * largest size we can specify is 2047. This is important because
-- * MCLBYTES is 2048, so we have to subtract one otherwise we'll
-- * overflow the field and make a mess.
-- */
--static int
--vr_newbuf(struct vr_desc *c, struct mbuf *m)
--{
--	struct mbuf		*m_new = NULL;
+-	return (0);
+-}
 +	/* Create tag for Rx buffers. */
 +	error = bus_dma_tag_create(
 +	    sc->vr_cdata.vr_parent_tag,	/* parent */
@@ -1277,14 +1279,17 @@ diff -u -r1.126.2.1 if_vr.c
 +		goto fail;
 +	}
  
--	if (m == NULL) {
--		m_new = m_getcl(M_DONTWAIT, MT_DATA, M_PKTHDR);
--		if (m_new == NULL)
--			return (ENOBUFS);
--	} else {
--		m_new = m;
--		m_new->m_len = m_new->m_pkthdr.len = MCLBYTES;
--		m_new->m_data = m_new->m_ext.ext_buf;
+-/*
+- * Initialize an RX descriptor and attach an MBUF cluster.
+- * Note: the length fields are only 11 bits wide, which means the
+- * largest size we can specify is 2047. This is important because
+- * MCLBYTES is 2048, so we have to subtract one otherwise we'll
+- * overflow the field and make a mess.
+- */
+-static int
+-vr_newbuf(struct vr_desc *c, struct mbuf *m)
+-{
+-	struct mbuf		*m_new = NULL;
 +	/* Allocate DMA'able memory and load the DMA map for Tx ring. */
 +	error = bus_dmamem_alloc(sc->vr_cdata.vr_tx_ring_tag,
 +	    (void **)&sc->vr_rdata.vr_tx_ring, BUS_DMA_WAITOK |
@@ -1293,9 +1298,16 @@ diff -u -r1.126.2.1 if_vr.c
 +		device_printf(sc->vr_dev,
 +		    "failed to allocate DMA'able memory for Tx ring\n");
 +		goto fail;
- 	}
++	}
  
--	m_adj(m_new, sizeof(uint64_t));
+-	if (m == NULL) {
+-		m_new = m_getcl(M_DONTWAIT, MT_DATA, M_PKTHDR);
+-		if (m_new == NULL)
+-			return (ENOBUFS);
+-	} else {
+-		m_new = m;
+-		m_new->m_len = m_new->m_pkthdr.len = MCLBYTES;
+-		m_new->m_data = m_new->m_ext.ext_buf;
 +	ctx.vr_busaddr = 0;
 +	error = bus_dmamap_load(sc->vr_cdata.vr_tx_ring_tag,
 +	    sc->vr_cdata.vr_tx_ring_map, sc->vr_rdata.vr_tx_ring,
@@ -1304,13 +1316,10 @@ diff -u -r1.126.2.1 if_vr.c
 +		device_printf(sc->vr_dev,
 +		    "failed to load DMA'able memory for Tx ring\n");
 +		goto fail;
-+	}
+ 	}
 +	sc->vr_rdata.vr_tx_ring_paddr = ctx.vr_busaddr;
  
--	c->vr_mbuf = m_new;
--	c->vr_status = VR_RXSTAT;
--	c->vr_data = vtophys(mtod(m_new, caddr_t));
--	c->vr_ctl = VR_RXCTL | VR_RXLEN;
+-	m_adj(m_new, sizeof(uint64_t));
 +	/* Allocate DMA'able memory and load the DMA map for Rx ring. */
 +	error = bus_dmamem_alloc(sc->vr_cdata.vr_rx_ring_tag,
 +	    (void **)&sc->vr_rdata.vr_rx_ring, BUS_DMA_WAITOK |
@@ -1321,8 +1330,10 @@ diff -u -r1.126.2.1 if_vr.c
 +		goto fail;
 +	}
  
--	return (0);
--}
+-	c->vr_mbuf = m_new;
+-	c->vr_status = VR_RXSTAT;
+-	c->vr_data = vtophys(mtod(m_new, caddr_t));
+-	c->vr_ctl = VR_RXCTL | VR_RXLEN;
 +	ctx.vr_busaddr = 0;
 +	error = bus_dmamap_load(sc->vr_cdata.vr_rx_ring_tag,
 +	    sc->vr_cdata.vr_rx_ring_map, sc->vr_rdata.vr_rx_ring,
@@ -1514,10 +1525,10 @@ diff -u -r1.126.2.1 if_vr.c
 +	bus_dmamap_sync(sc->vr_cdata.vr_rx_ring_tag,
 +	    sc->vr_cdata.vr_rx_ring_map,
 +	    BUS_DMASYNC_PREREAD | BUS_DMASYNC_PREWRITE);
-+
-+	return (0);
-+}
-+
+ 
+ 	return (0);
+ }
+ 
 +static __inline void
 +vr_discard_rxbuf(struct vr_rxdesc *rxd)
 +{
@@ -1594,10 +1605,11 @@ diff -u -r1.126.2.1 if_vr.c
 +	m->m_data -= ETHER_ALIGN;
 +}
 +#endif
- 
++
  /*
   * A frame has been uploaded: pass the resulting mbuf chain up to
-@@ -812,17 +1283,22 @@
+  * the higher level protocols.
+@@ -812,17 +1298,22 @@
  static void
  vr_rxeof(struct vr_softc *sc)
  {
@@ -1624,7 +1636,7 @@ diff -u -r1.126.2.1 if_vr.c
  #ifdef DEVICE_POLLING
  		if (ifp->if_capenable & IFCAP_POLLING) {
  			if (sc->rxcycles <= 0)
-@@ -830,52 +1306,55 @@
+@@ -830,52 +1321,55 @@
  			sc->rxcycles--;
  		}
  #endif
@@ -1651,8 +1663,8 @@ diff -u -r1.126.2.1 if_vr.c
 +		 * partial frame.
  		 */
 -		if (rxstat & VR_RXSTAT_RXERR) {
-+		if ((rxstat & (VR_RXSTAT_RXERR | VR_RXSTAT_FIRSTFRAG |
-+		    VR_RXSTAT_LASTFRAG)) !=
++		if ((rxstat & VR_RXSTAT_RX_OK) == 0 ||
++		    (rxstat & (VR_RXSTAT_FIRSTFRAG | VR_RXSTAT_LASTFRAG)) !=
 +		    (VR_RXSTAT_FIRSTFRAG | VR_RXSTAT_LASTFRAG)) {
  			ifp->if_ierrors++;
 -			device_printf(sc->vr_dev,
@@ -1709,7 +1721,7 @@ diff -u -r1.126.2.1 if_vr.c
  		}
  
  		/*
-@@ -885,55 +1364,48 @@
+@@ -885,55 +1379,48 @@
  		 * the manual that explains how to do it) so we have
  		 * to trim off the CRC manually.
  		 */
@@ -1799,7 +1811,7 @@ diff -u -r1.126.2.1 if_vr.c
  }
  
  /*
-@@ -943,74 +1415,130 @@
+@@ -943,74 +1430,130 @@
  static void
  vr_txeof(struct vr_softc *sc)
  {
@@ -1971,7 +1983,7 @@ diff -u -r1.126.2.1 if_vr.c
  		vr_stop(sc);
  		vr_reset(sc);
  		vr_init_locked(sc);
-@@ -1019,6 +1547,7 @@
+@@ -1019,6 +1562,7 @@
  
  	mii = device_get_softc(sc->vr_miibus);
  	mii_tick(mii);
@@ -1979,7 +1991,7 @@ diff -u -r1.126.2.1 if_vr.c
  	callout_reset(&sc->vr_stat_callout, hz, vr_tick, sc);
  }
  
-@@ -1029,10 +1558,12 @@
+@@ -1029,10 +1573,12 @@
  static void
  vr_poll(struct ifnet *ifp, enum poll_cmd cmd, int count)
  {
@@ -1994,7 +2006,7 @@ diff -u -r1.126.2.1 if_vr.c
  		vr_poll_locked(ifp, cmd, count);
  	VR_UNLOCK(sc);
  }
-@@ -1040,7 +1571,9 @@
+@@ -1040,7 +1586,9 @@
  static void
  vr_poll_locked(struct ifnet *ifp, enum poll_cmd cmd, int count)
  {
@@ -2005,7 +2017,7 @@ diff -u -r1.126.2.1 if_vr.c
  
  	VR_LOCK_ASSERT(sc);
  
-@@ -1061,128 +1594,106 @@
+@@ -1061,128 +1609,106 @@
  		if ((status & VR_INTRS) == 0)
  			return;
  
@@ -2107,13 +2119,13 @@ diff -u -r1.126.2.1 if_vr.c
 -		 */
 -		CSR_WRITE_2(sc, VR_IMR, 0x0000);
 +	if (sc->vr_suspended != 0)
++		goto done_locked;
++
++	status = CSR_READ_2(sc, VR_ISR);
++	if (status == 0 || status == 0xffff || (status & VR_INTRS) == 0)
  		goto done_locked;
 -	}
  
-+	status = CSR_READ_2(sc, VR_ISR);
-+	if (status == 0 || status == 0xffff || (status & VR_INTRS) == 0)
-+		goto done_locked;
-+
 +	ifp = sc->vr_ifp;
  #ifdef DEVICE_POLLING
 -	if (ifp->if_capenable & IFCAP_POLLING)
@@ -2206,7 +2218,7 @@ diff -u -r1.126.2.1 if_vr.c
  	}
  
  	/* Re-enable interrupts. */
-@@ -1195,18 +1706,214 @@
+@@ -1195,18 +1721,214 @@
  	VR_UNLOCK(sc);
  }
  
@@ -2426,7 +2438,7 @@ diff -u -r1.126.2.1 if_vr.c
  	VR_LOCK(sc);
  	vr_start_locked(ifp);
  	VR_UNLOCK(sc);
-@@ -1215,110 +1922,58 @@
+@@ -1215,110 +1937,58 @@
  static void
  vr_start_locked(struct ifnet *ifp)
  {
@@ -2568,7 +2580,7 @@ diff -u -r1.126.2.1 if_vr.c
  	VR_LOCK(sc);
  	vr_init_locked(sc);
  	VR_UNLOCK(sc);
-@@ -1327,12 +1982,14 @@
+@@ -1327,12 +1997,14 @@
  static void
  vr_init_locked(struct vr_softc *sc)
  {
@@ -2584,7 +2596,7 @@ diff -u -r1.126.2.1 if_vr.c
  	mii = device_get_softc(sc->vr_miibus);
  
  	/* Cancel pending I/O and free all RX/TX buffers. */
-@@ -1355,16 +2012,16 @@
+@@ -1355,16 +2027,16 @@
  	VR_SETBIT(sc, VR_BCR0, VR_BCR0_RXTHRESH128BYTES);
  
  	VR_CLRBIT(sc, VR_BCR1, VR_BCR1_TX_THRESH);
@@ -2604,7 +2616,7 @@ diff -u -r1.126.2.1 if_vr.c
  		device_printf(sc->vr_dev,
  		    "initialization failed: no memory for rx buffers\n");
  		vr_stop(sc);
-@@ -1372,36 +2029,50 @@
+@@ -1372,36 +2044,58 @@
  	}
  
  	/* Init tx descriptors. */
@@ -2616,17 +2628,24 @@ diff -u -r1.126.2.1 if_vr.c
 -		VR_SETBIT(sc, VR_RXCFG, VR_RXCFG_RX_PROMISC);
 -	else
 -		VR_CLRBIT(sc, VR_RXCFG, VR_RXCFG_RX_PROMISC);
--
++	if ((sc->vr_quirks & VR_Q_CAM) != 0) {
++		uint8_t vcam[2] = { 0, 0 };
+ 
 -	/* Set capture broadcast bit to capture broadcast frames. */
 -	if (ifp->if_flags & IFF_BROADCAST)
 -		VR_SETBIT(sc, VR_RXCFG, VR_RXCFG_RX_BROAD);
 -	else
 -		VR_CLRBIT(sc, VR_RXCFG, VR_RXCFG_RX_BROAD);
-+	/* Disable all VLAN CAM entries. */
-+	if ((sc->vr_quirks & VR_Q_CAM) != 0) {
-+		CSR_WRITE_1(sc, VR_CAMCTL, VR_CAMCTL_ENA | VR_CAMCTL_VLAN);
-+		CSR_WRITE_1(sc, VR_CAMMASK, 0);
-+		CSR_WRITE_1(sc, VR_CAMCTL, 0);
++		/* Disable VLAN hardware tag insertion/stripping. */
++		VR_CLRBIT(sc, VR_TXCFG, VR_TXCFG_TXTAGEN | VR_TXCFG_RXTAGCTL);
++		/* Disable VLAN hardware filtering. */
++		VR_CLRBIT(sc, VR_BCR1, VR_BCR1_VLANFILT_ENB);
++		/* Disable all CAM entries. */
++		vr_cam_mask(sc, VR_MCAST_CAM, 0);
++		vr_cam_mask(sc, VR_VLAN_CAM, 0);
++		/* Enable the first VLAN CAM. */
++		vr_cam_data(sc, VR_VLAN_CAM, 0, vcam);
++		vr_cam_mask(sc, VR_VLAN_CAM, 1);
 +	}
  
  	/*
@@ -2676,7 +2695,7 @@ diff -u -r1.126.2.1 if_vr.c
  
  	CSR_WRITE_2(sc, VR_ISR, 0xFFFF);
  #ifdef DEVICE_POLLING
-@@ -1413,10 +2084,13 @@
+@@ -1413,10 +2107,13 @@
  	else
  #endif
  	/*
@@ -2691,7 +2710,7 @@ diff -u -r1.126.2.1 if_vr.c
  	mii_mediachg(mii);
  
  	ifp->if_drv_flags |= IFF_DRV_RUNNING;
-@@ -1431,12 +2105,22 @@
+@@ -1431,12 +2128,22 @@
  static int
  vr_ifmedia_upd(struct ifnet *ifp)
  {
@@ -2718,7 +2737,7 @@ diff -u -r1.126.2.1 if_vr.c
  }
  
  /*
-@@ -1445,9 +2129,10 @@
+@@ -1445,9 +2152,10 @@
  static void
  vr_ifmedia_sts(struct ifnet *ifp, struct ifmediareq *ifmr)
  {
@@ -2730,7 +2749,7 @@ diff -u -r1.126.2.1 if_vr.c
  	mii = device_get_softc(sc->vr_miibus);
  	VR_LOCK(sc);
  	mii_pollstat(mii);
-@@ -1459,29 +2144,39 @@
+@@ -1459,29 +2167,39 @@
  static int
  vr_ioctl(struct ifnet *ifp, u_long command, caddr_t data)
  {
@@ -2777,7 +2796,7 @@ diff -u -r1.126.2.1 if_vr.c
  		break;
  	case SIOCGIFMEDIA:
  	case SIOCSIFMEDIA:
-@@ -1489,36 +2184,45 @@
+@@ -1489,36 +2207,45 @@
  		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
  		break;
  	case SIOCSIFCAP:
@@ -2850,7 +2869,7 @@ diff -u -r1.126.2.1 if_vr.c
  		break;
  	default:
  		error = ether_ioctl(ifp, command, data);
-@@ -1529,11 +2233,31 @@
+@@ -1529,11 +2256,31 @@
  }
  
  static void
@@ -2885,7 +2904,7 @@ diff -u -r1.126.2.1 if_vr.c
  
  	ifp->if_oerrors++;
  	if_printf(ifp, "watchdog timeout\n");
-@@ -1544,8 +2268,85 @@
+@@ -1544,8 +2291,85 @@
  
  	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
  		vr_start_locked(ifp);
@@ -2972,7 +2991,7 @@ diff -u -r1.126.2.1 if_vr.c
  }
  
  /*
-@@ -1555,49 +2356,235 @@
+@@ -1555,49 +2379,235 @@
  static void
  vr_stop(struct vr_softc *sc)
  {
@@ -3236,17 +3255,17 @@ RCS file: /home/eri/mine/FreeBSD/src/sys/pci/Attic/if_vrreg.h,v
 retrieving revision 1.34
 diff -u -r1.34 if_vrreg.h
 --- sys/pci/if_vrreg.h	23 Apr 2007 12:19:02 -0000	1.34
-+++ sys/pci/if_vrreg.h	10 Jul 2008 17:32:35 -0000
++++ sys/pci/if_vrreg.h	23 Jul 2008 18:23:02 -0000
 @@ -29,7 +29,7 @@
   * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
   * THE POSSIBILITY OF SUCH DAMAGE.
   *
 - * $FreeBSD: src/sys/pci/if_vrreg.h,v 1.34 2007/04/23 12:19:02 phk Exp $
-+ * $FreeBSD: src/sys/dev/vr/if_vrreg.h,v 1.36.2.1 2008/04/11 03:41:58 yongari Exp $
++ * $FreeBSD: src/sys/dev/vr/if_vrreg.h,v 1.36.2.3 2008/07/23 08:18:42 yongari Exp $
   */
  
  /*
-@@ -40,7 +40,9 @@
+@@ -40,11 +40,21 @@
  #define VR_PAR1			0x04	/* node address 2 to 6 */
  #define VR_RXCFG		0x06	/* receiver config register */
  #define VR_TXCFG		0x07	/* transmit config register */
@@ -3257,7 +3276,19 @@ diff -u -r1.34 if_vrreg.h
  #define VR_ISR			0x0C	/* interrupt/status register */
  #define VR_IMR			0x0E	/* interrupt mask register */
  #define VR_MAR0			0x10	/* multicast hash 0 */
-@@ -76,13 +78,38 @@
+ #define VR_MAR1			0x14	/* multicast hash 1 */
++#define VR_MCAM0		0x10
++#define VR_MCAM1		0x11
++#define VR_MCAM2		0x12
++#define VR_MCAM3		0x13
++#define VR_MCAM4		0x14
++#define VR_MCAM5		0x15
++#define VR_VCAM0		0x16
++#define VR_VCAM1		0x17
+ #define VR_RXADDR		0x18	/* rx descriptor list start addr */
+ #define VR_TXADDR		0x1C	/* tx descriptor list start addr */
+ #define VR_CURRXDESC0		0x20
+@@ -76,13 +86,38 @@
  #define VR_EECSR		0x74
  #define VR_TEST			0x75
  #define VR_GPIO			0x76
@@ -3298,7 +3329,7 @@ diff -u -r1.34 if_vrreg.h
  #define VR_MISCCR1_FORSRST	0x40
  
  /*
-@@ -107,10 +134,10 @@
+@@ -107,10 +142,10 @@
  /*
   * TX config bits.
   */
@@ -3311,7 +3342,7 @@ diff -u -r1.34 if_vrreg.h
  #define VR_TXCFG_TX_THRESH	0xE0
  
  #define VR_TXTHRESH_32BYTES	0x00
-@@ -121,24 +148,26 @@
+@@ -121,24 +156,26 @@
  #define VR_TXTHRESH_768BYTES	0xA0
  #define VR_TXTHRESH_1024BYTES	0xC0
  #define VR_TXTHRESH_STORENFWD	0xE0
@@ -3351,7 +3382,7 @@ diff -u -r1.34 if_vrreg.h
  
  /*
   * Interrupt status bits.
-@@ -154,14 +183,19 @@
+@@ -154,14 +191,19 @@
  #define VR_ISR_RX_EARLY		0x0100	/* rx early */
  #define VR_ISR_LINKSTAT		0x0200	/* MII status change */
  #define VR_ISR_ETI		0x0200	/* Tx early (3043/3071) */
@@ -3373,7 +3404,7 @@ diff -u -r1.34 if_vrreg.h
  /*
   * Interrupt mask bits.
   */
-@@ -241,40 +275,52 @@
+@@ -241,40 +283,52 @@
  #define VR_TEST_HBDES		0x80
  
  /*
@@ -3459,10 +3490,13 @@ diff -u -r1.34 if_vrreg.h
  
  /* Sticky HW bits */
  #define VR_STICKHW_DS0		0x01
-@@ -324,21 +370,76 @@
+@@ -322,23 +376,79 @@
+ #define VR_BCR1_TXTHRESH512BYTES 0x20
+ #define VR_BCR1_TXTHRESH1024BYTES 0x28
  #define VR_BCR1_TXTHRESHSTORENFWD 0x38
- 
- /*
++#define	VR_BCR1_VLANFILT_ENB	0x80	/* VT6105M */
++
++/*
 + * CAMCTL register bits. (VT6105M only)
 + */
 +#define	VR_CAMCTL_ENA		0x01
@@ -3521,8 +3555,8 @@ diff -u -r1.34 if_vrreg.h
 +#define	VR_WOLCFG_SAM		0x20
 +#define	VR_WOLCFG_SFDX		0x40
 +#define	VR_WOLCFG_PMEOVR	0x80
-+
-+/*
+ 
+ /*
   * Rhine TX/RX list structure.
   */
  
@@ -3545,7 +3579,7 @@ diff -u -r1.34 if_vrreg.h
  #define VR_RXSTAT_RXERR		0x00000001
  #define VR_RXSTAT_CRCERR	0x00000002
  #define VR_RXSTAT_FRAMEALIGNERR	0x00000004
-@@ -346,6 +447,7 @@
+@@ -346,6 +456,7 @@
  #define VR_RXSTAT_GIANT		0x00000010
  #define VR_RXSTAT_RUNT		0x00000020
  #define VR_RXSTAT_BUSERR	0x00000040
@@ -3553,7 +3587,15 @@ diff -u -r1.34 if_vrreg.h
  #define VR_RXSTAT_BUFFERR	0x00000080
  #define VR_RXSTAT_LASTFRAG	0x00000100
  #define VR_RXSTAT_FIRSTFRAG	0x00000200
-@@ -359,14 +461,24 @@
+@@ -353,20 +464,31 @@
+ #define VR_RXSTAT_RX_PHYS	0x00000800
+ #define VR_RXSTAT_RX_BROAD	0x00001000
+ #define VR_RXSTAT_RX_MULTI	0x00002000
+-#define VR_RXSTAT_RX_OK		0x00004000
++#define VR_RXSTAT_RX_VIDHIT	0x00004000	/* 6105M */
++#define VR_RXSTAT_RX_OK		0x00008000
+ #define VR_RXSTAT_RXLEN		0x07FF0000
+ #define VR_RXSTAT_RXLEN_EXT	0x78000000
  #define VR_RXSTAT_OWN		0x80000000
  
  #define VR_RXBYTES(x)		((x & VR_RXSTAT_RXLEN) >> 16)
@@ -3581,7 +3623,7 @@ diff -u -r1.34 if_vrreg.h
  
  #define VR_RXCTL (VR_RXCTL_CHAIN|VR_RXCTL_RX_INTR)
  
-@@ -378,6 +490,7 @@
+@@ -378,6 +500,7 @@
  #define VR_TXSTAT_LATECOLL	0x00000200
  #define VR_TXSTAT_CARRLOST	0x00000400
  #define VR_TXSTAT_UDF		0x00000800
@@ -3589,7 +3631,7 @@ diff -u -r1.34 if_vrreg.h
  #define VR_TXSTAT_BUSERR	0x00002000
  #define VR_TXSTAT_JABTIMEO	0x00004000
  #define VR_TXSTAT_ERRSUM	0x00008000
-@@ -395,38 +508,17 @@
+@@ -395,38 +518,17 @@
  #define VR_TXCTL_LASTFRAG	0x00400000
  #define VR_TXCTL_FINT		0x00800000
  
@@ -3632,7 +3674,7 @@ diff -u -r1.34 if_vrreg.h
  
  /*
   * General constants that are fun to know.
-@@ -471,13 +563,17 @@
+@@ -471,13 +573,17 @@
  #define REV_ID_VT3043_E			0x04
  #define REV_ID_VT3071_A			0x20
  #define REV_ID_VT3071_B			0x21
@@ -3656,7 +3698,7 @@ diff -u -r1.34 if_vrreg.h
  
  /*
   * PCI low memory base and low I/O base register, and
-@@ -501,8 +597,20 @@
+@@ -501,8 +607,20 @@
  #define VR_PCI_MINLAT		0x0F
  #define VR_PCI_RESETOPT		0x48
  #define VR_PCI_EEPROM_DATA	0x4C
@@ -3679,7 +3721,7 @@ diff -u -r1.34 if_vrreg.h
  #define VR_MODE3_MIION		0x04
  
  /* power management registers */
-@@ -518,3 +626,127 @@
+@@ -518,3 +636,130 @@
  #define VR_PSTATE_D3		0x0003
  #define VR_PME_EN		0x0010
  #define VR_PME_STATUS		0x8000
@@ -3807,6 +3849,9 @@ diff -u -r1.34 if_vrreg.h
 +
 +#define VR_SETBIT16(sc, reg, x) CSR_WRITE_2(sc, reg, CSR_READ_2(sc, reg) | (x))
 +#define VR_CLRBIT16(sc, reg, x) CSR_WRITE_2(sc, reg, CSR_READ_2(sc, reg) & ~(x))
++
++#define	VR_MCAST_CAM	0
++#define	VR_VLAN_CAM	1
 Index: sys/sys/mbuf.h
 ===================================================================
 RCS file: /home/eri/mine/FreeBSD/src/sys/sys/mbuf.h,v
