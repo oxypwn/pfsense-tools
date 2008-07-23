@@ -33,3 +33,4 @@
 ~sys/dev/bge/~if_bge.c.diff~
 ~~vr.patch~
 ~~carp.diff~
+~~sockstat.diff~
