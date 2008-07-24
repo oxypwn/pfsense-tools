@@ -9,8 +9,25 @@ nooptions         SCHED_4BSD
 # IPSEC filtering interface
 device 		   enc
 
-device		   wlan_xauth
-device		   wlan_acl
+# Wireless
+device          wlan
+device          wlan_wep
+device          wlan_ccmp
+device          wlan_tkip
+device          wlan_xauth
+device          wlan_acl
+device          wlan_amrr
+device          wlan_scan_ap
+device          wlan_scan_sta
+device          ath
+device          ath_rate_sample
+device          ath_hal
+device			an		# Aironet 4500/4800 802.11 wireless NICs.
+device			awi		# BayStack 660 and others
+device			ral     # Ralink Technology RT2500 wireless NICs.
+device			wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
+device			wl		# Older non 802.11 Wavelan wireless NIC.
+
 
 options         UNIONFS                 # Union filesystem
 
