@@ -12,7 +12,7 @@ cd /home/pfsense/installer/installer/scripts/build
 if [ -f /etc/make.conf ]; then
 	mv /etc/make.conf /tmp/
 	echo "WITHOUT_X11=yo" >> /etc/make.conf
-	echo "CFLAGS=-O"
+	echo "CFLAGS=-O" >> /etc/make.conf
 	MKCNF="pfPorts"
 fi
 
