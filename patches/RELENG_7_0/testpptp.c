@@ -63,3 +63,32 @@ diff -u -r1.1.1.1 pf.c
  		/* XXX: This are here until a pluggable framework for NAT is finished */
         		if (s != NULL && s->nat_rule.ptr != NULL &&
  			s->nat_rule.ptr->action != PF_BINAT) {
+Index: sys/contrib/pf/net/pf_pptp.c
+===================================================================
+RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf_pptp.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf_pptp.c
+--- sys/contrib/pf/net/pf_pptp.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_pptp.c	24 Jul 2008 21:32:08 -0000
+@@ -179,10 +179,10 @@
+ 	case PPTP_WanErrorNotify: /* XXX: Is this needed?! */
+ 	case PPTP_SetLinkInfo:
+ 		if (dir == PF_IN) {
+-			pcall_id = hptr.cid1;
++			pcall_id = hptr.cid2;
+                 	hptr.cid1 = state->lan.pad;
+                 	th->th_sum = pf_cksum_fixup(th->th_sum,
+-                        	pcall_id, hptr.cid1, 0);
++                        	pcall_id, hptr.cid2, 0);
+ 		} else
+ 			return;
+ 		break;
+@@ -257,7 +257,7 @@
+                 s->direction = state->direction; 
+                 s->af = state->af;
+                 PF_ACPY(&s->gwy.addr, &state->ext.addr, pd->af);
+-                s->gwy.port = hptr.cid1;
++                s->lan.port = hptr.cid1;
+                 PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
+                 PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
+                 s->src.state = PFOTHERS_NO_TRAFFIC;
