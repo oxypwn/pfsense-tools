@@ -42,7 +42,7 @@ OPTIONS=	DEBUG		"enable Debug support" on \
 		ADMINPORT	"enable Admin port" off \
 		STATS		"enable Statistics logging function" off \
 		DPD		"enable Dead Peer Detection" on \
-		NATT		"enable NAT-Traversal (kernel-patch required)" on \
+		NATT		"enable NAT-Traversal (kernel-patch required)" off \
 		NATTF		"require NAT-Traversal (fail without kernel-patch)" off \
 		FRAG		"enable IKE fragmentation payload support" on \
 		HYBRID		"enable Hybrid Mode-cfg and Xauth support" on \
