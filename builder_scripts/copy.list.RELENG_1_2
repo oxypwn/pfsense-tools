@@ -48,6 +48,7 @@ usr/local/lib/lighttpd/mod_cgi.so
 usr/local/lib/lighttpd/mod_indexfile.so
 usr/local/lib/lighttpd/mod_dirlisting.so
 usr/local/lib/lighttpd/mod_staticfile.so
+usr/local/lib/lighttpd/mod_staticfile.so
 usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
 usr/local/sbin/mpd
