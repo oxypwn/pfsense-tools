@@ -12,10 +12,12 @@ options		CPU_GEODE
 options		CPU_SOEKRIS
 options		CPU_ELAN
 
-option			GEOM_MBR
+option			GEOM_MIRROR
 options			GEOM_UZIP
 options			GEOM_LABEL
-#options			GEOM_PART_MBR
+options			GEOM_GPT
+nooption		GEOM_MBR
+options			GEOM_PART_MBR
 
 options 	SCHED_ULE		# ULE scheduler
 #options 	SCHED_4BSD		# 4BSD scheduler
