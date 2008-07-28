@@ -8,14 +8,14 @@ cpu		I586_CPU
 cpu		I686_CPU
 ident		pfSense-embedded
 
-# To statically compile in device wiring instead of /boot/device.hints
-#hints		"GENERIC.hints"		# Default places to look for devices.
-
 options		CPU_GEODE
 options		CPU_SOEKRIS
 options		CPU_ELAN
-#options		CPU_ELAN_PPS
-#options		CPU_ELAN_XTAL=32768000
+
+nooption		GEOM_MBR
+options			GEOM_UZIP
+options			GEOM_LABEL
+options			GEOM_PART_MBR
 
 options 	SCHED_ULE		# ULE scheduler
 #options 	SCHED_4BSD		# 4BSD scheduler
@@ -33,7 +33,6 @@ options 	MSDOSFS			# MSDOS Filesystem
 options 	CD9660			# ISO 9660 Filesystem
 options 	PROCFS			# Process filesystem (requires PSEUDOFS)
 options 	PSEUDOFS		# Pseudo-filesystem framework
-options 	GEOM_GPT		# GUID Partition Tables.
 options 	COMPAT_43		# Compatible with BSD 4.3 [KEEP THIS!]
 options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
 options 	KTRACE			# ktrace(1) support
@@ -42,10 +41,6 @@ options 	SYSVMSG			# SYSV-style message queues
 options 	SYSVSEM			# SYSV-style semaphores
 options 	_KPOSIX_PRIORITY_SCHEDULING # POSIX P1003_1B real-time extensions
 options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
-#options 	AHC_REG_PRETTY_PRINT	# Print register bitfields in debug
-					# output.  Adds ~128k to driver.
-#options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
-					# output.  Adds ~215k to driver.
 options 	ADAPTIVE_GIANT		# Giant mutex is adaptive.
 
 # Bus support.  Do not remove isa, even if you have no isa slots
@@ -263,9 +258,6 @@ device		vlan
 
 options		IPSTEALTH
 options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
-
-options		GEOM_UZIP
-options		GEOM_LABEL
 
 #options		INCLUDE_CONFIG_FILE
 

@@ -8,15 +8,17 @@ cpu			I586_CPU
 cpu			I686_CPU
 ident		pfSense-embedded
 
-# To statically compile in device wiring instead of /boot/device.hints
-#hints		"GENERIC.hints"		# Default places to look for devices.
-
 options		CPU_GEODE
 options		CPU_SOEKRIS
 options		CPU_ELAN
 
-options 	SCHED_ULE                                       # ULE scheduler
+nooption		GEOM_MBR
+options			GEOM_UZIP
+options			GEOM_LABEL
+options			GEOM_PART_MBR
+
 nooptions	SCHED_4BSD
+options 	SCHED_ULE                                       # ULE scheduler
 
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
@@ -265,9 +267,6 @@ device		vlan
 
 options		IPSTEALTH
 #options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
-
-options		GEOM_UZIP
-options		GEOM_LABEL
 
 #options		INCLUDE_CONFIG_FILE
 

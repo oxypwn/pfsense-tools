@@ -10,6 +10,11 @@ nooptions         SCHED_4BSD
 # IPSEC filtering interface
 device 		   enc
 
+nooption		GEOM_MBR
+options			GEOM_UZIP
+options			GEOM_LABEL
+options			GEOM_PART_MBR
+
 # Wireless
 device          wlan
 device          wlan_wep
@@ -47,9 +52,6 @@ device          vlan
 device          gre
 
 options         IPSTEALTH
-
-options         GEOM_UZIP
-
 options         INCLUDE_CONFIG_FILE
 
 options         NETGRAPH                #netgraph(4) system
@@ -134,7 +136,7 @@ options         DEVICE_POLLING
 options TCP_SIGNATURE
 
 # Allow gmirror to function
-options         GEOM_MIRROR
+
 
 device          lagg
 
