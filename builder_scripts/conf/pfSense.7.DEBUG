@@ -9,11 +9,10 @@ nooptions         SCHED_4BSD
 # IPSEC filtering interface
 device 		   enc
 
-# Allow gmirror to function
-nooption	GEOM_MBR
-options		GEOM_UZIP
-options		GEOM_LABEL
-options		GEOM_PART_MBR
+option			GEOM_MBR
+options			GEOM_UZIP
+options			GEOM_LABEL
+#options			GEOM_PART_MBR
 
 # Wireless
 device          wlan

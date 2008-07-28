@@ -10,10 +10,10 @@ nooptions         SCHED_4BSD
 # IPSEC filtering interface
 device 		   enc
 
-nooption		GEOM_MBR
+option			GEOM_MBR
 options			GEOM_UZIP
 options			GEOM_LABEL
-options			GEOM_PART_MBR
+#options			GEOM_PART_MBR
 
 # Wireless
 device          wlan
