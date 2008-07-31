@@ -21,7 +21,7 @@ do
 	if [ $PATCH_RM_LENGTH -gt "2" ]; then
 		echo "Removing ${SRCDIR}${PATCH_RM}"
 		rm -rf ${SRCDIR}${PATCH_RM}
-	
+	fi
 	if [ "$DIR_CREATE" != "" ]; then
 		echo "Creating ${SRCDIR}/${DIR_CREATE}"
 		mkdir -p ${SRCDIR}/${DIR_CREATE}
