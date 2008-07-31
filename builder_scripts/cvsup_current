@@ -41,7 +41,7 @@ echo "done"
 
 # These are not needed -- they should be set in pfsense_local.sh
 # but just in case . . .
-PATCHDIR=${PATCHDIR:-${BASE_DIR}/tools/patches/${PFSENSETAG}}
+PATCHDIR=${PATCHDIR:-${BASE_DIR}/tools/patches/${freebsd_branch}
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Sanity check
