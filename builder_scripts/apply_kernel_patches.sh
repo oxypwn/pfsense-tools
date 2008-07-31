@@ -13,7 +13,7 @@ PATCHDIR=${PATCHDIR:-${BASE_DIR}/tools/patches/${freebsd_branch}}
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Loop through and remove files
-for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
+for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
 	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
@@ -21,7 +21,7 @@ do
 	if [ $PATCH_RM_LENGTH -gt "2" ]; then
 		echo "Removing ${SRCDIR}${PATCH_RM}"
 		rm -rf ${SRCDIR}${PATCH_RM}
-	fi
+	
 	if [ "$DIR_CREATE" != "" ]; then
 		echo "Creating ${SRCDIR}/${DIR_CREATE}"
 		mkdir -p ${SRCDIR}/${DIR_CREATE}
