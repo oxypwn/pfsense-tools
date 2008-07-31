@@ -213,7 +213,7 @@ else
 fi
 
 # CVSUp freebsd version
-echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
+echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch} ${PFSENSETAG}"
 cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
 
 if [ -z "${USE_GIT:-}" ]; then
@@ -237,8 +237,8 @@ else
 fi
 
 # Loop through and remove files
-echo "Removing needed files listed in ${CURRENTDIR}/patches.${freebsd_branch}"
-for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
+echo "Removing needed files listed in ${CURRENTDIR}/patches.${freebsd_branch} ${PFSENSETAG}"
+for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
 	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
@@ -262,8 +262,8 @@ echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
 
 # Loop through and patch files
-echo "Applying patches from ${CURRENTDIR}/patches.${freebsd_branch}..."
-for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
+echo "Applying patches from ${CURRENTDIR}/patches.${freebsd_branch} ${PFSENSETAG}..."
+for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
 do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
 	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
