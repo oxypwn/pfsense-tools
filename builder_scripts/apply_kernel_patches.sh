@@ -46,7 +46,7 @@ echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
 
 # Loop through and patch files
-for LINE in `cat ${CURRENTDIR}/patches.${freebsd_branch}`
+for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
 do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
 	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
