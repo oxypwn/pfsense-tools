@@ -733,8 +733,8 @@ diff -u -r1.1.1.1 pfctl.c
 +
 +       if (getsockopt(dnsock, IPPROTO_IP, IP_DUMMYNET_GET, data,
 +                       &len) < 0) {
-+               if (!(opts & (PF_OPT_QUIET|PF_OPT_NOACTION)))
-+                       fprintf(stderr, "DUMMYNET not loaded\n");
++               //if (!(opts & (PF_OPT_QUIET|PF_OPT_NOACTION)))
++               //        fprintf(stderr, "DUMMYNET not loaded\n");
 +               return (0);
 +       }
 +       return (1);
