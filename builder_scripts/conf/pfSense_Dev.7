@@ -1,5 +1,5 @@
 
-makeoptions MODULES_OVERRIDE="acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
+makeoptions MODULES_OVERRIDE="acpi ndis if_ndis padlock ipfw ipdivert dummynet fdescfs cpufreq"
 
 include         GENERIC
 ident           pfSense7-Dev
@@ -108,6 +108,7 @@ options         ALTQ_RED
 options         ALTQ_RIO
 options         ALTQ_HFSC
 options         ALTQ_PRIQ
+options		ALTQ_FAIRQ
 options         ALTQ_NOPCC      # Required for SMP builds !!
 
 # Bridging
