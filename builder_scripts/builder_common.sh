@@ -35,7 +35,7 @@ check_for_clog() {
 
 # Removes NAT_T from 1.2 images.
 fixup_natt() {
-	if [ "{$PFSENSETAG}" = "RELENG_1_2"]; then
+	if [ "${PFSENSETAG}" = "RELENG_1_2"]; then
 		echo ">>> Removing NAT_T Kernel configuration option from 1.2"
 		cat /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp
 		cat /usr/src/sys/i386/conf/pfSense.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp
