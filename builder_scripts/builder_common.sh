@@ -33,14 +33,14 @@ check_for_clog() {
 	fi
 }
 
-# Removes NAT_T from 1.2 images.
-fixup_natt() {
+# Removes NAT_T and other unneeded kernel options from 1.2 images.
+fixup_kernel_options() {
 	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
-		echo ">>> Removing NAT_T Kernel configuration option from 1.2"
-		cat /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp
-		cat /usr/src/sys/i386/conf/pfSense.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp
-		cat /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}.tmp
-		cat /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version}.tmp
+		echo ">>> Removing unneeded kernel configuration option from 1.2"
+		cat /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp
+		cat /usr/src/sys/i386/conf/pfSense.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert//  > /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp
+		cat /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}.tmp
+		cat /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version}.tmp
 		cp /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}
 		cp /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}
 		cp /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}
@@ -68,8 +68,8 @@ build_embedded_kernel() {
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
 
-	# Remove NAT_T from 1.2
-	fixup_natt
+	# Remove unneeded kernel options from 1.2
+	fixup_kernel_options
 
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
@@ -142,8 +142,8 @@ build_all_kernels() {
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 
-	# Remove NAT_T from 1.2
-	fixup_natt
+	# Remove unneeded kernel options from 1.2
+	fixup_kernel_options
 
 	# Build uniprocessor kernel
 	echo ">>> Building uniprocessor kernel..."
