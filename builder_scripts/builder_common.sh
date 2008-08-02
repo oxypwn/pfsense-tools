@@ -33,6 +33,21 @@ check_for_clog() {
 	fi
 }
 
+# Removes NAT_T from 1.2 images.
+fixup_natt() {
+	if [ "{$PFSENSETAG}" = "RELENG_1_2"]; then
+		echo ">>> Removing NAT_T Kernel configuration option from 1.2"
+		cat /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp
+		cat /usr/src/sys/i386/conf/pfSense.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp
+		cat /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}.tmp
+		cat /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version} | grep -v "NAT_T" > /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version}.tmp
+		cp /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}
+		cp /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}
+		cp /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}
+		cp /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version}
+	fi
+}
+
 build_embedded_kernel() {
 
 	# 6.x is picky on destdir=
@@ -52,6 +67,9 @@ build_embedded_kernel() {
 	
 	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
 	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
+
+	# Remove NAT_T from 1.2
+	fixup_natt
 
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
@@ -123,7 +141,10 @@ build_all_kernels() {
 	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
 	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-			
+
+	# Remove NAT_T from 1.2
+	fixup_natt
+
 	# Build uniprocessor kernel
 	echo ">>> Building uniprocessor kernel..."
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
