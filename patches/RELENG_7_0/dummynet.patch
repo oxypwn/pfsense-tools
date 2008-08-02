@@ -4,7 +4,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/contrib/pf/pfctl/pars
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 parse.y
 --- contrib/pf/pfctl/parse.y	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ contrib/pf/pfctl/parse.y	12 Jul 2008 21:26:15 -0000
++++ contrib/pf/pfctl/parse.y	2 Aug 2008 20:58:57 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -23,7 +23,27 @@ diff -u -r1.1.1.1 parse.y
  #include <stdio.h>
  #include <stdlib.h>
  #include <netdb.h>
-@@ -209,6 +213,9 @@
+@@ -128,6 +132,7 @@
+ enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
+ 	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
+ 	    PF_STATE_OPT_MAX_SRC_CONN_RATE, PF_STATE_OPT_MAX_SRC_NODES,
++	    PF_STATE_OPT_MAX_PACKETS, PF_STATE_OPT_DIVERT_COOKIE,
+ 	    PF_STATE_OPT_OVERLOAD, PF_STATE_OPT_STATELOCK,
+ 	    PF_STATE_OPT_TIMEOUT };
+ 
+@@ -139,6 +144,7 @@
+ 		u_int32_t	 max_states;
+ 		u_int32_t	 max_src_states;
+ 		u_int32_t	 max_src_conn;
++		u_int32_t	 max_packets;
+ 		struct {
+ 			u_int32_t	limit;
+ 			u_int32_t	seconds;
+@@ -206,9 +212,13 @@
+ 	int			 allowopts;
+ 	char			*label;
+ 	struct node_qassign	 queues;
++	u_int16_t		 divert;
  	char			*tag;
  	char			*match_tag;
  	u_int8_t		 match_tag_not;
@@ -33,7 +53,7 @@ diff -u -r1.1.1.1 parse.y
  	int			 rtableid;
  } filter_opts;
  
-@@ -265,6 +272,9 @@
+@@ -265,6 +275,9 @@
  
  struct node_hfsc_opts	hfsc_opts;
  struct node_fairq_opts	fairq_opts;
@@ -43,7 +63,7 @@ diff -u -r1.1.1.1 parse.y
  
  int	yyerror(const char *, ...);
  int	disallow_table(struct node_host *, const char *);
-@@ -399,6 +409,8 @@
+@@ -399,6 +412,8 @@
  		struct filter_opts	 filter_opts;
  		struct antispoof_opts	 antispoof_opts;
  		struct queue_opts	 queue_opts;
@@ -52,7 +72,7 @@ diff -u -r1.1.1.1 parse.y
  		struct scrub_opts	 scrub_opts;
  		struct table_opts	 table_opts;
  		struct pool_opts	 pool_opts;
-@@ -426,6 +438,8 @@
+@@ -426,17 +441,19 @@
  %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
  %token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
  %token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
@@ -60,17 +80,32 @@ diff -u -r1.1.1.1 parse.y
 +%token  SRCIP DSTIP SRCPORT DSTPORT SRCIP6 DSTIP6 FLOWID NOERROR
  %token	LOAD RULESET_OPTIMIZATION
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
- %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
-@@ -456,7 +470,7 @@
+-%token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
+-%token	TAGGED TAG IFBOUND FLOATING STATEPOLICY ROUTE
++%token	MAXSRCCONN MAXSRCCONNRATE MAXPCKT OVERLOAD FLUSH DIVERTCOOKIEARG
++%token	TAGGED TAG DIVERT IFBOUND FLOATING STATEPOLICY ROUTE
+ %token	<v.string>		STRING
+ %token	<v.i>			PORTBINARY
+ %type	<v.interface>		interface if_list if_item_not if_item
+ %type	<v.number>		number icmptype icmp6type uid gid
+ %type	<v.number>		tos dscp not yesno
+ %type	<v.i>			no dir af fragcache optimizer
+-%type	<v.i>			sourcetrack flush unaryop statelock
++%type	<v.i>			sourcetrack divertcookiearg flush unaryop statelock
+ %type	<v.b>			action nataction natpass scrubaction
+ %type	<v.b>			flags flag blockspec
+ %type	<v.range>		port rport
+@@ -456,7 +473,8 @@
  %type	<v.gid>			gids gid_list gid_item
  %type	<v.route>		route
  %type	<v.redirection>		redirection redirpool
 -%type	<v.string>		label string tag anchorname
 +%type	<v.string>		label string tag anchorname 
++%type	<v.number>		divert
  %type	<v.keep_state>		keep
  %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
  %type	<v.logquick>		logquick quick log logopts logopt
-@@ -468,6 +482,8 @@
+@@ -468,6 +486,8 @@
  %type	<v.number>		priqflags_list priqflags_item
  %type	<v.hfsc_opts>		hfscopts_list hfscopts_item hfsc_opts
  %type	<v.fairq_opts>		fairqopts_list fairqopts_item fairq_opts
@@ -79,7 +114,7 @@ diff -u -r1.1.1.1 parse.y
  %type	<v.queue_bwspec>	bandwidth
  %type	<v.filter_opts>		filter_opts filter_opt filter_opts_l
  %type	<v.antispoof_opts>	antispoof_opts antispoof_opt antispoof_opts_l
-@@ -489,6 +505,8 @@
+@@ -489,6 +509,8 @@
  		| ruleset anchorrule '\n'
  		| ruleset loadrule '\n'
  		| ruleset altqif '\n'
@@ -88,7 +123,7 @@ diff -u -r1.1.1.1 parse.y
  		| ruleset queuespec '\n'
  		| ruleset varset '\n'
  		| ruleset antispoof '\n'
-@@ -1453,14 +1471,22 @@
+@@ -1453,14 +1475,22 @@
  
  			bps = strtod($1, &cp);
  			if (cp != NULL) {
@@ -115,7 +150,7 @@ diff -u -r1.1.1.1 parse.y
  				else if (!strcmp(cp, "%")) {
  					if (bps < 0 || bps > 100) {
  						yyerror("bandwidth spec "
-@@ -1737,6 +1763,255 @@
+@@ -1737,6 +1767,255 @@
  		}
  		;
  
@@ -371,7 +406,34 @@ diff -u -r1.1.1.1 parse.y
  pfrule		: action dir logquick interface route af proto fromto
  		    filter_opts
  		{
-@@ -2111,6 +2386,12 @@
+@@ -1777,6 +2056,8 @@
+ 			r.rtableid = $9.rtableid;
+ 
+ 			r.af = $6;
++			if ($9.divert)
++				r.divert = $9.divert;
+ 			if ($9.tag)
+ 				if (strlcpy(r.tagname, $9.tag,
+ 				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
+@@ -1862,6 +2143,17 @@
+ 					}
+ 					r.rule_flag |= PFRULE_NOSYNC;
+ 					break;
++				case PF_STATE_OPT_MAX_PACKETS:
++					if (o->data.max_packets == 0) {
++						yyerror("max_packets must be"
++							"greater than 0");
++						YYERROR;
++					}
++					r.spare1 = o->data.max_packets;
++					break;
++				case PF_STATE_OPT_DIVERT_COOKIE:
++					r.rule_flag |= PFRULE_DIVERT_COOKIE;
++					break;
+ 				case PF_STATE_OPT_SRCTRACK:
+ 					if (srctrack) {
+ 						yyerror("state option "
+@@ -2111,6 +2403,12 @@
  				free($9.queues.pqname);
  			}
  
@@ -384,7 +446,7 @@ diff -u -r1.1.1.1 parse.y
  			expand_rule(&r, $4, $5.host, $7, $8.src_os,
  			    $8.src.host, $8.src.port, $8.dst.host, $8.dst.port,
  			    $9.uid, $9.gid, $9.icmpspec, "");
-@@ -2208,6 +2489,32 @@
+@@ -2208,6 +2506,35 @@
  			}
  			filter_opts.queues = $1;
  		}
@@ -414,18 +476,65 @@ diff -u -r1.1.1.1 parse.y
 +			filter_opts.dnpipe = $3;
 +			filter_opts.dntype = DN_IS_QUEUE;
 +		}
++		| DIVERT number				{
++			filter_opts.divert = $2;
++		}
  		| TAG string				{
  			filter_opts.tag = $2;
  		}
-@@ -3589,6 +3896,7 @@
- /* ifdef __FreeBSD__ */
- natpass		: /* empty */	{ $$.b1 = $$.b2 = 0; $$.w2 = 0; }
- 		| PASS		{ $$.b1 = 1; $$.b2 = 0; $$.w2 = 0; }
-+		| number        { $$.b1 = $1; $$.b2 = 0; $$.w2 = 0; }
- /* else 
- natpass		:  empty 	{ $$.b1 = $$.b2 = 0; }
- 		| PASS		{ $$.b1 = 1; $$.b2 = 0; }
-@@ -4239,6 +4547,11 @@
+@@ -3210,6 +3537,9 @@
+                 }
+ 		;
+ 
++divertcookiearg	: DIVERTCOOKIEARG 	{ $$ = 0; }
++		;
++
+ sourcetrack	: SOURCETRACK		{ $$ = PF_SRCTRACK; }
+ 		| SOURCETRACK GLOBAL	{ $$ = PF_SRCTRACK_GLOBAL; }
+ 		| SOURCETRACK RULE	{ $$ = PF_SRCTRACK_RULE; }
+@@ -3286,6 +3616,15 @@
+ 			$$->next = NULL;
+ 			$$->tail = $$;
+ 		}
++                | MAXPCKT number                    	{
++                        $$ = calloc(1, sizeof(struct node_state_opt));
++                        if ($$ == NULL)
++                                err(1, "state_opt_item: calloc");
++                        $$->type = PF_STATE_OPT_MAX_PACKETS;
++                        $$->data.max_src_states = $2;
++                        $$->next = NULL;
++                        $$->tail = $$;
++                }
+ 		| MAXSRCCONN number			{
+ 			$$ = calloc(1, sizeof(struct node_state_opt));
+ 			if ($$ == NULL)
+@@ -3332,6 +3671,14 @@
+ 			$$->next = NULL;
+ 			$$->tail = $$;
+ 		}
++		| divertcookiearg {
++			$$ = calloc(1, sizeof(struct node_state_opt));
++			if ($$ == NULL)
++				err(1, "divertcookiearg: calloc");
++			$$->type = PF_STATE_OPT_DIVERT_COOKIE;
++			$$->next = NULL;
++			$$->tail = $$;
++		}
+ 		| sourcetrack {
+ 			$$ = calloc(1, sizeof(struct node_state_opt));
+ 			if ($$ == NULL)
+@@ -3950,6 +4297,10 @@
+ 		}
+ 		;
+ 
++divert		: /* empty */		{ $$ = 0; }
++		| DIVERT number		{ $$ = $2;   }
++		;
++
+ tag		: /* empty */		{ $$ = NULL; }
+ 		| TAG STRING		{ $$ = $2; }
+ 		;
+@@ -4239,6 +4590,19 @@
  		yyerror("tos and dscp cannot be used together");
  		problems++;
  	}
@@ -433,15 +542,25 @@ diff -u -r1.1.1.1 parse.y
 +		yyerror("dummynet cannot be specified without direction");
 +		problems++;
 +	}
++	if (r->dnpipe && !r->keep_state) {
++		yyerror("dummynet cannot be specified withtout keep state");
++		problems++;
++	}
++	if (r->divert && !r->keep_state) {
++		yyerror("divert cannot be specified without keep state");
++		problems++;
++	}
 +
  	return (-problems);
  }
  
-@@ -5031,9 +5344,15 @@
+@@ -5031,9 +5395,17 @@
  		{ "code",		CODE},
  		{ "crop",		FRAGCROP},
  		{ "debug",		DEBUG},
 +		{ "delay",              DELAY},
++		{ "divert",		DIVERT},
++		{ "divertcookiearg",	DIVERTCOOKIEARG},
 +                { "dnpipe",             DNPIPE},
 +                { "dnqueue",            DNQUEUE},
  		{ "drop",		DROP},
@@ -453,7 +572,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "dup-to",		DUPTO},
  		{ "fairq",		FAIRQ},
  		{ "fastroute",		FASTROUTE},
-@@ -5041,11 +5360,13 @@
+@@ -5041,11 +5413,13 @@
  		{ "fingerprints",	FINGERPRINTS},
  		{ "flags",		FLAGS},
  		{ "floating",		FLOATING},
@@ -467,15 +586,18 @@ diff -u -r1.1.1.1 parse.y
  		{ "group",		GROUP},
  		{ "hfsc",		HFSC},
  		{ "hogs",		HOGS},
-@@ -5063,6 +5384,7 @@
+@@ -5063,8 +5437,10 @@
  		{ "load",		LOAD},
  		{ "log",		LOG},
  		{ "loginterface",	LOGINTERFACE},
 +		{ "mask",		MASK},
  		{ "max",		MAXIMUM},
  		{ "max-mss",		MAXMSS},
++		{ "max-packets",	MAXPCKT},
  		{ "max-src-conn",	MAXSRCCONN},
-@@ -5077,12 +5399,14 @@
+ 		{ "max-src-conn-rate",	MAXSRCCONNRATE},
+ 		{ "max-src-nodes",	MAXSRCNODES},
+@@ -5077,12 +5453,14 @@
  		{ "no-df",		NODF},
  		{ "no-route",		NOROUTE},
  		{ "no-sync",		NOSYNC},
@@ -490,7 +612,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "port",		PORT},
  		{ "priority",		PRIORITY},
  		{ "priq",		PRIQ},
-@@ -5097,6 +5421,7 @@
+@@ -5097,6 +5475,7 @@
  		{ "rdr-anchor",		RDRANCHOR},
  		{ "realtime",		REALTIME},
  		{ "reassemble",		REASSEMBLE},
@@ -498,7 +620,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "reply-to",		REPLYTO},
  		{ "require-order",	REQUIREORDER},
  		{ "return",		RETURN},
-@@ -5114,6 +5439,9 @@
+@@ -5114,6 +5493,9 @@
  		{ "skip",		SKIP},
  		{ "source-hash",	SOURCEHASH},
  		{ "source-track",	SOURCETRACK},
@@ -508,7 +630,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "state",		STATE},
  		{ "state-policy",	STATEPOLICY},
  		{ "static-port",	STATICPORT},
-@@ -5130,6 +5458,7 @@
+@@ -5130,6 +5512,7 @@
  		{ "upperlimit",		UPPERLIMIT},
  		{ "urpf-failed",	URPFFAILED},
  		{ "user",		USER},
@@ -516,7 +638,7 @@ diff -u -r1.1.1.1 parse.y
  	};
  	const struct keywords	*p;
  
-@@ -5658,3 +5987,80 @@
+@@ -5658,3 +6041,80 @@
  
  	return (0);
  }
@@ -603,7 +725,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/contrib/pf/pfctl/pfct
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.c	12 Jul 2008 22:05:22 -0000
++++ contrib/pf/pfctl/pfctl.c	2 Aug 2008 21:05:21 -0000
 @@ -46,6 +46,9 @@
  #include <altq/altq.h>
  #include <sys/sysctl.h>
@@ -722,7 +844,7 @@ diff -u -r1.1.1.1 pfctl.c
  pfctl_rules(int dev, char *filename, FILE *fin, int opts, int optimize,
      char *anchorname, struct pfr_buffer *trans)
  {
-@@ -1979,6 +2026,21 @@
+@@ -1979,6 +2026,23 @@
  }
  
  int
@@ -733,8 +855,10 @@ diff -u -r1.1.1.1 pfctl.c
 +
 +       if (getsockopt(dnsock, IPPROTO_IP, IP_DUMMYNET_GET, data,
 +                       &len) < 0) {
-+               //if (!(opts & (PF_OPT_QUIET|PF_OPT_NOACTION)))
-+               //        fprintf(stderr, "DUMMYNET not loaded\n");
++#if 0
++               if (!(opts & (PF_OPT_QUIET|PF_OPT_NOACTION)))
++                       fprintf(stderr, "DUMMYNET not loaded\n");
++#endif
 +               return (0);
 +       }
 +       return (1);
@@ -744,7 +868,7 @@ diff -u -r1.1.1.1 pfctl.c
  pfctl_show_anchors(int dev, int opts, char *anchorname)
  {
  	struct pfioc_ruleset	 pr;
-@@ -2043,7 +2105,7 @@
+@@ -2043,7 +2107,7 @@
  		usage();
  
  	while ((ch = getopt(argc, argv,
@@ -753,7 +877,7 @@ diff -u -r1.1.1.1 pfctl.c
  		switch (ch) {
  		case 'a':
  			anchoropt = optarg;
-@@ -2125,6 +2187,9 @@
+@@ -2125,6 +2189,9 @@
  		case 'A':
  			loadopt |= PFCTL_FLAG_ALTQ;
  			break;
@@ -763,7 +887,7 @@ diff -u -r1.1.1.1 pfctl.c
  		case 'R':
  			loadopt |= PFCTL_FLAG_FILTER;
  			break;
-@@ -2239,6 +2304,11 @@
+@@ -2239,6 +2306,11 @@
  		if (dev == -1)
  			err(1, "%s", pf_device);
  		altqsupport = pfctl_test_altqsupport(dev, opts);
@@ -775,7 +899,7 @@ diff -u -r1.1.1.1 pfctl.c
  	} else {
  		dev = open(pf_device, O_RDONLY);
  		if (dev >= 0)
-@@ -2251,6 +2321,10 @@
+@@ -2251,6 +2323,10 @@
  #else
  		altqsupport = 1;
  #endif
@@ -786,7 +910,7 @@ diff -u -r1.1.1.1 pfctl.c
  	}
  
  	if (opts & PF_OPT_DISABLE)
-@@ -2280,6 +2354,9 @@
+@@ -2280,6 +2356,9 @@
  			pfctl_show_altq(dev, ifaceopt, opts,
  			    opts & PF_OPT_VERBOSE2);
  			break;
@@ -796,7 +920,7 @@ diff -u -r1.1.1.1 pfctl.c
  		case 's':
  			pfctl_show_states(dev, ifaceopt, opts);
  			break;
-@@ -2302,6 +2379,7 @@
+@@ -2302,6 +2381,7 @@
  			pfctl_show_nat(dev, opts, anchorname);
  			pfctl_show_rules(dev, path, opts, 0, anchorname, 0);
  			pfctl_show_altq(dev, ifaceopt, opts, 0);
@@ -804,7 +928,7 @@ diff -u -r1.1.1.1 pfctl.c
  			pfctl_show_states(dev, ifaceopt, opts);
  			pfctl_show_src_nodes(dev, opts);
  			pfctl_show_status(dev, opts);
-@@ -2343,6 +2421,9 @@
+@@ -2343,6 +2423,9 @@
  		case 'q':
  			pfctl_clear_altq(dev, opts);
  			break;
@@ -814,7 +938,7 @@ diff -u -r1.1.1.1 pfctl.c
  		case 's':
  			pfctl_clear_states(dev, ifaceopt, opts);
  			break;
-@@ -2358,6 +2439,7 @@
+@@ -2358,6 +2441,7 @@
  			pfctl_clear_tables(anchorname, opts);
  			if (!*anchorname) {
  				pfctl_clear_altq(dev, opts);
@@ -822,7 +946,7 @@ diff -u -r1.1.1.1 pfctl.c
  				pfctl_clear_states(dev, ifaceopt, opts);
  				pfctl_clear_src_nodes(dev, opts);
  				pfctl_clear_stats(dev, opts);
-@@ -2453,6 +2535,9 @@
+@@ -2453,6 +2537,9 @@
  			break;
  		}
  	}
@@ -1257,7 +1381,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/contrib/pf/pfctl/pfct
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl_parser.c	10 Jul 2008 19:34:07 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	2 Aug 2008 21:00:47 -0000
 @@ -48,6 +48,9 @@
  #include <net/pfvar.h>
  #include <arpa/inet.h>
@@ -1268,7 +1392,20 @@ diff -u -r1.1.1.1 pfctl_parser.c
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
-@@ -983,6 +986,12 @@
+@@ -912,6 +915,12 @@
+ 			printf("max-src-conn %u", r->max_src_conn);
+ 			opts = 0;
+ 		}
++		if (r->spare1) {
++                        if (!opts)
++                                printf(", ");
++                        printf("max-packets %u", r->spare1);
++                        opts = 0;
++		}
+ 		if (r->max_src_conn_rate.limit) {
+ 			if (!opts)
+ 				printf(", ");
+@@ -983,10 +992,18 @@
  	}
  	if (r->label[0])
  		printf(" label \"%s\"", r->label);
@@ -1281,6 +1418,12 @@ diff -u -r1.1.1.1 pfctl_parser.c
  	if (r->qname[0] && r->pqname[0])
  		printf(" queue(%s, %s)", r->qname, r->pqname);
  	else if (r->qname[0])
+ 		printf(" queue %s", r->qname);
++	if (r->divert)
++		printf(" divert %u", r->divert);
+ 	if (r->tagname[0])
+ 		printf(" tag %s", r->tagname);
+ 	if (r->match_tagname[0]) {
 Index: contrib/pf/pfctl/pfctl_parser.h
 ===================================================================
 RCS file: /home/eri/development/dummynet/localrepo/src/src/contrib/pf/pfctl/pfctl_parser.h,v
@@ -1342,27 +1485,78 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf.c
 --- sys/contrib/pf/net/pf.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf.c	13 Jul 2008 08:37:40 -0000
-@@ -135,6 +135,9 @@
++++ sys/contrib/pf/net/pf.c	2 Aug 2008 21:37:27 -0000
+@@ -135,6 +135,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
  #ifdef __FreeBSD__
 +#include <netinet/ip_fw.h>
 +#include <netinet/ip_dummynet.h>
++#include <netinet/ip_divert.h>
 +
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
  #endif
-@@ -342,6 +345,8 @@
+@@ -342,6 +346,9 @@
  		    (*state)->rt_kif != NULL &&				\
  		    (*state)->rt_kif != kif)				\
  			return (PF_PASS);				\
-+		if (pd->pf_mtag->flags & PF_DN_TAG_PRESENT)		\
++		if (pd->pf_mtag->flags & PF_DN_TAG_PRESENT ||		\
++			pd->pf_mtag->flags & PF_DIVERT_TAG_PRESENT)	\
 +			return (PF_PASS);				\
  	} while (0)
  
  #define	STATE_TRANSLATE(s) \
-@@ -6164,6 +6169,9 @@
+@@ -4290,7 +4297,7 @@
+ 	struct pf_ruleset	*ruleset = NULL;
+ 	struct pf_src_node	*nsn = NULL;
+ 	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
+-#if 0
++#if 1
+ 	struct pf_grehdr         gr;
+ #endif
+ 	sa_family_t		 af = pd->af;
+@@ -4526,14 +4533,18 @@
+ 			else
+ 				PF_ACPY(&s->gwy.addr, &s->lan.addr, af);
+ 		}
+-#if 0
++#if 1
+ 		if (pd->proto == IPPROTO_GRE &&
+                 	pf_pull_hdr(m, off, &gr, sizeof(gr),
+                         NULL, NULL, pd->af)  != NULL &&
+                         /* Check GRE header bits. */
+                         ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK)
+-                        == PPTP_INIT_VALUE))
+-                        s->gwy.port = gr.gh_call_id;
++                        == PPTP_INIT_VALUE)) {
++			if (direction == PF_IN)
++                        	s->gwy.port = gr.gh_call_id;
++			else
++				s->lan.port = gr.gh_call_id;
++		}
+ #endif
+ 
+ 		s->src.state = PFOTHERS_SINGLE;
+@@ -5827,7 +5838,7 @@
+ 	struct pf_grehdr         gr;
+         u_int16_t                callid = 0;
+ 
+-#if 0
++#if 1
+         if (pd->proto == IPPROTO_GRE &&
+                 pf_pull_hdr(m, off, &gr, sizeof(gr), NULL, NULL, pd->af)  != NULL &&
+                 /* Check GRE header bits. */
+@@ -5845,7 +5856,7 @@
+ 	} else {
+ 		PF_ACPY(&key.lan.addr, pd->src, key.af);
+ 		PF_ACPY(&key.ext.addr, pd->dst, key.af);
+-		key.lan.port = 0;
++		key.lan.port = callid;
+ 		key.ext.port = 0;
+ 	}
+ 
+@@ -6164,6 +6175,9 @@
  	} else {
  		if ((r->rt == PF_REPLYTO) == (r->direction == dir))
  			return;
@@ -1372,16 +1566,17 @@ diff -u -r1.1.1.1 pf.c
  		m0 = *m;
  	}
  
-@@ -6803,6 +6811,8 @@
+@@ -6803,6 +6817,9 @@
  	int			 off, dirndx, pqid = 0;
  
  #ifdef __FreeBSD__
 +	struct m_tag *dn_tag;
++	u_int32_t divertcookie = 0;
 +	struct ip_fw_args	 dnflow;
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -6829,6 +6839,7 @@
+@@ -6829,6 +6846,7 @@
  		PF_UNLOCK();
  		return (PF_PASS);
  	}
@@ -1389,7 +1584,7 @@ diff -u -r1.1.1.1 pf.c
  #else
  	if (pd.pf_mtag->flags & PF_TAG_GENERATED)
  		return (PF_PASS);
-@@ -6873,8 +6884,15 @@
+@@ -6873,11 +6891,27 @@
  		goto done;
  	}
  
@@ -1398,15 +1593,26 @@ diff -u -r1.1.1.1 pf.c
 +                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
 +		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
 +                m_tag_delete(m, dn_tag);
++		goto nonormalize;
 +        }
++	dn_tag = m_tag_find(m, PACKET_TAG_DIVERT, NULL);
++	if (dn_tag != NULL) {
++		pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;
++		divertcookie = divert_cookie(dn_tag);
++		m_tag_delete(m, dn_tag);
++		goto nonormalize;
++	}
 +
  	/* We do IP header normalization and packet reassembly here */
--	if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
-+	else if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 	if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
  		action = PF_DROP;
  		goto done;
  	}
-@@ -6912,6 +6930,13 @@
++nonormalize:
+ 	m = *m0;
+ 	h = mtod(m, struct ip *);
+ 
+@@ -6912,6 +6946,13 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1420,7 +1626,16 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -6965,6 +6990,12 @@
+@@ -6946,7 +6987,7 @@
+ 			action = pf_test_tcp(&r, &s, dir, kif,
+ 			    m, off, h, &pd, &a, &ruleset, &ipintrq);
+ #endif
+-#if 0
++#if 1
+ 		/* XXX: This are here until a pluggable framework for NAT is finished */
+        		if (s != NULL && s->nat_rule.ptr != NULL &&
+ 			s->nat_rule.ptr->action != PF_BINAT) {
+@@ -6965,6 +7006,12 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1433,7 +1648,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7006,6 +7037,7 @@
+@@ -7006,6 +7053,7 @@
  		struct icmp	ih;
  
  		pd.hdr.icmp = &ih;
@@ -1441,16 +1656,56 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &ih, ICMP_MINLEN,
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7177,9 +7209,48 @@
- 		m_freem(*m0);
- 		*m0 = NULL;
- 		action = PF_PASS;
--	} else if (r->rt) 
--		/* pf_route can free the mbuf causing *m0 to become NULL */
--		pf_route(m0, r, dir, ifp, s, &pd);
-+	} else
+@@ -7070,6 +7118,14 @@
+ 	if ((s && s->tag) || r->rtableid)
+ 		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
+ 
 +#ifdef __FreeBSD__
-+	if (action == PF_PASS && r->dnpipe && DUMMYNET_LOADED &&
++	if (s) {
++		if (divertcookie)
++			s->divert_cookie = divertcookie;
++		else if (s->divert_cookie)
++			divertcookie = s->divert_cookie;
++	}
++#endif
+ #ifdef ALTQ
+ 	if (action == PF_PASS && r->qid) {
+ 		if (s) 
+@@ -7084,6 +7140,74 @@
+ 	}
+ #endif /* ALTQ */
+ 
++#ifdef __FreeBSD__
++	if (r->divert && ip_divert_ptr != NULL &&
++		!(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT) && !divertcookie) {
++		
++			if (!r->spare1 || 
++				(s && s->packets[dir == PF_OUT] <= r->spare1)) {
++				
++//				if (dir == r->direction) {
++					
++				struct divert_tag *dt;
++                        	dn_tag = m_tag_get(PACKET_TAG_DIVERT, 
++					sizeof(struct divert_tag), M_NOWAIT);
++				if (dn_tag != NULL) {
++				
++                        		dt = (struct divert_tag *)(dn_tag+1);
++                        		dt->cookie = 0;
++                        		dt->info = r->divert;
++                        		m_tag_prepend(m, dn_tag);
++
++					PF_UNLOCK();
++
++					ip_divert_ptr(*m0, 
++						dir == 
++						PF_IN ? DIV_DIR_IN : DIV_DIR_OUT);
++
++					*m0 = NULL;	
++					return (action);
++				}
++//				}
++		 	}
++	} else if (r->dnpipe && DUMMYNET_LOADED &&
 +		!(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
 +			struct ip_fw dummyrule;
 +
@@ -1458,19 +1713,23 @@ diff -u -r1.1.1.1 pf.c
 +				r->dntype == DN_IS_PIPE ? O_PIPE : O_QUEUE;
 +			dummyrule.act_ofs = 0;
 +			dummyrule.cmd_len = 1;
-+			if (dir != r->direction && r->pdnpipe)
-+                                dnflow.cookie = r->pdnpipe;
-+                        else if (dir == r->direction)
-+                                dnflow.cookie = r->dnpipe;
-+                        else if (r->rt)
++			if (dir != r->direction && r->pdnpipe) {
++				if (r->rule_flag & PFRULE_DIVERT_COOKIE && divertcookie)
++					dnflow.cookie = divertcookie;
++				else
++                                	dnflow.cookie = r->pdnpipe;
++                        } else if (dir == r->direction) {
++				if (r->rule_flag & PFRULE_DIVERT_COOKIE && divertcookie)
++					dnflow.cookie = divertcookie;
++				else
++                                	dnflow.cookie = r->dnpipe;
++                        } else 
 +                                goto notfordummynet;
-+                        else {
-+                                PF_UNLOCK();
-+                                return (action);
-+                        }
++
 +                	dnflow.rule = &dummyrule;
 +                	dnflow.f_id.addr_type = 4; /* IPv4 type */
 +                	dnflow.f_id.proto = pd.proto;
++
 +			PF_UNLOCK();
 +			
 +			h = mtod(*m0, struct ip *);
@@ -1481,19 +1740,26 @@ diff -u -r1.1.1.1 pf.c
 +				&dnflow, DN_CLIENT_PF);
 +			*m0 = NULL;
 +			return (action);
-+	} else 
-+#endif
-+	if (r->rt) {
-+#ifdef __FreeBSD__
++	}
 +notfordummynet:
 +#endif
+ 	/*
+ 	 * connections redirected to loopback should not match sockets
+ 	 * bound specifically to loopback due to security implications,
+@@ -7177,9 +7301,9 @@
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt) 
+-		/* pf_route can free the mbuf causing *m0 to become NULL */
+-		pf_route(m0, r, dir, ifp, s, &pd);
++	} else if (r->rt)
 +                /* pf_route can free the mbuf causing *m0 to become NULL */
 +                pf_route(m0, r, dir, ifp, s, &pd);
-+	}
  	
  #ifdef __FreeBSD__
  	PF_UNLOCK();
-@@ -7210,6 +7281,8 @@
+@@ -7210,6 +7334,8 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
@@ -1502,7 +1768,7 @@ diff -u -r1.1.1.1 pf.c
  	PF_LOCK();
  #endif
  
-@@ -7278,8 +7351,16 @@
+@@ -7278,8 +7404,16 @@
  		goto done;
  	}
  
@@ -1520,7 +1786,7 @@ diff -u -r1.1.1.1 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7385,6 +7466,12 @@
+@@ -7385,6 +7519,12 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1533,7 +1799,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7425,6 +7512,11 @@
+@@ -7425,6 +7565,11 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1545,7 +1811,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7635,13 +7727,51 @@
+@@ -7635,13 +7780,51 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
@@ -1554,7 +1820,7 @@ diff -u -r1.1.1.1 pf.c
 -		pf_route6(m0, r, dir, ifp, s, &pd);
 -	
 +	} else 
- #ifdef __FreeBSD__
++#ifdef __FreeBSD__
 +        if (action == PF_PASS && r->dnpipe && DUMMYNET_LOADED &&
 +                !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
 +			struct ip_fw dummyrule;
@@ -1586,7 +1852,7 @@ diff -u -r1.1.1.1 pf.c
 +        } else
 +#endif
 +        if (r->rt) {
-+#ifdef __FreeBSD__
+ #ifdef __FreeBSD__
 +notfordummynet:
 +#endif
 +                /* pf_route can free the mbuf causing *m0 to become NULL */
@@ -1665,14 +1931,15 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_mtag.h
 --- sys/contrib/pf/net/pf_mtag.h	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf_mtag.h	11 Jul 2008 17:41:45 -0000
-@@ -37,8 +37,7 @@
++++ sys/contrib/pf/net/pf_mtag.h	2 Aug 2008 20:47:54 -0000
+@@ -37,8 +37,8 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
  #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
 -#define PF_IN_TAG_GENERATED             0x08
 -#define PF_OUT_TAG_GENERATED            0x10
 +#define PF_DN_TAG_PRESENT	        0x08
++#define PF_DIVERT_TAG_PRESENT		0x10
  
  struct pf_mtag {
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
@@ -1682,7 +1949,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pfvar.h	11 Jul 2008 17:56:15 -0000
++++ sys/contrib/pf/net/pfvar.h	2 Aug 2008 20:47:45 -0000
 @@ -57,9 +57,6 @@
  
  #ifdef __FreeBSD__
@@ -1703,6 +1970,48 @@ diff -u -r1.1.1.1 pfvar.h
  	u_int32_t		 rt_listid;
  	u_int32_t		 nr;
  	u_int32_t		 prob;
+@@ -647,6 +647,7 @@
+ 	u_int16_t		 tag;
+ 	u_int16_t		 match_tag;
+ 	u_int16_t		 spare2;		/* netgraph */
++	u_int16_t		 divert;		/* divert */
+ 
+ 	struct pf_rule_uid	 uid;
+ 	struct pf_rule_gid	 gid;
+@@ -715,6 +716,8 @@
+ #define PFRULE_SRCTRACK		0x0020  /* track source states */
+ #define PFRULE_RULESRCTRACK	0x0040  /* per rule */
+ 
++#define PFRULE_DIVERT_COOKIE	0x0080
++
+ /* scrub flags */
+ #define	PFRULE_NODF		0x0100
+ #define	PFRULE_FRAGCROP		0x0200	/* non-buffering frag cache */
+@@ -732,6 +735,7 @@
+ /* rule flags again */
+ #define PFRULE_IFBOUND		0x00010000	/* if-bound */
+ 
++
+ #define PFSTATE_HIWAT		10000	/* default state table size */
+ #define PFSTATE_ADAPT_START	6000	/* default adaptive timeout start */
+ #define PFSTATE_ADAPT_END	12000	/* default adaptive timeout end */
+@@ -826,7 +830,7 @@
+ 	u_int8_t	 direction;
+ #ifdef __FreeBSD__
+ 	u_int8_t	 local_flags;
+-#define	PFSTATE_EXPIRING 0x01
++#define	PFSTATE_EXPIRING 		0x01
+ #else
+ 	u_int8_t	 pad;
+ #endif
+@@ -862,6 +866,7 @@
+ 	u_int32_t	 expire;
+ 	u_int32_t	 pfsync_time;
+ 	u_int16_t	 tag;
++	u_int16_t	 divert_cookie;
+ };
+ 
+ TAILQ_HEAD(pf_rulequeue, pf_rule);
 Index: sys/net/if_bridge.c
 ===================================================================
 RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/net/if_bridge.c,v
@@ -1735,6 +2044,36 @@ diff -u -r1.1.1.1 if_ethersubr.c
  		return 0;
  	}
  	/*
+Index: sys/netinet/ip_divert.c
+===================================================================
+RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_divert.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_divert.c
+--- sys/netinet/ip_divert.c	10 Jul 2008 18:39:38 -0000	1.1.1.1
++++ sys/netinet/ip_divert.c	2 Aug 2008 20:49:13 -0000
+@@ -752,5 +752,4 @@
+ };
+ 
+ DECLARE_MODULE(ipdivert, ipdivertmod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
+-MODULE_DEPEND(dummynet, ipfw, 2, 2, 2);
+ MODULE_VERSION(ipdivert, 1);
+Index: sys/netinet/ip_divert.h
+===================================================================
+RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_divert.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_divert.h
+--- sys/netinet/ip_divert.h	10 Jul 2008 18:39:38 -0000	1.1.1.1
++++ sys/netinet/ip_divert.h	2 Aug 2008 20:49:06 -0000
+@@ -50,6 +50,9 @@
+ 	u_int16_t	cookie;		/* ipfw rule number */
+ };
+ 
++#define DIV_DIR_IN      1
++#define DIV_DIR_OUT     0
++
+ /*
+  * Return the divert cookie associated with the mbuf; if any.
+  */
 Index: sys/netinet/ip_dummynet.c
 ===================================================================
 RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_dummynet.c,v
@@ -1846,24 +2185,16 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_dummyn
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.h
 --- sys/netinet/ip_dummynet.h	10 Jul 2008 18:39:38 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.h	11 Jul 2008 16:07:22 -0000
-@@ -346,13 +346,12 @@
- 
++++ sys/netinet/ip_dummynet.h	2 Aug 2008 21:25:25 -0000
+@@ -347,7 +347,7 @@
  #ifdef _KERNEL
  typedef	int ip_dn_ctl_t(struct sockopt *); /* raw_ip.c */
--typedef	void ip_dn_ruledel_t(void *); /* ip_fw.c */
+ typedef	void ip_dn_ruledel_t(void *); /* ip_fw.c */
 -typedef	int ip_dn_io_t(struct mbuf *m, int dir, struct ip_fw_args *fwa);
 +typedef	int ip_dn_io_t(struct mbuf *m, int dir, struct ip_fw_args *fwa, u_int16_t);
-+typedef void ip_dn_ruledel_t(void *); /* ip_fw.c */
  extern	ip_dn_ctl_t *ip_dn_ctl_ptr;
--extern	ip_dn_ruledel_t *ip_dn_ruledel_ptr;
+ extern	ip_dn_ruledel_t *ip_dn_ruledel_ptr;
  extern	ip_dn_io_t *ip_dn_io_ptr;
-+extern  ip_dn_ruledel_t *ip_dn_ruledel_ptr;
- #define	DUMMYNET_LOADED	(ip_dn_io_ptr != NULL)
--
- /*
-  * Return the IPFW rule associated with the dummynet tag; if any.
-  * Make sure that the dummynet tag is not reused by lower layers.
 Index: sys/netinet/ip_fw.h
 ===================================================================
 RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_fw.h,v
@@ -1900,18 +2231,28 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_fw_pfi
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_pfil.c
 --- sys/netinet/ip_fw_pfil.c	10 Jul 2008 18:39:38 -0000	1.1.1.1
-+++ sys/netinet/ip_fw_pfil.c	11 Jul 2008 16:10:08 -0000
-@@ -72,9 +72,6 @@
++++ sys/netinet/ip_fw_pfil.c	2 Aug 2008 20:49:31 -0000
+@@ -72,19 +72,11 @@
  
  int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
  
 -/* Dummynet hooks. */
 -ip_dn_ruledel_t	*ip_dn_ruledel_ptr = NULL;
 -
- /* Divert hooks. */
- ip_divert_packet_t *ip_divert_ptr = NULL;
+-/* Divert hooks. */
+-ip_divert_packet_t *ip_divert_ptr = NULL;
+-
+ /* ng_ipfw hooks. */
+ ng_ipfw_input_t *ng_ipfw_input_p = NULL;
  
-@@ -160,9 +157,9 @@
+ /* Forward declarations. */
+ static int	ipfw_divert(struct mbuf **, int, int);
+-#define	DIV_DIR_IN	1
+-#define	DIV_DIR_OUT	0
+ 
+ int
+ ipfw_check_in(void *arg, struct mbuf **m0, struct ifnet *ifp, int dir,
+@@ -160,9 +152,9 @@
  		if (!DUMMYNET_LOADED)
  			goto drop;
  		if (mtod(*m0, struct ip *)->ip_v == 4)
@@ -1923,7 +2264,7 @@ diff -u -r1.1.1.1 ip_fw_pfil.c
  		*m0 = NULL;
  		return 0;		/* packet consumed */
  
-@@ -286,9 +283,9 @@
+@@ -286,9 +278,9 @@
  		if (!DUMMYNET_LOADED)
  			break;
  		if (mtod(*m0, struct ip *)->ip_v == 4)
@@ -1941,12 +2282,24 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/netinet/ip_input.
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_input.c
 --- sys/netinet/ip_input.c	10 Jul 2008 18:39:38 -0000	1.1.1.1
-+++ sys/netinet/ip_input.c	11 Jul 2008 16:05:44 -0000
-@@ -202,6 +202,7 @@
++++ sys/netinet/ip_input.c	2 Aug 2008 21:00:27 -0000
+@@ -81,6 +81,7 @@
+ /* XXX: Temporary until ipfw_ether and ipfw_bridge are converted. */
+ #include <netinet/ip_fw.h>
+ #include <netinet/ip_dummynet.h>
++#include <netinet/ip_divert.h>
+ 
+ #include <security/mac/mac_framework.h>
+ 
+@@ -202,6 +203,11 @@
   */
  ip_fw_chk_t *ip_fw_chk_ptr = NULL;
  ip_dn_io_t *ip_dn_io_ptr = NULL;
 +ip_dn_ruledel_t *ip_dn_ruledel_ptr = NULL;
++
++/* Divert hooks. */
++ip_divert_packet_t *ip_divert_ptr = NULL;
++
  int fw_one_pass = 1;
  
  static void	ip_freef(struct ipqhead *, struct ipq *);
