@@ -1,0 +1,11 @@
+--- Makefile.old	2008-08-02 19:47:28.000000000 +0000
++++ Makefile	2008-08-02 19:47:30.000000000 +0000
+@@ -19,7 +19,7 @@
+ 		-Wunused-parameter -Wchar-subscripts -Winline \
+ 		-Wnested-externs -Wredundant-decls -Wno-pointer-sign	
+ LDD=		-lpthread_p -lm_p -lutil_p
+-CFLAGS+= -O2 -pipe -pg ${DEBUG_FLAGS} ${WARNS}
++CFLAGS+= -O2 -pipe ${WARNS}
+ 
+ all: ${PROG}
+ 
