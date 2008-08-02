@@ -1,21 +1,12 @@
-PORTNAME=	ipfw-classifyd
-PORTVERSION=	0.0.1
-PORTREVISION?=	0
-CATEGORIES?=	sysutils
-MASTER_SITES=	# empty
-DISTFILES=	# none
-EXTRACT_ONLY=	# empty
+PORTNAME=		ipfw-classifyd
+PORTVERSION=		0.1
+CATEGORIES=		net
+MASTER_SITES=		http://people.freebsd.org/~mtm/
+DISTFILES=		ipfw-classifyd.tar.bz2
 
-MAINTAINER?=	ermal@pfsense.com
-COMMENT?=	ipfw-classifyd
+MAINTAINER=		ermal@pfsense.com
+COMMENT=		application classifier
 
-WHERE=		sbin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
-
-do-build:
-	cd files && make
-
-do-install:
-	cd files && make install
-
+post-extract:
+	mv work/ipfw-classifyd work/ipfw-classifyd-0.1
 .include <bsd.port.mk>
