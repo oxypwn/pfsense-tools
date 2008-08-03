@@ -13,6 +13,7 @@ echo "Beginning..."
 chflags -R noschg /usr/local/
 rm -rf /usr/local/*
 rm -rf /var/db/pkg/*
+rm -rf /usr/ports/*
 
 mkdir /usr/local/bin
 mkdir /usr/local/etc
