@@ -32,6 +32,7 @@
 ~sys~if_et.c.diff~
 ~sys/net/~altq-vlan.diff~
 ~sys/dev/bge/~if_bge.c.diff~
+~../etc/~rc.initdiskless.patch~
 ~~vr.patch~
 ~~carp.diff~
 ~~dummynet.patch~
