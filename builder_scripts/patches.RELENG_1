@@ -10,7 +10,7 @@
 ~~~/sys/dev/usb/umsm.c
 ~~~/sys/modules/umsm/Makefile
 ~~~/sys/modules/glxsb
-~sys/boot/i386/btx/btx~btx_real.diff~
+~sys/boot/i386/btx/btx~btx_real2.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/netinet~tcp_output.c.diff~
 ~~ipsec_altq.diff~
