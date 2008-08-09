@@ -4,7 +4,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/contrib/pf/pfctl/pars
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 parse.y
 --- contrib/pf/pfctl/parse.y	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ contrib/pf/pfctl/parse.y	2 Aug 2008 20:58:57 -0000
++++ contrib/pf/pfctl/parse.y	9 Aug 2008 08:38:33 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -23,15 +23,19 @@ diff -u -r1.1.1.1 parse.y
  #include <stdio.h>
  #include <stdlib.h>
  #include <netdb.h>
-@@ -128,6 +132,7 @@
+@@ -128,8 +132,10 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
  	    PF_STATE_OPT_MAX_SRC_CONN_RATE, PF_STATE_OPT_MAX_SRC_NODES,
 +	    PF_STATE_OPT_MAX_PACKETS, PF_STATE_OPT_DIVERT_COOKIE,
  	    PF_STATE_OPT_OVERLOAD, PF_STATE_OPT_STATELOCK,
- 	    PF_STATE_OPT_TIMEOUT };
+-	    PF_STATE_OPT_TIMEOUT };
++	    PF_STATE_OPT_TIMEOUT, PF_STATE_OPT_OVERLOAD_ACTION,
++	    PF_STATE_OPT_OVERLOAD_DN, PF_STATE_OPT_OVERLOAD_ALTQ };
  
-@@ -139,6 +144,7 @@
+ enum	{ PF_SRCTRACK_NONE, PF_SRCTRACK, PF_SRCTRACK_GLOBAL, PF_SRCTRACK_RULE };
+ 
+@@ -139,6 +145,7 @@
  		u_int32_t	 max_states;
  		u_int32_t	 max_src_states;
  		u_int32_t	 max_src_conn;
@@ -39,7 +43,7 @@ diff -u -r1.1.1.1 parse.y
  		struct {
  			u_int32_t	limit;
  			u_int32_t	seconds;
-@@ -206,9 +212,13 @@
+@@ -206,9 +213,13 @@
  	int			 allowopts;
  	char			*label;
  	struct node_qassign	 queues;
@@ -49,11 +53,11 @@ diff -u -r1.1.1.1 parse.y
  	u_int8_t		 match_tag_not;
 +	u_int32_t		 dnpipe;
 +	u_int32_t		 pdnpipe;
-+	u_int32_t		 dntype;
++	u_int32_t		 free_flags;
  	int			 rtableid;
  } filter_opts;
  
-@@ -265,6 +275,9 @@
+@@ -265,6 +276,9 @@
  
  struct node_hfsc_opts	hfsc_opts;
  struct node_fairq_opts	fairq_opts;
@@ -63,7 +67,7 @@ diff -u -r1.1.1.1 parse.y
  
  int	yyerror(const char *, ...);
  int	disallow_table(struct node_host *, const char *);
-@@ -399,6 +412,8 @@
+@@ -399,6 +413,8 @@
  		struct filter_opts	 filter_opts;
  		struct antispoof_opts	 antispoof_opts;
  		struct queue_opts	 queue_opts;
@@ -72,30 +76,22 @@ diff -u -r1.1.1.1 parse.y
  		struct scrub_opts	 scrub_opts;
  		struct table_opts	 table_opts;
  		struct pool_opts	 pool_opts;
-@@ -426,17 +441,19 @@
+@@ -426,10 +442,12 @@
  %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
  %token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
  %token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
-+%token  DNPIPE DNQUEUE GRED RED WEIGHT MASK DELAY BUCKETS PLR
++%token  DNPIPE DNQUEUE DUMMYNET GRED RED WEIGHT MASK DELAY BUCKETS PLR
 +%token  SRCIP DSTIP SRCPORT DSTPORT SRCIP6 DSTIP6 FLOWID NOERROR
  %token	LOAD RULESET_OPTIMIZATION
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
 -%token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
 -%token	TAGGED TAG IFBOUND FLOATING STATEPOLICY ROUTE
-+%token	MAXSRCCONN MAXSRCCONNRATE MAXPCKT OVERLOAD FLUSH DIVERTCOOKIEARG
++%token	MAXSRCCONN MAXSRCCONNRATE MAXPCKT OVERLOAD FLUSH DIVERTTAG ACTION
 +%token	TAGGED TAG DIVERT IFBOUND FLOATING STATEPOLICY ROUTE
  %token	<v.string>		STRING
  %token	<v.i>			PORTBINARY
  %type	<v.interface>		interface if_list if_item_not if_item
- %type	<v.number>		number icmptype icmp6type uid gid
- %type	<v.number>		tos dscp not yesno
- %type	<v.i>			no dir af fragcache optimizer
--%type	<v.i>			sourcetrack flush unaryop statelock
-+%type	<v.i>			sourcetrack divertcookiearg flush unaryop statelock
- %type	<v.b>			action nataction natpass scrubaction
- %type	<v.b>			flags flag blockspec
- %type	<v.range>		port rport
-@@ -456,7 +473,8 @@
+@@ -456,7 +474,8 @@
  %type	<v.gid>			gids gid_list gid_item
  %type	<v.route>		route
  %type	<v.redirection>		redirection redirpool
@@ -105,7 +101,7 @@ diff -u -r1.1.1.1 parse.y
  %type	<v.keep_state>		keep
  %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
  %type	<v.logquick>		logquick quick log logopts logopt
-@@ -468,6 +486,8 @@
+@@ -468,6 +487,8 @@
  %type	<v.number>		priqflags_list priqflags_item
  %type	<v.hfsc_opts>		hfscopts_list hfscopts_item hfsc_opts
  %type	<v.fairq_opts>		fairqopts_list fairqopts_item fairq_opts
@@ -114,7 +110,7 @@ diff -u -r1.1.1.1 parse.y
  %type	<v.queue_bwspec>	bandwidth
  %type	<v.filter_opts>		filter_opts filter_opt filter_opts_l
  %type	<v.antispoof_opts>	antispoof_opts antispoof_opt antispoof_opts_l
-@@ -489,6 +509,8 @@
+@@ -489,6 +510,8 @@
  		| ruleset anchorrule '\n'
  		| ruleset loadrule '\n'
  		| ruleset altqif '\n'
@@ -123,7 +119,7 @@ diff -u -r1.1.1.1 parse.y
  		| ruleset queuespec '\n'
  		| ruleset varset '\n'
  		| ruleset antispoof '\n'
-@@ -1453,14 +1475,22 @@
+@@ -1453,14 +1476,22 @@
  
  			bps = strtod($1, &cp);
  			if (cp != NULL) {
@@ -150,7 +146,7 @@ diff -u -r1.1.1.1 parse.y
  				else if (!strcmp(cp, "%")) {
  					if (bps < 0 || bps > 100) {
  						yyerror("bandwidth spec "
-@@ -1737,6 +1767,255 @@
+@@ -1737,6 +1768,255 @@
  		}
  		;
  
@@ -406,7 +402,7 @@ diff -u -r1.1.1.1 parse.y
  pfrule		: action dir logquick interface route af proto fromto
  		    filter_opts
  		{
-@@ -1777,6 +2056,8 @@
+@@ -1777,6 +2057,8 @@
  			r.rtableid = $9.rtableid;
  
  			r.af = $6;
@@ -415,7 +411,7 @@ diff -u -r1.1.1.1 parse.y
  			if ($9.tag)
  				if (strlcpy(r.tagname, $9.tag,
  				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
-@@ -1862,6 +2143,17 @@
+@@ -1862,6 +2144,17 @@
  					}
  					r.rule_flag |= PFRULE_NOSYNC;
  					break;
@@ -433,48 +429,67 @@ diff -u -r1.1.1.1 parse.y
  				case PF_STATE_OPT_SRCTRACK:
  					if (srctrack) {
  						yyerror("state option "
-@@ -2111,6 +2403,12 @@
+@@ -1888,6 +2181,15 @@
+ 					    o->data.max_src_states;
+ 					r.rule_flag |= PFRULE_SRCTRACK;
+ 					break;
++				case PF_STATE_OPT_OVERLOAD_ACTION:
++					r.free_flags |= PFRULE_DIVERT_ACTION;
++					break;
++				case PF_STATE_OPT_OVERLOAD_ALTQ:
++					r.free_flags |= PFRULE_DIVERT_ALTQ;
++					break;
++				case PF_STATE_OPT_OVERLOAD_DN:
++					r.free_flags |= PFRULE_DIVERT_DNCOOKIE;
++					break;
+ 				case PF_STATE_OPT_OVERLOAD:
+ 					if (r.overload_tblname[0]) {
+ 						yyerror("multiple 'overload' "
+@@ -2111,6 +2413,15 @@
  				free($9.queues.pqname);
  			}
  
 +			if ($9.dnpipe) {
 +                                r.dnpipe = $9.dnpipe;
-+                                r.dntype = $9.dntype;
++				if ($9.free_flags & PFRULE_DN_IS_PIPE)
++					r.free_flags |= PFRULE_DN_IS_PIPE;
++				else
++					r.free_flags |= PFRULE_DN_IS_QUEUE;
 +				r.pdnpipe = $9.pdnpipe;
 +			}
 +
  			expand_rule(&r, $4, $5.host, $7, $8.src_os,
  			    $8.src.host, $8.src.port, $8.dst.host, $8.dst.port,
  			    $9.uid, $9.gid, $9.icmpspec, "");
-@@ -2208,6 +2506,35 @@
+@@ -2208,6 +2519,35 @@
  			}
  			filter_opts.queues = $1;
  		}
 +		| DNPIPE number			        {
 +			filter_opts.dnpipe = $2;
-+			filter_opts.dntype |= DN_IS_PIPE;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
 +		}
 +		| DNPIPE '(' number ')'			{
 +			filter_opts.dnpipe = $3;
-+			filter_opts.dntype |= DN_IS_PIPE;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
 +		}
 +		| DNPIPE '(' number comma number ')' {
 +			filter_opts.pdnpipe = $5;
 +			filter_opts.dnpipe = $3;
-+			filter_opts.dntype |= DN_IS_PIPE;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
 +		}
 +		| DNQUEUE number			{
 +			filter_opts.dnpipe = $2;
-+			filter_opts.dntype |= DN_IS_QUEUE;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
 +		}
 +		| DNQUEUE '(' number comma number ')'	{
 +			filter_opts.pdnpipe = $5;
 +			filter_opts.dnpipe = $3;
-+			filter_opts.dntype |= DN_IS_QUEUE;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
 +		}
 +		| DNQUEUE '(' number ')'		{
 +			filter_opts.dnpipe = $3;
-+			filter_opts.dntype = DN_IS_QUEUE;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
 +		}
 +		| DIVERT number				{
 +			filter_opts.divert = $2;
@@ -482,17 +497,7 @@ diff -u -r1.1.1.1 parse.y
  		| TAG string				{
  			filter_opts.tag = $2;
  		}
-@@ -3210,6 +3537,9 @@
-                 }
- 		;
- 
-+divertcookiearg	: DIVERTCOOKIEARG 	{ $$ = 0; }
-+		;
-+
- sourcetrack	: SOURCETRACK		{ $$ = PF_SRCTRACK; }
- 		| SOURCETRACK GLOBAL	{ $$ = PF_SRCTRACK_GLOBAL; }
- 		| SOURCETRACK RULE	{ $$ = PF_SRCTRACK_RULE; }
-@@ -3286,6 +3616,15 @@
+@@ -3286,6 +3626,15 @@
  			$$->next = NULL;
  			$$->tail = $$;
  		}
@@ -508,22 +513,38 @@ diff -u -r1.1.1.1 parse.y
  		| MAXSRCCONN number			{
  			$$ = calloc(1, sizeof(struct node_state_opt));
  			if ($$ == NULL)
-@@ -3332,6 +3671,14 @@
+@@ -3323,6 +3672,30 @@
  			$$->next = NULL;
  			$$->tail = $$;
  		}
-+		| divertcookiearg {
++		| OVERLOAD ACTION DIVERTTAG {
 +			$$ = calloc(1, sizeof(struct node_state_opt));
-+			if ($$ == NULL)
-+				err(1, "divertcookiearg: calloc");
-+			$$->type = PF_STATE_OPT_DIVERT_COOKIE;
++                        if ($$ == NULL)
++                                err(1, "state_opt_item: calloc");
++			$$->type = PF_STATE_OPT_OVERLOAD_ACTION;
++                        $$->next = NULL;
++                        $$->tail = $$;
++		}
++		| OVERLOAD DUMMYNET DIVERTTAG {
++			$$ = calloc(1, sizeof(struct node_state_opt));
++                        if ($$ == NULL)
++                                err(1, "state_opt_item: calloc");
++			$$->type = PF_STATE_OPT_OVERLOAD_DN;
 +			$$->next = NULL;
 +			$$->tail = $$;
 +		}
- 		| sourcetrack {
++		| OVERLOAD ALTQ DIVERTTAG {
++			$$ = calloc(1, sizeof(struct node_state_opt));
++                        if ($$ == NULL)
++                                err(1, "state_opt_item: calloc");
++			$$->type = PF_STATE_OPT_OVERLOAD_ALTQ;
++                        $$->next = NULL;
++                        $$->tail = $$;
++		}
+ 		| MAXSRCNODES number			{
  			$$ = calloc(1, sizeof(struct node_state_opt));
  			if ($$ == NULL)
-@@ -3950,6 +4297,10 @@
+@@ -3950,6 +4323,10 @@
  		}
  		;
  
@@ -534,7 +555,7 @@ diff -u -r1.1.1.1 parse.y
  tag		: /* empty */		{ $$ = NULL; }
  		| TAG STRING		{ $$ = $2; }
  		;
-@@ -4239,6 +4590,19 @@
+@@ -4239,6 +4616,19 @@
  		yyerror("tos and dscp cannot be used together");
  		problems++;
  	}
@@ -554,13 +575,21 @@ diff -u -r1.1.1.1 parse.y
  	return (-problems);
  }
  
-@@ -5031,9 +5395,17 @@
+@@ -5014,6 +5404,7 @@
+ {
+ 	/* this has to be sorted always */
+ 	static const struct keywords keywords[] = {
++		{ "action",		ACTION},
+ 		{ "all",		ALL},
+ 		{ "allow-opts",		ALLOWOPTS},
+ 		{ "altq",		ALTQ},
+@@ -5031,9 +5422,18 @@
  		{ "code",		CODE},
  		{ "crop",		FRAGCROP},
  		{ "debug",		DEBUG},
 +		{ "delay",              DELAY},
 +		{ "divert",		DIVERT},
-+		{ "divertcookiearg",	DIVERTCOOKIEARG},
++		{ "diverttag",		DIVERTTAG},
 +                { "dnpipe",             DNPIPE},
 +                { "dnqueue",            DNQUEUE},
  		{ "drop",		DROP},
@@ -569,10 +598,11 @@ diff -u -r1.1.1.1 parse.y
 +                { "dst-ip",             DSTIP},
 +                { "dst-ip6",            DSTIP6},
 +                { "dst-port",           DSTPORT},
++		{ "dummynet",		DUMMYNET},
  		{ "dup-to",		DUPTO},
  		{ "fairq",		FAIRQ},
  		{ "fastroute",		FASTROUTE},
-@@ -5041,11 +5413,13 @@
+@@ -5041,11 +5441,13 @@
  		{ "fingerprints",	FINGERPRINTS},
  		{ "flags",		FLAGS},
  		{ "floating",		FLOATING},
@@ -586,7 +616,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "group",		GROUP},
  		{ "hfsc",		HFSC},
  		{ "hogs",		HOGS},
-@@ -5063,8 +5437,10 @@
+@@ -5063,8 +5465,10 @@
  		{ "load",		LOAD},
  		{ "log",		LOG},
  		{ "loginterface",	LOGINTERFACE},
@@ -597,7 +627,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "max-src-conn",	MAXSRCCONN},
  		{ "max-src-conn-rate",	MAXSRCCONNRATE},
  		{ "max-src-nodes",	MAXSRCNODES},
-@@ -5077,12 +5453,14 @@
+@@ -5077,12 +5481,14 @@
  		{ "no-df",		NODF},
  		{ "no-route",		NOROUTE},
  		{ "no-sync",		NOSYNC},
@@ -612,7 +642,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "port",		PORT},
  		{ "priority",		PRIORITY},
  		{ "priq",		PRIQ},
-@@ -5097,6 +5475,7 @@
+@@ -5097,6 +5503,7 @@
  		{ "rdr-anchor",		RDRANCHOR},
  		{ "realtime",		REALTIME},
  		{ "reassemble",		REASSEMBLE},
@@ -620,7 +650,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "reply-to",		REPLYTO},
  		{ "require-order",	REQUIREORDER},
  		{ "return",		RETURN},
-@@ -5114,6 +5493,9 @@
+@@ -5114,6 +5521,9 @@
  		{ "skip",		SKIP},
  		{ "source-hash",	SOURCEHASH},
  		{ "source-track",	SOURCETRACK},
@@ -630,7 +660,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "state",		STATE},
  		{ "state-policy",	STATEPOLICY},
  		{ "static-port",	STATICPORT},
-@@ -5130,6 +5512,7 @@
+@@ -5130,6 +5540,7 @@
  		{ "upperlimit",		UPPERLIMIT},
  		{ "urpf-failed",	URPFFAILED},
  		{ "user",		USER},
@@ -638,7 +668,7 @@ diff -u -r1.1.1.1 parse.y
  	};
  	const struct keywords	*p;
  
-@@ -5658,3 +6041,80 @@
+@@ -5658,3 +6069,80 @@
  
  	return (0);
  }
@@ -725,7 +755,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/contrib/pf/pfctl/pfct
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.c	2 Aug 2008 21:05:21 -0000
++++ contrib/pf/pfctl/pfctl.c	9 Aug 2008 08:35:27 -0000
 @@ -46,6 +46,9 @@
  #include <altq/altq.h>
  #include <sys/sysctl.h>
@@ -814,7 +844,7 @@ diff -u -r1.1.1.1 pfctl.c
  		    rule->qname, rule->qid, rule->pqname, rule->pqid);
 +
 +		printf("  [ %s: in id=%d out id=%d  ]\n",
-+			rule->dntype == DN_IS_PIPE ? "dnpipe" : "dnqueue",
++			rule->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
 +			rule->dnpipe, rule->pdnpipe);
  	}
  	if (opts & PF_OPT_VERBOSE) {
@@ -1381,7 +1411,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/contrib/pf/pfctl/pfct
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl_parser.c	2 Aug 2008 21:00:47 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	9 Aug 2008 08:35:35 -0000
 @@ -48,6 +48,9 @@
  #include <net/pfvar.h>
  #include <arpa/inet.h>
@@ -1405,7 +1435,29 @@ diff -u -r1.1.1.1 pfctl_parser.c
  		if (r->max_src_conn_rate.limit) {
  			if (!opts)
  				printf(", ");
-@@ -983,10 +992,18 @@
+@@ -935,6 +944,21 @@
+ 			if (r->flush & PF_FLUSH_GLOBAL)
+ 				printf(" global");
+ 		}
++		if (r->free_flags & PFRULE_DIVERT_ACTION) {
++			if (!opts)
++				printf(", ");
++			printf("overload action divert");
++		}
++                if (r->free_flags & PFRULE_DIVERT_ALTQ) {
++                        if (!opts)
++                                printf(", ");
++                        printf("overload queue divert");
++                }
++                if (r->free_flags & PFRULE_DIVERT_DNCOOKIE) {
++                        if (!opts)
++                                printf(", ");
++                        printf("overload dnpipe divert");
++                }
+ 		if (r->rule_flag & PFRULE_IFBOUND) {
+ 			if (!opts)
+ 				printf(", ");
+@@ -983,10 +1007,18 @@
  	}
  	if (r->label[0])
  		printf(" label \"%s\"", r->label);
@@ -1413,7 +1465,7 @@ diff -u -r1.1.1.1 pfctl_parser.c
 +	       printf(" dnqueue(%d, %d)", r->dnpipe, r->pdnpipe);
 +	else if (r->dnpipe)	
 +		printf(" %s %d", 
-+			r->dntype == DN_IS_PIPE ? "dnpipe" : "dnqueue",
++			r->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
 +			r->dnpipe);
  	if (r->qname[0] && r->pqname[0])
  		printf(" queue(%s, %s)", r->qname, r->pqname);
@@ -1485,7 +1537,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf.c
 --- sys/contrib/pf/net/pf.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf.c	2 Aug 2008 21:37:27 -0000
++++ sys/contrib/pf/net/pf.c	9 Aug 2008 08:34:38 -0000
 @@ -135,6 +135,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -1566,17 +1618,18 @@ diff -u -r1.1.1.1 pf.c
  		m0 = *m;
  	}
  
-@@ -6803,6 +6817,9 @@
+@@ -6803,6 +6817,10 @@
  	int			 off, dirndx, pqid = 0;
  
  #ifdef __FreeBSD__
 +	struct m_tag *dn_tag;
 +	u_int32_t divertcookie = 0;
++	u_int16_t		 divertinfo = 0;
 +	struct ip_fw_args	 dnflow;
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -6829,6 +6846,7 @@
+@@ -6829,6 +6847,7 @@
  		PF_UNLOCK();
  		return (PF_PASS);
  	}
@@ -1584,7 +1637,7 @@ diff -u -r1.1.1.1 pf.c
  #else
  	if (pd.pf_mtag->flags & PF_TAG_GENERATED)
  		return (PF_PASS);
-@@ -6873,11 +6891,27 @@
+@@ -6873,11 +6892,28 @@
  		goto done;
  	}
  
@@ -1599,6 +1652,7 @@ diff -u -r1.1.1.1 pf.c
 +	if (dn_tag != NULL) {
 +		pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;
 +		divertcookie = divert_cookie(dn_tag);
++		divertinfo = (u_int16_t)divert_info(m_tag);
 +		m_tag_delete(m, dn_tag);
 +		goto nonormalize;
 +	}
@@ -1612,7 +1666,7 @@ diff -u -r1.1.1.1 pf.c
  	m = *m0;
  	h = mtod(m, struct ip *);
  
-@@ -6912,6 +6946,13 @@
+@@ -6912,6 +6948,13 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1626,7 +1680,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -6946,7 +6987,7 @@
+@@ -6946,7 +6989,7 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -1635,7 +1689,7 @@ diff -u -r1.1.1.1 pf.c
  		/* XXX: This are here until a pluggable framework for NAT is finished */
         		if (s != NULL && s->nat_rule.ptr != NULL &&
  			s->nat_rule.ptr->action != PF_BINAT) {
-@@ -6965,6 +7006,12 @@
+@@ -6965,6 +7008,12 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1648,7 +1702,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7006,6 +7053,7 @@
+@@ -7006,6 +7055,7 @@
  		struct icmp	ih;
  
  		pd.hdr.icmp = &ih;
@@ -1656,10 +1710,11 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &ih, ICMP_MINLEN,
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7070,6 +7118,14 @@
- 	if ((s && s->tag) || r->rtableid)
- 		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
+@@ -7067,7 +7117,16 @@
+ 		    ("pf: dropping packet with ip options\n"));
+ 	}
  
+-	if ((s && s->tag) || r->rtableid)
 +#ifdef __FreeBSD__
 +	if (s) {
 +		if (divertcookie)
@@ -1668,16 +1723,39 @@ diff -u -r1.1.1.1 pf.c
 +			divertcookie = s->divert_cookie;
 +	}
 +#endif
++
++	if ((s && s->tag) || r->rtableid) 
+ 		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
+ 
  #ifdef ALTQ
- 	if (action == PF_PASS && r->qid) {
- 		if (s) 
-@@ -7084,6 +7140,74 @@
+@@ -7084,6 +7143,95 @@
  	}
  #endif /* ALTQ */
  
 +#ifdef __FreeBSD__
++	if (divertcookie) {
++		struct pf_rule *dlr;
++		if (r->free_flags & PFRULE_DIVERT_TAG)
++			pd.pf_mtag->tag = divertcookie;
++		else if (r->free_flags & PFRULE_DIVERT_ALTQ)
++			pd.pf_mtag->qid = divertcookie;
++		else if (r->free_flags & PFRULE_DIVERT_ACTION) {
++			action = PF_DROP;
++			REASON_SET(&reason, PFRES_DIVERT);
++                	log = 1;
++                	DPFPRINTF(PF_DEBUG_MISC,
++                    		("pf: changing action to block from divert.\n"));
++			dlr = r;
++	                PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a, 
++				ruleset, &pd);
++		}
++		PF_UNLOCK();
++		return (action);
++	}
++
 +	if (r->divert && ip_divert_ptr != NULL &&
-+		!(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT) && !divertcookie) {
++		!(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT) && 
++		(!divertcookie || divertinfo != r->divert)) {
 +		
 +			if (!r->spare1 || 
 +				(s && s->packets[dir == PF_OUT] <= r->spare1)) {
@@ -1710,16 +1788,16 @@ diff -u -r1.1.1.1 pf.c
 +			struct ip_fw dummyrule;
 +
 +      			dummyrule.cmd->opcode = 
-+				r->dntype == DN_IS_PIPE ? O_PIPE : O_QUEUE;
++				r->free_flags & PFRULE_DN_IS_PIPE ? O_PIPE : O_QUEUE;
 +			dummyrule.act_ofs = 0;
 +			dummyrule.cmd_len = 1;
 +			if (dir != r->direction && r->pdnpipe) {
-+				if (r->rule_flag & PFRULE_DIVERT_COOKIE && divertcookie)
++				if (r->free_flags & PFRULE_DIVERT_DNCOOKIE && divertcookie)
 +					dnflow.cookie = divertcookie;
 +				else
 +                                	dnflow.cookie = r->pdnpipe;
 +                        } else if (dir == r->direction) {
-+				if (r->rule_flag & PFRULE_DIVERT_COOKIE && divertcookie)
++				if (r->free_flags & PFRULE_DIVERT_DNCOOKIE && divertcookie)
 +					dnflow.cookie = divertcookie;
 +				else
 +                                	dnflow.cookie = r->dnpipe;
@@ -1746,7 +1824,7 @@ diff -u -r1.1.1.1 pf.c
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7177,9 +7301,9 @@
+@@ -7177,9 +7325,9 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
@@ -1759,7 +1837,7 @@ diff -u -r1.1.1.1 pf.c
  	
  #ifdef __FreeBSD__
  	PF_UNLOCK();
-@@ -7210,6 +7334,8 @@
+@@ -7210,6 +7358,8 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
@@ -1768,7 +1846,7 @@ diff -u -r1.1.1.1 pf.c
  	PF_LOCK();
  #endif
  
-@@ -7278,8 +7404,16 @@
+@@ -7278,8 +7428,16 @@
  		goto done;
  	}
  
@@ -1786,7 +1864,7 @@ diff -u -r1.1.1.1 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7385,6 +7519,12 @@
+@@ -7385,6 +7543,12 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1799,7 +1877,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7425,6 +7565,11 @@
+@@ -7425,6 +7589,11 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1811,7 +1889,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7635,13 +7780,51 @@
+@@ -7635,13 +7804,51 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
@@ -1820,13 +1898,13 @@ diff -u -r1.1.1.1 pf.c
 -		pf_route6(m0, r, dir, ifp, s, &pd);
 -	
 +	} else 
-+#ifdef __FreeBSD__
+ #ifdef __FreeBSD__
 +        if (action == PF_PASS && r->dnpipe && DUMMYNET_LOADED &&
 +                !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
 +			struct ip_fw dummyrule;
 +
 +      			dummyrule.cmd->opcode = 
-+				r->dntype == DN_IS_PIPE ? O_PIPE : O_QUEUE;
++				r->free_flags & PFRULE_DN_IS_PIPE ? O_PIPE : O_QUEUE;
 +			dummyrule.act_ofs = 0;
 +			dummyrule.cmd_len = 1;
 +			if (dir != r->direction && r->pdnpipe)
@@ -1852,7 +1930,7 @@ diff -u -r1.1.1.1 pf.c
 +        } else
 +#endif
 +        if (r->rt) {
- #ifdef __FreeBSD__
++#ifdef __FreeBSD__
 +notfordummynet:
 +#endif
 +                /* pf_route can free the mbuf causing *m0 to become NULL */
@@ -1873,8 +1951,34 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_ioctl.c
 --- sys/contrib/pf/net/pf_ioctl.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf_ioctl.c	11 Jul 2008 17:57:09 -0000
-@@ -3555,17 +3555,8 @@
++++ sys/contrib/pf/net/pf_ioctl.c	9 Aug 2008 08:34:48 -0000
+@@ -2386,6 +2386,25 @@
+ 		break;
+ 	}
+ 
++	case DIOCGETNAMEDALTQ: {
++		struct pfioc_ruleset	*pa = (struct pfioc_ruleset *)addr;
++
++		if (pa->name[0])
++			pa->nr = pf_qname2qid(pa->name);
++
++		break;
++	}
++	
++        case DIOCGETNAMEDTAG: {
++		/* Little abuse. */
++                struct pfioc_ruleset	*pa = (struct pfioc_ruleset *)addr;
++
++                if (pa->name[0])
++                        pa->nr = pf_tagname2tag(pa->name);
++
++                break;
++        }
++
+ 	case DIOCGETALTQS: {
+ 		struct pfioc_altq	*pa = (struct pfioc_altq *)addr;
+ 		struct pf_altq		*altq;
+@@ -3555,17 +3574,8 @@
  	 * byte order. 
  	 */
  	struct ip *h = NULL;
@@ -1892,7 +1996,7 @@ diff -u -r1.1.1.1 pf_ioctl.c
  	if ((*m)->m_pkthdr.len >= (int)sizeof(struct ip)) {
  		/* if m_pkthdr.len is less than ip header, pf will handle. */
  		h = mtod(*m, struct ip *);
-@@ -3599,22 +3590,14 @@
+@@ -3599,22 +3609,14 @@
  	 * byte order. 
  	 */
  	struct ip *h = NULL;
@@ -1916,7 +2020,7 @@ diff -u -r1.1.1.1 pf_ioctl.c
  	if ((*m)->m_pkthdr.len >= (int)sizeof(*h)) {
  		/* if m_pkthdr.len is less than ip header, pf will handle. */
  		h = mtod(*m, struct ip *);
-@@ -3644,7 +3627,7 @@
+@@ -3644,7 +3646,7 @@
  	 * IPv6 is not affected by ip_len/ip_off byte order changes.
  	 */
  	int chk;
@@ -1949,7 +2053,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pfvar.h	2 Aug 2008 20:47:45 -0000
++++ sys/contrib/pf/net/pfvar.h	9 Aug 2008 08:34:55 -0000
 @@ -57,9 +57,6 @@
  
  #ifdef __FreeBSD__
@@ -1960,17 +2064,23 @@ diff -u -r1.1.1.1 pfvar.h
  #endif
  
  #include <netinet/tcp_fsm.h>
-@@ -635,6 +632,9 @@
+@@ -635,6 +632,15 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
  	u_int32_t		 pqid;
 +        u_int32_t                dnpipe;
 +        u_int32_t                pdnpipe;
-+        u_int32_t                dntype;
++#define	PFRULE_DIVERT_TAG	0x00000001
++#define	PFRULE_DIVERT_DNCOOKIE	0x00000002
++#define PFRULE_DIVERT_ALTQ	0x00000004
++#define	PFRULE_DIVERT_ACTION	0x00000008
++#define	PFRULE_DN_IS_PIPE	0x00000010
++#define	PFRULE_DN_IS_QUEUE	0x00000020		
++        u_int32_t                free_flags;
  	u_int32_t		 rt_listid;
  	u_int32_t		 nr;
  	u_int32_t		 prob;
-@@ -647,6 +647,7 @@
+@@ -647,6 +653,7 @@
  	u_int16_t		 tag;
  	u_int16_t		 match_tag;
  	u_int16_t		 spare2;		/* netgraph */
@@ -1978,7 +2088,7 @@ diff -u -r1.1.1.1 pfvar.h
  
  	struct pf_rule_uid	 uid;
  	struct pf_rule_gid	 gid;
-@@ -715,6 +716,8 @@
+@@ -715,6 +722,8 @@
  #define PFRULE_SRCTRACK		0x0020  /* track source states */
  #define PFRULE_RULESRCTRACK	0x0040  /* per rule */
  
@@ -1987,7 +2097,7 @@ diff -u -r1.1.1.1 pfvar.h
  /* scrub flags */
  #define	PFRULE_NODF		0x0100
  #define	PFRULE_FRAGCROP		0x0200	/* non-buffering frag cache */
-@@ -732,6 +735,7 @@
+@@ -732,6 +741,7 @@
  /* rule flags again */
  #define PFRULE_IFBOUND		0x00010000	/* if-bound */
  
@@ -1995,7 +2105,7 @@ diff -u -r1.1.1.1 pfvar.h
  #define PFSTATE_HIWAT		10000	/* default state table size */
  #define PFSTATE_ADAPT_START	6000	/* default adaptive timeout start */
  #define PFSTATE_ADAPT_END	12000	/* default adaptive timeout end */
-@@ -826,7 +830,7 @@
+@@ -826,7 +836,7 @@
  	u_int8_t	 direction;
  #ifdef __FreeBSD__
  	u_int8_t	 local_flags;
@@ -2004,7 +2114,7 @@ diff -u -r1.1.1.1 pfvar.h
  #else
  	u_int8_t	 pad;
  #endif
-@@ -862,6 +866,7 @@
+@@ -862,6 +872,7 @@
  	u_int32_t	 expire;
  	u_int32_t	 pfsync_time;
  	u_int16_t	 tag;
@@ -2012,6 +2122,33 @@ diff -u -r1.1.1.1 pfvar.h
  };
  
  TAILQ_HEAD(pf_rulequeue, pf_rule);
+@@ -1117,7 +1128,8 @@
+ #define PFRES_MAXSTATES	12		/* State limit */
+ #define PFRES_SRCLIMIT	13		/* Source node/conn limit */
+ #define PFRES_SYNPROXY	14		/* SYN proxy */
+-#define PFRES_MAX	15		/* total+1 */
++#define	PFRES_DIVERT	15		/* Divert override */
++#define PFRES_MAX	16		/* total+1 */
+ 
+ #define PFRES_NAMES { \
+ 	"match", \
+@@ -1135,6 +1147,7 @@
+ 	"state-limit", \
+ 	"src-limit", \
+ 	"synproxy", \
++	"divert", \
+ 	NULL \
+ }
+ 
+@@ -1589,6 +1602,8 @@
+ #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
+ #endif
+ #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
++#define DIOCGETNAMEDALTQ        _IOR('D', 94, u_int32_t)
++#define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)
+ 
+ #ifdef _KERNEL
+ RB_HEAD(pf_src_tree, pf_src_node);
 Index: sys/net/if_bridge.c
 ===================================================================
 RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/net/if_bridge.c,v
