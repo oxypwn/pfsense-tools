@@ -1537,7 +1537,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf.c
 --- sys/contrib/pf/net/pf.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf.c	9 Aug 2008 08:34:38 -0000
++++ sys/contrib/pf/net/pf.c	9 Aug 2008 21:34:24 -0000
 @@ -135,6 +135,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -1652,7 +1652,7 @@ diff -u -r1.1.1.1 pf.c
 +	if (dn_tag != NULL) {
 +		pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;
 +		divertcookie = divert_cookie(dn_tag);
-+		divertinfo = (u_int16_t)divert_info(m_tag);
++		divertinfo = (u_int16_t)divert_info(dn_tag);
 +		m_tag_delete(m, dn_tag);
 +		goto nonormalize;
 +	}
