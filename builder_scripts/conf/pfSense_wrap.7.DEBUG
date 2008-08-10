@@ -329,7 +329,7 @@ device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
 
 #device         natpt
 
-options TCP_SIGNATURE
+#options TCP_SIGNATURE
 
 makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
 

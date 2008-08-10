@@ -133,7 +133,7 @@ options         DEVICE_POLLING
 
 #device         natpt
 
-options TCP_SIGNATURE
+#options TCP_SIGNATURE
 
 device          lagg
 
