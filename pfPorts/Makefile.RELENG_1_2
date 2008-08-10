@@ -59,7 +59,8 @@ PORTSTOBUILD="grub \
 	php4-session \
 	php4-xml \
 	php4-zlib \
-	php4-install-all"
+	php4-install-all \
+	wol"
 
 if [ -f pfsense_local.sh ]; then
 	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
