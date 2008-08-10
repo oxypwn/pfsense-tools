@@ -50,6 +50,7 @@ usr/local/lib/lighttpd/mod_dirlisting.so
 usr/local/lib/lighttpd/mod_staticfile.so
 usr/local/lib/lighttpd/mod_staticfile.so
 usr/local/lib/lighttpd/mod_compress.so
+usr/local/bin/wol
 usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
 usr/local/sbin/mpd
