@@ -12,7 +12,6 @@
 ~~~/sys/modules/glxsb
 ~sys/boot/i386/btx/btx~btx_real2.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
-~sys/netinet~tcp_output.c.diff~
 ~~ipsec_altq.diff~
 ~~pfctl_dscp_altq_.diff~
 ~sys/~patch-natt-freebsd7-2008-03-11.diff~

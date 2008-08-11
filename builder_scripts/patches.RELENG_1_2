@@ -11,7 +11,6 @@
 ~~~/sys/modules/glxsb
 ~sys/boot/i386/btx/btx~btx_real.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
-~sys/netinet~tcp_output.c.diff~
 ~~ipsec_altq.diff~
 ~~pfctl_dscp_altq_.diff~
 ~sys/netinet/~ipsec_mtu_fixes.diff~
