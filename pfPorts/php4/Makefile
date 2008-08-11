@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	php4
-PORTVERSION=	4.4.8
+PORTVERSION=	4.4.9
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP:S,$,:release,} \
@@ -56,7 +56,7 @@ MAN1=		php-config.1 phpize.1
 PATCH_DIST_STRIP=	-p1
 
 .if !defined(WITHOUT_SUHOSIN)
-PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.6.patch.gz:suhosin
+PATCHFILES+=	suhosin-patch-4.4.8-0.9.6.patch.gz:suhosin
 PATCH_SITES+=	http://download.suhosin.org/:suhosin
 PLIST_SUB+=	SUHOSIN=""
 .else
