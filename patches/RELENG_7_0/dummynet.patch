@@ -1537,7 +1537,7 @@ RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf.c
 --- sys/contrib/pf/net/pf.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf.c	9 Aug 2008 21:34:24 -0000
++++ sys/contrib/pf/net/pf.c	11 Aug 2008 18:22:32 -0000
 @@ -135,6 +135,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -1618,7 +1618,26 @@ diff -u -r1.1.1.1 pf.c
  		m0 = *m;
  	}
  
-@@ -6803,6 +6817,10 @@
+@@ -6216,7 +6230,9 @@
+ 	}
+ 	if (ifp == NULL)
+ 		goto bad;
+-
++	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
++		goto donelocal;
++		
+ 	if (oifp != ifp) {
+ #ifdef __FreeBSD__
+ 		PF_UNLOCK();
+@@ -6397,6 +6413,7 @@
+ done:
+ 	if (r->rt != PF_DUPTO)
+ 		*m = NULL;
++donelocal:
+ 	if (ro == &iproute && ro->ro_rt)
+ 		RTFREE(ro->ro_rt);
+ 	return;
+@@ -6803,6 +6820,10 @@
  	int			 off, dirndx, pqid = 0;
  
  #ifdef __FreeBSD__
@@ -1629,7 +1648,7 @@ diff -u -r1.1.1.1 pf.c
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -6829,6 +6847,7 @@
+@@ -6829,6 +6850,7 @@
  		PF_UNLOCK();
  		return (PF_PASS);
  	}
@@ -1637,7 +1656,7 @@ diff -u -r1.1.1.1 pf.c
  #else
  	if (pd.pf_mtag->flags & PF_TAG_GENERATED)
  		return (PF_PASS);
-@@ -6873,11 +6892,28 @@
+@@ -6873,11 +6895,28 @@
  		goto done;
  	}
  
@@ -1666,7 +1685,7 @@ diff -u -r1.1.1.1 pf.c
  	m = *m0;
  	h = mtod(m, struct ip *);
  
-@@ -6912,6 +6948,13 @@
+@@ -6912,6 +6951,13 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1680,7 +1699,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -6946,7 +6989,7 @@
+@@ -6946,7 +6992,7 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -1689,7 +1708,7 @@ diff -u -r1.1.1.1 pf.c
  		/* XXX: This are here until a pluggable framework for NAT is finished */
         		if (s != NULL && s->nat_rule.ptr != NULL &&
  			s->nat_rule.ptr->action != PF_BINAT) {
-@@ -6965,6 +7008,12 @@
+@@ -6965,6 +7011,12 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1702,7 +1721,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7006,6 +7055,7 @@
+@@ -7006,6 +7058,7 @@
  		struct icmp	ih;
  
  		pd.hdr.icmp = &ih;
@@ -1710,7 +1729,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &ih, ICMP_MINLEN,
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7067,7 +7117,16 @@
+@@ -7067,7 +7120,16 @@
  		    ("pf: dropping packet with ip options\n"));
  	}
  
@@ -1728,7 +1747,7 @@ diff -u -r1.1.1.1 pf.c
  		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
  
  #ifdef ALTQ
-@@ -7084,6 +7143,95 @@
+@@ -7084,6 +7146,95 @@
  	}
  #endif /* ALTQ */
  
@@ -1824,7 +1843,7 @@ diff -u -r1.1.1.1 pf.c
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7177,9 +7325,9 @@
+@@ -7177,9 +7328,9 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
@@ -1837,7 +1856,7 @@ diff -u -r1.1.1.1 pf.c
  	
  #ifdef __FreeBSD__
  	PF_UNLOCK();
-@@ -7210,6 +7358,8 @@
+@@ -7210,6 +7361,8 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
@@ -1846,7 +1865,7 @@ diff -u -r1.1.1.1 pf.c
  	PF_LOCK();
  #endif
  
-@@ -7278,8 +7428,16 @@
+@@ -7278,8 +7431,16 @@
  		goto done;
  	}
  
@@ -1864,7 +1883,7 @@ diff -u -r1.1.1.1 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7385,6 +7543,12 @@
+@@ -7385,6 +7546,12 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1877,7 +1896,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7425,6 +7589,11 @@
+@@ -7425,6 +7592,11 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1889,7 +1908,7 @@ diff -u -r1.1.1.1 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7635,13 +7804,51 @@
+@@ -7635,13 +7807,51 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
