@@ -20,7 +20,7 @@
 ~~umsm.diff~
 ~sbin/dhclient~bpf.c.diff~
 ~sys/contrib/pf/net~pf_table.c.diff~
-~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
+~crypto/openssl/crypto/engine~eng_cryptodev.c.diff~
 ~~~~sys/modules/glxsb
 ~~~~sys/modules/et
 ~~~~sys/dev/et
@@ -30,6 +30,7 @@
 ~sys/net/~altq-vlan.diff~
 ~sys/dev/bge/~if_bge.c.diff~
 ~etc~rc.initdiskless.patch~
+~usr.sbin/bsnmpd/modules/snmp_hostres~hostres_processor_tbl.c.diff~
 ~~vr.patch~
 ~~carp.diff~
 ~~reply_to.diff~
