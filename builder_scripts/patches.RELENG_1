@@ -36,4 +36,6 @@
 ~~vr.patch~
 ~~carp.diff~
 ~~dummynet.patch~
+~lib/libipsec/~libipsec-pfkey.c-socketvar.diff~
+~sys/sys~socketvar.h.diff~
 

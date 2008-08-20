@@ -34,3 +34,6 @@
 ~~vr.patch~
 ~~carp.diff~
 ~~reply_to.diff~
+~lib/libipsec/~libipsec-pfkey.c-socketvar.diff~
+~sys/sys~socketvar.h.diff~
+
