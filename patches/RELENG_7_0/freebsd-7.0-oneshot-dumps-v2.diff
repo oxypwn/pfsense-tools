@@ -19,7 +19,7 @@ Index: kern/uipc_sockbuf.c
 +	(sb)->sb_lastrecord = (mlast);					\
  } while (/*CONSTCOND*/0)
  
-+define SBLINKRECORD(sb, m0) \
++#define SBLINKRECORD(sb, m0) \
 +       SBLINKRECORDCHAIN(sb, m0, m0)
 +
  /*
