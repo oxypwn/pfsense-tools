@@ -29,6 +29,10 @@ mkdir /usr/local/squid
 mkdir /usr/local/www
 
 cd /home/pfsense/tools/builder_scripts/
+
 ./cvsup_current 
+
+(cd /usr/ports/sysutils/screen && make install)
+
 ./build_snapshots.sh 
 
