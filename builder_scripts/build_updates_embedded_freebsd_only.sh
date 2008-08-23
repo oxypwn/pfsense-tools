@@ -75,7 +75,7 @@ echo ">>> Building all extra kernels... $FreeBSD_version  $freebsd_branch ..."
 build_all_kernels
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
-#populate_extra
+#cust_populate_extra
 
 # No need for packages
 rm -f conf/packages

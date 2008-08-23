@@ -272,7 +272,7 @@ recompile_pfPorts() {
 	fi
 }
 
-overlay_host_binaries() {
+cust_overlay_host_binaries() {
     echo "===> Building syslogd..."
     (cd /usr/src/usr.sbin/syslogd && make clean && make && make install)
     echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
@@ -358,7 +358,7 @@ check_for_zero_size_files() {
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
-populate_extra() {
+cust_populate_extra() {
     # Make devd
     ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} NO_MAN=YES \
 	make clean; make depend; make all; make DESTDIR=$PFSENSEBASEDIR install )
@@ -573,7 +573,7 @@ fixup_updates() {
 
 }
 
-fixup_wrap() {
+cust_fixup_wrap() {
 
 	echo "Fixing up WRAP Specific items..."
     cp $CVS_CO_DIR/boot/device.hints_wrap \

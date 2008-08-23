@@ -101,7 +101,7 @@ freesbie_make extra
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
-populate_extra
+cust_populate_extra
 
 # Remove stuff that could have been modified on installation
 # such as /etc/ttys, /conf/config.xml, etc
@@ -111,7 +111,7 @@ fixup_updates
 fixup_libmap
 
 # Overlay host binaries
-overlay_host_binaries
+cust_overlay_host_binaries
 
 # Make sure loader.conf is nuked
 find $BASE_DIR -name loader.conf -exec rm {} \;

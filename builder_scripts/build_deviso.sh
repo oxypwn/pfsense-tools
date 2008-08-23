@@ -96,7 +96,7 @@ freesbie_make pkginstall
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
-populate_extra
+cust_populate_extra
 
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
@@ -104,7 +104,7 @@ echo ">>> Merging extra items..."
 freesbie_make extra
 
 # Overlay host binaries
-overlay_host_binaries
+cust_overlay_host_binaries
 check_for_zero_size_files
 
 # Prepare /usr/local/pfsense-clonefs

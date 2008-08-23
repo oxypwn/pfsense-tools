@@ -71,7 +71,7 @@ make_world
 build_embedded_kernel
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
-populate_extra
+cust_populate_extra
 
 # Add extra pfSense packages
 install_custom_packages
@@ -81,7 +81,7 @@ install_custom_packages
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
-populate_extra
+cust_populate_extra
 
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
@@ -89,10 +89,10 @@ echo ">>> Merging extra items..."
 freesbie_make extra
 
 # Overlay host binaries
-overlay_host_binaries
+cust_overlay_host_binaries
 
 # Must be run after overlay_host_binaries and freesbie_make extra
-fixup_wrap
+cust_fixup_wrap
 
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
