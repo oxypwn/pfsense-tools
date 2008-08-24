@@ -99,6 +99,7 @@
 ./sbin/rrestore
 ./sbin/savecore
 ./sbin/sconfig
+./sbin/setkey
 ./sbin/slattach
 ./sbin/spppcontrol
 ./sbin/startslip
