@@ -285,7 +285,7 @@ Index: netipsec/keysock.c
  
 -		if ((error = key_sendup0(rp, n, 0)) != 0) {
 -			m_freem(m);
--			mtx_unlock(&rawcb_mtx);
+			mtx_unlock(&rawcb_mtx);
 -			return error;
 -		}
 -
