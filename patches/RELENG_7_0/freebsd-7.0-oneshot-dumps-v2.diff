@@ -279,7 +279,7 @@ Index: netipsec/keysock.c
  	LIST_FOREACH(rp, &rawcb_list, list)
  	{
  		if (rp->rcb_proto.sp_family != PF_KEY)
-@@ -345,12 +356,7 @@
+@@ -345,12 +356,8 @@
  			return ENOBUFS;
  		}
  
