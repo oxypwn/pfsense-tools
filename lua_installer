@@ -83,12 +83,19 @@ echo
 echo
 echo
 echo "pfSense is now rebooting"
-echo "After reboot and the console menu is displayed, open a web"
-echo "browser and try to surf to the LAN ip address"
 echo
-echo "The default username and password is admin / pfsense "
+echo "After the reboot is complete, open a web browser and"
+echo "enter http://192.168.1.1 (or the LAN IP Addres) in the"
+echo "URL box."
+echo
+echo "*DEFAULT Username*: admin"
+echo "*DEFAULT Password*: pfsense"
 echo
 
+echo Rebooting in 5 seconds.  CTRL-C to abort.
+sleep 1
+echo Rebooting in 4 seconds.  CTRL-C to abort.
+sleep 1
 echo Rebooting in 3 seconds.  CTRL-C to abort.
 sleep 1
 echo Rebooting in 2 seconds.  CTRL-C to abort.
@@ -97,6 +104,7 @@ echo Rebooting in 1 second..  CTRL-C to abort.
 sleep 1
 echo
 echo pfSense is now rebooting.
+echo
 
 reboot
 
