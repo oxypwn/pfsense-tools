@@ -261,10 +261,11 @@ Index: netipsec/keysock.c
 ===================================================================
 --- netipsec/keysock.c.orig	2008-01-31 14:10:29.000000000 +0200
 +++ netipsec/keysock.c	2008-01-31 14:12:48.000000000 +0200
-@@ -291,6 +291,17 @@
+@@ -290,7 +290,16 @@
+ 		msg = mtod(m, struct sadb_msg *);
  		pfkeystat.in_msgtype[msg->sadb_msg_type]++;
  	}
- 	mtx_lock(&rawcb_mtx);
+-	mtx_lock(&rawcb_mtx);
 +	if (target == KEY_SENDUP_ONESHOT) {
 +		rp = sotorawcb(so);
 +		if (!sbappendaddrchain(&rp->rcb_socket->so_rcv,
@@ -275,17 +276,16 @@ Index: netipsec/keysock.c
 +		sorwakeup(rp->rcb_socket);
 +		return error;
 +	}
-+
  	LIST_FOREACH(rp, &rawcb_list, list)
  	{
  		if (rp->rcb_proto.sp_family != PF_KEY)
-@@ -345,12 +356,8 @@
+@@ -345,12 +354,7 @@
  			return ENOBUFS;
  		}
  
 -		if ((error = key_sendup0(rp, n, 0)) != 0) {
 -			m_freem(m);
-			mtx_unlock(&rawcb_mtx);
+-			mtx_unlock(&rawcb_mtx);
 -			return error;
 -		}
 -
