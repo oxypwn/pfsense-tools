@@ -279,13 +279,13 @@ Index: netipsec/keysock.c
  	LIST_FOREACH(rp, &rawcb_list, list)
  	{
  		if (rp->rcb_proto.sp_family != PF_KEY)
-@@ -345,12 +354,8 @@
+@@ -345,12 +354,7 @@
  			return ENOBUFS;
  		}
  
 -		if ((error = key_sendup0(rp, n, 0)) != 0) {
 -			m_freem(m);
-			mtx_unlock(&rawcb_mtx);
+-			mtx_unlock(&rawcb_mtx);
 -			return error;
 -		}
 -
