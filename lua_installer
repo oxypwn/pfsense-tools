@@ -85,7 +85,7 @@ echo
 echo "pfSense is now rebooting"
 echo
 echo "After the reboot is complete, open a web browser and"
-echo "enter http://192.168.1.1 (or the LAN IP Addres) in the"
+echo "enter http://192.168.1.1 (or the LAN IP Address) in the"
 echo "location bar."
 echo
 echo "*DEFAULT Username*: admin"
