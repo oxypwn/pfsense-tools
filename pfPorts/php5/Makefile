@@ -29,6 +29,7 @@ CONFIGURE_ARGS=	\
 		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
 		--enable-reflection \
+		--with-openssl \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
