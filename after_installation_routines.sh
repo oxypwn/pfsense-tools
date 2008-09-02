@@ -17,7 +17,7 @@ touch /mnt/etc/rc.conf
 
 # Copy the current running systems config.xml to the target installation area.
 mkdir -p /mnt/cf/conf
-cp /cf/conf/* /mnt/cf/conf/
+cp -r /cf/conf/* /mnt/cf/conf/
 
 # Prevent the system from asking for these twice
 touch /mnt/root/.part_mount
