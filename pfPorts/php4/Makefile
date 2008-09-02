@@ -28,6 +28,7 @@ USE_AUTOTOOLS=	autoconf:262
 CONFIGURE_ARGS=	--enable-versioning \
 		--enable-memory-limit \
 		--with-layout=GNU \
+		--with-openssl \
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--program-prefix=""
