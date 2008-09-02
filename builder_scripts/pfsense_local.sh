@@ -93,6 +93,26 @@ export MAKEJ_PORTS=${MAKEJ_PORTS:-"-j1"}
 export NO_CLEAN=${NO_CLEAN:-"yo"}
 export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
 
+# Config directory for nanobsd build
+export CONFIG_DIR=conf
+export NANO_NAME=pfsense
+export CONFIG_DIR=nano
+export NANO_IMAGES=1
+export NANO_INIT_IMG2=0
+export NANO_DATASIZE=20480
+export NANO_RAM_ETCSIZE=30720
+export NANO_RAM_TMPVARSIZE=51200
+export NANO_BOOT0CFG="-o packet -s 1 -m 3 -v"
+export NANO_BOOTLOADER="boot/boot0"
+export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1"
+export NANO_DRIVE=ad0
+export NANO_MEDIASIZE=1000000 
+export NANO_SECTS=63 
+export NANO_HEADS=16
+export NANO_CODESIZE=0 
+export NANO_CONFSIZE=2048 
+
+
 # GIT pfSense, BSDInstaller & FreeSBIE settings
 #export USE_GIT=${USE_GIT:-"yo"}
 #export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense-import-test-minus-binaries/mainline.git pfSense"}

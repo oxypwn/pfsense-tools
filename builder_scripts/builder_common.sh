@@ -930,3 +930,210 @@ make_world() {
 	freesbie_make installworld
 
 }
+
+setup_nanobsd_etc ( ) {
+	echo "## configure nanobsd /etc"
+
+	cd ${CLONEDIR}
+
+	# create diskless marker file
+	touch etc/diskless
+
+	# Make root filesystem R/O by default
+	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
+
+	# save config file for scripts
+	echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
+
+	echo "/dev/${NANO_DRIVE}s1a / ufs ro 1 1" > etc/fstab
+	echo "/dev/${NANO_DRIVE}s3 /cfg ufs rw,noauto 2 2" >> etc/fstab
+	echo "/dev/${NANO_DRIVE}s4 /cf ufs ro 1 1" >> etc/fstab
+	mkdir -p cfg
+}
+
+setup_nanobsd ( ) {
+	echo "## configure nanobsd setup"
+	echo "### log: ${MAKEOBJDIRPREFIX}/_.dl"
+
+	cd ${CLONEDIR}
+
+	# Move /usr/local/etc to /etc/local so that the /cfg stuff
+	# can stomp on it.  Otherwise packages like ipsec-tools which
+	# have hardcoded paths under ${prefix}/etc are not tweakable.
+	if [ -d usr/local/etc ] ; then
+		(
+		mkdir etc/local
+		cd usr/local/etc
+		find . -print | cpio -dumpl ../../../etc/local
+		cd ..
+		rm -rf etc
+		ln -s ../../etc/local etc
+		)
+	fi
+	# Create /conf directory hier
+	for d in etc
+	do
+		# link /$d under /${CONFIG_DIR}
+		# we use hard links so we have them both places.
+		# the files in /$d will be hidden by the mount.
+		# XXX: configure /$d ramdisk size
+		mkdir -p ${CONFIG_DIR}/base/$d ${CONFIG_DIR}/default/$d
+		find $d -print | cpio -dumpl ${CONFIG_DIR}/base/
+	done
+
+	echo "$NANO_RAM_ETCSIZE" > ${CONFIG_DIR}/base/etc/md_size
+	# add /nano/base/var manually for md_size 
+	mkdir -p ${CONFIG_DIR}/base/var
+	echo "$NANO_RAM_TMPVARSIZE" > ${CONFIG_DIR}/base/var/md_size 
+
+	# pick up config files from the special partition
+	echo "mount -o ro /dev/${NANO_DRIVE}s3" > ${CONFIG_DIR}/default/etc/remount
+
+	# Put /tmp on the /var ramdisk (could be symlink already)
+	rmdir tmp || true
+	rm -rf tmp || true
+	ln -s var/tmp tmp
+
+}
+
+prune_usr() {
+
+	# Remove all empty directories in /usr 
+	find ${NANO_WORLDDIR}/usr -type d -depth -print |
+		while read d
+		do
+			rmdir $d > /dev/null 2>&1 || true 
+		done
+}
+
+FlashDevice () {
+    . FlashDevice.sub
+    sub_FlashDevice $1 $2
+}
+
+create_i386_diskimage ( ) {
+	echo "## build diskimage"
+	echo "### log: ${MAKEOBJDIRPREFIX}/_.di"
+	TIMESTAMP=`date "+%Y%m%d.%H%M"`
+	echo $NANO_MEDIASIZE $NANO_IMAGES \
+		$NANO_SECTS $NANO_HEADS \
+		$NANO_CODESIZE $NANO_CONFSIZE $NANO_DATASIZE |
+	awk '
+	{
+		printf "# %s\n", $0
+
+		# size of cylinder in sectors
+		cs = $3 * $4
+
+		# number of full cylinders on media
+		cyl = int ($1 / cs)
+
+		# output fdisk geometry spec, truncate cyls to 1023
+		if (cyl <= 1023)
+			print "g c" cyl " h" $4 " s" $3
+		else
+			print "g c" 1023 " h" $4 " s" $3
+
+		if ($7 > 0) { 
+			# size of data partition in full cylinders
+			dsl = int (($7 + cs - 1) / cs)
+		} else {
+			dsl = 0;
+		}
+
+		# size of config partition in full cylinders
+		csl = int (($6 + cs - 1) / cs)
+
+		if ($5 == 0) {
+			# size of image partition(s) in full cylinders
+			isl = int ((cyl - dsl - csl) / $2)
+		} else {
+			isl = int (($5 + cs - 1) / cs)
+		}
+
+		# First image partition start at second track
+		print "p 1 165 " $3, isl * cs - $3
+		c = isl * cs;
+
+		# Second image partition (if any) also starts offset one 
+		# track to keep them identical.
+		if ($2 > 1) {
+			print "p 2 165 " $3 + c, isl * cs - $3
+			c += isl * cs;
+		}
+
+		# Config partition starts at cylinder boundary.
+		print "p 3 165 " c, csl * cs
+		c += csl * cs
+
+		# Data partition (if any) starts at cylinder boundary.
+		if ($7 > 0) {
+			print "p 4 165 " c, dsl * cs
+		} else if ($7 < 0 && $1 > $c) {
+			print "p 4 165 " c, $1 - $c
+		} else if ($1 < c) {
+			print "Disk space overcommitted by", \
+			    c - $1, "sectors" > "/dev/stderr"
+			exit 2
+		}
+	}
+	' > ${MAKEOBJDIRPREFIX}/_.fdisk
+
+	IMG=${MAKEOBJDIRPREFIX}/nanobsd.full.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
+	MNT=${MAKEOBJDIRPREFIX}/_.mnt
+	mkdir -p ${MNT}
+
+	dd if=/dev/zero of=${IMG} bs=${NANO_SECTS}b \
+	    count=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
+
+	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
+
+	trap "df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
+
+	fdisk -i -f ${MAKEOBJDIRPREFIX}/_.fdisk ${MD}
+	fdisk ${MD}
+	# XXX: params
+	# XXX: pick up cached boot* files, they may not be in image anymore.
+	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
+	bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
+	bsdlabel ${MD}s1
+
+	# Create first image
+	newfs ${NANO_NEWFS} /dev/${MD}s1a
+	mount /dev/${MD}s1a ${MNT}
+	df -i ${MNT}
+	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
+	df -i ${MNT}
+	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIX}/_.mtree
+	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIX}/_.du
+	umount ${MNT}
+
+	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
+		# Duplicate to second image (if present)
+		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k
+		mount /dev/${MD}s2a ${MNT}
+		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
+		do
+			sed -i "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
+		done
+		umount ${MNT}
+
+	fi
+	
+	# Create Config slice
+	newfs ${NANO_NEWFS} /dev/${MD}s3
+	# XXX: fill from where ?
+
+	# Create Data slice, if any.
+	if [ $NANO_DATASIZE -gt 0 ] ; then
+		newfs ${NANO_NEWFS} /dev/${MD}s4
+                # Mount data partition and copy contents of /cf
+                # Can be used later to create custom default config.xml while building
+                mount /dev/${MD}s4 ${MNT}
+                ( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
+                umount ${MNT}
+	fi
+
+	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.slice.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img bs=64k
+	mdconfig -d -u $MD
+}
