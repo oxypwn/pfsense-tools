@@ -91,7 +91,7 @@ echo ">>> Merging extra items..."
 freesbie_make extra
 
 # Overlay host binaries
-overlay_host_binaries
+cust_overlay_host_binaries
 
 # Must be run after overlay_host_binaries and freesbie_make extra
 cust_fixup_wrap
