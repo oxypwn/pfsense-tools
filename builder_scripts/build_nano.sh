@@ -34,6 +34,8 @@ print_flags
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 
+export IS_NANO_BUILD=yes
+
 export NO_COMPRESSEDFS=yes
 export PRUNE_LIST="${PWD}/remove.list"
 if [ $FreeBSD_version = "7" ]; then

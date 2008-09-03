@@ -1088,7 +1088,9 @@ create_i386_diskimage ( ) {
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 
-	trap "df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
+	if [ "$IS_NANO_BUILD" = "yes" ]; then 
+		trap "df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
+	fi
 
 	fdisk -i -f ${MAKEOBJDIRPREFIX}/_.fdisk ${MD}
 	fdisk ${MD}
