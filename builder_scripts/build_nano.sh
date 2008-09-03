@@ -94,7 +94,7 @@ freesbie_make extra
 overlay_host_binaries
 
 # Must be run after overlay_host_binaries and freesbie_make extra
-fixup_wrap
+cust_fixup_wrap
 
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
