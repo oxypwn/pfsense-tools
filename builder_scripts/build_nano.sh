@@ -73,7 +73,7 @@ make_world
 build_embedded_kernel
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
-populate_extra
+cust_populate_extra
 
 # Add extra pfSense packages
 install_custom_packages
