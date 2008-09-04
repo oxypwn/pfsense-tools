@@ -938,6 +938,7 @@ setup_nanobsd_etc ( ) {
 
 	# create diskless marker file
 	touch etc/diskless
+	touch nanobuild
 
 	# Make root filesystem R/O by default
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
@@ -1088,10 +1089,6 @@ create_i386_diskimage ( ) {
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 
-	if [ "$IS_NANO_BUILD" = "yes" ]; then 
-		trap "df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
-	fi
-
 	fdisk -i -f ${MAKEOBJDIRPREFIX}/_.fdisk ${MD}
 	fdisk ${MD}
 	# XXX: params
@@ -1138,4 +1135,6 @@ create_i386_diskimage ( ) {
 
 	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.slice.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img bs=64k
 	mdconfig -d -u $MD
+	gzip -9 ${MAKEOBJDIRPREFIX}/nanobsd.slice.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
+	gzip -9 ${MAKEOBJDIRPREFIX}/nanobsd.full.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
 }
