@@ -83,7 +83,7 @@ install_custom_packages
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
-populate_extra
+cust_populate_extra
 
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
