@@ -112,6 +112,8 @@ export NANO_HEADS=16
 export NANO_CODESIZE=0 
 export NANO_CONFSIZE=2048 
 
+# Add UNIONFS
+export NO_UNIONFS=NO
 
 # GIT pfSense, BSDInstaller & FreeSBIE settings
 #export USE_GIT=${USE_GIT:-"yo"}
