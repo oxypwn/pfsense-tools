@@ -114,6 +114,7 @@ export NANO_CONFSIZE=2048
 
 # Add UNIONFS
 export NO_UNIONFS=NO
+export UNION_DIRS="etc usr root"
 
 # GIT pfSense, BSDInstaller & FreeSBIE settings
 #export USE_GIT=${USE_GIT:-"yo"}
