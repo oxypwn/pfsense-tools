@@ -41,3 +41,4 @@
 ~sys/~freebsd-7.0-oneshot-dumps-v2.diff~
 ~sys/netinet~ip_output.c.diff~
 ~sys/boot/i386/libi386~bootinfo.c.diff~
+~etc/defaults/~rc.conf.diff~
