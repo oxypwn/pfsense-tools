@@ -262,7 +262,6 @@ echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
 
 # Loop through and patch files
-echo "Applying patches from ${CURRENTDIR}/patches.${freebsd_branch} ${PFSENSETAG}..."
 for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
 do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
@@ -271,9 +270,18 @@ do
 	PATCH_FILE_LEN=`echo $PATCH_FILE | wc -c`
 	MOVE_FILE=`echo $LINE | cut -d~ -f4`
 	MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
+	IS_TGZ=`echo $LINE | grep -v grep | grep .tgz | wc -l`
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
-		echo "Patching ${PATCH_FILE}"
-		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
+		if [ $IS_TGZ -gt "0" ]; then 
+			echo "Extracting ${PATCH_FILE} to ${PATCHDIR}"
+			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PATCHDIR}/${PATCH_FILE})			
+		else
+			echo "Patching ${PATCH_FILE}"
+			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
+		fi
+	fi
+	if [ $MOVE_FILE_LEN -gt "2" ]; then
+		#cp ${SRCDIR}/${MOVE_FILE} ${SRCDIR}/${PATCH_DIRECTORY}
 	fi
 done
 
