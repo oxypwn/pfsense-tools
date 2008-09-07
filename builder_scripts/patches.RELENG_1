@@ -42,3 +42,4 @@
 ~sys/netinet~ip_output.c.diff~
 ~sys/boot/i386/libi386~bootinfo.c.diff~
 ~etc/defaults/~rc.conf.diff~
+~sys/contrib/dev/ath~ath_hal-20080528.tgz~
