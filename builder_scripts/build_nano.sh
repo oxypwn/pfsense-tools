@@ -110,3 +110,7 @@ setup_nanobsd_etc
 setup_nanobsd
 prune_usr
 create_i386_diskimage
+
+echo "Image completed."
+echo "$MAKEOBJDIRPREFIX/"
+ls -lah $MAKEOBJDIRPREFIX/nanobsd*
