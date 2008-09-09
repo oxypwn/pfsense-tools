@@ -1,4 +1,6 @@
 usr/lib/libstdc++.so.6
+usr/bin/patch
+usr/bin/diff
 usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
