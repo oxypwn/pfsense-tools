@@ -38,5 +38,4 @@
 ~sys/sys~socketvar.h.diff~
 ~sys/~freebsd-7.0-oneshot-dumps-v2.diff~
 ~sys/netinet~ip_output.c.diff~
-~sys/contrib/dev/ath~ath_hal-20080528.tgz~
 ~sys/net/~if_enc.c.diff~
