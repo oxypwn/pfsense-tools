@@ -35,19 +35,22 @@ STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
+WITH_NATT=yo
+
 OPTIONS=	DEBUG		"enable Debug support" on \
 		IPV6		"enable IPV6 support" off \
-		ADMINPORT	"enable Admin port" off \
+		ADMINPORT	"enable Admin port" on \
 		STATS		"enable Statistics logging function" off \
 		DPD		"enable Dead Peer Detection" on \
 		NATT		"enable NAT-Traversal (kernel-patch required)" on \
 		NATTF		"require NAT-Traversal (fail without kernel-patch)" off \
 		FRAG		"enable IKE fragmentation payload support" on \
-		HYBRID		"enable Hybrid Mode-cfg and Xauth support" off \
+		HYBRID		"enable Hybrid Mode-cfg and Xauth support" on \
 		PAM		"enable PAM authentication" off \
 		GSSAPI		"enable GSS-API authentication" off \
 		RADIUS		"enable Radius authentication" off \
-		SAUNSPEC	"enable Unspecified SA mode" off \
+		LDAP		"enable LDAP authentication" on \
+		SAUNSPEC	"enable Unspecified SA mode" on \
 		RC5		"enable RC5 encryption (patented)" off \
 		IDEA		"enable IDEA encryption (patented)" off
 
@@ -130,6 +133,13 @@ CONFIGURE_ARGS+=	--disable-gssapi
 CONFIGURE_ARGS+=	--with-libradius
 .else
 CONFIGURE_ARGS+=	--without-libradius
+.endif
+
+.ifdef(WITH_LDAP)
+USE_OPENLDAP=   YES
+CONFIGURE_ARGS+=	--with-libldap=${LOCALBASE}
+.else
+CONFIGURE_ARGS+=	--without-libldap
 .endif
 
 .ifdef(WITH_SAUNSPEC)
