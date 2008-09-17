@@ -7,6 +7,7 @@
 #  To build pfSense simply type make in this directory.
 #
 
+SUBDIR += apinger
 SUBDIR += lzo2
 SUBDIR += ftpsesame
 SUBDIR += atareinit

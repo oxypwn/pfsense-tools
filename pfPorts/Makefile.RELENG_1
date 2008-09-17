@@ -4,6 +4,7 @@
 #set -x
 
 PORTSTOBUILD="grub \
+	apinger \
 	rrdtool \
 	ftpsesame \
 	atareinit \
