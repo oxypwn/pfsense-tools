@@ -7,7 +7,7 @@
 #
 
 PORTNAME=	apinger
-PORTVERSION=	0.6.1
+PORTVERSION=	0.6.1-pf1
 PORTREVISION=	2
 CATEGORIES=	net ipv6
 MASTER_SITES=	http://freebsdcluster.org/~mich/software/ \
