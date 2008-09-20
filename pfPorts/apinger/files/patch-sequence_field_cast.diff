@@ -1,0 +1,53 @@
+diff -urN apinger-0.6.1/src/apinger.h apinger-0.6.1-pf/src/apinger.h
+--- apinger-0.6.1/src/apinger.h	2008-09-20 21:11:37.000000000 +0200
++++ apinger-0.6.1-pf/src/apinger.h	2008-09-20 21:43:31.000000000 +0200
+@@ -100,14 +100,14 @@
+ 
+ struct trace_info {
+ 	struct timeval timestamp;
+-	int seq;
++	uint16_t seq;
+ 	void *target_id;
+ };
+ 
+ #ifdef FORKED_RECEIVER
+ struct piped_info {
+ 	struct trace_info ti;
+-	int icmp_seq;
++	uint16_t icmp_seq;
+ 	struct timeval recv_timestamp;
+ };
+ #endif
+diff -urN apinger-0.6.1/src/icmp.c apinger-0.6.1-pf/src/icmp.c
+--- apinger-0.6.1/src/icmp.c	2008-09-20 21:11:37.000000000 +0200
++++ apinger-0.6.1-pf/src/icmp.c	2008-09-20 21:39:52.000000000 +0200
+@@ -136,7 +136,7 @@
+ 	p->icmp_type=ICMP_ECHO;
+ 	p->icmp_code=0;
+ 	p->icmp_cksum=0;
+-	p->icmp_seq=seq%65536;
++	p->icmp_seq=seq;
+ 	p->icmp_id=ident;
+ 
+ #ifdef HAVE_SCHED_YIELD
+@@ -227,7 +227,7 @@
+ 		return;
+ 	}
+ 	if (icmp->icmp_id != ident){
+-		debug("Alien echo-reply received");
++		debug("Alien echo-reply received from %s. Expected %i, received %i",inet_ntoa(from.sin_addr), ident, icmp->icmp_id);
+ 		return;
+ 	}
+ 	debug("Ping reply from %s",inet_ntoa(from.sin_addr));
+diff -urN apinger-0.6.1/src/main.c apinger-0.6.1-pf/src/main.c
+--- apinger-0.6.1/src/main.c	2008-09-20 21:11:37.000000000 +0200
++++ apinger-0.6.1-pf/src/main.c	2008-09-20 21:38:34.000000000 +0200
+@@ -277,7 +277,7 @@
+ 		return 1;
+ 	}
+ 
+-	ident=getpid() & 0xFFFF;
++	ident=getpid();
+ 	signal(SIGTERM,signal_handler);
+ 	signal(SIGINT,signal_handler);
+ 	signal(SIGHUP,signal_handler);
