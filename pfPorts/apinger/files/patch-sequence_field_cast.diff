@@ -46,15 +46,6 @@ diff -urN apinger-0.6.1/src/icmp.c apinger-0.6.1-pf/src/icmp.c
  
          sl=sizeof(from);
          len=recvfrom(icmp_sock,buf,1024,MSG_DONTWAIT,(struct sockaddr *)&from,&sl);
-@@ -197,7 +199,7 @@
-         debug("checking CMSG...");
-         for (c = CMSG_FIRSTHDR(&msg); c; c = CMSG_NXTHDR(&msg, c)) {
-                 debug("CMSG level: %i type: %i",c->cmsg_level,c->cmsg_type);
--                if (c->cmsg_level != SOL_SOCKET || c->cmsg_type != SO_TIMESTAMP)
-+                if (c->cmsg_level != SOL_SOCKET || c->cmsg_type != SCM_TIMESTAMP)
-                         continue;
-                 if (c->cmsg_len < CMSG_LEN(sizeof(struct timeval)))
-                         continue;
 @@ -227,7 +227,8 @@
  		return;
  	}
@@ -65,15 +56,3 @@ diff -urN apinger-0.6.1/src/icmp.c apinger-0.6.1-pf/src/icmp.c
  		return;
  	}
  	debug("Ping reply from %s",inet_ntoa(from.sin_addr));
-diff -urN apinger-0.6.1/src/main.c apinger-0.6.1-pf/src/main.c
---- src/main.c	2008-09-20 21:11:37.000000000 +0200
-+++ src/main.c	2008-09-20 21:38:34.000000000 +0200
-@@ -277,7 +277,7 @@
- 		return 1;
- 	}
- 
--	ident=getpid() & 0xFFFF;
-+	ident=getpid();
- 	signal(SIGTERM,signal_handler);
- 	signal(SIGINT,signal_handler);
- 	signal(SIGHUP,signal_handler);
