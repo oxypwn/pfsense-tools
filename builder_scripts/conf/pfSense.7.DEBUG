@@ -83,12 +83,17 @@ options         NETGRAPH_VJC
 device ubsa
 
 # 3G devices
-device 			ucom
-device 			uplcom
+device          ufoma
+device          umsm
+device          ucom
+device          uplcom
+device          ubsa
+device          umct
+device          uvisor
+device          uark
 device          uftdi
 device          uvscom
 device          umodem
-device		umsm
 
 options         IPSEC
 options         IPSEC_NAT_T

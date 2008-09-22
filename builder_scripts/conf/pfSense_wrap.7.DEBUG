@@ -215,8 +215,14 @@ device		usb		# USB Bus (required)
 #device		udbp		# USB Double Bulk Pipe devices
 
 # 3G devices
-device 			ucom
-device 			uplcom
+device          ufoma
+device          umsm
+device          ucom
+device          uplcom
+device          ubsa
+device          umct
+device          uvisor
+device          uark
 device          uftdi
 device          uvscom
 device          umodem
