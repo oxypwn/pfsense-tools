@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/dev/usb/ubsa.c,v
 retrieving revision 1.32
 diff -u -r1.32 ubsa.c
 --- ubsa.c	22 Jun 2007 05:56:05 -0000	1.32
-+++ ubsa.c	9 Apr 2008 22:59:55 -0000
++++ ubsa.c	23 Sep 2008 23:04:39 -0000
 @@ -234,6 +234,7 @@
  	{ USB_VENDOR_OPTION, USB_PRODUCT_OPTION_GT3GPLUS },
  	/* Huawei Mobile */
@@ -12,4 +12,26 @@ diff -u -r1.32 ubsa.c
 +       { 0x1199, 0x0fff },
  	{ 0, 0 }
  };
+ 
+@@ -358,15 +359,18 @@
+ 		if (UE_GET_DIR(ed->bEndpointAddress) == UE_DIR_IN &&
+ 		    UE_GET_XFERTYPE(ed->bmAttributes) == UE_INTERRUPT) {
+ 			sc->sc_intr_number = ed->bEndpointAddress;
+-			sc->sc_isize = UGETW(ed->wMaxPacketSize);
++		//	sc->sc_isize = UGETW(ed->wMaxPacketSize);
++			sc->sc_isize = 1024;
+ 		} else if (UE_GET_DIR(ed->bEndpointAddress) == UE_DIR_IN &&
+ 		    UE_GET_XFERTYPE(ed->bmAttributes) == UE_BULK) {
+ 			ucom->sc_bulkin_no = ed->bEndpointAddress;
+-			ucom->sc_ibufsize = UGETW(ed->wMaxPacketSize);
++		//	ucom->sc_ibufsize = UGETW(ed->wMaxPacketSize);
++			ucom->sc_ibufsize = 2048;
+ 		} else if (UE_GET_DIR(ed->bEndpointAddress) == UE_DIR_OUT &&
+ 		    UE_GET_XFERTYPE(ed->bmAttributes) == UE_BULK) {
+ 			ucom->sc_bulkout_no = ed->bEndpointAddress;
+-			ucom->sc_obufsize = UGETW(ed->wMaxPacketSize);
++		//	ucom->sc_obufsize = UGETW(ed->wMaxPacketSize);
++			ucom->sc_obufsize = 2048;
+ 		}
+ 	}
  
