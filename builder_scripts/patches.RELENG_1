@@ -19,7 +19,6 @@
 ~sbin/fdisk~fdisk.c.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.diff~
-~~umsm.diff~
 ~sbin/dhclient~bpf.c.diff~
 ~sys/contrib/pf/net~pf_table.c.diff~
 ~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
@@ -43,3 +42,4 @@
 ~sys/boot/i386/libi386~bootinfo.c.diff~
 ~etc/defaults/~rc.conf.diff~
 ~sys/net/~if_enc.c.diff~
+~sys/dev/usb~ubsa.c.diff~
