@@ -44,3 +44,4 @@
 ~sys/net/~if_enc.c.diff~
 ~sys/dev/usb~ubsa.c.diff~
 ~sys/dev/usb~umass.c.diff~
+~sys/dev/usb~usbdevs~
