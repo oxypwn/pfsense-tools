@@ -84,7 +84,7 @@ device ubsa
 
 # 3G devices
 device          ufoma
-device          umsm
+#device          umsm
 device          ucom
 device          uplcom
 device          ubsa
