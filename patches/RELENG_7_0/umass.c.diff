@@ -1,0 +1,72 @@
+Index: umass.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/umass.c,v
+retrieving revision 1.160
+diff -u -r1.160 umass.c
+--- umass.c	5 Jul 2007 05:26:08 -0000	1.160
++++ umass.c	23 Sep 2008 23:08:52 -0000
+@@ -323,6 +323,7 @@
+ 	 * sector number.
+ 	 */
+ #	define READ_CAPACITY_OFFBY1	0x2000
++#	define TURNOFF_FLASH		0x4000
+ };
+ 
+ static struct umass_devdescr_t umass_devdescrs[] = {
+@@ -636,6 +637,10 @@
+ 	  UMASS_PROTO_SCSI | UMASS_PROTO_BBB,
+ 	  IGNORE_RESIDUE | NO_START_STOP
+ 	},
++	{ USB_VENDOR_QUALCOMM2, USB_PRODUCT_QUALCOMM2_MMC, RID_WILDCARD,
++	  UMASS_PROTO_SCSI | UMASS_PROTO_BBB,
++	  TURNOFF_FLASH
++	},
+ 	{ USB_VENDOR_SAMSUNG,  USB_PRODUCT_SAMSUNG_YP_U2, RID_WILDCARD,
+ 	  UMASS_PROTO_SCSI | UMASS_PROTO_BBB,
+ 	  SHUTTLE_INIT | NO_GETMAXLUN
+@@ -1027,6 +1032,8 @@
+ 
+ /* quirk functions */
+ static void umass_init_shuttle	(struct umass_softc *sc);
++static void umass_turnoff_flash (struct umass_softc *sc);
++static void umass_turnoff_flash_cb(struct umass_softc *sc, void *priv, int residue, int status);
+ 
+ /* generic transfer functions */
+ static usbd_status umass_setup_transfer	(struct umass_softc *sc,
+@@ -1473,6 +1480,14 @@
+ 	if (sc->quirks & SHUTTLE_INIT)
+ 		umass_init_shuttle(sc);
+ 
++	if (sc->quirks & TURNOFF_FLASH) {
++		DPRINTF(UDMASS_USB, ("%s: Detaching MMC\n",
++			device_get_nameunit(sc->sc_dev)));
++		umass_turnoff_flash(sc);
++		umass_detach(self);
++		return ENXIO;
++	}
++
+ 	/* Get the maximum LUN supported by the device.
+ 	 */
+ 	if (((sc->proto & UMASS_PROTO_WIRE) == UMASS_PROTO_BBB) &&
+@@ -1513,6 +1528,21 @@
+ 	return 0;
+ }
+ 
++static void
++umass_turnoff_flash(struct umass_softc *sc)
++{
++	static uint8_t cmd[] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
++	umass_bbb_transfer(sc, 0, cmd, sizeof(cmd),
++		    NULL, 0, DIR_NONE, 0,
++		    umass_turnoff_flash_cb, NULL);
++}
++
++static void
++umass_turnoff_flash_cb(struct umass_softc *sc, void *priv, int residue, int status)
++{
++	/* Do nothing */
++}
++
+ static int
+ umass_detach(device_t self)
+ {
