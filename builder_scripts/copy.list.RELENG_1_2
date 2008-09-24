@@ -8,6 +8,7 @@ usr/local/bin/athstats
 usr/local/bin/beep
 usr/bin/bsdiff
 usr/bin/bspatch
+usr/sbin/kldxref
 usr/local/bin/cpdup
 usr/local/bin/minicron
 usr/local/bin/verifysig

@@ -5,6 +5,7 @@ usr/bin/host
 usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
+usr/sbin/kldxref
 usr/local/bin/athstats
 usr/local/bin/beep
 usr/bin/bsdiff
