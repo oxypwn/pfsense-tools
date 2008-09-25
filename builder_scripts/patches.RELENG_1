@@ -42,6 +42,4 @@
 ~sys/boot/i386/libi386~bootinfo.c.diff~
 ~etc/defaults/~rc.conf.diff~
 ~sys/net/~if_enc.c.diff~
-~sys/dev/usb~ubsa.c.diff~
-~sys/dev/usb~umass.c.diff~
-~sys/dev/usb~usbdevs~
+~~umts.diff~
