@@ -127,8 +127,6 @@ diff -u -r1.32 ubsa.c
 +	{ USB_VENDOR_SIERRA, USB_PRODUCT_SIERRA_MC8780 },
 +	/* Sierra Wireless MC8781 */
 +	{ USB_VENDOR_SIERRA, USB_PRODUCT_SIERRA_MC8781 },
-+	/* Sierra USBConnect Mercury */
-+	{ USB_VENDOR_SIERRA, USB_PRODUCT_USBCONNECT_MERCURY },
  	{ 0, 0 }
  };
  
@@ -682,8 +680,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
 +product SIERRA MC8780		0x6832	MC8780
 +product SIERRA MC8781		0x6833	MC8781
 +product SIERRA TRUINSTALL	0x0fff	Aircard Tru Installer
-+product SIERRA USBCONNECT_MERCURY	0x6880  Sierra USBConnect Mercury wireless
-
+ 
  /* Sigmatel products */
  product SIGMATEL I_BEAD100	0x8008	i-Bead 100 MP3 Player
 @@ -2036,6 +2153,23 @@
