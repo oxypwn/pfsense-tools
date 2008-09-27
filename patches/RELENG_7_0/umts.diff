@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/dev/usb/ubsa.c,v
 retrieving revision 1.32
 diff -u -r1.32 ubsa.c
 --- ubsa.c	22 Jun 2007 05:56:05 -0000	1.32
-+++ ubsa.c	27 Sep 2008 20:36:20 -0000
++++ ubsa.c	27 Sep 2008 21:17:00 -0000
 @@ -25,7 +25,6 @@
   */
  
@@ -185,17 +185,20 @@ diff -u -r1.32 ubsa.c
  static int
  ubsa_match(device_t self)
  {
-@@ -272,6 +400,9 @@
+@@ -272,6 +400,12 @@
  	for (i = 0; ubsa_products[i].vendor != 0; i++) {
  		if (ubsa_products[i].vendor == uaa->vendor &&
  		    ubsa_products[i].product == uaa->product) {
 +			if (uaa->vendor == USB_VENDOR_HUAWEI &&
 +			    ubsa_huawei(self, uaa))
 +				break;
++			if (uaa->vendor == USB_VENDOR_SIERRA &&
++			    ubsa_huawei(self, uaa)) 
++				break;
  			return (UMATCH_VENDOR_PRODUCT);
  		}
  	}
-@@ -294,6 +425,9 @@
+@@ -294,6 +428,9 @@
  	dev = uaa->device;
  	ucom = &sc->sc_ucom;
  
@@ -205,7 +208,7 @@ diff -u -r1.32 ubsa.c
  	/*
  	 * initialize rts, dtr variables to something
  	 * different from boolean 0, 1
-@@ -394,6 +528,8 @@
+@@ -394,6 +531,8 @@
  	ucom->sc_parent = sc;
  	ucom->sc_portno = UCOM_UNK_PORTNO;
  	/* bulkin, bulkout set above */
@@ -214,7 +217,7 @@ diff -u -r1.32 ubsa.c
  	ucom->sc_ibufsizepad = ucom->sc_ibufsize;
  	ucom->sc_opkthdrlen = 0;
  	ucom->sc_callback = &ubsa_callback;
-@@ -439,6 +575,9 @@
+@@ -439,6 +578,9 @@
  	usb_device_request_t req;
  	usbd_status err;
  
@@ -224,7 +227,7 @@ diff -u -r1.32 ubsa.c
  	req.bmRequestType = UT_WRITE_VENDOR_DEVICE;
  	req.bRequest = request;
  	USETW(req.wValue, value);
-@@ -447,8 +586,8 @@
+@@ -447,8 +589,8 @@
  
  	err = usbd_do_request(sc->sc_ucom.sc_udev, &req, 0);
  	if (err)
@@ -235,7 +238,7 @@ diff -u -r1.32 ubsa.c
  	return (err);
  }
  
-@@ -746,3 +885,4 @@
+@@ -746,3 +888,4 @@
  	if (msr != NULL)
  		*msr = sc->sc_msr;
  }
@@ -246,7 +249,7 @@ RCS file: /home/ncvs/src/sys/dev/usb/umass.c,v
 retrieving revision 1.160
 diff -u -r1.160 umass.c
 --- umass.c	5 Jul 2007 05:26:08 -0000	1.160
-+++ umass.c	27 Sep 2008 20:33:31 -0000
++++ umass.c	27 Sep 2008 21:15:47 -0000
 @@ -1147,6 +1147,13 @@
  
  	dd = usbd_get_device_descriptor(udev);
@@ -267,7 +270,7 @@ RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
 retrieving revision 1.328.2.1.2.1
 diff -u -r1.328.2.1.2.1 usbdevs
 --- usbdevs	7 Jan 2008 23:12:45 -0000	1.328.2.1.2.1
-+++ usbdevs	27 Sep 2008 20:34:32 -0000
++++ usbdevs	27 Sep 2008 21:15:47 -0000
 @@ -1,4 +1,4 @@
 -$FreeBSD: src/sys/dev/usb/usbdevs,v 1.328.2.1.2.1 2008/01/07 23:12:45 brix Exp $
 +$FreeBSD$
