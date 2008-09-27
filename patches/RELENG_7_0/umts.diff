@@ -1,10 +1,10 @@
-Index: sys/dev/usb/ubsa.c
+Index: ubsa.c
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/sys/dev/usb/ubsa.c,v
+RCS file: /home/ncvs/src/sys/dev/usb/ubsa.c,v
 retrieving revision 1.32
 diff -u -r1.32 ubsa.c
---- sys/dev/usb/ubsa.c	22 Jun 2007 05:56:05 -0000	1.32
-+++ sys/dev/usb/ubsa.c	25 Sep 2008 20:49:31 -0000
+--- ubsa.c	22 Jun 2007 05:56:05 -0000	1.32
++++ ubsa.c	27 Sep 2008 20:36:20 -0000
 @@ -25,7 +25,6 @@
   */
  
@@ -46,7 +46,7 @@ diff -u -r1.32 ubsa.c
  	/* Option Vodafone MC3G */
  	{ USB_VENDOR_OPTION, USB_PRODUCT_OPTION_VODAFONEMC3G },
  	/* Option GlobeTrotter 3G */
-@@ -232,8 +237,83 @@
+@@ -232,8 +237,85 @@
  	{ USB_VENDOR_OPTION, USB_PRODUCT_OPTION_GT3GQUAD },
  	/* Option GlobeTrotter 3G+ */
  	{ USB_VENDOR_OPTION, USB_PRODUCT_OPTION_GT3GPLUS },
@@ -127,10 +127,12 @@ diff -u -r1.32 ubsa.c
 +	{ USB_VENDOR_SIERRA, USB_PRODUCT_SIERRA_MC8780 },
 +	/* Sierra Wireless MC8781 */
 +	{ USB_VENDOR_SIERRA, USB_PRODUCT_SIERRA_MC8781 },
++	/* Sierra Wiress USBConnect Mercury */
++	{ USB_VENDOR_SIERRA, USB_PRODUCT_SIERRA_USBCONNECT },
  	{ 0, 0 }
  };
  
-@@ -260,6 +340,52 @@
+@@ -260,6 +342,52 @@
  MODULE_DEPEND(ubsa, ucom, UCOM_MINVER, UCOM_PREFVER, UCOM_MAXVER);
  MODULE_VERSION(ubsa, UBSA_MODVER);
  
@@ -183,7 +185,7 @@ diff -u -r1.32 ubsa.c
  static int
  ubsa_match(device_t self)
  {
-@@ -272,6 +398,9 @@
+@@ -272,6 +400,9 @@
  	for (i = 0; ubsa_products[i].vendor != 0; i++) {
  		if (ubsa_products[i].vendor == uaa->vendor &&
  		    ubsa_products[i].product == uaa->product) {
@@ -193,7 +195,7 @@ diff -u -r1.32 ubsa.c
  			return (UMATCH_VENDOR_PRODUCT);
  		}
  	}
-@@ -294,6 +423,9 @@
+@@ -294,6 +425,9 @@
  	dev = uaa->device;
  	ucom = &sc->sc_ucom;
  
@@ -203,7 +205,7 @@ diff -u -r1.32 ubsa.c
  	/*
  	 * initialize rts, dtr variables to something
  	 * different from boolean 0, 1
-@@ -394,6 +526,8 @@
+@@ -394,6 +528,8 @@
  	ucom->sc_parent = sc;
  	ucom->sc_portno = UCOM_UNK_PORTNO;
  	/* bulkin, bulkout set above */
@@ -212,7 +214,7 @@ diff -u -r1.32 ubsa.c
  	ucom->sc_ibufsizepad = ucom->sc_ibufsize;
  	ucom->sc_opkthdrlen = 0;
  	ucom->sc_callback = &ubsa_callback;
-@@ -439,6 +573,9 @@
+@@ -439,6 +575,9 @@
  	usb_device_request_t req;
  	usbd_status err;
  
@@ -222,7 +224,7 @@ diff -u -r1.32 ubsa.c
  	req.bmRequestType = UT_WRITE_VENDOR_DEVICE;
  	req.bRequest = request;
  	USETW(req.wValue, value);
-@@ -447,8 +584,8 @@
+@@ -447,8 +586,8 @@
  
  	err = usbd_do_request(sc->sc_ucom.sc_udev, &req, 0);
  	if (err)
@@ -233,18 +235,18 @@ diff -u -r1.32 ubsa.c
  	return (err);
  }
  
-@@ -746,3 +883,4 @@
+@@ -746,3 +885,4 @@
  	if (msr != NULL)
  		*msr = sc->sc_msr;
  }
 +
-Index: sys/dev/usb/umass.c
+Index: umass.c
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/sys/dev/usb/umass.c,v
+RCS file: /home/ncvs/src/sys/dev/usb/umass.c,v
 retrieving revision 1.160
 diff -u -r1.160 umass.c
---- sys/dev/usb/umass.c	5 Jul 2007 05:26:08 -0000	1.160
-+++ sys/dev/usb/umass.c	25 Sep 2008 20:47:55 -0000
+--- umass.c	5 Jul 2007 05:26:08 -0000	1.160
++++ umass.c	27 Sep 2008 20:33:31 -0000
 @@ -1147,6 +1147,13 @@
  
  	dd = usbd_get_device_descriptor(udev);
@@ -259,13 +261,13 @@ diff -u -r1.160 umass.c
  	/* An entry specifically for Y-E Data devices as they don't fit in the
  	 * device description table.
  	 */
-Index: sys/dev/usb/usbdevs
+Index: usbdevs
 ===================================================================
-RCS file: /home/eri/mine/FreeBSD/src/sys/dev/usb/usbdevs,v
+RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
 retrieving revision 1.328.2.1.2.1
 diff -u -r1.328.2.1.2.1 usbdevs
---- sys/dev/usb/usbdevs	7 Jan 2008 23:12:45 -0000	1.328.2.1.2.1
-+++ sys/dev/usb/usbdevs	25 Sep 2008 21:41:30 -0000
+--- usbdevs	7 Jan 2008 23:12:45 -0000	1.328.2.1.2.1
++++ usbdevs	27 Sep 2008 20:34:32 -0000
 @@ -1,4 +1,4 @@
 -$FreeBSD: src/sys/dev/usb/usbdevs,v 1.328.2.1.2.1 2008/01/07 23:12:45 brix Exp $
 +$FreeBSD$
@@ -651,9 +653,11 @@ diff -u -r1.328.2.1.2.1 usbdevs
  
  /* Shark products */
  product SHARK PA		0x0400	Pocket Adapter
-@@ -2020,7 +2113,31 @@
+@@ -2019,8 +2112,33 @@
+ product SIEMENS3 X75		0x0004	X75
  
  /* Sierra Wireless products */
++product SIERRA USBCONNECT	0x6880	Sierra Wireless USBConnect Mercury
  product SIERRA AIRCARD580	0x0112	Sierra Wireless AirCard 580
 +product SIERRA AIRCARD595	0x0019	Sierra Wireless AirCard 595
 +product SIERRA AC595U		0x0120	Sierra Wireless AirCard 595U
@@ -683,7 +687,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  
  /* Sigmatel products */
  product SIGMATEL I_BEAD100	0x8008	i-Bead 100 MP3 Player
-@@ -2036,6 +2153,23 @@
+@@ -2036,6 +2154,23 @@
  product SILICOM U2E		0x0001	U2E
  product SILICOM GPE		0x0002	Psion Gold Port Ethernet
  
@@ -707,7 +711,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  /* Silicon Portals Inc. */
  product SILICONPORTALS YAPPH_NF	0x0200	YAP Phone (no firmware)
  product SILICONPORTALS YAPPHONE	0x0201	YAP Phone
-@@ -2104,6 +2238,9 @@
+@@ -2104,6 +2239,9 @@
  product SOURCENEXT KEIKAI8	0x039f	KeikaiDenwa 8
  product SOURCENEXT KEIKAI8_CHG	0x012e	KeikaiDenwa 8 with charger
  
@@ -717,7 +721,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  /* Sphairon Access Systems GmbH products */
  product SPHAIRON UB801R		0x0110	UB801R
  
-@@ -2230,6 +2367,12 @@
+@@ -2230,6 +2368,12 @@
  /* U.S. Robotics products */
  product USR USR5423		0x0121	USR5423 WLAN
  
@@ -730,7 +734,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  /* VidzMedia products */
  product VIDZMEDIA MONSTERTV	0x4fb1	MonsterTV P2H
  
-@@ -2258,7 +2401,8 @@
+@@ -2258,7 +2402,8 @@
  product WACOM GRAPHIRE3_4X5	0x0013	Graphire 3 4x5
  product WACOM INTUOSA5		0x0021	Intuos A5
  product WACOM GD0912U		0x0022	Intuos 9x12 Graphics Tablet
@@ -740,7 +744,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  /* Western Digital products */
  product WESTERN COMBO		0x0200	Firewire USB Combo
  product WESTERN EXTHDD		0x0400	External HDD
-@@ -2272,10 +2416,11 @@
+@@ -2272,10 +2417,11 @@
  product WINMAXGROUP FLASH64MC	0x6660	USB Flash Disk 64M-C
  
  /* Wistron NeWeb products */
@@ -753,7 +757,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  product WISTRONNEWEB AR5523_2_NF	0x0829	AR5523 (no firmware)
  
  /* Xerox products */
-@@ -2284,6 +2429,10 @@
+@@ -2284,6 +2430,10 @@
  /* Xirlink products */
  product XIRLINK PCCAM		0x8080	IBM PC Camera
  
@@ -764,7 +768,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  /* Y-E Data products */
  product YEDATA FLASHBUSTERU	0x0000	Flashbuster-U
  
-@@ -2303,6 +2452,7 @@
+@@ -2303,6 +2453,7 @@
  product ZCOM M4Y750		0x0001	M4Y-750
  product ZCOM XI725		0x0002	XI-725/726
  product ZCOM XI735		0x0005	XI-735
@@ -772,7 +776,7 @@ diff -u -r1.328.2.1.2.1 usbdevs
  product ZCOM ZD1211		0x0011	ZD1211
  product ZCOM AR5523		0x0012	AR5523
  product ZCOM AR5523_NF		0x0013	AR5523 driver (no firmware)
-@@ -2329,3 +2479,5 @@
+@@ -2329,3 +2480,5 @@
  product ZYXEL AG225H		0x3409	AG-225H
  product ZYXEL M202		0x340a	M-202
  product ZYXEL G220V2		0x340f	G-220 v2
