@@ -1,0 +1,29 @@
+--- fdisk.c	Wed Oct  5 03:16:39 2005
++++ fdisk-patched.c	Tue May 16 14:36:51 2006
+@@ -750,6 +750,7 @@
+ 	char fbuf[BUFSIZ];
+ 	int i, fdw;
+ 
++	close(fd);	/* Give the GEOM layer exclusive access to the disk */
+ 	grq = gctl_get_handle();
+ 	gctl_ro_param(grq, "verb", -1, "write MBR");
+ 	gctl_ro_param(grq, "class", -1, "MBR");
+@@ -760,13 +761,15 @@
+ 		q++;
+ 	gctl_ro_param(grq, "geom", -1, q);
+ 	gctl_ro_param(grq, "data", secsize, buf);
+-	q = gctl_issue(grq);
++	q = gctl_issue(grq);        
+ 	if (q == NULL) {
+ 		gctl_free(grq);
++		open_disk(u_flag);
+ 		return(0);
+ 	}
+ 	warnx("%s", q);
+ 	gctl_free(grq);
++	open_disk(u_flag);
+ 	
+ 	error = pwrite(fd, buf, secsize, (sector * 512));
+ 	if (error == secsize)
+
+
