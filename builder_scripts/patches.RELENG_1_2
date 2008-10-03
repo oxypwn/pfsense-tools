@@ -39,3 +39,4 @@
 ~sys/~freebsd-7.0-oneshot-dumps-v2.diff~
 ~sys/netinet~ip_output.c.diff~
 ~sys/net/~if_enc.c.diff~
+~sys/dev/cardbus~cardbus_cis.c.diff~
