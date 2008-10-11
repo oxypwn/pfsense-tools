@@ -2,8 +2,10 @@
 
 ######################################
 # pfSense builder configuration file #
-# See user settable options area for #
-# common user changable options.     #
+# Please don't modify this file, you #
+# can put your settings and options  #
+# in pfsense-build.conf, which is    #
+# sourced at the end of this file    #
 ######################################
 
 # $Id$
@@ -149,3 +151,9 @@ export UNION_DIRS="etc usr root"
 # If uncommented the system will use fastest-cvsup to find
 # a suitable update source to spread the load.
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
+
+############################################
+# The following line must always come last #
+############################################
+[ -r "pfsense-build.conf" ] && . pfsense-build.conf
+
