@@ -944,11 +944,11 @@ setup_nanobsd_etc ( ) {
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
 
 	# save config file for scripts
-	echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
+	# echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
 
-	echo "/dev/${NANO_DRIVE}s1a / ufs ro 1 1" > etc/fstab
-	echo "/dev/${NANO_DRIVE}s3 /cfg ufs rw,noauto 2 2" >> etc/fstab
-	echo "/dev/${NANO_DRIVE}s4 /cf ufs ro 1 1" >> etc/fstab
+	echo "/dev/ufs/root0 / ufs ro 1 1" > etc/fstab
+	echo "/dev/ufs/cfg /cfg ufs rw,noauto 2 2" >> etc/fstab
+	echo "/dev/ufs/cf /cf ufs ro 1 1" >> etc/fstab
 	mkdir -p cfg
 }
 
@@ -988,7 +988,7 @@ setup_nanobsd ( ) {
 	echo "$NANO_RAM_TMPVARSIZE" > ${CONFIG_DIR}/base/var/md_size 
 
 	# pick up config files from the special partition
-	echo "mount -o ro /dev/${NANO_DRIVE}s3" > ${CONFIG_DIR}/default/etc/remount
+	echo "mount -o ro /dev/ufs/cfg" > ${CONFIG_DIR}/default/etc/remount
 
 	# Put /tmp on the /var ramdisk (could be symlink already)
 	rmdir tmp || true
@@ -1099,6 +1099,7 @@ create_i386_diskimage ( ) {
 
 	# Create first image
 	newfs ${NANO_NEWFS} /dev/${MD}s1a
+	tunefs -L root0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
 	df -i ${MNT}
 	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
@@ -1110,10 +1111,11 @@ create_i386_diskimage ( ) {
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		# Duplicate to second image (if present)
 		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k
+		tunefs -L root1 /dev/${MD}s2a
 		mount /dev/${MD}s2a ${MNT}
 		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		do
-			sed -i "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
+			sed -i "" "s/root0/root1/g" $f
 		done
 		umount ${MNT}
 
@@ -1121,11 +1123,13 @@ create_i386_diskimage ( ) {
 	
 	# Create Config slice
 	newfs ${NANO_NEWFS} /dev/${MD}s3
+	tunefs -L cfg /dev/${MD}s3
 	# XXX: fill from where ?
 
 	# Create Data slice, if any.
 	if [ $NANO_DATASIZE -gt 0 ] ; then
 		newfs ${NANO_NEWFS} /dev/${MD}s4
+		tunefs -L cf /dev/${MD}s4
                 # Mount data partition and copy contents of /cf
                 # Can be used later to create custom default config.xml while building
                 mount /dev/${MD}s4 ${MNT}
