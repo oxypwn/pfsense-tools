@@ -911,10 +911,10 @@ update_cvs_depot() {
 	else
 		if [ -e "${BASE_DIR}/mainline" ]; then
 			echo "Updating cloned GIT repo directory..."
-			(cd ${BASE_DIR} && git pull)
+			(cd ${BASE_DIR}/mainline && git pull)
 		else 
 			echo "Cloning REPO using GIT..."
-			(cd ${BASE_DIR}/mainline && git clone ${GIT_REPO} pfSense)		
+			(cd ${BASE_DIR} && git clone ${GIT_REPO} pfSense)		
 		fi
 	fi
 }
