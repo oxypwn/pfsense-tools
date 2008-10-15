@@ -80,6 +80,8 @@ options         NETGRAPH_TTY
 options         NETGRAPH_UI
 options         NETGRAPH_VJC
 
+device          ixgbe
+
 device ubsa
 
 # 3G devices
