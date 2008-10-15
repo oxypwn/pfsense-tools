@@ -908,9 +908,14 @@ update_cvs_depot() {
 		rm -rf $BASE_DIR/pfSense
 		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 		(cd ${BASE_DIR}/tools/ && cvs update -d)
-	else 
-		echo "Cloning REPO using GIT..."
-		(cd ${BASE_DIR} && git clone ${GIT_REPO} pfSense)
+	else
+		if [ -e "${BASE_DIR}/mainline" ]; then
+			echo "Updating cloned GIT repo directory..."
+			(cd ${BASE_DIR} && git pull)
+		else 
+			echo "Cloning REPO using GIT..."
+			(cd ${BASE_DIR} && git clone ${GIT_REPO} pfSense)		
+		fi
 	fi
 }
 
