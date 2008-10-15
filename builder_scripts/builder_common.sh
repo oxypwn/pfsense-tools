@@ -914,7 +914,7 @@ update_cvs_depot() {
 			(cd ${BASE_DIR} && git pull)
 		else 
 			echo "Cloning REPO using GIT..."
-			(cd ${BASE_DIR} && git clone ${GIT_REPO} pfSense)		
+			(cd ${BASE_DIR}/mainline && git clone ${GIT_REPO} pfSense)		
 		fi
 	fi
 }
