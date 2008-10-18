@@ -27,7 +27,9 @@ do-extract:
 #do-build:
 #	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
-#do-install:
-#	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+do-install:
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+	${CP} ${WRKSRC}/slbd.sh ${PREFIX}/${WHERE}/
+	${CHMOD} 0555 ${PREFIX}/${WHERE}/slbd.sh
 
 .include <bsd.port.mk>

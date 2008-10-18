@@ -35,7 +35,7 @@
 void vsvc_threadpoll(void *);
 
 int service_pollhttp(struct service_t *);
-int service_pollping(struct service_t *);
+int service_pollicmp(struct service_t *);
 int service_polltcp(struct service_t *);
 int service_tcpexpect(struct service_t *, int, char *, char *);
 

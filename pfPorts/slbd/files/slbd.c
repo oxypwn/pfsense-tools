@@ -95,7 +95,7 @@ int main(int argc, char **argv) {
 			break;
 		case 'r':
 			r_refresh = strtol(optarg, NULL, 10);
-			if (r_refresh == LONG_MIN || r_refresh == LONG_MAX)
+			if (r_refresh == INT_MIN || r_refresh == INT_MAX)
 				err(1, "Bad refresh time");
 			break;
 		default:

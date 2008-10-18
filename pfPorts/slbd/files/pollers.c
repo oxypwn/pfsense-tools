@@ -441,8 +441,7 @@ int service_pollicmp(struct service_t *s) {
 	}
 	
 	/* XXX: billm - we're taking the cheap way out */
-	snprintf(cmd, 127, "/usr/local/sbin/fping -B1.5 -t400 -r3 -q %s >/dev/null", 
-	inet_ntoa(getservice_inaddr(s)));
+	snprintf(cmd, 60, "/usr/local/sbin/slbd.sh %s", inet_ntoa(getservice_inaddr(s)));
 	res = system(cmd);
 	/* if the ping failed, try again */
 	if(res != 0)  
