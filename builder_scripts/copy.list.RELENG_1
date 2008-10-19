@@ -6,6 +6,7 @@ usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
 usr/sbin/kldxref
+usr/local/sbin/slbd.sh
 usr/local/bin/athstats
 usr/local/bin/beep
 usr/bin/bsdiff

@@ -9,6 +9,7 @@ usr/local/bin/beep
 usr/bin/bsdiff
 usr/bin/bspatch
 usr/sbin/kldxref
+usr/local/sbin/slbd.sh
 usr/local/bin/cpdup
 usr/local/bin/minicron
 usr/local/bin/verifysig
