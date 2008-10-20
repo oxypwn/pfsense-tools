@@ -444,7 +444,8 @@ cust_install_config_xml() {
 	if [ ! -z "${USE_CONFIG_XML:-}" ]; then
 		if [ -f "$USE_CONFIG_XML" ]; then
 			echo ">>> Using custom config.xml file $USE_CONFIG_XML..."
-			cp $USE_CONFIG_XML $PFSENSEBASEDIR/cf/conf/ $PFSENSEBASEDIR/conf.default/
+			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/cf/conf/ 
+			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/conf.default/
 		fi
 	fi
 }
