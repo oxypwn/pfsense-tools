@@ -443,9 +443,11 @@ cust_populate_extra() {
 cust_install_config_xml() {
 	if [ ! -z "${USE_CONFIG_XML:-}" ]; then
 		if [ -f "$USE_CONFIG_XML" ]; then
-			echo ">>> Using custom config.xml file $USE_CONFIG_XML..."
-			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/cf/conf/ 
-			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/conf.default/
+			echo ">>> Using custom config.xml file $USE_CONFIG_XM L..."
+			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/cf/conf/config.xml
+			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/conf.default/config.xml
+			cp ${USE_CONFIG_XML} ${CVS_CO_DIR}/cf/conf/config.xml
+			cp ${USE_CONFIG_XML} ${CVS_CO_DIR}/conf.default/config.xml			
 		fi
 	fi
 }
