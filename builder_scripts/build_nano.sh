@@ -96,6 +96,9 @@ cust_overlay_host_binaries
 # Must be run after overlay_host_binaries and freesbie_make extra
 cust_fixup_wrap
 
+# Check for custom config.xml
+cust_install_config_xml
+
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
 freesbie_make clonefs

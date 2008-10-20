@@ -440,6 +440,15 @@ cust_populate_extra() {
     fi
 }
 
+cust_install_config_xml() {
+	if [ ! -z "${USE_CONFIG_XML:-}" ]; then
+		if [ -f "$USE_CONFIG_XML" ]; then
+			echo ">>> Using custom config.xml file $USE_CONFIG_XML..."
+			cp $USE_CONFIG_XML $PFSENSEBASEDIR/cf/conf/ $PFSENSEBASEDIR/conf.default/
+		fi
+	fi
+}
+
 install_custom_overlay() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then

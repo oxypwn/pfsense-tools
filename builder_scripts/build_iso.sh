@@ -159,6 +159,9 @@ freesbie_make extra
 cust_overlay_host_binaries
 check_for_zero_size_files
 
+# Check for custom config.xml
+cust_install_config_xml
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs

@@ -118,6 +118,9 @@ export NANO_CONFSIZE=2048
 export NO_UNIONFS=NO
 export UNION_DIRS="etc usr root"
 
+# Use a custom config.xml
+#export USE_CONFIG_XML=${USE_CONFIG_XML:-"/path/to/custom/config.xml"}
+
 # GIT pfSense, BSDInstaller & FreeSBIE settings
 #export USE_GIT=${USE_GIT:-"yo"}
 #export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense-import-test-minus-binaries/mainline.git pfSense"}
