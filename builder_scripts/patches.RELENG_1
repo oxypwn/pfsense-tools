@@ -44,3 +44,4 @@
 ~sys/net/~if_enc.c.diff~
 ~sys/dev/usb~umts.diff~
 ~sys/dev/cardbus~cardbus_cis.c.diff~
+~usr.bin/sockstat~sockstat.diff~
