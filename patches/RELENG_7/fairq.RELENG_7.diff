@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /home/ncvs/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.8.2.1
-diff -u -r1.8.2.1 parse.y
---- contrib/pf/pfctl/parse.y	24 Jul 2008 01:13:22 -0000	1.8.2.1
-+++ contrib/pf/pfctl/parse.y	25 Oct 2008 18:45:03 -0000
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 parse.y
+--- contrib/pf/pfctl/parse.y	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ contrib/pf/pfctl/parse.y	21 Oct 2008 15:18:57 -0000
 @@ -44,6 +44,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -29,6 +29,17 @@ diff -u -r1.8.2.1 parse.y
  	} v;
  	int lineno;
  } YYSTYPE;
+@@ -419,8 +422,8 @@
+ %token	REQUIREORDER SYNPROXY FINGERPRINTS NOSYNC DEBUG SKIP HOSTID
+ %token	ANTISPOOF FOR
+ %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
+-%token	ALTQ CBQ PRIQ HFSC BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
+-%token	QUEUE PRIORITY QLIMIT RTABLE
++%token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
++%token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
+ %token	LOAD RULESET_OPTIMIZATION
+ %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
+ %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
 @@ -462,6 +465,7 @@
  %type	<v.number>		cbqflags_list cbqflags_item
  %type	<v.number>		priqflags_list priqflags_item
@@ -151,11 +162,11 @@ diff -u -r1.8.2.1 parse.y
  		{ "icmp6-type",		ICMP6TYPE},
 Index: contrib/pf/pfctl/pfctl_altq.c
 ===================================================================
-RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
-retrieving revision 1.9.2.1
-diff -u -r1.9.2.1 pfctl_altq.c
---- contrib/pf/pfctl/pfctl_altq.c	12 Apr 2008 18:26:48 -0000	1.9.2.1
-+++ contrib/pf/pfctl/pfctl_altq.c	25 Oct 2008 18:45:05 -0000
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl_altq.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pfctl_altq.c
+--- contrib/pf/pfctl/pfctl_altq.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_altq.c	21 Oct 2008 15:18:51 -0000
 @@ -42,6 +42,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -474,11 +485,11 @@ diff -u -r1.9.2.1 pfctl_altq.c
 +}
 Index: contrib/pf/pfctl/pfctl_parser.h
 ===================================================================
-RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_parser.h,v
-retrieving revision 1.7
-diff -u -r1.7 pfctl_parser.h
---- contrib/pf/pfctl/pfctl_parser.h	3 Jul 2007 12:30:02 -0000	1.7
-+++ contrib/pf/pfctl/pfctl_parser.h	25 Oct 2008 18:45:05 -0000
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl_parser.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pfctl_parser.h
+--- contrib/pf/pfctl/pfctl_parser.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_parser.h	21 Oct 2008 15:18:51 -0000
 @@ -149,12 +149,27 @@
  	int			flags;
  };
@@ -509,11 +520,11 @@ diff -u -r1.7 pfctl_parser.h
  
 Index: contrib/pf/pfctl/pfctl_qstats.c
 ===================================================================
-RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_qstats.c,v
-retrieving revision 1.6.10.1
-diff -u -r1.6.10.1 pfctl_qstats.c
---- contrib/pf/pfctl/pfctl_qstats.c	12 Apr 2008 18:26:48 -0000	1.6.10.1
-+++ contrib/pf/pfctl/pfctl_qstats.c	25 Oct 2008 18:45:06 -0000
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl_qstats.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pfctl_qstats.c
+--- contrib/pf/pfctl/pfctl_qstats.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_qstats.c	21 Oct 2008 15:18:51 -0000
 @@ -38,6 +38,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -591,7 +602,7 @@ Index: sbin/pfctl/missing/altq/altq_fairq.h
 RCS file: sbin/pfctl/missing/altq/altq_fairq.h
 diff -N sbin/pfctl/missing/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sbin/pfctl/missing/altq/altq_fairq.h	25 Oct 2008 18:45:07 -0000
++++ sbin/pfctl/missing/altq/altq_fairq.h	21 Oct 2008 15:18:51 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -731,11 +742,11 @@ diff -N sbin/pfctl/missing/altq/altq_fairq.h
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
 Index: sys/conf/NOTES
 ===================================================================
-RCS file: /home/ncvs/src/sys/conf/NOTES,v
-retrieving revision 1.1454.2.19
-diff -u -r1.1454.2.19 NOTES
---- sys/conf/NOTES	31 Aug 2008 10:15:43 -0000	1.1454.2.19
-+++ sys/conf/NOTES	25 Oct 2008 18:45:11 -0000
+RCS file: /home/ermal/tmprepo/src/sys/conf/NOTES,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 NOTES
+--- sys/conf/NOTES	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/conf/NOTES	21 Oct 2008 15:18:51 -0000
 @@ -626,6 +626,7 @@
  options 	ALTQ_RED	# Random Early Detection
  options 	ALTQ_RIO	# RED In/Out
@@ -746,11 +757,11 @@ diff -u -r1.1454.2.19 NOTES
  options 	ALTQ_NOPCC	# Required if the TSC is unusable
 Index: sys/conf/files
 ===================================================================
-RCS file: /home/ncvs/src/sys/conf/files,v
-retrieving revision 1.1243.2.38
-diff -u -r1.1243.2.38 files
---- sys/conf/files	31 Aug 2008 10:15:43 -0000	1.1243.2.38
-+++ sys/conf/files	25 Oct 2008 18:45:15 -0000
+RCS file: /home/ermal/tmprepo/src/sys/conf/files,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 files
+--- sys/conf/files	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/conf/files	21 Oct 2008 15:18:51 -0000
 @@ -108,6 +108,8 @@
  contrib/altq/altq/altq_cdnr.c	optional altq
  contrib/altq/altq/altq_hfsc.c	optional altq \
@@ -762,11 +773,11 @@ diff -u -r1.1243.2.38 files
  contrib/altq/altq/altq_red.c	optional altq \
 Index: sys/conf/options
 ===================================================================
-RCS file: /home/ncvs/src/sys/conf/options,v
-retrieving revision 1.608.2.8
-diff -u -r1.608.2.8 options
---- sys/conf/options	31 Aug 2008 10:15:43 -0000	1.608.2.8
-+++ sys/conf/options	25 Oct 2008 18:45:16 -0000
+RCS file: /home/ermal/tmprepo/src/sys/conf/options,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 options
+--- sys/conf/options	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/conf/options	21 Oct 2008 15:18:51 -0000
 @@ -347,6 +347,7 @@
  ALTQ_RED		opt_altq.h
  ALTQ_RIO		opt_altq.h
@@ -777,11 +788,11 @@ diff -u -r1.608.2.8 options
  ALTQ_NOPCC		opt_altq.h
 Index: sys/contrib/altq/altq/altq.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/contrib/altq/altq/altq.h,v
-retrieving revision 1.2
-diff -u -r1.2 altq.h
---- sys/contrib/altq/altq/altq.h	12 Jun 2004 00:57:20 -0000	1.2
-+++ sys/contrib/altq/altq/altq.h	25 Oct 2008 18:45:17 -0000
+RCS file: /home/ermal/tmprepo/src/sys/contrib/altq/altq/altq.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 altq.h
+--- sys/contrib/altq/altq/altq.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/contrib/altq/altq/altq.h	21 Oct 2008 15:18:51 -0000
 @@ -63,7 +63,8 @@
  #define	ALTQT_BLUE		10	/* blue */
  #define	ALTQT_PRIQ		11	/* priority queue */
@@ -797,7 +808,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	25 Oct 2008 18:45:17 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	21 Oct 2008 15:18:51 -0000
 @@ -0,0 +1,905 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1709,7 +1720,7 @@ Index: sys/contrib/altq/altq/altq_fairq.h
 RCS file: sys/contrib/altq/altq/altq_fairq.h
 diff -N sys/contrib/altq/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.h	25 Oct 2008 18:45:18 -0000
++++ sys/contrib/altq/altq/altq_fairq.h	21 Oct 2008 15:18:51 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1849,11 +1860,11 @@ diff -N sys/contrib/altq/altq/altq_fairq.h
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
 Index: sys/contrib/altq/altq/altq_subr.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/contrib/altq/altq/altq_subr.c,v
-retrieving revision 1.10
-diff -u -r1.10 altq_subr.c
---- sys/contrib/altq/altq/altq_subr.c	12 Jul 2007 17:00:51 -0000	1.10
-+++ sys/contrib/altq/altq/altq_subr.c	25 Oct 2008 18:45:19 -0000
+RCS file: /home/ermal/tmprepo/src/sys/contrib/altq/altq/altq_subr.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 altq_subr.c
+--- sys/contrib/altq/altq/altq_subr.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/contrib/altq/altq/altq_subr.c	21 Oct 2008 15:18:51 -0000
 @@ -544,6 +544,11 @@
  		error = hfsc_pfattach(a);
  		break;
@@ -1928,11 +1939,11 @@ diff -u -r1.10 altq_subr.c
  	}
 Index: sys/contrib/altq/altq/altq_var.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/contrib/altq/altq/altq_var.h,v
-retrieving revision 1.2
-diff -u -r1.2 altq_var.h
---- sys/contrib/altq/altq/altq_var.h	21 Feb 2005 17:11:09 -0000	1.2
-+++ sys/contrib/altq/altq/altq_var.h	25 Oct 2008 18:45:20 -0000
+RCS file: /home/ermal/tmprepo/src/sys/contrib/altq/altq/altq_var.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 altq_var.h
+--- sys/contrib/altq/altq/altq_var.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/contrib/altq/altq/altq_var.h	21 Oct 2008 15:18:51 -0000
 @@ -261,5 +261,12 @@
  int	hfsc_remove_queue(struct pf_altq *);
  int	hfsc_getqstats(struct pf_altq *, void *, int *);
@@ -1948,11 +1959,11 @@ diff -u -r1.2 altq_var.h
  #endif /* _ALTQ_ALTQ_VAR_H_ */
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.46.2.4
-diff -u -r1.46.2.4 pf.c
---- sys/contrib/pf/net/pf.c	18 Aug 2008 08:11:48 -0000	1.46.2.4
-+++ sys/contrib/pf/net/pf.c	25 Oct 2008 18:45:28 -0000
+RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf.c
+--- sys/contrib/pf/net/pf.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf.c	21 Oct 2008 15:18:51 -0000
 @@ -606,6 +606,22 @@
  	return (0);
  }
@@ -1997,11 +2008,11 @@ diff -u -r1.46.2.4 pf.c
  		else
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/contrib/pf/net/pf_mtag.h,v
-retrieving revision 1.1
-diff -u -r1.1 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	3 Jul 2007 12:46:06 -0000	1.1
-+++ sys/contrib/pf/net/pf_mtag.h	25 Oct 2008 18:45:28 -0000
+RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pf_mtag.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf_mtag.h
+--- sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 15:18:51 -0000
 @@ -42,6 +42,7 @@
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
  	u_int		 rtableid;	/* alternate routing table id */
@@ -2012,11 +2023,11 @@ diff -u -r1.1 pf_mtag.h
  	u_int8_t	 routed;
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.16.2.1
-diff -u -r1.16.2.1 pfvar.h
---- sys/contrib/pf/net/pfvar.h	12 Apr 2008 18:26:48 -0000	1.16.2.1
-+++ sys/contrib/pf/net/pfvar.h	25 Oct 2008 18:45:30 -0000
+RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:18:51 -0000
 @@ -1230,6 +1230,20 @@
  	int		flags;
  };
