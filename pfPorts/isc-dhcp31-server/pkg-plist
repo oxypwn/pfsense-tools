@@ -1,0 +1,9 @@
+@comment $FreeBSD: ports/net/isc-dhcp31-server/pkg-plist,v 1.31 2006/08/25 12:02:58 sem Exp $
+@unexec %D/etc/rc.d/isc-dhcpd.sh forcestop 2>/dev/null || true
+@unexec %D/etc/rc.d/isc-dhcpd forcestop 2>/dev/null || true
+bin/omshell
+%%LDAP%%bin/dhcpd-conf-to-ldap.pl
+etc/dhcpd.conf.sample
+sbin/dhcpd
+%%LDAP%%%%SCHEMA_DIR%%/dhcp.schema
+%%LDAP%%@dirrm %%SCHEMA_DIR%%
