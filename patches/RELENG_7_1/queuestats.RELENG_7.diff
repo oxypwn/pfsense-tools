@@ -1,0 +1,20 @@
+Index: contrib/pf/pfctl/pfctl_qstats.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl_qstats.c,v
+retrieving revision 1.2
+diff -u -r1.2 pfctl_qstats.c
+--- contrib/pf/pfctl/pfctl_qstats.c	21 Oct 2008 15:19:34 -0000	1.2
++++ contrib/pf/pfctl/pfctl_qstats.c	21 Oct 2008 15:23:30 -0000
+@@ -112,7 +112,11 @@
+ 		pfctl_print_altq_node(dev, node, 0, opts);
+ 	}
+ 
+-	while (verbose2 && nodes > 0) {
++	/* 
++	 * NB: pfSense needs this to allow multiple users
++	 * to view Status->Queues simultaneously.
++	 */
++	if (verbose2 && nodes > 0) {
+ 		printf("\n");
+ 		fflush(stdout);
+ 		sleep(STAT_INTERVAL);
