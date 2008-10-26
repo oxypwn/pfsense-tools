@@ -42,7 +42,7 @@
 # Note: This function prepares the environment needed by the script pfspkg_installer
 #       The Freesbie system its finall executing pfspkg_installer in a chroot env.
 #
-install_custom_packages_setup() {
+pfsense_install_custom_packages_setup() {
 	TODIR="${BASEDIR}"
 	DESTNAME="pkginstall.sh"
 
@@ -74,7 +74,7 @@ install_custom_packages_setup() {
 	fi
 }
 
-install_custom_packages_exec() {
+pfsense_install_custom_packages_exec() {
 	DESTNAME="pkginstall.sh"
 
 	# setup script that will be run within the chroot env
@@ -180,6 +180,6 @@ EOF
 
 }
 
-install_custom_packages_setup
-install_custom_packages_exec
+pfsense_install_custom_packages_setup
+pfsense_install_custom_packages_exec
 
