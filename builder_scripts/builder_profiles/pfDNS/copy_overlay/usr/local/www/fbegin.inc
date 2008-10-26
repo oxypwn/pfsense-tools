@@ -149,7 +149,7 @@ if ($_REQUEST['noticeaction'] == 'acknowledge') {
 					<li class="drop">
 						<div>Services</div>
 						<ul class="subdrop">
-							<?php echo return_ext_menu("Services"); ?>
+							<?=output_menu_item("/tinydns_status.php", "DNS Servers");?>
 						</ul>
 					</li>
 					<li class="drop">
