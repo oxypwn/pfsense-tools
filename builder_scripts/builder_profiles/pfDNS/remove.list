@@ -8,8 +8,6 @@
 ./boot/device.hints_wrap
 ./boot/loader.conf_wrap
 
-./boot/kernel/ng*
-./boot/kernel/netgraph*
 
 ./etc/bluetooth
 ./etc/gnats
@@ -47,14 +45,10 @@
 ./root/.xcustom.sh
 
 ./sbin/badsect
+./sbin/camcontrol
 ./sbin/ccdconfig
 ./sbin/clri
 ./sbin/comcontrol
-./sbin/disklabel
-./sbin/dump
-./sbin/dumpfs
-./sbin/dumpon
-./sbin/fdisk
 ./sbin/ffsinfo
 ./sbin/fsdb
 ./sbin/fsirand
@@ -65,18 +59,14 @@
 ./sbin/ggatec
 ./sbin/ggated
 ./sbin/ggatel
-./sbin/gmirror
 ./sbin/gnop
 ./sbin/gpt
 ./sbin/graid3
-./sbin/growfs
 ./sbin/gshsec
 ./sbin/gstripe
 ./sbin/gvinum
 ./sbin/mksnap_ffs
-./sbin/mount_cd9660
 ./sbin/mount_ext2fs
-./sbin/mount_fdescfs
 ./sbin/mount_linprocfs
 ./sbin/mount_ntfs
 ./sbin/mount_reiserfs
@@ -166,6 +156,8 @@
 ./usr/bin/gcore
 ./usr/bin/gencat
 ./usr/bin/getconf
+./usr/bin/getopt
+./usr/bin/getopts
 ./usr/bin/gzexe
 ./usr/bin/hd
 ./usr/bin/hesinfo
@@ -376,31 +368,9 @@
 
 ./usr/libexec/tcpd
 ./usr/libexec/telnetd
-./usr/libexec/tftpd
 ./usr/libexec/vfontedpr
 
 ./usr/include
-
-./usr/local/bin/links
-
-./usr/local/share/aclocal
-./usr/local/share/cvsup
-./usr/local/share/dfuibe_installer
-./usr/local/share/dfuibe_lua
-./usr/local/share/dfuife_curses
-./usr/local/share/dict
-./usr/local/share/doc
-./usr/local/share/emacs
-./usr/local/share/examples
-./usr/local/share/java
-./usr/local/share/locale
-./usr/local/share/lua
-./usr/local/share/misc
-./usr/local/share/nls
-./usr/local/share/openldap
-./usr/local/share/sgml
-./usr/local/share/skel
-./usr/local/share/xml
 
 ./usr/sbin/IPXrouted
 ./usr/sbin/ac
@@ -413,7 +383,6 @@
 ./usr/sbin/amq
 ./usr/sbin/apm
 ./usr/sbin/asf
-./usr/sbin/boot0cfg
 ./usr/sbin/bootparamd
 ./usr/sbin/bootpef
 ./usr/sbin/bootptest
@@ -458,6 +427,7 @@
 ./usr/sbin/keyserv
 ./usr/sbin/kgmon
 ./usr/sbin/kgzip
+./usr/sbin/kldxref
 ./usr/sbin/lastlogin
 ./usr/sbin/loadfont
 ./usr/sbin/lptcontrol
@@ -475,7 +445,6 @@
 
 ./usr/sbin/mount_smbfs
 
-./usr/sbin/mountd
 ./usr/sbin/moused
 ./usr/sbin/mptable
 ./usr/sbin/mrinfo
@@ -484,7 +453,6 @@
 ./usr/sbin/mtrace
 ./usr/sbin/ndp
 ./usr/sbin/newsyslog
-./usr/sbin/nfsd
 ./usr/sbin/ntp-keygen
 ./usr/sbin/ntpd
 ./usr/sbin/ntpdc
@@ -499,7 +467,6 @@
 
 #XXX ppp? pppd?
 ./usr/sbin/procctl
-./usr/sbin/pstat
 
 ./usr/sbin/moused
 ./usr/sbin/quot
@@ -516,9 +483,7 @@
 ./usr/sbin/rpc.lockd
 ./usr/sbin/rpc.statd
 ./usr/sbin/rpc.umntall
-./usr/sbin/rpcbind
 ./usr/sbin/rrenumd
-./usr/sbin/rtadvd
 ./usr/sbin/rtprio
 ./usr/sbin/rtsold
 ./usr/sbin/rwhod
@@ -535,7 +500,6 @@
 ./usr/sbin/sntp
 ./usr/sbin/spkrtest
 ./usr/sbin/spray
-./usr/sbin/swapinfo
 ./usr/sbin/sysinstall
 ./usr/sbin/tcpdchk
 ./usr/sbin/tcpdmatch
@@ -560,6 +524,7 @@
 ./usr/share/doc
 ./usr/share/examples
 ./usr/share/games
+./usr/share/groff_font
 ./usr/share/info
 ./usr/share/isdn
 ./usr/share/locale/af_ZA.ISO8859-1
@@ -891,6 +856,7 @@
 ./usr/share/sendmail
 ./usr/share/skel
 ./usr/share/tabset
+./usr/share/tmac
 ./usr/share/vi/catalog/dutch
 ./usr/share/vi/catalog/english
 ./usr/share/vi/catalog/french
@@ -950,11 +916,7 @@
 ./usr/share/zoneinfo/Pacific
 ./usr/share/zoneinfo/SystemV
 ./usr/src
-./var/*
 ./sys
-./scripts/lua_installer
-./scripts/installer
-./scripts/installer.sh
 
 ./usr/local/www/index.html
 ./usr/local/www/dfuife.cgi
