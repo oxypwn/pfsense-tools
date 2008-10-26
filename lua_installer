@@ -105,7 +105,7 @@ sleep 1
 echo Rebooting in 1 second..  CTRL-C to abort.
 sleep 1
 echo
-echo pfSense is now rebooting.
+echo ${product} is now rebooting.
 echo
 
 reboot
