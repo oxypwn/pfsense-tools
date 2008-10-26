@@ -47,7 +47,6 @@
 ./root/.xcustom.sh
 
 ./sbin/badsect
-./sbin/bsdlabel
 ./sbin/ccdconfig
 ./sbin/clri
 ./sbin/comcontrol
