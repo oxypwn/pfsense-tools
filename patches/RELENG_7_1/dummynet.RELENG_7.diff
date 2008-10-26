@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/contrib/pf/pfctl/parse.y,v
+RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.3
 diff -u -r1.3 parse.y
 --- contrib/pf/pfctl/parse.y	21 Oct 2008 15:23:00 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	21 Oct 2008 18:42:11 -0000
++++ contrib/pf/pfctl/parse.y	21 Oct 2008 18:51:10 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -377,7 +377,7 @@ diff -u -r1.3 parse.y
  			expand_rule(&r, $4, $5.host, $7, $8.src_os,
  			    $8.src.host, $8.src.port, $8.dst.host, $8.dst.port,
  			    $9.uid, $9.gid, $9.icmpspec, "");
-@@ -2202,6 +2485,35 @@
+@@ -2202,6 +2485,32 @@
  			}
  			filter_opts.queues = $1;
  		}
@@ -407,13 +407,10 @@ diff -u -r1.3 parse.y
 +			filter_opts.dnpipe = $3;
 +			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
 +		}
-+		| DIVERT number				{
-+			filter_opts.divert = $2;
-+		}
  		| TAG string				{
  			filter_opts.tag = $2;
  		}
-@@ -4230,6 +4542,15 @@
+@@ -4230,6 +4539,15 @@
  		yyerror("tos and dscp cannot be used together");
  		problems++;
  	}
@@ -429,7 +426,7 @@ diff -u -r1.3 parse.y
  	return (-problems);
  }
  
-@@ -5022,9 +5343,17 @@
+@@ -5022,9 +5340,17 @@
  		{ "code",		CODE},
  		{ "crop",		FRAGCROP},
  		{ "debug",		DEBUG},
@@ -447,7 +444,7 @@ diff -u -r1.3 parse.y
  		{ "dup-to",		DUPTO},
  		{ "fairq",		FAIRQ},
  		{ "fastroute",		FASTROUTE},
-@@ -5032,6 +5361,7 @@
+@@ -5032,6 +5358,7 @@
  		{ "fingerprints",	FINGERPRINTS},
  		{ "flags",		FLAGS},
  		{ "floating",		FLOATING},
@@ -455,7 +452,7 @@ diff -u -r1.3 parse.y
  		{ "flush",		FLUSH},
  		{ "for",		FOR},
  		{ "fragment",		FRAGMENT},
-@@ -5054,6 +5384,7 @@
+@@ -5054,6 +5381,7 @@
  		{ "load",		LOAD},
  		{ "log",		LOG},
  		{ "loginterface",	LOGINTERFACE},
@@ -463,7 +460,7 @@ diff -u -r1.3 parse.y
  		{ "max",		MAXIMUM},
  		{ "max-mss",		MAXMSS},
  		{ "max-src-conn",	MAXSRCCONN},
-@@ -5068,12 +5399,14 @@
+@@ -5068,12 +5396,14 @@
  		{ "no-df",		NODF},
  		{ "no-route",		NOROUTE},
  		{ "no-sync",		NOSYNC},
@@ -478,7 +475,7 @@ diff -u -r1.3 parse.y
  		{ "port",		PORT},
  		{ "priority",		PRIORITY},
  		{ "priq",		PRIQ},
-@@ -5105,6 +5438,9 @@
+@@ -5105,6 +5435,9 @@
  		{ "skip",		SKIP},
  		{ "source-hash",	SOURCEHASH},
  		{ "source-track",	SOURCETRACK},
@@ -488,7 +485,7 @@ diff -u -r1.3 parse.y
  		{ "state",		STATE},
  		{ "state-policy",	STATEPOLICY},
  		{ "static-port",	STATICPORT},
-@@ -5121,6 +5457,7 @@
+@@ -5121,6 +5454,7 @@
  		{ "upperlimit",		UPPERLIMIT},
  		{ "urpf-failed",	URPFFAILED},
  		{ "user",		USER},
@@ -496,7 +493,7 @@ diff -u -r1.3 parse.y
  	};
  	const struct keywords	*p;
  
-@@ -5649,3 +5986,80 @@
+@@ -5649,3 +5983,80 @@
  
  	return (0);
  }
@@ -579,11 +576,11 @@ diff -u -r1.3 parse.y
 +
 Index: contrib/pf/pfctl/pfctl.c
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/contrib/pf/pfctl/pfctl.c,v
+RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
---- contrib/pf/pfctl/pfctl.c	21 Oct 2008 15:25:55 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	21 Oct 2008 18:42:11 -0000
+--- contrib/pf/pfctl/pfctl.c	21 Oct 2008 18:51:04 -0000	1.2
++++ contrib/pf/pfctl/pfctl.c	21 Oct 2008 18:51:07 -0000
 @@ -46,6 +46,9 @@
  #include <altq/altq.h>
  #include <sys/sysctl.h>
@@ -815,11 +812,11 @@ diff -u -r1.2 pfctl.c
  }
 Index: contrib/pf/pfctl/pfctl.h
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/contrib/pf/pfctl/pfctl.h,v
+RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/pfctl.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.h
 --- contrib/pf/pfctl/pfctl.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.h	21 Oct 2008 18:42:11 -0000
++++ contrib/pf/pfctl/pfctl.h	21 Oct 2008 18:51:07 -0000
 @@ -85,6 +85,7 @@
  int	 pfctl_command_tables(int, char *[], char *, const char *, char *,
  	    const char *, int);
@@ -833,7 +830,7 @@ Index: contrib/pf/pfctl/pfctl_dn.c
 RCS file: contrib/pf/pfctl/pfctl_dn.c
 diff -N contrib/pf/pfctl/pfctl_dn.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ contrib/pf/pfctl/pfctl_dn.c	21 Oct 2008 18:42:11 -0000
++++ contrib/pf/pfctl/pfctl_dn.c	21 Oct 2008 18:51:07 -0000
 @@ -0,0 +1,397 @@
 +/*
 + * Copyright (c) 2007 Ermal Luçi
@@ -1234,11 +1231,11 @@ diff -N contrib/pf/pfctl/pfctl_dn.c
 +}
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 15:23:00 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:42:11 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:51:07 -0000
 @@ -48,6 +48,9 @@
  #include <net/pfvar.h>
  #include <arpa/inet.h>
@@ -1266,11 +1263,11 @@ diff -u -r1.2 pfctl_parser.c
  	else if (r->qname[0])
 Index: contrib/pf/pfctl/pfctl_parser.h
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/contrib/pf/pfctl/pfctl_parser.h,v
+RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/pfctl_parser.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.h
 --- contrib/pf/pfctl/pfctl_parser.h	21 Oct 2008 15:19:34 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.h	21 Oct 2008 18:42:11 -0000
++++ contrib/pf/pfctl/pfctl_parser.h	21 Oct 2008 18:51:07 -0000
 @@ -67,6 +67,7 @@
  }
  
@@ -1305,11 +1302,11 @@ diff -u -r1.2 pfctl_parser.h
  
 Index: sbin/pfctl/Makefile
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sbin/pfctl/Makefile,v
+RCS file: /home/ermal/tmprepoDSCP/src/sbin/pfctl/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
 --- sbin/pfctl/Makefile	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sbin/pfctl/Makefile	21 Oct 2008 18:42:11 -0000
++++ sbin/pfctl/Makefile	21 Oct 2008 18:51:07 -0000
 @@ -11,6 +11,7 @@
  SRCS+= pfctl_osfp.c pfctl_radix.c pfctl_table.c pfctl_qstats.c
  SRCS+= pfctl_optimize.c
@@ -1320,11 +1317,11 @@ diff -u -r1.1.1.1 Makefile
  CFLAGS+= -Wstrict-prototypes -I${.CURDIR}/../../contrib/pf/pfctl
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/contrib/pf/net/pf.c,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.3
 diff -u -r1.3 pf.c
 --- sys/contrib/pf/net/pf.c	21 Oct 2008 15:23:00 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	21 Oct 2008 18:42:49 -0000
++++ sys/contrib/pf/net/pf.c	21 Oct 2008 18:51:07 -0000
 @@ -136,6 +136,9 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -1633,11 +1630,11 @@ diff -u -r1.3 pf.c
  		*m0 = NULL;
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/contrib/pf/net/pf_mtag.h,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
 --- sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 15:19:34 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:42:12 -0000
++++ sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:51:07 -0000
 @@ -37,6 +37,7 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -1648,11 +1645,11 @@ diff -u -r1.2 pf_mtag.h
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.4
 diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:25:55 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:42:11 -0000
+--- sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:51:04 -0000	1.4
++++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:51:07 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
@@ -1667,11 +1664,11 @@ diff -u -r1.4 pfvar.h
  	u_int32_t		 prob;
 Index: sys/net/if_bridge.c
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/net/if_bridge.c,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/net/if_bridge.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_bridge.c
 --- sys/net/if_bridge.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/net/if_bridge.c	21 Oct 2008 18:42:11 -0000
++++ sys/net/if_bridge.c	21 Oct 2008 18:51:07 -0000
 @@ -3034,7 +3034,7 @@
  			 * packet will return to us via bridge_dummynet().
  			 */
@@ -1683,11 +1680,11 @@ diff -u -r1.1.1.1 if_bridge.c
  
 Index: sys/net/if_ethersubr.c
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/net/if_ethersubr.c,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/net/if_ethersubr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_ethersubr.c
 --- sys/net/if_ethersubr.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/net/if_ethersubr.c	21 Oct 2008 18:42:11 -0000
++++ sys/net/if_ethersubr.c	21 Oct 2008 18:51:07 -0000
 @@ -491,7 +491,7 @@
  			 */
  			*m0 = NULL ;
@@ -1699,11 +1696,11 @@ diff -u -r1.1.1.1 if_ethersubr.c
  	/*
 Index: sys/netinet/ip_dummynet.c
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/netinet/ip_dummynet.c,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
 --- sys/netinet/ip_dummynet.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.c	21 Oct 2008 18:42:11 -0000
++++ sys/netinet/ip_dummynet.c	21 Oct 2008 18:51:07 -0000
 @@ -86,6 +86,8 @@
  #include <netinet/ip6.h>       /* for ip6_input, ip6_output prototypes */
  #include <netinet6/ip6_var.h>
@@ -1803,11 +1800,11 @@ diff -u -r1.1.1.1 ip_dummynet.c
  MODULE_VERSION(dummynet, 1);
 Index: sys/netinet/ip_dummynet.h
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/netinet/ip_dummynet.h,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_dummynet.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.h
 --- sys/netinet/ip_dummynet.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.h	21 Oct 2008 18:42:11 -0000
++++ sys/netinet/ip_dummynet.h	21 Oct 2008 18:51:07 -0000
 @@ -123,6 +123,9 @@
  #define DN_TO_IP6_OUT	7
  #define DN_TO_IFB_FWD	8
@@ -1829,11 +1826,11 @@ diff -u -r1.1.1.1 ip_dummynet.h
  extern	ip_dn_io_t *ip_dn_io_ptr;
 Index: sys/netinet/ip_fw_pfil.c
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/netinet/ip_fw_pfil.c,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_fw_pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_pfil.c
 --- sys/netinet/ip_fw_pfil.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:42:11 -0000
++++ sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:51:07 -0000
 @@ -72,9 +72,6 @@
  
  int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
@@ -1870,11 +1867,11 @@ diff -u -r1.1.1.1 ip_fw_pfil.c
  		return 0;		/* packet consumed */
 Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /home/ermal/tmprepoPREGRE/src/sys/netinet/ip_input.c,v
+RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_input.c
 --- sys/netinet/ip_input.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netinet/ip_input.c	21 Oct 2008 18:42:11 -0000
++++ sys/netinet/ip_input.c	21 Oct 2008 18:51:07 -0000
 @@ -202,6 +202,7 @@
   */
  ip_fw_chk_t *ip_fw_chk_ptr = NULL;
