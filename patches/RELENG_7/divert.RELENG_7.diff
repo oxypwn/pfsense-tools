@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.4
 diff -u -r1.4 parse.y
---- contrib/pf/pfctl/parse.y	21 Oct 2008 18:51:32 -0000	1.4
-+++ contrib/pf/pfctl/parse.y	21 Oct 2008 18:52:03 -0000
+--- contrib/pf/pfctl/parse.y	21 Oct 2008 18:54:23 -0000	1.4
++++ contrib/pf/pfctl/parse.y	21 Oct 2008 18:54:25 -0000
 @@ -132,8 +132,10 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
@@ -193,8 +193,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.3
 diff -u -r1.3 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:51:32 -0000	1.3
-+++ contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:51:34 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:54:23 -0000	1.3
++++ contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:54:25 -0000
 @@ -915,6 +915,12 @@
  			printf("max-src-conn %u", r->max_src_conn);
  			opts = 0;
@@ -244,8 +244,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.4
 diff -u -r1.4 pf.c
---- sys/contrib/pf/net/pf.c	21 Oct 2008 18:51:32 -0000	1.4
-+++ sys/contrib/pf/net/pf.c	21 Oct 2008 18:51:34 -0000
+--- sys/contrib/pf/net/pf.c	21 Oct 2008 18:54:18 -0000	1.4
++++ sys/contrib/pf/net/pf.c	21 Oct 2008 18:54:27 -0000
 @@ -138,6 +138,7 @@
  #ifdef __FreeBSD__
  #include <netinet/ip_fw.h>
@@ -254,7 +254,29 @@ diff -u -r1.4 pf.c
  
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
-@@ -6828,6 +6829,8 @@
+@@ -383,6 +384,8 @@
+ 		r = (*state)->rule.ptr;						\
+         	if (r->dnpipe && !(pd->pf_mtag->flags & PF_DN_TAG_PRESENT))	\
+                 	return (PF_PASS);					\
++		else if (r->divert && !(pd->pf_mtag->flags & PF_DIVERT_TAG_PRESENT \
++			return (PF_PASS);
+ 	} while (0)
+ 
+ struct pf_src_tree tree_src_tracking;
+@@ -4710,8 +4713,11 @@
+          * First state is created by the rules checking code and if we reloop
+          * the first packet that hit the rule pf will not like it.
+          */
+-        if ((th->th_flags & TH_SYN) && (pd->pf_mtag->flags & PF_DN_TAG_PRESENT))
++        if ((th->th_flags & TH_SYN) {
++		if ((pd->pf_mtag->flags & PF_DN_TAG_PRESENT) ||
++			(pd->pf_mtag->flags & PF_DIVERT_TAG_PRESENT))
+                 return (PF_PASS);
++	}
+ 
+ 	if (direction == (*state)->direction) {
+ 		src = &(*state)->src;
+@@ -6828,6 +6834,8 @@
  
  #ifdef __FreeBSD__
  	struct m_tag *dn_tag;
@@ -263,7 +285,7 @@ diff -u -r1.4 pf.c
  	struct ip_fw_args	 dnflow;
  
  	PF_LOCK();
-@@ -6905,13 +6908,23 @@
+@@ -6905,13 +6913,23 @@
                  ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
  		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
                  m_tag_delete(m, dn_tag);
@@ -289,7 +311,7 @@ diff -u -r1.4 pf.c
  	m = *m0;
  	h = mtod(m, struct ip *);
  
-@@ -7098,6 +7111,14 @@
+@@ -7098,6 +7116,14 @@
  		    ("pf: dropping packet with ip options\n"));
  	}
  
@@ -304,7 +326,7 @@ diff -u -r1.4 pf.c
  	if ((s && s->tag) || r->rtableid)
  		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
  
-@@ -7117,7 +7138,54 @@
+@@ -7117,7 +7143,54 @@
  #endif /* ALTQ */
  
  #ifdef __FreeBSD__
@@ -365,8 +387,8 @@ Index: sys/contrib/pf/net/pf_mtag.h
 RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.3
 diff -u -r1.3 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:51:32 -0000	1.3
-+++ sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:51:34 -0000
+--- sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:54:18 -0000	1.3
++++ sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:54:25 -0000
 @@ -38,6 +38,7 @@
  #define	PF_TAG_FRAGCACHE		0x02
  #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
@@ -380,8 +402,8 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.5
 diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:51:32 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:51:34 -0000
+--- sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:54:18 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:54:25 -0000
 @@ -634,6 +634,10 @@
  	u_int32_t		 pqid;
  	u_int32_t                dnpipe;
@@ -442,7 +464,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_divert.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.c
 --- sys/netinet/ip_divert.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.c	21 Oct 2008 18:51:34 -0000
++++ sys/netinet/ip_divert.c	21 Oct 2008 18:54:25 -0000
 @@ -751,5 +751,4 @@
  };
  
@@ -455,7 +477,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_divert.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.h
 --- sys/netinet/ip_divert.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.h	21 Oct 2008 18:51:34 -0000
++++ sys/netinet/ip_divert.h	21 Oct 2008 18:54:25 -0000
 @@ -50,6 +50,9 @@
  	u_int16_t	cookie;		/* ipfw rule number */
  };
@@ -471,8 +493,8 @@ Index: sys/netinet/ip_fw_pfil.c
 RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_fw_pfil.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_fw_pfil.c
---- sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:51:32 -0000	1.2
-+++ sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:51:34 -0000
+--- sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:54:23 -0000	1.2
++++ sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:54:25 -0000
 @@ -72,16 +72,11 @@
  
  int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
@@ -495,8 +517,8 @@ Index: sys/netinet/ip_input.c
 RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_input.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_input.c
---- sys/netinet/ip_input.c	21 Oct 2008 18:51:32 -0000	1.2
-+++ sys/netinet/ip_input.c	21 Oct 2008 18:51:34 -0000
+--- sys/netinet/ip_input.c	21 Oct 2008 18:54:23 -0000	1.2
++++ sys/netinet/ip_input.c	21 Oct 2008 18:54:25 -0000
 @@ -81,6 +81,7 @@
  /* XXX: Temporary until ipfw_ether and ipfw_bridge are converted. */
  #include <netinet/ip_fw.h>
