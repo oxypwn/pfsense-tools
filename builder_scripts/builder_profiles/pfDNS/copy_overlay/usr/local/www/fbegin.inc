@@ -158,29 +158,13 @@ if ($_REQUEST['noticeaction'] == 'acknowledge') {
 							<?=output_menu_item("/carp_status.php", "CARP (failover)");?>
 							<?=output_menu_item("/index.php", "Dashboard");?>
 							<?=output_menu_item("/status_gateways.php", "Gateways");?>
-							<?=output_menu_item("/diag_dhcp_leases.php", "DHCP Leases");?>
 							<?=output_menu_item("/status_filter_reload.php", "Filter Reload");?>
 							<?=output_menu_item("/status_interfaces.php", "Interfaces");?>
-							<?=output_menu_item("/diag_ipsec.php", "IPsec");?>
-							<?=output_menu_item("/status_slbd_pool.php", "Load Balancer");?>
-							<?=output_menu_item("/status_openvpn.php", "OpenVPN");?>
 							<?=output_menu_item("/status_rrd_graph.php", "RRD Graphs");?>
 							<?=output_menu_item("/diag_logs.php", "System Logs");?>
 							<?=output_menu_item("/status_graph.php?if=wan", "Traffic Graph");?>
-							<?php
-							if($config['interfaces']['lan']) {
-								/* no use for UPnP in single-interface deployments
-								remove to reduce user confusion
-								*/
-								output_menu_item("/status_upnp.php", "UPnP");	
-							}
-							?>
-							<?php $ifentries = get_configured_interface_with_descr();
-							foreach ($ifentries as $ent => $entdesc) {
-								if (is_array($config['interfaces'][$ent]['wireless']) &&
-									preg_match($g['wireless_regex'], $config['interfaces'][$ent]['if']))
-									$ifdescrs[$ent] = $entdesc;
-							}
+							<?php 
+							$ifentries = get_configured_interface_with_descr();
 							echo return_ext_menu("Status");
 							?>
 						</ul>
