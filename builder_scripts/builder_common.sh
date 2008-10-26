@@ -1208,6 +1208,19 @@ pfsense_install_custom_packages_exec() {
 # Setup
 #
 
+if [ ! -f "/COPYRIGHT" ]; then
+	echo 
+	echo 
+	echo 	
+	echo "ERROR.  Could not detect the correct CHROOT environment (missing /COPYRIGHT)."
+	echo
+	echo "This script cannot continue."
+	echo 	
+	while [ /bin/true ]; do
+		sleep 999
+	done
+fi
+
 # backup original conf dir
 if [ -d /conf ]; then
 	/bin/echo "Backing up conf dir to /conf.org ..."
@@ -1235,78 +1248,71 @@ if [ ! -d /conf/backup ]; then
 else
 	/bin/echo "Using existing backup dir from ${TODIR}/conf ..."
 fi
+
 #
 # Assemble package list if necessary
 #
 /tmp/pfspkg_installer -q -m config -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
+
 #
 # Exec PHP script which installs pfSense packages in place
 #
 /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
 
-pfsense_install_custom_packages_clean() {
-	#
-	# Cleanup
-	#
-	/bin/echo "Deleting temporary php.ini from /tmp"
-	/bin/rm /tmp/php.ini
-
-	if [ -f /tmp/remove_platform ]; then
-		/bin/echo "Removing temporary platform file from /etc ..."
-		/bin/rm /etc/platform
-		/bin/rm /tmp/remove_platform
-	fi
-
-	if [ -f /tmp/remove_backup ]; then
-		/bin/echo "Removing temporary backup dir from /conf ..."
-		/bin/rm -rf /conf/backup
-		/bin/rm /tmp/remove_backup
-	fi
-
-	if [ -f /tmp/remove_conf_symlink ]; then
-		/bin/echo "Removing temporary conf dir ..."
-		/bin/rm /conf
-		/bin/rm /tmp/remove_conf_symlink
-	
-		if [ -f /tmp/restore_conf_dir ]; then
-			/bin/echo "Restoring original conf dir ..."
-			/bin/mv /conf.org /conf
-			/bin/rm /tmp/restore_conf_dir
-		fi
-	fi
-
-	/bin/echo "Restoring platform file ..."
-	mv /tmp/platform /etc/platform
-
-	/bin/echo "Removing pfspkg_installer script from /tmp ..."
-	/bin/rm /tmp/pfspkg_installer
-
-	/bin/echo "Removing custom packages list file from /tmp ..."
-	/bin/rm /tmp/pkgfile.lst
-
-	/bin/echo "Removing possible package install leftover (*.tbz, *.log) ..."
-	/bin/rm /tmp/*.log /tmp/*.tbz
-
-	/bin/echo "Removing config.cache which was generating during package install ..."
-	/bin/rm /tmp/config.cache
-	
-	/bin/echo "Removing /etc/resolv.conf ..."	
-	/bin/rm /etc/resolv.conf
-	
-	/bin/rm /${DESTNAME}
-}
-
 #
-# Comment this line if you do not want to clean files from your system
+# Cleanup, aisle 7!
 #
-#pfsense_install_custom_packages_clean
+if [ -f /tmp/remove_platform ]; then
+	/bin/echo "Removing temporary platform file from /etc ..."
+	/bin/rm /etc/platform
+	/bin/rm /tmp/remove_platform
+fi
+
+if [ -f /tmp/remove_backup ]; then
+	/bin/echo "Removing temporary backup dir from /conf ..."
+	/bin/rm -rf /conf/backup
+	/bin/rm /tmp/remove_backup
+fi
+
+if [ -f /tmp/remove_conf_symlink ]; then
+	/bin/echo "Removing temporary conf dir ..."
+	/bin/rm /conf
+	/bin/rm /tmp/remove_conf_symlink
+fi
+
+if [ -f /tmp/restore_conf_dir ]; then
+	/bin/echo "Restoring original conf dir ..."
+	/bin/mv /conf.org /conf
+	/bin/rm /tmp/restore_conf_dir
+fi
+
+
+/bin/echo "Restoring platform file ..."
+mv /tmp/platform /etc/platform
+
+/bin/echo "Removing pfspkg_installer script from /tmp ..."
+/bin/rm /tmp/pfspkg_installer
+
+/bin/echo "Removing custom packages list file from /tmp ..."
+/bin/rm /tmp/pkgfile.lst
+
+/bin/echo "Removing possible package install leftover (*.tbz, *.log) ..."
+/bin/rm /tmp/*.log /tmp/*.tbz
+
+/bin/echo "Removing config.cache which was generating during package install ..."
+/bin/rm /tmp/config.cache
+
+/bin/echo "Removing /etc/resolv.conf ..."	
+/bin/rm /etc/resolv.conf
+
+/bin/rm /${DESTNAME}
 
 EOF
 
 		echo ">>> Installing custom pfSense-XML packages inside chroot ..."
 		chroot ${TODIR} /bin/sh /${DESTNAME}
 		echo ">>> Unmounting ${TODIR}/dev ..."
-		umount ${TODIR}/dev
+		umount -f ${TODIR}/dev
 	
 	fi		
 }
