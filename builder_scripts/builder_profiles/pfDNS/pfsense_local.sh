@@ -121,6 +121,14 @@ export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDN
 # Use a custom config.xml
 export USE_CONFIG_XML=${USE_CONFIG_XML:-"${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/config/config.xml"}
 
+# Architecture, supported ARCH values are: 
+#  Tier 1: i386, AMD64, and PC98
+#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
+#  Tier 3: MIPS and S/390
+#  Tier 4: None at the moment
+#  Source: http://www.freebsd.org/doc/en/articles/committers-guide/archs.html
+export ARCH="i386"
+
 # GIT pfSense, BSDInstaller & FreeSBIE settings
 #export USE_GIT=${USE_GIT:-"yo"}
 #export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense-import-test-minus-binaries/mainline.git pfSense"}
