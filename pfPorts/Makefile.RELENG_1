@@ -3,6 +3,8 @@
 #set -e
 #set -x
 
+ARCH="i386"
+
 PORTSTOBUILD="grub \
 	apinger \
 	rrdtool \
@@ -110,15 +112,15 @@ for PORT in $PORTSTOBUILD; do
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		echo "Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		( cd $DOESPORTEXIST && make $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
-		( cd $DOESPORTEXIST && make $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
-		( cd $DOESPORTEXIST && make -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
 	else
 		echo "Port not found, building from pfPorts..."
 		echo "Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		( cd $DOESPORTEXIST && make $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
-		( cd /home/pfsense/tools/pfPorts/$PORT && make -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
-		( cd /home/pfsense/tools/pfPorts/$PORT && make -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
+		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
 	fi
 done
 
