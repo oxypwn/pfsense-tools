@@ -4,8 +4,10 @@
 # Copyright 2004 BSD Installer Project and the FreeSBIE project
 # This file is placed under the BSD license.
 
+product=`cat /etc/inc/globals.inc | grep product_name | cut -d'"' -f4`
+
 echo
-echo "Launching pfSense Installer..."
+echo "Launching ${product} Installer..."
 echo
 echo "One moment please..."
 echo
@@ -82,7 +84,7 @@ echo
 echo
 echo
 echo
-echo "pfSense is now rebooting"
+echo "${product} is now rebooting"
 echo
 echo "After the reboot is complete, open a web browser and"
 echo "enter http://192.168.1.1 (or the LAN IP Address) in the"
