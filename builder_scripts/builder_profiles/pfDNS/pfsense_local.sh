@@ -57,7 +57,7 @@ export SRCDIR=${SRCDIR:-/usr/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
-export FREESBIE_LABEL=pfSense
+export FREESBIE_LABEL=pfDNS
 
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
 export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
@@ -119,11 +119,11 @@ export NO_UNIONFS=NO
 export UNION_DIRS="etc usr root"
 
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
-#export CUSTOM_REMOVE_LIST=""
-#export CUSTOM_COPY_LIST=""
+export CUSTOM_REMOVE_LIST="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/remove.list"
+export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/copy.list"
 
 # Use a custom config.xml
-#export USE_CONFIG_XML=${USE_CONFIG_XML:-"/path/to/custom/config.xml"}
+export USE_CONFIG_XML=${USE_CONFIG_XML:-"/path/to/custom/config.xml"}
 
 # GIT pfSense, BSDInstaller & FreeSBIE settings
 #export USE_GIT=${USE_GIT:-"yo"}
@@ -131,27 +131,9 @@ export UNION_DIRS="etc usr root"
 #export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
 #export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
 
-# Custom overlay for people building or extending pfSense images.
-# The custom overlay tar gzipped file will be extracted over the root
-# of the prepared image allowing for customization.
-#
-# Note: It is also possible to specify a directory instead of a
-#       gzipped tarball.
-#
-# Tarball overlay (please uncomment): 
-#export custom_overlay="/home/pfsense/custom_overlay.tgz"
-#
-# Directory overlay (please uncomment):
-#export custom_overlay="/home/pfsense/custom_overlay"
+export custom_overlay="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/copy_overlay/"
 
-# Package overlay. This gives people a chance to build a pfSense
-# installable image that already contains certain pfSense packages.
-#
-# Needs to contain comma separated package names. Of course
-# package names must be valid. Using non existent
-# package name would yield an error.
-#
-#export custom_package_list="arping, Developers"
+export custom_package_list="dns-server, autoconfigbackup"
 
 # This is used for developers with access to the pfSense
 # cvsup update server.  Note that it is firewalled by default.
