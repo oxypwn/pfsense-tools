@@ -1,0 +1,15 @@
+Index: eng_cryptodev.c
+===================================================================
+RCS file: /home/ncvs/src/crypto/openssl/crypto/engine/eng_cryptodev.c,v
+retrieving revision 1.1.1.1.4.1
+diff -u -r1.1.1.1.4.1 eng_cryptodev.c
+--- eng_cryptodev.c	5 Feb 2008 21:02:04 -0000	1.1.1.1.4.1
++++ eng_cryptodev.c	22 May 2008 22:53:46 -0000
+@@ -1127,6 +1127,7 @@
+ 	}
+ 
+ 	ENGINE_add(engine);
++	ENGINE_set_default_ciphers(engine);
+ 	ENGINE_free(engine);
+ 	ERR_clear_error();
+ }
