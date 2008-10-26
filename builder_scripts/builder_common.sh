@@ -1307,7 +1307,6 @@ EOF
 		chroot ${TODIR} /bin/sh /${DESTNAME}
 		echo ">>> Unmounting ${TODIR}/dev ..."
 		umount ${TODIR}/dev
-		sleep 99999
 	
 	fi		
 }
