@@ -359,6 +359,24 @@
 				<any/>
 			</destination>
 		</rule>
+		<rule>
+			<type>pass</type>
+			<interface>wan</interface>
+			<max-src-nodes/>
+			<max-src-states/>
+			<statetimeout/>
+			<statetype>keep state</statetype>
+			<os></os>
+			<protocol>tcp/udp</protocol>
+			<source>
+				<any/>
+			</source>
+			<destination>
+				<any/>
+				<port>53</port>
+			</destination>
+			<descr>Allow TinyDNS - DNS Server</descr>
+		</rule>		
 		<!-- rule syntax:
 		<rule>
 			<disabled/>
