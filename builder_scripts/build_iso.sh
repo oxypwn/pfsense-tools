@@ -169,6 +169,9 @@ check_for_zero_size_files
 # Check for custom config.xml
 cust_install_config_xml
 
+# Install custom pfSense-XML packages from a chroot
+pfsense_install_custom_packages_exec
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs

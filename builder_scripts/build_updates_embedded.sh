@@ -81,6 +81,9 @@ set -e
 # Fixup library changes if needed
 fixup_libmap
 
+# Install custom pfSense-XML packages from a chroot
+pfsense_install_custom_packages_exec
+
 cd $CVS_CO_DIR
 create_pfSense_Small_update_tarball
 

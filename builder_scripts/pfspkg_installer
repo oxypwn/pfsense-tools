@@ -1,10 +1,11 @@
-#!/usr/local/bin/php -c /tmp -q
+#!/usr/local/bin/php -q
 <?php
 /* $Id$ */
 /* ========================================================================== */
 /*
     pfspkg_installer
     part of pfSense (http://www.pfSense.com)
+	Portions  (C) 2008 Scott Ullrich <sullrich@gmail.com>
     Copyright (C) 2007 Daniel S. Haischt <me@daniel.stefan.haischt.name>
     All rights reserved.
                                                                               */
@@ -33,6 +34,9 @@
                                                                               */
 /* ========================================================================== */
 
+require_once("config.inc");
+require_once("pkg-utils.inc");
+
 // currently not being used
 $beInteractive = false;
 // holds the PHP include path which will be used to search for PHP scripts
@@ -57,7 +61,7 @@ function read() {
 }
 
 function genPackageList() {
-	require_once("pkg-utils.inc");
+	global $pkg_info;
 
 	// borrowed from pkg_mgr_install.php	
 	$pkg_info = get_pkg_info('all', array('name', 'category', 'website', 'version', 'status', 'descr', 'maintainer', 'required_version'));
@@ -67,9 +71,10 @@ function genPackageList() {
 	$pkgList = implode(", ", $pkgListA);
 	
 	print("Available packages:\n");
-	print("===================\n");
+	print("==================================\n");
 	print("{$pkgList}\n\n");
-
+	print("==================================\n");
+	
 	// get the list of packages that should be installed from stdin	
 	print("Please provide a comma separated list of packages that should be added to the pfSense installable image:\n");
 	// turns the list provided by the user into an array of package names
@@ -137,9 +142,6 @@ if (! file_exists($listFile) && $mode == "config") {
 
 // install the actual packages using the list file
 if (file_exists($listFile) && $mode == "install") {
-	require_once("config.inc");
-	require_once("pkg-utils.inc");
-	require_once("xmlparse.inc");
 	
 	// load list of packages
 	$pkgList = str_replace(' ', '', file_get_contents($listFile));
@@ -149,10 +151,12 @@ if (file_exists($listFile) && $mode == "install") {
 	print("Found " . count($pkgListA) . " valid packages within package list file.\n");
 	
 	// iterate over each list element and install the appropriate package
-	foreach ($pkgListA as $package) {
+	foreach ($pkgListA as $pkg) {
+		$package = trim($pkg);
 		print("Currently installed packages before {$package}: " . count($config["installedpackages"]["package"]) . "\n");
 		
-		$status = install_package(trim($package));
+		echo ">>> Invoking installer for $package ...\n";
+		$status = install_package($package, $pkg_info);
 		
 		if($status == -1) {
 			print("\nInstallation of {$package} FAILED!\n");

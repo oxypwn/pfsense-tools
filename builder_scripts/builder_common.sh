@@ -450,7 +450,7 @@ cust_populate_extra() {
 cust_install_config_xml() {
 	if [ ! -z "${USE_CONFIG_XML:-}" ]; then
 		if [ -f "$USE_CONFIG_XML" ]; then
-			echo ">>> Using custom config.xml file $USE_CONFIG_XM L..."
+			echo ">>> Using custom config.xml file ${USE_CONFIG_XML} ..."
 			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/cf/conf/config.xml
 			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/conf.default/config.xml
 			cp ${USE_CONFIG_XML} ${CVS_CO_DIR}/cf/conf/config.xml
@@ -1165,4 +1165,149 @@ create_i386_diskimage ( ) {
 	mdconfig -d -u $MD
 	gzip -9 ${MAKEOBJDIRPREFIX}/nanobsd.slice.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
 	gzip -9 ${MAKEOBJDIRPREFIX}/nanobsd.full.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
+}
+
+pfsense_install_custom_packages_exec() {
+	DESTNAME="pkginstall.sh"	
+	TODIR="${PFSENSEBASEDIR}"
+
+	# Extra package list if defined.
+	if [ ! -z "${custom_package_list:-}" ]; then
+		# Notes:
+		# ======
+		# devfs mount is required cause PHP requires /dev/stdin
+		# php.ini needed to make PHP argv capable
+		#
+		/bin/echo "Installing custom packages to: ${TODIR} ..."
+
+		cp ${TODIR}/etc/platform ${TODIR}/tmp/
+
+		/bin/echo "Mounting temporary devfs filesystem to ${TODIR} ..."
+		/sbin/mount -t devfs devfs ${TODIR}/dev
+
+		/bin/echo "Copying resolv.conf to ${TODIR}/var/etc/ to enable pkg manager to resolve DNS names ..."
+		/bin/mkdir -p ${TODIR}/var/etc/
+		/bin/cp /etc/resolv.conf ${TODIR}/etc/
+		
+		/bin/echo "Dumping contents of custom_package_list to ${TODIR}/tmp/pkgfile.lst ..."
+		/bin/echo ${custom_package_list} > ${TODIR}/tmp/pkgfile.lst
+
+		/bin/echo "Installing custom pfSense package installer to ${TODIR}/tmp ..."
+		/bin/cp ./pfspkg_installer ${TODIR}/tmp
+		/bin/chmod a+x ${TODIR}/tmp/pfspkg_installer
+
+	# setup script that will be run within the chroot env
+	/bin/cat > ${TODIR}/${DESTNAME} <<EOF
+#!/bin/sh
+#
+# ------------------------------------------------------------------------
+# ATTENTION: !!! This script is supposed to be run within a chroot env !!!
+# ------------------------------------------------------------------------
+#
+#
+# Setup
+#
+
+# backup original conf dir
+if [ -d /conf ]; then
+	/bin/echo "Backing up conf dir to /conf.org ..."
+	/bin/mv /conf /conf.org
+	/usr/bin/touch /tmp/restore_conf_dir
+fi
+
+# test whether conf dir is already a symlink
+if [ ! -f /conf ]; then
+	# install the symlink as it would exist on a live system
+	/bin/echo "Symlinking /conf.default to /conf ..."
+	/bin/ln -s /conf.default /conf
+	/usr/bin/touch /tmp/remove_conf_symlink
+else
+	# seems like we are already working with a conf dir that is a symlink
+	/bin/echo "Using existing conf dir from / ..."
+fi
+
+# now that we do have the symlink in place create
+# a backup dir if necessary.
+if [ ! -d /conf/backup ]; then
+	/bin/echo "Creating backup dir in /conf ..."
+	/bin/mkdir -p /conf/backup
+	/usr/bin/touch /tmp/remove_backup
+else
+	/bin/echo "Using existing backup dir from ${TODIR}/conf ..."
+fi
+#
+# Assemble package list if necessary
+#
+/tmp/pfspkg_installer -q -m config -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
+#
+# Exec PHP script which installs pfSense packages in place
+#
+/tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
+
+pfsense_install_custom_packages_clean() {
+	#
+	# Cleanup
+	#
+	/bin/echo "Deleting temporary php.ini from /tmp"
+	/bin/rm /tmp/php.ini
+
+	if [ -f /tmp/remove_platform ]; then
+		/bin/echo "Removing temporary platform file from /etc ..."
+		/bin/rm /etc/platform
+		/bin/rm /tmp/remove_platform
+	fi
+
+	if [ -f /tmp/remove_backup ]; then
+		/bin/echo "Removing temporary backup dir from /conf ..."
+		/bin/rm -rf /conf/backup
+		/bin/rm /tmp/remove_backup
+	fi
+
+	if [ -f /tmp/remove_conf_symlink ]; then
+		/bin/echo "Removing temporary conf dir ..."
+		/bin/rm /conf
+		/bin/rm /tmp/remove_conf_symlink
+	
+		if [ -f /tmp/restore_conf_dir ]; then
+			/bin/echo "Restoring original conf dir ..."
+			/bin/mv /conf.org /conf
+			/bin/rm /tmp/restore_conf_dir
+		fi
+	fi
+
+	/bin/echo "Restoring platform file ..."
+	mv /tmp/platform /etc/platform
+
+	/bin/echo "Removing pfspkg_installer script from /tmp ..."
+	/bin/rm /tmp/pfspkg_installer
+
+	/bin/echo "Removing custom packages list file from /tmp ..."
+	/bin/rm /tmp/pkgfile.lst
+
+	/bin/echo "Removing possible package install leftover (*.tbz, *.log) ..."
+	/bin/rm /tmp/*.log /tmp/*.tbz
+
+	/bin/echo "Removing config.cache which was generating during package install ..."
+	/bin/rm /tmp/config.cache
+	
+	/bin/echo "Removing /etc/resolv.conf ..."	
+	/bin/rm /etc/resolv.conf
+	
+	/bin/rm /${DESTNAME}
+}
+
+#
+# Comment this line if you do not want to clean files from your system
+#
+#pfsense_install_custom_packages_clean
+
+EOF
+
+		echo ">>> Installing custom pfSense-XML packages inside chroot ..."
+		chroot ${TODIR} /bin/sh /${DESTNAME}
+		echo ">>> Unmounting ${TODIR}/dev ..."
+		umount ${TODIR}/dev
+		sleep 99999
+	
+	fi		
 }

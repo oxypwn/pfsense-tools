@@ -123,6 +123,9 @@ cust_overlay_host_binaries
 find $BASE_DIR -name loader.conf -exec rm {} \;
 find $CLONEDIR -name loader.conf -exec rm {} \;
 
+# Install custom pfSense-XML packages from a chroot
+pfsense_install_custom_packages_exec
+
 create_pfSense_Full_update_tarball
 create_pfSense_Embedded_update_tarball
 

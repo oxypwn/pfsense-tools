@@ -129,7 +129,7 @@ export USE_CONFIG_XML=${USE_CONFIG_XML:-"${BASE_DIR}/tools/builder_scripts/build
 
 export custom_overlay="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/copy_overlay/"
 
-export custom_package_list="dns-server, autoconfigbackup"
+export custom_package_list="dns-server, AutoConfigBackup"
 
 # This is used for developers with access to the pfSense
 # cvsup update server.  Note that it is firewalled by default.
