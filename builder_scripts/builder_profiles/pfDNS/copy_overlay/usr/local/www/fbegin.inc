@@ -1,44 +1,43 @@
 <?php
 
-require_once("notices.inc");
+require_once("functions.inc");
 /* $Id$ */
-	function return_ext_menu($section) {
-		global $config;
-		$htmltext = "";
-		if($config['installedpackages']['menu'] <> "") {
-			foreach($config['installedpackages']['menu'] as $menuitem) {
-				if($menuitem['section'] != $section) continue;
-				if($menuitem['url'] <> "") {
-				 	$addresswithport = getenv("HTTP_HOST");
-					$colonpos = strpos($addresswithport, ":");
-					if ($colonpos !== False){
-						//my url is actually just the IP address of the pfsense box
-						$myurl = substr($addresswithport, 0, $colonpos);
-					}
-					else
-					{
-						$myurl = $addresswithport;
-					}
 
-					$description = str_replace('$myurl', $myurl, $menuitem['url']);
-				} else {
-					$description = '/pkg.php?xml=' . $menuitem['configfile'];
+function return_ext_menu($section) {
+	global $config;
+	$htmltext = "";
+	if($config['installedpackages']['menu'] <> "") {
+		foreach($config['installedpackages']['menu'] as $menuitem) {
+			if($menuitem['section'] != $section) continue;
+			if($menuitem['url'] <> "") {
+			 	$addresswithport = getenv("HTTP_HOST");
+				$colonpos = strpos($addresswithport, ":");
+				if ($colonpos !== False){
+					//my url is actually just the IP address of the pfsense box
+					$myurl = substr($addresswithport, 0, $colonpos);
 				}
-				$htmltext .= '<li><a href="' . $description . ' "class="navlnk">' . $menuitem['name'] . '</a></li>' . "\n";
+				else
+				{
+					$myurl = $addresswithport;
+				}
+
+				$description = str_replace('$myurl', $myurl, $menuitem['url']);
+			} else {
+				$description = '/pkg.php?xml=' . $menuitem['configfile'];
 			}
+			$htmltext .= '<li><a href="' . $description . ' "class="navlnk">' . $menuitem['name'] . '</a></li>' . "\n";
 		}
-		return $htmltext;
 	}
+	return $htmltext;
+}
 
+/* NOTICE ACKNOWLEDGE CODE by Erik Kristensen */
+if ($_REQUEST['noticeaction'] == 'acknowledge') {
+	$notice_id = $_REQUEST['noticeid'];
+	close_notice($notice_id);
+}
+/**********************************************/
 
-
-
-	/* NOTICE ACKNOWLEDGE CODE by Erik Kristensen */
-	if ($_REQUEST['noticeaction'] == 'acknowledge') {
-		$notice_id = $_REQUEST['noticeid'];
-		close_notice($notice_id);
-	}
-	/**********************************************/
 ?>
 
 <div id="wrapper">
@@ -114,39 +113,41 @@ require_once("notices.inc");
 	</div> <!-- Header DIV -->
 	<div id="content">
 		<div id="left">
-			<div id="navigation" style="z-index:1000">  
+			<div id="navigation" style="z-index:1000">
 				<ul id="menu">
 					<li class="firstdrop">
 						<div>System</div>
 						<ul class="subdrop">
-							<li><a href="/system_advanced.php" class="navlnk">Advanced</a></li>
-							<li><a href="/system_firmware.php" class="navlnk">Firmware</a></li>
-							<li><a href="/system.php" class="navlnk">General Setup</a></li>
-							<li><a href="/wizard.php?xml=setup_wizard.xml" class="navlnk">Setup wizard</a></li>
-							<li><a href="/system_routes.php" class="navlnk">Static routes</a></li>
+							<?php
+							output_menu_item("/system_advanced_admin.php", "Advanced");
+							output_menu_item("/system_firmware.php", "Firmware");
+							output_menu_item("/system.php", "General Setup");
+							output_menu_item("/wizard.php?xml=setup_wizard.xml", "Setup Wizard");
+							output_menu_item("/system_gateways.php", "Routing");
+							output_menu_item("/system_usermanager.php", "User Manager");
+							?>
+							<li><a href="/index.php?logout" class="navlnk">Logout</a></li>
 						</ul>
 					</li>
 					<li class="drop">
 						<div>Interfaces</div>
 						<ul class="subdrop">
-							<?php if (!isset($config['system']['webgui']['noassigninterfaces'])): ?>
-							<li><a href="/interfaces_assign.php" class="navlnks">(assign)</a></li>
-							<?php endif; ?>
-							<li><a href="/interfaces_wan.php" class="navlnk">WAN</a></li>
+							<?=output_menu_item("/interfaces_assign.php", "(assign)");?>
+							<?=output_menu_item("/interfaces.php?if=wan", "WAN") ?>
 							<?php echo return_ext_menu("Interfaces"); ?>
 						</ul>
 					</li>
 					<li class="drop">
 						<div>Firewall</div>
 						<ul class="subdrop">
-							<li><a href="/firewall_aliases.php" class="navlnk">Aliases</a></li>
-							<li><a href="/firewall_rules.php" class="navlnk">Rules</a></li>
-							<li><a href="/firewall_virtual_ip.php" class="navlnk">Virtual IPs</a></li>
+							<?=output_menu_item("/firewall_aliases.php", "Aliases");?>	
+							<?=output_menu_item("/firewall_rules.php", "Rules");?>	
+							<?=output_menu_item("/firewall_virtual_ip.php", "Virtual IPs");?>	
 							<?php echo return_ext_menu("Firewall"); ?>
 						</ul>
 					</li>
 					<li class="drop">
-						<div>DNS</div>
+						<div>Services</div>
 						<ul class="subdrop">
 							<?php echo return_ext_menu("Services"); ?>
 						</ul>
@@ -154,28 +155,52 @@ require_once("notices.inc");
 					<li class="drop">
 						<div>Status</div>
 						<ul class="subdrop">
-							<li><a href="/carp_status.php" class="navlnk">CARP (failover)</a></li>
-							<li><a href="/status_filter_reload.php" class="navlnk">Filter Reload Status</a></li>
-							<li><a href="/status_interfaces.php" class="navlnk">Interfaces</a></li>
-							<li><a href="/status_rrd_graph.php" class="navlnk">RRD Graphs</a></li>
-							<li><a href="/index.php" class="navlnk">System</a></li>
-							<li><a href="/diag_logs.php" class="navlnk">System logs</a></li>
-							<li><a href="/status_graph.php?if=wan" class="navlnk">Traffic graph</a></li>
-							<?php echo return_ext_menu("Status"); ?>
+							<?=output_menu_item("/carp_status.php", "CARP (failover)");?>
+							<?=output_menu_item("/index.php", "Dashboard");?>
+							<?=output_menu_item("/status_gateways.php", "Gateways");?>
+							<?=output_menu_item("/diag_dhcp_leases.php", "DHCP Leases");?>
+							<?=output_menu_item("/status_filter_reload.php", "Filter Reload");?>
+							<?=output_menu_item("/status_interfaces.php", "Interfaces");?>
+							<?=output_menu_item("/diag_ipsec.php", "IPsec");?>
+							<?=output_menu_item("/status_slbd_pool.php", "Load Balancer");?>
+							<?=output_menu_item("/status_openvpn.php", "OpenVPN");?>
+							<?=output_menu_item("/status_rrd_graph.php", "RRD Graphs");?>
+							<?=output_menu_item("/diag_logs.php", "System Logs");?>
+							<?=output_menu_item("/status_graph.php?if=wan", "Traffic Graph");?>
+							<?php
+							if($config['interfaces']['lan']) {
+								/* no use for UPnP in single-interface deployments
+								remove to reduce user confusion
+								*/
+								output_menu_item("/status_upnp.php", "UPnP");	
+							}
+							?>
+							<?php $ifentries = get_configured_interface_with_descr();
+							foreach ($ifentries as $ent => $entdesc) {
+								if (is_array($config['interfaces'][$ent]['wireless']) &&
+									preg_match($g['wireless_regex'], $config['interfaces'][$ent]['if']))
+									$ifdescrs[$ent] = $entdesc;
+							}
+							echo return_ext_menu("Status");
+							?>
 						</ul>
 					</li>
 					<li class="lastdrop">
 						<div>Diagnostics</div>
 						<ul id="diag" class="subdrop">
-							<li><a href="/diag_arp.php" class="navlnk">ARP Tables</a></li>
-							<li><a href="/diag_backup.php" class="navlnk">Backup/Restore</a></li>
-							<li><a href="/diag_defaults.php" class="navlnk">Factory defaults </a></li>
-							<li><a href="/halt.php" class="navlnk">Halt system</a></li>
-							<li><a href="/diag_ping.php" class="navlnk">Ping</a></li>
-							<li><a href="/reboot.php" class="navlnk">Reboot system</a></li>
-							<li><a href="/diag_routes.php" class="navlnk">Routes</a></li>
-							<li><a href="/diag_dump_states.php" class="navlnk">States</a></li>
-							<li><a href="/diag_traceroute.php" class="navlnk">Traceroute</a></li>
+							<?=output_menu_item("/diag_arp.php", "ARP Tables");?>
+							<?=output_menu_item("/diag_backup.php", "Backup/Restore");?>
+							<?=output_menu_item("/exec.php", "Command Prompt");?>
+							<?=output_menu_item("/edit.php", "Edit File");?>
+							<?=output_menu_item("/diag_defaults.php", "Factory Defaults");?>
+							<?=output_menu_item("/halt.php", "Halt System");?>
+							<?=output_menu_item("/diag_ping.php", "Ping");?>
+							<?=output_menu_item("/reboot.php", "Reboot");?>
+							<?=output_menu_item("/diag_routes.php", "Routes");?>
+							<?=output_menu_item("/diag_dump_states.php", "States");?>
+							<?=output_menu_item("/diag_system_activity.php", "System Activity");?>
+							<?=output_menu_item("/diag_traceroute.php", "Traceroute");?>
+							<?=output_menu_item("/diag_packet_capture.php", "Packet Capture");?>
 							<?php echo return_ext_menu("Diagnostics"); ?>
 						</ul>
 					</li>
@@ -186,8 +211,8 @@ require_once("notices.inc");
 
 		<div id="right">
 
-
 <?php
+
 	/* display a top alert bar if need be */
 	$need_alert_display = false;
 	$found_notices = are_notices_pending();
@@ -210,4 +235,11 @@ require_once("notices.inc");
 		echo "</div>";
 	}
 
+function output_menu_item($url, $name) {
+	if (isAllowedPage($url))
+		echo "<li><a href=\"{$url}\" class=\"navlnk\">{$name}</a></li>\n";
+}
+	
 ?>
+
+<p class="pgtitle"><?=genhtmltitle($pgtitle);?></font></p>
