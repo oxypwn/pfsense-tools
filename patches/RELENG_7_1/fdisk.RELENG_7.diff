@@ -1,0 +1,29 @@
+Index: fdisk.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/fdisk/fdisk.c,v
+retrieving revision 1.87
+diff -u -r1.87 fdisk.c
+--- fdisk.c	30 Sep 2008 07:18:49 -0000	1.87
++++ fdisk.c	26 Oct 2008 16:32:21 -0000
+@@ -765,6 +765,7 @@
+ 	char fbuf[BUFSIZ], *pname;
+ 	int i, fdw;
+ 
++	close(fd);	/* Give the GEOM layer exclusive access to the disk */
+ 	grq = gctl_get_handle();
+ 	gctl_ro_param(grq, "verb", -1, "write MBR");
+ 	gctl_ro_param(grq, "class", -1, "MBR");
+@@ -779,11 +780,13 @@
+ 	free(pname);
+ 	if (errmsg == NULL) {
+ 		gctl_free(grq);
++		open_disk(u_flag);
+ 		return(0);
+ 	}
+ 	if (!q_flag)	/* GEOM errors are benign, not all devices supported */
+ 		warnx("%s", errmsg);
+ 	gctl_free(grq);
++	open_disk(u_flag);
+ 
+ 	error = pwrite(fd, buf, secsize, (sector * 512));
+ 	if (error == secsize)
