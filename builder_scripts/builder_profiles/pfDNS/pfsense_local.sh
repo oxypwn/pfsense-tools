@@ -119,7 +119,7 @@ export CUSTOM_REMOVE_LIST="${BASE_DIR}/tools/builder_scripts/builder_profiles/pf
 export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/copy.list"
 
 # Use a custom config.xml
-export USE_CONFIG_XML=${USE_CONFIG_XML:-"/path/to/custom/config.xml"}
+export USE_CONFIG_XML=${USE_CONFIG_XML:-"${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/config/config.xml"}
 
 # GIT pfSense, BSDInstaller & FreeSBIE settings
 #export USE_GIT=${USE_GIT:-"yo"}
