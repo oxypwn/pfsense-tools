@@ -1,0 +1,518 @@
+Index: contrib/pf/pfctl/parse.y
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.4
+diff -u -r1.4 parse.y
+--- contrib/pf/pfctl/parse.y	21 Oct 2008 18:51:32 -0000	1.4
++++ contrib/pf/pfctl/parse.y	21 Oct 2008 18:52:03 -0000
+@@ -132,8 +132,10 @@
+ enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
+ 	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
+ 	    PF_STATE_OPT_MAX_SRC_CONN_RATE, PF_STATE_OPT_MAX_SRC_NODES,
++	    PF_STATE_OPT_MAX_PACKETS, PF_STATE_OPT_DIVERT_COOKIE,
+ 	    PF_STATE_OPT_OVERLOAD, PF_STATE_OPT_STATELOCK,
+-	    PF_STATE_OPT_TIMEOUT };
++	    PF_STATE_OPT_TIMEOUT, PF_STATE_OPT_OVERLOAD_ACTION,
++	    PF_STATE_OPT_OVERLOAD_DN, PF_STATE_OPT_OVERLOAD_ALTQ };
+ 
+ enum	{ PF_SRCTRACK_NONE, PF_SRCTRACK, PF_SRCTRACK_GLOBAL, PF_SRCTRACK_RULE };
+ 
+@@ -143,6 +145,7 @@
+ 		u_int32_t	 max_states;
+ 		u_int32_t	 max_src_states;
+ 		u_int32_t	 max_src_conn;
++		u_int32_t	 max_packets;
+ 		struct {
+ 			u_int32_t	limit;
+ 			u_int32_t	seconds;
+@@ -210,6 +213,7 @@
+ 	int			 allowopts;
+ 	char			*label;
+ 	struct node_qassign	 queues;
++	u_int16_t		 divert;
+ 	char			*tag;
+ 	char			*match_tag;
+ 	u_int8_t		 match_tag_not;
+@@ -441,8 +445,8 @@
+ %token  SRCIP DSTIP SRCPORT DSTPORT SRCIP6 DSTIP6 FLOWID NOERROR
+ %token	LOAD RULESET_OPTIMIZATION
+ %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
+-%token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
+-%token	TAGGED TAG IFBOUND FLOATING STATEPOLICY ROUTE
++%token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH DIVERTTAG ACTION
++%token	TAGGED TAG IFBOUND FLOATING DIVERT STATEPOLICY ROUTE
+ %token	<v.string>		STRING
+ %token	<v.i>			PORTBINARY
+ %type	<v.interface>		interface if_list if_item_not if_item
+@@ -470,6 +474,7 @@
+ %type	<v.route>		route
+ %type	<v.redirection>		redirection redirpool
+ %type	<v.string>		label string tag anchorname
++%type	<v.number>		divert
+ %type	<v.keep_state>		keep
+ %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
+ %type	<v.logquick>		logquick quick log logopts logopt
+@@ -2045,6 +2050,8 @@
+ 			r.rtableid = $9.rtableid;
+ 
+ 			r.af = $6;
++			if ($9.divert)
++				r.divert = $9.divert;
+ 			if ($9.tag)
+ 				if (strlcpy(r.tagname, $9.tag,
+ 				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
+@@ -2130,6 +2137,17 @@
+ 					}
+ 					r.rule_flag |= PFRULE_NOSYNC;
+ 					break;
++				case PF_STATE_OPT_MAX_PACKETS:
++					if (o->data.max_packets == 0) {
++						yyerror("max_packets must be"
++							"greater than 0");
++						YYERROR;
++					}
++					r.spare1 = o->data.max_packets;
++					break;
++				case PF_STATE_OPT_DIVERT_COOKIE:
++					r.rule_flag |= PFRULE_DIVERT_COOKIE;
++					break;
+ 				case PF_STATE_OPT_SRCTRACK:
+ 					if (srctrack) {
+ 						yyerror("state option "
+@@ -2156,6 +2174,15 @@
+ 					    o->data.max_src_states;
+ 					r.rule_flag |= PFRULE_SRCTRACK;
+ 					break;
++				case PF_STATE_OPT_OVERLOAD_ACTION:
++					r.free_flags |= PFRULE_DIVERT_ACTION;
++					break;
++				case PF_STATE_OPT_OVERLOAD_ALTQ:
++					r.free_flags |= PFRULE_DIVERT_ALTQ;
++					break;
++				case PF_STATE_OPT_OVERLOAD_DN:
++					r.free_flags |= PFRULE_DIVERT_DNCOOKIE;
++					break;
+ 				case PF_STATE_OPT_OVERLOAD:
+ 					if (r.overload_tblname[0]) {
+ 						yyerror("multiple 'overload' "
+@@ -2511,6 +2538,9 @@
+ 			filter_opts.dnpipe = $3;
+ 			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
+ 		}
++		| DIVERT number				{
++			filter_opts.divert = $2;
++		}
+ 		| TAG string				{
+ 			filter_opts.tag = $2;
+ 		}
+@@ -3586,6 +3616,15 @@
+ 			$$->next = NULL;
+ 			$$->tail = $$;
+ 		}
++		| MAXPCKT number                    	{
++                        $$ = calloc(1, sizeof(struct node_state_opt));
++                        if ($$ == NULL)
++                                err(1, "state_opt_item: calloc");
++                        $$->type = PF_STATE_OPT_MAX_PACKETS;
++                        $$->data.max_src_states = $2;
++                        $$->next = NULL;
++                        $$->tail = $$;
++                }
+ 		| MAXSRCCONN number			{
+ 			$$ = calloc(1, sizeof(struct node_state_opt));
+ 			if ($$ == NULL)
+@@ -3623,6 +3662,30 @@
+ 			$$->next = NULL;
+ 			$$->tail = $$;
+ 		}
++		| OVERLOAD ACTION DIVERTTAG {
++			$$ = calloc(1, sizeof(struct node_state_opt));
++                        if ($$ == NULL)
++                                err(1, "state_opt_item: calloc");
++			$$->type = PF_STATE_OPT_OVERLOAD_ACTION;
++                        $$->next = NULL;
++                        $$->tail = $$;
++		}
++		| OVERLOAD DUMMYNET DIVERTTAG {
++			$$ = calloc(1, sizeof(struct node_state_opt));
++                        if ($$ == NULL)
++                                err(1, "state_opt_item: calloc");
++			$$->type = PF_STATE_OPT_OVERLOAD_DN;
++			$$->next = NULL;
++			$$->tail = $$;
++		}
++		| OVERLOAD ALTQ DIVERTTAG {
++			$$ = calloc(1, sizeof(struct node_state_opt));
++                        if ($$ == NULL)
++                                err(1, "state_opt_item: calloc");
++			$$->type = PF_STATE_OPT_OVERLOAD_ALTQ;
++                        $$->next = NULL;
++                        $$->tail = $$;
++		}
+ 		| MAXSRCNODES number			{
+ 			$$ = calloc(1, sizeof(struct node_state_opt));
+ 			if ($$ == NULL)
+@@ -4250,6 +4313,10 @@
+ 		}
+ 		;
+ 
++divert		: /* empty */		{ $$ = 0; }
++		| DIVERT number		{ $$ = $2;   }
++		;
++
+ tag		: /* empty */		{ $$ = NULL; }
+ 		| TAG STRING		{ $$ = $2; }
+ 		;
+@@ -5323,6 +5390,7 @@
+ {
+ 	/* this has to be sorted always */
+ 	static const struct keywords keywords[] = {
++		{ "action",		ACTION},
+ 		{ "all",		ALL},
+ 		{ "allow-opts",		ALLOWOPTS},
+ 		{ "altq",		ALTQ},
+@@ -5341,6 +5409,8 @@
+ 		{ "crop",		FRAGCROP},
+ 		{ "debug",		DEBUG},
+ 		{ "delay",              DELAY},
++		{ "divert",		DIVERT},
++		{ "diverttag",		DIVERTTAG},
+ 		{ "dngred",             DNGRED},
+ 		{ "dnpipe",             DNPIPE},
+                 { "dnqueue",            DNQUEUE},
+@@ -5384,6 +5454,7 @@
+ 		{ "mask",		MASK},
+ 		{ "max",		MAXIMUM},
+ 		{ "max-mss",		MAXMSS},
++		{ "max-packets",	MAXPCKT},
+ 		{ "max-src-conn",	MAXSRCCONN},
+ 		{ "max-src-conn-rate",	MAXSRCCONNRATE},
+ 		{ "max-src-nodes",	MAXSRCNODES},
+Index: contrib/pf/pfctl/pfctl_parser.c
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/contrib/pf/pfctl/pfctl_parser.c,v
+retrieving revision 1.3
+diff -u -r1.3 pfctl_parser.c
+--- contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:51:32 -0000	1.3
++++ contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:51:34 -0000
+@@ -915,6 +915,12 @@
+ 			printf("max-src-conn %u", r->max_src_conn);
+ 			opts = 0;
+ 		}
++		if (r->spare1) {
++                        if (!opts)
++                                printf(", ");
++                        printf("max-packets %u", r->spare1);
++                        opts = 0;
++		}
+ 		if (r->max_src_conn_rate.limit) {
+ 			if (!opts)
+ 				printf(", ");
+@@ -938,6 +944,21 @@
+ 			if (r->flush & PF_FLUSH_GLOBAL)
+ 				printf(" global");
+ 		}
++		if (r->free_flags & PFRULE_DIVERT_ACTION) {
++			if (!opts)
++				printf(", ");
++			printf("overload action divert");
++		}
++                if (r->free_flags & PFRULE_DIVERT_ALTQ) {
++                        if (!opts)
++                                printf(", ");
++                        printf("overload queue divert");
++                }
++                if (r->free_flags & PFRULE_DIVERT_DNCOOKIE) {
++                        if (!opts)
++                                printf(", ");
++                        printf("overload dnpipe divert");
++                }
+ 		if (r->rule_flag & PFRULE_IFBOUND) {
+ 			if (!opts)
+ 				printf(", ");
+@@ -998,6 +1019,8 @@
+ 		printf(" queue(%s, %s)", r->qname, r->pqname);
+ 	else if (r->qname[0])
+ 		printf(" queue %s", r->qname);
++	if (r->divert)
++		printf(" divert %u", r->divert);
+ 	if (r->tagname[0])
+ 		printf(" tag %s", r->tagname);
+ 	if (r->match_tagname[0]) {
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.4
+diff -u -r1.4 pf.c
+--- sys/contrib/pf/net/pf.c	21 Oct 2008 18:51:32 -0000	1.4
++++ sys/contrib/pf/net/pf.c	21 Oct 2008 18:51:34 -0000
+@@ -138,6 +138,7 @@
+ #ifdef __FreeBSD__
+ #include <netinet/ip_fw.h>
+ #include <netinet/ip_dummynet.h>
++#include <netinet/ip_divert.h>
+ 
+ #include <netinet6/ip6_var.h>
+ #include <netinet6/in6_pcb.h>
+@@ -6828,6 +6829,8 @@
+ 
+ #ifdef __FreeBSD__
+ 	struct m_tag *dn_tag;
++	u_int32_t divertcookie = 0;
++	u_int16_t divertinfo = 0;
+ 	struct ip_fw_args	 dnflow;
+ 
+ 	PF_LOCK();
+@@ -6905,13 +6908,23 @@
+                 ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
+ 		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
+                 m_tag_delete(m, dn_tag);
++		goto nonormalize;
+         }
++	dn_tag = m_tag_find(m, PACKET_TAG_DIVERT, NULL);
++	if (dn_tag != NULL) {
++		pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;
++		divertcookie = divert_cookie(dn_tag);
++		divertinfo = (u_int16_t)divert_info(dn_tag);
++		m_tag_delete(m, dn_tag);
++		goto nonormalize;
++	}
+ 
+ 	/* We do IP header normalization and packet reassembly here */
+-	else if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
++	if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 		action = PF_DROP;
+ 		goto done;
+-	}
++	} 
++nonormalize:
+ 	m = *m0;
+ 	h = mtod(m, struct ip *);
+ 
+@@ -7098,6 +7111,14 @@
+ 		    ("pf: dropping packet with ip options\n"));
+ 	}
+ 
++#ifdef __FreeBSD__
++	if (s) {
++		if (divertcookie)
++			s->divert_cookie = divertcookie;
++		else if (s->divert_cookie)
++			divertcookie = s->divert_cookie;
++	}
++#endif
+ 	if ((s && s->tag) || r->rtableid)
+ 		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
+ 
+@@ -7117,7 +7138,54 @@
+ #endif /* ALTQ */
+ 
+ #ifdef __FreeBSD__
+-        if (r->dnpipe && DUMMYNET_LOADED &&
++	if (divertcookie) {
++		struct pf_rule *dlr;
++		if (r->free_flags & PFRULE_DIVERT_TAG)
++			pd.pf_mtag->tag = divertcookie;
++		else if (r->free_flags & PFRULE_DIVERT_ALTQ)
++			pd.pf_mtag->qid = divertcookie;
++		else if (r->free_flags & PFRULE_DIVERT_ACTION) {
++			action = PF_DROP;
++			REASON_SET(&reason, PFRES_DIVERT);
++                	log = 1;
++                	DPFPRINTF(PF_DEBUG_MISC,
++                   		("pf: changing action to with overload from divert.\n"));
++			dlr = r;
++	                PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a, 
++				ruleset, &pd);
++			PF_UNLOCK();
++			return (action);
++		}
++	}
++	
++	if (r->divert && ip_divert_ptr != NULL &&
++		!(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT) && 
++		(!divertcookie || divertinfo != r->divert)) {
++		
++			if (!r->spare1 || 
++				(s && s->packets[dir == PF_OUT] <= r->spare1)) {
++				
++				struct divert_tag *dt;
++                        	dn_tag = m_tag_get(PACKET_TAG_DIVERT, 
++					sizeof(struct divert_tag), M_NOWAIT);
++				if (dn_tag != NULL) {
++				
++                        		dt = (struct divert_tag *)(dn_tag+1);
++                        		dt->cookie = 0;
++                        		dt->info = r->divert;
++                        		m_tag_prepend(m, dn_tag);
++
++					PF_UNLOCK();
++
++					ip_divert_ptr(*m0, 
++						dir == 
++						PF_IN ? DIV_DIR_IN : DIV_DIR_OUT);
++
++					*m0 = NULL;	
++					return (action);
++				}
++		 	}
++        } else if (r->dnpipe && DUMMYNET_LOADED &&
+                 !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
+                         struct ip_fw dummyrule;
+ 
+Index: sys/contrib/pf/net/pf_mtag.h
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf_mtag.h,v
+retrieving revision 1.3
+diff -u -r1.3 pf_mtag.h
+--- sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:51:32 -0000	1.3
++++ sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:51:34 -0000
+@@ -38,6 +38,7 @@
+ #define	PF_TAG_FRAGCACHE		0x02
+ #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
+ #define PF_DN_TAG_PRESENT	        0x08
++#define PF_DIVERT_TAG_PRESENT		0x10
+ 
+ struct pf_mtag {
+ 	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.5
+diff -u -r1.5 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:51:32 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:51:34 -0000
+@@ -634,6 +634,10 @@
+ 	u_int32_t		 pqid;
+ 	u_int32_t                dnpipe;
+         u_int32_t                pdnpipe;
++#define	PFRULE_DIVERT_TAG	0x00000001
++#define	PFRULE_DIVERT_DNCOOKIE	0x00000002
++#define PFRULE_DIVERT_ALTQ	0x00000004
++#define	PFRULE_DIVERT_ACTION	0x00000008
+ #define	PFRULE_DN_IS_PIPE	0x00000010
+ #define	PFRULE_DN_IS_QUEUE	0x00000020	
+ 	u_int32_t                free_flags;
+@@ -649,6 +653,7 @@
+ 	u_int16_t		 tag;
+ 	u_int16_t		 match_tag;
+ 	u_int16_t		 spare2;		/* netgraph */
++	u_int16_t		 divert;		/* divert */
+ 
+ 	struct pf_rule_uid	 uid;
+ 	struct pf_rule_gid	 gid;
+@@ -718,6 +723,8 @@
+ #define PFRULE_SRCTRACK		0x0020  /* track source states */
+ #define PFRULE_RULESRCTRACK	0x0040  /* per rule */
+ 
++#define PFRULE_DIVERT_COOKIE	0x0080
++
+ /* scrub flags */
+ #define	PFRULE_NODF		0x0100
+ #define	PFRULE_FRAGCROP		0x0200	/* non-buffering frag cache */
+@@ -865,6 +872,7 @@
+ 	u_int32_t	 expire;
+ 	u_int32_t	 pfsync_time;
+ 	u_int16_t	 tag;
++	u_int16_t	 divert_cookie;
+ };
+ 
+ TAILQ_HEAD(pf_rulequeue, pf_rule);
+@@ -1120,7 +1128,8 @@
+ #define PFRES_MAXSTATES	12		/* State limit */
+ #define PFRES_SRCLIMIT	13		/* Source node/conn limit */
+ #define PFRES_SYNPROXY	14		/* SYN proxy */
+-#define PFRES_MAX	15		/* total+1 */
++#define	PFRES_DIVERT	15		/* Divert override */
++#define PFRES_MAX	16		/* total+1 */
+ 
+ #define PFRES_NAMES { \
+ 	"match", \
+@@ -1138,6 +1147,7 @@
+ 	"state-limit", \
+ 	"src-limit", \
+ 	"synproxy", \
++	"divert", \
+ 	NULL \
+ }
+ 
+Index: sys/netinet/ip_divert.c
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_divert.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_divert.c
+--- sys/netinet/ip_divert.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/netinet/ip_divert.c	21 Oct 2008 18:51:34 -0000
+@@ -751,5 +751,4 @@
+ };
+ 
+ DECLARE_MODULE(ipdivert, ipdivertmod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
+-MODULE_DEPEND(dummynet, ipfw, 2, 2, 2);
+ MODULE_VERSION(ipdivert, 1);
+Index: sys/netinet/ip_divert.h
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_divert.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_divert.h
+--- sys/netinet/ip_divert.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/netinet/ip_divert.h	21 Oct 2008 18:51:34 -0000
+@@ -50,6 +50,9 @@
+ 	u_int16_t	cookie;		/* ipfw rule number */
+ };
+ 
++#define DIV_DIR_IN      1
++#define DIV_DIR_OUT     0
++
+ /*
+  * Return the divert cookie associated with the mbuf; if any.
+  */
+Index: sys/netinet/ip_fw_pfil.c
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_fw_pfil.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_fw_pfil.c
+--- sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:51:32 -0000	1.2
++++ sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:51:34 -0000
+@@ -72,16 +72,11 @@
+ 
+ int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
+ 
+-/* Divert hooks. */
+-ip_divert_packet_t *ip_divert_ptr = NULL;
+-
+ /* ng_ipfw hooks. */
+ ng_ipfw_input_t *ng_ipfw_input_p = NULL;
+ 
+ /* Forward declarations. */
+ static int	ipfw_divert(struct mbuf **, int, int);
+-#define	DIV_DIR_IN	1
+-#define	DIV_DIR_OUT	0
+ 
+ int
+ ipfw_check_in(void *arg, struct mbuf **m0, struct ifnet *ifp, int dir,
+Index: sys/netinet/ip_input.c
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/netinet/ip_input.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_input.c
+--- sys/netinet/ip_input.c	21 Oct 2008 18:51:32 -0000	1.2
++++ sys/netinet/ip_input.c	21 Oct 2008 18:51:34 -0000
+@@ -81,6 +81,7 @@
+ /* XXX: Temporary until ipfw_ether and ipfw_bridge are converted. */
+ #include <netinet/ip_fw.h>
+ #include <netinet/ip_dummynet.h>
++#include <netinet/ip_divert.h>
+ 
+ #include <security/mac/mac_framework.h>
+ 
+@@ -203,6 +204,10 @@
+ ip_fw_chk_t *ip_fw_chk_ptr = NULL;
+ ip_dn_io_t *ip_dn_io_ptr = NULL;
+ ip_dn_ruledel_t *ip_dn_ruledel_ptr = NULL;
++
++/* Divert hooks. */
++ip_divert_packet_t *ip_divert_ptr = NULL;
++
+ int fw_one_pass = 1;
+ 
+ static void	ip_freef(struct ipqhead *, struct ipq *);
