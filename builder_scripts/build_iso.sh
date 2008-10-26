@@ -59,11 +59,18 @@ fi
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 
-if [ $FreeBSD_version = "6" ]; then
-	export PRUNE_LIST="${PWD}/remove.list.iso"
-fi
-if [ $FreeBSD_version = "7" ]; then
-	export PRUNE_LIST="${PWD}/remove.list.iso.7"
+if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
+	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
+	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
+else
+	if [ $FreeBSD_version = "6" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso ..."	
+		export PRUNE_LIST="${PWD}/remove.list.iso"
+	fi
+	if [ $FreeBSD_version = "7" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
+		export PRUNE_LIST="${PWD}/remove.list.iso.7"
+	fi
 fi
 
 # Clean out directories

@@ -34,20 +34,30 @@ fi
 # Do not compress FS
 export NO_COMPRESSEDFS=yes
 
+# Use normal make.conf
 if [ $FreeBSD_version = "6" ]; then
-	export PRUNE_LIST="${PWD}/remove.list"
+	export MAKE_CONF="${PWD}/conf/make.conf"
+	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"	
+	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"
 fi
 if [ $FreeBSD_version = "7" ]; then
-	export PRUNE_LIST="${PWD}/remove.list.7"
+	export MAKE_CONF="${PWD}/conf/make.conf.7"
+	export SRC_CONF="${PWD}/conf/make.conf.7"
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
 fi
 
-# Use embedded make.conf
-if [ $FreeBSD_version = "6" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
-fi
-if [ $FreeBSD_version = "7" ]; then
-        export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
-        export SRC_CONF="${PWD}/conf/make.conf.embedded.7"
+if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
+	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
+	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
+else
+	if [ $FreeBSD_version = "6" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso ..."	
+		export PRUNE_LIST="${PWD}/remove.list.iso"
+	fi
+	if [ $FreeBSD_version = "7" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
+		export PRUNE_LIST="${PWD}/remove.list.iso.7"
+	fi
 fi
 
 export EXTRA=""

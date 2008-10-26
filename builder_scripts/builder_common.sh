@@ -296,8 +296,15 @@ cust_overlay_host_binaries() {
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 
+	if [ ! -z "${CUSTOM_COPY_LIST:-}" ]; then
+		echo ">>> Using ${CUSTOM_COPY_LIST:-}..."
+		FOUND_FILES=`cat ${CUSTOM_COPY_LIST:-}`
+	else
+		echo ">>> Using copy.list.${PFSENSETAG}..."
+		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
+	fi
+
 	# Process base system libraries
-	FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 	NEEDEDLIBS=""
 	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
