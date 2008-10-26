@@ -124,7 +124,7 @@ fi
 #
 /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
 
-install_custom_packages_clean() {
+pfsense_install_custom_packages_clean() {
 	#
 	# Cleanup
 	#
@@ -174,7 +174,7 @@ install_custom_packages_clean() {
 #
 # Comment this line if you do not want to clean files from your system
 #
-install_custom_packages_clean
+pfsense_install_custom_packages_clean
 
 EOF
 
