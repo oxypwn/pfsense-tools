@@ -1168,6 +1168,10 @@ create_i386_diskimage ( ) {
 }
 
 pfsense_install_custom_packages_exec() {
+	# Function originally written by Daniel S. Haischt
+	#	Copyright (C) 2007 Daniel S. Haischt <me@daniel.stefan.haischt.name>
+	#   Copyright (C) 2008 Scott Ullrich <sullrich@gmail.com>
+	
 	DESTNAME="pkginstall.sh"	
 	TODIR="${PFSENSEBASEDIR}"
 
