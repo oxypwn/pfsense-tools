@@ -6,7 +6,7 @@
 	<theme>nervecenter</theme>
 	<system>
 		<optimization>normal</optimization>
-		<hostname>pfSense</hostname>
+		<hostname>pfDNS</hostname>
 		<domain>local</domain>
 		<dnsserver></dnsserver>
 		<dnsallowoverride/>
