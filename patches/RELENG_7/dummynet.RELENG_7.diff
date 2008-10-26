@@ -1,0 +1,1784 @@
+Index: contrib/pf/pfctl/parse.y
+===================================================================
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.3
+diff -u -r1.3 parse.y
+--- contrib/pf/pfctl/parse.y	21 Oct 2008 15:23:00 -0000	1.3
++++ contrib/pf/pfctl/parse.y	21 Oct 2008 18:13:18 -0000
+@@ -32,6 +32,7 @@
+ 
+ #include <sys/types.h>
+ #include <sys/socket.h>
++#include <sys/sysctl.h>
+ #include <net/if.h>
+ #include <netinet/in.h>
+ #include <netinet/in_systm.h>
+@@ -46,6 +47,9 @@
+ #include <altq/altq_hfsc.h>
+ #include <altq/altq_fairq.h>
+ 
++#include <netinet/ip_fw.h>
++#include <netinet/ip_dummynet.h>
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <netdb.h>
+@@ -209,6 +213,9 @@
+ 	char			*tag;
+ 	char			*match_tag;
+ 	u_int8_t		 match_tag_not;
++	u_int32_t		 dnpipe;
++	u_int32_t		 pdnpipe;
++	u_int32_t		 free_flags;
+ 	int			 rtableid;
+ } filter_opts;
+ 
+@@ -265,6 +272,8 @@
+ 
+ struct node_hfsc_opts	hfsc_opts;
+ struct node_fairq_opts	fairq_opts;
++struct dn_pipe          dnpipe_opts;
++struct dn_flow_set    	dnqueue_opts;
+ 
+ int	yyerror(const char *, ...);
+ int	disallow_table(struct node_host *, const char *);
+@@ -399,6 +408,8 @@
+ 		struct filter_opts	 filter_opts;
+ 		struct antispoof_opts	 antispoof_opts;
+ 		struct queue_opts	 queue_opts;
++		struct dn_pipe		 dnpipe_opts;
++		struct dn_flow_set	 dnqueue_opts;
+ 		struct scrub_opts	 scrub_opts;
+ 		struct table_opts	 table_opts;
+ 		struct pool_opts	 pool_opts;
+@@ -426,6 +437,8 @@
+ %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
+ %token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
+ %token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
++%token  DNPIPE DNQUEUE DUMMYNET DNGRED DNRED WEIGHT MASK DELAY BUCKETS PLR
++%token  SRCIP DSTIP SRCPORT DSTPORT SRCIP6 DSTIP6 FLOWID NOERROR
+ %token	LOAD RULESET_OPTIMIZATION
+ %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
+ %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
+@@ -468,6 +481,8 @@
+ %type	<v.number>		priqflags_list priqflags_item
+ %type	<v.hfsc_opts>		hfscopts_list hfscopts_item hfsc_opts
+ %type	<v.fairq_opts>		fairqopts_list fairqopts_item fairq_opts
++%type 	<v.dnpipe_opts>         dnpipe_opts
++%type 	<v.dnqueue_opts>        dnqueue_opts mask_specifier
+ %type	<v.queue_bwspec>	bandwidth
+ %type	<v.filter_opts>		filter_opts filter_opt filter_opts_l
+ %type	<v.antispoof_opts>	antispoof_opts antispoof_opt antispoof_opts_l
+@@ -490,6 +505,8 @@
+ 		| ruleset loadrule '\n'
+ 		| ruleset altqif '\n'
+ 		| ruleset queuespec '\n'
++		| ruleset dummynetif '\n'
++		| ruleset dnqueuespec '\n'
+ 		| ruleset varset '\n'
+ 		| ruleset antispoof '\n'
+ 		| ruleset tabledef '\n'
+@@ -1447,14 +1464,22 @@
+ 
+ 			bps = strtod($1, &cp);
+ 			if (cp != NULL) {
+-				if (!strcmp(cp, "b"))
++				if (!strcmp(cp, "b") || !strcmp(cp, "bit"))
+ 					; /* nothing */
+-				else if (!strcmp(cp, "Kb"))
++				else if (!strcmp(cp, "Kb") || !strcmp(cp, "Kbit"))
+ 					bps *= 1000;
+-				else if (!strcmp(cp, "Mb"))
++				else if (!strcmp(cp, "Mb") || !strcmp(cp, "Mbit"))
+ 					bps *= 1000 * 1000;
+-				else if (!strcmp(cp, "Gb"))
++				else if (!strcmp(cp, "Gb") || !strcmp(cp, "Gbit"))
+ 					bps *= 1000 * 1000 * 1000;
++				else if (!strcmp(cp, "B") || !strcmp(cp, "Byte"))
++					; /* nothing */
++				else if (!strcmp(cp, "KB") || !strcmp(cp, "Kbyte"))
++					bps *= 1024;
++				else if (!strcmp(cp, "MB") || !strcmp(cp, "Mbyte"))
++					bps *= 1024 * 1024;
++				else if (!strcmp(cp, "GB") || !strcmp(cp, "Gbyte"))
++					bps *= 1024 * 1024 * 1024;
+ 				else if (!strcmp(cp, "%")) {
+ 					if (bps < 0 || bps > 100) {
+ 						yyerror("bandwidth spec "
+@@ -1731,6 +1756,255 @@
+ 		}
+ 		;
+ 
++dummynetif      : DNPIPE number dnpipe_opts dnqueue_opts        {
++                        struct dn_pipe p;
++
++                        if (check_rulestate(PFCTL_STATE_QUEUE))
++                                YYERROR;
++
++                        memset(&p, 0, sizeof(p));
++
++                        p.bandwidth = $3.bandwidth;
++                        p.delay = $3.delay;
++			if ($2 < 1) {
++				yyerror("pipe number must be greater than 0");
++				YYERROR;
++			}
++			p.pipe_nr = $2;
++                        memcpy(&p.fs, &$4,
++                                sizeof(p.fs));
++			if (p.fs.flags_fs & DN_IS_RED)
++				calculate_dnred(&p.fs, p.bandwidth);
++
++                        if (pfctl_add_dummynet(pf, &p)) {
++				yyerror("errors in dnpipe definition");
++                                YYERROR;
++			}
++                }
++dnqueuespec     : DNQUEUE number DNPIPE number dnqueue_opts {
++		        struct dn_pipe p;
++
++                        if (check_rulestate(PFCTL_STATE_QUEUE)) 
++                                YYERROR;
++
++                        memset(&p, 0, sizeof(p));
++
++                        if ($4 < 1) {
++                                yyerror("pipe must be specified for queue");
++                                YYERROR;
++                        }
++			if ($2 < 1) {
++				yyerror("queue number must be greater than 0");
++				YYERROR;
++			}
++					
++                        memcpy(&p.fs, &$5, sizeof(p.fs));
++			p.fs.fs_nr = $2;
++                        p.fs.parent_nr = $4;
++			p.pipe_nr = 0;
++			if (p.fs.flags_fs & DN_IS_RED)
++				calculate_dnred(&p.fs, p.bandwidth);
++
++                        if (pfctl_add_dummynet(pf, &p)) {
++                                yyerror("errors in dnqueue definition");
++                                YYERROR;
++                        }
++                }
++                ;
++
++dnpipe_opts     :       /* XXX: fix this */ {
++	                bzero(&dnpipe_opts, sizeof dnpipe_opts);
++                }
++                        dnpipe_opts_l
++                       	{ $$ = dnpipe_opts; }
++                |	/* empty */ {
++                        bzero(&dnpipe_opts, sizeof dnpipe_opts);
++                        $$ = dnpipe_opts;
++                }
++                ;
++
++dnpipe_opts_l   : dnpipe_opts_l dnpipe_opt
++	        | dnpipe_opt
++                ;
++
++dnpipe_opt      : BANDWIDTH bandwidth   {
++                        dnpipe_opts.bandwidth = $2.bw_absolute;
++                }
++                | DELAY number          {
++                        if ($2 > 0 && $2 < 10001)
++                                dnpipe_opts.delay = $2;
++                        else {
++                                yyerror("delay needs argument 0..10000ms");
++                                YYERROR;
++                        }
++                }
++                ;
++
++dnqueue_opts    : /* XXX: fix this */ {
++		        bzero(&dnqueue_opts, sizeof dnqueue_opts);
++                }
++                    dnqueue_opts_l
++                        { $$ = dnqueue_opts; }
++                | /* empty */ {
++                        bzero(&queue_opts, sizeof queue_opts);
++                        $$ = dnqueue_opts;
++                }
++                ;
++
++dnqueue_opts_l  : dnqueue_opts_l dnqueue_opt
++		| dnqueue_opt
++                ;
++
++dnqueue_opt     : BUCKETS number       {
++		        if ($2 < 16 || $2 > 65535) {
++                                yyerror("buckets out of range: [16-65535]");
++                                YYERROR;
++                        }
++                        dnqueue_opts.rq_size = $2;
++                }
++		| WEIGHT number			  {
++			if ($2 < 0 || $2 > 100)  { /* [0..100] is allowed */
++                                yyerror("weight must be in [0..100] range");
++                                YYERROR;
++                        }
++                        
++			dnqueue_opts.weight = $2;
++		}
++                | QUEUE STRING		 {
++                        double   bps;
++                        char    *cp;
++
++			bps = strtod($2, &cp);
++                        if (bps < 16 || bps > 65535) {
++                                yyerror("qlimit out of range [16..65535]");
++                                YYERROR;
++                        }
++
++                        if (cp != NULL) {
++                                if (!strcmp(cp, "B") || !strcmp(cp, "Byte"))
++					dnqueue_opts.flags_fs |= 
++						DN_QSIZE_IS_BYTES;
++                                else if (!strcmp(cp, "KB") || !strcmp(cp, "KByte")) {
++                                        bps *= 1024;
++					dnqueue_opts.flags_fs |= 
++						DN_QSIZE_IS_BYTES;
++                                } else if (*cp != '\0') {
++                                        yyerror("unknown unit %s", cp);
++                                        free($2);
++                                        YYERROR;
++                                }
++			} else 
++				dnqueue_opts.flags_fs &= 
++					~DN_QSIZE_IS_BYTES;
++                        free($2);
++
++                        dnqueue_opts.qsize = (u_int32_t)bps;
++                }
++                | PLR number                            {
++                        dnqueue_opts.plr = (int)$2*0x7fffffff ;
++                }
++                | MASK mask_specifier   {
++                        memcpy(&dnqueue_opts, &$2,
++                                sizeof(dnqueue_opts));
++                }
++                | DNRED string '/' string '/' string '/' string       {
++			/*
++                         * the format for parameters is w_q/min_th/max_th/max_p
++                         */
++			char *end;
++			int error = 0;
++		
++                        double w_q = strtod($2, NULL);
++                        if (w_q > 1 || w_q <= 0) {
++                         	yyerror("0 < w_q <= 1");
++				error = 1;
++			}
++                        dnqueue_opts.w_q = (int) (w_q * (1 << SCALE_RED));
++                        
++                        dnqueue_opts.min_th = strtoul($4, &end, 0); 
++                        if (*end == 'K' || *end == 'k')
++                        	dnqueue_opts.min_th *= 1024;
++                        
++                        dnqueue_opts.max_th = strtoul($6, &end, 0);
++                        if (*end == 'K' || *end == 'k')
++                        	dnqueue_opts.max_th *= 1024;
++                       
++                        double max_p = strtod($8, NULL);
++                        if (max_p > 1 || max_p <= 0) {
++				yyerror("max_p moust be between 0 and 1");
++				error = 1;
++			}
++                        dnqueue_opts.max_p = (int)(max_p * (1 << SCALE_RED));
++
++			dnqueue_opts.flags_fs |= DN_IS_RED;
++			
++			if (dnqueue_opts.min_th >= dnqueue_opts.max_th) {
++        	        	yyerror("min_th %d must be < than max_th %d",
++                        		dnqueue_opts.min_th, dnqueue_opts.max_th);
++				error = 1;
++			}
++                	if (dnqueue_opts.max_th == 0) {
++                    		yyerror("max_th must be > 0");
++				error = 1;
++			}
++
++			free($2), free($4), free($6), free($8);
++			if (error > 0) {
++				YYERROR;
++			}
++                }
++                ;
++
++mask_specifier  : ALL                   {
++
++                        memset(&$$, 0, sizeof($$));
++
++                        $$.flow_mask.dst_ip = ~0;
++                        $$.flow_mask.src_ip = ~0;
++                        $$.flow_mask.dst_port = ~0;
++                        $$.flow_mask.src_port = ~0;
++                        $$.flow_mask.proto = ~0;
++                        n2mask(&$$.flow_mask.dst_ip6, 128);
++                        n2mask(&$$.flow_mask.src_ip6, 128);
++                        $$.flow_mask.flow_id6 = ~0;
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++                }
++                | DSTIP number             	{
++			$$.flow_mask.dst_ip = (uint32_t)$2;
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++                }
++                | SRCIP number	             {
++                        $$.flow_mask.src_ip = (uint32_t)$2;
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++                }
++                | DSTPORT number	           {
++                        $$.flow_mask.dst_port = (uint16_t)$2;
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++                }
++                | SRCPORT number	           {
++                        $$.flow_mask.src_port = (uint16_t)$2;
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++                }
++                | DSTIP6 '/' number 	           {
++                        n2mask(&$$.flow_mask.dst_ip6, $3);
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++                }
++                | SRCIP6 '/' number	            {
++                        n2mask(&$$.flow_mask.src_ip6, $3);
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++                }
++                | FLOWID number	            {
++                        $$.flow_mask.flow_id6 = (uint32_t)$2;
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++
++                }
++                | PROTO number 	             {
++                        $$.flow_mask.proto = (uint8_t)$2;
++                        $$.flags_fs |= DN_HAVE_FLOW_MASK;
++                }
++                | NOERROR       { $$.flags_fs |= DN_NOERROR; }
++                ;
++
+ pfrule		: action dir logquick interface route af proto fromto
+ 		    filter_opts
+ 		{
+@@ -2105,6 +2379,15 @@
+ 				free($9.queues.pqname);
+ 			}
+ 
++			if ($9.dnpipe) {
++                                r.dnpipe = $9.dnpipe;
++				if ($9.free_flags & PFRULE_DN_IS_PIPE)
++					r.free_flags |= PFRULE_DN_IS_PIPE;
++				else
++					r.free_flags |= PFRULE_DN_IS_QUEUE;
++				r.pdnpipe = $9.pdnpipe;
++			}
++
+ 			expand_rule(&r, $4, $5.host, $7, $8.src_os,
+ 			    $8.src.host, $8.src.port, $8.dst.host, $8.dst.port,
+ 			    $9.uid, $9.gid, $9.icmpspec, "");
+@@ -2202,6 +2485,35 @@
+ 			}
+ 			filter_opts.queues = $1;
+ 		}
++		| DNPIPE number			        {
++			filter_opts.dnpipe = $2;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
++		}
++		| DNPIPE '(' number ')'			{
++			filter_opts.dnpipe = $3;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
++		}
++		| DNPIPE '(' number comma number ')' {
++			filter_opts.pdnpipe = $5;
++			filter_opts.dnpipe = $3;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
++		}
++		| DNQUEUE number			{
++			filter_opts.dnpipe = $2;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
++		}
++		| DNQUEUE '(' number comma number ')'	{
++			filter_opts.pdnpipe = $5;
++			filter_opts.dnpipe = $3;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
++		}
++		| DNQUEUE '(' number ')'		{
++			filter_opts.dnpipe = $3;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
++		}
++		| DIVERT number				{
++			filter_opts.divert = $2;
++		}
+ 		| TAG string				{
+ 			filter_opts.tag = $2;
+ 		}
+@@ -4230,6 +4542,15 @@
+ 		yyerror("tos and dscp cannot be used together");
+ 		problems++;
+ 	}
++	if (r->dnpipe && r->pdnpipe && !r->direction) {
++		yyerror("dummynet cannot be specified without direction");
++		problems++;
++	}
++	if (r->dnpipe && !r->keep_state) {
++		yyerror("dummynet cannot be specified withtout keep state");
++		problems++;
++	}
++
+ 	return (-problems);
+ }
+ 
+@@ -5022,9 +5343,17 @@
+ 		{ "code",		CODE},
+ 		{ "crop",		FRAGCROP},
+ 		{ "debug",		DEBUG},
++		{ "delay",              DELAY},
++		{ "dngred",             DNGRED},
++		{ "dnpipe",             DNPIPE},
++                { "dnqueue",            DNQUEUE},
++		{ "dnred",		DNRED},
+ 		{ "drop",		DROP},
+ 		{ "drop-ovl",		FRAGDROP},
+ 		{ "dscp",		DSCP},
++		{ "dst-ip",             DSTIP},
++                { "dst-ip6",            DSTIP6},
++                { "dst-port",           DSTPORT},
+ 		{ "dup-to",		DUPTO},
+ 		{ "fairq",		FAIRQ},
+ 		{ "fastroute",		FASTROUTE},
+@@ -5032,6 +5361,7 @@
+ 		{ "fingerprints",	FINGERPRINTS},
+ 		{ "flags",		FLAGS},
+ 		{ "floating",		FLOATING},
++		{ "flow-id",            FLOWID},
+ 		{ "flush",		FLUSH},
+ 		{ "for",		FOR},
+ 		{ "fragment",		FRAGMENT},
+@@ -5054,6 +5384,7 @@
+ 		{ "load",		LOAD},
+ 		{ "log",		LOG},
+ 		{ "loginterface",	LOGINTERFACE},
++		{ "mask",		MASK},
+ 		{ "max",		MAXIMUM},
+ 		{ "max-mss",		MAXMSS},
+ 		{ "max-src-conn",	MAXSRCCONN},
+@@ -5068,12 +5399,14 @@
+ 		{ "no-df",		NODF},
+ 		{ "no-route",		NOROUTE},
+ 		{ "no-sync",		NOSYNC},
++		{ "noerror",		NOERROR},
+ 		{ "on",			ON},
+ 		{ "optimization",	OPTIMIZATION},
+ 		{ "os",			OS},
+ 		{ "out",		OUT},
+ 		{ "overload",		OVERLOAD},
+ 		{ "pass",		PASS},
++		{ "plr",		PLR},
+ 		{ "port",		PORT},
+ 		{ "priority",		PRIORITY},
+ 		{ "priq",		PRIQ},
+@@ -5105,6 +5438,9 @@
+ 		{ "skip",		SKIP},
+ 		{ "source-hash",	SOURCEHASH},
+ 		{ "source-track",	SOURCETRACK},
++		{ "src-ip",		SRCIP},
++		{ "src-ip6", 		SRCIP6},
++		{ "src-port",		SRCPORT},
+ 		{ "state",		STATE},
+ 		{ "state-policy",	STATEPOLICY},
+ 		{ "static-port",	STATICPORT},
+@@ -5121,6 +5457,7 @@
+ 		{ "upperlimit",		UPPERLIMIT},
+ 		{ "urpf-failed",	URPFFAILED},
+ 		{ "user",		USER},
++		{ "weight",		WEIGHT},
+ 	};
+ 	const struct keywords	*p;
+ 
+@@ -5649,3 +5986,80 @@
+ 
+ 	return (0);
+ }
++
++/* n2mask sets n bits of the mask */
++static void
++n2mask(struct in6_addr *mask, int n)
++{
++        static int      minimask[9] =
++            { 0x00, 0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff };
++        u_char          *p;
++
++        memset(mask, 0, sizeof(struct in6_addr));
++        p = (u_char *) mask;
++        for (; n > 0; p++, n -= 8) {
++                if (n >= 8)
++                        *p = 0xff;
++                else
++                        *p = minimask[n];
++        }
++        return;
++}
++
++static void
++calculate_dnred(struct dn_flow_set *flow, int bandwidth) 
++{
++	struct clockinfo ck;
++	size_t len;
++	double s, idle, weight, w_q;
++	int lookup_depth, avg_pkt_size;
++	int t;
++
++	len = sizeof(int);
++        if (sysctlbyname("net.inet.ip.dummynet.red_lookup_depth",
++        	&lookup_depth, &len, NULL, 0) == -1) 
++                err(1, "sysctlbyname(\"%s\")",
++                	"net.inet.ip.dummynet.red_lookup_depth");
++
++        if (sysctlbyname("net.inet.ip.dummynet.red_avg_pkt_size",
++        	&avg_pkt_size, &len, NULL, 0) == -1) 
++                err(1, "sysctlbyname(\"%s\")",
++                	"net.inet.ip.dummynet.red_avg_pkt_size");
++		
++
++	len = sizeof(struct clockinfo);
++        if (sysctlbyname("kern.clockrate", &ck, &len, NULL, 0) == -1) 
++        	err(1, "sysctlbyname(\"%s\")", "kern.clockrate");
++
++        /*
++         * Ticks needed for sending a medium-sized packet.
++         * Unfortunately, when we are configuring a WF2Q+ queue, we
++         * do not have bandwidth information, because that is stored
++         * in the parent pipe, and also we have multiple queues
++         * competing for it. So we set s=0, which is not very
++         * correct. But on the other hand, why do we want RED with
++         * WF2Q+ ?
++         */
++         if (bandwidth==0) /* this is a WF2Q+ queue */
++	         s = 0;
++         else
++         	 s = ck.hz * avg_pkt_size * 8 / bandwidth;
++
++         /*
++          * max idle time (in ticks) before avg queue size becomes 0.
++          * NOTA:  (3/w_q) is approx the value x so that
++          * (1-w_q)^x < 10^-3.
++          */
++         w_q = ((double)flow->w_q) / (1 << SCALE_RED);
++         idle = s * 3 / w_q;
++         flow->lookup_step = (int)idle / lookup_depth;
++         if (!flow->lookup_step)
++         	flow->lookup_step = 1;
++         weight = 1 - w_q;
++         for (t = flow->lookup_step; t > 0; --t)
++         	weight *= weight;
++	 flow->lookup_weight = (int)(weight * (1 << SCALE_RED));
++	
++	 return;
++}
++
+Index: contrib/pf/pfctl/pfctl.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl.c,v
+retrieving revision 1.2
+diff -u -r1.2 pfctl.c
+--- contrib/pf/pfctl/pfctl.c	21 Oct 2008 15:25:55 -0000	1.2
++++ contrib/pf/pfctl/pfctl.c	21 Oct 2008 18:14:58 -0000
+@@ -46,6 +46,9 @@
+ #include <altq/altq.h>
+ #include <sys/sysctl.h>
+ 
++#include <netinet/ip_fw.h>
++#include <netinet/ip_dummynet.h>
++
+ #include <err.h>
+ #include <errno.h>
+ #include <fcntl.h>
+@@ -71,6 +74,7 @@
+ int	 pfctl_clear_rules(int, int, char *);
+ int	 pfctl_clear_nat(int, int, char *);
+ int	 pfctl_clear_altq(int, int);
++int	 pfctl_clear_dummynet(int, int);
+ int	 pfctl_clear_src_nodes(int, int);
+ int	 pfctl_clear_states(int, const char *, int);
+ void	 pfctl_addrprefix(char *, struct pf_addr *);
+@@ -96,6 +100,7 @@
+ int	 pfctl_show_limits(int, int);
+ void	 pfctl_debug(int, u_int32_t, int);
+ int	 pfctl_test_altqsupport(int, int);
++int	 pfctl_test_dummynetsupport(int, int);
+ int	 pfctl_show_anchors(int, int, char *);
+ int	 pfctl_ruleset_trans(struct pfctl *, char *, struct pf_anchor *);
+ int	 pfctl_load_ruleset(struct pfctl *, char *,
+@@ -125,6 +130,9 @@
+ int		 loadopt;
+ int		 altqsupport;
+ 
++int 		 dummynetsupport;
++int 		 dnsock;
++
+ int		 dev = -1;
+ int		 first_title = 1;
+ int		 labels = 0;
+@@ -210,12 +218,12 @@
+ };
+ 
+ static const char *clearopt_list[] = {
+-	"nat", "queue", "rules", "Sources",
++	"nat", "queue", "dummynet", "rules", "Sources",
+ 	"state", "info", "Tables", "osfp", "all", NULL
+ };
+ 
+ static const char *showopt_list[] = {
+-	"nat", "queue", "rules", "Anchors", "Sources", "state", "info",
++	"nat", "queue", "dummynet", "rules", "Anchors", "Sources", "state", "info",
+ 	"Interfaces", "labels", "timeouts", "memory", "Tables", "osfp",
+ 	"all", NULL
+ };
+@@ -286,6 +294,8 @@
+ 			if (errno != ENOENT)
+ 				err(1, "DIOCSTOPALTQ");
+ 
++	pfctl_clear_dummynet(0, opts);
++
+ 	return (0);
+ }
+ 
+@@ -370,6 +380,21 @@
+ }
+ 
+ int
++pfctl_clear_dummynet(int __unused socket, int opts)
++{
++       if (!dummynetsupport)
++               return (-1);
++       if (setsockopt(dnsock, IPPROTO_IP, IP_DUMMYNET_FLUSH, NULL, 0) < 0) {
++               err(1,"setsockopt(IP_DUMMYNET_FLUSH)");
++               return (1);
++       }
++
++       if ((opts & PF_OPT_QUIET) == 0)
++               fprintf(stderr, "DUMMYNET cleared\n");
++       return (0);
++}
++
++int
+ pfctl_clear_src_nodes(int dev, int opts)
+ {
+ 	if (ioctl(dev, DIOCCLRSRCNODES))
+@@ -804,6 +829,10 @@
+ 
+ 		printf("  [ queue: qname=%s qid=%u pqname=%s pqid=%u ]\n",
+ 		    rule->qname, rule->qid, rule->pqname, rule->pqid);
++
++		printf("  [ %s: in id=%d out id=%d  ]\n",
++			rule->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
++			rule->dnpipe, rule->pdnpipe);
+ 	}
+ 	if (opts & PF_OPT_VERBOSE) {
+ 		printf("  [ Evaluations: %-8llu  Packets: %-8llu  "
+@@ -1413,6 +1442,24 @@
+ }
+ 
+ int
++pfctl_add_dummynet(struct pfctl *pf, struct dn_pipe *p)
++{
++       if (dummynetsupport &&
++           (loadopt & PFCTL_FLAG_DUMMYNET) != 0) {
++               if ((pf->opts & PF_OPT_NOACTION) == 0) {
++                       if (setsockopt(dnsock, IPPROTO_IP, IP_DUMMYNET_CONFIGURE,
++                               p, sizeof(*p)) < 0) {
++                               errx(1, "DUMMYNET configure");
++                       }
++               }
++        }
++	if (pf->opts & PF_OPT_VERBOSE) 
++	       print_dummynet(p);
++
++       return (0);
++}
++
++int
+ pfctl_rules(int dev, char *filename, FILE *fin, int opts, int optimize,
+     char *anchorname, struct pfr_buffer *trans)
+ {
+@@ -1979,6 +2026,23 @@
+ }
+ 
+ int
++pfctl_test_dummynetsupport(int __unused socket, int opts)
++{
++       void *data = NULL;
++       socklen_t       len;
++
++       if (getsockopt(dnsock, IPPROTO_IP, IP_DUMMYNET_GET, data,
++                       &len) < 0) {
++#if 0
++               if (!(opts & (PF_OPT_QUIET|PF_OPT_NOACTION)))
++                       fprintf(stderr, "DUMMYNET not loaded\n");
++#endif
++               return (0);
++       }
++       return (1);
++}
++
++int
+ pfctl_show_anchors(int dev, int opts, char *anchorname)
+ {
+ 	struct pfioc_ruleset	 pr;
+@@ -2043,7 +2107,7 @@
+ 		usage();
+ 
+ 	while ((ch = getopt(argc, argv,
+-	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::p:rRs:t:T:vx:z")) != -1) {
++	    "a:AdDP:eqf:F:ghi:b:k:K:mnNOo::p:rRs:t:T:vx:z")) != -1) {
+ 		switch (ch) {
+ 		case 'a':
+ 			anchoropt = optarg;
+@@ -2125,6 +2189,9 @@
+ 		case 'A':
+ 			loadopt |= PFCTL_FLAG_ALTQ;
+ 			break;
++		case 'P':
++			loadopt |= PFCTL_FLAG_DUMMYNET;
++			break;
+ 		case 'R':
+ 			loadopt |= PFCTL_FLAG_FILTER;
+ 			break;
+@@ -2239,6 +2306,11 @@
+ 		if (dev == -1)
+ 			err(1, "%s", pf_device);
+ 		altqsupport = pfctl_test_altqsupport(dev, opts);
++
++		dnsock = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
++		if (dnsock < 0)
++			err(1, "socket");
++		dummynetsupport = pfctl_test_dummynetsupport(dnsock, opts);
+ 	} else {
+ 		dev = open(pf_device, O_RDONLY);
+ 		if (dev >= 0)
+@@ -2251,6 +2323,10 @@
+ #else
+ 		altqsupport = 1;
+ #endif
++		dnsock = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
++                if (dnsock < 0)
++                        err(1, "socket");
++                dummynetsupport = pfctl_test_dummynetsupport(dnsock, opts);
+ 	}
+ 
+ 	if (opts & PF_OPT_DISABLE)
+@@ -2262,6 +2338,9 @@
+ 		case 'A':
+ 			pfctl_show_anchors(dev, opts, anchorname);
+ 			break;
++		case 'd':
++                        pfctl_show_dummynet(dnsock, opts);
++                        break;
+ 		case 'r':
+ 			pfctl_load_fingerprints(dev, opts);
+ 			pfctl_show_rules(dev, path, opts, PFCTL_SHOW_RULES,
+@@ -2302,6 +2381,7 @@
+ 			pfctl_show_nat(dev, opts, anchorname);
+ 			pfctl_show_rules(dev, path, opts, 0, anchorname, 0);
+ 			pfctl_show_altq(dev, ifaceopt, opts, 0);
++			pfctl_show_dummynet(dnsock, opts);
+ 			pfctl_show_states(dev, ifaceopt, opts);
+ 			pfctl_show_src_nodes(dev, opts);
+ 			pfctl_show_status(dev, opts);
+@@ -2334,6 +2414,9 @@
+ 			    "be modified from the command line");
+ 
+ 		switch (*clearopt) {
++		case 'd':
++			pfctl_clear_dummynet(dnsock, opts);
++			break;
+ 		case 'r':
+ 			pfctl_clear_rules(dev, opts, anchorname);
+ 			break;
+@@ -2358,6 +2441,7 @@
+ 			pfctl_clear_tables(anchorname, opts);
+ 			if (!*anchorname) {
+ 				pfctl_clear_altq(dev, opts);
++				pfctl_clear_dummynet(dnsock, opts);
+ 				pfctl_clear_states(dev, ifaceopt, opts);
+ 				pfctl_clear_src_nodes(dev, opts);
+ 				pfctl_clear_stats(dev, opts);
+@@ -2454,5 +2538,8 @@
+ 		}
+ 	}
+ 
++	if (dummynetsupport)
++		close(dnsock);
++
+ 	exit(error);
+ }
+Index: contrib/pf/pfctl/pfctl.h
+===================================================================
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pfctl.h
+--- contrib/pf/pfctl/pfctl.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl.h	21 Oct 2008 18:15:04 -0000
+@@ -85,6 +85,7 @@
+ int	 pfctl_command_tables(int, char *[], char *, const char *, char *,
+ 	    const char *, int);
+ int	 pfctl_show_altq(int, const char *, int, int);
++int	 pfctl_show_dummynet(int, int);
+ void	 warn_namespace_collision(const char *);
+ int	 pfctl_show_ifaces(const char *, int);
+ FILE	*pfctl_fopen(const char *, const char *);
+Index: contrib/pf/pfctl/pfctl_dn.c
+===================================================================
+RCS file: contrib/pf/pfctl/pfctl_dn.c
+diff -N contrib/pf/pfctl/pfctl_dn.c
+--- /dev/null	1 Jan 1970 00:00:00 -0000
++++ contrib/pf/pfctl/pfctl_dn.c	21 Oct 2008 18:15:09 -0000
+@@ -0,0 +1,397 @@
++/*
++ * Copyright (c) 2007 Ermal Luçi
++ * Copyright (c) 2002-2003 Luigi Rizzo
++ * Copyright (c) 1996 Alex Nash, Paul Traina, Poul-Henning Kamp
++ * Copyright (c) 1994 Ugen J.S.Antsilevich
++ *
++ * Idea and grammar partially left from:
++ * Copyright (c) 1993 Daniel Boulet
++ *
++ * Redistribution and use in source forms, with and without modification,
++ * are permitted provided that this entire comment appears intact.
++ *
++ * Redistribution in binary form may occur without any restrictions.
++ * Obviously, it would be nice if you gave credit where credit is due
++ * but requiring it would be too onerous.
++ *
++ * This software is provided ``AS IS'' without any warranties of any kind.
++ *
++ * NEW command line interface for IP firewall facility
++ *
++ */
++
++/*
++ * Most of this is derived from ipfw(8) code.
++ */
++
++#include <sys/cdefs.h>
++
++#include <sys/param.h>
++#include <sys/ioctl.h>
++#include <sys/socket.h>
++#include <sys/types.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++
++#include <net/if.h>
++#include <netinet/in.h>
++#include <net/pfvar.h>
++
++#include <err.h>
++#include <errno.h>
++#include <limits.h>
++#include <math.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <netdb.h>
++
++#include <netinet/ip_fw.h>
++#include <netinet/ip_dummynet.h>
++
++#include "pfctl_parser.h"
++#include "pfctl.h"
++
++static int do_sort,
++	   verbose;
++
++static int sort_q(const void *, const void *);
++static void
++list_queues(struct dn_flow_set *, struct dn_flow_queue *);
++static void
++print_flowset_parms(struct dn_flow_set *, char *);
++static void
++list_pipes(void *, uint );
++
++static int
++sort_q(const void *pa, const void *pb)
++{
++        int rev = (0);
++        int field = rev ? -do_sort : do_sort;
++        long long res = 0;
++        const struct dn_flow_queue *a = pa;
++        const struct dn_flow_queue *b = pb;
++
++        switch (field) {
++        case 1: /* pkts */
++                res = a->len - b->len;
++                break;
++        case 2: /* bytes */
++                res = a->len_bytes - b->len_bytes;
++                break;
++
++        case 3: /* tot pkts */
++                res = a->tot_pkts - b->tot_pkts;
++                break;
++
++        case 4: /* tot bytes */
++                res = a->tot_bytes - b->tot_bytes;
++                break;
++        }
++        if (res < 0)
++                res = -1;
++        if (res > 0)
++                res = 1;
++        return (int)(rev ? res : -res);
++}
++
++static void
++list_queues(struct dn_flow_set *fs, struct dn_flow_queue *q)
++{
++        int l;
++        int index_printed, indexes = 0;
++        char buff[255];
++        struct protoent *pe;
++
++        if (fs->rq_elements == 0)
++                return;
++
++        if (do_sort != 0)
++                heapsort(q, fs->rq_elements, sizeof *q, sort_q);
++
++        /* Print IPv4 flows */
++        index_printed = 0;
++        for (l = 0; l < fs->rq_elements; l++) {
++                struct in_addr ina;
++
++                /* XXX: Should check for IPv4 flows */
++                if (IS_IP6_FLOW_ID(&(q[l].id)))
++                        continue;
++
++                if (!index_printed) {
++                        index_printed = 1;
++                        if (indexes > 0)        /* currently a no-op */
++                                printf("\n");
++                        indexes++;
++                        printf("    "
++                            "mask: 0x%02x 0x%08x/0x%04x -> 0x%08x/0x%04x\n",
++                            fs->flow_mask.proto,
++                            fs->flow_mask.src_ip, fs->flow_mask.src_port,
++                            fs->flow_mask.dst_ip, fs->flow_mask.dst_port);
++
++                        printf("BKT Prot ___Source IP/port____ "
++                            "____Dest. IP/port____ "
++                            "Tot_pkt/bytes Pkt/Byte Drp\n");
++                }
++
++                printf("%3d ", q[l].hash_slot);
++                pe = getprotobynumber(q[l].id.proto);
++                if (pe)
++                        printf("%-4s ", pe->p_name);
++                else
++                        printf("%4u ", q[l].id.proto);
++                ina.s_addr = htonl(q[l].id.src_ip);
++                printf("%15s/%-5d ",
++                    inet_ntoa(ina), q[l].id.src_port);
++                ina.s_addr = htonl(q[l].id.dst_ip);
++                printf("%15s/%-5d ",
++                    inet_ntoa(ina), q[l].id.dst_port);
++                printf("%4qu %8qu %2u %4u %3u\n",
++                    q[l].tot_pkts, q[l].tot_bytes,
++                    q[l].len, q[l].len_bytes, q[l].drops);
++                if (verbose)
++                        printf("   S %20qd  F %20qd\n",
++                            q[l].S, q[l].F);
++        }
++
++        /* Print IPv6 flows */
++        index_printed = 0;
++        for (l = 0; l < fs->rq_elements; l++) {
++                if (!IS_IP6_FLOW_ID(&(q[l].id)))
++                        continue;
++
++                if (!index_printed) {
++                        index_printed = 1;
++                        if (indexes > 0)
++                                printf("\n");
++                       indexes++;
++                        printf("\n        mask: proto: 0x%02x, flow_id: 0x%08x,  ",
++                            fs->flow_mask.proto, fs->flow_mask.flow_id6);
++                        inet_ntop(AF_INET6, &(fs->flow_mask.src_ip6),
++                            buff, sizeof(buff));
++                        printf("%s/0x%04x -> ", buff, fs->flow_mask.src_port);
++                        inet_ntop( AF_INET6, &(fs->flow_mask.dst_ip6),
++                            buff, sizeof(buff) );
++                        printf("%s/0x%04x\n", buff, fs->flow_mask.dst_port);
++
++                        printf("BKT ___Prot___ _flow-id_ "
++                            "______________Source IPv6/port_______________ "
++                            "_______________Dest. IPv6/port_______________ "
++                            "Tot_pkt/bytes Pkt/Byte Drp\n");
++                }
++                printf("%3d ", q[l].hash_slot);
++                pe = getprotobynumber(q[l].id.proto);
++                if (pe != NULL)
++                        printf("%9s ", pe->p_name);
++                else
++                        printf("%9u ", q[l].id.proto);
++                printf("%7d  %39s/%-5d ", q[l].id.flow_id6,
++                    inet_ntop(AF_INET6, &(q[l].id.src_ip6), buff, sizeof(buff)),
++                    q[l].id.src_port);
++                printf(" %39s/%-5d ",
++                    inet_ntop(AF_INET6, &(q[l].id.dst_ip6), buff, sizeof(buff)),
++                    q[l].id.dst_port);
++                printf(" %4qu %8qu %2u %4u %3u\n",
++                    q[l].tot_pkts, q[l].tot_bytes,
++                    q[l].len, q[l].len_bytes, q[l].drops);
++                if (verbose)
++                        printf("   S %20qd  F %20qd\n", q[l].S, q[l].F);
++        }
++}
++
++static void
++print_flowset_parms(struct dn_flow_set *fs, char *prefix)
++{
++        int l;
++        char qs[30];
++        char plr[30];
++        char red[90];   /* Display RED parameters */
++
++        l = fs->qsize;
++        if (fs->flags_fs & DN_QSIZE_IS_BYTES) {
++                if (l >= 8192)
++                        sprintf(qs, "%d KB", l / 1024);
++                else
++                        sprintf(qs, "%d B", l);
++        } else
++                sprintf(qs, "%3d sl.", l);
++        if (fs->plr)
++                sprintf(plr, "plr %f", 1.0 * fs->plr / (double)(0x7fffffff));
++        else
++                plr[0] = '\0';
++        if (fs->flags_fs & DN_IS_RED)   /* RED parameters */
++                sprintf(red,
++                    "\n\t  %cRED w_q %f min_th %d max_th %d max_p %f",
++                    (fs->flags_fs & DN_IS_GENTLE_RED) ? 'G' : ' ',
++                    1.0 * fs->w_q / (double)(1 << SCALE_RED),
++                    SCALE_VAL(fs->min_th),
++                    SCALE_VAL(fs->max_th),
++                    1.0 * fs->max_p / (double)(1 << SCALE_RED));
++        else
++                sprintf(red, "droptail");
++
++        printf("%s %s%s %d queues (%d buckets) %s\n",
++            prefix, qs, plr, fs->rq_elements, fs->rq_size, red);
++}
++
++
++static void
++list_pipes(void *data, uint nbytes)
++{
++        void *next = data;
++        struct dn_pipe *p = (struct dn_pipe *) data;
++        struct dn_flow_set *fs;
++        struct dn_flow_queue *q;
++        int l;
++
++        for (; nbytes >= sizeof *p; p = (struct dn_pipe *)next) {
++                double b = p->bandwidth;
++                char buf[30];
++                char prefix[80];
++
++                if (SLIST_NEXT(p, next) != (struct dn_pipe *)DN_IS_PIPE)
++                        break;  /* done with pipes, now queues */
++
++                /*
++                 * compute length, as pipe have variable size
++                 */
++                l = sizeof(*p) + p->fs.rq_elements * sizeof(*q);
++                next = (char *)p + l;
++                nbytes -= l;
++
++                /*
++                 * Print rate (or clocking interface)
++                 */
++                if (p->if_name[0] != '\0')
++                       sprintf(buf, "%s", p->if_name);
++                else if (b == 0)
++                        sprintf(buf, "unlimited");
++                else if (b >= 1000000)
++                        sprintf(buf, "%7.3f Mbit/s", b/1000000);
++                else if (b >= 1000)
++                        sprintf(buf, "%7.3f Kbit/s", b/1000);
++                else
++                        sprintf(buf, "%7.3f bit/s ", b);
++
++                sprintf(prefix, "%05d: %s %4d ms ",
++                    p->pipe_nr, buf, p->delay);
++                print_flowset_parms(&(p->fs), prefix);
++                if (verbose)
++                        printf("   V %20qd\n", p->V >> MY_M);
++
++                q = (struct dn_flow_queue *)(p+1);
++                list_queues(&(p->fs), q);
++        }
++        for (fs = next; nbytes >= sizeof *fs; fs = next) {
++                char prefix[80];
++
++                if (SLIST_NEXT(fs, next) != (struct dn_flow_set *)DN_IS_QUEUE)
++                        break;
++                l = sizeof(*fs) + fs->rq_elements * sizeof(*q);
++                next = (char *)fs + l;
++                nbytes -= l;
++#if 0
++                if (rulenum != 0 && ((rulenum != fs->fs_nr && do_pipe == 2) ||
++                    (rulenum != fs->parent_nr && do_pipe == 1))) {
++                        continue;
++                }
++#endif
++                q = (struct dn_flow_queue *)(fs+1);
++                sprintf(prefix, "q%05d: weight %d pipe %d ",
++                    fs->fs_nr, fs->weight, fs->parent_nr);
++                print_flowset_parms(fs, prefix);
++                list_queues(fs, q);
++        }
++}
++
++void
++print_dummynet(struct dn_pipe *p)
++{
++	if (p->pipe_nr != 0) { /* This is a pipe */
++		printf("dnpipe %d", p->pipe_nr);
++		if (p->bandwidth >= 1000000) 
++			printf(" bandwidth %dMb", p->bandwidth/1000000);
++	        else if (p->bandwidth >= 1000)
++         	        printf(" bandwidth %dKb", p->bandwidth/1000);
++	        else 
++                       	printf(" bandwidth %db ", p->bandwidth);
++		if (p->delay > 0)
++			printf(" delay %d", p->delay);
++	} else {
++		printf("dnqueue %d dnpipe %d", p->fs.fs_nr, p->fs.parent_nr);
++		if (p->fs.weight)
++			printf(" weight %d", p->fs.weight);
++	}
++
++	if (p->fs.rq_size > 15)
++		printf(" buckets %d", p->fs.rq_size);
++	if (p->fs.flags_fs & DN_QSIZE_IS_BYTES) {
++                if (p->fs.qsize >= 8192)
++                        printf(" queue %dKB",  p->fs.qsize / 1024);
++                else if (p->fs.qsize > 0)
++                        printf(" queue %dB", p->fs.qsize);
++        } else
++		if (p->fs.qsize > 0)
++	                printf(" queue %3d", p->fs.qsize);
++        if (p->fs.plr > 0)
++                printf(" plr %f", 1.0 * p->fs.plr / (double)(0x7fffffff));
++
++	if (p->fs.flow_mask.proto && p->fs.flow_mask.dst_ip && 
++		p->fs.flow_mask.src_ip && p->fs.flow_mask.dst_port && 
++		p->fs.flow_mask.src_port &&
++		p->fs.flow_mask.flow_id6)
++		printf(" mask all");
++	else  if (p->fs.flow_mask.proto || p->fs.flow_mask.dst_ip || 
++		p->fs.flow_mask.src_ip || p->fs.flow_mask.dst_port || 
++		p->fs.flow_mask.src_port ||
++		p->fs.flow_mask.flow_id6) {
++		printf("\n\t mask: ");
++	if (p->fs.flow_mask.proto)
++		printf(" proto 0x%02x", p->fs.flow_mask.proto);
++	if (p->fs.flow_mask.src_ip)
++		printf(" src-ip 0x%08x", p->fs.flow_mask.src_ip);
++	if (p->fs.flow_mask.src_port)
++		printf(" src-port 0x%04x", p->fs.flow_mask.src_port);
++	if (p->fs.flow_mask.dst_ip)
++		printf(" dst-ip 0x%08x", p->fs.flow_mask.dst_ip);
++	if (p->fs.flow_mask.dst_port)
++		printf(" dst-port 0x%04x", p->fs.flow_mask.dst_port);
++	if (p->fs.flow_mask.flow_id6)
++		printf(" dst-port 0x%08x", p->fs.flow_mask.flow_id6);
++	}
++	if (p->fs.flags_fs & DN_NOERROR)
++		printf(" noerror");
++
++	printf("\n");	
++}
++
++int
++pfctl_show_dummynet(int dnsock, int opts)
++{
++        void *data = NULL;
++        int nbytes, nalloc = 1024;
++
++	if (opts & PF_OPT_VERBOSE)
++		verbose = 1;
++	else 
++		verbose = 0;
++	
++	nbytes = nalloc;
++        while (nbytes >= nalloc) {
++                nalloc = nalloc * 2 + 200;
++                nbytes = nalloc;
++                if ((data = realloc(data, nbytes)) == NULL)
++                        err(1, "realloc");
++                if (getsockopt(dnsock, IPPROTO_IP, IP_DUMMYNET_GET, data,
++                        (socklen_t *)&nbytes) < 0) {
++                        free(data);
++                        err(1, "getsockopt(IP_DUMMYNET_GET)");
++		}
++        }
++	
++        list_pipes(data, nbytes);
++	
++	return (0);
++
++}
+Index: contrib/pf/pfctl/pfctl_parser.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl_parser.c,v
+retrieving revision 1.2
+diff -u -r1.2 pfctl_parser.c
+--- contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 15:23:00 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 18:15:34 -0000
+@@ -48,6 +48,9 @@
+ #include <net/pfvar.h>
+ #include <arpa/inet.h>
+ 
++#include <netinet/ip_fw.h>
++#include <netinet/ip_dummynet.h>
++
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -983,6 +986,14 @@
+ 	}
+ 	if (r->label[0])
+ 		printf(" label \"%s\"", r->label);
++	if (r->dnpipe && r->pdnpipe)
++	       printf(" %s(%d, %d)", 
++			r->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
++			r->dnpipe, r->pdnpipe);
++	else if (r->dnpipe)	
++		printf(" %s %d", 
++			r->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
++			r->dnpipe);
+ 	if (r->qname[0] && r->pqname[0])
+ 		printf(" queue(%s, %s)", r->qname, r->pqname);
+ 	else if (r->qname[0])
+Index: contrib/pf/pfctl/pfctl_parser.h
+===================================================================
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl_parser.h,v
+retrieving revision 1.2
+diff -u -r1.2 pfctl_parser.h
+--- contrib/pf/pfctl/pfctl_parser.h	21 Oct 2008 15:19:34 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.h	21 Oct 2008 18:15:48 -0000
+@@ -67,6 +67,7 @@
+ }
+ 
+ struct pfr_buffer;	/* forward definition */
++struct dn_pipe;
+ 
+ 
+ struct pfctl {
+@@ -232,6 +233,7 @@
+ 
+ int	pfctl_add_rule(struct pfctl *, struct pf_rule *, const char *);
+ int	pfctl_add_altq(struct pfctl *, struct pf_altq *);
++int 	pfctl_add_dummynet(struct pfctl *, struct dn_pipe *);
+ int	pfctl_add_pool(struct pfctl *, struct pf_pool *, sa_family_t);
+ void	pfctl_move_pool(struct pf_pool *, struct pf_pool *);
+ void	pfctl_clear_pool(struct pf_pool *);
+@@ -259,6 +261,7 @@
+ int	eval_pfqueue(struct pfctl *, struct pf_altq *, struct node_queue_bw *,
+ 	    struct node_queue_opt *);
+ 
++void	 print_dummynet(struct dn_pipe *);
+ void	 print_altq(const struct pf_altq *, unsigned, struct node_queue_bw *,
+ 	    struct node_queue_opt *);
+ void	 print_queue(const struct pf_altq *, unsigned, struct node_queue_bw *,
+@@ -301,6 +304,7 @@
+ #define PFCTL_FLAG_OPTION	0x08
+ #define PFCTL_FLAG_ALTQ		0x10
+ #define PFCTL_FLAG_TABLE	0x20
++#define	PFCTL_FLAG_DUMMYNET	0x40
+ 
+ extern const struct pf_timeout pf_timeouts[];
+ 
+Index: sbin/pfctl/Makefile
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sbin/pfctl/Makefile,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 Makefile
+--- sbin/pfctl/Makefile	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sbin/pfctl/Makefile	21 Oct 2008 18:15:51 -0000
+@@ -11,6 +11,7 @@
+ SRCS+= pfctl_osfp.c pfctl_radix.c pfctl_table.c pfctl_qstats.c
+ SRCS+= pfctl_optimize.c
+ SRCS+= pf_ruleset.c
++SRCS+= pfctl_dn.c
+ 
+ CFLAGS+= -Wall -Wmissing-prototypes -Wno-uninitialized
+ CFLAGS+= -Wstrict-prototypes -I${.CURDIR}/../../contrib/pf/pfctl
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.3
+diff -u -r1.3 pf.c
+--- sys/contrib/pf/net/pf.c	21 Oct 2008 15:23:00 -0000	1.3
++++ sys/contrib/pf/net/pf.c	21 Oct 2008 18:29:47 -0000
+@@ -136,6 +136,9 @@
+ #include <netinet/icmp6.h>
+ #include <netinet6/nd6.h>
+ #ifdef __FreeBSD__
++#include <netinet/ip_fw.h>
++#include <netinet/ip_dummynet.h>
++
+ #include <netinet6/ip6_var.h>
+ #include <netinet6/in6_pcb.h>
+ #endif
+@@ -6798,6 +6801,9 @@
+ 	int			 off, dirndx, pqid = 0;
+ 
+ #ifdef __FreeBSD__
++	struct m_tag *dn_tag;
++	struct ip_fw_args	 dnflow;
++
+ 	PF_LOCK();
+ #endif
+ 	if (!pf_status.running)
+@@ -6868,6 +6874,16 @@
+ 		goto done;
+ 	}
+ 
++	dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL);
++        if (dn_tag != NULL &&
++                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
++		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
++		s = pd.pf_mtag->state;
++		r = s->rule.ptr;
++                m_tag_delete(m, dn_tag);
++		goto continueprocessing;
++        }
++
+ 	/* We do IP header normalization and packet reassembly here */
+ 	if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 		action = PF_DROP;
+@@ -6907,6 +6923,11 @@
+ 		struct tcphdr	th;
+ 
+ 		pd.hdr.tcp = &th;
++#ifdef __FreeBSD__
++                dnflow.f_id.flags = th.th_flags;
++                dnflow.f_id.dst_port = th.th_dport;
++                dnflow.f_id.src_port = th.th_sport;
++#endif
+ 		if (!pf_pull_hdr(m, off, &th, sizeof(th),
+ 		    &action, &reason, AF_INET)) {
+ 			log = action != PF_PASS;
+@@ -6948,6 +6969,10 @@
+ 		struct udphdr	uh;
+ 
+ 		pd.hdr.udp = &uh;
++#ifdef __FreeBSD__
++                dnflow.f_id.dst_port = uh.uh_dport;
++                dnflow.f_id.src_port = uh.uh_sport;
++#endif
+ 		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
+ 		    &action, &reason, AF_INET)) {
+ 			log = action != PF_PASS;
+@@ -7157,6 +7182,42 @@
+ 	}
+ 
+ 
++#ifdef __FreeBSD__
++        if (r->dnpipe && DUMMYNET_LOADED &&
++                !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
++                        struct ip_fw dummyrule;
++
++                        dummyrule.cmd->opcode =
++                                r->free_flags & PFRULE_DN_IS_PIPE ? O_PIPE : O_QUEUE;
++                        dummyrule.act_ofs = 0;
++                        dummyrule.cmd_len = 1;
++                        if (dir != r->direction && r->pdnpipe) {
++                                dnflow.cookie = r->pdnpipe;
++                        } else if (dir == r->direction) {
++                                dnflow.cookie = r->dnpipe;
++                        } else
++                                goto continueprocessing;
++
++                        dnflow.rule = &dummyrule;
++                        dnflow.f_id.addr_type = 4; /* IPv4 type */
++                        dnflow.f_id.proto = pd.proto;
++			
++			pd.pf_mtag->state = s;
++
++                        PF_UNLOCK();
++
++                        h = mtod(*m0, struct ip *);
++                        NTOHS(h->ip_len);
++                        NTOHS(h->ip_off);
++                        ip_dn_io_ptr(*m0,
++                                dir == PF_IN ? DN_TO_IP_IN : DN_TO_IP_OUT,
++                                &dnflow, DN_CLIENT_PF);
++                        *m0 = NULL;
++                        return (action);
++        }
++continueprocessing:
++#endif
++
+ 	if (action == PF_SYNPROXY_DROP) {
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+@@ -7194,6 +7255,9 @@
+ 	int			 off, terminal = 0, dirndx, rh_cnt = 0;
+ 
+ #ifdef __FreeBSD__
++	struct m_tag *dn_tag;
++	struct ip_fw_args	 dnflow;
++
+ 	PF_LOCK();
+ #endif
+ 
+@@ -7262,6 +7326,16 @@
+ 		goto done;
+ 	}
+ 
++	dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL);
++        if (dn_tag != NULL &&
++                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
++                pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
++		s = pd.pf_mtag->state;
++                r = s->rule.ptr;
++                m_tag_delete(m, dn_tag);
++		goto continueprocessing;
++        }
++
+ 	/* We do IP header normalization and packet reassembly here */
+ 	if (pf_normalize_ip6(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 		action = PF_DROP;
+@@ -7369,6 +7443,11 @@
+ 		struct tcphdr	th;
+ 
+ 		pd.hdr.tcp = &th;
++#ifdef __FreeBSD__
++                dnflow.f_id.flags = th.th_flags;
++                dnflow.f_id.dst_port = th.th_dport;
++                dnflow.f_id.src_port = th.th_sport;
++#endif
+ 		if (!pf_pull_hdr(m, off, &th, sizeof(th),
+ 		    &action, &reason, AF_INET6)) {
+ 			log = action != PF_PASS;
+@@ -7409,6 +7488,10 @@
+ 		struct udphdr	uh;
+ 
+ 		pd.hdr.udp = &uh;
++#ifdef __FreeBSD__
++                dnflow.f_id.dst_port = uh.uh_dport;
++                dnflow.f_id.src_port = uh.uh_sport;
++#endif
+ 		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
+ 		    &action, &reason, AF_INET6)) {
+ 			log = action != PF_PASS;
+@@ -7614,6 +7697,41 @@
+ 			    tr->dst.neg);
+ 	}
+ 
++#ifdef __FreeBSD__
++        if (r->dnpipe && DUMMYNET_LOADED &&
++                !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
++                        struct ip_fw dummyrule;
++
++                        dummyrule.cmd->opcode =
++                                r->free_flags & PFRULE_DN_IS_PIPE ? O_PIPE : O_QUEUE;
++                        dummyrule.act_ofs = 0;
++                        dummyrule.cmd_len = 1;
++                        if (dir != r->direction && r->pdnpipe) {
++                                dnflow.cookie = r->pdnpipe;
++                        } else if (dir == r->direction) {
++                                dnflow.cookie = r->dnpipe;
++                        } else
++                                goto continueprocessing;
++
++                        dnflow.rule = &dummyrule;
++                        dnflow.f_id.addr_type = 4; /* IPv4 type */
++                        dnflow.f_id.proto = pd.proto;
++
++                        pd.pf_mtag->state = s;
++
++                        PF_UNLOCK();
++
++                        h = mtod(*m0, struct ip *);
++                        NTOHS(h->ip_len);
++                        NTOHS(h->ip_off);
++                        ip_dn_io_ptr(*m0,
++                                dir == PF_IN ? DN_TO_IP_IN : DN_TO_IP_OUT,
++                                &dnflow, DN_CLIENT_PF);
++                        *m0 = NULL;
++                        return (action);
++        }
++continueprocessing:
++#endif
+ 
+ 	if (action == PF_SYNPROXY_DROP) {
+ 		m_freem(*m0);
+Index: sys/contrib/pf/net/pf_mtag.h
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pf_mtag.h,v
+retrieving revision 1.2
+diff -u -r1.2 pf_mtag.h
+--- sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 15:19:34 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	21 Oct 2008 18:26:51 -0000
+@@ -37,6 +37,9 @@
+ #define	PF_TAG_GENERATED		0x01
+ #define	PF_TAG_FRAGCACHE		0x02
+ #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
++#define PF_DN_TAG_PRESENT	        0x08
++
++struct pf_state;
+ 
+ struct pf_mtag {
+ 	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
+@@ -46,6 +49,7 @@
+ 	u_int16_t	 tag;		/* tag id */
+ 	u_int8_t	 flags;
+ 	u_int8_t	 routed;
++	struct pf_state	*state;		/* Saved state for relooping packets */
+ 	sa_family_t	 af;		/* for ECN */
+ };
+ 
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.4
+diff -u -r1.4 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:25:55 -0000	1.4
++++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:19:42 -0000
+@@ -632,6 +632,11 @@
+ 	}			 max_src_conn_rate;
+ 	u_int32_t		 qid;
+ 	u_int32_t		 pqid;
++	u_int32_t                dnpipe;
++        u_int32_t                pdnpipe;
++#define	PFRULE_DN_IS_PIPE	0x00000010
++#define	PFRULE_DN_IS_QUEUE	0x00000020	
++	u_int32_t                free_flags;
+ 	u_int32_t		 rt_listid;
+ 	u_int32_t		 nr;
+ 	u_int32_t		 prob;
+Index: sys/net/if_bridge.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/net/if_bridge.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_bridge.c
+--- sys/net/if_bridge.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/net/if_bridge.c	21 Oct 2008 18:19:49 -0000
+@@ -3034,7 +3034,7 @@
+ 			 * packet will return to us via bridge_dummynet().
+ 			 */
+ 			args.oif = ifp;
+-			ip_dn_io_ptr(mp, DN_TO_IFB_FWD, &args);
++			ip_dn_io_ptr(mp, DN_TO_IFB_FWD, &args, DN_CLIENT_IPFW);
+ 			return (error);
+ 		}
+ 
+Index: sys/net/if_ethersubr.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/net/if_ethersubr.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_ethersubr.c
+--- sys/net/if_ethersubr.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/net/if_ethersubr.c	21 Oct 2008 18:19:54 -0000
+@@ -491,7 +491,7 @@
+ 			 */
+ 			*m0 = NULL ;
+ 		}
+-		ip_dn_io_ptr(&m, dst ? DN_TO_ETH_OUT: DN_TO_ETH_DEMUX, &args);
++		ip_dn_io_ptr(&m, dst ? DN_TO_ETH_OUT: DN_TO_ETH_DEMUX, &args,DN_CLIENT_IPFW);
+ 		return 0;
+ 	}
+ 	/*
+Index: sys/netinet/ip_dummynet.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/netinet/ip_dummynet.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_dummynet.c
+--- sys/netinet/ip_dummynet.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/netinet/ip_dummynet.c	21 Oct 2008 18:21:48 -0000
+@@ -86,6 +86,8 @@
+ #include <netinet/ip6.h>       /* for ip6_input, ip6_output prototypes */
+ #include <netinet6/ip6_var.h>
+ 
++static struct ip_fw default_rule;
++
+ /*
+  * We keep a private variable for the simulation time, but we could
+  * probably use an existing one ("softticks" in sys/kern/kern_timeout.c)
+@@ -238,8 +240,8 @@
+ static void	dummynet_flush(void);
+ static void	dummynet_send(struct mbuf *);
+ void		dummynet_drain(void);
++static ip_dn_ruledel_t dn_rule_delete;
+ static ip_dn_io_t dummynet_io;
+-static void	dn_rule_delete(void *);
+ 
+ /*
+  * Heap management functions.
+@@ -1252,7 +1254,7 @@
+  * rule		matching rule, in case of multiple passes
+  */
+ static int
+-dummynet_io(struct mbuf **m0, int dir, struct ip_fw_args *fwa)
++dummynet_io(struct mbuf *m, int dir, struct ip_fw_args *fwa, u_int16_t client)
+ {
+ 	struct mbuf *m = *m0, *head = NULL, *tail = NULL;
+ 	struct dn_pkt_tag *pkt;
+@@ -1336,6 +1338,7 @@
+ 	 */
+ 	pkt->rule = fwa->rule;
+ 	pkt->dn_dir = dir;
++	pkt->dn_client = client;
+ 
+ 	pkt->ifp = fwa->oif;
+ 
+@@ -1556,7 +1559,6 @@
+ 	DUMMYNET_UNLOCK();
+ }
+ 
+-extern struct ip_fw *ip_fw_default_rule ;
+ static void
+ dn_rule_delete_fs(struct dn_flow_set *fs, void *r)
+ {
+@@ -1569,14 +1571,14 @@
+ 	    for (m = q->head ; m ; m = m->m_nextpkt ) {
+ 		struct dn_pkt_tag *pkt = dn_tag_get(m) ;
+ 		if (pkt->rule == r)
+-		    pkt->rule = ip_fw_default_rule ;
++			pkt->rule = &default_rule ;
+ 	    }
+ }
+ /*
+  * when a firewall rule is deleted, scan all queues and remove the flow-id
+  * from packets matching this rule.
+  */
+-void
++sttic void
+ dn_rule_delete(void *r)
+ {
+     struct dn_pipe *pipe;
+@@ -1602,7 +1604,7 @@
+ 		for (m = pipe->head ; m ; m = m->m_nextpkt ) {
+ 			pkt = dn_tag_get(m);
+ 			if (pkt->rule == r)
+-				pkt->rule = ip_fw_default_rule;
++				pkt->rule = &default_rule ;
+ 		}
+ 	}
+     DUMMYNET_UNLOCK();
+@@ -2201,6 +2203,20 @@
+ 	ip_dn_io_ptr = dummynet_io;
+ 	ip_dn_ruledel_ptr = dn_rule_delete;
+ 
++	bzero(&default_rule, sizeof default_rule);
++
++        default_rule.act_ofs = 0;
++        default_rule.rulenum = IPFW_DEFAULT_RULE;
++        default_rule.cmd_len = 1;
++        default_rule.set = RESVD_SET;
++
++        default_rule.cmd[0].len = 1;
++        default_rule.cmd[0].opcode =
++#ifdef IPFIREWALL_DEFAULT_TO_ACCEPT
++                                1 ? O_ACCEPT :
++#endif
++                                O_DENY;
++
+ 	TASK_INIT(&dn_task, 0, dummynet_task, NULL);
+ 	dn_tq = taskqueue_create_fast("dummynet", M_NOWAIT,
+ 	    taskqueue_thread_enqueue, &dn_tq);
+@@ -2267,5 +2283,4 @@
+ 	NULL
+ };
+ DECLARE_MODULE(dummynet, dummynet_mod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
+-MODULE_DEPEND(dummynet, ipfw, 2, 2, 2);
+ MODULE_VERSION(dummynet, 1);
+Index: sys/netinet/ip_dummynet.h
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/netinet/ip_dummynet.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_dummynet.h
+--- sys/netinet/ip_dummynet.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/netinet/ip_dummynet.h	21 Oct 2008 18:29:09 -0000
+@@ -123,6 +123,9 @@
+ #define DN_TO_IP6_OUT	7
+ #define DN_TO_IFB_FWD	8
+ 
++    u_int16_t dn_client;	/* which filter has created the tag */
++#define DN_CLIENT_IPFW	1
++#define DN_CLIENT_PF	2
+     dn_key output_time;		/* when the pkt is due for delivery	*/
+     struct ifnet *ifp;		/* interface, for ip_output		*/
+     struct _ip6dn_args ip6opt;	/* XXX ipv6 options			*/
+@@ -343,7 +346,7 @@
+ #ifdef _KERNEL
+ typedef	int ip_dn_ctl_t(struct sockopt *); /* raw_ip.c */
+ typedef	void ip_dn_ruledel_t(void *); /* ip_fw.c */
+-typedef	int ip_dn_io_t(struct mbuf **m, int dir, struct ip_fw_args *fwa);
++typedef	int ip_dn_io_t(struct mbuf *m, int dir, struct ip_fw_args *fwa, u_int16_t);
+ extern	ip_dn_ctl_t *ip_dn_ctl_ptr;
+ extern	ip_dn_ruledel_t *ip_dn_ruledel_ptr;
+ extern	ip_dn_io_t *ip_dn_io_ptr;
+Index: sys/netinet/ip_fw_pfil.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/netinet/ip_fw_pfil.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_fw_pfil.c
+--- sys/netinet/ip_fw_pfil.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/netinet/ip_fw_pfil.c	21 Oct 2008 18:22:33 -0000
+@@ -72,9 +72,6 @@
+ 
+ int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
+ 
+-/* Dummynet hooks. */
+-ip_dn_ruledel_t	*ip_dn_ruledel_ptr = NULL;
+-
+ /* Divert hooks. */
+ ip_divert_packet_t *ip_divert_ptr = NULL;
+ 
+@@ -160,9 +157,9 @@
+ 		if (!DUMMYNET_LOADED)
+ 			goto drop;
+ 		if (mtod(*m0, struct ip *)->ip_v == 4)
+-			ip_dn_io_ptr(m0, DN_TO_IP_IN, &args);
++			ip_dn_io_ptr(m0, DN_TO_IP_IN, &args, DN_CLIENT_IPFW);
+ 		else if (mtod(*m0, struct ip *)->ip_v == 6)
+-			ip_dn_io_ptr(m0, DN_TO_IP6_IN, &args);
++			ip_dn_io_ptr(m0, DN_TO_IP6_IN, &args, DN_CLIENT_IPFW);
+ 		if (*m0 != NULL)
+ 			goto again;
+ 		return 0;		/* packet consumed */
+@@ -287,9 +284,9 @@
+ 		if (!DUMMYNET_LOADED)
+ 			break;
+ 		if (mtod(*m0, struct ip *)->ip_v == 4)
+-			ip_dn_io_ptr(m0, DN_TO_IP_OUT, &args);
++			ip_dn_io_ptr(m0, DN_TO_IP_OUT, &args, DN_CLIENT_IPFW);
+ 		else if (mtod(*m0, struct ip *)->ip_v == 6)
+-			ip_dn_io_ptr(m0, DN_TO_IP6_OUT, &args);
++			ip_dn_io_ptr(m0, DN_TO_IP6_OUT, &args, DN_CLIENT_IPFW);
+ 		if (*m0 != NULL)
+ 			goto again;
+ 		return 0;		/* packet consumed */
+Index: sys/netinet/ip_input.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/netinet/ip_input.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_input.c
+--- sys/netinet/ip_input.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/netinet/ip_input.c	21 Oct 2008 18:22:42 -0000
+@@ -202,6 +202,7 @@
+  */
+ ip_fw_chk_t *ip_fw_chk_ptr = NULL;
+ ip_dn_io_t *ip_dn_io_ptr = NULL;
++ip_dn_ruledel_t *ip_dn_ruledel_ptr = NULL;
+ int fw_one_pass = 1;
+ 
+ static void	ip_freef(struct ipqhead *, struct ipq *);
