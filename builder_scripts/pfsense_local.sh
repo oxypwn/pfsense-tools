@@ -88,14 +88,16 @@ export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 # Development version
 # export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
+# Patch directory and patch file that lists patches to apply
 export PATCHDIR=${BASE_DIR}/tools/patches/${freebsd_branch}
 export PATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
 
-
+# Controls how many concurrent make processes are run for each stage
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
 export MAKEJ_PORTS=${MAKEJ_PORTS:-"-j1"}
 
+# Do not clean.  Makes subsequent builds quicker.
 export NO_CLEAN=${NO_CLEAN:-"yo"}
 export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
 
