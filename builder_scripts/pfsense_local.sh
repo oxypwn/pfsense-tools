@@ -82,6 +82,9 @@ export pfSense_version="7"
 export FreeBSD_version="7"
 export freebsd_branch="RELENG_7_0"
 
+# Define FreeBSD SUPFILE
+export SUPFILE="${freebsd_branch}-supfile"
+
 # Version that will be applied to this build
 export PFSENSEVERSION=${PFSENSEVERSION:-1.2-BETA1}
 

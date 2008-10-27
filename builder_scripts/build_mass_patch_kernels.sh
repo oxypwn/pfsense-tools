@@ -32,7 +32,7 @@ do
 	MOVE_FILE=`echo $LINE | cut -d~ -f4`
 	MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
 	
-	cvsup -h cvsup.livebsd.com /home/pfsense/tools/builder_scripts/$FBSDBRANCH-supfile
+	cvsup -h cvsup.livebsd.com ${SUPFILE}
 	echo "Building kernel with patch $PATCH_FILE"
 
 	if [ $PATCH_FILE_LEN -gt "2" ]; then

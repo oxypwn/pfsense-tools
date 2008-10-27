@@ -41,7 +41,7 @@ fi
 
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch}"
-cvsup -h `cat /var/db/fastest_cvsup` ./${freebsd_branch}-supfile
+cvsup -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
 echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
