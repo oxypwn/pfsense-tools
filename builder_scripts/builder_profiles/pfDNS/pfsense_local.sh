@@ -84,6 +84,10 @@ export freebsd_branch="RELENG_7_0"
 
 export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
+# Patch directory and patch file that lists patches to apply
+export PATCHDIR=${BASE_DIR}/tools/patches/${freebsd_branch}
+export PATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
+
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
 export MAKEJ_PORTS=${MAKEJ_PORTS:-"-j1"}
