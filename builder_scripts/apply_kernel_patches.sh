@@ -9,11 +9,10 @@
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
-PATCHDIR=${PATCHDIR:-${BASE_DIR}/tools/patches/${freebsd_branch}}
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Loop through and remove files
-for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
+for LINE in `cat ${PATCHFILE}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
 	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
@@ -46,7 +45,7 @@ echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
 
 # Loop through and patch files
-for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
+for LINE in `cat ${PATCHFILE}`
 do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
 	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`

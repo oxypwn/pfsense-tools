@@ -39,9 +39,6 @@ if [ -d /tmp/kernels ]; then
 fi
 echo "done"
 
-# These are not needed -- they should be set in pfsense_local.sh
-# but just in case . . .
-PATCHDIR=${PATCHDIR:-${BASE_DIR}/tools/patches/${freebsd_branch}}
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Sanity check
@@ -236,9 +233,13 @@ else
 	git checkout "${GIT_REPO_FREESBIE2}"
 fi
 
+if [ ! -z "${custom_package_list:-}" ]; then
+	PATCHFILE=${CURRENTDIR}/patches.${PFSENSETAG}
+fi
+
 # Loop through and remove files
-echo "Removing needed files listed in ${CURRENTDIR}/patches.${freebsd_branch} ${PFSENSETAG}"
-for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
+echo "Removing needed files listed in ${PATCHFILE} ${PFSENSETAG}"
+for LINE in `cat ${PATCHFILE}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
 	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
@@ -262,7 +263,7 @@ echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
 
 # Loop through and patch files
-for LINE in `cat ${CURRENTDIR}/patches.${PFSENSETAG}`
+for LINE in `cat ${PATCHFILE}`
 do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
 	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
