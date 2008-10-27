@@ -3,7 +3,7 @@
 <pfsense>
 	<version>2.9</version>
 	<lastchange></lastchange>
-	<theme>nervecenter</theme>
+	<theme>pfdns</theme>
 	<system>
 		<optimization>normal</optimization>
 		<hostname>pfDNS</hostname>
