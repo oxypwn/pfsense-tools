@@ -82,6 +82,9 @@ export pfSense_version="7"
 export FreeBSD_version="7"
 export freebsd_branch="RELENG_7_0"
 
+# Version that will be applied to this build
+export PFSENSEVERSION=${PFSENSEVERSION:-1.0-BETA1}
+
 export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply

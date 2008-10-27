@@ -517,7 +517,7 @@ install_custom_packages() {
 }
 
 create_pfSense_BaseSystem_Small_update_tarball() {
-	VERSION=`cat $CVS_CO_DIR/etc/version`
+	VERSION=${PFSENSEVERSION}
 	FILENAME=pfSense-Mini-Embedded-BaseSystem-Update-${VERSION}.tgz
 
 	mkdir -p $UPDATESDIR
@@ -644,7 +644,7 @@ create_FreeBSD_system_update() {
 }
 
 create_pfSense_Full_update_tarball() {
-	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
+	VERSION=${PFSENSEVERSION}
 	FILENAME=pfSense-Full-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
 
@@ -671,7 +671,7 @@ create_pfSense_Full_update_tarball() {
 }
 
 create_pfSense_Embedded_update_tarball() {
-	VERSION=`cat ${PFSENSEBASEDIR}/etc/version`
+	VERSION=${PFSENSEVERSION}
 	FILENAME=pfSense-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
 
@@ -699,7 +699,7 @@ create_pfSense_Embedded_update_tarball() {
 }
 
 create_pfSense_Small_update_tarball() {
-	VERSION=`cat $CVS_CO_DIR/etc/version`
+	VERSION=${PFSENSEVERSION}
 	FILENAME=pfSense-Mini-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 
 	PREVIOUSDIR=`pwd`
