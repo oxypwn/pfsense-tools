@@ -1,0 +1,6 @@
+*default base=/var/db
+*default prefix=/usr
+*default release=cvs tag=RELENG_7_1
+*default delete use-rel-suffix
+*default compress
+src-all
