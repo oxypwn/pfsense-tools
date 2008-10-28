@@ -79,25 +79,34 @@ set_freebsd_version() {
 	install_pfsense_local_sh
 }
 
+set_freebsd_patches() {
+	echo $1 > $WEBROOT/FREEBSD_PATCHES.txt
+	install_pfsense_local_sh
+}
+
 install_pfsense_local_sh() {
 	# Customizes pfsense_local.sh
 	touch $WEBROOT/FREEBSD_PLATFORM.txt
 	touch $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt
 	touch $WEBROOT/FREEBSD_VERSION.txt
+	touch $WEBROOT/FREEBSD_PATCHES.txt
 	FREEBSD_PLATFORM=`cat $WEBROOT/FREEBSD_PLATFORM.txt`
 	PFSENSE_PLATFORM=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	FREEBSD_VERSION=`cat $WEBROOT/FREEBSD_VERSION.txt`
+	FREEBSD_PATCHFILE=`cat $WEBROOT/FREEBSD_PATCHES.txt`
 	# Strip dynamic values
 	cat $BUILDERSCRIPTS/pfsense_local.sh | \
 		grep -v FreeBSD_version | \
 		grep -v freebsd_branch | \
 		grep -v PFSENSETAG | \
+		grep -v PATCHFILE | \
 		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense_local.sh
 	mv /tmp/pfsense_local.sh $BUILDERSCRIPTS/pfsense_local.sh
 	# Add our custom dynamic values
 	echo export FreeBSD_version="${FREEBSD_VERSION}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export freebsd_branch="${FREEBSD_PLATFORM}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export PFSENSETAG="${PFSENSE_PLATFORM}" >> $BUILDERSCRIPTS/pfsense_local.sh
+	echo export PATCHFILE="${FREEBSD_PATCHFILE}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com" >> $BUILDERSCRIPTS/pfsense_local.sh
 }
 
@@ -228,6 +237,7 @@ while [ /bin/true ]; do
 	set_pfsense_source "RELENG_1"
 	set_freebsd_source "RELENG_7_0"
 	set_freebsd_version "7"
+	set_freebsd_patches "/home/pfsense/tools/builder_scripts/patches.RELENG_7_0"
 	build_loop_operations	
 	# --- end pfSense RELENG_1 -- FreeBSD RELENG_7
 
