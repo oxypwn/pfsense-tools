@@ -211,7 +211,7 @@ fi
 
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch} ${PFSENSETAG}"
-cvsup -h `cat /var/db/fastest_cvsup` ./${SUPFILE}
+cvsup -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
 if [ -z "${USE_GIT:-}" ]; then
 	cvsup freesbie2-supfile
