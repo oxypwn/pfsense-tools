@@ -9,13 +9,3 @@
  
  struct timeval next_probe={0,0};
  
-@@ -277,7 +277,7 @@
- 		return 1;
- 	}
- 
--	ident=getpid();
-+	ident=getpid() & 0xFFFF;
- 	signal(SIGTERM,signal_handler);
- 	signal(SIGINT,signal_handler);
- 	signal(SIGHUP,signal_handler);
-
