@@ -7,8 +7,17 @@ if [ ! -d "/usr/ports" ]; then
 	portsnap extract
 fi
 
-(cd /usr/ports/sysutils/cpdup && make clean FORCE_PKG_REGISTER=yo)
-(cd /usr/ports/sysutils/cpdup && make install FORCE_PKG_REGISTER=yo)
+# Add cpdup
+if [ ! -f "/usr/local/bin/cpdup" ]; then
+	echo "Cannot find cpdup, building from ports..."
+	(cd /usr/ports/sysutils/cpdup/ && make deinstall clean)
+	(cd /usr/ports/sysutils/cpdup/ && make ${MAKEJ_PORTS} BATCH=yo)
+	(cd /usr/ports/sysutils/cpdup/ && make  install FORCE_PKG_REGISTER=yo BATCH=yo)	
+	if [ ! -f "/usr/local/bin/cpdup" ]; then
+		echo "Something went wrong while attempting installation of cpdup."
+		exit 1
+	fi
+fi
 
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
