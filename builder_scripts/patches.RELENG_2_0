@@ -32,3 +32,4 @@
 ~etc/defaults/~rc.conf.diff~
 ~sys/dev/cardbus~cardbus_cis.c.diff~
 ~usr.bin/sockstat~sockstat.diff~
+~sys/sys~proc.h.diff~
