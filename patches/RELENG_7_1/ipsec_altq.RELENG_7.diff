@@ -4,7 +4,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
 --- sys/conf/files	21 Oct 2008 15:19:34 -0000	1.2
-+++ sys/conf/files	21 Oct 2008 18:56:50 -0000
++++ sys/conf/files	28 Oct 2008 19:59:38 -0000
 @@ -1623,7 +1623,8 @@
  net/if_disc.c			optional disc
  net/if_edsc.c			optional edsc
@@ -31,7 +31,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/net/if_enc.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_enc.c
 --- sys/net/if_enc.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/net/if_enc.c	21 Oct 2008 18:57:15 -0000
++++ sys/net/if_enc.c	28 Oct 2008 19:59:38 -0000
 @@ -48,6 +48,9 @@
  #include <net/bpf.h>
  #include <net/bpfdesc.h>
@@ -71,7 +71,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/netipsec/ipsec.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipsec.h
 --- sys/netipsec/ipsec.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netipsec/ipsec.h	21 Oct 2008 18:57:32 -0000
++++ sys/netipsec/ipsec.h	28 Oct 2008 19:59:38 -0000
 @@ -416,7 +416,7 @@
  #define	ENC_AFTER	0x0002
  #define	ENC_IN		0x0100
@@ -87,7 +87,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/netipsec/ipsec_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipsec_input.c
 --- sys/netipsec/ipsec_input.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netipsec/ipsec_input.c	21 Oct 2008 18:57:56 -0000
++++ sys/netipsec/ipsec_input.c	28 Oct 2008 19:59:38 -0000
 @@ -472,7 +472,8 @@
  	ipsec_bpf(m, sav, AF_INET, ENC_IN|ENC_BEFORE);
  
@@ -114,7 +114,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/netipsec/ipsec_output.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipsec_output.c
 --- sys/netipsec/ipsec_output.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netipsec/ipsec_output.c	21 Oct 2008 18:58:20 -0000
++++ sys/netipsec/ipsec_output.c	28 Oct 2008 20:00:07 -0000
 @@ -43,6 +43,11 @@
  #include <sys/errno.h>
  #include <sys/syslog.h>
@@ -175,7 +175,7 @@ diff -u -r1.1.1.1 ipsec_output.c
  	ipsec_bpf(m, isr->sav, AF_INET6, ENC_OUT|ENC_BEFORE);
  	/* pass the mbuf to enc0 for packet filtering */
 -	if ((error = ipsec_filter(&m, PFIL_OUT, ENC_OUT|ENC_BEFORE)) != 0)
-+	if ((error = ipsec_filter(&m, &sav->sah->saidx, PFIL_OUT, 
++	if ((error = ipsec_filter(&m, &isr->sav->sah->saidx, PFIL_OUT, 
 +		ENC_OUT|ENC_BEFORE)) != 0)
  		goto bad;
  #endif
@@ -185,7 +185,7 @@ diff -u -r1.1.1.1 ipsec_output.c
  	ipsec_bpf(m, isr->sav, AF_INET6, ENC_OUT|ENC_AFTER);
  	/* pass the mbuf to enc0 for packet filtering */
 -	if ((error = ipsec_filter(&m, PFIL_OUT, ENC_OUT|ENC_AFTER)) != 0)
-+	if ((error = ipsec_filter(&m, &sav->sah->saidx, PFIL_OUT, 
++	if ((error = ipsec_filter(&m, &isr->sav->sah->saidx, PFIL_OUT, 
 +		ENC_OUT|ENC_AFTER)) != 0)
  		goto bad;
  #endif
@@ -196,7 +196,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/netipsec/keydb.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 keydb.h
 --- sys/netipsec/keydb.h	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netipsec/keydb.h	21 Oct 2008 18:56:50 -0000
++++ sys/netipsec/keydb.h	28 Oct 2008 19:59:38 -0000
 @@ -58,6 +58,8 @@
  	u_int8_t mode;			/* mode of protocol, see ipsec.h */
  	u_int32_t reqid;		/* reqid id who owned this SA */
@@ -212,7 +212,7 @@ RCS file: /home/ermal/tmprepoDSCP/src/sys/netipsec/xform_ipip.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 xform_ipip.c
 --- sys/netipsec/xform_ipip.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/netipsec/xform_ipip.c	21 Oct 2008 18:58:31 -0000
++++ sys/netipsec/xform_ipip.c	28 Oct 2008 19:59:38 -0000
 @@ -363,7 +363,7 @@
  		panic("%s: bogus ip version %u", __func__, v>>4);
  	}
