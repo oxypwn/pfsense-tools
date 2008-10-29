@@ -83,6 +83,12 @@ return {
 		    short_desc = _("Select this to use Grub to boot the disk"),
 		    control = "checkbox"
 		}
+		{
+		    id = "usembr",
+		    name = _("Overwrite MBR"),
+		    short_desc = _("Select this to overwrite the Master Boot Record"),
+		    control = "checkbox"
+		}		
 	    },
 	    	
 	    actions = {
@@ -120,6 +126,9 @@ return {
 					cmds:set_replacements{
 					    disk = disk
 					}
+					if dataset.usegrub == "Y" then
+						cmds:add("boot0cfg -B -b mbr /dev/${disk}")
+					end
 					cmds:add("sysctl kern.geom.debugflags=16")
 					cmds:add("/bin/mkdir /mnt/boot/grub")
 					cmds:add("echo \"serial --unit=0 --speed=9600\" > /mnt/boot/grub/menu.lst")
@@ -138,6 +147,9 @@ return {
 					cmds:set_replacements{
 					    disk = disk
 					}
+					if dataset.usegrub == "Y" then
+						cmds:add("boot0cfg -B -b mbr /dev/${disk}")
+					end
 					cmds:add("boot0cfg -B -b /boot/boot0 /dev/${disk}")
 				end
 			end
