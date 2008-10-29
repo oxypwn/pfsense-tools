@@ -121,7 +121,6 @@ return {
 					    disk = disk
 					}
 					cmds:add("sysctl kern.geom.debugflags=16")
-					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
 					cmds:add("echo \"serial --unit=0 --speed=9600\" > /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"terminal --timeout=3 serial console\" >> /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"default=0\" >> /mnt/boot/grub/menu.lst")
