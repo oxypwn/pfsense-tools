@@ -25,6 +25,7 @@
 #   POSSIBILITY OF SUCH DAMAGE.
 
 product=`cat /etc/inc/globals.inc | grep product_name | cut -d'"' -f4`
+factory_shipped_password=`cat /etc/inc/globals.inc | grep factory_shipped_password | cut -d'"' -f4`
 
 echo
 echo "Launching ${product} Installer..."
@@ -127,7 +128,7 @@ echo "enter http://192.168.1.1 (or the LAN IP Address) in the"
 echo "location bar."
 echo
 echo "*DEFAULT Username*: admin"
-echo "*DEFAULT Password*: pfsense"
+echo "*DEFAULT Password*: ${factory_shipped_password}"
 echo
 
 echo Rebooting in 5 seconds.  CTRL-C to abort.
