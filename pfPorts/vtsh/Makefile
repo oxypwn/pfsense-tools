@@ -19,6 +19,9 @@ COMMENT?=	vtsh command shell
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 
+clean:
+	echo
+
 do-extract:
 	mkdir -p ${WRKSRC}
 
