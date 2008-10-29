@@ -94,6 +94,11 @@ set_pfsense_version() {
 	install_pfsense_local_sh
 }
 
+set_pfsense_supfile() {
+	echo $1 > $WEBROOT/FREEBSD_SUPFILE.txt
+	install_pfsense_local_sh
+}
+
 install_pfsense_local_sh() {
 	# Customizes pfsense_local.sh
 	touch $WEBROOT/FREEBSD_PLATFORM.txt
@@ -102,19 +107,21 @@ install_pfsense_local_sh() {
 	touch $WEBROOT/FREEBSD_PATCHFILE.txt
 	touch $WEBROOT/FREEBSD_PATCHDIR.txt	
 	touch $WEBROOT/PFSENSE_VERSION.txt
+	touch $WEBROOT/FREEBSD_SUPFILE.txt
 	FREEBSD_PLATFORM=`cat $WEBROOT/FREEBSD_PLATFORM.txt`
 	PFSENSE_PLATFORM=`cat $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt`
 	FREEBSD_VERSION=`cat $WEBROOT/FREEBSD_VERSION.txt`
 	FREEBSD_PATCHFILE=`cat $WEBROOT/FREEBSD_PATCHFILE.txt`
 	FREEBSD_PATCHDIR=`cat $WEBROOT/FREEBSD_PATCHDIR.txt`
 	PFSENSE_VERSION=`cat $WEBROOT/PFSENSE_VERSION.txt`
+	FREEBSD_SUPFILE=`cat $WEBROOT/FREEBSD_SUPFILE.txt`
 	# Strip dynamic values
 	cat $BUILDERSCRIPTS/pfsense_local.sh | \
 		grep -v FreeBSD_version | \
 		grep -v freebsd_branch | \
 		grep -v PFSENSETAG | \
 		grep -v PATCHFILE | \
-		grep -v FREEBSD_PATCHDIR | \
+		grep -v FREEBSD_SUPFILE | \
 		grep -v PATCHDIR | \
 		grep -v PFSENSE_VERSION | \
 		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense_local.sh
@@ -126,6 +133,7 @@ install_pfsense_local_sh() {
 	echo export PATCHFILE="${FREEBSD_PATCHFILE}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export PATCHDIR="${FREEBSD_PATCHDIR}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export PFSENSE_VERSION="${PFSENSE_VERSION}" >> $BUILDERSCRIPTS/pfsense_local.sh
+	echo export SUPFILE="${FREEBSD_SUPFILE}" >> $BUILDERSCRIPTS/pfsense_local.sh	
 	echo export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com" >> $BUILDERSCRIPTS/pfsense_local.sh
 }
 
