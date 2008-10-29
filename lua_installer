@@ -127,7 +127,7 @@ echo "After the reboot is complete, open a web browser and"
 echo "enter http://192.168.1.1 (or the LAN IP Address) in the"
 echo "location bar."
 echo
-echo "*DEFAULT Username*: admin"
+echo "*DEFAULT Username*: ${factory_shipped_username}"
 echo "*DEFAULT Password*: ${factory_shipped_password}"
 echo
 
