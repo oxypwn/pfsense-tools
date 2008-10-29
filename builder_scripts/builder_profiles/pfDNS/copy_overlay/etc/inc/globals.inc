@@ -32,6 +32,8 @@
 */
 
 $g = array(
+	"factory_shipped_username" => "admin",	
+	"factory_shipped_password" => "pfSense",	
 	"upload_path" => "/root",
 	"dhcpd_chroot_path" => "/var/dhcpd",
 	"varrun_path" => "/var/run",
@@ -73,6 +75,7 @@ $g = array(
 	"captiveportal_element_sizelimit" => 262144,
 	"xmlrpcpath" => "/pfSense/xmlrpc.php",
 	"embeddedbootupslice" => "/dev/ad0a",
+	"services_dhcp_server_enable" => false, 
 	"update_url" => "http://updates.pfSense.com/pfDNS/_updaters",
 	"update_manifest" => "http://updates.pfSense.com/pfDNS/manifest",
 	"wireless_regex" => "/^(ndis|wi|ath|an|ral|ural|wai|iwi|awi|wlan|rum)/",
