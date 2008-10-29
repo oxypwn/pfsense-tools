@@ -267,6 +267,7 @@ while [ /bin/true ]; do
 	set_freebsd_version "7"
 	set_patches_dir "/home/pfsense/tools/patches/RELENG_7_0"
 	set_freebsd_patches "/home/pfsense/tools/builder_scripts/patches.RELENG_1_2"
+	set_pfsense_supfile "/home/pfsense/tools/builder_scripts/RELENG_7_0-supfile"
 	build_loop_operations	
 	# --- end pfSense RELENG_1_2 -- FreeBSD RELENG_7_0
 
