@@ -128,7 +128,7 @@ return {
 					cmds:add("echo \"title pfSense\" >> /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"	root (hd0,0,a)\" >> /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"	kernel /boot/loader\" >> /mnt/boot/grub/menu.lst")
-					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
+					cmds:add("/usr/local/sbin/grub-install1 --root-directory=/mnt/ /dev/${disk}")
 				else
 					dd = disk_ref[dataset.disk]
 					dd:cmds_install_bootblock(cmds,
@@ -153,10 +153,12 @@ return {
 			))
 			return step
 		end
-	elseif response.action_id == "skip" then
-		return step:next()
-	else
-		return step:prev()
-	end
+
+		elseif response.action_id == "skip" then
+			return step:next()
+		else
+			return step:prev()
+		end
+
     end
 }
