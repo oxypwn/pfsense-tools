@@ -11,7 +11,7 @@
 		<dnsserver></dnsserver>
 		<dnsallowoverride/>
 		<username>admin</username>
-		<password>$1$dSJImFph$GvZ7.1UbuWu.Yb8etC0re.</password>
+		<password>$1$JzDm0vpV$lgNGg30B.x2W71gLvi1/s.</password>
 		<timezone>Etc/UTC</timezone>
 		<time-update-interval>300</time-update-interval>
 		<timeservers>0.pfsense.pool.ntp.org</timeservers>
