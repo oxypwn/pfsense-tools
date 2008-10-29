@@ -375,7 +375,8 @@ table#marquee div#container div#scroller {
 	width: 8.8em;
 	height: 1.6em;
 	line-height: 1.6em;
-	background-color: #5a7f6c;
+/*	background-color: #5a7f6c; */
+    background-color: #14211a;
 	color: #FFF;
 	filter:alpha(opacity=90);
 	-moz-opacity:0.9;
@@ -383,7 +384,7 @@ table#marquee div#container div#scroller {
 	opacity: 0.9;	
 }
 #navigation ul li ul li:hover {
-	background-color: #93ffc6;
+	background-color: #000000;
 }
 /* textcolor in dropdownmenu */
 #navigation li li a {
@@ -395,7 +396,7 @@ table#marquee div#container div#scroller {
 /* textcolor mouseover in dropdownmenu */
 #navigation ul li ul li a.navlnk:hover {
 	text-decoration: none;
-	color: #000000;
+	color: #ffffff;
 }
 #navigation ul li.first {
 	border-right: 0px;
