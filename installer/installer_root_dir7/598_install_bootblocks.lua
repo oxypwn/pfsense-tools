@@ -20,8 +20,9 @@ return {
 
 		local dataset = {
 			disk = raw_name,
-			boot0cfg = "Y",
+			boot0cfg = "Y", 
 			usembr = "Y", 
+			usegrub = "N", 
 			packet = "N"
 		}
 
