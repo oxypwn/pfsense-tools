@@ -259,19 +259,21 @@ build_loop_operations() {
 
 # Main builder loop - lets do this forever until the cows come home.
 while [ /bin/true ]; do
-
-	# --- begin pfSense RELENG_1_2 -- FreeBSD RELENG_7_0
-	set_pfsense_version "1.2.1-RC1"
-	set_pfsense_source "RELENG_1_2"
-	set_freebsd_source "RELENG_7_0"
-	set_freebsd_version "7"
-	set_patches_dir "/home/pfsense/tools/patches/RELENG_7_0"
-	set_freebsd_patches "/home/pfsense/tools/builder_scripts/patches.RELENG_1_2"
-	set_pfsense_supfile "/home/pfsense/tools/builder_scripts/RELENG_7_0-supfile"
-	build_loop_operations	
-	# --- end pfSense RELENG_1_2 -- FreeBSD RELENG_7_0
-
-	sleep 500	# give the box a break.
+	if [ -f "$BUILDERSCRIPTS/build_snapshots_local.sh" ]; then 
+		echo ">>> Execing build_snapshots_local.sh"
+		. $BUILDERSCRIPTS/build_snapshots_local.sh	
+	else
+		echo ">>> Running built in operations"
+		set_pfsense_version "1.2.1-RC1"
+		set_pfsense_source "RELENG_1_2"
+		set_freebsd_source "RELENG_7_0"
+		set_freebsd_version "7"
+		set_patches_dir "/home/pfsense/tools/patches/RELENG_7_0"
+		set_freebsd_patches "/home/pfsense/tools/builder_scripts/patches.RELENG_1_2"
+		set_pfsense_supfile "/home/pfsense/tools/builder_scripts/RELENG_7_0-supfile"
+		build_loop_operations
+		sleep 500	# give the box a break.
+	fi
 done
 
 rm -f /tmp/pfSense_do_not_build_pfPorts
