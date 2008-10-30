@@ -47,7 +47,6 @@ mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
 
 rm $BUILDERSCRIPTS/pfsense_local.sh
-cd $BUILDERSCRIPTS && cvs up -d
 
 if [ -f /tmp/pfSense_do_not_build_pfPorts ]; then
 	echo "--> Removing /tmp/pfSense_do_not_build_pfPorts..."
@@ -56,8 +55,10 @@ fi
 
 sync_cvs() {
 	# Sync with pfsense.org
+	echo ">>> Syncing with pfSense.org"
 	cvsup $BUILDERSCRIPTS/pfSense-supfile
 	cvsup $BUILDERSCRIPTS/freesbie2-supfile
+	cd $BUILDERSCRIPTS && cvs up -d
 }
 
 create_webdata_structure() {
@@ -225,6 +226,7 @@ cp_files() {
 
 scp_files() {
 	date >$STAGINGAREA/version
+	echo ">>> Copying files to snapshots.pfsense.org"
 	scp -o "ServerAliveInterval 10" $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp -o "ServerAliveInterval 10" $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
 	scp -o "ServerAliveInterval 10" $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/
@@ -235,7 +237,7 @@ scp_files() {
 
 cleanup_builds() {
 	# Remove prior builds
-	echo "Cleaning up after prior builds..."
+	echo ">>> Cleaning up after prior builds..."
 	rm -rf /usr/obj*
 	rm -f $STAGINGAREA/*
 	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
@@ -247,6 +249,7 @@ cleanup_builds() {
 }
 
 build_loop_operations() {
+	echo ">>> Starting build loop operations"
 	# --- Items we need to run for a complete build run ---
 	# Create extra structures
 	create_webdata_structure
