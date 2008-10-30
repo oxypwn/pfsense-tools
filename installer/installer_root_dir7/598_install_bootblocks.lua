@@ -83,7 +83,7 @@ return {
 		    name = _("Use Grub"),
 		    short_desc = _("Select this to use Grub to boot the disk"),
 		    control = "checkbox"
-		}
+		},
 		{
 		    id = "usembr",
 		    name = _("Overwrite MBR"),
