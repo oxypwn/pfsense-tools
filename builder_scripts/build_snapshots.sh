@@ -46,10 +46,6 @@ mkdir -p $PFSENSECHECKOUTDIR
 mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
 
-# Sync with pfsense.org
-cvsup $BUILDERSCRIPTS/pfSense-supfile
-cvsup $BUILDERSCRIPTS/freesbie2-supfile
-
 rm $BUILDERSCRIPTS/pfsense_local.sh
 cd $BUILDERSCRIPTS && cvs up -d
 
@@ -57,6 +53,12 @@ if [ -f /tmp/pfSense_do_not_build_pfPorts ]; then
 	echo "--> Removing /tmp/pfSense_do_not_build_pfPorts..."
 	rm /tmp/pfSense_do_not_build_pfPorts
 fi
+
+sync_cvs() {
+	# Sync with pfsense.org
+	cvsup $BUILDERSCRIPTS/pfSense-supfile
+	cvsup $BUILDERSCRIPTS/freesbie2-supfile
+}
 
 create_webdata_structure() {
 	mkdir -p $WEBDATAROOT/FreeBSD${FREEBSD_VERSION}/${PFSENSE_PLATFORM}/updates
@@ -264,6 +266,7 @@ while [ /bin/true ]; do
 		. $BUILDERSCRIPTS/build_snapshots_local.sh	
 	else
 		echo ">>> Running built in operations"
+		sync_cvs
 		set_pfsense_version "1.2.1-RC1"
 		set_pfsense_source "RELENG_1_2"
 		set_freebsd_source "RELENG_7_0"
