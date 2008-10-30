@@ -42,8 +42,8 @@ echo "done"
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Sanity check
-if [ ! -d "${PATCHDIR}" ]; then
-	echo "PATCHDIR=${PATCHDIR} is not a directory -- Please fix."
+if [ ! -d "${PFSPATCHDIR}" ]; then
+	echo "PFSPATCHDIR=${PFSPATCHDIR} is not a directory -- Please fix."
 	exit 1
 fi
 
@@ -257,7 +257,7 @@ done
 # clog source
 echo "Applying CLOG updates..."
 (cd ${SRCDIR}/usr.sbin/ && \
-	tar xzf ${PATCHDIR}/clog-1.0.1.tar.gz)
+	tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)
 
 echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
@@ -274,11 +274,11 @@ do
 	IS_TGZ=`echo $LINE | grep -v grep | grep .tgz | wc -l`
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		if [ $IS_TGZ -gt "0" ]; then 
-			echo "Extracting ${PATCH_FILE} to ${PATCHDIR}"
-			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PATCHDIR}/${PATCH_FILE})			
+			echo "Extracting ${PATCH_FILE} to ${PFSPATCHDIR}"
+			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE})			
 		else
 			echo "Patching ${PATCH_FILE}"
-			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
+			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE})
 		fi
 	fi
 	if [ $MOVE_FILE_LEN -gt "2" ]; then

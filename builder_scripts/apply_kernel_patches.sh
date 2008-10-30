@@ -58,11 +58,11 @@ do
 	IS_TGZ=`echo $LINE | grep -v grep | grep .tgz | wc -l`
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		if [ $IS_TGZ -gt "0" ]; then 
-			echo "Extracting ${PATCH_FILE} to ${PATCHDIR}"
-			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PATCHDIR}/${PATCH_FILE})			
+			echo "Extracting ${PATCH_FILE} to ${PFSPATCHDIR}"
+			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE})			
 		else
 			echo "Patching ${PATCH_FILE}"
-			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
+			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE})
 		fi
 	fi
 	if [ $MOVE_FILE_LEN -gt "2" ]; then

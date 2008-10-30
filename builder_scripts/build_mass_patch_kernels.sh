@@ -9,7 +9,7 @@
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
-PATCHDIR=${PATCHDIR:-${BASE_DIR}/tools/patches/${freebsd_branch}}
+PFSPATCHDIR=${PFSPATCHDIR:-${BASE_DIR}/tools/patches/${freebsd_branch}}
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Set these two options
@@ -37,7 +37,7 @@ do
 
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		echo "Patching ${PATCH_FILE}"
-		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PATCHDIR}/${PATCH_FILE})
+		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE})
 	fi
 
 	cd /usr/src/ && make buildkernel KERNCONF=$KERNCONFCONFIG && make installkernel KERNCONF=$KERNCONFCONFIG
