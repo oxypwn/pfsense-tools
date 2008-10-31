@@ -257,6 +257,7 @@ recompile_pfPorts() {
 		export FORCE_PKG_REGISTER=yo
 
 		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
+		echo ">>> Executing ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
 		( su - root -c ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} )
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
