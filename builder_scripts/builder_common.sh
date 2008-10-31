@@ -1212,7 +1212,7 @@ pfsense_install_custom_packages_exec() {
 # Setup
 #
 
-if [ ! -f "/usr/local/bin/php"]; then
+if [ ! -f "/usr/local/bin/php" ]; then
 	echo 
 	echo 
 	echo 	
