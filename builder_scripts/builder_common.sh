@@ -1197,7 +1197,7 @@ pfsense_install_custom_packages_exec() {
 		/bin/echo ${custom_package_list} > ${TODIR}/tmp/pkgfile.lst
 
 		/bin/echo "Installing custom pfSense package installer to ${TODIR}/tmp ..."
-		/bin/cp ./pfspkg_installer ${TODIR}/tmp
+		/bin/cp ${BASE_DIR}/tools/builder_scripts/pfspkg_installer ${TODIR}/tmp
 		/bin/chmod a+x ${TODIR}/tmp/pfspkg_installer
 
 	# setup script that will be run within the chroot env
