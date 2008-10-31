@@ -1212,6 +1212,19 @@ pfsense_install_custom_packages_exec() {
 # Setup
 #
 
+if [ ! -f "/usr/local/bin/php"]; then
+	echo 
+	echo 
+	echo 	
+	echo "ERROR.  A copy of php does not exist in /usr/local/bin/"
+	echo
+	echo "This script cannot continue."
+	echo 	
+	while [ /bin/true ]; do
+		sleep 999
+	done	
+fi
+
 if [ ! -f "/COPYRIGHT" ]; then
 	echo 
 	echo 
