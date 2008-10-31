@@ -91,7 +91,7 @@ export PFSENSEVERSION=${PFSENSEVERSION:-1.0-BETA1}
 export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply
-export PATCHDIR=${BASE_DIR}/tools/patches/${freebsd_branch}
+export PFSPATCHDIR=${BASE_DIR}/tools/patches/${freebsd_branch}
 export PATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
 
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
