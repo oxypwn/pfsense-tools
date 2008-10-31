@@ -128,7 +128,7 @@ return {
 					cmds:set_replacements{
 					    disk = disk
 					}
-					if dataset.usegrub == "Y" then
+					if dataset.usembr == "Y" then
 						cmds:add("boot0cfg -B -b mbr /dev/${disk}")
 					end
 					cmds:add("sysctl kern.geom.debugflags=16")
@@ -149,7 +149,7 @@ return {
 					cmds:set_replacements{
 					    disk = disk
 					}
-					if dataset.usegrub == "Y" then
+					if dataset.usembr == "Y" then
 						cmds:add("boot0cfg -B -b mbr /dev/${disk}")
 					end
 					cmds:add("boot0cfg -B -b /boot/boot0 /dev/${disk}")
