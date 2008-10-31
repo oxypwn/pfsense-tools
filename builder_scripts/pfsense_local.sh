@@ -86,7 +86,7 @@ export freebsd_branch="RELENG_7"
 export SUPFILE="${BASE_DIR}/tools/builder_scripts/${freebsd_branch}-supfile"
 
 # Version that will be applied to this build
-export PFSENSEVERSION=${PFSENSEVERSION:-1.2.1-RC1}
+export PFSENSEVERSION=${PFSENSEVERSION:-1.2.1-RC2}
 
 # pfSense cvs tag to build
 export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
