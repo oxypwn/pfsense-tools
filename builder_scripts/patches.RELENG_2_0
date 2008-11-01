@@ -16,7 +16,6 @@
 ~~killifstates.RELENG_7.diff~
 ~~dummynet.RELENG_7.diff~
 ~~divert.RELENG_7.diff~
-~~reply-to.RELENG_7.diff~
 ~~get_tag_altq_ids.RELENG_7.diff~
 ~sys/~patch-natt-freebsd7-2008-03-11.diff~
 ~sys/modules/ipfw~ipfw.diff~
