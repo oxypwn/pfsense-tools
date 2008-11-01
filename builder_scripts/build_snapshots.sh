@@ -124,7 +124,7 @@ install_pfsense_local_sh() {
 		grep -v freebsd_branch | \
 		grep -v PFSENSETAG | \
 		grep -v PATCHFILE | \
-		grep -v FREEBSD_SUPFILE | \
+		grep -v SUPFILE | \
 		grep -v PATCHDIR | \
 		grep -v PFSENSE_VERSION | \
 		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense_local.sh
