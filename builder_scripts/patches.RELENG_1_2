@@ -33,7 +33,6 @@
 ~usr.sbin/bsnmpd/modules/snmp_hostres~hostres_processor_tbl.c.diff~
 ~~vr.patch~
 ~~carp.diff~
-~~reply_to.diff~
 ~lib/libipsec/~libipsec-pfkey.c-socketvar.diff~
 ~sys/sys~socketvar.h.diff~
 ~sys/~freebsd-7.0-oneshot-dumps-v2.diff~
