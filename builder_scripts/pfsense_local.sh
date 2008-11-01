@@ -16,11 +16,14 @@ export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
 # Generally /home/pfsense
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
 
+# Generally /home/pfsense/tools
+export BUILDER_TOOLS=${BASE_DIR}/tools
+
+# Generally /home/pfsense/tools/builder_scripts
+export BUILDER_SCRIPTS=${BUILDER_TOOLS}/builder_scripts
+
 # path to pfPorts
 export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-/home/pfsense/tools/pfPorts}
-
-# This is the base working directory for all builder operations
-export BASE_DIR=${BASE_DIR:-/home/pfsense}
 
 # This is the directory where the latest pfSense cvs co
 # is checked out to.
