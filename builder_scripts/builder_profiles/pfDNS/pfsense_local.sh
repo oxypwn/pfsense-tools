@@ -22,6 +22,9 @@ export BUILDER_TOOLS=${BASE_DIR}/tools
 # Generally /home/pfsense/tools/builder_scripts
 export BUILDER_SCRIPTS=${BUILDER_TOOLS}/builder_scripts
 
+# Generally /home/pfsense/tools/builder_scripts/builder_profiles
+export BUILDER_PROFILES=${BUILDER_SCRIPTS}/builder_profiles
+
 # path to pfPorts
 export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-/home/pfsense/tools/pfPorts}
 
@@ -86,7 +89,7 @@ export FreeBSD_version="7"
 export freebsd_branch="RELENG_7"
 
 # Define FreeBSD SUPFILE
-export SUPFILE="${BASE_DIR}/tools/builder_scripts/${freebsd_branch}-supfile"
+export SUPFILE="${BUILDER_SCRIPTS}/${freebsd_branch}-supfile"
 
 # Version that will be applied to this build
 export PFSENSEVERSION=${PFSENSEVERSION:-1.0-BETA1}
@@ -94,8 +97,8 @@ export PFSENSEVERSION=${PFSENSEVERSION:-1.0-BETA1}
 export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply
-export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
-export PATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
+export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7
+export PATCHFILE=${BUILDER_SCRIPTS}/patches.RELENG_2_0
 
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
@@ -128,11 +131,11 @@ export NO_UNIONFS=NO
 export UNION_DIRS="etc usr root"
 
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
-export CUSTOM_REMOVE_LIST="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/remove.list"
-export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/copy.list"
+export CUSTOM_REMOVE_LIST="${BUILDER_PROFILES}/pfDNS/remove.list"
+export CUSTOM_COPY_LIST="${BUILDER_PROFILES}/pfDNS/copy.list"
 
 # Use a custom config.xml
-export USE_CONFIG_XML=${USE_CONFIG_XML:-"${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/config/config.xml"}
+export USE_CONFIG_XML=${USE_CONFIG_XML:-"${BUILDER_PROFILES}/pfDNS/config/config.xml"}
 
 # Architecture, supported ARCH values are: 
 #  Tier 1: i386, AMD64, and PC98
@@ -148,7 +151,7 @@ export ARCH="i386"
 #export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
 #export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
 
-export custom_overlay="${BASE_DIR}/tools/builder_scripts/builder_profiles/pfDNS/copy_overlay/"
+export custom_overlay="${BUILDER_PROFILES}/pfDNS/copy_overlay/"
 
 export custom_package_list="dns-server, AutoConfigBackup"
 
@@ -158,12 +161,11 @@ export custom_package_list="dns-server, AutoConfigBackup"
 # a suitable update source to spread the load.
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 
-if [ ! -f $BUILDERSCRIPTS/pfsense-build.conf ]; then
-	touch $BUILDERSCRIPTS/pfsense-build.conf
+if [ ! -f ${BUILDERSCRIPTS}/pfsense-build.conf ]; then
+	touch ${BUILDERSCRIPTS}/pfsense-build.conf
 fi
 
 ############################################
 # The following line must always come last #
 ############################################
 [ -r "pfsense-build.conf" ] && . pfsense-build.conf
-
