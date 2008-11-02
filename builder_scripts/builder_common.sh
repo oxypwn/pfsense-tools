@@ -874,6 +874,7 @@ checkout_freesbie() {
 
 print_flags() {
 
+	printf "  pfSense version: %s\n" $PFSENSEVERSION
 	printf "         CVS User: %s\n" $CVS_USER
 	printf "        Verbosity: %s\n" $BE_VERBOSE
 	printf "         Base dir: %s\n" $BASE_DIR
