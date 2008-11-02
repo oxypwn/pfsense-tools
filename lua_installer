@@ -26,6 +26,7 @@
 
 product=`cat /etc/inc/globals.inc | grep product_name | cut -d'"' -f4`
 factory_shipped_password=`cat /etc/inc/globals.inc | grep factory_shipped_password | cut -d'"' -f4`
+factory_shipped_username=`cat /etc/inc/globals.inc | grep factory_shipped_username | cut -d'"' -f4`
 
 echo
 echo "Launching ${product} Installer..."
