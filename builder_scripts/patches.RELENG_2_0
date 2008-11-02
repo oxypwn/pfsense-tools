@@ -25,9 +25,6 @@
 ~sys/net/~altq-vlan.diff~
 ~sys/dev/bge/~if_bge.c.diff~
 ~etc~rc.initdiskless.patch~
-~lib/libipsec/~libipsec-pfkey.c-socketvar.diff~
-~sys/sys~sockbuf.h.diff~
-~~oneshot-dumps-v2.RELENG_7.diff~
 ~etc/defaults/~rc.conf.diff~
 ~sys/dev/cardbus~cardbus_cis.c.diff~
 ~usr.bin/sockstat~sockstat.diff~
