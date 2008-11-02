@@ -10,3 +10,6 @@ COMMENT=		application classifier
 post-extract:
 	mv work/ipfw-classifyd work/ipfw-classifyd-0.1
 .include <bsd.port.mk>
+
+clean:
+	echo
