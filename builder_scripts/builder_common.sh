@@ -229,8 +229,10 @@ build_all_kernels() {
 recompile_pfPorts() {
 
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then 
-
 		echo
+		echo ">>> Preparing for pfPorts build ${PFSENSETAG}"
+		echo
+
 		echo
 		echo "WARNING!  We are about to run make includes."
 		echo "          If you do not wish for this command press CTRL+C now!"
