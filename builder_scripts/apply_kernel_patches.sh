@@ -12,6 +12,7 @@ CURRENTDIR=`pwd`
 SRCDIR=${SRCDIR:-/usr/src}
 
 echo ">>> Using patchfile ${PATCHFILE} ..."
+echo ">>> Using supfile   ${SUPFILE} ..."
 
 # Loop through and remove files
 for LINE in `cat ${PATCHFILE}`
