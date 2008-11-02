@@ -210,7 +210,7 @@ else
 fi
 
 # CVSUp freebsd version
-echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch} ${PFSENSETAG}"
+echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch} ${PFSENSETAG} ${SUPFILE}"
 cvsup -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
 if [ -z "${USE_GIT:-}" ]; then
@@ -231,10 +231,6 @@ if [ -z "${USE_GIT:-}" ]; then
 else 
 	echo ">>> Using GIT to checkout FreeSBIE2..."
 	git checkout "${GIT_REPO_FREESBIE2}"
-fi
-
-if [ ! -z "${custom_package_list:-}" ]; then
-	PATCHFILE=${CURRENTDIR}/patches.${PFSENSETAG}
 fi
 
 # Loop through and remove files
