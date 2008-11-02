@@ -12,15 +12,16 @@ COMMENT?=	athstats
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 
+clean:
+	rm files/athstats
+
 do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
 	cd files && make
-#${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
 	cd files && make install
-#${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>
