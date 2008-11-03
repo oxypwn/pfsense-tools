@@ -125,6 +125,7 @@ for PORT in $PORTSTOBUILD; do
 		( cd $DOESPORTEXIST && make clean )
 	else 
 		( cd /home/pfsense/tools/pfPorts/$PORT && make clean)
+		set_cache ${PORT} /home/pfsense/tools/pfPorts/$PORT
 	fi
 done
 
