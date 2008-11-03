@@ -6,6 +6,8 @@ if [ $# -ne 1 ]; then
 	exit 127
 fi
 
+HANDLED=false
+
 # Source pfsense_local.sh variables
 . ./pfsense_local.sh
 
@@ -25,6 +27,24 @@ strip_pfsense_local() {
 	mv /tmp/pfsense_local.sh $BUILDER_SCRIPTS/pfsense_local.sh
 }
 
+set_items() {
+	strip_pfsense_local
+	# Add our custom dynamic values
+	echo "# set_version.sh generated defaults" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export PFSENSEVERSION="${pfSense_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export FreeBSD_version="${FreeBSD_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export freebsd_branch="${freebsd_branch}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export PFSENSETAG="${PFSENSETAG}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export PFSENSE_VERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh	
+	echo
+	tail -n9 pfsense_local.sh
+	echo
+	HANDLED=true
+}
+
 echo
 
 case $1 in
@@ -38,6 +58,7 @@ RELENG_1)
 	export PFSENSETAG=RELENG_1
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
+	set_items
 ;;
 
 RELENG_1_2)
@@ -50,6 +71,7 @@ RELENG_1_2)
 	export PFSENSETAG=RELENG_1_2
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/${freebsd_branch}
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
+	set_items
 ;;
 
 RELENG_2_0)
@@ -62,20 +84,10 @@ RELENG_2_0)
 	export PFSENSETAG=RELENG_1
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
+	set_items
 ;;
 esac
 
-strip_pfsense_local
-# Add our custom dynamic values
-echo "# set_version.sh generated defaults" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PFSENSEVERSION="${pfSense_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export FreeBSD_version="${FreeBSD_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export freebsd_branch="${freebsd_branch}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PFSENSETAG="${PFSENSETAG}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PFSENSE_VERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh	
-echo
-tail -n9 pfsense_local.sh
-echo
+if [ "$HANDLED" = "false" ]; then 
+	echo "Invalid verison."
+fi
