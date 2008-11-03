@@ -21,7 +21,6 @@
 ~sys/netgraph~ng_iface.diff~
 ~usr.sbin/bsnmpd/modules/snmp_hostres~hostres_processor_tbl.c.diff~
 ~sys/net/~altq-vlan.diff~
-~sys/dev/bge/~if_bge.c.diff~
 ~etc~rc.initdiskless.patch~
 ~etc/defaults/~rc.conf.diff~
 ~sys/dev/cardbus~cardbus_cis.c.diff~
