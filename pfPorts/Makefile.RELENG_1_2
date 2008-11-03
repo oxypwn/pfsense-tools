@@ -3,6 +3,10 @@
 #set -e
 #set -x
 
+CURRENTDIR=`pwd`
+
+cd /usr/ports
+
 # Architecture, supported ARCH values are: 
 #  Tier 1: i386, AMD64, and PC98
 #  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
@@ -103,8 +107,6 @@ else
 	echo ">>> Setting ARCH to ${ARCH}"
 	ARCHSTRING="TARGET_ARCH=${ARCH}"
 fi
-
-CURRENTDIR=`pwd`
 
 # pfSense is english based.
 rm -rf /usr/ports/chinese/links

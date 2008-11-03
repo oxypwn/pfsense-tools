@@ -3,6 +3,10 @@
 #set -e
 #set -x
 
+CURRENTDIR=`pwd`
+
+cd /usr/ports
+
 # Architecture, supported ARCH values are: 
 #  Tier 1: i386, AMD64, and PC98
 #  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
@@ -105,8 +109,6 @@ else
 	ARCHSTRING="TARGET_ARCH=${ARCH}"
 fi
 
-CURRENTDIR=`pwd`
-
 if [ ! -d /usr/ports/INDEX-7.bz2 ]; then 
 	( cd /usr/ports && make fetchindex )
 fi
@@ -164,5 +166,3 @@ for PORT in $PORTSTOBUILD; do
 done
 
 cd $CURRENTDIR
-
-
