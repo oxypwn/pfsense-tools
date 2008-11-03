@@ -133,7 +133,7 @@ install_pfsense_local_sh() {
 	echo export FreeBSD_version="${FREEBSD_VERSION}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export freebsd_branch="${FREEBSD_PLATFORM}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export PFSENSETAG="${PFSENSE_PLATFORM}" >> $BUILDERSCRIPTS/pfsense_local.sh
-	echo export PATCHFILE="${FREEBSD_PATCHFILE}" >> $BUILDERSCRIPTS/pfsense_local.sh
+	echo export PFSPATCHFILE="${FREEBSD_PATCHFILE}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export PFSPATCHDIR="${FREEBSD_PATCHDIR}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export PFSENSE_VERSION="${PFSENSE_VERSION}" >> $BUILDERSCRIPTS/pfsense_local.sh
 	echo export SUPFILE="${FREEBSD_SUPFILE}" >> $BUILDERSCRIPTS/pfsense_local.sh	
