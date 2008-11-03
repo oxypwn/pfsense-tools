@@ -8,17 +8,17 @@
 #  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
 #  Tier 3: MIPS and S/390
 #  Tier 4: None at the moment
-#  Source: http://www.freebsd.org/doc/en/articles/committers-guide/archs.html
+#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
 ARCH=""  # Default is i386
 
-touch $BUILDER_SCRIPTS/pfS_portcache
+touch /var/db/pfS_portcache
 
 set_cache() {
 	# Strip dynamic values
 	echo ">>>> Setting port cache $1 to $2"
-	cat $BUILDER_SCRIPTS/pfS_portcache | \
+	cat /var/db/pfS_portcache | \
 		grep -v "$1		$2" > /tmp/pfS_portcache
-	mv /tmp/pfS_portcache $BUILDER_SCRIPTS/pfS_portcache
+	mv /tmp/pfS_portcache /var/db/pfS_portcache
 }
 
 PORTSTOBUILD="grub \
@@ -106,7 +106,7 @@ CURRENTDIR=`pwd`
 rm -rf /usr/ports/chinese/links
 
 for PORT in $PORTSTOBUILD; do
-	DOESPORTEXIST=`cat $BUILDER_SCRIPTS/pfS_portcache | grep "${PORT}" | awk '{ print $2 }'`
+	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "${PORT}" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
 		echo "Finding $PORT..."
 		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
