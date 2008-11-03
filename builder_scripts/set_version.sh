@@ -38,6 +38,7 @@ set_items() {
 	echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh	
+	echo #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com">> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo
 	tail -n9 pfsense_local.sh
 	echo
