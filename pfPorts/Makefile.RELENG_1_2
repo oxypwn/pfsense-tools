@@ -113,14 +113,15 @@ for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
 		echo ">>>> Finding $PORT..."
-		DOESPORTEXIST=`find /usr/ports -name '$PORT' -type d | grep -v pfPorts | head -n 1`
+		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 		set_cache ${PORT} ${DOESPORTEXIST}
 	fi 
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
+		echo ">>>> Executing cd $DOESPORTEXIST && make clean"
 		( cd $DOESPORTEXIST && make clean )
 	else 
 		( cd /home/pfsense/tools/pfPorts/$PORT && make clean)
-		set_cache ${PORT} /home/pfsense/tools/pfPorts/$PORT		
+		set_cache ${PORT} ""		
 	fi
 done
 
@@ -128,7 +129,7 @@ for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
 		echo ">>>> Finding $PORT..."
-		DOESPORTEXIST=`find /usr/ports -name '$PORT' -type d | grep -v pfPorts | head -n 1`
+		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	fi
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo ">>>> Found port.  Copying and building..."
@@ -137,7 +138,7 @@ for PORT in $PORTSTOBUILD; do
 		else
 			echo ">>>> Removing ${DOESPORTEXIST}..."
 			rm -rf $DOESPORTEXIST
-			mkdir -p $DOESPORTEXIST			
+			mkdir -p $DOESPORTEXIST		
 		fi
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		echo ">>>> Executing cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/"
