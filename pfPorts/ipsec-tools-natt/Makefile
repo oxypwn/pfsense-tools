@@ -37,7 +37,7 @@ PLIST_SUB+=	STATEDIR=${STATEDIR}
 
 WITH_NATT=yo
 
-OPTIONS=	DEBUG		"enable Debug support" on \
+OPTIONS=	DEBUG		"enable Debug support" off \
 		IPV6		"enable IPV6 support" off \
 		ADMINPORT	"enable Admin port" on \
 		STATS		"enable Statistics logging function" off \
