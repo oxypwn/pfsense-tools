@@ -20,7 +20,6 @@
 ~sys/~patch-natt-freebsd7-2008-03-11.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.diff~
-~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
 ~usr.sbin/bsnmpd/modules/snmp_hostres~hostres_processor_tbl.c.diff~
 ~sys/net/~altq-vlan.diff~
 ~sys/dev/bge/~if_bge.c.diff~
