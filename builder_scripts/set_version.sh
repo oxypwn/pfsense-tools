@@ -74,4 +74,6 @@ echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export PFSENSE_VERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh	
-
+echo
+tail -n9 pfsense_local.sh
+echo
