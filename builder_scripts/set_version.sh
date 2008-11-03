@@ -25,6 +25,8 @@ strip_pfsense_local() {
 	mv /tmp/pfsense_local.sh $BUILDER_SCRIPTS/pfsense_local.sh
 }
 
+echo
+
 case $1 in
 RELENG_1)
 	echo ">>> Setting builder environment to use RELENG_1 ..."
