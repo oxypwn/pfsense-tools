@@ -115,7 +115,7 @@ for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat $BUILDER_SCRIPTS/pfS_portcache | grep "${PORT}" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; 	
 		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
-	then 
+	fi 
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		( cd $DOESPORTEXIST && make clean )
 		set_cache ${PORT} ${DOESPORTEXIST}
