@@ -8,7 +8,6 @@
 ~sbin/fdisk~fdisk.c.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~~ipsec_altq.RELENG_7.diff~
-~~pfil.RELENG_7.diff~
 ~~fairq.RELENG_7.diff~
 ~~dscp.RELENG_7.diff~
 ~~queuestats.RELENG_7.diff~
