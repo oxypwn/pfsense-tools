@@ -27,7 +27,6 @@ strip_pfsense_local() {
 case $1 in
 RELENG_1)
 	echo ">>> Setting builder environment to use RELENG_1 ..."
-	strip_pfsense_local
 	export pfSense_version="7"
 	export FreeBSD_version="7"
 	export freebsd_branch="RELENG_7"
@@ -40,7 +39,6 @@ RELENG_1)
 
 RELENG_1_2)
 	echo ">>> Setting builder environment to use RELENG_1_2 ..."
-	strip_pfsense_local
 	export pfSense_version="7"
 	export FreeBSD_version="7"
 	export freebsd_branch="RELENG_7_0"
@@ -53,7 +51,6 @@ RELENG_1_2)
 
 RELENG_2_0)
 	echo ">>> Setting builder environment to use RELENG_2_0 ..."
-	strip_pfsense_local
 	export pfSense_version="7"
 	export FreeBSD_version="7"
 	export freebsd_branch="RELENG_7"
@@ -65,8 +62,9 @@ RELENG_2_0)
 ;;
 esac
 
+strip_pfsense_local
 # Add our custom dynamic values
-echo "# set_version.sh generated defaults"
+echo "# set_version.sh generated defaults" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export PFSENSEVERSION="${pfSense_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export FreeBSD_version="${FreeBSD_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export freebsd_branch="${freebsd_branch}" >> $BUILDER_SCRIPTS/pfsense_local.sh
@@ -75,4 +73,4 @@ echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export PFSENSE_VERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh	
-#echo export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense_local.sh
+
