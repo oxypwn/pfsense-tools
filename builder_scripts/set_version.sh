@@ -31,13 +31,12 @@ set_items() {
 	strip_pfsense_local
 	# Add our custom dynamic values
 	echo "# set_version.sh generated defaults" >> $BUILDER_SCRIPTS/pfsense_local.sh
-	echo export PFSENSEVERSION="${pfSense_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export PFSENSEVERSION="${PFSENSE_VERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export FreeBSD_version="${FreeBSD_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export freebsd_branch="${freebsd_branch}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export PFSENSETAG="${PFSENSETAG}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-	echo export PFSENSE_VERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh	
 	echo
 	tail -n9 pfsense_local.sh
@@ -54,7 +53,7 @@ RELENG_1)
 	export FreeBSD_version="7"
 	export freebsd_branch="RELENG_7"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7-supfile"
-	export PFSENSEVERSION=${PFSENSEVERSION:-2.0-ALPHA-ALPHA}
+	export PFSENSEVERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_1
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
@@ -67,7 +66,7 @@ RELENG_1_2)
 	export FreeBSD_version="7"
 	export freebsd_branch="RELENG_7_0"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/${freebsd_branch}-supfile"
-	export PFSENSEVERSION=${PFSENSEVERSION:-1.2.1-RC2}
+	export PFSENSEVERSION=1.2.1-RC2
 	export PFSENSETAG=RELENG_1_2
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/${freebsd_branch}
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
@@ -80,7 +79,7 @@ RELENG_2_0)
 	export FreeBSD_version="7"
 	export freebsd_branch="RELENG_7"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7-supfile"
-	export PFSENSEVERSION=${PFSENSEVERSION:-2.0-ALPHA-ALPHA}
+	export PFSENSEVERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_1
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
