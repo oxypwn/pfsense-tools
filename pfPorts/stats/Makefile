@@ -19,6 +19,9 @@ COMMENT?=	pfSense stats (cgi)
 WHERE=		www
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 
+clean:
+	echo
+
 do-extract:
 	mkdir -p ${WRKSRC}
 
