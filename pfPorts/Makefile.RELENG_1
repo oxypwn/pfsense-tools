@@ -3,7 +3,13 @@
 #set -e
 #set -x
 
-ARCH="i386"
+# Architecture, supported ARCH values are: 
+#  Tier 1: i386, AMD64, and PC98
+#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
+#  Tier 3: MIPS and S/390
+#  Tier 4: None at the moment
+#  Source: http://www.freebsd.org/doc/en/articles/committers-guide/archs.html
+ARCH=""  # Default is i386
 
 PORTSTOBUILD="grub \
 	apinger \
@@ -112,16 +118,17 @@ for PORT in $PORTSTOBUILD; do
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		echo "Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean extract patch)
 		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
 		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
 	else
 		echo "Port not found, building from pfPorts..."
 		echo "Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean extract patch)
 		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
 		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
 	fi
 done
 
 cd $CURRENTDIR
+
