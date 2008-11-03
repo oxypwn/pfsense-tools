@@ -31,7 +31,7 @@ set_items() {
 	strip_pfsense_local
 	# Add our custom dynamic values
 	echo "# set_version.sh generated defaults" >> $BUILDER_SCRIPTS/pfsense_local.sh
-	echo export PFSENSEVERSION="${PFSENSE_VERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+	echo export PFSENSEVERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export FreeBSD_version="${FreeBSD_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export freebsd_branch="${freebsd_branch}" >> $BUILDER_SCRIPTS/pfsense_local.sh
 	echo export PFSENSETAG="${PFSENSETAG}" >> $BUILDER_SCRIPTS/pfsense_local.sh
