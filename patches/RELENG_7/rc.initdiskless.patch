@@ -1,0 +1,181 @@
+--- a/etc/rc.initdiskless
++++ b/etc/rc.initdiskless
+@@ -30,12 +30,12 @@
+ # mounted via NFS. The kernel has run BOOTP and configured an interface
+ # (otherwise it would not have been able to mount the NFS root!)
+ #
+-# We use the contents of /conf to create and populate memory filesystems
++# We use the contents of ${CONFIG_DIR} to create and populate memory filesystems
+ # that are mounted on top of this root to implement the writable
+ # (and host-specific) parts of the root filesystem, and other volatile
+ # filesystems.
+ #
+-# The hierarchy in /conf has the form /conf/T/M/ where M are directories
++# The hierarchy in ${CONFIG_DIR} has the form ${CONFIG_DIR}/T/M/ where M are directories
+ # for which memory filesystems will be created and filled,
+ # and T is one of the "template" directories below:
+ #
+@@ -55,66 +55,66 @@
+ # Template directories are scanned in the order they are listed above,
+ # with each sucessive directory overriding (merged into) the previous one;
+ # non-existing directories are ignored.  The subdirectory forms exist to
+-# help keep the top level /conf managable in large installations.
++# help keep the top level ${CONFIG_DIR} managable in large installations.
+ #
+-# The existence of a directory /conf/T/M causes this script to create a
++# The existence of a directory ${CONFIG_DIR}/T/M causes this script to create a
+ # memory filesystem mounted as /M on the client.
+ #
+-# Some files in /conf have special meaning, namely:
++# Some files in ${CONFIG_DIR} have special meaning, namely:
+ #
+ # Filename	Action
+ # ----------------------------------------------------------------
+-# /conf/T/M/remount
++# ${CONFIG_DIR}/T/M/remount
+ #		The contents of the file is a mount command. E.g. if
+-# 		/conf/1.2.3.4/foo/remount contains "mount -o ro /dev/ad0s3",
+-#		then /dev/ad0s3 will be be mounted on /conf/1.2.3.4/foo/
++# 		${CONFIG_DIR}/1.2.3.4/foo/remount contains "mount -o ro /dev/ad0s3",
++#		then /dev/ad0s3 will be be mounted on ${CONFIG_DIR}/1.2.3.4/foo/
+ #
+-# /conf/T/M/diskless_remount
++# ${CONFIG_DIR}/T/M/diskless_remount
+ #		The contents of the file points to an NFS filesystem,
+ #		possibly followed by mount_nfs options. If the server name
+ #		is omitted, the script will prepend the root path used when
+ #		booting. E.g. if you booted from foo.com:/path/to/root,
+-#		an entry for /conf/base/etc/diskless_remount could be any of
++#		an entry for ${CONFIG_DIR}/base/etc/diskless_remount could be any of
+ #			foo.com:/path/to/root/etc
+ #			/etc -o ro
+ #		Because mount_nfs understands ".." in paths, it is
+ #		possible to mount from locations above the NFS root with
+ #		paths such as "/../../etc".
+ #
+-# /conf/T/M/md_size
++# ${CONFIG_DIR}/T/M/md_size
+ #		The contents of the file specifies the size of the memory
+ #		filesystem to be created, in 512 byte blocks.
+ #		The default size is 10240 blocks (5MB). E.g. if
+-#		/conf/base/etc/md_size contains "30000" then a 15MB MFS
++#		${CONFIG_DIR}/base/etc/md_size contains "30000" then a 15MB MFS
+ #		will be created. In case of multiple entries for the same
+ #		directory M, the last one in the scanning order is used.
+ #		NOTE: If you only need to create a memory filesystem but not
+ #		initialize it from a template, it is preferrable to specify
+ #		it in fstab e.g. as  "md /tmp mfs -s=30m,rw 0 0"
+ #
+-# /conf/T/SUBDIR.cpio.gz
++# ${CONFIG_DIR}/T/SUBDIR.cpio.gz
+ #		The file is cpio'd into /SUBDIR (and a memory filesystem is
+ #		created for /SUBDIR if necessary). The presence of this file
+-#		prevents the copy from /conf/T/SUBDIR/
++#		prevents the copy from ${CONFIG_DIR}/T/SUBDIR/
+ #
+-# /conf/T/SUBDIR.remove
++# ${CONFIG_DIR}/T/SUBDIR.remove
+ #		The list of paths contained in the file are rm -rf'd
+ #		relative to /SUBDIR.
+ #
+-# /conf/diskless_remount
+-#		Similar to /conf/T/M/diskless_remount above, but allows
+-#		all of /conf to be remounted.  This can be used to allow
+-#		multiple roots to share the same /conf.
++# ${CONFIG_DIR}/diskless_remount
++#		Similar to ${CONFIG_DIR}/T/M/diskless_remount above, but allows
++#		all of ${CONFIG_DIR} to be remounted.  This can be used to allow
++#		multiple roots to share the same ${CONFIG_DIR}.
+ #		
+ #
+-# You will almost universally want to create the following files under /conf
++# You will almost universally want to create the following files under ${CONFIG_DIR}
+ #
+ # File					Content
+ # ----------------------------		----------------------------------
+-# /conf/base/etc/md_size		size of /etc filesystem
+-# /conf/base/etc/diskless_remount	"/etc"
+-# /conf/default/etc/rc.conf		generic diskless config parameters
+-# /conf/default/etc/fstab		generic diskless fstab e.g. like this
++# ${CONFIG_DIR}/base/etc/md_size		size of /etc filesystem
++# ${CONFIG_DIR}/base/etc/diskless_remount	"/etc"
++# ${CONFIG_DIR}/default/etc/rc.conf		generic diskless config parameters
++# ${CONFIG_DIR}/default/etc/fstab		generic diskless fstab e.g. like this
+ #
+ #	foo:/root_part			/	nfs	ro		0 0
+ #	foo:/usr_part			/usr	nfs     ro		0 0
+@@ -127,9 +127,10 @@
+ #
+ # NOTE!  /var, /tmp, and /dev will be typically created elsewhere, e.g.
+ # as entries in the fstab as above.
+-# Those filesystems should not be specified in /conf.
++# Those filesystems should not be specified in ${CONFIG_DIR}.
+ #
+ # (end of documentation, now get to the real code)
++CONFIG_DIR=/nano
+ 
+ dlv=`/sbin/sysctl -n vfs.nfs.diskless_valid 2> /dev/null`
+ 
+@@ -254,11 +255,11 @@ if [ -n "${bootp_ipa}" ]; then
+ 	templates="${templates} ${bootp_ipa} ip/${bootp_ipa}"
+ fi
+ 
+-# If /conf/diskless_remount exists, remount all of /conf.
+-handle_remount /conf
++# If ${CONFIG_DIR}/diskless_remount exists, remount all of ${CONFIG_DIR}.
++handle_remount ${CONFIG_DIR}
+ 
+-# Resolve templates in /conf/base, /conf/default, /conf/${bootp_ipbca},
+-# and /conf/${bootp_ipa}.  For each subdirectory found within these
++# Resolve templates in ${CONFIG_DIR}/base, ${CONFIG_DIR}/default, ${CONFIG_DIR}/${bootp_ipbca},
++# and ${CONFIG_DIR}/${bootp_ipa}.  For each subdirectory found within these
+ # directories:
+ #
+ # - calculate memory filesystem sizes.  If the subdirectory (prior to
+@@ -268,9 +269,9 @@ handle_remount /conf
+ #
+ # - handle NFS remounts.  If the subdirectory contains the file
+ #   diskless_remount, the contents of the file is NFS mounted over
+-#   the directory.  For example /conf/base/etc/diskless_remount
++#   the directory.  For example ${CONFIG_DIR}/base/etc/diskless_remount
+ #   might contain 'myserver:/etc'.  NFS remounts allow you to avoid
+-#   having to dup your system directories in /conf.  Your server must
++#   having to dup your system directories in ${CONFIG_DIR}.  Your server must
+ #   be sure to export those filesystems -alldirs, however.
+ #   If the diskless_remount file contains a string beginning with a
+ #   '/' it is assumed that the local nfsroot should be prepended to
+@@ -279,7 +280,7 @@ handle_remount /conf
+ #
+ log "templates are ${templates}"
+ for i in ${templates} ; do
+-    for j in /conf/$i/* ; do
++    for j in ${CONFIG_DIR}/$i/* ; do
+ 	[ -d $j ] || continue
+ 
+ 	# memory filesystem size specification
+@@ -309,14 +310,14 @@ done
+ # from being copied.
+ 
+ for i in ${templates} ; do
+-    for j in /conf/$i/* ; do
++    for j in ${CONFIG_DIR}/$i/* ; do
+ 	subdir=${j##*/}
+ 	if [ -d $j -a ! -f $j.cpio.gz  ]; then
+ 	    create_md $subdir
+ 	    cp -Rp $j/ /$subdir
+ 	fi
+     done
+-    for j in /conf/$i/*.cpio.gz ; do
++    for j in ${CONFIG_DIR}/$i/*.cpio.gz ; do
+ 	subdir=${j%*.cpio.gz}
+ 	subdir=${subdir##*/}
+ 	if [ -f $j ]; then
+@@ -325,7 +326,7 @@ for i in ${templates} ; do
+ 	    (cd / ; /rescue/tar -xpf $j)
+ 	fi
+     done
+-    for j in /conf/$i/*.remove ; do
++    for j in ${CONFIG_DIR}/$i/*.remove ; do
+ 	subdir=${j%*.remove}
+ 	subdir=${subdir##*/}
+ 	if [ -f $j ]; then
