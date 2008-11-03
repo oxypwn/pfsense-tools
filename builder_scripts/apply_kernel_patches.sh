@@ -11,11 +11,11 @@ CURRENTDIR=`pwd`
 
 SRCDIR=${SRCDIR:-/usr/src}
 
-echo ">>> Using patchfile ${PATCHFILE} ..."
+echo ">>> Using patchfile ${PFSPATCHFILE} ..."
 echo ">>> Using supfile   ${SUPFILE} ..."
 
 # Loop through and remove files
-for LINE in `cat ${PATCHFILE}`
+for LINE in `cat ${PFSPATCHFILE}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
 	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
@@ -48,7 +48,7 @@ echo "Removing old patch rejects..."
 find /usr/src -name "*.rej" -exec rm {} \;
 
 # Loop through and patch files
-for LINE in `cat ${PATCHFILE}`
+for LINE in `cat ${PFSPATCHFILE}`
 do
 	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
 	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`

@@ -400,13 +400,8 @@ cust_populate_extra() {
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
     cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 
-	if [ $FreeBSD_version = "7" ]; then
-		echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
-    	cp -r $BASE_DIR/tools/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
-	else 
-		echo "Using FreeBSD 6 BSDInstaller dfuibelua structure."
-		cp -r $BASE_DIR/tools/installer/installer_root_dir $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
-	fi
+	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
+   	cp -r $BASE_DIR/tools/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
