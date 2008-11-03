@@ -17,6 +17,7 @@ strip_pfsense_local() {
 		grep -v PFSENSETAG | \
 		grep -v "set_version.sh" | \
 		grep -v PFSPATCHFILE | \
+		grep -v PFSENSEVERSION | \
 		grep -v SUPFILE | \
 		grep -v PFSPATCHDIR | \
 		grep -v PFSENSE_VERSION | \
