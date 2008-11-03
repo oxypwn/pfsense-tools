@@ -182,8 +182,8 @@ export ARCH="i386"
 # a suitable update source to spread the load.
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 
-if [ ! -f $BUILDERSCRIPTS/pfsense-build.conf ]; then
-	touch $BUILDERSCRIPTS/pfsense-build.conf
+if [ ! -f $BUILDER_SCRIPTS/pfsense-build.conf ]; then
+	touch $BUILDER_SCRIPTS/pfsense-build.conf
 fi
 
 ############################################
