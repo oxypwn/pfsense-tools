@@ -30,12 +30,13 @@ mkdir /usr/local/www
 
 cd /home/pfsense/tools/builder_scripts/
 
-portsnap fetch
-portsnap extract
+portsnap fetch ; portsnap extract
+
+(cd /usr/ports/sysutils/screen && make install)
+(cd /usr/ports/sysutils/cdrtools && make install)
+(cd /usr/ports/net/cvsup-without-gui && make install)
 
 ./cvsup_current 
 
-(cd /usr/ports/sysutils/screen && make install)
-
-./build_snapshots.sh 
+#./build_snapshots.sh 
 
