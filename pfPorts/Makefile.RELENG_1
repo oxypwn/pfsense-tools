@@ -11,6 +11,16 @@
 #  Source: http://www.freebsd.org/doc/en/articles/committers-guide/archs.html
 ARCH=""  # Default is i386
 
+touch $BUILDER_SCRIPTS/pfS_portcache
+
+set_cache() {
+	# Strip dynamic values
+	echo ">>>> Setting port cache $1 to $2"
+	cat $BUILDER_SCRIPTS/pfS_portcache | \
+		grep -v "$1		$2" > /tmp/pfS_portcache
+	mv /tmp/pfS_portcache $BUILDER_SCRIPTS/pfS_portcache
+}
+
 PORTSTOBUILD="grub \
 	apinger \
 	rrdtool \
@@ -102,9 +112,13 @@ rm -rf /usr/ports/chinese/links
 
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
-	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
+	DOESPORTEXIST=`cat $BUILDER_SCRIPTS/pfS_portcache | grep "${PORT}" | awk '{ print $2 }'`
+	if [ "${DOESPORTEXIST}" = "" ]; 	
+		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
+	then 
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		( cd $DOESPORTEXIST && make clean )
+		set_cache ${PORT} ${DOESPORTEXIST}
 	else 
 		( cd /home/pfsense/tools/pfPorts/$PORT && make clean)
 	fi
