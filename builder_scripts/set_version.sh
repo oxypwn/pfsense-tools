@@ -65,14 +65,14 @@ RELENG_2_0)
 esac
 
 # Add our custom dynamic values
-echo export PFSENSEVERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export FreeBSD_version="${FREEBSD_VERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export freebsd_branch="${FREEBSD_PLATFORM}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PFSENSETAG="${PFSENSE_PLATFORM}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PATCHFILE="${FREEBSD_PATCHFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PFSPATCHDIR="${FREEBSD_PATCHDIR}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export PFSENSE_VERSION="${PFSENSE_VERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
-echo export SUPFILE="${FREEBSD_SUPFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh	
+echo export PFSENSEVERSION="${pfSense_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+echo export FreeBSD_version="${FreeBSD_version}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+echo export freebsd_branch="${freebsd_branch}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+echo export PFSENSETAG="${PFSENSETAG}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+echo export PFSENSE_VERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense_local.sh
+echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense_local.sh	
 #echo export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense_local.sh
 
 
