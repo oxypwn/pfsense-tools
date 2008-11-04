@@ -36,7 +36,7 @@ check_for_clog() {
 # Removes NAT_T and other unneeded kernel options from 1.2 images.
 fixup_kernel_options() {
 	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
-		echo ">>> Removing unneeded kernel configuration option from 1.2"
+		echo ">>>> Removing unneeded kernel configuration option from 1.2"
 		cat /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp
 		cat /usr/src/sys/i386/conf/pfSense.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert//  > /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp
 		cat /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}.tmp
@@ -72,7 +72,7 @@ build_embedded_kernel() {
 	fixup_kernel_options
 
 	# Build embedded kernel
-	echo ">>> Building embedded kernel..."
+	echo ">>>> Building embedded kernel..."
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
@@ -82,7 +82,7 @@ build_embedded_kernel() {
 	freesbie_make buildkernel
 	freesbie_make installkernel
 
-	echo -n ">>> Installing kernels to LiveCD area..."
+	echo -n ">>>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
@@ -146,7 +146,7 @@ build_all_kernels() {
 	fixup_kernel_options
 
 	# Build uniprocessor kernel
-	echo ">>> Building uniprocessor kernel..."
+	echo ">>>> Building uniprocessor kernel..."
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
@@ -157,7 +157,7 @@ build_all_kernels() {
 	freesbie_make installkernel
 
 	# Build embedded kernel
-	echo ">>> Building embedded kernel..."
+	echo ">>>> Building embedded kernel..."
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
@@ -168,7 +168,7 @@ build_all_kernels() {
 	freesbie_make installkernel
 
 	# Build Developers kernel
-	echo ">>> Building Developers kernel..."
+	echo ">>>> Building Developers kernel..."
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
@@ -179,7 +179,7 @@ build_all_kernels() {
 	freesbie_make installkernel
 	
 	# Build SMP kernel
-	echo ">>> Building SMP kernel..."
+	echo ">>>> Building SMP kernel..."
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 		
 	unset KERNCONF
@@ -194,7 +194,7 @@ build_all_kernels() {
 	mkdir -p $PFSENSEBASEDIR/kernels/
 
 	# Nuke symbols
-	echo -n ">>> Cleaning up .symbols..."
+	echo -n ">>>> Cleaning up .symbols..."
     if [ -z "${PFSENSE_DEBUG:-}" ]; then
 		echo -n "."
 		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
@@ -204,7 +204,7 @@ build_all_kernels() {
 	find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
 	echo "done."
 
-	echo -n ">>> Installing kernels to LiveCD area..."
+	echo -n ">>>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .) 	
 	echo -n "."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
@@ -230,7 +230,7 @@ recompile_pfPorts() {
 
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then 
 		echo
-		echo ">>> Preparing for pfPorts build ${PFSENSETAG}"
+		echo ">>>> Preparing for pfPorts build ${PFSENSETAG}"
 		echo
 
 		echo
@@ -259,7 +259,7 @@ recompile_pfPorts() {
 		export FORCE_PKG_REGISTER=yo
 
 		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
-		echo ">>> Executing ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
+		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
 		( su - root -c "cd /usr/ports/ && ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} ${MAKEJ_PORTS}" )
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
@@ -300,16 +300,16 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 
 	if [ ! -z "${CUSTOM_COPY_LIST:-}" ]; then
-		echo ">>> Using ${CUSTOM_COPY_LIST:-}..."
+		echo ">>>> Using ${CUSTOM_COPY_LIST:-}..."
 		FOUND_FILES=`cat ${CUSTOM_COPY_LIST:-}`
 	else
-		echo ">>> Using copy.list.${PFSENSETAG}..."
+		echo ">>>> Using copy.list.${PFSENSETAG}..."
 		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 	fi
 
 	# Process base system libraries
 	NEEDEDLIBS=""
-	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
+	echo ">>>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
 		echo "Looking for /${TEMPFILE} "
 		if [ -f /${TEMPFILE} ]; then
@@ -338,7 +338,7 @@ cust_overlay_host_binaries() {
 			fi
 		fi
 	done		
-	echo ">>>> Installing collected library information (usr/local), please wait..."
+	echo ">>>>> Installing collected library information (usr/local), please wait..."
 	# Unique the libraries so we only copy them once
 	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
 	for NEEDLIB in $NEEDEDLIBS; do
@@ -448,7 +448,7 @@ cust_populate_extra() {
 cust_install_config_xml() {
 	if [ ! -z "${USE_CONFIG_XML:-}" ]; then
 		if [ -f "$USE_CONFIG_XML" ]; then
-			echo ">>> Using custom config.xml file ${USE_CONFIG_XML} ..."
+			echo ">>>> Using custom config.xml file ${USE_CONFIG_XML} ..."
 			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/cf/conf/config.xml
 			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/conf.default/config.xml
 			cp ${USE_CONFIG_XML} ${CVS_CO_DIR}/cf/conf/config.xml
@@ -846,7 +846,7 @@ clone_system_only()
 
 checkout_pfSense() {
 	PREVIOUSDIR=`pwd`
-	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
+	echo ">>>> Checking out pfSense version ${PFSENSETAG}..."
 	rm -rf $CVS_CO_DIR
 	if [ -z "${USE_GIT:-}" ]; then
 		(cd $BASE_DIR && cvs -d ${BASE_DIR}/cvsroot co pfSense -r ${PFSENSETAG})
@@ -863,7 +863,7 @@ checkout_pfSense() {
 }
 
 checkout_freesbie() {
-	echo ">>> Getting FreeSBIE"
+	echo ">>>> Getting FreeSBIE"
 	rm -rf $LOCALDIR
 }
 
@@ -904,12 +904,12 @@ clear_custom() {
 }
 
 backup_pfSense() {
-	echo ">>> Backing up pfSense repo"
+	echo ">>>> Backing up pfSense repo"
 	cp -R $CVS_CO_DIR $BASE_DIR/pfSense_bak
 }
 
 restore_pfSense() {
-	echo ">>> Restoring pfSense repo"
+	echo ">>>> Restoring pfSense repo"
 	cp -R $BASE_DIR/pfSense_bak $CVS_CO_DIR
 }
 
@@ -1325,10 +1325,10 @@ mv /tmp/platform /etc/platform
 
 EOF
 
-		echo ">>> Installing custom pfSense-XML packages inside chroot ..."
+		echo ">>>> Installing custom pfSense-XML packages inside chroot ..."
 		chmod a+rx ${TODIR}/${DESTNAME}
 		chroot ${TODIR} /bin/sh /${DESTNAME}
-		echo ">>> Unmounting ${TODIR}/dev ..."
+		echo ">>>> Unmounting ${TODIR}/dev ..."
 		umount -f ${TODIR}/dev
 	
 	fi		
