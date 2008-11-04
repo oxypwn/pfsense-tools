@@ -144,6 +144,7 @@ for PORT in $PORTSTOBUILD; do
 			rm -rf $DOESPORTEXIST
 			mkdir -p $DOESPORTEXIST
 		fi
+		chflags -R noschg /home/pfsense/tools/pfPorts/$PORT/work
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
 		echo ">>>> Executing cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/"
