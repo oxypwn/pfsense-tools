@@ -5,14 +5,9 @@
 
 CURRENTDIR=`pwd`
 
-if [ -f pfsense_local.sh ]; then
-	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-	echo ">>>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"	
-else 
-	if [ -f ../builder_scripts/pfsense_local.sh ]; then
-		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		echo ">>>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
-	fi
+if [ $# -eq 1 ]; then
+	MAKEJ_PORTS=$1
+	echo ">>>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
 fi
 
 cd /usr/ports
