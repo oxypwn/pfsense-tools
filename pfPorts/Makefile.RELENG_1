@@ -10,7 +10,7 @@ if [ -f pfsense_local.sh ]; then
 	echo ">>>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"	
 else 
 	if [ -f ../builder_scripts/pfsense_local.sh ]; then
-		MAKEJ_PORTS=`cat ..//var/db//pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 		echo ">>>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
 	fi
 fi
