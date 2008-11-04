@@ -26,5 +26,6 @@
 ~sys/dev/cardbus~cardbus_cis.c.diff~
 ~usr.bin/sockstat~sockstat.diff~
 ~sys/sys~proc.h.diff~
- ~~reply-to.RELENG_7.diff~
- ~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
+~~reply-to.RELENG_7.diff~
+~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
+~~pfil.RELENG_7.diff~
