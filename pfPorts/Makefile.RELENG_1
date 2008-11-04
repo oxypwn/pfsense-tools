@@ -5,6 +5,14 @@
 
 CURRENTDIR=`pwd`
 
+if [ -f pfsense_local.sh ]; then
+	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+else 
+	if [ -f ../builder_scripts/pfsense_local.sh ]; then
+		MAKEJ_PORTS=`cat ..//var/db//pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
+	fi
+fi
+
 cd /usr/ports
 
 # Architecture, supported ARCH values are: 
@@ -93,14 +101,6 @@ PORTSTOBUILD="grub \
 	openntpd \
 	ftp-proxy \
 	php5-install-all"
-
-if [ -f pfsense_local.sh ]; then
-	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-else 
-	if [ -f ..//var/db//pfsense_local.sh ]; then
-		MAKEJ_PORTS=`cat ..//var/db//pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
-	fi
-fi
 
 if [ "$ARCH" = "" ]; then
 	ARCHSTRING=""
