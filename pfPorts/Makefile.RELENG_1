@@ -149,25 +149,17 @@ for PORT in $PORTSTOBUILD; do
 		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
 		echo ">>>> Executing cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/"
 		echo ">>>> Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		echo ">>>> Executing command: (cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean extract patch)"
-		(cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean extract patch)
-		echo ">>>> Executing command: (cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends)		"
-		(cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends)		
-		echo ">>>> Executing command: (cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS)"
-		(cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS)
-		echo ">>>> Executing command: (cd $DOESPORTEXIST && make ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install)"
-		(cd $DOESPORTEXIST && make ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install)
+		cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean extract patch
+		cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends
+		cd $DOESPORTEXIST && make ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS
+		cd $DOESPORTEXIST && make ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install
 	else
 		echo ">>>> Port not found, building from pfPorts..."
 		echo ">>>> Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		echo ">>>> Executing command: (cd $DOESPORTEXIST && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean extract patch)"
-		(cd $DOESPORTEXIST && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean extract patch)
-		echo ">>>> Executing command: (cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends)"
-		(cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends)
-		echo ">>>> Executing command: (cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS)"
-		(cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS)
-		echo ">>>> Executing command: (cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install)"
-		(cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install)
+		cd $DOESPORTEXIST && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean extract patch
+		cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends
+		cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS
+		cd /home/pfsense/tools/pfPorts/$PORT && make $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install
 	fi
 done
 
