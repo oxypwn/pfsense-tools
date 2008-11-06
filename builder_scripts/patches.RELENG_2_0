@@ -29,4 +29,3 @@
 ~~reply-to.RELENG_7.diff~
 ~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
 ~~pfil.RELENG_7.diff~
-~sys/netinet~udp_usrreq.c.diff~
