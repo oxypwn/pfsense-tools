@@ -104,7 +104,7 @@ export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
 # Controls how many concurrent make processes are run for each stage
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
-export MAKEJ_PORTS=${MAKEJ_PORTS:-"-j1"}
+export MAKEJ_PORTS=${MAKEJ_PORTS:-"-B"}
 
 # Do not clean.  Makes subsequent builds quicker.
 export NO_CLEAN=${NO_CLEAN:-"yo"}
