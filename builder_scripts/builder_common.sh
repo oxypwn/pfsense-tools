@@ -1199,6 +1199,10 @@ pfsense_install_custom_packages_exec() {
 		/bin/cp ${BASE_DIR}/tools/builder_scripts/pfspkg_installer ${TODIR}/tmp
 		/bin/chmod a+x ${TODIR}/tmp/pfspkg_installer
 		
+		cp ${TODIR}/usr/local/lib/php.ini /tmp/
+		cat /tmp/php.ini | grep -v apc > ${TODIR}/usr/local/lib/php.ini
+		cat /tmp/php.ini | grep -v apc > ${TODIR}/usr/local/etc/php.ini
+		
 	# setup script that will be run within the chroot env
 	/bin/cat > ${TODIR}/${DESTNAME} <<EOF
 #!/bin/sh
@@ -1322,6 +1326,9 @@ mv /tmp/platform /etc/platform
 /bin/rm /etc/resolv.conf
 
 /bin/rm /${DESTNAME}
+
+cp /tmp/php.ini ${TODIR}/usr/local/lib/php.ini 
+cp /tmp/php.ini ${TODIR}/usr/local/etc/php.ini
 
 EOF
 
