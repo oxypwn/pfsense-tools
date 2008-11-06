@@ -24,8 +24,8 @@ do-extract:
 	cp ${FILESDIR}/Makefile ${WRKSRC}/
 	cp ${FILESDIR}/*.* ${WRKSRC}/
 
-#do-build:
-#	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+do-build:
+	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
