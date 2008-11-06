@@ -25,7 +25,7 @@ do-extract:
 	cp ${FILESDIR}/*.* ${WRKSRC}/
 
 do-build:
-	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	cd work/slbd-0.0.2 && make
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
