@@ -145,9 +145,9 @@ update_sources() {
 	./cvsup_current
 	touch /tmp/pfSense_do_not_build_pfPorts
 	gzip $PFSENSEOBJDIR/pfSense.iso
-	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz
-	md5 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
-	sha256 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.sha256
+	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz
+	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
+	sha256 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz.sha256
 }
 
 build_embedded() {
