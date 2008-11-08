@@ -182,12 +182,20 @@ export ARCH="i386"
 # a suitable update source to spread the load.
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
 
+# Ensure file exists
 if [ ! -f $BUILDER_SCRIPTS/pfsense-build.conf ]; then
+	echo ">>>> Creating file pfsense-build.conf"
 	touch $BUILDER_SCRIPTS/pfsense-build.conf
 fi
 
 ############################################
 # The following line must always come last #
 ############################################
-[ -r "pfsense-build.conf" ] && . pfsense-build.conf
-
+if [ -r pfsense-build.conf ]; then
+	. pfsense-build.conf
+	echo
+	echo ">>>> pfsense-build.conf contains: "
+	cat pfsense-build.conf
+	sleep 3
+	echo
+fi
