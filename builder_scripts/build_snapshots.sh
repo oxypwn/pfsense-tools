@@ -150,7 +150,7 @@ update_sources() {
 	touch /tmp/pfSense_do_not_build_pfPorts
 	gzip $PFSENSEOBJDIR/pfSense.iso
 	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz
-	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
+	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz.md5
 	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz.sha256
 }
 
@@ -212,11 +212,11 @@ copy_to_staging_iso_updates() {
 copy_to_staging_embedded() {
 	cp $PFSENSEOBJDIR/pfSense.img $STAGINGAREA/ 
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	rm -f $STAGINGAREA/pfSense-${DATESTRING}.img.gz
-	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${DATESTRING}.img
-	gzip $STAGINGAREA/pfSense-${DATESTRING}.img
-	md5 $STAGINGAREA/pfSense-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${DATESTRING}.img.gz.md5
-	sha256 $STAGINGAREA/pfSense-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${DATESTRING}.img.gz.sha256
+	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz
+	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img
+	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img
+	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.md5
+	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.sha256
 }
 
 cp_files() {
