@@ -8,6 +8,9 @@ fi
 
 HANDLED=false
 
+#Ensure file exists
+touch pfsense-build.conf
+
 # Source pfsense-build.conf variables
 . ./pfsense-build.conf
 
