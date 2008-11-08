@@ -35,7 +35,11 @@ BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 # *** SOME UNKNOWN REASON.
 # ***                       04/07/2008
 . $BUILDERSCRIPTS/pfsense_local.sh
-
+if [ -f "$BUILDERSCRIPTS/build_snapshots_local.sh" ]; then 
+	echo ">>> Sourcing build_snapshots_local.sh"
+	. $BUILDERSCRIPTS/build_snapshots_local.sh	
+fi
+	
 # Ensure a fresh environment, please.
 # rm -rf $PFSENSECVSROOT
 # rm -rf $PFSENSECHECKOUTDIR
