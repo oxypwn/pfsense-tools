@@ -35,9 +35,9 @@ BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 # *** SOME UNKNOWN REASON.
 # ***                       04/07/2008
 . $BUILDERSCRIPTS/pfsense_local.sh
-if [ -f "$BUILDERSCRIPTS/build_snapshots_local.sh" ]; then 
-	echo ">>> Sourcing build_snapshots_local.sh"
-	. $BUILDERSCRIPTS/build_snapshots_local.sh	
+if [ -f "$BUILDERSCRIPTS/pfsense-build.conf" ]; then 
+	echo ">>> Sourcing pfsense-build.conf"
+	. $BUILDERSCRIPTS/pfsense-build.conf	
 fi
 	
 # Ensure a fresh environment, please.
@@ -268,9 +268,9 @@ build_loop_operations() {
 
 # Main builder loop - lets do this forever until the cows come home.
 while [ /bin/true ]; do
-	if [ -f "$BUILDERSCRIPTS/build_snapshots_local.sh" ]; then 
-		echo ">>> Execing build_snapshots_local.sh"
-		. $BUILDERSCRIPTS/build_snapshots_local.sh	
+	if [ -f "$BUILDERSCRIPTS/pfsense-build.conf" ]; then 
+		echo ">>> Execing pfsense-build.conf"
+		. $BUILDERSCRIPTS/pfsense-build.conf	
 	else
 		echo ">>> Running built in operations"
 		sync_cvs
