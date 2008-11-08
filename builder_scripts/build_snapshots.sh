@@ -151,7 +151,7 @@ update_sources() {
 	gzip $PFSENSEOBJDIR/pfSense.iso
 	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz
 	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz.md5
-	sha256 $PFSENSEOBJDIR/pfSense-`date "+%Y%m%d-%H%M"`.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz.sha256
+	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz.sha256
 }
 
 build_embedded() {
