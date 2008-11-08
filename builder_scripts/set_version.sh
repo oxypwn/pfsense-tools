@@ -8,10 +8,11 @@ fi
 
 HANDLED=false
 
-#Ensure file exists
+# Ensure file exists
 touch pfsense-build.conf
 
 # Source pfsense-build.conf variables
+. ./pfsense_local.sh
 . ./pfsense-build.conf
 
 strip_pfsense_local() {
