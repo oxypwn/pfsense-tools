@@ -46,7 +46,6 @@ set_items() {
 	echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf	
-	echo $#
 	if [ "$SETLIVEBSD" = "true" ]; then 
 		echo "export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	else 
