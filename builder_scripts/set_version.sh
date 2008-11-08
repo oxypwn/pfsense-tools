@@ -1,9 +1,13 @@
 #!/bin/sh
 
-if [ $# -ne 1 ]; then
+if [ $# -lt 1 ]; then
 	echo 1>&2 Usage  : $0 pfSense branch
 	echo 1>&2 example: $0 RELENG_1
 	exit 127
+fi
+
+if [ $# -eq 2 ]; then
+	SETLIVEBSD="true"
 fi
 
 HANDLED=false
@@ -42,7 +46,12 @@ set_items() {
 	echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf	
-	echo "#export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	echo $#
+	if [ "$SETLIVEBSD" = "true" ]; then 
+		echo "export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	else 
+		echo "#export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	fi
 	echo
 	tail -n9 pfsense-build.conf
 	echo
