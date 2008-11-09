@@ -23,7 +23,7 @@ strip_pfsense_local() {
 	# Strip dynamic values
 	cat $BUILDER_SCRIPTS/pfsense-build.conf | \
 		grep -v FREEBSD_VERSION | \
-		grep -v freebsd_branch | \
+		grep -v FREEBSD_BRANCH | \
 		grep -v PFSENSETAG | \
 		grep -v "set_version.sh" | \
 		grep -v PFSPATCHFILE | \
@@ -41,7 +41,7 @@ set_items() {
 	echo "# set_version.sh generated defaults" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSENSEVERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export FREEBSD_VERSION="${FREEBSD_VERSION}" >> $BUILDER_SCRIPTS/pfsense-build.conf
-	echo export freebsd_branch="${freebsd_branch}" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	echo export FREEBSD_BRANCH="${FREEBSD_BRANCH}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSENSETAG="${PFSENSETAG}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense-build.conf
@@ -64,7 +64,7 @@ RELENG_1)
 	echo ">>> Setting builder environment to use RELENG_1 ..."
 	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
-	export freebsd_branch="RELENG_7"
+	export FREEBSD_BRANCH="RELENG_7"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7-supfile"
 	export PFSENSEVERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_1
@@ -77,11 +77,11 @@ RELENG_1_2)
 	echo ">>> Setting builder environment to use RELENG_1_2 ..."
 	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
-	export freebsd_branch="RELENG_7_0"
-	export SUPFILE="${BASE_DIR}/tools/builder_scripts/${freebsd_branch}-supfile"
+	export FREEBSD_BRANCH="RELENG_7_0"
+	export SUPFILE="${BASE_DIR}/tools/builder_scripts/${FREEBSD_BRANCH}-supfile"
 	export PFSENSEVERSION=1.2.1-RC2
 	export PFSENSETAG=RELENG_1_2
-	export PFSPATCHDIR=${BASE_DIR}/tools/patches/${freebsd_branch}
+	export PFSPATCHDIR=${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
 	set_items
 ;;
@@ -90,7 +90,7 @@ RELENG_2_0)
 	echo ">>> Setting builder environment to use RELENG_2_0 ..."
 	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
-	export freebsd_branch="RELENG_7"
+	export FREEBSD_BRANCH="RELENG_7"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7-supfile"
 	export PFSENSEVERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_1

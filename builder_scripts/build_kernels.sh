@@ -71,7 +71,7 @@ else
 fi
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building all extra kernels... $FreeBSD_version  $freebsd_branch ..."
+echo ">>> Building all extra kernels... $FreeBSD_version  $FREEBSD_BRANCH ..."
 build_all_kernels
 
 # Check for freesbie builder issues

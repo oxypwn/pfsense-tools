@@ -81,7 +81,7 @@ if [ $FreeBSD_version = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7.install"
 fi
 
-echo ">>> Building all extra kernels... $FreeBSD_version  $freebsd_branch ..."
+echo ">>> Building all extra kernels... $FreeBSD_version  $FREEBSD_BRANCH ..."
 build_all_kernels
 
 # Add extra files such as buildtime of version, bsnmpd, etc.

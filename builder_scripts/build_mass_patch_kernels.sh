@@ -9,7 +9,7 @@
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
-PFSPATCHDIR=${PFSPATCHDIR:-${BASE_DIR}/tools/patches/${freebsd_branch}}
+PFSPATCHDIR=${PFSPATCHDIR:-${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}}
 SRCDIR=${SRCDIR:-/usr/src}
 
 # Set these two options

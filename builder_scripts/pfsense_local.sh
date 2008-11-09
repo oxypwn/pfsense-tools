@@ -83,10 +83,10 @@ export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 # FreeBSD version and build information
 export pfSense_version="7"
 export FREEBSD_VERSION="7"
-export freebsd_branch="RELENG_7_0"
+export FREEBSD_BRANCH="RELENG_7_0"
 
 # Define FreeBSD SUPFILE
-export SUPFILE="${BASE_DIR}/tools/builder_scripts/${freebsd_branch}-supfile"
+export SUPFILE="${BASE_DIR}/tools/builder_scripts/${FREEBSD_BRANCH}-supfile"
 
 # Version that will be applied to this build
 export PFSENSEVERSION=${PFSENSEVERSION:-1.2.1-RC2}
@@ -98,7 +98,7 @@ export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 # export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply
-export PFSPATCHDIR=${BASE_DIR}/tools/patches/${freebsd_branch}
+export PFSPATCHDIR=${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}
 export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
 
 # Controls how many concurrent make processes are run for each stage

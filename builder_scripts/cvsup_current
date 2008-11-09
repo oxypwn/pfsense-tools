@@ -210,7 +210,7 @@ else
 fi
 
 # CVSUp freebsd version
-echo "Using FreeBSD ${pfSense_version} branch ${freebsd_branch} ${PFSENSETAG} ${SUPFILE}"
+echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} ${PFSENSETAG} ${SUPFILE}"
 cvsup -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
 if [ -z "${USE_GIT:-}" ]; then

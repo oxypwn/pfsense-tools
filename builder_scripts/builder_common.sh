@@ -884,7 +884,7 @@ print_flags() {
 	printf "        Clone DIR: %s\n" $CLONEDIR
 	printf "   Custom overlay: %s\n" $custom_overlay
 	printf "  pfSense version: %s\n" $FreeBSD_version
-	printf "   FreeBSD branch: %s\n" $freebsd_branch
+	printf "   FreeBSD branch: %s\n" $FREEBSD_BRANCH
 	printf "      pfSense Tag: %s\n" $PFSENSETAG
 	printf " MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
 	printf "            EXTRA: %s\n" $EXTRA

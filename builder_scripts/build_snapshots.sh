@@ -80,7 +80,7 @@ set_freebsd_source() {
 	install_pfsense_local_sh
 }
 
-set_freebsd_version() {
+set_FREEBSD_VERSION() {
 	echo $1 > $WEBROOT/FREEBSD_VERSION.txt
 	install_pfsense_local_sh
 }
@@ -124,7 +124,7 @@ install_pfsense_local_sh() {
 	# Strip dynamic values
 	cat $BUILDERSCRIPTS/pfsense-build.conf | \
 		grep -v FREEBSD_VERSION | \
-		grep -v freebsd_branch | \
+		grep -v FREEBSD_BRANCH | \
 		grep -v PFSENSETAG | \
 		grep -v PATCHFILE | \
 		grep -v SUPFILE | \
@@ -134,7 +134,7 @@ install_pfsense_local_sh() {
 	mv /tmp/pfsense-build.conf $BUILDERSCRIPTS/pfsense-build.conf
 	# Add our custom dynamic values
 	echo export FREEBSD_VERSION="${FREEBSD_VERSION}" >> $BUILDERSCRIPTS/pfsense-build.conf
-	echo export freebsd_branch="${FREEBSD_PLATFORM}" >> $BUILDERSCRIPTS/pfsense-build.conf
+	echo export FREEBSD_BRANCH="${FREEBSD_PLATFORM}" >> $BUILDERSCRIPTS/pfsense-build.conf
 	echo export PFSENSETAG="${PFSENSE_PLATFORM}" >> $BUILDERSCRIPTS/pfsense-build.conf
 	echo export PFSPATCHFILE="${FREEBSD_PATCHFILE}" >> $BUILDERSCRIPTS/pfsense-build.conf
 	echo export PFSPATCHDIR="${FREEBSD_PATCHDIR}" >> $BUILDERSCRIPTS/pfsense-build.conf
