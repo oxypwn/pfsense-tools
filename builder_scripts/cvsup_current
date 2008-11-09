@@ -9,6 +9,11 @@
 #set -x
 #set -e
 
+if [ ! -f ./pfsense-build.conf ]; then
+	echo "You must first run ./set_version.sh !"
+	exit 1
+fi
+
 # No ports exist, use portsnap to bootstrap.
 if [ ! -d "/usr/ports/" ]; then
 	/usr/sbin/portsnap fetch
