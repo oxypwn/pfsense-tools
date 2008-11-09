@@ -82,7 +82,7 @@ export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 
 # FreeBSD version and build information
 export pfSense_version="7"
-export FreeBSD_version="7"
+export FREEBSD_VERSION="7"
 export freebsd_branch="RELENG_7_0"
 
 # Define FreeBSD SUPFILE
