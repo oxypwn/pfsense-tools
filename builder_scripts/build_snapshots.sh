@@ -9,6 +9,11 @@
 # $Id$
 #
 
+if [ ! -f ./pfsense-build.conf ]; then
+	echo "You must first run ./set_version.sh !"
+	exit 1
+fi
+
 # Set verbose
 set -x
 
