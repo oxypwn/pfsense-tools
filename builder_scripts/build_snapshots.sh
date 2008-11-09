@@ -46,8 +46,6 @@ mkdir -p $PFSENSECHECKOUTDIR
 mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
 
-rm $BUILDERSCRIPTS/pfsense-build.conf
-
 if [ -f /tmp/pfSense_do_not_build_pfPorts ]; then
 	echo "--> Removing /tmp/pfSense_do_not_build_pfPorts..."
 	rm /tmp/pfSense_do_not_build_pfPorts
@@ -266,7 +264,10 @@ build_loop_operations() {
 while [ /bin/true ]; do
 	if [ -f "$BUILDERSCRIPTS/pfsense-build.conf" ]; then 
 		echo ">>> Execing pfsense-build.conf"
-		. $BUILDERSCRIPTS/pfsense-build.conf	
+		. $BUILDERSCRIPTS/pfsense-build.conf
+		sh ${BUILDERSCRIPTS}/print_builder_variables.sh
+		build_loop_operations
+		sleep 500	# give the box a break.
 	else
 		echo ">>> Running built in operations"
 		sync_cvs
