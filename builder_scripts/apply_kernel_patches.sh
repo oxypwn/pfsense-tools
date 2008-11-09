@@ -81,3 +81,7 @@ if [ $REJECTED_PATCHES -gt 0 ]; then
 	echo
 fi
 
+# clog source
+echo "Applying CLOG updates..."
+(cd ${SRCDIR}/usr.sbin/ && \
+	tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)
