@@ -193,9 +193,4 @@ fi
 ############################################
 if [ -r pfsense-build.conf ]; then
 	. pfsense-build.conf
-	echo
-	echo ">>>> pfsense-build.conf contains: "
-	cat pfsense-build.conf
-	sleep 3
-	echo
 fi
