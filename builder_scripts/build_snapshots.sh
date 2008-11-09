@@ -262,27 +262,10 @@ build_loop_operations() {
 
 # Main builder loop - lets do this forever until the cows come home.
 while [ /bin/true ]; do
-	if [ -f "$BUILDERSCRIPTS/pfsense-build.conf" ]; then 
-		echo ">>> Execing pfsense-build.conf"
-		. $BUILDERSCRIPTS/pfsense-build.conf
-		sh ${BUILDERSCRIPTS}/print_builder_variables.sh
-		build_loop_operations
-		sleep 500	# give the box a break.
-	else
-		echo ">>> Running built in operations"
-		sync_cvs
-		set_pfsense_version "1.2.1-RC1"
-		set_pfsense_source "RELENG_1_2"
-		set_freebsd_source "RELENG_7_0"
-		set_freebsd_version "7"
-		set_patches_dir "/home/pfsense/tools/patches/RELENG_7_0"
-		set_freebsd_patches "/home/pfsense/tools/builder_scripts/patches.RELENG_1_2"
-		set_pfsense_supfile "/home/pfsense/tools/builder_scripts/RELENG_7_0-supfile"
-		# Output builder variables 
-		sh ${BUILDERSCRIPTS}/print_builder_variables.sh
-		build_loop_operations
-		sleep 500	# give the box a break.
-	fi
+	echo ">>> Execing pfsense-build.conf"
+	. $BUILDERSCRIPTS/pfsense-build.conf
+	build_loop_operations
+	sleep 500	# give the box a break.
 done
 
 rm -f /tmp/pfSense_do_not_build_pfPorts
