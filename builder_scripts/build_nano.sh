@@ -42,23 +42,23 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	if [ $FreeBSD_version = "6" ]; then
+	if [ $FREEBSD_VERSION = "6" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso ..."	
 		export PRUNE_LIST="${PWD}/remove.list.iso"
 	fi
-	if [ $FreeBSD_version = "7" ]; then
+	if [ $FREEBSD_VERSION = "7" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
 	fi
 fi
 
 # Use embedded make.conf
-if [ $FreeBSD_version = "6" ]; then
+if [ $FREEBSD_VERSION = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
 	export SRC_CONF="${PWD}/conf/make.conf.embedded"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded"	
 fi
-if [ $FreeBSD_version = "7" ]; then
+if [ $FREEBSD_VERSION = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
 	export SRC_CONF="${PWD}/conf/make.conf.embedded.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.7.install"
@@ -76,7 +76,7 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
-echo ">>> Building world and kernels for Embedded... $FreeBSD_version  $FREEBSD_BRANCH ..."
+echo ">>> Building world and kernels for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 make_world
 
 # Build embedded kernel

@@ -42,10 +42,10 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Use pfSense_wrap.6 as kernel configuration file
-if [ $FreeBSD_version = "6" ]; then
+if [ $FREEBSD_VERSION = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 fi
-if [ $FreeBSD_version = "7" ]; then
+if [ $FREEBSD_VERSION = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 	export SRC_CONF="${PWD}/conf/make.conf.developer.7"	
 fi
@@ -57,11 +57,11 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	if [ $FreeBSD_version = "6" ]; then
+	if [ $FREEBSD_VERSION = "6" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso ..."	
 		export PRUNE_LIST="${PWD}/remove.list.iso"
 	fi
-	if [ $FreeBSD_version = "7" ]; then
+	if [ $FREEBSD_VERSION = "7" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
 	fi

@@ -25,10 +25,10 @@ if [ -d $CVS_CO_DIR ]; then
 fi 
 
 # Use pfSense.6 as kernel configuration file
-if [ $FreeBSD_version = "6" ]; then
+if [ $FREEBSD_VERSION = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
 fi
-if [ $FreeBSD_version = "7" ]; then
+if [ $FREEBSD_VERSION = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.7"}
 fi
 
@@ -42,12 +42,12 @@ if [ -f /usr/obj.pfSense/pfSense_wrap.6.world.done ]; then
 fi
 
 # Use normal make.conf
-if [ $FreeBSD_version = "6" ]; then
+if [ $FREEBSD_VERSION = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf"
 	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"	
 	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"
 fi
-if [ $FreeBSD_version = "7" ]; then
+if [ $FREEBSD_VERSION = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
@@ -60,18 +60,18 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	if [ $FreeBSD_version = "6" ]; then
+	if [ $FREEBSD_VERSION = "6" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso ..."	
 		export PRUNE_LIST="${PWD}/remove.list.iso"
 	fi
-	if [ $FreeBSD_version = "7" ]; then
+	if [ $FREEBSD_VERSION = "7" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
 	fi
 fi
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building all extra kernels... $FreeBSD_version  $FREEBSD_BRANCH ..."
+echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 build_all_kernels
 
 # Check for freesbie builder issues

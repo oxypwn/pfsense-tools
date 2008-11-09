@@ -24,10 +24,10 @@ chflags -R noschg /usr/local/pfsense*
 rm -rf /usr/local/pfsense*
 
 # Use pfSense_wrap.6 as kernel configuration file
-if [ $FreeBSD_version = "6" ]; then
+if [ $FREEBSD_VERSION = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
 fi
-if [ $FreeBSD_version = "7" ]; then
+if [ $FREEBSD_VERSION = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
 
@@ -35,12 +35,12 @@ fi
 export NO_COMPRESSEDFS=yes
 
 # Use normal make.conf
-if [ $FreeBSD_version = "6" ]; then
+if [ $FREEBSD_VERSION = "6" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf"
 	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"	
 	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"
 fi
-if [ $FreeBSD_version = "7" ]; then
+if [ $FREEBSD_VERSION = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
@@ -50,11 +50,11 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	if [ $FreeBSD_version = "6" ]; then
+	if [ $FREEBSD_VERSION = "6" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso ..."	
 		export PRUNE_LIST="${PWD}/remove.list.iso"
 	fi
-	if [ $FreeBSD_version = "7" ]; then
+	if [ $FREEBSD_VERSION = "7" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
 	fi
@@ -77,11 +77,11 @@ version=`cat $CVS_CO_DIR/etc/version`
 make_world
 
 
-if [ $FreeBSD_version = "7" ]; then
+if [ $FREEBSD_VERSION = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7.install"
 fi
 
-echo ">>> Building all extra kernels... $FreeBSD_version  $FREEBSD_BRANCH ..."
+echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 build_all_kernels
 
 # Add extra files such as buildtime of version, bsnmpd, etc.

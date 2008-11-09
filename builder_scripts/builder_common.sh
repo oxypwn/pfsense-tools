@@ -37,14 +37,14 @@ check_for_clog() {
 fixup_kernel_options() {
 	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
 		echo ">>>> Removing unneeded kernel configuration option from 1.2"
-		cat /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp
-		cat /usr/src/sys/i386/conf/pfSense.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert//  > /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp
-		cat /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}.tmp
-		cat /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version}.tmp
-		cp /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense_SMP.${FreeBSD_version}
-		cp /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense.${FreeBSD_version}
-		cp /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense_wrap.${FreeBSD_version}
-		cp /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version}.tmp /usr/src/sys/i386/conf/pfSense_Dev.${FreeBSD_version}
+		cat /usr/src/sys/i386/conf/pfSense_SMP.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp
+		cat /usr/src/sys/i386/conf/pfSense.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert//  > /usr/src/sys/i386/conf/pfSense.${FREEBSD_VERSION}.tmp
+		cat /usr/src/sys/i386/conf/pfSense_wrap.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp
+		cat /usr/src/sys/i386/conf/pfSense_Dev.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp
+		cp /usr/src/sys/i386/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp /usr/src/sys/i386/conf/pfSense_SMP.${FREEBSD_VERSION}
+		cp /usr/src/sys/i386/conf/pfSense.${FREEBSD_VERSION}.tmp /usr/src/sys/i386/conf/pfSense.${FREEBSD_VERSION}
+		cp /usr/src/sys/i386/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp /usr/src/sys/i386/conf/pfSense_wrap.${FREEBSD_VERSION}
+		cp /usr/src/sys/i386/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp /usr/src/sys/i386/conf/pfSense_Dev.${FREEBSD_VERSION}
 	fi
 }
 
@@ -76,7 +76,7 @@ build_embedded_kernel() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
-	export KERNCONF=pfSense_wrap.${FreeBSD_version}
+	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
@@ -150,7 +150,7 @@ build_all_kernels() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
-	export KERNCONF=pfSense.${FreeBSD_version}
+	export KERNCONF=pfSense.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	freesbie_make buildkernel
@@ -161,7 +161,7 @@ build_all_kernels() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF		
-	export KERNCONF=pfSense_wrap.${FreeBSD_version}
+	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
@@ -172,7 +172,7 @@ build_all_kernels() {
 	rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/.*kernel*
 	unset KERNCONF
 	unset KERNELCONF
-	export KERNCONF=pfSense_Dev.${FreeBSD_version}
+	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	freesbie_make buildkernel
@@ -184,7 +184,7 @@ build_all_kernels() {
 		
 	unset KERNCONF
 	unset KERNELCONF		
-	export KERNCONF=pfSense_SMP.${FreeBSD_version}
+	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	freesbie_make buildkernel
@@ -883,7 +883,7 @@ print_flags() {
 	printf "       Source DIR: %s\n" $SRCDIR
 	printf "        Clone DIR: %s\n" $CLONEDIR
 	printf "   Custom overlay: %s\n" $custom_overlay
-	printf "  pfSense version: %s\n" $FreeBSD_version
+	printf "  pfSense version: %s\n" $FREEBSD_VERSION
 	printf "   FreeBSD branch: %s\n" $FREEBSD_BRANCH
 	printf "      pfSense Tag: %s\n" $PFSENSETAG
 	printf " MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
