@@ -35,10 +35,6 @@ BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 # *** SOME UNKNOWN REASON.
 # ***                       04/07/2008
 . $BUILDERSCRIPTS/pfsense_local.sh
-if [ -f "$BUILDERSCRIPTS/pfsense-build.conf" ]; then 
-	echo ">>> Sourcing pfsense-build.conf"
-	. $BUILDERSCRIPTS/pfsense-build.conf	
-fi
 	
 # Ensure a fresh environment, please.
 # rm -rf $PFSENSECVSROOT
@@ -50,7 +46,7 @@ mkdir -p $PFSENSECHECKOUTDIR
 mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
 
-rm $BUILDERSCRIPTS/pfsense_local.sh
+rm $BUILDERSCRIPTS/pfsense-build.conf
 
 if [ -f /tmp/pfSense_do_not_build_pfPorts ]; then
 	echo "--> Removing /tmp/pfSense_do_not_build_pfPorts..."
@@ -107,7 +103,7 @@ set_pfsense_supfile() {
 }
 
 install_pfsense_local_sh() {
-	# Customizes pfsense_local.sh
+	# Customizes pfsense-build.conf
 	touch $WEBROOT/FREEBSD_PLATFORM.txt
 	touch $WEBROOT/CURRENTLY_BUILDING_PLATFORM.txt
 	touch $WEBROOT/FREEBSD_VERSION.txt
@@ -123,7 +119,7 @@ install_pfsense_local_sh() {
 	PFSENSE_VERSION=`cat $WEBROOT/PFSENSE_VERSION.txt`
 	FREEBSD_SUPFILE=`cat $WEBROOT/FREEBSD_SUPFILE.txt`
 	# Strip dynamic values
-	cat $BUILDERSCRIPTS/pfsense_local.sh | \
+	cat $BUILDERSCRIPTS/pfsense-build.conf | \
 		grep -v FreeBSD_version | \
 		grep -v freebsd_branch | \
 		grep -v PFSENSETAG | \
@@ -131,17 +127,17 @@ install_pfsense_local_sh() {
 		grep -v SUPFILE | \
 		grep -v PATCHDIR | \
 		grep -v PFSENSE_VERSION | \
-		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense_local.sh
-	mv /tmp/pfsense_local.sh $BUILDERSCRIPTS/pfsense_local.sh
+		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense-build.conf
+	mv /tmp/pfsense-build.conf $BUILDERSCRIPTS/pfsense-build.conf
 	# Add our custom dynamic values
-	echo export FreeBSD_version="${FREEBSD_VERSION}" >> $BUILDERSCRIPTS/pfsense_local.sh
-	echo export freebsd_branch="${FREEBSD_PLATFORM}" >> $BUILDERSCRIPTS/pfsense_local.sh
-	echo export PFSENSETAG="${PFSENSE_PLATFORM}" >> $BUILDERSCRIPTS/pfsense_local.sh
-	echo export PFSPATCHFILE="${FREEBSD_PATCHFILE}" >> $BUILDERSCRIPTS/pfsense_local.sh
-	echo export PFSPATCHDIR="${FREEBSD_PATCHDIR}" >> $BUILDERSCRIPTS/pfsense_local.sh
-	echo export PFSENSE_VERSION="${PFSENSE_VERSION}" >> $BUILDERSCRIPTS/pfsense_local.sh
-	echo export SUPFILE="${FREEBSD_SUPFILE}" >> $BUILDERSCRIPTS/pfsense_local.sh	
-	echo export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com" >> $BUILDERSCRIPTS/pfsense_local.sh
+	echo export FreeBSD_version="${FREEBSD_VERSION}" >> $BUILDERSCRIPTS/pfsense-build.conf
+	echo export freebsd_branch="${FREEBSD_PLATFORM}" >> $BUILDERSCRIPTS/pfsense-build.conf
+	echo export PFSENSETAG="${PFSENSE_PLATFORM}" >> $BUILDERSCRIPTS/pfsense-build.conf
+	echo export PFSPATCHFILE="${FREEBSD_PATCHFILE}" >> $BUILDERSCRIPTS/pfsense-build.conf
+	echo export PFSPATCHDIR="${FREEBSD_PATCHDIR}" >> $BUILDERSCRIPTS/pfsense-build.conf
+	echo export PFSENSE_VERSION="${PFSENSE_VERSION}" >> $BUILDERSCRIPTS/pfsense-build.conf
+	echo export SUPFILE="${FREEBSD_SUPFILE}" >> $BUILDERSCRIPTS/pfsense-build.conf	
+	echo export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com" >> $BUILDERSCRIPTS/pfsense-build.conf
 }
 
 update_sources() {
