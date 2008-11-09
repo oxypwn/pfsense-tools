@@ -515,7 +515,7 @@ install_custom_packages() {
 }
 
 create_pfSense_BaseSystem_Small_update_tarball() {
-	VERSION=${PFSENSEVERSION}
+	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Mini-Embedded-BaseSystem-Update-${VERSION}.tgz
 
 	mkdir -p $UPDATESDIR
@@ -642,7 +642,7 @@ create_FreeBSD_system_update() {
 }
 
 create_pfSense_Full_update_tarball() {
-	VERSION=${PFSENSEVERSION}
+	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Full-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
 
@@ -669,7 +669,7 @@ create_pfSense_Full_update_tarball() {
 }
 
 create_pfSense_Embedded_update_tarball() {
-	VERSION=${PFSENSEVERSION}
+	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
 
@@ -697,7 +697,7 @@ create_pfSense_Embedded_update_tarball() {
 }
 
 create_pfSense_Small_update_tarball() {
-	VERSION=${PFSENSEVERSION}
+	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Mini-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 
 	PREVIOUSDIR=`pwd`
@@ -869,7 +869,7 @@ checkout_freesbie() {
 
 print_flags() {
 
-	printf "  pfSense version: %s\n" $PFSENSEVERSION
+	printf "  pfSense version: %s\n" $PFSENSE_VERSION
 	printf "         CVS User: %s\n" $CVS_USER
 	printf "        Verbosity: %s\n" $BE_VERBOSE
 	printf "         Base dir: %s\n" $BASE_DIR

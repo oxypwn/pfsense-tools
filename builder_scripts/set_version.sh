@@ -27,7 +27,7 @@ strip_pfsense_local() {
 		grep -v PFSENSETAG | \
 		grep -v "set_version.sh" | \
 		grep -v PFSPATCHFILE | \
-		grep -v PFSENSEVERSION | \
+		grep -v PFSENSE_VERSION | \
 		grep -v SUPFILE | \
 		grep -v PFSPATCHDIR | \
 		grep -v PFSENSE_VERSION | \
@@ -39,7 +39,7 @@ set_items() {
 	strip_pfsense_local
 	# Add our custom dynamic values
 	echo "# set_version.sh generated defaults" >> $BUILDER_SCRIPTS/pfsense-build.conf
-	echo export PFSENSEVERSION="${PFSENSEVERSION}" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	echo export PFSENSE_VERSION="${PFSENSE_VERSION}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export FREEBSD_VERSION="${FREEBSD_VERSION}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export FREEBSD_BRANCH="${FREEBSD_BRANCH}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSENSETAG="${PFSENSETAG}" >> $BUILDER_SCRIPTS/pfsense-build.conf
@@ -66,7 +66,7 @@ RELENG_1)
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7-supfile"
-	export PFSENSEVERSION=2.0-ALPHA-ALPHA
+	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_1
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
@@ -79,7 +79,7 @@ RELENG_1_2)
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7_0"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/${FREEBSD_BRANCH}-supfile"
-	export PFSENSEVERSION=1.2.1-RC2
+	export PFSENSE_VERSION=1.2.1-RC2
 	export PFSENSETAG=RELENG_1_2
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
@@ -92,7 +92,7 @@ RELENG_2_0)
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7-supfile"
-	export PFSENSEVERSION=2.0-ALPHA-ALPHA
+	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_1
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
