@@ -94,20 +94,20 @@ at-xy ."         `--{__________) [0m"
 ;
 
 : fbsdbw-logo ( x y -- )
-	2dup at-xy ."                              " 1+
 	2dup at-xy ."                             " 1+
-	2dup at-xy ."                             " 1+
-	2dup at-xy ."                 ______         " 1+
-	2dup at-xy ."                /      \        " 1+
-	2dup at-xy ."          _____/    f   \       " 1+
-	2dup at-xy ."         /     \        /       " 1+
-	2dup at-xy ."        /   p   \______/  DNS " 1+
-	2dup at-xy ."        \       /      \    by     " 1+
-	2dup at-xy ."         \_____/        \    pfSense   " 1+
-	2dup at-xy ."               \        /       " 1+
-	2dup at-xy ."                \______/        " 1+
-	2dup at-xy ."                             " 1+
-	     at-xy ."                             "
+	2dup at-xy ."                            " 1+
+	2dup at-xy ."                          " 1+
+	2dup at-xy ."              ______         " 1+
+	2dup at-xy ."             /      \        " 1+
+	2dup at-xy ."       _____/    f   \       " 1+
+	2dup at-xy ."      /     \        /       " 1+
+	2dup at-xy ."     /   p   \______/  DNS " 1+
+	2dup at-xy ."     \       /      \    by     " 1+
+	2dup at-xy ."      \_____/        \    pfSense   " 1+
+	2dup at-xy ."            \        /       " 1+
+	2dup at-xy ."             \______/        " 1+
+	2dup at-xy ."                          " 1+
+	     at-xy ."                          "
 ;
 
 : print-logo ( x y -- )
