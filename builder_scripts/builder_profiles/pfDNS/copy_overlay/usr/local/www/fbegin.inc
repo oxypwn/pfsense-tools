@@ -150,6 +150,7 @@ if ($_REQUEST['noticeaction'] == 'acknowledge') {
 						<div>Services</div>
 						<ul class="subdrop">
 							<?=output_menu_item("/tinydns_status.php", "DNS Servers");?>
+							<?=output_menu_item("/services_dhcp.php", "DHCP Server");?>
 						</ul>
 					</li>
 					<li class="drop">
