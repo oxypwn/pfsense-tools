@@ -1,0 +1,41 @@
+Index: boot2/boot2.c
+===================================================================
+RCS file: /home/ncvs/src/sys/boot/i386/boot2/boot2.c,v
+retrieving revision 1.83.2.2
+diff -u -r1.83.2.2 boot2.c
+--- boot2/boot2.c	8 Nov 2007 21:31:38 -0000	1.83.2.2
++++ boot2/boot2.c	10 Nov 2008 04:36:53 -0000
+@@ -280,7 +280,7 @@
+ 
+     for (;;) {
+ 	if (!autoboot || !OPT_CHECK(RBX_QUIET))
+-	    printf("\nFreeBSD/i386 boot\n"
++	    printf("\npfSense/i386 boot\n"
+ 		   "Default: %u:%s(%u,%c)%s\n"
+ 		   "boot: ",
+ 		   dsk.drive & DRV_MASK, dev_nm[dsk.type], dsk.unit,
+Index: libfirewire/firewire.c
+===================================================================
+RCS file: /home/ncvs/src/sys/boot/i386/libfirewire/firewire.c,v
+retrieving revision 1.1
+diff -u -r1.1 firewire.c
+--- libfirewire/firewire.c	29 May 2007 14:35:57 -0000	1.1
++++ libfirewire/firewire.c	10 Nov 2008 04:38:06 -0000
+@@ -270,7 +270,7 @@
+ #ifdef __DragonFly__
+ 	crom_add_simple_text(src, root, &buf->vendor, "DragonFly Project");
+ #else
+-	crom_add_simple_text(src, root, &buf->vendor, "FreeBSD Project");
++	crom_add_simple_text(src, root, &buf->vendor, "pfSense");
+ #endif
+ }
+ 
+@@ -293,7 +293,7 @@
+ 
+ 	crom_add_chunk(src, root, &buf->unit, CROM_UDIR);
+ 	crom_add_entry(&buf->unit, CSRKEY_SPEC, CSRVAL_VENDOR_PRIVATE);
+-	crom_add_simple_text(src, &buf->unit, &buf->spec, "FreeBSD");
++	crom_add_simple_text(src, &buf->unit, &buf->spec, "pfSense");
+ 	crom_add_entry(&buf->unit, CSRKEY_VER, DCONS_CSR_VAL_VER);
+ 	crom_add_simple_text(src, &buf->unit, &buf->ver, "dcons");
+ 	crom_add_entry(&buf->unit, DCONS_CSR_KEY_HI, ADDR_HI(dcons_paddr));
