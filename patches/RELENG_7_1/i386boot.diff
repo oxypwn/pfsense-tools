@@ -1,3 +1,19 @@
+Index: boot2/boot2.c
+===================================================================
+RCS file: /home/ncvs/src/sys/boot/i386/boot2/boot2.c,v
+retrieving revision 1.83.2.5
+diff -u -r1.83.2.5 boot2.c
+--- boot2/boot2.c	15 Aug 2008 19:31:12 -0000	1.83.2.5
++++ boot2/boot2.c	10 Nov 2008 04:54:05 -0000
+@@ -283,7 +283,7 @@
+ 
+     for (;;) {
+ 	if (!autoboot || !OPT_CHECK(RBX_QUIET))
+-	    printf("\nFreeBSD/i386 boot\n"
++	    printf("\npfSense/i386 boot\n"
+ 		   "Default: %u:%s(%u,%c)%s\n"
+ 		   "boot: ",
+ 		   dsk.drive & DRV_MASK, dev_nm[dsk.type], dsk.unit,
 Index: libfirewire/firewire.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/boot/i386/libfirewire/firewire.c,v
