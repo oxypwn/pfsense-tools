@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/boot/forth/beastie.4th,v
 retrieving revision 1.12
 diff -u -r1.12 beastie.4th
 --- beastie.4th	31 Mar 2006 21:36:17 -0000	1.12
-+++ beastie.4th	10 Nov 2008 00:15:09 -0000
++++ beastie.4th	10 Nov 2008 00:32:23 -0000
 @@ -94,19 +94,20 @@
  ;
  
@@ -39,3 +39,31 @@ diff -u -r1.12 beastie.4th
  ;
  
  : print-logo ( x y -- )
+@@ -178,11 +179,11 @@
+ 	clear
+ 	46 4 print-logo
+ 	42 20 2 2 box
+-	13 6 at-xy ." Welcome to FreeBSD!"
+-	printmenuitem ."  Boot FreeBSD [default]" bootkey !
++	13 6 at-xy ." Welcome to pfSense!"
++	printmenuitem ."  Boot pfSense [default]" bootkey !
+ 	s" arch-i386" environment? if
+ 		drop
+-		printmenuitem ."  Boot FreeBSD with ACPI " bootacpikey !
++		printmenuitem ."  Boot pfSense with ACPI " bootacpikey !
+ 		acpienabled? if
+ 			." disabled"
+ 		else
+@@ -191,9 +192,9 @@
+ 	else
+ 		-2 bootacpikey !
+ 	then
+-	printmenuitem ."  Boot FreeBSD in Safe Mode" bootsafekey !
+-	printmenuitem ."  Boot FreeBSD in single user mode" bootsinglekey !
+-	printmenuitem ."  Boot FreeBSD with verbose logging" bootverbosekey !
++	printmenuitem ."  Boot pfSense in Safe Mode" bootsafekey !
++	printmenuitem ."  Boot pfSense in single user mode" bootsinglekey !
++	printmenuitem ."  Boot pfSense with verbose logging" bootverbosekey !
+ 	printmenuitem ."  Escape to loader prompt" escapekey !
+ 	printmenuitem ."  Reboot" rebootkey !
+ 	menuX @ 20 at-xy
