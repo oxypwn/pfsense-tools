@@ -39,3 +39,28 @@ diff -u -r1.1 firewire.c
  	crom_add_entry(&buf->unit, CSRKEY_VER, DCONS_CSR_VAL_VER);
  	crom_add_simple_text(src, &buf->unit, &buf->ver, "dcons");
  	crom_add_entry(&buf->unit, DCONS_CSR_KEY_HI, ADDR_HI(dcons_paddr));
+Index: libi386/biosdisk.c
+===================================================================
+RCS file: /home/ncvs/src/sys/boot/i386/libi386/biosdisk.c,v
+retrieving revision 1.48.2.5
+diff -u -r1.48.2.5 biosdisk.c
+--- libi386/biosdisk.c	8 Mar 2008 23:36:25 -0000	1.48.2.5
++++ libi386/biosdisk.c	10 Nov 2008 04:56:57 -0000
+@@ -351,13 +351,13 @@
+     else if (uuid_equal(&gp->gp_type, &ms_basic_data, NULL))
+ 	sprintf(line, "%s: FAT/NTFS%s\n", prefix, stats);
+     else if (uuid_equal(&gp->gp_type, &freebsd_boot, NULL))
+-	sprintf(line, "%s: FreeBSD boot%s\n", prefix, stats);
++	sprintf(line, "%s: pfSense boot%s\n", prefix, stats);
+     else if (uuid_equal(&gp->gp_type, &freebsd_ufs, NULL))
+-	sprintf(line, "%s: FreeBSD UFS%s\n", prefix, stats);
++	sprintf(line, "%s: pfSense UFS%s\n", prefix, stats);
+     else if (uuid_equal(&gp->gp_type, &freebsd_zfs, NULL))
+-	sprintf(line, "%s: FreeBSD ZFS%s\n", prefix, stats);
++	sprintf(line, "%s: pfSense ZFS%s\n", prefix, stats);
+     else if (uuid_equal(&gp->gp_type, &freebsd_swap, NULL))
+-	sprintf(line, "%s: FreeBSD swap%s\n", prefix, stats);
++	sprintf(line, "%s: pfSense swap%s\n", prefix, stats);
+     else
+ 	sprintf(line, "%s: %08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x%s\n",
+ 	    gp->gp_type.time_low, gp->gp_type.time_mid,
