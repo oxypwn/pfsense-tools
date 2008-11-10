@@ -65,7 +65,7 @@ fi
 
 # Check if host is running on pfSenseDEV
 if [ `cat /var/log/dmesg.boot | grep pfSense_Dev.6 | wc -l` -gt 0 ]; then
-		echo -n "pfSense developer iso detected."
+		echo -n "${product} developer iso detected."
         touch /var/pfSenseDEV
 		sleep 1
 		echo -n "."
