@@ -101,9 +101,9 @@ at-xy ."         `--{__________) [0m"
 	2dup at-xy ."                /      \        " 1+
 	2dup at-xy ."          _____/    f   \       " 1+
 	2dup at-xy ."         /     \        /       " 1+
-	2dup at-xy ."        /   p   \______/  Sense " 1+
-	2dup at-xy ."        \       /      \        " 1+
-	2dup at-xy ."         \_____/        \       " 1+
+	2dup at-xy ."        /   p   \______/  DNS " 1+
+	2dup at-xy ."        \       /      \    by     " 1+
+	2dup at-xy ."         \_____/        \    pfSense   " 1+
 	2dup at-xy ."               \        /       " 1+
 	2dup at-xy ."                \______/        " 1+
 	2dup at-xy ."                             " 1+
