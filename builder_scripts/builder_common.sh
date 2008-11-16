@@ -541,6 +541,7 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
 	if [ -e /usr/local/sbin/gzsig ]; then 
+		echo "Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 }
@@ -634,6 +635,7 @@ create_FreeBSD_system_update() {
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	if [ -e /usr/local/sbin/gzsig ]; then 	
+		echo ">>>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 	
@@ -662,6 +664,7 @@ create_pfSense_Full_update_tarball() {
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	if [ -e /usr/local/sbin/gzsig ]; then 
+		echo ">>>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 
@@ -689,6 +692,7 @@ create_pfSense_Embedded_update_tarball() {
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	if [ -e /usr/local/sbin/gzsig ]; then 
+		echo "Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 	
@@ -726,6 +730,7 @@ create_pfSense_Small_update_tarball() {
 	ls -lah ${UPDATESDIR}/${FILENAME}
 
 	if [ -e /usr/local/sbin/gzsig ]; then 
+		echo ">>>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 
