@@ -182,3 +182,8 @@ freesbie_make iso
 
 # Report any zero sized files
 report_zero_sized_files
+
+if [ -e /usr/local/sbin/gzsig ]; then 
+	echo "Executing command: gzsig sign ~/.ssh/id_dsa  ${ISOPATH}"
+	gzsig sign ~/.ssh/id_dsa ${ISOPATH}
+fi
