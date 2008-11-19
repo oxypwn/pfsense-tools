@@ -406,7 +406,6 @@ cust_populate_extra() {
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
     cp $BASE_DIR/tools/pfi $CVS_CO_DIR/scripts/
-    cp $BASE_DIR/tools/dev_bootstrap.sh $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
     cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
     chmod a+rx $CVS_CO_DIR/scripts/*
