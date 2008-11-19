@@ -894,6 +894,9 @@ print_flags() {
 	printf " MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
 	printf "            EXTRA: %s\n" $EXTRA
 	printf "     BUILDMODULES: %s\n" $BUILDMODULES
+	printf "   Git Repository: %s\n" $GIT_REPO
+	printf "       Git Branch: %s\n" $GIT_BRANCH
+	printf "    Custom Config: %s\n" $USE_CONFIG_XML
 	printf "          ISOPATH: %s\n" $ISOPATH
 	printf "          IMGPATH: %s\n" $IMGPATH
 
@@ -932,13 +935,11 @@ update_cvs_depot() {
 		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
 		(cd ${BASE_DIR}/tools/ && cvs update -d)
 	else
-		if [ -e "${BASE_DIR}/mainline" ]; then
-			echo "Updating cloned GIT repo directory..."
-			(cd ${BASE_DIR}/mainline && git pull)
-		else 
-			echo "Cloning REPO using GIT..."
-			(cd ${BASE_DIR} && git clone ${GIT_REPO} pfSense)		
-		fi
+	    # Always build the latest from our repo.
+	    echo "Remove pfSense directory from ${BASE_DIR}"
+	    (cd ${BASE_DIR} && rm -rf ${PFSENSE_DIR})
+	    echo "Cloning ${GIT_REPO} using GIT and switching to ${GIT_BRANCH}"
+	    (cd ${BASE_DIR} && git clone ${GIT_REPO} ${PFSENSE_DIR} && cd ${PFSENSE_DIR} && git checkout ${GIT_BRANCH})
 	fi
 }
 
