@@ -131,6 +131,8 @@ export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1"
 export NANO_MEDIASIZE=1000000 
 export NANO_SECTS=63 
 export NANO_HEADS=16
+export FLASH_MODEL="sandisk" 
+export FLASH_SIZE="256mb"
 export NANO_CODESIZE=0 
 export NANO_CONFSIZE=2048 
 

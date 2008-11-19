@@ -123,7 +123,7 @@ freesbie_make clonefs
 fixup_libmap
 
 echo "#### Building bootable UFS image ####"
-
+FlashDevice $FLASH_MODEL $FLASH_SIZE
 setup_nanobsd_etc
 
 setup_nanobsd
