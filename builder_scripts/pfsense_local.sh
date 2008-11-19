@@ -128,7 +128,6 @@ export NANO_RAM_TMPVARSIZE=51200
 export NANO_BOOT0CFG="-o packet -s 1 -m 3 -v"
 export NANO_BOOTLOADER="boot/boot0"
 export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1"
-export NANO_DRIVE=ad0
 export NANO_MEDIASIZE=1000000 
 export NANO_SECTS=63 
 export NANO_HEADS=16
