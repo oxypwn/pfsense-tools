@@ -5,7 +5,7 @@
 # $FreeBSD: $
 
 PORTNAME=		miniupnpd
-PORTVERSION=	1.2-p1
+PORTVERSION=	1.2.pf1
 CATEGORIES=		net
 MASTER_SITES=	http://miniupnp.free.fr/files/
 DISTFILES=		miniupnpd-1.2.tar.gz
