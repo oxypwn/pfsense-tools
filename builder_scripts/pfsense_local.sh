@@ -16,18 +16,24 @@ export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
 # Generally /home/pfsense
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
 
+# pfSense and tools directory name
+# Used for Git checkout
+export TOOLS_DIR=${TOOLS_DIR:-tools}
+export PFSENSE_DIR=${PFSENSE_DIR:-pfSense}
+export FREESBIE_DIR=${FREESBIE_DIR:-freesbie2}
+
 # Generally /home/pfsense/tools
-export BUILDER_TOOLS=${BASE_DIR}/tools
+export BUILDER_TOOLS=${BASE_DIR}/${TOOLS_DIR}
 
 # Generally /home/pfsense/tools/builder_scripts
 export BUILDER_SCRIPTS=${BUILDER_TOOLS}/builder_scripts
 
 # path to pfPorts
-export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-/home/pfsense/tools/pfPorts}
+export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-${BASE_DIR}/${TOOLS_DIR}/pfPorts}
 
 # This is the directory where the latest pfSense cvs co
 # is checked out to.
-export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/pfSense}
+export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/${PFSENSE_DIR}}
 
 # Where pfSense is checked out.  This directory will
 # be overlayed onto the image later in the process
@@ -52,7 +58,7 @@ export PFSENSEBASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export PFSENSEISODIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
 # FreeSBIE 2 toolkit path
-export FREESBIE_PATH=${FREESBIE_PATH:-/home/pfsense/freesbie2}
+export FREESBIE_PATH=${FREESBIE_PATH:-${BASE_DIR}/${FREESBIE_DIR}
 
 # export variables used by freesbie2
 export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should be override our variables
@@ -86,7 +92,7 @@ export FREEBSD_VERSION="7"
 export FREEBSD_BRANCH="RELENG_7_0"
 
 # Define FreeBSD SUPFILE
-export SUPFILE="${BASE_DIR}/tools/builder_scripts/${FREEBSD_BRANCH}-supfile"
+export SUPFILE="${BASE_DIR}/${TOOLS_DIR}/builder_scripts/${FREEBSD_BRANCH}-supfile"
 
 # Version that will be applied to this build
 export PFSENSE_VERSION=${PFSENSEVERSION:-1.2.1-RC2}
@@ -98,8 +104,8 @@ export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 # export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply
-export PFSPATCHDIR=${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}
-export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
+export PFSPATCHDIR=${BASE_DIR}/${TOOLS_DIR}/patches/${FREEBSD_BRANCH}
+export PFSPATCHFILE=${BASE_DIR}/${TOOLS_DIR}/builder_scripts/patches.${PFSENSETAG}
 
 # Controls how many concurrent make processes are run for each stage
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
@@ -162,10 +168,10 @@ export ARCH="i386"
 #       gzipped tarball.
 #
 # Tarball overlay (please uncomment): 
-#export custom_overlay="/home/pfsense/custom_overlay.tgz"
+#export custom_overlay="${BASE_DIR}/custom_overlay.tgz"
 #
 # Directory overlay (please uncomment):
-#export custom_overlay="/home/pfsense/custom_overlay"
+#export custom_overlay="${BASE_DIR}/custom_overlay"
 
 # Package overlay. This gives people a chance to build a pfSense
 # installable image that already contains certain pfSense packages.
