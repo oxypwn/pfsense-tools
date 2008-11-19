@@ -58,7 +58,7 @@ export PFSENSEBASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export PFSENSEISODIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 
 # FreeSBIE 2 toolkit path
-export FREESBIE_PATH=${FREESBIE_PATH:-${BASE_DIR}/${FREESBIE_DIR}
+export FREESBIE_PATH=${FREESBIE_PATH:-${BASE_DIR}/${FREESBIE_DIR}}
 
 # export variables used by freesbie2
 export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should be override our variables
