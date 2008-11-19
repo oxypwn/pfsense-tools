@@ -25,7 +25,7 @@ touch /mnt/root/.first_time
 
 # Updating boot loader
 echo autoboot_delay=\"1\" >> /mnt/boot/loader.conf
-
+echo vm.kmem_size=\"435544320\"  >> /mnt/boot/loader.conf
 echo kern.ipc.nmbclusters=\"0\" >> /mnt/boot/loader.conf
 
 cd /mnt && rm -rf cloop/ dist/ boot/mfsroot.gz
