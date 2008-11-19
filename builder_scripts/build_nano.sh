@@ -22,6 +22,12 @@ fi
 # Suck in local vars
 . ./pfsense_local.sh
 
+# Optional Per build config file.
+# Specify a file with build parameters to override the default.
+if [ "$1" != "" ]; then
+	[ -r "$1" ] && . $1
+fi
+
 # Suck in script helper functions
 . ./builder_common.sh
 
