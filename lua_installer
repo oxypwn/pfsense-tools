@@ -41,6 +41,8 @@ echo
 #echo "Stopping DHCP server during Installation."
 #/usr/bin/killall dhcpd 2>/dev/null 2>&1
 /usr/bin/killall syslogd 2>/dev/null 2>&1
+mkdir /tmp/logs/
+mv /var/log/*log /tmp/logs/
 
 sysctl kern.geom.debugflags=16
 
@@ -102,6 +104,7 @@ TERM=cons25 && /usr/local/sbin/dfuife_curses
 
 if [ ! -f /tmp/install_complete ]; then
 	echo Installation did not finish correctly.
+	mv /tmp/logs/* /var/logs/
 	exit
 fi
 
