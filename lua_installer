@@ -41,6 +41,7 @@ echo
 #echo "Stopping DHCP server during Installation."
 #/usr/bin/killall dhcpd 2>/dev/null 2>&1
 /usr/bin/killall syslogd 2>/dev/null 2>&1
+rm /var/logs/*.log
 
 sysctl kern.geom.debugflags=16
 
