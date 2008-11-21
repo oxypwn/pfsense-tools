@@ -176,6 +176,9 @@ pfsense_install_custom_packages_exec
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
+# Ensure /home exists
+mkdir -p $CLONEDIR/home
+
 # Finalize iso
 echo ">>> Finalizing iso..."
 freesbie_make iso
