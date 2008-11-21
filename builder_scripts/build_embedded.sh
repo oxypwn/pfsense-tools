@@ -114,6 +114,9 @@ pfsense_install_custom_packages_exec
 check_for_zero_size_files
 freesbie_make clonefs
 
+# Ensure /home exists
+mkdir -p $CLONEDIR/home
+
 # Fixup library changes if needed
 fixup_libmap
 
