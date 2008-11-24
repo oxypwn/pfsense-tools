@@ -97,6 +97,7 @@ PORTSTOBUILD="grub \
 	athstats \
 	openntpd \
 	ftp-proxy \
+	pecl-uploadprogress \
 	php5-install-all"
 
 if [ "$ARCH" = "" ]; then

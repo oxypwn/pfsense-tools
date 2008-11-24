@@ -68,6 +68,7 @@ PORTSTOBUILD="grub \
 	athstats \
 	openntpd \
 	ftp-proxy \
+	pecl-uploadprogress \
 	php5-install-all"
 
 if [ -f pfsense_local.sh ]; then
