@@ -1,0 +1,16 @@
+Index: key.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/key.c,v
+retrieving revision 1.28
+diff -u -r1.28 key.c
+--- key.c	1 Jul 2007 11:38:29 -0000	1.28
++++ key.c	25 Nov 2008 21:02:26 -0000
+@@ -950,7 +950,7 @@
+ 		 * suitable candidate and the lifetime of the SA is not
+ 		 * permanent.
+ 		 */
+-		if (d->lft_c->addtime != 0) {
++		if (d->lft_h->addtime != 0) {
+ 			struct mbuf *m, *result;
+ 			u_int8_t satype;
+ 
