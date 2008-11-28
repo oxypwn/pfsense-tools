@@ -1,0 +1,33 @@
+Index: pf.c
+===================================================================
+RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.46.2.1
+diff -u -r1.46.2.1 pf.c
+--- pf.c	25 Nov 2007 19:26:46 -0000	1.46.2.1
++++ pf.c	28 Nov 2008 23:58:29 -0000
+@@ -3187,6 +3187,7 @@
+ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
+ {
+ 	struct pf_rule *r = s->rule.ptr;
++	struct pf_src_node *sn = NULL;
+ 
+ 	s->rt_kif = NULL;
+ 	if (!r->rt || r->rt == PF_FASTROUTE)
+@@ -3194,15 +3195,13 @@
+ 	switch (s->af) {
+ #ifdef INET
+ 	case AF_INET:
+-		pf_map_addr(AF_INET, r, saddr, &s->rt_addr, NULL,
+-		    &s->nat_src_node);
++		pf_map_addr(AF_INET, r, saddr, &s->rt_addr, NULL, &sn);
+ 		s->rt_kif = r->rpool.cur->kif;
+ 		break;
+ #endif /* INET */
+ #ifdef INET6
+ 	case AF_INET6:
+-		pf_map_addr(AF_INET6, r, saddr, &s->rt_addr, NULL,
+-		    &s->nat_src_node);
++		pf_map_addr(AF_INET6, r, saddr, &s->rt_addr, NULL, &sn);
+ 		s->rt_kif = r->rpool.cur->kif;
+ 		break;
+ #endif /* INET6 */
