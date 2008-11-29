@@ -64,11 +64,11 @@ RELENG_1)
 	echo ">>> Setting builder environment to use RELENG_1 ..."
 	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
-	export FREEBSD_BRANCH="RELENG_7"
-	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7-supfile"
+	export FREEBSD_BRANCH="RELENG_7_1"
+	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7_1-supfile"
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_1
-	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
+	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
 	set_items
 ;;
@@ -90,11 +90,11 @@ RELENG_2_0)
 	echo ">>> Setting builder environment to use RELENG_2_0 ..."
 	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
-	export FREEBSD_BRANCH="RELENG_7"
-	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7-supfile"
+	export FREEBSD_BRANCH="RELENG_7_1"
+	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7_1-supfile"
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_1
-	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7
+	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
 	set_items
 ;;
