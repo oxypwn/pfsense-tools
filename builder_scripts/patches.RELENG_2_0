@@ -5,7 +5,6 @@
 ~~~/sbin/pfctl/missing/altq/altq_fairq.h
 ~~~/sys/dev/usb/umsm.c
 ~~~/sys/modules/umsm/Makefile
-~sbin/fdisk~fdisk.c.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~~ipsec_altq.RELENG_7.diff~
 ~~fairq.RELENG_7.diff~
