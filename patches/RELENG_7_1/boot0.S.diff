@@ -1,15 +1,15 @@
 Index: boot0.S
 ===================================================================
 RCS file: /home/ncvs/src/sys/boot/i386/boot0/boot0.S,v
-retrieving revision 1.16.6.1
-diff -u -r1.16.6.1 boot0.S
---- boot0.S	25 Nov 2008 02:59:29 -0000	1.16.6.1
+retrieving revision 1.16.6.2
+diff -u -r1.16.6.2 boot0.S
+--- boot0.S	30 Nov 2008 00:00:35 -0000	1.16.6.2
 +++ boot0.S	1 Dec 2008 14:42:27 -0000
 @@ -13,7 +13,7 @@
   * warranties of merchantability and fitness for a particular
   * purpose.
   *
-- * $FreeBSD: src/sys/boot/i386/boot0/boot0.S,v 1.16.6.1 2008/11/25 02:59:29 kensmith Exp $
+- * $FreeBSD: src/sys/boot/i386/boot0/boot0.S,v 1.16.6.2 2008/11/30 00:00:35 luigi Exp $
 + * $FreeBSD: src/sys/boot/i386/boot0/boot0.S,v 1.14.2.2 2007/04/11 07:19:36 thomas Exp $
   */
  
@@ -335,7 +335,7 @@ diff -u -r1.16.6.1 boot0.S
  /*
   * If it was illegal or we cycled through them, go back to drive 0.
   */
-@@ -186,145 +299,178 @@
+@@ -186,139 +299,163 @@
   * for next time.  This also is part of the printed drive string so add 0x80
   * to indicate end of string.
   */
@@ -533,13 +533,11 @@ diff -u -r1.16.6.1 boot0.S
 +		jc beep				# If error
  		cmpw $MAGIC,0x1fe(%bx)		# Bootable?
 -		jne main.10			# No
--		movw $crlf,%si			# Leave some
--		callw puts			#  space
 +		jne beep			# No
-+		pushw %si			# Save ptr to selected part.
-+		callw putn			# Leave some space
-+		popw %si			# Restore, next stage uses it
- 		jmp *%bx			# Invoke bootstrap
+ 		pushw %si			# Save ptr to selected part.
+ 		callw putn			# Leave some space
+ 		popw %si			# Restore, next stage uses it
+@@ -326,6 +463,14 @@
  
  /*
   * Display routines
@@ -554,7 +552,7 @@ diff -u -r1.16.6.1 boot0.S
   */
  putkey:
  #ifndef SIO
-@@ -336,8 +482,9 @@
+@@ -337,8 +482,9 @@
  		jmp putstr.1			# Display the rest
  
  /*
@@ -566,7 +564,7 @@ diff -u -r1.16.6.1 boot0.S
   */
  putx:		btsw %dx,_MNUOPT(%bp)		# Enable menu option
  		movw $item,%si			# Display
-@@ -355,34 +502,41 @@
+@@ -356,34 +502,41 @@
  		jmp putstr			# Continue
  putstr.2:	andb $~0x80,%al 		# Clear MSB
  
@@ -615,7 +613,7 @@ diff -u -r1.16.6.1 boot0.S
  		pushl $0x0			# Set the
  		pushl 0x8(%si)			# LBA address
  		pushw %es			# Set the transfer
-@@ -392,73 +546,92 @@
+@@ -393,73 +546,92 @@
  		movw %sp,%si			# Packet pointer
  		decw %ax			# Verify off
  		orb $0x40,%ah			# Use disk packet
