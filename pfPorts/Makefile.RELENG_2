@@ -45,6 +45,7 @@ PORTSTOBUILD="grub \
 	php5-ldap \
 	php5-mbstring \
 	php5-mhash \
+	php5-mysql \
 	php5-openssl \
 	php5-pcntl \
 	php5-pcre \
