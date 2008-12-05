@@ -31,6 +31,7 @@ strip_pfsense_local() {
 		grep -v SUPFILE | \
 		grep -v PFSPATCHDIR | \
 		grep -v PFSENSE_VERSION | \
+		grep -v CUSTOM_COPY_LIST | \
 		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $BUILDER_SCRIPTS/pfsense-build.conf
 }
@@ -45,7 +46,8 @@ set_items() {
 	echo export PFSENSETAG="${PFSENSETAG}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSPATCHFILE="${PFSPATCHFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense-build.conf
-	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf	
+	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
+	echo export CUSTOM_COPY_LIST="${CUSTOM_COPY_LIST}" >> $BUILDER_SCRIPTS/pfsense-build.conf	
 	if [ "$SETLIVEBSD" = "true" ]; then 
 		echo "export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	else 
