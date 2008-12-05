@@ -294,6 +294,7 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/bin
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/mysql
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
 	
 	# Temporary hack for RELENG_1_2
