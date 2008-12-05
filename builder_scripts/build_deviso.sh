@@ -114,6 +114,9 @@ cust_install_config_xml
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
+# Ensure /home exists
+mkdir -p $CLONEDIR/home
+
 # Finalize iso
 echo ">>> Finalizing iso..."
 freesbie_make iso
