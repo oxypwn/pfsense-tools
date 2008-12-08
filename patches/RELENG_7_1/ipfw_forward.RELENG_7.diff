@@ -1,13 +1,20 @@
---- pf.c.old	2008-11-11 22:51:23.000000000 +0100
-+++ pf.c	2008-11-11 22:53:04.000000000 +0100
-@@ -6884,6 +6884,10 @@
+Index: pf.c
+===================================================================
+RCS file: /home/eri/development/divert/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.5
+diff -u -r1.5 pf.c
+--- pf.c	8 Dec 2008 15:23:16 -0000	1.5
++++ pf.c	8 Dec 2008 15:24:56 -0000
+@@ -6884,6 +6884,12 @@
  
  #ifdef __FreeBSD__
  	M_ASSERTPKTHDR(m);
 +
 +	/* Check to avoid breaking ipfw forward rules needed on CP */
-+	if (m->m_flags & M_FASTFWD_OURS) 
++	if (m->m_flags & M_FASTFWD_OURS) {
++		PF_UNLOCK();
 +		return (PF_PASS);
++	}
  #else
  #ifdef DIAGNOSTIC
  	if ((m->m_flags & M_PKTHDR) == 0)
