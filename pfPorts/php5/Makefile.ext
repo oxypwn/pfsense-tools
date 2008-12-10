@@ -140,7 +140,6 @@ USE_OPENSSL=	yes
 .if ${PHP_MODNAME} == "interbase"
 CONFIGURE_ARGS+=--with-interbase=${LOCALBASE}
 
-USE_GCC=	3.4+
 USE_FIREBIRD=	yes
 .endif
 
@@ -224,8 +223,7 @@ CONFIGURE_ARGS+=--with-unixODBC=${LOCALBASE}
 .endif
 
 .if ${PHP_MODNAME} == "openssl"
-CONFIGURE_ARGS+=--with-openssl=${OPENSSLBASE} \
-		--with-openssl-dir=${OPENSSLBASE}
+CONFIGURE_ARGS+=--with-openssl=${OPENSSLBASE}
 
 LDFLAGS+=	-L${OPENSSLLIB} -lcrypto -lssl
 USE_OPENSSL=	yes
@@ -233,12 +231,6 @@ USE_OPENSSL=	yes
 
 .if ${PHP_MODNAME} == "pcntl"
 CONFIGURE_ARGS+=--enable-pcntl
-.endif
-
-.if ${PHP_MODNAME} == "pcre"
-CONFIGURE_ARGS+=--with-pcre-regex=yes
-
-PHP_HEADER_DIRS=pcrelib
 .endif
 
 .if ${PHP_MODNAME} == "pdo"
@@ -260,7 +252,6 @@ CONFIGURE_ARGS+=--with-pdo-firebird=${LOCALBASE}
 USE_PHP=	pdo
 USE_PHP_BUILD=	yes
 
-USE_GCC=	3.4+
 USE_FIREBIRD=	yes
 .endif
 
@@ -304,7 +295,12 @@ USE_PHP_BUILD=	yes
 .endif
 
 .if ${PHP_MODNAME} == "pdo_sqlite"
+.      if defined(WITH_SQLITE_PORT)
+USE_SQLITE=    yes
+CONFIGURE_ARGS+=--with-pdo-sqlite=${LOCALBASE}
+.      else
 CONFIGURE_ARGS+=--with-pdo-sqlite
+.      endif
 
 USE_PHP=	pdo
 USE_PHP_BUILD=	yes
@@ -373,7 +369,6 @@ CONFIGURE_ARGS+=--enable-soap \
 		--with-libxml-dir=${LOCALBASE}
 
 USE_GNOME=	libxml2
-USE_GCC=	3.4+
 
 USE_PHP=	session
 USE_PHP_BUILD=	yes
@@ -385,7 +380,7 @@ CONFIGURE_ARGS+=--enable-spl \
 
 USE_GNOME=	libxml2
 
-USE_PHP=	pcre simplexml
+USE_PHP=	simplexml
 USE_PHP_BUILD=	yes
 .endif
 
@@ -501,33 +496,11 @@ CONFIGURE_ARGS+=--with-zlib=/usr
 CONFIGURE_ARGS+=--without-cdb
 .	endif
 .	if defined(WITH_DB4)
-WITH_DB4_VER?=	46
-.		if ${WITH_DB4_VER} == 45
-LIB_DEPENDS+=	db-4.5.0:${PORTSDIR}/databases/db45
-.		else
-.		if ${WITH_DB4_VER} == 44
-LIB_DEPENDS+=	db-4.4.0:${PORTSDIR}/databases/db44
-.		else
-.		if ${WITH_DB4_VER} == 43
-LIB_DEPENDS+=	db-4.3.0:${PORTSDIR}/databases/db43
-.		else
-.		if ${WITH_DB4_VER} == 42
-LIB_DEPENDS+=	db-4.2.2:${PORTSDIR}/databases/db42
-.		else
-.		if ${WITH_DB4_VER} == 41
-LIB_DEPENDS+=	db41.1:${PORTSDIR}/databases/db41
-.		else
-.		if ${WITH_DB4_VER} == 4
-LIB_DEPENDS+=	db4.0:${PORTSDIR}/databases/db4
-.		else
-LIB_DEPENDS+=	db-4.6.0:${PORTSDIR}/databases/db46
-.		endif
-.		endif
-.		endif
-.		endif
-.		endif
-.		endif
 CONFIGURE_ARGS+=--with-db4=${LOCALBASE}
+
+USE_BDB=		yes
+WITH_BDB_HIGHEST=	yes
+INVALID_BDB_VER=	2 3
 .	endif
 .	if defined(WITH_GDBM)
 LIB_DEPENDS+=	gdbm.3:${PORTSDIR}/databases/gdbm
@@ -572,11 +545,6 @@ CONFIGURE_ARGS+=--disable-mbregex
 .endif
 
 .if ${PHP_MODNAME} == "openssl"
-post-extract:
-	@${MV} ${WRKSRC}/config0.m4 ${WRKSRC}/config.m4
-.endif
-
-.if ${PHP_MODNAME} == "pcre"
 post-extract:
 	@${MV} ${WRKSRC}/config0.m4 ${WRKSRC}/config.m4
 .endif
