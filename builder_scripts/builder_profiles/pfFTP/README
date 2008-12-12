@@ -1,0 +1,8 @@
+pfFTP - A customized appliance for DNS Servers
+
+To get started with pfFTP simply copy pfsense_local.sh to your 
+builder_scripts directory. This directory is generally located
+in /home/pfsense/tools/builder_scripts/
+
+This should build a customized image based on pfFTP.  Enjoy!
+
