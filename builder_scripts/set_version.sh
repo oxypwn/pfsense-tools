@@ -82,7 +82,7 @@ RELENG_1_2)
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7_0"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/${FREEBSD_BRANCH}-supfile"
-	export PFSENSE_VERSION=1.2.1-RC2
+	export PFSENSE_VERSION=1.2.1-RC3
 	export PFSENSETAG=RELENG_1_2
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
