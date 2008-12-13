@@ -158,7 +158,7 @@ DEVICE=`mdconfig -a -t vnode -f ${IMGPATH}`
 cat > ${TMPFILE} <<EOF
 a:	*	0	4.2BSD	1024	8192	99
 c:	${SECTS}	0	unused	0	0
-d:	${CONFSIZE}	*	4.2BSD	1024	8192	99
+d:	${CONFSIZE}	*	4.2BSD	2048	8192	99
 EOF
 
 bsdlabel -BR ${DEVICE} ${TMPFILE}
