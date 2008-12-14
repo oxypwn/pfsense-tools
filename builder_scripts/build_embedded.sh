@@ -142,7 +142,7 @@ CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 unset ROOTSIZE
 unset CONFSIZE
 ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megabytes
-CONFSIZE=${CONFSIZE:-"4096"}
+CONFSIZE=${CONFSIZE:-"10240"}
 
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
 # Temp file and directory to be used later
@@ -156,19 +156,22 @@ dd if=/dev/zero of=${IMGPATH} count=${SECTS}
 DEVICE=`mdconfig -a -t vnode -f ${IMGPATH}`
 
 cat > ${TMPFILE} <<EOF
-a:	*	0	4.2BSD	1024	8192	99
-c:	${SECTS}	0	unused	0	0
-d:	${CONFSIZE}	*	4.2BSD	2048	8192	99
+a:	*			0	4.2BSD	1024	8192	99
+c:	${SECTS}	0	unused	0		0
+d:	${CONFSIZE}	*	4.2BSD	1024	8192	99
 EOF
 
 bsdlabel -BR ${DEVICE} ${TMPFILE}
 
-newfs -L ${UFS_LABEL} -O1 /dev/${DEVICE}a
-newfs -L ${CONF_LABEL} -O1 /dev/${DEVICE}d
+newfs -L ${UFS_LABEL} -O2 /dev/${DEVICE}a
+newfs -L ${CONF_LABEL} -O2 /dev/${DEVICE}d
 
 mount /dev/${DEVICE}a ${TMPDIR}
 mkdir ${TMPDIR}/cf
 mount /dev/${DEVICE}d ${TMPDIR}/cf
+
+echo "Currently mounted Embedded partitions:"
+df -h | grep ${DEVICE}
 
 echo "Writing files..."
 
