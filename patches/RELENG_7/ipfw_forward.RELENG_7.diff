@@ -1,13 +1,18 @@
---- pf.c.old	2008-11-11 22:51:23.000000000 +0100
-+++ pf.c	2008-11-11 22:53:04.000000000 +0100
-@@ -6884,6 +6884,10 @@
+Index: pf.c
+===================================================================
+RCS file: /home/eri/development/divert/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.5
+diff -u -r1.5 pf.c
+--- pf.c	8 Dec 2008 15:23:16 -0000	1.5
++++ pf.c	14 Dec 2008 09:51:27 -0000
+@@ -7311,7 +7311,9 @@
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt)
++	} else if (r->rt &&
++		/* Check to avoid breaking ipfw forward rules needed on CP */
++		!(m->m_flags & M_FASTFWD_OURS))
+ 		/* pf_route can free the mbuf causing *m0 to become NULL */
+ 		pf_route(m0, r, dir, ifp, s, &pd);
  
- #ifdef __FreeBSD__
- 	M_ASSERTPKTHDR(m);
-+
-+	/* Check to avoid breaking ipfw forward rules needed on CP */
-+	if (m->m_flags & M_FASTFWD_OURS) 
-+		return (PF_PASS);
- #else
- #ifdef DIAGNOSTIC
- 	if ((m->m_flags & M_PKTHDR) == 0)
