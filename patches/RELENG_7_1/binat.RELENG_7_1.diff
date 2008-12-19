@@ -1,0 +1,112 @@
+Index: contrib/pf/pfctl/parse.y
+===================================================================
+RCS file: /home/eri/development/divert/tmprepo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.5
+diff -u -r1.5 parse.y
+--- contrib/pf/pfctl/parse.y	18 Dec 2008 23:14:06 -0000	1.5
++++ contrib/pf/pfctl/parse.y	18 Dec 2008 23:15:11 -0000
+@@ -4146,7 +4146,7 @@
+ 		}
+ 		;
+ 
+-binatrule	: no BINAT natpass interface af proto FROM host TO ipspec tag
++binatrule	: no BINAT natpass interface af proto FROM ipportspec TO ipportspec tag
+ 		    tagged rtable redirection
+ 		{
+ 			struct pf_rule		binat;
+@@ -4172,10 +4172,10 @@
+ 			binat.log = $3.b2;
+ 			binat.logif = $3.w2;
+ 			binat.af = $5;
+-			if (!binat.af && $8 != NULL && $8->af)
+-				binat.af = $8->af;
+-			if (!binat.af && $10 != NULL && $10->af)
+-				binat.af = $10->af;
++			if (!binat.af && $8.host != NULL && $8.host->af)
++				binat.af = $8.host->af;
++			if (!binat.af && $10.host != NULL && $10.host->af)
++				binat.af = $10.host->af;
+ 
+ 			if (!binat.af && $14 != NULL && $14->host)
+ 				binat.af = $14->host->af;
+@@ -4214,10 +4214,10 @@
+ 				free($6);
+ 			}
+ 
+-			if ($8 != NULL && disallow_table($8, "invalid use of "
++			if ($8.host != NULL && disallow_table($8.host, "invalid use of "
+ 			    "table <%s> as the source address of a binat rule"))
+ 				YYERROR;
+-			if ($8 != NULL && disallow_alias($8, "invalid use of "
++			if ($8.host != NULL && disallow_alias($8.host, "invalid use of "
+ 			    "interface (%s) as the source address of a binat "
+ 			    "rule"))
+ 				YYERROR;
+@@ -4230,39 +4230,52 @@
+ 			    "redirect address of a binat rule"))
+ 				YYERROR;
+ 
+-			if ($8 != NULL) {
+-				if ($8->next) {
++			if ($8.host != NULL) {
++				if ($8.host->next) {
+ 					yyerror("multiple binat ip addresses");
+ 					YYERROR;
+ 				}
+-				if ($8->addr.type == PF_ADDR_DYNIFTL)
+-					$8->af = binat.af;
+-				if ($8->af != binat.af) {
++				if ($8.host->addr.type == PF_ADDR_DYNIFTL)
++					$8.host->af = binat.af;
++				if ($8.host->af != binat.af) {
+ 					yyerror("binat ip versions must match");
+ 					YYERROR;
+ 				}
+-				if (check_netmask($8, binat.af))
++				if (check_netmask($8.host, binat.af))
+ 					YYERROR;
+-				memcpy(&binat.src.addr, &$8->addr,
++				memcpy(&binat.src.addr, &$8.host->addr,
+ 				    sizeof(binat.src.addr));
+-				free($8);
++				binat.src.neg = $8.host->not;
++				free($8.host);
+ 			}
+-			if ($10 != NULL) {
+-				if ($10->next) {
++			if ($8.port != NULL) {
++                                binat.src.port[0] = $8.port->port[0];
++                                binat.src.port[1] = $8.port->port[1];
++                                binat.src.port_op = $8.port->op;
++                                free($8.port);
++                        }
++			if ($10.host != NULL) {
++				if ($10.host->next) {
+ 					yyerror("multiple binat ip addresses");
+ 					YYERROR;
+ 				}
+-				if ($10->af != binat.af && $10->af) {
++				if ($10.host->af != binat.af && $10.host->af) {
+ 					yyerror("binat ip versions must match");
+ 					YYERROR;
+ 				}
+-				if (check_netmask($10, binat.af))
++				if (check_netmask($10.host, binat.af))
+ 					YYERROR;
+-				memcpy(&binat.dst.addr, &$10->addr,
++				memcpy(&binat.dst.addr, &$10.host->addr,
+ 				    sizeof(binat.dst.addr));
+-				binat.dst.neg = $10->not;
+-				free($10);
++				binat.dst.neg = $10.host->not;
++				free($10.host);
+ 			}
++			if ($10.port != NULL) {
++                                binat.dst.port[0] = $10.port->port[0];
++                                binat.dst.port[1] = $10.port->port[1];
++                                binat.dst.port_op = $10.port->op;
++                                free($10.port);
++                        }
+ 
+ 			if (binat.action == PF_NOBINAT) {
+ 				if ($14 != NULL) {
