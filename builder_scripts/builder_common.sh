@@ -875,33 +875,33 @@ checkout_freesbie() {
 print_flags() {
 
 	printf "  pfSense version: %s\n" $PFSENSE_VERSION
-	printf "         CVS User: %s\n" $CVS_USER
-	printf "        Verbosity: %s\n" $BE_VERBOSE
-	printf "         Base dir: %s\n" $BASE_DIR
-	printf "     Checkout dir: %s\n" $CVS_CO_DIR
-	printf "      Custom root: %s\n" $CUSTOMROOT
-	printf "   CVS IP address: %s\n" $CVS_IP
-	printf "      Updates dir: %s\n" $UPDATESDIR
-	printf "     pfS Base dir: %s\n" $PFSENSEBASEDIR
-	printf "    FreeSBIE path: %s\n" $FREESBIE_PATH
-	printf "    FreeSBIE conf: %s\n" $FREESBIE_CONF
-	printf "       Source DIR: %s\n" $SRCDIR
-	printf "        Clone DIR: %s\n" $CLONEDIR
-	printf "   Custom overlay: %s\n" $custom_overlay
-	printf "  pfSense version: %s\n" $FREEBSD_VERSION
-	printf "   FreeBSD branch: %s\n" $FREEBSD_BRANCH
-	printf "      pfSense Tag: %s\n" $PFSENSETAG
-	printf " MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
-	printf "            EXTRA: %s\n" $EXTRA
-	printf "     BUILDMODULES: %s\n" $BUILDMODULES
-	printf "   Git Repository: %s\n" $GIT_REPO
-	printf "       Git Branch: %s\n" $GIT_BRANCH
-	printf "    Custom Config: %s\n" $USE_CONFIG_XML
-	printf "          ISOPATH: %s\n" $ISOPATH
-	printf "          IMGPATH: %s\n" $IMGPATH
-
+	printf "           CVS User: %s\n" $CVS_USER
+	printf "          Verbosity: %s\n" $BE_VERBOSE
+	printf "           Base dir: %s\n" $BASE_DIR
+	printf "       Checkout dir: %s\n" $CVS_CO_DIR
+	printf "        Custom root: %s\n" $CUSTOMROOT
+	printf "     CVS IP address: %s\n" $CVS_IP
+	printf "        Updates dir: %s\n" $UPDATESDIR
+	printf "       pfS Base dir: %s\n" $PFSENSEBASEDIR
+	printf "      FreeSBIE path: %s\n" $FREESBIE_PATH
+	printf "      FreeSBIE conf: %s\n" $FREESBIE_CONF
+	printf "         Source DIR: %s\n" $SRCDIR
+	printf "          Clone DIR: %s\n" $CLONEDIR
+	printf "     Custom overlay: %s\n" $custom_overlay
+	printf "    pfSense version: %s\n" $FREEBSD_VERSION
+	printf "     FreeBSD branch: %s\n" $FREEBSD_BRANCH
+	printf "        pfSense Tag: %s\n" $PFSENSETAG
+	printf "   MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
+	printf "              EXTRA: %s\n" $EXTRA
+	printf "       BUILDMODULES: %s\n" $BUILDMODULES
+	printf "     Git Repository: %s\n" $GIT_REPO
+	printf "         Git Branch: %s\n" $GIT_BRANCH
+	printf "      Custom Config: %s\n" $USE_CONFIG_XML
+	printf "            ISOPATH: %s\n" $ISOPATH
+	printf "            IMGPATH: %s\n" $IMGPATH
+	printf "FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
+	echo
 	echo "Sleeping for 5 seconds..."
-
 	sleep 5
 
 }
