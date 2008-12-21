@@ -12,6 +12,7 @@ usr/local/bin/beep
 usr/bin/bsdiff
 usr/bin/bspatch
 usr/local/bin/cpdup
+usr/local/bin/git
 usr/local/bin/minicron
 usr/local/bin/verifysig
 usr/local/bin/lua50
