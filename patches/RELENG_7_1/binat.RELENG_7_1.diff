@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
 RCS file: /home/eri/development/divert/tmprepo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.5
-diff -u -r1.5 parse.y
---- contrib/pf/pfctl/parse.y	18 Dec 2008 23:14:06 -0000	1.5
-+++ contrib/pf/pfctl/parse.y	18 Dec 2008 23:15:11 -0000
+retrieving revision 1.4
+diff -u -r1.4 parse.y
+--- contrib/pf/pfctl/parse.y	21 Dec 2008 13:35:30 -0000	1.4
++++ contrib/pf/pfctl/parse.y	21 Dec 2008 13:40:42 -0000
 @@ -4146,7 +4146,7 @@
  		}
  		;
@@ -14,6 +14,15 @@ diff -u -r1.5 parse.y
  		    tagged rtable redirection
  		{
  			struct pf_rule		binat;
+@@ -4154,7 +4154,7 @@
+ 
+ 			if (check_rulestate(PFCTL_STATE_NAT))
+ 				YYERROR;
+-			if (disallow_urpf_failed($10, "\"urpf-failed\" is not "
++			if (disallow_urpf_failed($10.host, "\"urpf-failed\" is not "
+ 			    "permitted as a binat destination"))
+ 				YYERROR;
+ 
 @@ -4172,10 +4172,10 @@
  			binat.log = $3.b2;
  			binat.logif = $3.w2;
