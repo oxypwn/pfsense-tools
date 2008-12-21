@@ -11,6 +11,7 @@ if [ $# -eq 2 ]; then
 fi
 
 HANDLED=false
+FREESBIE_ERROR_MAIL=sullrich@gmail.com
 
 # Ensure file exists
 touch pfsense-build.conf
@@ -32,6 +33,7 @@ strip_pfsense_local() {
 		grep -v PFSPATCHDIR | \
 		grep -v PFSENSE_VERSION | \
 		grep -v CUSTOM_COPY_LIST | \
+		grep -v FREESBIE_ERROR_MAIL | \
 		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $BUILDER_SCRIPTS/pfsense-build.conf
 }
@@ -50,6 +52,7 @@ set_items() {
 	echo export CUSTOM_COPY_LIST="${CUSTOM_COPY_LIST}" >> $BUILDER_SCRIPTS/pfsense-build.conf	
 	if [ "$SETLIVEBSD" = "true" ]; then 
 		echo "export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
+		echo "export FREESBIE_ERROR_MAIL=${FREESBIE_ERROR_MAIL}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	else 
 		echo "#export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	fi
@@ -73,6 +76,7 @@ RELENG_1)
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
 	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_2"
+	export FREESBIE_ERROR_MAIL="sullrich@gmail.com"
 	set_items
 ;;
 
