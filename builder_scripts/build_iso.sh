@@ -172,18 +172,18 @@ cust_install_config_xml
 # Install custom pfSense-XML packages from a chroot
 pfsense_install_custom_packages_exec
 
+# See if php configuration script is available
+if [ -f $PFSENSEBASEDIR/etc/rc.php_ini_setup ]; then
+	echo ">>> chroot'ing and running /etc/rc.php_ini_setup"
+	chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
+fi
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
 # Ensure /home exists
 mkdir -p $CLONEDIR/home
-
-# See if php configuration script is available
-if [ -f $PFSENSEBASEDIR/etc/rc.php_ini_setup ]; then
-	#echo ">>> chroot'ing and running /etc/rc.php_ini_setup"
-	#chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
-fi
 
 # Finalize iso
 echo ">>> Finalizing iso..."
