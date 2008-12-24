@@ -153,7 +153,7 @@ export ARCH="i386"
 
 export custom_overlay="${BUILDER_PROFILES}/pfPBX/copy_overlay/"
 
-export custom_package_list="dns-server, AutoConfigBackup"
+export custom_package_list="FreeSWITCH, AutoConfigBackup"
 
 # This is used for developers with access to the pfSense
 # cvsup update server.  Note that it is firewalled by default.
