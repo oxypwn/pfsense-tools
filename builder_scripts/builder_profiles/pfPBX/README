@@ -1,4 +1,4 @@
-pfPBX - A customized appliance for DNS Servers
+pfPBX - A customized appliance for PBX Systems
 
 To get started with pfPBX simply copy pfsense_local.sh to your 
 builder_scripts directory. This directory is generally located
