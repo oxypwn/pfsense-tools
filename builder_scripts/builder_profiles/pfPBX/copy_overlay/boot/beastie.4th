@@ -179,11 +179,11 @@ at-xy ."         `--{__________) [0m"
 	clear
 	46 4 print-logo
 	42 20 2 2 box
-	13 6 at-xy ." Welcome to pfFTP!"
-	printmenuitem ."  Boot pfFTP [default]" bootkey !
+	13 6 at-xy ." Welcome to pfPBX!"
+	printmenuitem ."  Boot pfPBX [default]" bootkey !
 	s" arch-i386" environment? if
 		drop
-		printmenuitem ."  Boot pfFTP with ACPI " bootacpikey !
+		printmenuitem ."  Boot pfPBX with ACPI " bootacpikey !
 		acpienabled? if
 			." disabled"
 		else
@@ -192,9 +192,9 @@ at-xy ."         `--{__________) [0m"
 	else
 		-2 bootacpikey !
 	then
-	printmenuitem ."  Boot pfFTP in Safe Mode" bootsafekey !
-	printmenuitem ."  Boot pfFTP in single user mode" bootsinglekey !
-	printmenuitem ."  Boot pfFTP with verbose logging" bootverbosekey !
+	printmenuitem ."  Boot pfPBX in Safe Mode" bootsafekey !
+	printmenuitem ."  Boot pfPBX in single user mode" bootsinglekey !
+	printmenuitem ."  Boot pfPBX with verbose logging" bootverbosekey !
 	printmenuitem ."  Escape to loader prompt" escapekey !
 	printmenuitem ."  Reboot" rebootkey !
 	menuX @ 20 at-xy
