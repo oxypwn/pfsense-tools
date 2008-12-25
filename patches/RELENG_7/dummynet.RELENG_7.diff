@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/contrib/pf/pfctl/parse.y,v
+RCS file: /home/eri/development/divert/tmprepo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.3
 diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	12 Nov 2008 20:12:48 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	12 Nov 2008 20:27:47 -0000
+--- contrib/pf/pfctl/parse.y	25 Dec 2008 19:09:13 -0000	1.3
++++ contrib/pf/pfctl/parse.y	25 Dec 2008 19:33:58 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -576,11 +576,11 @@ diff -u -r1.3 parse.y
 +
 Index: contrib/pf/pfctl/pfctl.c
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/contrib/pf/pfctl/pfctl.c,v
+RCS file: /home/eri/development/divert/tmprepo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
---- contrib/pf/pfctl/pfctl.c	12 Nov 2008 20:15:00 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	12 Nov 2008 20:27:47 -0000
+--- contrib/pf/pfctl/pfctl.c	25 Dec 2008 19:30:15 -0000	1.2
++++ contrib/pf/pfctl/pfctl.c	25 Dec 2008 19:33:58 -0000
 @@ -46,6 +46,9 @@
  #include <altq/altq.h>
  #include <sys/sysctl.h>
@@ -812,11 +812,11 @@ diff -u -r1.2 pfctl.c
  }
 Index: contrib/pf/pfctl/pfctl.h
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/contrib/pf/pfctl/pfctl.h,v
+RCS file: /home/eri/development/divert/tmprepo/src/contrib/pf/pfctl/pfctl.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.h
---- contrib/pf/pfctl/pfctl.h	12 Nov 2008 20:10:45 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.h	12 Nov 2008 20:28:04 -0000
+--- contrib/pf/pfctl/pfctl.h	25 Dec 2008 19:07:25 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl.h	25 Dec 2008 19:33:58 -0000
 @@ -85,12 +85,14 @@
  int	 pfctl_command_tables(int, char *[], char *, const char *, char *,
  	    const char *, int);
@@ -837,7 +837,7 @@ Index: contrib/pf/pfctl/pfctl_dn.c
 RCS file: contrib/pf/pfctl/pfctl_dn.c
 diff -N contrib/pf/pfctl/pfctl_dn.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ contrib/pf/pfctl/pfctl_dn.c	12 Nov 2008 20:28:00 -0000
++++ contrib/pf/pfctl/pfctl_dn.c	25 Dec 2008 19:33:58 -0000
 @@ -0,0 +1,404 @@
 +/*
 + * Copyright (c) 2007 Ermal Luçi
@@ -1245,11 +1245,11 @@ diff -N contrib/pf/pfctl/pfctl_dn.c
 +}
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /home/eri/development/divert/tmprepo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	12 Nov 2008 20:12:48 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	12 Nov 2008 20:27:47 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	25 Dec 2008 19:09:13 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	25 Dec 2008 19:33:58 -0000
 @@ -48,6 +48,9 @@
  #include <net/pfvar.h>
  #include <arpa/inet.h>
@@ -1277,11 +1277,11 @@ diff -u -r1.2 pfctl_parser.c
  	else if (r->qname[0])
 Index: contrib/pf/pfctl/pfctl_parser.h
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/contrib/pf/pfctl/pfctl_parser.h,v
+RCS file: /home/eri/development/divert/tmprepo/src/contrib/pf/pfctl/pfctl_parser.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.h
---- contrib/pf/pfctl/pfctl_parser.h	12 Nov 2008 20:12:35 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.h	12 Nov 2008 20:27:47 -0000
+--- contrib/pf/pfctl/pfctl_parser.h	25 Dec 2008 19:08:59 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.h	25 Dec 2008 19:33:58 -0000
 @@ -67,6 +67,7 @@
  }
  
@@ -1316,11 +1316,11 @@ diff -u -r1.2 pfctl_parser.h
  
 Index: sbin/pfctl/Makefile
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sbin/pfctl/Makefile,v
+RCS file: /home/eri/development/divert/tmprepo/src/sbin/pfctl/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sbin/pfctl/Makefile	12 Nov 2008 20:10:45 -0000	1.1.1.1
-+++ sbin/pfctl/Makefile	12 Nov 2008 20:27:47 -0000
+--- sbin/pfctl/Makefile	25 Dec 2008 19:07:25 -0000	1.1.1.1
++++ sbin/pfctl/Makefile	25 Dec 2008 19:33:58 -0000
 @@ -11,6 +11,7 @@
  SRCS+= pfctl_osfp.c pfctl_radix.c pfctl_table.c pfctl_qstats.c
  SRCS+= pfctl_optimize.c
@@ -1331,11 +1331,11 @@ diff -u -r1.1.1.1 Makefile
  CFLAGS+= -Wstrict-prototypes -I${.CURDIR}/../../contrib/pf/pfctl
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/contrib/pf/net/pf.c,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.3
 diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	12 Nov 2008 20:12:48 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	12 Nov 2008 20:27:47 -0000
+--- sys/contrib/pf/net/pf.c	25 Dec 2008 19:09:13 -0000	1.3
++++ sys/contrib/pf/net/pf.c	25 Dec 2008 19:55:08 -0000
 @@ -136,6 +136,9 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -1368,32 +1368,33 @@ diff -u -r1.3 pf.c
  	u_int16_t		 win = ntohs(th->th_win);
  	u_int32_t		 ack, end, seq, orig_seq;
  	u_int8_t		 sws, dws;
-@@ -4683,6 +4694,15 @@
+@@ -4683,6 +4694,8 @@
  
  	STATE_LOOKUP();
  
 +	PF_DUMMYNET();
 +
-+        /*
-+         * First state is created by the rules checking code and if we reloop
-+         * the first packet that hit the rule pf will not like it.
-+         */
-+        if ((th->th_flags & TH_SYN) && (pd->pf_mtag->flags & PF_DN_TAG_PRESENT))
-+                return (PF_PASS);
-+
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
  		dst = &(*state)->dst;
-@@ -4690,7 +4710,7 @@
+@@ -4690,6 +4703,16 @@
  		src = &(*state)->dst;
  		dst = &(*state)->src;
  	}
--
 +	
++	/*
++         * First state is created by the rules checking code and if we reloop
++         * the first packet that hit the rule pf will not like it.
++         */
++        if ((th->th_flags & TH_SYN) && src->state == TCPS_SYN_SENT &&
++		dst->state == TCPS_CLOSED) {
++		if (pd->pf_mtag->flags & PF_DN_TAG_PRESENT)
++                	return (PF_PASS);
++	}
+ 
  	if ((*state)->src.state == PF_TCPS_PROXY_SRC) {
  		if (direction != (*state)->direction) {
- 			REASON_SET(reason, PFRES_SYNPROXY);
-@@ -5170,6 +5190,7 @@
+@@ -5170,6 +5193,7 @@
  {
  	struct pf_state_peer	*src, *dst;
  	struct pf_state_cmp	 key;
@@ -1401,7 +1402,7 @@ diff -u -r1.3 pf.c
  	struct udphdr		*uh = pd->hdr.udp;
  
  	key.af = pd->af;
-@@ -5188,6 +5209,8 @@
+@@ -5188,6 +5212,8 @@
  
  	STATE_LOOKUP();
  
@@ -1410,7 +1411,7 @@ diff -u -r1.3 pf.c
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
  		dst = &(*state)->dst;
-@@ -5230,6 +5253,7 @@
+@@ -5230,6 +5256,7 @@
      struct mbuf *m, int off, void *h, struct pf_pdesc *pd, u_short *reason)
  {
  	struct pf_addr	*saddr = pd->src, *daddr = pd->dst;
@@ -1418,7 +1419,7 @@ diff -u -r1.3 pf.c
  	u_int16_t	 icmpid = 0;		/* make the compiler happy */
  	u_int16_t	*icmpsum = NULL;	/* make the compiler happy */
  	u_int8_t	 icmptype = 0;		/* make the compiler happy */
-@@ -5288,6 +5312,8 @@
+@@ -5288,6 +5315,8 @@
  
  		STATE_LOOKUP();
  
@@ -1427,7 +1428,7 @@ diff -u -r1.3 pf.c
  		(*state)->expire = time_second;
  		(*state)->timeout = PFTM_ICMP_ERROR_REPLY;
  
-@@ -5820,6 +5846,7 @@
+@@ -5820,6 +5849,7 @@
  {
  	struct pf_state_peer	*src, *dst;
  	struct pf_state_cmp	 key;
@@ -1435,7 +1436,7 @@ diff -u -r1.3 pf.c
  
  	key.af = pd->af;
  	key.proto = pd->proto;
-@@ -5837,6 +5864,8 @@
+@@ -5837,6 +5867,8 @@
  
  	STATE_LOOKUP();
  
@@ -1444,7 +1445,7 @@ diff -u -r1.3 pf.c
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
  		dst = &(*state)->dst;
-@@ -6788,6 +6817,9 @@
+@@ -6788,6 +6820,9 @@
  	int			 off, dirndx, pqid = 0;
  
  #ifdef __FreeBSD__
@@ -1454,7 +1455,7 @@ diff -u -r1.3 pf.c
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -6858,8 +6890,15 @@
+@@ -6858,8 +6893,15 @@
  		goto done;
  	}
  
@@ -1471,7 +1472,7 @@ diff -u -r1.3 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -6897,6 +6936,11 @@
+@@ -6897,6 +6939,11 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1483,7 +1484,7 @@ diff -u -r1.3 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -6938,6 +6982,10 @@
+@@ -6938,6 +6985,10 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1494,7 +1495,7 @@ diff -u -r1.3 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7058,6 +7106,40 @@
+@@ -7058,6 +7109,42 @@
  	}
  #endif /* ALTQ */
  
@@ -1517,6 +1518,8 @@ diff -u -r1.3 pf.c
 +                        dnflow.rule = &dummyrule;
 +                        dnflow.f_id.addr_type = 4; /* IPv4 type */
 +                        dnflow.f_id.proto = pd.proto;
++			dnflow.f_id.src_ip = ntohl(h->ip_src);
++			dnflow.f_id.dst_ip = ntohl(h->ip_dst);
 +
 +                        PF_UNLOCK();
 +
@@ -1535,7 +1538,7 @@ diff -u -r1.3 pf.c
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7146,7 +7228,6 @@
+@@ -7146,7 +7233,6 @@
  			    tr->dst.neg);
  	}
  
@@ -1543,7 +1546,7 @@ diff -u -r1.3 pf.c
  	if (action == PF_SYNPROXY_DROP) {
  		m_freem(*m0);
  		*m0 = NULL;
-@@ -7184,6 +7265,9 @@
+@@ -7184,6 +7270,9 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
@@ -1553,7 +1556,7 @@ diff -u -r1.3 pf.c
  	PF_LOCK();
  #endif
  
-@@ -7252,8 +7336,15 @@
+@@ -7252,8 +7341,15 @@
  		goto done;
  	}
  
@@ -1570,7 +1573,7 @@ diff -u -r1.3 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7359,6 +7450,11 @@
+@@ -7359,6 +7455,11 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1582,7 +1585,7 @@ diff -u -r1.3 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7399,6 +7495,10 @@
+@@ -7399,6 +7500,10 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1593,7 +1596,7 @@ diff -u -r1.3 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7521,6 +7621,37 @@
+@@ -7521,6 +7626,42 @@
  	}
  #endif /* ALTQ */
  
@@ -1616,6 +1619,11 @@ diff -u -r1.3 pf.c
 +                        dnflow.rule = &dummyrule;
 +                        dnflow.f_id.addr_type = 6; /* IPv4 type */
 +                        dnflow.f_id.proto = pd.proto;
++			dnflow.f_id.src_ip6 = h->ip6_src;
++                        dnflow.f_id.dst_ip6 = h->ip6_dst;
++			dnflow.f_id.src_ip = 0;
++			dnflow.f_id.dst_ip = 0;
++			dnflow.f_id.flow_id6 = ntohl(h->ip6_flow);
 +
 +                        PF_UNLOCK();
 +
@@ -1631,7 +1639,7 @@ diff -u -r1.3 pf.c
  	if (dir == PF_IN && action == PF_PASS && (pd.proto == IPPROTO_TCP ||
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
-@@ -7604,7 +7735,6 @@
+@@ -7604,7 +7745,6 @@
  			    tr->dst.neg);
  	}
  
@@ -1641,11 +1649,11 @@ diff -u -r1.3 pf.c
  		*m0 = NULL;
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/contrib/pf/net/pf_mtag.h,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	12 Nov 2008 20:12:36 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	12 Nov 2008 20:27:47 -0000
+--- sys/contrib/pf/net/pf_mtag.h	25 Dec 2008 19:08:59 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	25 Dec 2008 19:33:58 -0000
 @@ -37,6 +37,7 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -1656,11 +1664,11 @@ diff -u -r1.2 pf_mtag.h
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/contrib/pf/net/pfvar.h,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.4
 diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	12 Nov 2008 20:15:01 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	12 Nov 2008 20:27:47 -0000
+--- sys/contrib/pf/net/pfvar.h	25 Dec 2008 19:30:15 -0000	1.4
++++ sys/contrib/pf/net/pfvar.h	25 Dec 2008 19:33:58 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
@@ -1675,11 +1683,11 @@ diff -u -r1.4 pfvar.h
  	u_int32_t		 prob;
 Index: sys/net/if_bridge.c
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/net/if_bridge.c,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/net/if_bridge.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_bridge.c
---- sys/net/if_bridge.c	12 Nov 2008 20:10:45 -0000	1.1.1.1
-+++ sys/net/if_bridge.c	12 Nov 2008 20:27:47 -0000
+--- sys/net/if_bridge.c	25 Dec 2008 19:07:26 -0000	1.1.1.1
++++ sys/net/if_bridge.c	25 Dec 2008 19:33:58 -0000
 @@ -3034,7 +3034,7 @@
  			 * packet will return to us via bridge_dummynet().
  			 */
@@ -1691,11 +1699,11 @@ diff -u -r1.1.1.1 if_bridge.c
  
 Index: sys/net/if_ethersubr.c
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/net/if_ethersubr.c,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/net/if_ethersubr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_ethersubr.c
---- sys/net/if_ethersubr.c	12 Nov 2008 20:10:45 -0000	1.1.1.1
-+++ sys/net/if_ethersubr.c	12 Nov 2008 20:27:47 -0000
+--- sys/net/if_ethersubr.c	25 Dec 2008 19:07:26 -0000	1.1.1.1
++++ sys/net/if_ethersubr.c	25 Dec 2008 19:33:58 -0000
 @@ -491,7 +491,7 @@
  			 */
  			*m0 = NULL ;
@@ -1707,11 +1715,11 @@ diff -u -r1.1.1.1 if_ethersubr.c
  	/*
 Index: sys/netinet/ip_dummynet.c
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/netinet/ip_dummynet.c,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/netinet/ip_dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
---- sys/netinet/ip_dummynet.c	12 Nov 2008 20:10:46 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.c	12 Nov 2008 20:27:47 -0000
+--- sys/netinet/ip_dummynet.c	25 Dec 2008 19:07:26 -0000	1.1.1.1
++++ sys/netinet/ip_dummynet.c	25 Dec 2008 19:33:58 -0000
 @@ -86,6 +86,8 @@
  #include <netinet/ip6.h>       /* for ip6_input, ip6_output prototypes */
  #include <netinet6/ip6_var.h>
@@ -1811,11 +1819,11 @@ diff -u -r1.1.1.1 ip_dummynet.c
  MODULE_VERSION(dummynet, 1);
 Index: sys/netinet/ip_dummynet.h
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/netinet/ip_dummynet.h,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/netinet/ip_dummynet.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.h
---- sys/netinet/ip_dummynet.h	12 Nov 2008 20:10:46 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.h	12 Nov 2008 20:27:47 -0000
+--- sys/netinet/ip_dummynet.h	25 Dec 2008 19:07:26 -0000	1.1.1.1
++++ sys/netinet/ip_dummynet.h	25 Dec 2008 19:33:58 -0000
 @@ -123,6 +123,9 @@
  #define DN_TO_IP6_OUT	7
  #define DN_TO_IFB_FWD	8
@@ -1837,11 +1845,11 @@ diff -u -r1.1.1.1 ip_dummynet.h
  extern	ip_dn_io_t *ip_dn_io_ptr;
 Index: sys/netinet/ip_fw_pfil.c
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/netinet/ip_fw_pfil.c,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/netinet/ip_fw_pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_pfil.c
---- sys/netinet/ip_fw_pfil.c	12 Nov 2008 20:10:46 -0000	1.1.1.1
-+++ sys/netinet/ip_fw_pfil.c	12 Nov 2008 20:27:47 -0000
+--- sys/netinet/ip_fw_pfil.c	25 Dec 2008 19:07:26 -0000	1.1.1.1
++++ sys/netinet/ip_fw_pfil.c	25 Dec 2008 19:33:58 -0000
 @@ -72,9 +72,6 @@
  
  int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
@@ -1878,11 +1886,11 @@ diff -u -r1.1.1.1 ip_fw_pfil.c
  		return 0;		/* packet consumed */
 Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /home/eri/development/dummynet_improve/repo/importing/sys/netinet/ip_input.c,v
+RCS file: /home/eri/development/divert/tmprepo/src/sys/netinet/ip_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_input.c
---- sys/netinet/ip_input.c	12 Nov 2008 20:10:46 -0000	1.1.1.1
-+++ sys/netinet/ip_input.c	12 Nov 2008 20:27:47 -0000
+--- sys/netinet/ip_input.c	25 Dec 2008 19:07:26 -0000	1.1.1.1
++++ sys/netinet/ip_input.c	25 Dec 2008 19:33:58 -0000
 @@ -202,6 +202,7 @@
   */
  ip_fw_chk_t *ip_fw_chk_ptr = NULL;
