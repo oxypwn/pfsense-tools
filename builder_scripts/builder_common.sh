@@ -891,6 +891,9 @@ print_flags() {
 	printf "    pfSense version: %s\n" $FREEBSD_VERSION
 	printf "     FreeBSD branch: %s\n" $FREEBSD_BRANCH
 	printf "        pfSense Tag: %s\n" $PFSENSETAG
+	if [ -n "$PFSENSECVSDATETIME" ]; then
+	printf "     pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
+	fi
 	printf "   MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
 	printf "              EXTRA: %s\n" $EXTRA
 	printf "       BUILDMODULES: %s\n" $BUILDMODULES
@@ -927,12 +930,16 @@ freesbie_make() {
 
 update_cvs_depot() {
 	if [ -z "${USE_GIT:-}" ]; then
+		local _cvsdate
 		echo "Launching cvsup pfSense-supfile..."
 		cvsup pfSense-supfile
 		rm -rf pfSense
 		echo "Updating ${BASE_DIR}/pfSense..."
 		rm -rf $BASE_DIR/pfSense
-		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} pfSense)
+		if [ -n "$PFSENSECVSDATETIME" ]; then
+			_cvsdate="-D"
+		fi
+		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} $_cvsdate "$PFSENSECVSDATETIME" pfSense)
 		(cd ${BASE_DIR}/tools/ && cvs update -d)
 	else
 	    # Always build the latest from our repo.
