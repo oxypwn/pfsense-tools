@@ -19,7 +19,8 @@ print_error_pfS() {
 	echo "####################################"
 	echo
     [ -n "${LOGFILE:-}" ] && \
-        echo "Log saved on ${LOGFILE}" >&2
+        echo "Log saved on ${LOGFILE}" && \
+	grep -B7 error ${LOGFILE} >&2
     cat $LOGFILE
     sleep 99999
     kill $$ # NOTE: exit 1 won't work.
