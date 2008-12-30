@@ -47,6 +47,7 @@ PORTSTOBUILD="grub \
 	expiretable \
 	ifstated \
 	ipfw-classifyd \
+	igmpproxy \
 	ipsec-tools-natt \
 	isc-dhcp3-relay \
 	isc-dhcp3-server \
