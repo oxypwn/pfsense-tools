@@ -71,6 +71,11 @@ do
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE})
 		fi
 	fi
+	if [ $? != 0 ]; then
+		echo "Failed to apply patch ${PFSPATCHDIR}/${PATCH_FILE}"
+		find /usr/src -name "*.rej"
+		exit 1
+	fi
 	if [ $MOVE_FILE_LEN -gt "2" ]; then
 		#cp ${SRCDIR}/${MOVE_FILE} ${SRCDIR}/${PATCH_DIRECTORY}
 	fi
