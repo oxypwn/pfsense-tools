@@ -1,0 +1,3 @@
+sbin/igmpproxy
+share/examples/igmpproxy/
+share/examples/igmpproxy/igmpproxy.conf
