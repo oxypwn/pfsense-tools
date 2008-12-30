@@ -12,6 +12,8 @@ if [ ! -d "${CONVERSIONDIR}" ] ; then
 	mkdir ${CONVERSIONDIR}
 fi
 
+# Copy in the authors config file
+cp author-conf-file ${CONVERSIONDIR}
 cd ${CONVERSIONDIR}
 
 # Clean up before full conversion occurs
