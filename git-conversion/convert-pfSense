@@ -7,11 +7,19 @@ CVSMODULE=pfSense
 GITDST=git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
 
 
+# Make sure the conversion directory exists
+if [ ! -d "${CONVERSIONDIR}" ] ; then
+	mkdir ${CONVERSIONDIR}
+fi
+
+cd ${CONVERSIONDIR}
+
 # Clean up before full conversion occurs
 if [ -d "${CONVERSIONDIR}/${CVSMODULE}-git" ] ; then
 	rm -rf ${CONVERSIONDIR}/${CVSMODULE}-git
 	rm "/home/${USER}/.cvsps/#home#${USER}#conversion#cvsroot#pfSense"
 fi
+
 sync_from_cvs
 purge_repo
 cvs_to_git
