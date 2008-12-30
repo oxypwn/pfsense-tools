@@ -1,0 +1,18 @@
+#!/bin/sh
+
+. lib.inc
+
+# Overrides 
+CVSMODULE=pfSense
+GITDST=git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
+
+
+# Clean up before full conversion occurs
+if [ -d "${CONVERSIONDIR}/${CVSMODULE}-git" ] ; then
+	rm -rf ${CONVERSIONDIR}/${CVSMODULE}-git
+	rm "/home/${USER}/.cvsps/#home#${USER}#conversion#cvsroot#pfSense"
+fi
+sync_from_cvs
+purge_repo
+cvs_to_git
+init_pfSense_gitorious
