@@ -305,10 +305,10 @@ Index: netipsec/keysock.h
  
  #ifdef _KERNEL
  struct keycb {
-Index: sys/socketvar.h
+Index: sys/sockbuf.h
 ===================================================================
---- sys/socketvar.h.orig	2008-01-31 14:10:29.000000000 +0200
-+++ sys/socketvar.h	2008-01-31 14:11:05.000000000 +0200
+--- sys/sockbuf.h.orig	2008-01-31 14:10:29.000000000 +0200
++++ sys/sockbuf.h	2008-01-31 14:11:05.000000000 +0200
 @@ -461,6 +461,10 @@
  	    struct mbuf *m0, struct mbuf *control);
  int	sbappendaddr_locked(struct sockbuf *sb, const struct sockaddr *asa,
