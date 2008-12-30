@@ -41,6 +41,7 @@ usr/local/sbin/racoonctl
 usr/local/sbin/relayctl
 usr/local/sbin/relayd
 usr/local/sbin/ipfw-classifyd
+usr/local/sbin/igmpproxy
 usr/local/sbin/sshlockout_pf
 usr/local/lib/libevent-1.3e.so.1
 usr/local/lib/lighttpd/mod_access.so
