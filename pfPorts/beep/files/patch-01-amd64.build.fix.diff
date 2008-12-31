@@ -1,0 +1,11 @@
+--- beep.c.org	2008-12-31 12:48:23.000000000 +0100
++++ beep.c	2008-12-31 12:47:52.000000000 +0100
+@@ -39,7 +39,7 @@
+ #include <sys/ioctl.h>
+ #include <sys/types.h>
+ 
+-#include <machine/speaker.h>
++#include <dev/speaker/speaker.h>
+ 
+ #include <err.h>
+ #include <errno.h>
