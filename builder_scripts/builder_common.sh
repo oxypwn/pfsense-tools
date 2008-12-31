@@ -252,7 +252,7 @@ recompile_pfPorts() {
 		# Since we are using NAT-T we need to run this prior
 		# to the build.  Once NAT-T is included in FreeBSD
 		# we can remove this step. 
-		( cd /usr/src && make includes )
+		( cd /usr/src && make includes || print_error_pfS; ) | grep '^>>>'
 		
 		pfSPORTS_COPY_BASE_DIR="/home/pfsense/tools/pfPorts"
 		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
