@@ -78,6 +78,8 @@ build_embedded_kernel() {
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
+	unset KERNCONFDIR
+	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
@@ -152,6 +154,8 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
+	unset KERNCONFDIR
+	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	freesbie_make buildkernel
@@ -163,6 +167,8 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
+	unset KERNCONFDIR
+	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
@@ -174,6 +180,8 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
+	unset KERNCONFDIR
+	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	freesbie_make buildkernel
@@ -186,6 +194,8 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
+	unset KERNCONFDIR
+	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	freesbie_make buildkernel
