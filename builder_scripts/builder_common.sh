@@ -81,6 +81,7 @@ build_embedded_kernel() {
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
+	echo ">>>> Installing embedded kernel..."
 	freesbie_make installkernel
 
 	echo -n ">>>> Installing kernels to LiveCD area..."
@@ -155,6 +156,7 @@ build_all_kernels() {
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	freesbie_make buildkernel
+	echo ">>>> installing uniprocessor kernel..."
 	freesbie_make installkernel
 
 	# Build embedded kernel
@@ -166,6 +168,7 @@ build_all_kernels() {
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
+	echo ">>>> installing wrap kernel..."
 	freesbie_make installkernel
 
 	# Build Developers kernel
@@ -177,6 +180,7 @@ build_all_kernels() {
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	freesbie_make buildkernel
+	echo ">>>> installing Developers kernel..."
 	freesbie_make installkernel
 	
 	# Build SMP kernel
@@ -189,6 +193,7 @@ build_all_kernels() {
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	freesbie_make buildkernel
+	echo ">>>> installing SMP kernel..."
 	freesbie_make installkernel
 
 	# Create area where kernels will be copied on LiveCD
