@@ -19,7 +19,7 @@ KERNELOUTPUTDIR="/usr/local/www/data/kernels/"
 PATHTOTESTKERNEL="/root/pfSense_wrap.6"
 CVSUPHOST="cvsup.livebsd.com"
 
-cp $PATHTOTESTKERNEL /usr/src/sys/i386/conf/
+cp $PATHTOTESTKERNEL /usr/src/sys/${TARGET_ARCH}/conf/
 
 for LINE in `cat /root/patches.$FBSDBRANCH` 
 do
