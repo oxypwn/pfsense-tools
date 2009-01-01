@@ -38,14 +38,14 @@ check_for_clog() {
 fixup_kernel_options() {
 	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
 		echo ">>>> Removing unneeded kernel configuration option from 1.2"
-		cat /usr/src/sys/i386/conf/pfSense_SMP.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp
-		cat /usr/src/sys/i386/conf/pfSense.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert//  > /usr/src/sys/i386/conf/pfSense.${FREEBSD_VERSION}.tmp
-		cat /usr/src/sys/i386/conf/pfSense_wrap.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp
-		cat /usr/src/sys/i386/conf/pfSense_Dev.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/i386/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp
-		cp /usr/src/sys/i386/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp /usr/src/sys/i386/conf/pfSense_SMP.${FREEBSD_VERSION}
-		cp /usr/src/sys/i386/conf/pfSense.${FREEBSD_VERSION}.tmp /usr/src/sys/i386/conf/pfSense.${FREEBSD_VERSION}
-		cp /usr/src/sys/i386/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp /usr/src/sys/i386/conf/pfSense_wrap.${FREEBSD_VERSION}
-		cp /usr/src/sys/i386/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp /usr/src/sys/i386/conf/pfSense_Dev.${FREEBSD_VERSION}
+		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp
+		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert//  > /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}.tmp
+		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp
+		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp
+		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}
+		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}
+		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}
+		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}
 	fi
 }
 
@@ -66,8 +66,8 @@ build_embedded_kernel() {
 	cp /boot/loader.conf /tmp/kernels/wrap/boot/loader.conf:
 	cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/loader.conf
 	
-	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
+	# Copy pfSense kernel configuration files over to /usr/src/sys/${TARGET_ARCH}/conf
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/${TARGET_ARCH}/conf/
 
 	# Remove unneeded kernel options from 1.2
 	fixup_kernel_options
@@ -78,8 +78,6 @@ build_embedded_kernel() {
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
-	unset KERNCONFDIR
-	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
@@ -130,20 +128,20 @@ build_all_kernels() {
 	cp /boot/defaults/loader.conf /tmp/kernels/SMP/boot/defaults/
 	cp /boot/defaults/loader.conf /tmp/kernels/developers/boot/defaults/
 
-	# Copy pfSense kernel configuration files over to /usr/src/sys/i386/conf
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/i386/conf/
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/i386/conf/pfSense_SMP.6
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 /usr/src/sys/i386/conf/pfSense_SMP.7
-	echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+	# Copy pfSense kernel configuration files over to /usr/src/sys/${TARGET_ARCH}/conf
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* /usr/src/sys/${TARGET_ARCH}/conf/
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	echo "" >> /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "" >> /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 
 	# Add SMP and APIC options
-	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "options 		SMP"   >> /usr/src/sys/i386/conf/pfSense_SMP.7
-	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "device 		apic" >> /usr/src/sys/i386/conf/pfSense_SMP.7
-	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.6
-	echo "options		ALTQ_NOPCC" >> /usr/src/sys/i386/conf/pfSense_SMP.7
+	echo "options 		SMP"   >> /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "options 		SMP"   >> /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	echo "device 		apic" >> /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "device 		apic" >> /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	echo "options		ALTQ_NOPCC" >> /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "options		ALTQ_NOPCC" >> /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 
 	# Remove unneeded kernel options from 1.2
 	fixup_kernel_options
@@ -154,8 +152,6 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
-	unset KERNCONFDIR
-	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	freesbie_make buildkernel
@@ -167,8 +163,6 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
-	unset KERNCONFDIR
-	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
@@ -180,8 +174,6 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	unset KERNCONFDIR
-	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	freesbie_make buildkernel
@@ -194,8 +186,6 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
-	unset KERNCONFDIR
-	export KERNCONFDIR="$BASE_DIR/tools/builder_scripts/conf"
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	freesbie_make buildkernel
