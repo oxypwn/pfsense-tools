@@ -943,7 +943,7 @@ update_cvs_depot() {
 		echo "Updating ${BASE_DIR}/pfSense..."
 		rm -rf $BASE_DIR/pfSense
 		if [ -n "$PFSENSECVSDATETIME" ]; then
-			_cvsdate="-D $PFSENSECVSDATETIME""
+			_cvsdate="-D $PFSENSECVSDATETIME"
 		fi
 		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} $_cvsdate pfSense) \
 		| egrep -wi "(^\?|^M|^C|error|warning)"
