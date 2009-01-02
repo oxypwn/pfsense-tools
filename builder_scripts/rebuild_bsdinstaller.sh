@@ -16,9 +16,9 @@ if [ -f /etc/make.conf ]; then
 	MKCNF="pfPorts"
 fi
 
-./create_installer_tarballs.sh | egrep -B3  -wi '(warning|error)'
-./copy_ports_to_portsdir.sh | egrep -B3  -wi '(warning|error)'
-./build_installer_packages.sh | egrep -B3  -wi '(warning|error)'
+./create_installer_tarballs.sh | egrep -B3  -wi "(warning|error)"
+./copy_ports_to_portsdir.sh | egrep -B3  -wi "(warning|error)"
+./build_installer_packages.sh | egrep -B3  -wi "(warning|error)"
 
 if [ -f /usr/home/pfsense/tools/builder_scripts/conf/packages.tbz ]; then
 	echo "Moving BSDInstaller package into place..."
