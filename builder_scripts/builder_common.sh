@@ -946,9 +946,9 @@ update_cvs_depot() {
 			_cvsdate="-D $PFSENSECVSDATETIME""
 		fi
 		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} $_cvsdate pfSense) \
-		| egrep -wi '(^\?|^M|^C|error|warning)'
+		| egrep -wi "(^\?|^M|^C|error|warning)"
 		(cd ${BASE_DIR}/tools/ && cvs update -d) \
-		| egrep -wi '(^\?|^M|^C|error|warning)'
+		| egrep -wi "(^\?|^M|^C|error|warning)"
 	else
 	    # Always build the latest from our repo.
 	    echo "Remove pfSense directory from ${BASE_DIR}"
