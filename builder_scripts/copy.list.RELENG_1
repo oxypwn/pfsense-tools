@@ -1,5 +1,4 @@
 usr/lib/libstdc++.so.6
-usr/local/sbin/gzsig
 usr/bin/patch
 usr/bin/diff
 usr/bin/host
@@ -29,6 +28,7 @@ usr/local/sbin/dhcrelay
 usr/local/sbin/dnsmasq
 usr/local/sbin/dnswatch
 usr/local/sbin/ftp-proxy
+usr/local/sbin/gzsig
 usr/local/sbin/lighttpd
 usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
