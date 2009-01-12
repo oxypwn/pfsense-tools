@@ -24,6 +24,10 @@ update_pfSense_gitorious() {
 }
 
 init_pfSense_gitorious() {
+        cd /usr/local/www/gitorious
+        RAILS_ENV="production" rake pfsense:recreate_project
+	RAILS_ENV="production" rake pfsense:add_committers
+
 	cd ${CONVERSIONDIR}/pfSense-git
 	# Swap branches around
 	git branch -m master deprecated/oldHEAD
