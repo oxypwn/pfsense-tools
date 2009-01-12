@@ -47,14 +47,23 @@ init_pfSense_gitorious() {
 	git tag -d RELENG_1_2_1_RC2
 	git tag -d RELENG_1_2_BETA_2
 	git tag -d RELENG_1_2_RC1
+	# RELENG_1_2_2 got tagged by mistake, should have been RELENG_1_2_2_RELEASE
+	git tag -d RELENG_1_2_2
 	#
 	# Any other config changes needed before pushing?
 	# What about that utf thingy?
 	# You may want to amend it after fixing the message, or set the config
 	# variable i18n.commitencoding to the encoding your project uses.
+	# 
+	# Garbage collect out all the crap we're purging before we push the repo
+	git gc --aggressive 
+	#
+	# And perform a repo check
+	git fsck --unreachable HEAD \
+		$(git for-each-ref --format="%(objectname)" refs/heads)
 	#
 	# Add remote repo for pushing to
-	git remote add origin ${GITDST}
+	git remote add -f -t master -t RELENG_1_2 -m master origin ${GITDST}
 	# to push the master branch to the origin remote we added above:
 	git push --all origin
 	git push --tags origin
