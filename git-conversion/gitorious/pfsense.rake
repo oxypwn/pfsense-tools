@@ -42,7 +42,7 @@ namespace :pfsense do
   desc "Re-create project"
   task :recreate_project => :environment do
     project = Project.find_by_slug 'pfsense-import-test-minus-binaries'
-    project.destroy
+    project.destroy if !project.nil?
     Rake::Task[ "pfsense:create_project" ].execute
   end
 end
