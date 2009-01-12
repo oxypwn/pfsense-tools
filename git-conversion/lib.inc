@@ -55,6 +55,9 @@ init_pfSense_gitorious() {
 	# You may want to amend it after fixing the message, or set the config
 	# variable i18n.commitencoding to the encoding your project uses.
 	# 
+	# Repack repo and purge unreferenced stuff removed when we deleted branches
+	git repack -Ad
+	git prune
 	# Garbage collect out all the crap we're purging before we push the repo
 	git gc --aggressive 
 	#
@@ -63,8 +66,10 @@ init_pfSense_gitorious() {
 		$(git for-each-ref --format="%(objectname)" refs/heads)
 	#
 	# Add remote repo for pushing to
-	git remote add -f -t master -t RELENG_1_2 -m master origin ${GITDST}
+	#git remote add -f -t master -t RELENG_1_2 -m master origin ${GITDST}
 	# to push the master branch to the origin remote we added above:
-	git push --all origin
-	git push --tags origin
+	#git push --all origin
+	#git push --tags origin
+	git push --all git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
+	git push --tags git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
 }
