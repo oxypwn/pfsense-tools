@@ -39,7 +39,6 @@ init_pfSense_gitorious() {
 	# Swap branches around
 	git branch -M master oldHEAD
 	git branch -M RELENG_1 master
-	git checkout master
 	git branch -D oldHEAD
 	# Remove stale tags
 	git tag -d arelease
