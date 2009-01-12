@@ -15,7 +15,7 @@ purge_repo() {
 }
 
 cvs_to_git() {
-	git cvsimport -k -i -d ${CONVERSIONDIR}/cvsroot -C ${CVSMODULE}-git -A ${CONVERSIONDIR}/author-conf-file ${CVSMODULE}
+	git cvsimport -k -i -a -d ${CONVERSIONDIR}/cvsroot -C ${CVSMODULE}-git -A ${CONVERSIONDIR}/author-conf-file ${CVSMODULE}
 }
 
 update_pfSense_gitorious() {
