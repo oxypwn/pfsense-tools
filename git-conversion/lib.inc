@@ -37,8 +37,9 @@ init_pfSense_gitorious() {
 	git branch -D avendor
 	git branch -D Package-Reorg-2005
 	# Swap branches around
-	git branch -D master
+	git branch -M master oldHEAD
 	git branch -M RELENG_1 master
+	git branch -D oldHEAD
 	#
 	# Any other config changes needed before pushing?
 	# What about that utf thingy?
