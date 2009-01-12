@@ -6,7 +6,6 @@
 CVSMODULE=pfSense
 GITDST=git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
 
-
 # Make sure the conversion directory exists
 if [ ! -d "${CONVERSIONDIR}" ] ; then
 	mkdir ${CONVERSIONDIR}

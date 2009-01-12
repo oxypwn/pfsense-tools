@@ -42,11 +42,11 @@ init_pfSense_gitorious() {
 	git checkout master
 	git branch -D oldHEAD
 	# Remove stale tags
-	git tag -t arelease
-	git tag -t PFSENSE_0_80
-	git tag -t RELENG_1_2_1_RC2
-	git tag -t RELENG_1_2_BETA_2
-	git tag -t RELENG_1_2_RC1
+	git tag -d arelease
+	git tag -d PFSENSE_0_80
+	git tag -d RELENG_1_2_1_RC2
+	git tag -d RELENG_1_2_BETA_2
+	git tag -d RELENG_1_2_RC1
 	#
 	# Any other config changes needed before pushing?
 	# What about that utf thingy?
