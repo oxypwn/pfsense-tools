@@ -29,13 +29,16 @@ init_pfSense_gitorious() {
 	RAILS_ENV="production" rake pfsense:add_committers
 
 	cd ${CONVERSIONDIR}/pfSense-git
-	# Swap branches around
-	git branch -m master deprecated/oldHEAD
-	git branch -M RELENG_1 master
 	# This shouldn't be pushed, we'll just delete it
 	# It's Ermal's old dev branch
 	git branch -D RELENG_1_2_RELEASE_BRANCH
 	# There are a few deletable branches that we should rm here
+	git branch -D RELENG_1_MULTI_ANYTHING
+	git branch -D avendor
+	git branch -D Package-Reorg-2005
+	# Swap branches around
+	git branch -D master
+	git branch -M RELENG_1 master
 	#
 	# Any other config changes needed before pushing?
 	# What about that utf thingy?
@@ -45,5 +48,5 @@ init_pfSense_gitorious() {
 	# Add remote repo for pushing to
 	git remote add origin ${GITDST}
 	# to push the master branch to the origin remote we added above:
-	git push --mirror origin
+	git push --all origin
 }
