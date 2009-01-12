@@ -17,7 +17,7 @@ namespace :pfsense do
   task :add_committers, :projslug, :needs => :environment do |task, args|
     projslug = 'pfsense-import-test-minus-binaries'
     args.with_defaults(:projslug => projslug)
-    %w(mfuchs smos sdale aturetta ermal cmb sullrich simoncpu).each do |username|
+    %w(mfuchs smos sdale aturetta ermal cmb sullrich simoncpu helder).each do |username|
       Rake::Task[ "pfsense:add_committer" ].execute( :projslug => args[:projslug], :committer => username )
     end
   end
