@@ -48,5 +48,5 @@ init_pfSense_gitorious() {
 	# Add remote repo for pushing to
 	git remote add origin ${GITDST}
 	# to push the master branch to the origin remote we added above:
-	git push --all origin
+	git push --all --tags origin
 }
