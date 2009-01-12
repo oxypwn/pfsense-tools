@@ -12,6 +12,9 @@ if [ ! -d "${CONVERSIONDIR}" ] ; then
 	mkdir ${CONVERSIONDIR}
 fi
 
+# Make sure the psense gitorious tasks are up to date
+cp gitorious/pfsense.rake /usr/local/www/gitorious/lib/tasks
+
 # Copy in the authors config file
 cp author-conf-file ${CONVERSIONDIR}
 cd ${CONVERSIONDIR}
