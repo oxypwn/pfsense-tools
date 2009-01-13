@@ -2,6 +2,7 @@ usr/lib/libstdc++.so.6
 usr/local/sbin/gzsig
 usr/bin/patch
 usr/bin/diff
+usr/bin/host
 usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
@@ -23,6 +24,7 @@ usr/local/sbin/dhcpd
 usr/local/sbin/check_reload_status
 usr/local/sbin/dhcrelay
 usr/local/sbin/dnsmasq
+usr/local/sbin/dnswatch
 usr/local/sbin/fping
 usr/local/sbin/ftpsesame
 usr/local/sbin/lighttpd
