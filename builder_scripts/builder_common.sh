@@ -321,9 +321,9 @@ cust_overlay_host_binaries() {
 		echo "Looking for /${TEMPFILE} "
 		if [ -f /${TEMPFILE} ]; then
 			echo " Found $TEMPFILE"
-			FILETYPE=`file /$TEMPFILE | grep dynamically | wc -l | awk '{ print $1 }'`
+			FILETYPE=`file /$TEMPFILE | egrep "(dynamically|shared)" | wc -l | awk '{ print $1 }'`
 			if [ "$FILETYPE" -gt 0 ]; then
-				NEEDEDLIBS="$NEEDEDLIBS `ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"									
+				NEEDEDLIBS="$NEEDEDLIBS `ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"
 				echo "cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE"
 				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
 				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
