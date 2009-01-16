@@ -2,7 +2,12 @@ CONVERSIONDIR=/home/${USER}/conversion
 CVSMODULE=pfSense
 CVSSRC=cvs.pfsense.org:/cvsroot/
 CVSDST=${CONVERSIONDIR}/cvsroot/
-GITDST=git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
+PROJECT=pfsense-import-test-minus-binaries
+PROJNAME="pfSense import test minus binaries"
+HEADPROJECT=pfsense-deprecated-HEAD
+HEADPROJNAME="pfSense deprecated HEAD"
+GITDST=git@rcs.pfsense.org:${PROJECT}/mainline.git
+GITHEADDST=git@rcs.pfsense.org:${HEADPROJECT}/mainline.git
 
 # sync over the repo
 sync_from_cvs() {
@@ -25,8 +30,9 @@ update_pfSense_gitorious() {
 
 init_pfSense_gitorious() {
         cd /usr/local/www/gitorious
-        RAILS_ENV="production" rake pfsense:recreate_project
-	RAILS_ENV="production" rake pfsense:add_committers
+        RAILS_ENV="production" rake pfsense:recreate_project projname="${PROJNAME}" projslug=${PROJECT}
+        RAILS_ENV="production" rake pfsense:recreate_project projname="${HEADPROJNAME}" projslug=${HEAD-PROJECT}
+	RAILS_ENV="production" rake pfsense:add_committers projslug=${PROJECT}
 
 	cd ${CONVERSIONDIR}/pfSense-git
 	# This shouldn't be pushed, we'll just delete it
@@ -37,6 +43,8 @@ init_pfSense_gitorious() {
 	git branch -D avendor
 	git branch -D Package-Reorg-2005
 	# Swap branches around
+	# Preserve HEAD
+	git push ${GITHEADDST} master
 	git branch -M master oldHEAD
 	git branch -M RELENG_1 master
 	# Remove stale tags
@@ -62,8 +70,8 @@ init_pfSense_gitorious() {
 		$(git for-each-ref --format="%(objectname)" refs/heads)
 	#
 	# Push the two branches we care about
-	git push git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git master
-	git push git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git RELENG_1_2
+	git push ${GITDST} master
+	git push ${GITDST} RELENG_1_2
 	# Push our tags
-	git push --tags git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
+	git push --tags${GITDST}
 }

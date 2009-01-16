@@ -15,18 +15,16 @@ namespace :pfsense do
 
   desc "Add all committers"
   task :add_committers, :projslug, :needs => :environment do |task, args|
-    projslug = 'pfsense-import-test-minus-binaries'
-    args.with_defaults(:projslug => projslug)
     %w(mfuchs smos sdale aturetta ermal cmb sullrich simoncpu helder).each do |username|
       Rake::Task[ "pfsense:add_committer" ].execute( :projslug => args[:projslug], :committer => username )
     end
   end
 
   desc "Create project"
-  task :create_project => :environment do
+  task :create_project, :projslug, :projname, :needs => :environment do
     project = {
-                :title => 'pfSense import test minus binaries',
-                :slug => 'pfsense-import-test-minus-binaries',
+                :title => args[:projname],
+                :slug => args[:projslug],
                 :license => 'BSD License',
                 :home_url => 'http://www.pfsense.org/',
                 :description => 'Test import, please do not fork. Thanks'
@@ -40,10 +38,10 @@ namespace :pfsense do
   end
 
   desc "Re-create project"
-  task :recreate_project => :environment do
-    project = Project.find_by_slug 'pfsense-import-test-minus-binaries'
+  task :recreate_project, :projname, :projslug, :needs => :environment do
+    project = Project.find_by_slug projslug
     project.destroy if !project.nil?
-    Rake::Task[ "pfsense:create_project" ].execute
+    Rake::Task[ "pfsense:create_project" ].execute( :projslug => args[:projslug], :projname => args[:projname] )
   end
 end
 
