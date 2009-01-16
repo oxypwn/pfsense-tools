@@ -39,15 +39,12 @@ init_pfSense_gitorious() {
 	# Swap branches around
 	git branch -M master oldHEAD
 	git branch -M RELENG_1 master
-	git branch -D oldHEAD
 	# Remove stale tags
 	git tag -d arelease
 	git tag -d PFSENSE_0_80
 	git tag -d RELENG_1_2_1_RC2
 	git tag -d RELENG_1_2_BETA_2
 	git tag -d RELENG_1_2_RC1
-	# RELENG_1_2_2 got tagged by mistake, should have been RELENG_1_2_2_RELEASE
-	git tag -d RELENG_1_2_2
 	#
 	# Any other config changes needed before pushing?
 	# What about that utf thingy?
@@ -64,11 +61,9 @@ init_pfSense_gitorious() {
 	git fsck --unreachable HEAD \
 		$(git for-each-ref --format="%(objectname)" refs/heads)
 	#
-	# Add remote repo for pushing to
-	#git remote add -f -t master -t RELENG_1_2 -m master origin ${GITDST}
-	# to push the master branch to the origin remote we added above:
-	#git push --all origin
-	#git push --tags origin
-	git push --all git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
+	# Push the two branches we care about
+	git push git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git master
+	git push git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git RELENG_1_2
+	# Push our tags
 	git push --tags git@rcs.pfsense.org:pfsense-import-test-minus-binaries/mainline.git
 }
