@@ -2,12 +2,12 @@ CONVERSIONDIR=/home/${USER}/conversion
 CVSMODULE=pfSense
 CVSSRC=cvs.pfsense.org:/cvsroot/
 CVSDST=${CONVERSIONDIR}/cvsroot/
-PROJECT=pfsense-import-test-minus-binaries
+PROJSLUG=pfsense-import-test-minus-binaries
 PROJNAME="pfSense import test minus binaries"
-HEADPROJECT=pfsense-deprecated-HEAD
+HEADPROJSLUG=pfsense-deprecated-HEAD
 HEADPROJNAME="pfSense deprecated HEAD"
-GITDST=git@rcs.pfsense.org:${PROJECT}/mainline.git
-GITHEADDST=git@rcs.pfsense.org:${HEADPROJECT}/mainline.git
+GITDST=git@rcs.pfsense.org:${PROJSLUG}/mainline.git
+GITHEADDST=git@rcs.pfsense.org:${HEADPROJSLUG}/mainline.git
 
 # sync over the repo
 sync_from_cvs() {
@@ -30,8 +30,8 @@ update_pfSense_gitorious() {
 
 init_pfSense_gitorious() {
         cd /usr/local/www/gitorious
-        RAILS_ENV="production" rake pfsense:recreate_project projname="${PROJNAME}" projslug=${PROJECT}
-        RAILS_ENV="production" rake pfsense:recreate_project projname="${HEADPROJNAME}" projslug=${HEAD-PROJECT}
+        RAILS_ENV="production" rake pfsense:recreate_project projname="${PROJNAME}" projslug=${PROJSLUG}
+        RAILS_ENV="production" rake pfsense:recreate_project projname="${HEADPROJNAME}" projslug=${HEADPROJSLIG}
 	RAILS_ENV="production" rake pfsense:add_committers projslug=${PROJECT}
 
 	cd ${CONVERSIONDIR}/pfSense-git
@@ -42,9 +42,9 @@ init_pfSense_gitorious() {
 	git branch -D RELENG_1_MULTI_ANYTHING
 	git branch -D avendor
 	git branch -D Package-Reorg-2005
-	# Swap branches around
 	# Preserve HEAD
 	git push ${GITHEADDST} master
+	# Swap branches around
 	git branch -M master oldHEAD
 	git branch -M RELENG_1 master
 	# Remove stale tags
@@ -73,5 +73,5 @@ init_pfSense_gitorious() {
 	git push ${GITDST} master
 	git push ${GITDST} RELENG_1_2
 	# Push our tags
-	git push --tags${GITDST}
+	git push --tags ${GITDST}
 }
