@@ -31,7 +31,7 @@ update_pfSense_gitorious() {
 init_pfSense_gitorious() {
         cd /usr/local/www/gitorious
         RAILS_ENV="production" rake pfsense:recreate_project projname="${PROJNAME}" projslug=${PROJSLUG}
-        RAILS_ENV="production" rake pfsense:recreate_project projname="${HEADPROJNAME}" projslug=${HEADPROJSLIG}
+        RAILS_ENV="production" rake pfsense:recreate_project projname="${HEADPROJNAME}" projslug=${HEADPROJSLUG}
 	RAILS_ENV="production" rake pfsense:add_committers projslug=${PROJECT}
 
 	cd ${CONVERSIONDIR}/pfSense-git
