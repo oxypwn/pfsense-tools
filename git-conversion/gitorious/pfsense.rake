@@ -21,16 +21,19 @@ namespace :pfsense do
   end
 
   desc "Create project"
-  task :create_project, :projslug, :projname, :needs => :environment do
+  task :create_project, :projslug, :projname, :needs => :environment do |task, args|
+    puts "Creating project: #{args[:projslug]}"
+    title = args[:projname]
+    slug = String.new(args[:projslug])
     project = {
-                :title => args[:projname],
-                :slug => args[:projslug],
+                :title => title,
+                :slug => slug,
                 :license => 'BSD License',
                 :home_url => 'http://www.pfsense.org/',
                 :description => 'Test import, please do not fork. Thanks'
               }
     p = Project.new(project)
-    u = User.find_by_login 'billm'
+    u = User.find_by_login('billm')
     p.user = u
     if p.save
       p.create_event(Action::CREATE_PROJECT, p, u)
@@ -38,8 +41,9 @@ namespace :pfsense do
   end
 
   desc "Re-create project"
-  task :recreate_project, :projname, :projslug, :needs => :environment do
-    project = Project.find_by_slug projslug
+  task :recreate_project, :projname, :projslug, :needs => :environment do |task, args|
+    puts "Recreating project: #{args[:projslug]}"
+    project = Project.find_by_slug args[:projslug]
     project.destroy if !project.nil?
     Rake::Task[ "pfsense:create_project" ].execute( :projslug => args[:projslug], :projname => args[:projname] )
   end
