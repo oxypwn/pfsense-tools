@@ -34,6 +34,10 @@ init_pfSense_gitorious() {
         RAILS_ENV="production" rake pfsense:recreate_project projname="${HEADPROJNAME}" projslug=${HEADPROJSLUG}
 	RAILS_ENV="production" rake pfsense:add_committers projslug=${PROJECT}
 
+	if [ -d ${CONVERSIONDIR}/pfSense-git.bak ] ; then
+		rm -rf ${CONVERSIONDIR}/pfSense-git.bak
+	fi
+	cp -rp ${CONVERSIONDIR}/pfSense-git ${CONVERSIONDIR}/pfSense-git.bak
 	cd ${CONVERSIONDIR}/pfSense-git
 	# This shouldn't be pushed, we'll just delete it
 	# It's Ermal's old dev branch
