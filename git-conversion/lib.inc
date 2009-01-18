@@ -2,8 +2,8 @@ CONVERSIONDIR=/home/${USER}/conversion
 CVSMODULE=pfSense
 CVSSRC=cvs.pfsense.org:/cvsroot/
 CVSDST=${CONVERSIONDIR}/cvsroot/
-PROJSLUG=pfsense-import-test-minus-binaries
-PROJNAME="pfSense import test minus binaries"
+PROJSLUG=pfsense
+PROJNAME="pfSense"
 HEADPROJSLUG=pfsense-deprecated-head
 HEADPROJNAME="pfSense deprecated HEAD"
 GITDST=git@rcs.pfsense.org:${PROJSLUG}/mainline.git
@@ -32,7 +32,8 @@ init_pfSense_gitorious() {
         cd /usr/local/www/gitorious
         RAILS_ENV="production" rake pfsense:recreate_project projname="${PROJNAME}" projslug=${PROJSLUG}
         RAILS_ENV="production" rake pfsense:recreate_project projname="${HEADPROJNAME}" projslug=${HEADPROJSLUG}
-	RAILS_ENV="production" rake pfsense:add_committers projslug=${PROJECT}
+	RAILS_ENV="production" rake pfsense:add_committers projslug=${PROJSLUG}
+	sleep 60
 
 	if [ -d ${CONVERSIONDIR}/pfSense-git.bak ] ; then
 		rm -rf ${CONVERSIONDIR}/pfSense-git.bak
@@ -64,10 +65,10 @@ init_pfSense_gitorious() {
 	# variable i18n.commitencoding to the encoding your project uses.
 	# 
 	# Repack repo and purge unreferenced stuff removed when we deleted branches
-	git repack -Ad
-	git prune
+	#git repack -Ad
+	#git prune
 	# Garbage collect out all the crap we're purging before we push the repo
-	git gc --aggressive 
+	#git gc --aggressive 
 	#
 	# And perform a repo check
 	git fsck --unreachable HEAD \
