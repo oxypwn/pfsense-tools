@@ -1,3 +1,5 @@
+lib/libgeom.so.4
+sbin/gmirror
 usr/lib/libstdc++.so.6
 usr/local/sbin/gzsig
 usr/bin/patch
