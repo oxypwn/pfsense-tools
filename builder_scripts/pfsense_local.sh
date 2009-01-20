@@ -159,8 +159,8 @@ export TARGET_ARCH="i386"
 # GIT pfSense, BSDInstaller & FreeSBIE settings
 export USE_GIT=${USE_GIT:-"yo"}
 export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense/mainline.git pfSense"}
-export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
-export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
+#export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
+#export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
