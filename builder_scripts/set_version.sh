@@ -72,7 +72,7 @@ RELENG_1)
 	export FREEBSD_BRANCH="RELENG_7_1"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7_1-supfile"
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
-	export PFSENSETAG=RELENG_1
+	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
 	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_2"
@@ -100,7 +100,7 @@ RELENG_2_0)
 	export FREEBSD_BRANCH="RELENG_7_1"
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_7_1-supfile"
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
-	export PFSENSETAG=RELENG_1
+	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
 	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_2"	
