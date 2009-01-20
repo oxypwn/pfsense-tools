@@ -193,7 +193,7 @@ if [ ! -f "/usr/local/bin/git" ]; then
 fi
 
 # Add BSDInstaller
-if [ -z "${USE_GIT:-}" ]; then
+if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 	echo "Fetching BSDInstaller using CVSUP..."
 	cvsup ${CURRENTDIR}/bsdinstaller-supfile
 	./cvsup_bsdinstaller
@@ -218,7 +218,7 @@ fi
 echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} ${PFSENSETAG} ${SUPFILE}"
 cvsup -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
-if [ -z "${USE_GIT:-}" ]; then
+if [ -z "${GIT_REPO_FREESBIE2:-}" ]; then
 	cvsup freesbie2-supfile
 	# Update FreeSBIE2 files from CVS
 	echo "Updating FreeSBIE2"
