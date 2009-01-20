@@ -869,6 +869,10 @@ checkout_pfSense() {
 		else 
 			(cd $BASE_DIR && git checkout)		
 		fi
+		if [ $? != 0 ]; then
+			echo "Something went wrong while checking out GIT."
+			exit
+		fi
 		fixup_libmap
 	fi
 	cd $PREVIOUSDIR
@@ -956,6 +960,10 @@ update_cvs_depot() {
 	    (cd ${BASE_DIR} && rm -rf ${PFSENSE_DIR})
 	    echo "Cloning ${GIT_REPO} using GIT and switching to ${GIT_BRANCH}"
 	    (cd ${BASE_DIR} && git clone ${GIT_REPO} ${PFSENSE_DIR} && cd ${PFSENSE_DIR} && git checkout ${GIT_BRANCH})
+		if [ $? != 0 ]; then	
+			echo "Something went wrong while checking out GIT."
+			exit
+		fi
 	fi
 }
 
