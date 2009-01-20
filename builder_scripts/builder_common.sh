@@ -854,6 +854,26 @@ clone_system_only()
 	cd $PREVIOUSDIR
 }
 
+checkout_pfSense_git() {
+	echo "Using GIT to checkout ${PFSENSETAG}"
+	# XXX: do we need to revert the co to HEAD if it has been 
+	#      checked out on another branch?
+	if [ "${PFSENSETAG}" != "HEAD" ]; then
+		current_branch=`cd ${BASE_DIR} && cd ${PFSENSE_DIR} && git branch | grep ${PFSENSETAG}`
+		if [ "$current_branch" = "" ]; then
+			(cd ${BASE_DIR} && cd ${PFSENSE_DIR} && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG})
+		else 
+			(cd ${BASE_DIR} && cd ${PFSENSE_DIR} && git checkout ${PFSENSETAG})
+		fi
+	else 
+		(cd ${BASE_DIR} && cd ${PFSENSE_DIR} && git checkout)		
+	fi
+	if [ $? != 0 ]; then
+		echo "Something went wrong while checking out GIT."
+		print_error_pfS
+	fi
+}
+
 checkout_pfSense() {
 	PREVIOUSDIR=`pwd`
 	echo ">>>> Checking out pfSense version ${PFSENSETAG}..."
@@ -861,25 +881,9 @@ checkout_pfSense() {
 	if [ -z "${USE_GIT:-}" ]; then
 		(cd $BASE_DIR && cvs -d ${BASE_DIR}/cvsroot co pfSense -r ${PFSENSETAG})
 	else
-		echo "Using GIT to checkout ${PFSENSETAG}"
-		# XXX: do we need to revert the co to HEAD if it has been 
-		#      checked out on another branch?
-		if [ "${PFSENSETAG}" != "HEAD" ]; then
-			current_branch=`git branch | grep ${PFSENSETAG}`
-			if [ "$current_branch" = "" ]; then
-				(cd $BASE_DIR && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG})
-			else 
-				(cd $BASE_DIR && git checkout ${PFSENSETAG})
-			fi
-		else 
-			(cd $BASE_DIR && git checkout)		
-		fi
-		if [ $? != 0 ]; then
-			echo "Something went wrong while checking out GIT."
-			exit
-		fi
-		fixup_libmap
+		checkout_pfSense_git
 	fi
+	fixup_libmap	
 	cd $PREVIOUSDIR
 }
 
@@ -962,12 +966,17 @@ update_cvs_depot() {
 	else
 	    # Always build the latest from our repo.
 	    echo "Remove pfSense directory from ${BASE_DIR}"
-	    (cd ${BASE_DIR} && rm -rf ${PFSENSE_DIR})
+		#
+	    (cd ${BASE_DIR} && rm -rf ${PFSENSE_DIR})	# XXX: remove this once we are fully working on GIT
+		#
 	    echo "Cloning ${GIT_REPO} using GIT and switching to ${GIT_BRANCH}"
-	    (cd ${BASE_DIR} && git clone ${GIT_REPO} ${PFSENSE_DIR} && cd ${PFSENSE_DIR} && git checkout ${GIT_BRANCH})
+		if [ ! -d "" ]; then
+	    	(cd ${BASE_DIR} && git clone ${GIT_REPO} ${PFSENSE_DIR})
+		fi
+		checkout_pfSense_git
 		if [ $? != 0 ]; then	
 			echo "Something went wrong while checking out GIT."
-			exit
+			print_error_pfS
 		fi
 	fi
 }
