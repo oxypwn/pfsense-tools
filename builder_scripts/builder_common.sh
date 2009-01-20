@@ -866,6 +866,8 @@ checkout_pfSense() {
 		#      checked out on another branch?
 		if [ "${PFSENSETAG}" != "HEAD" ]; then
 			(cd $BASE_DIR && git checkout ${PFSENSETAG})
+		else 
+			(cd $BASE_DIR && git checkout)		
 		fi
 		fixup_libmap
 	fi
