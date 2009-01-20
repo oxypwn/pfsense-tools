@@ -865,7 +865,12 @@ checkout_pfSense() {
 		# XXX: do we need to revert the co to HEAD if it has been 
 		#      checked out on another branch?
 		if [ "${PFSENSETAG}" != "HEAD" ]; then
-			(cd $BASE_DIR && git checkout ${PFSENSETAG})
+			current_branch=`git branch | grep ${PFSENSETAG}`
+			if [ "$current_branch" = "" ]; then
+				(cd $BASE_DIR && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG})
+			else 
+				(cd $BASE_DIR && git checkout ${PFSENSETAG})
+			fi
 		else 
 			(cd $BASE_DIR && git checkout)		
 		fi
