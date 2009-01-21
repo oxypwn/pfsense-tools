@@ -2,7 +2,7 @@
 
 if [ $# -lt 1 ]; then
 	echo 1>&2 Usage  : $0 pfSense branch
-	echo 1>&2 example: $0 RELENG_1
+	echo 1>&2 example: $0 HEAD
 	exit 127
 fi
 
@@ -65,8 +65,8 @@ set_items() {
 echo
 
 case $1 in
-RELENG_1)
-	echo ">>> Setting builder environment to use RELENG_1 ..."
+HEAD)
+	echo ">>> Setting builder environment to use HEAD ..."
 	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7_1"
