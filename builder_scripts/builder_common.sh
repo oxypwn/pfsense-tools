@@ -969,8 +969,9 @@ update_cvs_depot() {
 		#
 	    (cd ${BASE_DIR} && rm -rf ${PFSENSE_DIR})	# XXX: remove this once we are fully working on GIT
 		#
-	    echo "Cloning ${GIT_REPO} using GIT and switching to ${GIT_BRANCH}"
-		if [ ! -d "" ]; then
+	    
+		if [ ! -d "${GIT_REPO}/${PFSENSE_DIR}" ]; then
+			echo "Cloning ${GIT_REPO} using GIT and switching to ${GIT_BRANCH}"
 	    	(cd ${BASE_DIR} && git clone ${GIT_REPO} ${PFSENSE_DIR})
 		fi
 		checkout_pfSense_git
