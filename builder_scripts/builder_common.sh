@@ -1,4 +1,4 @@
-#!/bin/sh
+functions#!/bin/sh
 #
 # Common functions to be used by build scripts
 #
@@ -24,7 +24,6 @@ print_error_pfS() {
     cat $LOGFILE
     sleep 99999
     kill $$ # NOTE: exit 1 won't work.
-
 }
 
 check_for_clog() {
@@ -975,6 +974,9 @@ update_cvs_depot() {
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 			echo ">>> Cloning ${GIT_REPO} using GIT and switching to ${PFSENSETAG}"
 	    	(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO} pfSenseGITREPO)
+			if [ -d "${GIT_REPO_DIR}/mainline" ]; then
+				mv "${GIT_REPO_DIR}/mainline" "${GIT_REPO_DIR}/pfSenseGITREPO"
+			fi
 		fi
 		checkout_pfSense_git
 		if [ $? != 0 ]; then	
