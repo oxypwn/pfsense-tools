@@ -860,17 +860,22 @@ checkout_pfSense_git() {
 	if [ "${PFSENSETAG}" != "HEAD" ]; then
 		current_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && git branch | grep ${PFSENSETAG}`
 		if [ "$current_branch" = "" ]; then
-			(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG})
+			(cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG})
 		else 
-			(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout ${PFSENSETAG})
+			(cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout ${PFSENSETAG})
 		fi
 	else 
-		(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout)		
+		(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master)
 	fi
 	if [ $? != 0 ]; then
 		echo "Something went wrong while checking out GIT."
 		print_error_pfS
 	fi
+	mkdir -p $CVS_CO_DIR
+	(cd ${GIT_REPO_DIR}/pfSenseGITREPO && tar czpf /tmp/pfSense.tgz .)
+	(cd $CVS_CO_DIR && tar xzpf /tmp/pfSense.tgz)
+	rm /tmp/pfSense.tgz
+	rm -rf ${CVS_CO_DIR}/.git	
 }
 
 checkout_pfSense() {
