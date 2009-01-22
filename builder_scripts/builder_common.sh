@@ -859,14 +859,14 @@ checkout_pfSense_git() {
 	# XXX: do we need to revert the co to HEAD if it has been 
 	#      checked out on another branch?
 	if [ "${PFSENSETAG}" != "HEAD" ]; then
-		current_branch=`cd ${BASE_DIR} && cd ${PFSENSE_DIR} && git branch | grep ${PFSENSETAG}`
+		current_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && git branch | grep ${PFSENSETAG}`
 		if [ "$current_branch" = "" ]; then
-			(cd ${BASE_DIR} && cd ${PFSENSE_DIR} && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG})
+			(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG})
 		else 
-			(cd ${BASE_DIR} && cd ${PFSENSE_DIR} && git checkout ${PFSENSETAG})
+			(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout ${PFSENSETAG})
 		fi
 	else 
-		(cd ${BASE_DIR} && cd ${PFSENSE_DIR} && git checkout)		
+		(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout)		
 	fi
 	if [ $? != 0 ]; then
 		echo "Something went wrong while checking out GIT."
@@ -964,15 +964,17 @@ update_cvs_depot() {
 		(cd ${BASE_DIR}/tools/ && cvs update -d) \
 		| egrep -wi "(^\?|^M|^C|error|warning)"
 	else
-	    # Always build the latest from our repo.
-	    echo "Remove pfSense directory from ${BASE_DIR}"
-		#
-	    (cd ${BASE_DIR} && rm -rf ${PFSENSE_DIR})	# XXX: remove this once we are fully working on GIT
-		#
-	    
-		if [ ! -d "${GIT_REPO}/${PFSENSE_DIR}" ]; then
-			echo "Cloning ${GIT_REPO} using GIT and switching to ${GIT_BRANCH}"
-	    	(cd ${BASE_DIR} && git clone ${GIT_REPO} ${PFSENSE_DIR})
+		if [ ! -d "${GIT_REPO_DIR}" ]; then
+			echo ">>> Creating ${GIT_REPO_DIR}"
+			mkdir -p ${GIT_REPO_DIR}
+		fi
+		if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then 
+	    	echo ">>> Removing pfSebseGUTREPO from ${GIT_REPO_DIR}"			
+	    	rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO	# XXX: remove this once we are fully working on GIT
+		fi
+		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
+			echo ">>> Cloning ${GIT_REPO} using GIT and switching to ${PFSENSETAG}"
+	    	(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO} pfSenseGITREPO)
 		fi
 		checkout_pfSense_git
 		if [ $? != 0 ]; then	
