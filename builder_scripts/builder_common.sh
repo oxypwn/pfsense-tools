@@ -1,4 +1,4 @@
-functions#!/bin/sh
+#!/bin/sh
 #
 # Common functions to be used by build scripts
 #
