@@ -24,7 +24,7 @@ touch /mnt/root/.part_mount
 touch /mnt/root/.first_time
 
 # Updating boot loader
-echo autoboot_delay=\"1\" >> /mnt/boot/loader.conf
+echo autoboot_delay=\"3\" >> /mnt/boot/loader.conf
 echo vm.kmem_size=\"435544320\"  >> /mnt/boot/loader.conf
 echo vm.kmem_size_max=\"535544320\"  >> /mnt/boot/loader.conf
 
