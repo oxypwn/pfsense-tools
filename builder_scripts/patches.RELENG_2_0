@@ -34,3 +34,4 @@
 ~sys/boot/forth~beastie.4th~
 ~sys/boot/i386~i386boot.diff~
 ~sys/net80211~ieee80211_power.c.diff~
+~sys/dev/usb~usb_quirks_usbdevs.diff~
