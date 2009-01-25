@@ -88,8 +88,8 @@ RELENG_1_2)
 	export SUPFILE="${BASE_DIR}/tools/builder_scripts/${FREEBSD_BRANCH}-supfile"
 	export PFSENSE_VERSION=1.2.3
 	export PFSENSETAG=RELENG_1_2
-	export PFSPATCHDIR=${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}
-	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.${PFSENSETAG}
+	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
+	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
 	set_items
 ;;
 
