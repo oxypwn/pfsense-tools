@@ -1,6 +1,6 @@
-diff -urb igmpproxy/src_old/Makefile Makefile
---- igmpproxy/src_old/Makefile	2009-01-25 19:23:22.000000000 +0000
-+++ Makefile	2009-01-25 19:23:29.000000000 +0000
+diff -ur ../src_old/Makefile ./Makefile
+--- ../src_old/Makefile	2009-01-26 21:56:06.000000000 +0000
++++ ./Makefile	2009-01-26 21:56:07.000000000 +0000
 @@ -1,12 +1,12 @@
  
  #BINDIR=../bin
@@ -31,9 +31,9 @@ diff -urb igmpproxy/src_old/Makefile Makefile
  
  build.h	:  
  	echo '#define BUILD "' `date +%y%m%d` '"' >build.h
-diff -urb igmpproxy/src_old/config.c config.c
---- igmpproxy/src_old/config.c	2009-01-25 19:23:22.000000000 +0000
-+++ config.c	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/config.c ./config.c
+--- ../src_old/config.c	2009-01-26 21:56:06.000000000 +0000
++++ ./config.c	2009-01-26 21:56:07.000000000 +0000
 @@ -177,7 +177,7 @@
      }
  
@@ -61,9 +61,9 @@ diff -urb igmpproxy/src_old/config.c config.c
          log(LOG_WARNING, 0, "Unable to parse address token '%s'.", addrstr);
          return NULL;
      }
-diff -urb igmpproxy/src_old/defs.h defs.h
---- igmpproxy/src_old/defs.h	2009-01-25 19:23:22.000000000 +0000
-+++ defs.h	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/defs.h ./defs.h
+--- ../src_old/defs.h	2009-01-26 21:56:06.000000000 +0000
++++ ./defs.h	2009-01-26 21:56:31.000000000 +0000
 @@ -40,10 +40,18 @@
  #include <stdlib.h>
  #include <syslog.h>
@@ -111,7 +111,11 @@ diff -urb igmpproxy/src_old/defs.h defs.h
  #define     ENABLE_DEBUG    1
  
  /*
-@@ -72,9 +90,31 @@
+@@ -69,12 +87,35 @@
+ #define MAX_IP_PACKET_LEN	576
+ #define MIN_IP_HEADER_LEN	20
+ #define MAX_IP_HEADER_LEN	60
++#define HAVE_SA_LEN		1
  
  #define MAX_MC_VIFS    32     // !!! check this const in the specific includes
  
@@ -143,7 +147,7 @@ diff -urb igmpproxy/src_old/defs.h defs.h
  #define VCMC( Vc )  (sizeof( Vc ) / sizeof( (Vc)[ 0 ] ))
  #define VCEP( Vc )  (&(Vc)[ VCMC( Vc ) ])
  
-@@ -126,7 +166,12 @@
+@@ -126,7 +167,12 @@
  
  #define	    IF_DEBUG	if(Log2Stderr & LOG_DEBUG)
  
@@ -157,7 +161,7 @@ diff -urb igmpproxy/src_old/defs.h defs.h
  
  /* ifvc.c
   */
-@@ -196,6 +241,7 @@
+@@ -196,6 +242,7 @@
  struct IfDesc *getIfByName( const char *IfName );
  struct IfDesc *getIfByIx( unsigned Ix );
  struct IfDesc *getIfByAddress( uint32 Ix );
@@ -165,7 +169,7 @@ diff -urb igmpproxy/src_old/defs.h defs.h
  
  /* mroute-api.c
   */
-@@ -235,7 +281,7 @@
+@@ -235,7 +282,7 @@
  char   *fmtInAdr( char *St, struct in_addr InAdr );
  char   *inetFmt(uint32 addr, char *s);
  char   *inetFmts(uint32 addr, uint32 mask, char *s);
@@ -174,7 +178,7 @@ diff -urb igmpproxy/src_old/defs.h defs.h
  
  /* kern.c
   */
-@@ -264,7 +310,7 @@
+@@ -264,7 +311,7 @@
  void initRouteTable();
  void clearAllRoutes();
  int insertRoute(uint32 group, int ifx);
@@ -183,9 +187,9 @@ diff -urb igmpproxy/src_old/defs.h defs.h
  void ageActiveRoutes();
  void setRouteLastMemberMode(uint32 group);
  int lastMemberGroupAge(uint32 group);
-diff -urb igmpproxy/src_old/ifvc.c ifvc.c
---- igmpproxy/src_old/ifvc.c	2009-01-25 19:23:22.000000000 +0000
-+++ ifvc.c	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/ifvc.c ./ifvc.c
+--- ../src_old/ifvc.c	2009-01-26 21:56:06.000000000 +0000
++++ ./ifvc.c	2009-01-26 21:56:07.000000000 +0000
 @@ -32,7 +32,11 @@
  */
  
@@ -250,38 +254,39 @@ diff -urb igmpproxy/src_old/ifvc.c ifvc.c
 -
 -            // Set the index to -1 by default.
 -            IfDescEp->index = -1;
--
++           if (IfDescEp >= &IfDescVc[ MAX_IF ]) {
++               log(LOG_WARNING, 0, "Too many interfaces, skipping %d", ifa->ifa_name);
++                continue;
++            }
+ 
 -            /* don't retrieve more info for non-IP interfaces
--             */
++            /* ignore non-IP interfaces
+              */
 -            if ( IfPt->ifr_addr.sa_family != AF_INET ) {
 -                IfDescEp->InAdr.s_addr = 0;  /* mark as non-IP interface */
 -                IfDescEp++;
-+           if (IfDescEp >= &IfDescVc[ MAX_IF ]) {
-+               log(LOG_WARNING, 0, "Too many interfaces, skipping %d", ifa->ifa_name);
++            if ( ifa->ifa_addr->sa_family != AF_INET )
                  continue;
-             }
+-            }
  
 -            // Get the interface adress...
 -            IfDescEp->InAdr = ((struct sockaddr_in *)&IfPt->ifr_addr)->sin_addr;
 -            addr = IfDescEp->InAdr.s_addr;
-+            /* ignore non-IP interfaces
-+             */
-+            if ( ifa->ifa_addr->sa_family != AF_INET )
-+                continue;
- 
+-
 -            memcpy( IfReq.ifr_name, IfDescEp->Name, sizeof( IfReq.ifr_name ) );
-+           if ((ifp = getIfByName(ifa->ifa_name)) == NULL) {
- 
+-
 -            // Get the subnet mask...
 -            if (ioctl(Sock, SIOCGIFNETMASK, &IfReq ) < 0)
 -                log(LOG_ERR, errno, "ioctl SIOCGIFNETMASK for %s", IfReq.ifr_name);
 -            mask = ((struct sockaddr_in *)&IfReq.ifr_addr)->sin_addr.s_addr;
 -            subnet = addr & mask;
-+               strlcpy( IfDescEp->Name, ifa->ifa_name, sizeof( IfDescEp->Name ) );
++           if ((ifp = getIfByName(ifa->ifa_name)) == NULL) {
  
 -            // Get the physical index of the Interface
 -            if (ioctl(Sock, SIOCGIFINDEX, &IfReq ) < 0)
 -                log(LOG_ERR, errno, "ioctl SIOCGIFINDEX for %s", IfReq.ifr_name);
++               strlcpy( IfDescEp->Name, ifa->ifa_name, sizeof( IfDescEp->Name ) );
++
 +               log(LOG_DEBUG, 0, "Adding Physical Index value of IF '%s' is %d",
 +                   IfDescEp->Name, if_nametoindex(IfDescEp->Name));
              
@@ -301,9 +306,9 @@ diff -urb igmpproxy/src_old/ifvc.c ifvc.c
              */
 -            if ( ioctl( Sock, SIOCGIFFLAGS, &IfReq ) < 0 )
 -                log( LOG_ERR, errno, "ioctl SIOCGIFFLAGS" );
- 
--            IfDescEp->Flags = IfReq.ifr_flags;
 -
+-            IfDescEp->Flags = IfReq.ifr_flags;
+ 
 -            // Insert the verified subnet as an allowed net...
 -            IfDescEp->allowednets = (struct SubnetList *)malloc(sizeof(struct SubnetList));
 -            if(IfDescEp->allowednets == NULL) log(LOG_ERR, 0, "Out of memory !");
@@ -357,9 +362,9 @@ diff -urb igmpproxy/src_old/ifvc.c ifvc.c
  }
  
  /*
-diff -urb igmpproxy/src_old/igmp.c igmp.c
---- igmpproxy/src_old/igmp.c	2009-01-25 19:23:22.000000000 +0000
-+++ igmp.c	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/igmp.c ./igmp.c
+--- ../src_old/igmp.c	2009-01-26 21:56:06.000000000 +0000
++++ ./igmp.c	2009-01-26 21:56:07.000000000 +0000
 @@ -105,7 +105,7 @@
      struct igmp *igmp;
      int ipdatalen, iphdrlen, igmpdatalen;
@@ -462,9 +467,9 @@ diff -urb igmpproxy/src_old/igmp.c igmp.c
      if (IN_MULTICAST(ntohl(dst))) {
          ip->ip_ttl = curttl;
      } else {
-diff -urb igmpproxy/src_old/igmpproxy.c igmpproxy.c
---- igmpproxy/src_old/igmpproxy.c	2009-01-25 19:23:22.000000000 +0000
-+++ igmpproxy.c	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/igmpproxy.c ./igmpproxy.c
+--- ../src_old/igmpproxy.c	2009-01-26 21:56:06.000000000 +0000
++++ ./igmpproxy.c	2009-01-26 21:56:07.000000000 +0000
 @@ -80,7 +80,7 @@
  *   on commandline. The number of commandline arguments, and a
  *   pointer to the arguments are recieved on the line...
@@ -521,9 +526,9 @@ diff -urb igmpproxy/src_old/igmpproxy.c igmpproxy.c
      struct  timeval  curtime, lasttime, difftime, tv; 
      // The timeout is a pointer in order to set it to NULL if nessecary.
      struct  timeval  *timeout = &tv;
-diff -urb igmpproxy/src_old/igmpproxy.conf igmpproxy.conf
---- igmpproxy/src_old/igmpproxy.conf	2009-01-25 19:23:22.000000000 +0000
-+++ igmpproxy.conf	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/igmpproxy.conf ./igmpproxy.conf
+--- ../src_old/igmpproxy.conf	2009-01-26 21:56:06.000000000 +0000
++++ ./igmpproxy.conf	2009-01-26 21:56:07.000000000 +0000
 @@ -25,22 +25,22 @@
  
  
@@ -553,9 +558,9 @@ diff -urb igmpproxy/src_old/igmpproxy.conf igmpproxy.conf
 +phyint xl0 disabled
  
  
-diff -urb igmpproxy/src_old/mcgroup.c mcgroup.c
---- igmpproxy/src_old/mcgroup.c	2009-01-25 19:23:22.000000000 +0000
-+++ mcgroup.c	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/mcgroup.c ./mcgroup.c
+--- ../src_old/mcgroup.c	2009-01-26 21:56:06.000000000 +0000
++++ ./mcgroup.c	2009-01-26 21:56:07.000000000 +0000
 @@ -49,7 +49,6 @@
      CtlReq.imr_interface.s_addr = IfDp->InAdr.s_addr;
      
@@ -564,9 +569,9 @@ diff -urb igmpproxy/src_old/mcgroup.c mcgroup.c
          log( LOG_NOTICE, 0, "%sMcGroup: %s on %s", CmdSt, 
              inetFmt( mcastaddr, s1 ), IfDp ? IfDp->Name : "<any>" );
      }
-diff -urb igmpproxy/src_old/mroute-api.c mroute-api.c
---- igmpproxy/src_old/mroute-api.c	2009-01-25 19:23:22.000000000 +0000
-+++ mroute-api.c	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/mroute-api.c ./mroute-api.c
+--- ../src_old/mroute-api.c	2009-01-26 21:56:06.000000000 +0000
++++ ./mroute-api.c	2009-01-26 21:56:07.000000000 +0000
 @@ -37,7 +37,9 @@
  */
  
@@ -620,9 +625,9 @@ diff -urb igmpproxy/src_old/mroute-api.c mroute-api.c
  }
  
  /*
-diff -urb igmpproxy/src_old/request.c request.c
---- igmpproxy/src_old/request.c	2009-01-25 19:23:22.000000000 +0000
-+++ request.c	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/request.c ./request.c
+--- ../src_old/request.c	2009-01-26 21:56:06.000000000 +0000
++++ ./request.c	2009-01-26 21:56:07.000000000 +0000
 @@ -88,10 +88,11 @@
  
      } else {
@@ -654,9 +659,9 @@ diff -urb igmpproxy/src_old/request.c request.c
          if ( Dp->InAdr.s_addr && ! (Dp->Flags & IFF_LOOPBACK) ) {
              if(Dp->state == IF_STATE_DOWNSTREAM) {
                  // Send the membership query...
-diff -urb igmpproxy/src_old/rttable.c rttable.c
---- igmpproxy/src_old/rttable.c	2009-01-25 19:23:22.000000000 +0000
-+++ rttable.c	2009-01-25 19:23:23.000000000 +0000
+diff -ur ../src_old/rttable.c ./rttable.c
+--- ../src_old/rttable.c	2009-01-26 21:56:06.000000000 +0000
++++ ./rttable.c	2009-01-26 21:56:07.000000000 +0000
 @@ -38,15 +38,22 @@
  */
  
@@ -813,11 +818,12 @@ diff -urb igmpproxy/src_old/rttable.c rttable.c
 +                   break;
              }
 -            croute->originAddr = originAddr;
-         }
+-        }
 -
 -        // Only update kernel table if there are listeners !
 -        if(croute->vifBits > 0) {
 -            result = internUpdateKernelRoute(croute, 1);
+         }
 +           if (!found) {
 +               log(LOG_NOTICE, 0, "New origin for route %s is %s, flood %d",
 +                   inetFmt(croute->group, s1),
@@ -833,7 +839,7 @@ diff -urb igmpproxy/src_old/rttable.c rttable.c
 +                   inetFmt(o->originAddr, s3),
 +                   o->pktcnt);
 +           }
-         }
++        }
 +
 +        // Only update kernel table if there are listeners, but flood upstream!
 +        if(croute->vifBits > 0 || downIf >= 0)
@@ -1028,9 +1034,9 @@ diff -urb igmpproxy/src_old/rttable.c rttable.c
                    
                  croute = croute->nextroute; 
          
-diff -urb igmpproxy/src_old/syslog.c syslog.c
---- igmpproxy/src_old/syslog.c	2009-01-25 19:23:22.000000000 +0000
-+++ syslog.c	2009-01-25 19:23:35.000000000 +0000
+diff -ur ../src_old/syslog.c ./syslog.c
+--- ../src_old/syslog.c	2009-01-26 21:56:06.000000000 +0000
++++ ./syslog.c	2009-01-26 21:56:07.000000000 +0000
 @@ -53,12 +53,16 @@
  ** is logged to 'stderr'.
  **          
