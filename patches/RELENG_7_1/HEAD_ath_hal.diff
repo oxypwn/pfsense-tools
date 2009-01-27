@@ -1,0 +1,1264 @@
+Index: amd64/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/amd64/conf/GENERIC,v
+retrieving revision 1.484.2.15.2.1
+diff -u -r1.484.2.15.2.1 GENERIC
+--- amd64/conf/GENERIC	25 Nov 2008 02:59:29 -0000	1.484.2.15.2.1
++++ amd64/conf/GENERIC	27 Jan 2009 19:11:39 -0000
+@@ -243,6 +243,7 @@
+ device		an		# Aironet 4500/4800 802.11 wireless NICs.
+ device		ath		# Atheros pci/cardbus NIC's
+ device		ath_hal		# Atheros HAL (Hardware Access Layer)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ device		ath_rate_sample	# SampleRate tx rate control for ath
+ device		awi		# BayStack 660 and others
+ device		ral		# Ralink Technology RT2500 wireless NICs.
+Index: amd64/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/amd64/conf/NOTES,v
+retrieving revision 1.69.2.5.2.1
+diff -u -r1.69.2.5.2.1 NOTES
+--- amd64/conf/NOTES	25 Nov 2008 02:59:29 -0000	1.69.2.5.2.1
++++ amd64/conf/NOTES	27 Jan 2009 19:11:39 -0000
+@@ -331,6 +331,7 @@
+ 
+ device		ath
+ device		ath_hal		# Atheros HAL (includes binary component)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ #device		ath_rate_amrr	# AMRR rate control for ath driver
+ #device		ath_rate_onoe	# Onoe rate control for ath driver
+ device		ath_rate_sample	# SampleRate rate control for the ath driver
+Index: arm/conf/AVILA
+===================================================================
+RCS file: /home/ncvs/src/sys/arm/conf/AVILA,v
+retrieving revision 1.6.2.1.2.1
+diff -u -r1.6.2.1.2.1 AVILA
+--- arm/conf/AVILA	25 Nov 2008 02:59:29 -0000	1.6.2.1.2.1
++++ arm/conf/AVILA	27 Jan 2009 19:11:39 -0000
+@@ -132,6 +132,7 @@
+ #device		wlan_tkip	# 802.11 TKIP support
+ device		ath		# Atheros pci/cardbus NIC's
+ device		ath_hal		# Atheros HAL (Hardware Access Layer)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ device		ath_rate_sample	# SampleRate tx rate control for ath
+ options		ATH_DEBUG
+ 
+Index: conf/files
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files,v
+retrieving revision 1.1243.2.40.2.1
+diff -u -r1.1243.2.40.2.1 files
+--- conf/files	25 Nov 2008 02:59:29 -0000	1.1243.2.40.2.1
++++ conf/files	27 Jan 2009 19:11:39 -0000
+@@ -475,18 +475,180 @@
+ dev/ata/atapi-cd.c		optional atapicd
+ dev/ata/atapi-fd.c		optional atapifd
+ dev/ata/atapi-tape.c		optional atapist
+-dev/ath/ah_osdep.c optional ath_hal \
++#
++dev/ath/if_ath.c		optional ath \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/if_ath_pci.c		optional ath pci \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ah_osdep.c		optional ath \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah.c		optional ath \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah_eeprom_v1.c	optional ath_hal | ath_ar5210 \
+ 	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah_eeprom_v3.c	optional ath_hal | ath_ar5211 | ath_ar5212 \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah_eeprom_v14.c optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah_regdomain.c	optional ath \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ar5210/ar5210_attach.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_beacon.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_interrupts.c	optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_keycache.c	optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_misc.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_phy.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_power.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_recv.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_reset.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_xmit.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_attach.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_beacon.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_interrupts.c	optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_keycache.c	optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_misc.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_phy.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_power.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_recv.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_reset.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_xmit.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_ani.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_attach.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_beacon.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_eeprom.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_gpio.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_interrupts.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_keycache.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_misc.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_phy.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_power.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_recv.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_reset.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_rfgain.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_xmit.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar2316.c	optional ath_rf2316 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar2317.c	optional ath_rf2317 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar2413.c	optional ath_hal | ath_rf2413 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar2425.c	optional ath_hal | ath_rf2425 | ath_rf2417 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5111.c	optional ath_hal | ath_rf5111 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5112.c	optional ath_hal | ath_rf5112 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5413.c	optional ath_hal | ath_rf5413 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar2133.c	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_ani.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_attach.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_beacon.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_cal.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_cal_iq.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_eeprom.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_gpio.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_interrupts.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_keycache.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_misc.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_phy.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_power.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_recv.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_reset.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_xmit.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar9160_attach.c optional ath_hal | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
+ dev/ath/ath_rate/amrr/amrr.c	optional ath_rate_amrr \
+ 	compile-with "${NORMAL_C} -I$S/dev/ath"
+ dev/ath/ath_rate/onoe/onoe.c	optional ath_rate_onoe \
+ 	compile-with "${NORMAL_C} -I$S/dev/ath"
+ dev/ath/ath_rate/sample/sample.c	optional ath_rate_sample \
+ 	compile-with "${NORMAL_C} -I$S/dev/ath"
+-dev/ath/if_ath.c		optional ath \
+-	compile-with "${NORMAL_C} -I$S/dev/ath"
+-dev/ath/if_ath_pci.c		optional ath pci \
+-	compile-with "${NORMAL_C} -I$S/dev/ath"
+ dev/awi/am79c930.c		optional awi
+ dev/awi/awi.c			optional awi
+ dev/awi/if_awi_pccard.c		optional awi pccard
+Index: conf/files.amd64
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.amd64,v
+retrieving revision 1.107.2.8.2.1
+diff -u -r1.107.2.8.2.1 files.amd64
+--- conf/files.amd64	25 Nov 2008 02:59:29 -0000	1.107.2.8.2.1
++++ conf/files.amd64	27 Jan 2009 19:11:39 -0000
+@@ -47,16 +47,6 @@
+ 	no-obj no-implicit-rule before-depend				\
+ 	clean		"ukbdmap.h"
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/x86_64-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/x86_64-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/x86_64-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/x86_64-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ nvenetlib.o			optional	nve pci			\
+ 	dependency	"$S/contrib/dev/nve/amd64/nvenetlib.o.bz2.uu"	\
+ 	compile-with	"uudecode $S/contrib/dev/nve/amd64/nvenetlib.o.bz2.uu ; bzip2 -df nvenetlib.o.bz2" \
+Index: conf/files.arm
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.arm,v
+retrieving revision 1.15.2.2.2.1
+diff -u -r1.15.2.2.2.1 files.arm
+--- conf/files.arm	25 Nov 2008 02:59:29 -0000	1.15.2.2.2.1
++++ conf/files.arm	27 Jan 2009 19:11:39 -0000
+@@ -52,13 +52,6 @@
+ geom/geom_bsd_enc.c		standard
+ geom/geom_mbr.c			standard
+ geom/geom_mbr_enc.c		standard
+-hal.o				optional	ath_hal		\
+-	compile-with		"ATH_HAL_CPU=`echo ${CONF_CFLAGS}|sed 's/.*-mcpu=\([a-zA-Z0-9]*\).*/\1/'`; ATH_ENDIAN=`if (echo ${CC}|grep mbig-endian>/dev/null); then echo be; else echo le; fi;`; uudecode < $S/contrib/dev/ath/public/$$ATH_HAL_CPU-$$ATH_ENDIAN-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal		\
+-	compile-with		"ATH_HAL_CPU=`echo ${CONF_CFLAGS}|sed 's/.*-mcpu=\([a-zA-Z0-9]*\).*/\1/'`; ATH_ENDIAN=`if (echo ${CC}|grep mbig-endian>/dev/null); then echo be; else echo le; fi;`; rm -f opt_ah.h; cp $S/contrib/dev/ath/public/$$ATH_HAL_CPU-$$ATH_ENDIAN-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend			\
+-	clean		"opt_ah.h"
+ libkern/arm/divsi3.S		standard
+ libkern/arm/ffs.S		standard
+ libkern/arm/muldi3.c		standard
+Index: conf/files.i386
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.i386,v
+retrieving revision 1.580.2.8.2.1
+diff -u -r1.580.2.8.2.1 files.i386
+--- conf/files.i386	25 Nov 2008 02:59:29 -0000	1.580.2.8.2.1
++++ conf/files.i386	27 Jan 2009 19:11:39 -0000
+@@ -51,16 +51,6 @@
+ 	compile-with	"uudecode < $S/contrib/dev/oltr/i386-elf.trlld.o.uu"	\
+ 	no-implicit-rule
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/i386-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/i386-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/i386-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/i386-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ nvenetlib.o			optional	nve pci			\
+ 	dependency	"$S/contrib/dev/nve/i386/nvenetlib.o.bz2.uu"	\
+ 	compile-with	"uudecode $S/contrib/dev/nve/i386/nvenetlib.o.bz2.uu ; bzip2 -df nvenetlib.o.bz2" \
+Index: conf/files.pc98
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.pc98,v
+retrieving revision 1.356.2.1.2.1
+diff -u -r1.356.2.1.2.1 files.pc98
+--- conf/files.pc98	25 Nov 2008 02:59:29 -0000	1.356.2.1.2.1
++++ conf/files.pc98	27 Jan 2009 19:11:39 -0000
+@@ -43,16 +43,6 @@
+ 	compile-with	"uudecode < $S/contrib/dev/oltr/i386-elf.trlld.o.uu"	\
+ 	no-implicit-rule
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/i386-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/i386-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/i386-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/i386-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ compat/linprocfs/linprocfs.c	optional linprocfs
+ compat/linsysfs/linsysfs.c	optional linsysfs
+ compat/linux/linux_emul.c	optional compat_linux
+Index: conf/files.powerpc
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.powerpc,v
+retrieving revision 1.65.2.2.2.1
+diff -u -r1.65.2.2.2.1 files.powerpc
+--- conf/files.powerpc	25 Nov 2008 02:59:29 -0000	1.65.2.2.2.1
++++ conf/files.powerpc	27 Jan 2009 19:11:39 -0000
+@@ -14,16 +14,6 @@
+ 	no-obj no-implicit-rule before-depend				\
+ 	clean	"font.h ${SC_DFLT_FONT}-8x14 ${SC_DFLT_FONT}-8x16 ${SC_DFLT_FONT}-8x8"
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/powerpc-be-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/powerpc-be-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/powerpc-be-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/powerpc-be-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ 
+ dev/bm/if_bm.c			optional	bm powermac
+ dev/fb/fb.c			optional	sc
+Index: conf/files.sparc64
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.sparc64,v
+retrieving revision 1.92.2.3.2.1
+diff -u -r1.92.2.3.2.1 files.sparc64
+--- conf/files.sparc64	25 Nov 2008 02:59:29 -0000	1.92.2.3.2.1
++++ conf/files.sparc64	27 Jan 2009 19:11:39 -0000
+@@ -22,16 +22,6 @@
+ 	no-obj no-implicit-rule before-depend				\
+ 	clean		"ukbdmap.h"
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/sparc64-be-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/sparc64-be-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/sparc64-be-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/sparc64-be-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ crypto/blowfish/bf_enc.c	optional	crypto | ipsec 
+ crypto/des/des_enc.c		optional	crypto | ipsec | netsmb
+ dev/atkbdc/atkbd.c		optional	atkbd atkbdc
+Index: conf/kern.pre.mk
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/kern.pre.mk,v
+retrieving revision 1.92.2.2.2.1
+diff -u -r1.92.2.2.2.1 kern.pre.mk
+--- conf/kern.pre.mk	25 Nov 2008 02:59:29 -0000	1.92.2.2.2.1
++++ conf/kern.pre.mk	27 Jan 2009 19:11:39 -0000
+@@ -67,8 +67,8 @@
+ # ... and the same for pf
+ INCLUDES+= -I$S/contrib/pf
+ 
+-# ... and the same for Atheros HAL
+-INCLUDES+= -I$S/dev/ath
++# ... and the same for ath
++INCLUDES+= -I$S/dev/ath -I$S/dev/ath/ath_hal
+ 
+ # ... and the same for the NgATM stuff
+ INCLUDES+= -I$S/contrib/ngatm
+Index: conf/options
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/options,v
+retrieving revision 1.608.2.8.2.1
+diff -u -r1.608.2.8.2.1 options
+--- conf/options	25 Nov 2008 02:59:29 -0000	1.608.2.8.2.1
++++ conf/options	27 Jan 2009 19:11:39 -0000
+@@ -727,6 +727,21 @@
+ ATH_DIAGAPI		opt_ath.h
+ ATH_TX99_DIAG		opt_ath.h
+ 
++# options for the Atheros hal
++AH_SUPPORT_AR5416	opt_ah.h
++
++AH_DEBUG		opt_ah.h
++AH_ASSERT		opt_ah.h
++AH_DEBUG_ALQ		opt_ah.h
++AH_REGOPS_FUNC		opt_ah.h
++AH_WRITE_REGDOMAIN	opt_ah.h
++AH_DEBUG_COUNTRY	opt_ah.h
++AH_WRITE_EEPROM		opt_ah.h
++AH_PRIVATE_DIAG		opt_ah.h
++AH_NEED_DESC_SWAP	opt_ah.h
++AH_USE_INIPDGAIN	opt_ah.h
++AH_SUPPORT_11D		opt_ah.h
++
+ # dcons options 
+ DCONS_BUF_SIZE		opt_dcons.h
+ DCONS_POLL_HZ		opt_dcons.h
+Index: dev/ath/ah_osdep.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ah_osdep.c,v
+retrieving revision 1.3.6.1
+diff -u -r1.3.6.1 ah_osdep.c
+--- dev/ath/ah_osdep.c	25 Nov 2008 02:59:29 -0000	1.3.6.1
++++ dev/ath/ah_osdep.c	27 Jan 2009 19:11:39 -0000
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2002-2007 Sam Leffler, Errno Consulting
++ * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -43,7 +43,7 @@
+ 
+ #include <net/ethernet.h>		/* XXX for ether_sprintf */
+ 
+-#include <contrib/dev/ath/ah.h>
++#include <dev/ath/ath_hal/ah.h>
+ 
+ /*
+  * WiSoC boards overload the bus tag with information about the
+@@ -56,7 +56,7 @@
+ #define	BUSTAG(ah) \
+ 	((bus_space_tag_t) ((struct ar531x_config *)((ah)->ah_st))->tag)
+ #else
+-#define	BUSTAG(ah)	((bus_space_tag_t) (ah)->ah_st)
++#define	BUSTAG(ah)	((ah)->ah_st)
+ #endif
+ 
+ extern	void ath_hal_printf(struct ath_hal *, const char*, ...)
+@@ -71,8 +71,12 @@
+ 		int lineno, const char* msg);
+ #endif
+ #ifdef AH_DEBUG
++#if HAL_ABI_VERSION >= 0x08090101
++extern	void HALDEBUG(struct ath_hal *ah, u_int mask, const char* fmt, ...);
++#else
+ extern	void HALDEBUG(struct ath_hal *ah, const char* fmt, ...);
+ extern	void HALDEBUGn(struct ath_hal *ah, u_int level, const char* fmt, ...);
++#endif
+ #endif /* AH_DEBUG */
+ 
+ /* NB: put this here instead of the driver to avoid circular references */
+@@ -86,9 +90,6 @@
+ TUNABLE_INT("hw.ath.hal.debug", &ath_hal_debug);
+ #endif /* AH_DEBUG */
+ 
+-SYSCTL_STRING(_hw_ath_hal, OID_AUTO, version, CTLFLAG_RD, ath_hal_version, 0,
+-	"Atheros HAL version");
+-
+ /* NB: these are deprecated; they exist for now for compatibility */
+ int	ath_hal_dma_beacon_response_time = 2;	/* in TU's */
+ SYSCTL_INT(_hw_ath_hal, OID_AUTO, dma_brt, CTLFLAG_RW,
+@@ -139,6 +140,18 @@
+ }
+ 
+ #ifdef AH_DEBUG
++#if HAL_ABI_VERSION >= 0x08090101
++void
++HALDEBUG(struct ath_hal *ah, u_int mask, const char* fmt, ...)
++{
++	if (ath_hal_debug & mask) {
++		__va_list ap;
++		va_start(ap, fmt);
++		ath_hal_vprintf(ah, fmt, ap);
++		va_end(ap);
++	}
++}
++#else
+ void
+ HALDEBUG(struct ath_hal *ah, const char* fmt, ...)
+ {
+@@ -160,6 +173,7 @@
+ 		va_end(ap);
+ 	}
+ }
++#endif
+ #endif /* AH_DEBUG */
+ 
+ #ifdef AH_DEBUG_ALQ
+@@ -178,7 +192,7 @@
+  */
+ #include <sys/alq.h>
+ #include <sys/pcpu.h>
+-#include <contrib/dev/ath/ah_decode.h>
++#include <dev/ath/ath_hal/ah_decode.h>
+ 
+ static	struct alq *ath_hal_alq;
+ static	int ath_hal_alq_emitdev;	/* need to emit DEVICE record */
+@@ -256,7 +270,7 @@
+ ath_hal_reg_write(struct ath_hal *ah, u_int32_t reg, u_int32_t val)
+ {
+ 	bus_space_tag_t tag = BUSTAG(ah);
+-	bus_space_handle_t h = (bus_space_handle_t) ah->ah_sh;
++	bus_space_handle_t h = ah->ah_sh;
+ 
+ 	if (ath_hal_alq) {
+ 		struct ale *ale = ath_hal_alq_get(ah);
+@@ -280,7 +294,7 @@
+ ath_hal_reg_read(struct ath_hal *ah, u_int32_t reg)
+ {
+ 	bus_space_tag_t tag = BUSTAG(ah);
+-	bus_space_handle_t h = (bus_space_handle_t) ah->ah_sh;
++	bus_space_handle_t h = ah->ah_sh;
+ 	u_int32_t val;
+ 
+ #if _BYTE_ORDER == _BIG_ENDIAN
+@@ -332,7 +346,7 @@
+ ath_hal_reg_write(struct ath_hal *ah, u_int32_t reg, u_int32_t val)
+ {
+ 	bus_space_tag_t tag = BUSTAG(ah);
+-	bus_space_handle_t h = (bus_space_handle_t) ah->ah_sh;
++	bus_space_handle_t h = ah->ah_sh;
+ 
+ #if _BYTE_ORDER == _BIG_ENDIAN
+ 	if (reg >= 0x4000 && reg < 0x5000)
+@@ -346,7 +360,7 @@
+ ath_hal_reg_read(struct ath_hal *ah, u_int32_t reg)
+ {
+ 	bus_space_tag_t tag = BUSTAG(ah);
+-	bus_space_handle_t h = (bus_space_handle_t) ah->ah_sh;
++	bus_space_handle_t h = ah->ah_sh;
+ 	u_int32_t val;
+ 
+ #if _BYTE_ORDER == _BIG_ENDIAN
+@@ -398,37 +412,3 @@
+ {
+ 	return memcpy(dst, src, n);
+ }
+-
+-/*
+- * Module glue.
+- */
+-
+-static int
+-ath_hal_modevent(module_t mod, int type, void *unused)
+-{
+-	const char *sep;
+-	int i;
+-
+-	switch (type) {
+-	case MOD_LOAD:
+-		printf("ath_hal: %s (", ath_hal_version);
+-		sep = "";
+-		for (i = 0; ath_hal_buildopts[i] != NULL; i++) {
+-			printf("%s%s", sep, ath_hal_buildopts[i]);
+-			sep = ", ";
+-		}
+-		printf(")\n");
+-		return 0;
+-	case MOD_UNLOAD:
+-		return 0;
+-	}
+-	return EINVAL;
+-}
+-
+-static moduledata_t ath_hal_mod = {
+-	"ath_hal",
+-	ath_hal_modevent,
+-	0
+-};
+-DECLARE_MODULE(ath_hal, ath_hal_mod, SI_SUB_DRIVERS, SI_ORDER_ANY);
+-MODULE_VERSION(ath_hal, 1);
+Index: dev/ath/ah_osdep.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ah_osdep.h,v
+retrieving revision 1.2.2.1.2.1
+diff -u -r1.2.2.1.2.1 ah_osdep.h
+--- dev/ath/ah_osdep.h	25 Nov 2008 02:59:29 -0000	1.2.2.1.2.1
++++ dev/ath/ah_osdep.h	27 Jan 2009 19:11:39 -0000
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2002-2007 Sam Leffler, Errno Consulting
++ * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -33,13 +33,29 @@
+ /*
+  * Atheros Hardware Access Layer (HAL) OS Dependent Definitions.
+  */
++#include <sys/cdefs.h>
+ #include <sys/param.h>
+ #include <sys/systm.h>
+ #include <sys/endian.h>
++#include <sys/linker_set.h>
+ 
+ #include <machine/bus.h>
+ 
+ /*
++ * Bus i/o type definitions.
++ */
++typedef void *HAL_SOFTC;
++typedef bus_space_tag_t HAL_BUS_TAG;
++typedef bus_space_handle_t HAL_BUS_HANDLE;
++
++/*
++ * Linker set writearounds for chip and RF backend registration.
++ */
++#define	OS_DATA_SET(set, item)	DATA_SET(set, item)
++#define	OS_SET_DECLARE(set, ptype)	SET_DECLARE(set, ptype)
++#define	OS_SET_FOREACH(pvar, set)	SET_FOREACH(pvar, set)
++
++/*
+  * Delay n microseconds.
+  */
+ extern	void ath_hal_delay(int);
+Index: dev/ath/if_ath.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_ath.c,v
+retrieving revision 1.177.2.2.2.1
+diff -u -r1.177.2.2.2.1 if_ath.c
+--- dev/ath/if_ath.c	25 Nov 2008 02:59:29 -0000	1.177.2.2.2.1
++++ dev/ath/if_ath.c	27 Jan 2009 19:11:39 -0000
+@@ -77,13 +77,17 @@
+ #endif
+ 
+ #include <dev/ath/if_athvar.h>
+-#include <contrib/dev/ath/ah_desc.h>
+-#include <contrib/dev/ath/ah_devid.h>		/* XXX for softled */
++#include <dev/ath/ath_hal/ah_devid.h>		/* XXX for softled */
+ 
+ #ifdef ATH_TX99_DIAG
+ #include <dev/ath/ath_tx99/ath_tx99.h>
+ #endif
+ 
++/*
++ * We require a HAL w/ the changes for split tx/rx MIC.
++ */
++CTASSERT(HAL_ABI_VERSION > 0x06052200);
++
+ /* unaligned little endian access */
+ #define LE_READ_2(p)							\
+ 	((u_int16_t)							\
+@@ -378,7 +382,6 @@
+ 		goto bad;
+ 	}
+ 	callout_init(&sc->sc_cal_ch, CALLOUT_MPSAFE);
+-	callout_init(&sc->sc_dfs_ch, CALLOUT_MPSAFE);
+ 
+ 	ATH_TXBUF_LOCK_INIT(sc);
+ 
+@@ -2250,14 +2253,13 @@
+ static u_int32_t
+ ath_calcrxfilter(struct ath_softc *sc)
+ {
+-#define	RX_FILTER_PRESERVE	(HAL_RX_FILTER_PHYERR | HAL_RX_FILTER_PHYRADAR)
+ 	struct ieee80211com *ic = &sc->sc_ic;
+-	struct ath_hal *ah = sc->sc_ah;
+ 	struct ifnet *ifp = sc->sc_ifp;
+ 	u_int32_t rfilt;
+ 
+-	rfilt = (ath_hal_getrxfilter(ah) & RX_FILTER_PRESERVE)
+-	      | HAL_RX_FILTER_UCAST | HAL_RX_FILTER_BCAST | HAL_RX_FILTER_MCAST;
++	rfilt = HAL_RX_FILTER_UCAST | HAL_RX_FILTER_BCAST | HAL_RX_FILTER_MCAST;
++	if (!sc->sc_needmib && !sc->sc_scanning)
++		rfilt |= HAL_RX_FILTER_PHYERR;
+ 	if (ic->ic_opmode != IEEE80211_M_STA)
+ 		rfilt |= HAL_RX_FILTER_PROBEREQ;
+ 	if (ic->ic_opmode != IEEE80211_M_HOSTAP &&
+@@ -4890,42 +4892,6 @@
+ }
+ 
+ /*
+- * Poll for a channel clear indication; this is required
+- * for channels requiring DFS and not previously visited
+- * and/or with a recent radar detection.
+- */
+-static void
+-ath_dfswait(void *arg)
+-{
+-	struct ath_softc *sc = arg;
+-	struct ath_hal *ah = sc->sc_ah;
+-	HAL_CHANNEL hchan;
+-
+-	ath_hal_radar_wait(ah, &hchan);
+-	DPRINTF(sc, ATH_DEBUG_DFS, "%s: radar_wait %u/%x/%x\n",
+-	    __func__, hchan.channel, hchan.channelFlags, hchan.privFlags);
+-
+-	if (hchan.privFlags & CHANNEL_INTERFERENCE) {
+-		if_printf(sc->sc_ifp,
+-		    "channel %u/0x%x/0x%x has interference\n",
+-		    hchan.channel, hchan.channelFlags, hchan.privFlags);
+-		return;
+-	}
+-	if ((hchan.privFlags & CHANNEL_DFS) == 0) {
+-		/* XXX should not happen */
+-		return;
+-	}
+-	if (hchan.privFlags & CHANNEL_DFS_CLEAR) {
+-		sc->sc_curchan.privFlags |= CHANNEL_DFS_CLEAR;
+-		sc->sc_ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
+-		if_printf(sc->sc_ifp,
+-		    "channel %u/0x%x/0x%x marked clear\n",
+-		    hchan.channel, hchan.channelFlags, hchan.privFlags);
+-	} else
+-		callout_reset(&sc->sc_dfs_ch, 2 * hz, ath_dfswait, sc);
+-}
+-
+-/*
+  * Set/change channels.  If the channel is really being changed,
+  * it's done by reseting the chip.  To accomplish this we must
+  * first cleanup any pending DMA, then restart stuff after a la
+@@ -4996,25 +4962,6 @@
+ 		ath_chan_change(sc, chan);
+ 
+ 		/*
+-		 * Handle DFS required waiting period to determine
+-		 * if channel is clear of radar traffic.
+-		 */
+-		if (ic->ic_opmode == IEEE80211_M_HOSTAP) {
+-#define	DFS_AND_NOT_CLEAR(_c) \
+-	(((_c)->privFlags & (CHANNEL_DFS | CHANNEL_DFS_CLEAR)) == CHANNEL_DFS)
+-			if (DFS_AND_NOT_CLEAR(&sc->sc_curchan)) {
+-				if_printf(sc->sc_ifp,
+-					"wait for DFS clear channel signal\n");
+-				/* XXX stop sndq */
+-				sc->sc_ifp->if_drv_flags |= IFF_DRV_OACTIVE;
+-				callout_reset(&sc->sc_dfs_ch,
+-					2 * hz, ath_dfswait, sc);
+-			} else
+-				callout_stop(&sc->sc_dfs_ch);
+-#undef DFS_NOT_CLEAR
+-		}
+-
+-		/*
+ 		 * Re-enable interrupts.
+ 		 */
+ 		ath_hal_intrset(ah, sc->sc_imask);
+@@ -5163,7 +5110,6 @@
+ 		ieee80211_state_name[nstate]);
+ 
+ 	callout_stop(&sc->sc_cal_ch);
+-	callout_stop(&sc->sc_dfs_ch);
+ 	ath_hal_setledstate(ah, leds[nstate]);	/* set LED */
+ 
+ 	if (nstate == IEEE80211_S_INIT) {
+Index: dev/ath/if_ath_pci.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_ath_pci.c,v
+retrieving revision 1.19.6.1
+diff -u -r1.19.6.1 if_ath_pci.c
+--- dev/ath/if_ath_pci.c	25 Nov 2008 02:59:29 -0000	1.19.6.1
++++ dev/ath/if_ath_pci.c	27 Jan 2009 19:11:39 -0000
+@@ -56,7 +56,6 @@
+ #include <net80211/ieee80211_var.h>
+ 
+ #include <dev/ath/if_athvar.h>
+-#include <contrib/dev/ath/ah.h>
+ 
+ #include <dev/pci/pcivar.h>
+ #include <dev/pci/pcireg.h>
+@@ -279,6 +278,4 @@
+ DRIVER_MODULE(if_ath, pci, ath_pci_driver, ath_devclass, 0, 0);
+ DRIVER_MODULE(if_ath, cardbus, ath_pci_driver, ath_devclass, 0, 0);
+ MODULE_VERSION(if_ath, 1);
+-MODULE_DEPEND(if_ath, ath_hal, 1, 1, 1);	/* Atheros HAL */
+ MODULE_DEPEND(if_ath, wlan, 1, 1, 1);		/* 802.11 media layer */
+-MODULE_DEPEND(if_ath, ath_rate, 1, 1, 1);	/* rate control algorithm */
+Index: dev/ath/if_athvar.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_athvar.h,v
+retrieving revision 1.62.6.1
+diff -u -r1.62.6.1 if_athvar.h
+--- dev/ath/if_athvar.h	25 Nov 2008 02:59:29 -0000	1.62.6.1
++++ dev/ath/if_athvar.h	27 Jan 2009 19:11:39 -0000
+@@ -35,8 +35,8 @@
+ #ifndef _DEV_ATH_ATHVAR_H
+ #define _DEV_ATH_ATHVAR_H
+ 
+-#include <contrib/dev/ath/ah.h>
+-#include <contrib/dev/ath/ah_desc.h>
++#include <dev/ath/ath_hal/ah.h>
++#include <dev/ath/ath_hal/ah_desc.h>
+ #include <net80211/ieee80211_radiotap.h>
+ #include <dev/ath/if_athioctl.h>
+ #include <dev/ath/if_athrate.h>
+@@ -315,7 +315,6 @@
+ 	int			sc_calinterval;	/* current polling interval */
+ 	int			sc_caltries;	/* cals at current interval */
+ 	HAL_NODE_STATS		sc_halstats;	/* station-mode rssi stats */
+-	struct callout		sc_dfs_ch;	/* callout handle for dfs */
+ };
+ #define	sc_tx_th		u_tx_rt.th
+ #define	sc_rx_th		u_rx_rt.th
+@@ -483,7 +482,7 @@
+ #define	ath_hal_getregdomain(_ah, _prd) \
+ 	(ath_hal_getcapability(_ah, HAL_CAP_REG_DMN, 0, (_prd)) == HAL_OK)
+ #define	ath_hal_setregdomain(_ah, _rd) \
+-	((*(_ah)->ah_setRegulatoryDomain)((_ah), (_rd), NULL))
++	ath_hal_setcapability(_ah, HAL_CAP_REG_DMN, 0, _rd, NULL)
+ #define	ath_hal_getcountrycode(_ah, _pcc) \
+ 	(*(_pcc) = (_ah)->ah_countryCode)
+ #define	ath_hal_hastkipsplit(_ah) \
+@@ -618,7 +617,4 @@
+ #define ath_hal_gpiosetintr(_ah, _gpio, _b) \
+         ((*(_ah)->ah_gpioSetIntr)((_ah), (_gpio), (_b)))
+ 
+-#define ath_hal_radar_wait(_ah, _chan) \
+-	((*(_ah)->ah_radarWait)((_ah), (_chan)))
+-
+ #endif /* _DEV_ATH_ATHVAR_H */
+Index: dev/ath/ath_rate/amrr/amrr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/amrr/amrr.c,v
+retrieving revision 1.14.6.1
+diff -u -r1.14.6.1 amrr.c
+--- dev/ath/ath_rate/amrr/amrr.c	25 Nov 2008 02:59:29 -0000	1.14.6.1
++++ dev/ath/ath_rate/amrr/amrr.c	27 Jan 2009 19:11:39 -0000
+@@ -50,7 +50,6 @@
+ #include <sys/param.h>
+ #include <sys/systm.h> 
+ #include <sys/sysctl.h>
+-#include <sys/module.h>
+ #include <sys/kernel.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
+@@ -78,7 +77,7 @@
+ 
+ #include <dev/ath/if_athvar.h>
+ #include <dev/ath/ath_rate/amrr/amrr.h>
+-#include <contrib/dev/ath/ah_desc.h>
++#include <dev/ath/ath_hal/ah_desc.h>
+ 
+ #define	AMRR_DEBUG
+ #ifdef AMRR_DEBUG
+@@ -518,29 +517,3 @@
+ 	callout_drain(&asc->timer);
+ 	free(asc, M_DEVBUF);
+ }
+-
+-/*
+- * Module glue.
+- */
+-static int
+-amrr_modevent(module_t mod, int type, void *unused)
+-{
+-	switch (type) {
+-	case MOD_LOAD:
+-		if (bootverbose)
+-			printf("ath_rate: <AMRR rate control algorithm> version 0.1\n");
+-		return 0;
+-	case MOD_UNLOAD:
+-		return 0;
+-	}
+-	return EINVAL;
+-}
+-
+-static moduledata_t amrr_mod = {
+-	"ath_rate",
+-	amrr_modevent,
+-	0
+-};
+-DECLARE_MODULE(ath_rate, amrr_mod, SI_SUB_DRIVERS, SI_ORDER_FIRST);
+-MODULE_VERSION(ath_rate, 1);
+-MODULE_DEPEND(ath_rate, wlan, 1, 1, 1);
+Index: dev/ath/ath_rate/onoe/onoe.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/onoe/onoe.c,v
+retrieving revision 1.15.6.1
+diff -u -r1.15.6.1 onoe.c
+--- dev/ath/ath_rate/onoe/onoe.c	25 Nov 2008 02:59:29 -0000	1.15.6.1
++++ dev/ath/ath_rate/onoe/onoe.c	27 Jan 2009 19:11:39 -0000
+@@ -38,7 +38,6 @@
+ #include <sys/param.h>
+ #include <sys/systm.h> 
+ #include <sys/sysctl.h>
+-#include <sys/module.h>
+ #include <sys/kernel.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
+@@ -66,7 +65,7 @@
+ 
+ #include <dev/ath/if_athvar.h>
+ #include <dev/ath/ath_rate/onoe/onoe.h>
+-#include <contrib/dev/ath/ah_desc.h>
++#include <dev/ath/ath_hal/ah_desc.h>
+ 
+ #define	ONOE_DEBUG
+ #ifdef ONOE_DEBUG
+@@ -492,29 +491,3 @@
+ 	callout_drain(&osc->timer);
+ 	free(osc, M_DEVBUF);
+ }
+-
+-/*
+- * Module glue.
+- */
+-static int
+-onoe_modevent(module_t mod, int type, void *unused)
+-{
+-	switch (type) {
+-	case MOD_LOAD:
+-		if (bootverbose)
+-			printf("ath_rate: <Atsushi Onoe's rate control algorithm>\n");
+-		return 0;
+-	case MOD_UNLOAD:
+-		return 0;
+-	}
+-	return EINVAL;
+-}
+-
+-static moduledata_t onoe_mod = {
+-	"ath_rate",
+-	onoe_modevent,
+-	0
+-};
+-DECLARE_MODULE(ath_rate, onoe_mod, SI_SUB_DRIVERS, SI_ORDER_FIRST);
+-MODULE_VERSION(ath_rate, 1);
+-MODULE_DEPEND(ath_rate, wlan, 1, 1, 1);
+Index: dev/ath/ath_rate/sample/sample.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/sample/sample.c,v
+retrieving revision 1.18.2.1.4.1
+diff -u -r1.18.2.1.4.1 sample.c
+--- dev/ath/ath_rate/sample/sample.c	25 Nov 2008 02:59:29 -0000	1.18.2.1.4.1
++++ dev/ath/ath_rate/sample/sample.c	27 Jan 2009 19:11:39 -0000
+@@ -46,7 +46,6 @@
+ #include <sys/param.h>
+ #include <sys/systm.h> 
+ #include <sys/sysctl.h>
+-#include <sys/module.h>
+ #include <sys/kernel.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
+@@ -74,7 +73,7 @@
+ 
+ #include <dev/ath/if_athvar.h>
+ #include <dev/ath/ath_rate/sample/sample.h>
+-#include <contrib/dev/ath/ah_desc.h>
++#include <dev/ath/ath_hal/ah_desc.h>
+ 
+ #define	SAMPLE_DEBUG
+ #ifdef SAMPLE_DEBUG
+@@ -840,30 +839,3 @@
+ 	
+ 	free(osc, M_DEVBUF);
+ }
+-
+-/*
+- * Module glue.
+- */
+-static int
+-sample_modevent(module_t mod, int type, void *unused)
+-{
+-	switch (type) {
+-	case MOD_LOAD:
+-		if (bootverbose)
+-			printf("ath_rate: version 1.2 <SampleRate bit-rate selection algorithm>\n");
+-		return 0;
+-	case MOD_UNLOAD:
+-		return 0;
+-	}
+-	return EINVAL;
+-}
+-
+-static moduledata_t sample_mod = {
+-	"ath_rate",
+-	sample_modevent,
+-	0
+-};
+-DECLARE_MODULE(ath_rate, sample_mod, SI_SUB_DRIVERS, SI_ORDER_FIRST);
+-MODULE_VERSION(ath_rate, 1);
+-MODULE_DEPEND(ath_rate, ath_hal, 1, 1, 1);	/* Atheros HAL */
+-MODULE_DEPEND(ath_rate, wlan, 1, 1, 1);
+Index: i386/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/i386/conf/GENERIC,v
+retrieving revision 1.474.2.15.2.1
+diff -u -r1.474.2.15.2.1 GENERIC
+--- i386/conf/GENERIC	25 Nov 2008 02:59:29 -0000	1.474.2.15.2.1
++++ i386/conf/GENERIC	27 Jan 2009 19:11:39 -0000
+@@ -255,6 +255,7 @@
+ device		an		# Aironet 4500/4800 802.11 wireless NICs.
+ device		ath		# Atheros pci/cardbus NIC's
+ device		ath_hal		# Atheros HAL (Hardware Access Layer)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ device		ath_rate_sample	# SampleRate tx rate control for ath
+ device		awi		# BayStack 660 and others
+ device		ral		# Ralink Technology RT2500 wireless NICs.
+Index: i386/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/i386/conf/NOTES,v
+retrieving revision 1.1244.2.6.2.1
+diff -u -r1.1244.2.6.2.1 NOTES
+--- i386/conf/NOTES	25 Nov 2008 02:59:29 -0000	1.1244.2.6.2.1
++++ i386/conf/NOTES	27 Jan 2009 19:11:39 -0000
+@@ -680,6 +680,7 @@
+ 
+ device		ath
+ device		ath_hal		# Atheros HAL (includes binary component)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ #device		ath_rate_amrr	# AMRR rate control for ath driver
+ #device		ath_rate_onoe	# Onoe rate control for ath driver
+ device		ath_rate_sample	# SampleRate rate control for the ath driver
+Index: modules/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sys/modules/Makefile,v
+retrieving revision 1.540.2.25.2.1
+diff -u -r1.540.2.25.2.1 Makefile
+--- modules/Makefile	25 Nov 2008 02:59:29 -0000	1.540.2.25.2.1
++++ modules/Makefile	27 Jan 2009 19:11:39 -0000
+@@ -28,11 +28,7 @@
+ 	${_arl} \
+ 	${_asr} \
+ 	ata \
+-	${_ath} \
+-	${_ath_hal} \
+-	${_ath_rate_amrr} \
+-	${_ath_rate_onoe} \
+-	${_ath_rate_sample} \
++	ath \
+ 	aue \
+ 	${_auxio} \
+ 	${_awi} \
+@@ -375,11 +371,6 @@
+ _apm=		apm
+ _ar=		ar
+ _arcnet=	arcnet
+-_ath=		ath
+-_ath_hal=	ath_hal
+-_ath_rate_amrr=	ath_rate_amrr
+-_ath_rate_onoe=	ath_rate_onoe
+-_ath_rate_sample=ath_rate_sample
+ _awi=		awi
+ _bktr=		bktr
+ _cardbus=	cardbus
+@@ -512,11 +503,6 @@
+ _agp=		agp
+ _an=		an
+ _arcmsr=	arcmsr
+-_ath=		ath
+-_ath_hal=	ath_hal
+-_ath_rate_amrr=	ath_rate_amrr
+-_ath_rate_onoe=	ath_rate_onoe
+-_ath_rate_sample=ath_rate_sample
+ _cardbus=	cardbus
+ _cbb=		cbb
+ _cmx=		cmx
+@@ -621,22 +607,12 @@
+ 
+ .if ${MACHINE_ARCH} == "powerpc"
+ _an=		an
+-_ath=		ath
+-_ath_hal=	ath_hal
+-_ath_rate_amrr=	ath_rate_amrr
+-_ath_rate_onoe=	ath_rate_onoe
+-_ath_rate_sample=ath_rate_sample
+ _bm=		bm
+ _nvram=		powermac_nvram
+ _smbfs=		smbfs
+ .endif
+ 
+ .if ${MACHINE_ARCH} == "sparc64"
+-_ath=		ath
+-_ath_hal=	ath_hal
+-_ath_rate_amrr=	ath_rate_amrr
+-_ath_rate_onoe=	ath_rate_onoe
+-_ath_rate_sample=ath_rate_sample
+ _auxio=		auxio
+ _em=		em
+ _i2c=		i2c
+Index: modules/ath/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sys/modules/ath/Makefile,v
+retrieving revision 1.5.6.1
+diff -u -r1.5.6.1 Makefile
+--- modules/ath/Makefile	25 Nov 2008 02:59:29 -0000	1.5.6.1
++++ modules/ath/Makefile	27 Jan 2009 19:11:39 -0000
+@@ -1,5 +1,5 @@
+ #
+-# Copyright (c) 2002, 2003 Sam Leffler, Errno Consulting
++# Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+@@ -12,13 +12,6 @@
+ #    similar to the "NO WARRANTY" disclaimer below ("Disclaimer") and any
+ #    redistribution must be conditioned upon including a substantially
+ #    similar Disclaimer requirement for further binary redistribution.
+-# 3. Neither the names of the above-listed copyright holders nor the names
+-#    of any contributors may be used to endorse or promote products derived
+-#    from this software without specific prior written permission.
+-#
+-# Alternatively, this software may be distributed under the terms of the
+-# GNU General Public License ("GPL") version 2 as published by the Free
+-# Software Foundation.
+ #
+ # NO WARRANTY
+ # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+@@ -36,30 +29,84 @@
+ # $FreeBSD: src/sys/modules/ath/Makefile,v 1.5.6.1 2008/11/25 02:59:29 kensmith Exp $
+ #
+ 
+-.PATH: ${.CURDIR}/../../dev/ath
++ATH_RATE?=	sample		# tx rate control algorithm
++
++.PATH:	${.CURDIR}/../../dev/ath
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal
+ 
+ KMOD=	if_ath
+ SRCS=	if_ath.c if_ath_pci.c
++# NB: v3 eeprom support used by both AR5211 and AR5212; just include it
++SRCS+=	ah_osdep.c ah.c ah_regdomain.c ah_eeprom_v3.c
+ SRCS+=	device_if.h bus_if.h pci_if.h opt_inet.h opt_ath.h opt_ah.h
+ 
+-HAL=	${.CURDIR}/../../contrib/dev/ath
+-CFLAGS+=  -I. -I${.CURDIR}/../../dev/ath -I${HAL}
++#
++# AR5210 support; these are first generation 11a-only devices.
++#
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal/ar5210
++SRCS+=	ah_eeprom_v1.c \
++	ar5210_attach.c ar5210_beacon.c ar5210_interrupts.c \
++	ar5210_keycache.c ar5210_misc.c ar5210_phy.c ar5210_power.c \
++	ar5210_recv.c ar5210_reset.c ar5210_xmit.c
++
++#
++# AR5211 support; these are second generation 11b/g/a devices
++# (but 11g was OFDM only and is not supported).
++#
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal/ar5211
++SRCS+=	ar5211_attach.c ar5211_beacon.c ar5211_interrupts.c \
++	ar5211_keycache.c ar5211_misc.c	ar5211_phy.c ar5211_power.c \
++	ar5211_recv.c ar5211_reset.c ar5211_xmit.c
+ 
+-opt_ath.h:
+-	echo > $@
++#
++# AR5212 support; this covers all other pci/cardbus legacy parts.
++#
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal/ar5212
++SRCS+=	ar5212_ani.c ar5212_attach.c ar5212_beacon.c ar5212_eeprom.c \
++	ar5212_gpio.c ar5212_interrupts.c ar5212_keycache.c ar5212_misc.c \
++	ar5212_phy.c ar5212_power.c ar5212_recv.c ar5212_reset.c \
++	ar5212_rfgain.c ar5212_xmit.c
++# RF backends
++SRCS+=	ar5111.c
++SRCS+=	ar5112.c
++SRCS+=	ar2413.c
++SRCS+=	ar2425.c
++SRCS+=	ar5413.c
+ 
+-# patch for hal naming difference
+-.if ${MACHINE_ARCH} == "amd64"
+-ATH_MODULE_ARCH=x86_64
+-.elif ${MACHINE_ARCH} == "sparc64"
+-ATH_MODULE_ARCH=sparc64-be
+-.elif ${MACHINE_ARCH} == "powerpc"
+-ATH_MODULE_ARCH=powerpc-be
+-.else
+-ATH_MODULE_ARCH=${MACHINE_ARCH}
++#
++# AR5416, AR9160 support; these are 11n parts but only really
++# supported (right now) operating in legacy mode.  Note enabling
++# this support requires defining AH_SUPPORT_AR5416 in opt_ah.h
++# so the 11n tx/rx descriptor format is handled.
++#
++# NB: 9160 depends on 5416 but 5416 does not require 9160
++#
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal/ar5416
++SRCS+=	ah_eeprom_v14.c \
++	ar5416_ani.c ar5416_attach.c ar5416_beacon.c ar5416_cal.c \
++	ar5416_cal_iq.c ar5416_cal_adcgain.c ar5416_cal_adcdc.c \
++	ar5416_eeprom.c ar5416_gpio.c ar5416_interrupts.c ar5416_keycache.c \
++	ar5416_misc.c ar5416_phy.c ar5416_power.c ar5416_recv.c \
++	ar5416_reset.c ar5416_xmit.c
++SRCS+=	ar9160_attach.c
++# RF backend for 5416 and 9160
++SRCS+=	ar2133.c
++
++# NB: rate control is bound to the driver by symbol names so only pick one
++.if ${ATH_RATE} == "sample"
++.PATH:	${.CURDIR}/../../dev/ath/ath_rate/sample
++SRCS+=	sample.c opt_wlan.h
++.elif ${ATH_RATE} == "onoe"
++.PATH:	${.CURDIR}/../../dev/ath/ath_rate/onoe
++SRCS+=	onoe.c
++.elif ${ATH_RATE} == "amrr"
++.PATH:	${.CURDIR}/../../dev/ath/ath_rate/amrr
++SRCS+=	amrr.c
+ .endif
+ 
+-opt_ah.h: ${HAL}/public/${ATH_MODULE_ARCH}-elf.opt_ah.h
+-	cp ${HAL}/public/${ATH_MODULE_ARCH}-elf.opt_ah.h ${.TARGET}
++CFLAGS+=  -I. -I${.CURDIR}/../../dev/ath -I${.CURDIR}/../../dev/ath/ath_hal
++
++opt_ah.h:
++	echo '#define AH_SUPPORT_AR5416 1' > $@
+ 
+ .include <bsd.kmod.mk>
+Index: pc98/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/pc98/conf/GENERIC,v
+retrieving revision 1.297.2.4.2.2
+diff -u -r1.297.2.4.2.2 GENERIC
+--- pc98/conf/GENERIC	23 Dec 2008 02:19:14 -0000	1.297.2.4.2.2
++++ pc98/conf/GENERIC	27 Jan 2009 19:11:39 -0000
+@@ -210,6 +210,7 @@
+ #device		an		# Aironet 4500/4800 802.11 wireless NICs.
+ #device		ath		# Atheros pci/cardbus NIC's
+ #device		ath_hal		# Atheros HAL (Hardware Access Layer)
++#options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ #device		ath_rate_sample	# SampleRate tx rate control for ath
+ #device		awi		# BayStack 660 and others
+ #device		ral		# Ralink Technology RT2500 wireless NICs.
+Index: pc98/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/pc98/conf/NOTES,v
+retrieving revision 1.85.6.1
+diff -u -r1.85.6.1 NOTES
+--- pc98/conf/NOTES	25 Nov 2008 02:59:29 -0000	1.85.6.1
++++ pc98/conf/NOTES	27 Jan 2009 19:11:39 -0000
+@@ -437,6 +437,7 @@
+ 
+ device		ath
+ device		ath_hal		# Atheros HAL (includes binary component)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ #device		ath_rate_amrr	# AMRR rate control for ath driver
+ #device		ath_rate_onoe	# Onoe rate control for ath driver
+ device		ath_rate_sample	# SampleRate rate control for the ath driver
+Index: sparc64/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/sparc64/conf/GENERIC,v
+retrieving revision 1.127.2.6.2.1
+diff -u -r1.127.2.6.2.1 GENERIC
+--- sparc64/conf/GENERIC	25 Nov 2008 02:59:29 -0000	1.127.2.6.2.1
++++ sparc64/conf/GENERIC	27 Jan 2009 19:11:39 -0000
+@@ -192,6 +192,7 @@
+ device		wlan_scan_sta	# 802.11 STA mode scanning
+ device		ath		# Atheros pci/cardbus NIC's
+ device		ath_hal		# Atheros HAL (Hardware Access Layer)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ device		ath_rate_sample	# SampleRate tx rate control for ath
+ 
+ # Pseudo devices.
