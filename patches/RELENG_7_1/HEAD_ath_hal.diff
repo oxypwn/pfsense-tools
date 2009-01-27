@@ -1,9 +1,974 @@
-Index: dev/ath/ath_hal/ah.c
+Index: sys/amd64/conf/GENERIC
 ===================================================================
-RCS file: dev/ath/ath_hal/ah.c
-diff -N dev/ath/ath_hal/ah.c
+RCS file: /home/ncvs/src/sys/amd64/conf/GENERIC,v
+retrieving revision 1.484.2.15.2.1
+diff -U -n -r1.484.2.15.2.1 GENERIC
+Index: sys/amd64/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/amd64/conf/NOTES,v
+retrieving revision 1.69.2.5.2.1
+diff -U -n -r1.69.2.5.2.1 NOTES
+Index: sys/arm/conf/AVILA
+===================================================================
+RCS file: /home/ncvs/src/sys/arm/conf/AVILA,v
+retrieving revision 1.6.2.1.2.1
+diff -U -n -r1.6.2.1.2.1 AVILA
+Index: sys/conf/files
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files,v
+retrieving revision 1.1243.2.40.2.1
+diff -U -n -r1.1243.2.40.2.1 files
+Index: sys/conf/files.amd64
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.amd64,v
+retrieving revision 1.107.2.8.2.1
+diff -U -n -r1.107.2.8.2.1 files.amd64
+Index: sys/conf/files.arm
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.arm,v
+retrieving revision 1.15.2.2.2.1
+diff -U -n -r1.15.2.2.2.1 files.arm
+Index: sys/conf/files.i386
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.i386,v
+retrieving revision 1.580.2.8.2.1
+diff -U -n -r1.580.2.8.2.1 files.i386
+Index: sys/conf/files.pc98
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.pc98,v
+retrieving revision 1.356.2.1.2.1
+diff -U -n -r1.356.2.1.2.1 files.pc98
+Index: sys/conf/files.powerpc
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.powerpc,v
+retrieving revision 1.65.2.2.2.1
+diff -U -n -r1.65.2.2.2.1 files.powerpc
+Index: sys/conf/files.sparc64
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.sparc64,v
+retrieving revision 1.92.2.3.2.1
+diff -U -n -r1.92.2.3.2.1 files.sparc64
+Index: sys/conf/kern.pre.mk
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/kern.pre.mk,v
+retrieving revision 1.92.2.2.2.1
+diff -U -n -r1.92.2.2.2.1 kern.pre.mk
+Index: sys/conf/options
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/options,v
+retrieving revision 1.608.2.8.2.1
+diff -U -n -r1.608.2.8.2.1 options
+Index: sys/dev/ath/ah_osdep.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ah_osdep.c,v
+retrieving revision 1.3.6.1
+diff -U -n -r1.3.6.1 ah_osdep.c
+Index: sys/dev/ath/ah_osdep.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ah_osdep.h,v
+retrieving revision 1.2.2.1.2.1
+diff -U -n -r1.2.2.1.2.1 ah_osdep.h
+Index: sys/dev/ath/if_ath.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_ath.c,v
+retrieving revision 1.177.2.2.2.1
+diff -U -n -r1.177.2.2.2.1 if_ath.c
+Index: sys/dev/ath/if_ath_pci.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_ath_pci.c,v
+retrieving revision 1.19.6.1
+diff -U -n -r1.19.6.1 if_ath_pci.c
+Index: sys/dev/ath/if_athvar.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_athvar.h,v
+retrieving revision 1.62.6.1
+diff -U -n -r1.62.6.1 if_athvar.h
+Index: sys/dev/ath/ath_rate/amrr/amrr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/amrr/amrr.c,v
+retrieving revision 1.14.6.1
+diff -U -n -r1.14.6.1 amrr.c
+Index: sys/dev/ath/ath_rate/onoe/onoe.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/onoe/onoe.c,v
+retrieving revision 1.15.6.1
+diff -U -n -r1.15.6.1 onoe.c
+Index: sys/dev/ath/ath_rate/sample/sample.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/sample/sample.c,v
+retrieving revision 1.18.2.1.4.1
+diff -U -n -r1.18.2.1.4.1 sample.c
+Index: sys/i386/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/i386/conf/GENERIC,v
+retrieving revision 1.474.2.15.2.1
+diff -U -n -r1.474.2.15.2.1 GENERIC
+Index: sys/i386/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/i386/conf/NOTES,v
+retrieving revision 1.1244.2.6.2.1
+diff -U -n -r1.1244.2.6.2.1 NOTES
+Index: sys/modules/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sys/modules/Makefile,v
+retrieving revision 1.540.2.25.2.1
+diff -U -n -r1.540.2.25.2.1 Makefile
+Index: sys/modules/ath/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sys/modules/ath/Makefile,v
+retrieving revision 1.5.6.1
+diff -U -n -r1.5.6.1 Makefile
+Index: sys/pc98/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/pc98/conf/GENERIC,v
+retrieving revision 1.297.2.4.2.2
+diff -U -n -r1.297.2.4.2.2 GENERIC
+Index: sys/pc98/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/pc98/conf/NOTES,v
+retrieving revision 1.85.6.1
+diff -U -n -r1.85.6.1 NOTES
+Index: sys/sparc64/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/sparc64/conf/GENERIC,v
+retrieving revision 1.127.2.6.2.1
+diff -U -n -r1.127.2.6.2.1 GENERIC
+Index: sys/amd64/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/amd64/conf/GENERIC,v
+retrieving revision 1.484.2.15.2.1
+diff -u -r1.484.2.15.2.1 GENERIC
+--- sys/amd64/conf/GENERIC	25 Nov 2008 02:59:29 -0000	1.484.2.15.2.1
++++ sys/amd64/conf/GENERIC	27 Jan 2009 23:34:57 -0000
+@@ -243,6 +243,7 @@
+ device		an		# Aironet 4500/4800 802.11 wireless NICs.
+ device		ath		# Atheros pci/cardbus NIC's
+ device		ath_hal		# Atheros HAL (Hardware Access Layer)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ device		ath_rate_sample	# SampleRate tx rate control for ath
+ device		awi		# BayStack 660 and others
+ device		ral		# Ralink Technology RT2500 wireless NICs.
+Index: sys/amd64/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/amd64/conf/NOTES,v
+retrieving revision 1.69.2.5.2.1
+diff -u -r1.69.2.5.2.1 NOTES
+--- sys/amd64/conf/NOTES	25 Nov 2008 02:59:29 -0000	1.69.2.5.2.1
++++ sys/amd64/conf/NOTES	27 Jan 2009 23:34:57 -0000
+@@ -331,6 +331,7 @@
+ 
+ device		ath
+ device		ath_hal		# Atheros HAL (includes binary component)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ #device		ath_rate_amrr	# AMRR rate control for ath driver
+ #device		ath_rate_onoe	# Onoe rate control for ath driver
+ device		ath_rate_sample	# SampleRate rate control for the ath driver
+Index: sys/arm/conf/AVILA
+===================================================================
+RCS file: /home/ncvs/src/sys/arm/conf/AVILA,v
+retrieving revision 1.6.2.1.2.1
+diff -u -r1.6.2.1.2.1 AVILA
+--- sys/arm/conf/AVILA	25 Nov 2008 02:59:29 -0000	1.6.2.1.2.1
++++ sys/arm/conf/AVILA	27 Jan 2009 23:34:57 -0000
+@@ -132,6 +132,7 @@
+ #device		wlan_tkip	# 802.11 TKIP support
+ device		ath		# Atheros pci/cardbus NIC's
+ device		ath_hal		# Atheros HAL (Hardware Access Layer)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ device		ath_rate_sample	# SampleRate tx rate control for ath
+ options		ATH_DEBUG
+ 
+Index: sys/conf/files
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files,v
+retrieving revision 1.1243.2.40.2.1
+diff -u -r1.1243.2.40.2.1 files
+--- sys/conf/files	25 Nov 2008 02:59:29 -0000	1.1243.2.40.2.1
++++ sys/conf/files	27 Jan 2009 23:34:57 -0000
+@@ -475,18 +475,180 @@
+ dev/ata/atapi-cd.c		optional atapicd
+ dev/ata/atapi-fd.c		optional atapifd
+ dev/ata/atapi-tape.c		optional atapist
+-dev/ath/ah_osdep.c optional ath_hal \
++#
++dev/ath/if_ath.c		optional ath \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/if_ath_pci.c		optional ath pci \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ah_osdep.c		optional ath \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah.c		optional ath \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah_eeprom_v1.c	optional ath_hal | ath_ar5210 \
+ 	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah_eeprom_v3.c	optional ath_hal | ath_ar5211 | ath_ar5212 \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah_eeprom_v14.c optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ah_regdomain.c	optional ath \
++	compile-with "${NORMAL_C} -I$S/dev/ath"
++dev/ath/ath_hal/ar5210/ar5210_attach.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_beacon.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_interrupts.c	optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_keycache.c	optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_misc.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_phy.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_power.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_recv.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_reset.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5210/ar5210_xmit.c		optional ath_hal | ath_ar5210 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_attach.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_beacon.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_interrupts.c	optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_keycache.c	optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_misc.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_phy.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_power.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_recv.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_reset.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5211/ar5211_xmit.c		optional ath_hal | ath_ar5211 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_ani.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_attach.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_beacon.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_eeprom.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_gpio.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_interrupts.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_keycache.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_misc.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_phy.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_power.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_recv.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_reset.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_rfgain.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5212_xmit.c \
++	optional ath_hal | ath_ar5212 | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar2316.c	optional ath_rf2316 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar2317.c	optional ath_rf2317 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar2413.c	optional ath_hal | ath_rf2413 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar2425.c	optional ath_hal | ath_rf2425 | ath_rf2417 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5111.c	optional ath_hal | ath_rf5111 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5112.c	optional ath_hal | ath_rf5112 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5212/ar5413.c	optional ath_hal | ath_rf5413 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar2133.c	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_ani.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_attach.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_beacon.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_cal.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_cal_iq.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_eeprom.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_gpio.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_interrupts.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_keycache.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_misc.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_phy.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_power.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_recv.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_reset.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar5416_xmit.c \
++	optional ath_hal | ath_ar5416 | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
++dev/ath/ath_hal/ar5416/ar9160_attach.c optional ath_hal | ath_ar9160 \
++	compile-with "${NORMAL_C} -I$S/dev/ath -I$S/dev/ath/ath_hal"
+ dev/ath/ath_rate/amrr/amrr.c	optional ath_rate_amrr \
+ 	compile-with "${NORMAL_C} -I$S/dev/ath"
+ dev/ath/ath_rate/onoe/onoe.c	optional ath_rate_onoe \
+ 	compile-with "${NORMAL_C} -I$S/dev/ath"
+ dev/ath/ath_rate/sample/sample.c	optional ath_rate_sample \
+ 	compile-with "${NORMAL_C} -I$S/dev/ath"
+-dev/ath/if_ath.c		optional ath \
+-	compile-with "${NORMAL_C} -I$S/dev/ath"
+-dev/ath/if_ath_pci.c		optional ath pci \
+-	compile-with "${NORMAL_C} -I$S/dev/ath"
+ dev/awi/am79c930.c		optional awi
+ dev/awi/awi.c			optional awi
+ dev/awi/if_awi_pccard.c		optional awi pccard
+Index: sys/conf/files.amd64
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.amd64,v
+retrieving revision 1.107.2.8.2.1
+diff -u -r1.107.2.8.2.1 files.amd64
+--- sys/conf/files.amd64	25 Nov 2008 02:59:29 -0000	1.107.2.8.2.1
++++ sys/conf/files.amd64	27 Jan 2009 23:34:57 -0000
+@@ -47,16 +47,6 @@
+ 	no-obj no-implicit-rule before-depend				\
+ 	clean		"ukbdmap.h"
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/x86_64-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/x86_64-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/x86_64-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/x86_64-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ nvenetlib.o			optional	nve pci			\
+ 	dependency	"$S/contrib/dev/nve/amd64/nvenetlib.o.bz2.uu"	\
+ 	compile-with	"uudecode $S/contrib/dev/nve/amd64/nvenetlib.o.bz2.uu ; bzip2 -df nvenetlib.o.bz2" \
+Index: sys/conf/files.arm
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.arm,v
+retrieving revision 1.15.2.2.2.1
+diff -u -r1.15.2.2.2.1 files.arm
+--- sys/conf/files.arm	25 Nov 2008 02:59:29 -0000	1.15.2.2.2.1
++++ sys/conf/files.arm	27 Jan 2009 23:34:57 -0000
+@@ -52,13 +52,6 @@
+ geom/geom_bsd_enc.c		standard
+ geom/geom_mbr.c			standard
+ geom/geom_mbr_enc.c		standard
+-hal.o				optional	ath_hal		\
+-	compile-with		"ATH_HAL_CPU=`echo ${CONF_CFLAGS}|sed 's/.*-mcpu=\([a-zA-Z0-9]*\).*/\1/'`; ATH_ENDIAN=`if (echo ${CC}|grep mbig-endian>/dev/null); then echo be; else echo le; fi;`; uudecode < $S/contrib/dev/ath/public/$$ATH_HAL_CPU-$$ATH_ENDIAN-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal		\
+-	compile-with		"ATH_HAL_CPU=`echo ${CONF_CFLAGS}|sed 's/.*-mcpu=\([a-zA-Z0-9]*\).*/\1/'`; ATH_ENDIAN=`if (echo ${CC}|grep mbig-endian>/dev/null); then echo be; else echo le; fi;`; rm -f opt_ah.h; cp $S/contrib/dev/ath/public/$$ATH_HAL_CPU-$$ATH_ENDIAN-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend			\
+-	clean		"opt_ah.h"
+ libkern/arm/divsi3.S		standard
+ libkern/arm/ffs.S		standard
+ libkern/arm/muldi3.c		standard
+Index: sys/conf/files.i386
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.i386,v
+retrieving revision 1.580.2.8.2.1
+diff -u -r1.580.2.8.2.1 files.i386
+--- sys/conf/files.i386	25 Nov 2008 02:59:29 -0000	1.580.2.8.2.1
++++ sys/conf/files.i386	27 Jan 2009 23:34:57 -0000
+@@ -51,16 +51,6 @@
+ 	compile-with	"uudecode < $S/contrib/dev/oltr/i386-elf.trlld.o.uu"	\
+ 	no-implicit-rule
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/i386-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/i386-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/i386-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/i386-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ nvenetlib.o			optional	nve pci			\
+ 	dependency	"$S/contrib/dev/nve/i386/nvenetlib.o.bz2.uu"	\
+ 	compile-with	"uudecode $S/contrib/dev/nve/i386/nvenetlib.o.bz2.uu ; bzip2 -df nvenetlib.o.bz2" \
+Index: sys/conf/files.pc98
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.pc98,v
+retrieving revision 1.356.2.1.2.1
+diff -u -r1.356.2.1.2.1 files.pc98
+--- sys/conf/files.pc98	25 Nov 2008 02:59:29 -0000	1.356.2.1.2.1
++++ sys/conf/files.pc98	27 Jan 2009 23:34:57 -0000
+@@ -43,16 +43,6 @@
+ 	compile-with	"uudecode < $S/contrib/dev/oltr/i386-elf.trlld.o.uu"	\
+ 	no-implicit-rule
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/i386-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/i386-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/i386-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/i386-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ compat/linprocfs/linprocfs.c	optional linprocfs
+ compat/linsysfs/linsysfs.c	optional linsysfs
+ compat/linux/linux_emul.c	optional compat_linux
+Index: sys/conf/files.powerpc
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.powerpc,v
+retrieving revision 1.65.2.2.2.1
+diff -u -r1.65.2.2.2.1 files.powerpc
+--- sys/conf/files.powerpc	25 Nov 2008 02:59:29 -0000	1.65.2.2.2.1
++++ sys/conf/files.powerpc	27 Jan 2009 23:34:57 -0000
+@@ -14,16 +14,6 @@
+ 	no-obj no-implicit-rule before-depend				\
+ 	clean	"font.h ${SC_DFLT_FONT}-8x14 ${SC_DFLT_FONT}-8x16 ${SC_DFLT_FONT}-8x8"
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/powerpc-be-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/powerpc-be-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/powerpc-be-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/powerpc-be-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ 
+ dev/bm/if_bm.c			optional	bm powermac
+ dev/fb/fb.c			optional	sc
+Index: sys/conf/files.sparc64
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.sparc64,v
+retrieving revision 1.92.2.3.2.1
+diff -u -r1.92.2.3.2.1 files.sparc64
+--- sys/conf/files.sparc64	25 Nov 2008 02:59:29 -0000	1.92.2.3.2.1
++++ sys/conf/files.sparc64	27 Jan 2009 23:34:57 -0000
+@@ -22,16 +22,6 @@
+ 	no-obj no-implicit-rule before-depend				\
+ 	clean		"ukbdmap.h"
+ #
+-hal.o				optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/sparc64-be-elf.hal.o.uu"	\
+-	compile-with	"uudecode < $S/contrib/dev/ath/public/sparc64-be-elf.hal.o.uu" \
+-	no-implicit-rule
+-opt_ah.h			optional	ath_hal			\
+-	dependency	"$S/contrib/dev/ath/public/sparc64-be-elf.opt_ah.h"	\
+-	compile-with	"rm -f opt_ah.h; cp $S/contrib/dev/ath/public/sparc64-be-elf.opt_ah.h opt_ah.h" \
+-	no-obj no-implicit-rule before-depend				\
+-	clean		"opt_ah.h"
+-#
+ crypto/blowfish/bf_enc.c	optional	crypto | ipsec 
+ crypto/des/des_enc.c		optional	crypto | ipsec | netsmb
+ dev/atkbdc/atkbd.c		optional	atkbd atkbdc
+Index: sys/conf/kern.pre.mk
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/kern.pre.mk,v
+retrieving revision 1.92.2.2.2.1
+diff -u -r1.92.2.2.2.1 kern.pre.mk
+--- sys/conf/kern.pre.mk	25 Nov 2008 02:59:29 -0000	1.92.2.2.2.1
++++ sys/conf/kern.pre.mk	27 Jan 2009 23:34:57 -0000
+@@ -67,8 +67,8 @@
+ # ... and the same for pf
+ INCLUDES+= -I$S/contrib/pf
+ 
+-# ... and the same for Atheros HAL
+-INCLUDES+= -I$S/dev/ath
++# ... and the same for ath
++INCLUDES+= -I$S/dev/ath -I$S/dev/ath/ath_hal
+ 
+ # ... and the same for the NgATM stuff
+ INCLUDES+= -I$S/contrib/ngatm
+Index: sys/conf/options
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/options,v
+retrieving revision 1.608.2.8.2.1
+diff -u -r1.608.2.8.2.1 options
+--- sys/conf/options	25 Nov 2008 02:59:29 -0000	1.608.2.8.2.1
++++ sys/conf/options	27 Jan 2009 23:34:57 -0000
+@@ -727,6 +727,21 @@
+ ATH_DIAGAPI		opt_ath.h
+ ATH_TX99_DIAG		opt_ath.h
+ 
++# options for the Atheros hal
++AH_SUPPORT_AR5416	opt_ah.h
++
++AH_DEBUG		opt_ah.h
++AH_ASSERT		opt_ah.h
++AH_DEBUG_ALQ		opt_ah.h
++AH_REGOPS_FUNC		opt_ah.h
++AH_WRITE_REGDOMAIN	opt_ah.h
++AH_DEBUG_COUNTRY	opt_ah.h
++AH_WRITE_EEPROM		opt_ah.h
++AH_PRIVATE_DIAG		opt_ah.h
++AH_NEED_DESC_SWAP	opt_ah.h
++AH_USE_INIPDGAIN	opt_ah.h
++AH_SUPPORT_11D		opt_ah.h
++
+ # dcons options 
+ DCONS_BUF_SIZE		opt_dcons.h
+ DCONS_POLL_HZ		opt_dcons.h
+Index: sys/dev/ath/ah_osdep.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ah_osdep.c,v
+retrieving revision 1.3.6.1
+diff -u -r1.3.6.1 ah_osdep.c
+--- sys/dev/ath/ah_osdep.c	25 Nov 2008 02:59:29 -0000	1.3.6.1
++++ sys/dev/ath/ah_osdep.c	27 Jan 2009 23:34:57 -0000
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2002-2007 Sam Leffler, Errno Consulting
++ * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -43,7 +43,7 @@
+ 
+ #include <net/ethernet.h>		/* XXX for ether_sprintf */
+ 
+-#include <contrib/dev/ath/ah.h>
++#include <dev/ath/ath_hal/ah.h>
+ 
+ /*
+  * WiSoC boards overload the bus tag with information about the
+@@ -56,7 +56,7 @@
+ #define	BUSTAG(ah) \
+ 	((bus_space_tag_t) ((struct ar531x_config *)((ah)->ah_st))->tag)
+ #else
+-#define	BUSTAG(ah)	((bus_space_tag_t) (ah)->ah_st)
++#define	BUSTAG(ah)	((ah)->ah_st)
+ #endif
+ 
+ extern	void ath_hal_printf(struct ath_hal *, const char*, ...)
+@@ -71,8 +71,12 @@
+ 		int lineno, const char* msg);
+ #endif
+ #ifdef AH_DEBUG
++#if HAL_ABI_VERSION >= 0x08090101
++extern	void HALDEBUG(struct ath_hal *ah, u_int mask, const char* fmt, ...);
++#else
+ extern	void HALDEBUG(struct ath_hal *ah, const char* fmt, ...);
+ extern	void HALDEBUGn(struct ath_hal *ah, u_int level, const char* fmt, ...);
++#endif
+ #endif /* AH_DEBUG */
+ 
+ /* NB: put this here instead of the driver to avoid circular references */
+@@ -86,9 +90,6 @@
+ TUNABLE_INT("hw.ath.hal.debug", &ath_hal_debug);
+ #endif /* AH_DEBUG */
+ 
+-SYSCTL_STRING(_hw_ath_hal, OID_AUTO, version, CTLFLAG_RD, ath_hal_version, 0,
+-	"Atheros HAL version");
+-
+ /* NB: these are deprecated; they exist for now for compatibility */
+ int	ath_hal_dma_beacon_response_time = 2;	/* in TU's */
+ SYSCTL_INT(_hw_ath_hal, OID_AUTO, dma_brt, CTLFLAG_RW,
+@@ -139,6 +140,18 @@
+ }
+ 
+ #ifdef AH_DEBUG
++#if HAL_ABI_VERSION >= 0x08090101
++void
++HALDEBUG(struct ath_hal *ah, u_int mask, const char* fmt, ...)
++{
++	if (ath_hal_debug & mask) {
++		__va_list ap;
++		va_start(ap, fmt);
++		ath_hal_vprintf(ah, fmt, ap);
++		va_end(ap);
++	}
++}
++#else
+ void
+ HALDEBUG(struct ath_hal *ah, const char* fmt, ...)
+ {
+@@ -160,6 +173,7 @@
+ 		va_end(ap);
+ 	}
+ }
++#endif
+ #endif /* AH_DEBUG */
+ 
+ #ifdef AH_DEBUG_ALQ
+@@ -178,7 +192,7 @@
+  */
+ #include <sys/alq.h>
+ #include <sys/pcpu.h>
+-#include <contrib/dev/ath/ah_decode.h>
++#include <dev/ath/ath_hal/ah_decode.h>
+ 
+ static	struct alq *ath_hal_alq;
+ static	int ath_hal_alq_emitdev;	/* need to emit DEVICE record */
+@@ -256,7 +270,7 @@
+ ath_hal_reg_write(struct ath_hal *ah, u_int32_t reg, u_int32_t val)
+ {
+ 	bus_space_tag_t tag = BUSTAG(ah);
+-	bus_space_handle_t h = (bus_space_handle_t) ah->ah_sh;
++	bus_space_handle_t h = ah->ah_sh;
+ 
+ 	if (ath_hal_alq) {
+ 		struct ale *ale = ath_hal_alq_get(ah);
+@@ -280,7 +294,7 @@
+ ath_hal_reg_read(struct ath_hal *ah, u_int32_t reg)
+ {
+ 	bus_space_tag_t tag = BUSTAG(ah);
+-	bus_space_handle_t h = (bus_space_handle_t) ah->ah_sh;
++	bus_space_handle_t h = ah->ah_sh;
+ 	u_int32_t val;
+ 
+ #if _BYTE_ORDER == _BIG_ENDIAN
+@@ -332,7 +346,7 @@
+ ath_hal_reg_write(struct ath_hal *ah, u_int32_t reg, u_int32_t val)
+ {
+ 	bus_space_tag_t tag = BUSTAG(ah);
+-	bus_space_handle_t h = (bus_space_handle_t) ah->ah_sh;
++	bus_space_handle_t h = ah->ah_sh;
+ 
+ #if _BYTE_ORDER == _BIG_ENDIAN
+ 	if (reg >= 0x4000 && reg < 0x5000)
+@@ -346,7 +360,7 @@
+ ath_hal_reg_read(struct ath_hal *ah, u_int32_t reg)
+ {
+ 	bus_space_tag_t tag = BUSTAG(ah);
+-	bus_space_handle_t h = (bus_space_handle_t) ah->ah_sh;
++	bus_space_handle_t h = ah->ah_sh;
+ 	u_int32_t val;
+ 
+ #if _BYTE_ORDER == _BIG_ENDIAN
+@@ -398,37 +412,3 @@
+ {
+ 	return memcpy(dst, src, n);
+ }
+-
+-/*
+- * Module glue.
+- */
+-
+-static int
+-ath_hal_modevent(module_t mod, int type, void *unused)
+-{
+-	const char *sep;
+-	int i;
+-
+-	switch (type) {
+-	case MOD_LOAD:
+-		printf("ath_hal: %s (", ath_hal_version);
+-		sep = "";
+-		for (i = 0; ath_hal_buildopts[i] != NULL; i++) {
+-			printf("%s%s", sep, ath_hal_buildopts[i]);
+-			sep = ", ";
+-		}
+-		printf(")\n");
+-		return 0;
+-	case MOD_UNLOAD:
+-		return 0;
+-	}
+-	return EINVAL;
+-}
+-
+-static moduledata_t ath_hal_mod = {
+-	"ath_hal",
+-	ath_hal_modevent,
+-	0
+-};
+-DECLARE_MODULE(ath_hal, ath_hal_mod, SI_SUB_DRIVERS, SI_ORDER_ANY);
+-MODULE_VERSION(ath_hal, 1);
+Index: sys/dev/ath/ah_osdep.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ah_osdep.h,v
+retrieving revision 1.2.2.1.2.1
+diff -u -r1.2.2.1.2.1 ah_osdep.h
+--- sys/dev/ath/ah_osdep.h	25 Nov 2008 02:59:29 -0000	1.2.2.1.2.1
++++ sys/dev/ath/ah_osdep.h	27 Jan 2009 23:34:57 -0000
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2002-2007 Sam Leffler, Errno Consulting
++ * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -33,13 +33,29 @@
+ /*
+  * Atheros Hardware Access Layer (HAL) OS Dependent Definitions.
+  */
++#include <sys/cdefs.h>
+ #include <sys/param.h>
+ #include <sys/systm.h>
+ #include <sys/endian.h>
++#include <sys/linker_set.h>
+ 
+ #include <machine/bus.h>
+ 
+ /*
++ * Bus i/o type definitions.
++ */
++typedef void *HAL_SOFTC;
++typedef bus_space_tag_t HAL_BUS_TAG;
++typedef bus_space_handle_t HAL_BUS_HANDLE;
++
++/*
++ * Linker set writearounds for chip and RF backend registration.
++ */
++#define	OS_DATA_SET(set, item)	DATA_SET(set, item)
++#define	OS_SET_DECLARE(set, ptype)	SET_DECLARE(set, ptype)
++#define	OS_SET_FOREACH(pvar, set)	SET_FOREACH(pvar, set)
++
++/*
+  * Delay n microseconds.
+  */
+ extern	void ath_hal_delay(int);
+Index: sys/dev/ath/if_ath.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_ath.c,v
+retrieving revision 1.177.2.2.2.1
+diff -u -r1.177.2.2.2.1 if_ath.c
+--- sys/dev/ath/if_ath.c	25 Nov 2008 02:59:29 -0000	1.177.2.2.2.1
++++ sys/dev/ath/if_ath.c	27 Jan 2009 23:34:57 -0000
+@@ -77,13 +77,17 @@
+ #endif
+ 
+ #include <dev/ath/if_athvar.h>
+-#include <contrib/dev/ath/ah_desc.h>
+-#include <contrib/dev/ath/ah_devid.h>		/* XXX for softled */
++#include <dev/ath/ath_hal/ah_devid.h>		/* XXX for softled */
+ 
+ #ifdef ATH_TX99_DIAG
+ #include <dev/ath/ath_tx99/ath_tx99.h>
+ #endif
+ 
++/*
++ * We require a HAL w/ the changes for split tx/rx MIC.
++ */
++CTASSERT(HAL_ABI_VERSION > 0x06052200);
++
+ /* unaligned little endian access */
+ #define LE_READ_2(p)							\
+ 	((u_int16_t)							\
+@@ -378,7 +382,6 @@
+ 		goto bad;
+ 	}
+ 	callout_init(&sc->sc_cal_ch, CALLOUT_MPSAFE);
+-	callout_init(&sc->sc_dfs_ch, CALLOUT_MPSAFE);
+ 
+ 	ATH_TXBUF_LOCK_INIT(sc);
+ 
+@@ -2250,14 +2253,13 @@
+ static u_int32_t
+ ath_calcrxfilter(struct ath_softc *sc)
+ {
+-#define	RX_FILTER_PRESERVE	(HAL_RX_FILTER_PHYERR | HAL_RX_FILTER_PHYRADAR)
+ 	struct ieee80211com *ic = &sc->sc_ic;
+-	struct ath_hal *ah = sc->sc_ah;
+ 	struct ifnet *ifp = sc->sc_ifp;
+ 	u_int32_t rfilt;
+ 
+-	rfilt = (ath_hal_getrxfilter(ah) & RX_FILTER_PRESERVE)
+-	      | HAL_RX_FILTER_UCAST | HAL_RX_FILTER_BCAST | HAL_RX_FILTER_MCAST;
++	rfilt = HAL_RX_FILTER_UCAST | HAL_RX_FILTER_BCAST | HAL_RX_FILTER_MCAST;
++	if (!sc->sc_needmib && !sc->sc_scanning)
++		rfilt |= HAL_RX_FILTER_PHYERR;
+ 	if (ic->ic_opmode != IEEE80211_M_STA)
+ 		rfilt |= HAL_RX_FILTER_PROBEREQ;
+ 	if (ic->ic_opmode != IEEE80211_M_HOSTAP &&
+@@ -4890,42 +4892,6 @@
+ }
+ 
+ /*
+- * Poll for a channel clear indication; this is required
+- * for channels requiring DFS and not previously visited
+- * and/or with a recent radar detection.
+- */
+-static void
+-ath_dfswait(void *arg)
+-{
+-	struct ath_softc *sc = arg;
+-	struct ath_hal *ah = sc->sc_ah;
+-	HAL_CHANNEL hchan;
+-
+-	ath_hal_radar_wait(ah, &hchan);
+-	DPRINTF(sc, ATH_DEBUG_DFS, "%s: radar_wait %u/%x/%x\n",
+-	    __func__, hchan.channel, hchan.channelFlags, hchan.privFlags);
+-
+-	if (hchan.privFlags & CHANNEL_INTERFERENCE) {
+-		if_printf(sc->sc_ifp,
+-		    "channel %u/0x%x/0x%x has interference\n",
+-		    hchan.channel, hchan.channelFlags, hchan.privFlags);
+-		return;
+-	}
+-	if ((hchan.privFlags & CHANNEL_DFS) == 0) {
+-		/* XXX should not happen */
+-		return;
+-	}
+-	if (hchan.privFlags & CHANNEL_DFS_CLEAR) {
+-		sc->sc_curchan.privFlags |= CHANNEL_DFS_CLEAR;
+-		sc->sc_ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
+-		if_printf(sc->sc_ifp,
+-		    "channel %u/0x%x/0x%x marked clear\n",
+-		    hchan.channel, hchan.channelFlags, hchan.privFlags);
+-	} else
+-		callout_reset(&sc->sc_dfs_ch, 2 * hz, ath_dfswait, sc);
+-}
+-
+-/*
+  * Set/change channels.  If the channel is really being changed,
+  * it's done by reseting the chip.  To accomplish this we must
+  * first cleanup any pending DMA, then restart stuff after a la
+@@ -4996,25 +4962,6 @@
+ 		ath_chan_change(sc, chan);
+ 
+ 		/*
+-		 * Handle DFS required waiting period to determine
+-		 * if channel is clear of radar traffic.
+-		 */
+-		if (ic->ic_opmode == IEEE80211_M_HOSTAP) {
+-#define	DFS_AND_NOT_CLEAR(_c) \
+-	(((_c)->privFlags & (CHANNEL_DFS | CHANNEL_DFS_CLEAR)) == CHANNEL_DFS)
+-			if (DFS_AND_NOT_CLEAR(&sc->sc_curchan)) {
+-				if_printf(sc->sc_ifp,
+-					"wait for DFS clear channel signal\n");
+-				/* XXX stop sndq */
+-				sc->sc_ifp->if_drv_flags |= IFF_DRV_OACTIVE;
+-				callout_reset(&sc->sc_dfs_ch,
+-					2 * hz, ath_dfswait, sc);
+-			} else
+-				callout_stop(&sc->sc_dfs_ch);
+-#undef DFS_NOT_CLEAR
+-		}
+-
+-		/*
+ 		 * Re-enable interrupts.
+ 		 */
+ 		ath_hal_intrset(ah, sc->sc_imask);
+@@ -5163,7 +5110,6 @@
+ 		ieee80211_state_name[nstate]);
+ 
+ 	callout_stop(&sc->sc_cal_ch);
+-	callout_stop(&sc->sc_dfs_ch);
+ 	ath_hal_setledstate(ah, leds[nstate]);	/* set LED */
+ 
+ 	if (nstate == IEEE80211_S_INIT) {
+Index: sys/dev/ath/if_ath_pci.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_ath_pci.c,v
+retrieving revision 1.19.6.1
+diff -u -r1.19.6.1 if_ath_pci.c
+--- sys/dev/ath/if_ath_pci.c	25 Nov 2008 02:59:29 -0000	1.19.6.1
++++ sys/dev/ath/if_ath_pci.c	27 Jan 2009 23:34:57 -0000
+@@ -56,7 +56,6 @@
+ #include <net80211/ieee80211_var.h>
+ 
+ #include <dev/ath/if_athvar.h>
+-#include <contrib/dev/ath/ah.h>
+ 
+ #include <dev/pci/pcivar.h>
+ #include <dev/pci/pcireg.h>
+@@ -279,6 +278,4 @@
+ DRIVER_MODULE(if_ath, pci, ath_pci_driver, ath_devclass, 0, 0);
+ DRIVER_MODULE(if_ath, cardbus, ath_pci_driver, ath_devclass, 0, 0);
+ MODULE_VERSION(if_ath, 1);
+-MODULE_DEPEND(if_ath, ath_hal, 1, 1, 1);	/* Atheros HAL */
+ MODULE_DEPEND(if_ath, wlan, 1, 1, 1);		/* 802.11 media layer */
+-MODULE_DEPEND(if_ath, ath_rate, 1, 1, 1);	/* rate control algorithm */
+Index: sys/dev/ath/if_athvar.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/if_athvar.h,v
+retrieving revision 1.62.6.1
+diff -u -r1.62.6.1 if_athvar.h
+--- sys/dev/ath/if_athvar.h	25 Nov 2008 02:59:29 -0000	1.62.6.1
++++ sys/dev/ath/if_athvar.h	27 Jan 2009 23:34:57 -0000
+@@ -35,8 +35,8 @@
+ #ifndef _DEV_ATH_ATHVAR_H
+ #define _DEV_ATH_ATHVAR_H
+ 
+-#include <contrib/dev/ath/ah.h>
+-#include <contrib/dev/ath/ah_desc.h>
++#include <dev/ath/ath_hal/ah.h>
++#include <dev/ath/ath_hal/ah_desc.h>
+ #include <net80211/ieee80211_radiotap.h>
+ #include <dev/ath/if_athioctl.h>
+ #include <dev/ath/if_athrate.h>
+@@ -315,7 +315,6 @@
+ 	int			sc_calinterval;	/* current polling interval */
+ 	int			sc_caltries;	/* cals at current interval */
+ 	HAL_NODE_STATS		sc_halstats;	/* station-mode rssi stats */
+-	struct callout		sc_dfs_ch;	/* callout handle for dfs */
+ };
+ #define	sc_tx_th		u_tx_rt.th
+ #define	sc_rx_th		u_rx_rt.th
+@@ -483,7 +482,7 @@
+ #define	ath_hal_getregdomain(_ah, _prd) \
+ 	(ath_hal_getcapability(_ah, HAL_CAP_REG_DMN, 0, (_prd)) == HAL_OK)
+ #define	ath_hal_setregdomain(_ah, _rd) \
+-	((*(_ah)->ah_setRegulatoryDomain)((_ah), (_rd), NULL))
++	ath_hal_setcapability(_ah, HAL_CAP_REG_DMN, 0, _rd, NULL)
+ #define	ath_hal_getcountrycode(_ah, _pcc) \
+ 	(*(_pcc) = (_ah)->ah_countryCode)
+ #define	ath_hal_hastkipsplit(_ah) \
+@@ -618,7 +617,4 @@
+ #define ath_hal_gpiosetintr(_ah, _gpio, _b) \
+         ((*(_ah)->ah_gpioSetIntr)((_ah), (_gpio), (_b)))
+ 
+-#define ath_hal_radar_wait(_ah, _chan) \
+-	((*(_ah)->ah_radarWait)((_ah), (_chan)))
+-
+ #endif /* _DEV_ATH_ATHVAR_H */
+Index: sys/dev/ath/ath_hal/ah.c
+===================================================================
+RCS file: sys/dev/ath/ath_hal/ah.c
+diff -N sys/dev/ath/ath_hal/ah.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,885 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -890,12 +1855,12 @@ diff -N dev/ath/ath_hal/ah.c
 +	}
 +	return regWr;
 +}
-Index: dev/ath/ath_hal/ah.h
+Index: sys/dev/ath/ath_hal/ah.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah.h
-diff -N dev/ath/ath_hal/ah.h
+RCS file: sys/dev/ath/ath_hal/ah.h
+diff -N sys/dev/ath/ath_hal/ah.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,899 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -1796,12 +2761,12 @@ diff -N dev/ath/ath_hal/ah.h
 + */
 +extern	int __ahdecl ath_hal_mhz2ieee(struct ath_hal *, u_int mhz, u_int flags);
 +#endif /* _ATH_AH_H_ */
-Index: dev/ath/ath_hal/ah_debug.h
+Index: sys/dev/ath/ath_hal/ah_debug.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_debug.h
-diff -N dev/ath/ath_hal/ah_debug.h
+RCS file: sys/dev/ath/ath_hal/ah_debug.h
+diff -N sys/dev/ath/ath_hal/ah_debug.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_debug.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_debug.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,49 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -1852,12 +2817,12 @@ diff -N dev/ath/ath_hal/ah_debug.h
 +	HAL_DEBUG_ANY		= 0xffffffff
 +};
 +#endif /* _ATH_AH_DEBUG_H_ */
-Index: dev/ath/ath_hal/ah_decode.h
+Index: sys/dev/ath/ath_hal/ah_decode.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_decode.h
-diff -N dev/ath/ath_hal/ah_decode.h
+RCS file: sys/dev/ath/ath_hal/ah_decode.h
+diff -N sys/dev/ath/ath_hal/ah_decode.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_decode.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_decode.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,55 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -1914,12 +2879,12 @@ diff -N dev/ath/ath_hal/ah_decode.h
 +	AH_MARK_ANI_CONTROL,		/* ar*AniReset, cmd */
 +};
 +#endif /* _ATH_AH_DECODE_H_ */
-Index: dev/ath/ath_hal/ah_desc.h
+Index: sys/dev/ath/ath_hal/ah_desc.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_desc.h
-diff -N dev/ath/ath_hal/ah_desc.h
+RCS file: sys/dev/ath/ath_hal/ah_desc.h
+diff -N sys/dev/ath/ath_hal/ah_desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_desc.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_desc.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,220 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -2141,12 +3106,12 @@ diff -N dev/ath/ath_hal/ah_desc.h
 +/* flags passed to rx descriptor setup methods */
 +#define	HAL_RXDESC_INTREQ	0x0020	/* enable per-descriptor interrupt */
 +#endif /* _DEV_ATH_DESC_H */
-Index: dev/ath/ath_hal/ah_devid.h
+Index: sys/dev/ath/ath_hal/ah_devid.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_devid.h
-diff -N dev/ath/ath_hal/ah_devid.h
+RCS file: sys/dev/ath/ath_hal/ah_devid.h
+diff -N sys/dev/ath/ath_hal/ah_devid.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_devid.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_devid.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,84 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -2232,12 +3197,12 @@ diff -N dev/ath/ath_hal/ah_devid.h
 +#define	AR_SUBVENDOR_ID_NOG	0x0e11		/* No 11G subvendor ID */
 +#define AR_SUBVENDOR_ID_NEW_A	0x7065		/* Update device to new RD */
 +#endif /* _DEV_ATH_DEVID_H */
-Index: dev/ath/ath_hal/ah_eeprom.h
+Index: sys/dev/ath/ath_hal/ah_eeprom.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_eeprom.h
-diff -N dev/ath/ath_hal/ah_eeprom.h
+RCS file: sys/dev/ath/ath_hal/ah_eeprom.h
+diff -N sys/dev/ath/ath_hal/ah_eeprom.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_eeprom.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,133 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -2372,12 +3337,12 @@ diff -N dev/ath/ath_hal/ah_eeprom.h
 +HAL_STATUS	ath_hal_v14EepromAttach(struct ath_hal *ah);
 +HAL_STATUS	ath_hal_v4kEepromAttach(struct ath_hal *ah);
 +#endif /* _ATH_AH_EEPROM_H_ */
-Index: dev/ath/ath_hal/ah_eeprom_v1.c
+Index: sys/dev/ath/ath_hal/ah_eeprom_v1.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_eeprom_v1.c
-diff -N dev/ath/ath_hal/ah_eeprom_v1.c
+RCS file: sys/dev/ath/ath_hal/ah_eeprom_v1.c
+diff -N sys/dev/ath/ath_hal/ah_eeprom_v1.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_eeprom_v1.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v1.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,253 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -2632,12 +3597,12 @@ diff -N dev/ath/ath_hal/ah_eeprom_v1.c
 +	AH_PRIVATE(ah)->ah_eepromDiag = v1EepromDiag;
 +	return HAL_OK;
 +}
-Index: dev/ath/ath_hal/ah_eeprom_v1.h
+Index: sys/dev/ath/ath_hal/ah_eeprom_v1.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_eeprom_v1.h
-diff -N dev/ath/ath_hal/ah_eeprom_v1.h
+RCS file: sys/dev/ath/ath_hal/ah_eeprom_v1.h
+diff -N sys/dev/ath/ath_hal/ah_eeprom_v1.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_eeprom_v1.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v1.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,99 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -2738,12 +3703,12 @@ diff -N dev/ath/ath_hal/ah_eeprom_v1.h
 +	struct tpcMap	ee_tpc[AR_CHANNELS_MAX];
 +} HAL_EEPROM_v1;
 +#endif /* _ATH_AH_EEPROM_V1_H_ */
-Index: dev/ath/ath_hal/ah_eeprom_v14.c
+Index: sys/dev/ath/ath_hal/ah_eeprom_v14.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_eeprom_v14.c
-diff -N dev/ath/ath_hal/ah_eeprom_v14.c
+RCS file: sys/dev/ath/ath_hal/ah_eeprom_v14.c
+diff -N sys/dev/ath/ath_hal/ah_eeprom_v14.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_eeprom_v14.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v14.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,404 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -3149,12 +4114,12 @@ diff -N dev/ath/ath_hal/ah_eeprom_v14.c
 +	return HAL_OK;
 +#undef NW
 +}
-Index: dev/ath/ath_hal/ah_eeprom_v14.h
+Index: sys/dev/ath/ath_hal/ah_eeprom_v14.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_eeprom_v14.h
-diff -N dev/ath/ath_hal/ah_eeprom_v14.h
+RCS file: sys/dev/ath/ath_hal/ah_eeprom_v14.h
+diff -N sys/dev/ath/ath_hal/ah_eeprom_v14.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_eeprom_v14.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v14.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,271 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -3427,12 +4392,12 @@ diff -N dev/ath/ath_hal/ah_eeprom_v14.h
 +	int8_t		ee_antennaGainMax[2];
 +} HAL_EEPROM_v14;
 +#endif /* _AH_EEPROM_V14_H_ */
-Index: dev/ath/ath_hal/ah_eeprom_v3.c
+Index: sys/dev/ath/ath_hal/ah_eeprom_v3.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_eeprom_v3.c
-diff -N dev/ath/ath_hal/ah_eeprom_v3.c
+RCS file: sys/dev/ath/ath_hal/ah_eeprom_v3.c
+diff -N sys/dev/ath/ath_hal/ah_eeprom_v3.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_eeprom_v3.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v3.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,1876 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -5310,12 +6275,12 @@ diff -N dev/ath/ath_hal/ah_eeprom_v3.c
 +	AH_PRIVATE(ah)->ah_eepromDiag = legacyEepromDiag;
 +	return HAL_OK;
 +}
-Index: dev/ath/ath_hal/ah_eeprom_v3.h
+Index: sys/dev/ath/ath_hal/ah_eeprom_v3.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_eeprom_v3.h
-diff -N dev/ath/ath_hal/ah_eeprom_v3.h
+RCS file: sys/dev/ath/ath_hal/ah_eeprom_v3.h
+diff -N sys/dev/ath/ath_hal/ah_eeprom_v3.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_eeprom_v3.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v3.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,462 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -5779,12 +6744,12 @@ diff -N dev/ath/ath_hal/ah_eeprom_v3.h
 +#define	ee_modePowerArray5112	ee_u.eu_modePowerArray5112
 +#define	ee_rawDataset2413	ee_u.eu_rawDataset2413
 +#endif /* _ATH_AH_EEPROM_V3_H_ */
-Index: dev/ath/ath_hal/ah_internal.h
+Index: sys/dev/ath/ath_hal/ah_internal.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_internal.h
-diff -N dev/ath/ath_hal/ah_internal.h
+RCS file: sys/dev/ath/ath_hal/ah_internal.h
+diff -N sys/dev/ath/ath_hal/ah_internal.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_internal.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_internal.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,787 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -6573,12 +7538,12 @@ diff -N dev/ath/ath_hal/ah_internal.h
 +
 +#define	WLAN_CTRL_FRAME_SIZE	(2+2+6+4)	/* ACK+FCS */
 +#endif /* _ATH_AH_INTERAL_H_ */
-Index: dev/ath/ath_hal/ah_regdomain.c
+Index: sys/dev/ath/ath_hal/ah_regdomain.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_regdomain.c
-diff -N dev/ath/ath_hal/ah_regdomain.c
+RCS file: sys/dev/ath/ath_hal/ah_regdomain.c
+diff -N sys/dev/ath/ath_hal/ah_regdomain.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_regdomain.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_regdomain.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,2870 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -9450,12 +10415,12 @@ diff -N dev/ath/ath_hal/ah_regdomain.c
 +			swap(u, t, size);
 +		}
 +}
-Index: dev/ath/ath_hal/ah_soc.h
+Index: sys/dev/ath/ath_hal/ah_soc.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ah_soc.h
-diff -N dev/ath/ath_hal/ah_soc.h
+RCS file: sys/dev/ath/ath_hal/ah_soc.h
+diff -N sys/dev/ath/ath_hal/ah_soc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ah_soc.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ah_soc.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,91 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -9548,12 +10513,12 @@ diff -N dev/ath/ath_hal/ah_soc.h
 +	void		*tag;			/* bus space tag */
 +};
 +#endif	/* _ATH_AH_SOC_H_ */
-Index: dev/ath/ath_hal/ar5210/ar5210.h
+Index: sys/dev/ath/ath_hal/ar5210/ar5210.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210.h
-diff -N dev/ath/ath_hal/ar5210/ar5210.h
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210.h
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,278 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -9833,12 +10798,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210.h
 +extern	void ar5210AniPoll(struct ath_hal *, const HAL_NODE_STATS *, HAL_CHANNEL *);
 +extern	void ar5210MibEvent(struct ath_hal *, const HAL_NODE_STATS *);
 +#endif /* _ATH_AR5210_H_ */
-Index: dev/ath/ath_hal/ar5210/ar5210_attach.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_attach.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_attach.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_attach.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_attach.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_attach.c	27 Jan 2009 19:40:26 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_attach.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,383 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -10223,12 +11188,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_attach.c
 +	return AH_NULL;
 +}
 +AH_CHIP(AR5210, ar5210Probe, ar5210Attach);
-Index: dev/ath/ath_hal/ar5210/ar5210_beacon.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_beacon.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_beacon.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_beacon.c	27 Jan 2009 19:40:26 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,191 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -10421,12 +11386,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_beacon.c
 +	OS_REG_WRITE(ah, AR_RSSI_THR, ahp->ah_rssiThr);
 +#undef BMISS_MAX
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210_interrupts.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_interrupts.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_interrupts.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_interrupts.c	27 Jan 2009 19:40:26 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,134 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -10562,12 +11527,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_interrupts.c
 +
 +	return omask;
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210_keycache.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_keycache.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_keycache.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_keycache.c	27 Jan 2009 19:40:26 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,156 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -10725,12 +11690,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_keycache.c
 +	OS_REG_WRITE(ah, AR_KEYTABLE_TYPE(entry), keyType);
 +	return ar5210SetKeyCacheEntryMac(ah, entry, mac);
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210_misc.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_misc.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_misc.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_misc.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_misc.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_misc.c	27 Jan 2009 19:40:26 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_misc.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,642 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -11374,12 +12339,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_misc.c
 +	return ath_hal_getdiagstate(ah, request,
 +		args, argsize, result, resultsize);
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210_phy.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_phy.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_phy.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_phy.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_phy.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_phy.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_phy.c	27 Jan 2009 19:40:26 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_phy.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,85 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -11466,12 +12431,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_phy.c
 +	ath_hal_setupratetable(ah, rt);
 +	return rt;
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210_power.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_power.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_power.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_power.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_power.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_power.c	27 Jan 2009 19:40:26 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_power.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,134 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -11607,12 +12572,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_power.c
 +	/* Just so happens the h/w maps directly to the abstracted value */
 +	return MS(OS_REG_READ(ah, AR_SCR), AR_SCR_SLE);
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210_recv.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_recv.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_recv.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_recv.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_recv.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_recv.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_recv.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_recv.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,266 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -11880,12 +12845,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_recv.c
 +
 +	return HAL_OK;
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210_reset.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_reset.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_reset.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_reset.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_reset.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_reset.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_reset.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,1003 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -12890,12 +13855,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_reset.c
 +{
 +	return HAL_RFGAIN_INACTIVE;
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210_xmit.c
+Index: sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210_xmit.c
-diff -N dev/ath/ath_hal/ar5210/ar5210_xmit.c
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210_xmit.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,623 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -13520,12 +14485,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210_xmit.c
 +{
 +	return;
 +}
-Index: dev/ath/ath_hal/ar5210/ar5210desc.h
+Index: sys/dev/ath/ath_hal/ar5210/ar5210desc.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210desc.h
-diff -N dev/ath/ath_hal/ar5210/ar5210desc.h
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210desc.h
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210desc.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210desc.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,130 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -13657,12 +14622,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210desc.h
 +#define	AR_KeyCacheMiss		0x10000000	/* key cache miss indication */
 +
 +#endif /* _DEV_ATH_AR5210DESC_H_ */
-Index: dev/ath/ath_hal/ar5210/ar5210phy.h
+Index: sys/dev/ath/ath_hal/ar5210/ar5210phy.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210phy.h
-diff -N dev/ath/ath_hal/ar5210/ar5210phy.h
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210phy.h
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210phy.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210phy.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,59 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -13723,12 +14688,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210phy.h
 +#define	AR_PHY_AGCCTL_BITS	"\20\1CAL\2NF"
 +
 +#endif /* _DEV_ATH_AR5210PHY_H */
-Index: dev/ath/ath_hal/ar5210/ar5210reg.h
+Index: sys/dev/ath/ath_hal/ar5210/ar5210reg.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5210reg.h
-diff -N dev/ath/ath_hal/ar5210/ar5210reg.h
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5210reg.h
+diff -N sys/dev/ath/ath_hal/ar5210/ar5210reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5210reg.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210reg.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,401 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -14131,12 +15096,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5210reg.h
 +#define	AR_KEYTABLE_VALID	0x00008000	/* key and MAC address valid */
 +
 +#endif /* _DEV_ATH_AR5210REG_H */
-Index: dev/ath/ath_hal/ar5210/ar5k_0007.ini
+Index: sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5210/ar5k_0007.ini
-diff -N dev/ath/ath_hal/ar5210/ar5k_0007.ini
+RCS file: sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini
+diff -N sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5210/ar5k_0007.ini	27 Jan 2009 19:40:26 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,194 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -14332,12 +15297,12 @@ diff -N dev/ath/ath_hal/ar5210/ar5k_0007.ini
 +    { 0x0000989c, 0x0000006d },
 +    { 0x000098c0, 0x00000000 },
 +    { 0x000098d0, 0x00000014 },
-Index: dev/ath/ath_hal/ar5211/ar5211.h
+Index: sys/dev/ath/ath_hal/ar5211/ar5211.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211.h
-diff -N dev/ath/ath_hal/ar5211/ar5211.h
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211.h
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,308 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -14647,12 +15612,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211.h
 +extern	void ar5211AniPoll(struct ath_hal *, const HAL_NODE_STATS *, HAL_CHANNEL *);
 +extern	void ar5211MibEvent(struct ath_hal *, const HAL_NODE_STATS *);
 +#endif /* _ATH_AR5211_H_ */
-Index: dev/ath/ath_hal/ar5211/ar5211_attach.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_attach.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_attach.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_attach.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_attach.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_attach.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_attach.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,516 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -15170,12 +16135,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_attach.c
 +	return AH_NULL;
 +}
 +AH_CHIP(AR5211, ar5211Probe, ar5211Attach);
-Index: dev/ath/ath_hal/ar5211/ar5211_beacon.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_beacon.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_beacon.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_beacon.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,173 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -15350,12 +16315,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_beacon.c
 +		(bs->bs_sleepduration - SLEEP_SLOP) << 3);
 +#undef SLEEP_SLOP
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211_interrupts.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_interrupts.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_interrupts.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_interrupts.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,160 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -15517,12 +16482,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_interrupts.c
 +
 +	return omask;
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211_keycache.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_keycache.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_keycache.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_keycache.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,178 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -15702,12 +16667,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_keycache.c
 +	OS_REG_WRITE(ah, AR_KEYTABLE_TYPE(entry), keyType);
 +	return ar5211SetKeyCacheEntryMac(ah, entry, mac);
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211_misc.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_misc.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_misc.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_misc.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_misc.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_misc.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_misc.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,685 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -16394,12 +17359,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_misc.c
 +	}
 +	return AH_FALSE;
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211_phy.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_phy.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_phy.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_phy.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_phy.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_phy.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_phy.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_phy.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,104 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -16505,12 +17470,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_phy.c
 +	ath_hal_setupratetable(ah, rt);
 +	return rt;
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211_power.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_power.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_power.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_power.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_power.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_power.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_power.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -16648,12 +17613,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_power.c
 +	/* Just so happens the h/w maps directly to the abstracted value */
 +	return MS(OS_REG_READ(ah, AR_SCR), AR_SCR_SLE);
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211_recv.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_recv.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_recv.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_recv.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_recv.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_recv.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_recv.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_recv.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,245 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -16900,12 +17865,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_recv.c
 +
 +	return HAL_OK;
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211_reset.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_reset.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_reset.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_reset.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_reset.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_reset.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_reset.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,2138 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -19045,12 +20010,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_reset.c
 +{
 +	ar5211SetOperatingMode(ah, AH_PRIVATE(ah)->ah_opmode);
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211_xmit.c
+Index: sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211_xmit.c
-diff -N dev/ath/ath_hal/ar5211/ar5211_xmit.c
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211_xmit.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,662 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -19714,12 +20679,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211_xmit.c
 +{
 +	return;
 +}
-Index: dev/ath/ath_hal/ar5211/ar5211desc.h
+Index: sys/dev/ath/ath_hal/ar5211/ar5211desc.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211desc.h
-diff -N dev/ath/ath_hal/ar5211/ar5211desc.h
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211desc.h
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211desc.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211desc.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,134 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -19855,12 +20820,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211desc.h
 +#define	AR_KeyCacheMiss		0x10000000	/* key cache miss indication */
 +
 +#endif /* _DEV_ATH_AR5211DESC_H_ */
-Index: dev/ath/ath_hal/ar5211/ar5211phy.h
+Index: sys/dev/ath/ath_hal/ar5211/ar5211phy.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211phy.h
-diff -N dev/ath/ath_hal/ar5211/ar5211phy.h
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211phy.h
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211phy.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211phy.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,94 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -19956,12 +20921,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211phy.h
 +#define	AR5211_PHY_MODE_RF2GHZ	0x2	/* bit 1 = 1 for 2.4 GHz */
 +
 +#endif /* _DEV_ATH_AR5211PHY_H */
-Index: dev/ath/ath_hal/ar5211/ar5211reg.h
+Index: sys/dev/ath/ath_hal/ar5211/ar5211reg.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/ar5211reg.h
-diff -N dev/ath/ath_hal/ar5211/ar5211reg.h
+RCS file: sys/dev/ath/ath_hal/ar5211/ar5211reg.h
+diff -N sys/dev/ath/ath_hal/ar5211/ar5211reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/ar5211reg.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211reg.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,853 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -20816,12 +21781,12 @@ diff -N dev/ath/ath_hal/ar5211/ar5211reg.h
 +#define	AR_KEYTABLE_VALID	0x00008000	/* key and MAC address valid */
 +
 +#endif /* _DEV_ATH_AR5211REG_H */
-Index: dev/ath/ath_hal/ar5211/boss.ini
+Index: sys/dev/ath/ath_hal/ar5211/boss.ini
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5211/boss.ini
-diff -N dev/ath/ath_hal/ar5211/boss.ini
+RCS file: sys/dev/ath/ath_hal/ar5211/boss.ini
+diff -N sys/dev/ath/ath_hal/ar5211/boss.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5211/boss.ini	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5211/boss.ini	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,358 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -21181,12 +22146,12 @@ diff -N dev/ath/ath_hal/ar5211/boss.ini
 +	{ 0x000098cc, 0x0000000e, 0x0000000f },
 +};
 +
-Index: dev/ath/ath_hal/ar5212/ar2316.c
+Index: sys/dev/ath/ath_hal/ar5212/ar2316.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar2316.c
-diff -N dev/ath/ath_hal/ar5212/ar2316.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar2316.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar2316.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar2316.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar2316.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,767 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -21955,12 +22920,12 @@ diff -N dev/ath/ath_hal/ar5212/ar2316.c
 +	return IS_2316(ah);
 +}
 +AH_RF(RF2316, ar2316Probe, ar2316RfAttach);
-Index: dev/ath/ath_hal/ar5212/ar2317.c
+Index: sys/dev/ath/ath_hal/ar5212/ar2317.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar2317.c
-diff -N dev/ath/ath_hal/ar5212/ar2317.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar2317.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar2317.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar2317.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar2317.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,744 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -22706,12 +23671,12 @@ diff -N dev/ath/ath_hal/ar5212/ar2317.c
 +	return IS_2317(ah);
 +}
 +AH_RF(RF2317, ar2317Probe, ar2317RfAttach);
-Index: dev/ath/ath_hal/ar5212/ar2413.c
+Index: sys/dev/ath/ath_hal/ar5212/ar2413.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar2413.c
-diff -N dev/ath/ath_hal/ar5212/ar2413.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar2413.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar2413.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar2413.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar2413.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,759 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -23472,12 +24437,12 @@ diff -N dev/ath/ath_hal/ar5212/ar2413.c
 +	return IS_2413(ah);
 +}
 +AH_RF(RF2413, ar2413Probe, ar2413RfAttach);
-Index: dev/ath/ath_hal/ar5212/ar2425.c
+Index: sys/dev/ath/ath_hal/ar5212/ar2425.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar2425.c
-diff -N dev/ath/ath_hal/ar5212/ar2425.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar2425.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar2425.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar2425.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar2425.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,722 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -24201,12 +25166,12 @@ diff -N dev/ath/ath_hal/ar5212/ar2425.c
 +	return IS_2425(ah) || IS_2417(ah);
 +}
 +AH_RF(RF2425, ar2425Probe, ar2425RfAttach);
-Index: dev/ath/ath_hal/ar5212/ar5111.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5111.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5111.c
-diff -N dev/ath/ath_hal/ar5212/ar5111.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5111.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5111.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5111.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5111.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,711 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -24919,12 +25884,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5111.c
 +	return IS_RAD5111(ah);
 +}
 +AH_RF(RF5111, ar5111Probe, ar5111RfAttach);
-Index: dev/ath/ath_hal/ar5212/ar5112.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5112.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5112.c
-diff -N dev/ath/ath_hal/ar5212/ar5112.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5112.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5112.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5112.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5112.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,881 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -25807,12 +26772,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5112.c
 +	return IS_RAD5112(ah);
 +}
 +AH_RF(RF5112, ar5112Probe, ar5112RfAttach);
-Index: dev/ath/ath_hal/ar5212/ar5212.h
+Index: sys/dev/ath/ath_hal/ar5212/ar5212.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212.h
-diff -N dev/ath/ath_hal/ar5212/ar5212.h
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212.h
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,603 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -26417,12 +27382,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212.h
 +extern	void ar5212AniReset(struct ath_hal *, HAL_CHANNEL_INTERNAL *,
 +		HAL_OPMODE, int);
 +#endif	/* _ATH_AR5212_H_ */
-Index: dev/ath/ath_hal/ar5212/ar5212.ini
+Index: sys/dev/ath/ath_hal/ar5212/ar5212.ini
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212.ini
-diff -N dev/ath/ath_hal/ar5212/ar5212.ini
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212.ini
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212.ini	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212.ini	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,2171 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -28595,12 +29560,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212.ini
 +    { 0x000098cc, 0x0000000e, 0x0000000e, 0x0000000e, 0x0000000e, 0x0000000e },
 +};
 +#endif /* AH_5212_2425 */
-Index: dev/ath/ath_hal/ar5212/ar5212_ani.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_ani.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_ani.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_ani.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_ani.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_ani.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_ani.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_ani.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,1016 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -29618,12 +30583,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_ani.c
 +		}
 +	}
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_attach.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_attach.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_attach.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_attach.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_attach.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_attach.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_attach.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,870 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -30495,12 +31460,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_attach.c
 +	return AH_NULL;
 +}
 +AH_CHIP(AR5212, ar5212Probe, ar5212Attach);
-Index: dev/ath/ath_hal/ar5212/ar5212_beacon.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_beacon.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_beacon.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_beacon.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,253 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -30755,12 +31720,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_beacon.c
 +#undef BEACON_TIMEOUT_VAL
 +#undef SLEEP_SLOP
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_eeprom.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_eeprom.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_eeprom.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_eeprom.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,50 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -30812,12 +31777,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_eeprom.c
 +	*data = OS_REG_READ(ah, AR_EEPROM_DATA) & 0xffff;
 +	return AH_TRUE;
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_gpio.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_gpio.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_gpio.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_gpio.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,124 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -30943,12 +31908,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_gpio.c
 +	/* Change the interrupt mask. */
 +	(void) ar5212SetInterrupts(ah, AH5212(ah)->ah_maskReg | HAL_INT_GPIO);
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_interrupts.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_interrupts.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_interrupts.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_interrupts.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,206 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -31156,12 +32121,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_interrupts.c
 +
 +	return omask;
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_keycache.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_keycache.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_keycache.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_keycache.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,285 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -31448,12 +32413,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_keycache.c
 +	}
 +	return AH_TRUE;
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_misc.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_misc.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_misc.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_misc.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_misc.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_misc.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_misc.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,1075 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -32530,12 +33495,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_misc.c
 +	}
 +	return AH_FALSE;
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_phy.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_phy.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_phy.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_phy.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_phy.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_phy.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_phy.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_phy.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,199 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -32736,12 +33701,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_phy.c
 +	ath_hal_setupratetable(ah, rt);
 +	return rt;
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_power.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_power.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_power.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_power.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_power.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_power.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_power.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,175 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -32918,12 +33883,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_power.c
 +	return (OS_REG_READ(ah, AR_PCICFG) & AR_PCICFG_SPWR_DN) != 0;
 +}
 +#endif
-Index: dev/ath/ath_hal/ar5212/ar5212_recv.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_recv.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_recv.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_recv.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_recv.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_recv.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_recv.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_recv.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,286 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -33211,12 +34176,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_recv.c
 +	}
 +	return HAL_OK;
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_reset.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_reset.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_reset.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_reset.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_reset.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_reset.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_reset.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,2659 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -35877,12 +36842,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_reset.c
 +	OS_REG_RMW_FIELD(ah, AR_D_GBL_IFS_MISC,
 +				AR_D_GBL_IFS_MISC_USEC_DURATION, init_usec);
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_rfgain.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_rfgain.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_rfgain.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_rfgain.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,331 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -36215,12 +37180,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_rfgain.c
 +	}
 +	return ahp->ah_rfgainState;
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212_xmit.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212_xmit.c
-diff -N dev/ath/ath_hal/ar5212/ar5212_xmit.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212_xmit.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,918 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -37140,12 +38105,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212_xmit.c
 +	*txqs &= ahp->ah_intrTxqs;
 +	ahp->ah_intrTxqs &= ~(*txqs);
 +}
-Index: dev/ath/ath_hal/ar5212/ar5212desc.h
+Index: sys/dev/ath/ath_hal/ar5212/ar5212desc.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212desc.h
-diff -N dev/ath/ath_hal/ar5212/ar5212desc.h
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212desc.h
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212desc.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212desc.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,177 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -37324,12 +38289,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212desc.h
 +#define	AR_PHYErrCode_S		8
 +
 +#endif /* _ATH_AR5212_DESC_H_ */
-Index: dev/ath/ath_hal/ar5212/ar5212phy.h
+Index: sys/dev/ath/ath_hal/ar5212/ar5212phy.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212phy.h
-diff -N dev/ath/ath_hal/ar5212/ar5212phy.h
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212phy.h
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212phy.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212phy.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,347 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -37678,12 +38643,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212phy.h
 +#define	AR_PHY_TPCRG5_PD_GAIN_BOUNDARY_4_S	22
 +
 +#endif	/* _DEV_ATH_AR5212PHY_H_ */
-Index: dev/ath/ath_hal/ar5212/ar5212reg.h
+Index: sys/dev/ath/ath_hal/ar5212/ar5212reg.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5212reg.h
-diff -N dev/ath/ath_hal/ar5212/ar5212reg.h
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5212reg.h
+diff -N sys/dev/ath/ath_hal/ar5212/ar5212reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5212reg.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212reg.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,995 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -38680,12 +39645,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5212reg.h
 +#define AR_COMPRESSION_WINDOW_SIZE      4096 /* default comp. window size */
 +
 +#endif /* _DEV_AR5212REG_H_ */
-Index: dev/ath/ath_hal/ar5212/ar5311reg.h
+Index: sys/dev/ath/ath_hal/ar5212/ar5311reg.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5311reg.h
-diff -N dev/ath/ath_hal/ar5212/ar5311reg.h
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5311reg.h
+diff -N sys/dev/ath/ath_hal/ar5212/ar5311reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5311reg.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5311reg.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,50 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -38737,12 +39702,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5311reg.h
 +#define	AR5311_DIAG_USE_ECO	0x00000400	/* "super secret" enable ECO */
 +
 +#endif /* _DEV_ATH_AR5311REG_H_ */
-Index: dev/ath/ath_hal/ar5212/ar5413.c
+Index: sys/dev/ath/ath_hal/ar5212/ar5413.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5212/ar5413.c
-diff -N dev/ath/ath_hal/ar5212/ar5413.c
+RCS file: sys/dev/ath/ath_hal/ar5212/ar5413.c
+diff -N sys/dev/ath/ath_hal/ar5212/ar5413.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5212/ar5413.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5413.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,797 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -39541,12 +40506,12 @@ diff -N dev/ath/ath_hal/ar5212/ar5413.c
 +	return IS_5413(ah);
 +}
 +AH_RF(RF5413, ar5413Probe, ar5413RfAttach);
-Index: dev/ath/ath_hal/ar5312/ar5312.h
+Index: sys/dev/ath/ath_hal/ar5312/ar5312.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312.h
-diff -N dev/ath/ath_hal/ar5312/ar5312.h
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312.h
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,77 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -39625,12 +40590,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312.h
 +extern	HAL_BOOL ar5312EepromWrite(struct ath_hal *, u_int off, uint16_t data);
 +
 +#endif	/* _ATH_AR3212_H_ */
-Index: dev/ath/ath_hal/ar5312/ar5312_attach.c
+Index: sys/dev/ath/ath_hal/ar5312/ar5312_attach.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312_attach.c
-diff -N dev/ath/ath_hal/ar5312/ar5312_attach.c
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_attach.c
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312_attach.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_attach.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,333 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -39965,12 +40930,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312_attach.c
 +	return AH_NULL;
 +}
 +AH_CHIP(AR5312, ar5312Probe, ar5312Attach);
-Index: dev/ath/ath_hal/ar5312/ar5312_eeprom.c
+Index: sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312_eeprom.c
-diff -N dev/ath/ath_hal/ar5312/ar5312_eeprom.c
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312_eeprom.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,47 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40019,12 +40984,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312_eeprom.c
 +        return AH_TRUE;
 +}
 +#endif /* AH_SUPPORT_AR5312 */
-Index: dev/ath/ath_hal/ar5312/ar5312_gpio.c
+Index: sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312_gpio.c
-diff -N dev/ath/ath_hal/ar5312/ar5312_gpio.c
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312_gpio.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,131 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40157,12 +41122,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312_gpio.c
 +
 +
 +#endif /* AH_SUPPORT_AR5312 */
-Index: dev/ath/ath_hal/ar5312/ar5312_interrupts.c
+Index: sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312_interrupts.c
-diff -N dev/ath/ath_hal/ar5312/ar5312_interrupts.c
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312_interrupts.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,47 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40211,12 +41176,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312_interrupts.c
 +	return(AH_TRUE);
 +}
 +#endif /* AH_SUPPORT_AR5312 */
-Index: dev/ath/ath_hal/ar5312/ar5312_misc.c
+Index: sys/dev/ath/ath_hal/ar5312/ar5312_misc.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312_misc.c
-diff -N dev/ath/ath_hal/ar5312/ar5312_misc.c
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_misc.c
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312_misc.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_misc.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,168 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40386,12 +41351,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312_misc.c
 +}
 +
 +#endif /* AH_SUPPORT_AR5312 */
-Index: dev/ath/ath_hal/ar5312/ar5312_power.c
+Index: sys/dev/ath/ath_hal/ar5312/ar5312_power.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312_power.c
-diff -N dev/ath/ath_hal/ar5312/ar5312_power.c
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_power.c
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312_power.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_power.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,125 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40518,12 +41483,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312_power.c
 +        return 0;		/* Currently, 5312 is never in sleep mode. */
 +}
 +#endif /* AH_SUPPORT_AR5312 */
-Index: dev/ath/ath_hal/ar5312/ar5312_reset.c
+Index: sys/dev/ath/ath_hal/ar5312/ar5312_reset.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312_reset.c
-diff -N dev/ath/ath_hal/ar5312/ar5312_reset.c
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_reset.c
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312_reset.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_reset.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,919 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -41444,12 +42409,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312_reset.c
 +}
 +
 +#endif /* AH_SUPPORT_AR5312 */
-Index: dev/ath/ath_hal/ar5312/ar5312phy.h
+Index: sys/dev/ath/ath_hal/ar5312/ar5312phy.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312phy.h
-diff -N dev/ath/ath_hal/ar5312/ar5312phy.h
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312phy.h
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312phy.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312phy.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,31 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -41482,12 +42447,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312phy.h
 +#define AR_PHY_PLL_CTL_40_5312_QUARTER  0x16d4	/* 40 MHz for 11a, turbos (Quarter)*/
 +
 +#endif	/* _DEV_ATH_AR5312PHY_H_ */
-Index: dev/ath/ath_hal/ar5312/ar5312reg.h
+Index: sys/dev/ath/ath_hal/ar5312/ar5312reg.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5312reg.h
-diff -N dev/ath/ath_hal/ar5312/ar5312reg.h
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5312reg.h
+diff -N sys/dev/ath/ath_hal/ar5312/ar5312reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5312reg.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312reg.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,139 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -41628,12 +42593,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5312reg.h
 +};
 +
 +#endif /* _DEV_AR5312REG_H_ */
-Index: dev/ath/ath_hal/ar5312/ar5315_gpio.c
+Index: sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5312/ar5315_gpio.c
-diff -N dev/ath/ath_hal/ar5312/ar5315_gpio.c
+RCS file: sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c
+diff -N sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5312/ar5315_gpio.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,130 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -41765,12 +42730,12 @@ diff -N dev/ath/ath_hal/ar5312/ar5315_gpio.c
 +
 +
 +#endif /* AH_SUPPORT_2316 || AH_SUPPORT_2317 */
-Index: dev/ath/ath_hal/ar5416/ar2133.c
+Index: sys/dev/ath/ath_hal/ar5416/ar2133.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar2133.c
-diff -N dev/ath/ath_hal/ar5416/ar2133.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar2133.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar2133.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar2133.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar2133.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,466 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -42238,12 +43203,12 @@ diff -N dev/ath/ath_hal/ar5416/ar2133.c
 +
 +	return AH_TRUE;
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416.h
+Index: sys/dev/ath/ath_hal/ar5416/ar5416.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416.h
-diff -N dev/ath/ath_hal/ar5416/ar5416.h
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416.h
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,193 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -42438,12 +43403,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416.h
 +
 +extern	const HAL_RATE_TABLE *ar5416GetRateTable(struct ath_hal *, u_int mode);
 +#endif	/* _ATH_AR5416_H_ */
-Index: dev/ath/ath_hal/ar5416/ar5416.ini
+Index: sys/dev/ath/ath_hal/ar5416/ar5416.ini
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416.ini
-diff -N dev/ath/ath_hal/ar5416/ar5416.ini
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416.ini
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416.ini	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416.ini	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,688 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -43133,12 +44098,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416.ini
 +    {0x0989c,  0x00000000 },
 +    {0x098c4,  0x00000000 },
 +};
-Index: dev/ath/ath_hal/ar5416/ar5416_ani.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_ani.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_ani.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_ani.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_ani.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_ani.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_ani.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_ani.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,886 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -44026,12 +44991,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_ani.c
 +		}
 +	}
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_attach.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_attach.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_attach.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_attach.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_attach.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_attach.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_attach.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,486 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -44519,12 +45484,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_attach.c
 +	return AH_NULL;
 +}
 +AH_CHIP(AR5416, ar5416Probe, ar5416Attach);
-Index: dev/ath/ath_hal/ar5416/ar5416_beacon.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_beacon.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_beacon.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_beacon.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,246 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -44772,12 +45737,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_beacon.c
 +#undef BEACON_TIMEOUT_VAL
 +#undef SLEEP_SLOP
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_cal.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_cal.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_cal.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_cal.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,663 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -45442,12 +46407,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_cal.c
 +	}
 +	return nf;
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_cal.h
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_cal.h
-diff -N dev/ath/ath_hal/ar5416/ar5416_cal.h
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal.h
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_cal.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,119 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -45568,12 +46533,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_cal.h
 +void	ar5416AdcDcCalibration(struct ath_hal *ah, uint8_t numChains);
 +void	ar5416InitNfHistBuff(struct ar5212NfCalHist *h);
 +#endif /* _ATH_AR5416_CAL_H_ */
-Index: dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,111 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -45686,12 +46651,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
 +	OS_REG_SET_BIT(ah, AR_PHY_NEW_ADC_DC_GAIN_CORR(0),
 +	    AR_PHY_NEW_ADC_DC_OFFSET_CORR_ENABLE);
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,116 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -45809,12 +46774,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
 +	OS_REG_SET_BIT(ah, AR_PHY_NEW_ADC_DC_GAIN_CORR(0),
 +	    AR_PHY_NEW_ADC_GAIN_CORR_ENABLE);
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_cal_iq.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,132 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -45948,12 +46913,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
 +	OS_REG_SET_BIT(ah, AR_PHY_TIMING_CTRL4,
 +	    AR_PHY_TIMING_CTRL4_IQCORR_ENABLE);
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_eeprom.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_eeprom.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_eeprom.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_eeprom.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,44 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -45999,12 +46964,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_eeprom.c
 +		   AR_EEPROM_STATUS_DATA_VAL);
 +	return AH_TRUE;
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_gpio.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_gpio.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_gpio.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_gpio.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,112 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46118,12 +47083,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_gpio.c
 +	val |= AR_GPIO_BIT(gpio);
 +	OS_REG_RMW_FIELD(ah, AR_INTR_ASYNC_MASK, AR_INTR_GPIO, val);	
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_interrupts.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_interrupts.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_interrupts.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_interrupts.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,259 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46384,12 +47349,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_interrupts.c
 +
 +	return omask;
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_keycache.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_keycache.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_keycache.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_keycache.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,66 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46457,12 +47422,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_keycache.c
 +	} else
 +		return AH_FALSE;
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_misc.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_misc.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_misc.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_misc.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_misc.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_misc.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_misc.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,499 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46963,12 +47928,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_misc.c
 +#undef N
 +}
 +#undef NUM_STATUS_READS
-Index: dev/ath/ath_hal/ar5416/ar5416_phy.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_phy.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_phy.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_phy.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_phy.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_phy.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_phy.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_phy.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,126 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -47096,12 +48061,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_phy.c
 +	ath_hal_setupratetable(ah, rt);
 +	return rt;
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_power.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_power.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_power.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_power.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_power.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_power.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_power.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,173 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -47276,12 +48241,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_power.c
 +		return HAL_PM_UNDEFINED;	
 +	}
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_recv.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_recv.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_recv.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_recv.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_recv.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_recv.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_recv.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_recv.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,178 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -47461,12 +48426,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_recv.c
 +
 +	return HAL_OK;
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_reset.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_reset.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_reset.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_reset.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_reset.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_reset.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_reset.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,2895 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -50363,12 +51328,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_reset.c
 +		centers->ext_center = chan->channel;
 +	}
 +}
-Index: dev/ath/ath_hal/ar5416/ar5416_xmit.c
+Index: sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416_xmit.c
-diff -N dev/ath/ath_hal/ar5416/ar5416_xmit.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416_xmit.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,698 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -51068,12 +52033,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416_xmit.c
 +	ads->ds_ctl2 |= SM(burstDuration, AR_BurstDur);
 +}
 +#endif
-Index: dev/ath/ath_hal/ar5416/ar5416desc.h
+Index: sys/dev/ath/ath_hal/ar5416/ar5416desc.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416desc.h
-diff -N dev/ath/ath_hal/ar5416/ar5416desc.h
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416desc.h
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416desc.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416desc.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,397 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -51472,12 +52437,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416desc.h
 +	 MS((ads)->ds_rxstatus3, AR_Parallel40) : \
 +	 ((ads)->ds_rxstatus3 >> 10) & 0x1)
 +#endif /* _ATH_AR5416_DESC_H_ */
-Index: dev/ath/ath_hal/ar5416/ar5416phy.h
+Index: sys/dev/ath/ath_hal/ar5416/ar5416phy.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416phy.h
-diff -N dev/ath/ath_hal/ar5416/ar5416phy.h
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416phy.h
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416phy.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416phy.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,250 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -51729,12 +52694,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416phy.h
 +#define	AR_PHY_CL_CAL_CTL	0xA358		/* carrier leak cal control */
 +#define	AR_PHY_CL_CAL_ENABLE	0x00000002
 +#endif /* _DEV_ATH_AR5416PHY_H_ */
-Index: dev/ath/ath_hal/ar5416/ar5416reg.h
+Index: sys/dev/ath/ath_hal/ar5416/ar5416reg.h
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar5416reg.h
-diff -N dev/ath/ath_hal/ar5416/ar5416reg.h
+RCS file: sys/dev/ath/ath_hal/ar5416/ar5416reg.h
+diff -N sys/dev/ath/ath_hal/ar5416/ar5416reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar5416reg.h	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416reg.h	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,506 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -52242,12 +53207,12 @@ diff -N dev/ath/ath_hal/ar5416/ar5416reg.h
 +#define	AR_SREV_KITE_10_OR_LATER(_ah) \
 +	(AH_PRIVATE((_ah))->ah_macVersion >= AR_XSREV_VERSION_KITE)
 +#endif /* _DEV_ATH_AR5416REG_H */
-Index: dev/ath/ath_hal/ar5416/ar9160.ini
+Index: sys/dev/ath/ath_hal/ar5416/ar9160.ini
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar9160.ini
-diff -N dev/ath/ath_hal/ar5416/ar9160.ini
+RCS file: sys/dev/ath/ath_hal/ar5416/ar9160.ini
+diff -N sys/dev/ath/ath_hal/ar5416/ar9160.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar9160.ini	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar9160.ini	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,699 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -52948,12 +53913,12 @@ diff -N dev/ath/ath_hal/ar5416/ar9160.ini
 +    {0x0000989c,  0x00000000 },
 +    {0x000098cc,  0x00000000 },
 +};
-Index: dev/ath/ath_hal/ar5416/ar9160_attach.c
+Index: sys/dev/ath/ath_hal/ar5416/ar9160_attach.c
 ===================================================================
-RCS file: dev/ath/ath_hal/ar5416/ar9160_attach.c
-diff -N dev/ath/ath_hal/ar5416/ar9160_attach.c
+RCS file: sys/dev/ath/ath_hal/ar5416/ar9160_attach.c
+diff -N sys/dev/ath/ath_hal/ar5416/ar9160_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ dev/ath/ath_hal/ar5416/ar9160_attach.c	27 Jan 2009 19:40:27 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar9160_attach.c	27 Jan 2009 23:35:17 -0000
 @@ -0,0 +1,307 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -53262,3 +54227,437 @@ diff -N dev/ath/ath_hal/ar5416/ar9160_attach.c
 +	return AH_NULL;
 +}
 +AH_CHIP(AR9160, ar9160Probe, ar9160Attach);
+Index: sys/dev/ath/ath_rate/amrr/amrr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/amrr/amrr.c,v
+retrieving revision 1.14.6.1
+diff -u -r1.14.6.1 amrr.c
+--- sys/dev/ath/ath_rate/amrr/amrr.c	25 Nov 2008 02:59:29 -0000	1.14.6.1
++++ sys/dev/ath/ath_rate/amrr/amrr.c	27 Jan 2009 23:34:57 -0000
+@@ -50,7 +50,6 @@
+ #include <sys/param.h>
+ #include <sys/systm.h> 
+ #include <sys/sysctl.h>
+-#include <sys/module.h>
+ #include <sys/kernel.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
+@@ -78,7 +77,7 @@
+ 
+ #include <dev/ath/if_athvar.h>
+ #include <dev/ath/ath_rate/amrr/amrr.h>
+-#include <contrib/dev/ath/ah_desc.h>
++#include <dev/ath/ath_hal/ah_desc.h>
+ 
+ #define	AMRR_DEBUG
+ #ifdef AMRR_DEBUG
+@@ -518,29 +517,3 @@
+ 	callout_drain(&asc->timer);
+ 	free(asc, M_DEVBUF);
+ }
+-
+-/*
+- * Module glue.
+- */
+-static int
+-amrr_modevent(module_t mod, int type, void *unused)
+-{
+-	switch (type) {
+-	case MOD_LOAD:
+-		if (bootverbose)
+-			printf("ath_rate: <AMRR rate control algorithm> version 0.1\n");
+-		return 0;
+-	case MOD_UNLOAD:
+-		return 0;
+-	}
+-	return EINVAL;
+-}
+-
+-static moduledata_t amrr_mod = {
+-	"ath_rate",
+-	amrr_modevent,
+-	0
+-};
+-DECLARE_MODULE(ath_rate, amrr_mod, SI_SUB_DRIVERS, SI_ORDER_FIRST);
+-MODULE_VERSION(ath_rate, 1);
+-MODULE_DEPEND(ath_rate, wlan, 1, 1, 1);
+Index: sys/dev/ath/ath_rate/onoe/onoe.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/onoe/onoe.c,v
+retrieving revision 1.15.6.1
+diff -u -r1.15.6.1 onoe.c
+--- sys/dev/ath/ath_rate/onoe/onoe.c	25 Nov 2008 02:59:29 -0000	1.15.6.1
++++ sys/dev/ath/ath_rate/onoe/onoe.c	27 Jan 2009 23:34:57 -0000
+@@ -38,7 +38,6 @@
+ #include <sys/param.h>
+ #include <sys/systm.h> 
+ #include <sys/sysctl.h>
+-#include <sys/module.h>
+ #include <sys/kernel.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
+@@ -66,7 +65,7 @@
+ 
+ #include <dev/ath/if_athvar.h>
+ #include <dev/ath/ath_rate/onoe/onoe.h>
+-#include <contrib/dev/ath/ah_desc.h>
++#include <dev/ath/ath_hal/ah_desc.h>
+ 
+ #define	ONOE_DEBUG
+ #ifdef ONOE_DEBUG
+@@ -492,29 +491,3 @@
+ 	callout_drain(&osc->timer);
+ 	free(osc, M_DEVBUF);
+ }
+-
+-/*
+- * Module glue.
+- */
+-static int
+-onoe_modevent(module_t mod, int type, void *unused)
+-{
+-	switch (type) {
+-	case MOD_LOAD:
+-		if (bootverbose)
+-			printf("ath_rate: <Atsushi Onoe's rate control algorithm>\n");
+-		return 0;
+-	case MOD_UNLOAD:
+-		return 0;
+-	}
+-	return EINVAL;
+-}
+-
+-static moduledata_t onoe_mod = {
+-	"ath_rate",
+-	onoe_modevent,
+-	0
+-};
+-DECLARE_MODULE(ath_rate, onoe_mod, SI_SUB_DRIVERS, SI_ORDER_FIRST);
+-MODULE_VERSION(ath_rate, 1);
+-MODULE_DEPEND(ath_rate, wlan, 1, 1, 1);
+Index: sys/dev/ath/ath_rate/sample/sample.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/ath/ath_rate/sample/sample.c,v
+retrieving revision 1.18.2.1.4.1
+diff -u -r1.18.2.1.4.1 sample.c
+--- sys/dev/ath/ath_rate/sample/sample.c	25 Nov 2008 02:59:29 -0000	1.18.2.1.4.1
++++ sys/dev/ath/ath_rate/sample/sample.c	27 Jan 2009 23:34:57 -0000
+@@ -46,7 +46,6 @@
+ #include <sys/param.h>
+ #include <sys/systm.h> 
+ #include <sys/sysctl.h>
+-#include <sys/module.h>
+ #include <sys/kernel.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
+@@ -74,7 +73,7 @@
+ 
+ #include <dev/ath/if_athvar.h>
+ #include <dev/ath/ath_rate/sample/sample.h>
+-#include <contrib/dev/ath/ah_desc.h>
++#include <dev/ath/ath_hal/ah_desc.h>
+ 
+ #define	SAMPLE_DEBUG
+ #ifdef SAMPLE_DEBUG
+@@ -840,30 +839,3 @@
+ 	
+ 	free(osc, M_DEVBUF);
+ }
+-
+-/*
+- * Module glue.
+- */
+-static int
+-sample_modevent(module_t mod, int type, void *unused)
+-{
+-	switch (type) {
+-	case MOD_LOAD:
+-		if (bootverbose)
+-			printf("ath_rate: version 1.2 <SampleRate bit-rate selection algorithm>\n");
+-		return 0;
+-	case MOD_UNLOAD:
+-		return 0;
+-	}
+-	return EINVAL;
+-}
+-
+-static moduledata_t sample_mod = {
+-	"ath_rate",
+-	sample_modevent,
+-	0
+-};
+-DECLARE_MODULE(ath_rate, sample_mod, SI_SUB_DRIVERS, SI_ORDER_FIRST);
+-MODULE_VERSION(ath_rate, 1);
+-MODULE_DEPEND(ath_rate, ath_hal, 1, 1, 1);	/* Atheros HAL */
+-MODULE_DEPEND(ath_rate, wlan, 1, 1, 1);
+Index: sys/i386/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/i386/conf/GENERIC,v
+retrieving revision 1.474.2.15.2.1
+diff -u -r1.474.2.15.2.1 GENERIC
+--- sys/i386/conf/GENERIC	25 Nov 2008 02:59:29 -0000	1.474.2.15.2.1
++++ sys/i386/conf/GENERIC	27 Jan 2009 23:34:57 -0000
+@@ -255,6 +255,7 @@
+ device		an		# Aironet 4500/4800 802.11 wireless NICs.
+ device		ath		# Atheros pci/cardbus NIC's
+ device		ath_hal		# Atheros HAL (Hardware Access Layer)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ device		ath_rate_sample	# SampleRate tx rate control for ath
+ device		awi		# BayStack 660 and others
+ device		ral		# Ralink Technology RT2500 wireless NICs.
+Index: sys/i386/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/i386/conf/NOTES,v
+retrieving revision 1.1244.2.6.2.1
+diff -u -r1.1244.2.6.2.1 NOTES
+--- sys/i386/conf/NOTES	25 Nov 2008 02:59:29 -0000	1.1244.2.6.2.1
++++ sys/i386/conf/NOTES	27 Jan 2009 23:34:57 -0000
+@@ -680,6 +680,7 @@
+ 
+ device		ath
+ device		ath_hal		# Atheros HAL (includes binary component)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ #device		ath_rate_amrr	# AMRR rate control for ath driver
+ #device		ath_rate_onoe	# Onoe rate control for ath driver
+ device		ath_rate_sample	# SampleRate rate control for the ath driver
+Index: sys/modules/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sys/modules/Makefile,v
+retrieving revision 1.540.2.25.2.1
+diff -u -r1.540.2.25.2.1 Makefile
+--- sys/modules/Makefile	25 Nov 2008 02:59:29 -0000	1.540.2.25.2.1
++++ sys/modules/Makefile	27 Jan 2009 23:34:57 -0000
+@@ -28,11 +28,7 @@
+ 	${_arl} \
+ 	${_asr} \
+ 	ata \
+-	${_ath} \
+-	${_ath_hal} \
+-	${_ath_rate_amrr} \
+-	${_ath_rate_onoe} \
+-	${_ath_rate_sample} \
++	ath \
+ 	aue \
+ 	${_auxio} \
+ 	${_awi} \
+@@ -375,11 +371,6 @@
+ _apm=		apm
+ _ar=		ar
+ _arcnet=	arcnet
+-_ath=		ath
+-_ath_hal=	ath_hal
+-_ath_rate_amrr=	ath_rate_amrr
+-_ath_rate_onoe=	ath_rate_onoe
+-_ath_rate_sample=ath_rate_sample
+ _awi=		awi
+ _bktr=		bktr
+ _cardbus=	cardbus
+@@ -512,11 +503,6 @@
+ _agp=		agp
+ _an=		an
+ _arcmsr=	arcmsr
+-_ath=		ath
+-_ath_hal=	ath_hal
+-_ath_rate_amrr=	ath_rate_amrr
+-_ath_rate_onoe=	ath_rate_onoe
+-_ath_rate_sample=ath_rate_sample
+ _cardbus=	cardbus
+ _cbb=		cbb
+ _cmx=		cmx
+@@ -621,22 +607,12 @@
+ 
+ .if ${MACHINE_ARCH} == "powerpc"
+ _an=		an
+-_ath=		ath
+-_ath_hal=	ath_hal
+-_ath_rate_amrr=	ath_rate_amrr
+-_ath_rate_onoe=	ath_rate_onoe
+-_ath_rate_sample=ath_rate_sample
+ _bm=		bm
+ _nvram=		powermac_nvram
+ _smbfs=		smbfs
+ .endif
+ 
+ .if ${MACHINE_ARCH} == "sparc64"
+-_ath=		ath
+-_ath_hal=	ath_hal
+-_ath_rate_amrr=	ath_rate_amrr
+-_ath_rate_onoe=	ath_rate_onoe
+-_ath_rate_sample=ath_rate_sample
+ _auxio=		auxio
+ _em=		em
+ _i2c=		i2c
+Index: sys/modules/ath/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sys/modules/ath/Makefile,v
+retrieving revision 1.5.6.1
+diff -u -r1.5.6.1 Makefile
+--- sys/modules/ath/Makefile	25 Nov 2008 02:59:29 -0000	1.5.6.1
++++ sys/modules/ath/Makefile	27 Jan 2009 23:34:57 -0000
+@@ -1,5 +1,5 @@
+ #
+-# Copyright (c) 2002, 2003 Sam Leffler, Errno Consulting
++# Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
+ # All rights reserved.
+ #
+ # Redistribution and use in source and binary forms, with or without
+@@ -12,13 +12,6 @@
+ #    similar to the "NO WARRANTY" disclaimer below ("Disclaimer") and any
+ #    redistribution must be conditioned upon including a substantially
+ #    similar Disclaimer requirement for further binary redistribution.
+-# 3. Neither the names of the above-listed copyright holders nor the names
+-#    of any contributors may be used to endorse or promote products derived
+-#    from this software without specific prior written permission.
+-#
+-# Alternatively, this software may be distributed under the terms of the
+-# GNU General Public License ("GPL") version 2 as published by the Free
+-# Software Foundation.
+ #
+ # NO WARRANTY
+ # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+@@ -36,30 +29,84 @@
+ # $FreeBSD: src/sys/modules/ath/Makefile,v 1.5.6.1 2008/11/25 02:59:29 kensmith Exp $
+ #
+ 
+-.PATH: ${.CURDIR}/../../dev/ath
++ATH_RATE?=	sample		# tx rate control algorithm
++
++.PATH:	${.CURDIR}/../../dev/ath
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal
+ 
+ KMOD=	if_ath
+ SRCS=	if_ath.c if_ath_pci.c
++# NB: v3 eeprom support used by both AR5211 and AR5212; just include it
++SRCS+=	ah_osdep.c ah.c ah_regdomain.c ah_eeprom_v3.c
+ SRCS+=	device_if.h bus_if.h pci_if.h opt_inet.h opt_ath.h opt_ah.h
+ 
+-HAL=	${.CURDIR}/../../contrib/dev/ath
+-CFLAGS+=  -I. -I${.CURDIR}/../../dev/ath -I${HAL}
++#
++# AR5210 support; these are first generation 11a-only devices.
++#
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal/ar5210
++SRCS+=	ah_eeprom_v1.c \
++	ar5210_attach.c ar5210_beacon.c ar5210_interrupts.c \
++	ar5210_keycache.c ar5210_misc.c ar5210_phy.c ar5210_power.c \
++	ar5210_recv.c ar5210_reset.c ar5210_xmit.c
++
++#
++# AR5211 support; these are second generation 11b/g/a devices
++# (but 11g was OFDM only and is not supported).
++#
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal/ar5211
++SRCS+=	ar5211_attach.c ar5211_beacon.c ar5211_interrupts.c \
++	ar5211_keycache.c ar5211_misc.c	ar5211_phy.c ar5211_power.c \
++	ar5211_recv.c ar5211_reset.c ar5211_xmit.c
+ 
+-opt_ath.h:
+-	echo > $@
++#
++# AR5212 support; this covers all other pci/cardbus legacy parts.
++#
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal/ar5212
++SRCS+=	ar5212_ani.c ar5212_attach.c ar5212_beacon.c ar5212_eeprom.c \
++	ar5212_gpio.c ar5212_interrupts.c ar5212_keycache.c ar5212_misc.c \
++	ar5212_phy.c ar5212_power.c ar5212_recv.c ar5212_reset.c \
++	ar5212_rfgain.c ar5212_xmit.c
++# RF backends
++SRCS+=	ar5111.c
++SRCS+=	ar5112.c
++SRCS+=	ar2413.c
++SRCS+=	ar2425.c
++SRCS+=	ar5413.c
+ 
+-# patch for hal naming difference
+-.if ${MACHINE_ARCH} == "amd64"
+-ATH_MODULE_ARCH=x86_64
+-.elif ${MACHINE_ARCH} == "sparc64"
+-ATH_MODULE_ARCH=sparc64-be
+-.elif ${MACHINE_ARCH} == "powerpc"
+-ATH_MODULE_ARCH=powerpc-be
+-.else
+-ATH_MODULE_ARCH=${MACHINE_ARCH}
++#
++# AR5416, AR9160 support; these are 11n parts but only really
++# supported (right now) operating in legacy mode.  Note enabling
++# this support requires defining AH_SUPPORT_AR5416 in opt_ah.h
++# so the 11n tx/rx descriptor format is handled.
++#
++# NB: 9160 depends on 5416 but 5416 does not require 9160
++#
++.PATH:	${.CURDIR}/../../dev/ath/ath_hal/ar5416
++SRCS+=	ah_eeprom_v14.c \
++	ar5416_ani.c ar5416_attach.c ar5416_beacon.c ar5416_cal.c \
++	ar5416_cal_iq.c ar5416_cal_adcgain.c ar5416_cal_adcdc.c \
++	ar5416_eeprom.c ar5416_gpio.c ar5416_interrupts.c ar5416_keycache.c \
++	ar5416_misc.c ar5416_phy.c ar5416_power.c ar5416_recv.c \
++	ar5416_reset.c ar5416_xmit.c
++SRCS+=	ar9160_attach.c
++# RF backend for 5416 and 9160
++SRCS+=	ar2133.c
++
++# NB: rate control is bound to the driver by symbol names so only pick one
++.if ${ATH_RATE} == "sample"
++.PATH:	${.CURDIR}/../../dev/ath/ath_rate/sample
++SRCS+=	sample.c opt_wlan.h
++.elif ${ATH_RATE} == "onoe"
++.PATH:	${.CURDIR}/../../dev/ath/ath_rate/onoe
++SRCS+=	onoe.c
++.elif ${ATH_RATE} == "amrr"
++.PATH:	${.CURDIR}/../../dev/ath/ath_rate/amrr
++SRCS+=	amrr.c
+ .endif
+ 
+-opt_ah.h: ${HAL}/public/${ATH_MODULE_ARCH}-elf.opt_ah.h
+-	cp ${HAL}/public/${ATH_MODULE_ARCH}-elf.opt_ah.h ${.TARGET}
++CFLAGS+=  -I. -I${.CURDIR}/../../dev/ath -I${.CURDIR}/../../dev/ath/ath_hal
++
++opt_ah.h:
++	echo '#define AH_SUPPORT_AR5416 1' > $@
+ 
+ .include <bsd.kmod.mk>
+Index: sys/pc98/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/pc98/conf/GENERIC,v
+retrieving revision 1.297.2.4.2.2
+diff -u -r1.297.2.4.2.2 GENERIC
+--- sys/pc98/conf/GENERIC	23 Dec 2008 02:19:14 -0000	1.297.2.4.2.2
++++ sys/pc98/conf/GENERIC	27 Jan 2009 23:34:57 -0000
+@@ -210,6 +210,7 @@
+ #device		an		# Aironet 4500/4800 802.11 wireless NICs.
+ #device		ath		# Atheros pci/cardbus NIC's
+ #device		ath_hal		# Atheros HAL (Hardware Access Layer)
++#options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ #device		ath_rate_sample	# SampleRate tx rate control for ath
+ #device		awi		# BayStack 660 and others
+ #device		ral		# Ralink Technology RT2500 wireless NICs.
+Index: sys/pc98/conf/NOTES
+===================================================================
+RCS file: /home/ncvs/src/sys/pc98/conf/NOTES,v
+retrieving revision 1.85.6.1
+diff -u -r1.85.6.1 NOTES
+--- sys/pc98/conf/NOTES	25 Nov 2008 02:59:29 -0000	1.85.6.1
++++ sys/pc98/conf/NOTES	27 Jan 2009 23:34:57 -0000
+@@ -437,6 +437,7 @@
+ 
+ device		ath
+ device		ath_hal		# Atheros HAL (includes binary component)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ #device		ath_rate_amrr	# AMRR rate control for ath driver
+ #device		ath_rate_onoe	# Onoe rate control for ath driver
+ device		ath_rate_sample	# SampleRate rate control for the ath driver
+Index: sys/sparc64/conf/GENERIC
+===================================================================
+RCS file: /home/ncvs/src/sys/sparc64/conf/GENERIC,v
+retrieving revision 1.127.2.6.2.1
+diff -u -r1.127.2.6.2.1 GENERIC
+--- sys/sparc64/conf/GENERIC	25 Nov 2008 02:59:29 -0000	1.127.2.6.2.1
++++ sys/sparc64/conf/GENERIC	27 Jan 2009 23:34:57 -0000
+@@ -192,6 +192,7 @@
+ device		wlan_scan_sta	# 802.11 STA mode scanning
+ device		ath		# Atheros pci/cardbus NIC's
+ device		ath_hal		# Atheros HAL (Hardware Access Layer)
++options		AH_SUPPORT_AR5416	# enable AR5416 tx/rx descriptors
+ device		ath_rate_sample	# SampleRate tx rate control for ath
+ 
+ # Pseudo devices.
