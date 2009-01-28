@@ -833,7 +833,7 @@ Index: sys/dev/ath/ath_hal/ah.c
 RCS file: sys/dev/ath/ath_hal/ah.c
 diff -N sys/dev/ath/ath_hal/ah.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,885 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -1725,7 +1725,7 @@ Index: sys/dev/ath/ath_hal/ah.h
 RCS file: sys/dev/ath/ath_hal/ah.h
 diff -N sys/dev/ath/ath_hal/ah.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,899 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -2631,7 +2631,7 @@ Index: sys/dev/ath/ath_hal/ah_debug.h
 RCS file: sys/dev/ath/ath_hal/ah_debug.h
 diff -N sys/dev/ath/ath_hal/ah_debug.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_debug.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_debug.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,49 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -2687,7 +2687,7 @@ Index: sys/dev/ath/ath_hal/ah_decode.h
 RCS file: sys/dev/ath/ath_hal/ah_decode.h
 diff -N sys/dev/ath/ath_hal/ah_decode.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_decode.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_decode.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,55 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -2749,7 +2749,7 @@ Index: sys/dev/ath/ath_hal/ah_desc.h
 RCS file: sys/dev/ath/ath_hal/ah_desc.h
 diff -N sys/dev/ath/ath_hal/ah_desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_desc.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_desc.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,220 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -2976,7 +2976,7 @@ Index: sys/dev/ath/ath_hal/ah_devid.h
 RCS file: sys/dev/ath/ath_hal/ah_devid.h
 diff -N sys/dev/ath/ath_hal/ah_devid.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_devid.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_devid.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,84 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -3067,7 +3067,7 @@ Index: sys/dev/ath/ath_hal/ah_eeprom.h
 RCS file: sys/dev/ath/ath_hal/ah_eeprom.h
 diff -N sys/dev/ath/ath_hal/ah_eeprom.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_eeprom.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,133 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -3207,7 +3207,7 @@ Index: sys/dev/ath/ath_hal/ah_eeprom_v1.c
 RCS file: sys/dev/ath/ath_hal/ah_eeprom_v1.c
 diff -N sys/dev/ath/ath_hal/ah_eeprom_v1.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_eeprom_v1.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v1.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,253 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -3467,7 +3467,7 @@ Index: sys/dev/ath/ath_hal/ah_eeprom_v1.h
 RCS file: sys/dev/ath/ath_hal/ah_eeprom_v1.h
 diff -N sys/dev/ath/ath_hal/ah_eeprom_v1.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_eeprom_v1.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v1.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,99 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -3573,7 +3573,7 @@ Index: sys/dev/ath/ath_hal/ah_eeprom_v14.c
 RCS file: sys/dev/ath/ath_hal/ah_eeprom_v14.c
 diff -N sys/dev/ath/ath_hal/ah_eeprom_v14.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_eeprom_v14.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v14.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,404 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -3984,7 +3984,7 @@ Index: sys/dev/ath/ath_hal/ah_eeprom_v14.h
 RCS file: sys/dev/ath/ath_hal/ah_eeprom_v14.h
 diff -N sys/dev/ath/ath_hal/ah_eeprom_v14.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_eeprom_v14.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v14.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,271 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
@@ -4262,7 +4262,7 @@ Index: sys/dev/ath/ath_hal/ah_eeprom_v3.c
 RCS file: sys/dev/ath/ath_hal/ah_eeprom_v3.c
 diff -N sys/dev/ath/ath_hal/ah_eeprom_v3.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_eeprom_v3.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v3.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,1876 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -6145,7 +6145,7 @@ Index: sys/dev/ath/ath_hal/ah_eeprom_v3.h
 RCS file: sys/dev/ath/ath_hal/ah_eeprom_v3.h
 diff -N sys/dev/ath/ath_hal/ah_eeprom_v3.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_eeprom_v3.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_eeprom_v3.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,462 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -6614,7 +6614,7 @@ Index: sys/dev/ath/ath_hal/ah_internal.h
 RCS file: sys/dev/ath/ath_hal/ah_internal.h
 diff -N sys/dev/ath/ath_hal/ah_internal.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_internal.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_internal.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,787 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -7408,7 +7408,7 @@ Index: sys/dev/ath/ath_hal/ah_regdomain.c
 RCS file: sys/dev/ath/ath_hal/ah_regdomain.c
 diff -N sys/dev/ath/ath_hal/ah_regdomain.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_regdomain.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_regdomain.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,2870 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -10285,7 +10285,7 @@ Index: sys/dev/ath/ath_hal/ah_soc.h
 RCS file: sys/dev/ath/ath_hal/ah_soc.h
 diff -N sys/dev/ath/ath_hal/ah_soc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ah_soc.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ah_soc.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,91 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -10383,7 +10383,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210.h
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210.h
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,278 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -10668,7 +10668,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_attach.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_attach.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_attach.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_attach.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,383 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -11058,7 +11058,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_beacon.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,191 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -11256,7 +11256,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_interrupts.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,134 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -11397,7 +11397,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_keycache.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,156 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -11560,7 +11560,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_misc.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_misc.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_misc.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_misc.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,642 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -12209,7 +12209,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_phy.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_phy.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_phy.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_phy.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_phy.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,85 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -12301,7 +12301,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_power.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_power.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_power.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_power.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,134 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -12442,7 +12442,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_recv.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_recv.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_recv.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_recv.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_recv.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,266 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -12715,7 +12715,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_reset.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_reset.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_reset.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_reset.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,1003 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -13725,7 +13725,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210_xmit.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,623 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -14355,7 +14355,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210desc.h
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210desc.h
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210desc.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210desc.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,130 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -14492,7 +14492,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210phy.h
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210phy.h
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210phy.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210phy.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,59 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -14558,7 +14558,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5210reg.h
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5210reg.h
 diff -N sys/dev/ath/ath_hal/ar5210/ar5210reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5210reg.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5210reg.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,401 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -14966,7 +14966,7 @@ Index: sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini
 RCS file: sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini
 diff -N sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5210/ar5k_0007.ini	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,194 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -15167,7 +15167,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211.h
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211.h
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,308 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -15482,7 +15482,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_attach.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_attach.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_attach.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_attach.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,516 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -16005,7 +16005,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_beacon.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,173 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -16185,7 +16185,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_interrupts.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,160 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -16352,7 +16352,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_keycache.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,178 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -16537,7 +16537,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_misc.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_misc.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_misc.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_misc.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,685 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -17229,7 +17229,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_phy.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_phy.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_phy.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_phy.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_phy.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,104 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -17340,7 +17340,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_power.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_power.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_power.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_power.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -17483,7 +17483,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_recv.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_recv.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_recv.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_recv.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_recv.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,245 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -17735,7 +17735,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_reset.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_reset.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_reset.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_reset.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,2138 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -19880,7 +19880,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211_xmit.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,662 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -20549,7 +20549,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211desc.h
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211desc.h
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211desc.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211desc.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,134 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -20690,7 +20690,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211phy.h
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211phy.h
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211phy.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211phy.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,94 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -20791,7 +20791,7 @@ Index: sys/dev/ath/ath_hal/ar5211/ar5211reg.h
 RCS file: sys/dev/ath/ath_hal/ar5211/ar5211reg.h
 diff -N sys/dev/ath/ath_hal/ar5211/ar5211reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/ar5211reg.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/ar5211reg.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,853 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -21651,7 +21651,7 @@ Index: sys/dev/ath/ath_hal/ar5211/boss.ini
 RCS file: sys/dev/ath/ath_hal/ar5211/boss.ini
 diff -N sys/dev/ath/ath_hal/ar5211/boss.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5211/boss.ini	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5211/boss.ini	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,358 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -22016,7 +22016,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar2316.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar2316.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar2316.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar2316.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar2316.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,767 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -22790,7 +22790,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar2317.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar2317.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar2317.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar2317.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar2317.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,744 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -23541,7 +23541,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar2413.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar2413.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar2413.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar2413.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar2413.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,759 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -24307,7 +24307,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar2425.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar2425.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar2425.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar2425.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar2425.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,722 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -25036,7 +25036,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5111.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5111.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5111.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5111.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5111.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,711 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -25754,7 +25754,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5112.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5112.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5112.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5112.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5112.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,881 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -26642,7 +26642,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212.h
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212.h
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,603 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -27252,7 +27252,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212.ini
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212.ini
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212.ini	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212.ini	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,2171 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -29430,7 +29430,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_ani.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_ani.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_ani.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_ani.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_ani.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,1016 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -30453,7 +30453,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_attach.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_attach.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_attach.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_attach.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,870 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -31330,7 +31330,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_beacon.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,253 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -31590,7 +31590,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_eeprom.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,50 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -31647,7 +31647,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_gpio.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,124 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -31778,7 +31778,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_interrupts.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,206 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -31991,7 +31991,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_keycache.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,285 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -32283,7 +32283,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_misc.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_misc.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_misc.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_misc.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,1075 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -33365,7 +33365,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_phy.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_phy.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_phy.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_phy.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_phy.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,199 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -33571,7 +33571,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_power.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_power.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_power.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_power.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,175 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -33753,7 +33753,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_recv.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_recv.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_recv.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_recv.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_recv.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,286 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -34046,7 +34046,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_reset.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_reset.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_reset.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_reset.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,2659 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -36712,7 +36712,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_rfgain.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,331 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -37050,7 +37050,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212_xmit.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,918 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -37975,7 +37975,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212desc.h
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212desc.h
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212desc.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212desc.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,177 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -38159,7 +38159,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212phy.h
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212phy.h
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212phy.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212phy.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,347 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -38513,7 +38513,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5212reg.h
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5212reg.h
 diff -N sys/dev/ath/ath_hal/ar5212/ar5212reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5212reg.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5212reg.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,995 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -39515,7 +39515,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5311reg.h
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5311reg.h
 diff -N sys/dev/ath/ath_hal/ar5212/ar5311reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5311reg.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5311reg.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,50 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -39572,7 +39572,7 @@ Index: sys/dev/ath/ath_hal/ar5212/ar5413.c
 RCS file: sys/dev/ath/ath_hal/ar5212/ar5413.c
 diff -N sys/dev/ath/ath_hal/ar5212/ar5413.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5212/ar5413.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5212/ar5413.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,797 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40376,7 +40376,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312.h
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312.h
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,77 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40460,7 +40460,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312_attach.c
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_attach.c
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312_attach.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_attach.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,333 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40800,7 +40800,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_eeprom.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,47 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40854,7 +40854,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_gpio.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,131 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -40992,7 +40992,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_interrupts.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,47 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -41046,7 +41046,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312_misc.c
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_misc.c
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312_misc.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_misc.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,168 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -41221,7 +41221,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312_power.c
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_power.c
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312_power.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_power.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,125 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -41353,7 +41353,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312_reset.c
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312_reset.c
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312_reset.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312_reset.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,919 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -42279,7 +42279,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312phy.h
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312phy.h
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312phy.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312phy.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,31 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -42317,7 +42317,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5312reg.h
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5312reg.h
 diff -N sys/dev/ath/ath_hal/ar5312/ar5312reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5312reg.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5312reg.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,139 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -42463,7 +42463,7 @@ Index: sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c
 RCS file: sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c
 diff -N sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5312/ar5315_gpio.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,130 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -42600,7 +42600,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar2133.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar2133.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar2133.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar2133.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar2133.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,466 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -43073,7 +43073,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416.h
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416.h
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,193 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -43273,7 +43273,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416.ini
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416.ini
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416.ini	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416.ini	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,688 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -43968,7 +43968,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_ani.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_ani.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_ani.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_ani.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_ani.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,886 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -44861,7 +44861,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_attach.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_attach.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_attach.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_attach.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,486 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -45354,7 +45354,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_beacon.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,246 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -45607,7 +45607,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_cal.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,663 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46277,7 +46277,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal.h
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal.h
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_cal.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,119 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46403,7 +46403,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcdc.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,111 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46521,7 +46521,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_adcgain.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,116 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46644,7 +46644,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_cal_iq.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,132 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46783,7 +46783,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_eeprom.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,44 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46834,7 +46834,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_gpio.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,112 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -46953,7 +46953,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_interrupts.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,259 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -47219,7 +47219,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_keycache.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,66 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -47292,7 +47292,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_misc.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_misc.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_misc.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_misc.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_misc.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,499 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -47798,7 +47798,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_phy.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_phy.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_phy.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_phy.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_phy.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,126 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -47931,7 +47931,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_power.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_power.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_power.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_power.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_power.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,173 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -48111,7 +48111,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_recv.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_recv.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_recv.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_recv.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_recv.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,178 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -48296,7 +48296,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_reset.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_reset.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_reset.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_reset.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_reset.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,2895 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -51198,7 +51198,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416_xmit.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,698 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -51903,7 +51903,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416desc.h
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416desc.h
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416desc.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416desc.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416desc.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,397 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -52307,7 +52307,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416phy.h
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416phy.h
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416phy.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416phy.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416phy.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,250 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -52564,7 +52564,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar5416reg.h
 RCS file: sys/dev/ath/ath_hal/ar5416/ar5416reg.h
 diff -N sys/dev/ath/ath_hal/ar5416/ar5416reg.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar5416reg.h	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar5416reg.h	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,506 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -53077,7 +53077,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar9160.ini
 RCS file: sys/dev/ath/ath_hal/ar5416/ar9160.ini
 diff -N sys/dev/ath/ath_hal/ar5416/ar9160.ini
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar9160.ini	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar9160.ini	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,699 @@
 +/*
 + * Copyright (c) 2002-2008 Sam Leffler, Errno Consulting
@@ -53783,7 +53783,7 @@ Index: sys/dev/ath/ath_hal/ar5416/ar9160_attach.c
 RCS file: sys/dev/ath/ath_hal/ar5416/ar9160_attach.c
 diff -N sys/dev/ath/ath_hal/ar5416/ar9160_attach.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/dev/ath/ath_hal/ar5416/ar9160_attach.c	27 Jan 2009 23:35:17 -0000
++++ sys/dev/ath/ath_hal/ar5416/ar9160_attach.c	28 Jan 2009 00:01:31 -0000
 @@ -0,0 +1,307 @@
 +/*
 + * Copyright (c) 2008 Sam Leffler, Errno Consulting
