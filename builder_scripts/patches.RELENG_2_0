@@ -35,7 +35,7 @@
 ~sys/boot/i386~i386boot.diff~
 ~sys/net80211~ieee80211_power.c.diff~
 ~sys/dev/usb~usb_quirks_usbdevs.diff~
-~sys~HEAD_ath_hal.diff~
+~~HEAD_ath_hal.diff~
 ~~~~sys/dev/ath/ath_hal/~
 ~~~~sys/dev/ath/ath_hal/ar5210~
 ~~~~sys/dev/ath/ath_hal/ar5211~
