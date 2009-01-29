@@ -35,17 +35,17 @@ check_for_clog() {
 
 # Removes NAT_T and other unneeded kernel options from 1.2 images.
 fixup_kernel_options() {
-	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
-		echo ">>>> Removing unneeded kernel configuration option from 1.2"
-		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp
-		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert//  > /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}.tmp
-		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp
-		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp
-		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}
-		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}
-		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}
-		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}
-	fi
+#	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
+#		echo ">>>> Removing unneeded kernel configuration option from 1.2"
+#		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp
+#		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert//  > /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}.tmp
+#		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp
+#		cat /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp
+#		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}
+#		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}
+#		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}
+#		cp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp /usr/src/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}
+#	fi
 }
 
 build_embedded_kernel() {
