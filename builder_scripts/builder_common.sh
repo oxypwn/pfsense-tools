@@ -898,6 +898,7 @@ checkout_freesbie() {
 
 print_flags() {
 
+        printf "  pfSense build dir: %s\n" $SRCDIR
 	printf "  pfSense version: %s\n" $PFSENSE_VERSION
 	printf "           CVS User: %s\n" $CVS_USER
 	printf "          Verbosity: %s\n" $BE_VERBOSE
