@@ -50,7 +50,7 @@ echo "Applying CLOG updates..."
 	tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)
 
 echo "Removing old patch rejects..."
-find /usr/src -name "*.rej" -exec rm {} \;
+find $SRCDIR -name "*.rej" -exec rm {} \;
 
 # Loop through and patch files
 for LINE in `cat ${PFSPATCHFILE}`
@@ -73,7 +73,7 @@ do
 	fi
 	if [ $? != 0 ]; then
 		echo "Failed to apply patch ${PFSPATCHDIR}/${PATCH_FILE}"
-		find /usr/src -name "*.rej"
+		find $SRCDIR -name "*.rej"
 		exit 1
 	fi
 	if [ $MOVE_FILE_LEN -gt "2" ]; then
@@ -82,12 +82,12 @@ do
 done
 
 echo "Finding patch rejects..."
-REJECTED_PATCHES=`find /usr/src -name "*.rej" | wc -l`
+REJECTED_PATCHES=`find $SRCDIR -name "*.rej" | wc -l`
 if [ $REJECTED_PATCHES -gt 0 ]; then
 	echo
 	echo "WARNING!  Rejected patches found!  Please fix before building!"
 	echo 
-	find /usr/src -name "*.rej" 
+	find $SRCDIR -name "*.rej" 
 	echo
 fi
 
