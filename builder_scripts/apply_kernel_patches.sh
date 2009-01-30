@@ -9,7 +9,7 @@
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
-SRCDIR=${SRCDIR:-/usr/src}
+SRCDIR=${SRCDIR:-/usr/pfSensesrc}
 
 echo ">>> Using patchfile ${PFSPATCHFILE} ..."
 echo ">>> Using supfile   ${SUPFILE} ..."
