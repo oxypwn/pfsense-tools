@@ -10,7 +10,7 @@ CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
 PFSPATCHDIR=${PFSPATCHDIR:-${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}}
-SRCDIR=${SRCDIR:-/usr/src}
+SRCDIR=${SRCDIR:-/usr/pfSensesrc}
 
 # Set these two options
 FBSDBRANCH="RELENG_6_2"
@@ -19,7 +19,7 @@ KERNELOUTPUTDIR="/usr/local/www/data/kernels/"
 PATHTOTESTKERNEL="/root/pfSense_wrap.6"
 CVSUPHOST="cvsup.livebsd.com"
 
-cp $PATHTOTESTKERNEL /usr/src/sys/${TARGET_ARCH}/conf/
+cp $PATHTOTESTKERNEL $SRCDIR/sys/${TARGET_ARCH}/conf/
 
 for LINE in `cat /root/patches.$FBSDBRANCH` 
 do
@@ -40,14 +40,14 @@ do
 		(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE})
 	fi
 
-	cd /usr/src/ && make buildkernel KERNCONF=$KERNCONFCONFIG && make installkernel KERNCONF=$KERNCONFCONFIG
+	cd $SRCDIR && make buildkernel KERNCONF=$KERNCONFCONFIG && make installkernel KERNCONF=$KERNCONFCONFIG
 	gzip /boot/kernel/kernel
 	mv /boot/kernel/kernel.gz $KERNELOUTPUTDIR/kernel.gz-$PATCH_FILE
 done
 
 # Build a kernel without any patches at all
 cvsup -h $CVSUPHOST /home/pfsense/tools/builder_scripts/$FBSDBRANCH-supfile
-cd /usr/src/ && make buildkernel KERNCONF=$KERNCONFCONFIG && make installkernel KERNCONF=$KERNCONFCONFIG
+cd $SRCDIR && make buildkernel KERNCONF=$KERNCONFCONFIG && make installkernel KERNCONF=$KERNCONFCONFIG
 gzip /boot/kernel/kernel
 mv /boot/kernel/kernel.gz $KERNELOUTPUTDIR/kernel.gz-NOPATCHES
 
