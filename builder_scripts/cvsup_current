@@ -44,7 +44,7 @@ if [ -d /tmp/kernels ]; then
 fi
 echo "done"
 
-SRCDIR=${SRCDIR:-/usr/pfSensesrc}
+SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 
 # Sanity check
 if [ ! -d "${PFSPATCHDIR}" ]; then

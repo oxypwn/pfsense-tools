@@ -10,7 +10,7 @@ CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
 PFSPATCHDIR=${PFSPATCHDIR:-${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}}
-SRCDIR=${SRCDIR:-/usr/pfSensesrc}
+SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 
 # Set these two options
 FBSDBRANCH="RELENG_6_2"
