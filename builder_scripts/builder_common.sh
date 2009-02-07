@@ -974,18 +974,12 @@ update_cvs_depot() {
 			mkdir -p ${GIT_REPO_DIR}
 		fi
 		if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then 
-	    	echo ">>> Removing pfSebseGUTREPO from ${GIT_REPO_DIR}"			
-	    	rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO	# XXX: remove this once we are fully working on GIT
+			echo ">>> Removing pfSenseGITREPO from ${GIT_REPO_DIR}"			
+			rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO	# XXX: remove this once we are fully working on GIT
 		fi
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 			echo ">>> Cloning ${GIT_REPO} using GIT and switching to ${PFSENSETAG}"
-	    	(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO})
-			if [ -d "${GIT_REPO_DIR}/mainline" ]; then
-				mv "${GIT_REPO_DIR}/mainline" "${GIT_REPO_DIR}/pfSenseGITREPO"
-			fi
-			if [ -d "${GIT_REPO_DIR}/pfSense" ]; then
-				mv "${GIT_REPO_DIR}/pfSense" "${GIT_REPO_DIR}/pfSenseGITREPO"
-			fi
+			(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO} ${GIT_REPO_DIR}/pfSenseGITREPO)
 		fi
 		checkout_pfSense_git
 		if [ $? != 0 ]; then	
