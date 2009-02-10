@@ -1,0 +1,62 @@
+--- Makefile.orig	2008-12-22 06:03:15.000000000 -0600
++++ Makefile	2009-02-08 21:25:44.000000000 -0600
+@@ -1,5 +1,5 @@
+-DESTDIR = /
+-PREFIX = /usr
++DESTDIR ?= /
++PREFIX ?= /usr/local
+ 
+ ##########
+ # Comment this out if you dont want SSL
+@@ -11,23 +11,23 @@
+ 
+ ##########
+ # If using FreeBSD or OpenBSD COMMENT the below lines
+-LIBS = -ldl
++LIBS = -L$(PREFIX)/lib -liconv
+ 
+ # For any distro
+ #ADD_PLUGINS = mysqlloggingplugin.so sqliteloggingplugin.so postgresqlloggingplugin.so dbfilterplugin.so dbresponderplugin.so
+ ##########
+ 
+ ifdef SSL
+-SSL_LIBS = -L$(SSL_DIR)/lib -lssl
+-SSL_FLAGS = -I$(SSL_DIR)/include -DHAVE_SSL
++SSL_LIBS ?= -L$(SSL_DIR)/lib -lssl
++SSL_FLAGS ?= -I$(SSL_DIR)/include -DHAVE_SSL
+ SSL_OBJS = sslstate.o
+ endif
+ 
+-CXX = g++
++CXX ?= g++
+ 
+-CXXFLAGS = -Wall -O2 -fPIC $(SSL_FLAGS)
++CXXFLAGS = -Wall -O2 -fPIC $(SSL_FLAGS) -I$(PREFIX)/include
+ 
+-PLUGIN_FLAGS = $(LIBS) -fPIC -shared -Wl,-soname,$@ -o $@
++PLUGIN_FLAGS ?= $(LIBS) -fPIC -shared -Wl,-soname,$@ -o $@
+ 
+ IMSPECTOR_OBJS = main.o protocolplugin.o loggingplugin.o filterplugin.o responderplugin.o $(SSL_OBJS)
+ 
+@@ -162,15 +162,15 @@
+ install: imspector libimspector.so $(PLUGINS)
+ 	-mkdir -p $(DESTDIR)/$(PREFIX)/sbin
+ 	-mkdir -p $(DESTDIR)/$(PREFIX)/lib/imspector
+-	-install imspector $(DESTDIR)/$(PREFIX)/sbin/imspector
+-	-install libimspector.so $(DESTDIR)/$(PREFIX)/lib/libimspector.so
++	-${BSD_INSTALL_PROGRAM} imspector $(DESTDIR)/$(PREFIX)/sbin/imspector
++	-${BSD_INSTALL_PROGRAM} libimspector.so $(DESTDIR)/$(PREFIX)/lib/libimspector.so
+ 	-(for PLUGIN in $(PLUGINS) $(ADD_PLUGINS); do \
+ 		install $$PLUGIN $(DESTDIR)/$(PREFIX)/lib/imspector/$$PLUGIN; \
+ 	done);
+-	-mkdir -p $(DESTDIR)/$(PREFIX)/etc/imspector
+-	-install imspector.conf $(DESTDIR)/$(PREFIX)/etc/imspector/imspector.conf
+-	-install badwords.txt $(DESTDIR)/$(PREFIX)/etc/imspector/badwords.txt
+-	-install acl.txt $(DESTDIR)/$(PREFIX)/etc/imspector/acl.txt
++	-mkdir -p $(DESTDIR)/${ETCDIR}
++	-${BSD_INSTALL_DATA} imspector.conf $(DESTDIR)/${ETCDIR}/imspector.conf.sample
++	-${BSD_INSTALL_DATA} badwords.txt $(DESTDIR)/${ETCDIR}/badwords.txt.sample
++	-${BSD_INSTALL_DATA} acl.txt $(DESTDIR)/${ETCDIR}/acl.txt.sample
+ 	-mkdir -p /var/log/imspector
+ 	-mkdir -p /var/lib/imspector
+ 
