@@ -1,5 +1,5 @@
---- classifyd_old.c	2008-12-23 07:51:24.000000000 +0000
-+++ classifyd.c	2008-12-23 07:51:25.000000000 +0000
+--- classifyd_old.c	2009-02-11 23:38:51.000000000 +0000
++++ classifyd.c	2009-02-11 23:38:52.000000000 +0000
 @@ -28,13 +28,17 @@
  
  #include <sys/types.h>
@@ -419,7 +419,7 @@
  /*
   * NOTE: The protocol list (plist) passed as an argument is a global
   *	 variable. It is accessed from 3 functions: classify_pthread,
-@@ -840,12 +997,21 @@
+@@ -840,12 +997,26 @@
  static int
  read_config(const char *file, struct ic_protocols *plist)
  {
@@ -435,6 +435,11 @@
 +	struct pfioc_ruleset trule;
 +	char **ap, *argv[bufsize];
  
++#define DIVERT_ALTQ 0x1000
++#define DIVERT_DNCOOKIE 0x2000
++#define DIVERT_ACTION 0x4000
++#define DIVERT_TAG 0x8000
++
 +	fdpf = open("/dev/pf", O_RDONLY);
 +	if (fdpf == -1) {
 +		syslog(LOG_ERR, "unable to open /dev/pf");
@@ -443,7 +448,7 @@
  	fd = open(file, O_RDONLY);
  	if (fd == -1) {
  		syslog(LOG_ERR, "unable to open configuration file");
-@@ -863,10 +1029,51 @@
+@@ -863,10 +1034,57 @@
  		/* Do not match traffic against this pattern */
  		if (value == NULL)
  			continue;
@@ -467,12 +472,15 @@
 +					"queue %s does not exists!", argv[1]);
 +				continue;
 +			}
++			trule.nr |= DIVERT_ALTQ;
 +			rule = trule.nr;
-+		} else if (!strncmp(argv[0], "dnqueue", strlen("dnqueue")))
++		} else if (!strncmp(argv[0], "dnqueue", strlen("dnqueue"))) {
 +			rule = strtonum(argv[1], 1, 65535, &errmsg);
-+		else if (!strncmp(argv[0], "dnpipe", strlen("dnpipe")))
++			rule |= DIVERT_DNCOOKIE;
++		} else if (!strncmp(argv[0], "dnpipe", strlen("dnpipe"))) {
 +			rule = strtonum(argv[1], 1, 65535, &errmsg);
-+		else if (!strncmp(argv[0], "tag", strlen("tag"))) {
++			rule |= DIVERT_DNCOOKIE;
++		} else if (!strncmp(argv[0], "tag", strlen("tag"))) {
 +                        if (ioctl(fdpf, DIOCGETNAMEDTAG, &rule)) {
 +                                syslog(LOG_WARNING,
 +                                        "could not get tag translation for"
@@ -484,6 +492,7 @@
 +                                        "tag %s does not exists!", argv[1]);
 +                                continue;
 +                        }
++			rule |= DIVERT_TAG;
 +		} else if (!strncmp(argv[0], "action", strlen("action"))) {
 +			if (strncmp(argv[1], "block", strlen("block"))) 
 +				rule = PF_DROP;
@@ -491,6 +500,8 @@
 +				rule = PF_PASS;
 +			else
 +				continue;
++			rule = 0;
++			rule |= DIVERT_ACTION;
 +		} else {
  			syslog(LOG_WARNING,
 -			    "invalid rule number for %s protocol: %s",
@@ -498,7 +509,7 @@
  			    proto->p_name, errmsg);
  			continue;
  		}
-@@ -953,10 +1160,14 @@
+@@ -953,10 +1171,14 @@
  static void
  usage(const char *arg0)
  {
