@@ -980,6 +980,9 @@ update_cvs_depot() {
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 			echo ">>> Cloning ${GIT_REPO} using GIT and switching to ${PFSENSETAG}"
 			(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO} ${GIT_REPO_DIR}/pfSenseGITREPO)
+			if [ -d ${GIT_REPO_DIR}/pfSenseGITREPO/mainline ]; then
+			    mv ${GIT_REPO_DIR}/pfSenseGITREPO/mainline ${GIT_REPO_DIR}/pfSenseGITREPO/pfSenseGITREPO
+		    fi
 		fi
 		checkout_pfSense_git
 		if [ $? != 0 ]; then	
