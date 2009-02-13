@@ -1,4 +1,17 @@
 lib/libgeom.so.4
+lib/geom/geom_cache.so
+lib/geom/geom_mirror.so
+lib/geom/geom_shsec.so
+lib/geom/geom_concat.so
+lib/geom/geom_multipath.so
+lib/geom/geom_stripe.so
+lib/geom/geom_eli.so
+lib/geom/geom_nop.so
+lib/geom/geom_virstor.so
+lib/geom/geom_journal.so
+lib/geom/geom_part.so
+lib/geom/geom_label.so
+lib/geom/geom_raid3.so
 sbin/gmirror
 usr/lib/libstdc++.so.6
 usr/bin/patch
