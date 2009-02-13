@@ -4,7 +4,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
 --- contrib/pf/pfctl/parse.y	11 Feb 2009 23:20:04 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	11 Feb 2009 23:28:38 -0000
++++ contrib/pf/pfctl/parse.y	13 Feb 2009 20:55:59 -0000
 @@ -132,6 +132,7 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
@@ -139,7 +139,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
 --- contrib/pf/pfctl/pfctl_parser.c	11 Feb 2009 23:20:04 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	11 Feb 2009 23:28:38 -0000
++++ contrib/pf/pfctl/pfctl_parser.c	13 Feb 2009 20:55:59 -0000
 @@ -915,6 +915,12 @@
  			printf("max-src-conn %u", r->max_src_conn);
  			opts = 0;
@@ -168,7 +168,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
 --- sys/contrib/pf/net/pf.c	11 Feb 2009 23:20:04 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	11 Feb 2009 23:28:40 -0000
++++ sys/contrib/pf/net/pf.c	13 Feb 2009 20:56:09 -0000
 @@ -138,6 +138,7 @@
  #ifdef __FreeBSD__
  #include <netinet/ip_fw.h>
@@ -320,7 +320,7 @@ diff -u -r1.2 pf.c
 +                                	dnflow.cookie = r->pdnpipe;
                          } else if (dir == r->direction) {
 -                                dnflow.cookie = r->dnpipe;
-+				if (divflags & PFRULE_DIVERT_DNCOOKIE && divertcookie)
++				if (divflags & PFSTATE_DIVERT_DNCOOKIE && divertcookie)
 +					dnflow.cookie = divertcookie;
 +				else
 +                                	dnflow.cookie = r->dnpipe;
@@ -333,7 +333,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
 --- sys/contrib/pf/net/pf_mtag.h	11 Feb 2009 23:20:04 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	11 Feb 2009 23:28:38 -0000
++++ sys/contrib/pf/net/pf_mtag.h	13 Feb 2009 20:55:59 -0000
 @@ -38,6 +38,7 @@
  #define	PF_TAG_FRAGCACHE		0x02
  #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
@@ -348,7 +348,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	11 Feb 2009 23:20:04 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	11 Feb 2009 23:28:38 -0000
++++ sys/contrib/pf/net/pfvar.h	13 Feb 2009 20:55:59 -0000
 @@ -649,6 +649,7 @@
  	u_int16_t		 tag;
  	u_int16_t		 match_tag;
@@ -403,7 +403,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/netinet/ip_divert.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.c
 --- sys/netinet/ip_divert.c	11 Feb 2009 23:18:51 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.c	11 Feb 2009 23:28:38 -0000
++++ sys/netinet/ip_divert.c	13 Feb 2009 20:55:59 -0000
 @@ -752,5 +752,4 @@
  };
  
@@ -416,7 +416,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/netinet/ip_divert.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.h
 --- sys/netinet/ip_divert.h	11 Feb 2009 23:18:51 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.h	11 Feb 2009 23:28:38 -0000
++++ sys/netinet/ip_divert.h	13 Feb 2009 20:55:59 -0000
 @@ -50,6 +50,9 @@
  	u_int16_t	cookie;		/* ipfw rule number */
  };
@@ -433,7 +433,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/netinet/ip_fw_pfil.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_fw_pfil.c
 --- sys/netinet/ip_fw_pfil.c	11 Feb 2009 23:20:05 -0000	1.2
-+++ sys/netinet/ip_fw_pfil.c	11 Feb 2009 23:28:38 -0000
++++ sys/netinet/ip_fw_pfil.c	13 Feb 2009 20:55:59 -0000
 @@ -72,16 +72,11 @@
  
  int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
@@ -457,7 +457,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/netinet/ip_input.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_input.c
 --- sys/netinet/ip_input.c	11 Feb 2009 23:20:05 -0000	1.2
-+++ sys/netinet/ip_input.c	11 Feb 2009 23:28:38 -0000
++++ sys/netinet/ip_input.c	13 Feb 2009 20:55:59 -0000
 @@ -81,6 +81,7 @@
  /* XXX: Temporary until ipfw_ether and ipfw_bridge are converted. */
  #include <netinet/ip_fw.h>
