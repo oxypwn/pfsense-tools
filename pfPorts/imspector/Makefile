@@ -18,6 +18,8 @@ CFLAGS+=	-fPIC
 BUILD_DEPENDS=  iconv:${PORTSDIR}/converters/iconv
 
 USE_GMAKE=	yes
+USE_MYSQL=      yes
+USE_SQLITE=     yes
 
 CONFIG_FILES=	imspector.conf badwords.txt acl.txt
 
