@@ -183,7 +183,7 @@ export GIT_REPO_DIR="${BASE_DIR}/pfSenseGITREPO"
 # package names must be valid. Using non existent
 # package name would yield an error.
 #
-#export custom_package_list="arping, Developers"
+export custom_package_list="AutoConfigBackup"
 
 # This is used for developers with access to the pfSense
 # cvsup update server.  Note that it is firewalled by default.
