@@ -45,6 +45,7 @@ usr/local/sbin/dnswatch
 usr/local/sbin/ftp-proxy
 usr/local/sbin/igmpproxy
 usr/local/sbin/gzsig
+usr/local/sbin/ftpsesame
 usr/local/sbin/lighttpd
 usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
