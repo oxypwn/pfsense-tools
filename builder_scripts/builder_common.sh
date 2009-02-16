@@ -491,6 +491,37 @@ install_custom_overlay() {
     fi
 }
 
+install_custom_overlay_final() {
+	# Extract custom overlay if it's defined.
+	if [ ! -z "${custom_overlay_final:-}" ]; then
+		echo -n "Custom overlay defined - "
+	    if [ -d $custom_overlay_final ]; then
+			echo "found directory, copying..."
+			for i in $custom_overlay_final/*
+			do
+			    if [ -d $i ]; then
+			        echo "copying dir: $i ..."
+			        cp -R $i $CVS_CO_DIR
+			    else
+			        echo "copying file: $i ..."
+			        cp $i $CVS_CO_DIR
+			    fi
+			done
+		elif [ -f $custom_overlay ]; then
+			echo "found file, extracting..."
+			tar xzpf $custom_overlay -C $CVS_CO_DIR
+		else
+			echo " file not found $custom_overlay_final"
+		fi
+	fi
+
+    # Enable debug if requested
+    if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
+		touch ${CVS_CO_DIR}/debugging
+    fi
+}
+
+
 install_custom_packages() {
 
 	DEVFS_MOUNT=`mount | grep ${BASEDIR}/dev | wc -l | awk '{ print $1 }'`
@@ -505,7 +536,6 @@ install_custom_packages() {
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
 		# execute setup script
-		./pfs_custom_pkginstall.sh
 	else
 		# cleanup if file does exist
 		if [ -f ${FREESBIE_PATH}/extra/customscripts/${DESTNAME} ]; then
@@ -1364,6 +1394,7 @@ if [ -f /tmp/restore_conf_dir ]; then
 	/bin/rm /tmp/restore_conf_dir
 fi
 
+/bin/sh
 
 /bin/echo "Restoring platform file ..."
 mv /tmp/platform /etc/platform

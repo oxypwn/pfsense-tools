@@ -178,6 +178,9 @@ if [ -f $PFSENSEBASEDIR/etc/rc.php_ini_setup ]; then
 	chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
 fi
 
+# Overlay final files
+install_custom_overlay_final
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs

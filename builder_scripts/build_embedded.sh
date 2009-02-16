@@ -110,6 +110,9 @@ cust_install_config_xml
 # Install custom pfSense-XML packages from a chroot
 pfsense_install_custom_packages_exec
 
+# Overlay final files
+install_custom_overlay_final
+
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
 freesbie_make clonefs
