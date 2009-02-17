@@ -500,16 +500,16 @@ install_custom_overlay_final() {
 			for i in $custom_overlay_final/*
 			do
 			    if [ -d $i ]; then
-			        echo "copying dir: $i ..."
-			        cp -R $i $CVS_CO_DIR
+			        echo "copying dir: $i $PFSENSEBASEDIR ..."
+			        cp -R $i $PFSENSEBASEDIR
 			    else
-			        echo "copying file: $i ..."
-			        cp $i $CVS_CO_DIR
+			        echo "copying file: $i $PFSENSEBASEDIR ..."
+			        cp $i $PFSENSEBASEDIR
 			    fi
 			done
 		elif [ -f $custom_overlay ]; then
 			echo "found file, extracting..."
-			tar xzpf $custom_overlay -C $CVS_CO_DIR
+			tar xzpf $custom_overlay -C $PFSENSEBASEDIR
 		else
 			echo " file not found $custom_overlay_final"
 		fi
