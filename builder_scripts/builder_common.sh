@@ -1394,8 +1394,6 @@ if [ -f /tmp/restore_conf_dir ]; then
 	/bin/rm /tmp/restore_conf_dir
 fi
 
-/bin/sh
-
 /bin/echo "Restoring platform file ..."
 mv /tmp/platform /etc/platform
 
