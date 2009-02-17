@@ -1,5 +1,5 @@
---- classifyd_old.c	2009-02-11 23:38:51.000000000 +0000
-+++ classifyd.c	2009-02-11 23:38:52.000000000 +0000
+--- classifyd_old.c	2009-02-17 19:43:23.000000000 +0000
++++ classifyd.c	2009-02-17 19:43:42.000000000 +0000
 @@ -28,13 +28,17 @@
  
  #include <sys/types.h>
@@ -216,17 +216,19 @@
  
  	while (1) {
  		pkt = (struct ic_pkt *)malloc(sizeof(struct ic_pkt));
-@@ -353,6 +438,10 @@
+@@ -353,7 +438,11 @@
  		STAILQ_INSERT_HEAD(&inQ.fq_pkthead, pkt, fp_link);
  		inQ.fq_size++;
  		pthread_mutex_unlock(&inQ.fq_mtx);
+-		pthread_cond_signal(&inQ.fq_condvar);
 +		if (++pcktcnt > npackets) {
 +			pcktcnt = 0;
 +			pthread_cond_signal(&gq_condvar);
-+		}
- 		pthread_cond_signal(&inQ.fq_condvar);
++		} else
++			pthread_cond_signal(&inQ.fq_condvar);
  	}
  
+	/* NOTREACHED */
 @@ -420,39 +509,19 @@
  	struct tcphdr	 *tcp;
  	struct udphdr	 *udp;
@@ -338,7 +340,7 @@
  
  		/*
  		 * Inform divert(4) what rule to send it to by
-@@ -823,6 +906,80 @@
+@@ -823,6 +906,85 @@
  	return (NULL);
  }
  
@@ -369,13 +371,14 @@
 +			e = sh->table[i];
 +			while (e != NULL) { 
 +				f = e; e = e->next;
-+				if (((struct ip_flow *)f->v)->expire < tv.tv_sec) {
++				if (f->v != NULL && ((struct ip_flow *)f->v)->expire < tv.tv_sec) {
 +					freekey(f->k);
 +					sh->entrycount--;
 +                                	if (f->v != NULL)
 +                                        	free(f->v);
 +                                	free(f);
 +					flows_expired++;
++					sh->table[i] = e;
 +				}
 +			}
 +		}
@@ -383,13 +386,14 @@
 +                        e = th->table[i];
 +                        while (e != NULL) {
 +                                f = e; e = e->next;
-+                                if (((struct ip_flow *)f->v)->expire < tv.tv_sec) {
++                                if (f->v != NULL && ((struct ip_flow *)f->v)->expire < tv.tv_sec) {
 +                                        freekey(f->k);
 +                                        th->entrycount--;
 +                                        if (f->v != NULL)
 +                                                free(f->v);
 +                                        free(f);
 +					flows_expired++;
++					th->table[i] = e;
 +                                }
 +                        }
 +                }
@@ -397,20 +401,23 @@
 +                        e = uh->table[i];
 +                        while (e != NULL) {
 +                                f = e; e = e->next;
-+                                if (((struct ip_flow *)f->v)->expire < tv.tv_sec) {
++                                if (f->v != NULL && ((struct ip_flow *)f->v)->expire < tv.tv_sec) {
 +                                        freekey(f->k);
 +                                        uh->entrycount--;
 +                                        if (f->v != NULL)
 +                                                free(f->v);
 +                                        free(f);
 +					flows_expired++;
++					uh->table[i] = e;
 +                                }
 +                        }
 +                }
 +
 +		pthread_mutex_unlock(&inQ.fq_mtx);
-+		
++
 +		syslog(LOG_WARNING, "expired %u flows", flows_expired);
++
++		pthread_cond_signal(&inQ.fq_condvar);
 +	}
 +
 +	return (NULL);
@@ -419,7 +426,7 @@
  /*
   * NOTE: The protocol list (plist) passed as an argument is a global
   *	 variable. It is accessed from 3 functions: classify_pthread,
-@@ -840,12 +997,26 @@
+@@ -840,12 +1002,26 @@
  static int
  read_config(const char *file, struct ic_protocols *plist)
  {
@@ -448,7 +455,7 @@
  	fd = open(file, O_RDONLY);
  	if (fd == -1) {
  		syslog(LOG_ERR, "unable to open configuration file");
-@@ -863,10 +1034,57 @@
+@@ -863,10 +1039,57 @@
  		/* Do not match traffic against this pattern */
  		if (value == NULL)
  			continue;
@@ -509,7 +516,7 @@
  			    proto->p_name, errmsg);
  			continue;
  		}
-@@ -953,10 +1171,14 @@
+@@ -953,10 +1176,14 @@
  static void
  usage(const char *arg0)
  {
