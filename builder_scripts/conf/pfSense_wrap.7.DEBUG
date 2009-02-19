@@ -314,6 +314,8 @@ device		carp
 device		pfsync
 
 device		crypto          # core crypto support
+device		glxsb
+
 device		cryptodev       # /dev/crypto for access to h/w
 device		rndtest         # FIPS 140-2 entropy tester
 device		hifn            # Hifn 7951, 7781, etc.
