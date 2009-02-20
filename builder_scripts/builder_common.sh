@@ -407,7 +407,7 @@ cust_populate_extra() {
 
 	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
    	cp -r $BASE_DIR/tools/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
-	cp -r $BASE_DIR/installer/src/backend/lua/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+	mv $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
