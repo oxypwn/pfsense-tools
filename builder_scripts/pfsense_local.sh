@@ -146,8 +146,8 @@ export UNION_DIRS="etc usr root"
 #  Tier 3: MIPS and S/390
 #  Tier 4: None at the moment
 #  Source: http://www.freebsd.org/doc/en/articles/committers-guide/archs.html
-export ARCH="i386"
-export TARGET_ARCH="i386"
+#export ARCH="i386"
+#export TARGET_ARCH="i386"
 
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
 #export CUSTOM_REMOVE_LIST=""
