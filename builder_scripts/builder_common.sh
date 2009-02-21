@@ -407,7 +407,7 @@ cust_populate_extra() {
 
 	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
    	cp -r $BASE_DIR/tools/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
-	mv $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+	#mv $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
@@ -1407,10 +1407,12 @@ mv /tmp/platform /etc/platform
 /bin/rm /tmp/pkgfile.lst
 
 /bin/echo "Removing possible package install leftover (*.tbz, *.log) ..."
-/bin/rm /tmp/*.log /tmp/*.tbz
+/bin/rm /tmp/*.log /tmp/*.tbz 2>/dev/null
 
 /bin/echo "Removing config.cache which was generating during package install ..."
-/bin/rm /tmp/config.cache
+if [ -f /tmp/config.cache ]; then
+	/bin/rm /tmp/config.cache
+fi
 
 /bin/echo "Removing /etc/resolv.conf ..."	
 /bin/rm /etc/resolv.conf
