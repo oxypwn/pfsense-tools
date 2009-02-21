@@ -101,6 +101,19 @@ for PORT in $PORTSTOBUILD; do
 	fi
 done
 
+# Only set TARGET_ARCH for non i386 platforms. 
+# We where running into many compiler problems otherwise.
+# Stuff like:
+#     cc -O  i386 -c -o CerrnoC.o CerrnoC.c
+#     cc: i386: No such file or directory
+#     gmake[1]: *** [CerrnoC.o] Error 1
+#     gmake[1]: Leaving directory `/usr/ports/lang/ezm3/work/ezm3-1.2/boot-FreeBSD4/m3core/FreeBSD4'
+if [ "$ARCH" != "i386" ]; then
+	TARGET_ARCH="TARGET_ARCH=${ARCH}"
+else
+	TARGET_ARCH=""
+fi
+
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
@@ -116,15 +129,15 @@ for PORT in $PORTSTOBUILD; do
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		echo "Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
-		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
-		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+		( cd $DOESPORTEXIST && make $TARGET_ARCH $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd $DOESPORTEXIST && make $TARGET_ARCH $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
+		( cd $DOESPORTEXIST && make $TARGET_ARCH -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
 	else
 		echo "Port not found, building from pfPorts..."
 		echo "Building ports using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
-		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
-		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+		( cd $DOESPORTEXIST && make $TARGET_ARCH $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd /home/pfsense/tools/pfPorts/$PORT && make $TARGET_ARCH -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
+		( cd /home/pfsense/tools/pfPorts/$PORT && make $TARGET_ARCH -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
 	fi
 done
 
