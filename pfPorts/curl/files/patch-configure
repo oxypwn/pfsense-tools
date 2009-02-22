@@ -1,6 +1,7 @@
---- configure.orig	Thu Jun  8 09:12:53 2006
-+++ configure	Wed Jul 12 16:44:43 2006
-@@ -26690,8 +26690,10 @@
+diff -urN -x .svn ../../vendor/curl/configure ./configure
+--- ../../vendor/curl/configure	2008-11-02 00:09:51.000000000 +0200
++++ ./configure	2009-01-21 16:12:08.000000000 +0200
+@@ -32237,8 +32237,10 @@
          PKGTEST="no"
      PREFIX_OPENSSL=$OPT_SSL
      LIB_OPENSSL="$PREFIX_OPENSSL/lib$libsuff"
