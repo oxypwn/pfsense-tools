@@ -2,7 +2,7 @@
 # Date created:				28 September 1998
 # Whom:					Yukihiro Nakai <Nakai@technologist.com>
 #
-# $FreeBSD: ports/textproc/libxml2/Makefile,v 1.153 2009/01/10 05:21:54 marcus Exp $
+# $FreeBSD: ports/textproc/libxml2/Makefile,v 1.152 2008/11/19 19:23:07 mezz Exp $
 #
 # WITH_THREADS_BREAK enable pthread support (WILL BREAK OTHER PORTS!)
 # WITHOUT_SCHEMA disable XML schema support
@@ -12,8 +12,8 @@
 #
 
 PORTNAME=	libxml2
-PORTVERSION=	2.7.2
-PORTREVISION?=	1
+PORTVERSION=	2.6.32
+PORTREVISION?=	2
 CATEGORIES?=	textproc gnome
 MASTER_SITES=	ftp://fr.rpmfind.net/pub/libxml/ \
 		ftp://gd.tuwien.ac.at/pub/libxml/ \
