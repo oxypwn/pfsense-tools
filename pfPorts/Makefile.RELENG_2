@@ -36,6 +36,7 @@ PORTSTOBUILD="grub \
 	sshlockout_pf \
 	stats \
 	vtsh \
+        libxml2 \
 	php5 \
 	pecl-APC \
 	php5-bcmath \
