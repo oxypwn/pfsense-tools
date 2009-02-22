@@ -6,6 +6,7 @@
 ARCH="i386"
 
 PORTSTOBUILD="grub \
+	curl \
 	apinger \
 	rrdtool \
 	ftpsesame \
