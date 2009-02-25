@@ -1370,6 +1370,9 @@ fi
 #
 /tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg
 
+# Copy config.xml to conf.default/
+cp /conf/config.xml conf.default/
+
 #
 # Cleanup, aisle 7!
 #
