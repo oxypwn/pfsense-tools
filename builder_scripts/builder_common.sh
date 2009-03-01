@@ -134,18 +134,26 @@ build_all_kernels() {
 
 
 	if [ "$TARGET_ARCH" = "" ]; then 
-	# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
+		# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/i386/conf/pfSense_SMP.6
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/i386/conf/pfSense_SMP.7
 		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.6
 		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.7
+		if [ ! -f "$SRCDIR/sys/i386/conf/pfSense.7" ]; then
+			echo ">>> Could not find $SRCDIR/sys/i386/conf/pfSense.7"
+			print_error_pfS
+		fi
 	else
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7	
+		if [ ! -f "$SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7" ]; then
+			echo ">>> Could not find $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7"
+			print_error_pfS
+		fi
 	fi
 
 	# Add SMP and APIC options
