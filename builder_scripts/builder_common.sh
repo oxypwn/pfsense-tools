@@ -66,7 +66,11 @@ build_embedded_kernel() {
 	cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/loader.conf
 	
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+	if [ "$TARGET_ARCH" = "" ]; then
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
+	else
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+	fi
 
 	# Remove unneeded kernel options from 1.2
 	fixup_kernel_options
@@ -128,12 +132,21 @@ build_all_kernels() {
 	cp /boot/defaults/loader.conf /tmp/kernels/SMP/boot/defaults/
 	cp /boot/defaults/loader.conf /tmp/kernels/developers/boot/defaults/
 
-	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-	cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-	echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-	echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+
+	if [ "$TARGET_ARCH" = "" ]; then 
+	# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/i386/conf/pfSense_SMP.6
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/i386/conf/pfSense_SMP.7
+		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.6
+		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.7
+	else
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7	
+	fi
 
 	# Add SMP and APIC options
 	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
