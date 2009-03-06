@@ -2,11 +2,12 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.58 2008/03/16 21:01:10 mnag Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.68 2009/02/24 19:06:36 mnag Exp $
 #
 
 PORTNAME=	lighttpd
-PORTVERSION=	1.4.20
+PORTVERSION=	1.4.21
+PORTREVISION=	2
 CATEGORIES=	www
 MASTER_SITES=	http://www.lighttpd.net/download/ \
 		http://mirrors.cat.pdx.edu/lighttpd/
@@ -22,8 +23,6 @@ GNU_CONFIGURE=	yes
 USE_GNOME=	lthack
 USE_RC_SUBR=	lighttpd.sh
 CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd
-CONFIGURE_ENV+=	CFLAGS="${CFLAGS}"
-CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 
 CFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
@@ -36,7 +35,7 @@ OPTIONS=	BZIP2		"Enable Bzip2 support" off \
 		GDBM		"Enable gdbm storage support" off \
 		IPV6		"Enable IPV6 support" on \
 		MAGNET		"Enable magnet support" off \
-		MEMCACHE	"Enable memcached storage support" off \
+		MEMCACHE	"Enable memory caching support" off \
 		MYSQL		"Enable MYSQL support" off \
 		OPENLDAP	"Enable LDAP support" off \
 		OPENSSL		"Enable SSL support" on \
@@ -66,7 +65,7 @@ CONFIGURE_ENV+=		LUA_CFLAGS="-I${LUA_INCDIR}" LUA_LIBS="-L${LUA_LIBDIR} -llua"
 .endif
 
 .if defined(WITH_FAM)
-LIB_DEPENDS+=		fam:${PORTSDIR}/devel/fam
+USE_FAM=		yes
 CONFIGURE_ARGS+=	--with-fam
 CONFIGURE_ENV+=		FAM_CFLAGS="-I${LOCALBASE}/include" FAM_LIBS="-L${LOCALBASE}/lib"
 .endif
@@ -87,6 +86,7 @@ CONFIGURE_ENV+=		LUA_CFLAGS="-I${LUA_INCDIR}" LUA_LIBS="-L${LUA_LIBDIR} -llua"
 .endif
 
 .if defined(WITH_MEMCACHE)
+LIB_DEPENDS+=		memcache.4:${PORTSDIR}/databases/libmemcache
 CONFIGURE_ARGS+=	--with-memcache
 .endif
 
