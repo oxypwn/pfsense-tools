@@ -38,7 +38,7 @@ CONFIGURE_ARGS+=--enable-ctype
 .endif
 
 .if ${PHP_MODNAME} == "curl"
-LIB_DEPENDS+=	curl.4:${PORTSDIR}/ftp/curl
+LIB_DEPENDS+=	curl.5:${PORTSDIR}/ftp/curl
 
 CONFIGURE_ARGS+=--with-curl=${LOCALBASE}
 .endif
@@ -72,6 +72,14 @@ USE_PHP_BUILD=	yes
 
 .if ${PHP_MODNAME} == "exif"
 CONFIGURE_ARGS+=--enable-exif
+.endif
+
+.if ${PHP_MODNAME} == "filter"
+CONFIGURE_ARGS+=--enable-filter \
+		--with-pcre-dir=${LOCALBASE}
+
+USE_PHP=	pcre
+USE_PHP_BUILD=	yes
 .endif
 
 .if ${PHP_MODNAME} == "ftp"
@@ -118,6 +126,10 @@ LIB_DEPENDS+=	gmp.7:${PORTSDIR}/math/libgmp4
 CONFIGURE_ARGS+=--with-gmp=${LOCALBASE}
 .endif
 
+.if ${PHP_MODNAME} == "hash"
+CONFIGURE_ARGS+=--enable-hash
+.endif
+
 .if ${PHP_MODNAME} == "iconv"
 CONFIGURE_ARGS+=--with-iconv=${LOCALBASE} \
 		--with-iconv-dir=${LOCALBASE}
@@ -141,6 +153,10 @@ USE_OPENSSL=	yes
 CONFIGURE_ARGS+=--with-interbase=${LOCALBASE}
 
 USE_FIREBIRD=	yes
+.endif
+
+.if ${PHP_MODNAME} == "json"
+CONFIGURE_ARGS+=--enable-json
 .endif
 
 .if ${PHP_MODNAME} == "ldap"
@@ -231,6 +247,10 @@ USE_OPENSSL=	yes
 
 .if ${PHP_MODNAME} == "pcntl"
 CONFIGURE_ARGS+=--enable-pcntl
+.endif
+
+.if ${PHP_MODNAME} == "pcre"  	 
+OPTIONS=	BUNDLED_PCRE "Select if you use apache 2.0.x" off
 .endif
 
 .if ${PHP_MODNAME} == "pdo"
@@ -380,7 +400,7 @@ CONFIGURE_ARGS+=--enable-spl \
 
 USE_GNOME=	libxml2
 
-USE_PHP=	simplexml
+USE_PHP=	pcre simplexml
 USE_PHP_BUILD=	yes
 .endif
 
@@ -447,7 +467,7 @@ USE_GNOME=	libxml2
 .endif
 
 .if ${PHP_MODNAME} == "xmlreader"
-CONFIGURE_ARGS+=--with-xmlreader \
+CONFIGURE_ARGS+=--enable-xmlreader \
 		--with-libxml-dir=${LOCALBASE}
 
 USE_GNOME=	libxml2
@@ -471,7 +491,7 @@ USE_PHP_BUILD=	yes
 .endif
 
 .if ${PHP_MODNAME} == "xmlwriter"
-CONFIGURE_ARGS+=--with-xmlwriter \
+CONFIGURE_ARGS+=--enable-xmlwriter \
                 --with-libxml-dir=${LOCALBASE}
 
 USE_GNOME=      libxml2
@@ -483,6 +503,11 @@ CONFIGURE_ARGS+=--with-xsl=${LOCALBASE}
 USE_GNOME=	libxslt
 USE_PHP=	dom xml
 USE_PHP_BUILD=	yes
+.endif
+
+.if ${PHP_MODNAME} == "zip"
+CONFIGURE_ARGS+=--enable-zip \
+		--with-zlib-dir=/usr
 .endif
 
 .if ${PHP_MODNAME} == "zlib"
@@ -498,9 +523,8 @@ CONFIGURE_ARGS+=--without-cdb
 .	if defined(WITH_DB4)
 CONFIGURE_ARGS+=--with-db4=${LOCALBASE}
 
-USE_BDB=		yes
+USE_BDB=		40+
 WITH_BDB_HIGHEST=	yes
-INVALID_BDB_VER=	2 3
 .	endif
 .	if defined(WITH_GDBM)
 LIB_DEPENDS+=	gdbm.3:${PORTSDIR}/databases/gdbm
@@ -513,10 +537,10 @@ LIB_DEPENDS+=	qdbm.14:${PORTSDIR}/databases/qdbm
 CONFIGURE_ARGS+=--with-qdbm=${LOCALBASE}
 .	endif
 .	if defined(WITHOUT_INIFILE)
-CONFIGURE_ARGS+=--without-inifile
+CONFIGURE_ARGS+=--disable-inifile
 .	endif
 .	if defined(WITHOUT_FLATFILE)
-CONFIGURE_ARGS+=--without-flatfile
+CONFIGURE_ARGS+=--disable-flatfile
 .	endif
 .endif
 
@@ -535,10 +559,6 @@ CONFIGURE_ARGS+=--enable-gd-jis-conv
 .endif
 
 .if ${PHP_MODNAME} == "mbstring"
-.	if ${OSVERSION} < 600000 && ${ARCH} == "amd64"
-BROKEN=	Doesn't build on AMD64 with FreeBSD 5.x (varargs issue)
-.	endif
-
 .	if defined(WITHOUT_REGEX)
 CONFIGURE_ARGS+=--disable-mbregex
 .	endif
@@ -556,6 +576,21 @@ pre-configure:
 		/usr/bin/ar x $${lib}.a; \
 	done; \
 	/usr/bin/ar rcs liboci8.a *.o
+.endif
+
+.if ${PHP_MODNAME} == "pcre"  	 
+.	if defined(WITH_BUNDLED_PCRE)
+CONFIGURE_ARGS+=--with-pcre-regex=yes
+
+PHP_HEADER_DIRS=pcrelib
+.	else
+LIB_DEPENDS+=	pcre.0:${PORTSDIR}/devel/pcre
+
+CONFIGURE_ARGS+=--with-pcre-regex=${LOCALBASE}
+.	endif
+
+post-extract:  	 
+	@${MV} ${WRKSRC}/config0.m4 ${WRKSRC}/config.m4
 .endif
 
 .if ${PHP_MODNAME} == "pdo_dblib"

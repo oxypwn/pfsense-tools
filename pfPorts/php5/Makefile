@@ -2,7 +2,7 @@
 # Date created:				Tue Feb 18 11:17:13 CET 2003
 # Whom:					Alex Dupre <sysadmin@alexdupre.com>
 #
-# $FreeBSD: ports/lang/php5/Makefile,v 1.133 2008/12/08 13:27:50 ale Exp $
+# $FreeBSD: ports/lang/php5/Makefile,v 1.135 2009/03/06 10:08:33 ale Exp $
 #
 
 PORTNAME=	php5
@@ -22,16 +22,12 @@ USE_BZIP2=	yes
 .if !defined(PKGNAMESUFFIX)
 USE_AUTOTOOLS=	autoconf:262
 
-# use bundled pcre while apache2 does the same
-#LIB_DEPENDS+=	pcre.0:${PORTSDIR}/devel/pcre
-
 CONFIGURE_ARGS=	\
 		--with-layout=GNU \
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
-		--with-pcre-regex=yes \
 		--enable-reflection \
 		--program-prefix=""
 
@@ -59,8 +55,7 @@ MAN1=		php-config.1 phpize.1
 PATCH_DIST_STRIP=	-p1
 
 .if !defined(WITHOUT_SUHOSIN)
-#PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.6.3.patch.gz:suhosin
-PATCHFILES+=	suhosin-patch-5.2.7-0.9.6.3.patch.gz:suhosin
+PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.7.patch.gz:suhosin
 PATCH_SITES+=	http://download.suhosin.org/:suhosin
 PLIST_SUB+=	SUHOSIN=""
 .else
@@ -69,7 +64,7 @@ PLIST_SUB+=	SUHOSIN="@comment "
 
 .if defined(WITH_MAILHEAD)
 #PATCHFILES+=	php-${PORTVERSION}-mail-header.patch:mail
-PATCHFILES+=	php-5.2.6-mail-header.patch:mail
+PATCHFILES+=	php-5.2.8-mail-header.patch:mail
 PATCH_SITES+=	http://choon.net/opensource/php/:mail
 .endif
 
@@ -164,10 +159,6 @@ post-build:
 	@${ECHO_CMD} "PHP_VER=5" > ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_EXT_INC=pcre" >> ${WRKDIR}/php.conf
-
-test: build
-	@(cd ${WRKSRC} && ${MAKE} test)
 
 post-install:
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-dist ${PREFIX}/etc
