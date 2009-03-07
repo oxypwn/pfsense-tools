@@ -168,7 +168,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
 --- sys/contrib/pf/net/pf.c	11 Feb 2009 23:20:04 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	13 Feb 2009 20:56:09 -0000
++++ sys/contrib/pf/net/pf.c	7 Mar 2009 15:16:49 -0000
 @@ -138,6 +138,7 @@
  #ifdef __FreeBSD__
  #include <netinet/ip_fw.h>
@@ -205,25 +205,32 @@ diff -u -r1.2 pf.c
  	struct ip_fw_args	 dnflow;
  
  	PF_LOCK();
-@@ -6898,13 +6904,24 @@
-                 ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
+@@ -6893,18 +6899,29 @@
+ 		goto done;
+ 	}
+ 
+-	dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL);
+-        if (dn_tag != NULL &&
+-                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
++	if (DUMMYNET_LOADED && 
++        	((dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL)) != NULL &&
++                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF)) {
  		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
                  m_tag_delete(m, dn_tag);
-+		goto nonormalize;
++		goto nonomralize;
          }
-+	dn_tag = m_tag_find(m, PACKET_TAG_DIVERT, NULL);
-+	if (dn_tag != NULL) {
+ 
++	if (ip_divert_ptr != NULL &&
++		((dn_tag = m_tag_find(m, PACKET_TAG_DIVERT, NULL)) != NULL)) {
 +		pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;
 +		divertcookie = divert_cookie(dn_tag);
 +		divflags |= divertcookie & PFSTATE_DIVERT_MASK;
 +		divertcookie &= ~PFSTATE_DIVERT_MASK; 
 +		m_tag_delete(m, dn_tag);
-+		goto nonormalize;
 +	}
- 
++
  	/* We do IP header normalization and packet reassembly here */
--	else if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
-+	if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 	else if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
  		action = PF_DROP;
  		goto done;
 -	}
@@ -255,35 +262,35 @@ diff -u -r1.2 pf.c
  
  #ifdef __FreeBSD__
 -        if (r->dnpipe && DUMMYNET_LOADED &&
-+	if (divertcookie) {
-+		struct pf_rule *dlr;
 +#if 0
-+		if (divflags & PFSTATE_DIVERT_TAG)
-+			pd.pf_mtag->tag = divertcookie;
-+		else 
++	if (divflags & PFSTATE_DIVERT_TAG)
++		pd.pf_mtag->tag = divertcookie;
++	else 
 +#endif
-+		if (divflags & PFSTATE_DIVERT_ALTQ)
-+			pd.pf_mtag->qid = divertcookie;
-+		else if (divflags & PFSTATE_DIVERT_ACTION) {
-+			action = PF_DROP;
-+			REASON_SET(&reason, PFRES_DIVERT);
-+                	log = 1;
-+                	DPFPRINTF(PF_DEBUG_MISC,
-+                   		("pf: changing action to with overload from divert.\n"));
-+			dlr = r;
-+	                PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a, 
-+				ruleset, &pd);
-+			PF_UNLOCK();
-+			return (action);
-+		}
++	if (divflags & PFSTATE_DIVERT_ALTQ)
++		pd.pf_mtag->qid = divertcookie;
++	else if (divflags & PFSTATE_DIVERT_ACTION) {
++		struct pf_rule *dlr;
++		action = PF_DROP;
++		REASON_SET(&reason, PFRES_DIVERT);
++               	log = 1;
++               	DPFPRINTF(PF_DEBUG_MISC,
++                  		("pf: changing action to with overload from divert.\n"));
++		dlr = r;
++                PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a, 
++			ruleset, &pd);
++		PF_UNLOCK();
++		return (action);
 +	}
 +	
 +	if (r->divert && ip_divert_ptr != NULL &&
 +		!(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT) && 
-+		!divertcookie) {
-+		
-+			if (!r->spare1 || 
-+				(s && s->packets[dir == PF_OUT] <= r->spare1)) {
++		!divflags) {
++			if ((h->ip_p == IPPROTO_TCP && s && 
++				(dir == PF_IN ? s->src->state == TCPS_ESTABLISHED : 
++					s->dst->state == TCPS_ESTABLISHED) &&
++				(s->packets[dir == PF_OUT] - 2) <= r->spare1) || !r->spare1 ||
++				(h->ip_p != IPPROTO_TCP && s && s->packets[dir == PF_OUT] <= r->spare1)) {
 +				
 +				struct divert_tag *dt;
 +                        	dn_tag = m_tag_get(PACKET_TAG_DIVERT, 
