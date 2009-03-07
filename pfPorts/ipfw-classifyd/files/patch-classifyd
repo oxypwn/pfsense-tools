@@ -1,5 +1,5 @@
---- classifyd_old.c	2009-02-17 19:43:23.000000000 +0000
-+++ classifyd.c	2009-02-17 19:43:42.000000000 +0000
+--- classifyd.c.old	2009-03-07 15:34:56.000000000 +0000
++++ classifyd.c	2009-03-07 15:34:59.000000000 +0000
 @@ -28,13 +28,17 @@
  
  #include <sys/types.h>
@@ -48,7 +48,7 @@
  struct ic_protocols *fp;
  
 +/* Our hashtables */
-+struct hashtable *sh = NULL, 
++struct hashtable 
 +		*th = NULL, 
 +		*uh = NULL;
 +
@@ -117,23 +117,13 @@
  
  	/*
  	 * Create and bind the divert(4) socket.
-@@ -276,32 +312,80 @@
+@@ -276,32 +312,68 @@
  	if (error == -1)
  		err(EX_OSERR, "unable to set signal handler");
  
 +        /*
-+         * There are 3 tables: udp, tcp, and tcp syn.
-+         * The tcp syn table tracks connections for which a
-+         * SYN packet has been sent but no reply has been returned
-+         * yet. Once the SYN ACK reply is detected it is moved to
-+         * the regular tcp connection tracking table.
++         * There are 2 tables: udp and tcp.
 +         */
-+        sh = create_hashtable(IC_HASHSZ, hashfromkey, equalkeys);
-+        if (sh == NULL) {
-+                syslog(LOG_ERR, "unable to create TCP (SYN) tracking table");
-+		error = EX_SOFTWARE;
-+		goto cleanup;
-+        }
 +        th = create_hashtable(IC_HASHSZ, hashfromkey, equalkeys);
 +        if (th == NULL) {
 +                syslog(LOG_ERR, "unable to create TCP tracking table");
@@ -196,8 +186,6 @@
 +cleanup:
 +	if (dvtS > 0)
 +		close(dvtS);
-+	if (sh != NULL)
-+		hashtable_destroy(sh, 1);
 +	if (th != NULL)
 +		hashtable_destroy(th, 1);
 +	if (uh != NULL)
@@ -208,7 +196,7 @@
  }
  
  void *
-@@ -310,6 +394,7 @@
+@@ -310,6 +382,7 @@
  	struct ic_pkt	   *pkt;
  	struct ip *ipp;
  	int	  len;
@@ -216,7 +204,7 @@
  
  	while (1) {
  		pkt = (struct ic_pkt *)malloc(sizeof(struct ic_pkt));
-@@ -353,7 +438,11 @@
+@@ -353,7 +426,11 @@
  		STAILQ_INSERT_HEAD(&inQ.fq_pkthead, pkt, fp_link);
  		inQ.fq_size++;
  		pthread_mutex_unlock(&inQ.fq_mtx);
@@ -228,8 +216,8 @@
 +			pthread_cond_signal(&inQ.fq_condvar);
  	}
  
-	/* NOTREACHED */
-@@ -420,39 +509,19 @@
+ 	/* NOTREACHED */
+@@ -420,39 +497,19 @@
  	struct tcphdr	 *tcp;
  	struct udphdr	 *udp;
  	struct ic_pkt	 *pkt;
@@ -273,37 +261,216 @@
  		pthread_mutex_lock(&inQ.fq_mtx);
  		pkt = STAILQ_LAST(&inQ.fq_pkthead, ic_pkt, fp_link);
  		while (pkt == NULL) {
-@@ -528,6 +597,8 @@
+@@ -490,148 +547,77 @@
+ 			}
+ 
+ 			/*
+-			 * Handle session initiation.
++			 * Look in the regular table first since most
++			 * packets will belong to an already established
++			 * session.
+ 			 */
+-			if ((tcp->th_flags & TH_FLAGS) ==  TH_SYN) {
+-				/*
+-				 * Assume any pre-existing records are stale.
+-				 */
+-				flow = hashtable_search(sh, (void *)key);
+-				if (flow != NULL) {
+-					flow = hashtable_remove(sh, (void *)key);
+-					free(flow->if_data);
+-					free(flow);
+-					flow = NULL;
+-				}
+-
+-				flow = (struct ip_flow *)
+-				    malloc(sizeof(struct ip_flow));
+-				if (flow == NULL) {
+-					syslog(LOG_WARNING, "packet dropped: %m");
+-					free(key);
+-					free(pkt->fp_pkt);
++			flow = hashtable_search(th, (void *)key);
++			if (flow == NULL) {
++				flow = (struct ip_flow *)malloc(sizeof(struct ip_flow));
++                                if (flow == NULL) {
++                                        syslog(LOG_WARNING, "packet dropped: %m");
++                                        free(key);
++                                        free(pkt->fp_pkt);
++                                        free(pkt);
++                                        continue;
++                                }
++                                         
++                                if (datalen > 0) {
++                                        data = (char *)malloc(datalen);
++                                        if (data == NULL) {
++                                                syslog(LOG_WARNING, "packet dropped: %m");
++                                                free(flow);
++                                                free(key);
++                                                free(pkt->fp_pkt);
++                                                free(pkt);
++                                                continue;
++                                        }
++                                        memcpy((void *)data, (void *)payload,
++                                            datalen);
++                                } else
++                                        data = NULL;
++
++                                flow->if_data = data;
++                                flow->if_datalen = datalen;
++                                flow->if_pktcount = 1;
++                                flow->if_fwrule = 0;
++                                flow->expire = tv.tv_sec;
++                                if (hashtable_insert(th, (void *)key, (void *)flow) == 0) {
++                                        syslog(LOG_WARNING,
++                                            "packet dropped: unable to insert into table");
++                                        if (data != NULL)
++                                                free(data);
++                                        free(flow);
++                                        free(key);
++                                        free(pkt->fp_pkt);
+ 					free(pkt);
+-					continue;
+-				}
+-				flow->if_data = NULL;
+-				flow->if_datalen = 0;
+-				/* Don't count TCP handshake packets */
+-				flow->if_pktcount = 0;
+-				flow->if_fwrule = 0;
+-				if (hashtable_insert(sh, (void *)key,
+-				    (void *)flow) == 0) {
+-					syslog(LOG_NOTICE,
+-					    "packet dropped: unable to insert into table");
+-					free(flow);
++                                        continue;
++                                }
++			} else if (datalen > 0 && flow->if_pktcount < IC_PKTMAXMATCH) {
++				data = (char *)realloc((void *)flow->if_data,
++				    flow->if_datalen + datalen);
++				if (data == NULL) {
++					syslog(LOG_WARNING, "packet dropped: %m");
+ 					free(key);
+ 					free(pkt->fp_pkt);
  					free(pkt);
  					continue;
  				}
-+				
+-				goto enqueue;
+-			/*
+-			 * Handle session tear-down.
+-			 * XXX - Not sure what other flags are not allowed with FIN.
+-			 */
+-			} else if (((tcp->th_flags & TH_FIN) != 0) &&
+-			    (tcp->th_flags & (TH_RST|TH_SYN)) == 0) {
+-				/* XXX - Should we look in SYN table also? */
+-				flow = hashtable_search(th, (void *)key);
+-				if (flow != NULL) {
+-					flow = hashtable_remove(th, (void *)key);
+-					if (flow->if_data != NULL)
+-						free(flow->if_data);
+-					free(flow);
+-					flow = NULL;
+-				}
+-				free(key);
+-				goto enqueue;
+-			}
++				memcpy((void *)(data + flow->if_datalen),
++				    (void *)payload, datalen);
++				flow->if_data = data;
++				flow->if_datalen += datalen;
++				flow->if_pktcount++;
+ 
+ 			/*
+-			 * Skip anything that's not an ACK or PSH/ACK
++			 * If we haven't been able to classify this flow after
++			 * collecting IC_PKTMAXMATCH packets, just pass it through.
+ 			 */
+-			if ((tcp->th_flags & TH_FLAGS) !=  TH_ACK &&
+-			    (tcp->th_flags & TH_FLAGS) !=  (TH_PUSH|TH_ACK))
++			} else if (flow->if_pktcount >= IC_PKTMAXMATCH &&
++			    flow->if_fwrule == 0) {
 +				flow->expire = tv.tv_sec;
  				goto enqueue;
- 			/*
- 			 * Handle session tear-down.
-@@ -583,8 +654,11 @@
- 				 * collecting IC_PKTMAXMATCH packets, just pass it through.
- 				 */
- 				} else if (flow->if_pktcount >= IC_PKTMAXMATCH &&
+-
+-			/*
+-			 * Look in the regular table first since most
+-			 * packets will belong to an already established
+-			 * session.
+-			 */
+-			flow = hashtable_search(th, (void *)key);
+-			if (flow != NULL) {
+-				if (datalen > 0 && flow->if_pktcount < IC_PKTMAXMATCH) {
+-					data = (char *)realloc((void *)flow->if_data,
+-					    flow->if_datalen + datalen);
+-					if (data == NULL) {
+-						syslog(LOG_WARNING, "packet dropped: %m");
+-						free(key);
+-						free(pkt->fp_pkt);
+-						free(pkt);
+-						continue;
+-					}
+-					memcpy((void *)(data + flow->if_datalen),
+-					    (void *)payload, datalen);
+-					flow->if_data = data;
+-					flow->if_datalen += datalen;
+-					flow->if_pktcount++;
+-
+-				/*
+-				 * If we haven't been able to classify this flow after
+-				 * collecting IC_PKTMAXMATCH packets, just pass it through.
+-				 */
+-				} else if (flow->if_pktcount >= IC_PKTMAXMATCH &&
 -				    flow->if_fwrule == 0)
-+				    flow->if_fwrule == 0) {
-+					flow->expire = tv.tv_sec;
- 					goto enqueue;
-+				}
-+				flow->expire = tv.tv_sec;
- 				goto classify;
- 			}
+-					goto enqueue;
+-				goto classify;
+-			}
+-
+-			flow = hashtable_search(sh, (void *)key);
+-			if (flow != NULL) {
+-				if (datalen > 0) {
+-					data = (char *)malloc(datalen);
+-					if (data == NULL) {
+-						syslog(LOG_WARNING, "packet dropped: %m");
+-						free(key);
+-						free(pkt->fp_pkt);
+-						free(pkt);
+-						continue;
+-					}
+-					memcpy((void *)data, (void *)payload,
+-					    datalen);
+-				} else
+-					data = NULL;
+-
+-				flow->if_data = data;
+-				flow->if_datalen = datalen;
+-
+-				/*
+-				 * If we're still in the SYN table then this is probably
+-				 * the last ACK of the handshake. Don't count it against
+-				 * the packet count for this flow if there is no data.
+-				 */
+-				flow->if_pktcount = (flow->if_data == NULL) ? 0 : 1;
+-
+-				/*
+-				 * Remove it from the SYN table and insert into the
+-				 * regular tcp flow tracking table.
+-				 */
+-				hashtable_remove(sh, (void *)key);
+-				if (hashtable_insert(th, (void *)key, (void *)flow) == 0) {
+-					syslog(LOG_WARNING,
+-					    "packet dropped: unable to insert into table");
+-					if (data != NULL)
+-						free(data);
+-					free(flow);
+-					free(key);
+-					free(pkt->fp_pkt);
+-					free(pkt);
+-					continue;
+-				}
+-				goto classify;
+-			}
++			} 
  
-@@ -630,6 +704,7 @@
- 					free(pkt);
- 					continue;
- 				}
-+				flow->expire = tv.tv_sec;
- 				goto classify;
- 			}
- 
-@@ -688,6 +763,7 @@
+ 			/*
+ 			 * None of the Above (tm). Just pass it through.
+@@ -688,6 +674,7 @@
  				flow->if_datalen = datalen;
  				flow->if_pktcount = 1;
  				flow->if_fwrule = 0;
@@ -311,7 +478,7 @@
  				if (hashtable_insert(uh, (void *)key, (void *)flow) == 0) {
  					syslog(LOG_WARNING,
  					    "packet dropped: unable to insert into table");
-@@ -715,19 +791,26 @@
+@@ -715,19 +702,25 @@
  				flow->if_data = data;
  				flow->if_datalen += datalen;
  				flow->if_pktcount++;
@@ -330,17 +497,17 @@
  			/* Not an TCP or UDP packet. */
  			goto enqueue;
  
- classify:
+-classify:
 -		assert(flow != NULL);
 +		if (flow == NULL) {
-+			syslog(LOG_ERR, "flow is null argghhhhhhh");
++			syslog(LOG_ERR, "flow is null: SOFTWARE BUG!? ");
 +			goto enqueue;
 +		}
 +		//assert(flow != NULL);
  
  		/*
  		 * Inform divert(4) what rule to send it to by
-@@ -823,6 +906,85 @@
+@@ -823,6 +816,70 @@
  	return (NULL);
  }
  
@@ -367,21 +534,6 @@
 +                        exit(EX_OSERR);
 +                }
 +
-+		for (i = 0; i < sh->tablelength; i++) {
-+			e = sh->table[i];
-+			while (e != NULL) { 
-+				f = e; e = e->next;
-+				if (f->v != NULL && ((struct ip_flow *)f->v)->expire < tv.tv_sec) {
-+					freekey(f->k);
-+					sh->entrycount--;
-+                                	if (f->v != NULL)
-+                                        	free(f->v);
-+                                	free(f);
-+					flows_expired++;
-+					sh->table[i] = e;
-+				}
-+			}
-+		}
 +                for (i = 0; i < th->tablelength; i++) {
 +                        e = th->table[i];
 +                        while (e != NULL) {
@@ -426,7 +578,7 @@
  /*
   * NOTE: The protocol list (plist) passed as an argument is a global
   *	 variable. It is accessed from 3 functions: classify_pthread,
-@@ -840,12 +1002,26 @@
+@@ -840,12 +897,26 @@
  static int
  read_config(const char *file, struct ic_protocols *plist)
  {
@@ -455,7 +607,7 @@
  	fd = open(file, O_RDONLY);
  	if (fd == -1) {
  		syslog(LOG_ERR, "unable to open configuration file");
-@@ -863,10 +1039,57 @@
+@@ -863,17 +934,66 @@
  		/* Do not match traffic against this pattern */
  		if (value == NULL)
  			continue;
@@ -516,7 +668,18 @@
  			    proto->p_name, errmsg);
  			continue;
  		}
-@@ -953,10 +1176,14 @@
+ 		proto->p_fwrule = rule;
+ 		plist->fp_inuse++;
+-		syslog(LOG_NOTICE, "Loaded Protocol: %s (rule %d)",
+-		    proto->p_name, proto->p_fwrule);
++		syslog(LOG_NOTICE, "Loaded Protocol: %s (rule %s)",
++		    proto->p_name, (rule & DIVERT_ACTION) ? "action block": 
++					(rule & DIVERT_DNCOOKIE) ? "dnpipe" : 
++					(rule & DIVERT_ALTQ) ? "altq" : "tag");
+ 	}
+ 	properties_free(props);
+ 	return (0);
+@@ -953,10 +1073,14 @@
  static void
  usage(const char *arg0)
  {
