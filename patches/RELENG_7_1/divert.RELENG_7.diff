@@ -168,7 +168,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
 --- sys/contrib/pf/net/pf.c	11 Feb 2009 23:20:04 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	7 Mar 2009 15:16:49 -0000
++++ sys/contrib/pf/net/pf.c	7 Mar 2009 18:07:55 -0000
 @@ -138,6 +138,7 @@
  #ifdef __FreeBSD__
  #include <netinet/ip_fw.h>
@@ -217,7 +217,7 @@ diff -u -r1.2 pf.c
 +                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF)) {
  		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
                  m_tag_delete(m, dn_tag);
-+		goto nonomralize;
++		goto nonormalize;
          }
  
 +	if (ip_divert_ptr != NULL &&
@@ -287,8 +287,8 @@ diff -u -r1.2 pf.c
 +		!(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT) && 
 +		!divflags) {
 +			if ((h->ip_p == IPPROTO_TCP && s && 
-+				(dir == PF_IN ? s->src->state == TCPS_ESTABLISHED : 
-+					s->dst->state == TCPS_ESTABLISHED) &&
++				(dir == PF_IN ? s->src.state == TCPS_ESTABLISHED : 
++					s->dst.state == TCPS_ESTABLISHED) &&
 +				(s->packets[dir == PF_OUT] - 2) <= r->spare1) || !r->spare1 ||
 +				(h->ip_p != IPPROTO_TCP && s && s->packets[dir == PF_OUT] <= r->spare1)) {
 +				
