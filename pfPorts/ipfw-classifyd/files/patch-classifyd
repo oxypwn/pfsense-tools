@@ -1,5 +1,5 @@
---- classifyd.c.old	2009-03-07 15:34:56.000000000 +0000
-+++ classifyd.c	2009-03-07 15:34:59.000000000 +0000
+--- classifyd.c.old	2009-03-08 05:31:43.000000000 +0000
++++ classifyd.c	2009-03-08 05:31:44.000000000 +0000
 @@ -28,13 +28,17 @@
  
  #include <sys/types.h>
@@ -26,7 +26,19 @@
  #include "pathnames.h"
  #include "protocols.h"
  
-@@ -94,6 +99,7 @@
+@@ -62,6 +67,11 @@
+ #define IC_PKTSZ	1500
+ #define IC_QMAXSZ	256
+ 
++#define DIVERT_ALTQ 0x1000
++#define DIVERT_DNCOOKIE 0x2000
++#define DIVERT_ACTION 0x4000
++#define DIVERT_TAG 0x8000
++
+ /*
+  * Internal representation of a packet.
+  */
+@@ -94,6 +104,7 @@
  	uint32_t if_datalen;	/* length in bytes of if_data */
  	uint16_t if_pktcount;	/* number of packets concatenated */
  	uint16_t if_fwrule;	/* ipfw(4) rule associated with flow */
@@ -34,7 +46,7 @@
  };
  
  /*
-@@ -126,7 +132,7 @@
+@@ -126,7 +137,7 @@
  static struct ic_queue outQ;
  
  /* divert(4) socket */
@@ -43,7 +55,7 @@
  
  /* config file path */
  static const char *conf = IC_CONFIG_PATH;
-@@ -137,12 +143,25 @@
+@@ -137,12 +148,25 @@
  /* List of protocols available to the system */
  struct ic_protocols *fp;
  
@@ -69,7 +81,7 @@
  static int	equalkeys(void *, void *);
  static unsigned int hashfromkey(void *);
  static void	test_re(void);
-@@ -155,7 +174,7 @@
+@@ -155,7 +179,7 @@
  {
  	struct sockaddr_in addr;
  	struct sigaction sa;
@@ -78,7 +90,7 @@
  	const char *errstr;
  	long long  num;
  	uint16_t   port, qmaxsz;
-@@ -164,13 +183,27 @@
+@@ -164,13 +188,27 @@
  	tflag = 0;
  	port = IC_DPORT;
  	qmaxsz = IC_QMAXSZ;
@@ -107,7 +119,7 @@
  		case 'P':
  			protoDir = strdup(optarg);
  			if (protoDir == NULL)
-@@ -230,6 +263,9 @@
+@@ -230,6 +268,9 @@
  	error = pthread_cond_init(&outQ.fq_condvar, NULL);
  	if (error != 0)
  		err(EX_OSERR, "unable to initialize output queue condvar");
@@ -117,7 +129,7 @@
  
  	/*
  	 * Create and bind the divert(4) socket.
-@@ -276,32 +312,68 @@
+@@ -276,32 +317,68 @@
  	if (error == -1)
  		err(EX_OSERR, "unable to set signal handler");
  
@@ -196,7 +208,7 @@
  }
  
  void *
-@@ -310,6 +382,7 @@
+@@ -310,6 +387,7 @@
  	struct ic_pkt	   *pkt;
  	struct ip *ipp;
  	int	  len;
@@ -204,7 +216,7 @@
  
  	while (1) {
  		pkt = (struct ic_pkt *)malloc(sizeof(struct ic_pkt));
-@@ -353,7 +426,11 @@
+@@ -353,7 +431,11 @@
  		STAILQ_INSERT_HEAD(&inQ.fq_pkthead, pkt, fp_link);
  		inQ.fq_size++;
  		pthread_mutex_unlock(&inQ.fq_mtx);
@@ -217,7 +229,18 @@
  	}
  
  	/* NOTREACHED */
-@@ -420,39 +497,19 @@
+@@ -398,6 +480,10 @@
+                         if ((error) == 0) {                                     \
+                                 (flow)->if_fwrule = (proto)->p_fwrule;          \
+                                 (pkt)->fp_saddr.sin_port = (flow)->if_fwrule;   \
++				syslog(LOG_NOTICE, "Found Protocol: %s (rule %s)", \
++                    			(proto)->p_name, ((proto)->p_fwrule & DIVERT_ACTION) ? "action block": \
++                                        ((proto)->p_fwrule & DIVERT_DNCOOKIE) ? "dnpipe" : \
++                                        ((proto)->p_fwrule & DIVERT_ALTQ) ? "altq" : "tag"); \
+ 				break;						\
+ 			} else if ((error) != REG_NOMATCH) {			\
+ 				regerror((error), &(proto)->p_preg, (regerr), sizeof((regerr))); \
+@@ -420,39 +506,19 @@
  	struct tcphdr	 *tcp;
  	struct udphdr	 *udp;
  	struct ic_pkt	 *pkt;
@@ -261,7 +284,7 @@
  		pthread_mutex_lock(&inQ.fq_mtx);
  		pkt = STAILQ_LAST(&inQ.fq_pkthead, ic_pkt, fp_link);
  		while (pkt == NULL) {
-@@ -490,148 +547,77 @@
+@@ -490,148 +556,77 @@
  			}
  
  			/*
@@ -470,7 +493,7 @@
  
  			/*
  			 * None of the Above (tm). Just pass it through.
-@@ -688,6 +674,7 @@
+@@ -688,6 +683,7 @@
  				flow->if_datalen = datalen;
  				flow->if_pktcount = 1;
  				flow->if_fwrule = 0;
@@ -478,7 +501,7 @@
  				if (hashtable_insert(uh, (void *)key, (void *)flow) == 0) {
  					syslog(LOG_WARNING,
  					    "packet dropped: unable to insert into table");
-@@ -715,19 +702,25 @@
+@@ -715,19 +711,25 @@
  				flow->if_data = data;
  				flow->if_datalen += datalen;
  				flow->if_pktcount++;
@@ -507,7 +530,7 @@
  
  		/*
  		 * Inform divert(4) what rule to send it to by
-@@ -823,6 +816,70 @@
+@@ -823,6 +825,70 @@
  	return (NULL);
  }
  
@@ -578,7 +601,7 @@
  /*
   * NOTE: The protocol list (plist) passed as an argument is a global
   *	 variable. It is accessed from 3 functions: classify_pthread,
-@@ -840,12 +897,26 @@
+@@ -840,12 +906,21 @@
  static int
  read_config(const char *file, struct ic_protocols *plist)
  {
@@ -594,11 +617,6 @@
 +	struct pfioc_ruleset trule;
 +	char **ap, *argv[bufsize];
  
-+#define DIVERT_ALTQ 0x1000
-+#define DIVERT_DNCOOKIE 0x2000
-+#define DIVERT_ACTION 0x4000
-+#define DIVERT_TAG 0x8000
-+
 +	fdpf = open("/dev/pf", O_RDONLY);
 +	if (fdpf == -1) {
 +		syslog(LOG_ERR, "unable to open /dev/pf");
@@ -607,7 +625,7 @@
  	fd = open(file, O_RDONLY);
  	if (fd == -1) {
  		syslog(LOG_ERR, "unable to open configuration file");
-@@ -863,17 +934,66 @@
+@@ -863,17 +938,66 @@
  		/* Do not match traffic against this pattern */
  		if (value == NULL)
  			continue;
@@ -679,7 +697,7 @@
  	}
  	properties_free(props);
  	return (0);
-@@ -953,10 +1073,14 @@
+@@ -953,10 +1077,14 @@
  static void
  usage(const char *arg0)
  {
