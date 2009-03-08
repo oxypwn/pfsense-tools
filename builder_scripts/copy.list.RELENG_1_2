@@ -81,6 +81,7 @@ usr/local/sbin/olsrd
 usr/local/sbin/openvpn
 usr/local/sbin/pftop
 usr/local/sbin/pftpx
+usr/local/sbin/pftpx
 usr/local/sbin/racoon
 usr/local/sbin/racoonctl
 usr/local/sbin/slbd
