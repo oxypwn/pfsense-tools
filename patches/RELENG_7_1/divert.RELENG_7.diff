@@ -168,7 +168,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
 --- sys/contrib/pf/net/pf.c	11 Feb 2009 23:20:04 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	7 Mar 2009 18:07:55 -0000
++++ sys/contrib/pf/net/pf.c	8 Mar 2009 22:14:46 -0000
 @@ -138,6 +138,7 @@
  #ifdef __FreeBSD__
  #include <netinet/ip_fw.h>
@@ -257,7 +257,7 @@ diff -u -r1.2 pf.c
  	if ((s && s->tag) || r->rtableid)
  		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
  
-@@ -7110,7 +7138,57 @@
+@@ -7110,7 +7138,54 @@
  #endif /* ALTQ */
  
  #ifdef __FreeBSD__
@@ -286,11 +286,8 @@ diff -u -r1.2 pf.c
 +	if (r->divert && ip_divert_ptr != NULL &&
 +		!(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT) && 
 +		!divflags) {
-+			if ((h->ip_p == IPPROTO_TCP && s && 
-+				(dir == PF_IN ? s->src.state == TCPS_ESTABLISHED : 
-+					s->dst.state == TCPS_ESTABLISHED) &&
-+				(s->packets[dir == PF_OUT] - 2) <= r->spare1) || !r->spare1 ||
-+				(h->ip_p != IPPROTO_TCP && s && s->packets[dir == PF_OUT] <= r->spare1)) {
++			if (!r->spare1 ||
++				(s && s->packets[dir == PF_OUT] <= r->spare1)) {
 +				
 +				struct divert_tag *dt;
 +                        	dn_tag = m_tag_get(PACKET_TAG_DIVERT, 
@@ -316,7 +313,7 @@ diff -u -r1.2 pf.c
                  !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
                          struct ip_fw dummyrule;
  
-@@ -7119,9 +7197,15 @@
+@@ -7119,9 +7194,15 @@
                          dummyrule.act_ofs = 0;
                          dummyrule.cmd_len = 1;
                          if (dir != r->direction && r->pdnpipe) {
