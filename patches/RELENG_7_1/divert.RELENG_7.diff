@@ -168,7 +168,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
 --- sys/contrib/pf/net/pf.c	11 Feb 2009 23:20:04 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	8 Mar 2009 22:31:25 -0000
++++ sys/contrib/pf/net/pf.c	9 Mar 2009 02:24:30 -0000
 @@ -138,6 +138,7 @@
  #ifdef __FreeBSD__
  #include <netinet/ip_fw.h>
@@ -224,7 +224,7 @@ diff -u -r1.2 pf.c
 +		((dn_tag = m_tag_find(m, PACKET_TAG_DIVERT, NULL)) != NULL)) {
 +		pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;
 +		divertcookie = divert_cookie(dn_tag);
-+		divflags |= divertcookie & PFSTATE_DIVERT_MASK;
++		divflags = (u_int8_t)(divertcookie >> 8);
 +		divertcookie &= ~PFSTATE_DIVERT_MASK; 
 +		m_tag_delete(m, dn_tag);
 +	}
@@ -308,7 +308,7 @@ diff -u -r1.2 pf.c
 +					return (action);
 +				}
 +		 	}
-+        } else if (r->dnpipe && DUMMYNET_LOADED &&
++        } else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) && DUMMYNET_LOADED &&
                  !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
                          struct ip_fw dummyrule;
  
@@ -317,13 +317,13 @@ diff -u -r1.2 pf.c
                          dummyrule.cmd_len = 1;
                          if (dir != r->direction && r->pdnpipe) {
 -                                dnflow.cookie = r->pdnpipe;
-+				if (divflags & PFSTATE_DIVERT_DNCOOKIE && divertcookie)
++				if (divflags & PFSTATE_DIVERT_DNCOOKIE)
 +					dnflow.cookie = divertcookie;
 +				else
 +                                	dnflow.cookie = r->pdnpipe;
                          } else if (dir == r->direction) {
 -                                dnflow.cookie = r->dnpipe;
-+				if (divflags & PFSTATE_DIVERT_DNCOOKIE && divertcookie)
++				if (divflags & PFSTATE_DIVERT_DNCOOKIE)
 +					dnflow.cookie = divertcookie;
 +				else
 +                                	dnflow.cookie = r->dnpipe;
