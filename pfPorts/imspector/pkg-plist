@@ -7,6 +7,7 @@
 @unexec if cmp -s %D/%%ETCDIR%%/imspector.conf.sample %D/%%ETCDIR%%/imspector.conf; then rm -f %D/%%ETCDIR%%/imspector.conf; fi
 %%ETCDIR%%/imspector.conf.sample
 @exec if [ ! -f %D/%%ETCDIR%%/imspector.conf ] ; then cp -p %D/%F %B/imspector.conf; fi
+lib/libimspector.so
 lib/imspector/aclfilterplugin.so
 lib/imspector/badwordsfilterplugin.so
 lib/imspector/catsloggingplugin.so
