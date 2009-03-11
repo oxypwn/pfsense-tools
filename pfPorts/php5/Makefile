@@ -26,7 +26,6 @@ CONFIGURE_ARGS=	\
 		--with-layout=GNU \
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
-		--with-expat \
 		--with-libexpat-dir=${LOCALBASE} \
 		--with-libxml-dir=${LOCALBASE} \
 		--enable-reflection \
@@ -135,7 +134,7 @@ CONFIGURE_ENV+=	ac_cv_pthreads_lib=${PTHREAD_LIBS} \
 		ac_cv_pthreads_cflags=${PTHREAD_CFLAGS} \
 		pthreads_working="yes"
 
-MAKE_ENV+=	LDFLAGS="${LDFLAGS}"
+MAKE_ENV+=	LDFLAGS="${LDFLAGS} -lz"
 
 .if defined(WITH_DEBUG)
 CONFIGURE_ARGS+=--enable-debug
