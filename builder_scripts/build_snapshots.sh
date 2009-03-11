@@ -230,12 +230,16 @@ cp_files() {
 scp_files() {
 	date >$STAGINGAREA/version
 	echo ">>> Copying files to snapshots.pfsense.org"
-	scp -o "ServerAliveInterval 10" $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
-	scp -o "ServerAliveInterval 10" $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
-	scp -o "ServerAliveInterval 10" $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
-	scp -o "ServerAliveInterval 10" $STAGINGAREA/*.sha256 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
-	scp -o "ServerAliveInterval 10" $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/_updaters
-	scp -o "ServerAliveInterval 10" $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/_updaters/version
+	if [ ! -f /usr/local/bin/rsync ]; then
+		echo ">>> Could not find rsync, installing from ports..."
+		(cd /usr/ports/net/rsync && make install clean)
+	fi
+	rsync -ae ssh $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
+	rsync -ae ssh $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
+	rsync -ae ssh $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
+	rsync -ae ssh $STAGINGAREA/*.sha256 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
+	rsync -ae ssh $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/_updaters
+	rsync -ae ssh $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/_updaters/version
 }
 
 cleanup_builds() {
