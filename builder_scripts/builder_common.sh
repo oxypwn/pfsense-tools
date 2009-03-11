@@ -1026,7 +1026,7 @@ update_cvs_depot() {
 			mkdir -p ${GIT_REPO_DIR}
 		fi
 		if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then 
-	    	echo ">>> Removing pfSebseGUTREPO from ${GIT_REPO_DIR}"			
+	    	echo ">>> Removing pfSebseGITREPO from ${GIT_REPO_DIR}"			
 	    	rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO	# XXX: remove this once we are fully working on GIT
 		fi
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
