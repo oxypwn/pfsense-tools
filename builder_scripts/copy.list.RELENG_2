@@ -100,6 +100,7 @@ usr/local/lib/php/20060613/xml.so
 usr/local/lib/php/20060613/ldap.so
 usr/local/lib/php/20060613/zlib.so
 usr/local/lib/php/20060613/uploadprogress.so
+usr/local/lib/php/extensions/no-debug-non-zts-20020429/xdebug.so
 usr/local/lib/libmhash.so.2
 usr/local/lib/olsrd_dyn_gw_plain.so.0.4
 usr/local/lib/olsrd_dot_draw.so.0.3
