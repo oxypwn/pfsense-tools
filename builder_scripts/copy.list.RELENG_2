@@ -21,6 +21,7 @@ usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
 usr/sbin/kldxref
+usr/local/lib/libxml.so
 usr/local/sbin/pftpx
 usr/local/sbin/slbd.sh
 usr/local/bin/athstats

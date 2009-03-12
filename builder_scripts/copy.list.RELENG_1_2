@@ -43,6 +43,7 @@ usr/local/sbin/dnswatch
 usr/local/sbin/fping
 usr/local/sbin/ftpsesame
 usr/local/sbin/lighttpd
+usr/local/lib/libxml.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/apc.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/pcre.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/bz2.so
