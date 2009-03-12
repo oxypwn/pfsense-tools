@@ -28,7 +28,7 @@ CONFIGURE_ARGS=	\
 		--disable-all \
 		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
- 		--with-pcre-regex=yes \		
+ 		--with-pcre-regex=yes \
 		--enable-reflection \
 		--program-prefix=""
 
