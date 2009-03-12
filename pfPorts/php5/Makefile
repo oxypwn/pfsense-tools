@@ -26,8 +26,9 @@ CONFIGURE_ARGS=	\
 		--with-layout=GNU \
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
-		--with-libexpat-dir=${LOCALBASE} \
+		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
+ 		--with-pcre-regex=yes \		
 		--enable-reflection \
 		--program-prefix=""
 
