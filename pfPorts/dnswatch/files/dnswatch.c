@@ -47,7 +47,7 @@
 
 void usage(void) {
 	
-	fprintf(stderr, "usage: dnswatch interval command hostname [hostname ...]\n");
+	fprintf(stderr, "usage: dnswatch pidfile interval command hostname [hostname ...]\n");
 	exit(4);
 }
 
