@@ -92,6 +92,7 @@ PORTSTOBUILD="grub \
 	php4-xml \
 	php4-zlib \
 	php4-install-all \
+	php-xdebug \
 	wol"
 
 if [ ! -d /usr/ports/INDEX-7.bz2 ]; then 
