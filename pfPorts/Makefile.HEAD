@@ -63,6 +63,7 @@ PORTSTOBUILD="grub \
 	php5-tokenizer \
 	php5-xml \
 	php5-zlib \
+	php5-xdebug \
 	openvpn \
 	zip \
 	links \
