@@ -20,6 +20,8 @@ usr/bin/host
 usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
+usr/sbin/fifolog_create
+usr/sbin/fifolog_writer
 usr/sbin/kldxref
 usr/local/lib/libxml.so
 usr/local/sbin/pftpx

@@ -21,6 +21,8 @@ usr/bin/host
 usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
+usr/sbin/fifolog_create
+usr/sbin/fifolog_writer
 usr/local/bin/athstats
 usr/local/bin/beep
 usr/bin/bsdiff
