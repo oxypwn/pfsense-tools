@@ -18,7 +18,6 @@ usr/bin/patch
 usr/bin/diff
 usr/bin/host
 usr/bin/nsupdate
-usr/sbin/clog
 usr/sbin/syslogd
 usr/sbin/fifolog_reader
 usr/sbin/fifolog_create
