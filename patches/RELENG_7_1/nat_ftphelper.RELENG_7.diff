@@ -20,7 +20,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.4
 diff -u -r1.4 pf.c
 --- sys/contrib/pf/net/pf.c	14 Mar 2009 11:37:24 -0000	1.4
-+++ sys/contrib/pf/net/pf.c	14 Mar 2009 12:59:26 -0000
++++ sys/contrib/pf/net/pf.c	16 Mar 2009 18:46:48 -0000
 @@ -300,8 +300,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
@@ -80,8 +80,8 @@ diff -u -r1.4 pf.c
 +                        src->state = TCPS_SYN_SENT;
 +                        dst->state = TCPS_CLOSED;
 +                } else {
-+                        (*state)->lan.port = th->th_dport;
-+                        (*state)->lan.pad = 0;
++                        (*state)->ext.port = th->th_dport;
++                        (*state)->ext.pad = 0;
 +                        dst->state = TCPS_SYN_SENT;
 +                        src->state = TCPS_CLOSED;
 +                }
@@ -212,8 +212,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	14 Mar 2009 13:02:28 -0000
-@@ -0,0 +1,688 @@
++++ sys/contrib/pf/net/pf_ftp.c	16 Mar 2009 18:47:09 -0000
+@@ -0,0 +1,689 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -410,7 +410,8 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                        pf_src_tree_remove_state(s);
 +                        STATE_DEC_COUNTERS(s);
 +                        pool_put(&pf_state_pl, s);
-+			state->src.seqdiffoneway -= delta;
++			if (state->src.seqdiffoneway)
++				state->src.seqdiffoneway -= delta;
 +                } 
 +	}
 +#if 0
