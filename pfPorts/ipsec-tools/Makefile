@@ -40,7 +40,7 @@ WITH_NATT=yo
 
 OPTIONS=	DEBUG		"enable Debug support" on \
 		IPV6		"enable IPV6 support" off \
-		ADMINPORT	"enable Admin port" off \
+		ADMINPORT	"enable Admin port" on \
 		STATS		"enable Statistics logging function" on \
 		DPD		"enable Dead Peer Detection" on \
 		NATT		"enable NAT-Traversal (kernel-patch required)" off \
