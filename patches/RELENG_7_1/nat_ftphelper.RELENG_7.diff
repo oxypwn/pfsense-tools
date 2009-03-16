@@ -20,7 +20,7 @@ RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.4
 diff -u -r1.4 pf.c
 --- sys/contrib/pf/net/pf.c	14 Mar 2009 11:37:24 -0000	1.4
-+++ sys/contrib/pf/net/pf.c	14 Mar 2009 12:46:37 -0000
++++ sys/contrib/pf/net/pf.c	14 Mar 2009 12:59:26 -0000
 @@ -300,8 +300,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
@@ -54,9 +54,12 @@ diff -u -r1.4 pf.c
  
  	return (0);
  }
-@@ -4676,9 +4678,10 @@
+@@ -4674,11 +4676,12 @@
+ 	struct tcphdr		*th = pd->hdr.tcp;
+ 	struct pf_rule		*r = NULL;
  	u_int16_t		 win = ntohs(th->th_win);
- 	u_int32_t		 ack, end, seq, orig_seq;
+-	u_int32_t		 ack, end, seq, orig_seq;
++	u_int32_t		 ack = 0, end, seq, orig_seq;
  	u_int8_t		 sws, dws;
 -	int			 ackskew;
 +	int			 ackskew, delta1 = 0;
@@ -121,7 +124,7 @@ diff -u -r1.4 pf.c
  	/*
           * First state is created by the rules checking code and if we reloop
           * the first packet that hit the rule pf will not like it.
-@@ -4923,14 +4974,53 @@
+@@ -4923,14 +4974,54 @@
  			src->max_win = win;
  
  	} else {
@@ -168,7 +171,8 @@ diff -u -r1.4 pf.c
 +                        			ack = ntohl(th->th_ack) - dst->seqdiff - delta1;
 +					break;
 +				}
-+			} else
++			}
++			if (!ack)
 +				ack = ntohl(th->th_ack) - dst->seqdiff;
 +		} else
 +			ack = ntohl(th->th_ack) - dst->seqdiff;
@@ -183,7 +187,16 @@ diff -u -r1.4 pf.c
  		end = seq + pd->p_len;
  		if (th->th_flags & TH_SYN)
  			end++;
-@@ -6997,6 +7087,10 @@
+@@ -5170,7 +5261,7 @@
+ 	}
+ 
+ 	/* Any packets which have gotten here are to be passed */
+-
++tcpnat:
+ 	/* translate source/destination address, if necessary */
+ 	if (STATE_TRANSLATE(*state)) {
+ 		if (direction == PF_OUT)
+@@ -6997,6 +7088,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -199,7 +212,7 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	14 Mar 2009 12:44:07 -0000
++++ sys/contrib/pf/net/pf_ftp.c	14 Mar 2009 13:02:28 -0000
 @@ -0,0 +1,688 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
@@ -276,8 +289,8 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +static int	ParseFtpEprtCommand(u_int16_t *, char *, int);
 +static int	ParseFtp227Reply(u_int16_t *, char *, int);
 +static int	ParseFtp229Reply(u_int16_t *, char *, int);
-+static void	NewFtpMessage(struct pf_pdesc *, struct pf_state **, struct mbuf *,
-+			int, int, u_int16_t, int);
++static void	NewFtpMessage(struct pf_pdesc *, struct pf_state *, struct mbuf *,
++			int *, int, u_int16_t, int);
 +
 +#define BOUND_IFACE(r, k) \
 +        ((r)->rule_flag & PFRULE_IFBOUND) ? (k) : pfi_all
@@ -341,7 +354,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +		}
 +
 +		if (ftp_message_type != FTP_UNKNOWN_MESSAGE) 
-+			NewFtpMessage(pd, &state, m, &delta, off, oport, ftp_message_type);
++			NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
 +
 +
 +		if (((ftp_message_type == FTP_227_REPLY ||
@@ -863,9 +876,9 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +	ip->ip_len = ntohs(ip->ip_len);
 +	if (*delta) {
 +		if (*delta > 0) 
-+			s->src.seqdiffoneway += delta;
++			s->src.seqdiffoneway += *delta;
 +		else {
-+			s->src.seqdiffoneway += -delta;
++			s->src.seqdiffoneway += -*delta;
 +			s->src.seqflags |= SEQ_DIFF_NEGATIVE;
 +		}
 +		pd->p_len += *delta;
