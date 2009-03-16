@@ -1,5 +1,6 @@
 ~~~/contrib/pf/pfctl/pfctl_dn.c~
 ~~~/sys/contrib/pf/net/pf_pptp.c~
+~~~/sys/contrib/pf/net/pf_ftp.c~
 ~~~/sys/contrib/altq/altq/altq_fairq.h~
 ~~~/sys/contrib/altq/altq/altq_fairq.c~
 ~~~/sbin/pfctl/missing/altq/altq_fairq.h~
@@ -17,6 +18,7 @@
 ~~sticky_fix.RELENG_7.diff~
 ~~reply-to.RELENG_7.diff~
 ~~binat.RELENG_7_1.diff~
+~~nat_ftphelper.RELENG_7.diff~
 ~~pfil.RELENG_7.diff~
 ~sys/contrib/pf/net~ipfw_forward.RELENG_7.diff~
 ~sys/~patch-natt-freebsd7-2008-03-11.diff~
