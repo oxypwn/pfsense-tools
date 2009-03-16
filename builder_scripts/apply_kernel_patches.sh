@@ -44,11 +44,6 @@ fi
 echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH}"
 cvsup -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
-# clog source
-echo "Applying CLOG updates..."
-(cd ${SRCDIR}/usr.sbin/ && \
-	tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)
-
 echo "Removing old patch rejects..."
 find $SRCDIR -name "*.rej" -exec rm {} \;
 
