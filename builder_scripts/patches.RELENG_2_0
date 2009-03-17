@@ -44,3 +44,4 @@
 ~~~~sys/dev/ath/ath_hal/ar5312~
 ~~~~sys/dev/ath/ath_hal/ar5416~
 ~sys/kern~vfs_mount.c.diff~
+~usr.sbin/fifolog~fifolog.diff~
