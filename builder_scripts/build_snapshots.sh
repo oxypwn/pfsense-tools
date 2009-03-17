@@ -234,6 +234,7 @@ scp_files() {
 		echo ">>> Could not find rsync, installing from ports..."
 		(cd /usr/ports/net/rsync && make install clean)
 	fi
+	rm -f /tmp/ssh-snapshots*
 	rsync -ae ssh --timeout=60 $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
 	rsync -ae ssh --timeout=60  $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
 	rsync -ae ssh --timeout=60  $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
