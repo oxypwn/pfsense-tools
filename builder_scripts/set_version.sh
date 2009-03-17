@@ -89,7 +89,7 @@ RELENG_1_2)
 	export PFSENSE_VERSION=1.2.3
 	export PFSENSETAG=RELENG_1_2
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
-	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
+	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_1_2
 	set_items
 ;;
 
