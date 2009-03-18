@@ -1461,19 +1461,23 @@ EOF
 
 pfSense_clean_obj_dir() {
 	echo -n "Cleaning up previous build environment...Please wait..."
+	echo -n "."
+	if [ -d "${PFSENSEBASEDIR}/dev" ]; then
+		umount "${PFSENSEBASEDIR}/dev"
+	fi
 	if [ -d $PFSENSEBASEDIR ]; then 
-		echo -n " . "	
+		echo -n "."	
 		chflags -R noschg ${PFSENSEBASEDIR}
-		echo -n " . "
+		echo -n "."
 		(cd ${CURRENTDIR} && rm -rf ${PFSENSEBASEDIR})	
 	fi
 	if [ -d $PFSENSEISODIR ]; then 
-		echo -n " . "
+		echo -n "."
 		chflags -R noschg ${PFSENSEISODIR}
-		echo -n " . "
+		echo -n "."
 		(cd ${CURRENTDIR} && rm -rf ${PFSENSEISODIR})	
 	fi
-	echo -n " . "
+	echo -n "."
 	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX})
 	echo "Done!"	
 }
