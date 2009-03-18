@@ -1458,3 +1458,22 @@ EOF
 	
 	fi		
 }
+
+pfSense_clean_obj_dir() {
+	echo -n "Cleaning up previous build environment...Please wait..."
+	if [ -d $PFSENSEBASEDIR ]; then 
+		echo -n " . "	
+		chflags -R noschg ${PFSENSEBASEDIR}
+		echo -n " . "
+		(cd ${CURRENTDIR} && rm -rf ${PFSENSEBASEDIR})	
+	fi
+	if [ -d $PFSENSEISODIR ]; then 
+		echo -n " . "
+		chflags -R noschg ${PFSENSEISODIR}
+		echo -n " . "
+		(cd ${CURRENTDIR} && rm -rf ${PFSENSEISODIR})	
+	fi
+	echo -n " . "
+	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX})
+	echo "Done!"	
+}
