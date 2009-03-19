@@ -48,3 +48,4 @@
 ~sys/dev/ixgbe/~ixgbe.h.diff~
 ~sys/pci~sis.diff~
 ~sys/dev/glxsb~glxsb.diff~
+~sys/boot/i386/libi386~boot_libi386.diff~
