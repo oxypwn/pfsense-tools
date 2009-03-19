@@ -69,8 +69,27 @@ case "$SIZE" in
 	    sectors=32
 	    ;;
 
+2048)
+	    echo "`date '+%b %e %T'`: Creating 2 Gigabyte Compact Flash"
+	    flash_MB=1960
+	    conf_MB=4
+	    root_MB=$(( $flash_MB - $conf_MB ))
+	    heads=256
+	    sectors=32
+	    ;;
+
+8192)
+	    echo "`date '+%b %e %T'`: Creating 8 Gigabyte Compact Flash"
+	    flash_MB=7696
+	    conf_MB=8
+	    root_MB=$(( $flash_MB - $conf_MB ))
+	    heads=1024
+	    sectors=32
+	    ;;
+
+
 *)
-	    echo "Usage: $0 {128|256|512|1024} {Originalimage}"
+	    echo "Usage: $0 {128|256|512|1024|2048|8192} {Originalimage}"
 	    exit 1
 	    ;;
 esac
