@@ -46,3 +46,4 @@
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/dev/ixgbe/~ixgbe.h.diff~
 ~sys/pci~sis.diff~
+~sys/dev/glxsb~glxsb.diff~
