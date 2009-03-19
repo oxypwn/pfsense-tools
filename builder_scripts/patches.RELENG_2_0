@@ -46,3 +46,4 @@
 ~sys/kern~vfs_mount.c.diff~
 ~usr.sbin/fifolog~fifolog.diff~
 ~sys/dev/ixgbe/~ixgbe.h.diff~
+~sys/pci~sis.diff~

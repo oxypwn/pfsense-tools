@@ -45,3 +45,4 @@
 ~sys/kern~vfs_mount.c.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/dev/ixgbe/~ixgbe.h.diff~
+~sys/pci~sis.diff~
