@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/pci/Attic/if_sis.c,v
 retrieving revision 1.150.2.1.2.1
 diff -u -r1.150.2.1.2.1 if_sis.c
 --- if_sis.c	25 Nov 2008 02:59:29 -0000	1.150.2.1.2.1
-+++ if_sis.c	19 Mar 2009 02:24:38 -0000
++++ if_sis.c	19 Mar 2009 02:59:13 -0000
 @@ -1431,7 +1431,11 @@
  		 * it should simply get re-used next time this descriptor
  	 	 * comes up in the ring.
@@ -18,6 +18,20 @@ diff -u -r1.150.2.1.2.1 if_sis.c
  			ifp->if_ierrors++;
  			if (rxstat & SIS_RXSTAT_COLL)
  				ifp->if_collisions++;
+@@ -1658,10 +1662,11 @@
+ 		     SIS_ISR_TX_OK | SIS_ISR_TX_IDLE) )
+ 			sis_txeof(sc);
+ 
+-		if (status & (SIS_ISR_RX_DESC_OK|SIS_ISR_RX_OK|SIS_ISR_RX_IDLE))
++		if (status & (SIS_ISR_RX_DESC_OK | SIS_ISR_RX_OK |
++		 SIS_ISR_RX_ERR | SIS_ISR_RX_IDLE))
+ 			sis_rxeof(sc);
+ 
+-		if (status & (SIS_ISR_RX_ERR | SIS_ISR_RX_OFLOW))
++		if (status & SIS_ISR_RX_OFLOW)
+ 			sis_rxeoc(sc);
+ 
+ 		if (status & (SIS_ISR_RX_IDLE))
 Index: if_sisreg.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/pci/Attic/if_sisreg.h,v
