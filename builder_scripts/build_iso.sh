@@ -181,6 +181,9 @@ fi
 # Overlay final files
 install_custom_overlay_final
 
+# Ensure config.xml exists
+copy_config_xml_from_conf_default
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs

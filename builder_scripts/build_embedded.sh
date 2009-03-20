@@ -113,6 +113,9 @@ pfsense_install_custom_packages_exec
 # Overlay final files
 install_custom_overlay_final
 
+# Ensure config.xml exists
+copy_config_xml_from_conf_default
+
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
 freesbie_make clonefs

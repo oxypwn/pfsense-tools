@@ -1481,3 +1481,9 @@ pfSense_clean_obj_dir() {
 	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX})
 	echo "Done!"	
 }
+
+copy_config_xml_from_conf_default() {
+	if [ ! -f "${PFSENSEBASEDIR}/cf/conf/config.xml" ]; then
+		cp ${PFSENSEBASEDIR}/conf.default/config.xml ${PFSENSEBASEDIR}/cf/conf/
+	fi
+}
