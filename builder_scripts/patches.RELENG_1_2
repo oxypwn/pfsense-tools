@@ -49,3 +49,4 @@
 ~sys/dev/glxsb~glxsb.diff~
 ~sys/boot/i386/libi386~boot_libi386.diff~
 ~sys/dev/ixgbe~ixgbe.diff~
+~usr.sbin/fifolog~fifolog.diff~
