@@ -21,6 +21,7 @@ usr/bin/host
 usr/bin/nsupdate
 usr/sbin/clog
 usr/sbin/syslogd
+usr/local/sbin/syslog-ng
 usr/sbin/fifolog_reader
 usr/sbin/fifolog_create
 usr/sbin/fifolog_writer
