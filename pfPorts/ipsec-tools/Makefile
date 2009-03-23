@@ -38,10 +38,10 @@ PLIST_SUB+=	STATEDIR=${STATEDIR}
 
 WITH_NATT=yo
 
-OPTIONS=	DEBUG		"enable Debug support" on \
+OPTIONS=	DEBUG		"enable Debug support" off \
 		IPV6		"enable IPV6 support" off \
 		ADMINPORT	"enable Admin port" on \
-		STATS		"enable Statistics logging function" on \
+		STATS		"enable Statistics logging function" off \
 		DPD		"enable Dead Peer Detection" on \
 		NATT		"enable NAT-Traversal (kernel-patch required)" off \
 		NATTF		"require NAT-Traversal (fail without kernel-patch)" off \
