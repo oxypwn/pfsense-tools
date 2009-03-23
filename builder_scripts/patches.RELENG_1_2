@@ -51,5 +51,5 @@
 ~sys/dev/ixgbe~ixgbe.diff~
 ~usr.sbin/fifolog~fifolog.diff~
 ~lib/libipsec/~libipsec-pfkey.c-socketvar.diff~
-~sys/sys~sockbuf.h.diff~
+~sys/sys~sockbuf.RELENG_7.diff~
 ~sys/~freebsd-7.0-oneshot-dumps-v2.diff~
