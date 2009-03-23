@@ -65,6 +65,7 @@ PORTSTOBUILD="grub \
 	php5-zlib \
 	php-xdebug \
 	openvpn \
+	syslog-ng \
 	zip \
 	links \
 	dnswatch \

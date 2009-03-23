@@ -93,6 +93,7 @@ PORTSTOBUILD="grub \
 	php5-xml \
 	php5-zlib \
 	openvpn \
+	syslog-ng \
 	zip \
 	links \
 	dnswatch \
