@@ -1,17 +1,24 @@
 #!/bin/sh
 
 if [ $# -lt 1 ]; then
-	echo 1>&2 Usage  : $0 pfSense branch
-	echo 1>&2 example: $0 HEAD
+	echo 1>&2 Usage  : $0 pfSense branch SUP_HOST ERROR_EMAIL_ADDRESS
+	echo 1>&2 example: $0 HEAD cvsup.livebsd.com myemail@emails.com
 	exit 127
 fi
 
-if [ $# -eq 2 ]; then
-	SETLIVEBSD="true"
+# Default SUPHOST
+if [ "$2" != "" ]; then 
+	SUPHOST="$2"
+else 
+	SUPHOST="cvsup.livebsd.com"
+fi
+
+# Default EMAIL
+if [ "$3" != "" ]; then
+	FREESBIE_ERROR_MAIL="$3"
 fi
 
 HANDLED=false
-FREESBIE_ERROR_MAIL=sullrich@gmail.com
 
 # Ensure file exists
 touch pfsense-build.conf
@@ -50,11 +57,9 @@ set_items() {
 	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	echo export CUSTOM_COPY_LIST="${CUSTOM_COPY_LIST}" >> $BUILDER_SCRIPTS/pfsense-build.conf	
-	if [ "$SETLIVEBSD" = "true" ]; then 
-		echo "export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	echo export OVERRIDE_FREEBSD_CVSUP_HOST="${SUPHOST}" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	if [ "$FREESBIE_ERROR_MAIL" != "" ]; then 
 		echo "export FREESBIE_ERROR_MAIL=${FREESBIE_ERROR_MAIL}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
-	else 
-		echo "#export OVERRIDE_FREEBSD_CVSUP_HOST=cvsup.livebsd.com" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	fi
 	echo
 	tail -n9 pfsense-build.conf
