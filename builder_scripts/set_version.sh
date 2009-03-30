@@ -1,8 +1,8 @@
 #!/bin/sh
 
 if [ $# -lt 1 ]; then
-	echo 1>&2 Usage  : $0 pfSense branch SUP_HOST ERROR_EMAIL_ADDRESS
-	echo 1>&2 example: $0 HEAD cvsup.livebsd.com myemail@emails.com
+	echo 1>&2 Usage  : $0 ./set_version branch SUP_HOST ERROR_EMAIL_ADDRESS
+	echo 1>&2 example: $0 ./set_version HEAD cvsup.livebsd.com myemail@emails.com
 	exit 127
 fi
 
@@ -81,7 +81,6 @@ HEAD)
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
 	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_2"
-	export FREESBIE_ERROR_MAIL="sullrich@gmail.com"
 	set_items
 ;;
 
@@ -95,6 +94,7 @@ RELENG_1_2)
 	export PFSENSETAG=RELENG_1_2
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_7_1
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_1_2
+	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_1_2"	
 	set_items
 ;;
 
