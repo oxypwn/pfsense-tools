@@ -1,10 +1,40 @@
+Index: netgraph.h
+===================================================================
+RCS file: /home/ermal/tmp/2/repo/RELENG_7/netgraph.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 netgraph.h
+--- netgraph.h	26 Mar 2009 18:09:36 -0000	1.1.1.1
++++ netgraph.h	3 Apr 2009 07:19:32 -0000
+@@ -1124,6 +1124,7 @@
+ struct	ng_type *ng_findtype(const char *type);
+ int	ng_make_node_common(struct ng_type *typep, node_p *nodep);
+ int	ng_name_node(node_p node, const char *name);
++node_p  ng_name2noderef(node_p node, const char *name);
+ int	ng_newtype(struct ng_type *tp);
+ ng_ID_t ng_node2ID(node_p node);
+ item_p	ng_package_data(struct mbuf *m, int flags);
+Index: ng_base.c
+===================================================================
+RCS file: /home/ermal/tmp/2/repo/RELENG_7/ng_base.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ng_base.c
+--- ng_base.c	26 Mar 2009 18:09:36 -0000	1.1.1.1
++++ ng_base.c	3 Apr 2009 07:19:29 -0000
+@@ -217,7 +217,6 @@
+ 
+ /* Imported, these used to be externally visible, some may go back. */
+ void	ng_destroy_hook(hook_p hook);
+-node_p	ng_name2noderef(node_p node, const char *name);
+ int	ng_path2noderef(node_p here, const char *path,
+ 	node_p *dest, hook_p *lasthook);
+ int	ng_make_node(const char *type, node_p *nodepp);
 Index: ng_eiface.c
 ===================================================================
 RCS file: /home/ermal/tmp/2/repo/RELENG_7/ng_eiface.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ng_eiface.c
 --- ng_eiface.c	26 Mar 2009 18:09:36 -0000	1.1.1.1
-+++ ng_eiface.c	26 Mar 2009 18:10:24 -0000
++++ ng_eiface.c	3 Apr 2009 07:19:22 -0000
 @@ -41,6 +41,7 @@
  
  #include <net/if.h>
@@ -38,7 +68,7 @@ diff -u -r1.1.1.1 ng_eiface.c
  
  	NGI_GET_MSG(item, msg);
  	switch (msg->header.typecookie) {
-@@ -438,6 +450,42 @@
+@@ -438,6 +450,46 @@
  			}
  			strlcpy(resp->data, ifp->if_xname, IFNAMSIZ);
  			break;
@@ -52,6 +82,10 @@ diff -u -r1.1.1.1 ng_eiface.c
 +                        }
 +                        
 +                	EVENTHANDLER_INVOKE(ifnet_departure_event, ifp);
++
++			ethernode = ng_name2noderef(node, ifp->if_xname);
++                        if (ethernode != NULL)
++                                ng_name_node(ethernode, new_name);
 +
 +                	strlcpy(ifp->if_xname, new_name, sizeof(ifp->if_xname));
 +                	ifa = ifp->if_addr;
