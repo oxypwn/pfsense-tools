@@ -59,8 +59,8 @@ fi
 sync_cvs() {
 	# Sync with pfsense.org
 	echo ">>> Syncing with pfSense.org"
-	cvsup $BUILDERSCRIPTS/pfSense-supfile
-	cvsup $BUILDERSCRIPTS/freesbie2-supfile
+	/usr/bin/csup $BUILDERSCRIPTS/pfSense-supfile
+	/usr/bin/csup $BUILDERSCRIPTS/freesbie2-supfile
 	cd $BUILDERSCRIPTS && cvs up -d
 }
 

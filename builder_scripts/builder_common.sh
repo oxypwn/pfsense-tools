@@ -1008,8 +1008,8 @@ freesbie_make() {
 update_cvs_depot() {
 	if [ -z "${USE_GIT:-}" ]; then
 		local _cvsdate
-		echo "Launching cvsup pfSense-supfile..."
-		cvsup pfSense-supfile
+		echo "Launching csup pfSense-supfile..."
+		/usr/bin/csup pfSense-supfile
 		rm -rf pfSense
 		echo "Updating ${BASE_DIR}/pfSense..."
 		rm -rf $BASE_DIR/pfSense

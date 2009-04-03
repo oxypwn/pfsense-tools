@@ -76,7 +76,7 @@ if [ $pfSense_version = "7" ]; then
 fi
 
 if [ ! -d $SRCDIR ]; then
-	echo "Creating $SRCDIR ... We will need to cvsup the contents..."
+	echo "Creating $SRCDIR ... We will need to csup the contents..."
 	mkdir $SRCDIR
 fi
 

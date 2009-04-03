@@ -32,7 +32,7 @@ do
 	MOVE_FILE=`echo $LINE | cut -d~ -f4`
 	MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
 	
-	cvsup -h cvsup.livebsd.com ${SUPFILE}
+	/usr/bin/csup -h cvsup.livebsd.com ${SUPFILE}
 	echo "Building kernel with patch $PATCH_FILE"
 
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
@@ -46,7 +46,7 @@ do
 done
 
 # Build a kernel without any patches at all
-cvsup -h $CVSUPHOST /home/pfsense/tools/builder_scripts/$FBSDBRANCH-supfile
+/usr/bin/csup -h $CVSUPHOST /home/pfsense/tools/builder_scripts/$FBSDBRANCH-supfile
 cd $SRCDIR && make buildkernel KERNCONF=$KERNCONFCONFIG && make installkernel KERNCONF=$KERNCONFCONFIG
 gzip /boot/kernel/kernel
 mv /boot/kernel/kernel.gz $KERNELOUTPUTDIR/kernel.gz-NOPATCHES
