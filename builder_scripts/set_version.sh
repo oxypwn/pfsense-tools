@@ -121,7 +121,7 @@ RELENG_8_0)
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_8_0
-	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
+	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_8_0
 	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_2"	
 	set_items
 ;;
