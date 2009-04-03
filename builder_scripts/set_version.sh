@@ -111,6 +111,20 @@ RELENG_2_0)
 	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_2"	
 	set_items
 ;;
+
+RELENG_8_0)
+	echo ">>> Setting builder environment to use RELENG_2_0 ..."
+	export pfSense_version="8"
+	export FREEBSD_VERSION="8"
+	export FREEBSD_BRANCH="RELENG_8_0"
+	export SUPFILE="${BASE_DIR}/tools/builder_scripts/RELENG_8-supfile"
+	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
+	export PFSENSETAG=HEAD
+	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_8_0
+	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_2_0
+	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_2"	
+	set_items
+;;
 esac
 
 if [ "$HANDLED" = "false" ]; then 
