@@ -64,6 +64,8 @@ set_items() {
 	echo
 	tail -n9 pfsense-build.conf
 	echo
+	echo "NOTE: pfsense-build.conf values updated.  These values override pfsense_local.sh !!"
+	echo
 	HANDLED=true
 }
 
