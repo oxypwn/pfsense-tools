@@ -1,24 +1,29 @@
 # $Id$
 
-makeoptions MODULES_OVERRIDE="acpi ndis if_ndis ipfw dummynet fdescfs cpufreq"
+makeoptions MODULES_OVERRIDE="acpi ndis if_ndis ipfw ipdivert dummynet fdescfs cpufreq ubsa"
 
 machine		i386
-cpu		I486_CPU
-cpu		I586_CPU
-cpu		I686_CPU
+cpu			I486_CPU
+cpu			I586_CPU
+cpu			I686_CPU
 ident		pfSense-embedded
 
 options		CPU_GEODE
 options		CPU_SOEKRIS
 options		CPU_ELAN
 
+options 		GEOM_MIRROR
 options			GEOM_UZIP
 options			GEOM_LABEL
 nooption		GEOM_MBR
 options			GEOM_PART_MBR
 
-options 	SCHED_ULE		# ULE scheduler
-#options 	SCHED_4BSD		# 4BSD scheduler
+# IPSEC filtering interface
+device 		enc
+
+nooptions	SCHED_4BSD
+options 	SCHED_ULE                                       # ULE scheduler
+
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
 options 	FFS			# Berkeley Fast Filesystem
@@ -41,7 +46,14 @@ options 	SYSVMSG			# SYSV-style message queues
 options 	SYSVSEM			# SYSV-style semaphores
 options 	_KPOSIX_PRIORITY_SCHEDULING # POSIX P1003_1B real-time extensions
 options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
+#options 	AHC_REG_PRETTY_PRINT	# Print register bitfields in debug
+					# output.  Adds ~128k to driver.
+#options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
+					# output.  Adds ~215k to driver.
 options 	ADAPTIVE_GIANT		# Giant mutex is adaptive.
+
+device		apic			# I/O APIC
+device		acpi
 
 # Bus support.  Do not remove isa, even if you have no isa slots
 device		isa
@@ -111,9 +123,9 @@ device		twe		# 3ware ATA RAID
 device		npx
 
 # Power management support (see NOTES for more options)
-#device		apm
+# device		apm
 # Add suspend/resume support for the i8254.
-device		pmtimer
+# device		pmtimer
 
 # PCCARD (PCMCIA) support
 # PCMCIA and cardbus bridge support
@@ -159,6 +171,7 @@ device		rl		# RealTek 8129/8139
 device		sf		# Adaptec AIC-6915 (``Starfire'')
 device		sis		# Silicon Integrated Systems SiS 900/SiS 7016
 device		sk		# SysKonnect SK-984x & SK-982x gigabit Ethernet
+device          msk             # Marvell/SysKonnect Yukon II Gigabit Ethernet
 device		ste		# Sundance ST201 (D-Link DFE-550TX)
 device		ti		# Alteon Networks Tigon I/II gigabit Ethernet
 device		tl		# Texas Instruments ThunderLAN
@@ -223,13 +236,14 @@ device          ufoma
 #device          umsm
 device          ucom
 device          uplcom
-device          ubsa
+#device          ubsa
 device          umct
 device          uvisor
 device          uark
 device          uftdi
 device          uvscom
 device          umodem
+
 
 # Uncommented at the request of colin
 #device		uhid		# "Human Interface Devices"
@@ -250,7 +264,7 @@ device          udav            # Davicom DM9601 USB Ethernet driver
 # FireWire support
 device		firewire	# FireWire bus code
 device		sbp		# SCSI over FireWire (Requires scbus and da)
-device		fwe		# Ethernet over FireWire (non-standard!)
+#device		fwe		# Ethernet over FireWire (non-standard!)
 
 
 # pfsense addons
@@ -268,7 +282,7 @@ options         IPFIREWALL_VERBOSE_LIMIT
 device		vlan
 
 options		IPSTEALTH
-options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
+#options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
 
 #options		INCLUDE_CONFIG_FILE
 
@@ -278,6 +292,7 @@ options		NETGRAPH_L2TP
 options 	NETGRAPH_BPF
 options 	NETGRAPH_ETHER
 options 	NETGRAPH_IFACE
+options 	NETGRAPH_EIFACE
 options 	NETGRAPH_PPP
 options 	NETGRAPH_PPPOE
 options 	NETGRAPH_PPTPGRE
@@ -298,9 +313,6 @@ options		NETGRAPH_MPPC_ENCRYPTION
 #options 	NETGRAPH_HOLE
 #options 	NETGRAPH_TEE
 
-device ubsa
-device ucom
-
 options		IPSEC
 options         IPSEC_NAT_T
 
@@ -310,6 +322,7 @@ options		ALTQ_RED
 options		ALTQ_RIO
 options		ALTQ_HFSC
 options		ALTQ_PRIQ
+options		ALTQ_FAIRQ
 
 device		pf
 device		pflog
@@ -318,7 +331,6 @@ device		pfsync
 
 device		crypto          # core crypto support
 device		glxsb
-
 device		cryptodev       # /dev/crypto for access to h/w
 device		rndtest         # FIPS 140-2 entropy tester
 device		hifn            # Hifn 7951, 7781, etc.
@@ -344,27 +356,11 @@ device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
 
 #options TCP_SIGNATURE
 
-makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
-
-options         KDB                     # Enable kernel debugger support.
-options         DDB                     # Support DDB.
-options         GDB                     # Support remote GDB.
-options         INVARIANTS              # Enable calls of extra sanity checking
-options         INVARIANT_SUPPORT       # Extra sanity checks of internal structures, required by INVARIANTS
-#options                WITNESS                 # Enable checks to detect deadlocks and cycles
-#options                WITNESS_SKIPSPIN        # Don't run witness on spinlocks for speed
-
-options         BREAK_TO_DEBUGGER
-
-# IPSEC filtering interface
-device 		enc
-
-options         PREEMPTION
+#options         PREEMPTION
 
 device firmware
 
 device          lagg
-
 
 device          wlan_amrr
 
@@ -373,16 +369,27 @@ device          firewire        # FireWire bus code
 device          sbp             # SCSI over FireWire (Requires scbus and da)
 device          fwe             # Ethernet over FireWire (non-standard!)
 
-device		safe
-
-device		uart
-
-# et(4) for AGERE ET1310 fastE and gigE
-device		et
-
-device          ed              # NE[12]000, SMC Ultra, 3c503, DS8390 cards
-
 options MROUTING
 
-device		ixgbe # http://www.nabble.com/kern-130476:-Error-in-compiling-kernel-with-device-ixgbe-td21424560.html
-device		ae
+# Additional cards
+device		uart			# uart -- driver for Universal Asynchronous Receiver/Transmitter (UART)
+device		bktr			# bktr -- Brooktree Bt848/849/878/879 and Pinnacle PCTV video capture
+device		ale				# ale -- Atheros AR8121/AR8113/AR8114 Gigabit/Fast Ethernet driver
+device		safe			# safe -- SafeNet crypto accelerator
+device		et				# et(4) for AGERE ET1310 fastE and gigE
+device		ed				# NE[12]000, SMC Ultra, 3c503, DS8390 cards
+device		mxge			# mxge - Myricom Myri10GE 10 Gigabit Ethernet adapter driver
+device		cxgb			# cxgb -- Chelsio T3 10 Gigabit Ethernet adapter driver
+device		igb				# igb -- Intel(R) PRO/1000 PCI Express Gigabit Ethernet adapter driver
+device		ixgbe 			# http://www.nabble.com/kern-130476:-Error-in-compiling-kernel-with-device-ixgbe-td21424560.html
+device		ae				# ae -- Attansic/Atheros L2 FastEthernet controller driver
+device		crypto          # core crypto support
+device		glxsb			# glxsb -- Geode LX Security Block crypto accelerator
+device		cryptodev       # /dev/crypto for access to h/w
+device		hifn            # Hifn 7951, 7781, etc.
+device		ubsec           # Broadcom 5501, 5601, 58xx
+device		udav            # Davicom DM9601 USB Ethernet driver
+#options	HIFN_DEBUG      # enable debugging support: hw.hifn.debug
+#options	HIFN_RNDTEST    # enable rndtest support
+#device		rndtest         # FIPS 140-2 entropy tester
+

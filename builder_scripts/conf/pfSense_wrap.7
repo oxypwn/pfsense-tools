@@ -18,6 +18,9 @@ options			GEOM_LABEL
 nooption		GEOM_MBR
 options			GEOM_PART_MBR
 
+# IPSEC filtering interface
+device 		enc
+
 nooptions	SCHED_4BSD
 options 	SCHED_ULE                                       # ULE scheduler
 
@@ -353,17 +356,11 @@ device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
 
 #options TCP_SIGNATURE
 
-# IPSEC filtering interface
-device 		enc
-
-options         PREEMPTION
+#options         PREEMPTION
 
 device firmware
 
 device          lagg
-
-#option			LIBALIAS
-#option			PF_WITH_LIBALIAS
 
 device          wlan_amrr
 
@@ -372,15 +369,27 @@ device          firewire        # FireWire bus code
 device          sbp             # SCSI over FireWire (Requires scbus and da)
 device          fwe             # Ethernet over FireWire (non-standard!)
 
-device		safe
-device		uart
-
-# et(4) for AGERE ET1310 fastE and gigE
-device		et
-
-device          ed              # NE[12]000, SMC Ultra, 3c503, DS8390 cards
-
 options MROUTING
 
-device		ixgbe # http://www.nabble.com/kern-130476:-Error-in-compiling-kernel-with-device-ixgbe-td21424560.html
-device		ae
+# Additional cards
+device		uart			# uart -- driver for Universal Asynchronous Receiver/Transmitter (UART)
+device		bktr			# bktr -- Brooktree Bt848/849/878/879 and Pinnacle PCTV video capture
+device		ale				# ale -- Atheros AR8121/AR8113/AR8114 Gigabit/Fast Ethernet driver
+device		safe			# safe -- SafeNet crypto accelerator
+device		et				# et(4) for AGERE ET1310 fastE and gigE
+device		ed				# NE[12]000, SMC Ultra, 3c503, DS8390 cards
+device		mxge			# mxge - Myricom Myri10GE 10 Gigabit Ethernet adapter driver
+device		cxgb			# cxgb -- Chelsio T3 10 Gigabit Ethernet adapter driver
+device		igb				# igb -- Intel(R) PRO/1000 PCI Express Gigabit Ethernet adapter driver
+device		ixgbe 			# http://www.nabble.com/kern-130476:-Error-in-compiling-kernel-with-device-ixgbe-td21424560.html
+device		ae				# ae -- Attansic/Atheros L2 FastEthernet controller driver
+device		crypto          # core crypto support
+device		glxsb			# glxsb -- Geode LX Security Block crypto accelerator
+device		cryptodev       # /dev/crypto for access to h/w
+device		hifn            # Hifn 7951, 7781, etc.
+device		ubsec           # Broadcom 5501, 5601, 58xx
+device		udav            # Davicom DM9601 USB Ethernet driver
+#options	HIFN_DEBUG      # enable debugging support: hw.hifn.debug
+#options	HIFN_RNDTEST    # enable rndtest support
+#device		rndtest         # FIPS 140-2 entropy tester
+
