@@ -322,7 +322,7 @@ options		ALTQ_RED
 options		ALTQ_RIO
 options		ALTQ_HFSC
 options		ALTQ_PRIQ
-options		ALTQ_FAIRQ
+#options		ALTQ_FAIRQ
 
 device		pf
 device		pflog
