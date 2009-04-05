@@ -983,7 +983,7 @@ print_flags() {
 	printf "          Custom Config: %s\n" $USE_CONFIG_XML
 	printf "                ISOPATH: %s\n" $ISOPATH
 	printf "                IMGPATH: %s\n" $IMGPATH
-	printf "               KERNCONF: %s\n" $KERNCONF
+	printf "             KERNELCONF: %s\n" $KERNELCONF
 	printf "FREESBIE_COMPLETED_MAIL: %s\n" $FREESBIE_COMPLETED_MAIL
 	printf "FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
 	if [ -n "$PFSENSECVSDATETIME" ]; then
