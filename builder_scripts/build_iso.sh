@@ -19,24 +19,12 @@
 # Make sure cvsup_current has been run first 
 check_for_clog
 
-# Output build flags
-print_flags
-
 # Allow old CVS_CO_DIR to be deleted later
 if [ -d $CVS_CO_DIR ]; then 
 	chflags -R noschg $CVS_CO_DIR
 fi 
 
-# Use pfSense.6,7,8 as kernel configuration file
-if [ $FREEBSD_VERSION = "6" ]; then
-	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
-fi
-if [ $FREEBSD_VERSION = "7" ]; then
-	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.7"}
-fi
-if [ $FREEBSD_VERSION = "8" ]; then
-	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.8"}
-fi
+export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
@@ -84,6 +72,9 @@ else
 		export PRUNE_LIST="${PWD}/remove.list.iso.8"
 	fi
 fi
+
+# Output build flags
+print_flags
 
 # Clean out directories
 echo ">>> Cleaning up old directories..."
