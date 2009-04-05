@@ -133,3 +133,6 @@ create_i386_diskimage
 echo "Image completed."
 echo "$MAKEOBJDIRPREFIX/"
 ls -lah $MAKEOBJDIRPREFIX/nanobsd*
+
+email_operation_completed
+

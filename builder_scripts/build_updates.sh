@@ -129,3 +129,4 @@ pfsense_install_custom_packages_exec
 create_pfSense_Full_update_tarball
 create_pfSense_Embedded_update_tarball
 
+email_operation_completed

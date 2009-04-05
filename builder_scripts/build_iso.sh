@@ -197,3 +197,6 @@ freesbie_make iso
 
 # Report any zero sized files
 report_zero_sized_files
+
+email_operation_completed
+

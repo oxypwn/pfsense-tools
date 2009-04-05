@@ -87,3 +87,4 @@ pfsense_install_custom_packages_exec
 cd $CVS_CO_DIR
 create_pfSense_Small_update_tarball
 
+email_operation_completed

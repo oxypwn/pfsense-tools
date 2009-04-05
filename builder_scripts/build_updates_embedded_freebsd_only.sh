@@ -103,3 +103,5 @@ fixup_libmap
 echo ${CLONEDIR}
 
 create_FreeBSD_system_update
+
+email_operation_completed

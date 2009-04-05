@@ -18,6 +18,10 @@ if [ "$3" != "" ]; then
 	FREESBIE_ERROR_MAIL="$3"
 fi
 
+if [ "$4" != "" ]; then
+	FREESBIE_COMPLETED_MAIL="$3"
+fi
+
 HANDLED=false
 
 # Ensure file exists
@@ -60,6 +64,9 @@ set_items() {
 	echo export OVERRIDE_FREEBSD_CVSUP_HOST="${SUPHOST}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	if [ "$FREESBIE_ERROR_MAIL" != "" ]; then 
 		echo "export FREESBIE_ERROR_MAIL=${FREESBIE_ERROR_MAIL}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
+	fi
+	if [ "$FREESBIE_COMPLETED_MAIL" != "" ]; then 
+		echo "export FREESBIE_COMPLETED_MAIL=${FREESBIE_COMPLETED_MAIL}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	fi
 	echo
 	tail -n9 pfsense-build.conf

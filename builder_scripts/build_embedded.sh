@@ -197,3 +197,5 @@ rm -rf ${TMPDIR}
 ls -lh ${IMGPATH}
 
 report_zero_sized_files
+
+email_operation_completed

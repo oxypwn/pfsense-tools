@@ -125,3 +125,5 @@ echo ">>> Finalizing iso..."
 freesbie_make iso
 
 report_zero_sized_files
+
+email_operation_completed

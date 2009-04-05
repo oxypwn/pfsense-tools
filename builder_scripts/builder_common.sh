@@ -1487,3 +1487,11 @@ copy_config_xml_from_conf_default() {
 		cp ${PFSENSEBASEDIR}/conf.default/config.xml ${PFSENSEBASEDIR}/cf/conf/
 	fi
 }
+
+email_operation_completed() {
+    if [ ! -z ${FREESBIE_COMPLETED_MAIL:-} ]; then
+	cat ${LOGFILE} | \
+	    mail -s "FreeSBIE (pfSense) operation completed." \
+	    ${FREESBIE_COMPLETED_MAIL}
+    fi	
+}
