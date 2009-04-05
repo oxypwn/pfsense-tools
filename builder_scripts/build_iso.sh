@@ -29,28 +29,16 @@ export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
 # make.conf
-if [ -f /usr/obj.pfSense/pfSense_wrap.6.world.done ]; then
+if [ -f /usr/obj.pfSense/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
 	echo -n "Removing /usr/obj* since embedded build performed prior..."
 	rm -rf /usr/obj.pfSense/*
 	echo "done."
 fi
 
-# Use normal make.conf
-if [ $FREEBSD_VERSION = "6" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf"
-	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"	
-	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf"
-fi
-if [ $FREEBSD_VERSION = "7" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.7"
-	export SRC_CONF="${PWD}/conf/make.conf.7"
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
-fi
-if [ $FREEBSD_VERSION = "8" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.8"
-	export SRC_CONF="${PWD}/conf/make.conf.8"
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.8.install"
-fi
+# Define make.conf
+export MAKE_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
+export SRC_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${PWD}/conf/make.conf.$FREEBSD_VERSION.install"
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
@@ -59,18 +47,8 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	if [ $FREEBSD_VERSION = "6" ]; then
-		echo ">>> Using ${PWD}/remove.list.iso ..."	
-		export PRUNE_LIST="${PWD}/remove.list.iso"
-	fi
-	if [ $FREEBSD_VERSION = "7" ]; then
-		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
-		export PRUNE_LIST="${PWD}/remove.list.iso.7"
-	fi
-	if [ $FREEBSD_VERSION = "8" ]; then
-		echo ">>> Using ${PWD}/remove.list.iso.8 ..."
-		export PRUNE_LIST="${PWD}/remove.list.iso.8"
-	fi
+	echo ">>> Using ${PWD}/remove.list.iso.$FREEBSD_VERSION ..."
+	export PRUNE_LIST="${PWD}/remove.list.iso.$FREEBSD_VERSION"
 fi
 
 # Output build flags

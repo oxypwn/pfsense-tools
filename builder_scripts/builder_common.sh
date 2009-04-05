@@ -985,10 +985,10 @@ print_flags() {
 	printf "                IMGPATH: %s\n" $IMGPATH
 	printf "             KERNELCONF: %s\n" $KERNELCONF
 	printf "FREESBIE_COMPLETED_MAIL: %s\n" $FREESBIE_COMPLETED_MAIL
-	printf "FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
-	if [ -n "$PFSENSECVSDATETIME" ]; then
-		printf "         pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
-	fi
+	printf "    FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
+if [ -n "$PFSENSECVSDATETIME" ]; then
+	printf "         pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
+fi
 	echo
 	echo "Sleeping for 5 seconds..."
 	sleep 5

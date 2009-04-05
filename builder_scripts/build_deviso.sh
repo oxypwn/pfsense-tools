@@ -17,18 +17,8 @@ print_flags
 # export EXTRA="comconsole customroot"
 export EXTRA="customroot"
 
-if [ $FREEBSD_VERSION = "6" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.developer"
-	export MAKE_CONF_INSTALL="${PWD}/conf/make.conf.developer"	
-fi
-if [ $FREEBSD_VERSION = "7" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.developer.7"
-	export SRC_CONF="${PWD}/conf/make.conf.developer.7"
-fi
-if [ $FREEBSD_VERSION = "8" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.developer.8"
-	export SRC_CONF="${PWD}/conf/make.conf.developer.8"
-fi
+export MAKE_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
+export SRC_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
 
 export IS_DEV_ISO=yo
 

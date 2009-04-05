@@ -13,7 +13,7 @@
 # If a full build has been performed we need to nuke
 # /usr/obj.pfSense/ since embedded uses a different
 # make.conf
-if [ -f /usr/obj.pfSense/pfSense.6.world.done ]; then
+if [ -f /usr/obj.pfSense/pfSense.$FREEBSD_VERSION.world.done ]; then
 	echo -n "Removing /usr/obj* since full build performed prior..."
 	rm -rf /usr/obj*
 	echo "done."
@@ -48,27 +48,14 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	if [ $FREEBSD_VERSION = "6" ]; then
-		echo ">>> Using ${PWD}/remove.list.iso ..."	
-		export PRUNE_LIST="${PWD}/remove.list.iso"
-	fi
-	if [ $FREEBSD_VERSION = "7" ]; then
-		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
-		export PRUNE_LIST="${PWD}/remove.list.iso.7"
-	fi
+	echo ">>> Using ${PWD}/remove.list.iso.$FREEBSD_VERSION ..."
+	export PRUNE_LIST="${PWD}/remove.list.iso.$FREEBSD_VERSION"
 fi
 
 # Use embedded make.conf
-if [ $FREEBSD_VERSION = "6" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.embedded"
-	export SRC_CONF="${PWD}/conf/make.conf.embedded"
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded"	
-fi
-if [ $FREEBSD_VERSION = "7" ]; then
-	export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
-	export SRC_CONF="${PWD}/conf/make.conf.embedded.7"
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.7.install"
-fi
+export MAKE_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
+export SRC_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION.install"
 
 # Clean out directories
 freesbie_make cleandir
@@ -135,4 +122,3 @@ echo "$MAKEOBJDIRPREFIX/"
 ls -lah $MAKEOBJDIRPREFIX/nanobsd*
 
 email_operation_completed
-
