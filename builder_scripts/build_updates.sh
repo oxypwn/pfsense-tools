@@ -43,6 +43,9 @@ fi
 if [ $FREEBSD_VERSION = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.7}
 fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.8}
+fi
 
 # Use normal make.conf
 if [ $FREEBSD_VERSION = "6" ]; then
@@ -55,6 +58,12 @@ if [ $FREEBSD_VERSION = "7" ]; then
 	export SRC_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
 fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.8"
+	export SRC_CONF="${PWD}/conf/make.conf.8"
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.8.install"
+fi
+
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs etcmfs"
@@ -70,6 +79,10 @@ else
 	if [ $FREEBSD_VERSION = "7" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
+	fi
+	if [ $FREEBSD_VERSION = "8" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso.8 ..."
+		export PRUNE_LIST="${PWD}/remove.list.iso.8"
 	fi
 fi
 

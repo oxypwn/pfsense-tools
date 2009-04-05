@@ -25,6 +25,10 @@ if [ $FREEBSD_VERSION = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.developer.7"
 	export SRC_CONF="${PWD}/conf/make.conf.developer.7"
 fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.developer.8"
+	export SRC_CONF="${PWD}/conf/make.conf.developer.8"
+fi
 
 export IS_DEV_ISO=yo
 

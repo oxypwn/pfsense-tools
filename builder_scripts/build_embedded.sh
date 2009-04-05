@@ -48,6 +48,10 @@ else
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
 	fi
+	if [ $FREEBSD_VERSION = "8" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso.8 ..."
+		export PRUNE_LIST="${PWD}/remove.list.iso.8"
+	fi
 fi
 
 # Use embedded make.conf
@@ -60,6 +64,11 @@ if [ $FREEBSD_VERSION = "7" ]; then
 	export MAKE_CONF="${PWD}/conf/make.conf.embedded.7"
 	export SRC_CONF="${PWD}/conf/make.conf.embedded.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.7.install"
+fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.embedded.8"
+	export SRC_CONF="${PWD}/conf/make.conf.embedded.8"
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.8.install"
 fi
 
 # Clean out directories

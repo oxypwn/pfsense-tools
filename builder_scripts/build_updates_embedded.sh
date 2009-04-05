@@ -49,6 +49,11 @@ if [ $FREEBSD_VERSION = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 	export SRC_CONF="${PWD}/conf/make.conf.developer.7"	
 fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.8}
+	export SRC_CONF="${PWD}/conf/make.conf.developer.8"
+fi
+
 
 # Do not compress FS
 export NO_COMPRESSEDFS=yes
@@ -64,6 +69,10 @@ else
 	if [ $FREEBSD_VERSION = "7" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
+	fi
+	if [ $FREEBSD_VERSION = "8" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso.8 ..."
+		export PRUNE_LIST="${PWD}/remove.list.iso.8"
 	fi
 fi
 

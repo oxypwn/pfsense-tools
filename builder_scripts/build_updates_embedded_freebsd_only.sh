@@ -30,6 +30,9 @@ fi
 if [ $FREEBSD_VERSION = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
 fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.8}
+fi
 
 # Do not compress FS
 export NO_COMPRESSEDFS=yes
@@ -45,6 +48,11 @@ if [ $FREEBSD_VERSION = "7" ]; then
 	export SRC_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
 fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.8"
+	export SRC_CONF="${PWD}/conf/make.conf.8"
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.8.install"
+fi
 
 if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
@@ -57,6 +65,10 @@ else
 	if [ $FREEBSD_VERSION = "7" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
+	fi
+	if [ $FREEBSD_VERSION = "8" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso.8 ..."
+		export PRUNE_LIST="${PWD}/remove.list.iso.8"
 	fi
 fi
 
@@ -79,6 +91,9 @@ make_world
 
 if [ $FREEBSD_VERSION = "7" ]; then
         export MAKE_CONF="${PWD}/conf/make.conf.embedded.7.install"
+fi
+if [ $FREEBSD_VERSION = "8" ]; then
+        export MAKE_CONF="${PWD}/conf/make.conf.embedded.8.install"
 fi
 
 echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."

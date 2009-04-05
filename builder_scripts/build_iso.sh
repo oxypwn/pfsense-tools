@@ -27,12 +27,15 @@ if [ -d $CVS_CO_DIR ]; then
 	chflags -R noschg $CVS_CO_DIR
 fi 
 
-# Use pfSense.6 as kernel configuration file
+# Use pfSense.6,7,8 as kernel configuration file
 if [ $FREEBSD_VERSION = "6" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.6"}
 fi
 if [ $FREEBSD_VERSION = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.7"}
+fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.8"}
 fi
 
 # If a embedded build has been performed we need to nuke
@@ -55,6 +58,11 @@ if [ $FREEBSD_VERSION = "7" ]; then
 	export SRC_CONF="${PWD}/conf/make.conf.7"
 	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
 fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export MAKE_CONF="${PWD}/conf/make.conf.8"
+	export SRC_CONF="${PWD}/conf/make.conf.8"
+	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.8.install"
+fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
@@ -70,6 +78,10 @@ else
 	if [ $FREEBSD_VERSION = "7" ]; then
 		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
 		export PRUNE_LIST="${PWD}/remove.list.iso.7"
+	fi
+	if [ $FREEBSD_VERSION = "8" ]; then
+		echo ">>> Using ${PWD}/remove.list.iso.8 ..."
+		export PRUNE_LIST="${PWD}/remove.list.iso.8"
 	fi
 fi
 
@@ -199,4 +211,3 @@ freesbie_make iso
 report_zero_sized_files
 
 email_operation_completed
-

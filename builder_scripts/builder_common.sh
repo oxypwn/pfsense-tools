@@ -138,6 +138,8 @@ build_all_kernels() {
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/i386/conf/pfSense_SMP.6
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/i386/conf/pfSense_SMP.7
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.8 $SRCDIR/sys/i386/conf/pfSense_SMP.8
+		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.8
 		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.6
 		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.7
 		if [ ! -f "$SRCDIR/sys/i386/conf/pfSense.7" ]; then
@@ -148,6 +150,8 @@ build_all_kernels() {
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.8 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
 		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7	
 		if [ ! -f "$SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7" ]; then
@@ -157,10 +161,13 @@ build_all_kernels() {
 	fi
 
 	# Add SMP and APIC options
+	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
 	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
 	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 
