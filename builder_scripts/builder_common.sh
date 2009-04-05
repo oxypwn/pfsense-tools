@@ -1490,7 +1490,7 @@ copy_config_xml_from_conf_default() {
 
 email_operation_completed() {
     if [ ! -z ${FREESBIE_COMPLETED_MAIL:-} ]; then
-	cat ${LOGFILE} | \
+	echo "Build / operation completed." | \
 	    mail -s "FreeSBIE (pfSense) operation completed." \
 	    ${FREESBIE_COMPLETED_MAIL}
     fi	
