@@ -210,8 +210,6 @@ device		mem		# Memory and kernel memory devices
 device		io		# I/O device
 device		random		# Entropy device
 device		ether		# Ethernet support
-device		sl		# Kernel SLIP
-device		ppp		# Kernel PPP
 device		tun		# Packet tunnel.
 device		pty		# Pseudo-ttys (telnet etc)
 device		md		# Memory "disks"
