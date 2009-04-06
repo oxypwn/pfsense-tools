@@ -4,6 +4,11 @@ makeoptions MODULES_OVERRIDE="acpi ndis if_ndis ipfw ipdivert dummynet fdescfs c
 include         GENERIC
 ident           pfSense7
 
+nooptions		INVARIANTS
+nooptions		INVARIANTS_SUPPORT
+nooptions		WITNESS
+nooptions		WITNESS_SKIPSPIN
+
 nooptions		SCHED_4BSD
 options			SCHED_ULE	# add inULE scheduler
 
