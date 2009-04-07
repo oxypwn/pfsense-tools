@@ -8,6 +8,11 @@ cpu			I586_CPU
 cpu			I686_CPU
 ident		pfSense-embedded
 
+nooptions		INVARIANTS
+nooptions		INVARIANTS_SUPPORT
+nooptions		WITNESS
+nooptions		WITNESS_SKIPSPIN
+
 options		CPU_GEODE
 options		CPU_SOEKRIS
 options		CPU_ELAN
