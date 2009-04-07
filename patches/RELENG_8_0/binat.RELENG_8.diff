@@ -1,11 +1,11 @@
-Index: parse.y
+Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /home/ncvs/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.9
-diff -u -r1.9 parse.y
---- parse.y	9 May 2008 23:53:01 -0000	1.9
-+++ parse.y	7 Apr 2009 19:39:04 -0000
-@@ -3649,7 +3649,7 @@
+RCS file: /usr/repo/HEAD/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.4
+diff -u -r1.4 parse.y
+--- contrib/pf/pfctl/parse.y	7 Apr 2009 18:11:16 -0000	1.4
++++ contrib/pf/pfctl/parse.y	7 Apr 2009 18:21:10 -0000
+@@ -4109,7 +4109,7 @@
  		}
  		;
  
@@ -14,7 +14,7 @@ diff -u -r1.9 parse.y
  		    tagged rtable redirection
  		{
  			struct pf_rule		binat;
-@@ -3657,7 +3657,7 @@
+@@ -4117,7 +4117,7 @@
  
  			if (check_rulestate(PFCTL_STATE_NAT))
  				YYERROR;
@@ -23,7 +23,7 @@ diff -u -r1.9 parse.y
  			    "permitted as a binat destination"))
  				YYERROR;
  
-@@ -3675,10 +3675,10 @@
+@@ -4135,10 +4135,10 @@
  			binat.log = $3.b2;
  			binat.logif = $3.w2;
  			binat.af = $5;
@@ -38,7 +38,7 @@ diff -u -r1.9 parse.y
  
  			if (!binat.af && $14 != NULL && $14->host)
  				binat.af = $14->host->af;
-@@ -3717,10 +3717,10 @@
+@@ -4177,10 +4177,10 @@
  				free($6);
  			}
  
@@ -51,7 +51,7 @@ diff -u -r1.9 parse.y
  			    "interface (%s) as the source address of a binat "
  			    "rule"))
  				YYERROR;
-@@ -3733,39 +3733,52 @@
+@@ -4193,39 +4193,52 @@
  			    "redirect address of a binat rule"))
  				YYERROR;
  
