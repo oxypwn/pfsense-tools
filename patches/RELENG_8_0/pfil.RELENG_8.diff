@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/pf/net/pf_ioctl.c,v
-retrieving revision 1.3
-diff -u -r1.3 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	7 Apr 2009 18:20:05 -0000	1.3
-+++ sys/contrib/pf/net/pf_ioctl.c	7 Apr 2009 18:39:43 -0000
-@@ -3819,8 +3819,10 @@
+RCS file: /usr/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.2
+diff -u -r1.2 pf_ioctl.c
+--- sys/contrib/pf/net/pf_ioctl.c	7 Apr 2009 21:59:24 -0000	1.2
++++ sys/contrib/pf/net/pf_ioctl.c	7 Apr 2009 22:52:02 -0000
+@@ -3817,8 +3817,10 @@
  	pfh_inet = pfil_head_get(PFIL_TYPE_AF, AF_INET);
  	if (pfh_inet == NULL)
  		return (ESRCH); /* XXX */
@@ -18,7 +18,7 @@ diff -u -r1.3 pf_ioctl.c
  #ifdef INET6
  	pfh_inet6 = pfil_head_get(PFIL_TYPE_AF, AF_INET6);
  	if (pfh_inet6 == NULL) {
-@@ -3830,8 +3832,10 @@
+@@ -3828,8 +3830,10 @@
  		    pfh_inet);
  		return (ESRCH); /* XXX */
  	}
@@ -33,11 +33,11 @@ diff -u -r1.3 pf_ioctl.c
  	pf_pfil_hooked = 1;
 Index: sys/net/pfil.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/net/pfil.c,v
+RCS file: /usr/repo/src/sys/net/pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.c
---- sys/net/pfil.c	6 Apr 2009 15:45:09 -0000	1.1.1.1
-+++ sys/net/pfil.c	7 Apr 2009 18:40:51 -0000
+--- sys/net/pfil.c	7 Apr 2009 17:57:15 -0000	1.1.1.1
++++ sys/net/pfil.c	7 Apr 2009 22:56:05 -0000
 @@ -34,6 +34,7 @@
  #include <sys/errno.h>
  #include <sys/lock.h>
@@ -55,13 +55,14 @@ diff -u -r1.1.1.1 pfil.c
  			rv = (*pfh->pfil_func)(pfh->pfil_arg, &m, ifp, dir, inp);
  			if (rv != 0 || m == NULL)
  				break;
-@@ -134,6 +135,140 @@
+@@ -134,6 +135,141 @@
  	return (0);
  }
  
 +static int
 +pfil_sysctl_handler(SYSCTL_HANDLER_ARGS)
 +{
++	struct rm_priotracker rmpt;
 +        struct pfil_head *ph;
 +        struct packet_filter_hook *pfh, *pfhtmp;
 +        struct sbuf *sb;
@@ -90,20 +91,20 @@ diff -u -r1.1.1.1 pfil.c
 +	/*
 +	 * NOTE: This is needed to avoid witness(4) warnings.
 +	 */
-+	PFIL_RLOCK(ph);
++	PFIL_RLOCK(ph, &rmpt);
 +        TAILQ_FOREACH(pfh, pfl, pfil_link) {
 +                if (pfh->pfil_name != NULL)
 +                        hintlen = strlen(pfh->pfil_name);
 +                else
 +                        hintlen += 2;
 +        }
-+        PFIL_RUNLOCK(ph);
++        PFIL_RUNLOCK(ph, &rmpt);
 +
 +        sb = sbuf_new(NULL, NULL, hintlen + 1, SBUF_AUTOEXTEND);
 +        if (sb == NULL)
 +                return (EINVAL);
 +
-+        PFIL_RLOCK(ph);
++        PFIL_RLOCK(ph, &rmpt);
 +        TAILQ_FOREACH(pfh, pfl, pfil_link) {
 +                if (i > 0)
 +                        sbuf_printf(sb, ", ");
@@ -115,7 +116,7 @@ diff -u -r1.1.1.1 pfil.c
 +                                pfh->pfil_flags & PFIL_DISABLED ? "*" : "");
 +                i++;
 +        }
-+        PFIL_RUNLOCK(ph);
++        PFIL_RUNLOCK(ph, &rmpt);
 +
 +        sbuf_finish(sb);
 +
@@ -196,7 +197,7 @@ diff -u -r1.1.1.1 pfil.c
  /*
   * pfil_head_get() returns the pfil_head for a given key/dlt.
   */
-@@ -163,6 +298,13 @@
+@@ -163,6 +299,13 @@
  pfil_add_hook(int (*func)(void *, struct mbuf **, struct ifnet *, int,
    struct inpcb *), void *arg, int flags, struct pfil_head *ph)
  {
@@ -210,7 +211,7 @@ diff -u -r1.1.1.1 pfil.c
  	struct packet_filter_hook *pfh1 = NULL;
  	struct packet_filter_hook *pfh2 = NULL;
  	int err;
-@@ -187,6 +329,8 @@
+@@ -187,6 +330,8 @@
  	if (flags & PFIL_IN) {
  		pfh1->pfil_func = func;
  		pfh1->pfil_arg = arg;
@@ -219,7 +220,7 @@ diff -u -r1.1.1.1 pfil.c
  		err = pfil_list_add(&ph->ph_in, pfh1, flags & ~PFIL_OUT);
  		if (err)
  			goto locked_error;
-@@ -195,6 +339,8 @@
+@@ -195,6 +340,8 @@
  	if (flags & PFIL_OUT) {
  		pfh2->pfil_func = func;
  		pfh2->pfil_arg = arg;
@@ -230,11 +231,11 @@ diff -u -r1.1.1.1 pfil.c
  			if (flags & PFIL_IN)
 Index: sys/net/pfil.h
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/net/pfil.h,v
+RCS file: /usr/repo/src/sys/net/pfil.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.h
---- sys/net/pfil.h	6 Apr 2009 15:45:09 -0000	1.1.1.1
-+++ sys/net/pfil.h	7 Apr 2009 18:41:43 -0000
+--- sys/net/pfil.h	7 Apr 2009 17:57:15 -0000	1.1.1.1
++++ sys/net/pfil.h	7 Apr 2009 22:52:02 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
@@ -282,12 +283,12 @@ diff -u -r1.1.1.1 pfil.h
  struct pfil_head *pfil_head_get(int, u_long);
 Index: sys/netinet/ip_fw_pfil.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/netinet/ip_fw_pfil.c,v
-retrieving revision 1.3
-diff -u -r1.3 ip_fw_pfil.c
---- sys/netinet/ip_fw_pfil.c	7 Apr 2009 18:11:34 -0000	1.3
-+++ sys/netinet/ip_fw_pfil.c	7 Apr 2009 18:47:35 -0000
-@@ -427,10 +427,10 @@
+RCS file: /usr/repo/src/sys/netinet/ip_fw_pfil.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_fw_pfil.c
+--- sys/netinet/ip_fw_pfil.c	7 Apr 2009 21:59:25 -0000	1.2
++++ sys/netinet/ip_fw_pfil.c	7 Apr 2009 22:52:02 -0000
+@@ -433,10 +433,10 @@
  	if (pfh_inet == NULL)
  		return ENOENT;
  
@@ -302,7 +303,7 @@ diff -u -r1.3 ip_fw_pfil.c
  
  	return 0;
  }
-@@ -462,10 +462,10 @@
+@@ -468,10 +468,10 @@
  	if (pfh_inet6 == NULL)
  		return ENOENT;
  
@@ -319,12 +320,12 @@ diff -u -r1.3 ip_fw_pfil.c
  }
 Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/netinet/ip_input.c,v
-retrieving revision 1.3
-diff -u -r1.3 ip_input.c
---- sys/netinet/ip_input.c	7 Apr 2009 18:11:34 -0000	1.3
-+++ sys/netinet/ip_input.c	7 Apr 2009 18:39:43 -0000
-@@ -301,6 +301,9 @@
+RCS file: /usr/repo/src/sys/netinet/ip_input.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_input.c
+--- sys/netinet/ip_input.c	7 Apr 2009 21:59:25 -0000	1.2
++++ sys/netinet/ip_input.c	7 Apr 2009 23:02:30 -0000
+@@ -317,6 +317,9 @@
  	if ((i = pfil_head_register(&inet_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -332,16 +333,16 @@ diff -u -r1.3 ip_input.c
 +		pfil_head_export_sysctl(&inet_pfil_hook,
 +			SYSCTL_STATIC_CHILDREN(_net_inet_ip));
  
- 	/* Initialize IP reassembly queue. */
- 	IPQ_LOCK_INIT();
+ 	/* Start ipport_tick. */
+ 	callout_init(&ipport_tick_callout, CALLOUT_MPSAFE);
 Index: sys/netinet6/ip6_input.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/netinet6/ip6_input.c,v
+RCS file: /usr/repo/src/sys/netinet6/ip6_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip6_input.c
---- sys/netinet6/ip6_input.c	6 Apr 2009 15:45:14 -0000	1.1.1.1
-+++ sys/netinet6/ip6_input.c	7 Apr 2009 18:39:43 -0000
-@@ -145,6 +145,7 @@
+--- sys/netinet6/ip6_input.c	7 Apr 2009 17:57:18 -0000	1.1.1.1
++++ sys/netinet6/ip6_input.c	7 Apr 2009 22:52:02 -0000
+@@ -146,6 +146,7 @@
  extern int udp6_recvspace;
  #endif
  
@@ -349,7 +350,7 @@ diff -u -r1.1.1.1 ip6_input.c
  struct pfil_head inet6_pfil_hook;
  
  static void ip6_init2(void *);
-@@ -263,6 +264,9 @@
+@@ -275,6 +276,9 @@
  	if ((i = pfil_head_register(&inet6_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -357,5 +358,5 @@ diff -u -r1.1.1.1 ip6_input.c
 +		pfil_head_export_sysctl(&inet6_pfil_hook,
 +			SYSCTL_STATIC_CHILDREN(_net_inet6_ip6));
  
- 	ip6intrq.ifq_maxlen = V_ip6qmaxlen;
+ 	ip6intrq.ifq_maxlen = V_ip6qmaxlen; /* XXX */
  	mtx_init(&ip6intrq.ifq_mtx, "ip6_inq", NULL, MTX_DEF);
