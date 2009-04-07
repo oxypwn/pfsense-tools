@@ -19,3 +19,7 @@
 ~sys~NATT.diff~
 ~sys/net~if_vlan.c.diff~
 ~sys/sys~proc.h.diff~
+~sys/contrib/pf/net~ipfw_forward.RELENG_8.diff~
+~sys/modules/ipfw~ipfw.diff~
+~sys/netgraph~ng_iface.RELENG_8.diff~
+~ng_eiface.RELENG_8.diff~
