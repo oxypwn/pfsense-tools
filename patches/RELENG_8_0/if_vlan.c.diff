@@ -1,0 +1,57 @@
+Index: if_vlan.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_vlan.c,v
+retrieving revision 1.134
+diff -u -r1.134 if_vlan.c
+--- if_vlan.c	27 Feb 2009 14:12:05 -0000	1.134
++++ if_vlan.c	7 Apr 2009 19:20:48 -0000
+@@ -729,7 +729,12 @@
+ 	ifp->if_init = vlan_init;
+ 	ifp->if_start = vlan_start;
+ 	ifp->if_ioctl = vlan_ioctl;
+-	ifp->if_snd.ifq_maxlen = ifqmaxlen;
++
++//	ifp->if_snd.ifq_maxlen = ifqmaxlen;
++        IFQ_SET_MAXLEN(&ifp->if_snd, ifqmaxlen);
++        ifp->if_snd.ifq_drv_maxlen = 0;
++        IFQ_SET_READY(&ifp->if_snd);
++
+ 	ifp->if_flags = VLAN_IFFLAGS;
+ 	ether_ifattach(ifp, eaddr);
+ 	/* Now undo some of the damage... */
+@@ -766,6 +771,11 @@
+ {
+ 	struct ifvlan *ifv = ifp->if_softc;
+ 	int unit = ifp->if_dunit;
++	int s;
++
++        s = splimp();
++        IFQ_PURGE(&ifp->if_snd);
++        splx(s);
+ 
+ 	ether_ifdetach(ifp);	/* first, remove it from system-wide lists */
+ 	vlan_unconfig(ifp);	/* now it can be unconfigured and freed */
+@@ -800,11 +810,22 @@
+ 	struct mbuf *m;
+ 	int error;
+ 
++	if (ALTQ_IS_ENABLED(&ifp->if_snd)) {
++		IFQ_LOCK(&ifp->if_snd);
++		IFQ_POLL_NOLOCK(&ifp->if_snd, m);
++		if (m == NULL ) {
++			IFQ_UNLOCK(&ifp->if_snd);
++			return;
++		}
++		IFQ_UNLOCK(&ifp->if_snd);
++	}
++
+ 	ifv = ifp->if_softc;
+ 	p = PARENT(ifv);
+ 
+ 	for (;;) {
+-		IF_DEQUEUE(&ifp->if_snd, m);
++		//IF_DEQUEUE(&ifp->if_snd, m);
++		IFQ_DEQUEUE(&ifp->if_snd, m);
+ 		if (m == NULL)
+ 			break;
+ 		BPF_MTAP(ifp, m);
