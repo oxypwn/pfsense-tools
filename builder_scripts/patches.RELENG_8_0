@@ -1,8 +1,8 @@
 ~~~/contrib/pf/pfctl/pfctl_dn.c~
 ~~~/sys/contrib/pf/net/pf_ftp.c~
-~~/sys/contrib/altq/altq/altq_fairq.h~
-~~/sys/contrib/altq/altq/altq_fairq.c~
-~~/sbin/pfctl/missing/altq/altq_fairq.h~
+~~~/sys/contrib/altq/altq/altq_fairq.h~
+~~~/sys/contrib/altq/altq/altq_fairq.c~
+~~~/sbin/pfctl/missing/altq/altq_fairq.h~
 ~~fairq.RELENG_8.diff~
 ~~dscp.RELENG_8.diff~
 ~~queuestats.RELENG_8.diff~
