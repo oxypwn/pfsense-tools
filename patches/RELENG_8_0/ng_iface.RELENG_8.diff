@@ -1,15 +1,16 @@
 Index: ng_iface.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netgraph/ng_iface.c,v
-retrieving revision 1.47
-diff -u -r1.47 ng_iface.c
---- ng_iface.c	2 Jun 2006 23:14:40 -0000	1.47
-+++ ng_iface.c	16 Apr 2008 17:03:47 -0000
-@@ -69,9 +69,11 @@
+RCS file: /usr/repo/src/sys/netgraph/ng_iface.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ng_iface.c
+--- ng_iface.c	7 Apr 2009 17:57:16 -0000	1.1.1.1
++++ ng_iface.c	7 Apr 2009 21:44:28 -0000
+@@ -69,10 +69,12 @@
  #include <sys/socket.h>
  #include <sys/syslog.h>
  #include <sys/libkern.h>
 +#include <sys/ctype.h>
+ #include <sys/vimage.h>
  
  #include <net/if.h>
  #include <net/if_types.h>
@@ -17,7 +18,7 @@ diff -u -r1.47 ng_iface.c
  #include <net/bpf.h>
  #include <net/netisr.h>
  
-@@ -163,6 +165,13 @@
+@@ -164,6 +166,13 @@
  	},
  	{
  	  NGM_IFACE_COOKIE,
@@ -31,7 +32,7 @@ diff -u -r1.47 ng_iface.c
  	  NGM_IFACE_POINT2POINT,
  	  "point2point",
  	  NULL,
-@@ -587,6 +596,10 @@
+@@ -610,6 +619,10 @@
  	struct ng_mesg *resp = NULL;
  	int error = 0;
  	struct ng_mesg *msg;
@@ -42,7 +43,7 @@ diff -u -r1.47 ng_iface.c
  
  	NGI_GET_MSG(item, msg);
  	switch (msg->header.typecookie) {
-@@ -601,6 +614,49 @@
+@@ -624,6 +637,49 @@
  			strlcpy(resp->data, ifp->if_xname, IFNAMSIZ);
  			break;
  
@@ -94,11 +95,11 @@ diff -u -r1.47 ng_iface.c
  		    {
 Index: ng_iface.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/netgraph/ng_iface.h,v
-retrieving revision 1.9
-diff -u -r1.9 ng_iface.h
---- ng_iface.h	13 Feb 2005 16:36:41 -0000	1.9
-+++ ng_iface.h	16 Apr 2008 17:03:48 -0000
+RCS file: /usr/repo/src/sys/netgraph/ng_iface.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ng_iface.h
+--- ng_iface.h	7 Apr 2009 17:57:16 -0000	1.1.1.1
++++ ng_iface.h	7 Apr 2009 21:43:27 -0000
 @@ -70,6 +70,7 @@
  	NGM_IFACE_POINT2POINT,
  	NGM_IFACE_BROADCAST,
@@ -106,4 +107,4 @@ diff -u -r1.9 ng_iface.h
 +	NGM_IFACE_SET_IFNAME,
  };
  
- #endif /* _NETGRAPH_NG_IFACE_H_ */
+ #define	MTAG_NGIF			NGM_IFACE_COOKIE
