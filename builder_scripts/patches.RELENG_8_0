@@ -25,3 +25,4 @@
 ~ng_eiface.RELENG_8.diff~
 ~sys/boot~lib386boot.diff~
 ~sys/geom/label~g_label.c.diff~
+~usr.sbin/syslogd~syslogd.c.diff~
