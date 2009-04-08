@@ -131,7 +131,7 @@ RELENG_8_0)
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BASE_DIR}/tools/patches/RELENG_8_0
 	export PFSPATCHFILE=${BASE_DIR}/tools/builder_scripts/patches.RELENG_8_0
-	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_2"	
+	export CUSTOM_COPY_LIST="${BASE_DIR}/tools/builder_scripts/copy.list.RELENG_8_0"	
 	set_items
 ;;
 esac
