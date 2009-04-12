@@ -1107,7 +1107,7 @@ setup_nanobsd ( ) {
 		(
 		mkdir etc/local
 		cd usr/local/etc
-		find . -print | cpio -dumpl ../../../etc/local
+		find . -print | cpio -dump -l ../../../etc/local
 		cd ..
 		rm -rf etc
 		ln -s ../../etc/local etc
@@ -1121,7 +1121,7 @@ setup_nanobsd ( ) {
 		# the files in /$d will be hidden by the mount.
 		# XXX: configure /$d ramdisk size
 		mkdir -p ${CONFIG_DIR}/base/$d ${CONFIG_DIR}/default/$d
-		find $d -print | cpio -dumpl ${CONFIG_DIR}/base/
+		find $d -print | cpio -dump -l ${CONFIG_DIR}/base/
 	done
 
 	echo "$NANO_RAM_ETCSIZE" > ${CONFIG_DIR}/base/etc/md_size
