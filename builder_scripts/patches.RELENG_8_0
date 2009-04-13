@@ -26,3 +26,4 @@
 ~sys/boot~lib386boot.diff~
 ~sys/geom/label~g_label.c.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
+~sys/contrib/pf/net~pf.c.diff~
