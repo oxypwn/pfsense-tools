@@ -108,7 +108,6 @@ device			u3g
 device			ucom
 
 options         IPSEC
-options         IPSEC_NAT_T
 
 options         ALTQ
 options         ALTQ_CBQ
@@ -116,7 +115,6 @@ options         ALTQ_RED
 options         ALTQ_RIO
 options         ALTQ_HFSC
 options         ALTQ_PRIQ
-#options			ALTQ_FAIRQ
 
 # Bridging
 device          if_bridge
@@ -162,3 +160,6 @@ device		udav            # Davicom DM9601 USB Ethernet driver
 #options	HIFN_DEBUG      # enable debugging support: hw.hifn.debug
 #options	HIFN_RNDTEST    # enable rndtest support
 #device		rndtest         # FIPS 140-2 entropy tester
+
+#options		IPSEC_NAT_T
+#options		ALTQ_FAIRQ
