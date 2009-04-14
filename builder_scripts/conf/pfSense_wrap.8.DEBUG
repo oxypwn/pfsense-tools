@@ -395,4 +395,6 @@ device		udav            # Davicom DM9601 USB Ethernet driver
 #device		rndtest         # FIPS 140-2 entropy tester
 
 #options		IPSEC_NAT_T
-#options		ALTQ_FAIRQ
+options		ALTQ_FAIRQ
+
+options 	COMPAT_FREEBSD7
