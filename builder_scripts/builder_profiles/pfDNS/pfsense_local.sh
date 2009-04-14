@@ -146,10 +146,10 @@ export USE_CONFIG_XML=${USE_CONFIG_XML:-"${BUILDER_PROFILES}/pfDNS/config/config
 export ARCH="i386"
 
 # GIT pfSense, BSDInstaller & FreeSBIE settings
-#export USE_GIT=${USE_GIT:-"yo"}
-#export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense-import-test-minus-binaries/mainline.git pfSense"}
-#export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
-#export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
+export USE_GIT=${USE_GIT:-"yo"}
+export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense-import-test-minus-binaries/mainline.git pfSense"}
+export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
+export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
 
 export custom_overlay="${BUILDER_PROFILES}/pfDNS/copy_overlay/"
 
