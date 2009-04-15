@@ -1379,7 +1379,7 @@ if [ -d /conf ]; then
 fi
 
 # test whether conf dir is already a symlink
-if [ ! -f /conf ]; then
+if [ ! -h /conf ]; then
 	# install the symlink as it would exist on a live system
 	/bin/echo "Symlinking /conf.default to /conf ..."
 	/bin/ln -s /conf.default /conf
@@ -1481,7 +1481,8 @@ pfSense_clean_obj_dir() {
 	echo -n "Cleaning up previous build environment...Please wait..."
 	echo -n "."
 	if [ -d "${PFSENSEBASEDIR}/dev" ]; then
-		umount "${PFSENSEBASEDIR}/dev"
+		umount -f "${PFSENSEBASEDIR}/dev" 2>/dev/null
+		rm -rf ${PFSENSEBASEDIR}/dev 2>/dev/null
 	fi
 	if [ -d $PFSENSEBASEDIR ]; then 
 		echo -n "."	
@@ -1512,4 +1513,10 @@ email_operation_completed() {
 	    mail -s "FreeSBIE (pfSense) operation completed." \
 	    ${FREESBIE_COMPLETED_MAIL}
     fi	
+}
+
+create_iso_cf_conf_symbolic_link() {
+	echo ">>> Creating symbolic link for /cf/conf /conf ..."
+	rm -rf ${PFSENSEBASEDIR}/conf
+	chroot ${PFSENSEBASEDIR} /bin/ln -s /cf/conf /conf
 }
