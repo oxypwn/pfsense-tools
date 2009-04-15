@@ -1339,7 +1339,7 @@ pfsense_install_custom_packages_exec() {
 # Handle php.ini if /etc/rc.php_ini_setup exists
 if [ -f "/etc/rc.php_ini_setup" ]; then
 	echo "Running /etc/rc.php_ini_setup..."
-	/etc/rc.php_ini_setup
+	/etc/rc.php_ini_setup 2>/dev/null
 	cat /usr/local/etc/php.ini | grep -v apc > /tmp/php.ini.new
 	cp /tmp/php.ini.new /usr/local/etc/php.ini
 	cp /tmp/php.ini.new /usr/local/lib/php.ini	
@@ -1481,8 +1481,11 @@ pfSense_clean_obj_dir() {
 	echo -n "Cleaning up previous build environment...Please wait..."
 	echo -n "."
 	if [ -d "${PFSENSEBASEDIR}/dev" ]; then
+		echo -n "."	
 		umount -f "${PFSENSEBASEDIR}/dev" 2>/dev/null
+		echo -n "."			
 		rm -rf ${PFSENSEBASEDIR}/dev 2>/dev/null
+		echo -n "."			
 	fi
 	if [ -d $PFSENSEBASEDIR ]; then 
 		echo -n "."	
@@ -1503,6 +1506,7 @@ pfSense_clean_obj_dir() {
 
 copy_config_xml_from_conf_default() {
 	if [ ! -f "${PFSENSEBASEDIR}/cf/conf/config.xml" ]; then
+		echo ">>> Copying config.xml from conf.default/ to cf/conf/"
 		cp ${PFSENSEBASEDIR}/conf.default/config.xml ${PFSENSEBASEDIR}/cf/conf/
 	fi
 }
