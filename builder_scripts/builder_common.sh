@@ -1336,6 +1336,15 @@ pfsense_install_custom_packages_exec() {
 # Setup
 #
 
+# Handle php.ini if /etc/rc.php_ini_setup exists
+if [ -f "/etc/rc.php_ini_setup" ]; then
+	echo "Running /etc/rc.php_ini_setup..."
+	/etc/rc.php_ini_setup
+	cat /usr/local/etc/php.ini | grep -v apc > /tmp/php.ini.new
+	cp /tmp/php.ini.new /usr/local/etc/php.ini
+	cp /tmp/php.ini.new /usr/local/lib/php.ini	
+fi
+
 if [ ! -f "/usr/local/bin/php" ]; then
 	echo 
 	echo 
@@ -1453,8 +1462,8 @@ fi
 /bin/rm /${DESTNAME}
 
 if [ -f /tmp/php.ini ]; then 
-	cp /tmp/php.ini ${TODIR}/usr/local/lib/php.ini 
-	cp /tmp/php.ini ${TODIR}/usr/local/etc/php.ini
+	cp /tmp/php.ini /usr/local/lib/php.ini 
+	cp /tmp/php.ini /usr/local/etc/php.ini
 fi
 
 EOF
