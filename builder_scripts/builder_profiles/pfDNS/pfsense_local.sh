@@ -84,9 +84,9 @@ export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 #### User settable options follow ### 
 
 # FreeBSD version.
-export pfSense_version="7"
-export FreeBSD_version="7"
-export freebsd_branch="RELENG_7"
+export pfSense_version="8"
+export FreeBSD_version="8"
+export freebsd_branch="RELENG_8"
 
 # Define FreeBSD SUPFILE
 export SUPFILE="${BUILDER_SCRIPTS}/${freebsd_branch}-supfile"
@@ -97,12 +97,12 @@ export PFSENSEVERSION=${PFSENSEVERSION:-1.0-BETA1}
 export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply
-export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7
-export PFSPATCHFILE=${BUILDER_SCRIPTS}/patches.RELENG_2_0
+export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8
+export PFSPATCHFILE=${BUILDER_SCRIPTS}/patches.RELENG_8_0
 
-export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
+export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j8"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
-export MAKEJ_PORTS=${MAKEJ_PORTS:-"-j1"}
+export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 
 export NO_CLEAN=${NO_CLEAN:-"yo"}
 export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
@@ -127,7 +127,7 @@ export NANO_CODESIZE=0
 export NANO_CONFSIZE=2048 
 
 # Add UNIONFS
-export NO_UNIONFS=NO
+export NO_UNIONFS=YES
 export UNION_DIRS="etc usr root"
 
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
