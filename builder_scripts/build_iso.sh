@@ -147,9 +147,6 @@ freesbie_make extra
 cust_overlay_host_binaries
 check_for_zero_size_files
 
-# Create symbolic link for /cf/conf
-create_iso_cf_conf_symbolic_link
-
 # Check for custom config.xml
 cust_install_config_xml
 
