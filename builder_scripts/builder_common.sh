@@ -1484,7 +1484,7 @@ pfSense_clean_obj_dir() {
 		echo -n "."	
 		umount -f "${PFSENSEBASEDIR}/dev" 2>/dev/null
 		echo -n "."			
-		rm -rf ${PFSENSEBASEDIR}/dev 2>/dev/null
+		rm -rf ${PFSENSEBASEDIR}/dev 2>&1
 		echo -n "."			
 	fi
 	if [ -d $PFSENSEBASEDIR ]; then 
