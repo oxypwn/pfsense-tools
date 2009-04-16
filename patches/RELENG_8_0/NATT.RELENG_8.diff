@@ -1,11 +1,8 @@
 Index: conf/NOTES
 ===================================================================
-RCS file: /home/ncvs/src/sys/conf/NOTES,v
-retrieving revision 1.1532
-diff -u -r1.1532 NOTES
---- conf/NOTES	19 Mar 2009 20:33:26 -0000	1.1532
-+++ conf/NOTES	7 Apr 2009 18:58:12 -0000
-@@ -532,6 +532,11 @@
+--- conf/NOTES	(revision 191146)
++++ conf/NOTES	(working copy)
+@@ -533,6 +533,11 @@
  # using ipfw(8)'s 'ipsec' keyword, when this option is enabled.
  #
  #options 	IPSEC_FILTERTUNNEL	#filter ipsec packets from a tunnel
@@ -19,12 +16,9 @@ diff -u -r1.1532 NOTES
  
 Index: conf/options
 ===================================================================
-RCS file: /home/ncvs/src/sys/conf/options,v
-retrieving revision 1.664
-diff -u -r1.664 options
---- conf/options	30 Mar 2009 19:23:49 -0000	1.664
-+++ conf/options	7 Apr 2009 18:58:12 -0000
-@@ -395,6 +395,7 @@
+--- conf/options	(revision 191146)
++++ conf/options	(working copy)
+@@ -396,6 +396,7 @@
  IPSEC_DEBUG		opt_ipsec.h
  IP_NONLOCALBIND		opt_inet.h
  IPSEC_FILTERTUNNEL	opt_ipsec.h
@@ -32,116 +26,22 @@ diff -u -r1.664 options
  IPSTEALTH
  IPX
  KRPC
-Index: net/pfkeyv2.h
+Index: netinet/udp_var.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/net/pfkeyv2.h,v
-retrieving revision 1.16
-diff -u -r1.16 pfkeyv2.h
---- net/pfkeyv2.h	3 Jul 2007 12:13:43 -0000	1.16
-+++ net/pfkeyv2.h	7 Apr 2009 18:58:12 -0000
-@@ -75,7 +75,8 @@
- #define SADB_X_SPDSETIDX  20
- #define SADB_X_SPDEXPIRE  21
- #define SADB_X_SPDDELETE2 22	/* by policy id */
--#define SADB_MAX          22
-+#define SADB_X_NAT_T_NEW_MAPPING 23
-+#define SADB_MAX          23
+--- netinet/udp_var.h	(revision 191146)
++++ netinet/udp_var.h	(working copy)
+@@ -111,6 +111,7 @@
+ extern int			udp_log_in_vain;
  
- struct sadb_msg {
-   u_int8_t sadb_msg_version;
-@@ -255,6 +256,34 @@
-    */
- };
- 
-+/* NAT traversal type, see RFC 3948 */
-+/* sizeof(struct sadb_x_nat_t_type) == 8 */
-+struct sadb_x_nat_t_type {
-+  u_int16_t sadb_x_nat_t_type_len;
-+  u_int16_t sadb_x_nat_t_type_exttype;
-+  u_int8_t sadb_x_nat_t_type_type;
-+  u_int8_t sadb_x_nat_t_type_reserved[3];
-+};
-+
-+/* NAT traversal source or destination port */
-+/* sizeof(struct sadb_x_nat_t_port) == 8 */
-+struct sadb_x_nat_t_port { 
-+  u_int16_t sadb_x_nat_t_port_len;
-+  u_int16_t sadb_x_nat_t_port_exttype;
-+  u_int16_t sadb_x_nat_t_port_port;
-+  u_int16_t sadb_x_nat_t_port_reserved;
-+};
-+
-+/* ESP fragmentation size */
-+/* sizeof(struct sadb_x_nat_t_frag) == 8 */
-+struct sadb_x_nat_t_frag {
-+  u_int16_t sadb_x_nat_t_frag_len;
-+  u_int16_t sadb_x_nat_t_frag_exttype;
-+  u_int16_t sadb_x_nat_t_frag_fraglen;
-+  u_int16_t sadb_x_nat_t_frag_reserved;
-+};
-+
-+
- #define SADB_EXT_RESERVED             0
- #define SADB_EXT_SA                   1
- #define SADB_EXT_LIFETIME_CURRENT     2
-@@ -275,7 +304,15 @@
- #define SADB_X_EXT_KMPRIVATE          17
- #define SADB_X_EXT_POLICY             18
- #define SADB_X_EXT_SA2                19
--#define SADB_EXT_MAX                  19
-+#define SADB_X_EXT_NAT_T_TYPE         20
-+#define SADB_X_EXT_NAT_T_SPORT        21
-+#define SADB_X_EXT_NAT_T_DPORT        22
-+#define SADB_X_EXT_NAT_T_OA           23	/* kept for compatibility */
-+											/* please don't use it !  */
-+#define SADB_X_EXT_NAT_T_OAI          23	/* Peer's NAT_OA for src of SA */
-+#define SADB_X_EXT_NAT_T_OAR          24	/* Peer's NAT_OA for dst of SA */
-+#define SADB_X_EXT_NAT_T_FRAG	      25
-+#define SADB_EXT_MAX                  25
- 
- #define SADB_SATYPE_UNSPEC	0
- #define SADB_SATYPE_AH		2
-Index: netinet/in_pcb.h
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet/in_pcb.h,v
-retrieving revision 1.129
-diff -u -r1.129 in_pcb.h
---- netinet/in_pcb.h	15 Mar 2009 09:58:31 -0000	1.129
-+++ netinet/in_pcb.h	7 Apr 2009 18:59:42 -0000
-@@ -401,7 +401,9 @@
- #define	INP_RECVTTL		0x00000400 /* receive incoming IP TTL */
- #define	INP_DONTFRAG		0x00000800 /* don't fragment packet */
- #define	INP_NONLOCALOK		0x00001000 /* Allow bind to spoof any address */
--					/* - requires options IP_NONLOCALBIND */
-+				/* - requires options IP_NONLOCALBIND */
-+#define	INP_ESPINUDP		0x2000	/* ESP in UDP */
-+#define	INP_ESPINUDP_NON_IKE	0x4000	/* ESP in UDP w/ non-IKE marker */
- #define	INP_INHASHLIST		0x00002000 /* in_pcbinshash() has been called */
- #define	IN6P_IPV6_V6ONLY	0x00008000 /* restrict AF_INET6 socket for v6 */
- #define	IN6P_PKTINFO		0x00010000 /* receive IP6 dst and I/F */
-Index: netinet/in_proto.c
-===================================================================
-RCS file: /home/ncvs/src/sys/netinet/in_proto.c,v
-retrieving revision 1.93
-diff -u -r1.93 in_proto.c
---- netinet/in_proto.c	9 Mar 2009 17:53:05 -0000	1.93
-+++ netinet/in_proto.c	7 Apr 2009 18:58:12 -0000
-@@ -125,7 +125,7 @@
- 	.pr_flags =		PR_ATOMIC|PR_ADDR,
- 	.pr_input =		udp_input,
- 	.pr_ctlinput =		udp_ctlinput,
--	.pr_ctloutput =		ip_ctloutput,
-+	.pr_ctloutput =		udp_ctloutput,
- 	.pr_init =		udp_init,
- 	.pr_usrreqs =		&udp_usrreqs
- },
+ void		 udp_ctlinput(int, struct sockaddr *, void *);
++int	 	 udp_ctloutput(struct socket *, struct sockopt *);
+ void		 udp_init(void);
+ void		 udp_input(struct mbuf *, int);
+ struct inpcb	*udp_notify(struct inpcb *inp, int errno);
 Index: netinet/udp.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/udp.h,v
-retrieving revision 1.10
-diff -u -r1.10 udp.h
---- netinet/udp.h	20 Feb 2007 10:13:11 -0000	1.10
-+++ netinet/udp.h	7 Apr 2009 18:58:12 -0000
+--- netinet/udp.h	(revision 191146)
++++ netinet/udp.h	(working copy)
 @@ -45,4 +45,17 @@
  	u_short	uh_sum;			/* udp checksum */
  };
@@ -160,13 +60,37 @@ diff -u -r1.10 udp.h
 +#define UDP_ENCAP_ESPINUDP_MAXFRAGLEN	552
 +
  #endif
+Index: netinet/in_pcb.h
+===================================================================
+--- netinet/in_pcb.h	(revision 191146)
++++ netinet/in_pcb.h	(working copy)
+@@ -436,6 +436,9 @@
+  */
+ #define	INP_LLE_VALID		0x00000001 /* cached lle is valid */	
+ #define	INP_RT_VALID		0x00000002 /* cached rtentry is valid */
++/* XXX UDP-specific, move to a UDP control block? */
++#define	INP_ESPINUDP		0x4000  /* ESP in UDP */
++#define	INP_ESPINUDP_NON_IKE	0x8000  /* ESP in UDP w/ non-IKE marker */
+ 
+ #define	INPLOOKUP_WILDCARD	1
+ #define	sotoinpcb(so)	((struct inpcb *)(so)->so_pcb)
+Index: netinet/in_proto.c
+===================================================================
+--- netinet/in_proto.c	(revision 191146)
++++ netinet/in_proto.c	(working copy)
+@@ -125,7 +125,7 @@
+ 	.pr_flags =		PR_ATOMIC|PR_ADDR,
+ 	.pr_input =		udp_input,
+ 	.pr_ctlinput =		udp_ctlinput,
+-	.pr_ctloutput =		ip_ctloutput,
++	.pr_ctloutput =		udp_ctloutput,
+ 	.pr_init =		udp_init,
+ 	.pr_usrreqs =		&udp_usrreqs
+ },
 Index: netinet/udp_usrreq.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/udp_usrreq.c,v
-retrieving revision 1.249
-diff -u -r1.249 udp_usrreq.c
---- netinet/udp_usrreq.c	9 Mar 2009 17:53:05 -0000	1.249
-+++ netinet/udp_usrreq.c	7 Apr 2009 18:58:12 -0000
+--- netinet/udp_usrreq.c	(revision 191146)
++++ netinet/udp_usrreq.c	(working copy)
 @@ -85,6 +85,7 @@
  
  #ifdef IPSEC
@@ -195,7 +119,7 @@ diff -u -r1.249 udp_usrreq.c
  		return;
  	}
 +#ifdef IPSEC_NAT_T
-+	if (inp->inp_flags & INP_ESPINUDP_ALL) {	/* UDP encap */
++	if (inp->inp_flags2 & INP_ESPINUDP_ALL) {	/* UDP encap */
 +		n = udp4_espdecap(inp->inp_socket, n, off);
 +		if (n == NULL)				/* consumed */
 +			return;
@@ -249,11 +173,11 @@ diff -u -r1.249 udp_usrreq.c
 +			case UDP_ENCAP_ESPINUDP:
 +			case UDP_ENCAP_ESPINUDP_NON_IKE:
 +			case 0:
-+				inp->inp_flags &= ~INP_ESPINUDP_ALL;
++				inp->inp_flags2 &= ~INP_ESPINUDP_ALL;
 +				if (optval == UDP_ENCAP_ESPINUDP)
-+					inp->inp_flags |= INP_ESPINUDP;
++					inp->inp_flags2 |= INP_ESPINUDP;
 +				else if (optval == UDP_ENCAP_ESPINUDP_NON_IKE)
-+					inp->inp_flags |= INP_ESPINUDP_NON_IKE;
++					inp->inp_flags2 |= INP_ESPINUDP_NON_IKE;
 +				break;
 +#endif
 +			default:
@@ -272,7 +196,7 @@ diff -u -r1.249 udp_usrreq.c
 +		switch (sopt->sopt_name) {
 +#ifdef IPSEC_NAT_T
 +		case UDP_ENCAP:
-+			optval = inp->inp_flags & INP_ESPINUDP_ALL;
++			optval = inp->inp_flags2 & INP_ESPINUDP_ALL;
 +			INP_WUNLOCK(inp);
 +			error = sooptcopyout(sopt, &optval, sizeof optval);
 +			break;
@@ -334,8 +258,8 @@ diff -u -r1.249 udp_usrreq.c
 +		return m;		/* NB: keepalive packet, no decap */
 +
 +	inp = sotoinpcb(so);
-+	KASSERT((inp->inp_flags & INP_ESPINUDP_ALL) != 0,
-+	    ("inp_flags 0x%x", inp->inp_flags));
++	KASSERT((inp->inp_flags2 & INP_ESPINUDP_ALL) != 0,
++	    ("inp_flags 0x%x", inp->inp_flags2));
 +
 +	/* 
 +	 * Check that the payload is large enough to hold an
@@ -344,7 +268,7 @@ diff -u -r1.249 udp_usrreq.c
 +	 * NB: the caller has already done a pullup for us.
 +	 * XXX can we assume alignment and eliminate bcopy's?
 +	 */
-+	if (inp->inp_flags & INP_ESPINUDP) {
++	if (inp->inp_flags2 & INP_ESPINUDP) {
 +		uint32_t spi;
 +
 +		if (payload <= sizeof(struct esp)) {
@@ -427,28 +351,93 @@ diff -u -r1.249 udp_usrreq.c
  static void
  udp_abort(struct socket *so)
  {
-Index: netinet/udp_var.h
+Index: net/pfkeyv2.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/udp_var.h,v
-retrieving revision 1.35
-diff -u -r1.35 udp_var.h
---- netinet/udp_var.h	6 Jan 2009 12:13:40 -0000	1.35
-+++ netinet/udp_var.h	7 Apr 2009 18:58:12 -0000
-@@ -106,6 +106,7 @@
- extern int			udp_log_in_vain;
+--- net/pfkeyv2.h	(revision 191146)
++++ net/pfkeyv2.h	(working copy)
+@@ -75,7 +75,8 @@
+ #define SADB_X_SPDSETIDX  20
+ #define SADB_X_SPDEXPIRE  21
+ #define SADB_X_SPDDELETE2 22	/* by policy id */
+-#define SADB_MAX          22
++#define SADB_X_NAT_T_NEW_MAPPING 23
++#define SADB_MAX          23
  
- void		 udp_ctlinput(int, struct sockaddr *, void *);
-+int	 	 udp_ctloutput(struct socket *, struct sockopt *);
- void		 udp_init(void);
- void		 udp_input(struct mbuf *, int);
- struct inpcb	*udp_notify(struct inpcb *inp, int errno);
+ struct sadb_msg {
+   u_int8_t sadb_msg_version;
+@@ -255,6 +256,34 @@
+    */
+ };
+ 
++/* NAT traversal type, see RFC 3948 */
++/* sizeof(struct sadb_x_nat_t_type) == 8 */
++struct sadb_x_nat_t_type {
++  u_int16_t sadb_x_nat_t_type_len;
++  u_int16_t sadb_x_nat_t_type_exttype;
++  u_int8_t sadb_x_nat_t_type_type;
++  u_int8_t sadb_x_nat_t_type_reserved[3];
++};
++
++/* NAT traversal source or destination port */
++/* sizeof(struct sadb_x_nat_t_port) == 8 */
++struct sadb_x_nat_t_port { 
++  u_int16_t sadb_x_nat_t_port_len;
++  u_int16_t sadb_x_nat_t_port_exttype;
++  u_int16_t sadb_x_nat_t_port_port;
++  u_int16_t sadb_x_nat_t_port_reserved;
++};
++
++/* ESP fragmentation size */
++/* sizeof(struct sadb_x_nat_t_frag) == 8 */
++struct sadb_x_nat_t_frag {
++  u_int16_t sadb_x_nat_t_frag_len;
++  u_int16_t sadb_x_nat_t_frag_exttype;
++  u_int16_t sadb_x_nat_t_frag_fraglen;
++  u_int16_t sadb_x_nat_t_frag_reserved;
++};
++
++
+ #define SADB_EXT_RESERVED             0
+ #define SADB_EXT_SA                   1
+ #define SADB_EXT_LIFETIME_CURRENT     2
+@@ -275,7 +304,15 @@
+ #define SADB_X_EXT_KMPRIVATE          17
+ #define SADB_X_EXT_POLICY             18
+ #define SADB_X_EXT_SA2                19
+-#define SADB_EXT_MAX                  19
++#define SADB_X_EXT_NAT_T_TYPE         20
++#define SADB_X_EXT_NAT_T_SPORT        21
++#define SADB_X_EXT_NAT_T_DPORT        22
++#define SADB_X_EXT_NAT_T_OA           23	/* kept for compatibility */
++											/* please don't use it !  */
++#define SADB_X_EXT_NAT_T_OAI          23	/* Peer's NAT_OA for src of SA */
++#define SADB_X_EXT_NAT_T_OAR          24	/* Peer's NAT_OA for dst of SA */
++#define SADB_X_EXT_NAT_T_FRAG	      25
++#define SADB_EXT_MAX                  25
+ 
+ #define SADB_SATYPE_UNSPEC	0
+ #define SADB_SATYPE_AH		2
+Index: netipsec/keydb.h
+===================================================================
+--- netipsec/keydb.h	(revision 191146)
++++ netipsec/keydb.h	(working copy)
+@@ -142,6 +142,12 @@
+ 	struct secashead *sah;		/* back pointer to the secashead */
+ 
+ 	/*
++	 * NAT-Traversal 
++	 */
++	u_int16_t	natt_type;
++	u_int16_t	esp_frag;
++
++	/*
+ 	 * NB: Fields with a tdb_ prefix are part of the "glue" used
+ 	 *     to interface to the OpenBSD crypto support.  This was done
+ 	 *     to distinguish this code from the mainline KAME code.
 Index: netipsec/ipsec_input.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netipsec/ipsec_input.c,v
-retrieving revision 1.25
-diff -u -r1.25 ipsec_input.c
---- netipsec/ipsec_input.c	2 Dec 2008 21:37:28 -0000	1.25
-+++ netipsec/ipsec_input.c	7 Apr 2009 18:58:12 -0000
+--- netipsec/ipsec_input.c	(revision 191146)
++++ netipsec/ipsec_input.c	(working copy)
 @@ -119,6 +119,9 @@
  	struct secasvar *sav;
  	u_int32_t spi;
@@ -474,11 +463,8 @@ diff -u -r1.25 ipsec_input.c
  #ifdef INET6
 Index: netipsec/ipsec_output.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netipsec/ipsec_output.c,v
-retrieving revision 1.24
-diff -u -r1.24 ipsec_output.c
---- netipsec/ipsec_output.c	30 Jan 2009 20:17:08 -0000	1.24
-+++ netipsec/ipsec_output.c	7 Apr 2009 18:58:12 -0000
+--- netipsec/ipsec_output.c	(revision 191146)
++++ netipsec/ipsec_output.c	(working copy)
 @@ -84,6 +84,10 @@
  
  #include <machine/in_cksum.h>
@@ -540,11 +526,8 @@ diff -u -r1.24 ipsec_output.c
  #ifdef INET6
 Index: netipsec/key.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netipsec/key.c,v
-retrieving revision 1.48
-diff -u -r1.48 key.c
---- netipsec/key.c	6 Apr 2009 22:29:41 -0000	1.48
-+++ netipsec/key.c	7 Apr 2009 18:58:12 -0000
+--- netipsec/key.c	(revision 191146)
++++ netipsec/key.c	(working copy)
 @@ -221,6 +221,12 @@
  	0,				/* SADB_X_EXT_KMPRIVATE */
  	sizeof(struct sadb_x_policy),	/* SADB_X_EXT_POLICY */
@@ -826,12 +809,12 @@ diff -u -r1.48 key.c
  		case SADB_EXT_ADDRESS_PROXY:
  		case SADB_EXT_IDENTITY_SRC:
  		case SADB_EXT_IDENTITY_DST:
-@@ -3615,6 +3771,112 @@
+@@ -3615,7 +3771,113 @@
  	return m;
  }
  
 +#ifdef IPSEC_NAT_T
-+/*
+ /*
 + * set a type in sadb_x_nat_t_type
 + */
 +static struct mbuf *
@@ -936,9 +919,10 @@ diff -u -r1.48 key.c
 +	}
 +}
 +
- /*
++/*
   * set data into sadb_x_policy
   */
+ static struct mbuf *
 @@ -3808,6 +4070,8 @@
  	const struct secasindex *saidx1,
  	int flag)
@@ -948,12 +932,12 @@ diff -u -r1.48 key.c
  	/* sanity */
  	if (saidx0 == NULL && saidx1 == NULL)
  		return 1;
-@@ -3831,6 +4095,20 @@
+@@ -3831,13 +4095,31 @@
  		/* CMP_MODE_REQID, CMP_REQID, CMP_HEAD */
  		if (flag == CMP_MODE_REQID
  		  ||flag == CMP_REQID) {
 +#ifdef IPSEC_NAT_T
-+			/*
+ 			/*
 +			 * If NAT-T is enabled, check ports for tunnel mode.
 +			 * Don't do it for transport mode, as there is no
 +			 * port information available in the SP.
@@ -966,10 +950,10 @@ diff -u -r1.48 key.c
 +			    ((const struct sockaddr_in *)(&saidx1->dst))->sin_port )
 +				chkport = 1;
 +#endif /* IPSEC_NAT_T */
- 			/*
++			/*
  			 * If reqid of SPD is non-zero, unique SA is required.
  			 * The result must be of same reqid in this case.
-@@ -3838,6 +4116,10 @@
+ 			 */
  			if (saidx1->reqid != 0 && saidx0->reqid != saidx1->reqid)
  				return 0;
  		}
@@ -1002,38 +986,9 @@ diff -u -r1.48 key.c
 -	case AF_INET:
 -		if (((struct sockaddr *)(src0 + 1))->sa_len !=
 -		    sizeof(struct sockaddr_in))
--			return key_senderror(so, m, EINVAL);
--		((struct sockaddr_in *)(src0 + 1))->sin_port = 0;
--		break;
--	case AF_INET6:
--		if (((struct sockaddr *)(src0 + 1))->sa_len !=
--		    sizeof(struct sockaddr_in6))
--			return key_senderror(so, m, EINVAL);
--		((struct sockaddr_in6 *)(src0 + 1))->sin6_port = 0;
--		break;
--	default:
--		; /*???*/
--	}
--	switch (((struct sockaddr *)(dst0 + 1))->sa_family) {
--	case AF_INET:
--		if (((struct sockaddr *)(dst0 + 1))->sa_len !=
--		    sizeof(struct sockaddr_in))
--			return key_senderror(so, m, EINVAL);
--		((struct sockaddr_in *)(dst0 + 1))->sin_port = 0;
--		break;
--	case AF_INET6:
--		if (((struct sockaddr *)(dst0 + 1))->sa_len !=
--		    sizeof(struct sockaddr_in6))
--			return key_senderror(so, m, EINVAL);
--		((struct sockaddr_in6 *)(dst0 + 1))->sin6_port = 0;
--		break;
--	default:
--		; /*???*/
--	}
--
- 	/* XXX boundary check against sa_len */
- 	KEY_SETSECASIDX(proto, mode, reqid, src0 + 1, dst0 + 1, &saidx);
- 
++	/* XXX boundary check against sa_len */
++	KEY_SETSECASIDX(proto, mode, reqid, src0 + 1, dst0 + 1, &saidx);
++
 +#ifdef IPSEC_NAT_T
 +	/*
 +	 * Handle NAT-T info if present
@@ -1055,7 +1010,17 @@ diff -u -r1.48 key.c
 +		    mhp->extlen[SADB_X_EXT_NAT_T_DPORT] < sizeof(*dport)) {
 +			ipseclog((LOG_DEBUG, "%s: invalid message.\n",
 +			    __func__));
-+			return key_senderror(so, m, EINVAL);
+ 			return key_senderror(so, m, EINVAL);
+-		((struct sockaddr_in *)(src0 + 1))->sin_port = 0;
+-		break;
+-	case AF_INET6:
+-		if (((struct sockaddr *)(src0 + 1))->sa_len !=
+-		    sizeof(struct sockaddr_in6))
+-			return key_senderror(so, m, EINVAL);
+-		((struct sockaddr_in6 *)(src0 + 1))->sin6_port = 0;
+-		break;
+-	default:
+-		; /*???*/
 +		}
 +
 +		sport = (struct sadb_x_nat_t_port *)
@@ -1067,13 +1032,32 @@ diff -u -r1.48 key.c
 +			KEY_PORTTOSADDR(&saidx.src, sport->sadb_x_nat_t_port_port);
 +		if (dport)
 +			KEY_PORTTOSADDR(&saidx.dst, dport->sadb_x_nat_t_port_port);
-+	}
+ 	}
+-	switch (((struct sockaddr *)(dst0 + 1))->sa_family) {
+-	case AF_INET:
+-		if (((struct sockaddr *)(dst0 + 1))->sa_len !=
+-		    sizeof(struct sockaddr_in))
+-			return key_senderror(so, m, EINVAL);
+-		((struct sockaddr_in *)(dst0 + 1))->sin_port = 0;
+-		break;
+-	case AF_INET6:
+-		if (((struct sockaddr *)(dst0 + 1))->sa_len !=
+-		    sizeof(struct sockaddr_in6))
+-			return key_senderror(so, m, EINVAL);
+-		((struct sockaddr_in6 *)(dst0 + 1))->sin6_port = 0;
+-		break;
+-	default:
+-		; /*???*/
+-	}
 +#else
 +	/* If not using NAT-T, make sure port numbers are set to zero. */
 +	KEY_PORTTOSADDR(&saidx.src, 0);
 +	KEY_PORTTOSADDR(&saidx.dst, 0);
 +#endif
-+
+ 
+-	/* XXX boundary check against sa_len */
+-	KEY_SETSECASIDX(proto, mode, reqid, src0 + 1, dst0 + 1, &saidx);
+-
  	/* SPI allocation */
  	spi = key_do_getnewspi((struct sadb_spirange *)mhp->ext[SADB_EXT_SPIRANGE],
  	                       &saidx);
@@ -1223,12 +1207,12 @@ diff -u -r1.48 key.c
  	/* get a SA header */
  	if ((newsah = key_getsah(&saidx)) == NULL) {
  		/* create a new SA header */
-@@ -4999,6 +5412,84 @@
+@@ -4999,7 +5412,85 @@
  		return key_senderror(so, m, error);
  	}
  
 +#ifdef IPSEC_NAT_T
-+	/*
+ 	/*
 +	 * Handle more NAT-T info if present, now we have a sav to fill
 +	 */
 +	if (mhp->ext[SADB_X_EXT_NAT_T_OAI] != NULL)
@@ -1305,9 +1289,10 @@ diff -u -r1.48 key.c
 +	}
 +#endif
 +
- 	/*
++	/*
  	 * don't call key_freesav() here, as we would like to keep the SA
  	 * in the database on success.
+ 	 */
 @@ -5204,6 +5695,37 @@
  	/* XXX boundary check against sa_len */
  	KEY_SETSECASIDX(proto, IPSEC_MODE_ANY, 0, src0 + 1, dst0 + 1, &saidx);
@@ -1528,11 +1513,8 @@ diff -u -r1.48 key.c
  			 * XXX Are there duplication payloads of either
 Index: netipsec/key.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/netipsec/key.h,v
-retrieving revision 1.4
-diff -u -r1.4 key.h
---- netipsec/key.h	7 Jan 2005 01:45:46 -0000	1.4
-+++ netipsec/key.h	7 Apr 2009 18:58:12 -0000
+--- netipsec/key.h	(revision 191146)
++++ netipsec/key.h	(working copy)
 @@ -99,6 +99,10 @@
  extern void key_sa_recordxfer __P((struct secasvar *, struct mbuf *));
  extern void key_sa_routechange __P((struct sockaddr *));
@@ -1544,34 +1526,11 @@ diff -u -r1.4 key.h
  
  #ifdef MALLOC_DECLARE
  MALLOC_DECLARE(M_IPSEC_SA);
-Index: netipsec/keydb.h
-===================================================================
-RCS file: /home/ncvs/src/sys/netipsec/keydb.h,v
-retrieving revision 1.6
-diff -u -r1.6 keydb.h
---- netipsec/keydb.h	25 Mar 2006 13:38:52 -0000	1.6
-+++ netipsec/keydb.h	7 Apr 2009 18:58:12 -0000
-@@ -142,6 +142,12 @@
- 	struct secashead *sah;		/* back pointer to the secashead */
- 
- 	/*
-+	 * NAT-Traversal 
-+	 */
-+	u_int16_t	natt_type;
-+	u_int16_t	esp_frag;
-+
-+	/*
- 	 * NB: Fields with a tdb_ prefix are part of the "glue" used
- 	 *     to interface to the OpenBSD crypto support.  This was done
- 	 *     to distinguish this code from the mainline KAME code.
 Index: sys/mbuf.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/sys/mbuf.h,v
-retrieving revision 1.229
-diff -u -r1.229 mbuf.h
---- sys/mbuf.h	4 Mar 2009 02:55:04 -0000	1.229
-+++ sys/mbuf.h	7 Apr 2009 18:58:12 -0000
-@@ -867,6 +867,7 @@
+--- sys/mbuf.h	(revision 191146)
++++ sys/mbuf.h	(working copy)
+@@ -868,6 +868,7 @@
  #define	PACKET_TAG_RTSOCKFAM			25 /* rtsock sa family */
  #define	PACKET_TAG_IPOPTIONS			27 /* Saved IP options */
  #define	PACKET_TAG_CARP                         28 /* CARP info */
