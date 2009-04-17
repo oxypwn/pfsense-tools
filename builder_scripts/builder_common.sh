@@ -722,6 +722,9 @@ create_pfSense_Full_update_tarball() {
 		
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
+	rm $PFSENSEBASEDIR/etc/pfSense_md5.txt
+	find $PFSENSEBASEDIR -exec md5 {} >> $PFSENSEBASEDIR/etc/pfSense_md5.txt
+
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 

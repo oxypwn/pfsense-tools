@@ -172,6 +172,9 @@ freesbie_make clonefs
 # Ensure /home exists
 mkdir -p $CLONEDIR/home
 
+rm $CLONEDIR/etc/pfSense_md5.txt
+find $CLONEDIR -exec md5 {} >> $CLONEDIR/etc/pfSense_md5.txt
+
 # Finalize iso
 echo ">>> Finalizing iso..."
 freesbie_make iso
