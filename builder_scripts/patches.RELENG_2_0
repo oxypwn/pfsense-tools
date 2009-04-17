@@ -58,3 +58,4 @@
 ~sys~if_rl_re.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/contrib/pf/net~pf.c.diff~
+~~8139cp.patch~
