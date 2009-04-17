@@ -106,6 +106,11 @@ cust_install_config_xml
 check_for_zero_size_files
 freesbie_make clonefs
 
+echo -n ">>> Creating md5 summary of files present..."
+rm $CLONEDIR/etc/pfSense_md5.txt
+find $CLONEDIR -exec "md5 {} >> $CLONEDIR/etc/pfSense_md5.txt" \;
+echo "Done."
+
 # Fixup library changes if needed
 fixup_libmap
 

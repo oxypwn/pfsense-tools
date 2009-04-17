@@ -171,6 +171,11 @@ echo "Writing files..."
 cd ${CLONEDIR}
 find . -print -depth | cpio -dump ${TMPDIR}
 
+echo -n ">>> Creating md5 summary of files present..."
+rm $CLONEDIR/etc/pfSense_md5.txt
+find . -exec "md5 {} >> ./etc/pfSense_md5.txt" \;
+echo "Done."
+
 echo "/dev/ufs/${UFS_LABEL} / ufs ro 1 1" > ${TMPDIR}/etc/fstab
 echo "/dev/ufs/${CONF_LABEL} /cf ufs ro 1 1" >> ${TMPDIR}/etc/fstab
 
