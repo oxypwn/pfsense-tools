@@ -166,8 +166,12 @@ install_custom_overlay_final
 copy_config_xml_from_conf_default
 
 echo -n ">>> Creating md5 summary of files present..."
-rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
-chroot $PFSENSEBASEDIR find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt
+rm -f $BASEDIR/etc/pfSense_md5.txt
+echo "#!/bin/sh" > $BASEDIR/chroot.sh
+echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $BASEDIR/chroot.sh
+chmod a+rx $BASEDIR/chroot.sh
+chroot $BASEDIR /chroot.sh
+rm $BASEDIR/chroot.sh
 echo "Done."
 
 # Prepare /usr/local/pfsense-clonefs

@@ -724,7 +724,11 @@ create_pfSense_Full_update_tarball() {
 
 	echo -n ">>> Creating md5 summary of files present..."
 	rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
-	chroot $PFSENSEBASEDIR find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt
+	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
+	echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
+	chmod a+rx $PFSENSEBASEDIR/chroot.sh
+	chroot $PFSENSEBASEDIR /chroot.sh
+	rm $PFSENSEBASEDIR/chroot.sh
 	echo "Done."
 
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
