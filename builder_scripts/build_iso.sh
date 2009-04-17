@@ -172,8 +172,10 @@ freesbie_make clonefs
 # Ensure /home exists
 mkdir -p $CLONEDIR/home
 
+echo -n ">>> Creating md5 summary of files present..."
 rm $CLONEDIR/etc/pfSense_md5.txt
-find $CLONEDIR -exec md5 {} >> $CLONEDIR/etc/pfSense_md5.txt
+find $CLONEDIR -exec "md5 {} >> $CLONEDIR/etc/pfSense_md5.txt" \;
+echo "Done."
 
 # Finalize iso
 echo ">>> Finalizing iso..."
