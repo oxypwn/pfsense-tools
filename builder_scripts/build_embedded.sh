@@ -172,7 +172,7 @@ cd ${CLONEDIR}
 find . -print -depth | cpio -dump ${TMPDIR}
 
 echo -n ">>> Creating md5 summary of files present..."
-rm ./etc/pfSense_md5.txt
+rm -f ./etc/pfSense_md5.txt
 find . -type f | xargs /sbin/md5 >> ./etc/pfSense_md5.txt
 echo "Done."
 

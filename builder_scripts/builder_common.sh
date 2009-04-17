@@ -723,7 +723,7 @@ create_pfSense_Full_update_tarball() {
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
 	echo -n ">>> Creating md5 summary of files present..."
-	rm $PFSENSEBASEDIR/etc/pfSense_md5.txt
+	rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
 	(cd $PFSENSEBASEDIR && find . -type f | xargs /sbin/md5 >> ./etc/pfSense_md5.txt)
 	echo "Done."
 

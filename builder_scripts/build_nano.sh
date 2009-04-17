@@ -103,7 +103,7 @@ cust_fixup_wrap
 cust_install_config_xml
 
 echo -n ">>> Creating md5 summary of files present..."
-rm $PFSENSEBASEDIR/etc/pfSense_md5.txt
+rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
 (cd $PFSENSEBASEDIR && find . -type f | xargs /sbin/md5 >> ./etc/pfSense_md5.txt)
 echo "Done."
 

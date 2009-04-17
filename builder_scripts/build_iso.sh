@@ -166,7 +166,7 @@ install_custom_overlay_final
 copy_config_xml_from_conf_default
 
 echo -n ">>> Creating md5 summary of files present..."
-rm $PFSENSEBASEDIR/etc/pfSense_md5.txt
+rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
 (cd $PFSENSEBASEDIR && find . -type f | xargs /sbin/md5 >> ./etc/pfSense_md5.txt)
 echo "Done."
 
