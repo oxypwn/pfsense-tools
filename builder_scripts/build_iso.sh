@@ -167,7 +167,7 @@ copy_config_xml_from_conf_default
 
 echo -n ">>> Creating md5 summary of files present..."
 rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
-(cd $PFSENSEBASEDIR && find . -type f | xargs /sbin/md5 >> ./etc/pfSense_md5.txt)
+chroot $PFSENSEBASEDIR && find / -type f | /usr/bin/xargs /sbin/md5 >> ./etc/pfSense_md5.txt
 echo "Done."
 
 # Prepare /usr/local/pfsense-clonefs

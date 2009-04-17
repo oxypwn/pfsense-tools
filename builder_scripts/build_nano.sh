@@ -104,7 +104,7 @@ cust_install_config_xml
 
 echo -n ">>> Creating md5 summary of files present..."
 rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
-(cd $PFSENSEBASEDIR && find . -type f | xargs /sbin/md5 >> ./etc/pfSense_md5.txt)
+chroot $PFSENSEBASEDIR /usr/bin/find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt
 echo "Done."
 
 # Invoke FreeSBIE2 toolchain
