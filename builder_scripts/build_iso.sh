@@ -165,18 +165,17 @@ install_custom_overlay_final
 # Ensure config.xml exists
 copy_config_xml_from_conf_default
 
+echo -n ">>> Creating md5 summary of files present..."
+rm $PFSENSEBASEDIR/etc/pfSense_md5.txt
+(cd $PFSENSEBASEDIR && find . -type f | xargs /sbin/md5 >> ./etc/pfSense_md5.txt)
+echo "Done."
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
 # Ensure /home exists
 mkdir -p $CLONEDIR/home
-
-echo -n ">>> Creating md5 summary of files present..."
-rm $CLONEDIR/etc/pfSense_md5.txt
-(cd $CLONEDIR && find $CLONEDIR -exec "md5 {} >> $CLONEDIR/etc/pfSense_md5.txt" \;)
-echo "Done."
-
 # Finalize iso
 echo ">>> Finalizing iso..."
 freesbie_make iso

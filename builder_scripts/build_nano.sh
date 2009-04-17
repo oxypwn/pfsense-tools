@@ -102,15 +102,14 @@ cust_fixup_wrap
 # Check for custom config.xml
 cust_install_config_xml
 
+echo -n ">>> Creating md5 summary of files present..."
+rm $PFSENSEBASEDIR/etc/pfSense_md5.txt
+(cd $PFSENSEBASEDIR && find . -type f | xargs /sbin/md5 >> ./etc/pfSense_md5.txt)
+echo "Done."
+
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
 freesbie_make clonefs
-
-echo -n ">>> Creating md5 summary of files present..."
-rm $CLONEDIR/etc/pfSense_md5.txt
-touch $CLONEDIR/etc/pfSense_md5.txt
-(cd $CLONEDIR && find $CLONEDIR -exec "md5 {} >> ./etc/pfSense_md5.txt" \;)
-echo "Done."
 
 # Fixup library changes if needed
 fixup_libmap
