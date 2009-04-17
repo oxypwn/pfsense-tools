@@ -108,7 +108,8 @@ freesbie_make clonefs
 
 echo -n ">>> Creating md5 summary of files present..."
 rm $CLONEDIR/etc/pfSense_md5.txt
-find $CLONEDIR -exec "md5 {} >> $CLONEDIR/etc/pfSense_md5.txt" \;
+touch $CLONEDIR/etc/pfSense_md5.txt
+(cd $CLONEDIR && find $CLONEDIR -exec "md5 {} >> ./etc/pfSense_md5.txt" \;)
 echo "Done."
 
 # Fixup library changes if needed
