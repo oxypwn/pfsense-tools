@@ -173,7 +173,7 @@ cd ${CLONEDIR}
 FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 if [ "$FBSD_VERSION" = "8" ]; then
 	echo ">>> Using TAR to clone build_embedded.sh..."
-	( cd ${TMPDIR} && tar cf - * | ( cd /$TMPDIR; tar xfp -) )
+	( tar cf - * | ( cd /$TMPDIR; tar xfp -) )
 else
 	echo ">>> Using CPIO to clone {$TMPDIR}..."
 	find . -print -depth | cpio -dump ${TMPDIR}
