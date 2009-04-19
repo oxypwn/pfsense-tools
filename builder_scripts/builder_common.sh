@@ -83,7 +83,7 @@ build_embedded_kernel() {
 
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "8" ]; then
-		export KERNCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
+		export KERNCONF="pfSense.${FREEBSD_VERSION}"
 	else
 		export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	fi
