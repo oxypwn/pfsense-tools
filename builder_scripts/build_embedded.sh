@@ -169,7 +169,14 @@ df -h | grep ${DEVICE}
 echo "Writing files..."
 
 cd ${CLONEDIR}
-find . -print -depth | cpio -dump ${TMPDIR}
+
+if [ "$FBSD_VERSION" = "8" ]; then
+	echo ">>> Using TAR to clone build_embedded.sh..."
+	( cd ${TMPDIR} && tar cf - * | ( cd /$TMPDIR; tar xfp -) )
+else
+	echo ">>> Using CPIO to clone..."
+	find . -print -depth | cpio -dump ${TMPDIR}
+fi
 
 echo -n ">>> Creating md5 summary of files present..."
 rm -f $CLONEDIR/etc/pfSense_md5.txt
