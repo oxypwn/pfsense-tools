@@ -910,7 +910,14 @@ clone_system_only()
 
 	cd $FREESBIEBASEDIR
 
-	find . -print -depth | cpio --quiet -pudm $FREESBIEISODIR
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	if [ "$FBSD_VERSION" = "8" ]; then
+		echo ">>> Using TAR to clone clone_system_only()..."
+		tar cf - * | ( cd /$FREESBIEISODIR; tar xfp -)
+	else
+		echo ">>> Using CPIO to clone..."
+		find . -print -depth | cpio --quiet -pudm $FREESBIEISODIR
+	fi
 
 	umount_devices $MDDEVICES
 
@@ -1116,7 +1123,14 @@ setup_nanobsd ( ) {
 		(
 		mkdir etc/local
 		cd usr/local/etc
-		find . -print | cpio -dump -l ../../../etc/local
+		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+		if [ "$FBSD_VERSION" = "8" ]; then
+			echo ">>> Using TAR to clone setup_nanobsd()..."
+			tar cf - * | ( cd ../../../etc/local; tar xfp -)
+		else
+			echo ">>> Using CPIO to clone..."
+			find . -print | cpio -dump -l ../../../etc/local
+		fi		
 		cd ..
 		rm -rf etc
 		ln -s ../../etc/local etc
@@ -1253,7 +1267,16 @@ create_i386_diskimage ( ) {
 	tunefs -L root0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
 	df -i ${MNT}
-	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
+	
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	if [ "$FBSD_VERSION" = "8" ]; then
+		echo ">>> Using TAR to clone create_i386_diskimage()..."
+		tar cf - * | ( cd /$MNT; tar xfp -)
+	else
+		echo ">>> Using CPIO to clone..."
+		( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
+	fi	
+	
 	df -i ${MNT}
 	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIX}/_.mtree
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIX}/_.du
@@ -1284,7 +1307,17 @@ create_i386_diskimage ( ) {
                 # Mount data partition and copy contents of /cf
                 # Can be used later to create custom default config.xml while building
                 mount /dev/${MD}s4 ${MNT}
-                ( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
+                
+
+				FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+				if [ "$FBSD_VERSION" = "8" ]; then
+					echo ">>> Using TAR to clone create_i386_diskimage()..."
+					( cd ${CLONEDIR}/cf && tar cf - * | ( cd /$MNT; tar xfp -) )
+				else
+					echo ">>> Using CPIO to clone..."
+					( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
+				fi
+
                 umount ${MNT}
 	fi
 
