@@ -1144,6 +1144,7 @@ setup_nanobsd ( ) {
 		# the files in /$d will be hidden by the mount.
 		# XXX: configure /$d ramdisk size
 		mkdir -p ${CONFIG_DIR}/base/$d ${CONFIG_DIR}/default/$d
+		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 		if [ "$FBSD_VERSION" = "8" ]; then
 			echo ">>> Using TAR to clone setup_nanobsd()..."
 			find $d -print | tar cf - | ( cd ${CONFIG_DIR}/base/; tar xfp -)
