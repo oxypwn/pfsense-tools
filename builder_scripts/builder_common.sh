@@ -80,7 +80,14 @@ build_embedded_kernel() {
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print |xargs rm -f
 	unset KERNCONF
 	unset KERNELCONF		
-	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
+
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	if [ "$FBSD_VERSION" = "8" ]; then
+		export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
+	else
+		export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
+	fi
+
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	freesbie_make buildkernel
