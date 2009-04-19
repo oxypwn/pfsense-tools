@@ -678,6 +678,22 @@ cust_fixup_wrap() {
 
 	echo "-D" >> $PFSENSEBASEDIR/boot.config
 
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	if [ "$FBSD_VERSION" = "8" ]; then
+		# Enable getty on console
+		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
+
+		# Disable getty on syscons devices
+		sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
+
+		# Tell loader to use serial console early.
+		echo " -h" > ${PFSENSEBASEDIR}/boot.config
+		
+		# Wipe out the file for testing
+		rm ${PFSENSEBASEDIR}/boot/loader.conf
+		touch ${PFSENSEBASEDIR}/boot/loader.conf
+	fi
+
 }
 
 create_FreeBSD_system_update() {
