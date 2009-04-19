@@ -1144,7 +1144,13 @@ setup_nanobsd ( ) {
 		# the files in /$d will be hidden by the mount.
 		# XXX: configure /$d ramdisk size
 		mkdir -p ${CONFIG_DIR}/base/$d ${CONFIG_DIR}/default/$d
-		find $d -print | cpio -dump -l ${CONFIG_DIR}/base/
+		if [ "$FBSD_VERSION" = "8" ]; then
+			echo ">>> Using TAR to clone setup_nanobsd()..."
+			find $d -print | tar cf - | ( cd ${CONFIG_DIR}/base/; tar xfp -)
+		else
+			echo ">>> Using CPIO to clone..."
+			find $d -print | cpio -dump -l ${CONFIG_DIR}/base/
+		fi
 	done
 
 	echo "$NANO_RAM_ETCSIZE" > ${CONFIG_DIR}/base/etc/md_size
@@ -1271,12 +1277,12 @@ create_i386_diskimage ( ) {
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "8" ]; then
 		echo ">>> Using TAR to clone create_i386_diskimage()..."
-		tar cf - * | ( cd /$MNT; tar xfp -)
+		( cd ${CLONEDIR} && tar cf - * | ( cd /$MNT; tar xfp -) )
 	else
 		echo ">>> Using CPIO to clone..."
 		( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
 	fi	
-	
+
 	df -i ${MNT}
 	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIX}/_.mtree
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIX}/_.du
@@ -1307,7 +1313,6 @@ create_i386_diskimage ( ) {
                 # Mount data partition and copy contents of /cf
                 # Can be used later to create custom default config.xml while building
                 mount /dev/${MD}s4 ${MNT}
-                
 
 				FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 				if [ "$FBSD_VERSION" = "8" ]; then
