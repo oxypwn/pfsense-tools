@@ -108,7 +108,7 @@ export PFSPATCHDIR=${BASE_DIR}/${TOOLS_DIR}/patches/${FREEBSD_BRANCH}
 export PFSPATCHFILE=${BASE_DIR}/${TOOLS_DIR}/builder_scripts/patches.${PFSENSETAG}
 
 # Controls how many concurrent make processes are run for each stage
-export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
+export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j8"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
 export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 

@@ -44,6 +44,8 @@ else
 	export PRUNE_LIST="${PWD}/remove.list.iso.$FREEBSD_VERSION"
 fi
 
+export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
+
 # Use embedded make.conf
 export MAKE_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
 export SRC_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
