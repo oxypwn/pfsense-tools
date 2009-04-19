@@ -43,7 +43,6 @@ else
 	echo ">>> Using ${PWD}/remove.list.iso.$FREEBSD_VERSION ..."
 	export PRUNE_LIST="${PWD}/remove.list.iso.$FREEBSD_VERSION"
 fi
-
 # Use embedded make.conf
 export MAKE_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
 export SRC_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
@@ -134,8 +133,15 @@ CONF_LABEL=${CONF_LABEL:-"pfSenseCfg"} # UFS label
 
 unset ROOTSIZE
 unset CONFSIZE
-ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megabytes
-CONFSIZE=${CONFSIZE:-"10240"}
+
+FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+if [ "$FBSD_VERSION" = "8" ]; then
+	ROOTSIZE=${ROOTSIZE:-"470096"}  # Total number of sectors - 128 megabytes
+	CONFSIZE=${CONFSIZE:-"10240"}
+else
+	ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megabytes
+	CONFSIZE=${CONFSIZE:-"10240"}
+fi
 
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
 # Temp file and directory to be used later
