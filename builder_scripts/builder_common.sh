@@ -695,10 +695,6 @@ cust_fixup_wrap() {
 
 		# Tell loader to use serial console early.
 		echo " -h" > ${PFSENSEBASEDIR}/boot.config
-		
-		# Wipe out the file for testing
-		rm ${PFSENSEBASEDIR}/boot/loader.conf
-		touch ${PFSENSEBASEDIR}/boot/loader.conf
 	fi
 
 }

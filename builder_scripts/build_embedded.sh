@@ -139,7 +139,7 @@ if [ "$FBSD_VERSION" = "8" ]; then
 	ROOTSIZE=${ROOTSIZE:-"470096"}  # Total number of sectors - 128 megabytes
 	CONFSIZE=${CONFSIZE:-"10240"}
 else
-	ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 128 megabytes
+	ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 236 megabytes (for 256 cards)
 	CONFSIZE=${CONFSIZE:-"10240"}
 fi
 
