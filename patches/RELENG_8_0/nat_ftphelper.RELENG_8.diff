@@ -1,10 +1,10 @@
 Index: sys/conf/files
 ===================================================================
-RCS file: /home/ermal/repo/src/sys/conf/files,v
+RCS file: /home/ermal/ftprepo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	21 Apr 2009 20:20:56 -0000	1.2
-+++ sys/conf/files	21 Apr 2009 20:22:13 -0000
+--- sys/conf/files	21 Apr 2009 21:58:23 -0000	1.2
++++ sys/conf/files	21 Apr 2009 21:58:35 -0000
 @@ -339,6 +339,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf \
@@ -16,11 +16,11 @@ diff -u -r1.2 files
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /home/ermal/ftprepo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	21 Apr 2009 20:20:56 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	21 Apr 2009 20:22:13 -0000
+--- sys/contrib/pf/net/pf.c	21 Apr 2009 21:58:23 -0000	1.2
++++ sys/contrib/pf/net/pf.c	21 Apr 2009 21:58:35 -0000
 @@ -305,8 +305,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
@@ -212,8 +212,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	21 Apr 2009 20:23:25 -0000
-@@ -0,0 +1,686 @@
++++ sys/contrib/pf/net/pf_ftp.c	21 Apr 2009 22:00:10 -0000
+@@ -0,0 +1,687 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -401,6 +401,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->expire = time_second;
 +                s->timeout = PFTM_TCP_FIRST_PACKET;
 +		PF_ACPY(&s->rt_addr, &state->rt_addr, pd->af);
++		s->rt_kif = state->rt_kif;
 +		if (pf_insert_state(state->rt_kif, s)) {
 +                        pf_normalize_tcp_cleanup(s);
 +                        REASON_SET(&reason, PFRES_STATEINS);
@@ -902,11 +903,11 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /home/ermal/ftprepo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Apr 2009 20:20:57 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	21 Apr 2009 20:22:13 -0000
+--- sys/contrib/pf/net/pfvar.h	21 Apr 2009 21:58:23 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	21 Apr 2009 21:58:35 -0000
 @@ -801,7 +801,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -931,11 +932,11 @@ diff -u -r1.2 pfvar.h
  	    const struct tcphdr *);
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /home/ermal/repo/src/sys/modules/pf/Makefile,v
+RCS file: /home/ermal/ftprepo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	21 Apr 2009 20:15:43 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	21 Apr 2009 20:22:13 -0000
+--- sys/modules/pf/Makefile	21 Apr 2009 21:54:29 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	21 Apr 2009 21:58:35 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
