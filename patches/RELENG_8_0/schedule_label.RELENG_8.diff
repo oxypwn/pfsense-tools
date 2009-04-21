@@ -4,7 +4,7 @@ RCS file: /home/ermal/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
 --- contrib/pf/pfctl/parse.y	21 Apr 2009 20:20:56 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	21 Apr 2009 21:22:34 -0000
++++ contrib/pf/pfctl/parse.y	21 Apr 2009 22:35:28 -0000
 @@ -211,6 +211,7 @@
  	int			 fragment;
  	int			 allowopts;
@@ -71,7 +71,7 @@ diff -u -r1.2 parse.y
  	int			 added = 0, error = 0;
  	char			 ifname[IF_NAMESIZE];
  	char			 label[PF_RULE_LABEL_SIZE];
-+	char			 schedule[IF_NAMESIZE];
++	char			 schedule[PF_RULE_LABEL_SIZE];
  	char			 tagname[PF_TAG_NAME_SIZE];
  	char			 match_tagname[PF_TAG_NAME_SIZE];
  	struct pf_pooladdr	*pa;
@@ -98,7 +98,7 @@ diff -u -r1.2 parse.y
  			errx(1, "expand_rule: strlcpy");
  		expand_label(r->label, PF_RULE_LABEL_SIZE, r->ifname, r->af,
  		    src_host, src_port, dst_host, dst_port, proto->proto);
-+		expand_label(r->schedule, IF_NAMESIZE, r->ifname, r->af,
++		expand_label(r->schedule, PF_RULE_LABEL_SIZE, r->ifname, r->af,
 +			src_host, src_port, dst_host, dst_port, proto->proto);
  		expand_label(r->tagname, PF_TAG_NAME_SIZE, r->ifname, r->af,
  		    src_host, src_port, dst_host, dst_port, proto->proto);
@@ -138,7 +138,7 @@ RCS file: /home/ermal/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	21 Apr 2009 20:20:56 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	21 Apr 2009 21:05:01 -0000
++++ contrib/pf/pfctl/pfctl.c	21 Apr 2009 22:39:38 -0000
 @@ -81,6 +81,7 @@
  int	 pfctl_kill_src_nodes(int, const char *, int);
  int	 pfctl_kill_states(int, const char *, int);
@@ -159,27 +159,27 @@ diff -u -r1.2 pfctl.c
  }
  
  int
-+pfctl_kill_ifstates(int dev, const char *sched, int opts)
++pfctl_kill_schedule(int dev, const char *sched, int opts)
 +{
-+       struct pfioc_state_kill psk;
++	struct pfioc_schedule_kill psk;
 +       int killed;
 +       int ret_ga;
 +
 +       killed = sources = 0;
 +
 +       memset(&psk, 0, sizeof(psk));
-+       if (sched != NULL && strlcpy(psk.psk_ifname, sched,
-+           sizeof(psk.psk_ifname)) >= sizeof(psk.psk_ifname))
++       if (sched != NULL && strlcpy(psk.schedule, sched,
++           sizeof(psk.schedule)) >= sizeof(psk.schedule))
 +               errx(1, "invalid schedule label: %s", sched);
 +
 +	if (ioctl(dev, DIOCKILLSCHEDULE, &psk))
 +		err(1, "DIOCKILLSCHEDULE");
-+	killed += psk.psk_af;
++	killed += psk.numberkilled;
 +	/* fixup psk.psk_af */
 +
 +	if ((opts & PF_OPT_QUIET) == 0)
-+		fprintf(stderr, "killed %d states from %d schedule label\n",
-+			killed, sources);
++		fprintf(stderr, "killed %d states from %s schedule label\n",
++			killed, sched);
 +       return (0);
 +}
 +
@@ -201,8 +201,8 @@ diff -u -r1.2 pfctl.c
  			opts |= PF_OPT_VERBOSE;
  			break;
 +		case 'y':
-+			if (strlen(schedule) > 16)
-+				errx(1, "Schedule label cannot be more than 16 characters\n");
++			if (strlen(schedule) > 64)
++				errx(1, "Schedule label cannot be more than 64 characters\n");
 +			schedule = optarg;
 +			break;
  		case 'x':
@@ -224,21 +224,21 @@ RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf_ioctl.c
 --- sys/contrib/pf/net/pf_ioctl.c	21 Apr 2009 20:20:56 -0000	1.2
-+++ sys/contrib/pf/net/pf_ioctl.c	21 Apr 2009 20:48:45 -0000
++++ sys/contrib/pf/net/pf_ioctl.c	21 Apr 2009 22:33:12 -0000
 @@ -2053,6 +2053,29 @@
                 break;
         }
  
 +	case DIOCKILLSCHEDULE: {
 +               struct pf_state         *state, *nexts;
-+               struct pfioc_state_kill *psk = (struct pfioc_state_kill *)addr;
++		struct pfioc_schedule_kill *psk = (struct pfioc_schedule_kill *)addr;
 +               int                      killed = 0;
 +                    
 +               for (state = RB_MIN(pf_state_tree_id, &tree_id); state;
 +                   state = nexts) {
 +                       nexts = RB_NEXT(pf_state_tree_id, &tree_id, state);
 +                                
-+                       if (strcmp(psk->psk_ifname, state->rule_ptr->schedule))
++                       if (strcmp(psk->schedule, state->rule_ptr->schedule)) {
 +#if NPFSYNC > 0
 +                               /* send immediate delete of state */
 +                               pfsync_delete_state(state);
@@ -248,7 +248,7 @@ diff -u -r1.2 pf_ioctl.c
 +                               killed++;
 +                       }
 +               }
-+               psk->psk_af = killed;
++               psk->numberkilled = killed;
 +               break;
 +       }
 +
@@ -261,7 +261,7 @@ RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.3
 diff -u -r1.3 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	21 Apr 2009 20:32:27 -0000	1.3
-+++ sys/contrib/pf/net/pfvar.h	21 Apr 2009 20:50:34 -0000
++++ sys/contrib/pf/net/pfvar.h	21 Apr 2009 22:30:26 -0000
 @@ -594,6 +594,7 @@
  	union pf_rule_ptr	 skip[PF_SKIP_COUNT];
  #define PF_RULE_LABEL_SIZE	 64
@@ -270,7 +270,19 @@ diff -u -r1.3 pfvar.h
  #define PF_QNAME_SIZE		 64
  	char			 ifname[IFNAMSIZ];
  	char			 qname[PF_QNAME_SIZE];
-@@ -1610,6 +1611,7 @@
+@@ -1421,6 +1422,11 @@
+ 	char			psk_ifname[IFNAMSIZ];
+ };
+ 
++struct pfioc_schedule_kill {
++	int		numberkilled;
++	char		schedule[PF_RULE_LABEL_SIZE];
++}
++
+ struct pfioc_states {
+ 	int	ps_len;
+ 	union {
+@@ -1610,6 +1616,7 @@
  #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
  #define DIOCGETNAMEDALTQ        _IOR('D', 94, u_int32_t)
  #define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)
