@@ -1,0 +1,1430 @@
+Only in .: CVS
+diff -urp ./altq_cbq.c /root/WFQ/altq/altq/altq_cbq.c
+--- ./altq_cbq.c	2009-04-07 17:56:31.000000000 +0000
++++ /root/WFQ/altq/altq/altq_cbq.c	2009-04-15 18:19:28.000000000 +0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/altq/altq/altq_cbq.c,v 1.6 2008/10/23 15:53:51 des Exp $	*/
++/*	$FreeBSD: src/sys/contrib/altq/altq/altq_cbq.c,v 1.5 2007/07/03 12:46:05 mlaier Exp $	*/
+ /*	$KAME: altq_cbq.c,v 1.19 2003/09/17 14:23:25 kjc Exp $	*/
+ 
+ /*
+@@ -225,19 +185,19 @@ get_class_stats(class_stats_t *statsp, s
+ 	statsp->maxidle		= cl->maxidle_;
+ 	statsp->minidle		= cl->minidle_;
+ 	statsp->offtime		= cl->offtime_;
+-	statsp->qmax		= qlimit(cl->q_);
++	statsp->qmax		= qlimit(cl->cl_q);
+ 	statsp->ns_per_byte	= cl->ns_per_byte_;
+ 	statsp->wrr_allot	= cl->w_allotment_;
+-	statsp->qcnt		= qlen(cl->q_);
++	statsp->qcnt		= qlen(cl->cl_q);
+ 	statsp->avgidle		= cl->avgidle_;
+ 
+-	statsp->qtype		= qtype(cl->q_);
++	statsp->qtype		= qtype(cl);
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->q_))
++	if (q_is_red(cl))
+ 		red_getstats(cl->red_, &statsp->red[0]);
+ #endif
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->q_))
++	if (q_is_rio(cl))
+ 		rio_getstats((rio_t *)cl->red_, &statsp->red[0]);
+ #endif
+ }
+diff -urp ./altq_cbq.h /root/WFQ/altq/altq/altq_cbq.h
+--- ./altq_cbq.h	2009-04-07 17:56:31.000000000 +0000
++++ /root/WFQ/altq/altq/altq_cbq.h	2009-04-15 18:19:28.000000000 +0000
+@@ -37,6 +37,7 @@
+ #include <altq/altq_rmclass.h>
+ #include <altq/altq_red.h>
+ #include <altq/altq_rio.h>
++#include <altq/altq_wfq.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff -urp ./altq_classq.h /root/WFQ/altq/altq/altq_classq.h
+--- ./altq_classq.h	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_classq.h	2009-04-15 18:19:29.000000000 +0000
+@@ -49,6 +49,7 @@ extern "C" {
+ #define	Q_RED		0x01
+ #define	Q_RIO		0x02
+ #define	Q_DROPTAIL	0x03
++#define Q_WFQ		0x04
+ 
+ #ifdef _KERNEL
+ 
+@@ -59,21 +60,25 @@ struct _class_queue_ {
+ 	struct mbuf	*tail_;	/* Tail of packet queue */
+ 	int	qlen_;		/* Queue length (in number of packets) */
+ 	int	qlim_;		/* Queue limit (in number of packets*) */
++#if 0
+ 	int	qtype_;		/* Queue type */
++#endif
+ };
+ 
+ typedef struct _class_queue_	class_queue_t;
+ 
+-#define	qtype(q)	(q)->qtype_		/* Get queue type */
++#define	qtype(q)	(q)->cl_qtype		/* Get queue type */
+ #define	qlimit(q)	(q)->qlim_		/* Max packets to be queued */
+ #define	qlen(q)		(q)->qlen_		/* Current queue length. */
+ #define	qtail(q)	(q)->tail_		/* Tail of the queue */
+ #define	qhead(q)	((q)->tail_ ? (q)->tail_->m_nextpkt : NULL)
+ 
+-#define	qempty(q)	((q)->qlen_ == 0)	/* Is the queue empty?? */
+-#define	q_is_red(q)	((q)->qtype_ == Q_RED)	/* Is the queue a red queue */
+-#define	q_is_rio(q)	((q)->qtype_ == Q_RIO)	/* Is the queue a rio queue */
+-#define	q_is_red_or_rio(q)	((q)->qtype_ == Q_RED || (q)->qtype_ == Q_RIO)
++#define	qempty_(q)	((q)->qlen_ == 0)	/* Is the queue empty?? */
++#define	q_is_red(q)	((q)->cl_qtype == Q_RED)	/* Is the queue a red queue */
++#define	q_is_rio(q)	((q)->cl_qtype == Q_RIO)	/* Is the queue a rio queue */
++#define	q_is_red_or_rio(q)	((q)->cl_qtype == Q_RED || (q)->cl_qtype == Q_RIO)
++#define q_is_wfq(q)	((q)->cl_qtype == Q_WFQ)
++#define qempty(q)	(q_is_wfq(q) ? ((q->cl_wfq) && (q)->cl_wfq->bytes == 0) : qempty_(q->cl_q))
+ 
+ #if !defined(__GNUC__) || defined(ALTQ_DEBUG)
+ 
+Only in /root/WFQ/altq/altq: altq_fairq.c
+Only in /root/WFQ/altq/altq: altq_fairq.c.orig
+Only in /root/WFQ/altq/altq: altq_fairq.h
+Only in /root/WFQ/altq/altq: altq_fairq.h.orig
+diff -urp ./altq_hfsc.c /root/WFQ/altq/altq/altq_hfsc.c
+--- ./altq_hfsc.c	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_hfsc.c	2009-04-15 18:19:29.000000000 +0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/altq/altq/altq_hfsc.c,v 1.6 2008/10/23 20:26:15 des Exp $	*/
++/*	$FreeBSD: src/sys/contrib/altq/altq/altq_hfsc.c,v 1.4 2007/07/03 12:46:05 mlaier Exp $	*/
+ /*	$KAME: altq_hfsc.c,v 1.24 2003/12/05 05:40:46 kjc Exp $	*/
+ 
+ /*
+@@ -85,7 +82,7 @@ static int			 hfsc_request(struct ifaltq
+ static void			 hfsc_purge(struct hfsc_if *);
+ static struct hfsc_class	*hfsc_class_create(struct hfsc_if *,
+     struct service_curve *, struct service_curve *, struct service_curve *,
+-    struct hfsc_class *, int, int, int);
++    struct hfsc_class *, int, int, int, int);
+ static int			 hfsc_class_destroy(struct hfsc_class *);
+ static struct hfsc_class	*hfsc_nextclass(struct hfsc_class *);
+ static int			 hfsc_enqueue(struct ifaltq *, struct mbuf *,
+@@ -276,7 +252,7 @@ hfsc_add_queue(struct pf_altq *a)
+ 	ulsc.m2 = opts->ulsc_m2;
+ 
+ 	cl = hfsc_class_create(hif, &rtsc, &lssc, &ulsc,
+-	    parent, a->qlimit, opts->flags, a->qid);
++	    parent, a->qlimit, opts->flags, a->qid, opts->hwm);
+ 	if (cl == NULL)
+ 		return (ENOMEM);
+ 
+@@ -377,7 +348,7 @@ hfsc_purge(struct hfsc_if *hif)
+ 	struct hfsc_class *cl;
+ 
+ 	for (cl = hif->hif_rootclass; cl != NULL; cl = hfsc_nextclass(cl))
+-		if (!qempty(cl->cl_q))
++		if (!qempty(cl))
+ 			hfsc_purgeq(cl);
+ 	if (ALTQ_IS_ENABLED(hif->hif_ifq))
+ 		hif->hif_ifq->ifq_len = 0;
+@@ -386,7 +357,7 @@ hfsc_purge(struct hfsc_if *hif)
+ struct hfsc_class *
+ hfsc_class_create(struct hfsc_if *hif, struct service_curve *rsc,
+     struct service_curve *fsc, struct service_curve *usc,
+-    struct hfsc_class *parent, int qlimit, int flags, int qid)
++    struct hfsc_class *parent, int qlimit, int flags, int qid, int hwm)
+ {
+ 	struct hfsc_class *cl, *p;
+ 	int i, s;
+@@ -402,13 +373,23 @@ hfsc_class_create(struct hfsc_if *hif, s
+ 		return (NULL);
+ 	}
+ #endif
++#ifndef ALTQ_WFQ
++	if (flags & HFCF_WFQ) {
++#ifdef ALTQ_DEBUG
++		printf("priq_class_create: WFQ not configured for PRIQ!\n");
++#endif
++	        return (NULL);
++        }
++#endif
+ 
+-	cl = malloc(sizeof(struct hfsc_class), M_DEVBUF, M_WAITOK);
++	MALLOC(cl, struct hfsc_class *, sizeof(struct hfsc_class),
++	       M_DEVBUF, M_WAITOK);
+ 	if (cl == NULL)
+ 		return (NULL);
+ 	bzero(cl, sizeof(struct hfsc_class));
+ 
+-	cl->cl_q = malloc(sizeof(class_queue_t), M_DEVBUF, M_WAITOK);
++	MALLOC(cl->cl_q, class_queue_t *, sizeof(class_queue_t),
++	       M_DEVBUF, M_WAITOK);
+ 	if (cl->cl_q == NULL)
+ 		goto err_ret;
+ 	bzero(cl->cl_q, sizeof(class_queue_t));
+@@ -420,9 +401,21 @@ hfsc_class_create(struct hfsc_if *hif, s
+ 	if (qlimit == 0)
+ 		qlimit = 50;  /* use default */
+ 	qlimit(cl->cl_q) = qlimit;
+-	qtype(cl->cl_q) = Q_DROPTAIL;
++	qtype(cl) = Q_DROPTAIL;
+ 	qlen(cl->cl_q) = 0;
+ 	cl->cl_flags = flags;
++#ifdef ALTQ_WFQ
++        if (flags & HFCF_WFQ) {
++		if (cl->cl_q != NULL) {
++                	FREE(cl->cl_q, M_DEVBUF);
++			cl->cl_q = NULL;
++		}
++                cl->cl_wfq = wfq_alloc(qlimit, hwm);
++                if (cl->cl_wfq == NULL)
++                        goto err_ret;
++                qtype(cl) = Q_WFQ;
++        } else
++#endif
+ #ifdef ALTQ_RED
+ 	if (flags & (HFCF_RED|HFCF_RIO)) {
+ 		int red_flags, red_pkttime;
+@@ -454,22 +447,22 @@ hfsc_class_create(struct hfsc_if *hif, s
+ 			    qlimit(cl->cl_q) * 30/100,
+ 			    red_flags, red_pkttime);
+ 			if (cl->cl_red != NULL)
+-				qtype(cl->cl_q) = Q_RED;
++				qtype(cl) = Q_RED;
+ 		}
+ #ifdef ALTQ_RIO
+ 		else {
+ 			cl->cl_red = (red_t *)rio_alloc(0, NULL,
+ 			    red_flags, red_pkttime);
+ 			if (cl->cl_red != NULL)
+-				qtype(cl->cl_q) = Q_RIO;
++				qtype(cl) = Q_RIO;
+ 		}
+ #endif
+ 	}
+ #endif /* ALTQ_RED */
+ 
+ 	if (rsc != NULL && (rsc->m1 != 0 || rsc->m2 != 0)) {
+-		cl->cl_rsc = malloc(sizeof(struct internal_sc),
+-		    M_DEVBUF, M_WAITOK);
++		MALLOC(cl->cl_rsc, struct internal_sc *,
++		    sizeof(struct internal_sc), M_DEVBUF, M_WAITOK);
+ 		if (cl->cl_rsc == NULL)
+ 			goto err_ret;
+ 		sc2isc(rsc, cl->cl_rsc);
+@@ -551,25 +544,29 @@ hfsc_class_create(struct hfsc_if *hif, s
+  err_ret:
+ 	if (cl->cl_actc != NULL)
+ 		actlist_destroy(cl->cl_actc);
++        if (cl->cl_wfq != NULL)
++#ifdef ALTQ_WFQ
++		wfq_destroy(cl->cl_wfq);
++#endif
+ 	if (cl->cl_red != NULL) {
+ #ifdef ALTQ_RIO
+-		if (q_is_rio(cl->cl_q))
++		if (q_is_rio(cl))
+ 			rio_destroy((rio_t *)cl->cl_red);
+ #endif
+ #ifdef ALTQ_RED
+-		if (q_is_red(cl->cl_q))
++		if (q_is_red(cl))
+ 			red_destroy(cl->cl_red);
+ #endif
+ 	}
+ 	if (cl->cl_fsc != NULL)
+-		free(cl->cl_fsc, M_DEVBUF);
++		FREE(cl->cl_fsc, M_DEVBUF);
+ 	if (cl->cl_rsc != NULL)
+-		free(cl->cl_rsc, M_DEVBUF);
++		FREE(cl->cl_rsc, M_DEVBUF);
+ 	if (cl->cl_usc != NULL)
+-		free(cl->cl_usc, M_DEVBUF);
++		FREE(cl->cl_usc, M_DEVBUF);
+ 	if (cl->cl_q != NULL)
+-		free(cl->cl_q, M_DEVBUF);
+-	free(cl, M_DEVBUF);
++		FREE(cl->cl_q, M_DEVBUF);
++	FREE(cl, M_DEVBUF);
+ 	return (NULL);
+ }
+ 
+@@ -591,12 +588,7 @@ hfsc_class_destroy(struct hfsc_class *cl
+ #endif
+ 	IFQ_LOCK(cl->cl_hif->hif_ifq);
+ 
+-#ifdef ALTQ3_COMPAT
+-	/* delete filters referencing to this class */
+-	acc_discard_filters(&cl->cl_hif->hif_classifier, cl, 0);
+-#endif /* ALTQ3_COMPAT */
+-
+-	if (!qempty(cl->cl_q))
++	if (!qempty(cl))
+ 		hfsc_purgeq(cl);
+ 
+ 	if (cl->cl_parent == NULL) {
+@@ -627,13 +619,17 @@ hfsc_class_destroy(struct hfsc_class *cl
+ 
+ 	actlist_destroy(cl->cl_actc);
+ 
++        if (cl->cl_wfq != NULL)
++#ifdef ALTQ_WFQ
++		wfq_destroy(cl->cl_wfq);
++#endif
+ 	if (cl->cl_red != NULL) {
+ #ifdef ALTQ_RIO
+-		if (q_is_rio(cl->cl_q))
++		if (q_is_rio(cl))
+ 			rio_destroy((rio_t *)cl->cl_red);
+ #endif
+ #ifdef ALTQ_RED
+-		if (q_is_red(cl->cl_q))
++		if (q_is_red(cl))
+ 			red_destroy(cl->cl_red);
+ #endif
+ 	}
+@@ -646,13 +642,14 @@ hfsc_class_destroy(struct hfsc_class *cl
+ 	IFQ_UNLOCK(cl->cl_hif->hif_ifq);
+ 
+ 	if (cl->cl_usc != NULL)
+-		free(cl->cl_usc, M_DEVBUF);
++		FREE(cl->cl_usc, M_DEVBUF);
+ 	if (cl->cl_fsc != NULL)
+-		free(cl->cl_fsc, M_DEVBUF);
++		FREE(cl->cl_fsc, M_DEVBUF);
+ 	if (cl->cl_rsc != NULL)
+-		free(cl->cl_rsc, M_DEVBUF);
+-	free(cl->cl_q, M_DEVBUF);
+-	free(cl, M_DEVBUF);
++		FREE(cl->cl_rsc, M_DEVBUF);
++	if (cl->cl_q != NULL)
++		FREE(cl->cl_q, M_DEVBUF);
++	FREE(cl, M_DEVBUF);
+ 
+ 	return (0);
+ }
+@@ -739,8 +726,13 @@ hfsc_enqueue(struct ifaltq *ifq, struct 
+ 	cl->cl_hif->hif_packets++;
+ 
+ 	/* successfully queued. */
++#ifdef ALTQ_WFQ
++	if (q_is_wfq(cl) && len == cl->cl_wfq->bytes)
++		set_active(cl, len); 
++	else
++#endif
+ 	if (qlen(cl->cl_q) == 1)
+-		set_active(cl, m_pktlen(m));
++		set_active(cl, len);
+ 
+ 	return (0);
+ }
+@@ -838,10 +830,16 @@ hfsc_dequeue(struct ifaltq *ifq, int op)
+ 	if (realtime)
+ 		cl->cl_cumul += len;
+ 
+-	if (!qempty(cl->cl_q)) {
++	if (!qempty(cl)) {
+ 		if (cl->cl_rsc != NULL) {
+ 			/* update ed */
+-			next_len = m_pktlen(qhead(cl->cl_q));
++#ifdef ALTQ_WFQ
++			if (q_is_wfq(cl))
++				next_len = m_pktlen(
++					wfq_getq(cl->cl_wfq, ALTDQ_POLL));
++			else
++#endif
++				next_len = m_pktlen(qhead(cl->cl_q));
+ 
+ 			if (realtime)
+ 				update_ed(cl, next_len);
+@@ -860,14 +858,18 @@ static int
+ hfsc_addq(struct hfsc_class *cl, struct mbuf *m)
+ {
+ 
++#ifdef  ALTQ_WFQ
++	if (q_is_wfq(cl))
++		return wfq_addq(cl->cl_wfq, m);
++#endif
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->cl_q))
++	if (q_is_rio(cl))
+ 		return rio_addq((rio_t *)cl->cl_red, cl->cl_q,
+-				m, cl->cl_pktattr);
++				m);
+ #endif
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->cl_q))
+-		return red_addq(cl->cl_red, cl->cl_q, m, cl->cl_pktattr);
++	if (q_is_red(cl))
++		return red_addq(cl->cl_red, cl->cl_q, m);
+ #endif
+ 	if (qlen(cl->cl_q) >= qlimit(cl->cl_q)) {
+ 		m_freem(m);
+@@ -875,7 +877,7 @@ hfsc_addq(struct hfsc_class *cl, struct 
+ 	}
+ 
+ 	if (cl->cl_flags & HFCF_CLEARDSCP)
+-		write_dsfield(m, cl->cl_pktattr, 0);
++		write_dsfield(m, 0);
+ 
+ 	_addq(cl->cl_q, m);
+ 
+@@ -885,12 +887,17 @@ hfsc_addq(struct hfsc_class *cl, struct 
+ static struct mbuf *
+ hfsc_getq(struct hfsc_class *cl)
+ {
++
++#ifdef ALTQ_WFQ
++	if (q_is_wfq(cl))
++		return wfq_getq(cl->cl_wfq, ALTDQ_REMOVE);
++#endif
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->cl_q))
++	if (q_is_rio(cl))
+ 		return rio_getq((rio_t *)cl->cl_red, cl->cl_q);
+ #endif
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->cl_q))
++	if (q_is_red(cl))
+ 		return red_getq(cl->cl_red, cl->cl_q);
+ #endif
+ 	return _getq(cl->cl_q);
+@@ -899,6 +906,10 @@ hfsc_getq(struct hfsc_class *cl)
+ static struct mbuf *
+ hfsc_pollq(struct hfsc_class *cl)
+ {
++#ifdef ALTQ_WFQ
++	if (q_is_wfq(cl))
++		return wfq_getq(cl->cl_wfq, ALTDQ_POLL);
++#endif
+ 	return qhead(cl->cl_q);
+ }
+ 
+@@ -907,10 +918,10 @@ hfsc_purgeq(struct hfsc_class *cl)
+ {
+ 	struct mbuf *m;
+ 
+-	if (qempty(cl->cl_q))
++	if (qempty(cl))
+ 		return;
+ 
+-	while ((m = _getq(cl->cl_q)) != NULL) {
++	while ((m = hfsc_getq(cl)) != NULL) {
+ 		PKTCNTR_ADD(&cl->cl_stats.drop_cnt, m_pktlen(m));
+ 		m_freem(m);
+ 		cl->cl_hif->hif_packets--;
+@@ -1085,7 +1096,7 @@ update_vf(struct hfsc_class *cl, int len
+ 	u_int64_t f, myf_bound, delta;
+ 	int go_passive;
+ 
+-	go_passive = qempty(cl->cl_q);
++	go_passive = qempty(cl);
+ 
+ 	for (; cl->cl_parent != NULL; cl = cl->cl_parent) {
+ 
+@@ -1200,7 +1211,7 @@ ellist_alloc(void)
+ {
+ 	ellist_t *head;
+ 
+-	head = malloc(sizeof(ellist_t), M_DEVBUF, M_WAITOK);
++	MALLOC(head, ellist_t *, sizeof(ellist_t), M_DEVBUF, M_WAITOK);
+ 	TAILQ_INIT(head);
+ 	return (head);
+ }
+@@ -1692,19 +1703,31 @@ get_class_stats(struct hfsc_classstats *
+ 	sp->cur_time = read_machclk();
+ 	sp->machclk_freq = machclk_freq;
+ 
+-	sp->qlength = qlen(cl->cl_q);
+-	sp->qlimit = qlimit(cl->cl_q);
++	if (q_is_wfq(cl) && cl->cl_wfq != NULL) {
++                sp->qlength = qlen(cl->cl_wfq);
++                sp->qlimit = sp->qlength; /* XXX: WFQ does not have such concept. */
++        } else {
++                sp->qlength = qlen(cl->cl_q);
++                sp->qlimit = qlimit(cl->cl_q);
++        }
++
+ 	sp->xmit_cnt = cl->cl_stats.xmit_cnt;
+ 	sp->drop_cnt = cl->cl_stats.drop_cnt;
+ 	sp->period = cl->cl_stats.period;
+ 
+-	sp->qtype = qtype(cl->cl_q);
++	sp->qtype = qtype(cl);
++#ifdef ALTQ_WFQ
++#if 0
++	if (q_is_wfq(cl))
++		wfq_getstats(cl->cl_wfq);
++#endif
++#endif
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->cl_q))
++	if (q_is_red(cl))
+ 		red_getstats(cl->cl_red, &sp->red[0]);
+ #endif
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->cl_q))
++	if (q_is_rio(cl))
+ 		rio_getstats((rio_t *)cl->cl_red, &sp->red[0]);
+ #endif
+ }
+diff -urp ./altq_hfsc.h /root/WFQ/altq/altq/altq_hfsc.h
+--- ./altq_hfsc.h	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_hfsc.h	2009-04-15 18:19:29.000000000 +0000
+@@ -36,6 +36,7 @@
+ #include <altq/altq_classq.h>
+ #include <altq/altq_red.h>
+ #include <altq/altq_rio.h>
++#include <altq/altq_wfq.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -55,6 +56,7 @@ struct service_curve {
+ #define	HFCF_RED		0x0001	/* use RED */
+ #define	HFCF_ECN		0x0002  /* use RED/ECN */
+ #define	HFCF_RIO		0x0004  /* use RIO */
++#define HFCF_WFQ		0x0008	/* use WFQ */
+ #define	HFCF_CLEARDSCP		0x0010  /* clear diffserv codepoint */
+ #define	HFCF_DEFAULTCLASS	0x1000	/* default class */
+ 
+@@ -239,8 +172,9 @@ struct hfsc_class {
+ 	struct hfsc_class *cl_children;	/* child classes */
+ 
+ 	class_queue_t	*cl_q;		/* class queue structure */
++	int		cl_qtype;
+ 	struct red	*cl_red;	/* RED state */
+-	struct altq_pktattr *cl_pktattr; /* saved header used by ECN */
++	wfq_state_t	*cl_wfq; 	/* WFQ state */
+ 
+ 	u_int64_t	cl_total;	/* total work in bytes */
+ 	u_int64_t	cl_cumul;	/* cumulative work in bytes
+diff -urp ./altq_priq.c /root/WFQ/altq/altq/altq_priq.c
+--- ./altq_priq.c	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_priq.c	2009-04-15 18:19:29.000000000 +0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/altq/altq/altq_priq.c,v 1.5 2008/10/23 15:53:51 des Exp $	*/
++/*	$FreeBSD: src/sys/contrib/altq/altq/altq_priq.c,v 1.4 2007/07/03 12:46:05 mlaier Exp $	*/
+ /*	$KAME: altq_priq.c,v 1.11 2003/09/17 14:23:25 kjc Exp $	*/
+ /*
+  * Copyright (C) 2000-2003
+@@ -57,23 +57,16 @@
+ 
+ #include <net/pfvar.h>
+ #include <altq/altq.h>
+-#ifdef ALTQ3_COMPAT
+-#include <altq/altq_conf.h>
+-#endif
+ #include <altq/altq_priq.h>
+ 
+ /*
+  * function prototypes
+  */
+-#ifdef ALTQ3_COMPAT
+-static struct priq_if *priq_attach(struct ifaltq *, u_int);
+-static int priq_detach(struct priq_if *);
+-#endif
+ static int priq_clear_interface(struct priq_if *);
+ static int priq_request(struct ifaltq *, int, void *);
+ static void priq_purge(struct priq_if *);
+ static struct priq_class *priq_class_create(struct priq_if *, int, int, int,
+-    int);
++    int, int);
+ static int priq_class_destroy(struct priq_class *);
+ static int priq_enqueue(struct ifaltq *, struct mbuf *, struct altq_pktattr *);
+ static struct mbuf *priq_dequeue(struct ifaltq *, int);
+@@ -184,7 +162,7 @@ priq_add_queue(struct pf_altq *a)
+ 		return (EBUSY);
+ 
+ 	cl = priq_class_create(pif, a->priority, a->qlimit,
+-	    a->pq_u.priq_opts.flags, a->qid);
++	    a->pq_u.priq_opts.flags, a->qid, a->pq_u.priq_opts.hwm);
+ 	if (cl == NULL)
+ 		return (ENOMEM);
+ 
+@@ -277,7 +250,7 @@ priq_purge(struct priq_if *pif)
+ 	int pri;
+ 
+ 	for (pri = 0; pri <= pif->pif_maxpri; pri++) {
+-		if ((cl = pif->pif_classes[pri]) != NULL && !qempty(cl->cl_q))
++		if ((cl = pif->pif_classes[pri]) != NULL && !qempty(cl))
+ 			priq_purgeq(cl);
+ 	}
+ 	if (ALTQ_IS_ENABLED(pif->pif_ifq))
+@@ -285,7 +258,8 @@ priq_purge(struct priq_if *pif)
+ }
+ 
+ static struct priq_class *
+-priq_class_create(struct priq_if *pif, int pri, int qlimit, int flags, int qid)
++priq_class_create(struct priq_if *pif, int pri, int qlimit, int flags, int qid,
++		int hwm)
+ {
+ 	struct priq_class *cl;
+ 	int s;
+@@ -298,6 +272,14 @@ priq_class_create(struct priq_if *pif, i
+ 		return (NULL);
+ 	}
+ #endif
++#ifndef ALTQ_WFQ
++	if (flags & PRCF_WFQ) {
++#ifdef ALTQ_DEBUG
++		printf("priq_class_create: WFQ not configured for PRIQ!\n");
++#endif
++		return (NULL);
++	}
++#endif
+ 
+ 	if ((cl = pif->pif_classes[pri]) != NULL) {
+ 		/* modify the class instead of creating a new one */
+@@ -307,26 +289,30 @@ priq_class_create(struct priq_if *pif, i
+ 		s = splimp();
+ #endif
+ 		IFQ_LOCK(cl->cl_pif->pif_ifq);
+-		if (!qempty(cl->cl_q))
++		if (!qempty(cl))
+ 			priq_purgeq(cl);
+ 		IFQ_UNLOCK(cl->cl_pif->pif_ifq);
+ 		splx(s);
++#ifdef ALTQ_WFQ
++		if (q_is_wfq(cl))
++			wfq_destroy(cl->cl_wfq);
++#endif
+ #ifdef ALTQ_RIO
+-		if (q_is_rio(cl->cl_q))
++		if (q_is_rio(cl))
+ 			rio_destroy((rio_t *)cl->cl_red);
+ #endif
+ #ifdef ALTQ_RED
+-		if (q_is_red(cl->cl_q))
++		if (q_is_red(cl))
+ 			red_destroy(cl->cl_red);
+ #endif
+ 	} else {
+-		cl = malloc(sizeof(struct priq_class),
++		MALLOC(cl, struct priq_class *, sizeof(struct priq_class),
+ 		       M_DEVBUF, M_WAITOK);
+ 		if (cl == NULL)
+ 			return (NULL);
+ 		bzero(cl, sizeof(struct priq_class));
+ 
+-		cl->cl_q = malloc(sizeof(class_queue_t),
++		MALLOC(cl->cl_q, class_queue_t *, sizeof(class_queue_t),
+ 		       M_DEVBUF, M_WAITOK);
+ 		if (cl->cl_q == NULL)
+ 			goto err_ret;
+@@ -339,7 +325,7 @@ priq_class_create(struct priq_if *pif, i
+ 	if (qlimit == 0)
+ 		qlimit = 50;  /* use default */
+ 	qlimit(cl->cl_q) = qlimit;
+-	qtype(cl->cl_q) = Q_DROPTAIL;
++	qtype(cl) = Q_DROPTAIL;
+ 	qlen(cl->cl_q) = 0;
+ 	cl->cl_flags = flags;
+ 	cl->cl_pri = pri;
+@@ -348,6 +334,18 @@ priq_class_create(struct priq_if *pif, i
+ 	cl->cl_pif = pif;
+ 	cl->cl_handle = qid;
+ 
++#ifdef ALTQ_WFQ
++	if (flags & PRCF_WFQ) {
++		if  (cl->cl_q != NULL) {
++			FREE(cl->cl_q, M_DEVBUF);	
++			cl->cl_q = NULL;
++		}
++		cl->cl_wfq = wfq_alloc(qlimit, hwm);
++		if (cl->cl_wfq == NULL)
++			goto err_ret;
++		qtype(cl) = Q_WFQ;
++	} 
++#endif
+ #ifdef ALTQ_RED
+ 	if (flags & (PRCF_RED|PRCF_RIO)) {
+ 		int red_flags, red_pkttime;
+@@ -369,7 +367,7 @@ priq_class_create(struct priq_if *pif, i
+ 			cl->cl_red = (red_t *)rio_alloc(0, NULL,
+ 						red_flags, red_pkttime);
+ 			if (cl->cl_red != NULL)
+-				qtype(cl->cl_q) = Q_RIO;
++				qtype(cl) = Q_RIO;
+ 		} else
+ #endif
+ 		if (flags & PRCF_RED) {
+@@ -378,7 +376,7 @@ priq_class_create(struct priq_if *pif, i
+ 			    qlimit(cl->cl_q) * 30/100,
+ 			    red_flags, red_pkttime);
+ 			if (cl->cl_red != NULL)
+-				qtype(cl->cl_q) = Q_RED;
++				qtype(cl) = Q_RED;
+ 		}
+ 	}
+ #endif /* ALTQ_RED */
+@@ -386,19 +384,23 @@ priq_class_create(struct priq_if *pif, i
+ 	return (cl);
+ 
+  err_ret:
++	if (cl->cl_wfq != NULL)
++#ifdef ALTQ_WFQ
++		wfq_destroy(cl->cl_wfq);
++#endif
+ 	if (cl->cl_red != NULL) {
+ #ifdef ALTQ_RIO
+-		if (q_is_rio(cl->cl_q))
++		if (q_is_rio(cl))
+ 			rio_destroy((rio_t *)cl->cl_red);
+ #endif
+ #ifdef ALTQ_RED
+-		if (q_is_red(cl->cl_q))
++		if (q_is_red(cl))
+ 			red_destroy(cl->cl_red);
+ #endif
+ 	}
+ 	if (cl->cl_q != NULL)
+-		free(cl->cl_q, M_DEVBUF);
+-	free(cl, M_DEVBUF);
++		FREE(cl->cl_q, M_DEVBUF);
++	FREE(cl, M_DEVBUF);
+ 	return (NULL);
+ }
+ 
+@@ -415,12 +417,7 @@ priq_class_destroy(struct priq_class *cl
+ #endif
+ 	IFQ_LOCK(cl->cl_pif->pif_ifq);
+ 
+-#ifdef ALTQ3_CLFIER_COMPAT
+-	/* delete filters referencing to this class */
+-	acc_discard_filters(&cl->cl_pif->pif_classifier, cl, 0);
+-#endif
+-
+-	if (!qempty(cl->cl_q))
++	if (!qempty(cl))
+ 		priq_purgeq(cl);
+ 
+ 	pif = cl->cl_pif;
+@@ -437,18 +434,25 @@ priq_class_destroy(struct priq_class *cl
+ 	IFQ_UNLOCK(cl->cl_pif->pif_ifq);
+ 	splx(s);
+ 
++	if (cl->cl_wfq != NULL) {
++#ifdef ALTQ_WFQ
++		if (q_is_wfq(cl))
++			wfq_destroy(cl->cl_wfq);
++#endif
++	}
+ 	if (cl->cl_red != NULL) {
+ #ifdef ALTQ_RIO
+-		if (q_is_rio(cl->cl_q))
++		if (q_is_rio(cl))
+ 			rio_destroy((rio_t *)cl->cl_red);
+ #endif
+ #ifdef ALTQ_RED
+-		if (q_is_red(cl->cl_q))
++		if (q_is_red(cl))
+ 			red_destroy(cl->cl_red);
+ #endif
+ 	}
+-	free(cl->cl_q, M_DEVBUF);
+-	free(cl, M_DEVBUF);
++	if (cl->cl_q != NULL)
++		FREE(cl->cl_q, M_DEVBUF);
++	FREE(cl, M_DEVBUF);
+ 	return (0);
+ }
+ 
+@@ -536,15 +532,14 @@ priq_dequeue(struct ifaltq *ifq, int op)
+ 		return (NULL);
+ 
+ 	for (pri = pif->pif_maxpri;  pri >= 0; pri--) {
+-		if ((cl = pif->pif_classes[pri]) != NULL &&
+-		    !qempty(cl->cl_q)) {
++		if ((cl = pif->pif_classes[pri]) != NULL && !qempty(cl)) {
+ 			if (op == ALTDQ_POLL)
+ 				return (priq_pollq(cl));
+ 
+ 			m = priq_getq(cl);
+ 			if (m != NULL) {
+ 				IFQ_DEC_LEN(ifq);
+-				if (qempty(cl->cl_q))
++				if (qempty(cl))
+ 					cl->cl_period++;
+ 				PKTCNTR_ADD(&cl->cl_xmitcnt, m_pktlen(m));
+ 			}
+@@ -558,14 +553,17 @@ static int
+ priq_addq(struct priq_class *cl, struct mbuf *m)
+ {
+ 
++#ifdef ALTQ_WFQ
++	if (q_is_wfq(cl))
++		return wfq_addq(cl->cl_wfq, m);
++#endif
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->cl_q))
+-		return rio_addq((rio_t *)cl->cl_red, cl->cl_q, m,
+-				cl->cl_pktattr);
++	if (q_is_rio(cl))
++		return rio_addq((rio_t *)cl->cl_red, cl->cl_q, m);
+ #endif
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->cl_q))
+-		return red_addq(cl->cl_red, cl->cl_q, m, cl->cl_pktattr);
++	if (q_is_red(cl))
++		return red_addq(cl->cl_red, cl->cl_q, m);
+ #endif
+ 	if (qlen(cl->cl_q) >= qlimit(cl->cl_q)) {
+ 		m_freem(m);
+@@ -573,7 +571,7 @@ priq_addq(struct priq_class *cl, struct 
+ 	}
+ 
+ 	if (cl->cl_flags & PRCF_CLEARDSCP)
+-		write_dsfield(m, cl->cl_pktattr, 0);
++		write_dsfield(m, 0);
+ 
+ 	_addq(cl->cl_q, m);
+ 
+@@ -583,12 +581,16 @@ priq_addq(struct priq_class *cl, struct 
+ static struct mbuf *
+ priq_getq(struct priq_class *cl)
+ {
++#ifdef ALTQ_WFQ
++	if (cl->cl_wfq)
++		return wfq_getq(cl->cl_wfq, ALTDQ_REMOVE);
++#endif
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->cl_q))
++	if (q_is_rio(cl))
+ 		return rio_getq((rio_t *)cl->cl_red, cl->cl_q);
+ #endif
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->cl_q))
++	if (q_is_red(cl))
+ 		return red_getq(cl->cl_red, cl->cl_q);
+ #endif
+ 	return _getq(cl->cl_q);
+@@ -598,6 +600,10 @@ static struct mbuf *
+ priq_pollq(cl)
+ 	struct priq_class *cl;
+ {
++#ifdef ALTQ_WFQ
++	if (q_is_wfq(cl))
++		return wfq_getq(cl->cl_wfq, ALTDQ_POLL);
++#endif
+ 	return qhead(cl->cl_q);
+ }
+ 
+@@ -606,33 +612,47 @@ priq_purgeq(struct priq_class *cl)
+ {
+ 	struct mbuf *m;
+ 
+-	if (qempty(cl->cl_q))
++	if (qempty(cl))
+ 		return;
+ 
+-	while ((m = _getq(cl->cl_q)) != NULL) {
++	while ((m = priq_getq(cl)) != NULL) {
+ 		PKTCNTR_ADD(&cl->cl_dropcnt, m_pktlen(m));
+ 		m_freem(m);
+ 	}
++#if 0
+ 	ASSERT(qlen(cl->cl_q) == 0);
++#endif
+ }
+ 
+ static void
+ get_class_stats(struct priq_classstats *sp, struct priq_class *cl)
+ {
+ 	sp->class_handle = cl->cl_handle;
+-	sp->qlength = qlen(cl->cl_q);
+-	sp->qlimit = qlimit(cl->cl_q);
++	if (q_is_wfq(cl) && cl->cl_wfq != NULL) {
++		sp->qlength = qlen(cl->cl_wfq);
++		sp->qlimit = sp->qlength; /* XXX: WFQ does not have such concept. */
++	} else {
++		sp->qlength = qlen(cl->cl_q);
++		sp->qlimit = qlimit(cl->cl_q);
++	}
+ 	sp->period = cl->cl_period;
+ 	sp->xmitcnt = cl->cl_xmitcnt;
+ 	sp->dropcnt = cl->cl_dropcnt;
+ 
+-	sp->qtype = qtype(cl->cl_q);
++	sp->qtype = qtype(cl);
++#ifdef ALTQ_WFQ
++#if 0
++	/* XXX: revisit this */
++	if (q_is_wfq(cl))
++		wfq_getstats(cl->cl_wfq);
++#endif
++#endif
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->cl_q))
++	if (q_is_red(cl))
+ 		red_getstats(cl->cl_red, &sp->red[0]);
+ #endif
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->cl_q))
++	if (q_is_rio(cl))
+ 		rio_getstats((rio_t *)cl->cl_red, &sp->red[0]);
+ #endif
+ 
+diff -urp ./altq_priq.h /root/WFQ/altq/altq/altq_priq.h
+--- ./altq_priq.h	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_priq.h	2009-04-15 18:19:29.000000000 +0000
+@@ -32,6 +32,7 @@
+ #include <altq/altq_classq.h>
+ #include <altq/altq_red.h>
+ #include <altq/altq_rio.h>
++#include <altq/altq_wfq.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -39,60 +40,17 @@ extern "C" {
+ 
+ #define	PRIQ_MAXPRI	16	/* upper limit of the number of priorities */
+ 
+-#ifdef ALTQ3_COMPAT
+-struct priq_interface {
+-	char	ifname[IFNAMSIZ];	/* interface name (e.g., fxp0) */
+-	u_long	arg;			/* request-specific argument */
+-};
+-
+-struct priq_add_class {
+-	struct priq_interface	iface;
+-	int			pri;	/* priority (0 is the lowest) */
+-	int			qlimit;	/* queue size limit */
+-	int			flags;	/* misc flags (see below) */
+-
+-	u_int32_t		class_handle;  /* return value */
+-};
+-#endif /* ALTQ3_COMPAT */
+-
+ /* priq class flags */
+ #define	PRCF_RED		0x0001	/* use RED */
+ #define	PRCF_ECN		0x0002  /* use RED/ECN */
+ #define	PRCF_RIO		0x0004  /* use RIO */
++#define PRCF_WFQ		0x0008	/* use WFQ */
+ #define	PRCF_CLEARDSCP		0x0010  /* clear diffserv codepoint */
+ #define	PRCF_DEFAULTCLASS	0x1000	/* default class */
+ 
+ /* special class handles */
+ #define	PRIQ_NULLCLASS_HANDLE	0
+ 
+-#ifdef ALTQ3_COMPAT
+-struct priq_delete_class {
+-	struct priq_interface	iface;
+-	u_int32_t		class_handle;
+-};
+-
+-struct priq_modify_class {
+-	struct priq_interface	iface;
+-	u_int32_t		class_handle;
+-	int			pri;
+-	int			qlimit;
+-	int			flags;
+-};
+-
+-struct priq_add_filter {
+-	struct priq_interface	iface;
+-	u_int32_t		class_handle;
+-	struct flow_filter	filter;
+-
+-	u_long			filter_handle;  /* return value */
+-};
+-
+-struct priq_delete_filter {
+-	struct priq_interface	iface;
+-	u_long			filter_handle;
+-};
+-#endif /* ALTQ3_COMPAT */
+-
+ struct priq_classstats {
+ 	u_int32_t		class_handle;
+ 
+@@ -137,8 +73,9 @@ struct priq_class {
+ 	struct red	*cl_red;	/* RED state */
+ 	int		cl_pri;		/* priority */
+ 	int		cl_flags;	/* class flags */
++	int		cl_qtype;	/* queue type ie WFQ/RED/RIO/ECN */
+ 	struct priq_if	*cl_pif;	/* back pointer to pif */
+-	struct altq_pktattr *cl_pktattr; /* saved header used by ECN */
++	wfq_state_t	*cl_wfq; 	/* saved header used by ECN */
+ 
+ 	/* statistics */
+ 	u_int		cl_period;	/* backlog period */
+diff -urp ./altq_red.c /root/WFQ/altq/altq/altq_red.c
+--- ./altq_red.c	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_red.c	2009-04-15 18:19:29.000000000 +0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/altq/altq/altq_red.c,v 1.5 2008/10/23 15:53:51 des Exp $	*/
++/*	$FreeBSD: src/sys/contrib/altq/altq/altq_red.c,v 1.4 2007/07/03 12:46:05 mlaier Exp $	*/
+ /*	$KAME: altq_red.c,v 1.18 2003/09/05 22:40:36 itojun Exp $	*/
+ 
+ /*
+@@ -336,22 +267,10 @@ red_getstats(red_t *rp, struct redstats 
+ }
+ 
+ int
+-red_addq(red_t *rp, class_queue_t *q, struct mbuf *m,
+-    struct altq_pktattr *pktattr)
++red_addq(red_t *rp, class_queue_t *q, struct mbuf *m)
+ {
+ 	int avg, droptype;
+ 	int n;
+-#ifdef ALTQ3_COMPAT
+-#ifdef ALTQ_FLOWVALVE
+-	struct fve *fve = NULL;
+-
+-	if (rp->red_flowvalve != NULL && rp->red_flowvalve->fv_flows > 0)
+-		if (fv_checkflow(rp->red_flowvalve, pktattr, &fve)) {
+-			m_freem(m);
+-			return (-1);
+-		}
+-#endif
+-#endif /* ALTQ3_COMPAT */
+ 
+ 	avg = rp->red_avg;
+ 
+@@ -407,7 +326,7 @@ red_addq(red_t *rp, class_queue_t *q, st
+ 				      rp->red_probd, rp->red_count)) {
+ 			/* mark or drop by red */
+ 			if ((rp->red_flags & REDF_ECN) &&
+-			    mark_ecn(m, pktattr, rp->red_flags)) {
++			    mark_ecn(m, NULL, rp->red_flags)) {
+ 				/* successfully marked.  do not drop. */
+ 				rp->red_count = 0;
+ #ifdef RED_STATS
+diff -urp ./altq_red.h /root/WFQ/altq/altq/altq_red.h
+--- ./altq_red.h	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_red.h	2009-04-15 18:19:29.000000000 +0000
+@@ -184,8 +108,7 @@ typedef struct red_queue {
+ extern red_t		*red_alloc(int, int, int, int, int, int);
+ extern void		 red_destroy(red_t *);
+ extern void		 red_getstats(red_t *, struct redstats *);
+-extern int		 red_addq(red_t *, class_queue_t *, struct mbuf *,
+-			     struct altq_pktattr *);
++extern int		 red_addq(red_t *, class_queue_t *, struct mbuf *);
+ extern struct mbuf	*red_getq(red_t *, class_queue_t *);
+ extern int		 drop_early(int, int, int);
+ extern int		 mark_ecn(struct mbuf *, struct altq_pktattr *, int);
+diff -urp ./altq_rio.c /root/WFQ/altq/altq/altq_rio.c
+--- ./altq_rio.c	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_rio.c	2009-04-15 18:19:29.000000000 +0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/altq/altq/altq_rio.c,v 1.5 2008/10/23 15:53:51 des Exp $	*/
++/*	$FreeBSD: src/sys/contrib/altq/altq/altq_rio.c,v 1.4 2006/11/06 13:41:50 rwatson Exp $	*/
+ /*	$KAME: altq_rio.c,v 1.17 2003/07/10 12:07:49 kjc Exp $	*/
+ 
+ /*
+@@ -338,8 +319,7 @@ dscp2index(u_int8_t dscp)
+ #endif
+ 
+ int
+-rio_addq(rio_t *rp, class_queue_t *q, struct mbuf *m,
+-    struct altq_pktattr *pktattr)
++rio_addq(rio_t *rp, class_queue_t *q, struct mbuf *m)
+ {
+ 	int			 avg, droptype;
+ 	u_int8_t		 dsfield, odsfield;
+@@ -347,7 +327,7 @@ rio_addq(rio_t *rp, class_queue_t *q, st
+ 	struct timeval		 now;
+ 	struct dropprec_state	*prec;
+ 
+-	dsfield = odsfield = read_dsfield(m, pktattr);
++	dsfield = odsfield = read_dsfield(m, NULL);
+ 	dpindex = dscp2index(dsfield);
+ 
+ 	/*
+@@ -440,7 +420,7 @@ rio_addq(rio_t *rp, class_queue_t *q, st
+ 		dsfield &= ~DSCP_MASK;
+ 
+ 	if (dsfield != odsfield)
+-		write_dsfield(m, pktattr, dsfield);
++		write_dsfield(m, dsfield);
+ 
+ 	_addq(q, m);
+ 
+diff -urp ./altq_rio.h /root/WFQ/altq/altq/altq_rio.h
+--- ./altq_rio.h	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_rio.h	2009-04-15 18:19:29.000000000 +0000
+@@ -121,22 +81,10 @@ typedef struct rio {
+ 	struct redstats q_stats[RIO_NDROPPREC];	/* statistics */
+ } rio_t;
+ 
+-#ifdef ALTQ3_COMPAT
+-typedef struct rio_queue {
+-	struct rio_queue	*rq_next;	/* next red_state in the list */
+-	struct ifaltq		*rq_ifq;	/* backpointer to ifaltq */
+-
+-	class_queue_t		*rq_q;
+-
+-	rio_t			*rq_rio;
+-} rio_queue_t;
+-#endif /* ALTQ3_COMPAT */
+-
+ extern rio_t		*rio_alloc(int, struct redparams *, int, int);
+ extern void		 rio_destroy(rio_t *);
+ extern void		 rio_getstats(rio_t *, struct redstats *);
+-extern int		 rio_addq(rio_t *, class_queue_t *, struct mbuf *,
+-			     struct altq_pktattr *);
++extern int		 rio_addq(rio_t *, class_queue_t *, struct mbuf *);
+ extern struct mbuf	*rio_getq(rio_t *, class_queue_t *);
+ 
+ #endif /* _KERNEL */
+diff -urp ./altq_rmclass.c /root/WFQ/altq/altq/altq_rmclass.c
+--- ./altq_rmclass.c	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_rmclass.c	2009-04-15 18:19:29.000000000 +0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/altq/altq/altq_rmclass.c,v 1.3 2008/10/23 15:53:51 des Exp $	*/
++/*	$FreeBSD: src/sys/contrib/altq/altq/altq_rmclass.c,v 1.2 2004/06/12 00:57:20 mlaier Exp $	*/
+ /*	$KAME: altq_rmclass.c,v 1.18 2003/11/06 06:32:53 kjc Exp $	*/
+ 
+ /*
+@@ -248,9 +240,9 @@ rmc_newclass(int pri, struct rm_ifdat *i
+ 	cl->qthresh_ = 0;
+ 	cl->ns_per_byte_ = nsecPerByte;
+ 
+-	qlimit(cl->q_) = maxq;
+-	qtype(cl->q_) = Q_DROPHEAD;
+-	qlen(cl->q_) = 0;
++	qlimit(cl->cl_q) = maxq;
++	qtype(cl) = Q_DROPHEAD;
++	qlen(cl->cl_q) = 0;
+ 	cl->flags_ = flags;
+ 
+ #if 1 /* minidle is also scaled in ALTQ */
+@@ -291,18 +283,18 @@ rmc_newclass(int pri, struct rm_ifdat *i
+ 
+ 		if (flags & RMCF_RED) {
+ 			cl->red_ = red_alloc(0, 0,
+-			    qlimit(cl->q_) * 10/100,
+-			    qlimit(cl->q_) * 30/100,
++			    qlimit(cl->cl_q) * 10/100,
++			    qlimit(cl->cl_q) * 30/100,
+ 			    red_flags, red_pkttime);
+ 			if (cl->red_ != NULL)
+-				qtype(cl->q_) = Q_RED;
++				qtype(cl) = Q_RED;
+ 		}
+ #ifdef ALTQ_RIO
+ 		else {
+ 			cl->red_ = (red_t *)rio_alloc(0, NULL,
+ 						      red_flags, red_pkttime);
+ 			if (cl->red_ != NULL)
+-				qtype(cl->q_) = Q_RIO;
++				qtype(cl) = Q_RIO;
+ 		}
+ #endif
+ 	}
+@@ -374,7 +366,7 @@ rmc_modclass(struct rm_class *cl, u_int 
+ 	cl->qthresh_ = 0;
+ 	cl->ns_per_byte_ = nsecPerByte;
+ 
+-	qlimit(cl->q_) = maxq;
++	qlimit(cl->cl_q) = maxq;
+ 
+ #if 1 /* minidle is also scaled in ALTQ */
+ 	cl->minidle_ = (minidle * nsecPerByte) / 8;
+@@ -650,16 +642,16 @@ rmc_delete_class(struct rm_ifdat *ifd, s
+ 	 */
+ 	if (cl->red_ != NULL) {
+ #ifdef ALTQ_RIO
+-		if (q_is_rio(cl->q_))
++		if (q_is_rio(cl))
+ 			rio_destroy((rio_t *)cl->red_);
+ #endif
+ #ifdef ALTQ_RED
+-		if (q_is_red(cl->q_))
++		if (q_is_red(cl))
+ 			red_destroy(cl->red_);
+ #endif
+ 	}
+-	free(cl->q_, M_DEVBUF);
+-	free(cl, M_DEVBUF);
++	FREE(cl->cl_q, M_DEVBUF);
++	FREE(cl, M_DEVBUF);
+ }
+ 
+ 
+@@ -762,7 +754,7 @@ rmc_queue_packet(struct rm_class *cl, mb
+ 	struct timeval	 now;
+ 	struct rm_ifdat *ifd = cl->ifdat_;
+ 	int		 cpri = cl->pri_;
+-	int		 is_empty = qempty(cl->q_);
++	int		 is_empty = qempty(cl);
+ 
+ 	RM_GETTIME(now);
+ 	if (ifd->cutoff_ > 0) {
+@@ -810,7 +802,7 @@ rmc_queue_packet(struct rm_class *cl, mb
+ 		ifd->na_[cpri]++;
+ 	}
+ 
+-	if (qlen(cl->q_) > qlimit(cl->q_)) {
++	if (qlen(cl->cl_q) > qlimit(cl->cl_q)) {
+ 		/* note: qlimit can be set to 0 or 1 */
+ 		rmc_drop_action(cl);
+ 		return (-1);
+@@ -860,7 +852,7 @@ rmc_satisfied(struct rm_class *cl, struc
+ 	if (TV_LT(now, &cl->undertime_))
+ 		return (1);
+ 	if (cl->depth_ == 0) {
+-		if (!cl->sleeping_ && (qlen(cl->q_) > cl->qthresh_))
++		if (!cl->sleeping_ && (qlen(cl->cl_q) > cl->qthresh_))
+ 			return (0);
+ 		else
+ 			return (1);
+@@ -1019,7 +1011,7 @@ _rmc_wrr_dequeue_next(struct rm_ifdat *i
+ 		do {
+ 			if ((deficit < 2) && (cl->bytes_alloc_ <= 0))
+ 				cl->bytes_alloc_ += cl->w_allotment_;
+-			if (!qempty(cl->q_)) {
++			if (!qempty(cl)) {
+ 				if ((cl->undertime_.tv_sec == 0) ||
+ 				    rmc_under_limit(cl, &now)) {
+ 					if (cl->bytes_alloc_ > 0 || deficit > 1)
+@@ -1071,7 +1063,7 @@ _rmc_wrr_dequeue_next(struct rm_ifdat *i
+ 
+ 	cl = first;
+ 	cpri = cl->pri_;
+-#if 0	/* too time-consuming for nothing */
++#if 1	/* too time-consuming for nothing */
+ 	if (cl->sleeping_)
+ 		CALLOUT_STOP(&cl->callout_);
+ 	cl->sleeping_ = 0;
+@@ -1088,7 +1080,7 @@ _rmc_wrr_dequeue_next(struct rm_ifdat *i
+ 		m = _rmc_getq(cl);
+ 		if (m == NULL)
+ 			panic("_rmc_wrr_dequeue_next");
+-		if (qempty(cl->q_))
++		if (qempty(cl))
+ 			ifd->na_[cpri]--;
+ 
+ 		/*
+@@ -1154,7 +1146,7 @@ _rmc_prr_dequeue_next(struct rm_ifdat *i
+ 		cl = ifd->active_[cpri];
+ 		ASSERT(cl != NULL);
+ 		do {
+-			if (!qempty(cl->q_)) {
++			if (!qempty(cl)) {
+ 				if ((cl->undertime_.tv_sec == 0) ||
+ 				    rmc_under_limit(cl, &now))
+ 					goto _prr_out;
+@@ -1186,7 +1178,7 @@ _rmc_prr_dequeue_next(struct rm_ifdat *i
+ 
+ 	cl = first;
+ 	cpri = cl->pri_;
+-#if 0	/* too time-consuming for nothing */
++#if 1	/* too time-consuming for nothing */
+ 	if (cl->sleeping_)
+ 		CALLOUT_STOP(&cl->callout_);
+ 	cl->sleeping_ = 0;
+@@ -1203,7 +1195,7 @@ _rmc_prr_dequeue_next(struct rm_ifdat *i
+ 		m = _rmc_getq(cl);
+ 		if (m == NULL)
+ 			panic("_rmc_prr_dequeue_next");
+-		if (qempty(cl->q_))
++		if (qempty(cl))
+ 			ifd->na_[cpri]--;
+ 
+ 		ifd->active_[cpri] = cl->peer_;
+@@ -1398,7 +1390,7 @@ rmc_update_class_util(struct rm_ifdat *i
+ 	cl = ifd->class_[ifd->qo_];
+ 	if (borrowed && (ifd->cutoff_ >= borrowed->depth_)) {
+ #if 1 /* ALTQ */
+-		if ((qlen(cl->q_) <= 0) || TV_LT(nowp, &borrowed->undertime_)) {
++		if ((qlen(cl->cl_q) <= 0) || TV_LT(nowp, &borrowed->undertime_)) {
+ 			rmc_tl_satisfied(ifd, nowp);
+ 			CBQTRACE(rmc_update_class_util, 'broe', ifd->cutoff_);
+ 		} else {
+@@ -1406,7 +1398,7 @@ rmc_update_class_util(struct rm_ifdat *i
+ 			CBQTRACE(rmc_update_class_util, 'ffob', borrowed->depth_);
+ 		}
+ #else /* !ALTQ */
+-		if ((qlen(cl->q_) <= 1) || TV_LT(&now, &borrowed->undertime_)) {
++		if ((qlen(cl->cl_q) <= 1) || TV_LT(&now, &borrowed->undertime_)) {
+ 			reset_cutoff(ifd);
+ #ifdef notdef
+ 			rmc_tl_satisfied(ifd, &now);
+@@ -1443,9 +1435,9 @@ rmc_drop_action(struct rm_class *cl)
+ {
+ 	struct rm_ifdat	*ifd = cl->ifdat_;
+ 
+-	ASSERT(qlen(cl->q_) > 0);
++	ASSERT(qlen(cl->cl_q) > 0);
+ 	_rmc_dropq(cl);
+-	if (qempty(cl->q_))
++	if (qempty(cl))
+ 		ifd->na_[cl->pri_]--;
+ }
+ 
+@@ -1453,8 +1445,8 @@ void rmc_dropall(struct rm_class *cl)
+ {
+ 	struct rm_ifdat	*ifd = cl->ifdat_;
+ 
+-	if (!qempty(cl->q_)) {
+-		_flushq(cl->q_);
++	if (!qempty(cl)) {
++		_flushq(cl->cl_q);
+ 
+ 		ifd->na_[cl->pri_]--;
+ 	}
+@@ -1616,18 +1608,18 @@ static int
+ _rmc_addq(rm_class_t *cl, mbuf_t *m)
+ {
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->q_))
+-		return rio_addq((rio_t *)cl->red_, cl->q_, m, cl->pktattr_);
++	if (q_is_rio(cl))
++		return rio_addq((rio_t *)cl->red_, cl->cl_q, m);
+ #endif
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->q_))
+-		return red_addq(cl->red_, cl->q_, m, cl->pktattr_);
++	if (q_is_red(cl))
++		return red_addq(cl->red_, cl->cl_q, m);
+ #endif /* ALTQ_RED */
+ 
+ 	if (cl->flags_ & RMCF_CLEARDSCP)
+-		write_dsfield(m, cl->pktattr_, 0);
++		write_dsfield(m, 0);
+ 
+-	_addq(cl->q_, m);
++	_addq(cl->cl_q, m);
+ 	return (0);
+ }
+ 
+@@ -1637,7 +1629,7 @@ _rmc_dropq(rm_class_t *cl)
+ {
+ 	mbuf_t	*m;
+ 
+-	if ((m = _getq(cl->q_)) != NULL)
++	if ((m = _getq(cl->cl_q)) != NULL)
+ 		m_freem(m);
+ }
+ 
+@@ -1645,20 +1637,20 @@ static mbuf_t *
+ _rmc_getq(rm_class_t *cl)
+ {
+ #ifdef ALTQ_RIO
+-	if (q_is_rio(cl->q_))
+-		return rio_getq((rio_t *)cl->red_, cl->q_);
++	if (q_is_rio(cl))
++		return rio_getq((rio_t *)cl->red_, cl->cl_q);
+ #endif
+ #ifdef ALTQ_RED
+-	if (q_is_red(cl->q_))
+-		return red_getq(cl->red_, cl->q_);
++	if (q_is_red(cl))
++		return red_getq(cl->red_, cl->cl_q);
+ #endif
+-	return _getq(cl->q_);
++	return _getq(cl->cl_q);
+ }
+ 
+ static mbuf_t *
+ _rmc_pollq(rm_class_t *cl)
+ {
+-	return qhead(cl->q_);
++	return qhead(cl->cl_q);
+ }
+ 
+ #ifdef CBQ_TRACE
+diff -urp ./altq_rmclass.h /root/WFQ/altq/altq/altq_rmclass.h
+--- ./altq_rmclass.h	2009-04-07 17:56:32.000000000 +0000
++++ /root/WFQ/altq/altq/altq_rmclass.h	2009-04-15 18:19:29.000000000 +0000
+@@ -37,7 +37,7 @@
+ #define	_ALTQ_ALTQ_RMCLASS_H_
+ 
+ #include <altq/altq_classq.h>
+-
++#include <altq/altq_wfq.h>
+ /* #pragma ident "@(#)rm_class.h  1.20     97/10/23 SMI" */
+ 
+ #ifdef __cplusplus
+@@ -136,7 +136,7 @@ typedef struct _rm_class_stats_ {
+  * CBQ Class state structure
+  */
+ struct rm_class {
+-	class_queue_t	*q_;		/* Queue of packets */
++	class_queue_t	*cl_q;		/* Queue of packets */
+ 	rm_ifdat_t	*ifdat_;
+ 	int		pri_;		/* Class priority. */
+ 	int		depth_;		/* Class depth */
+@@ -165,7 +165,8 @@ struct rm_class {
+ 	void	(*drop)(struct rm_class *);       /* Class drop action. */
+ 
+ 	struct red	*red_;		/* RED state pointer */
+-	struct altq_pktattr *pktattr_;	/* saved hdr used by RED/ECN */
++	wfq_state_t	*cl_wfq;	/* saved hdr used by RED/ECN */
++	int		cl_qtype;
+ 	int		flags_;
+ 
+ 	int		last_pkttime_;	/* saved pkt_time */
+diff -urp ./altq_subr.c /root/WFQ/altq/altq/altq_subr.c
+--- ./altq_subr.c	2009-04-07 21:59:24.000000000 +0000
++++ /root/WFQ/altq/altq/altq_subr.c	2009-04-15 18:19:29.000000000 +0000
+@@ -1,4 +1,4 @@
+-/*	$FreeBSD: src/sys/contrib/altq/altq/altq_subr.c,v 1.19 2009/02/27 14:12:05 bz Exp $	*/
++/*	$FreeBSD: src/sys/contrib/altq/altq/altq_subr.c,v 1.10 2007/07/12 17:00:51 njl Exp $	*/
+ /*	$KAME: altq_subr.c,v 1.21 2003/11/06 06:32:53 kjc Exp $	*/
+ 
+ /*
+@@ -808,9 +747,9 @@ read_dsfield(m, pktattr)
+ 	struct mbuf *m0;
+ 	u_int8_t ds_field = 0;
+ 
+-	if (pktattr == NULL ||
+-	    (pktattr->pattr_af != AF_INET && pktattr->pattr_af != AF_INET6))
+-		return ((u_int8_t)0);
++	/* XXX: TODO pf_tags */
++	if (pktattr == NULL) 
++		return (0);
+ 
+ 	/* verify that pattr_hdr is within the mbuf data */
+ 	for (m0 = m; m0 != NULL; m0 = m0->m_next)
+@@ -848,19 +787,19 @@ read_dsfield(m, pktattr)
+ }
+ 
+ void
+-write_dsfield(struct mbuf *m, struct altq_pktattr *pktattr, u_int8_t dsfield)
++write_dsfield(m, dsfield)
++	struct mbuf *m;
++	u_int8_t dsfield;
+ {
++#if 0
+ 	struct mbuf *m0;
+ 
+-	if (pktattr == NULL ||
+-	    (pktattr->pattr_af != AF_INET && pktattr->pattr_af != AF_INET6))
+-		return;
+-
+ 	/* verify that pattr_hdr is within the mbuf data */
+ 	for (m0 = m; m0 != NULL; m0 = m0->m_next)
+ 		if ((pktattr->pattr_hdr >= m0->m_data) &&
+ 		    (pktattr->pattr_hdr < m0->m_data + m0->m_len))
+ 			break;
++
+ 	if (m0 == NULL) {
+ 		/* ick, pattr_hdr is stale */
+ 		pktattr->pattr_af = AF_UNSPEC;
+diff -urp ./altq_var.h /root/WFQ/altq/altq/altq_var.h
+--- ./altq_var.h	2009-04-07 21:59:24.000000000 +0000
++++ /root/WFQ/altq/altq/altq_var.h	2009-04-15 18:19:29.000000000 +0000
+@@ -213,21 +124,10 @@ typedef void (timeout_t)(void *);
+ 
+ struct ifnet; struct mbuf;
+ struct pf_altq;
+-#ifdef ALTQ3_CLFIER_COMPAT
+-struct flowinfo;
+-#endif
+ 
+ void	*altq_lookup(char *, int);
+-#ifdef ALTQ3_CLFIER_COMPAT
+-int	altq_extractflow(struct mbuf *, int, struct flowinfo *, u_int32_t);
+-int	acc_add_filter(struct acc_classifier *, struct flow_filter *,
+-	    void *, u_long *);
+-int	acc_delete_filter(struct acc_classifier *, u_long);
+-int	acc_discard_filters(struct acc_classifier *, void *, int);
+-void	*acc_classify(void *, struct mbuf *, int);
+-#endif
+ u_int8_t read_dsfield(struct mbuf *, struct altq_pktattr *);
+-void	write_dsfield(struct mbuf *, struct altq_pktattr *, u_int8_t);
++void	write_dsfield(struct mbuf *, u_int8_t);
+ void	altq_assert(const char *, int, const char *);
+ int	tbr_set(struct ifaltq *, struct tb_profile *);
+ int	tbr_get(struct ifaltq *, struct tb_profile *);
