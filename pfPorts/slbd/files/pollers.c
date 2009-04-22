@@ -443,9 +443,6 @@ int service_pollicmp(struct service_t *s) {
 	/* XXX: billm - we're taking the cheap way out */
 	snprintf(cmd, 60, "/usr/local/sbin/slbd.sh %s", inet_ntoa(getservice_inaddr(s)));
 	res = system(cmd);
-	/* if the ping failed, try again */
-	if(res != 0)  
-		res = system(cmd);
  
 	switch (res) {
 		case 0:
