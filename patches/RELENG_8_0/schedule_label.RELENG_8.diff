@@ -138,7 +138,7 @@ RCS file: /home/ermal/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	21 Apr 2009 20:20:56 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	21 Apr 2009 22:39:38 -0000
++++ contrib/pf/pfctl/pfctl.c	22 Apr 2009 21:25:52 -0000
 @@ -81,6 +81,7 @@
  int	 pfctl_kill_src_nodes(int, const char *, int);
  int	 pfctl_kill_states(int, const char *, int);
@@ -155,17 +155,13 @@ diff -u -r1.2 pfctl.c
  const char	*tblcmdopt;
  int		 src_node_killers;
  char		*src_node_kill[2];
-@@ -579,6 +581,31 @@
+@@ -579,6 +581,25 @@
  }
  
  int
 +pfctl_kill_schedule(int dev, const char *sched, int opts)
 +{
 +	struct pfioc_schedule_kill psk;
-+       int killed;
-+       int ret_ga;
-+
-+       killed = sources = 0;
 +
 +       memset(&psk, 0, sizeof(psk));
 +       if (sched != NULL && strlcpy(psk.schedule, sched,
@@ -174,12 +170,10 @@ diff -u -r1.2 pfctl.c
 +
 +	if (ioctl(dev, DIOCKILLSCHEDULE, &psk))
 +		err(1, "DIOCKILLSCHEDULE");
-+	killed += psk.numberkilled;
-+	/* fixup psk.psk_af */
 +
 +	if ((opts & PF_OPT_QUIET) == 0)
 +		fprintf(stderr, "killed %d states from %s schedule label\n",
-+			killed, sched);
++			psk.numberkilled, sched);
 +       return (0);
 +}
 +
@@ -187,7 +181,7 @@ diff -u -r1.2 pfctl.c
  pfctl_kill_ifstates(int dev, const char *iface, int opts)
  {
         struct pfioc_state_kill psk;
-@@ -2107,7 +2134,7 @@
+@@ -2107,7 +2128,7 @@
  		usage();
  
  	while ((ch = getopt(argc, argv,
@@ -196,7 +190,7 @@ diff -u -r1.2 pfctl.c
  		switch (ch) {
  		case 'a':
  			anchoropt = optarg;
-@@ -2244,6 +2271,11 @@
+@@ -2244,6 +2265,11 @@
  				opts |= PF_OPT_VERBOSE2;
  			opts |= PF_OPT_VERBOSE;
  			break;
@@ -208,7 +202,7 @@ diff -u -r1.2 pfctl.c
  		case 'x':
  			debugopt = pfctl_lookup_option(optarg, debugopt_list);
  			if (debugopt == NULL) {
-@@ -2465,6 +2497,9 @@
+@@ -2465,6 +2491,9 @@
  
  	if (if_kills)
  		pfctl_kill_ifstates(dev, ifaceopt, opts);
