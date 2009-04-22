@@ -236,12 +236,12 @@ scp_files() {
 	fi
 	rm -f /tmp/ssh-snapshots*
 	set +e
-	rsync -ae ssh --timeout=60 $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
-	rsync -ae ssh --timeout=60 $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
-	rsync -ae ssh --timeout=60 $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
-	rsync -ae ssh --timeout=60 $STAGINGAREA/*.sha256 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
-	rsync -ae ssh --timeout=60 $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/_updaters
-	rsync -ae ssh --timeout=60 $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/_updaters/version
+	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/*.sha256 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/_updaters
+	rsync -ave ssh --timeout=60 $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD${FREEBSD_VERSION}/${PFSENSETAG}/_updaters/version
 	set -e
 }
 
