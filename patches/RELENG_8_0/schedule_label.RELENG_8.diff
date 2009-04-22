@@ -4,7 +4,7 @@ RCS file: /home/ermal/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
 --- contrib/pf/pfctl/parse.y	21 Apr 2009 20:20:56 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	21 Apr 2009 22:35:28 -0000
++++ contrib/pf/pfctl/parse.y	22 Apr 2009 22:04:31 -0000
 @@ -211,6 +211,7 @@
  	int			 fragment;
  	int			 allowopts;
@@ -13,7 +13,15 @@ diff -u -r1.2 parse.y
  	struct node_qassign	 queues;
  	u_int16_t		 divert;
  	char			*tag;
-@@ -431,7 +432,7 @@
+@@ -319,6 +320,7 @@
+ int	 atoul(char *, u_long *);
+ int	 getservice(char *);
+ int	 rule_label(struct pf_rule *, char *);
++int	 rule_schedule(struct pf_rule *, char *);
+ 
+ TAILQ_HEAD(symhead, sym)	 symhead = TAILQ_HEAD_INITIALIZER(symhead);
+ struct sym {
+@@ -431,7 +433,7 @@
  %token	PASS BLOCK SCRUB RETURN IN OS OUT LOG QUICK ON FROM TO FLAGS
  %token	RETURNRST RETURNICMP RETURNICMP6 PROTO INET INET6 ALL ANY ICMPTYPE
  %token	ICMP6TYPE CODE KEEP MODULATE STATE PORT RDR NAT BINAT ARROW NODF
@@ -22,7 +30,7 @@ diff -u -r1.2 parse.y
  %token	NOROUTE URPFFAILED FRAGMENT USER GROUP MAXMSS MAXIMUM TTL TOS DSCP DROP TABLE
  %token	REASSEMBLE FRAGDROP FRAGCROP ANCHOR NATANCHOR RDRANCHOR BINATANCHOR
  %token	SET OPTIMIZATION TIMEOUT LIMIT LOGINTERFACE BLOCKPOLICY RANDOMID
-@@ -472,7 +473,7 @@
+@@ -472,7 +474,7 @@
  %type	<v.gid>			gids gid_list gid_item
  %type	<v.route>		route
  %type	<v.redirection>		redirection redirpool
@@ -31,7 +39,7 @@ diff -u -r1.2 parse.y
  %type	<v.number>		divert
  %type	<v.keep_state>		keep
  %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
-@@ -2069,6 +2070,9 @@
+@@ -2069,6 +2071,9 @@
  			if (rule_label(&r, $9.label))
  				YYERROR;
  			free($9.label);
@@ -41,7 +49,7 @@ diff -u -r1.2 parse.y
  			r.flags = $9.flags.b1;
  			r.flagset = $9.flags.b2;
  			if (($9.flags.b1 & $9.flags.b2) != $9.flags.b1) {
-@@ -2492,6 +2496,13 @@
+@@ -2492,6 +2497,13 @@
  			}
  			filter_opts.label = $1;
  		}
@@ -55,7 +63,7 @@ diff -u -r1.2 parse.y
  		| qname	{
  			if (filter_opts.queues.qname) {
  				yyerror("queue cannot be redefined");
-@@ -3709,6 +3720,11 @@
+@@ -3709,6 +3721,11 @@
  		}
  		;
  
@@ -67,7 +75,7 @@ diff -u -r1.2 parse.y
  qname		: QUEUE STRING				{
  			$$.qname = $2;
  		}
-@@ -5135,6 +5151,7 @@
+@@ -5135,6 +5152,7 @@
  	int			 added = 0, error = 0;
  	char			 ifname[IF_NAMESIZE];
  	char			 label[PF_RULE_LABEL_SIZE];
@@ -75,26 +83,26 @@ diff -u -r1.2 parse.y
  	char			 tagname[PF_TAG_NAME_SIZE];
  	char			 match_tagname[PF_TAG_NAME_SIZE];
  	struct pf_pooladdr	*pa;
-@@ -5143,6 +5160,8 @@
+@@ -5143,6 +5161,8 @@
  
  	if (strlcpy(label, r->label, sizeof(label)) >= sizeof(label))
  		errx(1, "expand_rule: strlcpy");
 +	if (strlcpy(schedule, r->schedule, sizeof(schedule)) > sizeof(schedule))
-+		errx(1, "expand_rule: strlcpy);
++		errx(1, "expand_rule: strlcpy");
  	if (strlcpy(tagname, r->tagname, sizeof(tagname)) >= sizeof(tagname))
  		errx(1, "expand_rule: strlcpy");
  	if (strlcpy(match_tagname, r->match_tagname, sizeof(match_tagname)) >=
-@@ -5194,6 +5213,9 @@
+@@ -5194,6 +5214,9 @@
  		if (strlcpy(r->label, label, sizeof(r->label)) >=
  		    sizeof(r->label))
  			errx(1, "expand_rule: strlcpy");
-+		if (strlcpy(r->schedule, schedule, sizeof(r->schedule) >=
++		if (strlcpy(r->schedule, schedule, sizeof(r->schedule)) >=
 +			sizeof(r->schedule))
 +			errx(1, "expand_rule: strlcpy");
  		if (strlcpy(r->tagname, tagname, sizeof(r->tagname)) >=
  		    sizeof(r->tagname))
  			errx(1, "expand_rule: strlcpy");
-@@ -5202,6 +5224,8 @@
+@@ -5202,6 +5225,8 @@
  			errx(1, "expand_rule: strlcpy");
  		expand_label(r->label, PF_RULE_LABEL_SIZE, r->ifname, r->af,
  		    src_host, src_port, dst_host, dst_port, proto->proto);
@@ -103,7 +111,7 @@ diff -u -r1.2 parse.y
  		expand_label(r->tagname, PF_TAG_NAME_SIZE, r->ifname, r->af,
  		    src_host, src_port, dst_host, dst_port, proto->proto);
  		expand_label(r->match_tagname, PF_TAG_NAME_SIZE, r->ifname,
-@@ -5476,6 +5500,7 @@
+@@ -5476,6 +5501,7 @@
  		{ "rtable",		RTABLE},
  		{ "rule",		RULE},
  		{ "ruleset-optimization",	RULESET_OPTIMIZATION},
@@ -111,7 +119,7 @@ diff -u -r1.2 parse.y
  		{ "scrub",		SCRUB},
  		{ "set",		SET},
  		{ "skip",		SKIP},
-@@ -5982,6 +6007,20 @@
+@@ -5982,6 +6008,20 @@
  	return (0);
  }
  
@@ -138,7 +146,7 @@ RCS file: /home/ermal/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
 --- contrib/pf/pfctl/pfctl.c	21 Apr 2009 20:20:56 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	22 Apr 2009 21:25:52 -0000
++++ contrib/pf/pfctl/pfctl.c	22 Apr 2009 22:03:09 -0000
 @@ -81,6 +81,7 @@
  int	 pfctl_kill_src_nodes(int, const char *, int);
  int	 pfctl_kill_states(int, const char *, int);
@@ -218,7 +226,7 @@ RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf_ioctl.c
 --- sys/contrib/pf/net/pf_ioctl.c	21 Apr 2009 20:20:56 -0000	1.2
-+++ sys/contrib/pf/net/pf_ioctl.c	21 Apr 2009 22:33:12 -0000
++++ sys/contrib/pf/net/pf_ioctl.c	22 Apr 2009 22:10:03 -0000
 @@ -2053,6 +2053,29 @@
                 break;
         }
@@ -232,7 +240,7 @@ diff -u -r1.2 pf_ioctl.c
 +                   state = nexts) {
 +                       nexts = RB_NEXT(pf_state_tree_id, &tree_id, state);
 +                                
-+                       if (strcmp(psk->schedule, state->rule_ptr->schedule)) {
++                       if (strcmp(psk->schedule, state->rule.ptr->schedule)) {
 +#if NPFSYNC > 0
 +                               /* send immediate delete of state */
 +                               pfsync_delete_state(state);
