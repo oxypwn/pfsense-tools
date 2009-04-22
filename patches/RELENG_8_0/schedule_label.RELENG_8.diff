@@ -261,7 +261,7 @@ RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.3
 diff -u -r1.3 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	21 Apr 2009 20:32:27 -0000	1.3
-+++ sys/contrib/pf/net/pfvar.h	21 Apr 2009 22:30:26 -0000
++++ sys/contrib/pf/net/pfvar.h	22 Apr 2009 18:03:25 -0000
 @@ -594,6 +594,7 @@
  	union pf_rule_ptr	 skip[PF_SKIP_COUNT];
  #define PF_RULE_LABEL_SIZE	 64
@@ -277,7 +277,7 @@ diff -u -r1.3 pfvar.h
 +struct pfioc_schedule_kill {
 +	int		numberkilled;
 +	char		schedule[PF_RULE_LABEL_SIZE];
-+}
++};
 +
  struct pfioc_states {
  	int	ps_len;
@@ -286,7 +286,7 @@ diff -u -r1.3 pfvar.h
  #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
  #define DIOCGETNAMEDALTQ        _IOR('D', 94, u_int32_t)
  #define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)
-+#define DIOCKILLSCHEDULE	_IOWR('D', 96, struct pfioc_state_kill)
++#define DIOCKILLSCHEDULE	_IOWR('D', 96, struct pfioc_schedule_kill)
  
  #ifdef _KERNEL
  RB_HEAD(pf_src_tree, pf_src_node);
