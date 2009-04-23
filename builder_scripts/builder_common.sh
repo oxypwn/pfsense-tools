@@ -1024,6 +1024,8 @@ print_flags() {
 if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "         pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
+	printf "              MAKE_CONF: %s\n" $MAKE_CONF
+	printf "               SRC_CONF: %s\n" $SRC_CONF
 	echo
 	echo "Sleeping for 5 seconds..."
 	sleep 5
