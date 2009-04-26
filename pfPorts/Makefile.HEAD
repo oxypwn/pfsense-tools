@@ -20,7 +20,7 @@ PORTSTOBUILD="grub \
 	ipfw-classifyd \
 	igmpproxy \
 	ipsec-tools-natt \
-	isc-dhcp3-relay \
+	isc-dhcp31-relay \
 	isc-dhcp3-server \
 	lighttpd \
 	minicron \

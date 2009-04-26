@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $FreeBSD: ports/net/isc-dhcp31-server/files/isc-dhcpd.in,v 1.3 2007/12/04 01:28:43 tmclaugh Exp $
+# $FreeBSD: ports/net/isc-dhcp31-server/files/isc-dhcpd.in,v 1.4 2009/01/06 17:59:09 pav Exp $
 #
 # PROVIDE: dhcpd
 # REQUIRE: DAEMON
@@ -274,7 +274,7 @@ safe_useradd ()
 	local _user _group _home _shell _gecos
 
 	_user=$1 _group=$2 _gecos=${3:-"& daemon"}
-	_home=${4:-/nonexistent} _shell=${5:-%%NOLOGIN%%}
+	_home=${4:-/nonexistent} _shell=${5:-/usr/sbin/nologin}
 
 	if [ -n "${_group}" ]; then
 		if pw group show ${_group} 2>/dev/null; then

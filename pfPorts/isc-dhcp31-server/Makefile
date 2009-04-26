@@ -3,7 +3,7 @@
 # Date created:         7 Mar 1996
 # Whom:                 se
 #
-# $FreeBSD: ports/net/isc-dhcp31-server/Makefile,v 1.124 2008/10/13 12:03:15 edwin Exp $
+# $FreeBSD: ports/net/isc-dhcp31-server/Makefile,v 1.125 2009/01/06 17:59:09 pav Exp $
 #
 
 PORTNAME=	dhcp
@@ -148,11 +148,6 @@ DATADIR=	/var/db
 PLIST_SUB+=	SCHEMA_DIR="${SCHEMA_DIR:S,^${PREFIX}/,,}"
 PLIST_SUB+=	LDAP="@comment "
 REINPLACE_SUB=	PREFIX=${PREFIX}
-.if ${OSVERSION} >= 502100
-SUB_LIST+=	NOLOGIN=/usr/sbin/nologin
-.else
-SUB_LIST+=	NOLOGIN=/sbin/nologin
-.endif
 .if !defined(WITHOUT_DHCP_PARANOIA)
 SUB_LIST+=	PARANOIA=YES
 .else
