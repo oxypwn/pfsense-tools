@@ -4,13 +4,23 @@ RCS file: /home/ermal/replytorepo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
 --- sys/contrib/pf/net/pf.c	27 Apr 2009 18:08:00 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	27 Apr 2009 18:13:47 -0000
-@@ -6206,6 +6206,8 @@
++++ sys/contrib/pf/net/pf.c	27 Apr 2009 18:21:04 -0000
+@@ -6248,6 +6248,10 @@
  	}
+ 	if (ifp == NULL)
+ 		goto bad;
++	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
++		goto donelocal;
++	else if (r->rt == PF_ROUTETO && in_localip(ip->ip_dst))
++		goto donelocal;
  
- 	ip = mtod(m0, struct ip *);
-+	if (in_localaddr(ip->ip_dst))
-+		return;
- 
- 	ro = &iproute;
- 	bzero((caddr_t)ro, sizeof(*ro));
+ 	if (oifp != ifp) {
+ #ifdef __FreeBSD__
+@@ -6429,6 +6433,7 @@
+ done:
+ 	if (r->rt != PF_DUPTO)
+ 		*m = NULL;
++donelocal:
+ 	if (ro == &iproute && ro->ro_rt)
+ 		RTFREE(ro->ro_rt);
+ 	return;
