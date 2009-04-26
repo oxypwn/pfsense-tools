@@ -1,24 +1,16 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.5
-diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	21 Oct 2008 18:54:54 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	21 Oct 2008 18:55:12 -0000
-@@ -6246,6 +6246,8 @@
+RCS file: /home/ermal/replytorepo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.2
+diff -u -r1.2 pf.c
+--- sys/contrib/pf/net/pf.c	27 Apr 2009 18:08:00 -0000	1.2
++++ sys/contrib/pf/net/pf.c	27 Apr 2009 18:13:47 -0000
+@@ -6206,6 +6206,8 @@
  	}
- 	if (ifp == NULL)
- 		goto bad;
-+	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
-+		goto donelocal;
  
- 	if (oifp != ifp) {
- #ifdef __FreeBSD__
-@@ -6427,6 +6429,7 @@
- done:
- 	if (r->rt != PF_DUPTO)
- 		*m = NULL;
-+donelocal:
- 	if (ro == &iproute && ro->ro_rt)
- 		RTFREE(ro->ro_rt);
- 	return;
+ 	ip = mtod(m0, struct ip *);
++	if (in_localaddr(ip->ip_dst))
++		return;
+ 
+ 	ro = &iproute;
+ 	bzero((caddr_t)ro, sizeof(*ro));
