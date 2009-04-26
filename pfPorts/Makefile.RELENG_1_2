@@ -48,8 +48,8 @@ PORTSTOBUILD="grub \
 	expiretable \
 	ifstated \
 	ipsec-tools \
-	isc-dhcp3-relay \
-	isc-dhcp3-server \
+	isc-dhcp31-relay \
+	isc-dhcp31-server \
 	lighttpd \
 	minicron \
 	miniupnpd \
