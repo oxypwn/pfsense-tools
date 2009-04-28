@@ -212,8 +212,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	29 Apr 2009 18:06:29 -0000
-@@ -0,0 +1,687 @@
++++ sys/contrib/pf/net/pf_ftp.c	29 Apr 2009 18:33:37 -0000
+@@ -0,0 +1,693 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -310,6 +310,9 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->rule.ptr->states--;                  \
 +        } while (0)
 +
++#define BOUND_IFACE(r, k) 				\
++        ((r)->rule_flag & PFRULE_IFBOUND) ? (k) : pfi_all
++
 +void
 +pf_handle_ftp(struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state, int off, int dir) 
 +{
@@ -401,8 +404,11 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->expire = time_second;
 +                s->timeout = PFTM_TCP_FIRST_PACKET;
 +		PF_ACPY(&s->rt_addr, &state->rt_addr, pd->af);
++		s->nat_src_node = state->nat_src_node;
++		if (s->nat_src_node != NULL);
++                        s->nat_src_node->states++;
 +		s->rt_kif = state->rt_kif;
-+		if (pf_insert_state(s->rt_kif, s)) {
++		if (pf_insert_state(BOUND_IFACE(r, s->rt_kif), s)) {
 +                        pf_normalize_tcp_cleanup(s);
 +                        REASON_SET(&reason, PFRES_STATEINS);
 +                        pf_src_tree_remove_state(s);
