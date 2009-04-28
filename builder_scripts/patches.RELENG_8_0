@@ -16,7 +16,6 @@
 ~~nat_ftphelper.RELENG_8.diff~
 ~sys/contrib/pf/net~ipfw_forward.RELENG_8.diff~
 ~~schedule_label.RELENG_8.diff~
-~~ipsec-route-to.RELENG_8.diff~
 ~~IPSEC_sysctl.RELENG_8.diff~
 ~~pfil.RELENG_8.diff~
 ~~ipsec_altq.RELENG_8.diff~
@@ -32,4 +31,3 @@
 ~sys/contrib/pf/net~pf.c.diff~
 ~sys/netinet~tcp_output.c.diff~
 ~sys/dev/sk~sk.rxfilter.patch~
-~~mp_machdep.c~
