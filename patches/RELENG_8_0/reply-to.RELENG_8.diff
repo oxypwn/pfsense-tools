@@ -4,14 +4,14 @@ RCS file: /home/ermal/replytorepo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
 --- sys/contrib/pf/net/pf.c	27 Apr 2009 18:08:00 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	27 Apr 2009 18:21:04 -0000
++++ sys/contrib/pf/net/pf.c	1 May 2009 06:16:19 -0000
 @@ -6248,6 +6248,10 @@
  	}
  	if (ifp == NULL)
  		goto bad;
 +	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
 +		goto donelocal;
-+	else if (r->rt == PF_ROUTETO && in_localip(ip->ip_dst))
++	else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
 +		goto donelocal;
  
  	if (oifp != ifp) {
