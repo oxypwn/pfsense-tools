@@ -1,5 +1,5 @@
---- server/dhcpd.c.orig	Thu Jun 10 19:59:52 2004
-+++ server/dhcpd.c	Fri Jun 25 15:49:09 2004
+--- server/dhcpd.c.old	2009-04-28 17:54:30.000000000 +0000
++++ server/dhcpd.c	2009-04-28 17:55:26.000000000 +0000
 @@ -47,6 +47,22 @@
  #include "version.h"
  #include <omapip/omapip_p.h>
@@ -22,8 +22,8 @@
 +
  static void usage PROTO ((void));
  
- TIME cur_time;
-@@ -195,6 +211,35 @@
+ struct iaddr server_identifier;
+@@ -193,6 +209,39 @@
  	omapi_object_dereference (&listener, MDL);
  }
  
@@ -45,11 +45,15 @@
 +static void setup_jail (char *chroot_dir, char *hostname, u_int32_t ip_number)
 +{
 +      struct jail j;
++	struct in_addr *ip4;
 +
 +      j.version = 0;
 +      j.path = chroot_dir;
 +      j.hostname = hostname;
-+      j.ip_number = ip_number;
++
++	ip4 = malloc(sizeof(*ip4));
++        ip4->s_addr = ip_number;
++        j.ip4 = ip4;
 +
 +      if (jail (&j) < 0)
 +              log_fatal ("jail(%s, %s): %m", chroot_dir, hostname);
@@ -59,7 +63,7 @@
  int main (argc, argv, envp)
  	int argc;
  	char **argv, **envp;
-@@ -227,6 +272,25 @@
+@@ -225,6 +274,25 @@
  	char *traceinfile = (char *)0;
  	char *traceoutfile = (char *)0;
  #endif
@@ -85,7 +89,7 @@
  
  	/* Make sure we have stdin, stdout and stderr. */
  	status = open ("/dev/null", O_RDWR);
-@@ -289,6 +353,39 @@
+@@ -287,6 +355,39 @@
  			if (++i == argc)
  				usage ();
  			server = argv [i];
@@ -125,7 +129,7 @@
  		} else if (!strcmp (argv [i], "-cf")) {
  			if (++i == argc)
  				usage ();
-@@ -366,6 +463,28 @@
+@@ -364,6 +465,28 @@
  	if (!no_dhcpd_pid && (s = getenv ("PATH_DHCPD_PID"))) {
  		path_dhcpd_pid = s;
  	}
@@ -154,7 +158,7 @@
  
  	if (!quiet) {
  		log_info ("%s %s", message, DHCP_VERSION);
-@@ -388,6 +507,57 @@
+@@ -390,6 +513,57 @@
  					     trace_seed_stop, MDL);
  #endif
  
@@ -212,7 +216,7 @@
  	/* Default to the DHCP/BOOTP port. */
  	if (!local_port)
  	{
-@@ -462,6 +632,9 @@
+@@ -464,6 +638,9 @@
  #endif
  
  	/* Initialize icmp support... */
@@ -222,7 +226,7 @@
  	if (!cftest && !lftest)
  		icmp_startup (1, lease_pinged);
  
-@@ -491,6 +664,14 @@
+@@ -493,6 +670,14 @@
  
  	postconf_initialization (quiet);
  
@@ -237,7 +241,7 @@
          /* test option should cause an early exit */
   	if (cftest && !lftest) 
   		exit(0);
-@@ -533,7 +714,22 @@
+@@ -535,7 +720,22 @@
  		else if (pid)
  			exit (0);
  	}
@@ -260,7 +264,7 @@
  	/* Read previous pid file. */
  	if ((i = open (path_dhcpd_pid, O_RDONLY)) >= 0) {
  		status = read (i, pbuf, (sizeof pbuf) - 1);
-@@ -877,8 +1073,24 @@
+@@ -881,8 +1081,24 @@
  	log_info (copyright);
  	log_info (arr);
  
