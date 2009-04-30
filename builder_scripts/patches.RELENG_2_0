@@ -61,3 +61,4 @@
 ~~8139cp.patch~
 ~sys/boot/i386/libi386~biosdisk.c.diff~
 ~sys/dev/sk~sk.rxfilter.patch~
+~sys/dev/e1000~em-yandex-696.diff~
