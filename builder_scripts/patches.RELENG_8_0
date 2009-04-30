@@ -32,4 +32,4 @@
 ~sys/contrib/pf/net~pf.c.diff~
 ~sys/netinet~tcp_output.c.diff~
 ~sys/dev/sk~sk.rxfilter.patch~
-~sys~mp_machdep.c~
+~~mp_machdep.c~
