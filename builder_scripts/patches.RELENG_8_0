@@ -31,3 +31,4 @@
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/contrib/pf/net~pf.c.diff~
 ~sys/netinet~tcp_output.c.diff~
+~sys/dev/sk~sk.rxfilter.patch~
