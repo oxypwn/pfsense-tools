@@ -1,0 +1,49 @@
+Index: sys/contrib/pf/net/pf_mtag.h
+===================================================================
+RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pf_mtag.h,v
+retrieving revision 1.2
+diff -u -r1.2 pf_mtag.h
+--- sys/contrib/pf/net/pf_mtag.h	3 May 2009 16:47:37 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	3 May 2009 16:53:16 -0000
+@@ -51,6 +51,9 @@
+ 	sa_family_t	 af;		/* for ECN */
+ };
+ 
++#define pf_get_mtag(m)	&(m)->m_pkthdr.pftag
++#define pf_find_mtag(m)	&(m)->m_pkthdr.pftag
++#if 0
+ static __inline struct pf_mtag *pf_find_mtag(struct mbuf *);
+ static __inline struct pf_mtag *pf_get_mtag(struct mbuf *);
+ 
+@@ -81,5 +84,6 @@
+ 
+ 	return ((struct pf_mtag *)(mtag + 1));
+ }
++#endif
+ #endif /* _KERNEL */
+ #endif /* _NET_PF_MTAG_H_ */
+Index: sys/sys/mbuf.h
+===================================================================
+RCS file: /home/ermal/repo/src/sys/sys/mbuf.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 mbuf.h
+--- sys/sys/mbuf.h	3 May 2009 16:38:34 -0000	1.1.1.1
++++ sys/sys/mbuf.h	3 May 2009 16:50:10 -0000
+@@ -59,6 +59,9 @@
+ #define	M_MAXCOMPRESS	(MHLEN / 2)	/* max amount to copy for compression */
+ 
+ #ifdef _KERNEL
++
++#include <net/pf_mtag.h>
++
+ /*-
+  * Macros for type conversion:
+  * mtod(m, t)	-- Convert mbuf pointer to data pointer of correct type.
+@@ -118,6 +121,7 @@
+ 	uint32_t	 flowid;	/* packet's 4-tuple system 
+ 					 * flow identifier
+ 					 */
++	struct pf_mtag	 pftag;		/* pf tag optimization */
+ 	/* variables for hardware checksum */
+ 	int		 csum_flags;	/* flags regarding checksum */
+ 	int		 csum_data;	/* data field used by csum routines */
