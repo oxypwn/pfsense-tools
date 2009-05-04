@@ -2,11 +2,13 @@
 
 echo "Rebuilding BSDInstaller..."
 
-mkdir -p /home/pfsense/tools/builder_scripts/conf
+. ./pfsense_local.sh
+
+mkdir -p $BUILDER_TOOLS/builder_scripts/conf
 
 PREVIOUSDIR=`pwd`
 
-cd /home/pfsense/installer/installer/scripts/build 
+cd $BASE_DIR/installer/installer/scripts/build 
 
 # Backup old make.conf
 if [ -f /etc/make.conf ]; then
@@ -16,13 +18,14 @@ if [ -f /etc/make.conf ]; then
 	MKCNF="pfPorts"
 fi
 
+export CVSDIR=${CVSDIR:-"$BUILDER_SCRIPTS"}
 ./create_installer_tarballs.sh | egrep -B3  -wi "(warning|error)"
 ./copy_ports_to_portsdir.sh | egrep -B3  -wi "(warning|error)"
 ./build_installer_packages.sh | egrep -B3  -wi "(warning|error)"
 
-if [ -f /usr/home/pfsense/tools/builder_scripts/conf/packages.tbz ]; then
+if [ -f $BUILDER_TOOLS/builder_scripts/conf/packages.tbz ]; then
 	echo "Moving BSDInstaller package into place..."
-	mv /usr/home/pfsense/tools/builder_scripts/conf/packages.tbz \
+	mv $BUILDER_TOOLS/builder_scripts/conf/packages.tbz \
 		/usr/ports/packages/All/bsdinstaller-2.0.2008.0405.tbz
 fi
 

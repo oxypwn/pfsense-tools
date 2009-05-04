@@ -9,7 +9,7 @@
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
-PFSPATCHDIR=${PFSPATCHDIR:-${BASE_DIR}/tools/patches/${FREEBSD_BRANCH}}
+PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
 SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 
 # Set these two options
@@ -46,7 +46,7 @@ do
 done
 
 # Build a kernel without any patches at all
-/usr/bin/csup -h $CVSUPHOST /home/pfsense/tools/builder_scripts/$FBSDBRANCH-supfile
+/usr/bin/csup -h $CVSUPHOST $BUILDER_TOOLS/builder_scripts/$FBSDBRANCH-supfile
 cd $SRCDIR && make buildkernel KERNCONF=$KERNCONFCONFIG && make installkernel KERNCONF=$KERNCONFCONFIG
 gzip /boot/kernel/kernel
 mv /boot/kernel/kernel.gz $KERNELOUTPUTDIR/kernel.gz-NOPATCHES

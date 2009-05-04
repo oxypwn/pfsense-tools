@@ -116,17 +116,17 @@ fixup_libmap
 # Nuke the boot directory
 # [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
-rm -f $BASE_DIR/tools/builder_scripts/conf/packages
+rm -f $BUILDER_TOOLS/builder_scripts/conf/packages
 
 echo ">>> Searching for packages..."
 set +e # grep could fail
-(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > $BUILDER_TOOLS/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep grub) >> $BUILDER_TOOLS/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep lua) >> $BUILDER_TOOLS/builder_scripts/conf/packages
 set -e
 
 echo ">>> Installing packages: " 
-cat $BASE_DIR/tools/builder_scripts/conf/packages
+cat $BUILDER_TOOLS/builder_scripts/conf/packages
 
 rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 

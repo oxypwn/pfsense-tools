@@ -10,6 +10,8 @@ sleep 5
 
 echo "Beginning..."
 
+. ./pfsense_local.sh
+
 chflags -R noschg /usr/local/
 rm -rf /usr/local/*
 rm -rf /var/db/pkg/*
@@ -28,7 +30,7 @@ mkdir /usr/local/share
 mkdir /usr/local/squid
 mkdir /usr/local/www
 
-cd /home/pfsense/tools/builder_scripts/
+cd $BUILDER_TOOLS/builder_scripts/
 
 portsnap fetch ; portsnap extract
 

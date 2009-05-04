@@ -67,9 +67,9 @@ build_embedded_kernel() {
 	
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
 	if [ "$TARGET_ARCH" = "" ]; then
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
 	else
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
 	fi
 
 	# Remove unneeded kernel options from 1.2
@@ -142,10 +142,10 @@ build_all_kernels() {
 
 	if [ "$TARGET_ARCH" = "" ]; then 
 		# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/i386/conf/pfSense_SMP.6
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/i386/conf/pfSense_SMP.7
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.8 $SRCDIR/sys/i386/conf/pfSense_SMP.8
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/i386/conf/pfSense_SMP.6
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.7 $SRCDIR/sys/i386/conf/pfSense_SMP.7
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.8 $SRCDIR/sys/i386/conf/pfSense_SMP.8
 		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.8
 		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.6
 		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.7
@@ -154,10 +154,10 @@ build_all_kernels() {
 			print_error_pfS
 		fi
 	else
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-		cp $BASE_DIR/tools/builder_scripts/conf/pfSense.8 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.8 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
 		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
 		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7	
@@ -282,7 +282,7 @@ recompile_pfPorts() {
 		# we can remove this step. 
 		( cd $SRCDIR && make includes ) | egrep -B3 -wi "(warning|error)"
 		
-		pfSPORTS_COPY_BASE_DIR="/home/pfsense/tools/pfPorts"
+		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
 		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
 
 		rm -rf ${pfSPORTS_BASE_DIR}
@@ -438,19 +438,19 @@ cust_populate_extra() {
 
     # This is now ready for general consumption! \o/
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
-    cp -r $BASE_DIR/tools/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+    cp -r $BUILDER_TOOLS/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 
 	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
-   	cp -r $BASE_DIR/tools/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
+   	cp -r $BUILDER_TOOLS/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
 	#mv $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
-    cp $BASE_DIR/tools/pfi $CVS_CO_DIR/scripts/
-    cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/
-    cp $BASE_DIR/tools/lua_installer $CVS_CO_DIR/scripts/installer
+    cp $BUILDER_TOOLS/pfi $CVS_CO_DIR/scripts/
+    cp $BUILDER_TOOLS/lua_installer $CVS_CO_DIR/scripts/
+    cp $BUILDER_TOOLS/lua_installer $CVS_CO_DIR/scripts/installer
     chmod a+rx $CVS_CO_DIR/scripts/*
-    cp $BASE_DIR/tools/after_installation_routines.sh \
+    cp $BUILDER_TOOLS/after_installation_routines.sh \
 	$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
     chmod a+rx $CVS_CO_DIR/scripts/*
 
@@ -1055,7 +1055,7 @@ update_cvs_depot() {
 	if [ -z "${USE_GIT:-}" ]; then
 		local _cvsdate
 		echo "Launching csup pfSense-supfile..."
-		/usr/bin/csup pfSense-supfile
+		/usr/bin/csup -b $BASE_DIR pfSense-supfile
 		rm -rf pfSense
 		echo "Updating ${BASE_DIR}/pfSense..."
 		rm -rf $BASE_DIR/pfSense
@@ -1064,7 +1064,7 @@ update_cvs_depot() {
 		fi
 		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} $_cvsdate pfSense) \
 		| egrep -wi "(^\?|^M|^C|error|warning)"
-		(cd ${BASE_DIR}/tools/ && cvs update -d) \
+		(cd ${BUILDER_TOOLS}/ && cvs update -d) \
 		| egrep -wi "(^\?|^M|^C|error|warning)"
 	else
 		if [ ! -d "${GIT_REPO_DIR}" ]; then
@@ -1384,7 +1384,7 @@ pfsense_install_custom_packages_exec() {
 		/bin/echo ${custom_package_list} > ${TODIR}/tmp/pkgfile.lst
 
 		/bin/echo "Installing custom pfSense package installer to ${TODIR}/tmp ..."
-		/bin/cp ${BASE_DIR}/tools/builder_scripts/pfspkg_installer ${TODIR}/tmp
+		/bin/cp ${BUILDER_TOOLS}/builder_scripts/pfspkg_installer ${TODIR}/tmp
 		/bin/chmod a+x ${TODIR}/tmp/pfspkg_installer
 		
 		cp ${TODIR}/usr/local/lib/php.ini /tmp/

@@ -10,6 +10,14 @@
 
 # $Id$
 
+# Ensure file exists
+if [ ! -f ./pfsense-build.conf ]; then
+	echo "You must first run ./set_version.sh !"
+	exit 1
+fi
+
+. ./pfsense-build.conf
+
 # Leave near the top.  
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
 
@@ -23,10 +31,10 @@ export PFSENSE_DIR=${PFSENSE_DIR:-pfSense}
 export FREESBIE_DIR=${FREESBIE_DIR:-freesbie2}
 
 # Generally /home/pfsense/tools
-export BUILDER_TOOLS=${BASE_DIR}/${TOOLS_DIR}
+export BUILDER_TOOLS=${BUILDER_TOOLS:-${BASE_DIR}/${TOOLS_DIR}}
 
 # Generally /home/pfsense/tools/builder_scripts
-export BUILDER_SCRIPTS=${BUILDER_TOOLS}/builder_scripts
+export BUILDER_SCRIPTS=${BUILDER_SCRIPTS:-${BUILDER_TOOLS}/builder_scripts}
 
 # path to pfPorts
 export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-${BASE_DIR}/${TOOLS_DIR}/pfPorts}
@@ -87,15 +95,15 @@ export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 #### User settable options follow ### 
 
 # FreeBSD version and build information
-export pfSense_version="7"
-export FREEBSD_VERSION="7"
-export FREEBSD_BRANCH="RELENG_7_0"
+export pfSense_version=${pfSense_version:-"7"}
+export FREEBSD_VERSION=${FREEBSD_VERSION:-"7"}
+export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_7_0"}
 
 # Define FreeBSD SUPFILE
-export SUPFILE="${BASE_DIR}/${TOOLS_DIR}/builder_scripts/${FREEBSD_BRANCH}-supfile"
+export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"}
 
 # Version that will be applied to this build
-export PFSENSE_VERSION=${PFSENSEVERSION:-1.2.1-RC2}
+export PFSENSE_VERSION=${PFSENSE_VERSION:-1.2.1-RC2}
 
 # pfSense cvs tag to build
 export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
@@ -104,8 +112,8 @@ export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 # export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply
-export PFSPATCHDIR=${BASE_DIR}/${TOOLS_DIR}/patches/${FREEBSD_BRANCH}
-export PFSPATCHFILE=${BASE_DIR}/${TOOLS_DIR}/builder_scripts/patches.${PFSENSETAG}
+export PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
+export PFSPATCHFILE=${PFSPATCHFILE:-${BUILDER_TOOLS}/builder_scripts/patches.${PFSENSETAG}}
 
 # Controls how many concurrent make processes are run for each stage
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j8"}
@@ -190,16 +198,3 @@ export custom_package_list="AutoConfigBackup, siproxd"
 # If uncommented the system will use fastest-cvsup to find
 # a suitable update source to spread the load.
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
-
-# Ensure file exists
-if [ ! -f $BUILDER_SCRIPTS/pfsense-build.conf ]; then
-	echo ">>>> Creating file pfsense-build.conf"
-	touch $BUILDER_SCRIPTS/pfsense-build.conf
-fi
-
-############################################
-# The following line must always come last #
-############################################
-if [ -r pfsense-build.conf ]; then
-	. pfsense-build.conf
-fi

@@ -27,10 +27,10 @@ echo "Updating BSDInstaller collection..."
 /usr/bin/csup ${CURRENTDIR}/bsdinstaller-supfile
 
 mkdir -p ${BASE_DIR}/installer
-ln -s ${BASE_DIR}/tools/builder_scripts/installer ${BASE_DIR}/installer/installer 2>/dev/null
+ln -s ${BUILDER_TOOLS}/builder_scripts/installer ${BASE_DIR}/installer/installer 2>/dev/null
 
 # Copy BSDInstaller build.conf
-cp ${BASE_DIR}/tools/installer/conf/build.conf \
+cp ${BUILDER_TOOLS}/installer/conf/build.conf \
         ${BASE_DIR}/installer/installer/scripts/build/
 # Build BSDInstaller
 mkdir -p /usr/ports/packages/All

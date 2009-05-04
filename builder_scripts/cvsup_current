@@ -80,7 +80,7 @@ if [ ! -d $SRCDIR ]; then
 	mkdir $SRCDIR
 fi
 
-MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 
 # Ensure cdrtools are installed
 if [ ! -f /usr/local/bin/mkisofs ]; then
@@ -195,7 +195,7 @@ fi
 # Add BSDInstaller
 if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 	echo "Fetching BSDInstaller using CVSUP..."
-	cvsup ${CURRENTDIR}/bsdinstaller-supfile
+	cvsup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile
 	./cvsup_bsdinstaller
 else 
 	echo "Fetching BSDInstaller using GIT..."
@@ -205,8 +205,9 @@ else
 		exit
 	fi	
 fi
-echo "Rebuilding BSDInstaller..."
-(su - root -c ${CURRENTDIR}/rebuild_bsdinstaller.sh)
+
+# echo "Rebuilding BSDInstaller..."
+(su - root -c cd ${BUILDER_SCRIPTS} && ./rebuild_bsdinstaller.sh)
 
 # If override is in place, use it otherwise
 # locate fastest cvsup host
@@ -220,21 +221,22 @@ fi
 
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} ${PFSENSETAG} ${SUPFILE}"
-cvsup -h `cat /var/db/fastest_cvsup` ${SUPFILE}
+csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
 if [ -z "${GIT_REPO_FREESBIE2:-}" ]; then
-	cvsup freesbie2-supfile
+	mkdir -p $FREESBIE_PATH
+	cvsup -b $FREESBIE_PATH freesbie2-supfile
 	# Update FreeSBIE2 files from CVS
 	echo "Updating FreeSBIE2"
-	if [ ! -d $CURRENTDIR/freesbie2 ]; then
-		( cvs -d /home/pfsense/cvsroot co freesbie2 )
+	if [ ! -d $BUILDER_SCRIPTS/freesbie2 ]; then
+		( cvs -d $FREESBIE_PATH/cvsroot co freesbie2 )
 	else	
-		if [ ! -f $CURRENTDIR/freesbie2/pfSense-version ]; then
+		if [ ! -f $BUILDER_SCRIPTS/freesbie2/pfSense-version ]; then
 			# Currently not using pfSense version, start over.
-			rm -rf $CURRENTDIR/freesbie2
-			( cd $CURRENTDIR/ && cvs co freesbie2 )
+			rm -rf $BUILDER_SCRIPTS/freesbie2
+			( cd $BUILDER_SCRIPTS/ && cvs co freesbie2 )
 		else
-			( cd $CURRENTDIR/freesbie2 && cvs up -d )
+			( cd $BUILDER_SCRIPTS/freesbie2 && cvs up -d )
 		fi
 	fi
 else 
@@ -319,7 +321,7 @@ echo
 echo "Starting pfSense build.  Sit back and have a six pack of beer (but not cheap beer)..."
 echo
 
-[ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
-echo ">>> Executing ${CURRENTDIR}/build_iso.sh..."
-(su - root -c cd ${CURRENTDIR} && ./build_iso.sh)
+[ -r "${BUILDER_SCRIPTS}/pfsense_local.sh" ] && . ${BUILDER_SCRIPTS}/pfsense_local.sh
+echo ">>> Executing ${BUILDER_SCRIPTS}/build_iso.sh..."
+(su - root -c cd ${BUILDER_SCRIPTS} && ./build_iso.sh)
 
