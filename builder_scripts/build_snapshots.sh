@@ -277,7 +277,7 @@ while [ /bin/true ]; do
 	echo ">>> Execing pfsense-build.conf"
 	. $BUILDERSCRIPTS/pfsense-build.conf
 	build_loop_operations
-	sleep 500	# give the box a break.
+	sleep 18600 # 5 hours
 done
 
 rm -f /tmp/pfSense_do_not_build_pfPorts
