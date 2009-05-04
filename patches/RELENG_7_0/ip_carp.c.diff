@@ -1,0 +1,17 @@
+Index: ip_carp.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.52.2.2.2.1
+diff -u -r1.52.2.2.2.1 ip_carp.c
+--- ip_carp.c	25 Nov 2008 02:59:29 -0000	1.52.2.2.2.1
++++ ip_carp.c	4 May 2009 18:14:22 -0000
+@@ -496,7 +496,8 @@
+ 			ifpromisc(sc->sc_carpdev, 0);
+ 			sc->sc_carpdev->if_carp = NULL;
+ 			CARP_LOCK_DESTROY(cif);
+-			FREE(cif, M_IFADDR);
++			//FREE(cif, M_IFADDR);
++			free(cif, M_CARP);
+ 		} else if (unlock)
+ 			CARP_UNLOCK(cif);
+ 		sc->sc_carpdev = NULL;
