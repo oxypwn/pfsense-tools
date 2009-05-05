@@ -24,7 +24,7 @@ CURRENTDIR=`pwd`
 
 # Update BSDInstaller
 echo "Updating BSDInstaller collection..."
-/usr/bin/csup ${CURRENTDIR}/bsdinstaller-supfile
+/usr/bin/csup -b $BUILDER_SCRIPTS ${CURRENTDIR}/bsdinstaller-supfile
 
 mkdir -p ${BASE_DIR}/installer
 ln -s ${BUILDER_TOOLS}/builder_scripts/installer ${BASE_DIR}/installer/installer 2>/dev/null
