@@ -1,10 +1,10 @@
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pf_mtag.h,v
+RCS file: /home/ermal/cvsrepopftag/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	3 May 2009 16:47:37 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	3 May 2009 16:53:16 -0000
+--- sys/contrib/pf/net/pf_mtag.h	5 May 2009 18:08:03 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	5 May 2009 20:40:05 -0000
 @@ -51,6 +51,9 @@
  	sa_family_t	 af;		/* for ECN */
  };
@@ -24,22 +24,21 @@ diff -u -r1.2 pf_mtag.h
  #endif /* _NET_PF_MTAG_H_ */
 Index: sys/sys/mbuf.h
 ===================================================================
-RCS file: /home/ermal/repo/src/sys/sys/mbuf.h,v
+RCS file: /home/ermal/cvsrepopftag/src/sys/sys/mbuf.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 mbuf.h
---- sys/sys/mbuf.h	3 May 2009 16:38:34 -0000	1.1.1.1
-+++ sys/sys/mbuf.h	3 May 2009 16:50:10 -0000
-@@ -59,6 +59,9 @@
- #define	M_MAXCOMPRESS	(MHLEN / 2)	/* max amount to copy for compression */
+--- sys/sys/mbuf.h	5 May 2009 18:03:30 -0000	1.1.1.1
++++ sys/sys/mbuf.h	5 May 2009 20:41:10 -0000
+@@ -44,6 +44,8 @@
+ #endif
+ #endif
  
- #ifdef _KERNEL
++#include <contrib/pf/net/pf_mtag.h>
 +
-+#include <net/pf_mtag.h>
-+
- /*-
-  * Macros for type conversion:
-  * mtod(m, t)	-- Convert mbuf pointer to data pointer of correct type.
-@@ -118,6 +121,7 @@
+ /*
+  * Mbufs are of a single size, MSIZE (sys/param.h), which includes overhead.
+  * An mbuf may add a single "mbuf cluster" of size MCLBYTES (also in
+@@ -118,6 +120,7 @@
  	uint32_t	 flowid;	/* packet's 4-tuple system 
  					 * flow identifier
  					 */
