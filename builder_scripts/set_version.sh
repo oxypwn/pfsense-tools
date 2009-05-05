@@ -140,7 +140,7 @@ RELENG_8_0)
 	export FREEBSD_BRANCH="RELENG_8_0"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8-supfile"
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
-	export PFSENSETAG=RELENG_8_0
+	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_0
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
