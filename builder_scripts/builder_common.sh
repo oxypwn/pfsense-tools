@@ -407,6 +407,19 @@ check_for_zero_size_files() {
 	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $objdir/zero_sized_files.txt \;
 }
 
+cust_populate_installer_bits() {
+    # Add lua installer items
+    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+
+    # This is now ready for general consumption! \o/
+    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
+    cp -r $BUILDER_TOOLS/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/	
+
+	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
+   	cp -r $BUILDER_TOOLS/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
+	#mv $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+}
+
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 cust_populate_extra() {
     # Make devd
@@ -433,16 +446,7 @@ cust_populate_extra() {
     mkdir -p $CVS_CO_DIR/usr/share/snmp/defs/
     cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
 
-    # Add lua installer items
-    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-
-    # This is now ready for general consumption! \o/
-    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
-    cp -r $BUILDER_TOOLS/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-
-	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
-   	cp -r $BUILDER_TOOLS/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
-	#mv $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+	cust_populate_installer_bits
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
