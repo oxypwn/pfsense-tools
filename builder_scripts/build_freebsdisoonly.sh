@@ -36,9 +36,11 @@ if [ -f /usr/obj.pfSense/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
 fi
 
 # Define make.conf
-export MAKE_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
-export SRC_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/make.conf.$FREEBSD_VERSION.install"
+export MAKE_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
+export SRC_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
+
+export IS_DEV_ISO=yo
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
