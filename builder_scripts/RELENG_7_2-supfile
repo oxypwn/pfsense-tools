@@ -1,0 +1,6 @@
+*default base=/var/db
+*default prefix=/usr/pfSensesrc
+*default release=cvs tag=RELENG_7_2
+*default delete use-rel-suffix
+*default compress
+src-all
