@@ -81,6 +81,13 @@ int main(void) {
 		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_sync");
 		      system("echo after reloading_filter > /tmp/check_reload_status");
 	      }
+		if(fexist("/tmp/filter_sync") == 1) {
+                      syslog(LOG_NOTICE, "syncing firewall");
+                      system("echo filter_syncing > /tmp/check_reload_status");
+                      system("/bin/rm -f /tmp/filter_sync");
+                      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_synchronize");
+                      system("echo after filter_syncing > /tmp/check_reload_status");
+              }
 	      if(fexist("/tmp/reload_all") == 1) {
 		      syslog(LOG_NOTICE, "reloading all");
 			  system("echo /tmp/reload_all > /tmp/check_reload_status");
