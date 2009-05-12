@@ -1,0 +1,14 @@
+--- udp_usrreq.c.old	2008-11-06 04:39:15.000000000 +0000
++++ udp_usrreq.c	2008-11-06 04:39:49.000000000 +0000
+@@ -89,11 +89,6 @@
+ #include <netipsec/esp.h>
+ #endif
+ 
+-#ifdef IPSEC
+-#include <netinet6/ipsec.h>
+-#include <netinet6/esp.h>
+-#endif
+-
+ #include <machine/in_cksum.h>
+ 
+ #include <security/mac/mac_framework.h>

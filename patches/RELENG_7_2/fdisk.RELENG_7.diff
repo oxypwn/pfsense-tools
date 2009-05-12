@@ -1,0 +1,28 @@
+Index: fdisk.c
+===================================================================
+--- fdisk.c	(revision 184379)
++++ fdisk.c	(working copy)
+@@ -782,6 +782,7 @@
+ 	char fbuf[BUFSIZ];
+ 	int i, fdw;
+ 
++	close(fd);
+ 	grq = gctl_get_handle();
+ 	gctl_ro_param(grq, "verb", -1, "write MBR");
+ 	gctl_ro_param(grq, "class", -1, "MBR");
+@@ -795,12 +796,14 @@
+ 	q = gctl_issue(grq);
+ 	if (q == NULL) {
+ 		gctl_free(grq);
++		open_disk(u_flag);
+ 		return(0);
+ 	}
+ 	if (!q_flag)	/* GEOM errors are benign, not all devices supported */
+ 		warnx("%s", q);
+ 	gctl_free(grq);
+-	
++	open_disk(u_flag);
++
+ 	error = pwrite(fd, buf, secsize, (sector * 512));
+ 	if (error == secsize)
+ 		return (0);
