@@ -61,9 +61,11 @@ build_embedded_kernel() {
 	touch /tmp/kernels/wrap/boot/defaults/loader.conf
 
 	# 6.x is picky on destdir=
-	cp /boot/device.hints /tmp/kernels/wrap/boot/
-	cp /boot/loader.conf /tmp/kernels/wrap/boot/loader.conf:
-	cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/loader.conf
+	if [ "$FBSD_VERSION" = "6" ]; then
+		cp /boot/device.hints /tmp/kernels/wrap/boot/
+		cp /boot/loader.conf /tmp/kernels/wrap/boot/loader.conf:
+		cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/loader.conf
+	fi
 	
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
 	if [ "$TARGET_ARCH" = "" ]; then
@@ -106,7 +108,9 @@ build_embedded_kernel() {
 build_dev_kernel() {
 	mkdir -p /tmp/kernels/developers/boot/kernel
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
-	cp /boot/device.hints /tmp/kernels/developers/boot/
+	if [ "$FBSD_VERSION" = "6" ]; then
+		cp /boot/device.hints /tmp/kernels/developers/boot/
+	fi
 	# Remove unneeded kernel options from 1.2
 	fixup_kernel_options
 	# Build Developers kernel
@@ -151,16 +155,17 @@ build_all_kernels() {
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 
 	# 6.x is picky on destdir=	
-	cp /boot/device.hints /tmp/kernels/wrap/boot/
-	cp /boot/device.hints /tmp/kernels/uniprocessor/boot/
-	cp /boot/device.hints /tmp/kernels/SMP/boot/
-	cp /boot/device.hints /tmp/kernels/developers/boot/
+	if [ "$FBSD_VERSION" = "6" ]; then
+		cp /boot/device.hints /tmp/kernels/wrap/boot/
+		cp /boot/device.hints /tmp/kernels/uniprocessor/boot/
+		cp /boot/device.hints /tmp/kernels/SMP/boot/
+		cp /boot/device.hints /tmp/kernels/developers/boot/
 
-	cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/
-	cp /boot/defaults/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
-	cp /boot/defaults/loader.conf /tmp/kernels/SMP/boot/defaults/
-	cp /boot/defaults/loader.conf /tmp/kernels/developers/boot/defaults/
-
+		cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/
+		cp /boot/defaults/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
+		cp /boot/defaults/loader.conf /tmp/kernels/SMP/boot/defaults/
+		cp /boot/defaults/loader.conf /tmp/kernels/developers/boot/defaults/
+	fi
 
 	if [ "$TARGET_ARCH" = "" ]; then 
 		# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
@@ -692,8 +697,10 @@ fixup_updates() {
 cust_fixup_wrap() {
 
 	echo "Fixing up WRAP Specific items..."
-    cp $CVS_CO_DIR/boot/device.hints_wrap \
-            $PFSENSEBASEDIR/boot/device.hints
+	if [ "$FBSD_VERSION" = "6" ]; then
+    	cp $CVS_CO_DIR/boot/device.hints_wrap \
+            	$PFSENSEBASEDIR/boot/device.hints
+	fi
     cp $CVS_CO_DIR/boot/loader.conf_wrap \
             $PFSENSEBASEDIR/boot/loader.conf
     cp $CVS_CO_DIR/etc/ttys_wrap \
