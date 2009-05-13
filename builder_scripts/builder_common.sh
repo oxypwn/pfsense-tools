@@ -120,7 +120,8 @@ build_dev_kernel() {
 	freesbie_make buildkernel
 	mkdir -p $PFSENSEBASEDIR/kernels/
 	echo ">>>> installing Developers kernel..."
-	freesbie_make installkernel	
+	freesbie_make installkernel
+	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)	
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 }
 
