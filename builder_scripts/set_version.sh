@@ -148,7 +148,7 @@ RELENG_7_2)
 ;;
 
 RELENG_8_0)
-	echo ">>> Setting builder environment to use RELENG_2_0 ..."
+	echo ">>> Setting builder environment to use RELENG_8_0 ..."
 	export pfSense_version="8"
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_0"
