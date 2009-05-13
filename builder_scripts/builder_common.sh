@@ -103,6 +103,27 @@ build_embedded_kernel() {
 
 }
 
+build_dev_kernel() {
+	mkdir -p /tmp/kernels/developers/boot/kernel
+	mkdir -p $PFSENSEBASEDIR/boot/kernel
+	cp /boot/device.hints /tmp/kernels/developers/boot/
+	# Remove unneeded kernel options from 1.2
+	fixup_kernel_options
+	# Build Developers kernel
+	echo ">>>> Building Developers kernel..."
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print |xargs rm -f
+	unset KERNCONF
+	unset KERNELCONF
+	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	freesbie_make buildkernel
+	mkdir -p $PFSENSEBASEDIR/kernels/
+	echo ">>>> installing Developers kernel..."
+	freesbie_make installkernel	
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
+}
+
 # This routine builds all kernels during the 
 # build_iso.sh routines.
 build_all_kernels() {
