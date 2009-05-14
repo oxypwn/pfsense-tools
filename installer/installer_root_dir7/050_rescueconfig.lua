@@ -56,7 +56,7 @@ return {
        local cmds = CmdChain.new()
 	   cmds:add("${root}bin/rm -f /tmp/config.cache");
 	   cmds:add{
-    	   cmdline = "${root}sbin/mkdir /tmp/hdrescue ; ${root}sbin/mount ${disk1}s1a /tmp/hdrescue",
+    	   cmdline = "${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount ${disk1}s1a /tmp/hdrescue",
     	   replacements = {
 	            OS = App.conf.product.name,
 	            disk1 = disk1
