@@ -446,8 +446,8 @@ cust_populate_installer_bits() {
    	cp -r $BUILDER_TOOLS/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
 	cp -r $BUILDER_TOOLS/installer/installer_root_dir7 $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
 	# These two installer files need to be in the root of dfuibe_lua
-	mv $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/500* $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
-	mv $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/050* $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
+	mv $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/installer_root_dir7/500* $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
+	mv $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/installer_root_dir7/050* $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
