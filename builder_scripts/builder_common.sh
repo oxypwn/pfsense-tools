@@ -1112,6 +1112,7 @@ update_cvs_depot() {
 	    	rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO	# XXX: remove this once we are fully working on GIT
 		fi
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
+			rm -rf ${GIT_REPO}
 			echo ">>> Cloning ${GIT_REPO} using GIT and switching to ${PFSENSETAG}"
 	    		(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO})
 			if [ -d "${GIT_REPO_DIR}/mainline" ]; then
