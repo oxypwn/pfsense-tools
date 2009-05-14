@@ -219,10 +219,6 @@ else
 	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 fi
 
-# CVSUp freebsd version
-echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} ${PFSENSETAG} ${SUPFILE}"
-csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}
-
 if [ -z "${GIT_REPO_FREESBIE2:-}" ]; then
 	mkdir -p $FREESBIE_PATH
 	cvsup -b $FREESBIE_PATH freesbie2-supfile
@@ -264,6 +260,10 @@ do
 		mkdir -p ${SRCDIR}/${DIR_CREATE}
 	fi
 done
+
+# CVSUp freebsd version -- this MUST be after Loop through and remove files
+echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} ${PFSENSETAG} ${SUPFILE}"
+csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
 # clog source
 echo "Applying CLOG updates..."
