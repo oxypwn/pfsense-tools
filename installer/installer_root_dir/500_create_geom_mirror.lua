@@ -35,12 +35,12 @@
 
 -- This module requires FreeBSD
 if App.conf.os.name ~= "FreeBSD" then
-       return
+       return nil, "module requires FreeBSD"
 end
 
 -- This module requires more than one disk
 if App.state.storage:get_disk_count() < 2 then
-	return
+	return nil, "could not probe more than 1 hard disk"
 end
 
 --
