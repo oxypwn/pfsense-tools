@@ -1,3 +1,4 @@
+~~~/usr.sbin/syslogd/syslogd.c
 ~~~/contrib/pf/pfctl/pfctl_dn.c~
 ~~~/sys/contrib/pf/net/pf_ftp.c~
 ~~~/sys/contrib/altq/altq/altq_fairq.h~
