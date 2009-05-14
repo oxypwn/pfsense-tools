@@ -21,7 +21,6 @@
 ~~binat.RELENG_7_1.diff~
 ~~nat_ftphelper.RELENG_7.diff~
 ~~schedule_label.RELENG_7.diff~
-~~pf_tag.RELENG_7.diff~
 ~~pfil.RELENG_7.diff~
 ~sys/contrib/pf/net~ipfw_forward.RELENG_7.diff~
 ~sys/~patch-natt-freebsd7-2008-03-11.diff~
