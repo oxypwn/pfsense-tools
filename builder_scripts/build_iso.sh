@@ -174,6 +174,9 @@ chroot $BASEDIR /chroot.sh
 rm $BASEDIR/chroot.sh
 echo "Done."
 
+# Ensure installer bits are present
+cust_populate_installer_bits
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
