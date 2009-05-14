@@ -39,9 +39,6 @@ export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 unset NO_UNIONFS
 export UNION_DIRS="usr"
 
-# Clean out directories
-freesbie_make cleandir
-
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
 

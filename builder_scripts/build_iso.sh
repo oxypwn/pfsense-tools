@@ -54,10 +54,6 @@ fi
 # Output build flags
 print_flags
 
-# Clean out directories
-echo ">>> Cleaning up old directories..."
-freesbie_make cleandir
-
 # Checkout a fresh copy from pfsense cvs depot
 echo ">>> Updating pfSense CVS depot..."
 update_cvs_depot
