@@ -422,16 +422,14 @@ cust_overlay_host_binaries() {
 }
 
 report_zero_sized_files() {
-objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-	if [ -f $objdir/zero_sized_files.txt ]; then 
-		cat $objdir/zero_sized_files.txt
-		rm $objdir/zero_sized_files.txt
+	if [ -f $MAKEOBJDIRPREFIX/zero_sized_files.txt ]; then 
+		cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
+		rm $MAKEOBJDIRPREFIX/zero_sized_files.txt
 	fi
 }
 
 check_for_zero_size_files() {
-	objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $objdir/zero_sized_files.txt \;
+	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
 }
 
 cust_populate_installer_bits() {
@@ -1135,16 +1133,19 @@ update_cvs_depot() {
 make_world() {
     # Check if the world and kernel are already built and set
     # the NO variables accordingly
-    objdir=${MAKEOBJDIRPREFIX:-/usr/obj}
-
-    if [ -f "${objdir}/.world.done" ]; then
+    if [ -f "${MAKEOBJDIRPREFIX}/.world.done" ]; then
 		export NO_BUILDWORLD=yo
     fi
 
     # Make world
     freesbie_make buildworld
-    touch ${objdir}/.world.done
+    touch ${MAKEOBJDIRPREFIX}/.world.done
 
+	# Sometimes inbetween build_iso runs btxld seems to go missing.
+	# ensure that this binary is always built and ready.
+	(cd $SRCDIR/src/usr.sbin/btxld && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make)
+	(cd $SRCDIR/src/src/usr.sbin/btxld && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make)
+	(cd $SRCDIR/src/sys/boot/i386/btx/btx && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make)
 	freesbie_make installworld
 
 }
@@ -1586,6 +1587,10 @@ EOF
 }
 
 pfSense_clean_obj_dir() {
+	# Clean out directories
+	echo ">>> Cleaning up old directories..."
+	freesbie_make cleandir
+
 	echo -n "Cleaning up previous build environment...Please wait..."
 	echo -n "."
 	if [ -d "${PFSENSEBASEDIR}/dev" ]; then
