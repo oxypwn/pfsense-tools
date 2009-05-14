@@ -445,7 +445,7 @@ cust_populate_installer_bits() {
 	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
    	cp -r $BUILDER_TOOLS/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
 	#mv $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/500* $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-	rm $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/050_rescueconfig.lua
+	#rm $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/050_rescueconfig.lua
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
