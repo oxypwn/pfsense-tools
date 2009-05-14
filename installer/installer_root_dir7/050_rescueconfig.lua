@@ -31,60 +31,63 @@
 
 -- BEGIN 050_rescue_config.lua --
 
+if not App.conf.booted_from_install_media then
+	return nil, "not booted from install media"
+end
+
 return {
-	   id = "rescue_config",
-	   name = _("Rescue config.xml from hard device"),
-	   req_state = { "storage" },
-	   effect = function(step)
+    id = "rescue_config",
+    name = _("Rescue config.xml"),
+    short_desc = _("Rescue config.xml from hard device"),
+    effect = function()
 
-       local disk1
+    local disk1
 
-       local dd = StorageUI.select_disk({
-           sd = App.state.storage,
-           short_desc = _(
-               "Select the disk containing config.xml %s ",
-               App.conf.product.name),
-           cancel_desc = _("Cancel")
-       })
-       disk1 = dd:get_name()
+    local dd = StorageUI.select_disk({
+        sd = App.state.storage,
+        short_desc = _(
+            "Select the disk containing config.xml %s ",
+            App.conf.product.name),
+        cancel_desc = _("Cancel")
+    })
+    disk1 = dd:get_name()
 
-       -- Make sure disk 1 was selected
-       if not disk1 then
-           return Menu.CONTINUE
-       end
+    -- Make sure disk 1 was selected
+    if not disk1 then
+        return Menu.CONTINUE
+    end
 
-       local cmds = CmdChain.new()
+    local cmds = CmdChain.new()
 	   cmds:add("${root}bin/rm -f /tmp/config.cache");
 	   cmds:add{
-    	   cmdline = "${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount ${disk1}s1a /tmp/hdrescue",
-    	   replacements = {
+ 	   cmdline = "${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount ${disk1}s1a /tmp/hdrescue",
+ 	   replacements = {
 	            OS = App.conf.product.name,
 	            disk1 = disk1
 	          }
 	   }
 	   cmds:add("${root}etc/rc.reload_all");
 	   cmds:add{
-    	   cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
-    	   replacements = {
+ 	   cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
+ 	   replacements = {
 	            OS = App.conf.product.name,
 	            disk1 = disk1
 	          }
 	   }
 
-       -- Finally execute the commands to create the gmirror
-       if cmds:execute() then
-           App.ui:inform(_(
-               "The configuration has been rescued.  Please reboot after installation.")
-           )
-       else
-           App.ui:inform(_(
-               "config.xml was not rescued due to errors.")
-           )
-       end
+    -- Finally execute the commands to create the gmirror
+    if cmds:execute() then
+        App.ui:inform(_(
+            "The configuration has been rescued.  Please reboot after installation.")
+        )
+    else
+        App.ui:inform(_(
+            "config.xml was not rescued due to errors.")
+        )
+    end
 
-       return Menu.CONTINUE
-
-   end
-
+	return Menu.CONTINUE
+    end
 }
+
 
