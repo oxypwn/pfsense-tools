@@ -52,33 +52,33 @@ return {
     })
     disk1 = dd:get_name()
 
-    -- Make sure disk 1 was selected
+    -- Make sure source disk containing config.xml is selected
     if not disk1 then
         return Menu.CONTINUE
     end
 
     local cmds = CmdChain.new()
-	   cmds:add("${root}bin/rm -f /tmp/config.cache");
-	   cmds:add{
- 	   cmdline = "${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount ${disk1}s1a /tmp/hdrescue",
- 	   replacements = {
-	            OS = App.conf.product.name,
-	            disk1 = disk1
-	          }
-	   }
-	   cmds:add("${root}etc/rc.reload_all");
-	   cmds:add{
- 	   cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
- 	   replacements = {
-	            OS = App.conf.product.name,
-	            disk1 = disk1
-	          }
-	   }
+	cmds:add("${root}bin/rm -f /tmp/config.cache");
+	cmds:add{
+		cmdline = "${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount ${disk1}s1a /tmp/hdrescue",
+		replacements = {
+			OS = App.conf.product.name,
+			disk1 = disk1
+		}
+	}
+	cmds:add("${root}bin/cp /tmp/hdrescue/cf/config.xml /cf/conf/config.xml");
+	cmds:add{
+	cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
+	replacements = {
+		OS = App.conf.product.name,
+		disk1 = disk1
+		}
+	}
 
-    -- Finally execute the commands to create the gmirror
     if cmds:execute() then
+
         App.ui:inform(_(
-            "The configuration has been rescued.  Please reboot after installation.")
+            "The configuration has been rescued and will be applied after installation and reboot.")
         )
     else
         App.ui:inform(_(
