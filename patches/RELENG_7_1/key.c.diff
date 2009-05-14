@@ -1,0 +1,16 @@
+Index: key.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/key.c,v
+retrieving revision 1.28.2.5.2.1
+diff -u -r1.28.2.5.2.1 key.c
+--- key.c	25 Nov 2008 02:59:29 -0000	1.28.2.5.2.1
++++ key.c	14 May 2009 21:21:58 -0000
+@@ -2675,7 +2675,7 @@
+ 			if (sav->refcnt == 0) {
+ 				/* sanity check */
+ 				KEY_CHKSASTATE(state, sav->state, __func__);
+-				KEY_FREESAV(&sav);
++				key_delsav(sav);
+ 			} else {
+ 				/* give up to delete this sa */
+ 				zombie++;
