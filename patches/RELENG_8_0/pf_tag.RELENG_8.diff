@@ -1,3 +1,19 @@
+Index: sys/conf/files
+===================================================================
+RCS file: /home/ermal/cvsrepopftag/src/sys/conf/files,v
+retrieving revision 1.2
+diff -u -r1.2 files
+--- sys/conf/files	5 May 2009 18:07:55 -0000	1.2
++++ sys/conf/files	14 May 2009 17:58:09 -0000
+@@ -2581,6 +2581,8 @@
+ security/mac_seeotheruids/mac_seeotheruids.c optional mac_seeotheruids
+ security/mac_stub/mac_stub.c	optional mac_stub
+ security/mac_test/mac_test.c	optional mac_test
++sys/mbuf.h			standard 	\
++	compile-with "${NORMAL_C} -I$S/contrib/pf"
+ ufs/ffs/ffs_alloc.c		optional ffs
+ ufs/ffs/ffs_balloc.c		optional ffs
+ ufs/ffs/ffs_inode.c		optional ffs
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
 RCS file: /home/ermal/cvsrepopftag/src/sys/contrib/pf/net/pf_mtag.h,v
@@ -28,13 +44,13 @@ RCS file: /home/ermal/cvsrepopftag/src/sys/sys/mbuf.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 mbuf.h
 --- sys/sys/mbuf.h	5 May 2009 18:03:30 -0000	1.1.1.1
-+++ sys/sys/mbuf.h	5 May 2009 20:47:46 -0000
++++ sys/sys/mbuf.h	14 May 2009 17:58:28 -0000
 @@ -44,6 +44,9 @@
  #endif
  #endif
  
 +#include <netinet/in.h>
-+#include <contrib/pf/net/pf_mtag.h>
++#include <net/pf_mtag.h>
 +
  /*
   * Mbufs are of a single size, MSIZE (sys/param.h), which includes overhead.
