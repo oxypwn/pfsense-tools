@@ -76,10 +76,13 @@ return {
 			cmds:add{
 			cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
 			replacements = {
-				OS = App.conf.product.name,
-				disk1 = disk1
+					OS = App.conf.product.name,
+					disk1 = disk1
 				}
 			}
+			if FileName.is_file("/tmp/config.cache") then
+				cmds:add("${root}bin/rm /tmp/config.cache");
+			end
 		    if cmds:execute() then
 		        App.ui:inform(_(
 		            "The configuration has been rescued and will be applied after installation and reboot.")
@@ -92,7 +95,9 @@ return {
     App.ui:inform(_(
         "config.xml was not rescued due to errors.")
     )
+
 	return Menu.CONTINUE
+
     end
 }
 
