@@ -438,7 +438,8 @@ cust_populate_installer_bits() {
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
     # This is now ready for general consumption! \o/
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
-    cp -r $BUILDER_TOOLS/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/	
+    cp -r $BUILDER_TOOLS/installer/conf \
+		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
 	# 599_ belongs in installation directory
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/599* \
 		$CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
@@ -1114,7 +1115,7 @@ update_cvs_depot() {
 	    	rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO	# XXX: remove this once we are fully working on GIT
 		fi
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
-			rm -rf ${GIT_REPO}
+			rm -rf ${GIT_REPO_DIR}/pfSense
 			echo ">>> Cloning ${GIT_REPO} using GIT and switching to ${PFSENSETAG}"
 	    		(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO})
 			if [ -d "${GIT_REPO_DIR}/mainline" ]; then
