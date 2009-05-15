@@ -38,13 +38,14 @@ end
 return {
     id = "rescue_config",
     name = _("Rescue config.xml"),
+    req_state = { "configure" },
     short_desc = _("Rescue config.xml from hard device"),
     effect = function()
 
     local disk1
 
     App.ui:inform(_(
-        "This tool will help you recover config.xml from a hard disk installation.")
+        "This tool will help you recover config.xml from a hard disk installation." )
     )
 
     local dd = StorageUI.select_disk({
@@ -58,13 +59,13 @@ return {
 
     -- Make sure source disk containing config.xml is selected
     if not disk1 then
-        return Menu.CONTINUE
+        return step:prev()
     end
 
     local cmds = CmdChain.new()
 	cmds:add("${root}bin/rm -f /tmp/config.cache");
 	cmds:add{
-		cmdline = "${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount ${disk1}s1a /tmp/hdrescue",
+		cmdline = "${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount /dev/${disk1}s1a /tmp/hdrescue",
 		replacements = {
 			OS = App.conf.product.name,
 			disk1 = disk1
@@ -97,7 +98,6 @@ return {
     )
 
 	return Menu.CONTINUE
-
     end
 }
 
