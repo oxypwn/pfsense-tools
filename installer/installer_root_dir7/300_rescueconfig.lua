@@ -43,6 +43,7 @@ return {
     effect = function()
 
     local disk1
+	local success = false
 
     App.ui:inform(_(
         "This tool will help you recover config.xml from a hard disk installation." )
@@ -71,8 +72,14 @@ return {
 			disk1 = disk1
 		}
 	}
+
 	if cmds:execute() then
+		success = true	
+	end 
+
+	if success == true then
 		if FileName.is_file("/tmp/hdrescue/cf/config.xml") then
+			cmds = CmdChain.new()
 			cmds:add("${root}bin/cp /tmp/hdrescue/cf/config.xml /cf/conf/config.xml");
 			cmds:add{
 			cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
@@ -85,19 +92,23 @@ return {
 				cmds:add("${root}bin/rm /tmp/config.cache");
 			end
 		    if cmds:execute() then
-		        App.ui:inform(_(
-		            "The configuration has been rescued and will be applied after installation and reboot.")
-		        )
-				return Menu.CONTINUE
+				success = true
 		    end
 		end
 	end
 
-    App.ui:inform(_(
-        "config.xml was not rescued due to errors.")
-    )
+	if success == true then
+	    App.ui:inform(_(
+	        "The configuration has been rescued and will be applied after installation and reboot.")
+	    )
+	else 
+	    App.ui:inform(_(
+	        "config.xml was not rescued due to errors. Check /tmp/installer.log for more information.")
+	    )
+	end
 
 	return Menu.CONTINUE
+
     end
 }
 
