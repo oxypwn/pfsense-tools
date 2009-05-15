@@ -47,6 +47,9 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
+# Make sure clog is ready
+setup_clog
+
 # Build world, kernel and install
 echo ">>> Building world and kernels for DevISO... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 make_world

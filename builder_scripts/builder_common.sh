@@ -12,6 +12,13 @@ fixup_libmap() {
 	
 }
 
+setup_clog() {
+	# clog source
+	echo "Applying CLOG updates..."
+	(cd ${SRCDIR}/usr.sbin/ && \
+		tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)	
+}
+
 print_error_pfS() {
 	echo
 	echo "####################################"

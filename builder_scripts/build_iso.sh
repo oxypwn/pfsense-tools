@@ -63,6 +63,9 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
+# Make sure clog is ready
+setup_clog
+
 # Invoke FreeSBIE2 toolchain
 
 # Prepare object directry
