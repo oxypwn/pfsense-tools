@@ -66,26 +66,28 @@ return {
 			disk1 = disk1
 		}
 	}
-	cmds:add("${root}bin/cp /tmp/hdrescue/cf/config.xml /cf/conf/config.xml");
-	cmds:add{
-	cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
-	replacements = {
-		OS = App.conf.product.name,
-		disk1 = disk1
-		}
-	}
+	if cmds:execute() then
+		if FileName.is_file("/tmp/hdrescue/cf/config.xml") then
+			cmds:add("${root}bin/cp /tmp/hdrescue/cf/config.xml /cf/conf/config.xml");
+			cmds:add{
+			cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
+			replacements = {
+				OS = App.conf.product.name,
+				disk1 = disk1
+				}
+			}
+		    if cmds:execute() then
+		        App.ui:inform(_(
+		            "The configuration has been rescued and will be applied after installation and reboot.")
+		        )
+				return Menu.CONTINUE
+		    end
+		end
+	end
 
-    if cmds:execute() then
-
-        App.ui:inform(_(
-            "The configuration has been rescued and will be applied after installation and reboot.")
-        )
-    else
-        App.ui:inform(_(
-            "config.xml was not rescued due to errors.")
-        )
-    end
-
+    App.ui:inform(_(
+        "config.xml was not rescued due to errors.")
+    )
 	return Menu.CONTINUE
     end
 }
