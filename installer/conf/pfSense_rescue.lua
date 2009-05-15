@@ -60,9 +60,11 @@ install_items = {
 }
 
 ui_nav_control = {
-	["*/configure/*"] = "ignore",          	     			-- do not show any "welcome" items	
-	["*/install/*"] = "ignore",           	     			-- do not show any "welcome" items	
-	["*/welcome"] = "ignore",           	     			-- do not show any "welcome" items
+	["*/configure/*"] = "ignore",          	     		
+	["pre_install_tasks/configure_console"] = "ignore", 
+	["main/install_os"] = "ignore",          	     		
+	["/install/*"] = "ignore",           	     		
+	["*/welcome"] = "ignore",           	     		
 	["*/configure_installed_system"] = "ignore", 			-- don't put these on
 	["*/upgrade_installed_system"] = "ignore",   			-- the main menu...
 	["*/load_kernel_modules"] = "ignore", 		 			-- do not ask about loading kernel modules
