@@ -490,7 +490,9 @@ cust_populate_extra() {
     date > $CVS_CO_DIR/etc/version.buildtime
     cp $BUILDER_TOOLS/pfi $CVS_CO_DIR/scripts/
     cp $BUILDER_TOOLS/lua_installer $CVS_CO_DIR/scripts/
+    cp $BUILDER_TOOLS/lua_installer_rescue $CVS_CO_DIR/scripts/
     cp $BUILDER_TOOLS/lua_installer $CVS_CO_DIR/scripts/installer
+    cp $BUILDER_TOOLS/lua_installer_rescue $CVS_CO_DIR/scripts/installer
     chmod a+rx $CVS_CO_DIR/scripts/*
     cp $BUILDER_TOOLS/after_installation_routines.sh \
 	$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
