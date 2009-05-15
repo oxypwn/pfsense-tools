@@ -65,9 +65,9 @@ sync_cvs() {
 }
 
 create_webdata_structure() {
-	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/updates
-	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/iso 
-	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/embedded 
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/iso 
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded 
 }
 
 set_pfsense_source() {
@@ -219,12 +219,12 @@ copy_to_staging_embedded() {
 }
 
 cp_files() {
-	cp $STAGINGAREA/pfSense-*.iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	cp $STAGINGAREA/pfSense-*.img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	cp $STAGINGAREA/*.gz $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	cp $STAGINGAREA/*.tgz.sha256 $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
+	cp $STAGINGAREA/pfSense-*.iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	cp $STAGINGAREA/pfSense-*.img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	cp $STAGINGAREA/*.gz $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	cp $STAGINGAREA/*.tgz $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	cp $STAGINGAREA/*.tgz.md5 $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	cp $STAGINGAREA/*.tgz.sha256 $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
 }
 
 scp_files() {
@@ -236,12 +236,12 @@ scp_files() {
 	fi
 	rm -f /tmp/ssh-snapshots*
 	set +e
-	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	rsync -ave ssh --timeout=60 $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	rsync -ave ssh --timeout=60 $STAGINGAREA/*.sha256 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/
-	rsync -ave ssh --timeout=60 $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/_updaters
-	rsync -ave ssh --timeout=60 $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${PFSENSETAG}/_updaters/version
+	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/*.md5 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/*.sha256 snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters
+	rsync -ave ssh --timeout=60 $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters/version
 	set -e
 }
 
