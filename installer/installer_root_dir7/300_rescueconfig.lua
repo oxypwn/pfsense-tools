@@ -43,6 +43,10 @@ return {
 
     local disk1
 
+    App.ui:inform(_(
+        "This tool will help you recover config.xml from a hard disk installation.")
+    )
+
     local dd = StorageUI.select_disk({
         sd = App.state.storage,
         short_desc = _(
