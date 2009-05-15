@@ -434,21 +434,20 @@ check_for_zero_size_files() {
 
 cust_populate_installer_bits() {
     # Add lua installer items
+	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
-
     # This is now ready for general consumption! \o/
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
     cp -r $BUILDER_TOOLS/installer/conf $CVS_CO_DIR/usr/local/share/dfuibe_lua/	
-
-	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
-   	cp -r $BUILDER_TOOLS/installer/installer_root_dir7 $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
-	cp -r $BUILDER_TOOLS/installer/installer_root_dir7 $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
-	# These two installer files need to be in the root of dfuibe_lua
-	mv $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/installer_root_dir7/500* $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
-	mv $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/installer_root_dir7/300* $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
-	rm -f $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/500*
-	rm -f $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/300*
-	rm -rf $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/installer_root_dir7
+	# 599_ belongs in installation directory
+	cp $BUILDER_TOOLS/installer/installer_root_dir7/599* \
+		$CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
+	# 300_ belongs in dfuibe_lua/
+	cp $BUILDER_TOOLS/installer/installer_root_dir7/300* \
+		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
+	# 500_ belongs in dfuibe_lua/
+	cp $BUILDER_TOOLS/installer/installer_root_dir7/500* \
+		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
