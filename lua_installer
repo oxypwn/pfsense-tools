@@ -95,7 +95,7 @@ sh /tmp/lua50c51 >/dev/null 2>&1 &
 sleep 1
 
 echo Launching Installer NCurses frontend...
-TERM=vt100 && /usr/local/sbin/dfuife_curses
+TERM=cons25 && /usr/local/sbin/dfuife_curses
 
 #exec /var/run/dhcpd_command
 

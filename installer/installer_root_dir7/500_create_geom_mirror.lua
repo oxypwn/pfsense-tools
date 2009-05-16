@@ -53,8 +53,10 @@ end
 return {
 	   id = "setup_gmirror",
 	   name = _("Setup GEOM Mirror"),
-	   req_state = { "storage" },
+	   req_state = { "configure" },
 	   effect = function(step)
+	
+	   if App.state.target ~= nil and App.state.target:is_mounted() then
 
        -- Ask if user wnats a GEOM mirror to be created
        local response = App.ui:present{
@@ -142,6 +144,7 @@ return {
 
        return Menu.CONTINUE
 
+   end
    end
 
 }
