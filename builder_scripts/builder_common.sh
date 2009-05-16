@@ -166,6 +166,9 @@ build_all_kernels() {
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
 
+	# NOTE!  If you remove this, you WILL break booting!  This file is read
+	#        by FORTH and for some reason installkernel with DESTDIR does not
+	#        copy this file over and you will end up with a blank file!
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
