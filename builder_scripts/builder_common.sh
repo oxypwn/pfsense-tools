@@ -161,18 +161,15 @@ build_all_kernels() {
 
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 
-	# 6.x is picky on destdir=	
-	if [ "$FBSD_VERSION" = "6" ]; then
-		cp /boot/device.hints /tmp/kernels/wrap/boot/
-		cp /boot/device.hints /tmp/kernels/uniprocessor/boot/
-		cp /boot/device.hints /tmp/kernels/SMP/boot/
-		cp /boot/device.hints /tmp/kernels/developers/boot/
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/uniprocessor/boot/device.hints
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
 
-		cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/
-		cp /boot/defaults/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
-		cp /boot/defaults/loader.conf /tmp/kernels/SMP/boot/defaults/
-		cp /boot/defaults/loader.conf /tmp/kernels/developers/boot/defaults/
-	fi
+	cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/
+	cp /boot/defaults/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
+	cp /boot/defaults/loader.conf /tmp/kernels/SMP/boot/defaults/
+	cp /boot/defaults/loader.conf /tmp/kernels/developers/boot/defaults/
 
 	if [ "$TARGET_ARCH" = "" ]; then 
 		# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
