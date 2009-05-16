@@ -90,7 +90,7 @@ echo "/usr/local/share/dfuibe_lua/main.lua \
 
 CONSOLE='/usr/bin/tty'
 if [ "$CONSOLE" != "/dev/console" ]; then
-	/sbin/conscontrol mute on
+	#/sbin/conscontrol mute on
 fi
 
 sh /tmp/lua50c51 >/dev/null 2>&1 &
