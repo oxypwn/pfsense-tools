@@ -490,10 +490,8 @@ cust_populate_extra() {
     date > $CVS_CO_DIR/etc/version.buildtime
 
 	# Copy installer launcher scripts
-	mkdir -p $CVS_CO_DIR/scripts/installer
     cp $BUILDER_TOOLS/pfi $CVS_CO_DIR/scripts/
     cp $BUILDER_TOOLS/lua_installer $CVS_CO_DIR/scripts/
-    cp $BUILDER_TOOLS/lua_installer $CVS_CO_DIR/scripts/installer
     cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_rescue $CVS_CO_DIR/scripts/
     chmod a+rx $CVS_CO_DIR/scripts/*
