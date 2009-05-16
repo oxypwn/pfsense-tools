@@ -88,7 +88,10 @@ echo "/usr/local/share/dfuibe_lua/main.lua \
 /usr/local/share/dfuibe_lua/conf/FreeBSD.lua \
 /usr/local/share/dfuibe_lua/conf/pfSense.lua " >> /tmp/lua50c51
 
-/sbin/conscontrol mute on
+CONSOLE='/usr/bin/tty'
+if [ "$CONSOLE" != "/dev/console" ]; then
+	/sbin/conscontrol mute on
+fi
 
 sh /tmp/lua50c51 >/dev/null 2>&1 &
 
