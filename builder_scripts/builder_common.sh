@@ -442,7 +442,7 @@ check_for_zero_size_files() {
 cust_populate_installer_bits() {
     # Add lua installer items
 	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
-    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/
+    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
     # This is now ready for general consumption! \o/
     mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
     cp -r $BUILDER_TOOLS/installer/conf \
