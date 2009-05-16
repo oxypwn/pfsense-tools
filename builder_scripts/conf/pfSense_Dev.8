@@ -15,6 +15,9 @@ options			SCHED_ULE	# add inULE scheduler
 # IPSEC filtering interface
 device			enc
 
+options KDTRACE_HOOKS        # all architectures - enable general DTrace hooks
+options DDB_CTF              # all architectures - kernel ELF linker loads CTF data
+
 options 		GEOM_MIRROR
 options			GEOM_UZIP
 options			GEOM_LABEL
