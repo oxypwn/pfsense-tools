@@ -166,10 +166,10 @@ build_all_kernels() {
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
 
-	cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/
-	cp /boot/defaults/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
-	cp /boot/defaults/loader.conf /tmp/kernels/SMP/boot/defaults/
-	cp /boot/defaults/loader.conf /tmp/kernels/developers/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 
 	if [ "$TARGET_ARCH" = "" ]; then 
 		# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
