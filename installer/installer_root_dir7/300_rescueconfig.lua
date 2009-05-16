@@ -99,7 +99,7 @@ return {
 
 	if success == true then
 	    App.ui:inform(_(
-	        "The configuration has been rescued and will be applied after installation and reboot.")
+	        "The configuration has been rescued. If you are running this from option 99, you will need to reboot.")
 	    )
 	else 
 	    App.ui:inform(_(
