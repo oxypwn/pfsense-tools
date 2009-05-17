@@ -1,0 +1,15 @@
+Index: files
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files,v
+retrieving revision 1.1243.2.40.2.1
+diff -u -r1.1243.2.40.2.1 files
+--- files	25 Nov 2008 02:59:29 -0000	1.1243.2.40.2.1
++++ files	17 May 2009 23:08:45 -0000
+@@ -1171,6 +1171,7 @@
+ dev/wl/if_wl.c			optional wl isa
+ dev/xe/if_xe.c			optional xe
+ dev/xe/if_xe_pccard.c		optional xe pccard
++dev/usb/u3g.c			optional u3g
+ fs/coda/coda_fbsd.c		optional vcoda
+ fs/coda/coda_psdev.c		optional vcoda
+ fs/coda/coda_subr.c		optional vcoda
