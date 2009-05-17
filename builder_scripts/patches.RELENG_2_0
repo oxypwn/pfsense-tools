@@ -66,3 +66,4 @@
 ~sys/dev/e1000~em-yandex-696.diff~
 ~lib/libc/stdlib~malloc.c.diff~
 ~sys/netipsec~key.c.diff~
+~sys/conf~files.diff~
