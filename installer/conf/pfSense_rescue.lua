@@ -62,6 +62,7 @@ install_items = {
 ui_nav_control = {
 	["*/configure/*"] = "ignore",          	     		
 	["pre_install_tasks/configure_console"] = "ignore", 
+	["pre_install_tasks/configure_network"] = "ignore", 
 	["main/install_os"] = "ignore",          	     		
 	["/install/*"] = "ignore",           	     		
 	["*/welcome"] = "ignore",           	     		

@@ -62,6 +62,7 @@ install_items = {
 ui_nav_control = {
 	["*/welcome"] = "ignore",           	     			-- do not show any "welcome" items
 	["*/configure_installed_system"] = "ignore", 			-- don't put these on
+	["pre_install_tasks/configure_network"] = "ignore", 	
 	["*/upgrade_installed_system"] = "ignore",   			-- the main menu...
 	["*/load_kernel_modules"] = "ignore", 		 			-- do not ask about loading kernel modules
 	["*/pit/configure_console"] = "ignore",   	 			-- do not ask about console
