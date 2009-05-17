@@ -237,7 +237,7 @@ scp_files() {
 	rm -f /tmp/ssh-snapshots*
 	set +e
 	# Ensure directory(s) are available
-	ssh snapshots@172.29.29.181 mkdiir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters
+	ssh snapshots@172.29.29.181 mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters
 	ssh snapshots@172.29.29.181 chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/.
 	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*.tgz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
 	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*.gz snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/
