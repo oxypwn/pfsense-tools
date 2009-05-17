@@ -63,3 +63,4 @@
 ~lib/libc/stdlib~malloc.c.diff~
 ~sys/netipsec~key.c.diff~
 ~sys/dev/usb/~u3g.tgz~
+~sys/conf~files.diff~
