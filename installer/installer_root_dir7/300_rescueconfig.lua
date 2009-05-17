@@ -78,6 +78,7 @@ return {
 	end 
 
 	if success == true then
+		success = false
 		if FileName.is_file("/tmp/hdrescue/cf/config.xml") then
 			cmds = CmdChain.new()
 			cmds:add("${root}bin/cp /tmp/hdrescue/cf/config.xml /cf/conf/config.xml");
