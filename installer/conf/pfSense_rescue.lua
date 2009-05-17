@@ -61,7 +61,7 @@ install_items = {
 
 ui_nav_control = {
 	["*/configure/*"] = "ignore",          	     		
-	["pre_install_tasks/configure_console"] = "ignore", 
+	["*/pit/configure_console"] = "ignore",   	 			-- do not ask about console
 	["pre_install_tasks/configure_network"] = "ignore", 
 	["main/install_os"] = "ignore",          	     		
 	["/install/*"] = "ignore",           	     		
@@ -69,7 +69,6 @@ ui_nav_control = {
 	["*/configure_installed_system"] = "ignore", 			-- don't put these on
 	["*/upgrade_installed_system"] = "ignore",   			-- the main menu...
 	["*/load_kernel_modules"] = "ignore", 		 			-- do not ask about loading kernel modules
-	["*/pit/configure_console"] = "ignore",   	 			-- do not ask about console
 	["*/pit/configure_network"] = "ignore",   	 			-- do not ask about network
 	["*/*netboot*"] = "ignore",						-- ignore netboot installation services
 	["*/install/select_packages"] = "ignore", 	 			-- do not do the "Select Packages" step on install
