@@ -27,6 +27,8 @@ usr/sbin/fifolog_reader
 usr/sbin/fifolog_create
 usr/sbin/fifolog_writer
 usr/sbin/kldxref
+sbin/zfs
+sbin/zpool
 usr/local/lib/libxml.so
 usr/local/sbin/pftpx
 usr/local/sbin/slbd.sh
