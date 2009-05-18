@@ -313,7 +313,7 @@ recompile_pfPorts() {
 		# Since we are using NAT-T we need to run this prior
 		# to the build.  Once NAT-T is included in FreeBSD
 		# we can remove this step. 
-		( cd $SRCDIR && make includes ) | grep '^>>>'
+		( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|warning|error)'
 		
 		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
 		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
@@ -332,7 +332,7 @@ recompile_pfPorts() {
 
 		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
 		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
-		( su - root -c "cd /usr/ports/ && ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} ${MAKEJ_PORTS}" ) | egrep -wi "(^>>>|warning|error)"
+		( su - root -c "cd /usr/ports/ && ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} ${MAKEJ_PORTS}" ) 2>&1 | egrep -wi "(^>>>|warning|error)"
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			mv /tmp/make.conf /etc/
