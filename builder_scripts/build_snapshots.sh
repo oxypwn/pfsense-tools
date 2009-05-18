@@ -185,6 +185,7 @@ build_updates() {
 build_iso() {
 	cd $BUILDERSCRIPTS
 	./build_iso.sh
+	./build_deviso.sh
 }
 
 dobuilds() {
