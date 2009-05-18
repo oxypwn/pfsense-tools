@@ -60,10 +60,12 @@ do
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		if [ $IS_TGZ -gt "0" ]; then 
 			echo "Extracting ${PATCH_FILE} to ${PFSPATCHDIR}"
-			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE})			
+			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
+			| egrep -wi '(warning|error)'
 		else
 			echo "Patching ${PATCH_FILE}"
-			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE})
+			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
+			| egrep -wi '(patching\ file|warning|error)'
 		fi
 	fi
 	if [ $? != 0 ]; then

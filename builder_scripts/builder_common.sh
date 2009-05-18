@@ -22,14 +22,13 @@ setup_clog() {
 print_error_pfS() {
 	echo
 	echo "####################################"
-    echo "Something went wrong, check errors!" >&2
+	echo "Something went wrong, check errors!" >&2
 	echo "####################################"
 	echo
     [ -n "${LOGFILE:-}" ] && \
         echo "Log saved on ${LOGFILE}" && \
-	grep -B7 error ${LOGFILE} >&2
-    cat $LOGFILE
-    sleep 99999
+	tail -n20 ${LOGFILE} >&2
+    sleep 999
     kill $$ # NOTE: exit 1 won't work.
 }
 
@@ -270,7 +269,7 @@ build_all_kernels() {
 	echo -n ">>>> Cleaning up .symbols..."
     if [ -z "${PFSENSE_DEBUG:-}" ]; then
 		echo -n "."
-\		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
+		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
 		echo -n "."
 		find /tmp/kernels -name "*.symbols" -exec rm {} \;
     fi
@@ -314,7 +313,7 @@ recompile_pfPorts() {
 		# Since we are using NAT-T we need to run this prior
 		# to the build.  Once NAT-T is included in FreeBSD
 		# we can remove this step. 
-		( cd $SRCDIR && make includes ) | egrep -B3 -wi "(warning|error)"
+		( cd $SRCDIR && make includes ) | grep '^>>>'
 		
 		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
 		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
@@ -333,7 +332,7 @@ recompile_pfPorts() {
 
 		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
 		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
-		( su - root -c "cd /usr/ports/ && ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} ${MAKEJ_PORTS}" ) | egrep -B3 -wi "(warning|error)"
+		( su - root -c "cd /usr/ports/ && ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} ${MAKEJ_PORTS}" ) | egrep -wi "(^>>>|warning|error)"
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			mv /tmp/make.conf /etc/
