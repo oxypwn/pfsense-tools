@@ -94,18 +94,6 @@ if [ ! -f /usr/local/bin/mkisofs ]; then
 	fi 
 fi
 
-# Add cvsup
-if [ ! -f "/usr/local/bin/cvsup" ]; then
-	echo "Cannot find cvsup, building from ports..."
-	(cd /usr/ports/net/cvsup-without-gui && make deinstall clean)
-	(cd /usr/ports/net/cvsup-without-gui && make ${MAKEJ_PORTS} BATCH=yo)
-	(cd /usr/ports/net/cvsup-without-gui && make install FORCE_PKG_REGISTER=yo BATCH=yo)
-	if [ ! -f "/usr/local/bin/cvsup" ]; then
-		echo "Something went wrong while attempting installation of cvsup."
-		exit 1
-	fi
-fi
-
 if [ -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
 	# Add fastest-cvsup
 	if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
@@ -195,7 +183,7 @@ fi
 # Add BSDInstaller
 if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 	echo "Fetching BSDInstaller using CVSUP..."
-	cvsup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile
+	cssup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile
 	./cvsup_bsdinstaller
 else 
 	echo "Fetching BSDInstaller using GIT..."
@@ -221,7 +209,7 @@ fi
 
 if [ -z "${GIT_REPO_FREESBIE2:-}" ]; then
 	mkdir -p $FREESBIE_PATH
-	cvsup -b $FREESBIE_PATH freesbie2-supfile
+	csup -b $FREESBIE_PATH freesbie2-supfile
 	# Update FreeSBIE2 files from CVS
 	echo "Updating FreeSBIE2"
 	if [ ! -d $BUILDER_SCRIPTS/freesbie2 ]; then
