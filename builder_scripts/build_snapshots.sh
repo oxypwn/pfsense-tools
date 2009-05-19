@@ -185,7 +185,7 @@ build_updates() {
 build_deviso() {
 	cd $BUILDERSCRIPTS
 	./build_deviso.sh
-	mv $STAGINGAREA/pfSense.iso $STAGINGAREA/pfSense-Developers.iso
+	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers.iso
 	md5 $STAGINGAREA/pfSense-Developers.iso > $STAGINGAREA/pfSense-Developers.iso.md5
 }
 
