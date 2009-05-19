@@ -182,11 +182,6 @@ build_updates() {
 	sha256 $PFSENSEUPDATESDIR/latest.tgz > $PFSENSEUPDATESDIR/latest.tgz.sha256
 }
 
-build_iso() {
-	cd $BUILDERSCRIPTS
-	./build_iso.sh
-}
-
 build_deviso() {
 	cd $BUILDERSCRIPTS
 	./build_deviso.sh
