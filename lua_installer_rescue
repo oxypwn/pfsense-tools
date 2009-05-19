@@ -34,6 +34,9 @@ echo
 echo "One moment please..."
 echo
 
+# Ensure install-session.sh exists where the installtion was recorded to
+touch /tmp/install-session.sh
+
 /sbin/sysctl kern.geom.debugflags=16
 /sbin/sysctl net.link.ether.inet.log_arp_wrong_iface=0 >/dev/null
 
