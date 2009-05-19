@@ -183,7 +183,7 @@ fi
 # Add BSDInstaller
 if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 	echo "Fetching BSDInstaller using CVSUP..."
-	cssup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile
+	csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile
 	./cvsup_bsdinstaller
 else 
 	echo "Fetching BSDInstaller using GIT..."
