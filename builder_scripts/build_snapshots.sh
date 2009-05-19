@@ -185,7 +185,13 @@ build_updates() {
 build_iso() {
 	cd $BUILDERSCRIPTS
 	./build_iso.sh
+}
+
+build_deviso() {
+	cd $BUILDERSCRIPTS
 	./build_deviso.sh
+	mv $STAGINGAREA/pfSense.iso $STAGINGAREA/pfSense-Developers.iso
+	md5 $STAGINGAREA/pfSense-Developers.iso > $STAGINGAREA/pfSense-Developers.iso.md5
 }
 
 dobuilds() {
@@ -194,6 +200,8 @@ dobuilds() {
 	update_sources
 	# Build updates on same run as iso
 	build_updates
+	# Build DevISO
+	build_deviso	
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
 	# Build embedded version
