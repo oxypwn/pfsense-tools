@@ -458,7 +458,9 @@ cust_populate_installer_bits() {
 	# Copy Centipede Networks sponsored easy-install into place
 	cp -r $BUILDER_TOOLS/installer/easy_install \
 		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
-		
+	# Copy Centipede Networks sponsored easy-install into place
+	cp $BUILDER_TOOLS/installer/installer_root_dir7/150_easy_install.lua \
+		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
