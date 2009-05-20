@@ -145,6 +145,8 @@ install_pfsense_local_sh() {
 
 update_sources() {
 	cd $BUILDERSCRIPTS 
+	# Cleanup after each build run
+	./clean_build.sh
 	./cvsup_current
 	touch /tmp/pfSense_do_not_build_pfPorts
 	gzip $PFSENSEOBJDIR/pfSense.iso
@@ -184,6 +186,7 @@ build_updates() {
 
 build_deviso() {
 	cd $BUILDERSCRIPTS
+	./clean_build.sh
 	./build_deviso.sh
 	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
 	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
