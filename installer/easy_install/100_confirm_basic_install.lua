@@ -10,6 +10,7 @@ return {
     effect = function(step)
 
 		if App.ui:confirm(_(
+			"Easy Install will automatically install without asking any questions. \n\n" ..
 			"WARNING: This will erase all contents in your first hard disk! "	..
 			"This action is irreversible. Do you really want to continue?\n\n"	..
 			"If you wish to have more control on your setup, "			..
