@@ -464,7 +464,9 @@ cust_populate_installer_bits() {
 	# Override the base installers welcome and call the Install step "Custom Install"
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/200_install.lua \
 		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
-
+	# Copy custom 950_reboot.lua script which touches /tmp/install_complete
+	cp $BUILDER_TOOLS/installer/installer_root_dir7/950_reboot.lua \
+		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
