@@ -185,10 +185,9 @@ build_updates() {
 build_deviso() {
 	cd $BUILDERSCRIPTS
 	./build_deviso.sh
-	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers.iso
-	gzip $STAGINGAREA/pfSense-Developers.iso
-	md5 $STAGINGAREA/pfSense-Developers.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5
-	
+	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
+	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
+	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5
 }
 
 dobuilds() {
