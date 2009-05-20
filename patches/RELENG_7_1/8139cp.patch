@@ -1,55 +1,50 @@
 Index: sys/dev/re/if_re.c
 ===================================================================
---- sys/dev/re/if_re.c	(revision 191199)
+--- sys/dev/re/if_re.c	(revision 192411)
 +++ sys/dev/re/if_re.c	(working copy)
-@@ -1250,7 +1250,8 @@
+@@ -625,7 +625,12 @@
  
- 	switch (hw_rev->rl_rev) {
- 	case RL_HWREV_8139CPLUS:
--		sc->rl_flags |= RL_FLAG_NOJUMBO | RL_FLAG_FASTETHER;
-+		sc->rl_flags |= RL_FLAG_NOJUMBO | RL_FLAG_FASTETHER |
-+		    RL_FLAG_AUTOPAD;
- 		break;
- 	case RL_HWREV_8100E:
- 	case RL_HWREV_8101E:
-@@ -1261,7 +1262,7 @@
- 	case RL_HWREV_8102EL:
- 		sc->rl_flags |= RL_FLAG_NOJUMBO | RL_FLAG_PHYWAKE |
- 		    RL_FLAG_PAR | RL_FLAG_DESCV2 | RL_FLAG_MACSTAT |
--		    RL_FLAG_FASTETHER | RL_FLAG_CMDSTOP;
-+		    RL_FLAG_FASTETHER | RL_FLAG_CMDSTOP | RL_FLAG_AUTOPAD;
- 		break;
- 	case RL_HWREV_8168_SPIN1:
- 	case RL_HWREV_8168_SPIN2:
-@@ -1280,7 +1281,8 @@
- 	case RL_HWREV_8168CP:
- 	case RL_HWREV_8168D:
- 		sc->rl_flags |= RL_FLAG_PHYWAKE | RL_FLAG_PAR |
--		    RL_FLAG_DESCV2 | RL_FLAG_MACSTAT | RL_FLAG_CMDSTOP;
-+		    RL_FLAG_DESCV2 | RL_FLAG_MACSTAT | RL_FLAG_CMDSTOP |
-+		    RL_FLAG_AUTOPAD;
- 		/*
- 		 * These controllers support jumbo frame but it seems
- 		 * that enabling it requires touching additional magic
-@@ -2250,7 +2252,7 @@
- 	 * offload is enabled, we always manually pad short frames out
- 	 * to the minimum ethernet frame size.
+ 	ifp = sc->rl_ifp;
+ 
+-	rxfilt = RL_RXCFG_CONFIG | RL_RXCFG_RX_INDIV | RL_RXCFG_RX_BROAD;
++	if (sc->rl_type == RL_8169)
++		rxfilt = RL_RXCFG_CONFIG;
++	else
++		rxfilt = RL_RXFIFO_512BYTES | RL_RXDMA_512BYTES | RL_RX_BUF_SZ;
++	/* Always accept broadcast/match packets. */
++	rxfilt |= RL_RXCFG_RX_INDIV | RL_RXCFG_RX_BROAD;
+ 
+ 	if (ifp->if_flags & (IFF_ALLMULTI | IFF_PROMISC)) {
+ 		if (ifp->if_flags & IFF_PROMISC)
+@@ -2515,7 +2520,7 @@
+ {
+ 	struct ifnet		*ifp = sc->rl_ifp;
+ 	struct mii_data		*mii;
+-	uint32_t		reg;
++	uint32_t		reg, txcfg;
+ 	uint16_t		cfg;
+ 	union {
+ 		uint32_t align_dummy;
+@@ -2613,15 +2618,17 @@
+ 	/*
+ 	 * Set the initial TX configuration.
  	 */
--	if ((sc->rl_flags & RL_FLAG_DESCV2) == 0 &&
-+	if ((sc->rl_flags & RL_FLAG_AUTOPAD) == 0 &&
- 	    (*m_head)->m_pkthdr.len < RL_IP4CSUMTX_PADLEN &&
- 	    ((*m_head)->m_pkthdr.csum_flags & CSUM_IP) != 0) {
- 		padlen = RL_MIN_FRAMELEN - (*m_head)->m_pkthdr.len;
-Index: sys/pci/if_rlreg.h
-===================================================================
---- sys/pci/if_rlreg.h	(revision 191199)
-+++ sys/pci/if_rlreg.h	(working copy)
-@@ -880,6 +880,7 @@
- 	int			rl_txstart;
- 	uint32_t		rl_flags;
- #define	RL_FLAG_MSI		0x0001
-+#define	RL_FLAG_AUTOPAD		0x0002
- #define	RL_FLAG_PHYWAKE		0x0008
- #define	RL_FLAG_NOJUMBO		0x0010
- #define	RL_FLAG_PAR		0x0020
-
++	if (sc->rl_type == RL_8169)
++		txcfg = RL_TXCFG_CONFIG;
++	else
++		txcfg = RL_TXCFG_IFG | RL_TXDMA_1024BYTES;
+ 	if (sc->rl_testmode) {
+ 		if (sc->rl_type == RL_8169)
+-			CSR_WRITE_4(sc, RL_TXCFG,
+-			    RL_TXCFG_CONFIG|RL_LOOPTEST_ON);
++			CSR_WRITE_4(sc, RL_TXCFG, txcfg | RL_LOOPTEST_ON);
+ 		else
+-			CSR_WRITE_4(sc, RL_TXCFG,
+-			    RL_TXCFG_CONFIG|RL_LOOPTEST_ON_CPLUS);
++			CSR_WRITE_4(sc, RL_TXCFG, txcfg | RL_LOOPTEST_ON_CPLUS);
+ 	} else
+-		CSR_WRITE_4(sc, RL_TXCFG, RL_TXCFG_CONFIG);
++		CSR_WRITE_4(sc, RL_TXCFG, txcfg);
+ 
+ 	CSR_WRITE_1(sc, RL_EARLY_TX_THRESH, 16);
+ 
