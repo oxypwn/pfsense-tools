@@ -254,8 +254,8 @@ scp_files() {
 	ssh snapshots@172.29.29.181 mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	ssh snapshots@172.29.29.181 chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/.
 	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer/
-	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*img*snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded/
-	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*Update*snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*img* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded/
+	rsync -ave ssh --timeout=60 $STAGINGAREA/pfSense-*Update* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/
 	rsync -ave ssh --timeout=60 $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	rsync -ave ssh --timeout=60 $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
 	set -e
