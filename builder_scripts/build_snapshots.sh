@@ -237,7 +237,7 @@ cp_files() {
 	cp $STAGINGAREA/pfSense-*Update* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates
 }
 
-scp_files() {
+check_for_congestion() {
 	PINGTIME="999"
 	PINGMAX="50"
 	PINGIP="172.29.29.1"
@@ -245,7 +245,10 @@ scp_files() {
 		PINGTIME=`ping -c1 $PINGIP | grep time | cut -d"=" -f4 | cut -d" " -f1 | cut -d"." -f1`
 		echo "Waiting for Internet congestion to die down before rsync operations: $PINGTIME > $PINGMAX ..."
 		sleep 10
-	done
+	done	
+}
+
+scp_files() {
 	date >$STAGINGAREA/version
 	echo ">>> Copying files to snapshots.pfsense.org"
 	if [ ! -f /usr/local/bin/rsync ]; then
@@ -261,10 +264,15 @@ scp_files() {
 	ssh snapshots@172.29.29.181 rm -rf  /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters
 	ssh snapshots@172.29.29.181 mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	ssh snapshots@172.29.29.181 chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/.
+	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*img* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded/
+	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*Update* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/
+	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
+	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
 	set -e
 }
