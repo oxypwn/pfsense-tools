@@ -283,8 +283,9 @@ build_loop_operations() {
 	cleanup_builds
 	# Do the builds
 	dobuilds
-	# Copy/SCP images
-	cp_files
+	# Make a local copy of the files.
+	#cp_files
+	# SCP files to snapshot web hosting area
 	scp_files
 }
 
