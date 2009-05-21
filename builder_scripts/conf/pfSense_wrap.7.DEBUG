@@ -393,3 +393,6 @@ device		udav            # Davicom DM9601 USB Ethernet driver
 #options	HIFN_RNDTEST    # enable rndtest support
 #device		rndtest         # FIPS 140-2 entropy tester
 device		u3g
+
+# Needed for Captive Portal Locking
+options 	SYSVSEM
