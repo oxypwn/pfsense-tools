@@ -91,6 +91,8 @@ PORTSTOBUILD="grub \
 	php4-session \
 	php4-xml \
 	php4-zlib \
+	php4-sysvmsg \
+	php4-sysvsem \
 	php4-install-all \
 	php-xdebug \
 	wol"
