@@ -188,25 +188,30 @@ build_deviso() {
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
 	./build_deviso.sh
-	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
-	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
-	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5
 }
 
 dobuilds() {
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
 	update_sources
-	# Copy files before embedded, it wipes out usr.obj*
-	copy_to_staging_iso_updates
 	# Build updates on same run as iso
 	build_updates
+	# Copy files before embedded, it wipes out usr.obj*
+	copy_to_staging_iso_updates
 	# Build DevISO
 	build_deviso	
+	# Copy deviso to staging area
+	copy_to_staging_deviso_updates
 	# Build embedded version
 	build_embedded
 	# Copy to staging
 	copy_to_staging_embedded
+}
+
+copy_to_staging_deviso_updates() {
+	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
+	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
+	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5	
 }
 
 copy_to_staging_iso_updates() {
