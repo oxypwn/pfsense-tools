@@ -238,6 +238,14 @@ cp_files() {
 }
 
 scp_files() {
+	PINGTIME="999"
+	PINGMAX="50"
+	PINGIP="172.29.29.1"
+	while [ "$PINGTIME" -gt "$PINGMAX" ]; do
+		PINGTIME=`ping -c1 $PINGIP | grep time | cut -d"=" -f4 | cut -d" " -f1 | cut -d"." -f1`
+		echo "Waiting for Internet congestion to die down before rsync operations: $PINGTIME > $PINGMAX ..."
+		sleep 10
+	done
 	date >$STAGINGAREA/version
 	echo ">>> Copying files to snapshots.pfsense.org"
 	if [ ! -f /usr/local/bin/rsync ]; then
