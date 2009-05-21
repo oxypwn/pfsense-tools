@@ -197,12 +197,12 @@ dobuilds() {
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
 	update_sources
+	# Copy files before embedded, it wipes out usr.obj*
+	copy_to_staging_iso_updates
 	# Build updates on same run as iso
 	build_updates
 	# Build DevISO
 	build_deviso	
-	# Copy files before embedded, it wipes out usr.obj*
-	copy_to_staging_iso_updates
 	# Build embedded version
 	build_embedded
 	# Copy to staging
