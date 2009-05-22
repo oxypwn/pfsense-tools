@@ -199,14 +199,20 @@ dobuilds() {
 	build_updates
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
+	# Copy what we can 
+	scp_files
 	# Build DevISO
 	build_deviso	
 	# Copy deviso to staging area
 	copy_to_staging_deviso_updates
+	# Copy what we can 
+	scp_files
 	# Build embedded version
 	build_embedded
 	# Copy to staging
 	copy_to_staging_embedded
+	# Copy what we can 
+	scp_files	
 }
 
 copy_to_staging_deviso_updates() {
@@ -276,6 +282,7 @@ scp_files() {
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
+	rm $STAGINGAREA/*
 	set -e
 }
 
