@@ -76,7 +76,8 @@ PORTSTOBUILD="grub \
 	openntpd \
 	ftp-proxy \
 	pecl-uploadprogress \
-	php5-install-all"
+	php5-install-all \
+	sqlite34"
 
 if [ -f pfsense_local.sh ]; then
 	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
