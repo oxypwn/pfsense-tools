@@ -149,10 +149,11 @@ update_sources() {
 	./clean_build.sh
 	./cvsup_current
 	touch /tmp/pfSense_do_not_build_pfPorts
+	DATESTRING=`date "+%Y%m%d-%H%M"`
 	gzip $PFSENSEOBJDIR/pfSense.iso
-	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz
-	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz.md5
-	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz.sha256
+	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
+	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
+	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256
 }
 
 build_embedded() {
@@ -209,9 +210,10 @@ dobuilds() {
 }
 
 copy_to_staging_deviso_updates() {
-	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
-	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso
-	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-`date "+%Y%m%d-%H%M"`.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5	
+	DATESTRING=`date "+%Y%m%d-%H%M"`
+	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso
+	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso
+	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5	
 }
 
 copy_to_staging_iso_updates() {
