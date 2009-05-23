@@ -131,6 +131,7 @@ build_dev_kernel() {
 	mkdir -p $PFSENSEBASEDIR/kernels/
 	echo ">>>> installing Developers kernel..."
 	freesbie_make installkernel
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)	
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 }
