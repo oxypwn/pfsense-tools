@@ -4,6 +4,9 @@
 
 #set -e -u
 
+# Suck in local vars
+. ./pfsense_local.sh
+
 # Suck in script helper functions
 . ./builder_common.sh
 
