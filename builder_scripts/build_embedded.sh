@@ -210,6 +210,9 @@ rm -rf ${TMPDIR}
 
 ls -lh ${IMGPATH}
 
+# Check for zero sized files.  loader.conf is one of the culprits.
+check_for_zero_size_files
 report_zero_sized_files
+
 
 email_operation_completed

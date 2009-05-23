@@ -22,8 +22,6 @@ export IS_DEV_ISO=yo
 
 export PRUNE_LIST=""
 
-export DEVIMAGE=yo
-
 # Suck in script helper functions
 . ./builder_common.sh
 
@@ -116,6 +114,8 @@ mkdir -p $CLONEDIR/home
 echo ">>> Finalizing iso..."
 freesbie_make iso
 
+# Check for zero sized files.  loader.conf is one of the culprits.
+check_for_zero_size_files
 report_zero_sized_files
 
 email_operation_completed

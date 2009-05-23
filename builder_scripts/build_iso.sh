@@ -186,7 +186,8 @@ mkdir -p $CLONEDIR/home
 echo ">>> Finalizing iso..."
 freesbie_make iso
 
-# Report any zero sized files
+# Check for zero sized files.  loader.conf is one of the culprits.
+check_for_zero_size_files
 report_zero_sized_files
 
 email_operation_completed

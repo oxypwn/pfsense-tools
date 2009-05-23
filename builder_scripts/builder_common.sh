@@ -102,6 +102,8 @@ build_embedded_kernel() {
 	echo ">>>> Installing embedded kernel..."
 	freesbie_make installkernel
 
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
+
 	echo -n ">>>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
@@ -113,6 +115,7 @@ build_embedded_kernel() {
 
 build_dev_kernel() {
 	mkdir -p /tmp/kernels/developers/boot/kernel
+	mkdir -p /tmp/kernels/developers/boot/defaults	
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 	if [ "$FBSD_VERSION" = "6" ]; then
 		cp /boot/device.hints /tmp/kernels/developers/boot/
@@ -165,14 +168,6 @@ build_all_kernels() {
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/uniprocessor/boot/device.hints
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
-
-	# NOTE!  If you remove this, you WILL break booting!  This file is read
-	#        by FORTH and for some reason installkernel with DESTDIR does not
-	#        copy this file over and you will end up with a blank file!
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 
 	if [ "$TARGET_ARCH" = "" ]; then 
 		# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
@@ -265,6 +260,14 @@ build_all_kernels() {
 
 	# Create area where kernels will be copied on LiveCD
 	mkdir -p $PFSENSEBASEDIR/kernels/
+
+	# NOTE!  If you remove this, you WILL break booting!  This file is read
+	#        by FORTH and for some reason installkernel with DESTDIR does not
+	#        copy this file over and you will end up with a blank file!
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 
 	# Nuke symbols
 	echo -n ">>>> Cleaning up .symbols..."
