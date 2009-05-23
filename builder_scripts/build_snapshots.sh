@@ -290,7 +290,6 @@ scp_files() {
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
-	rm $STAGINGAREA/*
 	set -e
 }
 
@@ -305,6 +304,7 @@ cleanup_builds() {
 		chflags -R noschg /home/pfsense/pfSense
 		rm -rf /home/pfsense/pfSense
 	fi
+	./clean_build.sh
 }
 
 build_loop_operations() {
