@@ -319,7 +319,10 @@ while [ /bin/true ]; do
 	echo ">>> Execing pfsense-build.conf"
 	. $BUILDERSCRIPTS/pfsense-build.conf
 	build_loop_operations
-	sleep 18600 # 5 hours
+	# Grab a random value and sleep
+	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
+	# Sleep for that time.
+	sleep $value
 done
 
 rm -f /tmp/pfSense_do_not_build_pfPorts
