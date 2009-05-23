@@ -4,9 +4,16 @@
 # (C)2007, 2008 Scott Ullrich
 # All rights reserved
 #
-# This file is placed under the BSD License, 2 clause.
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
 #
-# $Id$
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
 #
 
 if [ ! -f ./pfsense-build.conf ]; then
@@ -265,23 +272,24 @@ scp_files() {
 	fi
 	rm -f /tmp/ssh-snapshots*
 	set +e
+	RSYNCIP="172.29.29.181"
 	# Ensure directory(s) are available
-	ssh snapshots@172.29.29.181 mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer
-	ssh snapshots@172.29.29.181 mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
-	ssh snapshots@172.29.29.181 mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates
-	ssh snapshots@172.29.29.181 rm -rf  /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters
-	ssh snapshots@172.29.29.181 mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
-	ssh snapshots@172.29.29.181 chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/.
+	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer
+	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
+	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates
+	ssh snapshots@${RSYNCIP} rm -rf  /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters
+	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
+	ssh snapshots@${RSYNCIP} chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/.
 	check_for_congestion
-	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*iso* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*iso* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
-	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*img* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded/
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*img* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded/
 	check_for_congestion
-	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*Update* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/pfSense-*Update* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/
 	check_for_congestion
-	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/latest* snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
-	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/version snapshots@172.29.29.181:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
 	rm $STAGINGAREA/*
 	set -e
 }
