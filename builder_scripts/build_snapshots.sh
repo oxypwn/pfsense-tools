@@ -259,7 +259,7 @@ check_for_congestion() {
 	PINGIP="172.29.29.1"
 	while [ "$PINGTIME" -gt "$PINGMAX" ]; do
 		PINGTIME=`ping -c1 $PINGIP | grep time | cut -d"=" -f4 | cut -d" " -f1 | cut -d"." -f1`
-		echo "Waiting for Internet congestion to die down before rsync operations: $PINGTIME > $PINGMAX ..."
+		echo ">>> Waiting for Internet congestion to die down before rsync operations: $PINGTIME > $PINGMAX ..."
 		sleep 10
 	done	
 }
