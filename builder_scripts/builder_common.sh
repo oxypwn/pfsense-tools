@@ -41,38 +41,9 @@ check_for_clog() {
 
 # Removes NAT_T and other unneeded kernel options from 1.2 images.
 fixup_kernel_options() {
-#	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
-#		echo ">>>> Removing unneeded kernel configuration option from 1.2"
-#		cat $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp
-#		cat $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert//  > $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}.tmp
-#		cat $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp
-#		cat $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION} | grep -v "NAT_T" | sed s/ipdivert// > $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp
-#		cp $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}.tmp $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.${FREEBSD_VERSION}
-#		cp $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}.tmp $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.${FREEBSD_VERSION}
-#		cp $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}.tmp $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_wrap.${FREEBSD_VERSION}
-#		cp $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}.tmp $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.${FREEBSD_VERSION}
-#	fi
-}
-
-build_embedded_kernel() {
-
-	# 6.x is picky on destdir=
-	touch /boot/loader.conf
-	
-	mkdir -p /tmp/kernels/wrap/boot/defaults
-	mkdir -p /tmp/kernels/wrap/boot/kernel
 
 	mkdir -p $PFSENSEBASEDIR/kernels/
 
-	touch /tmp/kernels/wrap/boot/defaults/loader.conf
-
-	# 6.x is picky on destdir=
-	if [ "$FBSD_VERSION" = "6" ]; then
-		cp /boot/device.hints /tmp/kernels/wrap/boot/
-		cp /boot/loader.conf /tmp/kernels/wrap/boot/loader.conf:
-		cp /boot/defaults/loader.conf /tmp/kernels/wrap/boot/defaults/loader.conf
-	fi
-	
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
 	if [ "$TARGET_ARCH" = "" ]; then
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
@@ -80,72 +51,11 @@ build_embedded_kernel() {
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
 	fi
 
-	# Remove unneeded kernel options from 1.2
-	fixup_kernel_options
-
-	# Build embedded kernel
-	echo ">>>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print |xargs rm -f
-	unset KERNCONF
-	unset KERNELCONF		
-
-	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-	if [ "$FBSD_VERSION" = "8" ]; then
-		export KERNCONF="pfSense.${FREEBSD_VERSION}"
-	else
-		export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
-	fi
-
-	unset KERNEL_DESTDIR
-	export KERNEL_DESTDIR="/tmp/kernels/wrap"
-	freesbie_make buildkernel
-	echo ">>>> Installing embedded kernel..."
-	freesbie_make installkernel
-
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
-
-	echo -n ">>>> Installing kernels to LiveCD area..."
-	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-
-}
-
-build_dev_kernel() {
-	mkdir -p /tmp/kernels/developers/boot/kernel
-	mkdir -p /tmp/kernels/developers/boot/defaults	
-	mkdir -p $PFSENSEBASEDIR/boot/kernel
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
-	# Remove unneeded kernel options from 1.2
-	fixup_kernel_options
-	# Build Developers kernel
-	echo ">>>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
-	unset KERNCONF
-	unset KERNELCONF
-	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	unset KERNEL_DESTDIR
-	export KERNEL_DESTDIR="/tmp/kernels/developers"
-	freesbie_make buildkernel
-	echo ">>>> installing Developers kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
-	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)	
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
-}
-
-# This routine builds all kernels during the 
-# build_iso.sh routines.
-build_all_kernels() {
-
-	# 6.x is picky on destdir=
-	touch /boot/loader.conf
-
 	# Build extra kernels (embedded, developers edition, etc)
+	mkdir -p /tmp/kernels/wrap/boot/defaults
 	mkdir -p /tmp/kernels/wrap/boot/kernel
 	mkdir -p /tmp/kernels/developers/boot/kernel
+
 	mkdir -p /tmp/kernels/SMP/boot/kernel
 	mkdir -p /tmp/kernels/uniprocessor/boot/
 
@@ -165,6 +75,13 @@ build_all_kernels() {
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/uniprocessor/boot/device.hints
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
+	
+	if [ "$WITH_DTRACE" = "" ]; then
+		echo ">>> Not adding D-Trace to Developers Kernel..."
+	else
+		echo "options KDTRACE_HOOKS" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+		echo "options DDB_CTF" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+	fi
 
 	if [ "$TARGET_ARCH" = "" ]; then 
 		# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
@@ -194,19 +111,70 @@ build_all_kernels() {
 	fi
 
 	# Add SMP and APIC options
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 
-	# Remove unneeded kernel options from 1.2
+}
+
+build_embedded_kernel() {
+	# Common fixup code
 	fixup_kernel_options
+	# Build embedded kernel
+	echo ">>>> Building embedded kernel..."
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	unset KERNCONF
+	unset KERNELCONF		
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/wrap"
+	freesbie_make buildkernel
+	echo ">>>> Installing embedded kernel..."
+	freesbie_make installkernel
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
+	echo -n ">>>> Installing kernels to LiveCD area..."
+	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
+	echo -n "."
+	chflags -R noschg $PFSENSEBASEDIR/boot/
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap.gz -C $PFSENSEBASEDIR/boot/)
+	echo "done."
+}
 
+build_dev_kernel() {
+	# Common fixup code
+	fixup_kernel_options
+	# Build Developers kernel
+	echo ">>>> Building Developers kernel..."
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	unset KERNCONF
+	unset KERNELCONF
+	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
+	unset KERNEL_DESTDIR
+	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	freesbie_make buildkernel
+	echo ">>>> installing Developers kernel..."
+	freesbie_make installkernel
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
+	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)	
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
+}
+
+# This routine builds all kernels during the 
+# build_iso.sh routines.
+build_all_kernels() {
+	# Common fixup code
+	fixup_kernel_options
 	# Build uniprocessor kernel
 	echo ">>>> Building uniprocessor kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
