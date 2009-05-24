@@ -12,9 +12,6 @@
 --    notices, this list of conditions, and the following disclaimer in
 --    the documentation and/or other materials provided with the
 --    distribution.
--- 3. Neither the names of the copyright holders nor the names of their
---    contributors may be used to endorse or promote products derived
---    from this software without specific prior written permission.
 --
 -- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 -- ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES INCLUDING, BUT NOT
@@ -49,7 +46,7 @@ return {
 	    fields = {
 			{
 			    id = "poolname",
-			    name = _("Poolname"),
+			    name = _("Pool name"),
 			    short_desc = _("Enter the name of the ZFS pool")
 			}			
 	    },
@@ -87,8 +84,8 @@ return {
 	    -- Survey disks again, they have changed.
 	    App.state.storage:survey()
         App.ui:inform(_(
-            "The ZFS Pool has been created with no errors.  \n" ..
-            "The pool will now appear in the select disk step.\n" ..
+            "The ZFS Pool has been created with no errors.     \n" ..
+            "The pool will now appear in the select disk step. \n" ..
 			"Alternatively you might want to apply zfs settings\n" ..
 			"and add disks to the newly created pool")
         )
