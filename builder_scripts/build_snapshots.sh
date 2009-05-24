@@ -322,15 +322,9 @@ build_loop_operations() {
 	scp_files
 }
 
-# Main builder loop - lets do this forever until the cows come home.
-while [ /bin/true ]; do
-	echo ">>> Execing pfsense-build.conf"
-	. $BUILDERSCRIPTS/pfsense-build.conf
-	build_loop_operations
-	# Grab a random value and sleep
-	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
-	# Sleep for that time.
-	sleep $value
-done
+# Main builder loop - if you want to loop a build invoke build_snapshots_looped.sh
+echo ">>> Execing pfsense-build.conf"
+. $BUILDERSCRIPTS/pfsense-build.conf
+build_loop_operations
 
 rm -f /tmp/pfSense_do_not_build_pfPorts
