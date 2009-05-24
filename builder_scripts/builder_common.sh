@@ -1643,6 +1643,8 @@ pfSense_clean_obj_dir() {
 	fi
 	echo -n "."
 	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX})
+	echo -n "."
+	rm -rf /tmp/kernels
 	echo "Done!"	
 }
 
