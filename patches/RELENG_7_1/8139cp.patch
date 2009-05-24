@@ -1,50 +1,17 @@
 Index: sys/dev/re/if_re.c
 ===================================================================
---- sys/dev/re/if_re.c	(revision 192411)
+--- sys/dev/re/if_re.c	(revision 192617)
 +++ sys/dev/re/if_re.c	(working copy)
-@@ -625,7 +625,12 @@
+@@ -2209,6 +2209,12 @@
+ 	    RL_ISR_TX_ERR|RL_ISR_TX_DESC_UNAVAIL))
+ 		re_txeof(sc);
  
- 	ifp = sc->rl_ifp;
- 
--	rxfilt = RL_RXCFG_CONFIG | RL_RXCFG_RX_INDIV | RL_RXCFG_RX_BROAD;
-+	if (sc->rl_type == RL_8169)
-+		rxfilt = RL_RXCFG_CONFIG;
-+	else
-+		rxfilt = RL_RXFIFO_512BYTES | RL_RXDMA_512BYTES | RL_RX_BUF_SZ;
-+	/* Always accept broadcast/match packets. */
-+	rxfilt |= RL_RXCFG_RX_INDIV | RL_RXCFG_RX_BROAD;
- 
- 	if (ifp->if_flags & (IFF_ALLMULTI | IFF_PROMISC)) {
- 		if (ifp->if_flags & IFF_PROMISC)
-@@ -2515,7 +2520,7 @@
- {
- 	struct ifnet		*ifp = sc->rl_ifp;
- 	struct mii_data		*mii;
--	uint32_t		reg;
-+	uint32_t		reg, txcfg;
- 	uint16_t		cfg;
- 	union {
- 		uint32_t align_dummy;
-@@ -2613,15 +2618,17 @@
- 	/*
- 	 * Set the initial TX configuration.
- 	 */
-+	if (sc->rl_type == RL_8169)
-+		txcfg = RL_TXCFG_CONFIG;
-+	else
-+		txcfg = RL_TXCFG_IFG | RL_TXDMA_1024BYTES;
- 	if (sc->rl_testmode) {
- 		if (sc->rl_type == RL_8169)
--			CSR_WRITE_4(sc, RL_TXCFG,
--			    RL_TXCFG_CONFIG|RL_LOOPTEST_ON);
-+			CSR_WRITE_4(sc, RL_TXCFG, txcfg | RL_LOOPTEST_ON);
- 		else
--			CSR_WRITE_4(sc, RL_TXCFG,
--			    RL_TXCFG_CONFIG|RL_LOOPTEST_ON_CPLUS);
-+			CSR_WRITE_4(sc, RL_TXCFG, txcfg | RL_LOOPTEST_ON_CPLUS);
- 	} else
--		CSR_WRITE_4(sc, RL_TXCFG, RL_TXCFG_CONFIG);
-+		CSR_WRITE_4(sc, RL_TXCFG, txcfg);
- 
- 	CSR_WRITE_1(sc, RL_EARLY_TX_THRESH, 16);
++	if (sc->rl_type == RL_8139CPLUS && (status & RL_ISR_FIFO_OFLOW) != 0) {
++		device_printf(sc->rl_dev, "Rx FIFO overflow, resetting\n");
++		re_init_locked(sc);
++		RL_UNLOCK(sc);
++		return;
++	}
+ 	if (status & RL_ISR_SYSTEM_ERR)
+ 		re_init_locked(sc);
  
