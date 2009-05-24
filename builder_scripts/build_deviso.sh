@@ -13,10 +13,8 @@
 # Output build flags
 print_flags
 
-# Set extra before pfsense_local.sh will do
-# Add comconsole to the list
-# export EXTRA="comconsole customroot"
-export EXTRA="customroot"
+# Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
+export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs customroot"
 
 export SRC_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
 
@@ -32,12 +30,6 @@ check_for_clog
 
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
-
-# Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
-export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
-
-unset NO_UNIONFS
-export UNION_DIRS="usr"
 
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
