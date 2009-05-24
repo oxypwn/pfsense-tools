@@ -509,6 +509,7 @@ cust_populate_extra() {
     cp $BUILDER_TOOLS/lua_installer $CVS_CO_DIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_rescue $CVS_CO_DIR/scripts/
+    cp $BUILDER_TOOLS/lua_installer_full $CVS_CO_DIR/scripts/
     chmod a+rx $CVS_CO_DIR/scripts/*
     cp $BUILDER_TOOLS/after_installation_routines.sh \
 	$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
