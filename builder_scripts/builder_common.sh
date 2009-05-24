@@ -117,21 +117,18 @@ build_dev_kernel() {
 	mkdir -p /tmp/kernels/developers/boot/kernel
 	mkdir -p /tmp/kernels/developers/boot/defaults	
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
-	if [ "$FBSD_VERSION" = "6" ]; then
-		cp /boot/device.hints /tmp/kernels/developers/boot/
-	fi
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
 	# Remove unneeded kernel options from 1.2
 	fixup_kernel_options
 	# Build Developers kernel
 	echo ">>>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print |xargs rm -f
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	freesbie_make buildkernel
-	mkdir -p $PFSENSEBASEDIR/kernels/
 	echo ">>>> installing Developers kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
@@ -212,7 +209,7 @@ build_all_kernels() {
 
 	# Build uniprocessor kernel
 	echo ">>>> Building uniprocessor kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print |xargs rm -f
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
@@ -224,7 +221,7 @@ build_all_kernels() {
 
 	# Build embedded kernel
 	echo ">>>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print |xargs rm -f
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
@@ -236,7 +233,7 @@ build_all_kernels() {
 
 	# Build Developers kernel
 	echo ">>>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print |xargs rm -f
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
@@ -248,7 +245,7 @@ build_all_kernels() {
 	
 	# Build SMP kernel
 	echo ">>>> Building SMP kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print |xargs rm -f
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNELCONF		
 	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
