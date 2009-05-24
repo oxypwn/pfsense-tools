@@ -18,7 +18,6 @@ print_flags
 # export EXTRA="comconsole customroot"
 export EXTRA="customroot"
 
-export MAKE_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
 export SRC_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
 
 export IS_DEV_ISO=yo
