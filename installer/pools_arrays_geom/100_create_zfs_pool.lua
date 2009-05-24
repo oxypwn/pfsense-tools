@@ -76,7 +76,7 @@ return {
 		cmds:set_replacements{
 		    poolname = poolname
 		}	
-		cmds:add("/sbin/zfs create ${disk}")
+		cmds:add("/sbin/zpool create ${disk}")
 	end
 	
     -- Finally execute the commands to create the gmirror
