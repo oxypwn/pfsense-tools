@@ -15,8 +15,8 @@ for FILE in `ls`; do
 		echo ">>> Updating GIT REPO $FILE"
 		cd $FILE
 		git fetch
-		git rebase origin
-		git reset --hard
+		git rebase origin >/dev/null
+		git reset --hard >/dev/null
 		git rebase origin
 		git reset --hard
 		cd $BASE_DIR
