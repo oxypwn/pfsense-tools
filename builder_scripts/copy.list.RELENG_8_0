@@ -13,6 +13,7 @@ lib/geom/geom_journal.so
 lib/geom/geom_part.so
 lib/geom/geom_label.so
 lib/geom/geom_raid3.so
+sbin/gmirror
 usr/lib/libstdc++.so.6
 usr/bin/dig
 usr/bin/nslookup
@@ -27,8 +28,6 @@ usr/sbin/fifolog_create
 usr/sbin/fifolog_writer
 usr/sbin/kldxref
 sbin/zfs
-sbin/zpool
-sbin/gmirror
 sbin/zpool
 usr/local/lib/libxml.so
 usr/local/sbin/pftpx
