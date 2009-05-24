@@ -152,6 +152,7 @@ install_pfsense_local_sh() {
 
 update_sources() {
 	cd $BUILDERSCRIPTS 
+	./update_git_repos.sh
 	# Cleanup after each build run
 	./clean_build.sh
 	./cvsup_current
