@@ -1,5 +1,6 @@
 
-makeoptions MODULES_OVERRIDE="acpi ndis if_ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs"
+# Build all modules - comment out for limited modules
+# makeoptions MODULES_OVERRIDE="acpi ndis if_ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs dtraceall dtrace dtrace_test"
 
 include         GENERIC
 ident           pfSense8
