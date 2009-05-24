@@ -15,8 +15,8 @@ options			SCHED_ULE	# add inULE scheduler
 # IPSEC filtering interface
 device			enc
 
-options KDTRACE_HOOKS        # all architectures - enable general DTrace hooks
-options DDB_CTF              # all architectures - kernel ELF linker loads CTF data
+#options KDTRACE_HOOKS        # all architectures - enable general DTrace hooks
+#options DDB_CTF              # all architectures - kernel ELF linker loads CTF data
 
 options 		GEOM_MIRROR
 options			GEOM_UZIP
@@ -173,6 +173,4 @@ options 	COMPAT_FREEBSD7
 # To make an SMP kernel, the next two lines are needed
 options         SMP                     # Symmetric MultiProcessor Kernel
 device          apic                    # I/O APIC
-
-#options PRINTF_BUFR_SIZE	# fights garble printf on shutdown
 
