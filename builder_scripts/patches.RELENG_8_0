@@ -20,7 +20,7 @@
 ~~IPSEC_sysctl.RELENG_8.diff~
 ~~pfil.RELENG_8.diff~
 ~~ipsec_altq.RELENG_8.diff~
-~sys~NATT.RELENG_8.diff~
+~~NATT.RELENG_8.diff~
 ~sys/net~if_vlan.c.diff~
 ~sys/sys~proc.h.diff~
 ~sys/modules/ipfw~ipfw.diff~
