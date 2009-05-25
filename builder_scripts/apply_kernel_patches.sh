@@ -59,11 +59,9 @@ do
 	IS_TGZ=`echo $LINE | grep -v grep | grep .tgz | wc -l`
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		if [ $IS_TGZ -gt "0" ]; then 
-			set -e
 			echo "Extracting ${PATCH_FILE} to ${PFSPATCHDIR}"
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
 			| egrep -wi '(warning|error)'
-			set +e
 		else
 			echo "Patching ${PATCH_FILE}"
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \

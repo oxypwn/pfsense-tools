@@ -5,8 +5,8 @@
 # $Id$
 
 # Crank up error reporting, debugging.
-set -e 
-set -x
+#set -e 
+#set -x
 
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
