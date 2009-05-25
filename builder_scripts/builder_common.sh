@@ -35,6 +35,7 @@ print_error_pfS() {
     [ -n "${LOGFILE:-}" ] && \
         echo "Log saved on ${LOGFILE}" && \
 	tail -n20 ${LOGFILE} >&2
+	report_error
     sleep 999
     kill $$ # NOTE: exit 1 won't work.
 }
