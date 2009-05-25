@@ -6,6 +6,8 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+set +e
+
 PWD=`pwd`
 
 cd $BASE_DIR
@@ -24,3 +26,6 @@ for FILE in `ls`; do
 done
 
 cd $PWD
+
+set -e
+
