@@ -42,6 +42,7 @@ check_for_clog() {
 # Removes NAT_T and other unneeded kernel options from 1.2 images.
 fixup_kernel_options() {
 
+	# Create area where kernels will be copied on LiveCD
 	mkdir -p $PFSENSEBASEDIR/kernels/
 
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
@@ -123,6 +124,14 @@ fixup_kernel_options() {
 	echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+
+	# NOTE!  If you remove this, you WILL break booting!  This file is read
+	#        by FORTH and for some reason installkernel with DESTDIR does not
+	#        copy this file over and you will end up with a blank file!
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 
 }
 
@@ -223,24 +232,13 @@ build_all_kernels() {
 	echo ">>>> installing SMP kernel..."
 	freesbie_make installkernel
 
-	# Create area where kernels will be copied on LiveCD
-	mkdir -p $PFSENSEBASEDIR/kernels/
-
-	# NOTE!  If you remove this, you WILL break booting!  This file is read
-	#        by FORTH and for some reason installkernel with DESTDIR does not
-	#        copy this file over and you will end up with a blank file!
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
-
 	# Nuke symbols
 	echo -n ">>>> Cleaning up .symbols..."
     if [ -z "${PFSENSE_DEBUG:-}" ]; then
 		echo -n "."
-		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm {} \;
+		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm -f {} \;
 		echo -n "."
-		find /tmp/kernels -name "*.symbols" -exec rm {} \;
+		find /tmp/kernels -name "*.symbols" -exec rm -f {} \;
     fi
 	find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
 	echo "done."
@@ -255,15 +253,16 @@ build_all_kernels() {
 	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
-	
+	echo -n "."	
 	# Install DEV ISO kernel if we are building a dev iso
 	if [ -z "${IS_DEV_ISO:-}" ]; then
+		echo -n "DEF:SMP."
 		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz -C $PFSENSEBASEDIR/boot/)
 	else 
+		echo -n "DEF:DEV."
 		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 	fi
-	
-	echo "done."
+	echo ".done"
 	
 }
 
