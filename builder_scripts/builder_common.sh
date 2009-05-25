@@ -8,6 +8,13 @@
 #set -e 
 #set -x
 
+# Set TARGET_ARCH_CONF_DIR
+if [ "$TARGET_ARCH" = "" ]; then
+	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/i386/conf/
+else
+	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
+fi
+
 fixup_libmap() {
 	
 }
@@ -147,7 +154,7 @@ build_embedded_kernel() {
 	unset KERNELCONF	
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
-	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_wrap.${FREEBSD_VERSION}"
+	export KERNELCONF=${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> Installing embedded kernel..."
 	freesbie_make installkernel
@@ -170,7 +177,7 @@ build_dev_kernel() {
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
-	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_Dev.${FREEBSD_VERSION}"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	freesbie_make buildkernel
@@ -196,7 +203,7 @@ build_all_kernels() {
 	unset KERNELCONF
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
-	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense.${FREEBSD_VERSION}"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> installing uniprocessor kernel..."
 	freesbie_make installkernel
@@ -209,7 +216,7 @@ build_all_kernels() {
 	unset KERNELCONF
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
-	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_wrap.${FREEBSD_VERSION}"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> installing wrap kernel..."
 	freesbie_make installkernel
@@ -222,7 +229,7 @@ build_all_kernels() {
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
-	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_Dev.${FREEBSD_VERSION}"	
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"	
 	freesbie_make buildkernel
 	echo ">>>> installing Developers kernel..."
 	freesbie_make installkernel
@@ -235,7 +242,7 @@ build_all_kernels() {
 	unset KERNELCONF
 	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
-	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_SMP.${FREEBSD_VERSION}"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> installing SMP kernel..."
 	freesbie_make installkernel
