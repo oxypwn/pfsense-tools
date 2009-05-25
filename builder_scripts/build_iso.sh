@@ -7,8 +7,8 @@
 # $Id$
 
 # Crank up error reporting, debugging.
-#set -e 
-#set -x
+set -e 
+set -x
 
 # Suck in local vars
 . ./pfsense_local.sh

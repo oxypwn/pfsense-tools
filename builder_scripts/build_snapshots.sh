@@ -22,7 +22,7 @@ if [ ! -f ./pfsense-build.conf ]; then
 fi
 
 # Set verbose
-# set -x
+set -x
 
 # Set debug
 set -e 
