@@ -71,11 +71,6 @@ fixup_kernel_options() {
 	touch  /tmp/kernels/uniprocessor/boot/defaults/loader.conf
 
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
-
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/uniprocessor/boot/device.hints
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
 	
 	if [ "$WITH_DTRACE" = "" ]; then
 		echo ">>> Not adding D-Trace to Developers Kernel..."
@@ -125,13 +120,19 @@ fixup_kernel_options() {
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 
-	# NOTE!  If you remove this, you WILL break booting!  This file is read
+	# NOTE!  If you remove this, you WILL break booting!  These file(s) are read
 	#        by FORTH and for some reason installkernel with DESTDIR does not
-	#        copy this file over and you will end up with a blank file!
+	#        copy this file over and you will end up with a blank file?
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
+	#
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/uniprocessor/boot/device.hints
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
+	# END NOTE.
 
 }
 
