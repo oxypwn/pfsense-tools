@@ -207,31 +207,6 @@ else
 	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 fi
 
-if [ -z "${GIT_REPO_FREESBIE2:-}" ]; then
-	mkdir -p $FREESBIE_PATH
-	csup -b $FREESBIE_PATH freesbie2-supfile
-	# Update FreeSBIE2 files from CVS
-	echo "Updating FreeSBIE2"
-	if [ ! -d $BUILDER_SCRIPTS/freesbie2 ]; then
-		( cvs -d $FREESBIE_PATH/cvsroot co freesbie2 )
-	else	
-		if [ ! -f $BUILDER_SCRIPTS/freesbie2/pfSense-version ]; then
-			# Currently not using pfSense version, start over.
-			rm -rf $BUILDER_SCRIPTS/freesbie2
-			( cd $BUILDER_SCRIPTS/ && cvs co freesbie2 )
-		else
-			( cd $BUILDER_SCRIPTS/freesbie2 && cvs up -d )
-		fi
-	fi
-else 
-	echo ">>> Using GIT to checkout FreeSBIE2..."
-	git clone "${GIT_REPO_FREESBIE2}" freesbie2
-	if [ $? != 0 ]; then
-		echo "Something went wrong while checking out GIT."
-		exit
-	fi	
-fi
-
 # Loop through and remove files
 echo "Removing needed files listed in ${PFSPATCHFILE} ${PFSENSETAG}"
 for LINE in `cat ${PFSPATCHFILE}`
