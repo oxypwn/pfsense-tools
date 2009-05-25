@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # pfSense snapshot building system
-# (C)2007, 2008 Scott Ullrich
+# (C)2007, 2008, 2009 Scott Ullrich
 # All rights reserved
 #
 # Redistribution and use in source and binary forms, with or without
@@ -57,11 +57,6 @@ mkdir -p $PFSENSECVSROOT
 mkdir -p $PFSENSECHECKOUTDIR
 mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
-
-if [ -f /tmp/pfSense_do_not_build_pfPorts ]; then
-	echo "--> Removing /tmp/pfSense_do_not_build_pfPorts..."
-	rm /tmp/pfSense_do_not_build_pfPorts
-fi
 
 sync_cvs() {
 	# Sync with pfsense.org
@@ -156,7 +151,6 @@ update_sources() {
 	# Cleanup after each build run
 	./clean_build.sh
 	./cvsup_current
-	touch /tmp/pfSense_do_not_build_pfPorts
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	gzip $PFSENSEOBJDIR/pfSense.iso
 	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
@@ -328,4 +322,3 @@ echo ">>> Execing pfsense-build.conf"
 . $BUILDERSCRIPTS/pfsense-build.conf
 build_loop_operations
 
-rm -f /tmp/pfSense_do_not_build_pfPorts
