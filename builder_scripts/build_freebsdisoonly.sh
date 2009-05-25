@@ -30,6 +30,8 @@ export SRC_CONF_INSTALL="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
 
 export IS_DEV_ISO=yo
 
+export KERNELCONF="${PWD}/conf/pfSense_Dev.$FREEBSD_VERSION"
+
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 

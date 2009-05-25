@@ -22,6 +22,8 @@ export IS_DEV_ISO=yo
 
 export PRUNE_LIST=""
 
+export KERNELCONF="${PWD}/conf/pfSense_Dev.$FREEBSD_VERSION"
+
 # Suck in script helper functions
 . ./builder_common.sh
 
