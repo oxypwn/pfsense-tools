@@ -154,7 +154,7 @@ build_embedded_kernel() {
 	unset KERNELCONF	
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
-	export KERNELCONF=${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> Installing embedded kernel..."
 	freesbie_make installkernel
