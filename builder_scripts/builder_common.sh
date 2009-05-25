@@ -143,10 +143,11 @@ build_embedded_kernel() {
 	echo ">>>> Building embedded kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
-	unset KERNELCONF		
-	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	unset KERNEL_DESTDIR
+	unset KERNELCONF	
+	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
+	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> Installing embedded kernel..."
 	freesbie_make installkernel
@@ -167,10 +168,11 @@ build_dev_kernel() {
 	echo ">>>> Building Developers kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
-	unset KERNELCONF
-	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
+	unset KERNELCONF
+	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_Dev.${FREEBSD_VERSION}"
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	freesbie_make buildkernel
 	echo ">>>> installing Developers kernel..."
 	freesbie_make installkernel
@@ -183,16 +185,18 @@ build_dev_kernel() {
 # This routine builds all kernels during the 
 # build_iso.sh routines.
 build_all_kernels() {
+
 	# Common fixup code
 	fixup_kernel_options
 	# Build uniprocessor kernel
 	echo ">>>> Building uniprocessor kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
+	unset KERNEL_DESTDIR
 	unset KERNELCONF
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
-	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
+	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> installing uniprocessor kernel..."
 	freesbie_make installkernel
@@ -201,10 +205,11 @@ build_all_kernels() {
 	echo ">>>> Building embedded kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
-	unset KERNELCONF		
-	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
+	unset KERNELCONF
+	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
+	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> installing wrap kernel..."
 	freesbie_make installkernel
@@ -213,10 +218,11 @@ build_all_kernels() {
 	echo ">>>> Building Developers kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
+	unset KERNEL_DESTDIR
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	unset KERNEL_DESTDIR
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_Dev.${FREEBSD_VERSION}"	
 	freesbie_make buildkernel
 	echo ">>>> installing Developers kernel..."
 	freesbie_make installkernel
@@ -225,10 +231,11 @@ build_all_kernels() {
 	echo ">>>> Building SMP kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
-	unset KERNELCONF		
-	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
 	unset KERNEL_DESTDIR
+	unset KERNELCONF
+	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
+	export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_SMP.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>>> installing SMP kernel..."
 	freesbie_make installkernel
@@ -692,10 +699,8 @@ fixup_updates() {
 cust_fixup_wrap() {
 
 	echo "Fixing up WRAP Specific items..."
-	if [ "$FBSD_VERSION" = "6" ]; then
     	cp $CVS_CO_DIR/boot/device.hints_wrap \
             	$PFSENSEBASEDIR/boot/device.hints
-	fi
     cp $CVS_CO_DIR/boot/loader.conf_wrap \
             $PFSENSEBASEDIR/boot/loader.conf
     cp $CVS_CO_DIR/etc/ttys_wrap \
