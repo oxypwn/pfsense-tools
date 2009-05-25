@@ -225,7 +225,7 @@ if [ -z "${GIT_REPO_FREESBIE2:-}" ]; then
 	fi
 else 
 	echo ">>> Using GIT to checkout FreeSBIE2..."
-	git checkout "${GIT_REPO_FREESBIE2}"
+	git clone "${GIT_REPO_FREESBIE2}" freesbie2
 	if [ $? != 0 ]; then
 		echo "Something went wrong while checking out GIT."
 		exit
