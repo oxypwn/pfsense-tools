@@ -43,7 +43,7 @@ while [ /bin/true ]; do
 			rm -f /tmp/pfSense_do_not_build_pfPorts
 		fi
 	fi
-	./build_snapshots.sh
+	sh -x ./build_snapshots.sh
 	# Grab a random value and sleep
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
 	# Sleep for that time.
