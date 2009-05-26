@@ -17,6 +17,7 @@ print_flags
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs customroot"
 
 export SRC_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
+export MAKE_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
 
 export IS_DEV_ISO=yo
 
