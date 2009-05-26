@@ -12211,7 +12211,7 @@ $as_echo "$ac_cv_path_EGREP" >&6; }
 
 
 
-CFLAGS_ADD="$CFLAGS_ADD -Wall -Werror -Wno-unused"
+CFLAGS_ADD="$CFLAGS_ADD "
 
 case $host in
 *netbsd*)
@@ -14775,7 +14775,7 @@ done
 
 
 	saved_CFLAGS=$CFLAGS
-	CFLAGS="-Wall -O2"
+	CFLAGS="-O2"
 	{ $as_echo "$as_me:$LINENO: checking for an implementation of va_copy()" >&5
 $as_echo_n "checking for an implementation of va_copy()... " >&6; }
 if test "${ac_cv_va_copy+set}" = set; then
@@ -14949,7 +14949,7 @@ $as_echo "$as_me: WARNING: Using a generic fallback." >&2;}
 { $as_echo "$as_me:$LINENO: checking if printf accepts %z" >&5
 $as_echo_n "checking if printf accepts %z... " >&6; }
 saved_CFLAGS=$CFLAGS
-CFLAGS="$CFLAGS -Wall -Werror"
+CFLAGS="$CFLAGS "
 cat >conftest.$ac_ext <<_ACEOF
 /* confdefs.h.  */
 _ACEOF
@@ -18537,7 +18537,7 @@ _ACEOF
 	LIBS="$LIBS -L$libldap_dir/lib -R$libldap_dir/lib -lldap"
 
 	saved_CFLAGS=$CFLAGS
-	CFLAGS="$CFLAGS -Wall -Werror"
+	CFLAGS="$CFLAGS "
 	saved_CPPFLAGS=$CPPFLAGS
         CPPFLAGS="$CPPFLAGS $CPPFLAGS_ADD"
 	cat >conftest.$ac_ext <<_ACEOF
@@ -18681,7 +18681,7 @@ _ACEOF
 
 	# Check if iconv 2nd argument needs const
 	saved_CFLAGS=$CFLAGS
-	CFLAGS="$CFLAGS -Wall -Werror"
+	CFLAGS="$CFLAGS "
 	saved_CPPFLAGS=$CPPFLAGS
         CPPFLAGS="$CPPFLAGS $CPPFLAGS_ADD"
 	if test "${ac_cv_header_iconv_h+set}" = set; then
@@ -19238,7 +19238,7 @@ fi
 	{ $as_echo "$as_me:$LINENO: checking getaddrinfo bug" >&5
 $as_echo_n "checking getaddrinfo bug... " >&6; }
 	saved_CFLAGS=$CFLAGS
-	CFLAGS="-Wall -O2"
+	CFLAGS="-O2"
 	if test "$cross_compiling" = yes; then
   { $as_echo "$as_me:$LINENO: result: Cross compiling ... Assuming getaddrinfo is not buggy." >&5
 $as_echo "Cross compiling ... Assuming getaddrinfo is not buggy." >&6; }
@@ -21250,7 +21250,8 @@ $debug ||
 if test -n "$CONFIG_FILES"; then
 
 
-ac_cr=''
+ac_cr='
+'
 ac_cs_awk_cr=`$AWK 'BEGIN { print "a\rb" }' </dev/null 2>/dev/null`
 if test "$ac_cs_awk_cr" = "a${ac_cr}b"; then
   ac_cs_awk_cr='\\r'
