@@ -204,11 +204,11 @@ dobuilds() {
 	# Copy what we can 
 	scp_files
 	# Build DevISO
-	build_deviso	
+	#build_deviso	
 	# Copy deviso to staging area
-	copy_to_staging_deviso_updates
+	#copy_to_staging_deviso_updates
 	# Copy what we can 
-	scp_files
+	#scp_files
 	# Build embedded version
 	build_embedded
 	# Copy to staging
