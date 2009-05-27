@@ -23,5 +23,5 @@ do-build:
 
 do-install:
 	install files/src/racoon/racoon /usr/local/sbin/
-
+	install files/src/setkey/setkey /usr/local/sbin/
 .include <bsd.port.mk>
