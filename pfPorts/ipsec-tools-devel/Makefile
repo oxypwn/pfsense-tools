@@ -1,6 +1,6 @@
 
 PORTNAME=	ipsec-tools
-PORTVERSION=	0.7.1
+PORTVERSION=	0.8
 CATEGORIES=	security
 MASTER_SITES=	http://cvs.pfsense.org/~sullrich/
 DISTFILES=		ipsec-tools-0.8.tar.bz2
