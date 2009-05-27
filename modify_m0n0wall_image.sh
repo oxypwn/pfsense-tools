@@ -24,7 +24,7 @@ gzip -dc < ${IMAGE} > tmp/${IMAGE}
 
 # Mount IMAGE
 mdconfig -a -t vnode -f tmp/${IMAGE} -u 90
-mount /dev/md90 mnt1
+mount /dev/md90a mnt1
 
 # Decompress mfsroot
 gzip -dc < mnt1/mfsroot.gz > tmp/${IMAGE}-mfsroot
