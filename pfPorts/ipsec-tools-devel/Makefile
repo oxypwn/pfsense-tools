@@ -13,7 +13,7 @@ WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 
 clean:
-	rm -f files/src/racoon/racoon files/src/setkey/setkey
+	rm -f files/src/racoon/racoon files/src/setkey/setkey && rm -f work/.*done* && git reset --hard
 
 do-extract:
 	mkdir -p ${WRKSRC}
