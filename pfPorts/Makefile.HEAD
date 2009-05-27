@@ -19,7 +19,7 @@ PORTSTOBUILD="grub \
 	ifstated \
 	ipfw-classifyd \
 	igmpproxy \
-	ipsec-tools-devel \
+	ipsec-tools \
 	isc-dhcp31-relay \
 	isc-dhcp31-server \
 	lighttpd \
