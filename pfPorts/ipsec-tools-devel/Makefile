@@ -13,13 +13,13 @@ WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 
 clean:
-	rm -f files/src/racoon
+	rm -f files/src/racoon/racoon files/src/setkey/setkey
 
 do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	cd files && ./configure --enable-natt --enable-adminport --enable-hybrid --enable-dpd --enable-stats --enable-frag && cd src && make
+	cd files && ./configure --with-libldap=/usr/local --enable-natt --enable-adminport --enable-hybrid --enable-dpd --enable-stats --enable-frag --enable-samode-unspec  && cd src && make
 
 do-install:
 	install files/src/racoon/racoon /usr/local/sbin/
