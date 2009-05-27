@@ -23,7 +23,7 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	cd files && ./configure && cd src && make
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
