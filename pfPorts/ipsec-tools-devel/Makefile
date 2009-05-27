@@ -19,7 +19,7 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	cd files && ./configure --with-libldap=/usr/local --enable-natt --enable-adminport --enable-hybrid --enable-dpd --enable-stats --enable-frag --enable-samode-unspec  && cd src && make
+	cd files && ./configure --with-libldap=/usr/local --enable-natt=kernel --enable-adminport --enable-hybrid --enable-dpd --enable-stats --enable-frag --enable-samode-unspec  && cd src && make
 
 do-install:
 	install files/src/racoon/racoon /usr/local/sbin/
