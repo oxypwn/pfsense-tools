@@ -19,7 +19,7 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	cd files && ./configure && cd src && make
+	cd files && ./configure --enable-natt --enable-adminport --enable-hybrid --enable-dpd --enable-stats --enable-frag && cd src && make
 
 do-install:
 	install files/src/racoon/racoon /usr/local/sbin/
