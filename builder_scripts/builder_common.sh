@@ -293,8 +293,15 @@ build_all_kernels() {
 recompile_pfPorts() {
 
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then 
+
+		if [ -n "$PFSPORTSFILE" ]; then
+			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/${PFSENSE_PORTS}"
+		else 
+			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
+		fi
+
 		echo
-		echo "===> Preparing for pfPorts build ${PFSENSETAG}"
+		echo "===> Preparing for pfPorts build ${USE_PORTS_FILE}"
 		echo
 
 		echo
@@ -310,12 +317,6 @@ recompile_pfPorts() {
 		
 		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
 		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
-
-		if [ -n "$PFSPORTSFILE" ]; then
-			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/${PFSENSE_PORTS}"
-		else 
-			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
-		fi
 
 		rm -rf ${pfSPORTS_BASE_DIR}
 		mkdir ${pfSPORTS_BASE_DIR}
