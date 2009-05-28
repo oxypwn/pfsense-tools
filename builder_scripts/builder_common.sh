@@ -142,6 +142,14 @@ fixup_kernel_options() {
 	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
 	# END NOTE.
 
+	# Danger will robinson -- 7.2+ will NOT boot if these files are not present.
+	# the loader will stop at |
+	touch /tmp/kernels/wrap/boot/loader.conf touch /tmp/kernels/wrap/boot/loader.conf.local
+	touch /tmp/kernels/uniprocessor/boot/loader.conf touch /tmp/kernels/uniprocessor/boot/loader.conf.local
+	touch /tmp/kernels/SMP/boot/loader.conf touch /tmp/kernels/SMP/boot/loader.conf.local
+	touch /tmp/kernels/developers/boot/loader.conf touch /tmp/kernels/developers/boot/loader.conf.local
+	# Danger, warning, achtung
+	
 }
 
 build_embedded_kernel() {
