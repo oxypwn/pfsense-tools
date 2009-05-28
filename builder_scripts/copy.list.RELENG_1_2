@@ -80,6 +80,7 @@ usr/local/lib/lighttpd/mod_staticfile.so
 usr/local/lib/lighttpd/mod_compress.so
 usr/local/lib/lighttpd/mod_rewrite.so
 usr/local/bin/wol
+usr/local/sbin/apinger
 usr/local/sbin/igmpproxy
 usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
