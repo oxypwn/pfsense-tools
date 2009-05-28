@@ -85,9 +85,13 @@ set_items() {
 		echo "export PFSPORTSFILE=${PFSPORTSFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	fi
 	echo
-	tail -n9 pfsense-build.conf
+	echo ">>> Custom pfsense-build.conf contains:"
+	echo "---------------------------------------------------------------------------------------"
+	cat pfsense-build.conf
 	echo
 	echo "NOTE: pfsense-build.conf values updated.  These values override pfsense_local.sh !!"
+	echo
+	echo "---------------------------------------------------------------------------------------"
 	echo
 	HANDLED=true
 }
