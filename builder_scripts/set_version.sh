@@ -88,10 +88,10 @@ set_items() {
 	echo ">>> Custom pfsense-build.conf contains:"
 	echo "---------------------------------------------------------------------------------------"
 	cat pfsense-build.conf
+	echo "---------------------------------------------------------------------------------------"
 	echo
 	echo "NOTE: pfsense-build.conf values updated.  These values override pfsense_local.sh !!"
 	echo
-	echo "---------------------------------------------------------------------------------------"
 	echo
 	HANDLED=true
 }
