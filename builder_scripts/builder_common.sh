@@ -317,7 +317,7 @@ recompile_pfPorts() {
 
 		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
 		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
-		( su - root -c "cd /usr/ports/ && ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} ${MAKEJ_PORTS}" ) 2>&1 | egrep -wi "(^>>>|error|building)"
+		( su - root -c "cd /usr/ports/ && ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} ${MAKEJ_PORTS}" ) 2>&1 | egrep -wi "(^>>>|error|finding)"
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			mv /tmp/make.conf /etc/
