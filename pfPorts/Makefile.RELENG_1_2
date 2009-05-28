@@ -134,7 +134,7 @@ echo ">>>> Using MAKEJ_PORTS: ${MAKEJ_PORTS}"
 for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
-		echo ">>>> Finding $PORT..."
+		echo ">>>> Building $PORT..."
 		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	fi
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
