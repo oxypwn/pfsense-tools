@@ -2,12 +2,12 @@
 # Whom:					rjoseph@mammalia.org
 # Date created:				24 July 2000
 #
-# $FreeBSD: ports/sysutils/grub/Makefile,v 1.27 2007/09/30 04:47:26 linimon Exp $
+# $FreeBSD: ports/sysutils/grub/Makefile,v 1.34 2008/12/25 23:03:39 sem Exp $
 #
 
 PORTNAME=	grub
 PORTVERSION=	0.97
-PORTREVISION=	1
+PORTREVISION=	3
 CATEGORIES=	sysutils
 MASTER_SITES=	ftp://alpha.gnu.org/gnu/grub/
 
@@ -35,6 +35,8 @@ PLIST_FILES=	bin/mbchk sbin/grub sbin/grub-install sbin/grub-md5-crypt \
 PLIST_FILES+=	${GRUB_DIR}/${f}_stage1_5
 .endfor
 PLIST_FILES+=	${GRUB_DIR}/stage2_eltorito
+
+PORTSCOUT=	limit:^0
 
 pre-configure:
 	@cd ${WRKSRC}; ${ACLOCAL}
