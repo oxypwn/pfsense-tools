@@ -304,7 +304,8 @@ recompile_pfPorts() {
 		fi
 
 		echo
-		echo "===> Preparing for pfPorts build ${USE_PORTS_FILE}"
+		PFPORTSBASENAME=`basename ${USE_PORTS_FILE}`
+		echo "===> Preparing for pfPorts build ${PFPORTSBASENAME}"
 		echo
 
 		echo
