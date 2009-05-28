@@ -119,6 +119,8 @@ else
 	TARGET_ARCH=""
 fi
 
+echo ">>>> Using MAKEJ_PORTS: ${MAKEJ_PORTS}"
+		
 for PORT in $PORTSTOBUILD; do
 	echo ">>> Finding and building $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
@@ -133,7 +135,7 @@ for PORT in $PORTSTOBUILD; do
 		fi
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
-		echo "Using MAKEJ_PORTS: ${MAKEJ_PORTS}"
+
 		( cd $DOESPORTEXIST && make $TARGET_ARCH $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
 		( cd $DOESPORTEXIST && make $TARGET_ARCH $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
 		( cd $DOESPORTEXIST && make $TARGET_ARCH -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
