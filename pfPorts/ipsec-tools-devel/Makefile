@@ -17,7 +17,7 @@ USE_AUTOTOOLS=	libtool:15
 GNU_CONFIGURE=	yes
 USE_LDCONFIG=	yes
 CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
-CONFIGURE_ARGS=	--enable-static-all --sysconfdir=${PREFIX}/etc/racoon \
+CONFIGURE_ARGS=	--enable-shared --sysconfdir=${PREFIX}/etc/racoon \
 		--localstatedir=${STATEDIR:S/\/racoon//} \
 		--with-pkgversion=freebsd-${PORTVERSION} \
 		--enable-adminport
@@ -29,8 +29,6 @@ PLIST_SUB+=	STATEDIR=${STATEDIR}
 WRKSRC=		work/ipsec-tools-0.8-alpha20090525+natt
 
 WITH_NATT=yo
-
-CFLAGS+=        -static
 
 OPTIONS=	DEBUG		"enable Debug support" off \
 		IPV6		"enable IPV6 support" off \
