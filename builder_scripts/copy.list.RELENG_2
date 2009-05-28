@@ -19,6 +19,7 @@ usr/bin/diff
 usr/bin/host
 usr/bin/nsupdate
 usr/sbin/syslogd
+usr/local/sbin/apinger
 usr/local/sbin/syslog-ng
 usr/sbin/fifolog_reader
 usr/sbin/fifolog_create
