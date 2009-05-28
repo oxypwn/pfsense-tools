@@ -43,8 +43,8 @@ else
 	echo ">>> Using ${PWD}/remove.list.iso.$FREEBSD_VERSION ..."
 	export PRUNE_LIST="${PWD}/remove.list.iso.$FREEBSD_VERSION"
 fi
-# Use embedded make.conf
-export MAKE_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
+
+# Use embedded src.conf
 export SRC_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
 export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION.install"
 

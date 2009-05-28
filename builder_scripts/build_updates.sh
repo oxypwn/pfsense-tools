@@ -40,7 +40,7 @@ fi
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.$FREEBSD_VERSION}
 
 # Use normal make.conf
-export MAKE_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
+export SRC_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
 export SRC_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
 export SRC_CONF_INSTALL="${PWD}/conf/make.conf.$FREEBSD_VERSION.install"
 

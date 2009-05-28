@@ -456,7 +456,7 @@ cust_populate_installer_bits() {
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 cust_populate_extra() {
     # Make devd
-    ( cd ${SRCDIR}/sbin/devd; export __MAKE_CONF=${MAKE_CONF} NO_MAN=YES \
+    ( cd ${SRCDIR}/sbin/devd; export __SRCCONF=${SRC_CONF} SRCCONF=${SRC_CONF} NO_MAN=YES \
 	make clean; make depend; make all; make DESTDIR=$PFSENSEBASEDIR install )
 
 	mkdir -p ${CVS_CO_DIR}/lib
@@ -1067,7 +1067,6 @@ print_flags() {
 if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "         pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
-	printf "              MAKE_CONF: %s\n" $MAKE_CONF
 	printf "               SRC_CONF: %s\n" $SRC_CONF
 	echo
 	echo "Sleeping for 5 seconds..."
