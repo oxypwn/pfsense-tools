@@ -294,8 +294,11 @@ recompile_pfPorts() {
 
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then 
 
+		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
+		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
+
 		if [ -n "$PFSPORTSFILE" ]; then
-			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/${PFSENSE_PORTS}"
+			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/${PFSPORTSFILE}"
 		else 
 			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
 		fi
@@ -315,9 +318,6 @@ recompile_pfPorts() {
 		echo "===> Starting make includes operation..."
 		( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|warning|error)'
 		
-		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
-		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
-
 		rm -rf ${pfSPORTS_BASE_DIR}
 		mkdir ${pfSPORTS_BASE_DIR}
 	
