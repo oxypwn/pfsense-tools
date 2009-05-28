@@ -51,6 +51,7 @@ strip_pfsense_local() {
 		grep -v SUPFILE | \
 		grep -v PFSPATCHDIR | \
 		grep -v PFSENSE_VERSION | \
+		grep -v PFSPORTSFILE | \
 		grep -v CUSTOM_COPY_LIST | \
 		grep -v FREESBIE_ERROR_MAIL | \
 		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense-build.conf
@@ -79,6 +80,9 @@ set_items() {
 	fi
 	if [ "$FREESBIE_COMPLETED_MAIL" != "" ]; then 
 		echo "export FREESBIE_COMPLETED_MAIL=${FREESBIE_COMPLETED_MAIL}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
+	fi
+	if [ "$PFSPORTSFILE" != "" ]; then 
+		echo "export PFSPORTSFILE=${PFSPORTSFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	fi
 	echo
 	tail -n9 pfsense-build.conf
@@ -141,9 +145,10 @@ RELENG_7_2)
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"
 	export PFSENSE_VERSION=1.2.3
 	export PFSENSETAG=RELENG_1_2
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
+	export PFSPORTSFILE=Makefile.RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_7_2
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"	
+	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"
+	
 	set_items
 ;;
 

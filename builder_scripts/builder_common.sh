@@ -311,6 +311,12 @@ recompile_pfPorts() {
 		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
 		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
 
+		if [ -n "$PFSPORTSFILE" ]; then
+			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/${PFSENSE_PORTS}"
+		else 
+			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
+		fi
+
 		rm -rf ${pfSPORTS_BASE_DIR}
 		mkdir ${pfSPORTS_BASE_DIR}
 	
@@ -325,7 +331,7 @@ recompile_pfPorts() {
 
 		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
 		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
-		( su - root -c "cd /usr/ports/ && ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG} ${MAKEJ_PORTS}" ) 2>&1 \
+		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} ${MAKEJ_PORTS}" ) 2>&1 \
 		| egrep -v '(\-Werror|error\.[a-z])' | egrep -wi "(^>>>|error|finding)"
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
