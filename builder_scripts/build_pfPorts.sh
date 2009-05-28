@@ -16,6 +16,13 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+if [ ! -d /usr/ports/ ]; then
+	echo "===> Please wait, grabbing port files from FreeBSD.org..."
+	portsnap fetch
+	echo "===> Please wait, extracting port files..."
+	portsnap extract
+fi
+
 recompile_pfPorts
 
 
