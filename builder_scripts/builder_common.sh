@@ -286,7 +286,7 @@ recompile_pfPorts() {
 
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then 
 		echo
-		echo ">>>> Preparing for pfPorts build ${PFSENSETAG}"
+		echo "===> Preparing for pfPorts build ${PFSENSETAG}"
 		echo
 
 		echo
@@ -297,6 +297,7 @@ recompile_pfPorts() {
 		# Since we are using NAT-T we need to run this prior
 		# to the build.  Once NAT-T is included in FreeBSD
 		# we can remove this step. 
+		echo "===> Starting make includes operation..."
 		( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|warning|error)'
 		
 		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
