@@ -32,7 +32,7 @@ done
 COUNTER=0
 while [ /bin/true ]; do
 	# We can disable ports builds
-	if [ "$NO_PORTS" = "" ]; then
+	if [ "$NO_PORTS" != "" ]; then
 		echo ">>> Not building pfPorts at all during this snapshot builder looped run..."
 		touch /tmp/pfSense_do_not_build_pfPorts
 	else
