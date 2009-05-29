@@ -12,7 +12,7 @@
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
-# make.conf
+# src.conf
 if [ -f /usr/obj.pfSense/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
 	echo -n "Removing /usr/obj* since embedded build performed prior..."
 	rm -rf /usr/obj*
@@ -39,11 +39,9 @@ fi
 # Use pfSense.$FREEBSD_VERSION as kernel configuration file
 export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.$FREEBSD_VERSION}
 
-# Use normal make.conf
-export SRC_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
-export SRC_CONF="${PWD}/conf/make.conf.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/make.conf.$FREEBSD_VERSION.install"
-
+# Use normal src.conf
+export SRC_CONF="${PWD}/conf/src.conf.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${PWD}/conf/src.conf.$FREEBSD_VERSION.install"
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs etcmfs"

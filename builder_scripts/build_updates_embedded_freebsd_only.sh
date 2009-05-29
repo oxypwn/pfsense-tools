@@ -37,21 +37,21 @@ fi
 # Do not compress FS
 export NO_COMPRESSEDFS=yes
 
-# Use normal make.conf
+# Use normal src.conf
 if [ $FREEBSD_VERSION = "6" ]; then
-	export SRC_CONF="${PWD}/conf/make.conf"
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf"	
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf"
+	export SRC_CONF="${PWD}/conf/src.conf"
+	export SRC_CONF_INSTALL="${PWD}/conf/src.conf"	
+	export SRC_CONF_INSTALL="${PWD}/conf/src.conf"
 fi
 if [ $FREEBSD_VERSION = "7" ]; then
-	export SRC_CONF="${PWD}/conf/make.conf.7"
-	export SRC_CONF="${PWD}/conf/make.conf.7"
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.7.install"
+	export SRC_CONF="${PWD}/conf/src.conf.7"
+	export SRC_CONF="${PWD}/conf/src.conf.7"
+	export SRC_CONF_INSTALL="${PWD}/conf/src.conf.7.install"
 fi
 if [ $FREEBSD_VERSION = "8" ]; then
-	export SRC_CONF="${PWD}/conf/make.conf.8"
-	export SRC_CONF="${PWD}/conf/make.conf.8"
-	export SRC_CONF_INSTALL="${PWD}/conf/make.conf.8.install"
+	export SRC_CONF="${PWD}/conf/src.conf.8"
+	export SRC_CONF="${PWD}/conf/src.conf.8"
+	export SRC_CONF_INSTALL="${PWD}/conf/src.conf.8.install"
 fi
 
 if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
@@ -90,10 +90,10 @@ make_world
 
 
 if [ $FREEBSD_VERSION = "7" ]; then
-        export SRC_CONF="${PWD}/conf/make.conf.embedded.7.install"
+        export SRC_CONF="${PWD}/conf/src.conf.embedded.7.install"
 fi
 if [ $FREEBSD_VERSION = "8" ]; then
-        export SRC_CONF="${PWD}/conf/make.conf.embedded.8.install"
+        export SRC_CONF="${PWD}/conf/src.conf.embedded.8.install"
 fi
 
 echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."

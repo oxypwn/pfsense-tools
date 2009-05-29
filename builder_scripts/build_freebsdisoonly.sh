@@ -24,8 +24,8 @@ fi
 export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
 
 # Define src.conf
-export SRC_CONF="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/make.conf.developer.$FREEBSD_VERSION"
+export SRC_CONF="${PWD}/conf/src.conf.developer.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${PWD}/conf/src.conf.developer.$FREEBSD_VERSION"
 
 export IS_DEV_ISO=yo
 

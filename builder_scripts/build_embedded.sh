@@ -12,7 +12,7 @@
 
 # If a full build has been performed we need to nuke
 # /usr/obj.pfSense/ since embedded uses a different
-# make.conf
+# src.conf
 if [ -f /usr/obj.pfSense/pfSense.$FREEBSD_VERSION.world.done ]; then
 	echo -n "Removing /usr/obj* since full build performed prior..."
 	rm -rf /usr/obj*
@@ -45,8 +45,8 @@ else
 fi
 
 # Use embedded src.conf
-export SRC_CONF="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/make.conf.embedded.$FREEBSD_VERSION.install"
+export SRC_CONF="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
 
 # Clean out directories
 freesbie_make cleandir

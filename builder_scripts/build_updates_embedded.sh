@@ -26,7 +26,7 @@ rm -rf $CVS_CO_DIR
 
 # If a full build has been performed we need to nuke
 # /usr/obj.pfSense/ since embedded uses a different
-# make.conf
+# src.conf
 if [ -f /usr/obj.pfSense/pfSense.6.world.done ]; then
 	echo -n "Removing /usr/obj* since full build performed prior..."
 	rm -rf /usr/obj*
@@ -47,11 +47,11 @@ if [ $FREEBSD_VERSION = "6" ]; then
 fi
 if [ $FREEBSD_VERSION = "7" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
-	export SRC_CONF="${PWD}/conf/make.conf.developer.7"	
+	export SRC_CONF="${PWD}/conf/src.conf.developer.7"	
 fi
 if [ $FREEBSD_VERSION = "8" ]; then
 	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.8}
-	export SRC_CONF="${PWD}/conf/make.conf.developer.8"
+	export SRC_CONF="${PWD}/conf/src.conf.developer.8"
 fi
 
 
