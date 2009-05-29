@@ -49,7 +49,7 @@ PORTSTOBUILD="grub \
 	ifstated \
 	ipsec-tools-devel \
 	isc-dhcp31-relay \
-	isc-dhcp31-server \
+	isc-dhcp30-server \
 	lighttpd \
 	minicron \
 	miniupnpd \
