@@ -41,7 +41,7 @@
 +}
 +#endif /* PARANOIA */
 +
-+#if defined (JAIL)
++#if defined (JAIL) || __FreeBSD_version >= 799999
 +static void setup_jail (char *chroot_dir, char *hostname, u_int32_t ip_number)
 +{
 +      struct jail j;
