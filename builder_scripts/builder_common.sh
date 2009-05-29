@@ -300,7 +300,7 @@ recompile_pfPorts() {
 		if [ -n "$PFSPORTSFILE" ]; then
 			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/${PFSPORTSFILE}"
 		else 
-			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
+			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/buildports.${PFSENSETAG}"
 		fi
 
 		echo
@@ -331,8 +331,8 @@ recompile_pfPorts() {
 		fi
 		export FORCE_PKG_REGISTER=yo
 
-		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}
-		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/Makefile.${PFSENSETAG}"
+		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/buildports.${PFSENSETAG}
+		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/buildports.${PFSENSETAG}"
 		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} ${MAKEJ_PORTS}" ) 2>&1 \
 		| egrep -v '(\-Werror|error\.[a-z])' | egrep -wi "(^>>>|error|finding)"
 		
