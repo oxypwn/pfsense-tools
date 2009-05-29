@@ -47,7 +47,7 @@ PORTSTOBUILD="grub \
 	dnsmasq \
 	expiretable \
 	ifstated \
-	ipsec-tools-natt \
+	ipsec-tools-devel \
 	isc-dhcp31-relay \
 	isc-dhcp31-server \
 	lighttpd \
