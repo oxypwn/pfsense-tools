@@ -193,6 +193,12 @@ build_deviso() {
 	./build_deviso.sh
 }
 
+build_nano() {
+	cd $BUILDERSCRIPTS
+	./clean_build.sh
+	./build_nano.sh
+}
+
 dobuilds() {
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
@@ -213,8 +219,11 @@ dobuilds() {
 	build_embedded
 	# Copy to staging
 	copy_to_staging_embedded
+	scp_files
+	build_nano
+	copy_to_staging_embedded
 	# Copy what we can 
-	scp_files	
+	scp_files
 }
 
 copy_to_staging_deviso_updates() {
