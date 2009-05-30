@@ -1,4 +1,4 @@
-PORTNAME=	gzsig
+PORTNAME=	verifysig
 PORTVERSION=	0.0.2
 PORTREVISION?=	0
 CATEGORIES?=	sysutils
@@ -16,7 +16,7 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	${CC} ${CFLAGS} -lcrypto -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
