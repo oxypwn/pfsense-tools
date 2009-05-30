@@ -20,7 +20,7 @@ do-build:
 #${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
-	${INSTALL_PROGRAM} ${FILESDIR}/pftpx ${PREFIX}/sbin
-	${INSTALL_MAN} ${FILESDIR}/pftpx.8 ${PREFIX}/man/man8
+	${INSTALL_PROGRAM} ${FILESDIR}/ftp-proxy ${PREFIX}/sbin
+	${INSTALL_MAN} ${FILESDIR}/ftp-proxy.8 ${PREFIX}/man/man8
 
 .include <bsd.port.mk>
