@@ -1616,8 +1616,13 @@ pfSense_clean_obj_dir() {
 	# Clean out directories
 	echo ">>> Cleaning up old directories..."
 	freesbie_make cleandir
-
 	echo -n "Cleaning up previous build environment...Please wait..."
+	# Allow old CVS_CO_DIR to be deleted later
+	if [ -d $CVS_CO_DIR ]; then 
+		echo -n "."
+		chflags -R noschg $CVS_CO_DIR
+		rm -rf $CVS_CO_DIR
+	fi
 	echo -n "."
 	if [ -d "${PFSENSEBASEDIR}/dev" ]; then
 		echo -n "."	
