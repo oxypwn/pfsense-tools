@@ -28,6 +28,9 @@ fi
 # Make sure cvsup_current has been run first 
 check_for_clog
 
+echo ">>> Cleaning up old directories..."
+freesbie_make cleandir
+
 # Output build flags
 print_flags
 

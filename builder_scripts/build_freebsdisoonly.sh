@@ -34,6 +34,9 @@ export KERNELCONF="${PWD}/conf/pfSense_Dev.$FREEBSD_VERSION"
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 
+echo ">>> Cleaning up old directories..."
+freesbie_make cleandir
+
 # Output build flags
 print_flags
 

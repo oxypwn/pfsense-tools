@@ -10,6 +10,9 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+echo ">>> Cleaning up old directories..."
+freesbie_make cleandir
+
 # Output build flags
 print_flags
 

@@ -264,6 +264,8 @@ build_all_kernels() {
 		echo -n "."
 		find /tmp/kernels -name "*.symbols" -exec rm -f {} \;
     fi
+
+	# Nuke old kernel if it exists
 	find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
 	echo "done."
 

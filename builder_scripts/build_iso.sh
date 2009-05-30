@@ -16,6 +16,9 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+echo ">>> Cleaning up old directories..."
+freesbie_make cleandir
+
 # Make sure cvsup_current has been run first 
 check_for_clog
 
