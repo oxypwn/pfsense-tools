@@ -41,11 +41,11 @@ export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-${BASE_DIR}/${TOOLS_DIR}/pfPorts}
 
 # This is the directory where the latest pfSense cvs co
 # is checked out to.
-export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/${PFSENSE_DIR}}
+#export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/${PFSENSE_DIR}}
 
 # Where pfSense is checked out.  This directory will
 # be overlayed onto the image later in the process
-export CUSTOMROOT=${CUSTOMROOT:-${CVS_CO_DIR}}
+#export CUSTOMROOT=${CUSTOMROOT:-${CVS_CO_DIR}}
 
 # This is the user that has access to the pfSense repo
 export CVS_USER=${CVS_USER:-sullrich}
