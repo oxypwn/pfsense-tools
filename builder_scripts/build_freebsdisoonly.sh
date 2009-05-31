@@ -21,7 +21,7 @@ if [ -d $CVS_CO_DIR ]; then
 	chflags -R noschg $CVS_CO_DIR
 fi 
 
-export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
+export KERNELCONF="${PWD}/conf/FreeBSD.$FREEBSD_VERSION"
 
 # Define src.conf
 export SRC_CONF="${PWD}/conf/src.conf.developer.$FREEBSD_VERSION"
