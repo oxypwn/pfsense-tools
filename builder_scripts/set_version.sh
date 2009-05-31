@@ -38,7 +38,6 @@ export BASE_DIR=${BUILDER_TOOLS}/..
 strip_pfsense_local() {
 	# Strip dynamic values
 	cat $BUILDER_SCRIPTS/pfsense-build.conf | \
-		grep -v pfSense_version | \
 		grep -v BASE_DIR | \
 		grep -v BUILDER_TOOLS | \
 		grep -v BUILDER_SCRIPTS | \
@@ -62,7 +61,6 @@ set_items() {
 	strip_pfsense_local
 	# Add our custom dynamic values
 	echo "# set_version.sh generated defaults" >> $BUILDER_SCRIPTS/pfsense-build.conf
-	echo export pfSense_version="${pfSense_version}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export PFSENSE_VERSION="${PFSENSE_VERSION}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export FREEBSD_VERSION="${FREEBSD_VERSION}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export FREEBSD_BRANCH="${FREEBSD_BRANCH}" >> $BUILDER_SCRIPTS/pfsense-build.conf
@@ -101,7 +99,6 @@ echo
 case $1 in
 HEAD)
 	echo ">>> Setting builder environment to use HEAD ..."
-	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7_1"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_7_1-supfile"
@@ -115,7 +112,6 @@ HEAD)
 
 RELENG_1_2)
 	echo ">>> Setting builder environment to use RELENG_1_3-PRE ..."
-	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7_1"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"
@@ -129,7 +125,6 @@ RELENG_1_2)
 
 RELENG_2_0)
 	echo ">>> Setting builder environment to use RELENG_2_0 ..."
-	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7_1"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_7_1-supfile"
@@ -143,7 +138,6 @@ RELENG_2_0)
 
 RELENG_7_2)
 	echo ">>> Setting builder environment to use RELENG_1_3-PRE w/ FreeBSD 7.2 ..."
-	export pfSense_version="7"
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7_2"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"
@@ -158,7 +152,6 @@ RELENG_7_2)
 
 RELENG_8_0)
 	echo ">>> Setting builder environment to use RELENG_8_0 ..."
-	export pfSense_version="8"
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_0"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8-supfile"
