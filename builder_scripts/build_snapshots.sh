@@ -219,11 +219,27 @@ dobuilds() {
 	build_embedded
 	# Copy to staging
 	copy_to_staging_embedded
+	# Copy what we can
 	scp_files
+	# Build nanobsd
 	build_nano
-	copy_to_staging_embedded
+	# Copy nanobsd to staging areas
+	copy_to_staging_nanobsd
 	# Copy what we can 
 	scp_files
+}
+
+copy_to_staging_nanobsd() {
+	cp $PFSENSEOBJDIR/pfSense.img $STAGINGAREA/ 
+	DATESTRING=`date "+%Y%m%d-%H%M"`
+	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz
+	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img
+	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img
+	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz.md5
+	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz.sha256
+}
+
+copy_to_staging_nanobsd_updates() {
 }
 
 copy_to_staging_deviso_updates() {
