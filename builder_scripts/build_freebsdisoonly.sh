@@ -77,7 +77,7 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
 fi
 
 # Ensure that pfSense does not get installed
-rm -rf $BASE_DIR/*
+rm -rf $CVS_CO_DIR/*
 
 # Fixup library changes if needed
 fixup_libmap
