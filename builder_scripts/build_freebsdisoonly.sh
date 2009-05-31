@@ -21,13 +21,12 @@ if [ -d $CVS_CO_DIR ]; then
 	chflags -R noschg $CVS_CO_DIR
 fi 
 
+# Set to stock FreeBSD kernel configration
 export KERNELCONF="${PWD}/conf/FreeBSD.$FREEBSD_VERSION"
 
 # Define src.conf
-export SRC_CONF="${PWD}/conf/src.conf.developer.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/src.conf.developer.$FREEBSD_VERSION"
-
-export IS_DEV_ISO=yo
+export SRC_CONF="/dev/null"
+export SRC_CONF_INSTALL="/dev/null"
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
@@ -41,13 +40,6 @@ print_flags
 # Clean out directories
 echo ">>> Cleaning up old directories..."
 freesbie_make cleandir
-
-# Calculate versions
-export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
-export version_base=`cat $CVS_CO_DIR/etc/version_base`
-export version=`cat $CVS_CO_DIR/etc/version`
-
-# Invoke FreeSBIE2 toolchain
 
 # Prepare object directry
 echo ">>> Preparing object directory..."
@@ -106,16 +98,19 @@ rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 echo ">>> Installing custom packageas..."
 freesbie_make pkginstall
 
+# Install BSDInstaller bits
 cust_populate_installer_bits
 
-# Prepare /usr/local/pfsense-clonefs
+# Prepare /usr/local/pfsense-fs -> /usr/local/pfsense-clonefs clone
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
 # Ensure /home exists
 mkdir -p $CLONEDIR/home
+
 # Finalize iso
 echo ">>> Finalizing iso..."
 freesbie_make iso
 
+# Email that the operation is completed
 email_operation_completed
