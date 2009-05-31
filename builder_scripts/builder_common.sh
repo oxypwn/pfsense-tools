@@ -198,6 +198,27 @@ build_dev_kernel() {
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 }
 
+build_freebsd_only_kernel() {
+	# Common fixup code
+	fixup_kernel_options
+	# Build Developers kernel
+	echo ">>>> Building Developers kernel..."
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	unset KERNCONF
+	unset KERNEL_DESTDIR
+	unset KERNELCONF
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
+	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
+	freesbie_make buildkernel
+	echo ">>>> installing FreeBSD kernel..."
+	freesbie_make installkernel
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
+	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
+	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/FreeBSD.tgz .)	
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/FreeBSD.tgz -C $PFSENSEBASEDIR/boot/)
+}
+
 # This routine builds all kernels during the 
 # build_iso.sh routines.
 build_all_kernels() {

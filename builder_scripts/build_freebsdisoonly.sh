@@ -73,8 +73,8 @@ echo ">>> Building world and kernels for ISO... $FREEBSD_VERSION  $FREEBSD_BRANC
 make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building  Dev kernels.. $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
-build_dev_kernel
+echo ">>> Building FreeBSD kernel.. $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+build_freebsd_only_kernel
 
 # Check for freesbie builder issues
 if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
