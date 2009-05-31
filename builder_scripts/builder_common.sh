@@ -60,6 +60,9 @@ fixup_kernel_options() {
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
 	fi
 
+	# Copy stock FreeBSD configurations
+	cp $BUILDER_TOOLS/builder_scripts/conf/FreeBSD.* $SRCDIR/sys/i386/conf/
+		
 	# Build extra kernels (embedded, developers edition, etc)
 	mkdir -p /tmp/kernels/wrap/boot/defaults
 	mkdir -p /tmp/kernels/wrap/boot/kernel
