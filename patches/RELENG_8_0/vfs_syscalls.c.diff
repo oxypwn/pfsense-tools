@@ -1,0 +1,16 @@
+Index: vfs_syscalls.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/vfs_syscalls.c,v
+retrieving revision 1.477
+diff -u -r1.477 vfs_syscalls.c
+--- vfs_syscalls.c	27 May 2009 14:11:23 -0000	1.477
++++ vfs_syscalls.c	31 May 2009 18:31:37 -0000
+@@ -1508,7 +1508,7 @@
+ 	    UIO_USERSPACE, (flag & AT_SYMLINK_FOLLOW) ? FOLLOW : NOFOLLOW));
+ }
+ 
+-static int hardlink_check_uid = 0;
++int hardlink_check_uid = 0;
+ SYSCTL_INT(_security_bsd, OID_AUTO, hardlink_check_uid, CTLFLAG_RW,
+     &hardlink_check_uid, 0,
+     "Unprivileged processes cannot create hard links to files owned by other "
