@@ -182,7 +182,7 @@ export ARCH="i386"
 #export custom_overlay="${BASE_DIR}/custom_overlay.tgz"
 #
 # Directory overlay (please uncomment):
-#export custom_overlay="${BASE_DIR}/custom_overlay"
+export custom_overlay="${BUILDER_PROFILES}/freebsd_only/copy_overlay/"
 
 # Package overlay. This gives people a chance to build a pfSense
 # installable image that already contains certain pfSense packages.
