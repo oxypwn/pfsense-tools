@@ -3,7 +3,7 @@
 # Date created:         28 April 2003
 # Whom:                 cyrille.lefevre@laposte.net
 #
-# $FreeBSD: ports/net/isc-dhcp3-relay/Makefile,v 1.2 2005/06/09 18:56:58 sem Exp $
+# $FreeBSD: ports/net/isc-dhcp30-relay/Makefile,v 1.4 2008/10/13 11:10:11 edwin Exp $
 #
 
 COMMENT=	The ISC Dynamic Host Configuration Protocol relay

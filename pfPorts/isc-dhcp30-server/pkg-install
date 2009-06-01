@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $FreeBSD: ports/net/isc-dhcp3-server/pkg-install,v 1.1 2004/06/26 14:32:40 eik Exp $
+# $FreeBSD: ports/net/isc-dhcp30-server/pkg-install,v 1.4 2008/10/13 10:55:32 edwin Exp $
 #
 
 [ $# != 2 ] && exit 1
@@ -9,8 +9,18 @@
 
 case $2 in
 POST-INSTALL)
+	if [ -x ${PKG_PREFIX}/etc/rc.d/isc-dhcpd ]; then
+		${PKG_PREFIX}/etc/rc.d/isc-dhcpd forceinstall
+	else
+		${PKG_PREFIX}/etc/rc.d/isc-dhcpd.sh forceinstall
+	fi
 	;;
 DEINSTALL)
+	if [ -x ${PKG_PREFIX}/etc/rc.d/isc-dhcpd ]; then
+		${PKG_PREFIX}/etc/rc.d/isc-dhcpd forceuninstall
+	else
+		${PKG_PREFIX}/etc/rc.d/isc-dhcpd.sh forceuninstall
+	fi
 	;;
 POST-DEINSTALL|PRE-INSTALL)
 	;;

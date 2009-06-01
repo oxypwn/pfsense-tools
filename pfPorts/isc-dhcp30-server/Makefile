@@ -3,11 +3,11 @@
 # Date created:         7 Mar 1996
 # Whom:                 se
 #
-# $FreeBSD: ports/net/isc-dhcp3-server/Makefile,v 1.121 2007/03/14 17:14:06 pav Exp $
+# $FreeBSD: ports/net/isc-dhcp30-server/Makefile,v 1.133 2009/05/12 22:31:41 linimon Exp $
 #
 
 PORTNAME=	dhcp
-PORTVERSION=	3.0.5
+PORTVERSION=	3.0.7
 PORTREVISION=	${DHCP_PORTREVISION}
 CATEGORIES=	net
 MASTER_SITES=	${MASTER_SITE_ISC}
@@ -16,16 +16,13 @@ PKGNAMEPREFIX=	isc-
 PKGNAMESUFFIX=	30-${SUBSYS}
 DISTNAME=	${PORTNAME}-${RELEASE}${VERSION}${PATCHLEVEL}
 
-MAINTAINER=	Joerg.Pulz@frm2.tum.de
+MAINTAINER=	jpaetzel@FreeBSD.org
 COMMENT?=	The ISC Dynamic Host Configuration Protocol server
 
-PORTREVISION_SERVER=	2
+PORTREVISION_SERVER=	4
 PORTREVISION_CLIENT=	0
 PORTREVISION_RELAY=	0
 PORTREVISION_DEVEL=	0
-
-DHCP_PARANOIA=	yes
-DHCP_JAIL=		yes
 
 SUBSYS?=	server
 
@@ -68,6 +65,15 @@ USE_PERL5_RUN=	yes
 USE_OPENLDAP=	yes
 
 .if !defined(WITHOUT_DHCP_LDAP_SSL)
+. if !defined(WITHOUT_OPENSSL_BASE)
+.  if defined(WITH_OPENSSL_PORT)
+BROKEN=		Multiple OpenSSL versions selected. Run 'make config' again!
+.  endif
+. else
+.  if !defined(WITH_OPENSSL_PORT)
+BROKEN=		No OpenSSL versions selected. Run 'make config' again!
+.  endif
+. endif
 USE_OPENSSL=	yes
 # hack to get bsd.openssl.mk included at this late state
 .include "${PORTSDIR}/Mk/bsd.openssl.mk"
@@ -185,14 +191,11 @@ PLIST_SUB+=	LDAP=""
 PLIST_SUB+=	LDAP="@comment "
 .endif
 REINPLACE_SUB=	PREFIX=${PREFIX}
-.if ${OSVERSION} >= 502100
-SUB_LIST+=	NOLOGIN=/usr/sbin/nologin
-.else
-SUB_LIST+=	NOLOGIN=/sbin/nologin
-.endif
-
+.if !defined(WITHOUT_DHCP_PARANOIA)
 SUB_LIST+=	PARANOIA=YES
-
+.else
+SUB_LIST+=	PARANOIA=NO
+.endif
 .if !defined(WITHOUT_DHCP_JAIL)
 SUB_LIST+=	JAIL=YES
 .else

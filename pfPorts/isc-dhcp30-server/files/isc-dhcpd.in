@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# $FreeBSD: ports/net/isc-dhcp3-server/files/isc-dhcpd.in,v 1.2 2006/11/05 11:27:01 dinoex Exp $
+# $FreeBSD: ports/net/isc-dhcp30-server/files/isc-dhcpd.in,v 1.6 2009/01/12 15:17:52 stefan Exp $
 #
 # PROVIDE: dhcpd
 # REQUIRE: DAEMON
@@ -271,16 +271,17 @@ safe_umount ()	# dir
 
 safe_useradd ()
 {
-	local _user _group _home _shell _gecos
+	local _user _group _home _shell _gecos _gid _usr
 
 	_user=$1 _group=$2 _gecos=${3:-"& daemon"}
-	_home=${4:-/nonexistent} _shell=${5:-%%NOLOGIN%%}
+	_uid=$4  _gid=$5
+	_home=${6:-/nonexistent} _shell=${7:-/usr/sbin/nologin}
 
 	if [ -n "${_group}" ]; then
 		if pw group show ${_group} 2>/dev/null; then
 			echo "You already have a group \"${_group}\"," \
 			     "so I will use it."
-		elif pw groupadd ${_group} -h -; then
+		elif pw groupadd ${_group} -g ${_gid} -h -; then
 			echo "Added group \"${_group}\"."
 		else
 			echo "Adding group \"${_group}\" failed..."
@@ -292,7 +293,7 @@ safe_useradd ()
 		if pw user show ${_user} 2>/dev/null; then
 			echo "You already have a user \"${_user}\"," \
 			     "so I will use it."
-		elif pw useradd ${_user} -g ${_group} -h - \
+		elif pw useradd ${_user}  -u ${_uid} -g ${_group} -h - \
 			-d ${_home} -s ${_shell} -c "${_gecos}"; then
 			echo "Added user \"${_user}\"."
 		else
@@ -354,11 +355,14 @@ check_chroot ()
 				err 1 "dhcpd_devfs_enable and dhcpd_makedev_enable" \
 				      "are mutually exclusive. enable only one!"
 			fi
-			if checkyesno dhcpd_devfs_enable &&
-			   ! ( type mount_devfs ) > /dev/null 2>&1; then
-				warn "dhcpd_devfs_enable disabled" \
-				     "-- not available"
-				dhcpd_devfs_enable=NO
+			if test `uname -r | cut -c 1` -le 6; then
+				if checkyesno dhcpd_devfs_enable &&
+				   ! ( type mount_devfs ) > /dev/null 2>&1;
+				then
+					warn "dhcpd_devfs_enable disabled" \
+					     "-- not available"
+					dhcpd_devfs_enable=NO
+				fi
 			fi
 			if checkyesno dhcpd_makedev_enable &&
 			   ! [ -x ${__dhcpd_devdir}/MAKEDEV ]; then
@@ -635,7 +639,7 @@ dhcpd_install ()
 {
 	if checkyesno paranoia; then
 		safe_useradd "${dhcpd_withuser}" "${dhcpd_withgroup}" \
-			     "DHCP Daemon"
+			     "DHCP Daemon" 136 136
 	fi
 }
 
