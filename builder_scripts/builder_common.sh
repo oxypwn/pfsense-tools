@@ -500,43 +500,43 @@ check_for_zero_size_files() {
 cust_populate_installer_bits() {
     # Add lua installer items
 	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
-    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
-	mkdir -p $CVS_CO_DIR/scripts/
+    mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
+	mkdir -p $PFSENSEBASEDIR/scripts/
     # This is now ready for general consumption! \o/
-    mkdir -p $CVS_CO_DIR/usr/local/share/dfuibe_lua/conf/
+    mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
     cp -r $BUILDER_TOOLS/installer/conf \
-		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# 599_ belongs in installation directory
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/599* \
-		$CVS_CO_DIR/usr/local/share/dfuibe_lua/install/
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
 	# 300_ belongs in dfuibe_lua/
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/300* \
-		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# 500_ belongs in dfuibe_lua/
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/500* \
-		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Copy Centipede Networks sponsored easy-install into place
 	cp -r $BUILDER_TOOLS/installer/easy_install \
-		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Copy Centipede Networks sponsored easy-install into place
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/150_easy_install.lua \
-		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Override the base installers welcome and call the Install step "Custom Install"
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/200_install.lua \
-		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Copy custom 950_reboot.lua script which touches /tmp/install_complete
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/950_reboot.lua \
-		$CVS_CO_DIR/usr/local/share/dfuibe_lua/
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Copy installer launcher scripts
-    cp $BUILDER_TOOLS/pfi $CVS_CO_DIR/scripts/
-    cp $BUILDER_TOOLS/lua_installer $CVS_CO_DIR/scripts/
+    cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
+    cp $BUILDER_TOOLS/lua_installer $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
-    cp $BUILDER_TOOLS/lua_installer_rescue $CVS_CO_DIR/scripts/
-    cp $BUILDER_TOOLS/lua_installer_full $CVS_CO_DIR/scripts/
-    chmod a+rx $CVS_CO_DIR/scripts/*
+    cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
+    cp $BUILDER_TOOLS/lua_installer_full $PFSENSEBASEDIR/scripts/
+    chmod a+rx $PFSENSEBASEDIR/scripts/*
     cp $BUILDER_TOOLS/after_installation_routines.sh \
-	$CVS_CO_DIR/usr/local/bin/after_installation_routines.sh
-    chmod a+rx $CVS_CO_DIR/scripts/*		
+		$PFSENSEBASEDIR/usr/local/bin/after_installation_routines.sh
+    chmod a+rx $PFSENSEBASEDIR/scripts/*		
 }
 
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
