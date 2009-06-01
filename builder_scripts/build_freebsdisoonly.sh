@@ -121,6 +121,10 @@ rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 echo ">>> Installing custom packageas..."
 freesbie_make pkginstall
 
+# Add extra files such as buildtime of version, bsnmpd, etc.
+echo ">>> Phase populate_extra..."
+cust_populate_extra
+
 # Install BSDInstaller bits
 cust_populate_installer_bits
 
