@@ -2,11 +2,34 @@
 #
 # Common functions to be used by build scripts
 #
-# $Id$
-
+#  builder_common.sh
+#  Copyright (C) 2004-2009 Scott Ullrich
+#  All rights reserved.
+#  
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#  
+#  1. Redistributions of source code must retain the above copyright notice,
+#     this list of conditions and the following disclaimer.
+#  
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  
+#  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+#  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+#  AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#  AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+#  OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
 # Crank up error reporting, debugging.
-#set -e 
-#set -x
+#  set -e 
+#  set -x
 
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
@@ -69,22 +92,26 @@ fixup_kernel_options() {
 	mkdir -p /tmp/kernels/developers/boot/kernel
 	mkdir -p /tmp/kernels/freebsd/boot/kernel
 
+	# Do not remove or move support to freesbie2/scripts/installekrnel.sh
 	mkdir -p /tmp/kernels/SMP/boot/kernel
 	mkdir -p /tmp/kernels/uniprocessor/boot/kernel
 	mkdir -p /tmp/kernels/freebsd/boot/kernel
 
+	# Do not remove or move support to freesbie2/scripts/installekrnel.sh
 	mkdir -p /tmp/kernels/wrap/boot/defaults/
 	mkdir -p /tmp/kernels/developers/boot/defaults/
 	mkdir -p /tmp/kernels/SMP/boot/defaults/
 	mkdir -p /tmp/kernels/uniprocessor/boot/defaults/
 	mkdir -p /tmp/kernels/freebsd/boot/defaults/
 
+	# Do not remove or move support to freesbie2/scripts/installekrnel.sh
 	touch /tmp/kernels/wrap/boot/defaults/loader.conf
 	touch /tmp/kernels/developers/boot/defaults/loader.conf
 	touch  /tmp/kernels/SMP/boot/defaults/loader.conf
 	touch  /tmp/kernels/uniprocessor/boot/defaults/loader.conf
 	touch  /tmp/kernels/freebsd/boot/defaults/loader.conf
 
+	# Do not remove or move support to freesbie2/scripts/installekrnel.sh
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 	
 	if [ "$WITH_DTRACE" = "" ]; then
