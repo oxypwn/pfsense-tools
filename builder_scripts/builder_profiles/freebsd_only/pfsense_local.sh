@@ -33,6 +33,9 @@ export FREESBIE_DIR=${FREESBIE_DIR:-freesbie2}
 # Generally /home/pfsense/tools
 export BUILDER_TOOLS=${BUILDER_TOOLS:-${BASE_DIR}/${TOOLS_DIR}}
 
+# Define BUILDER_PROFILES
+export BUILDER_PROFILES=${BUILDER_PROFILES:-${TOOLS_DIR}/builder_profiles}
+
 # Generally /home/pfsense/tools/builder_scripts
 export BUILDER_SCRIPTS=${BUILDER_SCRIPTS:-${BUILDER_TOOLS}/builder_scripts}
 
