@@ -45,7 +45,7 @@ export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/${PFSENSE_DIR}}
 
 # Where pfSense is checked out.  This directory will
 # be overlayed onto the image later in the process
-export CUSTOMROOT=${CUSTOMROOT:-${CVS_CO_DIR}}
+export CUSTOMROOT=${CUSTOMROOT:-${BASE_DIR}/FREEBSD_CUSTOM_ROOT}
 
 # This is the user that has access to the pfSense repo
 export CVS_USER=${CVS_USER:-sullrich}
