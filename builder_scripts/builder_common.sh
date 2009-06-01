@@ -67,19 +67,23 @@ fixup_kernel_options() {
 	mkdir -p /tmp/kernels/wrap/boot/defaults
 	mkdir -p /tmp/kernels/wrap/boot/kernel
 	mkdir -p /tmp/kernels/developers/boot/kernel
+	mkdir -p /tmp/kernels/freebsd/boot/kernel
 
 	mkdir -p /tmp/kernels/SMP/boot/kernel
 	mkdir -p /tmp/kernels/uniprocessor/boot/
+	mkdir -p /tmp/kernels/freebsd/boot/
 
 	mkdir -p /tmp/kernels/wrap/boot/defaults/
 	mkdir -p /tmp/kernels/developers/boot/defaults/
 	mkdir -p /tmp/kernels/SMP/boot/defaults/
 	mkdir -p /tmp/kernels/uniprocessor/boot/defaults/
+	mkdir -p /tmp/kernels/freebsd/boot/defaults/
 
 	touch /tmp/kernels/wrap/boot/defaults/loader.conf
 	touch /tmp/kernels/developers/boot/defaults/loader.conf
 	touch  /tmp/kernels/SMP/boot/defaults/loader.conf
 	touch  /tmp/kernels/uniprocessor/boot/defaults/loader.conf
+	touch  /tmp/kernels/freebsd/boot/defaults/loader.conf
 
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 	
