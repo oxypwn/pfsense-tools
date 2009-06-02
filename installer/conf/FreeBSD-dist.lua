@@ -57,24 +57,6 @@ install_items = {
         "var"
 }
 
-ui_nav_control = {
-	["*/welcome"] = "ignore",           	     			-- do not show any "welcome" items
-	["*/configure_installed_system"] = "ignore", 			-- don't put these on
-	["pre_install_tasks/configure_network"] = "ignore", 	
-	["*/upgrade_installed_system"] = "ignore",   			-- the main menu...
-	["*/load_kernel_modules"] = "ignore", 		 			-- do not ask about loading kernel modules
-	["*/pit/configure_console"] = "ignore",   	 			-- do not ask about console
-	["*/pit/configure_network"] = "ignore",   	 			-- do not ask about network
-	["*/*netboot*"] = "ignore",						-- ignore netboot installation services
-	["*/install/select_packages"] = "ignore", 	 			-- do not do the "Select Packages" step on install
-	["*/install/confirm_install_os"] = "ignore",			-- no need to confirm os install
-	["*/install/warn_omitted_subpartitions"] = "ignore",	-- warn that /tmp /var and friends are being ommited
-	["*/install/finished"] = "ignore",						-- no need to extra spamming
-	["*/install/select_additional_filesystems"] = "ignore", -- do not include additional filesystems prompts
-	["*/install/270_install_bootblocks.lua"] = "ignore", 	-- ignore the old boot block installer program
-	["*/configure/*"] = "ignore",             	 			-- do not configure, we've already did it.
-}
-
 booted_from_install_media=true
 
 dir = { root = "/", tmp = "/tmp/" }
