@@ -1,0 +1,91 @@
+#!/bin/sh
+#
+# Copyright (c) 1999  Matt Dillon
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+# $FreeBSD: src/etc/rc.d/unionfs,v 1.39 2007/12/08 23:00:28 dougb Exp $
+#
+
+# PROVIDE: unionfs
+# REQUIRE: mountcritremote
+
+. /etc/rc.subr
+
+name="unionfs"
+stop_cmd=':'
+
+load_rc_config $name
+
+# If we do not have a writable /unionfs, create a memory
+# filesystem for /unionfs.  If /unionfs is a symlink (e.g. to /var/unionfs,
+# then it should already be writable).
+#
+case "${unionfsmfs}" in
+[Yy][Ee][Ss])
+	# Size of memory file system /conf /home partitions
+	partsize="6m"
+
+	# Run some initialization routines
+	/etc/rc.d/uzip start
+
+	export VARMFS_COPYDBPKG=yes
+
+	for i in tmp varmfs etcmfs; do
+	       if [ -f /etc/rc.d/$i ]; then
+				sh /etc/rc.d/$i start
+	       fi
+	done
+
+	mkdir /tmp/unionfs
+	mkdir /tmp/unionfs/usr
+	mkdir /tmp/unionfs/root
+	mkdir /tmp/unionfs/sbin
+	mkdir /tmp/unionfs/bin
+	mkdir /tmp/unionfs/boot
+	mkdir /tmp/unionfs/confdefault
+	echo -n "Mounting unionfs directories:"
+	echo -n " usr"
+	mount_unionfs /tmp/unionfs/usr /usr/
+	echo -n " root"
+	mount_unionfs /tmp/unionfs/root /root/
+	echo -n " bin"
+	mount_unionfs /tmp/unionfs/bin /bin/		
+	echo -n " sbin"
+	mount_unionfs /tmp/unionfs/sbin /sbin/	
+	echo -n " boot"
+	mount_unionfs /tmp/unionfs/boot /boot/
+	echo -n " conf.default"
+	mount_unionfs /tmp/unionfs/confdefault /conf.default/
+	echo "... done."
+
+	;;
+[Nn][Oo])
+	;;
+*)
+
+
+
+
+	;;
+esac
