@@ -90,7 +90,7 @@ export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
 
 # Binary staging area for pfSense specific binaries.
-export PFSENSE_HOST_BIN_PATH="/usr/local/pfsense-bin/"
+export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
 
 # Leave this alone.
 export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
