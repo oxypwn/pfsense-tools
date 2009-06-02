@@ -572,7 +572,7 @@ cust_populate_extra() {
     date > $CVS_CO_DIR/etc/version.buildtime
 
     # Suppress extra spam when logging in
-	mkdir $CVS_CO_DIR/root
+	mkdir -p $CVS_CO_DIR/root
     touch $CVS_CO_DIR/root/.hushlogin
 
     # Setup login environment
