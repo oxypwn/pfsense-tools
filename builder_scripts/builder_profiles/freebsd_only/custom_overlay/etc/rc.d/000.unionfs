@@ -52,13 +52,15 @@ case "${unionfsmfs}" in
 	       fi
 	done
 
+	# Create directories that we will use for unionfs
 	mkdir /tmp/unionfs
 	mkdir /tmp/unionfs/usr
 	mkdir /tmp/unionfs/root
 	mkdir /tmp/unionfs/sbin
 	mkdir /tmp/unionfs/bin
 	mkdir /tmp/unionfs/boot
-	mkdir /tmp/unionfs/confdefault
+	
+	# Mount unionfs directories
 	echo -n "Mounting unionfs directories:"
 	echo -n " usr"
 	mount_unionfs /tmp/unionfs/usr /usr/
@@ -70,10 +72,7 @@ case "${unionfsmfs}" in
 	mount_unionfs /tmp/unionfs/sbin /sbin/	
 	echo -n " boot"
 	mount_unionfs /tmp/unionfs/boot /boot/
-	echo -n " conf.default"
-	mount_unionfs /tmp/unionfs/confdefault /conf.default/
 	echo "... done."
-
 	;;
 [Nn][Oo])
 	;;
