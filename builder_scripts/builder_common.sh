@@ -530,6 +530,7 @@ cust_populate_installer_bits() {
 	# Copy installer launcher scripts
     cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer $PFSENSEBASEDIR/scripts/
+    cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_full $PFSENSEBASEDIR/scripts/
