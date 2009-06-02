@@ -41,6 +41,7 @@ echo "pfSense" > /mnt/etc/platform
 echo "" > /mnt/root/.tcshrc
 rm -rf /mnt/scripts
 find /mnt/ -name installer -or -name lua_installer -exec rm {} \;
+find /mnt/ -name 000.unionfs -or -name lua_installer -exec rm {} \;
 
 # Self destruct myself.
 rm -f /mnt/usr/local/bin/after_installation_routines.sh
