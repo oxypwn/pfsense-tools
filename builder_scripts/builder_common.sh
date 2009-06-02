@@ -1678,7 +1678,7 @@ pfSense_clean_obj_dir() {
 	if "$CVS_CO_DIR" != "" ]; then
 		if [ -d $CVS_CO_DIR ]; then 
 			echo -n "."
-			chflags -R noschg $CVS_CO_DIR
+			chflags -R noschg $CVS_CO_DIR/*
 			rm -rf $CVS_CO_DIR
 		fi
 	fi
