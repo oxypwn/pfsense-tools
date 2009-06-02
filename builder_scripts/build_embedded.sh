@@ -96,6 +96,9 @@ build_embedded_kernel
 # Add extra files such as buildtime of version, bsnmpd, etc.
 cust_populate_extra
 
+# Add installer bits
+cust_populate_installer_bits
+
 # Add extra pfSense packages
 install_custom_packages
 

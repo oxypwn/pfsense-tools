@@ -160,6 +160,9 @@ freesbie_make pkginstall
 echo ">>> Phase populate_extra..."
 cust_populate_extra
 
+# Add installer bits
+cust_populate_installer_bits
+
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
 echo ">>> Merging extra items..."

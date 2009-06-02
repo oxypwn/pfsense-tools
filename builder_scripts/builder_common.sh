@@ -581,8 +581,6 @@ cust_populate_extra() {
     mkdir -p $CVS_CO_DIR/usr/share/snmp/defs/
     cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
 
-	cust_populate_installer_bits
-
     # Set buildtime
 	mkdir -p $CVS_CO_DIR/etc
     date > $CVS_CO_DIR/etc/version.buildtime
