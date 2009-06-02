@@ -119,7 +119,7 @@ echo ">>> Phase populate_extra..."
 cust_populate_extra
 
 # Install BSDInstaller bits
-cust_populate_installer_bits
+cust_populate_installer_bits_freebsd_only
 
 rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
 

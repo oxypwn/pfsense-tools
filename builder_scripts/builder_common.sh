@@ -497,6 +497,21 @@ check_for_zero_size_files() {
 	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
 }
 
+cust_populate_installer_bits_freebsd_only() {
+    # Add lua installer items
+    mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
+	mkdir -p $PFSENSEBASEDIR/scripts/
+    # This is now ready for general consumption! \o/
+    mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
+    cp -r $BUILDER_TOOLS/installer/conf \
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
+	# Copy installer launcher scripts
+    cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
+    cp $BUILDER_TOOLS/lua_installer $PFSENSEBASEDIR/scripts/
+    cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
+    chmod a+rx $PFSENSEBASEDIR/scripts/*
+}
+
 cust_populate_installer_bits() {
     # Add lua installer items
 	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
