@@ -35,10 +35,6 @@ stop_cmd=':'
 
 load_rc_config $name
 
-# If we do not have a writable /unionfs, create a memory
-# filesystem for /unionfs.  If /unionfs is a symlink (e.g. to /var/unionfs,
-# then it should already be writable).
-#
 case "${unionfsmfs}" in
 [Yy][Ee][Ss])
 	# Size of memory file system /conf /home partitions
@@ -49,7 +45,7 @@ case "${unionfsmfs}" in
 
 	export VARMFS_COPYDBPKG=yes
 
-	for i in tmp varmfs etcmfs; do
+	for i in tmp varmfs; do
 	       if [ -f /etc/rc.d/$i ]; then
 				sh /etc/rc.d/$i start
 	       fi
