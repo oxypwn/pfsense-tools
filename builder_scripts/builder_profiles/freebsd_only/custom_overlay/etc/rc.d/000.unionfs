@@ -27,6 +27,7 @@
 #
 
 # PROVIDE: unionfs
+# BEFORE:  var
 
 . /etc/rc.subr
 
