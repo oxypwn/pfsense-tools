@@ -73,6 +73,7 @@ case "${unionfsmfs}" in
 	echo -n " boot"
 	mount_unionfs /tmp/unionfs/boot /boot/
 	echo "... done."
+	/etc/rc.d/hostid start
 	;;
 [Nn][Oo])
 	;;
