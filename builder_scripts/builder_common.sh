@@ -1690,10 +1690,10 @@ pfSense_clean_obj_dir() {
 	echo -n "Cleaning up previous build environment...Please wait..."
 	# Allow old CVS_CO_DIR to be deleted later
 	if "$CVS_CO_DIR" != "" ]; then
-		if [ -d $CVS_CO_DIR ]; then 
+		if [ -d "$CVS_CO_DIR" ]; then 
 			echo -n "."
 			chflags -R noschg $CVS_CO_DIR/*
-			rm -rf $CVS_CO_DIR
+			rm -rf $CVS_CO_DIR 2>/dev/null
 		fi
 	fi
 	echo -n "."
@@ -1704,13 +1704,13 @@ pfSense_clean_obj_dir() {
 		rm -rf ${PFSENSEBASEDIR}/dev 2>&1
 		echo -n "."			
 	fi
-	if [ -d $PFSENSEBASEDIR ]; then 
+	if [ -d "$PFSENSEBASEDIR" ]; then 
 		echo -n "."	
 		chflags -R noschg ${PFSENSEBASEDIR}
 		echo -n "."
 		(cd ${CURRENTDIR} && rm -rf ${PFSENSEBASEDIR})	
 	fi
-	if [ -d $PFSENSEISODIR ]; then 
+	if [ -d "$PFSENSEISODIR" ]; then 
 		echo -n "."
 		chflags -R noschg ${PFSENSEISODIR}
 		echo -n "."
