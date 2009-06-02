@@ -16,6 +16,7 @@ sbin/gmirror
 usr/lib/libstdc++.so.6
 usr/local/sbin/gzsig
 usr/bin/patch
+usr/bin/dig
 usr/bin/diff
 usr/bin/host
 usr/bin/nsupdate
