@@ -391,7 +391,7 @@ recompile_pfPorts() {
 		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/buildports.${PFSENSETAG}
 		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/buildports.${PFSENSETAG}"
 		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} ${MAKEJ_PORTS}" ) 2>&1 \
-		| egrep -v '(\-Werror|error\.[a-z])' | egrep -wi "(^>>>|error|finding)"
+		| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error|finding)"
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			mv /tmp/make.conf /etc/
