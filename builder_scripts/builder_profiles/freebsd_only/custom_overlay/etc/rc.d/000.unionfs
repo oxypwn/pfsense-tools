@@ -74,6 +74,7 @@ case "${unionfsmfs}" in
 	mount_unionfs /tmp/unionfs/boot /boot/
 	echo "... done."
 	/etc/rc.d/hostid start
+	rm -f /etc/rc.d/000.unionfs
 	;;
 [Nn][Oo])
 	;;
