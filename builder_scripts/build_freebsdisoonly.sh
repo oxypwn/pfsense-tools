@@ -121,6 +121,8 @@ cust_populate_extra
 # Install BSDInstaller bits
 cust_populate_installer_bits
 
+rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
+
 # Prepare /usr/local/pfsense-fs -> /usr/local/pfsense-clonefs clone
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
