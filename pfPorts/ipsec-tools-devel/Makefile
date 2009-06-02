@@ -73,11 +73,7 @@ CONFIGURE_ARGS+=	--enable-adminport
 CONFIGURE_ARGS+=	--disable-adminport
 .endif
 
-.ifdef(WITH_STATS)
-CONFIGURE_ARGS+=	--enable-stats
-.else
 CONFIGURE_ARGS+=	--disable-stats
-.endif
 
 .ifdef(WITH_DPD)
 CONFIGURE_ARGS+=	--enable-dpd
