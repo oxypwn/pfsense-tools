@@ -103,6 +103,7 @@ fixup_libmap
 echo ">>> Searching for packages..."
 (cd /var/db/pkg && ls | grep bsdinstaller) > $BUILDER_TOOLS/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep grub) >> $BUILDER_TOOLS/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep cpdup) >> $BUILDER_TOOLS/builder_scripts/conf/packages
 
 echo ">>> Installing packages: " 
 cat $BUILDER_TOOLS/builder_scripts/conf/packages
