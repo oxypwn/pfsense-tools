@@ -568,7 +568,7 @@ cust_populate_extra() {
 	cust_populate_installer_bits
 
     # Set buildtime
-	mkdir $CVS_CO_DIR/etc
+	mkdir -p $CVS_CO_DIR/etc
     date > $CVS_CO_DIR/etc/version.buildtime
 
     # Suppress extra spam when logging in
