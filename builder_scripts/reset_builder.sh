@@ -36,7 +36,6 @@ portsnap fetch ; portsnap extract
 
 (cd /usr/ports/sysutils/screen && make install)
 (cd /usr/ports/sysutils/cdrtools && make install)
-(cd /usr/ports/net/cvsup-without-gui && make install)
 
 ./cvsup_current 
 
