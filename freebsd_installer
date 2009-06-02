@@ -24,12 +24,6 @@
 #   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #   POSSIBILITY OF SUCH DAMAGE.
 
-product=`cat /etc/inc/globals.inc | grep product_name | cut -d'"' -f4`
-factory_shipped_password=`cat /etc/inc/globals.inc | grep factory_shipped_password | cut -d'"' -f4`
-factory_shipped_username=`cat /etc/inc/globals.inc | grep factory_shipped_username | cut -d'"' -f4`
-
-echo
-echo "Launching ${product} Installer..."
 echo
 echo "One moment please..."
 echo
@@ -117,15 +111,6 @@ echo
 echo
 echo
 echo
-echo "${product} is now rebooting"
-echo
-echo "After the reboot is complete, open a web browser and"
-echo "enter http://192.168.1.1 (or the LAN IP Address) in the"
-echo "location bar."
-echo
-echo "*DEFAULT Username*: ${factory_shipped_username}"
-echo "*DEFAULT Password*: ${factory_shipped_password}"
-echo
 
 echo Rebooting in 5 seconds.  CTRL-C to abort.
 sleep 1
@@ -137,8 +122,6 @@ echo Rebooting in 2 seconds.  CTRL-C to abort.
 sleep 1
 echo Rebooting in 1 second..  CTRL-C to abort.
 sleep 1
-echo
-echo ${product} is now rebooting.
 echo
 
 reboot
