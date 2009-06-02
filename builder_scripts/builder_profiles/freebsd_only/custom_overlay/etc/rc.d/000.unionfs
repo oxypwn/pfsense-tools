@@ -27,7 +27,7 @@
 #
 
 # PROVIDE: unionfs
-# BEFORE:  disks
+# BEFORE:  mountcritlocal
 
 . /etc/rc.subr
 
