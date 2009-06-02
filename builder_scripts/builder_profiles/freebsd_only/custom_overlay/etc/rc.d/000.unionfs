@@ -46,32 +46,35 @@ case "${unionfsmfs}" in
 
 	export VARMFS_COPYDBPKG=yes
 
-	for i in tmp varmfs; do
+	for i in var varmfs; do
 	       if [ -f /etc/rc.d/$i ]; then
 				sh /etc/rc.d/$i start
 	       fi
 	done
 
 	# Create directories that we will use for unionfs
-	mkdir /tmp/unionfs
-	mkdir /tmp/unionfs/usr
-	mkdir /tmp/unionfs/root
-	mkdir /tmp/unionfs/sbin
-	mkdir /tmp/unionfs/bin
-	mkdir /tmp/unionfs/boot
+	mkdir /var/unionfs
+	mkdir /var/unionfs/etc
+	mkdir /var/unionfs/usr
+	mkdir /var/unionfs/root
+	mkdir /var/unionfs/sbin
+	mkdir /var/unionfs/bin
+	mkdir /var/unionfs/boot
 	
 	# Mount unionfs directories
 	echo -n "Mounting unionfs directories:"
+	echo -n " etc"
+	mount_unionfs /var/unionfs/etc /etc/
 	echo -n " usr"
-	mount_unionfs /tmp/unionfs/usr /usr/
+	mount_unionfs /var/unionfs/usr /usr/
 	echo -n " root"
-	mount_unionfs /tmp/unionfs/root /root/
+	mount_unionfs /var/unionfs/root /root/
 	echo -n " bin"
-	mount_unionfs /tmp/unionfs/bin /bin/		
+	mount_unionfs /var/unionfs/bin /bin/		
 	echo -n " sbin"
-	mount_unionfs /tmp/unionfs/sbin /sbin/	
+	mount_unionfs /var/unionfs/sbin /sbin/	
 	echo -n " boot"
-	mount_unionfs /tmp/unionfs/boot /boot/
+	mount_unionfs /var/unionfs/boot /boot/
 	echo "... done."
 	/etc/rc.d/hostid start
 	rm -f /etc/rc.d/000.unionfs
