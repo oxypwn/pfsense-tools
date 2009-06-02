@@ -44,7 +44,7 @@ export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-${BASE_DIR}/${TOOLS_DIR}/pfPorts}
 
 # This is the directory where the latest pfSense cvs co
 # is checked out to.
-export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/${PFSENSE_DIR}}
+export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/FREEBSD_CUSTOM_ROOT}
 
 # Where pfSense is checked out.  This directory will
 # be overlayed onto the image later in the process
