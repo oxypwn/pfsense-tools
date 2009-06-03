@@ -149,7 +149,6 @@ export NANO_CONFSIZE=2048
 
 # Add UNIONFS
 export NO_UNIONFS=NO
-export UNION_DIRS="usr root"
 
 # Architecture, supported ARCH values are: 
 #  Tier 1: i386, AMD64, and PC98
