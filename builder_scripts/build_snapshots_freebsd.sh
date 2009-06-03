@@ -57,7 +57,8 @@ build_freebsdiso() {
 
 dobuilds() {
 	cd $BUILDERSCRIPTS
-	build_freebsdiso	
+	build_freebsdiso
+	copy_to_staging_deviso_updates	
 	scp_files
 }
 
@@ -69,7 +70,6 @@ copy_to_staging_deviso_updates() {
 }
 
 scp_files() {
-	date >$STAGINGAREA/version
 	echo ">>> Copying files to snapshots.pfsense.org"
 	if [ ! -f /usr/local/bin/rsync ]; then
 		echo ">>> Could not find rsync, installing from ports..."
