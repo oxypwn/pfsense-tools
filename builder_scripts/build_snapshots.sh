@@ -300,6 +300,7 @@ scp_files() {
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates
+	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd	
 	ssh snapshots@${RSYNCIP} rm -rf  /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	ssh snapshots@${RSYNCIP} chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/.
@@ -313,6 +314,9 @@ scp_files() {
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
+	check_for_congestion
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/nanobsd* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/
+		
 	set -e
 }
 
