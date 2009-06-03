@@ -67,6 +67,6 @@ booted_from_install_media=true
 
 dir = { root = "/", tmp = "/tmp/" }
 
-limits.part_min = "100M"
+limits.part_min = "256M"
 
 offlimits_devices = { "fd%d+", "md%d+", "cd%d+" }
