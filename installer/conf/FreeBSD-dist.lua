@@ -15,7 +15,6 @@ install_items = {
 	"bin",
 	"dev",
 	"etc",
-	"kernels",
 	"libexec",
 	"lib",
 	"media",
@@ -64,7 +63,7 @@ dir = {
 }
 
 -- /rescue for example takes a fair amount of space.
-limits.part_min = "256M"
+limits.part_min = "512M"
 
 --
 -- Offlimits mount points and devices.  BSDInstaller will ignore these mount points
