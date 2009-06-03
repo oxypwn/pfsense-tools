@@ -90,11 +90,6 @@ echo Launching Installer NCurses frontend...
 
 #/sbin/conscontrol mute off >/dev/null 2>&1
 
-if [ ! -f /tmp/install_complete ]; then
-	echo Installation did not finish correctly.
-	exit
-fi
-
 clear
 
 echo
