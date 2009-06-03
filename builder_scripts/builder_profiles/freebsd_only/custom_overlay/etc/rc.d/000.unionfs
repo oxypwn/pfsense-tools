@@ -78,6 +78,8 @@ case "${unionfsmfs}" in
 	echo "... done."
 	/etc/rc.d/hostid start
 	rm -f /etc/rc.d/000.unionfs
+	rm -f /etc/rc.d/etcmfs*
+	rm -f /etc/rc.d/varmfs*
 	;;
 [Nn][Oo])
 	;;

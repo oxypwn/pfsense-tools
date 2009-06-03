@@ -148,7 +148,7 @@ export NANO_CODESIZE=0
 export NANO_CONFSIZE=2048 
 
 # Add UNIONFS
-export NO_UNIONFS=NO
+# export NO_UNIONFS=NO
 export UNION_DIRS="usr root"
 
 # Architecture, supported ARCH values are: 
