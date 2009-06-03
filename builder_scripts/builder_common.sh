@@ -1409,7 +1409,7 @@ create_i386_diskimage ( ) {
 	}
 	' > ${MAKEOBJDIRPREFIX}/_.fdisk
 
-	IMG=${MAKEOBJDIRPREFIX}/nanobsd.full.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
+	IMG=${MAKEOBJDIRPREFIX}/nanobsd.full.img
 	MNT=${MAKEOBJDIRPREFIX}/_.mnt
 	mkdir -p ${MNT}
 
@@ -1484,7 +1484,7 @@ create_i386_diskimage ( ) {
                 umount ${MNT}
 	fi
 
-	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.slice.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img bs=64k
+	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.slice.img bs=64k
 	mdconfig -d -u $MD
 	gzip -9 ${MAKEOBJDIRPREFIX}/nanobsd.slice.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
 	gzip -9 ${MAKEOBJDIRPREFIX}/nanobsd.full.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
