@@ -46,6 +46,76 @@ sysids = {
 	{ "Plan9",		 57 }
 }
 
+mountpoints = function(part_megs, ram_megs)
+
+	--
+	-- First, calculate suggested swap size:
+	--
+	local swap_megs = 2 * ram_megs
+	if ram_megs > (part_megs / 2) or part_megs < 4096 then
+		swap_megs = ram_megs
+	end
+	swap = tostring(swap_megs) .. "M"
+
+        --
+        -- The megabytes available on disk for non-swap use.
+        --
+        local avail_megs = part_megs - swap_megs
+
+	--
+	-- Now, based on the capacity of the partition,
+	-- return an appropriate list of suggested mountpoints.
+	--
+	if avail_megs < 300 then
+		return {}
+	elseif avail_megs < 523 then
+		return {
+			{ mountpoint = "/",	capstring = "70M" },
+			{ mountpoint = "swap",	capstring = swap },
+			{ mountpoint = "/var",	capstring = "32M" },
+			{ mountpoint = "/tmp",	capstring = "32M" },
+			{ mountpoint = "/usr",	capstring = "174M" },
+			{ mountpoint = "/home",	capstring = "*" }
+		}
+	elseif avail_megs < 1024 then
+		return {
+			{ mountpoint = "/",	capstring = "96M" },
+			{ mountpoint = "swap",	capstring = swap },
+			{ mountpoint = "/var",	capstring = "64M" },
+			{ mountpoint = "/tmp",	capstring = "64M" },
+			{ mountpoint = "/usr",	capstring = "256M" },
+			{ mountpoint = "/home",	capstring = "*" }
+		}
+	elseif avail_megs < 4096 then
+		return {
+			{ mountpoint = "/",	capstring = "128M" },
+			{ mountpoint = "swap",	capstring = swap },
+			{ mountpoint = "/var",	capstring = "128M" },
+			{ mountpoint = "/tmp",	capstring = "128M" },
+			{ mountpoint = "/usr",	capstring = "512M" },
+			{ mountpoint = "/home",	capstring = "*" }
+		}
+	elseif avail_megs < 10240 then
+		return {
+			{ mountpoint = "/",	capstring = "512M" },
+			{ mountpoint = "swap",	capstring = swap },
+			{ mountpoint = "/var",	capstring = "256M" },
+			{ mountpoint = "/tmp",	capstring = "256M" },
+			{ mountpoint = "/usr",	capstring = "3G" },
+			{ mountpoint = "/home",	capstring = "*" }
+		}
+	else
+		return {
+			{ mountpoint = "/",	capstring = "512M" },
+			{ mountpoint = "swap",	capstring = swap },
+			{ mountpoint = "/var",	capstring = "256M" },
+			{ mountpoint = "/tmp",	capstring = "256M" },
+			{ mountpoint = "/usr",	capstring = "8G" },
+			{ mountpoint = "/home",	capstring = "*" }
+		}
+	end
+end
+
 default_sysid = 165
 package_suffix = "tbz"
 num_subpartitions = 8
