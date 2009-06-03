@@ -50,6 +50,7 @@ build_freebsdiso() {
 	cd $BUILDERSCRIPTS
 	echo ">> Copying FreeBSD overlay information..."
 	cp $BUILDERSCRIPTS/builder_profiles/freebsd_only/pfsense* $BUILDERSCRIPTS/
+	./apply_kernel_patches.sh
 	./clean_build.sh
 	./build_freebsdisoonly.sh
 }
