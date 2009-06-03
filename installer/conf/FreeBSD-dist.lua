@@ -1,6 +1,5 @@
 --
 -- conf/FreeBSD.lua
--- $Id$
 --
 -- This file contains FreeBSD-specific overrides to BSDInstaller.lua.
 --
@@ -11,21 +10,21 @@ product = {
 }
 
 install_items = {
-        "boot",
-        "COPYRIGHT",
-        "bin",
-        "dev",
-        "etc",
-		"kernels",
-        "libexec",
-        "lib",
-        "media",
-        "root",
-		"rescue",
-        "sbin",
-        "sys",
-        "usr",
-        "var"
+	"boot",
+	"COPYRIGHT",
+	"bin",
+	"dev",
+	"etc",
+	"kernels",
+	"libexec",
+	"lib",
+	"media",
+	"root",
+	"rescue",
+	"sbin",
+	"sys",
+	"usr",
+	"var"
 }
 
 cmd_names = cmd_names + {
@@ -40,8 +39,8 @@ cmd_names = cmd_names + {
 }
 
 sysids = {
-	{ "FreeBSD",		165 },
-	{ "OpenBSD",		166 },
+	{ "FreeBSD",	165 },
+	{ "OpenBSD",	166 },
 	{ "NetBSD",		169 },
 	{ "MS-DOS",		 15 },
 	{ "Linux",		131 },
@@ -57,16 +56,19 @@ has_softupdates = true
 window_subpartitions = { "c" }
 use_cpdup = true
 
+booted_from_install_media = true
+
+dir = { 
+	root = "/", 
+	tmp = "/tmp/" 
+}
+
+-- /rescue for example takes a fair amount of space.
+limits.part_min = "256M"
+
 --
--- Offlimits mount points.  BSDInstaller will ignore these mount points
+-- Offlimits mount points and devices.  BSDInstaller will ignore these mount points
 --
 -- example: offlimits_mounts  = { "unionfs" }
 offlimits_mounts  = { "union" }
-
-booted_from_install_media=true
-
-dir = { root = "/", tmp = "/tmp/" }
-
-limits.part_min = "256M"
-
 offlimits_devices = { "fd%d+", "md%d+", "cd%d+" }
