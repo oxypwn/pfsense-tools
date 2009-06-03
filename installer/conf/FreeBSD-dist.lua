@@ -97,7 +97,7 @@ mountpoints = function(part_megs, ram_megs)
 		}
 	elseif avail_megs < 10240 then
 		return {
-			{ mountpoint = "/",	capstring = "512M" },
+			{ mountpoint = "/",	capstring = "1204M" },
 			{ mountpoint = "swap",	capstring = swap },
 			{ mountpoint = "/var",	capstring = "256M" },
 			{ mountpoint = "/tmp",	capstring = "256M" },
@@ -106,7 +106,7 @@ mountpoints = function(part_megs, ram_megs)
 		}
 	else
 		return {
-			{ mountpoint = "/",	capstring = "512M" },
+			{ mountpoint = "/",	capstring = "1024M" },
 			{ mountpoint = "swap",	capstring = swap },
 			{ mountpoint = "/var",	capstring = "256M" },
 			{ mountpoint = "/tmp",	capstring = "256M" },
