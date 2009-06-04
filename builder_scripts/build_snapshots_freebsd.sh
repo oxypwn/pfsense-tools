@@ -49,10 +49,9 @@ mkdir -p $STAGINGAREA
 build_freebsdiso() {
 	cd $BUILDERSCRIPTS
 	echo ">> Copying FreeBSD overlay information..."
-	cp $BUILDERSCRIPTS/builder_profiles/freebsd_only/pfsense* $BUILDERSCRIPTS/
 	./apply_kernel_patches.sh
 	./clean_build.sh
-	./build_freebsdisoonly.sh
+	(cd $BUILDERSCRIPTS/builder_profiles/freebsd_only/ && ./setup_overlay.sh)
 }
 
 dobuilds() {
