@@ -1,0 +1,17 @@
+diff -urN apinger-0.6.1/src/apinger.c apinger-0.6.1-pf/src/apinger.c
+--- src/apinger.c	2009-06-04 13:06:46.000000000 +0200
++++ src/apinger.c	2009-06-04 13:42:59.000000000 +0200
+@@ -853,9 +853,11 @@
+ 		fprintf(f,"Received packets buffer: %s %s\n",buf2,buf1);
+ 		if (t->recently_lost!=really_lost){
+ 			fprintf(f,"   lost packet count mismatch (%i!=%i)!\n",t->recently_lost,really_lost);
+-			logit("%s: Lost packet count mismatch (%i!=%i)!",t->name,t->recently_lost,really_lost);
+-			logit("%s: Received packets buffer: %s %s\n",t->name,buf2,buf1);
++			logit("Target \"%s\": Lost packet count mismatch (%i!=%i)!",t->name,t->recently_lost,really_lost);
++			logit("Target \"%s\": Received packets buffer: %s %s\n",t->name,buf2,buf1);
++			/* do not exit here until we can figure out what is causing this.
+ 			err=1;
++			*/
+ 		}
+ 		free(buf1);
+ 		free(buf2);
