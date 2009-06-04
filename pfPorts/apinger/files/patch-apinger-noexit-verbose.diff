@@ -1,6 +1,26 @@
 diff -urN apinger-0.6.1/src/apinger.c apinger-0.6.1-pf/src/apinger.c
 --- src/apinger.c	2009-06-04 13:06:46.000000000 +0200
-+++ src/apinger.c	2009-06-04 13:42:59.000000000 +0200
++++ src/apinger.c	2009-06-04 14:00:55.000000000 +0200
+@@ -463,16 +463,16 @@
+ struct delayed_report *dr,*tdr;
+ 
+ 	if (on>0){
+-		logit("ALARM: %s(%s)  *** %s ***",t->description,t->name,a->name);
++		logit("ALARM: %s(%s)  *** %s ***. Loss %5.1f%%, Delay %4.3fms",t->description,t->name,a->name,AVG_LOSS(t),AVG_DELAY(t));
+ 		thisid=alarm_on(t,a);
+ 	}
+ 	else{
+ 		lastid=alarm_off(t,a);
+ 		thisid=gen_msgid(t,"off");
+ 		if (on==0)
+-			logit("alarm canceled: %s(%s)  *** %s ***",t->description,t->name,a->name);
++			logit("alarm canceled: %s(%s)  *** %s ***. Loss %5.1f%%, Delay %4.3fms",t->description,t->name,a->name,AVG_LOSS(t),AVG_DELAY(t));
+ 		else
+-			logit("alarm canceled (config reload): %s(%s)  *** %s ***",t->description,t->name,a->name);
++			logit("alarm canceled (config reload): %s(%s)  *** %s ***. Loss %5.1f%%, Delay %4.3fms",t->description,t->name,a->name,AVG_LOSS(t),AVG_DELAY(t));
+ 	}
+ 
+ 	if (a->combine_interval>0){
 @@ -853,9 +853,11 @@
  		fprintf(f,"Received packets buffer: %s %s\n",buf2,buf1);
  		if (t->recently_lost!=really_lost){
