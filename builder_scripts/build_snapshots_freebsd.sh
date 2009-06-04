@@ -57,19 +57,19 @@ build_freebsdiso() {
 
 dobuilds() {
 	cd $BUILDERSCRIPTS
-	build_freebsdiso	
+	build_freebsdiso
+	copy_to_staging_deviso_updates	
 	scp_files
 }
 
 copy_to_staging_deviso_updates() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	mv $FREEBSDOBJDIR/FreeBSD.iso $STAGINGAREA/FreeBSD-${DATESTRING}-8.0-CURRENT.iso
-	gzip $STAGINGAREA/$STAGINGAREA/FreeBSD-${DATESTRING}-8.0-CURRENT.iso
-	md5 $STAGINGAREA/FreeBSD-${DATESTRING}-8.0-CURRENT.iso > $STAGINGAREA/FreeBSD-${DATESTRING}-8.0-CURRENT.iso.md5	
+	gzip $STAGINGAREA/FreeBSD-${DATESTRING}-8.0-CURRENT.iso
+	md5 $STAGINGAREA/FreeBSD-${DATESTRING}-8.0-CURRENT.iso.gz > $STAGINGAREA/FreeBSD-${DATESTRING}-8.0-CURRENT.iso.gz.md5	
 }
 
 scp_files() {
-	date >$STAGINGAREA/version
 	echo ">>> Copying files to snapshots.pfsense.org"
 	if [ ! -f /usr/local/bin/rsync ]; then
 		echo ">>> Could not find rsync, installing from ports..."
@@ -108,6 +108,6 @@ echo ">>> Execing pfsense-build.conf"
 
 while [ /bin/true ]; do
 	build_loop_operations
-	sleep 65535
+	sleep 6000
 done
 

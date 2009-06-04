@@ -230,13 +230,16 @@ dobuilds() {
 }
 
 copy_to_staging_nanobsd() {
-	cp $PFSENSEOBJDIR/pfSense.img $STAGINGAREA/ 
+	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/ 
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz
-	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img
+	mv $STAGINGAREA/nanobsd.full.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img
+	mv $STAGINGAREA/nanobsd.slice.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img
 	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img
+	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img		
 	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz.md5
+	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img.gz.md5
 	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz.sha256
+	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img.gz.sha256	
 }
 
 copy_to_staging_nanobsd_updates() {
@@ -297,6 +300,7 @@ scp_files() {
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates
+	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd	
 	ssh snapshots@${RSYNCIP} rm -rf  /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/_updaters
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	ssh snapshots@${RSYNCIP} chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/.
@@ -310,6 +314,9 @@ scp_files() {
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
 	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
+	check_for_congestion
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/nanobsd* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/
+		
 	set -e
 }
 
