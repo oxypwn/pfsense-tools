@@ -1688,7 +1688,7 @@ pfSense_clean_obj_dir() {
 	freesbie_make cleandir
 	echo -n "Cleaning up previous build environment...Please wait..."
 	# Allow old CVS_CO_DIR to be deleted later
-	if "$CVS_CO_DIR" != "" ]; then
+	if [ "$CVS_CO_DIR" != "" ]; then
 		if [ -d "$CVS_CO_DIR" ]; then 
 			echo -n "."
 			chflags -R noschg $CVS_CO_DIR/*
