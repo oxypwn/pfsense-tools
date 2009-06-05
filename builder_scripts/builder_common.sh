@@ -1320,8 +1320,8 @@ setup_nanobsd ( ) {
 	echo "mount -o ro /dev/ufs/cfg" > ${CONFIG_DIR}/default/etc/remount
 
 	# Put /tmp on the /var ramdisk (could be symlink already)
-	rmdir tmp || true
 	rm -rf tmp || true
+	rmdir tmp || true
 	ln -s var/tmp tmp
 
 }
