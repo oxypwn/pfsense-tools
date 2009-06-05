@@ -66,10 +66,10 @@ do
 			echo "Patching ${PATCH_FILE}"
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
 			| egrep -wi '(patching\ file|warning|error)'
-		fi
-		if [ $? != 0 ]; then
-			echo "Failed to apply patch ${PFSPATCHDIR}/${PATCH_FILE}"
-			find $SRCDIR -name "*.rej"
+			if [ $? != 0 ]; then
+				echo "Failed to apply patch ${PFSPATCHDIR}/${PATCH_FILE}"
+				find $SRCDIR -name "*.rej"
+			fi
 		fi
 	fi
 	if [ $MOVE_FILE_LEN -gt "2" ]; then
