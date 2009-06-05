@@ -99,7 +99,7 @@ mountpoints = function(part_megs, ram_megs)
 		return {
 			{ mountpoint = "/",	capstring = "1204M" },
 			{ mountpoint = "swap",	capstring = swap },
-			{ mountpoint = "/var",	capstring = "256M" },
+			{ mountpoint = "/var",	capstring = "512M" },
 			{ mountpoint = "/tmp",	capstring = "256M" },
 			{ mountpoint = "/usr",	capstring = "3G" },
 			{ mountpoint = "/home",	capstring = "*" }
@@ -108,8 +108,8 @@ mountpoints = function(part_megs, ram_megs)
 		return {
 			{ mountpoint = "/",	capstring = "1024M" },
 			{ mountpoint = "swap",	capstring = swap },
-			{ mountpoint = "/var",	capstring = "256M" },
-			{ mountpoint = "/tmp",	capstring = "256M" },
+			{ mountpoint = "/var",	capstring = "2048M" },
+			{ mountpoint = "/tmp",	capstring = "1G" },
 			{ mountpoint = "/usr",	capstring = "8G" },
 			{ mountpoint = "/home",	capstring = "*" }
 		}
