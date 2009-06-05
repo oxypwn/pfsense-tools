@@ -62,5 +62,6 @@
 ~lib/libc/stdlib~malloc.c.diff~
 ~sys/netipsec~key.c.diff~
 ~sys/conf~files.diff~
+~usr.sbin/wpa/hostapd~driver_freebsd.c.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/dev/usb/~u3g.tgz~
