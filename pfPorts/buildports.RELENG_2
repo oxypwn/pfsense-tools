@@ -21,8 +21,8 @@ PORTSTOBUILD="grub \
 	ipfw-classifyd \
 	igmpproxy \
 	ipsec-tools-devel \
-	isc-dhcp31-server \
-	isc-dhcp31-relay \
+	isc-dhcp30-server \
+	isc-dhcp30-relay \
 	lighttpd \
 	minicron \
 	miniupnpd \
