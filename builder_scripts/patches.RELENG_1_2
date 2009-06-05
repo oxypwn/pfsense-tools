@@ -44,7 +44,6 @@
 ~~~~sys/dev/ath/ath_hal/ar5312~
 ~~~~sys/dev/ath/ath_hal/ar5416~
 ~sys/kern~vfs_mount.c.diff~
-~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/dev/ixgbe/~ixgbe.h.diff~
 ~sys/pci~sis.diff~
 ~sys/dev/glxsb~glxsb.diff~
@@ -64,3 +63,4 @@
 ~sys/netipsec~key.c.diff~
 ~sys/dev/usb/~u3g.tgz~
 ~sys/conf~files.diff~
+~usr.sbin/syslogd~syslogd.c.diff~
