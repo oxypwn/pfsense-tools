@@ -1486,8 +1486,6 @@ create_i386_diskimage ( ) {
 
 	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.slice.img bs=64k
 	mdconfig -d -u $MD
-	gzip -9 ${MAKEOBJDIRPREFIX}/nanobsd.slice.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
-	gzip -9 ${MAKEOBJDIRPREFIX}/nanobsd.full.$NANO_NAME.$PFSENSETAG.$TIMESTAMP.img
 }
 
 pfsense_install_custom_packages_exec() {
