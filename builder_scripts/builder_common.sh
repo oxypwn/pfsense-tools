@@ -1321,7 +1321,6 @@ setup_nanobsd ( ) {
 
 	# Put /tmp on the /var ramdisk (could be symlink already)
 	rm -rf tmp || true
-	rmdir tmp || true
 	ln -s var/tmp tmp
 
 }
