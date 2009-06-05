@@ -232,14 +232,16 @@ dobuilds() {
 copy_to_staging_nanobsd() {
 	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/ 
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	mv $STAGINGAREA/nanobsd.full.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img
-	mv $STAGINGAREA/nanobsd.slice.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img
-	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img
-	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img		
-	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz.md5
-	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img.gz.md5
-	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz.sha256
-	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img.gz.sha256	
+	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img"
+	FILENAMESLICE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img"
+	mv $STAGINGAREA/nanobsd.full.img $STAGINGAREA/$FILENAMEFULL
+	mv $STAGINGAREA/nanobsd.slice.img $STAGINGAREA/$FILENAMESLICE
+	gzip $STAGINGAREA/$FILENAMEFULL
+	gzip $STAGINGAREA/$FILENAMESLICE
+	md5 $STAGINGAREA/$FILENAMEFULL.gz > $FILENAMEFULL.gz.md5
+	md5 $STAGINGAREA/$FILENAMESLICE.gz > $STAGINGAREA/$FILENAMESLICE.gz.md5
+	sha256 $STAGINGAREA/$FILENAMEFULL.gz > $STAGINGAREA/$FILENAMEFULL.gz.sha256
+	sha256 $STAGINGAREA/$FILENAMESLICE.gz > $STAGINGAREA/$FILENAMESLICE.gz.sha256	
 }
 
 copy_to_staging_nanobsd_updates() {
