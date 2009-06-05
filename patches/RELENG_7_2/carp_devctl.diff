@@ -1,40 +1,31 @@
---- sys/netinet/ip_carp.c.orig	Fri Jun  5 13:30:09 2009
-+++ sys/netinet/ip_carp.c	Fri Jun  5 13:33:13 2009
-@@ -35,6 +35,7 @@
- #include <sys/types.h>
- #include <sys/param.h>
- #include <sys/systm.h>
-+#include <sys/bus.h>
- #include <sys/conf.h>
- #include <sys/kernel.h>
- #include <sys/limits.h>
-@@ -2143,6 +2144,7 @@
+--- sys/netinet/ip_carp.c.orig	Fri Jun  5 14:09:32 2009
++++ sys/netinet/ip_carp.c	Fri Jun  5 14:12:11 2009
+@@ -2142,6 +2142,7 @@
+ static void
  carp_set_state(struct carp_softc *sc, int state)
  {
-
-+	char vhid_buf[15], *dev_msg;
++	int link_state;
+ 
  	if (sc->sc_carpdev)
  		CARP_SCLOCK_ASSERT(sc);
-
-@@ -2153,15 +2155,20 @@
+@@ -2152,16 +2153,16 @@
+ 	sc->sc_state = state;
  	switch (state) {
  	case BACKUP:
- 		SC2IFP(sc)->if_link_state = LINK_STATE_DOWN;
-+		dev_msg = "CARP_SLAVE";
+-		SC2IFP(sc)->if_link_state = LINK_STATE_DOWN;
++		link_state = LINK_STATE_DOWN;
  		break;
  	case MASTER:
- 		SC2IFP(sc)->if_link_state = LINK_STATE_UP;
-+		dev_msg = "CARP_MASTER";
+-		SC2IFP(sc)->if_link_state = LINK_STATE_UP;
++		link_state = LINK_STATE_UP;
  		break;
  	default:
- 		SC2IFP(sc)->if_link_state = LINK_STATE_UNKNOWN;
-+		dev_msg = "CARP_UNKNOWN";
+-		SC2IFP(sc)->if_link_state = LINK_STATE_UNKNOWN;
++		link_state = LINK_STATE_UNKNOWN;
  		break;
  	}
- 	rt_ifmsg(SC2IFP(sc));
-+	snprintf(vhid_buf, sizeof(vhid_buf), "vhid=%d", sc->sc_vhid);
-+	devctl_notify("IFNET", SC2IFP(sc)->if_xname, dev_msg, vhid_buf);
+-	rt_ifmsg(SC2IFP(sc));
++	if_link_state_change(SC2IFP(sc), link_state);
  }
-
+ 
  void
-
