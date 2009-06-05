@@ -31,7 +31,7 @@
 ~sys/sys~proc.h.diff~
 ~crypto/openssl/crypto/engine~eng_cryptodev.c.diff
 ~sys/boot/forth~beastie.4th~
-~~~~sys/dev/ath/ath_hal/~
+~~~~sys/dev/ath_hal/ath_hal/~
 ~~~~sys/dev/ath/ath_hal/ar5210~
 ~~~~sys/dev/ath/ath_hal/ar5211~
 ~~~~sys/dev/ath/ath_hal/ar5212~
@@ -49,5 +49,5 @@
 ~sys/netinet~ip_carp.c.diff~
 ~lib/libc/stdlib~malloc.c.diff~
 ~sys/~patch-natt-7.2-2009-05-12.diff~
+~usr.sbin/wpa/hostapd~driver_freebsd.c.diff~
 ~sys/dev/usb/~u3g.tgz~
-

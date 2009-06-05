@@ -1,0 +1,25 @@
+Index: driver_freebsd.c
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/wpa/hostapd/driver_freebsd.c,v
+retrieving revision 1.6.8.1
+diff -u -r1.6.8.1 driver_freebsd.c
+--- driver_freebsd.c	15 Apr 2009 03:14:26 -0000	1.6.8.1
++++ driver_freebsd.c	5 Jun 2009 22:43:01 -0000
+@@ -245,17 +245,6 @@
+ 		return -1;
+ 	}
+ 
+-	if (dev_up) {
+-		memset(&ifr, 0, sizeof(ifr));
+-		snprintf(ifr.ifr_name, IFNAMSIZ, "%s", drv->iface);
+-		ifr.ifr_mtu = HOSTAPD_MTU;
+-		if (ioctl(drv->ioctl_sock, SIOCSIFMTU, &ifr) != 0) {
+-			perror("ioctl[SIOCSIFMTU]");
+-			printf("Setting MTU failed - trying to survive with "
+-			       "current value\n");
+-		}
+-	}
+-
+ 	return 0;
+ }
+ 
