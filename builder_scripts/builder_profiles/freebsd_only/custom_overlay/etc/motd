@@ -1,16 +1,18 @@
 
 Welcome to FreeBSD!
 
-**************************************************************************
+***************************************************************************
 
-Daily FreeBSD-CURRENT LiveCD builds.   To start the BSD Installer please
-run the /scripts/freebsd_installer script.
+Daily FreeBSD-CURRENT LiveCD builds.   
+
+* Login as root with no password
+* To start the installer run /scripts/freebsd_installer
 
 Comments / suggestions / questions?    E-mail sullrich@freebsd.org
 
 Hope you enjoy using this ISO!
 
-**************************************************************************
+***************************************************************************
 
 Before seeking technical support, please use the following resources:
 
