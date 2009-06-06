@@ -1585,6 +1585,7 @@ if [ ! -h /conf ]; then
 	# install the symlink as it would exist on a live system
 	/bin/echo "Symlinking /conf.default to /conf ..."
 	/bin/ln -s /conf.default /conf
+	/bin/ln -s /conf /cf
 	/usr/bin/touch /tmp/remove_conf_symlink
 else
 	# seems like we are already working with a conf dir that is a symlink
@@ -1632,6 +1633,7 @@ fi
 if [ -f /tmp/remove_conf_symlink ]; then
 	/bin/echo "Removing temporary conf dir ..."
 	/bin/rm /conf
+	/bin/rm /cf
 	/bin/rm /tmp/remove_conf_symlink
 fi
 
@@ -1641,8 +1643,10 @@ if [ -f /tmp/restore_conf_dir ]; then
 	/bin/rm /tmp/restore_conf_dir
 fi
 
-/bin/echo "Restoring platform file ..."
-mv /tmp/platform /etc/platform
+if [ -f /tmp/platform ]; then
+	/bin/echo "Restoring platform file ..."
+	mv /tmp/platform /etc/platform
+fi
 
 /bin/echo "Removing pfspkg_installer script from /tmp ..."
 /bin/rm /tmp/pfspkg_installer
