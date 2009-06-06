@@ -21,11 +21,11 @@ fi
 export CVSDIR=${CVSDIR:-"$BUILDER_SCRIPTS"}
 
 echo ">>> Creating installer tarballs..."
-(cd $BASE_DIR/installer/installer/scripts/build  && ./create_installer_tarballs.sh) 2>&1 | egrep -wi '(warning|error)'
+(cd $BASE_DIR/installer/installer/scripts/build  && ./create_installer_tarballs.sh) 2>&1 | egrep -B3 -A3 -wi '(warning|error)'
 echo ">>> Copying ports to the ports directory..."
-(cd $BASE_DIR/installer/installer/scripts/build  && ./copy_ports_to_portsdir.sh) 2>&1 | egrep -wi '(warning|error)'
+(cd $BASE_DIR/installer/installer/scripts/build  && ./copy_ports_to_portsdir.sh) 2>&1 | egrep -B3 -A3 -wi '(warning|error)'
 echo ">>> Rebuilding..."
-(cd $BASE_DIR/installer/installer/scripts/build  && ./build_installer_packages.sh) 2>&1 | egrep -wi '(error)'
+(cd $BASE_DIR/installer/installer/scripts/build  && ./build_installer_packages.sh) 2>&1 | egrep -B3 -A3 -wi '(error)'
 
 if [ -f $BUILDER_TOOLS/builder_scripts/conf/packages.tbz ]; then
 	echo "Moving BSDInstaller package into place..."
