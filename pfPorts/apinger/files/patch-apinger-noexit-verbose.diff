@@ -21,7 +21,7 @@ diff -urN apinger-0.6.1/src/apinger.c apinger-0.6.1-pf/src/apinger.c
  	}
  
  	if (a->combine_interval>0){
-@@ -853,9 +853,11 @@
+@@ -853,9 +853,12 @@
  		fprintf(f,"Received packets buffer: %s %s\n",buf2,buf1);
  		if (t->recently_lost!=really_lost){
  			fprintf(f,"   lost packet count mismatch (%i!=%i)!\n",t->recently_lost,really_lost);
@@ -32,6 +32,7 @@ diff -urN apinger-0.6.1/src/apinger.c apinger-0.6.1-pf/src/apinger.c
 +			/* do not exit here until we can figure out what is causing this.
  			err=1;
 +			*/
++			t->recently_lost=0;
  		}
  		free(buf1);
  		free(buf2);
