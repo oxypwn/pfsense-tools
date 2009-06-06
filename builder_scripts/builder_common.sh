@@ -46,7 +46,9 @@ setup_clog() {
 	# clog source
 	echo "Applying CLOG updates..."
 	(cd ${SRCDIR}/usr.sbin/ && \
-		tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)	
+		tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)
+	cd ${SRCDIR}/usr.sbin/clog && make clean && make && make install
+	cd ${SRCDIR}/usr.sbin/syslogd && make clean && make && make install
 }
 
 print_error_pfS() {
@@ -414,7 +416,8 @@ cust_overlay_host_binaries() {
 	echo "===> Building clog..."
 	(cd $SRCDIR/usr.sbin/clog && make clean && make && make install)
     echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-    install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
+    install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
+    install $SRCDIR/usr.sbin/sysllogd/syslogd $PFSENSEBASEDIR/usr/sbin/
 
 	mkdir -p ${PFSENSEBASEDIR}/bin
 	mkdir -p ${PFSENSEBASEDIR}/sbin
