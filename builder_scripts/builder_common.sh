@@ -1242,6 +1242,7 @@ make_world() {
 
 	# Sometimes inbetween build_iso runs btxld seems to go missing.
 	# ensure that this binary is always built and ready.
+	echo ">>> Ensuring that the btxld problem does not happen on subsequent runs..."
 	(cd $SRCDIR/sys/boot && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
 		| egrep -wi '(patching\ file|warning|error)'
 	(cd $SRCDIR/usr.sbin/btxld && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
