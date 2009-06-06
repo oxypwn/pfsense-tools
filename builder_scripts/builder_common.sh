@@ -1727,7 +1727,7 @@ pfSense_clean_obj_dir() {
 	echo "Done!"
 	echo -n ">>> Ensuring $SRCDIR is clean..."
 	(cd ${SRCDIR}/ && make clean) 2>&1 \
-		| egrep -wi '(warning|error)'	
+		| egrep -wi '(NOTFONNAFIND)'	
 	echo "Done!"
 }
 
