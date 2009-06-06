@@ -27,7 +27,7 @@ diff -urN apinger-0.6.1/src/apinger.c apinger-0.6.1-pf/src/apinger.c
  			fprintf(f,"   lost packet count mismatch (%i!=%i)!\n",t->recently_lost,really_lost);
 -			logit("%s: Lost packet count mismatch (%i!=%i)!",t->name,t->recently_lost,really_lost);
 -			logit("%s: Received packets buffer: %s %s\n",t->name,buf2,buf1);
-+			logit("Target \"%s\": Lost packet count mismatch (%i!=%i)!",t->name,t->recently_lost,really_lost);
++			logit("Target \"%s\": Lost packet count mismatch (%i(recently_lost) != %i(really_lost))!",t->name,t->recently_lost,really_lost);
 +			logit("Target \"%s\": Received packets buffer: %s %s\n",t->name,buf2,buf1);
 +			/* do not exit here until we can figure out what is causing this.
  			err=1;
