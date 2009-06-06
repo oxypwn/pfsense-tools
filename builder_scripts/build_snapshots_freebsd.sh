@@ -22,10 +22,10 @@ if [ ! -f ./pfsense-build.conf ]; then
 fi
 
 # Set verbose
-set -x
+#set -x
 
 # Set debug
-set -e 
+#set -e 
 
 # Local variables that are used by builder scripts
 RSYNCIP="172.29.29.181"
