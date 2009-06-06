@@ -1724,7 +1724,11 @@ pfSense_clean_obj_dir() {
 		echo -n "."
 		rm -rf "${GIT_REPO_DIR}/pfSenseGITREPO"
 	fi
-	echo "Done!"	
+	echo "Done!"
+	echo -n ">>> Ensuring $SRCDIR is clean..."
+	(cd ${SRCDIR}/ && make clean) 2>&1 \
+		| egrep -wi '(warning|error)'	
+	echo "Done!"
 }
 
 copy_config_xml_from_conf_default() {
