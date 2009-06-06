@@ -34,8 +34,8 @@ cd $BUILDER_TOOLS/builder_scripts/
 
 portsnap fetch ; portsnap extract
 
-(cd /usr/ports/sysutils/screen && make install)
-(cd /usr/ports/sysutils/cdrtools && make install)
+(cd /usr/ports/sysutils/screen BATCH=yo && make install)
+(cd /usr/ports/sysutils/cdrtools BATCH=yo && make install)
 
 ./cvsup_current 
 
