@@ -52,5 +52,5 @@
 ~sys/~patch-natt-7.2-2009-05-12.diff~
 ~usr.sbin/wpa/hostapd~driver_freebsd.c.diff~
 ~sys/dev/usb/~u3g.tgz~
-~usr.sbin~clog.diff~
 ~sys/netinet~carp_devctl.diff~
+~usr.sbin/clog~clog.diff~
