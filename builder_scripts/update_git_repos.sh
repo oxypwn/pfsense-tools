@@ -14,14 +14,15 @@ cd $BASE_DIR
 for FILE in `ls`; do
 	if [ -d $FILE/.git ]; then
 		# Make absolute sure we are on current repo.
-		echo ">>> Updating GIT REPO $FILE"
+		echo -n ">>> Updating GIT REPO $FILE..."
 		cd $FILE
-		git fetch
-		git reset --hard
-		git rebase origin
-		git reset --hard		
-		git rebase origin 
+		(git fetch) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		cd $BASE_DIR
+		echo "Done!"
 	fi
 done
 
