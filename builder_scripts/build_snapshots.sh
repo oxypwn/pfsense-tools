@@ -230,7 +230,8 @@ dobuilds() {
 }
 
 copy_to_staging_nanobsd() {
-	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/ 
+	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/
+	cp $PFSENSEOBJDIR/nanobsd.slice.img $STAGINGAREA/
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img"
 	FILENAMESLICE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img"

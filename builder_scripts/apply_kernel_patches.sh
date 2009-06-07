@@ -41,7 +41,7 @@ else
 fi
 
 # CVSUp freebsd version
-echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH}"
+echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} `cat /var/db/fastest_cvsup`"
 /usr/bin/csup -b ${SRCDIR} -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
 echo "Removing old patch rejects..."
