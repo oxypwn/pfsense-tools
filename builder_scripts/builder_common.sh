@@ -374,13 +374,15 @@ recompile_pfPorts() {
 		fi
 		export FORCE_PKG_REGISTER=yo
 
-		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/$USE_PORTS_FILE
-		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/$USE_PORTS_FILE"
+		chmod a+rx $USE_PORTS_FILE
+		echo ">>>> Executing $PFPORTSBASENAME"
 		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} ${MAKEJ_PORTS}" ) 2>&1 \
-		| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error|finding)"
+			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error|finding)"
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
-			mv /tmp/make.conf /etc/
+			if [ -f /tmp/make.conf ]; then
+				mv /tmp/make.conf /etc/
+			fi
 		fi
 
 		echo "===> End of pfPorts..."

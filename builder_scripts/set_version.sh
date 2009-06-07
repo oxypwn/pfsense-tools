@@ -107,6 +107,7 @@ HEAD)
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_2_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2"
+	export PFSPORTSFILE=buildports.RELENG_7_2	
 	set_items
 ;;
 
@@ -120,6 +121,7 @@ RELENG_1_2)
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_1_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"	
+	export PFSPORTSFILE=buildports.RELENG_7_2	
 	set_items
 ;;
 
@@ -144,10 +146,10 @@ RELENG_7_2)
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"
 	export PFSENSE_VERSION=1.2.3
 	export PFSENSETAG=RELENG_1_2
-	export PFSPORTSFILE=buildports.RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_7_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
+	export PFSPORTSFILE=buildports.RELENG_7_2
 	set_items
 ;;
 
@@ -161,6 +163,7 @@ RELENG_8_0)
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_0
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
+	export PFSPORTSFILE=buildports.RELENG_8_0	
 	set_items
 ;;
 esac
