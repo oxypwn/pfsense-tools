@@ -16,8 +16,10 @@ fi
 
 # No ports exist, use portsnap to bootstrap.
 if [ ! -d "/usr/ports/" ]; then
-	/usr/sbin/portsnap fetch
-	/usr/sbin/portsnap extract
+	echo -n  ">>> Grabbing FreeBSD port sources, please wait..."
+	(/usr/sbin/portsnap fetch) 2>&1 | egrep -B3 -A3 -wi '(error)'
+	(/usr/sbin/portsnap extract) 2>&1 | egrep -B3 -A3 -wi '(error)'
+	echo "Done!"
 fi
 
 # Set CURRENTDIR
