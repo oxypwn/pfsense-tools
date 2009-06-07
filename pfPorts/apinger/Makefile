@@ -13,6 +13,8 @@ CATEGORIES=	net ipv6
 MASTER_SITES=	http://freebsdcluster.org/~mich/software/ \
 		http://www.bnet.pl/~jajcus/apinger/
 
+CFLAGS=-O
+
 MAINTAINER=	mich@FreeBSD.org
 COMMENT=	An IP device monitoring tool
 
