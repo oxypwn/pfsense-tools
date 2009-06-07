@@ -624,9 +624,9 @@ cust_install_config_xml() {
 		if [ -f "$USE_CONFIG_XML" ]; then
 			echo ">>>> Using custom config.xml file ${USE_CONFIG_XML} ..."
 			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/cf/conf/config.xml
-			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/conf.default/config.xml
+			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/conf.default/config.xml 2>/dev/null
 			cp ${USE_CONFIG_XML} ${CVS_CO_DIR}/cf/conf/config.xml
-			cp ${USE_CONFIG_XML} ${CVS_CO_DIR}/conf.default/config.xml			
+			cp ${USE_CONFIG_XML} ${CVS_CO_DIR}/conf.default/config.xml 2>/dev/null		
 		fi
 	fi
 }
@@ -1642,7 +1642,9 @@ fi
 if [ -f /tmp/remove_conf_symlink ]; then
 	/bin/echo "Removing temporary conf dir ..."
 	/bin/rm /conf
-	/bin/rm /cf
+	if [ -h /cf ]; then
+		/bin/rm /cf
+	fi
 	/bin/rm /tmp/remove_conf_symlink
 fi
 
