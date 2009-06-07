@@ -42,15 +42,6 @@ fixup_libmap() {
 	
 }
 
-setup_clog() {
-	# clog source
-	#echo "Applying CLOG updates..."
-	#(cd ${SRCDIR}/usr.sbin/ && \
-	#	tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)
-	#cd ${SRCDIR}/usr.sbin/clog && make clean && make && make install
-	#cd ${SRCDIR}/usr.sbin/syslogd && make clean && make && make install
-}
-
 print_error_pfS() {
 	echo
 	echo "####################################"
@@ -63,13 +54,6 @@ print_error_pfS() {
 	report_error
     sleep 999
     kill $$ # NOTE: exit 1 won't work.
-}
-
-check_for_clog() {
-	if [ ! -d $SRCDIR/usr.sbin/clog ]; then
-		echo "Could not find $SRCDIR/usr.sbin/clog.  Run cvsup_current.sh first!"
-		exit
-	fi
 }
 
 # Removes NAT_T and other unneeded kernel options from 1.2 images.

@@ -46,9 +46,6 @@ fi
 # Suck in script helper functions
 . ./builder_common.sh
 
-# Make sure cvsup_current has been run first 
-check_for_clog
-
 echo ">>> Cleaning up old directories..."
 freesbie_make cleandir
 
@@ -82,9 +79,6 @@ update_cvs_depot
 version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
-
-# Make sure clog is ready
-setup_clog
 
 # Build if needed and install world and kernel
 echo ">>> Building world and kernels for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."

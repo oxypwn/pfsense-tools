@@ -57,9 +57,6 @@ export KERNELCONF="${PWD}/conf/pfSense_Dev.$FREEBSD_VERSION"
 # Suck in script helper functions
 . ./builder_common.sh
 
-# Make sure cvsup_current has been run first 
-check_for_clog
-
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 
@@ -70,9 +67,6 @@ update_cvs_depot
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
-
-# Make sure clog is ready
-setup_clog
 
 # Build world, kernel and install
 echo ">>> Building world and kernels for DevISO... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."

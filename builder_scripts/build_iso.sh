@@ -40,9 +40,6 @@
 echo ">>> Cleaning up old directories..."
 freesbie_make cleandir
 
-# Make sure cvsup_current has been run first 
-check_for_clog
-
 # Allow old CVS_CO_DIR to be deleted later
 if [ -d $CVS_CO_DIR ]; then 
 	chflags -R noschg $CVS_CO_DIR
@@ -85,9 +82,6 @@ update_cvs_depot
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
-
-# Make sure clog is ready
-setup_clog
 
 # Invoke FreeSBIE2 toolchain
 

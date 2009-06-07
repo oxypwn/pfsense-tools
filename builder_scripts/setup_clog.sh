@@ -36,4 +36,3 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
-setup_clog

@@ -228,9 +228,6 @@ done
 echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} ${PFSENSETAG} ${SUPFILE}"
 csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
-# Populate clog
-setup_clog
-
 echo "Removing old patch rejects..."
 find $SRCDIR -name "*.rej" -exec rm {} \;
 
