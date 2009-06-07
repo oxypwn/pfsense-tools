@@ -321,7 +321,7 @@ scp_files() {
 	check_for_congestion
 	rsync $RSYNCARGUMENTS $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsd* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/
+	rsync $RSYNCARGUMENTS $STAGINGAREA/pfSense*nanobsd* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/
 		
 	set -e
 }
