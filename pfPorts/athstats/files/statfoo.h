@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2002-2006 Sam Leffler, Errno Consulting
+ * Copyright (c) 2002-2007 Sam Leffler, Errno Consulting
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGES.
  *
- * $FreeBSD: src/tools/tools/ath/athstats/statfoo.h,v 1.1.2.1 2006/09/02 17:18:34 sam Exp $
+ * $FreeBSD: src/tools/tools/ath/athstats/statfoo.h,v 1.2 2007/12/04 05:52:58 sam Exp $
  */
 
 #ifndef _STATFOO_H_

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2002-2006 Sam Leffler, Errno Consulting
+ * Copyright (c) 2002-2007 Sam Leffler, Errno Consulting
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGES.
  *
- * $FreeBSD: src/tools/tools/ath/athstats/athstats.h,v 1.1.2.1 2006/09/02 17:18:34 sam Exp $
+ * $FreeBSD: src/tools/tools/ath/athstats/athstats.h,v 1.3 2009/02/13 05:45:23 sam Exp $
  */
 
 #ifndef _ATHSTATS_H_
@@ -46,6 +46,8 @@ struct athstatfoo {
 	void (*setifname)(struct athstatfoo *, const char *ifname);
 	/* set the mac address of the associated station/ap */
 	void (*setstamac)(struct athstatfoo *, const uint8_t mac[]);
+	/* zero in-kernel statistics */
+	void (*zerostats)(struct athstatfoo *);
 };
 
 struct athstatfoo *athstats_new(const char *ifname, const char *fmtstring);

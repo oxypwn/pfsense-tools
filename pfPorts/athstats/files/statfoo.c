@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2002-2006 Sam Leffler, Errno Consulting
+ * Copyright (c) 2002-2007 Sam Leffler, Errno Consulting
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,13 +12,6 @@
  *    similar to the "NO WARRANTY" disclaimer below ("Disclaimer") and any
  *    redistribution must be conditioned upon including a substantially
  *    similar Disclaimer requirement for further binary redistribution.
- * 3. Neither the names of the above-listed copyright holders nor the names
- *    of any contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * Alternatively, this software may be distributed under the terms of the
- * GNU General Public License ("GPL") version 2 as published by the Free
- * Software Foundation.
  *
  * NO WARRANTY
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -33,7 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGES.
  *
- * $FreeBSD: src/tools/tools/ath/athstats/statfoo.c,v 1.1.2.1 2006/09/02 17:18:34 sam Exp $
+ * $FreeBSD: src/tools/tools/ath/athstats/statfoo.c,v 1.5 2009/02/13 05:42:25 sam Exp $
  */
 
 #include <stdio.h>
@@ -144,12 +137,20 @@ statfoo_print_total(struct statfoo *sf, FILE *fd)
 static void
 statfoo_print_verbose(struct statfoo *sf, FILE *fd)
 {
+	const struct fmt *f;
 	char s[32];
-	int i;
+	int i, width;
 
+	width = 0;
 	for (i = 0; i < sf->nstats; i++) {
+		f = &sf->stats[i];
+		if (f->width > width)
+			width = f->width;
+	}
+	for (i = 0; i < sf->nstats; i++) {
+		f = &sf->stats[i];
 		if (sf->get_totstat(sf, i, s, sizeof(s)) && strcmp(s, "0"))
-			fprintf(fd, "%s %s\n", s, sf->stats[i].desc);
+			fprintf(fd, "%-*s %s\n", width, s, f->desc);
 	}
 }
 
