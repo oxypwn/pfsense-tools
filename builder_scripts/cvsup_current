@@ -183,7 +183,7 @@ fi
 # Add BSDInstaller
 if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 	echo "Fetching BSDInstaller using CVSUP..."
-	csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile
+	(csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	./cvsup_bsdinstaller
 else 
 	echo "Fetching BSDInstaller using GIT..."
@@ -226,7 +226,7 @@ done
 
 # CVSUp freebsd version -- this MUST be after Loop through and remove files
 echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} ${PFSENSETAG} ${SUPFILE}"
-csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}
+(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 
 echo "Removing old patch rejects..."
 find $SRCDIR -name "*.rej" -exec rm {} \;

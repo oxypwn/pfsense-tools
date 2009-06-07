@@ -42,7 +42,7 @@ fi
 
 # CVSUp freebsd version
 echo "Using FreeBSD ${pfSense_version} branch ${FREEBSD_BRANCH} `cat /var/db/fastest_cvsup`"
-/usr/bin/csup -b ${SRCDIR} -h `cat /var/db/fastest_cvsup` ${SUPFILE}
+(/usr/bin/csup -b ${SRCDIR} -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 
 echo "Removing old patch rejects..."
 find $SRCDIR -name "*.rej" -exec rm {} \;

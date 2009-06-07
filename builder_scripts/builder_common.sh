@@ -1180,7 +1180,7 @@ update_cvs_depot() {
 	if [ -z "${USE_GIT:-}" ]; then
 		local _cvsdate
 		echo "Launching csup pfSense-supfile..."
-		/usr/bin/csup -b $BASE_DIR/cvsroot pfSense-supfile
+		(/usr/bin/csup -b $BASE_DIR/cvsroot pfSense-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		rm -rf pfSense
 		echo "Updating ${BASE_DIR}/pfSense..."
 		rm -rf $BASE_DIR/pfSense
