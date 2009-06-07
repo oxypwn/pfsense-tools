@@ -265,7 +265,12 @@ if [ $REJECTED_PATCHES -gt 0 ]; then
 	echo 
 	find $SRCDIR -name "*.rej" 
 	echo
-	exit -1
+	if [ "$FREESBIE_ERROR_MAIL" != "" ]; then
+		LOGFILE="/tmp/patches.failed.apply"
+		find $SRCDIR -name "*.rej" > $LOGFILE
+		report_error
+	fi
+	sleep 9999999
 fi
 
 pfSense_clean_obj_dir
