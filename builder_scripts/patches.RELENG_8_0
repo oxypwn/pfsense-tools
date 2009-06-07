@@ -1,3 +1,4 @@
+~~~/usr.sbin/clog
 ~~~/usr.sbin/syslogd/syslogd.c
 ~~~/contrib/pf/pfctl/pfctl_dn.c~
 ~~~/sys/contrib/pf/net/pf_ftp.c~
@@ -32,3 +33,5 @@
 ~sys/netinet~tcp_output.c.diff~
 ~sys/netinet~ip_carp.c.diff~
 ~sys/kern~vfs_syscalls.c.diff~
+~~~~usr.sbin/clog~
+~usr.sbin/clog~clog.diff~
