@@ -364,7 +364,7 @@ recompile_pfPorts() {
 		# to the build.  Once NAT-T is included in FreeBSD
 		# we can remove this step. 
 		echo "===> Starting make includes operation..."
-		( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|warning|error)'
+		( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|error)'
 		
 		rm -rf ${pfSPORTS_BASE_DIR}
 		mkdir ${pfSPORTS_BASE_DIR}
