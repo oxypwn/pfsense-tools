@@ -1080,20 +1080,20 @@ checkout_pfSense_git() {
 	if [ "${PFSENSETAG}" != "HEAD" ]; then
 		current_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && git branch | grep ${PFSENSETAG}`
 		if [ "$current_branch" = "" ]; then
-			(cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG})
+			(cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		else 
-			(cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout ${PFSENSETAG})
+			(cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout ${PFSENSETAG}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		fi
 	else 
-		(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master)
+		(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	fi
 	if [ $? != 0 ]; then
 		echo "Something went wrong while checking out GIT."
 		print_error_pfS
 	fi
 	mkdir -p $CVS_CO_DIR
-	(cd ${GIT_REPO_DIR}/pfSenseGITREPO && tar czpf /tmp/pfSense.tgz .)
-	(cd $CVS_CO_DIR && tar xzpf /tmp/pfSense.tgz)
+	(cd ${GIT_REPO_DIR}/pfSenseGITREPO && tar czpf /tmp/pfSense.tgz .) 2>&1 | egrep -B3 -A3 -wi '(error)'
+	(cd $CVS_CO_DIR && tar xzpf /tmp/pfSense.tgz) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	rm /tmp/pfSense.tgz
 	rm -rf ${CVS_CO_DIR}/.git	
 }
@@ -1203,7 +1203,7 @@ update_cvs_depot() {
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 			rm -rf ${GIT_REPO_DIR}/pfSense
 			echo ">>> Cloning ${GIT_REPO} using GIT and switching to ${PFSENSETAG}"
-	    		(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO})
+	    		(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			if [ -d "${GIT_REPO_DIR}/mainline" ]; then
 				mv "${GIT_REPO_DIR}/mainline" "${GIT_REPO_DIR}/pfSenseGITREPO"
 			fi
