@@ -121,7 +121,7 @@ RELENG_1_2)
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_1_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"	
-	export PFSPORTSFILE=buildports.RELENG_7_2	
+	export PFSPORTSFILE=buildports.RELENG_1_2
 	set_items
 ;;
 
@@ -149,7 +149,7 @@ RELENG_7_2)
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_7_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
-	export PFSPORTSFILE=buildports.RELENG_7_2
+	export PFSPORTSFILE=buildports.RELENG_1_2
 	set_items
 ;;
 
