@@ -12,6 +12,8 @@ MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
 
+CFLAGS=-O
+
 MAINTAINER?=	sullrich@gmail.com
 COMMENT?=	reinits ata channel 0
 
