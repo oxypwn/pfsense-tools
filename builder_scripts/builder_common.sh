@@ -374,8 +374,8 @@ recompile_pfPorts() {
 		fi
 		export FORCE_PKG_REGISTER=yo
 
-		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/buildports.${PFSENSETAG}
-		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/buildports.${PFSENSETAG}"
+		chmod a+rx ${pfSPORTS_COPY_BASE_DIR}/$USE_PORTS_FILE
+		echo ">>>> Executing ${pfSPORTS_COPY_BASE_DIR}/$USE_PORTS_FILE"
 		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} ${MAKEJ_PORTS}" ) 2>&1 \
 		| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error|finding)"
 		
