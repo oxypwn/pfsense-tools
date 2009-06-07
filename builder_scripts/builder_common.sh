@@ -44,11 +44,11 @@ fixup_libmap() {
 
 setup_clog() {
 	# clog source
-	echo "Applying CLOG updates..."
-	(cd ${SRCDIR}/usr.sbin/ && \
-		tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)
-	cd ${SRCDIR}/usr.sbin/clog && make clean && make && make install
-	cd ${SRCDIR}/usr.sbin/syslogd && make clean && make && make install
+	#echo "Applying CLOG updates..."
+	#(cd ${SRCDIR}/usr.sbin/ && \
+	#	tar xzf ${PFSPATCHDIR}/clog-1.0.1.tar.gz)
+	#cd ${SRCDIR}/usr.sbin/clog && make clean && make && make install
+	#cd ${SRCDIR}/usr.sbin/syslogd && make clean && make && make install
 }
 
 print_error_pfS() {
