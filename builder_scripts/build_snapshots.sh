@@ -233,16 +233,17 @@ copy_to_staging_nanobsd() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img"
 	FILENAMESLICE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img"
-	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/
-	cp $PFSENSEOBJDIR/nanobsd.slice.img $STAGINGAREA/
-	mv $STAGINGAREA/nanobsd.full.img $STAGINGAREA/$FILENAMEFULL
-	mv $STAGINGAREA/nanobsd.slice.img $STAGINGAREA/$FILENAMESLICE
-	gzip $STAGINGAREA/$FILENAMEFULL
-	gzip $STAGINGAREA/$FILENAMESLICE
-	md5 $STAGINGAREA/$FILENAMEFULL.gz > $FILENAMEFULL.gz.md5
-	md5 $STAGINGAREA/$FILENAMESLICE.gz > $STAGINGAREA/$FILENAMESLICE.gz.md5
-	sha256 $STAGINGAREA/$FILENAMEFULL.gz > $STAGINGAREA/$FILENAMEFULL.gz.sha256
-	sha256 $STAGINGAREA/$FILENAMESLICE.gz > $STAGINGAREA/$FILENAMESLICE.gz.sha256	
+	mkdir $STAGINGAREA/nanobsd
+	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/nanobsd
+	cp $PFSENSEOBJDIR/nanobsd.slice.img $STAGINGAREA/nanobsd
+	mv $STAGINGAREA/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL
+	mv $STAGINGAREA/nanobsd.slice.img $STAGINGAREA/nanobsd/$FILENAMESLICE
+	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL
+	gzip $STAGINGAREA/nanobsd/$FILENAMESLICE
+	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5
+	md5 $STAGINGAREA/nanobsd/$FILENAMESLICE.gz > $STAGINGAREA/nanobsd/$FILENAMESLICE.gz.md5
+	sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256
+	sha256 $STAGINGAREA/nanobsd/$FILENAMESLICE.gz > $STAGINGAREA/nanobsd/$FILENAMESLICE.gz.sha256	
 }
 
 copy_to_staging_nanobsd_updates() {
@@ -321,8 +322,7 @@ scp_files() {
 	check_for_congestion
 	rsync $RSYNCARGUMENTS $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/pfSense*nanobsd* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/
-		
+	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/		
 	set -e
 }
 
@@ -330,7 +330,7 @@ cleanup_builds() {
 	# Remove prior builds
 	echo ">>> Cleaning up after prior builds..."
 	rm -rf /usr/obj*
-	rm -f $STAGINGAREA/*
+	rm -rf $STAGINGAREA/*
 	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 	if [ -d /home/pfsense/pfSense ]; then
 		echo "Clearing out previous pfSense checkout directory..."
