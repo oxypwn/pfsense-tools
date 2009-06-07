@@ -100,11 +100,11 @@ case $1 in
 HEAD)
 	echo ">>> Setting builder environment to use HEAD ..."
 	export FREEBSD_VERSION="7"
-	export FREEBSD_BRANCH="RELENG_7_1"
-	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_7_1-supfile"
+	export FREEBSD_BRANCH="RELENG_7_2"
+	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_7_2-supfile"
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=HEAD
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_1
+	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_2_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2"
 	set_items
@@ -113,11 +113,11 @@ HEAD)
 RELENG_1_2)
 	echo ">>> Setting builder environment to use RELENG_1_3-PRE ..."
 	export FREEBSD_VERSION="7"
-	export FREEBSD_BRANCH="RELENG_7_1"
+	export FREEBSD_BRANCH="RELENG_7_2"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"
 	export PFSENSE_VERSION=1.2.3
 	export PFSENSETAG=RELENG_1_2
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_1
+	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_1_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"	
 	set_items
@@ -126,18 +126,18 @@ RELENG_1_2)
 RELENG_2_0)
 	echo ">>> Setting builder environment to use RELENG_2_0 ..."
 	export FREEBSD_VERSION="7"
-	export FREEBSD_BRANCH="RELENG_7_1"
-	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_7_1-supfile"
+	export FREEBSD_BRANCH="RELENG_7_2"
+	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_7_2-supfile"
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=RELENG_2_0
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_1
+	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_2_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2"	
 	set_items
 ;;
 
 RELENG_7_2)
-	echo ">>> Setting builder environment to use RELENG_1_3-PRE w/ FreeBSD 7.2 ..."
+	echo ">>> Setting builder environment to use RELENG_1.2.3-PRE w/ FreeBSD 7.2 ..."
 	export FREEBSD_VERSION="7"
 	export FREEBSD_BRANCH="RELENG_7_2"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"
