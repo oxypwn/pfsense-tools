@@ -53,4 +53,5 @@
 ~usr.sbin/wpa/hostapd~driver_freebsd.c.diff~
 ~sys/dev/usb/~u3g.tgz~
 ~sys/netinet~carp_devctl.diff~
+~~~~sys/usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
