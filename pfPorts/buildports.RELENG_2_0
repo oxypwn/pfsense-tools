@@ -1,0 +1,134 @@
+#!/bin/sh
+
+#set -e
+#set -x
+
+ARCH="i386"
+
+PORTSTOBUILD="grub \
+	apinger \
+	rrdtool \
+	ftpsesame \
+	atareinit \
+	cpdup \
+	beep \
+	check_reload_status \
+	choparp \
+	dnsmasq \
+	expiretable \
+	ifstated \
+	ipfw-classifyd \
+	igmpproxy \
+	ipsec-tools-devel \
+	isc-dhcp30-server \
+	isc-dhcp30-relay \
+	lighttpd \
+	minicron \
+	miniupnpd \
+	mpd4 \
+	olsrd \
+	pftop \
+	libevent \
+	pftpx \
+	relayd \
+	fping \
+	ssh_tunnel_shell \
+	sshlockout_pf \
+	stats \
+	vtsh \
+	php5 \
+	pecl-APC \
+	php5-bcmath \
+	php5-bz2 \
+	php5-ctype \
+	php5-curl \
+	php5-gettext \
+	php5-ldap \
+	php5-mbstring \
+	php5-mhash \
+	php5-mysql \
+	php5-openssl \
+	php5-pcntl \
+	php5-pcre \
+	php5-posix \
+	pecl-radius \
+	php5-readline \
+	php5-session \
+	php5-simplexml \
+	php5-shmop \
+	php5-sysvmsg \
+	php5-sysvsem \
+	php5-sysvshm \
+	php5-sqlite \
+	php5-tokenizer \
+	php5-xml \
+	php5-zlib \
+	php-xdebug \
+	openvpn \
+	syslog-ng \
+	zip \
+	links \
+	dnswatch \
+	verifysig \
+	athstats \
+	openntpd \
+	ftp-proxy \
+	pecl-uploadprogress \
+	php5-json \
+	php5-install-all"
+
+if [ -f pfsense_local.sh ]; then
+	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+else 
+	if [ -f ../builder_scripts/pfsense_local.sh ]; then
+		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
+	fi
+fi
+
+CURRENTDIR=`pwd`
+
+if [ ! -d /usr/ports/INDEX-7.bz2 ]; then 
+	( cd /usr/ports && make fetchindex )
+fi
+
+# pfSense is english based.
+rm -rf /usr/ports/chinese/links
+
+for PORT in $PORTSTOBUILD; do
+	echo "Finding $PORT..."
+	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
+	if [ "${DOESPORTEXIST}x" != "x" ]; then
+		( cd $DOESPORTEXIST && make clean )
+	else 
+		( cd /home/pfsense/tools/pfPorts/$PORT && make clean)
+	fi
+done
+
+echo ">>>> Using MAKEJ_PORTS: ${MAKEJ_PORTS}"
+		
+for PORT in $PORTSTOBUILD; do
+	echo ">>>> Building $PORT..."
+	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
+	if [ "${DOESPORTEXIST}x" != "x" ]; then
+		echo "Found port.  Copying and building..."
+		if [ -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
+			echo "Found /home/pfsense/tools/pfPorts/useports ... Not removing target port directory."
+		else
+			echo "Removing ${DOESPORTEXIST}..."
+			rm -rf $DOESPORTEXIST
+			mkdir -p $DOESPORTEXIST			
+		fi
+		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
+		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+	else
+		echo "Port not found, building from pfPorts..."
+		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
+		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+	fi
+done
+
+cd $CURRENTDIR
