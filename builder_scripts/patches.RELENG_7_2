@@ -1,3 +1,4 @@
+~~~/usr.sbin/clog
 ~~~/contrib/pf/pfctl/pfctl_dn.c~
 ~~~/sys/contrib/pf/net/pf_pptp.c~
 ~~~/sys/contrib/pf/net/pf_ftp.c~
@@ -51,3 +52,4 @@
 ~sys/~patch-natt-7.2-2009-05-12.diff~
 ~usr.sbin/wpa/hostapd~driver_freebsd.c.diff~
 ~sys/dev/usb/~u3g.tgz~
+~usr.sbin~clog.diff~
