@@ -42,6 +42,13 @@ fixup_libmap() {
 	
 }
 
+handle_athstats() {
+	echo -n ">>>> Building athstats..."
+	cd $SRCDIR/tools/ath/athstats
+	(make clean && make && make install) | egrep -wi '(^>>>|error)'
+	echo "Done!"
+}
+
 print_error_pfS() {
 	echo
 	echo "####################################"
@@ -388,6 +395,8 @@ recompile_pfPorts() {
 				mv /tmp/make.conf /etc/
 			fi
 		fi
+
+		handle_athstats
 
 		echo "===> End of pfPorts..."
 	

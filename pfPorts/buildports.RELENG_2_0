@@ -70,7 +70,6 @@ PORTSTOBUILD="grub \
 	links \
 	dnswatch \
 	verifysig \
-	athstats \
 	openntpd \
 	ftp-proxy \
 	pecl-uploadprogress \

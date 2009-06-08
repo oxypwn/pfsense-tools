@@ -69,7 +69,6 @@ PORTSTOBUILD="grub \
 	links \
 	dnswatch \
 	verifysig \
-	athstats \
 	openntpd \
 	ftp-proxy \
 	php4 \
