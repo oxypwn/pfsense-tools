@@ -1101,11 +1101,13 @@ checkout_pfSense_git() {
 		fi
 	fi
 	# XXX: use git branch to verify that we are on the correct branch / mainline, etc.
+	echo -n ">>> Creating tarball of checked out contents..."
 	mkdir -p $CVS_CO_DIR
 	cd ${GIT_REPO_DIR}/pfSenseGITREPO && tar czpf /tmp/pfSense.tgz .
 	cd $CVS_CO_DIR && tar xzpf /tmp/pfSense.tgz
 	rm /tmp/pfSense.tgz
-	rm -rf ${CVS_CO_DIR}/.git	
+	rm -rf ${CVS_CO_DIR}/.git
+	echo "Done!"
 }
 
 checkout_pfSense() {
