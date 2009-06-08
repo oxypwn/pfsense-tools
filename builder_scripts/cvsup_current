@@ -195,6 +195,7 @@ else
 fi
 
 # Loop through and remove files
+PFSPATCHFILE=`basename $PFSPATCHFILE`
 echo ">>> Removing needed files listed in ${PFSPATCHFILE} ${PFSENSETAG}"
 for LINE in `cat ${PFSPATCHFILE}`
 do
