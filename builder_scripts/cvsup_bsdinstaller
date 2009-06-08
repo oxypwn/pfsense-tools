@@ -26,8 +26,9 @@ CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
 # Update BSDInstaller
-echo ">>> Updating BSDInstaller collection..."
+echo -n ">>> Updating BSDInstaller collection..."
 (/usr/bin/csup -b $BUILDER_SCRIPTS ${CURRENTDIR}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
+echo "Done!"
 
 mkdir -p ${BASE_DIR}/installer
 ln -s ${BUILDER_TOOLS}/builder_scripts/installer ${BASE_DIR}/installer/installer 2>/dev/null

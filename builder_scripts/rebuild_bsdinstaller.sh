@@ -20,17 +20,23 @@ fi
 
 export CVSDIR=${CVSDIR:-"$BUILDER_SCRIPTS"}
 
-echo ">>> Creating installer tarballs..."
+echo -n ">>> Creating installer tarballs..."
 (cd $BASE_DIR/installer/installer/scripts/build  && ./create_installer_tarballs.sh) 2>&1 | egrep -B3 -A3 -wi '(warning|error)'
-echo ">>> Copying ports to the ports directory..."
+echo "Done!"
+
+echo -n ">>> Copying ports to the ports directory..."
 (cd $BASE_DIR/installer/installer/scripts/build  && ./copy_ports_to_portsdir.sh) 2>&1 | egrep -B3 -A3 -wi '(warning|error)'
-echo ">>> Rebuilding..."
+echo "Done!"
+
+echo -n ">>> Rebuilding..."
 (cd $BASE_DIR/installer/installer/scripts/build  && ./build_installer_packages.sh) 2>&1 | egrep -B3 -A3 -wi '(error)'
+echo "Done!"
 
 if [ -f $BUILDER_TOOLS/builder_scripts/conf/packages.tbz ]; then
-	echo "Moving BSDInstaller package into place..."
+	echo -n ">>> Moving BSDInstaller package into place..."
 	mv $BUILDER_TOOLS/builder_scripts/conf/packages.tbz \
 		/usr/ports/packages/All/bsdinstaller-2.0.2008.0405.tbz
+	echo "Done!"
 fi
 
 # Restore previous make.conf
