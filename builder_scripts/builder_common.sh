@@ -1084,6 +1084,7 @@ clone_system_only()
 
 checkout_pfSense_git() {
 	echo ">>> Using GIT to checkout ${PFSENSETAG}"
+	echo -n ">>> "
 	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
 		(cd ${GIT_REPO_DIR}/pfSenseGITREPO && /usr/local/bin/git checkout master) | egrep -wi '(^>>>|error)'
