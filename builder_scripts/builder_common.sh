@@ -559,16 +559,15 @@ cust_populate_installer_bits() {
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 cust_populate_extra() {
     # Make devd
-    ( cd ${SRCDIR}/sbin/devd; export __SRCCONF=${SRC_CONF} SRCCONF=${SRC_CONF} NO_MAN=YES \
-	make clean; make depend; make all; make DESTDIR=$PFSENSEBASEDIR install ) | egrep -wi '(^>>>|error)'
+    (cd ${SRCDIR}/sbin/devd && export RCCONF=${SRC_CONF} NO_MAN=YES make clean && make depend && make all && make DESTDIR=${PFSENSEBASEDIR} install) | egrep -wi '(^>>>|error)'
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
 	if [ -f /usr/lib/pam_unix.so ]; then
-		(install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/) | egrep -wi '(^>>>|error)'
+		install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/
 	fi
 	
-	STRUCTURE_TO_CREATE="var/run root scripts conf usr/local/share/dfuibe_installer root usr/local/bin usr/local/sbin usr/local/lib usr/local/etc usr/local/lib/php/20060613 usr/local/lib/lighttpd"
+	STRUCTURE_TO_CREATE="root etc usr/local/pkg/parse_config var/run scripts conf usr/local/share/dfuibe_installer root usr/local/bin usr/local/sbin usr/local/lib usr/local/etc usr/local/lib/php/20060613 usr/local/lib/lighttpd"
 	
 	for TEMPDIR in $STRUCTURE_TO_CREATE; do	
 		mkdir -p ${CVS_CO_DIR}/${TEMPDIR}
@@ -583,14 +582,11 @@ cust_populate_extra() {
     cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
 
 	# Make sure parse_config exists
-	mkdir -p $CVS_CO_DIR//usr/local/pkg/parse_config/
 
     # Set buildtime
-	mkdir -p $CVS_CO_DIR/etc
     date > $CVS_CO_DIR/etc/version.buildtime
 
     # Suppress extra spam when logging in
-	mkdir -p $CVS_CO_DIR/root
     touch $CVS_CO_DIR/root/.hushlogin
 
     # Setup login environment
@@ -599,7 +595,6 @@ cust_populate_extra() {
     echo "exit" >> $CVS_CO_DIR/root/.shrc
     echo "/etc/rc.initial" >> $CVS_CO_DIR/root/.profile
     echo "exit" >> $CVS_CO_DIR/root/.profile
-	mkdir -p $PFSENSEBASEDIR/root
     echo > $PFSENSEBASEDIR/root/.shrc
     echo "/etc/rc.initial" >> $PFSENSEBASEDIR/root/.shrc
     echo "exit" >> $PFSENSEBASEDIR/root/.shrc
