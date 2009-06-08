@@ -560,12 +560,12 @@ cust_populate_installer_bits() {
 cust_populate_extra() {
     # Make devd
     ( cd ${SRCDIR}/sbin/devd; export __SRCCONF=${SRC_CONF} SRCCONF=${SRC_CONF} NO_MAN=YES \
-	make clean; make depend; make all; make DESTDIR=$PFSENSEBASEDIR install )
+	make clean; make depend; make all; make DESTDIR=$PFSENSEBASEDIR install ) | egrep -wi '(^>>>|error)'
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
 	if [ -f /usr/lib/pam_unix.so ]; then
-		install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/
+		(install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/) | egrep -wi '(^>>>|error)'
 	fi
 	
 	STRUCTURE_TO_CREATE="var/run root scripts conf usr/local/share/dfuibe_installer root usr/local/bin usr/local/sbin usr/local/lib usr/local/etc usr/local/lib/php/20060613 usr/local/lib/lighttpd"
