@@ -1086,23 +1086,24 @@ checkout_pfSense_git() {
 	echo "Using GIT to checkout ${PFSENSETAG}"
 	# XXX: do we need to revert the co to HEAD if it has been 
 	#      checked out on another branch?
+	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" != "HEAD" ]; then
 		current_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && git branch | grep ${PFSENSETAG}`
 		if [ "$current_branch" = "" ]; then
-			(cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG}) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG}
 		else 
-			(cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout ${PFSENSETAG}) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout ${PFSENSETAG}
 		fi
 	else 
-		(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master
 	fi
 	if [ $? != 0 ]; then
 		echo "Something went wrong while checking out GIT."
 		print_error_pfS
 	fi
 	mkdir -p $CVS_CO_DIR
-	(cd ${GIT_REPO_DIR}/pfSenseGITREPO && tar czpf /tmp/pfSense.tgz .) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd $CVS_CO_DIR && tar xzpf /tmp/pfSense.tgz) 2>&1 | egrep -B3 -A3 -wi '(error)'
+	cd ${GIT_REPO_DIR}/pfSenseGITREPO && tar czpf /tmp/pfSense.tgz .
+	cd $CVS_CO_DIR && tar xzpf /tmp/pfSense.tgz
 	rm /tmp/pfSense.tgz
 	rm -rf ${CVS_CO_DIR}/.git	
 }
@@ -1211,14 +1212,15 @@ update_cvs_depot() {
 		fi
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 			rm -rf ${GIT_REPO_DIR}/pfSense
-			echo ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}"
-	    		(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO}) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			echo -n ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}..."
+	    	(cd ${GIT_REPO_DIR} && /usr/local/bin/git clone ${GIT_REPO}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			if [ -d "${GIT_REPO_DIR}/mainline" ]; then
 				mv "${GIT_REPO_DIR}/mainline" "${GIT_REPO_DIR}/pfSenseGITREPO"
 			fi
 			if [ -d "${GIT_REPO_DIR}/pfSense" ]; then
 				mv "${GIT_REPO_DIR}/pfSense" "${GIT_REPO_DIR}/pfSenseGITREPO"
 			fi
+			echo "Done!"
 		fi
 		checkout_pfSense_git
 		if [ $? != 0 ]; then	
