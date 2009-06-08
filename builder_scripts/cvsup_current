@@ -193,7 +193,7 @@ else
 fi
 
 # Loop through and remove files
-echo "Removing needed files listed in ${PFSPATCHFILE} ${PFSENSETAG}"
+echo ">>> Removing needed files listed in ${PFSPATCHFILE} ${PFSENSETAG}"
 for LINE in `cat ${PFSPATCHFILE}`
 do
 	PATCH_RM=`echo $LINE | cut -d~ -f4`
@@ -208,7 +208,8 @@ do
 done
 
 # CVSUp freebsd version -- this MUST be after Loop through and remove files
-echo -n "Obtaining FreeBSD sources ${pfSense_version} branch ${FREEBSD_BRANCH} ${PFSENSETAG} ${SUPFILE}..."
+BASENAMESUPFILE=`basename $SUPFILE`
+echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
 (csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 echo "Done!"
 
