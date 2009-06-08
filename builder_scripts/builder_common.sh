@@ -44,7 +44,7 @@ fixup_libmap() {
 
 handle_athstats() {
 	echo -n ">>>> Building athstats..."
-	cd $SRCDIR/tools/ath/athstats
+	cd $SRCDIR/tools/tools/ath/athstats
 	(make clean && make && make install) | egrep -wi '(^>>>|error)'
 	echo "Done!"
 }
