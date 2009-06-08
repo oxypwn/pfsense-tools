@@ -1,0 +1,24 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.7
+diff -u -r1.7 pf.c
+--- sys/contrib/pf/net/pf.c	8 Jun 2009 21:54:34 -0000	1.7
++++ sys/contrib/pf/net/pf.c	8 Jun 2009 21:59:50 -0000
+@@ -1015,11 +1015,13 @@
+ 		sx_slock(&pf_consistency_lock);
+ 		PF_LOCK();
+ 
+-		if (pf_end_threads) {
+-			pf_purge_expired_states(pf_status.states);
++		pf_purge_expired_states(1 + (pf_status.states
++			/ pf_default_rule.timeout[PFTM_INTERVAL]));
++		
++		if (++pf_end_threads >= pf_default_rule.timeout[PFTM_INTERVAL]) {
+ 			pf_purge_expired_fragments();
+ 			pf_purge_expired_src_nodes(0);
+-			pf_end_threads++;
++			pf_end_threads = 0;
+ 
+ 			sx_sunlock(&pf_consistency_lock);
+ 			PF_UNLOCK();
