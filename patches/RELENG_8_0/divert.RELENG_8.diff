@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /usr/repo/HEAD/contrib/pf/pfctl/parse.y,v
+RCS file: /root/repo/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.3
 diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	7 Apr 2009 18:01:12 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	7 Apr 2009 18:03:00 -0000
+--- contrib/pf/pfctl/parse.y	8 Jun 2009 21:10:08 -0000	1.3
++++ contrib/pf/pfctl/parse.y	8 Jun 2009 21:10:49 -0000
 @@ -132,6 +132,7 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
@@ -135,11 +135,11 @@ diff -u -r1.3 parse.y
  		{ "max-src-nodes",	MAXSRCNODES},
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /usr/repo/HEAD/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /root/repo/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.3
 diff -u -r1.3 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	7 Apr 2009 18:01:12 -0000	1.3
-+++ contrib/pf/pfctl/pfctl_parser.c	7 Apr 2009 18:03:00 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	8 Jun 2009 21:10:08 -0000	1.3
++++ contrib/pf/pfctl/pfctl_parser.c	8 Jun 2009 21:10:49 -0000
 @@ -915,6 +915,12 @@
  			printf("max-src-conn %u", r->max_src_conn);
  			opts = 0;
@@ -164,12 +164,12 @@ diff -u -r1.3 pfctl_parser.c
  	if (r->match_tagname[0]) {
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/pf/net/pf.c,v
+RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.3
 diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	7 Apr 2009 18:01:26 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	7 Apr 2009 18:03:00 -0000
-@@ -142,6 +142,7 @@
+--- sys/contrib/pf/net/pf.c	8 Jun 2009 21:10:08 -0000	1.3
++++ sys/contrib/pf/net/pf.c	8 Jun 2009 21:31:02 -0000
+@@ -141,6 +141,7 @@
  #ifdef __FreeBSD__
  #include <netinet/ip_fw.h>
  #include <netinet/ip_dummynet.h>
@@ -177,7 +177,7 @@ diff -u -r1.3 pf.c
  
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
-@@ -388,6 +389,8 @@
+@@ -387,6 +388,8 @@
  		r = (*state)->rule.ptr;						\
          	if (r->dnpipe && !(pd->pf_mtag->flags & PF_DN_TAG_PRESENT))	\
                  	return (PF_PASS);					\
@@ -186,7 +186,7 @@ diff -u -r1.3 pf.c
  	} while (0)
  
  struct pf_src_tree tree_src_tracking;
-@@ -4720,7 +4723,8 @@
+@@ -4719,7 +4722,8 @@
           */
          if ((th->th_flags & TH_SYN) && src->state == TCPS_SYN_SENT &&
  		dst->state == TCPS_CLOSED) {
@@ -196,7 +196,7 @@ diff -u -r1.3 pf.c
                  	return (PF_PASS);
  	}
  
-@@ -6844,6 +6848,8 @@
+@@ -6843,6 +6847,8 @@
  
  #ifdef __FreeBSD__
  	struct m_tag *dn_tag;
@@ -205,14 +205,14 @@ diff -u -r1.3 pf.c
  	struct ip_fw_args	 dnflow;
  
  	PF_LOCK();
-@@ -6916,18 +6922,29 @@
+@@ -6915,18 +6921,29 @@
  		goto done;
  	}
  
 -	dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL);
 -        if (dn_tag != NULL &&
 -                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
-+	if (DUMMYNET_LOADED && 
++	if (ip_dn_io_ptr != NULL && 
 +        	((dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL)) != NULL &&
 +                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF)) {
  		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
@@ -239,7 +239,7 @@ diff -u -r1.3 pf.c
  	m = *m0;
  	h = mtod(m, struct ip *);
  
-@@ -7114,6 +7131,17 @@
+@@ -7113,6 +7130,17 @@
  		    ("pf: dropping packet with ip options\n"));
  	}
  
@@ -257,11 +257,11 @@ diff -u -r1.3 pf.c
  	if ((s && s->tag) || r->rtableid)
  		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
  
-@@ -7133,7 +7161,53 @@
+@@ -7132,7 +7160,51 @@
  #endif /* ALTQ */
  
  #ifdef __FreeBSD__
--        if (r->dnpipe && DUMMYNET_LOADED &&
+-        if (r->dnpipe && ip_dn_io_ptr != NULL &&
 +#if 0
 +	if (divflags & PFSTATE_DIVERT_TAG)
 +		pd.pf_mtag->tag = divertcookie;
@@ -273,46 +273,44 @@ diff -u -r1.3 pf.c
 +		struct pf_rule *dlr;
 +		action = PF_DROP;
 +		REASON_SET(&reason, PFRES_DIVERT);
-+               	log = 1;
-+               	DPFPRINTF(PF_DEBUG_MISC,
-+                  		("pf: changing action to with overload from divert.\n"));
++		log = 1;
++		DPFPRINTF(PF_DEBUG_MISC,
++			("pf: changing action to with overload from divert.\n"));
 +		dlr = r;
-+                PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a, 
++		PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a, 
 +			ruleset, &pd);
 +		PF_UNLOCK();
 +		return (action);
 +	}
-+	
++       
 +	if (r->divert && ip_divert_ptr != NULL &&
 +		!(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT)) { 
-+			if (!r->spare1 ||
-+				(s && s->packets[dir == PF_OUT] <= r->spare1)) {
-+				
-+				struct divert_tag *dt;
-+                        	dn_tag = m_tag_get(PACKET_TAG_DIVERT, 
-+					sizeof(struct divert_tag), M_NOWAIT);
-+				if (dn_tag != NULL) {
-+				
-+                        		dt = (struct divert_tag *)(dn_tag+1);
-+                        		dt->cookie = 0;
-+                        		dt->info = r->divert;
-+                        		m_tag_prepend(m, dn_tag);
++		if (!r->spare1 ||
++			(s && s->packets[dir == PF_OUT] <= r->spare1)) {
++                              
++			struct divert_tag *dt;
++			dn_tag = m_tag_get(PACKET_TAG_DIVERT, 
++				sizeof(struct divert_tag), M_NOWAIT);
++			if (dn_tag != NULL) {
++				dt = (struct divert_tag *)(dn_tag+1);
++				dt->cookie = 0;
++				dt->info = r->divert;
++				m_tag_prepend(m, dn_tag);
 +
-+					PF_UNLOCK();
++				PF_UNLOCK();
 +
-+					ip_divert_ptr(*m0, 
-+						dir == 
-+						PF_IN ? DIV_DIR_IN : DIV_DIR_OUT);
++				ip_divert_ptr(*m0, 
++					dir == 	PF_IN ? DIV_DIR_IN : DIV_DIR_OUT);
 +
-+					*m0 = NULL;	
-+					return (action);
-+				}
-+		 	}
-+        } else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) && DUMMYNET_LOADED &&
++				*m0 = NULL;     
++				return (action);
++			}
++		}
++	} else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) && ip_dn_io_ptr != NULL &&
                  !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
                          struct ip_fw dummyrule;
  
-@@ -7142,9 +7216,15 @@
+@@ -7141,9 +7213,15 @@
                          dummyrule.act_ofs = 0;
                          dummyrule.cmd_len = 1;
                          if (dir != r->direction && r->pdnpipe) {
@@ -332,11 +330,11 @@ diff -u -r1.3 pf.c
  
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/pf/net/pf_mtag.h,v
+RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.3
 diff -u -r1.3 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	7 Apr 2009 18:01:26 -0000	1.3
-+++ sys/contrib/pf/net/pf_mtag.h	7 Apr 2009 18:03:00 -0000
+--- sys/contrib/pf/net/pf_mtag.h	8 Jun 2009 21:10:08 -0000	1.3
++++ sys/contrib/pf/net/pf_mtag.h	8 Jun 2009 21:10:49 -0000
 @@ -38,6 +38,7 @@
  #define	PF_TAG_FRAGCACHE		0x02
  #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
@@ -347,11 +345,11 @@ diff -u -r1.3 pf_mtag.h
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.4
-diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	7 Apr 2009 18:01:26 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	7 Apr 2009 18:03:00 -0000
+RCS file: /root/repo/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.3
+diff -u -r1.3 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	8 Jun 2009 21:10:08 -0000	1.3
++++ sys/contrib/pf/net/pfvar.h	8 Jun 2009 21:10:49 -0000
 @@ -649,6 +649,7 @@
  	u_int16_t		 tag;
  	u_int16_t		 match_tag;
@@ -402,12 +400,12 @@ diff -u -r1.4 pfvar.h
  
 Index: sys/netinet/ip_divert.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/netinet/ip_divert.c,v
+RCS file: /root/repo/repo/src/sys/netinet/ip_divert.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.c
---- sys/netinet/ip_divert.c	6 Apr 2009 15:45:12 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.c	7 Apr 2009 18:03:00 -0000
-@@ -779,5 +779,4 @@
+--- sys/netinet/ip_divert.c	8 Jun 2009 18:46:34 -0000	1.1.1.1
++++ sys/netinet/ip_divert.c	8 Jun 2009 21:10:49 -0000
+@@ -785,5 +785,4 @@
  };
  
  DECLARE_MODULE(ipdivert, ipdivertmod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
@@ -415,11 +413,11 @@ diff -u -r1.1.1.1 ip_divert.c
  MODULE_VERSION(ipdivert, 1);
 Index: sys/netinet/ip_divert.h
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/netinet/ip_divert.h,v
+RCS file: /root/repo/repo/src/sys/netinet/ip_divert.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.h
---- sys/netinet/ip_divert.h	6 Apr 2009 15:45:12 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.h	7 Apr 2009 18:03:00 -0000
+--- sys/netinet/ip_divert.h	8 Jun 2009 18:46:34 -0000	1.1.1.1
++++ sys/netinet/ip_divert.h	8 Jun 2009 21:10:49 -0000
 @@ -50,6 +50,9 @@
  	u_int16_t	cookie;		/* ipfw rule number */
  };
@@ -430,13 +428,38 @@ diff -u -r1.1.1.1 ip_divert.h
  /*
   * Return the divert cookie associated with the mbuf; if any.
   */
-Index: sys/netinet/ip_fw_pfil.c
+Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/netinet/ip_fw_pfil.c,v
+RCS file: /root/repo/repo/src/sys/netinet/ip_input.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_input.c
+--- sys/netinet/ip_input.c	8 Jun 2009 18:46:34 -0000	1.1.1.1
++++ sys/netinet/ip_input.c	8 Jun 2009 21:18:49 -0000
+@@ -81,6 +81,7 @@
+ #ifdef IPSEC
+ #include <netinet/ip_ipsec.h>
+ #endif /* IPSEC */
++#include <netinet/ip_divert.h>
+ 
+ #include <sys/socketvar.h>
+ 
+@@ -118,6 +119,9 @@
+ static int	nipq;	/* Total # of reass queues */
+ #endif
+ 
++/* Divert hooks */
++ip_divert_packet_t *ip_divert_ptr = NULL;
++
+ SYSCTL_V_INT(V_NET, vnet_inet, _net_inet_ip, IPCTL_FORWARDING,
+     forwarding, CTLFLAG_RW, ipforwarding, 0,
+     "Enable IP forwarding between interfaces");
+Index: sys/netinet/ipfw/ip_fw_pfil.c
+===================================================================
+RCS file: /root/repo/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_fw_pfil.c
---- sys/netinet/ip_fw_pfil.c	7 Apr 2009 18:01:32 -0000	1.2
-+++ sys/netinet/ip_fw_pfil.c	7 Apr 2009 18:03:00 -0000
+--- sys/netinet/ipfw/ip_fw_pfil.c	8 Jun 2009 21:10:08 -0000	1.2
++++ sys/netinet/ipfw/ip_fw_pfil.c	8 Jun 2009 21:12:20 -0000
 @@ -77,16 +77,11 @@
  
  int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
@@ -454,29 +477,3 @@ diff -u -r1.2 ip_fw_pfil.c
  
  int
  ipfw_check_in(void *arg, struct mbuf **m0, struct ifnet *ifp, int dir,
-Index: sys/netinet/ip_input.c
-===================================================================
-RCS file: /usr/repo/HEAD/sys/netinet/ip_input.c,v
-retrieving revision 1.2
-diff -u -r1.2 ip_input.c
---- sys/netinet/ip_input.c	7 Apr 2009 18:01:32 -0000	1.2
-+++ sys/netinet/ip_input.c	7 Apr 2009 18:03:53 -0000
-@@ -86,6 +86,7 @@
- /* XXX: Temporary until ipfw_ether and ipfw_bridge are converted. */
- #include <netinet/ip_fw.h>
- #include <netinet/ip_dummynet.h>
-+#include <netinet/ip_divert.h>
- 
- #include <security/mac/mac_framework.h>
- 
-@@ -218,6 +219,10 @@
- ip_fw_chk_t *ip_fw_chk_ptr = NULL;
- ip_dn_io_t *ip_dn_io_ptr = NULL;
- ip_dn_ruledel_t *ip_dn_ruledel_ptr = NULL;
-+
-+/* Divert hooks */
-+ip_divert_packet_t *ip_divert_ptr = NULL;
-+
- #ifdef VIMAGE_GLOBALS
- int fw_one_pass;
- #endif
