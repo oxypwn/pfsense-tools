@@ -167,16 +167,18 @@ fi
 
 # Add BSDInstaller
 if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
-	echo "Fetching BSDInstaller using CVSUP..."
+	echo -n ">>> Fetching BSDInstaller using CVSUP..."
 	(csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	./cvsup_bsdinstaller
+	echo "Done!"
 else 
-	echo "Fetching BSDInstaller using GIT..."
+	echo -n ">>> Fetching BSDInstaller using GIT..."
 	git checkout "${GIT_REPO_BSDINSTALLER}"
 	if [ $? != 0 ]; then
 		echo "Something went wrong while checking out GIT."
 		exit
 	fi	
+	echo "Done!"
 fi
 
 # echo "Rebuilding BSDInstaller..."
