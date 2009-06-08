@@ -1211,7 +1211,7 @@ update_cvs_depot() {
 		fi
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 			rm -rf ${GIT_REPO_DIR}/pfSense
-			echo ">>> Cloning ${GIT_REPO} using GIT and switching to ${PFSENSETAG}"
+			echo ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}"
 	    		(cd ${GIT_REPO_DIR} && git clone ${GIT_REPO}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			if [ -d "${GIT_REPO_DIR}/mainline" ]; then
 				mv "${GIT_REPO_DIR}/mainline" "${GIT_REPO_DIR}/pfSenseGITREPO"
