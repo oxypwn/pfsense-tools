@@ -388,7 +388,7 @@ recompile_pfPorts() {
 		chmod a+rx $USE_PORTS_FILE
 		echo ">>>> Executing $PFPORTSBASENAME"
 		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} ${MAKEJ_PORTS}" ) 2>&1 \
-			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error|finding)"
+			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			if [ -f /tmp/make.conf ]; then
