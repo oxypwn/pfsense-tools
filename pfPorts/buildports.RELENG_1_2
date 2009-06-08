@@ -98,8 +98,10 @@ PORTSTOBUILD="grub \
 	php-xdebug \
 	wol"
 
-if [ ! -d /usr/ports/INDEX-7.bz2 ]; then 
-	( cd /usr/ports && make fetchindex )
+if [ ! -f /usr/ports/INDEX-7.bz2 ]; then 
+	echo -n ">>> Fetching index..."
+	(cd /usr/ports && make fetchindex)
+	echo "Done!"
 fi
 
 if [ "$ARCH" = "" ]; then
@@ -112,6 +114,7 @@ fi
 # pfSense is english based.
 rm -rf /usr/ports/chinese/links
 
+echo -n ">>> Locating ports..."
 for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
@@ -127,9 +130,12 @@ for PORT in $PORTSTOBUILD; do
 		set_cache ${PORT} ""		
 	fi
 done
+echo "Done!"
 
-echo ">>>> Using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-		
+if [ "$MAKEJ_PORTS" != "" ]; then
+	echo ">>>> Using MAKEJ_PORTS: ${MAKEJ_PORTS}"
+fi
+
 for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
