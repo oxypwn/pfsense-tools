@@ -143,7 +143,7 @@ export NANO_MEDIASIZE=1000000
 export NANO_SECTS=63 
 export NANO_HEADS=16
 export FLASH_MODEL="sandisk" 
-export FLASH_SIZE="1g"
+export FLASH_SIZE="1024m"
 export NANO_CODESIZE=0 
 export NANO_CONFSIZE=2048 
 
