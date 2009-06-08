@@ -65,4 +65,3 @@
 ~usr.sbin/wpa/hostapd~driver_freebsd.c.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/dev/usb/~u3g.tgz~
-~sys/geom/label~g_label.c.diff~

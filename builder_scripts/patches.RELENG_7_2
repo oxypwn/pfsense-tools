@@ -55,3 +55,4 @@
 ~sys/netinet~carp_devctl.diff~
 ~~~~usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
+~sys/geom/label~g_label.c.diff~
