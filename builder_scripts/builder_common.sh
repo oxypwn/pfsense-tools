@@ -1083,19 +1083,19 @@ clone_system_only()
 }
 
 checkout_pfSense_git() {
-	echo "Using GIT to checkout ${PFSENSETAG}"
+	echo ">>> Using GIT to checkout ${PFSENSETAG}"
 	# XXX: do we need to revert the co to HEAD if it has been 
 	#      checked out on another branch?
 	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" != "HEAD" ]; then
 		current_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && git branch | grep ${PFSENSETAG}`
 		if [ "$current_branch" = "" ]; then
-			cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout -b ${PFSENSETAG} origin/${PFSENSETAG}
+			cd $GIT_REPO_DIR/pfSenseGITREPO && /usr/local/bin/git checkout -b ${PFSENSETAG} origin/${PFSENSETAG}
 		else 
-			cd $GIT_REPO_DIR/pfSenseGITREPO && git checkout ${PFSENSETAG}
+			cd $GIT_REPO_DIR/pfSenseGITREPO && /usr/local/bin/git checkout ${PFSENSETAG}
 		fi
 	else 
-		cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master
+		cd ${GIT_REPO_DIR}/pfSenseGITREPO && /usr/local/bin/git checkout master
 	fi
 	if [ $? != 0 ]; then
 		echo "Something went wrong while checking out GIT."

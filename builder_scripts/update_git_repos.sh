@@ -16,11 +16,11 @@ for FILE in `ls`; do
 		# Make absolute sure we are on current repo.
 		echo -n ">>> Updating GIT REPO $FILE..."
 		cd $FILE
-		(git fetch) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		(git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		(git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		(git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		(git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(/usr/local/bin/git fetch) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(/usr/local/bin/git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(/usr/local/bin/git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(/usr/local/bin/git reset --hard) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		(/usr/local/bin/git rebase origin) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		cd $BASE_DIR
 		echo "Done!"
 	fi
