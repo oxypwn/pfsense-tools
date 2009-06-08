@@ -333,9 +333,10 @@ cleanup_builds() {
 	rm -rf $STAGINGAREA/*
 	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 	if [ -d /home/pfsense/pfSense ]; then
-		echo "Clearing out previous pfSense checkout directory..."
+		echo -n ">>> Clearing out previous pfSense checkout directory..."
 		chflags -R noschg /home/pfsense/pfSense
 		rm -rf /home/pfsense/pfSense
+		echo "Done!"
 	fi
 	./clean_build.sh
 }
