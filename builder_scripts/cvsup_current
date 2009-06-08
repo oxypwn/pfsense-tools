@@ -233,7 +233,7 @@ do
 			| egrep -wi '(warning|error)'
 		else
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
-			| egrep -wi '(patching\ file|warning|error)'
+			| egrep -wi '(warning|error)'
 		fi
 	fi
 	if [ $MOVE_FILE_LEN -gt "2" ]; then
