@@ -1099,10 +1099,7 @@ checkout_pfSense_git() {
 			(cd ${GIT_REPO_DIR}/pfSenseGITREPO && /usr/local/bin/git checkout master) | egrep -wi '(^>>>|error)'
 		fi
 	fi
-	if [ $? != 0 ]; then
-		echo "Something went wrong while checking out GIT."
-		print_error_pfS
-	fi
+	# XXX: use git branch to verify that we are on the correct branch / mainline, etc.
 	mkdir -p $CVS_CO_DIR
 	cd ${GIT_REPO_DIR}/pfSenseGITREPO && tar czpf /tmp/pfSense.tgz .
 	cd $CVS_CO_DIR && tar xzpf /tmp/pfSense.tgz
