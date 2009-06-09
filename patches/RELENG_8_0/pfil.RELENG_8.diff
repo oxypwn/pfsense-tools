@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
-RCS file: /usr/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
-retrieving revision 1.2
-diff -u -r1.2 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	7 Apr 2009 21:59:24 -0000	1.2
-+++ sys/contrib/pf/net/pf_ioctl.c	7 Apr 2009 22:52:02 -0000
-@@ -3817,8 +3817,10 @@
+RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.4
+diff -u -r1.4 pf_ioctl.c
+--- sys/contrib/pf/net/pf_ioctl.c	8 Jun 2009 21:54:59 -0000	1.4
++++ sys/contrib/pf/net/pf_ioctl.c	9 Jun 2009 19:45:48 -0000
+@@ -3840,8 +3840,10 @@
  	pfh_inet = pfil_head_get(PFIL_TYPE_AF, AF_INET);
  	if (pfh_inet == NULL)
  		return (ESRCH); /* XXX */
@@ -18,7 +18,7 @@ diff -u -r1.2 pf_ioctl.c
  #ifdef INET6
  	pfh_inet6 = pfil_head_get(PFIL_TYPE_AF, AF_INET6);
  	if (pfh_inet6 == NULL) {
-@@ -3828,8 +3830,10 @@
+@@ -3851,8 +3853,10 @@
  		    pfh_inet);
  		return (ESRCH); /* XXX */
  	}
@@ -33,11 +33,11 @@ diff -u -r1.2 pf_ioctl.c
  	pf_pfil_hooked = 1;
 Index: sys/net/pfil.c
 ===================================================================
-RCS file: /usr/repo/src/sys/net/pfil.c,v
+RCS file: /root/repo/repo/src/sys/net/pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.c
---- sys/net/pfil.c	7 Apr 2009 17:57:15 -0000	1.1.1.1
-+++ sys/net/pfil.c	7 Apr 2009 22:56:05 -0000
+--- sys/net/pfil.c	8 Jun 2009 18:46:34 -0000	1.1.1.1
++++ sys/net/pfil.c	9 Jun 2009 19:45:48 -0000
 @@ -34,6 +34,7 @@
  #include <sys/errno.h>
  #include <sys/lock.h>
@@ -231,11 +231,11 @@ diff -u -r1.1.1.1 pfil.c
  			if (flags & PFIL_IN)
 Index: sys/net/pfil.h
 ===================================================================
-RCS file: /usr/repo/src/sys/net/pfil.h,v
+RCS file: /root/repo/repo/src/sys/net/pfil.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.h
---- sys/net/pfil.h	7 Apr 2009 17:57:15 -0000	1.1.1.1
-+++ sys/net/pfil.h	7 Apr 2009 22:52:02 -0000
+--- sys/net/pfil.h	8 Jun 2009 18:46:34 -0000	1.1.1.1
++++ sys/net/pfil.h	9 Jun 2009 19:45:48 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
@@ -281,51 +281,14 @@ diff -u -r1.1.1.1 pfil.h
  int	pfil_head_unregister(struct pfil_head *);
  
  struct pfil_head *pfil_head_get(int, u_long);
-Index: sys/netinet/ip_fw_pfil.c
-===================================================================
-RCS file: /usr/repo/src/sys/netinet/ip_fw_pfil.c,v
-retrieving revision 1.2
-diff -u -r1.2 ip_fw_pfil.c
---- sys/netinet/ip_fw_pfil.c	7 Apr 2009 21:59:25 -0000	1.2
-+++ sys/netinet/ip_fw_pfil.c	7 Apr 2009 22:52:02 -0000
-@@ -433,10 +433,10 @@
- 	if (pfh_inet == NULL)
- 		return ENOENT;
- 
--	(void)pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK,
--	    pfh_inet);
--	(void)pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK,
--	    pfh_inet);
-+	(void)pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK,
-+		pfh_inet);
-+	(void)pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", PFIL_OUT | PFIL_WAITOK,
-+		pfh_inet);
- 
- 	return 0;
- }
-@@ -468,10 +468,10 @@
- 	if (pfh_inet6 == NULL)
- 		return ENOENT;
- 
--	(void)pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK,
--	    pfh_inet6);
--	(void)pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK,
--	    pfh_inet6);
-+	(void)pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK,
-+		pfh_inet6);
-+	(void)pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", PFIL_OUT | PFIL_WAITOK,
-+		pfh_inet6);
- 
- 	return 0;
- }
 Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /usr/repo/src/sys/netinet/ip_input.c,v
+RCS file: /root/repo/repo/src/sys/netinet/ip_input.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_input.c
---- sys/netinet/ip_input.c	7 Apr 2009 21:59:25 -0000	1.2
-+++ sys/netinet/ip_input.c	7 Apr 2009 23:02:30 -0000
-@@ -317,6 +317,9 @@
+--- sys/netinet/ip_input.c	8 Jun 2009 21:34:11 -0000	1.2
++++ sys/netinet/ip_input.c	9 Jun 2009 19:45:53 -0000
+@@ -366,6 +366,9 @@
  	if ((i = pfil_head_register(&inet_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -335,14 +298,45 @@ diff -u -r1.2 ip_input.c
  
  	/* Start ipport_tick. */
  	callout_init(&ipport_tick_callout, CALLOUT_MPSAFE);
+Index: sys/netinet/ipfw/ip_fw_pfil.c
+===================================================================
+RCS file: /root/repo/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
+retrieving revision 1.3
+diff -u -r1.3 ip_fw_pfil.c
+--- sys/netinet/ipfw/ip_fw_pfil.c	8 Jun 2009 21:34:11 -0000	1.3
++++ sys/netinet/ipfw/ip_fw_pfil.c	9 Jun 2009 19:47:27 -0000
+@@ -443,9 +443,9 @@
+ 	if (pfh_inet == NULL)
+ 		return ENOENT;
+ 
+-	(void)pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK,
++	(void)pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK,
+ 	    pfh_inet);
+-	(void)pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK,
++	(void)pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", PFIL_OUT | PFIL_WAITOK,
+ 	    pfh_inet);
+ 
+ 	return 0;
+@@ -478,9 +478,9 @@
+ 	if (pfh_inet6 == NULL)
+ 		return ENOENT;
+ 
+-	(void)pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK,
++	(void)pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK,
+ 	    pfh_inet6);
+-	(void)pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK,
++	(void)pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", PFIL_OUT | PFIL_WAITOK,
+ 	    pfh_inet6);
+ 
+ 	return 0;
 Index: sys/netinet6/ip6_input.c
 ===================================================================
-RCS file: /usr/repo/src/sys/netinet6/ip6_input.c,v
+RCS file: /root/repo/repo/src/sys/netinet6/ip6_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip6_input.c
---- sys/netinet6/ip6_input.c	7 Apr 2009 17:57:18 -0000	1.1.1.1
-+++ sys/netinet6/ip6_input.c	7 Apr 2009 22:52:02 -0000
-@@ -146,6 +146,7 @@
+--- sys/netinet6/ip6_input.c	8 Jun 2009 18:46:33 -0000	1.1.1.1
++++ sys/netinet6/ip6_input.c	9 Jun 2009 19:45:53 -0000
+@@ -151,6 +151,7 @@
  extern int udp6_recvspace;
  #endif
  
@@ -350,7 +344,7 @@ diff -u -r1.1.1.1 ip6_input.c
  struct pfil_head inet6_pfil_hook;
  
  static void ip6_init2(void *);
-@@ -275,6 +276,9 @@
+@@ -299,6 +300,9 @@
  	if ((i = pfil_head_register(&inet6_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -358,5 +352,5 @@ diff -u -r1.1.1.1 ip6_input.c
 +		pfil_head_export_sysctl(&inet6_pfil_hook,
 +			SYSCTL_STATIC_CHILDREN(_net_inet6_ip6));
  
- 	ip6intrq.ifq_maxlen = V_ip6qmaxlen; /* XXX */
- 	mtx_init(&ip6intrq.ifq_mtx, "ip6_inq", NULL, MTX_DEF);
+ 	netisr_register(&ip6_nh);
+ }
