@@ -416,7 +416,7 @@ cust_overlay_host_binaries() {
 	(cd $SRCDIR/usr.sbin/clog && make clean && make && make install)
     echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
     install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
-    install $SRCDIR/usr.sbin/sysllogd/syslogd $PFSENSEBASEDIR/usr/sbin/
+    install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
 
 	mkdir -p ${PFSENSEBASEDIR}/bin
 	mkdir -p ${PFSENSEBASEDIR}/sbin
