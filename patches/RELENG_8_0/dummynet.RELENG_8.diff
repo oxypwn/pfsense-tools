@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /root/repo/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
---- contrib/pf/pfctl/parse.y	8 Jun 2009 18:52:16 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	8 Jun 2009 18:52:37 -0000
+--- contrib/pf/pfctl/parse.y	9 Jun 2009 20:59:12 -0000	1.2
++++ contrib/pf/pfctl/parse.y	9 Jun 2009 20:59:17 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -579,8 +579,8 @@ Index: contrib/pf/pfctl/pfctl.c
 RCS file: /root/repo/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
---- contrib/pf/pfctl/pfctl.c	8 Jun 2009 18:52:16 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	8 Jun 2009 18:52:37 -0000
+--- contrib/pf/pfctl/pfctl.c	9 Jun 2009 20:59:12 -0000	1.2
++++ contrib/pf/pfctl/pfctl.c	9 Jun 2009 20:59:17 -0000
 @@ -46,6 +46,9 @@
  #include <altq/altq.h>
  #include <sys/sysctl.h>
@@ -815,8 +815,8 @@ Index: contrib/pf/pfctl/pfctl.h
 RCS file: /root/repo/repo/src/contrib/pf/pfctl/pfctl.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.h
---- contrib/pf/pfctl/pfctl.h	8 Jun 2009 18:46:38 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.h	8 Jun 2009 18:52:37 -0000
+--- contrib/pf/pfctl/pfctl.h	9 Jun 2009 20:54:37 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl.h	9 Jun 2009 20:59:17 -0000
 @@ -85,12 +85,14 @@
  int	 pfctl_command_tables(int, char *[], char *, const char *, char *,
  	    const char *, int);
@@ -837,7 +837,7 @@ Index: contrib/pf/pfctl/pfctl_dn.c
 RCS file: contrib/pf/pfctl/pfctl_dn.c
 diff -N contrib/pf/pfctl/pfctl_dn.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ contrib/pf/pfctl/pfctl_dn.c	8 Jun 2009 18:52:37 -0000
++++ contrib/pf/pfctl/pfctl_dn.c	9 Jun 2009 20:59:17 -0000
 @@ -0,0 +1,404 @@
 +/*
 + * Copyright (c) 2007 Ermal Luçi
@@ -1248,8 +1248,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/repo/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	8 Jun 2009 18:52:16 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	8 Jun 2009 18:52:37 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	9 Jun 2009 20:59:12 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	9 Jun 2009 20:59:17 -0000
 @@ -48,6 +48,9 @@
  #include <net/pfvar.h>
  #include <arpa/inet.h>
@@ -1280,8 +1280,8 @@ Index: contrib/pf/pfctl/pfctl_parser.h
 RCS file: /root/repo/repo/src/contrib/pf/pfctl/pfctl_parser.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.h
---- contrib/pf/pfctl/pfctl_parser.h	8 Jun 2009 18:52:16 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.h	8 Jun 2009 18:52:37 -0000
+--- contrib/pf/pfctl/pfctl_parser.h	9 Jun 2009 20:59:12 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.h	9 Jun 2009 20:59:17 -0000
 @@ -67,6 +67,7 @@
  }
  
@@ -1319,8 +1319,8 @@ Index: sbin/pfctl/Makefile
 RCS file: /root/repo/repo/src/sbin/pfctl/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sbin/pfctl/Makefile	8 Jun 2009 18:46:38 -0000	1.1.1.1
-+++ sbin/pfctl/Makefile	8 Jun 2009 18:52:37 -0000
+--- sbin/pfctl/Makefile	9 Jun 2009 20:54:38 -0000	1.1.1.1
++++ sbin/pfctl/Makefile	9 Jun 2009 20:59:17 -0000
 @@ -11,6 +11,7 @@
  SRCS+= pfctl_osfp.c pfctl_radix.c pfctl_table.c pfctl_qstats.c
  SRCS+= pfctl_optimize.c
@@ -1334,8 +1334,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	8 Jun 2009 18:52:17 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	8 Jun 2009 19:11:04 -0000
+--- sys/contrib/pf/net/pf.c	9 Jun 2009 20:59:12 -0000	1.2
++++ sys/contrib/pf/net/pf.c	9 Jun 2009 20:59:17 -0000
 @@ -139,6 +139,9 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -1652,8 +1652,8 @@ Index: sys/contrib/pf/net/pf_mtag.h
 RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	8 Jun 2009 18:52:17 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	8 Jun 2009 18:52:37 -0000
+--- sys/contrib/pf/net/pf_mtag.h	9 Jun 2009 20:59:13 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	9 Jun 2009 20:59:17 -0000
 @@ -37,6 +37,7 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -1667,8 +1667,8 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /root/repo/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	8 Jun 2009 18:52:17 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	8 Jun 2009 18:52:37 -0000
+--- sys/contrib/pf/net/pfvar.h	9 Jun 2009 20:59:13 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	9 Jun 2009 20:59:17 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
@@ -1686,8 +1686,8 @@ Index: sys/net/if_bridge.c
 RCS file: /root/repo/repo/src/sys/net/if_bridge.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_bridge.c
---- sys/net/if_bridge.c	8 Jun 2009 18:46:33 -0000	1.1.1.1
-+++ sys/net/if_bridge.c	8 Jun 2009 18:52:37 -0000
+--- sys/net/if_bridge.c	9 Jun 2009 20:54:34 -0000	1.1.1.1
++++ sys/net/if_bridge.c	9 Jun 2009 20:59:17 -0000
 @@ -3071,7 +3071,7 @@
  			 * packet will return to us via bridge_dummynet().
  			 */
@@ -1702,9 +1702,9 @@ Index: sys/net/if_ethersubr.c
 RCS file: /root/repo/repo/src/sys/net/if_ethersubr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_ethersubr.c
---- sys/net/if_ethersubr.c	8 Jun 2009 18:46:33 -0000	1.1.1.1
-+++ sys/net/if_ethersubr.c	8 Jun 2009 18:52:37 -0000
-@@ -535,7 +535,7 @@
+--- sys/net/if_ethersubr.c	9 Jun 2009 20:54:34 -0000	1.1.1.1
++++ sys/net/if_ethersubr.c	9 Jun 2009 20:59:17 -0000
+@@ -534,7 +534,7 @@
  			 */
  			*m0 = NULL ;
  		}
@@ -1718,8 +1718,8 @@ Index: sys/netinet/ip_dummynet.h
 RCS file: /root/repo/repo/src/sys/netinet/ip_dummynet.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.h
---- sys/netinet/ip_dummynet.h	8 Jun 2009 18:46:34 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.h	8 Jun 2009 18:53:42 -0000
+--- sys/netinet/ip_dummynet.h	9 Jun 2009 20:54:35 -0000	1.1.1.1
++++ sys/netinet/ip_dummynet.h	9 Jun 2009 20:59:17 -0000
 @@ -123,6 +123,9 @@
  #define DN_TO_IP6_OUT	7
  #define DN_TO_IFB_FWD	8
@@ -1735,9 +1735,9 @@ Index: sys/netinet/ip_var.h
 RCS file: /root/repo/repo/src/sys/netinet/ip_var.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_var.h
---- sys/netinet/ip_var.h	8 Jun 2009 18:46:34 -0000	1.1.1.1
-+++ sys/netinet/ip_var.h	8 Jun 2009 19:04:46 -0000
-@@ -229,7 +229,7 @@
+--- sys/netinet/ip_var.h	9 Jun 2009 20:54:35 -0000	1.1.1.1
++++ sys/netinet/ip_var.h	9 Jun 2009 20:59:17 -0000
+@@ -232,7 +232,7 @@
  extern int	(*ip_fw_chk_ptr)(struct ip_fw_args *args);
  extern int	(*ip_fw_ctl_ptr)(struct sockopt *);
  extern int	(*ip_dn_ctl_ptr)(struct sockopt *);
@@ -1746,13 +1746,29 @@ diff -u -r1.1.1.1 ip_var.h
  extern void	(*ip_dn_ruledel_ptr)(void *);		/* in ip_fw2.c */
  #endif /* _KERNEL */
  
+Index: sys/netinet/raw_ip.c
+===================================================================
+RCS file: /root/repo/repo/src/sys/netinet/raw_ip.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 raw_ip.c
+--- sys/netinet/raw_ip.c	9 Jun 2009 20:54:35 -0000	1.1.1.1
++++ sys/netinet/raw_ip.c	9 Jun 2009 20:59:42 -0000
+@@ -89,7 +89,7 @@
+ int (*ip_fw_ctl_ptr)(struct sockopt *) = NULL;
+ int (*ip_dn_ctl_ptr)(struct sockopt *) = NULL;
+ int (*ip_fw_chk_ptr)(struct ip_fw_args *args) = NULL;
+-int (*ip_dn_io_ptr)(struct mbuf **m, int dir, struct ip_fw_args *fwa) = NULL;
++int (*ip_dn_io_ptr)(struct mbuf **m, int dir, struct ip_fw_args *fwa, u_int16_t client) = NULL;
+ 
+ /*
+  * Hooks for multicast routing. They all default to NULL, so leave them not
 Index: sys/netinet/ipfw/ip_dummynet.c
 ===================================================================
 RCS file: /root/repo/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
---- sys/netinet/ipfw/ip_dummynet.c	8 Jun 2009 18:46:35 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dummynet.c	8 Jun 2009 19:03:19 -0000
+--- sys/netinet/ipfw/ip_dummynet.c	9 Jun 2009 20:54:35 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dummynet.c	9 Jun 2009 20:59:17 -0000
 @@ -92,6 +92,7 @@
  static dn_key curr_time = 0 ; /* current simulation time */
  
@@ -1845,8 +1861,8 @@ Index: sys/netinet/ipfw/ip_fw_pfil.c
 RCS file: /root/repo/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	8 Jun 2009 18:46:35 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_pfil.c	8 Jun 2009 19:15:01 -0000
+--- sys/netinet/ipfw/ip_fw_pfil.c	9 Jun 2009 20:54:35 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_pfil.c	9 Jun 2009 20:59:17 -0000
 @@ -118,7 +118,7 @@
  
  again:
