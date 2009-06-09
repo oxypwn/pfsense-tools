@@ -56,3 +56,4 @@
 ~~~~usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
 ~sys/geom/label~g_label.c.diff~
+~sbin/dhclient~dhclient.c.diff~
