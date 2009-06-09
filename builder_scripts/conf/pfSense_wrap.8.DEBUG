@@ -402,3 +402,4 @@ options 	COMPAT_FREEBSD7
 
 #options PRINTF_BUFR_SIZE	# fights garble printf on shutdown
 
+options FLOWTABLE
