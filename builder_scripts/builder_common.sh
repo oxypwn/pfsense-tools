@@ -1346,7 +1346,7 @@ prune_usr() {
 }
 
 FlashDevice () {
-    . FlashDevice.sub
+    . $BUILDER_SCRIPTS/FlashDevice.sub
     sub_FlashDevice $1 $2
 }
 
