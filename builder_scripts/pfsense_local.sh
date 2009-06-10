@@ -83,7 +83,7 @@ export FREESBIE_LABEL=pfSense
 export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
 
 # Extra modules that we want (FreeBSD)
-export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
+#export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
 
 # Must be defined after MAKEOBJDIRPREFIX!
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
