@@ -1,0 +1,526 @@
+diff -rub src/racoon/grabmyaddr.c.orig src/racoon/grabmyaddr.c
+--- src/racoon/grabmyaddr.c.orig	2008-06-19 08:25:33.000000000 -0400
++++ src/racoon/grabmyaddr.c	2009-06-11 10:26:46.000000000 -0400
+@@ -738,7 +738,7 @@
+ 	for (p = lcconf->myaddrs; p; p = p->next) {
+ 		if (!p->addr)
+ 			continue;
+-		if (cmpsaddrwop(local, p->addr))
++		if (cmpsaddr(local, p->addr))
+ 			continue;
+ 
+ 		/* use first matching address regardless of port */
+diff -rub src/racoon/handler.c.orig src/racoon/handler.c
+--- src/racoon/handler.c.orig	2009-04-20 09:25:27.000000000 -0400
++++ src/racoon/handler.c	2009-06-11 10:27:29.000000000 -0400
+@@ -162,8 +162,8 @@
+ 			plog(LLV_DEBUG2, LOCATION, NULL, "status %d, skipping\n", p->status);
+ 			continue;
+ 		}
+-		if (CMPSADDR(local, p->local) == 0
+-			&& CMPSADDR(remote, p->remote) == 0){
++		if (cmpsaddr(local, p->local) == 0
++			&& cmpsaddr(remote, p->remote) == 0){
+ 			plog(LLV_DEBUG2, LOCATION, NULL, "matched\n");
+ 			return p;
+ 		}
+@@ -183,8 +183,8 @@
+ 	LIST_FOREACH(p, &ph1tree, chain) {
+ 		if (p->status == PHASE1ST_EXPIRED)
+ 			continue;
+-		if (cmpsaddrwop(local, p->local) == 0
+-		 && cmpsaddrwop(remote, p->remote) == 0)
++		if (cmpsaddr(local, p->local) == 0
++		 && cmpsaddr(remote, p->remote) == 0)
+ 			return p;
+ 	}
+ 
+@@ -205,7 +205,7 @@
+ 	LIST_FOREACH(p, &ph1tree, chain) {
+ 		if (p->status == PHASE1ST_EXPIRED)
+ 			continue;
+-		if (cmpsaddrwop(remote, p->remote) == 0)
++		if (cmpsaddr(remote, p->remote) == 0)
+ 			return p;
+ 	}
+ 
+@@ -495,8 +495,8 @@
+ 
+ 	LIST_FOREACH(p, &ph2tree, chain) {
+ 		if (spid == p->spid &&
+-		    CMPSADDR(src, p->src) == 0 &&
+-		    CMPSADDR(dst, p->dst) == 0){
++		    cmpsaddr(src, p->src) == 0 &&
++		    cmpsaddr(dst, p->dst) == 0){
+ 			/* Sanity check to detect zombie handlers
+ 			 * XXX Sould be done "somewhere" more interesting,
+ 			 * because we have lots of getph2byxxxx(), but this one
+@@ -523,8 +523,8 @@
+ 	struct ph2handle *p;
+ 
+ 	LIST_FOREACH(p, &ph2tree, chain) {
+-		if (cmpsaddrstrict(src, p->src) == 0 &&
+-		    cmpsaddrstrict(dst, p->dst) == 0)
++		if (cmpsaddr(src, p->src) == 0 &&
++		    cmpsaddr(dst, p->dst) == 0)
+ 			return p;
+ 	}
+ 
+@@ -800,7 +800,7 @@
+ 	struct contacted *p;
+ 
+ 	LIST_FOREACH(p, &ctdtree, chain) {
+-		if (cmpsaddrstrict(remote, p->remote) == 0)
++		if (cmpsaddr(remote, p->remote) == 0)
+ 			return p;
+ 	}
+ 
+@@ -882,7 +882,7 @@
+ 	/*
+ 	 * the packet was processed before, but the remote address mismatches.
+ 	 */
+-	if (cmpsaddrstrict(remote, r->remote) != 0)
++	if (cmpsaddr(remote, r->remote) != 0)
+ 		return 2;
+ 
+ 	/*
+diff -rub src/racoon/isakmp.c.orig src/racoon/isakmp.c
+--- src/racoon/isakmp.c.orig	2009-01-19 13:49:32.000000000 -0500
++++ src/racoon/isakmp.c	2009-06-11 10:14:45.000000000 -0400
+@@ -468,8 +468,8 @@
+ 		/* Floating ports for NAT-T */
+ 		if (NATT_AVAILABLE(iph1) &&
+ 		    ! (iph1->natt_flags & NAT_PORTS_CHANGED) &&
+-		    ((cmpsaddrstrict(iph1->remote, remote) != 0) ||
+-		    (cmpsaddrstrict(iph1->local, local) != 0)))
++		    ((cmpsaddr(iph1->remote, remote) != 0) ||
++		    (cmpsaddr(iph1->local, local) != 0)))
+ 		{
+ 			/* prevent memory leak */
+ 			racoon_free(iph1->remote);
+@@ -510,7 +510,7 @@
+ #endif
+ 
+ 		/* must be same addresses in one stream of a phase at least. */
+-		if (cmpsaddrstrict(iph1->remote, remote) != 0) {
++		if (cmpsaddr(iph1->remote, remote) != 0) {
+ 			char *saddr_db, *saddr_act;
+ 
+ 			saddr_db = racoon_strdup(saddr2str(iph1->remote));
+@@ -636,7 +636,7 @@
+ 					"exchange received.\n");
+ 				return -1;
+ 			}
+-			if (cmpsaddrstrict(iph1->remote, remote) != 0) {
++			if (cmpsaddr(iph1->remote, remote) != 0) {
+ 				plog(LLV_WARNING, LOCATION, remote,
+ 					"remote address mismatched. "
+ 					"db=%s\n",
+@@ -3250,8 +3250,8 @@
+ 		 * Select only SAs where src == local and dst == remote (outgoing)
+ 		 * or src == remote and dst == local (incoming).
+ 		 */
+-		if ((CMPSADDR(iph1->local, src) || CMPSADDR(iph1->remote, dst)) &&
+-			(CMPSADDR(iph1->local, dst) || CMPSADDR(iph1->remote, src))) {
++		if ((cmpsaddr(iph1->local, src) || cmpsaddr(iph1->remote, dst)) &&
++			(cmpsaddr(iph1->local, dst) || cmpsaddr(iph1->remote, src))) {
+ 			msg = next;
+ 			continue;
+ 		}
+diff -rub src/racoon/isakmp_inf.c.orig src/racoon/isakmp_inf.c
+--- src/racoon/isakmp_inf.c.orig	2009-04-20 09:35:36.000000000 -0400
++++ src/racoon/isakmp_inf.c	2009-06-11 10:26:22.000000000 -0400
+@@ -1224,7 +1224,7 @@
+ 
+ 		/* don't delete inbound SAs at the moment */
+ 		/* XXX should we remove SAs with opposite direction as well? */
+-		if (CMPSADDR(dst0, dst)) {
++		if (cmpsaddr(dst0, dst)) {
+ 			msg = next;
+ 			continue;
+ 		}
+@@ -1411,11 +1411,11 @@
+ 		 * from this peer !
+ 		 */
+ 		if(iph1->natt_flags & NAT_DETECTED){
+-			if (CMPSADDR(iph1->local, src) == 0 &&
+-				CMPSADDR(iph1->remote, dst) == 0)
++			if (cmpsaddr(iph1->local, src) == 0 &&
++				cmpsaddr(iph1->remote, dst) == 0)
+ 				;
+-			else if (CMPSADDR(iph1->remote, src) == 0 &&
+-					 CMPSADDR(iph1->local, dst) == 0)
++			else if (cmpsaddr(iph1->remote, src) == 0 &&
++					 cmpsaddr(iph1->local, dst) == 0)
+ 				;
+ 			else {
+ 				msg = next;
+@@ -1428,11 +1428,11 @@
+ 		 * NATed, but which NATs some other peers ?
+ 		 * Here, the INITIAl-CONTACT would also flush all those NATed peers !!
+ 		 */
+-		if (cmpsaddrwop(iph1->local, src) == 0 &&
+-		    cmpsaddrwop(iph1->remote, dst) == 0)
++		if (cmpsaddr(iph1->local, src) == 0 &&
++		    cmpsaddr(iph1->remote, dst) == 0)
+ 			;
+-		else if (cmpsaddrwop(iph1->remote, src) == 0 &&
+-		    cmpsaddrwop(iph1->local, dst) == 0)
++		else if (cmpsaddr(iph1->remote, src) == 0 &&
++		    cmpsaddr(iph1->local, dst) == 0)
+ 			;
+ 		else {
+ 			msg = next;
+diff -rub src/racoon/nattraversal.c.orig src/racoon/nattraversal.c
+--- src/racoon/nattraversal.c.orig	2009-04-20 09:27:12.000000000 -0400
++++ src/racoon/nattraversal.c	2009-06-11 10:25:36.000000000 -0400
+@@ -373,8 +373,8 @@
+   struct natt_ka_addrs *ka = NULL, *new_addr;
+   
+   TAILQ_FOREACH (ka, &ka_tree, chain) {
+-    if (cmpsaddrstrict(ka->src, src) == 0 && 
+-	cmpsaddrstrict(ka->dst, dst) == 0) {
++    if (cmpsaddr(ka->src, src) == 0 && 
++	cmpsaddr(ka->dst, dst) == 0) {
+       ka->in_use++;
+       plog (LLV_INFO, LOCATION, NULL, "KA found: %s (in_use=%u)\n",
+ 	    saddr2str_fromto("%s->%s", src, dst), ka->in_use);
+@@ -437,8 +437,8 @@
+     plog (LLV_DEBUG, LOCATION, NULL, "KA tree dump: %s (in_use=%u)\n",
+ 	  saddr2str_fromto("%s->%s", src, dst), ka->in_use);
+ 
+-    if (cmpsaddrstrict(ka->src, src) == 0 && 
+-	cmpsaddrstrict(ka->dst, dst) == 0 &&
++    if (cmpsaddr(ka->src, src) == 0 && 
++	cmpsaddr(ka->dst, dst) == 0 &&
+ 	-- ka->in_use <= 0) {
+ 
+       plog (LLV_DEBUG, LOCATION, NULL, "KA removing this one...\n");
+diff -rub src/racoon/pfkey.c.orig src/racoon/pfkey.c
+--- src/racoon/pfkey.c.orig	2008-12-08 01:06:24.000000000 -0500
++++ src/racoon/pfkey.c	2009-06-11 10:24:38.000000000 -0400
+@@ -1716,7 +1716,7 @@
+ 		struct myaddrs *p;
+ 		int do_listen = 0;
+ 		for (p = lcconf->myaddrs; p; p = p->next) {
+-			if (!cmpsaddrwop(p->addr, sa)) {
++			if (!cmpsaddr(p->addr, sa)) {
+ 				do_listen = 1;
+ 				break;
+ 			}
+diff -rub src/racoon/policy.c.orig src/racoon/policy.c
+--- src/racoon/policy.c.orig	2007-08-01 07:52:21.000000000 -0400
++++ src/racoon/policy.c	2009-06-11 10:24:16.000000000 -0400
+@@ -137,7 +137,7 @@
+ 		saddr2str(iph2->src));
+ 	plog(LLV_DEBUG, LOCATION, NULL, "src2: %s\n",
+ 		saddr2str((struct sockaddr *)&spidx->src));
+-	if (cmpsaddrwop(iph2->src, (struct sockaddr *)&spidx->src)
++	if (cmpsaddr(iph2->src, (struct sockaddr *)&spidx->src)
+ 	 || spidx->prefs != prefixlen)
+ 		return NULL;
+ 
+@@ -145,7 +145,7 @@
+ 		saddr2str(iph2->dst));
+ 	plog(LLV_DEBUG, LOCATION, NULL, "dst2: %s\n",
+ 		saddr2str((struct sockaddr *)&spidx->dst));
+-	if (cmpsaddrwop(iph2->dst, (struct sockaddr *)&spidx->dst)
++	if (cmpsaddr(iph2->dst, (struct sockaddr *)&spidx->dst)
+ 	 || spidx->prefd != prefixlen)
+ 		return NULL;
+ 
+@@ -194,10 +194,10 @@
+ 	 || a->ul_proto != b->ul_proto)
+ 		return 1;
+ 
+-	if (cmpsaddrstrict((struct sockaddr *)&a->src,
++	if (cmpsaddr((struct sockaddr *)&a->src,
+ 			   (struct sockaddr *)&b->src))
+ 		return 1;
+-	if (cmpsaddrstrict((struct sockaddr *)&a->dst,
++	if (cmpsaddr((struct sockaddr *)&a->dst,
+ 			   (struct sockaddr *)&b->dst))
+ 		return 1;
+ 
+@@ -256,7 +256,7 @@
+ 		a, b->prefs, saddr2str((struct sockaddr *)&sa1));
+ 	plog(LLV_DEBUG, LOCATION, NULL, "%p masked with /%d: %s\n",
+ 		b, b->prefs, saddr2str((struct sockaddr *)&sa2));
+-	if (cmpsaddrwild((struct sockaddr *)&sa1, (struct sockaddr *)&sa2))
++	if (cmpsaddr((struct sockaddr *)&sa1, (struct sockaddr *)&sa2))
+ 		return 1;
+ 
+ #ifndef __linux__
+@@ -274,7 +274,7 @@
+ 		a, b->prefd, saddr2str((struct sockaddr *)&sa1));
+ 	plog(LLV_DEBUG, LOCATION, NULL, "%p masked with /%d: %s\n",
+ 		b, b->prefd, saddr2str((struct sockaddr *)&sa2));
+-	if (cmpsaddrwild((struct sockaddr *)&sa1, (struct sockaddr *)&sa2))
++	if (cmpsaddr((struct sockaddr *)&sa1, (struct sockaddr *)&sa2))
+ 		return 1;
+ 
+ #ifdef HAVE_SECCTX
+diff -rub src/racoon/remoteconf.c.orig src/racoon/remoteconf.c
+--- src/racoon/remoteconf.c.orig	2009-01-19 13:49:32.000000000 -0500
++++ src/racoon/remoteconf.c	2009-06-11 10:22:08.000000000 -0400
+@@ -134,8 +134,7 @@
+ 	TAILQ_FOREACH(p, &rmtree, chain) {
+ 		if ((remote->sa_family == AF_UNSPEC
+ 		     && remote->sa_family == p->remote->sa_family)
+-		 || (!withport && cmpsaddrwop(remote, p->remote) == 0)
+-		 || (withport && cmpsaddrstrict(remote, p->remote) == 0)) {
++		 || (cmpsaddr(remote, p->remote) == 0)) {
+ 			plog(LLV_DEBUG, LOCATION, NULL,
+ 				"configuration found for %s.\n", buf);
+ 			return p;
+diff -rub src/racoon/sockmisc.c.orig src/racoon/sockmisc.c
+--- src/racoon/sockmisc.c.orig	2007-08-01 07:52:22.000000000 -0400
++++ src/racoon/sockmisc.c	2009-06-11 10:17:22.000000000 -0400
+@@ -75,161 +75,39 @@
+ const int niflags = 0;
+ 
+ /*
+- * compare two sockaddr without port number.
+- * OUT:	0: equal.
+- *	1: not equal.
+- */
+-int
+-cmpsaddrwop(addr1, addr2)
+-	const struct sockaddr *addr1;
+-	const struct sockaddr *addr2;
+-{
+-	caddr_t sa1, sa2;
+-
+-	if (addr1 == 0 && addr2 == 0)
+-		return 0;
+-	if (addr1 == 0 || addr2 == 0)
+-		return 1;
+-
+-#ifdef __linux__
+-	if (addr1->sa_family != addr2->sa_family)
+-		return 1;
+-#else
+-	if (addr1->sa_len != addr2->sa_len
+-	 || addr1->sa_family != addr2->sa_family)
+-		return 1;
+-
+-#endif /* __linux__ */
+-
+-	switch (addr1->sa_family) {
+-	case AF_INET:
+-		sa1 = (caddr_t)&((struct sockaddr_in *)addr1)->sin_addr;
+-		sa2 = (caddr_t)&((struct sockaddr_in *)addr2)->sin_addr;
+-		if (memcmp(sa1, sa2, sizeof(struct in_addr)) != 0)
+-			return 1;
+-		break;
+-#ifdef INET6
+-	case AF_INET6:
+-		sa1 = (caddr_t)&((struct sockaddr_in6 *)addr1)->sin6_addr;
+-		sa2 = (caddr_t)&((struct sockaddr_in6 *)addr2)->sin6_addr;
+-		if (memcmp(sa1, sa2, sizeof(struct in6_addr)) != 0)
+-			return 1;
+-		if (((struct sockaddr_in6 *)addr1)->sin6_scope_id !=
+-		    ((struct sockaddr_in6 *)addr2)->sin6_scope_id)
+-			return 1;
+-		break;
+-#endif
+-	default:
+-		return 1;
+-	}
+-
+-	return 0;
+-}
+-
+-/*
+  * compare two sockaddr with port, taking care wildcard.
+  * addr1 is a subject address, addr2 is in a database entry.
+  * OUT:	0: equal.
+  *	1: not equal.
+  */
+ int
+-cmpsaddrwild(addr1, addr2)
++cmpsaddr(addr1, addr2)
+ 	const struct sockaddr *addr1;
+ 	const struct sockaddr *addr2;
+ {
+ 	caddr_t sa1, sa2;
+-	u_short port1, port2;
++	u_short port1 = 0, port2 = 0;
+ 
+-	if (addr1 == 0 && addr2 == 0)
+-		return 0;
+-	if (addr1 == 0 || addr2 == 0)
+-		return 1;
++	if (addr1 == NULL && addr2 == NULL)
++		return CMPSADDR_MATCH;
+ 
+-#ifdef __linux__
+-	if (addr1->sa_family != addr2->sa_family)
+-		return 1;
+-#else
+-	if (addr1->sa_len != addr2->sa_len
+-	 || addr1->sa_family != addr2->sa_family)
+-		return 1;
++	if (addr1 == NULL || addr2 == NULL)
++		return CMPSADDR_MISMATCH;
+ 
+-#endif /* __linux__ */
++	if (addr1->sa_family != addr2->sa_family ||
++	    sysdep_sa_len(addr1) != sysdep_sa_len(addr2))
++		return CMPSADDR_MISMATCH;
+ 
+ 	switch (addr1->sa_family) {
+-	case AF_INET:
+-		sa1 = (caddr_t)&((struct sockaddr_in *)addr1)->sin_addr;
+-		sa2 = (caddr_t)&((struct sockaddr_in *)addr2)->sin_addr;
+-		port1 = ((struct sockaddr_in *)addr1)->sin_port;
+-		port2 = ((struct sockaddr_in *)addr2)->sin_port;
+-		if (!(port1 == IPSEC_PORT_ANY ||
+-		      port2 == IPSEC_PORT_ANY ||
+-		      port1 == port2))
+-			return 1;
+-		if (memcmp(sa1, sa2, sizeof(struct in_addr)) != 0)
+-			return 1;
+-		break;
+-#ifdef INET6
+-	case AF_INET6:
+-		sa1 = (caddr_t)&((struct sockaddr_in6 *)addr1)->sin6_addr;
+-		sa2 = (caddr_t)&((struct sockaddr_in6 *)addr2)->sin6_addr;
+-		port1 = ((struct sockaddr_in6 *)addr1)->sin6_port;
+-		port2 = ((struct sockaddr_in6 *)addr2)->sin6_port;
+-		if (!(port1 == IPSEC_PORT_ANY ||
+-		      port2 == IPSEC_PORT_ANY ||
+-		      port1 == port2))
+-			return 1;
+-		if (memcmp(sa1, sa2, sizeof(struct in6_addr)) != 0)
+-			return 1;
+-		if (((struct sockaddr_in6 *)addr1)->sin6_scope_id !=
+-		    ((struct sockaddr_in6 *)addr2)->sin6_scope_id)
+-			return 1;
++	case AF_UNSPEC:
+ 		break;
+-#endif
+-	default:
+-		return 1;
+-	}
+-
+-	return 0;
+-}
+-
+-/*
+- * compare two sockaddr with strict match on port.
+- * OUT:	0: equal.
+- *	1: not equal.
+- */
+-int
+-cmpsaddrstrict(addr1, addr2)
+-	const struct sockaddr *addr1;
+-	const struct sockaddr *addr2;
+-{
+-	caddr_t sa1, sa2;
+-	u_short port1, port2;
+-
+-	if (addr1 == 0 && addr2 == 0)
+-		return 0;
+-	if (addr1 == 0 || addr2 == 0)
+-		return 1;
+-
+-#ifdef __linux__
+-	if (addr1->sa_family != addr2->sa_family)
+-		return 1;
+-#else
+-	if (addr1->sa_len != addr2->sa_len
+-	 || addr1->sa_family != addr2->sa_family)
+-		return 1;
+-
+-#endif /* __linux__ */
+-
+-	switch (addr1->sa_family) {
+ 	case AF_INET:
+ 		sa1 = (caddr_t)&((struct sockaddr_in *)addr1)->sin_addr;
+ 		sa2 = (caddr_t)&((struct sockaddr_in *)addr2)->sin_addr;
+ 		port1 = ((struct sockaddr_in *)addr1)->sin_port;
+ 		port2 = ((struct sockaddr_in *)addr2)->sin_port;
+-		if (port1 != port2)
+-			return 1;
+ 		if (memcmp(sa1, sa2, sizeof(struct in_addr)) != 0)
+-			return 1;
++			return CMPSADDR_MISMATCH;
+ 		break;
+ #ifdef INET6
+ 	case AF_INET6:
+@@ -237,20 +115,23 @@
+ 		sa2 = (caddr_t)&((struct sockaddr_in6 *)addr2)->sin6_addr;
+ 		port1 = ((struct sockaddr_in6 *)addr1)->sin6_port;
+ 		port2 = ((struct sockaddr_in6 *)addr2)->sin6_port;
+-		if (port1 != port2)
+-			return 1;
+ 		if (memcmp(sa1, sa2, sizeof(struct in6_addr)) != 0)
+-			return 1;
++			return CMPSADDR_MISMATCH;
+ 		if (((struct sockaddr_in6 *)addr1)->sin6_scope_id !=
+ 		    ((struct sockaddr_in6 *)addr2)->sin6_scope_id)
+-			return 1;
++			return CMPSADDR_MISMATCH;
+ 		break;
+ #endif
+ 	default:
+-		return 1;
++		return CMPSADDR_MISMATCH;
+ 	}
+ 
+-	return 0;
++	if (port1 == port2 ||
++	    port1 == IPSEC_PORT_ANY ||
++	    port2 == IPSEC_PORT_ANY)
++		return CMPSADDR_MATCH;
++
++	return CMPSADDR_WOP_MATCH;
+ }
+ 
+ /* get local address against the destination. */
+@@ -1047,7 +928,7 @@
+ 		free(a2);
+ 		free(a3);
+ 	}
+-	if (cmpsaddrwop(&sa, &naddr->sa.sa) == 0)
++	if (cmpsaddr(&sa, &naddr->sa.sa) == 0)
+ 		return naddr->prefix + port_score;
+ 
+ 	return -1;
+diff -rub src/racoon/sockmisc.h src/racoon/sockmisc.h
+--- src/racoon/sockmisc.h	2006-09-09 12:22:10.000000000 -0400
++++ src/racoon/sockmisc.h	2009-06-11 10:13:06.000000000 -0400
+@@ -45,15 +45,11 @@
+ 
+ extern const int niflags;
+ 
+-extern int cmpsaddrwop __P((const struct sockaddr *, const struct sockaddr *));
+-extern int cmpsaddrwild __P((const struct sockaddr *, const struct sockaddr *));
+-extern int cmpsaddrstrict __P((const struct sockaddr *, const struct sockaddr *));
+-
+-#ifdef ENABLE_NATT 
+-#define CMPSADDR(saddr1, saddr2) cmpsaddrstrict((saddr1), (saddr2))
+-#else 
+-#define CMPSADDR(saddr1, saddr2) cmpsaddrwop((saddr1), (saddr2))
+-#endif
++#define CMPSADDR_MATCH          0
++#define CMPSADDR_WOP_MATCH      1
++#define CMPSADDR_MISMATCH       2
++
++extern int cmpsaddr __P((const struct sockaddr *, const struct sockaddr *));
+ 
+ extern struct sockaddr *getlocaladdr __P((struct sockaddr *));
+ 
+diff -rub src/racoon/throttle.c.orig src/racoon/throttle.c
+--- src/racoon/throttle.c.orig	2006-09-09 12:22:10.000000000 -0400
++++ src/racoon/throttle.c	2009-06-11 10:19:58.000000000 -0400
+@@ -114,7 +114,7 @@
+ 			goto restart;
+ 		}
+ 			
+-		if (cmpsaddrwop(addr, (struct sockaddr *)&te->host) == 0) {
++		if (cmpsaddr(addr, (struct sockaddr *)&te->host) == 0) {
+ 			found = 1;
+ 			break;
+ 		}
