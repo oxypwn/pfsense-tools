@@ -64,7 +64,7 @@ dobuilds() {
 
 copy_to_staging_deviso_updates() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	NEWFILENAME=FreeBSD-${DATESTRING}-8.0-CURRENT.iso
+	NEWFILENAME=FreeBSD-${DATESTRING}-7.0-STABLE.iso
 	mv $FREEBSDOBJDIR/FreeBSD.iso $STAGINGAREA/$NEWFILENAME
 	gzip $STAGINGAREA/$NEWFILENAME
 	md5 $STAGINGAREA/$NEWFILENAME.gz > $STAGINGAREA/$NEWFILENAME.gz.md5	
@@ -79,8 +79,8 @@ scp_files() {
 	rm -f /tmp/ssh-snapshots*
 	set +e
 	# Ensure directory(s) are available
-	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_8_0
-	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_8_0/
+	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_7
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_7/
 	set -e
 }
 
