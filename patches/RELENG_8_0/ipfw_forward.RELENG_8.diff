@@ -1,11 +1,11 @@
 Index: pf.c
 ===================================================================
-RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.4
-diff -u -r1.4 pf.c
---- pf.c	11 Feb 2009 23:28:54 -0000	1.4
-+++ pf.c	11 Feb 2009 23:29:40 -0000
-@@ -7323,7 +7323,9 @@
+RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.6
+diff -u -r1.6 pf.c
+--- pf.c	11 Jun 2009 21:28:23 -0000	1.6
++++ pf.c	11 Jun 2009 21:29:28 -0000
+@@ -7442,7 +7442,9 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
