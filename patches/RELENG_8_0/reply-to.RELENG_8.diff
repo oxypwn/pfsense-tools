@@ -1,10 +1,10 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.4
 diff -u -r1.4 pf.c
---- sys/contrib/pf/net/pf.c	8 Jun 2009 21:34:11 -0000	1.4
-+++ sys/contrib/pf/net/pf.c	8 Jun 2009 21:47:18 -0000
+--- sys/contrib/pf/net/pf.c	11 Jun 2009 12:09:14 -0000	1.4
++++ sys/contrib/pf/net/pf.c	11 Jun 2009 12:16:44 -0000
 @@ -6206,6 +6206,9 @@
  
  	ip = mtod(m0, struct ip *);
@@ -23,7 +23,7 @@ diff -u -r1.4 pf.c
 +		goto donelocal;
 +	else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
 +		goto donelocal;
-+	else if (in_broadcast(ip->ip_dst, ifp))
++	else if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
 +		goto donelocal;
  
  	if (oifp != ifp) {
