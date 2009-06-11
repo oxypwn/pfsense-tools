@@ -1,0 +1,19 @@
+
+include GENERIC
+
+ident           FreeBSD-8
+
+nooptions		INVARIANTS
+nooptions		INVARIANTS_SUPPORT
+nooptions		WITNESS
+nooptions		WITNESS_SKIPSPIN
+
+nooptions		SCHED_4BSD
+options			SCHED_ULE	# add inULE scheduler
+
+nooptions		WITNESS_SKIPSPIN
+nooptions		WITNESS
+nooptions		INVARIANTS
+
+options		GEOM_UZIP
+options		UNIONFS
