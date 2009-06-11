@@ -1,20 +1,34 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.5
-diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	21 Oct 2008 18:54:54 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	21 Oct 2008 18:55:12 -0000
-@@ -6246,6 +6246,8 @@
+RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.4
+diff -u -r1.4 pf.c
+--- sys/contrib/pf/net/pf.c	11 Jun 2009 12:09:14 -0000	1.4
++++ sys/contrib/pf/net/pf.c	11 Jun 2009 12:16:44 -0000
+@@ -6206,6 +6206,9 @@
+ 
+ 	ip = mtod(m0, struct ip *);
+ 
++	if (IN_MULTICAST(ip->ip_dst.s_addr))
++                return;
++
+ 	ro = &iproute;
+ 	bzero((caddr_t)ro, sizeof(*ro));
+ 	dst = satosin(&ro->ro_dst);
+@@ -6247,6 +6250,12 @@
  	}
  	if (ifp == NULL)
  		goto bad;
 +	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
 +		goto donelocal;
++	else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
++		goto donelocal;
++	else if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
++		goto donelocal;
  
  	if (oifp != ifp) {
  #ifdef __FreeBSD__
-@@ -6427,6 +6429,7 @@
+@@ -6428,6 +6437,7 @@
  done:
  	if (r->rt != PF_DUPTO)
  		*m = NULL;
