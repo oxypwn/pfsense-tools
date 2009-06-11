@@ -1,13 +1,13 @@
 Index: sys/conf/files
 ===================================================================
-RCS file: /home/ermal/repobeforeftp/src/sys/conf/files,v
+RCS file: /root/freebsd/src/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	26 Apr 2009 22:00:18 -0000	1.2
-+++ sys/conf/files	29 Apr 2009 18:03:53 -0000
-@@ -339,6 +339,8 @@
+--- sys/conf/files	11 Jun 2009 21:20:01 -0000	1.2
++++ sys/conf/files	11 Jun 2009 21:26:17 -0000
+@@ -357,6 +357,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
- contrib/pf/net/pf_table.c	optional pf \
+ contrib/pf/net/pf_table.c	optional pf inet \
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
 +contrib/pf/net/pf_ftp.c		optional pf \
 +	compile-with "${NORMAL_C} -I$S/contrib/pf"
@@ -16,12 +16,12 @@ diff -u -r1.2 files
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/ermal/repobeforeftp/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.2
-diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	26 Apr 2009 22:00:18 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	29 Apr 2009 18:03:53 -0000
-@@ -305,8 +305,6 @@
+RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.5
+diff -u -r1.5 pf.c
+--- sys/contrib/pf/net/pf.c	11 Jun 2009 21:22:26 -0000	1.5
++++ sys/contrib/pf/net/pf.c	11 Jun 2009 21:26:17 -0000
+@@ -304,8 +304,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
  				u_int16_t);
@@ -30,7 +30,7 @@ diff -u -r1.2 pf.c
  int			 pf_check_proto_cksum(struct mbuf *, int, int,
  			    u_int8_t, sa_family_t);
  int			 pf_addr_wrap_neq(struct pf_addr_wrap *,
-@@ -527,6 +525,8 @@
+@@ -526,6 +524,8 @@
  
  	if ((diff = a->lan.port - b->lan.port) != 0)
  		return (diff);
@@ -39,7 +39,7 @@ diff -u -r1.2 pf.c
  	if ((diff = a->ext.port - b->ext.port) != 0)
  		return (diff);
  
-@@ -597,10 +597,12 @@
+@@ -596,10 +596,12 @@
  #endif /* INET6 */
  	}
  
@@ -54,7 +54,7 @@ diff -u -r1.2 pf.c
  
  	return (0);
  }
-@@ -4685,11 +4687,12 @@
+@@ -4684,11 +4686,12 @@
  	struct tcphdr		*th = pd->hdr.tcp;
  	struct pf_rule		*r = NULL;
  	u_int16_t		 win = ntohs(th->th_win);
@@ -69,7 +69,7 @@ diff -u -r1.2 pf.c
  
  	key.af = pd->af;
  	key.proto = IPPROTO_TCP;
-@@ -4717,6 +4720,54 @@
+@@ -4716,6 +4719,54 @@
  		dst = &(*state)->src;
  	}
  	
@@ -124,7 +124,7 @@ diff -u -r1.2 pf.c
  	/*
           * First state is created by the rules checking code and if we reloop
           * the first packet that hit the rule pf will not like it.
-@@ -4934,14 +4985,54 @@
+@@ -4933,14 +4984,54 @@
  			src->max_win = win;
  
  	} else {
@@ -187,7 +187,7 @@ diff -u -r1.2 pf.c
  		end = seq + pd->p_len;
  		if (th->th_flags & TH_SYN)
  			end++;
-@@ -5181,7 +5272,7 @@
+@@ -5180,7 +5271,7 @@
  	}
  
  	/* Any packets which have gotten here are to be passed */
@@ -196,7 +196,7 @@ diff -u -r1.2 pf.c
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7021,6 +7112,10 @@
+@@ -7027,6 +7118,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -212,7 +212,7 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	29 Apr 2009 18:33:37 -0000
++++ sys/contrib/pf/net/pf_ftp.c	11 Jun 2009 21:26:17 -0000
 @@ -0,0 +1,693 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
@@ -909,11 +909,11 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/ermal/repobeforeftp/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.2
-diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	26 Apr 2009 22:00:18 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	29 Apr 2009 18:03:53 -0000
+RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.5
+diff -u -r1.5 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	11 Jun 2009 21:21:49 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	11 Jun 2009 21:26:17 -0000
 @@ -801,7 +801,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -938,11 +938,11 @@ diff -u -r1.2 pfvar.h
  	    const struct tcphdr *);
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /home/ermal/repobeforeftp/src/sys/modules/pf/Makefile,v
+RCS file: /root/freebsd/src/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	26 Apr 2009 21:52:46 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	29 Apr 2009 18:03:53 -0000
+--- sys/modules/pf/Makefile	11 Jun 2009 21:17:59 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	11 Jun 2009 21:26:17 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
@@ -950,5 +950,5 @@ diff -u -r1.1.1.1 Makefile
 -	pf_ruleset.c \
 +	pf_ruleset.c pf_ftp.c \
  	in4_cksum.c \
- 	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h opt_mac.h opt_route.h
+ 	opt_pf.h opt_inet.h opt_inet6.h opt_bpf.h
  
