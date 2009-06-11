@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
-RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf_ioctl.c,v
+RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	21 Oct 2008 18:54:10 -0000	1.2
-+++ sys/contrib/pf/net/pf_ioctl.c	21 Oct 2008 18:56:11 -0000
-@@ -2496,6 +2496,15 @@
+--- sys/contrib/pf/net/pf_ioctl.c	11 Jun 2009 21:20:01 -0000	1.2
++++ sys/contrib/pf/net/pf_ioctl.c	11 Jun 2009 21:20:40 -0000
+@@ -2497,6 +2497,15 @@
  		break;
  	}
  
@@ -21,7 +21,7 @@ diff -u -r1.2 pf_ioctl.c
  	case DIOCGETALTQS: {
  		struct pfioc_altq	*pa = (struct pfioc_altq *)addr;
  		struct pf_altq		*altq;
-@@ -2575,6 +2584,16 @@
+@@ -2576,6 +2585,16 @@
  	}
  #endif /* ALTQ */
  
@@ -40,12 +40,12 @@ diff -u -r1.2 pf_ioctl.c
  
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.6
-diff -u -r1.6 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:54:54 -0000	1.6
-+++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:56:14 -0000
-@@ -1606,6 +1606,8 @@
+RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.4
+diff -u -r1.4 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	11 Jun 2009 21:20:33 -0000	1.4
++++ sys/contrib/pf/net/pfvar.h	11 Jun 2009 21:20:40 -0000
+@@ -1605,6 +1605,8 @@
  #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
  #endif
  #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
