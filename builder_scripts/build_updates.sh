@@ -49,9 +49,6 @@ fi
 # Show flags
 print_flags
 
-# Make sure cvsup_current has been run first 
-check_for_clog
-
 # Allow old CVS_CO_DIR to be deleted later
 if [ -d $CVS_CO_DIR ]; then
 	chflags -R noschg $CVS_CO_DIR

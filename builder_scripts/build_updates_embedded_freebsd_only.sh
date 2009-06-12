@@ -37,9 +37,6 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
-# Make sure cvsup_current has been run first 
-check_for_clog
-
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 
