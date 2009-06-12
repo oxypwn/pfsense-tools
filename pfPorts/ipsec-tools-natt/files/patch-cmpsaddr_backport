@@ -1,3 +1,18 @@
+diff -rub src/libipsec/libpfkey.h.orig src/libipsec/libpfkey.h
+--- src/libipsec/libpfkey.h.orig	2007-08-01 07:52:18.000000000 -0400
++++ src/libipsec/libpfkey.h	2009-06-12 12:20:27.000000000 -0400
+@@ -154,6 +154,11 @@
+ 	struct sockaddr *, u_int, u_int, caddr_t, int, u_int32_t));
+ #endif
+ 
++/* XXX should be somewhere else !!!
++ */
++#define PFKEY_ADDR_X_PORT(ext) (ntohs(((struct sadb_x_nat_t_port *)ext)->sadb_x_nat_t_port_port))
++#define PFKEY_ADDR_X_NATTYPE(ext) ( ext != NULL && ((struct sadb_x_nat_t_type *)ext)->sadb_x_nat_t_type_type )
++
+ int pfkey_open __P((void));
+ void pfkey_close __P((int));
+ struct sadb_msg *pfkey_recv __P((int));
 diff -rub src/racoon/grabmyaddr.c.orig src/racoon/grabmyaddr.c
 --- src/racoon/grabmyaddr.c.orig	2008-06-19 08:25:33.000000000 -0400
 +++ src/racoon/grabmyaddr.c	2009-06-11 10:26:46.000000000 -0400
@@ -86,7 +101,7 @@ diff -rub src/racoon/handler.c.orig src/racoon/handler.c
  	/*
 diff -rub src/racoon/isakmp.c.orig src/racoon/isakmp.c
 --- src/racoon/isakmp.c.orig	2009-01-19 13:49:32.000000000 -0500
-+++ src/racoon/isakmp.c	2009-06-11 10:14:45.000000000 -0400
++++ src/racoon/isakmp.c	2009-06-12 12:09:13.000000000 -0400
 @@ -468,8 +468,8 @@
  		/* Floating ports for NAT-T */
  		if (NATT_AVAILABLE(iph1) &&
@@ -116,21 +131,118 @@ diff -rub src/racoon/isakmp.c.orig src/racoon/isakmp.c
  				plog(LLV_WARNING, LOCATION, remote,
  					"remote address mismatched. "
  					"db=%s\n",
-@@ -3250,8 +3250,8 @@
+@@ -3188,7 +3188,7 @@
+ 	struct ph2handle *iph2;
+ 	struct ph1handle *new_iph1;
+ 
+-	plog(LLV_INFO, LOCATION, NULL,
++	plog(LLV_DEBUG, LOCATION, NULL,
+ 		 "purging ISAKMP-SA spi=%s.\n",
+ 		 isakmp_pindex(&(iph1->index), iph1->msgid));
+ 
+@@ -3235,6 +3235,7 @@
+ 			msg = next;
+ 			continue;
+ 		}
++		pk_fixup_sa_addresses(mhp);
+ 		src = PFKEY_ADDR_SADDR(mhp[SADB_EXT_ADDRESS_SRC]);
+ 		dst = PFKEY_ADDR_SADDR(mhp[SADB_EXT_ADDRESS_DST]);
+ 
+@@ -3250,8 +3251,10 @@
  		 * Select only SAs where src == local and dst == remote (outgoing)
  		 * or src == remote and dst == local (incoming).
  		 */
 -		if ((CMPSADDR(iph1->local, src) || CMPSADDR(iph1->remote, dst)) &&
 -			(CMPSADDR(iph1->local, dst) || CMPSADDR(iph1->remote, src))) {
-+		if ((cmpsaddr(iph1->local, src) || cmpsaddr(iph1->remote, dst)) &&
-+			(cmpsaddr(iph1->local, dst) || cmpsaddr(iph1->remote, src))) {
++		if ((cmpsaddr(iph1->local, src) ||
++		     cmpsaddr(iph1->remote, dst)) &&
++		    (cmpsaddr(iph1->local, dst) ||
++		     cmpsaddr(iph1->remote, src))) {
  			msg = next;
  			continue;
  		}
+@@ -3282,7 +3285,7 @@
+ 				if (iph2->status == PHASE2ST_ESTABLISHED ||
+ 					iph2->status == PHASE2ST_EXPIRED) {
+ 					
+-					plog(LLV_INFO, LOCATION, NULL,
++					plog(LLV_DEBUG, LOCATION, NULL,
+ 						 "keeping IPsec-SA spi=%u - found valid ISAKMP-SA spi=%s.\n",
+ 						 ntohl(sa->sadb_sa_spi),
+ 						 isakmp_pindex(&(new_iph1->index), new_iph1->msgid));
+@@ -3301,12 +3304,11 @@
+ 		/* delete a relative phase 2 handle. */
+ 		if (iph2 != NULL) {
+ 			delete_spd(iph2, 0);
+-			unbindph12(iph2);
+ 			remph2(iph2);
+ 			delph2(iph2);
+ 		}
+ 
+-		plog(LLV_INFO, LOCATION, NULL,
++		plog(LLV_DEBUG, LOCATION, NULL,
+ 			 "purged IPsec-SA spi=%u.\n",
+ 			 ntohl(sa->sadb_sa_spi));
+ 
 diff -rub src/racoon/isakmp_inf.c.orig src/racoon/isakmp_inf.c
 --- src/racoon/isakmp_inf.c.orig	2009-04-20 09:35:36.000000000 -0400
-+++ src/racoon/isakmp_inf.c	2009-06-11 10:26:22.000000000 -0400
-@@ -1224,7 +1224,7 @@
++++ src/racoon/isakmp_inf.c	2009-06-12 12:02:24.000000000 -0400
+@@ -1113,7 +1113,7 @@
+ 		if (!iph1)
+ 			continue;
+ 
+-		plog(LLV_INFO, LOCATION, NULL,
++		plog(LLV_DEBUG, LOCATION, NULL,
+ 			"purged ISAKMP-SA proto_id=%s spi=%s.\n",
+ 			s_ipsecdoi_proto(proto),
+ 			isakmp_pindex(&spi[i], 0));
+@@ -1142,10 +1142,6 @@
+ 	u_int64_t created;
+ 	size_t i;
+ 	caddr_t mhp[SADB_EXT_MAX + 1];
+-#ifdef ENABLE_NATT
+-	struct sadb_x_nat_t_type *natt_type;
+-	struct sadb_x_nat_t_port *natt_port;
+-#endif
+ 
+ 	plog(LLV_DEBUG2, LOCATION, NULL,
+ 		 "purge_ipsec_spi:\n");
+@@ -1185,6 +1181,7 @@
+ 			msg = next;
+ 			continue;
+ 		}
++		pk_fixup_sa_addresses(mhp);
+ 		src = PFKEY_ADDR_SADDR(mhp[SADB_EXT_ADDRESS_SRC]);
+ 		dst = PFKEY_ADDR_SADDR(mhp[SADB_EXT_ADDRESS_DST]);
+ 		lt = (struct sadb_lifetime*)mhp[SADB_EXT_LIFETIME_HARD];
+@@ -1198,25 +1195,7 @@
+ 			msg = next;
+ 			continue;
+ 		}
+-#ifdef ENABLE_NATT
+-		natt_type = (void *)mhp[SADB_X_EXT_NAT_T_TYPE];
+-		if (natt_type && natt_type->sadb_x_nat_t_type_type) {
+-			/* NAT-T is enabled for this SADB entry; copy
+-			 * the ports from NAT-T extensions */
+-			natt_port = (void *)mhp[SADB_X_EXT_NAT_T_SPORT];
+-			if (extract_port(src) == 0 && natt_port != NULL)
+-				set_port(src, ntohs(natt_port->sadb_x_nat_t_port_port));
+-
+-			natt_port = (void *)mhp[SADB_X_EXT_NAT_T_DPORT];
+-			if (extract_port(dst) == 0 && natt_port != NULL)
+-				set_port(dst, ntohs(natt_port->sadb_x_nat_t_port_port));
+-		}else{
+-			/* Force default UDP ports, so CMPSADDR will match SAs with NO encapsulation
+-			 */
+-			set_port(src, PORT_ISAKMP);
+-			set_port(dst, PORT_ISAKMP);
+-		}
+-#endif
++
+ 		plog(LLV_DEBUG2, LOCATION, NULL, "src: %s\n", saddr2str(src));
+ 		plog(LLV_DEBUG2, LOCATION, NULL, "dst: %s\n", saddr2str(dst));
+ 
+@@ -1224,20 +1203,11 @@
  
  		/* don't delete inbound SAs at the moment */
  		/* XXX should we remove SAs with opposite direction as well? */
@@ -139,7 +251,46 @@ diff -rub src/racoon/isakmp_inf.c.orig src/racoon/isakmp_inf.c
  			msg = next;
  			continue;
  		}
-@@ -1411,11 +1411,11 @@
+ 
+-#ifdef ENABLE_NATT
+-		if (natt_type == NULL ||
+-			! natt_type->sadb_x_nat_t_type_type) {
+-			/* Set back port to 0 if it was forced to default UDP port
+-			 */
+-			set_port(src, 0);
+-			set_port(dst, 0);
+-		}
+-#endif
+ 		for (i = 0; i < n; i++) {
+ 			plog(LLV_DEBUG, LOCATION, NULL,
+ 				"check spi(packet)=%u spi(db)=%u.\n",
+@@ -1258,7 +1228,6 @@
+ 			iph2 = getph2bysaidx(src, dst, proto, spi[i]);
+ 			if(iph2 != NULL){
+ 				delete_spd(iph2, created);
+-				unbindph12(iph2);
+ 				remph2(iph2);
+ 				delph2(iph2);
+ 			}
+@@ -1315,7 +1284,7 @@
+ 	for (i = 0; i < pfkey_nsatypes; i++) {
+ 		proto_id = pfkey2ipsecdoi_proto(pfkey_satypes[i].ps_satype);
+ 
+-		plog(LLV_INFO, LOCATION, NULL,
++		plog(LLV_DEBUG, LOCATION, NULL,
+ 		    "purging %s SAs for %s -> %s\n",
+ 		    pfkey_satypes[i].ps_name, loc, rem);
+ 		if (pfkey_send_delete_all(lcconf->sock_pfkey,
+@@ -1330,7 +1299,7 @@
+ 
+ 		deleteallph2(iph1->local, iph1->remote, proto_id);
+ 
+-		plog(LLV_INFO, LOCATION, NULL,
++		plog(LLV_DEBUG, LOCATION, NULL,
+ 		    "purging %s SAs for %s -> %s\n",
+ 		    pfkey_satypes[i].ps_name, rem, loc);
+ 		if (pfkey_send_delete_all(lcconf->sock_pfkey,
+@@ -1411,11 +1380,11 @@
  		 * from this peer !
  		 */
  		if(iph1->natt_flags & NAT_DETECTED){
@@ -155,7 +306,7 @@ diff -rub src/racoon/isakmp_inf.c.orig src/racoon/isakmp_inf.c
  				;
  			else {
  				msg = next;
-@@ -1428,11 +1428,11 @@
+@@ -1428,11 +1397,11 @@
  		 * NATed, but which NATs some other peers ?
  		 * Here, the INITIAl-CONTACT would also flush all those NATed peers !!
  		 */
@@ -171,6 +322,15 @@ diff -rub src/racoon/isakmp_inf.c.orig src/racoon/isakmp_inf.c
  			;
  		else {
  			msg = next;
+@@ -1454,7 +1423,7 @@
+ 			continue;
+ 		}
+ 
+-		plog(LLV_INFO, LOCATION, NULL,
++		plog(LLV_DEBUG, LOCATION, NULL,
+ 			"purging spi=%u.\n", ntohl(sa->sadb_sa_spi));
+ 		pfkey_send_delete(lcconf->sock_pfkey,
+ 			msg->sadb_msg_satype,
 diff -rub src/racoon/nattraversal.c.orig src/racoon/nattraversal.c
 --- src/racoon/nattraversal.c.orig	2009-04-20 09:27:12.000000000 -0400
 +++ src/racoon/nattraversal.c	2009-06-11 10:25:36.000000000 -0400
@@ -198,8 +358,38 @@ diff -rub src/racoon/nattraversal.c.orig src/racoon/nattraversal.c
        plog (LLV_DEBUG, LOCATION, NULL, "KA removing this one...\n");
 diff -rub src/racoon/pfkey.c.orig src/racoon/pfkey.c
 --- src/racoon/pfkey.c.orig	2008-12-08 01:06:24.000000000 -0500
-+++ src/racoon/pfkey.c	2009-06-11 10:24:38.000000000 -0400
-@@ -1716,7 +1716,7 @@
++++ src/racoon/pfkey.c	2009-06-12 11:41:34.000000000 -0400
+@@ -715,6 +715,29 @@
+ 	return res;
+ }
+ 
++void
++pk_fixup_sa_addresses(mhp)
++	caddr_t *mhp;
++{
++	struct sockaddr *src, *dst;
++
++	src = PFKEY_ADDR_SADDR(mhp[SADB_EXT_ADDRESS_SRC]);
++	dst = PFKEY_ADDR_SADDR(mhp[SADB_EXT_ADDRESS_DST]);
++	set_port(src, PORT_ISAKMP);
++	set_port(dst, PORT_ISAKMP);
++
++#ifdef ENABLE_NATT
++	if (PFKEY_ADDR_X_NATTYPE(mhp[SADB_X_EXT_NAT_T_TYPE])) {
++		/* NAT-T is enabled for this SADB entry; copy
++		 * the ports from NAT-T extensions */
++		if(mhp[SADB_X_EXT_NAT_T_SPORT] != NULL)
++			set_port(src, PFKEY_ADDR_X_PORT(mhp[SADB_X_EXT_NAT_T_SPORT]));
++		if(mhp[SADB_X_EXT_NAT_T_DPORT] != NULL)
++			set_port(dst, PFKEY_ADDR_X_PORT(mhp[SADB_X_EXT_NAT_T_DPORT]));
++	}
++#endif
++}
++
+ int
+ pfkey_convertfromipsecdoi(proto_id, t_id, hashtype,
+ 		e_type, e_keylen, a_type, a_keylen, flags)
+@@ -1716,7 +1739,7 @@
  		struct myaddrs *p;
  		int do_listen = 0;
  		for (p = lcconf->myaddrs; p; p = p->next) {
@@ -208,6 +398,17 @@ diff -rub src/racoon/pfkey.c.orig src/racoon/pfkey.c
  				do_listen = 1;
  				break;
  			}
+diff -rub src/racoon/pfkey.h src/racoon/pfkey.h
+--- src/racoon/pfkey.h	2006-09-09 12:22:10.000000000 -0400
++++ src/racoon/pfkey.h	2009-06-12 11:34:59.000000000 -0400
+@@ -52,6 +52,7 @@
+ extern int pk_checkalg __P((int, int, int));
+ 
+ struct ph2handle;
++extern void pk_fixup_sa_addresses __P((caddr_t *mhp));
+ extern int pk_sendgetspi __P((struct ph2handle *));
+ extern int pk_sendupdate __P((struct ph2handle *));
+ extern int pk_sendadd __P((struct ph2handle *));
 diff -rub src/racoon/policy.c.orig src/racoon/policy.c
 --- src/racoon/policy.c.orig	2007-08-01 07:52:21.000000000 -0400
 +++ src/racoon/policy.c	2009-06-11 10:24:16.000000000 -0400
@@ -275,7 +476,7 @@ diff -rub src/racoon/remoteconf.c.orig src/racoon/remoteconf.c
  			return p;
 diff -rub src/racoon/sockmisc.c.orig src/racoon/sockmisc.c
 --- src/racoon/sockmisc.c.orig	2007-08-01 07:52:22.000000000 -0400
-+++ src/racoon/sockmisc.c	2009-06-11 10:17:22.000000000 -0400
++++ src/racoon/sockmisc.c	2009-06-12 12:12:07.000000000 -0400
 @@ -75,161 +75,39 @@
  const int niflags = 0;
  
@@ -381,7 +582,8 @@ diff -rub src/racoon/sockmisc.c.orig src/racoon/sockmisc.c
 -			return 1;
 -		if (memcmp(sa1, sa2, sizeof(struct in_addr)) != 0)
 -			return 1;
--		break;
++	case AF_UNSPEC:
+ 		break;
 -#ifdef INET6
 -	case AF_INET6:
 -		sa1 = (caddr_t)&((struct sockaddr_in6 *)addr1)->sin6_addr;
@@ -397,8 +599,7 @@ diff -rub src/racoon/sockmisc.c.orig src/racoon/sockmisc.c
 -		if (((struct sockaddr_in6 *)addr1)->sin6_scope_id !=
 -		    ((struct sockaddr_in6 *)addr2)->sin6_scope_id)
 -			return 1;
-+	case AF_UNSPEC:
- 		break;
+-		break;
 -#endif
 -	default:
 -		return 1;
