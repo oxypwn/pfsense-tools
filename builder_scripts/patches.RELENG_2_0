@@ -23,7 +23,6 @@
 ~~schedule_label.RELENG_7.diff~
 ~~pfil.RELENG_7.diff~
 ~sys/contrib/pf/net~ipfw_forward.RELENG_7.diff~
-~sys/~patch-natt-freebsd7-2008-03-11.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.diff~
 ~~ng_eiface.RELENG_7.diff~
