@@ -69,6 +69,7 @@ PORTSTOBUILD="grub \
 	zip \
 	links \
 	dnswatch \
+	voucher	\
 	verifysig \
 	openntpd \
 	ftp-proxy \
