@@ -14,7 +14,7 @@ EXTRACT_ONLY=	# empty
 MAINTAINER?=	eri@pfsense.org
 COMMENT?=	voucher support
 
-WHERE=		sbin
+WHERE=		bin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 
 do-extract:
