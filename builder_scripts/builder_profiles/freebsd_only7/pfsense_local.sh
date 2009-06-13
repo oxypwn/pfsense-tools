@@ -86,8 +86,8 @@ export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
 export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
 
 # Must be defined after MAKEOBJDIRPREFIX!
-export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/FreeBSD.iso}
-export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/FreeBSD.img}
+#export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/FreeBSD.iso}
+#export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/FreeBSD.img}
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
