@@ -2,11 +2,12 @@
 # Date created:				20 Sep 2005
 # Whom:					Archie Cobbs
 #
-# $FreeBSD: ports/net/mpd4/Makefile,v 1.17 2008/01/06 23:48:46 sem Exp $
+# $FreeBSD: ports/net/mpd4/Makefile,v 1.19 2008/06/21 13:03:39 sem Exp $
 #
 
 PORTNAME=	mpd
-DISTVERSION=	4.4
+DISTVERSION=	4.4.1
+PORTREVISION=	1
 CATEGORIES=	net
 MASTER_SITES=	SF
 MASTER_SITE_SUBDIR=	mpd
@@ -47,7 +48,6 @@ RUN_DEPENDS+=	/boot/modules/ng_ipacct.ko:${PORTSDIR}/net-mgmt/ng_ipacct
 .endif
 .endif
 
-MTREE_FILE=	${FILESDIR}/mpd4.mtree
 MAN8=		mpd4.8
 MANCOMPRESSED=	maybe
 USE_RC_SUBR=	mpd4.sh
