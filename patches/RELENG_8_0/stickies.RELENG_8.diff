@@ -1,24 +1,97 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/repo/repo/src/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.7
 diff -u -r1.7 pf.c
---- sys/contrib/pf/net/pf.c	8 Jun 2009 21:54:34 -0000	1.7
-+++ sys/contrib/pf/net/pf.c	8 Jun 2009 21:59:50 -0000
-@@ -1015,11 +1015,13 @@
+--- sys/contrib/pf/net/pf.c	14 Jun 2009 08:54:15 -0000	1.7
++++ sys/contrib/pf/net/pf.c	14 Jun 2009 15:14:36 -0000
+@@ -1008,44 +1008,33 @@
+ {
+ 	int nloops = 0, s;
+ 
+-	for (;;) {
++	while (!pf_end_threads) {
+ 		tsleep(pf_purge_thread, PWAIT, "pftm", 1 * hz);
+ 
+ #ifdef __FreeBSD__
  		sx_slock(&pf_consistency_lock);
  		PF_LOCK();
  
 -		if (pf_end_threads) {
 -			pf_purge_expired_states(pf_status.states);
-+		pf_purge_expired_states(1 + (pf_status.states
+-			pf_purge_expired_fragments();
+-			pf_purge_expired_src_nodes(0);
+-			pf_end_threads++;
+-
+-			sx_sunlock(&pf_consistency_lock);
+-			PF_UNLOCK();
+-			wakeup(pf_purge_thread);
+-			kproc_exit(0);
+-		}
+-#endif
+ 		s = splsoftnet();
+ 
+-		/* process a fraction of the state table every second */
+ 		pf_purge_expired_states(1 + (pf_status.states
+-		    / pf_default_rule.timeout[PFTM_INTERVAL]));
+-
+-		/* purge other expired types every PFTM_INTERVAL seconds */
 +			/ pf_default_rule.timeout[PFTM_INTERVAL]));
 +		
-+		if (++pf_end_threads >= pf_default_rule.timeout[PFTM_INTERVAL]) {
+ 		if (++nloops >= pf_default_rule.timeout[PFTM_INTERVAL]) {
  			pf_purge_expired_fragments();
  			pf_purge_expired_src_nodes(0);
--			pf_end_threads++;
-+			pf_end_threads = 0;
+ 			nloops = 0;
+ 		}
+-
++#endif
+ 		splx(s);
+-#ifdef __FreeBSD__
+ 		PF_UNLOCK();
+ 		sx_sunlock(&pf_consistency_lock);
+-#endif
+ 	}
++#ifdef __FreeBSD__
++	++pf_end_threads;
++	wakeup(pf_purge_thread);
++	kproc_exit(0);
++#endif
+ }
  
- 			sx_sunlock(&pf_consistency_lock);
- 			PF_UNLOCK();
+ u_int32_t
+@@ -1105,10 +1094,7 @@
+ 			 if (! locked) {
+ #ifdef __FreeBSD__
+ 				 if (!sx_try_upgrade(&pf_consistency_lock)) {
+-					 PF_UNLOCK();
+-					 sx_sunlock(&pf_consistency_lock);
+-					 sx_xlock(&pf_consistency_lock);
+-					 PF_LOCK();
++					continue;
+ 				 }
+ #else
+ 				 rw_enter_write(&pf_consistency_lock);
+@@ -1261,10 +1247,7 @@
+ 			if (! locked) {
+ #ifdef __FreeBSD__
+ 				 if (!sx_try_upgrade(&pf_consistency_lock)) {
+-					 PF_UNLOCK();
+-					 sx_sunlock(&pf_consistency_lock);
+-					 sx_xlock(&pf_consistency_lock);
+-					 PF_LOCK();
++					continue;
+ 				 }
+ #else
+ 				rw_enter_write(&pf_consistency_lock);
+@@ -1278,10 +1261,7 @@
+ 			if (! locked) {
+ #ifdef __FreeBSD__
+ 				 if (!sx_try_upgrade(&pf_consistency_lock)) {
+-					 PF_UNLOCK();
+-					 sx_sunlock(&pf_consistency_lock);
+-					 sx_xlock(&pf_consistency_lock);
+-					 PF_LOCK();
++					continue;
+ 				 }
+ #else
+ 				rw_enter_write(&pf_consistency_lock);
