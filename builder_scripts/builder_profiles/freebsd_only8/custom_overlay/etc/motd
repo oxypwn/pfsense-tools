@@ -1,4 +1,3 @@
-
 Welcome to FreeBSD!
 
 Before seeking technical support, please use the following resources:
@@ -23,13 +22,7 @@ configuration utility.  Edit /etc/motd to change this login announcement.
 
 ***************************************************************************
 
-Daily FreeBSD-CURRENT LiveCD builds.   
-
-* Login as root with no password
 * To start the installer run /scripts/freebsd_installer
 
 Comments / suggestions / questions?    E-mail sullrich@freebsd.org
 
-Hope you enjoy using this ISO!
-
-***************************************************************************
