@@ -21,6 +21,7 @@ usr/bin/nslookup
 usr/bin/patch
 usr/bin/diff
 usr/bin/host
+usr/local/bin/rate
 usr/bin/nsupdate
 usr/sbin/syslogd
 usr/local/sbin/apinger

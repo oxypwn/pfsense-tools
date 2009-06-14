@@ -39,6 +39,7 @@ usr/local/bin/lua50
 usr/local/bin/php
 usr/local/bin/rrdtool
 usr/local/sbin/expiretable
+usr/local/bin/rate
 usr/local/sbin/choparp
 usr/local/sbin/dhcpd
 usr/local/sbin/check_reload_status
