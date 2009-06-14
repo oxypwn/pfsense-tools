@@ -77,6 +77,7 @@ scp_files() {
 		(cd /usr/ports/net/rsync && make install clean)
 	fi
 	rm -f /tmp/ssh-snapshots*
+	rm -f /tmp/latest*
 	set +e
 	# Ensure directory(s) are available
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_8_0
