@@ -124,6 +124,8 @@ cust_populate_installer_bits_freebsd_only
 rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
 rm -f $CVS_CO_DIR/root/.hushlogin
 rm -f $PFSENSEBASEDIR/root/.hushlogin
+rm -f $PFSENSEBASEDIR/etc/rc.d/pfi
+rm -f $CVS_CO_DIR/etc/rc.d/pfi
 
 # Prepare /usr/local/pfsense-fs -> /usr/local/pfsense-clonefs clone
 echo ">>> Cloning filesystem..."
