@@ -115,8 +115,8 @@ export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 # export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply
-export PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
-export PFSPATCHFILE=${PFSPATCHFILE:-${BUILDER_TOOLS}/builder_scripts/patches.${PFSENSETAG}}
+#export PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
+#export PFSPATCHFILE=${PFSPATCHFILE:-${BUILDER_TOOLS}/builder_scripts/patches.${PFSENSETAG}}
 
 # Controls how many concurrent make processes are run for each stage
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j8"}
