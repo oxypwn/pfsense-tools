@@ -75,6 +75,7 @@ PORTSTOBUILD="grub \
 	ftp-proxy \
 	pecl-uploadprogress \
 	php5-json \
+	rate \
 	php5-install-all"
 
 if [ -f pfsense_local.sh ]; then

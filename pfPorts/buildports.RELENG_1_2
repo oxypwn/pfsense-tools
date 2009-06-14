@@ -96,6 +96,7 @@ PORTSTOBUILD="grub \
 	php4-sysvshm \
 	php4-install-all \
 	php-xdebug \
+	rate \
 	wol"
 
 if [ ! -f /usr/ports/INDEX-7.bz2 ]; then 
