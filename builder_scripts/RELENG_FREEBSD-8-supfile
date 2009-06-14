@@ -1,0 +1,7 @@
+*default base=/var/db
+*default prefix=/usr/FreeBSDsrc/
+*default release=cvs tag=.
+*default delete use-rel-suffix
+*default compress
+src-all
+#date=2009.06.08.19.00.00

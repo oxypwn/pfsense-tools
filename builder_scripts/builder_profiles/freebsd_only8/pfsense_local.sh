@@ -103,7 +103,7 @@ export FREEBSD_VERSION=${FREEBSD_VERSION:-"8"}
 export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_0"}
 
 # Define FreeBSD SUPFILE
-export SUPFILE=${SUPFILE:-${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile}
+#export SUPFILE=${SUPFILE:-${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile}
 
 # Version that will be applied to this build
 export PFSENSE_VERSION=${PFSENSE_VERSION:-1.2.1-RC2}
