@@ -46,6 +46,10 @@ BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 # Ensure directories exist
 mkdir -p $STAGINGAREA
 
+# Required for BSDInstaller
+rm -f conf
+ln -s conf ../../conf
+
 build_freebsdiso() {
 	cd $BUILDERSCRIPTS
 	echo ">> Copying FreeBSD overlay information..."
