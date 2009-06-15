@@ -57,6 +57,7 @@ build_freebsdiso() {
 
 dobuilds() {
 	cd $BUILDERSCRIPTS
+	./rebuild_bsdinstaller.sh
 	build_freebsdiso
 	copy_to_staging_deviso_updates	
 	scp_files
