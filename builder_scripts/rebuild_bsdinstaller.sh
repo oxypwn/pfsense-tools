@@ -28,9 +28,7 @@ echo -n ">>> Copying ports to the ports directory..."
 (cd $BASE_DIR/installer/installer/scripts/build  && ./copy_ports_to_portsdir.sh) 2>&1 | egrep -B3 -A3 -wi '(warning|error)'
 echo "Done!"
 
-echo -n ">>> Rebuilding..."
-(cd $BASE_DIR/installer/installer/scripts/build  && ./build_installer_packages.sh) 2>&1 | egrep -B3 -A3 -wi '(error)'
-echo "Done!"
+cd $BASE_DIR/installer/installer/scripts/build  && ./build_installer_packages.sh
 
 if [ -f $BUILDER_TOOLS/builder_scripts/conf/packages.tbz ]; then
 	echo -n ">>> Moving BSDInstaller package into place..."
