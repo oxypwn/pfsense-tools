@@ -47,6 +47,7 @@ BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 mkdir -p $STAGINGAREA
 
 # Required for BSDInstaller
+mkdir -p ../../conf
 rm -f conf
 ln -s ../../conf/ conf
 
