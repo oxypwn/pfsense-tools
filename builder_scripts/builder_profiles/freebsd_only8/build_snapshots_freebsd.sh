@@ -48,7 +48,7 @@ mkdir -p $STAGINGAREA
 
 # Required for BSDInstaller
 rm -f conf
-ln -s conf ../../conf
+ln -s ../../conf/ conf
 
 build_freebsdiso() {
 	cd $BUILDERSCRIPTS
