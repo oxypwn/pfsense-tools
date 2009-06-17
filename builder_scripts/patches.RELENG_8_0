@@ -32,6 +32,5 @@
 ~sys/contrib/pf/net~pf.c.diff~
 ~sys/netinet~tcp_output.c.diff~
 ~sys/netinet~ip_carp.c.diff~
-~sys/kern~vfs_syscalls.c.diff~
 ~~~~usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
