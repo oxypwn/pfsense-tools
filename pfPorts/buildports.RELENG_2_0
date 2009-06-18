@@ -63,6 +63,8 @@ PORTSTOBUILD="grub \
 	php5-tokenizer \
 	php5-xml \
 	php5-zlib \
+	php5-xmlreader \
+	php5-xmlwriter \
 	php-xdebug \
 	openvpn \
 	syslog-ng \
