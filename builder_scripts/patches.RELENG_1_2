@@ -65,3 +65,6 @@
 ~usr.sbin/wpa/hostapd~driver_freebsd.c.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/dev/usb/~u3g.tgz~
+~sys/dev/usb/~pyramid-lcd-releng_6.diff~
+~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
+

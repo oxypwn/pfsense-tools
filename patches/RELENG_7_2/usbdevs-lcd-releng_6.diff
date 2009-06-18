@@ -1,0 +1,12 @@
+--- usbdevs.orig	Thu Nov 15 19:45:15 2007
++++ usbdevs	Fri Nov 16 23:34:06 2007
+@@ -802,6 +802,9 @@
+ product FTDI CFA_634		0xfc09	Crystalfontz CFA-634 USB LCD
+ product FTDI SEMC_DSS20		0xfc82	SEMC DSS-20 SyncStation
+ 
++/* Pyramid Appliance products */
++product FTDI KBS              0xe6c8  Pyramid KBS USB LCD
++
+ /* Cambridge Silicon Radio Ltd. products */
+ product CSR BT_DONGLE		0x0001	Bluetooth USB dongle
+ product CSR CSRDFU		0xffff	USB Bluetooth Device in DFU State
