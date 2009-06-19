@@ -59,4 +59,3 @@
 ~sbin/dhclient~dhclient.c.diff~
 ~sys/dev/usb/~pyramid-lcd-releng_7.diff~
 ~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
-~sys/i386/i386/~geode.c.1.11.diff~
