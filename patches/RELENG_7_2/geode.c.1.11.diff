@@ -1,10 +1,10 @@
---- src/sys/i386/i386/geode.c.1.10	2009-06-18 20:22:56.000000000 -0400
-+++ src/sys/i386/i386/geode.c.1.11	2009-06-18 20:21:49.000000000 -0400
+--- geode.c.orig	2009-06-19 11:50:07.000000000 -0400
++++ geode.c	2009-06-19 10:26:09.000000000 -0400
 @@ -25,7 +25,7 @@
   */
  
  #include <sys/cdefs.h>
--__FBSDID("$FreeBSD: src/sys/i386/i386/geode.c,v 1.10 2007/09/18 09:19:44 phk Exp $");
+-__FBSDID("$FreeBSD: src/sys/i386/i386/geode.c,v 1.10.8.1 2009/04/15 03:14:26 kensmith Exp $");
 +__FBSDID("$FreeBSD: src/sys/i386/i386/geode.c,v 1.11 2008/02/10 19:14:42 phk Exp $");
  
  #include <sys/param.h>
