@@ -1,5 +1,3 @@
-~sys/dev/usb/~pyramid-lcd-releng_7.diff~
-~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
 ~~~/usr.sbin/clog
 ~~~/contrib/pf/pfctl/pfctl_dn.c~
 ~~~/sys/contrib/pf/net/pf_pptp.c~
@@ -59,6 +57,6 @@
 ~usr.sbin/clog~clog.diff~
 ~sys/geom/label~g_label.c.diff~
 ~sbin/dhclient~dhclient.c.diff~
-~sys/dev/usb/~pyramid-lcd-releng_6.diff~
+~sys/dev/usb/~pyramid-lcd-releng_7.diff~
 ~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
 ~sys/i386/i386/~geode.c.1.11.diff~
