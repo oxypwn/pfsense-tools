@@ -6,6 +6,14 @@ if [ $# -lt 1 ]; then
 	exit 127
 fi
 
+echo "0 $0"
+echo "1 $1"
+echo "2 $2"
+echo "3 $3"
+echo "4 $4"
+echo "5 $5"
+echo "6 $6"
+
 # Default SUPHOST
 if [ "$2" != "" ]; then 
 	SUPHOST="$2"
@@ -33,6 +41,7 @@ fi
 HANDLED=false
 
 # Ensure file exists
+rm -f pfsense-build.conf
 touch pfsense-build.conf
 
 export BUILDER_SCRIPTS=`pwd`
@@ -57,7 +66,10 @@ strip_pfsense_local() {
 		grep -v PFSENSE_VERSION | \
 		grep -v SUPFILE | \
 		grep -v PFSPATCHDIR | \
+		grep -v TWITTER_USERNAME | \
+		grep -v TWITTER_PASSWORD | \
 		grep -v PFSENSE_VERSION | \
+		grep -v FREESBIE_COMPLETED_MAIL | \
 		grep -v PFSPORTSFILE | \
 		grep -v CUSTOM_COPY_LIST | \
 		grep -v FREESBIE_ERROR_MAIL | \
