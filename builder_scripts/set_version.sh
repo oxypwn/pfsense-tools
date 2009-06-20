@@ -19,7 +19,15 @@ if [ "$3" != "" ]; then
 fi
 
 if [ "$4" != "" ]; then
-	FREESBIE_COMPLETED_MAIL="$3"
+	FREESBIE_COMPLETED_MAIL="$4"
+fi
+
+if [ "$5" != "" ]; then
+	TWITTER_USERNAME="$5"
+fi
+
+if [ "$6" != "" ]; then
+	TWITTER_PASSWORD="$6"
 fi
 
 HANDLED=false
@@ -82,6 +90,10 @@ set_items() {
 	if [ "$PFSPORTSFILE" != "" ]; then 
 		echo "export PFSPORTSFILE=${PFSPORTSFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	fi
+	if [ "$TWITTER_USERNAME" != "" ]; then 
+		echo "export TWITTER_USERNAME=${TWITTER_USERNAME}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
+		echo "export TWITTER_PASSWORD=${TWITTER_PASSWORD}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
+	fi	
 	echo
 	echo ">>> Custom pfsense-build.conf contains:"
 	echo "---------------------------------------------------------------------------------------"
