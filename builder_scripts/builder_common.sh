@@ -459,25 +459,19 @@ cust_overlay_host_binaries() {
 	NEEDEDLIBS=""
 	echo ">>>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
-		echo "Looking for /${TEMPFILE} "
 		if [ -f /${TEMPFILE} ]; then
-			echo " Found $TEMPFILE"
 			FILETYPE=`file /$TEMPFILE | egrep "(dynamically|shared)" | wc -l | awk '{ print $1 }'`
 			if [ "$FILETYPE" -gt 0 ]; then
 				NEEDEDLIBS="$NEEDEDLIBS `ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"
-				echo "cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE"
 				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
 				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				if [ -d $CLONEDIR ]; then
-					echo "cp /$NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
 					cp /$NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
 				fi
 			else 
-				echo "Binary does not contain libraries, copying..."
 				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
 			fi
 		else
-			echo "Could not find ${TEMPFILE}"
 			if [ -f ${CVS_CO_DIR}/${TEMPFILE} ]; then
 				FILETYPE=`file ${CVS_CO_DIR}/${TEMPFILE} | grep dynamically | wc -l | awk '{ print $1 }'`
 				if [ "$FILETYPE" -gt 0 ]; then
@@ -491,10 +485,8 @@ cust_overlay_host_binaries() {
 	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
 	for NEEDLIB in $NEEDEDLIBS; do
 		if [ -f $NEEDLIB ]; then 
-			echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
 			install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
 			if [ -d $CLONEDIR ]; then
-				echo "install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}"
 				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}					
 			fi
 		fi
