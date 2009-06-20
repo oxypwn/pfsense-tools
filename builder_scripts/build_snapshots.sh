@@ -58,6 +58,20 @@ mkdir -p $PFSENSECHECKOUTDIR
 mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
 
+post_tweet() {
+	if [ ! "$TWITTER_USERNAME" ]; then
+		return
+	fi
+	if [ ! "$TWITTER_PASSWORD" ]; then
+		return
+	fi
+	if [ ! -f "/usr/local/bin/curl" ]; then 
+		return
+	fi
+	TWEET_MESSAGE="$1"
+	`curl --basic --user $TWITTER_USERNAME:$TWITTER_PASSWORD --data status="$1" http://twitter.com/statuses/update.xml`
+}
+
 sync_cvs() {
 	# Sync with pfsense.org
 	echo ">>> Syncing with pfSense.org"
