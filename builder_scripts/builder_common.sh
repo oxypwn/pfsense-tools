@@ -42,6 +42,20 @@ fixup_libmap() {
 	
 }
 
+post_tweet() {
+	if [ ! "$TWITTER_USERNAME" ]; then
+		return
+	fi
+	if [ ! "$TWITTER_PASSWORD" ]; then
+		return
+	fi
+	if [ ! -f "/usr/local/bin/curl" ]; then 
+		return
+	fi
+	TWEET_MESSAGE="$1"
+	`curl --basic --user $TWITTER_USERNAME:$TWITTER_PASSWORD --data status="$1" http://twitter.com/statuses/update.xml`
+}
+
 handle_athstats() {
 	echo -n ">>>> Building athstats..."
 	cd $SRCDIR/tools/tools/ath/athstats
