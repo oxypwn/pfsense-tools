@@ -138,28 +138,24 @@ if [ "$MAKEJ_PORTS" != "" ]; then
 fi
 
 for PORT in $PORTSTOBUILD; do
+	echo ">>>> Building $PORT..."
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
-		echo ">>>> Building $PORT..."
 		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	fi
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
-		echo ">>>> Found port.  Copying and building..."
 		if [ -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
-			echo ">>>> Found /home/pfsense/tools/pfPorts/useports ... Not removing target port directory."
+			# Nothing to see here.
 		else
-			echo ">>>> Removing ${DOESPORTEXIST}..."
 			rm -rf $DOESPORTEXIST
 			mkdir -p $DOESPORTEXIST		
 		fi
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
-		echo ">>>> Executing cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/"
 		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
 		cd $DOESPORTEXIST && make -DALWAYS_BUILD_DEPENDS=yo ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends
 		cd $DOESPORTEXIST && make -DALWAYS_BUILD_DEPENDS=yo ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS
 		cd $DOESPORTEXIST && make -DALWAYS_BUILD_DEPENDS=yo ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install
 	else
-		echo ">>>> Port not found, building from pfPorts..."
 		cd /home/pfsense/tools/pfPorts/$PORT && make -DALWAYS_BUILD_DEPENDS=yo $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends
 		cd /home/pfsense/tools/pfPorts/$PORT && make -DALWAYS_BUILD_DEPENDS=yo $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS		
 		cd /home/pfsense/tools/pfPorts/$PORT && make -DALWAYS_BUILD_DEPENDS=yo ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install

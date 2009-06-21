@@ -121,9 +121,8 @@ for PORT in $PORTSTOBUILD; do
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
 		if [ -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
-			echo "Found /home/pfsense/tools/pfPorts/useports ... Not removing target port directory."
+			# Nothing to see here.
 		else
-			echo "Removing ${DOESPORTEXIST}..."
 			rm -rf $DOESPORTEXIST
 			mkdir -p $DOESPORTEXIST			
 		fi
@@ -133,7 +132,6 @@ for PORT in $PORTSTOBUILD; do
 		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
 		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
 	else
-		echo "Port not found, building from pfPorts..."
 		( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
 		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )		
 		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
