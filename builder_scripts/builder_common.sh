@@ -53,7 +53,7 @@ post_tweet() {
 		return
 	fi
 	TWEET_MESSAGE="$1"
-	`curl --basic --user $TWITTER_USERNAME:$TWITTER_PASSWORD --data status="$1" http://twitter.com/statuses/update.xml`
+	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$1" http://twitter.com/statuses/update.xml`
 }
 
 handle_athstats() {
