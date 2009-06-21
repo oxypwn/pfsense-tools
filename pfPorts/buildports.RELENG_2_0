@@ -99,7 +99,7 @@ fi
 # pfSense is english based.
 rm -rf /usr/ports/chinese/links
 
-echo -n ">>> Locating ports..."
+echo -n ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
 	echo "Finding $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
