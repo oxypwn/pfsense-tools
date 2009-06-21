@@ -115,7 +115,7 @@ fi
 # pfSense is english based.
 rm -rf /usr/ports/chinese/links
 
-echo -n ">>> Locating ports (this will take a while)..."
+echo ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
@@ -129,7 +129,6 @@ for PORT in $PORTSTOBUILD; do
 		set_cache ${PORT} ""		
 	fi
 done
-echo "Done!"
 
 if [ "$MAKEJ_PORTS" != "" ]; then
 	echo ">>>> Using MAKEJ_PORTS: ${MAKEJ_PORTS}"
