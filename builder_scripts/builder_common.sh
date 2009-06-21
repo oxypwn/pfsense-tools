@@ -372,16 +372,11 @@ recompile_pfPorts() {
 		PFPORTSBASENAME=`basename ${USE_PORTS_FILE}`
 		
 		# Warn user about make includes operation
-		echo
 		echo "===> Preparing for pfPorts build ${PFPORTSBASENAME}"
-		echo
 		echo "   NOTE!  If you are building a different version of pfSense it may"
 		echo "          be necessary to rm -rf /var/db/pkg/* before running this script!"
-		echo
 		echo "WARNING!  We are about to run make includes."
-		echo
 		echo "             Press CTRl-C to abort this operation...."
-		echo 
 		sleep 5
 
 		# Since we are using NAT-T we need to run this prior
