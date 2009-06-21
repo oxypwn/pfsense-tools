@@ -59,17 +59,20 @@ mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
 
 post_tweet() {
-	if [ ! "$TWITTER_USERNAME" ]; then
+	TWEET_MESSAGE="$1"
+	if [ "$TWITTER_USERNAME" ="" ]; then
+		echo ">>> ERROR: Could not find TWITTER_USERNAME -- tweet cancelled."
 		return
 	fi
-	if [ ! "$TWITTER_PASSWORD" ]; then
+	if [ "$TWITTER_PASSWORD" = "" ]; then
+		echo ">>> ERROR: Could not find TWITTER_PASSWORD -- tweet cancelled."
 		return
 	fi
 	if [ ! -f "/usr/local/bin/curl" ]; then 
+		echo ">>> ERROR: Could not find /usr/local/bin/curl -- tweet cancelled."
 		return
 	fi
-	TWEET_MESSAGE="$1"
-	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$1" http://twitter.com/statuses/update.xml`
+	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml`
 }
 
 sync_cvs() {
