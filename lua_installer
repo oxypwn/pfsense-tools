@@ -31,8 +31,6 @@ factory_shipped_username=`cat /etc/inc/globals.inc | grep factory_shipped_userna
 echo
 echo "Launching ${product} Installer..."
 echo
-echo "One moment please..."
-echo
 
 # Ensure install-session.sh exists where the installtion was recorded to
 touch /tmp/install-session.sh
@@ -77,7 +75,9 @@ if [ -f /var/log/dmesg.boot ]; then
 	fi
 fi
 
-echo Launching LUA Installer...
+echo "One moment please..."
+echo
+
 echo -n "LUA_CPATH='/usr/local/lib/lua/5.0/?.so' exec /usr/local/bin/lua50 -l/usr/local/share/lua/5.0/compat-5.1.lua " > /tmp/lua50c51
 
 echo "/usr/local/share/dfuibe_lua/main.lua \
