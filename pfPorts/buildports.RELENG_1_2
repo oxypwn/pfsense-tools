@@ -123,9 +123,9 @@ for PORT in $PORTSTOBUILD; do
 		set_cache ${PORT} ${DOESPORTEXIST}
 	fi 
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
-		( cd $DOESPORTEXIST && make clean )
+		( cd $DOESPORTEXIST && make clean ) | egrep -B3 -A3 -wi '(error)'
 	else 
-		( cd /home/pfsense/tools/pfPorts/$PORT && make clean)
+		( cd /home/pfsense/tools/pfPorts/$PORT && make clean) | egrep -B3 -A3 -wi '(error)'
 		set_cache ${PORT} ""		
 	fi
 done
