@@ -56,7 +56,9 @@ post_tweet() {
 		echo ">>> ERROR: Could not find /usr/local/bin/curl -- tweet cancelled."
 		return
 	fi
+	echo -n ">>> Posting tweet to twitter: $TWEET_MESSAGE"
 	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml`
+	echo "Done!"
 }
 
 handle_athstats() {
