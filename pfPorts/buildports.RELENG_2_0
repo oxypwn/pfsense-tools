@@ -66,6 +66,7 @@ PORTSTOBUILD="grub \
 	php5-xmlreader \
 	php5-xmlwriter \
 	php-xdebug \
+	php-suhosin \
 	openvpn \
 	syslog-ng \
 	zip \
