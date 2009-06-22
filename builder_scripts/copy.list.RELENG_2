@@ -105,6 +105,7 @@ usr/local/lib/php/20060613/sysvmsg.so
 usr/local/lib/php/20060613/sysvsem.so
 usr/local/lib/php/20060613/sysvshm.so
 usr/local/lib/php/20060613/sqlite.so
+usr/local/lib/php/20060613/suhosin.so
 usr/local/lib/php/20060613/tokenizer.so
 usr/local/lib/php/20060613/xml.so
 usr/local/lib/php/20060613/ldap.so
