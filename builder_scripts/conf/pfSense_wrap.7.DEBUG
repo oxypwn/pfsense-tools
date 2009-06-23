@@ -1,6 +1,6 @@
 # $Id$
 
-makeoptions MODULES_OVERRIDE="acpi ndis if_ndis ipfw ipdivert dummynet fdescfs cpufreq ubsa"
+makeoptions MODULES_OVERRIDE="acpi ndis if_ndis ipfw ipdivert dummynet fdescfs cpufreq ubsa glxsb"
 
 machine		i386
 cpu			I486_CPU
@@ -330,7 +330,6 @@ device		carp
 device		pfsync
 
 device		crypto          # core crypto support
-device		glxsb
 device		cryptodev       # /dev/crypto for access to h/w
 device		rndtest         # FIPS 140-2 entropy tester
 device		hifn            # Hifn 7951, 7781, etc.
@@ -384,7 +383,6 @@ device		igb				# igb -- Intel(R) PRO/1000 PCI Express Gigabit Ethernet adapter d
 #device		ixgbe 			# http://www.nabble.com/kern-130476:-Error-in-compiling-kernel-with-device-ixgbe-td21424560.html
 device		ae				# ae -- Attansic/Atheros L2 FastEthernet controller driver
 device		crypto          # core crypto support
-device		glxsb			# glxsb -- Geode LX Security Block crypto accelerator
 device		cryptodev       # /dev/crypto for access to h/w
 device		hifn            # Hifn 7951, 7781, etc.
 device		ubsec           # Broadcom 5501, 5601, 58xx
