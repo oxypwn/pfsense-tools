@@ -1338,7 +1338,13 @@ setup_nanobsd ( ) {
 	# Put /tmp on the /var ramdisk (could be symlink already)
 	rm -rf tmp || true
 	ln -s var/tmp tmp
-
+	
+	# Ensure updatep1 and updatep1 are present
+	if [ ! -d $PFSENSEBASEDIR/root ]; then
+		mkdir $PFSENSEBASEDIR/root
+	fi
+	cp $SRCDIR/tools/tools/nanobsd/Files/root/updatep1 $PFSENSEBASEDIR/root/
+	cp $SRCDIR/tools/tools/nanobsd/Files/root/updatep2 $PFSENSEBASEDIR/root/
 }
 
 prune_usr() {
