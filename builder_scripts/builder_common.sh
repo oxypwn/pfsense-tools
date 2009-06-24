@@ -802,7 +802,7 @@ fixup_updates() {
 
 cust_fixup_wrap() {
 
-	echo "Fixing up WRAP Specific items..."
+	echo "Fixing up Embedded Specific items..."
     	cp $CVS_CO_DIR/boot/device.hints_wrap \
             	$PFSENSEBASEDIR/boot/device.hints
     cp $CVS_CO_DIR/boot/loader.conf_wrap \
