@@ -140,6 +140,7 @@ FlashDevice $FLASH_MODEL $FLASH_SIZE
 setup_nanobsd_etc
 
 setup_nanobsd
+cust_install_config_xml
 prune_usr
 create_i386_diskimage
 
