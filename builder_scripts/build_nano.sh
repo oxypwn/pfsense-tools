@@ -128,6 +128,9 @@ chroot $PFSENSEBASEDIR /chroot.sh
 rm $PFSENSEBASEDIR/chroot.sh
 echo "Done."
 
+# Copy config.xml
+copy_config_xml_from_conf_default
+
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
 freesbie_make clonefs
@@ -140,7 +143,6 @@ FlashDevice $FLASH_MODEL $FLASH_SIZE
 setup_nanobsd_etc
 
 setup_nanobsd
-copy_config_xml_from_conf_default
 prune_usr
 create_i386_diskimage
 
