@@ -1350,7 +1350,7 @@ setup_nanobsd ( ) {
 }
 
 prune_usr() {
-
+	echo ">>> Pruning NanoBSD usr directory..."
 	# Remove all empty directories in /usr 
 	find ${NANO_WORLDDIR}/usr -type d -depth -print |
 		while read d
@@ -1365,7 +1365,7 @@ FlashDevice () {
 }
 
 create_i386_diskimage ( ) {
-	echo "## build diskimage"
+	echo ">>> building NanoBSD disk image..."
 	echo "### log: ${MAKEOBJDIRPREFIX}/_.di"
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
 	echo $NANO_MEDIASIZE $NANO_IMAGES \

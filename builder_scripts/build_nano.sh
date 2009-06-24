@@ -99,7 +99,7 @@ cust_populate_extra
 install_custom_packages
 
 # Only include Lighty in packages list
-(cd /var/db/pkg && ls | grep lighttpd) > conf/packages
+(cd /var/db/pkg && ls | grep lighttpd) > $BUILDER_SCRIPTS/conf/packages
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
