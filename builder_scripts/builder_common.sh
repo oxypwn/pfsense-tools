@@ -1343,9 +1343,10 @@ setup_nanobsd ( ) {
 	if [ ! -d $PFSENSEBASEDIR/root ]; then
 		mkdir $PFSENSEBASEDIR/root
 	fi
-	cp $SRCDIR/tools/tools/nanobsd/Files/root/updatep1 $PFSENSEBASEDIR/root/
-	cp $SRCDIR/tools/tools/nanobsd/Files/root/updatep2 $PFSENSEBASEDIR/root/
-	chmod a+rx $PFSENSEBASEDIR/root/updatep*
+	cp $SRCDIR/tools/tools/nanobsd/Files/root/* $PFSENSEBASEDIR/root/
+	chmod a+rx $PFSENSEBASEDIR/root/change*
+	chmod a+rx $PFSENSEBASEDIR/root/save*
+	chmod a+rx $PFSENSEBASEDIR/root/update*
 }
 
 prune_usr() {
