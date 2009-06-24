@@ -1345,6 +1345,7 @@ setup_nanobsd ( ) {
 	fi
 	cp $SRCDIR/tools/tools/nanobsd/Files/root/updatep1 $PFSENSEBASEDIR/root/
 	cp $SRCDIR/tools/tools/nanobsd/Files/root/updatep2 $PFSENSEBASEDIR/root/
+	chmod a+rx $PFSENSEBASEDIR/root/updatep*
 }
 
 prune_usr() {
