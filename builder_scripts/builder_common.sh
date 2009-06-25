@@ -423,11 +423,13 @@ recompile_pfPorts() {
 
 cust_overlay_host_binaries() {
     echo "===> Building syslogd..."
-    (cd $SRCDIR/usr.sbin/syslogd && make clean && make && make install)
+    (cd $SRCDIR/usr.sbin/syslogd && make clean)
+ 	(cd $SRCDIR/usr.sbin/syslogd && make && make install)
     echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
     install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
 	echo "===> Building clog..."
-	(cd $SRCDIR/usr.sbin/clog && make clean && make && make install)
+	(cd $SRCDIR/usr.sbin/clog && make clean)
+	(cd $SRCDIR/usr.sbin/clog && make && make install)
     echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
     install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
     install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
@@ -1263,7 +1265,7 @@ make_world() {
 }
 
 setup_nanobsd_etc ( ) {
-	echo "## configure nanobsd /etc"
+	echo ">>> Configuring NanoBSD /etc"
 
 	cd ${CLONEDIR}
 
@@ -1274,17 +1276,15 @@ setup_nanobsd_etc ( ) {
 	# Make root filesystem R/O by default
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
 
-	# save config file for scripts
-	echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
-
 	echo "/dev/ufs/root0 / ufs ro 1 1" > etc/fstab
 	echo "/dev/ufs/cfg /cfg ufs rw,noauto 2 2" >> etc/fstab
 	echo "/dev/ufs/cf /cf ufs ro 1 1" >> etc/fstab
+
 	mkdir -p cfg
 }
 
 setup_nanobsd ( ) {
-	echo "## configure nanobsd setup"
+	echo ">>> Configuring NanoBSD setup"
 	echo "### log: ${MAKEOBJDIRPREFIX}/_.dl"
 
 	cd ${CLONEDIR}
@@ -1470,12 +1470,14 @@ create_i386_diskimage ( ) {
 		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k
 		tunefs -L root1 /dev/${MD}s2a
 		mount /dev/${MD}s2a ${MNT}
+		echo ">>> Mounting and duplicating NanoBSD root1 /dev/${MD}s2a ${MNT}"
+		mkdir -p ${MNT}/conf/base/etc/
+		cp ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		do
 			sed -i "" "s/root0/root1/g" $f
 		done
 		umount ${MNT}
-
 	fi
 	
 	# Create Config slice
@@ -1487,20 +1489,20 @@ create_i386_diskimage ( ) {
 	if [ $NANO_DATASIZE -gt 0 ] ; then
 		newfs ${NANO_NEWFS} /dev/${MD}s4
 		tunefs -L cf /dev/${MD}s4
-                # Mount data partition and copy contents of /cf
-                # Can be used later to create custom default config.xml while building
-                mount /dev/${MD}s4 ${MNT}
+		# Mount data partition and copy contents of /cf
+		# Can be used later to create custom default config.xml while building
+		mount /dev/${MD}s4 ${MNT}find /u	
 
-				FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-				if [ "$FBSD_VERSION" = "8" ]; then
-					echo ">>> Using TAR to clone create_i386_diskimage()..."
-					( cd ${CLONEDIR}/cf && tar cf - * | ( cd /$MNT; tar xfp -) )
-				else
-					echo ">>> Using CPIO to clone..."
-					( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
-				fi
+		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+		if [ "$FBSD_VERSION" = "8" ]; then
+			echo ">>> Using TAR to clone create_i386_diskimage()..."
+			( cd ${CLONEDIR}/cf && tar cf - * | ( cd /$MNT; tar xfp -) )
+		else
+			echo ">>> Using CPIO to clone..."
+			( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
+		fi
 
-                umount ${MNT}
+		umount ${MNT}
 	fi
 
 	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.slice.img bs=64k
