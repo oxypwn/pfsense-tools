@@ -1275,7 +1275,7 @@ setup_nanobsd_etc ( ) {
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
 
 	# save config file for scripts
-	# echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
+	echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
 
 	echo "/dev/ufs/root0 / ufs ro 1 1" > etc/fstab
 	echo "/dev/ufs/cfg /cfg ufs rw,noauto 2 2" >> etc/fstab
