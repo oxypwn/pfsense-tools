@@ -4,7 +4,7 @@ echo
 echo "This script will reset all of /usr/local and repopulate *EVERYTHING*!"
 echo "This is meant to be used when the builder environment is considered broken."
 echo
-echo "Press CTRL-C if you do not want all of /usr/loca/ whiped out!"
+echo "Press CTRL-C if you do not want all of /usr/local whiped out!"
 echo
 sleep 5
 
