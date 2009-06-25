@@ -135,7 +135,6 @@ copy_config_xml_from_conf_default
 cp $SRCDIR/tools/tools/nanobsd/Files/root/* $PFSENSEBASEDIR/root/
 chmod a+rx $PFSENSEBASEDIR/root/change*
 chmod a+rx $PFSENSEBASEDIR/root/save*
-chmod a+rx $PFSENSEBASEDIR/root/update*
 
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
