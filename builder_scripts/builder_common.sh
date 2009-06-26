@@ -1293,7 +1293,7 @@ setup_nanobsd ( ) {
 	# have hardcoded paths under ${prefix}/etc are not tweakable.
 	if [ -d usr/local/etc ] ; then
 		(
-		mkdir etc/local
+		mkdir -p etc/local
 		cd usr/local/etc
 		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 		if [ "$FBSD_VERSION" = "8" ]; then
@@ -1308,6 +1308,7 @@ setup_nanobsd ( ) {
 		ln -s ../../etc/local etc
 		)
 	fi
+
 	# Create /conf directory hier
 	for d in etc
 	do
@@ -1347,11 +1348,6 @@ setup_nanobsd ( ) {
 prune_usr() {
 	echo ">>> Pruning NanoBSD usr directory..."
 	# Remove all empty directories in /usr 
-	find ${NANO_WORLDDIR}/usr -type d -depth -print |
-		while read d
-		do
-			rmdir $d > /dev/null 2>&1 || true 
-		done
 }
 
 FlashDevice () {

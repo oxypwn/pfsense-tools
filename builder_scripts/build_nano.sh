@@ -136,9 +136,13 @@ echo "Done."
 copy_config_xml_from_conf_default
 
 # Ensure nanobsd assistance files are present
-cp $SRCDIR/tools/tools/nanobsd/Files/root/* $PFSENSEBASEDIR/root/
+cp $SRCDIR/tools/tools/nanobsd/Files/root/save* $PFSENSEBASEDIR/root/
+cp $SRCDIR/tools/tools/nanobsd/Files/root/change* $PFSENSEBASEDIR/root/
 chmod a+rx $PFSENSEBASEDIR/root/change*
 chmod a+rx $PFSENSEBASEDIR/root/save*
+
+# Install custom pfSense-XML packages from a chroot
+pfsense_install_custom_packages_exec
 
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
