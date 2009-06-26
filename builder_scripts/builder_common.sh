@@ -1477,6 +1477,8 @@ create_i386_diskimage ( ) {
 			sed -i "" "s/pfsense0/pfsense1/g" $f
 		done
 		umount ${MNT}
+		bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s2
+		bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
 	fi
 	
 	# Create Config slice
