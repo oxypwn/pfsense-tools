@@ -1285,7 +1285,6 @@ setup_nanobsd_etc ( ) {
 
 setup_nanobsd ( ) {
 	echo ">>> Configuring NanoBSD setup"
-	echo "### log: ${MAKEOBJDIRPREFIX}/_.dl"
 
 	cd ${CLONEDIR}
 
@@ -1362,7 +1361,6 @@ FlashDevice () {
 
 create_i386_diskimage ( ) {
 	echo ">>> building NanoBSD disk image..."
-	echo "### log: ${MAKEOBJDIRPREFIX}/_.di"
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
 	echo $NANO_MEDIASIZE $NANO_IMAGES \
 		$NANO_SECTS $NANO_HEADS \
