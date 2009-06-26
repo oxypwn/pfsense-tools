@@ -128,7 +128,7 @@ rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
 echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
 echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
 chmod a+rx $PFSENSEBASEDIR/chroot.sh
-chroot $PFSENSEBASEDIR /chroot.sh
+chroot $PFSENSEBASEDIR /chroot.sh 2>/dev/null
 rm $PFSENSEBASEDIR/chroot.sh
 echo "Done."
 
@@ -142,6 +142,9 @@ chmod a+rx $PFSENSEBASEDIR/root/change*
 chmod a+rx $PFSENSEBASEDIR/root/save*
 
 # Install custom pfSense-XML packages from a chroot
+# and ensure php.ini is setup and ready to run.
+# php.ini is auto generated on 2.0 from the list
+# of php installed modules.
 pfsense_install_custom_packages_exec
 
 # Invoke FreeSBIE2 toolchain

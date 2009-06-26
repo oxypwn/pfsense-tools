@@ -1598,8 +1598,8 @@ fi
 # test whether conf dir is already a symlink
 if [ ! -h /conf ]; then
 	# install the symlink as it would exist on a live system
-	/bin/ln -s /conf.default /conf
-	/bin/ln -s /conf /cf
+	/bin/ln -s /conf.default /conf 2>/dev/null
+	/bin/ln -s /conf /cf 2>/dev/null
 	/usr/bin/touch /tmp/remove_conf_symlink
 fi
 
