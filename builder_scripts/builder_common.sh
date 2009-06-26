@@ -1486,11 +1486,12 @@ create_i386_diskimage ( ) {
 
 	# Create Data slice, if any.
 	if [ $NANO_DATASIZE -gt 0 ] ; then
+		echo ">>> Creating /cf area to hold config.xml"
 		newfs ${NANO_NEWFS} /dev/${MD}s4
 		tunefs -L cf /dev/${MD}s4
 		# Mount data partition and copy contents of /cf
 		# Can be used later to create custom default config.xml while building
-		mount /dev/${MD}s4 ${MNT}find /u	
+		mount /dev/${MD}s4 ${MNT}
 
 		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 		if [ "$FBSD_VERSION" = "8" ]; then

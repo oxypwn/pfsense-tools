@@ -58,8 +58,10 @@ print_flags
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 
+# Yep we are building nanobsd
 export IS_NANO_BUILD=yes
 
+# Do not compress this image which is used on the ISO
 export NO_COMPRESSEDFS=yes
 
 if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
