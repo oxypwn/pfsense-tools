@@ -1276,7 +1276,7 @@ setup_nanobsd_etc ( ) {
 	# Make root filesystem R/O by default
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
 
-	echo "/dev/ufs/root0 / ufs ro 1 1" > etc/fstab
+	echo "/dev/ufs/pfsense0 / ufs ro 1 1" > etc/fstab
 	echo "/dev/ufs/cfg /cfg ufs rw,noauto 2 2" >> etc/fstab
 	echo "/dev/ufs/cf /cf ufs ro 1 1" >> etc/fstab
 
@@ -1447,7 +1447,7 @@ create_i386_diskimage ( ) {
 
 	# Create first image
 	newfs ${NANO_NEWFS} /dev/${MD}s1a
-	tunefs -L root0 /dev/${MD}s1a
+	tunefs -L pfsense0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
 	df -i ${MNT}
 	
@@ -1467,15 +1467,19 @@ create_i386_diskimage ( ) {
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		# Duplicate to second image (if present)
+		bsdlabel ${MD}s2
+		newfs ${NANO_NEWFS} /dev/${MD}s2a
 		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k
-		tunefs -L root1 /dev/${MD}s2a
+		tunefs -L pfsense1 /dev/${MD}s2a
 		mount /dev/${MD}s2a ${MNT}
-		echo ">>> Mounting and duplicating NanoBSD root1 /dev/${MD}s2a ${MNT}"
+		df -i ${MNT}
+		/bin/sh
+		echo ">>> Mounting and duplicating NanoBSD pfsense1 /dev/${MD}s2a ${MNT}"
 		mkdir -p ${MNT}/conf/base/etc/
 		cp ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		do
-			sed -i "" "s/root0/root1/g" $f
+			sed -i "" "s/pfsense0/pfsense1/g" $f
 		done
 		umount ${MNT}
 	fi
