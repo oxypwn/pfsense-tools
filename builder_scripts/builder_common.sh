@@ -802,6 +802,44 @@ fixup_updates() {
 
 }
 
+cust_fixup_nanobsd() {
+
+	echo "Fixing up NanoBSD Specific items..."
+	cp $CVS_CO_DIR/boot/device.hints_wrap \
+            	$PFSENSEBASEDIR/boot/device.hints
+    cp $CVS_CO_DIR/boot/loader.conf_wrap \
+            $PFSENSEBASEDIR/boot/loader.conf
+    cp $CVS_CO_DIR/etc/ttys_wrap \
+            $PFSENSEBASEDIR/etc/ttys
+
+    echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
+    echo "" > $PFSENSEBASEDIR/etc/motd
+
+    mkdir -p $PFSENSEBASEDIR/cf/conf/backup
+
+    echo /etc/rc.initial > $PFSENSEBASEDIR/root/.shrc
+    echo exit >> $PFSENSEBASEDIR/root/.shrc
+    rm -f $PFSENSEBASEDIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
+
+    echo "nanobsd" > $PFSENSEBASEDIR/etc/platform
+    echo "wrap" > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt
+
+	echo "-D" >> $PFSENSEBASEDIR/boot.config
+
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	if [ "$FBSD_VERSION" = "8" ]; then
+		# Enable getty on console
+		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
+
+		# Disable getty on syscons devices
+		sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
+
+		# Tell loader to use serial console early.
+		echo " -h" > ${PFSENSEBASEDIR}/boot.config
+	fi
+
+}
+
 cust_fixup_wrap() {
 
 	echo "Fixing up Embedded Specific items..."

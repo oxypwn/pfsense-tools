@@ -118,7 +118,7 @@ freesbie_make extra
 cust_overlay_host_binaries
 
 # Must be run after overlay_host_binaries and freesbie_make extra
-cust_fixup_wrap
+cust_fixup_nanobsd
 
 # Check for custom config.xml
 cust_install_config_xml
