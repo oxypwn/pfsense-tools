@@ -1395,7 +1395,7 @@ create_i386_diskimage ( ) {
 		}
 
 		# First image partition start at second track
-		print "p 1 165 " 0, isl * cs - $3
+		print "p 1 165 " $3, isl * cs - $3
 		c = isl * cs;
 
 		# Second image partition (if any) also starts offset one 
