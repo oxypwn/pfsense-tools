@@ -20,7 +20,7 @@ COMMENT=	An IP device monitoring tool
 
 GNU_CONFIGURE=	yes
 
-OPTIONS=	IPV6 "With support for IPv6" on
+OPTIONS=	IPV6 "With support for IPv6" off
 
 .include <bsd.port.pre.mk>
 
