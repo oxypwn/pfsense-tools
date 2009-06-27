@@ -1503,7 +1503,7 @@ create_i386_diskimage ( ) {
 		umount ${MNT}
 	fi
 
-	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.slice.img bs=64k
+	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
 	mdconfig -d -u $MD
 }
 

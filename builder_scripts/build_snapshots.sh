@@ -251,12 +251,12 @@ dobuilds() {
 copy_to_staging_nanobsd() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img"
-	FILENAMESLICE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img"
+	FILENAMESLICE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-upgrade.img"
 	mkdir $STAGINGAREA/nanobsd
 	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/nanobsd/
-	cp $PFSENSEOBJDIR/nanobsd.slice.img $STAGINGAREA/nanobsd/
+	cp $PFSENSEOBJDIR/nanobsd.upgrade.img $STAGINGAREA/nanobsd/
 	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL
-	mv $STAGINGAREA/nanobsd/nanobsd.slice.img $STAGINGAREA/nanobsd/$FILENAMESLICE
+	mv $STAGINGAREA/nanobsd/nanobsd.upgrade.img $STAGINGAREA/nanobsd/$FILENAMESLICE
 	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL
 	gzip $STAGINGAREA/nanobsd/$FILENAMESLICE
 	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5
