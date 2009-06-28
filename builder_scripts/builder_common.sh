@@ -705,7 +705,7 @@ install_custom_packages() {
 	DEVFS_MOUNT=`mount | grep ${BASEDIR}/dev | wc -l | awk '{ print $1 }'`
 
 	if [ "$DEVFS_MOUNT" -lt 1 ]; then
-		echo "Mounting devfs ${BASEDIR}/dev ..."
+		echo ">>> Mounting devfs ${BASEDIR}/dev ..."
 		mount -t devfs devfs ${BASEDIR}/dev
 	fi
 		
@@ -1595,10 +1595,10 @@ pfsense_install_custom_packages_exec() {
 
 # Handle php.ini if /etc/rc.php_ini_setup exists
 if [ -f "/etc/rc.php_ini_setup" ]; then
+	mkdir -p /usr/local/lib/ /usr/local/etc/
 	echo ">>> Running /etc/rc.php_ini_setup..."
 	/etc/rc.php_ini_setup 2>/dev/null
 	cat /usr/local/etc/php.ini | grep -v apc > /tmp/php.ini.new
-	mkdir -p /usr/local/lib/ /usr/local/etc/
 	cp /tmp/php.ini.new /usr/local/etc/php.ini
 	cp /tmp/php.ini.new /usr/local/lib/php.ini	
 fi
