@@ -568,7 +568,7 @@ cust_populate_installer_bits() {
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 cust_populate_extra() {
     # Make devd
-    (cd ${SRCDIR}/sbin/devd && export SRCCONF=${SRC_CONF} NO_MAN=YES make clean && make depend && make all && make DESTDIR=${PFSENSEBASEDIR} install)
+    (cd ${SRCDIR}/sbin/devd && export SRCCONF=${SRC_CONF} NO_MAN=YES make clean && make depend && make all && make DESTDIR=${PFSENSEBASEDIR} install) | egrep -wi '(^>>>|error)'
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
@@ -1595,9 +1595,10 @@ pfsense_install_custom_packages_exec() {
 
 # Handle php.ini if /etc/rc.php_ini_setup exists
 if [ -f "/etc/rc.php_ini_setup" ]; then
-	echo "Running /etc/rc.php_ini_setup..."
+	echo ">>> Running /etc/rc.php_ini_setup..."
 	/etc/rc.php_ini_setup 2>/dev/null
 	cat /usr/local/etc/php.ini | grep -v apc > /tmp/php.ini.new
+	mkdir -p /usr/local/lib/ /usr/local/etc/
 	cp /tmp/php.ini.new /usr/local/etc/php.ini
 	cp /tmp/php.ini.new /usr/local/lib/php.ini	
 fi
