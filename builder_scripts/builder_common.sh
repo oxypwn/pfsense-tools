@@ -422,24 +422,13 @@ recompile_pfPorts() {
 }
 
 cust_overlay_host_binaries() {
-    echo "===> Building syslogd..."
-    (cd $SRCDIR/usr.sbin/syslogd && make clean) | egrep -wi '(^>>>|error)'
-	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
- 	(cd $SRCDIR/usr.sbin/syslogd && make)  | egrep -wi '(^>>>|error)'
-	(cd $SRCDIR/usr.sbin/syslogd && make install) | egrep -wi '(^>>>|error)'
-    echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
-    install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
-	echo "===> Building clog..."
-	(cd $SRCDIR/usr.sbin/clog && make) | egrep -wi '(^>>>|error)'
-	(cd $SRCDIR/usr.sbin/clog && make install) | egrep -wi '(^>>>|error)'
-    echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-    install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
-    install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
+	# Ensure directories exist
 	mkdir -p ${PFSENSEBASEDIR}/bin
 	mkdir -p ${PFSENSEBASEDIR}/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/bin
 	mkdir -p ${PFSENSEBASEDIR}/usr/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/lib
+	mkdir -p $PFSENSEBASEDIR/usr/sbin/	
 	mkdir -p ${PFSENSEBASEDIR}/usr/libexec
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/bin
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
@@ -447,6 +436,23 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/mysql
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
 	
+	# handle syslogd
+    echo "===> Building syslogd..."
+    (cd $SRCDIR/usr.sbin/syslogd && make clean) | egrep -wi '(^>>>|error)'
+ 	(cd $SRCDIR/usr.sbin/syslogd && make)  | egrep -wi '(^>>>|error)'
+	(cd $SRCDIR/usr.sbin/syslogd && make install) | egrep -wi '(^>>>|error)'
+    echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
+    install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+
+	# Handle clog
+	echo "===> Building clog..."
+	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
+	(cd $SRCDIR/usr.sbin/clog && make) | egrep -wi '(^>>>|error)'
+	(cd $SRCDIR/usr.sbin/clog && make install) | egrep -wi '(^>>>|error)'
+    echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
+    install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
+    install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/	
+
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 
