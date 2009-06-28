@@ -1599,8 +1599,8 @@ if [ -f "/etc/rc.php_ini_setup" ]; then
 	echo ">>> Running /etc/rc.php_ini_setup..."
 	/etc/rc.php_ini_setup 2>/dev/null
 	cat /usr/local/etc/php.ini | grep -v apc > /tmp/php.ini.new
-	cp /tmp/php.ini.new /usr/local/etc/php.ini
-	cp /tmp/php.ini.new /usr/local/lib/php.ini	
+	cp /tmp/php.ini.new /usr/local/etc/php.ini 2>/dev/null
+	cp /tmp/php.ini.new /usr/local/lib/php.ini 2>/dev/null
 fi
 
 if [ ! -f "/usr/local/bin/php" ]; then
