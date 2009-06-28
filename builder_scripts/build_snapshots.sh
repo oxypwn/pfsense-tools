@@ -60,7 +60,7 @@ mkdir -p $WEBROOT
 
 post_tweet() {
 	TWEET_MESSAGE="$1"
-	if [ "$TWITTER_USERNAME" ="" ]; then
+	if [ "$TWITTER_USERNAME" = "" ]; then
 		echo ">>> ERROR: Could not find TWITTER_USERNAME -- tweet cancelled."
 		return
 	fi
@@ -72,8 +72,10 @@ post_tweet() {
 		echo ">>> ERROR: Could not find /usr/local/bin/curl -- tweet cancelled."
 		return
 	fi
-	echo -n ">>> Posting tweet to twitter: $TWEET_MESSAGE"
-	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml`
+	echo ">>> Tweet:"
+	echo ">>> ${TWEET_MESSAGE}"
+	echo -n ">>> Posting tweet..."
+	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml` >/tmp/tweet_diag.txt 2>&1
 	echo "Done!"
 }
 
