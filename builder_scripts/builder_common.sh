@@ -805,7 +805,7 @@ fixup_updates() {
 
 cust_fixup_nanobsd() {
 
-	echo "Fixing up NanoBSD Specific items..."
+	echo ">>> Fixing up NanoBSD Specific items..."
 	cp $CVS_CO_DIR/boot/device.hints_wrap \
             	$PFSENSEBASEDIR/boot/device.hints
     cp $CVS_CO_DIR/boot/loader.conf_wrap \
