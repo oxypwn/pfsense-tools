@@ -135,12 +135,6 @@ echo "Done."
 # Copy config.xml
 copy_config_xml_from_conf_default
 
-# Ensure nanobsd assistance files are present
-cp $SRCDIR/tools/tools/nanobsd/Files/root/save* $PFSENSEBASEDIR/root/
-cp $SRCDIR/tools/tools/nanobsd/Files/root/change* $PFSENSEBASEDIR/root/
-chmod a+rx $PFSENSEBASEDIR/root/change*
-chmod a+rx $PFSENSEBASEDIR/root/save*
-
 # Install custom pfSense-XML packages from a chroot
 # and ensure php.ini is setup and ready to run.
 # php.ini is auto generated on 2.0 from the list
