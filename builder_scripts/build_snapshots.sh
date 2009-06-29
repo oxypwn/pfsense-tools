@@ -228,26 +228,18 @@ dobuilds() {
 	build_updates
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
-	# Copy what we can 
-	scp_files
 	# Build DevISO
 	build_deviso	
 	# Copy deviso to staging area
 	copy_to_staging_deviso_updates
-	# Copy what we can 
-	scp_files
 	# Build embedded version
 	build_embedded
 	# Copy to staging
 	copy_to_staging_embedded
-	# Copy what we can
-	scp_files
 	# Build nanobsd
 	build_nano
 	# Copy nanobsd to staging areas
 	copy_to_staging_nanobsd
-	# Copy what we can 
-	scp_files
 }
 
 copy_to_staging_nanobsd() {
@@ -373,8 +365,6 @@ build_loop_operations() {
 	cleanup_builds
 	# Do the builds
 	dobuilds
-	# Make a local copy of the files.
-	#cp_files
 	# SCP files to snapshot web hosting area
 	scp_files
 	# Alert the world that we have some snapshots ready.
