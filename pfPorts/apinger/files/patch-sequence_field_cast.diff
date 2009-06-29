@@ -30,29 +30,12 @@ diff -urN apinger-0.6.1/src/icmp.c apinger-0.6.1-pf/src/icmp.c
  	p->icmp_id=ident;
  
  #ifdef HAVE_SCHED_YIELD
-@@ -171,6 +171,7 @@
- struct iovec iov;
- struct msghdr msg;
- struct cmsghdr *c;
-+reloophack:
- 
-         iov.iov_base=buf;
-         iov.iov_len=1000;
-@@ -183,6 +184,7 @@
-         len=recvmsg(icmp_sock, &msg, MSG_DONTWAIT);
- #else
- socklen_t sl;
-+reloophack:
- 
-         sl=sizeof(from);
-         len=recvfrom(icmp_sock,buf,1024,MSG_DONTWAIT,(struct sockaddr *)&from,&sl);
 @@ -227,7 +227,8 @@
  		return;
  	}
  	if (icmp->icmp_id != ident){
 -		debug("Alien echo-reply received");
 +		debug("Alien echo-reply received from %s. Expected %i, received %i",inet_ntoa(from.sin_addr), ident, icmp->icmp_id);
-+		goto reloophack;        
  		return;
  	}
  	debug("Ping reply from %s",inet_ntoa(from.sin_addr));
