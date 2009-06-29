@@ -256,16 +256,16 @@ copy_to_staging_nanobsd() {
 	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-upgrade.img"
 	mkdir $STAGINGAREA/nanobsd
 	mkdir $STAGINGAREA/nanobsd/updates
-	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/nanobsd/
-	cp $PFSENSEOBJDIR/nanobsd.upgrade.img $STAGINGAREA/nanobsd/updates
-	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL
-	mv $STAGINGAREA/nanobsd/updates/nanobsd.upgrade.img $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE
-	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL
-	gzip $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE
-	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5
-	md5 $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz.md5
-	sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256
-	sha256 $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz.sha256	
+	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/nanobsd/ 2>/dev/null
+	cp $PFSENSEOBJDIR/nanobsd.upgrade.img $STAGINGAREA/nanobsd/updates 2>/dev/null
+	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
+	mv $STAGINGAREA/nanobsd/updates/nanobsd.upgrade.img $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE 2>/dev/null
+	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
+	gzip $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE 2>/dev/null
+	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
+	md5 $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
+	sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
+	sha256 $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
 }
 
 copy_to_staging_nanobsd_updates() {
@@ -273,32 +273,32 @@ copy_to_staging_nanobsd_updates() {
 
 copy_to_staging_deviso_updates() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso
-	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso
-	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5	
+	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
+	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
+	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5 2>/dev/null
 }
 
 copy_to_staging_iso_updates() {
-	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
-	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
-	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
-	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/
+	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/ 2>/dev/null
+	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/ 2>/dev/null
+	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
+	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/ 2>/dev/null
 }
 
 copy_to_staging_embedded() {
 	cp $PFSENSEOBJDIR/pfSense.img $STAGINGAREA/ 
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz
-	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img
-	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img
-	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.md5
-	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.sha256
+	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz 2>/dev/null
+	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img 2>/dev/null
+	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img 2>/dev/null
+	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.md5 2>/dev/null
+	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.sha256 2>/dev/null
 }
 
 cp_files() {
-	cp $STAGINGAREA/pfSense-*iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer
-	cp $STAGINGAREA/pfSense-*img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
-	cp $STAGINGAREA/pfSense-*Update* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates
+	cp $STAGINGAREA/pfSense-*iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer 2>/dev/null
+	cp $STAGINGAREA/pfSense-*img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded 2>/dev/null
+	cp $STAGINGAREA/pfSense-*Update* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates 2>/dev/null
 }
 
 check_for_congestion() {
