@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# Common functions to be used by build scripts
-#
 #  build_nano.sh
 #  Copyright (C) 2004-2009 Scott Ullrich
 #  All rights reserved.
