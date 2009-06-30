@@ -574,7 +574,7 @@ cust_populate_installer_bits() {
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 cust_populate_extra() {
     # Make devd
-    (cd ${SRCDIR}/sbin/devd && export SRCCONF=${SRC_CONF} NO_MAN=YES make clean && make depend && make all && make DESTDIR=${PFSENSEBASEDIR} install) | egrep -wi '(^>>>|error)'
+    (cd ${SRCDIR}/sbin/devd && export SRCCONF=${SRC_CONF} NO_MAN=YES make clean && make depend && make all && make DESTDIR=${PFSENSEBASEDIR} install)
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
