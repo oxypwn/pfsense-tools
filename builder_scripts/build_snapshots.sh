@@ -250,17 +250,17 @@ copy_to_staging_nanobsd() {
 	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img"
 	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-upgrade.img"
 	mkdir $STAGINGAREA/nanobsd
-	mkdir $STAGINGAREA/nanobsd/updates
+	mkdir $STAGINGAREA/nanobsdupdates
 	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/nanobsd/ 2>/dev/null
-	cp $PFSENSEOBJDIR/nanobsd.upgrade.img $STAGINGAREA/nanobsd/updates 2>/dev/null
+	cp $PFSENSEOBJDIR/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates 2>/dev/null
 	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
-	mv $STAGINGAREA/nanobsd/updates/nanobsd.upgrade.img $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE 2>/dev/null
+	mv $STAGINGAREA/nanobsdupdates/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
 	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
-	gzip $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE 2>/dev/null
+	gzip $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
 	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
-	md5 $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
+	md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
 	sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
-	sha256 $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsd/updates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
+	sha256 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
 }
 
 copy_to_staging_nanobsd_updates() {
@@ -342,7 +342,7 @@ scp_files() {
 	check_for_congestion
 	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/		
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsd/updates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/			
+	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsdupdates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/			
 	set -e
 }
 
