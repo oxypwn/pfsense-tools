@@ -75,7 +75,7 @@ post_tweet() {
 	echo ">>> Tweet:"
 	echo ">>> ${TWEET_MESSAGE}"
 	echo -n ">>> Posting tweet..."
-	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml` >/tmp/tweet_diag.txt 2>&1
+	`/usr/local/bin/curl --silent --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml` >/tmp/tweet_diag.txt 2>&1
 	echo "Done!"
 }
 
