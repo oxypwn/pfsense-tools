@@ -274,10 +274,11 @@ copy_to_staging_deviso_updates() {
 }
 
 copy_to_staging_iso_updates() {
-	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/ 2>/dev/null
-	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/ 2>/dev/null
-	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
-	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/ 2>/dev/null
+	cp $PFSENSEOBJDIR/pfSense-*.iso $STAGINGAREA/
+	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
+	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/ 
+	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/ 
+	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/
 }
 
 copy_to_staging_embedded() {
