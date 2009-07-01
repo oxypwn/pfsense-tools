@@ -171,12 +171,23 @@ update_sources() {
 	./update_git_repos.sh
 	# Cleanup after each build run
 	./clean_build.sh
+}
+
+build_iso() {
+	# Ensures sane nevironment
+	# and invokes build_iso.sh
 	./cvsup_current
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	gzip $PFSENSEOBJDIR/pfSense.iso
 	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
 	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
-	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256
+	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256	
+}
+
+build_deviso() {
+	cd $BUILDERSCRIPTS
+	./clean_build.sh
+	./build_deviso.sh
 }
 
 build_embedded() {
@@ -208,12 +219,6 @@ build_updates() {
 	sha256 $PFSENSEUPDATESDIR/latest.tgz > $PFSENSEUPDATESDIR/latest.tgz.sha256
 }
 
-build_deviso() {
-	cd $BUILDERSCRIPTS
-	./clean_build.sh
-	./build_deviso.sh
-}
-
 build_nano() {
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
@@ -224,18 +229,16 @@ dobuilds() {
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
 	update_sources
-	# Build updates on same run as iso
+	# Update sources
 	build_updates
+	# Build ISO
+	build_iso
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
 	# Build DevISO
 	build_deviso	
 	# Copy deviso to staging area
 	copy_to_staging_deviso_updates
-	# Build embedded version
-	build_embedded
-	# Copy to staging
-	copy_to_staging_embedded
 	# Build nanobsd
 	build_nano
 	# Copy nanobsd to staging areas
@@ -337,6 +340,7 @@ scp_files() {
 	rsync $RSYNCARGUMENTS $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
 	check_for_congestion
 	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/		
+	check_for_congestion
 	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsd/updates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/			
 	set -e
 }
