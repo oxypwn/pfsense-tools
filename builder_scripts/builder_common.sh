@@ -1328,8 +1328,8 @@ setup_nanobsd_etc ( ) {
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
 
 	echo "/dev/ufs/pfsense0 / ufs ro 1 1" > etc/fstab
-	echo "/dev/ufs/cfg /cfg ufs rw,noauto 2 2" >> etc/fstab
 	echo "/dev/ufs/cf /cf ufs ro 1 1" >> etc/fstab
+	#echo "/dev/ufs/cfg /cfg ufs rw,noauto 2 2" >> etc/fstab
 
 	mkdir -p cfg
 }
@@ -1481,8 +1481,6 @@ create_i386_diskimage ( ) {
 	    count=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
-
-#	trap "df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
 
 	fdisk -i -f ${MAKEOBJDIRPREFIX}/_.fdisk ${MD}
 	fdisk ${MD}
