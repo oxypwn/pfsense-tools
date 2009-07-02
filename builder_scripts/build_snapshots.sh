@@ -60,7 +60,7 @@ mkdir -p $WEBROOT
 
 post_tweet() {
 	TWEET_MESSAGE="$1"
-	if [ "$TWITTER_USERNAME" ="" ]; then
+	if [ "$TWITTER_USERNAME" = "" ]; then
 		echo ">>> ERROR: Could not find TWITTER_USERNAME -- tweet cancelled."
 		return
 	fi
@@ -72,8 +72,10 @@ post_tweet() {
 		echo ">>> ERROR: Could not find /usr/local/bin/curl -- tweet cancelled."
 		return
 	fi
-	echo -n ">>> Posting tweet to twitter: $TWEET_MESSAGE"
-	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml`
+	echo ">>> Tweet:"
+	echo ">>> ${TWEET_MESSAGE}"
+	echo -n ">>> Posting tweet..."
+	`/usr/local/bin/curl --silent --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml` >/tmp/tweet_diag.txt 2>&1
 	echo "Done!"
 }
 
@@ -169,12 +171,23 @@ update_sources() {
 	./update_git_repos.sh
 	# Cleanup after each build run
 	./clean_build.sh
+}
+
+build_iso() {
+	# Ensures sane nevironment
+	# and invokes build_iso.sh
 	./cvsup_current
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	gzip $PFSENSEOBJDIR/pfSense.iso
 	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
 	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
-	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256
+	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256	
+}
+
+build_deviso() {
+	cd $BUILDERSCRIPTS
+	./clean_build.sh
+	./build_deviso.sh
 }
 
 build_embedded() {
@@ -206,12 +219,6 @@ build_updates() {
 	sha256 $PFSENSEUPDATESDIR/latest.tgz > $PFSENSEUPDATESDIR/latest.tgz.sha256
 }
 
-build_deviso() {
-	cd $BUILDERSCRIPTS
-	./clean_build.sh
-	./build_deviso.sh
-}
-
 build_nano() {
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
@@ -222,47 +229,38 @@ dobuilds() {
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
 	update_sources
-	# Build updates on same run as iso
+	# Update sources
 	build_updates
+	# Build ISO
+	build_iso
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
-	# Copy what we can 
-	scp_files
 	# Build DevISO
 	build_deviso	
 	# Copy deviso to staging area
 	copy_to_staging_deviso_updates
-	# Copy what we can 
-	scp_files
-	# Build embedded version
-	build_embedded
-	# Copy to staging
-	copy_to_staging_embedded
-	# Copy what we can
-	scp_files
 	# Build nanobsd
 	build_nano
 	# Copy nanobsd to staging areas
 	copy_to_staging_nanobsd
-	# Copy what we can 
-	scp_files
 }
 
 copy_to_staging_nanobsd() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img"
-	FILENAMESLICE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-slice.img"
+	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-upgrade.img"
 	mkdir $STAGINGAREA/nanobsd
-	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/nanobsd/
-	cp $PFSENSEOBJDIR/nanobsd.slice.img $STAGINGAREA/nanobsd/
-	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL
-	mv $STAGINGAREA/nanobsd/nanobsd.slice.img $STAGINGAREA/nanobsd/$FILENAMESLICE
-	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL
-	gzip $STAGINGAREA/nanobsd/$FILENAMESLICE
-	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5
-	md5 $STAGINGAREA/nanobsd/$FILENAMESLICE.gz > $STAGINGAREA/nanobsd/$FILENAMESLICE.gz.md5
-	sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256
-	sha256 $STAGINGAREA/nanobsd/$FILENAMESLICE.gz > $STAGINGAREA/nanobsd/$FILENAMESLICE.gz.sha256	
+	mkdir $STAGINGAREA/nanobsdupdates
+	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/nanobsd/ 2>/dev/null
+	cp $PFSENSEOBJDIR/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates 2>/dev/null
+	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
+	mv $STAGINGAREA/nanobsdupdates/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
+	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
+	gzip $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
+	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
+	md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
+	sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
+	sha256 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
 }
 
 copy_to_staging_nanobsd_updates() {
@@ -270,32 +268,33 @@ copy_to_staging_nanobsd_updates() {
 
 copy_to_staging_deviso_updates() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso
-	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso
-	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5	
+	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
+	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
+	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5 2>/dev/null
 }
 
 copy_to_staging_iso_updates() {
+	cp $PFSENSEOBJDIR/pfSense-*.iso $STAGINGAREA/
 	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
-	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/
-	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/
+	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/ 
+	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/ 
 	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/
 }
 
 copy_to_staging_embedded() {
 	cp $PFSENSEOBJDIR/pfSense.img $STAGINGAREA/ 
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz
-	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img
-	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img
-	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.md5
-	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.sha256
+	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz 2>/dev/null
+	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img 2>/dev/null
+	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img 2>/dev/null
+	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.md5 2>/dev/null
+	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.sha256 2>/dev/null
 }
 
 cp_files() {
-	cp $STAGINGAREA/pfSense-*iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer
-	cp $STAGINGAREA/pfSense-*img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
-	cp $STAGINGAREA/pfSense-*Update* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates
+	cp $STAGINGAREA/pfSense-*iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer 2>/dev/null
+	cp $STAGINGAREA/pfSense-*img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded 2>/dev/null
+	cp $STAGINGAREA/pfSense-*Update* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates 2>/dev/null
 }
 
 check_for_congestion() {
@@ -342,6 +341,8 @@ scp_files() {
 	rsync $RSYNCARGUMENTS $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
 	check_for_congestion
 	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/		
+	check_for_congestion
+	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsdupdates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/			
 	set -e
 }
 
@@ -369,8 +370,6 @@ build_loop_operations() {
 	cleanup_builds
 	# Do the builds
 	dobuilds
-	# Make a local copy of the files.
-	#cp_files
 	# SCP files to snapshot web hosting area
 	scp_files
 	# Alert the world that we have some snapshots ready.

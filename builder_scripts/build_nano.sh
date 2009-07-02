@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# Common functions to be used by build scripts
-#
 #  build_nano.sh
 #  Copyright (C) 2004-2009 Scott Ullrich
 #  All rights reserved.
@@ -58,8 +56,10 @@ print_flags
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 
+# Yep we are building nanobsd
 export IS_NANO_BUILD=yes
 
+# Do not compress this image which is used on the ISO
 export NO_COMPRESSEDFS=yes
 
 if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
@@ -100,6 +100,8 @@ install_custom_packages
 
 # Only include Lighty in packages list
 (cd /var/db/pkg && ls | grep lighttpd) > $BUILDER_SCRIPTS/conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > $BUILDER_SCRIPTS/conf/packages
+(cd /var/db/pkg && ls | grep cpdup) > $BUILDER_SCRIPTS/conf/packages
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
@@ -114,7 +116,7 @@ freesbie_make extra
 cust_overlay_host_binaries
 
 # Must be run after overlay_host_binaries and freesbie_make extra
-cust_fixup_wrap
+cust_fixup_nanobsd
 
 # Check for custom config.xml
 cust_install_config_xml
@@ -124,18 +126,18 @@ rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
 echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
 echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
 chmod a+rx $PFSENSEBASEDIR/chroot.sh
-chroot $PFSENSEBASEDIR /chroot.sh
+chroot $PFSENSEBASEDIR /chroot.sh 2>/dev/null
 rm $PFSENSEBASEDIR/chroot.sh
 echo "Done."
 
 # Copy config.xml
 copy_config_xml_from_conf_default
 
-# Ensure nanobsd assistance files are present
-cp $SRCDIR/tools/tools/nanobsd/Files/root/* $PFSENSEBASEDIR/root/
-chmod a+rx $PFSENSEBASEDIR/root/change*
-chmod a+rx $PFSENSEBASEDIR/root/save*
-chmod a+rx $PFSENSEBASEDIR/root/update*
+# Install custom pfSense-XML packages from a chroot
+# and ensure php.ini is setup and ready to run.
+# php.ini is auto generated on 2.0 from the list
+# of php installed modules.
+pfsense_install_custom_packages_exec
 
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files

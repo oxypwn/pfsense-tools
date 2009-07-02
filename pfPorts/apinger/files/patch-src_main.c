@@ -9,3 +9,12 @@
  
  struct timeval next_probe={0,0};
  
+@@ -286,6 +286,8 @@
+ #ifdef FORKED_RECEIVER
+ 	signal(SIGCHLD,sigchld_handler);
+ #endif
++	logit("Starting Alarm Pinger, apinger(%i)", ident);
++
+ 	main_loop();
+ 	if (icmp_sock>=0) close(icmp_sock);
+ 	if (icmp6_sock>=0) close(icmp6_sock);

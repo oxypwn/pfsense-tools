@@ -1,4 +1,4 @@
-diff -urN apinger-0.6.1/src/apinger.h apinger-0.6.1-pf/src/apinger.h
+diff -urN src/apinger.h src/apinger.h
 --- src/apinger.h	2008-09-20 21:11:37.000000000 +0200
 +++ src/apinger.h	2008-09-20 21:43:31.000000000 +0200
 @@ -100,14 +100,14 @@
@@ -18,7 +18,7 @@ diff -urN apinger-0.6.1/src/apinger.h apinger-0.6.1-pf/src/apinger.h
  	struct timeval recv_timestamp;
  };
  #endif
-diff -urN apinger-0.6.1/src/icmp.c apinger-0.6.1-pf/src/icmp.c
+diff -urN src/icmp.c src/icmp.c
 --- src/icmp.c	2008-09-20 21:11:37.000000000 +0200
 +++ src/icmp.c	2008-09-20 21:39:52.000000000 +0200
 @@ -136,7 +136,7 @@
@@ -30,29 +30,12 @@ diff -urN apinger-0.6.1/src/icmp.c apinger-0.6.1-pf/src/icmp.c
  	p->icmp_id=ident;
  
  #ifdef HAVE_SCHED_YIELD
-@@ -171,6 +171,7 @@
- struct iovec iov;
- struct msghdr msg;
- struct cmsghdr *c;
-+reloophack:
- 
-         iov.iov_base=buf;
-         iov.iov_len=1000;
-@@ -183,6 +184,7 @@
-         len=recvmsg(icmp_sock, &msg, MSG_DONTWAIT);
- #else
- socklen_t sl;
-+reloophack:
- 
-         sl=sizeof(from);
-         len=recvfrom(icmp_sock,buf,1024,MSG_DONTWAIT,(struct sockaddr *)&from,&sl);
-@@ -227,7 +227,8 @@
+@@ -227,7 +227,7 @@
  		return;
  	}
  	if (icmp->icmp_id != ident){
 -		debug("Alien echo-reply received");
 +		debug("Alien echo-reply received from %s. Expected %i, received %i",inet_ntoa(from.sin_addr), ident, icmp->icmp_id);
-+		goto reloophack;        
  		return;
  	}
  	debug("Ping reply from %s",inet_ntoa(from.sin_addr));

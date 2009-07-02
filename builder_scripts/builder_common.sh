@@ -57,7 +57,7 @@ post_tweet() {
 		return
 	fi
 	echo -n ">>> Posting tweet to twitter: $TWEET_MESSAGE"
-	`/usr/local/bin/curl --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml`
+	`/usr/local/bin/curl --silent --basic --user "$TWITTER_USERNAME:$TWITTER_PASSWORD" --data status="$TWEET_MESSAGE" http://twitter.com/statuses/update.xml`
 	echo "Done!"
 }
 
@@ -422,21 +422,13 @@ recompile_pfPorts() {
 }
 
 cust_overlay_host_binaries() {
-    echo "===> Building syslogd..."
-    (cd $SRCDIR/usr.sbin/syslogd && make clean && make && make install)
-    echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
-    install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
-	echo "===> Building clog..."
-	(cd $SRCDIR/usr.sbin/clog && make clean && make && make install)
-    echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-    install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
-    install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
-
+	# Ensure directories exist
 	mkdir -p ${PFSENSEBASEDIR}/bin
 	mkdir -p ${PFSENSEBASEDIR}/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/bin
 	mkdir -p ${PFSENSEBASEDIR}/usr/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/lib
+	mkdir -p $PFSENSEBASEDIR/usr/sbin/	
 	mkdir -p ${PFSENSEBASEDIR}/usr/libexec
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/bin
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
@@ -444,6 +436,23 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/mysql
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
 	
+	# handle syslogd
+    echo "===> Building syslogd..."
+    (cd $SRCDIR/usr.sbin/syslogd && make clean) | egrep -wi '(^>>>|error)'
+ 	(cd $SRCDIR/usr.sbin/syslogd && make)  | egrep -wi '(^>>>|error)'
+	(cd $SRCDIR/usr.sbin/syslogd && make install) | egrep -wi '(^>>>|error)'
+    echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
+    install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+
+	# Handle clog
+	echo "===> Building clog..."
+	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
+	(cd $SRCDIR/usr.sbin/clog && make) | egrep -wi '(^>>>|error)'
+	(cd $SRCDIR/usr.sbin/clog && make install) | egrep -wi '(^>>>|error)'
+    echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
+    install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
+    install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/	
+
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 
@@ -702,7 +711,7 @@ install_custom_packages() {
 	DEVFS_MOUNT=`mount | grep ${BASEDIR}/dev | wc -l | awk '{ print $1 }'`
 
 	if [ "$DEVFS_MOUNT" -lt 1 ]; then
-		echo "Mounting devfs ${BASEDIR}/dev ..."
+		echo ">>> Mounting devfs ${BASEDIR}/dev ..."
 		mount -t devfs devfs ${BASEDIR}/dev
 	fi
 		
@@ -797,6 +806,44 @@ fixup_updates() {
 	fi 
 	
 	cd $PREVIOUSDIR
+
+}
+
+cust_fixup_nanobsd() {
+
+	echo ">>> Fixing up NanoBSD Specific items..."
+	cp $CVS_CO_DIR/boot/device.hints_wrap \
+            	$PFSENSEBASEDIR/boot/device.hints
+    cp $CVS_CO_DIR/boot/loader.conf_wrap \
+            $PFSENSEBASEDIR/boot/loader.conf
+    cp $CVS_CO_DIR/etc/ttys_wrap \
+            $PFSENSEBASEDIR/etc/ttys
+
+    echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
+    echo "" > $PFSENSEBASEDIR/etc/motd
+
+    mkdir -p $PFSENSEBASEDIR/cf/conf/backup
+
+    echo /etc/rc.initial > $PFSENSEBASEDIR/root/.shrc
+    echo exit >> $PFSENSEBASEDIR/root/.shrc
+    rm -f $PFSENSEBASEDIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
+
+    echo "nanobsd" > $PFSENSEBASEDIR/etc/platform
+    echo "wrap" > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt
+
+	echo "-D" >> $PFSENSEBASEDIR/boot.config
+
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	if [ "$FBSD_VERSION" = "8" ]; then
+		# Enable getty on console
+		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
+
+		# Disable getty on syscons devices
+		sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
+
+		# Tell loader to use serial console early.
+		echo " -h" > ${PFSENSEBASEDIR}/boot.config
+	fi
 
 }
 
@@ -1263,7 +1310,7 @@ make_world() {
 }
 
 setup_nanobsd_etc ( ) {
-	echo "## configure nanobsd /etc"
+	echo ">>> Configuring NanoBSD /etc"
 
 	cd ${CLONEDIR}
 
@@ -1274,18 +1321,15 @@ setup_nanobsd_etc ( ) {
 	# Make root filesystem R/O by default
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
 
-	# save config file for scripts
-	# echo "NANO_DRIVE=${NANO_DRIVE}" > etc/nanobsd.conf
-
-	echo "/dev/ufs/root0 / ufs ro 1 1" > etc/fstab
+	echo "/dev/ufs/pfsense0 / ufs ro 1 1" > etc/fstab
 	echo "/dev/ufs/cfg /cfg ufs rw,noauto 2 2" >> etc/fstab
 	echo "/dev/ufs/cf /cf ufs ro 1 1" >> etc/fstab
+
 	mkdir -p cfg
 }
 
 setup_nanobsd ( ) {
-	echo "## configure nanobsd setup"
-	echo "### log: ${MAKEOBJDIRPREFIX}/_.dl"
+	echo ">>> Configuring NanoBSD setup"
 
 	cd ${CLONEDIR}
 
@@ -1294,7 +1338,7 @@ setup_nanobsd ( ) {
 	# have hardcoded paths under ${prefix}/etc are not tweakable.
 	if [ -d usr/local/etc ] ; then
 		(
-		mkdir etc/local
+		mkdir -p etc/local
 		cd usr/local/etc
 		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 		if [ "$FBSD_VERSION" = "8" ]; then
@@ -1309,6 +1353,7 @@ setup_nanobsd ( ) {
 		ln -s ../../etc/local etc
 		)
 	fi
+
 	# Create /conf directory hier
 	for d in etc
 	do
@@ -1348,11 +1393,6 @@ setup_nanobsd ( ) {
 prune_usr() {
 	echo ">>> Pruning NanoBSD usr directory..."
 	# Remove all empty directories in /usr 
-	find ${NANO_WORLDDIR}/usr -type d -depth -print |
-		while read d
-		do
-			rmdir $d > /dev/null 2>&1 || true 
-		done
 }
 
 FlashDevice () {
@@ -1362,7 +1402,6 @@ FlashDevice () {
 
 create_i386_diskimage ( ) {
 	echo ">>> building NanoBSD disk image..."
-	echo "### log: ${MAKEOBJDIRPREFIX}/_.di"
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
 	echo $NANO_MEDIASIZE $NANO_IMAGES \
 		$NANO_SECTS $NANO_HEADS \
@@ -1447,7 +1486,7 @@ create_i386_diskimage ( ) {
 
 	# Create first image
 	newfs ${NANO_NEWFS} /dev/${MD}s1a
-	tunefs -L root0 /dev/${MD}s1a
+	tunefs -L pfsense0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
 	df -i ${MNT}
 	
@@ -1467,15 +1506,20 @@ create_i386_diskimage ( ) {
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		# Duplicate to second image (if present)
+		echo ">>> Mounting and duplicating NanoBSD pfsense1 /dev/${MD}s2a ${MNT}"
 		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k
-		tunefs -L root1 /dev/${MD}s2a
+		tunefs -L pfsense1 /dev/${MD}s2a
 		mount /dev/${MD}s2a ${MNT}
+		df -i ${MNT}
+		mkdir -p ${MNT}/conf/base/etc/
+		cp ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		do
-			sed -i "" "s/root0/root1/g" $f
+			sed -i "" "s/pfsense0/pfsense1/g" $f
 		done
 		umount ${MNT}
-
+		bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s2
+		bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
 	fi
 	
 	# Create Config slice
@@ -1485,25 +1529,26 @@ create_i386_diskimage ( ) {
 
 	# Create Data slice, if any.
 	if [ $NANO_DATASIZE -gt 0 ] ; then
+		echo ">>> Creating /cf area to hold config.xml"
 		newfs ${NANO_NEWFS} /dev/${MD}s4
 		tunefs -L cf /dev/${MD}s4
-                # Mount data partition and copy contents of /cf
-                # Can be used later to create custom default config.xml while building
-                mount /dev/${MD}s4 ${MNT}
+		# Mount data partition and copy contents of /cf
+		# Can be used later to create custom default config.xml while building
+		mount /dev/${MD}s4 ${MNT}
 
-				FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-				if [ "$FBSD_VERSION" = "8" ]; then
-					echo ">>> Using TAR to clone create_i386_diskimage()..."
-					( cd ${CLONEDIR}/cf && tar cf - * | ( cd /$MNT; tar xfp -) )
-				else
-					echo ">>> Using CPIO to clone..."
-					( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
-				fi
+		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+		if [ "$FBSD_VERSION" = "8" ]; then
+			echo ">>> Using TAR to clone create_i386_diskimage()..."
+			( cd ${CLONEDIR}/cf && tar cf - * | ( cd /$MNT; tar xfp -) )
+		else
+			echo ">>> Using CPIO to clone..."
+			( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
+		fi
 
-                umount ${MNT}
+		umount ${MNT}
 	fi
 
-	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.slice.img bs=64k
+	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
 	mdconfig -d -u $MD
 }
 
@@ -1556,11 +1601,12 @@ pfsense_install_custom_packages_exec() {
 
 # Handle php.ini if /etc/rc.php_ini_setup exists
 if [ -f "/etc/rc.php_ini_setup" ]; then
-	echo "Running /etc/rc.php_ini_setup..."
+	mkdir -p /usr/local/lib/ /usr/local/etc/
+	echo ">>> Running /etc/rc.php_ini_setup..."
 	/etc/rc.php_ini_setup 2>/dev/null
 	cat /usr/local/etc/php.ini | grep -v apc > /tmp/php.ini.new
-	cp /tmp/php.ini.new /usr/local/etc/php.ini
-	cp /tmp/php.ini.new /usr/local/lib/php.ini	
+	cp /tmp/php.ini.new /usr/local/etc/php.ini 2>/dev/null
+	cp /tmp/php.ini.new /usr/local/lib/php.ini 2>/dev/null
 fi
 
 if [ ! -f "/usr/local/bin/php" ]; then
@@ -1598,8 +1644,8 @@ fi
 # test whether conf dir is already a symlink
 if [ ! -h /conf ]; then
 	# install the symlink as it would exist on a live system
-	/bin/ln -s /conf.default /conf
-	/bin/ln -s /conf /cf
+	/bin/ln -s /conf.default /conf 2>/dev/null
+	/bin/ln -s /conf /cf 2>/dev/null
 	/usr/bin/touch /tmp/remove_conf_symlink
 fi
 

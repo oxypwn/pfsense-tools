@@ -1,97 +1,58 @@
-Index: sys/contrib/pf/net/pf.c
+Index: dev/e1000/if_em.c
 ===================================================================
-RCS file: /root/repo/repo/src/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.7
-diff -u -r1.7 pf.c
---- sys/contrib/pf/net/pf.c	14 Jun 2009 08:54:15 -0000	1.7
-+++ sys/contrib/pf/net/pf.c	14 Jun 2009 15:14:36 -0000
-@@ -1008,44 +1008,33 @@
- {
- 	int nloops = 0, s;
- 
--	for (;;) {
-+	while (!pf_end_threads) {
- 		tsleep(pf_purge_thread, PWAIT, "pftm", 1 * hz);
- 
- #ifdef __FreeBSD__
- 		sx_slock(&pf_consistency_lock);
- 		PF_LOCK();
- 
--		if (pf_end_threads) {
--			pf_purge_expired_states(pf_status.states);
--			pf_purge_expired_fragments();
--			pf_purge_expired_src_nodes(0);
--			pf_end_threads++;
--
--			sx_sunlock(&pf_consistency_lock);
--			PF_UNLOCK();
--			wakeup(pf_purge_thread);
--			kproc_exit(0);
--		}
--#endif
- 		s = splsoftnet();
- 
--		/* process a fraction of the state table every second */
- 		pf_purge_expired_states(1 + (pf_status.states
--		    / pf_default_rule.timeout[PFTM_INTERVAL]));
--
--		/* purge other expired types every PFTM_INTERVAL seconds */
-+			/ pf_default_rule.timeout[PFTM_INTERVAL]));
-+		
- 		if (++nloops >= pf_default_rule.timeout[PFTM_INTERVAL]) {
- 			pf_purge_expired_fragments();
- 			pf_purge_expired_src_nodes(0);
- 			nloops = 0;
+RCS file: /home/ncvs/src/sys/dev/e1000/if_em.c,v
+retrieving revision 1.19
+diff -u -r1.19 if_em.c
+--- dev/e1000/if_em.c	29 Jun 2009 18:17:10 -0000	1.19
++++ dev/e1000/if_em.c	1 Jul 2009 01:17:02 -0000
+@@ -1051,7 +1051,11 @@
+ 			** listener and set the watchdog on.
+ 			*/
+ 			ETHER_BPF_MTAP(ifp, m);
++<<<<<<< if_em.c
++			addapter->watchdog_timer = EM_TX_TIMEOUT;
++=======
+ 			adapter->watchdog_timer = EM_TX_TIMEOUT;
++>>>>>>> 1.14
  		}
--
+ 	} else if ((error = drbr_enqueue(ifp, adapter->br, m)) != 0)
+ 		return (error);
+@@ -1140,8 +1144,21 @@
+ 		if (em_xmit(adapter, &m_head)) {
+ 			if (m_head == NULL)
+ 				break;
++<<<<<<< if_em.c
++<<<<<<< if_em.c
+ 			ifp->if_drv_flags |= IFF_DRV_OACTIVE;
+ 			IFQ_DRV_PREPEND(&ifp->if_snd, m_head);
++=======
++#ifndef IFNET_BUF_RING
++=======
++>>>>>>> 1.19
++			ifp->if_drv_flags |= IFF_DRV_OACTIVE;
++			IFQ_DRV_PREPEND(&ifp->if_snd, m_head);
++<<<<<<< if_em.c
 +#endif
- 		splx(s);
--#ifdef __FreeBSD__
- 		PF_UNLOCK();
- 		sx_sunlock(&pf_consistency_lock);
--#endif
- 	}
-+#ifdef __FreeBSD__
-+	++pf_end_threads;
-+	wakeup(pf_purge_thread);
-+	kproc_exit(0);
-+#endif
- }
++>>>>>>> 1.14
++=======
++>>>>>>> 1.19
+ 			break;
+ 		}
  
- u_int32_t
-@@ -1105,10 +1094,7 @@
- 			 if (! locked) {
- #ifdef __FreeBSD__
- 				 if (!sx_try_upgrade(&pf_consistency_lock)) {
--					 PF_UNLOCK();
--					 sx_sunlock(&pf_consistency_lock);
--					 sx_xlock(&pf_consistency_lock);
--					 PF_LOCK();
-+					continue;
- 				 }
- #else
- 				 rw_enter_write(&pf_consistency_lock);
-@@ -1261,10 +1247,7 @@
- 			if (! locked) {
- #ifdef __FreeBSD__
- 				 if (!sx_try_upgrade(&pf_consistency_lock)) {
--					 PF_UNLOCK();
--					 sx_sunlock(&pf_consistency_lock);
--					 sx_xlock(&pf_consistency_lock);
--					 PF_LOCK();
-+					continue;
- 				 }
- #else
- 				rw_enter_write(&pf_consistency_lock);
-@@ -1278,10 +1261,7 @@
- 			if (! locked) {
- #ifdef __FreeBSD__
- 				 if (!sx_try_upgrade(&pf_consistency_lock)) {
--					 PF_UNLOCK();
--					 sx_sunlock(&pf_consistency_lock);
--					 sx_xlock(&pf_consistency_lock);
--					 PF_LOCK();
-+					continue;
- 				 }
- #else
- 				rw_enter_write(&pf_consistency_lock);
+Index: netinet/ip_carp.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.70
+diff -u -r1.70 ip_carp.c
+--- netinet/ip_carp.c	25 Jun 2009 16:35:28 -0000	1.70
++++ netinet/ip_carp.c	1 Jul 2009 01:17:36 -0000
+@@ -503,7 +503,8 @@
+ 			ifpromisc(sc->sc_carpdev, 0);
+ 			sc->sc_carpdev->if_carp = NULL;
+ 			CARP_LOCK_DESTROY(cif);
+-			free(cif, M_IFADDR);
++			//free(cif, M_IFADDR);
++			free(cif, M_CARP);
+ 		} else if (unlock)
+ 			CARP_UNLOCK(cif);
+ 		sc->sc_carpdev = NULL;

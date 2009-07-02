@@ -1,0 +1,30 @@
+--- genconfig.sh.orig	2009-06-28 17:16:00.000000000 -0400
++++ genconfig.sh	2009-06-28 17:20:46.000000000 -0400
+@@ -20,11 +20,12 @@
+ OS_VERSION=`uname -r`
+ 
+ # pfSense special case
+-if [ -f /etc/platform ]; then
+-	if [ `cat /etc/platform` = "pfSense" ]; then
+-		OS_NAME=pfSense
+-		OS_VERSION=`cat /etc/version`
+-	fi
++# Needs to be detected on the builder box, since it isn't being compiled on
++# a pfSense system. Worst case scenario is that it falls back to FreeBSD
++PFSENSE_BUILD=/usr/home/pfsense/pfSense
++if [ -d ${PFSENSE_BUILD} ]; then
++	OS_NAME=pfSense
++	OS_VERSION=`cat ${PFSENSE_BUILD}/etc/version`
+ fi
+ 
+ ${RM} ${CONFIGFILE}
+@@ -91,6 +92,9 @@
+ 		# we need to detect if PFRULE_INOUT_COUNTS macro is needed
+ 		echo "#define USE_PF 1" >> ${CONFIGFILE}
+ 		FW=pf
++		if [ `cat ${PFSENSE_BUILD}/etc/platform` != "pfSense" ]; then
++			OS_NAME=pfSense-`cat ${PFSENSE_BUILD}/etc/platform`
++		fi
+ 		OS_URL=http://www.pfsense.com/
+ 		;;
+ 	NetBSD)
