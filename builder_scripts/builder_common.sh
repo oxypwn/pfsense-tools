@@ -5,6 +5,12 @@
 #  builder_common.sh
 #  Copyright (C) 2004-2009 Scott Ullrich
 #  All rights reserved.
+#
+# NanoBSD portions of the code
+# Copyright (c) 2005 Poul-Henning Kamp.
+# and copied from nanobsd.sh
+# All rights reserved.
+#
 #  
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions are met:
@@ -1476,6 +1482,8 @@ create_i386_diskimage ( ) {
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 
+	trap "df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
+
 	fdisk -i -f ${MAKEOBJDIRPREFIX}/_.fdisk ${MD}
 	fdisk ${MD}
 	# XXX: params
@@ -1549,6 +1557,7 @@ create_i386_diskimage ( ) {
 	fi
 
 	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
+	
 	mdconfig -d -u $MD
 }
 
