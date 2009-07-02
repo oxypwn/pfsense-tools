@@ -146,7 +146,7 @@ export FLASH_SIZE="1g"
 export NANO_CODESIZE=0
 export NANO_CONFSIZE=10240
 # Size of /cf (pfSense configuration storage) 40 megabyte
-export NANO_DATASIZE=81920
+export NANO_DATASIZE=102400
 
 # Add UNIONFS
 export NO_UNIONFS=YES
