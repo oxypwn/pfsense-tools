@@ -274,6 +274,8 @@ echo
 echo "Starting pfSense build.  Sit back and have a six pack of beer (but not cheap beer)..."
 echo
 
+cd ${BUILDER_SCRIPTS}
+
 [ -r "${BUILDER_SCRIPTS}/pfsense_local.sh" ] && . ${BUILDER_SCRIPTS}/pfsense_local.sh
 echo ">>> Executing ${BUILDER_SCRIPTS}/build_iso.sh..."
 (su - root -c cd ${BUILDER_SCRIPTS} && ./build_iso.sh)
