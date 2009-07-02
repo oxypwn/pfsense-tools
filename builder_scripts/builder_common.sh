@@ -1482,7 +1482,7 @@ create_i386_diskimage ( ) {
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 
-	trap "df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
+#	trap "df -i ${MNT} ; umount ${MNT} || true ; mdconfig -d -u $MD" 1 2 15 EXIT
 
 	fdisk -i -f ${MAKEOBJDIRPREFIX}/_.fdisk ${MD}
 	fdisk ${MD}
@@ -1497,6 +1497,9 @@ create_i386_diskimage ( ) {
 	tunefs -L pfsense0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
 	df -i ${MNT}
+
+	echo ">>> Creating NanoBSD upgrade file from first slice..."
+	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
 	
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "8" ]; then
@@ -1555,8 +1558,6 @@ create_i386_diskimage ( ) {
 
 		umount ${MNT}
 	fi
-
-	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
 	
 	mdconfig -d -u $MD
 }
