@@ -1315,14 +1315,10 @@ make_world() {
 
 }
 
-setup_nanobsd_etc ( ) {
+setup_nanobsd_etc() {
 	echo ">>> Configuring NanoBSD /etc"
 
 	cd ${CLONEDIR}
-
-	# create diskless marker file
-	touch etc/diskless
-	touch nanobuild
 
 	# Make root filesystem R/O by default
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
@@ -1332,7 +1328,7 @@ setup_nanobsd_etc ( ) {
 
 }
 
-setup_nanobsd ( ) {
+setup_nanobsd() {
 	echo ">>> Configuring NanoBSD setup"
 
 	cd ${CLONEDIR}
