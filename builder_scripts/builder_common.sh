@@ -1329,36 +1329,13 @@ setup_nanobsd_etc ( ) {
 
 	echo "/dev/ufs/pfsense0 / ufs ro 1 1" > etc/fstab
 	echo "/dev/ufs/cf /cf ufs ro 1 1" >> etc/fstab
-	#echo "/dev/ufs/cfg /cfg ufs rw,noauto 2 2" >> etc/fstab
 
-	mkdir -p cfg
 }
 
 setup_nanobsd ( ) {
 	echo ">>> Configuring NanoBSD setup"
 
 	cd ${CLONEDIR}
-
-	# Move /usr/local/etc to /etc/local so that the /cfg stuff
-	# can stomp on it.  Otherwise packages like ipsec-tools which
-	# have hardcoded paths under ${prefix}/etc are not tweakable.
-	if [ -d usr/local/etc ] ; then
-		(
-		mkdir -p etc/local
-		cd usr/local/etc
-		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-		if [ "$FBSD_VERSION" = "8" ]; then
-			echo ">>> Using TAR to clone setup_nanobsd()..."
-			tar cf - * | ( cd ../../../etc/local; tar xfp -)
-		else
-			echo ">>> Using CPIO to clone..."
-			find . -print | cpio -dump -l ../../../etc/local
-		fi		
-		cd ..
-		rm -rf etc
-		ln -s ../../etc/local etc
-		)
-	fi
 
 	# Create /conf directory hier
 	for d in etc
@@ -1384,7 +1361,7 @@ setup_nanobsd ( ) {
 	echo "$NANO_RAM_TMPVARSIZE" > ${CONFIG_DIR}/base/var/md_size 
 
 	# pick up config files from the special partition
-	echo "mount -o ro /dev/ufs/cfg" > ${CONFIG_DIR}/default/etc/remount
+	#echo "mount -o ro /dev/ufs/cfg" > ${CONFIG_DIR}/default/etc/remount
 
 	# Put /tmp on the /var ramdisk (could be symlink already)
 	rm -rf tmp || true
