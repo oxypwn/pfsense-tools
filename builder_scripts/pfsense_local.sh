@@ -133,19 +133,20 @@ export NANO_NAME=pfsense
 export CONFIG_DIR=nano
 export NANO_IMAGES=2
 export NANO_INIT_IMG2=1
-export NANO_DATASIZE=20480
 export NANO_RAM_ETCSIZE=30720
 export NANO_RAM_TMPVARSIZE=51200
 export NANO_BOOT0CFG="-o packet -s 1 -m 3"
 export NANO_BOOTLOADER="boot/boot0sio"
 export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1 -U"
-export NANO_MEDIASIZE=1200000 
-export NANO_SECTS=63 
+export NANO_MEDIASIZE=1200000
+export NANO_SECTS=63
 export NANO_HEADS=16
-export FLASH_MODEL="sandisk" 
+export FLASH_MODEL="sandisk"
 export FLASH_SIZE="1g"
 export NANO_CODESIZE=0
-export NANO_CONFSIZE=2048 
+export NANO_CONFSIZE=10240
+# Size of /cf (pfSense configuration storage) 40 megabyte
+export NANO_DATASIZE=81920
 
 # Add UNIONFS
 export NO_UNIONFS=YES
