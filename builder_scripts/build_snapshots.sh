@@ -176,6 +176,7 @@ update_sources() {
 build_iso() {
 	# Ensures sane nevironment
 	# and invokes build_iso.sh
+	cd $BUILDERSCRIPTS
 	./cvsup_current
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	gzip $PFSENSEOBJDIR/pfSense.iso
@@ -191,10 +192,10 @@ build_deviso() {
 }
 
 build_embedded() {
+	cd $BUILDERSCRIPTS 
 	rm -rf /usr/obj*
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	rm -f $PFSENSEOBJDIR/pfSense-${DATESTRING}.img.gz
-	cd $BUILDERSCRIPTS 
 	./build_embedded.sh
 }
 
@@ -246,6 +247,7 @@ dobuilds() {
 }
 
 copy_to_staging_nanobsd() {
+	cd $BUILDERSCRIPTS
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd.img"
 	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${DATESTRING}-nanobsd-upgrade.img"
@@ -264,9 +266,11 @@ copy_to_staging_nanobsd() {
 }
 
 copy_to_staging_nanobsd_updates() {
+	cd $BUILDERSCRIPTS	
 }
 
 copy_to_staging_deviso_updates() {
+	cd $BUILDERSCRIPTS	
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
 	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
@@ -274,6 +278,7 @@ copy_to_staging_deviso_updates() {
 }
 
 copy_to_staging_iso_updates() {
+	cd $BUILDERSCRIPTS
 	cp $PFSENSEOBJDIR/pfSense-*.iso $STAGINGAREA/
 	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
 	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/ 
@@ -282,6 +287,7 @@ copy_to_staging_iso_updates() {
 }
 
 copy_to_staging_embedded() {
+	cd $BUILDERSCRIPTS
 	cp $PFSENSEOBJDIR/pfSense.img $STAGINGAREA/ 
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz 2>/dev/null
@@ -292,12 +298,14 @@ copy_to_staging_embedded() {
 }
 
 cp_files() {
+	cd $BUILDERSCRIPTS
 	cp $STAGINGAREA/pfSense-*iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer 2>/dev/null
 	cp $STAGINGAREA/pfSense-*img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded 2>/dev/null
 	cp $STAGINGAREA/pfSense-*Update* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates 2>/dev/null
 }
 
 check_for_congestion() {
+	cd $BUILDERSCRIPTS
 	PINGTIME="999"
 	PINGMAX="40"
 	PINGIP="172.29.29.1"
@@ -311,6 +319,7 @@ check_for_congestion() {
 }
 
 scp_files() {
+	cd $BUILDERSCRIPTS
 	RSYNCIP="172.29.29.181"
 	RSYNCARGUMENTS="-ave ssh --bwlimit=50 --timeout=60 "
 	date >$STAGINGAREA/version
@@ -347,6 +356,7 @@ scp_files() {
 }
 
 cleanup_builds() {
+	cd $BUILDERSCRIPTS
 	# Remove prior builds
 	echo ">>> Cleaning up after prior builds..."
 	rm -rf /usr/obj*
@@ -362,6 +372,7 @@ cleanup_builds() {
 }
 
 build_loop_operations() {
+	cd $BUILDERSCRIPTS
 	echo ">>> Starting build loop operations"
 	# --- Items we need to run for a complete build run ---
 	# Create extra structures
