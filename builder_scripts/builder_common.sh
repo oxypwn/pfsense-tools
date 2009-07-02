@@ -1409,25 +1409,33 @@ FlashDevice () {
 create_i386_diskimage ( ) {
 	echo ">>> building NanoBSD disk image..."
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
-	echo $NANO_MEDIASIZE $NANO_IMAGES \
-		$NANO_SECTS $NANO_HEADS \
-		$NANO_CODESIZE $NANO_CONFSIZE $NANO_DATASIZE |
+	echo $NANO_MEDIASIZE \
+		$NANO_IMAGES \
+		$NANO_SECTS \
+		$NANO_HEADS \
+		$NANO_CODESIZE \
+		$NANO_CONFSIZE \
+		$NANO_DATASIZE |
 	awk '
 	{
 		printf "# %s\n", $0
 
+		# NANO_SECTS($3) * NANO_HEADS($4)
 		# size of cylinder in sectors
 		cs = $3 * $4
 
+		# NANO_MEDIASIZE($1)
 		# number of full cylinders on media
 		cyl = int ($1 / cs)
 
+		# NANO_HEADS($4) NANO_SECTS($3)
 		# output fdisk geometry spec, truncate cyls to 1023
 		if (cyl <= 1023)
 			print "g c" cyl " h" $4 " s" $3
 		else
 			print "g c" 1023 " h" $4 " s" $3
 
+		# NANO_DATASIZE($7)
 		if ($7 > 0) { 
 			# size of data partition in full cylinders
 			dsl = int (($7 + cs - 1) / cs)
@@ -1435,9 +1443,11 @@ create_i386_diskimage ( ) {
 			dsl = 0;
 		}
 
+		# NANO_CONFSIZE($6)
 		# size of config partition in full cylinders
 		csl = int (($6 + cs - 1) / cs)
 
+		# NANO_CODESIZE($5) $NANO_IMAGES($2) 
 		if ($5 == 0) {
 			# size of image partition(s) in full cylinders
 			isl = int ((cyl - dsl - csl) / $2)
@@ -1445,10 +1455,12 @@ create_i386_diskimage ( ) {
 			isl = int (($5 + cs - 1) / cs)
 		}
 
+		# NANO_SECTS($3) 
 		# First image partition start at second track
 		print "p 1 165 " $3, isl * cs - $3
 		c = isl * cs;
 
+		# NANO_IMAGES($2) NANO_SECTS($3)
 		# Second image partition (if any) also starts offset one 
 		# track to keep them identical.
 		if ($2 > 1) {
@@ -1457,14 +1469,15 @@ create_i386_diskimage ( ) {
 		}
 
 		# Config partition starts at cylinder boundary.
-		print "p 3 165 " c, csl * cs
-		c += csl * cs
+		#print "p 3 165 " c, csl * cs
+		#c += csl * cs
 
+		# NANO_DATASIZE($7) NANO_MEDIASIZE($1)
 		# Data partition (if any) starts at cylinder boundary.
 		if ($7 > 0) {
-			print "p 4 165 " c, dsl * cs
+			print "p 3 165 " c, dsl * cs
 		} else if ($7 < 0 && $1 > $c) {
-			print "p 4 165 " c, $1 - $c
+			print "p 3 165 " c, $1 - $c
 		} else if ($1 < c) {
 			print "Disk space overcommitted by", \
 			    c - $1, "sectors" > "/dev/stderr"
@@ -1484,8 +1497,6 @@ create_i386_diskimage ( ) {
 
 	fdisk -i -f ${MAKEOBJDIRPREFIX}/_.fdisk ${MD}
 	fdisk ${MD}
-	# XXX: params
-	# XXX: pick up cached boot* files, they may not be in image anymore.
 	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
 	bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
 	bsdlabel ${MD}s1
@@ -1532,18 +1543,17 @@ create_i386_diskimage ( ) {
 	fi
 	
 	# Create Config slice
-	newfs ${NANO_NEWFS} /dev/${MD}s3
-	tunefs -L cfg /dev/${MD}s3
-	# XXX: fill from where ?
+	#newfs ${NANO_NEWFS} /dev/${MD}s3
+	#tunefs -L cfg /dev/${MD}s3
 
 	# Create Data slice, if any.
 	if [ $NANO_DATASIZE -gt 0 ] ; then
 		echo ">>> Creating /cf area to hold config.xml"
-		newfs ${NANO_NEWFS} /dev/${MD}s4
-		tunefs -L cf /dev/${MD}s4
+		newfs ${NANO_NEWFS} /dev/${MD}s3
+		tunefs -L cf /dev/${MD}s3
 		# Mount data partition and copy contents of /cf
 		# Can be used later to create custom default config.xml while building
-		mount /dev/${MD}s4 ${MNT}
+		mount /dev/${MD}s3 ${MNT}
 
 		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 		if [ "$FBSD_VERSION" = "8" ]; then
