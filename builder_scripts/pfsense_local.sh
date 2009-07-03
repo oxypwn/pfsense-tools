@@ -195,7 +195,7 @@ export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/frees
 # package names must be valid. Using non existent
 # package name would yield an error.
 #
-export custom_package_list="AutoConfigBackup, siproxd"
+#export custom_package_list=""
 
 # This is used for developers with access to the pfSense
 # cvsup update server.  Note that it is firewalled by default.
