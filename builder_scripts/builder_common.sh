@@ -1499,7 +1499,7 @@ create_i386_diskimage ( ) {
 	umount ${MNT}
 
 	echo ">>> Creating NanoBSD upgrade file from first slice..."
-	dd if=/dev/${MD}s1a of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
+	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		# Duplicate to second image (if present)
