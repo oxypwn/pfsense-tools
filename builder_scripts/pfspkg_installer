@@ -37,6 +37,79 @@
 require_once("config.inc");
 require_once("pkg-utils.inc");
 
+if(!function_exists("read_header")) {
+	function read_header($ch, $string) {
+	        global $file_size, $fout;
+	        $length = strlen($string);
+	        $regs = "";
+	        ereg("(Content-Length:) (.*)", $string, $regs);
+	        if($regs[2] <> "") {
+	                $file_size = intval($regs[2]);
+	        }
+	        ob_flush();
+	        return $length;
+	}
+}
+
+if(!function_exists("download_file_with_progress_bar")) {
+	function download_file_with_progress_bar($url_file, $destination_file, $readbody = 'read_body') {
+        global $ch, $fout, $file_size, $downloaded;
+        $file_size  = 1;
+        $downloaded = 1;
+        /* open destination file */
+        $fout = fopen($destination_file, "wb");
+
+        /*
+         *      Originally by Author: Keyvan Minoukadeh
+         *      Modified by Scott Ullrich to return Content-Length size
+         */
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url_file);
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION, 'read_header');
+        curl_setopt($ch, CURLOPT_WRITEFUNCTION, "read_body");
+        curl_setopt($ch, CURLOPT_NOPROGRESS, '1');
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, '5');
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+
+        curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if($fout)
+                fclose($fout);
+        curl_close($ch);
+        return ($http_code == 200) ? true : $http_code;
+	}
+}
+
+if(!function_exists("update_status") {
+	function update_status($status) {
+			echo $status . "\n";	        
+	}
+}
+
+if(!function_exists("read_body")) {
+	function read_body($ch, $string) {
+	        global $fout, $file_size, $downloaded, $sendto, $static_status, $static_output, $lastseen, $console_counter;
+	        $length = strlen($string);
+	        $downloaded += intval($length);
+	        $downloadProgress = round(100 * (1 - $downloaded / $file_size), 0);
+	        $downloadProgress = 100 - $downloadProgress;
+			$console_counter++;
+	        if($lastseen <> $downloadProgress and $downloadProgress < 101) {
+				$tostatus = $static_status . $downloadProgress . "%";
+				if($console_counter > 9) {
+					update_status($tostatus);
+					$console_counter=0;
+				}
+				$lastseen = $downloadProgress;
+	        }
+	        if($fout)
+	                fwrite($fout, $string);
+	        ob_flush();
+	        return $length;
+	}
+}
+
 // currently not being used
 $beInteractive = false;
 // holds the PHP include path which will be used to search for PHP scripts
