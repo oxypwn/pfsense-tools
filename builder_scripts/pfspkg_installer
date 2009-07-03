@@ -81,7 +81,7 @@ if(!function_exists("download_file_with_progress_bar")) {
 	}
 }
 
-if(!function_exists("update_status") {
+if(!function_exists("update_status")) {
 	function update_status($status) {
 			echo $status . "\n";	        
 	}
