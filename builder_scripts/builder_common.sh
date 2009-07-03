@@ -1356,9 +1356,6 @@ setup_nanobsd() {
 	mkdir -p ${CONFIG_DIR}/base/var
 	echo "$NANO_RAM_TMPVARSIZE" > ${CONFIG_DIR}/base/var/md_size 
 
-	# pick up config files from the special partition
-	#echo "mount -o ro /dev/ufs/cfg" > ${CONFIG_DIR}/default/etc/remount
-
 	# Put /tmp on the /var ramdisk (could be symlink already)
 	rm -rf tmp || true
 	ln -s var/tmp tmp

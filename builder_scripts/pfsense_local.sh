@@ -145,7 +145,7 @@ export FLASH_MODEL="sandisk"
 export FLASH_SIZE="1g"
 export NANO_CODESIZE=0
 export NANO_CONFSIZE=10240
-# Size of /cf (pfSense configuration storage) 40 megabyte
+# Size of /cf (pfSense configuration storage) 50 megabyte
 export NANO_DATASIZE=102400
 
 # Add UNIONFS
