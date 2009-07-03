@@ -62,3 +62,4 @@
 ~sys/i386/i386~geode.c.1.11.diff~
 ~sys/dev/mpt~mpt-fix.diff~
 ~sys/kern~mpt~mpt-fix-notify.diff~
+~sys/netgraph~ng_iface.c.diff~

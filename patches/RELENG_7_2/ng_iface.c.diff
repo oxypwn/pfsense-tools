@@ -1,0 +1,18 @@
+Index: ng_iface.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netgraph/ng_iface.c,v
+retrieving revision 1.47.2.2.2.1
+diff -u -r1.47.2.2.2.1 ng_iface.c
+--- ng_iface.c	15 Apr 2009 03:14:26 -0000	1.47.2.2.2.1
++++ ng_iface.c	3 Jul 2009 19:37:18 -0000
+@@ -365,7 +365,9 @@
+ 	}
+ 
+ 	/* Protect from deadly infinite recursion. */
+-	while ((mtag = m_tag_locate(m, MTAG_NGIF, MTAG_NGIF_CALLED, NULL))) {
++	mtag = NULL;
++	while ((mtag = m_tag_locate(m, MTAG_NGIF, MTAG_NGIF_CALLED, mtag))) {
++
+ 		if (*(struct ifnet **)(mtag + 1) == ifp) {
+ 			log(LOG_NOTICE, "Loop detected on %s\n", ifp->if_xname);
+ 			m_freem(m);
