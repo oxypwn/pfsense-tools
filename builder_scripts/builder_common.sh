@@ -1315,10 +1315,14 @@ make_world() {
 
 }
 
-setup_nanobsd_etc() {
+setup_nanobsd_etc ( ) {
 	echo ">>> Configuring NanoBSD /etc"
 
 	cd ${CLONEDIR}
+
+	# create diskless marker file
+	touch etc/diskless
+	touch nanobuild
 
 	# Make root filesystem R/O by default
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
@@ -1328,7 +1332,7 @@ setup_nanobsd_etc() {
 
 }
 
-setup_nanobsd() {
+setup_nanobsd ( ) {
 	echo ">>> Configuring NanoBSD setup"
 
 	cd ${CLONEDIR}
@@ -1355,6 +1359,9 @@ setup_nanobsd() {
 	# add /nano/base/var manually for md_size 
 	mkdir -p ${CONFIG_DIR}/base/var
 	echo "$NANO_RAM_TMPVARSIZE" > ${CONFIG_DIR}/base/var/md_size 
+
+	# pick up config files from the special partition
+	echo "mount -o ro /dev/ufs/cfg" > ${CONFIG_DIR}/default/etc/remount
 
 	# Put /tmp on the /var ramdisk (could be symlink already)
 	rm -rf tmp || true
