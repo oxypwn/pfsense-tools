@@ -1483,9 +1483,6 @@ create_i386_diskimage ( ) {
 	tunefs -L pfsense0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
 	df -i ${MNT}
-
-	echo ">>> Creating NanoBSD upgrade file from first slice..."
-	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
 	
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "8" ]; then
@@ -1500,6 +1497,9 @@ create_i386_diskimage ( ) {
 	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIX}/_.mtree
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIX}/_.du
 	umount ${MNT}
+
+	echo ">>> Creating NanoBSD upgrade file from first slice..."
+	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		# Duplicate to second image (if present)
