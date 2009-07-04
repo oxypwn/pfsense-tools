@@ -2,11 +2,11 @@
 # Date created:				Tue Feb 18 11:17:13 CET 2003
 # Whom:					Alex Dupre <sysadmin@alexdupre.com>
 #
-# $FreeBSD: ports/lang/php5/Makefile,v 1.135 2009/03/06 10:08:33 ale Exp $
+# $FreeBSD: ports/lang/php5/Makefile,v 1.138 2009/06/25 06:25:45 ale Exp $
 #
 
 PORTNAME=	php5
-PORTVERSION=	5.2.9
+PORTVERSION=	5.2.10
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
@@ -19,6 +19,7 @@ COMMENT=	PHP Scripting Language
 LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
 USE_BZIP2=	yes
+MAKE_JOBS_SAFE=	yes
 .if !defined(PKGNAMESUFFIX)
 USE_AUTOTOOLS=	autoconf:262
 
@@ -28,7 +29,6 @@ CONFIGURE_ARGS=	\
 		--disable-all \
 		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
- 		--with-pcre-regex=yes \
 		--enable-reflection \
 		--program-prefix=""
 
@@ -65,7 +65,7 @@ PLIST_SUB+=	SUHOSIN="@comment "
 
 .if defined(WITH_MAILHEAD)
 #PATCHFILES+=	php-${PORTVERSION}-mail-header.patch:mail
-PATCHFILES+=	php-5.2.8-mail-header.patch:mail
+PATCHFILES+=	php-5.2.9-mail-header.patch:mail
 PATCH_SITES+=	http://choon.net/opensource/php/:mail
 .endif
 
@@ -133,9 +133,10 @@ CONFIGURE_ARGS+=--with-zend-vm=GOTO
 
 CONFIGURE_ENV+=	ac_cv_pthreads_lib=${PTHREAD_LIBS} \
 		ac_cv_pthreads_cflags=${PTHREAD_CFLAGS} \
-		pthreads_working="yes"
+		pthreads_working="yes" \
+		lt_cv_path_SED="sed"
 
-MAKE_ENV+=	LDFLAGS="${LDFLAGS} -lz"
+MAKE_ENV+=	LDFLAGS="${LDFLAGS}"
 
 .if defined(WITH_DEBUG)
 CONFIGURE_ARGS+=--enable-debug
