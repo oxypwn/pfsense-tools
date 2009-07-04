@@ -45,7 +45,7 @@ while [ /bin/true ]; do
 	fi
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
-	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
+	value=`od -A n -d -N1 /dev/random | awk '{ print $1 }'`
 	# Sleep for that time.
 	echo
 	echo ">>> Sleeping for $value in between snapshot builder runs"
