@@ -16,9 +16,14 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	cd files && make
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+	cp files/gzsig /usr/local/sbin/
+	chmod a+rx /usr/local/sbin/gzsig
+
+do-clean:
+	cd files && make clean
+	rm -rf work
 
 .include <bsd.port.mk>
