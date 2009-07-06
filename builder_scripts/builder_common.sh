@@ -1478,16 +1478,7 @@ awk '
 	tunefs -L pfsense0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
 	df -i ${MNT}
-	
-	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-	if [ "$FBSD_VERSION" = "8" ]; then
-		echo ">>> Using TAR to clone create_i386_diskimage()..."
-		( cd ${CLONEDIR} && tar cf - * | ( cd /$MNT; tar xfp -) )
-	else
-		echo ">>> Using CPIO to clone..."
-		( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
-	fi	
-
+	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
 	df -i ${MNT}
 	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIX}/_.mtree
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIX}/_.du
@@ -1523,16 +1514,7 @@ awk '
 		# Mount data partition and copy contents of /cf
 		# Can be used later to create custom default config.xml while building
 		mount /dev/${MD}s4 ${MNT}
-
-		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-		if [ "$FBSD_VERSION" = "8" ]; then
-			echo ">>> Using TAR to clone create_i386_diskimage()..."
-			( cd ${CLONEDIR}/cf && tar cf - * | ( cd /$MNT; tar xfp -) )
-		else
-			echo ">>> Using CPIO to clone..."
-			( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
-		fi
-
+		( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
 		umount ${MNT}
 	fi
 
