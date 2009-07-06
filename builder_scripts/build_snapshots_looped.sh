@@ -43,6 +43,25 @@ while [ /bin/true ]; do
 			rm -f /tmp/pfSense_do_not_build_pfPorts
 		fi
 	fi
+	NANO_SIZE=`cat pfsense_local | grep FLASH_SIZE | cut -d'"' -f2`
+	case $NANO_SIZE in
+	512m)
+		NEW_NANO_SIZE="1g"
+	;;
+	1g)
+		NEW_NANO_SIZE="2g"	
+	;;
+	2g)
+		NEW_NANO_SIZE="4g"	
+	;;
+	4g)
+		NEW_NANO_SIZE="512m"	
+	;;
+	esac
+	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
+	cat pfsense_local.sh | grep -v FLASH_SIZE > /tmp/pfsense_local/sh
+	echo 'export FLASH_SIZE="${NEW_NANO_SIZE}"' >>/tmp/pfsense_local/sh
+	mv /tmp/pfsense_local/sh ./pfsense_local.sh
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
 	value=`od -A n -d -N1 /dev/random | awk '{ print $1 }'`
