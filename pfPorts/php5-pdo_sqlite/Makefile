@@ -7,7 +7,7 @@
 
 CATEGORIES=	databases
 
-MASTERDIR=	${.CURDIR}/../../lang/php5
+MASTERDIR=	${.CURDIR}/../php5
 
 PKGNAMESUFFIX=	-pdo_sqlite
 

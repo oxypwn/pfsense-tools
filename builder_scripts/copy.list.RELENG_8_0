@@ -100,6 +100,7 @@ usr/local/lib/php/20060613/mhash.so
 usr/local/lib/php/20060613/mysql.so
 usr/local/lib/php/20060613/openssl.so
 usr/local/lib/php/20060613/pcntl.so
+usr/local/lib/php/20060613/pdo.so
 usr/local/lib/php/20060613/posix.so
 usr/local/lib/php/20060613/radius.so
 usr/local/lib/php/20060613/readline.so
