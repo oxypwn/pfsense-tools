@@ -52,7 +52,7 @@ PORTSTOBUILD="grub \
 	php5-pcre \
 	php5-posix \
 	php5-pdo \
-	php5-pdo_sqlite \	
+	php5-pdo_sqlite \
 	pecl-radius \
 	php5-readline \
 	php5-session \
