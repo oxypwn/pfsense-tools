@@ -68,3 +68,4 @@
 ~sys/dev/usb/~pyramid-lcd-releng_7.diff~
 ~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
 ~sys/netgraph~ng_iface.c.diff~
+~contrib/pf/tftp-proxy~filter.c.diff~
