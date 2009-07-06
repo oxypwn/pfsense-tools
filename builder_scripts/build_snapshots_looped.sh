@@ -44,19 +44,21 @@ while [ /bin/true ]; do
 		fi
 	fi
 	NANO_SIZE=`cat pfsense_local | grep FLASH_SIZE | cut -d'"' -f2`
+	# Loop through each builder run and alternate between image sizes.
+	# 512m becomes 1g, 1g becomes 2g, 2g becomes 4g, 4g becomes 512m.
 	case $NANO_SIZE in
-	512m)
-		NEW_NANO_SIZE="1g"
-	;;
-	1g)
-		NEW_NANO_SIZE="2g"	
-	;;
-	2g)
-		NEW_NANO_SIZE="4g"	
-	;;
-	4g)
-		NEW_NANO_SIZE="512m"	
-	;;
+		512m)
+			NEW_NANO_SIZE="1g"
+		;;
+		1g)
+			NEW_NANO_SIZE="2g"	
+		;;
+		2g)
+			NEW_NANO_SIZE="4g"	
+		;;
+		4g)
+			NEW_NANO_SIZE="512m"	
+		;;
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
 	cat pfsense_local.sh | grep -v FLASH_SIZE > /tmp/pfsense_local/sh
