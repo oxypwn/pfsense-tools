@@ -6,14 +6,6 @@ if [ $# -lt 1 ]; then
 	exit 127
 fi
 
-echo "0 $0"
-echo "1 $1"
-echo "2 $2"
-echo "3 $3"
-echo "4 $4"
-echo "5 $5"
-echo "6 $6"
-
 # Default SUPHOST
 if [ "$2" != "" ]; then 
 	SUPHOST="$2"
@@ -114,6 +106,8 @@ set_items() {
 	echo
 	echo "NOTE: pfsense-build.conf values updated.  These values override pfsense_local.sh !!"
 	echo
+	echo "NOTE2: if you have changed pfSense versions (ie: RELENG_1_2 -> RELENG_2_0) then you"
+	echo "       will need to run ./build_pfPorts.sh to rebuild all of the associated ports."
 	echo
 	HANDLED=true
 }
