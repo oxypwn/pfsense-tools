@@ -68,7 +68,7 @@ while [ /bin/true ]; do
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
 	cat $PWD/pfsense_local.sh | grep -v FLASH_SIZE > /tmp/pfsense_local.sh
-	echo 'export FLASH_SIZE="${NEW_NANO_SIZE}"' >>/tmp/pfsense_local.sh
+	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense_local.sh
 	mv /tmp/pfsense_local.sh $PWD/pfsense_local.sh
 	echo ">>> Detected $NANO_SIZE ... Altering this runs build size to $NEW_NANO_SIZE"
 	sh ./build_snapshots.sh
