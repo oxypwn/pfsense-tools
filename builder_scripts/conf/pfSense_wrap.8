@@ -2,10 +2,11 @@
 
 makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq glxsb"
 
-nooptions		INVARIANTS
-nooptions		INVARIANTS_SUPPORT
-nooptions		WITNESS
-nooptions		WITNESS_SKIPSPIN
+#nooptions		INVARIANTS
+#nooptions		INVARIANTS_SUPPORT
+#nooptions		WITNESS
+#nooptions		WITNESS_SKIPSPIN
+options 	KDB_TRACE
 
 machine		i386
 cpu			I486_CPU
