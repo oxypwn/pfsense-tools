@@ -70,7 +70,7 @@ while [ /bin/true ]; do
 	cat $PWD/pfsense_local.sh | grep -v FLASH_SIZE > /tmp/pfsense_local.sh
 	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense_local.sh
 	mv /tmp/pfsense_local.sh $PWD/pfsense_local.sh
-	echo ">>> Detected $NANO_SIZE ... Altering this runs build size to $NEW_NANO_SIZE"
+	echo ">>> Previous NanoBSD size: $NANO_SIZE ... New size has been set to: $NEW_NANO_SIZE"
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
 	value=`od -A n -d -N1 /dev/random | awk '{ print $1 }'`
