@@ -18,6 +18,11 @@
 
 PWD=`pwd`
 
+if [ ! -f "$PWD/pfsense_local.sh" ]; then
+	echo "You must run this utility from the same location as pfsense_local.sh !!"
+	exit 1
+fi
+
 # Handle command line arguments
 while test "$1" != "" ; do
 	case $1 in
