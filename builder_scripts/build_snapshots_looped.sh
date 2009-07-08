@@ -67,9 +67,9 @@ while [ /bin/true ]; do
 		;;
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
-	cat pfsense_local.sh | grep -v FLASH_SIZE > /tmp/pfsense_local.sh
+	cat $PWD/pfsense_local.sh | grep -v FLASH_SIZE > /tmp/pfsense_local.sh
 	echo 'export FLASH_SIZE="${NEW_NANO_SIZE}"' >>/tmp/pfsense_local.sh
-	mv /tmp/pfsense_local.sh ./pfsense_local.sh
+	mv /tmp/pfsense_local.sh $PWD/pfsense_local.sh
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
 	value=`od -A n -d -N1 /dev/random | awk '{ print $1 }'`
