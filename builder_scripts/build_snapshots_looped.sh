@@ -18,8 +18,8 @@
 
 PWD=`pwd`
 
-if [ ! -f "$PWD/pfsense_local.sh" ]; then
-	echo "You must run this utility from the same location as pfsense_local.sh !!"
+if [ ! -f "$PWD/pfsense-build.sh" ]; then
+	echo "You must run this utility from the same location as pfsense-build.sh !!"
 	exit 1
 fi
 
@@ -53,7 +53,7 @@ while [ /bin/true ]; do
 			rm -f /tmp/pfSense_do_not_build_pfPorts
 		fi
 	fi
-	NANO_SIZE=`cat $PWD/pfsense_local.sh | grep FLASH_SIZE | cut -d'"' -f2`
+	NANO_SIZE=`cat $PWD/pfsense-build.sh | grep FLASH_SIZE | cut -d'"' -f2`
 	# Loop through each builder run and alternate between image sizes.
 	# 512m becomes 1g, 1g becomes 2g, 2g becomes 4g, 4g becomes 512m.
 	NEW_NANO_SIZE="512m"
@@ -72,9 +72,9 @@ while [ /bin/true ]; do
 		;;
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
-	cat $PWD/pfsense_local.sh | grep -v FLASH_SIZE > /tmp/pfsense_local.sh
-	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense_local.sh
-	mv /tmp/pfsense_local.sh $PWD/pfsense_local.sh
+	cat $PWD/pfsense-build.sh | grep -v FLASH_SIZE > /tmp/pfsense-build.sh
+	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.sh
+	mv /tmp/pfsense-build.sh $PWD/pfsense-build.sh
 	echo ">>> Previous NanoBSD size: $NANO_SIZE ... New size has been set to: $NEW_NANO_SIZE"
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
