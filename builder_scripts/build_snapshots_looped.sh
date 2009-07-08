@@ -31,6 +31,9 @@ done
 # Main builder loop
 COUNTER=0
 while [ /bin/true ]; do
+	COUNTER=`expr $COUNTER + 1`
+	echo ">>> Starting builder run #${COUNTER}..."
+	echo
 	# We can disable ports builds
 	if [ "$NO_PORTS" != "" ]; then
 		echo ">>> Not building pfPorts at all during this snapshot builder looped run..."
@@ -73,7 +76,4 @@ while [ /bin/true ]; do
 	echo
 	# Count some sheep.
 	sleep $value
-	COUNTER=`expr $COUNTER + 1`
-	echo ">>> Starting builder run #${COUNTER}..."
-	echo
 done
