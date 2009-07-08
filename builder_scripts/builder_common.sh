@@ -1757,11 +1757,23 @@ copy_config_xml_from_conf_default() {
 	fi
 }
 
+report_error_pfsense() {
+    if [ ! -z ${FREESBIE_ERROR_MAIL:-} ]; then
+		HOSTNAME=`hostname`
+		IPADDRESS=`ifconfig | grep inet | grep netmask | grep broadcast | awk '{ print $2 }'`
+		cat ${LOGFILE} | \
+		    mail -s "FreeSBIE (pfSense) build error in ${TARGET} phase ${IPADDRESS} - ${HOSTNAME} " \
+		    	${FREESBIE_ERROR_MAIL}
+    fi
+}
+
 email_operation_completed() {
     if [ ! -z ${FREESBIE_COMPLETED_MAIL:-} ]; then
-	echo "Build / operation completed." | \
-	    mail -s "FreeSBIE (pfSense) operation completed." \
-	    ${FREESBIE_COMPLETED_MAIL}
+		HOSTNAME=`hostname`
+		IPADDRESS=`ifconfig | grep inet | grep netmask | grep broadcast | awk '{ print $2 }'`
+		echo "Build / operation completed ${IPADDRESS} - ${HOSTNAME}" | \
+	    mail -s "FreeSBIE (pfSense) operation completed ${IPADDRESS} - ${HOSTNAME}" \
+	    	${FREESBIE_COMPLETED_MAIL}
     fi	
 }
 
