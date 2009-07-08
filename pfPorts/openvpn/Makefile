@@ -2,18 +2,18 @@
 # Date created:		2002-06-23
 # Whom:			Matthias Andree <matthias.andree@gmx.de>
 #
-# $FreeBSD: ports/security/openvpn/Makefile,v 1.30 2006/10/02 17:47:32 alepulver Exp $
+# $FreeBSD: ports/security/openvpn/Makefile,v 1.39 2009/01/25 08:10:55 beech Exp $
 #
 
 PORTNAME=	openvpn
 # -----------------------------------------------------
-# DO NOT BOTHER TO SEND NOTICES ABOUT 2.0.8 AS IT FIXES
-# WINDOWS-ONLY BUGS THAT DON'T AFFECT *BSD AND THUS
-# DOES NOT WARRANT A PORT UPGRADE! AND UPGRADE REQUESTS
-# WILL BE DROPPED.       -- Matthias Andree, 2006-10-01
+# DO NOT BOTHER TO SEND NOTICES ABOUT OPENVPN 2.0.9
+# AS IT FIXES WINDOWS-ONLY BUGS THAT DON'T AFFECT *BSD
+# AND THUS DOES NOT WARRANT A PORT UPGRADE!
+# UPGRADE REQUESTS WILL BE DROPPED UNLESS BSD-RELATED.
 # -----------------------------------------------------
 PORTVERSION=	2.0.6
-PORTREVISION=	4
+PORTREVISION=	9
 CATEGORIES=	security net
 # MASTER_SITES points to hosts in distinct data centers,
 # so just one MASTER_SITES entry should be OK.
@@ -26,7 +26,6 @@ CONFLICTS=	openvpn-devel-[0-9]*
 
 GNU_CONFIGURE=	yes
 USE_OPENSSL=	yes
-CONFIGURE_TARGET=	--build=${ARCH}-portbld-freebsd${OSREL}
 CONFIGURE_ARGS=	--with-lzo-lib=${LOCALBASE}/lib \
 		--with-lzo-headers=${LOCALBASE}/include
 
@@ -42,12 +41,23 @@ SUB_LIST+=	OSVERSION=${OSVERSION}
 
 .include <bsd.port.pre.mk>
 
-.if (${OSVERSION} >= 700007 || ( ${OSVERSION} < 700000 && ${OSVERSION} >= 600101))
-rcsuffix=
-.else
-rcsuffix=	.sh
+SUB_LIST+=	RCSFX=${RC_SUBR_SUFFIX}
+
+.ifdef (LOG_OPENVPN)
+CFLAGS+=	-DLOG_OPENVPN=${LOG_OPENVPN}
 .endif
-SUB_LIST+=	RCSFX=${rcsuffix}
+
+pre-fetch:
+.ifdef (LOG_OPENVPN)
+	@${ECHO} "Building with LOG_OPENVPN=${LOG_OPENVPN}"
+.else
+	@${ECHO} ""
+	@${ECHO} "You may use the following build options:"
+	@${ECHO} ""
+	@${ECHO} "      LOG_OPENVPN={Valid syslog facility}"
+	@${ECHO} "      EXAMPLE:  make LOG_OPENVPN=LOG_DAEMON"
+	@${ECHO} ""
+.endif
 
 # NOTE: there is no way to explicitly specify the LZO version to OpenVPN,
 # if LZO2 and LZO1 are installed, OpenVPN will pick LZO2.
@@ -86,10 +96,14 @@ post-install:
 	PORTS README
 	${INSTALL_DATA} ${WRKSRC}/${docs} ${DOCSDIR}
 .endfor
-	( cd ${WRKSRC} \
-	&& ${FIND} easy-rsa sample-config-files sample-scripts -depth \
-	| ${GREP} -v easy-rsa/Windows \
-	| ${CPIO} -pdmu ${DOCSDIR} )
+.for dir in easy-rsa easy-rsa/2.0 sample-config-files
+	${MKDIR} ${DOCSDIR}/${dir}
+	${FIND} ${WRKSRC}/${dir}/ -maxdepth 1 -type f -exec ${INSTALL_DATA} \{\} ${DOCSDIR}/${dir} \;
+.endfor
+.for dir in sample-scripts
+	${MKDIR} ${DOCSDIR}/${dir}
+	${FIND} ${WRKSRC}/${dir}/ -maxdepth 1 -type f -exec ${INSTALL_SCRIPT} \{\} ${DOCSDIR}/${dir} \;
+.endfor
 .endif
 	@${CAT} ${PKGMESSAGE}
 
