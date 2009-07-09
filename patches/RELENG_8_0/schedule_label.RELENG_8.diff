@@ -240,7 +240,7 @@ diff -u -r1.3 pf_ioctl.c
 +                   state = nexts) {
 +                       nexts = RB_NEXT(pf_state_tree_id, &tree_id, state);
 +                                
-+                       if (strcmp(psk->schedule, state->rule.ptr->schedule)) {
++                       if (!strcmp(psk->schedule, state->rule.ptr->schedule)) {
 +#if NPFSYNC > 0
 +                               /* send immediate delete of state */
 +                               pfsync_delete_state(state);
