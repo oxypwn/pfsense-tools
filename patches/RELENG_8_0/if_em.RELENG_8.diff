@@ -1,0 +1,60 @@
+? if_em.RELENG_8.diff
+Index: if_em.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/e1000/if_em.c,v
+retrieving revision 1.19
+diff -u -r1.19 if_em.c
+--- if_em.c	29 Jun 2009 18:17:10 -0000	1.19
++++ if_em.c	9 Jul 2009 17:30:25 -0000
+@@ -815,9 +815,9 @@
+ #if __FreeBSD_version >= 700029
+ 	/* Register for VLAN events */
+ 	adapter->vlan_attach = EVENTHANDLER_REGISTER(vlan_config,
+-	    em_register_vlan, 0, EVENTHANDLER_PRI_FIRST);
++	    em_register_vlan, (void *)adapter->ifp, EVENTHANDLER_PRI_FIRST);
+ 	adapter->vlan_detach = EVENTHANDLER_REGISTER(vlan_unconfig,
+-	    em_unregister_vlan, 0, EVENTHANDLER_PRI_FIRST); 
++	    em_unregister_vlan, (void *)adapter->ifp, EVENTHANDLER_PRI_FIRST); 
+ #endif
+ 
+ 	/* Tell the stack that the interface is not active */
+@@ -4715,14 +4715,18 @@
+  * config EVENT
+  */
+ static void
+-em_register_vlan(void *unused, struct ifnet *ifp, u16 vtag)
++em_register_vlan(void *rifp, struct ifnet *ifp, u16 vtag)
+ {
+ 	struct adapter	*adapter = ifp->if_softc;
++	struct ifnet	*myifp = (struct ifnet *)rifp;
+ 	u32		index, bit;
+ 
+ 	if ((vtag == 0) || (vtag > 4095))       /* Invalid */
+                 return;
+ 
++	if (ifp != myifp)
++		return;
++
+ 	index = (vtag >> 5) & 0x7F;
+ 	bit = vtag & 0x1F;
+ 	em_shadow_vfta[index] |= (1 << bit);
+@@ -4736,14 +4740,18 @@
+  * unconfig EVENT
+  */
+ static void
+-em_unregister_vlan(void *unused, struct ifnet *ifp, u16 vtag)
++em_unregister_vlan(void *rifp, struct ifnet *ifp, u16 vtag)
+ {
+ 	struct adapter	*adapter = ifp->if_softc;
++	struct ifnet	*myifp = (struct ifnet *)rifp;
+ 	u32		index, bit;
+ 
+ 	if ((vtag == 0) || (vtag > 4095))       /* Invalid */
+                 return;
+ 
++	if (ifp != myifp)
++		return;
++
+ 	index = (vtag >> 5) & 0x7F;
+ 	bit = vtag & 0x1F;
+ 	em_shadow_vfta[index] &= ~(1 << bit);
