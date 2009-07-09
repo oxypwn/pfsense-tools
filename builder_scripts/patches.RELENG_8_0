@@ -31,5 +31,6 @@
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/contrib/pf/net~pf.c.diff~
 ~sys/netinet~tcp_output.c.diff~
+~sys/dev/e1000~if_em.RELENG_8.diff~
 ~~~~usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
