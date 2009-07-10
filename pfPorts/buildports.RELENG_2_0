@@ -57,6 +57,7 @@ PORTSTOBUILD="grub \
 	php5-readline \
 	php5-session \
 	php5-simplexml \
+	php5-sockets \
 	php5-shmop \
 	php5-sysvmsg \
 	php5-sysvsem \

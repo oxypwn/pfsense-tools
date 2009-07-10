@@ -101,6 +101,7 @@ usr/local/lib/php/20060613/pdo_sqlite.so
 usr/local/lib/php/20060613/posix.so
 usr/local/lib/php/20060613/radius.so
 usr/local/lib/php/20060613/readline.so
+usr/local/lib/php/20060613/sockets.so
 usr/local/lib/php/20060613/session.so
 usr/local/lib/php/20060613/shmop.so
 usr/local/lib/php/20060613/simplexml.so
