@@ -7,7 +7,7 @@
 
 CATEGORIES=     net
 
-MASTERDIR=      ${.CURDIR}/../lang/php5
+MASTERDIR=      ${.CURDIR}/../php5
 
 PKGNAMESUFFIX=  -sockets
 
