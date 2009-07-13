@@ -48,7 +48,6 @@
 ~sys/contrib/pf/net~pf.c.diff~
 ~~8139cp.patch~
 ~sys/netinet~ip_carp.c.diff~
-~lib/libc/stdlib~malloc.c.diff~
 ~sys/~patch-natt-7.2-2009-05-12.diff~
 ~usr.sbin/wpa/hostapd~driver_freebsd.c.diff~
 ~sys/dev/usb/~u3g.tgz~
