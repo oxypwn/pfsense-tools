@@ -60,22 +60,28 @@ while [ /bin/true ]; do
 	case $NANO_SIZE in
 		"512mb")
 			NEW_NANO_SIZE="1g"
+	        NANO_MEDIASIZE=`expr 1024966656 / 512`
 		;;
 		"1g")
-			NEW_NANO_SIZE="2g"	
+			NEW_NANO_SIZE="2g"
+	        NANO_MEDIASIZE=`expr 2048901120 / 512`
 		;;
 		"2g")
-			NEW_NANO_SIZE="4g"	
+			NEW_NANO_SIZE="4g"
+			NANO_MEDIASIZE=`expr -e 4097802240 / 512`
 		;;
 		"4g")
-			NEW_NANO_SIZE="512mb"	
+			NEW_NANO_SIZE="512mb"
+	        NANO_MEDIASIZE=`expr 512483328 / 512`
 		;;
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
-	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE > /tmp/pfsense-build.conf
+	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE | grep MEDIASIZE > /tmp/pfsense-build.conf
 	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
-	echo ">>> Previous NanoBSD size: $NANO_SIZE ... New size has been set to: $NEW_NANO_SIZE"
+	echo ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
+	echo ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
+	echo ">>> [nanoo] New meida size has been set to: $NANO_MEDIASIZE"
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
 	value=`od -A n -d -N1 /dev/random | awk '{ print $1 }'`

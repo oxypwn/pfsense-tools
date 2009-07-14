@@ -102,7 +102,7 @@ fixup_kernel_options() {
 	fi
 
 	# Copy stock FreeBSD configurations
-	cp $BUILDER_TOOLS/builder_scripts/conf/FreeBSD.* $SRCDIR/sys/i386/conf/
+	cp $BUILDER_TOOLS/builder_scripts/conf/FreeBSD.* $SRCDIR/sys/$ARCH/conf/
 		
 	# Build extra kernels (embedded, developers edition, etc)
 	mkdir -p /tmp/kernels/wrap/boot/defaults
@@ -140,16 +140,16 @@ fixup_kernel_options() {
 	fi
 
 	if [ "$TARGET_ARCH" = "" ]; then 
-		# Copy pfSense kernel configuration files over to $SRCDIR/sys/i386/conf
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/i386/conf/pfSense_SMP.6
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.7 $SRCDIR/sys/i386/conf/pfSense_SMP.7
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.8 $SRCDIR/sys/i386/conf/pfSense_SMP.8
-		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.8
-		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.6
-		echo "" >> $SRCDIR/sys/i386/conf/pfSense_SMP.7
-		if [ ! -f "$SRCDIR/sys/i386/conf/pfSense.7" ]; then
-			echo ">>> Could not find $SRCDIR/sys/i386/conf/pfSense.7"
+		# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/$ARCH/conf/
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/$ARCH/conf/pfSense_SMP.6
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.7 $SRCDIR/sys/$ARCH/conf/pfSense_SMP.7
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.8 $SRCDIR/sys/$ARCH/conf/pfSense_SMP.8
+		echo "" >> $SRCDIR/sys/$ARCH/conf/pfSense_SMP.8
+		echo "" >> $SRCDIR/sys/$ARCH/conf/pfSense_SMP.6
+		echo "" >> $SRCDIR/sys/$ARCH/conf/pfSense_SMP.7
+		if [ ! -f "$SRCDIR/sys/$ARCH/conf/pfSense.7" ]; then
+			echo ">>> Could not find $SRCDIR/sys/$ARCH/conf/pfSense.7"
 			print_error_pfS
 		fi
 	else
@@ -188,10 +188,10 @@ fixup_kernel_options() {
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 	#
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/uniprocessor/boot/device.hints
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/uniprocessor/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
 	# END NOTE.
 
 	# Danger will robinson -- 7.2+ will NOT boot if these files are not present.
@@ -220,7 +220,7 @@ build_embedded_kernel() {
 	echo ">>>> Installing embedded kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
 	echo -n ">>>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
@@ -245,7 +245,7 @@ build_dev_kernel() {
 	echo ">>>> installing Developers kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
 	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)	
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 }
@@ -266,7 +266,7 @@ build_freebsd_only_kernel() {
 	echo ">>>> installing FreeBSD kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/freebsd/boot/defaults/
-	cp $SRCDIR/sys/i386/conf/GENERIC.hints /tmp/kernels/freebsd/boot/device.hints	
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/freebsd/boot/device.hints	
 	(cd /tmp/kernels/freebsd/boot/ && tar czf $PFSENSEBASEDIR/kernels/FreeBSD.tgz .)	
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/FreeBSD.tgz -C $PFSENSEBASEDIR/boot/)
 }
@@ -1309,7 +1309,7 @@ make_world() {
 		| egrep -wi '(patching\ file|warning|error)'
 	(cd $SRCDIR/usr.sbin/btxld && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
 		| egrep -wi '(patching\ file|warning|error)'
-	(cd $SRCDIR/sys/boot/i386/btx/btx && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
+	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
 		| egrep -wi '(patching\ file|warning|error)'
 	freesbie_make installworld
 
