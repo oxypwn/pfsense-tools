@@ -32,6 +32,14 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <libutil.h>
+#include <err.h>
+#include <syslog.h>
+#include <stdarg.h>
+#include <err.h>
+#include <sysexits.h>
+#include <string.h>
+#include <fcntl.h>
 
 /*
 	Resolves each host name in a given list at regular intervals, and runs
@@ -39,7 +47,7 @@
 	before.
 	
 	Usage:
-		dnswatch pidfile interval command hostname [hostname ...]
+		dnswatch pidfile interval command file
 		
 	interval is in seconds; for best results, set this to be slightly larger
 	than the TTL of the DNS records being watched
@@ -47,17 +55,16 @@
 
 void usage(void) {
 	
-	fprintf(stderr, "usage: dnswatch pidfile interval command hostname [hostname ...]\n");
+	fprintf(stderr, "usage: dnswatch pidfile interval command file\n");
 	exit(4);
 }
 
 int check_hostname(char *hostname, struct in_addr *ip) {
 	struct hostent *he;
-	
+
 	he = gethostbyname(hostname);
-	
 	if (he == NULL) {
-		herror("lookup failed");
+		syslog(LOG_WARNING, "DNS lookup for %s failed", hostname);
 		return 0;
 	}
 	
@@ -81,13 +88,16 @@ int check_hostname(char *hostname, struct in_addr *ip) {
 int main(int argc, char *argv[]) {
 	
 	int interval;
+	char *file;
 	char *command;
+        properties list, props;
 	struct in_addr *ips;
+	int fd;
 	FILE *pidfd;
 	
-	if (argc < 5)
+	if (argc > 5)
 		usage();
-	
+
 	interval = atoi(argv[2]);
 	if (interval < 1) {
 		fprintf(stderr, "Invalid interval %d\n", interval);
@@ -95,12 +105,8 @@ int main(int argc, char *argv[]) {
 	}
 	
 	command = argv[3];
-	ips = calloc(argc - 4, sizeof(struct in_addr));
-	if (ips == NULL) {
-		fprintf(stderr, "calloc failed\n");
-		exit(2);
-	}
-	
+	file = argv[4];
+
 	/* go into background */
 	if (daemon(0, 0) == -1)
 		exit(1);
@@ -112,12 +118,41 @@ int main(int argc, char *argv[]) {
 		fclose(pidfd);
 	}
 	
+        fd = open(file, O_RDONLY);
+        if (fd == -1) {
+                syslog(LOG_ERR, "unable to open configuration file '%s'", file);
+                exit(1);
+        }
+
+        props = properties_read(fd);
+        if (props == NULL) {
+                syslog(LOG_ERR, "error reading configuration file");
+                exit(1);
+        }
+
+	int hosts = 1;
+	list = props;
+       	while (list != NULL) {
+		list = list->next;
+		hosts++;
+	}
+
+	ips = calloc(hosts, sizeof(struct in_addr));
+	if (ips == NULL) {
+		fprintf(stderr, "calloc failed\n");
+		exit(2);
+	}
+	
+
 	while (1) {
-		int i;
+		int i = 0;
 		int changes = 0;
-		
-		for (i = 4; i < argc; i++)
-			changes += check_hostname(argv[i], &ips[i-4]);
+		list = props;
+        	while (list != NULL) {
+			changes += check_hostname(list->name, &ips[i]);
+        	        list = list->next;
+			i++;
+	        }
 		
 		if (changes > 0)
 			system(command);
@@ -125,5 +160,6 @@ int main(int argc, char *argv[]) {
 		sleep(interval);
 	}
 	
+	properties_free(props);
 	return 0;
 }
