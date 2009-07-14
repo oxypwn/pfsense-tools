@@ -144,7 +144,7 @@ export FLASH_MODEL=${FLASH_MODEL:-"sandisk"}
 # Sizing information
 export FLASH_SIZE=${FLASH_SIZE:-"1g"}
 export NANO_MEDIASIZE=${NANO_MEDIASIZE:-"1200000"}
-export NANO_CONFSIZE=${$NANO_CONFSIZE:-"10240"}
+export NANO_CONFSIZE=${NANO_CONFSIZE:-"10240"}
 # Size of /cf (pfSense configuration storage) 50 megabyte
 export NANO_DATASIZE=${NANO_DATASIZE:-"102400"}
 
