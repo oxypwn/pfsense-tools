@@ -78,7 +78,7 @@ while [ /bin/true ]; do
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
 	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE | grep MEDIASIZE > /tmp/pfsense-build.conf
 	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
-	echo "export NANO_MEDIASIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
+	echo "export NANO_MEDIASIZE=\"${NANO_MEDIASIZE}\"" >>/tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
 	echo ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
 	echo ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
