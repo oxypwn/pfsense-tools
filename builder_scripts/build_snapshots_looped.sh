@@ -60,19 +60,19 @@ while [ /bin/true ]; do
 	case $NANO_SIZE in
 		"512mb")
 			NEW_NANO_SIZE="1g"
-	        NANO_MEDIASIZE=`expr 1024966656 / 512`
+	        NANO_MEDIASIZE="2001888"
 		;;
 		"1g")
 			NEW_NANO_SIZE="2g"
-	        NANO_MEDIASIZE=`expr 2048901120 / 512`
+	        NANO_MEDIASIZE="4001760"
 		;;
 		"2g")
 			NEW_NANO_SIZE="4g"
-			NANO_MEDIASIZE=`expr -e 4097802240 / 512`
+			NANO_MEDIASIZE="8003520"
 		;;
 		"4g")
 			NEW_NANO_SIZE="512mb"
-	        NANO_MEDIASIZE=`expr 512483328 / 512`
+	        NANO_MEDIASIZE="1000944"
 		;;
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
