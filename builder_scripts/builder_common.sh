@@ -862,7 +862,7 @@ cust_fixup_nanobsd() {
     echo "nanobsd" > $PFSENSEBASEDIR/etc/platform
     echo "wrap" > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt
 
-	echo "-h" >> $PFSENSEBASEDIR/boot.config
+	echo "-D" >> $PFSENSEBASEDIR/boot.config
 
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "8" ]; then
@@ -873,7 +873,7 @@ cust_fixup_nanobsd() {
 		sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
 
 		# Tell loader to use serial console early.
-		echo " -h" > ${PFSENSEBASEDIR}/boot.config
+		echo " -D" > ${PFSENSEBASEDIR}/boot.config
 	fi
 
 }
@@ -1483,6 +1483,9 @@ awk '
 	print "a 1"
 }
 	' > ${MAKEOBJDIRPREFIX}/_.fdisk
+
+	echo ">>> Current fdisk for this image: "
+	cat ${MAKEOBJDIRPREFIX}/_.fdisk
 
 	IMG=${MAKEOBJDIRPREFIX}/nanobsd.full.img
 	MNT=${MAKEOBJDIRPREFIX}/_.mnt
