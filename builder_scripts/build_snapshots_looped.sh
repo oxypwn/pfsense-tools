@@ -76,7 +76,7 @@ while [ /bin/true ]; do
 		;;
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
-	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE | grep MEDIASIZE > /tmp/pfsense-build.conf
+	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE | grep -v MEDIASIZE > /tmp/pfsense-build.conf
 	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
 	echo "export NANO_MEDIASIZE=\"${NANO_MEDIASIZE}\"" >>/tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
