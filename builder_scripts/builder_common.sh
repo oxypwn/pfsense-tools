@@ -1405,6 +1405,7 @@ prune_usr() {
 
 FlashDevice () {
     . $BUILDER_SCRIPTS/FlashDevice.sub
+	echo ">>> [nanoo] Invoking FlashDevice $1 $2"
     sub_FlashDevice $1 $2
 }
 
