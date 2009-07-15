@@ -259,7 +259,7 @@ copy_to_staging_nanobsd() {
 	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
 	mv $STAGINGAREA/nanobsdupdates/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
 	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
-	bzip2 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
+	gzip $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
 	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
 	md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
 	sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
