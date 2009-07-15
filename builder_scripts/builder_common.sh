@@ -204,6 +204,31 @@ fixup_kernel_options() {
 	
 }
 
+build_embedded_kernel_vga() {
+	# Common fixup code
+	fixup_kernel_options
+	# Build embedded kernel
+	echo ">>>> Building embedded kernel..."
+	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	unset KERNCONF
+	unset KERNEL_DESTDIR
+	unset KERNELCONF	
+	export KERNCONF=pfSense_nano_vga.${FREEBSD_VERSION}
+	export KERNEL_DESTDIR="/tmp/kernels/nano_vga"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_nano_vga.${FREEBSD_VERSION}"
+	freesbie_make buildkernel
+	echo ">>>> Installing embedded kernel..."
+	freesbie_make installkernel
+	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/nano_vga/boot/defaults/
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/nano_vga/boot/device.hints	
+	echo -n ">>>> Installing kernels to LiveCD area..."
+	(cd /tmp/kernels/nano_vga/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz .) 	
+	echo -n "."
+	chflags -R noschg $PFSENSEBASEDIR/boot/
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz -C $PFSENSEBASEDIR/boot/)
+	echo "done."
+}
+
 build_embedded_kernel() {
 	# Common fixup code
 	fixup_kernel_options
@@ -220,7 +245,7 @@ build_embedded_kernel() {
 	echo ">>>> Installing embedded kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints	
 	echo -n ">>>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
