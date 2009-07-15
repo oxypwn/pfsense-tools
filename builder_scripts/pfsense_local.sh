@@ -128,29 +128,25 @@ export NO_CLEAN=${NO_CLEAN:-"yo"}
 export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
 
 # Config directory for nanobsd build
-export CONFIG_DIR=${CONFIG_DIR:-"conf"}
-export NANO_NAME=${NANO_NAME:-"pfSense"}
-export CONFIG_DIR=${CONFIG_DIR:-"nano"}
-export NANO_IMAGES=${NANO_IMAGES:-"2"}
-export NANO_INIT_IMG2=${NANO_INIT_IMG2:-"1"}
-export NANO_RAM_ETCSIZE=${NANO_RAM_ETCSIZE:-"30720"}
-export NANO_RAM_TMPVARSIZE=${NANO_RAM_TMPVARSIZE:-"51200"}
-export NANO_BOOT0CFG=${NANO_BOOT0CFG:-"-o nopacket -s 1 -m 3"}
-export NANO_BOOTLOADER=${NANO_BOOTLOADER:-"boot/boot0sio"}
-export NANO_NEWFS=${NANO_NEWFS:-"-b 4096 -f 512 -i 8192 -O1"}
-export NANO_SECTS=${NANO_SECTS:-"63"}
-export NANO_HEADS=${NANO_HEADS:-"16"}
-export FLASH_MODEL=${FLASH_MODEL:-"sandisk"}
-# Sizing information
+export CONFIG_DIR=conf
+export NANO_NAME=pfsense
+export CONFIG_DIR=nano
+export NANO_IMAGES=2
+export NANO_INIT_IMG2=1
+export NANO_RAM_ETCSIZE=30720
+export NANO_RAM_TMPVARSIZE=51200
+export NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
+export NANO_BOOTLOADER="boot/boot0sio"
+export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1"
+export NANO_MEDIASIZE=1200000
+export NANO_SECTS=63
+export NANO_HEADS=16
+export FLASH_MODEL="sandisk"
 export FLASH_SIZE=${FLASH_SIZE:-"1g"}
-export NANO_MEDIASIZE=${NANO_MEDIASIZE:-"1200000"}
-export NANO_CONFSIZE=${NANO_CONFSIZE:-"10240"}
-#export NANO_MEDIASIZE="1000944"   # 512 megabytes
-#export NANO_MEDIASIZE="2001888"   # 1 gig
-#export NANO_MEDIASIZE="4001760"   # 2 gigs
-#export NANO_MEDIASIZE="8003520"   # 4 gigs
+export NANO_CODESIZE=0
+export NANO_CONFSIZE=10240
 # Size of /cf (pfSense configuration storage) 50 megabyte
-export NANO_DATASIZE=${NANO_DATASIZE:-"102400"}
+export NANO_DATASIZE=102400
 
 # Add UNIONFS
 export NO_UNIONFS=YES
