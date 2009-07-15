@@ -142,7 +142,7 @@ export NANO_SECTS=${NANO_SECTS:-"63"}
 export NANO_HEADS=${NANO_HEADS:-"16"}
 export FLASH_MODEL=${FLASH_MODEL:-"sandisk"}
 # Sizing information
-export FLASH_SIZE=${FLASH_SIZE:-"4g"}
+export FLASH_SIZE=${FLASH_SIZE:-"1g"}
 export NANO_MEDIASIZE=${NANO_MEDIASIZE:-"1200000"}
 export NANO_CONFSIZE=${NANO_CONFSIZE:-"10240"}
 #export NANO_MEDIASIZE="1000944"   # 512 megabytes
