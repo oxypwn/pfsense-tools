@@ -81,9 +81,9 @@ return {
 		success = false
 		if FileName.is_file("/tmp/hdrescue/cf/conf/config.xml") then
 			cmds = CmdChain.new()
-			cmds:add("${root}bin/cp /tmp/hdrescue/cf/config.xml /cf/conf/config.xml");
+			cmds:add("${root}bin/cp /tmp/hdrescue/cf/conf/config.xml /cf/conf/config.xml");
 			cmds:add{
-			cmdline = "${root}sbin/umount ${disk1}s1a /tmp/hdrescue",
+			cmdline = "${root}sbin/umount /tmp/hdrescue",
 			replacements = {
 					OS = App.conf.product.name,
 					disk1 = disk1
