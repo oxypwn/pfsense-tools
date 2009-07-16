@@ -88,6 +88,22 @@ print_error_pfS() {
     kill $$ # NOTE: exit 1 won't work.
 }
 
+ensure_kernel_exists() {
+	if [ ! -f "$1/boot/kernel/kernel.gz" ]; then
+		echo "Could not locate $1/boot/kernel.gz"
+		print_error_pfS
+		sleep 65535
+		exit 1
+	fi
+	KERNEL_SIZE=`ls -la $1/boot/kernel/kernel.gz | awk '{ print $5 }'`
+	if [ "$KERNEL_SIZE" -lt 3500 ]; then
+		echo "Kernel $1/boot/kernel.gz appears to be smaller than it should be: $KERNEL_SIZE"
+		print_error_pfS
+		sleep 65535
+		exit 1
+	fi
+}
+
 # Removes NAT_T and other unneeded kernel options from 1.2 images.
 fixup_kernel_options() {
 
@@ -228,22 +244,6 @@ build_embedded_kernel_vga() {
 	ensure_kernel_exists $KERNEL_DESTDIR
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz -C $PFSENSEBASEDIR/boot/)
 	echo "done."
-}
-
-ensure_kernel_exists() {
-	if [ ! -f $1/boot/kernel/kernel.gz ]; then
-		echo "Could not locate $KENREL_DESTDIR/boot/kernel.gz"
-		print_error_pfS
-		sleep 65535
-		exit 1
-	fi
-	KERNEL_SIZE=`ls -la $1/boot/kernel/kernel.gz | awk '{ print $5 }'`
-	if [ "$KERNEL_SIZE" -lt 3500 ]; then
-		echo "Kernel appears to be smaller than it should be $KERNEL_SIZE"
-		print_error_pfS
-		sleep 65535
-		exit 1
-	fi
 }
 
 build_embedded_kernel() {
