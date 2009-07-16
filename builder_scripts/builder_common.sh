@@ -225,8 +225,25 @@ build_embedded_kernel_vga() {
 	(cd /tmp/kernels/nano_vga/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz .) 	
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
+	ensure_kernel_exists $KERNEL_DESTDIR
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz -C $PFSENSEBASEDIR/boot/)
 	echo "done."
+}
+
+ensure_kernel_exists() {
+	if [ ! -f $1/boot/kernel/kernel.gz ]; then
+		echo "Could not locate $KENREL_DESTDIR/boot/kernel.gz"
+		print_error_pfS
+		sleep 65535
+		exit 1
+	fi
+	KERNEL_SIZE=`ls -la $1/boot/kernel/kernel.gz | awk '{ print $5 }'`
+	if [ "$KERNEL_SIZE" -lt 3500 ]; then
+		echo "Kernel appears to be smaller than it should be $KERNEL_SIZE"
+		print_error_pfS
+		sleep 65535
+		exit 1
+	fi
 }
 
 build_embedded_kernel() {
@@ -250,6 +267,7 @@ build_embedded_kernel() {
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
+	ensure_kernel_exists $KERNEL_DESTDIR
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap.gz -C $PFSENSEBASEDIR/boot/)
 	echo "done."
 }
@@ -271,7 +289,8 @@ build_dev_kernel() {
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
-	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)	
+	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
+	ensure_kernel_exists $KERNEL_DESTDIR	
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 }
 
@@ -291,8 +310,9 @@ build_freebsd_only_kernel() {
 	echo ">>>> installing FreeBSD kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/freebsd/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/freebsd/boot/device.hints	
-	(cd /tmp/kernels/freebsd/boot/ && tar czf $PFSENSEBASEDIR/kernels/FreeBSD.tgz .)	
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/freebsd/boot/device.hints
+	(cd /tmp/kernels/freebsd/boot/ && tar czf $PFSENSEBASEDIR/kernels/FreeBSD.tgz .)
+	ensure_kernel_exists $KERNEL_DESTDIR
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/FreeBSD.tgz -C $PFSENSEBASEDIR/boot/)
 }
 
@@ -327,6 +347,7 @@ build_all_kernels() {
 	freesbie_make buildkernel
 	echo ">>>> installing wrap kernel..."
 	freesbie_make installkernel
+	ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Build Developers kernel
 	echo ">>>> Building Developers kernel..."
@@ -340,6 +361,7 @@ build_all_kernels() {
 	freesbie_make buildkernel
 	echo ">>>> installing Developers kernel..."
 	freesbie_make installkernel
+	ensure_kernel_exists $KERNEL_DESTDIR
 	
 	# Build SMP kernel
 	echo ">>>> Building SMP kernel..."
@@ -353,6 +375,7 @@ build_all_kernels() {
 	freesbie_make buildkernel
 	echo ">>>> installing SMP kernel..."
 	freesbie_make installkernel
+	ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Nuke symbols
 	echo -n ">>>> Cleaning up .symbols..."
