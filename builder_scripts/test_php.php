@@ -1,4 +1,4 @@
-#!/usr/local/bin/php
+#!/usr/local/bin/php -f
 
 <?php
 
@@ -8,10 +8,11 @@
      small tests to ensure the php environment is sane.
 */
 
-require("functions.inc");
-require("config.inc");
-require("interfaces.inc");
-require("filter.inc");
+require_once("globals.inc");
+require_once("functions.inc");
+require_once("config.inc");
+require_once("interfaces.inc");
+require_once("filter.inc");
 
 $config = parse_config(true);
 
