@@ -555,6 +555,8 @@ cust_overlay_host_binaries() {
 		fi
 	done
 	
+	test_php_install
+	
 }
 
 report_zero_sized_files() {
@@ -963,6 +965,23 @@ create_FreeBSD_system_update() {
 	
 	cd $PREVIOUSDIR
 	
+}
+
+test_php_install() {
+	echo -n ">>> Testing PHP installation in ${PFSENSEBASEDIR}: "
+	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
+	chmod a+rx $PFSENSEBASEDIR/test_php.php
+	chroot $PFSENSEBASEDIR /test_php.php
+	if [ "$?" = "1" ]; then
+		echo "[FAILED]"
+		echo
+		echo "An error occured while testing the php installation in $PFSENSEBASEDIR"
+		echo
+		report_error_pfsense
+		sleep 65535
+		die
+	fi
+	echo "[OK]"
 }
 
 create_pfSense_Full_update_tarball() {
