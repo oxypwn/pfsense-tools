@@ -555,8 +555,6 @@ cust_overlay_host_binaries() {
 		fi
 	done
 	
-	test_php_install
-	
 }
 
 report_zero_sized_files() {

@@ -196,6 +196,9 @@ echo "Done."
 # Ensure installer bits are present
 cust_populate_installer_bits
 
+# Test PHP installation
+test_php_install
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs

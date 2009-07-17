@@ -139,6 +139,9 @@ copy_config_xml_from_conf_default
 # of php installed modules.
 pfsense_install_custom_packages_exec
 
+# Test PHP installation
+test_php_install
+
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
 freesbie_make clonefs

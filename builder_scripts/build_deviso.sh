@@ -126,6 +126,9 @@ cust_install_config_xml
 # Ensure config.xml exists
 copy_config_xml_from_conf_default
 
+# Test PHP installation
+test_php_install
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
