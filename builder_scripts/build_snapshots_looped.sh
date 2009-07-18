@@ -23,7 +23,7 @@ if [ ! -f "$PWD/pfsense-build.conf" ]; then
 	exit 1
 fi
 
-rm /tmp/pfSense_do_not_build_pfPorts
+rm -f /tmp/pfSense_do_not_build_pfPorts
 
 # Handle command line arguments
 while test "$1" != "" ; do
