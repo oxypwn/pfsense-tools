@@ -16,6 +16,8 @@
 #    documentation and/or other materials provided with the distribution.
 #
 
+echo
+
 PWD=`pwd`
 
 if [ ! -f "$PWD/pfsense-build.conf" ]; then
@@ -42,7 +44,6 @@ COUNTER=0
 while [ /bin/true ]; do
 	COUNTER=`expr $COUNTER + 1`
 	echo ">>> Starting builder run #${COUNTER}..."
-	echo
 	# We can disable ports builds
 	if [ "$NO_PORTS" = "yo" ]; then
 		echo ">>> Not building pfPorts at all during this snapshot builder looped run..."
