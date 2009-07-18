@@ -23,6 +23,8 @@ if [ ! -f "$PWD/pfsense-build.conf" ]; then
 	exit 1
 fi
 
+rm /tmp/pfSense_do_not_build_pfPorts
+
 # Handle command line arguments
 while test "$1" != "" ; do
 	case $1 in
@@ -42,7 +44,7 @@ while [ /bin/true ]; do
 	echo ">>> Starting builder run #${COUNTER}..."
 	echo
 	# We can disable ports builds
-	if [ "$NO_PORTS" != "" ]; then
+	if [ "$NO_PORTS" = "yo" ]; then
 		echo ">>> Not building pfPorts at all during this snapshot builder looped run..."
 		touch /tmp/pfSense_do_not_build_pfPorts
 	else
