@@ -119,7 +119,7 @@ echo ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
-		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
+		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
 		set_cache ${PORT} ${DOESPORTEXIST}
 	fi 
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
