@@ -23,6 +23,10 @@ ARCH=""  # Default is i386
 # Ensure file exists
 touch /var/db/pfS_portcache
 
+echo ">>> Removing previous PHP environment..."
+find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \;   2>/dev/null
+rm -rf /var/db/pkg/php*
+
 set_cache() {
 	# Strip dynamic values
 	if [ "$2" != "" ]; then 

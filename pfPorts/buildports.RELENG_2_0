@@ -3,7 +3,29 @@
 #set -e
 #set -x
 
-ARCH="i386"
+CURRENTDIR=`pwd`
+
+if [ $# -eq 1 ]; then
+	MAKEJ_PORTS=$1
+	echo ">>>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
+fi
+
+cd /usr/ports
+
+# Architecture, supported ARCH values are: 
+#  Tier 1: i386, AMD64, and PC98
+#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
+#  Tier 3: MIPS and S/390
+#  Tier 4: None at the moment
+#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
+ARCH=""  # Default is i386
+
+# Ensure file exists
+touch /var/db/pfS_portcache
+
+echo ">>> Removing previous PHP environment..."
+find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \;   2>/dev/null
+rm -rf /var/db/pkg/php*
 
 PORTSTOBUILD="grub \
 	apinger \
