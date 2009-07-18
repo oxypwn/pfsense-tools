@@ -17,7 +17,7 @@ $config = parse_config(true);
 $passed_tests = true;
 
 // Test config.inc
-if(!$config['system']['hostname'] <> "pfSense")	
+if($config['system']['hostname'] <> "pfSense")	
 	$passed_tests = false;
 
 if($passed_tests) 

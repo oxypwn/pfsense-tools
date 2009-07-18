@@ -966,12 +966,34 @@ create_FreeBSD_system_update() {
 }
 
 test_php_install() {
-	echo -n ">>> Testing PHP installation in ${PFSENSEBASEDIR}: "
+	echo -n ">>> Testing PHP installation in ${PFSENSEBASEDIR}:"
+
+	# backup original conf dir
+	if [ -d $PFSENSEBASEDIR/conf ]; then
+		/bin/mv $PFSENSEBASEDIR/conf $PFSENSEBASEDIR/conf.org
+		mkdir -p $PFSENSEBASEDIR/tmp/
+		/usr/bin/touch $PFSENSEBASEDIR/tmp/restore_conf_dir
+	fi
+
+	# test whether conf dir is already a symlink
+	if [ ! -h /conf ]; then
+		# install the symlink as it would exist on a live system
+		/bin/ln -s $PFSENSEBASEDIR/conf.default $PFSENSEBASEDIR/conf 2>/dev/null
+		/bin/ln -s $PFSENSEBASEDIR/conf $PFSENSEBASEDIR/cf 2>/dev/null
+		/usr/bin/touch $PFSENSEBASEDIR/tmp/remove_conf_symlink
+	fi
+
+	# now that we do have the symlink in place create
+	# a backup dir if necessary.
+	if [ ! -d $PFSENSEBASEDIR/conf/backup ]; then
+		/bin/mkdir -p $PFSENSEBASEDIR/conf/backup
+		/usr/bin/touch $PFSENSEBASEDIR/tmp/remove_backup
+	fi
+
 	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	chroot $PFSENSEBASEDIR /test_php.php
 	if [ "$?" = "1" ]; then
-		echo "[FAILED]"
 		echo
 		echo "An error occured while testing the php installation in $PFSENSEBASEDIR"
 		echo
@@ -979,7 +1001,54 @@ test_php_install() {
 		sleep 65535
 		die
 	fi
-	echo "[OK]"
+
+	#
+	# Cleanup, aisle 7!
+	#
+	if [ -f $PFSENSEBASEDIR/tmp/remove_platform ]; then
+		/bin/rm $PFSENSEBASEDIR/etc/platform
+		/bin/rm $PFSENSEBASEDIR/tmp/remove_platform
+	fi
+
+	if [ -f $PFSENSEBASEDIR/tmp/remove_backup ]; then
+		/bin/rm -rf $PFSENSEBASEDIR/conf/backup
+		/bin/rm $PFSENSEBASEDIR/tmp/remove_backup
+	fi
+
+	if [ -f $PFSENSEBASEDIR/tmp/remove_conf_symlink ]; then
+		/bin/rm $PFSENSEBASEDIR/conf
+		if [ -h $PFSENSEBASEDIR/cf ]; then
+			/bin/rm $PFSENSEBASEDIR/cf
+		fi
+		/bin/rm $PFSENSEBASEDIR/tmp/remove_conf_symlink
+	fi
+
+	if [ -f $PFSENSEBASEDIR/tmp/restore_conf_dir ]; then
+		/bin/mv $PFSENSEBASEDIR/conf.org $PFSENSEBASEDIR/conf
+		/bin/rm $PFSENSEBASEDIR/tmp/restore_conf_dir
+	fi
+
+	if [ -f /tmp/platform ]; then
+		mv $PFSENSEBASEDIR/tmp/platform $PFSENSEBASEDIR/etc/platform
+	fi
+
+	/bin/rm $PFSENSEBASEDIR/tmp/pfspkg_installer
+
+	/bin/rm $PFSENSEBASEDIR/tmp/pkgfile.lst
+
+	/bin/rm $PFSENSEBASEDIR/tmp/*.* 2>/dev/null
+
+	if [ -f $PFSENSEBASEDIR/tmp/config.cache ]; then
+		/bin/rm $PFSENSEBASEDIR/tmp/config.cache
+	fi
+
+	/bin/rm $PFSENSEBASEDIR/etc/resolv.conf
+
+	if [ -f $PFSENSEBASEDIR/tmp/php.ini ]; then 
+		cp /tmp/php.ini $PFSENSEBASEDIR/usr/local/lib/php.ini 
+		cp /tmp/php.ini $PFSENSEBASEDIR/usr/local/etc/php.ini
+	fi
+
 }
 
 create_pfSense_Full_update_tarball() {
