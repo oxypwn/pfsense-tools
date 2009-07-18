@@ -249,6 +249,9 @@ dobuilds() {
 copy_to_staging_nanobsd() {
 	cd $BUILDERSCRIPTS
 	DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ ! -f /tmp/nanosize.txt ]; then
+		echo "1g" > /tmp/nanosize.txt
+	fi
 	FILESIZE=`cat /tmp/nanosize.txt`
 	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${DATESTRING}-nanobsd.img"
 	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${DATESTRING}-nanobsd-upgrade.img"
