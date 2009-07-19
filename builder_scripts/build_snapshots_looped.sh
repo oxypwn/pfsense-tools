@@ -59,7 +59,11 @@ while [ /bin/true ]; do
 	NANO_SIZE=`cat $PWD/pfsense-build.conf | grep FLASH_SIZE | cut -d'"' -f2`
 	# Loop through each builder run and alternate between image sizes.
 	# 512m becomes 1g, 1g becomes 2g, 2g becomes 4g, 4g becomes 512m.
+	if [ $NANO_SIZE = "" ]; then
+		NANO_SIZE="512mb"
+	fi
 	NEW_NANO_SIZE="512m"
+    NANO_MEDIASIZE="2001888"	
 	case $NANO_SIZE in
 		"512mb")
 			NEW_NANO_SIZE="1g"
@@ -79,7 +83,7 @@ while [ /bin/true ]; do
 		;;
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
-	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE | grep -v MEDIASIZE > /tmp/pfsense-build.conf
+	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE | grep -v NANO_MEDIASIZE > /tmp/pfsense-build.conf
 	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
 	echo "export NANO_MEDIASIZE=\"${NANO_MEDIASIZE}\"" >>/tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
