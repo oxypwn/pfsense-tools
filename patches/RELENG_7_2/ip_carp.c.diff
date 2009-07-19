@@ -1,17 +1,79 @@
 Index: ip_carp.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/ip_carp.c,v
-retrieving revision 1.52.2.2.2.1
-diff -u -r1.52.2.2.2.1 ip_carp.c
---- ip_carp.c	25 Nov 2008 02:59:29 -0000	1.52.2.2.2.1
-+++ ip_carp.c	4 May 2009 18:14:22 -0000
-@@ -496,7 +496,8 @@
+retrieving revision 1.52.2.2.4.1
+diff -u -r1.52.2.2.4.1 ip_carp.c
+--- ip_carp.c	15 Apr 2009 03:14:26 -0000	1.52.2.2.4.1
++++ ip_carp.c	19 Jul 2009 22:22:11 -0000
+@@ -496,7 +496,7 @@
  			ifpromisc(sc->sc_carpdev, 0);
  			sc->sc_carpdev->if_carp = NULL;
  			CARP_LOCK_DESTROY(cif);
 -			FREE(cif, M_IFADDR);
-+			//FREE(cif, M_IFADDR);
 +			free(cif, M_CARP);
  		} else if (unlock)
  			CARP_UNLOCK(cif);
  		sc->sc_carpdev = NULL;
+@@ -533,7 +533,9 @@
+ {
+ 	struct ip *ip = mtod(m, struct ip *);
+ 	struct carp_header *ch;
+-	int iplen, len;
++	struct ifnet *ifp = m->m_pkthdr.rcvif;
++	struct ifaddr *ifa;
++	int len, iplen;
+ 
+ 	carpstats.carps_ipackets++;
+ 
+@@ -543,15 +545,31 @@
+ 	}
+ 
+ 	/* check if received on a valid carp interface */
+-	if (m->m_pkthdr.rcvif->if_carp == NULL) {
++	if (ifp->if_carp == NULL) {
+ 		carpstats.carps_badif++;
+ 		CARP_LOG("carp_input: packet received on non-carp "
+ 		    "interface: %s\n",
+-		    m->m_pkthdr.rcvif->if_xname);
++		    ifp->if_xname);
+ 		m_freem(m);
+ 		return;
+ 	}
+ 
++	/*
++	 * verify that the source address is not valid
++	 * for the interface it was received on. this
++	 * tends to happen with VMWare ESX vSwitches.
++	 */
++	TAILQ_FOREACH(ifa, &ifp->if_addrlist, ifa_list) {
++		struct in_addr in;
++		in.s_addr = ifatoia(ifa)->ia_addr.sin_addr.s_addr;
++		if (ifa->ifa_addr->sa_family == AF_INET &&
++		    in.s_addr == ip->ip_src.s_addr ) {
++			m_freem(m);
++			return;
++		}
++	}
++
++
+ 	/* verify that the IP TTL is 255.  */
+ 	if (ip->ip_ttl != CARP_DFLTTL) {
+ 		carpstats.carps_badttl++;
+@@ -592,7 +610,7 @@
+ 		carpstats.carps_badlen++;
+ 		CARP_LOG("carp_input: packet too short %d on %s\n",
+ 		    m->m_pkthdr.len,
+-		    m->m_pkthdr.rcvif->if_xname);
++		    ifp->if_xname);
+ 		m_freem(m);
+ 		return;
+ 	}
+@@ -609,7 +627,7 @@
+ 	if (carp_cksum(m, len - iplen)) {
+ 		carpstats.carps_badsum++;
+ 		CARP_LOG("carp_input: checksum failed on %s\n",
+-		    m->m_pkthdr.rcvif->if_xname);
++			ifp->if_xname);
+ 		m_freem(m);
+ 		return;
+ 	}
