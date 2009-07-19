@@ -33,15 +33,15 @@ done
 # If override is in place, use it otherwise
 # locate fastest cvsup host
 if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
-	echo "Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
+	echo "~--> Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
 	echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
 else
-	echo "Finding fastest CVSUp host... Please wait..."
+	echo "~--> Finding fastest CVSUp host... Please wait..."
 	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
 fi
 
 # CVSUp freebsd version
-echo "Using FreeBSD ${FREEBSD_VERSION} branch ${FREEBSD_BRANCH} `cat /var/db/fastest_cvsup`"
+echo "~--> Using FreeBSD ${FREEBSD_VERSION} branch ${FREEBSD_BRANCH} `cat /var/db/fastest_cvsup`"
 /usr/bin/csup -b ${SRCDIR} -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 
 echo "Removing old patch rejects..."
@@ -59,11 +59,11 @@ do
 	IS_TGZ=`echo $LINE | grep -v grep | grep .tgz | wc -l`
 	if [ $PATCH_FILE_LEN -gt "2" ]; then
 		if [ $IS_TGZ -gt "0" ]; then 
-			echo "Extracting ${PATCH_FILE} to ${PFSPATCHDIR}"
+			echo "~--> Extracting ${PATCH_FILE} to ${PFSPATCHDIR}"
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
 			| egrep -wi '(warning|error)'
 		else
-			echo "Patching ${PATCH_FILE}"
+			echo "~--> Patching ${PATCH_FILE}"
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
 			| egrep -wi '(patching\ file|warning|error)'
 			if [ $? != 0 ]; then
@@ -81,7 +81,7 @@ echo "Finding patch rejects..."
 REJECTED_PATCHES=`find $SRCDIR -name "*.rej" | wc -l`
 if [ $REJECTED_PATCHES -gt 0 ]; then
 	echo
-	echo "WARNING!  Rejected patches found!  Please fix before building!"
+	echo "!!!! WARNING!  Rejected patches found!  Please fix before building!"
 	echo 
 	find $SRCDIR -name "*.rej" 
 	echo

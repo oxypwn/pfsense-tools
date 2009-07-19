@@ -265,13 +265,13 @@ pfSense_clean_obj_dir
 
 # Recompile pfPorts
 set +e
-echo "Recompiling all binaries needed by pfSense (pfPorts)..."
+echo "__~> Recompiling all binaries needed by pfSense (pfPorts)..."
 recompile_pfPorts
 
 print_flags
 
 echo
-echo "Starting pfSense build.  Sit back and have a six pack of beer (but not cheap beer)..."
+echo "__~> Starting pfSense build.  Sit back and have a six pack of beer (but not cheap beer)..."
 echo
 
 cd ${BUILDER_SCRIPTS}

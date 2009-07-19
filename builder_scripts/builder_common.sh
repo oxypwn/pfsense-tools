@@ -475,6 +475,8 @@ recompile_pfPorts() {
 		# live in $SRCDIR/tools/tools/ath/athstats
 		handle_athstats
 
+		touch /tmp/pfSense_do_not_build_pfPorts
+
 		echo "===> End of pfPorts..."
 	
 	else
