@@ -43,6 +43,10 @@ fi
 # CVSUp freebsd version
 echo "~--> Using FreeBSD ${FREEBSD_VERSION} branch ${FREEBSD_BRANCH} `cat /var/db/fastest_cvsup`"
 /usr/bin/csup -b ${SRCDIR} -h `cat /var/db/fastest_cvsup` ${SUPFILE}
+if [ "$?" = "1" ]; then
+	echo "!!!! An error occured while fetching BSDInstaller sources!"
+	sleep 65535
+fi
 
 echo "Removing old patch rejects..."
 find $SRCDIR -name "*.rej" -exec rm {} \;
