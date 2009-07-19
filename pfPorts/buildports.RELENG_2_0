@@ -25,6 +25,7 @@ touch /var/db/pfS_portcache
 
 echo ">>> Removing previous PHP environment..."
 find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \;   2>/dev/null
+find /usr/local -name extensions.ini -exec rm {} \;
 rm -rf /var/db/pkg/php*
 
 PORTSTOBUILD="grub \
