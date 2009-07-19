@@ -97,6 +97,7 @@ build_all_kernels
 rm -f conf/packages
 
 set +e # grep could fail
+mkdir -p conf
 (cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
 (cd /var/db/pkg && ls | grep rrdtool) >> conf/packages
 set -e
