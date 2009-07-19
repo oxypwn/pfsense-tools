@@ -62,7 +62,7 @@ while [ /bin/true ]; do
 	if [ $NANO_SIZE = "" ]; then
 		NANO_SIZE="512mb"
 	fi
-	NEW_NANO_SIZE="512m"
+	NEW_NANO_SIZE="512mb"
     NANO_MEDIASIZE="2001888"	
 	case $NANO_SIZE in
 		"512mb")
