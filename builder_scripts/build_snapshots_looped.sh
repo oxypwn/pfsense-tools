@@ -49,7 +49,7 @@ while [ /bin/true ]; do
 		echo ">>> Not building pfPorts at all during this snapshot builder looped run..."
 		touch /tmp/pfSense_do_not_build_pfPorts
 	else
-		if [ "$COUNTER" -gt 0 ]; then 
+		if [ "$COUNTER" -gt 1 ]; then 
 			echo ">>> Previous snapshot runs deteceted, not building pfPorts again..."
 			touch /tmp/pfSense_do_not_build_pfPorts
 		else
