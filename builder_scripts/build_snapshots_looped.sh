@@ -58,8 +58,8 @@ while [ /bin/true ]; do
 	fi
 	NANO_SIZE=`cat $PWD/pfsense-build.conf | grep FLASH_SIZE | cut -d'"' -f2`
 	# Loop through each builder run and alternate between image sizes.
-	# 512m becomes 1g, 1g becomes 2g, 2g becomes 4g, 4g becomes 512m.
-	if [ $NANO_SIZE = "" ]; then
+	# 512mb becomes 1g, 1g becomes 2g, 2g becomes 4g, 4g becomes 512m.
+	if [ "$NANO_SIZE" = "" ]; then
 		NANO_SIZE="512mb"
 	fi
 	NEW_NANO_SIZE="512mb"
@@ -94,9 +94,7 @@ while [ /bin/true ]; do
 	# Grab a random value and sleep
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
 	# Sleep for that time.
-	echo
 	echo ">>> Sleeping for $value in between snapshot builder runs"
-	echo
 	# Count some sheep.
 	sleep $value
 done
