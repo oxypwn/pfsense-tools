@@ -1,15 +1,12 @@
 #!/bin/sh
 
 TOOLSDIR=/home/pfsense/tools/builder_scripts/
+OVERLAY_PATH="$TOOLSDIR/builder_profiles/freebsd_only7"
 
-cat $TOOLSDIR/RELENG_8-supfile | grep -v "date" > /tmp/RELENG_8-supfile
-cp /tmp/RELENG_8-supfile $TOOLSDIR
-rm /tmp/RELENG_8-supfile
-
-cp pfsense_local.sh    $TOOLSDIR
-cp pfsense-build.conf  $TOOLSDIR
+cp $OVERLAY_PATH/RELENG_8-supfile	   $TOOLSDIR
+cp $OVERLAY_PATH/pfsense_local.sh    $TOOLSDIR
+cp $OVERLAY_PATH/pfsense-build.conf  $TOOLSDIR
 
 cd $TOOLSDIR
 ./clean_build.sh
 ./apply_kernel_patches.sh
-./build_freebsdisoonly.sh
