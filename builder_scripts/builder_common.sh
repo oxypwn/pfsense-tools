@@ -428,12 +428,19 @@ recompile_pfPorts() {
 		PFPORTSBASENAME=`basename ${USE_PORTS_FILE}`
 		
 		# Warn user about make includes operation
-		echo "===> Preparing for pfPorts build ${PFPORTSBASENAME}"
-		echo "   NOTE!  If you are building a different version of pfSense it may"
-		echo "          be necessary to rm -rf /var/db/pkg/* before running this script!"
-		echo "WARNING!  We are about to run make includes."
-		echo "             Press CTRl-C to abort this operation...."
-		sleep 5
+		echo "---> Preparing for pfPorts build ${PFPORTSBASENAME}"
+		echo "---> WARNING!  We are about to run make includes."
+		echo -n "---> Press CTRl-C to abort this operation"
+		echo -n "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo "."
+		sleep 1
 
 		# Since we are using NAT-T we need to run this prior
 		# to the build.  Once NAT-T is included in FreeBSD
@@ -464,14 +471,14 @@ recompile_pfPorts() {
 			fi
 		fi
 
+		# athstats is a rare animal since it's src contents
+		# live in $SRCDIR/tools/tools/ath/athstats
 		handle_athstats
 
 		echo "===> End of pfPorts..."
 	
 	else
-		echo
-		echo "/tmp/pfSense_do_not_build_pfPorts is set, skipping pfPorts build..."
-		echo
+		echo "---> /tmp/pfSense_do_not_build_pfPorts is set, skipping pfPorts build..."
 	fi
 }
 
@@ -565,7 +572,10 @@ report_zero_sized_files() {
 }
 
 check_for_zero_size_files() {
+	rm $MAKEOBJDIRPREFIX/zero_sized_files.txt
 	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
+	find /tmp/kernels/ -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
+	cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
 }
 
 cust_populate_installer_bits_freebsd_only() {
