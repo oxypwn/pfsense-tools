@@ -988,16 +988,9 @@ test_php_install() {
 	# test whether conf dir is already a symlink
 	if [ ! -h /conf ]; then
 		# install the symlink as it would exist on a live system
-		/bin/ln -s $PFSENSEBASEDIR/conf.default $PFSENSEBASEDIR/conf 2>/dev/null
-		/bin/ln -s $PFSENSEBASEDIR/conf $PFSENSEBASEDIR/cf 2>/dev/null
+		chroot $PFSENSEBASEDIR /bin/ln -s /conf.default /conf 2>/dev/null
+		chroot $PFSENSEBASEDIR /bin/ln -s /conf /cf 2>/dev/null
 		/usr/bin/touch $PFSENSEBASEDIR/tmp/remove_conf_symlink
-	fi
-
-	# now that we do have the symlink in place create
-	# a backup dir if necessary.
-	if [ ! -d $PFSENSEBASEDIR/conf/backup ]; then
-		/bin/mkdir -p $PFSENSEBASEDIR/conf/backup
-		/usr/bin/touch $PFSENSEBASEDIR/tmp/remove_backup
 	fi
 
 	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
@@ -1018,11 +1011,6 @@ test_php_install() {
 	if [ -f $PFSENSEBASEDIR/tmp/remove_platform ]; then
 		/bin/rm $PFSENSEBASEDIR/etc/platform
 		/bin/rm $PFSENSEBASEDIR/tmp/remove_platform
-	fi
-
-	if [ -f $PFSENSEBASEDIR/tmp/remove_backup ]; then
-		/bin/rm -rf $PFSENSEBASEDIR/conf/backup
-		/bin/rm $PFSENSEBASEDIR/tmp/remove_backup
 	fi
 
 	if [ -f $PFSENSEBASEDIR/tmp/remove_conf_symlink ]; then
