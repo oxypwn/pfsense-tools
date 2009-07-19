@@ -1,5 +1,4 @@
 #!/usr/local/bin/php -f
-
 <?php
 
 /*
@@ -21,7 +20,7 @@ if($config['system']['hostname'] <> "pfSense") {
 	$passed_tests = false;
 }
 
-echo $config['system']['hostname'] . " ";
+echo " " . $config['system']['hostname'] . " ";
 
 if($passed_tests) 
 	exit(0);

@@ -572,7 +572,7 @@ report_zero_sized_files() {
 }
 
 check_for_zero_size_files() {
-	rm $MAKEOBJDIRPREFIX/zero_sized_files.txt
+	rm -f $MAKEOBJDIRPREFIX/zero_sized_files.txt
 	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
 	find /tmp/kernels/ -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
 	cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
