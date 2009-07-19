@@ -85,7 +85,7 @@ while [ /bin/true ]; do
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
 	echo ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
 	echo ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
-	echo ">>> [nanoo] New meida size has been set to: $NANO_MEDIASIZE"
+	echo ">>> [nanoo] New media size has been set to: $NANO_MEDIASIZE"
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`

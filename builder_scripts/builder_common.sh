@@ -1064,7 +1064,7 @@ create_pfSense_Full_update_tarball() {
 	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
 	echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
 	chmod a+rx $PFSENSEBASEDIR/chroot.sh
-	chroot $PFSENSEBASEDIR /chroot.sh 2>/dev/null
+	chroot $PFSENSEBASEDIR /chroot.sh >/dev/null
 	rm $PFSENSEBASEDIR/chroot.sh
 	echo "Done."
 
