@@ -1003,6 +1003,8 @@ test_php_install() {
 		report_error_pfsense
 		sleep 65535
 		die
+	else 
+		echo "[OK]"
 	fi
 
 	#
@@ -1030,17 +1032,9 @@ test_php_install() {
 		mv $PFSENSEBASEDIR/tmp/platform $PFSENSEBASEDIR/etc/platform
 	fi
 
-	/bin/rm $PFSENSEBASEDIR/tmp/pfspkg_installer
-
-	/bin/rm $PFSENSEBASEDIR/tmp/pkgfile.lst
-
-	/bin/rm $PFSENSEBASEDIR/tmp/*.* 2>/dev/null
-
 	if [ -f $PFSENSEBASEDIR/tmp/config.cache ]; then
 		/bin/rm $PFSENSEBASEDIR/tmp/config.cache
 	fi
-
-	/bin/rm $PFSENSEBASEDIR/etc/resolv.conf
 
 	if [ -f $PFSENSEBASEDIR/tmp/php.ini ]; then 
 		cp /tmp/php.ini $PFSENSEBASEDIR/usr/local/lib/php.ini 
@@ -1070,7 +1064,7 @@ create_pfSense_Full_update_tarball() {
 	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
 	echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
 	chmod a+rx $PFSENSEBASEDIR/chroot.sh
-	chroot $PFSENSEBASEDIR /chroot.sh
+	chroot $PFSENSEBASEDIR /chroot.sh 2>/dev/null
 	rm $PFSENSEBASEDIR/chroot.sh
 	echo "Done."
 
@@ -1355,6 +1349,7 @@ fi
 	echo
 	echo "Sleeping for 5 seconds..."
 	sleep 5
+	echo
 
 }
 
@@ -1664,7 +1659,7 @@ awk '
 pfsense_install_custom_packages_exec() {
 	# Function originally written by Daniel S. Haischt
 	#	Copyright (C) 2007 Daniel S. Haischt <me@daniel.stefan.haischt.name>
-	#   Copyright (C) 2008 Scott Ullrich <sullrich@gmail.com>
+	#   Copyright (C) 2009 Scott Ullrich <sullrich@gmail.com>
 	
 	DESTNAME="pkginstall.sh"	
 	TODIR="${PFSENSEBASEDIR}"
