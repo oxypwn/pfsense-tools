@@ -1,6 +1,6 @@
 diff -ur ../src_old/Makefile ./Makefile
---- ../src_old/Makefile	2009-07-20 21:37:59.000000000 +0000
-+++ ./Makefile	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/Makefile	2009-07-20 21:52:04.000000000 +0000
++++ ./Makefile	2009-07-20 21:52:10.000000000 +0000
 @@ -1,12 +1,12 @@
  
  #BINDIR=../bin
@@ -32,8 +32,8 @@ diff -ur ../src_old/Makefile ./Makefile
  build.h	:  
  	echo '#define BUILD "' `date +%y%m%d` '"' >build.h
 diff -ur ../src_old/config.c ./config.c
---- ../src_old/config.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./config.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/config.c	2009-07-20 21:52:04.000000000 +0000
++++ ./config.c	2009-07-20 21:52:10.000000000 +0000
 @@ -177,7 +177,7 @@
      }
  
@@ -62,8 +62,8 @@ diff -ur ../src_old/config.c ./config.c
          return NULL;
      }
 diff -ur ../src_old/defs.h ./defs.h
---- ../src_old/defs.h	2009-07-20 21:37:59.000000000 +0000
-+++ ./defs.h	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/defs.h	2009-07-20 21:52:04.000000000 +0000
++++ ./defs.h	2009-07-20 21:52:10.000000000 +0000
 @@ -40,10 +40,18 @@
  #include <stdlib.h>
  #include <syslog.h>
@@ -188,8 +188,8 @@ diff -ur ../src_old/defs.h ./defs.h
  void setRouteLastMemberMode(uint32 group);
  int lastMemberGroupAge(uint32 group);
 diff -ur ../src_old/ifvc.c ./ifvc.c
---- ../src_old/ifvc.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./ifvc.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/ifvc.c	2009-07-20 21:52:04.000000000 +0000
++++ ./ifvc.c	2009-07-20 21:52:10.000000000 +0000
 @@ -32,7 +32,11 @@
  */
  
@@ -363,8 +363,8 @@ diff -ur ../src_old/ifvc.c ./ifvc.c
  
  /*
 diff -ur ../src_old/igmp.c ./igmp.c
---- ../src_old/igmp.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./igmp.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/igmp.c	2009-07-20 21:52:04.000000000 +0000
++++ ./igmp.c	2009-07-20 21:52:10.000000000 +0000
 @@ -105,7 +105,7 @@
      struct igmp *igmp;
      int ipdatalen, iphdrlen, igmpdatalen;
@@ -468,8 +468,8 @@ diff -ur ../src_old/igmp.c ./igmp.c
          ip->ip_ttl = curttl;
      } else {
 diff -ur ../src_old/igmpproxy.c ./igmpproxy.c
---- ../src_old/igmpproxy.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./igmpproxy.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/igmpproxy.c	2009-07-20 21:52:04.000000000 +0000
++++ ./igmpproxy.c	2009-07-20 21:52:10.000000000 +0000
 @@ -80,7 +80,7 @@
  *   on commandline. The number of commandline arguments, and a
  *   pointer to the arguments are recieved on the line...
@@ -527,8 +527,8 @@ diff -ur ../src_old/igmpproxy.c ./igmpproxy.c
      // The timeout is a pointer in order to set it to NULL if nessecary.
      struct  timeval  *timeout = &tv;
 diff -ur ../src_old/igmpproxy.conf ./igmpproxy.conf
---- ../src_old/igmpproxy.conf	2009-07-20 21:37:59.000000000 +0000
-+++ ./igmpproxy.conf	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/igmpproxy.conf	2009-07-20 21:52:04.000000000 +0000
++++ ./igmpproxy.conf	2009-07-20 21:52:10.000000000 +0000
 @@ -25,22 +25,22 @@
  
  
@@ -559,8 +559,8 @@ diff -ur ../src_old/igmpproxy.conf ./igmpproxy.conf
  
  
 diff -ur ../src_old/mcgroup.c ./mcgroup.c
---- ../src_old/mcgroup.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./mcgroup.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/mcgroup.c	2009-07-20 21:52:04.000000000 +0000
++++ ./mcgroup.c	2009-07-20 21:52:37.000000000 +0000
 @@ -49,11 +49,11 @@
      CtlReq.imr_interface.s_addr = IfDp->InAdr.s_addr;
      
@@ -580,7 +580,7 @@ diff -ur ../src_old/mcgroup.c ./mcgroup.c
      }
 +#else
 +    if( setsockopt( UdpSock, IPPROTO_IP,
-+          Cmd == 'j' ? IP_ADD_MEMBERSHIP : IP_DROP_MEMBERSHIP,
++          Cmd == 'j' ? IP_ADD_SOURCE_MEMBERSHIP : IP_DROP_SOURCE_MEMBERSHIP,
 +          (void *)&CtlReq, sizeof( CtlReq ) ) )
 +    {
 +        log( LOG_WARNING, errno, "MRT_%s_MEMBERSHIP failed", Cmd == 'j' ? "ADD" : "DROP" );
@@ -591,8 +591,8 @@ diff -ur ../src_old/mcgroup.c ./mcgroup.c
      return 0;
  }
 diff -ur ../src_old/mroute-api.c ./mroute-api.c
---- ../src_old/mroute-api.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./mroute-api.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/mroute-api.c	2009-07-20 21:52:04.000000000 +0000
++++ ./mroute-api.c	2009-07-20 21:52:10.000000000 +0000
 @@ -37,7 +37,9 @@
  */
  
@@ -647,8 +647,8 @@ diff -ur ../src_old/mroute-api.c ./mroute-api.c
  
  /*
 diff -ur ../src_old/request.c ./request.c
---- ../src_old/request.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./request.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/request.c	2009-07-20 21:52:04.000000000 +0000
++++ ./request.c	2009-07-20 21:52:10.000000000 +0000
 @@ -88,10 +88,11 @@
  
      } else {
@@ -681,8 +681,8 @@ diff -ur ../src_old/request.c ./request.c
              if(Dp->state == IF_STATE_DOWNSTREAM) {
                  // Send the membership query...
 diff -ur ../src_old/rttable.c ./rttable.c
---- ../src_old/rttable.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./rttable.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/rttable.c	2009-07-20 21:52:04.000000000 +0000
++++ ./rttable.c	2009-07-20 21:52:10.000000000 +0000
 @@ -38,15 +38,22 @@
  */
  
@@ -1056,8 +1056,8 @@ diff -ur ../src_old/rttable.c ./rttable.c
                  croute = croute->nextroute; 
          
 diff -ur ../src_old/syslog.c ./syslog.c
---- ../src_old/syslog.c	2009-07-20 21:37:59.000000000 +0000
-+++ ./syslog.c	2009-07-20 21:38:03.000000000 +0000
+--- ../src_old/syslog.c	2009-07-20 21:52:04.000000000 +0000
++++ ./syslog.c	2009-07-20 21:52:10.000000000 +0000
 @@ -53,12 +53,16 @@
  ** is logged to 'stderr'.
  **          
