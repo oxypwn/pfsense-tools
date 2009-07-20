@@ -63,29 +63,23 @@ while [ /bin/true ]; do
 		NANO_SIZE="512mb"
 	fi
 	NEW_NANO_SIZE="512mb"
-    NANO_MEDIASIZE="2001888"	
 	case $NANO_SIZE in
 		"512mb")
 			NEW_NANO_SIZE="1g"
-	        NANO_MEDIASIZE="2001888"
 		;;
 		"1g")
 			NEW_NANO_SIZE="2g"
-	        NANO_MEDIASIZE="4001760"
 		;;
 		"2g")
 			NEW_NANO_SIZE="4g"
-			NANO_MEDIASIZE="8003520"
 		;;
 		"4g")
 			NEW_NANO_SIZE="512mb"
-	        NANO_MEDIASIZE="1000944"
 		;;
 	esac
 	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
-	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE | grep -v NANO_MEDIASIZE > /tmp/pfsense-build.conf
+	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE > /tmp/pfsense-build.conf
 	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
-	echo "export NANO_MEDIASIZE=\"${NANO_MEDIASIZE}\"" >>/tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
 	echo ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
 	echo ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"

@@ -129,46 +129,26 @@ export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 export NO_CLEAN=${NO_CLEAN:-"yo"}
 export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
 
-# Config directory for nanobsd build. /conf on pfSense platforms.
+# Config directory for nanobsd build
 export CONFIG_DIR=conf
-# Name of this NanoBSD build.  (Used to construct workdir names)
-export NANO_NAME=pfSense
-
-# Flash image information parameters
-export FLASH_MODEL="sandisk"
-export FLASH_SIZE=${FLASH_SIZE:-"4g"}
-
-# Number of code images on media (1 or 2)
+export NANO_NAME=pfsense
+export CONFIG_DIR=nano
 export NANO_IMAGES=2
-# 0 -> Leave second image all zeroes so it compresses better.
-# 1 -> Initialize second image with a copy of the first
 export NANO_INIT_IMG2=1
-# Size of the /etc ramdisk in 512 bytes sectors
 export NANO_RAM_ETCSIZE=30720
-# Size of the /tmp+/var ramdisk in 512 bytes sectors
 export NANO_RAM_TMPVARSIZE=51200
-# boot0 flags/options and configuration
 export NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 export NANO_BOOTLOADER="boot/boot0sio"
-# Newfs paramters to use
-export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1 -U"
-# Target media size in 512 bytes sectors
+export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1"
 export NANO_MEDIASIZE=1200000
-# Media geometry, only relevant if bios doesn't understand LBA.
 export NANO_SECTS=63
 export NANO_HEADS=16
-# Size of code file system in 512 bytes sectors
-# If zero, size will be as large as possible.
+export FLASH_MODEL="sandisk"
+export FLASH_SIZE=${FLASH_SIZE:-"1g"}
 export NANO_CODESIZE=0
-# Size of configuration file system in 512 bytes sectors
-# Cannot be zero.
-export NANO_CONFSIZE=110240
-# Size of data file system in 512 bytes sectors
-# If zero: no partition configured.
-# If negative: max size possible
+export NANO_CONFSIZE=10240
 # Size of /cf (pfSense configuration storage) 50 megabyte
-export NANO_DATASIZE=0
-
+export NANO_DATASIZE=102400
 # Add UNIONFS
 export NO_UNIONFS=YES
 export UNION_DIRS="etc usr root"
