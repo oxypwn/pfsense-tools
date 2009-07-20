@@ -67,7 +67,6 @@ do
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
 			| egrep -wi '(warning|error)'
 		else
-			echo "~--> Patching ${PATCH_FILE}"
 			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
 			| egrep -wi '(patching\ file|warning|error)'
 			if [ $? != 0 ]; then
