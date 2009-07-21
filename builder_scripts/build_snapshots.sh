@@ -171,6 +171,8 @@ update_sources() {
 	./update_git_repos.sh
 	# Cleanup after each build run
 	./clean_build.sh
+	# Ensure kernel patches are present
+	./apply_kernel_patches.sh
 }
 
 build_iso() {
