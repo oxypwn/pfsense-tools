@@ -45,7 +45,7 @@ echo "~--> Using FreeBSD ${FREEBSD_VERSION} branch ${FREEBSD_BRANCH} `cat /var/d
 /usr/bin/csup -b ${SRCDIR} -h `cat /var/db/fastest_cvsup` ${SUPFILE}
 if [ "$?" = "1" ]; then
 	echo "!!!! An error occured while fetching BSDInstaller sources!"
-	sleep 65535
+	sleep 999
 fi
 
 echo "Removing old patch rejects..."

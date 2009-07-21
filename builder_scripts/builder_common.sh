@@ -92,14 +92,14 @@ ensure_kernel_exists() {
 	if [ ! -f "$1/boot/kernel/kernel.gz" ]; then
 		echo "Could not locate $1/boot/kernel.gz"
 		print_error_pfS
-		sleep 65535
+		sleep 999
 		exit 1
 	fi
 	KERNEL_SIZE=`ls -la $1/boot/kernel/kernel.gz | awk '{ print $5 }'`
 	if [ "$KERNEL_SIZE" -lt 3500 ]; then
 		echo "Kernel $1/boot/kernel.gz appears to be smaller than it should be: $KERNEL_SIZE"
 		print_error_pfS
-		sleep 65535
+		sleep 999
 		exit 1
 	fi
 }
@@ -730,7 +730,7 @@ install_custom_overlay() {
 			tar xzpf $custom_overlay -C $CVS_CO_DIR
 		else
 			echo " file not found $custom_overlay"
-			sleep 999999999999
+			sleep 999
 		fi
 	fi
 
@@ -761,7 +761,7 @@ install_custom_overlay_final() {
 			tar xzpf $custom_overlay -C $PFSENSEBASEDIR
 		else
 			echo " file not found $custom_overlay_final"
-			sleep 999999999999
+			sleep 999
 		fi
 	fi
 

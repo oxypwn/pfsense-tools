@@ -17,7 +17,7 @@ if [ ! -f "/usr/local/bin/cpdup" ]; then
 	(cd /usr/ports/sysutils/cpdup/ && make  install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	if [ ! -f "/usr/local/bin/cpdup" ]; then
 		echo "!!!! Something went wrong while attempting installation of cpdup."
-		sleep 999999
+		sleep 999
 		exit 1
 	fi
 fi

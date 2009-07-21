@@ -171,7 +171,7 @@ if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 	(csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
 	#if [ "$?" = "1" ]; then
 	#	echo "!!!! An error occured while fetching BSDInstaller sources!"
-	#	sleep 65535
+	#	sleep 999
 	#else 
 		echo "Done!"
 	#fi
@@ -221,7 +221,7 @@ echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
 (csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 if [ "$?" = "1" ]; then
 	echo "!!!! An error occured while fetching BSDInstaller sources!"
-	sleep 65535
+	sleep 999
 else 
 	echo "Done!"
 fi
@@ -268,7 +268,7 @@ if [ $REJECTED_PATCHES -gt 0 ]; then
 		find $SRCDIR -name "*.rej" > $LOGFILE
 		report_error
 	fi
-	sleep 9999999
+	sleep 999
 fi
 
 pfSense_clean_obj_dir
