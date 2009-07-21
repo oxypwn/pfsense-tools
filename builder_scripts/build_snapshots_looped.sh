@@ -53,6 +53,7 @@ while [ /bin/true ]; do
 			echo ">>> Previous snapshot runs deteceted, not building pfPorts again..."
 			touch /tmp/pfSense_do_not_build_pfPorts
 		else
+			echo ">>> Building pfPorts on this snapshot run..."
 			rm -f /tmp/pfSense_do_not_build_pfPorts
 		fi
 	fi

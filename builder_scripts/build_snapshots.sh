@@ -228,12 +228,16 @@ build_nano() {
 	./build_nano.sh
 }
 
+build_pfPorts() {
+	./build_pfPorts.sh
+}
+
 dobuilds() {
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
 	update_sources
 	# Rebuild pfPorts if needed
-	recompile_pfPorts
+	build_pfPorts
 	# Build ISO
 	build_iso
 	# Update sources
