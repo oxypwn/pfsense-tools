@@ -232,10 +232,10 @@ dobuilds() {
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
 	update_sources
-	# Update sources
-	build_updates
 	# Build ISO
 	build_iso
+	# Update sources
+	build_updates
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
 	# Build DevISO
