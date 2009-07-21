@@ -10,7 +10,7 @@
 #       - $LOCALBASE/sbin/setkey Vs /usr/sbin/setkey
 
 PORTNAME=	ipsec-tools
-PORTVERSION=	0.7.1
+PORTVERSION=	0.7.2
 CATEGORIES=	security
 MASTER_SITES=	SF
 
@@ -30,7 +30,7 @@ CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 CONFIGURE_ARGS=	--enable-shared --sysconfdir=${PREFIX}/etc/racoon \
 		--localstatedir=${STATEDIR:S/\/racoon//} \
 		--with-pkgversion=freebsd-${PORTVERSION} \
-		--enable-adminport
+		--enable-adminport --disable-stats
 
 STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
