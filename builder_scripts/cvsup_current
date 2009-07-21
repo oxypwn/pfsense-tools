@@ -219,13 +219,13 @@ done
 BASENAMESUPFILE=`basename $SUPFILE`
 echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
 (csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | egrep -B3 -A3 -wi '(error)'
-if [ "$?" = "1" ]; then
-	echo
-	echo "!!!! An error occured while fetching BSDInstaller sources!"
-	sleep 65535
-else 
+#if [ "$?" = "1" ]; then
+#	echo
+#	echo "!!!! An error occured while fetching BSDInstaller sources!"
+#	sleep 65535
+#else 
 	echo "Done!"
-fi
+#fi
 
 echo ">>> Removing old patch rejects..."
 find $SRCDIR -name "*.rej" -exec rm {} \;
