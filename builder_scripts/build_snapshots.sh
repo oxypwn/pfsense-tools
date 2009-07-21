@@ -245,7 +245,7 @@ dobuilds() {
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
 	# Build DevISO
-	build_deviso	
+	build_deviso
 	# Copy deviso to staging area
 	copy_to_staging_deviso_updates
 	# Build nanobsd
