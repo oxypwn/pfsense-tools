@@ -84,7 +84,7 @@ print_error_pfS() {
         echo "Log saved on ${LOGFILE}" && \
 	tail -n20 ${LOGFILE} >&2
 	report_error
-    sleep 999
+    sleep 65535
     kill $$ # NOTE: exit 1 won't work.
 }
 
@@ -92,14 +92,14 @@ ensure_kernel_exists() {
 	if [ ! -f "$1/boot/kernel/kernel.gz" ]; then
 		echo "Could not locate $1/boot/kernel.gz"
 		print_error_pfS
-		sleep 999
+		sleep 65535
 		exit 1
 	fi
 	KERNEL_SIZE=`ls -la $1/boot/kernel/kernel.gz | awk '{ print $5 }'`
 	if [ "$KERNEL_SIZE" -lt 3500 ]; then
 		echo "Kernel $1/boot/kernel.gz appears to be smaller than it should be: $KERNEL_SIZE"
 		print_error_pfS
-		sleep 999
+		sleep 65535
 		exit 1
 	fi
 }
@@ -730,7 +730,7 @@ install_custom_overlay() {
 			tar xzpf $custom_overlay -C $CVS_CO_DIR
 		else
 			echo " file not found $custom_overlay"
-			sleep 999
+			sleep 65535
 		fi
 	fi
 
@@ -761,7 +761,7 @@ install_custom_overlay_final() {
 			tar xzpf $custom_overlay -C $PFSENSEBASEDIR
 		else
 			echo " file not found $custom_overlay_final"
-			sleep 999
+			sleep 65535
 		fi
 	fi
 
@@ -1724,7 +1724,7 @@ if [ ! -f "/usr/local/bin/php" ]; then
 	echo "This script cannot continue."
 	echo 	
 	while [ /bin/true ]; do
-		sleep 999
+		sleep 65535
 	done	
 fi
 
@@ -1737,7 +1737,7 @@ if [ ! -f "/COPYRIGHT" ]; then
 	echo "This script cannot continue."
 	echo 	
 	while [ /bin/true ]; do
-		sleep 999
+		sleep 65535
 	done
 fi
 
