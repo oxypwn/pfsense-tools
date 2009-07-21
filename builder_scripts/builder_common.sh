@@ -126,26 +126,26 @@ fixup_kernel_options() {
 	mkdir -p /tmp/kernels/developers/boot/kernel
 	mkdir -p /tmp/kernels/freebsd/boot/kernel
 
-	# Do not remove or move support to freesbie2/scripts/installekrnel.sh
+	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p /tmp/kernels/SMP/boot/kernel
 	mkdir -p /tmp/kernels/uniprocessor/boot/kernel
 	mkdir -p /tmp/kernels/freebsd/boot/kernel
 
-	# Do not remove or move support to freesbie2/scripts/installekrnel.sh
+	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p /tmp/kernels/wrap/boot/defaults/
 	mkdir -p /tmp/kernels/developers/boot/defaults/
 	mkdir -p /tmp/kernels/SMP/boot/defaults/
 	mkdir -p /tmp/kernels/uniprocessor/boot/defaults/
 	mkdir -p /tmp/kernels/freebsd/boot/defaults/
 
-	# Do not remove or move support to freesbie2/scripts/installekrnel.sh
+	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	touch /tmp/kernels/wrap/boot/defaults/loader.conf
 	touch /tmp/kernels/developers/boot/defaults/loader.conf
 	touch  /tmp/kernels/SMP/boot/defaults/loader.conf
 	touch  /tmp/kernels/uniprocessor/boot/defaults/loader.conf
 	touch  /tmp/kernels/freebsd/boot/defaults/loader.conf
 
-	# Do not remove or move support to freesbie2/scripts/installekrnel.sh
+	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 	
 	if [ "$WITH_DTRACE" = "" ]; then
