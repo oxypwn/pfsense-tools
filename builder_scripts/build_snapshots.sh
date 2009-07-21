@@ -232,6 +232,8 @@ dobuilds() {
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
 	update_sources
+	# Rebuild pfPorts if needed
+	recompile_pfPorts
 	# Build ISO
 	build_iso
 	# Update sources
