@@ -259,7 +259,7 @@ if [ $REJECTED_PATCHES -gt 0 ]; then
 	if [ "$FREESBIE_ERROR_MAIL" != "" ]; then
 		LOGFILE="/tmp/patches.failed.apply"
 		find $SRCDIR -name "*.rej" > $LOGFILE
-		report_error
+		report_error_pfsense
 	fi
 	sleep 65535
 fi
