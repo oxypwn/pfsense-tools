@@ -168,7 +168,6 @@ fi
 # Add BSDInstaller
 if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 	./cvsup_bsdinstaller
-	./rebuild_bsdinstaller.sh
 else 
 	echo -n ">>> Fetching BSDInstaller using GIT..."
 	git checkout "${GIT_REPO_BSDINSTALLER}"
