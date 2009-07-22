@@ -2,11 +2,12 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.73 2009/06/29 01:26:13 mnag Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.70 2009/04/25 04:17:03 mnag Exp $
 #
 
 PORTNAME=	lighttpd
-PORTVERSION=	1.4.23
+PORTVERSION=	1.4.22
+PORTREVISION=	1
 CATEGORIES=	www
 MASTER_SITES=	http://www.lighttpd.net/download/ \
 		http://mirrors.cat.pdx.edu/lighttpd/
@@ -17,17 +18,16 @@ COMMENT=	A secure, fast, compliant, and very flexible Web Server
 LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
 
 USE_BZIP2=	yes
-USE_AUTOTOOLS=	aclocal:110 autoconf:262 autoheader:262 automake:110 libtool:15
-ACLOCAL_ARGS=	--force
+USE_AUTOTOOLS=	libtool:15
 GNU_CONFIGURE=	yes
-USE_GNOME=	lthack pkgconfig
+USE_GNOME=	lthack
 USE_RC_SUBR=	lighttpd.sh
 CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd
 
 CFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
 
-MAN8=		lighttpd.8
+MAN1=		lighttpd.1
 
 OPTIONS=	BZIP2		"Enable Bzip2 support" off \
 		CML		"Enable Cache Meta Language support" off \
@@ -123,7 +123,7 @@ CONFIGURE_ARGS+=	--with-webdav-props --with-webdav-locks
 SUB_LIST+=		REQUIRE="${_REQUIRE}"
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|-std=gnu99||' ${WRKSRC}/configure ${WRKSRC}/configure.ac
+	@${REINPLACE_CMD} -e 's|-std=gnu99||' ${WRKSRC}/configure.in
 	@${REINPLACE_CMD} -E -e 's|(server.document-root.*=).*|\1 "${PREFIX}/www/data/"|' \
 		-e 's|(server.errorlog.*=).*|\1 "/var/log/lighttpd.error.log"|' \
 		-e 's|# server.event-handler|server.event-handler|' \
