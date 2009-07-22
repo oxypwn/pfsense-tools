@@ -121,7 +121,6 @@ cust_overlay_host_binaries
 
 # Make sure loader.conf is nuked
 find $BASE_DIR -name loader.conf -exec rm {} \;
-find $CLONEDIR -name loader.conf -exec rm {} \;
 
 # Install custom pfSense-XML packages from a chroot
 pfsense_install_custom_packages_exec
