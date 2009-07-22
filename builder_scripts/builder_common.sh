@@ -498,14 +498,23 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/mysql
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
-	
+
 	# handle syslogd
+	PWD=`pwd`
+	# Note, (cd foo && make) does not seem to work.
+	# If you think you are cleaning this up then prepare
+	# to spend a fair amount of time figuring out why the built 
+	# syslogd file doe snot reside in the correct directory to 
+	# install from.  Just move along now, nothing to see here.
     echo "===> Building syslogd..."
-    (cd $SRCDIR/usr.sbin/syslogd && make clean) | egrep -wi '(^>>>|error)'
- 	(cd $SRCDIR/usr.sbin/syslogd && make)  | egrep -wi '(^>>>|error)'
-	(cd $SRCDIR/usr.sbin/syslogd && make install) | egrep -wi '(^>>>|error)'
+    cd $SRCDIR/usr.sbin/syslogd 
+	(make clean) | egrep -wi '(^>>>|error)'
+ 	(make) | egrep -wi '(^>>>|error)'
+	(make install) | egrep -wi '(^>>>|error)'
     echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
+	install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
     install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+	cd $PWD
 
 	# Handle clog
 	echo "===> Building clog..."
@@ -514,7 +523,6 @@ cust_overlay_host_binaries() {
 	(cd $SRCDIR/usr.sbin/clog && make install) | egrep -wi '(^>>>|error)'
     echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
     install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
-    install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/	
 
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
@@ -1066,7 +1074,7 @@ create_pfSense_Full_update_tarball() {
 	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
 	echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
 	chmod a+rx $PFSENSEBASEDIR/chroot.sh
-	chroot $PFSENSEBASEDIR /chroot.sh >/dev/null
+	(chroot $PFSENSEBASEDIR /chroot.sh) | egrep -wi '(^>>>|error)'
 	rm $PFSENSEBASEDIR/chroot.sh
 	echo "Done."
 
