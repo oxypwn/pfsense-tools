@@ -149,16 +149,21 @@ freesbie_make clonefs
 # Fixup library changes if needed
 fixup_libmap
 
-echo "#### Building bootable UFS image ####"
+# Setup NanoBSD specific items
 FlashDevice $FLASH_MODEL $FLASH_SIZE
 setup_nanobsd_etc
-
 setup_nanobsd
+
+# Get rid of non-wanted files
 prune_usr
+
+# Create the NanoBSD disk image
 create_i386_diskimage
 
+# Wrap up the show, Johnny
 echo "Image completed."
 echo "$MAKEOBJDIRPREFIX/"
 ls -lah $MAKEOBJDIRPREFIX/nanobsd*
 
+# E-Mail that we are done.
 email_operation_completed

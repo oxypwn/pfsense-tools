@@ -1516,9 +1516,148 @@ prune_usr() {
 }
 
 FlashDevice () {
-    . $BUILDER_SCRIPTS/FlashDevice.sub
-	echo ">>> [nanoo] Invoking FlashDevice $1 $2"
-    sub_FlashDevice $1 $2
+	a1=`echo $1 | tr '[:upper:]' '[:lower:]'`
+	a2=`echo $2 | tr '[:upper:]' '[:lower:]'`
+	case $a1 in
+	integral)
+		# Source: mich@FreeBSD.org
+		case $a2 in
+		256|256mb)
+			NANO_MEDIASIZE=`expr 259596288 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
+		*)
+			echo "Unknown Integral i-Pro Flash capacity"
+			exit 2
+			;;
+		esac
+		;;
+	memorycorp)
+		# Source: simon@FreeBSD.org
+		case $a2 in
+		512|512mb)
+			# MC512CFLS2
+			NANO_MEDIASIZE=`expr 519192576 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
+		*)
+			echo "Unknown Memory Corp Flash capacity"
+			exit 2
+			;;
+		esac
+		;;
+	sandisk)
+		# Source:
+		#	SanDisk CompactFlash Memory Card
+		#	Product Manual
+		#	Version 10.9
+		#	Document No. 20-10-00038
+		#	April 2005
+		# Table 2-7 
+		# NB: notice math error in SDCFJ-4096-388 line.
+		#
+		case $a2 in
+		32|32mb)
+			NANO_MEDIASIZE=`expr 32112640 / 512`
+			NANO_HEADS=4
+			NANO_SECTS=32
+			;;
+		64|64mb)
+			NANO_MEDIASIZE=`expr 64225280 / 512`
+			NANO_HEADS=8
+			NANO_SECTS=32
+			;;
+		128|128mb)
+			NANO_MEDIASIZE=`expr 128450560 / 512`
+			NANO_HEADS=8
+			NANO_SECTS=32
+			;;
+		256|256mb)
+			NANO_MEDIASIZE=`expr 256901120 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=32
+			;;
+		512|512mb)
+			NANO_MEDIASIZE=`expr 512483328 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
+		1024|1024mb|1g)
+			NANO_MEDIASIZE=`expr 1024966656 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
+		2048|2048mb|2g)
+			NANO_MEDIASIZE=`expr 2048901120 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
+		4096|4096mb|4g)
+			NANO_MEDIASIZE=`expr -e 4097802240 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
+		*)
+			echo "Unknown Sandisk Flash capacity"
+			exit 2
+			;;
+		esac
+		;;
+	siliconsystems)
+		case $a2 in
+		4096|4g)
+			NANO_MEDIASIZE=`expr -e 4224761856 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
+		*)
+			echo "Unknown SiliconSystems Flash capacity"
+			exit 2
+			;;
+		esac
+		;;
+	soekris)
+		case $a2 in
+		net4526 | 4526 | net4826 | 4826 | 64 | 64mb)
+			NANO_MEDIASIZE=125056
+			NANO_HEADS=4
+			NANO_SECTS=32
+			;;
+		*)
+			echo "Unknown Soekris Flash capacity"
+			exit 2
+			;;
+		esac
+		;;
+	transcend)
+		case $a2 in
+		dom064m)
+			NANO_MEDIASIZE=125184
+			NANO_HEADS=4
+			NANO_SECTS=32
+			;;
+		2048|2g)
+			NANO_MEDIASIZE=4061232
+			NANO_HEADS=16
+			NANO_SECTS=32
+			;;
+		*)
+			echo "Unknown Transcend Flash capacity"
+			exit 2
+			;;
+		esac
+		;;
+	*)
+		echo "Unknown Flash manufacturer"
+		exit 2
+		;;
+	esac
+	echo "[nanoo] $1 $2"
+	echo "[nanoo] NANO_MEDIASIZE: $NANO_MEDIASIZE"
+	echo "[nanoo] NANO_HEADS: $NANO_HEADS"
+	echo "[nanoo] NANO_SECTS: $NANO_SECTS"
 }
 
 create_i386_diskimage ( ) {
