@@ -2,7 +2,7 @@
 PORTNAME=	ipsec-tools
 PORTVERSION=	0.8
 CATEGORIES=	security
-MASTER_SITES=	http://cvs.pfsense.org/~sullrich/
+MASTER_SITES=	http://iserv.nl/files/pfsense/
 DISTFILES=		ipsec-tools-0.8.tar.bz2
 MAINTAINER=	vanhu@netasq.com
 COMMENT=	KAME racoon IKE daemon, ipsec-tools version
