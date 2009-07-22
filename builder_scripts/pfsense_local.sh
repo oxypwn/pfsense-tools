@@ -133,7 +133,10 @@ export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
 export CONFIG_DIR=conf
 export NANO_NAME=pfsense
 export CONFIG_DIR=nano
+# Number of code images on media (1 or 2)
 export NANO_IMAGES=2
+# 0 -> Leave second image all zeroes so it compresses better.
+# 1 -> Initialize second image with a copy of the first
 export NANO_INIT_IMG2=1
 export NANO_RAM_ETCSIZE=30720
 export NANO_RAM_TMPVARSIZE=51200
@@ -142,10 +145,15 @@ export NANO_BOOTLOADER="boot/boot0sio"
 export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1"
 export FLASH_MODEL="sandisk"
 export FLASH_SIZE=${FLASH_SIZE:-"1g"}
+# Size of code file system in 512 bytes sectors
+# If zero, size will be as large as possible.
 export NANO_CODESIZE=0
-export NANO_CONFSIZE=10240
-# Size of /cf (pfSense configuration storage) 50 megabyte
-export NANO_DATASIZE=102400
+# Size of data file system in 512 bytes sectors
+# If zero: no partition configured.
+# If negative: max size possible
+export NANO_DATASIZE=0
+# Size of pfSense /conf partition  # 102400 = 50 megabytes.
+export NANO_CONFSIZE=102400
 # Add UNIONFS
 export NO_UNIONFS=YES
 export UNION_DIRS="etc usr root"

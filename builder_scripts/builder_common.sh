@@ -1735,9 +1735,6 @@ awk '
 }
 	' > ${MAKEOBJDIRPREFIX}/_.fdisk
 
-	echo ">>> Current fdisk for this image: "
-	cat ${MAKEOBJDIRPREFIX}/_.fdisk
-
 	IMG=${MAKEOBJDIRPREFIX}/nanobsd.full.img
 	MNT=${MAKEOBJDIRPREFIX}/_.mnt
 	mkdir -p ${MNT}
@@ -1782,18 +1779,23 @@ awk '
 		bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
 	fi
 	
-	# Create Config slice
-	newfs ${NANO_NEWFS} /dev/${MD}s3
-	#tunefs -L cfg /dev/${MD}s3
+	# Create Config slice #############################
+	# NOTE: This is not used in pfSense and should be #
+	#       commented out.  It is left in this file   #
+	#       for reference since the NanoBSD code      #
+	#       is 99% idential to nanobsd.sh             #
+	#newfs ${NANO_NEWFS} /dev/${MD}s3                 #
+	#tunefs -L cfg /dev/${MD}s3                       #
+	###################################################
 
 	# Create Data slice, if any.
 	if [ $NANO_DATASIZE -gt 0 ] ; then
 		echo ">>> Creating /cf area to hold config.xml"
-		newfs ${NANO_NEWFS} /dev/${MD}s4
-		tunefs -L cf /dev/${MD}s4
+		newfs ${NANO_NEWFS} /dev/${MD}s3
+		tunefs -L cf /dev/${MD}s3
 		# Mount data partition and copy contents of /cf
 		# Can be used later to create custom default config.xml while building
-		mount /dev/${MD}s4 ${MNT}
+		mount /dev/${MD}s3 ${MNT}
 		( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
 		umount ${MNT}
 	fi
