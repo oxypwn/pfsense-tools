@@ -1789,7 +1789,7 @@ awk '
 	###################################################
 
 	# Create Data slice, if any.
-	if [ $NANO_DATASIZE -gt 0 ] ; then
+	if [ $NANO_CONFSIZE -gt 0 ] ; then
 		echo ">>> Creating /cf area to hold config.xml"
 		newfs ${NANO_NEWFS} /dev/${MD}s3
 		tunefs -L cf /dev/${MD}s3
