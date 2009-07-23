@@ -37,14 +37,6 @@
 #  set -e 
 #  set -x
 
-# Check if we need to build a different Architecture
-SYS_ARCH="`uname -p`"
-if [ "$SYS_ARCH" != "i386" ]; then
-	ARCH="$SYS_ARCH"
-	TARGET_ARCH="$SYS_ARCH"
-	export ARCH TARGET_ARCH
-fi
-
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
 	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/i386/conf/
@@ -1607,7 +1599,7 @@ FlashDevice () {
 			NANO_MEDIASIZE=`expr 2048901120 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
-			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
+			NANO_BOOT0CFG="-o packet -s 1 -m 3"
 			;;
 		4096|4096mb|4g)
 			NANO_MEDIASIZE=`expr -e 4097802240 / 512`
