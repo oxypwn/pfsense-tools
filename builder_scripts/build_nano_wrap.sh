@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-#  build_nano.sh
+#  build_nano_wrap.sh
 #  Copyright (C) 2004-2009 Scott Ullrich
 #  All rights reserved.
 #  
@@ -74,8 +74,8 @@ fi
 export SRC_CONF="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION"
 export SRC_CONF_INSTALL="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
 
-# packet is OK for 90% of embedded
-export NANO_BOOT0CFG="-o packet -s 1 -m 3"
+# nopacket is required for WRAP's
+export NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 
 # Clean out directories
 freesbie_make cleandir

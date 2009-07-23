@@ -1,6 +1,8 @@
 #!/bin/sh
 #
 # Common functions to be used by build scripts
+# This file will be sourced by the various
+# build_* files.
 #
 #  builder_common.sh
 #  Copyright (C) 2004-2009 Scott Ullrich
@@ -1563,49 +1565,41 @@ FlashDevice () {
 			NANO_MEDIASIZE=`expr 32112640 / 512`
 			NANO_HEADS=4
 			NANO_SECTS=32
-			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"			
 			;;
 		64|64mb)
 			NANO_MEDIASIZE=`expr 64225280 / 512`
 			NANO_HEADS=8
 			NANO_SECTS=32
-			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 			;;
 		128|128mb)
 			NANO_MEDIASIZE=`expr 128450560 / 512`
 			NANO_HEADS=8
 			NANO_SECTS=32
-			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 			;;
 		256|256mb)
 			NANO_MEDIASIZE=`expr 256901120 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=32
-			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"			
 			;;
 		512|512mb)
 			NANO_MEDIASIZE=`expr 512483328 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
-			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"			
 			;;
 		1024|1024mb|1g)
 			NANO_MEDIASIZE=`expr 1024966656 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
-			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 			;;
 		2048|2048mb|2g)
 			NANO_MEDIASIZE=`expr 2048901120 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
-			NANO_BOOT0CFG="-o packet -s 1 -m 3"
 			;;
 		4096|4096mb|4g)
 			NANO_MEDIASIZE=`expr -e 4097802240 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
-			NANO_BOOT0CFG="-o packet -s 1 -m 3"
 			;;
 		*)
 			echo "Unknown Sandisk Flash capacity"
@@ -1783,6 +1777,10 @@ awk '
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIX}/_.du
 	umount ${MNT}
 
+	# Setting NANO_IMAGES to 1 and NANO_INIT_IMG2 will tell
+	# NanoBSD to only create one partition.  We default to 2
+	# partitions in case anything happens to the first the
+	# operator can boot from the 2nd and should be OK.
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		# Duplicate to second image (if present)
 		echo ">>> Mounting and duplicating NanoBSD pfsense1 /dev/${MD}s2a ${MNT}"
@@ -1811,6 +1809,10 @@ awk '
 	###################################################
 
 	# Create Data slice, if any.
+	# Note the changing of the variable to NANO_CONFSIZE
+	# from NANO_DATASIZE.  We also added glabel support 
+	# and populate the pfSense configuration from the /cf
+	# directory located in CLONEDIR
 	if [ $NANO_CONFSIZE -gt 0 ] ; then
 		echo ">>> Creating /cf area to hold config.xml"
 		newfs ${NANO_NEWFS} /dev/${MD}s3
