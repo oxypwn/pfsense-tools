@@ -1679,6 +1679,7 @@ FlashDevice () {
 	echo ">>> [nanoo] NANO_MEDIASIZE: $NANO_MEDIASIZE"
 	echo ">>> [nanoo] NANO_HEADS: $NANO_HEADS"
 	echo ">>> [nanoo] NANO_SECTS: $NANO_SECTS"
+	echo ">>> [nanoo] NANO_BOOT0CFG: $NANO_BOOT0CFG"
 }
 
 create_i386_diskimage ( ) {
