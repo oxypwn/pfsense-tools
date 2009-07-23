@@ -140,7 +140,6 @@ export NANO_IMAGES=2
 export NANO_INIT_IMG2=1
 export NANO_RAM_ETCSIZE=30720
 export NANO_RAM_TMPVARSIZE=51200
-export NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 export NANO_BOOTLOADER="boot/boot0sio"
 export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1"
 export FLASH_MODEL="sandisk"

@@ -1563,41 +1563,49 @@ FlashDevice () {
 			NANO_MEDIASIZE=`expr 32112640 / 512`
 			NANO_HEADS=4
 			NANO_SECTS=32
+			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"			
 			;;
 		64|64mb)
 			NANO_MEDIASIZE=`expr 64225280 / 512`
 			NANO_HEADS=8
 			NANO_SECTS=32
+			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 			;;
 		128|128mb)
 			NANO_MEDIASIZE=`expr 128450560 / 512`
 			NANO_HEADS=8
 			NANO_SECTS=32
+			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 			;;
 		256|256mb)
 			NANO_MEDIASIZE=`expr 256901120 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=32
+			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"			
 			;;
 		512|512mb)
 			NANO_MEDIASIZE=`expr 512483328 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
+			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"			
 			;;
 		1024|1024mb|1g)
 			NANO_MEDIASIZE=`expr 1024966656 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
+			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 			;;
 		2048|2048mb|2g)
 			NANO_MEDIASIZE=`expr 2048901120 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
+			NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
 			;;
 		4096|4096mb|4g)
 			NANO_MEDIASIZE=`expr -e 4097802240 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
+			NANO_BOOT0CFG="-o packet -s 1 -m 3"
 			;;
 		*)
 			echo "Unknown Sandisk Flash capacity"
