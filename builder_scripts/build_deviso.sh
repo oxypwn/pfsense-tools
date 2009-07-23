@@ -129,15 +129,15 @@ copy_config_xml_from_conf_default
 # Test PHP installation
 test_php_install
 
+# Check to see if we have a healthy installer
+ensure_healthy_installer
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
 # Ensure /home exists
 mkdir -p $CLONEDIR/home
-
-# Check to see if we have a healthy installer
-ensure_healthy_installer
 
 # Finalize iso
 echo ">>> Finalizing iso..."
