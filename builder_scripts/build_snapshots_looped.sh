@@ -72,7 +72,7 @@ while [ /bin/true ]; do
 			NEW_NANO_SIZE="2g"
 		;;
 		"2g")
-			NEW_NANO_SIZE="4g"
+			NEW_NANO_SIZE="512mb"
 		;;
 		"4g")
 			NEW_NANO_SIZE="512mb"

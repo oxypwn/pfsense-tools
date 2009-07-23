@@ -1631,6 +1631,19 @@ FlashDevice () {
 			;;
 		esac
 		;;
+	generic-hdd)
+		case $a2 in
+		4096|4g)
+        	NANO_HEADS=64
+        	NANO_SECTS=32
+        	NANO_MEDIASIZE="7812500"
+			;;
+		*)
+			echo "Unknwon generic-hdd capacity"
+			exit 2
+			;;
+		esac
+		;;			
 	transcend)
 		case $a2 in
 		dom064m)
@@ -1654,10 +1667,10 @@ FlashDevice () {
 		exit 2
 		;;
 	esac
-	echo "[nanoo] $1 $2"
-	echo "[nanoo] NANO_MEDIASIZE: $NANO_MEDIASIZE"
-	echo "[nanoo] NANO_HEADS: $NANO_HEADS"
-	echo "[nanoo] NANO_SECTS: $NANO_SECTS"
+	echo ">>> [nanoo] $1 $2"
+	echo ">>> [nanoo] NANO_MEDIASIZE: $NANO_MEDIASIZE"
+	echo ">>> [nanoo] NANO_HEADS: $NANO_HEADS"
+	echo ">>> [nanoo] NANO_SECTS: $NANO_SECTS"
 }
 
 create_i386_diskimage ( ) {
@@ -1779,13 +1792,13 @@ awk '
 		bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
 	fi
 	
-	# Create Config slice #############################
+	# Create Data slice ###############################
 	# NOTE: This is not used in pfSense and should be #
 	#       commented out.  It is left in this file   #
 	#       for reference since the NanoBSD code      #
 	#       is 99% idential to nanobsd.sh             #
-	#newfs ${NANO_NEWFS} /dev/${MD}s3                 #
-	#tunefs -L cfg /dev/${MD}s3                       #
+	# newfs ${NANO_NEWFS} /dev/${MD}s3                #
+	# tunefs -L cfg /dev/${MD}s3                      #
 	###################################################
 
 	# Create Data slice, if any.
@@ -1798,9 +1811,11 @@ awk '
 		mount /dev/${MD}s3 ${MNT}
 		( cd ${CLONEDIR}/cf && find . -print | cpio -dump ${MNT} )
 		umount ${MNT}
+	else 
+		">>> [nanoo] NANO_CONFSIZE is not set. Not adding a /conf partition.. You sure about this??"
 	fi
 
-	echo ">>> Creating NanoBSD upgrade file from first slice..."
+	echo ">>> [nanoo] Creating NanoBSD upgrade file from first slice..."
 	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
 	
 	mdconfig -d -u $MD
