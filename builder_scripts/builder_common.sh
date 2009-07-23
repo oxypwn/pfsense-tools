@@ -37,6 +37,14 @@
 #  set -e 
 #  set -x
 
+# Check if we need to build a different Architecture
+SYS_ARCH="`uname -p`"
+if [ "$SYS_ARCH" != "i386" ]; then
+	ARCH="$SYS_ARCH"
+	TARGET_ARCH="$SYS_ARCH"
+	export ARCH TARGET_ARCH
+fi
+
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
 	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/i386/conf/
