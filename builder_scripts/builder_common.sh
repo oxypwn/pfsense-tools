@@ -2092,15 +2092,19 @@ create_iso_cf_conf_symbolic_link() {
 }
 
 ensure_healthy_installer() {
+	echo -n "Checking installer health..."
 	INSTALLER_ERROR=0
-	if [ ! -f "$PFSENSEBASEDIR/usr/local/share/dfuife_curses" ]; then
+	if [ ! -f "$PFSENSEBASEDIR/usr/local/sbin/dfuife_curses" ]; then
 		INSTALLER_ERROR=1
+		echo -n "dfuife_curses missing ";
 	fi
 	if [ ! -f "$PFSENSEBASEDIR/usr/local/share/dfuibe_lua" ]; then
 		INSTALLER_ERROR=1
+		echo -n "dfuibe_lua missing ";
 	fi
 	if [ ! -f "$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/pfSense.lua" ]; then
 		INSTALLER_ERROR=1
+		echo "pfSense_lua missing "
 	fi
 	if [ "$INSTALLER_ERROR" -gt 0 ]; then 
 		echo "!!!! ERROR: it appears that the BSDInstaller had issues during this build run."
