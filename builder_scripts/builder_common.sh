@@ -2090,3 +2090,20 @@ create_iso_cf_conf_symbolic_link() {
 	rm -rf ${PFSENSEBASEDIR}/conf
 	chroot ${PFSENSEBASEDIR} /bin/ln -s /cf/conf /conf
 }
+
+ensure_healthy_installer() {
+	INSTALLER_ERROR=0
+	if [ ! -f "$PFSENSEBASEDIR/usr/local/share/dfuife_curses" ]; then
+		INSTALLER_ERROR=1
+	fi
+	if [ ! -f "$PFSENSEBASEDIR/usr/local/share/dfuibe_lua" ]; then
+		INSTALLER_ERROR=1
+	fi
+	if [ ! -f "$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/pfSense.lua" ]; then
+		INSTALLER_ERROR=1
+	fi
+	if [ "$INSTALLER_ERROR" -gt 0 ]; then 
+		echo "!!!! ERROR: it appears that the BSDInstaller had issues during this build run."
+		print_error_pfS
+	fi
+}
