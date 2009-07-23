@@ -205,6 +205,10 @@ freesbie_make clonefs
 
 # Ensure /home exists
 mkdir -p $CLONEDIR/home
+
+# Check to see if we have a healthy installer
+ensure_healthy_installer
+
 # Finalize iso
 echo ">>> Finalizing iso..."
 freesbie_make iso
@@ -215,6 +219,3 @@ report_zero_sized_files
 
 # Email that the operation is done
 email_operation_completed
-
-# Check to see if we have a healthy installer
-ensure_healthy_installer

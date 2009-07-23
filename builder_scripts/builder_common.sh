@@ -2107,7 +2107,10 @@ ensure_healthy_installer() {
 		echo "pfSense_lua missing "
 	fi
 	if [ "$INSTALLER_ERROR" -gt 0 ]; then 
+		echo "[ERROR!]"
 		echo "!!!! ERROR: it appears that the BSDInstaller had issues during this build run."
 		print_error_pfS
+	else
+		echo "[OK]"
 	fi
 }
