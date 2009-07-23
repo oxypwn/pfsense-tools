@@ -2098,7 +2098,7 @@ ensure_healthy_installer() {
 		INSTALLER_ERROR=1
 		echo -n " dfuife_curses missing ";
 	fi
-	if [ ! -f "$PFSENSEBASEDIR/usr/local/share/dfuibe_lua" ]; then
+	if [ ! -d "$PFSENSEBASEDIR/usr/local/share/dfuibe_lua" ]; then
 		INSTALLER_ERROR=1
 		echo -n " dfuibe_lua missing ";
 	fi
