@@ -13,6 +13,7 @@
 # Ensure file exists
 if [ ! -f ./pfsense-build.conf ]; then
 	echo "You must first run ./set_version.sh !"
+	echo "See http://devwiki.pfsense.org/DevelopersBootStrapAndDevIso for more information."
 	exit 1
 fi
 
@@ -114,7 +115,7 @@ export PFSENSE_VERSION=${PFSENSE_VERSION:-1.2.1-RC2}
 export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
 
 # Development version
-# export PFSENSETAG=${PFSENSETAG:-RELENG_1}
+# export PFSENSETAG=${PFSENSETAG:-HEAD}
 
 # Patch directory and patch file that lists patches to apply
 export PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
