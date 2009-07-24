@@ -63,3 +63,4 @@
 ~sys/kern~mpt-fix-notify.diff~
 ~sys/netgraph~ng_iface.c.diff~
 ~contrib/pf/tftp-proxy~filter.c.diff~
+~sys~realtek_8102el_dell_mini10v.diff~

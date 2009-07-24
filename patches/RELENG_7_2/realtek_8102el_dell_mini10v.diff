@@ -1,0 +1,30 @@
+Index: dev/re/if_re.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/re/if_re.c,v
+retrieving revision 1.95.2.48.2.1
+diff -u -r1.95.2.48.2.1 if_re.c
+--- dev/re/if_re.c	15 Apr 2009 03:14:26 -0000	1.95.2.48.2.1
++++ dev/re/if_re.c	24 Jul 2009 23:35:34 -0000
+@@ -173,6 +173,7 @@
+ 	    "RealTek 8139C+ 10/100BaseTX" },
+ 	{ RT_VENDORID, RT_DEVICEID_8101E, 0,
+ 	    "RealTek 8101E/8102E/8102EL PCIe 10/100baseTX" },
++	{ RL_HWREV_8102EL_DELL, RL_8169, "8102EL Dell"},
+ 	{ RT_VENDORID, RT_DEVICEID_8168, 0,
+ 	    "RealTek 8168/8168B/8168C/8168CP/8168D/8111B/8111C/8111CP PCIe "
+ 	    "Gigabit Ethernet" },
+Index: pci/if_rlreg.h
+===================================================================
+RCS file: /home/ncvs/src/sys/pci/if_rlreg.h,v
+retrieving revision 1.67.2.23.2.1
+diff -u -r1.67.2.23.2.1 if_rlreg.h
+--- pci/if_rlreg.h	15 Apr 2009 03:14:26 -0000	1.67.2.23.2.1
++++ pci/if_rlreg.h	24 Jul 2009 23:35:03 -0000
+@@ -159,6 +159,7 @@
+ #define RL_HWREV_8169_8110SB	0x10000000
+ #define RL_HWREV_8169_8110SC	0x18000000
+ #define RL_HWREV_8102EL		0x24800000
++#define RL_HWREV_8102EL_DELL	0x24C00000
+ #define RL_HWREV_8168D		0x28000000
+ #define RL_HWREV_8168_SPIN1	0x30000000
+ #define RL_HWREV_8100E		0x30800000
