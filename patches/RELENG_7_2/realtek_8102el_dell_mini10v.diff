@@ -4,15 +4,23 @@ RCS file: /home/ncvs/src/sys/dev/re/if_re.c,v
 retrieving revision 1.95.2.48.2.1
 diff -u -r1.95.2.48.2.1 if_re.c
 --- dev/re/if_re.c	15 Apr 2009 03:14:26 -0000	1.95.2.48.2.1
-+++ dev/re/if_re.c	24 Jul 2009 23:35:34 -0000
-@@ -173,6 +173,7 @@
- 	    "RealTek 8139C+ 10/100BaseTX" },
- 	{ RT_VENDORID, RT_DEVICEID_8101E, 0,
- 	    "RealTek 8101E/8102E/8102EL PCIe 10/100baseTX" },
++++ dev/re/if_re.c	25 Jul 2009 02:25:31 -0000
+@@ -211,6 +211,7 @@
+ 	{ RL_HWREV_8101E, RL_8169, "8101E"},
+ 	{ RL_HWREV_8102E, RL_8169, "8102E"},
+ 	{ RL_HWREV_8102EL, RL_8169, "8102EL"},
 +	{ RL_HWREV_8102EL_DELL, RL_8169, "8102EL Dell"},
- 	{ RT_VENDORID, RT_DEVICEID_8168, 0,
- 	    "RealTek 8168/8168B/8168C/8168CP/8168D/8111B/8111C/8111CP PCIe "
- 	    "Gigabit Ethernet" },
+ 	{ RL_HWREV_8168_SPIN2, RL_8169, "8168"},
+ 	{ RL_HWREV_8168_SPIN3, RL_8169, "8168"},
+ 	{ RL_HWREV_8168C, RL_8169, "8168C/8111C"},
+@@ -1260,6 +1261,7 @@
+ 		break;
+ 	case RL_HWREV_8102E:
+ 	case RL_HWREV_8102EL:
++	case RL_HWREV_8102EL_DELL:
+ 		sc->rl_flags |= RL_FLAG_NOJUMBO | RL_FLAG_PHYWAKE |
+ 		    RL_FLAG_PAR | RL_FLAG_DESCV2 | RL_FLAG_MACSTAT |
+ 		    RL_FLAG_FASTETHER | RL_FLAG_CMDSTOP;
 Index: pci/if_rlreg.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/pci/if_rlreg.h,v
