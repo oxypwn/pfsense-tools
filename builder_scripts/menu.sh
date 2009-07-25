@@ -27,6 +27,7 @@ while [ /bin/true ]; do
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
 		--menu "Welcome to the pfSense builder system.\n\n\
 Choose the option you would like:" -1 -1 8 \
+			"Exit"				"Exit the pfSense builder system" \
 			"Clean"				"Cleanup previous builds" \
 			"Sync GIT"			"Synchronize various checked out GIT trees with rcs.pfSense.org" \
 	        "Build ISO"			"Build a regular ISO" \
@@ -34,7 +35,6 @@ Choose the option you would like:" -1 -1 8 \
 	        "Build NanoBSD"		"Build NanoBSD" \
 	        "Build embedded"	"Build old style embedded image" \
 			"Set version"		"Set pfSense version information etc" \
-			"Exit"				"Exit the pfSense builder system" \
 			2> /tmp/menu.tmp.$$
 	retval=$?
 	choice=`cat /tmp/menu.tmp.$$`
