@@ -2116,7 +2116,6 @@ install_required_builder_system_ports() {
 	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do
 		CHECK_ON_DISK=`echo $PKG_STRING | awk -F"|" '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING | awk -F"|" '{ print $2 }'`
-		echo ">>> Checking for $CHECK_ON_DISK || $PORT_LOCATION"
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
 			(cd $PORT_LOCATION && make -DBATCH deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
