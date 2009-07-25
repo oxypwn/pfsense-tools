@@ -83,7 +83,7 @@ $EMAIL_ADDRESS_WHEN_ERROR \
 $TWITTER_SNAPSHOTS_USERNAME \
 $TWITTER_SNAPSHOTS_PASSWORD
 		;;
-		255)
+		*)
 	    [ -z "$choice" ] || echo $choice ;
 			exit;
 		;;
