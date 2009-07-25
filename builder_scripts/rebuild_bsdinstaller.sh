@@ -1,10 +1,10 @@
 #!/bin/sh
 
+PREVIOUSDIR=`pwd`
+
 . ./pfsense_local.sh
 
 mkdir -p $BUILDER_TOOLS/builder_scripts/conf
-
-PREVIOUSDIR=`pwd`
 
 cd $BASE_DIR/installer/installer/scripts/build 
 

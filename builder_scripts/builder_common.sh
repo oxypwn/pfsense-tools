@@ -417,6 +417,13 @@ build_all_kernels() {
 
 recompile_pfPorts() {
 
+	if [ ! -d /usr/ports/ ]; then
+		echo "===> Please wait, grabbing port files from FreeBSD.org..."
+		portsnap fetch
+		echo "===> Please wait, extracting port files..."
+		portsnap extract
+	fi
+
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then 
 
 		# Set some neede variables
