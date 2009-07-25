@@ -16,7 +16,7 @@ get_pfsense_version() {
 	        --radiolist "Please select which version you would like to build:\n" -1 -1 3 \
 	        "RELENG_1_2"	"Release branch" ON \
 	        "RELENG_2_0"	"Development branch RELENG_2_0" OFF \
-	        "Custom"		"Enter a custom version" OFF \	
+	        "Custom"		"Enter a custom version" OFF \
 			2> /tmp/radiolist.tmp.$$
 	retval=$?
 	get_pfsense_version_value=`cat /tmp/radiolist.tmp.$$`
@@ -65,7 +65,7 @@ Choose the option you would like:" -1 -1 8 \
 		"Set version")
 		get_pfsense_version
 		PFSENSE_VERSION=$get_pfsense_version_value
-		if [ "$PFSENSE_VERSION"="Custom" ]; then
+		if [ "$PFSENSE_VERSION" = "Custom" ]; then
 			get_text "Enter the pfSense version you would like to use"
 			PFSENSE_VERSION=$get_text_value
 		fi
