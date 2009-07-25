@@ -2105,15 +2105,14 @@ install_required_builder_system_ports() {
 		(/usr/sbin/portsnap extract) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		echo "Done!"
 	fi
-	NEEDED_INSTALLED_PKGS="
-/usr/local/bin/mkisofs|/usr/ports/sysutils/cdrtools	
-/usr/local/bin/fastest_cvsup|/usr/ports/sysutils/fastest_cvsup/
-/usr/local/lib/libpcre.so.0|/usr/ports/devel/pcre
-/usr/local/sbin/lighttpd|/usr/ports/www/lighttpd
-/usr/local/bin/curl|/usr/ports/ftp/curl
-/usr/local/bin/rsync|/usr/ports/net/rsync
-/usr/local/bin/cpdup|/usr/ports/sysutils/cpdup/
-/usr/local/bin/git\/usr/ports/devel/git/"
+	NEEDED_INSTALLED_PKGS="/usr/local/bin/mkisofs|/usr/ports/sysutils/cdrtools \
+/usr/local/bin/fastest_cvsup|/usr/ports/sysutils/fastest_cvsup/ \
+/usr/local/lib/libpcre.so.0|/usr/ports/devel/pcre \
+/usr/local/sbin/lighttpd|/usr/ports/www/lighttpd \
+/usr/local/bin/curl|/usr/ports/ftp/curl \
+/usr/local/bin/rsync|/usr/ports/net/rsync \
+/usr/local/bin/cpdup|/usr/ports/sysutils/cpdup/ \
+/usr/local/bin/git|/usr/ports/devel/git/"
 	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do
 		CHECK_ON_DISK=`echo $PKG_STRING | awk -F"|" '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING | awk -F"|" '{ print $2 }'`
