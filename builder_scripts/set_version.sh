@@ -110,6 +110,7 @@ set_items() {
 	echo "       will need to run ./build_pfPorts.sh to rebuild all of the associated ports."
 	echo
 	HANDLED=true
+	touch /tmp/pfPorts_forced_build_required
 }
 
 echo

@@ -2275,3 +2275,11 @@ setup_deviso_specific_items() {
 	(cd $DEVROOT && git clone http://gitweb.pfsense.org/freesbie2/mainline.git freesbie2)
 	echo "...Done!"
 }
+
+check_for_forced_pfPorts_build() {
+	if [ -f "/tmp/pfPorts_forced_build_required" ]; then
+		rm -f /tmp/pfSense_do_not_build_pfPorts
+		recompile_pfPorts		
+		rm /tmp/pfPorts_forced_build_required	
+	fi
+}

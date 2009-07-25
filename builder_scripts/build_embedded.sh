@@ -52,6 +52,9 @@ ensure_source_directories_present
 # Ensure binaries are present that builder system requires
 install_required_builder_system_ports
 
+# Check if we need to force a ports rebuild
+check_for_forced_pfPorts_build
+
 echo ">>> Cleaning up old directories..."
 freesbie_make cleandir
 
