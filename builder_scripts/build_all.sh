@@ -40,10 +40,6 @@ export SKIP_RSYNC=yo
 # Suck in script helper functions
 . ./builder_common.sh
 
-# Update source against freebsd.org and pfsense.com
-# and build a iso
-sh -x ./cvsup_current
-
 # Build general updates
 sh -x ./build_updates.sh
 

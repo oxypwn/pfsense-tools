@@ -37,7 +37,6 @@ portsnap fetch ; portsnap extract
 (cd /usr/ports/sysutils/screen BATCH=yo && make install)
 (cd /usr/ports/sysutils/cdrtools BATCH=yo && make install)
 
-./cvsup_current 
+./build_iso.sh
 
-#./build_snapshots.sh 
 

@@ -2164,13 +2164,7 @@ update_freebsd_sources_and_apply_patches() {
 	BASENAMESUPFILE=`basename $SUPFILE`
 	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
 	(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	#if [ "$?" = "1" ]; then
-	#	echo
-	#	echo "!!!! An error occured while fetching FreeBSD sources cvsup_current.sh!"
-	#	sleep 65535
-	#else 
-		echo "Done!"
-	#fi
+	echo "Done!"
 
 	echo ">>> Removing old patch rejects..."
 	find $SRCDIR -name "*.rej" -exec rm {} \;

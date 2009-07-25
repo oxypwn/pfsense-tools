@@ -37,6 +37,12 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Make sure source directories are present.
+ensure_source_directories_present
+
+# Ensure binaries are present that builder system requires
+install_required_builder_system_ports
+
 # Allow old CVS_CO_DIR to be deleted later
 chflags -R noschg $CVS_CO_DIR
 
