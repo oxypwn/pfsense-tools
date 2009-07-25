@@ -3,7 +3,8 @@ DIALOG=${DIALOG=/usr/bin/dialog}
 
 get_text() {
 	$DIALOG --title "INPUT BOX" --clear \
-	        --inputbox "$1" -1 -1 "" 2> /tmp/inputbox.tmp.$$
+	        --inputbox "$1" -1 -1 "" \
+			2> /tmp/inputbox.tmp.$$
 	retval=$?
 	input=`cat /tmp/inputbox.tmp.$$`
 	get_text_value=`cat /tmp/inputbox.tmp.$$`
@@ -24,9 +25,8 @@ get_pfsense_version() {
 while [ /bin/true ]; do
 	$DIALOG --clear --title "pfSense builder system" \
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
-		--menu "Welcome to the pfSense builder system.\n\
-\n\
-Choose the option you would like:" -1 -1 7 \
+		--menu "Welcome to the pfSense builder system.\n\n\
+Choose the option you would like:" -1 -1 8 \
 			"Clean"				"Cleanup previous builds" \
 			"Sync GIT"			"Synchronize various checked out GIT trees with rcs.pfSense.org" \
 	        "Build ISO"			"Build a regular ISO" \
@@ -36,12 +36,9 @@ Choose the option you would like:" -1 -1 7 \
 			"Set version"		"Set pfSense version information etc" \
 			"Exit"				"Exit the pfSense builder system" \
 			2> /tmp/menu.tmp.$$
-
 	retval=$?
-
 	choice=`cat /tmp/menu.tmp.$$`
 	rm -f /tmp/menu.tmp.$$
-
 	case $choice in
 		"Exit") 
 		exit 0
