@@ -86,6 +86,7 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		255)
 	    [ -z "$choice" ] || echo $choice ;
 			exit;
+		;;
 	esac
 	echo
 	read -p "Press enter to continue..." opmode
