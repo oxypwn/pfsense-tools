@@ -70,7 +70,7 @@ post_tweet() {
 }
 
 handle_athstats() {
-	echo -n ">>>> Building athstats..."
+	echo -n ">>> Building athstats..."
 	cd $SRCDIR/tools/tools/ath/athstats
 	(make clean && make && make install) | egrep -wi '(^>>>|error)'
 	echo "Done!"
@@ -226,7 +226,7 @@ build_embedded_kernel_vga() {
 	# Common fixup code
 	fixup_kernel_options
 	# Build embedded kernel
-	echo ">>>> Building embedded kernel..."
+	echo ">>> Building embedded kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
@@ -235,11 +235,11 @@ build_embedded_kernel_vga() {
 	export KERNEL_DESTDIR="/tmp/kernels/nano_vga"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_nano_vga.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
-	echo ">>>> Installing embedded kernel..."
+	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/nano_vga/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/nano_vga/boot/device.hints	
-	echo -n ">>>> Installing kernels to LiveCD area..."
+	echo -n ">>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/nano_vga/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz .) 	
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
@@ -252,7 +252,7 @@ build_embedded_kernel() {
 	# Common fixup code
 	fixup_kernel_options
 	# Build embedded kernel
-	echo ">>>> Building embedded kernel..."
+	echo ">>> Building embedded kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
@@ -261,11 +261,11 @@ build_embedded_kernel() {
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
-	echo ">>>> Installing embedded kernel..."
+	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints	
-	echo -n ">>>> Installing kernels to LiveCD area..."
+	echo -n ">>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
@@ -278,7 +278,7 @@ build_dev_kernel() {
 	# Common fixup code
 	fixup_kernel_options
 	# Build Developers kernel
-	echo ">>>> Building Developers kernel..."
+	echo ">>> Building Developers kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
@@ -287,7 +287,7 @@ build_dev_kernel() {
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	freesbie_make buildkernel
-	echo ">>>> installing Developers kernel..."
+	echo ">>> installing Developers kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
@@ -300,7 +300,7 @@ build_freebsd_only_kernel() {
 	# Common fixup code
 	fixup_kernel_options
 	# Build Developers kernel
-	echo ">>>> Building Developers kernel..."
+	echo ">>> Building Developers kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
@@ -309,7 +309,7 @@ build_freebsd_only_kernel() {
 	export KERNEL_DESTDIR="/tmp/kernels/freebsd"
 	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
 	freesbie_make buildkernel
-	echo ">>>> installing FreeBSD kernel..."
+	echo ">>> installing FreeBSD kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/freebsd/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/freebsd/boot/device.hints
@@ -325,7 +325,7 @@ build_all_kernels() {
 	# Common fixup code
 	fixup_kernel_options
 	# Build uniprocessor kernel
-	echo ">>>> Building uniprocessor kernel..."
+	echo ">>> Building uniprocessor kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
@@ -334,11 +334,11 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
-	echo ">>>> installing uniprocessor kernel..."
+	echo ">>> installing uniprocessor kernel..."
 	freesbie_make installkernel
 
 	# Build embedded kernel
-	echo ">>>> Building embedded kernel..."
+	echo ">>> Building embedded kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
@@ -347,12 +347,12 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
-	echo ">>>> installing wrap kernel..."
+	echo ">>> installing wrap kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Build Developers kernel
-	echo ">>>> Building Developers kernel..."
+	echo ">>> Building Developers kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
@@ -361,12 +361,12 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"	
 	freesbie_make buildkernel
-	echo ">>>> installing Developers kernel..."
+	echo ">>> installing Developers kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 	
 	# Build SMP kernel
-	echo ">>>> Building SMP kernel..."
+	echo ">>> Building SMP kernel..."
 	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
@@ -375,12 +375,12 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
-	echo ">>>> installing SMP kernel..."
+	echo ">>> installing SMP kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Nuke symbols
-	echo -n ">>>> Cleaning up .symbols..."
+	echo -n ">>> Cleaning up .symbols..."
     if [ -z "${PFSENSE_DEBUG:-}" ]; then
 		echo -n "."
 		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm -f {} \;
@@ -392,7 +392,7 @@ build_all_kernels() {
 	find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
 	echo "done."
 
-	echo -n ">>>> Installing kernels to LiveCD area..."
+	echo -n ">>> Installing kernels to LiveCD area..."
 	(cd /tmp/kernels/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .) 	
 	echo -n "."
 	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
@@ -470,7 +470,7 @@ recompile_pfPorts() {
 		export FORCE_PKG_REGISTER=yo
 
 		chmod a+rx $USE_PORTS_FILE
-		echo ">>>> Executing $PFPORTSBASENAME"
+		echo ">>> Executing $PFPORTSBASENAME"
 		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} ${MAKEJ_PORTS}" ) 2>&1 \
 			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
 		
@@ -537,16 +537,16 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
 
 	if [ ! -z "${CUSTOM_COPY_LIST:-}" ]; then
-		echo ">>>> Using ${CUSTOM_COPY_LIST:-}..."
+		echo ">>> Using ${CUSTOM_COPY_LIST:-}..."
 		FOUND_FILES=`cat ${CUSTOM_COPY_LIST:-}`
 	else
-		echo ">>>> Using copy.list.${PFSENSETAG}..."
+		echo ">>> Using copy.list.${PFSENSETAG}..."
 		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 	fi
 
 	# Process base system libraries
 	NEEDEDLIBS=""
-	echo ">>>>> Populating newer binaries found on host jail/os (usr/local)..."
+	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
 		if [ -f /${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | egrep "(dynamically|shared)" | wc -l | awk '{ print $1 }'`
@@ -569,7 +569,7 @@ cust_overlay_host_binaries() {
 			fi
 		fi
 	done		
-	echo ">>>>> Installing collected library information (usr/local), please wait..."
+	echo ">>>> Installing collected library information (usr/local), please wait..."
 	# Unique the libraries so we only copy them once
 	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
 	for NEEDLIB in $NEEDEDLIBS; do
@@ -717,7 +717,7 @@ cust_populate_extra() {
 cust_install_config_xml() {
 	if [ ! -z "${USE_CONFIG_XML:-}" ]; then
 		if [ -f "$USE_CONFIG_XML" ]; then
-			echo ">>>> Using custom config.xml file ${USE_CONFIG_XML} ..."
+			echo ">>> Using custom config.xml file ${USE_CONFIG_XML} ..."
 			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/cf/conf/config.xml
 			cp ${USE_CONFIG_XML} ${PFSENSEBASEDIR}/conf.default/config.xml 2>/dev/null
 			cp ${USE_CONFIG_XML} ${CVS_CO_DIR}/cf/conf/config.xml
@@ -986,7 +986,7 @@ create_FreeBSD_system_update() {
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	if [ -e /usr/local/sbin/gzsig ]; then 	
-		echo ">>>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
+		echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 	
@@ -1092,7 +1092,7 @@ create_pfSense_Full_update_tarball() {
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	if [ -e /usr/local/sbin/gzsig ]; then 
-		echo ">>>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
+		echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 
@@ -1158,7 +1158,7 @@ create_pfSense_Small_update_tarball() {
 	ls -lah ${UPDATESDIR}/${FILENAME}
 
 	if [ -e /usr/local/sbin/gzsig ]; then 
-		echo ">>>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
+		echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	fi
 
@@ -1314,7 +1314,7 @@ checkout_pfSense_git() {
 
 checkout_pfSense() {
 	PREVIOUSDIR=`pwd`
-	echo ">>>> Checking out pfSense version ${PFSENSETAG}..."
+	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
 	rm -rf $CVS_CO_DIR
 	if [ -z "${USE_GIT:-}" ]; then
 		(cd $BASE_DIR && cvs -d ${BASE_DIR}/cvsroot co pfSense -r ${PFSENSETAG})
@@ -1326,7 +1326,7 @@ checkout_pfSense() {
 }
 
 checkout_freesbie() {
-	echo ">>>> Getting FreeSBIE"
+	echo ">>> Getting FreeSBIE"
 	rm -rf $LOCALDIR
 }
 
@@ -1378,12 +1378,12 @@ clear_custom() {
 }
 
 backup_pfSense() {
-	echo ">>>> Backing up pfSense repo"
+	echo ">>> Backing up pfSense repo"
 	cp -R $CVS_CO_DIR $BASE_DIR/pfSense_bak
 }
 
 restore_pfSense() {
-	echo ">>>> Restoring pfSense repo"
+	echo ">>> Restoring pfSense repo"
 	cp -R $BASE_DIR/pfSense_bak $CVS_CO_DIR
 }
 
@@ -2008,10 +2008,10 @@ fi
 
 EOF
 
-		echo ">>>> Installing custom pfSense-XML packages inside chroot ..."
+		echo ">>> Installing custom pfSense-XML packages inside chroot ..."
 		chmod a+rx ${TODIR}/${DESTNAME}
 		chroot ${TODIR} /bin/sh /${DESTNAME}
-		echo ">>>> Unmounting ${TODIR}/dev ..."
+		echo ">>> Unmounting ${TODIR}/dev ..."
 		umount -f ${TODIR}/dev
 	
 	fi		
@@ -2268,7 +2268,7 @@ setup_deviso_specific_items() {
 	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
 	mkdir -p $DEVROOT
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
-	echo -n " CLONING"
+	echo -n "CLONING"
 	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO $PFSENSEBASEDIR/home/pfsense/installer
 	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense/mainline.git pfSenseGITREPO/pfSenseGITREPO)
 	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense-tools/mainline.git tools)
