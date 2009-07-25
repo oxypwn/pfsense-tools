@@ -2070,6 +2070,7 @@ rebuild_and_install_bsdinstaller() {
 	if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 		echo -n ">>> Fetching BSDInstaller using CVSUP..."
 		(csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		echo "Done!"
 		./cvsup_bsdinstaller
 	else 
 		echo -n ">>> Fetching BSDInstaller using GIT..."
