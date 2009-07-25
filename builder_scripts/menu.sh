@@ -27,7 +27,7 @@ while [ /bin/true ]; do
 	$DIALOG --clear --title "pfSense builder system" \
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
 		--menu "Welcome to the pfSense builder system.\n\n\
-Choose the option you would like:" -1 -1 8 \
+Choose the option you would like:" -1 -1 9 \
 			"Exit"				"Exit the pfSense builder system" \
 			"Clean"				"Cleanup previous builds" \
 			"Sync GIT"			"Synchronize various checked out GIT trees with rcs.pfSense.org" \
@@ -49,6 +49,9 @@ Choose the option you would like:" -1 -1 8 \
 		;;
 		"Sync GIT")
 		./update_git_repos.sh
+		;;
+		"Build pfPorts")
+		./build_pfPorts.sh
 		;;
 		"Build ISO")
 		./build_iso.sh
