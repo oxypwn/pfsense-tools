@@ -2262,3 +2262,16 @@ ensure_healthy_installer() {
 		echo "[OK]"
 	fi
 }
+
+setup_deviso_specific_items() {
+	echo -n ">>> Setting up DevISO specific bits... Please wait..."
+	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
+	mkdir -p $DEVROOT
+	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
+	echo -n " CLONING"
+	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO $PFSENSEBASEDIR/home/pfsense/installer
+	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense/mainline.git pfSenseGITREPO/pfSenseGITREPO)
+	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense-tools/mainline.git tools)
+	(cd $DEVROOT && git clone http://gitweb.pfsense.org/freesbie2/mainline.git freesbie2)
+	echo "...Done!"
+}

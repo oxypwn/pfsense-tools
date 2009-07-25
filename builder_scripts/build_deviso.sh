@@ -106,6 +106,7 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep bsdinstaller) > $BUILDER_TOOLS/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep lighttpd) >> $BUILDER_TOOLS/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep lua) >> $BUILDER_TOOLS/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep git) >> $BUILDER_TOOLS/builder_scripts/conf/packages
 (cd /var/db/pkg && ls | grep grub) >> $BUILDER_TOOLS/builder_scripts/conf/packages
 set -e
 
@@ -145,6 +146,9 @@ test_php_install
 
 # Check to see if we have a healthy installer
 ensure_healthy_installer
+
+# Setup dev_iso specific items
+setup_deviso_specific_items
 
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
