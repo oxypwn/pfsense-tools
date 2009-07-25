@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/repo/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.7
-diff -u -r1.7 pf.c
---- sys/contrib/pf/net/pf.c	8 Jun 2009 21:54:34 -0000	1.7
-+++ sys/contrib/pf/net/pf.c	9 Jun 2009 19:49:35 -0000
-@@ -6420,7 +6420,7 @@
+RCS file: /usr/home/ermal/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.8
+diff -u -r1.8 pf.c
+--- sys/contrib/pf/net/pf.c	25 Jul 2009 22:32:44 -0000	1.8
++++ sys/contrib/pf/net/pf.c	25 Jul 2009 22:34:41 -0000
+@@ -6451,7 +6451,7 @@
  	 * If deferred crypto processing is needed, check that the
  	 * interface supports it.
  	 */
@@ -16,11 +16,11 @@ diff -u -r1.7 pf.c
  		ipsp_skipcrypto_unmark((struct tdb_ident *)(mtag + 1));
 Index: sys/netinet/in.h
 ===================================================================
-RCS file: /root/repo/repo/src/sys/netinet/in.h,v
+RCS file: /usr/home/ermal/repo/src/sys/netinet/in.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 in.h
---- sys/netinet/in.h	8 Jun 2009 18:46:34 -0000	1.1.1.1
-+++ sys/netinet/in.h	9 Jun 2009 19:49:35 -0000
+--- sys/netinet/in.h	25 Jul 2009 22:10:28 -0000	1.1.1.1
++++ sys/netinet/in.h	25 Jul 2009 22:34:41 -0000
 @@ -703,7 +703,8 @@
  #define	IPCTL_FASTFORWARDING	14	/* use fast IP forwarding code */
  #define	IPCTL_KEEPFAITH		15	/* FAITH IPv4->IPv6 translater ctl */
@@ -41,43 +41,36 @@ diff -u -r1.1.1.1 in.h
  #endif /* __BSD_VISIBLE */
 Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /root/repo/repo/src/sys/netinet/ip_input.c,v
+RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_input.c,v
 retrieving revision 1.3
 diff -u -r1.3 ip_input.c
---- sys/netinet/ip_input.c	9 Jun 2009 19:47:49 -0000	1.3
-+++ sys/netinet/ip_input.c	9 Jun 2009 19:50:56 -0000
-@@ -117,6 +117,9 @@
- static int	maxfragsperpacket;
- int	ipstealth;
- static int	nipq;	/* Total # of reass queues */
-+# ifdef IPSEC
-+int   ipipsec_in_use;
-+# endif
- #endif
+--- sys/netinet/ip_input.c	25 Jul 2009 22:33:45 -0000	1.3
++++ sys/netinet/ip_input.c	25 Jul 2009 22:40:06 -0000
+@@ -125,6 +125,10 @@
+ #define	V_maxnipq		VNET(maxnipq)
+ #define	V_maxfragsperpacket	VNET(maxfragsperpacket)
+ #define	V_nipq			VNET(nipq)
++ifdef IPSEC
++VNET_DEFINE(int, ipipsec_in_use);
++#endif
++
  
- /* Divert hooks */
-@@ -126,6 +129,12 @@
-     forwarding, CTLFLAG_RW, ipforwarding, 0,
+ VNET_DEFINE(int, ipstealth);
+ 
+@@ -138,6 +142,12 @@
+     &VNET_NAME(ipforwarding), 0,
      "Enable IP forwarding between interfaces");
  
 +#ifdef IPSEC
-+SYSCTL_V_INT(V_NET, vnet_inet, _net_inet_ip, IPCTL_IPSEC_INUSE,
-+    ipsec_in_use, CTLFLAG_RW, ipipsec_in_use, 0,
-+    "Enable IPSec processing of packets");
++SYSCTL_VNET_INT(_net_inet_ip, IPCTL_IPSEC_INUSE, ipsec_in_use, CTLFLAG_RW,
++	&VNET_NAME(ipipsec_in_use), 0,
++	"Enable IPSec processing of packets");
 +#endif
 +
- SYSCTL_V_INT(V_NET, vnet_inet, _net_inet_ip, IPCTL_SENDREDIRECTS,
-     redirect, CTLFLAG_RW, ipsendredirects, 0,
+ SYSCTL_VNET_INT(_net_inet_ip, IPCTL_SENDREDIRECTS, redirect, CTLFLAG_RW,
+     &VNET_NAME(ipsendredirects), 0,
      "Enable sending IP redirects");
-@@ -299,6 +308,7 @@
- 	V_ip_do_randomid = 0;
- 	V_ip_id = time_second & 0xffff;
- 	V_ipforwarding = 0;
-+	V_ipipsec_in_use = 0;
- 	V_ipstealth = 0;
- 	V_nipq = 0;	/* Total # of reass queues */
- 
-@@ -514,7 +524,7 @@
+@@ -484,7 +494,7 @@
  	/*
  	 * Bypass packet filtering for packets from a tunnel (gif).
  	 */
@@ -86,7 +79,7 @@ diff -u -r1.3 ip_input.c
  		goto passin;
  #endif /* IPSEC */
  
-@@ -718,7 +728,7 @@
+@@ -698,7 +708,7 @@
  		m_freem(m);
  	} else {
  #ifdef IPSEC
@@ -95,7 +88,7 @@ diff -u -r1.3 ip_input.c
  			goto bad;
  #endif /* IPSEC */
  		ip_forward(m, dchg);
-@@ -767,7 +777,7 @@
+@@ -750,7 +760,7 @@
  	 * note that we do not visit this with protocols with pcb layer
  	 * code - like udp/tcp/raw ip.
  	 */
@@ -104,7 +97,7 @@ diff -u -r1.3 ip_input.c
  		goto bad;
  #endif /* IPSEC */
  
-@@ -1558,7 +1568,8 @@
+@@ -1539,7 +1549,8 @@
  		 * If IPsec is configured for this path,
  		 * override any possibly mtu value set by ip_output.
  		 */ 
@@ -116,12 +109,12 @@ diff -u -r1.3 ip_input.c
  		 * If the MTU was set before make sure we are below the
 Index: sys/netinet/ip_output.c
 ===================================================================
-RCS file: /root/repo/repo/src/sys/netinet/ip_output.c,v
+RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_output.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_output.c
---- sys/netinet/ip_output.c	8 Jun 2009 18:46:34 -0000	1.1.1.1
-+++ sys/netinet/ip_output.c	9 Jun 2009 19:52:07 -0000
-@@ -467,26 +467,28 @@
+--- sys/netinet/ip_output.c	25 Jul 2009 22:10:28 -0000	1.1.1.1
++++ sys/netinet/ip_output.c	25 Jul 2009 22:34:41 -0000
+@@ -465,26 +465,28 @@
  
  sendit:
  #ifdef IPSEC
@@ -169,7 +162,7 @@ diff -u -r1.1.1.1 ip_output.c
  #endif /* IPSEC */
  
  	/* Jump over all PFIL processing if hooks are not active. */
-@@ -1068,7 +1070,7 @@
+@@ -1067,7 +1069,7 @@
  		{
  			caddr_t req;
  			struct mbuf *m;
@@ -178,7 +171,7 @@ diff -u -r1.1.1.1 ip_output.c
  			if ((error = soopt_getm(sopt, &m)) != 0) /* XXX */
  				break;
  			if ((error = soopt_mcopyin(sopt, m)) != 0) /* XXX */
-@@ -1190,7 +1192,7 @@
+@@ -1189,7 +1191,7 @@
  			struct mbuf *m = NULL;
  			caddr_t req = NULL;
  			size_t len = 0;
@@ -189,39 +182,16 @@ diff -u -r1.1.1.1 ip_output.c
  				len = m->m_len;
 Index: sys/netinet/ip_var.h
 ===================================================================
-RCS file: /root/repo/repo/src/sys/netinet/ip_var.h,v
+RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_var.h,v
 retrieving revision 1.2
 diff -u -r1.2 ip_var.h
---- sys/netinet/ip_var.h	8 Jun 2009 21:10:08 -0000	1.2
-+++ sys/netinet/ip_var.h	9 Jun 2009 19:49:35 -0000
-@@ -167,6 +167,7 @@
- extern int	ip_do_randomid;
- extern int	ip_defttl;		/* default IP ttl */
- extern int	ipforwarding;		/* ip forwarding */
-+extern int	ipipsec_in_use;		/* IPSec in use */
+--- sys/netinet/ip_var.h	25 Jul 2009 22:21:15 -0000	1.2
++++ sys/netinet/ip_var.h	25 Jul 2009 22:43:14 -0000
+@@ -175,6 +175,7 @@
+ #define	V_ip_id			VNET(ip_id)
+ #define	V_ip_defttl		VNET(ip_defttl)
+ #define	V_ipforwarding		VNET(ipforwarding)
++#define V_ipipsec_in_use	VNET(ipipsec_in_use)
  #ifdef IPSTEALTH
- extern int	ipstealth;		/* stealth forwarding */
+ #define	V_ipstealth		VNET(ipstealth)
  #endif
-Index: sys/netinet/vinet.h
-===================================================================
-RCS file: /root/repo/repo/src/sys/netinet/vinet.h,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 vinet.h
---- sys/netinet/vinet.h	8 Jun 2009 18:46:34 -0000	1.1.1.1
-+++ sys/netinet/vinet.h	9 Jun 2009 19:49:35 -0000
-@@ -72,6 +72,7 @@
- 	int			_ip_do_randomid;
- 	int			_ip_checkinterface;
- 	int			_ip_output_flowtable_size;
-+	int			_ipipsec_in_use;
- 	u_short			_ip_id;
- 
- 	uma_zone_t 		_ipq_zone;
-@@ -280,6 +281,7 @@
- #define	V_ip_sendsourcequench	VNET_INET(ip_sendsourcequench)
- #define	V_ipfastforward_active	VNET_INET(ipfastforward_active)
- #define	V_ipforwarding		VNET_INET(ipforwarding)
-+#define	V_ipipsec_in_use	VNET_INET(ipipsec_in_use)
- #define	V_ipport_firstauto	VNET_INET(ipport_firstauto)
- #define	V_ipport_hifirstauto	VNET_INET(ipport_hifirstauto)
- #define	V_ipport_hilastauto	VNET_INET(ipport_hilastauto)
