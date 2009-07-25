@@ -13,9 +13,10 @@ get_text() {
 
 get_pfsense_version() {
 	$DIALOG --title "pfSense version" --clear \
-	        --radiolist "Please select which version you would like to build:\n" -1 -1 2 \
+	        --radiolist "Please select which version you would like to build:\n" -1 -1 3 \
 	        "RELENG_1_2"	"Release branch" ON \
 	        "RELENG_2_0"	"Development branch RELENG_2_0" OFF \
+	        "Custom"		"Enter a custom version" OFF \	
 			2> /tmp/radiolist.tmp.$$
 	retval=$?
 	get_pfsense_version_value=`cat /tmp/radiolist.tmp.$$`
@@ -64,6 +65,10 @@ Choose the option you would like:" -1 -1 8 \
 		"Set version")
 		get_pfsense_version
 		PFSENSE_VERSION=$get_pfsense_version_value
+		if [ "$PFSENSE_VERSION"="Custom" ]; then
+			get_text "Enter the pfSense version you would like to use"
+			PFSENSE_VERSION=$get_text_value
+		fi
 		get_text "Enter the cvsup server address or hit enter to use the fastest found"
 		CVSUP_SOURCE=$get_text_value
 		get_text "Enter the E-mail address to send a message to upon operation finish"
