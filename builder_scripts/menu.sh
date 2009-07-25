@@ -15,7 +15,7 @@ get_pfsense_version() {
 	$DIALOG --title "pfSense version" --clear \
 	        --radiolist "Please select which version you would like to build:\n" -1 -1 2 \
 	        "RELENG_1_2"	"Release branch" ON \
-	        "HEAD"			"No, that's not my dog." OFF \
+	        "RELENG_2_0"	"Development branch RELENG_2_0" OFF \
 			2> /tmp/radiolist.tmp.$$
 	retval=$?
 	get_pfsense_version_value=`cat /tmp/radiolist.tmp.$$`
