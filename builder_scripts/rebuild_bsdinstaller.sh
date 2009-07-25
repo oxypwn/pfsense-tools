@@ -1,7 +1,5 @@
 #!/bin/sh
 
-echo ">>> Rebuilding BSDInstaller..."
-
 . ./pfsense_local.sh
 
 mkdir -p $BUILDER_TOOLS/builder_scripts/conf

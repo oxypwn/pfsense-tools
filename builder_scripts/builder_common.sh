@@ -2081,8 +2081,7 @@ rebuild_and_install_bsdinstaller() {
 		fi	
 		echo "Done!"
 	fi
-	# echo "Rebuilding BSDInstaller..."
-	(su - root -c cd ${BUILDER_SCRIPTS} && ./rebuild_bsdinstaller.sh)
+	./rebuild_bsdinstaller.sh
 }
 
 ensure_source_directories_present() {
