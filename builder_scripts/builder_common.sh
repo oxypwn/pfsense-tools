@@ -2119,7 +2119,9 @@ install_required_builder_system_ports() {
 /usr/local/bin/curl|/usr/ports/ftp/curl \
 /usr/local/bin/rsync|/usr/ports/net/rsync \
 /usr/local/bin/cpdup|/usr/ports/sysutils/cpdup/ \
-/usr/local/bin/git|/usr/ports/devel/git/"
+/usr/local/bin/git|/usr/ports/devel/git/ \
+/usr/local/sbin/grub|/usr/ports/sysutils/grub \
+/usr/local/bin/screen|/usr/ports/sysutils/screen"
 	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do
 		CHECK_ON_DISK=`echo $PKG_STRING | awk -F"|" '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING | awk -F"|" '{ print $2 }'`
