@@ -1,49 +1,19 @@
-Index: sys/netgraph/netgraph.h
-===================================================================
-RCS file: /mnt/repo/RELENG_7/sys/netgraph/netgraph.h,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 netgraph.h
---- sys/netgraph/netgraph.h	6 Apr 2009 12:30:19 -0000	1.1.1.1
-+++ sys/netgraph/netgraph.h	6 Apr 2009 12:38:22 -0000
-@@ -1124,6 +1124,7 @@
- struct	ng_type *ng_findtype(const char *type);
- int	ng_make_node_common(struct ng_type *typep, node_p *nodep);
- int	ng_name_node(node_p node, const char *name);
-+node_p  ng_name2noderef(node_p node, const char *name);
- int	ng_newtype(struct ng_type *tp);
- ng_ID_t ng_node2ID(node_p node);
- item_p	ng_package_data(struct mbuf *m, int flags);
-Index: sys/netgraph/ng_base.c
-===================================================================
-RCS file: /mnt/repo/RELENG_7/sys/netgraph/ng_base.c,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 ng_base.c
---- sys/netgraph/ng_base.c	6 Apr 2009 12:30:19 -0000	1.1.1.1
-+++ sys/netgraph/ng_base.c	6 Apr 2009 12:38:22 -0000
-@@ -216,7 +216,6 @@
- 
- /* Imported, these used to be externally visible, some may go back. */
- void	ng_destroy_hook(hook_p hook);
--node_p	ng_name2noderef(node_p node, const char *name);
- int	ng_path2noderef(node_p here, const char *path,
- 	node_p *dest, hook_p *lasthook);
- int	ng_make_node(const char *type, node_p *nodepp);
 Index: sys/netgraph/ng_eiface.c
 ===================================================================
-RCS file: /mnt/repo/RELENG_7/sys/netgraph/ng_eiface.c,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 ng_eiface.c
---- sys/netgraph/ng_eiface.c	6 Apr 2009 12:30:19 -0000	1.1.1.1
-+++ sys/netgraph/ng_eiface.c	6 Apr 2009 12:38:51 -0000
-@@ -41,6 +41,7 @@
+RCS file: /home/ncvs/src/sys/netgraph/ng_eiface.c,v
+retrieving revision 1.53
+diff -u -r1.53 ng_eiface.c
+--- sys/netgraph/ng_eiface.c	23 Jul 2009 20:46:49 -0000	1.53
++++ sys/netgraph/ng_eiface.c	25 Jul 2009 23:09:55 -0000
+@@ -42,6 +42,7 @@
  
  #include <net/if.h>
  #include <net/if_types.h>
 +#include <net/if_dl.h>
  #include <net/netisr.h>
- 
- #include <netgraph/ng_message.h>
-@@ -62,6 +63,13 @@
+ #include <net/route.h>
+ #include <net/vnet.h>
+@@ -65,6 +66,13 @@
  	},
  	{
  	  NGM_EIFACE_COOKIE,
@@ -57,7 +27,7 @@ diff -u -r1.1.1.1 ng_eiface.c
  	  NGM_EIFACE_SET,
  	  "set",
  	  &ng_parse_enaddr_type,
-@@ -413,6 +421,11 @@
+@@ -418,6 +426,11 @@
  	struct ng_mesg *resp = NULL;
  	int error = 0;
  	struct ng_mesg *msg;
@@ -69,7 +39,7 @@ diff -u -r1.1.1.1 ng_eiface.c
  
  	NGI_GET_MSG(item, msg);
  	switch (msg->header.typecookie) {
-@@ -438,6 +451,46 @@
+@@ -443,6 +456,46 @@
  			}
  			strlcpy(resp->data, ifp->if_xname, IFNAMSIZ);
  			break;
@@ -118,11 +88,11 @@ diff -u -r1.1.1.1 ng_eiface.c
  		    {
 Index: sys/netgraph/ng_eiface.h
 ===================================================================
-RCS file: /mnt/repo/RELENG_7/sys/netgraph/ng_eiface.h,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 ng_eiface.h
---- sys/netgraph/ng_eiface.h	6 Apr 2009 12:30:19 -0000	1.1.1.1
-+++ sys/netgraph/ng_eiface.h	6 Apr 2009 12:38:23 -0000
+RCS file: /home/ncvs/src/sys/netgraph/ng_eiface.h,v
+retrieving revision 1.9
+diff -u -r1.9 ng_eiface.h
+--- sys/netgraph/ng_eiface.h	3 Feb 2005 11:52:42 -0000	1.9
++++ sys/netgraph/ng_eiface.h	25 Jul 2009 23:09:55 -0000
 @@ -54,6 +54,7 @@
  	NGM_EIFACE_GET_IFNAME = 1,	/* get the interface name */
  	NGM_EIFACE_GET_IFADDRS,		/* returns list of addresses */
@@ -133,11 +103,11 @@ diff -u -r1.1.1.1 ng_eiface.h
  #endif /* _NETGRAPH_NG_EIFACE_H_ */
 Index: usr.sbin/ngctl/main.c
 ===================================================================
-RCS file: /mnt/repo/RELENG_7/usr.sbin/ngctl/main.c,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 main.c
---- usr.sbin/ngctl/main.c	6 Apr 2009 12:30:51 -0000	1.1.1.1
-+++ usr.sbin/ngctl/main.c	6 Apr 2009 12:39:45 -0000
+RCS file: /home/ncvs/src/usr.sbin/ngctl/main.c,v
+retrieving revision 1.25
+diff -u -r1.25 main.c
+--- usr.sbin/ngctl/main.c	14 Jun 2009 21:39:52 -0000	1.25
++++ usr.sbin/ngctl/main.c	25 Jul 2009 23:09:55 -0000
 @@ -216,7 +216,6 @@
  			continue;
  		if ((rtn = DoParseCommand(line)) != 0) {
