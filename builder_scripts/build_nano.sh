@@ -50,7 +50,10 @@ fi
 # Suck in script helper functions
 . ./builder_common.sh
 
-# Ensure needed builder binaries are present
+# Make sure source directories are present.
+ensure_source_directories_present
+
+# Ensure binaries are present that builder system requires
 install_required_builder_system_ports
 
 # Output build flags

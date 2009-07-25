@@ -2090,14 +2090,10 @@ ensure_source_directories_present() {
 		echo "PFSPATCHDIR=${PFSPATCHDIR} is not a directory -- Please fix."
 		exit 1
 	fi
-	# Sanity check
-	if [ ! -d "${SRCDIR}" ]; then
-		echo "SRCDIR=${SRCDIR} is not a directory -- Please fix."
-		exit 1
-	fi
 	if [ ! -d $SRCDIR ]; then
 		echo ">>> Creating $SRCDIR ... We will need to csup the contents..."
 		mkdir $SRCDIR
+		update_freebsd_sources_and_apply_patches
 	fi	
 }
 
