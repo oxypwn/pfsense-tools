@@ -37,6 +37,9 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Ensure needed builder binaries are present
+install_required_builder_system_ports
+
 echo ">>> Cleaning up old directories..."
 freesbie_make cleandir
 
@@ -57,8 +60,16 @@ export KERNELCONF="${PWD}/conf/pfSense_Dev.$FREEBSD_VERSION"
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Install BSDInstaller
+rebuild_and_install_bsdinstaller
+
+# Update FreeBSD sources and install custom patches
+update_freebsd_sources_and_apply_patches
+
 # Allow old CVS_CO_DIR to be deleted later
-chflags -R noschg $CVS_CO_DIR
+if [ -d $CVS_CO_DIR ]; then
+	chflags -R noschg $CVS_CO_DIR
+fi
 
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot

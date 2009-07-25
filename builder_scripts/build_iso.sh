@@ -37,6 +37,9 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Ensure needed builder binaries are present
+install_required_builder_system_ports
+
 echo ">>> Cleaning up old directories..."
 freesbie_make cleandir
 
@@ -73,6 +76,12 @@ fi
 
 # Output build flags
 print_flags
+
+# Install BSDInstaller
+rebuild_and_install_bsdinstaller
+
+# Update FreeBSD sources and install custom patches
+update_freebsd_sources_and_apply_patches
 
 # Checkout a fresh copy from pfsense cvs depot
 echo ">>> Updating pfSense CVS depot..."

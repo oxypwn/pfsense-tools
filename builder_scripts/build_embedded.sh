@@ -46,6 +46,9 @@ fi
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Ensure needed builder binaries are present
+install_required_builder_system_ports
+
 echo ">>> Cleaning up old directories..."
 freesbie_make cleandir
 

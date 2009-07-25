@@ -14,14 +14,6 @@ if [ ! -f ./pfsense-build.conf ]; then
 	exit 1
 fi
 
-# No ports exist, use portsnap to bootstrap.
-if [ ! -d "/usr/ports/" ]; then
-	echo -n  ">>> Grabbing FreeBSD port sources, please wait..."
-	(/usr/sbin/portsnap fetch) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(/usr/sbin/portsnap extract) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	echo "Done!"
-fi
-
 # Set CURRENTDIR
 CURRENTDIR=`pwd`
 
@@ -48,230 +40,18 @@ echo "...Done!"
 
 SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 
-# Sanity check
-if [ ! -d "${PFSPATCHDIR}" ]; then
-	echo "PFSPATCHDIR=${PFSPATCHDIR} is not a directory -- Please fix."
-	exit 1
-fi
+# Make sure source directories are present.
+ensure_source_directories_present
 
-# Sanity check
-if [ ! -d "${SRCDIR}" ]; then
-	echo "SRCDIR=${SRCDIR} is not a directory -- Please fix."
-	exit 1
-fi
+# Ensure binaries are present that builder system requires
+install_required_builder_system_ports
 
-if [ ! -d $SRCDIR ]; then
-	echo ">>> Creating $SRCDIR ... We will need to csup the contents..."
-	mkdir $SRCDIR
-fi
-
-MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-
-# Ensure cdrtools are installed
-if [ ! -f /usr/local/bin/mkisofs ]; then
-	echo "Cannot find mkisofs, building from ports..."
-	(cd /usr/ports/sysutils/cdrtools && make deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/sysutils/cdrtools && make ${MAKEJ_PORTS} BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/sysutils/cdrtools && make install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	if [ ! -f /usr/local/bin/mkisofs ]; then
-		echo "Something went wrong while attempting installation of mkisofs."
-		exit 1
-	fi 
-fi
-
-if [ -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
-	# Add fastest-cvsup
-	if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-		echo "Cannot find fastest_cvsup, building from ports..."
-		(cd /usr/ports/sysutils/fastest_cvsup/ && make deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		(cd /usr/ports/sysutils/fastest_cvsup/ && make ${MAKEJ_PORTS} BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		(cd /usr/ports/sysutils/fastest_cvsup/ && make install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		if [ ! -f "/usr/local/bin/fastest_cvsup" ]; then
-			echo "Something went wrong while attempting installation of fastest_cvsup."
-			exit 1
-		fi
-	fi
-fi
-
-# Add pcre
-if [ ! -f "/usr/local/lib/libpcre.so.0" ]; then
-	echo "Cannot find pcre, building from ports..."
-	(cd /usr/ports/devel/pcre && make deinstall clean install BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/devel/pcre && make ${MAKEJ_PORTS} BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/devel/pcre && make install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	if [ ! -f "/usr/local/lib/libpcre.so.0" ]; then
-		echo "Something went wrong while attempting installation of pcre."
-		exit 1
-	fi
-fi
-
-# Add lighttpd
-if [ ! -f "/usr/local/sbin/lighttpd" ]; then
-	echo "Cannot find lighttpd, building from ports..."
-	(cd /usr/ports/www/lighttpd && make deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/www/lighttpd && make ${MAKEJ_PORTS} BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/www/lighttpd && make install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	if [ ! -f "/usr/local/sbin/lighttpd" ]; then
-		echo "Something went wrong while attempting installation of lighttpd."
-		exit 1
-	fi
-fi
-
-# Add curl
-if [ ! -f "/usr/local/bin/curl" ]; then
-	echo "Cannot find curl, building from ports..."
-	(cd /usr/ports/ftp/curl && make deinstall clean BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/ftp/curl && make ${MAKEJ_PORTS} BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/ftp/curl && make  install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	if [ ! -f "/usr/local/bin/curl" ]; then
-		echo "Something went wrong while attempting installation of curl."
-		exit 1
-	fi
-fi
-
-# Add rsync
-if [ ! -f "/usr/local/bin/rsync" ]; then
-	echo "Cannot find rsync, building from ports..."
-	(cd /usr/ports/net/rsync && make deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/net/rsync && make ${MAKEJ_PORTS} BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/net/rsync && make  install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	if [ ! -f "/usr/local/bin/rsync" ]; then
-		echo "Something went wrong while attempting installation of rsync."
-		exit 1
-	fi
-fi
-
-# Add cpdup
-if [ ! -f "/usr/local/bin/cpdup" ]; then
-	echo "Cannot find cpdup, building from ports..."
-	(cd /usr/ports/sysutils/cpdup/ && make deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/sysutils/cpdup/ && make ${MAKEJ_PORTS} BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/sysutils/cpdup/ && make  install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	if [ ! -f "/usr/local/bin/cpdup" ]; then
-		echo "Something went wrong while attempting installation of cpdup."
-		exit 1
-	fi
-fi
-
-# Add git
-if [ ! -f "/usr/local/bin/git" ]; then
-	echo "Cannot find git, building from ports..."
-	(cd /usr/ports/devel/git/ && make -DBATCH deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/devel/git/ && make ${MAKEJ_PORTS} -DBATCH -DWITHOUT_GUI) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/devel/git/ && make install -DWITHOUT_GUI -DFORCE_PKG_REGISTER -DBATCH) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	if [ ! -f "/usr/local/bin/git" ]; then
-		echo "Something went wrong while attempting installation of git."
-		exit 1
-	fi
-fi
-
-# Add BSDInstaller
-if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
-	echo -n ">>> Fetching BSDInstaller using CVSUP..."
-	(csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	./cvsup_bsdinstaller
-else 
-	echo -n ">>> Fetching BSDInstaller using GIT..."
-	git checkout "${GIT_REPO_BSDINSTALLER}"
-	if [ $? != 0 ]; then
-		echo "Something went wrong while checking out GIT."
-		exit
-	fi	
-	echo "Done!"
-fi
-
-# echo "Rebuilding BSDInstaller..."
-(su - root -c cd ${BUILDER_SCRIPTS} && ./rebuild_bsdinstaller.sh)
-
-# If override is in place, use it otherwise
-# locate fastest cvsup host
-if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
-	echo "Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
-	echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
-else
-	echo "Finding fastest CVSUp host... Please wait..."
-	fastest_cvsup -c tld -q > /var/db/fastest_cvsup
-fi
-
-# Loop through and remove files
-PFSPATCHFILE=`basename $PFSPATCHFILE`
-echo ">>> Removing needed files listed in ${PFSPATCHFILE} ${PFSENSETAG}"
-for LINE in `cat ${PFSPATCHFILE}`
-do
-	PATCH_RM=`echo $LINE | cut -d~ -f4`
-	PATCH_RM_LENGTH=`echo $PATCH_RM | wc -c`
-	DIR_CREATE=`echo $LINE | cut -d~ -f5`
-	if [ $PATCH_RM_LENGTH -gt "2" ]; then
-		rm -rf ${SRCDIR}${PATCH_RM}
-	fi
-	if [ "$DIR_CREATE" != "" ]; then
-		mkdir -p ${SRCDIR}/${DIR_CREATE}
-	fi
-done
-
-# CVSUp freebsd version -- this MUST be after Loop through and remove files
-BASENAMESUPFILE=`basename $SUPFILE`
-echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
-(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | egrep -B3 -A3 -wi '(error)'
-#if [ "$?" = "1" ]; then
-#	echo
-#	echo "!!!! An error occured while fetching FreeBSD sources cvsup_current.sh!"
-#	sleep 65535
-#else 
-	echo "Done!"
-#fi
-
-echo ">>> Removing old patch rejects..."
-find $SRCDIR -name "*.rej" -exec rm {} \;
-
-echo -n ">>> Applying patches, please wait..."
-# Loop through and patch files
-for LINE in `cat ${PFSPATCHFILE}`
-do
-	PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
-	PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
-	PATCH_FILE=`echo $LINE | cut -d~ -f3`
-	PATCH_FILE_LEN=`echo $PATCH_FILE | wc -c`
-	MOVE_FILE=`echo $LINE | cut -d~ -f4`
-	MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
-	IS_TGZ=`echo $LINE | grep -v grep | grep .tgz | wc -l`
-	if [ $PATCH_FILE_LEN -gt "2" ]; then
-		if [ $IS_TGZ -gt "0" ]; then 
-			(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
-			| egrep -wi '(warning|error)'
-		else
-			(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
-			| egrep -wi '(warning|error)'
-		fi
-	fi
-	if [ $MOVE_FILE_LEN -gt "2" ]; then
-		#cp ${SRCDIR}/${MOVE_FILE} ${SRCDIR}/${PATCH_DIRECTORY}
-	fi
-done
-echo "Done!"
-
-echo ">>> Finding patch rejects..."
-REJECTED_PATCHES=`find $SRCDIR -name "*.rej" | wc -l`
-if [ $REJECTED_PATCHES -gt 0 ]; then
-	echo
-	echo "WARNING!  Rejected patches found!  Please fix before building!"
-	echo 
-	find $SRCDIR -name "*.rej" 
-	echo
-	if [ "$FREESBIE_ERROR_MAIL" != "" ]; then
-		LOGFILE="/tmp/patches.failed.apply"
-		find $SRCDIR -name "*.rej" > $LOGFILE
-		report_error_pfsense
-	fi
-	sleep 65535
-fi
-
+# Cleanup previous builds (object directory)
 pfSense_clean_obj_dir
 
 # Recompile pfPorts
 set +e
-echo "__~> Recompiling all binaries needed by pfSense (pfPorts)..."
-recompile_pfPorts
+
 
 print_flags
 
