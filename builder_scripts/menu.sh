@@ -183,6 +183,7 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		if [ "$get_text_value" != "" ]; then
  			echo 'ARCH="$get_text_value"' >> pfsense-build.conf
 		fi
+		cat pfsense-build.conf
 		;;
 		"Apply patches")
 		./apply_kernel_patches.sh
