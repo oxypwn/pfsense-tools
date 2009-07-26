@@ -13,6 +13,7 @@ get_text() {
 	input=`cat /tmp/inputbox.tmp.$$`
 	get_text_value=`cat /tmp/inputbox.tmp.$$`
 	rm -f /tmp/inputbox.tmp.$$
+	clear
 }
 
 get_pfsense_version() {
@@ -25,6 +26,7 @@ get_pfsense_version() {
 	retval=$?
 	get_pfsense_version_value=`cat /tmp/radiolist.tmp.$$`
 	rm -f /tmp/radiolist.tmp.$$
+	clear
 }
 
 while [ /bin/true ]; do
@@ -57,7 +59,6 @@ while [ /bin/true ]; do
 	if [ "$FREESBIE_COMPLETED_MAIL" != "" ]; then 
 		TXT="${TXT}  Completed E-Mail: $FREESBIE_COMPLETED_MAIL\n"
 	fi
-
 	if [ "$TXT" = "" ]; then 
 		TXT="No options have been set.  Please run Set version first.\n"
 	fi
@@ -74,6 +75,8 @@ Choose the option you would like:" -1 -1 9 \
 	        "Build NanoBSD"		"Build NanoBSD" \
 	        "Build embedded"	"Build old style embedded image" \
 			"Set version"		"Set pfSense version information etc" \
+			"Apply patches"		"Apply patches ${PATCH_FILE}" \
+			"Build snapshots"	"Build snapshots continuously" \
 			2> /tmp/menu.tmp.$$
 	retval=$?
 	choice=`cat /tmp/menu.tmp.$$`
@@ -128,6 +131,12 @@ $EMAIL_ADDRESS_WHEN_FINISHED \
 $EMAIL_ADDRESS_WHEN_ERROR \
 $TWITTER_SNAPSHOTS_USERNAME \
 $TWITTER_SNAPSHOTS_PASSWORD
+		;;
+		"Apply patches")
+		./apply_kernel_patches.sh
+		;;
+		"Build snapshots"
+		./build_snapshots_looped.sh
 		;;
 		*)
 	    [ -z "$choice" ] || echo $choice ;
