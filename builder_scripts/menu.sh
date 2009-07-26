@@ -50,6 +50,10 @@ if [ "$FREESBIE_COMPLETED_MAIL" != "" ]; then
 	TXT="${TXT}  Completed E-Mail: $FREESBIE_COMPLETED_MAIL\n"
 fi
 
+if [ "$TXT" = "" ]; then 
+	TXT="No options have been set.  Please run Set version first."
+fi
+
 while [ /bin/true ]; do
 	if [ -f ./pfsense-build.conf ]; then
 		. ./pfsense-build.conf
