@@ -48,7 +48,7 @@ if [ "$FREESBIE_COMPLETED_MAIL" != "" ]; then
 fi
 
 if [ "$TXT" = "" ]; then 
-	TXT="No options have been set.  Please run Set version first."
+	TXT="No options have been set.  Please run Set version first.\n"
 fi
 
 while [ /bin/true ]; do
