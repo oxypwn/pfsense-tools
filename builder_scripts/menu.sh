@@ -116,7 +116,7 @@ Choose the option you would like:" -1 -1 9 \
 			"Apply patches"			"Apply patches ${PATCH_FILE}" \
 			"Build snapshots"		"Build snapshots continuously" \
 			"Print variables"		"Shows all pfsense-build.conf and pfsense_local.conf variables" \
-			"Rebuild BSDInstaller"	"Syncs and rebuilds BSDInstaller"
+			"Rebuild BSDInstaller"	"Syncs and rebuilds BSDInstaller" \
 			"Reset builder"			"Removes /usr/local and starts completely from scratch" \
 			2> /tmp/menu.tmp.$$
 	retval=$?
