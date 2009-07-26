@@ -2113,19 +2113,25 @@ install_required_builder_system_ports() {
 		(/usr/sbin/portsnap extract) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		echo "Done!"
 	fi
-	NEEDED_INSTALLED_PKGS="/usr/local/bin/mkisofs|/usr/ports/sysutils/cdrtools \
-/usr/local/bin/fastest_cvsup|/usr/ports/sysutils/fastest_cvsup/ \
-/usr/local/lib/libpcre.so.0|/usr/ports/devel/pcre \
-/usr/local/sbin/lighttpd|/usr/ports/www/lighttpd \
-/usr/local/bin/curl|/usr/ports/ftp/curl \
-/usr/local/bin/rsync|/usr/ports/net/rsync \
-/usr/local/bin/cpdup|/usr/ports/sysutils/cpdup/ \
-/usr/local/bin/git|/usr/ports/devel/git/ \
-/usr/local/sbin/grub|/usr/ports/sysutils/grub \
-/usr/local/bin/screen|/usr/ports/sysutils/screen"
+# Local binary						# Path to port
+	NEEDED_INSTALLED_PKGS="\
+/usr/local/bin/mkisofs				/usr/ports/sysutils/cdrtools
+/usr/local/bin/fastest_cvsup		/usr/ports/sysutils/fastest_cvsup/
+/usr/local/lib/libpcre.so.0			/usr/ports/devel/pcre
+/usr/local/bin/curl					/usr/ports/ftp/curl
+/usr/local/bin/rsync				/usr/ports/net/rsync
+/usr/local/bin/cpdup				/usr/ports/sysutils/cpdup/
+/usr/local/bin/git					/usr/ports/devel/git/
+/usr/local/sbin/grub				/usr/ports/sysutils/grub
+/usr/local/bin/screen				/usr/ports/sysutils/screen
+"
+	oIFS=$IFS
+	IFS="
+"
 	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do
-		CHECK_ON_DISK=`echo $PKG_STRING | awk -F"|" '{ print $1 }'`
-		PORT_LOCATION=`echo $PKG_STRING | awk -F"|" '{ print $2 }'`
+		PKG_STRING_T=`echo $PKG_STRING | sed "s/		/	/g"`
+		CHECK_ON_DISK=`echo $PKG_STRING_T | awk '{ print $1 }'`
+		PORT_LOCATION=`echo $PKG_STRING_T | awk '{ print $2 }'`
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
 			(cd $PORT_LOCATION && make -DBATCH deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
@@ -2135,6 +2141,7 @@ install_required_builder_system_ports() {
 		fi
 	done
 }
+IFS=$oIFS
 
 update_freebsd_sources_and_apply_patches() {
 	# If override is in place, use it otherwise
@@ -2266,11 +2273,11 @@ ensure_healthy_installer() {
 
 setup_deviso_specific_items() {
 	echo -n ">>> Setting up DevISO specific bits... Please wait..."
-	DEVROOT="$PFSENSEBASEDIR/$BASE_DIR"
+	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
 	mkdir -p $DEVROOT
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
-	echo -n "."
-	cp -R $BASE_DIR/tools $DEVROOT/tools
+	echo -n "."	
+	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense-tools/mainline.git tools) | egrep -wi '(^>>>|error)'
 	echo -n "."
 	cp -R $BASE_DIR/freesbie2 $DEVROOT/freesbie2
 	echo -n "."
