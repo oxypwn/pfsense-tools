@@ -198,6 +198,7 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		"Rebuild BSDInstaller")
 		./cvsup_bsdinstaller
 		./rebuild_bsdinstaller.sh
+		;;
 		"Reset builder")
 		./reset_builder.sh
 		;;
