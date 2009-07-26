@@ -106,8 +106,7 @@ set_items() {
 	echo
 	echo "NOTE: pfsense-build.conf values updated.  These values override pfsense_local.sh !!"
 	echo
-	echo "NOTE2: if you have changed pfSense versions (ie: RELENG_1_2 -> RELENG_2_0) then you"
-	echo "       will need to run ./build_pfPorts.sh to rebuild all of the associated ports."
+	echo "NOTE2: pfPorts will be rebuilt!"
 	echo
 	HANDLED=true
 	touch /tmp/pfPorts_forced_build_required
