@@ -2270,9 +2270,9 @@ setup_deviso_specific_items() {
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
 	echo -n "CLONING"
 	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO $PFSENSEBASEDIR/home/pfsense/installer
-	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense/mainline.git pfSenseGITREPO/pfSenseGITREPO)
-	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense-tools/mainline.git tools)
-	(cd $DEVROOT && git clone http://gitweb.pfsense.org/freesbie2/mainline.git freesbie2)
+	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense/mainline.git pfSenseGITREPO/pfSenseGITREPO) | egrep -wi '(^>>>|error)'
+	(cd $DEVROOT && git clone http://gitweb.pfsense.org/pfsense-tools/mainline.git tools) | egrep -wi '(^>>>|error)'
+	(cd $DEVROOT && git clone http://gitweb.pfsense.org/freesbie2/mainline.git freesbie2) | egrep -wi '(^>>>|error)'
 	echo "...Done!"
 }
 
