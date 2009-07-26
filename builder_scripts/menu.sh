@@ -155,6 +155,7 @@ Choose the option you would like:" -1 -1 9 \
 	rm -f /tmp/menu.tmp.$$
 	case $choice in
 		"Exit")
+		clear
 		exit 0
 		;;
 		"Clean")
@@ -246,10 +247,6 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		"Reset builder")
 		clear
 		./reset_builder.sh
-		;;
-		"Exit")
-		clear
-		exit
 		;;
 		*)
 	    [ -z "$choice" ] || echo $choice ;
