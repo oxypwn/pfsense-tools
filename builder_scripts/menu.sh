@@ -130,27 +130,35 @@ Choose the option you would like:" -1 -1 9 \
 		exit 0
 		;;
 		"Clean")
+		clear
 		./clean_build.sh 
 		;;
 		"Sync GIT")
+		clear
 		./update_git_repos.sh
 		;;
 		"Build pfPorts")
+		clear
 		./build_pfPorts.sh
 		;;
 		"Build ISO")
+		clear
 		./build_iso.sh
 		;;
 		"Build DevISO")
+		clear
 		./build_deviso.sh
 		;;
 		"Build NanoBSD")
+		clear
 		./build_nano.sh
 		;;
 		"Build embedded")
+		clear
 		./build_embedded.sh
 		;;
 		"Set version")
+		clear
 		get_pfsense_version
 		PFSENSE_VERSION=$get_pfsense_version_value
 		if [ "$PFSENSE_VERSION" = "Custom" ]; then
@@ -187,22 +195,28 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		if [ "$get_text_value" != "" ]; then
  			echo 'ARCH="$get_text_value"' >> pfsense-build.conf
 		fi
+		clear
 		cat pfsense-build.conf
 		;;
 		"Apply patches")
+		clear
 		./apply_kernel_patches.sh
 		;;
 		"Build snapshots")
+		clear
 		./build_snapshots_looped.sh
 		;;
 		"Print variables")
+		clear
 		print_flags_menu
 		;;
 		"Rebuild BSDInstaller")
+		clear
 		./cvsup_bsdinstaller
 		./rebuild_bsdinstaller.sh
 		;;
 		"Reset builder")
+		clear
 		./reset_builder.sh
 		;;
 		*)
