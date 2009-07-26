@@ -36,7 +36,6 @@ fi
 if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" != "" ]; then 
 	TXT="${TXT} CVSUP Server: $OVERRIDE_FREEBSD_CVSUP_HOST\n"
 fi
-TXT="${TXT}\n"
 
 while [ /bin/true ]; do
 	$DIALOG --clear --title "pfSense builder system" \
