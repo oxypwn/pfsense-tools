@@ -137,7 +137,7 @@ while [ /bin/true ]; do
 		--menu "\n${TXT}\n \
 Choose the option you would like:" -1 -1 9 \
 			"Exit"					"Exit the pfSense builder system" \
-			"Clean"					"Cleanup previous build" \
+			"Clean"					"Clean up previous build" \
 			"Sync GIT"				"Synchronize various checked out GIT trees with rcs.pfSense.org" \
 	        "Build ISO"				"Build a regular ISO" \
 	        "Build DevISO"			"Build a Developers ISO" \
