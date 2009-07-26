@@ -1458,7 +1458,8 @@ make_world() {
 	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
 		| egrep -wi '(patching\ file|warning|error)'
 	freesbie_make installworld
-
+	# Ensure home directory exists
+	mkdir -p $PFSENSEBASEDIR/home
 }
 
 setup_nanobsd_etc ( ) {
