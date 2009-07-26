@@ -116,7 +116,8 @@ Choose the option you would like:" -1 -1 9 \
 			"Set version"			"Set pfSense version information etc" \
 			"Apply patches"			"Apply patches ${PATCH_FILE}" \
 			"Build snapshots"		"Build snapshots continuously" \
-			"Print variables"	"Shows all pfsense-build.conf and pfsense_local.conf variables" \
+			"Print variables"		"Shows all pfsense-build.conf and pfsense_local.conf variables" \
+			"Reset builder"			"Removes /usr/local and starts completely from scratch" \
 			2> /tmp/menu.tmp.$$
 	retval=$?
 	choice=`cat /tmp/menu.tmp.$$`
@@ -194,8 +195,12 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		"Print variables")
 		print_flags_menu
 		;;
+		"Reset builder")
+		./reset_builder.sh
+		;;
 		*)
 	    [ -z "$choice" ] || echo $choice ;
+			clear;
 			exit;
 		;;
 	esac
