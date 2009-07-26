@@ -64,7 +64,6 @@ if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "         pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
 	printf "               SRC_CONF: %s\n" $SRC_CONF
-	echo
 
 }
 
@@ -172,6 +171,18 @@ $EMAIL_ADDRESS_WHEN_FINISHED \
 $EMAIL_ADDRESS_WHEN_ERROR \
 $TWITTER_SNAPSHOTS_USERNAME \
 $TWITTER_SNAPSHOTS_PASSWORD
+		get_text "Enter the complete path to a overlay directory or tarball (optional)"
+		if [ "$get_text_value" != "" ]; then
+ 			echo 'custom_overlay="$get_text_value"' >> pfsense-build.conf
+		fi
+		get_text "Enter the custom GIT pfSense repo (optional)"
+		if [ "$get_text_value" != "" ]; then
+ 			echo 'GIT_REPO="$get_text_value"' >> pfsense-build.conf
+		fi
+		get_text "Enter the custom ARCH (optional)"
+		if [ "$get_text_value" != "" ]; then
+ 			echo 'ARCH="$get_text_value"' >> pfsense-build.conf
+		fi
 		;;
 		"Apply patches")
 		./apply_kernel_patches.sh
