@@ -1,6 +1,7 @@
 #!/bin/sh
 #
-#  menu.sh
+#  menu.sh - a GUI front end to the pfSense builder system
+#  Part of the pfSense project
 #  Copyright (C) 2009 Scott Ullrich <sullrich@gmail.com>
 #  All rights reserved.
 #  
@@ -30,10 +31,6 @@
 #  set -x
 
 DIALOG=${DIALOG=/usr/bin/dialog}
-
-if [ -f ./pfsense-build.conf ]; then
-	. ./pfsense-build.conf
-fi
 
 get_text() {
 	$DIALOG --title "INPUT BOX" --clear \
