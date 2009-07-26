@@ -247,6 +247,10 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		clear
 		./reset_builder.sh
 		;;
+		"Exit")
+		clear
+		exit
+		;;
 		*)
 	    [ -z "$choice" ] || echo $choice ;
 			clear;
