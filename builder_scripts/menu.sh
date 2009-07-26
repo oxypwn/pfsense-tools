@@ -40,6 +40,7 @@ while [ /bin/true ]; do
 	if [ -f ./pfsense_local.sh ]; then
 		. ./pfsense_local.sh
 	fi
+	PATCH_FILE=`basename $PFSPATCHFILE`
 	TXT=""
 	if [ "$PFSENSETAG" != "" ]; then 
 		TXT="${TXT}       pfSense TAG: $PFSENSETAG\n"
