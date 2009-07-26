@@ -16,7 +16,9 @@ if [ ! -f ./pfsense-build.conf ]; then
 	echo "See http://devwiki.pfsense.org/DevelopersBootStrapAndDevIso for more information."
 fi
 
-. ./pfsense-build.conf
+if [ -f ./pfsense-build.conf ]; then
+	. ./pfsense-build.conf
+fi
 
 # Leave near the top.  
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
