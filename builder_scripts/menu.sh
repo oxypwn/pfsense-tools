@@ -52,6 +52,13 @@ if [ "$TXT" = "" ]; then
 fi
 
 while [ /bin/true ]; do
+	unset FREESBIE_COMPLETED_MAIL
+	unset FREESBIE_ERROR_MAIL
+	unset TWITTER_USERNAME
+	unset TWITTER_PASSWORD
+	unset OVERRIDE_FREEBSD_CVSUP_HOST
+	unset FREEBSD_BRANCH
+	unset PFSENSETAG
 	if [ -f ./pfsense-build.conf ]; then
 		. ./pfsense-build.conf
 	fi
