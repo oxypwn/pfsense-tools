@@ -1,6 +1,10 @@
 #!/bin/sh
 DIALOG=${DIALOG=/usr/bin/dialog}
 
+if [ -f ./pfsense-build.conf ]; then
+	. ./pfsense-build.conf
+fi
+
 get_text() {
 	$DIALOG --title "INPUT BOX" --clear \
 	        --inputbox "$1" -1 -1 "" \
@@ -23,10 +27,22 @@ get_pfsense_version() {
 	rm -f /tmp/radiolist.tmp.$$
 }
 
+if [ "$PFSENSETAG" != "" ]; then 
+	TXT=" pfSense TAG: $PFSENSETAG\n"
+fi
+if [ "$FREEBSD_BRANCH" != "" ]; then 
+	TXT="${TXT} FreeBSD Branch: $FREEBSD_BRANCH\n"
+fi
+if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" != "" ]; then 
+	TXT="${TXT} CVSUP Server: $OVERRIDE_FREEBSD_CVSUP_HOST\n"
+fi
+TXT="${TXT}\n"
+
 while [ /bin/true ]; do
 	$DIALOG --clear --title "pfSense builder system" \
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
 		--menu "Welcome to the pfSense builder system.\n\n\
+$TXT\n \
 Choose the option you would like:" -1 -1 9 \
 			"Exit"				"Exit the pfSense builder system" \
 			"Clean"				"Cleanup previous builds" \
