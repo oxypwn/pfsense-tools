@@ -38,7 +38,7 @@ if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" != "" ]; then
 	TXT="${TXT}      CVSUP Server: $OVERRIDE_FREEBSD_CVSUP_HOST\n"
 fi
 if [ "$TWITTER_USERNAME" != "" ]; then 
-	TXT="${TXT}     Twitter UN/PW: $TWITTER_USERNAME : $TWITTER_PASSWORD\n"
+	TXT="${TXT}     Twitter UN/PW: $TWITTER_USERNAME / $TWITTER_PASSWORD\n"
 fi
 if [ "$FREESBIE_ERROR_MAIL" != "" ]; then 
 	TXT="${TXT}      Error E-Mail: $FREESBIE_ERROR_MAIL\n"
@@ -61,7 +61,7 @@ while [ /bin/true ]; do
 $TXT\n \
 Choose the option you would like:" -1 -1 9 \
 			"Exit"				"Exit the pfSense builder system" \
-			"Clean"				"Cleanup previous builds" \
+			"Clean"				"Cleanup previous build" \
 			"Sync GIT"			"Synchronize various checked out GIT trees with rcs.pfSense.org" \
 	        "Build ISO"			"Build a regular ISO" \
 	        "Build DevISO"		"Build a Developers ISO" \
