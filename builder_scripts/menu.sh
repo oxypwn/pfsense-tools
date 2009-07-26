@@ -1,4 +1,34 @@
 #!/bin/sh
+#
+#  menu.sh
+#  Copyright (C) 2009 Scott Ullrich <sullrich@gmail.com>
+#  All rights reserved.
+#  
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#  
+#  1. Redistributions of source code must retain the above copyright notice,
+#     this list of conditions and the following disclaimer.
+#  
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  
+#  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+#  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+#  AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#  AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+#  OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
+# Crank up error reporting, debugging.
+#  set -e 
+#  set -x
+
 DIALOG=${DIALOG=/usr/bin/dialog}
 
 if [ -f ./pfsense-build.conf ]; then
@@ -21,9 +51,9 @@ get_pfsense_version() {
 	        --radiolist "Please select which version you would like to build:\n" -1 -1 6 \
 	        "RELENG_1_2"	"Release branch" ON \
 	        "RELENG_2_0"	"Development branch FreeBSD 7.2 + RELENG_2_0" OFF \
+			"RELENG_7_2"	"FreeBSD 7.2 + RELENG_1_2" OFF \
+			"RELENG_7_2"	"FreeBSD 7.2 + RELENG_1_2" OFF \
 			"RELENG_8_0"	"FreeBSD 8.0 + RELENG_2_0" OFF \
-			"RELENG_7_2"	"FreeBSD 7.2 + RELENG_1_2" OFF \
-			"RELENG_7_2"	"FreeBSD 7.2 + RELENG_1_2" OFF \
 	        "Custom"		"Enter a custom version" OFF \
 			2> /tmp/radiolist.tmp.$$
 	retval=$?
@@ -33,7 +63,6 @@ get_pfsense_version() {
 }
 
 print_flags_menu() {
-
 	printf "      pfSense build dir: %s\n" $SRCDIR
 	printf "        pfSense version: %s\n" $PFSENSE_VERSION
 	printf "               CVS User: %s\n" $CVS_USER
@@ -67,7 +96,6 @@ if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "         pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
 	printf "               SRC_CONF: %s\n" $SRC_CONF
-
 }
 
 while [ /bin/true ]; do
