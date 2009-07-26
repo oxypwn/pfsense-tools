@@ -38,10 +38,7 @@ if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" != "" ]; then
 	TXT="${TXT}      CVSUP Server: $OVERRIDE_FREEBSD_CVSUP_HOST\n"
 fi
 if [ "$TWITTER_USERNAME" != "" ]; then 
-	TXT="${TXT}  Twitter Username: $TWITTER_USERNAME\n"
-fi
-if [ "$TWITTER_PASSWORD" != "" ]; then 
-	TXT="${TXT}  Twitter Password: $TWITTER_PASSWORD\n"
+	TXT="${TXT}     Twitter UN/PW: $TWITTER_USERNAME : $TWITTER_PASSWORD\n"
 fi
 if [ "$FREESBIE_ERROR_MAIL" != "" ]; then 
 	TXT="${TXT}      Error E-Mail: $FREESBIE_ERROR_MAIL\n"
@@ -76,7 +73,7 @@ Choose the option you would like:" -1 -1 9 \
 	choice=`cat /tmp/menu.tmp.$$`
 	rm -f /tmp/menu.tmp.$$
 	case $choice in
-		"Exit") 
+		"Exit")
 		exit 0
 		;;
 		"Clean")
