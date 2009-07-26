@@ -65,9 +65,6 @@ if [ -n "$PFSENSECVSDATETIME" ]; then
 fi
 	printf "               SRC_CONF: %s\n" $SRC_CONF
 	echo
-	echo "Sleeping for 5 seconds..."
-	sleep 5
-	echo
 
 }
 
