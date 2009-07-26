@@ -104,7 +104,7 @@ while [ /bin/true ]; do
 	if [ "$TXT" = "" ]; then 
 		TXT="No options have been set.  Please run Set version first.\n"
 	fi
-	$DIALOG --clear --title "pfSense builder system" \
+	$DIALOG --clear --title "pfSense builder system <||> HostOS:`uname -r`" \
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
 		--menu "\n${TXT}\n \
 Choose the option you would like:" -1 -1 9 \
