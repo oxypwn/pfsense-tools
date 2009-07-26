@@ -12,8 +12,12 @@
 
 # Ensure file exists
 if [ ! -f ./pfsense-build.conf ]; then
+	echo
 	echo "You must first run ./set_version.sh !"
 	echo "See http://devwiki.pfsense.org/DevelopersBootStrapAndDevIso for more information."
+	echo
+	echo "You can also run ./menu.sh which will assist with the available options"
+	echo
 fi
 
 if [ -f ./pfsense-build.conf ]; then
