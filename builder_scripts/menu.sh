@@ -37,8 +37,8 @@ while [ /bin/true ]; do
 	unset OVERRIDE_FREEBSD_CVSUP_HOST
 	unset FREEBSD_BRANCH
 	unset PFSENSETAG
-	if [ -f ./pfsense-build.conf ]; then
-		. ./pfsense-build.conf
+	if [ -f ./pfsense_local.sh ]; then
+		. ./pfsense_local.sh
 	fi
 	TXT=""
 	if [ "$PFSENSETAG" != "" ]; then 
