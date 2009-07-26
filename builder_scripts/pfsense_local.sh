@@ -14,7 +14,6 @@
 if [ ! -f ./pfsense-build.conf ]; then
 	echo "You must first run ./set_version.sh !"
 	echo "See http://devwiki.pfsense.org/DevelopersBootStrapAndDevIso for more information."
-	exit 1
 fi
 
 . ./pfsense-build.conf
