@@ -135,7 +135,7 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		"Apply patches")
 		./apply_kernel_patches.sh
 		;;
-		"Build snapshots"
+		"Build snapshots")
 		./build_snapshots_looped.sh
 		;;
 		*)
