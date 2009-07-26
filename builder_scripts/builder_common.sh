@@ -2266,7 +2266,7 @@ ensure_healthy_installer() {
 
 setup_deviso_specific_items() {
 	echo -n ">>> Setting up DevISO specific bits... Please wait..."
-	DEVROOT="$PFSENSEBASEDIR/$BASE_DIR
+	DEVROOT="$PFSENSEBASEDIR/$BASE_DIR"
 	mkdir -p $DEVROOT
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
 	echo -n "."
@@ -2277,7 +2277,7 @@ setup_deviso_specific_items() {
 	cp -R $BASE_DIR/pfSenseGITREPO $DEVROOT/pfSenseGITREPO
 	echo -n "."
 	cp -R $BASE_DIR/installer $DEVROOT/installer
-	echo "...Done!"
+	echo "Done!"
 }
 
 check_for_forced_pfPorts_build() {
