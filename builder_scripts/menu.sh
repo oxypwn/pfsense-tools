@@ -103,8 +103,7 @@ while [ /bin/true ]; do
 	fi
 	$DIALOG --clear --title "pfSense builder system" \
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
-		--menu "Welcome to the pfSense builder system.\n\n\
-$TXT\n \
+		--menu "$TXT\n \
 Choose the option you would like:" -1 -1 9 \
 			"Exit"					"Exit the pfSense builder system" \
 			"Clean"					"Cleanup previous build" \
