@@ -27,17 +27,33 @@ get_pfsense_version() {
 	rm -f /tmp/radiolist.tmp.$$
 }
 
+TXT=""
 if [ "$PFSENSETAG" != "" ]; then 
-	TXT=" pfSense TAG: $PFSENSETAG\n"
+	TXT="${TXT}       pfSense TAG: $PFSENSETAG\n"
 fi
 if [ "$FREEBSD_BRANCH" != "" ]; then 
-	TXT="${TXT} FreeBSD Branch: $FREEBSD_BRANCH\n"
+	TXT="${TXT}    FreeBSD Branch: $FREEBSD_BRANCH\n"
 fi
 if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" != "" ]; then 
-	TXT="${TXT} CVSUP Server: $OVERRIDE_FREEBSD_CVSUP_HOST\n"
+	TXT="${TXT}      CVSUP Server: $OVERRIDE_FREEBSD_CVSUP_HOST\n"
+fi
+if [ "$TWITTER_USERNAME" != "" ]; then 
+	TXT="${TXT}  Twitter Username: $TWITTER_USERNAME\n"
+fi
+if [ "$TWITTER_PASSWORD" != "" ]; then 
+	TXT="${TXT}  Twitter Password: $TWITTER_PASSWORD\n"
+fi
+if [ "$FREESBIE_ERROR_MAIL" != "" ]; then 
+	TXT="${TXT}      Error E-Mail: $FREESBIE_ERROR_MAIL\n"
+fi
+if [ "$FREESBIE_COMPLETED_MAIL" != "" ]; then 
+	TXT="${TXT}  Completed E-Mail: $FREESBIE_COMPLETED_MAIL\n"
 fi
 
 while [ /bin/true ]; do
+	if [ -f ./pfsense-build.conf ]; then
+		. ./pfsense-build.conf
+	fi
 	$DIALOG --clear --title "pfSense builder system" \
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
 		--menu "Welcome to the pfSense builder system.\n\n\
