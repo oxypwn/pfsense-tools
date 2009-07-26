@@ -27,30 +27,6 @@ get_pfsense_version() {
 	rm -f /tmp/radiolist.tmp.$$
 }
 
-TXT=""
-if [ "$PFSENSETAG" != "" ]; then 
-	TXT="${TXT}       pfSense TAG: $PFSENSETAG\n"
-fi
-if [ "$FREEBSD_BRANCH" != "" ]; then 
-	TXT="${TXT}    FreeBSD Branch: $FREEBSD_BRANCH\n"
-fi
-if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" != "" ]; then 
-	TXT="${TXT}      CVSUP Server: $OVERRIDE_FREEBSD_CVSUP_HOST\n"
-fi
-if [ "$TWITTER_USERNAME" != "" ]; then 
-	TXT="${TXT}     Twitter UN/PW: $TWITTER_USERNAME / $TWITTER_PASSWORD\n"
-fi
-if [ "$FREESBIE_ERROR_MAIL" != "" ]; then 
-	TXT="${TXT}      Error E-Mail: $FREESBIE_ERROR_MAIL\n"
-fi
-if [ "$FREESBIE_COMPLETED_MAIL" != "" ]; then 
-	TXT="${TXT}  Completed E-Mail: $FREESBIE_COMPLETED_MAIL\n"
-fi
-
-if [ "$TXT" = "" ]; then 
-	TXT="No options have been set.  Please run Set version first.\n"
-fi
-
 while [ /bin/true ]; do
 	unset FREESBIE_COMPLETED_MAIL
 	unset FREESBIE_ERROR_MAIL
@@ -61,6 +37,29 @@ while [ /bin/true ]; do
 	unset PFSENSETAG
 	if [ -f ./pfsense-build.conf ]; then
 		. ./pfsense-build.conf
+	fi
+	TXT=""
+	if [ "$PFSENSETAG" != "" ]; then 
+		TXT="${TXT}       pfSense TAG: $PFSENSETAG\n"
+	fi
+	if [ "$FREEBSD_BRANCH" != "" ]; then 
+		TXT="${TXT}    FreeBSD Branch: $FREEBSD_BRANCH\n"
+	fi
+	if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" != "" ]; then 
+		TXT="${TXT}      CVSUP Server: $OVERRIDE_FREEBSD_CVSUP_HOST\n"
+	fi
+	if [ "$TWITTER_USERNAME" != "" ]; then 
+		TXT="${TXT}     Twitter UN/PW: $TWITTER_USERNAME / $TWITTER_PASSWORD\n"
+	fi
+	if [ "$FREESBIE_ERROR_MAIL" != "" ]; then 
+		TXT="${TXT}      Error E-Mail: $FREESBIE_ERROR_MAIL\n"
+	fi
+	if [ "$FREESBIE_COMPLETED_MAIL" != "" ]; then 
+		TXT="${TXT}  Completed E-Mail: $FREESBIE_COMPLETED_MAIL\n"
+	fi
+
+	if [ "$TXT" = "" ]; then 
+		TXT="No options have been set.  Please run Set version first.\n"
 	fi
 	$DIALOG --clear --title "pfSense builder system" \
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
