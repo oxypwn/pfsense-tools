@@ -952,7 +952,7 @@ cust_fixup_wrap() {
     echo "embedded" > $PFSENSEBASEDIR/etc/platform
     echo "wrap" > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt
 
-	echo "-D" >> $PFSENSEBASEDIR/boot.config
+	echo "-h" >> $PFSENSEBASEDIR/boot.config
 
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "8" ]; then
