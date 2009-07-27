@@ -1426,10 +1426,10 @@ update_cvs_depot() {
 				mv "${GIT_REPO_DIR}/pfSense" "${GIT_REPO_DIR}/pfSenseGITREPO"
 			fi
 			echo "Done!"
-			if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO/pfSenseGITREPO/conf.default" ]; then
+			if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO/conf.default" ]; then
 				echo
 				echo "!!!! An error occured while checking out pfSense"
-				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/pfSenseGITREPO/conf.default"
+				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
 				echo
 				print_error_pfS
 				sleep 65535
