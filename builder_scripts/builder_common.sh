@@ -546,7 +546,7 @@ cust_overlay_host_binaries() {
 
 	# Process base system libraries
 	NEEDEDLIBS=""
-	echo ">>>> Populating newer binaries found on host jail/os (usr/local)..."
+	echo ">>> Populating newer binaries found on host jail/os (usr/local)..."
 	for TEMPFILE in $FOUND_FILES; do
 		if [ -f /${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | egrep "(dynamically|shared)" | wc -l | awk '{ print $1 }'`
@@ -569,7 +569,7 @@ cust_overlay_host_binaries() {
 			fi
 		fi
 	done		
-	echo ">>>> Installing collected library information (usr/local), please wait..."
+	echo ">>> Installing collected library information (usr/local), please wait..."
 	# Unique the libraries so we only copy them once
 	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
 	for NEEDLIB in $NEEDEDLIBS; do
