@@ -144,13 +144,9 @@ set_image_as_cdrom
 # Fixup library changes if needed
 fixup_libmap
 
-echo ">>> Searching for packages..."
-set +e # grep could fail
-rm -f ${LOCALDIR}/conf/packages
-(cd /var/db/pkg && ls | grep bsdinstaller) > ${BASEDIR}/packages
-(cd /var/db/pkg && ls | grep grub) >> ${BASEDIR}/packages
-(cd /var/db/pkg && ls | grep lua) >> ${BASEDIR}/packages
-set -e
+echo ">>> Searching and installing ports..."
+PKG_INSTALL_PORTS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
+install_pkg_install_ports
 
 echo ">>> Installing packages: " 
 cat $BUILDER_TOOLS/builder_scripts/conf/packages

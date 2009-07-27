@@ -46,10 +46,7 @@ else
 	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
 fi
 
-fixup_libmap() {
-	
-}
-
+# This routine will post a tweet to twitter
 post_tweet() {
 	TWEET_MESSAGE="$1"
 	if [ "$TWITTER_USERNAME" ="" ]; then
@@ -69,6 +66,9 @@ post_tweet() {
 	echo "Done!"
 }
 
+# This routine handles the athstats directory since it lives in
+# SRCDIR/tools/tools/ath/athstats and changes from various freebsd
+# versions which makes adding this to pfPorts difficult.
 handle_athstats() {
 	echo -n ">>> Building athstats..."
 	cd $SRCDIR/tools/tools/ath/athstats
@@ -76,6 +76,7 @@ handle_athstats() {
 	echo "Done!"
 }
 
+# This routine will output that something went wrong
 print_error_pfS() {
 	echo
 	echo "####################################"
@@ -86,10 +87,13 @@ print_error_pfS() {
         echo "Log saved on ${LOGFILE}" && \
 	tail -n20 ${LOGFILE} >&2
 	report_error_pfsense
-    sleep 65535
+	echo "Press enter to continue."
+    read ans
     kill $$ # NOTE: exit 1 won't work.
 }
 
+# This routine will verify that the kernel has been
+# installed OK to the staging area.
 ensure_kernel_exists() {
 	if [ ! -f "$1/boot/kernel/kernel.gz" ]; then
 		echo "Could not locate $1/boot/kernel.gz"
@@ -222,6 +226,7 @@ fixup_kernel_options() {
 	
 }
 
+# This routine builds nanobsd with VGA
 build_embedded_kernel_vga() {
 	# Common fixup code
 	fixup_kernel_options
@@ -248,6 +253,7 @@ build_embedded_kernel_vga() {
 	echo "done."
 }
 
+# This routine builds the embedded kernel aka wrap
 build_embedded_kernel() {
 	# Common fixup code
 	fixup_kernel_options
@@ -274,6 +280,7 @@ build_embedded_kernel() {
 	echo "done."
 }
 
+# This routine builds the developers kernel
 build_dev_kernel() {
 	# Common fixup code
 	fixup_kernel_options
@@ -296,6 +303,7 @@ build_dev_kernel() {
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 }
 
+# This routine builds a freebsd specific kernel (no pfSense options)
 build_freebsd_only_kernel() {
 	# Common fixup code
 	fixup_kernel_options
@@ -318,8 +326,8 @@ build_freebsd_only_kernel() {
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/FreeBSD.tgz -C $PFSENSEBASEDIR/boot/)
 }
 
-# This routine builds all kernels during the 
-# build_iso.sh routines.
+# This routine builds all pfSense related kernels 
+# during the build_iso.sh and build_deviso.sh routines
 build_all_kernels() {
 
 	# Common fixup code
@@ -415,6 +423,8 @@ build_all_kernels() {
 	
 }
 
+# This routine rebuilds all pfPorts files which are generally
+# in /home/pfsense/tools/pfPorts/
 recompile_pfPorts() {
 
 	if [ ! -d /usr/ports/ ]; then
@@ -493,6 +503,9 @@ recompile_pfPorts() {
 	fi
 }
 
+# This routine overlays needed binaries found in the
+# CUSTOM_COPY_LIST variable.  Clog and syslgod are handled
+# specially.
 cust_overlay_host_binaries() {
 	# Ensure directories exist
 	mkdir -p ${PFSENSEBASEDIR}/bin
@@ -583,6 +596,7 @@ cust_overlay_host_binaries() {
 	
 }
 
+# This routine outputs the zero found files report
 report_zero_sized_files() {
 	if [ -f $MAKEOBJDIRPREFIX/zero_sized_files.txt ]; then 
 		cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
@@ -590,6 +604,7 @@ report_zero_sized_files() {
 	fi
 }
 
+# This routine notes any files that are 0 sized.
 check_for_zero_size_files() {
 	rm -f $MAKEOBJDIRPREFIX/zero_sized_files.txt
 	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
@@ -597,6 +612,8 @@ check_for_zero_size_files() {
 	cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
 }
 
+# Install custom BSDInstaller bits for FreeBSD
+# only installations (no pfSense bits)
 cust_populate_installer_bits_freebsd_only() {
     # Add lua installer items
     mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
@@ -611,6 +628,7 @@ cust_populate_installer_bits_freebsd_only() {
     chmod a+rx $PFSENSEBASEDIR/scripts/*
 }
 
+# Install custom BSDInstaller bits for pfSense
 cust_populate_installer_bits() {
     # Add lua installer items
 	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
@@ -714,6 +732,8 @@ cust_populate_extra() {
     fi
 }
 
+# Copy a custom defined config.xml used commonly
+# in rebranding and such applications.
 cust_install_config_xml() {
 	if [ ! -z "${USE_CONFIG_XML:-}" ]; then
 		if [ -f "$USE_CONFIG_XML" ]; then
@@ -726,6 +746,9 @@ cust_install_config_xml() {
 	fi
 }
 
+# This routine will over $custom_overlay onto 
+# the staging area.  It is commonly used for rebranding
+# and or custom appliances.
 install_custom_overlay() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
@@ -757,6 +780,10 @@ install_custom_overlay() {
     fi
 }
 
+# This rotine will overlay $custom_overlay_final when
+# the build is 99% completed.  Used to overwrite globals.inc
+# and other files when we need to install packages from pfSense
+# which would require a normal globals.inc.  
 install_custom_overlay_final() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay_final:-}" ]; then
@@ -788,7 +815,8 @@ install_custom_overlay_final() {
     fi
 }
 
-
+# This is a FreeSBIE specific install ports -> overlay
+# and might be going away very shortly.
 install_custom_packages() {
 
 	DEVFS_MOUNT=`mount | grep ${BASEDIR}/dev | wc -l | awk '{ print $1 }'`
@@ -815,6 +843,7 @@ install_custom_packages() {
 
 }
 
+# Create a base system update tarball
 create_pfSense_BaseSystem_Small_update_tarball() {
 	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Mini-Embedded-BaseSystem-Update-${VERSION}.tgz
@@ -847,6 +876,8 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 	fi
 }
 
+# Various items that need to be removed
+# when creating an update tarball.
 fixup_updates() {
 
 	# This step should be the last step before tarring the update, or 
@@ -890,6 +921,8 @@ fixup_updates() {
 
 }
 
+# Items that need to be fixed up that are
+# specific to nanobsd builds
 cust_fixup_nanobsd() {
 
 	echo ">>> Fixing up NanoBSD Specific items..."
@@ -928,6 +961,8 @@ cust_fixup_nanobsd() {
 
 }
 
+# Items that should be fixed up that are related
+# to embedded aka wrap builds
 cust_fixup_wrap() {
 
 	echo "Fixing up Embedded Specific items..."
@@ -966,6 +1001,7 @@ cust_fixup_wrap() {
 
 }
 
+# Creates a FreeBSD specific updater tarball
 create_FreeBSD_system_update() {
 	VERSION="FreeBSD"
 	FILENAME=pfSense-Embedded-Update-${VERSION}.tgz
@@ -992,6 +1028,8 @@ create_FreeBSD_system_update() {
 	
 }
 
+# This routine will verify that PHP is sound and that it
+# can open and read config.xml and ensure the hostname
 test_php_install() {
 	echo -n ">>> Testing PHP installation in ${PFSENSEBASEDIR}:"
 
@@ -1060,6 +1098,9 @@ test_php_install() {
 
 }
 
+# This routine creates a on disk summary of all file
+# checksums which could be used to verify that a file
+# is indeed how it was shipped.
 create_md5_summary_file() {
 	echo -n ">>> Creating md5 summary of files present..."
 	rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
@@ -1071,6 +1112,7 @@ create_md5_summary_file() {
 	echo "Done."	
 }
 
+# Creates a full update file
 create_pfSense_Full_update_tarball() {
 	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Full-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
@@ -1101,6 +1143,7 @@ create_pfSense_Full_update_tarball() {
 	cd $PREVIOUSDIR
 }
 
+# Creates a embedded specific update file
 create_pfSense_Embedded_update_tarball() {
 	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
@@ -1130,6 +1173,7 @@ create_pfSense_Embedded_update_tarball() {
 	
 }
 
+# Creates a "small" update file
 create_pfSense_Small_update_tarball() {
 	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Mini-Embedded-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
@@ -1201,6 +1245,9 @@ copy_pfSense_tarball_to_custom_directory() {
 
 }
 
+# Overlays items checked out from GIT on top
+# of the staging area.  This is how the bits
+# get transfered from rcs to the builder staging area.
 copy_pfSense_tarball_to_freesbiebasedir() {
 	PREVIOUSDIR=`pwd`
 	cd $LOCALDIR
@@ -1285,7 +1332,7 @@ clone_system_only()
 	
 	cd $PREVIOUSDIR
 }
-
+# Does the work of checking out the specific branch of pfSense
 checkout_pfSense_git() {
 	echo ">>> Using GIT to checkout ${PFSENSETAG}"
 	echo -n ">>> "
@@ -1314,6 +1361,7 @@ checkout_pfSense_git() {
 	echo "Done!"
 }
 
+# Invokes the rcs checkout routines
 checkout_pfSense() {
 	PREVIOUSDIR=`pwd`
 	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
@@ -1322,11 +1370,11 @@ checkout_pfSense() {
 		(cd $BASE_DIR && cvs -d ${BASE_DIR}/cvsroot co pfSense -r ${PFSENSETAG})
 	else
 		checkout_pfSense_git
-	fi
-	fixup_libmap	
+	fi	
 	cd $PREVIOUSDIR
 }
 
+# Outputs various set variables aka env
 print_flags() {
 
 	printf "      pfSense build dir: %s\n" $SRCDIR
@@ -1369,20 +1417,24 @@ fi
 
 }
 
+# Backs up pfSense repo
 backup_pfSense() {
 	echo ">>> Backing up pfSense repo"
 	cp -R $CVS_CO_DIR $BASE_DIR/pfSense_bak
 }
 
+# Restores backed up pfSense repo
 restore_pfSense() {
 	echo ">>> Restoring pfSense repo"
 	cp -R $BASE_DIR/pfSense_bak $CVS_CO_DIR
 }
 
+# Shortcut to FreeSBIE make command
 freesbie_make() {
 	(cd ${FREESBIE_PATH} && make $*)
 }
 
+# This updates the pfSense sources from rcs.pfsense.org
 update_cvs_depot() {
 	if [ -z "${USE_GIT:-}" ]; then
 		local _cvsdate
@@ -1435,6 +1487,7 @@ update_cvs_depot() {
 	fi
 }
 
+# This builds FreeBSD (make buildworld)
 make_world() {
     # Check if the world and kernel are already built and set
     # the NO variables accordingly
@@ -1462,6 +1515,7 @@ make_world() {
 	mkdir -p $PFSENSEBASEDIR/home
 }
 
+# This routine originated in nanobsd.sh
 setup_nanobsd_etc ( ) {
 	echo ">>> Configuring NanoBSD /etc"
 
@@ -1479,6 +1533,7 @@ setup_nanobsd_etc ( ) {
 
 }
 
+# This routine originated in nanobsd.sh
 setup_nanobsd ( ) {
 	echo ">>> Configuring NanoBSD setup"
 
@@ -1520,11 +1575,13 @@ setup_nanobsd ( ) {
 	fi
 }
 
+# This routine originated in nanobsd.sh
 prune_usr() {
 	echo ">>> Pruning NanoBSD usr directory..."
 	# Remove all empty directories in /usr 
 }
 
+# This routine originated in nanobsd.sh
 FlashDevice () {
 	a1=`echo $1 | tr '[:upper:]' '[:lower:]'`
 	a2=`echo $2 | tr '[:upper:]' '[:lower:]'`
@@ -1684,6 +1741,7 @@ FlashDevice () {
 	echo ">>> [nanoo] NANO_BOOT0CFG: $NANO_BOOT0CFG"
 }
 
+# This routine originated in nanobsd.sh
 create_i386_diskimage ( ) {
 	echo ">>> building NanoBSD disk image..."
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
@@ -1841,6 +1899,8 @@ awk '
 	
 }
 
+# This routine installs pfSense packages into the staging area.
+# Packages such as squid, snort, autoconfigbackup, etc.
 pfsense_install_custom_packages_exec() {
 	# Function originally written by Daniel S. Haischt
 	#	Copyright (C) 2007 Daniel S. Haischt <me@daniel.stefan.haischt.name>
@@ -2018,6 +2078,7 @@ EOF
 	fi		
 }
 
+# Cleans up previous builds
 pfSense_clean_obj_dir() {
 	# Clean out directories
 	echo ">>> Cleaning up old directories..."
@@ -2066,6 +2127,8 @@ pfSense_clean_obj_dir() {
 	echo "Done!"
 }
 
+# This copies the default config.xml to the location on
+# disk as the primary configuration file.
 copy_config_xml_from_conf_default() {
 	if [ ! -f "${PFSENSEBASEDIR}/cf/conf/config.xml" ]; then
 		echo ">>> Copying config.xml from conf.default/ to cf/conf/"
@@ -2073,6 +2136,8 @@ copy_config_xml_from_conf_default() {
 	fi
 }
 
+# Rebuilds and installs the BSDInstaller which populates
+# the Ports directory sysutils/bsdinstaller, etc.
 rebuild_and_install_bsdinstaller() {
 	# Add BSDInstaller
 	if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
@@ -2092,6 +2157,8 @@ rebuild_and_install_bsdinstaller() {
 	./rebuild_bsdinstaller.sh
 }
 
+# This routine ensures that the $SRCDIR has sources
+# and is ready for action / building.
 ensure_source_directories_present() {
 	# Sanity check
 	if [ ! -d "${PFSPATCHDIR}" ]; then
@@ -2105,6 +2172,8 @@ ensure_source_directories_present() {
 	fi	
 }
 
+# This routine ensures any ports / binaries that the builder
+# system needs are on disk and ready for execution.
 install_required_builder_system_ports() {
 	# No ports exist, use portsnap to bootstrap.
 	if [ ! -d "/usr/ports/" ]; then
@@ -2143,7 +2212,8 @@ install_required_builder_system_ports() {
 	IFS=$oIFS
 }
 
-
+# Updates FreeBSD sources and applies any custom
+# patches that have been defined.
 update_freebsd_sources_and_apply_patches() {
 	# If override is in place, use it otherwise
 	# locate fastest cvsup host
@@ -2223,6 +2293,7 @@ update_freebsd_sources_and_apply_patches() {
 	fi
 }
 
+# Email when an error has occured and FREESBIE_ERROR_MAIL is defined
 report_error_pfsense() {
     if [ ! -z ${FREESBIE_ERROR_MAIL:-} ]; then
 		HOSTNAME=`hostname`
@@ -2233,6 +2304,7 @@ report_error_pfsense() {
     fi
 }
 
+# Email when an operation is completed IE build run
 email_operation_completed() {
     if [ ! -z ${FREESBIE_COMPLETED_MAIL:-} ]; then
 		HOSTNAME=`hostname`
@@ -2243,12 +2315,14 @@ email_operation_completed() {
     fi	
 }
 
+# Sets up a symbolic link from /conf -> /cf/conf on ISO
 create_iso_cf_conf_symbolic_link() {
 	echo ">>> Creating symbolic link for /cf/conf /conf ..."
 	rm -rf ${PFSENSEBASEDIR}/conf
 	chroot ${PFSENSEBASEDIR} /bin/ln -s /cf/conf /conf
 }
 
+# This ensures the pfsense-fs installer is healthy.
 ensure_healthy_installer() {
 	echo -n ">>> Checking BSDInstaller health..."
 	INSTALLER_ERROR=0
@@ -2272,6 +2346,8 @@ ensure_healthy_installer() {
 	fi
 }
 
+# This copies the various pfSense git repos to the DevISO
+# staging area. 
 setup_deviso_specific_items() {
 	echo -n ">>> Setting up DevISO specific bits... Please wait..."
 	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
@@ -2288,10 +2364,30 @@ setup_deviso_specific_items() {
 	echo "Done!"
 }
 
+# Check to see if a forced pfPorts run has been requested.
+# If so, rebuild pfPorts.  set_version.sh uses this.
 check_for_forced_pfPorts_build() {
 	if [ -f "/tmp/pfPorts_forced_build_required" ]; then
+		# Ensure that we build
 		rm -f /tmp/pfSense_do_not_build_pfPorts
-		recompile_pfPorts		
+		recompile_pfPorts
+		# Remove file that could trigger 2 pfPorts
+		# builds in one run
 		rm /tmp/pfPorts_forced_build_required	
 	fi
+}
+
+# This routine assists with installing various
+# freebsd ports files into the pfsenese-fs staging
+# area.  This was handled by pkginstall.sh (freesbie)
+# previously and the need for simplicity has won out.
+install_pkg_install_ports() {
+	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
+		if [ ! -d $PORTDIRPFS ]; then 
+			echo "!!!! Could not locate $PORTDIRPFS"
+			print_error_pfS
+		fi
+		(cd $PORTDIRPFS && make clean) | egrep -wi '(^>>>|error)'
+		(cd $PORTDIRPFS && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
+	done
 }
