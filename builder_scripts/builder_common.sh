@@ -1418,6 +1418,7 @@ update_cvs_depot() {
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 			rm -rf ${GIT_REPO_DIR}/pfSense
 			echo -n ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}..."
+			echo "${GIT_REPO_DIR} && /usr/local/bin/git clone"
 	    	(cd ${GIT_REPO_DIR} && /usr/local/bin/git clone ${GIT_REPO}) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			if [ -d "${GIT_REPO_DIR}/mainline" ]; then
 				mv "${GIT_REPO_DIR}/mainline" "${GIT_REPO_DIR}/pfSenseGITREPO"
@@ -1426,6 +1427,12 @@ update_cvs_depot() {
 				mv "${GIT_REPO_DIR}/pfSense" "${GIT_REPO_DIR}/pfSenseGITREPO"
 			fi
 			echo "Done!"
+			if [ ! -d ${GIT_REPO_DIR}/pfSenseGITREPO/pfSenseGITREPO/conf.default ]; then
+				echo
+				echo "!!!! An error occured while checking out pfSense"
+				print_error_pfS
+				sleep 65535
+			fi
 		fi
 		checkout_pfSense_git
 		if [ $? != 0 ]; then	
