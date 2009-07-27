@@ -2147,8 +2147,9 @@ install_required_builder_system_ports() {
 			echo "Done!"
 		fi
 	done
+	IFS=$oIFS
 }
-IFS=$oIFS
+
 
 update_freebsd_sources_and_apply_patches() {
 	# If override is in place, use it otherwise
