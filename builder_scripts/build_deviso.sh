@@ -102,24 +102,23 @@ set_image_as_cdrom
 # Fixup library changes if needed
 fixup_libmap
 
-rm -f $BUILDER_TOOLS/builder_scripts/conf/packages
+rm -f ${LOCALDIR}/conf/packages
 
 echo ">>> Searching for packages..."
 set +e # grep could fail
-(cd /var/db/pkg && ls | grep bsdinstaller) > $BUILDER_TOOLS/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep lighttpd) >> $BUILDER_TOOLS/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep lua) >> $BUILDER_TOOLS/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep git) >> $BUILDER_TOOLS/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep grub) >> $BUILDER_TOOLS/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > ${LOCALDIR}/conf/packages
+(cd /var/db/pkg && ls | grep lighttpd) >> ${LOCALDIR}/conf/packages
+(cd /var/db/pkg && ls | grep lua) >> ${LOCALDIR}/conf/packages
+(cd /var/db/pkg && ls | grep git) >> ${LOCALDIR}/conf/packages
+(cd /var/db/pkg && ls | grep grub) >> ${LOCALDIR}/conf/packages
 set -e
 
 echo ">>> Installing packages: " 
 cat $BUILDER_TOOLS/builder_scripts/conf/packages
 
-rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
-
 # Install custom packages
 echo ">>> Installing custom packageas..."
+rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 freesbie_make pkginstall
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
@@ -152,6 +151,9 @@ ensure_healthy_installer
 
 # Setup dev_iso specific items
 setup_deviso_specific_items
+
+# Create md5 summary file listing checksums
+create_md5_summary_file
 
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."

@@ -1062,6 +1062,17 @@ test_php_install() {
 
 }
 
+create_md5_summary_file() {
+	echo -n ">>> Creating md5 summary of files present..."
+	rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
+	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
+	echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
+	chmod a+rx $PFSENSEBASEDIR/chroot.sh
+	(chroot $PFSENSEBASEDIR /chroot.sh) | egrep -wi '(^>>>|errors)'
+	rm $PFSENSEBASEDIR/chroot.sh
+	echo "Done."	
+}
+
 create_pfSense_Full_update_tarball() {
 	VERSION=${PFSENSE_VERSION}
 	FILENAME=pfSense-Full-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
@@ -1078,14 +1089,7 @@ create_pfSense_Full_update_tarball() {
 		
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
-	echo -n ">>> Creating md5 summary of files present..."
-	rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
-	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
-	echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
-	chmod a+rx $PFSENSEBASEDIR/chroot.sh
-	(chroot $PFSENSEBASEDIR /chroot.sh) | egrep -wi '(^>>>|error)'
-	rm $PFSENSEBASEDIR/chroot.sh
-	echo "Done."
+	create_md5_summary_file
 
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .

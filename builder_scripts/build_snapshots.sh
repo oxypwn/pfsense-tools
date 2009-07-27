@@ -179,6 +179,7 @@ build_iso() {
 	# Ensures sane nevironment
 	# and invokes build_iso.sh
 	cd $BUILDERSCRIPTS
+	./clean_build.sh
 	./build_iso.sh
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	gzip $PFSENSEOBJDIR/pfSense.iso

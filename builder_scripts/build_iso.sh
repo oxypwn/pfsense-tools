@@ -144,25 +144,21 @@ set_image_as_cdrom
 # Fixup library changes if needed
 fixup_libmap
 
-# Nuke the boot directory
-# [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
-
 rm -f $BUILDER_TOOLS/builder_scripts/conf/packages
 
 echo ">>> Searching for packages..."
 set +e # grep could fail
-(cd /var/db/pkg && ls | grep bsdinstaller) > $BUILDER_TOOLS/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep grub) >> $BUILDER_TOOLS/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep lua) >> $BUILDER_TOOLS/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > ${LOCALDIR}/conf/packages
+(cd /var/db/pkg && ls | grep grub) >> ${LOCALDIR}/conf/packages
+(cd /var/db/pkg && ls | grep lua) >> ${LOCALDIR}/conf/packages
 set -e
 
 echo ">>> Installing packages: " 
 cat $BUILDER_TOOLS/builder_scripts/conf/packages
 
-rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
-
 # Install custom packages
 echo ">>> Installing custom packageas..."
+rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 freesbie_make pkginstall
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
@@ -199,15 +195,6 @@ install_custom_overlay_final
 # Ensure config.xml exists
 copy_config_xml_from_conf_default
 
-echo -n ">>> Creating md5 summary of files present..."
-rm -f $BASEDIR/etc/pfSense_md5.txt
-echo "#!/bin/sh" > $BASEDIR/chroot.sh
-echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $BASEDIR/chroot.sh
-chmod a+rx $BASEDIR/chroot.sh
-chroot $BASEDIR /chroot.sh
-rm $BASEDIR/chroot.sh
-echo "Done."
-
 # Ensure installer bits are present
 cust_populate_installer_bits
 
@@ -216,6 +203,9 @@ test_php_install
 
 # Check to see if we have a healthy installer
 ensure_healthy_installer
+
+# Create md5 summary file listing checksums
+create_md5_summary_file
 
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
