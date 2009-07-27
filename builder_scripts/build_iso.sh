@@ -147,9 +147,9 @@ fixup_libmap
 echo ">>> Searching for packages..."
 set +e # grep could fail
 rm -f ${LOCALDIR}/conf/packages
-(cd /var/db/pkg && ls | grep bsdinstaller) > ${LOCALDIR}/conf/packages
-(cd /var/db/pkg && ls | grep grub) >> ${LOCALDIR}/conf/packages
-(cd /var/db/pkg && ls | grep lua) >> ${LOCALDIR}/conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > ${BASEDIR}/packages
+(cd /var/db/pkg && ls | grep grub) >> ${BASEDIR}/packages
+(cd /var/db/pkg && ls | grep lua) >> ${BASEDIR}/packages
 set -e
 
 echo ">>> Installing packages: " 
