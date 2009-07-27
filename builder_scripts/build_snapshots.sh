@@ -58,6 +58,10 @@ mkdir -p $PFSENSECHECKOUTDIR
 mkdir -p $STAGINGAREA
 mkdir -p $WEBROOT
 
+if [ -f /tmp/pfPorts_forced_build_required ]; then
+	rm /tmp/pfPorts_forced_build_required
+fi
+
 post_tweet() {
 	TWEET_MESSAGE="$1"
 	if [ "$TWITTER_USERNAME" = "" ]; then
