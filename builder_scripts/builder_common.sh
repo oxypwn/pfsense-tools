@@ -418,9 +418,9 @@ build_all_kernels() {
 recompile_pfPorts() {
 
 	if [ ! -d /usr/ports/ ]; then
-		echo "===> Please wait, grabbing port files from FreeBSD.org..."
+		echo "==> Please wait, grabbing port files from FreeBSD.org..."
 		portsnap fetch
-		echo "===> Please wait, extracting port files..."
+		echo "==> Please wait, extracting port files..."
 		portsnap extract
 	fi
 
@@ -437,9 +437,9 @@ recompile_pfPorts() {
 		PFPORTSBASENAME=`basename ${USE_PORTS_FILE}`
 		
 		# Warn user about make includes operation
-		echo "---> Preparing for pfPorts build ${PFPORTSBASENAME}"
-		echo "---> WARNING!  We are about to run make includes."
-		echo -n "---> Press CTRl-C to abort this operation"
+		echo "--> Preparing for pfPorts build ${PFPORTSBASENAME}"
+		echo "--> WARNING!  We are about to run make includes."
+		echo -n "--> Press CTRl-C to abort this operation"
 		echo -n "."
 		sleep 1
 		echo -n "."
@@ -454,13 +454,13 @@ recompile_pfPorts() {
 		# Since we are using NAT-T we need to run this prior
 		# to the build.  Once NAT-T is included in FreeBSD
 		# we can remove this step. 
-		echo "===> Starting make includes operation..."
+		echo "==> Starting make includes operation..."
 		( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|error)'
 		
 		rm -rf ${pfSPORTS_BASE_DIR}
 		mkdir ${pfSPORTS_BASE_DIR}
 	
-		echo "===> Compiling pfPorts..."
+		echo "==> Compiling pfPorts..."
 		if [ -f /etc/make.conf ]; then
 			mv /etc/make.conf /tmp/
 			echo "WITHOUT_X11=yo" >> /etc/make.conf
@@ -486,10 +486,10 @@ recompile_pfPorts() {
 
 		touch /tmp/pfSense_do_not_build_pfPorts
 
-		echo "===> End of pfPorts..."
+		echo "==> End of pfPorts..."
 	
 	else
-		echo "---> /tmp/pfSense_do_not_build_pfPorts is set, skipping pfPorts build..."
+		echo "--> /tmp/pfSense_do_not_build_pfPorts is set, skipping pfPorts build..."
 	fi
 }
 
@@ -515,22 +515,22 @@ cust_overlay_host_binaries() {
 	# to spend a fair amount of time figuring out why the built 
 	# syslogd file doe snot reside in the correct directory to 
 	# install from.  Just move along now, nothing to see here.
-    echo "===> Building syslogd..."
+    echo "==> Building syslogd..."
     cd $SRCDIR/usr.sbin/syslogd 
 	(make clean) | egrep -wi '(^>>>|error)'
  	(make) | egrep -wi '(^>>>|error)'
 	(make install) | egrep -wi '(^>>>|error)'
-    echo "===> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
+    echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
 	install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
     install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
 	cd $PWD
 
 	# Handle clog
-	echo "===> Building clog..."
+	echo "==> Building clog..."
 	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
 	(cd $SRCDIR/usr.sbin/clog && make) | egrep -wi '(^>>>|error)'
 	(cd $SRCDIR/usr.sbin/clog && make install) | egrep -wi '(^>>>|error)'
-    echo "===> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
+    echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
     install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
 
 	# Temporary hack for RELENG_1_2
@@ -1019,7 +1019,7 @@ test_php_install() {
 		echo
 		echo "An error occured while testing the php installation in $PFSENSEBASEDIR"
 		echo
-		report_error_pfsense
+		print_error_pfS
 		sleep 65535
 		die
 	else 
@@ -2225,7 +2225,7 @@ update_freebsd_sources_and_apply_patches() {
 		if [ "$FREESBIE_ERROR_MAIL" != "" ]; then
 			LOGFILE="/tmp/patches.failed.apply"
 			find $SRCDIR -name "*.rej" > $LOGFILE
-			report_error_pfsense
+			print_error_pfS
 		fi
 		sleep 65535
 	fi
