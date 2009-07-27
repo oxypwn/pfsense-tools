@@ -852,8 +852,6 @@ fixup_updates() {
 	# This step should be the last step before tarring the update, or 
 	# rolling an iso.
 	
-	#find ${PFSENSEBASEDIR}/boot/ -type f -depth 1 -exec rm {} \;
-
 	PREVIOUSDIR=`pwd`
 
 	cd ${PFSENSEBASEDIR}
@@ -1329,11 +1327,6 @@ checkout_pfSense() {
 	cd $PREVIOUSDIR
 }
 
-checkout_freesbie() {
-	echo ">>> Getting FreeSBIE"
-	rm -rf $LOCALDIR
-}
-
 print_flags() {
 
 	printf "      pfSense build dir: %s\n" $SRCDIR
@@ -1374,11 +1367,6 @@ fi
 	sleep 5
 	echo
 
-}
-
-clear_custom() {
-	echo ">> Clearing custom/*"
-	rm -rf $LOCALDIR/customroot/*
 }
 
 backup_pfSense() {

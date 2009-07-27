@@ -102,10 +102,9 @@ set_image_as_cdrom
 # Fixup library changes if needed
 fixup_libmap
 
-rm -f ${LOCALDIR}/conf/packages
-
 echo ">>> Searching for packages..."
 set +e # grep could fail
+rm -f ${LOCALDIR}/conf/packages
 (cd /var/db/pkg && ls | grep bsdinstaller) > ${LOCALDIR}/conf/packages
 (cd /var/db/pkg && ls | grep lighttpd) >> ${LOCALDIR}/conf/packages
 (cd /var/db/pkg && ls | grep lua) >> ${LOCALDIR}/conf/packages

@@ -133,7 +133,7 @@ export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 
 # Do not clean.  Makes subsequent builds quicker.
 export NO_CLEAN=${NO_CLEAN:-"yo"}
-export NO_KERNELCLEAN=${NO_CLEAN:-"yo"}
+export NO_KERNEL_CLEAN=${NO_CLEAN:-"yo"}
 
 # Config directory for nanobsd build
 export CONFIG_DIR=conf
