@@ -2377,6 +2377,7 @@ check_for_forced_pfPorts_build() {
 	fi
 }
 
+# Enables memory disk backing of common builder directories
 enable_memory_disks() {
 	echo -n ">>> Mounting memory disks: "
 	MD1=`mdconfig -l -u md1 | grep md1 | wc -l | awk '{ print $1 }'`
@@ -2409,9 +2410,10 @@ enable_memory_disks() {
 	echo "Done!"
 }
 
+# Disables memory disk backing of common builder directories
 disable_memory_disks() {
 	echo -n ">>> Disabling memory disks..."
-	umount /tmp/kernels /usr/pfSensesrc /usr/obj.pfSense
+	(umount /tmp/kernels /usr/pfSensesrc /usr/obj.pfSense) | '(^>>>)'
 	(mdconfig -d -u 1) | '(^>>>)'
 	(mdconfig -d -u 2) | '(^>>>)'
 	(mdconfig -d -u 3) | '(^>>>)'
