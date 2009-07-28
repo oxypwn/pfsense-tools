@@ -232,7 +232,7 @@ build_embedded_kernel_vga() {
 	fixup_kernel_options
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF	
@@ -259,7 +259,7 @@ build_embedded_kernel() {
 	fixup_kernel_options
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF	
@@ -286,7 +286,7 @@ build_dev_kernel() {
 	fixup_kernel_options
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -309,7 +309,7 @@ build_freebsd_only_kernel() {
 	fixup_kernel_options
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -334,7 +334,7 @@ build_all_kernels() {
 	fixup_kernel_options
 	# Build uniprocessor kernel
 	echo ">>> Building uniprocessor kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -347,7 +347,7 @@ build_all_kernels() {
 
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -361,7 +361,7 @@ build_all_kernels() {
 
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -375,7 +375,7 @@ build_all_kernels() {
 	
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
-	find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
