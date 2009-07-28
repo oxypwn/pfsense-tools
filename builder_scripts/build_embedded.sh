@@ -78,8 +78,8 @@ fi
 export SRC_CONF="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION"
 export SRC_CONF_INSTALL="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
 
-# Clean out directories
-freesbie_make cleandir
+# Clean up items that should be cleaned each run
+freesbie_clean_each_run
 
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot

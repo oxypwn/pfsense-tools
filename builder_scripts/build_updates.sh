@@ -72,8 +72,8 @@ else
 	export PRUNE_LIST="${PWD}/remove.list.iso.$FREEBSD_VERSION"
 fi
 
-# Clean out directories
-freesbie_make cleandir
+# Clean up items that should be cleaned each run
+freesbie_clean_each_run
 
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
@@ -112,7 +112,6 @@ cust_populate_extra
 # Remove stuff that could have been modified on installation
 # such as /etc/ttys, /conf/config.xml, etc
 fixup_updates
-
 
 # Overlay host binaries
 cust_overlay_host_binaries

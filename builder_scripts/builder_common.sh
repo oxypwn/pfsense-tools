@@ -2082,7 +2082,7 @@ EOF
 pfSense_clean_obj_dir() {
 	# Clean out directories
 	echo ">>> Cleaning up old directories..."
-	freesbie_make cleandir
+	freesbie_clean_each_run
 	echo -n ">>> Cleaning up previous build environment...Please wait..."
 	# Allow old CVS_CO_DIR to be deleted later
 	if [ "$CVS_CO_DIR" != "" ]; then

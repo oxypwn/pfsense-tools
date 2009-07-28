@@ -64,9 +64,8 @@ freesbie_clean_each_run
 # Output build flags
 print_flags
 
-# Clean out directories
-echo ">>> Cleaning up old directories..."
-freesbie_make cleandir
+# Clean up items that should be cleaned each run
+freesbie_clean_each_run
 
 # Prepare object directry
 echo ">>> Preparing object directory..."
