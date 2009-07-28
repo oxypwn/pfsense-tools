@@ -2432,8 +2432,8 @@ install_pkg_install_ports() {
 			echo "!!!! Could not locate $PORTDIRPFS"
 			print_error_pfS
 		fi
-		(cd $PORTDIRPFS && make clean) | egrep -wi '(^>>>|error)'
-		(cd $PORTDIRPFS && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
+		(su - root -c "cd $PORTDIRPFS && make clean") | egrep -wi '(^>>>|error)'
+		(su - root -c "cd $PORTDIRPFS && make install DESTDIR=$PFSENSEBASEDIR") | egrep -wi '(^>>>|error)'
 	done
 	echo -n "Done!"
 }

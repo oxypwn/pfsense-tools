@@ -1,7 +1,5 @@
 #!/bin/sh
 #
-# Common functions to be used by build scripts
-#
 #  disable_memory_disks.sh
 #  Copyright (C) 2004-2009 Scott Ullrich
 #  All rights reserved.
