@@ -348,6 +348,7 @@ build_all_kernels() {
 	freesbie_make buildkernel
 	echo ">>> installing uniprocessor kernel..."
 	freesbie_make installkernel
+	ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
