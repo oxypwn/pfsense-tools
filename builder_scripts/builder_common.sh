@@ -2603,6 +2603,9 @@ installkernel() {
 # Launch is ran first to setup a few variables that we need
 # Imported from FreeSBIE
 launch() {
+	
+	echo ">>> Updating system clock..."
+	ntpdate 0.pfsense.pool.ntp.org
 
 	if [ "`id -u`" != "0" ]; then
 	    echo "Sorry, this must be done as root."
