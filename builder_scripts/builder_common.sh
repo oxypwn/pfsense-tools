@@ -1508,7 +1508,7 @@ make_world() {
     fi
 
     # Make world
-    freesbie buildworld
+    freesbie_make buildworld
     touch ${MAKEOBJDIRPREFIX}/.world.done
 
 	# Sometimes inbetween build_iso runs btxld seems to go missing.
@@ -1522,7 +1522,7 @@ make_world() {
 		| egrep -wi '(patching\ file|warning|error)'
 	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
 		| egrep -wi '(patching\ file|warning|error)'
-	freesbie installworld
+	freesbie_make installworld
 	# Ensure home directory exists
 	mkdir -p $PFSENSEBASEDIR/home
 }
