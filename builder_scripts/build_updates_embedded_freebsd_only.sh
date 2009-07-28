@@ -138,9 +138,6 @@ check_for_zero_size_files
 # Invoke FreeSBIE2 toolchain
 freesbie_make clonefs
 
-# Fixup library changes if needed
-fixup_libmap
-
 echo ${CLONEDIR}
 
 create_FreeBSD_system_update

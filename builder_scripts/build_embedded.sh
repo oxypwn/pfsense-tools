@@ -142,9 +142,6 @@ freesbie_make clonefs
 # Ensure /home exists
 mkdir -p $CLONEDIR/home
 
-# Fixup library changes if needed
-fixup_libmap
-
 echo "#### Building bootable UFS image ####"
 
 UFS_LABEL=${FREESBIE_LABEL:-"pfSense"} # UFS label

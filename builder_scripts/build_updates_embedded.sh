@@ -113,9 +113,6 @@ set +e # grep could fail
 (cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
 set -e
 
-# Fixup library changes if needed
-fixup_libmap
-
 # Install custom pfSense-XML packages from a chroot
 pfsense_install_custom_packages_exec
 

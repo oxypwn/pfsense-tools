@@ -141,9 +141,6 @@ install_custom_packages
 echo ">>> Phase set_image_as_cdrom"
 set_image_as_cdrom
 
-# Fixup library changes if needed
-fixup_libmap
-
 echo ">>> Searching and installing ports..."
 PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
 install_pkg_install_ports

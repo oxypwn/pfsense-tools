@@ -113,8 +113,6 @@ cust_populate_extra
 # such as /etc/ttys, /conf/config.xml, etc
 fixup_updates
 
-# Fixup library changes if needed
-fixup_libmap
 
 # Overlay host binaries
 cust_overlay_host_binaries

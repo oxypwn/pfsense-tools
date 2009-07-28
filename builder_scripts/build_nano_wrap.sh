@@ -155,9 +155,6 @@ test_php_install
 check_for_zero_size_files
 freesbie_make clonefs
 
-# Fixup library changes if needed
-fixup_libmap
-
 # Setup NanoBSD specific items
 FlashDevice $FLASH_MODEL $FLASH_SIZE
 setup_nanobsd_etc
