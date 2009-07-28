@@ -2442,6 +2442,7 @@ install_pkg_install_ports() {
 	echo -n "Done!"
 }
 
+# Mildly based on FreeSBIE
 freesbie_clean_each_run() {
 	echo -n ">>> Removing build directories: "
 	if [ -d "${PFSENSEBASEDIR}" ]; then
@@ -2459,6 +2460,7 @@ freesbie_clean_each_run() {
 	echo "Done!"
 }
 
+# Imported from FreeSBIE
 buildworld() {
 	cd $SRCDIR
 	if [ -n "${NO_BUILDWORLD:-}" ]; then
@@ -2482,6 +2484,7 @@ buildworld() {
 	cd $BUILDER_SCRIPTS
 }
 
+# Imported from FreeSBIE
 installworld() {
 	echo ">>> Installing world for ${ARCH} architecture..."
 	cd $SRCDIR
@@ -2508,6 +2511,7 @@ installworld() {
 	cd $BUILDER_SCRIPTS
 }
 
+# Imported from FreeSBIE
 buildkernel() {
 	# Set SRC_CONF variable if it's not already set.
 	cd $SRCDIR
@@ -2546,6 +2550,7 @@ buildkernel() {
 
 }
 
+# Imported from FreeSBIE
 installkernel() {
 	# Set SRC_CONF variable if it's not already set.
 	cd $SRCDIR
@@ -2583,7 +2588,14 @@ installkernel() {
 }
 
 # Launch is ran first to setup a few variables that we need
+# Imported from FreeSBIE
 launch() {
+
+	if [ "`id -u`" != "0" ]; then
+	    echo "Sorry, this must be done as root."
+	    sleep 999
+	    exit 1
+	fi
 
 	# just return for now as we integrate
 	return
@@ -2600,20 +2612,11 @@ launch() {
 	TARGET=$1;
 	shift;
 
-	# Set LOGFILE. If it's a tmp file, schedule for deletion
-	if [ -n "${1:-}" ]; then
-	    LOGFILE=$1
-	    REMOVELOG=0
-	else
-	    LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
-	    REMOVELOG=1
-	fi
+	# Set LOGFILE. 
+	LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
+	REMOVELOG=0
 
 	cd $CURDIR
-
-	#. ./conf/freesbie.defaults.conf
-
-	FREESBIE_CONF=/dev/null
 
 	if [ ! -z "${ARCH:-}" ]; then
 		ARCH=${ARCH:-`uname -p`}
