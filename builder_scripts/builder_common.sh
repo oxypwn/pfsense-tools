@@ -2439,7 +2439,7 @@ install_pkg_install_ports() {
 }
 
 freesbie_clean_each_run() {
-	echo -n ">>> Removing build directories..."
+	echo -n ">>> Removing build directories: "
 	if [ -d "${PFSENSEBASEDIR}" ]; then
 		BASENAME=`basename ${PFSENSEBASEDIR}`
 		echo -n "$PFSENSEBASEDIR "
