@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.2
-diff -u -r1.2 parse.y
---- contrib/pf/pfctl/parse.y	25 Jul 2009 22:14:14 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	25 Jul 2009 22:14:35 -0000
+RCS file: /home/ermal/CURRENT/repo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.3
+diff -u -r1.3 parse.y
+--- contrib/pf/pfctl/parse.y	28 Jul 2009 22:08:47 -0000	1.3
++++ contrib/pf/pfctl/parse.y	28 Jul 2009 22:10:05 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -576,11 +576,11 @@ diff -u -r1.2 parse.y
 +
 Index: contrib/pf/pfctl/pfctl.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/contrib/pf/pfctl/pfctl.c,v
+RCS file: /home/ermal/CURRENT/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
---- contrib/pf/pfctl/pfctl.c	25 Jul 2009 22:14:14 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	25 Jul 2009 22:14:35 -0000
+--- contrib/pf/pfctl/pfctl.c	28 Jul 2009 22:09:58 -0000	1.2
++++ contrib/pf/pfctl/pfctl.c	28 Jul 2009 22:10:05 -0000
 @@ -46,6 +46,9 @@
  #include <altq/altq.h>
  #include <sys/sysctl.h>
@@ -812,11 +812,11 @@ diff -u -r1.2 pfctl.c
  }
 Index: contrib/pf/pfctl/pfctl.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/contrib/pf/pfctl/pfctl.h,v
+RCS file: /home/ermal/CURRENT/repo/src/contrib/pf/pfctl/pfctl.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.h
---- contrib/pf/pfctl/pfctl.h	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.h	25 Jul 2009 22:14:35 -0000
+--- contrib/pf/pfctl/pfctl.h	28 Jul 2009 22:07:33 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl.h	28 Jul 2009 22:10:05 -0000
 @@ -85,12 +85,14 @@
  int	 pfctl_command_tables(int, char *[], char *, const char *, char *,
  	    const char *, int);
@@ -837,7 +837,7 @@ Index: contrib/pf/pfctl/pfctl_dn.c
 RCS file: contrib/pf/pfctl/pfctl_dn.c
 diff -N contrib/pf/pfctl/pfctl_dn.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ contrib/pf/pfctl/pfctl_dn.c	25 Jul 2009 22:14:35 -0000
++++ contrib/pf/pfctl/pfctl_dn.c	28 Jul 2009 22:10:05 -0000
 @@ -0,0 +1,404 @@
 +/*
 + * Copyright (c) 2007 Ermal Luçi
@@ -1245,11 +1245,11 @@ diff -N contrib/pf/pfctl/pfctl_dn.c
 +}
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /home/ermal/CURRENT/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	25 Jul 2009 22:14:15 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	25 Jul 2009 22:14:35 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	28 Jul 2009 22:08:47 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	28 Jul 2009 22:10:05 -0000
 @@ -48,6 +48,9 @@
  #include <net/pfvar.h>
  #include <arpa/inet.h>
@@ -1277,11 +1277,11 @@ diff -u -r1.2 pfctl_parser.c
  	else if (r->qname[0])
 Index: contrib/pf/pfctl/pfctl_parser.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/contrib/pf/pfctl/pfctl_parser.h,v
+RCS file: /home/ermal/CURRENT/repo/src/contrib/pf/pfctl/pfctl_parser.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.h
---- contrib/pf/pfctl/pfctl_parser.h	25 Jul 2009 22:14:15 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.h	25 Jul 2009 22:14:35 -0000
+--- contrib/pf/pfctl/pfctl_parser.h	28 Jul 2009 22:08:30 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.h	28 Jul 2009 22:10:05 -0000
 @@ -67,6 +67,7 @@
  }
  
@@ -1316,11 +1316,11 @@ diff -u -r1.2 pfctl_parser.h
  
 Index: sbin/pfctl/Makefile
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sbin/pfctl/Makefile,v
+RCS file: /home/ermal/CURRENT/repo/src/sbin/pfctl/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sbin/pfctl/Makefile	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ sbin/pfctl/Makefile	25 Jul 2009 22:14:35 -0000
+--- sbin/pfctl/Makefile	28 Jul 2009 22:07:33 -0000	1.1.1.1
++++ sbin/pfctl/Makefile	28 Jul 2009 22:10:05 -0000
 @@ -11,6 +11,7 @@
  SRCS+= pfctl_osfp.c pfctl_radix.c pfctl_table.c pfctl_qstats.c
  SRCS+= pfctl_optimize.c
@@ -1331,11 +1331,11 @@ diff -u -r1.1.1.1 Makefile
  CFLAGS+= -Wstrict-prototypes -I${.CURDIR}/../../contrib/pf/pfctl
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.2
-diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	25 Jul 2009 22:14:15 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	25 Jul 2009 22:14:35 -0000
+RCS file: /home/ermal/CURRENT/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.3
+diff -u -r1.3 pf.c
+--- sys/contrib/pf/net/pf.c	28 Jul 2009 22:08:47 -0000	1.3
++++ sys/contrib/pf/net/pf.c	28 Jul 2009 22:11:54 -0000
 @@ -136,6 +136,9 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -1455,13 +1455,17 @@ diff -u -r1.2 pf.c
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -6866,8 +6901,15 @@
+@@ -6866,8 +6901,19 @@
  		goto done;
  	}
  
 +	dn_tag = m_tag_find(m, PACKET_TAG_DUMMYNET, NULL);
 +        if (dn_tag != NULL &&
 +                ((struct dn_pkt_tag *)(dn_tag+1))->dn_client == DN_CLIENT_PF) {
++		if (pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
++                        m->m_flags |= M_FASTFWD_OURS;
++                        pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
++                }
 +		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
 +                m_tag_delete(m, dn_tag);
 +        }
@@ -1472,7 +1476,7 @@ diff -u -r1.2 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -6905,6 +6947,11 @@
+@@ -6905,6 +6951,11 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1484,7 +1488,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -6946,6 +6993,10 @@
+@@ -6946,6 +6997,10 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1495,7 +1499,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7066,6 +7117,42 @@
+@@ -7066,6 +7121,47 @@
  	}
  #endif /* ALTQ */
  
@@ -1521,6 +1525,11 @@ diff -u -r1.2 pf.c
 +			dnflow.f_id.src_ip = ntohl(h->ip_src.s_addr);
 +			dnflow.f_id.dst_ip = ntohl(h->ip_dst.s_addr);
 +
++			if (m->m_flags & M_FASTFWD_OURS) {
++                                pd.pf_mtag->flags |= PF_FASTFWD_OURS_PRESENT;
++                                m->m_flags &= ~M_FASTFWD_OURS;
++                        }
++
 +                        PF_UNLOCK();
 +
 +                        h = mtod(*m0, struct ip *);
@@ -1538,7 +1547,7 @@ diff -u -r1.2 pf.c
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7154,7 +7241,6 @@
+@@ -7154,7 +7250,6 @@
  			    tr->dst.neg);
  	}
  
@@ -1546,7 +1555,7 @@ diff -u -r1.2 pf.c
  	if (action == PF_SYNPROXY_DROP) {
  		m_freem(*m0);
  		*m0 = NULL;
-@@ -7192,6 +7278,9 @@
+@@ -7192,6 +7287,9 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
@@ -1556,7 +1565,7 @@ diff -u -r1.2 pf.c
  	PF_LOCK();
  #endif
  
-@@ -7260,8 +7349,15 @@
+@@ -7260,8 +7358,15 @@
  		goto done;
  	}
  
@@ -1573,7 +1582,7 @@ diff -u -r1.2 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7367,6 +7463,11 @@
+@@ -7367,6 +7472,11 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -1585,7 +1594,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7407,6 +7508,10 @@
+@@ -7407,6 +7517,10 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -1596,7 +1605,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7529,6 +7634,42 @@
+@@ -7529,6 +7643,42 @@
  	}
  #endif /* ALTQ */
  
@@ -1639,7 +1648,7 @@ diff -u -r1.2 pf.c
  	if (dir == PF_IN && action == PF_PASS && (pd.proto == IPPROTO_TCP ||
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
-@@ -7612,7 +7753,6 @@
+@@ -7612,7 +7762,6 @@
  			    tr->dst.neg);
  	}
  
@@ -1649,26 +1658,27 @@ diff -u -r1.2 pf.c
  		*m0 = NULL;
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/contrib/pf/net/pf_mtag.h,v
+RCS file: /home/ermal/CURRENT/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	25 Jul 2009 22:14:15 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	25 Jul 2009 22:14:35 -0000
-@@ -37,6 +37,7 @@
+--- sys/contrib/pf/net/pf_mtag.h	28 Jul 2009 22:08:30 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	28 Jul 2009 22:12:22 -0000
+@@ -37,6 +37,8 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
  #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
 +#define PF_DN_TAG_PRESENT	        0x08
++#define PF_FASTFWD_OURS_PRESENT         0x10
  
  struct pf_mtag {
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.2
-diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	25 Jul 2009 22:14:15 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	25 Jul 2009 22:14:35 -0000
+RCS file: /home/ermal/CURRENT/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.4
+diff -u -r1.4 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	28 Jul 2009 22:09:58 -0000	1.4
++++ sys/contrib/pf/net/pfvar.h	28 Jul 2009 22:10:05 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
@@ -1683,11 +1693,11 @@ diff -u -r1.2 pfvar.h
  	u_int32_t		 prob;
 Index: sys/net/if_bridge.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/net/if_bridge.c,v
+RCS file: /home/ermal/CURRENT/repo/src/sys/net/if_bridge.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_bridge.c
---- sys/net/if_bridge.c	25 Jul 2009 22:10:27 -0000	1.1.1.1
-+++ sys/net/if_bridge.c	25 Jul 2009 22:14:35 -0000
+--- sys/net/if_bridge.c	28 Jul 2009 22:07:32 -0000	1.1.1.1
++++ sys/net/if_bridge.c	28 Jul 2009 22:10:05 -0000
 @@ -3078,7 +3078,7 @@
  			 * packet will return to us via bridge_dummynet().
  			 */
@@ -1699,11 +1709,11 @@ diff -u -r1.1.1.1 if_bridge.c
  
 Index: sys/net/if_ethersubr.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/net/if_ethersubr.c,v
+RCS file: /home/ermal/CURRENT/repo/src/sys/net/if_ethersubr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_ethersubr.c
---- sys/net/if_ethersubr.c	25 Jul 2009 22:10:27 -0000	1.1.1.1
-+++ sys/net/if_ethersubr.c	25 Jul 2009 22:14:35 -0000
+--- sys/net/if_ethersubr.c	28 Jul 2009 22:07:32 -0000	1.1.1.1
++++ sys/net/if_ethersubr.c	28 Jul 2009 22:10:05 -0000
 @@ -544,7 +544,7 @@
  			 */
  			*m0 = NULL ;
@@ -1715,11 +1725,11 @@ diff -u -r1.1.1.1 if_ethersubr.c
  	/*
 Index: sys/netinet/ip_dummynet.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_dummynet.h,v
+RCS file: /home/ermal/CURRENT/repo/src/sys/netinet/ip_dummynet.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.h
---- sys/netinet/ip_dummynet.h	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.h	25 Jul 2009 22:14:35 -0000
+--- sys/netinet/ip_dummynet.h	28 Jul 2009 22:07:32 -0000	1.1.1.1
++++ sys/netinet/ip_dummynet.h	28 Jul 2009 22:10:05 -0000
 @@ -125,6 +125,9 @@
  #define DN_TO_IP6_OUT	7
  #define DN_TO_IFB_FWD	8
@@ -1732,11 +1742,11 @@ diff -u -r1.1.1.1 ip_dummynet.h
      struct _ip6dn_args ip6opt;	/* XXX ipv6 options			*/
 Index: sys/netinet/ip_var.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_var.h,v
+RCS file: /home/ermal/CURRENT/repo/src/sys/netinet/ip_var.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_var.h
---- sys/netinet/ip_var.h	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ sys/netinet/ip_var.h	25 Jul 2009 22:14:35 -0000
+--- sys/netinet/ip_var.h	28 Jul 2009 22:07:32 -0000	1.1.1.1
++++ sys/netinet/ip_var.h	28 Jul 2009 22:10:05 -0000
 @@ -239,7 +239,7 @@
  extern int	(*ip_fw_chk_ptr)(struct ip_fw_args *args);
  extern int	(*ip_fw_ctl_ptr)(struct sockopt *);
@@ -1748,11 +1758,11 @@ diff -u -r1.1.1.1 ip_var.h
  VNET_DECLARE(int, ip_do_randomid);
 Index: sys/netinet/raw_ip.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/raw_ip.c,v
+RCS file: /home/ermal/CURRENT/repo/src/sys/netinet/raw_ip.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 raw_ip.c
---- sys/netinet/raw_ip.c	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ sys/netinet/raw_ip.c	25 Jul 2009 22:14:35 -0000
+--- sys/netinet/raw_ip.c	28 Jul 2009 22:07:32 -0000	1.1.1.1
++++ sys/netinet/raw_ip.c	28 Jul 2009 22:10:05 -0000
 @@ -88,7 +88,7 @@
  int (*ip_fw_ctl_ptr)(struct sockopt *) = NULL;
  int (*ip_dn_ctl_ptr)(struct sockopt *) = NULL;
@@ -1764,11 +1774,11 @@ diff -u -r1.1.1.1 raw_ip.c
   * Hooks for multicast routing. They all default to NULL, so leave them not
 Index: sys/netinet/ipfw/ip_dummynet.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
+RCS file: /home/ermal/CURRENT/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
---- sys/netinet/ipfw/ip_dummynet.c	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dummynet.c	25 Jul 2009 22:14:35 -0000
+--- sys/netinet/ipfw/ip_dummynet.c	28 Jul 2009 22:07:32 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dummynet.c	28 Jul 2009 22:10:05 -0000
 @@ -241,7 +241,7 @@
  static void	dummynet_flush(void);
  static void	dummynet_send(struct mbuf *);
@@ -1803,11 +1813,11 @@ diff -u -r1.1.1.1 ip_dummynet.c
  MODULE_VERSION(dummynet, 1);
 Index: sys/netinet/ipfw/ip_fw_pfil.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
+RCS file: /home/ermal/CURRENT/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_pfil.c	25 Jul 2009 22:18:52 -0000
+--- sys/netinet/ipfw/ip_fw_pfil.c	28 Jul 2009 22:07:32 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_pfil.c	28 Jul 2009 22:10:05 -0000
 @@ -116,15 +116,18 @@
  
  again:
