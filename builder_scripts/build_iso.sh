@@ -145,7 +145,7 @@ set_image_as_cdrom
 fixup_libmap
 
 echo ">>> Searching and installing ports..."
-PKG_INSTALL_PORTS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
+PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
 install_pkg_install_ports
 
 echo ">>> Installing packages: " 
