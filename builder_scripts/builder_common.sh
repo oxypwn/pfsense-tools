@@ -116,6 +116,9 @@ ensure_kernel_exists() {
 
 # Removes NAT_T and other unneeded kernel options from 1.2 images.
 fixup_kernel_options() {
+	
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 
 	# Create area where kernels will be copied on LiveCD
 	mkdir -p $PFSENSEBASEDIR/kernels/
@@ -236,7 +239,8 @@ build_embedded_kernel_vga() {
 	fixup_kernel_options
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF	
@@ -263,7 +267,8 @@ build_embedded_kernel() {
 	fixup_kernel_options
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF	
@@ -290,7 +295,8 @@ build_dev_kernel() {
 	fixup_kernel_options
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -313,7 +319,8 @@ build_freebsd_only_kernel() {
 	fixup_kernel_options
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -338,7 +345,8 @@ build_all_kernels() {
 	fixup_kernel_options
 	# Build uniprocessor kernel
 	echo ">>> Building uniprocessor kernel..."
-	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -366,7 +374,8 @@ build_all_kernels() {
 
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
-	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
@@ -380,7 +389,8 @@ build_all_kernels() {
 	
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
-	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
