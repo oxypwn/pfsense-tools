@@ -2379,9 +2379,9 @@ check_for_forced_pfPorts_build() {
 
 enable_memory_disks() {
 	echo -n ">>> Mounting memory disks: "
-	MD1=`mdconfig -l -u md1 | grep md1 | wc -l`
-	MD2=`mdconfig -l -u md2 | grep md2 | wc -l`
-	MD3=`mdconfig -l -u md3 | grep md3 | wc -l`
+	MD1=`mdconfig -l -u md1 | grep md1 | wc -l | awk '{ print $1 }'`
+	MD2=`mdconfig -l -u md2 | grep md2 | wc -l | awk '{ print $1 }'`
+	MD3=`mdconfig -l -u md3 | grep md3 | wc -l | awk '{ print $1 }'`
 	if [ "$MD1" -lt 1 ]; then
 		echo -n "/usr/obj.pfSense/ "
 		mdconfig -a -t swap -s 1700m -u 1
