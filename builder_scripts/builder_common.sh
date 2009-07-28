@@ -2409,6 +2409,15 @@ enable_memory_disks() {
 	echo "Done!"
 }
 
+disable_memory_disks() {
+	echo -n ">>> Disabling memory disks..."
+	umount /tmp/kernels /usr/pfSensesrc /usr/obj.pfSense
+	(mdconfig -d -u 1) | '(^>>>)'
+	(mdconfig -d -u 2) | '(^>>>)'
+	(mdconfig -d -u 3) | '(^>>>)'
+	echo "Done!"
+}
+
 # This routine assists with installing various
 # freebsd ports files into the pfsenese-fs staging
 # area.  This was handled by pkginstall.sh (freesbie)
