@@ -43,6 +43,14 @@
 #  set -e 
 #  set -x
 
+# Some variables can be passed to make only as environment, not as parameters.
+# usage: env $MAKE_ENV make $makeargs
+MAKE_ENV=${MAKE_ENV:-}
+
+if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
+    MAKE_ENV="$MAKE_ENV MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
+fi
+
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
 	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/i386/conf/
@@ -243,7 +251,7 @@ build_embedded_kernel_vga() {
 	export KERNCONF=pfSense_nano_vga.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/nano_vga"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_nano_vga.${FREEBSD_VERSION}"
-	buildkernel
+	freesbie_make buildkernel
 	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/nano_vga/boot/defaults/
@@ -270,7 +278,7 @@ build_embedded_kernel() {
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
-	buildkernel
+	freesbie_make buildkernel
 	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
@@ -297,7 +305,7 @@ build_dev_kernel() {
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	buildkernel
+	freesbie_make buildkernel
 	echo ">>> installing Developers kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
@@ -320,7 +328,7 @@ build_freebsd_only_kernel() {
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/FreeBSD.${FREEBSD_VERSION}"
 	export KERNEL_DESTDIR="/tmp/kernels/freebsd"
 	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
-	buildkernel
+	freesbie_make buildkernel
 	echo ">>> installing FreeBSD kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/freebsd/boot/defaults/
@@ -345,7 +353,7 @@ build_all_kernels() {
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
-	buildkernel
+	freesbie_make buildkernel
 	echo ">>> installing uniprocessor kernel..."
 	freesbie_make installkernel
 
@@ -358,7 +366,7 @@ build_all_kernels() {
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
-	buildkernel
+	freesbie_make buildkernel
 	echo ">>> installing wrap kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
@@ -372,7 +380,7 @@ build_all_kernels() {
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"	
-	buildkernel
+	freesbie_make buildkernel
 	echo ">>> installing Developers kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
@@ -386,7 +394,7 @@ build_all_kernels() {
 	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
-	buildkernel
+	freesbie_make buildkernel
 	echo ">>> installing SMP kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
@@ -1500,7 +1508,7 @@ make_world() {
     fi
 
     # Make world
-    buildworld
+    freesbie buildworld
     touch ${MAKEOBJDIRPREFIX}/.world.done
 
 	# Sometimes inbetween build_iso runs btxld seems to go missing.
@@ -1514,7 +1522,7 @@ make_world() {
 		| egrep -wi '(patching\ file|warning|error)'
 	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
 		| egrep -wi '(patching\ file|warning|error)'
-	installworld
+	freesbie installworld
 	# Ensure home directory exists
 	mkdir -p $PFSENSEBASEDIR/home
 }
