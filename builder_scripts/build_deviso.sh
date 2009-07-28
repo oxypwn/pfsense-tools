@@ -37,6 +37,9 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+# This should be run first
+launch
+
 # Make sure source directories are present.
 ensure_source_directories_present
 

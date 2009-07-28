@@ -46,6 +46,9 @@ fi
 # Suck in script helper functions
 . ./builder_common.sh
 
+# This should be run first
+launch
+
 # Show flags
 print_flags
 

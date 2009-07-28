@@ -37,6 +37,9 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+# This should be run first
+launch
+
 recompile_pfPorts
 
 

@@ -2581,3 +2581,50 @@ installkernel() {
 	gzip -f9 $KERNEL_DESTDIR/boot/kernel/kernel
 	cd $BUILDER_SCRIPTS
 }
+
+# Launch is ran first to setup a few variables that we need
+launch() {
+
+	# just return for now as we integrate
+	return
+
+	# If the PFSENSE_DEBUG environment variable is set, be verbose.
+	[ ! -z "${PFSENSE_DEBUG:-}" ] && set -x
+
+	# Set the absolute path for the toolkit dir
+	LOCALDIR=$(cd $(dirname $0)/.. && pwd)
+
+	CURDIR=$1;
+	shift;
+
+	TARGET=$1;
+	shift;
+
+	# Set LOGFILE. If it's a tmp file, schedule for deletion
+	if [ -n "${1:-}" ]; then
+	    LOGFILE=$1
+	    REMOVELOG=0
+	else
+	    LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
+	    REMOVELOG=1
+	fi
+
+	cd $CURDIR
+
+	#. ./conf/freesbie.defaults.conf
+
+	FREESBIE_CONF=/dev/null
+
+	if [ ! -z "${ARCH:-}" ]; then
+		ARCH=${ARCH:-`uname -p`}
+	fi
+
+	# Some variables can be passed to make only as environment, not as parameters.
+	# usage: env $MAKE_ENV make $makeargs
+	MAKE_ENV=${MAKE_ENV:-}
+
+	if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
+	    MAKE_ENV="$MAKE_ENV MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
+	fi
+	
+}
