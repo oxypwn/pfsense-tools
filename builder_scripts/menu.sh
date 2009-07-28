@@ -133,19 +133,21 @@ while [ /bin/true ]; do
 		--hline "Press 1-9, Up/Down, first letter or Enter" \
 		--menu "\n${TXT}\n \
 Choose the option you would like:" -1 -1 9 \
-			"Exit"					"Exit the pfSense builder system" \
-			"Clean"					"Clean up previous build" \
-			"Sync GIT"				"Synchronize various checked out GIT trees with rcs.pfSense.org" \
-	        "Build ISO"				"Build a regular ISO" \
-	        "Build DevISO"			"Build a Developers ISO" \
-	        "Build NanoBSD"			"Build NanoBSD" \
-	        "Build embedded"		"Build old style embedded image" \
-			"Set version"			"Set pfSense version information etc" \
-			"Apply patches"			"Apply patches ${PATCH_FILE}" \
-			"Build snapshots"		"Build snapshots continuously" \
-			"Print variables"		"Shows all pfsense-build.conf and pfsense_local.conf variables" \
-			"Rebuild BSDInstaller"	"Syncs and rebuilds BSDInstaller" \
-			"Reset builder"			"Removes /usr/local and starts completely from scratch" \
+			"Exit"						"Exit the pfSense builder system" \
+			"Clean"						"Clean up previous build" \
+			"Sync GIT"					"Synchronize various checked out GIT trees with rcs.pfSense.org" \
+	        "Build ISO"					"Build a regular ISO" \
+	        "Build DevISO"				"Build a Developers ISO" \
+	        "Build NanoBSD"				"Build NanoBSD" \
+	        "Build embedded"			"Build old style embedded image" \
+			"Set version"				"Set pfSense version information etc" \
+			"Apply patches"				"Apply patches ${PATCH_FILE}" \
+			"Build snapshots"			"Build snapshots continuously" \
+			"Print variables"			"Shows all pfsense-build.conf and pfsense_local.conf variables" \
+			"Rebuild BSDInstaller"		"Syncs and rebuilds BSDInstaller" \
+			"Reset builder"				"Removes /usr/local and starts completely from scratch" \
+			"Enable memory backing"		"Enables memory disk backing of common builder directories" \
+			"Disable memory backing"	"Disables memory disk backing of common builder directories" \
 			2> /tmp/menu.tmp.$$
 	retval=$?
 	choice=`cat /tmp/menu.tmp.$$`
@@ -244,6 +246,14 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		"Reset builder")
 		clear
 		./reset_builder.sh
+		;;
+		"Enable memory backing")
+		clear
+		./enable_memory_disks.sh
+		;;
+		"Disable memory backing")
+		clear
+		./disable_memory_disks.sh
 		;;
 		*)
 	    [ -z "$choice" ] || echo $choice ;
