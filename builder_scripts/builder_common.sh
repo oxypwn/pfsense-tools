@@ -2382,7 +2382,9 @@ check_for_forced_pfPorts_build() {
 # area.  This was handled by pkginstall.sh (freesbie)
 # previously and the need for simplicity has won out.
 install_pkg_install_ports() {
+	echo -n ">>> Installing ports: "
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
+		echo -n "$PORTDIRPFS "
 		if [ ! -d $PORTDIRPFS ]; then 
 			echo "!!!! Could not locate $PORTDIRPFS"
 			print_error_pfS
@@ -2390,4 +2392,5 @@ install_pkg_install_ports() {
 		(cd $PORTDIRPFS && make clean) | egrep -wi '(^>>>|error)'
 		(cd $PORTDIRPFS && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
 	done
+	echo -n "Done!"
 }
