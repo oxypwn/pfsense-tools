@@ -8,11 +8,15 @@
 #  Copyright (C) 2004-2009 Scott Ullrich
 #  All rights reserved.
 #
-# NanoBSD portions of the code
-# Copyright (c) 2005 Poul-Henning Kamp.
-# and copied from nanobsd.sh
-# All rights reserved.
+#  NanoBSD portions of the code
+#  Copyright (c) 2005 Poul-Henning Kamp.
+#  and copied from nanobsd.sh
+#  All rights reserved.
 #
+#  FreeSBIE portions of the code
+#  Copyright (c) 2005 Dario Freni
+#  and copied from FreeSBIE project
+#  All rights reserved.
 #  
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions are met:
