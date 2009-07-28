@@ -2468,6 +2468,7 @@ freesbie_clean_each_run() {
 }
 
 buildworld() {
+	cd $SRCDIR
 	if [ -n "${NO_BUILDWORLD:-}" ]; then
 	    echo "+++ NO_BUILDWORLD set, skipping build" | tee -a ${LOGFILE}
 	    return
@@ -2486,11 +2487,12 @@ buildworld() {
 	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld" > /tmp/freesbie_buildworld_cmd.txt
 	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld || print_error_pfS;) | egrep '^>>>'
-	cd $LOCALDIR
+	cd $BUILDER_SCRIPTS
 }
 
 installworld() {
 	echo ">>> Installing world for ${ARCH} architecture..."
+	cd $SRCDIR
 	# Set SRC_CONF variable if it's not already set.
 	if [ -z "${SRC_CONF:-}" ]; then
 	    if [ -n "${MINIMAL:-}" ]; then
@@ -2511,11 +2513,12 @@ installworld() {
 	# make distribution
 	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution || print_error_pfS;) | egrep '^>>>'
 	set -e
-	cd $LOCALDIR
+	cd $BUILDER_SCRIPTS
 }
 
 buildkernel() {
 	# Set SRC_CONF variable if it's not already set.
+	cd $SRCDIR
 	if [ -z "${SRC_CONF:-}" ]; then
 	    if [ -n "${MINIMAL:-}" ]; then
 			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
@@ -2547,12 +2550,13 @@ buildkernel() {
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel" > /tmp/freesbie_buildkernel_cmd.txt
 	cd $SRCDIR
 	(env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel NO_KERNELCLEAN=yo || print_error_pfS;) | egrep '^>>>'
-	cd $LOCALDIR
+	cd $BUILDER_SCRIPTS
 
 }
 
 installkernel() {
 	# Set SRC_CONF variable if it's not already set.
+	cd $SRCDIR
 	if [ -z "${SRC_CONF:-}" ]; then
 	    if [ -n "${MINIMAL:-}" ]; then
 			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
@@ -2583,6 +2587,5 @@ installkernel() {
 	    strip $KERNEL_DESTDIR/boot/kernel/kernel
 	fi
 	gzip -f9 $KERNEL_DESTDIR/boot/kernel/kernel
-	cd $LOCALDIR
+	cd $BUILDER_SCRIPTS
 }
-
