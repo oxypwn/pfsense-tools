@@ -43,14 +43,6 @@
 #  set -e 
 #  set -x
 
-# Some variables can be passed to make only as environment, not as parameters.
-# usage: env $MAKE_ENV make $makeargs
-MAKE_ENV=${MAKE_ENV:-}
-
-if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
-    MAKE_ENV="$MAKE_ENV MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
-fi
-
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
 	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/i386/conf/
