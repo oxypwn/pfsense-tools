@@ -2477,7 +2477,7 @@ buildworld() {
 	unset EXTRA
 	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld" > /tmp/freesbie_buildworld_cmd.txt
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld || print_error;) | egrep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld || print_error_pfS;) | egrep '^>>>'
 	cd $LOCALDIR
 }
 
@@ -2496,12 +2496,12 @@ installworld() {
 	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld" > /tmp/freesbie_installworld_cmd.txt
 	# make installworld
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld || print_error;) | egrep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld || print_error_pfS;) | egrep '^>>>'
 	makeargs="${MAKEOPT:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
 	set +e
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution"  > /tmp/freesbie_installworld_distribution_cmd.txt
 	# make distribution
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution || print_error;) | egrep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution || print_error_pfS;) | egrep '^>>>'
 	set -e
 	cd $LOCALDIR
 }
@@ -2538,7 +2538,7 @@ buildkernel() {
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} ${DTRACE}"
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel" > /tmp/freesbie_buildkernel_cmd.txt
 	cd $SRCDIR
-	(env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel NO_KERNELCLEAN=yo || print_error;) | egrep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel NO_KERNELCLEAN=yo || print_error_pfS;) | egrep '^>>>'
 	cd $LOCALDIR
 
 }
@@ -2568,7 +2568,7 @@ installkernel() {
 	fi
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${KERNEL_DESTDIR}"
 	echo ">>> FreeSBIe2 is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel || print_error;) | egrep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel || print_error_pfS;) | egrep '^>>>'
 	echo ">>> Executing cd $KERNEL_DESTDIR/boot/kernel"
 	if [ "${ARCH}" = "$(uname -p)" -a -z "${DEBUG:-}" ]; then
 		echo ">>> Executing strip kernel"
