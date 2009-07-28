@@ -239,7 +239,7 @@ build_embedded_kernel_vga() {
 	export KERNCONF=pfSense_nano_vga.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/nano_vga"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_nano_vga.${FREEBSD_VERSION}"
-	freesbie_make buildkernel
+	buildkernel
 	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/nano_vga/boot/defaults/
@@ -266,7 +266,7 @@ build_embedded_kernel() {
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
-	freesbie_make buildkernel
+	buildkernel
 	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
@@ -293,7 +293,7 @@ build_dev_kernel() {
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	freesbie_make buildkernel
+	buildkernel
 	echo ">>> installing Developers kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
@@ -316,7 +316,7 @@ build_freebsd_only_kernel() {
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/FreeBSD.${FREEBSD_VERSION}"
 	export KERNEL_DESTDIR="/tmp/kernels/freebsd"
 	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
-	freesbie_make buildkernel
+	buildkernel
 	echo ">>> installing FreeBSD kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/freebsd/boot/defaults/
@@ -341,7 +341,7 @@ build_all_kernels() {
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
-	freesbie_make buildkernel
+	buildkernel
 	echo ">>> installing uniprocessor kernel..."
 	freesbie_make installkernel
 
@@ -354,7 +354,7 @@ build_all_kernels() {
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
-	freesbie_make buildkernel
+	buildkernel
 	echo ">>> installing wrap kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
@@ -368,7 +368,7 @@ build_all_kernels() {
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"	
-	freesbie_make buildkernel
+	buildkernel
 	echo ">>> installing Developers kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
@@ -382,7 +382,7 @@ build_all_kernels() {
 	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
-	freesbie_make buildkernel
+	buildkernel
 	echo ">>> installing SMP kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
@@ -1496,7 +1496,7 @@ make_world() {
     fi
 
     # Make world
-    freesbie_make buildworld
+    buildworld
     touch ${MAKEOBJDIRPREFIX}/.world.done
 
 	# Sometimes inbetween build_iso runs btxld seems to go missing.
@@ -1510,7 +1510,7 @@ make_world() {
 		| egrep -wi '(patching\ file|warning|error)'
 	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
 		| egrep -wi '(patching\ file|warning|error)'
-	freesbie_make installworld
+	installworld
 	# Ensure home directory exists
 	mkdir -p $PFSENSEBASEDIR/home
 }
@@ -2454,3 +2454,123 @@ freesbie_clean_each_run() {
 	fi
 	echo "Done!"
 }
+
+buildworld() {
+	if [ -n "${NO_BUILDWORLD:-}" ]; then
+	    echo "+++ NO_BUILDWORLD set, skipping build" | tee -a ${LOGFILE}
+	    return
+	fi
+	# Set SRC_CONF variable if it's not already set.
+	if [ -z "${SRC_CONF:-}" ]; then
+	    if [ -n "${MINIMAL:-}" ]; then
+		SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
+	    else
+		SRC_CONF=${LOCALDIR}/conf/make.conf
+	    fi
+	fi
+	echo ">>> Building world for ${ARCH} architecture..."
+	cd $SRCDIR
+	unset EXTRA
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
+	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld" > /tmp/freesbie_buildworld_cmd.txt
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld || print_error;) | egrep '^>>>'
+	cd $LOCALDIR
+}
+
+installworld() {
+	echo ">>> Installing world for ${ARCH} architecture..."
+	# Set SRC_CONF variable if it's not already set.
+	if [ -z "${SRC_CONF:-}" ]; then
+	    if [ -n "${MINIMAL:-}" ]; then
+			SRC_CONF=${LOCALDIR}/conf/src.conf.minimal
+	    else
+			SRC_CONF=${LOCALDIR}/conf/src.conf
+	    fi
+	fi
+	mkdir -p ${BASEDIR}
+	cd ${SRCDIR}
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
+	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld" > /tmp/freesbie_installworld_cmd.txt
+	# make installworld
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld || print_error;) | egrep '^>>>'
+	makeargs="${MAKEOPT:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
+	set +e
+	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution"  > /tmp/freesbie_installworld_distribution_cmd.txt
+	# make distribution
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution || print_error;) | egrep '^>>>'
+	set -e
+	cd $LOCALDIR
+}
+
+buildkernel() {
+	# Set SRC_CONF variable if it's not already set.
+	if [ -z "${SRC_CONF:-}" ]; then
+	    if [ -n "${MINIMAL:-}" ]; then
+			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
+	    else
+			SRC_CONF=${LOCALDIR}/conf/make.conf.${FREEBSD_VERSION}
+	    fi
+	fi
+	if [ -n "${KERNELCONF:-}" ]; then
+	    export KERNCONFDIR=$(dirname ${KERNELCONF})
+	    export KERNCONF=$(basename ${KERNELCONF})
+	elif [ -z "${KERNCONF:-}" ]; then
+	    export KERNCONFDIR=${LOCALDIR}/conf/${ARCH}
+	    export KERNCONF="FREESBIE"
+	fi
+	if [ -z "${WITH_DTRACE:-}" ]; then
+		DTRACE=""
+	else
+		DTRACE=" WITH_CTF=1"
+	fi
+	SRCCONFBASENAME=`basename ${SRC_CONF}`
+	echo ">>> KERNCONFDIR: ${KERNCONFDIR}"
+	echo ">>> ARCH:        ${ARCH}"
+	echo ">>> SRC_CONF:    ${SRCCONFBASENAME}"
+	if [ "$DTRACE" != "" ]; then
+		echo ">>> DTRACE:      ${DTRACE}"
+	fi
+	unset EXTRA
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} ${DTRACE}"
+	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel" > /tmp/freesbie_buildkernel_cmd.txt
+	cd $SRCDIR
+	(env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel NO_KERNELCLEAN=yo || print_error;) | egrep '^>>>'
+	cd $LOCALDIR
+
+}
+
+installkernel() {
+	# Set SRC_CONF variable if it's not already set.
+	if [ -z "${SRC_CONF:-}" ]; then
+	    if [ -n "${MINIMAL:-}" ]; then
+			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
+	    else
+			SRC_CONF=${LOCALDIR}/conf/make.conf.${FREEBSD_VERSION}
+	    fi
+	fi
+	if [ -n "${KERNELCONF:-}" ]; then
+	    export KERNCONFDIR=$(dirname ${KERNELCONF})
+	    export KERNCONF=$(basename ${KERNELCONF})
+	elif [ -z "${KERNCONF:-}" ]; then
+	    export KERNCONFDIR=${LOCALDIR}/conf/${ARCH}
+	    export KERNCONF="FREESBIE"
+	fi
+	mkdir -p ${BASEDIR}/boot
+	cd ${SRCDIR}
+	if [ -z "${WITH_DTRACE:-}" ]; then
+		DTRACE=""
+	else
+		DTRACE=" WITH_CTF=1"
+	fi
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${KERNEL_DESTDIR}"
+	echo ">>> FreeSBIe2 is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel || print_error;) | egrep '^>>>'
+	echo ">>> Executing cd $KERNEL_DESTDIR/boot/kernel"
+	if [ "${ARCH}" = "$(uname -p)" -a -z "${DEBUG:-}" ]; then
+		echo ">>> Executing strip kernel"
+	    strip $KERNEL_DESTDIR/boot/kernel/kernel
+	fi
+	gzip -f9 $KERNEL_DESTDIR/boot/kernel/kernel
+	cd $LOCALDIR
+}
+
