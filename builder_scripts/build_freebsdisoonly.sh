@@ -58,8 +58,8 @@ export SRC_CONF_INSTALL="/dev/null"
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
 
-echo ">>> Cleaning up old directories..."
-freesbie_make cleandir
+# Clean up items that should be cleaned each run
+freesbie_clean_each_run
 
 # Output build flags
 print_flags

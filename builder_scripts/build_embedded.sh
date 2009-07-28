@@ -55,8 +55,8 @@ install_required_builder_system_ports
 # Check if we need to force a ports rebuild
 check_for_forced_pfPorts_build
 
-echo ">>> Cleaning up old directories..."
-freesbie_make cleandir
+# Clean up items that should be cleaned each run
+freesbie_clean_each_run
 
 # Output build flags
 print_flags
