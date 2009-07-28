@@ -360,7 +360,8 @@ build_all_kernels() {
 
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
-	#find $MAKEOBJDIRPREFIX -name ".*kernel*" -print | xargs rm -f
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
