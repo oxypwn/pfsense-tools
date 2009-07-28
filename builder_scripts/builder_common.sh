@@ -2378,10 +2378,6 @@ check_for_forced_pfPorts_build() {
 }
 
 enable_memory_disks() {
-	echo -n ">>> CLeaning up previous items...One moment please..."
-	mkdir -p /usr/obj.pfSense/ /usr/pfSensesrc/ /tmp/kernels/
-	rm -rf /usr/obj.pfSense/* /usr/pfSensesrc/* /tmp/kernels/*
-	echo "Done!"
 	echo -n ">>> Mounting memory disks: "
 	MD1=`mdconfig -l -u md1 | grep md1 | wc -l`
 	MD2=`mdconfig -l -u md2 | grep md2 | wc -l`
@@ -2390,18 +2386,24 @@ enable_memory_disks() {
 		echo -n "/usr/obj.pfSense/ "
 		mdconfig -a -t swap -s 1700m -u 1
 		(newfs md1) | egrep -wi '(^>>>|error)'
+		mkdir -p /usr/obj.pfSense/
+		rm -rf /usr/obj.pfSense/*
 		mount /dev/md1 /usr/obj.pfSense/
 	fi
 	if [ "$MD2" -lt 1 ]; then
 		echo -n "/usr/pfSensesrc/ "
 		mdconfig -a -t swap -s 800m -u 2
 		(newfs md2) | egrep -wi '(^>>>|error)'
+		mkdir -p /usr/pfSensesrc/ 
+		rm -rf /usr/pfSensesrc/*		
 		mount /dev/md2 /usr/pfSensesrc/
 	fi
 	if [ "$MD3" -lt 1 ]; then
 		echo -n "/tmp/kernels/ "
 		mdconfig -a -t swap -s 190m -u 3
 		(newfs md3) | egrep -wi '(^>>>|error)'
+		mkdir -p /tmp/kernels/
+		rm -rf /tmp/kernels/*
 		mount /dev/md3 /tmp/kernels/
 	fi
 	echo "Done!"
