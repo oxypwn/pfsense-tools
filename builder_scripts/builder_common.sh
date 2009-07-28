@@ -2399,7 +2399,7 @@ enable_memory_disks() {
 		mount /dev/md2 /usr/pfSensesrc/
 	fi
 	if [ "$MD3" -lt 1 ]; then
-		echo "/tmp/kernels/ "
+		echo -n "/tmp/kernels/ "
 		mdconfig -a -t swap -s 190m -u 3
 		(newfs md3) | egrep -wi '(^>>>|error)'
 		mount /dev/md3 /tmp/kernels/
