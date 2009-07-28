@@ -2089,7 +2089,7 @@ pfSense_clean_obj_dir() {
 		if [ -d "$CVS_CO_DIR" ]; then 
 			echo -n "."
 			chflags -R noschg $CVS_CO_DIR/*
-			rm -rf $CVS_CO_DIR 2>/dev/null
+			rm -rf $CVS_CO_DIR/* 2>/dev/null
 		fi
 	fi
 	echo -n "."
@@ -2104,16 +2104,16 @@ pfSense_clean_obj_dir() {
 		echo -n "."	
 		chflags -R noschg ${PFSENSEBASEDIR}
 		echo -n "."
-		(cd ${CURRENTDIR} && rm -rf ${PFSENSEBASEDIR})	
+		(cd ${CURRENTDIR} && rm -rf ${PFSENSEBASEDIR}/*)	
 	fi
 	if [ -d "$PFSENSEISODIR" ]; then 
 		echo -n "."
 		chflags -R noschg ${PFSENSEISODIR}
 		echo -n "."
-		(cd ${CURRENTDIR} && rm -rf ${PFSENSEISODIR})	
+		(cd ${CURRENTDIR} && rm -rf ${PFSENSEISODIR}/*)	
 	fi
 	echo -n "."
-	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX})
+	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX}/*)
 	echo -n "."
 	rm -rf /tmp/kernels
 	if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
