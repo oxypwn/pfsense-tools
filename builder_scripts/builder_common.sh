@@ -2386,19 +2386,19 @@ enable_memory_disks() {
 	MD1=`mdconfig -l -u md1 | grep md1 | wc -l`
 	MD2=`mdconfig -l -u md2 | grep md2 | wc -l`
 	MD3=`mdconfig -l -u md3 | grep md3 | wc -l`
-	if [ "$MD1" -gt 0 ]; then
+	if [ "$MD1" -lt 1 ]; then
 		echo -n "/usr/obj.pfSense/ "
 		mdconfig -a -t swap -s 1700m -u 1
 		(newfs md1) | egrep -wi '(^>>>|error)'
 		mount /dev/md1 /usr/obj.pfSense/
 	fi
-	if [ "$MD2" -gt 0 ]; then
+	if [ "$MD2" -lt 1 ]; then
 		echo -n "/usr/pfSensesrc/ "
 		mdconfig -a -t swap -s 800m -u 2
 		(newfs md2) | egrep -wi '(^>>>|error)'
 		mount /dev/md2 /usr/pfSensesrc/
 	fi
-	if [ "$MD3" -gt 0 ]; then
+	if [ "$MD3" -lt 1 ]; then
 		echo "/tmp/kernels/ "
 		mdconfig -a -t swap -s 190m -u 3
 		(newfs md3) | egrep -wi '(^>>>|error)'
