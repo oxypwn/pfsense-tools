@@ -2442,7 +2442,7 @@ freesbie_clean_each_run() {
 	echo -n ">>> Removing build directories: "
 	if [ -d "${PFSENSEBASEDIR}" ]; then
 		BASENAME=`basename ${PFSENSEBASEDIR}`
-		echo -n "$PFSENSEBASEDIR "
+		echo -n "$BASENAME "
 	    chflags -R noschg ${PFSENSEBASEDIR}
 	    rm -rf ${PFSENSEBASEDIR} 2>/dev/null
 	fi
