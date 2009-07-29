@@ -700,7 +700,13 @@ cust_populate_installer_bits() {
 # Copies all extra files to the CVS staging area and ISO staging area (as needed)
 cust_populate_extra() {
     # Make devd
-    (cd ${SRCDIR}/sbin/devd && export SRCCONF=${SRC_CONF} NO_MAN=YES make clean && make depend && make all && make DESTDIR=${PFSENSEBASEDIR} install)
+	PWD=`pwd`
+    cd ${SRCDIR}/sbin/devd 
+	env SRCCONF=${SRC_CONF} NO_MAN=YES make clean 
+	env SRCCONF=${SRC_CONF} NO_MAN=YES make depend
+	env SRCCONF=${SRC_CONF} NO_MAN=YES make 
+	env SRCCONF=${SRC_CONF} NO_MAN=YES make DESTDIR=${PFSENSEBASEDIR} install
+	cd $PWD
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
@@ -1586,14 +1592,15 @@ make_world() {
 	# EDGE CASE #2 yp.h ##############################################
 	# Ensure yp.h is built, this commonly has issues for some
 	# reason on subsequent build runs and results in file not found.
-	#if [ ! -f $MAKEOBJDIRPREFIX/$SRCDIR/include/rpcsvc/yp.h ]; then
-	#	(cd $SRCDIR/lib/ && env TARGET_ARCH=${ARCH} \
-	#	MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
-	#	NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
-	#fi
-	
+	if [ ! -f $MAKEOBJDIRPREFIX/$SRCDIR/include/rpcsvc/yp.h ]; then
+		rm -rf $MAKEOBJDIRPREFIX/$SRCDIR/lib/libc
+		(cd $SRCDIR/lib/libc && env TARGET_ARCH=${ARCH} \
+			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
+			NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
+	fi
+
 	# EDGE CASE #3 libc_p.a  #########################################
-	
+
 	# Invoke FreeSBIE's installworld
 	freesbie_make installworld
 
@@ -2487,15 +2494,13 @@ enable_memory_disks() {
 		mdconfig -a -t swap -s 1700m -u 1
 		(newfs md1) | egrep -wi '(^>>>|error)'
 		mkdir -p /usr/obj.pfSense/
-		rm -rf /usr/obj.pfSense/*
 		mount /dev/md1 /usr/obj.pfSense/
 	fi
 	if [ "$MD2" -lt 1 ]; then
 		echo -n "/usr/pfSensesrc/ "
 		mdconfig -a -t swap -s 800m -u 2
 		(newfs md2) | egrep -wi '(^>>>|error)'
-		mkdir -p /usr/pfSensesrc/ 
-		rm -rf /usr/pfSensesrc/*		
+		mkdir -p /usr/pfSensesrc/
 		mount /dev/md2 /usr/pfSensesrc/
 	fi
 	if [ "$MD3" -lt 1 ]; then
@@ -2503,10 +2508,10 @@ enable_memory_disks() {
 		mdconfig -a -t swap -s 190m -u 3
 		(newfs md3) | egrep -wi '(^>>>|error)'
 		mkdir -p /tmp/kernels/
-		rm -rf /tmp/kernels/*
 		mount /dev/md3 /tmp/kernels/
 	fi
 	echo "Done!"
+	update_freebsd_sources_and_apply_patches
 }
 
 # Disables memory disk backing of common builder directories
