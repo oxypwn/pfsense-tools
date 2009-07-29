@@ -1353,15 +1353,23 @@ checkout_pfSense_git() {
 	echo ">>> Using GIT to checkout ${PFSENSETAG}"
 	echo -n ">>> "
 
-	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
+    mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
-        BRANCH=master
+        (cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master) \
+            | egrep -wi '(^>>>|error)'
     else
-        BRANCH=${PFSENSETAG}
+        branch_exists=`git branch | grep "${PFSENSETAG}"`
+        if [ -z "$branch_exists" ]; then
+            (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
+                && git checkout -b "${PFSENSE_TAG}" "origin/{$PFSENSE_TAG}") \
+                2>&1 | egrep -wi '(^>>>|error)'
+        else
+            (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
+                && git checkout "${PFSENSE_TAG}") 2>&1 \
+                    | egrep -wi '(^>>>|error)'
+        fi
     fi
-
-    (cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout ${BRANCH}) \
-        | egrep -wi '(^>>>|error)'
+    echo 'Done!'
 
 	echo -n ">>> Creating tarball of checked out contents..."
 	mkdir -p $CVS_CO_DIR
