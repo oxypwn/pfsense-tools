@@ -344,6 +344,12 @@ build_freebsd_only_kernel() {
 # during the build_iso.sh and build_deviso.sh routines
 build_all_kernels() {
 
+	# If we have already installed kernels 
+	# no need to build them again.
+	if [ "`find $MAKEOBJDIRPREFIX -name .done_installkernel | wc -l`" -gt 0 ]; then
+		NO_BUILDKERNEL=yo
+	fi
+
 	# Common fixup code
 	fixup_kernel_options
 	# Build uniprocessor kernel
@@ -1385,9 +1391,9 @@ checkout_pfSense_git() {
     selected_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && \
         git branch | grep '^\*' | cut -d' ' -f2`
     if [ "${selected_branch}" = "${BRANCH}" ]; then
-        echo "[OK] (${BRANCH})"
+        echo " [OK] (${BRANCH})"
     else
-        echo "[FAILED!] (${BRANCH})"
+        echo " [FAILED!] (${BRANCH})"
         print_error_pfS 'Checked out branch differs from configured BRANCH, something is wrong with the build system!'
         sleep 65535
         die
