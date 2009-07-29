@@ -2296,10 +2296,13 @@ update_freebsd_sources_and_apply_patches() {
 	# No need to obtain sources or patch 
 	# on subsequent build runs.
 	
-	COUNT=`find $MAKEOBJDIRPREFIX -name .done_buildworld | wc -l`
-	if [ "$COUNT" -gt 0 ]; then
-		echo ">>> Subsequent build detected, not updating src or applying patches..."
-		return
+	# Detect Subsequent runs if SRCDIR exists (which it should always exist)
+	if [ -d $SRCDIR ]; then
+		COUNT=`find $MAKEOBJDIRPREFIX -name .done_buildworld | wc -l`
+		if [ "$COUNT" -gt 0 ]; then
+			echo ">>> Subsequent build detected, not updating src or applying patches..."
+			return
+		fi
 	fi
 
 	# If override is in place, use it otherwise
