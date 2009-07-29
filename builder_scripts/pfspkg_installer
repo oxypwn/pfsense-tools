@@ -202,7 +202,7 @@ if (! file_exists($listFile) && $mode == "config") {
 // package list file already exists
 } else if (file_exists($listFile) && $mode == "config") {
 	// try to figure out whether the file contains valide contents
-	$fileContents = file_get_contents($listFile);
+	$fileContents = str_replace(' ', '', file_get_contents($listFile));
 	$myArray = explode(",", $fileContents);
 	
 	if (is_array($myArray) && count($myArray) == 0) {
@@ -250,7 +250,7 @@ if (file_exists($listFile) && $mode == "install") {
 	if (is_array($config_from_cf["installedpackages"])) {
 		$installedpackages =& $config_from_cf["installedpackages"];
 	} else if (is_array($default_config["installedpackages"])) {
-		$installedpackages =& $config_from_cf["installedpackages"];
+		$installedpackages =& $default_config["installedpackages"];
 	}
 
 	// make sure any of the configs got the installedpackages section
