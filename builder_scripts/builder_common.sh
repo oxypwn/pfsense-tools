@@ -1067,7 +1067,9 @@ test_php_install() {
 	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	HOSTNAME=`chroot $PFSENSEBASEDIR /test_php.php`
+	echo -n $HOSTNAME
 	if [ "$HOSTNAME" != "pfSense" ]; then
+		echo
 		echo
 		echo "An error occured while testing the php installation in $PFSENSEBASEDIR"
 		echo
@@ -1075,7 +1077,7 @@ test_php_install() {
 		sleep 65535
 		die
 	else 
-		echo "[OK]"
+		echo " [OK]"
 	fi
 
 	#
