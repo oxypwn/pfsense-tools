@@ -1357,13 +1357,15 @@ checkout_pfSense_git() {
 
     mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
+        echo -n 'Checking out tag master...'
         (cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master) \
             | egrep -wi '(^>>>|error)'
     else
+        echo -n "Checking out tag ${PFSENSETAG}..."
         branch_exists=`git branch | grep "${PFSENSETAG}"`
         if [ -z "$branch_exists" ]; then
             (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
-                && git checkout -b "${PFSENSE_TAG}" "origin/{$PFSENSE_TAG}") \
+                && git checkout -b "${PFSENSETAG}" "origin/${PFSENSETAG}") \
                 2>&1 | egrep -wi '(^>>>|error)'
         else
             (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
