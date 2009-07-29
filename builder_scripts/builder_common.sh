@@ -1356,12 +1356,15 @@ checkout_pfSense_git() {
 	echo -n ">>> "
 
     mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
-	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
+	if [ "${PFSENSETAG}" = "RELENG_2_0" ] \
+            || [ "${PFSENSETAG}" = 'HEAD' ]; then
         echo -n 'Checking out tag master...'
+        BRANCH=master
         (cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master) \
             | egrep -wi '(^>>>|error)'
     else
         echo -n "Checking out tag ${PFSENSETAG}..."
+        BRANCH="${PFSENSETAG}"
         branch_exists=`git branch | grep "${PFSENSETAG}"`
         if [ -z "$branch_exists" ]; then
             (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
@@ -1374,6 +1377,18 @@ checkout_pfSense_git() {
         fi
     fi
     echo 'Done!'
+
+    echo -n '>>> Making sure we are in the right branch...'
+    selected_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && \
+        git branch | grep '^\*' | cut -d' ' -f2`
+    if [ "${selected_branch}" = "${BRANCH}" ]; then
+        echo "OK (${BRANCH})"
+    else
+        echo "FAILED (${BRANCH})"
+        print_error_pfS 'Checked out branch differs from configured BRANCH, something is wrong with the build system!'
+        sleep 65535
+        die
+    fi
 
 	echo -n ">>> Creating tarball of checked out contents..."
 	mkdir -p $CVS_CO_DIR
