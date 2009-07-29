@@ -1498,14 +1498,25 @@ update_cvs_depot() {
 make_world() {
     # Check if the world and kernel are already built and set
     # the NO variables accordingly
-    if [ -f "${MAKEOBJDIRPREFIX}/.world.done" ]; then
-		#export NO_BUILDWORLD=yo
-    fi
+	ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name kill | wc -l`
+	if [ "$ISINSTALLED" -gt 0 ]; then 
+		touch ${MAKEOBJDIRPREFIX}/.done_buildworld
+		export NO_BUILDWORLD=yo
+	else 
+ 		rm ${MAKEOBJDIRPREFIX}/.done_buildworld
+	fi
 
-    # Make world
-	rm ${MAKEOBJDIRPREFIX}/.world.done
+	# Check to see if we have installed to $PFSENSEBASEDIR
+	ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name kill | wc -l`
+	if [ "$ISINSTALLED" -gt 0 ]; then 
+		touch ${MAKEOBJDIRPREFIX}/.done_installworld
+		export NO_INSTALLWORLD=yo		
+	else 
+		rm ${MAKEOBJDIRPREFIX}/.done_installworld
+	fi
+	
+	# Invoke FreeSBIE's buildworld
     freesbie_make buildworld
-    touch ${MAKEOBJDIRPREFIX}/.world.done
 
 	# Sometimes inbetween build_iso runs btxld seems to go missing.
 	# ensure that this binary is always built and ready.
