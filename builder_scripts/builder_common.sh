@@ -2191,6 +2191,7 @@ pfSense_clean_obj_dir() {
 	fi
 	echo -n "."
 	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX}/*)
+	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX}/.*)	
 	echo -n "."
 	rm -rf /tmp/kernels/*
 	if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
