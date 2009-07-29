@@ -1352,22 +1352,17 @@ clone_system_only()
 checkout_pfSense_git() {
 	echo ">>> Using GIT to checkout ${PFSENSETAG}"
 	echo -n ">>> "
+
 	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
-		(cd ${GIT_REPO_DIR}/pfSenseGITREPO && /usr/local/bin/git checkout master) | egrep -wi '(^>>>|error)'
-	else 
-		if [ "${PFSENSETAG}" != "HEAD" ]; then
-			current_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && git branch | grep ${PFSENSETAG}`
-			if [ "$current_branch" = "" ]; then
-				(cd $GIT_REPO_DIR/pfSenseGITREPO && /usr/local/bin/git checkout -b ${PFSENSETAG} origin/${PFSENSETAG}) | egrep -wi '(^>>>|error)'
-			else 
-				(cd $GIT_REPO_DIR/pfSenseGITREPO && /usr/local/bin/git checkout ${PFSENSETAG}) | egrep -wi '(^>>>|error)'
-			fi
-		else 
-			(cd ${GIT_REPO_DIR}/pfSenseGITREPO && /usr/local/bin/git checkout master) | egrep -wi '(^>>>|error)'
-		fi
-	fi
-	# XXX: use git branch to verify that we are on the correct branch / mainline, etc.
+        BRANCH=master
+    else
+        BRANCH=${PFSENSETAG}
+    fi
+
+    (cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout ${BRANCH}) \
+        | egrep -wi '(^>>>|error)'
+
 	echo -n ">>> Creating tarball of checked out contents..."
 	mkdir -p $CVS_CO_DIR
 	cd ${GIT_REPO_DIR}/pfSenseGITREPO && tar czpf /tmp/pfSense.tgz .
@@ -1470,10 +1465,6 @@ update_cvs_depot() {
 		if [ ! -d "${GIT_REPO_DIR}" ]; then
 			echo ">>> Creating ${GIT_REPO_DIR}"
 			mkdir -p ${GIT_REPO_DIR}
-		fi
-		if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then 
-	    	echo ">>> Removing pfSebseGITREPO from ${GIT_REPO_DIR}"			
-	    	rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO	# XXX: remove this once we are fully working on GIT
 		fi
 		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 			rm -rf ${GIT_REPO_DIR}/pfSense
