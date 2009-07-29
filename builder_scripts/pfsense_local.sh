@@ -86,7 +86,7 @@ export PKGFILE=${PKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfSense
 
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
-export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
+export EXTRA="${EXTRA:-"customroot customscripts pkginstall buildmodules"}"
 
 # Extra modules that we want (FreeBSD)
 #export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"

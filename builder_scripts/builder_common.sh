@@ -2441,6 +2441,17 @@ disable_memory_disks() {
 # area.  This was handled by pkginstall.sh (freesbie)
 # previously and the need for simplicity has won out.
 install_pkg_install_ports() {
+	echo ">>> Searching for packages..."
+	set +e # grep could fail
+	mkdir -p $BASE_DIR/tools/builder_scripts/conf/packages
+	(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
+	(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
+	(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
+	set -e
+	return
+	#
+	# We really want to use this code, but it need a lot of work....
+	#
 	echo -n ">>> Installing ports: "
 	PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p $PKG_ALL
