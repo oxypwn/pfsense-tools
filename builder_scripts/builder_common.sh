@@ -2457,7 +2457,9 @@ install_pkg_install_ports() {
 # Mildly based on FreeSBIE
 freesbie_clean_each_run() {
 	echo -n ">>> Removing build directories: "
-	find $PFSENSEBASEDIR/tmp/ -name "mountpoint*" -exec umount -f {} \;
+	if [ -d $PFSENSEBASEDIR/tmp/ ]; then
+		find $PFSENSEBASEDIR/tmp/ -name "mountpoint*" -exec umount -f {} \;		
+	fi
 	if [ -d "${PFSENSEBASEDIR}" ]; then
 		BASENAME=`basename ${PFSENSEBASEDIR}`
 		echo -n "$BASENAME "
