@@ -1070,7 +1070,7 @@ test_php_install() {
 	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	HOSTNAME=`chroot $PFSENSEBASEDIR /test_php.php`
-	echo -n $HOSTNAME
+	echo -n " $HOSTNAME "
 	if [ "$HOSTNAME" != "pfSense" ]; then
 		echo
 		echo
@@ -1558,18 +1558,34 @@ make_world() {
 	# Invoke FreeSBIE's buildworld
     freesbie_make buildworld
 
+	# EDGE CASE #1 btxldr ############################################
 	# Sometimes inbetween build_iso runs btxld seems to go missing.
 	# ensure that this binary is always built and ready.
 	echo ">>> Ensuring that the btxld problem does not happen on subsequent runs..."
-	(cd $SRCDIR/sys/boot && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
-		| egrep -wi '(patching\ file|warning|error)'
-	(cd $SRCDIR/usr.sbin/btxld && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
-		| egrep -wi '(patching\ file|warning|error)'
-	(cd $SRCDIR/usr.sbin/btxld && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
-		| egrep -wi '(patching\ file|warning|error)'
-	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make) 2>&1 \
-		| egrep -wi '(patching\ file|warning|error)'
+	(cd $SRCDIR/sys/boot && env TARGET_ARCH=${ARCH} \
+		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+		| egrep -wi '(warning|error)'
+	(cd $SRCDIR/usr.sbin/btxld && env TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+		| egrep -wi '(warning|error)'
+	(cd $SRCDIR/usr.sbin/btxld && env TARGET_ARCH=${ARCH} \
+		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+		| egrep -wi '(warning|error)'
+	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env TARGET_ARCH=${ARCH} \
+		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+		| egrep -wi '(warning|error)'
 
+	# EDGE CASE #2 yp.h ##############################################
+	# Ensure yp.h is built, this commonly has issues for some
+	# reason on subsequent build runs and results in file not found.
+	#if [ ! -f $MAKEOBJDIRPREFIX/$SRCDIR/include/rpcsvc/yp.h ]; then
+	#	(cd $SRCDIR/lib/ && env TARGET_ARCH=${ARCH} \
+	#	MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
+	#	NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
+	#fi
+	
+	# EDGE CASE #3 libc_p.a  #########################################
+	
+	# Invoke FreeSBIE's installworld
 	freesbie_make installworld
 
 	# Ensure home directory exists
@@ -2276,6 +2292,13 @@ install_required_builder_system_ports() {
 # Updates FreeBSD sources and applies any custom
 # patches that have been defined.
 update_freebsd_sources_and_apply_patches() {
+	# No need to obtain sources or patch 
+	# on subsequent build runs.
+	if [ -f $MAKEOBJDIRPREFIX/.done_buildworld ]; then
+		echo ">>> Subsequent build detected, not updating src or applying patches..."
+		return
+	fi
+
 	# If override is in place, use it otherwise
 	# locate fastest cvsup host
 	if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
