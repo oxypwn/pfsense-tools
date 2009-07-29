@@ -2460,7 +2460,7 @@ disable_memory_disks() {
 install_pkg_install_ports() {
 	echo ">>> Searching for packages..."
 	set +e # grep could fail
-	rm -rf mkdir -p $BASE_DIR/tools/builder_scripts/conf/
+	rm -rf $BASE_DIR/tools/builder_scripts/conf/*
 	mkdir -p $BASE_DIR/tools/builder_scripts/conf/packages
 	(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
 	(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
