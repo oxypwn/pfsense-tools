@@ -1508,7 +1508,7 @@ make_world() {
 		touch ${MAKEOBJDIRPREFIX}/.done_buildworld
 		export NO_BUILDWORLD=yo
 	else 
- 		rm ${MAKEOBJDIRPREFIX}/.done_buildworld
+ 		rm -f ${MAKEOBJDIRPREFIX}/.done_buildworld
 	fi
 
 	# Check to see if we have installed to $PFSENSEBASEDIR
@@ -1521,7 +1521,7 @@ make_world() {
 		touch ${MAKEOBJDIRPREFIX}/.done_installworld
 		export NO_INSTALLWORLD=yo		
 	else 
-		rm ${MAKEOBJDIRPREFIX}/.done_installworld
+		rm -f ${MAKEOBJDIRPREFIX}/.done_installworld
 	fi
 	
 	# Invoke FreeSBIE's buildworld
