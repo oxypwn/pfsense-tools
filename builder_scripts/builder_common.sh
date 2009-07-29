@@ -1514,8 +1514,6 @@ make_world() {
 		echo "+++ object directory contents found, not building again"
 		touch ${MAKEOBJDIRPREFIX}/.done_buildworld
 		export NO_BUILDWORLD=yo
-	else 
- 		rm -f ${MAKEOBJDIRPREFIX}/.done_buildworld
 	fi
 
 	# Check to see if we have installed to $PFSENSEBASEDIR
@@ -1526,9 +1524,7 @@ make_world() {
 	if [ "$ISINSTALLED" -gt 0 ]; then 
 		echo "+++ $PFSENSEBASEDIR populated, not installing again"
 		touch ${MAKEOBJDIRPREFIX}/.done_installworld
-		export NO_INSTALLWORLD=yo		
-	else 
-		rm -f ${MAKEOBJDIRPREFIX}/.done_installworld
+		export NO_INSTALLWORLD=yo
 	fi
 	
 	# Invoke FreeSBIE's buildworld
