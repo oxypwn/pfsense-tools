@@ -101,26 +101,9 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
-# Invoke FreeSBIE2 toolchain
-
 # Prepare object directry
 echo ">>> Preparing object directory..."
 freesbie_make obj
-
-# Check for freesbie builder issues
-if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_buildworld ]; then
-	echo "Something has gone wrong!  Press ENTER to view log file."
-	read ans
-	more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_buildworld
-	exit
-fi
-
-if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_installworld ]; then
-	echo "Something has gone wrong!  Press ENTER to view log file."
-	read ans
-	more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_installworld
-	exit
-fi
 
 # Build world, kernel and install
 echo ">>> Building world and kernels for ISO... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."

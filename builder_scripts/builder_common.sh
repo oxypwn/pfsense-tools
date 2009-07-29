@@ -1134,7 +1134,7 @@ create_md5_summary_file() {
 	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
 	echo "find / -type f | /usr/bin/xargs /sbin/md5 >> /etc/pfSense_md5.txt" >> $PFSENSEBASEDIR/chroot.sh
 	chmod a+rx $PFSENSEBASEDIR/chroot.sh
-	(chroot $PFSENSEBASEDIR /chroot.sh) | egrep -wi '(^>>>|errors)'
+	(chroot $PFSENSEBASEDIR /chroot.sh) 2>&1 | egrep -wi '(^>>>|errors)'
 	rm $PFSENSEBASEDIR/chroot.sh
 	echo "Done."	
 }
@@ -1577,6 +1577,9 @@ make_world() {
 		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
 		| egrep -wi '(warning|error)'
 	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env TARGET_ARCH=${ARCH} \
+		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+		| egrep -wi '(warning|error)'
+	(cd $SRCDIR/sys/boot/i386/pxeldr && env TARGET_ARCH=${ARCH} \
 		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
 		| egrep -wi '(warning|error)'
 
