@@ -87,6 +87,9 @@ print_error_pfS() {
 	echo "Something went wrong, check errors!" >&2
 	echo "####################################"
 	echo
+	if [ "$1" != "" ]; then
+		echo $1
+	fi
     [ -n "${LOGFILE:-}" ] && \
         echo "Log saved on ${LOGFILE}" && \
 	tail -n20 ${LOGFILE} >&2
@@ -1382,9 +1385,9 @@ checkout_pfSense_git() {
     selected_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && \
         git branch | grep '^\*' | cut -d' ' -f2`
     if [ "${selected_branch}" = "${BRANCH}" ]; then
-        echo "OK (${BRANCH})"
+        echo "[OK] (${BRANCH})"
     else
-        echo "FAILED (${BRANCH})"
+        echo "[FAILED!] (${BRANCH})"
         print_error_pfS 'Checked out branch differs from configured BRANCH, something is wrong with the build system!'
         sleep 65535
         die
