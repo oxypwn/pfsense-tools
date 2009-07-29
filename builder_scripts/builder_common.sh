@@ -1496,8 +1496,10 @@ update_cvs_depot() {
 
 # This builds FreeBSD (make buildworld)
 make_world() {
+
     # Check if the world and kernel are already built and set
     # the NO variables accordingly
+	ISINSTALLED=0
 	if [ -d $MAKEOBJDIRPREFIX ]; then
 		ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
 	fi
@@ -1510,6 +1512,7 @@ make_world() {
 	fi
 
 	# Check to see if we have installed to $PFSENSEBASEDIR
+	ISINSTALLED=0
 	if [ -d ${PFSENSEBASEDIR} ]; then
 		ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name init | wc -l`
 	fi
