@@ -1500,6 +1500,7 @@ make_world() {
     # the NO variables accordingly
 	ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
 	if [ "$ISINSTALLED" -gt 0 ]; then 
+		echo "+++ object directory contents found, not building again"
 		touch ${MAKEOBJDIRPREFIX}/.done_buildworld
 		export NO_BUILDWORLD=yo
 	else 
@@ -1509,6 +1510,7 @@ make_world() {
 	# Check to see if we have installed to $PFSENSEBASEDIR
 	ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name init | wc -l`
 	if [ "$ISINSTALLED" -gt 0 ]; then 
+		echo "+++ $PFSENSEBASEDIR populated, not installing again"
 		touch ${MAKEOBJDIRPREFIX}/.done_installworld
 		export NO_INSTALLWORLD=yo		
 	else 
