@@ -2442,6 +2442,8 @@ disable_memory_disks() {
 # previously and the need for simplicity has won out.
 install_pkg_install_ports() {
 	echo -n ">>> Installing ports: "
+	PKG_ALL="/usr/ports/packages/All/"
+	rm -f $PKG_ALL/*
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		echo -n "$PORTDIRPFS "
 		if [ ! -d $PORTDIRPFS ]; then 
@@ -2449,8 +2451,13 @@ install_pkg_install_ports() {
 			print_error_pfS
 		fi
 		(su - root -c "cd $PORTDIRPFS && make clean") | egrep -wi '(^>>>|error)'
-		(su - root -c "cd $PORTDIRPFS && make install DESTDIR=$PFSENSEBASEDIR") | egrep -wi '(^>>>|error)'
+		(su - root -c "cd $PORTDIRPFS && make package FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
 	done
+	mkdir $PFSENSEBASEDIR/tmp/pkg/
+	cp $PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
+	echo ">>> Installing packages in a chroot..."
+	chroot $PFSENSEBASEDIR pkg_add /tmp/pkg/*
+	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	echo -n "Done!"
 }
 
@@ -2606,8 +2613,11 @@ installkernel() {
 # Imported from FreeSBIE
 launch() {
 	
-	echo ">>> Updating system clock..."
-	ntpdate 0.pfsense.pool.ntp.org
+	if [ ! -f /tmp/pfSense_builder_set_time ]; then
+		echo ">>> Updating system clock..."
+		ntpdate 0.pfsense.pool.ntp.org
+		touch /tmp/pfSense_builder_set_time
+	fi 
 
 	if [ "`id -u`" != "0" ]; then
 	    echo "Sorry, this must be done as root."
