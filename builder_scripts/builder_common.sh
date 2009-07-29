@@ -1508,7 +1508,7 @@ make_world() {
     # Check if the world and kernel are already built and set
     # the NO variables accordingly
     if [ -f "${MAKEOBJDIRPREFIX}/.world.done" ]; then
-		export NO_BUILDWORLD=yo
+		#export NO_BUILDWORLD=yo
     fi
 
     # Make world
@@ -2443,6 +2443,7 @@ disable_memory_disks() {
 install_pkg_install_ports() {
 	echo -n ">>> Installing ports: "
 	PKG_ALL="/usr/ports/packages/All/"
+	mkdir -p $PKG_ALL
 	rm -f $PKG_ALL/*
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		echo -n "$PORTDIRPFS "
@@ -2460,7 +2461,7 @@ install_pkg_install_ports() {
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	echo -n "Done!"
 }
-
+ 
 # Mildly based on FreeSBIE
 freesbie_clean_each_run() {
 	echo -n ">>> Removing build directories: "
