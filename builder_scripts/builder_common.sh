@@ -1498,7 +1498,7 @@ update_cvs_depot() {
 make_world() {
     # Check if the world and kernel are already built and set
     # the NO variables accordingly
-	ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name kill | wc -l`
+	ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
 	if [ "$ISINSTALLED" -gt 0 ]; then 
 		touch ${MAKEOBJDIRPREFIX}/.done_buildworld
 		export NO_BUILDWORLD=yo
@@ -1507,7 +1507,7 @@ make_world() {
 	fi
 
 	# Check to see if we have installed to $PFSENSEBASEDIR
-	ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name kill | wc -l`
+	ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name init | wc -l`
 	if [ "$ISINSTALLED" -gt 0 ]; then 
 		touch ${MAKEOBJDIRPREFIX}/.done_installworld
 		export NO_INSTALLWORLD=yo		
