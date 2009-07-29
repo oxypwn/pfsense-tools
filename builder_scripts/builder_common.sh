@@ -307,7 +307,7 @@ build_dev_kernel() {
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	freesbie_make buildkernel
-	echo ">>> installing Developers kernel..."
+	echo ">>> Installing Developers kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
@@ -331,7 +331,7 @@ build_freebsd_only_kernel() {
 	export KERNEL_DESTDIR="/tmp/kernels/freebsd"
 	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
 	freesbie_make buildkernel
-	echo ">>> installing FreeBSD kernel..."
+	echo ">>> Installing FreeBSD kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/freebsd/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/freebsd/boot/device.hints
@@ -357,7 +357,7 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
-	echo ">>> installing uniprocessor kernel..."
+	echo ">>> Installing uniprocessor kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 
@@ -372,7 +372,7 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="/tmp/kernels/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
-	echo ">>> installing wrap kernel..."
+	echo ">>> Installing wrap kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 
@@ -387,7 +387,7 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="/tmp/kernels/developers"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"	
 	freesbie_make buildkernel
-	echo ">>> installing Developers kernel..."
+	echo ">>> Installing Developers kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 	
@@ -402,7 +402,7 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="/tmp/kernels/SMP"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
-	echo ">>> installing SMP kernel..."
+	echo ">>> Installing SMP kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 
@@ -1541,7 +1541,6 @@ make_world() {
 		ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
 	fi
 	if [ "$ISINSTALLED" -gt 0 ]; then 
-		echo "+++ object directory contents found, not building again"
 		touch ${MAKEOBJDIRPREFIX}/.done_buildworld
 		export NO_BUILDWORLD=yo
 	fi
@@ -1552,7 +1551,6 @@ make_world() {
 		ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name init | wc -l`
 	fi
 	if [ "$ISINSTALLED" -gt 0 ]; then 
-		echo "+++ $PFSENSEBASEDIR populated, not installing again"
 		touch ${MAKEOBJDIRPREFIX}/.done_installworld
 		export NO_INSTALLWORLD=yo
 	fi
