@@ -1497,6 +1497,13 @@ update_cvs_depot() {
 # This builds FreeBSD (make buildworld)
 make_world() {
 
+	if [ -d $MAKEOBJDIRPREFIX ]; then
+		find $MAKEOBJDIRPREFIX/ -name .done_installworld -exec rm {} \;
+		find $MAKEOBJDIRPREFIX/ -name .done_buildworld -exec rm {} \;
+		find $MAKEOBJDIRPREFIX/ -name .done_extra -exec rm {} \;
+		find $MAKEOBJDIRPREFIX/ -name .done_objdir -exec rm {} \;
+	fi
+
     # Check if the world and kernel are already built and set
     # the NO variables accordingly
 	ISINSTALLED=0
