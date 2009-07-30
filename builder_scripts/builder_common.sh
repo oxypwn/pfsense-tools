@@ -707,10 +707,10 @@ cust_populate_extra() {
     # Make devd
 	PWD=`pwd`
     cd ${SRCDIR}/sbin/devd 
-	env SRCCONF=${SRC_CONF} NO_MAN=YES make clean 
-	env SRCCONF=${SRC_CONF} NO_MAN=YES make depend
-	env SRCCONF=${SRC_CONF} NO_MAN=YES make 
-	env SRCCONF=${SRC_CONF} NO_MAN=YES make DESTDIR=${PFSENSEBASEDIR} install
+	(env SRCCONF=${SRC_CONF} NO_MAN=YES make clean) | egrep -wi '(^>>>|error)'
+	(env SRCCONF=${SRC_CONF} NO_MAN=YES make depend) | egrep -wi '(^>>>|error)'
+	(env SRCCONF=${SRC_CONF} NO_MAN=YES make) | egrep -wi '(^>>>|error)'
+	(env SRCCONF=${SRC_CONF} NO_MAN=YES make DESTDIR=${PFSENSEBASEDIR} install) | egrep -wi '(^>>>|error)'
 	cd $PWD
 
 	mkdir -p ${CVS_CO_DIR}/lib
@@ -1088,7 +1088,7 @@ test_php_install() {
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	HOSTNAME=`chroot $PFSENSEBASEDIR /test_php.php`
 	echo -n " $HOSTNAME "
-	if [ "$HOSTNAME" != "PASS" ]; then
+	if [ "$HOSTNAME" != "PASSED" ]; then
 		echo
 		echo
 		echo "An error occured while testing the php installation in $PFSENSEBASEDIR"
