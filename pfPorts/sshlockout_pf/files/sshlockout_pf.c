@@ -29,7 +29,7 @@
 #include <syslog.h>
 
 static void lockout(char *str);
-int check_for_string(char *str, char buf[1024]);
+void check_for_string(char *str, char buf[1024]);
 
 int
 main(int ac, char **av)
@@ -58,21 +58,14 @@ main(int ac, char **av)
    return(0);
 }
 
-int
+void
 check_for_string(char *str, char buf[1024])
 {
+	char *tmpstr = NULL;
       if ((str = strstr(buf, str)) != NULL) {
-           str += 12;
-           while (*str == ' ')
-               ++str;
-           while (*str && *str != ' ')
-               ++str;
-           if (strncmp(str, " from", 5) == 0) {
-               lockout(str + 5);
-               return(1);
-           }
+           if ((tmpstr = strstr(str, " from")) != NULL)
+               lockout(tmpstr + 5);
        }
-       return(0);
 }
 
 static void
