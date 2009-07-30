@@ -2261,6 +2261,7 @@ ensure_source_directories_present() {
 	# Sanity check
 	if [ ! -d "${PFSPATCHDIR}" ]; then
 		echo "PFSPATCHDIR=${PFSPATCHDIR} is not a directory -- Please fix."
+		print_error_pfS
 		kill $$
 	fi
 	if [ ! -d $SRCDIR ]; then
@@ -2400,7 +2401,9 @@ update_freebsd_sources_and_apply_patches() {
 			LOGFILE="/tmp/patches.failed.apply"
 			find $SRCDIR -name "*.rej" > $LOGFILE
 			print_error_pfS
+
 		fi
+		print_error_pfS
 		kill $$
 	fi
 }
@@ -2453,6 +2456,7 @@ ensure_healthy_installer() {
 	if [ "$INSTALLER_ERROR" -gt 0 ]; then 
 		echo "[ERROR!]"
 		print_error_pfS
+		kill $$
 	else
 		echo "[OK]"
 	fi
@@ -2557,6 +2561,7 @@ install_pkg_install_ports() {
 		if [ ! -d $PORTDIRPFS ]; then 
 			echo "!!!! Could not locate $PORTDIRPFS"
 			print_error_pfS
+			kill $$
 		fi
 		(su - root -c "cd $PORTDIRPFS && make clean") | egrep -wi '(^>>>|error)'
 		(su - root -c "cd $PORTDIRPFS && make package FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
@@ -2729,7 +2734,6 @@ launch() {
 
 	if [ "`id -u`" != "0" ]; then
 	    echo "Sorry, this must be done as root."
-	    sleep 999
 	    kill $$
 	fi
 
