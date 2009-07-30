@@ -1348,7 +1348,7 @@ clone_system_only()
 	MDDEVICES=`create_vnode $FREESBIEISODIR/uzip/usr.ufs usr`
 	MDDEVICES="$MDDEVICES `create_vnode $FREESBIEISODIR/uzip/var.ufs var`"
 
-	trap "umount_devices $MDDEVICES; kill $$" INT
+	trap "umount_devices $MDDEVICES; exit 1" INT
 
 	cd $FREESBIEBASEDIR
 
@@ -1913,6 +1913,7 @@ awk '
 }
 	' > ${MAKEOBJDIRPREFIX}/_.fdisk
 
+	mkdir -p $MAKEOBJDIRPREFIXFINAL
 	IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
 	MNT=${MAKEOBJDIRPREFIX}/_.mnt
 	mkdir -p ${MNT}
