@@ -1912,11 +1912,11 @@ awk '
 	# for booting the image from a USB device to work.
 	print "a 1"
 }
-	' > ${MAKEOBJDIRPREFIX}/_.fdisk
+	' > ${MAKEOBJDIRPREFIXFINAL}/_.fdisk
 
 	mkdir -p $MAKEOBJDIRPREFIXFINAL
 	IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
-	MNT=${MAKEOBJDIRPREFIX}/_.mnt
+	MNT=${MAKEOBJDIRPREFIXFINAL}/_.mnt
 	mkdir -p ${MNT}
 
 	dd if=/dev/zero of=${IMG} bs=${NANO_SECTS}b \
@@ -1937,8 +1937,8 @@ awk '
 	df -i ${MNT}
 	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
 	df -i ${MNT}
-	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIX}/_.mtree
-	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIX}/_.du
+	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIXFINAL}/_.mtree
+	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIXFINAL}/_.du
 	umount ${MNT}
 
 	# Setting NANO_IMAGES to 1 and NANO_INIT_IMG2 will tell
