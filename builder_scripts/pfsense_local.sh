@@ -68,7 +68,7 @@ export CVS_USER=${CVS_USER:-sullrich}
 export CVS_IP=${CVS_IP:-cvs.pfsense.org}
 
 # This is where updates will be stored once they are created.
-export UPDATESDIR=${UPDATESDIR:-$BASE_DIR/updates}
+export UPDATESDIR=${UPDATESDIR:-$MAKEOBJDIRPREFIXFINAL/updates}
 
 # This is where FreeSBIE will initially install all files to
 export PFSENSEBASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
