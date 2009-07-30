@@ -25,7 +25,7 @@ if [ -f ./pfsense-build.conf ]; then
 fi
 
 # Area that the final image will appear in
-export MAKEOBJDIRPREFIXFINAL=/tmp/builder/
+export MAKEOBJDIRPREFIXFINAL=${MAKEOBJDIRPREFIXFINAL:-/tmp/builder/}
 
 # Leave near the top.  
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
