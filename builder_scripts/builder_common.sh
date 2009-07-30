@@ -105,14 +105,12 @@ ensure_kernel_exists() {
 	if [ ! -f "$1/boot/kernel/kernel.gz" ]; then
 		echo "Could not locate $1/boot/kernel.gz"
 		print_error_pfS
-		sleep 65535
 		exit 1
 	fi
 	KERNEL_SIZE=`ls -la $1/boot/kernel/kernel.gz | awk '{ print $5 }'`
 	if [ "$KERNEL_SIZE" -lt 3500 ]; then
 		echo "Kernel $1/boot/kernel.gz appears to be smaller than it should be: $KERNEL_SIZE"
 		print_error_pfS
-		sleep 65535
 		exit 1
 	fi
 }
@@ -801,7 +799,7 @@ install_custom_overlay() {
 			tar xzpf $custom_overlay -C $CVS_CO_DIR
 		else
 			echo " file not found $custom_overlay"
-			sleep 65535
+			print_error_pfS
 		fi
 	fi
 
@@ -836,7 +834,7 @@ install_custom_overlay_final() {
 			tar xzpf $custom_overlay -C $PFSENSEBASEDIR
 		else
 			echo " file not found $custom_overlay_final"
-			sleep 65535
+			print_error_pfS
 		fi
 	fi
 
@@ -1089,7 +1087,6 @@ test_php_install() {
 		echo "An error occured while testing the php installation in $PFSENSEBASEDIR"
 		echo
 		print_error_pfS
-		sleep 65535
 		die
 	else 
 		echo " [OK]"
@@ -1401,8 +1398,7 @@ checkout_pfSense_git() {
     else
         echo " [FAILED!] (${BRANCH})"
         print_error_pfS 'Checked out branch differs from configured BRANCH, something is wrong with the build system!'
-        sleep 65535
-        die
+        exit 1
     fi
 
 	echo -n ">>> Creating tarball of checked out contents..."
@@ -1525,7 +1521,7 @@ update_cvs_depot() {
 				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
 				echo
 				print_error_pfS
-				sleep 65535
+				exit 1
 			fi
 		fi
 		checkout_pfSense_git
@@ -2397,7 +2393,7 @@ update_freebsd_sources_and_apply_patches() {
 			find $SRCDIR -name "*.rej" > $LOGFILE
 			print_error_pfS
 		fi
-		sleep 65535
+		exit 1
 	fi
 }
 
