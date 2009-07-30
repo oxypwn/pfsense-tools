@@ -24,6 +24,9 @@ if [ -f ./pfsense-build.conf ]; then
 	. ./pfsense-build.conf
 fi
 
+# Area that the final image will appear in
+export MAKEOBJDIRPREFIXFINAL=/tmp/builder/
+
 # Leave near the top.  
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
 
@@ -92,8 +95,8 @@ export EXTRA="${EXTRA:-"customroot customscripts pkginstall buildmodules"}"
 #export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
 
 # Must be defined after MAKEOBJDIRPREFIX!
-export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/pfSense.iso}
-export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/pfSense.img}
+export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense.iso}
+export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense.img}
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}

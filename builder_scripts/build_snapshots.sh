@@ -28,6 +28,7 @@ fi
 #set -e 
 
 # Local variables that are used by builder scripts
+MAKEOBJDIRPREFIXFINAL=/tmp/builder/
 PFSENSEOBJDIR=/usr/obj.pfSense
 MAKEOBJDIRPREFIX=/usr/obj.pfSense
 WEBDATAROOT=/usr/local/www/data
@@ -182,10 +183,10 @@ build_iso() {
 	./clean_build.sh
 	./build_iso.sh
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	gzip $PFSENSEOBJDIR/pfSense.iso
-	mv $PFSENSEOBJDIR/pfSense.iso.gz $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
-	md5 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
-	sha256 $PFSENSEOBJDIR/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > ${PFSENSEOBJDIR}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256	
+	gzip $MAKEOBJDIRPREFIXFINAL/pfSense.iso
+	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso.gz $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
+	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
+	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256	
 }
 
 build_deviso() {
@@ -198,7 +199,7 @@ build_embedded() {
 	cd $BUILDERSCRIPTS 
 	rm -rf /usr/obj*
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	rm -f $PFSENSEOBJDIR/pfSense-${DATESTRING}.img.gz
+	rm -f $MAKEOBJDIRPREFIXFINAL/pfSense-${DATESTRING}.img.gz
 	./build_embedded.sh
 }
 
@@ -266,8 +267,8 @@ copy_to_staging_nanobsd() {
 	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${DATESTRING}-nanobsd-upgrade.img"
 	mkdir $STAGINGAREA/nanobsd
 	mkdir $STAGINGAREA/nanobsdupdates
-	cp $PFSENSEOBJDIR/nanobsd.full.img $STAGINGAREA/nanobsd/ 2>/dev/null
-	cp $PFSENSEOBJDIR/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/nanobsd.full.img $STAGINGAREA/nanobsd/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates 2>/dev/null
 	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
 	mv $STAGINGAREA/nanobsdupdates/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
 	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
@@ -285,23 +286,23 @@ copy_to_staging_nanobsd_updates() {
 copy_to_staging_deviso_updates() {
 	cd $BUILDERSCRIPTS	
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	mv $PFSENSEOBJDIR/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
+	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
 	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
 	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5 2>/dev/null
 }
 
 copy_to_staging_iso_updates() {
 	cd $BUILDERSCRIPTS
-	cp $PFSENSEOBJDIR/pfSense-*.iso $STAGINGAREA/
-	cp $PFSENSEOBJDIR/pfSense-*.iso.* $STAGINGAREA/
-	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/ 
-	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/ 
-	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso $STAGINGAREA/
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso.* $STAGINGAREA/
+	cp $MAKEOBJDIRPREFIXFINAL/*.tgz $STAGINGAREA/ 
+	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.md5 $STAGINGAREA/ 
+	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.sha256 $STAGINGAREA/
 }
 
 copy_to_staging_embedded() {
 	cd $BUILDERSCRIPTS
-	cp $PFSENSEOBJDIR/pfSense.img $STAGINGAREA/ 
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense.img $STAGINGAREA/ 
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz 2>/dev/null
 	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img 2>/dev/null

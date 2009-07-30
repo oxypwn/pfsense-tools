@@ -43,6 +43,13 @@
 #  set -e 
 #  set -x
 
+if [ "$MAKEOBJDIRPREFIXFINAL" ]; then 
+	mkdir -p $MAKEOBJDIRPREFIXFINAL
+else
+	echo "MAKEOBJDIRPREFIXFINAL is not defined"
+	print_error_pfS
+fi
+
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
 	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/i386/conf/
@@ -1906,7 +1913,7 @@ awk '
 }
 	' > ${MAKEOBJDIRPREFIX}/_.fdisk
 
-	IMG=${MAKEOBJDIRPREFIX}/nanobsd.full.img
+	IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
 	MNT=${MAKEOBJDIRPREFIX}/_.mnt
 	mkdir -p ${MNT}
 
@@ -1915,7 +1922,7 @@ awk '
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 
-	fdisk -i -f ${MAKEOBJDIRPREFIX}/_.fdisk ${MD}
+	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
 	fdisk ${MD}
 	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
 	bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
@@ -1982,7 +1989,7 @@ awk '
 	fi
 
 	echo ">>> [nanoo] Creating NanoBSD upgrade file from first slice..."
-	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIX}/nanobsd.upgrade.img bs=64k
+	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIXFINAL}/nanobsd.upgrade.img bs=64k
 	
 	mdconfig -d -u $MD
 	
