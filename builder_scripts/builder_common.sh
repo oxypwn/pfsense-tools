@@ -2523,6 +2523,8 @@ enable_memory_disks() {
 		mount /dev/md3 /tmp/kernels/
 	fi
 	echo "Done!"
+	mount
+	df -h
 	update_freebsd_sources_and_apply_patches
 }
 
