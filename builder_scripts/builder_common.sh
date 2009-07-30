@@ -2741,7 +2741,7 @@ launch() {
 	    kill $$
 	fi
 
-	echo ">>> Operation $1 has started at `date`"
+	echo ">>> Operation $0 has started at `date`"
 
 	# just return for now as we integrate
 	return
@@ -2779,5 +2779,5 @@ launch() {
 }
 
 finish() {
-	echo ">>> Operation $1 has ended at `date`"
+	echo ">>> Operation $0 has ended at `date`"
 }
