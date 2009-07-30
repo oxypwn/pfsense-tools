@@ -92,11 +92,11 @@ print_error_pfS() {
 	fi
     [ -n "${LOGFILE:-}" ] && \
         echo "Log saved on ${LOGFILE}" && \
-	tail -n20 ${LOGFILE} >&2
+		tail -n20 ${LOGFILE} >&2
 	report_error_pfsense
 	echo "Press enter to continue."
     read ans
-    kill $$ # NOTE: exit 1 won't work.
+    kill $$ # NOTE: kill $$ won't work.
 }
 
 # This routine will verify that the kernel has been
@@ -105,13 +105,13 @@ ensure_kernel_exists() {
 	if [ ! -f "$1/boot/kernel/kernel.gz" ]; then
 		echo "Could not locate $1/boot/kernel.gz"
 		print_error_pfS
-		exit 1
+		kill $$
 	fi
 	KERNEL_SIZE=`ls -la $1/boot/kernel/kernel.gz | awk '{ print $5 }'`
 	if [ "$KERNEL_SIZE" -lt 3500 ]; then
 		echo "Kernel $1/boot/kernel.gz appears to be smaller than it should be: $KERNEL_SIZE"
 		print_error_pfS
-		exit 1
+		kill $$
 	fi
 }
 
@@ -1341,7 +1341,7 @@ clone_system_only()
 	MDDEVICES=`create_vnode $FREESBIEISODIR/uzip/usr.ufs usr`
 	MDDEVICES="$MDDEVICES `create_vnode $FREESBIEISODIR/uzip/var.ufs var`"
 
-	trap "umount_devices $MDDEVICES; exit 1" INT
+	trap "umount_devices $MDDEVICES; kill $$" INT
 
 	cd $FREESBIEBASEDIR
 
@@ -1398,7 +1398,7 @@ checkout_pfSense_git() {
     else
         echo " [FAILED!] (${BRANCH})"
         print_error_pfS 'Checked out branch differs from configured BRANCH, something is wrong with the build system!'
-        exit 1
+        kill $$
     fi
 
 	echo -n ">>> Creating tarball of checked out contents..."
@@ -1521,7 +1521,7 @@ update_cvs_depot() {
 				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
 				echo
 				print_error_pfS
-				exit 1
+				kill $$
 			fi
 		fi
 		checkout_pfSense_git
@@ -2253,7 +2253,7 @@ ensure_source_directories_present() {
 	# Sanity check
 	if [ ! -d "${PFSPATCHDIR}" ]; then
 		echo "PFSPATCHDIR=${PFSPATCHDIR} is not a directory -- Please fix."
-		exit 1
+		kill $$
 	fi
 	if [ ! -d $SRCDIR ]; then
 		echo ">>> Creating $SRCDIR ... We will need to csup the contents..."
@@ -2393,7 +2393,7 @@ update_freebsd_sources_and_apply_patches() {
 			find $SRCDIR -name "*.rej" > $LOGFILE
 			print_error_pfS
 		fi
-		exit 1
+		kill $$
 	fi
 }
 
@@ -2722,7 +2722,7 @@ launch() {
 	if [ "`id -u`" != "0" ]; then
 	    echo "Sorry, this must be done as root."
 	    sleep 999
-	    exit 1
+	    kill $$
 	fi
 
 	# just return for now as we integrate
