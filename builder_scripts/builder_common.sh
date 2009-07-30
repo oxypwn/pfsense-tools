@@ -2224,9 +2224,6 @@ pfSense_clean_obj_dir() {
 	echo -n ">>> Ensuring $SRCDIR is clean..."
 	(cd ${SRCDIR}/ && make clean) 2>&1 \
 		| egrep -wi '(NOTFONNAFIND)'	
-	if [ -f /tmp/pfSense_do_not_build_pfPorts ]; then
-		rm /tmp/pfSense_do_not_build_pfPorts
-	fi
 	echo "Done!"
 }
 
