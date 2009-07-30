@@ -1370,6 +1370,7 @@ clone_system_only()
 	
 	cd $PREVIOUSDIR
 }
+
 # Does the work of checking out the specific branch of pfSense
 checkout_pfSense_git() {
 	echo ">>> Using GIT to checkout ${PFSENSETAG}"

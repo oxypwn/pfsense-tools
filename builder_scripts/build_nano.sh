@@ -174,8 +174,8 @@ create_i386_diskimage
 
 # Wrap up the show, Johnny
 echo "Image completed."
-echo "$MAKEOBJDIRPREFIX/"
-ls -lah $MAKEOBJDIRPREFIX/nanobsd*
+echo "$MAKEOBJDIRPREFIXFINAL/"
+ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd*
 
 # E-Mail that we are done.
 email_operation_completed
