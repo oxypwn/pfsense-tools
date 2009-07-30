@@ -629,7 +629,8 @@ cust_overlay_host_binaries() {
 # This routine outputs the zero found files report
 report_zero_sized_files() {
 	if [ -f $MAKEOBJDIRPREFIX/zero_sized_files.txt ]; then 
-		cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
+		cat $MAKEOBJDIRPREFIX/zero_sized_files.txt \
+			| grep -v 270_install_bootblocks
 		rm $MAKEOBJDIRPREFIX/zero_sized_files.txt
 	fi
 }
