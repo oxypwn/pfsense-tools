@@ -708,11 +708,9 @@ cust_populate_extra() {
     # Make devd
 	PWD=`pwd`
     cd ${SRCDIR}/sbin/devd
-	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} clean || print_error_pfS;) | egrep '^>>>'
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} depend || print_error_pfS;) | egrep '^>>>'
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} NO_CLEAN=yo || print_error_pfS;) | egrep '^>>>'
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} DESTDIR=${PFSENSEBASEDIR} install || print_error_pfS;) | egrep '^>>>'
+    make clean
+	make
+    make install DESTDIR=${PFSENSEBASEDIR}
 	cd $PWD
 
 	mkdir -p ${CVS_CO_DIR}/lib
