@@ -1083,7 +1083,7 @@ test_php_install() {
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	HOSTNAME=`chroot $PFSENSEBASEDIR /test_php.php`
 	echo -n " $HOSTNAME "
-	if [ "$HOSTNAME" != "pfSense" ]; then
+	if [ "$HOSTNAME" != "PASS" ]; then
 		echo
 		echo
 		echo "An error occured while testing the php installation in $PFSENSEBASEDIR"
@@ -2351,7 +2351,8 @@ update_freebsd_sources_and_apply_patches() {
 	BASENAMESUPFILE=`basename $SUPFILE`
 	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
 	(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
-		grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
+		grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+		| grep -v "error\." | grep -v "opensolaris"
 	echo "Done!"
 
 	echo ">>> Removing old patch rejects..."

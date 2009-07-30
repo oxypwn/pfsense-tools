@@ -16,14 +16,14 @@ $config = parse_config(true);
 $passed_tests = true;
 
 // Test config.inc
-if($config['system']['hostname'] <> "pfSense") {
+if($config['system']['hostname'] == "") {
 	$passed_tests = false;
 }
 
-echo $config['system']['hostname'];
-
 if($passed_tests) 
 	exit(0);
+
+echo "PASSED";
 
 // Tests failed.
 exit(1);
