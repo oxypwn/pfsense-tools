@@ -42,4 +42,8 @@ launch
 
 recompile_pfPorts
 
+# Email that the operation has completed
+email_operation_completed
 
+# Run final finish routines
+finish

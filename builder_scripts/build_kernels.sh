@@ -57,6 +57,8 @@ fi
 # Use pfSense.6 as kernel configuration file
 export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.$FREEBSD_VERSION"}
 
+# " UNBREAK TEXTMATE FORMATTING. PLEASE LEAVE ME ALONE.
+
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
 # src.conf
@@ -92,3 +94,9 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
 	more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild 
 	exit
 fi
+
+# Email that the operation has completed
+email_operation_completed
+
+# Run final finish routines
+finish

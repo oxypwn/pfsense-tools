@@ -244,5 +244,8 @@ ls -lh ${IMGPATH}
 check_for_zero_size_files
 report_zero_sized_files
 
-
+# Email that the operation has completed
 email_operation_completed
+
+# Run final finish routines
+finish

@@ -2736,6 +2736,8 @@ launch() {
 	    kill $$
 	fi
 
+	echo ">>> Operation $1 has started at `date`"
+
 	# just return for now as we integrate
 	return
 
@@ -2769,4 +2771,8 @@ launch() {
 	    MAKE_ENV="$MAKE_ENV MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
 	fi
 	
+}
+
+finish() {
+	echo ">>> Operation $1 has ended at `date`"
 }

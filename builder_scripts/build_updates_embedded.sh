@@ -122,4 +122,8 @@ pfsense_install_custom_packages_exec
 cd $CVS_CO_DIR
 create_pfSense_Small_update_tarball
 
+# Email that the operation has been completed
 email_operation_completed
+
+# Run final finish routines
+finish

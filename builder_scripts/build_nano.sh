@@ -179,3 +179,9 @@ ls -lah $MAKEOBJDIRPREFIX/nanobsd*
 
 # E-Mail that we are done.
 email_operation_completed
+
+# Email that the operation has completed
+email_operation_completed
+
+# Run final finish routines
+finish

@@ -128,4 +128,8 @@ pfsense_install_custom_packages_exec
 create_pfSense_Full_update_tarball
 create_pfSense_Embedded_update_tarball
 
+# Email that the operation has completed
 email_operation_completed
+
+# Run final finish routines
+finish

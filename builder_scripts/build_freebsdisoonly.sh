@@ -143,5 +143,8 @@ mkdir -p $CLONEDIR/home
 echo ">>> Finalizing iso..."
 freesbie_make iso
 
-# Email that the operation is completed
+# Email that the operation has completed
 email_operation_completed
+
+# Run final finish routines
+finish

@@ -49,6 +49,4 @@ sh -x ./build_deviso.sh
 # Build embedded image
 sh -x ./build_embedded.sh
 
-# Build embedded updates
-sh -x #./build_updates_embedded.sh
 

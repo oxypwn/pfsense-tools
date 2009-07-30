@@ -145,4 +145,8 @@ echo ${CLONEDIR}
 
 create_FreeBSD_system_update
 
+# Email that the operation is completed
 email_operation_completed
+
+# Run final finish routines
+finish
