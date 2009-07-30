@@ -20,10 +20,10 @@ if($config['system']['hostname'] == "") {
 	$passed_tests = false;
 }
 
-if($passed_tests) 
+if($passed_tests) {
+	echo "PASSED";
 	exit(0);
-
-echo "PASSED";
+}
 
 // Tests failed.
 exit(1);
