@@ -702,15 +702,17 @@ cust_populate_installer_bits() {
     chmod a+rx $PFSENSEBASEDIR/scripts/*		
 }
 
-# Copies all extra files to the CVS staging area and ISO staging area (as needed)
+# Copies all extra files to the CVS staging 
+# area and ISO staging area (as needed)
 cust_populate_extra() {
     # Make devd
 	PWD=`pwd`
-    cd ${SRCDIR}/sbin/devd 
-	(env SRCCONF=${SRC_CONF} NO_MAN=YES make clean) | egrep -wi '(^>>>|error)'
-	(env SRCCONF=${SRC_CONF} NO_MAN=YES make depend) | egrep -wi '(^>>>|error)'
-	(env SRCCONF=${SRC_CONF} NO_MAN=YES make) | egrep -wi '(^>>>|error)'
-	(env SRCCONF=${SRC_CONF} NO_MAN=YES make DESTDIR=${PFSENSEBASEDIR} install) | egrep -wi '(^>>>|error)'
+    cd ${SRCDIR}/sbin/devd
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} clean || print_error_pfS;) | egrep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} depend || print_error_pfS;) | egrep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} NO_CLEAN=yo || print_error_pfS;) | egrep '^>>>'
+	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} DESTDIR=${PFSENSEBASEDIR} install || print_error_pfS;) | egrep '^>>>'
 	cd $PWD
 
 	mkdir -p ${CVS_CO_DIR}/lib
@@ -2541,8 +2543,7 @@ disable_memory_disks() {
 install_pkg_install_ports() {
 	echo ">>> Searching for packages..."
 	set +e # grep could fail
-	rm -rf $BASE_DIR/tools/builder_scripts/conf
-	mkdir -p $BASE_DIR/tools/builder_scripts/conf/
+	rm -f $BASE_DIR/tools/builder_scripts/conf/packages
 	(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
 	(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
 	(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
