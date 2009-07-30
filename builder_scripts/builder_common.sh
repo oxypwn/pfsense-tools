@@ -2286,12 +2286,12 @@ install_required_builder_system_ports() {
 # Local binary						# Path to port
 	NEEDED_INSTALLED_PKGS="\
 /usr/local/bin/mkisofs				/usr/ports/sysutils/cdrtools
-/usr/local/bin/fastest_cvsup		/usr/ports/sysutils/fastest_cvsup/
+/usr/local/bin/fastest_cvsup		/usr/ports/sysutils/fastest_cvsup
 /usr/local/lib/libpcre.so.0			/usr/ports/devel/pcre
 /usr/local/bin/curl					/usr/ports/ftp/curl
 /usr/local/bin/rsync				/usr/ports/net/rsync
-/usr/local/bin/cpdup				/usr/ports/sysutils/cpdup/
-/usr/local/bin/git					/usr/ports/devel/git/
+/usr/local/bin/cpdup				/usr/ports/sysutils/cpdup
+/usr/local/bin/git					/usr/ports/devel/git
 /usr/local/sbin/grub				/usr/ports/sysutils/grub
 /usr/local/bin/screen				/usr/ports/sysutils/screen
 "
@@ -2524,7 +2524,6 @@ enable_memory_disks() {
 		mount /dev/md3 /tmp/kernels/
 	fi
 	echo "Done!"
-	mount
 	df -h
 	update_freebsd_sources_and_apply_patches
 }
