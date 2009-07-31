@@ -2321,10 +2321,12 @@ update_freebsd_sources_and_apply_patches() {
 	
 	# Detect Subsequent runs if SRCDIR exists (which it should always exist)
 	if [ -d $SRCDIR ]; then
-		COUNT=`find $MAKEOBJDIRPREFIX -name .done_buildworld | wc -l`
-		if [ "$COUNT" -gt 0 ]; then
-			echo ">>> Subsequent build detected, not updating src or applying patches..."
-			return
+		if [ -d $MAKEOBJDIRPREFIX ]; then
+			COUNT=`find $MAKEOBJDIRPREFIX -name .done_buildworld | wc -l`
+			if [ "$COUNT" -gt 0 ]; then
+				echo ">>> Subsequent build detected, not updating src or applying patches..."
+				return
+			fi
 		fi
 	fi
 
