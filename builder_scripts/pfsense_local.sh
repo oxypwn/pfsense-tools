@@ -1,12 +1,12 @@
 #!/bin/sh
 
-######################################
-# pfSense builder configuration file #
-# Please don't modify this file, you #
-# can put your settings and options  #
-# in pfsense-build.conf, which is    #
-# sourced at the end of this file    #
-######################################
+###########################################
+# pfSense builder configuration file      #
+# Please don't modify this file, you      #
+# can put your settings and options       #
+# in pfsense-build.conf, which is         #
+# sourced at the beginning of this file   #
+###########################################
 
 # $Id$
 
