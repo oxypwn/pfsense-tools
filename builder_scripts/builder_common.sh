@@ -101,6 +101,7 @@ print_error_pfS() {
         echo "Log saved on ${LOGFILE}" && \
 		tail -n20 ${LOGFILE} >&2
 	report_error_pfsense
+	echo
 	echo "Press enter to continue."
     read ans
     kill $$ # NOTE: kill $$ won't work.
