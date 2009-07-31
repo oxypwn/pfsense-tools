@@ -7,9 +7,9 @@
      small tests to ensure the php environment is sane.
 */
 
-require_once("globals.inc");
-require_once("config.inc");
-require_once("functions.inc");
+require_once("/etc/inc/globals.inc");
+require_once("/etc/inc/config.inc");
+require_once("/etc/inc/functions.inc");
 
 $config = parse_config(true);
 
