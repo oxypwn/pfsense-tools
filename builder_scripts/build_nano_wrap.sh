@@ -145,18 +145,18 @@ echo "Done."
 # Copy config.xml
 copy_config_xml_from_conf_default
 
+# Install custom pfSense-XML packages from a chroot
+# and ensure php.ini is setup and ready to run.
+# php.ini is auto generated on 2.0 from the list
+# of php installed modules.
+pfsense_install_custom_packages_exec
+
 # Test PHP installation
 test_php_install
 
 # Invoke FreeSBIE2 toolchain
 check_for_zero_size_files
 freesbie_make clonefs
-
-# Install custom pfSense-XML packages from a chroot
-# and ensure php.ini is setup and ready to run.
-# php.ini is auto generated on 2.0 from the list
-# of php installed modules.
-pfsense_install_custom_packages_exec
 
 # Setup NanoBSD specific items
 FlashDevice $FLASH_MODEL $FLASH_SIZE
