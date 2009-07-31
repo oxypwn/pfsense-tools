@@ -2473,7 +2473,7 @@ setup_deviso_specific_items() {
 	mkdir -p $DEVROOT
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
 	echo -n "."	
-	(cd $DEVROOT && git clone $GIT_TOOLS_REPO) | egrep -wi '(^>>>|error)'
+	(cd $DEVROOT && git clone $GIT_REPO_TOOLS) | egrep -wi '(^>>>|error)'
 	echo -n "."
 	cp -R $BASE_DIR/freesbie2 $DEVROOT/freesbie2
 	echo -n "."

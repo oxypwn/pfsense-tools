@@ -187,7 +187,7 @@ export USE_GIT=${USE_GIT:-"yo"}
 export GIT_REPO=${GIT_REPO:-"http://gitweb.pfsense.org/pfsense/mainline.git pfSense"}
 export GIT_REPO_DIR="${BASE_DIR}/pfSenseGITREPO"
 export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
-export GIT_TOOLS_REPO=${GIT_TOOLS_REPO:-"http://gitweb.pfsense.org/pfsense-tools/mainline.git tools"}
+export GIT_REPO_TOOLS=${GIT_TOOLS_REPO:-"http://gitweb.pfsense.org/pfsense-tools/mainline.git tools"}
 #export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
 
 # Custom overlay for people building or extending pfSense images.
