@@ -1086,6 +1086,13 @@ test_php_install() {
 		/usr/bin/touch $PFSENSEBASEDIR/tmp/remove_conf_symlink
 	fi
 
+	# We might need to setup php.ini
+	if [ -f "$PFSENSEBASEDIR/etc/rc.php_ini_setup" ]; then
+		mkdir -p $PFSENSEBASEDIR/usr/local/lib/ $PFSENSEBASEDIR/usr/local/etc/
+		echo ">>> Running /etc/rc.php_ini_setup..."
+		chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
+	fi
+
 	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	HOSTNAME=`chroot $PFSENSEBASEDIR /test_php.php`
