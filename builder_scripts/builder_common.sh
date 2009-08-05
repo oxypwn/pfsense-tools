@@ -1079,7 +1079,7 @@ test_php_install() {
 	fi
 
 	# test whether conf dir is already a symlink
-	if [ ! -h /conf ]; then
+	if [ ! -h $PFSENSEBASEDIR/conf ]; then
 		# install the symlink as it would exist on a live system
 		chroot $PFSENSEBASEDIR /bin/ln -s /conf.default /conf 2>/dev/null
 		chroot $PFSENSEBASEDIR /bin/ln -s /conf /cf 2>/dev/null
