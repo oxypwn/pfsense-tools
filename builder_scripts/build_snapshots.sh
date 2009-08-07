@@ -293,11 +293,17 @@ copy_to_staging_deviso_updates() {
 
 copy_to_staging_iso_updates() {
 	cd $BUILDERSCRIPTS
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso $STAGINGAREA/
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso.* $STAGINGAREA/
-	cp $MAKEOBJDIRPREFIXFINAL/*.tgz $STAGINGAREA/ 
-	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.md5 $STAGINGAREA/ 
-	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.sha256 $STAGINGAREA/
+	# Copy ISOs
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso.* $STAGINGAREA/ 2>/dev/null
+	# Old updates, might be able to remove this.
+	cp $MAKEOBJDIRPREFIXFINAL/*.tgz $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.sha256 $STAGINGAREA/ 2>/dev/null
+	# Copy updates
+	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/ 2>/dev/null
+	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
+	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/ 2>/dev/null
 }
 
 copy_to_staging_embedded() {
