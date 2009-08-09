@@ -746,16 +746,6 @@ cust_populate_extra() {
     # Setup login environment
     echo > $CVS_CO_DIR/root/.shrc
 
-	# Detect interactive logins and display the shell
-	echo "if [ `env | grep SSH_TTY | wc -l` -gt 0 ]; then" >> $CVS_CO_DIR/root/.shrc
-	echo "        /etc/rc.initial" >> $CVS_CO_DIR/root/.shrc
-	echo "        exit" >> $CVS_CO_DIR/root/.shrc
-	echo "fi" >> $CVS_CO_DIR/root/.shrc
-	echo "if [ `env | grep SSH_TTY | wc -l` -gt 0 ]; then" >> $CVS_CO_DIR/root/.profile
-	echo "        /etc/rc.initial" >> $CVS_CO_DIR/root/.profile
-	echo "        exit" >> $CVS_CO_DIR/root/.profile
-	echo "fi" >> $CVS_CO_DIR/root/.profile
-
 	# Turn off error checking
     set +e
 
