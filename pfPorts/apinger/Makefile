@@ -13,14 +13,12 @@ CATEGORIES=	net ipv6
 MASTER_SITES=	http://freebsdcluster.org/~mich/software/ \
 		http://www.bnet.pl/~jajcus/apinger/
 
-CFLAGS=-O
-
 MAINTAINER=	mich@FreeBSD.org
 COMMENT=	An IP device monitoring tool
 
 GNU_CONFIGURE=	yes
 
-OPTIONS=	IPV6 "With support for IPv6" off
+OPTIONS=	IPV6 "With support for IPv6" on
 
 .include <bsd.port.pre.mk>
 
@@ -52,4 +50,3 @@ post-install:
 .endif
 
 .include <bsd.port.post.mk>
-

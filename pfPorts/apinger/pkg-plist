@@ -5,4 +5,3 @@ etc/rc.d/apinger.sh.sample
 %%PORTDOCS%%%%DOCSDIR%%/NEWS
 %%PORTDOCS%%%%DOCSDIR%%/AUTHORS
 %%PORTDOCS%%@dirrm %%DOCSDIR%%
-

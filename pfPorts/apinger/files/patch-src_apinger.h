@@ -7,5 +7,5 @@
 -extern int ident;
 +extern uint16_t ident;
  
- extern struct timeval next_probe; 
-
+ extern struct timeval next_probe;
+ 
