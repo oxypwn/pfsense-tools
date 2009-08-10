@@ -747,7 +747,7 @@ cust_populate_extra() {
     echo > $CVS_CO_DIR/root/.shrc
 
 	# Detect interactive logins and display the shell
-	echo "if [ \`env | grep SSH_TTY | wc -l\` -gt 0 ] || [ \`env | grep cons25 | wc -l\` -gt 0 ]; then" >> $CVS_CO_DIR/root/.shrc
+	echo "if [ \`env | grep SSH_TTY | wc -l\` -gt 0 ] || [ \`env | grep cons25 | wc -l\` -gt 0 ]; then" > $CVS_CO_DIR/root/.shrc
 	echo "        /etc/rc.initial" >> $CVS_CO_DIR/root/.shrc
 	echo "        exit" >> $CVS_CO_DIR/root/.shrc
 	echo "fi" >> $CVS_CO_DIR/root/.shrc
