@@ -36,8 +36,8 @@
 
 
 require_once("globals.inc");
-require_once("functions.inc");
 require_once("config.inc");
+require_once("functions.inc");
 require_once("pkg-utils.inc");
 
 if(!function_exists("read_header")) {
