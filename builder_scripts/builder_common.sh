@@ -2479,6 +2479,9 @@ ensure_healthy_installer() {
 # This copies the various pfSense git repos to the DevISO
 # staging area. 
 setup_deviso_specific_items() {
+	if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" = "" ]; then
+		OVERRIDE_FREEBSD_CVSUP_HOST=`fastest_cvsup -c tld -q`
+	fi
 	echo -n ">>> Setting up DevISO specific bits... Please wait (this will take a while!)..."
 	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
 	mkdir -p $DEVROOT
