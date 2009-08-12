@@ -2303,6 +2303,7 @@ install_required_builder_system_ports() {
 /usr/local/bin/git					/usr/ports/devel/git
 /usr/local/sbin/grub				/usr/ports/sysutils/grub
 /usr/local/bin/screen				/usr/ports/sysutils/screen
+/usr/local/bin/portmanager			/usr/ports/ports-mgmt/portmanager/
 "
 	oIFS=$IFS
 	IFS="
@@ -2485,7 +2486,9 @@ setup_deviso_specific_items() {
 	echo -n ">>> Setting up DevISO specific bits... Please wait (this will take a while!)..."
 	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
 	mkdir -p $DEVROOT
-	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO $PFSENSEBASEDIR/home/pfsense/installer $PFSENSEBASEDIR/usr/pfSensesrc
+	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO 
+	mkdir -p $PFSENSEBASEDIR/home/pfsense/installer 
+	mkdir -p $PFSENSEBASEDIR/usr/pfSensesrc
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
 	echo -n "."	
 	(cd $DEVROOT && git clone $GIT_REPO_TOOLS) | egrep -wi '(^>>>|error)'
