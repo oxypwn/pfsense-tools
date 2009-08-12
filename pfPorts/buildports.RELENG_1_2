@@ -154,13 +154,19 @@ for PORT in $PORTSTOBUILD; do
 		fi
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
-		cd $DOESPORTEXIST && make -DALWAYS_BUILD_DEPENDS=yo ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends
-		cd $DOESPORTEXIST && make -DALWAYS_BUILD_DEPENDS=yo ${ARCHSTRING} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS
-		cd $DOESPORTEXIST && make -DALWAYS_BUILD_DEPENDS=yo ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install
+		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
+		if [ "$PORTSUFFIX" != "" ]; then
+			portmanager -y $PORTSUFFIX
+		else 
+			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
+		fi
 	else
-		cd /home/pfsense/tools/pfPorts/$PORT && make -DALWAYS_BUILD_DEPENDS=yo $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS depends
-		cd /home/pfsense/tools/pfPorts/$PORT && make -DALWAYS_BUILD_DEPENDS=yo $MAKEJ_PORTS ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS		
-		cd /home/pfsense/tools/pfPorts/$PORT && make -DALWAYS_BUILD_DEPENDS=yo ${ARCHSTRING} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install
+		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`	
+		if [ "$PORTSUFFIX" != "" ]; then
+			portmanager -y $PORTSUFFIX
+		else 
+			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
+		fi
 	fi
 done
 
