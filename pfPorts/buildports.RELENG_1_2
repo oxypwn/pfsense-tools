@@ -156,6 +156,7 @@ for PORT in $PORTSTOBUILD; do
 		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
+			echo ">>> Running portmanager -y $PORTSUFFIX #1"
 			portmanager -y $PORTSUFFIX
 		else 
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
@@ -163,6 +164,7 @@ for PORT in $PORTSTOBUILD; do
 	else
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`	
 		if [ "$PORTSUFFIX" != "" ]; then
+			echo ">>> Running portmanager -y $PORTSUFFIX #2"
 			portmanager -y $PORTSUFFIX
 		else 
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
