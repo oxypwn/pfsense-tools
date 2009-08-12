@@ -156,7 +156,7 @@ for PORT in $PORTSTOBUILD; do
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
 			echo ">>> Running portmanager -y $PORTSUFFIX #1"
-			portmanager -u $PORTSUFFIX
+			portmanager -u $PORTSUFFIX BATCH=yes
 		else 
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi
