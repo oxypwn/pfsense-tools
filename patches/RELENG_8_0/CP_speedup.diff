@@ -1,0 +1,108 @@
+Index: sbin/ifconfig/ifconfig.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/ifconfig/ifconfig.c,v
+retrieving revision 1.146
+diff -u -r1.146 ifconfig.c
+--- sbin/ifconfig/ifconfig.c	26 Jul 2009 11:25:57 -0000	1.146
++++ sbin/ifconfig/ifconfig.c	12 Aug 2009 09:40:17 -0000
+@@ -825,7 +825,7 @@
+ #define	IFFBITS \
+ "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\6SMART\7RUNNING" \
+ "\10NOARP\11PROMISC\12ALLMULTI\13OACTIVE\14SIMPLEX\15LINK0\16LINK1\17LINK2" \
+-"\20MULTICAST\22PPROMISC\23MONITOR\24STATICARP"
++"\20MULTICAST\22PPROMISC\23MONITOR\24STATICARP\25IPFW_FILTER"
+ 
+ #define	IFCAPBITS \
+ "\020\1RXCSUM\2TXCSUM\3NETCONS\4VLAN_MTU\5VLAN_HWTAGGING\6JUMBO_MTU\7POLLING" \
+@@ -1066,6 +1066,8 @@
+ 	DEF_CMD("-monitor",	-IFF_MONITOR,	setifflags),
+ 	DEF_CMD("staticarp",	IFF_STATICARP,	setifflags),
+ 	DEF_CMD("-staticarp",	-IFF_STATICARP,	setifflags),
++	DEF_CMD("ipfwfilter",	IFF_IPFW_FILTER,	setifflags),
++	DEF_CMD("-ipfwfilter",	-IFF_IPFW_FILTER,	setifflags),
+ 	DEF_CMD("rxcsum",	IFCAP_RXCSUM,	setifcap),
+ 	DEF_CMD("-rxcsum",	-IFCAP_RXCSUM,	setifcap),
+ 	DEF_CMD("txcsum",	IFCAP_TXCSUM,	setifcap),
+Index: sys/net/if.h
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if.h,v
+retrieving revision 1.120
+diff -u -r1.120 if.h
+--- sys/net/if.h	15 Jun 2009 18:59:29 -0000	1.120
++++ sys/net/if.h	12 Aug 2009 09:40:17 -0000
+@@ -150,6 +150,7 @@
+ #define	IFF_MONITOR	0x40000		/* (n) user-requested monitor mode */
+ #define	IFF_STATICARP	0x80000		/* (n) static ARP */
+ #define	IFF_DYING	0x200000	/* (n) interface is winding down */
++#define	IFF_IPFW_FILTER	0x400000	/* pfSense hack for CP speeding up */
+ 
+ /*
+  * Old names for driver flags so that user space tools can continue to use
+Index: sys/netinet/ipfw/ip_fw_pfil.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ipfw/ip_fw_pfil.c,v
+retrieving revision 1.4
+diff -u -r1.4 ip_fw_pfil.c
+--- sys/netinet/ipfw/ip_fw_pfil.c	1 Aug 2009 19:26:27 -0000	1.4
++++ sys/netinet/ipfw/ip_fw_pfil.c	12 Aug 2009 09:40:17 -0000
+@@ -89,7 +89,9 @@
+     struct inpcb *inp)
+ {
+ 	struct ip_fw_args args;
++#if 0
+ 	struct ng_ipfw_tag *ng_tag;
++#endif
+ 	struct m_tag *dn_tag;
+ 	int ipfw = 0;
+ 	int divert;
+@@ -100,8 +102,11 @@
+ 
+ 	KASSERT(dir == PFIL_IN, ("ipfw_check_in wrong direction!"));
+ 
++	if (!(ifp->if_flags & IFF_IPFW_FILTER))
++		goto pass;
+ 	bzero(&args, sizeof(args));
+ 
++#if 0
+ 	ng_tag = (struct ng_ipfw_tag *)m_tag_locate(*m0, NGM_IPFW_COOKIE, 0,
+ 	    NULL);
+ 	if (ng_tag != NULL) {
+@@ -112,6 +117,7 @@
+ 		args.chain_id = ng_tag->chain_id;
+ 		m_tag_delete(*m0, (struct m_tag *)ng_tag);
+ 	}
++#endif
+ 
+ again:
+ 	dn_tag = m_tag_find(*m0, PACKET_TAG_DUMMYNET, NULL);
+@@ -222,7 +228,9 @@
+     struct inpcb *inp)
+ {
+ 	struct ip_fw_args args;
++#if 0
+ 	struct ng_ipfw_tag *ng_tag;
++#endif
+ 	struct m_tag *dn_tag;
+ 	int ipfw = 0;
+ 	int divert;
+@@ -233,8 +241,12 @@
+ 
+ 	KASSERT(dir == PFIL_OUT, ("ipfw_check_out wrong direction!"));
+ 
++	if (!(ifp->if_flags & IFF_IPFW_FILTER))
++                goto pass;
++
+ 	bzero(&args, sizeof(args));
+ 
++#if 0
+ 	ng_tag = (struct ng_ipfw_tag *)m_tag_locate(*m0, NGM_IPFW_COOKIE, 0,
+ 	    NULL);
+ 	if (ng_tag != NULL) {
+@@ -245,6 +257,7 @@
+ 		args.chain_id = ng_tag->chain_id;
+ 		m_tag_delete(*m0, (struct m_tag *)ng_tag);
+ 	}
++#endif
+ 
+ again:
+ 	dn_tag = m_tag_find(*m0, PACKET_TAG_DUMMYNET, NULL);
