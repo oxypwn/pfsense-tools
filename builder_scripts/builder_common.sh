@@ -2479,7 +2479,7 @@ ensure_healthy_installer() {
 # This copies the various pfSense git repos to the DevISO
 # staging area. 
 setup_deviso_specific_items() {
-	echo -n ">>> Setting up DevISO specific bits... Please wait..."
+	echo -n ">>> Setting up DevISO specific bits... Please wait (this will take a while!)..."
 	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
 	mkdir -p $DEVROOT
 	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO $PFSENSEBASEDIR/home/pfsense/installer $PFSENSEBASEDIR/usr/pfSensesrc
