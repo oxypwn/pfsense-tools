@@ -157,18 +157,14 @@ for PORT in $PORTSTOBUILD; do
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
 			echo ">>> Running portmanager -y $PORTSUFFIX #1"
-			portmanager -y $PORTSUFFIX
+			portmanager -u $PORTSUFFIX
 		else 
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi
 	else
-		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`	
-		if [ "$PORTSUFFIX" != "" ]; then
-			echo ">>> Running portmanager -y $PORTSUFFIX #2"
-			portmanager -y $PORTSUFFIX
-		else 
-			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
-		fi
+		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
+		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
 	fi
 done
 
