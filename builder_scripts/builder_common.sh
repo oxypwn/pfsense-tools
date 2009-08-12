@@ -2502,7 +2502,7 @@ setup_deviso_specific_items() {
 	echo -n "."
 	(chroot $PFSENSEBASEDIR/ csup -h $OVERRIDE_FREEBSD_CVSUP_HOST /usr/share/examples/cvsup/ports-supfile) | egrep -wi '(^>>>|error)'
 	echo -n "."
-	(chroot $PFSENSEBASEDIR/ "cd /usr/ports/textproc/expan2 && make depends install") | egrep -wi '(^>>>|error)'
+	(chroot $PFSENSEBASEDIR/ "cd /usr/ports/textproc/expat2 && make depends install") | egrep -wi '(^>>>|error)'
 	echo -n "."
 	(chroot $PFSENSEBASEDIR/ "cd /usr/ports/devel/git && make depends install") | egrep -wi '(^>>>|error)'
 	echo -n "."
