@@ -16,7 +16,8 @@ if [ ! -f ./pfsense-build.conf ]; then
 	exit 1
 fi
 
-. ./pfsense-build.conf
+# Area that the final image will appear in
+export MAKEOBJDIRPREFIXFINAL=${MAKEOBJDIRPREFIXFINAL:-/tmp/builder/}
 
 # Leave near the top.  
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.FreeBSD}
@@ -59,7 +60,7 @@ export CVS_USER=${CVS_USER:-sullrich}
 export CVS_IP=${CVS_IP:-cvs.pfsense.org}
 
 # This is where updates will be stored once they are created.
-export UPDATESDIR=${UPDATESDIR:-$BASE_DIR/updates}
+export UPDATESDIR=${UPDATESDIR:-$MAKEOBJDIRPREFIXFINAL/updates}
 
 # This is where FreeSBIE will initially install all files to
 export PFSENSEBASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
@@ -86,8 +87,8 @@ export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
 export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
 
 # Must be defined after MAKEOBJDIRPREFIX!
-#export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIX}/FreeBSD.iso}
-#export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIX}/FreeBSD.img}
+#export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense.iso}
+#export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense.img}
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
@@ -200,3 +201,5 @@ export ARCH="i386"
 # If uncommented the system will use fastest-cvsup to find
 # a suitable update source to spread the load.
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
+
+. ./pfsense-build.conf
