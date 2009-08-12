@@ -109,7 +109,7 @@ export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 # FreeBSD version and build information
 export pfSense_version=${pfSense_version:-"7"}
 export FREEBSD_VERSION=${FREEBSD_VERSION:-"7"}
-export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_7_0"}
+export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_7_2"}
 
 # Define FreeBSD SUPFILE
 export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"} 
