@@ -2482,6 +2482,7 @@ setup_deviso_specific_items() {
 	echo -n ">>> Setting up DevISO specific bits... Please wait..."
 	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
 	mkdir -p $DEVROOT
+	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO $PFSENSEBASEDIR/home/pfsense/installer $PFSENSEBASEDIR/usr/pfSensesrc
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
 	echo -n "."	
 	(cd $DEVROOT && git clone $GIT_REPO_TOOLS) | egrep -wi '(^>>>|error)'
@@ -2491,6 +2492,14 @@ setup_deviso_specific_items() {
 	cp -R $BASE_DIR/pfSenseGITREPO $DEVROOT/pfSenseGITREPO
 	echo -n "."
 	cp -R $BASE_DIR/installer $DEVROOT/installer
+	echo -n "."
+	cp /etc/resolv.conf $PFSENSEBASEDIR/etc/
+	echo -n "."
+	(chroot $PFSENSEBASEDIR/ csup -h $OVERRIDE_FREEBSD_CVSUP_HOST /usr/share/examples/cvsup/standard-supfile) | egrep -wi '(^>>>|error)'
+	echo -n "."
+	(chroot $PFSENSEBASEDIR/ csup -h $OVERRIDE_FREEBSD_CVSUP_HOST /usr/share/examples/cvsup/ports-supfile) | egrep -wi '(^>>>|error)'
+	echo -n "."
+	rm $PFSENSEBASEDIR/etc/resolv.conf
 	echo "Done!"
 }
 
