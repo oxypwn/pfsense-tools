@@ -2511,6 +2511,7 @@ setup_deviso_specific_items() {
 	echo -n "."
 	rm $PFSENSEBASEDIR/etc/resolv.conf
 	echo "Done!"
+	rm -rf $PFSENSEBASEDIR/var/db/pkg/*
 }
 
 # Check to see if a forced pfPorts run has been requested.

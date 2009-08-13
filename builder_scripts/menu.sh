@@ -148,6 +148,7 @@ Choose the option you would like:" -1 -1 9 \
 			"Reset builder"				"Removes /usr/local and starts completely from scratch" \
 			"Enable memory backing"		"Enables memory disk backing of common builder directories" \
 			"Disable memory backing"	"Disables memory disk backing of common builder directories" \
+			"Update FreeBSD ports"		"Updates FreeBSD ports tree in /usr/ports using csup" \
 			2> /tmp/menu.tmp.$$
 	retval=$?
 	choice=`cat /tmp/menu.tmp.$$`
@@ -254,6 +255,10 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		"Disable memory backing")
 		clear
 		./disable_memory_disks.sh
+		;;
+		""Update FreeBSD ports""
+		clear
+		csup -h `fastest_cvsup -c tld -q` /usr/share/examples/cvsup/ports-supfile
 		;;
 		*)
 	    [ -z "$choice" ] || echo $choice ;
