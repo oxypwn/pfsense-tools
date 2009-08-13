@@ -161,7 +161,7 @@ for PORT in $PORTSTOBUILD; do
 		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
-			echo ">>> Running portmanager -y $PORTSUFFIX"
+			#echo ">>> Running portmanager -y $PORTSUFFIX"
 			#env BATCH=yes portmanager -u $PORTSUFFIX
 			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
 			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
