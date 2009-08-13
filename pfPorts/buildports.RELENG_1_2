@@ -163,6 +163,15 @@ for PORT in $PORTSTOBUILD; do
 		if [ "$PORTSUFFIX" != "" ]; then
 			#echo ">>> Running portmanager -y $PORTSUFFIX"
 			#env BATCH=yes portmanager -u $PORTSUFFIX
+			if [ -f "/pfSense_devISO" ]; then
+				echo ">>> Building dependencies..."
+				RUNLIST=`cd $DOESPORTEXIST && make build-depends-list`
+				for RUN in $RUNLIST; do
+					( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+					( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
+					( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+				done
+			fi
 			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
 			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
 			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )			
@@ -170,6 +179,13 @@ for PORT in $PORTSTOBUILD; do
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi
 	else
+		echo ">>> Building dependencies..."
+		RUNLIST=`cd $DOESPORTEXIST && make build-depends-list`
+		for RUN in $RUNLIST; do
+			( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+			( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
+			( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+		done
 		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
 		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
 		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
