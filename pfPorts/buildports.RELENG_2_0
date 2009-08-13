@@ -170,7 +170,7 @@ for PORT in $PORTSTOBUILD; do
 		fi
 	else
 		echo ">>> Building dependencies of $PORT..."
-		RUNLIST=`cd $DOESPORTEXIST && make build-depends-list`
+		RUNLIST=`cd /home/pfsense/tools/pfPorts/$PORT && make build-depends-list`
 		for RUN in $RUNLIST; do
 			( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
 			( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
