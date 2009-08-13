@@ -120,6 +120,11 @@ fi
 # pfSense is english based.
 rm -rf /usr/ports/chinese/links
 
+if [ ! -f /usr/ports/ports-mgmt/portmanager/ ]; then
+	echo ">>> Could not locate portmanager.  Building and installing..."
+	cd /usr/ports/ports-mgr/portmanager && make install clean
+fi
+
 echo ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
@@ -156,8 +161,11 @@ for PORT in $PORTSTOBUILD; do
 		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
-			echo ">>> Running portmanager -y $PORTSUFFIX #1"
-			env BATCH=yes portmanager -u $PORTSUFFIX
+			echo ">>> Running portmanager -y $PORTSUFFIX"
+			#env BATCH=yes portmanager -u $PORTSUFFIX
+			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
+			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
+			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )			
 		else 
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi
