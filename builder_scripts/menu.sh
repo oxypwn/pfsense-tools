@@ -256,7 +256,7 @@ $TWITTER_SNAPSHOTS_PASSWORD
 		clear
 		./disable_memory_disks.sh
 		;;
-		""Update FreeBSD ports""
+		"Update FreeBSD ports")
 		clear
 		csup -h `fastest_cvsup -c tld -q` /usr/share/examples/cvsup/ports-supfile
 		;;
