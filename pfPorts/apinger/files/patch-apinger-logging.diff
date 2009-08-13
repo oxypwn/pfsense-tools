@@ -19,7 +19,7 @@
  	}
  	if (icmp->icmp_id != ident){
 -		debug("Alien echo-reply received");
-+		logit("Alien echo-reply received from %s. Expected %i, received %i",inet_ntoa(from.sin_addr), ident, icmp->icmp_id);
++		debug("Alien echo-reply received from %s. Expected %i, received %i",inet_ntoa(from.sin_addr), ident, icmp->icmp_id);
  		return;
  	}
  	debug("Ping reply from %s",inet_ntoa(from.sin_addr));

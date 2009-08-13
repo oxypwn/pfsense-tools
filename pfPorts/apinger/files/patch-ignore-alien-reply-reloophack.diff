@@ -28,7 +28,7 @@
 @@ -228,6 +230,7 @@
  	}
  	if (icmp->icmp_id != ident){
- 		logit("Alien echo-reply received from %s. Expected %i, received %i",inet_ntoa(from.sin_addr), ident, icmp->icmp_id);
+ 		debug("Alien echo-reply received from %s. Expected %i, received %i",inet_ntoa(from.sin_addr), ident, icmp->icmp_id);
 +		goto reloophack;	
  		return;
  	}
