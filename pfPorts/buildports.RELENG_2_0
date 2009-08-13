@@ -3,28 +3,15 @@
 #set -e
 #set -x
 
+# Backup pwd and chdir to ports
 CURRENTDIR=`pwd`
-
-if [ $# -eq 1 ]; then
-	MAKEJ_PORTS=$1
-	echo ">>>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
-fi
-
 cd /usr/ports
-
-# Architecture, supported ARCH values are: 
-#  Tier 1: i386, AMD64, and PC98
-#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
-#  Tier 3: MIPS and S/390
-#  Tier 4: None at the moment
-#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
-ARCH=""  # Default is i386
 
 # Ensure file exists
 touch /var/db/pfS_portcache
 
 echo ">>> Removing previous PHP environment..."
-find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \;   2>/dev/null
+find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
 find /usr/local -name extensions.ini -exec rm {} \;
 rm -rf /var/db/pkg/php*
 
@@ -107,14 +94,6 @@ PORTSTOBUILD="grub \
 	rate \
 	php5-install-all"
 
-if [ -f pfsense_local.sh ]; then
-	MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-else 
-	if [ -f ../builder_scripts/pfsense_local.sh ]; then
-		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
-	fi
-fi
-
 CURRENTDIR=`pwd`
 
 if [ ! -f /usr/ports/INDEX-7.bz2 ]; then 
@@ -123,7 +102,8 @@ if [ ! -f /usr/ports/INDEX-7.bz2 ]; then
 	echo "Done!"
 fi
 
-# pfSense is english based.
+# pfSense is english based otherwise find will find 
+# chinese ports first.
 rm -rf /usr/ports/chinese/links
 
 echo ">>> Locating ports (this will take a while)..."
@@ -136,18 +116,52 @@ for PORT in $PORTSTOBUILD; do
 	fi
 done
 
-if [ "$MAKEJ_PORTS" != "" ]; then
-	echo ">>>> Using MAKEJ_PORTS: ${MAKEJ_PORTS}"
-fi
-		
+clean_make_install() {
+	# Architecture, supported ARCH values are: 
+	#  Tier 1: i386, AMD64, and PC98
+	#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
+	#  Tier 3: MIPS and S/390
+	#  Tier 4: None at the moment
+	#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
+	# Default is i386
+	ARCH=""
+	if [ $# -eq 1 ]; then
+		MAKEJ_PORTS=$1
+		echo ">>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
+	fi
+	if [ -f pfsense_local.sh ]; then
+		MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+	else 
+		if [ -f ../builder_scripts/pfsense_local.sh ]; then
+			MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
+		fi
+	fi
+	ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
+	( cd $1 && make $ARGUMENTS clean )
+	( cd $1 && make $ARGUMENTS )
+	( cd $1 && make $ARGUMENTS install )
+}
+
+clean_build_install_clean() {
+	PORTPATH=$1
+	if [ -f "/pfSense_devISO" ]; then
+		PORT=`basename $PORTPATH`
+		echo ">>> Building dependencies of $PORT..."
+		RUNLIST=`cd $PORTPATH && make build-depends-list`
+		for RUN in $RUNLIST; do
+			echo ">>> Build dependency $RUN"
+			clean_make_install $RUN
+		done
+	fi
+	clean_make_install $PORTPATH
+}
+
 for PORT in $PORTSTOBUILD; do
 	echo ">>>> Building $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
-		if [ -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
-			# Nothing to see here.
-		else
+		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
 			rm -rf $DOESPORTEXIST
 			mkdir -p $DOESPORTEXIST			
 		fi
@@ -155,32 +169,12 @@ for PORT in $PORTSTOBUILD; do
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
-			echo ">>> Building dependencies of $PORT..."
-			RUNLIST=`cd $DOESPORTEXIST && make build-depends-list`
-			for RUN in $RUNLIST; do
-				( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
-				( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
-				( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
-			done
-			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
-			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
-			( cd $DOESPORTEXIST && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+			clean_build_install_clean $DOESPORTEXIST
 		else 
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi
 	else
-		if [ -f "/pfSense_devISO" ]; then
-			echo ">>> Building dependencies of $PORT..."
-			RUNLIST=`cd /home/pfsense/tools/pfPorts/$PORT && make build-depends-list`
-			for RUN in $RUNLIST; do
-				( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
-				( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
-				( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
-			done
-		fi
-		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
-		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
-		( cd /home/pfsense/tools/pfPorts/$PORT && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS install )
+		clean_build_install_clean /home/pfsense/tools/pfPorts/$PORT
 	fi
 done
 
