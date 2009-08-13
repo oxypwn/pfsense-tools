@@ -1,0 +1,36 @@
+--- src/icmp.c.old	2008-09-22 19:13:52.000000000 +0200
++++ src/icmp.c	2008-09-22 19:13:58.000000000 +0200
+@@ -171,6 +171,7 @@
+ struct iovec iov;
+ struct msghdr msg;
+ struct cmsghdr *c;
++reloophack:
+ 
+ 	iov.iov_base=buf;
+ 	iov.iov_len=1000;
+@@ -183,6 +184,7 @@
+ 	len=recvmsg(icmp_sock, &msg, MSG_DONTWAIT);
+ #else
+ socklen_t sl;
++reloophack:
+ 
+ 	sl=sizeof(from);
+ 	len=recvfrom(icmp_sock,buf,1024,MSG_DONTWAIT,(struct sockaddr *)&from,&sl);
+@@ -197,7 +199,7 @@
+ 	debug("checking CMSG...");
+ 	for (c = CMSG_FIRSTHDR(&msg); c; c = CMSG_NXTHDR(&msg, c)) {
+ 		debug("CMSG level: %i type: %i",c->cmsg_level,c->cmsg_type);
+-		if (c->cmsg_level != SOL_SOCKET || c->cmsg_type != SO_TIMESTAMP)
++		if (c->cmsg_level != SOL_SOCKET || c->cmsg_type != SCM_TIMESTAMP)
+ 			continue;
+ 		if (c->cmsg_len < CMSG_LEN(sizeof(struct timeval)))
+ 			continue;
+@@ -228,6 +230,7 @@
+ 	}
+ 	if (icmp->icmp_id != ident){
+ 		logit("Alien echo-reply received from %s. Expected %i, received %i",inet_ntoa(from.sin_addr), ident, icmp->icmp_id);
++		goto reloophack;	
+ 		return;
+ 	}
+ 	debug("Ping reply from %s",inet_ntoa(from.sin_addr));
+
