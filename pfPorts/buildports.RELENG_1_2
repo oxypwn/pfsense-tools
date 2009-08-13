@@ -156,10 +156,8 @@ for PORT in $PORTSTOBUILD; do
 		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
-			#echo ">>> Running portmanager -y $PORTSUFFIX"
-			#env BATCH=yes portmanager -u $PORTSUFFIX
 			if [ -f "/pfSense_devISO" ]; then
-				echo ">>> Building dependencies..."
+				echo ">>> Building dependencies of $PORT..."
 				RUNLIST=`cd $DOESPORTEXIST && make build-depends-list`
 				for RUN in $RUNLIST; do
 					( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
@@ -174,8 +172,8 @@ for PORT in $PORTSTOBUILD; do
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi
 	else
-		echo ">>> Building dependencies..."
-		RUNLIST=`cd $DOESPORTEXIST && make build-depends-list`
+		echo ">>> Building dependencies of $PORT..."
+		RUNLIST=`cd $RUN && make build-depends-list`
 		for RUN in $RUNLIST; do
 			( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS clean )
 			( cd $RUN && make TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS )
