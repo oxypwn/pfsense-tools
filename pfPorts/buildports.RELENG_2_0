@@ -126,11 +126,6 @@ fi
 # pfSense is english based.
 rm -rf /usr/ports/chinese/links
 
-if [ ! -f /usr/ports/ports-mgmt/portmanager/ ]; then
-	echo ">>> Could not locate portmanager.  Building and installing..."
-	cd /usr/ports/ports-mgr/portmanager && make install clean
-fi
-
 echo ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
