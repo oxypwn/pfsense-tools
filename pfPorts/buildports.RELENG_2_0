@@ -10,6 +10,11 @@ cd /usr/ports
 # Ensure file exists
 touch /var/db/pfS_portcache
 
+if [ $# -eq 1 ]; then
+	MAKEJ_PORTS=$1
+	echo ">>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
+fi
+
 echo ">>> Removing previous PHP environment..."
 find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
 find /usr/local -name extensions.ini -exec rm {} \;
@@ -125,10 +130,6 @@ clean_make_install() {
 	#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
 	# Default is i386
 	ARCH=""
-	if [ $# -eq 1 ]; then
-		MAKEJ_PORTS=$1
-		echo ">>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
-	fi
 	if [ -f pfsense_local.sh ]; then
 		MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 	else 
@@ -167,7 +168,7 @@ for PORT in $PORTSTOBUILD; do
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
-			clean_build_install_clean $DOESPORTEXIST
+			clean_build_install_clean $DOESPORTEXIST $MAKEJ_PORTS
 		else 
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi

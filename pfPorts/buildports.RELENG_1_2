@@ -7,6 +7,11 @@
 CURRENTDIR=`pwd`
 cd /usr/ports
 
+if [ $# -eq 1 ]; then
+	MAKEJ_PORTS=$1
+	echo ">>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
+fi
+
 # Ensure file exists
 touch /var/db/pfS_portcache
 
@@ -124,10 +129,6 @@ clean_make_install() {
 	#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
 	# Default is i386
 	ARCH=""
-	if [ $# -eq 1 ]; then
-		MAKEJ_PORTS=$1
-		echo ">>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
-	fi
 	if [ -f pfsense_local.sh ]; then
 		MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 	else 
