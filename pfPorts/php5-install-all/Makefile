@@ -10,7 +10,10 @@ PORTVERSION=	5.2.6
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 DISTNAME=	php-${PORTVERSION}
-all:
+
+all:	build
+
+build:
 	mkdir -p /usr/local/lib/php/20060613
 	mkdir -p /usr/local/lib/php/extensions/no-debug-non-zts-20060613/
 	[ ! -f /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* ] || \

@@ -8,7 +8,9 @@ PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 DISTNAME=		php-${PORTVERSION}
 
-all:
+all:	build
+
+build:
 	cp /usr/local/bin/php-cgi /usr/local/bin/php
 	mkdir -p /usr/local/lib/php/20020429/
 	mkdir -p /usr/local/lib/php/20060613/
