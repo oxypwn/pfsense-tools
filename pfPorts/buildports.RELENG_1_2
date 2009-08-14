@@ -140,7 +140,7 @@ clean_make_install() {
 
 	PKGNAME=`make -C $1 -V PKGNAME`
 
-	if [ -d /var/db/pkg/${PKGNAME} ]; then
+	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
 		echo ">>> Already built, skipping..."
 	else
 		ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
@@ -158,7 +158,7 @@ clean_build_install_clean() {
 	RUNLIST=`cd $PORTPATH && make build-depends-list`
 	for RUN in $RUNLIST; do
 		echo ">>> Build dependency $RUN"
-		clean_make_install $RUN
+		clean_make_install $RUN check_installed
 	done
 	clean_make_install $PORTPATH
 }
