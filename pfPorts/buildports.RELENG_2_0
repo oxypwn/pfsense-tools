@@ -7,13 +7,13 @@
 CURRENTDIR=`pwd`
 cd /usr/ports
 
-# Ensure file exists
-touch /var/db/pfS_portcache
-
 if [ $# -eq 1 ]; then
 	MAKEJ_PORTS=$1
 	echo ">>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
 fi
+
+# Ensure file exists
+touch /var/db/pfS_portcache
 
 echo ">>> Removing previous PHP environment..."
 find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
@@ -99,8 +99,6 @@ PORTSTOBUILD="grub \
 	rate \
 	php5-install-all"
 
-CURRENTDIR=`pwd`
-
 if [ ! -f /usr/ports/INDEX-7.bz2 ]; then 
 	echo -n ">>> Fetching index..."
 	(cd /usr/ports && make fetchindex)
@@ -157,13 +155,13 @@ clean_build_install_clean() {
 }
 
 for PORT in $PORTSTOBUILD; do
-	echo ">>>> Building $PORT..."
+	echo ">>> Building $PORT..."
 	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
 		echo "Found port.  Copying and building..."
 		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
 			rm -rf $DOESPORTEXIST
-			mkdir -p $DOESPORTEXIST			
+			mkdir -p $DOESPORTEXIST
 		fi
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../

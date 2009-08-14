@@ -104,6 +104,7 @@ fi
 
 # pfSense is english based otherwise find will find 
 # chinese ports first.
+rm -rf /usr/ports/chinese/links
 
 echo ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
@@ -162,15 +163,16 @@ for PORT in $PORTSTOBUILD; do
 		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
 	fi
 	if [ "${DOESPORTEXIST}x" != "x" ]; then
+		echo "Found port.  Copying and building..."
 		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
 			rm -rf $DOESPORTEXIST
-			mkdir -p $DOESPORTEXIST		
+			mkdir -p $DOESPORTEXIST
 		fi
 		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
-		cp -R /home/pfsense/tools/pfPorts/$PORT/* $DOESPORTEXIST/
+		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
-			clean_build_install_clean $DOESPORTEXIST
+			clean_build_install_clean $DOESPORTEXIST $MAKEJ_PORTS
 		else 
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi
