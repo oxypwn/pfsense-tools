@@ -19,8 +19,6 @@
 ~~sticky_fix.RELENG_7.diff~
 ~~reply-to.RELENG_7.diff~
 ~~binat.RELENG_7_1.diff~
-~~schedule_label.RELENG_7.diff~
-~~CP_speedup.RELENG_7.diff~
 ~sys/contrib/pf/net~ipfw_forward.RELENG_7.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~~pfil.RELENG_7.diff~
