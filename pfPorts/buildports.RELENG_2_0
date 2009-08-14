@@ -20,6 +20,15 @@ find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/loca
 find /usr/local -name extensions.ini -exec rm {} \;
 rm -rf /var/db/pkg/php*
 
+set_cache() {
+	# Strip dynamic values
+	echo ">>> Setting port cache $1 to $2"
+	cat /var/db/pfS_portcache | \
+		grep -v "'$1'" > /tmp/pfS_portcache
+	echo "'$1'			$2" >> /tmp/pfS_portcache
+	mv /tmp/pfS_portcache /var/db/pfS_portcache
+}
+
 PORTSTOBUILD="grub \
 	apinger \
 	rrdtool \
@@ -99,28 +108,32 @@ PORTSTOBUILD="grub \
 	rate \
 	php5-install-all"
 
-if [ ! -f /usr/ports/INDEX-7.bz2 ]; then 
+if [ ! -f /usr/ports/INDEX-7.bz2 ]; then
 	echo -n ">>> Fetching index..."
 	(cd /usr/ports && make fetchindex)
 	echo "Done!"
 fi
 
-# pfSense is english based otherwise find will find 
+# pfSense is english based otherwise find will find
 # chinese ports first.
 rm -rf /usr/ports/chinese/links
 
 echo ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
-	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
-	if [ "${DOESPORTEXIST}x" != "x" ]; then
+	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
+	if [ "${DOESPORTEXIST}" = "" ]; then
+		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
+		set_cache ${PORT} ${DOESPORTEXIST}
+	fi
+	if [ "${DOESPORTEXIST}" != "" ]; then
 		( cd $DOESPORTEXIST && make clean ) | egrep -B3 -A3 -wi '(error)'
-	else 
+	else
 		( cd /home/pfsense/tools/pfPorts/$PORT && make clean) | egrep -B3 -A3 -wi '(error)'
 	fi
 done
 
 clean_make_install() {
-	# Architecture, supported ARCH values are: 
+	# Architecture, supported ARCH values are:
 	#  Tier 1: i386, AMD64, and PC98
 	#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
 	#  Tier 3: MIPS and S/390
@@ -130,9 +143,9 @@ clean_make_install() {
 	ARCH=""
 	if [ -f pfsense_local.sh ]; then
 		MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-	else 
+	else
 		if [ -f ../builder_scripts/pfsense_local.sh ]; then
-			MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
+			MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 		fi
 	fi
 
@@ -163,19 +176,23 @@ clean_build_install_clean() {
 
 for PORT in $PORTSTOBUILD; do
 	echo ">>> Building $PORT..."
-	DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | head -n 1`
-	if [ "${DOESPORTEXIST}x" != "x" ]; then
+	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
+	if [ "${DOESPORTEXIST}" = "" ]; then
+		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
+		set_cache ${PORT} ${DOESPORTEXIST}
+	fi
+	if [ "${DOESPORTEXIST}" != "" ]; then
 		echo "Found port.  Copying and building..."
 		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
 			rm -rf $DOESPORTEXIST
 			mkdir -p $DOESPORTEXIST
 		fi
-		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null 
+		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null
 		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
 			clean_build_install_clean $DOESPORTEXIST $MAKEJ_PORTS
-		else 
+		else
 			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
 		fi
 	else
