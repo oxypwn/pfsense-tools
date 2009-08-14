@@ -5,7 +5,7 @@ RCS file: /home/ncvs/src/sbin/ifconfig/ifconfig.c,v
 retrieving revision 1.134.2.5.2.1
 diff -u -r1.134.2.5.2.1 ifconfig.c
 --- sbin/ifconfig/ifconfig.c	15 Apr 2009 03:14:26 -0000	1.134.2.5.2.1
-+++ sbin/ifconfig/ifconfig.c	11 Aug 2009 20:23:08 -0000
++++ sbin/ifconfig/ifconfig.c	14 Aug 2009 13:22:44 -0000
 @@ -773,7 +773,7 @@
  #define	IFFBITS \
  "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\6SMART\7RUNNING" \
@@ -24,13 +24,84 @@ diff -u -r1.134.2.5.2.1 ifconfig.c
  	DEF_CMD("rxcsum",	IFCAP_RXCSUM,	setifcap),
  	DEF_CMD("-rxcsum",	-IFCAP_RXCSUM,	setifcap),
  	DEF_CMD("txcsum",	IFCAP_TXCSUM,	setifcap),
+Index: sbin/ipfw/ipfw2.c
+===================================================================
+RCS file: /home/ncvs/src/sbin/ipfw/ipfw2.c,v
+retrieving revision 1.108.2.13.2.1
+diff -u -r1.108.2.13.2.1 ipfw2.c
+--- sbin/ipfw/ipfw2.c	15 Apr 2009 03:14:26 -0000	1.108.2.13.2.1
++++ sbin/ipfw/ipfw2.c	14 Aug 2009 13:22:52 -0000
+@@ -3766,11 +3766,63 @@
+ 		do {
+ 			table_list(ent, is_all);
+ 		} while (++ent.tbl < a);
++	} else if (_substrcmp(*av, "entrystats") == 0) {
++               ac--; av;
++                if (!ac)
++                        errx(EX_USAGE, "IP address required");
++                p = strchr(*av, '/');
++                if (p) {
++                        *p = '\0';
++                        ent.masklen = atoi(p);
++                        if (ent.masklen > 32)
++                                errx(EX_DATAERR, "bad width ``%s''", p);
++                } else
++                        ent.masklen = 32;
++                if (lookup_host(*av, (struct in_addr *)&ent.addr) != 0)
++                        errx(EX_NOHOST, "hostname ``%s'' unknown", *av);
++                ac--; av;
++               ent.value = 0;
++               table_list_entry(ent);
++       } else if (_substrcmp(*av, "entryzerostats") == 0) {
++               ac--; av;
++                if (!ac)
++                        errx(EX_USAGE, "IP address required");
++                p = strchr(*av, '/');
++                if (p) {
++                        *p = '\0';
++                        ent.masklen = atoi(p);
++                        if (ent.masklen > 32)
++                                errx(EX_DATAERR, "bad width ``%s''", p);
++                } else
++                        ent.masklen = 32;
++                if (lookup_host(*av, (struct in_addr *)&ent.addr) != 0)
++                        errx(EX_NOHOST, "hostname ``%s'' unknown", *av);
++                ac--; av;
++                ent.value = 0;
++               if (do_cmd(IP_FW_TABLE_ZERO_ENTRY_STATS, &ent, sizeof(ent)) < 0)
++                       err(EX_OSERR, "getsockopt(IP_FW_TABLE_ZERO_ENTRY_STATS)");
+ 	} else
+ 		errx(EX_USAGE, "invalid table command %s", *av);
+ }
+ 
+ static void
++table_list_entry(ipfw_table_entry ent) {
++        socklen_t l;
++       char tbuf[128];
++
++        l = sizeof(ent);
++        if (do_cmd(IP_FW_TABLE_GETENTRY, &ent, (uintptr_t)&l) < 0)
++                err(EX_OSERR, "getsockopt(IP_FW_TABLE_GET_ENTRY)");
++
++       strncpy(tbuf, inet_ntoa(*(struct in_addr *)
++               &ent.addr), 127);
++       /* inet_ntoa expects network order */
++       tval = htonl(tval);
++       printf("%s/%u %s %u %u %u\n", tbuf, ent.masklen,
++               inet_ntoa(*(struct in_addr *)&tval)i, ent.packets, ent.bytes, ent.timestamp);
++}
++
++static void
+ table_list(ipfw_table_entry ent, int need_header)
+ {
+ 	ipfw_table *tbl;
 Index: sys/net/if.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/if.h,v
 retrieving revision 1.108.2.5.2.1
 diff -u -r1.108.2.5.2.1 if.h
 --- sys/net/if.h	15 Apr 2009 03:14:26 -0000	1.108.2.5.2.1
-+++ sys/net/if.h	11 Aug 2009 20:23:09 -0000
++++ sys/net/if.h	14 Aug 2009 13:22:53 -0000
 @@ -150,6 +150,7 @@
  #define	IFF_MONITOR	0x40000		/* (n) user-requested monitor mode */
  #define	IFF_STATICARP	0x80000		/* (n) static ARP */
@@ -39,13 +110,180 @@ diff -u -r1.108.2.5.2.1 if.h
  
  /*
   * Old names for driver flags so that user space tools can continue to use
+Index: sys/netinet/in.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/in.h,v
+retrieving revision 1.100.2.1.4.1
+diff -u -r1.100.2.1.4.1 in.h
+--- sys/netinet/in.h	15 Apr 2009 03:14:26 -0000	1.100.2.1.4.1
++++ sys/netinet/in.h	14 Aug 2009 13:22:54 -0000
+@@ -443,6 +443,8 @@
+ #define	IP_FW_TABLE_FLUSH	42   /* flush table */
+ #define	IP_FW_TABLE_GETSIZE	43   /* get table size */
+ #define	IP_FW_TABLE_LIST	44   /* list table contents */
++#define        IP_FW_TABLE_GET_ENTRY   45   /* get statistics about a table entry */
++#define IP_FW_TABLE_ZERO_ENTRY_STATS   46      /* zero table entry stats */
+ 
+ #define	IP_FW_ADD		50   /* add a firewall rule to chain */
+ #define	IP_FW_DEL		51   /* delete a firewall rule from chain */
+Index: sys/netinet/ip_fw.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_fw.h,v
+retrieving revision 1.110.2.6.4.1
+diff -u -r1.110.2.6.4.1 ip_fw.h
+--- sys/netinet/ip_fw.h	15 Apr 2009 03:14:26 -0000	1.110.2.6.4.1
++++ sys/netinet/ip_fw.h	14 Aug 2009 13:22:55 -0000
+@@ -542,6 +542,9 @@
+ 	u_int32_t	value;		/* value			*/
+ 	u_int16_t	tbl;		/* table number			*/
+ 	u_int8_t	masklen;	/* mask length			*/
++	u_int64_t               bytes;
++        u_int64_t               packets;
++        u_int32_t               timestamp;
+ } ipfw_table_entry;
+ 
+ typedef struct	_ipfw_table {
+Index: sys/netinet/ip_fw2.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/Attic/ip_fw2.c,v
+retrieving revision 1.175.2.18.2.1
+diff -u -r1.175.2.18.2.1 ip_fw2.c
+--- sys/netinet/ip_fw2.c	15 Apr 2009 03:14:26 -0000	1.175.2.18.2.1
++++ sys/netinet/ip_fw2.c	14 Aug 2009 13:22:58 -0000
+@@ -144,6 +144,9 @@
+ 	struct radix_node	rn[2];
+ 	struct sockaddr_in	addr, mask;
+ 	u_int32_t		value;
++	u_int64_t               bytes;
++	u_int64_t               packets;
++	u_int32_t               timestamp;
+ };
+ 
+ static int autoinc_step = 100; /* bounded to 1..1000 in add_rule() */
+@@ -1877,7 +1880,7 @@
+ 
+ static int
+ lookup_table(struct ip_fw_chain *ch, uint16_t tbl, in_addr_t addr,
+-    uint32_t *val)
++    uint32_t *val, int pktlen)
+ {
+ 	struct radix_node_head *rnh;
+ 	struct table_entry *ent;
+@@ -1891,11 +1894,55 @@
+ 	ent = (struct table_entry *)(rnh->rnh_lookup(&sa, NULL, rnh));
+ 	if (ent != NULL) {
+ 		*val = ent->value;
++		ent->packets++;
++		ent->bytes += pktlen;
++		ent->timestamp = time_uptime;
+ 		return (1);
+ 	}
+ 	return (0);
+ }
+ 
++static struct table_entry *
++lookup_table_entry(struct ip_fw_chain *ch, uint16_t tbl, in_addr_t addr,
++    int pktlen)
++{
++        struct radix_node_head *rnh;
++        struct table_entry *ent;
++        struct sockaddr_in sa;
++
++        if (tbl >= IPFW_TABLES_MAX)
++                return (NULL);
++        rnh = ch->tables[tbl];
++        sa.sin_len = 8;
++        sa.sin_addr.s_addr = addr;
++        ent = (struct table_entry *)(rnh->rnh_lookup(&sa, NULL, rnh));
++        if (ent != NULL) {
++                return (ent);
++        }
++        return (NULL);
++}
++
++static int
++zero_table_entry_stats(struct ip_fw_chain *ch, uint16_t tbl, in_addr_t addr) {
++       struct radix_node_head *rnh;
++        struct table_entry *ent;
++        struct sockaddr_in sa;
++
++        if (tbl >= IPFW_TABLES_MAX)
++                return (EINVAL);
++        rnh = ch->tables[tbl];
++        sa.sin_len = 8;
++        sa.sin_addr.s_addr = addr;
++        ent = (struct table_entry *)(rnh->rnh_lookup(&sa, NULL, rnh));
++        if (ent != NULL) {
++                ent->packets = 0;
++                ent->bytes = 0;
++                ent->timestamp = time_uptime;
++                return (0);
++        }
++        return (EINVAL);
++}
++
+ static int
+ count_table_entry(struct radix_node *rn, void *arg)
+ {
+@@ -2666,7 +2713,7 @@
+ 				    uint32_t v = 0;
+ 
+ 				    match = lookup_table(chain, cmd->arg1, a,
+-					&v);
++					&v, pktlen);
+ 				    if (!match)
+ 					break;
+ 				    if (cmdlen == F_INSN_SIZE(ipfw_insn_u32))
+@@ -4333,6 +4380,42 @@
+ 		}
+ 		break;
+ 
++       case IP_FW_TABLE_GET_ENTRY:
++               {
++                       ipfw_table_entry ent;
++                       struct table_entry *eent;
++			time_t  boot_seconds;
++
++			boot_seconds = boottime.tv_sec;
++
++                       error = sooptcopyin(sopt, &ent,
++                            sizeof(ent), sizeof(ent));
++                        if (error)
++                                break;
++                        eent = lookup_table_entry(&V_layer3_chain, ent.tbl,
++                            ent.addr, ent.masklen);
++                       if (eent != NULL) {
++                               ent.bytes = eent->bytes;
++                               ent.packets = eent->packets;
++                               ent.timestamp = eent->timestamp + boot_seconds;
++                               ent.value = eent->value;
++                               error = sooptcopyout(sopt, &ent, sizeof(ent));
++               }
++               break;
++
++       case IP_FW_TABLE_ZERO_ENTRY_STATS:
++               {
++                       ipfw_table_entry ent;
++
++                        error = sooptcopyin(sopt, &ent,
++                            sizeof(ent), sizeof(ent));
++                        if (error)
++                                break;
++                        error = zero_table_entry_stats(&V_layer3_chain, ent.tbl,
++                            ent.addr, ent.masklen);
++               }
++               break;
++
+ 	case IP_FW_TABLE_LIST:
+ 		{
+ 			ipfw_table *tbl;
 Index: sys/netinet/ip_fw_pfil.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/Attic/ip_fw_pfil.c,v
 retrieving revision 1.25.2.3.2.1
 diff -u -r1.25.2.3.2.1 ip_fw_pfil.c
 --- sys/netinet/ip_fw_pfil.c	15 Apr 2009 03:14:26 -0000	1.25.2.3.2.1
-+++ sys/netinet/ip_fw_pfil.c	11 Aug 2009 20:23:10 -0000
++++ sys/netinet/ip_fw_pfil.c	14 Aug 2009 13:22:58 -0000
 @@ -87,7 +87,9 @@
      struct inpcb *inp)
  {
@@ -108,3 +346,19 @@ diff -u -r1.25.2.3.2.1 ip_fw_pfil.c
  
  again:
  	dn_tag = m_tag_find(*m0, PACKET_TAG_DUMMYNET, NULL);
+Index: sys/netinet/raw_ip.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/raw_ip.c,v
+retrieving revision 1.180.2.12.2.1
+diff -u -r1.180.2.12.2.1 raw_ip.c
+--- sys/netinet/raw_ip.c	15 Apr 2009 03:14:26 -0000	1.180.2.12.2.1
++++ sys/netinet/raw_ip.c	14 Aug 2009 13:22:59 -0000
+@@ -457,6 +457,8 @@
+ 		case IP_FW_GET:
+ 		case IP_FW_TABLE_GETSIZE:
+ 		case IP_FW_TABLE_LIST:
++		case IP_FW_TABLE_GET_ENTRY:
++		case IP_FW_TABLE_ZERO_ENTRY_STATS:
+ 		case IP_FW_NAT_GET_CONFIG:
+ 		case IP_FW_NAT_GET_LOG:
+ 			if (ip_fw_ctl_ptr != NULL)
