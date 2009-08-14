@@ -151,7 +151,7 @@ RELENG_2_0)
 	export PFSENSE_VERSION=2.0-ALPHA-ALPHA
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_7_2
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_2_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
 	set_items
