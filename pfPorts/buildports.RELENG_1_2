@@ -137,10 +137,17 @@ clean_make_install() {
 			MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`		
 		fi
 	fi
-	ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
-	if ! make -C $1 $ARGUMENTS clean build install; then
-		echo ">>> ERROR Building $PORT"
-		kill $$
+
+	PKGNAME=`make -C $1 -V PKGNAME`
+
+	if [ -d /var/db/pkg/${PKGNAME} ]; then
+		echo ">>> Already built, skipping..."
+	else
+		ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
+		if ! make -C $1 $ARGUMENTS clean build install; then
+			echo ">>> ERROR Building $PORT"
+			kill $$
+		fi
 	fi
 }
 
