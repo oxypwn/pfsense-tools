@@ -6,6 +6,10 @@ OVERLAY_PATH="$TOOLSDIR/builder_profiles/freebsd_only8/"
 cp $OVERLAY_PATH/pfsense_local.sh    $TOOLSDIR
 cp $OVERLAY_PATH/pfsense-build.conf  $TOOLSDIR
 
+mkdir -p $SRCDIR
+
+mkdir -p $SRCDIR
+
 cd $TOOLSDIR
 ./clean_build.sh
 ./apply_kernel_patches.sh

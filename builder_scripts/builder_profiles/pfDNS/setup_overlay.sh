@@ -5,6 +5,8 @@ TOOLSDIR=/home/pfsense/tools/builder_scripts/
 cp pfsense_local.sh    $TOOLSDIR
 cp pfsense-build.conf  $TOOLSDIR
 
+mkdir -p $SRCDIR
+
 cd $TOOLSDIR
 ./clean_build.sh
 ./build_pfPorts.sh
