@@ -137,9 +137,10 @@ clean_make_install() {
 		fi
 	fi
 	ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
-	( cd $1 && make $ARGUMENTS clean )
-	( cd $1 && make $ARGUMENTS )
-	( cd $1 && make $ARGUMENTS install )
+	if ! make -C $1 $ARGUMENTS clean build install; then
+		echo ">>> ERROR Building $PORT"
+		kill $$
+	fi
 }
 
 clean_build_install_clean() {
