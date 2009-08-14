@@ -22,13 +22,11 @@ rm -rf /var/db/pkg/php*
 
 set_cache() {
 	# Strip dynamic values
-	if [ "$2" != "" ]; then 
-		echo ">>> Setting port cache $1 to $2"
-		cat /var/db/pfS_portcache | \
-			grep -v "$1" > /tmp/pfS_portcache
-		echo "'$1'			$2" >> /tmp/pfS_portcache		
-		mv /tmp/pfS_portcache /var/db/pfS_portcache
-	fi
+	echo ">>> Setting port cache $1 to $2"
+	cat /var/db/pfS_portcache | \
+		grep -v "'$1'" > /tmp/pfS_portcache
+	echo "'$1'			$2" >> /tmp/pfS_portcache		
+	mv /tmp/pfS_portcache /var/db/pfS_portcache
 }
 
 PORTSTOBUILD="grub \
@@ -113,11 +111,10 @@ for PORT in $PORTSTOBUILD; do
 		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
 		set_cache ${PORT} ${DOESPORTEXIST}
 	fi 
-	if [ "${DOESPORTEXIST}x" != "x" ]; then
+	if [ "${DOESPORTEXIST}" != "" ]; then
 		( cd $DOESPORTEXIST && make clean ) | egrep -B3 -A3 -wi '(error)'
 	else 
 		( cd /home/pfsense/tools/pfPorts/$PORT && make clean) | egrep -B3 -A3 -wi '(error)'
-		set_cache ${PORT} ""		
 	fi
 done
 
