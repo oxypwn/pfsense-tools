@@ -57,6 +57,11 @@ else
 	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
 fi
 
+# Set KERNEL_BUILD_PATH if it has not been set
+if [ "$KERNEL_BUILD_PATH" = "" ]; then
+	KERNEL_BUILD_PATH=/tmp/kernels
+fi
+
 # This routine will post a tweet to twitter
 post_tweet() {
 	TWEET_MESSAGE="$1"
