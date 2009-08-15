@@ -132,6 +132,9 @@ rm -f $PFSENSEBASEDIR/root/.hushlogin
 rm -f $PFSENSEBASEDIR/etc/rc.d/pfi
 rm -f $CVS_CO_DIR/etc/rc.d/pfi
 
+# Check to see if we have a healthy installer
+ensure_healthy_installer
+
 # Prepare /usr/local/pfsense-fs -> /usr/local/pfsense-clonefs clone
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
