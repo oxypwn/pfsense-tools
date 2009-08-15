@@ -119,6 +119,6 @@ echo ">>> Execing pfsense-build.conf"
 while [ /bin/true ]; do
 	build_loop_operations
 	echo "Sleeping in betwen runs..."
-	sleep 6000
+	sleep 25000
 done
 
