@@ -130,7 +130,7 @@ export PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
 export PFSPATCHFILE=${PFSPATCHFILE:-${BUILDER_TOOLS}/builder_scripts/patches.${PFSENSETAG}}
 
 # Path to kernel files being built
-export KERNEL_BUILD_PATH=${KERNEL_BUILD_PATH:-/tmp/kernels"}
+export KERNEL_BUILD_PATH=${KERNEL_BUILD_PATH:-"/tmp/kernels"}
 
 # Controls how many concurrent make processes are run for each stage
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
