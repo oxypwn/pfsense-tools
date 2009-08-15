@@ -2558,7 +2558,7 @@ enable_memory_disks() {
 # Disables memory disk backing of common builder directories
 disable_memory_disks() {
 	echo -n ">>> Disabling memory disks..."
-	(umount /tmp/kernels /usr/pfSensesrc /usr/obj.pfSense) | '(^>>>)'
+	(umount /tmp/kernels $SRCDIR $MAKEOBJDIRPREFIX) | '(^>>>)'
 	(mdconfig -d -u 1) | '(^>>>)'
 	(mdconfig -d -u 2) | '(^>>>)'
 	(mdconfig -d -u 3) | '(^>>>)'
