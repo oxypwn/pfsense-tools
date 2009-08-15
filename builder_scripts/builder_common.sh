@@ -143,29 +143,29 @@ fixup_kernel_options() {
 	cp $BUILDER_TOOLS/builder_scripts/conf/FreeBSD.* $SRCDIR/sys/$ARCH/conf/
 		
 	# Build extra kernels (embedded, developers edition, etc)
-	mkdir -p /tmp/kernels/wrap/boot/defaults
-	mkdir -p /tmp/kernels/wrap/boot/kernel
-	mkdir -p /tmp/kernels/developers/boot/kernel
-	mkdir -p /tmp/kernels/freebsd/boot/kernel
+	mkdir -p $KERNEL_BUILD_PATH/wrap/boot/defaults
+	mkdir -p $KERNEL_BUILD_PATH/wrap/boot/kernel
+	mkdir -p $KERNEL_BUILD_PATH/developers/boot/kernel
+	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/kernel
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
-	mkdir -p /tmp/kernels/SMP/boot/kernel
-	mkdir -p /tmp/kernels/uniprocessor/boot/kernel
-	mkdir -p /tmp/kernels/freebsd/boot/kernel
+	mkdir -p $KERNEL_BUILD_PATH/SMP/boot/kernel
+	mkdir -p $KERNEL_BUILD_PATH/uniprocessor/boot/kernel
+	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/kernel
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
-	mkdir -p /tmp/kernels/wrap/boot/defaults/
-	mkdir -p /tmp/kernels/developers/boot/defaults/
-	mkdir -p /tmp/kernels/SMP/boot/defaults/
-	mkdir -p /tmp/kernels/uniprocessor/boot/defaults/
-	mkdir -p /tmp/kernels/freebsd/boot/defaults/
+	mkdir -p $KERNEL_BUILD_PATH/wrap/boot/defaults/
+	mkdir -p $KERNEL_BUILD_PATH/developers/boot/defaults/
+	mkdir -p $KERNEL_BUILD_PATH/SMP/boot/defaults/
+	mkdir -p $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/
+	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/defaults/
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
-	touch /tmp/kernels/wrap/boot/defaults/loader.conf
-	touch /tmp/kernels/developers/boot/defaults/loader.conf
-	touch  /tmp/kernels/SMP/boot/defaults/loader.conf
-	touch  /tmp/kernels/uniprocessor/boot/defaults/loader.conf
-	touch  /tmp/kernels/freebsd/boot/defaults/loader.conf
+	touch $KERNEL_BUILD_PATH/wrap/boot/defaults/loader.conf
+	touch $KERNEL_BUILD_PATH/developers/boot/defaults/loader.conf
+	touch  $KERNEL_BUILD_PATH/SMP/boot/defaults/loader.conf
+	touch  $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/loader.conf
+	touch  $KERNEL_BUILD_PATH/freebsd/boot/defaults/loader.conf
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
@@ -221,23 +221,23 @@ fixup_kernel_options() {
 	# NOTE!  If you remove this, you WILL break booting!  These file(s) are read
 	#        by FORTH and for some reason installkernel with DESTDIR does not
 	#        copy this file over and you will end up with a blank file?
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/uniprocessor/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/SMP/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/SMP/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/developers/boot/defaults/
 	#
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/uniprocessor/boot/device.hints
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/SMP/boot/device.hints
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/uniprocessor/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/SMP/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints
 	# END NOTE.
 
 	# Danger will robinson -- 7.2+ will NOT boot if these files are not present.
 	# the loader will stop at |
-	touch /tmp/kernels/wrap/boot/loader.conf touch /tmp/kernels/wrap/boot/loader.conf.local
-	touch /tmp/kernels/uniprocessor/boot/loader.conf touch /tmp/kernels/uniprocessor/boot/loader.conf.local
-	touch /tmp/kernels/SMP/boot/loader.conf touch /tmp/kernels/SMP/boot/loader.conf.local
-	touch /tmp/kernels/developers/boot/loader.conf touch /tmp/kernels/developers/boot/loader.conf.local
+	touch $KERNEL_BUILD_PATH/wrap/boot/loader.conf touch $KERNEL_BUILD_PATH/wrap/boot/loader.conf.local
+	touch $KERNEL_BUILD_PATH/uniprocessor/boot/loader.conf touch $KERNEL_BUILD_PATH/uniprocessor/boot/loader.conf.local
+	touch $KERNEL_BUILD_PATH/SMP/boot/loader.conf touch $KERNEL_BUILD_PATH/SMP/boot/loader.conf.local
+	touch $KERNEL_BUILD_PATH/developers/boot/loader.conf touch $KERNEL_BUILD_PATH/developers/boot/loader.conf.local
 	# Danger, warning, achtung
 	
 }
@@ -254,15 +254,15 @@ build_embedded_kernel_vga() {
 	unset KERNEL_DESTDIR
 	unset KERNELCONF	
 	export KERNCONF=pfSense_nano_vga.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="/tmp/kernels/nano_vga"
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/nano_vga"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_nano_vga.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/nano_vga/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/nano_vga/boot/device.hints	
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/nano_vga/boot/defaults/
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/nano_vga/boot/device.hints	
 	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd /tmp/kernels/nano_vga/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz .) 	
+	(cd $KERNEL_BUILD_PATH/nano_vga/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz .) 	
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
 	ensure_kernel_exists $KERNEL_DESTDIR
@@ -282,15 +282,15 @@ build_embedded_kernel() {
 	unset KERNEL_DESTDIR
 	unset KERNELCONF	
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="/tmp/kernels/wrap"
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/wrap/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/wrap/boot/device.hints	
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap/boot/defaults/
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap/boot/device.hints	
 	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
+	(cd $KERNEL_BUILD_PATH/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
 	ensure_kernel_exists $KERNEL_DESTDIR
@@ -310,14 +310,14 @@ build_dev_kernel() {
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
-	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	freesbie_make buildkernel
 	echo ">>> Installing Developers kernel..."
 	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/developers/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/developers/boot/device.hints	
-	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/developers/boot/defaults/
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints	
+	(cd $KERNEL_BUILD_PATH/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
 	ensure_kernel_exists $KERNEL_DESTDIR	
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 }
@@ -334,14 +334,14 @@ build_freebsd_only_kernel() {
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/FreeBSD.${FREEBSD_VERSION}"
-	export KERNEL_DESTDIR="/tmp/kernels/freebsd"
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/freebsd"
 	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
 	freesbie_make buildkernel
 	echo ">>> Installing FreeBSD kernel..."
 	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf /tmp/kernels/freebsd/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints /tmp/kernels/freebsd/boot/device.hints
-	(cd /tmp/kernels/freebsd/boot/ && tar czf $PFSENSEBASEDIR/kernels/FreeBSD.tgz .)
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/freebsd/boot/defaults/
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/freebsd/boot/device.hints
+	(cd $KERNEL_BUILD_PATH/freebsd/boot/ && tar czf $PFSENSEBASEDIR/kernels/FreeBSD.tgz .)
 	ensure_kernel_exists $KERNEL_DESTDIR
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/FreeBSD.tgz -C $PFSENSEBASEDIR/boot/)
 }
@@ -366,7 +366,7 @@ build_all_kernels() {
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="/tmp/kernels/uniprocessor"
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/uniprocessor"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>> Installing uniprocessor kernel..."
@@ -381,7 +381,7 @@ build_all_kernels() {
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="/tmp/kernels/wrap"
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>> Installing wrap kernel..."
@@ -396,7 +396,7 @@ build_all_kernels() {
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="/tmp/kernels/developers"
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"	
 	freesbie_make buildkernel
 	echo ">>> Installing Developers kernel..."
@@ -411,7 +411,7 @@ build_all_kernels() {
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
 	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="/tmp/kernels/SMP"
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/SMP"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
 	freesbie_make buildkernel
 	echo ">>> Installing SMP kernel..."
@@ -424,21 +424,21 @@ build_all_kernels() {
 		echo -n "."
 		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm -f {} \;
 		echo -n "."
-		find /tmp/kernels -name "*.symbols" -exec rm -f {} \;
+		find $KERNEL_BUILD_PATH -name "*.symbols" -exec rm -f {} \;
     fi
 
 	# Nuke old kernel if it exists
-	find /tmp/kernels -name kernel.old -exec rm -rf {} \; 2>/dev/null
+	find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
 	echo "done."
 
 	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd /tmp/kernels/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .) 	
+	(cd $KERNEL_BUILD_PATH/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .) 	
 	echo -n "."
-	(cd /tmp/kernels/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
+	(cd $KERNEL_BUILD_PATH/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .) 	
 	echo -n "."
-	(cd /tmp/kernels/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
+	(cd $KERNEL_BUILD_PATH/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
 	echo -n "."	
-	(cd /tmp/kernels/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
+	(cd $KERNEL_BUILD_PATH/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
 	echo -n "."	
@@ -640,7 +640,7 @@ report_zero_sized_files() {
 check_for_zero_size_files() {
 	rm -f $MAKEOBJDIRPREFIX/zero_sized_files.txt
 	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
-	find /tmp/kernels/ -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
+	find $KERNEL_BUILD_PATH/ -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
 	cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
 }
 
@@ -2223,7 +2223,7 @@ pfSense_clean_obj_dir() {
 	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX}/*)
 	(cd ${CURRENTDIR} && rm -rf ${MAKEOBJDIRPREFIX}/.done*)	
 	echo -n "."
-	rm -rf /tmp/kernels/*
+	rm -rf $KERNEL_BUILD_PATH/*
 	if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 		echo -n "."
 		rm -rf "${GIT_REPO_DIR}/pfSenseGITREPO"
@@ -2544,11 +2544,11 @@ enable_memory_disks() {
 		mount /dev/md2 $SRCDIR
 	fi
 	if [ "$MD3" -lt 1 ]; then
-		echo -n "/tmp/kernels/ "
+		echo -n "$KERNEL_BUILD_PATH/ "
 		mdconfig -a -t swap -s 190m -u 3
 		(newfs md3) | egrep -wi '(^>>>|error)'
-		mkdir -p /tmp/kernels/
-		mount /dev/md3 /tmp/kernels/
+		mkdir -p $KERNEL_BUILD_PATH
+		mount /dev/md3 $KERNEL_BUILD_PATH
 	fi
 	echo "Done!"
 	df -h
@@ -2558,7 +2558,7 @@ enable_memory_disks() {
 # Disables memory disk backing of common builder directories
 disable_memory_disks() {
 	echo -n ">>> Disabling memory disks..."
-	(umount /tmp/kernels $SRCDIR $MAKEOBJDIRPREFIX) | '(^>>>)'
+	(umount $KERNEL_BUILD_PATH $SRCDIR $MAKEOBJDIRPREFIX) | '(^>>>)'
 	(mdconfig -d -u 1) | '(^>>>)'
 	(mdconfig -d -u 2) | '(^>>>)'
 	(mdconfig -d -u 3) | '(^>>>)'
