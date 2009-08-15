@@ -70,6 +70,9 @@ print_flags
 # Clean up items that should be cleaned each run
 freesbie_clean_each_run
 
+# Install BSDInstaller
+rebuild_and_install_bsdinstaller
+
 # Prepare object directry
 echo ">>> Preparing object directory..."
 freesbie_make obj
