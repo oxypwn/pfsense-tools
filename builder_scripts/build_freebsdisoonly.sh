@@ -119,8 +119,15 @@ cat $BUILDER_TOOLS/builder_scripts/conf/packages
 rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 
 # Install custom packages
-echo ">>> Installing custom packageas..."
-freesbie_make pkginstall
+#echo ">>> Installing custom packageas..."
+#freesbie_make pkginstall
+
+echo ">>> Searching and installing ports..."
+PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
+install_pkg_install_ports
+
+echo ">>> Installing packages: " 
+cat $BUILDER_TOOLS/builder_scripts/conf/packages
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
