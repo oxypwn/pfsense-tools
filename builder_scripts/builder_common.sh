@@ -2533,15 +2533,15 @@ enable_memory_disks() {
 		echo -n "/usr/obj.pfSense/ "
 		mdconfig -a -t swap -s 1700m -u 1
 		(newfs md1) | egrep -wi '(^>>>|error)'
-		mkdir -p /usr/obj.pfSense/
-		mount /dev/md1 /usr/obj.pfSense/
+		mkdir -p $MAKEOBJDIRPREFIX
+		mount /dev/md1 $MAKEOBJDIRPREFIX
 	fi
 	if [ "$MD2" -lt 1 ]; then
 		echo -n "/usr/pfSensesrc/ "
 		mdconfig -a -t swap -s 800m -u 2
 		(newfs md2) | egrep -wi '(^>>>|error)'
-		mkdir -p /usr/pfSensesrc/
-		mount /dev/md2 /usr/pfSensesrc/
+		mkdir -p $SRCDIR
+		mount /dev/md2 $SRCDIR
 	fi
 	if [ "$MD3" -lt 1 ]; then
 		echo -n "/tmp/kernels/ "
