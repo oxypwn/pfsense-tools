@@ -1,24 +1,23 @@
 Index: ng_iface.c
 ===================================================================
-RCS file: /usr/repo/src/sys/netgraph/ng_iface.c,v
+RCS file: /root/freebsd/repo/src/sys/netgraph/ng_iface.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ng_iface.c
---- ng_iface.c	7 Apr 2009 17:57:16 -0000	1.1.1.1
-+++ ng_iface.c	7 Apr 2009 21:44:28 -0000
-@@ -69,10 +69,12 @@
+--- ng_iface.c	16 Aug 2009 12:04:58 -0000	1.1.1.1
++++ ng_iface.c	16 Aug 2009 12:12:29 -0000
+@@ -70,9 +70,11 @@
  #include <sys/socket.h>
  #include <sys/syslog.h>
  #include <sys/libkern.h>
 +#include <sys/ctype.h>
- #include <sys/vimage.h>
  
  #include <net/if.h>
  #include <net/if_types.h>
 +#include <net/if_dl.h>
  #include <net/bpf.h>
  #include <net/netisr.h>
- 
-@@ -164,6 +166,13 @@
+ #include <net/route.h>
+@@ -166,6 +168,13 @@
  	},
  	{
  	  NGM_IFACE_COOKIE,
@@ -32,7 +31,7 @@ diff -u -r1.1.1.1 ng_iface.c
  	  NGM_IFACE_POINT2POINT,
  	  "point2point",
  	  NULL,
-@@ -610,6 +619,10 @@
+@@ -613,6 +622,10 @@
  	struct ng_mesg *resp = NULL;
  	int error = 0;
  	struct ng_mesg *msg;
@@ -43,7 +42,7 @@ diff -u -r1.1.1.1 ng_iface.c
  
  	NGI_GET_MSG(item, msg);
  	switch (msg->header.typecookie) {
-@@ -624,6 +637,49 @@
+@@ -627,6 +640,49 @@
  			strlcpy(resp->data, ifp->if_xname, IFNAMSIZ);
  			break;
  
@@ -95,11 +94,11 @@ diff -u -r1.1.1.1 ng_iface.c
  		    {
 Index: ng_iface.h
 ===================================================================
-RCS file: /usr/repo/src/sys/netgraph/ng_iface.h,v
+RCS file: /root/freebsd/repo/src/sys/netgraph/ng_iface.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ng_iface.h
---- ng_iface.h	7 Apr 2009 17:57:16 -0000	1.1.1.1
-+++ ng_iface.h	7 Apr 2009 21:43:27 -0000
+--- ng_iface.h	16 Aug 2009 12:04:58 -0000	1.1.1.1
++++ ng_iface.h	16 Aug 2009 12:11:50 -0000
 @@ -70,6 +70,7 @@
  	NGM_IFACE_POINT2POINT,
  	NGM_IFACE_BROADCAST,

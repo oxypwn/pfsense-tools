@@ -1,16 +1,16 @@
 Index: sbin/ifconfig/ifconfig.c
 ===================================================================
-RCS file: /home/ncvs/src/sbin/ifconfig/ifconfig.c,v
-retrieving revision 1.146
-diff -u -r1.146 ifconfig.c
---- sbin/ifconfig/ifconfig.c	26 Jul 2009 11:25:57 -0000	1.146
-+++ sbin/ifconfig/ifconfig.c	14 Aug 2009 13:20:48 -0000
+RCS file: /root/freebsd/repo/src/sbin/ifconfig/ifconfig.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ifconfig.c
+--- sbin/ifconfig/ifconfig.c	16 Aug 2009 12:04:59 -0000	1.1.1.1
++++ sbin/ifconfig/ifconfig.c	16 Aug 2009 12:08:14 -0000
 @@ -825,7 +825,7 @@
  #define	IFFBITS \
  "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\6SMART\7RUNNING" \
  "\10NOARP\11PROMISC\12ALLMULTI\13OACTIVE\14SIMPLEX\15LINK0\16LINK1\17LINK2" \
 -"\20MULTICAST\22PPROMISC\23MONITOR\24STATICARP"
-+"\20MULTICAST\22PPROMISC\23MONITOR\24STATICARP\25IPFW_FILTER"
++"\20MULTICAST\22PPROMISC\23MONITOR\24STATICARP\27IPFW_FILTER"
  
  #define	IFCAPBITS \
  "\020\1RXCSUM\2TXCSUM\3NETCONS\4VLAN_MTU\5VLAN_HWTAGGING\6JUMBO_MTU\7POLLING" \
@@ -25,12 +25,31 @@ diff -u -r1.146 ifconfig.c
  	DEF_CMD("txcsum",	IFCAP_TXCSUM,	setifcap),
 Index: sbin/ipfw/ipfw2.c
 ===================================================================
-RCS file: /home/ncvs/src/sbin/ipfw/ipfw2.c,v
-retrieving revision 1.149
-diff -u -r1.149 ipfw2.c
---- sbin/ipfw/ipfw2.c	8 Jun 2009 10:53:18 -0000	1.149
-+++ sbin/ipfw/ipfw2.c	14 Aug 2009 13:20:49 -0000
-@@ -3775,11 +3775,63 @@
+RCS file: /root/freebsd/repo/src/sbin/ipfw/ipfw2.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ipfw2.c
+--- sbin/ipfw/ipfw2.c	16 Aug 2009 12:04:59 -0000	1.1.1.1
++++ sbin/ipfw/ipfw2.c	16 Aug 2009 12:09:16 -0000
+@@ -362,7 +362,9 @@
+ 	    optname == IP_FW_ADD || optname == IP_FW_TABLE_LIST ||
+ 	    optname == IP_FW_TABLE_GETSIZE || 
+ 	    optname == IP_FW_NAT_GET_CONFIG || 
+-	    optname == IP_FW_NAT_GET_LOG)
++	    optname == IP_FW_NAT_GET_LOG ||
++	    optname == IP_FW_TABLE_GET_ENTRY ||
++	    optname == IP_FW_TABLE_ZERO_ENTRY_STATS)
+ 		i = getsockopt(s, IPPROTO_IP, optname, optval,
+ 			(socklen_t *)optlen);
+ 	else
+@@ -3665,6 +3667,7 @@
+ 
+ 
+ static void table_list(ipfw_table_entry ent, int need_header);
++static void table_list_entry(ipfw_table_entry ent);
+ 
+ /*
+  * This one handles all table-related commands
+@@ -3775,11 +3778,61 @@
  		do {
  			table_list(ent, is_all);
  		} while (++ent.tbl < a);
@@ -79,15 +98,13 @@ diff -u -r1.149 ipfw2.c
 +	char tbuf[128];
 +
 +        l = sizeof(ent);
-+        if (do_cmd(IP_FW_TABLE_GETENTRY, &ent, (uintptr_t)&l) < 0)
++        if (do_cmd(IP_FW_TABLE_GET_ENTRY, &ent, (uintptr_t)&l) < 0)
 +                err(EX_OSERR, "getsockopt(IP_FW_TABLE_GET_ENTRY)");
 +
 +	strncpy(tbuf, inet_ntoa(*(struct in_addr *)
 +		&ent.addr), 127);
-+	/* inet_ntoa expects network order */
-+	tval = htonl(tval);
-+	printf("%s/%u %s %u %u %u\n", tbuf, ent.masklen,
-+		inet_ntoa(*(struct in_addr *)&tval)i, ent.packets, ent.bytes, ent.timestamp);
++	printf("%s/%u %u %llu %llu %u\n", tbuf, ent.masklen,
++		ent.value, ent.packets, ent.bytes, ent.timestamp);
 +}
 +
 +static void
@@ -96,11 +113,11 @@ diff -u -r1.149 ipfw2.c
  	ipfw_table *tbl;
 Index: sys/net/if.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/net/if.h,v
-retrieving revision 1.120
-diff -u -r1.120 if.h
---- sys/net/if.h	15 Jun 2009 18:59:29 -0000	1.120
-+++ sys/net/if.h	14 Aug 2009 13:20:49 -0000
+RCS file: /root/freebsd/repo/src/sys/net/if.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if.h
+--- sys/net/if.h	16 Aug 2009 12:04:55 -0000	1.1.1.1
++++ sys/net/if.h	16 Aug 2009 12:08:02 -0000
 @@ -150,6 +150,7 @@
  #define	IFF_MONITOR	0x40000		/* (n) user-requested monitor mode */
  #define	IFF_STATICARP	0x80000		/* (n) static ARP */
@@ -111,11 +128,11 @@ diff -u -r1.120 if.h
   * Old names for driver flags so that user space tools can continue to use
 Index: sys/netinet/in.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/in.h,v
-retrieving revision 1.110
-diff -u -r1.110 in.h
---- sys/netinet/in.h	1 Jun 2009 10:30:00 -0000	1.110
-+++ sys/netinet/in.h	14 Aug 2009 13:20:49 -0000
+RCS file: /root/freebsd/repo/src/sys/netinet/in.h,v
+retrieving revision 1.2
+diff -u -r1.2 in.h
+--- sys/netinet/in.h	16 Aug 2009 12:07:58 -0000	1.2
++++ sys/netinet/in.h	16 Aug 2009 12:08:02 -0000
 @@ -448,6 +448,8 @@
  #define	IP_FW_TABLE_FLUSH	42   /* flush table */
  #define	IP_FW_TABLE_GETSIZE	43   /* get table size */
@@ -127,11 +144,11 @@ diff -u -r1.110 in.h
  #define	IP_FW_DEL		51   /* delete a firewall rule from chain */
 Index: sys/netinet/ip_fw.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ip_fw.h,v
-retrieving revision 1.132
-diff -u -r1.132 ip_fw.h
---- sys/netinet/ip_fw.h	16 Jul 2009 21:13:04 -0000	1.132
-+++ sys/netinet/ip_fw.h	14 Aug 2009 13:20:49 -0000
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_fw.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_fw.h
+--- sys/netinet/ip_fw.h	16 Aug 2009 12:04:57 -0000	1.1.1.1
++++ sys/netinet/ip_fw.h	16 Aug 2009 12:08:02 -0000
 @@ -562,6 +562,9 @@
  	u_int32_t	value;		/* value			*/
  	u_int16_t	tbl;		/* table number			*/
@@ -144,11 +161,11 @@ diff -u -r1.132 ip_fw.h
  typedef struct	_ipfw_table {
 Index: sys/netinet/raw_ip.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/raw_ip.c,v
-retrieving revision 1.220
-diff -u -r1.220 raw_ip.c
---- sys/netinet/raw_ip.c	1 Aug 2009 19:26:27 -0000	1.220
-+++ sys/netinet/raw_ip.c	14 Aug 2009 13:20:50 -0000
+RCS file: /root/freebsd/repo/src/sys/netinet/raw_ip.c,v
+retrieving revision 1.2
+diff -u -r1.2 raw_ip.c
+--- sys/netinet/raw_ip.c	16 Aug 2009 12:06:18 -0000	1.2
++++ sys/netinet/raw_ip.c	16 Aug 2009 12:08:02 -0000
 @@ -521,6 +521,8 @@
  		case IP_FW_GET:
  		case IP_FW_TABLE_GETSIZE:
@@ -160,11 +177,11 @@ diff -u -r1.220 raw_ip.c
  			if (ip_fw_ctl_ptr != NULL)
 Index: sys/netinet/ipfw/ip_fw2.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ipfw/ip_fw2.c,v
-retrieving revision 1.11
-diff -u -r1.11 ip_fw2.c
---- sys/netinet/ipfw/ip_fw2.c	1 Aug 2009 19:26:27 -0000	1.11
-+++ sys/netinet/ipfw/ip_fw2.c	14 Aug 2009 13:20:51 -0000
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw2.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_fw2.c
+--- sys/netinet/ipfw/ip_fw2.c	16 Aug 2009 12:04:57 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw2.c	16 Aug 2009 12:09:29 -0000
 @@ -147,6 +147,9 @@
  	struct radix_node	rn[2];
  	struct sockaddr_in	addr, mask;
@@ -249,7 +266,7 @@ diff -u -r1.11 ip_fw2.c
  				    if (!match)
  					break;
  				    if (cmdlen == F_INSN_SIZE(ipfw_insn_u32))
-@@ -4437,6 +4484,41 @@
+@@ -4437,6 +4484,42 @@
  		}
  		break;
  
@@ -272,6 +289,7 @@ diff -u -r1.11 ip_fw2.c
 +				ent.timestamp = eent->timestamp + boot_seconds;
 +				ent.value = eent->value;
 +				error = sooptcopyout(sopt, &ent, sizeof(ent));
++			}
 +		}
 +		break;
 +
@@ -284,7 +302,7 @@ diff -u -r1.11 ip_fw2.c
 +                        if (error)
 +                                break;
 +                        error = zero_table_entry_stats(&V_layer3_chain, ent.tbl,
-+                            ent.addr, ent.masklen);
++                            ent.addr);
 +		}
 +		break;
 +
@@ -293,12 +311,12 @@ diff -u -r1.11 ip_fw2.c
  			ipfw_table *tbl;
 Index: sys/netinet/ipfw/ip_fw_pfil.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ipfw/ip_fw_pfil.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.4
 diff -u -r1.4 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	1 Aug 2009 19:26:27 -0000	1.4
-+++ sys/netinet/ipfw/ip_fw_pfil.c	14 Aug 2009 13:20:51 -0000
-@@ -89,7 +89,9 @@
+--- sys/netinet/ipfw/ip_fw_pfil.c	16 Aug 2009 12:07:16 -0000	1.4
++++ sys/netinet/ipfw/ip_fw_pfil.c	16 Aug 2009 12:08:02 -0000
+@@ -84,7 +84,9 @@
      struct inpcb *inp)
  {
  	struct ip_fw_args args;
@@ -308,7 +326,7 @@ diff -u -r1.4 ip_fw_pfil.c
  	struct m_tag *dn_tag;
  	int ipfw = 0;
  	int divert;
-@@ -100,8 +102,11 @@
+@@ -95,8 +97,11 @@
  
  	KASSERT(dir == PFIL_IN, ("ipfw_check_in wrong direction!"));
  
@@ -320,7 +338,7 @@ diff -u -r1.4 ip_fw_pfil.c
  	ng_tag = (struct ng_ipfw_tag *)m_tag_locate(*m0, NGM_IPFW_COOKIE, 0,
  	    NULL);
  	if (ng_tag != NULL) {
-@@ -112,6 +117,7 @@
+@@ -107,6 +112,7 @@
  		args.chain_id = ng_tag->chain_id;
  		m_tag_delete(*m0, (struct m_tag *)ng_tag);
  	}
@@ -328,7 +346,7 @@ diff -u -r1.4 ip_fw_pfil.c
  
  again:
  	dn_tag = m_tag_find(*m0, PACKET_TAG_DUMMYNET, NULL);
-@@ -222,7 +228,9 @@
+@@ -220,7 +226,9 @@
      struct inpcb *inp)
  {
  	struct ip_fw_args args;
@@ -338,7 +356,7 @@ diff -u -r1.4 ip_fw_pfil.c
  	struct m_tag *dn_tag;
  	int ipfw = 0;
  	int divert;
-@@ -233,8 +241,12 @@
+@@ -231,8 +239,12 @@
  
  	KASSERT(dir == PFIL_OUT, ("ipfw_check_out wrong direction!"));
  
@@ -351,7 +369,7 @@ diff -u -r1.4 ip_fw_pfil.c
  	ng_tag = (struct ng_ipfw_tag *)m_tag_locate(*m0, NGM_IPFW_COOKIE, 0,
  	    NULL);
  	if (ng_tag != NULL) {
-@@ -245,6 +257,7 @@
+@@ -243,6 +255,7 @@
  		args.chain_id = ng_tag->chain_id;
  		m_tag_delete(*m0, (struct m_tag *)ng_tag);
  	}
