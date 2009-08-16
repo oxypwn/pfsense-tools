@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.8
 diff -u -r1.8 pf.c
---- sys/contrib/pf/net/pf.c	25 Jul 2009 22:32:44 -0000	1.8
-+++ sys/contrib/pf/net/pf.c	25 Jul 2009 22:34:41 -0000
-@@ -6451,7 +6451,7 @@
+--- sys/contrib/pf/net/pf.c	16 Aug 2009 19:02:05 -0000	1.8
++++ sys/contrib/pf/net/pf.c	16 Aug 2009 19:02:19 -0000
+@@ -6450,7 +6450,7 @@
  	 * If deferred crypto processing is needed, check that the
  	 * interface supports it.
  	 */
@@ -16,11 +16,11 @@ diff -u -r1.8 pf.c
  		ipsp_skipcrypto_unmark((struct tdb_ident *)(mtag + 1));
 Index: sys/netinet/in.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/in.h,v
+RCS file: /root/freebsd/repo/src/sys/netinet/in.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 in.h
---- sys/netinet/in.h	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ sys/netinet/in.h	25 Jul 2009 22:34:41 -0000
+--- sys/netinet/in.h	16 Aug 2009 19:00:45 -0000	1.1.1.1
++++ sys/netinet/in.h	16 Aug 2009 19:02:19 -0000
 @@ -703,7 +703,8 @@
  #define	IPCTL_FASTFORWARDING	14	/* use fast IP forwarding code */
  #define	IPCTL_KEEPFAITH		15	/* FAITH IPv4->IPv6 translater ctl */
@@ -41,12 +41,12 @@ diff -u -r1.1.1.1 in.h
  #endif /* __BSD_VISIBLE */
 Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_input.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_input.c,v
 retrieving revision 1.3
 diff -u -r1.3 ip_input.c
---- sys/netinet/ip_input.c	25 Jul 2009 22:33:45 -0000	1.3
-+++ sys/netinet/ip_input.c	25 Jul 2009 22:40:06 -0000
-@@ -125,6 +125,10 @@
+--- sys/netinet/ip_input.c	16 Aug 2009 19:02:09 -0000	1.3
++++ sys/netinet/ip_input.c	16 Aug 2009 19:02:19 -0000
+@@ -124,6 +124,10 @@
  #define	V_maxnipq		VNET(maxnipq)
  #define	V_maxfragsperpacket	VNET(maxfragsperpacket)
  #define	V_nipq			VNET(nipq)
@@ -57,7 +57,7 @@ diff -u -r1.3 ip_input.c
  
  VNET_DEFINE(int, ipstealth);
  
-@@ -138,6 +142,12 @@
+@@ -137,6 +141,12 @@
      &VNET_NAME(ipforwarding), 0,
      "Enable IP forwarding between interfaces");
  
@@ -70,7 +70,7 @@ diff -u -r1.3 ip_input.c
  SYSCTL_VNET_INT(_net_inet_ip, IPCTL_SENDREDIRECTS, redirect, CTLFLAG_RW,
      &VNET_NAME(ipsendredirects), 0,
      "Enable sending IP redirects");
-@@ -484,7 +494,7 @@
+@@ -504,7 +514,7 @@
  	/*
  	 * Bypass packet filtering for packets from a tunnel (gif).
  	 */
@@ -79,7 +79,7 @@ diff -u -r1.3 ip_input.c
  		goto passin;
  #endif /* IPSEC */
  
-@@ -698,7 +708,7 @@
+@@ -718,7 +728,7 @@
  		m_freem(m);
  	} else {
  #ifdef IPSEC
@@ -88,7 +88,7 @@ diff -u -r1.3 ip_input.c
  			goto bad;
  #endif /* IPSEC */
  		ip_forward(m, dchg);
-@@ -750,7 +760,7 @@
+@@ -770,7 +780,7 @@
  	 * note that we do not visit this with protocols with pcb layer
  	 * code - like udp/tcp/raw ip.
  	 */
@@ -97,7 +97,7 @@ diff -u -r1.3 ip_input.c
  		goto bad;
  #endif /* IPSEC */
  
-@@ -1539,7 +1549,8 @@
+@@ -1559,7 +1569,8 @@
  		 * If IPsec is configured for this path,
  		 * override any possibly mtu value set by ip_output.
  		 */ 
@@ -109,12 +109,22 @@ diff -u -r1.3 ip_input.c
  		 * If the MTU was set before make sure we are below the
 Index: sys/netinet/ip_output.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_output.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_output.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_output.c
---- sys/netinet/ip_output.c	25 Jul 2009 22:10:28 -0000	1.1.1.1
-+++ sys/netinet/ip_output.c	25 Jul 2009 22:34:41 -0000
-@@ -465,26 +465,28 @@
+--- sys/netinet/ip_output.c	16 Aug 2009 19:00:45 -0000	1.1.1.1
++++ sys/netinet/ip_output.c	16 Aug 2009 19:02:28 -0000
+@@ -91,6 +91,9 @@
+ 				  (ntohl(a.s_addr))&0xFF, y);
+ 
+ VNET_DEFINE(u_short, ip_id);
++#ifdef IPSEC
++VNET_DEFINE(int, ipipsec_in_use);
++#endif
+ 
+ #ifdef MBUF_STRESS_TEST
+ int mbuf_frag_size = 0;
+@@ -468,26 +471,28 @@
  
  sendit:
  #ifdef IPSEC
@@ -162,7 +172,7 @@ diff -u -r1.1.1.1 ip_output.c
  #endif /* IPSEC */
  
  	/* Jump over all PFIL processing if hooks are not active. */
-@@ -1067,7 +1069,7 @@
+@@ -1070,7 +1075,7 @@
  		{
  			caddr_t req;
  			struct mbuf *m;
@@ -171,7 +181,7 @@ diff -u -r1.1.1.1 ip_output.c
  			if ((error = soopt_getm(sopt, &m)) != 0) /* XXX */
  				break;
  			if ((error = soopt_mcopyin(sopt, m)) != 0) /* XXX */
-@@ -1189,7 +1191,7 @@
+@@ -1192,7 +1197,7 @@
  			struct mbuf *m = NULL;
  			caddr_t req = NULL;
  			size_t len = 0;
@@ -182,16 +192,25 @@ diff -u -r1.1.1.1 ip_output.c
  				len = m->m_len;
 Index: sys/netinet/ip_var.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_var.h,v
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_var.h,v
 retrieving revision 1.2
 diff -u -r1.2 ip_var.h
---- sys/netinet/ip_var.h	25 Jul 2009 22:21:15 -0000	1.2
-+++ sys/netinet/ip_var.h	25 Jul 2009 22:43:14 -0000
-@@ -175,6 +175,7 @@
+--- sys/netinet/ip_var.h	16 Aug 2009 19:01:20 -0000	1.2
++++ sys/netinet/ip_var.h	16 Aug 2009 19:02:37 -0000
+@@ -184,11 +184,16 @@
+ VNET_DECLARE(int, rsvp_on);
+ VNET_DECLARE(struct socket *, ip_rsvpd);	/* reservation protocol daemon*/
+ VNET_DECLARE(struct socket *, ip_mrouter);	/* multicast routing daemon */
++#ifdef IPSEC
++VNET_DECLARE(int, ipipsec_in_use);
++#endif
+ 
+ #define	V_ipstat		VNET(ipstat)
  #define	V_ip_id			VNET(ip_id)
  #define	V_ip_defttl		VNET(ip_defttl)
  #define	V_ipforwarding		VNET(ipforwarding)
 +#define V_ipipsec_in_use	VNET(ipipsec_in_use)
++
  #ifdef IPSTEALTH
  #define	V_ipstealth		VNET(ipstealth)
  #endif
