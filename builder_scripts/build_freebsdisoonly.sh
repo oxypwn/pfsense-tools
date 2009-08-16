@@ -70,9 +70,6 @@ print_flags
 # Clean up items that should be cleaned each run
 freesbie_clean_each_run
 
-# Install BSDInstaller
-rebuild_and_install_bsdinstaller
-
 # Prepare object directry
 echo ">>> Preparing object directory..."
 freesbie_make obj
@@ -112,6 +109,9 @@ echo ">>> Installing packages: "
 cat $BUILDER_TOOLS/builder_scripts/conf/packages
 
 rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
+
+# Install BSDInstaller
+rebuild_and_install_bsdinstaller
 
 echo ">>> Searching and installing ports..."
 PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/grub /usr/ports/sysutils/bsdinstaller"
