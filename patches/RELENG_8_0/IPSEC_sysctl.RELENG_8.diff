@@ -50,7 +50,7 @@ diff -u -r1.3 ip_input.c
  #define	V_maxnipq		VNET(maxnipq)
  #define	V_maxfragsperpacket	VNET(maxfragsperpacket)
  #define	V_nipq			VNET(nipq)
-+ifdef IPSEC
++#ifdef IPSEC
 +VNET_DEFINE(int, ipipsec_in_use);
 +#endif
 +
