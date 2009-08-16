@@ -663,6 +663,11 @@ cust_populate_installer_bits_freebsd_only() {
     cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/etc/rc.d/
     cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
     chmod a+rx $PFSENSEBASEDIR/scripts/*
+	rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
+	rm -f $CVS_CO_DIR/root/.hushlogin
+	rm -f $PFSENSEBASEDIR/root/.hushlogin
+	rm -f $PFSENSEBASEDIR/etc/rc.d/pfi
+	rm -f $CVS_CO_DIR/etc/rc.d/pfi
 }
 
 # Install custom BSDInstaller bits for pfSense

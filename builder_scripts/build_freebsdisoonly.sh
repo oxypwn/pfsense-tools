@@ -127,12 +127,6 @@ cust_populate_extra
 # Install BSDInstaller bits
 cust_populate_installer_bits_freebsd_only
 
-rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
-rm -f $CVS_CO_DIR/root/.hushlogin
-rm -f $PFSENSEBASEDIR/root/.hushlogin
-rm -f $PFSENSEBASEDIR/etc/rc.d/pfi
-rm -f $CVS_CO_DIR/etc/rc.d/pfi
-
 # Check to see if we have a healthy installer
 ensure_healthy_installer
 
