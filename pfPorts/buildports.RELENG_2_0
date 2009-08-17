@@ -153,15 +153,15 @@ clean_make_install() {
 
 	PKGNAME=`make -C $1 -V PKGNAME`
 
-	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
-		echo ">>> Already built, skipping..."
-	else
+	#if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
+	#	echo ">>> Already built, skipping..."
+	#else
 		ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
 		if ! make -C $1 $ARGUMENTS clean build install; then
 			echo ">>> ERROR Building $PORT"
 			kill $$
 		fi
-	fi
+	#fi
 }
 
 clean_build_install_clean() {
