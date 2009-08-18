@@ -517,7 +517,7 @@ recompile_pfPorts() {
 
 		chmod a+rx $USE_PORTS_FILE
 		echo ">>> Executing $PFPORTSBASENAME"
-		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} ${MAKEJ_PORTS}" ) 2>&1 \
+		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
 			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
 		
 		if [ "${MKCNF}x" = "pfPortsx" ]; then

@@ -51,6 +51,9 @@ export BUILDER_PROFILES=${BUILDER_SCRIPTS}/builder_profiles
 # path to pfPorts
 export pfSPORTS_BASE_DIR=${pfSPORTS_BASE_DIR:-${BASE_DIR}/${TOOLS_DIR}/pfPorts}
 
+# Set it to "-c" to don't rebuild already built packages
+CHECK_PORTS_INSTALLED=${CHECK_PORTS_INSTALLED:-""}
+
 # This is the directory where the latest pfSense cvs co
 # is checked out to.
 export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/${PFSENSE_DIR}}
