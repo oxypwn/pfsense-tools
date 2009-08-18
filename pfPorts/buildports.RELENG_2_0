@@ -3,6 +3,9 @@
 #set -e
 #set -x
 
+rm -f /tmp/pfPort_build_failures
+touch /tmp/pfPort_build_failures
+
 # Backup pwd and chdir to ports
 CURRENTDIR=`pwd`
 cd /usr/ports
@@ -158,8 +161,7 @@ clean_make_install() {
 	#else
 		ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
 		if ! make -C $1 $ARGUMENTS clean build install; then
-			echo ">>> ERROR Building $PORT"
-			kill $$
+			echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
 		fi
 	#fi
 }
@@ -201,5 +203,9 @@ for PORT in $PORTSTOBUILD; do
 		clean_build_install_clean /home/pfsense/tools/pfPorts/$PORT
 	fi
 done
+
+echo ">>> Ports with failures: `cat /tmp/pfPort_build_failures | wc -l`" 
+cat /tmp/pfPort_build_failures
+echo
 
 cd $CURRENTDIR
