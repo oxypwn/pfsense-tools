@@ -718,11 +718,15 @@ cust_populate_installer_bits() {
 cust_populate_extra() {
     # Make devd
 	echo -n ">>> Making devd... "
-    if ( cd ${SRCDIR}/sbin/devd && make clean depend all install DESTDIR=${PFSENSEBASEDIR} >/dev/null 2>&1 ); then
+    ( cd ${SRCDIR}/sbin/devd && make clean >/tmp/make_devd_clean.out 2>&1 )
+    ( cd ${SRCDIR}/sbin/devd && make >/tmp/make_devd_all.out 2>&1 )
+    if ( cd ${SRCDIR}/sbin/devd && make install DESTDIR=${PFSENSEBASEDIR} >/tmp/make_devd_install.out 2>&1 ); then
 		echo "Done."
 	else
 		echo "Failed!"
 	fi
+
+	rm -f /tmp/make_devd_*.out
 
 	mkdir -p ${CVS_CO_DIR}/lib
 
