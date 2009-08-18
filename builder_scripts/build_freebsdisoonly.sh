@@ -114,7 +114,7 @@ rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 rebuild_and_install_bsdinstaller
 
 echo ">>> Searching and installing ports..."
-PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/grub /usr/ports/sysutils/bsdinstaller"
+PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller"
 install_pkg_install_ports
 
 echo ">>> Installing packages: " 
