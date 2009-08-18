@@ -549,7 +549,7 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/bin
 	mkdir -p ${PFSENSEBASEDIR}/usr/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/lib
-	mkdir -p $PFSENSEBASEDIR/usr/sbin/	
+	mkdir -p ${PFSENSEBASEDIR}/usr/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/libexec
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/bin
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
@@ -570,8 +570,7 @@ cust_overlay_host_binaries() {
  	(make) | egrep -wi '(^>>>|error)'
 	(make install) | egrep -wi '(^>>>|error)'
     echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
-	install $SRCDIR/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
-    install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+	install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
 	cd $PWD
 
 	# Handle clog
