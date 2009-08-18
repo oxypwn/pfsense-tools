@@ -2554,7 +2554,7 @@ enable_memory_disks() {
 	fi
 	if [ "$MD3" -lt 1 ]; then
 		echo -n "$KERNEL_BUILD_PATH/ "
-		mdconfig -a -t swap -s 250m -u 3
+		mdconfig -a -t swap -s 350m -u 3
 		(newfs md3) | egrep -wi '(^>>>|error)'
 		mkdir -p $KERNEL_BUILD_PATH
 		mount /dev/md3 $KERNEL_BUILD_PATH
