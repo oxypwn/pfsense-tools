@@ -717,12 +717,12 @@ cust_populate_installer_bits() {
 # area and ISO staging area (as needed)
 cust_populate_extra() {
     # Make devd
-	PWD=`pwd`
-    cd ${SRCDIR}/sbin/devd
-    make clean
-	make
-    make install DESTDIR=${PFSENSEBASEDIR}
-	cd $PWD
+	echo -n ">>> Making devd... "
+    if ( cd ${SRCDIR}/sbin/devd && make clean depend all install DESTDIR=${PFSENSEBASEDIR} >/dev/null 2>&1 ); then
+		echo "Done."
+	else
+		echo "Failed!"
+	fi
 
 	mkdir -p ${CVS_CO_DIR}/lib
 

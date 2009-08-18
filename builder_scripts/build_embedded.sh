@@ -100,6 +100,7 @@ make_world
 build_embedded_kernel
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
+echo ">>> Phase populate_extra..."
 cust_populate_extra
 
 # Add installer bits
@@ -110,10 +111,6 @@ install_custom_packages
 
 # Only include Lighty in packages list
 (cd /var/db/pkg && ls | grep lighttpd) > conf/packages
-
-# Add extra files such as buildtime of version, bsnmpd, etc.
-echo ">>> Phase populate_extra..."
-cust_populate_extra
 
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
