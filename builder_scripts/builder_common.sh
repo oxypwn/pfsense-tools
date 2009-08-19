@@ -525,7 +525,7 @@ recompile_pfPorts() {
 			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
 
         # Restore PKGFILE
-        PKGFILE="$OLDPKGFILE"
+        PKGFILE="$OLDPKGFILE"; export PKGFILE
 
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			if [ -f /tmp/make.conf ]; then
@@ -2290,7 +2290,7 @@ rebuild_and_install_bsdinstaller() {
 	./rebuild_bsdinstaller.sh
 
     # Restore PKGFILE
-    PKGFILE="$OLDPKGFILE"
+    PKGFILE="$OLDPKGFILE"; export PKGFILE
 }
 
 # This routine ensures that the $SRCDIR has sources
@@ -2353,7 +2353,7 @@ install_required_builder_system_ports() {
 	done
 
     # Restore PKGFILE
-    PKGFILE="$OLDPKGFILE"
+    PKGFILE="$OLDPKGFILE"; export PKGFILE
 
 	IFS=$oIFS
 }
