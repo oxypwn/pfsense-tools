@@ -173,7 +173,7 @@ clean_make_install() {
 			if ! make -C $1 $ARGUMENTS clean build install; then
 				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
 			fi
-			echo $1 >> /tmp/pfPort_alreadybuilt
+			echo "$1" >> /tmp/pfPort_alreadybuilt
 		fi
 	fi
 }
