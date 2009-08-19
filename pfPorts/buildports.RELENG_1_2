@@ -3,8 +3,13 @@
 #set -e
 #set -x
 
+# Keep track of build failures
 rm -f /tmp/pfPort_build_failures
 touch /tmp/pfPort_build_failures
+
+# Keep track of items already built (dependencies)
+rm -f /tmp/pfPort_alreadybuilt
+touch /tmp/pfPort_alreadybuilt
 
 # Backup pwd and chdir to ports
 CURRENTDIR=`pwd`
@@ -142,15 +147,19 @@ clean_make_install() {
 	elif [ -f ../builder_scripts/pfsense_local.sh ]; then
 		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 	fi
-
 	PKGNAME=`make -C $1 -V PKGNAME`
-
 	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
 		echo ">>> Already built, skipping..."
 	else
-		ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
-		if ! make -C $1 $ARGUMENTS clean build install; then
-			echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
+		# Check to see if item is already built
+		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "" | wc -l` -gt 0 ]; then 
+			echo ">>> Already built $1 on this run.  Skipping..."
+		else
+			ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
+			if ! make -C $1 $ARGUMENTS clean build install; then
+				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
+			fi
+			echo $1 >> /tmp/pfPort_alreadybuilt
 		fi
 	fi
 }
