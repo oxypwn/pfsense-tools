@@ -162,14 +162,14 @@ if [ -f $PFSENSEBASEDIR/etc/rc.php_ini_setup ]; then
 	chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
 fi
 
+# Ensure installer bits are present
+cust_populate_installer_bits
+
 # Overlay final files
 install_custom_overlay_final
 
 # Ensure config.xml exists
 copy_config_xml_from_conf_default
-
-# Ensure installer bits are present
-cust_populate_installer_bits
 
 # Test PHP installation
 test_php_install
