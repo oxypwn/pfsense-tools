@@ -380,6 +380,7 @@ cleanup_builds() {
 	rm -rf /usr/obj*
 	rm -rf $STAGINGAREA/*
 	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
+	rm -rf $MAKEOBJDIRPREFIXFINAL/*
 	if [ -d /home/pfsense/pfSense ]; then
 		echo -n ">>> Clearing out previous pfSense checkout directory..."
 		chflags -R noschg /home/pfsense/pfSense
