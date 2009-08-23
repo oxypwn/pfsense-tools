@@ -41,6 +41,11 @@ touch /tmp/install-session.sh
 /sbin/ifconfig lo0 127.0.0.1/24
 /sbin/ifconfig lo0 up
 
+# Check if host is running on VMware -- early boot
+if [ `dmesg -a | grep VMware | wc -l` -gt 0 ]; then
+	touch /var/IS_VMWARE
+fi
+
 # Check if host is running on VMware
 if [ -f /var/log/dmesg.boot ]; then
 	if [ `cat /var/log/dmesg.boot | grep VMware | wc -l` -gt 0 ]; then
