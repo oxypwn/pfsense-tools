@@ -1,0 +1,25 @@
+Index: tcp_input.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_input.c,v
+retrieving revision 1.370.2.12.2.1
+diff -u -r1.370.2.12.2.1 tcp_input.c
+--- tcp_input.c	15 Apr 2009 03:14:26 -0000	1.370.2.12.2.1
++++ tcp_input.c	26 Aug 2009 22:10:24 -0000
+@@ -1029,7 +1029,7 @@
+ 				 * "bad retransmit" recovery.
+ 				 */
+ 				if (tp->t_rxtshift == 1 &&
+-				    ticks < tp->t_badrxtwin) {
++				    (int)(ticks - tp->t_badrxtwin) < 0) {
+ 					++tcpstat.tcps_sndrexmitbad;
+ 					tp->snd_cwnd = tp->snd_cwnd_prev;
+ 					tp->snd_ssthresh =
+@@ -1960,7 +1960,7 @@
+ 		 * original cwnd and ssthresh, and proceed to transmit where
+ 		 * we left off.
+ 		 */
+-		if (tp->t_rxtshift == 1 && ticks < tp->t_badrxtwin) {
++		if (tp->t_rxtshift == 1 && (int)(ticks - tp->t_badrxtwin) < 0) {
+ 			++tcpstat.tcps_sndrexmitbad;
+ 			tp->snd_cwnd = tp->snd_cwnd_prev;
+ 			tp->snd_ssthresh = tp->snd_ssthresh_prev;
