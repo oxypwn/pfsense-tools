@@ -1,4 +1,4 @@
-diff -ur ../src_old/Makefile ./Makefile
+diff -ru ../src_old/Makefile ./Makefile
 --- ../src_old/Makefile	2005-08-20 12:34:18.000000000 +0000
 +++ ./Makefile	2009-08-18 04:26:01.000000000 +0000
 @@ -1,12 +1,12 @@
@@ -31,7 +31,9 @@ diff -ur ../src_old/Makefile ./Makefile
  
  build.h	:  
  	echo '#define BUILD "' `date +%y%m%d` '"' >build.h
-diff -ur ../src_old/config.c ./config.c
+Only in .: build.h
+Only in .: callout.c
+diff -ru ../src_old/config.c ./config.c
 --- ../src_old/config.c	2005-05-24 15:49:29.000000000 +0000
 +++ ./config.c	2009-08-18 04:26:01.000000000 +0000
 @@ -177,7 +177,7 @@
@@ -71,7 +73,8 @@ diff -ur ../src_old/config.c ./config.c
          log(LOG_WARNING, 0, "Unable to parse address token '%s'.", addrstr);
          return NULL;
      }
-diff -ur ../src_old/defs.h ./defs.h
+Only in .: confread.c
+diff -ru ../src_old/defs.h ./defs.h
 --- ../src_old/defs.h	2005-08-20 12:44:47.000000000 +0000
 +++ ./defs.h	2009-08-18 04:26:02.000000000 +0000
 @@ -40,10 +40,18 @@
@@ -197,7 +200,7 @@ diff -ur ../src_old/defs.h ./defs.h
  void ageActiveRoutes();
  void setRouteLastMemberMode(uint32 group);
  int lastMemberGroupAge(uint32 group);
-diff -ur ../src_old/ifvc.c ./ifvc.c
+diff -ru ../src_old/ifvc.c ./ifvc.c
 --- ../src_old/ifvc.c	2005-05-24 15:49:18.000000000 +0000
 +++ ./ifvc.c	2009-08-18 04:26:02.000000000 +0000
 @@ -32,7 +32,11 @@
@@ -372,7 +375,7 @@ diff -ur ../src_old/ifvc.c ./ifvc.c
  }
  
  /*
-diff -ur ../src_old/igmp.c ./igmp.c
+diff -ru ../src_old/igmp.c ./igmp.c
 --- ../src_old/igmp.c	2005-05-24 15:49:16.000000000 +0000
 +++ ./igmp.c	2009-08-18 04:26:03.000000000 +0000
 @@ -105,7 +105,7 @@
@@ -477,7 +480,7 @@ diff -ur ../src_old/igmp.c ./igmp.c
      if (IN_MULTICAST(ntohl(dst))) {
          ip->ip_ttl = curttl;
      } else {
-diff -ur ../src_old/igmpproxy.c ./igmpproxy.c
+diff -ru ../src_old/igmpproxy.c ./igmpproxy.c
 --- ../src_old/igmpproxy.c	2005-08-20 12:56:32.000000000 +0000
 +++ ./igmpproxy.c	2009-08-18 04:26:04.000000000 +0000
 @@ -80,7 +80,7 @@
@@ -536,7 +539,7 @@ diff -ur ../src_old/igmpproxy.c ./igmpproxy.c
      struct  timeval  curtime, lasttime, difftime, tv; 
      // The timeout is a pointer in order to set it to NULL if nessecary.
      struct  timeval  *timeout = &tv;
-diff -ur ../src_old/igmpproxy.conf ./igmpproxy.conf
+diff -ru ../src_old/igmpproxy.conf ./igmpproxy.conf
 --- ../src_old/igmpproxy.conf	2005-04-29 19:27:50.000000000 +0000
 +++ ./igmpproxy.conf	2009-08-18 04:26:04.000000000 +0000
 @@ -25,22 +25,22 @@
@@ -568,9 +571,11 @@ diff -ur ../src_old/igmpproxy.conf ./igmpproxy.conf
 +phyint xl0 disabled
  
  
-diff -ur ../src_old/mcgroup.c ./mcgroup.c
+Only in .: kern.c
+Only in .: lib.c
+diff -ru ../src_old/mcgroup.c ./mcgroup.c
 --- ../src_old/mcgroup.c	2005-08-20 12:54:37.000000000 +0000
-+++ ./mcgroup.c	2009-08-18 04:50:11.000000000 +0000
++++ ./mcgroup.c	2009-08-23 16:40:34.000000000 +0000
 @@ -49,11 +49,11 @@
      CtlReq.imr_interface.s_addr = IfDp->InAdr.s_addr;
      
@@ -584,7 +589,7 @@ diff -ur ../src_old/mcgroup.c ./mcgroup.c
      if( setsockopt( UdpSock, IPPROTO_IP, 
            Cmd == 'j' ? IP_ADD_MEMBERSHIP : IP_DROP_MEMBERSHIP, 
            (void *)&CtlReq, sizeof( CtlReq ) ) ) 
-@@ -61,6 +61,21 @@
+@@ -61,6 +61,20 @@
          log( LOG_WARNING, errno, "MRT_%s_MEMBERSHIP failed", Cmd == 'j' ? "ADD" : "DROP" );
          return 1;
      }
@@ -599,14 +604,13 @@ diff -ur ../src_old/mcgroup.c ./mcgroup.c
 +#endif
 +    /* Send IGMP packet on upstream interface */
 +    if( Cmd == 'j' )
-+        sendIgmp(0, mcastaddr, IGMP_V2_MEMBERSHIP_REPORT, 0, mcastaddr, 0);
++        sendIgmp(IfDp->InAdr.s_addr, mcastaddr, IGMP_V2_MEMBERSHIP_REPORT, 0, mcastaddr, 0);
 +    else
-+        sendIgmp(0, mcastaddr, IGMP_V2_LEAVE_GROUP, 0, mcastaddr, 0);
-+
++        sendIgmp(IfDp->InAdr.s_addr, mcastaddr, IGMP_V2_LEAVE_GROUP, 0, mcastaddr, 0);
      
      return 0;
  }
-diff -ur ../src_old/mroute-api.c ./mroute-api.c
+diff -ru ../src_old/mroute-api.c ./mroute-api.c
 --- ../src_old/mroute-api.c	2005-05-24 15:48:33.000000000 +0000
 +++ ./mroute-api.c	2009-08-18 04:26:05.000000000 +0000
 @@ -37,7 +37,9 @@
@@ -662,7 +666,7 @@ diff -ur ../src_old/mroute-api.c ./mroute-api.c
  }
  
  /*
-diff -ur ../src_old/request.c ./request.c
+diff -ru ../src_old/request.c ./request.c
 --- ../src_old/request.c	2005-05-24 15:48:29.000000000 +0000
 +++ ./request.c	2009-08-18 04:26:06.000000000 +0000
 @@ -88,10 +88,11 @@
@@ -696,9 +700,9 @@ diff -ur ../src_old/request.c ./request.c
          if ( Dp->InAdr.s_addr && ! (Dp->Flags & IFF_LOOPBACK) ) {
              if(Dp->state == IF_STATE_DOWNSTREAM) {
                  // Send the membership query...
-diff -ur ../src_old/rttable.c ./rttable.c
+diff -ru ../src_old/rttable.c ./rttable.c
 --- ../src_old/rttable.c	2005-08-20 12:46:20.000000000 +0000
-+++ ./rttable.c	2009-08-18 04:50:11.000000000 +0000
++++ ./rttable.c	2009-08-23 16:40:06.000000000 +0000
 @@ -38,15 +38,22 @@
  */
  
@@ -820,7 +824,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      } else if(ifx >= 0) {
  
          // The route exists already, so just update it.
-@@ -325,20 +339,16 @@
+@@ -325,20 +339,24 @@
              inetFmt(croute->group, s1), ifx);
  
          // If the route is active, it must be reloaded into the Kernel..
@@ -840,12 +844,20 @@ diff -ur ../src_old/rttable.c ./rttable.c
 -    if(croute->upstrState != ROUTESTATE_JOINED) {
 -        // Send Join request upstream
 -        sendJoinLeaveUpstream(croute, 1);
-+        // Send join message upstream
-+        sendIgmp(0, group, IGMP_V2_MEMBERSHIP_REPORT, 0, group, 0);
++        struct IfDesc*      upstrIf;
++    
++        // Get the upstream VIF...
++        upstrIf = getIfByIx( upStreamVif );
++        if(upstrIf == NULL) {
++            log(LOG_ERR, 0 ,"FATAL: Unable to get Upstream IF.");
++        }else{
++            // Send join message upstream
++            sendIgmp(upstrIf->InAdr.s_addr, group, IGMP_V2_MEMBERSHIP_REPORT, 0, group, 0);
++        }
      }
  
      IF_DEBUG logRouteTable("Insert Route");
-@@ -351,7 +361,7 @@
+@@ -351,7 +369,7 @@
  *   activated, it's reinstalled in the kernel. If
  *   the route is activated, no originAddr is needed.
  */
@@ -854,7 +866,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      struct RouteTable*  croute;
      int result = 0;
  
-@@ -369,21 +379,42 @@
+@@ -369,21 +387,42 @@
      }
  
      if(croute != NULL) {
@@ -906,7 +918,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      }
      IF_DEBUG logRouteTable("Activate Route");
  
-@@ -443,7 +474,6 @@
+@@ -443,7 +482,6 @@
  *   route is not found, or not in this state, 0 is returned.
  */
  int lastMemberGroupAge(uint32 group) {
@@ -914,7 +926,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      struct RouteTable   *croute;
  
      croute = findRoute(group);
-@@ -463,6 +493,7 @@
+@@ -463,6 +501,7 @@
  */
  int removeRoute(struct RouteTable*  croute) {
      struct Config       *conf = getCommonConfig();
@@ -922,7 +934,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      int result = 1;
      
      // If croute is null, no routes was found.
-@@ -477,7 +508,7 @@
+@@ -477,7 +516,7 @@
      //BIT_ZERO(croute->vifBits);
  
      // Uninstall current route from kernel
@@ -931,7 +943,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
          log(LOG_WARNING, 0, "The removal from Kernel failed.");
          result = 0;
      }
-@@ -503,7 +534,12 @@
+@@ -503,7 +542,12 @@
              croute->nextroute->prevroute = croute->prevroute;
          }
      }
@@ -944,7 +956,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      free(croute);
      croute = NULL;
  
-@@ -551,6 +587,36 @@
+@@ -551,6 +595,36 @@
          }
      }
  
@@ -981,7 +993,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      // If the aging counter has reached zero, its time for updating...
      if(croute->ageValue == 0) {
          // Check for activity in the aging process,
-@@ -560,7 +626,7 @@
+@@ -560,7 +634,7 @@
                           inetFmt(croute->group,s1));
              
              // Just update the routing settings in kernel...
@@ -990,7 +1002,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      
              // We append the activity counter to the age, and continue...
              croute->ageValue = croute->ageActivity;
-@@ -586,28 +652,50 @@
+@@ -586,28 +660,50 @@
  /**
  *   Updates the Kernel routing table. If activate is 1, the route
  *   is (re-)activated. If activate is false, the route is removed.
@@ -1048,7 +1060,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
                  mrDesc.InVif = Dp->index;
              }
              else if(BIT_TST(route->vifBits, Dp->index)) {
-@@ -615,6 +703,7 @@
+@@ -615,6 +711,7 @@
                  mrDesc.TtlVc[ Dp->index ] = Dp->threshold;
              }
          }
@@ -1056,7 +1068,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      
          // Do the actual Kernel route update...
          if(activate) {
-@@ -625,9 +714,6 @@
+@@ -625,9 +722,6 @@
              // Delete the route from Kernel...
              delMRoute( &mrDesc );
          }
@@ -1066,7 +1078,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
      }
  
      return 1;
-@@ -647,16 +733,17 @@
+@@ -647,16 +741,17 @@
              log(LOG_DEBUG, 0, "No routes in table...");
          } else {
              do {
@@ -1093,7 +1105,7 @@ diff -ur ../src_old/rttable.c ./rttable.c
                    
                  croute = croute->nextroute; 
          
-diff -ur ../src_old/syslog.c ./syslog.c
+diff -ru ../src_old/syslog.c ./syslog.c
 --- ../src_old/syslog.c	2005-05-24 15:48:19.000000000 +0000
 +++ ./syslog.c	2009-08-18 04:26:07.000000000 +0000
 @@ -53,12 +53,16 @@
@@ -1124,3 +1136,5 @@ diff -ur ../src_old/syslog.c ./syslog.c
      Ln += vsnprintf( LogLastMsg + Ln, sizeof( LogLastMsg ) - Ln, FmtSt, ArgPt );
      if( ErrSt )
        snprintf( LogLastMsg + Ln, sizeof( LogLastMsg ) - Ln, "; Errno(%d): %s", Errno, ErrSt );
+Only in .: udpsock.c
+Only in .: version.h
