@@ -921,7 +921,7 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 
 	du -hd0 ${CVS_CO_DIR}
 
-	rm -f ${CVS_CO_DIR}/etc/platform
+	#rm -f ${CVS_CO_DIR}/etc/platform
 	rm -f ${CVS_CO_DIR}/etc/*passwd*
 	rm -f ${CVS_CO_DIR}/etc/pw*
 	rm -f ${CVS_CO_DIR}/etc/ttys
@@ -956,7 +956,7 @@ fixup_updates() {
 	rm -f ${PFSENSEBASEDIR}/etc/master.passwd 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/fstab 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
-	rm -f ${PFSENSEBASEDIR}/etc/platform 2>/dev/null
+	#rm -f ${PFSENSEBASEDIR}/etc/platform 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
 
 	echo > ${PFSENSEBASEDIR}/root/.tcshrc
@@ -1261,7 +1261,7 @@ create_pfSense_Small_update_tarball() {
 
 	du -hd0 ${CVS_CO_DIR}
 
-	rm -f ${CVS_CO_DIR}/etc/platform
+	#rm -f ${CVS_CO_DIR}/etc/platform
 	rm -f ${CVS_CO_DIR}/etc/*passwd*
 	rm -f ${CVS_CO_DIR}/etc/pw*
 	rm -f ${CVS_CO_DIR}/etc/ttys*
