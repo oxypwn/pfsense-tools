@@ -1201,6 +1201,9 @@ create_pfSense_Full_update_tarball() {
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
+	install_custom_overlay
+	install_custom_overlay_final
+
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	if [ -e /usr/local/sbin/gzsig ]; then
 		echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
