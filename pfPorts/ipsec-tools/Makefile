@@ -36,8 +36,6 @@ STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
-WITH_NATT=yo
-
 OPTIONS=	DEBUG		"enable Debug support" off \
 		IPV6		"enable IPV6 support" off \
 		ADMINPORT	"enable Admin port" on \
