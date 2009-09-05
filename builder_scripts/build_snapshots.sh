@@ -241,22 +241,7 @@ build_pfPorts() {
 	./build_pfPorts.sh
 }
 
-dobuilds() {
-	cd $BUILDERSCRIPTS
-	# Update sources and build iso
-	update_sources
-	# Rebuild pfPorts if needed
-	build_pfPorts
-	# Build ISO
-	build_iso
-	# Update sources
-	build_updates
-	# Copy files before embedded, it wipes out usr.obj*
-	copy_to_staging_iso_updates
-	# Build DevISO
-	build_deviso
-	# Copy deviso to staging area
-	copy_to_staging_deviso_updates
+donanobuilds() {
 	# Build nanobsd 512
 	build_nano
 	# Copy nanobsd to staging areas
@@ -273,6 +258,26 @@ dobuilds() {
 	rebuild_nano 4G
 	# Copy nanobsd to staging areas
 	copy_to_staging_nanobsd
+}
+
+dobuilds() {
+	cd $BUILDERSCRIPTS
+	# Update sources and build iso
+	update_sources
+	# Rebuild pfPorts if needed
+	build_pfPorts
+	# Build ISO
+	build_iso
+	# Update sources
+	build_updates
+	# Copy files before embedded, it wipes out usr.obj*
+	copy_to_staging_iso_updates
+	# Build DevISO
+	build_deviso
+	# Copy deviso to staging area
+	copy_to_staging_deviso_updates
+	# Build nanobsd images
+	donanobuilds	
 }
 
 copy_to_staging_nanobsd() {
