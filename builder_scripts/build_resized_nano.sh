@@ -41,7 +41,7 @@ case $1 in
 esac
 if [ "$ISGOODSIZE" = "no" ]; then
 	echo "Incorrect size passed.  Available sizes are 512mb, 1g, 2g and 4g"
-	exit1
+	exit 1
 fi
 
 # Setup NanoBSD specific items
