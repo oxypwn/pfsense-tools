@@ -10,7 +10,6 @@
 # Be sure to copy any existing /tmp/builder/nanobsd.full.img and 
 #   nanobsd.upgrade.img to a safe place before running this again.
 
-
 # Suck in local vars
 . ./pfsense_local.sh
 
@@ -18,8 +17,31 @@
 . ./builder_common.sh
 
 # Need some kind of safeguard to ensure a pre-built world exists
+if [ ! -f $PFSENSEBASEDIR/COPYRIGHT ]; then
+	echo "You must run build_nano.sh first!"
+	exit 1
+fi
 
 # Test $1 to make sure it is 512mb|1g|2g|4g
+ISGOODSIZE="no"
+case $1 in 
+	512mb|512MB)
+		ISGOODSIZE="YES"
+	;;
+	1g|1G)
+		ISGOODSIZE="YES"
+	;;
+	2g|2G)
+		ISGOODSIZE="YES"
+	;;
+	4g|4G)
+		ISGOODSIZE="YES"
+	;;
+esac
+if [ "$ISGOODSIZE" = "no" ]; then
+	echo "Incorrect size passed.  Available sizes are 512mb, 1g, 2g and 4g"
+	exit1
+fi
 
 # Setup NanoBSD specific items
 FLASH_SIZE=$1
