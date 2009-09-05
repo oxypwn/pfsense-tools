@@ -234,7 +234,7 @@ build_nano() {
 rebuild_nano() {
 	cd $BUILDERSCRIPTS
 	echo "$1" > /tmp/nanosize.txt	
-	./build_nano.sh $1
+	./build_resized_nano.sh $1
 }
 
 build_pfPorts() {
