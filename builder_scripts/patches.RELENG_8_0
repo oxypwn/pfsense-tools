@@ -34,3 +34,4 @@
 ~sys/netinet~tcp_output.c.diff~
 ~~~~usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
+~sys/net~if.c.diff~
