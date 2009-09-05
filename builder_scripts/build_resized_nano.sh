@@ -1,3 +1,4 @@
+#!/bin/sh
 #
 # Make a different size image from an already built nano source to save 
 # builder run time.
@@ -17,7 +18,7 @@
 . ./builder_common.sh
 
 # Need some kind of safeguard to ensure a pre-built world exists
-if [ ! -f $PFSENSEBASEDIR/COPYRIGHT ]; then
+if [ ! -f "$PFSENSEBASEDIR/COPYRIGHT" ]; then
 	echo "You must run build_nano.sh first!"
 	exit 1
 fi
