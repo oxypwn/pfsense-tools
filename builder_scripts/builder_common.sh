@@ -1531,8 +1531,13 @@ update_cvs_depot() {
 			echo ">>> ERROR!  MIPS builds currently require SVN"
 			print_error_pfS			
 		fi
-		echo ">>> Checking out MIPS SVN tree..."
-		svn co svn://svn.freebsd.org/base/projects/mips $SRCDIR
+		if [ ! -d $SRCDIR/sys/mips ]; then
+			echo ">>> Checking out MIPS SVN tree..."
+			svn co svn://svn.freebsd.org/base/projects/mips $SRCDIR
+		else 
+			echo ">>> FreeBSD MIPS tree exists, running svn up..."
+			cd $SRCDIR && svn up
+		fi
 		return
 	fi
 	if [ -z "${USE_GIT:-}" ]; then
