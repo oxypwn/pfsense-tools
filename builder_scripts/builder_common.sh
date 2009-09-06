@@ -1526,6 +1526,21 @@ freesbie_make() {
 
 # This updates the pfSense sources from rcs.pfsense.org
 update_cvs_depot() {
+	if [ "$ARCH" = "MIPS" ]; then
+		if [ ! -f /usr/local/bin/svn ]; then
+			echo ">>> ERROR!  MIPS builds currently require SVN"
+			print_error_pfS			
+		fi
+		echo ">>> Checking out MIPS SVN tree..."
+		PWD=`pwd`
+		cd $SRCDIR/..
+		svn co svn://svn.freebsd.org/base/projects/mips
+		rm -rf $SRCDIR
+		mv mips/* $SRCDIR/
+		rm -rf mips
+		cd $PWD
+		return
+	fi
 	if [ -z "${USE_GIT:-}" ]; then
 		local _cvsdate
 		echo "Launching csup pfSense-supfile..."
