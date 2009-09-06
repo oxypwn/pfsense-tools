@@ -1532,13 +1532,7 @@ update_cvs_depot() {
 			print_error_pfS			
 		fi
 		echo ">>> Checking out MIPS SVN tree..."
-		PWD=`pwd`
-		cd $SRCDIR/..
-		svn co svn://svn.freebsd.org/base/projects/mips
-		rm -rf $SRCDIR
-		mv mips/* $SRCDIR/
-		rm -rf mips
-		cd $PWD
+		svn co svn://svn.freebsd.org/base/projects/mips $SRCDIR
 		return
 	fi
 	if [ -z "${USE_GIT:-}" ]; then
