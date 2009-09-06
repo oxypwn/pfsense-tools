@@ -1526,20 +1526,6 @@ freesbie_make() {
 
 # This updates the pfSense sources from rcs.pfsense.org
 update_cvs_depot() {
-	if [ "$ARCH" = "MIPS" ]; then
-		if [ ! -f /usr/local/bin/svn ]; then
-			echo ">>> ERROR!  MIPS builds currently require SVN"
-			print_error_pfS			
-		fi
-		if [ ! -d $SRCDIR/sys/mips ]; then
-			echo ">>> Checking out MIPS SVN tree..."
-			svn co svn://svn.freebsd.org/base/projects/mips $SRCDIR
-		else 
-			echo ">>> FreeBSD MIPS tree exists, running svn up..."
-			cd $SRCDIR && svn up
-		fi
-		return
-	fi
 	if [ -z "${USE_GIT:-}" ]; then
 		local _cvsdate
 		echo "Launching csup pfSense-supfile..."
@@ -2418,14 +2404,32 @@ update_freebsd_sources_and_apply_patches() {
 		fi
 	done
 
-	# CVSUp freebsd version -- this MUST be after Loop through and remove files
-	BASENAMESUPFILE=`basename $SUPFILE`
-	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
-	(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
-		grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
-		| grep -v "error\." | grep -v "opensolaris" | \
-		grep -v "httpd-error"
-	echo "Done!"
+
+	if [ "$ARCH" = "MIPS" ]; then
+		if [ ! -f /usr/local/bin/svn ]; then
+			echo ">>> ERROR!  MIPS builds currently require SVN"
+			print_error_pfS			
+		fi
+		if [ ! -d $SRCDIR/sys/mips ]; then
+			echo ">>> Checking out MIPS SVN tree..."
+			svn co svn://svn.freebsd.org/base/projects/mips $SRCDIR
+		else 
+			echo ">>> FreeBSD MIPS tree exists, running svn up..."
+			cd $SRCDIR && svn up
+		fi
+		return
+	else
+
+		# CVSUp freebsd version -- this MUST be after Loop through and remove files
+		BASENAMESUPFILE=`basename $SUPFILE`
+		echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
+		(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
+			grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+			| grep -v "error\." | grep -v "opensolaris" | \
+			grep -v "httpd-error"
+		echo "Done!"
+
+	fi
 
 	echo ">>> Removing old patch rejects..."
 	find $SRCDIR -name "*.rej" -exec rm {} \;
