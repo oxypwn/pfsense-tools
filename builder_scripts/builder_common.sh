@@ -1787,7 +1787,7 @@ FlashDevice () {
 			NANO_SECTS=63
 			;;
 		2048|2048mb|2g)
-			NANO_MEDIASIZE=`expr 2038901120 / 512`
+			NANO_MEDIASIZE=`expr 2001226112 / 512`
 			NANO_HEADS=16
 			NANO_SECTS=63
 			;;
