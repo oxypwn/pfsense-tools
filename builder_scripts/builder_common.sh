@@ -2367,12 +2367,14 @@ update_freebsd_sources_and_apply_patches() {
 	# No need to obtain sources or patch
 	# on subsequent build runs.
 
-	# Detect Subsequent runs if SRCDIR exists (which it should always exist)
+	# Detect Subsequent runs if .done_buildworld exists
 	if [ -d $SRCDIR ]; then
 		if [ -d $MAKEOBJDIRPREFIX ]; then
 			COUNT=`find $MAKEOBJDIRPREFIX -name .done_buildworld | wc -l`
 			if [ "$COUNT" -gt 0 ]; then
 				echo ">>> Subsequent build detected, not updating src or applying patches..."
+				echo ">>> IF you would like to force the update of the sources then remove"
+				echo "    .done_buildworld from $MAKEOBJDIRPREFIX"
 				return
 			fi
 		fi
@@ -2404,8 +2406,11 @@ update_freebsd_sources_and_apply_patches() {
 		fi
 	done
 
-
+	# Hopefully this MIPS checkout code is temporary
+	# until the FreeBSD devs get the MIPS work merged
+	# into the main FreeBSD tree.
 	if [ "$ARCH" = "MIPS" ]; then
+
 		if [ ! -f /usr/local/bin/svn ]; then
 			echo ">>> ERROR!  MIPS builds currently require SVN"
 			print_error_pfS			
@@ -2418,6 +2423,7 @@ update_freebsd_sources_and_apply_patches() {
 			cd $SRCDIR && svn up
 		fi
 		return
+
 	else
 
 		# CVSUp freebsd version -- this MUST be after Loop through and remove files
