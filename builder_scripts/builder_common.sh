@@ -2034,7 +2034,8 @@ awk '
 	# in size then error out.
 	IMGSIZE=`ls -la $IMG | awk '{ print $5 }'`
 	IMGUPDATESIZE=`ls -la $IMGUPDATE | awk '{ print $5 }'`
-	if [ "$IMGSIZE" -lt 20040710 || "$IMGUPDATESIZE" -lt 20040710 ]; then
+	CHECKSIZE="20040710"
+	if [ "$IMGSIZE" -lt "$CHECKSIZE" || "$IMGUPDATESIZE" -lt "$CHECKSIZE" ]; then
 		echo ">>> Something went wrong when building NanoBSD.  The image size is under 20 megabytes!"
 		print_error_pfS
 	fi
