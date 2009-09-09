@@ -4,7 +4,16 @@ RCS file: /home/ncvs/src/sys/kern/kern_timeout.c,v
 retrieving revision 1.118.2.1
 diff -u -r1.118.2.1 kern_timeout.c
 --- kern_timeout.c	3 Aug 2009 08:13:06 -0000	1.118.2.1
-+++ kern_timeout.c	9 Sep 2009 01:07:31 -0000
++++ kern_timeout.c	9 Sep 2009 01:13:23 -0000
+@@ -244,7 +244,7 @@
+ 	need_softclock = 0;
+ 	cc = CC_SELF();
+ 	mtx_lock_spin_flags(&cc->cc_lock, MTX_QUIET);
+-	for (; (cc->cc_softticks - ticks) < 0; cc->cc_softticks++) {
++	for (; (cc->cc_softticks - ticks) <= 0; cc->cc_softticks++) {
+ 		bucket = cc->cc_softticks & callwheelmask;
+ 		if (!TAILQ_EMPTY(&cc->cc_callwheel[bucket])) {
+ 			need_softclock = 1;
 @@ -323,7 +323,7 @@
  	steps = 0;
  	cc = (struct callout_cpu *)arg;
