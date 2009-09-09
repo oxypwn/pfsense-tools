@@ -34,3 +34,4 @@
 ~~~~usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
 ~sys/net~if.c.diff~
+~sys/kern~kern_timeout.c.diff~
