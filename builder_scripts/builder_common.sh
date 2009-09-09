@@ -2024,12 +2024,17 @@ awk '
 	fi
 
 	echo ">>> [nanoo] Creating NanoBSD upgrade file from first slice..."
-	dd if=/dev/${MD}s1 of=${MAKEOBJDIRPREFIXFINAL}/nanobsd.upgrade.img bs=64k
+	IMGUPDATE="${MAKEOBJDIRPREFIXFINAL}/nanobsd.upgrade.img"
+	dd if=/dev/${MD}s1 of=$IMGUPDATE bs=64k
 
 	mdconfig -d -u $MD
 
+	# Check each image and ensure that they are over
+	# 3 megabytes.  If either image is under 20 megabytes
+	# in size then error out.
 	IMGSIZE=`ls -la $IMG | awk '{ print $5 }'`
-	if [ "$IMGSIZE" -lt 20040710 ]; then
+	IMGUPDATESIZE=`ls -la $IMGUPDATE | awk '{ print $5 }'`
+	if [ "$IMGSIZE" -lt 20040710 || "$IMGUPDATESIZE" -lt 20040710 ]; then
 		echo ">>> Something went wrong when building NanoBSD.  The image size is under 20 megabytes!"
 		print_error_pfS
 	fi
