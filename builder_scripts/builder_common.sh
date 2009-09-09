@@ -2028,6 +2028,12 @@ awk '
 
 	mdconfig -d -u $MD
 
+	IMGSIZE=`ls -la $IMG | awk '{ print $5 }'`
+	if [ "$IMGSIZE" -lt 20040710 ]; then
+		echo ">>> Something went wrong when building NanoBSD.  The image size is under 20 megabytes!"
+		print_error_pfS
+	fi
+
 }
 
 # This routine installs pfSense packages into the staging area.
