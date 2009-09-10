@@ -121,7 +121,8 @@ PORTSTOBUILD="grub \
 	pecl-uploadprogress \
 	php5-json \
 	rate \
-	php5-install-all"
+	php5-install-all	\
+	gzsig"
 
 if [ ! -f /usr/ports/INDEX-7.bz2 ]; then
 	echo -n ">>> Fetching index..."
