@@ -929,10 +929,10 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 	( cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} . )
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
-	if [ -e /usr/local/sbin/gzsig ]; then
-		echo "Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
-		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
-	fi
+	#if [ -e /usr/local/sbin/gzsig ]; then
+	#	echo "Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
+	#	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	#fi
 }
 
 # Various items that need to be removed
@@ -1078,10 +1078,10 @@ create_FreeBSD_system_update() {
 	tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
-	if [ -e /usr/local/sbin/gzsig ]; then
-		echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
-		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
-	fi
+	#if [ -e /usr/local/sbin/gzsig ]; then
+	#	echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
+	#	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	#fi
 
 	cd $PREVIOUSDIR
 
@@ -1205,10 +1205,10 @@ create_pfSense_Full_update_tarball() {
 	install_custom_overlay_final
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
-	if [ -e /usr/local/sbin/gzsig ]; then
-		echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
-		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
-	fi
+	#if [ -e /usr/local/sbin/gzsig ]; then
+	#	echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
+	#	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	#fi
 
 	cd $PREVIOUSDIR
 }
@@ -1234,10 +1234,10 @@ create_pfSense_Embedded_update_tarball() {
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
-	if [ -e /usr/local/sbin/gzsig ]; then
-		echo "Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
-		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
-	fi
+	#if [ -e /usr/local/sbin/gzsig ]; then
+	#	echo "Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
+	#	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	#fi
 
 	cd $PREVIOUSDIR
 
@@ -1273,10 +1273,10 @@ create_pfSense_Small_update_tarball() {
 
 	ls -lah ${UPDATESDIR}/${FILENAME}
 
-	if [ -e /usr/local/sbin/gzsig ]; then
-		echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
-		gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
-	fi
+	#if [ -e /usr/local/sbin/gzsig ]; then
+	#	echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
+	#	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
+	#fi
 
 	cd $PREVIOUSDIR
 
