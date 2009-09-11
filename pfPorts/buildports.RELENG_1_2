@@ -154,7 +154,7 @@ clean_make_install() {
 	else
 		# Check to see if item is already built
 		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$1" | wc -l` -gt 0 ]; then 
-			echo ">>> Already built $1 on this run.  Skipping..."
+			#echo ">>> Already built $1 on this run.  Skipping..."
 		else
 			ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
 			if ! make -C $1 $ARGUMENTS clean build install; then
