@@ -182,7 +182,7 @@ clean_make_install() {
 clean_build_install_clean() {
 	PORTPATH=$1
 	PORT=`basename $PORTPATH`
-	echo ">>> Building dependencies of $PORT..."
+	#echo ">>> Building dependencies of $PORT..."
 	RUNLIST=`cd $PORTPATH && make build-depends-list`
 	for RUN in $RUNLIST; do
 		echo ">>> Build dependency $RUN"
