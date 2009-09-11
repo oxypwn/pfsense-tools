@@ -18,7 +18,7 @@ cd /usr/ports
 while getopts J:c o; do
 	case "${o}" in
 		J)	MAKEJ_PORTS="${OPTARG}"
-			echo ">>> Setting MAKEJ_PORTS (-j) to ${MAKEJ_PORTS}"
+			echo '>>> Setting MAKEJ_PORTS (-j) to "${MAKEJ_PORTS}"'
 			;;
 		c)	CHECK_INSTALLED="check_installed"
 			;;
