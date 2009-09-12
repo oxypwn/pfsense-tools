@@ -229,7 +229,8 @@ export GIT_REPO_TOOLS=${GIT_TOOLS_REPO:-"http://gitweb.pfsense.org/pfsense-tools
 # This will allow overriding of which pfSense components
 # to include during this build run.  'all' will use
 # the old behavior and install *everything*
-# Available modules: auth authgui captiveportal certificate_managaer
-# config crypto filter interfaces ipsec notifications openvpn pkg
-# routing rrd shaper util util utils vpn
+# Available modules: 
+# all auth authgui captiveportal certificate_managaer
+# config crypto filter interfaces ipsec notifications 
+# openvpn  pkg routing rrd shaper utils vpn
 export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
