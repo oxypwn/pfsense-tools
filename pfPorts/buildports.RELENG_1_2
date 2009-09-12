@@ -108,7 +108,8 @@ PORTSTOBUILD="grub \
 	php-xdebug \
 	rate \
 	gzsig \
-	wol"
+	wol	\
+	voucher"
 
 if [ ! -f /usr/ports/INDEX-7.bz2 ]; then
 	echo -n ">>> Fetching index..."
