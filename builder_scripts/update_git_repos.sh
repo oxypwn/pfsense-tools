@@ -29,7 +29,7 @@ done
 if [ ! -z "${REVERT_TOOLS_COMMITS:-}" ]; then
 	for revert in $REVERT_TOOLS_COMMITS; do
 		echo ">>> Reverting tools commit $revert"
-		(cd $TOOLS_DIR && git revert $revert --no-edit) | grep Reverting
+		(cd $TOOLS_DIR && git revert $revert --no-edit) 2>&1 | grep Revert
 	done
 fi
 

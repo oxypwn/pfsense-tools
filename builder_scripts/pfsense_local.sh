@@ -223,3 +223,8 @@ export GIT_REPO_TOOLS=${GIT_TOOLS_REPO:-"http://gitweb.pfsense.org/pfsense-tools
 # If uncommented the system will use fastest-cvsup to find
 # a suitable update source to spread the load.
 #export OVERRIDE_FREEBSD_CVSUP_HOST="cvsup.livebsd.com"
+
+# This will allow overriding of which pfSense components
+# to include during this build run.  'all' will use
+# the old behavior and install *everything*
+export PFSENSE_MODULES="all"
