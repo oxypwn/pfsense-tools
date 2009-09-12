@@ -1,0 +1,10 @@
+Here goes a captiveportal stress test suite (very basic).
+
+Requires wget (pkg_add -r wget)
+
+Modify common.php to the environment you are testing on (IP's, etc).
+
+Next run ./createips.sh to setup a number of IP's to test from.
+
+Finally run wgetopencp.php
+
