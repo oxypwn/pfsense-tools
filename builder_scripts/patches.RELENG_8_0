@@ -22,6 +22,7 @@
 ~~ipsec_altq.RELENG_8.diff~
 ~~IPSEC_sysctl.RELENG_8.diff~
 ~~CP_speedup.diff~
+~~pf_tag.RELENG_8.diff~
 ~sys/net~if_vlan.c.diff~
 ~sys/sys~proc.h.diff~
 ~sys/modules/ipfw~ipfw.diff~
