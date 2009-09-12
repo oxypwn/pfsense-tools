@@ -136,8 +136,10 @@ export PFSPATCHFILE=${PFSPATCHFILE:-${BUILDER_TOOLS}/builder_scripts/patches.${P
 export KERNEL_BUILD_PATH=${KERNEL_BUILD_PATH:-"/tmp/kernels"}
 
 # Controls how many concurrent make processes are run for each stage
-export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
-export MAKEJ_KERNEL=${MAKEJ_KERNEL:-"-j4"}
+CPUS=`sysctl kern.smp.cpus | awk '{ print $2 }'`
+CPUS=`expr $CPUS + 1`
+export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j$CPUS"}
+export MAKEJ_KERNEL=${MAKEJ_KERNEL:-"-j$CPUS"}
 export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 
 # Do not clean.  Makes subsequent builds quicker.
