@@ -26,8 +26,8 @@ for FILE in `ls`; do
 	fi
 done
 
-if [ ! -z "${revert_tools_commits:-}" ]; then
-	for revert in $revert_tools_commits; do
+if [ ! -z "${REVERT_TOOLS_COMMITS:-}" ]; then
+	for revert in $REVERT_TOOLS_COMMITS; do
 		echo ">>> Reverting tools commit $revert"
 		(cd $TOOLS_DIR && git revert $revert --no-edit)
 	done
