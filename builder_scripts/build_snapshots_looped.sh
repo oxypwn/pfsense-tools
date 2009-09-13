@@ -58,10 +58,18 @@ while [ /bin/true ]; do
 		fi
 	fi
 	sh ./build_snapshots.sh
-	# Grab a random value and sleep
-	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
-	# Sleep for that time.
-	echo ">>> Sleeping for $value in between snapshot builder runs"
-	# Count some sheep.
-	sleep $value
+	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
+	# the box after the run.  Otherwise sleep for a random
+	# period of time before starting the next run.
+	if [ ! -z "${REBOOT_AFTER_SNAPSHOT_RUN:-}" ]; then
+		shutdown -r now
+		kill $$
+	else
+		# Grab a random value and sleep
+		value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
+		# Sleep for that time.
+		echo ">>> Sleeping for $value in between snapshot builder runs"
+		# Count some sheep.
+		sleep $value
+	fi
 done
