@@ -2035,11 +2035,14 @@ awk '
 	IMGSIZE=`ls -la $IMG | awk '{ print $5 }'`
 	IMGUPDATESIZE=`ls -la $IMGUPDATE | awk '{ print $5 }'`
 	CHECKSIZE="20040710"
-	if [ "$IMGSIZE" -lt "$CHECKSIZE" || "$IMGUPDATESIZE" -lt "$CHECKSIZE" ]; then
+	if [ "$IMGSIZE" -lt "$CHECKSIZE" ]; then
 		echo ">>> Something went wrong when building NanoBSD.  The image size is under 20 megabytes!"
 		print_error_pfS
 	fi
-
+	if [ "$IMGUPDATESIZE" -lt "$CHECKSIZE" ]; then
+		echo ">>> Something went wrong when building NanoBSD upgrade image.  The image size is under 20 megabytes!"
+		print_error_pfS	
+	fi
 }
 
 # This routine installs pfSense packages into the staging area.
