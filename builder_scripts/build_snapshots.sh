@@ -364,7 +364,7 @@ check_for_congestion() {
 
 scp_files() {
 	cd $BUILDERSCRIPTS
-	RSYNCIP="172.29.29.181"
+	RSYNCIP="172.29.29.249"
 	RSYNCARGUMENTS="-ave ssh --bwlimit=50 --timeout=60 "
 	date >$STAGINGAREA/version
 	echo ">>> Copying files to snapshots.pfsense.org"
