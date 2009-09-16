@@ -1,4 +1,3 @@
-sbin/init
 lib/libgeom.so.4
 lib/geom/geom_cache.so
 lib/geom/geom_mirror.so
