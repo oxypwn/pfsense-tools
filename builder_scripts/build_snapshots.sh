@@ -365,7 +365,9 @@ check_for_congestion() {
 scp_files() {
 	cd $BUILDERSCRIPTS
 	RSYNCIP="172.29.29.249"
-	RSYNCARGUMENTS="-ave ssh --bwlimit=50 --timeout=60 "
+	if [ -z "${RSYNC_COPY_ARGUMENTS:-}" ]; then
+		RSYNC_COPY_ARGUMENTS="-ave ssh --timeout=60" #--bwlimit=50
+	fi
 	date >$STAGINGAREA/version
 	echo ">>> Copying files to snapshots.pfsense.org"
 	if [ ! -f /usr/local/bin/rsync ]; then
@@ -383,17 +385,17 @@ scp_files() {
 	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	ssh snapshots@${RSYNCIP} chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/.
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/pfSense-*iso* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*iso* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/pfSense-*Update* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*Update* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/.updaters/version
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/		
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd/		
 	check_for_congestion
-	rsync $RSYNCARGUMENTS $STAGINGAREA/nanobsdupdates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/			
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsdupdates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates/			
 	set -e
 }
 
