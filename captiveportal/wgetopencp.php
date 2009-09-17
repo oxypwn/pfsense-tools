@@ -3,7 +3,7 @@
 
 require("common.php");
 
-for($y=$iterations; $y<$iterations; $y++) {
+for($y=$iterations; $y>0; $y--) {
 	for($x=$starting; $x<$ips; $x++) {
 		// Grab a temporary file handle
 		$handle = tempnam("/tmp", "FOO");

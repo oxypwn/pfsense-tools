@@ -4,11 +4,11 @@
 
 require("common.php");
 
-echo "Assigning 192.168.1.2/24";
-exec("ifconfig em1 192.168.1.2/24");
+echo "Assigning {$ip}{$starting}/24\n";
+exec("ifconfig {$nic} {$ip}{$starting}/24");
 
-for($x=$starting; $x<$ips; $x++) {
-	exec("ifconfig em1 192.168.1.{$x} alias add");
+for($x=$starting+1; $x<$ips; $x++) {
+	exec("ifconfig {$nic} {$ip}{$x}/24 alias add");
 }
 
 ?>
