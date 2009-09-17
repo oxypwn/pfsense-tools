@@ -16,7 +16,6 @@ $ip = "192.168.1.";
 $starting = "2";
 
 // URL of captive portal management
-=======
 $url = "http://192.168.1.1:8000";
 
 // Number of iterations to run before exiting test script
