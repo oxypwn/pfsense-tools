@@ -13,7 +13,7 @@ for($y=$iterations; $y<$iterations; $y++) {
 		echo "Working on $address...\n";
 		exec("wget -qO {$handle} --tries {$tries} --timeout {$timeout} --post-data '{$post_data}' '{$url}' --bind-address {$address}");
 		// Grab the logout_id after we auth
-		$logout_id = `cat $handle | grep logout_id | cut -d'"' -f6`
+		$logout_id = `cat $handle | grep logout_id | cut -d'"' -f6`;
 		if($sleep_between > 0) 
 			sleep($sleep_between);
 		// Log back out of captive portal
