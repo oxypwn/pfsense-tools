@@ -6,7 +6,8 @@ require("common.php");
 for($y=$iterations; $y>0; $y--) {
 	for($x=$starting; $x<$ips; $x++) {
 		// Grab a temporary file handle
-		$handle = tempnam("/tmp", "FOO");
+		if(!$fastmode)
+			$handle = tempnam("/tmp", "FOO");
 		// Setup the IP address for this request
 		$address = "{$ip}{$x}";
 		// Login to the captive portal
