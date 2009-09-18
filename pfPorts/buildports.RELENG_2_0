@@ -123,7 +123,8 @@ PORTSTOBUILD="grub \
 	rate \
 	php5-install-all	\
 	gzsig	\
-	voucher"
+	voucher	\
+	wol"
 
 if [ ! -f /usr/ports/INDEX-7.bz2 ]; then
 	echo -n ">>> Fetching index..."
