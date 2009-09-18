@@ -1,10 +1,10 @@
 Index: sbin/ifconfig/ifconfig.c
 ===================================================================
-RCS file: /home/ncvs/src/sbin/ifconfig/ifconfig.c,v
-retrieving revision 1.146.2.1
-diff -u -r1.146.2.1 ifconfig.c
---- sbin/ifconfig/ifconfig.c	3 Aug 2009 08:13:06 -0000	1.146.2.1
-+++ sbin/ifconfig/ifconfig.c	15 Sep 2009 12:09:52 -0000
+RCS file: /root/freebsd/repo/src/sbin/ifconfig/ifconfig.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ifconfig.c
+--- sbin/ifconfig/ifconfig.c	18 Sep 2009 21:08:22 -0000	1.1.1.1
++++ sbin/ifconfig/ifconfig.c	18 Sep 2009 21:14:19 -0000
 @@ -825,7 +825,7 @@
  #define	IFFBITS \
  "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\6SMART\7RUNNING" \
@@ -25,11 +25,11 @@ diff -u -r1.146.2.1 ifconfig.c
  	DEF_CMD("txcsum",	IFCAP_TXCSUM,	setifcap),
 Index: sbin/ipfw/ipfw2.c
 ===================================================================
-RCS file: /home/ncvs/src/sbin/ipfw/ipfw2.c,v
-retrieving revision 1.149.2.1
-diff -u -r1.149.2.1 ipfw2.c
---- sbin/ipfw/ipfw2.c	3 Aug 2009 08:13:06 -0000	1.149.2.1
-+++ sbin/ipfw/ipfw2.c	15 Sep 2009 12:09:53 -0000
+RCS file: /root/freebsd/repo/src/sbin/ipfw/ipfw2.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ipfw2.c
+--- sbin/ipfw/ipfw2.c	18 Sep 2009 21:08:22 -0000	1.1.1.1
++++ sbin/ipfw/ipfw2.c	18 Sep 2009 21:14:19 -0000
 @@ -362,7 +362,9 @@
  	    optname == IP_FW_ADD || optname == IP_FW_TABLE_LIST ||
  	    optname == IP_FW_TABLE_GETSIZE || 
@@ -163,11 +163,11 @@ diff -u -r1.149.2.1 ipfw2.c
  }
 Index: sys/net/if.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/net/if.h,v
-retrieving revision 1.120.2.1
-diff -u -r1.120.2.1 if.h
---- sys/net/if.h	3 Aug 2009 08:13:06 -0000	1.120.2.1
-+++ sys/net/if.h	15 Sep 2009 12:09:53 -0000
+RCS file: /root/freebsd/repo/src/sys/net/if.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if.h
+--- sys/net/if.h	18 Sep 2009 21:08:17 -0000	1.1.1.1
++++ sys/net/if.h	18 Sep 2009 21:14:19 -0000
 @@ -150,6 +150,7 @@
  #define	IFF_MONITOR	0x40000		/* (n) user-requested monitor mode */
  #define	IFF_STATICARP	0x80000		/* (n) static ARP */
@@ -178,11 +178,11 @@ diff -u -r1.120.2.1 if.h
   * Old names for driver flags so that user space tools can continue to use
 Index: sys/netinet/in.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/in.h,v
-retrieving revision 1.110.2.1
-diff -u -r1.110.2.1 in.h
---- sys/netinet/in.h	3 Aug 2009 08:13:06 -0000	1.110.2.1
-+++ sys/netinet/in.h	15 Sep 2009 12:10:03 -0000
+RCS file: /root/freebsd/repo/src/sys/netinet/in.h,v
+retrieving revision 1.2
+diff -u -r1.2 in.h
+--- sys/netinet/in.h	18 Sep 2009 21:14:09 -0000	1.2
++++ sys/netinet/in.h	18 Sep 2009 21:14:19 -0000
 @@ -448,6 +448,8 @@
  #define	IP_FW_TABLE_FLUSH	42   /* flush table */
  #define	IP_FW_TABLE_GETSIZE	43   /* get table size */
@@ -194,11 +194,11 @@ diff -u -r1.110.2.1 in.h
  #define	IP_FW_DEL		51   /* delete a firewall rule from chain */
 Index: sys/netinet/ip_fw.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ip_fw.h,v
-retrieving revision 1.132.2.2
-diff -u -r1.132.2.2 ip_fw.h
---- sys/netinet/ip_fw.h	21 Aug 2009 11:23:29 -0000	1.132.2.2
-+++ sys/netinet/ip_fw.h	15 Sep 2009 12:10:03 -0000
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_fw.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_fw.h
+--- sys/netinet/ip_fw.h	18 Sep 2009 21:08:19 -0000	1.1.1.1
++++ sys/netinet/ip_fw.h	18 Sep 2009 21:14:19 -0000
 @@ -559,9 +559,13 @@
   */
  typedef struct	_ipfw_table_entry {
@@ -215,11 +215,11 @@ diff -u -r1.132.2.2 ip_fw.h
  typedef struct	_ipfw_table {
 Index: sys/netinet/raw_ip.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/raw_ip.c,v
-retrieving revision 1.220.2.1
-diff -u -r1.220.2.1 raw_ip.c
---- sys/netinet/raw_ip.c	3 Aug 2009 08:13:06 -0000	1.220.2.1
-+++ sys/netinet/raw_ip.c	15 Sep 2009 12:10:06 -0000
+RCS file: /root/freebsd/repo/src/sys/netinet/raw_ip.c,v
+retrieving revision 1.2
+diff -u -r1.2 raw_ip.c
+--- sys/netinet/raw_ip.c	18 Sep 2009 21:11:05 -0000	1.2
++++ sys/netinet/raw_ip.c	18 Sep 2009 21:14:19 -0000
 @@ -521,6 +521,8 @@
  		case IP_FW_GET:
  		case IP_FW_TABLE_GETSIZE:
@@ -231,11 +231,11 @@ diff -u -r1.220.2.1 raw_ip.c
  			if (ip_fw_ctl_ptr != NULL)
 Index: sys/netinet/ipfw/ip_fw2.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ipfw/ip_fw2.c,v
-retrieving revision 1.11.2.3
-diff -u -r1.11.2.3 ip_fw2.c
---- sys/netinet/ipfw/ip_fw2.c	21 Aug 2009 11:23:29 -0000	1.11.2.3
-+++ sys/netinet/ipfw/ip_fw2.c	15 Sep 2009 12:10:12 -0000
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw2.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_fw2.c
+--- sys/netinet/ipfw/ip_fw2.c	18 Sep 2009 21:08:20 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw2.c	18 Sep 2009 21:21:31 -0000
 @@ -148,7 +148,11 @@
  struct table_entry {
  	struct radix_node	rn[2];
@@ -274,12 +274,13 @@ diff -u -r1.11.2.3 ip_fw2.c
  {
  	struct radix_node_head *rnh;
  	struct table_entry *ent;
-@@ -1945,12 +1950,60 @@
+@@ -1945,12 +1950,61 @@
  	sa.sin_addr.s_addr = addr;
  	ent = (struct table_entry *)(rnh->rnh_lookup(&sa, NULL, rnh));
  	if (ent != NULL) {
 +		if (ea && ent->mac_addr) {
-+			if (ent->mac_addr != ((*(u_int64_t*)ea)))
++			u_char *test = (u_char *)&ent->mac_addr;
++                        if (bcmp(test, ea->octet, ETHER_ADDR_LEN) != 0)
 +				return (0);
 +		}
  		*val = ent->value;
@@ -335,7 +336,7 @@ diff -u -r1.11.2.3 ip_fw2.c
  static int
  count_table_entry(struct radix_node *rn, void *arg)
  {
-@@ -1989,6 +2042,7 @@
+@@ -1989,6 +2043,7 @@
  	else
  		ent->masklen = 33 - ffs(ntohl(n->mask.sin_addr.s_addr));
  	ent->addr = n->addr.sin_addr.s_addr;
@@ -343,7 +344,19 @@ diff -u -r1.11.2.3 ip_fw2.c
  	ent->value = n->value;
  	tbl->cnt++;
  	return (0);
-@@ -2700,13 +2754,19 @@
+@@ -2174,6 +2229,11 @@
+ 	 */
+ 	struct ifnet *oif = args->oif;
+ 
++	if (oif && !(oif->if_flags & IFF_IPFW_FILTER))
++                return (0);
++        else if (m->m_pkthdr.rcvif && !(m->m_pkthdr.rcvif->if_flags & IFF_IPFW_FILTER))
++                return (0);
++
+ 	struct ip_fw *f = NULL;		/* matching rule */
+ 	int retval = 0;
+ 
+@@ -2700,13 +2760,19 @@
  			case O_IP_SRC_LOOKUP:
  			case O_IP_DST_LOOKUP:
  				if (is_ipv4) {
@@ -364,7 +377,7 @@ diff -u -r1.11.2.3 ip_fw2.c
  				    if (!match)
  					break;
  				    if (cmdlen == F_INSN_SIZE(ipfw_insn_u32))
-@@ -4392,7 +4452,7 @@
+@@ -4392,7 +4458,7 @@
  			if (error)
  				break;
  			error = add_table_entry(&V_layer3_chain, ent.tbl,
@@ -373,7 +386,7 @@ diff -u -r1.11.2.3 ip_fw2.c
  		}
  		break;
  
-@@ -4439,6 +4499,42 @@
+@@ -4439,6 +4505,42 @@
  		}
  		break;
  
@@ -418,12 +431,12 @@ diff -u -r1.11.2.3 ip_fw2.c
  			ipfw_table *tbl;
 Index: sys/netinet/ipfw/ip_fw_pfil.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/ipfw/ip_fw_pfil.c,v
-retrieving revision 1.4.2.2
-diff -u -r1.4.2.2 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	21 Aug 2009 11:23:29 -0000	1.4.2.2
-+++ sys/netinet/ipfw/ip_fw_pfil.c	15 Sep 2009 12:10:12 -0000
-@@ -90,7 +90,9 @@
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
+retrieving revision 1.4
+diff -u -r1.4 ip_fw_pfil.c
+--- sys/netinet/ipfw/ip_fw_pfil.c	18 Sep 2009 21:13:34 -0000	1.4
++++ sys/netinet/ipfw/ip_fw_pfil.c	18 Sep 2009 21:14:19 -0000
+@@ -85,7 +85,9 @@
      struct inpcb *inp)
  {
  	struct ip_fw_args args;
@@ -433,7 +446,7 @@ diff -u -r1.4.2.2 ip_fw_pfil.c
  	struct m_tag *dn_tag;
  	int ipfw = 0;
  	int divert;
-@@ -101,6 +103,9 @@
+@@ -96,6 +98,9 @@
  
  	KASSERT(dir == PFIL_IN, ("ipfw_check_in wrong direction!"));
  
@@ -442,7 +455,7 @@ diff -u -r1.4.2.2 ip_fw_pfil.c
 +
  	bzero(&args, sizeof(args));
  
- 	ng_tag = (struct ng_ipfw_tag *)m_tag_locate(*m0, NGM_IPFW_COOKIE, 0,
+ #if 0
 @@ -223,7 +228,9 @@
      struct inpcb *inp)
  {
@@ -462,4 +475,4 @@ diff -u -r1.4.2.2 ip_fw_pfil.c
 +
  	bzero(&args, sizeof(args));
  
- 	ng_tag = (struct ng_ipfw_tag *)m_tag_locate(*m0, NGM_IPFW_COOKIE, 0,
+ #if 0
