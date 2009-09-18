@@ -1,5 +1,8 @@
 <?php
 
+// Fast mode.  Should wget launch in the bg (&)
+$fastmode = false;
+
 //  Debug mode?
 $debug = false;
 
