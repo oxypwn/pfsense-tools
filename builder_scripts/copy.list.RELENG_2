@@ -134,3 +134,4 @@ usr/local/share/rrdtool/fonts/DejaVuSansMono-Roman.ttf
 usr/local/lib/libipsec.so
 usr/local/lib/libipsec.so.0
 usr/local/bin/voucher
+usr/local/bin/wol
