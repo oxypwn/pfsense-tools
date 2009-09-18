@@ -12,17 +12,17 @@ for($y=$iterations; $y>0; $y--) {
 		// Login to the captive portal
 		echo "Working on $address ($handle)\n";
 		if($fastmode)
-			exec("wget -q -O {$handle} --tries {$tries} --timeout {$timeout} --post-data '{$post_data}' '{$url}' --bind-address {$address} &");
+			exec("wget -q -O /dev/null --tries {$tries} --timeout {$timeout} --post-data '{$post_data}' '{$url}' --bind-address {$address} &");
 		else
 			exec("wget -q -O {$handle} --tries {$tries} --timeout {$timeout} --post-data '{$post_data}' '{$url}' --bind-address {$address}");
 		// Grab the logout_id after we auth
-		$logout_id = `cat $handle | grep logout_id | cut -d'"' -f6`;
 		if($sleep_between > 0) 
 			sleep($sleep_between);
 		// Clean up
 		if($debug) 
 			exec("cat {$handle}\n");
-		unset($handle);
+		if(!$fastmode)
+			unset($handle);
 	}
 	if($sleep_between_iterations>0) 
 		sleep($sleep_between_iterations);
