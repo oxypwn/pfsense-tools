@@ -2356,10 +2356,20 @@ install_required_builder_system_ports() {
     OLDPKGFILE="$PKGFILE"
     unset PKGFILE
 
-	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do
+	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do			
 		PKG_STRING_T=`echo $PKG_STRING | sed "s/		/	/g"`
 		CHECK_ON_DISK=`echo $PKG_STRING_T | awk '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING_T | awk '{ print $2 }'`
+		if [ "$PKG_STRING" = "/usr/local/sbin/grub" ]; then
+			if [ "$ARCH" = "AMD64" ]; then
+				# Grub will not build on AMD64
+				# Simply set the check to /sbin/init
+				# which we know is a valid binary on 
+				# any installed machine.
+				echo ">>> Grub is not buildable on AMD64.  Skipping."
+				CHECK_ON_DISK="/sbin/init"
+			fi
+		fi
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
 			(cd $PORT_LOCATION && make -DBATCH deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
