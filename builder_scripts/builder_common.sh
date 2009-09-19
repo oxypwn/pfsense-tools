@@ -2348,7 +2348,6 @@ install_required_builder_system_ports() {
 /usr/local/bin/git					/usr/ports/devel/git
 /usr/local/sbin/grub				/usr/ports/sysutils/grub
 /usr/local/bin/screen				/usr/ports/sysutils/screen
-/usr/local/bin/portmanager			/usr/ports/ports-mgmt/portmanager/
 "
 	oIFS=$IFS
 	IFS="
