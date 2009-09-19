@@ -176,6 +176,23 @@ diff -u -r1.1.1.1 if.h
  
  /*
   * Old names for driver flags so that user space tools can continue to use
+Index: sys/net/if_ethersubr.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net/if_ethersubr.c,v
+retrieving revision 1.2
+diff -u -r1.2 if_ethersubr.c
+--- sys/net/if_ethersubr.c	18 Sep 2009 21:11:05 -0000	1.2
++++ sys/net/if_ethersubr.c	19 Sep 2009 19:10:20 -0000
+@@ -819,7 +819,8 @@
+ 	 * Strip off Ethernet header.
+ 	 */
+ 	m->m_flags &= ~M_VLANTAG;
+-	m->m_flags &= ~(M_PROTOFLAGS);
++	if (!(m->m_flags & M_FASTFWD_OURS))
++		m->m_flags &= ~(M_PROTOFLAGS);
+ 	m_adj(m, ETHER_HDR_LEN);
+ 
+ 	/*
 Index: sys/netinet/in.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/netinet/in.h,v
@@ -235,7 +252,7 @@ RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw2.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw2.c
 --- sys/netinet/ipfw/ip_fw2.c	18 Sep 2009 21:08:20 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw2.c	18 Sep 2009 21:21:31 -0000
++++ sys/netinet/ipfw/ip_fw2.c	19 Sep 2009 19:14:49 -0000
 @@ -148,7 +148,11 @@
  struct table_entry {
  	struct radix_node	rn[2];
@@ -377,7 +394,37 @@ diff -u -r1.1.1.1 ip_fw2.c
  				    if (!match)
  					break;
  				    if (cmdlen == F_INSN_SIZE(ipfw_insn_u32))
-@@ -4392,7 +4458,7 @@
+@@ -3316,8 +3382,7 @@
+ 			case O_FORWARD_IP: {
+ 				struct sockaddr_in *sa;
+ 				sa = &(((ipfw_insn_sa *)cmd)->sa);
+-				if (args->eh)	/* not valid on layer2 pkts */
+-					break;
++				if (!args->eh) { 	/* not valid on layer2 pkts */
+ 				if (!q || dyn_dir == MATCH_FORWARD) {
+ 					if (sa->sin_addr.s_addr == INADDR_ANY) {
+ 						bcopy(sa, &args->hopstore,
+@@ -3330,6 +3395,19 @@
+ 						args->next_hop = sa;
+ 					}
+ 				}
++				} else if (args->eh) {
++					fwd_tag = m_tag_get(PACKET_TAG_IPFORWARD,
++                                		sizeof(struct sockaddr_in), M_NOWAIT);
++                			if (fwd_tag == NULL)
++						retval = IP_FW_DENY;
++					else {
++                				bcopy(sa, (fwd_tag+1), sizeof(struct sockaddr_in));
++                				m_tag_prepend(m, fwd_tag);
++ 
++						if (in_localip(sa->sin_addr))
++                        				m->m_flags |= M_FASTFWD_OURS;
++					}
++				}
+ 				retval = IP_FW_PASS;
+ 			    }
+ 			    goto done;
+@@ -4392,7 +4470,7 @@
  			if (error)
  				break;
  			error = add_table_entry(&V_layer3_chain, ent.tbl,
@@ -386,7 +433,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  		}
  		break;
  
-@@ -4439,6 +4505,42 @@
+@@ -4439,6 +4517,42 @@
  		}
  		break;
  
