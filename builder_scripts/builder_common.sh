@@ -1116,7 +1116,6 @@ test_php_install() {
 	# We might need to setup php.ini
 	if [ -f "$PFSENSEBASEDIR/etc/rc.php_ini_setup" ]; then
 		mkdir -p $PFSENSEBASEDIR/usr/local/lib/ $PFSENSEBASEDIR/usr/local/etc/
-		echo "\n>>> Running /etc/rc.php_ini_setup..."
 		chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
 	fi
 
