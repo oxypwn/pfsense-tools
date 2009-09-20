@@ -685,7 +685,7 @@ cust_populate_installer_bits_freebsd_only() {
 # Install custom BSDInstaller bits for pfSense
 cust_populate_installer_bits() {
     # Add lua installer items
-	echo "Using FreeBSD 7 BSDInstaller dfuibelua structure."
+	echo ">>> Using FreeBSD 7 BSDInstaller dfuibelua structure."
     mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
 	mkdir -p $PFSENSEBASEDIR/scripts/
     # This is now ready for general consumption! \o/
@@ -1420,7 +1420,7 @@ checkout_pfSense_git() {
         echo -n 'Checking out tag master...'
         BRANCH=master
         (cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master) \
-            | egrep -wi '(^>>>|error)'
+			2>&1 | egrep -wi '(^>>>|error)'
     else
         echo -n "Checking out tag ${PFSENSETAG}..."
         BRANCH="${PFSENSETAG}"
