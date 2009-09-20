@@ -1,5 +1,5 @@
---- classifyd.c.old	2009-03-09 02:34:42.000000000 +0000
-+++ classifyd.c	2009-03-09 02:34:43.000000000 +0000
+--- classifyd.c.old	2009-09-20 12:55:51.000000000 +0000
++++ classifyd.c	2009-09-20 12:56:15.000000000 +0000
 @@ -28,13 +28,17 @@
  
  #include <sys/types.h>
@@ -537,6 +537,15 @@
  
  		/*
  		 * Inform divert(4) what rule to send it to by
+@@ -809,7 +805,7 @@
+ 			    "unable to write to divert socket: %m");
+ 		else if ((size_t)len != pkt->fp_pktlen)
+ 			syslog(LOG_WARNING,
+-			    "complete packet not written: wrote %d of %d", len,
++			    "complete packet not written: wrote %d of %u", len,
+ 			    pkt->fp_pktlen);
+ 	
+ 		/*
 @@ -823,6 +819,70 @@
  	return (NULL);
  }
