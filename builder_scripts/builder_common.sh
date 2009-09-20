@@ -2360,7 +2360,7 @@ install_required_builder_system_ports() {
 		PKG_STRING_T=`echo $PKG_STRING | sed "s/		/	/g"`
 		CHECK_ON_DISK=`echo $PKG_STRING_T | awk '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING_T | awk '{ print $2 }'`
-		if [ "$PKG_STRING" = "/usr/local/sbin/grub" ]; then
+		if [ "$CHECK_ON_DISK" = "/usr/local/sbin/grub" ]; then
 			if [ "$ARCH" = "amd64" ]; then
 				# Grub will not build on AMD64
 				# Simply set the check to /sbin/init
