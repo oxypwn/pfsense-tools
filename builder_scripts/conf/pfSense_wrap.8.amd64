@@ -9,9 +9,7 @@ makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq g
 options 	KDB_TRACE
 
 machine		amd64
-cpu			I486_CPU
-cpu			I586_CPU
-cpu			I686_CPU
+cpu 		HAMMER
 ident		pfSense-embedded
 
 options		CPU_GEODE
