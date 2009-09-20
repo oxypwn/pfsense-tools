@@ -1500,7 +1500,7 @@ print_flags() {
 	printf "                ISOPATH: %s\n" $ISOPATH
 	printf "                IMGPATH: %s\n" $IMGPATH
 	printf "             KERNELCONF: %s\n" $KERNELCONF
-	printf "          KERNELCONFDIR: %s\n" $KERNELCONFDIR
+	printf "   TARGET_ARCH_CONF_DIR: %s\n" $TARGET_ARCH_CONF_DIR
 	printf "FREESBIE_COMPLETED_MAIL: %s\n" $FREESBIE_COMPLETED_MAIL
 	printf "    FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
 if [ -n "$PFSENSECVSDATETIME" ]; then
