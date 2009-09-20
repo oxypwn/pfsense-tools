@@ -12,10 +12,6 @@ machine		amd64
 cpu 		HAMMER
 ident		pfSense-embedded
 
-options		CPU_GEODE
-options		CPU_SOEKRIS
-options		CPU_ELAN
-
 options 		GEOM_MIRROR
 options			GEOM_UZIP
 options			GEOM_LABEL
