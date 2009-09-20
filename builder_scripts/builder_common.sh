@@ -52,7 +52,7 @@ fi
 
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
-	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/i386/conf/
+	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${ARCH}/conf/
 else
 	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
 fi
@@ -209,7 +209,7 @@ fixup_kernel_options() {
 		fi
 	fi
 
-	# Add SMP and APIC options
+	# Add SMP and APIC options for i386 platform
 	if [ "$ARCH" = "i386" ]; then
 		echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
 		echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
@@ -217,13 +217,16 @@ fixup_kernel_options() {
 		echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
 	fi
 
+	# Add ALTQ_NOPCC which is needed for ALTQ
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+
+	# Add SMP
+	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 
 	# NOTE!  If you remove this, you WILL break booting!  These file(s) are read
