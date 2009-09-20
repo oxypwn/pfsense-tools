@@ -2104,7 +2104,6 @@ pfsense_install_custom_packages_exec() {
 # Handle php.ini if /etc/rc.php_ini_setup exists
 if [ -f "/etc/rc.php_ini_setup" ]; then
 	mkdir -p /usr/local/lib/ /usr/local/etc/
-	echo ">>> Running /etc/rc.php_ini_setup..."
 	/etc/rc.php_ini_setup 2>/dev/null
 	cat /usr/local/etc/php.ini | grep -v apc > /tmp/php.ini.new
 	cp /tmp/php.ini.new /usr/local/etc/php.ini 2>/dev/null
