@@ -8,10 +8,8 @@ makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq g
 #nooptions		WITNESS_SKIPSPIN
 options 	KDB_TRACE
 
-machine		i386
-cpu			I486_CPU
-cpu			I586_CPU
-cpu			I686_CPU
+include         DEFAULTS
+
 ident		pfSense-embedded
 
 options		CPU_GEODE

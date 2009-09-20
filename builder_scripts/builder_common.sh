@@ -286,9 +286,9 @@ build_embedded_kernel() {
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
-	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
+	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}.${ARCH}
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
 	freesbie_make buildkernel
 	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
@@ -385,9 +385,9 @@ build_all_kernels() {
 	unset KERNCONF
 	unset KERNEL_DESTDIR
 	unset KERNELCONF
-	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}
+	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}.${ARCH}
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
 	freesbie_make buildkernel
 	echo ">>> Installing wrap kernel..."
 	freesbie_make installkernel

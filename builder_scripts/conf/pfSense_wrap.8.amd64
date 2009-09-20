@@ -1,24 +1,36 @@
 # $Id$
 
-machine		i386
-cpu		I486_CPU
-cpu		I586_CPU
-cpu		I686_CPU
+makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq glxsb"
+
+#nooptions		INVARIANTS
+#nooptions		INVARIANTS_SUPPORT
+#nooptions		WITNESS
+#nooptions		WITNESS_SKIPSPIN
+options 	KDB_TRACE
+
+machine		amd64
+cpu			I486_CPU
+cpu			I586_CPU
+cpu			I686_CPU
 ident		pfSense-embedded
-
-# To statically compile in device wiring instead of /boot/device.hints
-#hints		"GENERIC.hints"		# Default places to look for devices.
-
-options		COMPAT_FREEBSD5
 
 options		CPU_GEODE
 options		CPU_SOEKRIS
 options		CPU_ELAN
-#options		CPU_ELAN_PPS
-#options		CPU_ELAN_XTAL=32768000
 
-#options 	SCHED_ULE		# ULE scheduler
-options 	SCHED_4BSD		# 4BSD scheduler
+options 		GEOM_MIRROR
+options			GEOM_UZIP
+options			GEOM_LABEL
+nooption		GEOM_MBR
+options			GEOM_PART_MBR
+options			GEOM_PART_BSD
+
+# IPSEC filtering interface
+device 		enc
+
+nooptions	SCHED_4BSD
+options 	SCHED_ULE                                       # ULE scheduler
+
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
 options 	FFS			# Berkeley Fast Filesystem
@@ -33,9 +45,7 @@ options 	MSDOSFS			# MSDOS Filesystem
 options 	CD9660			# ISO 9660 Filesystem
 options 	PROCFS			# Process filesystem (requires PSEUDOFS)
 options 	PSEUDOFS		# Pseudo-filesystem framework
-options 	GEOM_GPT		# GUID Partition Tables.
 options 	COMPAT_43		# Compatible with BSD 4.3 [KEEP THIS!]
-options 	COMPAT_FREEBSD4		# Compatible with FreeBSD4
 options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
 options 	KTRACE			# ktrace(1) support
 options 	SYSVSHM			# SYSV-style shared memory
@@ -47,6 +57,9 @@ options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
 					# output.  Adds ~128k to driver.
 #options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~215k to driver.
+
+device		apic			# I/O APIC
+device		acpi
 
 # Bus support.  Do not remove isa, even if you have no isa slots
 device		isa
@@ -99,7 +112,6 @@ device		arcmsr		# Areca SATA II RAID
 #device		ciss		# Compaq Smart RAID 5*
 #device		dpt		# DPT Smartcache III, IV - See NOTES for options
 device		hptmv		# Highpoint RocketRAID 182x
-device		hptrr		# Highpoint RocketRAID 17xx, 22xx, 23xx, 25xx
 device		iir		# Intel Integrated RAID
 #device		ips		# IBM (Adaptec) ServeRAID
 #device		mly		# Mylex AcceleRAID/eXtremeRAID
@@ -116,6 +128,11 @@ device		twe		# 3ware ATA RAID
 # Floating point support - do not disable.
 device		npx
 
+# Power management support (see NOTES for more options)
+# device		apm
+# Add suspend/resume support for the i8254.
+# device		pmtimer
+
 # PCCARD (PCMCIA) support
 # PCMCIA and cardbus bridge support
 device		cbb		# cardbus (yenta) bridge
@@ -123,12 +140,19 @@ device		pccard		# PC Card (16-bit) bus
 device		cardbus		# CardBus (32-bit) bus
 
 # Serial (COM) ports
-device		sio		# 8250, 16[45]50 based serial ports
+#device		sio		# 8250, 16[45]50 based serial ports
 
 # Parallel port
 device		ppc
 device		ppbus		# Parallel port bus (required)
+#device		lpt		# Printer
 device		ppi		# Parallel port interface device
+#device		vpo		# Requires scbus and da
+
+# If you've got a "dumb" serial or parallel PCI card that is
+# supported by the puc(4) glue driver, uncomment the following
+# line to enable it (connects to the sio and/or ppc drivers):
+device		puc
 
 # PCI Ethernet NICs.
 device		de		# DEC/Intel DC21x4x (``Tulip'')
@@ -145,7 +169,6 @@ device		bge		# Broadcom BCM570xx Gigabit Ethernet
 device		dc		# DEC/Intel 21143 and various workalikes
 device		fxp		# Intel EtherExpress PRO/100B (82557, 82558)
 device		lge		# Level 1 LXT1001 gigabit Ethernet
-device          msk             # Marvell/SysKonnect Yukon II Gigabit Ethernet
 device		nge		# NatSemi DP83820 gigabit Ethernet
 device		nve		# nVidia nForce MCP on-board Ethernet Networking
 device		pcn		# AMD Am79C97x PCI 10/100(precedence over 'lnc')
@@ -154,6 +177,7 @@ device		rl		# RealTek 8129/8139
 device		sf		# Adaptec AIC-6915 (``Starfire'')
 device		sis		# Silicon Integrated Systems SiS 900/SiS 7016
 device		sk		# SysKonnect SK-984x & SK-982x gigabit Ethernet
+device          msk             # Marvell/SysKonnect Yukon II Gigabit Ethernet
 device		ste		# Sundance ST201 (D-Link DFE-550TX)
 device		ti		# Alteon Networks Tigon I/II gigabit Ethernet
 device		tl		# Texas Instruments ThunderLAN
@@ -163,22 +187,31 @@ device		vr		# VIA Rhine, Rhine II
 device		wb		# Winbond W89C840F
 device		xl		# 3Com 3c90x (``Boomerang'', ``Cyclone'')
 
-# Wireless NIC cards
-device		wlan		# 802.11 support
+# Wireless
+device          wlan
 device          wlan_wep
 device          wlan_ccmp
 device          wlan_tkip
 device          wlan_xauth
 device          wlan_acl
-device          ath
-device          ath_rate_sample
-device          ath_hal
-device		an		# Aironet 4500/4800 802.11 wireless NICs.
-device		awi		# BayStack 660 and others
-device          ral             # Ralink Technology RT2500 wireless NICs.
-device		wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-device		wl		# Older non 802.11 Wavelan wireless NIC.
-#device          iwi                     # Intel PRO/Wireless 2200BG
+device          wlan_amrr
+#device          wlan_scan_ap
+#device          wlan_scan_sta
+
+device iwi
+device ale
+device ath
+device ath_hal
+options AH_SUPPORT_AR5416
+device ath_rate_sample
+
+device			an		# Aironet 4500/4800 802.11 wireless NICs.
+#device			awi		# BayStack 660 and others
+device			ral     # Ralink Technology RT2500 wireless NICs.
+device			wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
+#device			wl		# Older non 802.11 Wavelan wireless NIC.
+device          ural            # Ralink Technology RT2500USB wireless NICs
+device          rum             # Ralink Technology RT2501USB wireless NICs
 
 # Pseudo devices.
 device		loop		# Network loopback
@@ -186,8 +219,6 @@ device		mem		# Memory and kernel memory devices
 device		io		# I/O device
 device		random		# Entropy device
 device		ether		# Ethernet support
-device		sl		# Kernel SLIP
-device		ppp		# Kernel PPP
 device		tun		# Packet tunnel.
 device		pty		# Pseudo-ttys (telnet etc)
 device		md		# Memory "disks"
@@ -203,26 +234,31 @@ device		bpf		# Berkeley packet filter
 device		uhci		# UHCI PCI->USB interface
 device		ohci		# OHCI PCI->USB interface
 device		ehci		# EHCI PCI->USB interface (USB 2.0)
-device		usb			# USB Bus (required)
-device		udbp		# USB Double Bulk Pipe devices
+device		usb		# USB Bus (required)
+#device		udbp		# USB Double Bulk Pipe devices
 
-#device		ugen		# Generic
-#device		ugencom		# Generic
+# 3G devices
+device          ufoma
+#device          umsm
+device          ucom
+device          uplcom
+#device          ubsa
+device          umct
+device          uvisor
+device          uark
+device          uftdi
+device          uvscom
+device          umodem
+device			u3g
+device			ucom
 
-device		uftdi		# LCD Driver
+# Uncommented at the request of colin
 #device		uhid		# "Human Interface Devices"
-#device		ukbd		# Keyboard
-device		ulpt		# Printer
+#device		ulpt		# Printer
 device		umass		# Disks/Mass storage - Requires scbus and da
 #device		ums		# Mouse
-device		ural		# Ralink Technology RT2500USB wireless NICs
 #device		urio		# Diamond Rio 500 MP3 player
 #device		uscanner	# Scanners
-# 3G devices
-device		ubsa		# USB serial
-device		ucom		# USB serial
-device		uplcom		# USB serial
-
 # USB Ethernet, requires miibus
 device		aue		# ADMtek USB Ethernet
 device		axe		# ASIX Electronics USB Ethernet
@@ -230,7 +266,6 @@ device		cdce		# Generic USB over Ethernet
 device		cue		# CATC USB Ethernet
 device		kue		# Kawasaki LSI USB Ethernet
 device		rue		# RealTek RTL8150 USB Ethernet
-device		ural		# Ralink Technology RT2500USB wireless NICs
 device          udav            # Davicom DM9601 USB Ethernet driver
 
 # FireWire support
@@ -240,24 +275,13 @@ device		sbp		# SCSI over FireWire (Requires scbus and da)
 
 
 # pfsense addons
-device		wlan		# 802.11 support
-device		wlan_wep
-device		wlan_ccmp
-device		wlan_tkip
-device		wlan_xauth
-device		wlan_acl
-device		ath
-device		ath_rate_sample
-device		ath_hal
-device		an              # Aironet 4500/4800 802.11 wireless NICs.
-device		awi				# BayStack 660 and others
-device		ral				# Ralink Technology RT2500 wireless NICs.
-device		wi              # WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-device		wl              # Older non 802.11 Wavelan wireless NIC.
 
 device          tap
 device          gre
 
+#options        IPFIREWALL
+#options        DUMMYNET
+#options        IPDIVERT
 options         IPFIREWALL_DEFAULT_TO_ACCEPT
 options         IPFIREWALL_FORWARD
 options         IPFIREWALL_VERBOSE
@@ -265,15 +289,17 @@ options         IPFIREWALL_VERBOSE_LIMIT
 device		vlan
 
 options		IPSTEALTH
-options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
+#options		TCP_DROP_SYNFIN         #drop TCP packets with SYN+FIN
 
-options		GEOM_UZIP
-options		GEOM_LABEL
+#options		INCLUDE_CONFIG_FILE
 
+#options		BRIDGE
 options 	NETGRAPH		#netgraph(4) system
+options		NETGRAPH_L2TP
 options 	NETGRAPH_BPF
 options 	NETGRAPH_ETHER
 options 	NETGRAPH_IFACE
+#options 	NETGRAPH_EIFACE
 options 	NETGRAPH_PPP
 options 	NETGRAPH_PPPOE
 options 	NETGRAPH_PPTPGRE
@@ -282,8 +308,8 @@ options 	NETGRAPH_SOCKET
 options 	NETGRAPH_TTY
 options		NETGRAPH_MPPC_ENCRYPTION
 #options 	NETGRAPH_UI
-#options 	NETGRAPH_VJC
-#options 	NETGRAPH_KSOCKET
+options 	NETGRAPH_VJC
+options 	NETGRAPH_KSOCKET
 #options 	NETGRAPH_LMI
 #options 	NETGRAPH_ONE2MANY
 #options		NETGRAPH_BRIDGE
@@ -293,10 +319,15 @@ options		NETGRAPH_MPPC_ENCRYPTION
 #options 	NETGRAPH_FRAME_RELAY
 #options 	NETGRAPH_HOLE
 #options 	NETGRAPH_TEE
+options         NETGRAPH_TCPMSS
+options         NETGRAPH_PIPE
+options         NETGRAPH_CAR
+options         NETGRAPH_DEFLATE
+options         NETGRAPH_PRED1
+#options         NETGRAPH_VLAN
 
-options		FAST_IPSEC
-#options		IPSEC_NAT_T
-#device		enc
+options		IPSEC
+options         IPSEC_NAT_T
 
 options		ALTQ
 options		ALTQ_CBQ
@@ -332,22 +363,51 @@ options 	HZ=100
 
 device          bce             # Broadcom BCM5706/BCM5708 Gigabit Ethernet
 
-options TCP_SIGNATURE
+#device         natpt
 
-#options		PREEMPTION
-#options         NO_ADAPTIVE_MUTEXES
-options         ADAPTIVE_GIANT          # Giant mutex is adaptive.
+#options TCP_SIGNATURE
 
-# IPSEC filtering interface
-device 		enc
+#options         PREEMPTION
+
+device firmware
 
 device          lagg
 
-#option PF_WITH_LIBALIAS
+device          wlan_amrr
 
 # FireWire support
 device          firewire        # FireWire bus code
 device          sbp             # SCSI over FireWire (Requires scbus and da)
 device          fwe             # Ethernet over FireWire (non-standard!)
 
-device		safe
+options MROUTING
+
+# Additional cards
+device		uart			# uart -- driver for Universal Asynchronous Receiver/Transmitter (UART)
+device		bktr			# bktr -- Brooktree Bt848/849/878/879 and Pinnacle PCTV video capture
+device		ale				# ale -- Atheros AR8121/AR8113/AR8114 Gigabit/Fast Ethernet driver
+device		safe			# safe -- SafeNet crypto accelerator
+device		et				# et(4) for AGERE ET1310 fastE and gigE
+device		ed				# NE[12]000, SMC Ultra, 3c503, DS8390 cards
+device		mxge			# mxge - Myricom Myri10GE 10 Gigabit Ethernet adapter driver
+device		cxgb			# cxgb -- Chelsio T3 10 Gigabit Ethernet adapter driver
+device		igb				# igb -- Intel(R) PRO/1000 PCI Express Gigabit Ethernet adapter driver
+#device		ixgbe 			# http://www.nabble.com/kern-130476:-Error-in-compiling-kernel-with-device-ixgbe-td21424560.html
+device		ae				# ae -- Attansic/Atheros L2 FastEthernet controller driver
+device		crypto          # core crypto support
+device		cryptodev       # /dev/crypto for access to h/w
+device		hifn            # Hifn 7951, 7781, etc.
+device		ubsec           # Broadcom 5501, 5601, 58xx
+device		udav            # Davicom DM9601 USB Ethernet driver
+#options	HIFN_DEBUG      # enable debugging support: hw.hifn.debug
+#options	HIFN_RNDTEST    # enable rndtest support
+#device		rndtest         # FIPS 140-2 entropy tester
+
+options		IPSEC_NAT_T
+options		ALTQ_FAIRQ
+
+options 	COMPAT_FREEBSD7
+
+#options PRINTF_BUFR_SIZE	# fights garble printf on shutdown
+
+options FLOWTABLE
