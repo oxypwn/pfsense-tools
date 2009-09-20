@@ -52,7 +52,6 @@ options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
 #options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~215k to driver.
 
-device		apic			# I/O APIC
 device		acpi
 
 # Bus support.  Do not remove isa, even if you have no isa slots
@@ -118,9 +117,6 @@ device		ida		# Compaq Smart RAID
 #device		mlx		# Mylex DAC960 family
 device		pst		# Promise Supertrak SX6000
 device		twe		# 3ware ATA RAID
-
-# Floating point support - do not disable.
-device		npx
 
 # Power management support (see NOTES for more options)
 # device		apm
