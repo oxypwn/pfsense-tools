@@ -10,6 +10,10 @@ options 	KDB_TRACE
 
 include         DEFAULTS
 
+machine		i386
+cpu			I486_CPU
+cpu			I586_CPU
+cpu			I686_CPU
 ident		pfSense-embedded
 machine 	i386
 cpu 		I486_CPU
