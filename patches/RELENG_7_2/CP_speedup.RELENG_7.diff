@@ -189,7 +189,7 @@ diff -u -r1.2 if_ethersubr.c
  	 */
  	m->m_flags &= ~M_VLANTAG;
 -	m->m_flags &= ~(M_PROTOFLAGS);
-+	if (!(m->m_flags & M_FASTFWD_OURS))
++	if (!(m->m_flags & M_PROTO1))
 +		m->m_flags &= ~(M_PROTOFLAGS);
  	m_adj(m, ETHER_HDR_LEN);
  
