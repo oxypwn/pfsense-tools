@@ -69,3 +69,4 @@
 ~sys~realtek_8102el_dell_mini10v.diff~
 ~sys/netinet~tcp_input.c.diff~
 ~sys/net~if.c.diff~
+~~netstat_ifname_size.diff~
