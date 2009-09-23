@@ -996,11 +996,10 @@ cust_fixup_nanobsd() {
     cp $CVS_CO_DIR/etc/ttys_wrap \
             $PFSENSEBASEDIR/etc/ttys
 
-    #    To prevent collisions with the sio(4) driver, the uart(4) driver
-    #    uses different names for its device nodes. This means the
-    #    onboard serial port will now most likely be called "ttyu0"
-    #    instead of "ttyd0". You may need to reconfigure applications to
-    #    use the new device names.
+    #    When using the serial port as a boot console, be sure to update
+    #    /boot/device.hints and /etc/ttys before booting the new kernel.
+    #    If you forget to do so, you can still manually specify the hints
+    #    at the loader prompt:
 	echo 'set hint.uart.0.at="isa"' >> $CVS_CO_DIR/boot/device.hints
 	echo 'set hint.uart.0.port="0x3F8"' >> $CVS_CO_DIR/boot/device.hints
 	echo 'set hint.uart.0.flags="0x10"' >> $CVS_CO_DIR/boot/device.hints
