@@ -7,7 +7,6 @@ if [ -f ./pfsense_local.sh ]; then
 	. ./pfsense_local.sh
 fi
 
-cp pfsense_local.sh    $TOOLSDIR
 cp pfsense-build.conf  $TOOLSDIR
 
 mkdir -p $SRCDIR
