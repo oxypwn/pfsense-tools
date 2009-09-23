@@ -2,7 +2,7 @@
 
 if [ $# -lt 1 ]; then
 	echo 1>&2 Usage  : $0 ./set_version branch SUP_HOST ERROR_EMAIL_ADDRESS
-	echo 1>&2 example: $0 ./set_version HEAD cvsup.livebsd.com myemail@emails.com
+	echo 1>&2 example: $0 ./set_version HEAD cvsup.livebsd.org myemail@emails.com
 	exit 127
 fi
 
@@ -10,7 +10,7 @@ fi
 if [ "$2" != "" ]; then 
 	SUPHOST="$2"
 else 
-	SUPHOST="cvsup.livebsd.com"
+	SUPHOST="cvsup.livebsd.org"
 fi
 
 # Default EMAIL
