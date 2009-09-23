@@ -1021,7 +1021,7 @@ cust_fixup_nanobsd() {
 		sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
 
 		# Tell loader to use serial console early.
-		echo " -D" > ${PFSENSEBASEDIR}/boot.config
+		echo " -h" > ${PFSENSEBASEDIR}/boot.config
 	fi
 
 }
