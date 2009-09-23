@@ -1,17 +1,20 @@
 #!/bin/sh
 
+# Set manually
 TOOLSDIR=/home/pfsense/tools/builder_scripts/
 
-# Source pfsense_local.sh variables if possible
-if [ -f ./pfsense_local.sh ]; then
-	. ../../pfsense_local.sh
-fi
-
+# Copy pfsense-build.conf into TOOLSDIR
 cp pfsense-build.conf  $TOOLSDIR
 
+# cd $TOOLSDIR and read in pfsense_local.sh
+cd $TOOLSDIR
+
+. ./pfsense_local.sh
+
+# Ensure $SRCDIR exists
 mkdir -p $SRCDIR
 
-cd $TOOLSDIR
+# Start building
 ./clean_build.sh
 ./build_pfPorts.sh
 ./apply_kernel_patches.sh
