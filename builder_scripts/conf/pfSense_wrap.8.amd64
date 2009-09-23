@@ -129,9 +129,6 @@ device		cbb		# cardbus (yenta) bridge
 device		pccard		# PC Card (16-bit) bus
 device		cardbus		# CardBus (32-bit) bus
 
-# Serial (COM) ports
-#device		sio		# 8250, 16[45]50 based serial ports
-
 # Parallel port
 device		ppc
 device		ppbus		# Parallel port bus (required)
