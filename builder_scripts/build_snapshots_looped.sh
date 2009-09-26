@@ -57,6 +57,34 @@ while [ /bin/true ]; do
 			rm -f /tmp/pfSense_do_not_build_pfPorts
 		fi
 	fi
+	NANO_SIZE=`cat $PWD/pfsense-build.conf | grep FLASH_SIZE | cut -d'"' -f2`
+	# Loop through each builder run and alternate between image sizes.
+	# 512mb becomes 1g, 1g becomes 2g, 2g becomes 4g, 4g becomes 512m.
+	if [ "$NANO_SIZE" = "" ]; then
+		NANO_SIZE="512mb"
+	fi
+	NEW_NANO_SIZE="512mb"
+	case $NANO_SIZE in
+		"512mb")
+			NEW_NANO_SIZE="1g"
+		;;
+		"1g")
+			NEW_NANO_SIZE="2g"
+		;;
+		"2g")
+			NEW_NANO_SIZE="4g"
+		;;
+		"4g")
+			NEW_NANO_SIZE="512mb"
+		;;
+	esac
+	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
+	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE > /tmp/pfsense-build.conf
+	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
+	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
+	echo ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
+	echo ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
+	echo ">>> [nanoo] New media size has been set to: $NANO_MEDIASIZE"
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`

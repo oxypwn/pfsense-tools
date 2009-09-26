@@ -226,9 +226,8 @@ build_updates() {
 
 build_nano() {
 	cd $BUILDERSCRIPTS
-	echo "512mb" > /tmp/nanosize.txt
 	./clean_build.sh
-	./build_nano.sh 512mb
+	./build_nano.sh
 }
 
 rebuild_nano() {
@@ -242,20 +241,8 @@ build_pfPorts() {
 }
 
 donanobuilds() {
-	# Build nanobsd 512
+	# Build nanobsd
 	build_nano
-	# Copy nanobsd to staging areas
-	copy_to_staging_nanobsd
-	# Build nanobsd 1G
-	rebuild_nano 1G
-	# Copy nanobsd to staging areas
-	copy_to_staging_nanobsd
-	# Build nanobsd 2G
-	rebuild_nano 2G
-	# Copy nanobsd to staging areas
-	copy_to_staging_nanobsd
-	# Build nanobsd 4G
-	rebuild_nano 4G
 	# Copy nanobsd to staging areas
 	copy_to_staging_nanobsd
 }
@@ -272,11 +259,7 @@ dobuilds() {
 	build_updates
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
-	# Build DevISO
-	#build_deviso
-	# Copy deviso to staging area
-	#copy_to_staging_deviso_updates
-	# Build nanobsd images
+	# Build nanobsd
 	donanobuilds	
 }
 
