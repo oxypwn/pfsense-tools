@@ -1,7 +1,9 @@
 /*
 	$Id$
-	part of m0n0wall (http://m0n0.ch/wall)
-	
+	part of pfSense (http://www.pfsense.org)
+	originally part of m0n0wall (http://m0n0.ch/wall)
+	Copyright (C) 2009 Scott Ullrich <sullrich@pfsense.org>
+	Copyright (C) 2009 Ermal Luci <ermal@pfsense.org>
 	Copyright (C) 2007 Manuel Kasper <mk@neon1.net>.
 	All rights reserved.
 	
@@ -26,6 +28,7 @@
 	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 	POSSIBILITY OF SUCH DAMAGE.
 */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -47,15 +50,14 @@
 	before.
 	
 	Usage:
-		dnswatch pidfile interval command file
+		dnswatch pidfile interval command hostfile
 		
 	interval is in seconds; for best results, set this to be slightly larger
 	than the TTL of the DNS records being watched
 */
 
 void usage(void) {
-	
-	fprintf(stderr, "usage: dnswatch pidfile interval command file\n");
+	fprintf(stderr, "usage: dnswatch pidfile interval command hostfile\n");
 	exit(4);
 }
 
@@ -90,12 +92,12 @@ int main(int argc, char *argv[]) {
 	int interval;
 	char *file;
 	char *command;
-        properties list, props;
+	properties list, props;
 	struct in_addr *ips;
 	int fd;
 	FILE *pidfd;
-	
-	if (argc > 5)
+
+	if (argc > 5 || argc < 4)
 		usage();
 
 	interval = atoi(argv[2]);
@@ -118,48 +120,58 @@ int main(int argc, char *argv[]) {
 		fclose(pidfd);
 	}
 	
-        fd = open(file, O_RDONLY);
-        if (fd == -1) {
-                syslog(LOG_ERR, "unable to open configuration file '%s'", file);
-                exit(1);
-        }
+	// Attempt to open configuration file which lists hosts
+	fd = open(file, O_RDONLY);
+	if (fd == -1) {
+		syslog(LOG_ERR, "unable to open configuration file '%s'", file);
+		exit(1);
+	}
 
-        props = properties_read(fd);
-        if (props == NULL) {
-                syslog(LOG_ERR, "error reading configuration file");
-                exit(1);
-        }
+	// Read hostnames in that are in the configuration file
+	props = properties_read(fd);
+	if (props == NULL) {
+		syslog(LOG_ERR, "error reading configuration file");
+		exit(1);
+	}
+	
+	// Close open file handle for dnswatch configuration
+	close(fd);
 
 	int hosts = 1;
 	list = props;
-       	while (list != NULL) {
+	while (list != NULL) {
 		list = list->next;
 		hosts++;
 	}
 
+	// Create a place to hold resolved ip addresses
 	ips = calloc(hosts, sizeof(struct in_addr));
 	if (ips == NULL) {
 		fprintf(stderr, "calloc failed\n");
 		exit(2);
 	}
-	
 
+	// Loop forever checking to see if a hostname changes
 	while (1) {
 		int i = 0;
 		int changes = 0;
 		list = props;
-        	while (list != NULL) {
+		while (list != NULL) {
 			changes += check_hostname(list->name, &ips[i]);
-        	        list = list->next;
+			list = list->next;
 			i++;
-	        }
+		}
 		
+		// If the hostname changed, run the specified command
 		if (changes > 0)
 			system(command);
 		
+		// Sleep until next run
 		sleep(interval);
 	}
-	
+
+	// Release memory before exiting
 	properties_free(props);
+
 	return 0;
 }
