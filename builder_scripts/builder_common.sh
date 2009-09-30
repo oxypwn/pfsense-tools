@@ -2477,7 +2477,7 @@ update_freebsd_sources_and_apply_patches() {
 
 	echo -n ">>> Applying patches, please wait..."
 	# Loop through and patch files
-	for LINE in `cat ${PFSPATCHFILE}`
+	for LINE in `cat ${BUILDER_SCRIPTS}/${PFSPATCHFILE}`
 	do
 		PATCH_DEPTH=`echo $LINE | cut -d~ -f1`
 		PATCH_DIRECTORY=`echo $LINE | cut -d~ -f2`
