@@ -69,3 +69,4 @@
 ~sys/dev/usb/~usbdevs-lcd-releng_6.diff~
 ~sys/netgraph~ng_iface.c.diff~
 ~contrib/pf/tftp-proxy~filter.c.diff~
+~sys/kern~sched_ule.c.diff~
