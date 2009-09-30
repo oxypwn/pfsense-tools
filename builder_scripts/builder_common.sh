@@ -996,14 +996,16 @@ cust_fixup_nanobsd() {
     cp $CVS_CO_DIR/etc/ttys_wrap \
             $PFSENSEBASEDIR/etc/ttys
 
-    #    When using the serial port as a boot console, be sure to update
-    #    /boot/device.hints and /etc/ttys before booting the new kernel.
-    #    If you forget to do so, you can still manually specify the hints
-    #    at the loader prompt:
-	echo 'set hint.uart.0.at="isa"' >> $CVS_CO_DIR/boot/device.hints
-	echo 'set hint.uart.0.port="0x3F8"' >> $CVS_CO_DIR/boot/device.hints
-	echo 'set hint.uart.0.flags="0x10"' >> $CVS_CO_DIR/boot/device.hints
-	echo 'set hint.uart.0.irq="4"' >> $CVS_CO_DIR/boot/device.hints
+	if [ "$FBSD_VERSION" = "8" ]; then
+	    #    When using the serial port as a boot console, be sure to update
+	    #    /boot/device.hints and /etc/ttys before booting the new kernel.
+	    #    If you forget to do so, you can still manually specify the hints
+	    #    at the loader prompt:
+		echo 'set hint.uart.0.at="isa"' >> $CVS_CO_DIR/boot/device.hints
+		echo 'set hint.uart.0.port="0x3F8"' >> $CVS_CO_DIR/boot/device.hints
+		echo 'set hint.uart.0.flags="0x10"' >> $CVS_CO_DIR/boot/device.hints
+		echo 'set hint.uart.0.irq="4"' >> $CVS_CO_DIR/boot/device.hints
+	fi
 
     echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
     echo "" > $PFSENSEBASEDIR/etc/motd
