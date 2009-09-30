@@ -150,12 +150,16 @@ for PORT in $PORTSTOBUILD; do
 	PORT_T=`echo $PORT | sed "s/		/	/g"`
 	PORT_NAME=`echo $PORT_T | awk '{ print $1 }'`
 	PORT_LOCATION=`echo $PORT_T | awk '{ print $2 }'`
-	if [ "$PORT_NAME" = "grub" ]; then
-		if [ "$ARCH" = "mips" ]; then
-			echo ">>> Skipping grub on MIPS platform..."
-			continue;
-		fi
-	fi
+	MIPS_DO_NOT_BUILD="grub \
+	beep"
+	for DONOTBUILD in $MIPS_DO_NOT_BUILD; do
+		if [ "$PORT_NAME" = "$DONOTBUILD" ]; then
+			if [ "$ARCH" = "mips" ]; then
+				echo ">>> Skipping $PORT_NAME on MIPS platform..."
+				continue;
+			fi
+		fi		
+	done
 	if [ -d "$PORT_LOCATION" ]; then
 		echo "=== Found port location $PORT_LOCATION.  Copying pfPorts/$PORT and building..."
 		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
