@@ -2445,7 +2445,7 @@ update_freebsd_sources_and_apply_patches() {
 	# Hopefully this MIPS checkout code is temporary
 	# until the FreeBSD devs get the MIPS work merged
 	# into the main FreeBSD tree.
-	if [ "$ARCH" = "MIPS" ]; then
+	if [ "$ARCH" = "mips" ]; then
 
 		if [ ! -f /usr/local/bin/svn ]; then
 			echo ">>> ERROR!  MIPS builds currently require SVN"
