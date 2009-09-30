@@ -2458,7 +2458,6 @@ update_freebsd_sources_and_apply_patches() {
 			echo ">>> FreeBSD MIPS tree exists, running svn up..."
 			cd $SRCDIR && svn up
 		fi
-		return
 
 	else
 
