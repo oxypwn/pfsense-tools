@@ -990,6 +990,8 @@ fixup_updates() {
 # specific to nanobsd builds
 cust_fixup_nanobsd() {
 
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	
 	echo ">>> Fixing up NanoBSD Specific items..."
     cp $CVS_CO_DIR/boot/loader.conf_wrap \
             $PFSENSEBASEDIR/boot/loader.conf
@@ -1021,7 +1023,6 @@ cust_fixup_nanobsd() {
 
 	echo "-h" >> $PFSENSEBASEDIR/boot.config
 
-	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "8" ]; then
 		# Enable getty on console
 		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
