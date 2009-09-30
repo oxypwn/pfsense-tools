@@ -25,131 +25,78 @@ while getopts J:c o; do
 	esac
 done
 
-# Ensure file exists
-touch /var/db/pfS_portcache
-
 echo ">>> Removing previous PHP environment..."
 find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
 find /usr/local -name extensions.ini -exec rm {} \;
 rm -rf /var/db/pkg/php*
 
-set_cache() {
-	# Strip dynamic values
-	if [ "$2" != "" ]; then
-		echo ">>> Setting port cache $1 to $2"
-		cat /var/db/pfS_portcache | \
-			grep -v "'$1'" > /tmp/pfS_portcache
-		echo "'$1'			$2" >> /tmp/pfS_portcache
-		mv /tmp/pfS_portcache /var/db/pfS_portcache
-	fi
-}
-
-PORTSTOBUILD="grub \
-	apinger \
-	rrdtool \
-	ftpsesame \
-	atareinit \
-	cpdup \
-	beep \
-	check_reload_status \
-	choparp \
-	dnsmasq \
-	expiretable \
-	ifstated \
-	ipfw-classifyd \
-	igmpproxy \
-	ipsec-tools-natt \
-	isc-dhcp30-server \
-	isc-dhcp30-relay \
-	lighttpd \
-	minicron \
-	miniupnpd \
-	mpd4 \
-	olsrd \
-	pftop \
-	libevent \
-	pftpx \
-	relayd \
-	fping \
-	ssh_tunnel_shell \
-	sshlockout_pf \
-	stats \
-	vtsh \
-	php5 \
-	pecl-APC \
-	php5-bcmath \
-	php5-bz2 \
-	php5-ctype \
-	php5-curl \
-	php5-gettext \
-	php5-ldap \
-	php5-mbstring \
-	php5-mhash \
-	php5-mysql \
-	php5-openssl \
-	php5-pcntl \
-	php5-pcre \
-	php5-posix \
-	php5-pdo \
-	php5-pdo_sqlite \
-	pecl-radius \
-	php5-readline \
-	php5-session \
-	php5-simplexml \
-	php5-sockets \
-	php5-shmop \
-	php5-sysvmsg \
-	php5-sysvsem \
-	php5-sysvshm \
-	php5-sqlite \
-	php5-tokenizer \
-	php5-xml \
-	php5-zlib \
-	php5-xmlreader \
-	php5-xmlwriter \
-	php-xdebug \
-	php-suhosin \
-	openvpn \
-	syslog-ng \
-	zip \
-	links \
-	dnswatch \
-	voucher	\
-	verifysig \
-	openntpd \
-	ftp-proxy \
-	pecl-uploadprogress \
-	php5-json \
-	rate \
-	php5-install-all	\
-	gzsig	\
-	voucher	\
-	wol"
-
-if [ ! -f /usr/ports/INDEX-7.bz2 ]; then
-	echo -n ">>> Fetching index..."
-	(cd /usr/ports && make fetchindex)
-	echo "Done!"
-fi
-
-# pfSense is english based otherwise find will find
-# chinese ports first.
-rm -rf /usr/ports/chinese/links
-
-echo ">>> Locating ports (this will take a while)..."
-for PORT in $PORTSTOBUILD; do
-	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
-	if [ "${DOESPORTEXIST}" = "" ]; then
-		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
-		set_cache ${PORT} ${DOESPORTEXIST}
-	fi
-	if [ "${DOESPORTEXIST}" != "" ]; then
-		( cd $DOESPORTEXIST && make clean ) | egrep -B3 -A3 -wi '(error)'
-	else
-		( cd /home/pfsense/tools/pfPorts/$PORT && make clean) | egrep -B3 -A3 -wi '(error)'
-	fi
-done
-
+PORTSTOBUILD="grub	/usr/ports/sysutils/grub \
+apinger				/usr/ports/net/apinger \
+rrdtool				/usr/ports/databases/rrdtool \
+ftpsesame			/usr/ports/ftp/ftpsesame \
+cpdup				/usr/ports/sysutils/cpdup \
+beep				/usr/ports/audio/beep \
+choparp				/usr/ports/net-mgmt/choparp \
+dnsmasq				/usr/ports/dns/dnsmasq \
+expiretable			/usr/ports/security/expiretable \
+ifstated			/usr/ports/net/ifstated \
+igmpproxy			/usr/ports/net/igmpproxy \
+isc-dhcp30-server	/usr/ports/net/isc-dhcp30-server \
+isc-dhcp30-relay	/usr/ports/net/isc-dhcp30-relay \
+lighttpd			/usr/ports/www/lighttpd \
+miniupnpd			/usr/ports/net/miniupnpd \
+mpd4				/usr/ports/net/mpd4 \
+olsrd				/usr/ports/net/olsrd \
+pftop				/usr/ports/sysutils/pftop \
+libevent			/usr/ports/devel/libevent \
+pftpx				/usr/ports/ftp/pftpx \
+relayd				/usr/ports/net/relayd \
+fping				/usr/ports/net/fping \
+php5				/usr/ports/lang/php5 \
+pecl-APC			/usr/ports/www/pecl-APC \
+php5-bcmath			/usr/ports/math/php5-bcmath \
+php5-bz2			/usr/ports/archivers/php5-bz2 \
+php5-ctype			/usr/ports/textproc/php5-ctype \
+php5-curl			/usr/ports/ftp/php5-curl \
+php5-gettext		/usr/ports/devel/php5-gettext \
+php5-ldap			/usr/ports/net/php5-ldap \
+php5-mbstring		/usr/ports/converters/php5-mbstring \
+php5-mhash			/usr/ports/security/php5-mhash \
+php5-mysql			/usr/ports/databases/php5-mysql \
+php5-openssl		/usr/ports/security/php5-openssl \
+php5-pcntl			/usr/ports/devel/php5-pcntl \
+php5-pcre			/usr/ports/devel/php5-pcre \
+php5-posix			/usr/ports/sysutils/php5-posix \
+php5-pdo			/usr/ports/databases/php5-pdo \
+php5-pdo_sqlite		/usr/ports/databases/php5-pdo_sqlite \
+pecl-radius			/usr/ports/net/pecl-radius \
+php5-readline		/usr/ports/devel/php5-readline \
+php5-session		/usr/ports/www/php5-session \
+php5-simplexml		/usr/ports/textproc/php5-simplexml \
+php5-sockets		/usr/ports/net/php5-sockets \
+php5-shmop			/usr/ports/devel/php5-shmop \
+php5-sysvmsg		/usr/ports/devel/php5-sysvmsg \
+php5-sysvsem		/usr/ports/devel/php5-sysvsem \
+php5-sysvshm		/usr/ports/devel/php5-sysvshm \
+php5-sqlite			/usr/ports/databases/php5-sqlite \
+php5-tokenizer		/usr/ports/devel/php5-tokenizer \
+php5-xml			/usr/ports/textproc/php5-xml \
+php5-zlib			/usr/ports/archivers/php5-zlib \
+php5-xmlreader		/usr/ports/textproc/php5-xmlreader \
+php5-xmlwriter		/usr/ports/textproc/php5-xmlwriter \
+php-xdebug			/usr/ports/devel/php-xdebug \
+php-suhosin			/usr/ports/security/php-suhosin \
+openvpn				/usr/ports/security/openvpn \
+syslog-ng			/usr/ports/sysutils/syslog-ng \
+zip					/usr/ports/archivers/zip \
+links				/usr/ports/www/links \
+openntpd			/usr/ports/net/openntpd \
+ftp-proxy			/usr/ports/ftp/ftp-proxy \
+pecl-uploadprogress	/usr/ports/devel/pecl-uploadprogress \
+php5-json			/usr/ports/devel/php5-json \
+rate				/usr/ports/net-mgmt/rate \
+wol					/usr/ports/net/wol"
+	
 clean_make_install() {
 	# Architecture, supported ARCH values are:
 	#  Tier 1: i386, AMD64, and PC98
@@ -195,34 +142,60 @@ clean_build_install_clean() {
 	clean_make_install $PORTPATH
 }
 
+# Change the for seperator to use C/R instead of whitespace
+oIFS=$IFS
+IFS="
+"
 for PORT in $PORTSTOBUILD; do
-	echo ">>> Building $PORT..."
-	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
-	if [ "${DOESPORTEXIST}" = "" ]; then
-		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
-		set_cache ${PORT} ${DOESPORTEXIST}
-	fi
-	if [ "${DOESPORTEXIST}" != "" ]; then
-		echo "Found port.  Copying and building..."
-		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
-			rm -rf $DOESPORTEXIST
-			mkdir -p $DOESPORTEXIST
+	PORT_T=`echo $PORT | sed "s/		/	/g"`
+	PORT_NAME=`echo $PORT_T | awk '{ print $1 }'`
+	PORT_LOCATION=`echo $PORT_T | awk '{ print $2 }'`
+	if [ "$PORT_NAME" = "grub" ]; then
+		if [ "$ARCH" = "mips" ]; then
+			echo ">>> Skipping grub on MIPS platform..."
+			continue;
 		fi
-		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null
-		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
-		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
+	fi
+	if [ -d "$PORT_LOCATION" ]; then
+		echo "=== Found port location $PORT_LOCATION.  Copying pfPorts/$PORT and building..."
+		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
+			rm -rf $PORT_LOCATION
+			mkdir -p $PORT_LOCATION
+		fi
+		rm -rf /home/pfsense/tools/pfPorts/$PORT_NAME/work 2>/dev/null
+		cp -R /home/pfsense/tools/pfPorts/$PORT_NAME $PORT_LOCATION/../
+		PORTSUFFIX=`echo $PORT_LOCATION | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
-			clean_build_install_clean $DOESPORTEXIST $MAKEJ_PORTS
+			# Return the seperator back to its original value
+			IFS=$oIFS
+			clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
+			# Change the for seperator to use C/R instead of whitespace
+			oIFS=$IFS
+			IFS="
+"
 		else
-			echo ">>> Could not Locate PORTSUFFIX for $DOESPORTEXIST"
+			echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
 		fi
 	else
-		clean_build_install_clean /home/pfsense/tools/pfPorts/$PORT
+		# Return the seperator back to its original value
+		IFS=$oIFS
+		clean_build_install_clean /home/pfsense/tools/pfPorts/$PORT_LOCATION $MAKEJ_PORTS
+		# Change the for seperator to use C/R instead of whitespace
+		oIFS=$IFS
+		IFS="
+"
 	fi
 done
+# Change the for seperator to use C/R instead of whitespace
+oIFS=$IFS
+IFS="
+"
 
 echo ">>> Ports with failures: `cat /tmp/pfPort_build_failures | wc -l`"
 cat /tmp/pfPort_build_failures
 echo
 
+sleep 1
+
+# Change back to original directory
 cd $CURRENTDIR
