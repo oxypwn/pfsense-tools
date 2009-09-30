@@ -30,71 +30,71 @@ find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/loca
 find /usr/local -name extensions.ini -exec rm {} \;
 rm -rf /var/db/pkg/php*
 
-PORTSTOBUILD="grub	/usr/ports/sysutils/grub \
-apinger				/usr/ports/net/apinger \
-rrdtool				/usr/ports/databases/rrdtool \
-ftpsesame			/usr/ports/ftp/ftpsesame \
-cpdup				/usr/ports/sysutils/cpdup \
-beep				/usr/ports/audio/beep \
-choparp				/usr/ports/net-mgmt/choparp \
-dnsmasq				/usr/ports/dns/dnsmasq \
-expiretable			/usr/ports/security/expiretable \
-ifstated			/usr/ports/net/ifstated \
-igmpproxy			/usr/ports/net/igmpproxy \
-isc-dhcp30-server	/usr/ports/net/isc-dhcp30-server \
-isc-dhcp30-relay	/usr/ports/net/isc-dhcp30-relay \
-lighttpd			/usr/ports/www/lighttpd \
-miniupnpd			/usr/ports/net/miniupnpd \
-mpd4				/usr/ports/net/mpd4 \
-olsrd				/usr/ports/net/olsrd \
-pftop				/usr/ports/sysutils/pftop \
-libevent			/usr/ports/devel/libevent \
-pftpx				/usr/ports/ftp/pftpx \
-relayd				/usr/ports/net/relayd \
-fping				/usr/ports/net/fping \
-php5				/usr/ports/lang/php5 \
-pecl-APC			/usr/ports/www/pecl-APC \
-php5-bcmath			/usr/ports/math/php5-bcmath \
-php5-bz2			/usr/ports/archivers/php5-bz2 \
-php5-ctype			/usr/ports/textproc/php5-ctype \
-php5-curl			/usr/ports/ftp/php5-curl \
-php5-gettext		/usr/ports/devel/php5-gettext \
-php5-ldap			/usr/ports/net/php5-ldap \
-php5-mbstring		/usr/ports/converters/php5-mbstring \
-php5-mhash			/usr/ports/security/php5-mhash \
-php5-mysql			/usr/ports/databases/php5-mysql \
-php5-openssl		/usr/ports/security/php5-openssl \
-php5-pcntl			/usr/ports/devel/php5-pcntl \
-php5-pcre			/usr/ports/devel/php5-pcre \
-php5-posix			/usr/ports/sysutils/php5-posix \
-php5-pdo			/usr/ports/databases/php5-pdo \
-php5-pdo_sqlite		/usr/ports/databases/php5-pdo_sqlite \
-pecl-radius			/usr/ports/net/pecl-radius \
-php5-readline		/usr/ports/devel/php5-readline \
-php5-session		/usr/ports/www/php5-session \
-php5-simplexml		/usr/ports/textproc/php5-simplexml \
-php5-sockets		/usr/ports/net/php5-sockets \
-php5-shmop			/usr/ports/devel/php5-shmop \
-php5-sysvmsg		/usr/ports/devel/php5-sysvmsg \
-php5-sysvsem		/usr/ports/devel/php5-sysvsem \
-php5-sysvshm		/usr/ports/devel/php5-sysvshm \
-php5-sqlite			/usr/ports/databases/php5-sqlite \
-php5-tokenizer		/usr/ports/devel/php5-tokenizer \
-php5-xml			/usr/ports/textproc/php5-xml \
-php5-zlib			/usr/ports/archivers/php5-zlib \
-php5-xmlreader		/usr/ports/textproc/php5-xmlreader \
-php5-xmlwriter		/usr/ports/textproc/php5-xmlwriter \
-php-xdebug			/usr/ports/devel/php-xdebug \
-php-suhosin			/usr/ports/security/php-suhosin \
-openvpn				/usr/ports/security/openvpn \
-syslog-ng			/usr/ports/sysutils/syslog-ng \
-zip					/usr/ports/archivers/zip \
-links				/usr/ports/www/links \
-openntpd			/usr/ports/net/openntpd \
-ftp-proxy			/usr/ports/ftp/ftp-proxy \
-pecl-uploadprogress	/usr/ports/devel/pecl-uploadprogress \
-php5-json			/usr/ports/devel/php5-json \
-rate				/usr/ports/net-mgmt/rate \
+PORTSTOBUILD="grub	/usr/ports/sysutils/grub 
+apinger				/usr/ports/net/apinger 
+rrdtool				/usr/ports/databases/rrdtool 
+ftpsesame			/usr/ports/ftp/ftpsesame 
+cpdup				/usr/ports/sysutils/cpdup 
+beep				/usr/ports/audio/beep 
+choparp				/usr/ports/net-mgmt/choparp 
+dnsmasq				/usr/ports/dns/dnsmasq 
+expiretable			/usr/ports/security/expiretable 
+ifstated			/usr/ports/net/ifstated 
+igmpproxy			/usr/ports/net/igmpproxy 
+isc-dhcp30-server	/usr/ports/net/isc-dhcp30-server 
+isc-dhcp30-relay	/usr/ports/net/isc-dhcp30-relay 
+lighttpd			/usr/ports/www/lighttpd 
+miniupnpd			/usr/ports/net/miniupnpd 
+mpd4				/usr/ports/net/mpd4 
+olsrd				/usr/ports/net/olsrd 
+pftop				/usr/ports/sysutils/pftop 
+libevent			/usr/ports/devel/libevent 
+pftpx				/usr/ports/ftp/pftpx 
+relayd				/usr/ports/net/relayd 
+fping				/usr/ports/net/fping 
+php5				/usr/ports/lang/php5 
+pecl-APC			/usr/ports/www/pecl-APC 
+php5-bcmath			/usr/ports/math/php5-bcmath 
+php5-bz2			/usr/ports/archivers/php5-bz2 
+php5-ctype			/usr/ports/textproc/php5-ctype 
+php5-curl			/usr/ports/ftp/php5-curl 
+php5-gettext		/usr/ports/devel/php5-gettext 
+php5-ldap			/usr/ports/net/php5-ldap 
+php5-mbstring		/usr/ports/converters/php5-mbstring 
+php5-mhash			/usr/ports/security/php5-mhash 
+php5-mysql			/usr/ports/databases/php5-mysql 
+php5-openssl		/usr/ports/security/php5-openssl 
+php5-pcntl			/usr/ports/devel/php5-pcntl 
+php5-pcre			/usr/ports/devel/php5-pcre 
+php5-posix			/usr/ports/sysutils/php5-posix 
+php5-pdo			/usr/ports/databases/php5-pdo 
+php5-pdo_sqlite		/usr/ports/databases/php5-pdo_sqlite 
+pecl-radius			/usr/ports/net/pecl-radius 
+php5-readline		/usr/ports/devel/php5-readline 
+php5-session		/usr/ports/www/php5-session 
+php5-simplexml		/usr/ports/textproc/php5-simplexml 
+php5-sockets		/usr/ports/net/php5-sockets 
+php5-shmop			/usr/ports/devel/php5-shmop 
+php5-sysvmsg		/usr/ports/devel/php5-sysvmsg 
+php5-sysvsem		/usr/ports/devel/php5-sysvsem 
+php5-sysvshm		/usr/ports/devel/php5-sysvshm 
+php5-sqlite			/usr/ports/databases/php5-sqlite 
+php5-tokenizer		/usr/ports/devel/php5-tokenizer 
+php5-xml			/usr/ports/textproc/php5-xml 
+php5-zlib			/usr/ports/archivers/php5-zlib 
+php5-xmlreader		/usr/ports/textproc/php5-xmlreader 
+php5-xmlwriter		/usr/ports/textproc/php5-xmlwriter 
+php-xdebug			/usr/ports/devel/php-xdebug 
+php-suhosin			/usr/ports/security/php-suhosin 
+openvpn				/usr/ports/security/openvpn 
+syslog-ng			/usr/ports/sysutils/syslog-ng 
+zip					/usr/ports/archivers/zip 
+links				/usr/ports/www/links 
+openntpd			/usr/ports/net/openntpd 
+ftp-proxy			/usr/ports/ftp/ftp-proxy 
+pecl-uploadprogress	/usr/ports/devel/pecl-uploadprogress 
+php5-json			/usr/ports/devel/php5-json 
+rate				/usr/ports/net-mgmt/rate 
 wol					/usr/ports/net/wol"
 	
 clean_make_install() {
@@ -150,7 +150,7 @@ for PORT in $PORTSTOBUILD; do
 	PORT_T=`echo $PORT | sed "s/		/	/g"`
 	PORT_NAME=`echo $PORT_T | awk '{ print $1 }'`
 	PORT_LOCATION=`echo $PORT_T | awk '{ print $2 }'`
-	MIPS_DO_NOT_BUILD="grub \
+	MIPS_DO_NOT_BUILD="grub 
 	beep"
 	for DONOTBUILD in $MIPS_DO_NOT_BUILD; do
 		if [ "$PORT_NAME" = "$DONOTBUILD" ]; then
