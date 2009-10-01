@@ -2445,35 +2445,14 @@ update_freebsd_sources_and_apply_patches() {
 		fi
 	done
 
-	# Hopefully this MIPS checkout code is temporary
-	# until the FreeBSD devs get the MIPS work merged
-	# into the main FreeBSD tree.
-	if [ "$ARCH" = "mips" ]; then
-
-		if [ ! -f /usr/local/bin/svn ]; then
-			echo ">>> ERROR!  MIPS builds currently require SVN"
-			print_error_pfS			
-		fi
-		if [ ! -d $SRCDIR/sys/mips ]; then
-			echo ">>> Checking out MIPS SVN tree..."
-			svn co svn://svn.freebsd.org/base/projects/mips $SRCDIR
-		else 
-			echo ">>> FreeBSD MIPS tree exists, running svn up..."
-			cd $SRCDIR && svn up
-		fi
-
-	else
-
-		# CVSUp freebsd version -- this MUST be after Loop through and remove files
-		BASENAMESUPFILE=`basename $SUPFILE`
-		echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
-		(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
-			grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
-			| grep -v "error\." | grep -v "opensolaris" | \
-			grep -v "httpd-error"
-		echo "Done!"
-
-	fi
+	# CVSUp freebsd version -- this MUST be after Loop through and remove files
+	BASENAMESUPFILE=`basename $SUPFILE`
+	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
+	(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
+		grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+		| grep -v "error\." | grep -v "opensolaris" | \
+		grep -v "httpd-error"
+	echo "Done!"
 
 	echo ">>> Removing old patch rejects..."
 	find $SRCDIR -name "*.rej" -exec rm {} \;
