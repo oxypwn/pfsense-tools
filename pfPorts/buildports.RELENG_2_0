@@ -38,6 +38,7 @@ if [ "$REMOVE_PHP" = "true" ];
 	rm -rf /var/db/pkg/php*
 fi
 
+# Port name         Path to port                            Verify install filename
 PORTSTOBUILD="grub	/usr/ports/sysutils/grub				/usr/local/sbin/grub
 apinger				/usr/ports/net/apinger					/usr/local/sbin/apinger
 rrdtool				/usr/ports/databases/rrdtool			/usr/local/bin/rrdtool
