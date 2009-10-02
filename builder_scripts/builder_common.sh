@@ -563,8 +563,8 @@ recompile_pfPorts() {
 			MKCNF="pfPorts"
 		fi
 		if [ "$ARCH" = "mips" ]; then
-			echo "WITHOUT_PERL_MALLOC=1" >> $PFSENSEBASEDIR/etc/make.conf
-			echo "TARGET_BIG_ENDIAN=yes" >> $PFSENSEBASEDIR/etc/make.conf
+			echo "WITHOUT_PERL_MALLOC=1" >> /etc/make.conf
+			echo "TARGET_BIG_ENDIAN=yes" >> /etc/make.conf
 		fi
 		export FORCE_PKG_REGISTER=yo
 
