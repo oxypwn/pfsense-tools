@@ -1,5 +1,5 @@
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/gnu/lib/libgcc/Makefile svn/mips/gnu/lib/libgcc/Makefile
---- svn/stable/8/gnu/lib/libgcc/Makefile	2009-09-30 19:36:14.000000000 -0700
+diff -I '.*' -Naur releng8/gnu/lib/libgcc/Makefile svn/mips/gnu/lib/libgcc/Makefile
+--- releng8/src/gnu/lib/libgcc/Makefile	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/gnu/lib/libgcc/Makefile	2009-08-04 11:23:42.000000000 -0700
 @@ -115,6 +115,10 @@
  #	_fixsfsi _fixunssfsi _floatdidf _floatdisf
@@ -21,8 +21,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/gnu/lib/libgcc/Makefile svn/m
      ${TARGET_ARCH} == "powerpc" || ${TARGET_ARCH} == "sparc64"
  
  FPBIT_CFLAGS =	-DFINE_GRAINED_LIBRARIES -DFLOAT
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/gnu/usr.bin/binutils/Makefile.inc0 svn/mips/gnu/usr.bin/binutils/Makefile.inc0
---- svn/stable/8/gnu/usr.bin/binutils/Makefile.inc0	2009-09-30 19:36:11.000000000 -0700
+diff -I '.*' -Naur releng8/gnu/usr.bin/binutils/Makefile.inc0 svn/mips/gnu/usr.bin/binutils/Makefile.inc0
+--- releng8/src/gnu/usr.bin/binutils/Makefile.inc0	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/gnu/usr.bin/binutils/Makefile.inc0	2009-07-02 18:44:05.000000000 -0700
 @@ -22,7 +22,8 @@
  RELSRC=	${RELTOP}/../../../contrib/binutils
@@ -34,8 +34,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/gnu/usr.bin/binutils/Makefile
  CFLAGS+= -DBFD_DEFAULT_TARGET_SIZE=32
  .else
  CFLAGS+= -DBFD_DEFAULT_TARGET_SIZE=64
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/gnu/usr.bin/binutils/ld/Makefile.mips svn/mips/gnu/usr.bin/binutils/ld/Makefile.mips
---- svn/stable/8/gnu/usr.bin/binutils/ld/Makefile.mips	2009-09-30 19:36:11.000000000 -0700
+diff -I '.*' -Naur releng8/gnu/usr.bin/binutils/ld/Makefile.mips svn/mips/gnu/usr.bin/binutils/ld/Makefile.mips
+--- releng8/src/gnu/usr.bin/binutils/ld/Makefile.mips	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/gnu/usr.bin/binutils/ld/Makefile.mips	2009-08-04 10:46:46.000000000 -0700
 @@ -10,15 +10,22 @@
  NATIVE_EMULATION=elf${_sz}ltsmip_fbsd
@@ -67,8 +67,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/gnu/usr.bin/binutils/ld/Makef
 +	    ${abi} ""  no ${abi} ${TARGET_TUPLE} \
 +	    ${.CURDIR}/${abi}.sh
 +.endfor
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/gnu/usr.bin/cc/Makefile.tgt svn/mips/gnu/usr.bin/cc/Makefile.tgt
---- svn/stable/8/gnu/usr.bin/cc/Makefile.tgt	2009-09-30 19:36:10.000000000 -0700
+diff -I '.*' -Naur releng8/gnu/usr.bin/cc/Makefile.tgt svn/mips/gnu/usr.bin/cc/Makefile.tgt
+--- releng8/src/gnu/usr.bin/cc/Makefile.tgt	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/gnu/usr.bin/cc/Makefile.tgt	2009-08-04 10:46:46.000000000 -0700
 @@ -15,9 +15,6 @@
  .if ${TARGET_ARCH} == "ia64"
@@ -80,8 +80,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/gnu/usr.bin/cc/Makefile.tgt s
  .if ${TARGET_ARCH} == "sparc64"
  TARGET_CPU_DEFAULT= TARGET_CPU_ultrasparc
  .endif
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/Makefile svn/mips/lib/libc/Makefile
---- svn/stable/8/lib/libc/Makefile	2009-09-30 19:39:24.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libc/Makefile svn/mips/lib/libc/Makefile
+--- releng8/src/lib/libc/Makefile	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libc/Makefile	2009-08-04 11:24:17.000000000 -0700
 @@ -64,7 +64,7 @@
  .include "${.CURDIR}/rpc/Makefile.inc"
@@ -92,8 +92,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/Makefile svn/mips/li
  .include "${.CURDIR}/softfloat/Makefile.inc"
  .endif
  .if ${MK_NIS} != "no"
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/Symbol.map svn/mips/lib/libc/mips/Symbol.map
---- svn/stable/8/lib/libc/mips/Symbol.map	2009-09-30 19:39:21.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libc/mips/Symbol.map svn/mips/lib/libc/mips/Symbol.map
+--- releng8/src/lib/libc/mips/Symbol.map	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libc/mips/Symbol.map	2009-07-02 18:44:18.000000000 -0700
 @@ -61,4 +61,22 @@
  	minbrk;
@@ -118,8 +118,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/Symbol.map svn/
 +	__extendsfdf2;
 +	__truncdfsf2;
  };
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetmask.c svn/mips/lib/libc/mips/gen/fpgetmask.c
---- svn/stable/8/lib/libc/mips/gen/fpgetmask.c	2009-09-30 19:39:21.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/fpgetmask.c svn/mips/lib/libc/mips/gen/fpgetmask.c
+--- releng8/src/lib/libc/mips/gen/fpgetmask.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libc/mips/gen/fpgetmask.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,29 +0,0 @@
 -/*	$NetBSD: fpgetmask.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -130,7 +130,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetmask.c
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/lib/libc/mips/gen/fpgetmask.c 178580 2008-04-26 12:08:02Z imp $");
+-__FBSDID("$FreeBSD: src/lib/libc/mips/gen/fpgetmask.c,v 1.4.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -#if defined(LIBC_SCCS) && !defined(lint)
 -__RCSID("$NetBSD: fpgetmask.c,v 1.5 2005/12/24 23:10:08 perry Exp $");
 -#endif /* LIBC_SCCS and not lint */
@@ -151,8 +151,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetmask.c
 -	__asm("cfc1 %0,$31" : "=r" (x));
 -	return (x >> 7) & 0x1f;
 -}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetround.c svn/mips/lib/libc/mips/gen/fpgetround.c
---- svn/stable/8/lib/libc/mips/gen/fpgetround.c	2009-09-30 19:39:21.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/fpgetround.c svn/mips/lib/libc/mips/gen/fpgetround.c
+--- releng8/src/lib/libc/mips/gen/fpgetround.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libc/mips/gen/fpgetround.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,29 +0,0 @@
 -/*	$NetBSD: fpgetround.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -163,7 +163,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetround.
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/lib/libc/mips/gen/fpgetround.c 178580 2008-04-26 12:08:02Z imp $");
+-__FBSDID("$FreeBSD: src/lib/libc/mips/gen/fpgetround.c,v 1.4.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -#if defined(LIBC_SCCS) && !defined(lint)
 -__RCSID("$NetBSD: fpgetround.c,v 1.5 2005/12/24 23:10:08 perry Exp $");
 -#endif /* LIBC_SCCS and not lint */
@@ -184,8 +184,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetround.
 -	__asm("cfc1 %0,$31" : "=r" (x));
 -	return x & 0x03;
 -}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetsticky.c svn/mips/lib/libc/mips/gen/fpgetsticky.c
---- svn/stable/8/lib/libc/mips/gen/fpgetsticky.c	2009-09-30 19:39:21.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/fpgetsticky.c svn/mips/lib/libc/mips/gen/fpgetsticky.c
+--- releng8/src/lib/libc/mips/gen/fpgetsticky.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libc/mips/gen/fpgetsticky.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,29 +0,0 @@
 -/*	$NetBSD: fpgetsticky.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -196,7 +196,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetsticky
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/lib/libc/mips/gen/fpgetsticky.c 178580 2008-04-26 12:08:02Z imp $");
+-__FBSDID("$FreeBSD: src/lib/libc/mips/gen/fpgetsticky.c,v 1.4.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -#if defined(LIBC_SCCS) && !defined(lint)
 -__RCSID("$NetBSD: fpgetsticky.c,v 1.5 2005/12/24 23:10:08 perry Exp $");
 -#endif /* LIBC_SCCS and not lint */
@@ -217,8 +217,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpgetsticky
 -	__asm("cfc1 %0,$31" : "=r" (x));
 -	return (x >> 2) & 0x1f;
 -}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetmask.c svn/mips/lib/libc/mips/gen/fpsetmask.c
---- svn/stable/8/lib/libc/mips/gen/fpsetmask.c	2009-09-30 19:39:21.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/fpsetmask.c svn/mips/lib/libc/mips/gen/fpsetmask.c
+--- releng8/src/lib/libc/mips/gen/fpsetmask.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libc/mips/gen/fpsetmask.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,38 +0,0 @@
 -/*	$NetBSD: fpsetmask.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -229,7 +229,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetmask.c
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/lib/libc/mips/gen/fpsetmask.c 178580 2008-04-26 12:08:02Z imp $");
+-__FBSDID("$FreeBSD: src/lib/libc/mips/gen/fpsetmask.c,v 1.4.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -#if defined(LIBC_SCCS) && !defined(lint)
 -__RCSID("$NetBSD: fpsetmask.c,v 1.5 2005/12/24 23:10:08 perry Exp $");
 -#endif /* LIBC_SCCS and not lint */
@@ -259,8 +259,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetmask.c
 -
 -	return (old >> 7) & 0x1f;
 -}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetround.c svn/mips/lib/libc/mips/gen/fpsetround.c
---- svn/stable/8/lib/libc/mips/gen/fpsetround.c	2009-09-30 19:39:21.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/fpsetround.c svn/mips/lib/libc/mips/gen/fpsetround.c
+--- releng8/src/lib/libc/mips/gen/fpsetround.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libc/mips/gen/fpsetround.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,37 +0,0 @@
 -/*	$NetBSD: fpsetround.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -271,7 +271,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetround.
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/lib/libc/mips/gen/fpsetround.c 178580 2008-04-26 12:08:02Z imp $");
+-__FBSDID("$FreeBSD: src/lib/libc/mips/gen/fpsetround.c,v 1.4.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -#if defined(LIBC_SCCS) && !defined(lint)
 -__RCSID("$NetBSD: fpsetround.c,v 1.5 2005/12/24 23:10:08 perry Exp $");
 -#endif /* LIBC_SCCS and not lint */
@@ -300,8 +300,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetround.
 -
 -	return old & 0x03;
 -}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetsticky.c svn/mips/lib/libc/mips/gen/fpsetsticky.c
---- svn/stable/8/lib/libc/mips/gen/fpsetsticky.c	2009-09-30 19:39:21.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/fpsetsticky.c svn/mips/lib/libc/mips/gen/fpsetsticky.c
+--- releng8/src/lib/libc/mips/gen/fpsetsticky.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libc/mips/gen/fpsetsticky.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,38 +0,0 @@
 -/*	$NetBSD: fpsetsticky.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -312,7 +312,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetsticky
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/lib/libc/mips/gen/fpsetsticky.c 178580 2008-04-26 12:08:02Z imp $");
+-__FBSDID("$FreeBSD: src/lib/libc/mips/gen/fpsetsticky.c,v 1.3.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -#if defined(LIBC_SCCS) && !defined(lint)
 -__RCSID("$NetBSD: fpsetsticky.c,v 1.5 2005/12/24 23:10:08 perry Exp $");
 -#endif /* LIBC_SCCS and not lint */
@@ -342,8 +342,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/fpsetsticky
 -
 -	return (old >> 2) & 0x1f;
 -}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/fpgetmask.c svn/mips/lib/libc/mips/gen/hardfloat/fpgetmask.c
---- svn/stable/8/lib/libc/mips/gen/hardfloat/fpgetmask.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/hardfloat/fpgetmask.c svn/mips/lib/libc/mips/gen/hardfloat/fpgetmask.c
+--- releng8/src/lib/libc/mips/gen/hardfloat/fpgetmask.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/lib/libc/mips/gen/hardfloat/fpgetmask.c	2009-07-02 18:44:18.000000000 -0700
 @@ -0,0 +1,29 @@
 +/*	$NetBSD: fpgetmask.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -375,8 +375,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/f
 +	__asm("cfc1 %0,$31" : "=r" (x));
 +	return (x >> 7) & 0x1f;
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/fpgetround.c svn/mips/lib/libc/mips/gen/hardfloat/fpgetround.c
---- svn/stable/8/lib/libc/mips/gen/hardfloat/fpgetround.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/hardfloat/fpgetround.c svn/mips/lib/libc/mips/gen/hardfloat/fpgetround.c
+--- releng8/src/lib/libc/mips/gen/hardfloat/fpgetround.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/lib/libc/mips/gen/hardfloat/fpgetround.c	2009-07-02 18:44:18.000000000 -0700
 @@ -0,0 +1,29 @@
 +/*	$NetBSD: fpgetround.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -408,8 +408,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/f
 +	__asm("cfc1 %0,$31" : "=r" (x));
 +	return x & 0x03;
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/fpgetsticky.c svn/mips/lib/libc/mips/gen/hardfloat/fpgetsticky.c
---- svn/stable/8/lib/libc/mips/gen/hardfloat/fpgetsticky.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/hardfloat/fpgetsticky.c svn/mips/lib/libc/mips/gen/hardfloat/fpgetsticky.c
+--- releng8/src/lib/libc/mips/gen/hardfloat/fpgetsticky.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/lib/libc/mips/gen/hardfloat/fpgetsticky.c	2009-07-02 18:44:18.000000000 -0700
 @@ -0,0 +1,29 @@
 +/*	$NetBSD: fpgetsticky.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -441,8 +441,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/f
 +	__asm("cfc1 %0,$31" : "=r" (x));
 +	return (x >> 2) & 0x1f;
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/fpsetmask.c svn/mips/lib/libc/mips/gen/hardfloat/fpsetmask.c
---- svn/stable/8/lib/libc/mips/gen/hardfloat/fpsetmask.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/hardfloat/fpsetmask.c svn/mips/lib/libc/mips/gen/hardfloat/fpsetmask.c
+--- releng8/src/lib/libc/mips/gen/hardfloat/fpsetmask.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/lib/libc/mips/gen/hardfloat/fpsetmask.c	2009-07-02 18:44:18.000000000 -0700
 @@ -0,0 +1,38 @@
 +/*	$NetBSD: fpsetmask.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -483,8 +483,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/f
 +
 +	return (old >> 7) & 0x1f;
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/fpsetround.c svn/mips/lib/libc/mips/gen/hardfloat/fpsetround.c
---- svn/stable/8/lib/libc/mips/gen/hardfloat/fpsetround.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/hardfloat/fpsetround.c svn/mips/lib/libc/mips/gen/hardfloat/fpsetround.c
+--- releng8/src/lib/libc/mips/gen/hardfloat/fpsetround.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/lib/libc/mips/gen/hardfloat/fpsetround.c	2009-07-02 18:44:18.000000000 -0700
 @@ -0,0 +1,37 @@
 +/*	$NetBSD: fpsetround.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -524,8 +524,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/f
 +
 +	return old & 0x03;
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/fpsetsticky.c svn/mips/lib/libc/mips/gen/hardfloat/fpsetsticky.c
---- svn/stable/8/lib/libc/mips/gen/hardfloat/fpsetsticky.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/lib/libc/mips/gen/hardfloat/fpsetsticky.c svn/mips/lib/libc/mips/gen/hardfloat/fpsetsticky.c
+--- releng8/src/lib/libc/mips/gen/hardfloat/fpsetsticky.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/lib/libc/mips/gen/hardfloat/fpsetsticky.c	2009-07-02 18:44:18.000000000 -0700
 @@ -0,0 +1,38 @@
 +/*	$NetBSD: fpsetsticky.c,v 1.5 2005/12/24 23:10:08 perry Exp $	*/
@@ -566,8 +566,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libc/mips/gen/hardfloat/f
 +
 +	return (old >> 2) & 0x1f;
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libthr/arch/mips/include/pthread_md.h svn/mips/lib/libthr/arch/mips/include/pthread_md.h
---- svn/stable/8/lib/libthr/arch/mips/include/pthread_md.h	2009-09-30 19:39:29.000000000 -0700
+diff -I '.*' -Naur releng8/lib/libthr/arch/mips/include/pthread_md.h svn/mips/lib/libthr/arch/mips/include/pthread_md.h
+--- releng8/src/lib/libthr/arch/mips/include/pthread_md.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/lib/libthr/arch/mips/include/pthread_md.h	2009-07-02 18:44:18.000000000 -0700
 @@ -60,7 +60,8 @@
  static __inline void
@@ -591,8 +591,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/lib/libthr/arch/mips/include/
  }
  
  extern struct pthread *_thr_initial;
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/Makefile.mips svn/mips/sys/conf/Makefile.mips
---- svn/stable/8/sys/conf/Makefile.mips	2009-09-30 19:39:51.000000000 -0700
+diff -I '.*' -Naur releng8/sys/conf/Makefile.mips svn/mips/sys/conf/Makefile.mips
+--- releng8/src/sys/conf/Makefile.mips	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/conf/Makefile.mips	2009-09-30 19:27:09.000000000 -0700
 @@ -28,35 +28,83 @@
  .endif
@@ -693,8 +693,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/Makefile.mips svn/mi
  %RULES
  
  .include "$S/conf/kern.post.mk"
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/files svn/mips/sys/conf/files
---- svn/stable/8/sys/conf/files	2009-09-30 19:39:51.000000000 -0700
+diff -I '.*' -Naur releng8/sys/conf/files svn/mips/sys/conf/files
+--- releng8/src/sys/conf/files	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/conf/files	2009-10-01 13:42:41.000000000 -0700
 @@ -91,8 +91,8 @@
  	no-obj no-implicit-rule before-depend				   \
@@ -813,8 +813,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/files svn/mips/sys/c
  dev/xen/xenpci/evtchn.c         optional xenpci
  dev/xen/xenpci/machine_reboot.c optional xenpci
 -
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/files.mips svn/mips/sys/conf/files.mips
---- svn/stable/8/sys/conf/files.mips	2009-09-30 19:39:51.000000000 -0700
+diff -I '.*' -Naur releng8/sys/conf/files.mips svn/mips/sys/conf/files.mips
+--- releng8/src/sys/conf/files.mips	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/conf/files.mips	2009-09-08 11:01:49.000000000 -0700
 @@ -38,7 +38,7 @@
  mips/mips/elf_machdep.c		standard
@@ -877,8 +877,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/files.mips svn/mips/
 +dev/siba/siba_pcib.c		optional	siba pci
 +dev/siba/siba_cc.c		optional	siba
 +#mips/sentry5/siba_mips.c			optional siba # not yet
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/kern.mk svn/mips/sys/conf/kern.mk
---- svn/stable/8/sys/conf/kern.mk	2009-09-30 19:39:51.000000000 -0700
+diff -I '.*' -Naur releng8/sys/conf/kern.mk svn/mips/sys/conf/kern.mk
+--- releng8/src/sys/conf/kern.mk	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/conf/kern.mk	2009-08-04 10:46:57.000000000 -0700
 @@ -90,7 +90,7 @@
  # disable MIPS DSP ASE Instruction set.
@@ -889,8 +889,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/kern.mk svn/mips/sys
  INLINE_LIMIT?=	8000
  .endif
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/ldscript.mips svn/mips/sys/conf/ldscript.mips
---- svn/stable/8/sys/conf/ldscript.mips	2009-09-30 19:39:51.000000000 -0700
+diff -I '.*' -Naur releng8/sys/conf/ldscript.mips svn/mips/sys/conf/ldscript.mips
+--- releng8/src/sys/conf/ldscript.mips	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/conf/ldscript.mips	2009-04-14 15:53:59.000000000 -0700
 @@ -43,7 +43,7 @@
  SECTIONS
@@ -901,8 +901,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/ldscript.mips svn/mi
    .interp     : { *(.interp) 	}
    .hash          : { *(.hash)		}
    .dynsym        : { *(.dynsym)		}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/ldscript.mips.mips64 svn/mips/sys/conf/ldscript.mips.mips64
---- svn/stable/8/sys/conf/ldscript.mips.mips64	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/conf/ldscript.mips.mips64 svn/mips/sys/conf/ldscript.mips.mips64
+--- releng8/src/sys/conf/ldscript.mips.mips64	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/conf/ldscript.mips.mips64	2009-09-30 19:27:09.000000000 -0700
 @@ -0,0 +1,303 @@
 +/*-
@@ -1208,8 +1208,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/ldscript.mips.mips64
 +  .debug_varnames  0 : { *(.debug_varnames) }
 +  /* These must appear regardless of  .  */
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/options.mips svn/mips/sys/conf/options.mips
---- svn/stable/8/sys/conf/options.mips	2009-09-30 19:39:51.000000000 -0700
+diff -I '.*' -Naur releng8/sys/conf/options.mips svn/mips/sys/conf/options.mips
+--- releng8/src/sys/conf/options.mips	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/conf/options.mips	2009-08-04 10:46:57.000000000 -0700
 @@ -31,8 +31,8 @@
  CPU_MIPS4KC	opt_global.h
@@ -1235,8 +1235,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/conf/options.mips svn/mip
  
  TARGET_OCTEON	opt_global.h
  TARGET_EMULATOR	opt_ddb.h
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/cfe/cfe_api.c svn/mips/sys/dev/cfe/cfe_api.c
---- svn/stable/8/sys/dev/cfe/cfe_api.c	2009-09-30 19:40:37.000000000 -0700
+diff -I '.*' -Naur releng8/sys/dev/cfe/cfe_api.c svn/mips/sys/dev/cfe/cfe_api.c
+--- releng8/src/sys/dev/cfe/cfe_api.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/dev/cfe/cfe_api.c	2009-08-04 10:47:08.000000000 -0700
 @@ -160,7 +160,7 @@
  {
@@ -1247,8 +1247,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/cfe/cfe_api.c svn/mip
      xiocb.xiocb_status = 0;
      xiocb.xiocb_handle = 0;
      xiocb.xiocb_flags = 0;
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/cfe/cfe_console.c svn/mips/sys/dev/cfe/cfe_console.c
---- svn/stable/8/sys/dev/cfe/cfe_console.c	2009-09-30 19:40:37.000000000 -0700
+diff -I '.*' -Naur releng8/sys/dev/cfe/cfe_console.c svn/mips/sys/dev/cfe/cfe_console.c
+--- releng8/src/sys/dev/cfe/cfe_console.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/dev/cfe/cfe_console.c	2009-08-04 10:47:08.000000000 -0700
 @@ -84,14 +84,12 @@
  static void
@@ -1306,8 +1306,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/cfe/cfe_console.c svn
  #if defined(KDB) && defined(ALT_BREAK_TO_DEBUGGER)
  		int kdb_brk;
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/cfe/cfe_env.c svn/mips/sys/dev/cfe/cfe_env.c
---- svn/stable/8/sys/dev/cfe/cfe_env.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/dev/cfe/cfe_env.c svn/mips/sys/dev/cfe/cfe_env.c
+--- releng8/src/sys/dev/cfe/cfe_env.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/dev/cfe/cfe_env.c	2009-08-04 10:47:08.000000000 -0700
 @@ -0,0 +1,74 @@
 +/*-
@@ -1384,8 +1384,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/cfe/cfe_env.c svn/mip
 +
 +	kern_envp = cfe_env_buf;
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/flash/mx25l.c svn/mips/sys/dev/flash/mx25l.c
---- svn/stable/8/sys/dev/flash/mx25l.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/dev/flash/mx25l.c svn/mips/sys/dev/flash/mx25l.c
+--- releng8/src/sys/dev/flash/mx25l.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/dev/flash/mx25l.c	2009-05-26 09:40:44.000000000 -0700
 @@ -0,0 +1,313 @@
 +/*-
@@ -1701,8 +1701,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/flash/mx25l.c svn/mip
 +};
 +
 +DRIVER_MODULE(mx25l, spibus, mx25l_driver, mx25l_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/flash/mx25lreg.h svn/mips/sys/dev/flash/mx25lreg.h
---- svn/stable/8/sys/dev/flash/mx25lreg.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/dev/flash/mx25lreg.h svn/mips/sys/dev/flash/mx25lreg.h
+--- releng8/src/sys/dev/flash/mx25lreg.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/dev/flash/mx25lreg.h	2009-05-26 09:40:44.000000000 -0700
 @@ -0,0 +1,56 @@
 +/*-
@@ -1761,8 +1761,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/flash/mx25lreg.h svn/
 +
 +#endif /* __MX25LREG_H__ */
 +
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/siba/siba_cc.c svn/mips/sys/dev/siba/siba_cc.c
---- svn/stable/8/sys/dev/siba/siba_cc.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/dev/siba/siba_cc.c svn/mips/sys/dev/siba/siba_cc.c
+--- releng8/src/sys/dev/siba/siba_cc.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/dev/siba/siba_cc.c	2009-04-14 15:53:59.000000000 -0700
 @@ -0,0 +1,154 @@
 +/*-
@@ -1919,8 +1919,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/siba/siba_cc.c svn/mi
 +static devclass_t siba_cc_devclass;
 +
 +DRIVER_MODULE(siba_cc, siba, siba_cc_driver, siba_cc_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/siba/siba_mips.c svn/mips/sys/dev/siba/siba_mips.c
---- svn/stable/8/sys/dev/siba/siba_mips.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/dev/siba/siba_mips.c svn/mips/sys/dev/siba/siba_mips.c
+--- releng8/src/sys/dev/siba/siba_mips.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/dev/siba/siba_mips.c	2009-04-14 15:53:59.000000000 -0700
 @@ -0,0 +1,113 @@
 +/*-
@@ -2036,8 +2036,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/siba/siba_mips.c svn/
 +static devclass_t siba_mips_devclass;
 +
 +DRIVER_MODULE(siba_mips, siba, siba_mips_driver, siba_mips_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/siba/siba_sdram.c svn/mips/sys/dev/siba/siba_sdram.c
---- svn/stable/8/sys/dev/siba/siba_sdram.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/dev/siba/siba_sdram.c svn/mips/sys/dev/siba/siba_sdram.c
+--- releng8/src/sys/dev/siba/siba_sdram.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/dev/siba/siba_sdram.c	2009-04-14 15:53:59.000000000 -0700
 @@ -0,0 +1,114 @@
 +/*-
@@ -2154,8 +2154,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/dev/siba/siba_sdram.c svn
 +static devclass_t siba_sdram_devclass;
 +
 +DRIVER_MODULE(siba_sdram, siba, siba_sdram_driver, siba_sdram_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/adm5120/obio.c svn/mips/sys/mips/adm5120/obio.c
---- svn/stable/8/sys/mips/adm5120/obio.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/adm5120/obio.c svn/mips/sys/mips/adm5120/obio.c
+--- releng8/src/sys/mips/adm5120/obio.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/adm5120/obio.c	2009-05-26 09:40:41.000000000 -0700
 @@ -120,6 +120,39 @@
  static int	obio_teardown_intr(device_t, device_t, struct resource *,
@@ -2255,8 +2255,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/adm5120/obio.c svn/m
  
  	result = intr_event_remove_handler(cookie);
  	if (!result) {
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/adm5120/uart_cpu_adm5120.c svn/mips/sys/mips/adm5120/uart_cpu_adm5120.c
---- svn/stable/8/sys/mips/adm5120/uart_cpu_adm5120.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/adm5120/uart_cpu_adm5120.c svn/mips/sys/mips/adm5120/uart_cpu_adm5120.c
+--- releng8/src/sys/mips/adm5120/uart_cpu_adm5120.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/adm5120/uart_cpu_adm5120.c	2009-05-06 14:57:15.000000000 -0700
 @@ -67,7 +67,7 @@
  
@@ -2276,8 +2276,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/adm5120/uart_cpu_adm
  	di->bas.bsh = MIPS_PHYS_TO_KSEG1(ADM5120_BASE_UART0);
  
  	return (0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/alchemy_machdep.c svn/mips/sys/mips/alchemy/alchemy_machdep.c
---- svn/stable/8/sys/mips/alchemy/alchemy_machdep.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/alchemy/alchemy_machdep.c svn/mips/sys/mips/alchemy/alchemy_machdep.c
+--- releng8/src/sys/mips/alchemy/alchemy_machdep.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/alchemy/alchemy_machdep.c	2009-04-14 15:53:59.000000000 -0700
 @@ -0,0 +1,157 @@
 +/*-
@@ -2437,8 +2437,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/alchemy_mach
 +
 +	mips_timer_init_params(platform_counter_freq, 0);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/aureg.h svn/mips/sys/mips/alchemy/aureg.h
---- svn/stable/8/sys/mips/alchemy/aureg.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/alchemy/aureg.h svn/mips/sys/mips/alchemy/aureg.h
+--- releng8/src/sys/mips/alchemy/aureg.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/alchemy/aureg.h	2009-04-14 15:39:43.000000000 -0700
 @@ -0,0 +1,373 @@
 +/* $NetBSD: aureg.h,v 1.18 2006/10/02 06:44:00 gdamore Exp $ */
@@ -2814,8 +2814,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/aureg.h svn/
 +#define SYS_AUXPLL              (SYS_BASE + 0x64)
 +
 +#endif	/* _MIPS_ALCHEMY_AUREG_H */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/files.alchemy svn/mips/sys/mips/alchemy/files.alchemy
---- svn/stable/8/sys/mips/alchemy/files.alchemy	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/alchemy/files.alchemy svn/mips/sys/mips/alchemy/files.alchemy
+--- releng8/src/sys/mips/alchemy/files.alchemy	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/alchemy/files.alchemy	2009-04-14 15:39:43.000000000 -0700
 @@ -0,0 +1,7 @@
 +# $FreeBSD$
@@ -2825,8 +2825,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/files.alchem
 +mips/alchemy/obio.c		standard
 +mips/alchemy/uart_bus_alchemy.c	optional uart
 +mips/alchemy/uart_cpu_alchemy.c	optional uart
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/obio.c svn/mips/sys/mips/alchemy/obio.c
---- svn/stable/8/sys/mips/alchemy/obio.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/alchemy/obio.c svn/mips/sys/mips/alchemy/obio.c
+--- releng8/src/sys/mips/alchemy/obio.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/alchemy/obio.c	2009-05-06 14:57:15.000000000 -0700
 @@ -0,0 +1,501 @@
 +/*	$NetBSD: obio.c,v 1.11 2003/07/15 00:25:05 lukem Exp $	*/
@@ -3330,8 +3330,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/obio.c svn/m
 +static devclass_t obio_devclass;
 +
 +DRIVER_MODULE(obio, nexus, obio_driver, obio_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/std.alchemy svn/mips/sys/mips/alchemy/std.alchemy
---- svn/stable/8/sys/mips/alchemy/std.alchemy	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/alchemy/std.alchemy svn/mips/sys/mips/alchemy/std.alchemy
+--- releng8/src/sys/mips/alchemy/std.alchemy	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/alchemy/std.alchemy	2009-04-14 15:39:43.000000000 -0700
 @@ -0,0 +1,8 @@
 +# $FreeBSD$
@@ -3342,8 +3342,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/std.alchemy 
 +
 +cpu		CPU_MIPS4KC
 +options		ISA_MIPS32
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/uart_bus_alchemy.c svn/mips/sys/mips/alchemy/uart_bus_alchemy.c
---- svn/stable/8/sys/mips/alchemy/uart_bus_alchemy.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/alchemy/uart_bus_alchemy.c svn/mips/sys/mips/alchemy/uart_bus_alchemy.c
+--- releng8/src/sys/mips/alchemy/uart_bus_alchemy.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/alchemy/uart_bus_alchemy.c	2009-04-14 15:53:59.000000000 -0700
 @@ -0,0 +1,87 @@
 +/*-
@@ -3433,8 +3433,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/uart_bus_alc
 +}
 +
 +DRIVER_MODULE(uart, obio, uart_alchemy_driver, uart_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/uart_cpu_alchemy.c svn/mips/sys/mips/alchemy/uart_cpu_alchemy.c
---- svn/stable/8/sys/mips/alchemy/uart_cpu_alchemy.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/alchemy/uart_cpu_alchemy.c svn/mips/sys/mips/alchemy/uart_cpu_alchemy.c
+--- releng8/src/sys/mips/alchemy/uart_cpu_alchemy.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/alchemy/uart_cpu_alchemy.c	2009-05-06 14:57:15.000000000 -0700
 @@ -0,0 +1,79 @@
 +/*-
@@ -3516,8 +3516,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/alchemy/uart_cpu_alc
 +
 +	return (0);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/apb.c svn/mips/sys/mips/atheros/apb.c
---- svn/stable/8/sys/mips/atheros/apb.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/apb.c svn/mips/sys/mips/atheros/apb.c
+--- releng8/src/sys/mips/atheros/apb.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/apb.c	2009-06-12 04:42:48.000000000 -0700
 @@ -0,0 +1,453 @@
 +/*-
@@ -3973,8 +3973,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/apb.c svn/mi
 +static devclass_t apb_devclass;
 +
 +DRIVER_MODULE(apb, nexus, apb_driver, apb_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/apbvar.h svn/mips/sys/mips/atheros/apbvar.h
---- svn/stable/8/sys/mips/atheros/apbvar.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/apbvar.h svn/mips/sys/mips/atheros/apbvar.h
+--- releng8/src/sys/mips/atheros/apbvar.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/apbvar.h	2009-05-06 14:57:15.000000000 -0700
 @@ -0,0 +1,49 @@
 +/*-
@@ -4026,8 +4026,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/apbvar.h svn
 +};
 +
 +#endif /* _APBVAR_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_bus_space_reversed.c svn/mips/sys/mips/atheros/ar71xx_bus_space_reversed.c
---- svn/stable/8/sys/mips/atheros/ar71xx_bus_space_reversed.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_bus_space_reversed.c svn/mips/sys/mips/atheros/ar71xx_bus_space_reversed.c
+--- releng8/src/sys/mips/atheros/ar71xx_bus_space_reversed.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_bus_space_reversed.c	2009-05-06 14:57:15.000000000 -0700
 @@ -0,0 +1,181 @@
 +/*-
@@ -4211,8 +4211,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_bus_s
 +
 +	writew(h + (o &~ 3) + (2 - (o & 3)), v);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_bus_space_reversed.h svn/mips/sys/mips/atheros/ar71xx_bus_space_reversed.h
---- svn/stable/8/sys/mips/atheros/ar71xx_bus_space_reversed.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_bus_space_reversed.h svn/mips/sys/mips/atheros/ar71xx_bus_space_reversed.h
+--- releng8/src/sys/mips/atheros/ar71xx_bus_space_reversed.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_bus_space_reversed.h	2009-05-06 14:57:15.000000000 -0700
 @@ -0,0 +1,33 @@
 +/*-
@@ -4248,8 +4248,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_bus_s
 +extern bus_space_tag_t ar71xx_bus_space_reversed;
 +
 +#endif /* __AR71XX_BUS_SPACE_REVERSEDH__ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_ehci.c svn/mips/sys/mips/atheros/ar71xx_ehci.c
---- svn/stable/8/sys/mips/atheros/ar71xx_ehci.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_ehci.c svn/mips/sys/mips/atheros/ar71xx_ehci.c
+--- releng8/src/sys/mips/atheros/ar71xx_ehci.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_ehci.c	2009-09-08 11:01:51.000000000 -0700
 @@ -0,0 +1,287 @@
 +/*-
@@ -4539,8 +4539,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_ehci.
 +
 +DRIVER_MODULE(ehci, nexus, ehci_driver, ehci_devclass, 0, 0);
 +MODULE_DEPEND(ehci, usb, 1, 1, 1);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_machdep.c svn/mips/sys/mips/atheros/ar71xx_machdep.c
---- svn/stable/8/sys/mips/atheros/ar71xx_machdep.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_machdep.c svn/mips/sys/mips/atheros/ar71xx_machdep.c
+--- releng8/src/sys/mips/atheros/ar71xx_machdep.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_machdep.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,211 @@
 +/*-
@@ -4754,8 +4754,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_machd
 +	kdb_init();
 +#endif
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_ohci.c svn/mips/sys/mips/atheros/ar71xx_ohci.c
---- svn/stable/8/sys/mips/atheros/ar71xx_ohci.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_ohci.c svn/mips/sys/mips/atheros/ar71xx_ohci.c
+--- releng8/src/sys/mips/atheros/ar71xx_ohci.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_ohci.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,214 @@
 +/*-
@@ -4972,8 +4972,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_ohci.
 +static devclass_t ohci_devclass;
 +
 +DRIVER_MODULE(ohci, apb, ohci_driver, ohci_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_pci.c svn/mips/sys/mips/atheros/ar71xx_pci.c
---- svn/stable/8/sys/mips/atheros/ar71xx_pci.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_pci.c svn/mips/sys/mips/atheros/ar71xx_pci.c
+--- releng8/src/sys/mips/atheros/ar71xx_pci.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_pci.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,559 @@
 +/*-
@@ -5535,8 +5535,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_pci.c
 +static devclass_t ar71xx_pci_devclass;
 +
 +DRIVER_MODULE(ar71xx_pci, nexus, ar71xx_pci_driver, ar71xx_pci_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_pci_bus_space.c svn/mips/sys/mips/atheros/ar71xx_pci_bus_space.c
---- svn/stable/8/sys/mips/atheros/ar71xx_pci_bus_space.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_pci_bus_space.c svn/mips/sys/mips/atheros/ar71xx_pci_bus_space.c
+--- releng8/src/sys/mips/atheros/ar71xx_pci_bus_space.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_pci_bus_space.c	2009-05-26 09:40:41.000000000 -0700
 @@ -0,0 +1,198 @@
 +/*-
@@ -5737,8 +5737,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_pci_b
 +
 +	writel(h + o, htole32(v));
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_pci_bus_space.h svn/mips/sys/mips/atheros/ar71xx_pci_bus_space.h
---- svn/stable/8/sys/mips/atheros/ar71xx_pci_bus_space.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_pci_bus_space.h svn/mips/sys/mips/atheros/ar71xx_pci_bus_space.h
+--- releng8/src/sys/mips/atheros/ar71xx_pci_bus_space.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_pci_bus_space.h	2009-05-26 09:40:41.000000000 -0700
 @@ -0,0 +1,33 @@
 +/*-
@@ -5774,8 +5774,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_pci_b
 +extern bus_space_tag_t ar71xx_bus_space_pcimem;
 +
 +#endif /* __AR71XX_PCI_BUS_SPACEH__ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_spi.c svn/mips/sys/mips/atheros/ar71xx_spi.c
---- svn/stable/8/sys/mips/atheros/ar71xx_spi.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_spi.c svn/mips/sys/mips/atheros/ar71xx_spi.c
+--- releng8/src/sys/mips/atheros/ar71xx_spi.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_spi.c	2009-05-26 09:40:41.000000000 -0700
 @@ -0,0 +1,228 @@
 +/*-
@@ -6006,8 +6006,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_spi.c
 +static devclass_t ar71xx_spi_devclass;
 +
 +DRIVER_MODULE(ar71xx_spi, nexus, ar71xx_spi_driver, ar71xx_spi_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_wdog.c svn/mips/sys/mips/atheros/ar71xx_wdog.c
---- svn/stable/8/sys/mips/atheros/ar71xx_wdog.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_wdog.c svn/mips/sys/mips/atheros/ar71xx_wdog.c
+--- releng8/src/sys/mips/atheros/ar71xx_wdog.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xx_wdog.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,118 @@
 +/*-
@@ -6128,8 +6128,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xx_wdog.
 +static devclass_t ar71xx_wdog_devclass;
 +
 +DRIVER_MODULE(ar71xx_wdog, nexus, ar71xx_wdog_driver, ar71xx_wdog_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xxreg.h svn/mips/sys/mips/atheros/ar71xxreg.h
---- svn/stable/8/sys/mips/atheros/ar71xxreg.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xxreg.h svn/mips/sys/mips/atheros/ar71xxreg.h
+--- releng8/src/sys/mips/atheros/ar71xxreg.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/ar71xxreg.h	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,464 @@
 +/*-
@@ -6596,8 +6596,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/ar71xxreg.h 
 +
 +
 +#endif /* _AR71XX_REG_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/files.ar71xx svn/mips/sys/mips/atheros/files.ar71xx
---- svn/stable/8/sys/mips/atheros/files.ar71xx	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/files.ar71xx svn/mips/sys/mips/atheros/files.ar71xx
+--- releng8/src/sys/mips/atheros/files.ar71xx	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/files.ar71xx	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,14 @@
 +# $FreeBSD$
@@ -6614,8 +6614,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/files.ar71xx
 +mips/atheros/uart_bus_ar71xx.c	optional uart
 +mips/atheros/uart_cpu_ar71xx.c	optional uart
 +mips/atheros/ar71xx_bus_space_reversed.c	standard
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/if_arge.c svn/mips/sys/mips/atheros/if_arge.c
---- svn/stable/8/sys/mips/atheros/if_arge.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/if_arge.c svn/mips/sys/mips/atheros/if_arge.c
+--- releng8/src/sys/mips/atheros/if_arge.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/if_arge.c	2009-09-08 11:01:51.000000000 -0700
 @@ -0,0 +1,1652 @@
 +/*-
@@ -8270,8 +8270,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/if_arge.c sv
 +	mii_tick(mii);
 +	callout_reset(&sc->arge_stat_callout, hz, arge_tick, sc);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/if_argevar.h svn/mips/sys/mips/atheros/if_argevar.h
---- svn/stable/8/sys/mips/atheros/if_argevar.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/if_argevar.h svn/mips/sys/mips/atheros/if_argevar.h
+--- releng8/src/sys/mips/atheros/if_argevar.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/if_argevar.h	2009-04-14 15:39:43.000000000 -0700
 @@ -0,0 +1,138 @@
 +/*-
@@ -8412,8 +8412,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/if_argevar.h
 +};
 +
 +#endif /* __IF_ARGEVAR_H__ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/uart_bus_ar71xx.c svn/mips/sys/mips/atheros/uart_bus_ar71xx.c
---- svn/stable/8/sys/mips/atheros/uart_bus_ar71xx.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/uart_bus_ar71xx.c svn/mips/sys/mips/atheros/uart_bus_ar71xx.c
+--- releng8/src/sys/mips/atheros/uart_bus_ar71xx.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/uart_bus_ar71xx.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,88 @@
 +/*-
@@ -8504,8 +8504,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/uart_bus_ar7
 +}
 +
 +DRIVER_MODULE(uart, apb, uart_ar71xx_driver, uart_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/uart_cpu_ar71xx.c svn/mips/sys/mips/atheros/uart_cpu_ar71xx.c
---- svn/stable/8/sys/mips/atheros/uart_cpu_ar71xx.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/atheros/uart_cpu_ar71xx.c svn/mips/sys/mips/atheros/uart_cpu_ar71xx.c
+--- releng8/src/sys/mips/atheros/uart_cpu_ar71xx.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/uart_cpu_ar71xx.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,75 @@
 +/*-
@@ -8583,8 +8583,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/atheros/uart_cpu_ar7
 +	di->bas.bsh = MIPS_PHYS_TO_KSEG1(AR71XX_UART_ADDR);
 +	return (0);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/ALCHEMY svn/mips/sys/mips/conf/ALCHEMY
---- svn/stable/8/sys/mips/conf/ALCHEMY	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/conf/ALCHEMY svn/mips/sys/mips/conf/ALCHEMY
+--- releng8/src/sys/mips/conf/ALCHEMY	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/conf/ALCHEMY	2009-04-14 15:39:43.000000000 -0700
 @@ -0,0 +1,66 @@
 +# ALCHEMY -- Generic kernel for Alchemy Au1xxx CPUs.
@@ -8653,8 +8653,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/ALCHEMY svn/mip
 +device		ether
 +device		uart
 +# device		md
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/AR71XX svn/mips/sys/mips/conf/AR71XX
---- svn/stable/8/sys/mips/conf/AR71XX	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/conf/AR71XX svn/mips/sys/mips/conf/AR71XX
+--- releng8/src/sys/mips/conf/AR71XX	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/conf/AR71XX	2009-09-08 11:01:50.000000000 -0700
 @@ -0,0 +1,86 @@
 +#
@@ -8743,8 +8743,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/AR71XX svn/mips
 +device		bpf
 +device		random
 +device		if_bridge
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/AR71XX.hints svn/mips/sys/mips/conf/AR71XX.hints
---- svn/stable/8/sys/mips/conf/AR71XX.hints	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/conf/AR71XX.hints svn/mips/sys/mips/conf/AR71XX.hints
+--- releng8/src/sys/mips/conf/AR71XX.hints	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/conf/AR71XX.hints	2009-09-08 11:01:50.000000000 -0700
 @@ -0,0 +1,49 @@
 +# $FreeBSD$
@@ -8796,8 +8796,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/AR71XX.hints sv
 +
 +# Watchdog
 +hint.ar71xx_wdog.0.at="nexus0"
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/MALTA svn/mips/sys/mips/conf/MALTA
---- svn/stable/8/sys/mips/conf/MALTA	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/conf/MALTA svn/mips/sys/mips/conf/MALTA
+--- releng8/src/sys/mips/conf/MALTA	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/conf/MALTA	2009-08-04 10:46:58.000000000 -0700
 @@ -33,6 +33,8 @@
  
@@ -8808,8 +8808,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/MALTA svn/mips/
  hints		"MALTA.hints"		#Default places to look for devices.
  
  makeoptions	DEBUG=-g		#Build kernel with gdb(1) debug symbols
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/MALTA64 svn/mips/sys/mips/conf/MALTA64
---- svn/stable/8/sys/mips/conf/MALTA64	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/conf/MALTA64 svn/mips/sys/mips/conf/MALTA64
+--- releng8/src/sys/mips/conf/MALTA64	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/conf/MALTA64	2009-09-30 19:27:13.000000000 -0700
 @@ -0,0 +1,72 @@
 +# MALTA -- Kernel config for MALTA boards
@@ -8884,8 +8884,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/MALTA64 svn/mip
 +device		miibus
 +device		md
 +device		uart
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/OCTEON.hints svn/mips/sys/mips/conf/OCTEON.hints
---- svn/stable/8/sys/mips/conf/OCTEON.hints	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/conf/OCTEON.hints svn/mips/sys/mips/conf/OCTEON.hints
+--- releng8/src/sys/mips/conf/OCTEON.hints	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/conf/OCTEON.hints	2009-07-02 18:44:21.000000000 -0700
 @@ -0,0 +1,13 @@
 +# /*
@@ -8901,8 +8901,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/OCTEON.hints sv
 +hint.uart.0.at="obio"
 +hint.uart.0.maddr="0x1"
 +hint.uart.0.flags="0x1"
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/OCTEON1 svn/mips/sys/mips/conf/OCTEON1
---- svn/stable/8/sys/mips/conf/OCTEON1	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/conf/OCTEON1 svn/mips/sys/mips/conf/OCTEON1
+--- releng8/src/sys/mips/conf/OCTEON1	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/conf/OCTEON1	2009-09-08 11:01:50.000000000 -0700
 @@ -0,0 +1,89 @@
 +# OCTEON1 -- Configuration kernel for all Octeon1 SoCs from Cavium Networks
@@ -8994,8 +8994,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/OCTEON1 svn/mip
 +#options         MD_ROOT_SIZE = 21264
 +#XXX: Bring up UP first, then generalize.
 +#options		SMP
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/SENTRY5 svn/mips/sys/mips/conf/SENTRY5
---- svn/stable/8/sys/mips/conf/SENTRY5	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/conf/SENTRY5 svn/mips/sys/mips/conf/SENTRY5
+--- releng8/src/sys/mips/conf/SENTRY5	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/conf/SENTRY5	2009-06-12 04:42:48.000000000 -0700
 @@ -26,9 +26,8 @@
  
@@ -9076,8 +9076,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/SENTRY5 svn/mip
  
  device		usb			# USB Bus (required)
  device		uhci			# UHCI PCI->USB interface
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/SWARM svn/mips/sys/mips/conf/SWARM
---- svn/stable/8/sys/mips/conf/SWARM	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/conf/SWARM svn/mips/sys/mips/conf/SWARM
+--- releng8/src/sys/mips/conf/SWARM	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/conf/SWARM	2009-08-04 10:46:58.000000000 -0700
 @@ -0,0 +1,82 @@
 +#
@@ -9162,8 +9162,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/SWARM svn/mips/
 +device		atadisk
 +device		atapicd
 +options		ATA_STATIC_ID
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/SWARM.hints svn/mips/sys/mips/conf/SWARM.hints
---- svn/stable/8/sys/mips/conf/SWARM.hints	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/conf/SWARM.hints svn/mips/sys/mips/conf/SWARM.hints
+--- releng8/src/sys/mips/conf/SWARM.hints	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/conf/SWARM.hints	2009-08-04 10:46:58.000000000 -0700
 @@ -0,0 +1,17 @@
 +# $FreeBSD$
@@ -9183,8 +9183,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/conf/SWARM.hints svn
 +#hint.ata.0.disabled=0
 +#hint.ata.0.regoffset=0x1F0
 +#hint.ata.0.regshift=5
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/idt/obio.c svn/mips/sys/mips/idt/obio.c
---- svn/stable/8/sys/mips/idt/obio.c	2009-09-30 19:40:04.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/idt/obio.c svn/mips/sys/mips/idt/obio.c
+--- releng8/src/sys/mips/idt/obio.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/idt/obio.c	2009-07-02 18:44:22.000000000 -0700
 @@ -76,8 +76,10 @@
  static int	obio_teardown_intr(device_t, device_t, struct resource *,
@@ -9219,8 +9219,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/idt/obio.c svn/mips/
  		    NULL, NULL,
  		    "obio intr%d:", irq);
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/idt/uart_bus_rc32434.c svn/mips/sys/mips/idt/uart_bus_rc32434.c
---- svn/stable/8/sys/mips/idt/uart_bus_rc32434.c	2009-09-30 19:40:04.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/idt/uart_bus_rc32434.c svn/mips/sys/mips/idt/uart_bus_rc32434.c
+--- releng8/src/sys/mips/idt/uart_bus_rc32434.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/idt/uart_bus_rc32434.c	2009-05-06 14:57:15.000000000 -0700
 @@ -88,10 +88,10 @@
  	sc->sc_class = &uart_ns8250_class;
@@ -9235,8 +9235,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/idt/uart_bus_rc32434
  	sc->sc_bas.bsh = MIPS_PHYS_TO_KSEG1(IDT_BASE_UART0);
  
  	return (uart_bus_probe(dev, 2, 330000000UL/2, 0, 0));
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/idt/uart_cpu_rc32434.c svn/mips/sys/mips/idt/uart_cpu_rc32434.c
---- svn/stable/8/sys/mips/idt/uart_cpu_rc32434.c	2009-09-30 19:40:04.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/idt/uart_cpu_rc32434.c svn/mips/sys/mips/idt/uart_cpu_rc32434.c
+--- releng8/src/sys/mips/idt/uart_cpu_rc32434.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/idt/uart_cpu_rc32434.c	2009-05-06 14:57:15.000000000 -0700
 @@ -71,7 +71,7 @@
  	/* Got it. Fill in the instance and return it. */
@@ -9256,8 +9256,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/idt/uart_cpu_rc32434
  	di->bas.bsh = MIPS_PHYS_TO_KSEG1(maddr);
  	return (0);
  }
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/_align.h svn/mips/sys/mips/include/_align.h
---- svn/stable/8/sys/mips/include/_align.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/include/_align.h svn/mips/sys/mips/include/_align.h
+--- releng8/src/sys/mips/include/_align.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/include/_align.h	2009-10-01 13:42:53.000000000 -0700
 @@ -0,0 +1,53 @@
 +/*	$OpenBSD: param.h,v 1.11 1998/08/30 22:05:35 millert Exp $ */
@@ -9313,8 +9313,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/_align.h svn
 +#define	_ALIGN(p)	(((u_int)(p) + _ALIGNBYTES) &~ _ALIGNBYTES)
 +
 +#endif /* !_MIPS_INCLUDE__ALIGN_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/_bus.h svn/mips/sys/mips/include/_bus.h
---- svn/stable/8/sys/mips/include/_bus.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/_bus.h svn/mips/sys/mips/include/_bus.h
+--- releng8/src/sys/mips/include/_bus.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/_bus.h	2009-07-02 18:44:22.000000000 -0700
 @@ -31,9 +31,6 @@
  
@@ -9335,8 +9335,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/_bus.h svn/m
  typedef u_long bus_space_handle_t;
 -#endif
  #endif /* MIPS_INCLUDE__BUS_H */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/_types.h svn/mips/sys/mips/include/_types.h
---- svn/stable/8/sys/mips/include/_types.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/_types.h svn/mips/sys/mips/include/_types.h
+--- releng8/src/sys/mips/include/_types.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/_types.h	2009-08-04 10:46:58.000000000 -0700
 @@ -54,7 +54,7 @@
  typedef	int			__int32_t;
@@ -9400,8 +9400,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/_types.h svn
  typedef	__uint32_t	__vm_offset_t;
  typedef	__uint32_t	__vm_paddr_t;
  typedef	__uint32_t	__vm_size_t;
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/asm.h svn/mips/sys/mips/include/asm.h
---- svn/stable/8/sys/mips/include/asm.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/asm.h svn/mips/sys/mips/include/asm.h
+--- releng8/src/sys/mips/include/asm.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/asm.h	2009-08-04 10:46:58.000000000 -0700
 @@ -60,6 +60,7 @@
  #include <machine/regdef.h>
@@ -9483,8 +9483,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/asm.h svn/mi
  #endif	/* _MIPS_BSD_API */
  
  #define	mfc0_macro(data, spr)						\
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/atomic.h svn/mips/sys/mips/include/atomic.h
---- svn/stable/8/sys/mips/include/atomic.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/atomic.h svn/mips/sys/mips/include/atomic.h
+--- releng8/src/sys/mips/include/atomic.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/atomic.h	2009-08-04 10:46:58.000000000 -0700
 @@ -34,6 +34,17 @@
  #error this file needs sys/cdefs.h as a prerequisite
@@ -9832,8 +9832,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/atomic.h svn
 +#define	atomic_readandclear_ptr	atomic_readandclear_long
  
  #endif /* ! _MACHINE_ATOMIC_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/bus.h svn/mips/sys/mips/include/bus.h
---- svn/stable/8/sys/mips/include/bus.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/bus.h svn/mips/sys/mips/include/bus.h
+--- releng8/src/sys/mips/include/bus.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/bus.h	2009-05-06 14:57:15.000000000 -0700
 @@ -1,8 +1,7 @@
 -/*      $NetBSD: bus.h,v 1.12 1997/10/01 08:25:15 fvdl Exp $    */
@@ -9861,7 +9861,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/bus.h svn/mi
   * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
 - *	from: src/sys/alpha/include/bus.h,v 1.5 1999/08/28 00:38:40 peter
-- * $FreeBSD: stable/8/sys/mips/include/bus.h 190515 2009-03-28 23:24:34Z bz $
+- * $FreeBSD: src/sys/mips/include/bus.h,v 1.2.2.1 2009/08/03 08:13:06 kensmith Exp $
 -*/
 + * $FreeBSD: projects/mips/sys/mips/include/bus.h 191282 2009-04-19 22:02:14Z gonzo $
 + */
@@ -11319,8 +11319,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/bus.h svn/mi
 -#endif /* !TARGET_OCTEON */
 -#endif /* !_MACHINE_BUS_H_ */
 +#endif /* _MACHINE_BUS_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/bus_octeon.h svn/mips/sys/mips/include/bus_octeon.h
---- svn/stable/8/sys/mips/include/bus_octeon.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/bus_octeon.h svn/mips/sys/mips/include/bus_octeon.h
+--- releng8/src/sys/mips/include/bus_octeon.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/bus_octeon.h	1969-12-31 16:00:00.000000000 -0800
 @@ -1,883 +0,0 @@
 -/*-
@@ -11354,7 +11354,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/bus_octeon.h
 - * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 - * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 - *
-- * $FreeBSD: stable/8/sys/mips/include/bus_octeon.h 178172 2008-04-13 07:27:37Z imp $
+- * $FreeBSD: src/sys/mips/include/bus_octeon.h,v 1.1.2.1 2009/08/03 08:13:06 kensmith Exp $
 - */
 -
 -/*	$NetBSD: bus.h,v 1.12 1997/10/01 08:25:15 fvdl Exp $	*/
@@ -12206,14 +12206,14 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/bus_octeon.h
 -	bus_space_copy_region_4((t), (h1), (o1), (h2), (o2), (c))
 -
 -#endif /* _MIPS_BUS_OCTEON_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cache.h svn/mips/sys/mips/include/cache.h
---- svn/stable/8/sys/mips/include/cache.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/cache.h svn/mips/sys/mips/include/cache.h
+--- releng8/src/sys/mips/include/cache.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/cache.h	2009-07-02 18:44:22.000000000 -0700
 @@ -34,9 +34,12 @@
   * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   * POSSIBILITY OF SUCH DAMAGE.
   *
-- * $FreeBSD: stable/8/sys/mips/include/cache.h 178172 2008-04-13 07:27:37Z imp $
+- * $FreeBSD: src/sys/mips/include/cache.h,v 1.1.2.1 2009/08/03 08:13:06 kensmith Exp $
 + * $FreeBSD: projects/mips/sys/mips/include/cache.h 195076 2009-06-26 19:54:06Z gonzo $
   */
  
@@ -12228,14 +12228,14 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cache.h svn/
  
  #include <machine/cache_mipsNN.h>
 +#endif	/* _MACHINE_CACHE_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cache_mipsNN.h svn/mips/sys/mips/include/cache_mipsNN.h
---- svn/stable/8/sys/mips/include/cache_mipsNN.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/cache_mipsNN.h svn/mips/sys/mips/include/cache_mipsNN.h
+--- releng8/src/sys/mips/include/cache_mipsNN.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/cache_mipsNN.h	2009-07-02 18:44:22.000000000 -0700
 @@ -34,8 +34,10 @@
   * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   * POSSIBILITY OF SUCH DAMAGE.
   *
-- * $FreeBSD: stable/8/sys/mips/include/cache_mipsNN.h 178172 2008-04-13 07:27:37Z imp $
+- * $FreeBSD: src/sys/mips/include/cache_mipsNN.h,v 1.1.2.1 2009/08/03 08:13:06 kensmith Exp $
 + * $FreeBSD: projects/mips/sys/mips/include/cache_mipsNN.h 195076 2009-06-26 19:54:06Z gonzo $
   */
 +#ifndef	_MACHINE_CACHE_MIPSNN_H_
@@ -12249,8 +12249,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cache_mipsNN
  #endif
 +
 +#endif	/* _MACHINE_CACHE_MIPSNN_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cdefs.h svn/mips/sys/mips/include/cdefs.h
---- svn/stable/8/sys/mips/include/cdefs.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/include/cdefs.h svn/mips/sys/mips/include/cdefs.h
+--- releng8/src/sys/mips/include/cdefs.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/include/cdefs.h	2009-08-04 10:46:58.000000000 -0700
 @@ -0,0 +1,54 @@
 +/*	$NetBSD: cdefs.h,v 1.12 2006/08/27 19:04:30 matt Exp $	*/
@@ -12307,8 +12307,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cdefs.h svn/
 +#endif
 +
 +#endif /* !_MIPS_CDEFS_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cpu.h svn/mips/sys/mips/include/cpu.h
---- svn/stable/8/sys/mips/include/cpu.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/cpu.h svn/mips/sys/mips/include/cpu.h
+--- releng8/src/sys/mips/include/cpu.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/cpu.h	2009-08-04 10:46:58.000000000 -0700
 @@ -56,21 +56,30 @@
  #define	MIPS_RESERVED_ADDR		0xbfc80000
@@ -12362,8 +12362,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cpu.h svn/mi
  
  /*
   * The bits in the context register.
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cpufunc.h svn/mips/sys/mips/include/cpufunc.h
---- svn/stable/8/sys/mips/include/cpufunc.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/cpufunc.h svn/mips/sys/mips/include/cpufunc.h
+--- releng8/src/sys/mips/include/cpufunc.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/cpufunc.h	2009-05-06 14:57:15.000000000 -0700
 @@ -183,6 +183,28 @@
  	mips_barrier();						\
@@ -12429,8 +12429,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cpufunc.h sv
  #undef	MIPS_RDRW32_COP0
  
  static __inline register_t
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cpuinfo.h svn/mips/sys/mips/include/cpuinfo.h
---- svn/stable/8/sys/mips/include/cpuinfo.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/cpuinfo.h svn/mips/sys/mips/include/cpuinfo.h
+--- releng8/src/sys/mips/include/cpuinfo.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/cpuinfo.h	2009-09-08 11:01:49.000000000 -0700
 @@ -57,11 +57,11 @@
  	u_int16_t	tlb_nentries;
@@ -12446,8 +12446,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cpuinfo.h sv
  		u_int8_t	dc_linesize;
  		u_int8_t	dc_nways;
  		u_int16_t	dc_nsets;
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cpuregs.h svn/mips/sys/mips/include/cpuregs.h
---- svn/stable/8/sys/mips/include/cpuregs.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/cpuregs.h svn/mips/sys/mips/include/cpuregs.h
+--- releng8/src/sys/mips/include/cpuregs.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/cpuregs.h	2009-08-04 10:46:58.000000000 -0700
 @@ -103,6 +103,8 @@
  /* CPU dependent mtc0 hazard hook */
@@ -12458,8 +12458,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/cpuregs.h sv
  #else
  #define	COP0_SYNC		/* nothing */
  #endif
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/db_machdep.h svn/mips/sys/mips/include/db_machdep.h
---- svn/stable/8/sys/mips/include/db_machdep.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/db_machdep.h svn/mips/sys/mips/include/db_machdep.h
+--- releng8/src/sys/mips/include/db_machdep.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/db_machdep.h	2009-08-04 10:46:58.000000000 -0700
 @@ -46,7 +46,7 @@
  extern db_regs_t	ddb_regs;	/* register state */
@@ -12470,8 +12470,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/db_machdep.h
  
  #if BYTE_ORDER == _BIG_ENDIAN
  #define	BYTE_MSF	(1)
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/elf.h svn/mips/sys/mips/include/elf.h
---- svn/stable/8/sys/mips/include/elf.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/elf.h svn/mips/sys/mips/include/elf.h
+--- releng8/src/sys/mips/include/elf.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/elf.h	2009-08-04 10:46:58.000000000 -0700
 @@ -41,8 +41,12 @@
  /* Information taken from MIPS ABI supplemental */
@@ -12486,8 +12486,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/elf.h svn/mi
  #include <sys/elf32.h>	/* Definitions common to all 32 bit architectures. */
  #include <sys/elf64.h>	/* Definitions common to all 64 bit architectures. */
  #include <sys/elf_generic.h>
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/endian.h svn/mips/sys/mips/include/endian.h
---- svn/stable/8/sys/mips/include/endian.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/endian.h svn/mips/sys/mips/include/endian.h
+--- releng8/src/sys/mips/include/endian.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/endian.h	2009-05-06 14:57:15.000000000 -0700
 @@ -108,12 +108,12 @@
  	    ((_x << 40) & ((__uint64_t)0xff << 48)) | ((_x << 56)));
@@ -12508,8 +12508,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/endian.h svn
  
  #ifdef __MIPSEB__
  #define	__htonl(x)	((__uint32_t)(x))
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/float.h svn/mips/sys/mips/include/float.h
---- svn/stable/8/sys/mips/include/float.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/float.h svn/mips/sys/mips/include/float.h
+--- releng8/src/sys/mips/include/float.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/float.h	2009-06-12 04:42:48.000000000 -0700
 @@ -42,10 +42,10 @@
  __END_DECLS
@@ -12525,8 +12525,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/float.h svn/
  #endif
  /*
   * XXXMIPS: MIPS32 has both float and double type, so set FLT_EVAL_METHOD
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/intr.h svn/mips/sys/mips/include/intr.h
---- svn/stable/8/sys/mips/include/intr.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/intr.h svn/mips/sys/mips/include/intr.h
+--- releng8/src/sys/mips/include/intr.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/intr.h	1969-12-31 16:00:00.000000000 -0800
 @@ -1,94 +0,0 @@
 -/*	$NetBSD: intr.h,v 1.5 1996/05/13 06:11:28 mycroft Exp $ */
@@ -12560,7 +12560,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/intr.h svn/m
 - * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 - *
 - *	JNPR: intr.h,v 1.4 2007/08/09 11:23:32 katta
-- * $FreeBSD: stable/8/sys/mips/include/intr.h 178172 2008-04-13 07:27:37Z imp $
+- * $FreeBSD: src/sys/mips/include/intr.h,v 1.1.2.1 2009/08/03 08:13:06 kensmith Exp $
 - */
 -
 -#ifndef _MACHINE_INTR_H_
@@ -12623,8 +12623,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/intr.h svn/m
 -#endif /* _LOCORE */
 -
 -#endif /* !_MACHINE_INTR_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/md_var.h svn/mips/sys/mips/include/md_var.h
---- svn/stable/8/sys/mips/include/md_var.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/md_var.h svn/mips/sys/mips/include/md_var.h
+--- releng8/src/sys/mips/include/md_var.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/md_var.h	2009-08-04 10:46:58.000000000 -0700
 @@ -39,7 +39,7 @@
  /*
@@ -12656,14 +12656,14 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/md_var.h svn
 +void busdma_swi(void);
 +
  #endif /* !_MACHINE_MD_VAR_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/param.h svn/mips/sys/mips/include/param.h
---- svn/stable/8/sys/mips/include/param.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/param.h svn/mips/sys/mips/include/param.h
+--- releng8/src/sys/mips/include/param.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/param.h	2009-10-01 13:42:53.000000000 -0700
 @@ -36,11 +36,13 @@
   *	from: Utah Hdr: machparam.h 1.11 89/08/14
   *	from: @(#)param.h	8.1 (Berkeley) 6/10/93
   *	JNPR: param.h,v 1.6.2.1 2007/09/10 07:49:36 girish
-- * $FreeBSD: stable/8/sys/mips/include/param.h 195376 2009-07-05 17:45:48Z sam $
+- * $FreeBSD: src/sys/mips/include/param.h,v 1.6.2.1 2009/08/03 08:13:06 kensmith Exp $
 + * $FreeBSD: projects/mips/sys/mips/include/param.h 196215 2009-08-14 16:15:18Z imp $
   */
  
@@ -12700,8 +12700,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/param.h svn/
  
 -#endif /* !_MACHINE_PARAM_H_ */
 +#endif /* !_MIPS_INCLUDE_PARAM_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/pltfm.h svn/mips/sys/mips/include/pltfm.h
---- svn/stable/8/sys/mips/include/pltfm.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/pltfm.h svn/mips/sys/mips/include/pltfm.h
+--- releng8/src/sys/mips/include/pltfm.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/pltfm.h	2009-08-04 10:46:58.000000000 -0700
 @@ -13,17 +13,4 @@
  #define	SDRAM_ADDR_END		(SDRAM_ADDR_START + (1024*0x100000))
@@ -12721,8 +12721,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/pltfm.h svn/
 -#define	VADDR_NS16550_UART1	0xbef14000	/* UART */
 -
  #endif /* !_MACHINE_PLTFM_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/pmap.h svn/mips/sys/mips/include/pmap.h
---- svn/stable/8/sys/mips/include/pmap.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/pmap.h svn/mips/sys/mips/include/pmap.h
+--- releng8/src/sys/mips/include/pmap.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/pmap.h	2009-10-01 13:13:43.000000000 -0700
 @@ -172,6 +172,7 @@
  void pmap_kenter_temporary_free(vm_paddr_t pa);
@@ -12732,8 +12732,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/pmap.h svn/m
  
  /*
   * floating virtual pages (FPAGES)
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/proc.h svn/mips/sys/mips/include/proc.h
---- svn/stable/8/sys/mips/include/proc.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/proc.h svn/mips/sys/mips/include/proc.h
+--- releng8/src/sys/mips/include/proc.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/proc.h	2009-07-02 18:44:22.000000000 -0700
 @@ -54,6 +54,7 @@
  	int	md_pc_count;		/* performance counter */
@@ -12743,8 +12743,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/proc.h svn/m
  };
  
  /* md_flags */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/profile.h svn/mips/sys/mips/include/profile.h
---- svn/stable/8/sys/mips/include/profile.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/profile.h svn/mips/sys/mips/include/profile.h
+--- releng8/src/sys/mips/include/profile.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/profile.h	2009-08-04 10:46:58.000000000 -0700
 @@ -41,6 +41,8 @@
  
@@ -12755,8 +12755,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/profile.h sv
  #define	MCOUNT \
  	__asm(".globl _mcount;"		\
  	".type _mcount,@function;"	\
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/psl.h svn/mips/sys/mips/include/psl.h
---- svn/stable/8/sys/mips/include/psl.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/psl.h svn/mips/sys/mips/include/psl.h
+--- releng8/src/sys/mips/include/psl.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/psl.h	2009-05-26 09:40:41.000000000 -0700
 @@ -47,8 +47,4 @@
  #define	USERMODE(ps)	(((ps) & SR_KSU_MASK) == SR_KSU_USER)
@@ -12767,8 +12767,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/psl.h svn/mi
 -#include <machine/intr.h>
 -#endif
  #endif	/* _MACHINE_PSL_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/pte.h svn/mips/sys/mips/include/pte.h
---- svn/stable/8/sys/mips/include/pte.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/pte.h svn/mips/sys/mips/include/pte.h
+--- releng8/src/sys/mips/include/pte.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/pte.h	2009-08-04 10:46:58.000000000 -0700
 @@ -105,7 +105,11 @@
  #define PTE_ODDPG       0x00001000 
@@ -12782,8 +12782,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/pte.h svn/mi
  /*#define	PG_CACHEMODE	0x00000038 Not Used*/
  #define	PTE_ROPAGE	(PTE_V | PTE_RO | PTE_CACHE) /* Write protected */
  #define	PTE_RWPAGE	(PTE_V | PTE_M | PTE_CACHE)  /* Not wr-prot not clean */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/regdef.h svn/mips/sys/mips/include/regdef.h
---- svn/stable/8/sys/mips/include/regdef.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/regdef.h svn/mips/sys/mips/include/regdef.h
+--- releng8/src/sys/mips/include/regdef.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/regdef.h	2009-08-04 10:46:58.000000000 -0700
 @@ -12,6 +12,8 @@
  #ifndef _MACHINE_REGDEF_H_
@@ -12846,8 +12846,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/regdef.h svn
  #endif /* __ASSEMBLER__ */
  
  #endif /* !_MACHINE_REGDEF_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/regnum.h svn/mips/sys/mips/include/regnum.h
---- svn/stable/8/sys/mips/include/regnum.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/regnum.h svn/mips/sys/mips/include/regnum.h
+--- releng8/src/sys/mips/include/regnum.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/regnum.h	2009-08-04 10:46:58.000000000 -0700
 @@ -82,10 +82,10 @@
  #define	T1	9
@@ -12864,8 +12864,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/regnum.h svn
  #define	S0	16
  #define	S1	17
  #define	S2	18
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/sysarch.h svn/mips/sys/mips/include/sysarch.h
---- svn/stable/8/sys/mips/include/sysarch.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/sysarch.h svn/mips/sys/mips/include/sysarch.h
+--- releng8/src/sys/mips/include/sysarch.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/sysarch.h	2009-07-02 18:44:22.000000000 -0700
 @@ -35,16 +35,12 @@
  #ifndef _MACHINE_SYSARCH_H_
@@ -12887,8 +12887,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/sysarch.h sv
  __BEGIN_DECLS
  int sysarch(int, void *);
  __END_DECLS
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/ucontext.h svn/mips/sys/mips/include/ucontext.h
---- svn/stable/8/sys/mips/include/ucontext.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/include/ucontext.h svn/mips/sys/mips/include/ucontext.h
+--- releng8/src/sys/mips/include/ucontext.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/ucontext.h	2009-08-04 10:46:58.000000000 -0700
 @@ -53,14 +53,19 @@
  	int		mc_fpused;	/* fp has been used */
@@ -12911,8 +12911,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/include/ucontext.h s
  
  #define	UCR_ZERO	UCTX_REG(0)
  #define	UCR_AT		UCTX_REG(1)
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/gt_pci.c svn/mips/sys/mips/malta/gt_pci.c
---- svn/stable/8/sys/mips/malta/gt_pci.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/malta/gt_pci.c svn/mips/sys/mips/malta/gt_pci.c
+--- releng8/src/sys/mips/malta/gt_pci.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/malta/gt_pci.c	2009-07-02 19:55:30.000000000 -0700
 @@ -91,11 +91,16 @@
  #define OCW3_POLL_IRQ(x) ((x) & 0x7f)
@@ -13212,8 +13212,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/gt_pci.c svn/m
  	return (intr_event_remove_handler(cookie));
  }
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/malta_machdep.c svn/mips/sys/mips/malta/malta_machdep.c
---- svn/stable/8/sys/mips/malta/malta_machdep.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/malta/malta_machdep.c svn/mips/sys/mips/malta/malta_machdep.c
+--- releng8/src/sys/mips/malta/malta_machdep.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/malta/malta_machdep.c	2009-07-02 18:44:24.000000000 -0700
 @@ -226,6 +226,52 @@
  
@@ -13323,8 +13323,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/malta_machdep.
 -
  	mips_timer_init_params(platform_counter_freq, 0);
  }
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/maltareg.h svn/mips/sys/mips/malta/maltareg.h
---- svn/stable/8/sys/mips/malta/maltareg.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/malta/maltareg.h svn/mips/sys/mips/malta/maltareg.h
+--- releng8/src/sys/mips/malta/maltareg.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/malta/maltareg.h	2009-08-04 10:47:01.000000000 -0700
 @@ -94,37 +94,37 @@
  		15	Secondary IDE	Secondary IDE slot/Compact flash connector
@@ -13387,8 +13387,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/maltareg.h svn
  #define	 MALTA_REV_FPGRV	 0xff0000	/* CBUS FPGA revision */
  #define	 MALTA_REV_CORID	 0x00fc00	/* Core Board ID */
  #define	 MALTA_REV_CORRV	 0x000300	/* Core Board Revision */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/obio.c svn/mips/sys/mips/malta/obio.c
---- svn/stable/8/sys/mips/malta/obio.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/malta/obio.c svn/mips/sys/mips/malta/obio.c
+--- releng8/src/sys/mips/malta/obio.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/malta/obio.c	2009-09-08 11:01:51.000000000 -0700
 @@ -63,20 +63,18 @@
   * A bit tricky and hackish. Since we need OBIO to rely
@@ -13423,8 +13423,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/obio.c svn/mip
  	sc->oba_addr = MIPS_PHYS_TO_KSEG1(MALTA_UART0ADR);
  	sc->oba_size = MALTA_PCIMEM3_SIZE;
  	sc->oba_rman.rm_type = RMAN_ARRAY;
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/std.malta svn/mips/sys/mips/malta/std.malta
---- svn/stable/8/sys/mips/malta/std.malta	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/malta/std.malta svn/mips/sys/mips/malta/std.malta
+--- releng8/src/sys/mips/malta/std.malta	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/malta/std.malta	2009-08-04 10:47:01.000000000 -0700
 @@ -2,8 +2,7 @@
  files	"../malta/files.malta"
@@ -13436,8 +13436,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/std.malta svn/
  device		pci
  device		ata
  device		atadisk
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/uart_bus_maltausart.c svn/mips/sys/mips/malta/uart_bus_maltausart.c
---- svn/stable/8/sys/mips/malta/uart_bus_maltausart.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/malta/uart_bus_maltausart.c svn/mips/sys/mips/malta/uart_bus_maltausart.c
+--- releng8/src/sys/mips/malta/uart_bus_maltausart.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/malta/uart_bus_maltausart.c	2009-09-08 11:01:51.000000000 -0700
 @@ -28,10 +28,6 @@
   * code written by Olivier Houchard.
@@ -13472,8 +13472,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/uart_bus_malta
  	sc->sc_bas.bsh = MIPS_PHYS_TO_KSEG1(MALTA_UART0ADR);
  	return(uart_bus_probe(dev, 0, 0, 0, 0));
  }
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/uart_cpu_maltausart.c svn/mips/sys/mips/malta/uart_cpu_maltausart.c
---- svn/stable/8/sys/mips/malta/uart_cpu_maltausart.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/malta/uart_cpu_maltausart.c svn/mips/sys/mips/malta/uart_cpu_maltausart.c
+--- releng8/src/sys/mips/malta/uart_cpu_maltausart.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/malta/uart_cpu_maltausart.c	2009-09-08 11:01:51.000000000 -0700
 @@ -29,10 +29,6 @@
   * Skeleton of this file was based on respective code for ARM
@@ -13508,8 +13508,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/uart_cpu_malta
 +	uart_bus_space_mem = mips_bus_space_generic;
  	return (0);
  }
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/yamon.h svn/mips/sys/mips/malta/yamon.h
---- svn/stable/8/sys/mips/malta/yamon.h	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/malta/yamon.h svn/mips/sys/mips/malta/yamon.h
+--- releng8/src/sys/mips/malta/yamon.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/malta/yamon.h	2009-08-04 10:47:01.000000000 -0700
 @@ -38,7 +38,7 @@
  #ifndef _MALTA_YAMON_H_
@@ -13529,8 +13529,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/malta/yamon.h svn/mi
  
  typedef void (*t_yamon_print_count)(uint32_t port, char *s, uint32_t count);
  #define YAMON_PRINT_COUNT(s, count) \
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/bus_space_generic.c svn/mips/sys/mips/mips/bus_space_generic.c
---- svn/stable/8/sys/mips/mips/bus_space_generic.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/mips/bus_space_generic.c svn/mips/sys/mips/mips/bus_space_generic.c
+--- releng8/src/sys/mips/mips/bus_space_generic.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/mips/bus_space_generic.c	2009-05-06 14:57:15.000000000 -0700
 @@ -0,0 +1,571 @@
 +/*      $NetBSD: bus.h,v 1.12 1997/10/01 08:25:15 fvdl Exp $    */
@@ -14104,8 +14104,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/bus_space_gener
 +		mips_dcache_wbinv_all();
 +#endif
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/busdma_machdep.c svn/mips/sys/mips/mips/busdma_machdep.c
---- svn/stable/8/sys/mips/mips/busdma_machdep.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/busdma_machdep.c svn/mips/sys/mips/mips/busdma_machdep.c
+--- releng8/src/sys/mips/mips/busdma_machdep.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/busdma_machdep.c	2009-08-04 10:47:01.000000000 -0700
 @@ -23,49 +23,15 @@
   * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
@@ -14154,7 +14154,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/busdma_machdep.
 -/*	$NetBSD: bus_dma.c,v 1.17 2006/03/01 12:38:11 yamt Exp $	*/
 -
  #include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/sys/mips/mips/busdma_machdep.c 195162 2009-06-29 16:45:50Z imp $");
+-__FBSDID("$FreeBSD: src/sys/mips/mips/busdma_machdep.c,v 1.5.2.1 2009/08/03 08:13:06 kensmith Exp $");
 +__FBSDID("$FreeBSD: projects/mips/sys/mips/mips/busdma_machdep.c 195983 2009-07-30 23:29:59Z gonzo $");
 +
 +/*
@@ -15363,8 +15363,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/busdma_machdep.
 +	}
 +	mtx_unlock(&bounce_lock);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/cache_mipsNN.c svn/mips/sys/mips/mips/cache_mipsNN.c
---- svn/stable/8/sys/mips/mips/cache_mipsNN.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/cache_mipsNN.c svn/mips/sys/mips/mips/cache_mipsNN.c
+--- releng8/src/sys/mips/mips/cache_mipsNN.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/cache_mipsNN.c	2009-08-04 10:47:01.000000000 -0700
 @@ -66,8 +66,6 @@
  #endif
@@ -15383,8 +15383,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/cache_mipsNN.c 
  	if (cpuinfo->icache_virtual)
  		printf("  icache is virtual\n");
  	printf("  picache_stride    = %d\n", picache_stride);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/copystr.S svn/mips/sys/mips/mips/copystr.S
---- svn/stable/8/sys/mips/mips/copystr.S	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/copystr.S svn/mips/sys/mips/mips/copystr.S
+--- releng8/src/sys/mips/mips/copystr.S	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/copystr.S	2009-08-04 10:47:01.000000000 -0700
 @@ -67,13 +67,13 @@
  	move	v0, zero
@@ -15477,8 +15477,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/copystr.S svn/m
  3:
  	j	ra				# v0 is 0 or ENAMETOOLONG
  	sw	zero, PCB_ONFAULT(v1)
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/cpu.c svn/mips/sys/mips/mips/cpu.c
---- svn/stable/8/sys/mips/mips/cpu.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/cpu.c svn/mips/sys/mips/mips/cpu.c
+--- releng8/src/sys/mips/mips/cpu.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/cpu.c	2009-05-06 14:57:15.000000000 -0700
 @@ -64,61 +64,66 @@
  static void
@@ -15772,8 +15772,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/cpu.c svn/mips/
  }
  
  static struct rman cpu_hardirq_rman;
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/elf_machdep.c svn/mips/sys/mips/mips/elf_machdep.c
---- svn/stable/8/sys/mips/mips/elf_machdep.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/elf_machdep.c svn/mips/sys/mips/mips/elf_machdep.c
+--- releng8/src/sys/mips/mips/elf_machdep.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/elf_machdep.c	2009-09-08 11:01:51.000000000 -0700
 @@ -47,6 +47,59 @@
  #include <machine/elf.h>
@@ -15853,8 +15853,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/elf_machdep.c s
  
  /* Process one elf relocation with addend. */
  static int
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/elf_trampoline.c svn/mips/sys/mips/mips/elf_trampoline.c
---- svn/stable/8/sys/mips/mips/elf_trampoline.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/mips/elf_trampoline.c svn/mips/sys/mips/mips/elf_trampoline.c
+--- releng8/src/sys/mips/mips/elf_trampoline.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/mips/elf_trampoline.c	2009-09-30 19:27:13.000000000 -0700
 @@ -0,0 +1,147 @@
 +/*-
@@ -16004,8 +16004,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/elf_trampoline.
 +	/* Pass saved registers to original _start */
 +	entry_point(a0, a1, a2, a3);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/exception.S svn/mips/sys/mips/mips/exception.S
---- svn/stable/8/sys/mips/mips/exception.S	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/exception.S svn/mips/sys/mips/mips/exception.S
+--- releng8/src/sys/mips/mips/exception.S	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/exception.S	2009-08-04 10:47:01.000000000 -0700
 @@ -139,12 +139,14 @@
   *----------------------------------------------------------------------------
@@ -16563,8 +16563,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/exception.S svn
  	_MFC0	a1, COP_0_ERROR_PC
  	mfc0	a2, COP_0_CACHE_ERR		# 3rd arg cache error
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/fp.S svn/mips/sys/mips/mips/fp.S
---- svn/stable/8/sys/mips/mips/fp.S	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/fp.S svn/mips/sys/mips/mips/fp.S
+--- releng8/src/sys/mips/mips/fp.S	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/fp.S	2009-08-04 10:47:01.000000000 -0700
 @@ -634,7 +634,7 @@
   */
@@ -17958,8 +17958,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/fp.S svn/mips/s
 +	sll	ta3, ta3, t9
  	j	ra
  END(renorm_ft_d)
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/genassym.c svn/mips/sys/mips/mips/genassym.c
---- svn/stable/8/sys/mips/mips/genassym.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/genassym.c svn/mips/sys/mips/mips/genassym.c
+--- releng8/src/sys/mips/mips/genassym.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/genassym.c	2009-08-04 10:47:01.000000000 -0700
 @@ -69,6 +69,7 @@
  ASSYM(TD_FLAGS, offsetof(struct thread, td_flags));
@@ -17977,8 +17977,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/genassym.c svn/
  ASSYM(PGSHIFT, PGSHIFT);
  ASSYM(NBPG, NBPG);
  ASSYM(SEGSHIFT, SEGSHIFT);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/in_cksum.c svn/mips/sys/mips/mips/in_cksum.c
---- svn/stable/8/sys/mips/mips/in_cksum.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/in_cksum.c svn/mips/sys/mips/mips/in_cksum.c
+--- releng8/src/sys/mips/mips/in_cksum.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/in_cksum.c	2009-08-04 10:47:01.000000000 -0700
 @@ -226,7 +226,7 @@
  		if (len < mlen)
@@ -17989,8 +17989,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/in_cksum.c svn/
  			sum += in_cksumdata(addr, mlen) << 8;
  		else
  			sum += in_cksumdata(addr, mlen);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/inckern.S svn/mips/sys/mips/mips/inckern.S
---- svn/stable/8/sys/mips/mips/inckern.S	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/mips/inckern.S svn/mips/sys/mips/mips/inckern.S
+--- releng8/src/sys/mips/mips/inckern.S	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/mips/inckern.S	2009-04-14 15:39:44.000000000 -0700
 @@ -0,0 +1,34 @@
 +/*-
@@ -18027,8 +18027,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/inckern.S svn/m
 +.incbin KERNNAME
 +.globl kernel_end;
 +kernel_end:
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/intr_machdep.c svn/mips/sys/mips/mips/intr_machdep.c
---- svn/stable/8/sys/mips/mips/intr_machdep.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/intr_machdep.c svn/mips/sys/mips/mips/intr_machdep.c
+--- releng8/src/sys/mips/mips/intr_machdep.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/intr_machdep.c	2009-08-04 10:47:01.000000000 -0700
 @@ -53,18 +53,39 @@
  static int last_printed = 0;
@@ -18157,8 +18157,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/intr_machdep.c 
  	while ((i = fls(intr)) != 0) {
  		intr &= ~(1 << (i - 1));
  		switch (i) {
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/locore.S svn/mips/sys/mips/mips/locore.S
---- svn/stable/8/sys/mips/mips/locore.S	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/locore.S svn/mips/sys/mips/mips/locore.S
+--- releng8/src/sys/mips/mips/locore.S	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/locore.S	2009-08-04 10:47:01.000000000 -0700
 @@ -138,14 +138,18 @@
  	mtc0	t2, COP_0_STATUS_REG
@@ -18218,8 +18218,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/locore.S svn/mi
  	lw      a0, TD_PCB(sp)
  	li	t0, ~7
  	and	a0, a0, t0
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/machdep.c svn/mips/sys/mips/mips/machdep.c
---- svn/stable/8/sys/mips/mips/machdep.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/machdep.c svn/mips/sys/mips/mips/machdep.c
+--- releng8/src/sys/mips/mips/machdep.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/machdep.c	2009-09-08 11:01:51.000000000 -0700
 @@ -104,6 +104,7 @@
  
@@ -18282,8 +18282,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/machdep.c svn/m
  fill_dbregs(struct thread *td, struct dbreg *dbregs)
  {
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/mem.c svn/mips/sys/mips/mips/mem.c
---- svn/stable/8/sys/mips/mips/mem.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/mem.c svn/mips/sys/mips/mips/mem.c
+--- releng8/src/sys/mips/mips/mem.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/mem.c	2009-08-04 10:47:01.000000000 -0700
 @@ -101,8 +101,15 @@
  			vm_paddr_t pa;
@@ -18373,8 +18373,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/mem.c svn/mips/
  
  			error = uiomove((caddr_t)v, c, uio);
  			continue;
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/nexus.c svn/mips/sys/mips/mips/nexus.c
---- svn/stable/8/sys/mips/mips/nexus.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/nexus.c svn/mips/sys/mips/mips/nexus.c
+--- releng8/src/sys/mips/mips/nexus.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/nexus.c	2009-09-08 11:01:51.000000000 -0700
 @@ -58,6 +58,7 @@
  #include <machine/resource.h>
@@ -18585,8 +18585,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/nexus.c svn/mip
  
  	return (rman_deactivate_resource(r));
  }
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/pm_machdep.c svn/mips/sys/mips/mips/pm_machdep.c
---- svn/stable/8/sys/mips/mips/pm_machdep.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/pm_machdep.c svn/mips/sys/mips/mips/pm_machdep.c
+--- releng8/src/sys/mips/mips/pm_machdep.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/pm_machdep.c	2009-08-04 10:47:01.000000000 -0700
 @@ -230,13 +230,13 @@
  /* #ifdef DEBUG */
@@ -18653,8 +18653,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/pm_machdep.c sv
  #endif
  #ifdef TARGET_OCTEON
  	td->td_frame->sr |= MIPS_SR_COP_2_BIT | MIPS32_SR_PX | MIPS_SR_UX |
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
---- svn/stable/8/sys/mips/mips/pmap.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
+--- releng8/src/sys/mips/mips/pmap.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/pmap.c	2009-10-01 13:13:43.000000000 -0700
 @@ -313,6 +313,8 @@
  		}
@@ -18952,8 +18952,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/pmap.c svn/mips
 +		}
 +	}
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/support.S svn/mips/sys/mips/mips/support.S
---- svn/stable/8/sys/mips/mips/support.S	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/support.S svn/mips/sys/mips/mips/support.S
+--- releng8/src/sys/mips/mips/support.S	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/support.S	2009-09-08 11:01:51.000000000 -0700
 @@ -460,8 +460,10 @@
  	sw	zero, U_PCB_ONFAULT(v1)
@@ -19096,8 +19096,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/support.S svn/m
  
  #if defined(DDB) || defined(DEBUG)
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/swtch.S svn/mips/sys/mips/mips/swtch.S
---- svn/stable/8/sys/mips/mips/swtch.S	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/swtch.S svn/mips/sys/mips/mips/swtch.S
+--- releng8/src/sys/mips/mips/swtch.S	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/swtch.S	2009-08-04 10:47:01.000000000 -0700
 @@ -81,14 +81,12 @@
  #define	_MFC0	dmfc0
@@ -19179,8 +19179,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/swtch.S svn/mip
  	mtc0	v0, COP_0_STATUS_REG
  	ITLBNOPFIX
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/sys_machdep.c svn/mips/sys/mips/mips/sys_machdep.c
---- svn/stable/8/sys/mips/mips/sys_machdep.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/mips/sys_machdep.c svn/mips/sys/mips/mips/sys_machdep.c
+--- releng8/src/sys/mips/mips/sys_machdep.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/mips/sys_machdep.c	2009-07-02 18:44:22.000000000 -0700
 @@ -0,0 +1,77 @@
 +/*-
@@ -19260,8 +19260,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/sys_machdep.c s
 +	}
 +	return (error);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/tick.c svn/mips/sys/mips/mips/tick.c
---- svn/stable/8/sys/mips/mips/tick.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/tick.c svn/mips/sys/mips/mips/tick.c
+--- releng8/src/sys/mips/mips/tick.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/tick.c	2009-05-26 09:40:41.000000000 -0700
 @@ -138,25 +138,19 @@
  	 * function should  be called before cninit.
@@ -19304,8 +19304,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/tick.c svn/mips
  	mips_wr_compare(mips_rd_count() + counter_freq / hz);
  	return (0);
  }
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
---- svn/stable/8/sys/mips/mips/tlb.S	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
+--- releng8/src/sys/mips/mips/tlb.S	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/tlb.S	2009-08-04 10:47:01.000000000 -0700
 @@ -81,14 +81,12 @@
  #define	_MFC0	dmfc0
@@ -19443,8 +19443,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/tlb.S svn/mips/
  	mtc0	t3, COP_0_TLB_PG_MASK		# restore pgMask
  	MIPS_CPU_NOP_DELAY
  	mtc0	v1, COP_0_STATUS_REG		# restore status register
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
---- svn/stable/8/sys/mips/mips/trap.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
+--- releng8/src/sys/mips/mips/trap.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/trap.c	2009-09-08 11:01:51.000000000 -0700
 @@ -76,7 +76,6 @@
  #include <machine/trap.h>
@@ -19909,8 +19909,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/trap.c svn/mips
  		}
  	}
  	return access_type;
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_machdep.c
---- svn/stable/8/sys/mips/mips/vm_machdep.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_machdep.c
+--- releng8/src/sys/mips/mips/vm_machdep.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/mips/vm_machdep.c	2009-10-01 13:13:43.000000000 -0700
 @@ -52,6 +52,7 @@
  #include <sys/sysctl.h>
@@ -20021,8 +20021,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/mips/vm_machdep.c sv
  	return (0);
  }
  
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/asm_octeon.S svn/mips/sys/mips/octeon1/asm_octeon.S
---- svn/stable/8/sys/mips/octeon1/asm_octeon.S	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/asm_octeon.S svn/mips/sys/mips/octeon1/asm_octeon.S
+--- releng8/src/sys/mips/octeon1/asm_octeon.S	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/asm_octeon.S	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,143 @@
 +
@@ -20168,8 +20168,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/asm_octeon.S
 +	.set	reorder
 +END(octeon_ciu_mask_all_interrupts)
 +
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_fau.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fau.c
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_fau.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_fau.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fau.c
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_fau.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fau.c	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,42 @@
 +/*------------------------------------------------------------------
@@ -20214,8 +20214,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +void octeon_fau_disable (void)
 +{
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_fau.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fau.h
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_fau.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_fau.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fau.h
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_fau.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fau.h	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,185 @@
 +/*------------------------------------------------------------------
@@ -20403,8 +20403,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +
 +
 +#endif  /* ___OCTEON_FAU__H___ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_fpa.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fpa.c
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_fpa.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_fpa.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fpa.c
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_fpa.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fpa.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,187 @@
 +/*------------------------------------------------------------------
@@ -20594,8 +20594,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +    }
 +}
 +
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_fpa.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fpa.h
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_fpa.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_fpa.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fpa.h
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_fpa.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_fpa.h	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,219 @@
 +/*------------------------------------------------------------------
@@ -20817,8 +20817,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +}
 +
 +#endif /* ___OCTEON_FPA__H___ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_ipd.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_ipd.c
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_ipd.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_ipd.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_ipd.c
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_ipd.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_ipd.c	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,107 @@
 +/*------------------------------------------------------------------
@@ -20928,8 +20928,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +    octeon_ipd_ctl_reg.bits.pbp_en = back_pres_enable_flag;
 +    oct_write64(OCTEON_IPD_CTL_STATUS, octeon_ipd_ctl_reg.word64);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_ipd.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_ipd.h
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_ipd.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_ipd.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_ipd.h
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_ipd.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_ipd.h	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,164 @@
 +/*------------------------------------------------------------------
@@ -21096,8 +21096,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +
 +
 +#endif   /*  ___OCTEON_IPD__H___ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_pip.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pip.h
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_pip.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_pip.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pip.h
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_pip.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pip.h	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,179 @@
 +/*
@@ -21279,8 +21279,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +
 +
 +#endif /*  __OCTEON_PIP_H__ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_pko.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pko.c
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_pko.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_pko.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pko.c
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_pko.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pko.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,337 @@
 +/*------------------------------------------------------------------
@@ -21620,8 +21620,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +    return (result_code);
 +}
 +
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_pko.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pko.h
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_pko.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_pko.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pko.h
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_pko.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_pko.h	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,292 @@
 +/*------------------------------------------------------------------
@@ -21916,8 +21916,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +
 +
 +#endif   /*  ___OCTEON_PKO__H___ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_rgmx.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_rgmx.c
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_rgmx.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_rgmx.c svn/mips/sys/mips/octeon1/dev/rgmii/octeon_rgmx.c
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_rgmx.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_rgmx.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,2222 @@
 +/*
@@ -24142,8 +24142,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +static devclass_t rgmii_devclass;
 +
 +DRIVER_MODULE(rgmii, nexus, rgmii_driver, rgmii_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_rgmx.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_rgmx.h
---- svn/stable/8/sys/mips/octeon1/dev/rgmii/octeon_rgmx.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/dev/rgmii/octeon_rgmx.h svn/mips/sys/mips/octeon1/dev/rgmii/octeon_rgmx.h
+--- releng8/src/sys/mips/octeon1/dev/rgmii/octeon_rgmx.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/dev/rgmii/octeon_rgmx.h	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,590 @@
 +/*------------------------------------------------------------------
@@ -24736,8 +24736,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/dev/rgmii/oc
 +#define	RGMX_LOCK_ASSERT(_sc)	mtx_assert(&(_sc)->mtx, MA_OWNED)
 +
 +#endif /* ___OCTEON_RGMX__H___ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/driveid.h svn/mips/sys/mips/octeon1/driveid.h
---- svn/stable/8/sys/mips/octeon1/driveid.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/driveid.h svn/mips/sys/mips/octeon1/driveid.h
+--- releng8/src/sys/mips/octeon1/driveid.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/driveid.h	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,259 @@
 +
@@ -24999,8 +24999,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/driveid.h sv
 +
 +#endif /* __DRIVEID_H__ */
 +
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/files.octeon1 svn/mips/sys/mips/octeon1/files.octeon1
---- svn/stable/8/sys/mips/octeon1/files.octeon1	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/files.octeon1 svn/mips/sys/mips/octeon1/files.octeon1
+--- releng8/src/sys/mips/octeon1/files.octeon1	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/files.octeon1	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,15 @@
 +# $FreeBSD$
@@ -25018,8 +25018,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/files.octeon
 +mips/octeon1/uart_bus_octeonusart.c		optional uart
 +mips/octeon1/uart_cpu_octeonusart.c		optional uart
 +mips/octeon1/uart_dev_oct16550.c		optional uart
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/obio.c svn/mips/sys/mips/octeon1/obio.c
---- svn/stable/8/sys/mips/octeon1/obio.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/obio.c svn/mips/sys/mips/octeon1/obio.c
+--- releng8/src/sys/mips/octeon1/obio.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/obio.c	2009-09-08 11:01:51.000000000 -0700
 @@ -0,0 +1,182 @@
 +/*	$NetBSD: obio.c,v 1.11 2003/07/15 00:25:05 lukem Exp $	*/
@@ -25204,8 +25204,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/obio.c svn/m
 +static devclass_t obio_devclass;
 +
 +DRIVER_MODULE(obio, nexus, obio_driver, obio_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/obiovar.h svn/mips/sys/mips/octeon1/obiovar.h
---- svn/stable/8/sys/mips/octeon1/obiovar.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/obiovar.h svn/mips/sys/mips/octeon1/obiovar.h
+--- releng8/src/sys/mips/octeon1/obiovar.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/obiovar.h	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,58 @@
 +/*	$NetBSD: obiovar.h,v 1.4 2003/06/16 17:40:53 thorpej Exp $	*/
@@ -25266,8 +25266,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/obiovar.h sv
 +extern struct bus_space obio_bs_tag;
 +
 +#endif /* _OCTEON_OBIOVAR_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeon_ebt3000_cf.c svn/mips/sys/mips/octeon1/octeon_ebt3000_cf.c
---- svn/stable/8/sys/mips/octeon1/octeon_ebt3000_cf.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/octeon_ebt3000_cf.c svn/mips/sys/mips/octeon1/octeon_ebt3000_cf.c
+--- releng8/src/sys/mips/octeon1/octeon_ebt3000_cf.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/octeon_ebt3000_cf.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,621 @@
 +/*
@@ -25891,8 +25891,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeon_ebt30
 +
 +DRIVER_MODULE(cf, nexus, cf_driver, cf_devclass, 0, 0);
 +
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeon_ebt3000_cf.h svn/mips/sys/mips/octeon1/octeon_ebt3000_cf.h
---- svn/stable/8/sys/mips/octeon1/octeon_ebt3000_cf.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/octeon_ebt3000_cf.h svn/mips/sys/mips/octeon1/octeon_ebt3000_cf.h
+--- releng8/src/sys/mips/octeon1/octeon_ebt3000_cf.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/octeon_ebt3000_cf.h	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,35 @@
 +/*
@@ -25930,8 +25930,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeon_ebt30
 +
 +
 +#endif  /* __OCTEON_EBT3000_H__ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeon_machdep.c svn/mips/sys/mips/octeon1/octeon_machdep.c
---- svn/stable/8/sys/mips/octeon1/octeon_machdep.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/octeon_machdep.c svn/mips/sys/mips/octeon1/octeon_machdep.c
+--- releng8/src/sys/mips/octeon1/octeon_machdep.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/octeon_machdep.c	2009-09-08 11:01:51.000000000 -0700
 @@ -0,0 +1,1012 @@
 +/*-
@@ -26946,8 +26946,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeon_machd
 +               octeon_mac_addr[0], octeon_mac_addr[1], octeon_mac_addr[2],
 +               octeon_mac_addr[3], octeon_mac_addr[4], octeon_mac_addr[5]);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeon_pcmap_regs.h svn/mips/sys/mips/octeon1/octeon_pcmap_regs.h
---- svn/stable/8/sys/mips/octeon1/octeon_pcmap_regs.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/octeon_pcmap_regs.h svn/mips/sys/mips/octeon1/octeon_pcmap_regs.h
+--- releng8/src/sys/mips/octeon1/octeon_pcmap_regs.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/octeon_pcmap_regs.h	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,1079 @@
 +/*
@@ -28029,8 +28029,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeon_pcmap
 +#define OCTEON_DRAM_THIRD_BANK_SIZE	(OCTEON_DRAM_ABOVE_512_END - OCTEON_DRAM_ABOVE_512_START + 1ull)
 +
 +#endif /* !OCTEON_PCMAP_REGS_H__ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeonreg.h svn/mips/sys/mips/octeon1/octeonreg.h
---- svn/stable/8/sys/mips/octeon1/octeonreg.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/octeonreg.h svn/mips/sys/mips/octeon1/octeonreg.h
+--- releng8/src/sys/mips/octeon1/octeonreg.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/octeonreg.h	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,246 @@
 +/*	$NetBSD: octeonreg.h,v 1.1 2002/03/07 14:44:04 simonb Exp $	*/
@@ -28279,8 +28279,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/octeonreg.h 
 +void	led_display_str(const char *);
 +void	led_display_char(int, uint8_t);
 +#endif
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/std.octeon1 svn/mips/sys/mips/octeon1/std.octeon1
---- svn/stable/8/sys/mips/octeon1/std.octeon1	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/std.octeon1 svn/mips/sys/mips/octeon1/std.octeon1
+--- releng8/src/sys/mips/octeon1/std.octeon1	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/std.octeon1	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,22 @@
 +# /*
@@ -28305,8 +28305,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/std.octeon1 
 +
 +# Kludge
 +options	TARGET_OCTEON
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/uart_bus_octeonusart.c svn/mips/sys/mips/octeon1/uart_bus_octeonusart.c
---- svn/stable/8/sys/mips/octeon1/uart_bus_octeonusart.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/uart_bus_octeonusart.c svn/mips/sys/mips/octeon1/uart_bus_octeonusart.c
+--- releng8/src/sys/mips/octeon1/uart_bus_octeonusart.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/uart_bus_octeonusart.c	2009-07-02 18:44:24.000000000 -0700
 @@ -0,0 +1,122 @@
 +/*-
@@ -28431,8 +28431,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/uart_bus_oct
 +
 +
 +DRIVER_MODULE(uart, obio, uart_octeon_driver, uart_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/uart_cpu_octeonusart.c svn/mips/sys/mips/octeon1/uart_cpu_octeonusart.c
---- svn/stable/8/sys/mips/octeon1/uart_cpu_octeonusart.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/uart_cpu_octeonusart.c svn/mips/sys/mips/octeon1/uart_cpu_octeonusart.c
+--- releng8/src/sys/mips/octeon1/uart_cpu_octeonusart.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/uart_cpu_octeonusart.c	2009-09-08 11:01:51.000000000 -0700
 @@ -0,0 +1,90 @@
 +/*-
@@ -28525,8 +28525,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/uart_cpu_oct
 +	uart_bus_space_mem = mips_bus_space_generic;
 +	return (0);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/uart_dev_oct16550.c svn/mips/sys/mips/octeon1/uart_dev_oct16550.c
---- svn/stable/8/sys/mips/octeon1/uart_dev_oct16550.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/octeon1/uart_dev_oct16550.c svn/mips/sys/mips/octeon1/uart_dev_oct16550.c
+--- releng8/src/sys/mips/octeon1/uart_dev_oct16550.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/uart_dev_oct16550.c	2009-09-08 11:01:51.000000000 -0700
 @@ -0,0 +1,827 @@
 +/*-
@@ -29356,8 +29356,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/octeon1/uart_dev_oct
 +	uart_unlock(sc->sc_hwmtx);
 +	return (0);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/files.sentry5 svn/mips/sys/mips/sentry5/files.sentry5
---- svn/stable/8/sys/mips/sentry5/files.sentry5	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/sentry5/files.sentry5 svn/mips/sys/mips/sentry5/files.sentry5
+--- releng8/src/sys/mips/sentry5/files.sentry5	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/sentry5/files.sentry5	2009-04-14 15:53:59.000000000 -0700
 @@ -4,11 +4,4 @@
  # for USB 1.1 OHCI, Ethernet and IPSEC cores
@@ -29371,8 +29371,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/files.sentry
 -
 -# notyet
 -#mips/sentry5/siba_mips.c			optional siba
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/obio.c svn/mips/sys/mips/sentry5/obio.c
---- svn/stable/8/sys/mips/sentry5/obio.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/sentry5/obio.c svn/mips/sys/mips/sentry5/obio.c
+--- releng8/src/sys/mips/sentry5/obio.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/sentry5/obio.c	2009-09-08 11:01:51.000000000 -0700
 @@ -72,13 +72,11 @@
  int
@@ -29415,8 +29415,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/obio.c svn/m
  	rman_set_bushandle(rv, bh);
  	
  	if (0) {
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_cc.c svn/mips/sys/mips/sentry5/siba_cc.c
---- svn/stable/8/sys/mips/sentry5/siba_cc.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/sentry5/siba_cc.c svn/mips/sys/mips/sentry5/siba_cc.c
+--- releng8/src/sys/mips/sentry5/siba_cc.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/sentry5/siba_cc.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,154 +0,0 @@
 -/*-
@@ -29464,7 +29464,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_cc.c sv
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/sys/mips/sentry5/siba_cc.c 178173 2008-04-13 07:44:55Z imp $");
+-__FBSDID("$FreeBSD: src/sys/mips/sentry5/siba_cc.c,v 1.1.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -
 -#include <sys/param.h>
 -#include <sys/systm.h>
@@ -29573,8 +29573,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_cc.c sv
 -static devclass_t siba_cc_devclass;
 -
 -DRIVER_MODULE(siba_cc, siba, siba_cc_driver, siba_cc_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_mips.c svn/mips/sys/mips/sentry5/siba_mips.c
---- svn/stable/8/sys/mips/sentry5/siba_mips.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/sentry5/siba_mips.c svn/mips/sys/mips/sentry5/siba_mips.c
+--- releng8/src/sys/mips/sentry5/siba_mips.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/sentry5/siba_mips.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,113 +0,0 @@
 -/*-
@@ -29610,7 +29610,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_mips.c 
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/sys/mips/sentry5/siba_mips.c 178173 2008-04-13 07:44:55Z imp $");
+-__FBSDID("$FreeBSD: src/sys/mips/sentry5/siba_mips.c,v 1.1.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -
 -#include <sys/param.h>
 -#include <sys/systm.h>
@@ -29690,8 +29690,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_mips.c 
 -static devclass_t siba_mips_devclass;
 -
 -DRIVER_MODULE(siba_mips, siba, siba_mips_driver, siba_mips_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_sdram.c svn/mips/sys/mips/sentry5/siba_sdram.c
---- svn/stable/8/sys/mips/sentry5/siba_sdram.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/sentry5/siba_sdram.c svn/mips/sys/mips/sentry5/siba_sdram.c
+--- releng8/src/sys/mips/sentry5/siba_sdram.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/sentry5/siba_sdram.c	1969-12-31 16:00:00.000000000 -0800
 @@ -1,114 +0,0 @@
 -/*-
@@ -29727,7 +29727,7 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_sdram.c
 - */
 -
 -#include <sys/cdefs.h>
--__FBSDID("$FreeBSD: stable/8/sys/mips/sentry5/siba_sdram.c 178173 2008-04-13 07:44:55Z imp $");
+-__FBSDID("$FreeBSD: src/sys/mips/sentry5/siba_sdram.c,v 1.1.2.1 2009/08/03 08:13:06 kensmith Exp $");
 -
 -#include <sys/param.h>
 -#include <sys/systm.h>
@@ -29808,8 +29808,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/siba_sdram.c
 -static devclass_t siba_sdram_devclass;
 -
 -DRIVER_MODULE(siba_sdram, siba, siba_sdram_driver, siba_sdram_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/uart_bus_sbusart.c svn/mips/sys/mips/sentry5/uart_bus_sbusart.c
---- svn/stable/8/sys/mips/sentry5/uart_bus_sbusart.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/sentry5/uart_bus_sbusart.c svn/mips/sys/mips/sentry5/uart_bus_sbusart.c
+--- releng8/src/sys/mips/sentry5/uart_bus_sbusart.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/sentry5/uart_bus_sbusart.c	2009-05-06 14:57:15.000000000 -0700
 @@ -85,9 +85,9 @@
  	sc->sc_sysdev = SLIST_FIRST(&uart_sysdevs);
@@ -29823,8 +29823,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/uart_bus_sbu
  	sc->sc_bas.bsh = MIPS_PHYS_TO_KSEG1(SENTRY5_UART1ADR);
  	return(uart_bus_probe(dev, 0, 0, 0, 0));
  }
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/uart_cpu_sbusart.c svn/mips/sys/mips/sentry5/uart_cpu_sbusart.c
---- svn/stable/8/sys/mips/sentry5/uart_cpu_sbusart.c	2009-09-30 19:40:05.000000000 -0700
+diff -I '.*' -Naur releng8/sys/mips/sentry5/uart_cpu_sbusart.c svn/mips/sys/mips/sentry5/uart_cpu_sbusart.c
+--- releng8/src/sys/mips/sentry5/uart_cpu_sbusart.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/sentry5/uart_cpu_sbusart.c	2009-05-06 14:57:15.000000000 -0700
 @@ -76,7 +76,7 @@
  	di->parity = UART_PARITY_NONE;
@@ -29835,8 +29835,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sentry5/uart_cpu_sbu
  	di->bas.bsh = MIPS_PHYS_TO_KSEG1(SENTRY5_UART1ADR);
  	return (0);
  }
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/ata_zbbus.c svn/mips/sys/mips/sibyte/ata_zbbus.c
---- svn/stable/8/sys/mips/sibyte/ata_zbbus.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/sibyte/ata_zbbus.c svn/mips/sys/mips/sibyte/ata_zbbus.c
+--- releng8/src/sys/mips/sibyte/ata_zbbus.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/sibyte/ata_zbbus.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,170 @@
 +/*-
@@ -30009,8 +30009,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/ata_zbbus.c s
 +};
 +
 +DRIVER_MODULE(ata, zbbus, ata_zbbus_driver, ata_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/files.sibyte svn/mips/sys/mips/sibyte/files.sibyte
---- svn/stable/8/sys/mips/sibyte/files.sibyte	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/sibyte/files.sibyte svn/mips/sys/mips/sibyte/files.sibyte
+--- releng8/src/sys/mips/sibyte/files.sibyte	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/sibyte/files.sibyte	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,9 @@
 +# $FreeBSD$
@@ -30022,8 +30022,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/files.sibyte 
 +mips/sibyte/ata_zbbus.c				standard
 +
 +mips/sibyte/sb_asm.S				standard
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_asm.S svn/mips/sys/mips/sibyte/sb_asm.S
---- svn/stable/8/sys/mips/sibyte/sb_asm.S	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/sibyte/sb_asm.S svn/mips/sys/mips/sibyte/sb_asm.S
+--- releng8/src/sys/mips/sibyte/sb_asm.S	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/sibyte/sb_asm.S	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,155 @@
 +/*-
@@ -30181,8 +30181,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_asm.S svn/
 +	jr      ra
 +	nop
 +END(sb_write_intmap)
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_machdep.c svn/mips/sys/mips/sibyte/sb_machdep.c
---- svn/stable/8/sys/mips/sibyte/sb_machdep.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/sibyte/sb_machdep.c svn/mips/sys/mips/sibyte/sb_machdep.c
+--- releng8/src/sys/mips/sibyte/sb_machdep.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/sibyte/sb_machdep.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,259 @@
 +/*-
@@ -30444,8 +30444,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_machdep.c 
 +
 +	mips_timer_init_params(sb_cpu_speed(), 0);
 +}
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_scd.c svn/mips/sys/mips/sibyte/sb_scd.c
---- svn/stable/8/sys/mips/sibyte/sb_scd.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/sibyte/sb_scd.c svn/mips/sys/mips/sibyte/sb_scd.c
+--- releng8/src/sys/mips/sibyte/sb_scd.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/sibyte/sb_scd.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,152 @@
 +/*-
@@ -30600,8 +30600,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_scd.c svn/
 +static devclass_t scd_devclass;
 +
 +DRIVER_MODULE(scd, zbbus, scd_driver, scd_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_scd.h svn/mips/sys/mips/sibyte/sb_scd.h
---- svn/stable/8/sys/mips/sibyte/sb_scd.h	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/sibyte/sb_scd.h svn/mips/sys/mips/sibyte/sb_scd.h
+--- releng8/src/sys/mips/sibyte/sb_scd.h	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/sibyte/sb_scd.h	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,46 @@
 +/*-
@@ -30650,8 +30650,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_scd.h svn/
 +void		sb_write_syscfg(uint64_t val);
 +
 +#endif	/* _SB_SCD_H_ */
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_zbbus.c svn/mips/sys/mips/sibyte/sb_zbbus.c
---- svn/stable/8/sys/mips/sibyte/sb_zbbus.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/sibyte/sb_zbbus.c svn/mips/sys/mips/sibyte/sb_zbbus.c
+--- releng8/src/sys/mips/sibyte/sb_zbbus.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/sibyte/sb_zbbus.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,501 @@
 +/*-
@@ -31155,8 +31155,8 @@ diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_zbbus.c sv
 +static devclass_t zbbus_devclass;
 +
 +DRIVER_MODULE(zbbus, nexus, zbbus_driver, zbbus_devclass, 0, 0);
-diff -I '$FreeBSD.*' -X exclude -Naur svn/stable/8/sys/mips/sibyte/sb_zbpci.c svn/mips/sys/mips/sibyte/sb_zbpci.c
---- svn/stable/8/sys/mips/sibyte/sb_zbpci.c	1969-12-31 16:00:00.000000000 -0800
+diff -I '.*' -Naur releng8/sys/mips/sibyte/sb_zbpci.c svn/mips/sys/mips/sibyte/sb_zbpci.c
+--- releng8/src/sys/mips/sibyte/sb_zbpci.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/sibyte/sb_zbpci.c	2009-08-04 10:47:01.000000000 -0700
 @@ -0,0 +1,283 @@
 +/*-
