@@ -2427,6 +2427,14 @@ install_required_builder_system_ports() {
 				echo ">>> Grub is not buildable on AMD64.  Skipping."
 				CHECK_ON_DISK="/sbin/init"
 			fi
+			if [ "$ARCH" = "mips" ]; then
+				# Grub will not build on mips
+				# Simply set the check to /sbin/init
+				# which we know is a valid binary on 
+				# any installed machine.
+				echo ">>> Grub is not buildable on MIPS.  Skipping."
+				CHECK_ON_DISK="/sbin/init"
+			fi
 		fi
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
