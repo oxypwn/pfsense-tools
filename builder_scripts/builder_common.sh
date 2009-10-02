@@ -152,11 +152,13 @@ fixup_kernel_options() {
 	mkdir -p $KERNEL_BUILD_PATH/wrap/boot/kernel
 	mkdir -p $KERNEL_BUILD_PATH/developers/boot/kernel
 	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/kernel
+	mkdir -p $KERNEL_BUILD_PATH/AR71XX/boot/kernel
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p $KERNEL_BUILD_PATH/SMP/boot/kernel
 	mkdir -p $KERNEL_BUILD_PATH/uniprocessor/boot/kernel
 	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/kernel
+	mkdir -p $KERNEL_BUILD_PATH/AR71XX/boot/kernel
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p $KERNEL_BUILD_PATH/wrap/boot/defaults/
@@ -164,6 +166,7 @@ fixup_kernel_options() {
 	mkdir -p $KERNEL_BUILD_PATH/SMP/boot/defaults/
 	mkdir -p $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/
 	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/defaults/
+	mkdir -p $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	touch $KERNEL_BUILD_PATH/wrap/boot/defaults/loader.conf
@@ -171,6 +174,7 @@ fixup_kernel_options() {
 	touch  $KERNEL_BUILD_PATH/SMP/boot/defaults/loader.conf
 	touch  $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/loader.conf
 	touch  $KERNEL_BUILD_PATH/freebsd/boot/defaults/loader.conf
+	touch  $KERNEL_BUILD_PATH/AR71XX/boot/defaults/loader.conf
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
@@ -224,10 +228,18 @@ fixup_kernel_options() {
 	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 
 	# Add SMP
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-	echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	if [ "$ARCH" = "i386" ]; then
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	fi
+	if [ "$ARCH" = "amd64" ]; then
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	fi
 
 	# NOTE!  If you remove this, you WILL break booting!  These file(s) are read
 	#        by FORTH and for some reason installkernel with DESTDIR does not
@@ -236,11 +248,13 @@ fixup_kernel_options() {
 	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/SMP/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/developers/boot/defaults/
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
 	#
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap/boot/device.hints
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/uniprocessor/boot/device.hints
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/SMP/boot/device.hints
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
 	# END NOTE.
 
 	# Danger will robinson -- 7.2+ will NOT boot if these files are not present.
@@ -249,6 +263,7 @@ fixup_kernel_options() {
 	touch $KERNEL_BUILD_PATH/uniprocessor/boot/loader.conf touch $KERNEL_BUILD_PATH/uniprocessor/boot/loader.conf.local
 	touch $KERNEL_BUILD_PATH/SMP/boot/loader.conf touch $KERNEL_BUILD_PATH/SMP/boot/loader.conf.local
 	touch $KERNEL_BUILD_PATH/developers/boot/loader.conf touch $KERNEL_BUILD_PATH/developers/boot/loader.conf.local
+	touch $KERNEL_BUILD_PATH/AR71XX/boot/loader.conf touch $KERNEL_BUILD_PATH/AR71XX/boot/loader.conf.local
 	# Danger, warning, achtung
 
 }
@@ -278,6 +293,34 @@ build_embedded_kernel_vga() {
 	chflags -R noschg $PFSENSEBASEDIR/boot/
 	ensure_kernel_exists $KERNEL_DESTDIR
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_nano_vga.gz -C $PFSENSEBASEDIR/boot/)
+	echo "done."
+}
+
+# This routine builds the rspro kernel
+build_rspro_kernel() {
+	# Common fixup code
+	fixup_kernel_options
+	# Build embedded kernel
+	echo ">>> Building rspro kernel..."
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	unset KERNCONF
+	unset KERNEL_DESTDIR
+	unset KERNELCONF
+	export KERNCONF=AR71XX
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/AR71XX"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/AR71XX"
+	freesbie_make buildkernel
+	echo ">>> Installing embedded kernel..."
+	freesbie_make installkernel
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
+	echo -n ">>> Installing kernels to LiveCD area..."
+	(cd $KERNEL_BUILD_PATH/AR71XX/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_AR71XX.gz .)
+	echo -n "."
+	chflags -R noschg $PFSENSEBASEDIR/boot/
+	ensure_kernel_exists $KERNEL_DESTDIR
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_AR71XX.gz -C $PFSENSEBASEDIR/boot/)
 	echo "done."
 }
 

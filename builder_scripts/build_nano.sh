@@ -105,7 +105,15 @@ echo ">>> Building world and kernels for Embedded... $FREEBSD_VERSION  $FREEBSD_
 make_world
 
 # Build embedded kernel
-build_embedded_kernel
+if [ "$ARCH" = "i386" ]; then
+	build_embedded_kernel
+fi
+if [ "$ARCH" = "amd64" ]; then
+	build_embedded_kernel
+fi
+if [ "$ARCH" = "mips" ]; then
+	build_rspro_kernel	
+fi
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
