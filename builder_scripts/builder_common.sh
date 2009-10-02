@@ -311,7 +311,7 @@ build_rspro_kernel() {
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/AR71XX"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/AR71XX"
 	freesbie_make buildkernel
-	echo ">>> Installing embedded kernel..."
+	echo ">>> Installing rspro kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
