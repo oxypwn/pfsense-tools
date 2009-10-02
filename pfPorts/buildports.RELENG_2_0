@@ -31,7 +31,7 @@ if [ -f ./pfsense-build.conf ]; then
 	fi
 fi
 
-if [ "$REMOVE_PHP" = "true" ];
+if [ "$REMOVE_PHP" = "true" ]; then
 	echo ">>> Removing previous PHP environment..."
 	find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
 	find /usr/local -name extensions.ini -exec rm {} \;
