@@ -28,10 +28,18 @@ done
 # Ensure file exists
 touch /var/db/pfS_portcache
 
-echo ">>> Removing previous PHP environment..."
-find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
-find /usr/local -name extensions.ini -exec rm {} \;
-rm -rf /var/db/pkg/php*
+if [ -f ./pfsense-build.conf ]; then
+	if [ `cat pfsense-build.conf | grep 'REMOVE_PHP=true' | grep -v grep | wc -l` -gt 0 ]; then
+		REMOVE_PHP=true
+	fi
+fi
+
+if [ "$REMOVE_PHP" = "true" ];
+	echo ">>> Removing previous PHP environment..."
+	find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
+	find /usr/local -name extensions.ini -exec rm {} \;
+	rm -rf /var/db/pkg/php*
+fi
 
 set_cache() {
 	# Strip dynamic values

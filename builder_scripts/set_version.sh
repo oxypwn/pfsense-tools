@@ -30,6 +30,14 @@ if [ "$6" != "" ]; then
 	TWITTER_PASSWORD="$6"
 fi
 
+if [ "$7" != "" ]; then
+	TWITTER_PASSWORD="$6"
+fi
+
+if [ "$8" != "" ]; then
+	REMOVE_PHP="$6"
+fi
+
 HANDLED=false
 
 # Ensure file exists
@@ -65,6 +73,7 @@ strip_pfsense_local() {
 		grep -v PFSPORTSFILE | \
 		grep -v CUSTOM_COPY_LIST | \
 		grep -v FREESBIE_ERROR_MAIL | \
+		grep -v REMOVE_PHP | \
 		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $BUILDER_SCRIPTS/pfsense-build.conf
 }
@@ -98,6 +107,9 @@ set_items() {
 		echo "export TWITTER_USERNAME=${TWITTER_USERNAME}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 		echo "export TWITTER_PASSWORD=${TWITTER_PASSWORD}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	fi	
+	if [ "$REMOVE_PHP" != "" ]; then 
+		echo "export REMOVE_PHP=true" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	fi
 	echo
 	echo ">>> Custom pfsense-build.conf contains:"
 	echo "---------------------------------------------------------------------------------------"
@@ -125,7 +137,7 @@ HEAD)
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_7_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2"
-	export PFSPORTSFILE=buildports.RELENG_2_0	
+	export PFSPORTSFILE=buildports.RELENG_2_0
 	set_items
 ;;
 
@@ -181,7 +193,7 @@ RELENG_8_0)
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_0
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
-	export PFSPORTSFILE=buildports.RELENG_2_0	
+	export PFSPORTSFILE=buildports.RELENG_2_0
 	set_items
 ;;
 esac
