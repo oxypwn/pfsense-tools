@@ -41,7 +41,7 @@ launch
 echo ">>> Warning this will rm -rf $PFSENSEBASEDIR"
 echo ">>> And reassemble binaries for platform $ARCH"
 
-echo -n "Press CTRL-C to abort now"
+echo -n ">>> Press CTRL-C to abort now"
 
 sleep 1
 echo -n "."

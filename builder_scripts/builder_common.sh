@@ -650,7 +650,9 @@ cust_overlay_host_binaries() {
 	(make install) | egrep -wi '(^>>>|error)'
 	(make install DESTDIR=$PFSENSEBASEDIR/usr/sbin/) | egrep -wi '(^>>>|error)'
     echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
-	install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
+	if [ -f ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd ]; then
+		install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
+	fi
 	cd $PWD
 
 	# Handle clog
@@ -659,7 +661,9 @@ cust_overlay_host_binaries() {
 	(cd $SRCDIR/usr.sbin/clog && make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
 	(cd $SRCDIR/usr.sbin/clog && make install DESTDIR=$PFSENSEBASEDIR/usr/sbin/) | egrep -wi '(^>>>|error)'
     echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-    install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
+	if [ -f $SRCDIR/usr.sbin/clog/clog ]; then
+    	install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
+	fi
 
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
