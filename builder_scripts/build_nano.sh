@@ -115,6 +115,11 @@ if [ "$ARCH" = "mips" ]; then
 	build_rspro_kernel	
 fi
 
+if [ ! -z "${SPLIT_ARCH_BUILD:-}" ]; then
+	echo ">>> SPLIT_ARCH_BUILD defined.  Exiting now."
+	kill $$
+fi
+
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
 cust_populate_extra
