@@ -604,7 +604,10 @@ recompile_pfPorts() {
 # specially.
 cust_overlay_host_binaries() {
 	# Ensure directories exist
-	mkdir -p ${PFSENSEBASEDIR}/lib
+	mkdir -p ${PFSENSEBASEDIR}/lib/geom
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/20060613/
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/share/rrdtool/fonts/
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/lighttpd/
 	mkdir -p ${PFSENSEBASEDIR}/bin
 	mkdir -p ${PFSENSEBASEDIR}/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/bin
