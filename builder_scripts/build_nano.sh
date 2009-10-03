@@ -116,7 +116,8 @@ if [ "$ARCH" = "mips" ]; then
 fi
 
 if [ ! -z "${SPLIT_ARCH_BUILD:-}" ]; then
-	echo ">>> SPLIT_ARCH_BUILD defined.  Exiting now."
+	echo ">>> SPLIT_ARCH_BUILD defined.  Now run ./build_nano.sh"
+	echo "    on the netbooted $ARCH machine to finish the build."
 	kill $$
 fi
 
