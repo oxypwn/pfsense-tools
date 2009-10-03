@@ -41,5 +41,5 @@
 ~~~/sys/mips/mips
 ~~~/sys/mips/sentry5
 ~~~/sys/dev/flash/mx25l.c
-~~~/src/sys/mips/atheros/apb.c
+~~~/sys/mips/atheros/apb.c
 -p2~~mips8.diff~
