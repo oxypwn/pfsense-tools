@@ -648,6 +648,7 @@ cust_overlay_host_binaries() {
 	(make clean) | egrep -wi '(^>>>|error)'
  	(make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
 	(make install) | egrep -wi '(^>>>|error)'
+	(make install DESTDIR=$PFSENSEBASEDIR/usr/sbin/) | egrep -wi '(^>>>|error)'
     echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
 	install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
 	cd $PWD
@@ -656,7 +657,7 @@ cust_overlay_host_binaries() {
 	echo "==> Building clog..."
 	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
 	(cd $SRCDIR/usr.sbin/clog && make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-	(cd $SRCDIR/usr.sbin/clog && make install) | egrep -wi '(^>>>|error)'
+	(cd $SRCDIR/usr.sbin/clog && make install DESTDIR=$PFSENSEBASEDIR/usr/sbin/) | egrep -wi '(^>>>|error)'
     echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
     install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
 
