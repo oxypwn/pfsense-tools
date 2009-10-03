@@ -1715,9 +1715,11 @@ make_world() {
 	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
 		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
 		| egrep -wi '(warning|error)'
-	(cd $SRCDIR/sys/boot/i386/pxeldr && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
-		| egrep -wi '(warning|error)'
+	if [ "$ARCH" = "i386" ]; then
+		(cd $SRCDIR/sys/boot/i386/pxeldr && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
+			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+			| egrep -wi '(warning|error)'
+	fi
 
 	# EDGE CASE #2 yp.h ##############################################
 	# Ensure yp.h is built, this commonly has issues for some
