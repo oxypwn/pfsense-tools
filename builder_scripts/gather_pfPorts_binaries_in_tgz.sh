@@ -32,6 +32,13 @@
 # Suck in local vars
 . ./pfsense_local.sh
 
+# Suck in script helper functions
+. ./builder_common.sh
+
+# This should be run first
+launch
+
+echo
 echo ">>> Warning this will rm -rf $PFSENSEBASEDIR"
 echo ">>> And reassemble binaries!"
 echo
