@@ -254,7 +254,7 @@ fixup_kernel_options() {
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/uniprocessor/boot/device.hints
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/SMP/boot/device.hints
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/AR71XX.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
 	# END NOTE.
 
 	# Danger will robinson -- 7.2+ will NOT boot if these files are not present.
