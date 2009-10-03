@@ -47,14 +47,15 @@ echo -n "."
 sleep 1
 echo "."
 
+echo ">>> The opeatiion is starting, please wait..."
 rm -rf $PFSENSEBASEDIR
 mkdir -p $PFSENSEBASEDIR
 
-cust_overlay_host_binaries
-
 unset CROSS_COMPILE_PORTS_BINARIES
 
-tar czpf ~/$ARCH.tgz $PFSENSEBASEDIR
+cust_overlay_host_binaries
+
+tar cvzpf ~/$ARCH.tgz $PFSENSEBASEDIR
 
 echo ">>> Target .tgz is located in ~/$ARCH.tgz"
 
