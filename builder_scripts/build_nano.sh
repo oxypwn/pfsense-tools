@@ -132,7 +132,7 @@ install_custom_packages
 echo ">>> Merging extra items..."
 freesbie_make extra
 
-# Overlay host binaries
+# Overlay custom binaries
 cust_overlay_host_binaries
 
 # Must be run after overlay_host_binaries and freesbie_make extra

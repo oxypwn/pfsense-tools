@@ -617,6 +617,21 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/mysql
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
 
+	# Overlay host binaries
+	if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
+		# This function is used where we can cross build the system
+		# but ports require building on another box.  An example of
+		# this scenario is mips.
+		if [ -f $CROSS_COMPILE_PORTS_BINARIES  ]; then
+			echo ">>> Using $CROSS_COMPILE_PORTS_BINARIES for $ARCH pfPorts"
+			(cd $PFSENSEBASEDIR && tar xzpf $CROSS_COMPILE_PORTS_BINARIES)
+		else
+			echo "The variable CROSS_COMPILE_PORTS_BINARIES is set but we cannot find the tgz."
+			print_error_pfS
+		fi
+		return
+	fi
+
 	# handle syslogd
 	PWD=`pwd`
 	# Note, (cd foo && make) does not seem to work.

@@ -183,6 +183,11 @@ export UNION_DIRS="etc usr root"
 export ARCH=${ARCH:-"`uname -m`"}
 #export TARGET_ARCH=${TARGET_ARCH:-"i386"}
 
+# Set this if you are cross compiling on i386 and have a 
+# .tgz file which includes full path to all of the platforms
+# pfPorts binaries.  An example of this is with mips.
+#export CROSS_COMPILE_PORTS_BINARIES="~sullrich/mips.tgz"
+
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
 #export CUSTOM_REMOVE_LIST=""
 #export CUSTOM_COPY_LIST=""
