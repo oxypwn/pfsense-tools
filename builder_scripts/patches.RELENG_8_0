@@ -40,4 +40,5 @@
 ~~~/sys/mips/include
 ~~~/sys/mips/mips
 ~~~/sys/mips/sentry5
+~~~/sys/dev/flash/mx25l.c
 -p2~~mips8.diff~
