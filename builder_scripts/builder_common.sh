@@ -621,7 +621,7 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/libexec
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/bin
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/sbin
-	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
+	mkdir -p ${PFSENSEBASEDIR}/usr/local/libz
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/mysql
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
 
@@ -1181,6 +1181,12 @@ create_FreeBSD_system_update() {
 # This routine will verify that PHP is sound and that it
 # can open and read config.xml and ensure the hostname
 test_php_install() {
+	if [ "$ARCH" = "mips" ]; then
+		if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
+			echo ">>> CROSS_COMPILE_PORTS_BINARIES set.  Cannot chroot."
+			return
+		fi
+	fi
 	echo -n ">>> Testing PHP installation in ${PFSENSEBASEDIR}:"
 
 	# backup original conf dir
@@ -1259,6 +1265,12 @@ test_php_install() {
 # checksums which could be used to verify that a file
 # is indeed how it was shipped.
 create_md5_summary_file() {
+	if [ "$ARCH" = "mips" ]; then
+		if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
+			echo ">>> CROSS_COMPILE_PORTS_BINARIES set.  Cannot chroot."
+			return
+		fi
+	fi
 	echo -n ">>> Creating md5 summary of files present..."
 	rm -f $PFSENSEBASEDIR/etc/pfSense_md5.txt
 	echo "#!/bin/sh" > $PFSENSEBASEDIR/chroot.sh
@@ -1399,8 +1411,15 @@ copy_pfSense_tarball_to_custom_directory() {
 	mkdir -p $LOCALDIR/customroot/conf
 
 	mkdir -p $LOCALDIR/var/db/
-	chroot $LOCALDIR /bin/ln -s /var/db/rrd /usr/local/www/rrd
 
+	if [ "$ARCH" = "mips" ]; then
+		if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
+			echo ">>> CROSS_COMPILE_PORTS_BINARIES set.  Cannot chroot."
+			return
+		fi
+	fi
+	
+	chroot $LOCALDIR /bin/ln -s /var/db/rrd /usr/local/www/rrd
 	chroot $LOCALDIR/ cap_mkdb /etc/master.passwd
 
 }
@@ -2144,6 +2163,13 @@ pfsense_install_custom_packages_exec() {
 	#	Copyright (C) 2007 Daniel S. Haischt <me@daniel.stefan.haischt.name>
 	#   Copyright (C) 2009 Scott Ullrich <sullrich@gmail.com>
 
+
+	if [ "$ARCH" = "mips" ]; then
+		if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
+			return
+		fi
+	fi
+
 	DESTNAME="pkginstall.sh"
 	TODIR="${PFSENSEBASEDIR}"
 
@@ -2610,6 +2636,12 @@ email_operation_completed() {
 
 # Sets up a symbolic link from /conf -> /cf/conf on ISO
 create_iso_cf_conf_symbolic_link() {
+	if [ "$ARCH" = "mips" ]; then
+		if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
+			echo ">>> CROSS_COMPILE_PORTS_BINARIES set.  Cannot chroot."
+			return
+		fi
+	fi
 	echo ">>> Creating symbolic link for /cf/conf /conf ..."
 	rm -rf ${PFSENSEBASEDIR}/conf
 	chroot ${PFSENSEBASEDIR} /bin/ln -s /cf/conf /conf
@@ -2643,6 +2675,12 @@ ensure_healthy_installer() {
 # This copies the various pfSense git repos to the DevISO
 # staging area.
 setup_deviso_specific_items() {
+	if [ "$ARCH" = "mips" ]; then
+		if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
+			echo ">>> CROSS_COMPILE_PORTS_BINARIES set.  Cannot chroot."
+			return
+		fi
+	fi
 	if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" = "" ]; then
 		OVERRIDE_FREEBSD_CVSUP_HOST=`fastest_cvsup -c tld -q`
 	fi
@@ -2738,6 +2776,12 @@ disable_memory_disks() {
 # area.  This was handled by pkginstall.sh (freesbie)
 # previously and the need for simplicity has won out.
 install_pkg_install_ports() {
+	if [ "$ARCH" = "mips" ]; then
+		if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
+			echo ">>> CROSS_COMPILE_PORTS_BINARIES set.  Cannot chroot."
+			return
+		fi
+	fi
 	echo ">>> Searching for packages..."
 	set +e # grep could fail
 	rm -f $BASE_DIR/tools/builder_scripts/conf/packages
