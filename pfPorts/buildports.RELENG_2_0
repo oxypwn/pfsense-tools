@@ -168,7 +168,15 @@ for PORT in $PORTSTOBUILD; do
 				echo ">>> Skipping $PORT_NAME on MIPS platform..."
 				continue;
 			fi
-		fi		
+			if [ "$ARCH" = "amd64" ]; then
+				echo ">>> Skipping $PORT_NAME on AMD64 platform..."
+				continue;
+			fi
+			if [ "$ARCH" = "powerpc" ]; then
+				echo ">>> Skipping $PORT_NAME on POWERPC platform..."
+				continue;
+			fi
+		fi
 	done
 	if [ -d "$PORT_LOCATION" ]; then
 		echo "=== Found port location $PORT_LOCATION.  Copying pfPorts/$PORT and building..."
