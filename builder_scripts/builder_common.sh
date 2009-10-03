@@ -608,6 +608,7 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/20060613/
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/share/rrdtool/fonts/
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/lighttpd/
+	mkdir -p ${PFSENSEBASEDIR}/usr/share/man/man8
 	mkdir -p ${PFSENSEBASEDIR}/bin
 	mkdir -p ${PFSENSEBASEDIR}/sbin
 	mkdir -p ${PFSENSEBASEDIR}/usr/bin
