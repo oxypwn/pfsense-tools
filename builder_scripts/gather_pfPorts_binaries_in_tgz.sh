@@ -62,7 +62,8 @@ unset CROSS_COMPILE_PORTS_BINARIES
 
 cust_overlay_host_binaries
 
-tar cvzpf ~/$ARCH.tgz $PFSENSEBASEDIR
+echo ">>> One moment please, creating tar gzipped file..."
+tar czpf ~/$ARCH.tgz $PFSENSEBASEDIR
 
 echo ">>> Target .tgz is located in ~/$ARCH.tgz"
 
