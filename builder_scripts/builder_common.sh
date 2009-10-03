@@ -240,6 +240,12 @@ fixup_kernel_options() {
 		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 	fi
+	if [ "$ARCH" = "powerpc" ]; then
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	fi
 
 	# NOTE!  If you remove this, you WILL break booting!  These file(s) are read
 	#        by FORTH and for some reason installkernel with DESTDIR does not
