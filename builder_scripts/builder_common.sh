@@ -629,7 +629,7 @@ cust_overlay_host_binaries() {
 		# but ports require building on another box.  An example of
 		# this scenario is mips.
 		if [ -f $CROSS_COMPILE_PORTS_BINARIES  ]; then
-			echo ">>> Using $CROSS_COMPILE_PORTS_BINARIES for $ARCH pfPorts"
+			echo ">>> Found $CROSS_COMPILE_PORTS_BINARIES.  Installing..."
 			(cd $PFSENSEBASEDIR && tar xzpf $CROSS_COMPILE_PORTS_BINARIES)
 		else
 			echo "The variable CROSS_COMPILE_PORTS_BINARIES is set but we cannot find the tgz."
