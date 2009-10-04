@@ -70,3 +70,4 @@
 ~sys/netgraph~ng_iface.c.diff~
 ~contrib/pf/tftp-proxy~filter.c.diff~
 ~sys/kern~sched_ule.c.diff~
+~sys~ath_hal-releng_7_2.patch~
