@@ -1106,6 +1106,8 @@ cust_fixup_nanobsd() {
 
 	echo "-h" >> $PFSENSEBASEDIR/boot.config
 
+	echo "$FLASH_SIZE" > $PFSENSEBASEDIR/etc/nanosize.txt
+
 	if [ "$FBSD_VERSION" = "8" ]; then
 		# Enable getty on console
 		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
