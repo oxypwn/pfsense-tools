@@ -20,12 +20,12 @@ if($config['system']['hostname'] == "") {
 	$passed_tests = false;
 }
 
-// Test for php-cgi
+// Test for php-fcgi
 $php_cgi = trim(`php -v | grep cgi-fcgi`);
 if(stristr($php_cgi, "cgi-fcgi")) {
 	echo "FCGI-PASSED ";
 } else {
-	echo "FCGI-FAILED";
+	echo "FCGI-FAILED ";
 	exit(1);
 }
 
