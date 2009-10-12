@@ -44,3 +44,4 @@
 ~~~/sys/mips/atheros
 ~sys~ath_hal-releng_7_2.patch~
 -p2~~mips8.diff~
+~usb_core.h.diff~
