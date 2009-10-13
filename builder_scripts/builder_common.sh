@@ -2064,9 +2064,9 @@ awk '
 
 	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
 	fdisk ${MD}
-	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
-	bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
-	bsdlabel ${MD}s1
+	boot0cfg -a $ARCH -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
+	bsdlabel -m $ARCH -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
+	bsdlabel -m $ARCH ${MD}s1
 
 	# Create first image
 	newfs ${NANO_NEWFS} /dev/${MD}s1a
@@ -2097,8 +2097,8 @@ awk '
 			sed -i "" "s/pfsense0/pfsense1/g" $f
 		done
 		umount ${MNT}
-		bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s2
-		bsdlabel -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
+		bsdlabel -m $ARCH -w -B -b ${CLONEDIR}/boot/boot ${MD}s2
+		bsdlabel -m $ARCH -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
 	fi
 
 	# Create Data slice ###############################
