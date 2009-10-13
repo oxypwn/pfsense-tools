@@ -2066,7 +2066,7 @@ awk '
 
 	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
 	fdisk ${MD}
-	boot0cfg -m i386 -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
+	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
 	bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
 	bsdlabel -m i386 ${MD}s1
 
