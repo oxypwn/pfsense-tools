@@ -324,7 +324,7 @@ build_rspro_kernel() {
 	echo ">>> Installing rspro kernel..."
 	freesbie_make installkernel
 	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
+	cp $SRCDIR/sys/$ARCH/conf/AR71XX.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
 	echo -n ">>> Installing kernels to LiveCD area..."
 	(cd $KERNEL_BUILD_PATH/AR71XX/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_AR71XX.gz .)
 	echo -n "."
