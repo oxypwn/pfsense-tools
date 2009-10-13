@@ -256,10 +256,12 @@ fixup_kernel_options() {
 	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/developers/boot/defaults/
 	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
 	#
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap/boot/device.hints
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/uniprocessor/boot/device.hints
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/SMP/boot/device.hints
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints
+	if [ -f $SRCDIR/sys/$ARCH/conf/GENERIC.hints ]; then
+		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap/boot/device.hints
+		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/uniprocessor/boot/device.hints
+		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/SMP/boot/device.hints
+		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints
+	fi
 	if [ -f $SRCDIR/sys/mips/conf/AR71XX.hints ]; then
 		cp $SRCDIR/sys/mips/conf/AR71XX.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
 	fi
