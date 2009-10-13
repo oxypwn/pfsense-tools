@@ -1218,7 +1218,7 @@ test_php_install() {
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	HOSTNAME=`chroot $PFSENSEBASEDIR /test_php.php`
 	echo -n " $HOSTNAME "
-	if [ "$HOSTNAME" != "PASSED" ]; then
+	if [ "$HOSTNAME" != "FCGI-PASSED PASSED" ]; then
 		echo
 		echo
 		echo "An error occured while testing the php installation in $PFSENSEBASEDIR"
