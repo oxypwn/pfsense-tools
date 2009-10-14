@@ -20,7 +20,7 @@ diff -u -r1.2 pf.c
  	if (ifp == NULL)
  		goto bad;
 +	else if (r->rt == PF_REPLYTO) {
-+		register u_long i = ntohl(ip->ip_dst);
++		register u_long i = ntohl(ip->ip_dst.s_addr);
 +		struct in_ifaddr *ia;
 +		/* XXX: copied from in_localaddr. */
 +		TAILQ_FOREACH(ia, &in_ifaddrhead, ia_link) {
