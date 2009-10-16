@@ -74,6 +74,7 @@ usr/local/sbin/sshlockout_pf
 usr/local/sbin/haproxy
 usr/local/lib/libevent-1.3e.so.1
 usr/local/lib/lighttpd/mod_auth.so
+usr/local/lib/lighttpd/mod_proxy.so
 usr/local/lib/lighttpd/mod_access.so
 usr/local/lib/lighttpd/mod_accesslog.so
 usr/local/lib/lighttpd/mod_fastcgi.so
