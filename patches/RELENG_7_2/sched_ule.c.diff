@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/kern/sched_ule.c,v
 retrieving revision 1.214.2.8.2.1
 diff -u -r1.214.2.8.2.1 sched_ule.c
 --- sched_ule.c	15 Apr 2009 03:14:26 -0000	1.214.2.8.2.1
-+++ sched_ule.c	30 Sep 2009 19:47:18 -0000
++++ sched_ule.c	19 Oct 2009 19:55:52 -0000
 @@ -101,6 +101,7 @@
  	u_int		ts_runtime;	/* Number of ticks we were running */
  	/* The following variables are only used for pctcpu calculation */
@@ -13,6 +13,15 @@ diff -u -r1.214.2.8.2.1 sched_ule.c
  	int		ts_ftick;	/* First tick that we were running on */
  	int		ts_ticks;	/* Tick count */
  #ifdef SMP
+@@ -1473,7 +1474,7 @@
+ 	 * score.  Negative nice values make it easier for a thread to be
+ 	 * considered interactive.
+ 	 */
+-	score = imax(0, sched_interact_score(td) - td->td_proc->p_nice);
++	score = imax(0, sched_interact_score(td) + td->td_proc->p_nice);
+ 	if (score < sched_interact) {
+ 		pri = PRI_MIN_REALTIME;
+ 		pri += ((PRI_MAX_REALTIME - PRI_MIN_REALTIME) / sched_interact)
 @@ -2069,6 +2070,7 @@
  	 */
  	ts2->ts_ticks = ts->ts_ticks;
