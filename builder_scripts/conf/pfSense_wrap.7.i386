@@ -397,3 +397,4 @@ device		u3g
 
 # Needed for Captive Portal Locking
 options 	SYSVSEM
+device 		padlock
