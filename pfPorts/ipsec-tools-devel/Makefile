@@ -26,7 +26,7 @@ STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
-WRKSRC=		work/ipsec-tools-0.8-alpha20090525+natt
+WRKSRC=		work/ipsec-tools-0.8-alpha20090903
 
 WITH_NATT=yo
 
