@@ -307,7 +307,7 @@ diff -u -r1.3 ip_fw_pfil.c
 +++ sys/netinet/ipfw/ip_fw_pfil.c	25 Jul 2009 22:33:09 -0000
 @@ -452,9 +452,9 @@
  	if (pfh_inet == NULL)
- 		return ENOENT;
+ 		return (ENOENT);
  
 -	(void)pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK,
 +	(void)pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK,
@@ -319,7 +319,7 @@ diff -u -r1.3 ip_fw_pfil.c
  	return 0;
 @@ -487,9 +487,9 @@
  	if (pfh_inet6 == NULL)
- 		return ENOENT;
+ 		return (ENOENT);
  
 -	(void)pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK,
 +	(void)pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK,
@@ -328,7 +328,7 @@ diff -u -r1.3 ip_fw_pfil.c
 +	(void)pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", PFIL_OUT | PFIL_WAITOK,
  	    pfh_inet6);
  
- 	return 0;
+ 	return (0);
 Index: sys/netinet6/ip6_input.c
 ===================================================================
 RCS file: /usr/home/ermal/repo/src/sys/netinet6/ip6_input.c,v
