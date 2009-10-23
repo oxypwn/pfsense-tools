@@ -46,15 +46,15 @@ diff -u -r1.1.1.1 pfil.c
  #include <sys/rmlock.h>
  #include <sys/socket.h>
  #include <sys/socketvar.h>
-@@ -75,7 +76,7 @@
+@@ -77,7 +77,7 @@
  	KASSERT(ph->ph_nhooks >= 0, ("Pfil hook count dropped < 0"));
  	for (pfh = pfil_hook_get(dir, ph); pfh != NULL;
  	     pfh = TAILQ_NEXT(pfh, pfil_link)) {
 -		if (pfh->pfil_func != NULL) {
 +		if (!(pfh->pfil_flags & PFIL_DISABLED) && pfh->pfil_func != NULL) {
- 			rv = (*pfh->pfil_func)(pfh->pfil_arg, &m, ifp, dir, inp);
+ 			rv = (*pfh->pfil_func)(pfh->pfil_arg, &m, ifp, dir,
+ 			    inp);
  			if (rv != 0 || m == NULL)
- 				break;
 @@ -134,6 +135,141 @@
  	return (0);
  }
