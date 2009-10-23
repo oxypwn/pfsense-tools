@@ -39,7 +39,9 @@ if [ "$REMOVE_PHP" = "true" ]; then
 fi
 
 # Port name         Path to port                            Verify install filename
-PORTSTOBUILD="grub	/usr/ports/sysutils/grub				/usr/local/sbin/grub
+PORTSTOBUILD="
+ipsec-tools-devel	/usr/ports/security/ipsec-tools-devel	/usr/local/sbin/racoon
+grub				/usr/ports/sysutils/grub				/usr/local/sbin/grub
 apinger				/usr/ports/net/apinger					/usr/local/sbin/apinger
 rrdtool				/usr/ports/databases/rrdtool			/usr/local/bin/rrdtool
 ftpsesame			/usr/ports/ftp/ftpsesame				/usr/local/sbin/ftpsesame
@@ -199,9 +201,15 @@ for PORT in $PORTSTOBUILD; do
 			echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
 		fi
 	else
+		if [ ! -d $PORT_LOCATION ]; then
+			if [ -d $CURRENTDIR/$PORT_NAME ]; then
+				mkdir -p $PORT_LOCATION
+				cp -R $CURRENTDIR/$PORT_NAME/* $PORT_LOCATION/
+			fi
+		fi
 		# Return the seperator back to its original value
 		IFS=$oIFS
-		clean_build_install_clean /home/pfsense/tools/pfPorts/$PORT_LOCATION $MAKEJ_PORTS
+		clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
 		# If the file is not found, log it.
 		if [ -f $PORT_VERIFY_INSTALL_FILE ]; then
 			echo "File not found $DONOTBUILD - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
