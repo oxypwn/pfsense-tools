@@ -234,8 +234,8 @@ Index: pfil.h
 RCS file: /home/ncvs/src/sys/net/pfil.h,v
 retrieving revision 1.19.2.3
 diff -u -r1.19.2.3 pfil.h
---- pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
-+++ pfil.h	23 Oct 2009 23:43:15 -0000
+--- sys/net/pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
++++ sys/net/pfil.c	23 Oct 2009 23:43:15 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
