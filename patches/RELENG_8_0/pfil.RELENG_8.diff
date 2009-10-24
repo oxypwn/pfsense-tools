@@ -229,13 +229,13 @@ diff -u -r1.1.1.1 pfil.c
  		err = pfil_list_add(&ph->ph_out, pfh2, flags & ~PFIL_IN);
  		if (err) {
  			if (flags & PFIL_IN)
-Index: sys/net/pfil.h
+Index: pfil.h
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/net/pfil.h,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 pfil.h
---- sys/net/pfil.h	25 Jul 2009 22:10:27 -0000	1.1.1.1
-+++ sys/net/pfil.h	25 Jul 2009 22:33:09 -0000
+RCS file: /home/ncvs/src/sys/net/pfil.h,v
+retrieving revision 1.19.2.3
+diff -u -r1.19.2.3 pfil.h
+--- pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
++++ pfil.h	23 Oct 2009 23:43:15 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
@@ -244,8 +244,9 @@ diff -u -r1.1.1.1 pfil.h
  
  struct mbuf;
  struct ifnet;
-@@ -53,8 +54,11 @@
- 	    struct inpcb *);
+@@ -52,8 +53,11 @@
+ 	int	(*pfil_func)(void *, struct mbuf **, struct ifnet *, int,
+ 		    struct inpcb *);
  	void	*pfil_arg;
 +	char	*pfil_name;
  };
@@ -255,16 +256,17 @@ diff -u -r1.1.1.1 pfil.h
  #define PFIL_IN		0x00000001
  #define PFIL_OUT	0x00000002
  #define PFIL_WAITOK	0x00000004
-@@ -79,6 +85,9 @@
-        LIST_ENTRY(pfil_head) ph_list;
+@@ -79,6 +83,10 @@
+ 	LIST_ENTRY(pfil_head) ph_list;
  };
+ 
 +void    pfil_head_export_sysctl(struct pfil_head *, struct sysctl_oid_list *);
 +int     pfil_add_named_hook(int (*func)(void *, struct mbuf **,
 +            struct ifnet *, int, struct inpcb *), void *, char *, int,
 +            struct pfil_head *);
- int    pfil_add_hook(int (*func)(void *, struct mbuf **, struct ifnet *,
-            int, struct inpcb *), void *, int, struct pfil_head *);
- int    pfil_remove_hook(int (*func)(void *, struct mbuf **, struct ifnet *,
+ int	pfil_add_hook(int (*func)(void *, struct mbuf **, struct ifnet *,
+ 	    int, struct inpcb *), void *, int, struct pfil_head *);
+ int	pfil_remove_hook(int (*func)(void *, struct mbuf **, struct ifnet *,
 Index: sys/netinet/ip_input.c
 ===================================================================
 RCS file: /usr/home/ermal/repo/src/sys/netinet/ip_input.c,v
