@@ -235,7 +235,7 @@ RCS file: /home/ncvs/src/sys/net/pfil.h,v
 retrieving revision 1.19.2.3
 diff -u -r1.19.2.3 pfil.h
 --- sys/net/pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
-+++ sys/net/pfil.c	23 Oct 2009 23:43:15 -0000
++++ sys/net/pfil.h	23 Oct 2009 23:43:15 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
@@ -244,10 +244,11 @@ diff -u -r1.19.2.3 pfil.h
  
  struct mbuf;
  struct ifnet;
-@@ -52,8 +53,11 @@
+@@ -52,8 +53,12 @@
  	int	(*pfil_func)(void *, struct mbuf **, struct ifnet *, int,
  		    struct inpcb *);
  	void	*pfil_arg;
++	int		pfil_flags;
 +	char	*pfil_name;
  };
  
@@ -256,7 +257,7 @@ diff -u -r1.19.2.3 pfil.h
  #define PFIL_IN		0x00000001
  #define PFIL_OUT	0x00000002
  #define PFIL_WAITOK	0x00000004
-@@ -79,6 +83,10 @@
+@@ -79,6 +84,10 @@
  	LIST_ENTRY(pfil_head) ph_list;
  };
  
