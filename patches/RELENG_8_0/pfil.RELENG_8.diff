@@ -229,13 +229,13 @@ diff -u -r1.1.1.1 pfil.c
  		err = pfil_list_add(&ph->ph_out, pfh2, flags & ~PFIL_IN);
  		if (err) {
  			if (flags & PFIL_IN)
-Index: pfil.h
+Index: sys/net/pfil.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/pfil.h,v
 retrieving revision 1.19.2.3
 diff -u -r1.19.2.3 pfil.h
---- pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
-+++ pfil.h	24 Oct 2009 04:29:39 -0000
+--- sys/net/pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
++++ sys/net/pfil.h	24 Oct 2009 04:41:48 -0000
 @@ -52,8 +52,12 @@
  	int	(*pfil_func)(void *, struct mbuf **, struct ifnet *, int,
  		    struct inpcb *);
@@ -247,7 +247,7 @@ diff -u -r1.19.2.3 pfil.h
 +#define PFIL_DISABLED   0x00000008
 +
  #define PFIL_IN		0x00000001
- #define PFIL_OUT	0x00000002
+ #define PFIL_OUT		0x00000002
  #define PFIL_WAITOK	0x00000004
 @@ -70,6 +74,7 @@
  	int		ph_type;
