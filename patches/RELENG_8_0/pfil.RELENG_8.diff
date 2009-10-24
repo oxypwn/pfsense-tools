@@ -234,17 +234,9 @@ Index: pfil.h
 RCS file: /home/ncvs/src/sys/net/pfil.h,v
 retrieving revision 1.19.2.3
 diff -u -r1.19.2.3 pfil.h
---- sys/net/pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
-+++ sys/net/pfil.h	23 Oct 2009 23:43:15 -0000
-@@ -38,6 +38,7 @@
- #include <sys/_mutex.h>
- #include <sys/lock.h>
- #include <sys/rmlock.h>
-+#include <sys/sysctl.h>
- 
- struct mbuf;
- struct ifnet;
-@@ -52,8 +53,12 @@
+--- pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
++++ pfil.h	24 Oct 2009 04:29:39 -0000
+@@ -52,8 +52,12 @@
  	int	(*pfil_func)(void *, struct mbuf **, struct ifnet *, int,
  		    struct inpcb *);
  	void	*pfil_arg;
@@ -257,6 +249,14 @@ diff -u -r1.19.2.3 pfil.h
  #define PFIL_IN		0x00000001
  #define PFIL_OUT	0x00000002
  #define PFIL_WAITOK	0x00000004
+@@ -70,6 +74,7 @@
+ 	int		ph_type;
+ 	int		ph_nhooks;
+ 	struct rmlock	ph_lock;
++	struct sysctl_ctx_list ph_clist;
+ 	union {
+ 		u_long		phu_val;
+ 		void		*phu_ptr;
 @@ -79,6 +84,10 @@
  	LIST_ENTRY(pfil_head) ph_list;
  };
