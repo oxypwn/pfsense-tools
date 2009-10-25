@@ -123,7 +123,8 @@ clean_make_install() {
 	elif [ -f ../builder_scripts/pfsense_local.sh ]; then
 		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 	fi
-	echo ">>> Building $1"
+	PORTNOBASENAME=`basename $1`
+	echo ">>> Building $PORTNOBASENAME"
 	PKGNAME=`make -C $1 -V PKGNAME`
 	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
 		echo ">>> Already built, skipping..."
