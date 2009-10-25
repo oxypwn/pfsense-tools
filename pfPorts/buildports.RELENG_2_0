@@ -147,7 +147,7 @@ clean_build_install_clean() {
 	PORT=`basename $PORTPATH`
 	RUNLIST=`cd $PORTPATH && make build-depends-list`
 	for RUN in $RUNLIST; do
-		RUNBASENAME=`basename $RUNBASENAME`
+		RUNBASENAME=`basename $RUN`
 		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$RUN" | wc -l` -lt 1 ]; then
 			echo ">>> Build dependency $RUNBASENAME of $PORT"
 			clean_make_install $RUN ${CHECK_INSTALLED}
