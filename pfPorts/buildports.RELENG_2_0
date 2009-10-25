@@ -123,6 +123,7 @@ clean_make_install() {
 	elif [ -f ../builder_scripts/pfsense_local.sh ]; then
 		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 	fi
+	echo ">>> Building $PKGNAME"
 	PKGNAME=`make -C $1 -V PKGNAME`
 	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
 		echo ">>> Already built, skipping..."
@@ -143,11 +144,10 @@ clean_make_install() {
 clean_build_install_clean() {
 	PORTPATH=$1
 	PORT=`basename $PORTPATH`
-	#echo ">>> Building dependencies of $PORT..."
 	RUNLIST=`cd $PORTPATH && make build-depends-list`
 	for RUN in $RUNLIST; do
 		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$RUN" | wc -l` -lt 1 ]; then
-			echo ">>> Build dependency $RUN"
+			echo ">>> Build dependency $RUN of $PORT"
 			clean_make_install $RUN ${CHECK_INSTALLED}
 		fi
 	done	
@@ -202,6 +202,7 @@ for PORT in $PORTSTOBUILD; do
 			echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
 		fi
 	else
+		echo "=== Copying $CURRENTDIR/$PORT_NAME $PORT_LOCATION"
 		if [ ! -d $PORT_LOCATION ]; then
 			if [ -d $CURRENTDIR/$PORT_NAME ]; then
 				mkdir -p $PORT_LOCATION
