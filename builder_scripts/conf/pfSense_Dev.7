@@ -16,6 +16,11 @@ options			GEOM_LABEL
 nooption		GEOM_MBR
 options			GEOM_PART_MBR
 
+options         DDB                     # Support DDB.
+options         GDB                     # Support remote GDB.
+options         INVARIANTS              # Enable calls of extra sanity checking
+options         INVARIANT_SUPPORT       # Extra sanity checks of internal structures, required by INVARIANTS
+
 # Wireless
 device          wlan
 device          wlan_wep
