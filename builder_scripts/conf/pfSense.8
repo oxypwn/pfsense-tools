@@ -4,10 +4,8 @@ makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq o
 include         GENERIC
 ident           pfSense8
 
-nooptions		INVARIANTS
-nooptions		INVARIANTS_SUPPORT
-nooptions		WITNESS
-nooptions		WITNESS_SKIPSPIN
+options         DDB                     # Support DDB.
+options         GDB                     # Support remote GDB.
 
 nooptions		SCHED_4BSD
 options			SCHED_ULE	# add inULE scheduler
