@@ -46,3 +46,4 @@
 ~~~/sys/modules/uhso~
 ~~~~sys/modules/uhso~
 ~sys/modules~uhso.diff~
+~sys~if_ethersubr.c.diff~
