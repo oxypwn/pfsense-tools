@@ -4,6 +4,8 @@ makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq o
 include         GENERIC
 ident           pfSense8
 
+options         KDB
+options         KDB_TRACE 
 options         DDB                     # Support DDB.
 options         GDB                     # Support remote GDB.
 
