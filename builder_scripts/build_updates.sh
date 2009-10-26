@@ -105,12 +105,12 @@ mkdir -p conf
 (cd /var/db/pkg && ls | grep rrdtool) >> conf/packages
 set -e
 
-# Invoke FreeSBIE2 toolchain, populate /usr/local/pfsense-fs
-freesbie_make extra
-
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 cust_populate_extra
+
+# Invoke FreeSBIE2 toolchain, populate /usr/local/pfsense-fs
+freesbie_make extra
 
 # Remove stuff that could have been modified on installation
 # such as /etc/ttys, /conf/config.xml, etc

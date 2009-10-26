@@ -94,8 +94,15 @@ diff -I '.*' -Naur releng8/lib/libc/Makefile svn/mips/lib/libc/Makefile
  .if ${MK_NIS} != "no"
 diff -I '.*' -Naur releng8/lib/libc/mips/Symbol.map svn/mips/lib/libc/mips/Symbol.map
 --- releng8/src/lib/libc/mips/Symbol.map	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/lib/libc/mips/Symbol.map	2009-07-02 18:44:18.000000000 -0700
-@@ -61,4 +61,22 @@
++++ svn/mips/lib/libc/mips/Symbol.map	2009-10-20 16:45:32.000000000 -0700
+@@ -56,9 +56,27 @@
+ 	__siglongjmp;
+ 	__sys_vfork;
+ 	_vfork;
+-	end;		/* XXX - Should this be _end (see sys/brk.S)? */
+-	curbrk;
++	_end;
++	__curbrk;
  	minbrk;
  	_brk;
  	_sbrk;
@@ -694,8 +701,8 @@ diff -I '.*' -Naur releng8/sys/conf/Makefile.mips svn/mips/sys/conf/Makefile.mip
  
  .include "$S/conf/kern.post.mk"
 diff -I '.*' -Naur releng8/sys/conf/files svn/mips/sys/conf/files
---- releng8/src/sys/conf/files	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/conf/files	2009-10-01 13:42:41.000000000 -0700
+--- releng8/src/sys/conf/files	2009-10-26 15:38:51.000000000 -0700
++++ svn/mips/sys/conf/files	2009-10-02 15:06:36.000000000 -0700
 @@ -91,8 +91,8 @@
  	no-obj no-implicit-rule before-depend				   \
  	clean		"pccarddevs.h"
@@ -808,6 +815,25 @@ diff -I '.*' -Naur releng8/sys/conf/files svn/mips/sys/conf/files
  ufs/ufs/ufs_inode.c		optional ffs
  ufs/ufs/ufs_lookup.c		optional ffs
  ufs/ufs/ufs_quota.c		optional ffs
+@@ -2660,12 +2669,12 @@
+ vm/vm_unix.c			standard
+ vm/vm_zeroidle.c		standard
+ vm/vnode_pager.c		standard
+-xdr/xdr.c			optional krpc | nfslockd | nfsclient | nfsserver | nfscl | nfsd
+-xdr/xdr_array.c			optional krpc | nfslockd | nfsclient | nfsserver | nfscl | nfsd
+-xdr/xdr_mbuf.c			optional krpc | nfslockd | nfsclient | nfsserver | nfscl | nfsd
+-xdr/xdr_mem.c			optional krpc | nfslockd | nfsclient | nfsserver | nfscl | nfsd
+-xdr/xdr_reference.c		optional krpc | nfslockd | nfsclient | nfsserver | nfscl | nfsd
+-xdr/xdr_sizeof.c		optional krpc | nfslockd | nfsclient | nfsserver | nfscl | nfsd
++xdr/xdr.c			optional krpc | nfslockd | nfsclient | nfsserver
++xdr/xdr_array.c			optional krpc | nfslockd | nfsclient | nfsserver
++xdr/xdr_mbuf.c			optional krpc | nfslockd | nfsclient | nfsserver
++xdr/xdr_mem.c			optional krpc | nfslockd | nfsclient | nfsserver
++xdr/xdr_reference.c		optional krpc | nfslockd | nfsclient | nfsserver
++xdr/xdr_sizeof.c		optional krpc | nfslockd | nfsclient | nfsserver
+ #
+ gnu/fs/xfs/xfs_alloc.c		optional xfs \
+ 	compile-with "${NORMAL_C} -I$S/gnu/fs/xfs/FreeBSD -I$S/gnu/fs/xfs/FreeBSD/support -I$S/gnu/fs/xfs" \
 @@ -2823,4 +2832,3 @@
  dev/xen/xenpci/xenpci.c		optional xenpci
  dev/xen/xenpci/evtchn.c         optional xenpci
@@ -815,7 +841,7 @@ diff -I '.*' -Naur releng8/sys/conf/files svn/mips/sys/conf/files
 -
 diff -I '.*' -Naur releng8/sys/conf/files.mips svn/mips/sys/conf/files.mips
 --- releng8/src/sys/conf/files.mips	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/conf/files.mips	2009-09-08 11:01:49.000000000 -0700
++++ svn/mips/sys/conf/files.mips	2009-10-20 16:45:30.000000000 -0700
 @@ -38,7 +38,7 @@
  mips/mips/elf_machdep.c		standard
  mips/mips/exception.S		standard
@@ -833,7 +859,13 @@ diff -I '.*' -Naur releng8/sys/conf/files.mips svn/mips/sys/conf/files.mips
  mips/mips/busdma_machdep.c 	standard
  mips/mips/cache.c		standard
  mips/mips/cache_mipsNN.c	standard
-@@ -69,24 +70,27 @@
+@@ -63,30 +64,32 @@
+ mips/mips/db_trace.c		optional	ddb
+ mips/mips/dump_machdep.c	standard
+ mips/mips/in_cksum.c		optional	inet
+-mips/mips/intr_machdep.c	standard
+ mips/mips/locore.S		standard	no-obj
+ mips/mips/mem.c			optional	mem
  mips/mips/nexus.c		standard
  mips/mips/stack_machdep.c	optional	ddb | stack
  mips/mips/support.S		standard
@@ -866,7 +898,7 @@ diff -I '.*' -Naur releng8/sys/conf/files.mips svn/mips/sys/conf/files.mips
  
  #XXX: We can't use these versions, as strcmp.c is included conf/files
  #libkern/mips/strcmp.S		standard
-@@ -94,5 +98,10 @@
+@@ -94,5 +97,10 @@
  
  dev/cfe/cfe_api.c		optional	cfe
  dev/cfe/cfe_console.c		optional	cfe_console
@@ -1210,18 +1242,19 @@ diff -I '.*' -Naur releng8/sys/conf/ldscript.mips.mips64 svn/mips/sys/conf/ldscr
 +}
 diff -I '.*' -Naur releng8/sys/conf/options.mips svn/mips/sys/conf/options.mips
 --- releng8/src/sys/conf/options.mips	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/conf/options.mips	2009-08-04 10:46:57.000000000 -0700
-@@ -31,8 +31,8 @@
++++ svn/mips/sys/conf/options.mips	2009-10-26 13:21:10.000000000 -0700
+@@ -31,8 +31,9 @@
  CPU_MIPS4KC	opt_global.h
  CPU_MIPS32	opt_global.h
  CPU_MIPS64	opt_global.h
 -CPU_NOFPU	opt_global.h
  CPU_SENTRY5	opt_global.h
 +CPU_HAVEFPU	opt_global.h
++CPU_SB1 	opt_global.h
  
  ISA_MIPS1	opt_cputype.h
  ISA_MIPS3	opt_cputype.h
-@@ -44,11 +44,12 @@
+@@ -44,14 +45,28 @@
  YAMON		opt_global.h
  CFE		opt_global.h
  CFE_CONSOLE	opt_global.h
@@ -1235,6 +1268,22 @@ diff -I '.*' -Naur releng8/sys/conf/options.mips svn/mips/sys/conf/options.mips
  
  TARGET_OCTEON	opt_global.h
  TARGET_EMULATOR	opt_ddb.h
+ 
+ TICK_USE_YAMON_FREQ	opt_global.h
+ TICK_USE_MALTA_RTC	opt_global.h
++
++#
++# The MIPS architecture does not have separate memory and i/o address space
++# like x86. However some MIPS processors provide a memory-mapped window that
++# maps onto the PCI I/O space.
++#
++PCI_IOSPACE_SIZE        opt_global.h
++PCI_IOSPACE_ADDR        opt_global.h
++
++#
++# The highest memory address that can be used by the kernel in units of KB.
++#
++MAXMEM			opt_global.h
 diff -I '.*' -Naur releng8/sys/dev/cfe/cfe_api.c svn/mips/sys/dev/cfe/cfe_api.c
 --- releng8/src/sys/dev/cfe/cfe_api.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/dev/cfe/cfe_api.c	2009-08-04 10:47:08.000000000 -0700
@@ -1386,8 +1435,8 @@ diff -I '.*' -Naur releng8/sys/dev/cfe/cfe_env.c svn/mips/sys/dev/cfe/cfe_env.c
 +}
 diff -I '.*' -Naur releng8/sys/dev/flash/mx25l.c svn/mips/sys/dev/flash/mx25l.c
 --- releng8/src/sys/dev/flash/mx25l.c	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/dev/flash/mx25l.c	2009-05-26 09:40:44.000000000 -0700
-@@ -0,0 +1,313 @@
++++ svn/mips/sys/dev/flash/mx25l.c	2009-10-26 13:21:10.000000000 -0700
+@@ -0,0 +1,414 @@
 +/*-
 + * Copyright (c) 2006 M. Warner Losh.  All rights reserved.
 + * Copyright (c) 2009 Oleksandr Tymoshenko.  All rights reserved.
@@ -1546,6 +1595,50 @@ diff -I '.*' -Naur releng8/sys/dev/flash/mx25l.c svn/mips/sys/dev/flash/mx25l.c
 +	return (NULL);
 +}
 +
++static void
++mx25l_set_writable(device_t dev, int writable)
++{
++	uint8_t txBuf[1], rxBuf[1];
++	struct spi_command cmd;
++	int err;
++
++	memset(&cmd, 0, sizeof(cmd));
++	memset(txBuf, 0, sizeof(txBuf));
++	memset(rxBuf, 0, sizeof(rxBuf));
++
++	txBuf[0] = writable ? CMD_WRITE_ENABLE : CMD_WRITE_DISABLE;
++	cmd.tx_cmd = txBuf;
++	cmd.rx_cmd = rxBuf;
++	cmd.rx_cmd_sz = 1;
++	cmd.tx_cmd_sz = 1;
++	err = SPIBUS_TRANSFER(device_get_parent(dev), dev, &cmd);
++}
++
++static void
++mx25l_erase_sector(device_t dev, off_t sector)
++{
++	uint8_t txBuf[4], rxBuf[4];
++	struct spi_command cmd;
++	int err;
++
++	mx25l_wait_for_device_ready(dev);
++	mx25l_set_writable(dev, 1);
++
++	memset(&cmd, 0, sizeof(cmd));
++	memset(txBuf, 0, sizeof(txBuf));
++	memset(rxBuf, 0, sizeof(rxBuf));
++
++	txBuf[0] = CMD_SECTOR_ERASE;
++	cmd.tx_cmd = txBuf;
++	cmd.rx_cmd = rxBuf;
++	cmd.rx_cmd_sz = 4;
++	cmd.tx_cmd_sz = 4;
++	txBuf[1] = ((sector >> 16) & 0xff);
++	txBuf[2] = ((sector >> 8) & 0xff);
++	txBuf[3] = (sector & 0xff);
++	err = SPIBUS_TRANSFER(device_get_parent(dev), dev, &cmd);
++}
++
 +static int
 +mx25l_probe(device_t dev)
 +{
@@ -1623,7 +1716,6 @@ diff -I '.*' -Naur releng8/sys/dev/flash/mx25l.c svn/mips/sys/dev/flash/mx25l.c
 +	return (EINVAL);
 +}
 +
-+
 +static void
 +mx25l_strategy(struct bio *bp)
 +{
@@ -1644,6 +1736,8 @@ diff -I '.*' -Naur releng8/sys/dev/flash/mx25l.c svn/mips/sys/dev/flash/mx25l.c
 +	uint8_t txBuf[8], rxBuf[8];
 +	struct spi_command cmd;
 +	device_t dev, pdev;
++	off_t write_offset;
++	long bytes_to_write, bytes_writen;
 +
 +	for (;;) {
 +		dev = sc->sc_dev;
@@ -1674,10 +1768,66 @@ diff -I '.*' -Naur releng8/sys/dev/flash/mx25l.c svn/mips/sys/dev/flash/mx25l.c
 +			cmd.tx_data_sz = bp->bio_bcount;
 +			cmd.rx_data = bp->bio_data;
 +			cmd.rx_data_sz = bp->bio_bcount;
++
 +			bp->bio_error = SPIBUS_TRANSFER(pdev, dev, &cmd);
++		}
++		else if (bp->bio_cmd == BIO_WRITE) {
++			mx25l_erase_sector(dev, bp->bio_offset);
++
++			cmd.tx_cmd_sz = 4;
++			cmd.rx_cmd_sz = 4;
++
++			bytes_writen = 0;
++			write_offset = bp->bio_offset;
++
++			/*
++			 * I assume here that we write per-sector only 
++			 * and sector size should be 256 bytes aligned
++			 */
++			KASSERT(write_offset % FLASH_PAGE_SIZE == 0,
++			    ("offset for BIO_WRITE is not %d bytes aliIgned",
++				FLASH_PAGE_SIZE));
++
++			/*
++			 * Maximum write size for CMD_PAGE_PROGRAM is 
++			 * FLASH_PAGE_SIZE, so split data to chunks 
++			 * FLASH_PAGE_SIZE bytes eash and write them
++			 * one by one
++			 */
++			while (bytes_writen < bp->bio_bcount) {
++				txBuf[0] = CMD_PAGE_PROGRAM;
++				txBuf[1] = ((write_offset >> 16) & 0xff);
++				txBuf[2] = ((write_offset >> 8) & 0xff);
++				txBuf[3] = (write_offset & 0xff);
++
++				bytes_to_write = MIN(FLASH_PAGE_SIZE,
++				    bp->bio_bcount - bytes_writen);
++				cmd.tx_cmd = txBuf;
++				cmd.rx_cmd = rxBuf;
++				cmd.tx_data = bp->bio_data + bytes_writen;
++				cmd.tx_data_sz = bytes_to_write;
++				cmd.rx_data = bp->bio_data + bytes_writen;
++				cmd.rx_data_sz = bytes_to_write;
++
++				/*
++				 * Eash completed write operation resets WEL 
++				 * (write enable latch) to disabled state,
++				 * so we re-enable it here 
++				 */
++				mx25l_wait_for_device_ready(dev);
++				mx25l_set_writable(dev, 1);
++
++				bp->bio_error = SPIBUS_TRANSFER(pdev, dev, &cmd);
++				if (bp->bio_error)
++					break;
++
++				bytes_writen += bytes_to_write;
++				write_offset += bytes_to_write;
++			}
 +		}
 +		else
 +			bp->bio_error = EINVAL;
++
 +
 +		biodone(bp);
 +	}
@@ -1703,8 +1853,8 @@ diff -I '.*' -Naur releng8/sys/dev/flash/mx25l.c svn/mips/sys/dev/flash/mx25l.c
 +DRIVER_MODULE(mx25l, spibus, mx25l_driver, mx25l_devclass, 0, 0);
 diff -I '.*' -Naur releng8/sys/dev/flash/mx25lreg.h svn/mips/sys/dev/flash/mx25lreg.h
 --- releng8/src/sys/dev/flash/mx25lreg.h	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/dev/flash/mx25lreg.h	2009-05-26 09:40:44.000000000 -0700
-@@ -0,0 +1,56 @@
++++ svn/mips/sys/dev/flash/mx25lreg.h	2009-10-26 13:21:10.000000000 -0700
+@@ -0,0 +1,58 @@
 +/*-
 + * Copyright (c) 2009, Oleksandr Tymoshenko <gonzo@FreeBSD.org>
 + * All rights reserved.
@@ -1758,6 +1908,8 @@ diff -I '.*' -Naur releng8/sys/dev/flash/mx25lreg.h svn/mips/sys/dev/flash/mx25l
 +#define	STATUS_BP0	(1 << 2)
 +#define	STATUS_WEL	(1 << 1)
 +#define	STATUS_WIP	(1 << 0)
++
++#define	FLASH_PAGE_SIZE	256
 +
 +#endif /* __MX25LREG_H__ */
 +
@@ -2154,6 +2306,247 @@ diff -I '.*' -Naur releng8/sys/dev/siba/siba_sdram.c svn/mips/sys/dev/siba/siba_
 +static devclass_t siba_sdram_devclass;
 +
 +DRIVER_MODULE(siba_sdram, siba, siba_sdram_driver, siba_sdram_devclass, 0, 0);
+diff -I '.*' -Naur releng8/sys/geom/geom_redboot.c svn/mips/sys/geom/geom_redboot.c
+--- releng8/src/sys/geom/geom_redboot.c	2009-08-03 01:13:06.000000000 -0700
++++ svn/mips/sys/geom/geom_redboot.c	2009-10-26 13:21:10.000000000 -0700
+@@ -71,6 +71,7 @@
+ struct g_redboot_softc {
+ 	uint32_t	entry[REDBOOT_MAXSLICE];
+ 	uint32_t	dsize[REDBOOT_MAXSLICE];
++	uint32_t	sectoff[REDBOOT_MAXSLICE];
+ 	uint8_t		readonly[REDBOOT_MAXSLICE];
+ 	g_access_t	*parent_access;
+ };
+@@ -104,29 +105,125 @@
+ 	return (sc->parent_access(pp, dread, dwrite, dexcl));
+ }
+ 
++static void
++g_redboot_done(struct bio *bp)
++{
++	struct bio *bp2;
++	struct g_provider *pp;
++	struct g_consumer *cp;
++	struct g_geom *gp;
++	struct g_redboot_softc *sc;
++	struct g_slicer *gsp;
++	int idx;
++
++	bp2 = bp->bio_parent;
++	pp = bp2->bio_to;
++	idx = pp->index;
++	gp = pp->geom;
++	gsp = gp->softc;
++	sc = gsp->softc;
++
++	bp2->bio_error = bp->bio_error;
++	if (bp2->bio_error != 0)
++		goto done;
++
++	KASSERT(sc->sectoff[idx] + bp2->bio_length <= bp->bio_length,
++	    ("overflowed bio data"));
++	if (bp2->bio_cmd == BIO_READ) {
++		/* Copy out read data */
++		memcpy(bp2->bio_data, bp->bio_data + sc->sectoff[idx],
++		    bp2->bio_length);
++		bp2->bio_completed = bp2->bio_length;
++	} else {
++		if (bp->bio_cmd == BIO_READ) {
++			/* Copy in and reissue as write */
++			cp = LIST_FIRST(&gp->consumer);
++			memcpy(bp->bio_data + sc->sectoff[idx], bp2->bio_data,
++			    bp2->bio_length);
++			bp->bio_cmd = BIO_WRITE;
++			g_io_request(bp, cp);
++			return;
++		} else {
++			/* Write done */
++			bp2->bio_completed = bp2->bio_length;
++		}
++	}
++done:
++	/*
++	 * Finish processing the request.
++	 */
++	free(bp->bio_data, M_GEOM);
++	g_destroy_bio(bp);
++	g_io_deliver(bp2, bp2->bio_error);
++}
++
+ static int
+ g_redboot_start(struct bio *bp)
+ {
+-	struct g_provider *pp;
++	struct g_provider *pp, *pp2;
+ 	struct g_geom *gp;
+ 	struct g_redboot_softc *sc;
+ 	struct g_slicer *gsp;
++	struct g_slice *gsl;
++	struct g_consumer *cp;
++	struct bio *bp2;
++	size_t bsize;
+ 	int idx;
+ 
+ 	pp = bp->bio_to;
+ 	idx = pp->index;
+ 	gp = pp->geom;
+ 	gsp = gp->softc;
++	gsl = &gsp->slices[idx];
+ 	sc = gsp->softc;
+-	if (bp->bio_cmd == BIO_GETATTR) {
+-		if (g_handleattr_int(bp, REDBOOT_CLASS_NAME "::entry",
+-		    sc->entry[idx]))
+-			return (1);
+-		if (g_handleattr_int(bp, REDBOOT_CLASS_NAME "::dsize",
+-		    sc->dsize[idx]))
+-			return (1);
++	switch (bp->bio_cmd) {
++		/*
++		 * Read/Write are handled in g_redboot_done() after reading
++		 * the sector
++		 */
++		case BIO_READ:
++		case BIO_WRITE:
++			break;
++		case BIO_GETATTR:
++			if (g_handleattr_int(bp, REDBOOT_CLASS_NAME "::entry",
++				    sc->entry[idx]))
++				return (1);
++			if (g_handleattr_int(bp, REDBOOT_CLASS_NAME "::dsize",
++				    sc->dsize[idx]))
++				return (1);
++			if (g_handleattr_int(bp, REDBOOT_CLASS_NAME "::sectoff",
++				    sc->sectoff[idx]))
++				return (1);
++			return (0);
++		default:
++			return (EINVAL);
+ 	}
+ 
++	cp = LIST_FIRST(&gp->consumer);
++	pp2 = cp->provider;
++	bsize = pp2->sectorsize;
++
++	/*
++	 * At this point we have a request which is less than the flash sector
++	 * size, to do this we read the entire sector and then copy the data
++	 * in/out.
++	 */
++	KASSERT(bp->bio_length < bsize, ("length greater than one sector"));
++	KASSERT(bp->bio_offset == 0, ("not at start of sector"));
++
++	bp2 = g_clone_bio(bp);
++	if (bp2 == NULL)
++		return (ENOMEM);
++	bp2->bio_cmd = BIO_READ;
++	bp2->bio_done = g_redboot_done;
++	bp2->bio_offset = gsl->offset - sc->sectoff[idx];
++	bp2->bio_length = bsize;
++	bp2->bio_data = malloc(bsize, M_GEOM, M_NOWAIT);
++	if (bp2->bio_data == NULL) {
++		g_destroy_bio(bp2);
++		return (ENOMEM);
++	}
++	g_io_request(bp2, cp);
+ 	return (0);
+ }
+ 
+@@ -144,11 +241,14 @@
+ 		if (indent == NULL) {
+ 			sbuf_printf(sb, " entry %d", sc->entry[pp->index]);
+ 			sbuf_printf(sb, " dsize %d", sc->dsize[pp->index]);
++			sbuf_printf(sb, " sectoff %d", sc->sectoff[pp->index]);
+ 		} else {
+ 			sbuf_printf(sb, "%s<entry>%d</entry>\n", indent,
+ 			    sc->entry[pp->index]);
+ 			sbuf_printf(sb, "%s<dsize>%d</dsize>\n", indent,
+ 			    sc->dsize[pp->index]);
++			sbuf_printf(sb, "%s<sectoff>%d</sectoff>\n", indent,
++			    sc->sectoff[pp->index]);
+ 		}
+ 	}
+ }
+@@ -172,7 +272,7 @@
+ {
+ #define	match(a,b)	(bcmp(a, b, sizeof(b)-1) == 0)
+ 	struct fis_image_desc *fd, *efd;
+-	struct fis_image_desc *fisdir, *redbcfg;
++	struct fis_image_desc *fisdir;
+ 	struct fis_image_desc *head, **tail;
+ 	int i;
+ 
+@@ -193,15 +293,13 @@
+ 	/*
+ 	 * Scan forward collecting entries in a list.
+ 	 */
+-	fisdir = redbcfg = NULL;
++	fisdir = NULL;
+ 	*(tail = &head) = NULL;
+ 	for (i = 0; fd < efd; i++, fd++) {
+ 		if (fd->name[0] == 0xff)
+ 			continue;
+ 		if (match(fd->name, FISDIR_NAME))
+ 			fisdir = fd;
+-		else if (match(fd->name, REDBCFG_NAME))
+-			redbcfg = fd;
+ 		if (nameok(fd->name)) {
+ 			/*
+ 			 * NB: flash address includes platform mapping;
+@@ -220,16 +318,6 @@
+ 			    (long) offset);
+ 		return (NULL);
+ 	}
+-	if (redbcfg != NULL &&
+-	    fisdir->offset + fisdir->size == redbcfg->offset) {
+-		/*
+-		 * Merged FIS/RedBoot config directory.
+-		 */
+-		if (bootverbose)
+-			printf("FIS/RedBoot merged at 0x%jx (not yet)\n",
+-			    offset + fisdir->offset);
+-		/* XXX */
+-	}
+ 	return head;
+ #undef match
+ }
+@@ -252,7 +340,8 @@
+ 	if (!strcmp(pp->geom->class->name, REDBOOT_CLASS_NAME))
+ 		return (NULL);
+ 	/* XXX only taste flash providers */
+-	if (strncmp(pp->name, "cfi", 3))
++	if (strncmp(pp->name, "cfi", 3) &&
++	    strncmp(pp->name, "flash/spi", 9))
+ 		return (NULL);
+ 	gp = g_slice_new(mp, REDBOOT_MAXSLICE, pp, &cp, &sc, sizeof(*sc),
+ 	    g_redboot_start);
+@@ -300,8 +389,25 @@
+ 	for (fd = head, i = 0; fd != NULL; fd = fd->next) {
+ 		if (fd->name[0] == '\0')
+ 			continue;
+-		error = g_slice_config(gp, i, G_SLICE_CONFIG_SET,
+-		    fd->offset, fd->size, sectorsize, "redboot/%s", fd->name);
++		if (fd->size < sectorsize) {
++			/*
++			 * If the FIS entry is smaller than the sector size
++			 * then set it as hot so g_slice calls us to fix it.
++			 * This will happen if Redboot is compiled with
++			 * CYGSEM_REDBOOT_FLASH_COMBINED_FIS_AND_CONFIG.
++			 */
++			sc->sectoff[i] = fd->offset & (sectorsize - 1);
++			error = g_slice_config(gp, i, G_SLICE_CONFIG_SET,
++			    fd->offset, fd->size, fd->size,
++			    "redboot/%s", fd->name);
++			g_slice_conf_hot(gp, i, fd->offset, fd->size,
++			    G_SLICE_HOT_START, G_SLICE_HOT_DENY,
++			    G_SLICE_HOT_START);
++		} else {
++			error = g_slice_config(gp, i, G_SLICE_CONFIG_SET,
++			    fd->offset, fd->size, sectorsize, "redboot/%s",
++			    fd->name);
++		}
+ 		if (error)
+ 			printf("%s: g_slice_config returns %d for \"%s\"\n",
+ 			    __func__, error, fd->name);
 diff -I '.*' -Naur releng8/sys/mips/adm5120/obio.c svn/mips/sys/mips/adm5120/obio.c
 --- releng8/src/sys/mips/adm5120/obio.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/adm5120/obio.c	2009-05-26 09:40:41.000000000 -0700
@@ -2816,8 +3209,8 @@ diff -I '.*' -Naur releng8/sys/mips/alchemy/aureg.h svn/mips/sys/mips/alchemy/au
 +#endif	/* _MIPS_ALCHEMY_AUREG_H */
 diff -I '.*' -Naur releng8/sys/mips/alchemy/files.alchemy svn/mips/sys/mips/alchemy/files.alchemy
 --- releng8/src/sys/mips/alchemy/files.alchemy	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/mips/alchemy/files.alchemy	2009-04-14 15:39:43.000000000 -0700
-@@ -0,0 +1,7 @@
++++ svn/mips/sys/mips/alchemy/files.alchemy	2009-10-20 16:45:32.000000000 -0700
+@@ -0,0 +1,8 @@
 +# $FreeBSD$
 +# Alchmy on-board devices
 +# mips/alchemy/console.c		standard
@@ -2825,6 +3218,7 @@ diff -I '.*' -Naur releng8/sys/mips/alchemy/files.alchemy svn/mips/sys/mips/alch
 +mips/alchemy/obio.c		standard
 +mips/alchemy/uart_bus_alchemy.c	optional uart
 +mips/alchemy/uart_cpu_alchemy.c	optional uart
++mips/mips/intr_machdep.c        standard
 diff -I '.*' -Naur releng8/sys/mips/alchemy/obio.c svn/mips/sys/mips/alchemy/obio.c
 --- releng8/src/sys/mips/alchemy/obio.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/alchemy/obio.c	2009-05-06 14:57:15.000000000 -0700
@@ -6130,7 +6524,7 @@ diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xx_wdog.c svn/mips/sys/mips/athe
 +DRIVER_MODULE(ar71xx_wdog, nexus, ar71xx_wdog_driver, ar71xx_wdog_devclass, 0, 0);
 diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xxreg.h svn/mips/sys/mips/atheros/ar71xxreg.h
 --- releng8/src/sys/mips/atheros/ar71xxreg.h	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/mips/atheros/ar71xxreg.h	2009-08-04 10:47:01.000000000 -0700
++++ svn/mips/sys/mips/atheros/ar71xxreg.h	2009-10-20 16:45:32.000000000 -0700
 @@ -0,0 +1,464 @@
 +/*-
 + * Copyright (c) 2009 Oleksandr Tymoshenko
@@ -6277,7 +6671,7 @@ diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xxreg.h svn/mips/sys/mips/athero
 +#define		PLL_DDR_DIV_SEL_SHIFT		18
 +#define		PLL_DDR_DIV_SEL_MASK		3
 +#define		PLL_CPU_DIV_SEL_SHIFT		16
-+#define		PLL_CPU_DIV_SEL_MASK		2
++#define		PLL_CPU_DIV_SEL_MASK		3
 +#define		PLL_LOOP_BW_SHIFT		12
 +#define		PLL_LOOP_BW_MASK		0xf
 +#define		PLL_DIV_IN_SHIFT		10
@@ -6598,8 +6992,8 @@ diff -I '.*' -Naur releng8/sys/mips/atheros/ar71xxreg.h svn/mips/sys/mips/athero
 +#endif /* _AR71XX_REG_H_ */
 diff -I '.*' -Naur releng8/sys/mips/atheros/files.ar71xx svn/mips/sys/mips/atheros/files.ar71xx
 --- releng8/src/sys/mips/atheros/files.ar71xx	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/mips/atheros/files.ar71xx	2009-08-04 10:47:01.000000000 -0700
-@@ -0,0 +1,14 @@
++++ svn/mips/sys/mips/atheros/files.ar71xx	2009-10-20 16:45:32.000000000 -0700
+@@ -0,0 +1,15 @@
 +# $FreeBSD$
 +
 +mips/atheros/apb.c		standard
@@ -6614,6 +7008,7 @@ diff -I '.*' -Naur releng8/sys/mips/atheros/files.ar71xx svn/mips/sys/mips/ather
 +mips/atheros/uart_bus_ar71xx.c	optional uart
 +mips/atheros/uart_cpu_ar71xx.c	optional uart
 +mips/atheros/ar71xx_bus_space_reversed.c	standard
++mips/mips/intr_machdep.c        standard
 diff -I '.*' -Naur releng8/sys/mips/atheros/if_arge.c svn/mips/sys/mips/atheros/if_arge.c
 --- releng8/src/sys/mips/atheros/if_arge.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/atheros/if_arge.c	2009-09-08 11:01:51.000000000 -0700
@@ -8798,8 +9193,16 @@ diff -I '.*' -Naur releng8/sys/mips/conf/AR71XX.hints svn/mips/sys/mips/conf/AR7
 +hint.ar71xx_wdog.0.at="nexus0"
 diff -I '.*' -Naur releng8/sys/mips/conf/MALTA svn/mips/sys/mips/conf/MALTA
 --- releng8/src/sys/mips/conf/MALTA	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/conf/MALTA	2009-08-04 10:46:58.000000000 -0700
-@@ -33,6 +33,8 @@
++++ svn/mips/sys/mips/conf/MALTA	2009-10-20 16:45:32.000000000 -0700
+@@ -21,6 +21,7 @@
+ 
+ #makeoptions	ARCH_FLAGS=-march=mips32
+ makeoptions	MIPS_LITTLE_ENDIAN=defined
++makeoptions	KERNLOADADDR=0x80100000
+ 
+ options 	YAMON
+ 
+@@ -33,6 +34,8 @@
  
  include		"../malta/std.malta"
  
@@ -9078,14 +9481,13 @@ diff -I '.*' -Naur releng8/sys/mips/conf/SENTRY5 svn/mips/sys/mips/conf/SENTRY5
  device		uhci			# UHCI PCI->USB interface
 diff -I '.*' -Naur releng8/sys/mips/conf/SWARM svn/mips/sys/mips/conf/SWARM
 --- releng8/src/sys/mips/conf/SWARM	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/mips/conf/SWARM	2009-08-04 10:46:58.000000000 -0700
-@@ -0,0 +1,82 @@
++++ svn/mips/sys/mips/conf/SWARM	2009-10-26 13:21:10.000000000 -0700
+@@ -0,0 +1,81 @@
 +#
 +# $Id: //depot/user/neelnatu/freebsd_sibyte/src/sys/mips/conf/SWARM#7 $
 +#
 +
 +ident		SWARM
-+options		CPU_NOFPU
 +options		CPU_SB1
 +
 +files		"../sibyte/files.sibyte"
@@ -9096,8 +9498,9 @@ diff -I '.*' -Naur releng8/sys/mips/conf/SWARM svn/mips/sys/mips/conf/SWARM
 +
 +#
 +# 32-bit kernel cannot deal with physical memory beyond 4GB
++# XXX pmap assumes that all the memory can be mapped using KSEG0
 +#
-+options		MAXMEM=4096*1024
++options		MAXMEM=512*1024
 +
 +options		CFE
 +options		CFE_CONSOLE
@@ -9136,8 +9539,6 @@ diff -I '.*' -Naur releng8/sys/mips/conf/SWARM svn/mips/sys/mips/conf/SWARM
 +options		INVARIANT_SUPPORT
 +options		WITNESS
 +
-+options		MD_ROOT
-+options		MD_ROOT_SIZE=4096
 +options 	FFS			#Fast filesystem
 +
 +device		pci
@@ -9146,6 +9547,7 @@ diff -I '.*' -Naur releng8/sys/mips/conf/SWARM svn/mips/sys/mips/conf/SWARM
 +device		loop
 +device		ether
 +device		md
++device		random
 +
 +options		USB_DEBUG
 +device usb
@@ -9258,7 +9660,7 @@ diff -I '.*' -Naur releng8/sys/mips/idt/uart_cpu_rc32434.c svn/mips/sys/mips/idt
  }
 diff -I '.*' -Naur releng8/sys/mips/include/_align.h svn/mips/sys/mips/include/_align.h
 --- releng8/src/sys/mips/include/_align.h	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/mips/include/_align.h	2009-10-01 13:42:53.000000000 -0700
++++ svn/mips/sys/mips/include/_align.h	2009-10-20 16:45:32.000000000 -0700
 @@ -0,0 +1,53 @@
 +/*	$OpenBSD: param.h,v 1.11 1998/08/30 22:05:35 millert Exp $ */
 +
@@ -9298,7 +9700,7 @@ diff -I '.*' -Naur releng8/sys/mips/include/_align.h svn/mips/sys/mips/include/_
 + *	from: Utah Hdr: machparam.h 1.11 89/08/14
 + *	from: @(#)param.h	8.1 (Berkeley) 6/10/93
 + *	JNPR: param.h,v 1.6.2.1 2007/09/10 07:49:36 girish
-+ * $FreeBSD: projects/mips/sys/mips/include/_align.h 196994 2009-09-08 20:45:40Z phk $
++ * $FreeBSD: projects/mips/sys/mips/include/_align.h 198206 2009-10-18 14:56:33Z imp $
 + */
 +
 +#ifndef _MIPS_INCLUDE__ALIGN_H_
@@ -9306,11 +9708,11 @@ diff -I '.*' -Naur releng8/sys/mips/include/_align.h svn/mips/sys/mips/include/_
 +
 +/*
 + * Round p (pointer or byte index) up to a correctly-aligned value for all
-+ * data types (int, long, ...).	  The result is u_int and must be cast to
++ * data types (int, long, ...).	  The result is u_long and must be cast to
 + * any desired pointer type.
 + */
 +#define	_ALIGNBYTES	7
-+#define	_ALIGN(p)	(((u_int)(p) + _ALIGNBYTES) &~ _ALIGNBYTES)
++#define	_ALIGN(p)	(((u_long)(p) + _ALIGNBYTES) &~ _ALIGNBYTES)
 +
 +#endif /* !_MIPS_INCLUDE__ALIGN_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/_bus.h svn/mips/sys/mips/include/_bus.h
@@ -9337,7 +9739,7 @@ diff -I '.*' -Naur releng8/sys/mips/include/_bus.h svn/mips/sys/mips/include/_bu
  #endif /* MIPS_INCLUDE__BUS_H */
 diff -I '.*' -Naur releng8/sys/mips/include/_types.h svn/mips/sys/mips/include/_types.h
 --- releng8/src/sys/mips/include/_types.h	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/include/_types.h	2009-08-04 10:46:58.000000000 -0700
++++ svn/mips/sys/mips/include/_types.h	2009-10-20 16:45:32.000000000 -0700
 @@ -54,7 +54,7 @@
  typedef	int			__int32_t;
  typedef	unsigned int		__uint32_t;
@@ -9400,6 +9802,15 @@ diff -I '.*' -Naur releng8/sys/mips/include/_types.h svn/mips/sys/mips/include/_
  typedef	__uint32_t	__vm_offset_t;
  typedef	__uint32_t	__vm_paddr_t;
  typedef	__uint32_t	__vm_size_t;
+@@ -162,8 +165,4 @@
+ typedef __va_list		__gnuc_va_list;	/* compatibility w/GNU headers*/
+ #endif
+ 
+-typedef struct label_t {
+-	__register_t val[13];
+-} label_t;
+-
+ #endif /* !_MACHINE__TYPES_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/asm.h svn/mips/sys/mips/include/asm.h
 --- releng8/src/sys/mips/include/asm.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/asm.h	2009-08-04 10:46:58.000000000 -0700
@@ -12460,7 +12871,7 @@ diff -I '.*' -Naur releng8/sys/mips/include/cpuregs.h svn/mips/sys/mips/include/
  #endif
 diff -I '.*' -Naur releng8/sys/mips/include/db_machdep.h svn/mips/sys/mips/include/db_machdep.h
 --- releng8/src/sys/mips/include/db_machdep.h	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/include/db_machdep.h	2009-08-04 10:46:58.000000000 -0700
++++ svn/mips/sys/mips/include/db_machdep.h	2009-10-20 16:45:32.000000000 -0700
 @@ -46,7 +46,7 @@
  extern db_regs_t	ddb_regs;	/* register state */
  
@@ -12470,8 +12881,17 @@ diff -I '.*' -Naur releng8/sys/mips/include/db_machdep.h svn/mips/sys/mips/inclu
  
  #if BYTE_ORDER == _BIG_ENDIAN
  #define	BYTE_MSF	(1)
+@@ -94,6 +94,7 @@
+ int db_inst_type(int);
+ void db_dump_tlb(int, int);
+ db_addr_t branch_taken(int inst, db_addr_t pc);
+-void stacktrace_subr(db_regs_t *, int (*)(const char *, ...));
++void stacktrace_subr(register_t pc, register_t sp, register_t ra, int (*)(const char *, ...));
++int kdbpeek(int *);
+ 
+ #endif	/* !_MIPS_DB_MACHDEP_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/elf.h svn/mips/sys/mips/include/elf.h
---- releng8/src/sys/mips/include/elf.h	2009-08-03 01:13:06.000000000 -0700
+--- releng8/src/sys/mips/include/elf.h	2009-10-26 15:40:27.000000000 -0700
 +++ svn/mips/sys/mips/include/elf.h	2009-08-04 10:46:58.000000000 -0700
 @@ -41,8 +41,12 @@
  /* Information taken from MIPS ABI supplemental */
@@ -12486,6 +12906,13 @@ diff -I '.*' -Naur releng8/sys/mips/include/elf.h svn/mips/sys/mips/include/elf.
  #include <sys/elf32.h>	/* Definitions common to all 32 bit architectures. */
  #include <sys/elf64.h>	/* Definitions common to all 64 bit architectures. */
  #include <sys/elf_generic.h>
+@@ -250,6 +254,4 @@
+ 
+ #define	AT_COUNT	16	/* Count of defined aux entry types. */
+ 
+-#define	ET_DYN_LOAD_ADDR 0x0120000
+-
+ #endif /* !_MACHINE_ELF_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/endian.h svn/mips/sys/mips/include/endian.h
 --- releng8/src/sys/mips/include/endian.h	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/include/endian.h	2009-05-06 14:57:15.000000000 -0700
@@ -12625,7 +13052,7 @@ diff -I '.*' -Naur releng8/sys/mips/include/intr.h svn/mips/sys/mips/include/int
 -#endif /* !_MACHINE_INTR_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/md_var.h svn/mips/sys/mips/include/md_var.h
 --- releng8/src/sys/mips/include/md_var.h	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/include/md_var.h	2009-08-04 10:46:58.000000000 -0700
++++ svn/mips/sys/mips/include/md_var.h	2009-10-26 13:21:10.000000000 -0700
 @@ -39,7 +39,7 @@
  /*
   * Miscellaneous machine-dependent declarations.
@@ -12635,20 +13062,22 @@ diff -I '.*' -Naur releng8/sys/mips/include/md_var.h svn/mips/sys/mips/include/m
  extern	char	sigcode[];
  extern	int	szsigcode, szosigcode;
  
-@@ -48,10 +48,11 @@
+@@ -48,10 +48,12 @@
  void	MipsSaveCurFPState(struct thread *);
  void	fork_trampoline(void);
  void	cpu_swapin(struct proc *);
 -u_int	MipsEmulateBranch(struct trapframe *, int, int, u_int);
 +uintptr_t MipsEmulateBranch(struct trapframe *, uintptr_t, int, uintptr_t);
++void MipsSwitchFPState(struct thread *, struct trapframe *);
  u_long	kvtop(void *addr);
  int	is_physical_memory(vm_offset_t addr);
- int	is_cacheable_mem(vm_offset_t pa);
-+int	is_coherent_mem(vm_offset_t pa);
+-int	is_cacheable_mem(vm_offset_t pa);
++
++#define	is_cacheable_mem(pa)	is_physical_memory((pa))
  
  #define	MIPS_DEBUG   0
  
-@@ -69,4 +70,7 @@
+@@ -69,4 +71,7 @@
  /* Platform call-downs. */
  void	platform_identify(void);
  
@@ -12658,13 +13087,13 @@ diff -I '.*' -Naur releng8/sys/mips/include/md_var.h svn/mips/sys/mips/include/m
  #endif /* !_MACHINE_MD_VAR_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/param.h svn/mips/sys/mips/include/param.h
 --- releng8/src/sys/mips/include/param.h	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/include/param.h	2009-10-01 13:42:53.000000000 -0700
++++ svn/mips/sys/mips/include/param.h	2009-10-20 16:45:32.000000000 -0700
 @@ -36,11 +36,13 @@
   *	from: Utah Hdr: machparam.h 1.11 89/08/14
   *	from: @(#)param.h	8.1 (Berkeley) 6/10/93
   *	JNPR: param.h,v 1.6.2.1 2007/09/10 07:49:36 girish
 - * $FreeBSD: src/sys/mips/include/param.h,v 1.6.2.1 2009/08/03 08:13:06 kensmith Exp $
-+ * $FreeBSD: projects/mips/sys/mips/include/param.h 196215 2009-08-14 16:15:18Z imp $
++ * $FreeBSD: projects/mips/sys/mips/include/param.h 198207 2009-10-18 14:57:04Z imp $
   */
  
 -#ifndef _MACHINE_PARAM_H_
@@ -12685,6 +13114,15 @@ diff -I '.*' -Naur releng8/sys/mips/include/param.h svn/mips/sys/mips/include/pa
  
  #define	ALIGNBYTES	_ALIGNBYTES
  #define	ALIGN(p)	_ALIGN(p)
+@@ -93,7 +93,7 @@
+  * This does not reflect the optimal alignment, just the possibility
+  * (within reasonable limits). 
+  */
+-#define	ALIGNED_POINTER(p, t)	((((unsigned)(p)) & (sizeof (t) - 1)) == 0)
++#define	ALIGNED_POINTER(p, t)	((((unsigned long)(p)) & (sizeof (t) - 1)) == 0)
+ 
+ /*
+  * CACHE_LINE_SIZE is the compile-time maximum cache line size for an
 @@ -115,6 +115,8 @@
  #define	SEGOFSET	(NBSEG-1)	/* byte offset into segment */
  #define	SEGSHIFT	22		/* LOG2(NBSEG) */
@@ -12694,6 +13132,21 @@ diff -I '.*' -Naur releng8/sys/mips/include/param.h svn/mips/sys/mips/include/pa
  /* XXXimp: This has moved to vmparam.h */
  /* Also, this differs from the mips2 definition, but likely is better */
  /* since this means the kernel won't chew up TLBs when it is executing */
+@@ -152,10 +154,10 @@
+ /*
+  * Conversion macros
+  */
+-#define	mips_round_page(x)	((((unsigned)(x)) + NBPG - 1) & ~(NBPG-1))
+-#define	mips_trunc_page(x)	((unsigned)(x) & ~(NBPG-1))
+-#define	mips_btop(x)		((unsigned)(x) >> PGSHIFT)
+-#define	mips_ptob(x)		((unsigned)(x) << PGSHIFT)
++#define	mips_round_page(x)	((((unsigned long)(x)) + NBPG - 1) & ~(NBPG-1))
++#define	mips_trunc_page(x)	((unsigned long)(x) & ~(NBPG-1))
++#define	mips_btop(x)		((unsigned long)(x) >> PGSHIFT)
++#define	mips_ptob(x)		((unsigned long)(x) << PGSHIFT)
+ #define	round_page		mips_round_page
+ #define	trunc_page		mips_trunc_page
+ #define	atop(x)			((unsigned long)(x) >> PAGE_SHIFT)
 @@ -167,4 +169,4 @@
  #define	DELAY(n)	{ register int N = (n); while (--N > 0); }
  #endif /* !_KERNEL */
@@ -12702,11 +13155,23 @@ diff -I '.*' -Naur releng8/sys/mips/include/param.h svn/mips/sys/mips/include/pa
 +#endif /* !_MIPS_INCLUDE_PARAM_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/pltfm.h svn/mips/sys/mips/include/pltfm.h
 --- releng8/src/sys/mips/include/pltfm.h	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/include/pltfm.h	2009-08-04 10:46:58.000000000 -0700
-@@ -13,17 +13,4 @@
- #define	SDRAM_ADDR_END		(SDRAM_ADDR_START + (1024*0x100000))
- #define	SDRAM_MEM_SIZE		(SDRAM_ADDR_END - SDRAM_ADDR_START)
- 
++++ svn/mips/sys/mips/include/pltfm.h	1969-12-31 16:00:00.000000000 -0800
+@@ -1,29 +0,0 @@
+-/*-
+- *	JNPR: pltfm.h,v 1.5.2.1 2007/09/10 05:56:11 girish
+- * $FreeBSD: src/sys/mips/include/pltfm.h,v 1.1.2.1 2009/08/03 08:13:06 kensmith Exp $
+- */
+-
+-#ifndef _MACHINE_PLTFM_H_
+-#define	_MACHINE_PLTFM_H_
+-
+-/*
+- * This files contains platform-specific definitions.
+- */
+-#define	SDRAM_ADDR_START	0 /* SDRAM addr space */
+-#define	SDRAM_ADDR_END		(SDRAM_ADDR_START + (1024*0x100000))
+-#define	SDRAM_MEM_SIZE		(SDRAM_ADDR_END - SDRAM_ADDR_START)
+-
 -#define	UART_ADDR_START		0x1ef14000	/* UART */
 -#define	UART_ADDR_END		0x1ef14fff
 -#define	UART_MEM_SIZE		(UART_ADDR_END-UART_ADDR_START)
@@ -12720,11 +13185,34 @@ diff -I '.*' -Naur releng8/sys/mips/include/pltfm.h svn/mips/sys/mips/include/pl
 -#define	ADDR_NS16550_UART1	0x1ef14000	/* UART */
 -#define	VADDR_NS16550_UART1	0xbef14000	/* UART */
 -
- #endif /* !_MACHINE_PLTFM_H_ */
+-#endif /* !_MACHINE_PLTFM_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/pmap.h svn/mips/sys/mips/include/pmap.h
 --- releng8/src/sys/mips/include/pmap.h	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/include/pmap.h	2009-10-01 13:13:43.000000000 -0700
-@@ -172,6 +172,7 @@
++++ svn/mips/sys/mips/include/pmap.h	2009-10-26 13:21:10.000000000 -0700
+@@ -145,7 +145,21 @@
+ #define	PMAP_DIAGNOSTIC
+ #endif
+ 
+-extern vm_offset_t phys_avail[];
++/*
++ * physmem_desc[] is a superset of phys_avail[] and describes all the
++ * memory present in the system.
++ *
++ * phys_avail[] is similar but does not include the memory stolen by
++ * pmap_steal_memory().
++ *
++ * Each memory region is described by a pair of elements in the array
++ * so we can describe up to (PHYS_AVAIL_ENTRIES / 2) distinct memory
++ * regions.
++ */
++#define	PHYS_AVAIL_ENTRIES	10
++extern vm_offset_t phys_avail[PHYS_AVAIL_ENTRIES + 2];
++extern vm_offset_t physmem_desc[PHYS_AVAIL_ENTRIES + 2];
++
+ extern char *ptvmmap;		/* poor name! */
+ extern vm_offset_t virtual_avail;
+ extern vm_offset_t virtual_end;
+@@ -172,6 +186,7 @@
  void pmap_kenter_temporary_free(vm_paddr_t pa);
  int pmap_compute_pages_to_dump(void);
  void pmap_update_page(pmap_t pmap, vm_offset_t va, pt_entry_t pte);
@@ -12848,8 +13336,18 @@ diff -I '.*' -Naur releng8/sys/mips/include/regdef.h svn/mips/sys/mips/include/r
  #endif /* !_MACHINE_REGDEF_H_ */
 diff -I '.*' -Naur releng8/sys/mips/include/regnum.h svn/mips/sys/mips/include/regnum.h
 --- releng8/src/sys/mips/include/regnum.h	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/include/regnum.h	2009-08-04 10:46:58.000000000 -0700
-@@ -82,10 +82,10 @@
++++ svn/mips/sys/mips/include/regnum.h	2009-10-20 16:45:32.000000000 -0700
+@@ -63,8 +63,7 @@
+ #define PREG_RA   10
+ #define PREG_SR   11
+ #define PREG_GP   12
+-
+-
++#define PREG_PC   13
+ 
+ /*
+  * Location of the saved registers relative to ZERO.
+@@ -82,10 +81,10 @@
  #define	T1	9
  #define	T2	10
  #define	T3	11
@@ -15479,7 +15977,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/copystr.S svn/mips/sys/mips/mips/copyst
  	sw	zero, PCB_ONFAULT(v1)
 diff -I '.*' -Naur releng8/sys/mips/mips/cpu.c svn/mips/sys/mips/mips/cpu.c
 --- releng8/src/sys/mips/mips/cpu.c	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/mips/cpu.c	2009-05-06 14:57:15.000000000 -0700
++++ svn/mips/sys/mips/mips/cpu.c	2009-10-20 16:45:32.000000000 -0700
 @@ -64,61 +64,66 @@
  static void
  mips_get_identity(struct mips_cpuinfo *cpuinfo)
@@ -15557,9 +16055,9 @@ diff -I '.*' -Naur releng8/sys/mips/mips/cpu.c svn/mips/sys/mips/mips/cpu.c
 +	    ((cfg1 & MIPS_CONFIG1_TLBSZ_MASK) >> MIPS_CONFIG1_TLBSZ_SHIFT) + 1;
 +
 +	/* L1 instruction cache. */
-+	tmp = 1 << (((cfg1 & MIPS_CONFIG1_IL_MASK) >> MIPS_CONFIG1_IL_SHIFT) + 1);
++	tmp = (cfg1 & MIPS_CONFIG1_IL_MASK) >> MIPS_CONFIG1_IL_SHIFT;
 +	if (tmp != 0) {
-+		cpuinfo->l1.ic_linesize = tmp;
++		cpuinfo->l1.ic_linesize = 1 << (tmp + 1);
 +		cpuinfo->l1.ic_nways = (((cfg1 & MIPS_CONFIG1_IA_MASK) >> MIPS_CONFIG1_IA_SHIFT)) + 1;
 +		cpuinfo->l1.ic_nsets = 
 +	    		1 << (((cfg1 & MIPS_CONFIG1_IS_MASK) >> MIPS_CONFIG1_IS_SHIFT) + 6);
@@ -15568,9 +16066,9 @@ diff -I '.*' -Naur releng8/sys/mips/mips/cpu.c svn/mips/sys/mips/mips/cpu.c
 +	}
 +
 +	/* L1 data cache. */
-+	tmp = 1 << (((cfg1 & MIPS_CONFIG1_DL_MASK) >> MIPS_CONFIG1_DL_SHIFT) + 1);
++	tmp = (cfg1 & MIPS_CONFIG1_DL_MASK) >> MIPS_CONFIG1_DL_SHIFT;
 +	if (tmp != 0) {
-+		cpuinfo->l1.dc_linesize = tmp;
++		cpuinfo->l1.dc_linesize = 1 << (tmp + 1);
 +		cpuinfo->l1.dc_nways = 
 +		    (((cfg1 & MIPS_CONFIG1_DA_MASK) >> MIPS_CONFIG1_DA_SHIFT)) + 1;
 +		cpuinfo->l1.dc_nsets = 
@@ -18220,8 +18718,16 @@ diff -I '.*' -Naur releng8/sys/mips/mips/locore.S svn/mips/sys/mips/mips/locore.
  	and	a0, a0, t0
 diff -I '.*' -Naur releng8/sys/mips/mips/machdep.c svn/mips/sys/mips/mips/machdep.c
 --- releng8/src/sys/mips/mips/machdep.c	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/mips/machdep.c	2009-09-08 11:01:51.000000000 -0700
-@@ -104,6 +104,7 @@
++++ svn/mips/sys/mips/mips/machdep.c	2009-10-26 13:21:10.000000000 -0700
+@@ -79,7 +79,6 @@
+ #include <sys/syslog.h>
+ #include <machine/cache.h>
+ #include <machine/cpu.h>
+-#include <machine/pltfm.h>
+ #include <net/netisr.h>
+ #include <machine/md_var.h>
+ #include <machine/clock.h>
+@@ -104,6 +103,7 @@
  
  int cold = 1;
  long realmem = 0;
@@ -18229,7 +18735,18 @@ diff -I '.*' -Naur releng8/sys/mips/mips/machdep.c svn/mips/sys/mips/mips/machde
  int cpu_clock = MIPS_DEFAULT_HZ;
  SYSCTL_INT(_hw, OID_AUTO, clockrate, CTLFLAG_RD, 
      &cpu_clock, 0, "CPU instruction clock rate");
-@@ -170,11 +171,13 @@
+@@ -119,7 +119,9 @@
+ struct pcpu *pcpup = &pcpu;
+ #endif
+ 
+-vm_offset_t phys_avail[10];
++vm_offset_t phys_avail[PHYS_AVAIL_ENTRIES + 2];
++vm_offset_t physmem_desc[PHYS_AVAIL_ENTRIES + 2];
++
+ #ifdef UNIMPLEMENTED
+ struct platform platform;
+ #endif
+@@ -170,11 +172,13 @@
  
  		printf("Physical memory chunk(s):\n");
  		for (indx = 0; phys_avail[indx + 1] != 0; indx += 2) {
@@ -18247,7 +18764,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/machdep.c svn/mips/sys/mips/mips/machde
  		}
  	}
  
-@@ -255,10 +258,7 @@
+@@ -255,10 +259,7 @@
  	proc_linkup(&proc0, &thread0);
  	thread0.td_kstack = kstack0;
  	thread0.td_kstack_pages = KSTACK_PAGES - 1;
@@ -18259,7 +18776,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/machdep.c svn/mips/sys/mips/mips/machde
  	/* Initialize pcpu info of cpu-zero */
  #ifdef SMP
  	pcpu_init(&__pcpu[0], 0, sizeof(struct pcpu));
-@@ -274,6 +274,9 @@
+@@ -274,6 +275,9 @@
  	    (thread0.td_kstack_pages - 1) * PAGE_SIZE) - 1;
  	thread0.td_frame = &thread0.td_pcb->pcb_regs;
  
@@ -18269,7 +18786,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/machdep.c svn/mips/sys/mips/mips/machde
  	/*
  	 * There is no need to initialize md_upte array for thread0 as it's
  	 * located in .bss section and should be explicitly zeroed during 
-@@ -350,12 +353,6 @@
+@@ -350,12 +354,6 @@
  }
  
  int
@@ -18282,26 +18799,48 @@ diff -I '.*' -Naur releng8/sys/mips/mips/machdep.c svn/mips/sys/mips/mips/machde
  fill_dbregs(struct thread *td, struct dbreg *dbregs)
  {
  
+@@ -429,3 +427,16 @@
+ 
+ 	return (0);
+ }
++
++int
++is_physical_memory(vm_offset_t addr)
++{
++	int i;
++
++	for (i = 0; physmem_desc[i + 1] != 0; i += 2) {
++		if (addr >= physmem_desc[i] && addr < physmem_desc[i + 1])
++			return (1);
++	}
++
++	return (0);
++}
 diff -I '.*' -Naur releng8/sys/mips/mips/mem.c svn/mips/sys/mips/mips/mem.c
 --- releng8/src/sys/mips/mips/mem.c	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/mips/mem.c	2009-08-04 10:47:01.000000000 -0700
-@@ -101,8 +101,15 @@
++++ svn/mips/sys/mips/mips/mem.c	2009-10-26 13:21:10.000000000 -0700
+@@ -65,7 +65,6 @@
+ #include <machine/cpu.h>
+ #include <machine/md_var.h>
+ #include <machine/atomic.h>
+-#include <machine/pltfm.h>
+ #include <machine/memdev.h>
+ 
+ 
+@@ -101,10 +100,8 @@
  			vm_paddr_t pa;
  			register int o;
  
-+#ifdef CPU_SB1
-+			if (!is_physical_memory(v) ||
-+			    !is_physical_memory(roundup2(v, PAGE_SIZE) - 1)) {
-+				return (EFAULT);
-+			}
-+#else
- 			if (v + c > (SDRAM_ADDR_START + ctob(physmem)))
- 				return (EFAULT);
-+#endif
- 
- 			if (is_cacheable_mem(v) && is_cacheable_mem(v + c)) {
+-			if (v + c > (SDRAM_ADDR_START + ctob(physmem)))
+-				return (EFAULT);
+-
+-			if (is_cacheable_mem(v) && is_cacheable_mem(v + c)) {
++			if (is_cacheable_mem(v) &&
++			    is_cacheable_mem(v + c - 1)) {
  				struct fpage *fp;
-@@ -117,7 +124,7 @@
+ 				struct sysmaps *sysmaps;
+ 
+@@ -117,7 +114,7 @@
  				va = pmap_map_fpage(pa, fp, FALSE);
  				o = (int)uio->uio_offset & PAGE_MASK;
  				c = (u_int)(PAGE_SIZE -
@@ -18310,7 +18849,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/mem.c svn/mips/sys/mips/mips/mem.c
  				c = min(c, (u_int)(PAGE_SIZE - o));
  				c = min(c, (u_int)iov->iov_len);
  				error = uiomove((caddr_t)(va + o), (int)c, uio);
-@@ -133,6 +140,7 @@
+@@ -133,6 +130,7 @@
  		else if (dev2unit(dev) == CDEV_MINOR_KMEM) {
  			v = uio->uio_offset;
  			c = min(iov->iov_len, MAXPHYS);
@@ -18318,7 +18857,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/mem.c svn/mips/sys/mips/mips/mem.c
  			vm_offset_t addr, eaddr;
  			vm_offset_t wired_tlb_virtmem_end;
  
-@@ -143,25 +151,37 @@
+@@ -143,25 +141,37 @@
  			addr = trunc_page(uio->uio_offset);
  			eaddr = round_page(uio->uio_offset + c);
  
@@ -18655,17 +19194,33 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pm_machdep.c svn/mips/sys/mips/mips/pm_
  	td->td_frame->sr |= MIPS_SR_COP_2_BIT | MIPS32_SR_PX | MIPS_SR_UX |
 diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
 --- releng8/src/sys/mips/mips/pmap.c	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/mips/pmap.c	2009-10-01 13:13:43.000000000 -0700
-@@ -313,6 +313,8 @@
++++ svn/mips/sys/mips/mips/pmap.c	2009-10-26 13:21:10.000000000 -0700
+@@ -96,7 +96,6 @@
+ #endif
+ 
+ #include <machine/cache.h>
+-#include <machine/pltfm.h>
+ #include <machine/md_var.h>
+ 
+ #if defined(DIAGNOSTIC)
+@@ -313,6 +312,16 @@
  		}
  	}
  
++	/*
++	 * Copy the phys_avail[] array before we start stealing memory from it.
++	 */
++	for (i = 0; phys_avail[i + 1] != 0; i += 2) {
++		physmem_desc[i] = phys_avail[i];
++		physmem_desc[i + 1] = phys_avail[i + 1];
++	}
++
 +	Maxmem = atop(phys_avail[i - 1]);
 +
  	if (bootverbose) {
  		printf("Physical memory chunk(s):\n");
  		for (i = 0; phys_avail[i + 1] != 0; i += 2) {
-@@ -324,6 +326,7 @@
+@@ -324,6 +333,7 @@
  			    (uintmax_t) phys_avail[i + 1] - 1,
  			    (uintmax_t) size, (uintmax_t) size / PAGE_SIZE);
  		}
@@ -18673,7 +19228,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  	}
  	/*
  	 * Steal the message buffer from the beginning of memory.
-@@ -331,9 +334,6 @@
+@@ -331,9 +341,6 @@
  	msgbufp = (struct msgbuf *)pmap_steal_memory(MSGBUF_SIZE);
  	msgbufinit(msgbufp, MSGBUF_SIZE);
  
@@ -18683,7 +19238,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  	/*
  	 * Steal thread0 kstack.
  	 */
-@@ -400,21 +400,15 @@
+@@ -400,21 +407,15 @@
  	for (i = 0, pte = pgtab; i < (nkpt * NPTEPG); i++, pte++)
  		*pte = PTE_G;
  
@@ -18705,7 +19260,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  
  	/*
  	 * The kernel's pmap is statically allocated so we don't have to use
-@@ -697,6 +691,11 @@
+@@ -697,6 +698,11 @@
  {
  	register pt_entry_t *pte;
  
@@ -18717,7 +19272,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  	pte = pmap_pte(kernel_pmap, va);
  	*pte = PTE_G;
  	pmap_invalidate_page(kernel_pmap, va);
-@@ -741,11 +740,15 @@
+@@ -741,11 +747,15 @@
  pmap_qenter(vm_offset_t va, vm_page_t *m, int count)
  {
  	int i;
@@ -18729,11 +19284,11 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  		va += PAGE_SIZE;
  	}
 +
-+	mips_dcache_inv_range(origva, PAGE_SIZE*count);
++	mips_dcache_wbinv_range_index(origva, PAGE_SIZE*count);
  }
  
  /*
-@@ -755,6 +758,11 @@
+@@ -755,6 +765,11 @@
  void
  pmap_qremove(vm_offset_t va, int count)
  {
@@ -18745,7 +19300,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  	while (count-- > 0) {
  		pmap_kremove(va);
  		va += PAGE_SIZE;
-@@ -1533,6 +1541,12 @@
+@@ -1533,6 +1548,12 @@
  	if (!ptq || !pmap_pte_v(ptq)) {
  		return;
  	}
@@ -18758,7 +19313,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  	/*
  	 * get a local va for mappings for this pmap.
  	 */
-@@ -1612,6 +1626,14 @@
+@@ -1612,6 +1633,14 @@
  
  	while ((pv = TAILQ_FIRST(&m->md.pv_list)) != NULL) {
  		PMAP_LOCK(pv->pv_pmap);
@@ -18773,7 +19328,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  		pv->pv_pmap->pm_stats.resident_count--;
  
  		pte = pmap_pte(pv->pv_pmap, pv->pv_va);
-@@ -1768,8 +1790,8 @@
+@@ -1768,8 +1797,8 @@
  	 * Page Directory table entry not valid, we need a new PT page
  	 */
  	if (pte == NULL) {
@@ -18784,7 +19339,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  	}
  	pa = VM_PAGE_TO_PHYS(m);
  	om = NULL;
-@@ -1830,7 +1852,7 @@
+@@ -1830,7 +1859,7 @@
  			mpte->wire_count--;
  			KASSERT(mpte->wire_count > 0,
  			    ("pmap_enter: missing reference to page table page,"
@@ -18793,7 +19348,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  		}
  	} else
  		pmap->pm_stats.resident_count++;
-@@ -1892,7 +1914,7 @@
+@@ -1892,7 +1921,7 @@
  			if (origpte & PTE_M) {
  				KASSERT((origpte & PTE_RW),
  				    ("pmap_enter: modified page not writable:"
@@ -18802,7 +19357,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  				if (page_is_managed(opa))
  					vm_page_dirty(om);
  			}
-@@ -2229,7 +2251,7 @@
+@@ -2229,7 +2258,7 @@
  #endif
  	if (phys < MIPS_KSEG0_LARGEST_PHYS) {
  
@@ -18811,7 +19366,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  
  		bzero((caddr_t)va, PAGE_SIZE);
  		mips_dcache_wbinv_range(va, PAGE_SIZE);
-@@ -2285,7 +2307,7 @@
+@@ -2285,7 +2314,7 @@
  	} else
  #endif
  	if (phys < MIPS_KSEG0_LARGEST_PHYS) {
@@ -18820,7 +19375,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  		bzero((char *)(caddr_t)va + off, size);
  		mips_dcache_wbinv_range(va + off, size);
  	} else {
-@@ -2324,7 +2346,7 @@
+@@ -2324,7 +2353,7 @@
  	} else
  #endif
  	if (phys < MIPS_KSEG0_LARGEST_PHYS) {
@@ -18829,7 +19384,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  		bzero((caddr_t)va, PAGE_SIZE);
  		mips_dcache_wbinv_range(va, PAGE_SIZE);
  	} else {
-@@ -2361,7 +2383,6 @@
+@@ -2361,7 +2390,6 @@
  	vm_paddr_t phy_src = VM_PAGE_TO_PHYS(src);
  	vm_paddr_t phy_dst = VM_PAGE_TO_PHYS(dst);
  
@@ -18837,7 +19392,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  #ifdef VM_ALLOC_WIRED_TLB_PG_POOL
  	if (need_wired_tlb_page_pool) {
  		struct fpage *fp1, *fp2;
-@@ -2391,9 +2412,16 @@
+@@ -2391,9 +2419,16 @@
  #endif
  	{
  		if ((phy_src < MIPS_KSEG0_LARGEST_PHYS) && (phy_dst < MIPS_KSEG0_LARGEST_PHYS)) {
@@ -18857,7 +19412,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  			bcopy((caddr_t)va_src, (caddr_t)va_dst, PAGE_SIZE);
  		} else {
  			int cpu;
-@@ -2495,9 +2523,7 @@
+@@ -2495,9 +2530,7 @@
  	PMAP_LOCK(pmap);
  	sched_pin();
  	//XXX need to be TAILQ_FOREACH_SAFE ?
@@ -18868,7 +19423,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  
  		pte = pmap_pte(pv->pv_pmap, pv->pv_va);
  		if (!pmap_pte_v(pte))
-@@ -2802,15 +2828,16 @@
+@@ -2802,15 +2835,16 @@
  	 * KSEG1 maps only first 512M of phys address space. For 
  	 * pa > 0x20000000 we should make proper mapping * using pmap_kenter.
  	 */
@@ -18887,7 +19442,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  		for (tmpva = va; size > 0;) {
  			pmap_kenter(tmpva, pa);
  			size -= PAGE_SIZE;
-@@ -2825,6 +2852,18 @@
+@@ -2825,6 +2859,18 @@
  void
  pmap_unmapdev(vm_offset_t va, vm_size_t size)
  {
@@ -18906,7 +19461,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  }
  
  /*
-@@ -2899,6 +2938,7 @@
+@@ -2899,6 +2945,7 @@
  		PCPU_SET(segbase, pmap->pm_segtab);
  		MachSetPID(pmap->pm_asid[PCPU_GET(cpuid)].asid);
  	}
@@ -18914,7 +19469,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  	PCPU_SET(curpmap, pmap);
  	critical_exit();
  }
-@@ -2960,7 +3000,7 @@
+@@ -2960,7 +3007,7 @@
  				pde = &pmap->pm_segtab[i];
  				if (pde && pmap_pde_v(pde)) {
  					for (j = 0; j < 1024; j++) {
@@ -18923,7 +19478,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  						(j << PAGE_SHIFT);
  
  						pte = pmap_pte(pmap, va);
-@@ -2970,8 +3010,9 @@
+@@ -2970,8 +3017,9 @@
  
  							pa = mips_tlbpfn_to_paddr(*pte);
  							m = PHYS_TO_VM_PAGE(pa);
@@ -18935,7 +19490,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/pmap.c svn/mips/sys/mips/mips/pmap.c
  							    m->hold_count,
  							    m->wire_count,
  							    m->flags);
-@@ -3271,3 +3312,16 @@
+@@ -3271,3 +3319,16 @@
  	}
  	return pa;
  }
@@ -19098,7 +19653,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/support.S svn/mips/sys/mips/mips/suppor
  
 diff -I '.*' -Naur releng8/sys/mips/mips/swtch.S svn/mips/sys/mips/mips/swtch.S
 --- releng8/src/sys/mips/mips/swtch.S	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/mips/swtch.S	2009-08-04 10:47:01.000000000 -0700
++++ svn/mips/sys/mips/mips/swtch.S	2009-10-20 16:45:32.000000000 -0700
 @@ -81,14 +81,12 @@
  #define	_MFC0	dmfc0
  #define	_MTC0	dmtc0
@@ -19141,7 +19696,18 @@ diff -I '.*' -Naur releng8/sys/mips/mips/swtch.S svn/mips/sys/mips/mips/swtch.S
  	mtc0	k0, COP_0_STATUS_REG	# switch to user mode (when eret...)
  	HAZARD_DELAY
  	sync
-@@ -320,7 +323,7 @@
+@@ -310,6 +313,10 @@
+ 	SAVE_U_PCB_CONTEXT(ra, PREG_RA, a0)		# save return address
+ 	SAVE_U_PCB_CONTEXT(t0, PREG_SR, a0)		# save status register
+ 	SAVE_U_PCB_CONTEXT(gp, PREG_GP, a0)
++	jal	getpc
++	nop
++getpc:
++	SAVE_U_PCB_CONTEXT(ra, PREG_PC, a0)		# save return address
+ 	/*
+ 	 * FREEBSD_DEVELOPERS_FIXME:
+ 	 * In case there are CPU-specific registers that need
+@@ -320,7 +327,7 @@
  
  mips_sw1:
  #if defined(SMP) && defined(SCHED_ULE)
@@ -19150,7 +19716,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/swtch.S svn/mips/sys/mips/mips/swtch.S
  blocked_loop:
  	lw	t1, TD_LOCK(a1)
  	beq	t0, t1, blocked_loop
-@@ -361,7 +364,7 @@
+@@ -361,7 +368,7 @@
  	nop
  pgm:
  	bltz	s0, entry0set
@@ -19159,7 +19725,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/swtch.S svn/mips/sys/mips/mips/swtch.S
  	sll	s0, PAGE_SHIFT + 1
  	addu	t1, s0
  	mtc0	t1, COP_0_TLB_HI
-@@ -385,7 +388,7 @@
+@@ -385,7 +392,7 @@
   * Now running on new u struct.
   */
  sw2:
@@ -19168,7 +19734,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/swtch.S svn/mips/sys/mips/mips/swtch.S
  	jalr	t1				# s7 = new proc pointer
  	move	a0, s7				# BDSLOT
  /*
-@@ -410,6 +413,10 @@
+@@ -410,6 +417,10 @@
  	 * In case there are CPU-specific registers that need
  	 * to be restored with the other registers do so here.
  	 */
@@ -19306,7 +19872,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tick.c svn/mips/sys/mips/mips/tick.c
  }
 diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
 --- releng8/src/sys/mips/mips/tlb.S	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/mips/tlb.S	2009-08-04 10:47:01.000000000 -0700
++++ svn/mips/sys/mips/mips/tlb.S	2009-10-26 13:21:10.000000000 -0700
 @@ -81,14 +81,12 @@
  #define	_MFC0	dmfc0
  #define	_MTC0	dmtc0
@@ -19322,14 +19888,14 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
  #endif
  	.set	noreorder			# Noreorder is default style!
  #if defined(ISA_MIPS32)
-@@ -232,28 +230,38 @@
+@@ -232,28 +230,33 @@
  	mtc0	zero, COP_0_STATUS_REG		# Disable interrupts
  	ITLBNOPFIX
  	mfc0	t1, COP_0_TLB_WIRED
 -	li	v0, MIPS_KSEG3_START + 0x0fff0000 # invalid address
  	_MFC0	t0, COP_0_TLB_HI		# Save the PID
 -
- 	_MTC0	v0, COP_0_TLB_HI		# Mark entry high as invalid
+-	_MTC0	v0, COP_0_TLB_HI		# Mark entry high as invalid
  	_MTC0	zero, COP_0_TLB_LO0		# Zero out low entry0.
  	_MTC0	zero, COP_0_TLB_LO1		# Zero out low entry1.
  	mtc0	zero, COP_0_TLB_PG_MASK 	# Zero out mask entry.
@@ -19349,13 +19915,9 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
  	mtc0	t1, COP_0_TLB_INDEX		# Set the index register.
  	ITLBNOPFIX
 -	_MTC0	t0, COP_0_TLB_HI		# Restore the PID
-+#xxx imp
-+#	_MTC0	t0, COP_0_TLB_HI		# Restore the PID
 +	_MTC0	v0, COP_0_TLB_HI		# Mark entry high as invalid
  	addu	t1, t1, 1			# Increment index.
 -	addu	t0, t0, 8 * 1024
-+#xxx imp
-+#	addu	t0, t0, 8 * 1024
 +	addu	v0, v0, 8 * 1024
  	MIPS_CPU_NOP_DELAY
  	tlbwi					# Write the TLB entry.
@@ -19366,7 +19928,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
  	_MTC0	t0, COP_0_TLB_HI		# Restore the PID
  	mtc0	v1, COP_0_STATUS_REG		# Restore the status register
  	ITLBNOPFIX
-@@ -289,14 +297,14 @@
+@@ -289,14 +292,14 @@
  	tlbp					# Probe for the entry.
  	MIPS_CPU_NOP_DELAY
  	mfc0	v0, COP_0_TLB_INDEX		# See what we got
@@ -19384,7 +19946,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
  	addu	t1, v0
  	_MTC0	t1, COP_0_TLB_HI		# Mark entry high as invalid
  
-@@ -424,17 +432,17 @@
+@@ -424,17 +427,17 @@
  	MIPS_CPU_NOP_DELAY
  	mfc0	t2, COP_0_TLB_PG_MASK		# fetch the hi entry
  	_MFC0	t3, COP_0_TLB_HI		# fetch the hi entry
@@ -19406,7 +19968,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
  END(Mips_TLBRead)
  
  /*--------------------------------------------------------------------------
-@@ -470,10 +478,20 @@
+@@ -470,10 +473,19 @@
  	mfc0	v1, COP_0_STATUS_REG		# save status register
  	mtc0	zero, COP_0_STATUS_REG		# disable interrupts
  
@@ -19415,7 +19977,6 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
  	move	t2, a0
  	mfc0	t1, COP_0_TLB_WIRED
 -	li	v0, MIPS_KSEG0_START + 0x0fff0000	# invalid address
-+	li	v0, MIPS_KSEG0_START		# invalid address
 +	#
 +	# Load invalid entry, each TLB entry should have it's own bogus 
 +	# address calculated by following expression:
@@ -19429,7 +19990,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
  	mfc0	t3, COP_0_TLB_PG_MASK		# save current pgMask
  
  	# do {} while (t1 < t2)
-@@ -495,11 +513,11 @@
+@@ -495,11 +507,11 @@
  	tlbwi					# invalidate the TLB entry
  2:
  	addu	t1, t1, 1
@@ -19445,16 +20006,19 @@ diff -I '.*' -Naur releng8/sys/mips/mips/tlb.S svn/mips/sys/mips/mips/tlb.S
  	mtc0	v1, COP_0_STATUS_REG		# restore status register
 diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
 --- releng8/src/sys/mips/mips/trap.c	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/mips/trap.c	2009-09-08 11:01:51.000000000 -0700
-@@ -76,7 +76,6 @@
++++ svn/mips/sys/mips/mips/trap.c	2009-10-20 16:45:32.000000000 -0700
+@@ -76,9 +76,9 @@
  #include <machine/trap.h>
  #include <machine/psl.h>
  #include <machine/cpu.h>
 -#include <machine/intr.h>
  #include <machine/pte.h>
  #include <machine/pmap.h>
++#include <machine/md_var.h>
  #include <machine/mips_opcode.h>
-@@ -99,7 +98,6 @@
+ #include <machine/frame.h>
+ #include <machine/regnum.h>
+@@ -99,28 +99,17 @@
  
  #ifdef TRAP_DEBUG
  int trap_debug = 1;
@@ -19462,24 +20026,68 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  #endif
  
  extern unsigned onfault_table[];
-@@ -252,7 +250,7 @@
- extern void MipsFPTrap(u_int, u_int, u_int);
  
- u_int trap(struct trapframe *);
+-extern void MipsKernGenException(void);
+-extern void MipsUserGenException(void);
+-extern void MipsKernIntr(void);
+-extern void MipsUserIntr(void);
+-extern void MipsTLBInvalidException(void);
+-extern void MipsKernTLBInvalidException(void);
+-extern void MipsUserTLBInvalidException(void);
+-extern void MipsTLBMissException(void);
+ static void log_bad_page_fault(char *, struct trapframe *, int);
+ static void log_frame_dump(struct trapframe *frame);
+ static void get_mapping_info(vm_offset_t, pd_entry_t **, pt_entry_t **);
+ 
+ #ifdef TRAP_DEBUG
+ static void trap_frame_dump(struct trapframe *frame);
+-
+ #endif
+-extern char edata[];
+ 
+ void (*machExceptionTable[]) (void)= {
+ /*
+@@ -232,38 +221,17 @@
+ 
+ #if !defined(SMP) && (defined(DDB) || defined(DEBUG))
+ struct trapdebug trapdebug[TRAPSIZE], *trp = trapdebug;
+-
+ #endif
+ 
+ #if defined(DDB) || defined(DEBUG)
+ void stacktrace(struct trapframe *);
+ void logstacktrace(struct trapframe *);
+-int kdbpeek(int *);
+-
+-/* extern functions printed by name in stack backtraces */
+-extern void MipsTLBMiss(void);
+-extern void MipsUserSyscallException(void);
+-extern char _locore[];
+-extern char _locoreEnd[];
+-
+-#endif				/* DDB || DEBUG */
+-
+-extern void MipsSwitchFPState(struct thread *, struct trapframe *);
+-extern void MipsFPTrap(u_int, u_int, u_int);
+-
+-u_int trap(struct trapframe *);
 -u_int MipsEmulateBranch(struct trapframe *, int, int, u_int);
-+u_int MipsEmulateBranch(struct trapframe *, uintptr_t, int, uintptr_t);
++#endif
  
  #define	KERNLAND(x) ((int)(x) < 0)
  #define	DELAYBRANCH(x) ((int)(x) < 0)
-@@ -261,7 +259,6 @@
-  * kdbpeekD(addr) - skip one word starting at 'addr', then read the second word
-  */
- #define	kdbpeekD(addr)	kdbpeek(((int *)(addr)) + 1)
--int rrs_debug = 0;
  
  /*
+- * kdbpeekD(addr) - skip one word starting at 'addr', then read the second word
+- */
+-#define	kdbpeekD(addr)	kdbpeek(((int *)(addr)) + 1)
+-int rrs_debug = 0;
+-
+-/*
   * MIPS load/store access type
-@@ -306,8 +303,7 @@
+  */
+ enum {
+@@ -306,8 +274,7 @@
   * p->p_addr->u_pcb.pcb_onfault is set, otherwise, return old pc.
   */
  u_int
@@ -19489,7 +20097,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  {
  	int type, usermode;
  	int i = 0;
-@@ -365,7 +361,7 @@
+@@ -365,7 +332,7 @@
  		printf("cpuid = %d\n", PCPU_GET(cpuid));
  #endif
  		MachTLBGetPID(pid);
@@ -19498,7 +20106,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  		    trapframe->badvaddr, trapframe->pc, trapframe->ra,
  		    trapframe->sp, trapframe->sr,
  		    (curproc ? curproc->p_pid : -1), pid);
-@@ -389,7 +385,7 @@
+@@ -389,7 +356,7 @@
  		    ((type & ~T_USER) != T_SYSCALL)) {
  			if (++count == 3) {
  				trap_frame_dump(trapframe);
@@ -19507,7 +20115,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  			}
  		} else {
  			last_badvaddr = this_badvaddr;
-@@ -570,7 +566,7 @@
+@@ -570,7 +537,7 @@
  			--p->p_lock;
  			PROC_UNLOCK(p);
  #ifdef VMFAULT_TRACE
@@ -19516,7 +20124,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  			    map, &vm->vm_pmap, va, trapframe->badvaddr, ftype, flag,
  			    rv, trapframe->pc);
  #endif
-@@ -849,7 +845,7 @@
+@@ -849,7 +816,7 @@
  
  	case T_BREAK + T_USER:
  		{
@@ -19525,7 +20133,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  
  			/* compute address of break instruction */
  			va = trapframe->pc;
-@@ -882,13 +878,13 @@
+@@ -882,13 +849,13 @@
  	case T_IWATCH + T_USER:
  	case T_DWATCH + T_USER:
  		{
@@ -19541,7 +20149,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  			i = SIGTRAP;
  			addr = va;
  			break;
-@@ -896,7 +892,7 @@
+@@ -896,7 +863,7 @@
  
  	case T_TRAP + T_USER:
  		{
@@ -19550,7 +20158,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  			struct trapframe *locr0 = td->td_frame;
  
  			/* compute address of trap instruction */
-@@ -929,7 +925,7 @@
+@@ -929,7 +896,7 @@
  		goto err;
  		break;
  	case T_COP_UNUSABLE + T_USER:
@@ -19559,12 +20167,14 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  		/* FP (COP1) instruction */
  		if ((trapframe->cause & CR_COP_ERR) == 0x10000000) {
  			i = SIGILL;
-@@ -1091,26 +1087,26 @@
+@@ -1090,27 +1057,27 @@
+ /*
   * Return the resulting PC as if the branch was executed.
   */
- u_int
+-u_int
 -MipsEmulateBranch(struct trapframe *framePtr, int instPC, int fpcCSR,
 -    u_int instptr)
++uintptr_t
 +MipsEmulateBranch(struct trapframe *framePtr, uintptr_t instPC, int fpcCSR,
 +    uintptr_t instptr)
  {
@@ -19592,150 +20202,317 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  		else
  			inst = *(InstFmt *) instPC;
  	}
-@@ -1230,10 +1226,27 @@
+@@ -1230,348 +1197,53 @@
  
  
  #if defined(DDB) || defined(DEBUG)
 -#define	MIPS_JR_RA	0x03e00008	/* instruction code for jr ra */
-+/*
-+ * A function using a stack frame has the following instruction as the first
-+ * one: addiu sp,sp,-<frame_size>
-+ *
-+ * We make use of this to detect starting address of a function. This works
-+ * better than using 'j ra' instruction to signify end of the previous
-+ * function (for e.g. functions like boot() or panic() do not actually
-+ * emit a 'j ra' instruction).
-+ *
-+ * XXX the abi does not require that the addiu instruction be the first one.
-+ */
-+#define	MIPS_START_OF_FUNCTION(ins)	(((ins) & 0xffff8000) == 0x27bd8000)
- 
-+/*
-+ * MIPS ABI 3.0 requires that all functions return using the 'j ra' instruction
-+ *
-+ * XXX gcc doesn't do this true for functions with __noreturn__ attribute.
-+ */
-+#define	MIPS_END_OF_FUNCTION(ins)	((ins) == 0x03e00008)
- /* forward */
+-
+-/* forward */
 -char *fn_name(unsigned addr);
-+static char *fn_name(uintptr_t addr);
- 
+-
  /*
   * Print a stack backtrace.
-@@ -1248,7 +1261,7 @@
- stacktrace_subr(struct trapframe *regs, int (*printfn) (const char *,...))
+  */
+ void
+ stacktrace(struct trapframe *regs)
  {
- 	InstFmt i;
+-	stacktrace_subr(regs, printf);
+-}
+-
+-void
+-stacktrace_subr(struct trapframe *regs, int (*printfn) (const char *,...))
+-{
+-	InstFmt i;
 -	unsigned a0, a1, a2, a3, pc, sp, fp, ra, va, subr;
-+	uintptr_t a0, a1, a2, a3, pc, sp, fp, ra, va, subr;
- 	unsigned instr, mask;
- 	unsigned int frames = 0;
- 	int more, stksize;
-@@ -1275,6 +1288,7 @@
- 		goto finish;	/* XXX */
- 	}
- 	/* check for bad SP: could foul up next frame */
-+	/*XXX MIPS64 bad: this hard-coded SP is lame */
- 	if (sp & 3 || sp < 0x80000000) {
- 		(*printfn) ("SP 0x%x: not in kernel\n", sp);
- 		ra = 0;
-@@ -1284,7 +1298,7 @@
- #define Between(x, y, z) \
- 		( ((x) <= (y)) && ((y) < (z)) )
- #define pcBetween(a,b) \
+-	unsigned instr, mask;
+-	unsigned int frames = 0;
+-	int more, stksize;
+-
+-	/* get initial values from the exception frame */
+-	sp = regs->sp;
+-	pc = regs->pc;
+-	fp = regs->s8;
+-	ra = regs->ra;		/* May be a 'leaf' function */
+-	a0 = regs->a0;
+-	a1 = regs->a1;
+-	a2 = regs->a2;
+-	a3 = regs->a3;
+-
+-/* Jump here when done with a frame, to start a new one */
+-loop:
+-
+-/* Jump here after a nonstandard (interrupt handler) frame */
+-	stksize = 0;
+-	subr = 0;
+-	if (frames++ > 100) {
+-		(*printfn) ("\nstackframe count exceeded\n");
+-		/* return breaks stackframe-size heuristics with gcc -O2 */
+-		goto finish;	/* XXX */
+-	}
+-	/* check for bad SP: could foul up next frame */
+-	if (sp & 3 || sp < 0x80000000) {
+-		(*printfn) ("SP 0x%x: not in kernel\n", sp);
+-		ra = 0;
+-		subr = 0;
+-		goto done;
+-	}
+-#define Between(x, y, z) \
+-		( ((x) <= (y)) && ((y) < (z)) )
+-#define pcBetween(a,b) \
 -		Between((unsigned)a, pc, (unsigned)b)
-+		Between((uintptr_t)a, pc, (uintptr_t)b)
- 
- 	/*
- 	 * Check for current PC in  exception handler code that don't have a
-@@ -1292,30 +1306,31 @@
- 	 * on relative ordering of functions in exception.S, swtch.S.
- 	 */
- 	if (pcBetween(MipsKernGenException, MipsUserGenException))
+-
+-	/*
+-	 * Check for current PC in  exception handler code that don't have a
+-	 * preceding "j ra" at the tail of the preceding function. Depends
+-	 * on relative ordering of functions in exception.S, swtch.S.
+-	 */
+-	if (pcBetween(MipsKernGenException, MipsUserGenException))
 -		subr = (unsigned)MipsKernGenException;
-+		subr = (uintptr_t)MipsKernGenException;
- 	else if (pcBetween(MipsUserGenException, MipsKernIntr))
+-	else if (pcBetween(MipsUserGenException, MipsKernIntr))
 -		subr = (unsigned)MipsUserGenException;
-+		subr = (uintptr_t)MipsUserGenException;
- 	else if (pcBetween(MipsKernIntr, MipsUserIntr))
+-	else if (pcBetween(MipsKernIntr, MipsUserIntr))
 -		subr = (unsigned)MipsKernIntr;
-+		subr = (uintptr_t)MipsKernIntr;
- 	else if (pcBetween(MipsUserIntr, MipsTLBInvalidException))
+-	else if (pcBetween(MipsUserIntr, MipsTLBInvalidException))
 -		subr = (unsigned)MipsUserIntr;
-+		subr = (uintptr_t)MipsUserIntr;
- 	else if (pcBetween(MipsTLBInvalidException,
- 	    MipsKernTLBInvalidException))
+-	else if (pcBetween(MipsTLBInvalidException,
+-	    MipsKernTLBInvalidException))
 -		subr = (unsigned)MipsTLBInvalidException;
-+		subr = (uintptr_t)MipsTLBInvalidException;
- 	else if (pcBetween(MipsKernTLBInvalidException,
- 	    MipsUserTLBInvalidException))
+-	else if (pcBetween(MipsKernTLBInvalidException,
+-	    MipsUserTLBInvalidException))
 -		subr = (unsigned)MipsKernTLBInvalidException;
-+		subr = (uintptr_t)MipsKernTLBInvalidException;
- 	else if (pcBetween(MipsUserTLBInvalidException, MipsTLBMissException))
+-	else if (pcBetween(MipsUserTLBInvalidException, MipsTLBMissException))
 -		subr = (unsigned)MipsUserTLBInvalidException;
-+		subr = (uintptr_t)MipsUserTLBInvalidException;
- 	else if (pcBetween(cpu_switch, MipsSwitchFPState))
+-	else if (pcBetween(cpu_switch, MipsSwitchFPState))
 -		subr = (unsigned)cpu_switch;
-+		subr = (uintptr_t)cpu_switch;
- 	else if (pcBetween(_locore, _locoreEnd)) {
+-	else if (pcBetween(_locore, _locoreEnd)) {
 -		subr = (unsigned)_locore;
-+		subr = (uintptr_t)_locore;
- 		ra = 0;
- 		goto done;
- 	}
- 	/* check for bad PC */
+-		ra = 0;
+-		goto done;
+-	}
+-	/* check for bad PC */
 -	if (pc & 3 || pc < (unsigned)0x80000000 || pc >= (unsigned)edata) {
-+	/*XXX MIPS64 bad: These hard coded constants are lame */
-+	if (pc & 3 || pc < (uintptr_t)0x80000000 || pc >= (uintptr_t)edata) {
- 		(*printfn) ("PC 0x%x: not in kernel\n", pc);
- 		ra = 0;
- 		goto done;
-@@ -1327,9 +1342,21 @@
- 	 */
- 	if (!subr) {
- 		va = pc - sizeof(int);
+-		(*printfn) ("PC 0x%x: not in kernel\n", pc);
+-		ra = 0;
+-		goto done;
+-	}
+-	/*
+-	 * Find the beginning of the current subroutine by scanning
+-	 * backwards from the current PC for the end of the previous
+-	 * subroutine.
+-	 */
+-	if (!subr) {
+-		va = pc - sizeof(int);
 -		while ((instr = kdbpeek((int *)va)) != MIPS_JR_RA)
 -			va -= sizeof(int);
 -		va += 2 * sizeof(int);	/* skip back over branch & delay slot */
-+		while (1) {
-+			instr = kdbpeek((int *)va);
-+
-+			if (MIPS_START_OF_FUNCTION(instr))
-+				break;
-+
-+			if (MIPS_END_OF_FUNCTION(instr)) {
-+				/* skip over branch-delay slot instruction */
-+				va += 2 * sizeof(int);
-+				break;
-+			}
-+
-+ 			va -= sizeof(int);
-+		}
-+
- 		/* skip over nulls which might separate .o files */
- 		while ((instr = kdbpeek((int *)va)) == 0)
- 			va += sizeof(int);
-@@ -1507,8 +1534,8 @@
- /*
-  * Map a function address to a string name, if known; or a hex string.
-  */
+-		/* skip over nulls which might separate .o files */
+-		while ((instr = kdbpeek((int *)va)) == 0)
+-			va += sizeof(int);
+-		subr = va;
+-	}
+-	/* scan forwards to find stack size and any saved registers */
+-	stksize = 0;
+-	more = 3;
+-	mask = 0;
+-	for (va = subr; more; va += sizeof(int),
+-	    more = (more == 3) ? 3 : more - 1) {
+-		/* stop if hit our current position */
+-		if (va >= pc)
+-			break;
+-		instr = kdbpeek((int *)va);
+-		i.word = instr;
+-		switch (i.JType.op) {
+-		case OP_SPECIAL:
+-			switch (i.RType.func) {
+-			case OP_JR:
+-			case OP_JALR:
+-				more = 2;	/* stop after next instruction */
+-				break;
+-
+-			case OP_SYSCALL:
+-			case OP_BREAK:
+-				more = 1;	/* stop now */
+-			};
+-			break;
+-
+-		case OP_BCOND:
+-		case OP_J:
+-		case OP_JAL:
+-		case OP_BEQ:
+-		case OP_BNE:
+-		case OP_BLEZ:
+-		case OP_BGTZ:
+-			more = 2;	/* stop after next instruction */
+-			break;
+-
+-		case OP_COP0:
+-		case OP_COP1:
+-		case OP_COP2:
+-		case OP_COP3:
+-			switch (i.RType.rs) {
+-			case OP_BCx:
+-			case OP_BCy:
+-				more = 2;	/* stop after next instruction */
+-			};
+-			break;
+-
+-		case OP_SW:
+-			/* look for saved registers on the stack */
+-			if (i.IType.rs != 29)
+-				break;
+-			/* only restore the first one */
+-			if (mask & (1 << i.IType.rt))
+-				break;
+-			mask |= (1 << i.IType.rt);
+-			switch (i.IType.rt) {
+-			case 4:/* a0 */
+-				a0 = kdbpeek((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 5:/* a1 */
+-				a1 = kdbpeek((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 6:/* a2 */
+-				a2 = kdbpeek((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 7:/* a3 */
+-				a3 = kdbpeek((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 30:	/* fp */
+-				fp = kdbpeek((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 31:	/* ra */
+-				ra = kdbpeek((int *)(sp + (short)i.IType.imm));
+-			}
+-			break;
+-
+-		case OP_SD:
+-			/* look for saved registers on the stack */
+-			if (i.IType.rs != 29)
+-				break;
+-			/* only restore the first one */
+-			if (mask & (1 << i.IType.rt))
+-				break;
+-			mask |= (1 << i.IType.rt);
+-			switch (i.IType.rt) {
+-			case 4:/* a0 */
+-				a0 = kdbpeekD((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 5:/* a1 */
+-				a1 = kdbpeekD((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 6:/* a2 */
+-				a2 = kdbpeekD((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 7:/* a3 */
+-				a3 = kdbpeekD((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 30:	/* fp */
+-				fp = kdbpeekD((int *)(sp + (short)i.IType.imm));
+-				break;
+-
+-			case 31:	/* ra */
+-				ra = kdbpeekD((int *)(sp + (short)i.IType.imm));
+-			}
+-			break;
+-
+-		case OP_ADDI:
+-		case OP_ADDIU:
+-			/* look for stack pointer adjustment */
+-			if (i.IType.rs != 29 || i.IType.rt != 29)
+-				break;
+-			stksize = -((short)i.IType.imm);
+-		}
+-	}
+-
+-done:
+-	(*printfn) ("%s+%x (%x,%x,%x,%x) ra %x sz %d\n",
+-	    fn_name(subr), pc - subr, a0, a1, a2, a3, ra, stksize);
+-
+-	if (ra) {
+-		if (pc == ra && stksize == 0)
+-			(*printfn) ("stacktrace: loop!\n");
+-		else {
+-			pc = ra;
+-			sp += stksize;
+-			ra = 0;
+-			goto loop;
+-		}
+-	} else {
+-finish:
+-		if (curproc)
+-			(*printfn) ("pid %d\n", curproc->p_pid);
+-		else
+-			(*printfn) ("curproc NULL\n");
+-	}
++	stacktrace_subr(regs->pc, regs->sp, regs->ra, printf);
+ }
+-
+-/*
+- * Functions ``special'' enough to print by name
+- */
+-#ifdef __STDC__
+-#define	Name(_fn)  { (void*)_fn, # _fn }
+-#else
+-#define	Name(_fn) { _fn, "_fn"}
+ #endif
+-static struct {
+-	void *addr;
+-	char *name;
+-}      names[] = {
+-
+-	Name(trap),
+-	Name(MipsKernGenException),
+-	Name(MipsUserGenException),
+-	Name(MipsKernIntr),
+-	Name(MipsUserIntr),
+-	Name(cpu_switch),
+-	{
+-		0, 0
+-	}
+-};
+-
+-/*
+- * Map a function address to a string name, if known; or a hex string.
+- */
 -char *
 -fn_name(unsigned addr)
-+static char *
-+fn_name(uintptr_t addr)
- {
- 	static char buf[17];
- 	int i = 0;
-@@ -1529,7 +1556,7 @@
- 	for (i = 0; names[i].name; i++)
- 		if (names[i].addr == (void *)addr)
- 			return (names[i].name);
+-{
+-	static char buf[17];
+-	int i = 0;
+-
+-#ifdef DDB
+-	db_expr_t diff;
+-	c_db_sym_t sym;
+-	char *symname;
+-
+-	diff = 0;
+-	symname = NULL;
+-	sym = db_search_symbol((db_addr_t)addr, DB_STGY_ANY, &diff);
+-	db_symbol_values(sym, (const char **)&symname, (db_expr_t *)0);
+-	if (symname && diff == 0)
+-		return (symname);
+-#endif
+-
+-	for (i = 0; names[i].name; i++)
+-		if (names[i].addr == (void *)addr)
+-			return (names[i].name);
 -	sprintf(buf, "%x", addr);
-+	sprintf(buf, "%jx", (uintmax_t)addr);
- 	return (buf);
- }
+-	return (buf);
+-}
+-
+-#endif				/* DDB */
  
-@@ -1539,39 +1566,39 @@
+ static void
  log_frame_dump(struct trapframe *frame)
  {
  	log(LOG_ERR, "Trapframe Register Dump:\n");
@@ -19797,7 +20574,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  #endif
  }
  
-@@ -1580,39 +1607,39 @@
+@@ -1580,39 +1252,39 @@
  trap_frame_dump(struct trapframe *frame)
  {
  	printf("Trapframe Register Dump:\n");
@@ -19859,7 +20636,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  #endif
  }
  
-@@ -1667,12 +1694,12 @@
+@@ -1667,12 +1339,12 @@
  	}
  
  	pc = frame->pc + (DELAYBRANCH(frame->cause) ? 4 : 0);
@@ -19875,7 +20652,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  
  	/* log registers in trap frame */
  	log_frame_dump(frame);
-@@ -1687,8 +1714,8 @@
+@@ -1687,8 +1359,8 @@
  	    (trap_type != T_BUS_ERR_IFETCH) &&
  	    useracc((caddr_t)pc, sizeof(int) * 4, VM_PROT_READ)) {
  		/* dump page table entry for faulting instruction */
@@ -19886,7 +20663,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  
  		addr = (unsigned int *)pc;
  		log(LOG_ERR, "Dumping 4 words starting at pc address %p: \n",
-@@ -1696,8 +1723,8 @@
+@@ -1696,8 +1368,8 @@
  		log(LOG_ERR, "%08x %08x %08x %08x\n",
  		    addr[0], addr[1], addr[2], addr[3]);
  	} else {
@@ -19897,7 +20674,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  	}
  	/*	panic("Bad trap");*/
  }
-@@ -1806,8 +1833,9 @@
+@@ -1806,8 +1478,9 @@
  			else
  				frame->pc += 4;
  
@@ -19911,8 +20688,8 @@ diff -I '.*' -Naur releng8/sys/mips/mips/trap.c svn/mips/sys/mips/mips/trap.c
  	return access_type;
 diff -I '.*' -Naur releng8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_machdep.c
 --- releng8/src/sys/mips/mips/vm_machdep.c	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/mips/vm_machdep.c	2009-10-01 13:13:43.000000000 -0700
-@@ -52,6 +52,7 @@
++++ svn/mips/sys/mips/mips/vm_machdep.c	2009-10-26 13:21:10.000000000 -0700
+@@ -52,11 +52,11 @@
  #include <sys/sysctl.h>
  #include <sys/unistd.h>
  
@@ -19920,16 +20697,33 @@ diff -I '.*' -Naur releng8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_
  #include <machine/clock.h>
  #include <machine/cpu.h>
  #include <machine/md_var.h>
-@@ -148,7 +149,7 @@
- 	pcb2->pcb_context.val[PCB_REG_S0] = (register_t)fork_return;
- 	pcb2->pcb_context.val[PCB_REG_S1] = (register_t)td2;
- 	pcb2->pcb_context.val[PCB_REG_S2] = (register_t)td2->td_frame;
+ #include <machine/pcb.h>
+-#include <machine/pltfm.h>
+ 
+ #include <vm/vm.h>
+ #include <vm/vm_param.h>
+@@ -141,14 +141,14 @@
+ 	if (td1 == PCPU_GET(fpcurthread))
+ 		MipsSaveCurFPState(td1);
+ 
+-	pcb2->pcb_context.val[PCB_REG_RA] = (register_t)fork_trampoline;
++	pcb2->pcb_context[PCB_REG_RA] = (register_t)fork_trampoline;
+ 	/* Make sp 64-bit aligned */
+-	pcb2->pcb_context.val[PCB_REG_SP] = (register_t)(((vm_offset_t)td2->td_pcb &
++	pcb2->pcb_context[PCB_REG_SP] = (register_t)(((vm_offset_t)td2->td_pcb &
+ 	    ~(sizeof(__int64_t) - 1)) - STAND_FRAME_SIZE);
+-	pcb2->pcb_context.val[PCB_REG_S0] = (register_t)fork_return;
+-	pcb2->pcb_context.val[PCB_REG_S1] = (register_t)td2;
+-	pcb2->pcb_context.val[PCB_REG_S2] = (register_t)td2->td_frame;
 -	pcb2->pcb_context.val[PCB_REG_SR] = SR_INT_MASK;
-+	pcb2->pcb_context.val[PCB_REG_SR] = SR_INT_MASK & mips_rd_status();
++	pcb2->pcb_context[PCB_REG_S0] = (register_t)fork_return;
++	pcb2->pcb_context[PCB_REG_S1] = (register_t)td2;
++	pcb2->pcb_context[PCB_REG_S2] = (register_t)td2->td_frame;
++	pcb2->pcb_context[PCB_REG_SR] = SR_INT_MASK & mips_rd_status();
  	/*
  	 * FREEBSD_DEVELOPERS_FIXME:
  	 * Setup any other CPU-Specific registers (Not MIPS Standard)
-@@ -156,6 +157,7 @@
+@@ -156,10 +156,11 @@
  	 *  that are needed.
  	 */
  
@@ -19937,21 +20731,52 @@ diff -I '.*' -Naur releng8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_
  	td2->td_md.md_saved_intr = MIPS_SR_INT_IE;
  	td2->td_md.md_spinlock_count = 1;
  #ifdef TARGET_OCTEON
-@@ -298,11 +300,9 @@
- 	pcb2->pcb_context.val[PCB_REG_S0] = (register_t)fork_return;
- 	pcb2->pcb_context.val[PCB_REG_S1] = (register_t)td;
- 	pcb2->pcb_context.val[PCB_REG_S2] = (register_t)td->td_frame;
+-	pcb2->pcb_context.val[PCB_REG_SR] |= MIPS_SR_COP_2_BIT | MIPS32_SR_PX | MIPS_SR_UX | MIPS_SR_KX | MIPS_SR_SX;
++	pcb2->pcb_context[PCB_REG_SR] |= MIPS_SR_COP_2_BIT | MIPS32_SR_PX | MIPS_SR_UX | MIPS_SR_KX | MIPS_SR_SX;
+ #endif
+ 
+ }
+@@ -177,8 +178,8 @@
+ 	 * Note that the trap frame follows the args, so the function
+ 	 * is really called like this:	func(arg, frame);
+ 	 */
+-	td->td_pcb->pcb_context.val[PCB_REG_S0] = (register_t) func;
+-	td->td_pcb->pcb_context.val[PCB_REG_S1] = (register_t) arg;
++	td->td_pcb->pcb_context[PCB_REG_S0] = (register_t) func;
++	td->td_pcb->pcb_context[PCB_REG_S1] = (register_t) arg;
+ }
+ 
+ void
+@@ -291,20 +292,18 @@
+ 	 * Set registers for trampoline to user mode.
+ 	 */
+ 
+-	pcb2->pcb_context.val[PCB_REG_RA] = (register_t)fork_trampoline;
++	pcb2->pcb_context[PCB_REG_RA] = (register_t)fork_trampoline;
+ 	/* Make sp 64-bit aligned */
+-	pcb2->pcb_context.val[PCB_REG_SP] = (register_t)(((vm_offset_t)td->td_pcb &
++	pcb2->pcb_context[PCB_REG_SP] = (register_t)(((vm_offset_t)td->td_pcb &
+ 	    ~(sizeof(__int64_t) - 1)) - STAND_FRAME_SIZE);
+-	pcb2->pcb_context.val[PCB_REG_S0] = (register_t)fork_return;
+-	pcb2->pcb_context.val[PCB_REG_S1] = (register_t)td;
+-	pcb2->pcb_context.val[PCB_REG_S2] = (register_t)td->td_frame;
 -
 -
++	pcb2->pcb_context[PCB_REG_S0] = (register_t)fork_return;
++	pcb2->pcb_context[PCB_REG_S1] = (register_t)td;
++	pcb2->pcb_context[PCB_REG_S2] = (register_t)td->td_frame;
  	/* Dont set IE bit in SR. sched lock release will take care of it */
 -/* idle_mask is jmips pcb2->pcb_context.val[11] = (ALL_INT_MASK & idle_mask); */
 -	pcb2->pcb_context.val[PCB_REG_SR] = SR_INT_MASK;
-+	pcb2->pcb_context.val[PCB_REG_SR] = SR_INT_MASK & mips_rd_status();
++	pcb2->pcb_context[PCB_REG_SR] = SR_INT_MASK & mips_rd_status();
 +
  #ifdef TARGET_OCTEON
- 	pcb2->pcb_context.val[PCB_REG_SR] |= MIPS_SR_COP_2_BIT | MIPS_SR_COP_0_BIT |
+-	pcb2->pcb_context.val[PCB_REG_SR] |= MIPS_SR_COP_2_BIT | MIPS_SR_COP_0_BIT |
++	pcb2->pcb_context[PCB_REG_SR] |= MIPS_SR_COP_2_BIT | MIPS_SR_COP_0_BIT |
  	  MIPS32_SR_PX | MIPS_SR_UX | MIPS_SR_KX | MIPS_SR_SX;
-@@ -335,14 +335,14 @@
+ #endif
+ 
+@@ -335,14 +334,14 @@
      stack_t *stack)
  {
  	struct trapframe *tf;
@@ -19968,7 +20793,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_
  	    STAND_FRAME_SIZE;
  
  	/*
-@@ -353,9 +353,18 @@
+@@ -353,9 +352,18 @@
  	bzero(tf, sizeof(struct trapframe));
  	tf->sp = (register_t)sp;
  	tf->pc = (register_t)entry;
@@ -19988,7 +20813,42 @@ diff -I '.*' -Naur releng8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_
  #ifdef TARGET_OCTEON
  	tf->sr |=  MIPS_SR_INT_IE | MIPS_SR_COP_0_BIT | MIPS_SR_UX |
  	  MIPS_SR_KX;
-@@ -466,6 +475,12 @@
+@@ -391,34 +399,6 @@
+ #define	ZIDLE_HI(v)	((v) * 4 / 5)
+ 
+ /*
+- * Tell whether this address is in some physical memory region.
+- * Currently used by the kernel coredump code in order to avoid
+- * dumping non-memory physical address space.
+- */
+-int
+-is_physical_memory(vm_offset_t addr)
+-{
+-	if (addr >= SDRAM_ADDR_START && addr <= SDRAM_ADDR_END)
+-		return 1;
+-	else
+-		return 0;
+-}
+-
+-int
+-is_cacheable_mem(vm_offset_t pa)
+-{
+-	if ((pa >= SDRAM_ADDR_START && pa <= SDRAM_ADDR_END) ||
+-#ifdef FLASH_ADDR_START
+-	    (pa >= FLASH_ADDR_START && pa <= FLASH_ADDR_END))
+-#else
+-	    0)
+-#endif
+-		return 1;
+-	else
+-		return 0;
+-}
+-
+-/*
+  * Allocate a pool of sf_bufs (sendfile(2) or "super-fast" if you prefer. :-))
+  */
+ static void
+@@ -466,6 +446,12 @@
  				nsfbufsused++;
  				nsfbufspeak = imax(nsfbufspeak, nsfbufsused);
  			}
@@ -20001,7 +20861,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_
  			goto done;
  		}
  	}
-@@ -507,6 +522,10 @@
+@@ -507,6 +493,10 @@
  {
  	mtx_lock(&sf_buf_lock);
  	sf->ref_count--;
@@ -20012,7 +20872,7 @@ diff -I '.*' -Naur releng8/sys/mips/mips/vm_machdep.c svn/mips/sys/mips/mips/vm_
  	if (sf->ref_count == 0) {
  		TAILQ_INSERT_TAIL(&sf_buf_freelist, sf, free_entry);
  		nsfbufsused--;
-@@ -528,7 +547,7 @@
+@@ -528,7 +518,7 @@
  cpu_set_user_tls(struct thread *td, void *tls_base)
  {
  
@@ -25001,8 +25861,8 @@ diff -I '.*' -Naur releng8/sys/mips/octeon1/driveid.h svn/mips/sys/mips/octeon1/
 +
 diff -I '.*' -Naur releng8/sys/mips/octeon1/files.octeon1 svn/mips/sys/mips/octeon1/files.octeon1
 --- releng8/src/sys/mips/octeon1/files.octeon1	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/mips/octeon1/files.octeon1	2009-07-02 18:44:24.000000000 -0700
-@@ -0,0 +1,15 @@
++++ svn/mips/sys/mips/octeon1/files.octeon1	2009-10-20 16:45:32.000000000 -0700
+@@ -0,0 +1,16 @@
 +# $FreeBSD$
 +# Octeon Support Files
 +#
@@ -25018,6 +25878,7 @@ diff -I '.*' -Naur releng8/sys/mips/octeon1/files.octeon1 svn/mips/sys/mips/octe
 +mips/octeon1/uart_bus_octeonusart.c		optional uart
 +mips/octeon1/uart_cpu_octeonusart.c		optional uart
 +mips/octeon1/uart_dev_oct16550.c		optional uart
++mips/mips/intr_machdep.c			standard
 diff -I '.*' -Naur releng8/sys/mips/octeon1/obio.c svn/mips/sys/mips/octeon1/obio.c
 --- releng8/src/sys/mips/octeon1/obio.c	1969-12-31 16:00:00.000000000 -0800
 +++ svn/mips/sys/mips/octeon1/obio.c	2009-09-08 11:01:51.000000000 -0700
@@ -29358,8 +30219,8 @@ diff -I '.*' -Naur releng8/sys/mips/octeon1/uart_dev_oct16550.c svn/mips/sys/mip
 +}
 diff -I '.*' -Naur releng8/sys/mips/sentry5/files.sentry5 svn/mips/sys/mips/sentry5/files.sentry5
 --- releng8/src/sys/mips/sentry5/files.sentry5	2009-08-03 01:13:06.000000000 -0700
-+++ svn/mips/sys/mips/sentry5/files.sentry5	2009-04-14 15:53:59.000000000 -0700
-@@ -4,11 +4,4 @@
++++ svn/mips/sys/mips/sentry5/files.sentry5	2009-10-20 16:45:32.000000000 -0700
+@@ -4,11 +4,5 @@
  # for USB 1.1 OHCI, Ethernet and IPSEC cores
  # which are believed to be devices we have drivers for
  # which just need to be tweaked for attachment to an SSB system bus.
@@ -29371,6 +30232,7 @@ diff -I '.*' -Naur releng8/sys/mips/sentry5/files.sentry5 svn/mips/sys/mips/sent
 -
 -# notyet
 -#mips/sentry5/siba_mips.c			optional siba
++mips/mips/intr_machdep.c		standard
 diff -I '.*' -Naur releng8/sys/mips/sentry5/obio.c svn/mips/sys/mips/sentry5/obio.c
 --- releng8/src/sys/mips/sentry5/obio.c	2009-08-03 01:13:06.000000000 -0700
 +++ svn/mips/sys/mips/sentry5/obio.c	2009-09-08 11:01:51.000000000 -0700
@@ -30011,7 +30873,7 @@ diff -I '.*' -Naur releng8/sys/mips/sibyte/ata_zbbus.c svn/mips/sys/mips/sibyte/
 +DRIVER_MODULE(ata, zbbus, ata_zbbus_driver, ata_devclass, 0, 0);
 diff -I '.*' -Naur releng8/sys/mips/sibyte/files.sibyte svn/mips/sys/mips/sibyte/files.sibyte
 --- releng8/src/sys/mips/sibyte/files.sibyte	1969-12-31 16:00:00.000000000 -0800
-+++ svn/mips/sys/mips/sibyte/files.sibyte	2009-08-04 10:47:01.000000000 -0700
++++ svn/mips/sys/mips/sibyte/files.sibyte	2009-10-20 16:45:31.000000000 -0700
 @@ -0,0 +1,9 @@
 +# $FreeBSD$
 +
@@ -30020,7 +30882,7 @@ diff -I '.*' -Naur releng8/sys/mips/sibyte/files.sibyte svn/mips/sys/mips/sibyte
 +mips/sibyte/sb_zbpci.c				standard
 +mips/sibyte/sb_scd.c				standard
 +mips/sibyte/ata_zbbus.c				standard
-+
++mips/mips/intr_machdep.c			standard
 +mips/sibyte/sb_asm.S				standard
 diff -I '.*' -Naur releng8/sys/mips/sibyte/sb_asm.S svn/mips/sys/mips/sibyte/sb_asm.S
 --- releng8/src/sys/mips/sibyte/sb_asm.S	1969-12-31 16:00:00.000000000 -0800

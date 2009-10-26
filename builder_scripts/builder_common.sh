@@ -1298,13 +1298,13 @@ create_pfSense_Full_update_tarball() {
 
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
+	install_custom_overlay
+	install_custom_overlay_final
+
 	create_md5_summary_file
 
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
-
-	install_custom_overlay
-	install_custom_overlay_final
 
 	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	#if [ -e /usr/local/sbin/gzsig ]; then
