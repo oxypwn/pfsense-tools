@@ -228,25 +228,25 @@ diff -u -r1.14 pfil.c
  		err = pfil_list_add(&ph->ph_out, pfh2, flags & ~PFIL_IN);
  		if (err) {
  			if (flags & PFIL_IN)
-Index: pfil.h
+Index: sys/net/pfil.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/pfil.h,v
-retrieving revision 1.19.2.3
-diff -u -r1.19.2.3 pfil.h
---- pfil.h	21 Oct 2009 09:53:55 -0000	1.19.2.3
-+++ pfil.h	23 Oct 2009 23:43:15 -0000
+retrieving revision 1.16
+diff -u -r1.16 pfil.h
+--- sys/net/pfil.h	8 Jun 2007 12:43:25 -0000	1.16
++++ sys/net/pfil.h	25 Oct 2008 14:22:34 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
- #include <sys/rmlock.h>
+ #include <sys/rwlock.h>
 +#include <sys/sysctl.h>
  
  struct mbuf;
  struct ifnet;
 @@ -52,8 +53,11 @@
- 	int	(*pfil_func)(void *, struct mbuf **, struct ifnet *, int,
- 		    struct inpcb *);
+ 	int	(*pfil_func)(void *, struct mbuf **, struct ifnet *, int, struct inpcb *);
  	void	*pfil_arg;
+ 	int	pfil_flags;
 +	char	*pfil_name;
  };
  
@@ -255,17 +255,31 @@ diff -u -r1.19.2.3 pfil.h
  #define PFIL_IN		0x00000001
  #define PFIL_OUT	0x00000002
  #define PFIL_WAITOK	0x00000004
-@@ -79,6 +83,10 @@
- 	LIST_ENTRY(pfil_head) ph_list;
- };
+@@ -70,6 +74,7 @@
+ 	int		ph_type;
+ 	int		ph_nhooks;
+ 	struct rwlock	ph_mtx;
++	struct sysctl_ctx_list ph_clist;
+ 	union {
+ 		u_long		phu_val;
+ 		void		*phu_ptr;
+@@ -82,12 +87,16 @@
+ int	pfil_run_hooks(struct pfil_head *, struct mbuf **, struct ifnet *,
+ 	    int, struct inpcb *inp);
  
-+void    pfil_head_export_sysctl(struct pfil_head *, struct sysctl_oid_list *);
 +int     pfil_add_named_hook(int (*func)(void *, struct mbuf **,
 +            struct ifnet *, int, struct inpcb *), void *, char *, int,
 +            struct pfil_head *);
- int	pfil_add_hook(int (*func)(void *, struct mbuf **, struct ifnet *,
- 	    int, struct inpcb *), void *, int, struct pfil_head *);
- int	pfil_remove_hook(int (*func)(void *, struct mbuf **, struct ifnet *,
+ int	pfil_add_hook(int (*func)(void *, struct mbuf **,
+ 	    struct ifnet *, int, struct inpcb *), void *, int, struct pfil_head *);
+ int	pfil_remove_hook(int (*func)(void *, struct mbuf **,
+ 	    struct ifnet *, int, struct inpcb *), void *, int, struct pfil_head *);
+ 
+ int	pfil_head_register(struct pfil_head *);
++void    pfil_head_export_sysctl(struct pfil_head *, struct sysctl_oid_list *);
+ int	pfil_head_unregister(struct pfil_head *);
+ 
+ struct pfil_head *pfil_head_get(int, u_long);
 Index: sys/netinet/ip_fw_pfil.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/netinet/ip_fw_pfil.c,v
