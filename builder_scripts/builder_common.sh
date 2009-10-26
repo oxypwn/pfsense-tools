@@ -1088,10 +1088,10 @@ cust_fixup_nanobsd() {
 	    #    /boot/device.hints and /etc/ttys before booting the new kernel.
 	    #    If you forget to do so, you can still manually specify the hints
 	    #    at the loader prompt:
-		echo 'set hint.uart.0.at="isa"' >> $CVS_CO_DIR/boot/device.hints
-		echo 'set hint.uart.0.port="0x3F8"' >> $CVS_CO_DIR/boot/device.hints
-		echo 'set hint.uart.0.flags="0x10"' >> $CVS_CO_DIR/boot/device.hints
-		echo 'set hint.uart.0.irq="4"' >> $CVS_CO_DIR/boot/device.hints
+		echo 'hint.uart.0.at="isa"' >> $PFSENSEBASEDIR/boot/device.hints
+		echo 'hint.uart.0.port="0x3F8"' >> $PFSENSEBASEDIR/boot/device.hints
+		echo 'hint.uart.0.flags="0x10"' >> $PFSENSEBASEDIR/boot/device.hints
+		echo 'hint.uart.0.irq="4"' >> $PFSENSEBASEDIR/boot/device.hints
 	fi
 
     echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
