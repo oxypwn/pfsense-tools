@@ -33,7 +33,7 @@ Index: sys/mips/atheros/ar71xx_machdep.c
 +			len = strlen(argv[i]);
 +			/* string must be x=y */
 +			if (len > 2 && envlen + len + 2 < sizeof(boot1_env)) {
-+				memcpy(cp, argv[i], len+1);
++				memcpy(&boot1_env[envlen], argv[i], len+1);
 +				envlen += len+1;
 +			}
  			printf(" %s", argv[i]);
@@ -41,7 +41,7 @@ Index: sys/mips/atheros/ar71xx_machdep.c
  	}
  	else
  		printf ("argv is invalid");
-@@ -173,11 +184,21 @@ platform_start(__register_t a0 __unused, __registe
+@@ -173,11 +184,20 @@ platform_start(__register_t a0 __unused, __registe
  
  	printf("Environment:\n");
  	if (MIPS_IS_VALID_PTR(envp)) {
@@ -51,7 +51,6 @@ Index: sys/mips/atheros/ar71xx_machdep.c
 +			if (envlen + len + 3 < sizeof(boot1_env)) {
 +				len = sprintf(&boot1_env[envlen], "%s=%s",
 +				    envp[i], envp[i+1]);
-+				boot1_env[envlen + len] = '\0';
 +				envlen += len+1;
 +			}
  			printf("  %s = %s\n", envp[i], envp[i+1]);
