@@ -1,0 +1,66 @@
+Index: sys/mips/atheros/ar71xx_machdep.c
+===================================================================
+--- sys/mips/atheros/ar71xx_machdep.c	(revision 198474)
++++ sys/mips/atheros/ar71xx_machdep.c	(working copy)
+@@ -59,6 +59,9 @@ __FBSDID("$FreeBSD$");
+ extern int *edata;
+ extern int *end;
+ uint32_t ar711_base_mac[ETHER_ADDR_LEN];
++/* 4KB static data aread to keep a copy of the bootload env until
++   the dynamic kenv is setup */
++char boot1_env[4096];
+ 
+ void
+ platform_halt(void)
+@@ -102,7 +105,7 @@ platform_start(__register_t a0 __unused, __registe
+ 	vm_offset_t kernend;
+ 	uint64_t platform_counter_freq;
+ 	uint32_t reg;
+-	int argc, i, count = 0;
++	int argc, i, len, envlen, count = 0;
+ 	char **argv, **envp;
+ 
+ 	/* clear the BSS and SBSS segments */
+@@ -162,10 +165,18 @@ platform_start(__register_t a0 __unused, __registe
+ 	printf("  a2 = %08x\n", a2);
+ 	printf("  a3 = %08x\n", a3);
+ 
++	envlen = 0;
+ 	printf("Cmd line:");
+ 	if (MIPS_IS_VALID_PTR(argv)) {
+-		for (i = 0; i < argc; i++)
++		for (i = 0; i < argc; i++) {
++			len = strlen(argv[i]);
++			/* string must be x=y */
++			if (len > 2 && envlen + len + 2 < sizeof(boot1_env)) {
++				memcpy(cp, argv[i], len+1);
++				envlen += len+1;
++			}
+ 			printf(" %s", argv[i]);
++		}
+ 	}
+ 	else
+ 		printf ("argv is invalid");
+@@ -173,11 +184,21 @@ platform_start(__register_t a0 __unused, __registe
+ 
+ 	printf("Environment:\n");
+ 	if (MIPS_IS_VALID_PTR(envp)) {
+-		for (i = 0; envp[i]; i+=2)
++		for (i = 0; envp[i]; i+=2) {
++			len = strlen(envp[i]) + strlen(envp[i+1]);
++			if (envlen + len + 3 < sizeof(boot1_env)) {
++				len = sprintf(&boot1_env[envlen], "%s=%s",
++				    envp[i], envp[i+1]);
++				boot1_env[envlen + len] = '\0';
++				envlen += len+1;
++			}
+ 			printf("  %s = %s\n", envp[i], envp[i+1]);
++		}
+ 	}
+ 	else 
+ 		printf ("envp is invalid\n");
++	boot1_env[envlen] = '\0';
++	kern_envp = boot1_env;
+ 
+ 	init_param2(physmem);
+ 	mips_cpu_init();
