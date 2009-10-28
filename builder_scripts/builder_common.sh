@@ -1981,6 +1981,7 @@ FlashDevice () {
 # This routine originated in nanobsd.sh
 create_i386_diskimage ( ) {
 	echo ">>> building NanoBSD disk image..."
+	echo > /tmp/nanobsd_cmds.sh
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
 	echo $NANO_MEDIASIZE \
 		$NANO_IMAGES \
@@ -2061,25 +2062,43 @@ awk '
 
 	dd if=/dev/zero of=${IMG} bs=${NANO_SECTS}b \
 	    count=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
+	// Debug
+	echo "dd if=/dev/zero of=${IMG} bs=${NANO_SECTS}b count=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`" >> /tmp/nanobsd_cmds.sh
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
+	// Debug
+	echo "MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`" >> /tmp/nanobsd_cmds.sh
 
 	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
+	echo "fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}" >> /tmp/nanobsd_cmds.sh
 	fdisk ${MD}
+	echo "fdisk ${MD}" >> /tmp/nanobsd_cmds.sh
 	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
+	echo "boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}" >> /tmp/nanobsd_cmds.sh
 	bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
+	echo "bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s1" >> /tmp/nanobsd_cmds.sh
 	bsdlabel -m i386 ${MD}s1
+	echo "bsdlabel -m i386 ${MD}s1" >> /tmp/nanobsd_cmds.sh
 
 	# Create first image
 	newfs ${NANO_NEWFS} /dev/${MD}s1a
+	echo "newfs ${NANO_NEWFS} /dev/${MD}s1a" >> /tmp/nanobsd_cmds.sh
 	tunefs -L pfsense0 /dev/${MD}s1a
+	echo "tunefs -L pfsense0 /dev/${MD}s1a" >> /tmp/nanobsd_cmds.sh
 	mount /dev/${MD}s1a ${MNT}
+	echo "mount /dev/${MD}s1a ${MNT}" >> /tmp/nanobsd_cmds.sh
 	df -i ${MNT}
+	echo "df -i ${MNT}" >> /tmp/nanobsd_cmds.sh
 	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
+	echo "( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )" >> /tmp/nanobsd_cmds.sh
 	df -i ${MNT}
+	echo "df -i ${MNT}" >> /tmp/nanobsd_cmds.sh
 	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIXFINAL}/_.mtree
+	echo "( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIXFINAL}/_.mtree" >> /tmp/nanobsd_cmds.sh
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIXFINAL}/_.du
+	echo "( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIXFINAL}/_.du" >> /tmp/nanobsd_cmds.sh
 	umount ${MNT}
+	echo "umount ${MNT}" >> /tmp/nanobsd_cmds.sh
 
 	# Setting NANO_IMAGES to 1 and NANO_INIT_IMG2 will tell
 	# NanoBSD to only create one partition.  We default to 2
