@@ -1980,6 +1980,8 @@ FlashDevice () {
 
 create_mips_diskimage()
 {
+	echo ">>> building NanoBSD disk image (mips)..."
+
 	pprint 2 "build diskimage"
 	pprint 3 "log: ${MAKEOBJDIRPREFIX}/_.di"
 
@@ -2153,8 +2155,8 @@ create_mips_diskimage()
 }
 
 # This routine originated in nanobsd.sh
-create_i386_diskimage ( ) {
-	echo ">>> building NanoBSD disk image..."
+create_i386_diskimage () {
+	echo ">>> building NanoBSD disk image (i386)..."
 
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
 	echo $NANO_MEDIASIZE \
