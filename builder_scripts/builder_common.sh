@@ -1988,7 +1988,7 @@ create_mips_diskimage()
 	echo "" > /tmp/nanobsd_cmds.sh
 
 	pprint 2 "build diskimage"
-	pprint 3 "log: ${MAKEOBJDIRPREFIX}/_.di"
+	pprint 3 "log: ${MAKEOBJDIRPREFIXFINAL}/_.di"
 
 	(
 	echo "NANO_MEDIASIZE:	$NANO_MEDIASIZE"
