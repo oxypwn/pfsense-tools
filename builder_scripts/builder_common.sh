@@ -1978,9 +1978,14 @@ FlashDevice () {
 	echo ">>> [nanoo] NANO_BOOT0CFG: $NANO_BOOT0CFG"
 }
 
+pprint() {
+	echo $1 >> /tmp/nanobsd_cmds.sh
+}
+
 create_mips_diskimage()
 {
 	echo ">>> building NanoBSD disk image (mips)..."
+	echo "" > /tmp/nanobsd_cmds.sh
 
 	pprint 2 "build diskimage"
 	pprint 3 "log: ${MAKEOBJDIRPREFIX}/_.di"
