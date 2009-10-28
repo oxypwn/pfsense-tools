@@ -1987,6 +1987,9 @@ create_mips_diskimage()
 	echo ">>> building NanoBSD disk image (mips)..."
 	echo "" > /tmp/nanobsd_cmds.sh
 
+	NANO_MAKEFS="makefs -B big \
+		-o bsize=4096,fsize=512,density=8192,optimization=space"
+
 	pprint 2 "build diskimage"
 	pprint 3 "log: ${MAKEOBJDIRPREFIXFINAL}/_.di"
 
