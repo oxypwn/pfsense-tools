@@ -2067,7 +2067,7 @@ create_mips_diskimage()
 	}
 	' > ${MAKEOBJDIRPREFIXFINAL}/_.fdisk
 
-	IMG=${MAKEOBJDIRPREFIXFINAL}/${NANO_IMGNAME}
+	IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
 	BS=${NANO_SECTS}b
 
 	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
@@ -2081,7 +2081,8 @@ create_mips_diskimage()
 		MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 	fi
 
-	trap "mdconfig -d -u $MD" 1 2 15 EXIT
+	#trap "mdconfig -d -u $MD" 1 2 15 EXIT
+	mdconfig -d -u $MD
 
 	echo ""; echo "Write partition table ..."
 	FDISK=${MAKEOBJDIRPREFIXFINAL}/_.fdisk
@@ -2089,9 +2090,11 @@ create_mips_diskimage()
 	fdisk -i -f ${FDISK} ${MD}
 	pprint 2 "fdisk ${MD}"
 	fdisk ${MD}
+	
+	IMG1=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
+	IMG2=${MAKEOBJDIRPREFIXFINAL}/nanobsd.update.img
 
 	# Create first image
-	IMG1=${MAKEOBJDIRPREFIXFINAL}/_.disk.image1
 	echo ""; echo "Create first image ${IMG1} ..."
 	SIZE=`awk '/^p 1/ { print $5 "b" }' ${FDISK}`
 	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}"
@@ -2100,13 +2103,11 @@ create_mips_diskimage()
 	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
-		IMG2=${MAKEOBJDIRPREFIXFINAL}/_.disk.image2
 		echo ""; echo "Create second image ${IMG2}..."
 		for f in ${NANO_WORLDDIR}/etc/fstab ${NANO_WORLDDIR}/conf/base/etc/fstab
 		do
 			sed -i "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
 		done
-
 		SIZE=`awk '/^p 2/ { print $5 "b" }' ${FDISK}`
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}"
 		${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}
