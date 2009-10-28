@@ -1990,6 +1990,9 @@ create_mips_diskimage()
 	NANO_MAKEFS="makefs -B big \
 		-o bsize=4096,fsize=512,density=8192,optimization=space"
 	NANO_MD_BACKING="swap"
+	NANO_BOOTLOADER="boot/boot0sio"
+	NANO_WORLDDIR=${CLONEDIR}/
+	NANO_CFGDIR=${CLONEDIR}/cf
 
 	pprint 2 "build diskimage"
 	pprint 3 "log: ${MAKEOBJDIRPREFIXFINAL}/_.di"
