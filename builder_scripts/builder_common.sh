@@ -1978,10 +1978,184 @@ FlashDevice () {
 	echo ">>> [nanoo] NANO_BOOT0CFG: $NANO_BOOT0CFG"
 }
 
+create_mips_diskimage()
+{
+	pprint 2 "build diskimage"
+	pprint 3 "log: ${MAKEOBJDIRPREFIX}/_.di"
+
+	(
+	echo "NANO_MEDIASIZE:	$NANO_MEDIASIZE"
+	echo "NANO_IMAGES:		$NANO_IMAGES"
+	echo "NANO_SECTS:		$NANO_SECTS"
+	echo "NANO_HEADS:		$NANO_HEADS"
+	echo "NANO_CODESIZE:	$NANO_CODESIZE"
+	echo "NANO_CONFSIZE:	$NANO_CONFSIZE"
+	echo "NANO_DATASIZE:	$NANO_DATASIZE"
+
+	echo $NANO_MEDIASIZE $NANO_IMAGES \
+		$NANO_SECTS $NANO_HEADS \
+		$NANO_CODESIZE $NANO_CONFSIZE $NANO_DATASIZE |
+	awk '
+	{
+		printf "# %s\n", $0
+
+		# size of cylinder in sectors
+		cs = $3 * $4
+
+		# number of full cylinders on media
+		cyl = int ($1 / cs)
+
+		# output fdisk geometry spec, truncate cyls to 1023
+		if (cyl <= 1023)
+			print "g c" cyl " h" $4 " s" $3
+		else
+			print "g c" 1023 " h" $4 " s" $3
+
+		if ($7 > 0) { 
+			# size of data partition in full cylinders
+			dsl = int (($7 + cs - 1) / cs)
+		} else {
+			dsl = 0;
+		}
+
+		# size of config partition in full cylinders
+		csl = int (($6 + cs - 1) / cs)
+
+		if ($5 == 0) {
+			# size of image partition(s) in full cylinders
+			isl = int ((cyl - dsl - csl) / $2)
+		} else {
+			isl = int (($5 + cs - 1) / cs)
+		}
+
+		# First image partition start at second track
+		print "p 1 165 " $3, isl * cs - $3
+		c = isl * cs;
+
+		# Second image partition (if any) also starts offset one 
+		# track to keep them identical.
+		if ($2 > 1) {
+			print "p 2 165 " $3 + c, isl * cs - $3
+			c += isl * cs;
+		}
+
+		# Config partition starts at cylinder boundary.
+		print "p 3 165 " c, csl * cs
+		c += csl * cs
+
+		# Data partition (if any) starts at cylinder boundary.
+		if ($7 > 0) {
+			print "p 4 165 " c, dsl * cs
+		} else if ($7 < 0 && $1 > c) {
+			print "p 4 165 " c, $1 - c
+		} else if ($1 < c) {
+			print "Disk space overcommitted by", \
+			    c - $1, "sectors" > "/dev/stderr"
+			exit 2
+		}
+
+		# Force slice 1 to be marked active. This is necessary
+		# for booting the image from a USB device to work.
+		print "a 1"
+	}
+	' > ${MAKEOBJDIRPREFIXFINAL}/_.fdisk
+
+	IMG=${MAKEOBJDIRPREFIXFINAL}/${NANO_IMGNAME}
+	BS=${NANO_SECTS}b
+
+	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
+		MD=`mdconfig -a -t swap -s ${NANO_MEDIASIZE} -x ${NANO_SECTS} -y ${NANO_HEADS}`
+	else
+		echo ""; echo "Creating md backing file ${IMG} ..."
+		_c=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
+		pprint 2 "dd if=/dev/zero of=${IMG} bs=${BS} count=${_c}"
+		dd if=/dev/zero of=${IMG} bs=${BS} count=${_c}
+		pprint 2 "mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}"
+		MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
+	fi
+
+	trap "mdconfig -d -u $MD" 1 2 15 EXIT
+
+	echo ""; echo "Write partition table ..."
+	FDISK=${MAKEOBJDIRPREFIXFINAL}/_.fdisk
+	pprint 2 "fdisk -i -f ${FDISK} ${MD}"
+	fdisk -i -f ${FDISK} ${MD}
+	pprint 2 "fdisk ${MD}"
+	fdisk ${MD}
+
+	# Create first image
+	IMG1=${MAKEOBJDIRPREFIXFINAL}/_.disk.image1
+	echo ""; echo "Create first image ${IMG1} ..."
+	SIZE=`awk '/^p 1/ { print $5 "b" }' ${FDISK}`
+	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}"
+	${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}
+	pprint 2 "dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}"
+	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}
+
+	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
+		IMG2=${MAKEOBJDIRPREFIXFINAL}/_.disk.image2
+		echo ""; echo "Create second image ${IMG2}..."
+		for f in ${NANO_WORLDDIR}/etc/fstab ${NANO_WORLDDIR}/conf/base/etc/fstab
+		do
+			sed -i "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
+		done
+
+		SIZE=`awk '/^p 2/ { print $5 "b" }' ${FDISK}`
+		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}"
+		${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}
+		pprint 2 "dd if=${IMG2} of=/dev/${MD}s2 bs=${BS}"
+		dd if=${IMG2} of=/dev/${MD}s2 bs=${BS}
+	fi
+
+	# Create Config slice
+	CFG=${MAKEOBJDIRPREFIXFINAL}/_.disk.cfg
+	echo ""; echo "Creating config partition ${CFG}..."
+	SIZE=`awk '/^p 3/ { print $5 "b" }' ${FDISK}`
+	# XXX: fill from where ?
+	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}"
+	${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}
+	pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS}"
+	dd if=${CFG} of=/dev/${MD}s3 bs=${BS}
+	pprint 2 "rm ${CFG}"
+	rm ${CFG}; CFG=			# NB: disable printing below
+
+	# Create Data slice, if any.
+	if [ $NANO_DATASIZE -gt 0 ] ; then
+		DATA=${MAKEOBJDIRPREFIXFINAL}/_.disk.data
+		echo ""; echo "Creating data partition ${DATA}..."
+		SIZE=`awk '/^p 4/ { print $5 "b" }' ${FDISK}`
+		# XXX: fill from where ?
+		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty"
+		${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty
+		pprint 2 "dd if=${DATA} of=/dev/${MD}s4 bs=${BS}"
+		dd if=${DATA} of=/dev/${MD}s4 bs=${BS}
+		pprint 2 "rm ${DATA}"
+		rm ${DATA}; DATA=	# NB: disable printing below
+	fi
+
+	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
+		echo "Writing out _.disk.full..."
+		dd if=/dev/${MD} of=${IMG} bs=${BS}
+	fi
+
+	echo ""
+	echo "Completed images in:"
+	echo ""
+	echo "Full disk:         ${IMG}"
+	echo "Primary partition: ${IMG1}"
+	test "${IMG2}" && echo "2ndary partition:  ${IMG2}"
+	test "${CFG}" &&  echo "/cfg partition:    ${CFG}"
+	test "${DATA}" && echo "/data partition:   ${DATA}"
+	echo ""
+	echo "Use dd if=<file> of=/dev/<somewhere> bs=${BS} to transfer an"
+	echo "image to bootable media /dev/<somewhere>."
+	) > ${MAKEOBJDIRPREFIX}/_.di 2>&1
+}
+
 # This routine originated in nanobsd.sh
 create_i386_diskimage ( ) {
 	echo ">>> building NanoBSD disk image..."
-	echo > /tmp/nanobsd_cmds.sh
+
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
 	echo $NANO_MEDIASIZE \
 		$NANO_IMAGES \
@@ -2062,43 +2236,25 @@ awk '
 
 	dd if=/dev/zero of=${IMG} bs=${NANO_SECTS}b \
 	    count=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
-	// Debug
-	echo "dd if=/dev/zero of=${IMG} bs=${NANO_SECTS}b count=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`" >> /tmp/nanobsd_cmds.sh
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
-	// Debug
-	echo "MD=\`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}\`" >> /tmp/nanobsd_cmds.sh
 
 	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
-	echo "fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}" >> /tmp/nanobsd_cmds.sh
 	fdisk ${MD}
-	echo "fdisk ${MD}" >> /tmp/nanobsd_cmds.sh
 	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
-	echo "boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}" >> /tmp/nanobsd_cmds.sh
 	bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
-	echo "bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s1" >> /tmp/nanobsd_cmds.sh
 	bsdlabel -m i386 ${MD}s1
-	echo "bsdlabel -m i386 ${MD}s1" >> /tmp/nanobsd_cmds.sh
 
 	# Create first image
 	newfs ${NANO_NEWFS} /dev/${MD}s1a
-	echo "newfs ${NANO_NEWFS} /dev/${MD}s1a" >> /tmp/nanobsd_cmds.sh
 	tunefs -L pfsense0 /dev/${MD}s1a
-	echo "tunefs -L pfsense0 /dev/${MD}s1a" >> /tmp/nanobsd_cmds.sh
 	mount /dev/${MD}s1a ${MNT}
-	echo "mount /dev/${MD}s1a ${MNT}" >> /tmp/nanobsd_cmds.sh
 	df -i ${MNT}
-	echo "df -i ${MNT}" >> /tmp/nanobsd_cmds.sh
 	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
-	echo "( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )" >> /tmp/nanobsd_cmds.sh
 	df -i ${MNT}
-	echo "df -i ${MNT}" >> /tmp/nanobsd_cmds.sh
 	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIXFINAL}/_.mtree
-	echo "( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIXFINAL}/_.mtree" >> /tmp/nanobsd_cmds.sh
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIXFINAL}/_.du
-	echo "( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIXFINAL}/_.du" >> /tmp/nanobsd_cmds.sh
 	umount ${MNT}
-	echo "umount ${MNT}" >> /tmp/nanobsd_cmds.sh
 
 	# Setting NANO_IMAGES to 1 and NANO_INIT_IMG2 will tell
 	# NanoBSD to only create one partition.  We default to 2
