@@ -181,11 +181,11 @@ setup_nanobsd
 prune_usr
 
 # Create the NanoBSD disk image for i386
-if [ "ARCH" = "i386" ]; then
+if [ "$ARCH" = "i386" ]; then
 	create_i386_diskimage
 fi
 # Create the NanoBSD disk image for mips
-if [ "ARCH" = "mips" ]; then
+if [ "$ARCH" = "mips" ]; then
 	create_mips_diskimage
 fi
 
