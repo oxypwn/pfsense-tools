@@ -2108,6 +2108,7 @@ create_mips_diskimage()
 	${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}
 	pprint 2 "dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}"
 	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}
+	tunefs -L pfsense0 /dev/${MD}s1
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		echo ""; echo "Create second image ${IMG2}..."
@@ -2131,25 +2132,32 @@ create_mips_diskimage()
 	${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}
 	pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS}"
 	dd if=${CFG} of=/dev/${MD}s3 bs=${BS}
+	tunefs -L cf /dev/${MD}s3
 	pprint 2 "rm ${CFG}"
 	rm ${CFG}; CFG=			# NB: disable printing below
 
 	# Create Data slice, if any.
-	if [ $NANO_DATASIZE -gt 0 ] ; then
-		DATA=${MAKEOBJDIRPREFIXFINAL}/_.disk.data
-		echo ""; echo "Creating data partition ${DATA}..."
-		SIZE=`awk '/^p 4/ { print $5 "b" }' ${FDISK}`
-		# XXX: fill from where ?
-		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty"
-		${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty
-		pprint 2 "dd if=${DATA} of=/dev/${MD}s4 bs=${BS}"
-		dd if=${DATA} of=/dev/${MD}s4 bs=${BS}
-		pprint 2 "rm ${DATA}"
-		rm ${DATA}; DATA=	# NB: disable printing below
-	fi
+	# Note the changing of the variable to NANO_CONFSIZE
+	# from NANO_DATASIZE.  We also added glabel support
+	# and populate the pfSense configuration from the /cf
+	# directory located in CLONEDIR
+	#if [ $NANO_CONFSIZE -gt 0 ] ; then
+	#	DATA=${MAKEOBJDIRPREFIXFINAL}/_.disk.data
+	#	echo ""; echo "Creating data partition ${DATA}..."
+	#	SIZE=`awk '/^p 4/ { print $5 "b" }' ${FDISK}`
+	#	# XXX: fill from where ?
+	#	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty"
+	#	${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty
+	#	pprint 2 "dd if=${DATA} of=/dev/${MD}s4 bs=${BS}"
+	#	dd if=${DATA} of=/dev/${MD}s4 bs=${BS}
+	#	pprint 2 "rm ${DATA}"
+	#	rm ${DATA}; DATA=	# NB: disable printing below
+	#else
+	#	">>> [nanoo] NANO_CONFSIZE is not set. Not adding a /conf partition.. You sure about this??"
+	#fi
 
 	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
-		echo "Writing out _.disk.full..."
+		echo "Writing out ${IMG}..."
 		dd if=/dev/${MD} of=${IMG} bs=${BS}
 	fi
 
