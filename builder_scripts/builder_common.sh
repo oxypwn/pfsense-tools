@@ -2149,7 +2149,7 @@ create_mips_diskimage()
 	echo ""
 	echo "Use dd if=<file> of=/dev/<somewhere> bs=${BS} to transfer an"
 	echo "image to bootable media /dev/<somewhere>."
-	) > ${MAKEOBJDIRPREFIX}/_.di 2>&1
+	) > ${MAKEOBJDIRPREFIXFINAL}/_.di 2>&1
 }
 
 # This routine originated in nanobsd.sh
