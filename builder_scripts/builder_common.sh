@@ -2067,7 +2067,7 @@ awk '
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 	// Debug
-	echo "MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`" >> /tmp/nanobsd_cmds.sh
+	echo "MD=\`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}\`" >> /tmp/nanobsd_cmds.sh
 
 	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
 	echo "fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}" >> /tmp/nanobsd_cmds.sh
