@@ -1979,7 +1979,7 @@ FlashDevice () {
 }
 
 pprint() {
-	echo $1 >> /tmp/nanobsd_cmds.sh
+	echo $2 >> /tmp/nanobsd_cmds.sh
 }
 
 create_mips_diskimage()
