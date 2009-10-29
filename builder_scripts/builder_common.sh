@@ -1986,7 +1986,7 @@ create_mips_diskimage()
 {
 	echo ">>> building NanoBSD disk image (mips)..."
 	echo ">>> Log file can be found in /tmp/nanobsd_cmds.sh"
-	`date` > /tmp/nanobsd_cmds.sh
+	echo "`date`" > /tmp/nanobsd_cmds.sh
 
 	NANO_MAKEFS="makefs -B big -o bsize=4096,fsize=512,density=8192,optimization=space"
 	NANO_MD_BACKING="swap"
@@ -2171,7 +2171,7 @@ create_mips_diskimage()
 	fi
 
 	) > ${MAKEOBJDIRPREFIXFINAL}/_.di 2>&1
-	`date` >> /tmp/nanobsd_cmds.sh
+	echo "`date`" >> /tmp/nanobsd_cmds.sh
 }
 
 # This routine originated in nanobsd.sh
