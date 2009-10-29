@@ -142,6 +142,7 @@ fixup_kernel_options() {
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
 	else
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+		cp $BUILDER_TOOLS/builder_scripts/conf/AR17* $SRCDIR/sys/${TARGET_ARCH}/conf/
 	fi
 
 	# Copy stock FreeBSD configurations
