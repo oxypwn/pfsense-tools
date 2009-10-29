@@ -1998,8 +1998,6 @@ create_mips_diskimage()
 	pprint 3 "log: ${MAKEOBJDIRPREFIXFINAL}/_.di"
 
 	(
-	pprint 2 "IMG1:             $IMG1"
-	pprint 2 "IMG2:             $IMG2"
 	pprint 2 "NANO_MEDIASIZE:	$NANO_MEDIASIZE"
 	pprint 2 "NANO_IMAGES:		$NANO_IMAGES"
 	pprint 2 "NANO_SECTS:		$NANO_SECTS"
@@ -2171,6 +2169,8 @@ create_mips_diskimage()
 		dd if=/dev/${MD} of=${IMG} bs=${BS}
 	fi
 
+	pprint 2 "IMG1:             $IMG1"
+	pprint 2 "IMG2:             $IMG2"
 	pprint 2 "`date`"
 	pprint 2 "Full disk:         ${IMG}"
 	pprint 2 "Primary partition: ${IMG1}"
