@@ -2108,7 +2108,7 @@ create_mips_diskimage()
 	${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}
 	pprint 2 "dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}"
 	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}
-	tunefs -L pfsense0 /dev/${MD}s1
+	pprint 2 "tunefs -L pfsense0 /dev/${MD}s1"
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		echo ""; echo "Create second image ${IMG2}..."
@@ -2132,7 +2132,7 @@ create_mips_diskimage()
 	${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}
 	pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS}"
 	dd if=${CFG} of=/dev/${MD}s3 bs=${BS}
-	tunefs -L cf /dev/${MD}s3
+	pprint 2 "tunefs -L cf /dev/${MD}s3"
 	pprint 2 "rm ${CFG}"
 	rm ${CFG}; CFG=			# NB: disable printing below
 
