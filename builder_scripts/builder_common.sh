@@ -1993,8 +1993,6 @@ create_mips_diskimage()
 	NANO_BOOTLOADER="boot/boot0sio"
 	NANO_WORLDDIR=${CLONEDIR}/
 	NANO_CFGDIR=${CLONEDIR}/cf
-	IMG1=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
-	IMG2=${MAKEOBJDIRPREFIXFINAL}/nanobsd.update.img
 
 	pprint 2 "build diskimage"
 	pprint 3 "log: ${MAKEOBJDIRPREFIXFINAL}/_.di"
@@ -2107,6 +2105,7 @@ create_mips_diskimage()
 	fdisk ${MD}
 
 	# Create first image
+	IMG1=${MAKEOBJDIRPREFIXFINAL}/_.disk.image1
 	pprint 2 "Create first image ${IMG1} ..."
 	SIZE=`awk '/^p 1/ { print $5 "b" }' ${FDISK}`
 	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}"
@@ -2117,6 +2116,7 @@ create_mips_diskimage()
 	tunefs -L pfsense0 /dev/${MD}s1
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
+		IMG2=${MAKEOBJDIRPREFIXFINAL}/_.disk.image2
 		pprint 2 "Create second image ${IMG2}..."
 		for f in ${NANO_WORLDDIR}/etc/fstab
 		do
@@ -2173,6 +2173,11 @@ create_mips_diskimage()
 
 	) > ${MAKEOBJDIRPREFIXFINAL}/_.di 2>&1
 	echo "`date`" >> /tmp/nanobsd_cmds.sh
+	echo "Full disk:         ${IMG}"
+	echo "Primary partition: ${IMG1}"
+	test "${IMG2}" && echo "2ndary partition:  ${IMG2}"
+	test "${CFG}" &&  echo "/cfg partition:    ${CFG}"
+	test "${DATA}" && echo "/data partition:   ${DATA}"
 }
 
 # This routine originated in nanobsd.sh
