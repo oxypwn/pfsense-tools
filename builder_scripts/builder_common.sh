@@ -2086,7 +2086,7 @@ create_mips_diskimage()
 	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
 		MD=`mdconfig -a -t swap -s ${NANO_MEDIASIZE} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 	else
-		echo ""; echo "Creating md backing file ${IMG} ..."
+		pprint 2 "Creating md backing file ${IMG} ..."
 		_c=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
 		pprint 2 "dd if=/dev/zero of=${IMG} bs=${BS} count=${_c}"
 		dd if=/dev/zero of=${IMG} bs=${BS} count=${_c}
@@ -2098,7 +2098,7 @@ create_mips_diskimage()
 	mdconfig -d -u $MD
 	pprint 2 "mdconfig -d -u $MD"
 
-	echo ""; echo "Write partition table ..."
+	pprint 2 "Write partition table ..."
 	FDISK=${MAKEOBJDIRPREFIXFINAL}/_.fdisk
 	pprint 2 "fdisk -i -f ${FDISK} ${MD}"
 	fdisk -i -f ${FDISK} ${MD}
@@ -2106,7 +2106,7 @@ create_mips_diskimage()
 	fdisk ${MD}
 
 	# Create first image
-	echo ""; echo "Create first image ${IMG1} ..."
+	pprint 2 "Create first image ${IMG1} ..."
 	SIZE=`awk '/^p 1/ { print $5 "b" }' ${FDISK}`
 	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}"
 	${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}
@@ -2116,7 +2116,7 @@ create_mips_diskimage()
 	tunefs -L pfsense0 /dev/${MD}s1
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
-		echo ""; echo "Create second image ${IMG2}..."
+		pprint 2 "Create second image ${IMG2}..."
 		for f in ${NANO_WORLDDIR}/etc/fstab ${NANO_WORLDDIR}/conf/base/etc/fstab
 		do
 			sed -i "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
@@ -2131,9 +2131,8 @@ create_mips_diskimage()
 	# Create Config slice
 	if [ $NANO_CONFSIZE -gt 0 ] ; then
 		CFG=${MAKEOBJDIRPREFIXFINAL}/_.disk.cfg
-		echo ""; echo "Creating config partition ${CFG}..."
+		pprint 2 "Creating config partition ${CFG}..."
 		SIZE=`awk '/^p 3/ { print $5 "b" }' ${FDISK}`
-		# XXX: fill from where ?
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}"
 		${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}
 		pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS}"
@@ -2143,7 +2142,7 @@ create_mips_diskimage()
 		pprint 2 "rm ${CFG}"
 		rm ${CFG}; CFG=			# NB: disable printing below
 	else
-		">>> [nanoo] NANO_CONFSIZE is not set. Not adding a /conf partition.. You sure about this??"
+		pprint 2 ">>> [nanoo] NANO_CONFSIZE is not set. Not adding a /conf partition.. You sure about this??"
 	fi
 
 	# Create Data slice, if any.
@@ -2167,21 +2166,10 @@ create_mips_diskimage()
 	#fi
 
 	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
-		echo "Writing out ${IMG}..."
+		pprint 2 "Writing out ${IMG}..."
 		dd if=/dev/${MD} of=${IMG} bs=${BS}
 	fi
 
-	echo ""
-	echo "Completed images in:"
-	echo ""
-	echo "Full disk:         ${IMG}"
-	echo "Primary partition: ${IMG1}"
-	test "${IMG2}" && echo "2ndary partition:  ${IMG2}"
-	test "${CFG}"  && echo "/cfg partition:    ${CFG}"
-	test "${DATA}" && echo "/data partition:   ${DATA}"
-	echo ""
-	echo "Use dd if=<file> of=/dev/<somewhere> bs=${BS} to transfer an"
-	echo "image to bootable media /dev/<somewhere>."
 	) > ${MAKEOBJDIRPREFIXFINAL}/_.di 2>&1
 }
 
