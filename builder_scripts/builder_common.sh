@@ -2171,13 +2171,15 @@ create_mips_diskimage()
 		dd if=/dev/${MD} of=${IMG} bs=${BS}
 	fi
 
+	pprint 2 "`date`" >> /tmp/nanobsd_cmds.sh
+	pprint 2 "Full disk:         ${IMG}"
+	pprint 2 "Primary partition: ${IMG1}"
+	test "${IMG2}" && pprint 2 "2ndary partition:  ${IMG2}"
+	test "${CFG}" &&  pprint 2 "/cfg partition:    ${CFG}"
+	test "${DATA}" && pprint 2 "/data partition:   ${DATA}"
+
 	) > ${MAKEOBJDIRPREFIXFINAL}/_.di 2>&1
-	echo "`date`" >> /tmp/nanobsd_cmds.sh
-	echo "Full disk:         ${IMG}"
-	echo "Primary partition: ${IMG1}"
-	test "${IMG2}" && echo "2ndary partition:  ${IMG2}"
-	test "${CFG}" &&  echo "/cfg partition:    ${CFG}"
-	test "${DATA}" && echo "/data partition:   ${DATA}"
+
 }
 
 # This routine originated in nanobsd.sh
