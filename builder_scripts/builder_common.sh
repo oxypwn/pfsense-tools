@@ -2078,7 +2078,7 @@ create_mips_diskimage()
 	' > ${MAKEOBJDIRPREFIXFINAL}/_.fdisk
 
 	pprint 2 "${MAKEOBJDIRPREFIXFINAL}/_.fdisk"
-	pprint 2 `cat ${MAKEOBJDIRPREFIXFINAL}/_.fdisk`
+	pprint 2 "`cat ${MAKEOBJDIRPREFIXFINAL}/_.fdisk`"
 
 	IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
 	BS=${NANO_SECTS}b
