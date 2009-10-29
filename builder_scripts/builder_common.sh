@@ -2126,7 +2126,7 @@ create_mips_diskimage()
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}"
 		${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}
 		pprint 2 "dd if=${IMG2} of=/dev/${MD}s2 bs=${BS}"
-		dd if=${IMG2} of=/dev/${MD}s2 bs=${BS}
+		dd if=${IMG1} of=/dev/${MD}s2 bs=${BS}
 	fi
 
 	# Create Config slice
