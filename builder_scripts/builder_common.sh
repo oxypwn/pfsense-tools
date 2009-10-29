@@ -1989,7 +1989,7 @@ create_mips_diskimage()
 	echo "`date`" > /tmp/nanobsd_cmds.sh
 
 	NANO_MAKEFS="makefs -B big -o bsize=4096,fsize=512,density=8192,optimization=space"
-	NANO_MD_BACKING="swap"
+	NANO_MD_BACKING="file"
 	NANO_BOOTLOADER="boot/boot0sio"
 	NANO_WORLDDIR=${CLONEDIR}/
 	NANO_CFGDIR=${CLONEDIR}/cf
@@ -2087,7 +2087,7 @@ create_mips_diskimage()
 	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
 		pprint 2 "Creating swap backing file ..."
 		MD=`mdconfig -a -t swap -s ${NANO_MEDIASIZE} -x ${NANO_SECTS} -y ${NANO_HEADS}`
-		pprint 2 "\`mdconfig -a -t swap -s ${NANO_MEDIASIZE} -x ${NANO_SECTS} -y ${NANO_HEADS}\`"
+		pprint 2 "mdconfig -a -t swap -s ${NANO_MEDIASIZE} -x ${NANO_SECTS} -y ${NANO_HEADS}"
 	else
 		pprint 2 "Creating md backing file ${IMG} ..."
 		_c=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
