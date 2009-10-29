@@ -90,8 +90,8 @@ device          da              # Direct Access (disks)
 ##### pfSense specfic ######
 makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb"
 
-nooptions		SCHED_4BSD
-options			SCHED_ULE	# add inULE scheduler
+options		SCHED_4BSD
+#options			SCHED_ULE	# add inULE scheduler
 
 # IPSEC filtering interface
 device			enc
