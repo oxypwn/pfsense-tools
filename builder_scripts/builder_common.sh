@@ -2093,9 +2093,9 @@ create_mips_diskimage()
 		MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 	fi
 
-	#trap "mdconfig -d -u $MD" 1 2 15 EXIT
+	trap "mdconfig -d -u $MD" 1 2 15 EXIT
 
-	pprint 2 "Write partition table ..."
+	pprint 2 "Write partition table ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ..."
 	FDISK=${MAKEOBJDIRPREFIXFINAL}/_.fdisk
 	pprint 2 "fdisk -i -f ${FDISK} ${MD}"
 	fdisk -i -f ${FDISK} ${MD}
