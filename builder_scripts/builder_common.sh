@@ -1987,28 +1987,31 @@ create_mips_diskimage()
 	echo ">>> building NanoBSD disk image (mips)..."
 	echo "" > /tmp/nanobsd_cmds.sh
 
-	NANO_MAKEFS="makefs -B big \
-		-o bsize=4096,fsize=512,density=8192,optimization=space"
+	NANO_MAKEFS="makefs -B big -o bsize=4096,fsize=512,density=8192,optimization=space"
 	NANO_MD_BACKING="swap"
 	NANO_BOOTLOADER="boot/boot0sio"
 	NANO_WORLDDIR=${CLONEDIR}/
 	NANO_CFGDIR=${CLONEDIR}/cf
+	IMG1=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
+	IMG2=${MAKEOBJDIRPREFIXFINAL}/nanobsd.update.img
 
 	pprint 2 "build diskimage"
 	pprint 3 "log: ${MAKEOBJDIRPREFIXFINAL}/_.di"
 
 	(
-	echo "NANO_MEDIASIZE:	$NANO_MEDIASIZE"
-	echo "NANO_IMAGES:		$NANO_IMAGES"
-	echo "NANO_SECTS:		$NANO_SECTS"
-	echo "NANO_HEADS:		$NANO_HEADS"
-	echo "NANO_CODESIZE:	$NANO_CODESIZE"
-	echo "NANO_CONFSIZE:	$NANO_CONFSIZE"
-	echo "NANO_DATASIZE:	$NANO_DATASIZE"
+	pprint 2 "IMG1:             $IMG1"
+	pprint 2 "IMG2:             $IMG2"
+	pprint 2 "NANO_MEDIASIZE:	$NANO_MEDIASIZE"
+	pprint 2 "NANO_IMAGES:		$NANO_IMAGES"
+	pprint 2 "NANO_SECTS:		$NANO_SECTS"
+	pprint 2 "NANO_HEADS:		$NANO_HEADS"
+	pprint 2 "NANO_CODESIZE:	$NANO_CODESIZE"
+	pprint 2 "NANO_CONFSIZE:	$NANO_CONFSIZE"
+	pprint 2 "NANO_DATASIZE:	$NANO_DATASIZE"
 
 	echo $NANO_MEDIASIZE $NANO_IMAGES \
-		$NANO_SECTS $NANO_HEADS \
-		$NANO_CODESIZE $NANO_CONFSIZE $NANO_DATASIZE |
+		 $NANO_HEADS \
+		 $NANO_CODESIZE $NANO_CONFSIZE $NANO_DATASIZE |
 	awk '
 	{
 		printf "# %s\n", $0
@@ -2074,6 +2077,9 @@ create_mips_diskimage()
 	}
 	' > ${MAKEOBJDIRPREFIXFINAL}/_.fdisk
 
+	pprint 2 "${MAKEOBJDIRPREFIXFINAL}/_.fdisk"
+	pprint 2 `cat ${MAKEOBJDIRPREFIXFINAL}/_.fdisk`
+
 	IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
 	BS=${NANO_SECTS}b
 
@@ -2090,6 +2096,7 @@ create_mips_diskimage()
 
 	#trap "mdconfig -d -u $MD" 1 2 15 EXIT
 	mdconfig -d -u $MD
+	pprint 2 "mdconfig -d -u $MD"
 
 	echo ""; echo "Write partition table ..."
 	FDISK=${MAKEOBJDIRPREFIXFINAL}/_.fdisk
@@ -2097,9 +2104,6 @@ create_mips_diskimage()
 	fdisk -i -f ${FDISK} ${MD}
 	pprint 2 "fdisk ${MD}"
 	fdisk ${MD}
-	
-	IMG1=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
-	IMG2=${MAKEOBJDIRPREFIXFINAL}/nanobsd.update.img
 
 	# Create first image
 	echo ""; echo "Create first image ${IMG1} ..."
@@ -2109,6 +2113,7 @@ create_mips_diskimage()
 	pprint 2 "dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}"
 	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}
 	pprint 2 "tunefs -L pfsense0 /dev/${MD}s1"
+	tunefs -L pfsense0 /dev/${MD}s1
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		echo ""; echo "Create second image ${IMG2}..."
@@ -2124,17 +2129,22 @@ create_mips_diskimage()
 	fi
 
 	# Create Config slice
-	CFG=${MAKEOBJDIRPREFIXFINAL}/_.disk.cfg
-	echo ""; echo "Creating config partition ${CFG}..."
-	SIZE=`awk '/^p 3/ { print $5 "b" }' ${FDISK}`
-	# XXX: fill from where ?
-	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}"
-	${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}
-	pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS}"
-	dd if=${CFG} of=/dev/${MD}s3 bs=${BS}
-	pprint 2 "tunefs -L cf /dev/${MD}s3"
-	pprint 2 "rm ${CFG}"
-	rm ${CFG}; CFG=			# NB: disable printing below
+	if [ $NANO_CONFSIZE -gt 0 ] ; then
+		CFG=${MAKEOBJDIRPREFIXFINAL}/_.disk.cfg
+		echo ""; echo "Creating config partition ${CFG}..."
+		SIZE=`awk '/^p 3/ { print $5 "b" }' ${FDISK}`
+		# XXX: fill from where ?
+		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}"
+		${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}
+		pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS}"
+		dd if=${CFG} of=/dev/${MD}s3 bs=${BS}
+		pprint 2 "tunefs -L cf /dev/${MD}s3"
+		tunefs -L cf /dev/${MD}s3
+		pprint 2 "rm ${CFG}"
+		rm ${CFG}; CFG=			# NB: disable printing below
+	else
+		">>> [nanoo] NANO_CONFSIZE is not set. Not adding a /conf partition.. You sure about this??"
+	fi
 
 	# Create Data slice, if any.
 	# Note the changing of the variable to NANO_CONFSIZE
@@ -2167,7 +2177,7 @@ create_mips_diskimage()
 	echo "Full disk:         ${IMG}"
 	echo "Primary partition: ${IMG1}"
 	test "${IMG2}" && echo "2ndary partition:  ${IMG2}"
-	test "${CFG}" &&  echo "/cfg partition:    ${CFG}"
+	test "${CFG}"  && echo "/cfg partition:    ${CFG}"
 	test "${DATA}" && echo "/data partition:   ${DATA}"
 	echo ""
 	echo "Use dd if=<file> of=/dev/<somewhere> bs=${BS} to transfer an"
@@ -2178,6 +2188,7 @@ create_mips_diskimage()
 # This routine originated in nanobsd.sh
 create_i386_diskimage () {
 	echo ">>> building NanoBSD disk image (i386)..."
+	echo "" > /tmp/nanobsd_cmds.sh
 
 	TIMESTAMP=`date "+%Y%m%d.%H%M"`
 	echo $NANO_MEDIASIZE \
