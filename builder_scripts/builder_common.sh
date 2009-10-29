@@ -1985,7 +1985,8 @@ pprint() {
 create_mips_diskimage()
 {
 	echo ">>> building NanoBSD disk image (mips)..."
-	echo "" > /tmp/nanobsd_cmds.sh
+	echo ">>> Log file can be found in /tmp/nanobsd_cmds.sh"
+	`date` > /tmp/nanobsd_cmds.sh
 
 	NANO_MAKEFS="makefs -B big -o bsize=4096,fsize=512,density=8192,optimization=space"
 	NANO_MD_BACKING="swap"
@@ -2084,6 +2085,7 @@ create_mips_diskimage()
 	BS=${NANO_SECTS}b
 
 	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
+		pprint 2 "Creating swap backing file ..."
 		MD=`mdconfig -a -t swap -s ${NANO_MEDIASIZE} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 	else
 		pprint 2 "Creating md backing file ${IMG} ..."
@@ -2095,8 +2097,6 @@ create_mips_diskimage()
 	fi
 
 	#trap "mdconfig -d -u $MD" 1 2 15 EXIT
-	mdconfig -d -u $MD
-	pprint 2 "mdconfig -d -u $MD"
 
 	pprint 2 "Write partition table ..."
 	FDISK=${MAKEOBJDIRPREFIXFINAL}/_.fdisk
@@ -2117,7 +2117,7 @@ create_mips_diskimage()
 
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		pprint 2 "Create second image ${IMG2}..."
-		for f in ${NANO_WORLDDIR}/etc/fstab ${NANO_WORLDDIR}/conf/base/etc/fstab
+		for f in ${NANO_WORLDDIR}/etc/fstab
 		do
 			sed -i "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
 		done
@@ -2171,6 +2171,7 @@ create_mips_diskimage()
 	fi
 
 	) > ${MAKEOBJDIRPREFIXFINAL}/_.di 2>&1
+	`date` >> /tmp/nanobsd_cmds.sh
 }
 
 # This routine originated in nanobsd.sh
