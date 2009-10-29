@@ -1996,8 +1996,6 @@ create_mips_diskimage()
 
 	pprint 2 "build diskimage"
 	pprint 3 "log: ${MAKEOBJDIRPREFIXFINAL}/_.di"
-
-	(
 	pprint 2 "NANO_MEDIASIZE:	$NANO_MEDIASIZE"
 	pprint 2 "NANO_IMAGES:		$NANO_IMAGES"
 	pprint 2 "NANO_SECTS:		$NANO_SECTS"
@@ -2178,7 +2176,7 @@ create_mips_diskimage()
 	test "${CFG}" &&  pprint 2 "/cfg partition:    ${CFG}"
 	test "${DATA}" && pprint 2 "/data partition:   ${DATA}"
 
-	) > ${MAKEOBJDIRPREFIXFINAL}/_.di 2>&1
+	#) > ${MAKEOBJDIRPREFIXFINAL}/_.di 2>&1
 
 }
 
