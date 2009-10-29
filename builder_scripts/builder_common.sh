@@ -2171,7 +2171,7 @@ create_mips_diskimage()
 		dd if=/dev/${MD} of=${IMG} bs=${BS}
 	fi
 
-	pprint 2 "`date`" >> /tmp/nanobsd_cmds.sh
+	pprint 2 "`date`"
 	pprint 2 "Full disk:         ${IMG}"
 	pprint 2 "Primary partition: ${IMG1}"
 	test "${IMG2}" && pprint 2 "2ndary partition:  ${IMG2}"
