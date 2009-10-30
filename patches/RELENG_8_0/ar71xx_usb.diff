@@ -1,0 +1,24 @@
+Index: sys/mips/atheros/ar71xx_ehci.c
+===================================================================
+--- sys/mips/atheros/ar71xx_ehci.c	(revision 198623)
++++ sys/mips/atheros/ar71xx_ehci.c	(working copy)
+@@ -52,6 +52,7 @@ __FBSDID("$FreeBSD$");
+ #include <dev/usb/usb_controller.h>
+ #include <dev/usb/usb_bus.h>
+ #include <dev/usb/controller/ehci.h>
++#include <dev/usb/controller/ehcireg.h>
+ 
+ #include <mips/atheros/ar71xx_bus_space_reversed.h>
+ 
+Index: sys/mips/atheros/ar71xx_ohci.c
+===================================================================
+--- sys/mips/atheros/ar71xx_ohci.c	(revision 198623)
++++ sys/mips/atheros/ar71xx_ohci.c	(working copy)
+@@ -47,6 +47,7 @@ __FBSDID("$FreeBSD$");
+ #include <dev/usb/usb_controller.h>
+ #include <dev/usb/usb_bus.h>
+ #include <dev/usb/controller/ohci.h>
++#include <dev/usb/controller/ohcireg.h>
+ 
+ #include <sys/rman.h>
+ 
