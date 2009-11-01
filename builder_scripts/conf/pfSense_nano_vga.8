@@ -2,21 +2,24 @@
 
 makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq glxsb uhso"
 
-#nooptions		INVARIANTS
-#nooptions		INVARIANTS_SUPPORT
-#nooptions		WITNESS
-#nooptions		WITNESS_SKIPSPIN
-options 	KDB_TRACE
+options         KDB
+options         KDB_TRACE 
+options         DDB                     # Support DDB.
+options         GDB                     # Support remote GDB.
+#options		INVARIANTS
+#options		INVARIANTS_SUPPORT
+#options		WITNESS
+#options		WITNESS_SKIPSPIN
 
-machine		i386
-cpu			I486_CPU
-cpu			I586_CPU
-cpu			I686_CPU
-ident		pfSense-embedded
+machine			i386
+cpu				I486_CPU
+cpu				I586_CPU
+cpu				I686_CPU
+ident			pfSense-embedded
 
-options		CPU_GEODE
-options		CPU_SOEKRIS
-options		CPU_ELAN
+options			CPU_GEODE
+options			CPU_SOEKRIS
+options			CPU_ELAN
 
 options 		GEOM_MIRROR
 options			GEOM_UZIP
@@ -26,10 +29,10 @@ options			GEOM_PART_MBR
 options			GEOM_PART_BSD
 
 # IPSEC filtering interface
-device 		enc
+device 			enc
 
-nooptions	SCHED_4BSD
-options 	SCHED_ULE                                       # ULE scheduler
+nooptions		SCHED_4BSD
+options 		SCHED_ULE                                       # ULE scheduler
 
 # VGA
 device         atkbdc          # AT keyboard controller
@@ -41,7 +44,7 @@ device         sc              # Syscons
 
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
-options 	FFS			# Berkeley Fast Filesystem
+options 	FFS				# Berkeley Fast Filesystem
 options 	SOFTUPDATES		# Enable FFS soft updates support
 options 	UFS_ACL			# Support for access control lists
 options 	UFS_DIRHASH		# Improve performance on big directories

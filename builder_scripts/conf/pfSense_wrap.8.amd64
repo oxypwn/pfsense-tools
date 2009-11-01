@@ -2,15 +2,18 @@
 
 makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq glxsb uhso"
 
-#nooptions		INVARIANTS
-#nooptions		INVARIANTS_SUPPORT
-#nooptions		WITNESS
-#nooptions		WITNESS_SKIPSPIN
-options 	KDB_TRACE
+options         KDB
+options         KDB_TRACE 
+options         DDB                     # Support DDB.
+options         GDB                     # Support remote GDB.
+#options		INVARIANTS
+#options		INVARIANTS_SUPPORT
+#options		WITNESS
+#options		WITNESS_SKIPSPIN
 
-machine		amd64
-cpu 		HAMMER
-ident		pfSense-embedded
+machine			amd64
+cpu 			HAMMER
+ident			pfSense-embedded
 
 options 		GEOM_MIRROR
 options			GEOM_UZIP
@@ -20,10 +23,10 @@ options			GEOM_PART_MBR
 options			GEOM_PART_BSD
 
 # IPSEC filtering interface
-device 		enc
+device 			enc
 
-nooptions	SCHED_4BSD
-options 	SCHED_ULE                                       # ULE scheduler
+nooptions		SCHED_4BSD
+options 		SCHED_ULE                                       # ULE scheduler
 
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking

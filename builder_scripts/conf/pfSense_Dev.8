@@ -2,9 +2,6 @@
 # Build all modules - comment out for limited modules
 # makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs dtraceall dtrace dtrace_test glxsb uhso"
 
-include         GENERIC
-ident           pfSense8
-
 options         KDB
 options         KDB_TRACE 
 options         DDB                     # Support DDB.
@@ -13,6 +10,9 @@ options         INVARIANTS              # Enable calls of extra sanity checking
 options         INVARIANT_SUPPORT       # Extra sanity checks of internal structures, required by INVARIANTS
 options         WITNESS                 # Enable checks to detect deadlocks and cycles
 options         WITNESS_SKIPSPIN        # Don't run witness on spinlocks for speed
+
+include         GENERIC
+ident           pfSense8
 
 nooptions		SCHED_4BSD
 options			SCHED_ULE	# add inULE scheduler

@@ -1,13 +1,17 @@
 
 makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb uhso"
 
-include         GENERIC
-ident           pfSense8
-
 options         KDB
 options         KDB_TRACE 
 options         DDB                     # Support DDB.
 options         GDB                     # Support remote GDB.
+#options		INVARIANTS
+#options		INVARIANTS_SUPPORT
+#options		WITNESS
+#options		WITNESS_SKIPSPIN
+
+include         GENERIC
+ident           pfSense8
 
 nooptions		SCHED_4BSD
 options			SCHED_ULE	# add inULE scheduler
@@ -23,7 +27,7 @@ options			GEOM_PART_MBR
 options			GEOM_PART_BSD
 
 # Need for LiveCD's
-options CD9660
+options 		CD9660
 
 # Wireless
 device          wlan
@@ -33,8 +37,6 @@ device          wlan_tkip
 device          wlan_xauth
 device          wlan_acl
 device          wlan_amrr
-#device          wlan_scan_ap
-#device          wlan_scan_sta
 device			iwi
 device			ath
 device			ath_hal
