@@ -24,8 +24,11 @@ echo
 PWD=`pwd`
 
 update_status() {
-	echo $1
-	echo $1 >> $LOGFILE
+	if [ "$LINE" = "" ]; then
+		return
+	fi
+	echo $LINE
+	echo "`date` $LINE" >> $LOGFILE
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST
 	fi
@@ -103,7 +106,7 @@ while [ /bin/true ]; do
 	update_status ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
 	sh ./build_snapshots.sh | while read LINE 
 	do
-		update_status $LINE     
+		update_status "$LINE"
 	done
 	# Grab a random value and sleep
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
