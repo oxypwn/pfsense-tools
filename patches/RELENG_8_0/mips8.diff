@@ -18409,22 +18409,22 @@ diff -I '.*' -Naur releng8/sys/mips/atheros/if_arge.c svn/mips/sys/mips/atheros/
 +
 +	switch (command) {
 +	case SIOCSIFFLAGS:
-+		printf("Implement me: SIOCSIFFLAGS\n");
++		//printf("Implement me: SIOCSIFFLAGS\n");
 +		error = 0;
 +		break;
 +	case SIOCADDMULTI:
 +	case SIOCDELMULTI:
-+		printf("Implement me: SIOCDELMULTI\n");
++		//printf("Implement me: SIOCDELMULTI\n");
 +		error = 0;
 +		break;
 +	case SIOCGIFMEDIA:
 +	case SIOCSIFMEDIA:
-+		printf("Implement me: SIOCSIFMEDIA\n");
++		//printf("Implement me: SIOCSIFMEDIA\n");
 +		mii = device_get_softc(sc->arge_miibus);
 +		error = ifmedia_ioctl(ifp, ifr, &mii->mii_media, command);
 +		break;
 +        case SIOCSIFCAP:
-+		printf("Implement me: SIOCSIFCAP\n");
++		//printf("Implement me: SIOCSIFCAP\n");
 +#ifdef DEVICE_POLLING
 +                mask = ifp->if_capenable ^ ifr->ifr_reqcap;
 +		error  = 0;
