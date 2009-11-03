@@ -10,6 +10,7 @@ options         GDB                     # Support remote GDB.
 #options		INVARIANTS_SUPPORT
 #options		WITNESS
 #options		WITNESS_SKIPSPIN
+makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
 
 machine			amd64
 cpu 			HAMMER
