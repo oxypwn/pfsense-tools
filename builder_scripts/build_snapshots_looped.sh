@@ -24,6 +24,7 @@ echo
 PWD=`pwd`
 
 update_status() {
+	echo $1
 	echo $1 >> $LOGFILE
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST
@@ -100,9 +101,7 @@ while [ /bin/true ]; do
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
 	update_status ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
 	update_status ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
-	sh ./build_snapshots.sh | while read LINE do;
-		update_status $LINE
-	done
+	sh ./build_snapshots.sh | while read LINE do; update_status $LINE; done
 	# Grab a random value and sleep
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
 	# Sleep for that time.
