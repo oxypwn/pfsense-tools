@@ -16,9 +16,24 @@
 #    documentation and/or other materials provided with the distribution.
 #
 
+LOGFILE="/tmp/snapshots-build_$$.log"
+touch $LOGFILE
+
 echo
 
 PWD=`pwd`
+
+update_status() {
+	echo $1 >> $LOGFILE
+	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
+		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST
+	fi
+}
+
+if [ -f $PWD/pfsense-build-snapshots.conf ]; then
+	echo ">>> Execing pfsense-build-snapshots.conf"
+	. $PWD/pfsense-build-snapshots.conf
+fi
 
 if [ ! -f "$PWD/pfsense-build.conf" ]; then
 	echo "You must run this utility from the same location as pfsense-build.conf !!"
@@ -42,18 +57,19 @@ done
 # Main builder loop
 COUNTER=0
 while [ /bin/true ]; do
+	rm $LOGFILE; touch $LOGFILE
 	COUNTER=`expr $COUNTER + 1`
-	echo ">>> Starting builder run #${COUNTER}..."
+	update_status ">>> Starting builder run #${COUNTER}..."
 	# We can disable ports builds
 	if [ "$NO_PORTS" = "yo" ]; then
-		echo ">>> Not building pfPorts at all during this snapshot builder looped run..."
+		update_status ">>> Not building pfPorts at all during this snapshot builder looped run..."
 		touch /tmp/pfSense_do_not_build_pfPorts
 	else
 		if [ "$COUNTER" -gt 1 ]; then 
-			echo ">>> Previous snapshot runs deteceted, not building pfPorts again..."
+			update_status ">>> Previous snapshot runs deteceted, not building pfPorts again..."
 			touch /tmp/pfSense_do_not_build_pfPorts
 		else
-			echo ">>> Building pfPorts on this snapshot run..."
+			update_status ">>> Building pfPorts on this snapshot run..."
 			rm -f /tmp/pfSense_do_not_build_pfPorts
 		fi
 	fi
@@ -82,19 +98,22 @@ while [ /bin/true ]; do
 	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE > /tmp/pfsense-build.conf
 	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
-	echo ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
-	echo ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
+	update_status ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
+	update_status ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
 	sh ./build_snapshots.sh
 	# Grab a random value and sleep
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
 	# Sleep for that time.
-	echo ">>> Sleeping for $value in between snapshot builder runs"
+	update_status ">>> Sleeping for $value in between snapshot builder runs"
 	# Count some sheep.
 	sleep $value
 	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
 	# the box after the run. 
 	if [ ! -z "${REBOOT_AFTER_SNAPSHOT_RUN:-}" ]; then
+		update_status ">>> Shutting down build `hostname` due to \$REBOOT_AFTER_SNAPSHOT_RUN"
 		shutdown -r now
 		kill $$
 	fi
 done
+
+rm $LOGFILE
