@@ -144,7 +144,7 @@ while [ /bin/true ]; do
 	git_last_commit
 	LAST_COMMIT="$CURRENT_COMMIT"
 	LAST_AUTHOR="$CURRENT_AUTHOR"
-	update_status ">>> Last known commit $CURRENT_AUTHOR - $CURRENT_COMMIT"
+	update_status ">>> Last known commit $LAST_AUTHOR - $LAST_COMMIT"
 	sh ./build_snapshots.sh | while read LINE 
 	do
 		update_status "$LINE"
@@ -160,7 +160,7 @@ while [ /bin/true ]; do
 	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
 	# the box after the run. 
 	if [ ! -z "${REBOOT_AFTER_SNAPSHOT_RUN:-}" ]; then
-		update_status ">>> Shutting down build `hostname` due to \$REBOOT_AFTER_SNAPSHOT_RUN"
+		update_status ">>> Rebooting `hostname` due to \$REBOOT_AFTER_SNAPSHOT_RUN"
 		shutdown -r now
 		kill $$
 	fi
