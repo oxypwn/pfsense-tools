@@ -1606,6 +1606,11 @@ fi
 	printf "                    SRC_CONF: %s\n" $SRC_CONF
 	printf "CROSS_COMPILE_PORTS_BINARIES: %s\n" $CROSS_COMPILE_PORTS_BINARIES
 	printf "            SPLIT_ARCH_BUILD: %s\n" $SPLIT_ARCH_BUILD
+if [ -n "$SHOW_ENV" ]; then
+	for LINE in `env | grep -v "PASS" | grep -v "NAME"`; do
+		echo $LINE
+	done
+fi
 	echo
 	echo "Sleeping for 5 seconds..."
 	sleep 5
