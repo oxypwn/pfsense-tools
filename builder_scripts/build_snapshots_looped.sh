@@ -95,18 +95,18 @@ while test "$1" != "" ; do
 done
 
 # Main builder loop
-COUNTER=0
+BUILDCOUNTER=0
 while [ /bin/true ]; do
 	rm $LOGFILE
 	touch $LOGFILE
-	COUNTER=`expr $COUNTER + 1`
-	update_status ">>> Starting builder run #${COUNTER}..."
+	COUNTER=`expr $BUILDCOUNTER + 1`
+	update_status ">>> Starting builder run #${BUILDCOUNTER}..."
 	# We can disable ports builds
 	if [ "$NO_PORTS" = "yo" ]; then
 		update_status ">>> Not building pfPorts at all during this snapshot builder looped run..."
 		touch /tmp/pfSense_do_not_build_pfPorts
 	else
-		if [ "$COUNTER" -gt 1 ]; then 
+		if [ "$BUILDCOUNTER" -gt 1 ]; then 
 			update_status ">>> Previous snapshot runs deteceted, not building pfPorts again..."
 			touch /tmp/pfSense_do_not_build_pfPorts
 		else
