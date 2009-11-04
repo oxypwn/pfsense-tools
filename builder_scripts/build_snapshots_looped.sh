@@ -54,11 +54,11 @@ sleep_between_runs() {
 }
 	
 update_status() {
-	if [ "$LINE" = "" ]; then
+	if [ "$1" = "" ]; then
 		return
 	fi
-	echo $LINE
-	echo "`date` -|- $LINE" >> $LOGFILE
+	echo $1
+	echo "`date` -|- $1" >> $LOGFILE
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST
 	fi
