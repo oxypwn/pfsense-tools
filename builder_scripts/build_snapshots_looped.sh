@@ -99,7 +99,7 @@ BUILDCOUNTER=0
 while [ /bin/true ]; do
 	rm $LOGFILE
 	touch $LOGFILE
-	COUNTER=`expr $BUILDCOUNTER + 1`
+	BUILDCOUNTER=`expr $BUILDCOUNTER + 1`
 	update_status ">>> Starting builder run #${BUILDCOUNTER}..."
 	# We can disable ports builds
 	if [ "$NO_PORTS" = "yo" ]; then
