@@ -16,10 +16,12 @@
 #    documentation and/or other materials provided with the distribution.
 #
 
+# Crank up error reporting
+# set -e
+# set -x
+
 LOGFILE="/tmp/snapshots-build_$$.log"
 touch $LOGFILE
-
-echo
 
 PWD=`pwd`
 
@@ -28,10 +30,10 @@ PWD=`pwd`
 git_last_commit() {
 	if [ -d "$pfSenseGITREPO" ]; then
 		if [ "$GIT_REBASE" != "" ]; then 
-			`cd $pfSenseGITREPO && git fetch && git rebase $GIT_REBASE`
-			VERSION=`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`
+			(cd $pfSenseGITREPO && git fetch && git rebase $GIT_REBASE)
+			VERSION="`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`"
 			cd $PWD
-			CURRENT_COMMIT=$VERSION
+			CURRENT_COMMIT="$VERSION"
 			return
 		fi
 	fi
@@ -43,11 +45,11 @@ sleep_between_runs() {
 	while $COUNTER -lt $value; do
 		sleep 60
 		git_last_commit
-		COUNTER=`expr $COUNTER + 60`
 		if [ "$LAST_COMMIT" != "$CURRENT_COMMIT" ]; then
 			update_status ">>> New commit $CURRENT_COMMIT .. No longer sleepy."
-			COUNTER=`expr $value + 60`
+			COUNTER="`expr $value + 60`"
 		fi
+		COUNTER="`expr $COUNTER + 60`"
 	done
 }
 	
@@ -62,7 +64,7 @@ update_status() {
 	fi
 }
 
-if [ -f $PWD/pfsense-build-snapshots.conf ]; then
+if [ -f "$PWD/pfsense-build-snapshots.conf" ]; then
 	echo ">>> Execing pfsense-build-snapshots.conf"
 	. $PWD/pfsense-build-snapshots.conf
 fi
@@ -89,7 +91,8 @@ done
 # Main builder loop
 COUNTER=0
 while [ /bin/true ]; do
-	rm $LOGFILE; touch $LOGFILE
+	rm $LOGFILE
+	touch $LOGFILE
 	COUNTER=`expr $COUNTER + 1`
 	update_status ">>> Starting builder run #${COUNTER}..."
 	# We can disable ports builds
