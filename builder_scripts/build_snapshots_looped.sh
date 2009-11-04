@@ -23,12 +23,40 @@ echo
 
 PWD=`pwd`
 
+# Requires pfSenseGITREPO and GIT_REBASE variables
+# set in pfsense-build-snapshots.conf
+git_last_commit() {
+	if [ -d "$pfSenseGITREPO" ]; then
+		if [ "$GIT_REBASE" != "" ]; then 
+			`cd $pfSenseGITREPO && git fetch && git rebase $GIT_REBASE`
+			VERSION=`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`
+			cd $PWD
+			CURRENT_COMMIT=$VERSION
+			return
+		fi
+	fi
+	return
+}
+
+sleep_between_runs() {
+	COUNTER=0
+	while $COUNTER -lt $value; do
+		sleep 60
+		git_last_commit
+		COUNTER=`expr $COUNTER + 60`
+		if [ "$LAST_COMMIT" != "$CURRENT_COMMIT" ]; then
+			update_status ">>> New commit $CURRENT_COMMIT .. No longer sleepy."
+			COUNTER=`expr $value + 60`
+		fi
+	done
+}
+	
 update_status() {
 	if [ "$LINE" = "" ]; then
 		return
 	fi
 	echo $LINE
-	echo "`date` $LINE" >> $LOGFILE
+	echo "`date` -|- $LINE" >> $LOGFILE
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST
 	fi
@@ -104,6 +132,8 @@ while [ /bin/true ]; do
 	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
 	update_status ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
 	update_status ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
+	git_last_commit
+	update_status ">>> Last known commit $CURRENT_COMMIT"
 	sh ./build_snapshots.sh | while read LINE 
 	do
 		update_status "$LINE"
@@ -111,9 +141,9 @@ while [ /bin/true ]; do
 	# Grab a random value and sleep
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
 	# Sleep for that time.
-	update_status ">>> Sleeping for $value in between snapshot builder runs"
-	# Count some sheep.
-	sleep $value
+	update_status ">>> Sleeping for $value in between snapshot builder runs.  Last known commit $LAST_COMMIT"
+	# Count some sheep or wait until a new commit turns up.
+	sleep_between_runs $value
 	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
 	# the box after the run. 
 	if [ ! -z "${REBOOT_AFTER_SNAPSHOT_RUN:-}" ]; then
