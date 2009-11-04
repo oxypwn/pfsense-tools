@@ -30,7 +30,7 @@ PWD=`pwd`
 git_last_commit() {
 	if [ -d "$pfSenseGITREPO" ]; then
 		if [ "$GIT_REBASE" != "" ]; then 
-			(cd $pfSenseGITREPO && git fetch && git rebase $GIT_REBASE)
+			(cd $pfSenseGITREPO && git fetch && git rebase $GIT_REBASE)>/dev/null
 			VERSION="`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`"
 			cd $PWD
 			CURRENT_COMMIT="$VERSION"
