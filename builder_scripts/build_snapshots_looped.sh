@@ -32,7 +32,7 @@ git_last_commit() {
 		if [ "$GIT_REBASE" != "" ]; then 
 			(cd $pfSenseGITREPO && git fetch && git rebase $GIT_REBASE)>/dev/null
 			CURRENT_COMMIT="`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`"
-			CURRENT_AUTHOR="`cd $pfSenseGITREPO && git log | head -n2 | grep "Author" | cut -d':' -f2`"
+			CURRENT_AUTHOR="`cd $pfSenseGITREPO && git log | head -n2 | grep "Author" | cut -d':' -f2 | cut -d'<' -f1`"
 			cd $PWD
 			return
 		fi
