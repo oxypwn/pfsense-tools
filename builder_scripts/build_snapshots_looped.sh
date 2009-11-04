@@ -142,6 +142,7 @@ while [ /bin/true ]; do
 	update_status ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
 	update_status ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
 	git_last_commit
+	LAST_COMMIT="$CURRENT_COMMIT"
 	update_status ">>> Last known commit $CURRENT_AUTHOR - $CURRENT_COMMIT"
 	sh ./build_snapshots.sh | while read LINE 
 	do
