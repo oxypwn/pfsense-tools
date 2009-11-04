@@ -31,9 +31,9 @@ git_last_commit() {
 	if [ -d "$pfSenseGITREPO" ]; then
 		if [ "$GIT_REBASE" != "" ]; then 
 			(cd $pfSenseGITREPO && git fetch && git rebase $GIT_REBASE)>/dev/null
-			VERSION="`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`"
+			CURRENT_COMMIT="`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`"
+			CURRENT_AUTHOR="`cd $pfSenseGITREPO && git log | head -n2 | grep "author" | cut -d' ' -f2`"
 			cd $PWD
-			CURRENT_COMMIT="$VERSION"
 			return
 		fi
 	fi
@@ -46,7 +46,7 @@ sleep_between_runs() {
 		sleep 60
 		git_last_commit
 		if [ "$LAST_COMMIT" != "$CURRENT_COMMIT" ]; then
-			update_status ">>> New commit $CURRENT_COMMIT .. No longer sleepy."
+			update_status ">>> New commit: $CURRENT_AUTHOR - $CURRENT_COMMIT .. No longer sleepy."
 			COUNTER="`expr $value + 60`"
 		fi
 		COUNTER="`expr $COUNTER + 60`"
@@ -142,7 +142,7 @@ while [ /bin/true ]; do
 	update_status ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
 	update_status ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
 	git_last_commit
-	update_status ">>> Last known commit $CURRENT_COMMIT"
+	update_status ">>> Last known commit $CURRENT_AUTHOR - $CURRENT_COMMIT"
 	sh ./build_snapshots.sh | while read LINE 
 	do
 		update_status "$LINE"
