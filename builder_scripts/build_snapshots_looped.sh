@@ -64,6 +64,12 @@ update_status() {
 	fi
 }
 
+rotate_logfile() {
+	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
+		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST.old
+	fi
+}
+
 if [ -f "$PWD/pfsense-build-snapshots.conf" ]; then
 	echo ">>> Execing pfsense-build-snapshots.conf"
 	. $PWD/pfsense-build-snapshots.conf
@@ -145,6 +151,8 @@ while [ /bin/true ]; do
 	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
 	# Sleep for that time.
 	update_status ">>> Sleeping for $value in between snapshot builder runs.  Last known commit $LAST_COMMIT"
+	# Rotate log file
+	rotate_logfile
 	# Count some sheep or wait until a new commit turns up.
 	sleep_between_runs $value
 	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
