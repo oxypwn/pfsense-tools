@@ -49,3 +49,4 @@
 ~sys~if_ethersubr.c.diff~
 ~usr.sbin/ppp~ipcp.c.diff~
 ~~tty.c.diff~
+~~uipc_syscalls.c.diff~
