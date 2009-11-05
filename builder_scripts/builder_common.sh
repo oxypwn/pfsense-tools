@@ -1,9 +1,5 @@
 #!/bin/sh
 #
-# Common functions to be used by build scripts
-# This file will be sourced by the various
-# build_* files.
-#
 #  builder_common.sh
 #  Copyright (C) 2004-2009 Scott Ullrich
 #  All rights reserved.
@@ -38,6 +34,10 @@
 #  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 #  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 #  POSSIBILITY OF SUCH DAMAGE.
+#
+#  This is the brains of the builder and is included
+#  by the various pfSense builder scripts such as
+#  build_iso.sh and build_nano.sh, etc.
 #
 # Crank up error reporting, debugging.
 #  set -e

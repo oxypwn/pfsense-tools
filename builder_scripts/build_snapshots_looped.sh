@@ -16,6 +16,12 @@
 #    documentation and/or other materials provided with the distribution.
 #
 
+# This script is the master wrapper for the snapshot builder system.
+# It will loop through and build every 24 hours minimum and if the needed
+# variables are defined pfSenseGITREPO and GIT_REBASE in 
+# pfsense-build-snapshots.conf then the builder will check every 60 seconds
+# if a new commit is deteceted and kick off a new build immediately.
+
 # Crank up error reporting
 # set -e
 # set -x
