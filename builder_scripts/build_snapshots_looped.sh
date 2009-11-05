@@ -149,14 +149,11 @@ while [ /bin/true ]; do
 	do
 		update_status "$LINE"
 	done
-	# Grab a random value and sleep
-	value=`od -A n -d -N2 /dev/random | awk '{ print $1 }'`
-	# Sleep for that time.
 	update_status ">>> Sleeping for $value in between snapshot builder runs.  Last known commit $LAST_COMMIT"
 	# Rotate log file
 	rotate_logfile
 	# Count some sheep or wait until a new commit turns up.
-	sleep_between_runs $value
+	sleep_between_runs 86400
 	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
 	# the box after the run. 
 	if [ ! -z "${REBOOT_AFTER_SNAPSHOT_RUN:-}" ]; then
