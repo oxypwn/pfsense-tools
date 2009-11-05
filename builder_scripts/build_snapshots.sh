@@ -15,23 +15,22 @@
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
 #
-
+#
 # This script glues together the various FreeSBIE style pieces of the 
 # pfSense builder system and will build each style image: ISO, NanoBSD,
-# full update and NanoBSD updates and then copy the results of all the
-# builds to the public facing WWW server.  This script will invoke the
-# scripts directly such as build_iso.sh and build_nano.sh, etc.
+# DevISO, full update and NanoBSD updates and then copy the results of
+# all the builds to the public facing WWW server.  This script will 
+# invoke the scripts directly such as build_iso.sh and build_nano.sh, 
+# etc.
+#
+# Crank up error reporting, debugging.
+#  set -e
+#  set -x
 
 if [ ! -f ./pfsense-build.conf ]; then
 	echo "You must first run ./set_version.sh !"
 	exit 1
 fi
-
-# Set verbose
-#set -x
-
-# Set debug
-#set -e 
 
 # Local variables that are used by builder scripts
 MAKEOBJDIRPREFIXFINAL=/tmp/builder/
@@ -51,10 +50,10 @@ BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 # Source pfSense / FreeSBIE variables
 # *** DO NOT SOURCE BUILDER_COMMON.SH!
 # *** IT WILL BREAK EVERYTHING FOR 
-# *** SOME UNKNOWN REASON.
-# ***                       04/07/2008
+# *** SOME UNKNOWN LAYERING REASON.
+# *** 04/07/2008, 11/04/2009                      
 . $BUILDERSCRIPTS/pfsense_local.sh
-	
+
 # Ensure a fresh environment, please.
 # rm -rf $PFSENSECVSROOT
 # rm -rf $PFSENSECHECKOUTDIR
