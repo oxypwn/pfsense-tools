@@ -55,6 +55,7 @@ git_last_commit() {
 # in between sleeping for short durations.
 sleep_between_runs() {
 	COUNTER=0
+	value=$1
 	while $COUNTER -lt $value; do
 		sleep 60
 		git_last_commit
