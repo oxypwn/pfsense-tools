@@ -55,8 +55,7 @@ git_last_commit() {
 # in between sleeping for short durations.
 sleep_between_runs() {
 	COUNTER=0
-	value=$1
-	while $COUNTER -lt $value; do
+	while [ "$COUNTER" -lt "$value" ]; do
 		sleep 60
 		git_last_commit
 		if [ "$LAST_COMMIT" != "$CURRENT_COMMIT" ]; then
@@ -189,13 +188,14 @@ while [ /bin/true ]; do
 	do
 		update_status "$LINE"
 	done
+	value=86400
 	update_status ">>> Sleeping for $value in between snapshot builder runs.  Last known commit $LAST_COMMIT"
 	# Rotate log file (.old)
 	rotate_logfile
 	# Count some sheep or wait until a new commit turns up 
 	# for one days time.  We will wake up if a new commit
 	# is deteceted during sleepy time.
-	sleep_between_runs 86400
+	sleep_between_runs $value
 	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
 	# the box after the run. 
 	if [ ! -z "${REBOOT_AFTER_SNAPSHOT_RUN:-}" ]; then
