@@ -145,6 +145,7 @@ while [ /bin/true ]; do
 	LAST_COMMIT="$CURRENT_COMMIT"
 	LAST_AUTHOR="$CURRENT_AUTHOR"
 	update_status ">>> Last known commit $LAST_AUTHOR - $LAST_COMMIT"
+	echo "$LAST_COMMIT" > /tmp/build_commit_info.txt
 	sh ./build_snapshots.sh | while read LINE 
 	do
 		update_status "$LINE"

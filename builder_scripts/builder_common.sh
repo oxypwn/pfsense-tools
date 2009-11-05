@@ -852,6 +852,11 @@ cust_populate_extra() {
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
 
+	# Record last commit info if it is available.
+	if [ -f /tmp/build_commit_info.txt ]; then
+		cp /tmp/build_commit_info.txt $CVS_CO_DIR/etc/version.lastcommit
+	fi
+
     # Suppress extra spam when logging in
     touch $CVS_CO_DIR/root/.hushlogin
 
