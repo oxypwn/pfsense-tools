@@ -35,11 +35,18 @@ git_last_commit() {
 			CURRENT_AUTHOR="`cd $pfSenseGITREPO && git log | head -n2 | grep "Author" | cut -d':' -f2 | cut -d'<' -f1`"
 			cd $PWD
 			return
+		else 
+			echo ">>> WARNING: GIT_REBASE variable not set! Previous commit functions disabled."
 		fi
+	else
+		echo ">>> WARNING: pfSenseGITREPO variable not set! Previous commit functions disabled."
 	fi
 	return
 }
 
+# This routine is called in between runs. We
+# will sleep for a bit and check for new commits
+# in between sleeping for short durations.
 sleep_between_runs() {
 	COUNTER=0
 	while $COUNTER -lt $value; do
@@ -52,7 +59,11 @@ sleep_between_runs() {
 		COUNTER="`expr $COUNTER + 60`"
 	done
 }
-	
+
+# This routine is called to write out to stdout
+# a string.   The string is appeneded to $LOGFILE
+# and we scp the log file to the builder host if
+# needed for the real time logging functions.
 update_status() {
 	if [ "$1" = "" ]; then
 		return
@@ -64,22 +75,27 @@ update_status() {
 	fi
 }
 
+# Copy the current log file to $filename.old on
+# the snapshot www server (real time logs)
 rotate_logfile() {
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST.old
 	fi
 }
 
+# Source pfsense-build-snapshots.conf
 if [ -f "$PWD/pfsense-build-snapshots.conf" ]; then
 	echo ">>> Execing pfsense-build-snapshots.conf"
 	. $PWD/pfsense-build-snapshots.conf
 fi
 
+# Source pfsense-build.conf
 if [ ! -f "$PWD/pfsense-build.conf" ]; then
 	echo "You must run this utility from the same location as pfsense-build.conf !!"
 	exit 1
 fi
 
+# Unset do not build ports flag
 rm -f /tmp/pfSense_do_not_build_pfPorts
 
 # Handle command line arguments
