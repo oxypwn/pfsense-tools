@@ -1,6 +1,6 @@
 *default base=/var/db
 *default prefix=/usr/FreeBSDsrc/
-*default release=cvs tag=.
+*default release=cvs tag=RELENG_8_0
 *default delete use-rel-suffix
 *default compress
 src-all
