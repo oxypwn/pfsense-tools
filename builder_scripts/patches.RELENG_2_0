@@ -70,3 +70,4 @@
 ~sys/netinet~tcp_input.c.diff~
 ~sys/net~if.c.diff~
 ~~netstat_ifname_size.diff~
+~~fifo_vnops.c.diff~

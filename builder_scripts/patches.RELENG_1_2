@@ -72,3 +72,4 @@
 ~sys/kern~sched_ule.c.diff~
 ~sys~ath_hal-releng_7_2.patch~
 ~contrib/tcsh~sh.c.diff~
+~~fifo_vnops.c.diff~

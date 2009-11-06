@@ -50,3 +50,4 @@
 ~usr.sbin/ppp~ipcp.c.diff~
 ~~tty.c.diff~
 ~~uipc_syscalls.c.diff~
+~~fifo_vnops.c.diff~
