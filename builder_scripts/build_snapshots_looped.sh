@@ -40,7 +40,9 @@ done
 #  set -x
 
 LOGFILE="/tmp/snapshots-build_$$.log"
+LASTUPDATE="/tmp/snapshots-lastupdate_$$.log"
 touch $LOGFILE
+touch $LASTUPDATE
 
 PWD=`pwd`
 
@@ -89,7 +91,13 @@ update_status() {
 	echo $1
 	echo "`date` -|- $1" >> $LOGFILE
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
-		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST
+		LU=`cat $LASTUPDATE`
+		CT=`date "+%H%M"`
+		# Only update every minute
+		if [ "$LU" != "$CT" ];then 
+			scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST
+			date "+%H%M" > $LASTUPDATE
+		fi
 	fi
 }
 
