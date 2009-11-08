@@ -23,6 +23,19 @@
 # if a new commit is deteceted and kick off a new build immediately.
 #
 # Crank up error reporting, debugging.
+
+# Handle command line arguments
+while test "$1" != "" ; do
+	case $1 in
+		--noports|-n)
+		echo "$2"
+		NO_PORTS=yo
+		shift
+	;;
+	esac
+	shift
+done
+
 #  set -e
 #  set -x
 
@@ -53,13 +66,13 @@ git_last_commit() {
 # in between sleeping for short durations.
 sleep_between_runs() {
 	COUNTER=0
-	update_status ">>> Sleeping for $value in between snapshot builder runs.  Last known commit $LAST_COMMIT"
-	while [ "$COUNTER" -lt "$value" ]; do
+	update_status ">>> Sleeping for $sleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
+	while [ "$COUNTER" -lt "$sleepvalue" ]; do
 		sleep 60
 		git_last_commit
 		if [ "$LAST_COMMIT" != "$CURRENT_COMMIT" ]; then
 			update_status ">>> New commit: $CURRENT_AUTHOR - $CURRENT_COMMIT .. No longer sleepy."
-			COUNTER="`expr $value + 60`"
+			COUNTER="`expr $sleepvalue + 60`"
 		fi
 		COUNTER="`expr $COUNTER + 60`"
 	done
@@ -102,18 +115,6 @@ fi
 
 # Unset do not build ports flag
 rm -f /tmp/pfSense_do_not_build_pfPorts
-
-# Handle command line arguments
-while test "$1" != "" ; do
-	case $1 in
-		--noports|-n)
-		echo "$2"
-		NO_PORTS=yo
-		shift
-	;;
-	esac
-	shift
-done
 
 # Keeps track of how many time builder has looped
 BUILDCOUNTER=0
@@ -187,13 +188,13 @@ while [ /bin/true ]; do
 	do
 		update_status "$LINE"
 	done
-	value=86400
+	sleepvalue=86400
 	# Rotate log file (.old)
 	rotate_logfile
 	# Count some sheep or wait until a new commit turns up 
 	# for one days time.  We will wake up if a new commit
 	# is deteceted during sleepy time.
-	sleep_between_runs $value
+	sleep_between_runs $sleepvalue
 	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
 	# the box after the run. 
 	if [ ! -z "${REBOOT_AFTER_SNAPSHOT_RUN:-}" ]; then
