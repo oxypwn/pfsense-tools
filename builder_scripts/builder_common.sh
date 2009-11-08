@@ -2612,18 +2612,16 @@ copy_config_xml_from_conf_default() {
 rebuild_and_install_bsdinstaller() {
 	# Add BSDInstaller
 	if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
-		echo -n ">>> Fetching BSDInstaller using CVSUP..."
+		echo ">>> Fetching BSDInstaller using CVSUP..."
 		(csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		echo "Done!"
 		./cvsup_bsdinstaller
 	else
-		echo -n ">>> Fetching BSDInstaller using GIT..."
+		echo ">>> Fetching BSDInstaller using GIT..."
 		git checkout "${GIT_REPO_BSDINSTALLER}"
 		if [ $? != 0 ]; then
 			echo "Something went wrong while checking out GIT."
 			exit
 		fi
-		echo "Done!"
 	fi
 
     # We need to unset PKGFILE before invoking ports
