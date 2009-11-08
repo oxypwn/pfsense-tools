@@ -1,11 +1,29 @@
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
-RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	11 Jun 2009 21:20:01 -0000	1.2
-+++ sys/contrib/pf/net/pf_ioctl.c	11 Jun 2009 21:20:40 -0000
-@@ -2497,6 +2497,15 @@
+--- sys/contrib/pf/net/pf_ioctl.c	8 Nov 2009 19:23:17 -0000	1.2
++++ sys/contrib/pf/net/pf_ioctl.c	8 Nov 2009 20:49:33 -0000
+@@ -1290,6 +1290,8 @@
+ 		case DIOCCLRRULECTRS:
+ 		case DIOCGETLIMIT:
+ 		case DIOCGETALTQS:
++		case DIOCGETNAMEDALTQ:
++		case DIOCGETNAMEDTAG:
+ 		case DIOCGETALTQ:
+ 		case DIOCGETQSTATS:
+ 		case DIOCGETRULESETS:
+@@ -1338,6 +1340,8 @@
+ 		case DIOCGETTIMEOUT:
+ 		case DIOCGETLIMIT:
+ 		case DIOCGETALTQS:
++		case DIOCGETNAMEDALTQ:
++		case DIOCGETNAMEDTAG:
+ 		case DIOCGETALTQ:
+ 		case DIOCGETQSTATS:
+ 		case DIOCGETRULESETS:
+@@ -2495,6 +2499,15 @@
  		break;
  	}
  
@@ -21,7 +39,7 @@ diff -u -r1.2 pf_ioctl.c
  	case DIOCGETALTQS: {
  		struct pfioc_altq	*pa = (struct pfioc_altq *)addr;
  		struct pf_altq		*altq;
-@@ -2576,6 +2585,16 @@
+@@ -2574,6 +2587,16 @@
  	}
  #endif /* ALTQ */
  
@@ -40,11 +58,11 @@ diff -u -r1.2 pf_ioctl.c
  
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/src/repo/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.4
 diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	11 Jun 2009 21:20:33 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	11 Jun 2009 21:20:40 -0000
+--- sys/contrib/pf/net/pfvar.h	8 Nov 2009 20:48:39 -0000	1.4
++++ sys/contrib/pf/net/pfvar.h	8 Nov 2009 20:49:03 -0000
 @@ -1605,6 +1605,8 @@
  #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
  #endif
