@@ -55,6 +55,7 @@ git_last_commit() {
 # in between sleeping for short durations.
 sleep_between_runs() {
 	COUNTER=0
+	update_status ">>> Sleeping for $value in between snapshot builder runs.  Last known commit $LAST_COMMIT"
 	while [ "$COUNTER" -lt "$value" ]; do
 		sleep 60
 		git_last_commit
@@ -189,7 +190,6 @@ while [ /bin/true ]; do
 		update_status "$LINE"
 	done
 	value=86400
-	update_status ">>> Sleeping for $value in between snapshot builder runs.  Last known commit $LAST_COMMIT"
 	# Rotate log file (.old)
 	rotate_logfile
 	# Count some sheep or wait until a new commit turns up 
