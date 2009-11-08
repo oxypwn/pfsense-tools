@@ -40,14 +40,12 @@ git_last_commit() {
 			CURRENT_COMMIT="`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`"
 			CURRENT_AUTHOR="`cd $pfSenseGITREPO && git log | head -n2 | grep "Author" | cut -d':' -f2 | cut -d'<' -f1`"
 			cd $PWD
-			return
 		else 
 			echo ">>> WARNING: GIT_REBASE variable not set! Previous commit functions disabled."
 		fi
 	else
 		echo ">>> WARNING: pfSenseGITREPO variable not set! Previous commit functions disabled."
 	fi
-	return
 }
 
 # This routine is called in between runs. We
