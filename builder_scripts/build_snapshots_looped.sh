@@ -94,7 +94,7 @@ update_status() {
 		LU=`cat $LASTUPDATE`
 		CT=`date "+%H%M"`
 		# Only update every minute
-		if [ "$LU" != "$CT" ];then 
+		if [ "$LU" != "$CT" ]; then 
 			scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST
 			date "+%H%M" > $LASTUPDATE
 		fi
