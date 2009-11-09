@@ -35,7 +35,7 @@
 ~sys/net~if.c.diff~
 ~sys/kern~kern_timeout.c.diff~
 ~~netstat_ifname_size.diff~
-~~~src/ar71xx_ehc*
+~~~/src/ar71xx*
 ~~~/lib/libc/mips
 ~~~/sys/mips/include
 ~~~/sys/mips/mips
