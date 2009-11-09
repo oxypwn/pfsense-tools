@@ -1,5 +1,5 @@
---- classifyd.c.old	2009-09-20 21:15:22.000000000 +0000
-+++ classifyd.c	2009-09-20 21:15:42.000000000 +0000
+--- classifyd.c.old	2009-11-09 18:12:20.000000000 +0000
++++ classifyd.c	2009-11-09 18:13:19.000000000 +0000
 @@ -28,13 +28,17 @@
  
  #include <sys/types.h>
@@ -653,7 +653,7 @@
 +                			break;
 +		if (!strncmp(argv[0], "queue", strlen("queue"))) {
 +			bzero(&trule, sizeof(trule));
-+			strcpy(trule.name, argv[1]);
++			strlcpy(trule.name, argv[1], sizeof(trule.name));
 +			if (ioctl(fdpf, DIOCGETNAMEDALTQ, &trule)) {
 +				syslog(LOG_WARNING, 
 +					"could not get ALTQ translation for"
