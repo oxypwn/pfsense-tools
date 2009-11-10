@@ -76,9 +76,12 @@ sleep_between_runs() {
 			COUNTER="`expr $sleepvalue + 60`"
 		fi
 		COUNTER="`expr $COUNTER + 60`"
-	else 
-		update_status ">>> Sleep timer expired. Restarting build."
 	done
+	if [ "$COUNTER" -eq "$sleepvalue" ]; then
+		update_status ">>> Sleep timer expired. Restarting build."
+		sleepvalue=0
+		COUNTER=0
+	fi
 }
 
 # This routine is called to write out to stdout
