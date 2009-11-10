@@ -68,7 +68,6 @@ git_last_commit() {
 # in between sleeping for short durations.
 sleep_between_runs() {
 	COUNTER=0
-	update_status ">>> Sleeping for $sleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
 	while [ "$COUNTER" -lt "$sleepvalue" ]; do
 		sleep 60
 		git_last_commit
@@ -77,6 +76,8 @@ sleep_between_runs() {
 			COUNTER="`expr $sleepvalue + 60`"
 		fi
 		COUNTER="`expr $COUNTER + 60`"
+	else 
+		update_status ">>> Sleep timer expired. Restarting build."
 	done
 }
 
@@ -107,6 +108,9 @@ rotate_logfile() {
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST.old
 	fi
+	# Cleanup log file
+	rm $LOGFILE
+	touch $LOGFILE
 }
 
 # Source pfsense-build-snapshots.conf
@@ -127,10 +131,12 @@ rm -f /tmp/pfSense_do_not_build_pfPorts
 # Keeps track of how many time builder has looped
 BUILDCOUNTER=0
 
+touch $LOGFILE
+rm $LOGFILE
+touch $LOGFILE
+
 # Main builder loop
 while [ /bin/true ]; do
-	rm $LOGFILE
-	touch $LOGFILE
 	BUILDCOUNTER=`expr $BUILDCOUNTER + 1`
 	update_status ">>> Starting builder run #${BUILDCOUNTER}..."
 	# We can disable ports builds
@@ -197,8 +203,7 @@ while [ /bin/true ]; do
 		update_status "$LINE"
 	done
 	sleepvalue=86400
-	# Rotate log file (.old)
-	rotate_logfile
+	update_status ">>> Sleeping for $sleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
 	# Count some sheep or wait until a new commit turns up 
 	# for one days time.  We will wake up if a new commit
 	# is deteceted during sleepy time.
@@ -210,6 +215,8 @@ while [ /bin/true ]; do
 		shutdown -r now
 		kill $$
 	fi
+	# Rotate log file (.old)
+	rotate_logfile
 done
 
 rm $LOGFILE
