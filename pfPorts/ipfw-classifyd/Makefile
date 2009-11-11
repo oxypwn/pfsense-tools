@@ -1,13 +1,14 @@
 PORTNAME=		ipfw-classifyd
 PORTVERSION=		0.1
 CATEGORIES=		net
-MASTER_SITES=		http://people.freebsd.org/~mtm/
-DISTFILES=		ipfw-classifyd.tar.bz2
+MASTER_SITES=		#
+DISTFILES=		#
 
 MAINTAINER=		ermal@pfsense.com
 COMMENT=		application classifier
 
-post-extract:
-	mv work/ipfw-classifyd work/ipfw-classifyd-0.1
+extract:
+	mkdir -p ${WRKSRC}
+	cp files/* ${WRKSRC}
 
 .include <bsd.port.mk>
