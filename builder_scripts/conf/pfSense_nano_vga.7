@@ -202,10 +202,11 @@ device          wlan_scan_sta
 
 device iwi
 device ale
-device ath
-device ath_hal
-#options AH_SUPPORT_AR5416
-device ath_rate_sample
+
+device 			ath
+device 			ath_hal
+device 			ath_rate_sample
+options 		AH_SUPPORT_AR5416
 
 device			an		# Aironet 4500/4800 802.11 wireless NICs.
 device			awi		# BayStack 660 and others
