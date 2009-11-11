@@ -1,5 +1,5 @@
 
-makeoptions MODULES_OVERRIDE="ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb uhso"
+makeoptions MODULES_OVERRIDE="smbus ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb uhso"
 
 options         KDB
 options         KDB_TRACE 
@@ -183,5 +183,3 @@ options 	COMPAT_FREEBSD7
 #options 	FLOWTABLE
 
 device 		padlock
-
-device		smbus
