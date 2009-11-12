@@ -71,8 +71,6 @@
  /* result of detect_card */
 
 
-Index: sys/dev/usb/controller/usb_controller.c
-===================================================================
 --- sys/dev/usb/controller/usb_controller.c	(revision 199165)
 +++ sys/dev/usb/controller/usb_controller.c	(working copy)
 @@ -79,11 +79,6 @@ SYSCTL_INT(_hw_usb_ctrl, OID_AUTO, debug, CTLFLAG_
@@ -122,9 +120,10 @@ Index: sys/dev/usb/controller/usb_controller.c
 -	}
  }
  
----  sys/dev/usb/usb_bus.h.orig
-+++  sys/dev/usb/usb_bus.h
-@@ -51,7 +51,6 @@
+
+--- sys/dev/usb/usb_bus.h	(revision 199236)
++++ sys/dev/usb/usb_bus.h	(working copy)
+@@ -51,7 +51,6 @@ struct usb_bus_stat {
  struct usb_bus {
  	struct usb_bus_stat stats_err;
  	struct usb_bus_stat stats_ok;
