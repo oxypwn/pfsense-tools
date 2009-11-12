@@ -26,7 +26,6 @@
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.RELENG_8.diff~
 ~ng_eiface.RELENG_8.diff~
-~~ng_vlan_bits.patch~
 ~sys/boot~lib386boot.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
 ~sys/contrib/pf/net~pf.c.diff~
