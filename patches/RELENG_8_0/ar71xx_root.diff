@@ -71,9 +71,11 @@
  /* result of detect_card */
 
 
----  sys/dev/usb/controller/usb_controller.c.orig
-+++  sys/dev/usb/controller/usb_controller.c
-@@ -78,11 +78,6 @@
+Index: sys/dev/usb/controller/usb_controller.c
+===================================================================
+--- sys/dev/usb/controller/usb_controller.c	(revision 199165)
++++ sys/dev/usb/controller/usb_controller.c	(working copy)
+@@ -79,11 +79,6 @@ SYSCTL_INT(_hw_usb_ctrl, OID_AUTO, debug, CTLFLAG_
      "Debug level");
  #endif
  
@@ -82,10 +84,10 @@
 -SYSCTL_INT(_hw_usb, OID_AUTO, no_boot_wait, CTLFLAG_RDTUN, &usb_no_boot_wait, 0,
 -    "No device enumerate waiting at boot.");
 -
- static devclass_t usb_devclass;
+ static uint8_t usb_post_init_called = 0;
  
- static device_method_t usb_methods[] = {
-@@ -134,11 +129,6 @@
+ static devclass_t usb_devclass;
+@@ -137,11 +132,6 @@ usb_attach(device_t dev)
  		return (ENXIO);
  	}
  
@@ -94,10 +96,10 @@
 -		bus->bus_roothold = root_mount_hold(device_get_nameunit(dev));
 -	}
 -
- 	usb_attach_sub(dev, bus);
- 
- 	return (0);			/* return success */
-@@ -161,12 +151,6 @@
+ 	if (usb_post_init_called) {
+ 		mtx_lock(&Giant);
+ 		usb_attach_sub(dev, bus);
+@@ -168,12 +158,6 @@ usb_detach(device_t dev)
  	/* Stop power watchdog */
  	usb_callout_drain(&bus->power_wdog);
  
@@ -110,8 +112,8 @@
  	USB_BUS_LOCK(bus);
  	if (usb_proc_msignal(&bus->explore_proc,
  	    &bus->detach_msg[0], &bus->detach_msg[1])) {
-@@ -239,10 +223,6 @@
- 		(udev->hub->explore) (udev);
+@@ -244,10 +228,6 @@ usb_bus_explore(struct usb_proc_msg *pm)
+ 
  		USB_BUS_LOCK(bus);
  	}
 -	if (bus->bus_roothold != NULL) {
@@ -120,47 +122,6 @@
 -	}
  }
  
- /*------------------------------------------------------------------------*
-
-
----  sys/dev/usb/input/ukbd.c.orig
-+++  sys/dev/usb/input/ukbd.c
-@@ -67,6 +67,7 @@
- #include <sys/callout.h>
- #include <sys/malloc.h>
- #include <sys/priv.h>
-+#include <sys/kdb.h>
- 
- #include <dev/usb/usb.h>
- #include <dev/usb/usbdi.h>
-@@ -328,6 +329,9 @@
- {
- 	DPRINTFN(2, "polling\n");
- 
-+	if (kdb_active == 0)
-+		return;		/* Only poll if KDB is active */
-+
- 	while (sc->sc_inputs == 0) {
- 
- 		usbd_transfer_poll(sc->sc_xfer, UKBD_N_TRANSFER);
-
-
----  sys/dev/usb/serial/usb_serial.c.orig
-+++  sys/dev/usb/serial/usb_serial.c
-@@ -1300,7 +1300,10 @@
- static void
- ucom_cnprobe(struct consdev  *cp)
- {
--	cp->cn_pri = CN_NORMAL;
-+	if (ucom_cons_unit != -1)
-+		cp->cn_pri = CN_NORMAL;
-+	else
-+		cp->cn_pri = CN_DEAD;
- }
- 
- static void
-
-
 ---  sys/dev/usb/usb_bus.h.orig
 +++  sys/dev/usb/usb_bus.h
 @@ -51,7 +51,6 @@
