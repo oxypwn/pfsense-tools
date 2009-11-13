@@ -43,7 +43,6 @@
 ~~~/sys/mips/sentry5
 ~~~/sys/dev/flash/mx25l.c
 ~~~/sys/mips/atheros
-~sys~ath_hal-releng_7_2.patch~
 ~~~/sys/modules/uhso~
 ~~~~sys/modules/uhso~
 ~sys/modules~uhso.diff~
