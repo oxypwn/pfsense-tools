@@ -56,6 +56,7 @@
 #include <sysexits.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "hashtable.h"
 #include "hashtable_private.h"
@@ -409,8 +410,9 @@ getinput:
 		len = recvfrom(dvtS, (void *)pkt->fp_pkt, IC_PKTSZ, 0,
 		    (struct sockaddr *)&pkt->fp_saddr, &pkt->fp_salen);
 		if (len == -1) {
-			syslog(LOG_ERR, "receive from divert socket failed: %m");
-			exit(EX_OSERR);
+			if (errno != EINTR)
+				syslog(LOG_ERR, "receive from divert socket failed: %m");
+			goto getinput;
 		}
 		ipp = (struct ip *)pkt->fp_pkt;
 
@@ -801,13 +803,22 @@ write_pthread(void *arg __unused)
 
 		len = sendto(dvtS, (void *)pkt->fp_pkt, pkt->fp_pktlen, 0,
 		    (const struct sockaddr *)&pkt->fp_saddr, pkt->fp_salen);
-		if (len == -1)
-			syslog(LOG_WARNING,
-			    "unable to write to divert socket: %m");
-		else if ((size_t)len != pkt->fp_pktlen)
-			syslog(LOG_WARNING,
-			    "complete packet not written: wrote %d of %zu", len,
-			    pkt->fp_pktlen);
+		if (len == -1) {
+			if (errno == EACCES)
+				syslog(LOG_WARNING,
+					"packet dropped by security policy! %m");
+			else
+				syslog(LOG_WARNING,
+			    		"unable to write to divert socket: %m");
+		} else if ((size_t)len != pkt->fp_pktlen) {
+			if (errno == EMSGSIZE)
+				syslog(LOG_WARNING, "packet to big %zu bytes.",
+					pkt->fp_pktlen);
+			else
+				syslog(LOG_WARNING,
+			    	"complete packet not written: wrote %d of %zu", len,
+			    		pkt->fp_pktlen);
+		}
 	
 		/*
 		* Cleanup
