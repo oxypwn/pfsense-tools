@@ -327,7 +327,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +
 +	hlen = pd->tot_len - pd->p_len;
 +	/* Place string pointer at beginning of data */
-+	m = m_pullup(m, MAX_MESSAGE_SIZE);
++	/* m = m_pullup(m, MAX_MESSAGE_SIZE); */
 +	sptr = mtod(m, char *);
 +	sptr += hlen;
 +	tc = (struct tcphdr *)sptr;
