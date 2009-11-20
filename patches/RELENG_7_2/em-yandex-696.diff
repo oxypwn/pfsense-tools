@@ -1,12 +1,12 @@
 Index: LICENSE
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/LICENSE,v
-retrieving revision 1.1.2.1.2.1
-diff -u -r1.1.2.1.2.1 LICENSE
---- LICENSE	25 Nov 2008 02:59:29 -0000	1.1.2.1.2.1
-+++ LICENSE	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.1.4.1
+diff -u -r1.1.2.1.4.1 LICENSE
+--- LICENSE	15 Apr 2009 03:14:26 -0000	1.1.2.1.4.1
++++ LICENSE	19 Nov 2009 17:53:52 -0000
 @@ -1,4 +1,4 @@
--$FreeBSD: src/sys/dev/e1000/LICENSE,v 1.1.2.1.2.1 2008/11/25 02:59:29 kensmith Exp $
+-$FreeBSD: src/sys/dev/e1000/LICENSE,v 1.1.2.1.4.1 2009/04/15 03:14:26 kensmith Exp $
 +$FreeBSD: src/sys/dev/e1000/LICENSE,v 1.1.2.1 2008/08/11 18:33:10 jfv Exp $
  
    Copyright (c) 2001-2008, Intel Corporation 
@@ -14,12 +14,12 @@ diff -u -r1.1.2.1.2.1 LICENSE
 Index: README
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/README,v
-retrieving revision 1.1.2.1.2.1
-diff -u -r1.1.2.1.2.1 README
---- README	25 Nov 2008 02:59:29 -0000	1.1.2.1.2.1
-+++ README	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.1.4.1
+diff -u -r1.1.2.1.4.1 README
+--- README	15 Apr 2009 03:14:26 -0000	1.1.2.1.4.1
++++ README	19 Nov 2009 17:53:53 -0000
 @@ -1,4 +1,4 @@
--$FreeBSD: src/sys/dev/e1000/README,v 1.1.2.1.2.1 2008/11/25 02:59:29 kensmith Exp $
+-$FreeBSD: src/sys/dev/e1000/README,v 1.1.2.1.4.1 2009/04/15 03:14:26 kensmith Exp $
 +$FreeBSD: src/sys/dev/e1000/README,v 1.1.2.1 2008/08/11 18:33:10 jfv Exp $
  FreeBSD* Driver for Intel Network Connection
  =============================================
@@ -27,15 +27,15 @@ diff -u -r1.1.2.1.2.1 README
 Index: e1000_80003es2lan.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_80003es2lan.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_80003es2lan.c
---- e1000_80003es2lan.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_80003es2lan.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_80003es2lan.c
+--- e1000_80003es2lan.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_80003es2lan.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_80003es2lan.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_80003es2lan.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_80003es2lan.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  /*
@@ -43,15 +43,15 @@ diff -u -r1.1.2.1.2.2 e1000_80003es2lan.c
 Index: e1000_80003es2lan.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_80003es2lan.h,v
-retrieving revision 1.1.2.1.2.1
-diff -u -r1.1.2.1.2.1 e1000_80003es2lan.h
---- e1000_80003es2lan.h	25 Nov 2008 02:59:29 -0000	1.1.2.1.2.1
-+++ e1000_80003es2lan.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.1.4.1
+diff -u -r1.1.2.1.4.1 e1000_80003es2lan.h
+--- e1000_80003es2lan.h	15 Apr 2009 03:14:26 -0000	1.1.2.1.4.1
++++ e1000_80003es2lan.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  *******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_80003es2lan.h,v 1.1.2.1.2.1 2008/11/25 02:59:29 kensmith Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_80003es2lan.h,v 1.1.2.1.4.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_80003es2lan.h,v 1.1.2.1 2008/08/11 18:33:10 jfv Exp $*/
  
  
@@ -59,15 +59,15 @@ diff -u -r1.1.2.1.2.1 e1000_80003es2lan.h
 Index: e1000_82540.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82540.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_82540.c
---- e1000_82540.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_82540.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_82540.c
+--- e1000_82540.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_82540.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82540.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82540.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82540.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  /*
@@ -75,15 +75,15 @@ diff -u -r1.1.2.1.2.2 e1000_82540.c
 Index: e1000_82541.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82541.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_82541.c
---- e1000_82541.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_82541.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_82541.c
+--- e1000_82541.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_82541.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82541.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82541.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82541.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  /*
@@ -91,15 +91,15 @@ diff -u -r1.1.2.1.2.2 e1000_82541.c
 Index: e1000_82541.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82541.h,v
-retrieving revision 1.1.2.1.2.1
-diff -u -r1.1.2.1.2.1 e1000_82541.h
---- e1000_82541.h	25 Nov 2008 02:59:29 -0000	1.1.2.1.2.1
-+++ e1000_82541.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.1.4.1
+diff -u -r1.1.2.1.4.1 e1000_82541.h
+--- e1000_82541.h	15 Apr 2009 03:14:26 -0000	1.1.2.1.4.1
++++ e1000_82541.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82541.h,v 1.1.2.1.2.1 2008/11/25 02:59:29 kensmith Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82541.h,v 1.1.2.1.4.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82541.h,v 1.1.2.1 2008/08/11 18:33:10 jfv Exp $*/
  
  #ifndef _E1000_82541_H_
@@ -107,15 +107,15 @@ diff -u -r1.1.2.1.2.1 e1000_82541.h
 Index: e1000_82542.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82542.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_82542.c
---- e1000_82542.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_82542.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_82542.c
+--- e1000_82542.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_82542.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82542.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82542.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82542.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  /*
@@ -123,15 +123,15 @@ diff -u -r1.1.2.1.2.2 e1000_82542.c
 Index: e1000_82543.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82543.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_82543.c
---- e1000_82543.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_82543.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_82543.c
+--- e1000_82543.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_82543.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82543.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82543.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82543.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  /*
@@ -139,15 +139,15 @@ diff -u -r1.1.2.1.2.2 e1000_82543.c
 Index: e1000_82543.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82543.h,v
-retrieving revision 1.1.2.1.2.1
-diff -u -r1.1.2.1.2.1 e1000_82543.h
---- e1000_82543.h	25 Nov 2008 02:59:29 -0000	1.1.2.1.2.1
-+++ e1000_82543.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.1.4.1
+diff -u -r1.1.2.1.4.1 e1000_82543.h
+--- e1000_82543.h	15 Apr 2009 03:14:26 -0000	1.1.2.1.4.1
++++ e1000_82543.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82543.h,v 1.1.2.1.2.1 2008/11/25 02:59:29 kensmith Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82543.h,v 1.1.2.1.4.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82543.h,v 1.1.2.1 2008/08/11 18:33:10 jfv Exp $*/
  
  #ifndef _E1000_82543_H_
@@ -155,15 +155,15 @@ diff -u -r1.1.2.1.2.1 e1000_82543.h
 Index: e1000_82571.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82571.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_82571.c
---- e1000_82571.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_82571.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_82571.c
+--- e1000_82571.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_82571.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82571.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82571.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82571.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  /*
@@ -171,15 +171,15 @@ diff -u -r1.1.2.1.2.2 e1000_82571.c
 Index: e1000_82571.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82571.h,v
-retrieving revision 1.1.2.1.2.1
-diff -u -r1.1.2.1.2.1 e1000_82571.h
---- e1000_82571.h	25 Nov 2008 02:59:29 -0000	1.1.2.1.2.1
-+++ e1000_82571.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.1.4.1
+diff -u -r1.1.2.1.4.1 e1000_82571.h
+--- e1000_82571.h	15 Apr 2009 03:14:26 -0000	1.1.2.1.4.1
++++ e1000_82571.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82571.h,v 1.1.2.1.2.1 2008/11/25 02:59:29 kensmith Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82571.h,v 1.1.2.1.4.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82571.h,v 1.1.2.1 2008/08/11 18:33:10 jfv Exp $*/
  
  #ifndef _E1000_82571_H_
@@ -187,15 +187,15 @@ diff -u -r1.1.2.1.2.1 e1000_82571.h
 Index: e1000_82575.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82575.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_82575.c
---- e1000_82575.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_82575.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_82575.c
+--- e1000_82575.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_82575.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82575.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82575.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82575.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  /*
@@ -203,15 +203,15 @@ diff -u -r1.1.2.1.2.2 e1000_82575.c
 Index: e1000_82575.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_82575.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_82575.h
---- e1000_82575.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_82575.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_82575.h
+--- e1000_82575.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_82575.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_82575.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_82575.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_82575.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _E1000_82575_H_
@@ -219,15 +219,15 @@ diff -u -r1.1.2.1.2.2 e1000_82575.h
 Index: e1000_api.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_api.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_api.c
---- e1000_api.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_api.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_api.c
+--- e1000_api.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_api.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_api.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_api.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_api.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #include "e1000_api.h"
@@ -235,15 +235,15 @@ diff -u -r1.1.2.1.2.2 e1000_api.c
 Index: e1000_api.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_api.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_api.h
---- e1000_api.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_api.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_api.h
+--- e1000_api.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_api.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_api.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_api.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_api.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _E1000_API_H_
@@ -251,15 +251,15 @@ diff -u -r1.1.2.1.2.2 e1000_api.h
 Index: e1000_defines.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_defines.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_defines.h
---- e1000_defines.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_defines.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_defines.h
+--- e1000_defines.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_defines.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_defines.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_defines.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_defines.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _E1000_DEFINES_H_
@@ -275,15 +275,15 @@ diff -u -r1.1.2.1.2.2 e1000_defines.h
 Index: e1000_hw.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_hw.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_hw.h
---- e1000_hw.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_hw.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_hw.h
+--- e1000_hw.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_hw.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_hw.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_hw.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_hw.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _E1000_HW_H_
@@ -291,15 +291,15 @@ diff -u -r1.1.2.1.2.2 e1000_hw.h
 Index: e1000_ich8lan.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_ich8lan.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_ich8lan.c
---- e1000_ich8lan.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_ich8lan.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_ich8lan.c
+--- e1000_ich8lan.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_ich8lan.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_ich8lan.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_ich8lan.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_ich8lan.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  /*
@@ -307,15 +307,15 @@ diff -u -r1.1.2.1.2.2 e1000_ich8lan.c
 Index: e1000_ich8lan.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_ich8lan.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_ich8lan.h
---- e1000_ich8lan.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_ich8lan.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_ich8lan.h
+--- e1000_ich8lan.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_ich8lan.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_ich8lan.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_ich8lan.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_ich8lan.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _E1000_ICH8LAN_H_
@@ -323,15 +323,15 @@ diff -u -r1.1.2.1.2.2 e1000_ich8lan.h
 Index: e1000_mac.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_mac.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_mac.c
---- e1000_mac.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_mac.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_mac.c
+--- e1000_mac.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_mac.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_mac.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_mac.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_mac.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #include "e1000_api.h"
@@ -339,15 +339,15 @@ diff -u -r1.1.2.1.2.2 e1000_mac.c
 Index: e1000_mac.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_mac.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_mac.h
---- e1000_mac.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_mac.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_mac.h
+--- e1000_mac.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_mac.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_mac.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_mac.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_mac.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _E1000_MAC_H_
@@ -355,15 +355,15 @@ diff -u -r1.1.2.1.2.2 e1000_mac.h
 Index: e1000_manage.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_manage.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_manage.c
---- e1000_manage.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_manage.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_manage.c
+--- e1000_manage.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_manage.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_manage.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_manage.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_manage.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #include "e1000_api.h"
@@ -371,15 +371,15 @@ diff -u -r1.1.2.1.2.2 e1000_manage.c
 Index: e1000_manage.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_manage.h,v
-retrieving revision 1.1.2.1.2.1
-diff -u -r1.1.2.1.2.1 e1000_manage.h
---- e1000_manage.h	25 Nov 2008 02:59:29 -0000	1.1.2.1.2.1
-+++ e1000_manage.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.1.4.1
+diff -u -r1.1.2.1.4.1 e1000_manage.h
+--- e1000_manage.h	15 Apr 2009 03:14:26 -0000	1.1.2.1.4.1
++++ e1000_manage.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_manage.h,v 1.1.2.1.2.1 2008/11/25 02:59:29 kensmith Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_manage.h,v 1.1.2.1.4.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_manage.h,v 1.1.2.1 2008/08/11 18:33:10 jfv Exp $*/
  
  #ifndef _E1000_MANAGE_H_
@@ -387,15 +387,15 @@ diff -u -r1.1.2.1.2.1 e1000_manage.h
 Index: e1000_nvm.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_nvm.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_nvm.c
---- e1000_nvm.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_nvm.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_nvm.c
+--- e1000_nvm.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_nvm.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_nvm.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_nvm.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_nvm.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #include "e1000_api.h"
@@ -403,15 +403,15 @@ diff -u -r1.1.2.1.2.2 e1000_nvm.c
 Index: e1000_nvm.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_nvm.h,v
-retrieving revision 1.1.2.1.2.1
-diff -u -r1.1.2.1.2.1 e1000_nvm.h
---- e1000_nvm.h	25 Nov 2008 02:59:29 -0000	1.1.2.1.2.1
-+++ e1000_nvm.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.1.4.1
+diff -u -r1.1.2.1.4.1 e1000_nvm.h
+--- e1000_nvm.h	15 Apr 2009 03:14:26 -0000	1.1.2.1.4.1
++++ e1000_nvm.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_nvm.h,v 1.1.2.1.2.1 2008/11/25 02:59:29 kensmith Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_nvm.h,v 1.1.2.1.4.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_nvm.h,v 1.1.2.1 2008/08/11 18:33:10 jfv Exp $*/
  
  #ifndef _E1000_NVM_H_
@@ -419,15 +419,15 @@ diff -u -r1.1.2.1.2.1 e1000_nvm.h
 Index: e1000_osdep.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_osdep.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_osdep.c
---- e1000_osdep.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_osdep.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_osdep.c
+--- e1000_osdep.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_osdep.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_osdep.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_osdep.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_osdep.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #include "e1000_api.h"
@@ -435,15 +435,15 @@ diff -u -r1.1.2.1.2.2 e1000_osdep.c
 Index: e1000_osdep.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_osdep.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_osdep.h
---- e1000_osdep.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_osdep.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_osdep.h
+--- e1000_osdep.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_osdep.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_osdep.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_osdep.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_osdep.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  
@@ -451,15 +451,15 @@ diff -u -r1.1.2.1.2.2 e1000_osdep.h
 Index: e1000_phy.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_phy.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_phy.c
---- e1000_phy.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_phy.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_phy.c
+--- e1000_phy.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_phy.c	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_phy.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_phy.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_phy.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #include "e1000_api.h"
@@ -467,15 +467,15 @@ diff -u -r1.1.2.1.2.2 e1000_phy.c
 Index: e1000_phy.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_phy.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_phy.h
---- e1000_phy.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_phy.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_phy.h
+--- e1000_phy.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_phy.h	19 Nov 2009 17:53:52 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_phy.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_phy.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_phy.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _E1000_PHY_H_
@@ -483,15 +483,15 @@ diff -u -r1.1.2.1.2.2 e1000_phy.h
 Index: e1000_regs.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/e1000_regs.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 e1000_regs.h
---- e1000_regs.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ e1000_regs.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 e1000_regs.h
+--- e1000_regs.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ e1000_regs.h	19 Nov 2009 17:53:52 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/e1000_regs.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/e1000_regs.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/e1000_regs.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _E1000_REGS_H_
@@ -499,15 +499,15 @@ diff -u -r1.1.2.1.2.2 e1000_regs.h
 Index: if_em.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/if_em.c,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 if_em.c
---- if_em.c	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ if_em.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 if_em.c
+--- if_em.c	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ if_em.c	19 Nov 2009 17:53:52 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/if_em.c,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/if_em.c,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/if_em.c,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifdef HAVE_KERNEL_OPTION_HEADERS
@@ -1591,15 +1591,15 @@ diff -u -r1.1.2.1.2.2 if_em.c
 Index: if_em.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/if_em.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 if_em.h
---- if_em.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ if_em.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 if_em.h
+--- if_em.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ if_em.h	19 Nov 2009 17:53:52 -0000
 @@ -30,12 +30,20 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/if_em.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/if_em.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/if_em.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  
@@ -1743,40 +1743,40 @@ diff -u -r1.1.2.1.2.2 if_em.h
 Index: if_igb.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/if_igb.c,v
-retrieving revision 1.3.2.1.2.2
-diff -u -r1.3.2.1.2.2 if_igb.c
---- if_igb.c	30 Nov 2008 04:41:25 -0000	1.3.2.1.2.2
-+++ if_igb.c	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.3.2.4.2.1
+diff -u -r1.3.2.4.2.1 if_igb.c
+--- if_igb.c	15 Apr 2009 03:14:26 -0000	1.3.2.4.2.1
++++ if_igb.c	19 Nov 2009 17:53:52 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/if_igb.c,v 1.3.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/if_igb.c,v 1.3.2.4.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/if_igb.c,v 1.3.2.3 2009/01/13 21:19:02 gnn Exp $*/
  
  #ifdef HAVE_KERNEL_OPTION_HEADERS
  #include "opt_device_polling.h"
-@@ -281,7 +281,7 @@
- static int igb_low_latency = IGB_LOW_LATENCY;
- TUNABLE_INT("hw.igb.low_latency", &igb_low_latency);
- static int igb_ave_latency = IGB_AVE_LATENCY;
--TUNABLE_INT("hw.igb.ave_latency", &igb_low_latency);
-+TUNABLE_INT("hw.igb.ave_latency", &igb_ave_latency);
- static int igb_bulk_latency = IGB_BULK_LATENCY;
- TUNABLE_INT("hw.igb.bulk_latency", &igb_bulk_latency);
-                 
+@@ -291,7 +291,7 @@
+ ** 0, it will then be based on number of cpus.
+ */
+ static int igb_tx_queues = 1;
+-static int igb_rx_queues = 1;
++static int igb_rx_queues = 4;
+ TUNABLE_INT("hw.igb.tx_queues", &igb_tx_queues);
+ TUNABLE_INT("hw.igb.rx_queues", &igb_rx_queues);
+ 
 Index: if_igb.h
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/e1000/if_igb.h,v
-retrieving revision 1.1.2.1.2.2
-diff -u -r1.1.2.1.2.2 if_igb.h
---- if_igb.h	30 Nov 2008 04:41:25 -0000	1.1.2.1.2.2
-+++ if_igb.h	30 Apr 2009 19:54:57 -0000
+retrieving revision 1.1.2.2.2.1
+diff -u -r1.1.2.2.2.1 if_igb.h
+--- if_igb.h	15 Apr 2009 03:14:26 -0000	1.1.2.2.2.1
++++ if_igb.h	19 Nov 2009 17:53:53 -0000
 @@ -30,7 +30,7 @@
    POSSIBILITY OF SUCH DAMAGE.
  
  ******************************************************************************/
--/*$FreeBSD: src/sys/dev/e1000/if_igb.h,v 1.1.2.1.2.2 2008/11/30 04:41:25 jfv Exp $*/
+-/*$FreeBSD: src/sys/dev/e1000/if_igb.h,v 1.1.2.2.2.1 2009/04/15 03:14:26 kensmith Exp $*/
 +/*$FreeBSD: src/sys/dev/e1000/if_igb.h,v 1.1.2.2 2008/12/01 07:13:52 jfv Exp $*/
  
  #ifndef _IGB_H_DEFINED_
