@@ -180,6 +180,9 @@ ensure_healthy_installer
 # Create md5 summary file listing checksums
 create_md5_summary_file
 
+# Setup custom tcshrc prompt
+setup_tcshrc_prompt
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs

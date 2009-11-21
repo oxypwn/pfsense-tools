@@ -1056,8 +1056,8 @@ fixup_updates() {
 	#rm -f ${PFSENSEBASEDIR}/etc/platform 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
 
-	echo > ${PFSENSEBASEDIR}/root/.tcshrc
-	echo "alias installer /scripts/lua_installer" > ${PFSENSEBASEDIR}/root/.tcshrc
+	setup_tcshrc_prompt
+	echo "alias installer /scripts/lua_installer" >> ${PFSENSEBASEDIR}/root/.tcshrc
 
 	# Setup login environment
 	echo > ${PFSENSEBASEDIR}/root/.shrc
@@ -1126,6 +1126,8 @@ cust_fixup_nanobsd() {
 		# Tell loader to use serial console early.
 		echo " -h" > ${PFSENSEBASEDIR}/boot.config
 	fi
+	
+	setup_tcshrc_prompt
 
 }
 
@@ -1167,6 +1169,13 @@ cust_fixup_wrap() {
 		echo " -h" > ${PFSENSEBASEDIR}/boot.config
 	fi
 
+	setup_tcshrc_prompt
+
+}
+
+setup_tcshrc_prompt() {
+	echo 'set prompt="%B[%n@%M]%b%/(%h): "' > ${PFSENSEBASEDIR}/root/.tcshrc
+	echo 'set autologout="0"' >> ${PFSENSEBASEDIR}/root/.tcshrc
 }
 
 # Creates a FreeBSD specific updater tarball
