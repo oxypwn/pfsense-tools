@@ -1176,6 +1176,10 @@ cust_fixup_wrap() {
 setup_tcshrc_prompt() {
 	echo 'set prompt="%B[%n@%M]%b%/(%h): "' > ${PFSENSEBASEDIR}/root/.tcshrc
 	echo 'set autologout="0"' >> ${PFSENSEBASEDIR}/root/.tcshrc
+	echo 'set autolist set color set colorcat' >> ${PFSENSEBASEDIR}/root/.tcshrc
+	echo 'setenv TERM "xterm-color"' >> ${PFSENSEBASEDIR}/root/.tcshrc
+	echo 'setenv CLICOLOR "true"' >> ${PFSENSEBASEDIR}/root/.tcshrc
+	echo 'setenv LSCOLORS "exfxcxdxbxegedabagacad"' >> ${PFSENSEBASEDIR}/root/.tcshrc
 }
 
 # Creates a FreeBSD specific updater tarball
