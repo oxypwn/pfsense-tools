@@ -3,30 +3,29 @@
 #
 
 ident		AR71XX
-cpu		CPU_MIPS4KC
+cpu			CPU_MIPS4KC
 options 	ISA_MIPS32
 makeoptions	TARGET_BIG_ENDIAN
 makeoptions	KERNLOADADDR=0x80050000
-options		HZ=1000
+options		HZ=100
 
-files		"../atheros/files.ar71xx"
-hints		"AR71XX.hints"
+files			"../atheros/files.ar71xx"
+hints			"AR71XX.hints"
 
-options 	NFSLOCKD
+options 		NFSLOCKD
 
-makeoptions	DEBUG=-g		#Build kernel with gdb(1) debug symbols
+makeoptions		DEBUG=-g		#Build kernel with gdb(1) debug symbols
 
+options			DDB
+options			KDB
 
-options		DDB
-options		KDB
-
-options		SCHED_4BSD		#4BSD scheduler
-options		INET			#InterNETworking
-options		NFSCLIENT		#Network Filesystem Client
-options		NFS_ROOT		#NFS usable as /, requires NFSCLIENT
-options		PSEUDOFS		#Pseudo-filesystem framework
-options		_KPOSIX_PRIORITY_SCHEDULING #Posix P1003_1B real-time extensions
-options 	INET6
+options			SCHED_4BSD		#4BSD scheduler
+options			INET			#InterNETworking
+options			NFSCLIENT		#Network Filesystem Client
+options			NFS_ROOT		#NFS usable as /, requires NFSCLIENT
+options			PSEUDOFS		#Pseudo-filesystem framework
+options			_KPOSIX_PRIORITY_SCHEDULING #Posix P1003_1B real-time extensions
+options 		INET6
 
 options         FFS                     #Berkeley Fast Filesystem
 options         SOFTUPDATES             #Enable FFS soft updates support
@@ -88,9 +87,6 @@ options			IPFIREWALL
 options			IPDIVERT
 options			DUMMYNET
 options			FDESCFS
-
-options			SCHED_4BSD
-#options		SCHED_ULE	# add inULE scheduler
 
 # IPSEC filtering interface
 device			enc
