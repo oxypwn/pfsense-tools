@@ -20,7 +20,6 @@
 ~~schedule_label.RELENG_8.diff~
 ~~pfil.RELENG_8.diff~
 ~~ipsec_altq.RELENG_8.diff~
-~~IPSEC_sysctl.RELENG_8.diff~
 ~~CP_speedup.diff~
 ~sys/net~if_vlan.c.diff~
 ~sys/sys~proc.h.diff~
@@ -43,6 +42,12 @@
 ~~~/sys/dev/flash/mx25l.c
 ~~~/sys/mips/atheros
 ~sys~ath_hal-releng_7_2.patch~
+~~~/sys/modules/uhso~
+~~~~sys/modules/uhso~
+~sys/modules~uhso.diff~
+~sys~if_ethersubr.c.diff~
+~usr.sbin/ppp~ipcp.c.diff~
+~~tty.c.diff~
 -p2~~mips8.diff~
-~usb_core.h.diff~
-~~fifo_vnops.c.diff~
+~~ar71xx_kenv.diff~
+~~ar71xx_root.diff~
