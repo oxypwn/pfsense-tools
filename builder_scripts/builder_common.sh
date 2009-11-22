@@ -1174,7 +1174,7 @@ cust_fixup_wrap() {
 }
 
 setup_tcshrc_prompt() {
-	echo 'set set prompt="%{\033[0;1;33m%}%B[%{\033[0;1;37m%}%n%{\033[0;1;31m%}@%{\033[0;1;37m%}%M%{\033[0;1;33m%}]%{\033[0;1;32m%}%b%/%{\033[0;1;33m%}(%{\033[0;1;37m%}%h%{\033[0;1;33m%})%{\033[0;1;36m%}%{\033[0;1;31m%}:%{\033[0;40;37m%} "' > ${PFSENSEBASEDIR}/root/.tcshrc
+	echo 'set set prompt="%{\033[0;1;33m%}[%{\033[0;1;37m%}`cat /etc/version`%{\033[0;1;33m%}]%{\033[0;1;32m%}-%{\033[0;1;33m%}%B[%{\033[0;1;37m%}%n%{\033[0;1;31m%}@%{\033[0;1;37m%}%M%{\033[0;1;33m%}]%{\033[0;1;32m%}%b%/%{\033[0;1;33m%}(%{\033[0;1;37m%}%h%{\033[0;1;33m%})%{\033[0;1;36m%}%{\033[0;1;31m%}:%{\033[0;40;37m%} "' > ${PFSENSEBASEDIR}/root/.tcshrc
 	echo 'set autologout="0"' >> ${PFSENSEBASEDIR}/root/.tcshrc
 	echo 'set autolist set color set colorcat' >> ${PFSENSEBASEDIR}/root/.tcshrc
 	echo 'setenv TERM "xterm-color"' >> ${PFSENSEBASEDIR}/root/.tcshrc
