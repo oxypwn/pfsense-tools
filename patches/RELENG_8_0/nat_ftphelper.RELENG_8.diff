@@ -406,7 +406,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->timeout = PFTM_TCP_FIRST_PACKET;
 +		PF_ACPY(&s->rt_addr, &state->rt_addr, pd->af);
 +		s->nat_src_node = state->nat_src_node;
-+		if (s->nat_src_node != NULL);
++		if (s->nat_src_node != NULL)
 +                        s->nat_src_node->states++;
 +		s->rt_kif = state->rt_kif;
 +		if (pf_insert_state(BOUND_IFACE(r, s->rt_kif), s)) {
