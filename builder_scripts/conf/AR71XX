@@ -88,7 +88,14 @@ device          scbus           # SCSI bus (required for SCSI)
 device          da              # Direct Access (disks)
 
 ##### pfSense specfic ######
-makeoptions MODULES_OVERRIDE="ipfw ipdivert dummynet fdescfs glxsb"
+### XXX: fix mips modules
+##makeoptions MODULES_OVERRIDE="ipfw ipdivert dummynet fdescfs glxsb"
+
+options		IPFIREWALL
+options		IPDIVERT
+options		DUMMYNET
+options		FDESCFS
+device		glxsb
 
 options		SCHED_4BSD
 #options			SCHED_ULE	# add inULE scheduler
