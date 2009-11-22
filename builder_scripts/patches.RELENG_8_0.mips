@@ -51,3 +51,4 @@
 -p2~~mips8.diff~
 ~~ar71xx_kenv.diff~
 ~~ar71xx_root.diff~
+~usr.bin/chpass~chflags_Makefile.diff~
