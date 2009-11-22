@@ -1,21 +1,24 @@
-#
-# $FreeBSD$
-#
+# pfSense MIPS RouterStationPRO
 
-ident		AR71XX
-cpu			CPU_MIPS4KC
-options 	ISA_MIPS32
-makeoptions	TARGET_BIG_ENDIAN
-makeoptions	KERNLOADADDR=0x80050000
-options		HZ=100
+ident			AR71XX
+cpu				CPU_MIPS4KC
+options 		ISA_MIPS32
+makeoptions		TARGET_BIG_ENDIAN
+makeoptions		KERNLOADADDR=0x80050000
+options			HZ=100
 
 files			"../atheros/files.ar71xx"
 hints			"AR71XX.hints"
 
-makeoptions		DEBUG=-g		#Build kernel with gdb(1) debug symbols
-
-options			DDB
-options			KDB
+options         KDB
+options         KDB_TRACE 
+options         DDB                     # Support DDB.
+options         GDB                     # Support remote GDB.
+#options		INVARIANTS
+#options		INVARIANTS_SUPPORT
+#options		WITNESS
+#options		WITNESS_SKIPSPIN
+makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
 
 options			SCHED_4BSD		#4BSD scheduler
 options			INET			#InterNETworking
@@ -137,7 +140,7 @@ options			NETGRAPH_PRED1
 options         IPSEC
 options         IPSEC_NAT_T
 
-options        TCP_SIGNATURE           #include support for RFC 2385
+options			TCP_SIGNATURE           #include support for RFC 2385
 
 options         ALTQ
 options         ALTQ_CBQ
