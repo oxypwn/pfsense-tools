@@ -75,6 +75,7 @@ device          da              # Direct Access (disks)
 
 ##makeoptions MODULES_OVERRIDE="ipfw ipdivert dummynet fdescfs glxsb"
 ### XXX: fix mips modules
+makeoptions MODULES_OVERRIDE=""
 options			IPFIREWALL
 options         IPFIREWALL_DEFAULT_TO_ACCEPT
 options         IPFIREWALL_FORWARD
