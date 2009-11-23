@@ -1790,8 +1790,8 @@ setup_nanobsd_etc ( ) {
 	# Make root filesystem R/O by default
 	echo "root_rw_mount=NO" >> etc/defaults/rc.conf
 
-	echo "/dev/ufs/pfsense0 / ufs ro 1 1" > etc/fstab
-	echo "/dev/ufs/cf /cf ufs ro 1 1" >> etc/fstab
+	echo "/dev/ufs/pfsense0 / ufs ro,sync 1 1" > etc/fstab
+	echo "/dev/ufs/cf /cf ufs ro,sync 1 1" >> etc/fstab
 
 }
 
