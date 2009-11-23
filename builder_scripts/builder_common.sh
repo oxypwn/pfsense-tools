@@ -321,7 +321,7 @@ build_rspro_kernel() {
 	export KERNCONF=AR71XX
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/AR71XX"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/AR71XX"
-	cp $BUILDER_TOOLS/conf/AR71XX* $SRCDIR/sys/mips/conf/
+	cp $BUILDER_TOOLS/builder_scripts/conf/AR71XX* $SRCDIR/sys/mips/conf/
 	freesbie_make buildkernel
 	echo ">>> Installing rspro kernel..."
 	freesbie_make installkernel
