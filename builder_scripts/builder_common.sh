@@ -1078,6 +1078,17 @@ fixup_updates() {
 
 }
 
+setup_serial_hints() {
+    #    When using the serial port as a boot console, be sure to update
+    #    /boot/device.hints and /etc/ttys before booting the new kernel.
+    #    If you forget to do so, you can still manually specify the hints
+    #    at the loader prompt:
+	echo 'hint.uart.0.at="isa"' >> $PFSENSEBASEDIR/boot/device.hints
+	echo 'hint.uart.0.port="0x3F8"' >> $PFSENSEBASEDIR/boot/device.hints
+	echo 'hint.uart.0.flags="0x10"' >> $PFSENSEBASEDIR/boot/device.hints
+	echo 'hint.uart.0.irq="4"' >> $PFSENSEBASEDIR/boot/device.hints	
+}
+
 # Items that need to be fixed up that are
 # specific to nanobsd builds
 cust_fixup_nanobsd() {
@@ -1091,14 +1102,7 @@ cust_fixup_nanobsd() {
             $PFSENSEBASEDIR/etc/ttys
 
 	if [ "$FBSD_VERSION" = "8" ]; then
-	    #    When using the serial port as a boot console, be sure to update
-	    #    /boot/device.hints and /etc/ttys before booting the new kernel.
-	    #    If you forget to do so, you can still manually specify the hints
-	    #    at the loader prompt:
-		echo 'hint.uart.0.at="isa"' >> $PFSENSEBASEDIR/boot/device.hints
-		echo 'hint.uart.0.port="0x3F8"' >> $PFSENSEBASEDIR/boot/device.hints
-		echo 'hint.uart.0.flags="0x10"' >> $PFSENSEBASEDIR/boot/device.hints
-		echo 'hint.uart.0.irq="4"' >> $PFSENSEBASEDIR/boot/device.hints
+		setup_serial_hints
 	fi
 
     echo `date` > $PFSENSEBASEDIR/etc/version.buildtime

@@ -183,6 +183,11 @@ create_md5_summary_file
 # Setup custom tcshrc prompt
 setup_tcshrc_prompt
 
+# Setup serial port helper hints
+if [ "$FBSD_VERSION" = "8" ]; then
+	setup_serial_hints
+fi
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
