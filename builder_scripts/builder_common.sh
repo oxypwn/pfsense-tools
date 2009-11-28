@@ -1058,7 +1058,6 @@ fixup_updates() {
 	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
 
 	setup_tcshrc_prompt
-	echo "alias installer /scripts/lua_installer" >> ${PFSENSEBASEDIR}/root/.tcshrc
 
 	# Setup login environment
 	echo > ${PFSENSEBASEDIR}/root/.shrc
@@ -1184,6 +1183,7 @@ setup_tcshrc_prompt() {
 	echo 'set autolist set color set colorcat' >> ${PFSENSEBASEDIR}/root/.tcshrc
 	echo 'setenv CLICOLOR "true"' >> ${PFSENSEBASEDIR}/root/.tcshrc
 	echo 'setenv LSCOLORS "exfxcxdxbxegedabagacad"' >> ${PFSENSEBASEDIR}/root/.tcshrc
+	echo "alias installer /scripts/lua_installer" >> ${PFSENSEBASEDIR}/root/.tcshrc
 }
 
 # Creates a FreeBSD specific updater tarball
