@@ -779,6 +779,9 @@ cust_populate_installer_bits() {
     mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
     cp -r $BUILDER_TOOLS/installer/conf \
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
+	# 597_ belongs in installation directory
+	cp $BUILDER_TOOLS/installer/installer_root_dir7/597* \
+		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
 	# 599_ belongs in installation directory
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/599* \
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
