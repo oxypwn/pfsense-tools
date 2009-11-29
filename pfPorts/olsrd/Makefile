@@ -2,11 +2,11 @@
 # Date created:		6 April 2005
 # Whom:			dave@dogwood.com
 #
-# $FreeBSD: ports/net/olsrd/Makefile,v 1.14 2009/10/11 17:54:19 jhay Exp $
+# $FreeBSD: ports/net/olsrd/Makefile,v 1.15 2009/11/18 05:43:33 jhay Exp $
 #
 
 PORTNAME=	olsrd
-DISTVERSION=	0.5.6-r6
+DISTVERSION=	0.5.6-r7
 CATEGORIES=	net
 MASTER_SITES=	http://www.olsr.org/releases/0.5/ \
 		http://ftp2.za.freebsd.org/pub/mesh/pc/protocols/olsr/
