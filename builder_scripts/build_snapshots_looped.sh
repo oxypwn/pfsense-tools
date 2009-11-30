@@ -50,7 +50,7 @@ PWD=`pwd`
 # set in pfsense-build-snapshots.conf
 git_last_commit() {
 	if [ -d "$pfSenseGITREPO" ]; then
-		if [ "$GIT_REBASE" != "" ]; then 
+		if [ "$GIT_RESET" != "" ]; then 
 			(cd $pfSenseGITREPO && git fetch && git reset $GIT_RESET)>/dev/null
 			CURRENT_COMMIT="`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`"
 			CURRENT_AUTHOR="`cd $pfSenseGITREPO && git log | head -n2 | grep "Author" | cut -d':' -f2 | cut -d'<' -f1`"
