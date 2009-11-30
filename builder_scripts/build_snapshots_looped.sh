@@ -51,12 +51,12 @@ PWD=`pwd`
 git_last_commit() {
 	if [ -d "$pfSenseGITREPO" ]; then
 		if [ "$GIT_REBASE" != "" ]; then 
-			(cd $pfSenseGITREPO && git fetch && git reset $GIT_REBASE)>/dev/null
+			(cd $pfSenseGITREPO && git fetch && git reset $GIT_RESET)>/dev/null
 			CURRENT_COMMIT="`cd $pfSenseGITREPO && git log | head -n1 | cut -d' ' -f2`"
 			CURRENT_AUTHOR="`cd $pfSenseGITREPO && git log | head -n2 | grep "Author" | cut -d':' -f2 | cut -d'<' -f1`"
 			cd $PWD
 		else 
-			echo ">>> WARNING: GIT_REBASE variable not set! Previous commit functions disabled."
+			echo ">>> WARNING: GIT_RESET variable not set! Previous commit functions disabled."
 		fi
 	else
 		echo ">>> WARNING: pfSenseGITREPO variable not set! Previous commit functions disabled."
