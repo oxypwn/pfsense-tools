@@ -55,7 +55,7 @@
 #include <time.h>
 
 // Non changable globals
-#define MAXATTEMPTS 5
+#define MAXATTEMPTS 10
 #define MAXLOCKOUTS 256
 
 // Wall of shame (invalid login DB)
