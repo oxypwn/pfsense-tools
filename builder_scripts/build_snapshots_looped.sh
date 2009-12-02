@@ -46,7 +46,7 @@ touch $LASTUPDATE
 
 PWD=`pwd`
 
-# Requires pfSenseGITREPO and GIT_REBASE variables
+# Requires pfSenseGITREPO and GIT_RESET variables
 # set in pfsense-build-snapshots.conf
 git_last_commit() {
 	if [ -d "$pfSenseGITREPO" ]; then
