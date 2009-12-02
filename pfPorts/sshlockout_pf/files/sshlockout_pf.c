@@ -340,9 +340,11 @@ lockout(char *str)
 		ret = snprintf(buf, sizeof(buf), "/sbin/pfctl -t sshlockout -T add %d.%d.%d.%d", \
 			n1, n2, n3, n4);
 		// Check for error condition
-		if(ret != 0)
+		if(ret < 0) {
 			syslog(LOG_ERR, "Error Locking out %d.%d.%d.%d while allocating snprintf()\n", \
 				n1, n2, n3, n4, MAXATTEMPTS);
+			return;
+		}
 
 		// Execute the command in buf
 		ret = system(buf);
