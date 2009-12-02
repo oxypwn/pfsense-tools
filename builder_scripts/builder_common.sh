@@ -805,7 +805,11 @@ cust_populate_installer_bits() {
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Copy installer launcher scripts
     cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
-    cp $BUILDER_TOOLS/lua_installer $PFSENSEBASEDIR/scripts/
+	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
+		cp $BUILDER_TOOLS/lua_installer_RELENG_2 $PFSENSEBASEDIR/scripts/lua_installer
+	else
+		cp $BUILDER_TOOLS/lua_installer $PFSENSEBASEDIR/scripts/lua_installer
+	fi
     cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
     cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
