@@ -7,6 +7,9 @@ ident           pfSense7
 nooptions		SCHED_4BSD
 options			SCHED_ULE	# add inULE scheduler
 
+# No PLIP
+nodevice		plip
+
 # IPSEC filtering interface
 device			enc
 

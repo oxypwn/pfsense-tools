@@ -24,6 +24,9 @@ device 		enc
 nooptions	SCHED_4BSD
 options 	SCHED_ULE                                       # ULE scheduler
 
+# No PLIP
+nodevice		plip
+
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
 options 	FFS			# Berkeley Fast Filesystem
