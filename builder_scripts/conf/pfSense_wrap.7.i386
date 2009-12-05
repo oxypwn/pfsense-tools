@@ -20,6 +20,7 @@ options			GEOM_PART_MBR
 
 # No PLIP
 nodevice		plip
+nodevice		ppc
 
 # IPSEC filtering interface
 device 		enc

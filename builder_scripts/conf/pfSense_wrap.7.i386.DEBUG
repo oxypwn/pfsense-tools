@@ -18,14 +18,15 @@ options			GEOM_LABEL
 nooption		GEOM_MBR
 options			GEOM_PART_MBR
 
+# No PLIP
+nodevice		plip
+nodevice		ppc
+
 # IPSEC filtering interface
 device 		enc
 
 nooptions	SCHED_4BSD
 options 	SCHED_ULE                                       # ULE scheduler
-
-# No PLIP
-nodevice		plip
 
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
