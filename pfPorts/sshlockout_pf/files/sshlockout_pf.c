@@ -1,8 +1,8 @@
 /*
  *  v2.01
  *  SSHLOCKOUT_PF.C 
- *  Written by Matthew Dillon
- *  Modified to use PF tables by Scott Ullrich and
+ *  Originally written by Matthew Dillon
+ *  Heavily modified to use PF tables by Scott Ullrich and
  *  extened to keep a database of last 256 bad attempts 
  *  (MAXLOCKOUTS) and block user if they go over (MAXATTEMPTS).
  *
@@ -59,7 +59,8 @@
 #define MAXLOCKOUTS 256
 
 // Wall of shame (invalid login DB)
-static struct sshlog {
+static struct sshlog 
+{
 	// IP ADDR Octets
 	int n1;
 	int n2;
@@ -84,42 +85,43 @@ static void add_new_record(int n1, int n2, int n3, int n4);
 int
 main(void) 
 {
-   char buf[1024];
+	char buf[1024];
 
-   // Initialize time conversion information
-   tzset();
+	// Initialize time conversion information
+	tzset();
 
-   // Open syslog file
-   openlog("sshlockout", LOG_PID|LOG_CONS, LOG_AUTH);
+	// Open syslog file
+	openlog("sshlockout", LOG_PID|LOG_CONS, LOG_AUTH);
 
-   // We are starting up
-   syslog(LOG_ERR, "sshlockout starting up");
+	// We are starting up
+	syslog(LOG_ERR, "sshlockout starting up");
 
-   // Open up stderr and stdout to the abyss
-   (void)freopen("/dev/null", "w", stdout);
-   (void)freopen("/dev/null", "w", stderr);
+	// Open up stderr and stdout to the abyss
+	(void)freopen("/dev/null", "w", stdout);
+	(void)freopen("/dev/null", "w", stderr);
 
-   // Loop through reading in syslog stream looking for
-   // for specific strings that indicate that a user has
-   // attempted login but failed.
-   while (fgets(buf, (int)sizeof(buf), stdin) != NULL) {
-       /* if this is not sshd related, continue on without processing */
-       if (strstr(buf, "sshd") == NULL)
-           continue;
-	   // Check for various bad (or good!) strings in stream
-       check_for_denied_string("Failed password for root from", buf);
-       check_for_denied_string("Failed password for admin from", buf);
-       check_for_denied_string("Failed password for invalid user", buf);
-       check_for_denied_string("Illegal user", buf);
-       check_for_denied_string("authentication error for", buf);
-	   check_for_accepted_string("Accepted keyboard-interactive/pam for", buf);
-   }
+	// Loop through reading in syslog stream looking for
+	// for specific strings that indicate that a user has
+	// attempted login but failed.
+	while (fgets(buf, (int)sizeof(buf), stdin) != NULL) 
+	{
+		/* if this is not sshd related, continue on without processing */
+		if (strstr(buf, "sshd") == NULL)
+			continue;
+		// Check for various bad (or good!) strings in stream
+		check_for_denied_string("Failed password for root from", buf);
+		check_for_denied_string("Failed password for admin from", buf);
+		check_for_denied_string("Failed password for invalid user", buf);
+		check_for_denied_string("Illegal user", buf);
+		check_for_denied_string("authentication error for", buf);
+		check_for_accepted_string("Accepted keyboard-interactive/pam for", buf);
+	}
 
-   // We are exiting
-   syslog(LOG_ERR, "sshlockout exiting");
+	// We are exiting
+	syslog(LOG_ERR, "sshlockout exiting");
 
-   // That's all folks.
-   return(0);
+	// That's all folks.
+	return(0);
 }
 
 // Check for passed string and lockout the 
@@ -128,7 +130,8 @@ static void
 check_for_denied_string(char *str, char *buf)
 {
 	char *tmpstr = NULL;
-	if ((str = strstr(buf, str)) != NULL) {
+	if ((str = strstr(buf, str)) != NULL) 
+	{
 		if ((tmpstr = strstr(str, " from")) != NULL)
 			lockout(tmpstr + 5);
 	}
@@ -140,7 +143,8 @@ static void
 check_for_accepted_string(char *str, char *buf)
 {
 	char *tmpstr = NULL;
-	if ((str = strstr(buf, str)) != NULL) {
+	if ((str = strstr(buf, str)) != NULL) 
+	{
 		if ((tmpstr = strstr(str, " from")) != NULL)
 			lockout_remove(tmpstr + 5);
 	}
@@ -167,7 +171,8 @@ prune_oldest_record(void)
 
 	// Loop until we hit MAXLOCKOUTS
 	// looking for an emty slot
-	while(i < MAXLOCKOUTS) {
+	while(i < MAXLOCKOUTS) 
+	{
 		// Check to see if item is older than
 		// the oldest entry found thus far.
 		if(lockouts[i].ts < ts) 
@@ -196,12 +201,14 @@ add_new_record(int n1, int n2, int n3, int n4)
 
 	// Loop until we hit MAXLOCKOUTS
 	// looking for an empty slot
-	while(i < MAXLOCKOUTS && foundrecord == 0) {
+	while(i < MAXLOCKOUTS && foundrecord == 0) 
+	{
 		// Look for the IP in the DB
 		if(lockouts[i].n1 == 0 &&
-		 lockouts[i].n2 == 0 &&
-		 lockouts[i].n3 == 0 &&
-		 lockouts[i].n4 == 0) {
+			lockouts[i].n2 == 0 &&
+			lockouts[i].n3 == 0 &&
+			lockouts[i].n4 == 0) 
+		{
 			foundrecord = 1;
 			break;
 		}
@@ -219,11 +226,13 @@ add_new_record(int n1, int n2, int n3, int n4)
 
 	// Grab the time
     now = time(NULL);
+
 	// Add item to DB
 	lockouts[i].n1 = n1;
 	lockouts[i].n2 = n2;
 	lockouts[i].n3 = n3;
 	lockouts[i].n4 = n4;
+
 	// Add last seen epoch
 	lockouts[i].ts = time(&now);
 }
@@ -239,12 +248,14 @@ record_event(int n1, int n2, int n3, int n4)
 	time_t now;
 
 	// Loop until we hit MAXLOCKOUTS
-	while(i < MAXLOCKOUTS) {
+	while(i < MAXLOCKOUTS) 
+	{
 		// Look for the IP in the DB
 		if(lockouts[i].n1 == n1 &&
-		 lockouts[i].n2 == n2 &&
-		 lockouts[i].n3 == n3 &&
-		 lockouts[i].n4 == n4) {
+			lockouts[i].n2 == n2 &&
+			lockouts[i].n3 == n3 &&
+			lockouts[i].n4 == n4) 
+		{
 			// Update the entries epoch
     		now = time(NULL);
 			lockouts[i].ts = time(&now);
@@ -265,12 +276,14 @@ prune_record(int n1, int n2, int n3, int n4)
 	int  i = 0;
 
 	// Loop until we hit MAXLOCKOUTS
-	while(i < MAXLOCKOUTS) {
+	while(i < MAXLOCKOUTS) 
+	{
 		// Look for the IP in the DB
 		if(lockouts[i].n1 == n1 &&
-		 lockouts[i].n2 == n2 &&
-		 lockouts[i].n3 == n3 &&
-		 lockouts[i].n4 == n4) {
+			lockouts[i].n2 == n2 &&
+			lockouts[i].n3 == n3 &&
+			lockouts[i].n4 == n4) 
+		{
 			// Reset the DB entry
 			lockouts[i].n1 = 0;
 			lockouts[i].n2 = 0;
@@ -318,17 +331,20 @@ lockout(char *str)
 	// Check to see if hosts IP is in our lockout table checking
 	// how many attempts.   If the attempts are over 3 then 
 	// purge the host from the table and leave shouldblock = true
-	while(i < MAXLOCKOUTS) {
+	while(i < MAXLOCKOUTS) 
+	{
 		// Try to find the IP in DB
 		if(lockouts[i].n1 == n1 &&
-		 lockouts[i].n2 == n2 &&
-		 lockouts[i].n3 == n3 &&
-		 lockouts[i].n4 == n4) {
+			lockouts[i].n2 == n2 &&
+			lockouts[i].n3 == n3 &&
+			lockouts[i].n4 == n4) 
+		{
 			// Found the record, record the attempt
 			record_event(n1, n2, n3, n4);
 			foundrecord = 1;
 			// Check to see if user is above or == MAXATTEMPTS
-			if(lockouts[i].attempts >= MAXATTEMPTS) {
+			if(lockouts[i].attempts >= MAXATTEMPTS) 
+			{
 				// Block the host
 				shouldblock = 1;
 				break;
@@ -343,7 +359,8 @@ lockout(char *str)
 		add_new_record(n1, n2, n3, n4);
 
 	// If shouldblock is still true go ahead and block the offender
-	if(shouldblock == 1) {
+	if(shouldblock == 1)
+	{
 		// Remove the record we are going to block this host.
 		prune_record(n1, n2, n3, n4);
 
@@ -355,7 +372,8 @@ lockout(char *str)
 		ret = snprintf(buf, sizeof(buf), "/sbin/pfctl -t sshlockout -T add %d.%d.%d.%d", \
 			n1, n2, n3, n4);
 		// Check for error condition
-		if(ret < 0) {
+		if(ret < 0) 
+		{
 			syslog(LOG_ERR, "Error Locking out %d.%d.%d.%d while allocating snprintf()\n", \
 				n1, n2, n3, n4, MAXATTEMPTS);
 			return;
