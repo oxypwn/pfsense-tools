@@ -106,7 +106,7 @@ main(void)
        /* if this is not sshd related, continue on without processing */
        if (strstr(buf, "sshd") == NULL)
            continue;
-	   // Check for various bad strings in stream
+	   // Check for various bad (or good!) strings in stream
        check_for_denied_string("Failed password for root from", buf);
        check_for_denied_string("Failed password for admin from", buf);
        check_for_denied_string("Failed password for invalid user", buf);
