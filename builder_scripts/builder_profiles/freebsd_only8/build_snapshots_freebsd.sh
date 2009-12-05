@@ -28,7 +28,7 @@ fi
 #set -e 
 
 # Local variables that are used by builder scripts
-RSYNCIP="172.29.29.181"
+RSYNCIP="172.29.29.249"
 FREEBSDOBJDIR=/usr/obj.FreeBSD
 MAKEOBJDIRPREFIX=/usr/obj.FreeBSD
 STAGINGAREA=/tmp/staging
