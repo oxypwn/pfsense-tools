@@ -73,7 +73,9 @@ static struct sshlog {
 
 // Function declarations
 static void lockout(char *str);
-static void check_for_string(char *str, char *buf);
+static void lockout_remove(char *str);
+static void check_for_denied_string(char *str, char *buf);
+static void check_for_accepted_string(char *str, char *buf);
 static void prune_oldest_record(void);
 static void prune_record(int n1, int n2, int n3, int n4);
 static void add_new_record(int n1, int n2, int n3, int n4);
@@ -105,11 +107,12 @@ main(void)
        if (strstr(buf, "sshd") == NULL)
            continue;
 	   // Check for various bad strings in stream
-       check_for_string("Failed password for root from", buf);
-       check_for_string("Failed password for admin from", buf);
-       check_for_string("Failed password for invalid user", buf);
-       check_for_string("Illegal user", buf);
-       check_for_string("authentication error for", buf);
+       check_for_denied_string("Failed password for root from", buf);
+       check_for_denied_string("Failed password for admin from", buf);
+       check_for_denied_string("Failed password for invalid user", buf);
+       check_for_denied_string("Illegal user", buf);
+       check_for_denied_string("authentication error for", buf);
+	   check_for_accepted_string("Accepted keyboard-interactive/pam for", buf);
    }
 
    // We are exiting
@@ -122,12 +125,24 @@ main(void)
 // Check for passed string and lockout the 
 // host if we find the log message in stream.
 static void
-check_for_string(char *str, char *buf)
+check_for_denied_string(char *str, char *buf)
 {
 	char *tmpstr = NULL;
 	if ((str = strstr(buf, str)) != NULL) {
 		if ((tmpstr = strstr(str, " from")) != NULL)
 			lockout(tmpstr + 5);
+	}
+}
+
+// Check for accepted string and remove the 
+// host from the local database if found.
+static void
+check_for_accepted_string(char *str, char *buf)
+{
+	char *tmpstr = NULL;
+	if ((str = strstr(buf, str)) != NULL) {
+		if ((tmpstr = strstr(str, " from")) != NULL)
+			lockout_remove(tmpstr + 5);
 	}
 }
 
@@ -353,4 +368,21 @@ lockout(char *str)
 			syslog(LOG_ERR, "Error Locking out %d.%d.%d.%d while launching pfctl\n", \
 				n1, n2, n3, n4, MAXATTEMPTS);
 	}
+}
+
+// Remove host from logging dabtase
+static void
+lockout_remove(char *str)
+{
+	// IP address octets
+	int n1 = 0, n2 = 0, n3 = 0, n4 = 0;
+
+	// Check passed string and parse out the IP address
+	// If we cannot find a IP address then simply return.
+	if (sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) > 4 || 
+		sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) < 4) 
+			return;
+
+	// User auth'd.  Remove previous lockout db entries.
+	prune_record(n1, n2, n3, n4);
 }
