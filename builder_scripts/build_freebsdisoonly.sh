@@ -127,6 +127,9 @@ cat $BUILDER_TOOLS/builder_scripts/conf/packages
 echo ">>> Phase populate_extra..."
 cust_populate_extra
 
+# Overlay host binaries
+cust_overlay_host_binaries
+
 # Install BSDInstaller bits
 cust_populate_installer_bits_freebsd_only
 
