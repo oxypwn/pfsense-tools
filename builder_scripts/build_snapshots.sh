@@ -182,6 +182,10 @@ update_sources() {
 }
 
 build_iso() {
+	if [ "$DO_NOT_BUILD_ISO" != "" ]; then
+		echo ">>> DO_NOT_BUILD_ISO is set, skipping."
+		return
+	fi
 	# Ensures sane nevironment
 	# and invokes build_iso.sh
 	cd $BUILDERSCRIPTS
@@ -214,6 +218,10 @@ build_embedded_updates() {
 }
 
 build_updates() {
+	if [ "$DO_NOT_BUILD_UPDATES" != "" ]; then
+		echo ">>> DO_NOT_BUILD_UPDATES is set, skipping."
+		return
+	fi
 	cd $BUILDERSCRIPTS 
 	./build_updates.sh
 	for filename in $PFSENSEUPDATESDIR/*.tgz
@@ -230,22 +238,38 @@ build_updates() {
 }
 
 build_nano() {
+	if [ "$DO_NOT_BUILD_NANOBSD" != "" ]; then
+		echo ">>> DO_NOT_BUILD_NANOBSD is set, skipping."
+		return
+	fi
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
 	./build_nano.sh
 }
 
 rebuild_nano() {
+	if [ "$DO_NOT_BUILD_NANOBSD" != "" ]; then
+		echo ">>> DO_NOT_BUILD_NANOBSD is set, skipping."
+		return
+	fi
 	cd $BUILDERSCRIPTS
 	echo "$1" > /tmp/nanosize.txt	
 	./build_resized_nano.sh $1
 }
 
 build_pfPorts() {
+	if [ "$DO_NOT_BUILD_PFPORTS" != "" ]; then
+		echo ">>> DO_NOT_BUILD_PFPORTS is set, skipping."
+		return
+	fi
 	./build_pfPorts.sh
 }
 
 donanobuilds() {
+	if [ "$DO_NOT_BUILD_NANOBSD" != "" ]; then
+		echo ">>> DO_NOT_BUILD_NANOBSD is set, skipping."
+		return
+	fi
 	# Build nanobsd
 	build_nano
 	# Copy nanobsd to staging areas

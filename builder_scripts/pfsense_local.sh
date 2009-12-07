@@ -239,3 +239,10 @@ export GIT_REPO_TOOLS=${GIT_TOOLS_REPO:-"http://gitweb.pfsense.org/pfsense-tools
 # config crypto filter interfaces ipsec notifications 
 # openvpn  pkg routing rrd shaper utils vpn
 export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
+
+# Items that can be turned off (snapshots) 
+#
+#export DO_NOT_BUILD_ISO="true"
+#export DO_NOT_BUILD_NANOBSD="true"
+#export DO_NOT_BUILD_PFPORTS="true"
+#export DO_NOT_BUILD_UPDATES="true"
