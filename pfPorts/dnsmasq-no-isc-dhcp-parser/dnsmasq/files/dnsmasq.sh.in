@@ -1,0 +1,40 @@
+#! /bin/sh
+#
+# PROVIDE: named dnsmasq
+# REQUIRE: SERVERS cleanvar
+# BEFORE:  DAEMON
+# KEYWORD: shutdown
+#
+# Add the following line to /etc/rc.conf.local or /etc/rc.conf
+# to enable this service:
+#
+# dnsmasq_enable (bool):  Set to "NO" by default.
+#                         Set it to "YES" to enable dnsmasq at boot.
+#
+# Further settings you can change in /etc/rc.conf if desired:
+#
+# dnsmasq_conf (path):    Set to %%PREFIX%%/etc/dnsmasq.conf by default.
+#                         Set it to another configuration file if you want.
+#
+# dnsmasq_flags (string): Empty by default. Set it to additional command
+#                         line arguments if desired.
+#
+
+. %%RC_SUBR%%
+
+name=dnsmasq
+rcvar=$(set_rcvar)
+
+command="%%PREFIX%%/sbin/${name}"
+extra_commands=reload
+pidfile=/var/run/${name}.pid
+
+load_rc_config ${name}
+
+: ${dnsmasq_enable="NO"}
+: ${dnsmasq_conf="%%PREFIX%%/etc/${name}.conf"}
+required_files=${dnsmasq_conf}
+
+command_args="-x $pidfile -C $dnsmasq_conf"
+
+run_rc_command "$1"
