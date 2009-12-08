@@ -110,6 +110,16 @@ set_items() {
 	if [ "$REMOVE_PHP" != "" ]; then 
 		echo "export REMOVE_PHP=true" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	fi
+	UNAME=`uname -m`
+	if [ "$UNAME" = "amd64" ]; then
+		echo "export ARCH=amd64" >> $BUILDER_SCRIPTS/pfsense-build.conf
+		echo "export TARGETARCH=amd64" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	fi
+	if [ "$UNAME" = "mips" ]; then
+		echo "export ARCH=mips" >> $BUILDER_SCRIPTS/pfsense-build.conf
+		echo "export TARGETARCH=mips" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	fi
+
 	echo
 	echo ">>> Custom pfsense-build.conf contains:"
 	echo "---------------------------------------------------------------------------------------"
