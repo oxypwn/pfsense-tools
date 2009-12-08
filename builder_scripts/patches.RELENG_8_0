@@ -51,3 +51,4 @@
 ~~tty.c.diff~
 ~~uipc_syscalls.c.diff~
 ~~fifo_vnops.c.diff~
+~sys/modules/uhso/~uhso.c.diff~
