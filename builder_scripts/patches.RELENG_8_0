@@ -43,12 +43,8 @@
 ~~~/sys/mips/sentry5
 ~~~/sys/dev/flash/mx25l.c
 ~~~/sys/mips/atheros
-~~~/sys/modules/uhso~
-~~~~sys/modules/uhso~
-~sys/modules~uhso.diff~
 ~sys~if_ethersubr.c.diff~
 ~usr.sbin/ppp~ipcp.c.diff~
 ~~tty.c.diff~
 ~~uipc_syscalls.c.diff~
 ~~fifo_vnops.c.diff~
-~sys/modules/uhso/~uhso.c.diff~
