@@ -109,6 +109,13 @@ update_status() {
 # Copy the current log file to $filename.old on
 # the snapshot www server (real time logs)
 rotate_logfile() {
+	if [ -d /tmp/pfPort ]; then
+		for FILE in /tmp/pfPort; do
+			echo "$FILE ------------------------------------------------" >> $LOGFILE
+			cat /tmp/pfPort/$FILE >> $LOGFILE
+		done
+		rm -rf /tmp/pfPort/*
+	fi
 	if [ "$MASTER_BUILDER_SSH_LOG_DEST" ]; then
 		scp -q $LOGFILE $MASTER_BUILDER_SSH_LOG_DEST.old
 	fi
