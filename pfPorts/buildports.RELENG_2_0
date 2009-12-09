@@ -44,7 +44,6 @@ ipsec-tools-devel			/usr/ports/security/ipsec-tools-devel	/usr/local/sbin/racoon
 grub						/usr/ports/sysutils/grub				/usr/local/sbin/grub
 apinger						/usr/ports/net/apinger					/usr/local/sbin/apinger
 rrdtool						/usr/ports/databases/rrdtool			/usr/local/bin/rrdtool
-ftpsesame					/usr/ports/ftp/ftpsesame				/usr/local/sbin/ftpsesame
 cpdup						/usr/ports/sysutils/cpdup				/usr/local/bin/cpdup
 beep						/usr/ports/audio/beep					/usr/local/bin/beep
 choparp						/usr/ports/net-mgmt/choparp				/usr/local/sbin/choparp
@@ -60,7 +59,6 @@ mpd4						/usr/ports/net/mpd4						/usr/local/sbin/mpd
 olsrd						/usr/ports/net/olsrd					/usr/local/sbin/olsrd
 pftop						/usr/ports/sysutils/pftop				/usr/local/sbin/pftop
 libevent					/usr/ports/devel/libevent				/usr/local/lib/libevent.so
-pftpx						/usr/ports/ftp/pftpx					/usr/local/sbin/pftpx
 relayd						/usr/ports/net/relayd					/usr/local/sbin/relayd
 fping						/usr/ports/net/fping					/usr/local/sbin/fping
 php5						/usr/ports/lang/php5					/usr/local/bin/php
@@ -102,7 +100,6 @@ syslog-ng					/usr/ports/sysutils/syslog-ng			/usr/local/sbin/syslog-ng
 zip							/usr/ports/archivers/zip				/usr/local/bin/zip
 links						/usr/ports/www/links					/usr/local/bin/links
 openntpd					/usr/ports/net/openntpd					/usr/local/sbin/ntpd
-ftp-proxy					/usr/ports/ftp/ftp-proxy				/usr/local/sbin/ftp-proxy
 pecl-uploadprogress			/usr/ports/devel/pecl-uploadprogress	/usr/local/lib/php/20060613/uploadprogress.so
 php5-json					/usr/ports/devel/php5-json				/usr/local/lib/php/20060613/json.so
 rate						/usr/ports/net-mgmt/rate				/usr/local/bin/rate
