@@ -40,7 +40,7 @@ fi
 
 # Port name         		Path to port                            Verify install filename
 PORTSTOBUILD="
-ipsec-tools-deve			/usr/ports/security/ipsec-tools-devel	/usr/local/sbin/racoon
+ipsec-tools-devel			/usr/ports/security/ipsec-tools-devel	/usr/local/sbin/racoon
 grub						/usr/ports/sysutils/grub				/usr/local/sbin/grub
 apinger						/usr/ports/net/apinger					/usr/local/sbin/apinger
 rrdtool						/usr/ports/databases/rrdtool			/usr/local/bin/rrdtool
