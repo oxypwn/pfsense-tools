@@ -15,6 +15,9 @@ touch /tmp/pfPort_alreadybuilt
 CURRENTDIR=`pwd`
 cd /usr/ports
 
+# Individual logs here
+mkdir -p /tmp/pfPort
+
 while getopts J:c o; do
 	case "${o}" in
 		J)	MAKEJ_PORTS="${OPTARG}"
@@ -131,9 +134,10 @@ clean_make_install() {
 			#echo ">>> Already built $1 on this run.  Skipping..."
 		else
 			ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
-			if ! make -C $1 $ARGUMENTS clean build install; then
+			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install; then
 				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
 			fi
+			mv /tmp/$PORT /tmp/pfPort/$PORTNOBASENAME
 			echo "$1" >> /tmp/pfPort_alreadybuilt
 		fi
 	fi
@@ -205,6 +209,7 @@ for PORT in $PORTSTOBUILD; do
 		if [ ! -d $PORT_LOCATION ]; then
 			if [ -d $CURRENTDIR/$PORT_NAME ]; then
 				mkdir -p $PORT_LOCATION
+				rm -rf $PORT_LOCATION
 				cp -R $CURRENTDIR/$PORT_NAME/* $PORT_LOCATION/
 			fi
 		fi
