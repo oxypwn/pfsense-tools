@@ -1,0 +1,56 @@
+Index: sys/contrib/pf/net/pf_ioctl.c
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.2
+diff -u -r1.2 pf_ioctl.c
+--- sys/contrib/pf/net/pf_ioctl.c	21 Oct 2008 18:54:10 -0000	1.2
++++ sys/contrib/pf/net/pf_ioctl.c	21 Oct 2008 18:56:11 -0000
+@@ -2496,6 +2496,15 @@
+ 		break;
+ 	}
+ 
++	case DIOCGETNAMEDALTQ: {
++		struct pfioc_ruleset	*pa = (struct pfioc_ruleset *)addr;
++
++		if (pa->name[0])
++			pa->nr = pf_qname2qid(pa->name);
++
++		break;
++	}
++	
+ 	case DIOCGETALTQS: {
+ 		struct pfioc_altq	*pa = (struct pfioc_altq *)addr;
+ 		struct pf_altq		*altq;
+@@ -2575,6 +2584,16 @@
+ 	}
+ #endif /* ALTQ */
+ 
++	case DIOCGETNAMEDTAG: {
++                /* Little abuse. */
++                struct pfioc_ruleset    *pa = (struct pfioc_ruleset *)addr;
++
++                if (pa->name[0])
++                        pa->nr = pf_tagname2tag(pa->name);
++
++                break;
++        }
++
+ 	case DIOCBEGINADDRS: {
+ 		struct pfioc_pooladdr	*pp = (struct pfioc_pooladdr *)addr;
+ 
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /home/ermal/tmprepoDSCP/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.6
+diff -u -r1.6 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:54:54 -0000	1.6
++++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 18:56:14 -0000
+@@ -1606,6 +1606,8 @@
+ #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
+ #endif
+ #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
++#define DIOCGETNAMEDALTQ        _IOR('D', 94, u_int32_t)
++#define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)
+ 
+ #ifdef _KERNEL
+ RB_HEAD(pf_src_tree, pf_src_node);

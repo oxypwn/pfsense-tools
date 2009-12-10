@@ -1,0 +1,31 @@
+Index: usb_quirks.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/usb_quirks.c,v
+retrieving revision 1.63.2.3.2.1
+diff -u -r1.63.2.3.2.1 usb_quirks.c
+--- usb_quirks.c	25 Nov 2008 02:59:29 -0000	1.63.2.3.2.1
++++ usb_quirks.c	25 Jan 2009 20:28:39 -0000
+@@ -102,6 +102,8 @@
+ 	ANY, { UQ_HID_IGNORE }},
+  { USB_VENDOR_ITUNERNET, USB_PRODUCT_ITUNERNET_USBLCD2X20,
+ 	ANY, { UQ_HID_IGNORE }},
++ { USB_VENDOR_ITUNERNET, USB_PRODUCT_ITUNERNET_USBLCD4X20,
++	ANY, { UQ_HID_IGNORE }},
+  { USB_VENDOR_MGE, USB_PRODUCT_MGE_UPS1,
+ 	ANY, { UQ_HID_IGNORE }},
+  { USB_VENDOR_MGE, USB_PRODUCT_MGE_UPS2,
+Index: usbdevs
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
+retrieving revision 1.328.2.21.2.1
+diff -u -r1.328.2.21.2.1 usbdevs
+--- usbdevs	25 Nov 2008 02:59:29 -0000	1.328.2.21.2.1
++++ usbdevs	25 Jan 2009 20:28:39 -0000
+@@ -1455,6 +1455,7 @@
+ 
+ /* Ituner networks products */
+ product ITUNERNET USBLCD2X20	0x0002	USB-LCD 2x20
++product ITUNERNET USBLCD4X20	0xc001	USB-LCD 4x20
+ 
+ /* Jablotron products */
+ product JABLOTRON PC60B		0x0001	PC-60B

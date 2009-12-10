@@ -1,0 +1,24 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /home/eri/development/dummynet/localrepo/src/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf.c
+--- sys/contrib/pf/net/pf.c	10 Jul 2008 18:39:39 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf.c	11 Aug 2008 19:01:01 -0000
+@@ -6216,6 +6216,8 @@
+ 	}
+ 	if (ifp == NULL)
+ 		goto bad;
++	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
++		goto donelocal;
+ 
+ 	if (oifp != ifp) {
+ #ifdef __FreeBSD__
+@@ -6397,6 +6399,7 @@
+ done:
+ 	if (r->rt != PF_DUPTO)
+ 		*m = NULL;
++donelocal:
+ 	if (ro == &iproute && ro->ro_rt)
+ 		RTFREE(ro->ro_rt);
+ 	return;

@@ -1,0 +1,18 @@
+Index: pf.c
+===================================================================
+RCS file: /home/ermal/tmprepo/RELENG_7/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.4
+diff -u -r1.4 pf.c
+--- pf.c	11 Feb 2009 23:28:54 -0000	1.4
++++ pf.c	11 Feb 2009 23:29:40 -0000
+@@ -7323,7 +7323,9 @@
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt)
++	} else if (r->rt &&
++		/* Check to avoid breaking ipfw forward rules needed on CP and proxies listening on loclhost*/
++		!((m->m_flags & M_FASTFWD_OURS) || (pd.pf_mtag->flags & PF_TAG_TRANSLATE_LOCALHOST)))
+ 		/* pf_route can free the mbuf causing *m0 to become NULL */
+ 		pf_route(m0, r, dir, ifp, s, &pd);
+ 

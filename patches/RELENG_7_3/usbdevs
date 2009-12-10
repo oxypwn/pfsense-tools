@@ -1,0 +1,24 @@
+Index: usbdevs
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/usbdevs,v
+retrieving revision 1.328.2.1.2.1
+diff -u -r1.328.2.1.2.1 usbdevs
+--- usbdevs	7 Jan 2008 23:12:45 -0000	1.328.2.1.2.1
++++ usbdevs	24 Sep 2008 00:04:19 -0000
+@@ -1382,6 +1382,8 @@
+ /* HUAWEI products */
+ product HUAWEI MOBILE		0x1001	Huawei Mobile
+ 
++product USBCONNECT MERCURY	0x1199	USBConnect Mercury
++
+ /* HUAWEI 3com products */
+ product HUAWEI3COM WUB320G	0x0009	Aolynk WUB320g
+ 
+@@ -2021,6 +2023,7 @@
+ /* Sierra Wireless products */
+ product SIERRA AIRCARD580	0x0112	Sierra Wireless AirCard 580
+ product SIERRA MC5720		0x0218	MC5720 Wireless Modem
++product SIERRA USBCONNECT_MERCURY		0x1199	 Sierra Wireless USBConnect Mercury
+ 
+ /* Sigmatel products */
+ product SIGMATEL I_BEAD100	0x8008	i-Bead 100 MP3 Player

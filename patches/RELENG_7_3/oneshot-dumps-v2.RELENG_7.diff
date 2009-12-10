@@ -1,0 +1,334 @@
+Index: sys/kern/uipc_sockbuf.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/uipc_sockbuf.c,v
+retrieving revision 1.171.2.4
+diff -u -r1.171.2.4 uipc_sockbuf.c
+--- sys/kern/uipc_sockbuf.c	14 Oct 2008 07:58:18 -0000	1.171.2.4
++++ sys/kern/uipc_sockbuf.c	26 Oct 2008 14:58:12 -0000
+@@ -428,15 +428,18 @@
+ }
+ #endif /* SOCKBUF_DEBUG */
+ 
+-#define SBLINKRECORD(sb, m0) do {					\
++#define SBLINKRECORDCHAIN(sb, m0, mlast) do {				\
+ 	SOCKBUF_LOCK_ASSERT(sb);					\
+ 	if ((sb)->sb_lastrecord != NULL)				\
+ 		(sb)->sb_lastrecord->m_nextpkt = (m0);			\
+ 	else								\
+ 		(sb)->sb_mb = (m0);					\
+-	(sb)->sb_lastrecord = (m0);					\
++	(sb)->sb_lastrecord = (mlast);					\
+ } while (/*CONSTCOND*/0)
+ 
++#define SBLINKRECORD(sb, m0) \
++       SBLINKRECORDCHAIN(sb, m0, m0)
++
+ /*
+  * Append mbuf chain m to the last record in the socket buffer sb.  The
+  * additional space associated the mbuf chain is recorded in sb.  Empty mbufs
+@@ -681,6 +684,74 @@
+ }
+ 
+ int
++sbappendaddrchain_locked(sb, asa, m0)
++	struct sockbuf *sb;
++	const struct sockaddr *asa;
++	struct mbuf *m0;
++{
++	struct mbuf *m, *n, *n0, *nlast, *np;
++
++	SOCKBUF_LOCK_ASSERT(sb);
++
++#if MSIZE <= 256
++	if (asa->sa_len > MLEN)
++		return (0);
++#endif
++
++	n0 = np = nlast = NULL;
++	for (m = m0; m; m = m->m_nextpkt) {
++		MGET(n, M_DONTWAIT, MT_SONAME);
++		if (n == NULL)
++			goto outofmem;
++		n->m_len = asa->sa_len;
++		bcopy(asa, mtod(n, caddr_t), asa->sa_len);
++		n->m_next = m;
++
++		if (n0 == NULL)
++			n0 = n;
++		else
++			nlast->m_nextpkt = n;
++		nlast = n;
++
++		for (np = n; np->m_next; np = np->m_next)
++			sballoc(sb, np);
++		sballoc(sb, np);
++	}
++
++	SBLINKRECORDCHAIN(sb, n0, nlast);
++
++	sb->sb_mbtail = np;
++	SBLASTMBUFCHK(sb);
++
++	SBLASTRECORDCHK(sb);
++	return (1);
++
++outofmem:
++	while ((n = n0) != NULL) {
++		for (np = n; np; np = np->m_next)
++			sbfree(sb, np);
++
++		n0 = n->m_nextpkt;
++		m_free(n);
++	}
++	return (0);
++}
++
++int
++sbappendaddrchain(sb, asa, m0)
++	struct sockbuf *sb;
++	const struct sockaddr *asa;
++	struct mbuf *m0;
++{
++	int retval;
++
++	SOCKBUF_LOCK(sb);
++	retval = sbappendaddrchain_locked(sb, asa, m0);
++	SOCKBUF_UNLOCK(sb);
++	return (retval);
++}
++
++int
+ sbappendcontrol_locked(struct sockbuf *sb, struct mbuf *m0,
+     struct mbuf *control)
+ {
+Index: sys/netipsec/key.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/key.c,v
+retrieving revision 1.28.2.5
+diff -u -r1.28.2.5 key.c
+--- sys/netipsec/key.c	2 Sep 2008 19:36:47 -0000	1.28.2.5
++++ sys/netipsec/key.c	26 Oct 2008 14:58:19 -0000
+@@ -2372,7 +2372,7 @@
+ 	struct secpolicy *sp;
+ 	int cnt;
+ 	u_int dir;
+-	struct mbuf *n;
++	struct mbuf *n, *rh, *rt;
+ 
+ 	IPSEC_ASSERT(so != NULL, ("null socket"));
+ 	IPSEC_ASSERT(m != NULL, ("null mbuf"));
+@@ -2390,19 +2390,27 @@
+ 	if (cnt == 0)
+ 		return key_senderror(so, m, ENOENT);
+ 
++	rh = rt = NULL;
+ 	for (dir = 0; dir < IPSEC_DIR_MAX; dir++) {
+ 		LIST_FOREACH(sp, &sptree[dir], chain) {
+ 			--cnt;
+ 			n = key_setdumpsp(sp, SADB_X_SPDDUMP, cnt,
+ 			    mhp->msg->sadb_msg_pid);
++			if (!n) {
++				m_freem(rh);
++				return key_senderror(so, m, ENOBUFS);
++			}
+ 
+-			if (n)
+-				key_sendup_mbuf(so, n, KEY_SENDUP_ONE);
++			if (rt)
++				rt->m_nextpkt = n;
++			else
++				rh = n;
++			rt = n;
+ 		}
+ 	}
+ 
+ 	m_freem(m);
+-	return 0;
++	return key_sendup_mbuf(so, rh, KEY_SENDUP_ONESHOT);
+ }
+ 
+ static struct mbuf *
+@@ -3307,7 +3315,7 @@
+ 	u_int8_t type, satype;
+ 	u_int32_t seq, pid;
+ {
+-	struct mbuf *result = NULL, *tres = NULL, *m;
++	struct mbuf *result = NULL, *m;
+ 	int i;
+ 	int dumporder[] = {
+ 		SADB_EXT_SA, SADB_X_EXT_SA2,
+@@ -3323,7 +3331,7 @@
+ 		goto fail;
+ 	result = m;
+ 
+-	for (i = sizeof(dumporder)/sizeof(dumporder[0]) - 1; i >= 0; i--) {
++	for (i = 0; i < sizeof(dumporder)/sizeof(dumporder[0]); i++) {
+ 		m = NULL;
+ 		switch (dumporder[i]) {
+ 		case SADB_EXT_SA:
+@@ -3411,13 +3419,9 @@
+ 
+ 		if (!m)
+ 			goto fail;
+-		if (tres)
+-			m_cat(m, tres);
+-		tres = m;
+-		  
++		m_cat(result, m);
+ 	}
+ 
+-	m_cat(result, tres);
+ 	if (result->m_len < sizeof(struct sadb_msg)) {
+ 		result = m_pullup(result, sizeof(struct sadb_msg));
+ 		if (result == NULL)
+@@ -3435,7 +3439,6 @@
+ 
+ fail:
+ 	m_freem(result);
+-	m_freem(tres);
+ 	return NULL;
+ }
+ 
+@@ -6507,7 +6510,7 @@
+ 	u_int8_t state;
+ 	int cnt;
+ 	struct sadb_msg *newmsg;
+-	struct mbuf *n;
++	struct mbuf *rh, *rt, *n;
+ 
+ 	IPSEC_ASSERT(so != NULL, ("null socket"));
+ 	IPSEC_ASSERT(m != NULL, ("null mbuf"));
+@@ -6546,6 +6549,7 @@
+ 
+ 	/* send this to the userland, one at a time. */
+ 	newmsg = NULL;
++	rh = rt = NULL;
+ 	LIST_FOREACH(sah, &sahtree, chain) {
+ 		if (mhp->msg->sadb_msg_satype != SADB_SATYPE_UNSPEC
+ 		 && proto != sah->saidx.proto)
+@@ -6554,6 +6558,7 @@
+ 		/* map proto to satype */
+ 		if ((satype = key_proto2satype(sah->saidx.proto)) == 0) {
+ 			SAHTREE_UNLOCK();
++			m_freem(rh);
+ 			ipseclog((LOG_DEBUG, "%s: there was invalid proto in "
+ 				"SAD.\n", __func__));
+ 			return key_senderror(so, m, EINVAL);
+@@ -6568,16 +6573,21 @@
+ 				    --cnt, mhp->msg->sadb_msg_pid);
+ 				if (!n) {
+ 					SAHTREE_UNLOCK();
++					m_freem(rh);
+ 					return key_senderror(so, m, ENOBUFS);
+ 				}
+-				key_sendup_mbuf(so, n, KEY_SENDUP_ONE);
++				if (rt)
++					rt->m_nextpkt = n;
++				else
++					rh = n;
++				rt = n;
+ 			}
+ 		}
+ 	}
+ 	SAHTREE_UNLOCK();
+ 
+ 	m_freem(m);
+-	return 0;
++	return key_sendup_mbuf(so, rh, KEY_SENDUP_ONESHOT);
+ }
+ 
+ /*
+@@ -7260,7 +7270,7 @@
+ 	int l;
+ {
+ 	struct mbuf *m = NULL, *n;
+-	int len, t;
++	int len;
+ 
+ 	len = l;
+ 	while (len > 0) {
+@@ -7275,12 +7285,8 @@
+ 		n->m_next = NULL;
+ 		n->m_len = 0;
+ 		n->m_len = M_TRAILINGSPACE(n);
+-		/* use the bottom of mbuf, hoping we can prepend afterwards */
+-		if (n->m_len > len) {
+-			t = (n->m_len - len) & ~(sizeof(long) - 1);
+-			n->m_data += t;
++		if (n->m_len > len)
+ 			n->m_len = len;
+-		}
+ 
+ 		len -= n->m_len;
+ 
+Index: sys/netipsec/keysock.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/keysock.c,v
+retrieving revision 1.18.2.3
+diff -u -r1.18.2.3 keysock.c
+--- sys/netipsec/keysock.c	31 Aug 2008 15:55:59 -0000	1.18.2.3
++++ sys/netipsec/keysock.c	26 Oct 2008 14:58:20 -0000
+@@ -289,6 +289,16 @@
+ 		msg = mtod(m, struct sadb_msg *);
+ 		pfkeystat.in_msgtype[msg->sadb_msg_type]++;
+ 	}
++	if (target == KEY_SENDUP_ONESHOT) {
++		rp = sotorawcb(so);
++		if (!sbappendaddrchain(&rp->rcb_socket->so_rcv,
++					(struct sockaddr *) &key_src, m)) {
++			m_freem(m);
++			error = ENOBUFS;
++		}
++		sorwakeup(rp->rcb_socket);
++		return error;
++	}
+ 	mtx_lock(&rawcb_mtx);
+ 	LIST_FOREACH(rp, &rawcb_list, list)
+ 	{
+@@ -344,12 +354,7 @@
+ 			return ENOBUFS;
+ 		}
+ 
+-		if ((error = key_sendup0(rp, n, 0)) != 0) {
+-			m_freem(m);
+-			mtx_unlock(&rawcb_mtx);
+-			return error;
+-		}
+-
++		key_sendup0(rp, n, 0);
+ 		n = NULL;
+ 	}
+ 
+Index: sys/netipsec/keysock.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netipsec/keysock.h,v
+retrieving revision 1.3
+diff -u -r1.3 keysock.h
+--- sys/netipsec/keysock.h	21 Jan 2006 10:44:34 -0000	1.3
++++ sys/netipsec/keysock.h	26 Oct 2008 14:58:20 -0000
+@@ -61,6 +61,7 @@
+ #define KEY_SENDUP_ONE		0
+ #define KEY_SENDUP_ALL		1
+ #define KEY_SENDUP_REGISTERED	2
++#define KEY_SENDUP_ONESHOT	3
+ 
+ #ifdef _KERNEL
+ struct keycb {
+Index: sys/sys/sockbuf.h
+===================================================================
+RCS file: /home/ncvs/src/sys/sys/sockbuf.h,v
+retrieving revision 1.5.2.1
+diff -u -r1.5.2.1 sockbuf.h
+--- sys/sys/sockbuf.h	31 Jul 2008 20:35:44 -0000	1.5.2.1
++++ sys/sys/sockbuf.h	26 Oct 2008 14:58:21 -0000
+@@ -118,6 +118,10 @@
+ 
+ void	sbappend(struct sockbuf *sb, struct mbuf *m);
+ void	sbappend_locked(struct sockbuf *sb, struct mbuf *m);
++int	sbappendaddrchain(struct sockbuf *sb, const struct sockaddr *asa,
++		struct mbuf *m0);
++int	sbappendaddrchain_locked(struct sockbuf *sb, const struct sockaddr *asa,
++		struct mbuf *m0);
+ void	sbappendstream(struct sockbuf *sb, struct mbuf *m);
+ void	sbappendstream_locked(struct sockbuf *sb, struct mbuf *m);
+ int	sbappendaddr(struct sockbuf *sb, const struct sockaddr *asa,

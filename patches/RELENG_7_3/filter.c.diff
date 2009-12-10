@@ -1,0 +1,16 @@
+Index: filter.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/tftp-proxy/filter.c,v
+retrieving revision 1.2.8.1
+diff -u -r1.2.8.1 filter.c
+--- filter.c	15 Apr 2009 03:14:26 -0000	1.2.8.1
++++ filter.c	6 Jul 2009 18:56:13 -0000
+@@ -356,7 +356,7 @@
+ 	memset(&pnl, 0, sizeof pnl);
+ 	pnl.direction = PF_OUT;
+ 	pnl.af = AF_INET;
+-	pnl.proto = proto;
++	pnl.proto = IPPROTO_TCP;
+ 	memcpy(&pnl.saddr.v4, &client->sin_addr.s_addr, sizeof pnl.saddr.v4);
+ 	memcpy(&pnl.daddr.v4, &proxy->sin_addr.s_addr, sizeof pnl.daddr.v4);
+ 	pnl.sport = client->sin_port;

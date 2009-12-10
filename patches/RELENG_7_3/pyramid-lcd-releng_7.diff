@@ -1,0 +1,18 @@
+--- uftdi.c.orig	2009-06-18 15:57:46.000000000 +0200
++++ uftdi.c	2009-06-18 15:59:10.000000000 +0200
+@@ -162,6 +162,7 @@
+ 	     uaa->product == USB_PRODUCT_FTDI_MX4_5 ||
+ 	     uaa->product == USB_PRODUCT_FTDI_LK202 ||
+ 	     uaa->product == USB_PRODUCT_FTDI_LK204 ||
++	     uaa->product == USB_PRODUCT_FTDI_KBS ||
+ 	     uaa->product == USB_PRODUCT_FTDI_TACTRIX_OPENPORT_13M ||
+ 	     uaa->product == USB_PRODUCT_FTDI_TACTRIX_OPENPORT_13S ||
+ 	     uaa->product == USB_PRODUCT_FTDI_TACTRIX_OPENPORT_13U ||
+@@ -247,6 +248,7 @@
+ 		case USB_PRODUCT_FTDI_MX4_5:
+ 		case USB_PRODUCT_FTDI_LK202:
+ 		case USB_PRODUCT_FTDI_LK204:
++		case USB_PRODUCT_FTDI_KBS:
+ 		case USB_PRODUCT_FTDI_TACTRIX_OPENPORT_13M:
+ 		case USB_PRODUCT_FTDI_TACTRIX_OPENPORT_13S:
+ 		case USB_PRODUCT_FTDI_TACTRIX_OPENPORT_13U:

@@ -1,0 +1,20 @@
+Index: ip_output.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_output.c,v
+retrieving revision 1.276
+diff -u -r1.276 ip_output.c
+--- ip_output.c	7 Oct 2007 20:44:23 -0000	1.276
++++ ip_output.c	29 Aug 2008 21:05:49 -0000
+@@ -1149,7 +1149,11 @@
+ 	register struct ip *ip;
+ 	struct mbuf *copym;
+ 
+-	copym = m_copy(m, 0, M_COPYALL);
++	/*
++	 * Make a deep copy of the packet because we're going to
++	 * modify the pack in order to generate checksums.
++	 */
++	copym = m_dup(m, M_DONTWAIT);
+ 	if (copym != NULL && (copym->m_flags & M_EXT || copym->m_len < hlen))
+ 		copym = m_pullup(copym, hlen);
+ 	if (copym != NULL) {

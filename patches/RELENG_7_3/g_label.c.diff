@@ -1,0 +1,38 @@
+Index: g_label.c
+===================================================================
+RCS file: /home/ncvs/src/sys/geom/label/g_label.c,v
+retrieving revision 1.21.2.1.2.1
+diff -u -r1.21.2.1.2.1 g_label.c
+--- g_label.c	15 Apr 2009 03:14:26 -0000	1.21.2.1.2.1
++++ g_label.c	8 Jun 2009 07:57:27 -0000
+@@ -104,8 +104,8 @@
+ g_label_orphan(struct g_consumer *cp)
+ {
+ 
+-	G_LABEL_DEBUG(0, "Label %s removed.",
+-	    LIST_FIRST(&cp->geom->provider)->name);
++	//G_LABEL_DEBUG(0, "Label %s removed.",
++	//    LIST_FIRST(&cp->geom->provider)->name);
+ 	g_slice_orphan(cp);
+ }
+ 
+@@ -113,8 +113,8 @@
+ g_label_spoiled(struct g_consumer *cp)
+ {
+ 
+-	G_LABEL_DEBUG(0, "Label %s removed.",
+-	    LIST_FIRST(&cp->geom->provider)->name);
++	//G_LABEL_DEBUG(0, "Label %s removed.",
++	//    LIST_FIRST(&cp->geom->provider)->name);
+ 	g_slice_spoiled(cp);
+ }
+ 
+@@ -181,7 +181,7 @@
+ 	g_access(cp, -1, 0, 0);
+ 	g_slice_config(gp, 0, G_SLICE_CONFIG_SET, (off_t)0, mediasize,
+ 	    pp->sectorsize, name);
+-	G_LABEL_DEBUG(0, "Label for provider %s is %s.", pp->name, name);
++	//G_LABEL_DEBUG(0, "Label for provider %s is %s.", pp->name, name);
+ 	return (gp);
+ }
+ 

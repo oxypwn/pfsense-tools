@@ -1,0 +1,197 @@
+Index: contrib/pf/pfctl/pfctl.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pfctl.c
+--- contrib/pf/pfctl/pfctl.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl.c	21 Oct 2008 15:25:21 -0000
+@@ -76,6 +76,7 @@
+ void	 pfctl_addrprefix(char *, struct pf_addr *);
+ int	 pfctl_kill_src_nodes(int, const char *, int);
+ int	 pfctl_kill_states(int, const char *, int);
++int      pfctl_kill_ifstates(int, const char *, int);
+ void	 pfctl_init_options(struct pfctl *);
+ int	 pfctl_load_options(struct pfctl *);
+ int	 pfctl_load_limit(struct pfctl *, unsigned int, unsigned int);
+@@ -119,6 +120,8 @@
+ char		*src_node_kill[2];
+ int		 state_killers;
+ char		*state_kill[2];
++int		 if_kills;
++char		*if_kill;
+ int		 loadopt;
+ int		 altqsupport;
+ 
+@@ -238,7 +241,7 @@
+ 	fprintf(stderr, "usage: %s [-AdeghmNnOqRrvz] ", __progname);
+ 	fprintf(stderr, "[-a anchor] [-D macro=value] [-F modifier]\n");
+ 	fprintf(stderr, "\t[-f file] [-i interface] [-K host | network] ");
+-	fprintf(stderr, "[-k host | network ]\n");
++	fprintf(stderr, "[-k host | network ] [-b host | network ]\n");
+ 	fprintf(stderr, "\t[-o [level]] [-p device] [-s modifier ]\n");
+ 	fprintf(stderr, "\t[-t table -T command [address ...]] [-x level]\n");
+ 	exit(1);
+@@ -551,6 +554,68 @@
+ }
+ 
+ int
++pfctl_kill_ifstates(int dev, const char *iface, int opts)
++{
++       struct pfioc_state_kill psk;
++       struct addrinfo *res[2], *resp[2];
++       struct sockaddr last_src, last_dst;
++       int killed, sources;
++       int ret_ga;
++
++       killed = sources = 0;
++
++       memset(&psk, 0, sizeof(psk));
++       memset(&psk.psk_src.addr.v.a.mask, 0xff,
++           sizeof(psk.psk_src.addr.v.a.mask));
++       memset(&last_src, 0xff, sizeof(last_src));
++       memset(&last_dst, 0xff, sizeof(last_dst));
++       if (iface != NULL && strlcpy(psk.psk_ifname, iface,
++           sizeof(psk.psk_ifname)) >= sizeof(psk.psk_ifname))
++               errx(1, "invalid interface: %s", iface);
++
++       pfctl_addrprefix(if_kill, &psk.psk_src.addr.v.a.mask);
++
++       if ((ret_ga = getaddrinfo(if_kill, NULL, NULL, &res[0]))) {
++               errx(1, "getaddrinfo: %s", gai_strerror(ret_ga));
++               /* NOTREACHED */
++       }
++       for (resp[0] = res[0]; resp[0]; resp[0] = resp[0]->ai_next) {
++               if (resp[0]->ai_addr == NULL)
++                       continue;
++               /* We get lots of duplicates.  Catch the easy ones */
++               if (memcmp(&last_src, resp[0]->ai_addr, sizeof(last_src)) == 0)
++                       continue;
++               last_src = *(struct sockaddr *)resp[0]->ai_addr;
++
++               psk.psk_af = resp[0]->ai_family;
++               sources++;
++
++               if (psk.psk_af == AF_INET)
++                       psk.psk_src.addr.v.a.addr.v4 =
++                           ((struct sockaddr_in *)resp[0]->ai_addr)->sin_addr;
++               else if (psk.psk_af == AF_INET6)
++                       psk.psk_src.addr.v.a.addr.v6 =
++                           ((struct sockaddr_in6 *)resp[0]->ai_addr)->
++                           sin6_addr;
++               else
++                       errx(1, "Unknown address family %d", psk.psk_af);
++
++               if (ioctl(dev, DIOCKILLIFSTATES, &psk))
++                       err(1, "DIOCKILLIFSTATES");
++               killed += psk.psk_af;
++               /* fixup psk.psk_af */
++               psk.psk_af = res[0]->ai_family;
++       }
++
++       freeaddrinfo(res[0]);
++
++       if ((opts & PF_OPT_QUIET) == 0)
++               fprintf(stderr, "killed %d states from %d gateway\n",
++                   killed, sources);
++       return (0);
++}
++
++int
+ pfctl_kill_states(int dev, const char *iface, int opts)
+ {
+ 	struct pfioc_state_kill psk;
+@@ -1978,11 +2043,21 @@
+ 		usage();
+ 
+ 	while ((ch = getopt(argc, argv,
+-	    "a:AdD:eqf:F:ghi:k:K:mnNOo::p:rRs:t:T:vx:z")) != -1) {
++	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::p:rRs:t:T:vx:z")) != -1) {
+ 		switch (ch) {
+ 		case 'a':
+ 			anchoropt = optarg;
+ 			break;
++		case 'b':
++			if (if_kills >= 1) {
++				warnx("can only specify -b once");
++				usage();
++				/* NOTREACHED */
++			}
++			if_kill = optarg;
++			if_kills++;
++			mode = O_RDWR;
++			break;
+ 		case 'd':
+ 			opts |= PF_OPT_DISABLE;
+ 			mode = O_RDWR;
+@@ -2304,6 +2379,9 @@
+ 	if (src_node_killers)
+ 		pfctl_kill_src_nodes(dev, ifaceopt, opts);
+ 
++	if (if_kills)
++		pfctl_kill_ifstates(dev, ifaceopt, opts);
++
+ 	if (tblcmdopt != NULL) {
+ 		error = pfctl_command_tables(argc, argv, tableopt,
+ 		    tblcmdopt, rulesopt, anchorname, opts);
+Index: sys/contrib/pf/net/pf_ioctl.c
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf_ioctl.c
+--- sys/contrib/pf/net/pf_ioctl.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_ioctl.c	21 Oct 2008 15:25:27 -0000
+@@ -2018,6 +2018,39 @@
+ 		break;
+ 	}
+ 
++	case DIOCKILLIFSTATES: {
++               struct pf_state         *state, *nexts;
++               struct pf_state_host    *src;
++               struct pfioc_state_kill *psk = (struct pfioc_state_kill *)addr;
++               int                      killed = 0;
++
++               for (state = RB_MIN(pf_state_tree_id, &tree_id); state;
++                   state = nexts) {
++                       nexts = RB_NEXT(pf_state_tree_id, &tree_id, state);
++
++                       src = &state->gwy;
++                       if ((!psk->psk_af || state->af == psk->psk_af)
++                           && (!psk->psk_proto || psk->psk_proto ==
++                           state->proto) &&
++                           PF_MATCHA(psk->psk_src.neg,
++                           &psk->psk_src.addr.v.a.addr,
++                           &psk->psk_src.addr.v.a.mask,
++                           &src->addr, state->af) &&
++                           (!psk->psk_ifname[0] || !strcmp(psk->psk_ifname,
++                           state->u.s.kif->pfik_name))) {
++#if NPFSYNC > 0
++                               /* send immediate delete of state */
++                               pfsync_delete_state(state);
++                               state->sync_flags |= PFSTATE_NOSYNC;
++#endif
++                               pf_unlink_state(state);
++                               killed++;
++                       }
++               }
++               psk->psk_af = killed;
++               break;
++       }
++
+ 	case DIOCADDSTATE: {
+ 		struct pfioc_state	*ps = (struct pfioc_state *)addr;
+ 		struct pf_state		*state;
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.3
+diff -u -r1.3 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:23:00 -0000	1.3
++++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:25:43 -0000
+@@ -1590,6 +1590,7 @@
+ };
+ #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
+ #endif
++#define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
+ 
+ #ifdef _KERNEL
+ RB_HEAD(pf_src_tree, pf_src_node);

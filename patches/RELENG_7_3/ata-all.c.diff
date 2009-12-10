@@ -1,0 +1,45 @@
+--- ata-all.c.orig	2008-05-25 17:37:53.000000000 +0100
++++ ata-all.c	2008-05-25 17:37:51.000000000 +0100
+@@ -78,6 +78,7 @@
+ 
+ /* local vars */
+ static int ata_dma = 1;
++static int ata_dma_limit = 6;
+ static int atapi_dma = 1;
+ 
+ /* sysctl vars */
+@@ -85,6 +86,9 @@
+ TUNABLE_INT("hw.ata.ata_dma", &ata_dma);
+ SYSCTL_INT(_hw_ata, OID_AUTO, ata_dma, CTLFLAG_RDTUN, &ata_dma, 0,
+ 	   "ATA disk DMA mode control");
++TUNABLE_INT("hw.ata.ata_dma_limit", &ata_dma_limit);
++SYSCTL_INT(_hw_ata, OID_AUTO, ata_dma_limit, CTLFLAG_RDTUN, &ata_dma_limit, 0,
++	   "ATA disk DMA mode limit");
+ TUNABLE_INT("hw.ata.atapi_dma", &atapi_dma);
+ SYSCTL_INT(_hw_ata, OID_AUTO, atapi_dma, CTLFLAG_RDTUN, &atapi_dma, 0,
+ 	   "ATAPI device DMA mode control");
+@@ -900,17 +904,17 @@
+ ata_umode(struct ata_params *ap)
+ {
+     if (ap->atavalid & ATA_FLAG_88) {
+-	if (ap->udmamodes & 0x40)
++	if (ap->udmamodes & 0x40  &&  ata_dma_limit >= 6)
+ 	    return ATA_UDMA6;
+-	if (ap->udmamodes & 0x20)
++	if (ap->udmamodes & 0x20  &&  ata_dma_limit >= 5)
+ 	    return ATA_UDMA5;
+-	if (ap->udmamodes & 0x10)
++	if (ap->udmamodes & 0x10  &&  ata_dma_limit >= 4)
+ 	    return ATA_UDMA4;
+-	if (ap->udmamodes & 0x08)
++	if (ap->udmamodes & 0x08  &&  ata_dma_limit >= 3)
+ 	    return ATA_UDMA3;
+-	if (ap->udmamodes & 0x04)
++	if (ap->udmamodes & 0x04  &&  ata_dma_limit >= 2)
+ 	    return ATA_UDMA2;
+-	if (ap->udmamodes & 0x02)
++	if (ap->udmamodes & 0x02  &&  ata_dma_limit >= 1)
+ 	    return ATA_UDMA1;
+ 	if (ap->udmamodes & 0x01)
+ 	    return ATA_UDMA0;
+

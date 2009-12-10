@@ -1,0 +1,33 @@
+Index: if_gif.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_gif.c,v
+retrieving revision 1.66.2.2.4.1
+diff -u -r1.66.2.2.4.1 if_gif.c
+--- if_gif.c	15 Apr 2009 03:14:26 -0000	1.66.2.2.4.1
++++ if_gif.c	22 Oct 2009 20:25:33 -0000
+@@ -198,7 +198,8 @@
+ 	struct ifnet *ifp;
+ {
+ 	int err;
+-	struct gif_softc *sc = ifp->if_softc;
++	//struct gif_softc *sc = ifp->if_softc;
++	struct gif_softc *sc;
+ 
+ 	mtx_lock(&gif_mtx);
+ 	LIST_REMOVE(sc, gif_list);
+@@ -479,6 +480,7 @@
+ 	struct ifnet *ifp;
+ {
+ 	int isr, n;
++	struct gif_softc *sc;
+ 	struct etherip_header *eip;
+ 	struct ether_header *eh;
+ 	struct ifnet *oldifp;
+@@ -489,6 +491,7 @@
+ 		return;
+ 	}
+ 
++	sc = ifp->if_softc;
+ 	m->m_pkthdr.rcvif = ifp;
+ 
+ #ifdef MAC
