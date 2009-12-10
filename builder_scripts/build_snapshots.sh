@@ -441,7 +441,7 @@ build_loop_operations() {
 	# SCP files to snapshot web hosting area
 	scp_files
 	# Alert the world that we have some snapshots ready.
-	post_tweet "Snapshots for FreeBSD_${FREEBSD_BRANCH}/{$ARCH}/pfSense-${PFSENSETAG} have been copied http://snapshots.pfsense.org/FreeBSD_${FREEBSD_BRANCH}/{$ARCH}/pfSense_${PFSENSETAG}/"
+	post_tweet "Snapshots for FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense-${PFSENSETAG} have been copied http://snapshots.pfsense.org/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/"
 }
 
 # Main builder loop - if you want to loop a build invoke build_snapshots_looped.sh
