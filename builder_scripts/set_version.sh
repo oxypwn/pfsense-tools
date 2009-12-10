@@ -177,7 +177,6 @@ RELENG_2_0)
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
 	set_items
-	set_items
 ;;
 
 RELENG_7_2)
