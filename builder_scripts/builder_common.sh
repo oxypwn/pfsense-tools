@@ -692,6 +692,13 @@ cust_overlay_host_binaries() {
 		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
 	fi
 
+	if [ -f /tmp/pfPort/copy.list ]; then
+		rm /tmp/pfPort/copy.list
+		touch /tmp/pfPort/copy.list
+	else
+		touch /tmp/pfPort/copy.list
+	fi
+
 	# Process base system libraries
 	NEEDEDLIBS=""
 	echo ">>> Populating newer binaries found on host jail/os (usr/local)..."
@@ -714,6 +721,8 @@ cust_overlay_host_binaries() {
 				if [ "$FILETYPE" -gt 0 ]; then
 					NEEDEDLIBS="$NEEDEDLIBS `ldd ${CVS_CO_DIR}/${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"
 				fi
+			else
+				echo "Could not locate $TEMPFILE" >> /tmp/pfPort/copy.list				
 			fi
 		fi
 	done
