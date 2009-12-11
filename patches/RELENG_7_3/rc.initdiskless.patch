@@ -1,5 +1,5 @@
---- a/etc/rc.initdiskless
-+++ b/etc/rc.initdiskless
+--- a/etc/rc.initdiskless.orig	2009-12-10 21:14:23.000000000 +0100
++++ b/etc/rc.initdiskless	2009-12-10 21:20:16.000000000 +0100
 @@ -30,12 +30,12 @@
  # mounted via NFS. The kernel has run BOOTP and configured an interface
  # (otherwise it would not have been able to mount the NFS root!)
@@ -15,7 +15,7 @@
  # for which memory filesystems will be created and filled,
  # and T is one of the "template" directories below:
  #
-@@ -55,66 +55,66 @@
+@@ -55,80 +55,80 @@
  # Template directories are scanned in the order they are listed above,
  # with each sucessive directory overriding (merged into) the previous one;
  # non-existing directories are ignored.  The subdirectory forms exist to
@@ -38,6 +38,27 @@
 -#		then /dev/ad0s3 will be be mounted on /conf/1.2.3.4/foo/
 +# 		${CONFIG_DIR}/1.2.3.4/foo/remount contains "mount -o ro /dev/ad0s3",
 +#		then /dev/ad0s3 will be be mounted on ${CONFIG_DIR}/1.2.3.4/foo/
+ #
+-# /conf/T/M/remount_optional
++# ${CONFIG_DIR}/T/M/remount_optional
+ #		If this file exists, then failure to execute the mount
+-#		command contained in /conf/T/M/remount is non-fatal.
++#		command contained in ${CONFIG_DIR}/T/M/remount is non-fatal.
+ #
+-# /conf/T/M/remount_subdir
+-#		If this file exists, then the behaviour of /conf/T/M/remount
++# ${CONFIG_DIR}/T/M/remount_subdir
++#		If this file exists, then the behaviour of ${CONFIG_DIR}/T/M/remount
+ #		changes as follows:
+-#		 1. /conf/T/M/remount is invoked to mount the root of the
++#		 1. ${CONFIG_DIR}/T/M/remount is invoked to mount the root of the
+ #		    filesystem where the configuration data exists on a
+ #		    temporary mountpoint.
+-#		 2. /conf/T/M/remount_subdir is then invoked to mount a
++#		 2. ${CONFIG_DIR}/T/M/remount_subdir is then invoked to mount a
+ #		    *subdirectory* of the filesystem mounted by
+-#		    /conf/T/M/remount on /conf/T/M/.
++#		    ${CONFIG_DIR}/T/M/remount on ${CONFIG_DIR}/T/M/.
  #
 -# /conf/T/M/diskless_remount
 +# ${CONFIG_DIR}/T/M/diskless_remount
@@ -80,16 +101,14 @@
  #
 -# /conf/diskless_remount
 -#		Similar to /conf/T/M/diskless_remount above, but allows
--#		all of /conf to be remounted.  This can be used to allow
--#		multiple roots to share the same /conf.
 +# ${CONFIG_DIR}/diskless_remount
 +#		Similar to ${CONFIG_DIR}/T/M/diskless_remount above, but allows
-+#		all of ${CONFIG_DIR} to be remounted.  This can be used to allow
+ #		all of /conf to be remounted.  This can be used to allow
+-#		multiple roots to share the same /conf.
 +#		multiple roots to share the same ${CONFIG_DIR}.
  #		
  #
--# You will almost universally want to create the following files under /conf
-+# You will almost universally want to create the following files under ${CONFIG_DIR}
+ # You will almost universally want to create the following files under /conf
  #
  # File					Content
  # ----------------------------		----------------------------------
@@ -104,7 +123,7 @@
  #
  #	foo:/root_part			/	nfs	ro		0 0
  #	foo:/usr_part			/usr	nfs     ro		0 0
-@@ -127,9 +127,10 @@
+@@ -141,9 +141,10 @@
  #
  # NOTE!  /var, /tmp, and /dev will be typically created elsewhere, e.g.
  # as entries in the fstab as above.
@@ -116,7 +135,7 @@
  
  dlv=`/sbin/sysctl -n vfs.nfs.diskless_valid 2> /dev/null`
  
-@@ -254,11 +255,11 @@ if [ -n "${bootp_ipa}" ]; then
+@@ -272,11 +273,11 @@
  	templates="${templates} ${bootp_ipa} ip/${bootp_ipa}"
  fi
  
@@ -132,7 +151,7 @@
  # directories:
  #
  # - calculate memory filesystem sizes.  If the subdirectory (prior to
-@@ -268,9 +269,9 @@ handle_remount /conf
+@@ -286,9 +287,9 @@
  #
  # - handle NFS remounts.  If the subdirectory contains the file
  #   diskless_remount, the contents of the file is NFS mounted over
@@ -144,7 +163,7 @@
  #   be sure to export those filesystems -alldirs, however.
  #   If the diskless_remount file contains a string beginning with a
  #   '/' it is assumed that the local nfsroot should be prepended to
-@@ -279,7 +280,7 @@ handle_remount /conf
+@@ -297,7 +298,7 @@
  #
  log "templates are ${templates}"
  for i in ${templates} ; do
@@ -153,7 +172,7 @@
  	[ -d $j ] || continue
  
  	# memory filesystem size specification
-@@ -309,14 +310,14 @@ done
+@@ -350,14 +351,14 @@
  # from being copied.
  
  for i in ${templates} ; do
@@ -170,7 +189,7 @@
  	subdir=${j%*.cpio.gz}
  	subdir=${subdir##*/}
  	if [ -f $j ]; then
-@@ -325,7 +326,7 @@ for i in ${templates} ; do
+@@ -366,7 +367,7 @@
  	    (cd / ; /rescue/tar -xpf $j)
  	fi
      done

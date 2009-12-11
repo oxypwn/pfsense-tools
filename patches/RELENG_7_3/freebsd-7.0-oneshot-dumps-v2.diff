@@ -113,7 +113,7 @@ Index: netipsec/key.c
  
  	IPSEC_ASSERT(so != NULL, ("null socket"));
  	IPSEC_ASSERT(m != NULL, ("null mbuf"));
-@@ -2393,19 +2393,27 @@
+@@ -2393,20 +2393,28 @@
  	if (cnt == 0)
  		return key_senderror(so, m, ENOENT);
  
@@ -138,6 +138,7 @@ Index: netipsec/key.c
  		}
  	}
  
+	SPTREE_UNLOCK();
  	m_freem(m);
 -	return 0;
 +	return key_sendup_mbuf(so, rh, KEY_SENDUP_ONESHOT);
