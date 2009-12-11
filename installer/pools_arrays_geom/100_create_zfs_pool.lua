@@ -49,7 +49,7 @@ return {
 	    fields = {
 			{
 			    id = "poolname",
-			    name = _("Poolname"),
+			    name = _("Pool name"),
 			    short_desc = _("Enter the name of the ZFS pool")
 			}			
 	    },
@@ -82,14 +82,14 @@ return {
 		cmds:add("/sbin/zpool create ${disk}")
 	end
 	
-    -- Finally execute the commands to create the gmirror
+    -- Finally execute the commands to create the ZFS pool
     if cmds:execute() then
 	    -- Survey disks again, they have changed.
 	    App.state.storage:survey()
         App.ui:inform(_(
             "The ZFS Pool has been created with no errors.  \n" ..
             "The pool will now appear in the select disk step.\n" ..
-			"Alternatively you might want to apply zfs settings\n" ..
+			"Alternatively you might want to apply ZFS settings\n" ..
 			"and add disks to the newly created pool")
         )
     else

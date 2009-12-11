@@ -48,3 +48,4 @@
 ~~tty.c.diff~
 ~~uipc_syscalls.c.diff~
 ~~fifo_vnops.c.diff~
+~sys/dev/if_ndis~if_ndis.c.diff~
