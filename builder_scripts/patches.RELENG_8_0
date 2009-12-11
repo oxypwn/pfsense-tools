@@ -49,3 +49,4 @@
 ~~uipc_syscalls.c.diff~
 ~~fifo_vnops.c.diff~
 ~sys/dev/if_ndis~if_ndis.c.diff~
+~sys/dev/ata~ata-disk.c.diff~
