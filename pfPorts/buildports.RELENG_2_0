@@ -64,6 +64,7 @@ pftop						/usr/ports/sysutils/pftop				/usr/local/sbin/pftop
 libevent					/usr/ports/devel/libevent				/usr/local/lib/libevent.so
 relayd						/usr/ports/net/relayd					/usr/local/sbin/relayd
 fping						/usr/ports/net/fping					/usr/local/sbin/fping
+minicron					/usr/ports/sysutils/minicron			/usr/local/bin/minicron
 php5						/usr/ports/lang/php5					/usr/local/bin/php
 pecl-APC					/usr/ports/www/pecl-APC					/usr/local/lib/php/20060613/apc.so
 php5-bcmath					/usr/ports/math/php5-bcmath				/usr/local/lib/php/20060613/bcmath.so
