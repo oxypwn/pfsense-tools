@@ -56,7 +56,7 @@
 #include <sysexits.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <errno.h>
+#include <time.h>
 
 #include "hashtable.h"
 #include "hashtable_private.h"
@@ -91,11 +91,15 @@ STAILQ_HEAD(pkt_head, ic_pkt);
  * Structure on which incomming/outgoing packets are queued.
  */
 struct ic_queue {
+	struct hashtable *hash;		/* hashtable for flows */
 	pthread_cond_t	fq_condvar;	/* signaled when pkts are available */
+	pthread_cond_t	gq_condvar;	/* signaled when pkts need GC */
 	pthread_mutex_t fq_mtx;		/* syncronization mutex */
 	struct pkt_head fq_pkthead;	/* queue head */
 	int fq_maxsz;			/* max size (in packets) of queue */
 	int fq_size;			/* current size */
+	pthread_t	classifytd;	/* classify thread */
+	pthread_t	garbagetd;	/* garbage collect thread */
 };
 
 /*
@@ -135,11 +139,20 @@ struct allhdr {
 /*
  * Global incomming and outgoing queues.
  */
-static struct ic_queue inQ;
+static struct ic_queue inQTCP;
+static struct ic_queue inQUDP;
 static struct ic_queue outQ;
 
+
+/*
+ * Since getting time is a expensive operation dedicate 
+ * a thread to it.
+ */
+static struct timeval   t_time;
+
 /* divert(4) socket */
-static int dvtS = 0;
+static int dvtSin = 0;
+static int dvtSout = 0;
 
 /* config file path */
 static const char *conf = IC_CONFIG_PATH;
@@ -148,15 +161,12 @@ static const char *conf = IC_CONFIG_PATH;
 static const char *protoDir = IC_PROTO_PATH;
 
 /* List of protocols available to the system */
+pthread_rwlock_t fp_lock;
+#define FP_LOCK_INIT    pthread_rwlock_init(&fp_lock, NULL)
+#define FP_LOCK         pthread_rwlock_rdlock(&fp_lock)
+#define FP_UNLOCK       pthread_rwlock_unlock(&fp_lock)
+#define FP_WLOCK        pthread_rwlock_wrlock(&fp_lock)
 struct ic_protocols *fp;
-
-/* Our hashtables */
-struct hashtable 
-		*th = NULL, 
-		*uh = NULL;
-
-/* signaled to kick garbage collector */
-static pthread_cond_t  gq_condvar;     
 
 /* number of packets before kicking garbage collector */
 static unsigned int npackets = 250; 
@@ -169,19 +179,90 @@ void		*classify_pthread(void *);
 void		*read_pthread(void *);
 void		*write_pthread(void *);
 void		*garbage_pthread(void *);
+void		*classifyd_get_time(void *);
 static int	equalkeys(void *, void *);
 static unsigned int hashfromkey(void *);
 static void	test_re(void);
+static int	init_queue(struct ic_queue *, uint16_t);
+static void	clean_queue(struct ic_queue *);
 static void	handle_signal(int);
 static int	read_config(const char *, struct ic_protocols *);
 static void	usage(const char *);
+
+void *
+classifyd_get_time(void *arg __unused) 
+{
+	struct timespec ts;
+
+	ts.tv_sec = 0;
+	ts.tv_nsec = 200 * 1000; /* 200 miliseconds */
+
+	while (1) {
+		while(gettimeofday(&t_time, NULL) != 0)
+			;
+
+		nanosleep(&ts, NULL);
+	}
+}
+
+static void
+clean_queue(struct ic_queue *queue)
+{
+	if (queue->hash != NULL)
+		hashtable_destroy(queue->hash, 1);
+}
+
+static int 
+init_queue(struct ic_queue *queue, uint16_t qmaxsz)
+{
+	int error = 0;
+
+	/*
+         * Initialize incomming and outgoing queues.
+         */
+        STAILQ_INIT(&queue->fq_pkthead);
+        queue->fq_maxsz = qmaxsz;
+        error = pthread_mutex_init(&queue->fq_mtx, NULL);
+        if (error != 0) {
+                warn("unable to initialize input queue mutex at line %d", __LINE__);
+		return error;
+	}
+        error = pthread_cond_init(&queue->fq_condvar, NULL);
+        if (error != 0) {
+                warn("unable to initialize input queue condvar at line %d", __LINE__);	
+		return error;
+	}
+
+	queue->hash = create_hashtable(IC_HASHSZ, hashfromkey, equalkeys);
+        if (queue->hash == NULL) {
+                syslog(LOG_ERR, "unable to create tracking table at line %d", __LINE__);
+                return (EX_SOFTWARE);
+        }
+	error = pthread_create(&queue->classifytd, NULL, classify_pthread, queue);
+        if (error != 0) {
+                syslog(LOG_ERR, "unable to create classifier thread at line %d", __LINE__);
+                goto cleanup;
+        }
+	error = pthread_create(&queue->garbagetd, NULL, garbage_pthread, queue);
+        if (error != 0) {
+                syslog(LOG_ERR, "unable to create garbage collect thread at line %d", __LINE__);
+                goto cleanup;
+        }
+
+	return (error);
+
+cleanup:
+	clean_queue(queue);
+	
+	return (error);
+}
 
 int
 main(int argc, char **argv)
 {
 	struct sockaddr_in addr;
 	struct sigaction sa;
-	pthread_t  classifytd, readtd, writetd, garbagectd;
+	pthread_t  readtd, writetd, time_thread;
 	const char *errstr;
 	long long  num;
 	uint16_t   port, qmaxsz;
@@ -253,45 +334,30 @@ main(int argc, char **argv)
 		err(EX_OSERR, "unable to daemonize");
 
 	/*
-	 * Initialize incomming and outgoing queues.
-	 */
-	STAILQ_INIT(&inQ.fq_pkthead);
-	inQ.fq_maxsz = qmaxsz;
-	error = pthread_mutex_init(&inQ.fq_mtx, NULL);
-	if (error != 0)
-		err(EX_OSERR, "unable to initialize input queue mutex");
-	error = pthread_cond_init(&inQ.fq_condvar, NULL);
-	if (error != 0)
-		err(EX_OSERR, "unable to initialize input queue condvar");
-	STAILQ_INIT(&outQ.fq_pkthead);
-	outQ.fq_maxsz = qmaxsz;
-	error = pthread_mutex_init(&outQ.fq_mtx, NULL);
-	if (error != 0)
-		err(EX_OSERR, "unable to initialize output queue mutex");
-	error = pthread_cond_init(&outQ.fq_condvar, NULL);
-	if (error != 0)
-		err(EX_OSERR, "unable to initialize output queue condvar");
-        error = pthread_cond_init(&gq_condvar, NULL);
-        if (error != 0)
-                err(EX_OSERR, "unable to initialize garbage collector condvar");
-
-	/*
 	 * Create and bind the divert(4) socket.
 	 */
 	memset((void *)&addr, 0, sizeof(addr));
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = INADDR_ANY;
-	dvtS = socket(PF_INET, SOCK_RAW, IPPROTO_DIVERT);
-	if (dvtS == -1)
-		err(EX_OSERR, "unable to create divert socket");
-	error = bind(dvtS, (struct sockaddr *)&addr, sizeof(addr));
+	dvtSin = socket(PF_INET, SOCK_RAW, IPPROTO_DIVERT);
+	if (dvtSin == -1)
+		err(EX_OSERR, "unable to create in divert socket");
+	error = bind(dvtSin, (struct sockaddr *)&addr, sizeof(addr));
 	if (error != 0)
-		err(EX_OSERR, "unable to bind divert socket");
+		err(EX_OSERR, "unable to bind in divert socket");
+	dvtSout = socket(PF_INET, SOCK_RAW, IPPROTO_DIVERT);
+	if (dvtSout == -1)
+		err(EX_OSERR, "unable to create out divert socket");
+	addr.sin_port = htons(port + 1);
+	error = bind(dvtSout, (struct sockaddr *)&addr, sizeof(addr));
+	if (error != 0)
+		err(EX_OSERR, "unable to bind out divert socket");
 
 	/*
 	 * Initialize list of available protocols.
 	 */
+	FP_LOCK_INIT;
 	fp = init_protocols(protoDir);
 	if (fp == NULL) {
 		syslog(LOG_ERR, "unable to initialize list of protocols: %m");
@@ -307,33 +373,32 @@ main(int argc, char **argv)
 		exit(error);
 	}
 
-	/*
-	 * Catch SIGHUP in order to reread configuration file.
-	 */
-	sa.sa_handler = handle_signal;
-	sa.sa_flags = SA_SIGINFO|SA_RESTART;
-	sigemptyset(&sa.sa_mask);
-	error = sigaction(SIGHUP, &sa, NULL);
-	if (error == -1)
-		err(EX_OSERR, "unable to set signal handler");
-	error = sigaction(SIGTERM, &sa, NULL);
-	if (error == -1)
-		err(EX_OSERR, "unable to set signal handler");
+        /*
+         * Catch SIGHUP in order to reread configuration file.
+         */
+        sa.sa_handler = handle_signal;
+        sa.sa_flags = SA_SIGINFO|SA_RESTART;
+        sigemptyset(&sa.sa_mask);
+        error = sigaction(SIGHUP, &sa, NULL);
+        if (error == -1)
+                err(EX_OSERR, "unable to set signal handler");
+        error = sigaction(SIGTERM, &sa, NULL);
+        if (error == -1)
+                err(EX_OSERR, "unable to set signal handler");
 
         /*
-         * There are 2 tables: udp and tcp.
+         * Initialize incomming and outgoing queues.
          */
-        th = create_hashtable(IC_HASHSZ, hashfromkey, equalkeys);
-        if (th == NULL) {
-                syslog(LOG_ERR, "unable to create TCP tracking table");
-		error = EX_SOFTWARE;
-                goto cleanup;
+        if (init_queue(&inQTCP, qmaxsz))
+                err(EX_OSERR, "check your configuration and parameters to continue");
+        if (init_queue(&inQUDP, qmaxsz)) {
+                clean_queue(&inQTCP);
+                err(EX_OSERR, "check your configuration and parameters to continue");
         }
-        uh = create_hashtable(IC_HASHSZ, hashfromkey, equalkeys);
-        if (uh == NULL) {
-                syslog(LOG_ERR, "unable to create UDP tracking table");
-		error = EX_SOFTWARE;
-                goto cleanup;
+        if (init_queue(&outQ, qmaxsz)) {
+                clean_queue(&inQTCP);
+                clean_queue(&inQUDP);
+                err(EX_OSERR, "check your configuration and parameters to continue");
         }
 
 	/*
@@ -345,48 +410,52 @@ main(int argc, char **argv)
 		error = EX_OSERR;
 		goto cleanup;
 	}
-	error = pthread_create(&classifytd, NULL, classify_pthread, NULL);
-	if (error != 0) { 
-		syslog(LOG_ERR, "unable to create classifier thread");
-		error = EX_OSERR;
-		goto cleanup;
-	}
 	error = pthread_create(&writetd, NULL, write_pthread, NULL);
 	if (error != 0) {
 		syslog(LOG_ERR, "unable to create writer thread");
 		error = EX_OSERR;
 		goto cleanup;
 	}
-        error = pthread_create(&garbagectd, NULL, garbage_pthread, NULL);
+	error = pthread_create(&time_thread, NULL, classifyd_get_time, NULL);
         if (error != 0) {
-                syslog(LOG_ERR, "unable to create garbage collect thread");
-		error = EX_OSERR;
-		goto cleanup;
-	}
+                clean_queue(&inQTCP);
+                clean_queue(&inQUDP);
+                clean_queue(&outQ);
+                syslog(LOG_ERR, "unable to create time reading thread");
+                goto cleanup;
+        }
+
 	/*
 	 * Wait for our threads to exit.
 	 */
 	pthread_join(readtd, NULL);
-	pthread_join(classifytd, NULL);
 	pthread_join(writetd, NULL);
-	pthread_join(garbagectd, NULL);
+	pthread_join(inQTCP.classifytd, NULL);
+	pthread_join(inQUDP.classifytd, NULL);
+	pthread_join(inQTCP.garbagetd, NULL);
+	pthread_join(inQUDP.garbagetd, NULL);
+	pthread_join(time_thread, NULL);
+
 	/*
 	 * Cleanup
 	 */
 cleanup:
-	if (dvtS > 0)
-		close(dvtS);
-	if (th != NULL)
-		hashtable_destroy(th, 1);
-	if (uh != NULL)
-		hashtable_destroy(uh, 1);
-	
+	if (dvtSin > 0)
+		close(dvtSin);
+	if (dvtSout > 0)
+		close(dvtSout);
+
+	FP_WLOCK;
+	fini_protocols(fp);
+	FP_UNLOCK;
+
 	return (error);
 }
 
 void *
 read_pthread(void *arg __unused)
 {
+	struct ic_queue	   *queue;
 	struct ic_pkt	   *pkt;
 	struct ip *ipp;
 	int	  len;
@@ -396,50 +465,64 @@ read_pthread(void *arg __unused)
 		pkt = (struct ic_pkt *)malloc(sizeof(struct ic_pkt));
 		if (pkt == NULL) {
 			syslog(LOG_ERR, "malloc of pkt structure failed: %m");
-			exit(EX_TEMPFAIL);
+			continue; /* XXX */
 		}
 		pkt->fp_pkt = (char *)malloc(IC_PKTSZ);
 		if (pkt->fp_pkt == NULL) {
 			syslog(LOG_ERR, "malloc of buffer for pkt failed: %m");
-			exit(EX_TEMPFAIL);
+			free(pkt);
+			continue; /* XXX */
 		}
 
 getinput:
 		memset(&pkt->fp_saddr, '\0', sizeof(struct sockaddr_in));
 		pkt->fp_salen = sizeof(struct sockaddr_in);
-		len = recvfrom(dvtS, (void *)pkt->fp_pkt, IC_PKTSZ, 0,
+		len = recvfrom(dvtSin, (void *)pkt->fp_pkt, IC_PKTSZ, 0,
 		    (struct sockaddr *)&pkt->fp_saddr, &pkt->fp_salen);
 		if (len == -1) {
-			if (errno != EINTR)
-				syslog(LOG_ERR, "receive from divert socket failed: %m");
-			goto getinput;
+			syslog(LOG_ERR, "receive from divert socket failed: %m");
+			goto getinput; /* XXX */
 		}
 		ipp = (struct ip *)pkt->fp_pkt;
 
 		/* Drop packets that are not TCP or UDP */
-		if (ipp->ip_p != IPPROTO_TCP && ipp->ip_p != IPPROTO_UDP) {
+		/* XXX: Make more dynamic so protocols can be easly added. */
+		switch (ipp->ip_p) {
+		case IPPROTO_TCP:
+			/* Drop the packet if the queue is already full */
+			if (inQTCP.fq_size >= inQTCP.fq_maxsz) {
+				syslog(LOG_WARNING, "packet dropped: input TCP queue full");
+				goto getinput;
+			}
+			queue = &inQTCP;
+			break;
+		case IPPROTO_UDP:
+			/* Drop the packet if the queue is already full */
+			if (inQUDP.fq_size >= inQUDP.fq_maxsz) {
+				syslog(LOG_WARNING, "packet dropped: input UDP queue full");
+				goto getinput;
+			}
+			queue = &inQUDP;
+			break;
+		default:
 			syslog(LOG_WARNING, "packet dropped: not TCP or UDP");
 			goto getinput;
-
-		/* Drop the packet if the queue is already full */
-		} else if (inQ.fq_size >= inQ.fq_maxsz) {
-			syslog(LOG_WARNING, "packet dropped: input queue full");
-			goto getinput;
+			break;
 		}
 
 		/*
 		 * Enqueue incomming packet.
 		 */
 		pkt->fp_pktlen = len;
-		pthread_mutex_lock(&inQ.fq_mtx);
-		STAILQ_INSERT_HEAD(&inQ.fq_pkthead, pkt, fp_link);
-		inQ.fq_size++;
-		pthread_mutex_unlock(&inQ.fq_mtx);
+		pthread_mutex_lock(&queue->fq_mtx);
+		STAILQ_INSERT_HEAD(&queue->fq_pkthead, pkt, fp_link);
+		queue->fq_size++;
+		pthread_mutex_unlock(&queue->fq_mtx);
 		if (++pcktcnt > npackets) {
 			pcktcnt = 0;
-			pthread_cond_signal(&gq_condvar);
+			pthread_cond_signal(&queue->gq_condvar);
 		} else
-			pthread_cond_signal(&inQ.fq_condvar);
+			pthread_cond_signal(&queue->fq_condvar);
 	}
 
 	/* NOTREACHED */
@@ -472,6 +555,7 @@ getinput:
 #define CLASSIFY(fp, pkt, proto, flow, key, pmatch, trycount, error, regerr) 	\
 	do {									\
 		(trycount) = 0;							\
+		FP_LOCK;							\
 		SLIST_FOREACH((proto), &(fp)->fp_p, p_next) {			\
 			if ((proto)->p_fwrule == 0)				\
 				continue;					\
@@ -498,35 +582,33 @@ getinput:
 			}							\
 			(trycount)++;						\
 		}								\
+		FP_UNLOCK;							\
 	} while (0)
 
 void *
-classify_pthread(void *arg __unused)
+classify_pthread(void *arg)
 {
+	struct ic_queue	 *queue = (struct ic_queue *)arg;
 	char		 errbuf[LINE_MAX];
 	struct allhdr	 *hdr;
 	struct ip_flow_key *key;
 	struct ip_flow	 *flow;
-	struct tcphdr	 *tcp;
+	struct tcphdr	 *tcp = NULL;;
 	struct udphdr	 *udp;
 	struct ic_pkt	 *pkt;
 	struct protocol	 *proto;
-	struct timeval	 tv;
 	regmatch_t	 pmatch;
-	u_char		 *data, *payload;
+	u_char		 *data, *payload = NULL;
 	uint16_t	 trycount;
-	int		 datalen, error;
+	int		 datalen = 0, error;
 
 	flow = NULL;
 	key = NULL;
 	while(1) {
-		while(gettimeofday(&tv, NULL) != 0)
-			;
-
-		pthread_mutex_lock(&inQ.fq_mtx);
-		pkt = STAILQ_LAST(&inQ.fq_pkthead, ic_pkt, fp_link);
+		pthread_mutex_lock(&queue->fq_mtx);
+		pkt = STAILQ_LAST(&queue->fq_pkthead, ic_pkt, fp_link);
 		while (pkt == NULL) {
-			error = pthread_cond_wait(&inQ.fq_condvar, &inQ.fq_mtx);
+			error = pthread_cond_wait(&queue->fq_condvar, &queue->fq_mtx);
 			if (error != 0) {
 				strerror_r(error, errbuf, sizeof(errbuf));
 				syslog(EX_OSERR,
@@ -534,11 +616,11 @@ classify_pthread(void *arg __unused)
 				    errbuf);
 				exit(EX_OSERR);
 			}
-			pkt = STAILQ_LAST(&inQ.fq_pkthead, ic_pkt, fp_link);
+			pkt = STAILQ_LAST(&queue->fq_pkthead, ic_pkt, fp_link);
 		}
-		STAILQ_REMOVE(&inQ.fq_pkthead, pkt, ic_pkt, fp_link);
-		inQ.fq_size--;
-		pthread_mutex_unlock(&inQ.fq_mtx);
+		STAILQ_REMOVE(&queue->fq_pkthead, pkt, ic_pkt, fp_link);
+		queue->fq_size--;
+		pthread_mutex_unlock(&queue->fq_mtx);
 
 		/*
 		 * Check if new and insert into appropriate table.
@@ -549,184 +631,93 @@ classify_pthread(void *arg __unused)
 			payload = (u_char *)((u_char *)tcp + (tcp->th_off * 4));
 			datalen = ntohs(hdr->ah_ip.ip_len) -
 			    (int)((caddr_t)payload - (caddr_t)&hdr->ah_ip);
-			assert(datalen >= 0);
+		} else if (hdr->ah_ip.ip_p == IPPROTO_UDP) {
+                        udp = &hdr->ah_udp;
+                        payload = (u_char *)((u_char *)udp + ntohs(udp->uh_ulen));
+                        datalen = ntohs(hdr->ah_ip.ip_len) -
+                            (int)((caddr_t)payload - (caddr_t)&hdr->ah_ip);
+		}
 
-			SET_KEY(key, hdr, tcp->th_sport, tcp->th_dport);
-			if (key == NULL) {
-				syslog(LOG_WARNING, "packet dropped: %m");
-				free(pkt->fp_pkt);
-				free(pkt);
-				continue;
+		assert(datalen >= 0);
+
+		SET_KEY(key, hdr, tcp->th_sport, tcp->th_dport);
+		if (key == NULL) {
+			syslog(LOG_WARNING, "packet dropped: %m");
+			free(pkt->fp_pkt);
+			free(pkt);
+			continue;
+		}
+
+		/*
+		 * Look in the regular table first since most
+		 * packets will belong to an already established
+		 * session.
+		 */
+		flow = hashtable_search(queue->hash, (void *)key);
+		if (flow == NULL) {
+			flow = (struct ip_flow *)malloc(sizeof(struct ip_flow));
+                        if (flow == NULL) {
+                        	syslog(LOG_WARNING, "packet dropped: %m");
+                                free(key);
+                                free(pkt->fp_pkt);
+                                free(pkt);
+                                continue;
 			}
-
-			/*
-			 * Look in the regular table first since most
-			 * packets will belong to an already established
-			 * session.
-			 */
-			flow = hashtable_search(th, (void *)key);
-			if (flow == NULL) {
-				flow = (struct ip_flow *)malloc(sizeof(struct ip_flow));
-                                if (flow == NULL) {
-                                        syslog(LOG_WARNING, "packet dropped: %m");
+                                         
+			if (datalen > 0) {
+                         	data = (char *)malloc(datalen);
+                                if (data == NULL) {
+                                	syslog(LOG_WARNING, "packet dropped: %m");
+                                        free(flow);
                                         free(key);
                                         free(pkt->fp_pkt);
                                         free(pkt);
                                         continue;
-                                }
-                                         
-                                if (datalen > 0) {
-                                        data = (char *)malloc(datalen);
-                                        if (data == NULL) {
-                                                syslog(LOG_WARNING, "packet dropped: %m");
-                                                free(flow);
-                                                free(key);
-                                                free(pkt->fp_pkt);
-                                                free(pkt);
-                                                continue;
-                                        }
-                                        memcpy((void *)data, (void *)payload,
-                                            datalen);
-                                } else
-                                        data = NULL;
+                                 }
+                                 memcpy((void *)data, (void *)payload, datalen);
+			} else
+				data = NULL;
 
-                                flow->if_data = data;
-                                flow->if_datalen = datalen;
-                                flow->if_pktcount = 1;
-                                flow->if_fwrule = 0;
-                                flow->expire = tv.tv_sec;
-                                if (hashtable_insert(th, (void *)key, (void *)flow) == 0) {
-                                        syslog(LOG_WARNING,
-                                            "packet dropped: unable to insert into table");
-                                        if (data != NULL)
-                                                free(data);
-                                        free(flow);
-                                        free(key);
-                                        free(pkt->fp_pkt);
-					free(pkt);
-                                        continue;
-                                }
-			} else if (datalen > 0 && flow->if_pktcount < IC_PKTMAXMATCH) {
-				data = (char *)realloc((void *)flow->if_data,
-				    flow->if_datalen + datalen);
-				if (data == NULL) {
-					syslog(LOG_WARNING, "packet dropped: %m");
-					free(key);
-					free(pkt->fp_pkt);
-					free(pkt);
-					continue;
-				}
-				memcpy((void *)(data + flow->if_datalen),
-				    (void *)payload, datalen);
-				flow->if_data = data;
-				flow->if_datalen += datalen;
-				flow->if_pktcount++;
-
-			/*
-			 * If we haven't been able to classify this flow after
-			 * collecting IC_PKTMAXMATCH packets, just pass it through.
-			 */
-			} else {
-				flow->expire = tv.tv_sec;
-				goto enqueue;
+			flow->if_data = data;
+			flow->if_datalen = datalen;
+                        flow->if_pktcount = 1;
+                        flow->if_fwrule = 0;
+                        flow->expire = t_time.tv_sec;
+                        if (hashtable_insert(queue->hash, (void *)key, (void *)flow) == 0) {
+				syslog(LOG_WARNING,
+					"packet dropped: unable to insert into table");
+				if (data != NULL)
+                                	free(data);
+				free(flow);
+                                free(key);
+                                free(pkt->fp_pkt);
+				free(pkt);
+                                continue;
 			}
-		} else if (hdr->ah_ip.ip_p == IPPROTO_UDP) {
-			udp = &hdr->ah_udp;
-			payload = (u_char *)((u_char *)udp + ntohs(udp->uh_ulen));
-			datalen = ntohs(hdr->ah_ip.ip_len) -
-			    (int)((caddr_t)payload - (caddr_t)&hdr->ah_ip);
-			assert(datalen >= 0);
-
-			SET_KEY(key, hdr, udp->uh_sport, udp->uh_dport);
-			if (key == NULL) {
+		} else if (datalen > 0 && flow->if_pktcount < IC_PKTMAXMATCH) {
+			data = (char *)realloc((void *)flow->if_data,
+			    flow->if_datalen + datalen);
+			if (data == NULL) {
 				syslog(LOG_WARNING, "packet dropped: %m");
+				free(key);
 				free(pkt->fp_pkt);
 				free(pkt);
 				continue;
 			}
+			memcpy((void *)(data + flow->if_datalen),
+			    (void *)payload, datalen);
+			flow->if_data = data;
+			flow->if_datalen += datalen;
+			flow->if_pktcount++;
 
-			/*
-			 * If this is a new connection insert payload.
-			 * Otherwise, if we haven't reached the packet limit
-			 * append it to the pre-existing data.
-			 */
-			flow = hashtable_search(uh, key);
-			if (flow == NULL) {
-				flow = (struct ip_flow *)malloc(sizeof(struct ip_flow));
-				if (flow == NULL) {
-					syslog(LOG_WARNING, "packet dropped: %m");
-					free(key);
-					free(pkt->fp_pkt);
-					free(pkt);
-					continue;
-				}
-
-				if (datalen > 0) {
-					data = (char *)malloc(datalen);
-					if (data == NULL) {
-						syslog(LOG_WARNING, "packet dropped: %m");
-						free(flow);
-						free(key);
-						free(pkt->fp_pkt);
-						free(pkt);
-						continue;
-					}
-					memcpy((void *)data, (void *)payload,
-					    datalen);
-				} else
-					data = NULL;
-
-				flow->if_data = data;
-				flow->if_datalen = datalen;
-				flow->if_pktcount = 1;
-				flow->if_fwrule = 0;
-				flow->expire = tv.tv_sec;
-				if (hashtable_insert(uh, (void *)key, (void *)flow) == 0) {
-					syslog(LOG_WARNING,
-					    "packet dropped: unable to insert into table");
-					if (data != NULL)
-						free(data);
-					free(flow);
-					free(key);
-					free(pkt->fp_pkt);
-					free(pkt);
-					continue;
-				}
-			} else if ((flow->if_pktcount < IC_PKTMAXMATCH) &&
-			    datalen > 0) {
-				data = (char *)realloc((void *)flow->if_data,
-				    flow->if_datalen + datalen);
-				if (data == NULL) {
-					syslog(LOG_WARNING, "packet dropped: %m");
-					free(key);
-					free(pkt->fp_pkt);
-					free(pkt);
-					continue;
-				}
-				memcpy((void *)(data + flow->if_datalen),
-				    (void *)payload, datalen);
-				flow->if_data = data;
-				flow->if_datalen += datalen;
-				flow->if_pktcount++;
-				flow->expire = tv.tv_sec;
-			/*
-			 * If we haven't been able to classify this flow after
-			 * collecting IC_PKTMAXMATCH packets, just pass it through.
-			 */
-			} else if (flow->if_pktcount >= IC_PKTMAXMATCH &&
-			    flow->if_fwrule == 0) {
-				flow->expire = tv.tv_sec;
-				goto enqueue;
-			}
-		} else
-			/* Not an TCP or UDP packet. */
-			goto enqueue;
-
-		if (flow == NULL) {
-			syslog(LOG_ERR, "flow is null: SOFTWARE BUG!? ");
+		/*
+		 * If we haven't been able to classify this flow after
+		 * collecting IC_PKTMAXMATCH packets, just pass it through.
+		 */
+		} else {
+			flow->expire = t_time.tv_sec;
 			goto enqueue;
 		}
-		//assert(flow != NULL);
 
 		/*
 		 * Inform divert(4) what rule to send it to by
@@ -735,7 +726,7 @@ classify_pthread(void *arg __unused)
 		 * number because processing in ipfw(4) will start with
 		 * the next rule *after* the supplied rule number.
 		 */
-		if (flow->if_fwrule != 0) {
+		if (flow != NULL && flow->if_fwrule != 0) {
 			pkt->fp_saddr.sin_port = flow->if_fwrule;
 			goto enqueue;
 		}
@@ -745,7 +736,7 @@ classify_pthread(void *arg __unused)
 		 * any data in the session to match yet or if there are
 		 * no protocols we want to classify.
 		 */
-		if (flow->if_datalen == 0 || fp->fp_inuse == 0)
+		if (flow != NULL && (flow->if_datalen == 0 || fp->fp_inuse == 0))
 			goto enqueue;
 
 		/*
@@ -801,24 +792,15 @@ write_pthread(void *arg __unused)
 		outQ.fq_size--;
 		pthread_mutex_unlock(&outQ.fq_mtx);
 
-		len = sendto(dvtS, (void *)pkt->fp_pkt, pkt->fp_pktlen, 0,
+		len = sendto(dvtSin, (void *)pkt->fp_pkt, pkt->fp_pktlen, 0,
 		    (const struct sockaddr *)&pkt->fp_saddr, pkt->fp_salen);
-		if (len == -1) {
-			if (errno == EACCES)
-				syslog(LOG_WARNING,
-					"packet dropped by security policy! %m");
-			else
-				syslog(LOG_WARNING,
-			    		"unable to write to divert socket: %m");
-		} else if ((size_t)len != pkt->fp_pktlen) {
-			if (errno == EMSGSIZE)
-				syslog(LOG_WARNING, "packet to big %zu bytes.",
-					pkt->fp_pktlen);
-			else
-				syslog(LOG_WARNING,
-			    	"complete packet not written: wrote %d of %zu", len,
-			    		pkt->fp_pktlen);
-		}
+		if (len == -1)
+			syslog(LOG_WARNING,
+			    "unable to write to divert socket: %m");
+		else if ((size_t)len != pkt->fp_pktlen)
+			syslog(LOG_WARNING,
+			    "complete packet not written: wrote %d of %zu", len,
+			    pkt->fp_pktlen);
 	
 		/*
 		* Cleanup
@@ -832,21 +814,19 @@ write_pthread(void *arg __unused)
 }
 
 void *
-garbage_pthread(void *arg __unused)
+garbage_pthread(void *arg)
 {
+	struct ic_queue	*queue = (struct ic_queue *)arg;
 	char errbuf[LINE_MAX];
 	struct entry *e, *f;
 	unsigned int i, flows_expired, error; 
-	struct timeval tv;
 
 	while (1) {
 		flows_expired = 0;
-		while (gettimeofday(&tv, NULL) != 0)
-			;
-		tv.tv_sec -= time_expire;
+		t_time.tv_sec -= time_expire;
 
-		pthread_mutex_lock(&inQ.fq_mtx);
-                error = pthread_cond_wait(&gq_condvar, &inQ.fq_mtx);
+		pthread_mutex_lock(&queue->fq_mtx);
+                error = pthread_cond_wait(&queue->gq_condvar, &queue->fq_mtx);
                 if (error != 0) {
                         strerror_r(error, errbuf, sizeof(errbuf));
                         syslog(EX_OSERR, "unable to wait on garbage collection: %s",
@@ -854,44 +834,30 @@ garbage_pthread(void *arg __unused)
                         exit(EX_OSERR);
                 }
 
-                for (i = 0; i < th->tablelength; i++) {
-                        e = th->table[i];
+                for (i = 0; i < queue->hash->tablelength; i++) {
+                        e = queue->hash->table[i];
                         while (e != NULL) {
                                 f = e; e = e->next;
-                                if (f->v != NULL && ((struct ip_flow *)f->v)->expire < tv.tv_sec) {
+                                if (f->v != NULL && ((struct ip_flow *)f->v)->expire < t_time.tv_sec) {
                                         freekey(f->k);
-                                        th->entrycount--;
+                                        queue->hash->entrycount--;
                                         if (f->v != NULL)
                                                 free(f->v);
                                         free(f);
 					flows_expired++;
-					th->table[i] = e;
-                                }
-                        }
-                }
-                for (i = 0; i < uh->tablelength; i++) {
-                        e = uh->table[i];
-                        while (e != NULL) {
-                                f = e; e = e->next;
-                                if (f->v != NULL && ((struct ip_flow *)f->v)->expire < tv.tv_sec) {
-                                        freekey(f->k);
-                                        uh->entrycount--;
-                                        if (f->v != NULL)
-                                                free(f->v);
-                                        free(f);
-					flows_expired++;
-					uh->table[i] = e;
+					queue->hash->table[i] = e;
                                 }
                         }
                 }
 
-		pthread_mutex_unlock(&inQ.fq_mtx);
+		pthread_mutex_unlock(&queue->fq_mtx);
 
 		//syslog(LOG_WARNING, "expired %u flows", flows_expired);
 
-		pthread_cond_signal(&inQ.fq_condvar);
+		pthread_cond_signal(&queue->fq_condvar);
 	}
 
+	/* NOTREACHED */
 	return (NULL);
 }
 
@@ -937,6 +903,7 @@ read_config(const char *file, struct ic_protocols *plist)
 		syslog(LOG_ERR, "error reading configuration file");
 		return (EX_DATAERR);
 	}
+	
 	plist->fp_inuse = 0;
 	SLIST_FOREACH(proto, &plist->fp_p, p_next) {
 		name = proto->p_name;
@@ -1006,6 +973,7 @@ read_config(const char *file, struct ic_protocols *plist)
 					(rule & DIVERT_ALTQ) ? "altq" : "tag");
 	}
 	properties_free(props);
+	close(fdpf);
 	return (0);
 }
 
@@ -1070,7 +1038,10 @@ handle_signal(int sig)
 {
 	switch(sig) {
 	case SIGHUP:
+		FP_WLOCK;
+		fini_protocols(fp);
 		read_config(conf, fp);
+		FP_UNLOCK;
 		break;
 	case SIGTERM:
 		exit(0);
