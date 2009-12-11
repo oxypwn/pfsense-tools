@@ -2822,7 +2822,7 @@ update_freebsd_sources_and_apply_patches() {
 				| egrep -wi '(warning|error)'
 			else
 				(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
-				| egrep -wi '(warning|error)'
+				| egrep -wi '(warning|error|failed)'
 			fi
 		fi
 		if [ $MOVE_FILE_LEN -gt "2" ]; then
