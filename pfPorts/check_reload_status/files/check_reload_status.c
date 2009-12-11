@@ -105,9 +105,9 @@ int main(void) {
 	      if(fexist("/tmp/update_dyndns") == 1) {
 		      syslog(LOG_NOTICE, "updating dyndns");
 			  system("echo /tmp/update_dyndns > /tmp/check_reload_status");
-		      system("/bin/rm /tmp/update_dyndns");
-		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update");
+		      system("/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update `cat /tmp/update_dyndns`");
 		      system("echo after /tmp/update_dyndns > /tmp/check_reload_status");
+		      system("/bin/rm /tmp/update_dyndns");
 	      }
 	      if(fexist("/tmp/interfaces_wan_configure") == 1) {
 	      	  syslog(LOG_NOTICE, "configuring wan");
