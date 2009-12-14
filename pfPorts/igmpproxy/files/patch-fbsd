@@ -1,6 +1,6 @@
-diff -ru ../src_old/Makefile ./Makefile
---- ../src_old/Makefile	2005-08-20 12:34:18.000000000 +0000
-+++ ./Makefile	2009-08-18 04:26:01.000000000 +0000
+diff -ur ../src_old/Makefile ./Makefile
+--- ../src_old/Makefile	2009-12-14 11:10:51.000000000 +0000
++++ ./Makefile	2009-12-14 11:10:54.000000000 +0000
 @@ -1,12 +1,12 @@
  
  #BINDIR=../bin
@@ -31,11 +31,10 @@ diff -ru ../src_old/Makefile ./Makefile
  
  build.h	:  
  	echo '#define BUILD "' `date +%y%m%d` '"' >build.h
-Only in .: build.h
-Only in .: callout.c
-diff -ru ../src_old/config.c ./config.c
---- ../src_old/config.c	2005-05-24 15:49:29.000000000 +0000
-+++ ./config.c	2009-08-18 04:26:01.000000000 +0000
+Only in .: Makefile.orig
+diff -ur ../src_old/config.c ./config.c
+--- ../src_old/config.c	2009-12-14 11:10:51.000000000 +0000
++++ ./config.c	2009-12-14 11:10:54.000000000 +0000
 @@ -177,7 +177,7 @@
      }
  
@@ -73,10 +72,10 @@ diff -ru ../src_old/config.c ./config.c
          log(LOG_WARNING, 0, "Unable to parse address token '%s'.", addrstr);
          return NULL;
      }
-Only in .: confread.c
-diff -ru ../src_old/defs.h ./defs.h
---- ../src_old/defs.h	2005-08-20 12:44:47.000000000 +0000
-+++ ./defs.h	2009-11-17 17:13:16.000000000 +0000
+Only in .: config.c.orig
+diff -ur ../src_old/defs.h ./defs.h
+--- ../src_old/defs.h	2009-12-14 11:10:51.000000000 +0000
++++ ./defs.h	2009-12-14 11:10:54.000000000 +0000
 @@ -40,10 +40,18 @@
  #include <stdlib.h>
  #include <syslog.h>
@@ -104,11 +103,11 @@ diff -ru ../src_old/defs.h ./defs.h
 +#ifdef __FreeBSD__
 +    #include <alias.h>
 +    #include <net/route.h>
-+    #include <netinet/in.h>
+     #include <netinet/in.h>
 +    #include <netinet/ip_mroute.h>
 +    #include <netinet/igmp.h>
 +#endif
-     #include <netinet/in.h>
++    #include <netinet/in.h>
 +    #include <netinet/in_systm.h>
      #include <netinet/ip.h>
      #include <netinet/igmp.h>
@@ -125,7 +124,7 @@ diff -ru ../src_old/defs.h ./defs.h
  #define     ENABLE_DEBUG    1
  
  /*
-@@ -69,12 +89,43 @@
+@@ -69,12 +89,46 @@
  #define MAX_IP_PACKET_LEN	576
  #define MIN_IP_HEADER_LEN	20
  #define MAX_IP_HEADER_LEN	60
@@ -146,6 +145,9 @@ diff -ru ../src_old/defs.h ./defs.h
 +#endif
 +#ifndef IGMP_V2_MEMBERSHIP_REPORT
 +#define IGMP_V2_MEMBERSHIP_REPORT IGMP_v2_HOST_MEMBERSHIP_REPORT
++#endif
++#ifndef IGMP_V3_MEMBERSHIP_REPORT
++#define IGMP_V3_MEMBERSHIP_REPORT IGMP_v3_HOST_MEMBERSHIP_REPORT
 +#endif
 +#ifndef IGMP_V2_LEAVE_GROUP
 +#define IGMP_V2_LEAVE_GROUP IGMP_HOST_LEAVE_MESSAGE
@@ -169,7 +171,7 @@ diff -ru ../src_old/defs.h ./defs.h
  #define VCMC( Vc )  (sizeof( Vc ) / sizeof( (Vc)[ 0 ] ))
  #define VCEP( Vc )  (&(Vc)[ VCMC( Vc ) ])
  
-@@ -126,7 +177,12 @@
+@@ -126,7 +180,12 @@
  
  #define	    IF_DEBUG	if(Log2Stderr & LOG_DEBUG)
  
@@ -183,7 +185,7 @@ diff -ru ../src_old/defs.h ./defs.h
  
  /* ifvc.c
   */
-@@ -196,6 +252,7 @@
+@@ -196,6 +255,7 @@
  struct IfDesc *getIfByName( const char *IfName );
  struct IfDesc *getIfByIx( unsigned Ix );
  struct IfDesc *getIfByAddress( uint32 Ix );
@@ -191,7 +193,7 @@ diff -ru ../src_old/defs.h ./defs.h
  
  /* mroute-api.c
   */
-@@ -226,6 +283,9 @@
+@@ -226,6 +286,9 @@
  */
  extern uint32 allhosts_group;
  extern uint32 allrouters_group;
@@ -201,7 +203,7 @@ diff -ru ../src_old/defs.h ./defs.h
  void initIgmp(void);
  void acceptIgmp(int);
  void sendIgmp (uint32, uint32, int, int, uint32,int);
-@@ -235,7 +295,7 @@
+@@ -235,7 +298,7 @@
  char   *fmtInAdr( char *St, struct in_addr InAdr );
  char   *inetFmt(uint32 addr, char *s);
  char   *inetFmts(uint32 addr, uint32 mask, char *s);
@@ -210,7 +212,7 @@ diff -ru ../src_old/defs.h ./defs.h
  
  /* kern.c
   */
-@@ -255,7 +315,7 @@
+@@ -255,7 +318,7 @@
  
  /* mcgroup.c
   */
@@ -219,7 +221,7 @@ diff -ru ../src_old/defs.h ./defs.h
  int leaveMcGroup( int UdpSock, struct IfDesc *IfDp, uint32 mcastaddr );
  
  
-@@ -264,14 +324,14 @@
+@@ -264,14 +327,14 @@
  void initRouteTable();
  void clearAllRoutes();
  int insertRoute(uint32 group, int ifx);
@@ -236,9 +238,10 @@ diff -ru ../src_old/defs.h ./defs.h
  void acceptLeaveMessage(uint32 src, uint32 group);
  void sendGeneralMembershipQuery();
  
-diff -ru ../src_old/ifvc.c ./ifvc.c
---- ../src_old/ifvc.c	2005-05-24 15:49:18.000000000 +0000
-+++ ./ifvc.c	2009-08-18 04:26:02.000000000 +0000
+Only in .: defs.h.orig
+diff -ur ../src_old/ifvc.c ./ifvc.c
+--- ../src_old/ifvc.c	2009-12-14 11:10:51.000000000 +0000
++++ ./ifvc.c	2009-12-14 11:10:54.000000000 +0000
 @@ -32,7 +32,11 @@
  */
  
@@ -411,10 +414,17 @@ diff -ru ../src_old/ifvc.c ./ifvc.c
  }
  
  /*
-diff -ru ../src_old/igmp.c ./igmp.c
---- ../src_old/igmp.c	2005-05-24 15:49:16.000000000 +0000
-+++ ./igmp.c	2009-11-17 17:17:29.000000000 +0000
-@@ -39,7 +39,9 @@
+Only in .: ifvc.c.orig
+diff -ur ../src_old/igmp.c ./igmp.c
+--- ../src_old/igmp.c	2009-12-14 11:10:51.000000000 +0000
++++ ./igmp.c	2009-12-14 11:11:51.000000000 +0000
+@@ -35,11 +35,15 @@
+ *            appropriately...
+ */
+ 
++#include <sys/param.h>
++
+ #include "defs.h"
   
  // Globals                  
  uint32     allhosts_group;          /* All hosts addr in net order */
@@ -425,7 +435,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
                
  extern int MRouterFD;
  
-@@ -67,13 +69,15 @@
+@@ -67,13 +71,15 @@
       * - Checksum (let the kernel fill it in)
       */
      ip->ip_v   = IPVERSION;
@@ -442,7 +452,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
  }
  
  /**
-@@ -87,6 +91,8 @@
+@@ -87,6 +93,8 @@
      case IGMP_V1_MEMBERSHIP_REPORT:  return "V1 member report  ";
      case IGMP_V2_MEMBERSHIP_REPORT:  return "V2 member report  ";
      case IGMP_V2_LEAVE_GROUP:        return "Leave message     ";
@@ -451,7 +461,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
      
      default:
          sprintf(unknown, "unk: 0x%02x/0x%02x    ", type, code);
-@@ -103,9 +109,12 @@
+@@ -103,9 +111,12 @@
      register uint32 src, dst, group;
      struct ip *ip;
      struct igmp *igmp;
@@ -465,7 +475,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
          log(LOG_WARNING, 0,
              "received packet too short (%u bytes) for IP header", recvlen);
          return;
-@@ -115,7 +124,7 @@
+@@ -115,7 +126,7 @@
      src       = ip->ip_src.s_addr;
      dst       = ip->ip_dst.s_addr;
  
@@ -474,7 +484,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
  
      /* 
       * this is most likely a message from the kernel indicating that
-@@ -128,6 +137,7 @@
+@@ -128,6 +139,7 @@
          }
          else {
              struct IfDesc *checkVIF;
@@ -482,7 +492,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
              
              // Check if the source address matches a valid address on upstream vif.
              checkVIF = getIfByIx( upStreamVif );
-@@ -141,23 +151,44 @@
+@@ -141,23 +153,44 @@
                  return;
              }
              else if(!isAdressValidForIf(checkVIF, src)) {
@@ -530,7 +540,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
  
      if (iphdrlen + ipdatalen != recvlen) {
          log(LOG_WARNING, 0,
-@@ -167,7 +198,14 @@
+@@ -167,7 +200,14 @@
      }
  
      igmp        = (struct igmp *)(recv_buf + iphdrlen);
@@ -546,7 +556,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
      igmpdatalen = ipdatalen - IGMP_MINLEN;
      if (igmpdatalen < 0) {
          log(LOG_WARNING, 0,
-@@ -176,27 +214,32 @@
+@@ -176,27 +216,32 @@
          return;
      }
  
@@ -587,7 +597,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
      default:
          log(LOG_INFO, 0,
              "ignoring unknown IGMP message type %x from %s to %s",
-@@ -214,27 +257,68 @@
+@@ -214,27 +259,70 @@
  void buildIgmp(uint32 src, uint32 dst, int type, int code, uint32 group, int datalen) {
      struct ip *ip;
      struct igmp *igmp;
@@ -633,10 +643,12 @@ diff -ru ../src_old/igmp.c ./igmp.c
 +      igmp_rep->ir_rsv2         = 0;
 +      igmp_rep->ir_numgrps      = 0x0100;
 +
++#if __FreeBSD_version < 800000
 +      igmp_rep->ir_groups[0].ig_type         = (u_char)4;  /* Change To Exclude Mode */
 +      igmp_rep->ir_groups[0].ig_datalen      = (u_char)0;  /* length of auxiliary data */
 +      igmp_rep->ir_groups[0].ig_numsrc       = (u_short)0; /* number of sources */
 +      igmp_rep->ir_groups[0].ig_group.s_addr = group;      /*  group address being reported */
++#endif
 +
 +      igmp_rep->ir_cksum        = inetChksum((u_short *)igmp_rep,
 +                                           IGMP_MINLEN + IGMP_GRPREC_HDRLEN + datalen);
@@ -665,7 +677,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
  }
  
  /* 
-@@ -244,9 +328,11 @@
+@@ -244,9 +332,11 @@
   */
  void sendIgmp(uint32 src, uint32 dst, int type, int code, uint32 group, int datalen) {
      struct sockaddr_in sdst;
@@ -678,7 +690,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
  
      if (IN_MULTICAST(ntohl(dst))) {
          k_set_if(src);
-@@ -262,16 +348,81 @@
+@@ -262,16 +352,83 @@
  #ifdef HAVE_SA_LEN
      sdst.sin_len = sizeof(sdst);
  #endif
@@ -726,7 +738,9 @@ diff -ru ../src_old/igmp.c ./igmp.c
 +        buildIgmp(src, allrouters_group_v3, IGMP_V3_MEMBERSHIP_REPORT, code, group, datalen);
 +        sdst.sin_addr.s_addr = allrouters_group_v3;
 +        igmp_rep                       = (struct igmp_report *)(send_buf + IP_HEADER_RAOPT_LEN);
++#if __FreeBSD_version < 750000
 +        igmp_rep->ir_groups[0].ig_type = (u_char)3;                 /* Change To Include Mode - leave */
++#endif
 +        igmp_rep->ir_cksum        = inetChksum((u_short *)igmp_rep, /* recalculate checksum */
 +                                               IGMP_MINLEN + IGMP_GRPREC_HDRLEN + datalen);
 +
@@ -767,7 +781,7 @@ diff -ru ../src_old/igmp.c ./igmp.c
      }
  
      if(setigmpsource) {
-@@ -282,8 +433,5 @@
+@@ -282,8 +439,5 @@
          k_set_if(INADDR_ANY);
      }
  
@@ -776,9 +790,10 @@ diff -ru ../src_old/igmp.c ./igmp.c
 -        inetFmt(src, s1), inetFmt(dst, s2));
  }
  
-diff -ru ../src_old/igmpproxy.c ./igmpproxy.c
---- ../src_old/igmpproxy.c	2005-08-20 12:56:32.000000000 +0000
-+++ ./igmpproxy.c	2009-11-17 17:18:03.000000000 +0000
+Only in .: igmp.c.orig
+diff -ur ../src_old/igmpproxy.c ./igmpproxy.c
+--- ../src_old/igmpproxy.c	2009-12-14 11:10:51.000000000 +0000
++++ ./igmpproxy.c	2009-12-14 11:10:54.000000000 +0000
 @@ -80,7 +80,7 @@
  *   on commandline. The number of commandline arguments, and a
  *   pointer to the arguments are recieved on the line...
@@ -849,9 +864,10 @@ diff -ru ../src_old/igmpproxy.c ./igmpproxy.c
                  if (recvlen < 0) {
                      if (errno != EINTR) log(LOG_ERR, errno, "recvfrom");
                      continue;
-diff -ru ../src_old/igmpproxy.conf ./igmpproxy.conf
---- ../src_old/igmpproxy.conf	2005-04-29 19:27:50.000000000 +0000
-+++ ./igmpproxy.conf	2009-08-18 04:26:04.000000000 +0000
+Only in .: igmpproxy.c.orig
+diff -ur ../src_old/igmpproxy.conf ./igmpproxy.conf
+--- ../src_old/igmpproxy.conf	2009-12-14 11:10:51.000000000 +0000
++++ ./igmpproxy.conf	2009-12-14 11:10:54.000000000 +0000
 @@ -25,22 +25,22 @@
  
  
@@ -881,11 +897,10 @@ diff -ru ../src_old/igmpproxy.conf ./igmpproxy.conf
 +phyint xl0 disabled
  
  
-Only in .: kern.c
-Only in .: lib.c
-diff -ru ../src_old/mcgroup.c ./mcgroup.c
---- ../src_old/mcgroup.c	2005-08-20 12:54:37.000000000 +0000
-+++ ./mcgroup.c	2009-11-17 17:21:34.000000000 +0000
+Only in .: igmpproxy.conf.orig
+diff -ur ../src_old/mcgroup.c ./mcgroup.c
+--- ../src_old/mcgroup.c	2009-12-14 11:10:51.000000000 +0000
++++ ./mcgroup.c	2009-12-14 11:10:54.000000000 +0000
 @@ -44,16 +44,15 @@
  static int joinleave( int Cmd, int UdpSock, struct IfDesc *IfDp, uint32 mcastaddr ) {
      struct ip_mreq CtlReq;
@@ -929,9 +944,10 @@ diff -ru ../src_old/mcgroup.c ./mcgroup.c
      
      return 0;
  }
-diff -ru ../src_old/mroute-api.c ./mroute-api.c
---- ../src_old/mroute-api.c	2005-05-24 15:48:33.000000000 +0000
-+++ ./mroute-api.c	2009-08-31 02:27:50.000000000 +0000
+Only in .: mcgroup.c.orig
+diff -ur ../src_old/mroute-api.c ./mroute-api.c
+--- ../src_old/mroute-api.c	2009-12-14 11:10:51.000000000 +0000
++++ ./mroute-api.c	2009-12-14 11:10:54.000000000 +0000
 @@ -37,7 +37,9 @@
  */
  
@@ -985,9 +1001,10 @@ diff -ru ../src_old/mroute-api.c ./mroute-api.c
  }
  
  /*
-diff -ru ../src_old/request.c ./request.c
---- ../src_old/request.c	2005-05-24 15:48:29.000000000 +0000
-+++ ./request.c	2009-11-16 00:22:37.000000000 +0000
+Only in .: mroute-api.c.orig
+diff -ur ../src_old/request.c ./request.c
+--- ../src_old/request.c	2009-12-14 11:10:51.000000000 +0000
++++ ./request.c	2009-12-14 11:10:54.000000000 +0000
 @@ -53,7 +53,7 @@
  *   Handles incoming membership reports, and
  *   appends them to the routing table.
@@ -1065,9 +1082,10 @@ diff -ru ../src_old/request.c ./request.c
              }
          }
      }
-diff -ru ../src_old/rttable.c ./rttable.c
---- ../src_old/rttable.c	2005-08-20 12:46:20.000000000 +0000
-+++ ./rttable.c	2009-11-17 17:20:09.000000000 +0000
+Only in .: request.c.orig
+diff -ur ../src_old/rttable.c ./rttable.c
+--- ../src_old/rttable.c	2009-12-14 11:10:51.000000000 +0000
++++ ./rttable.c	2009-12-14 11:10:54.000000000 +0000
 @@ -38,15 +38,22 @@
  */
  
@@ -1478,9 +1496,10 @@ diff -ru ../src_old/rttable.c ./rttable.c
                    
                  croute = croute->nextroute; 
          
-diff -ru ../src_old/syslog.c ./syslog.c
---- ../src_old/syslog.c	2005-05-24 15:48:19.000000000 +0000
-+++ ./syslog.c	2009-08-18 04:26:07.000000000 +0000
+Only in .: rttable.c.orig
+diff -ur ../src_old/syslog.c ./syslog.c
+--- ../src_old/syslog.c	2009-12-14 11:10:51.000000000 +0000
++++ ./syslog.c	2009-12-14 11:10:54.000000000 +0000
 @@ -53,12 +53,16 @@
  ** is logged to 'stderr'.
  **          
@@ -1509,5 +1528,4 @@ diff -ru ../src_old/syslog.c ./syslog.c
      Ln += vsnprintf( LogLastMsg + Ln, sizeof( LogLastMsg ) - Ln, FmtSt, ArgPt );
      if( ErrSt )
        snprintf( LogLastMsg + Ln, sizeof( LogLastMsg ) - Ln, "; Errno(%d): %s", Errno, ErrSt );
-Only in .: udpsock.c
-Only in .: version.h
+Only in .: syslog.c.orig
