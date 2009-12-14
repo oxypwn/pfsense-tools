@@ -309,10 +309,14 @@ copy_to_staging_nanobsd() {
 	mv $STAGINGAREA/nanobsdupdates/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
 	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
 	gzip $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
-	md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
-	md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
-	sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
-	sha256 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
+	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
+		md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
+		md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
+	fi
+	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
+		sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
+		sha256 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
+	fi
 }
 
 copy_to_staging_nanobsd_updates() {
