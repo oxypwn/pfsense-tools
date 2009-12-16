@@ -636,6 +636,7 @@ cust_overlay_host_binaries() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/mysql
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/libexec
+	mkdir -p /tmp/pfPort
 
 	# Overlay host binaries
 	if [ ! -z "${CROSS_COMPILE_PORTS_BINARIES:-}" ]; then
