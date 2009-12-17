@@ -582,61 +582,7 @@ getinput:
 					inet_ntoa((key)->ik_src), ntohs((key)->ik_sport), \
 					inet_ntoa((key)->ik_dst), ntohs((key)->ik_dport), \
 					(proto)->p_name, (regerr));		\
-			} else \
-				switch (error) { \
-				case REG_BADPAT: \
-					syslog(LOG_WARNING, "Error REG_BADPAT"); \
-					break; \
-				case REG_ECOLLATE: \
-					syslog(LOG_WARNING, "Error REG_ECOLLATE"); \
-					break; \
-				case REG_ECTYPE: \
-					syslog(LOG_WARNING, "Error REG_ECTYPE"); \
-					break; \
-				case REG_EESCAPE: \
-					syslog(LOG_WARNING, "Error REG_EESCAPE"); \
-					break; \
-				case REG_ESUBREG: \
-					syslog(LOG_WARNING, "Error REG_ESUBREG"); \
-					break; \
-				case REG_EBRACK: \
-					syslog(LOG_WARNING, "Error REG_EBRACK"); \
-					break; \
-				case REG_EPAREN: \
-					syslog(LOG_WARNING, "Error REG_EPAREN"); \
-					break; \
-				case REG_EBRACE: \
-					syslog(LOG_WARNING, "Error REG_EBRACE"); \
-					break; \
-				case REG_BADBR: \
-					syslog(LOG_WARNING, "Error REG_BADBR"); \
-					break; \
-				case REG_ERANGE: \
-					syslog(LOG_WARNING, "Error REG_ERANGE"); \
-					break; \
-				case REG_ESPACE: \
-					syslog(LOG_WARNING, "Error REG_ESPACE"); \
-					break; \
-				case REG_BADRPT: \
-					syslog(LOG_WARNING, "Error REG_BADRPT"); \
-					break; \
-				case REG_EMPTY: \
-					syslog(LOG_WARNING, "Error REG_EMPTY"); \
-					break; \
-				case REG_ASSERT: \
-					syslog(LOG_WARNING, "Error REG_ASSERT"); \
-					break; \
-				case REG_INVARG: \
-					syslog(LOG_WARNING, "Error REG_INVARG"); \
-					break; \
-				case REG_ILLSEQ: \
-					syslog(LOG_WARNING, "Error REG_ILLSEQ"); \
-					break; \
-				default: \
-					syslog(LOG_WARNING, "uknown error condition %d", error); \
-					break; \
-				} \
-				syslog(LOG_WARNING, "did not match on %s", proto->p_name); \
+			}							\
 			(trycount)++;						\
 		}								\
 		FP_UNLOCK;							\
