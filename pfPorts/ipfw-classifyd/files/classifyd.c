@@ -514,7 +514,6 @@ getinput:
 		/*
 		 * Enqueue incomming packet.
 		 */
-		syslog(LOG_WARNING, "Received one packet.");
 		pkt->fp_pktlen = len;
 		pthread_mutex_lock(&queue->fq_mtx);
 		STAILQ_INSERT_HEAD(&queue->fq_pkthead, pkt, fp_link);
@@ -561,9 +560,8 @@ getinput:
 		SLIST_FOREACH((proto), &(fp)->fp_p, p_next) {			\
 			if ((proto)->p_fwrule == 0)				\
 				continue;					\
-			else if (0 && (trycount) == (fp)->fp_inuse)			\
+			else if ((trycount) == (fp)->fp_inuse)			\
 				break;						\
-			syslog(LOG_WARNING, "trying protocol %s on buffer %s", proto->p_name, flow->if_data);	\
 			(pmatch).rm_so = 0;					\
 			(pmatch).rm_eo = (flow)->if_datalen;			\
 			(error) = regexec(&(proto)->p_preg, (flow)->if_data,	\
@@ -571,7 +569,7 @@ getinput:
                         if ((error) == 0) {                                     \
                                 (flow)->if_fwrule = (proto)->p_fwrule;          \
                                 (pkt)->fp_saddr.sin_port = (flow)->if_fwrule;   \
-				syslog(LOG_WARNING, "Found Protocol: %s (rule %s)", \
+				syslog(LOG_NOTICE, "Found Protocol: %s (rule %s)", \
                     			(proto)->p_name, ((proto)->p_fwrule & DIVERT_ACTION) ? "action block": \
                                         ((proto)->p_fwrule & DIVERT_DNCOOKIE) ? "dnpipe" : \
                                         ((proto)->p_fwrule & DIVERT_ALTQ) ? "altq" : "tag"); \
@@ -582,61 +580,7 @@ getinput:
 					inet_ntoa((key)->ik_src), ntohs((key)->ik_sport), \
 					inet_ntoa((key)->ik_dst), ntohs((key)->ik_dport), \
 					(proto)->p_name, (regerr));		\
-			} else \
-				switch (error) { \
-				case REG_BADPAT: \
-					syslog(LOG_WARNING, "Error REG_BADPAT"); \
-					break; \
-				case REG_ECOLLATE: \
-					syslog(LOG_WARNING, "Error REG_ECOLLATE"); \
-					break; \
-				case REG_ECTYPE: \
-					syslog(LOG_WARNING, "Error REG_ECTYPE"); \
-					break; \
-				case REG_EESCAPE: \
-					syslog(LOG_WARNING, "Error REG_EESCAPE"); \
-					break; \
-				case REG_ESUBREG: \
-					syslog(LOG_WARNING, "Error REG_ESUBREG"); \
-					break; \
-				case REG_EBRACK: \
-					syslog(LOG_WARNING, "Error REG_EBRACK"); \
-					break; \
-				case REG_EPAREN: \
-					syslog(LOG_WARNING, "Error REG_EPAREN"); \
-					break; \
-				case REG_EBRACE: \
-					syslog(LOG_WARNING, "Error REG_EBRACE"); \
-					break; \
-				case REG_BADBR: \
-					syslog(LOG_WARNING, "Error REG_BADBR"); \
-					break; \
-				case REG_ERANGE: \
-					syslog(LOG_WARNING, "Error REG_ERANGE"); \
-					break; \
-				case REG_ESPACE: \
-					syslog(LOG_WARNING, "Error REG_ESPACE"); \
-					break; \
-				case REG_BADRPT: \
-					syslog(LOG_WARNING, "Error REG_BADRPT"); \
-					break; \
-				case REG_EMPTY: \
-					syslog(LOG_WARNING, "Error REG_EMPTY"); \
-					break; \
-				case REG_ASSERT: \
-					syslog(LOG_WARNING, "Error REG_ASSERT"); \
-					break; \
-				case REG_INVARG: \
-					syslog(LOG_WARNING, "Error REG_INVARG"); \
-					break; \
-				case REG_ILLSEQ: \
-					syslog(LOG_WARNING, "Error REG_ILLSEQ"); \
-					break; \
-				default: \
-					syslog(LOG_WARNING, "uknown error condition %d", error); \
-					break; \
-				} \
-				syslog(LOG_WARNING, "did not match on %s", proto->p_name); \
+			}							\
 			(trycount)++;						\
 		}								\
 		FP_UNLOCK;							\
