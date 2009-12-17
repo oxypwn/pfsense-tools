@@ -243,7 +243,7 @@ void *check_hostname(void *arg)
 	data.hostname = local->name;
 	data.tablename = local->value;
 
-	flush_table(data.tablename);
+	//flush_table(data.tablename);
 
 	while (running) {
 
@@ -264,7 +264,7 @@ void *check_hostname(void *arg)
 	}
 
 	clean_table(&data);
-	flush_table(data.tablename);
+	//flush_table(data.tablename);
 }
 
 static void
