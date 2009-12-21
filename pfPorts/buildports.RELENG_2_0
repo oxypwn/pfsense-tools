@@ -138,6 +138,7 @@ clean_make_install() {
 			#echo ">>> Already built $1 on this run.  Skipping..."
 		else
 			ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
+			echo "Building port $PORT"
 			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install; then
 				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
 			fi
@@ -189,7 +190,8 @@ for PORT in $PORTSTOBUILD; do
 		fi
 	done
 	if [ -d "$PORT_LOCATION" ]; then
-		echo "=== Found port location $PORT_LOCATION.  Copying pfPorts/$PORT and building..."
+		echo "=== Found port location $PORT_LOCATION."
+		echo "=== Copying pfPorts/$PORT_LOCATION and building..."
 		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
 			rm -rf $PORT_LOCATION
 			mkdir -p $PORT_LOCATION
@@ -210,19 +212,20 @@ for PORT in $PORTSTOBUILD; do
 		fi
 	else
 		echo "=== Copying $CURRENTDIR/$PORT_NAME $PORT_LOCATION"
-		if [ ! -d $PORT_LOCATION ]; then
-			if [ -d $CURRENTDIR/$PORT_NAME ]; then
-				mkdir -p $PORT_LOCATION
-				rm -rf $PORT_LOCATION
-				cp -R $CURRENTDIR/$PORT_NAME/* $PORT_LOCATION/
-			fi
+		if [ ! -d $PORT_LOCATION/$PORT_NAME ]; then
+			echo "=== Creating directory $PORT_LOCATION"
+			mkdir -p $PORT_LOCATION
+			cp -R $CURRENTDIR/$PORT_NAME/* $PORT_LOCATION/
+		else 
+			rm -rf $PORT_LOCATION/*
+			cp -R $CURRENTDIR/$PORT_NAME/* $PORT_LOCATION/
 		fi
 		# Return the seperator back to its original value
 		IFS=$oIFS
 		clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
 		# If the file is not found, log it.
 		if [ -f $PORT_VERIFY_INSTALL_FILE ]; then
-			echo "File not found $DONOTBUILD - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
+			echo "=== File not found $DONOTBUILD - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
 		fi
 		# Change the for seperator to use C/R instead of whitespace
 		oIFS=$IFS
