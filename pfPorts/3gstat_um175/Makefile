@@ -23,4 +23,7 @@ do-extract:
 	${MKDIR} ${WRKDIR}
 	${LN} -sf ${FILESDIR}/${PORTNAME}.c ${FILESDIR}/Makefile ${WRKDIR}
 
+do-install:
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/bin
+
 .include <bsd.port.mk>
