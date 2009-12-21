@@ -1609,6 +1609,7 @@ checkout_pfSense() {
 # Outputs various set variables aka env
 print_flags() {
 
+	printf "                 Remove list: %s\n" $CUSTOM_REMOVE_LIST
 	printf "                   Copy list: %s\n" $CUSTOM_COPY_LIST
 	printf "           pfSense build dir: %s\n" $SRCDIR
 	printf "             pfSense version: %s\n" $PFSENSE_VERSION
