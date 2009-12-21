@@ -514,6 +514,7 @@ getinput:
 		/*
 		 * Enqueue incomming packet.
 		 */
+		syslog(LOG_WARNING, "Received one packet.");
 		pkt->fp_pktlen = len;
 		pthread_mutex_lock(&queue->fq_mtx);
 		STAILQ_INSERT_HEAD(&queue->fq_pkthead, pkt, fp_link);
@@ -569,7 +570,7 @@ getinput:
                         if ((error) == 0) {                                     \
                                 (flow)->if_fwrule = (proto)->p_fwrule;          \
                                 (pkt)->fp_saddr.sin_port = (flow)->if_fwrule;   \
-				syslog(LOG_NOTICE, "Found Protocol: %s (rule %s)", \
+				syslog(LOG_WARNING, "Found Protocol: %s (rule %s)", \
                     			(proto)->p_name, ((proto)->p_fwrule & DIVERT_ACTION) ? "action block": \
                                         ((proto)->p_fwrule & DIVERT_DNCOOKIE) ? "dnpipe" : \
                                         ((proto)->p_fwrule & DIVERT_ALTQ) ? "altq" : "tag"); \
