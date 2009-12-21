@@ -1609,6 +1609,7 @@ checkout_pfSense() {
 # Outputs various set variables aka env
 print_flags() {
 
+	printf "                   Copy list: %s\n" $CUSTOM_COPY_LIST
 	printf "           pfSense build dir: %s\n" $SRCDIR
 	printf "             pfSense version: %s\n" $PFSENSE_VERSION
 	printf "                    CVS User: %s\n" $CVS_USER
@@ -1651,10 +1652,7 @@ if [ -n "$SHOW_ENV" ]; then
 	done
 fi
 	echo
-	echo "Sleeping for 5 seconds..."
-	sleep 5
-	echo
-
+	
 }
 
 # Backs up pfSense repo
