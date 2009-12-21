@@ -73,10 +73,11 @@ struct thread_data {
 	struct table_entry *rnh;
 	char *tablename;
 	char *hostname;
+	int mask;
 };
 
 static void
-pf_tableentry(char *tablename, in_addr_t address, int action);
+pf_tableentry(char *tablename, in_addr_t address, int mask, int action);
 void *check_hostname(void *arg);
 
 void usage(void);
@@ -97,14 +98,14 @@ flush_table(char *tablename)
 }
 
 static int
-add_table_entry(struct table_entry *rnh, in_addr_t addr, char *tablename)
+add_table_entry(struct table_entry *rnh, in_addr_t addr, struct thread_data *data)
 {
 	struct table *ent, *tmp;
 
 	ent = calloc(1, sizeof(*ent));
 	if (ent == NULL) {
-		if (debug == 1)
-			syslog(LOG_WARNING, "Failed to allocate new entry for table %s.", tablename);
+		if (debug >= 1)
+			syslog(LOG_WARNING, "Failed to allocate new entry for table %s.", data->tablename);
 		return (ENOMEM);
 	}
 	ent->addr.sin_addr.s_addr = addr;
@@ -112,19 +113,19 @@ add_table_entry(struct table_entry *rnh, in_addr_t addr, char *tablename)
 	refcount_acquire(&ent->refcnt);
 	TAILQ_FOREACH(tmp, rnh, entry) {
 		if (addr == tmp->addr.sin_addr.s_addr) {
-			if (debug == 2)
-				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntoa(ent->addr.sin_addr), tablename);
+			if (debug >= 2)
+				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntoa(ent->addr.sin_addr), data->tablename);
 			refcount_acquire(&tmp->refcnt);
 			free(ent);
 			return (EEXIST);
 		}
 	}
 
-	if (debug == 2)
-		syslog(LOG_WARNING, "adding entry %s to table %s", tablename, inet_ntoa(ent->addr.sin_addr));
+	if (debug >= 2)
+		syslog(LOG_WARNING, "adding entry %s to table %s", data->tablename, inet_ntoa(ent->addr.sin_addr));
 	TAILQ_INSERT_HEAD(rnh, ent, entry);
 
-	pf_tableentry(tablename, addr, ADD);
+	pf_tableentry(data->tablename, addr, data->mask, ADD);
 	
 	return (0);
 }
@@ -136,9 +137,9 @@ clean_table(struct thread_data *data)
 
 	TAILQ_FOREACH_SAFE(ent, data->rnh, entry, tmp) {
 		if (refcount_release(&ent->refcnt)) {
-			if (debug == 2)
+			if (debug >= 2)
 				syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa(ent->addr.sin_addr), data->tablename, data->hostname);
-			pf_tableentry(data->tablename, ent->addr.sin_addr.s_addr, DELETE);
+			pf_tableentry(data->tablename, ent->addr.sin_addr.s_addr, data->mask, DELETE);
 			TAILQ_REMOVE(data->rnh, ent, entry);
 			free(ent);
 		}
@@ -154,7 +155,7 @@ init_table(struct table_entry *rnh)
 }
 
 static int
-host_dns(const struct thread_data *data)
+host_dns(struct thread_data *data)
 {
         struct addrinfo          hints, *res0, *res;
         int                      error, cnt = 0;
@@ -164,12 +165,12 @@ host_dns(const struct thread_data *data)
         hints.ai_socktype = SOCK_DGRAM; /* DUMMY */
         error = getaddrinfo(data->hostname, NULL, &hints, &res0);
         if (error == EAI_AGAIN) {
-		if (debug == 1)
+		if (debug >= 1)
 			syslog(LOG_WARNING, "failed to resolve host %s will retry later again.", data->hostname);
                 return (0);
 	}
         if (error) {
-		if (debug == 1)
+		if (debug >= 1)
                 	syslog(LOG_WARNING, "host_dns: could not parse \"%s\": %s", data->hostname,
                     		gai_strerror(error));
                 return (-1);
@@ -177,10 +178,10 @@ host_dns(const struct thread_data *data)
 
         for (res = res0; res; res = res->ai_next) {
                 if (res->ai_family == AF_INET) {
-			if (debug == 2)
+			if (debug >= 2)
 				syslog(LOG_WARNING, "found entry %s for %s", inet_ntoa(((struct sockaddr_in *)res->ai_addr)->sin_addr), data->tablename);
 			add_table_entry(data->rnh, ((struct sockaddr_in *)
-			    res->ai_addr)->sin_addr.s_addr, data->tablename);
+			    res->ai_addr)->sin_addr.s_addr, data);
                 cnt++;
                 }
         }
@@ -189,24 +190,32 @@ host_dns(const struct thread_data *data)
 }
 
 static void
-pf_tableentry(char *tablename, in_addr_t address, int action)
+pf_tableentry(char *tablename, in_addr_t address, int mask, int action)
 {
 	struct pfioc_table io;
 	struct pfr_table table;
 	struct pfr_addr addr;
+	u_int32_t addrmask = 0;
+	int i;
 
 	bzero(&table, sizeof(table));
 	if (strlcpy(table.pfrt_name, tablename,
 		sizeof(table.pfrt_name)) >= sizeof(table.pfrt_name)) {
-		if (debug == 1)
+		if (debug >= 1)
 			syslog(LOG_WARNING, "could not add address to table %s", tablename);
 		return;
 	}
 	
 	bzero(&addr, sizeof(addr));
 	addr.pfra_af = AF_INET;
-	addr.pfra_net = 32;
-	addr.pfra_ip4addr.s_addr = address;
+	addr.pfra_net = mask;
+	if (mask < 32) {
+		for (i = 31; i > 31-mask; --i)
+                	addrmask |= (1 << i);
+               	addrmask = htonl(addrmask);
+		addr.pfra_ip4addr.s_addr = ((u_int32_t)address) & addrmask;
+	} else
+		addr.pfra_ip4addr.s_addr = address;
 	
 	bzero(&io, sizeof io);
         io.pfrio_table = table;
@@ -216,12 +225,12 @@ pf_tableentry(char *tablename, in_addr_t address, int action)
 
 	if (action == DELETE) {
 		 if (ioctl(dev, DIOCRDELADDRS, &io))
-			if (debug == 2)
+			if (debug >= 2)
 				syslog(LOG_WARNING, "failed to delete address from table %s.", tablename);
 	} else if (action == ADD) {
 		if (ioctl(dev, DIOCRADDADDRS, &io))
-			if (debug == 2)
-				syslog(LOG_WARNING, "failed to add address to table %s.", tablename);
+			if (debug >= 2)
+				syslog(LOG_WARNING, "failed to add address to table %s with errno %d.", tablename, errno);
 	}
 }
 
@@ -231,33 +240,55 @@ void *check_hostname(void *arg)
 	struct thread_data data;
 	struct timespec ts;
 	properties local = (properties) arg;
+        char *p, *q, *ps;
 	int firstrun = 0;
 	int howmuch;
 
-        ts.tv_sec = 0;
-        ts.tv_nsec = interval * 1000; /* 200 miliseconds */
+        ts.tv_sec = interval;
+        ts.tv_nsec = 0;
 	
 	init_table(&rnh);
 
+
+        if ((p = strrchr(local->name, '/')) != NULL) {
+                data.mask = strtol(p+1, &q, 0);
+                if (!q || *q || data.mask > 32 || q == (p+1)) {
+			if (debug >= 1)
+                        	syslog(LOG_WARNING, "invalid netmask '%s' for hostname %s\n", p, local->name);
+                        return;
+                }
+                if ((data.hostname = malloc(strlen(local->name) - strlen(local->name) + 1)) == NULL) {
+			if (debug >= 1)
+				syslog(LOG_WARNING, "Failed to allocate memory for storing hostname %s.", local->name);
+                        return;
+		}
+                strlcpy(data.hostname, local->name, strlen(local->name) - strlen(p) + 1);
+        } else {
+		data.hostname = local->name;
+		data.mask = 32;
+	}
+
 	data.rnh = &rnh;
-	data.hostname = local->name;
 	data.tablename = local->value;
+
+	if (debug >= 2)
+		syslog(LOG_WARNING, "Found hostname %s with netmask %d.", data.hostname, data.mask);
 
 	//flush_table(data.tablename);
 
 	while (running) {
 
 		howmuch = host_dns(&data);	
-		if (debug == 2)
+		if (debug >= 2)
 			syslog(LOG_WARNING, "Found %d entries for %s", howmuch, data.hostname);
 
 		if (!firstrun) {
 			firstrun++;
-			if (debug == 3)
+			if (debug >= 3)
 				syslog(LOG_WARNING, "Not cleaning table %s host %s. ", data.tablename, data.hostname);
 		} else {
 			clean_table(&data);
-			if (debug == 3)
+			if (debug >= 3)
 				syslog(LOG_WARNING, "cleaning table %s host %s. ", data.tablename, data.hostname);
 		}
 		nanosleep(&ts, NULL);
@@ -265,6 +296,9 @@ void *check_hostname(void *arg)
 
 	clean_table(&data);
 	//flush_table(data.tablename);
+
+	if (data.mask != 32)
+		free(data.hostname);
 }
 
 static void
@@ -276,7 +310,7 @@ handle_signal(int sig)
 		running = 0;
                 break;
         default:
-		if (debug == 3)
+		if (debug >= 3)
                 	syslog(LOG_WARNING, "unhandled signal");
         }
 }
@@ -297,7 +331,7 @@ int main(int argc, char *argv[]) {
 	FILE *pidfd;
 	struct sigaction sa;
 	
-	if (argc > 5)
+	if (argc < 4 || argc > 5)
 		usage();
 	
 	interval = atoi(argv[2]);
@@ -382,7 +416,7 @@ int main(int argc, char *argv[]) {
 	while (list != NULL) {
 		error = pthread_create(&threads[i], NULL, check_hostname, list);
 		if (error != 0) {
-			if (debug == 1)
+			if (debug >= 1)
 				syslog(LOG_ERR, "Unable to create monitoring thread for host %s", list->name);
 		}
 		i = i + 1;
