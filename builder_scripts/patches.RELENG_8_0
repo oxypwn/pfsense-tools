@@ -51,3 +51,4 @@
 ~sys/dev/if_ndis~if_ndis.c.diff~
 ~sys/dev/ata~ata-disk.c.diff~
 ~~umodem.diff~
+~sys/netinet~ip_carp.c.diff~
