@@ -1609,8 +1609,10 @@ checkout_pfSense() {
 # Outputs various set variables aka env
 print_flags() {
 
+	echo
 	printf "                 Remove list: %s\n" $CUSTOM_REMOVE_LIST
 	printf "                   Copy list: %s\n" $CUSTOM_COPY_LIST
+	printf "            MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
 	printf "           pfSense build dir: %s\n" $SRCDIR
 	printf "             pfSense version: %s\n" $PFSENSE_VERSION
 	printf "                    CVS User: %s\n" $CVS_USER
@@ -1629,7 +1631,6 @@ print_flags() {
 	printf "             pfSense version: %s\n" $FREEBSD_VERSION
 	printf "              FreeBSD branch: %s\n" $FREEBSD_BRANCH
 	printf "                 pfSense Tag: %s\n" $PFSENSETAG
-	printf "            MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
 	printf "                       EXTRA: %s\n" $EXTRA
 	printf "                BUILDMODULES: %s\n" $BUILDMODULES
 	printf "              Git Repository: %s\n" $GIT_REPO
