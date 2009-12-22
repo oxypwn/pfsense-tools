@@ -57,6 +57,7 @@
 // Non changable globals
 #define MAXATTEMPTS 10
 #define MAXLOCKOUTS 256
+#define VERSION	2.0
 
 // Wall of shame (invalid login DB)
 static struct sshlog 
@@ -94,7 +95,7 @@ main(void)
 	openlog("sshlockout", LOG_PID|LOG_CONS, LOG_AUTH);
 
 	// We are starting up
-	syslog(LOG_ERR, "sshlockout starting up");
+	syslog(LOG_ERR, "sshlockout v%s starting up", VERSION);
 
 	// Open up stderr and stdout to the abyss
 	(void)freopen("/dev/null", "w", stdout);
@@ -118,7 +119,7 @@ main(void)
 	}
 
 	// We are exiting
-	syslog(LOG_ERR, "sshlockout exiting");
+	syslog(LOG_ERR, "sshlockout v%s exiting", VERSION);
 
 	// That's all folks.
 	return(0);
