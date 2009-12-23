@@ -101,6 +101,7 @@ static int
 add_table_entry(struct table_entry *rnh, in_addr_t addr, struct thread_data *data)
 {
 	struct table *ent, *tmp;
+	char buffer[256];
 
 	ent = calloc(1, sizeof(*ent));
 	if (ent == NULL) {
@@ -114,7 +115,7 @@ add_table_entry(struct table_entry *rnh, in_addr_t addr, struct thread_data *dat
 	TAILQ_FOREACH(tmp, rnh, entry) {
 		if (addr == tmp->addr.sin_addr.s_addr) {
 			if (debug >= 2)
-				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntoa(ent->addr.sin_addr), data->tablename);
+				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntoa_r(ent->addr.sin_addr, buffer, sizeof buffer), data->tablename);
 			refcount_acquire(&tmp->refcnt);
 			free(ent);
 			return (EEXIST);
@@ -122,7 +123,7 @@ add_table_entry(struct table_entry *rnh, in_addr_t addr, struct thread_data *dat
 	}
 
 	if (debug >= 2)
-		syslog(LOG_WARNING, "adding entry %s to table %s", data->tablename, inet_ntoa(ent->addr.sin_addr));
+		syslog(LOG_WARNING, "adding entry %s to table %s", data->tablename, inet_ntoa_r(ent->addr.sin_addr, buffer, sizeof buffer));
 	TAILQ_INSERT_HEAD(rnh, ent, entry);
 
 	pf_tableentry(data->tablename, addr, data->mask, ADD);
@@ -134,11 +135,12 @@ static int
 clean_table(struct thread_data *data)
 {
 	struct table *ent, *tmp;
+	char buffer[256];
 
 	TAILQ_FOREACH_SAFE(ent, data->rnh, entry, tmp) {
 		if (refcount_release(&ent->refcnt)) {
 			if (debug >= 2)
-				syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa(ent->addr.sin_addr), data->tablename, data->hostname);
+				syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa_r(ent->addr.sin_addr, buffer, sizeof buffer), data->tablename, data->hostname);
 			pf_tableentry(data->tablename, ent->addr.sin_addr.s_addr, data->mask, DELETE);
 			TAILQ_REMOVE(data->rnh, ent, entry);
 			free(ent);
@@ -159,6 +161,7 @@ host_dns(struct thread_data *data)
 {
         struct addrinfo          hints, *res0, *res;
         int                      error, cnt = 0;
+	char buffer[256];
 
         bzero(&hints, sizeof(hints));
         hints.ai_family = PF_UNSPEC;
@@ -179,7 +182,7 @@ host_dns(struct thread_data *data)
         for (res = res0; res; res = res->ai_next) {
                 if (res->ai_family == AF_INET) {
 			if (debug >= 2)
-				syslog(LOG_WARNING, "found entry %s for %s", inet_ntoa(((struct sockaddr_in *)res->ai_addr)->sin_addr), data->tablename);
+				syslog(LOG_WARNING, "found entry %s for %s", inet_ntoa_r(((struct sockaddr_in *)res->ai_addr)->sin_addr, buffer, sizeof buffer), data->tablename);
 			add_table_entry(data->rnh, ((struct sockaddr_in *)
 			    res->ai_addr)->sin_addr.s_addr, data);
                 cnt++;
