@@ -144,6 +144,7 @@ static struct ic_queue inQTCP;
 static struct ic_queue inQUDP;
 static struct ic_queue outQ;
 
+pthread_mutex_t time_mtx;
 
 /*
  * Since getting time is a expensive operation dedicate 
@@ -195,14 +196,15 @@ classifyd_get_time(void *arg __unused)
 {
 	struct timespec ts;
 
-	ts.tv_sec = 0;
-	ts.tv_nsec = 200 * 1000; /* 200 miliseconds */
+	pthread_mutex_lock(&time_mtx);
 
 	while (1) {
-		while(gettimeofday(&t_time, NULL) != 0)
+		while (clock_gettime(CLOCK_REALTIME, &ts) != 0)
 			;
 
-		nanosleep(&ts, NULL);
+		t_time.tv_sec = ts.tv_sec;
+		ts.tv_nsec += 200 * 1000;
+		pthread_mutex_timedlock(&time_mtx, &ts);
 	}
 }
 
@@ -387,6 +389,9 @@ main(int argc, char **argv)
         if (error == -1)
                 err(EX_OSERR, "unable to set signal handler");
 
+	/* Initialize the time mutex. */
+	pthread_mutex_init(&time_mtx, NULL);
+
         /*
          * Initialize incomming and outgoing queues.
          */
@@ -449,6 +454,8 @@ cleanup:
 	FP_WLOCK;
 	fini_protocols(fp);
 	FP_UNLOCK;
+
+	pthread_mutex_destroy(&time_mtx);
 
 	return (error);
 }
@@ -514,7 +521,6 @@ getinput:
 		/*
 		 * Enqueue incomming packet.
 		 */
-		syslog(LOG_WARNING, "Received one packet.");
 		pkt->fp_pktlen = len;
 		pthread_mutex_lock(&queue->fq_mtx);
 		STAILQ_INSERT_HEAD(&queue->fq_pkthead, pkt, fp_link);
