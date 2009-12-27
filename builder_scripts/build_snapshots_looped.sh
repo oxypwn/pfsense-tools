@@ -112,7 +112,7 @@ rotate_logfile() {
 	if [ -d /tmp/pfPort ]; then
 		for FILE in /tmp/pfPort; do
 			echo "$FILE ------------------------------------------------" >> $LOGFILE
-			cat /tmp/pfPort/$FILE >> $LOGFILE
+			cat $FILE >> $LOGFILE
 		done
 		rm -rf /tmp/pfPort/*
 	fi
