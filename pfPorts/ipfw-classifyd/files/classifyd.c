@@ -1056,6 +1056,7 @@ handle_signal(int sig)
 	case SIGHUP:
 		FP_WLOCK;
 		fini_protocols(fp);
+		fp = init_protocols(protoDir);
 		read_config(conf, fp);
 		FP_UNLOCK;
 		break;
