@@ -561,8 +561,9 @@ getinput:
 		SLIST_FOREACH((proto), &(fp)->fp_p, p_next) {			\
 			if ((proto)->p_fwrule == 0)				\
 				continue;					\
-			else if ((trycount) == (fp)->fp_inuse)			\
+			else if (0 && (trycount) == (fp)->fp_inuse)			\
 				break;						\
+			syslog(LOG_WARNING, "trying protocol %s on buffer %s", proto->p_name, flow->if_data);	\
 			(pmatch).rm_so = 0;					\
 			(pmatch).rm_eo = (flow)->if_datalen;			\
 			(error) = regexec(&(proto)->p_preg, (flow)->if_data,	\
