@@ -1,0 +1,39 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /home/ermal/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.3
+diff -u -r1.3 pf.c
+--- sys/contrib/pf/net/pf.c	26 Apr 2009 22:01:45 -0000	1.3
++++ sys/contrib/pf/net/pf.c	26 Apr 2009 22:10:36 -0000
+@@ -47,6 +47,7 @@
+ #ifdef __FreeBSD__
+ #include "opt_mac.h"
+ #include "opt_bpf.h"
++#include "opt_enc.h"
+ #include "opt_pf.h"
+ 
+ #ifdef DEV_BPF
+@@ -156,6 +157,10 @@
+ #include <sys/ucred.h>
+ #include <security/mac/mac_framework.h>
+ 
++#ifdef DEV_ENC
++#include <net/if_enc.h>
++#endif
++
+ extern int ip_optcopy(struct ip *, struct ip *);
+ extern int debug_pfugidhack;
+ #endif
+@@ -7440,7 +7445,11 @@
+ 		action = PF_PASS;
+ 	} else if (r->rt &&
+ 		/* Check to avoid breaking ipfw forward rules needed on CP and proxies listening on loclhost*/
+-		!((m->m_flags & M_FASTFWD_OURS) || (pd.pf_mtag->flags & PF_TAG_TRANSLATE_LOCALHOST)))
++		!((m->m_flags & M_FASTFWD_OURS) || (pd.pf_mtag->flags & PF_TAG_TRANSLATE_LOCALHOST))
++#ifdef DEV_ENC
++		&& !(encif == ifp)
++#endif
++		)
+ 		/* pf_route can free the mbuf causing *m0 to become NULL */
+ 		pf_route(m0, r, dir, ifp, s, &pd);
+ 

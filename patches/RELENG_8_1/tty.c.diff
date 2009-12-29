@@ -1,0 +1,16 @@
+Index: sys/kern/tty.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/tty.c,v
+retrieving revision 1.328.2.1
+diff -u -r1.328.2.1 tty.c
+--- sys/kern/tty.c	3 Aug 2009 08:13:06 -0000	1.328.2.1
++++ sys/kern/tty.c	26 Oct 2009 21:27:43 -0000
+@@ -109,7 +109,7 @@
+ 	ttyinq_setsize(&tp->t_inq, tp, bs);
+ 
+ 	/* Set low watermark at 10% (when 90% is available). */
+-	tp->t_inlow = (ttyinq_getsize(&tp->t_inq) * 9) / 10;
++	tp->t_inlow = (ttyinq_getsize(&tp->t_inq) * 9) / 20;
+ 
+ 	/* Provide an ouput buffer for 0.2 seconds of data. */
+ 	bs = MIN(tp->t_termios.c_ospeed / 5, TTYBUF_MAX);

@@ -1,0 +1,16 @@
+Index: proc.h
+===================================================================
+RCS file: /home/ncvs/src/sys/sys/proc.h,v
+retrieving revision 1.529
+diff -u -r1.529 proc.h
+--- proc.h	16 Mar 2009 15:39:46 -0000	1.529
++++ proc.h	7 Apr 2009 19:26:13 -0000
+@@ -649,7 +649,7 @@
+  * We use process IDs <= PID_MAX; PID_MAX + 1 must also fit in a pid_t,
+  * as it is used to represent "no process group".
+  */
+-#define	PID_MAX		99999
++#define	PID_MAX		64000
+ #define	NO_PID		100000
+ 
+ #define	SESS_LEADER(p)	((p)->p_session->s_leader == (p))

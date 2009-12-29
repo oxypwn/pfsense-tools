@@ -1,0 +1,26 @@
+Index: ip_carp.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.73.2.2.2.1
+diff -u -r1.73.2.2.2.1 ip_carp.c
+--- ip_carp.c	25 Oct 2009 01:10:29 -0000	1.73.2.2.2.1
++++ ip_carp.c	22 Dec 2009 21:43:21 -0000
+@@ -501,7 +501,7 @@
+ 			ifpromisc(sc->sc_carpdev, 0);
+ 			sc->sc_carpdev->if_carp = NULL;
+ 			CARP_LOCK_DESTROY(cif);
+-			free(cif, M_CARP);
++			//free(cif, M_CARP);
+ 		} else if (unlock)
+ 			CARP_UNLOCK(cif);
+ 		sc->sc_carpdev = NULL;
+@@ -550,9 +550,6 @@
+ 	/* check if received on a valid carp interface */
+ 	if (m->m_pkthdr.rcvif->if_carp == NULL) {
+ 		CARPSTATS_INC(carps_badif);
+-		CARP_LOG("carp_input: packet received on non-carp "
+-		    "interface: %s\n",
+-		    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+ 		return;
+ 	}

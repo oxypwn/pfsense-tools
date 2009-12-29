@@ -1,0 +1,61 @@
+Index: sys/dev/usb/usb_core.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/usb_core.h,v
+retrieving revision 1.30.2.1
+diff -u -r1.30.2.1 usb_core.h
+--- sys/dev/usb/usb_core.h	3 Aug 2009 08:13:06 -0000	1.30.2.1
++++ sys/dev/usb/usb_core.h	12 Oct 2009 23:22:55 -0000
+@@ -83,34 +83,34 @@
+ 	enum usb_hc_mode usb_mode;	/* shadow copy of "udev->usb_mode" */
+ 	uint16_t control_rem;		/* remainder in bytes */
+ 
+-	uint8_t	open:1;			/* set if USB pipe has been opened */
+-	uint8_t	transferring:1;		/* set if an USB transfer is in
++	uint8_t	open;			/* set if USB pipe has been opened */
++	uint8_t	transferring;		/* set if an USB transfer is in
+ 					 * progress */
+-	uint8_t	did_dma_delay:1;	/* set if we waited for HW DMA */
+-	uint8_t	did_close:1;		/* set if we closed the USB transfer */
+-	uint8_t	draining:1;		/* set if we are draining an USB
++	uint8_t	did_dma_delay;	/* set if we waited for HW DMA */
++	uint8_t	did_close;		/* set if we closed the USB transfer */
++	uint8_t	draining;		/* set if we are draining an USB
+ 					 * transfer */
+-	uint8_t	started:1;		/* keeps track of started or stopped */
+-	uint8_t	bandwidth_reclaimed:1;
+-	uint8_t	control_xfr:1;		/* set if control transfer */
+-	uint8_t	control_hdr:1;		/* set if control header should be
++	uint8_t	started;		/* keeps track of started or stopped */
++	uint8_t	bandwidth_reclaimed;
++	uint8_t	control_xfr;		/* set if control transfer */
++	uint8_t	control_hdr;		/* set if control header should be
+ 					 * sent */
+-	uint8_t	control_act:1;		/* set if control transfer is active */
+-	uint8_t	control_stall:1;	/* set if control transfer should be stalled */
++	uint8_t	control_act;		/* set if control transfer is active */
++	uint8_t	control_stall;	/* set if control transfer should be stalled */
+ 
+-	uint8_t	short_frames_ok:1;	/* filtered version */
+-	uint8_t	short_xfer_ok:1;	/* filtered version */
++	uint8_t	short_frames_ok;	/* filtered version */
++	uint8_t	short_xfer_ok;	/* filtered version */
+ #if USB_HAVE_BUSDMA
+-	uint8_t	bdma_enable:1;		/* filtered version (only set if
++	uint8_t	bdma_enable;		/* filtered version (only set if
+ 					 * hardware supports DMA) */
+-	uint8_t	bdma_no_post_sync:1;	/* set if the USB callback wrapper
++	uint8_t	bdma_no_post_sync;	/* set if the USB callback wrapper
+ 					 * should not do the BUS-DMA post sync
+ 					 * operation */
+-	uint8_t	bdma_setup:1;		/* set if BUS-DMA has been setup */
++	uint8_t	bdma_setup;		/* set if BUS-DMA has been setup */
+ #endif
+-	uint8_t	isochronous_xfr:1;	/* set if isochronous transfer */
+-	uint8_t	curr_dma_set:1;		/* used by USB HC/DC driver */
+-	uint8_t	can_cancel_immed:1;	/* set if USB transfer can be
++	uint8_t	isochronous_xfr;	/* set if isochronous transfer */
++	uint8_t	curr_dma_set;		/* used by USB HC/DC driver */
++	uint8_t	can_cancel_immed;	/* set if USB transfer can be
+ 					 * cancelled immediately */
+ };
+ 

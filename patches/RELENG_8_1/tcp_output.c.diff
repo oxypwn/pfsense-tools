@@ -1,0 +1,41 @@
+Index: tcp_output.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/tcp_output.c,v
+retrieving revision 1.160
+diff -u -r1.160 tcp_output.c
+--- tcp_output.c	11 Apr 2009 22:07:19 -0000	1.160
++++ tcp_output.c	16 Apr 2009 17:53:50 -0000
+@@ -152,7 +152,7 @@
+ 	int idle, sendalot;
+ 	int sack_rxmit, sack_bytes_rxmt;
+ 	struct sackhole *p;
+-	int tso = 0;
++	int tso;
+ 	struct tcpopt to;
+ #if 0
+ 	int maxburst = TCP_MAXBURST;
+@@ -210,6 +210,7 @@
+ 	    SEQ_LT(tp->snd_nxt, tp->snd_max))
+ 		tcp_sack_adjust(tp);
+ 	sendalot = 0;
++	tso = 0;
+ 	off = tp->snd_nxt - tp->snd_una;
+ 	sendwin = min(tp->snd_wnd, tp->snd_cwnd);
+ 	sendwin = min(sendwin, tp->snd_bwnd);
+@@ -489,7 +490,6 @@
+ 		} else {
+ 			len = tp->t_maxseg;
+ 			sendalot = 1;
+-			tso = 0;
+ 		}
+ 	}
+ 	if (sack_rxmit) {
+@@ -1050,6 +1050,8 @@
+ 	 * XXX: Fixme: This is currently not the case for IPv6.
+ 	 */
+ 	if (tso) {
++		KASSERT(len > tp->t_maxopd - optlen,
++			("%s: len <= tso_segsz", __func__));
+ 		m->m_pkthdr.csum_flags = CSUM_TSO;
+ 		m->m_pkthdr.tso_segsz = tp->t_maxopd - optlen;
+ 	}

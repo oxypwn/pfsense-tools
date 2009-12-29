@@ -1,0 +1,38 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /usr/home/ermal/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.4
+diff -u -r1.4 pf.c
+--- sys/contrib/pf/net/pf.c	25 Jul 2009 22:23:34 -0000	1.4
++++ sys/contrib/pf/net/pf.c	25 Jul 2009 22:24:44 -0000
+@@ -6196,6 +6196,9 @@
+ 
+ 	ip = mtod(m0, struct ip *);
+ 
++	if (IN_MULTICAST(ip->ip_dst.s_addr))
++                return;
++
+ 	ro = &iproute;
+ 	bzero((caddr_t)ro, sizeof(*ro));
+ 	dst = satosin(&ro->ro_dst);
+@@ -6237,6 +6240,12 @@
+ 	}
+ 	if (ifp == NULL)
+ 		goto bad;
++	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
++		goto donelocal;
++	else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
++		goto donelocal;
++	else if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
++		goto donelocal;
+ 
+ 	if (oifp != ifp) {
+ #ifdef __FreeBSD__
+@@ -6418,6 +6427,7 @@
+ done:
+ 	if (r->rt != PF_DUPTO)
+ 		*m = NULL;
++donelocal:
+ 	if (ro == &iproute && ro->ro_rt)
+ 		RTFREE(ro->ro_rt);
+ 	return;

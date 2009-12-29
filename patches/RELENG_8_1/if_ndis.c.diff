@@ -1,0 +1,37 @@
+Index: if_ndis.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/if_ndis/if_ndis.c,v
+retrieving revision 1.166.2.2.2.1
+diff -u -r1.166.2.2.2.1 if_ndis.c
+--- if_ndis.c	25 Oct 2009 01:10:29 -0000	1.166.2.2.2.1
++++ if_ndis.c	11 Dec 2009 19:02:50 -0000
+@@ -3361,24 +3361,11 @@
+ 			efrm = frm + wb->nwbx_ielen;
+ 			if (efrm - frm < 12)
+ 				goto done;
+-			sp.tstamp = frm;
+-			frm += 8;
+-			sp.bintval = le16toh(*(uint16_t *)frm);
+-			frm += 2;
+-			sp.capinfo = le16toh(*(uint16_t *)frm);
+-			frm += 2;
+-
+-			/* Grab variable length ies */
+-			while (efrm - frm > 1) {
+-				if (efrm - frm < frm[1] + 2)
+-					break;
+-				switch (*frm) {
+-				case IEEE80211_ELEMID_RSN:
+-					sp.rsn = frm;
+-					break;
+-				}
+-				frm += frm[1] + 2;
+-			}
++                        sp.tstamp = frm;                        frm += 8;
++                        sp.bintval = le16toh(*(uint16_t *)frm); frm += 2;
++                        sp.capinfo = le16toh(*(uint16_t *)frm); frm += 2;
++                        sp.ies = frm;
++                        sp.ies_len = efrm - frm;
+ 		}
+ done:
+ 		DPRINTF(("scan: bssid %s chan %dMHz (%d/%d) rssi %d\n",
