@@ -66,3 +66,4 @@
 ~sys/netinet~tcp_input.c.diff~
 ~sys/kern~sched_ule.c.diff~
 ~contrib/tcsh~sh.c.diff~
+~sys/dev/ata~ata-all.c.diff~
