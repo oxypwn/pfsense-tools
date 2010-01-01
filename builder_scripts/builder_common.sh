@@ -869,6 +869,7 @@ cust_populate_extra() {
 
     # Set buildtime
     date > $CVS_CO_DIR/etc/version.buildtime
+	cp $CVS_CO_DIR/etc/version.buildtime /tmp/
 
 	# Record last commit info if it is available.
 	if [ -f /tmp/build_commit_info.txt ]; then
@@ -1084,6 +1085,7 @@ fixup_updates() {
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/livefs/lib/
 
 	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
+	cp ${PFSENSEBASEDIR}/etc/version.buildtime /tmp/
 
 	if [ -d "${PFSENSEBASEDIR}" ]; then
 		echo Removing pfSense.tgz used by installer..
@@ -1122,6 +1124,7 @@ cust_fixup_nanobsd() {
 	fi
 
     echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
+	cp $PFSENSEBASEDIR/etc/version.buildtime
     echo "" > $PFSENSEBASEDIR/etc/motd
 
     mkdir -p $PFSENSEBASEDIR/cf/conf/backup
@@ -1165,6 +1168,7 @@ cust_fixup_wrap() {
             $PFSENSEBASEDIR/etc/ttys
 
     echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
+	cp $PFSENSEBASEDIR/etc/version.buildtime /tmp/
     echo "" > $PFSENSEBASEDIR/etc/motd
 
     mkdir -p $PFSENSEBASEDIR/cf/conf/backup
