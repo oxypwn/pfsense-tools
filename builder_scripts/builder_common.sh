@@ -1124,7 +1124,7 @@ cust_fixup_nanobsd() {
 	fi
 
     echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
-	cp $PFSENSEBASEDIR/etc/version.buildtime
+	cp $PFSENSEBASEDIR/etc/version.buildtime /tmp/
     echo "" > $PFSENSEBASEDIR/etc/motd
 
     mkdir -p $PFSENSEBASEDIR/cf/conf/backup
