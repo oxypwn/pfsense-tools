@@ -191,11 +191,7 @@ build_iso() {
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
 	./build_iso.sh
-	if [ -f /tmp/version.buildtime ]; then
-		DATESTRING=`cat /tmp/version.buildtime`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
-	fi
+	DATESTRING=`date "+%Y%m%d-%H%M"`
 	gzip $MAKEOBJDIRPREFIXFINAL/pfSense.iso
 	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso.gz $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
 	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
@@ -211,11 +207,7 @@ build_deviso() {
 build_embedded() {
 	cd $BUILDERSCRIPTS 
 	rm -rf /usr/obj*
-	if [ -f /tmp/version.buildtime ]; then
-		DATESTRING=`cat /tmp/version.buildtime`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
-	fi
+	DATESTRING=`date "+%Y%m%d-%H%M"`
 	rm -f $MAKEOBJDIRPREFIXFINAL/pfSense-${DATESTRING}.img.gz
 	./build_embedded.sh
 }
@@ -302,11 +294,7 @@ dobuilds() {
 
 copy_to_staging_nanobsd() {
 	cd $BUILDERSCRIPTS
-	if [ -f /tmp/version.buildtime ]; then
-		DATESTRING=`cat /tmp/version.buildtime`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
-	fi
+	DATESTRING=`date "+%Y%m%d-%H%M"`
 	if [ ! -f /tmp/nanosize.txt ]; then
 		echo "1g" > /tmp/nanosize.txt
 	fi
@@ -337,11 +325,7 @@ copy_to_staging_nanobsd_updates() {
 
 copy_to_staging_deviso_updates() {
 	cd $BUILDERSCRIPTS	
-	if [ -f /tmp/version.buildtime ]; then
-		DATESTRING=`cat /tmp/version.buildtime`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
-	fi
+	DATESTRING=`date "+%Y%m%d-%H%M"`
 	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
 	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
 	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5 2>/dev/null
