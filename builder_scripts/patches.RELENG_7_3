@@ -53,3 +53,4 @@
 ~sys/i386/i386~geode.c.1.11.diff~
 ~contrib/pf/tftp-proxy~filter.c.diff~
 ~contrib/tcsh~sh.c.diff~
+~usr.bin/netstat/~netstat.7.diff~
