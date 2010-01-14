@@ -139,7 +139,7 @@ clean_make_install() {
 		else
 			ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
 			echo "=== Building port $PORT"
-			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install; then
+			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install </dev/null; then
 				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
 			fi
 			mv /tmp/$PORT /tmp/pfPort/$PORTNOBASENAME
