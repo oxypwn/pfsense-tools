@@ -1,0 +1,35 @@
+Index: sys/kern/vfs_mount.c
+===================================================================
+--- sys/kern/vfs_mount.c	(revision 202640)
++++ sys/kern/vfs_mount.c	(working copy)
+@@ -1648,7 +1648,7 @@ void
+ vfs_mountroot(void)
+ {
+ 	char *cp, *cpt, *options, *tmpdev;
+-	int error, i, asked = 0;
++	int error, i, asked = 0, tries = 10;
+ 
+ 	options = NULL;
+ 
+@@ -1697,6 +1697,7 @@ vfs_mountroot(void)
+ 	 * supplied via some other means.  This is the preferred
+ 	 * mechanism.
+ 	 */
++again:
+ 	cp = getenv("vfs.root.mountfrom");
+ 	if (cp != NULL) {
+ 		cpt = cp;
+@@ -1724,6 +1725,13 @@ vfs_mountroot(void)
+ 	if (ctrootdevname != NULL)
+ 		if (!vfs_mountroot_try(ctrootdevname, options))
+ 			goto mounted;
++
++	/* Hack to let usb probe */
++	if (tries--) {
++		pause("mountroot", hz);
++		goto again;
++	}
++
+ 	/*
+ 	 * Everything so far has failed, prompt on the console if we haven't
+ 	 * already tried that.
