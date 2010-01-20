@@ -3,8 +3,8 @@ Index: sbin/ifconfig/ifconfig.c
 RCS file: /root/freebsd/repo/src/sbin/ifconfig/ifconfig.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ifconfig.c
---- sbin/ifconfig/ifconfig.c	20 Sep 2009 13:50:37 -0000	1.1.1.1
-+++ sbin/ifconfig/ifconfig.c	20 Sep 2009 13:55:32 -0000
+--- sbin/ifconfig/ifconfig.c	20 Jan 2010 22:17:26 -0000	1.1.1.1
++++ sbin/ifconfig/ifconfig.c	20 Jan 2010 22:22:49 -0000
 @@ -825,7 +825,7 @@
  #define	IFFBITS \
  "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\6SMART\7RUNNING" \
@@ -28,8 +28,8 @@ Index: sbin/ipfw/ipfw2.c
 RCS file: /root/freebsd/repo/src/sbin/ipfw/ipfw2.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipfw2.c
---- sbin/ipfw/ipfw2.c	20 Sep 2009 13:50:37 -0000	1.1.1.1
-+++ sbin/ipfw/ipfw2.c	20 Sep 2009 13:55:32 -0000
+--- sbin/ipfw/ipfw2.c	20 Jan 2010 22:17:26 -0000	1.1.1.1
++++ sbin/ipfw/ipfw2.c	20 Jan 2010 22:22:49 -0000
 @@ -362,7 +362,9 @@
  	    optname == IP_FW_ADD || optname == IP_FW_TABLE_LIST ||
  	    optname == IP_FW_TABLE_GETSIZE || 
@@ -41,7 +41,15 @@ diff -u -r1.1.1.1 ipfw2.c
  		i = getsockopt(s, IPPROTO_IP, optname, optval,
  			(socklen_t *)optlen);
  	else
-@@ -3665,6 +3667,7 @@
+@@ -2743,6 +2745,7 @@
+ 		 * sin_port and sin_addr.
+ 		 */
+ 		p->sa.sin_family = AF_INET;
++		p->sa.sin_len = sizeof(struct sockaddr_in);
+ 		p->sa.sin_port = 0;
+ 		/*
+ 		 * locate the address-port separator (':' or ',')
+@@ -3665,6 +3668,7 @@
  
  
  static void table_list(ipfw_table_entry ent, int need_header);
@@ -49,7 +57,7 @@ diff -u -r1.1.1.1 ipfw2.c
  
  /*
   * This one handles all table-related commands
-@@ -3732,6 +3735,12 @@
+@@ -3732,6 +3736,12 @@
  		if (lookup_host(*av, (struct in_addr *)&ent.addr) != 0)
  			errx(EX_NOHOST, "hostname ``%s'' unknown", *av);
  		ac--; av++;
@@ -62,7 +70,7 @@ diff -u -r1.1.1.1 ipfw2.c
  		if (do_add && ac) {
  			unsigned int tval;
  			/* isdigit is a bit of a hack here.. */
-@@ -3775,11 +3784,61 @@
+@@ -3775,11 +3785,61 @@
  		do {
  			table_list(ent, is_all);
  		} while (++ent.tbl < a);
@@ -124,7 +132,7 @@ diff -u -r1.1.1.1 ipfw2.c
  table_list(ipfw_table_entry ent, int need_header)
  {
  	ipfw_table *tbl;
-@@ -3804,20 +3863,28 @@
+@@ -3804,20 +3864,28 @@
  		printf("---table(%d)---\n", tbl->tbl);
  	for (a = 0; a < tbl->cnt; a++) {
  		unsigned int tval;
@@ -166,13 +174,13 @@ Index: sys/net/if.h
 RCS file: /root/freebsd/repo/src/sys/net/if.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if.h
---- sys/net/if.h	20 Sep 2009 13:50:39 -0000	1.1.1.1
-+++ sys/net/if.h	20 Sep 2009 13:55:32 -0000
-@@ -150,6 +150,7 @@
- #define	IFF_MONITOR	0x40000		/* (n) user-requested monitor mode */
+--- sys/net/if.h	20 Jan 2010 22:17:22 -0000	1.1.1.1
++++ sys/net/if.h	20 Jan 2010 22:23:35 -0000
+@@ -151,6 +151,7 @@
  #define	IFF_STATICARP	0x80000		/* (n) static ARP */
  #define	IFF_DYING	0x200000	/* (n) interface is winding down */
-+#define	IFF_IPFW_FILTER	0x400000	/* pfSense hack for CP speeding up */
+ #define	IFF_RENAMING	0x400000	/* (n) interface is being renamed */
++#define	IFF_IPFW_FILTER 0x800000        /* pfSense hack for CP speeding up */
  
  /*
   * Old names for driver flags so that user space tools can continue to use
@@ -181,8 +189,8 @@ Index: sys/net/if_ethersubr.c
 RCS file: /root/freebsd/repo/src/sys/net/if_ethersubr.c,v
 retrieving revision 1.2
 diff -u -r1.2 if_ethersubr.c
---- sys/net/if_ethersubr.c	20 Sep 2009 13:53:32 -0000	1.2
-+++ sys/net/if_ethersubr.c	20 Sep 2009 13:55:32 -0000
+--- sys/net/if_ethersubr.c	20 Jan 2010 22:19:43 -0000	1.2
++++ sys/net/if_ethersubr.c	20 Jan 2010 22:22:49 -0000
 @@ -819,7 +819,8 @@
  	 * Strip off Ethernet header.
  	 */
@@ -196,26 +204,26 @@ diff -u -r1.2 if_ethersubr.c
 Index: sys/netinet/in.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/netinet/in.h,v
-retrieving revision 1.2
-diff -u -r1.2 in.h
---- sys/netinet/in.h	20 Sep 2009 13:55:20 -0000	1.2
-+++ sys/netinet/in.h	20 Sep 2009 13:55:32 -0000
-@@ -448,6 +448,8 @@
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 in.h
+--- sys/netinet/in.h	20 Jan 2010 22:17:23 -0000	1.1.1.1
++++ sys/netinet/in.h	20 Jan 2010 22:22:49 -0000
+@@ -453,6 +453,8 @@
  #define	IP_FW_TABLE_FLUSH	42   /* flush table */
  #define	IP_FW_TABLE_GETSIZE	43   /* get table size */
  #define	IP_FW_TABLE_LIST	44   /* list table contents */
 +#define	IP_FW_TABLE_GET_ENTRY	45   /* get statistics about a table entry */
 +#define IP_FW_TABLE_ZERO_ENTRY_STATS	46	/* zero table entry stats */
  
- #define	IP_FW_ADD		50   /* add a firewall rule to chain */
- #define	IP_FW_DEL		51   /* delete a firewall rule from chain */
+ #define	IP_FW3			48   /* generic ipfw v.3 sockopts */
+ #define	IP_DUMMYNET3		49   /* generic dummynet v.3 sockopts */
 Index: sys/netinet/ip_fw.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_fw.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw.h
---- sys/netinet/ip_fw.h	20 Sep 2009 13:50:39 -0000	1.1.1.1
-+++ sys/netinet/ip_fw.h	20 Sep 2009 13:55:32 -0000
+--- sys/netinet/ip_fw.h	20 Jan 2010 22:17:23 -0000	1.1.1.1
++++ sys/netinet/ip_fw.h	20 Jan 2010 22:22:49 -0000
 @@ -559,9 +559,13 @@
   */
  typedef struct	_ipfw_table_entry {
@@ -235,9 +243,9 @@ Index: sys/netinet/raw_ip.c
 RCS file: /root/freebsd/repo/src/sys/netinet/raw_ip.c,v
 retrieving revision 1.2
 diff -u -r1.2 raw_ip.c
---- sys/netinet/raw_ip.c	20 Sep 2009 13:53:32 -0000	1.2
-+++ sys/netinet/raw_ip.c	20 Sep 2009 13:55:32 -0000
-@@ -521,6 +521,8 @@
+--- sys/netinet/raw_ip.c	20 Jan 2010 22:19:43 -0000	1.2
++++ sys/netinet/raw_ip.c	20 Jan 2010 22:22:49 -0000
+@@ -540,6 +540,8 @@
  		case IP_FW_GET:
  		case IP_FW_TABLE_GETSIZE:
  		case IP_FW_TABLE_LIST:
@@ -251,9 +259,9 @@ Index: sys/netinet/ipfw/ip_fw2.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw2.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw2.c
---- sys/netinet/ipfw/ip_fw2.c	20 Sep 2009 13:50:40 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw2.c	20 Sep 2009 13:56:41 -0000
-@@ -148,7 +148,11 @@
+--- sys/netinet/ipfw/ip_fw2.c	20 Jan 2010 22:17:23 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw2.c	20 Jan 2010 22:22:49 -0000
+@@ -149,7 +149,11 @@
  struct table_entry {
  	struct radix_node	rn[2];
  	struct sockaddr_in	addr, mask;
@@ -265,7 +273,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  };
  
  static VNET_DEFINE(int, autoinc_step);
-@@ -1822,7 +1826,7 @@
+@@ -1907,7 +1911,7 @@
  
  static int
  add_table_entry(struct ip_fw_chain *ch, uint16_t tbl, in_addr_t addr,
@@ -274,7 +282,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  {
  	struct radix_node_head *rnh;
  	struct table_entry *ent;
-@@ -1838,6 +1842,7 @@
+@@ -1923,6 +1927,7 @@
  	ent->addr.sin_len = ent->mask.sin_len = 8;
  	ent->mask.sin_addr.s_addr = htonl(mlen ? ~((1 << (32 - mlen)) - 1) : 0);
  	ent->addr.sin_addr.s_addr = addr & ent->mask.sin_addr.s_addr;
@@ -282,7 +290,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  	IPFW_WLOCK(ch);
  	rn = rnh->rnh_addaddr(&ent->addr, &ent->mask, rnh, (void *)ent);
  	if (rn == NULL) {
-@@ -1932,7 +1937,7 @@
+@@ -2017,7 +2022,7 @@
  
  static int
  lookup_table(struct ip_fw_chain *ch, uint16_t tbl, in_addr_t addr,
@@ -291,7 +299,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  {
  	struct radix_node_head *rnh;
  	struct table_entry *ent;
-@@ -1945,12 +1950,61 @@
+@@ -2030,12 +2035,61 @@
  	sa.sin_addr.s_addr = addr;
  	ent = (struct table_entry *)(rnh->rnh_lookup(&sa, NULL, rnh));
  	if (ent != NULL) {
@@ -353,7 +361,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  static int
  count_table_entry(struct radix_node *rn, void *arg)
  {
-@@ -1989,6 +2043,7 @@
+@@ -2074,6 +2128,7 @@
  	else
  		ent->masklen = 33 - ffs(ntohl(n->mask.sin_addr.s_addr));
  	ent->addr = n->addr.sin_addr.s_addr;
@@ -361,7 +369,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  	ent->value = n->value;
  	tbl->cnt++;
  	return (0);
-@@ -2174,6 +2229,11 @@
+@@ -2259,6 +2314,11 @@
  	 */
  	struct ifnet *oif = args->oif;
  
@@ -373,7 +381,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  	struct ip_fw *f = NULL;		/* matching rule */
  	int retval = 0;
  
-@@ -2700,13 +2760,19 @@
+@@ -2786,13 +2846,19 @@
  			case O_IP_SRC_LOOKUP:
  			case O_IP_DST_LOOKUP:
  				if (is_ipv4) {
@@ -394,7 +402,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  				    if (!match)
  					break;
  				    if (cmdlen == F_INSN_SIZE(ipfw_insn_u32))
-@@ -3316,8 +3382,7 @@
+@@ -3402,8 +3468,7 @@
  			case O_FORWARD_IP: {
  				struct sockaddr_in *sa;
  				sa = &(((ipfw_insn_sa *)cmd)->sa);
@@ -404,7 +412,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  				if (!q || dyn_dir == MATCH_FORWARD) {
  					if (sa->sin_addr.s_addr == INADDR_ANY) {
  						bcopy(sa, &args->hopstore,
-@@ -3330,6 +3395,20 @@
+@@ -3416,6 +3481,20 @@
  						args->next_hop = sa;
  					}
  				}
@@ -425,7 +433,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  				retval = IP_FW_PASS;
  			    }
  			    goto done;
-@@ -4392,7 +4471,7 @@
+@@ -4478,7 +4557,7 @@
  			if (error)
  				break;
  			error = add_table_entry(&V_layer3_chain, ent.tbl,
@@ -434,7 +442,7 @@ diff -u -r1.1.1.1 ip_fw2.c
  		}
  		break;
  
-@@ -4439,6 +4518,42 @@
+@@ -4525,6 +4604,42 @@
  		}
  		break;
  
@@ -480,10 +488,10 @@ diff -u -r1.1.1.1 ip_fw2.c
 Index: sys/netinet/ipfw/ip_fw_pfil.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
-retrieving revision 1.3
-diff -u -r1.3 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	20 Sep 2009 13:55:20 -0000	1.3
-+++ sys/netinet/ipfw/ip_fw_pfil.c	20 Sep 2009 13:55:32 -0000
+retrieving revision 1.4
+diff -u -r1.4 ip_fw_pfil.c
+--- sys/netinet/ipfw/ip_fw_pfil.c	20 Jan 2010 22:22:21 -0000	1.4
++++ sys/netinet/ipfw/ip_fw_pfil.c	20 Jan 2010 22:22:49 -0000
 @@ -85,7 +85,9 @@
      struct inpcb *inp)
  {
