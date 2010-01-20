@@ -1,25 +1,25 @@
 Index: sys/kern/vfs_mount.c
 ===================================================================
---- sys/kern/vfs_mount.c	(revision 202640)
+--- sys/kern/vfs_mount.c	(revision 198966)
 +++ sys/kern/vfs_mount.c	(working copy)
-@@ -1648,7 +1648,7 @@ void
+@@ -1644,7 +1644,7 @@ void
  vfs_mountroot(void)
  {
- 	char *cp, *cpt, *options, *tmpdev;
+ 	char *cp, *options;
 -	int error, i, asked = 0;
 +	int error, i, asked = 0, tries = 10;
  
  	options = NULL;
  
-@@ -1697,6 +1697,7 @@ vfs_mountroot(void)
+@@ -1693,6 +1693,7 @@ vfs_mountroot(void)
  	 * supplied via some other means.  This is the preferred
  	 * mechanism.
  	 */
 +again:
  	cp = getenv("vfs.root.mountfrom");
  	if (cp != NULL) {
- 		cpt = cp;
-@@ -1724,6 +1725,13 @@ vfs_mountroot(void)
+ 		error = vfs_mountroot_try(cp, options);
+@@ -1715,6 +1716,13 @@ vfs_mountroot(void)
  	if (ctrootdevname != NULL)
  		if (!vfs_mountroot_try(ctrootdevname, options))
  			goto mounted;
