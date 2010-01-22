@@ -1,0 +1,209 @@
+Index: usr.sbin/ppp/bundle.c
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/ppp/bundle.c,v
+retrieving revision 1.136.22.1
+diff -u -r1.136.22.1 bundle.c
+--- usr.sbin/ppp/bundle.c	3 Aug 2009 08:13:06 -0000	1.136.22.1
++++ usr.sbin/ppp/bundle.c	22 Jan 2010 11:01:26 -0000
+@@ -849,7 +849,9 @@
+   bundle.links = datalink_Create("deflink", &bundle, type);
+   if (bundle.links == NULL) {
+     log_Printf(LogALERT, "Cannot create data link: %s\n", strerror(errno));
+-    iface_Destroy(bundle.iface);
++    free(bundle.iface->name);
++    free(bundle.iface->addr);
++    free(bundle.iface);
+     bundle.iface = NULL;
+     close(bundle.dev.fd);
+     return NULL;
+Index: usr.sbin/ppp/command.c
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/ppp/command.c,v
+retrieving revision 1.308.2.1
+diff -u -r1.308.2.1 command.c
+--- usr.sbin/ppp/command.c	3 Aug 2009 08:13:06 -0000	1.308.2.1
++++ usr.sbin/ppp/command.c	22 Jan 2010 11:01:26 -0000
+@@ -184,6 +184,7 @@
+ static int NegotiateCommand(struct cmdargs const *);
+ static int ClearCommand(struct cmdargs const *);
+ static int RunListCommand(struct cmdargs const *);
++static int IfaceNameCommand(struct cmdargs const *);
+ static int IfaceAddCommand(struct cmdargs const *);
+ static int IfaceDeleteCommand(struct cmdargs const *);
+ static int IfaceClearCommand(struct cmdargs const *);
+@@ -823,6 +824,8 @@
+    "Delete iface address", "iface delete addr", (void *)1},
+   {NULL, "delete!", IfaceDeleteCommand, LOCAL_AUTH,
+    "Delete iface address", "iface delete addr", (void *)1},
++  {"name", NULL, IfaceNameCommand, LOCAL_AUTH,
++    "Set iface name", "iface name [name]", NULL},
+   {"show", NULL, iface_Show, LOCAL_AUTH,
+    "Show iface address(es)", "iface show", NULL},
+   {"help", "?", HelpCommand, LOCAL_AUTH | LOCAL_NO_AUTH,
+@@ -3176,6 +3179,18 @@
+ }
+ 
+ static int
++IfaceNameCommand(struct cmdargs const *arg)
++{
++  int n = arg->argn;
++
++  if (arg->argc != n + 1) {
++    return -1;
++  }
++
++  return !iface_Name(arg->bundle->iface, arg->argv[n]);
++}
++
++static int
+ IfaceAddCommand(struct cmdargs const *arg)
+ {
+   struct ncpaddr peer, addr;
+Index: usr.sbin/ppp/iface.c
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/ppp/iface.c,v
+retrieving revision 1.39.2.1
+diff -u -r1.39.2.1 iface.c
+--- usr.sbin/ppp/iface.c	3 Aug 2009 08:13:06 -0000	1.39.2.1
++++ usr.sbin/ppp/iface.c	22 Jan 2010 11:01:26 -0000
+@@ -369,6 +369,41 @@
+   return res != -1;
+ }
+ 
++int
++iface_Name (struct iface *iface, const char *newname)
++{
++  struct ifreq ifr;
++  int s;
++  char *name;
++
++  if (strlen(newname) > IF_NAMESIZE) {
++    log_Printf(LogWARN, "Invalid iface name: %s\n", newname);
++    return 0;
++  }
++
++  if ((name = strdup(newname)) == NULL) {
++    log_Printf(LogWARN, "iface name: strdup failed: %s\n", strerror(errno));
++    return 0;
++  }
++
++  if ((s = ID0socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
++    log_Printf(LogERROR, "iface name: socket(): %s\n", strerror(errno));
++    return 0;
++  }
++
++  strlcpy(ifr.ifr_name, iface->name, sizeof(ifr.ifr_name));
++  ifr.ifr_data = (caddr_t)newname;
++  if (ID0ioctl(s, SIOCSIFNAME, (caddr_t)&ifr) < 0) {
++    log_Printf(LogWARN, "iface name: ioctl(SIOCSIFNAME, %s -> %s): %s\n",
++               name, newname, strerror(errno));
++    return 0;
++  }
++
++  free(iface->name);
++  iface->name = name;
++  return 1;
++}
++
+ 
+ void
+ iface_Clear(struct iface *iface, struct ncp *ncp, int family, int how)
+@@ -610,6 +645,8 @@
+ void
+ iface_Destroy(struct iface *iface)
+ {
++  struct ifreq ifr;
++  int s;
+   /*
+    * iface_Clear(iface, IFACE_CLEAR_ALL) must be called manually
+    * if that's what the user wants.  It's better to leave the interface
+@@ -617,6 +654,14 @@
+    */
+ 
+   if (iface != NULL) {
++    if ((s = ID0socket(PF_INET, SOCK_DGRAM, 0)) == -1) {
++      log_Printf(LogERROR, "iface_Destroy: socket(): %s\n", strerror(errno));
++    } else {
++      strlcpy(ifr.ifr_name, iface->name, sizeof(ifr.ifr_name));
++      if (ID0ioctl(s, SIOCIFDESTROY, (caddr_t)&ifr) < 0)
++        log_Printf(LogWARN, "iface_Destroy: ioctl(SIOCIFDESTROY, %s): %s\n",
++               iface->name, strerror(errno));
++    }
+     free(iface->name);
+     free(iface->addr);
+     free(iface);
+@@ -661,7 +706,9 @@
+ 
+   current = iface_Create(iface->name);
+   flags = iface->flags = current->flags;
+-  iface_Destroy(current);
++  free(current->name);
++  free(current->addr);
++  free(current);
+ 
+   prompt_Printf(arg->prompt, "%s (idx %d) <", iface->name, iface->index);
+   for (f = 0; f < sizeof if_flags / sizeof if_flags[0]; f++)
+Index: usr.sbin/ppp/iface.h
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/ppp/iface.h,v
+retrieving revision 1.8.22.1
+diff -u -r1.8.22.1 iface.h
+--- usr.sbin/ppp/iface.h	3 Aug 2009 08:13:06 -0000	1.8.22.1
++++ usr.sbin/ppp/iface.h	22 Jan 2010 11:01:26 -0000
+@@ -55,6 +55,7 @@
+ 
+ extern struct iface *iface_Create(const char *name);
+ extern void iface_Clear(struct iface *, struct ncp *, int, int);
++extern int iface_Name(struct iface *, const char *newname);
+ extern int iface_Add(struct iface *, struct ncp *, const struct ncprange *,
+                      const struct ncpaddr *, int);
+ extern int iface_Delete(struct iface *, struct ncp *, const struct ncpaddr *);
+Index: usr.sbin/ppp/main.c
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/ppp/main.c,v
+retrieving revision 1.194.2.2
+diff -u -r1.194.2.2 main.c
+--- usr.sbin/ppp/main.c	27 Aug 2009 07:07:38 -0000	1.194.2.2
++++ usr.sbin/ppp/main.c	22 Jan 2010 11:01:27 -0000
+@@ -386,11 +386,6 @@
+ 
+   /* NOTE:  We may now have changed argv[1] via a ``set proctitle'' */
+ 
+-  if (prompt) {
+-    prompt->bundle = bundle;	/* couldn't do it earlier */
+-    if (!sw.quiet)
+-      prompt_Printf(prompt, "Using interface: %s\n", bundle->iface->name);
+-  }
+   SignalBundle = bundle;
+   bundle->NatEnabled = sw.nat;
+   if (sw.nat)
+@@ -430,6 +425,12 @@
+     AbortProgram(EX_START);
+   }
+ 
++  if (prompt) {
++    prompt->bundle = bundle;	/* couldn't do it earlier */
++    if (!sw.quiet)
++      prompt_Printf(prompt, "Using interface: %s\n", bundle->iface->name);
++  } 
++
+   if (sw.mode != PHYS_INTERACTIVE) {
+     if (sw.mode != PHYS_DIRECT) {
+       if (!sw.fg) {
+Index: usr.sbin/ppp/ppp.8.m4
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/ppp/ppp.8.m4,v
+retrieving revision 1.329.2.2
+diff -u -r1.329.2.2 ppp.8.m4
+--- usr.sbin/ppp/ppp.8.m4	29 Aug 2009 04:15:37 -0000	1.329.2.2
++++ usr.sbin/ppp/ppp.8.m4	22 Jan 2010 11:01:27 -0000
+@@ -3924,6 +3924,9 @@
+ .Dq !\&
+ is used, no error is given if the address is not currently assigned to
+ the interface (and no deletion takes place).
++.It iface name Ar name
++Renames interface to
++.Ar name .
+ .It iface show
+ Shows the current state and current addresses for the interface.
+ It is much the same as running
