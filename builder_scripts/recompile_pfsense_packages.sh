@@ -30,7 +30,8 @@ PORTS_TO_REBUILD="/usr/ports/net/ntop
 /usr/ports/www/squid
 /usr/ports/www/squidguard
 /usr/ports/net/widentd
-/usr/ports/net/vnstat"
+/usr/ports/net/vnstat
+/home/pfsense/tools/pfPorts/snort/"
 
 for PORT in $PORTS_TO_REBUILD; do
 	cd $PORT && make clean package-recursive FORCE_PKG_REGISTER=yes BATCH=yes
