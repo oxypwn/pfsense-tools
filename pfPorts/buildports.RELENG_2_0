@@ -111,7 +111,8 @@ pecl-uploadprogress			/usr/ports/devel/pecl-uploadprogress	/usr/local/lib/php/20
 php5-json					/usr/ports/devel/php5-json				/usr/local/lib/php/20060613/json.so
 rate						/usr/ports/net-mgmt/rate				/usr/local/bin/rate
 wol							/usr/ports/net/wol						/usr/local/bin/wol
-php5-install-all			/usr/ports/devel/php5-install-all		/usr/local/bin/php"
+php5-install-all			/usr/ports/devel/php5-install-all		/usr/local/bin/php
+snort						/usr/ports/security/snort				/usr/local/sbin/snort"
 	
 clean_make_install() {
 	# Architecture, supported ARCH values are:
