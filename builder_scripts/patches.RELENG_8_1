@@ -44,6 +44,7 @@
 ~~~/sys/mips/atheros
 ~sys~if_ethersubr.c.diff~
 ~usr.sbin/ppp~ipcp.c.diff~
+~~ppp.RELENG_8.diff~
 ~~tty.c.diff~
 ~sys/netinet~ip_carp.c.diff~
 ~usr.bin/netstat/~netstat.8.diff~
