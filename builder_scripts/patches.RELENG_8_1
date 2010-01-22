@@ -45,7 +45,5 @@
 ~sys~if_ethersubr.c.diff~
 ~usr.sbin/ppp~ipcp.c.diff~
 ~~tty.c.diff~
-~~fifo_vnops.c.diff~
-~sys/dev/if_ndis~if_ndis.c.diff~
 ~sys/netinet~ip_carp.c.diff~
 ~usr.bin/netstat/~netstat.8.diff~
