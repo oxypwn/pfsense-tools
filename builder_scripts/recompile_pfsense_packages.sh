@@ -33,7 +33,7 @@ PORTS_TO_REBUILD="/usr/ports/net/ntop
 /usr/ports/net/vnstat"
 
 for PORT in $PORTS_TO_REBUILD; do
-	cd $PORT && make package-recursive FORCE_PKG_REGISTER=yes BATCH=yes
+	cd $PORT && make clean package-recursive FORCE_PKG_REGISTER=yes BATCH=yes
 done
 
 # ports that need custom pfPorts
