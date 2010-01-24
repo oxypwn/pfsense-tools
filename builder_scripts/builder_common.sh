@@ -1323,8 +1323,6 @@ create_md5_summary_file() {
 
 # Creates a full update file
 create_pfSense_Full_update_tarball() {
-	VERSION=${PFSENSE_VERSION}
-	FILENAME=pfSense-Full-Update-${VERSION}-`date "+%Y%m%d-%H%M"`.tgz
 	mkdir -p $UPDATESDIR
 
 	PREVIOUSDIR=`pwd`
@@ -1343,11 +1341,11 @@ create_pfSense_Full_update_tarball() {
 
 	create_md5_summary_file
 
-	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
-	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
+	echo ; echo Creating ${UPDATES_TARBALL_FILENAME} ...
+	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATES_TARBALL_FILENAME} .
 
-	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	#if [ -e /usr/local/sbin/gzsig ]; then
+	#   echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
 	#	echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
 	#	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
 	#fi
