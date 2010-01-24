@@ -247,5 +247,5 @@ export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
 #export DO_NOT_BUILD_PFPORTS="true"
 #export DO_NOT_BUILD_UPDATES="true"
 
-# set update filename
+# set full-update update filename
 export UPDATES_TARBALL_FILENAME=${UPDATE_TARBALL_FILENAME:-"${UPDATESDIR}/pfSense-Full-Update-${PFSENSE_VERSION}-`date '+%Y%m%d-%H%M'`.tgz"}
