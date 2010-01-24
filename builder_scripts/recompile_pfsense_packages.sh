@@ -34,7 +34,7 @@ PORTS_TO_REBUILD="/usr/ports/net/ntop
 /home/pfsense/tools/pfPorts/snort/"
 
 for PORT in $PORTS_TO_REBUILD; do
-	cd $PORT && make clean package-recursive FORCE_PKG_REGISTER=yes BATCH=yes
+	cd $PORT && make clean package-recursive FORCE_PKG_REGISTER=yes BATCH=yes </dev/null
 done
 
 # ports that need custom pfPorts

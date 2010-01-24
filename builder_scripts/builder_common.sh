@@ -1761,9 +1761,12 @@ make_world() {
 	# Sometimes inbetween build_iso runs btxld seems to go missing.
 	# ensure that this binary is always built and ready.
 	echo ">>> Ensuring that the btxld problem does not happen on subsequent runs..."
-	(cd $SRCDIR/sys/boot && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
-		| egrep -wi '(warning|error)'
+	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+	if [ "$FBSD_VERSION" = "7" ]; then
+		(cd $SRCDIR/sys/boot && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
+			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+			| egrep -wi '(warning|error)'
+	fi
 	(cd $SRCDIR/usr.sbin/btxld && env ARCH=$ARCH TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
 		| egrep -wi '(warning|error)'
 	(cd $SRCDIR/usr.sbin/btxld && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
