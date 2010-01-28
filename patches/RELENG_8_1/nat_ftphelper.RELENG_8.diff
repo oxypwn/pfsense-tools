@@ -1,11 +1,11 @@
 Index: sys/conf/files
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/conf/files,v
+RCS file: /root/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	13 Nov 2009 12:25:18 -0000	1.2
-+++ sys/conf/files	13 Nov 2009 12:26:57 -0000
-@@ -361,6 +361,8 @@
+--- sys/conf/files	28 Jan 2010 00:07:39 -0000	1.2
++++ sys/conf/files	28 Jan 2010 00:44:46 -0000
+@@ -362,6 +362,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
@@ -16,12 +16,12 @@ diff -u -r1.2 files
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.5
-diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	13 Nov 2009 12:26:31 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	13 Nov 2009 12:26:58 -0000
-@@ -299,8 +299,6 @@
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.6
+diff -u -r1.6 pf.c
+--- sys/contrib/pf/net/pf.c	28 Jan 2010 00:43:55 -0000	1.6
++++ sys/contrib/pf/net/pf.c	28 Jan 2010 00:54:09 -0000
+@@ -306,8 +306,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
  				u_int16_t);
@@ -30,7 +30,7 @@ diff -u -r1.5 pf.c
  int			 pf_check_proto_cksum(struct mbuf *, int, int,
  			    u_int8_t, sa_family_t);
  int			 pf_addr_wrap_neq(struct pf_addr_wrap *,
-@@ -521,6 +519,8 @@
+@@ -528,6 +526,8 @@
  
  	if ((diff = a->lan.port - b->lan.port) != 0)
  		return (diff);
@@ -39,7 +39,7 @@ diff -u -r1.5 pf.c
  	if ((diff = a->ext.port - b->ext.port) != 0)
  		return (diff);
  
-@@ -591,10 +591,12 @@
+@@ -598,10 +598,12 @@
  #endif /* INET6 */
  	}
  
@@ -54,22 +54,79 @@ diff -u -r1.5 pf.c
  
  	return (0);
  }
-@@ -4715,11 +4717,12 @@
- 	struct tcphdr		*th = pd->hdr.tcp;
- 	struct pf_rule		*r = NULL;
- 	u_int16_t		 win = ntohs(th->th_win);
--	u_int32_t		 ack, end, seq, orig_seq;
-+	u_int32_t		 ack = 0, end, seq, orig_seq;
- 	u_int8_t		 sws, dws;
--	int			 ackskew;
-+	int			 ackskew, delta1 = 0;
- 	int			 copyback = 0;
- 	struct pf_state_peer	*src, *dst;
-+	struct pf_rule *nat = NULL;
+@@ -4731,10 +4733,11 @@
+ 	struct pf_pdesc *pd, u_short *reason, int *copyback)
+ {
+  	struct tcphdr		*th = pd->hdr.tcp;
++	struct pf_rule		*nat = NULL;
+  	u_int16_t		 win = ntohs(th->th_win);
+- 	u_int32_t		 ack, end, seq, orig_seq;
++ 	u_int32_t		 ack = 0, end, seq, orig_seq;
+  	u_int8_t		 sws, dws;
+- 	int			 ackskew;
++ 	int			 ackskew, delta1 = 0;
  
- 	key.af = pd->af;
- 	key.proto = IPPROTO_TCP;
-@@ -4747,6 +4750,54 @@
+ 	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
+ 		sws = src->wscale & PF_WSCALE_MASK;
+@@ -4819,13 +4822,53 @@
+ 			src->max_win = win;
+ 
+ 	} else {
+-		ack = ntohl(th->th_ack) - dst->seqdiff;
+-		if (src->seqdiff) {
++		/*
++		 * This allows to track state even when we modify the sequence of one side of the
++		 * connection. pf(4) itself has mechanisms for this but it is not suited when
++		 * a sequence is modified after state establishment.
++		 */
++		nat = (*state)->nat_rule.ptr;
++		if (nat != NULL) {
++			if (src->seqdiffoneway)
++				delta1 = src->seqflags & SEQ_DIFF_NEGATIVE ? -src->seqdiffoneway
++					: src->seqdiffoneway;
++			else if (dst->seqdiffoneway)
++				delta1 = dst->seqflags & SEQ_DIFF_NEGATIVE ? -dst->seqdiffoneway
++					: dst->seqdiffoneway;
++			
++			if (delta1) {
++				switch (nat->action) {
++				case PF_NAT:
++					if (direction == (*state)->direction)
++						seq += delta1;
++					else
++						ack = ntohl(th->th_ack) - dst->seqdiff - delta1;
++					break;
++				case PF_RDR:
++					if (direction != (*state)->direction)
++						seq += delta1;
++					else
++						ack = ntohl(th->th_ack) - dst->seqdiff - delta1;
++					break;
++				case PF_BINAT:
++					if (direction == PF_OUT)
++						seq += delta1;
++					else
++						ack = ntohl(th->th_ack) - dst->seqdiff - delta1;
++					break;
++				}
++			}
++			if (!ack)
++				ack = ntohl(th->th_ack) - dst->seqdiff;
++		} else
++			ack = ntohl(th->th_ack) - dst->seqdiff;
++
++		if (src->seqdiff || delta1) {
+ 			/* Modulate sequence numbers */
+ 			pf_change_a(&th->th_seq, &th->th_sum, htonl(seq +
+-			    src->seqdiff), 0);
++				src->seqdiff), 0);
+ 			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
+-			*copyback = 1;
++			copyback = 1;
+ 		}
+ 		end = seq + pd->p_len;
+ 		if (th->th_flags & TH_SYN)
+@@ -5186,6 +5229,54 @@
  		dst = &(*state)->src;
  	}
  	
@@ -124,79 +181,15 @@ diff -u -r1.5 pf.c
  	/*
           * First state is created by the rules checking code and if we reloop
           * the first packet that hit the rule pf will not like it.
-@@ -4964,14 +5015,54 @@
- 			src->max_win = win;
- 
- 	} else {
--		ack = ntohl(th->th_ack) - dst->seqdiff;
--		if (src->seqdiff) {
--			/* Modulate sequence numbers */
--			pf_change_a(&th->th_seq, &th->th_sum, htonl(seq +
--			    src->seqdiff), 0);
--			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
--			copyback = 1;
--		}
-+		/* 
-+		 * This allows to track state even when we modify the sequence of one side of the
-+		 * connection. pf(4) itself has mechanisms for this but it is not suited when
-+		 * a sequence is modified after state establishment.
-+		 */
-+		nat = (*state)->nat_rule.ptr;
-+		if (nat != NULL) {
-+			if (src->seqdiffoneway)
-+				delta1 = src->seqflags & SEQ_DIFF_NEGATIVE ? -src->seqdiffoneway
-+					: src->seqdiffoneway;
-+			else if (dst->seqdiffoneway)
-+				delta1 = dst->seqflags & SEQ_DIFF_NEGATIVE ? -dst->seqdiffoneway
-+					: dst->seqdiffoneway;
-+			
-+			if (delta1) {
-+				switch (nat->action) {
-+				case PF_NAT:
-+					if (direction == (*state)->direction)
-+						seq += delta1;
-+					else
-+                        			ack = ntohl(th->th_ack) - dst->seqdiff - delta1;
-+					break;
-+				case PF_RDR:
-+					if (direction != (*state)->direction)
-+						seq += delta1;
-+					else
-+                        			ack = ntohl(th->th_ack) - dst->seqdiff - delta1;
-+					break;
-+				case PF_BINAT:
-+					if (direction == PF_OUT)
-+						seq += delta1;
-+					else 
-+                        			ack = ntohl(th->th_ack) - dst->seqdiff - delta1;
-+					break;
-+				}
-+			}
-+			if (!ack)
-+				ack = ntohl(th->th_ack) - dst->seqdiff;
-+		} else
-+			ack = ntohl(th->th_ack) - dst->seqdiff;
-+
-+                if (src->seqdiff || delta1) {
-+                        /* Modulate sequence numbers */
-+                        pf_change_a(&th->th_seq, &th->th_sum, htonl(seq +
-+                            src->seqdiff), 0);
-+                        pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
-+                        copyback = 1;
-+                }
- 		end = seq + pd->p_len;
- 		if (th->th_flags & TH_SYN)
- 			end++;
-@@ -5211,7 +5302,7 @@
+@@ -5329,6 +5420,7 @@
+ 			return (PF_DROP);
  	}
  
- 	/* Any packets which have gotten here are to be passed */
--
 +tcpnat:
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7056,6 +7147,10 @@
+@@ -7173,6 +7265,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -212,7 +205,7 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	13 Nov 2009 15:55:54 -0000
++++ sys/contrib/pf/net/pf_ftp.c	28 Jan 2010 00:44:46 -0000
 @@ -0,0 +1,694 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
@@ -910,12 +903,12 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.5
-diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	13 Nov 2009 12:26:31 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	13 Nov 2009 12:26:58 -0000
-@@ -801,7 +801,10 @@
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.7
+diff -u -r1.7 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:43:10 -0000	1.7
++++ sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:44:46 -0000
+@@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
  	struct pf_state_scrub	*scrub;	/* state is scrubbed		*/
@@ -927,7 +920,7 @@ diff -u -r1.5 pfvar.h
  };
  
  TAILQ_HEAD(pf_state_queue, pf_state);
-@@ -1902,6 +1905,9 @@
+@@ -1905,6 +1908,9 @@
  /* The fingerprint functions can be linked into userland programs (tcpdump) */
  int	pf_osfp_add(struct pf_osfp_ioctl *);
  #ifdef _KERNEL
@@ -939,11 +932,11 @@ diff -u -r1.5 pfvar.h
  	    const struct tcphdr *);
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/modules/pf/Makefile,v
+RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	13 Nov 2009 12:21:53 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	13 Nov 2009 12:26:58 -0000
+--- sys/modules/pf/Makefile	28 Jan 2010 00:06:05 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	28 Jan 2010 00:44:46 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
