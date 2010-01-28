@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/parse.y,v
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
---- contrib/pf/pfctl/parse.y	21 Oct 2008 15:19:34 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	21 Oct 2008 15:20:50 -0000
+--- contrib/pf/pfctl/parse.y	28 Jan 2010 00:07:39 -0000	1.2
++++ contrib/pf/pfctl/parse.y	28 Jan 2010 00:07:44 -0000
 @@ -185,6 +185,7 @@
  #define FOM_TOS		0x04
  #define FOM_KEEP	0x08
@@ -55,7 +55,7 @@ diff -u -r1.2 parse.y
  			r.keep_state = $9.keep.action;
  
  			/* 'keep state' by default on pass rules. */
-@@ -2156,6 +2165,14 @@
+@@ -2164,6 +2173,14 @@
  			filter_opts.marker |= FOM_TOS;
  			filter_opts.tos = $1;
  		}
@@ -70,7 +70,7 @@ diff -u -r1.2 parse.y
  		| keep {
  			if (filter_opts.marker & FOM_KEEP) {
  				yyerror("modulate or keep cannot be redefined");
-@@ -3144,6 +3161,46 @@
+@@ -3152,6 +3169,46 @@
  		}
  		;
  
@@ -117,8 +117,8 @@ diff -u -r1.2 parse.y
  sourcetrack	: SOURCETRACK		{ $$ = PF_SRCTRACK; }
  		| SOURCETRACK GLOBAL	{ $$ = PF_SRCTRACK_GLOBAL; }
  		| SOURCETRACK RULE	{ $$ = PF_SRCTRACK_RULE; }
-@@ -4169,6 +4226,10 @@
- 		yyerror("keep state on block rules doesn't make sense");
+@@ -4192,6 +4249,10 @@
+ 		    "synproxy state or modulate state");
  		problems++;
  	}
 +	if ((r->rule_flag & PFRULE_TOS) && (r->rule_flag & PFRULE_DSCP)) {
@@ -128,7 +128,7 @@ diff -u -r1.2 parse.y
  	return (-problems);
  }
  
-@@ -4963,6 +5024,7 @@
+@@ -4986,6 +5047,7 @@
  		{ "debug",		DEBUG},
  		{ "drop",		DROP},
  		{ "drop-ovl",		FRAGDROP},
@@ -138,11 +138,11 @@ diff -u -r1.2 parse.y
  		{ "fastroute",		FASTROUTE},
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl_parser.c	21 Oct 2008 15:20:56 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	28 Jan 2010 00:06:01 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_parser.c	28 Jan 2010 00:07:44 -0000
 @@ -839,8 +839,10 @@
  				printf(" code %u", r->code-1);
  		}
@@ -158,12 +158,12 @@ diff -u -r1.1.1.1 pfctl_parser.c
  	else if (r->keep_state == PF_STATE_NORMAL)
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	21 Oct 2008 15:19:34 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	21 Oct 2008 15:21:56 -0000
-@@ -3342,7 +3342,10 @@
+--- sys/contrib/pf/net/pf.c	28 Jan 2010 00:07:40 -0000	1.2
++++ sys/contrib/pf/net/pf.c	28 Jan 2010 00:07:44 -0000
+@@ -3379,7 +3379,10 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], th->th_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
@@ -175,7 +175,7 @@ diff -u -r1.2 pf.c
  			r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
-@@ -3764,8 +3767,11 @@
+@@ -3804,8 +3807,11 @@
  		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
  		    r->dst.port[0], r->dst.port[1], uh->uh_dport))
  			r = r->skip[PF_SKIP_DST_PORT].ptr;
@@ -189,7 +189,7 @@ diff -u -r1.2 pf.c
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
  		else if (r->uid.op && (pd->lookup.done || (pd->lookup.done =
-@@ -4119,8 +4125,11 @@
+@@ -4162,8 +4168,11 @@
  			r = TAILQ_NEXT(r, entries);
  		else if (r->code && r->code != icmpcode + 1)
  			r = TAILQ_NEXT(r, entries);
@@ -203,7 +203,7 @@ diff -u -r1.2 pf.c
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
  		else if (r->prob && r->prob <= arc4random())
-@@ -4378,8 +4387,11 @@
+@@ -4424,8 +4433,11 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
@@ -219,11 +219,11 @@ diff -u -r1.2 pf.c
  		else if (r->prob && r->prob <= arc4random())
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:19:34 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:22:32 -0000
+--- sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:07:40 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:07:44 -0000
 @@ -672,6 +672,28 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
@@ -266,4 +266,4 @@ diff -u -r1.2 pfvar.h
 +
  /* rule flags again */
  #define PFRULE_IFBOUND		0x00010000	/* if-bound */
- 
+ #define PFRULE_STATESLOPPY	0x00020000	/* sloppy state tracking */
