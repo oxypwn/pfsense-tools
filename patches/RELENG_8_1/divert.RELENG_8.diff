@@ -1,17 +1,17 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.3
-diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	8 Nov 2009 19:23:36 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	8 Nov 2009 19:23:42 -0000
+retrieving revision 1.4
+diff -u -r1.4 parse.y
+--- contrib/pf/pfctl/parse.y	28 Jan 2010 00:18:53 -0000	1.4
++++ contrib/pf/pfctl/parse.y	28 Jan 2010 00:19:49 -0000
 @@ -132,6 +132,7 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
  	    PF_STATE_OPT_MAX_SRC_CONN_RATE, PF_STATE_OPT_MAX_SRC_NODES,
 +	    PF_STATE_OPT_MAX_PACKETS, 
  	    PF_STATE_OPT_OVERLOAD, PF_STATE_OPT_STATELOCK,
- 	    PF_STATE_OPT_TIMEOUT };
+ 	    PF_STATE_OPT_TIMEOUT, PF_STATE_OPT_SLOPPY };
  
 @@ -143,6 +144,7 @@
  		u_int32_t	 max_states;
@@ -29,13 +29,11 @@ diff -u -r1.3 parse.y
  	char			*tag;
  	char			*match_tag;
  	u_int8_t		 match_tag_not;
-@@ -441,8 +444,8 @@
- %token  SRCIP DSTIP SRCPORT DSTPORT SRCIP6 DSTIP6 FLOWID NOERROR
+@@ -442,7 +445,7 @@
  %token	LOAD RULESET_OPTIMIZATION
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
--%token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
+ %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY
 -%token	TAGGED TAG IFBOUND FLOATING STATEPOLICY ROUTE
-+%token	MAXSRCCONN MAXSRCCONNRATE MAXPCKT OVERLOAD FLUSH
 +%token	TAGGED TAG IFBOUND FLOATING DIVERT STATEPOLICY ROUTE
  %token	<v.string>		STRING
  %token	<v.i>			PORTBINARY
@@ -72,7 +70,7 @@ diff -u -r1.3 parse.y
  				case PF_STATE_OPT_SRCTRACK:
  					if (srctrack) {
  						yyerror("state option "
-@@ -2511,6 +2525,9 @@
+@@ -2519,6 +2533,9 @@
  			filter_opts.dnpipe = $3;
  			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
  		}
@@ -82,7 +80,7 @@ diff -u -r1.3 parse.y
  		| TAG string				{
  			filter_opts.tag = $2;
  		}
-@@ -3586,6 +3603,15 @@
+@@ -3594,6 +3611,15 @@
  			$$->next = NULL;
  			$$->tail = $$;
  		}
@@ -98,7 +96,7 @@ diff -u -r1.3 parse.y
  		| MAXSRCCONN number			{
  			$$ = calloc(1, sizeof(struct node_state_opt));
  			if ($$ == NULL)
-@@ -4250,6 +4276,10 @@
+@@ -4266,6 +4292,10 @@
  		}
  		;
  
@@ -109,7 +107,7 @@ diff -u -r1.3 parse.y
  tag		: /* empty */		{ $$ = NULL; }
  		| TAG STRING		{ $$ = $2; }
  		;
-@@ -5341,6 +5371,7 @@
+@@ -5364,6 +5394,7 @@
  		{ "crop",		FRAGCROP},
  		{ "debug",		DEBUG},
  		{ "delay",              DELAY},
@@ -117,7 +115,7 @@ diff -u -r1.3 parse.y
  		{ "dngred",             DNGRED},
  		{ "dnpipe",             DNPIPE},
                  { "dnqueue",            DNQUEUE},
-@@ -5351,6 +5382,7 @@
+@@ -5374,6 +5405,7 @@
  		{ "dst-ip",             DSTIP},
                  { "dst-ip6",            DSTIP6},
                  { "dst-port",           DSTPORT},
@@ -125,7 +123,7 @@ diff -u -r1.3 parse.y
  		{ "dup-to",		DUPTO},
  		{ "fairq",		FAIRQ},
  		{ "fastroute",		FASTROUTE},
-@@ -5384,6 +5416,7 @@
+@@ -5407,6 +5439,7 @@
  		{ "mask",		MASK},
  		{ "max",		MAXIMUM},
  		{ "max-mss",		MAXMSS},
@@ -138,9 +136,9 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.3
 diff -u -r1.3 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	8 Nov 2009 19:23:36 -0000	1.3
-+++ contrib/pf/pfctl/pfctl_parser.c	8 Nov 2009 19:23:43 -0000
-@@ -915,6 +915,12 @@
+--- contrib/pf/pfctl/pfctl_parser.c	28 Jan 2010 00:18:53 -0000	1.3
++++ contrib/pf/pfctl/pfctl_parser.c	28 Jan 2010 00:19:01 -0000
+@@ -917,6 +917,12 @@
  			printf("max-src-conn %u", r->max_src_conn);
  			opts = 0;
  		}
@@ -153,7 +151,7 @@ diff -u -r1.3 pfctl_parser.c
  		if (r->max_src_conn_rate.limit) {
  			if (!opts)
  				printf(", ");
-@@ -998,6 +1004,8 @@
+@@ -1006,6 +1012,8 @@
  		printf(" queue(%s, %s)", r->qname, r->pqname);
  	else if (r->qname[0])
  		printf(" queue %s", r->qname);
@@ -165,10 +163,10 @@ diff -u -r1.3 pfctl_parser.c
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.3
-diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	8 Nov 2009 19:23:36 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	8 Nov 2009 19:32:56 -0000
+retrieving revision 1.4
+diff -u -r1.4 pf.c
+--- sys/contrib/pf/net/pf.c	28 Jan 2010 00:18:53 -0000	1.4
++++ sys/contrib/pf/net/pf.c	28 Jan 2010 00:38:38 -0000
 @@ -137,6 +137,7 @@
  #ifdef __FreeBSD__
  #include <netinet/ip_fw.h>
@@ -177,7 +175,7 @@ diff -u -r1.3 pf.c
  
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
-@@ -382,6 +383,8 @@
+@@ -389,6 +390,8 @@
  		r = (*state)->rule.ptr;						\
          	if (r->dnpipe && !(pd->pf_mtag->flags & PF_DN_TAG_PRESENT))	\
                  	return (PF_PASS);					\
@@ -186,7 +184,7 @@ diff -u -r1.3 pf.c
  	} while (0)
  
  struct pf_src_tree tree_src_tracking;
-@@ -4750,7 +4753,8 @@
+@@ -5189,7 +5192,8 @@
           */
          if ((th->th_flags & TH_SYN) && src->state == TCPS_SYN_SENT &&
  		dst->state == TCPS_CLOSED) {
@@ -196,22 +194,22 @@ diff -u -r1.3 pf.c
                  	return (PF_PASS);
  	}
  
-@@ -6869,6 +6873,8 @@
+@@ -6987,6 +6991,8 @@
  
  #ifdef __FreeBSD__
  	struct m_tag *dn_tag;
 +	u_int16_t divertcookie = 0;
-+	u_int8_t divflags = 0;
++        u_int8_t divflags = 0;
  	struct ip_fw_args	 dnflow;
  
  	PF_LOCK();
-@@ -6950,13 +6956,23 @@
+@@ -7068,13 +7074,22 @@
                  }
  		pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
                  m_tag_delete(m, dn_tag);
--        }
 +		goto nonormalize;
-+	}
+         }
+-
 +	if (ip_divert_ptr != NULL &&
 +		((dn_tag = m_tag_find(m, PACKET_TAG_DIVERT, NULL)) != NULL)) {
 +		pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;
@@ -220,7 +218,6 @@ diff -u -r1.3 pf.c
 +		divertcookie &= ~PFSTATE_DIVERT_MASK;
 +		m_tag_delete(m, dn_tag);
 +	}
- 
  	/* We do IP header normalization and packet reassembly here */
  	else if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
  		action = PF_DROP;
@@ -230,25 +227,26 @@ diff -u -r1.3 pf.c
  	m = *m0;
  	h = mtod(m, struct ip *);
  
-@@ -7143,6 +7159,17 @@
+@@ -7261,6 +7276,18 @@
  		    ("pf: dropping packet with ip options\n"));
  	}
  
 +#ifdef __FreeBSD__
-+	if (s) {
-+		if (divertcookie) {
-+			s->divert_cookie = divertcookie;
-+			s->local_flags |= divflags;
-+		} else if (s->divert_cookie) {
-+			divertcookie = s->divert_cookie;
-+			divflags = s->local_flags;
-+		}
-+	}
++        if (s) {
++                if (divertcookie) {
++                        s->divert_cookie = divertcookie;
++                        s->local_flags |= divflags;
++                } else if (s->divert_cookie) {
++                        divertcookie = s->divert_cookie;
++                        divflags = s->local_flags;
++                }
++        }
 +#endif
++
  	if ((s && s->tag) || r->rtableid)
  		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
  
-@@ -7162,7 +7189,51 @@
+@@ -7280,7 +7307,50 @@
  #endif /* ALTQ */
  
  #ifdef __FreeBSD__
@@ -292,23 +290,22 @@ diff -u -r1.3 pf.c
 +
 +                                ip_divert_ptr(*m0,
 +                                        dir ==  PF_IN ? DIV_DIR_IN : DIV_DIR_OUT);
-+
 +                                *m0 = NULL;
 +                                return (action);
 +                        }
 +                }
-+       	} else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) && ip_dn_io_ptr != NULL &&
++        } else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) && ip_dn_io_ptr != NULL &&
                  !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
                          struct ip_fw dummyrule;
  
-@@ -7170,10 +7241,17 @@
+@@ -7288,10 +7358,17 @@
                                  r->free_flags & PFRULE_DN_IS_PIPE ? O_PIPE : O_QUEUE;
                          dummyrule.act_ofs = 0;
                          dummyrule.cmd_len = 1;
 -                        if (dir != r->direction && r->pdnpipe) {
 -                                dnflow.cookie = r->pdnpipe;
-+			if (dir != r->direction && (r->pdnpipe || 
-+				(divflags & PFSTATE_DIVERT_DNCOOKIE))) {
++			 if (dir != r->direction && (r->pdnpipe ||
++                                (divflags & PFSTATE_DIVERT_DNCOOKIE))) {
 +                                if (divflags & PFSTATE_DIVERT_DNCOOKIE)
 +                                        dnflow.cookie = divertcookie;
 +                                else
@@ -322,7 +319,7 @@ diff -u -r1.3 pf.c
                          } else
                                  goto continueprocessing;
  
-@@ -7684,7 +7762,7 @@
+@@ -7802,7 +7879,7 @@
  #endif /* ALTQ */
  
  #ifdef __FreeBSD__
@@ -331,15 +328,17 @@ diff -u -r1.3 pf.c
                  !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
                          struct ip_fw dummyrule;
  
-@@ -7693,9 +7771,9 @@
+@@ -7810,10 +7887,10 @@
+                                 r->free_flags & PFRULE_DN_IS_PIPE ? O_PIPE : O_QUEUE;
                          dummyrule.act_ofs = 0;
                          dummyrule.cmd_len = 1;
-                         if (dir != r->direction && r->pdnpipe) {
+-                        if (dir != r->direction && r->pdnpipe) {
 -                                dnflow.cookie = r->pdnpipe;
-+                               	dnflow.cookie = r->pdnpipe;
++			if (dir != r->direction && r->pdnpipe) {
++				dnflow.cookie = r->pdnpipe;
                          } else if (dir == r->direction) {
 -                                dnflow.cookie = r->dnpipe;
-+                               	dnflow.cookie = r->dnpipe;
++				dnflow.cookie = r->dnpipe;
                          } else
                                  goto continueprocessing;
  
@@ -348,8 +347,8 @@ Index: sys/contrib/pf/net/pf_mtag.h
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.3
 diff -u -r1.3 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	8 Nov 2009 19:23:36 -0000	1.3
-+++ sys/contrib/pf/net/pf_mtag.h	8 Nov 2009 19:23:43 -0000
+--- sys/contrib/pf/net/pf_mtag.h	28 Jan 2010 00:18:53 -0000	1.3
++++ sys/contrib/pf/net/pf_mtag.h	28 Jan 2010 00:19:01 -0000
 @@ -39,6 +39,7 @@
  #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
  #define PF_DN_TAG_PRESENT	        0x08
@@ -361,10 +360,10 @@ diff -u -r1.3 pf_mtag.h
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.3
-diff -u -r1.3 pfvar.h
---- sys/contrib/pf/net/pfvar.h	8 Nov 2009 19:23:36 -0000	1.3
-+++ sys/contrib/pf/net/pfvar.h	8 Nov 2009 19:33:22 -0000
+retrieving revision 1.5
+diff -u -r1.5 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:18:53 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:19:01 -0000
 @@ -649,6 +649,7 @@
  	u_int16_t		 tag;
  	u_int16_t		 match_tag;
@@ -373,7 +372,7 @@ diff -u -r1.3 pfvar.h
  
  	struct pf_rule_uid	 uid;
  	struct pf_rule_gid	 gid;
-@@ -829,7 +830,12 @@
+@@ -830,7 +831,12 @@
  	u_int8_t	 direction;
  #ifdef __FreeBSD__
  	u_int8_t	 local_flags;
@@ -387,7 +386,7 @@ diff -u -r1.3 pfvar.h
  #else
  	u_int8_t	 pad;
  #endif
-@@ -865,6 +871,7 @@
+@@ -868,6 +874,7 @@
  	u_int32_t	 expire;
  	u_int32_t	 pfsync_time;
  	u_int16_t	 tag;
@@ -395,7 +394,7 @@ diff -u -r1.3 pfvar.h
  };
  
  TAILQ_HEAD(pf_rulequeue, pf_rule);
-@@ -1120,7 +1127,8 @@
+@@ -1123,7 +1130,8 @@
  #define PFRES_MAXSTATES	12		/* State limit */
  #define PFRES_SRCLIMIT	13		/* Source node/conn limit */
  #define PFRES_SYNPROXY	14		/* SYN proxy */
@@ -405,7 +404,7 @@ diff -u -r1.3 pfvar.h
  
  #define PFRES_NAMES { \
  	"match", \
-@@ -1138,6 +1146,7 @@
+@@ -1141,6 +1149,7 @@
  	"state-limit", \
  	"src-limit", \
  	"synproxy", \
@@ -418,8 +417,8 @@ Index: sys/netinet/ip_divert.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_divert.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.c
---- sys/netinet/ip_divert.c	8 Nov 2009 19:20:57 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.c	8 Nov 2009 19:23:43 -0000
+--- sys/netinet/ip_divert.c	28 Jan 2010 00:06:09 -0000	1.1.1.1
++++ sys/netinet/ip_divert.c	28 Jan 2010 00:19:01 -0000
 @@ -800,5 +800,4 @@
  };
  
@@ -431,8 +430,8 @@ Index: sys/netinet/ip_divert.h
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_divert.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.h
---- sys/netinet/ip_divert.h	8 Nov 2009 19:20:57 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.h	8 Nov 2009 19:23:43 -0000
+--- sys/netinet/ip_divert.h	28 Jan 2010 00:06:09 -0000	1.1.1.1
++++ sys/netinet/ip_divert.h	28 Jan 2010 00:19:01 -0000
 @@ -50,6 +50,9 @@
  	u_int16_t	cookie;		/* ipfw rule number */
  };
@@ -448,8 +447,8 @@ Index: sys/netinet/ip_input.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_input.c
---- sys/netinet/ip_input.c	8 Nov 2009 19:20:57 -0000	1.1.1.1
-+++ sys/netinet/ip_input.c	8 Nov 2009 19:23:43 -0000
+--- sys/netinet/ip_input.c	28 Jan 2010 00:06:09 -0000	1.1.1.1
++++ sys/netinet/ip_input.c	28 Jan 2010 00:19:01 -0000
 @@ -80,6 +80,7 @@
  #ifdef IPSEC
  #include <netinet/ip_ipsec.h>
@@ -473,8 +472,8 @@ Index: sys/netinet/ipfw/ip_fw_pfil.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	8 Nov 2009 19:23:37 -0000	1.2
-+++ sys/netinet/ipfw/ip_fw_pfil.c	8 Nov 2009 19:23:43 -0000
+--- sys/netinet/ipfw/ip_fw_pfil.c	28 Jan 2010 00:18:54 -0000	1.2
++++ sys/netinet/ipfw/ip_fw_pfil.c	28 Jan 2010 00:19:01 -0000
 @@ -74,16 +74,11 @@
  
  int ipfw_chg_hook(SYSCTL_HANDLER_ARGS);
