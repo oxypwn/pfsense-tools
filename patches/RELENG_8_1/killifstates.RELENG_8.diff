@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/pfctl.c
 ===================================================================
-RCS file: /home/ermal/tmprepo/src/contrib/pf/pfctl/pfctl.c,v
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.c
---- contrib/pf/pfctl/pfctl.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.c	21 Oct 2008 15:25:21 -0000
+--- contrib/pf/pfctl/pfctl.c	28 Jan 2010 00:06:01 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl.c	28 Jan 2010 00:10:29 -0000
 @@ -76,6 +76,7 @@
  void	 pfctl_addrprefix(char *, struct pf_addr *);
  int	 pfctl_kill_src_nodes(int, const char *, int);
@@ -135,12 +135,12 @@ diff -u -r1.1.1.1 pfctl.c
  		    tblcmdopt, rulesopt, anchorname, opts);
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
-RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pf_ioctl.c,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	21 Oct 2008 15:18:37 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf_ioctl.c	21 Oct 2008 15:25:27 -0000
-@@ -2018,6 +2018,39 @@
+--- sys/contrib/pf/net/pf_ioctl.c	28 Jan 2010 00:06:06 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_ioctl.c	28 Jan 2010 00:10:29 -0000
+@@ -2017,6 +2017,39 @@
  		break;
  	}
  
@@ -182,12 +182,12 @@ diff -u -r1.1.1.1 pf_ioctl.c
  		struct pf_state		*state;
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /home/ermal/tmprepo/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.3
 diff -u -r1.3 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:23:00 -0000	1.3
-+++ sys/contrib/pf/net/pfvar.h	21 Oct 2008 15:25:43 -0000
-@@ -1590,6 +1590,7 @@
+--- sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:09:44 -0000	1.3
++++ sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:10:29 -0000
+@@ -1593,6 +1593,7 @@
  };
  #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
  #endif
