@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /usr/home/ermal/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.4
-diff -u -r1.4 pf.c
---- sys/contrib/pf/net/pf.c	25 Jul 2009 22:23:34 -0000	1.4
-+++ sys/contrib/pf/net/pf.c	25 Jul 2009 22:24:44 -0000
-@@ -6196,6 +6196,9 @@
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.5
+diff -u -r1.5 pf.c
+--- sys/contrib/pf/net/pf.c	28 Jan 2010 00:42:25 -0000	1.5
++++ sys/contrib/pf/net/pf.c	28 Jan 2010 00:43:18 -0000
+@@ -6354,6 +6354,9 @@
  
  	ip = mtod(m0, struct ip *);
  
@@ -15,7 +15,7 @@ diff -u -r1.4 pf.c
  	ro = &iproute;
  	bzero((caddr_t)ro, sizeof(*ro));
  	dst = satosin(&ro->ro_dst);
-@@ -6237,6 +6240,12 @@
+@@ -6395,6 +6398,12 @@
  	}
  	if (ifp == NULL)
  		goto bad;
@@ -28,7 +28,7 @@ diff -u -r1.4 pf.c
  
  	if (oifp != ifp) {
  #ifdef __FreeBSD__
-@@ -6418,6 +6427,7 @@
+@@ -6576,6 +6585,7 @@
  done:
  	if (r->rt != PF_DUPTO)
  		*m = NULL;
