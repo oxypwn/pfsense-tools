@@ -1,10 +1,10 @@
 Index: sys/conf/files
 ===================================================================
-RCS file: /root/freebsd/repo/src/sys/conf/files,v
+RCS file: /root/freebsd/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	28 Jan 2010 00:07:39 -0000	1.2
-+++ sys/conf/files	28 Jan 2010 00:44:46 -0000
+--- sys/conf/files	2 Feb 2010 11:55:09 -0000	1.2
++++ sys/conf/files	2 Feb 2010 12:15:00 -0000
 @@ -362,6 +362,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -16,11 +16,20 @@ diff -u -r1.2 files
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.6
 diff -u -r1.6 pf.c
---- sys/contrib/pf/net/pf.c	28 Jan 2010 00:43:55 -0000	1.6
-+++ sys/contrib/pf/net/pf.c	28 Jan 2010 00:54:09 -0000
+--- sys/contrib/pf/net/pf.c	2 Feb 2010 12:14:03 -0000	1.6
++++ sys/contrib/pf/net/pf.c	2 Feb 2010 12:21:38 -0000
+@@ -260,7 +260,7 @@
+ int			 pf_tcp_track_full(struct pf_state_peer *,
+ 			    struct pf_state_peer *, struct pf_state **,
+ 			    struct pfi_kif *, struct mbuf *, int,
+-			    struct pf_pdesc *, u_short *, int *);
++			    struct pf_pdesc *, u_short *, int *, int);
+ int			 pf_tcp_track_sloppy(struct pf_state_peer *,
+ 			    struct pf_state_peer *, struct pf_state **,
+ 			    struct pf_pdesc *, u_short *);
 @@ -306,8 +306,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
@@ -54,8 +63,12 @@ diff -u -r1.6 pf.c
  
  	return (0);
  }
-@@ -4731,10 +4733,11 @@
- 	struct pf_pdesc *pd, u_short *reason, int *copyback)
+@@ -4728,13 +4730,14 @@
+ int
+ pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
+ 	struct pf_state **state, struct pfi_kif *kif, struct mbuf *m, int off,
+-	struct pf_pdesc *pd, u_short *reason, int *copyback)
++	struct pf_pdesc *pd, u_short *reason, int *copyback, int direction)
  {
   	struct tcphdr		*th = pd->hdr.tcp;
 +	struct pf_rule		*nat = NULL;
@@ -68,7 +81,7 @@ diff -u -r1.6 pf.c
  
  	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
  		sws = src->wscale & PF_WSCALE_MASK;
-@@ -4819,13 +4822,53 @@
+@@ -4819,11 +4822,51 @@
  			src->max_win = win;
  
  	} else {
@@ -121,11 +134,8 @@ diff -u -r1.6 pf.c
 -			    src->seqdiff), 0);
 +				src->seqdiff), 0);
  			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
--			*copyback = 1;
-+			copyback = 1;
+ 			*copyback = 1;
  		}
- 		end = seq + pd->p_len;
- 		if (th->th_flags & TH_SYN)
 @@ -5186,6 +5229,54 @@
  		dst = &(*state)->src;
  	}
@@ -181,7 +191,12 @@ diff -u -r1.6 pf.c
  	/*
           * First state is created by the rules checking code and if we reloop
           * the first packet that hit the rule pf will not like it.
-@@ -5329,6 +5420,7 @@
+@@ -5325,10 +5416,11 @@
+ 			return (PF_DROP);
+ 	} else {
+ 		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
+-		    &copyback) == PF_DROP)
++		    &copyback, direction) == PF_DROP)
  			return (PF_DROP);
  	}
  
@@ -205,7 +220,7 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	28 Jan 2010 00:44:46 -0000
++++ sys/contrib/pf/net/pf_ftp.c	2 Feb 2010 12:15:00 -0000
 @@ -0,0 +1,694 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
@@ -903,11 +918,11 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.7
 diff -u -r1.7 pfvar.h
---- sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:43:10 -0000	1.7
-+++ sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:44:46 -0000
+--- sys/contrib/pf/net/pfvar.h	2 Feb 2010 12:09:56 -0000	1.7
++++ sys/contrib/pf/net/pfvar.h	2 Feb 2010 12:15:00 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -932,11 +947,11 @@ diff -u -r1.7 pfvar.h
  	    const struct tcphdr *);
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
+RCS file: /root/freebsd/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	28 Jan 2010 00:06:05 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	28 Jan 2010 00:44:46 -0000
+--- sys/modules/pf/Makefile	2 Feb 2010 11:53:19 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	2 Feb 2010 12:15:00 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
