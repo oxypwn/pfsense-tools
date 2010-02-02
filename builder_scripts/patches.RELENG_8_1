@@ -48,3 +48,4 @@
 ~~tty.c.diff~
 ~~ip_carp.c.diff~
 ~usr.bin/netstat/~netstat.8.diff~
+~~if_lagg_vlan_handling.diff~
