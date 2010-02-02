@@ -1,0 +1,110 @@
+Index: sys/net/if_lagg.c
+===================================================================
+RCS file: /root/freebsd/freebsd/repo/src/sys/net/if_lagg.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_lagg.c
+--- sys/net/if_lagg.c	2 Feb 2010 11:53:16 -0000	1.1.1.1
++++ sys/net/if_lagg.c	2 Feb 2010 12:49:13 -0000
+@@ -39,6 +39,7 @@
+ #include <sys/lock.h>
+ #include <sys/rwlock.h>
+ #include <sys/taskqueue.h>
++#include <sys/eventhandler.h>
+ 
+ #include <net/ethernet.h>
+ #include <net/if.h>
+@@ -251,6 +252,13 @@
+ 	 */
+ 	ether_ifattach(ifp, eaddr);
+ 
++#if __FreeBSD_version >= 800000
++	sc->vlan_attach = EVENTHANDLER_REGISTER(vlan_config,
++		lagg_register_vlan, sc, EVENTHANDLER_PRI_FIRST);
++	sc->vlan_detach = EVENTHANDLER_REGISTER(vlan_unconfig,
++		lagg_unregister_vlan, sc, EVENTHANDLER_PRI_FIRST);
++#endif
++
+ 	/* Insert into the global list of laggs */
+ 	mtx_lock(&lagg_list_mtx);
+ 	SLIST_INSERT_HEAD(&lagg_list, sc, sc_entries);
+@@ -270,6 +278,11 @@
+ 	lagg_stop(sc);
+ 	ifp->if_flags &= ~IFF_UP;
+ 
++#if __FreeBSD_version >= 800000
++	EVENTHANDLER_DEREGISTER(vlan_config, sc->vlan_attach);
++	EVENTHANDLER_DEREGISTER(vlan_unconfig, sc->vlan_detach);
++#endif
++
+ 	/* Shutdown and remove lagg ports */
+ 	while ((lp = SLIST_FIRST(&sc->sc_ports)) != NULL)
+ 		lagg_port_destroy(lp, 1);
+@@ -291,6 +304,50 @@
+ 	free(sc, M_DEVBUF);
+ }
+ 
++#if __FreeBSD_version >= 800000
++/*
++ * This routine is run via an vlan
++ * config EVENT
++ */
++static void
++lagg_register_vlan(void *arg, struct ifnet *ifp, u16 vtag)
++{
++	struct lagg_softc       *sc = ifp->if_softc;
++	struct lagg_port        *lp;
++
++	if (ifp->if_softc !=  arg)   /* Not our event */
++		return;
++
++	LAGG_RLOCK(sc);
++	if (!SLIST_EMPTY(&sc->sc_ports)) {
++		SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++			EVENTHANDLER_INVOKE(vlan_config, lp->lp_ifp, vtag);
++	}
++	LAGG_RUNLOCK(sc);
++}
++
++/*
++ * This routine is run via an vlan
++ * unconfig EVENT
++ */
++static void
++lagg_unregister_vlan(void *arg, struct ifnet *ifp, u16 vtag)
++{
++        struct lagg_softc       *sc = ifp->if_softc;
++        struct lagg_port        *lp;
++
++        if (ifp->if_softc !=  arg)   /* Not our event */
++                return;
++
++        LAGG_RLOCK(sc);
++        if (!SLIST_EMPTY(&sc->sc_ports)) {
++                SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
++                        EVENTHANDLER_INVOKE(vlan_unconfig, lp->lp_ifp, vtag);
++        }
++        LAGG_RUNLOCK(sc);
++}
++#endif
++
+ static void
+ lagg_lladdr(struct lagg_softc *sc, uint8_t *lladdr)
+ {
+Index: sys/net/if_lagg.h
+===================================================================
+RCS file: /root/freebsd/freebsd/repo/src/sys/net/if_lagg.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_lagg.h
+--- sys/net/if_lagg.h	2 Feb 2010 11:53:16 -0000	1.1.1.1
++++ sys/net/if_lagg.h	2 Feb 2010 12:49:49 -0000
+@@ -198,6 +198,10 @@
+ 	void	(*sc_lladdr)(struct lagg_softc *);
+ 	void	(*sc_req)(struct lagg_softc *, caddr_t);
+ 	void	(*sc_portreq)(struct lagg_port *, caddr_t);
++#ifdef _FreeBSD_version >= 800000
++	eventhandler_tag vlan_attach;
++	eventhandler_tag vlan_detach;
++#endif
+ };
+ 
+ struct lagg_port {
