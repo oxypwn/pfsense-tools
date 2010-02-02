@@ -1,28 +1,28 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.5
 diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	28 Jan 2010 00:42:25 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	28 Jan 2010 00:43:18 -0000
-@@ -6354,6 +6354,9 @@
+--- sys/contrib/pf/net/pf.c	2 Feb 2010 12:08:50 -0000	1.5
++++ sys/contrib/pf/net/pf.c	2 Feb 2010 12:12:46 -0000
+@@ -6354,6 +6354,13 @@
  
  	ip = mtod(m0, struct ip *);
  
 +	if (IN_MULTICAST(ip->ip_dst.s_addr))
 +                return;
-+
- 	ro = &iproute;
- 	bzero((caddr_t)ro, sizeof(*ro));
- 	dst = satosin(&ro->ro_dst);
-@@ -6395,6 +6398,12 @@
- 	}
- 	if (ifp == NULL)
- 		goto bad;
 +	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
 +		goto donelocal;
 +	else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
 +		goto donelocal;
++
+ 	ro = &iproute;
+ 	bzero((caddr_t)ro, sizeof(*ro));
+ 	dst = satosin(&ro->ro_dst);
+@@ -6395,6 +6402,8 @@
+ 	}
+ 	if (ifp == NULL)
+ 		goto bad;
 +	else if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
 +		goto donelocal;
  
