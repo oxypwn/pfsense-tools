@@ -381,7 +381,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->nat_rule.ptr = nr;
 +                s->anchor.ptr = state->anchor.ptr;
 +                STATE_INC_COUNTERS(s);
-+                s->allow_opts = state->allow_opts;
++                s->state_flags = state->state_flags;
 +                s->log = state->log;
 +                s->proto = IPPROTO_TCP;
 +                s->af = pd->af;
