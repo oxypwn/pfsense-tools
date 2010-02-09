@@ -1,11 +1,11 @@
 Index: if_vlan.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/if_vlan.c,v
-retrieving revision 1.134
-diff -u -r1.134 if_vlan.c
---- if_vlan.c	27 Feb 2009 14:12:05 -0000	1.134
-+++ if_vlan.c	7 Apr 2009 19:20:48 -0000
-@@ -729,7 +729,12 @@
+retrieving revision 1.139.2.4
+diff -u -r1.139.2.4 if_vlan.c
+--- if_vlan.c	5 Jan 2010 18:25:41 -0000	1.139.2.4
++++ if_vlan.c	9 Feb 2010 15:51:43 -0000
+@@ -731,7 +731,12 @@
  	ifp->if_init = vlan_init;
  	ifp->if_start = vlan_start;
  	ifp->if_ioctl = vlan_ioctl;
@@ -19,7 +19,7 @@ diff -u -r1.134 if_vlan.c
  	ifp->if_flags = VLAN_IFFLAGS;
  	ether_ifattach(ifp, eaddr);
  	/* Now undo some of the damage... */
-@@ -766,6 +771,11 @@
+@@ -768,6 +773,11 @@
  {
  	struct ifvlan *ifv = ifp->if_softc;
  	int unit = ifp->if_dunit;
@@ -31,7 +31,7 @@ diff -u -r1.134 if_vlan.c
  
  	ether_ifdetach(ifp);	/* first, remove it from system-wide lists */
  	vlan_unconfig(ifp);	/* now it can be unconfigured and freed */
-@@ -800,11 +810,22 @@
+@@ -802,11 +812,22 @@
  	struct mbuf *m;
  	int error;
  
@@ -55,3 +55,12 @@ diff -u -r1.134 if_vlan.c
  		if (m == NULL)
  			break;
  		BPF_MTAP(ifp, m);
+@@ -967,7 +988,7 @@
+ 	/* VID numbers 0x0 and 0xFFF are reserved */
+ 	if (tag == 0 || tag == 0xFFF)
+ 		return (EINVAL);
+-	if (p->if_type != IFT_ETHER)
++	if (p->if_type != IFT_ETHER && p->if_type != IFT_BRIDGE)
+ 		return (EPROTONOSUPPORT);
+ 	if ((p->if_flags & VLAN_IFFLAGS) != VLAN_IFFLAGS)
+ 		return (EPROTONOSUPPORT);
