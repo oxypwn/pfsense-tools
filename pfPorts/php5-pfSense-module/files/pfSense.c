@@ -24,6 +24,7 @@
 
 static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_get_interface_info, NULL)
+    PHP_FE(pfSense_get_interface_addresses, NULL)
     PHP_FE(pfSense_get_interface_stats, NULL)
     PHP_FE(pfSense_get_pf_stats, NULL)
     PHP_FE(pfSense_get_os_hw_data, NULL)
@@ -178,6 +179,143 @@ pfr_buf_clear(struct pfr_buffer *b)
 	b->pfrb_size = b->pfrb_msize = 0;
 }
 
+PHP_FUNCTION(pfSense_get_interface_addresses)
+{
+	struct ifaddrs *ifdata, *mb;
+        struct if_data *md;
+	struct sockaddr_in *tmp;
+        struct sockaddr_dl *tmpdl;
+	struct ifreq ifr;
+        char outputbuf[128];
+        char *ifname;
+        int ifname_len, error;
+
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
+                RETURN NULL;
+        }
+
+        array_init(return_value);
+
+	getifaddrs(&ifdata);
+        if (ifdata == NULL) {
+                //printf("No data found\n");
+                RETURN NULL;
+        }
+
+        for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
+		if (mb == NULL)
+                        continue;
+                if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
+                        continue;
+	if (mb->ifa_flags & IFF_UP)
+		add_assoc_string(return_value, "status", "up", 1);
+	else
+		add_assoc_string(return_value, "status", "down", 1);
+	if (mb->ifa_flags & IFF_LINK0)
+		add_assoc_long(return_value, "link0", 1);
+	if (mb->ifa_flags & IFF_LINK1)
+		add_assoc_long(return_value, "link1", 1);
+	if (mb->ifa_flags & IFF_LINK2)
+		add_assoc_long(return_value, "link2", 1);
+	if (mb->ifa_flags & IFF_MULTICAST)
+		add_assoc_long(return_value, "multicast", 1);
+	if (mb->ifa_flags & IFF_LOOPBACK)
+                add_assoc_long(return_value, "loopback", 1);
+	if (mb->ifa_flags & IFF_POINTOPOINT)
+                add_assoc_long(return_value, "pointtopoint", 1);
+	if (mb->ifa_flags & IFF_PROMISC)
+                add_assoc_long(return_value, "promisc", 1);
+	if (mb->ifa_flags & IFF_PPROMISC)
+                add_assoc_long(return_value, "permanentpromisc", 1);
+	if (mb->ifa_flags & IFF_OACTIVE)
+                add_assoc_long(return_value, "oactive", 1);
+	if (mb->ifa_flags & IFF_ALLMULTI)
+                add_assoc_long(return_value, "allmulti", 1);
+	if (mb->ifa_flags & IFF_SIMPLEX)
+                add_assoc_long(return_value, "simplex", 1);
+	if (mb->ifa_data != NULL) {
+	md = mb->ifa_data;
+	add_assoc_long(return_value, "hwassistflag", md->ifi_hwassist);
+	if (md->ifi_hwassist & IFCAP_POLLING)
+		add_assoc_long(return_value, "polling", 1);
+	if (md->ifi_hwassist & IFCAP_RXCSUM)
+		add_assoc_long(return_value, "rxcsum", 1);
+	if (md->ifi_hwassist & IFCAP_TXCSUM)
+		add_assoc_long(return_value, "txcsum", 1);
+	if (md->ifi_hwassist & IFCAP_VLAN_MTU)
+		add_assoc_long(return_value, "vlanmtu", 1);
+	if (md->ifi_hwassist & IFCAP_JUMBO_MTU)
+		add_assoc_long(return_value, "jumbomtu", 1);
+	if (md->ifi_hwassist & IFCAP_VLAN_HWTAGGING)
+		add_assoc_long(return_value, "vlanhwtag", 1);
+	if (md->ifi_hwassist & IFCAP_VLAN_HWCSUM)
+                add_assoc_long(return_value, "vlanhwcsum", 1);
+	if (md->ifi_hwassist & IFCAP_TSO4)
+                add_assoc_long(return_value, "tso4", 1);
+	if (md->ifi_hwassist & IFCAP_TSO6)
+                add_assoc_long(return_value, "tso6", 1);
+	if (md->ifi_hwassist & IFCAP_LRO)
+                add_assoc_long(return_value, "lro", 1);
+	if (md->ifi_hwassist & IFCAP_WOL_UCAST)
+                add_assoc_long(return_value, "wolucast", 1);
+	if (md->ifi_hwassist & IFCAP_WOL_MCAST)
+                add_assoc_long(return_value, "wolmcast", 1);
+	if (md->ifi_hwassist & IFCAP_WOL_MAGIC)
+                add_assoc_long(return_value, "wolmagic", 1);
+	if (md->ifi_hwassist & IFCAP_TOE4)
+                add_assoc_long(return_value, "toe4", 1);
+	if (md->ifi_hwassist & IFCAP_TOE6)
+                add_assoc_long(return_value, "toe6", 1);
+	if (md->ifi_hwassist & IFCAP_VLAN_HWFILTER)
+                add_assoc_long(return_value, "vlanhwfilter", 1);
+	if (md->ifi_hwassist & IFCAP_POLLING)
+                add_assoc_long(return_value, "polling", 1);
+	if (md->ifi_hwassist & IFCAP_POLLING_NOCOUNT)
+                add_assoc_long(return_value, "pollingnocount", 1);
+	if (md->ifi_link_state == LINK_STATE_UP)
+                add_assoc_long(return_value, "linkstateup", 1);
+	}
+	if (mb->ifa_addr == NULL)
+		continue;
+                switch (mb->ifa_addr->sa_family) {
+		case AF_INET:
+                        bzero(&outputbuf, sizeof outputbuf);
+                        tmp = (struct sockaddr_in *)mb->ifa_addr;
+                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                        add_assoc_string(return_value, "ipaddr", outputbuf, 1);
+
+                        bzero(&outputbuf, sizeof outputbuf);
+                        tmp = (struct sockaddr_in *)mb->ifa_netmask;
+                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                        add_assoc_string(return_value, "subnet", outputbuf, 1);
+
+                        if (mb->ifa_flags & IFF_BROADCAST) {
+                                bzero(&outputbuf, sizeof outputbuf);
+                                tmp = (struct sockaddr_in *)mb->ifa_broadaddr;
+                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                                add_assoc_string(return_value, "broadcast", outputbuf, 1);
+                        }
+
+			if (mb->ifa_flags & IFF_POINTOPOINT) {
+				bzero(&outputbuf, sizeof outputbuf);
+                                tmp = (struct sockaddr_in *)mb->ifa_dstaddr;
+                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                                add_assoc_string(return_value, "tunnel", outputbuf, 1);
+			}
+
+                        break;
+                case AF_LINK:
+                        tmpdl = (struct sockaddr_dl *)mb->ifa_addr;
+                        bzero(&outputbuf, sizeof outputbuf);
+                        ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), &outputbuf);
+                        add_assoc_string(return_value, "macaddr", outputbuf, 1);
+                        md = (struct if_data *)mb->ifa_data;
+
+                        break;
+                }
+        }
+	freeifaddrs(ifdata);
+}
 
 PHP_FUNCTION(pfSense_get_interface_info)
 {

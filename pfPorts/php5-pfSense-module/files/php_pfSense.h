@@ -9,6 +9,7 @@ PHP_FUNCTION(pfSense_get_interface_stats);
 PHP_FUNCTION(pfSense_get_pf_stats);
 PHP_FUNCTION(pfSense_get_os_hw_data);
 PHP_FUNCTION(pfSense_get_os_kern_data);
+PHP_FUNCTION(pfSense_get_interface_addresses);
 
 extern zend_module_entry pfSense_module_entry;
 #define phpext_pfSense_ptr &pfSense_module_entry
