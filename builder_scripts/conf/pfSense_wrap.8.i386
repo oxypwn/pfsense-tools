@@ -194,32 +194,38 @@ device		wb		# Winbond W89C840F
 device		xl		# 3Com 3c90x (``Boomerang'', ``Cyclone'')
 
 # Wireless
-device          wlan
-device          wlan_wep
-device          wlan_ccmp
-device          wlan_tkip
-device          wlan_xauth
-device          wlan_acl
-device          wlan_amrr
-#device          wlan_scan_ap
-#device          wlan_scan_sta
-
-device iwi
-device ale
-device ath
-device ath_hal
-options AH_SUPPORT_AR5416
-device ath_rate_sample
-
-device			an		# Aironet 4500/4800 802.11 wireless NICs.
-#device			awi		# BayStack 660 and others
-device			ral     # Ralink Technology RT2500 wireless NICs.
-device			wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-#device			wl		# Older non 802.11 Wavelan wireless NIC.
-device          ural            # Ralink Technology RT2500USB wireless NICs
-device          rum             # Ralink Technology RT2501USB wireless NICs
+device		wlan
+device		wlan_wep
+device		wlan_ccmp
+device		wlan_tkip
+device		wlan_xauth
+device		wlan_acl
+device		wlan_amrr
+device		iwi		# Intel PRO/Wireless 2200BG/2225BG/2915ABG IEEE 802.11 driver
+device		ipw		# Intel PRO/Wireless 2100 IEEE 802.11 driver
+device		ipwfw		# Firmware for Intel PRO/Wireless 2100 IEEE 802.11 driver
+device		wpi		# Intel 3945ABG Wireless LAN IEEE 802.11 driver
+device		wpifw		# Firmware for Intel 3945ABG Wireless LAN IEEE 802.11 driver
+device		iwn		# Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
+device		iwnfw		# Firmware for Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
+device		ath		# Atheros IEEE 802.11 wireless network driver
+device		ath_hal
+options		AH_SUPPORT_AR5416
+device		ath_rate_sample
+device		uath		# Atheros USB IEEE 802.11a/b/g wireless network device
+device		an		# Aironet 4500/4800 802.11 wireless NICs.
+device		ral		# Ralink Technology RT2500 wireless NICs.
+device		ralfw		# Firmware for Ralink Technology RT2500 wireless NICs.
+device		ural		# Ralink Technology RT2500USB IEEE 802.11 driver
+device		urtw		# Realtek RTL8187B/L USB IEEE 802.11b/g wireless network device
+device		wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
+device		rum		# Ralink Technology USB IEEE 802.11a/b/g wireless network device
 device		mwl		# Marvell 88W8363 IEEE 802.11n wireless network driver
 device		mwlfw		# Firmware for Marvell 88W8363 IEEE 802.11n wireless network driver
+device		zyd		# ZyDAS ZD1211/ZD1211B USB IEEE 802.11b/g wireless network device
+device		malo		# Marvell Libertas IEEE 802.11b/g wireless network driver
+device		upgt		# Conexant/Intersil PrismGT SoftMAC USB IEEE 802.11b/g wireless
+device		bwi		# Broadcom BCM43xx IEEE 802.11b/g wireless network driver
 
 # Pseudo devices.
 device		loop		# Network loopback
