@@ -14,6 +14,9 @@
 #include <net/pfvar.h>
 #include <sys/ioctl.h>
 #include <sys/sysctl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <net/ethernet.h>
 
 #include <vm/vm_param.h>
 
@@ -205,6 +208,8 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
         for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
 		if (mb == NULL)
                         continue;
+		if (ifname_len != strlen(mb->ifa_name))
+                        continue;
                 if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
                         continue;
 	if (mb->ifa_flags & IFF_UP)
@@ -279,35 +284,36 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 		continue;
                 switch (mb->ifa_addr->sa_family) {
 		case AF_INET:
-                        bzero(&outputbuf, sizeof outputbuf);
+                        bzero(outputbuf, sizeof outputbuf);
                         tmp = (struct sockaddr_in *)mb->ifa_addr;
-                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
                         add_assoc_string(return_value, "ipaddr", outputbuf, 1);
 
                         bzero(&outputbuf, sizeof outputbuf);
                         tmp = (struct sockaddr_in *)mb->ifa_netmask;
-                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+			//add_assoc_long(return_value, "subnetbits", base_convert((long)tmp->sin_addr.s_addr, 16, 2));
+                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
                         add_assoc_string(return_value, "subnet", outputbuf, 1);
 
                         if (mb->ifa_flags & IFF_BROADCAST) {
-                                bzero(&outputbuf, sizeof outputbuf);
+                                bzero(outputbuf, sizeof outputbuf);
                                 tmp = (struct sockaddr_in *)mb->ifa_broadaddr;
-                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
                                 add_assoc_string(return_value, "broadcast", outputbuf, 1);
                         }
 
 			if (mb->ifa_flags & IFF_POINTOPOINT) {
-				bzero(&outputbuf, sizeof outputbuf);
+				bzero(outputbuf, sizeof outputbuf);
                                 tmp = (struct sockaddr_in *)mb->ifa_dstaddr;
-                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
                                 add_assoc_string(return_value, "tunnel", outputbuf, 1);
 			}
 
                         break;
                 case AF_LINK:
                         tmpdl = (struct sockaddr_dl *)mb->ifa_addr;
-                        bzero(&outputbuf, sizeof outputbuf);
-                        ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), &outputbuf);
+                        bzero(outputbuf, sizeof outputbuf);
+                        ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), outputbuf);
                         add_assoc_string(return_value, "macaddr", outputbuf, 1);
                         md = (struct if_data *)mb->ifa_data;
 
@@ -383,18 +389,18 @@ PHP_FUNCTION(pfSense_get_interface_info)
                 case AF_INET:
                         bzero(&outputbuf, sizeof outputbuf);
                         tmp = (struct sockaddr_in *)mb->ifa_addr;
-                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
                         add_assoc_string(return_value, "ipaddr", outputbuf, 1);
 
                         bzero(&outputbuf, sizeof outputbuf);
                         tmp = (struct sockaddr_in *)mb->ifa_netmask;
-                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
                         add_assoc_string(return_value, "subnet", outputbuf, 1);
 
                         if (mb->ifa_flags & IFF_BROADCAST) {
                                 bzero(&outputbuf, sizeof outputbuf);
                                 tmp = (struct sockaddr_in *)mb->ifa_broadaddr;
-                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, &outputbuf, 128);
+                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
                                 add_assoc_string(return_value, "broadcast", outputbuf, 1);
                         }
 
@@ -408,7 +414,7 @@ PHP_FUNCTION(pfSense_get_interface_info)
 
                         tmpdl = (struct sockaddr_dl *)mb->ifa_addr;
 			bzero(&outputbuf, sizeof outputbuf);
-			ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), &outputbuf);
+			ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), outputbuf);
 			add_assoc_string(return_value, "macaddr", outputbuf, 1);
                         tmpd = (struct if_data *)mb->ifa_data;
 #if 0
