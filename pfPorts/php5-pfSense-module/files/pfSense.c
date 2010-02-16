@@ -191,7 +191,7 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 	struct ifreq ifr;
         char outputbuf[128];
         char *ifname;
-        int ifname_len, s;
+        int ifname_len, s, addresscnt = 0;
 	zval *caps;
 	zval *encaps;
 
@@ -338,11 +338,13 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 			continue;
 		switch (mb->ifa_addr->sa_family) {
 		case AF_INET:
+			if (addresscnt > 0)
+				break;
                         bzero(outputbuf, sizeof outputbuf);
                         tmp = (struct sockaddr_in *)mb->ifa_addr;
                         inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-                        add_assoc_string(return_value, "ipaddr", outputbuf, 1);
-
+			add_assoc_string(return_value, "ipaddr", outputbuf, 1);
+			addresscnt++;
                         tmp = (struct sockaddr_in *)mb->ifa_netmask;
 			unsigned char mask;
 			const unsigned char *byte = (unsigned char *)&tmp->sin_addr.s_addr;
