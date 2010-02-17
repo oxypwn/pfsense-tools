@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <ifaddrs.h>
+#include <net/if_types.h>
 #include <net/if.h>
 #include <net/if_dl.h>
 #include <netinet/in.h>
@@ -246,6 +247,36 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
                 	add_assoc_long(return_value, "linkstateup", 1);
 		//add_assoc_long(return_value, "hwassistflag", md->ifi_hwassist);
 		add_assoc_long(return_value, "mtu", md->ifi_mtu);
+		switch (md->ifi_type) {
+		case IFT_IEEE80211:
+			add_assoc_string(return_value, "iftype", "wireless", 1);
+			break;
+		case IFT_ETHER:
+		case IFT_FASTETHER:
+		case IFT_FASTETHERFX:
+		case IFT_GIGABITETHERNET:
+			add_assoc_string(return_value, "iftype", "ether", 1);
+			break;
+		case IFT_L2VLAN:
+			add_assoc_string(return_value, "iftype", "vlan", 1);
+			break;
+		case IFT_BRIDGE:
+			add_assoc_string(return_value, "iftype", "bridge", 1);
+			break;
+		case IFT_TUNNEL:
+		case IFT_GIF:
+		case IFT_FAITH:
+		case IFT_ENC:
+		case IFT_PFLOG: 
+		case IFT_PFSYNC:
+			add_assoc_string(return_value, "iftype", "virtual", 1);
+			break;
+		case IFT_CARP:
+			add_assoc_string(return_value, "iftype", "carp", 1);
+			break;
+		default:
+			add_assoc_string(return_value, "iftype", "other", 1);
+		}
 	}
 	ALLOC_INIT_ZVAL(caps);
 	ALLOC_INIT_ZVAL(encaps);
