@@ -674,12 +674,14 @@ cust_overlay_host_binaries() {
 
 	# Handle clog
 	echo "==> Building clog..."
-	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
-	(cd $SRCDIR/usr.sbin/clog && make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-	(cd $SRCDIR/usr.sbin/clog && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
-    echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-	if [ -f $SRCDIR/usr.sbin/clog/clog ]; then
-    	install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
+	if [ -d $SRCDIR/usr.sbin/clog ]; then
+		(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
+		(cd $SRCDIR/usr.sbin/clog && make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
+		(cd $SRCDIR/usr.sbin/clog && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
+	    echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
+		if [ -f $SRCDIR/usr.sbin/clog/clog ]; then
+	    	install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
+		fi
 	fi
 
 	# Temporary hack for RELENG_1_2
