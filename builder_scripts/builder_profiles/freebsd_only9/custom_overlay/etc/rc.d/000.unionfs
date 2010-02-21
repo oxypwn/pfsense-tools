@@ -1,0 +1,93 @@
+#!/bin/sh
+#
+# Copyright (c) 2009 Scott Ullrich
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+#
+
+# PROVIDE: unionfs
+# BEFORE:  mountcritlocal
+
+. /etc/rc.subr
+
+name="unionfs"
+stop_cmd=':'
+
+load_rc_config $name
+
+case "${unionfsmfs}" in
+[Yy][Ee][Ss])
+	# Size of memory file system /conf /home partitions
+	partsize="6m"
+
+	# Run some initialization routines
+	/etc/rc.d/uzip start
+
+	export VARMFS_COPYDBPKG=yes
+
+	for i in var varmfs; do
+	       if [ -f /etc/rc.d/$i ]; then
+				sh /etc/rc.d/$i start
+	       fi
+	done
+
+	# Create directories that we will use for unionfs
+	mkdir /var/unionfs
+	mkdir /var/unionfs/etc
+	mkdir /var/unionfs/usr
+	mkdir /var/unionfs/root
+	mkdir /var/unionfs/sbin
+	mkdir /var/unionfs/bin
+	mkdir /var/unionfs/boot
+	
+	# Mount unionfs directories
+	echo -n "Mounting unionfs directories:"
+	echo -n " etc"
+	mount_unionfs /var/unionfs/etc /etc/
+	echo -n " usr"
+	mount_unionfs /var/unionfs/usr /usr/
+	echo -n " root"
+	mount_unionfs /var/unionfs/root /root/
+	echo -n " bin"
+	mount_unionfs /var/unionfs/bin /bin/		
+	echo -n " sbin"
+	mount_unionfs /var/unionfs/sbin /sbin/	
+	echo -n " boot"
+	mount_unionfs /var/unionfs/boot /boot/
+	echo "... done."
+	/etc/rc.d/hostid start
+	rm -f /etc/rc.d/000.unionfs
+	rm -f /etc/rc.d/etcmfs*
+	rm -f /etc/rc.d/varmfs*
+	rm -f /etc/rc.d/rootmfs*	
+	;;
+[Nn][Oo])
+	;;
+*)
+
+
+
+
+	;;
+esac
