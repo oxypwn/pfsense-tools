@@ -1,7 +1,7 @@
 #!/bin/sh
 
 TOOLSDIR=/home/pfsense/tools/builder_scripts/
-OVERLAY_PATH="$TOOLSDIR/builder_profiles/freebsd_only8/"
+OVERLAY_PATH="$TOOLSDIR/builder_profiles/freebsd_only9/"
 
 # Source pfsense_local.sh variables if possible
 if [ -f ./pfsense_local.sh ]; then
