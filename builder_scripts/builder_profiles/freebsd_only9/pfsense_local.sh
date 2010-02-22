@@ -94,7 +94,7 @@ export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdesc
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
 
 # Leave this alone.
-export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
+# export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 
 #### User settable options follow ### 
 
