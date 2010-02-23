@@ -50,3 +50,5 @@
 ~usr.bin/netstat/~netstat.8.diff~
 ~~if_lagg_vlan_handling.diff~
 ~sys/net~if_bridge_vlan_handling.diff~
+~~pfTSO.RELENG_8.diff~
+~~tcpmd5_RST_timeout.RELENG_8.diff~
