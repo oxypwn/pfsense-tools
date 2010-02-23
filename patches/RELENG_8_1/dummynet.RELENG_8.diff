@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.3
-diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	2 Feb 2010 11:55:24 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	2 Feb 2010 11:56:34 -0000
+RCS file: /root/freebsd/pfsense/repo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 parse.y
+--- contrib/pf/pfctl/parse.y	23 Feb 2010 14:43:56 -0000	1.1.1.1
++++ contrib/pf/pfctl/parse.y	23 Feb 2010 14:45:40 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -576,11 +576,11 @@ diff -u -r1.3 parse.y
 +
 Index: contrib/pf/pfctl/pfctl.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/contrib/pf/pfctl/pfctl.c,v
+RCS file: /root/freebsd/pfsense/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
---- contrib/pf/pfctl/pfctl.c	2 Feb 2010 11:56:26 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	2 Feb 2010 11:56:34 -0000
+--- contrib/pf/pfctl/pfctl.c	23 Feb 2010 14:45:33 -0000	1.2
++++ contrib/pf/pfctl/pfctl.c	23 Feb 2010 14:45:40 -0000
 @@ -46,6 +46,9 @@
  #include <altq/altq.h>
  #include <sys/sysctl.h>
@@ -812,11 +812,11 @@ diff -u -r1.2 pfctl.c
  }
 Index: contrib/pf/pfctl/pfctl.h
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/contrib/pf/pfctl/pfctl.h,v
+RCS file: /root/freebsd/pfsense/repo/src/contrib/pf/pfctl/pfctl.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.h
---- contrib/pf/pfctl/pfctl.h	2 Feb 2010 11:53:19 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.h	2 Feb 2010 11:56:34 -0000
+--- contrib/pf/pfctl/pfctl.h	23 Feb 2010 14:43:56 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl.h	23 Feb 2010 14:45:40 -0000
 @@ -85,12 +85,14 @@
  int	 pfctl_command_tables(int, char *[], char *, const char *, char *,
  	    const char *, int);
@@ -837,7 +837,7 @@ Index: contrib/pf/pfctl/pfctl_dn.c
 RCS file: contrib/pf/pfctl/pfctl_dn.c
 diff -N contrib/pf/pfctl/pfctl_dn.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ contrib/pf/pfctl/pfctl_dn.c	2 Feb 2010 11:56:34 -0000
++++ contrib/pf/pfctl/pfctl_dn.c	23 Feb 2010 14:45:40 -0000
 @@ -0,0 +1,404 @@
 +/*
 + * Copyright (c) 2007 Ermal Luçi
@@ -1245,11 +1245,11 @@ diff -N contrib/pf/pfctl/pfctl_dn.c
 +}
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
-retrieving revision 1.2
-diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	2 Feb 2010 11:55:24 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	2 Feb 2010 11:56:34 -0000
+RCS file: /root/freebsd/pfsense/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pfctl_parser.c
+--- contrib/pf/pfctl/pfctl_parser.c	23 Feb 2010 14:43:56 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_parser.c	23 Feb 2010 14:45:40 -0000
 @@ -48,6 +48,9 @@
  #include <net/pfvar.h>
  #include <arpa/inet.h>
@@ -1277,11 +1277,11 @@ diff -u -r1.2 pfctl_parser.c
  	else if (r->qname[0])
 Index: contrib/pf/pfctl/pfctl_parser.h
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.h,v
-retrieving revision 1.2
-diff -u -r1.2 pfctl_parser.h
---- contrib/pf/pfctl/pfctl_parser.h	2 Feb 2010 11:55:09 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.h	2 Feb 2010 11:56:34 -0000
+RCS file: /root/freebsd/pfsense/repo/src/contrib/pf/pfctl/pfctl_parser.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pfctl_parser.h
+--- contrib/pf/pfctl/pfctl_parser.h	23 Feb 2010 14:43:56 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_parser.h	23 Feb 2010 14:45:40 -0000
 @@ -67,6 +67,7 @@
  }
  
@@ -1316,11 +1316,11 @@ diff -u -r1.2 pfctl_parser.h
  
 Index: sbin/pfctl/Makefile
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sbin/pfctl/Makefile,v
+RCS file: /root/freebsd/pfsense/repo/src/sbin/pfctl/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sbin/pfctl/Makefile	2 Feb 2010 11:53:19 -0000	1.1.1.1
-+++ sbin/pfctl/Makefile	2 Feb 2010 11:56:34 -0000
+--- sbin/pfctl/Makefile	23 Feb 2010 14:43:56 -0000	1.1.1.1
++++ sbin/pfctl/Makefile	23 Feb 2010 14:45:40 -0000
 @@ -11,6 +11,7 @@
  SRCS+= pfctl_osfp.c pfctl_radix.c pfctl_table.c pfctl_qstats.c
  SRCS+= pfctl_optimize.c
@@ -1331,11 +1331,11 @@ diff -u -r1.1.1.1 Makefile
  CFLAGS+= -Wstrict-prototypes -I${.CURDIR}/../../contrib/pf/pfctl
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.3
-diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	2 Feb 2010 11:55:24 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	2 Feb 2010 12:05:01 -0000
+RCS file: /root/freebsd/pfsense/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf.c
+--- sys/contrib/pf/net/pf.c	23 Feb 2010 14:43:51 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf.c	23 Feb 2010 14:45:40 -0000
 @@ -135,6 +135,9 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -1659,11 +1659,11 @@ diff -u -r1.3 pf.c
  		*m0 = NULL;
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pf_mtag.h,v
-retrieving revision 1.2
-diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	2 Feb 2010 11:55:10 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	2 Feb 2010 11:56:34 -0000
+RCS file: /root/freebsd/pfsense/repo/src/sys/contrib/pf/net/pf_mtag.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf_mtag.h
+--- sys/contrib/pf/net/pf_mtag.h	23 Feb 2010 14:43:51 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_mtag.h	23 Feb 2010 14:45:40 -0000
 @@ -37,6 +37,8 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -1675,11 +1675,11 @@ diff -u -r1.2 pf_mtag.h
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.4
-diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	2 Feb 2010 11:56:26 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	2 Feb 2010 11:56:34 -0000
+RCS file: /root/freebsd/pfsense/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.2
+diff -u -r1.2 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	23 Feb 2010 14:45:33 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	23 Feb 2010 14:45:40 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
@@ -1694,12 +1694,12 @@ diff -u -r1.4 pfvar.h
  	u_int32_t		 prob;
 Index: sys/net/if_bridge.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/net/if_bridge.c,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/net/if_bridge.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_bridge.c
---- sys/net/if_bridge.c	2 Feb 2010 11:53:16 -0000	1.1.1.1
-+++ sys/net/if_bridge.c	2 Feb 2010 11:56:34 -0000
-@@ -3076,7 +3076,7 @@
+--- sys/net/if_bridge.c	23 Feb 2010 14:43:51 -0000	1.1.1.1
++++ sys/net/if_bridge.c	23 Feb 2010 14:45:40 -0000
+@@ -3077,7 +3077,7 @@
  			 * packet will return to us via bridge_dummynet().
  			 */
  			args.oif = ifp;
@@ -1710,11 +1710,11 @@ diff -u -r1.1.1.1 if_bridge.c
  
 Index: sys/net/if_ethersubr.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/net/if_ethersubr.c,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/net/if_ethersubr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_ethersubr.c
---- sys/net/if_ethersubr.c	2 Feb 2010 11:53:16 -0000	1.1.1.1
-+++ sys/net/if_ethersubr.c	2 Feb 2010 11:56:34 -0000
+--- sys/net/if_ethersubr.c	23 Feb 2010 14:43:51 -0000	1.1.1.1
++++ sys/net/if_ethersubr.c	23 Feb 2010 14:45:40 -0000
 @@ -544,7 +544,7 @@
  			 */
  			*m0 = NULL ;
@@ -1726,11 +1726,11 @@ diff -u -r1.1.1.1 if_ethersubr.c
  	/*
 Index: sys/netinet/ip_dummynet.h
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/netinet/ip_dummynet.h,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ip_dummynet.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.h
---- sys/netinet/ip_dummynet.h	2 Feb 2010 11:53:17 -0000	1.1.1.1
-+++ sys/netinet/ip_dummynet.h	2 Feb 2010 11:56:34 -0000
+--- sys/netinet/ip_dummynet.h	23 Feb 2010 14:43:52 -0000	1.1.1.1
++++ sys/netinet/ip_dummynet.h	23 Feb 2010 14:45:40 -0000
 @@ -125,6 +125,9 @@
  #define DN_TO_IP6_OUT	7
  #define DN_TO_IFB_FWD	8
@@ -1743,14 +1743,14 @@ diff -u -r1.1.1.1 ip_dummynet.h
      struct _ip6dn_args ip6opt;	/* XXX ipv6 options			*/
 Index: sys/netinet/ip_var.h
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/netinet/ip_var.h,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ip_var.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_var.h
---- sys/netinet/ip_var.h	2 Feb 2010 11:53:17 -0000	1.1.1.1
-+++ sys/netinet/ip_var.h	2 Feb 2010 11:56:34 -0000
-@@ -253,7 +253,7 @@
- extern int	(*ip_fw_chk_ptr)(struct ip_fw_args *args);
- extern int	(*ip_fw_ctl_ptr)(struct sockopt *);
+--- sys/netinet/ip_var.h	23 Feb 2010 14:43:52 -0000	1.1.1.1
++++ sys/netinet/ip_var.h	23 Feb 2010 14:45:40 -0000
+@@ -259,7 +259,7 @@
+ #define	V_ip_fw_ctl_ptr		VNET(ip_fw_ctl_ptr)
+ 
  extern int	(*ip_dn_ctl_ptr)(struct sockopt *);
 -extern int	(*ip_dn_io_ptr)(struct mbuf **m, int dir, struct ip_fw_args *fwa);
 +extern int	(*ip_dn_io_ptr)(struct mbuf **m, int dir, struct ip_fw_args *fwa, u_int16_t);
@@ -1759,15 +1759,15 @@ diff -u -r1.1.1.1 ip_var.h
  VNET_DECLARE(int, ip_do_randomid);
 Index: sys/netinet/raw_ip.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/netinet/raw_ip.c,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/raw_ip.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 raw_ip.c
---- sys/netinet/raw_ip.c	2 Feb 2010 11:53:17 -0000	1.1.1.1
-+++ sys/netinet/raw_ip.c	2 Feb 2010 11:56:34 -0000
+--- sys/netinet/raw_ip.c	23 Feb 2010 14:43:52 -0000	1.1.1.1
++++ sys/netinet/raw_ip.c	23 Feb 2010 14:46:43 -0000
 @@ -87,7 +87,7 @@
- int (*ip_fw_ctl_ptr)(struct sockopt *) = NULL;
+ VNET_DEFINE(ip_fw_chk_ptr_t, ip_fw_chk_ptr) = NULL;
+ VNET_DEFINE(ip_fw_ctl_ptr_t, ip_fw_ctl_ptr) = NULL;
  int (*ip_dn_ctl_ptr)(struct sockopt *) = NULL;
- int (*ip_fw_chk_ptr)(struct ip_fw_args *args) = NULL;
 -int (*ip_dn_io_ptr)(struct mbuf **m, int dir, struct ip_fw_args *fwa) = NULL;
 +int (*ip_dn_io_ptr)(struct mbuf **m, int dir, struct ip_fw_args *fwa, u_int16_t client) = NULL;
  
@@ -1775,11 +1775,11 @@ diff -u -r1.1.1.1 raw_ip.c
   * Hooks for multicast routing. They all default to NULL, so leave them not
 Index: sys/netinet/ipfw/ip_dummynet.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
---- sys/netinet/ipfw/ip_dummynet.c	2 Feb 2010 11:53:17 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dummynet.c	2 Feb 2010 11:56:34 -0000
+--- sys/netinet/ipfw/ip_dummynet.c	23 Feb 2010 14:43:53 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dummynet.c	23 Feb 2010 14:45:40 -0000
 @@ -241,7 +241,7 @@
  static void	dummynet_flush(void);
  static void	dummynet_send(struct mbuf *);
@@ -1814,11 +1814,11 @@ diff -u -r1.1.1.1 ip_dummynet.c
  MODULE_VERSION(dummynet, 1);
 Index: sys/netinet/ipfw/ip_fw_pfil.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	2 Feb 2010 11:53:17 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_pfil.c	2 Feb 2010 11:56:34 -0000
+--- sys/netinet/ipfw/ip_fw_pfil.c	23 Feb 2010 14:43:53 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_pfil.c	23 Feb 2010 14:45:40 -0000
 @@ -103,6 +103,7 @@
  
  	bzero(&args, sizeof(args));
