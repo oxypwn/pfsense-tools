@@ -9,7 +9,7 @@ diff -u -r1.5.2.1 l2_packet.c
  		    (ifm->ifm_addrs & RTA_IFP) == 0)
  			continue;
  		if (sdl->sdl_family != AF_LINK || sdl->sdl_nlen == 0 ||
-+		    strlen(device) != sdl->sdl_nlen) ||
++		    (strlen(device) != sdl->sdl_nlen) ||
  		    memcmp(sdl->sdl_data, device, sdl->sdl_nlen) != 0)
  			continue;
  		memcpy(ea, LLADDR(sdl), sdl->sdl_alen);
