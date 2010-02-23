@@ -52,3 +52,4 @@
 ~sys/net~if_bridge_vlan_handling.diff~
 ~~pfTSO.RELENG_8.diff~
 ~~tcpmd5_RST_timeout.RELENG_8.diff~
+~~wpa_correct_mac_address.RELENG_8.diff~
