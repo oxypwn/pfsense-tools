@@ -1,0 +1,15 @@
+Index: sys/dev/e1000/if_em.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/e1000/if_em.c,v
+retrieving revision 1.21.2.4
+diff -u -r1.21.2.4 if_em.c
+--- sys/dev/e1000/if_em.c	11 Feb 2010 18:34:06 -0000	1.21.2.4
++++ sys/dev/e1000/if_em.c	24 Feb 2010 10:56:47 -0000
+@@ -2710,6 +2710,7 @@
+ 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
+ 
+ 	e1000_reset_hw(&adapter->hw);
++	adapter->last_hw_offload = 0;
+ 	if (adapter->hw.mac.type >= e1000_82544)
+ 		E1000_WRITE_REG(&adapter->hw, E1000_WUC, 0);
+ }
