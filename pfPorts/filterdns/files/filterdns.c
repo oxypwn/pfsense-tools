@@ -250,6 +250,8 @@ void *check_hostname(void *arg)
         ts.tv_sec = interval;
         ts.tv_nsec = 0;
 	
+	if (!local->name || !local->value)
+		return;
 	init_table(&rnh);
 
 
