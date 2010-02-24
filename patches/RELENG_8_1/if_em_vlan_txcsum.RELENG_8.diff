@@ -4,12 +4,612 @@ RCS file: /home/ncvs/src/sys/dev/e1000/if_em.c,v
 retrieving revision 1.21.2.4
 diff -u -r1.21.2.4 if_em.c
 --- sys/dev/e1000/if_em.c	11 Feb 2010 18:34:06 -0000	1.21.2.4
-+++ sys/dev/e1000/if_em.c	24 Feb 2010 10:56:47 -0000
-@@ -2710,6 +2710,7 @@
- 	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
++++ sys/dev/e1000/if_em.c	24 Feb 2010 11:03:20 -0000
+@@ -274,11 +274,11 @@
+ #endif
+ static void	em_receive_checksum(struct adapter *, struct e1000_rx_desc *,
+ 		    struct mbuf *);
+-static void	em_transmit_checksum_setup(struct adapter *, struct mbuf *,
+-		    u32 *, u32 *);
++static void	em_transmit_checksum_setup(struct adapter *, struct mbuf *, int,
++		    struct ip *, u32 *, u32 *);
+ #if __FreeBSD_version >= 700000
+-static bool	em_tso_setup(struct adapter *, struct mbuf *,
+-		    u32 *, u32 *);
++static void	em_tso_setup(struct adapter *, struct mbuf *, int, struct ip *,
++		    struct tcphdr *, u32 *, u32 *);
+ #endif /* FreeBSD_version >= 700000 */
+ static void	em_set_promisc(struct adapter *);
+ static void	em_disable_promisc(struct adapter *);
+@@ -2072,7 +2072,11 @@
+ 	struct em_buffer	*tx_buffer, *tx_buffer_mapped;
+ 	struct e1000_tx_desc	*ctxd = NULL;
+ 	struct mbuf		*m_head;
++	struct ether_header	*eh;
++	struct ip		*ip;
++	struct tcphdr		*tp;
+ 	u32			txd_upper, txd_lower, txd_used, txd_saved;
++	int			ip_off, poff;
+ 	int			nsegs, i, j, first, last = 0;
+ 	int			error, do_tso, tso_desc = 0;
+ #if __FreeBSD_version < 700000
+@@ -2080,6 +2084,9 @@
+ #endif
+ 	m_head = *m_headp;
+ 	txd_upper = txd_lower = txd_used = txd_saved = 0;
++	ip_off = poff = 0;
++	ip = NULL;
++	tp = NULL;
  
- 	e1000_reset_hw(&adapter->hw);
+ #if __FreeBSD_version >= 700000
+ 	do_tso = ((m_head->m_pkthdr.csum_flags & CSUM_TSO) != 0);
+@@ -2102,15 +2109,101 @@
+ 
+ 
+ 	/*
+-	 * TSO workaround: 
+-	 *  If an mbuf is only header we need  
+-	 *     to pull 4 bytes of data into it. 
+-	 */
+-	if (do_tso && (m_head->m_len <= M_TSO_LEN)) {
+-		m_head = m_pullup(m_head, M_TSO_LEN + 4);
+-		*m_headp = m_head;
+-		if (m_head == NULL)
++	 * XXX
++	 * Intel recommends entire IP/TCP header length reside in a single
++	 * buffer. If multiple descriptors are used to describe the IP and
++	 * TCP header, each descriptor should describe one or more
++	 * complete headers; descriptors referencing only parts of headers
++	 * are not supported. If all layer headers are not coalesced into
++	 * a single buffer, each buffer should not cross a 4KB boundary,
++	 * or be larger than the maximum read request size.
++	 * Controller also requires modifing IP/TCP header to make TSO work
++	 * so we firstly get a writable mbuf chain then coalesce ethernet/
++	 * IP/TCP header into a single buffer to meet the requirement of
++	 * controller. This also simplifies IP/TCP/UDP checksum offloading
++	 * which also has similiar restrictions.
++	 */
++	if (do_tso || m_head->m_pkthdr.csum_flags & CSUM_OFFLOAD) {
++		if (do_tso || (m_head->m_next != NULL && 
++		    m_head->m_pkthdr.csum_flags & CSUM_OFFLOAD)) {
++			if (M_WRITABLE(*m_headp) == 0) {
++				m_head = m_dup(*m_headp, M_DONTWAIT);
++				m_freem(*m_headp);
++				if (m_head == NULL) {
++					*m_headp = NULL;
++					return (ENOBUFS);
++				}
++				*m_headp = m_head;
++			}
++		}
++		/*
++		 * XXX
++		 * Assume IPv4, we don't have TSO/checksum offload support
++		 * for IPv6.
++		 */
++		ip_off = sizeof(struct ether_header);
++		m_head = m_pullup(m_head, ip_off);
++		if (m_head == NULL) {
++			*m_headp = NULL;
+ 			return (ENOBUFS);
++		}
++		eh = mtod(m_head, struct ether_header *);
++		if (eh->ether_type == htons(ETHERTYPE_VLAN)) {
++			ip_off = sizeof(struct ether_vlan_header);
++			m_head = m_pullup(m_head, ip_off);
++			if (m_head == NULL) {
++				*m_headp = NULL;
++				return (ENOBUFS);
++			}
++		}
++		m_head = m_pullup(m_head, ip_off + sizeof(struct ip));
++		if (m_head == NULL) {
++			*m_headp = NULL;
++			return (ENOBUFS);
++		}
++		ip = (struct ip *)(mtod(m_head, char *) + ip_off);
++		poff = ip_off + (ip->ip_hl << 2);
++		m_head = m_pullup(m_head, poff + sizeof(struct tcphdr));
++		if (m_head == NULL) {
++			*m_headp = NULL;
++			return (ENOBUFS);
++		}
++		if (do_tso) {
++			tp = (struct tcphdr *)(mtod(m_head, char *) + poff);
++			/*
++			 * TSO workaround:
++			 *   pull 4 more bytes of data into it.
++			 */
++			m_head = m_pullup(m_head, poff + (tp->th_off << 2) + 4);
++			if (m_head == NULL) {
++				*m_headp = NULL;
++				return (ENOBUFS);
++			}
++			ip->ip_len = 0;
++			ip->ip_sum = 0;
++			/*
++			 * The pseudo TCP checksum does not include TCP payload
++			 * length so driver should recompute the checksum here
++			 * what hardware expect to see. This is adherence of
++			 * Microsoft's Large Send specification.
++			 */
++			tp->th_sum = in_pseudo(ip->ip_src.s_addr,
++			    ip->ip_dst.s_addr, htons(IPPROTO_TCP));
++		} else if (m_head->m_pkthdr.csum_flags & CSUM_TCP) {
++			tp = (struct tcphdr *)(mtod(m_head, char *) + poff);
++			m_head = m_pullup(m_head, poff + (tp->th_off << 2));
++			if (m_head == NULL) {
++				*m_headp = NULL;
++				return (ENOBUFS);
++			}
++		} else if (m_head->m_pkthdr.csum_flags & CSUM_UDP) {
++			m_head = m_pullup(m_head, poff + sizeof(struct udphdr));
++			if (m_head == NULL) {
++				*m_headp = NULL;
++				return (ENOBUFS);
++			}
++		}
++		*m_headp = m_head;
+ 	}
+ 
+ 	/*
+@@ -2187,15 +2280,14 @@
+ 	/* Do hardware assists */
+ #if __FreeBSD_version >= 700000
+ 	if (m_head->m_pkthdr.csum_flags & CSUM_TSO) {
+-		error = em_tso_setup(adapter, m_head, &txd_upper, &txd_lower);
+-		if (error != TRUE)
+-			return (ENXIO); /* something foobar */
++		em_tso_setup(adapter, m_head, ip_off, ip, tp, &txd_upper,
++		    &txd_lower);
+ 		/* we need to make a final sentinel transmit desc */
+ 		tso_desc = TRUE;
+ 	} else
+ #endif
+ 	if (m_head->m_pkthdr.csum_flags & CSUM_OFFLOAD)
+-		em_transmit_checksum_setup(adapter,  m_head,
++		em_transmit_checksum_setup(adapter, m_head, ip_off, ip,
+ 		    &txd_upper, &txd_lower);
+ 
+ 	i = adapter->next_avail_tx_desc;
+@@ -3510,6 +3602,13 @@
+ 	adapter->next_tx_to_clean = 0;
+ 	adapter->num_tx_desc_avail = adapter->num_tx_desc;
+ 
++	/* Clear checksum offload context. */
 +	adapter->last_hw_offload = 0;
- 	if (adapter->hw.mac.type >= e1000_82544)
- 		E1000_WRITE_REG(&adapter->hw, E1000_WUC, 0);
++	adapter->last_hw_ipcss = 0;
++	adapter->last_hw_ipcso = 0;
++	adapter->last_hw_tucss = 0;
++	adapter->last_hw_tucso = 0;
++
+ 	bus_dmamap_sync(adapter->txdma.dma_tag, adapter->txdma.dma_map,
+ 	    BUS_DMASYNC_PREREAD | BUS_DMASYNC_PREWRITE);
+ 
+@@ -3663,138 +3762,127 @@
+  *  big performance win.  -jfv
+  **********************************************************************/
+ static void
+-em_transmit_checksum_setup(struct adapter *adapter, struct mbuf *mp,
+-    u32 *txd_upper, u32 *txd_lower)
++em_transmit_checksum_setup(struct adapter *adapter, struct mbuf *mp, int ip_off,
++    struct ip *ip, u32 *txd_upper, u32 *txd_lower)
+ {
+ 	struct e1000_context_desc *TXD = NULL;
+ 	struct em_buffer *tx_buffer;
+-	struct ether_vlan_header *eh;
+-	struct ip *ip = NULL;
+-	struct ip6_hdr *ip6;
+-	int curr_txd, ehdrlen;
+-	u32 cmd, hdr_len, ip_hlen;
+-	u16 etype;
+-	u8 ipproto;
+-
+-
+-	cmd = hdr_len = ipproto = 0;
++	int curr_txd, hdr_len;
++	u32 cmd;
++	u16 offload;
++	u8 ipcso, ipcss, tucso, tucss;
++
++	ipcss = 0;
++	ipcso = 0;
++	tucss = 0;
++	tucso = 0;
++	offload = 0;
++	cmd = 0;
++	hdr_len = ip_off + (ip->ip_hl << 2);
+ 	curr_txd = adapter->next_avail_tx_desc;
+ 
+-	/*
+-	 * Determine where frame payload starts.
+-	 * Jump over vlan headers if already present,
+-	 * helpful for QinQ too.
+-	 */
+-	eh = mtod(mp, struct ether_vlan_header *);
+-	if (eh->evl_encap_proto == htons(ETHERTYPE_VLAN)) {
+-		etype = ntohs(eh->evl_proto);
+-		ehdrlen = ETHER_HDR_LEN + ETHER_VLAN_ENCAP_LEN;
+-	} else {
+-		etype = ntohs(eh->evl_encap_proto);
+-		ehdrlen = ETHER_HDR_LEN;
+-	}
+-
+-	/*
+-	 * We only support TCP/UDP for IPv4 and IPv6 for the moment.
+-	 * TODO: Support SCTP too when it hits the tree.
+-	 */
+-	switch (etype) {
+-	case ETHERTYPE_IP:
+-		ip = (struct ip *)(mp->m_data + ehdrlen);
+-		ip_hlen = ip->ip_hl << 2;
+-
+-		/* Setup of IP header checksum. */
+-		if (mp->m_pkthdr.csum_flags & CSUM_IP) {
+-			/*
+-			 * Start offset for header checksum calculation.
+-			 * End offset for header checksum calculation.
+-			 * Offset of place to put the checksum.
+-			 */
+-			TXD = (struct e1000_context_desc *)
+-			    &adapter->tx_desc_base[curr_txd];
+-			TXD->lower_setup.ip_fields.ipcss = ehdrlen;
+-			TXD->lower_setup.ip_fields.ipcse =
+-			    htole16(ehdrlen + ip_hlen);
+-			TXD->lower_setup.ip_fields.ipcso =
+-			    ehdrlen + offsetof(struct ip, ip_sum);
+-			cmd |= E1000_TXD_CMD_IP;
+-			*txd_upper |= E1000_TXD_POPTS_IXSM << 8;
+-		}
+-
+-		if (mp->m_len < ehdrlen + ip_hlen)
+-			return;	/* failure */
+-
+-		hdr_len = ehdrlen + ip_hlen;
+-		ipproto = ip->ip_p;
+-
+-		break;
+-	case ETHERTYPE_IPV6:
+-		ip6 = (struct ip6_hdr *)(mp->m_data + ehdrlen);
+-		ip_hlen = sizeof(struct ip6_hdr); /* XXX: No header stacking. */
+-
+-		if (mp->m_len < ehdrlen + ip_hlen)
+-			return;	/* failure */
+-
+-		/* IPv6 doesn't have a header checksum. */
+-
+-		hdr_len = ehdrlen + ip_hlen;
+-		ipproto = ip6->ip6_nxt;
+-
+-		break;
+-	default:
+-		*txd_upper = 0;
+-		*txd_lower = 0;
+-		return;
++	/* Setup of IP header checksum. */
++	if (mp->m_pkthdr.csum_flags & CSUM_IP) {
++		*txd_upper |= E1000_TXD_POPTS_IXSM << 8;
++		offload |= CSUM_IP;
++		ipcss = ip_off;
++		ipcso = ip_off + offsetof(struct ip, ip_sum);
++		/*
++		 * Start offset for header checksum calculation.
++		 * End offset for header checksum calculation.
++		 * Offset of place to put the checksum.
++		 */
++		TXD = (struct e1000_context_desc *)
++		    &adapter->tx_desc_base[curr_txd];
++		TXD->lower_setup.ip_fields.ipcss = ipcss;
++		TXD->lower_setup.ip_fields.ipcse = htole16(hdr_len);
++		TXD->lower_setup.ip_fields.ipcso = ipcso;
++		cmd |= E1000_TXD_CMD_IP;
+ 	}
+ 
+-	switch (ipproto) {
+-	case IPPROTO_TCP:
+-		if (mp->m_pkthdr.csum_flags & CSUM_TCP) {
+-			*txd_lower = E1000_TXD_CMD_DEXT | E1000_TXD_DTYP_D;
+-			*txd_upper |= E1000_TXD_POPTS_TXSM << 8;
+-			/* no need for context if already set */
+-			if (adapter->last_hw_offload == CSUM_TCP)
+-				return;
+-			adapter->last_hw_offload = CSUM_TCP;
+-			/*
+-			 * Start offset for payload checksum calculation.
+-			 * End offset for payload checksum calculation.
+-			 * Offset of place to put the checksum.
+-			 */
+-			TXD = (struct e1000_context_desc *)
+-			    &adapter->tx_desc_base[curr_txd];
+-			TXD->upper_setup.tcp_fields.tucss = hdr_len;
+-			TXD->upper_setup.tcp_fields.tucse = htole16(0);
+-			TXD->upper_setup.tcp_fields.tucso =
+-			    hdr_len + offsetof(struct tcphdr, th_sum);
+-			cmd |= E1000_TXD_CMD_TCP;
++	if (mp->m_pkthdr.csum_flags & CSUM_TCP) {
++		*txd_lower = E1000_TXD_CMD_DEXT | E1000_TXD_DTYP_D;
++		*txd_upper |= E1000_TXD_POPTS_TXSM << 8;
++		offload |= CSUM_TCP;
++		tucss = hdr_len;
++		tucso = hdr_len + offsetof(struct tcphdr, th_sum);
++		/*
++		 * Setting up new checksum offload context for every frames
++		 * takes a lot of processing time for hardware. This also
++		 * reduces performance a lot for small sized frames so avoid
++		 * it if driver can use previously configured checksum
++		 * offload context.
++		 */
++		if (adapter->last_hw_offload == offload) {
++			if (offload & CSUM_IP) {
++				if (adapter->last_hw_ipcss == ipcss &&
++				    adapter->last_hw_ipcso == ipcso &&
++				    adapter->last_hw_tucss == tucss &&
++				    adapter->last_hw_tucso == tucso)
++					return;
++			} else {
++				if (adapter->last_hw_tucss == tucss &&
++				    adapter->last_hw_tucso == tucso)
++					return;
++			}
+ 		}
+-		break;
+-	case IPPROTO_UDP:
+-	{
+-		if (mp->m_pkthdr.csum_flags & CSUM_UDP) {
+-			*txd_lower = E1000_TXD_CMD_DEXT | E1000_TXD_DTYP_D;
+-			*txd_upper |= E1000_TXD_POPTS_TXSM << 8;
+-			/* no need for context if already set */
+-			if (adapter->last_hw_offload == CSUM_UDP)
+-				return;
+-			adapter->last_hw_offload = CSUM_UDP;
+-			/*
+-			 * Start offset for header checksum calculation.
+-			 * End offset for header checksum calculation.
+-			 * Offset of place to put the checksum.
+-			 */
+-			TXD = (struct e1000_context_desc *)
+-			    &adapter->tx_desc_base[curr_txd];
+-			TXD->upper_setup.tcp_fields.tucss = hdr_len;
+-			TXD->upper_setup.tcp_fields.tucse = htole16(0);
+-			TXD->upper_setup.tcp_fields.tucso =
+-			    hdr_len + offsetof(struct udphdr, uh_sum);
++		adapter->last_hw_offload = offload;
++		adapter->last_hw_tucss = tucss;
++		adapter->last_hw_tucso = tucso;
++		/*
++		 * Start offset for payload checksum calculation.
++		 * End offset for payload checksum calculation.
++		 * Offset of place to put the checksum.
++		 */
++		TXD = (struct e1000_context_desc *)
++		    &adapter->tx_desc_base[curr_txd];
++		TXD->upper_setup.tcp_fields.tucss = hdr_len;
++		TXD->upper_setup.tcp_fields.tucse = htole16(0);
++		TXD->upper_setup.tcp_fields.tucso = tucso;
++		cmd |= E1000_TXD_CMD_TCP;
++	} else if (mp->m_pkthdr.csum_flags & CSUM_UDP) {
++		*txd_lower = E1000_TXD_CMD_DEXT | E1000_TXD_DTYP_D;
++		*txd_upper |= E1000_TXD_POPTS_TXSM << 8;
++		tucss = hdr_len;
++		tucso = hdr_len + offsetof(struct udphdr, uh_sum);
++		/*
++		 * Setting up new checksum offload context for every frames
++		 * takes a lot of processing time for hardware. This also
++		 * reduces performance a lot for small sized frames so avoid
++		 * it if driver can use previously configured checksum
++		 * offload context.
++		 */
++		if (adapter->last_hw_offload == offload) {
++			if (offload & CSUM_IP) {
++				if (adapter->last_hw_ipcss == ipcss &&
++				    adapter->last_hw_ipcso == ipcso &&
++				    adapter->last_hw_tucss == tucss &&
++				    adapter->last_hw_tucso == tucso)
++					return;
++			} else {
++				if (adapter->last_hw_tucss == tucss &&
++				    adapter->last_hw_tucso == tucso)
++					return;
++			}
+ 		}
+-		/* Fall Thru */
++		adapter->last_hw_offload = offload;
++		adapter->last_hw_tucss = tucss;
++		adapter->last_hw_tucso = tucso;
++		/*
++		 * Start offset for header checksum calculation.
++		 * End offset for header checksum calculation.
++		 * Offset of place to put the checksum.
++		 */
++		TXD = (struct e1000_context_desc *)
++		    &adapter->tx_desc_base[curr_txd];
++		TXD->upper_setup.tcp_fields.tucss = tucss;
++		TXD->upper_setup.tcp_fields.tucse = htole16(0);
++		TXD->upper_setup.tcp_fields.tucso = tucso;
+ 	}
+-	default:
+-		break;
++
++	if (offload & CSUM_IP) {
++		adapter->last_hw_ipcss = ipcss;
++		adapter->last_hw_ipcso = ipcso;
+ 	}
+ 
+ 	TXD->tcp_seg_setup.data = htole32(0);
+@@ -3818,123 +3906,44 @@
+  *  Setup work for hardware segmentation offload (TSO)
+  *
+  **********************************************************************/
+-static bool
+-em_tso_setup(struct adapter *adapter, struct mbuf *mp, u32 *txd_upper,
+-   u32 *txd_lower)
++static void
++em_tso_setup(struct adapter *adapter, struct mbuf *mp, int ip_off,
++    struct ip *ip, struct tcphdr *tp, u32 *txd_upper, u32 *txd_lower)
+ {
+ 	struct e1000_context_desc *TXD;
+ 	struct em_buffer *tx_buffer;
+-	struct ether_vlan_header *eh;
+-	struct ip *ip;
+-	struct ip6_hdr *ip6;
+-	struct tcphdr *th;
+-	int curr_txd, ehdrlen, hdr_len, ip_hlen, isip6;
+-	u16 etype;
+-
+-	/*
+-	 * This function could/should be extended to support IP/IPv6
+-	 * fragmentation as well.  But as they say, one step at a time.
+-	 */
+-
+-	/*
+-	 * Determine where frame payload starts.
+-	 * Jump over vlan headers if already present,
+-	 * helpful for QinQ too.
+-	 */
+-	eh = mtod(mp, struct ether_vlan_header *);
+-	if (eh->evl_encap_proto == htons(ETHERTYPE_VLAN)) {
+-		etype = ntohs(eh->evl_proto);
+-		ehdrlen = ETHER_HDR_LEN + ETHER_VLAN_ENCAP_LEN;
+-	} else {
+-		etype = ntohs(eh->evl_encap_proto);
+-		ehdrlen = ETHER_HDR_LEN;
+-	}
+-
+-	/* Ensure we have at least the IP+TCP header in the first mbuf. */
+-	if (mp->m_len < ehdrlen + sizeof(struct ip) + sizeof(struct tcphdr))
+-		return FALSE;	/* -1 */
+-
+-	/*
+-	 * We only support TCP for IPv4 and IPv6 (notyet) for the moment.
+-	 * TODO: Support SCTP too when it hits the tree.
+-	 */
+-	switch (etype) {
+-	case ETHERTYPE_IP:
+-		isip6 = 0;
+-		ip = (struct ip *)(mp->m_data + ehdrlen);
+-		if (ip->ip_p != IPPROTO_TCP)
+-			return FALSE;	/* 0 */
+-		ip->ip_len = 0;
+-		ip->ip_sum = 0;
+-		ip_hlen = ip->ip_hl << 2;
+-		if (mp->m_len < ehdrlen + ip_hlen + sizeof(struct tcphdr))
+-			return FALSE;	/* -1 */
+-		th = (struct tcphdr *)((caddr_t)ip + ip_hlen);
+-#if 1
+-		th->th_sum = in_pseudo(ip->ip_src.s_addr,
+-		    ip->ip_dst.s_addr, htons(IPPROTO_TCP));
+-#else
+-		th->th_sum = mp->m_pkthdr.csum_data;
+-#endif
+-		break;
+-	case ETHERTYPE_IPV6:
+-		isip6 = 1;
+-		return FALSE;			/* Not supported yet. */
+-		ip6 = (struct ip6_hdr *)(mp->m_data + ehdrlen);
+-		if (ip6->ip6_nxt != IPPROTO_TCP)
+-			return FALSE;	/* 0 */
+-		ip6->ip6_plen = 0;
+-		ip_hlen = sizeof(struct ip6_hdr); /* XXX: no header stacking. */
+-		if (mp->m_len < ehdrlen + ip_hlen + sizeof(struct tcphdr))
+-			return FALSE;	/* -1 */
+-		th = (struct tcphdr *)((caddr_t)ip6 + ip_hlen);
+-#if 0
+-		th->th_sum = in6_pseudo(ip6->ip6_src, ip->ip6_dst,
+-		    htons(IPPROTO_TCP));	/* XXX: function notyet. */
+-#else
+-		th->th_sum = mp->m_pkthdr.csum_data;
+-#endif
+-		break;
+-	default:
+-		return FALSE;
+-	}
+-	hdr_len = ehdrlen + ip_hlen + (th->th_off << 2);
++	int curr_txd, hdr_len;
+ 
++	hdr_len = ip_off + (ip->ip_hl << 2) + (tp->th_off << 2);
+ 	*txd_lower = (E1000_TXD_CMD_DEXT |	/* Extended descr type */
+ 		      E1000_TXD_DTYP_D |	/* Data descr type */
+ 		      E1000_TXD_CMD_TSE);	/* Do TSE on this packet */
+ 
+ 	/* IP and/or TCP header checksum calculation and insertion. */
+-	*txd_upper = ((isip6 ? 0 : E1000_TXD_POPTS_IXSM) |
+-		      E1000_TXD_POPTS_TXSM) << 8;
++	*txd_upper = (E1000_TXD_POPTS_IXSM | E1000_TXD_POPTS_TXSM) << 8;
+ 
+ 	curr_txd = adapter->next_avail_tx_desc;
+ 	tx_buffer = &adapter->tx_buffer_area[curr_txd];
+ 	TXD = (struct e1000_context_desc *) &adapter->tx_desc_base[curr_txd];
+ 
+-	/* IPv6 doesn't have a header checksum. */
+-	if (!isip6) {
+-		/*
+-		 * Start offset for header checksum calculation.
+-		 * End offset for header checksum calculation.
+-		 * Offset of place put the checksum.
+-		 */
+-		TXD->lower_setup.ip_fields.ipcss = ehdrlen;
+-		TXD->lower_setup.ip_fields.ipcse =
+-		    htole16(ehdrlen + ip_hlen - 1);
+-		TXD->lower_setup.ip_fields.ipcso =
+-		    ehdrlen + offsetof(struct ip, ip_sum);
+-	}
++	/*
++	 * Start offset for header checksum calculation.
++	 * End offset for header checksum calculation.
++	 * Offset of place put the checksum.
++	 */
++	TXD->lower_setup.ip_fields.ipcss = ip_off;
++	TXD->lower_setup.ip_fields.ipcse =
++	    htole16(ip_off + (ip->ip_hl << 2) - 1);
++	TXD->lower_setup.ip_fields.ipcso = ip_off + offsetof(struct ip, ip_sum);
+ 	/*
+ 	 * Start offset for payload checksum calculation.
+ 	 * End offset for payload checksum calculation.
+ 	 * Offset of place to put the checksum.
+ 	 */
+-	TXD->upper_setup.tcp_fields.tucss =
+-	    ehdrlen + ip_hlen;
++	TXD->upper_setup.tcp_fields.tucss = ip_off + (ip->ip_hl << 2);
+ 	TXD->upper_setup.tcp_fields.tucse = 0;
+ 	TXD->upper_setup.tcp_fields.tucso =
+-	    ehdrlen + ip_hlen + offsetof(struct tcphdr, th_sum);
++	    ip_off + (ip->ip_hl << 2) + offsetof(struct tcphdr, th_sum);
+ 	/*
+ 	 * Payload size per packet w/o any headers.
+ 	 * Length of all headers up to payload.
+@@ -3945,7 +3954,7 @@
+ 	TXD->cmd_and_length = htole32(adapter->txd_cmd |
+ 				E1000_TXD_CMD_DEXT |	/* Extended descr */
+ 				E1000_TXD_CMD_TSE |	/* TSE context */
+-				(isip6 ? 0 : E1000_TXD_CMD_IP) | /* Do IP csum */
++				E1000_TXD_CMD_IP |	/* Do IP csum */
+ 				E1000_TXD_CMD_TCP |	/* Do TCP checksum */
+ 				(mp->m_pkthdr.len - (hdr_len))); /* Total len */
+ 
+@@ -3958,8 +3967,6 @@
+ 	adapter->num_tx_desc_avail--;
+ 	adapter->next_avail_tx_desc = curr_txd;
+ 	adapter->tx_tso = TRUE;
+-
+-	return TRUE;
  }
+ 
+ #endif /* __FreeBSD_version >= 700000 */
+Index: sys/dev/e1000/if_em.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/e1000/if_em.h,v
+retrieving revision 1.5.2.1
+diff -u -r1.5.2.1 if_em.h
+--- sys/dev/e1000/if_em.h	3 Aug 2009 08:13:06 -0000	1.5.2.1
++++ sys/dev/e1000/if_em.h	24 Feb 2010 11:03:20 -0000
+@@ -361,6 +361,10 @@
+ 	volatile uint16_t	num_tx_desc_avail;
+         uint16_t		num_tx_desc;
+         uint16_t		last_hw_offload;
++        uint8_t			last_hw_ipcso;
++        uint8_t			last_hw_ipcss;
++        uint8_t			last_hw_tucso;
++        uint8_t			last_hw_tucss;
+         uint32_t		txd_cmd;
+ 	struct em_buffer	*tx_buffer_area;
+ 	bus_dma_tag_t		txtag;		/* dma tag for tx */
