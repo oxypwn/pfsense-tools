@@ -1528,13 +1528,13 @@ clone_system_only()
 	cd $FREESBIEBASEDIR
 
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-	if [ "$FBSD_VERSION" -gt "7" ]; then
+	#if [ "$FBSD_VERSION" -gt "7" ]; then
 		echo ">>> Using TAR to clone clone_system_only()..."
 		tar cf - * | ( cd /$FREESBIEISODIR; tar xfp -)
-	else
-		echo ">>> Using CPIO to clone..."
-		find . -print -depth | cpio --quiet -pudm $FREESBIEISODIR
-	fi
+	#else
+	#	echo ">>> Using CPIO to clone..."
+	#	find . -print -depth | cpio --quiet -pudm $FREESBIEISODIR
+	#fi
 
 	umount_devices $MDDEVICES
 
