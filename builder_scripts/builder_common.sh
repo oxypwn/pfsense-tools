@@ -1834,13 +1834,13 @@ setup_nanobsd ( ) {
 		# XXX: configure /$d ramdisk size
 		mkdir -p ${CONFIG_DIR}/base/$d ${CONFIG_DIR}/default/$d
 		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-		if [ "$FBSD_VERSION" -gt "7" ]; then
+		#if [ "$FBSD_VERSION" -gt "7" ]; then
 			echo ">>> Using TAR to clone setup_nanobsd()..."
 			find $d -print | tar cf - | ( cd ${CONFIG_DIR}/base/; tar xfp -)
-		else
-			echo ">>> Using CPIO to clone..."
-			find $d -print | cpio -dump -l ${CONFIG_DIR}/base/
-		fi
+		#else
+		#	echo ">>> Using CPIO to clone..."
+		#	find $d -print | cpio -dump -l ${CONFIG_DIR}/base/
+		#fi
 	done
 
 	echo "$NANO_RAM_ETCSIZE" > ${CONFIG_DIR}/base/etc/md_size
