@@ -60,7 +60,8 @@ isc-dhcp30-server			/usr/ports/net/isc-dhcp30-server		/usr/local/sbin/dhcpd
 isc-dhcp30-relay			/usr/ports/net/isc-dhcp30-relay			/usr/local/sbin/dhcrelay
 lighttpd					/usr/ports/www/lighttpd					/usr/local/sbin/lighttpd
 miniupnpd					/usr/ports/net/miniupnpd				/usr/local/sbin/miniupnpd
-mpd4						/usr/ports/net/mpd4						/usr/local/sbin/mpd
+mpd4						/usr/ports/net/mpd4						/usr/local/sbin/mpd4
+mpd5						/usr/ports/net/mpd5						/usr/local/sbin/mpd5
 olsrd						/usr/ports/net/olsrd					/usr/local/sbin/olsrd
 pftop						/usr/ports/sysutils/pftop				/usr/local/sbin/pftop
 libevent					/usr/ports/devel/libevent				/usr/local/lib/libevent.so
