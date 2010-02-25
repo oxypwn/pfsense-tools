@@ -2,14 +2,13 @@
 # Date created:				20 Sep 2005
 # Whom:					Archie Cobbs
 #
-# $FreeBSD: ports/net/mpd5/Makefile,v 1.21 2008/04/07 14:50:58 sem Exp $
+# $FreeBSD: ports/net/mpd5/Makefile,v 1.27 2010/02/25 12:32:37 sem Exp $
 #
 
 PORTNAME=	mpd
-DISTVERSION=	5.1
+DISTVERSION=	5.5
 CATEGORIES=	net
-MASTER_SITES=	SF
-MASTER_SITE_SUBDIR=	mpd
+MASTER_SITES=	SF/${PORTNAME}/Mpd5/Mpd-${PORTVERSION}
 DIST_SUBDIR=	mpd5
 
 MAINTAINER=	mav@FreeBSD.org
@@ -47,11 +46,10 @@ RUN_DEPENDS+=	/boot/modules/ng_ipacct.ko:${PORTSDIR}/net-mgmt/ng_ipacct
 .endif
 .endif
 
-MTREE_FILE=	${FILESDIR}/mpd5.mtree
 MAN8=		mpd5.8
 MANCOMPRESSED=	maybe
 USE_RC_SUBR=	mpd5.sh
-HTMLNUM!=	jot 69 1
+HTMLNUM!=	jot 70 1
 CONFSUF=	conf secret script
 DOCSDIR=	${PREFIX}/share/doc/mpd5
 PORTDOCS=	${HTMLNUM:S/^/mpd/:S/$/.html/} mpd.html mpd.ps README	\
@@ -60,3 +58,4 @@ PLIST_DIRS=	etc/mpd5
 PLIST_FILES=	${CONFSUF:S/^/etc\/mpd5\/mpd./:S/$/.sample/} sbin/mpd5
 
 .include <bsd.port.post.mk>
+

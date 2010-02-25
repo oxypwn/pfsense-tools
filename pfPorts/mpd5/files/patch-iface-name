@@ -1,0 +1,126 @@
+--- src/bund.c.orig	2009-08-03 21:25:30.000000000 +0200
++++ src/bund.c	2009-08-03 21:44:10.000000000 +0200
+@@ -1676,6 +1676,7 @@
+       Log(LG_ERR, ("[%s] can't create netgraph interface", b->name));
+       goto fail;
+     }
++    strlcpy(b->iface.ngname, b->iface.ifname, sizeof(b->iface.ngname));
+     newIface = 1;
+     b->iface.ifindex = if_nametoindex(b->iface.ifname);
+     Log(LG_BUND|LG_IFACE, ("[%s] Bundle: Interface %s created",
+@@ -1725,7 +1726,7 @@
+     char	path[NG_PATHSIZ];
+ 
+     if (iface) {
+-	snprintf(path, sizeof(path), "%s:", b->iface.ifname);
++	snprintf(path, sizeof(path), "%s:", b->iface.ngname);
+ 	NgFuncShutdownNode(gLinksCsock, b->name, path);
+     }
+     if (ppp) {
+--- src/iface.c.orig	2009-08-03 20:09:32.000000000 +0200
++++ src/iface.c	2009-08-03 21:33:50.000000000 +0200
+@@ -84,6 +84,7 @@
+     SET_ADDRS,
+     SET_ROUTE,
+     SET_MTU,
++    SET_NAME,
+     SET_UP_SCRIPT,
+     SET_DOWN_SCRIPT,
+     SET_ENABLE,
+@@ -156,6 +157,8 @@
+ 	IfaceSetCommand, NULL, 2, (void *) SET_ROUTE },
+     { "mtu {size}",			"Set max allowed interface MTU",
+ 	IfaceSetCommand, NULL, 2, (void *) SET_MTU },
++    { "name {name}",			"Set interface name",
++	IfaceSetCommand, NULL, 2, (void *) SET_NAME },
+     { "up-script [{progname}]",		"Interface up script",
+ 	IfaceSetCommand, NULL, 2, (void *) SET_UP_SCRIPT },
+     { "down-script [{progname}]",	"Interface down script",
+@@ -1344,6 +1347,38 @@
+       }
+       break;
+ 
++    case SET_NAME:
++      {
++	char *name = av[0];
++	struct ifreq ifr;
++	int s;
++
++	if (strlen(name) >= IF_NAMESIZE)
++	  Error("Interface name too long, >15 characters");
++
++	/* Get socket */
++	if ((s = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
++	  Error("[%s] IFACE: Can't get socket to set name", ctx->bund->name);
++	}
++
++	/* Set name of interface */
++	memset(&ifr, 0, sizeof(ifr));
++	strlcpy(ifr.ifr_name, iface->ifname, sizeof(ifr.ifr_name));
++	ifr.ifr_data = (caddr_t)name;
++	Log(LG_IFACE2, ("[%s] IFACE: setting %s name to %s",
++	  ctx->bund->name, iface->ifname, name));
++	if (ioctl(s, SIOCSIFNAME, (char *)&ifr) != -1) {
++	  close(s);
++	  /* Save name */
++	  strlcpy(iface->ifname, name, sizeof(iface->ifname));
++	} else {
++	  close(s);
++	  Error("[%s] IFACE: ioctl(%s, %s)", ctx->bund->name,
++	    iface->ifname, "SIOCSIFNAME");
++	}
++      }
++      break;
++
+     case SET_UP_SCRIPT:
+       switch (ac) {
+ 	case 0:
+@@ -1926,7 +1961,7 @@
+ 
+     /* Connect graph to the iface node. */
+     strcpy(cn.ourhook, hook);
+-    snprintf(cn.path, sizeof(cn.path), "%s:", b->iface.ifname);
++    snprintf(cn.path, sizeof(cn.path), "%s:", b->iface.ngname);
+     strcpy(cn.peerhook, NG_IFACE_HOOK_INET);
+     if (NgSendMsg(gLinksCsock, path,
+     	    NGM_GENERIC_COOKIE, NGM_CONNECT, &cn, sizeof(cn)) < 0) {
+@@ -2015,7 +2050,7 @@
+     snprintf(path, sizeof(path), "[%x]:", b->nodeID);
+     NgFuncDisconnect(gLinksCsock, b->name, path, NG_PPP_HOOK_INET);
+ 
+-    snprintf(path, sizeof(path), "%s:", b->iface.ifname);
++    snprintf(path, sizeof(path), "%s:", b->iface.ngname);
+     NgFuncDisconnect(gLinksCsock, b->name, path, NG_IFACE_HOOK_INET);
+ }
+ 
+@@ -2046,7 +2081,7 @@
+ 
+     /* Connect graph to the iface node. */
+     strcpy(cn.ourhook, hook);
+-    snprintf(cn.path, sizeof(cn.path), "%s:", b->iface.ifname);
++    snprintf(cn.path, sizeof(cn.path), "%s:", b->iface.ngname);
+     strcpy(cn.peerhook, NG_IFACE_HOOK_INET6);
+     if (NgSendMsg(gLinksCsock, path,
+     	    NGM_GENERIC_COOKIE, NGM_CONNECT, &cn, sizeof(cn)) < 0) {
+@@ -2078,7 +2113,7 @@
+     snprintf(path, sizeof(path), "[%x]:", b->nodeID);
+     NgFuncDisconnect(gLinksCsock, b->name, path, NG_PPP_HOOK_IPV6);
+ 
+-    snprintf(path, sizeof(path), "%s:", b->iface.ifname);
++    snprintf(path, sizeof(path), "%s:", b->iface.ngname);
+     NgFuncDisconnect(gLinksCsock, b->name, path, NG_IFACE_HOOK_INET6);
+ }
+ 
+--- src/iface.h.orig	2009-08-03 21:23:42.000000000 +0200
++++ src/iface.h	2009-08-03 21:24:28.000000000 +0200
+@@ -97,6 +97,7 @@
+   
+   struct ifacestate {
+     char		ifname[IFNAMSIZ];	/* Name of my interface */
++    char		ngname[IFNAMSIZ];	/* Name of my Netgraph node */
+     uint		ifindex;		/* System interface index */
+     struct ifaceconf	conf;
+     u_char		traffic[IFACE_IDLE_SPLIT];	/* Mark any traffic */
+
+ 	  	 
+

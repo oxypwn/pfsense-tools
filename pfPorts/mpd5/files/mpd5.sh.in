@@ -44,3 +44,4 @@ case "${mpd_flags}" in
 esac
 
 run_rc_command "$1"
+
