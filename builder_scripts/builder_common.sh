@@ -1119,7 +1119,7 @@ cust_fixup_nanobsd() {
     cp $CVS_CO_DIR/etc/ttys_wrap \
             $PFSENSEBASEDIR/etc/ttys
 
-	if [ "$FBSD_VERSION" = "8" ]; then
+	if [ "$FBSD_VERSION" -gt "7" ]; then
 		setup_serial_hints
 	fi
 
@@ -1139,7 +1139,7 @@ cust_fixup_nanobsd() {
 
 	echo "$FLASH_SIZE" > $PFSENSEBASEDIR/etc/nanosize.txt
 
-	if [ "$FBSD_VERSION" = "8" ]; then
+	if [ "$FBSD_VERSION" -gt "7" ]; then
 		# Enable getty on console
 		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
 
@@ -1181,7 +1181,7 @@ cust_fixup_wrap() {
 	echo "-h" >> $PFSENSEBASEDIR/boot.config
 
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-	if [ "$FBSD_VERSION" = "8" ]; then
+	if [ "$FBSD_VERSION" -gt "7" ]; then
 		# Enable getty on console
 		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
 
@@ -1528,7 +1528,7 @@ clone_system_only()
 	cd $FREESBIEBASEDIR
 
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-	if [ "$FBSD_VERSION" = "8" ]; then
+	if [ "$FBSD_VERSION" -gt "7" ]; then
 		echo ">>> Using TAR to clone clone_system_only()..."
 		tar cf - * | ( cd /$FREESBIEISODIR; tar xfp -)
 	else
@@ -1834,7 +1834,7 @@ setup_nanobsd ( ) {
 		# XXX: configure /$d ramdisk size
 		mkdir -p ${CONFIG_DIR}/base/$d ${CONFIG_DIR}/default/$d
 		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-		if [ "$FBSD_VERSION" = "8" ]; then
+		if [ "$FBSD_VERSION" -gt "7" ]; then
 			echo ">>> Using TAR to clone setup_nanobsd()..."
 			find $d -print | tar cf - | ( cd ${CONFIG_DIR}/base/; tar xfp -)
 		else
