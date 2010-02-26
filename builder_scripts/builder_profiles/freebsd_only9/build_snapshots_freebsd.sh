@@ -57,7 +57,7 @@ build_freebsdiso() {
 	cp $BUILDERSCRIPTS/builder_profiles/freebsd_only9/pfsense* $BUILDERSCRIPTS
 	./apply_kernel_patches.sh
 	./clean_build.sh
-	./setup_overlay.sh
+	$BUILDERSCRIPTS/builder_profiles/freebsd_only9/setup_overlay.sh
 	./build_freebsdisoonly.sh
 }
 
