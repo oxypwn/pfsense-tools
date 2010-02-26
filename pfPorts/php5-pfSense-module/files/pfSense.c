@@ -360,6 +360,7 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
                                 add_assoc_long(caps, "pollingnocount", 1);
 #endif
 		}
+		close(s);
 	}
 	add_assoc_zval(return_value, "caps", caps);
 	add_assoc_zval(return_value, "encaps", encaps);
