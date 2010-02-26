@@ -13,8 +13,6 @@ cp $OVERLAY_PATH/pfsense-build.conf  $TOOLSDIR
 
 mkdir -p $SRCDIR
 
-mkdir -p $SRCDIR
-
 cd $TOOLSDIR
 ./clean_build.sh
 ./apply_kernel_patches.sh
