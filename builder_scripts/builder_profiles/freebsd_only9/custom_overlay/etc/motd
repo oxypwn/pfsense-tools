@@ -22,7 +22,7 @@ configuration utility.  Edit /etc/motd to change this login announcement.
 
 ***************************************************************************
 
-* To start the installer run /scripts/freebsd_installer
+* To start the BSDInstaller run /scripts/freebsd_installer
 
 Comments / suggestions / questions?    E-mail sullrich@freebsd.org
 
