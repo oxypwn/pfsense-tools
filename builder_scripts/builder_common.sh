@@ -772,6 +772,7 @@ cust_populate_installer_bits_freebsd_only() {
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Copy installer launcher scripts
     cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/etc/rc.d/
+    cp $BUILDER_TOOLS/pfi $CVS_CO_DIR/etc/rc.d/
     cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
     chmod a+rx $PFSENSEBASEDIR/scripts/*
 	rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
