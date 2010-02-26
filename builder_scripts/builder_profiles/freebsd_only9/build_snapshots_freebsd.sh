@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # FreeBSD snapshot building system
-# (C)2007, 2008, 2009 Scott Ullrich
+# (C)2007, 2008, 2009, 2010 Scott Ullrich
 # All rights reserved
 #
 # Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,10 @@ ln -s ../../conf/ conf
 build_freebsdiso() {
 	cd $BUILDERSCRIPTS
 	echo ">> Copying FreeBSD overlay information..."
-	cp $BUILDERSCRIPTS/builder_profiles/freebsd_only8/pfsense* $BUILDERSCRIPTS
+	cp $BUILDERSCRIPTS/builder_profiles/freebsd_only9/pfsense* $BUILDERSCRIPTS
 	./apply_kernel_patches.sh
 	./clean_build.sh
+	./setup_overlay.sh
 	./build_freebsdisoonly.sh
 }
 
@@ -71,7 +72,7 @@ dobuilds() {
 
 copy_to_staging_deviso_updates() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	NEWFILENAME=FreeBSD-8.0-RELEASE-BSDInstaller-${DATESTRING}.iso
+	NEWFILENAME=FreeBSD-9.0-RELEASE-BSDInstaller-${DATESTRING}.iso
 	mv $FREEBSDOBJDIR/FreeBSD.iso $STAGINGAREA/$NEWFILENAME
 	gzip $STAGINGAREA/$NEWFILENAME
 	md5 $STAGINGAREA/$NEWFILENAME.gz > $STAGINGAREA/$NEWFILENAME.gz.md5	
@@ -87,8 +88,8 @@ scp_files() {
 	rm -f /tmp/latest*
 	set +e
 	# Ensure directory(s) are available
-	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_8_0
-	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_8_0/
+	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_9_0
+	rsync -ave ssh --bwlimit=50 --timeout=60 $STAGINGAREA/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_9_0/
 	set -e
 }
 
