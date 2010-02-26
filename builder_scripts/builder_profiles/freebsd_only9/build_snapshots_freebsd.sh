@@ -36,6 +36,9 @@ FREEBSDHOMEDIR=/home/pfsense
 TOOLDIR=${FREEBSDHOMEDIR}/tools
 BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 
+echo ">> Copying FreeBSD overlay information..."
+cp $BUILDERSCRIPTS/builder_profiles/freebsd_only9/pfsense* $BUILDERSCRIPTS
+
 # Source pfSense / FreeSBIE variables
 # *** DO NOT SOURCE BUILDER_COMMON.SH!
 # *** IT WILL BREAK EVERYTHING FOR 
