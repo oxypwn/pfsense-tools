@@ -60,7 +60,7 @@ build_freebsdiso() {
 	./clean_build.sh
 	echo ">> Copying FreeBSD overlay information..."
 	cp $BUILDERSCRIPTS/builder_profiles/freebsd_only9/pfsense* $BUILDERSCRIPTS
-	./build_freebsdisoonly.sh
+	./build_freebsdisoonly.sh	
 }
 
 dobuilds() {
@@ -75,12 +75,20 @@ dobuilds() {
 copy_to_staging_deviso_updates() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	NEWFILENAME=FreeBSD-9.0-CURRENT-BSDInstaller-${DATESTRING}.iso
+	USBTHUMBFILENAME=FreeBSD-9.0-CURRENT-BSDInstaller-${DATESTRING}.img
+	CURPWD=`pwd`
 	echo ">>> Moving $FREEBSDOBJDIR/FreeBSD.iso to $STAGINGAREA/$NEWFILENAME"
 	mv $FREEBSDOBJDIR/FreeBSD.iso $STAGINGAREA/$NEWFILENAME
+	echo ">>> Creating USB Thumbdrive installer for $STAGINGAREA/$NEWFILENAME"
+	(cd $STAGINGAREA && $BUILDERSCRIPTS/iso2flash.sh $STAGINGAREA/$NEWFILENAME $USBTHUMBFILENAME)
 	echo ">>> GZipping $STAGINGAREA/$NEWFILENAME"
 	gzip $STAGINGAREA/$NEWFILENAME
+	echo ">>> GZipping $STAGINGAREA/$USBTHUMBFILENAME"
+	gzip $STAGINGAREA/$USBTHUMBFILENAME
 	echo ">>> Creating MD5 signature for $STAGINGAREA/$NEWFILENAME"
 	md5 $STAGINGAREA/$NEWFILENAME.gz > $STAGINGAREA/$NEWFILENAME.gz.md5	
+	echo ">>> Creating MD5 signature for $STAGINGAREA/$USBTHUMBFILENAME"
+	md5 $STAGINGAREA/$NEWFILENAME.gz > $STAGINGAREA/$USBTHUMBFILENAME.gz.md5	
 }
 
 scp_files() {
