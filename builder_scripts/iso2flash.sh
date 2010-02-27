@@ -97,7 +97,9 @@ extract_image() {	# extract image to a tree
     [ -f $1 ] || return
     local tmp="${tree}.tree"
     echo "Extract files from ${tree} into $tmp "
-    (chmod -R +w $tmp; rm -rf $tmp )
+	if [ -d $tmp ]; then 
+    	(chmod -R +w $tmp; rm -rf $tmp)
+	fi
     mkdir -p $tmp
     ls -la $tmp
     (cd $tmp && ${BSDTAR} xf $tree )
