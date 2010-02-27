@@ -88,7 +88,7 @@ copy_to_staging_deviso_updates() {
 	echo ">>> Creating MD5 signature for $STAGINGAREA/$NEWFILENAME"
 	md5 $STAGINGAREA/$NEWFILENAME.gz > $STAGINGAREA/$NEWFILENAME.gz.md5	
 	echo ">>> Creating MD5 signature for $STAGINGAREA/$USBTHUMBFILENAME"
-	md5 $STAGINGAREA/$NEWFILENAME.gz > $STAGINGAREA/$USBTHUMBFILENAME.gz.md5	
+	md5 $STAGINGAREA/$USBTHUMBFILENAME.gz > $STAGINGAREA/$USBTHUMBFILENAME.gz.md5	
 }
 
 scp_files() {
