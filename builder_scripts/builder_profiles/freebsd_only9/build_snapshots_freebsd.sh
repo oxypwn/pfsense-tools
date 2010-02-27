@@ -85,6 +85,7 @@ copy_to_staging_deviso_updates() {
 	gzip $STAGINGAREA/$NEWFILENAME
 	echo ">>> GZipping $STAGINGAREA/$USBTHUMBFILENAME"
 	gzip $STAGINGAREA/$USBTHUMBFILENAME
+	rm -rf $STAGINGAREA/*tree*
 	echo ">>> Creating MD5 signature for $STAGINGAREA/$NEWFILENAME"
 	md5 $STAGINGAREA/$NEWFILENAME.gz > $STAGINGAREA/$NEWFILENAME.gz.md5	
 	echo ">>> Creating MD5 signature for $STAGINGAREA/$USBTHUMBFILENAME"
