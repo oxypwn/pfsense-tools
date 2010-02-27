@@ -1,2 +1,3 @@
 usr/local/bin/cpdup
 usr/local/sbin/ucarp
+usr/local/sbin/dhcpd
