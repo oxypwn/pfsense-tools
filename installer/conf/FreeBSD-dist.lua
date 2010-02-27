@@ -132,6 +132,15 @@ dir = {
 	tmp = "/tmp/" 
 }
 
+--
+-- mtrees_post_copy: a table of directory trees to create, using 'mtree',
+-- after everything has been copied.
+--
+
+mtrees_post_copy = {
+
+}
+
 -- /rescue for example takes a fair amount of space.
 limits.part_min = "512M"
 
