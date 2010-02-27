@@ -74,7 +74,7 @@ dobuilds() {
 
 copy_to_staging_deviso_updates() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
-	NEWFILENAME=FreeBSD-9.0-RELEASE-BSDInstaller-${DATESTRING}.iso
+	NEWFILENAME=FreeBSD-9.0-CURRENT-BSDInstaller-${DATESTRING}.iso
 	echo ">>> Moving $FREEBSDOBJDIR/FreeBSD.iso to $STAGINGAREA/$NEWFILENAME"
 	mv $FREEBSDOBJDIR/FreeBSD.iso $STAGINGAREA/$NEWFILENAME
 	echo ">>> GZipping $STAGINGAREA/$NEWFILENAME"
