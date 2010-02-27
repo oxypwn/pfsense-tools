@@ -75,7 +75,7 @@ dobuilds() {
 copy_to_staging_deviso_updates() {
 	DATESTRING=`date "+%Y%m%d-%H%M"`
 	NEWFILENAME=FreeBSD-9.0-CURRENT-BSDInstaller-${DATESTRING}.iso
-	USBTHUMBFILENAME=FreeBSD-9.0-CURRENT-BSDInstaller-${DATESTRING}.img
+	USBTHUMBFILENAME=FreeBSD-9.0-CURRENT-BSDInstaller-USBDrive${DATESTRING}.img
 	CURPWD=`pwd`
 	echo ">>> Moving $FREEBSDOBJDIR/FreeBSD.iso to $STAGINGAREA/$NEWFILENAME"
 	mv $FREEBSDOBJDIR/FreeBSD.iso $STAGINGAREA/$NEWFILENAME
