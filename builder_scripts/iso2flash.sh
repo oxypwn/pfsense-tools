@@ -1,159 +1,151 @@
 #!/bin/sh
-# $Id$
-# convert an ISO image to flash image
-# The type of filesystem depends on the content, but can be forced
-# manually.
-#
-# based on picobsd tricks.
-# Requires makefs, bsdlabel, sed and dd
-# The linux image uses mtools and syslinux, see
-# 	http://info.iet.unipi.it/~luigi/FreeBSD/#syslinux-port
-# see http://www.allbootdisks.com/download/iso.html
+# fbsd-install-iso2img.sh
+# Original version by Dario Freni 9/2006
+# Enhancements by Clifton Royston 3/2009.
+# License: Beerware
 
-MAKEFS=makefs
-MKLABEL=bsdlabel
-BSDTAR=tar
+# You can set some variables here. Edit them to fit your needs.
 
-# Create a linux disk starting from an ISO. Use a FAT media
-# and syslinux to format it. Add some intelligence to figure
-# out where the kernel is and what options it needs.
+# Set serial variable to 0 if you don't want serial console at all,
+# 1 if you want comconsole and 2 if you want comconsole and vidconsole
+serial=0
 
-make_linux_image() {	# src_tree dest_image
-    local tree=$1
-    local img=$2
-    local size=$(( $3 + 1000 ))		# size in kb
-    local x=$(( 1 + $size / 128 ))	# 128k units, good for dd
-    # if you have an old newfs_msdos...
-    local OPTS=" -h 16 -u 64 -S 512 -s $(( 2 * ${size} )) -o 0"
-    [ -f ${img} ] && { chmod u+w ${img}; rm ${img} ; }
-    dd if=/dev/zero bs=128k count=$x of=${img}	# create blank file
-    newfs_msdos ${OPTS} ${img}				# format msdos
-    syslinux ${img}			# add linux bootcode
+# Set nofstab=1 to not create any initial fstab on the USB drive;
+# this makes the next two settings largely irrelevant.
+nofstab=0
 
-    # Try to identify where the kernel is
-    local boot=`find $tree -name boot`
-    if [ x"${boot}" != x -a -d "${boot}" ] ; then
-	echo "moving boot code"
-	chmod u+w ${boot} ${boot}/*
-	mv ${boot}/* $tree
-	[ -f ${tree}/syslinux.cfg ] || mv ${tree}/isolinux.cfg ${tree}/syslinux.cfg
-    fi
-    if [ -d ${tree}/isolinux ] ; then
-	# systemrescuecd
-	local sys=${tree}/syslinux
-	echo moving files... 
-	[ -d ${sys} ] || mkdir -p ${sys}
-	chmod -R u+w ${tree}/isolinux
-	mv ${tree}/isolinux/* ${sys}
-	[ -f ${sys}/syslinux.cfg ] || mv ${sys}/isolinux.cfg ${sys}/syslinux.cfg
-    fi
-    if [ -f ${tree}/syslinux.cfg ] ; then
-    elif [ -f ${tree}/syslinux/syslinux.cfg ] ; then
-    elif [ -f ${tree}/linux ] ; then
-    elif [ -f ${tree}/CE_BZ ] ; then
-	# splashtop / expressgate
-	echo "default ce_bz" > ${tree}/syslinux.cfg
-    else
-	boot=`cd ${tree}; find . -name boot.img`
-	if [ x"${boot}" != x -a -f "${tree}/${boot}" ] ; then
-	    cp -p /usr/local/share/syslinux/memdisk $tree
-	    ( echo "default memdisk"; 
-		echo "append initrd=${boot}" ) > $tree/syslinux.cfg
-	fi
-    fi
-    mcopy -i ${img} -s ${tree}/* ::/		# copy the tree
-    mdir -/ -i  ${img} ::			# show the results
+# Set rootperm=rw for root fs to mount r/w from the USB drive
+#  (Should be unnecessary.)
+rootperm=ro
+
+# Set USBLABEL here or with -L label to label the image file system, 
+#  to help the loader find the root file system when booting; 
+#  otherwise the USB must come up as da0 to finish loading successfully.
+USBLABEL=
+lbparams=
+
+# Set dopause=1 here or with -p to pause and allow review or editing of
+#  the flash image before finalizing the image.
+dopause=0
+
+pause() {
+ echo "Press enter to continue"
+ read foo
 }
 
-# to add freedos code:
-    #perl sys-freedos.pl --disk=${img} --heads=16 --sectors=64 --offset=0 # --lb
-    #dd if=mbrfat.bin bs=90 iseek=1 oseek=1 of=${img} conv=notrunc
+set -u
 
-# Create a FreeBSD image.
-make_freebsd_image() {	# tree imagefile size
-    local tree=$1
-    local imagefile=$2
-    local boot1=${tree}/boot/boot1
-    local boot2=${tree}/boot/boot2
-
-    echo "convert tree $tree image $img"
-    ${MAKEFS} -t ffs -o bsize=4096 -o fsize=512 \
-        -f 50 ${imagefile} ${tree}
-    ${MKLABEL} -w -f ${imagefile} auto # write a label
-    # copy partition c: into a: with some sed magic
-    ${MKLABEL} -f ${imagefile} | sed -e '/  c:/{p;s/c:/a:/;}' | \
-        ${MKLABEL} -R -f ${imagefile} /dev/stdin
-
-    # dump the primary and secondary boot (primary is 512 bytes)
-    dd if=${boot1} of=${imagefile} conv=notrunc 2>/dev/null
-    # XXX secondary starts after the 0x114 = dec 276 bytes of the label
-    # so we skip 276 from the source, and 276+512=788 from dst
-    # the old style blocks used 512 and 1024 respectively
-    dd if=${boot2} iseek=1 ibs=276 2> /dev/null | \
-        dd of=${imagefile} oseek=1 obs=788 conv=notrunc 2>/dev/null
-}
-
-extract_image() {	# extract image to a tree
-    [ -f $1 ] || return
-    local tmp="${tree}.tree"
-    echo "Extract files from ${tree} into $tmp "
-	if [ -d $tmp ]; then 
-    	(chmod -R +w $tmp; rm -rf $tmp)
-	fi
-    mkdir -p $tmp
-    ls -la $tmp
-    (cd $tmp && ${BSDTAR} xf $tree )
-    ls -la $tmp
-    tree=$tmp
-}
-
-guess_type() {
-    echo guess type
-    imgtype="error"	# default
-    [ -f $tree/boot/loader -a -f $tree/boot/loader.rc ] && { imgtype="bsd"; return ; }
-    local a=`find $tree -name isolinux`
-    [ x"$a" != x -a -d $a ] && { imgtype="linux"; return ; }
-}
-
-# option processing
-while [ x"$*" != x ] ; do
-    case x"$1" in
-    x-t )	# type
-	shift
-	imgtype=$1
-	;;
-    *)
-	break
-	;;
-    esac
+if [ $# -ge 3 ]; then
+  flag=$1
+  if [ ${flag} = "-p" ]; then
+    dopause=1
     shift
-done
+    flag=$1
+  fi
+  if [ ${flag} = "-n" ]; then
+    nofstab=1
+    shift
+    flag=$1
+  fi
+  if [ ${flag} = "-L" ]; then
+    shift;
+    USBLABEL=$1; shift
+    lbparams="-L ${USBLABEL}"
+  fi
+fi
+if [ $# -lt 2 ]; then
+  echo "Usage: $0 [-p] [-n] [-L vollabel] source-iso-path output-img-path"
+  echo "	-p	pause for review before finalizing image"
+  echo "	-n	don't update the /etc/fstab within the image"
+  echo "	-L	set file system label on image, to help loader find it"
+  exit 1
+fi
 
-tree=`realpath $1`
-image=`realpath $2`
-echo "type <$imgtype> tree <$tree> image <$image>"
+isoimage=$1; shift
+imgoutfile=$1; shift
 
-extract_image $tree
-set `du -sk $tree`
-size=$1
-echo "image size is $size kb"
+export tmpdir=$(mktemp -d -t fbsdmount)
 
-while true ; do
-    case x"$imgtype" in
-    *[Bb][Ss][Dd] )
-	make_freebsd_image $tree $image $size
-	;;
-    *[Ll][Ii][Nn][Uu][Xx] )
-	make_linux_image $tree $image $size
-	;;
-    xerror)
-	echo "Image type not found, giving up"
-	;;
-    * )
-	guess_type
-	continue
-	;;
-    esac
-    break
-done
-[ -d "$tmp" ] && (chmod -R u+w $tmp && rm -rf $tmp)
+# Temp file and directory to be used later
+export tmpfile=$(mktemp -t bsdmount)
+
+export isodev=$(mdconfig -a -t vnode -f ${isoimage})
+
+echo "#### Building bootable UFS image ####"
+
+ISOSIZE=$(du -k ${isoimage} | awk '{print $1}')
+ISOSIZE=`expr $ISOSIZE + 100000`
+SECTS=$((($ISOSIZE + ($ISOSIZE/5))*2))
+
+# Root partition size
+
+echo "Initializing image..."
+dd if=/dev/zero of=${imgoutfile} count=${SECTS}
+ls -l ${imgoutfile}
+export imgdev=$(mdconfig -a -t vnode -f ${imgoutfile})
+
+bsdlabel -w -B ${imgdev}
+newfs -O1 ${lbparams} /dev/${imgdev}a
+
+mkdir -p ${tmpdir}/iso ${tmpdir}/img
+
+mount -r -t cd9660 /dev/${isodev} ${tmpdir}/iso
+mount /dev/${imgdev}a ${tmpdir}/img
+
+echo "Copying files to the image via cpio"
+( cd ${tmpdir}/iso && find . -print -depth | cpio -dump ${tmpdir}/img )
+# Dump doesn't work from an ISO file system, too bad.
+# echo "Copying files to the image via dump/restore..."
+## dump -0f - /dev/${isodev} | (cd ${tmpdir}/img && restore -r -f - ) 
+
+#bzcat ${tmpdir}/iso/dist/root.dist.bz2 | mtree -PUr -p ${tmpdir}/img 2>&1 > /dev/null
+
+if [ ${nofstab} -ne 1 ]; then
+	echo "Saving original /etc/fstab as /etc/fstab.orig"
+	mv ${tmpdir}/img/etc/fstab  ${tmpdir}/img/etc/fstab.orig
+	echo "Replacing /etc/fstab, so loader can find root filesystem on flash!"
+	if [ "${USBLABEL}" != "" ]; then
+		echo "/dev/ufs/${USBLABEL} / ufs ${rootperm} 0 0" > ${tmpdir}/img/etc/fstab
+		## echo "devfs /dev devfs rw 0 0" >> ${tmpdir}/img/etc/fstab
+	else 
+		echo "/dev/da0a / ufs ${rootperm} 0 0" > ${tmpdir}/img/etc/fstab
+		## echo "devfs /dev devfs rw 0 0" >> ${tmpdir}/img/etc/fstab
+	fi
+else
+	echo "Skipping write of image /etc/fstab"
+fi
+
+if [ ${serial} -eq 2 ]; then
+        mv ${tmpdir}/img/boot.config ${tmpdir}/img/boot.config.orig
+        mv ${tmpdir}/img/boot/loader.conf ${tmpdir}/img/boot/loader.conf.orig
+        echo "-D" > ${tmpdir}/img/boot.config
+        echo 'console="comconsole, vidconsole"' >> ${tmpdir}/img/boot/loader.conf
+elif [ ${serial} -eq 1 ]; then
+        mv ${tmpdir}/img/boot.config ${tmpdir}/img/boot.config.orig
+        mv ${tmpdir}/img/boot/loader.conf ${tmpdir}/img/boot/loader.conf.orig
+        echo "-h" > ${tmpdir}/img/boot.config
+        echo 'console="comconsole"' >> ${tmpdir}/img/boot/loader.conf
+fi
+
+if [ ${dopause} -eq 1 ]; then
+  echo "Pausing to allow manual review and modification of image file:"
+  echo "Image is located in ${tmpdir}/img"
+  echo "If you need to fix up ${tmpdir}/img/etc/fstab, now is the time."
+  pause
+fi
+
+
+cleanup() {
+    umount ${tmpdir}/iso
+    mdconfig -d -u ${isodev}
+    umount ${tmpdir}/img
+    mdconfig -d -u ${imgdev}
+    rm -rf ${tmpdir} ${tmpfile}
+}
+
+cleanup
+
+ls -lh ${imgoutfile}
+
+echo "To write the image to flash, use dd, for example:"
+echo "   dd if=${imgoutfile} of=/dev/da0 bs=4M"
