@@ -2,6 +2,7 @@
 # fbsd-install-iso2img.sh
 # Original version by Dario Freni 9/2006
 # Enhancements by Clifton Royston 3/2009.
+# Added rsync (/rescue) support by Scott Ullrich 2/2010
 # License: Beerware
 
 # You can set some variables here. Edit them to fit your needs.
@@ -29,36 +30,36 @@ lbparams=
 dopause=0
 
 pause() {
- echo "Press enter to continue"
- read foo
+	echo "Press enter to continue"
+	read foo
 }
 
 set -u
 
 if [ $# -ge 3 ]; then
-  flag=$1
-  if [ ${flag} = "-p" ]; then
-    dopause=1
-    shift
-    flag=$1
-  fi
-  if [ ${flag} = "-n" ]; then
-    nofstab=1
-    shift
-    flag=$1
-  fi
-  if [ ${flag} = "-L" ]; then
-    shift;
-    USBLABEL=$1; shift
-    lbparams="-L ${USBLABEL}"
-  fi
+	flag=$1
+	if [ ${flag} = "-p" ]; then
+		dopause=1
+		shift
+		flag=$1
+	fi
+	if [ ${flag} = "-n" ]; then
+		nofstab=1
+		shift
+		flag=$1
+	fi
+	if [ ${flag} = "-L" ]; then
+		shift;
+		USBLABEL=$1; shift
+		lbparams="-L ${USBLABEL}"
+	fi
 fi
 if [ $# -lt 2 ]; then
-  echo "Usage: $0 [-p] [-n] [-L vollabel] source-iso-path output-img-path"
-  echo "	-p	pause for review before finalizing image"
-  echo "	-n	don't update the /etc/fstab within the image"
-  echo "	-L	set file system label on image, to help loader find it"
-  exit 1
+	echo "Usage: $0 [-p] [-n] [-L vollabel] source-iso-path output-img-path"
+	echo "	-p	pause for review before finalizing image"
+	echo "	-n	don't update the /etc/fstab within the image"
+	echo "	-L	set file system label on image, to help loader find it"
+	exit 1
 fi
 
 isoimage=$1; shift
@@ -74,7 +75,7 @@ export isodev=$(mdconfig -a -t vnode -f ${isoimage})
 echo "#### Building bootable UFS image ####"
 
 ISOSIZE=$(du -k ${isoimage} | awk '{print $1}')
-ISOSIZE=`expr $ISOSIZE + 100000`
+ISOSIZE=`expr $ISOSIZE + 1024`
 SECTS=$((($ISOSIZE + ($ISOSIZE/5))*2))
 
 # Root partition size
@@ -93,7 +94,9 @@ mount -r -t cd9660 /dev/${isodev} ${tmpdir}/iso
 mount /dev/${imgdev}a ${tmpdir}/img
 
 echo "Copying files to the image via cpio"
-( cd ${tmpdir}/iso && find . -print -depth | cpio -dump ${tmpdir}/img )
+#( cd ${tmpdir}/iso && find . -print -depth | cpio -dump ${tmpdir}/img )
+rsync -aH --exclude rescue/* ${tmpdir}/iso/* ${tmpdir}/img/
+
 # Dump doesn't work from an ISO file system, too bad.
 # echo "Copying files to the image via dump/restore..."
 ## dump -0f - /dev/${isodev} | (cd ${tmpdir}/img && restore -r -f - ) 
@@ -116,31 +119,31 @@ else
 fi
 
 if [ ${serial} -eq 2 ]; then
-        mv ${tmpdir}/img/boot.config ${tmpdir}/img/boot.config.orig
-        mv ${tmpdir}/img/boot/loader.conf ${tmpdir}/img/boot/loader.conf.orig
-        echo "-D" > ${tmpdir}/img/boot.config
-        echo 'console="comconsole, vidconsole"' >> ${tmpdir}/img/boot/loader.conf
+	mv ${tmpdir}/img/boot.config ${tmpdir}/img/boot.config.orig
+	mv ${tmpdir}/img/boot/loader.conf ${tmpdir}/img/boot/loader.conf.orig
+	echo "-D" > ${tmpdir}/img/boot.config
+	echo 'console="comconsole, vidconsole"' >> ${tmpdir}/img/boot/loader.conf
 elif [ ${serial} -eq 1 ]; then
-        mv ${tmpdir}/img/boot.config ${tmpdir}/img/boot.config.orig
-        mv ${tmpdir}/img/boot/loader.conf ${tmpdir}/img/boot/loader.conf.orig
-        echo "-h" > ${tmpdir}/img/boot.config
-        echo 'console="comconsole"' >> ${tmpdir}/img/boot/loader.conf
+	mv ${tmpdir}/img/boot.config ${tmpdir}/img/boot.config.orig
+	mv ${tmpdir}/img/boot/loader.conf ${tmpdir}/img/boot/loader.conf.orig
+	echo "-h" > ${tmpdir}/img/boot.config
+	echo 'console="comconsole"' >> ${tmpdir}/img/boot/loader.conf
 fi
 
 if [ ${dopause} -eq 1 ]; then
-  echo "Pausing to allow manual review and modification of image file:"
-  echo "Image is located in ${tmpdir}/img"
-  echo "If you need to fix up ${tmpdir}/img/etc/fstab, now is the time."
-  pause
+	echo "Pausing to allow manual review and modification of image file:"
+	echo "Image is located in ${tmpdir}/img"
+	echo "If you need to fix up ${tmpdir}/img/etc/fstab, now is the time."
+	pause
 fi
 
 
 cleanup() {
-    umount ${tmpdir}/iso
-    mdconfig -d -u ${isodev}
-    umount ${tmpdir}/img
-    mdconfig -d -u ${imgdev}
-    rm -rf ${tmpdir} ${tmpfile}
+	umount ${tmpdir}/iso
+	mdconfig -d -u ${isodev}
+	umount ${tmpdir}/img
+	mdconfig -d -u ${imgdev}
+	rm -rf ${tmpdir} ${tmpfile}
 }
 
 cleanup
