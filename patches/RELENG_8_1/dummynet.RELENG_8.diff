@@ -1540,7 +1540,7 @@ diff -u -r1.1.1.1 pf.c
 +                                &dnflow, DN_CLIENT_PF);
 +                        *m0 = NULL;
 +                        return (action);
-+        }
++        } else pd.pf_mtag->flags &= ~PF_DN_TAG_PRESENT;
 +continueprocessing:
 +#endif
 +
