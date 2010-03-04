@@ -66,7 +66,7 @@ return {
     local cmds = CmdChain.new()
 	cmds:add("${root}bin/rm -f /tmp/config.cache");
 	cmds:add{
-		cmdline = "${root}sbin/fsck -y /dev/${disk1}s1a ; ${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount /dev/${disk1}s1a /tmp/hdrescue",
+		cmdline = "${root}sbin/fsck -t ufs -y /dev/${disk1}s1a ; ${root}bin/mkdir /tmp/hdrescue ; ${root}sbin/mount /dev/${disk1}s1a /tmp/hdrescue",
 		replacements = {
 			OS = App.conf.product.name,
 			disk1 = disk1
