@@ -44,7 +44,7 @@ if App.state.storage:get_disk_count() < 2 then
 end
 
 if App.state.target ~= nil and App.state.target:is_mounted() then
-       return nil, "Target volume is already mount"
+       return nil, "Target volume is already mounted"
 end
 
 --
