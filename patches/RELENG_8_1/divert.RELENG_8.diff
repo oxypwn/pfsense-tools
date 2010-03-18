@@ -272,7 +272,7 @@ diff -u -r1.4 pf.c
 +                return (action);
 +        }
 +
-+        if (r->divert && r->direction != dir && ip_divert_ptr != NULL &&
++        if (r->divert && ip_divert_ptr != NULL &&
 +                !(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT)) {
 +                if (!r->spare1 ||
 +                        (s && s->packets[dir == PF_OUT] <= r->spare1)) {

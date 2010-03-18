@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# $FreeBSD: ports/net/openospfd/files/openospfd.sh.in,v 1.2 2009/07/15 16:55:52 dougb Exp $
+#
+
+# PROVIDE: ospfd
+# REQUIRE: LOGIN abi
+# BEFORE:  securelevel
+# KEYWORD: shutdown
+
+# Add the following lines to /etc/rc.conf to enable openospfd:
+#
+# openospfd_enable="YES"
+# openospfd_flags="<set as needed>"
+#
+# See ospfd(8) for openospfd_flags
+
+. "%%RC_SUBR%%"
+
+name="openospfd"
+rcvar=`set_rcvar`
+
+extra_commands="reload"
+command="%%PREFIX%%/sbin/ospfd"
+required_files="%%PREFIX%%/etc/ospfd.conf"
+
+load_rc_config "$name"
+: ${openospfd_enable="NO"}
+
+run_rc_command "$1"
