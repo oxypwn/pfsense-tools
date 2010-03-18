@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <sys/event.h>
 #include <sys/time.h>
 
 #include <net/if.h>
@@ -193,17 +194,39 @@ static void	usage(const char *);
 void *
 classifyd_get_time(void *arg __unused) 
 {
-	struct timespec ts;
+	struct kevent change;    /* event we want to monitor */
+   	struct kevent event;     /* event that was triggered */
+   	int kq, nev;
 
-	ts.tv_sec = 0;
-	ts.tv_nsec = 200 * 1000; /* 200 miliseconds */
+reinitkqueue:
+	/* create a new kernel event queue */
+	if ((kq = kqueue()) == -1) {
+		syslog(LOG_ERR, "COuld not initialize kqueue");
+		return NULL;
+	}
 
-	while (1) {
+	/* wakeup every 5 seconds */
+	EV_SET(&change, 1, EVFILT_TIMER, EV_ADD | EV_ENABLE, 0, 5000, NULL);
+
+	/* loop forever */
+	for (;;) {
+		nev = kevent(kq, &change, 1, &event, 1, NULL);
+
+	if (nev < 0) {
+		goto reinitkqueue;
+	}
+	else if (nev >= 0) {
+		if (event.flags & EV_ERROR) {   /* report any error */
+			syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(event.data));
+			goto reinitkqueue;
+		}
+
 		while(gettimeofday(&t_time, NULL) != 0)
 			;
+      }
+   }
 
-		nanosleep(&ts, NULL);
-	}
+   close(kq);
 }
 
 static void
@@ -392,10 +415,12 @@ main(int argc, char **argv)
          */
         if (init_queue(&inQTCP, qmaxsz))
                 err(EX_OSERR, "check your configuration and parameters to continue");
+#if 0
         if (init_queue(&inQUDP, qmaxsz)) {
                 clean_queue(&inQTCP);
                 err(EX_OSERR, "check your configuration and parameters to continue");
         }
+#endif
         if (init_queue(&outQ, qmaxsz)) {
                 clean_queue(&inQTCP);
                 clean_queue(&inQUDP);
@@ -432,9 +457,9 @@ main(int argc, char **argv)
 	pthread_join(readtd, NULL);
 	pthread_join(writetd, NULL);
 	pthread_join(inQTCP.classifytd, NULL);
-	pthread_join(inQUDP.classifytd, NULL);
+	//pthread_join(inQUDP.classifytd, NULL);
 	pthread_join(inQTCP.garbagetd, NULL);
-	pthread_join(inQUDP.garbagetd, NULL);
+	//pthread_join(inQUDP.garbagetd, NULL);
 	pthread_join(time_thread, NULL);
 
 	/*
@@ -460,7 +485,7 @@ read_pthread(void *arg __unused)
 	struct ic_pkt	   *pkt;
 	struct ip *ipp;
 	int	  len;
-	unsigned int pcktcnt = 0;
+	//unsigned int pcktcnt = 0;
 
 	while (1) {
 		pkt = (struct ic_pkt *)malloc(sizeof(struct ic_pkt));
@@ -490,6 +515,7 @@ getinput:
 		/* XXX: Make more dynamic so protocols can be easly added. */
 		switch (ipp->ip_p) {
 		case IPPROTO_TCP:
+		case IPPROTO_UDP:
 			/* Drop the packet if the queue is already full */
 			if (inQTCP.fq_size >= inQTCP.fq_maxsz) {
 				syslog(LOG_WARNING, "packet dropped: input TCP queue full");
@@ -497,7 +523,7 @@ getinput:
 			}
 			queue = &inQTCP;
 			break;
-		case IPPROTO_UDP:
+#if 0
 			/* Drop the packet if the queue is already full */
 			if (inQUDP.fq_size >= inQUDP.fq_maxsz) {
 				syslog(LOG_WARNING, "packet dropped: input UDP queue full");
@@ -505,6 +531,7 @@ getinput:
 			}
 			queue = &inQUDP;
 			break;
+#endif
 		default:
 			syslog(LOG_WARNING, "packet dropped: not TCP or UDP");
 			goto getinput;
@@ -514,16 +541,17 @@ getinput:
 		/*
 		 * Enqueue incomming packet.
 		 */
-		syslog(LOG_WARNING, "Received one packet.");
 		pkt->fp_pktlen = len;
 		pthread_mutex_lock(&queue->fq_mtx);
 		STAILQ_INSERT_HEAD(&queue->fq_pkthead, pkt, fp_link);
 		queue->fq_size++;
 		pthread_mutex_unlock(&queue->fq_mtx);
+#if 0
 		if (++pcktcnt > npackets) {
 			pcktcnt = 0;
 			pthread_cond_signal(&queue->gq_condvar);
 		} else
+#endif
 			pthread_cond_signal(&queue->fq_condvar);
 	}
 
@@ -561,9 +589,8 @@ getinput:
 		SLIST_FOREACH((proto), &(fp)->fp_p, p_next) {			\
 			if ((proto)->p_fwrule == 0)				\
 				continue;					\
-			else if (0 && (trycount) == (fp)->fp_inuse)			\
+			else if ((trycount) == (fp)->fp_inuse)			\
 				break;						\
-			syslog(LOG_WARNING, "trying protocol %s on buffer %s", proto->p_name, flow->if_data);	\
 			(pmatch).rm_so = 0;					\
 			(pmatch).rm_eo = (flow)->if_datalen;			\
 			(error) = regexec(&(proto)->p_preg, (flow)->if_data,	\
@@ -576,67 +603,13 @@ getinput:
                                         ((proto)->p_fwrule & DIVERT_DNCOOKIE) ? "dnpipe" : \
                                         ((proto)->p_fwrule & DIVERT_ALTQ) ? "altq" : "tag"); \
 				break;						\
-			} else if ((error) != REG_NOMATCH) {			\
+			} else if (0) { 			\
 				regerror((error), &(proto)->p_preg, (regerr), sizeof((regerr))); \
 				syslog(LOG_WARNING, "error matching %s:%d -> %s:%d against %s: %s", \
 					inet_ntoa((key)->ik_src), ntohs((key)->ik_sport), \
 					inet_ntoa((key)->ik_dst), ntohs((key)->ik_dport), \
 					(proto)->p_name, (regerr));		\
-			} else \
-				switch (error) { \
-				case REG_BADPAT: \
-					syslog(LOG_WARNING, "Error REG_BADPAT"); \
-					break; \
-				case REG_ECOLLATE: \
-					syslog(LOG_WARNING, "Error REG_ECOLLATE"); \
-					break; \
-				case REG_ECTYPE: \
-					syslog(LOG_WARNING, "Error REG_ECTYPE"); \
-					break; \
-				case REG_EESCAPE: \
-					syslog(LOG_WARNING, "Error REG_EESCAPE"); \
-					break; \
-				case REG_ESUBREG: \
-					syslog(LOG_WARNING, "Error REG_ESUBREG"); \
-					break; \
-				case REG_EBRACK: \
-					syslog(LOG_WARNING, "Error REG_EBRACK"); \
-					break; \
-				case REG_EPAREN: \
-					syslog(LOG_WARNING, "Error REG_EPAREN"); \
-					break; \
-				case REG_EBRACE: \
-					syslog(LOG_WARNING, "Error REG_EBRACE"); \
-					break; \
-				case REG_BADBR: \
-					syslog(LOG_WARNING, "Error REG_BADBR"); \
-					break; \
-				case REG_ERANGE: \
-					syslog(LOG_WARNING, "Error REG_ERANGE"); \
-					break; \
-				case REG_ESPACE: \
-					syslog(LOG_WARNING, "Error REG_ESPACE"); \
-					break; \
-				case REG_BADRPT: \
-					syslog(LOG_WARNING, "Error REG_BADRPT"); \
-					break; \
-				case REG_EMPTY: \
-					syslog(LOG_WARNING, "Error REG_EMPTY"); \
-					break; \
-				case REG_ASSERT: \
-					syslog(LOG_WARNING, "Error REG_ASSERT"); \
-					break; \
-				case REG_INVARG: \
-					syslog(LOG_WARNING, "Error REG_INVARG"); \
-					break; \
-				case REG_ILLSEQ: \
-					syslog(LOG_WARNING, "Error REG_ILLSEQ"); \
-					break; \
-				default: \
-					syslog(LOG_WARNING, "uknown error condition %d", error); \
-					break; \
-				} \
-				syslog(LOG_WARNING, "did not match on %s", proto->p_name); \
+			} \
 			(trycount)++;						\
 		}								\
 		FP_UNLOCK;							\
@@ -688,16 +661,17 @@ classify_pthread(void *arg)
 			payload = (u_char *)((u_char *)tcp + (tcp->th_off * 4));
 			datalen = ntohs(hdr->ah_ip.ip_len) -
 			    (int)((caddr_t)payload - (caddr_t)&hdr->ah_ip);
+			SET_KEY(key, hdr, tcp->th_sport, tcp->th_dport);
 		} else if (hdr->ah_ip.ip_p == IPPROTO_UDP) {
                         udp = &hdr->ah_udp;
                         payload = (u_char *)((u_char *)udp + ntohs(udp->uh_ulen));
                         datalen = ntohs(hdr->ah_ip.ip_len) -
                             (int)((caddr_t)payload - (caddr_t)&hdr->ah_ip);
+			SET_KEY(key, hdr, udp->uh_sport, udp->uh_dport);
 		}
 
 		assert(datalen >= 0);
 
-		SET_KEY(key, hdr, tcp->th_sport, tcp->th_dport);
 		if (key == NULL) {
 			syslog(LOG_WARNING, "packet dropped: %m");
 			free(pkt->fp_pkt);
@@ -793,8 +767,9 @@ classify_pthread(void *arg)
 		 * any data in the session to match yet or if there are
 		 * no protocols we want to classify.
 		 */
-		if (flow != NULL && (flow->if_datalen == 0 || fp->fp_inuse == 0))
+		if (flow != NULL && (flow->if_datalen == 0)) { // || fp->fp_inuse == 0)) {
 			goto enqueue;
+		}
 
 		/*
 		 * Packet has not been classified yet. Attempt to classify it.
@@ -882,45 +857,74 @@ void *
 garbage_pthread(void *arg)
 {
 	struct ic_queue	*queue = (struct ic_queue *)arg;
-	char errbuf[LINE_MAX];
+	//char errbuf[LINE_MAX];
 	struct entry *e, *f;
-	unsigned int i, flows_expired, error; 
+	unsigned int i, flows_expired; //, error; 
+        struct kevent change;    /* event we want to monitor */
+        struct kevent event;     /* event that was triggered */
+        int kq, nev;
 
-	while (1) {
-		flows_expired = 0;
-		t_time.tv_sec -= time_expire;
+reinitkqueue:
+        /* create a new kernel event queue */
+        if ((kq = kqueue()) == -1) {
+                syslog(LOG_ERR, "Could not initialize kqueue");
+                return NULL;
+        }
 
-		pthread_mutex_lock(&queue->fq_mtx);
-                error = pthread_cond_wait(&queue->gq_condvar, &queue->fq_mtx);
-                if (error != 0) {
-                        strerror_r(error, errbuf, sizeof(errbuf));
-                        syslog(EX_OSERR, "unable to wait on garbage collection: %s",
-                                errbuf);
-                        exit(EX_OSERR);
-                }
+        /* wakeup every 5 seconds */
+        EV_SET(&change, 1, EVFILT_TIMER, EV_ADD | EV_ENABLE, 0, 60000, NULL);
 
-                for (i = 0; i < queue->hash->tablelength; i++) {
-                        e = queue->hash->table[i];
-                        while (e != NULL) {
-                                f = e; e = e->next;
-                                if (f->v != NULL && ((struct ip_flow *)f->v)->expire < t_time.tv_sec) {
-                                        freekey(f->k);
-                                        queue->hash->entrycount--;
-                                        if (f->v != NULL)
-                                                free(f->v);
-                                        free(f);
-					flows_expired++;
-					queue->hash->table[i] = e;
-                                }
-                        }
-                }
+        /* loop forever */
+        for (;;) {
+                nev = kevent(kq, &change, 1, &event, 1, NULL);
 
-		pthread_mutex_unlock(&queue->fq_mtx);
+        	if (nev < 0) {
+                	goto reinitkqueue;
+        	}
+        	else if (nev > 0) {
+                	if (event.flags & EV_ERROR) {   /* report any error */
+                        	syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(event.data));
+                        	goto reinitkqueue;
+                	}
 
-		//syslog(LOG_WARNING, "expired %u flows", flows_expired);
+			flows_expired = 0;
+			t_time.tv_sec -= time_expire;
 
-		pthread_cond_signal(&queue->fq_condvar);
+			pthread_mutex_lock(&queue->fq_mtx);
+#if 0
+                	error = pthread_cond_wait(&queue->gq_condvar, &queue->fq_mtx);
+                	if (error != 0) {
+                        	strerror_r(error, errbuf, sizeof(errbuf));
+                        	syslog(EX_OSERR, "unable to wait on garbage collection: %s",
+                                	errbuf);
+                        	exit(EX_OSERR);
+                	}
+#endif
+
+			for (i = 0; i < queue->hash->tablelength; i++) {
+                        	e = queue->hash->table[i];
+                        	while (e != NULL) {
+                                	f = e; e = e->next;
+                                	if (f->v != NULL && ((struct ip_flow *)f->v)->expire < t_time.tv_sec) {
+                                        	freekey(f->k);
+                                        	queue->hash->entrycount--;
+                                        	if (f->v != NULL)
+                                                	free(f->v);
+                                        	free(f);
+						flows_expired++;
+						queue->hash->table[i] = e;
+                                	}
+                        	}
+                	}
+
+			pthread_mutex_unlock(&queue->fq_mtx);
+
+			//syslog(LOG_WARNING, "expired %u flows", flows_expired);
+			//pthread_cond_signal(&queue->fq_condvar);
+		}
 	}
+
+	close(kq);
 
 	/* NOTREACHED */
 	return (NULL);
