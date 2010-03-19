@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	openospfd
-PORTVERSION=	4.3
+PORTVERSION=	4.6
 CATEGORIES=	net
 MASTER_SITES=	${MASTER_SITE_OPENBSD:S/$/:openbsd/g} \
 		${MASTER_SITE_LOCAL:S/$/:freebsd/g}
