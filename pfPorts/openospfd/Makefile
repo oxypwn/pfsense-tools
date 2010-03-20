@@ -49,7 +49,6 @@ post-patch:
 	@${REINPLACE_CMD} -e "/rc.conf.local/d" ${WRKSRC}/ospfd/ospfd.conf.5
 	@${REINPLACE_CMD} -e "s|SIMPLEQ|STAILQ|" ${WRKSRC}/ospfd/*.[chy]
 	@${REINPLACE_CMD} -e "s|/etc|${PREFIX}/etc|g" \
-		${WRKSRC}/ospfd/ospfd.h \
 		${WRKSRC}/ospfd/ospfd.8 \
 		${WRKSRC}/ospfd/ospfd.conf.5
 	@${REINPLACE_CMD} -e "s|__dead|__dead2|" \
