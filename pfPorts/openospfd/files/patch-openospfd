@@ -1,6 +1,6 @@
 diff -ur ospfd_old/carp.c ospfd/carp.c
---- ospfd_old/carp.c	2010-03-19 23:27:28.000000000 +0000
-+++ ospfd/carp.c	2010-03-19 23:27:38.000000000 +0000
+--- ospfd_old/carp.c	2010-03-20 00:13:46.000000000 +0000
++++ ospfd/carp.c	2010-03-20 00:13:50.000000000 +0000
 @@ -102,6 +102,7 @@
  int
  carp_demote_get(char *group)
@@ -34,9 +34,10 @@ diff -ur ospfd_old/carp.c ospfd/carp.c
 +#endif
 +	return 0;
  }
+Only in ospfd: carp.c.orig
 diff -ur ospfd_old/interface.c ospfd/interface.c
---- ospfd_old/interface.c	2010-03-19 23:27:28.000000000 +0000
-+++ ospfd/interface.c	2010-03-19 23:27:38.000000000 +0000
+--- ospfd_old/interface.c	2010-03-20 00:13:46.000000000 +0000
++++ ospfd/interface.c	2010-03-20 00:14:10.000000000 +0000
 @@ -251,6 +251,7 @@
  
  	iface->fd = xconf->ospf_socket;
@@ -53,9 +54,41 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
  
  	ospfe_demote_iface(iface, 0);
  }
+@@ -697,6 +699,7 @@
+ 	struct in_addr			addr;
+ 	unsigned int			ifindex;
+ 	int				count;
++	char				name[IF_NAMESIZE];
+ };
+ 
+ LIST_HEAD(,if_group_count) ifglist = LIST_HEAD_INITIALIZER(ifglist);
+@@ -710,15 +713,21 @@
+ 	switch (iface->type) {
+ 	case IF_TYPE_POINTOPOINT:
+ 	case IF_TYPE_BROADCAST:
+-		LIST_FOREACH(ifg, &ifglist, entry)
++		LIST_FOREACH(ifg, &ifglist, entry) {
+ 			if (iface->ifindex == ifg->ifindex &&
+ 			    addr->s_addr == ifg->addr.s_addr)
+ 				break;
++			if (!strcmp(iface->name, ifg->name)) {
++				ifg->count--;
++				break;
++			}
++		}
+ 		if (ifg == NULL) {
+ 			if ((ifg = calloc(1, sizeof(*ifg))) == NULL)
+ 				fatal("if_join_group");
+ 			ifg->addr.s_addr = addr->s_addr;
+ 			ifg->ifindex = iface->ifindex;
++			strlcpy(ifg->name, iface->name, sizeof(ifg->name));
+ 			LIST_INSERT_HEAD(&ifglist, ifg, entry);
+ 		}
+ 
+Only in ospfd: interface.c.orig
 diff -ur ospfd_old/kroute.c ospfd/kroute.c
---- ospfd_old/kroute.c	2010-03-19 23:27:28.000000000 +0000
-+++ ospfd/kroute.c	2010-03-19 23:27:38.000000000 +0000
+--- ospfd_old/kroute.c	2010-03-20 00:13:46.000000000 +0000
++++ ospfd/kroute.c	2010-03-20 00:13:50.000000000 +0000
 @@ -1032,9 +1032,11 @@
  	struct sockaddr_in	prefix;
  	struct sockaddr_in	nexthop;
@@ -294,11 +327,10 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  			get_rtaddrs(ifm.ifm_addrs, sa, rti_info);
  			if_change(ifm.ifm_index, ifm.ifm_flags, &ifm.ifm_data,
  			    (struct sockaddr_dl *)rti_info[RTAX_IFP]);
-Only in ospfd: ospfd
-Only in ospfd: ospfd.8.gz
+Only in ospfd: kroute.c.orig
 diff -ur ospfd_old/ospfd.c ospfd/ospfd.c
---- ospfd_old/ospfd.c	2010-03-19 23:27:28.000000000 +0000
-+++ ospfd/ospfd.c	2010-03-19 23:27:38.000000000 +0000
+--- ospfd_old/ospfd.c	2010-03-20 00:13:46.000000000 +0000
++++ ospfd/ospfd.c	2010-03-20 00:13:50.000000000 +0000
 @@ -319,7 +319,9 @@
  
  	control_cleanup(ospfd_conf->csock);
@@ -324,10 +356,10 @@ diff -ur ospfd_old/ospfd.c ospfd/ospfd.c
  			break;
  		default:
  			log_debug("main_dispatch_ospfe: error handling imsg %d",
-Only in ospfd: ospfd.conf.5.gz
+Only in ospfd: ospfd.c.orig
 diff -ur ospfd_old/ospfd.h ospfd/ospfd.h
---- ospfd_old/ospfd.h	2010-03-19 23:27:28.000000000 +0000
-+++ ospfd/ospfd.h	2010-03-19 23:27:38.000000000 +0000
+--- ospfd_old/ospfd.h	2010-03-20 00:13:46.000000000 +0000
++++ ospfd/ospfd.h	2010-03-20 00:13:50.000000000 +0000
 @@ -32,10 +32,15 @@
  #include <imsg.h>
  #include "ospf.h"
@@ -373,9 +405,10 @@ diff -ur ospfd_old/ospfd.h ospfd/ospfd.h
  struct iface {
  	LIST_ENTRY(iface)	 entry;
  	struct event		 hello_timer;
+Only in ospfd: ospfd.h.orig
 diff -ur ospfd_old/packet.c ospfd/packet.c
---- ospfd_old/packet.c	2010-03-19 23:27:28.000000000 +0000
-+++ ospfd/packet.c	2010-03-19 23:27:38.000000000 +0000
+--- ospfd_old/packet.c	2010-03-20 00:13:46.000000000 +0000
++++ ospfd/packet.c	2010-03-20 00:13:50.000000000 +0000
 @@ -36,7 +36,7 @@
  #include "log.h"
  #include "ospfe.h"
@@ -410,10 +443,10 @@ diff -ur ospfd_old/packet.c ospfd/packet.c
  	if (ntohs(ip_hdr->ip_len) != len) {
  		log_debug("recv_packet: invalid IP packet length %u",
  		    ntohs(ip_hdr->ip_len));
-Only in ospfd: parse.c
+Only in ospfd: packet.c.orig
 diff -ur ospfd_old/parse.y ospfd/parse.y
---- ospfd_old/parse.y	2010-03-19 23:27:28.000000000 +0000
-+++ ospfd/parse.y	2010-03-19 23:27:38.000000000 +0000
+--- ospfd_old/parse.y	2010-03-20 00:13:46.000000000 +0000
++++ ospfd/parse.y	2010-03-20 00:13:50.000000000 +0000
 @@ -187,7 +187,7 @@
  				conf->flags &= ~OSPFD_FLAG_NO_FIB_UPDATE;
  		}
@@ -503,3 +536,4 @@ diff -ur ospfd_old/parse.y ospfd/parse.y
  
  	yyparse();
  	errors = file->errors;
+Only in ospfd: parse.y.orig
