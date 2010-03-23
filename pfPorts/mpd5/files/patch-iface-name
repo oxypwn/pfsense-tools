@@ -1,6 +1,7 @@
---- src/bund.c.orig	2009-08-03 21:25:30.000000000 +0200
-+++ src/bund.c	2009-08-03 21:44:10.000000000 +0200
-@@ -1676,6 +1676,7 @@
+diff -ur src_old/bund.c src/bund.c
+--- src_old/bund.c	2010-03-23 21:07:41.000000000 +0000
++++ src/bund.c	2010-03-23 21:06:27.000000000 +0000
+@@ -1666,6 +1666,7 @@
        Log(LG_ERR, ("[%s] can't create netgraph interface", b->name));
        goto fail;
      }
@@ -8,7 +9,7 @@
      newIface = 1;
      b->iface.ifindex = if_nametoindex(b->iface.ifname);
      Log(LG_BUND|LG_IFACE, ("[%s] Bundle: Interface %s created",
-@@ -1725,7 +1726,7 @@
+@@ -1715,7 +1716,7 @@
      char	path[NG_PATHSIZ];
  
      if (iface) {
@@ -17,9 +18,10 @@
  	NgFuncShutdownNode(gLinksCsock, b->name, path);
      }
      if (ppp) {
---- src/iface.c.orig	2009-08-03 20:09:32.000000000 +0200
-+++ src/iface.c	2009-08-03 21:33:50.000000000 +0200
-@@ -84,6 +84,7 @@
+diff -ur src_old/iface.c src/iface.c
+--- src_old/iface.c	2010-03-23 21:07:35.000000000 +0000
++++ src/iface.c	2010-03-23 21:06:45.000000000 +0000
+@@ -70,6 +70,7 @@
      SET_ADDRS,
      SET_ROUTE,
      SET_MTU,
@@ -27,7 +29,7 @@
      SET_UP_SCRIPT,
      SET_DOWN_SCRIPT,
      SET_ENABLE,
-@@ -156,6 +157,8 @@
+@@ -142,6 +143,8 @@
  	IfaceSetCommand, NULL, 2, (void *) SET_ROUTE },
      { "mtu {size}",			"Set max allowed interface MTU",
  	IfaceSetCommand, NULL, 2, (void *) SET_MTU },
@@ -36,7 +38,16 @@
      { "up-script [{progname}]",		"Interface up script",
  	IfaceSetCommand, NULL, 2, (void *) SET_UP_SCRIPT },
      { "down-script [{progname}]",	"Interface down script",
-@@ -1344,6 +1347,38 @@
+@@ -836,7 +839,7 @@
+ 	else
+     	    ns2buf[0] = '\0';
+ 
+-	res = ExecCmd(LG_IFACE2, b->name, "%s %s inet %s %s '%s' '%s' '%s' '%s'",
++	res = ExecCmd(LG_IFACE2, b->name, "%s %s inet %s %s '%s' %s %s '%s'",
+ 	    iface->up_script, iface->ifname, u_rangetoa(&iface->self_addr,selfbuf, sizeof(selfbuf)),
+     	    u_addrtoa(&iface->peer_addr, peerbuf, sizeof(peerbuf)), 
+     	    *b->params.authname ? b->params.authname : "-", 
+@@ -1333,6 +1336,38 @@
        }
        break;
  
@@ -75,7 +86,7 @@
      case SET_UP_SCRIPT:
        switch (ac) {
  	case 0:
-@@ -1926,7 +1961,7 @@
+@@ -1917,7 +1952,7 @@
  
      /* Connect graph to the iface node. */
      strcpy(cn.ourhook, hook);
@@ -84,7 +95,7 @@
      strcpy(cn.peerhook, NG_IFACE_HOOK_INET);
      if (NgSendMsg(gLinksCsock, path,
      	    NGM_GENERIC_COOKIE, NGM_CONNECT, &cn, sizeof(cn)) < 0) {
-@@ -2015,7 +2050,7 @@
+@@ -2006,7 +2041,7 @@
      snprintf(path, sizeof(path), "[%x]:", b->nodeID);
      NgFuncDisconnect(gLinksCsock, b->name, path, NG_PPP_HOOK_INET);
  
@@ -93,7 +104,7 @@
      NgFuncDisconnect(gLinksCsock, b->name, path, NG_IFACE_HOOK_INET);
  }
  
-@@ -2046,7 +2081,7 @@
+@@ -2037,7 +2072,7 @@
  
      /* Connect graph to the iface node. */
      strcpy(cn.ourhook, hook);
@@ -102,7 +113,7 @@
      strcpy(cn.peerhook, NG_IFACE_HOOK_INET6);
      if (NgSendMsg(gLinksCsock, path,
      	    NGM_GENERIC_COOKIE, NGM_CONNECT, &cn, sizeof(cn)) < 0) {
-@@ -2078,7 +2113,7 @@
+@@ -2069,7 +2104,7 @@
      snprintf(path, sizeof(path), "[%x]:", b->nodeID);
      NgFuncDisconnect(gLinksCsock, b->name, path, NG_PPP_HOOK_IPV6);
  
@@ -111,9 +122,10 @@
      NgFuncDisconnect(gLinksCsock, b->name, path, NG_IFACE_HOOK_INET6);
  }
  
---- src/iface.h.orig	2009-08-03 21:23:42.000000000 +0200
-+++ src/iface.h	2009-08-03 21:24:28.000000000 +0200
-@@ -97,6 +97,7 @@
+diff -ur src_old/iface.h src/iface.h
+--- src_old/iface.h	2010-03-23 21:07:32.000000000 +0000
++++ src/iface.h	2010-03-23 21:06:27.000000000 +0000
+@@ -90,6 +90,7 @@
    
    struct ifacestate {
      char		ifname[IFNAMSIZ];	/* Name of my interface */
@@ -121,6 +133,3 @@
      uint		ifindex;		/* System interface index */
      struct ifaceconf	conf;
      u_char		traffic[IFACE_IDLE_SPLIT];	/* Mark any traffic */
-
- 	  	 
-
