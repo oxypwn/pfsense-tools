@@ -6,15 +6,15 @@
 #
 
 PORTNAME=	check_reload_status
-PORTVERSION=	0.0.2
+PORTVERSION=	0.0.3
 PORTREVISION?=	0
 CATEGORIES?=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
 
-MAINTAINER?=	jebc@c4solutions.net
-COMMENT?=	reinits ata channel 0
+MAINTAINER?=	eri@pfsense.org
+COMMENT?=	run various pfSense scripts on event.
 
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
@@ -23,7 +23,7 @@ do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	${CC} ${CFLAGS} -lpthread -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
