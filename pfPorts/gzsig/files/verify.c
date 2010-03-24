@@ -53,6 +53,11 @@
 #include <sys/endian.h>
 #define   letoh16(x)              le16toh(x)
 
+#define NOVALIDSIGN	1
+#define NOSIGN		2
+#define NOVALIDARCHIVE	3
+#define NOTSUPPORTED	4
+
 static int
 verify_signature(struct key *key, FILE *fin)
 {
@@ -67,18 +72,18 @@ verify_signature(struct key *key, FILE *fin)
 	if ((i = fread((u_char *)&gh, 1, sizeof(gh), fin)) != sizeof(gh)) {
 		fprintf(stderr, "Error reading gzip header: %s\n",
 		    strerror(errno));
-		return (-1);
+		return (NOVALIDARCHIVE);
 	}
 	/* Verify gzip header. */
 	if (memcmp(gh.magic, GZIP_MAGIC, sizeof(gh.magic)) != 0) {
 		fprintf(stderr, "Invalid gzip file\n");
-		return (-1);
+		return (NOVALIDARCHIVE);
 	} else if (gh.flags & GZIP_FCONT){
 		fprintf(stderr, "Multi-part gzip files not supported\n");
-		return (-1);
+		return (NOVALIDARCHIVE);
 	} else if ((gh.flags & GZIP_FEXTRA) == 0) {
 		fprintf(stderr, "No gzip signature found\n");
-		return (-1);
+		return (NOSIGN);
 	}
 	/* Read signature. */
 	gx = (struct gzip_xfield *)buf;
@@ -86,17 +91,17 @@ verify_signature(struct key *key, FILE *fin)
 	if ((i = fread((u_char *)gx, 1, sizeof(*gx), fin)) != sizeof(*gx)) {
 		fprintf(stderr, "Error reading extra field: %s\n",
 		    strerror(errno));
-		return (-1);
+		return (NOVALIDARCHIVE);
 	}
 	if (memcmp(gx->subfield.id, GZSIG_ID, sizeof(gx->subfield.id)) != 0) {
 		fprintf(stderr, "Unknown extra field\n");
-		return (-1);
+		return (NOVALIDARCHIVE);
 	}
 	gx->subfield.len = letoh16(gx->subfield.len);
 
 	if (gx->subfield.len <= 0 || gx->subfield.len > sizeof(sbuf)) {
 		fprintf(stderr, "Invalid signature length\n");
-		return (-1);
+		return (NOVALIDSIGN);
 	}
 	gd = (struct gzsig_data *)sbuf;
 	
@@ -104,7 +109,7 @@ verify_signature(struct key *key, FILE *fin)
 	    gx->subfield.len) {
 		fprintf(stderr, "Error reading signature: %s\n",
 		    strerror(errno));
-		return (-1);
+		return (NOVALIDSIGN);
 	}
 	/* Skip over any options. */
 	if (gh.flags & GZIP_FNAME) {
@@ -117,13 +122,13 @@ verify_signature(struct key *key, FILE *fin)
 	}
 	if (gh.flags & GZIP_FENCRYPT &&
 	    fread(buf, 1, GZIP_FENCRYPT_LEN, fin) != GZIP_FENCRYPT_LEN)
-		return (-1);
+		return (NOVALIDSIGN);
 	
 	/* Check signature version. */
 	if (gd->version != GZSIG_VERSION) {
 		fprintf(stderr, "Unknown signature version: %d\n",
 		    gd->version);
-		return (-1);
+		return (NOVALIDSIGN);
 	}
 	/* Compute SHA1 checksum over compressed data and trailer. */
 	sig = (u_char *)(gd + 1);
@@ -139,7 +144,7 @@ verify_signature(struct key *key, FILE *fin)
 	/* Verify signature. */
 	if (key_verify(key, digest, sizeof(digest), sig, siglen) < 0) {
 		fprintf(stderr, "Error verifying signature\n");
-		return (-1);
+		return (NOVALIDSIGN);
 	}
 	return (0);
 }
@@ -156,7 +161,7 @@ verify(int argc, char *argv[])
 	struct key *key;
 	char *gzipfile;
 	FILE *fin;
-	int i, error, qflag;
+	int i, error = 0, qflag;
 
 	qflag = 0;
 	
@@ -191,11 +196,12 @@ verify(int argc, char *argv[])
 	if (argc == 1 || *argv[1] == '-') {
 		argc = 0;
 		
-		if (verify_signature(key, stdin) == 0) {
+		error = verify_signature(key, stdin);
+		if (error == 0) {
 			if (!qflag)
 				fprintf(stderr, "Verified input\n");
 		} else
-			fatal(1, "Couldn't verify input");
+			fatal(error, "Couldn't verify input");
 	}
 	for (i = 1; i < argc; i++) {
 		gzipfile = argv[i];
@@ -212,7 +218,7 @@ verify(int argc, char *argv[])
 			if (!qflag)
 				fprintf(stderr, "Verified %s\n", gzipfile);
 		} else
-			fatal(1, "Couldn't verify %s", gzipfile);
+			fatal(error, "Couldn't verify %s", gzipfile);
 	}
 	key_free(key);
 }
