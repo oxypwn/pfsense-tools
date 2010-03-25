@@ -9,7 +9,7 @@ diff -u -r1.5 pf.c
  
  	ip = mtod(m0, struct ip *);
  
-+	if (IN_MULTICAST(ip->ip_dst.s_addr))
++	if (IN_MULTICAST(ntohl(ip->ip_dst.s_addr)))
 +                return;
 +	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
 +		goto donelocal;
