@@ -1,6 +1,6 @@
 diff -ur ospfd_old/carp.c ospfd/carp.c
---- ospfd_old/carp.c	2010-03-22 23:31:57.000000000 +0000
-+++ ospfd/carp.c	2010-03-22 23:32:34.000000000 +0000
+--- ospfd_old/carp.c	2010-03-25 21:49:43.000000000 +0000
++++ ospfd/carp.c	2010-03-25 21:50:29.000000000 +0000
 @@ -102,6 +102,7 @@
  int
  carp_demote_get(char *group)
@@ -35,8 +35,8 @@ diff -ur ospfd_old/carp.c ospfd/carp.c
 +	return 0;
  }
 diff -ur ospfd_old/interface.c ospfd/interface.c
---- ospfd_old/interface.c	2010-03-22 23:31:57.000000000 +0000
-+++ ospfd/interface.c	2010-03-22 23:33:29.000000000 +0000
+--- ospfd_old/interface.c	2010-03-25 21:49:43.000000000 +0000
++++ ospfd/interface.c	2010-03-25 21:53:12.000000000 +0000
 @@ -251,6 +251,7 @@
  
  	iface->fd = xconf->ospf_socket;
@@ -76,12 +76,12 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
 -			    addr->s_addr == ifg->addr.s_addr)
 +			    addr->s_addr == ifg->addr.s_addr) {
 +				refound = 1;
- 				break;
++				break;
 +			}
 +			if (!strcmp(iface->name, ifg->name)) {
 +				ifg->count--;
 +				refound = 1;
-+				break;
+ 				break;
 +			}
 +		}
  		if (ifg == NULL) {
@@ -93,21 +93,26 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
  			LIST_INSERT_HEAD(&ifglist, ifg, entry);
  		}
  
-@@ -730,10 +743,10 @@
- 		mreq.imr_interface.s_addr = iface->addr.s_addr;
+@@ -731,10 +744,14 @@
  
  		if (setsockopt(iface->fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
--		    (void *)&mreq, sizeof(mreq)) < 0) {
-+		    (void *)&mreq, sizeof(mreq)) < 0 && !refound) {
- 			log_warn("if_join_group: error IP_ADD_MEMBERSHIP, "
+ 		    (void *)&mreq, sizeof(mreq)) < 0) {
+-			log_warn("if_join_group: error IP_ADD_MEMBERSHIP, "
 -			    "interface %s address %s", iface->name,
 -			    inet_ntoa(*addr));
-+                	    "interface %s address %s", iface->name,
-+		    	    inet_ntoa(*addr));
- 			return (-1);
+-			return (-1);
++			if_leave_group(iface, addr);
++			if (setsockopt(iface->fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
++		    	    (void *)&mreq, sizeof(mreq)) < 0 && !refound) {
++				log_warn("if_join_group: error IP_ADD_MEMBERSHIP, "
++                	    	    "interface %s address %s", iface->name,
++		    	    	    inet_ntoa(*addr));
++				return (-1);
++			}
  		}
  		break;
-@@ -780,10 +793,12 @@
+ 	case IF_TYPE_POINTOMULTIPOINT:
+@@ -780,10 +797,12 @@
  			return (-1);
  		}
  
@@ -120,7 +125,7 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
  		break;
  	case IF_TYPE_POINTOMULTIPOINT:
  	case IF_TYPE_VIRTUALLINK:
-@@ -801,11 +816,14 @@
+@@ -801,11 +820,14 @@
  int
  if_set_mcast(struct iface *iface)
  {
@@ -137,8 +142,8 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
  			    "IP_MULTICAST_IF, interface %s", iface->name);
  			return (-1);
 diff -ur ospfd_old/kroute.c ospfd/kroute.c
---- ospfd_old/kroute.c	2010-03-22 23:31:57.000000000 +0000
-+++ ospfd/kroute.c	2010-03-22 23:33:21.000000000 +0000
+--- ospfd_old/kroute.c	2010-03-25 21:49:43.000000000 +0000
++++ ospfd/kroute.c	2010-03-25 21:51:00.000000000 +0000
 @@ -27,6 +27,7 @@
  #include <arpa/inet.h>
  #include <net/if.h>
@@ -181,21 +186,15 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  		if ((kif = kif_insert(ifindex)) == NULL)
  			return (NULL);
  		kif->k.nh_reachable = (flags & IFF_UP) &&
-@@ -809,8 +833,12 @@
+@@ -809,6 +833,7 @@
  		    ifd->ifi_type != IFT_CARP));
  	}
  
 +	kif->k.ifindex = ifindex;
  	kif->k.flags = flags;
--	kif->k.link_state = ifd->ifi_link_state;
-+	if (ifd->ifi_link_state == IF_TYPE_POINTOPOINT && (flags & IFF_UP))
-+		kif->k.link_state = LINK_STATE_UP;
-+	else
-+		kif->k.link_state = ifd->ifi_link_state;
+ 	kif->k.link_state = ifd->ifi_link_state;
  	kif->k.media_type = ifd->ifi_type;
- 	kif->k.baudrate = ifd->ifi_baudrate;
- 	kif->k.mtu = ifd->ifi_mtu;
-@@ -1032,9 +1060,11 @@
+@@ -1032,9 +1057,11 @@
  	struct sockaddr_in	prefix;
  	struct sockaddr_in	nexthop;
  	struct sockaddr_in	mask;
@@ -208,7 +207,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  	if (kr_state.fib_sync == 0)
  		return (0);
-@@ -1043,12 +1073,17 @@
+@@ -1043,12 +1070,17 @@
  	bzero(&hdr, sizeof(hdr));
  	hdr.rtm_version = RTM_VERSION;
  	hdr.rtm_type = action;
@@ -226,7 +225,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  	hdr.rtm_seq = kr_state.rtseq++;	/* overflow doesn't matter */
  	hdr.rtm_msglen = sizeof(hdr);
  	/* adjust iovec */
-@@ -1091,6 +1126,7 @@
+@@ -1091,6 +1123,7 @@
  	iov[iovcnt].iov_base = &mask;
  	iov[iovcnt++].iov_len = sizeof(mask);
  
@@ -234,7 +233,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  	if (kroute->rtlabel != 0) {
  		sa_rl.sr_len = sizeof(sa_rl);
  		sa_rl.sr_family = AF_UNSPEC;
-@@ -1107,7 +1143,7 @@
+@@ -1107,7 +1140,7 @@
  		iov[iovcnt].iov_base = &sa_rl;
  		iov[iovcnt++].iov_len = sizeof(sa_rl);
  	}
@@ -243,7 +242,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  retry:
  	if (writev(fd, iov, iovcnt) == -1) {
-@@ -1149,7 +1185,9 @@
+@@ -1149,7 +1182,9 @@
  	struct rt_msghdr	*rtm;
  	struct sockaddr		*sa, *rti_info[RTAX_MAX];
  	struct sockaddr_in	*sa_in;
@@ -253,7 +252,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  	struct kroute_node	*kr;
  
  	mib[0] = CTL_NET;
-@@ -1158,9 +1196,13 @@
+@@ -1158,9 +1193,13 @@
  	mib[3] = AF_INET;
  	mib[4] = NET_RT_DUMP;
  	mib[5] = 0;
@@ -267,7 +266,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  		log_warn("sysctl");
  		return (-1);
  	}
-@@ -1168,7 +1210,11 @@
+@@ -1168,7 +1207,11 @@
  		log_warn("fetchtable");
  		return (-1);
  	}
@@ -279,7 +278,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  		log_warn("sysctl");
  		free(buf);
  		return (-1);
-@@ -1179,14 +1225,20 @@
+@@ -1179,14 +1222,20 @@
  		rtm = (struct rt_msghdr *)next;
  		if (rtm->rtm_version != RTM_VERSION)
  			continue;
@@ -300,7 +299,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  		if ((kr = calloc(1, sizeof(struct kroute_node))) == NULL) {
  			log_warn("fetchtable");
-@@ -1195,7 +1247,9 @@
+@@ -1195,7 +1244,9 @@
  		}
  
  		kr->r.flags = F_KERNEL;
@@ -310,7 +309,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  		switch (sa->sa_family) {
  		case AF_INET:
-@@ -1238,6 +1292,7 @@
+@@ -1238,6 +1289,7 @@
  				break;
  			}
  
@@ -318,7 +317,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  		if (rtm->rtm_priority == RTP_OSPF)  {
  			send_rtmsg(kr_state.fd, RTM_DELETE, &kr->r);
  			free(kr);
-@@ -1249,8 +1304,11 @@
+@@ -1249,8 +1301,11 @@
  				kr->r.ext_tag =
  				    rtlabel_id2tag(kr->r.rtlabel);
  			}
@@ -330,7 +329,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  	}
  	free(buf);
-@@ -1297,7 +1355,11 @@
+@@ -1297,7 +1352,11 @@
  		switch (rtm->rtm_type) {
  		case RTM_IFINFO:
  			memcpy(&ifm, next, sizeof(ifm));
@@ -342,7 +341,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  			get_rtaddrs(ifm.ifm_addrs, sa, rti_info);
  			if_change(ifm.ifm_index, ifm.ifm_flags, &ifm.ifm_data,
  			    (struct sockaddr_dl *)rti_info[RTAX_IFP]);
-@@ -1332,7 +1394,9 @@
+@@ -1332,7 +1391,9 @@
  	struct ifa_msghdr	*ifam;
  	struct sockaddr		*sa, *rti_info[RTAX_MAX];
  	struct sockaddr_in	*sa_in;
@@ -352,7 +351,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  	struct kroute_node	*kr, *okr;
  	struct in_addr		 prefix, nexthop;
  	u_int8_t		 prefixlen, prio;
-@@ -1364,11 +1428,17 @@
+@@ -1364,11 +1425,17 @@
  
  		if (rtm->rtm_type == RTM_ADD || rtm->rtm_type == RTM_CHANGE ||
  		    rtm->rtm_type == RTM_DELETE) {
@@ -370,7 +369,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  			if (rtm->rtm_pid == kr_state.pid) /* caused by us */
  				continue;
-@@ -1376,14 +1446,18 @@
+@@ -1376,14 +1443,18 @@
  			if (rtm->rtm_errno)		/* failed attempts... */
  				continue;
  
@@ -389,7 +388,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  			switch (sa->sa_family) {
  			case AF_INET:
-@@ -1460,6 +1534,7 @@
+@@ -1460,6 +1531,7 @@
  				rtlabel_unref(kr->r.rtlabel);
  				kr->r.rtlabel = 0;
  				kr->r.ext_tag = 0;
@@ -397,7 +396,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  				if ((label = (struct sockaddr_rtlabel *)
  				    rti_info[RTAX_LABEL]) != NULL) {
  					kr->r.rtlabel =
-@@ -1467,6 +1542,7 @@
+@@ -1467,6 +1539,7 @@
  					kr->r.ext_tag =
  					    rtlabel_id2tag(kr->r.rtlabel);
  				}
@@ -405,7 +404,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  				if (kif_validate(kr->r.ifindex))
  					kr->r.flags &= ~F_DOWN;
-@@ -1489,6 +1565,7 @@
+@@ -1489,6 +1562,7 @@
  				kr->r.ifindex = ifindex;
  				kr->r.priority = prio;
  
@@ -413,7 +412,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  				if ((label = (struct sockaddr_rtlabel *)
  				    rti_info[RTAX_LABEL]) != NULL) {
  					kr->r.rtlabel =
-@@ -1496,6 +1573,7 @@
+@@ -1496,6 +1570,7 @@
  					kr->r.ext_tag =
  					    rtlabel_id2tag(kr->r.rtlabel);
  				}
@@ -421,7 +420,7 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  
  				kroute_insert(kr);
  			}
-@@ -1519,7 +1597,11 @@
+@@ -1519,7 +1594,11 @@
  			break;
  		case RTM_IFINFO:
  			memcpy(&ifm, next, sizeof(ifm));
@@ -434,8 +433,8 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  			if_change(ifm.ifm_index, ifm.ifm_flags, &ifm.ifm_data,
  			    (struct sockaddr_dl *)rti_info[RTAX_IFP]);
 diff -ur ospfd_old/ospfd.c ospfd/ospfd.c
---- ospfd_old/ospfd.c	2010-03-22 23:31:57.000000000 +0000
-+++ ospfd/ospfd.c	2010-03-22 23:32:34.000000000 +0000
+--- ospfd_old/ospfd.c	2010-03-25 21:49:43.000000000 +0000
++++ ospfd/ospfd.c	2010-03-25 21:50:29.000000000 +0000
 @@ -319,7 +319,9 @@
  
  	control_cleanup(ospfd_conf->csock);
@@ -462,8 +461,8 @@ diff -ur ospfd_old/ospfd.c ospfd/ospfd.c
  		default:
  			log_debug("main_dispatch_ospfe: error handling imsg %d",
 diff -ur ospfd_old/ospfd.h ospfd/ospfd.h
---- ospfd_old/ospfd.h	2010-03-22 23:31:57.000000000 +0000
-+++ ospfd/ospfd.h	2010-03-22 23:32:34.000000000 +0000
+--- ospfd_old/ospfd.h	2010-03-25 21:49:43.000000000 +0000
++++ ospfd/ospfd.h	2010-03-25 21:50:29.000000000 +0000
 @@ -32,10 +32,15 @@
  #include <imsg.h>
  #include "ospf.h"
@@ -493,8 +492,8 @@ diff -ur ospfd_old/ospfd.h ospfd/ospfd.h
  	LIST_ENTRY(iface)	 entry;
  	struct event		 hello_timer;
 diff -ur ospfd_old/packet.c ospfd/packet.c
---- ospfd_old/packet.c	2010-03-22 23:31:57.000000000 +0000
-+++ ospfd/packet.c	2010-03-22 23:32:34.000000000 +0000
+--- ospfd_old/packet.c	2010-03-25 21:49:43.000000000 +0000
++++ ospfd/packet.c	2010-03-25 21:50:29.000000000 +0000
 @@ -36,7 +36,7 @@
  #include "log.h"
  #include "ospfe.h"
@@ -530,8 +529,8 @@ diff -ur ospfd_old/packet.c ospfd/packet.c
  		log_debug("recv_packet: invalid IP packet length %u",
  		    ntohs(ip_hdr->ip_len));
 diff -ur ospfd_old/parse.y ospfd/parse.y
---- ospfd_old/parse.y	2010-03-22 23:31:57.000000000 +0000
-+++ ospfd/parse.y	2010-03-22 23:32:34.000000000 +0000
+--- ospfd_old/parse.y	2010-03-25 21:49:43.000000000 +0000
++++ ospfd/parse.y	2010-03-25 21:50:29.000000000 +0000
 @@ -200,11 +200,15 @@
  			free($2);
  		}
