@@ -246,6 +246,7 @@ load_dhcp(time_t now) {
 	time_t ttd, tts;
 	struct isc_lease *lease, *tmp;
 
+	rewind(fp);
 	LIST_INIT(&leases);
 
 	while ((next_token(token, MAXTOK, fp))) {
@@ -365,11 +366,20 @@ load_dhcp(time_t now) {
 static int
 write_status() {
 	struct isc_lease *lease;
+	struct stat tmp;
+	size_t tmpsize;
 	int fd;
 	
 	fd = open(HOSTS, O_RDWR | O_CREAT | O_FSYNC);
-        if (fd < 0) {
+        if (fd < 0)
 		return 1;
+	if (fstat(fd, &tmp) < 0)
+		tmpsize = hostssize;
+	else
+		tmpsize = tmp.st_size;
+	if (tmpsize < hostssize) {
+		syslog(LOG_WARNING, "%s changed size from original!", HOSTS);
+		hostssize = tmpsize;
 	}
 	ftruncate(fd, hostssize);
 	if (lseek(fd, 0, SEEK_END) < 0) {
@@ -481,10 +491,12 @@ main(int argc, char **argv) {
 		exit(3);
 	}
 
+#if 0
 	if (daemon(0, 0) < 0) {
 		perror("Could not daemonize");
 		exit(4);
 	}
+#endif
 
 	leasefd = open(leasefile, O_RDONLY);
 	if (leasefd < 0) {
@@ -503,8 +515,8 @@ main(int argc, char **argv) {
 		exit(1);
 
 	/* Initialise kevent structure */
-	EV_SET(&chlist, leasefd, EVFILT_VNODE, EV_ADD | EV_ENABLE | EV_ONESHOT,
-		NOTE_WRITE, 0, NULL);
+	EV_SET(&chlist, leasefd, EVFILT_VNODE, EV_ADD | EV_CLEAR | EV_ENABLE | EV_ONESHOT,
+		NOTE_WRITE | NOTE_ATTRIB, 0, NULL);
 	/* Loop forever */
 	for (;;) {
 		nev = kevent(kq, &chlist, 1, &evlist, 1, NULL);
@@ -516,10 +528,7 @@ main(int argc, char **argv) {
 				break;
 			}
 			now = time(NULL);
-			if (load_dhcp(now)) {
-				syslog(LOG_ERR, "could not parse %s file", leasefile);
-				break;
-			}
+			load_dhcp(now);
 
 			write_status();
 			//syslog(LOG_INFO, "written temp hosts file after modification event.");
