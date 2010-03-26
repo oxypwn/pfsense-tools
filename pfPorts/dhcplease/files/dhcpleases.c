@@ -468,6 +468,7 @@ handle_signal(int sig) {
 			hostssize = size;
                 break;
         case SIGTERM:
+		unlink(PIDFILE);
 		cleanup();
 		write_status();
                 exit(0);
@@ -587,6 +588,6 @@ main(int argc, char **argv) {
 	}
 
 	fclose(fp);
-
+	unlink(PIDFILE);
 	return (0);
 }
