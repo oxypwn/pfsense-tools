@@ -246,9 +246,6 @@ load_dhcp(time_t now) {
 	time_t ttd, tts;
 	struct isc_lease *lease, *tmp;
 
-	syslog (LOG_INFO, "reading %s", leasefile);
-
-	rewind(fp);
 	LIST_INIT(&leases);
 
 	while ((next_token(token, MAXTOK, fp))) {
@@ -407,10 +404,10 @@ cleanup() {
 
 static void
 signal_process() {
-	int fd;
+	FILE *fd;
 	size_t size = 0;
-	char *pid = NULL;
-	int pidno;
+	char *pid = NULL, *pc;
+	int c, pidno;
 
 	if (pidfile == NULL)
 		goto error;
@@ -418,24 +415,32 @@ signal_process() {
 	if (size < 0)
 		goto error;
 
-	fd = open(pidfile, O_RDONLY);
-	if (fd < 0)
+	fd = fopen(pidfile, "r");
+	if (fd == NULL)
 		goto error;
 
-	pid = malloc(size);
-	if (pid == NULL)
+	pid = calloc(size, size);
+	if (pid == NULL) {
+		fclose(fd);
 		goto error;
-	if (read(fd, pid, size) < 0)
-		goto error;
+	}
+	pc = pid;
+	while ((c = getc(fd)) != EOF) {
+		if (c == '\n')
+			break;
+		*pc++ = c;
+	}
+	fclose(fd);
 
 	pidno = atoi(pid);
+	free(pid);
 
 	if (kill((pid_t)pidno, SIGHUP) < 0)
 		goto error;
 
 	return;
 error:
-	syslog(LOG_ERR, "Could not deliver signal HUP to process because its pidfile does not exist.");
+	syslog(LOG_ERR, "Could not deliver signal HUP to process because its pidfile does not exist, %m.");
 	return;
 }
 
