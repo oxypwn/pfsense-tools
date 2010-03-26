@@ -72,7 +72,6 @@
 #include <errno.h>
 
 #define MAXTOK 64
-#define HOSTS	"/etc/hosts"
 
 struct isc_lease {
 	char *name, *fqdn;
@@ -85,6 +84,7 @@ LIST_HEAD(isc_leases, isc_lease) leases =
 	LIST_HEAD_INITIALIZER(leases);
 static char *leasefile = NULL;
 static char *pidfile = NULL;
+static char *HOSTS = NULL;
 static FILE *fp = NULL;
 static char *domain_suffix = NULL;
 static size_t hostssize = 0;
@@ -451,7 +451,7 @@ main(int argc, char **argv) {
 	time_t	now;
 	int kq, nev, leasefd = 0;
 
-	if (argc != 4) {
+	if (argc != 5) {
 		perror("Wrong number of arguments given."); /* XXX: usage */
 		exit(2);
 	}
@@ -465,6 +465,11 @@ main(int argc, char **argv) {
 	if (pidfile == NULL) {
 		perror("You nned to pass a pid file.");
 		exit(7);
+	}
+	HOSTS = argv[4];
+	if (HOSTS == NULL || !fexist(HOSTS)) {
+		perror("You need to specify the hosts file path.");
+		exit(8);
 	}
 
 	if ((hostssize = fsize(HOSTS)) < 0) {
