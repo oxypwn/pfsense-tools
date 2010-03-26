@@ -72,6 +72,7 @@
 #include <errno.h>
 
 #define MAXTOK 64
+#define PIDFILE	"/var/run/dhcpleases.pid"
 
 struct isc_lease {
 	char *name, *fqdn;
@@ -454,12 +455,35 @@ error:
 	return;
 }
 
+static void
+handle_signal(int sig) {
+	size_t size;
+
+        switch(sig) {
+        case SIGHUP:
+		size = fsize(HOSTS);
+		if (hostssize < 0)
+			break; /* XXX: exit?! */
+		else
+			hostssize = size;
+                break;
+        case SIGTERM:
+		cleanup();
+		write_status();
+                exit(0);
+                break;
+        default:
+                syslog(LOG_WARNING, "unhandled signal");
+        }
+}
+
 int
 main(int argc, char **argv) {
 	struct kevent evlist;    /* events we want to monitor */
 	struct kevent chlist;    /* events that were triggered */
+	struct sigaction sa;
 	time_t	now;
-	int kq, nev, leasefd = 0;
+	int kq, nev, leasefd = 0, pidf;
 
 	if (argc != 5) {
 		perror("Wrong number of arguments given."); /* XXX: usage */
@@ -506,6 +530,30 @@ main(int argc, char **argv) {
 	if (fp == NULL) {
 		perror("could not open leasefile");
 		exit(5);
+	}
+
+	pidf = open(PIDFILE, O_RDWR | O_CREAT | O_FSYNC);
+	if (pidf < 0)
+		syslog(LOG_ERR, "could not write pid file, %m");
+	else {
+		ftruncate(pidf, 0);
+		dprintf(pidf, "%u\n", getpid());
+		close(pidf);
+	}
+
+	/*
+         * Catch SIGHUP in order to reread configuration file.
+         */
+        sa.sa_handler = handle_signal;
+        sa.sa_flags = SA_SIGINFO|SA_RESTART;
+        sigemptyset(&sa.sa_mask);
+        if (sigaction(SIGHUP, &sa, NULL) < 1) {
+                syslog(LOG_ERR, "unable to set signal handler, %m");
+		exit(9);
+	}
+        if (sigaction(SIGTERM, &sa, NULL) < 1) {
+                syslog(LOG_ERR, "unable to set signal handler, %m");
+		exit(10);
 	}
 
 	/* Create a new kernel event queue */
