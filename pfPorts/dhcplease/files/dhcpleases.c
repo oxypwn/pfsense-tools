@@ -491,12 +491,10 @@ main(int argc, char **argv) {
 		exit(3);
 	}
 
-#if 0
 	if (daemon(0, 0) < 0) {
 		perror("Could not daemonize");
 		exit(4);
 	}
-#endif
 
 	leasefd = open(leasefile, O_RDONLY);
 	if (leasefd < 0) {
