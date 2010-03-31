@@ -484,51 +484,85 @@ main(int argc, char **argv) {
 	struct kevent chlist;    /* events that were triggered */
 	struct sigaction sa;
 	time_t	now;
-	int kq, nev, leasefd = 0, pidf;
+	int kq, nev, leasefd = 0, pidf, ch;
 
 	if (argc != 5) {
-		perror("Wrong number of arguments given."); /* XXX: usage */
-		exit(2);
 	}
 
-	leasefile = argv[1];
-	domain_suffix = argv[2];
-	if (domain_suffix == NULL);
+	while ((ch = getopt(argc, argv, "d:p:h:l:")) != -1) {
+		switch (ch) {
+		case 'd':
+			domain_suffix = optarg;
+			break;
+		case 'p':
+			pidfile = optarg;
+			break;
+		case 'h':
+			HOSTS = optarg;
+			break;
+		case 'l':
+			leasefile = optarg;
+			break;
+		default:
+			perror("Wrong number of arguments given."); /* XXX: usage */
+			exit(2);
+			/* NOTREACHED */
+		}
+	}
+	argc -= optind;
+	argv += optind;
+
+	if (leasefile == NULL) {
+		syslog(LOG_ERR, "lease file is mandatory as parameter");	
+		perror("lease file is mandatory as parameter");	
+		exit(1);
+	}
+	if (!fexist(leasefile)) {
+		syslog(LOG_ERR, "lease file nees to exist before starting dhcpleases");	
+		perror("lease file nees to exist before starting dhcpleases");	
+		exit(1);
+	}
+	if (domain_suffix == NULL) {
+		syslog(LOG_ERR, "a domain suffix is not passed as argument using 'local' as suffix");
 		domain_suffix = "local";
-
-	pidfile = argv[3];
-	if (pidfile == NULL) {
-		perror("You nned to pass a pid file.");
-		exit(7);
 	}
-	HOSTS = argv[4];
-	if (HOSTS == NULL || !fexist(HOSTS)) {
+
+	if (pidfile == NULL)
+		syslog(LOG_ERR, "pidfile argument not passed using %s as pidfile", PIDFILE);
+
+	if (HOSTS == NULL) {
+		syslog(LOG_ERR, "You need to specify the hosts file path.");
 		perror("You need to specify the hosts file path.");
+		exit(8);
+	}
+	if (!fexist(HOSTS)) {
+		syslog(LOG_ERR, "Hosts file %s does not exists!", HOSTS);
+		perror("Hosts file passed as parameter does not exist");
 		exit(8);
 	}
 
 	if ((hostssize = fsize(HOSTS)) < 0) {
+		syslog(LOG_ERR, "Error while getting %s file size.", HOSTS);
 		perror("Error while getting /etc/hosts file size.");
 		exit(6);
 	}
-	if (!fexist(leasefile)) {
-		perror("The leases file passed as argument does not exist.");
-		exit(3);
-	}
 
 	if (daemon(0, 0) < 0) {
+		syslog(LOG_ERR, "Could not daemonize");
 		perror("Could not daemonize");
 		exit(4);
 	}
 
 	leasefd = open(leasefile, O_RDONLY);
 	if (leasefd < 0) {
+		syslog(LOG_ERR, "Could not get descriptor");
 		perror("Could not get descriptor");
 		exit(6);
 	}
 
 	fp = fdopen(leasefd, "r");
 	if (fp == NULL) {
+		syslog(LOG_ERR, "could not open leasefile");
 		perror("could not open leasefile");
 		exit(5);
 	}
@@ -548,11 +582,11 @@ main(int argc, char **argv) {
         sa.sa_handler = handle_signal;
         sa.sa_flags = SA_SIGINFO|SA_RESTART;
         sigemptyset(&sa.sa_mask);
-        if (sigaction(SIGHUP, &sa, NULL) < 1) {
+        if (sigaction(SIGHUP, &sa, NULL) < 0) {
                 syslog(LOG_ERR, "unable to set signal handler, %m");
 		exit(9);
 	}
-        if (sigaction(SIGTERM, &sa, NULL) < 1) {
+        if (sigaction(SIGTERM, &sa, NULL) < 0) {
                 syslog(LOG_ERR, "unable to set signal handler, %m");
 		exit(10);
 	}
