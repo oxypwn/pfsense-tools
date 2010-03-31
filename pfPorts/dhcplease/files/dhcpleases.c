@@ -527,8 +527,11 @@ main(int argc, char **argv) {
 		domain_suffix = "local";
 	}
 
-	if (pidfile == NULL)
-		syslog(LOG_ERR, "pidfile argument not passed using %s as pidfile", PIDFILE);
+	if (pidfile == NULL) {
+		syslog(LOG_ERR, "pidfile argument not passed it is manadatory");
+		perror("pidfile argument not passed it is manadatory");
+		exit(1);
+	}
 
 	if (HOSTS == NULL) {
 		syslog(LOG_ERR, "You need to specify the hosts file path.");
