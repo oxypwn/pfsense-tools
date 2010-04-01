@@ -1,6 +1,6 @@
 diff -ur ospfd_old/carp.c ospfd/carp.c
---- ospfd_old/carp.c	2010-03-25 21:49:43.000000000 +0000
-+++ ospfd/carp.c	2010-03-25 21:50:29.000000000 +0000
+--- ospfd_old/carp.c	2010-04-01 14:18:14.000000000 +0000
++++ ospfd/carp.c	2010-04-01 14:18:46.000000000 +0000
 @@ -102,6 +102,7 @@
  int
  carp_demote_get(char *group)
@@ -35,8 +35,8 @@ diff -ur ospfd_old/carp.c ospfd/carp.c
 +	return 0;
  }
 diff -ur ospfd_old/interface.c ospfd/interface.c
---- ospfd_old/interface.c	2010-03-25 21:49:43.000000000 +0000
-+++ ospfd/interface.c	2010-03-25 21:53:12.000000000 +0000
+--- ospfd_old/interface.c	2010-04-01 14:18:14.000000000 +0000
++++ ospfd/interface.c	2010-04-01 14:19:12.000000000 +0000
 @@ -251,6 +251,7 @@
  
  	iface->fd = xconf->ospf_socket;
@@ -61,9 +61,17 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
  };
  
  LIST_HEAD(,if_group_count) ifglist = LIST_HEAD_INITIALIZER(ifglist);
-@@ -706,19 +709,29 @@
+@@ -704,38 +707,74 @@
+ int
+ if_join_group(struct iface *iface, struct in_addr *addr)
  {
++#if __FreeBSD_version > 800000
++	struct sockaddr_in	*si;
++	struct group_req	greq;
++#else
  	struct ip_mreq		 mreq;
++#endif
++
  	struct if_group_count	*ifg;
 +	int			 refound = 0;
  
@@ -78,8 +86,8 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
 +				refound = 1;
 +				break;
 +			}
-+			if (!strcmp(iface->name, ifg->name)) {
-+				ifg->count--;
++			if (!strcmp(iface->name, ifg->name) &&
++			    addr->s_addr == ifg->addr.s_addr) {
 +				refound = 1;
  				break;
 +			}
@@ -93,7 +101,28 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
  			LIST_INSERT_HEAD(&ifglist, ifg, entry);
  		}
  
-@@ -731,10 +744,14 @@
+-		if (ifg->count++ != 0)
++		if (ifg->count++ > 0)
+ 			/* already joined */
+ 			return (0);
+ 
++#if __FreeBSD_version > 800000
++		greq.gr_interface = iface->ifindex;
++		si = (struct sockaddr_in *)&greq.gr_group;
++		si->sin_family = AF_INET;
++		si->sin_len = sizeof(*si);
++		si->sin_addr.s_addr = addr->s_addr;
++
++		if (setsockopt(iface->fd, IPPROTO_IP, MCAST_JOIN_GROUP,
++		    (void *)&greq, sizeof(greq)) < 0) {
++			log_warn("if_join_group: error MCAST_JOINT_GROUP, "
++                    	    "interface %s address %s", iface->name,
++		       	    inet_ntoa(*addr));
++			return (-1);
++		}
++#else
+ 		mreq.imr_multiaddr.s_addr = addr->s_addr;
+ 		mreq.imr_interface.s_addr = iface->addr.s_addr;
  
  		if (setsockopt(iface->fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
  		    (void *)&mreq, sizeof(mreq)) < 0) {
@@ -110,22 +139,61 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
 +				return (-1);
 +			}
  		}
- 		break;
- 	case IF_TYPE_POINTOMULTIPOINT:
-@@ -780,10 +797,12 @@
- 			return (-1);
- 		}
- 
-+#if 0
- 		if (ifg) {
- 			LIST_REMOVE(ifg, entry);
- 			free(ifg);
- 		}
 +#endif
  		break;
  	case IF_TYPE_POINTOMULTIPOINT:
  	case IF_TYPE_VIRTUALLINK:
-@@ -801,11 +820,14 @@
+@@ -753,7 +792,12 @@
+ int
+ if_leave_group(struct iface *iface, struct in_addr *addr)
+ {
++#if __FreeBSD_version > 800000
++        struct sockaddr_in      *si;
++        struct group_req        greq;
++#else
+ 	struct ip_mreq		 mreq;
++#endif
+ 	struct if_group_count	*ifg;
+ 
+ 	switch (iface->type) {
+@@ -765,10 +809,27 @@
+ 				break;
+ 
+ 		/* if interface is not found just try to drop membership */
+-		if (ifg && --ifg->count != 0)
++		if (ifg->count > 0)
++			--ifg->count;
++		if (ifg && ifg->count > 0)
+ 			/* others still joined */
+ 			return (0);
+ 
++#if __FreeBSD_version > 800000
++                greq.gr_interface = iface->ifindex;
++                si = (struct sockaddr_in *)&greq.gr_group;
++                si->sin_family = AF_INET;
++                si->sin_len = sizeof(*si);
++                si->sin_addr.s_addr = addr->s_addr;
++
++                if (setsockopt(iface->fd, IPPROTO_IP, MCAST_LEAVE_GROUP,
++                    (void *)&greq, sizeof(greq)) < 0) {
++                        log_warn("if_leave_group: error MCAST_LEAVE_GROUP, "
++                            "interface %s address %s", iface->name,
++                            inet_ntoa(*addr));
++                        return (-1);
++                }
++#else
+ 		mreq.imr_multiaddr.s_addr = addr->s_addr;
+ 		mreq.imr_interface.s_addr = iface->addr.s_addr;
+ 
+@@ -779,6 +840,7 @@
+ 			    inet_ntoa(*addr));
+ 			return (-1);
+ 		}
++#endif
+ 
+ 		if (ifg) {
+ 			LIST_REMOVE(ifg, entry);
+@@ -801,11 +863,14 @@
  int
  if_set_mcast(struct iface *iface)
  {
@@ -142,8 +210,8 @@ diff -ur ospfd_old/interface.c ospfd/interface.c
  			    "IP_MULTICAST_IF, interface %s", iface->name);
  			return (-1);
 diff -ur ospfd_old/kroute.c ospfd/kroute.c
---- ospfd_old/kroute.c	2010-03-25 21:49:43.000000000 +0000
-+++ ospfd/kroute.c	2010-03-25 21:51:00.000000000 +0000
+--- ospfd_old/kroute.c	2010-04-01 14:18:14.000000000 +0000
++++ ospfd/kroute.c	2010-04-01 14:18:46.000000000 +0000
 @@ -27,6 +27,7 @@
  #include <arpa/inet.h>
  #include <net/if.h>
@@ -433,8 +501,8 @@ diff -ur ospfd_old/kroute.c ospfd/kroute.c
  			if_change(ifm.ifm_index, ifm.ifm_flags, &ifm.ifm_data,
  			    (struct sockaddr_dl *)rti_info[RTAX_IFP]);
 diff -ur ospfd_old/ospfd.c ospfd/ospfd.c
---- ospfd_old/ospfd.c	2010-03-25 21:49:43.000000000 +0000
-+++ ospfd/ospfd.c	2010-03-25 21:50:29.000000000 +0000
+--- ospfd_old/ospfd.c	2010-04-01 14:18:14.000000000 +0000
++++ ospfd/ospfd.c	2010-04-01 14:18:47.000000000 +0000
 @@ -319,7 +319,9 @@
  
  	control_cleanup(ospfd_conf->csock);
@@ -461,8 +529,8 @@ diff -ur ospfd_old/ospfd.c ospfd/ospfd.c
  		default:
  			log_debug("main_dispatch_ospfe: error handling imsg %d",
 diff -ur ospfd_old/ospfd.h ospfd/ospfd.h
---- ospfd_old/ospfd.h	2010-03-25 21:49:43.000000000 +0000
-+++ ospfd/ospfd.h	2010-03-25 21:50:29.000000000 +0000
+--- ospfd_old/ospfd.h	2010-04-01 14:18:14.000000000 +0000
++++ ospfd/ospfd.h	2010-04-01 14:18:46.000000000 +0000
 @@ -32,10 +32,15 @@
  #include <imsg.h>
  #include "ospf.h"
@@ -492,8 +560,8 @@ diff -ur ospfd_old/ospfd.h ospfd/ospfd.h
  	LIST_ENTRY(iface)	 entry;
  	struct event		 hello_timer;
 diff -ur ospfd_old/packet.c ospfd/packet.c
---- ospfd_old/packet.c	2010-03-25 21:49:43.000000000 +0000
-+++ ospfd/packet.c	2010-03-25 21:50:29.000000000 +0000
+--- ospfd_old/packet.c	2010-04-01 14:18:14.000000000 +0000
++++ ospfd/packet.c	2010-04-01 14:18:47.000000000 +0000
 @@ -36,7 +36,7 @@
  #include "log.h"
  #include "ospfe.h"
@@ -529,8 +597,8 @@ diff -ur ospfd_old/packet.c ospfd/packet.c
  		log_debug("recv_packet: invalid IP packet length %u",
  		    ntohs(ip_hdr->ip_len));
 diff -ur ospfd_old/parse.y ospfd/parse.y
---- ospfd_old/parse.y	2010-03-25 21:49:43.000000000 +0000
-+++ ospfd/parse.y	2010-03-25 21:50:29.000000000 +0000
+--- ospfd_old/parse.y	2010-04-01 14:18:14.000000000 +0000
++++ ospfd/parse.y	2010-04-01 14:18:47.000000000 +0000
 @@ -200,11 +200,15 @@
  			free($2);
  		}
