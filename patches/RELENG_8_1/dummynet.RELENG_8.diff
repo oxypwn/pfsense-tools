@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/parse.y,v
+RCS file: /root/freebsd/pfsense/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.3
 diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	24 Mar 2010 22:19:13 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	24 Mar 2010 23:30:19 -0000
+--- contrib/pf/pfctl/parse.y	2 Apr 2010 14:24:10 -0000	1.3
++++ contrib/pf/pfctl/parse.y	2 Apr 2010 14:25:26 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -134,11 +134,11 @@ diff -u -r1.3 parse.y
  		{ "dscp",		DSCP},
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /root/freebsd/pfsense/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	24 Mar 2010 22:19:13 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	24 Mar 2010 23:29:26 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	2 Apr 2010 14:24:10 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	2 Apr 2010 14:25:26 -0000
 @@ -991,6 +991,14 @@
  	}
  	if (r->label[0])
@@ -156,17 +156,17 @@ diff -u -r1.2 pfctl_parser.c
  	else if (r->qname[0])
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.3
 diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	24 Mar 2010 22:19:14 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	25 Mar 2010 00:14:56 -0000
+--- sys/contrib/pf/net/pf.c	2 Apr 2010 14:24:10 -0000	1.3
++++ sys/contrib/pf/net/pf.c	2 Apr 2010 14:25:51 -0000
 @@ -135,6 +135,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
  #ifdef __FreeBSD__
-+#include <netinet/ipfw/ip_fw_private.h>
 +#include <netinet/ip_fw.h>
++#include <netinet/ipfw/ip_fw_private.h>
 +#include <netinet/ip_dummynet.h>
 +
  #include <netinet6/ip6_var.h>
@@ -480,11 +480,11 @@ diff -u -r1.3 pf.c
  		*m0 = NULL;
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf_mtag.h,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	24 Mar 2010 22:18:58 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	24 Mar 2010 23:29:26 -0000
+--- sys/contrib/pf/net/pf_mtag.h	2 Apr 2010 14:23:59 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	2 Apr 2010 14:25:26 -0000
 @@ -37,6 +37,8 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -496,11 +496,11 @@ diff -u -r1.2 pf_mtag.h
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /root/freebsd/pfsense/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.4
 diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	24 Mar 2010 22:19:44 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	24 Mar 2010 23:29:26 -0000
+--- sys/contrib/pf/net/pfvar.h	2 Apr 2010 14:24:49 -0000	1.4
++++ sys/contrib/pf/net/pfvar.h	2 Apr 2010 14:25:26 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
