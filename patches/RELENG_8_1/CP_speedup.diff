@@ -3,8 +3,8 @@ Index: sbin/ifconfig/ifconfig.c
 RCS file: /root/freebsd/pfsense/repo/src/sbin/ifconfig/ifconfig.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ifconfig.c
---- sbin/ifconfig/ifconfig.c	2 Apr 2010 09:42:22 -0000	1.1.1.1
-+++ sbin/ifconfig/ifconfig.c	2 Apr 2010 10:02:38 -0000
+--- sbin/ifconfig/ifconfig.c	2 Apr 2010 14:22:29 -0000	1.1.1.1
++++ sbin/ifconfig/ifconfig.c	2 Apr 2010 14:30:11 -0000
 @@ -860,7 +860,7 @@
  #define	IFFBITS \
  "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\6SMART\7RUNNING" \
@@ -28,8 +28,8 @@ Index: sbin/ipfw/ipfw2.c
 RCS file: /root/freebsd/pfsense/repo/src/sbin/ipfw/ipfw2.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipfw2.c
---- sbin/ipfw/ipfw2.c	2 Apr 2010 09:42:22 -0000	1.1.1.1
-+++ sbin/ipfw/ipfw2.c	2 Apr 2010 10:02:38 -0000
+--- sbin/ipfw/ipfw2.c	2 Apr 2010 14:22:29 -0000	1.1.1.1
++++ sbin/ipfw/ipfw2.c	2 Apr 2010 14:30:11 -0000
 @@ -375,7 +375,9 @@
  	    optname == IP_FW_TABLE_GETSIZE || 
  	    optname == IP_FW_NAT_GET_CONFIG || 
@@ -166,8 +166,8 @@ Index: sys/net/if.h
 RCS file: /root/freebsd/pfsense/repo/src/sys/net/if.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if.h
---- sys/net/if.h	2 Apr 2010 09:42:18 -0000	1.1.1.1
-+++ sys/net/if.h	2 Apr 2010 10:02:38 -0000
+--- sys/net/if.h	2 Apr 2010 14:22:25 -0000	1.1.1.1
++++ sys/net/if.h	2 Apr 2010 14:30:11 -0000
 @@ -151,6 +151,7 @@
  #define	IFF_STATICARP	0x80000		/* (n) static ARP */
  #define	IFF_DYING	0x200000	/* (n) interface is winding down */
@@ -181,8 +181,8 @@ Index: sys/net/if_ethersubr.c
 RCS file: /root/freebsd/pfsense/repo/src/sys/net/if_ethersubr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_ethersubr.c
---- sys/net/if_ethersubr.c	2 Apr 2010 09:42:18 -0000	1.1.1.1
-+++ sys/net/if_ethersubr.c	2 Apr 2010 10:02:38 -0000
+--- sys/net/if_ethersubr.c	2 Apr 2010 14:22:26 -0000	1.1.1.1
++++ sys/net/if_ethersubr.c	2 Apr 2010 14:30:11 -0000
 @@ -146,7 +146,7 @@
  
  #if defined(INET) || defined(INET6)
@@ -242,8 +242,8 @@ Index: sys/netinet/in.h
 RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/in.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 in.h
---- sys/netinet/in.h	2 Apr 2010 09:42:19 -0000	1.1.1.1
-+++ sys/netinet/in.h	2 Apr 2010 10:02:38 -0000
+--- sys/netinet/in.h	2 Apr 2010 14:22:26 -0000	1.1.1.1
++++ sys/netinet/in.h	2 Apr 2010 14:30:11 -0000
 @@ -453,6 +453,8 @@
  #define	IP_FW_TABLE_FLUSH	42   /* flush table */
  #define	IP_FW_TABLE_GETSIZE	43   /* get table size */
@@ -258,8 +258,8 @@ Index: sys/netinet/ip_fw.h
 RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ip_fw.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw.h
---- sys/netinet/ip_fw.h	2 Apr 2010 09:42:19 -0000	1.1.1.1
-+++ sys/netinet/ip_fw.h	2 Apr 2010 10:02:38 -0000
+--- sys/netinet/ip_fw.h	2 Apr 2010 14:22:26 -0000	1.1.1.1
++++ sys/netinet/ip_fw.h	2 Apr 2010 14:30:11 -0000
 @@ -564,9 +564,13 @@
   */
  typedef struct	_ipfw_table_entry {
@@ -279,8 +279,8 @@ Index: sys/netinet/raw_ip.c
 RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/raw_ip.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 raw_ip.c
---- sys/netinet/raw_ip.c	2 Apr 2010 09:42:19 -0000	1.1.1.1
-+++ sys/netinet/raw_ip.c	2 Apr 2010 10:02:38 -0000
+--- sys/netinet/raw_ip.c	2 Apr 2010 14:22:26 -0000	1.1.1.1
++++ sys/netinet/raw_ip.c	2 Apr 2010 14:30:11 -0000
 @@ -544,6 +544,8 @@
  		case IP_FW_GET:
  		case IP_FW_TABLE_GETSIZE:
@@ -295,8 +295,8 @@ Index: sys/netinet/ipfw/ip_fw2.c
 RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ipfw/ip_fw2.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw2.c
---- sys/netinet/ipfw/ip_fw2.c	2 Apr 2010 09:42:19 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw2.c	2 Apr 2010 10:20:46 -0000
+--- sys/netinet/ipfw/ip_fw2.c	2 Apr 2010 14:22:27 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw2.c	2 Apr 2010 14:30:11 -0000
 @@ -828,6 +828,9 @@
  	 */
  	struct ifnet *oif = args->oif;
@@ -390,8 +390,8 @@ Index: sys/netinet/ipfw/ip_fw_pfil.c
 RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	2 Apr 2010 10:02:03 -0000	1.2
-+++ sys/netinet/ipfw/ip_fw_pfil.c	2 Apr 2010 10:02:38 -0000
+--- sys/netinet/ipfw/ip_fw_pfil.c	2 Apr 2010 14:29:44 -0000	1.2
++++ sys/netinet/ipfw/ip_fw_pfil.c	2 Apr 2010 14:31:23 -0000
 @@ -109,6 +109,9 @@
  	int ipfw;
  	int ret;
@@ -412,13 +412,22 @@ diff -u -r1.2 ip_fw_pfil.c
  	args.inp = inp;
  
  	ipfw = ipfw_chk(&args);
+@@ -335,7 +339,7 @@
+ 		return ENOENT;
+ 
+ 	if (onoff)
+-	(void) pfil_add_hook
++	(void) pfil_add_named_hook
+ 	    (ipfw_check_hook, NULL, "ipfw", PFIL_IN | PFIL_OUT | PFIL_WAITOK, pfh);
+ 	else
+ 	(void) pfil_remove_hook
 Index: sys/netinet/ipfw/ip_fw_private.h
 ===================================================================
 RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ipfw/ip_fw_private.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_private.h
---- sys/netinet/ipfw/ip_fw_private.h	2 Apr 2010 09:42:19 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_private.h	2 Apr 2010 10:22:19 -0000
+--- sys/netinet/ipfw/ip_fw_private.h	2 Apr 2010 14:22:27 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_private.h	2 Apr 2010 14:31:38 -0000
 @@ -96,6 +96,7 @@
  	 */
  	struct ipfw_rule_ref rule;	/* match/restart info		*/
@@ -427,7 +436,7 @@ diff -u -r1.1.1.1 ip_fw_private.h
  	struct ether_header *eh;	/* for bridged packets		*/
  
  	struct ipfw_flow_id f_id;	/* grabbed from IP header	*/
-@@ -268,18 +269,27 @@
+@@ -268,18 +269,25 @@
       struct inpcb *inp);
  
  /* In ip_fw_table.c */
@@ -440,8 +449,6 @@ diff -u -r1.1.1.1 ip_fw_private.h
 -    uint32_t *val);
 +    struct ether_addr *ea, uint32_t *val, int pktlen);
  int ipfw_init_tables(struct ip_fw_chain *ch);
-+int ipfw_del_table_entry(struct ip_fw_chain *ch, uint16_t tbl, in_addr_t addr,
-+    uint8_t mlen);
  void ipfw_destroy_tables(struct ip_fw_chain *ch);
 +int ipfw_flush_table_entry(struct radix_node *rn, void *arg);
  int ipfw_flush_table(struct ip_fw_chain *ch, uint16_t tbl);
@@ -463,8 +470,8 @@ Index: sys/netinet/ipfw/ip_fw_sockopt.c
 RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ipfw/ip_fw_sockopt.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_sockopt.c
---- sys/netinet/ipfw/ip_fw_sockopt.c	2 Apr 2010 09:42:19 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_sockopt.c	2 Apr 2010 10:09:58 -0000
+--- sys/netinet/ipfw/ip_fw_sockopt.c	2 Apr 2010 14:22:27 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_sockopt.c	2 Apr 2010 14:30:11 -0000
 @@ -1061,7 +1061,7 @@
  			if (error)
  				break;
@@ -522,8 +529,8 @@ Index: sys/netinet/ipfw/ip_fw_table.c
 RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ipfw/ip_fw_table.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_table.c
---- sys/netinet/ipfw/ip_fw_table.c	2 Apr 2010 09:42:19 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_table.c	2 Apr 2010 10:23:51 -0000
+--- sys/netinet/ipfw/ip_fw_table.c	2 Apr 2010 14:22:27 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_table.c	2 Apr 2010 14:30:11 -0000
 @@ -65,6 +65,7 @@
  
  #include <netinet/in.h>
