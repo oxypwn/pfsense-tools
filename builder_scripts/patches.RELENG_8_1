@@ -42,8 +42,6 @@
 ~~~/sys/dev/flash/mx25l.c
 ~~~/sys/mips/atheros
 ~sys~if_ethersubr.c.diff~
-~usr.sbin/ppp~ipcp.c.diff~
-~~ppp.RELENG_8.diff~
 ~~tty.c.diff~
 ~~ip_carp.c.diff~
 ~~if_lagg_vlan_handling.diff~
