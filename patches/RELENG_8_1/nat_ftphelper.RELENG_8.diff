@@ -1,11 +1,11 @@
 Index: sys/conf/files
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/conf/files,v
+RCS file: /root/freebsd/test/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	2 Feb 2010 11:55:09 -0000	1.2
-+++ sys/conf/files	2 Feb 2010 12:15:00 -0000
-@@ -362,6 +362,8 @@
+--- sys/conf/files	2 Apr 2010 18:20:29 -0000	1.2
++++ sys/conf/files	2 Apr 2010 18:21:28 -0000
+@@ -365,6 +365,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
@@ -16,12 +16,12 @@ diff -u -r1.2 files
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.6
-diff -u -r1.6 pf.c
---- sys/contrib/pf/net/pf.c	2 Feb 2010 12:14:03 -0000	1.6
-+++ sys/contrib/pf/net/pf.c	2 Feb 2010 12:21:38 -0000
-@@ -260,7 +260,7 @@
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.5
+diff -u -r1.5 pf.c
+--- sys/contrib/pf/net/pf.c	2 Apr 2010 18:21:21 -0000	1.5
++++ sys/contrib/pf/net/pf.c	2 Apr 2010 22:04:27 -0000
+@@ -261,7 +261,7 @@
  int			 pf_tcp_track_full(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
  			    struct pfi_kif *, struct mbuf *, int,
@@ -30,7 +30,7 @@ diff -u -r1.6 pf.c
  int			 pf_tcp_track_sloppy(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
  			    struct pf_pdesc *, u_short *);
-@@ -306,8 +306,6 @@
+@@ -307,8 +307,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
  				u_int16_t);
@@ -39,7 +39,7 @@ diff -u -r1.6 pf.c
  int			 pf_check_proto_cksum(struct mbuf *, int, int,
  			    u_int8_t, sa_family_t);
  int			 pf_addr_wrap_neq(struct pf_addr_wrap *,
-@@ -528,6 +526,8 @@
+@@ -529,6 +527,8 @@
  
  	if ((diff = a->lan.port - b->lan.port) != 0)
  		return (diff);
@@ -48,7 +48,7 @@ diff -u -r1.6 pf.c
  	if ((diff = a->ext.port - b->ext.port) != 0)
  		return (diff);
  
-@@ -598,10 +598,12 @@
+@@ -599,10 +599,12 @@
  #endif /* INET6 */
  	}
  
@@ -63,7 +63,7 @@ diff -u -r1.6 pf.c
  
  	return (0);
  }
-@@ -4728,13 +4730,14 @@
+@@ -4729,13 +4731,14 @@
  int
  pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
  	struct pf_state **state, struct pfi_kif *kif, struct mbuf *m, int off,
@@ -81,7 +81,7 @@ diff -u -r1.6 pf.c
  
  	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
  		sws = src->wscale & PF_WSCALE_MASK;
-@@ -4819,11 +4822,51 @@
+@@ -4820,11 +4823,51 @@
  			src->max_win = win;
  
  	} else {
@@ -136,7 +136,7 @@ diff -u -r1.6 pf.c
  			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
  			*copyback = 1;
  		}
-@@ -5186,6 +5229,54 @@
+@@ -5187,6 +5230,54 @@
  		dst = &(*state)->src;
  	}
  	
@@ -191,7 +191,7 @@ diff -u -r1.6 pf.c
  	/*
           * First state is created by the rules checking code and if we reloop
           * the first packet that hit the rule pf will not like it.
-@@ -5325,10 +5416,11 @@
+@@ -5326,10 +5417,11 @@
  			return (PF_DROP);
  	} else {
  		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
@@ -204,11 +204,11 @@ diff -u -r1.6 pf.c
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7173,6 +7265,10 @@
+@@ -7168,6 +7260,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
-+		if (action == PF_PASS && s != NULL && s->nat_rule.ptr != NULL) {
++		if (action == PF_PASS && s != NULL) {
 +			if (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21)
 +				pf_handle_ftp(&pd, m, s, off, dir);
 +		}
@@ -220,8 +220,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	2 Feb 2010 12:15:00 -0000
-@@ -0,0 +1,694 @@
++++ sys/contrib/pf/net/pf_ftp.c	2 Apr 2010 22:07:08 -0000
+@@ -0,0 +1,722 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -346,30 +346,28 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 + 	*/
 +	if (pd->p_len <= MAX_MESSAGE_SIZE ) { 
 +		ftp_message_type = FTP_UNKNOWN_MESSAGE;
-+
-+		if (state->direction == PF_OUT) {
-+ 			/* When aliasing a client, check for the PORT/EPRT command. */
-+			if (ParseFtpPortCommand(&oport, sptr, pd->p_len))
-+				ftp_message_type = FTP_PORT_COMMAND;
-+			else if (ParseFtpEprtCommand(&oport, sptr, pd->p_len))
-+				ftp_message_type = FTP_EPRT_COMMAND;
-+		} else {
-+ 			/* When aliasing a server, check for the 227/229 reply. */
-+			if (ParseFtp227Reply(&oport, sptr, pd->p_len))
-+				ftp_message_type = FTP_227_REPLY;
-+			else if (ParseFtp229Reply(&oport, sptr, pd->p_len)) {
-+				ftp_message_type = FTP_229_REPLY;
-+			}
++		
++ 		/* When aliasing a client, check for the PORT/EPRT command. */
++ 		/* When aliasing a server, check for the 227/229 reply. */
++		if (ParseFtpPortCommand(&oport, sptr, pd->p_len))
++			ftp_message_type = FTP_PORT_COMMAND;
++		else if (ParseFtpEprtCommand(&oport, sptr, pd->p_len))
++			ftp_message_type = FTP_EPRT_COMMAND;
++		else if (ParseFtp227Reply(&oport, sptr, pd->p_len))
++			ftp_message_type = FTP_227_REPLY;
++		else if (ParseFtp229Reply(&oport, sptr, pd->p_len)) {
++			ftp_message_type = FTP_229_REPLY;
 +		}
 +
-+		if (ftp_message_type != FTP_UNKNOWN_MESSAGE) 
++		if (ftp_message_type == FTP_UNKNOWN_MESSAGE)
++			return;
++		else if (nr != NULL) {
 +			NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
 +
-+
-+		if (((ftp_message_type == FTP_227_REPLY ||
-+			ftp_message_type == FTP_229_REPLY) && nr->action == PF_NAT) ||
-+			 ftp_message_type == FTP_UNKNOWN_MESSAGE) 
-+			return;
++			if ((ftp_message_type == FTP_227_REPLY ||
++		    	    ftp_message_type == FTP_229_REPLY) && nr->action == PF_NAT)
++				return;
++		}
 +
 +		s = pool_get(&pf_state_pl, PR_NOWAIT);
 +                if (s == NULL) {
@@ -378,34 +376,58 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                }
 +                bzero(s, sizeof(*s));
 +                s->rule.ptr = r;
-+                s->nat_rule.ptr = nr;
 +                s->anchor.ptr = state->anchor.ptr;
 +                STATE_INC_COUNTERS(s);
 +                s->state_flags = state->state_flags;
++		s->local_flags = state->local_flags;
 +                s->log = state->log;
 +                s->proto = IPPROTO_TCP;
 +                s->af = pd->af;
-+		if (nr->action == PF_RDR || (state->direction == PF_IN && nr->action == PF_BINAT))
-+                	s->direction = state->direction;
-+		else
-+			s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
-+		/* This is inverted. */
-+                if (s->direction == PF_OUT) {
-+                        PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                        s->gwy.port = htons(oport); 
-+                        PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+                        s->lan.port = 0; 
-+			s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+                        PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
-+                        s->ext.port = htons(oport);
-+                } else {
-+                        PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
-+                        s->ext.port = 0;
-+			s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+                        PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
-+                        s->lan.port = htons(oport);
-+                        PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                        s->gwy.port = htons(oport);
++		if (nr != NULL) {
++               		s->nat_rule.ptr = nr;
++			if (nr->action == PF_RDR || (state->direction == PF_IN && nr->action == PF_BINAT))
++               			s->direction = state->direction;
++			else
++				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
++
++			/* This is inverted. */
++                	if (s->direction == PF_OUT) {
++                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                       		s->gwy.port = htons(oport); 
++                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
++                       		s->lan.port = 0; 
++				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
++                       		s->ext.port = htons(oport);
++                	} else {
++                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++                       		s->ext.port = 0;
++				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++                       		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++                       		s->lan.port = htons(oport);
++                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                       		s->gwy.port = htons(oport);
++			}
++		} else {
++			if (ftp_message_type == FTP_227_REPLY || ftp_message_type == FTP_229_REPLY) {
++				s->direction = state->direction;
++                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++                       		s->ext.port = 0;
++				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++                       		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++                       		s->lan.port = htons(oport);
++                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                       		s->gwy.port = htons(oport);
++			} else if (ftp_message_type == FTP_PORT_COMMAND || ftp_message_type == FTP_EPRT_COMMAND) {
++				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
++                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                       		s->gwy.port = htons(oport); 
++                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
++                       		s->lan.port = 0; 
++				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
++                       		s->ext.port = htons(oport);
++			}
 +		}
 +                s->src.state = TCPS_LISTEN;
 +                s->dst.state = TCPS_LISTEN;
@@ -414,8 +436,14 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->timeout = PFTM_TCP_FIRST_PACKET;
 +		PF_ACPY(&s->rt_addr, &state->rt_addr, pd->af);
 +		s->nat_src_node = state->nat_src_node;
-+		if (s->nat_src_node != NULL)
++		if (s->nat_src_node != NULL) {
 +                        s->nat_src_node->states++;
++			s->src_node->conn++;
++		}
++		if (state->src_node != NULL) {
++                        s->src_node = state->source_node;
++                        s->src_node->states++;
++                }
 +		s->rt_kif = state->rt_kif;
 +		if (pf_insert_state(BOUND_IFACE(r, s->rt_kif), s)) {
 +                        pf_normalize_tcp_cleanup(s);
@@ -918,11 +946,11 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.7
-diff -u -r1.7 pfvar.h
---- sys/contrib/pf/net/pfvar.h	2 Feb 2010 12:09:56 -0000	1.7
-+++ sys/contrib/pf/net/pfvar.h	2 Feb 2010 12:15:00 -0000
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.5
+diff -u -r1.5 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	2 Apr 2010 18:21:21 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	2 Apr 2010 18:21:28 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -947,11 +975,11 @@ diff -u -r1.7 pfvar.h
  	    const struct tcphdr *);
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /root/freebsd/freebsd/repo/src/sys/modules/pf/Makefile,v
+RCS file: /root/freebsd/test/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	2 Feb 2010 11:53:19 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	2 Feb 2010 12:15:00 -0000
+--- sys/modules/pf/Makefile	2 Apr 2010 18:18:05 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	2 Apr 2010 18:21:28 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
