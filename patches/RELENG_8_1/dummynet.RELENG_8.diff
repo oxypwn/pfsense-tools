@@ -287,7 +287,7 @@ diff -u -r1.3 pf.c
  
 +	if (ip_dn_io_ptr != NULL &&
 +		((dn_tag = m_tag_find(m, MTAG_IPFW_RULE, NULL)) != NULL) &&
-+		((struct ipfw_rule_ref *)(dn_tag+1))->rule.rule_id == 0) {
++		((struct ipfw_rule_ref *)(dn_tag+1))->rule_id == 0) {
 +		if (pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
 +                        m->m_flags |= M_FASTFWD_OURS;
 +                        pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
@@ -307,7 +307,7 @@ diff -u -r1.3 pf.c
  
  		pd.hdr.tcp = &th;
 +#ifdef __FreeBSD__
-+                dnflow.f_id.flags = th.th_flags;
++                dnflow.f_id._flags = th.th_flags;
 +                dnflow.f_id.dst_port = ntohs(th.th_dport);
 +                dnflow.f_id.src_port = ntohs(th.th_sport);
 +#endif
@@ -396,7 +396,7 @@ diff -u -r1.3 pf.c
 +	
 +	if (ip_dn_io_ptr != NULL &&
 +                ((dn_tag = m_tag_find(m, MTAG_IPFW_RULE, NULL)) != NULL) &&
-+                ((struct ipfw_rule_ref *)(dn_tag+1))->rule.rule_id == 0) {
++                ((struct ipfw_rule_ref *)(dn_tag+1))->rule_id == 0) {
 +                pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
 +                m_tag_delete(m, dn_tag);
 +        }
@@ -412,7 +412,7 @@ diff -u -r1.3 pf.c
  
  		pd.hdr.tcp = &th;
 +#ifdef __FreeBSD__
-+                dnflow.f_id.flags = th.th_flags;
++                dnflow.f_id._flags = th.th_flags;
 +                dnflow.f_id.dst_port = th.th_dport;
 +                dnflow.f_id.src_port = th.th_sport;
 +#endif

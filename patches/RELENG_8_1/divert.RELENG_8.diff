@@ -221,7 +221,7 @@ diff -u -r1.4 pf.c
 +                       	pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
 +               	}
                  m_tag_delete(m, dn_tag);
-+		goto nonormalize;
++
          }
 -
  	/* We do IP header normalization and packet reassembly here */
@@ -321,7 +321,7 @@ diff -u -r1.4 pf.c
 -        } else
 -		pd.pf_mtag->flags &= ~PF_DN_TAG_PRESENT;
 -continueprocessing:
-+        } else {
++        } else
 +		pd.pf_mtag->flags &= ~(PF_DN_TAG_PRESENT|PF_DIVERT_TAG_PRESENT);
  #endif
  
