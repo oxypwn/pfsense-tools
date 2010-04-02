@@ -1,10 +1,10 @@
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
-RCS file: /root/freebsd/pfsense/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.4
 diff -u -r1.4 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	23 Feb 2010 14:59:43 -0000	1.4
-+++ sys/contrib/pf/net/pf_ioctl.c	23 Feb 2010 14:59:55 -0000
+--- sys/contrib/pf/net/pf_ioctl.c	1 Apr 2010 23:30:43 -0000	1.4
++++ sys/contrib/pf/net/pf_ioctl.c	1 Apr 2010 23:30:56 -0000
 @@ -3841,8 +3841,10 @@
  	pfh_inet = pfil_head_get(PFIL_TYPE_AF, AF_INET);
  	if (pfh_inet == NULL)
@@ -33,11 +33,11 @@ diff -u -r1.4 pf_ioctl.c
  	pf_pfil_hooked = 1;
 Index: sys/net/pfil.c
 ===================================================================
-RCS file: /root/freebsd/pfsense/repo/src/sys/net/pfil.c,v
+RCS file: /root/freebsd/test/repo/src/sys/net/pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.c
---- sys/net/pfil.c	23 Feb 2010 14:43:52 -0000	1.1.1.1
-+++ sys/net/pfil.c	23 Feb 2010 14:59:55 -0000
+--- sys/net/pfil.c	24 Mar 2010 22:16:41 -0000	1.1.1.1
++++ sys/net/pfil.c	1 Apr 2010 23:30:56 -0000
 @@ -34,6 +34,7 @@
  #include <sys/errno.h>
  #include <sys/lock.h>
@@ -231,11 +231,11 @@ diff -u -r1.1.1.1 pfil.c
  			if (flags & PFIL_IN)
 Index: sys/net/pfil.h
 ===================================================================
-RCS file: /root/freebsd/pfsense/repo/src/sys/net/pfil.h,v
+RCS file: /root/freebsd/test/repo/src/sys/net/pfil.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.h
---- sys/net/pfil.h	23 Feb 2010 14:43:52 -0000	1.1.1.1
-+++ sys/net/pfil.h	23 Feb 2010 14:59:55 -0000
+--- sys/net/pfil.h	24 Mar 2010 22:16:41 -0000	1.1.1.1
++++ sys/net/pfil.h	1 Apr 2010 23:30:56 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
@@ -278,12 +278,12 @@ diff -u -r1.1.1.1 pfil.h
  int	pfil_remove_hook(int (*func)(void *, struct mbuf **, struct ifnet *,
 Index: sys/netinet/ip_input.c
 ===================================================================
-RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ip_input.c,v
-retrieving revision 1.2
-diff -u -r1.2 ip_input.c
---- sys/netinet/ip_input.c	23 Feb 2010 14:52:31 -0000	1.2
-+++ sys/netinet/ip_input.c	23 Feb 2010 15:04:41 -0000
-@@ -328,6 +328,9 @@
+RCS file: /root/freebsd/test/repo/src/sys/netinet/ip_input.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_input.c
+--- sys/netinet/ip_input.c	24 Mar 2010 22:16:42 -0000	1.1.1.1
++++ sys/netinet/ip_input.c	1 Apr 2010 23:30:56 -0000
+@@ -324,6 +324,9 @@
  	if ((i = pfil_head_register(&V_inet_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -295,42 +295,31 @@ diff -u -r1.2 ip_input.c
  	TUNABLE_INT_FETCH("net.inet.ip.output_flowtable_size",
 Index: sys/netinet/ipfw/ip_fw_pfil.c
 ===================================================================
-RCS file: /root/freebsd/pfsense/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
-retrieving revision 1.3
-diff -u -r1.3 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	23 Feb 2010 14:52:31 -0000	1.3
-+++ sys/netinet/ipfw/ip_fw_pfil.c	23 Feb 2010 14:59:55 -0000
-@@ -456,9 +456,9 @@
- 	if (pfh_inet == NULL)
+RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_fw_pfil.c
+--- sys/netinet/ipfw/ip_fw_pfil.c	24 Mar 2010 22:16:43 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_pfil.c	1 Apr 2010 23:33:32 -0000
+@@ -334,7 +334,11 @@
+ 	if (pfh == NULL)
  		return ENOENT;
  
--	(void)pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK,
-+	(void)pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK,
- 	    pfh_inet);
--	(void)pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK,
-+	(void)pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", PFIL_OUT | PFIL_WAITOK,
- 	    pfh_inet);
- 
- 	return 0;
-@@ -491,9 +491,9 @@
- 	if (pfh_inet6 == NULL)
- 		return ENOENT;
- 
--	(void)pfil_add_hook(ipfw_check_in, NULL, PFIL_IN | PFIL_WAITOK,
-+	(void)pfil_add_named_hook(ipfw_check_in, NULL, "ipfw", PFIL_IN | PFIL_WAITOK,
- 	    pfh_inet6);
--	(void)pfil_add_hook(ipfw_check_out, NULL, PFIL_OUT | PFIL_WAITOK,
-+	(void)pfil_add_named_hook(ipfw_check_out, NULL, "ipfw", PFIL_OUT | PFIL_WAITOK,
- 	    pfh_inet6);
+-	(void) (onoff ? pfil_add_hook : pfil_remove_hook)
++	if (onoff)
++	(void) pfil_add_hook
++	    (ipfw_check_hook, NULL, "ipfw", PFIL_IN | PFIL_OUT | PFIL_WAITOK, pfh);
++	else
++	(void) pfil_remove_hook
+ 	    (ipfw_check_hook, NULL, PFIL_IN | PFIL_OUT | PFIL_WAITOK, pfh);
  
  	return 0;
 Index: sys/netinet6/ip6_input.c
 ===================================================================
-RCS file: /root/freebsd/pfsense/repo/src/sys/netinet6/ip6_input.c,v
+RCS file: /root/freebsd/test/repo/src/sys/netinet6/ip6_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip6_input.c
---- sys/netinet6/ip6_input.c	23 Feb 2010 14:43:54 -0000	1.1.1.1
-+++ sys/netinet6/ip6_input.c	23 Feb 2010 15:07:21 -0000
+--- sys/netinet6/ip6_input.c	24 Mar 2010 22:16:44 -0000	1.1.1.1
++++ sys/netinet6/ip6_input.c	1 Apr 2010 23:30:56 -0000
 @@ -152,6 +152,7 @@
  struct rwlock in6_ifaddr_lock;
  RW_SYSINIT(in6_ifaddr_lock, &in6_ifaddr_lock, "in6_ifaddr_lock");
