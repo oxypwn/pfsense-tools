@@ -46,6 +46,8 @@ PORTSTOBUILD="
 ipsec-tools-devel			/usr/ports/security/ipsec-tools-devel	/usr/local/sbin/racoon
 grub						/usr/ports/sysutils/grub				/usr/local/sbin/grub
 ipfw-classifyd				/usr/ports/net/ipfw-classifyd			/usr/local/sbin/ipfw-classifyd
+check_reload_status				/usr/ports/sysutils/check_reload_status			/usr/local/sbin/check_reload_status
+dhcplease					/usr/ports/sysutils/dhcplease				/usr/local/sbin/dhcpleases
 filterdns					/usr/ports/net/filterdns				/usr/local/sbin/filterdns
 apinger						/usr/ports/net/apinger					/usr/local/sbin/apinger
 rrdtool						/usr/ports/databases/rrdtool			/usr/local/bin/rrdtool
