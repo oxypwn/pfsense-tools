@@ -441,7 +441,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +			s->src_node->conn++;
 +		}
 +		if (state->src_node != NULL) {
-+                        s->src_node = state->source_node;
++                        s->src_node = state->src_node;
 +                        s->src_node->states++;
 +                }
 +		s->rt_kif = state->rt_kif;
