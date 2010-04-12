@@ -1,11 +1,15 @@
 Index: Makefile
 ===================================================================
-RCS file: /home/ncvs/src/sys/modules/ipfw/Makefile,v
-retrieving revision 1.26
-diff -u -r1.26 Makefile
---- Makefile	3 Jul 2007 12:46:06 -0000	1.26
-+++ Makefile	16 Apr 2008 00:38:56 -0000
-@@ -10,14 +10,13 @@
+--- Makefile	(revision 206501)
++++ Makefile	(working copy)
+@@ -6,21 +6,20 @@
+ 
+ KMOD=	ipfw
+ SRCS=	ip_fw2.c ip_fw_pfil.c
+-SRCS+=	ip_fw_dynamic.c ip_fw_log.c ip_fw_nat.c
++SRCS+=	ip_fw_dynamic.c ip_fw_log.c
+ SRCS+=	ip_fw_sockopt.c ip_fw_table.c
+ SRCS+=	opt_inet6.h opt_ipsec.h
  
  CFLAGS+= -DIPFIREWALL
  CFLAGS+= -I${.CURDIR}/../../contrib/pf
@@ -18,9 +22,10 @@ diff -u -r1.26 Makefile
 -#If you want it to pass all packets by default
 -#CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
 -#
-+
+ 
 +CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
 +CFLAGS+= -DIPFIREWALL_FORWARD
- 
++
  .if !defined(KERNBUILDDIR)
  .if ${MK_INET6_SUPPORT} != "no"
+ opt_inet6.h:
