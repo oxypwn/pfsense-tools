@@ -50,5 +50,4 @@
 ~~pfTSO.RELENG_8.diff~
 ~~tcpmd5_RST_timeout.RELENG_8.diff~
 ~~wpa_correct_mac_address.RELENG_8.diff~
-~~if_em_vlan_txcsum.RELENG_8.diff~
 ~~pf_route-to_fragemnts.RELENG_8.diff~
