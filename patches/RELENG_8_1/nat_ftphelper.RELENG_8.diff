@@ -3,8 +3,8 @@ Index: sys/conf/files
 RCS file: /root/freebsd/test/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	2 Apr 2010 18:20:29 -0000	1.2
-+++ sys/conf/files	2 Apr 2010 18:21:28 -0000
+--- sys/conf/files	13 Apr 2010 18:47:36 -0000	1.2
++++ sys/conf/files	13 Apr 2010 18:59:58 -0000
 @@ -365,6 +365,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -17,10 +17,10 @@ diff -u -r1.2 files
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.5
-diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	2 Apr 2010 18:21:21 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	2 Apr 2010 22:04:27 -0000
+retrieving revision 1.6
+diff -u -r1.6 pf.c
+--- sys/contrib/pf/net/pf.c	13 Apr 2010 18:59:41 -0000	1.6
++++ sys/contrib/pf/net/pf.c	13 Apr 2010 18:59:58 -0000
 @@ -261,7 +261,7 @@
  int			 pf_tcp_track_full(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
@@ -220,8 +220,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	2 Apr 2010 22:07:08 -0000
-@@ -0,0 +1,722 @@
++++ sys/contrib/pf/net/pf_ftp.c	13 Apr 2010 19:02:09 -0000
+@@ -0,0 +1,723 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -362,11 +362,12 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +		if (ftp_message_type == FTP_UNKNOWN_MESSAGE)
 +			return;
 +		else if (nr != NULL) {
-+			NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
 +
 +			if ((ftp_message_type == FTP_227_REPLY ||
 +		    	    ftp_message_type == FTP_229_REPLY) && nr->action == PF_NAT)
 +				return;
++
++			NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
 +		}
 +
 +		s = pool_get(&pf_state_pl, PR_NOWAIT);
@@ -947,10 +948,10 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.5
-diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	2 Apr 2010 18:21:21 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	2 Apr 2010 18:21:28 -0000
+retrieving revision 1.7
+diff -u -r1.7 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	13 Apr 2010 18:59:41 -0000	1.7
++++ sys/contrib/pf/net/pfvar.h	13 Apr 2010 18:59:58 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -978,8 +979,8 @@ Index: sys/modules/pf/Makefile
 RCS file: /root/freebsd/test/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	2 Apr 2010 18:18:05 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	2 Apr 2010 18:21:28 -0000
+--- sys/modules/pf/Makefile	13 Apr 2010 18:45:23 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	13 Apr 2010 18:59:58 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
