@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/pfsense/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.7
-diff -u -r1.7 pf.c
---- sys/contrib/pf/net/pf.c	23 Feb 2010 15:24:32 -0000	1.7
-+++ sys/contrib/pf/net/pf.c	23 Feb 2010 15:36:04 -0000
-@@ -6540,6 +6540,7 @@
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.8
+diff -u -r1.8 pf.c
+--- sys/contrib/pf/net/pf.c	15 Apr 2010 23:58:37 -0000	1.8
++++ sys/contrib/pf/net/pf.c	15 Apr 2010 23:58:57 -0000
+@@ -6615,6 +6615,7 @@
  	m0->m_pkthdr.csum_flags &= ifp->if_hwassist;
  
  	if (ntohs(ip->ip_len) <= ifp->if_mtu ||
@@ -13,7 +13,7 @@ diff -u -r1.7 pf.c
  	    (ifp->if_hwassist & CSUM_FRAGMENT &&
  		((ip->ip_off & htons(IP_DF)) == 0))) {
  		/*
-@@ -6556,6 +6557,7 @@
+@@ -6631,6 +6632,7 @@
  				ip->ip_sum = in_cksum(m0, ip->ip_hl << 2);
  			}
  		}
@@ -21,7 +21,7 @@ diff -u -r1.7 pf.c
  		PF_UNLOCK();
  		error = (*ifp->if_output)(ifp, m0, sintosa(dst), ro);
  		PF_LOCK();
-@@ -6614,7 +6616,7 @@
+@@ -6689,7 +6691,7 @@
  	 * Too large for interface; fragment if possible.
  	 * Must be able to put at least 8 bytes per fragment.
  	 */
@@ -30,7 +30,7 @@ diff -u -r1.7 pf.c
  		KMOD_IPSTAT_INC(ips_cantfrag);
  		if (r->rt != PF_DUPTO) {
  #ifdef __FreeBSD__
-@@ -6657,6 +6659,7 @@
+@@ -6732,6 +6734,7 @@
  		m0->m_nextpkt = 0;
  #ifdef __FreeBSD__
  		if (error == 0) {
