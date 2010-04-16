@@ -182,7 +182,7 @@ diff -u -r1.3 pf.c
  	} while (0)
  
 +#define PF_DIVERT_MAXPACKETS_REACHED()						\
-+	do {
++	do {									\
 +		if (r->spare1 &&						\
 +		    (*state)->packets[direction == PF_OUT] > r->spare1)		\
 +			/* fake that divert already happened */			\
