@@ -1,12 +1,12 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.69.2.3
-diff -u -r1.69.2.3 pf.c
---- sys/contrib/pf/net/pf.c	23 Jan 2010 00:32:19 -0000	1.69.2.3
-+++ sys/contrib/pf/net/pf.c	21 Mar 2010 18:04:22 -0000
-@@ -6494,7 +6494,7 @@
- 		if (error == 0) {
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.9
+diff -u -r1.9 pf.c
+--- sys/contrib/pf/net/pf.c	15 Apr 2010 23:59:18 -0000	1.9
++++ sys/contrib/pf/net/pf.c	15 Apr 2010 23:59:53 -0000
+@@ -6737,7 +6737,7 @@
+ 			m0->m_flags &= ~(M_PROTOFLAGS);
  			PF_UNLOCK();
  			error = (*ifp->if_output)(ifp, m0, sintosa(dst),
 -			    NULL);
