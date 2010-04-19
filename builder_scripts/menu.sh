@@ -214,15 +214,15 @@ $TWITTER_SNAPSHOTS_USERNAME \
 $TWITTER_SNAPSHOTS_PASSWORD
 		get_text "Enter the complete path to a overlay directory or tarball (optional)"
 		if [ "$get_text_value" != "" ]; then
- 			echo 'custom_overlay="$get_text_value"' >> pfsense-build.conf
+			echo "custom_overlay=\"$get_text_value\"" >> pfsense-build.conf
 		fi
 		get_text "Enter the custom GIT pfSense repo (optional)"
 		if [ "$get_text_value" != "" ]; then
- 			echo 'GIT_REPO="$get_text_value"' >> pfsense-build.conf
+			echo "GIT_REPO=\"$get_text_value\"" >> pfsense-build.conf
 		fi
 		get_text "Enter the custom ARCH (optional)"
 		if [ "$get_text_value" != "" ]; then
- 			echo 'ARCH="$get_text_value"' >> pfsense-build.conf
+			echo "ARCH=\"$get_text_value\"" >> pfsense-build.conf
 		fi
 		clear
 		cat pfsense-build.conf
