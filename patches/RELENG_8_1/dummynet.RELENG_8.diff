@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
---- contrib/pf/pfctl/parse.y	21 Apr 2010 20:47:47 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	21 Apr 2010 20:48:01 -0000
+--- contrib/pf/pfctl/parse.y	21 Apr 2010 22:56:18 -0000	1.2
++++ contrib/pf/pfctl/parse.y	21 Apr 2010 22:56:25 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -137,8 +137,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	21 Apr 2010 20:47:47 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	21 Apr 2010 20:48:01 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	21 Apr 2010 22:56:18 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	21 Apr 2010 22:56:25 -0000
 @@ -991,6 +991,14 @@
  	}
  	if (r->label[0])
@@ -159,8 +159,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	21 Apr 2010 20:47:47 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	21 Apr 2010 21:46:39 -0000
+--- sys/contrib/pf/net/pf.c	21 Apr 2010 22:56:18 -0000	1.2
++++ sys/contrib/pf/net/pf.c	21 Apr 2010 22:58:47 -0000
 @@ -135,6 +135,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -172,12 +172,15 @@ diff -u -r1.2 pf.c
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
  #endif
-@@ -381,6 +385,16 @@
+@@ -381,6 +385,19 @@
  		s->rule.ptr->states--;			\
  	} while (0)
  
-+#define PACKET_LOOPED()								\
++#define PPACKET_LOOPED()							\
 +	pd->pf_mtag->flags & PF_DN_TAG_PRESENT
++
++#define PACKET_LOOPED()								\
++	pd.pf_mtag->flags & PF_DN_TAG_PRESENT
 +
 +#define PF_STATE_LOOP_BYPASS()							\
 +	do {									\
@@ -189,7 +192,7 @@ diff -u -r1.2 pf.c
  struct pf_src_tree tree_src_tracking;
  
  struct pf_state_tree_id tree_id;
-@@ -5142,13 +5156,14 @@
+@@ -5142,13 +5159,14 @@
      u_short *reason)
  {
  	struct pf_state_cmp	 key;
@@ -201,11 +204,11 @@ diff -u -r1.2 pf.c
  	key.af = pd->af;
  	key.proto = IPPROTO_TCP;
 -	if (direction == PF_IN)	{
-+	if ((PACKET_LOOPED() && direction == PF_OUT) || direction == PF_IN)	{
++	if ((PPACKET_LOOPED() && direction == PF_OUT) || direction == PF_IN)	{
  		PF_ACPY(&key.ext.addr, pd->src, key.af);
  		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
  		key.ext.port = th->th_sport;
-@@ -5161,6 +5176,7 @@
+@@ -5161,6 +5179,7 @@
  	}
  
  	STATE_LOOKUP();
@@ -213,7 +216,7 @@ diff -u -r1.2 pf.c
  
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
-@@ -5327,11 +5343,12 @@
+@@ -5327,11 +5346,12 @@
  {
  	struct pf_state_peer	*src, *dst;
  	struct pf_state_cmp	 key;
@@ -223,11 +226,11 @@ diff -u -r1.2 pf.c
  	key.af = pd->af;
  	key.proto = IPPROTO_UDP;
 -	if (direction == PF_IN)	{
-+	if ((PACKET_LOOPED() && direction == PF_OUT) || direction == PF_IN)	{
++	if ((PPACKET_LOOPED() && direction == PF_OUT) || direction == PF_IN)	{
  		PF_ACPY(&key.ext.addr, pd->src, key.af);
  		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
  		key.ext.port = uh->uh_sport;
-@@ -5344,6 +5361,7 @@
+@@ -5344,6 +5364,7 @@
  	}
  
  	STATE_LOOKUP();
@@ -235,7 +238,7 @@ diff -u -r1.2 pf.c
  
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
-@@ -5387,6 +5405,7 @@
+@@ -5387,6 +5408,7 @@
      struct mbuf *m, int off, void *h, struct pf_pdesc *pd, u_short *reason)
  {
  	struct pf_addr	*saddr = pd->src, *daddr = pd->dst;
@@ -243,16 +246,16 @@ diff -u -r1.2 pf.c
  	u_int16_t	 icmpid = 0;		/* make the compiler happy */
  	u_int16_t	*icmpsum = NULL;	/* make the compiler happy */
  	u_int8_t	 icmptype = 0;		/* make the compiler happy */
-@@ -5431,7 +5450,7 @@
+@@ -5431,7 +5453,7 @@
  		 */
  		key.af = pd->af;
  		key.proto = pd->proto;
 -		if (direction == PF_IN)	{
-+		if ((PACKET_LOOPED() && direction == PF_OUT) || direction == PF_IN)	{
++		if ((PPACKET_LOOPED() && direction == PF_OUT) || direction == PF_IN)	{
  			PF_ACPY(&key.ext.addr, pd->src, key.af);
  			PF_ACPY(&key.gwy.addr, pd->dst, key.af);
  			key.ext.port = 0;
-@@ -5444,6 +5463,7 @@
+@@ -5444,6 +5466,7 @@
  		}
  
  		STATE_LOOKUP();
@@ -260,7 +263,7 @@ diff -u -r1.2 pf.c
  
  		(*state)->expire = time_second;
  		(*state)->timeout = PFTM_ICMP_ERROR_REPLY;
-@@ -5978,10 +5998,11 @@
+@@ -5978,10 +6001,11 @@
  {
  	struct pf_state_peer	*src, *dst;
  	struct pf_state_cmp	 key;
@@ -269,11 +272,11 @@ diff -u -r1.2 pf.c
  	key.af = pd->af;
  	key.proto = pd->proto;
 -	if (direction == PF_IN)	{
-+	if ((PACKET_LOOPED() && direction == PF_OUT) || direction == PF_IN) {
++	if ((PPACKET_LOOPED() && direction == PF_OUT) || direction == PF_IN) {
  		PF_ACPY(&key.ext.addr, pd->src, key.af);
  		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
  		key.ext.port = 0;
-@@ -5994,6 +6015,7 @@
+@@ -5994,6 +6018,7 @@
  	}
  
  	STATE_LOOKUP();
@@ -281,7 +284,7 @@ diff -u -r1.2 pf.c
  
  	if (direction == (*state)->direction) {
  		src = &(*state)->src;
-@@ -6954,6 +6976,9 @@
+@@ -6954,6 +6979,9 @@
  	int			 off, dirndx, pqid = 0;
  
  #ifdef __FreeBSD__
@@ -291,7 +294,7 @@ diff -u -r1.2 pf.c
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -7024,8 +7049,19 @@
+@@ -7024,8 +7052,19 @@
  		goto done;
  	}
  
@@ -312,7 +315,7 @@ diff -u -r1.2 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7063,6 +7099,11 @@
+@@ -7063,6 +7102,11 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -324,7 +327,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7104,6 +7145,10 @@
+@@ -7104,6 +7148,10 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -335,7 +338,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7224,6 +7269,45 @@
+@@ -7224,6 +7272,45 @@
  	}
  #endif /* ALTQ */
  
@@ -381,7 +384,7 @@ diff -u -r1.2 pf.c
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7236,6 +7320,9 @@
+@@ -7236,6 +7323,9 @@
  	    (ntohl(pd.dst->v4.s_addr) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)
  		pd.pf_mtag->flags |= PF_TAG_TRANSLATE_LOCALHOST;
  
@@ -391,7 +394,7 @@ diff -u -r1.2 pf.c
  	if (log) {
  		struct pf_rule *lr;
  
-@@ -7312,7 +7399,7 @@
+@@ -7312,7 +7402,7 @@
  			    tr->dst.neg);
  	}
  
@@ -400,7 +403,7 @@ diff -u -r1.2 pf.c
  	if (action == PF_SYNPROXY_DROP) {
  		m_freem(*m0);
  		*m0 = NULL;
-@@ -7350,6 +7437,9 @@
+@@ -7350,6 +7440,9 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
@@ -410,7 +413,7 @@ diff -u -r1.2 pf.c
  	PF_LOCK();
  #endif
  
-@@ -7417,9 +7507,16 @@
+@@ -7417,9 +7510,16 @@
  		log = 1;
  		goto done;
  	}
@@ -428,7 +431,7 @@ diff -u -r1.2 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7525,6 +7622,11 @@
+@@ -7525,6 +7625,11 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -440,7 +443,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7565,6 +7667,10 @@
+@@ -7565,6 +7670,10 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -451,7 +454,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7687,6 +7793,39 @@
+@@ -7687,6 +7796,39 @@
  	}
  #endif /* ALTQ */
  
@@ -491,7 +494,7 @@ diff -u -r1.2 pf.c
  	if (dir == PF_IN && action == PF_PASS && (pd.proto == IPPROTO_TCP ||
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
-@@ -7694,6 +7833,9 @@
+@@ -7694,6 +7836,9 @@
  	    IN6_IS_ADDR_LOOPBACK(&pd.dst->v6))
  		pd.pf_mtag->flags |= PF_TAG_TRANSLATE_LOCALHOST;
  
@@ -501,7 +504,7 @@ diff -u -r1.2 pf.c
  	if (log) {
  		struct pf_rule *lr;
  
-@@ -7770,7 +7912,7 @@
+@@ -7770,7 +7915,7 @@
  			    tr->dst.neg);
  	}
  
@@ -515,8 +518,8 @@ Index: sys/contrib/pf/net/pf_mtag.h
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	21 Apr 2010 20:47:47 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	21 Apr 2010 20:48:01 -0000
+--- sys/contrib/pf/net/pf_mtag.h	21 Apr 2010 22:56:18 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	21 Apr 2010 22:56:25 -0000
 @@ -37,6 +37,8 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -531,8 +534,8 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Apr 2010 20:47:47 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	21 Apr 2010 20:48:01 -0000
+--- sys/contrib/pf/net/pfvar.h	21 Apr 2010 22:56:19 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	21 Apr 2010 22:56:25 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
