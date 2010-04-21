@@ -3,8 +3,8 @@ Index: sys/conf/files
 RCS file: /root/freebsd/test/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	21 Apr 2010 22:56:18 -0000	1.2
-+++ sys/conf/files	21 Apr 2010 23:05:02 -0000
+--- sys/conf/files	21 Apr 2010 23:42:14 -0000	1.2
++++ sys/conf/files	21 Apr 2010 23:43:16 -0000
 @@ -365,6 +365,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -19,8 +19,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.5
 diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	21 Apr 2010 23:04:47 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	21 Apr 2010 23:05:53 -0000
+--- sys/contrib/pf/net/pf.c	21 Apr 2010 23:43:11 -0000	1.5
++++ sys/contrib/pf/net/pf.c	21 Apr 2010 23:43:36 -0000
 @@ -261,7 +261,7 @@
  int			 pf_tcp_track_full(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
@@ -191,7 +191,7 @@ diff -u -r1.5 pf.c
  	if ((*state)->src.state == PF_TCPS_PROXY_SRC) {
  		if (direction != (*state)->direction) {
  			REASON_SET(reason, PFRES_SYNPROXY);
-@@ -5333,7 +5424,7 @@
+@@ -5333,10 +5424,11 @@
  			return (PF_DROP);
  	} else {
  		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
@@ -200,7 +200,11 @@ diff -u -r1.5 pf.c
  			return (PF_DROP);
  	}
  
-@@ -7180,6 +7271,10 @@
++tcpnatpas:
+ 	/* translate source/destination address, if necessary */
+ 	if (STATE_TRANSLATE(*state)) {
+ 		if (direction == PF_OUT)
+@@ -7180,6 +7272,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -216,7 +220,7 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	21 Apr 2010 23:05:02 -0000
++++ sys/contrib/pf/net/pf_ftp.c	21 Apr 2010 23:43:16 -0000
 @@ -0,0 +1,723 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
@@ -946,8 +950,8 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.5
 diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Apr 2010 23:04:35 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	21 Apr 2010 23:05:02 -0000
+--- sys/contrib/pf/net/pfvar.h	21 Apr 2010 23:42:56 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	21 Apr 2010 23:43:16 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -975,8 +979,8 @@ Index: sys/modules/pf/Makefile
 RCS file: /root/freebsd/test/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	21 Apr 2010 22:54:45 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	21 Apr 2010 23:05:02 -0000
+--- sys/modules/pf/Makefile	21 Apr 2010 23:41:03 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	21 Apr 2010 23:43:16 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
