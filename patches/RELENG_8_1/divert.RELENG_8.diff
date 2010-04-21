@@ -192,7 +192,7 @@ diff -u -r1.3 pf.c
 +			return (PF_PASS);					\
 +		else if (r->divert &&						\
 +		    (pd->pf_mtag->flags & PF_DIVERT_TAG_PRESENT))		\
-+			return (PF_PASS);
++			return (PF_PASS);					\
 +	} while(0)
 +
 +#define PF_DIVERT_MAXPACKETS_REACHED()						\
