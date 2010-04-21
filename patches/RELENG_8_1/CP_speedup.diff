@@ -636,8 +636,8 @@ diff -u -r1.1.1.1 ip_fw_table.c
 +	struct table_entry *ent;
 +	struct sockaddr_in sa;
 +
-+	if (tbl >= IPFW_TABLES_MAX)
-+		return (NULL);
++	if (arg->tbl >= IPFW_TABLES_MAX)
++		return (0);
 +	rnh = ch->tables[arg->tbl];
 +	sa.sin_len = 8;
 +	sa.sin_addr.s_addr = arg->addr;
