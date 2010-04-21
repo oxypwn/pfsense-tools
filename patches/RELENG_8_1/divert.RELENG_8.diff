@@ -189,7 +189,7 @@ diff -u -r1.3 pf.c
 +		if ((r->dnpipe ||						\
 +		    ((*state)->local_flags & PFSTATE_DIVERT_DNCOOKIE)) &&	\
 +		    (pd->pf_mtag->flags & PF_DN_TAG_PRESENT))			\
-+			return (PF_PASS);
++			return (PF_PASS);					\
 +		else if (r->divert &&						\
 +		    (pd->pf_mtag->flags & PF_DIVERT_TAG_PRESENT))		\
 +			return (PF_PASS);
