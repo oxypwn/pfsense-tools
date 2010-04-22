@@ -1,11 +1,11 @@
 Index: pf.c
 ===================================================================
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.6
-diff -u -r1.6 pf.c
---- pf.c	21 Apr 2010 21:55:34 -0000	1.6
-+++ pf.c	21 Apr 2010 21:55:51 -0000
-@@ -7588,7 +7588,9 @@
+retrieving revision 1.7
+diff -u -r1.7 pf.c
+--- pf.c	22 Apr 2010 18:10:22 -0000	1.7
++++ pf.c	22 Apr 2010 18:10:45 -0000
+@@ -7570,7 +7570,9 @@
  		m_freem(*m0);
  		*m0 = NULL;
  		action = PF_PASS;
