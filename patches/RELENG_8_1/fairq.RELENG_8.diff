@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /usr/repo/HEAD/contrib/pf/pfctl/parse.y,v
+RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 parse.y
---- contrib/pf/pfctl/parse.y	6 Apr 2009 15:47:03 -0000	1.1.1.1
-+++ contrib/pf/pfctl/parse.y	7 Apr 2009 09:49:10 -0000
+--- contrib/pf/pfctl/parse.y	22 Apr 2010 17:02:56 -0000	1.1.1.1
++++ contrib/pf/pfctl/parse.y	22 Apr 2010 17:04:01 -0000
 @@ -44,6 +44,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -39,7 +39,7 @@ diff -u -r1.1.1.1 parse.y
 +%token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
  %token	LOAD RULESET_OPTIMIZATION
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
- %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH
+ %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY
 @@ -462,6 +465,7 @@
  %type	<v.number>		cbqflags_list cbqflags_item
  %type	<v.number>		priqflags_list priqflags_item
@@ -126,7 +126,7 @@ diff -u -r1.1.1.1 parse.y
  qassign		: /* empty */		{ $$ = NULL; }
  		| qassign_item		{ $$ = $1; }
  		| '{' qassign_list '}'	{ $$ = $2; }
-@@ -4460,7 +4528,8 @@
+@@ -4483,7 +4551,8 @@
  				if (n == NULL)
  					err(1, "expand_altq: calloc");
  				if (pa.scheduler == ALTQT_CBQ ||
@@ -136,7 +136,7 @@ diff -u -r1.1.1.1 parse.y
  					if (strlcpy(n->parent, qname,
  					    sizeof(n->parent)) >=
  					    sizeof(n->parent))
-@@ -4887,6 +4956,7 @@
+@@ -4910,6 +4979,7 @@
  		{ "bitmask",		BITMASK},
  		{ "block",		BLOCK},
  		{ "block-policy",	BLOCKPOLICY},
@@ -144,7 +144,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "cbq",		CBQ},
  		{ "code",		CODE},
  		{ "crop",		FRAGCROP},
-@@ -4894,6 +4964,7 @@
+@@ -4917,6 +4987,7 @@
  		{ "drop",		DROP},
  		{ "drop-ovl",		FRAGDROP},
  		{ "dup-to",		DUPTO},
@@ -152,7 +152,7 @@ diff -u -r1.1.1.1 parse.y
  		{ "fastroute",		FASTROUTE},
  		{ "file",		FILENAME},
  		{ "fingerprints",	FINGERPRINTS},
-@@ -4906,6 +4977,7 @@
+@@ -4929,6 +5000,7 @@
  		{ "global",		GLOBAL},
  		{ "group",		GROUP},
  		{ "hfsc",		HFSC},
@@ -162,11 +162,11 @@ diff -u -r1.1.1.1 parse.y
  		{ "icmp6-type",		ICMP6TYPE},
 Index: contrib/pf/pfctl/pfctl_altq.c
 ===================================================================
-RCS file: /usr/repo/HEAD/contrib/pf/pfctl/pfctl_altq.c,v
+RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl_altq.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl_altq.c
---- contrib/pf/pfctl/pfctl_altq.c	6 Apr 2009 15:47:03 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl_altq.c	7 Apr 2009 09:49:10 -0000
+--- contrib/pf/pfctl/pfctl_altq.c	22 Apr 2010 17:02:56 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_altq.c	22 Apr 2010 17:04:01 -0000
 @@ -42,6 +42,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -485,11 +485,11 @@ diff -u -r1.1.1.1 pfctl_altq.c
 +}
 Index: contrib/pf/pfctl/pfctl_parser.h
 ===================================================================
-RCS file: /usr/repo/HEAD/contrib/pf/pfctl/pfctl_parser.h,v
+RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl_parser.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl_parser.h
---- contrib/pf/pfctl/pfctl_parser.h	6 Apr 2009 15:47:03 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl_parser.h	7 Apr 2009 09:49:10 -0000
+--- contrib/pf/pfctl/pfctl_parser.h	22 Apr 2010 17:02:56 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_parser.h	22 Apr 2010 17:04:01 -0000
 @@ -149,12 +149,27 @@
  	int			flags;
  };
@@ -520,11 +520,11 @@ diff -u -r1.1.1.1 pfctl_parser.h
  
 Index: contrib/pf/pfctl/pfctl_qstats.c
 ===================================================================
-RCS file: /usr/repo/HEAD/contrib/pf/pfctl/pfctl_qstats.c,v
+RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl_qstats.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl_qstats.c
---- contrib/pf/pfctl/pfctl_qstats.c	6 Apr 2009 15:47:03 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl_qstats.c	7 Apr 2009 09:49:10 -0000
+--- contrib/pf/pfctl/pfctl_qstats.c	22 Apr 2010 17:02:56 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_qstats.c	22 Apr 2010 17:04:01 -0000
 @@ -38,6 +38,7 @@
  #include <altq/altq_cbq.h>
  #include <altq/altq_priq.h>
@@ -602,7 +602,7 @@ Index: sbin/pfctl/missing/altq/altq_fairq.h
 RCS file: sbin/pfctl/missing/altq/altq_fairq.h
 diff -N sbin/pfctl/missing/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sbin/pfctl/missing/altq/altq_fairq.h	7 Apr 2009 09:49:10 -0000
++++ sbin/pfctl/missing/altq/altq_fairq.h	22 Apr 2010 17:04:01 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -742,12 +742,12 @@ diff -N sbin/pfctl/missing/altq/altq_fairq.h
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
 Index: sys/conf/NOTES
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/conf/NOTES,v
+RCS file: /root/freebsd/test/repo/src/sys/conf/NOTES,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 NOTES
---- sys/conf/NOTES	6 Apr 2009 15:44:16 -0000	1.1.1.1
-+++ sys/conf/NOTES	7 Apr 2009 09:49:10 -0000
-@@ -629,6 +629,7 @@
+--- sys/conf/NOTES	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/conf/NOTES	22 Apr 2010 17:04:01 -0000
+@@ -647,6 +647,7 @@
  options 	ALTQ_RED	# Random Early Detection
  options 	ALTQ_RIO	# RED In/Out
  options 	ALTQ_HFSC	# Hierarchical Packet Scheduler
@@ -757,12 +757,12 @@ diff -u -r1.1.1.1 NOTES
  options 	ALTQ_NOPCC	# Required if the TSC is unusable
 Index: sys/conf/files
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/conf/files,v
+RCS file: /root/freebsd/test/repo/src/sys/conf/files,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 files
---- sys/conf/files	6 Apr 2009 15:44:16 -0000	1.1.1.1
-+++ sys/conf/files	7 Apr 2009 09:49:10 -0000
-@@ -113,6 +113,8 @@
+--- sys/conf/files	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/conf/files	22 Apr 2010 17:04:01 -0000
+@@ -133,6 +133,8 @@
  contrib/altq/altq/altq_cdnr.c	optional altq
  contrib/altq/altq/altq_hfsc.c	optional altq \
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
@@ -773,12 +773,12 @@ diff -u -r1.1.1.1 files
  contrib/altq/altq/altq_red.c	optional altq \
 Index: sys/conf/options
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/conf/options,v
+RCS file: /root/freebsd/test/repo/src/sys/conf/options,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 options
---- sys/conf/options	6 Apr 2009 15:44:16 -0000	1.1.1.1
-+++ sys/conf/options	7 Apr 2009 10:25:58 -0000
-@@ -357,6 +357,7 @@
+--- sys/conf/options	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/conf/options	22 Apr 2010 17:04:01 -0000
+@@ -363,6 +363,7 @@
  ALTQ_CDNR		opt_altq.h
  ALTQ_DEBUG		opt_altq.h
  ALTQ_HFSC		opt_altq.h
@@ -788,11 +788,11 @@ diff -u -r1.1.1.1 options
  ALTQ_RED		opt_altq.h
 Index: sys/contrib/altq/altq/altq.h
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/altq/altq/altq.h,v
+RCS file: /root/freebsd/test/repo/src/sys/contrib/altq/altq/altq.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 altq.h
---- sys/contrib/altq/altq/altq.h	6 Apr 2009 15:44:16 -0000	1.1.1.1
-+++ sys/contrib/altq/altq/altq.h	7 Apr 2009 09:49:10 -0000
+--- sys/contrib/altq/altq/altq.h	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/contrib/altq/altq/altq.h	22 Apr 2010 17:04:01 -0000
 @@ -63,7 +63,8 @@
  #define	ALTQT_BLUE		10	/* blue */
  #define	ALTQT_PRIQ		11	/* priority queue */
@@ -808,7 +808,7 @@ Index: sys/contrib/altq/altq/altq_fairq.c
 RCS file: sys/contrib/altq/altq/altq_fairq.c
 diff -N sys/contrib/altq/altq/altq_fairq.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.c	7 Apr 2009 09:49:10 -0000
++++ sys/contrib/altq/altq/altq_fairq.c	22 Apr 2010 17:04:01 -0000
 @@ -0,0 +1,905 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1720,7 +1720,7 @@ Index: sys/contrib/altq/altq/altq_fairq.h
 RCS file: sys/contrib/altq/altq/altq_fairq.h
 diff -N sys/contrib/altq/altq/altq_fairq.h
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/altq/altq/altq_fairq.h	7 Apr 2009 09:49:10 -0000
++++ sys/contrib/altq/altq/altq_fairq.h	22 Apr 2010 17:04:01 -0000
 @@ -0,0 +1,136 @@
 +/*
 + * Copyright (c) 2008 The DragonFly Project.  All rights reserved.
@@ -1860,12 +1860,12 @@ diff -N sys/contrib/altq/altq/altq_fairq.h
 +#endif /* _ALTQ_ALTQ_FAIRQ_H_ */
 Index: sys/contrib/altq/altq/altq_subr.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/altq/altq/altq_subr.c,v
+RCS file: /root/freebsd/test/repo/src/sys/contrib/altq/altq/altq_subr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 altq_subr.c
---- sys/contrib/altq/altq/altq_subr.c	6 Apr 2009 15:44:16 -0000	1.1.1.1
-+++ sys/contrib/altq/altq/altq_subr.c	7 Apr 2009 09:49:11 -0000
-@@ -544,6 +544,11 @@
+--- sys/contrib/altq/altq/altq_subr.c	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/contrib/altq/altq/altq_subr.c	22 Apr 2010 17:04:02 -0000
+@@ -556,6 +556,11 @@
  		error = hfsc_pfattach(a);
  		break;
  #endif
@@ -1877,7 +1877,7 @@ diff -u -r1.1.1.1 altq_subr.c
  	default:
  		error = ENXIO;
  	}
-@@ -619,6 +624,11 @@
+@@ -631,6 +636,11 @@
  		error = hfsc_add_altq(a);
  		break;
  #endif
@@ -1889,7 +1889,7 @@ diff -u -r1.1.1.1 altq_subr.c
  	default:
  		error = ENXIO;
  	}
-@@ -655,6 +665,11 @@
+@@ -667,6 +677,11 @@
  		error = hfsc_remove_altq(a);
  		break;
  #endif
@@ -1901,7 +1901,7 @@ diff -u -r1.1.1.1 altq_subr.c
  	default:
  		error = ENXIO;
  	}
-@@ -688,6 +703,11 @@
+@@ -700,6 +715,11 @@
  		error = hfsc_add_queue(a);
  		break;
  #endif
@@ -1913,7 +1913,7 @@ diff -u -r1.1.1.1 altq_subr.c
  	default:
  		error = ENXIO;
  	}
-@@ -721,6 +741,11 @@
+@@ -733,6 +753,11 @@
  		error = hfsc_remove_queue(a);
  		break;
  #endif
@@ -1925,7 +1925,7 @@ diff -u -r1.1.1.1 altq_subr.c
  	default:
  		error = ENXIO;
  	}
-@@ -754,6 +779,11 @@
+@@ -766,6 +791,11 @@
  		error = hfsc_getqstats(a, ubuf, nbytes);
  		break;
  #endif
@@ -1939,11 +1939,11 @@ diff -u -r1.1.1.1 altq_subr.c
  	}
 Index: sys/contrib/altq/altq/altq_var.h
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/altq/altq/altq_var.h,v
+RCS file: /root/freebsd/test/repo/src/sys/contrib/altq/altq/altq_var.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 altq_var.h
---- sys/contrib/altq/altq/altq_var.h	6 Apr 2009 15:44:16 -0000	1.1.1.1
-+++ sys/contrib/altq/altq/altq_var.h	7 Apr 2009 09:49:11 -0000
+--- sys/contrib/altq/altq/altq_var.h	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/contrib/altq/altq/altq_var.h	22 Apr 2010 17:04:02 -0000
 @@ -261,5 +261,12 @@
  int	hfsc_remove_queue(struct pf_altq *);
  int	hfsc_getqstats(struct pf_altq *, void *, int *);
@@ -1959,12 +1959,12 @@ diff -u -r1.1.1.1 altq_var.h
  #endif /* _ALTQ_ALTQ_VAR_H_ */
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf.c
---- sys/contrib/pf/net/pf.c	6 Apr 2009 15:44:18 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf.c	7 Apr 2009 09:49:11 -0000
-@@ -611,6 +611,22 @@
+--- sys/contrib/pf/net/pf.c	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf.c	22 Apr 2010 17:04:02 -0000
+@@ -612,6 +612,22 @@
  	return (0);
  }
  
@@ -1987,7 +1987,7 @@ diff -u -r1.1.1.1 pf.c
  #ifdef INET6
  void
  pf_addrcpy(struct pf_addr *dst, struct pf_addr *src, sa_family_t af)
-@@ -7040,6 +7056,9 @@
+@@ -7183,6 +7199,9 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -1997,7 +1997,7 @@ diff -u -r1.1.1.1 pf.c
  		if (pqid || (pd.tos & IPTOS_LOWDELAY))
  			pd.pf_mtag->qid = r->pqid;
  		else
-@@ -7501,6 +7520,8 @@
+@@ -7644,6 +7663,8 @@
  
  #ifdef ALTQ
  	if (action == PF_PASS && r->qid) {
@@ -2008,11 +2008,11 @@ diff -u -r1.1.1.1 pf.c
  		else
 Index: sys/contrib/pf/net/pf_mtag.h
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/pf/net/pf_mtag.h,v
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	6 Apr 2009 15:44:18 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf_mtag.h	7 Apr 2009 09:49:11 -0000
+--- sys/contrib/pf/net/pf_mtag.h	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_mtag.h	22 Apr 2010 17:04:02 -0000
 @@ -42,6 +42,7 @@
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
  	u_int		 rtableid;	/* alternate routing table id */
@@ -2023,12 +2023,12 @@ diff -u -r1.1.1.1 pf_mtag.h
  	u_int8_t	 routed;
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /usr/repo/HEAD/sys/contrib/pf/net/pfvar.h,v
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfvar.h
---- sys/contrib/pf/net/pfvar.h	6 Apr 2009 15:44:18 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pfvar.h	7 Apr 2009 09:49:11 -0000
-@@ -1230,6 +1230,20 @@
+--- sys/contrib/pf/net/pfvar.h	22 Apr 2010 17:02:54 -0000	1.1.1.1
++++ sys/contrib/pf/net/pfvar.h	22 Apr 2010 17:04:02 -0000
+@@ -1233,6 +1233,20 @@
  	int		flags;
  };
  
@@ -2049,7 +2049,7 @@ diff -u -r1.1.1.1 pfvar.h
  struct pf_altq {
  	char			 ifname[IFNAMSIZ];
  
-@@ -1257,6 +1271,7 @@
+@@ -1260,6 +1274,7 @@
  		struct cbq_opts		 cbq_opts;
  		struct priq_opts	 priq_opts;
  		struct hfsc_opts	 hfsc_opts;
