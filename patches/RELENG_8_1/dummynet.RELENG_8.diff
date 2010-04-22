@@ -331,15 +331,6 @@ diff -u -r1.3 pf.c
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7312,7 +7390,7 @@
- 			    tr->dst.neg);
- 	}
- 
--
-+skiplogs:
- 	if (action == PF_SYNPROXY_DROP) {
- 		m_freem(*m0);
- 		*m0 = NULL;
 @@ -7350,6 +7428,9 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  

@@ -155,7 +155,7 @@ diff -u -r1.6 pf.c
 +                (*state)->src.seqlo = ntohl(th->th_seq);
 +                (*state)->src.seqhi = (*state)->src.seqlo + pd->tot_len - off - (th->th_off << 2) + 1;
 +                if ((th->th_flags & (TH_SYN|TH_ACK)) == TH_SYN &&
-+                    r->keep_state == PF_STATE_MODULATE) {
++                    (*state)->rule.ptr->keep_state == PF_STATE_MODULATE) {
 +                        /* Generate sequence number modulator */
 +#ifdef __FreeBSD__
 +                        while (((*state)->src.seqdiff =

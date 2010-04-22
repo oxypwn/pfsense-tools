@@ -183,7 +183,7 @@ diff -u -r1.4 pf.c
 +#define	PF_DIVERT_MAXPACKETS_REACHED()					\
 +	do {								\
 +		if (r->spare1 && 					\
-+		    s->packets[direction == PF_OUT] > r->spare1)	\
++		    s->packets[dir == PF_OUT] > r->spare1)	\
 +			/* fake that divert already happened */		\
 +			pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;	\
 +	} while(0)
