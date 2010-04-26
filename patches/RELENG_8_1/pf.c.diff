@@ -3,9 +3,9 @@ Index: pf.c
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.7
 diff -u -r1.7 pf.c
---- pf.c	23 Apr 2010 22:56:08 -0000	1.7
-+++ pf.c	23 Apr 2010 22:57:21 -0000
-@@ -7386,6 +7386,15 @@
+--- pf.c	26 Apr 2010 23:19:54 -0000	1.7
++++ pf.c	26 Apr 2010 23:20:53 -0000
+@@ -7383,6 +7383,15 @@
  		break;
  	}
  
@@ -21,7 +21,7 @@ diff -u -r1.7 pf.c
  	default:
  		action = pf_test_state_other(&s, dir, kif, &pd);
  		if (action == PF_PASS) {
-@@ -7891,6 +7900,13 @@
+@@ -7878,6 +7887,13 @@
  		break;
  	}
  
