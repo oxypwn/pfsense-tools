@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
---- contrib/pf/pfctl/parse.y	26 Apr 2010 22:40:37 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	26 Apr 2010 22:40:46 -0000
+--- contrib/pf/pfctl/parse.y	26 Apr 2010 23:12:24 -0000	1.2
++++ contrib/pf/pfctl/parse.y	26 Apr 2010 23:12:32 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -137,8 +137,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	26 Apr 2010 22:40:37 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	26 Apr 2010 22:40:46 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	26 Apr 2010 23:12:24 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	26 Apr 2010 23:12:32 -0000
 @@ -991,6 +991,14 @@
  	}
  	if (r->label[0])
@@ -159,8 +159,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	26 Apr 2010 22:40:38 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	26 Apr 2010 22:40:46 -0000
+--- sys/contrib/pf/net/pf.c	26 Apr 2010 23:12:24 -0000	1.2
++++ sys/contrib/pf/net/pf.c	26 Apr 2010 23:15:05 -0000
 @@ -135,6 +135,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -408,15 +408,14 @@ diff -u -r1.2 pf.c
  	PF_LOCK();
  #endif
  
-@@ -7417,9 +7558,16 @@
+@@ -7417,9 +7558,15 @@
  		log = 1;
  		goto done;
  	}
 +	
 +	if (ip_dn_io_ptr != NULL &&
-+                ((dn_tag = m_tag_find(m, MTAG_IPFW_RULE, NULL)) != NULL) &&
-+                ((struct ipfw_rule_ref *)(dn_tag+1))->rule_id == 0) {
-+                pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
++                ((dn_tag = m_tag_find(m, MTAG_IPFW_RULE, NULL)) != NULL)) {
++                pd.pf_mtag->flags |= PF_PACKET_LOOPED;
 +                m_tag_delete(m, dn_tag);
 +        }
  
@@ -426,7 +425,7 @@ diff -u -r1.2 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7525,6 +7673,11 @@
+@@ -7525,6 +7672,11 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -438,7 +437,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7565,6 +7718,10 @@
+@@ -7565,6 +7717,10 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -449,13 +448,12 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7687,6 +7844,39 @@
+@@ -7687,6 +7843,44 @@
  	}
  #endif /* ALTQ */
  
 +#ifdef __FreeBSD__
-+        if (r->dnpipe && ip_dn_io_ptr != NULL &&
-+                !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
++        if (r->dnpipe && ip_dn_io_ptr != NULL && !PACKET_LOOPED()) {
 +
 +			if (dir != r->direction && r->pdnpipe) {
 +                                dnflow.rule.info = r->pdnpipe;
@@ -480,16 +478,22 @@ diff -u -r1.2 pf.c
 +                        ip_dn_io_ptr(m0,
 +                                dir == PF_IN ? DIR_IN : DIR_OUT,
 +                                &dnflow);
-+                        *m0 = NULL;
-+                        return (action);
-+        }
++			if (*m0 != NULL) {
++				PF_LOCK();
++				pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
++			} else {
++                        	*m0 = NULL;
++                        	return (action);
++			}
++        } else
++		pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
 +continueprocessing:
 +#endif
 +
  	if (dir == PF_IN && action == PF_PASS && (pd.proto == IPPROTO_TCP ||
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
-@@ -7770,7 +7960,6 @@
+@@ -7770,7 +7964,6 @@
  			    tr->dst.neg);
  	}
  
@@ -502,8 +506,8 @@ Index: sys/contrib/pf/net/pf_mtag.h
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	26 Apr 2010 22:40:38 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	26 Apr 2010 22:41:15 -0000
+--- sys/contrib/pf/net/pf_mtag.h	26 Apr 2010 23:12:24 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	26 Apr 2010 23:12:32 -0000
 @@ -37,6 +37,8 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -518,8 +522,8 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	26 Apr 2010 22:40:38 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	26 Apr 2010 22:40:46 -0000
+--- sys/contrib/pf/net/pfvar.h	26 Apr 2010 23:12:24 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	26 Apr 2010 23:12:32 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
@@ -537,8 +541,8 @@ Index: sys/netinet/ipfw/ip_dn_io.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_dn_io.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dn_io.c
---- sys/netinet/ipfw/ip_dn_io.c	26 Apr 2010 22:39:48 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dn_io.c	26 Apr 2010 22:40:46 -0000
+--- sys/netinet/ipfw/ip_dn_io.c	26 Apr 2010 23:11:45 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dn_io.c	26 Apr 2010 23:12:32 -0000
 @@ -587,6 +587,7 @@
  			 * to carry reinject info.
  			 */
