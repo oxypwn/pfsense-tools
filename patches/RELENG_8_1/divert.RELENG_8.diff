@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.3
 diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	23 Apr 2010 22:44:22 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	23 Apr 2010 22:44:27 -0000
+--- contrib/pf/pfctl/parse.y	26 Apr 2010 23:16:04 -0000	1.3
++++ contrib/pf/pfctl/parse.y	26 Apr 2010 23:16:11 -0000
 @@ -129,6 +129,7 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
@@ -128,8 +128,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.3
 diff -u -r1.3 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	23 Apr 2010 22:44:22 -0000	1.3
-+++ contrib/pf/pfctl/pfctl_parser.c	23 Apr 2010 22:44:27 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	26 Apr 2010 23:16:04 -0000	1.3
++++ contrib/pf/pfctl/pfctl_parser.c	26 Apr 2010 23:16:11 -0000
 @@ -914,6 +914,12 @@
  			printf("max-src-conn %u", r->max_src_conn);
  			opts = 0;
@@ -157,8 +157,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.3
 diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	23 Apr 2010 22:44:22 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	23 Apr 2010 22:53:54 -0000
+--- sys/contrib/pf/net/pf.c	26 Apr 2010 23:16:04 -0000	1.3
++++ sys/contrib/pf/net/pf.c	26 Apr 2010 23:17:28 -0000
 @@ -138,6 +138,7 @@
  #include <netinet/ip_fw.h>
  #include <netinet/ipfw/ip_fw_private.h>
@@ -167,30 +167,94 @@ diff -u -r1.3 pf.c
  
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
-@@ -337,10 +338,20 @@
- #endif
- 
- #define PPACKET_LOOPED()						\
--	pd->pf_mtag->flags & PF_DN_TAG_PRESENT
-+	((pd->pf_mtag->flags & PF_DN_TAG_PRESENT) ||			\
-+	(pd->pf_mtag->flags & PF_DIVERT_TAG_PRESENT))
- 
+@@ -342,6 +343,14 @@
  #define PACKET_LOOPED()							\
--	pd.pf_mtag->flags & PF_DN_TAG_PRESENT
-+	((pd.pf_mtag->flags & PF_DN_TAG_PRESENT) ||			\
-+	(pd.pf_mtag->flags & PF_DIVERT_TAG_PRESENT))
-+
+ 	(pd.pf_mtag->flags & PF_PACKET_LOOPED)
+ 
 +#define	PF_DIVERT_MAXPACKETS_REACHED()					\
 +	do {								\
-+		if (r->spare1 && 					\
-+		    s->packets[dir == PF_OUT] > r->spare1)	\
-+			/* fake that divert already happened */		\
-+			pd.pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;	\
++		if (r->spare1 &&					\
++		    s->packets[dir == PF_OUT] > r->spare1)		\
++			/* fake that divert already happened */         \
++			pd.pf_mtag->flags |= PF_PACKET_LOOPED;		\
 +	} while(0)
- 
++
  #define STATE_LOOKUP()							\
  	do {								\
-@@ -7016,6 +7027,8 @@
+ 		if ((!PPACKET_LOOPED() && direction == PF_IN) ||	\
+@@ -7089,12 +7098,17 @@
+ 		goto done;
+ 	}
+ 
+-	if (ip_dn_io_ptr != NULL &&
++	if (((ip_dn_io_ptr != NULL) || (ip_divert_ptr != NULL)) &&
+ 	    ((dn_tag = m_tag_locate(m, MTAG_IPFW_RULE, 0, NULL)) != NULL)) {
+ 		struct ipfw_rule_ref *rr = (struct ipfw_rule_ref *)(dn_tag+1);
+ 		pd.pf_mtag->flags |= PF_PACKET_LOOPED;
+ 		if (rr->info & IPFW_IS_DUMMYNET)
+ 			loopedfrom = 1;
++		else if (rr->info & IPFW_IS_DIVERT) {
++			divertcookie = rr->rulenum;
++			divflags = (u_int8_t)(divertcookie >> 8);
++			divertcookie &= ~PFSTATE_DIVERT_MASK;
++		}
+ 		if (pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
+                         m->m_flags |= M_FASTFWD_OURS;
+                         pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
+@@ -7312,9 +7326,50 @@
+ #endif /* ALTQ */
+ 
+ #ifdef __FreeBSD__
+-       	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
++	if (divflags & PFSTATE_DIVERT_TAG)
++		pd.pf_mtag->tag = divertcookie;
++	else if (divflags & PFSTATE_DIVERT_ALTQ)
++		pd.pf_mtag->qid = divertcookie;
++	else if (divflags & PFSTATE_DIVERT_ACTION) {
++		struct pf_rule *dlr;
++		action = PF_DROP;
++		REASON_SET(&reason, PFRES_DIVERT);
++		log = 1;
++		DPFPRINTF(PF_DEBUG_MISC,
++		    ("pf: changing action to with overload from divert.\n"));
++		dlr = r;
++		PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a,
++		    ruleset, &pd);
++		PF_UNLOCK();
++		return (action);
++	}
++
++	if (r->divert && ip_divert_ptr != NULL && !PACKET_LOOPED()) {
++		if (!r->spare1 ||
++		    (s && s->packets[dir == PF_OUT] <= r->spare1)) {
++
++			dn_tag = m_tag_alloc(MTAG_IPFW_RULE, 0,
++			    sizeof(struct ipfw_rule_ref), M_NOWAIT | M_ZERO);
++			if (dn_tag != NULL) {
++				((struct ipfw_rule_ref *)(dn_tag+1))->info = r->divert;
++				((struct ipfw_rule_ref *)(dn_tag+1))->rulenum = dir;
+ 
+-                        if (dir != r->direction && r->pdnpipe) {
++				m_tag_prepend(m, dn_tag);
++
++				PF_UNLOCK();
++
++				ip_divert_ptr(*m0,
++				    dir ==  PF_IN ? DIR_IN : DIR_OUT);
++				*m0 = NULL;
++				return (action);
++			}
++		}
++       	} else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
++	    ip_dn_io_ptr != NULL && loopedfrom != 1) {
++
++			if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
++				dnflow.rule.info = divertcookie;
++                        } else if (dir != r->direction && r->pdnpipe) {
+                                 dnflow.rule.info = r->pdnpipe;
+                         } else if (dir == r->direction) {
+                                 dnflow.rule.info = r->dnpipe;
+@@ -7489,6 +7544,8 @@
  
  #ifdef __FreeBSD__
  	struct m_tag *dn_tag;
@@ -199,27 +263,8 @@ diff -u -r1.3 pf.c
  	struct ip_fw_args	 dnflow;
  
  	PF_LOCK();
-@@ -7088,11 +7101,17 @@
- 		goto done;
- 	}
- 
--	if (ip_dn_io_ptr != NULL &&
-+	if (((ip_dn_io_ptr != NULL) || (ip_divert_ptr != NULL)) &&
- 	    ((dn_tag = m_tag_locate(m, MTAG_IPFW_RULE, 0, NULL)) != NULL)) {
- 		struct ipfw_rule_ref *rr = (struct ipfw_rule_ref *)(dn_tag+1);
- 		if (rr->info & IPFW_IS_DUMMYNET)
- 			pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
-+		else if (rr->info & IPFW_IS_DIVERT) {
-+			pd.pf_mtag->flags |= PF_DN_TAG_PRESENT;
-+			divertcookie = rr->rulenum;
-+			divflags = (u_int8_t)(divertcookie >> 8);
-+			divertcookie &= ~PFSTATE_DIVERT_MASK;
-+		}
- 		if (pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
-                         m->m_flags |= M_FASTFWD_OURS;
-                         pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
-@@ -7291,6 +7310,20 @@
- 		    ("pf: dropping packet with ip options\n"));
+@@ -7826,6 +7883,20 @@
+ 		    ("pf: dropping packet with dangerous v6 headers\n"));
  	}
  
 +#ifdef __FreeBSD__
@@ -239,108 +284,13 @@ diff -u -r1.3 pf.c
  	if ((s && s->tag) || r->rtableid)
  		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
  
-@@ -7310,15 +7343,53 @@
- #endif /* ALTQ */
- 
- #ifdef __FreeBSD__
--       	if (r->dnpipe && ip_dn_io_ptr != NULL &&
-+        if (divflags & PFSTATE_DIVERT_TAG)
-+                pd.pf_mtag->tag = divertcookie;
-+        else if (divflags & PFSTATE_DIVERT_ALTQ)
-+                pd.pf_mtag->qid = divertcookie;
-+        else if (divflags & PFSTATE_DIVERT_ACTION) {
-+                struct pf_rule *dlr;
-+                action = PF_DROP;
-+                REASON_SET(&reason, PFRES_DIVERT);
-+                log = 1;
-+                DPFPRINTF(PF_DEBUG_MISC,
-+                        ("pf: changing action to with overload from divert.\n"));
-+                dlr = r;
-+                PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a,
-+                        ruleset, &pd);
-+                PF_UNLOCK();
-+                return (action);
-+        }
-+
-+        if (r->divert && ip_divert_ptr != NULL && !PACKET_LOOPED()) {
-+                if (!r->spare1 ||
-+                        (s && s->packets[dir == PF_OUT] <= r->spare1)) {
-+
-+                        dn_tag = m_tag_alloc(MTAG_IPFW_RULE, 0,
-+                                sizeof(struct ipfw_rule_ref), M_NOWAIT | M_ZERO);
-+                        if (dn_tag != NULL) {
-+                                ((struct ipfw_rule_ref *)(dn_tag+1))->info = r->divert;
-+                                ((struct ipfw_rule_ref *)(dn_tag+1))->rulenum = dir;
-+                                
-+                                m_tag_prepend(m, dn_tag);
-+
-+                                PF_UNLOCK();
-+
-+                                ip_divert_ptr(*m0,
-+                                        dir ==  PF_IN ? DIR_IN : DIR_OUT);
-+                                *m0 = NULL;
-+                                return (action);
-+                        }
-+                }
-+        } else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) && ip_dn_io_ptr != NULL &&
-                 !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
- 
--                        if (dir != r->direction && r->pdnpipe) {
--                                dnflow.rule.info = r->pdnpipe;
--                        } else if (dir == r->direction) {
--                                dnflow.rule.info = r->dnpipe;
--                        } else
--                                goto continueprocessing;
-+			if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
-+				dnflow.rule.info = divertcookie;
-+			} else if (r->pdnpipe && dir != r->direction)
-+                               	dnflow.rule.info = r->pdnpipe;
-+                        else
-+                               	dnflow.rule.info = r->dnpipe;
- 
- 			if (r->free_flags & PFRULE_DN_IS_PIPE)
- 				dnflow.rule.info |= IPFW_IS_PIPE;
-@@ -7357,8 +7428,7 @@
-                         	return (action);
- 			}
-         } else
--		pd.pf_mtag->flags &= ~PF_DN_TAG_PRESENT;
--continueprocessing:
-+		pd.pf_mtag->flags &= ~(PF_DN_TAG_PRESENT|PF_DIVERT_TAG_PRESENT);
- #endif
- 
- 	/*
-@@ -7844,7 +7914,7 @@
- #endif /* ALTQ */
- 
- #ifdef __FreeBSD__
--        if (r->dnpipe && ip_dn_io_ptr != NULL &&
-+	if (r->dnpipe && ip_dn_io_ptr != NULL &&
-                 !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
- 
- 			if (dir != r->direction && r->pdnpipe) {
-Index: sys/contrib/pf/net/pf_mtag.h
-===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf_mtag.h,v
-retrieving revision 1.3
-diff -u -r1.3 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	23 Apr 2010 22:44:22 -0000	1.3
-+++ sys/contrib/pf/net/pf_mtag.h	23 Apr 2010 22:44:27 -0000
-@@ -39,6 +39,7 @@
- #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
- #define PF_DN_TAG_PRESENT	        0x08
- #define PF_FASTFWD_OURS_PRESENT         0x10
-+#define PF_DIVERT_TAG_PRESENT           0x20
- 
- struct pf_mtag {
- 	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.3
 diff -u -r1.3 pfvar.h
---- sys/contrib/pf/net/pfvar.h	23 Apr 2010 22:44:22 -0000	1.3
-+++ sys/contrib/pf/net/pfvar.h	23 Apr 2010 22:44:27 -0000
+--- sys/contrib/pf/net/pfvar.h	26 Apr 2010 23:16:04 -0000	1.3
++++ sys/contrib/pf/net/pfvar.h	26 Apr 2010 23:16:12 -0000
 @@ -649,6 +649,7 @@
  	u_int16_t		 tag;
  	u_int16_t		 match_tag;
@@ -394,8 +344,8 @@ Index: sys/netinet/ip_divert.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ip_divert.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.c
---- sys/netinet/ip_divert.c	23 Apr 2010 22:07:21 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.c	23 Apr 2010 22:51:54 -0000
+--- sys/netinet/ip_divert.c	26 Apr 2010 23:11:44 -0000	1.1.1.1
++++ sys/netinet/ip_divert.c	26 Apr 2010 23:16:12 -0000
 @@ -372,7 +372,7 @@
  		 */
  		dt->slot = 1; /* dummy, chain_id is invalid */
@@ -416,8 +366,8 @@ Index: sys/netinet/ipfw/ip_dummynet.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
---- sys/netinet/ipfw/ip_dummynet.c	23 Apr 2010 22:07:22 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dummynet.c	23 Apr 2010 22:44:27 -0000
+--- sys/netinet/ipfw/ip_dummynet.c	26 Apr 2010 23:11:45 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dummynet.c	26 Apr 2010 23:16:12 -0000
 @@ -2290,6 +2290,5 @@
  
  DECLARE_MODULE(dummynet, dummynet_mod,
