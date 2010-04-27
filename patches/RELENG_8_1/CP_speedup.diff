@@ -3,8 +3,8 @@ Index: sbin/ifconfig/ifconfig.c
 RCS file: /root/freebsd/test/repo/src/sbin/ifconfig/ifconfig.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ifconfig.c
---- sbin/ifconfig/ifconfig.c	21 Apr 2010 22:54:48 -0000	1.1.1.1
-+++ sbin/ifconfig/ifconfig.c	21 Apr 2010 23:07:17 -0000
+--- sbin/ifconfig/ifconfig.c	27 Apr 2010 18:04:48 -0000	1.1.1.1
++++ sbin/ifconfig/ifconfig.c	27 Apr 2010 18:12:17 -0000
 @@ -860,7 +860,7 @@
  #define	IFFBITS \
  "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\6SMART\7RUNNING" \
@@ -28,8 +28,8 @@ Index: sbin/ipfw/ipfw2.c
 RCS file: /root/freebsd/test/repo/src/sbin/ipfw/ipfw2.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipfw2.c
---- sbin/ipfw/ipfw2.c	21 Apr 2010 22:54:48 -0000	1.1.1.1
-+++ sbin/ipfw/ipfw2.c	21 Apr 2010 23:07:17 -0000
+--- sbin/ipfw/ipfw2.c	27 Apr 2010 18:04:48 -0000	1.1.1.1
++++ sbin/ipfw/ipfw2.c	27 Apr 2010 18:12:17 -0000
 @@ -375,7 +375,9 @@
  	    optname == IP_FW_TABLE_GETSIZE || 
  	    optname == IP_FW_NAT_GET_CONFIG || 
@@ -166,8 +166,8 @@ Index: sys/net/if.h
 RCS file: /root/freebsd/test/repo/src/sys/net/if.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if.h
---- sys/net/if.h	21 Apr 2010 22:54:45 -0000	1.1.1.1
-+++ sys/net/if.h	21 Apr 2010 23:07:17 -0000
+--- sys/net/if.h	27 Apr 2010 18:04:45 -0000	1.1.1.1
++++ sys/net/if.h	27 Apr 2010 18:12:17 -0000
 @@ -151,6 +151,7 @@
  #define	IFF_STATICARP	0x80000		/* (n) static ARP */
  #define	IFF_DYING	0x200000	/* (n) interface is winding down */
@@ -181,8 +181,8 @@ Index: sys/net/if_ethersubr.c
 RCS file: /root/freebsd/test/repo/src/sys/net/if_ethersubr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_ethersubr.c
---- sys/net/if_ethersubr.c	21 Apr 2010 22:54:46 -0000	1.1.1.1
-+++ sys/net/if_ethersubr.c	21 Apr 2010 23:07:17 -0000
+--- sys/net/if_ethersubr.c	27 Apr 2010 18:04:45 -0000	1.1.1.1
++++ sys/net/if_ethersubr.c	27 Apr 2010 18:13:52 -0000
 @@ -146,7 +146,7 @@
  
  #if defined(INET) || defined(INET6)
@@ -210,7 +210,19 @@ diff -u -r1.1.1.1 if_ethersubr.c
  {
  	struct ether_header *eh;
  	struct ether_header save_eh;
-@@ -506,6 +506,7 @@
+@@ -479,8 +479,10 @@
+ 		/* XXX can we free it after use ? */
+ 		mtag->m_tag_id = PACKET_TAG_NONE;
+ 		r = (struct ipfw_rule_ref *)(mtag + 1);
+-		if (r->info & IPFW_ONEPASS)
++		if (r->info & IPFW_ONEPASS) {
++			m_tag_delete(*m0, mtag);
+ 			return (1);
++		}
+ 		args.rule = *r;
+ 	}
+ 
+@@ -506,6 +508,7 @@
  	args.next_hop = NULL;	/* we do not support forward yet	*/
  	args.eh = &save_eh;	/* MAC header for bridged/MAC packets	*/
  	args.inp = NULL;	/* used by ipfw uid/gid/jail rules	*/
@@ -218,7 +230,7 @@ diff -u -r1.1.1.1 if_ethersubr.c
  	i = V_ip_fw_chk_ptr(&args);
  	m = args.m;
  	if (m != NULL) {
-@@ -533,7 +534,7 @@
+@@ -533,7 +536,7 @@
  		return 1;
  
  	if (ip_dn_io_ptr && (i == IP_FW_DUMMYNET)) {
@@ -227,7 +239,7 @@ diff -u -r1.1.1.1 if_ethersubr.c
  		/*
  		 * Pass the pkt to dummynet, which consumes it.
  		 * If shared, make a copy and keep the original.
-@@ -549,7 +550,7 @@
+@@ -549,7 +552,7 @@
  			 */
  			*m0 = NULL ;
  		}
@@ -236,7 +248,7 @@ diff -u -r1.1.1.1 if_ethersubr.c
  		ip_dn_io_ptr(&m, dir, &args);
  		return 0;
  	}
-@@ -782,7 +783,7 @@
+@@ -782,7 +785,7 @@
  	 * Do not do this for PROMISC frames in case we are re-entered.
  	 */
  	if (V_ip_fw_chk_ptr && V_ether_ipfw != 0 && !(m->m_flags & M_PROMISC)) {
@@ -245,7 +257,7 @@ diff -u -r1.1.1.1 if_ethersubr.c
  			if (m)
  				m_freem(m);	/* dropped; free mbuf chain */
  			return;			/* consumed */
-@@ -825,7 +826,8 @@
+@@ -825,7 +828,8 @@
  	 * Strip off Ethernet header.
  	 */
  	m->m_flags &= ~M_VLANTAG;
@@ -260,8 +272,8 @@ Index: sys/netinet/in.h
 RCS file: /root/freebsd/test/repo/src/sys/netinet/in.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 in.h
---- sys/netinet/in.h	21 Apr 2010 22:54:46 -0000	1.1.1.1
-+++ sys/netinet/in.h	21 Apr 2010 23:07:17 -0000
+--- sys/netinet/in.h	27 Apr 2010 18:04:45 -0000	1.1.1.1
++++ sys/netinet/in.h	27 Apr 2010 18:12:17 -0000
 @@ -453,6 +453,8 @@
  #define	IP_FW_TABLE_FLUSH	42   /* flush table */
  #define	IP_FW_TABLE_GETSIZE	43   /* get table size */
@@ -276,8 +288,8 @@ Index: sys/netinet/ip_fw.h
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ip_fw.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw.h
---- sys/netinet/ip_fw.h	21 Apr 2010 22:54:46 -0000	1.1.1.1
-+++ sys/netinet/ip_fw.h	21 Apr 2010 23:07:17 -0000
+--- sys/netinet/ip_fw.h	27 Apr 2010 18:04:45 -0000	1.1.1.1
++++ sys/netinet/ip_fw.h	27 Apr 2010 18:12:17 -0000
 @@ -564,9 +564,13 @@
   */
  typedef struct	_ipfw_table_entry {
@@ -297,8 +309,8 @@ Index: sys/netinet/raw_ip.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/raw_ip.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 raw_ip.c
---- sys/netinet/raw_ip.c	21 Apr 2010 22:54:46 -0000	1.1.1.1
-+++ sys/netinet/raw_ip.c	21 Apr 2010 23:07:17 -0000
+--- sys/netinet/raw_ip.c	27 Apr 2010 18:04:45 -0000	1.1.1.1
++++ sys/netinet/raw_ip.c	27 Apr 2010 18:12:17 -0000
 @@ -544,6 +544,8 @@
  		case IP_FW_GET:
  		case IP_FW_TABLE_GETSIZE:
@@ -313,8 +325,8 @@ Index: sys/netinet/ipfw/ip_fw2.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_fw2.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw2.c
---- sys/netinet/ipfw/ip_fw2.c	21 Apr 2010 22:54:47 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw2.c	21 Apr 2010 23:07:17 -0000
+--- sys/netinet/ipfw/ip_fw2.c	27 Apr 2010 18:04:46 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw2.c	27 Apr 2010 18:12:17 -0000
 @@ -828,6 +828,9 @@
  	 */
  	struct ifnet *oif = args->oif;
@@ -408,8 +420,8 @@ Index: sys/netinet/ipfw/ip_fw_pfil.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.2
 diff -u -r1.2 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	21 Apr 2010 23:07:09 -0000	1.2
-+++ sys/netinet/ipfw/ip_fw_pfil.c	21 Apr 2010 23:07:17 -0000
+--- sys/netinet/ipfw/ip_fw_pfil.c	27 Apr 2010 18:12:12 -0000	1.2
++++ sys/netinet/ipfw/ip_fw_pfil.c	27 Apr 2010 18:12:17 -0000
 @@ -109,6 +109,9 @@
  	int ipfw;
  	int ret;
@@ -444,8 +456,8 @@ Index: sys/netinet/ipfw/ip_fw_private.h
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_fw_private.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_private.h
---- sys/netinet/ipfw/ip_fw_private.h	21 Apr 2010 22:54:47 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_private.h	21 Apr 2010 23:11:21 -0000
+--- sys/netinet/ipfw/ip_fw_private.h	27 Apr 2010 18:04:46 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_private.h	27 Apr 2010 18:12:17 -0000
 @@ -96,6 +96,7 @@
  	 */
  	struct ipfw_rule_ref rule;	/* match/restart info		*/
@@ -487,8 +499,8 @@ Index: sys/netinet/ipfw/ip_fw_sockopt.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_fw_sockopt.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_sockopt.c
---- sys/netinet/ipfw/ip_fw_sockopt.c	21 Apr 2010 22:54:47 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_sockopt.c	21 Apr 2010 23:12:42 -0000
+--- sys/netinet/ipfw/ip_fw_sockopt.c	27 Apr 2010 18:04:46 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_sockopt.c	27 Apr 2010 18:12:17 -0000
 @@ -1101,7 +1101,7 @@
  			if (error)
  				break;
@@ -541,8 +553,8 @@ Index: sys/netinet/ipfw/ip_fw_table.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_fw_table.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_table.c
---- sys/netinet/ipfw/ip_fw_table.c	21 Apr 2010 22:54:47 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_table.c	21 Apr 2010 23:10:51 -0000
+--- sys/netinet/ipfw/ip_fw_table.c	27 Apr 2010 18:04:46 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_table.c	27 Apr 2010 18:12:17 -0000
 @@ -65,6 +65,7 @@
  
  #include <netinet/in.h>
