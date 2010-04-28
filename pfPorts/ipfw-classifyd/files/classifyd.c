@@ -609,7 +609,7 @@ getinput:
 					inet_ntoa((key)->ik_src), ntohs((key)->ik_sport), \
 					inet_ntoa((key)->ik_dst), ntohs((key)->ik_dport), \
 					(proto)->p_name, (regerr));		\
-			} \
+			}							\
 			(trycount)++;						\
 		}								\
 		FP_UNLOCK;							\
@@ -768,6 +768,7 @@ classify_pthread(void *arg)
 		 * no protocols we want to classify.
 		 */
 		if (flow != NULL && (flow->if_datalen == 0)) { // || fp->fp_inuse == 0)) {
+			pkt->fp_saddr.sin_port = 0;
 			goto enqueue;
 		}
 
