@@ -2915,6 +2915,16 @@ ensure_healthy_installer() {
 # This copies the various pfSense git repos to the DevISO
 # staging area.
 setup_deviso_specific_items() {
+	if [ `mount | grep ${CLONEDIR} | wc -l` -gt 0 ]; then
+		MOUNTPOINT=`mount | grep ${CLONEDIR} | awk '{ print $3 }'`
+		echo ">>> Attempting umount of $MOUNTPOINT"
+		umount -f $MOUNTPOINT
+		if [ `mount | grep ${CLONEDIR} | wc -l` -gt 0 ]; then
+			echo ">>> ERROR! Could not umount $MOUNTPOINT"
+			print_error_pfS
+		fi
+	fi
+
 	if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" = "" ]; then
 		OVERRIDE_FREEBSD_CVSUP_HOST=`fastest_cvsup -c tld -q`
 	fi
