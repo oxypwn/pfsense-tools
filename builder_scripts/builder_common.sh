@@ -2940,20 +2940,6 @@ setup_deviso_specific_items() {
 		echo "TARGET_BIG_ENDIAN=yes" >> $PFSENSEBASEDIR/etc/make.conf
 	fi
 	echo -n "."
-	(cd $DEVROOT && git clone $GIT_REPO_TOOLS) | egrep -wi '(^>>>|error)'
-	echo -n "."
-	cp -R $BASE_DIR/freesbie2 $DEVROOT/freesbie2
-	echo -n "."
-	cp -R $BASE_DIR/pfSenseGITREPO $DEVROOT/pfSenseGITREPO
-	echo -n "."
-	cp -R $BASE_DIR/installer $DEVROOT/installer
-	echo -n "."
-	cp /etc/resolv.conf $PFSENSEBASEDIR/etc/
-	echo -n "."
-	(chroot $PFSENSEBASEDIR/ csup -h $OVERRIDE_FREEBSD_CVSUP_HOST /usr/share/examples/cvsup/standard-supfile) | egrep -wi '(^>>>|error)'
-	echo -n "."
-	(chroot $PFSENSEBASEDIR/ csup -h $OVERRIDE_FREEBSD_CVSUP_HOST /usr/share/examples/cvsup/ports-supfile) | egrep -wi '(^>>>|error)'
-	echo -n "."
 	rm $PFSENSEBASEDIR/etc/resolv.conf
 	echo "Done!"
 	rm -rf $PFSENSEBASEDIR/var/db/pkg/*
