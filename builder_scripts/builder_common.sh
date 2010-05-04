@@ -1334,7 +1334,7 @@ create_pfSense_Full_update_tarball() {
 	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
 
 	# Remove loader.conf and friends.  Ticket #560
-	rm ${PFSENSEBASEDIR}/boot/loader* 2>/dev/null
+	rm ${PFSENSEBASEDIR}/boot/loader.conf 2>/dev/null
 
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
