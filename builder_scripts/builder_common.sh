@@ -1333,6 +1333,9 @@ create_pfSense_Full_update_tarball() {
 	# control auto login, console menu, etc.
 	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
 
+	# Remove loader.conf and friends.  Ticket #560
+	rm ${PFSENSEBASEDIR}/boot/loader* 2>/dev/null
+
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
 	install_custom_overlay
