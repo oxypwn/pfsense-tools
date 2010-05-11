@@ -2,15 +2,16 @@
 
 makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq glxsb"
 
-options         KDB
-options         KDB_TRACE 
-options         DDB                     # Support DDB.
-options         GDB                     # Support remote GDB.
-#options		INVARIANTS
-#options		INVARIANTS_SUPPORT
-#options		WITNESS
-#options		WITNESS_SKIPSPIN
-makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
+nooptions         KDB
+nooptions         KDB_TRACE 
+nooptions         DDB                     # Support DDB.
+nooptions         GDB                     # Support remote GDB.
+nooptions		INVARIANTS
+nooptions		INVARIANTS_SUPPORT
+nooptions		WITNESS
+nooptions		WITNESS_SKIPSPIN
+
+#makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
 
 machine			amd64
 cpu 			HAMMER
