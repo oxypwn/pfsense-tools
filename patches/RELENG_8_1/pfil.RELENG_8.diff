@@ -3,8 +3,8 @@ Index: sys/contrib/pf/net/pf_ioctl.c
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.4
 diff -u -r1.4 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	1 Apr 2010 23:30:43 -0000	1.4
-+++ sys/contrib/pf/net/pf_ioctl.c	1 Apr 2010 23:30:56 -0000
+--- sys/contrib/pf/net/pf_ioctl.c	12 May 2010 19:08:09 -0000	1.4
++++ sys/contrib/pf/net/pf_ioctl.c	12 May 2010 19:08:23 -0000
 @@ -3841,8 +3841,10 @@
  	pfh_inet = pfil_head_get(PFIL_TYPE_AF, AF_INET);
  	if (pfh_inet == NULL)
@@ -36,8 +36,8 @@ Index: sys/net/pfil.c
 RCS file: /root/freebsd/test/repo/src/sys/net/pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.c
---- sys/net/pfil.c	24 Mar 2010 22:16:41 -0000	1.1.1.1
-+++ sys/net/pfil.c	1 Apr 2010 23:30:56 -0000
+--- sys/net/pfil.c	12 May 2010 18:40:19 -0000	1.1.1.1
++++ sys/net/pfil.c	12 May 2010 19:08:23 -0000
 @@ -34,6 +34,7 @@
  #include <sys/errno.h>
  #include <sys/lock.h>
@@ -234,8 +234,8 @@ Index: sys/net/pfil.h
 RCS file: /root/freebsd/test/repo/src/sys/net/pfil.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.h
---- sys/net/pfil.h	24 Mar 2010 22:16:41 -0000	1.1.1.1
-+++ sys/net/pfil.h	1 Apr 2010 23:30:56 -0000
+--- sys/net/pfil.h	12 May 2010 18:40:19 -0000	1.1.1.1
++++ sys/net/pfil.h	12 May 2010 19:08:23 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
@@ -281,9 +281,9 @@ Index: sys/netinet/ip_input.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ip_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_input.c
---- sys/netinet/ip_input.c	24 Mar 2010 22:16:42 -0000	1.1.1.1
-+++ sys/netinet/ip_input.c	1 Apr 2010 23:30:56 -0000
-@@ -324,6 +324,9 @@
+--- sys/netinet/ip_input.c	12 May 2010 18:40:19 -0000	1.1.1.1
++++ sys/netinet/ip_input.c	12 May 2010 19:08:23 -0000
+@@ -314,6 +314,9 @@
  	if ((i = pfil_head_register(&V_inet_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -292,14 +292,14 @@ diff -u -r1.1.1.1 ip_input.c
 +			SYSCTL_STATIC_CHILDREN(_net_inet_ip));
  
  #ifdef FLOWTABLE
- 	TUNABLE_INT_FETCH("net.inet.ip.output_flowtable_size",
+ 	if (TUNABLE_INT_FETCH("net.inet.ip.output_flowtable_size",
 Index: sys/netinet/ipfw/ip_fw_pfil.c
 ===================================================================
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	24 Mar 2010 22:16:43 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_pfil.c	1 Apr 2010 23:33:32 -0000
+--- sys/netinet/ipfw/ip_fw_pfil.c	12 May 2010 18:40:20 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_pfil.c	12 May 2010 19:08:23 -0000
 @@ -334,7 +334,11 @@
  	if (pfh == NULL)
  		return ENOENT;
@@ -318,17 +318,17 @@ Index: sys/netinet6/ip6_input.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet6/ip6_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip6_input.c
---- sys/netinet6/ip6_input.c	24 Mar 2010 22:16:44 -0000	1.1.1.1
-+++ sys/netinet6/ip6_input.c	1 Apr 2010 23:30:56 -0000
-@@ -152,6 +152,7 @@
- struct rwlock in6_ifaddr_lock;
- RW_SYSINIT(in6_ifaddr_lock, &in6_ifaddr_lock, "in6_ifaddr_lock");
+--- sys/netinet6/ip6_input.c	12 May 2010 18:40:20 -0000	1.1.1.1
++++ sys/netinet6/ip6_input.c	12 May 2010 19:09:02 -0000
+@@ -128,6 +128,7 @@
+ VNET_DECLARE(struct callout, in6_tmpaddrtimer_ch);
+ #define	V_in6_tmpaddrtimer_ch		VNET(in6_tmpaddrtimer_ch)
  
 +SYSCTL_DECL(_net_inet6_ip6);
- VNET_DEFINE (struct pfil_head, inet6_pfil_hook);
+ VNET_DEFINE(struct pfil_head, inet6_pfil_hook);
  
- static void ip6_init2(void *);
-@@ -253,6 +254,9 @@
+ VNET_DEFINE(struct ip6stat, ip6stat);
+@@ -163,6 +164,9 @@
  	if ((i = pfil_head_register(&V_inet6_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
@@ -336,5 +336,5 @@ diff -u -r1.1.1.1 ip6_input.c
 +		pfil_head_export_sysctl(&V_inet6_pfil_hook,
 +			SYSCTL_STATIC_CHILDREN(_net_inet6_ip6));
  
- 	/* Skip global initialization stuff for non-default instances. */
- 	if (!IS_DEFAULT_VNET(curvnet))
+ 	scope6_init();
+ 	addrsel_policy_init();
