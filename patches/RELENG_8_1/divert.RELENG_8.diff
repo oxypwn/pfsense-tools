@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.3
 diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	26 Apr 2010 23:50:49 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	26 Apr 2010 23:50:53 -0000
+--- contrib/pf/pfctl/parse.y	12 May 2010 18:42:40 -0000	1.3
++++ contrib/pf/pfctl/parse.y	12 May 2010 18:42:57 -0000
 @@ -129,6 +129,7 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
@@ -128,8 +128,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.3
 diff -u -r1.3 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	26 Apr 2010 23:50:49 -0000	1.3
-+++ contrib/pf/pfctl/pfctl_parser.c	26 Apr 2010 23:50:53 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	12 May 2010 18:42:40 -0000	1.3
++++ contrib/pf/pfctl/pfctl_parser.c	12 May 2010 18:42:57 -0000
 @@ -914,6 +914,12 @@
  			printf("max-src-conn %u", r->max_src_conn);
  			opts = 0;
@@ -157,8 +157,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.3
 diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	26 Apr 2010 23:50:49 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	26 Apr 2010 23:52:42 -0000
+--- sys/contrib/pf/net/pf.c	12 May 2010 18:42:40 -0000	1.3
++++ sys/contrib/pf/net/pf.c	12 May 2010 18:42:57 -0000
 @@ -138,6 +138,7 @@
  #include <netinet/ip_fw.h>
  #include <netinet/ipfw/ip_fw_private.h>
@@ -288,8 +288,8 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.3
 diff -u -r1.3 pfvar.h
---- sys/contrib/pf/net/pfvar.h	26 Apr 2010 23:50:49 -0000	1.3
-+++ sys/contrib/pf/net/pfvar.h	26 Apr 2010 23:50:53 -0000
+--- sys/contrib/pf/net/pfvar.h	12 May 2010 18:42:41 -0000	1.3
++++ sys/contrib/pf/net/pfvar.h	12 May 2010 18:42:57 -0000
 @@ -649,6 +649,7 @@
  	u_int16_t		 tag;
  	u_int16_t		 match_tag;
@@ -343,9 +343,28 @@ Index: sys/netinet/ip_divert.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ip_divert.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.c
---- sys/netinet/ip_divert.c	26 Apr 2010 23:49:26 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.c	26 Apr 2010 23:50:53 -0000
-@@ -372,7 +372,7 @@
+--- sys/netinet/ip_divert.c	12 May 2010 18:40:19 -0000	1.1.1.1
++++ sys/netinet/ip_divert.c	12 May 2010 19:04:39 -0000
+@@ -289,8 +289,7 @@
+ 		 * this iface name will come along for the ride.
+ 		 * (see div_output for the other half of this.)
+ 		 */ 
+-		strlcpy(divsrc.sin_zero, m->m_pkthdr.rcvif->if_xname,
+-		    sizeof(divsrc.sin_zero));
++		*((u_short *)divsrc.sin_zero) = m->m_pkthdr.rcvif->if_index;
+ 	}
+ 
+ 	/* Put packet on socket queue, if any */
+@@ -364,7 +363,7 @@
+ 
+ 	/* Loopback avoidance and state recovery */
+ 	if (sin) {
+-		int i;
++		u_short idx;
+ 
+ 		/* set the starting point. We provide a non-zero slot,
+ 		 * but a non_matching chain_id to skip that info and use
+@@ -372,7 +371,7 @@
  		 */
  		dt->slot = 1; /* dummy, chain_id is invalid */
  		dt->chain_id = 0;
@@ -354,7 +373,21 @@ diff -u -r1.1.1.1 ip_divert.c
  		dt->rule_id = 0;
  		/*
  		 * Find receive interface with the given name, stuffed
-@@ -815,5 +815,4 @@
+@@ -380,10 +379,9 @@
+ 		 * The name is user supplied data so don't trust its size
+ 		 * or that it is zero terminated.
+ 		 */
+-		for (i = 0; i < sizeof(sin->sin_zero) && sin->sin_zero[i]; i++)
+-			;
+-		if ( i > 0 && i < sizeof(sin->sin_zero))
+-			m->m_pkthdr.rcvif = ifunit(sin->sin_zero);
++		idx = *((u_short *)sin->sin_zero);
++		if ( idx > 0 )
++			m->m_pkthdr.rcvif = ifnet_byindex(idx);
+ 	}
+ 
+ 	/* Reinject packet into the system as incoming or outgoing */
+@@ -815,5 +813,4 @@
  };
  
  DECLARE_MODULE(ipdivert, ipdivertmod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
@@ -365,8 +398,8 @@ Index: sys/netinet/ipfw/ip_dummynet.c
 RCS file: /root/freebsd/test/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
---- sys/netinet/ipfw/ip_dummynet.c	26 Apr 2010 23:49:27 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dummynet.c	26 Apr 2010 23:50:53 -0000
+--- sys/netinet/ipfw/ip_dummynet.c	12 May 2010 18:40:20 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dummynet.c	12 May 2010 18:42:57 -0000
 @@ -2290,6 +2290,5 @@
  
  DECLARE_MODULE(dummynet, dummynet_mod,
