@@ -2807,6 +2807,10 @@ update_freebsd_sources_and_apply_patches() {
 	# CVSUp freebsd version -- this MUST be after Loop through and remove files
 	BASENAMESUPFILE=`basename $SUPFILE`
 	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
+	(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
+		grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+		| grep -v "error\." | grep -v "opensolaris" | \
+		grep -v "httpd-error"
 	echo "Done!"
 
 	echo ">>> Removing old patch rejects..."
