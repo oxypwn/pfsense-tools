@@ -1,4 +1,3 @@
-? hifn.diff
 Index: sys/dev/hifn/hifn7751.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/dev/hifn/hifn7751.c,v
