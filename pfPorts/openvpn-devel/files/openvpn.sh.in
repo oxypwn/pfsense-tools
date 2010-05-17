@@ -7,7 +7,7 @@
 # with multi-instance contribution from Denis Shaposhnikov, Gleb Kozyrev
 # and Vasil Dimov
 #
-# $FreeBSD: ports/security/openvpn-devel/files/openvpn.sh.in,v 1.8 2009/07/15 16:56:03 dougb Exp $
+# $FreeBSD: ports/security/openvpn-devel/files/openvpn.sh.in,v 1.11 2010/03/27 00:14:45 dougb Exp $
 # 
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -60,7 +60,7 @@
 # For further documentation, please see openvpn(8).
 #
 
-. %%RC_SUBR%%
+. /etc/rc.subr
 
 case "$0" in
 /etc/rc*)

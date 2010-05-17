@@ -1,18 +1,21 @@
 # New ports collection makefile for:	openvpn
-# Date created:		2002-06-23
-# Whom:			Matthias Andree <matthias.andree@gmx.de>
+# Date created:		2010-02-19
+# Whom:			Eric F Crist <ecrist@secure-computing.net>
 #
-# $FreeBSD: ports/security/openvpn-devel/Makefile,v 1.50 2009/10/14 10:34:54 miwi Exp $
+# $FreeBSD: ports/security/openvpn-devel/Makefile,v 1.57 2010/05/14 21:17:42 jpaetzel Exp $
 #
 
 PORTNAME=	openvpn
-DISTVERSION=	2.1_rc20
+DISTVERSION=	201019
 CATEGORIES=	security net
-MASTER_SITES=	http://openvpn.net/release/
+MASTER_SITES=	ftp://ftp.secure-computing.net/pub/FreeBSD/ports/openvpn-devel/ \
+		ftp://ftp2.secure-computing.net/pub/FreeBSD/ports/openvpn-devel/
 PKGNAMESUFFIX=	-devel
 
-MAINTAINER=	matthias.andree@gmx.de
+MAINTAINER=	ecrist@secure-computing.net
 COMMENT=	Secure IP/Ethernet tunnel daemon
+
+WRKSRC=		${WRKDIR}/${PORTNAME}${PKGNAMESUFFIX}
 
 CONFLICTS=	openvpn-[0-9]*
 
@@ -35,13 +38,11 @@ SUB_LIST+=	OSVERSION=${OSVERSION}
 
 .include <bsd.port.pre.mk>
 
-SUB_LIST+=	RCSFX=${RC_SUBR_SUFFIX}
-
 .ifdef (LOG_OPENVPN)
 CFLAGS+=	-DLOG_OPENVPN=${LOG_OPENVPN}
 .endif
 
-pre-configure:
+pre-fetch:
 .ifdef (LOG_OPENVPN)
 	@${ECHO} "Building with LOG_OPENVPN=${LOG_OPENVPN}"
 .else
