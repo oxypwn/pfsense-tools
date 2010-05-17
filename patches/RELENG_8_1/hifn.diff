@@ -1,0 +1,266 @@
+? hifn.diff
+Index: sys/dev/hifn/hifn7751.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/hifn/hifn7751.c,v
+retrieving revision 1.41.2.1
+diff -u -r1.41.2.1 hifn7751.c
+--- sys/dev/hifn/hifn7751.c	3 Aug 2009 08:13:06 -0000	1.41.2.1
++++ sys/dev/hifn/hifn7751.c	17 May 2010 19:54:04 -0000
+@@ -58,6 +58,7 @@
+ #include <sys/mbuf.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
++#include <sys/rwlock.h>
+ #include <sys/sysctl.h>
+ 
+ #include <vm/vm.h>
+@@ -365,6 +366,7 @@
+ 	bzero(sc, sizeof (*sc));
+ 	sc->sc_dev = dev;
+ 
++	rw_init(&sc->sc_sessions_lock, device_get_nameunit(dev));
+ 	mtx_init(&sc->sc_mtx, device_get_nameunit(dev), "hifn driver", MTX_DEF);
+ 
+ 	/* XXX handle power management */
+@@ -637,6 +639,7 @@
+ fail_io0:
+ 	bus_release_resource(dev, SYS_RES_MEMORY, HIFN_BAR0, sc->sc_bar0res);
+ fail_pci:
++	rw_destroy(&sc->sc_sessions_lock);
+ 	mtx_destroy(&sc->sc_mtx);
+ 	return (ENXIO);
+ }
+@@ -648,15 +651,32 @@
+ hifn_detach(device_t dev)
+ {
+ 	struct hifn_softc *sc = device_get_softc(dev);
++	struct hifn_session *ses;
++	int i;
+ 
+ 	KASSERT(sc != NULL, ("hifn_detach: null software carrier!"));
+ 
++	rw_wlock(&sc->sc_sessions_lock);
++	for (i = 0; i < sc->sc_nsessions; i++) {
++		ses = &sc->sc_sessions[i];
++		if (ses->hs_used) {
++			rw_wunlock(&sc->sc_sessions_lock);
++			device_printf(dev,
++				"cannot detach, sessions still active.\n");
++			return (EBUSY);
++		}
++	}
++	if (sc->sc_sessions != NULL)
++		free(sc->sc_sessions, M_DEVBUF);
++	rw_wunlock(&sc->sc_sessions_lock);
++	crypto_unregister_all(sc->sc_cid);
++
+ 	/* disable interrupts */
+ 	WRITE_REG_1(sc, HIFN_1_DMA_IER, 0);
+ 
+ 	/*XXX other resources */
+-	callout_stop(&sc->sc_tickto);
+-	callout_stop(&sc->sc_rngto);
++	callout_drain(&sc->sc_tickto);
++	callout_drain(&sc->sc_rngto);
+ #ifdef HIFN_RNDTEST
+ 	if (sc->sc_rndtest)
+ 		rndtest_detach(sc->sc_rndtest);
+@@ -666,8 +686,6 @@
+ 	WRITE_REG_1(sc, HIFN_1_DMA_CNFG, HIFN_DMACNFG_MSTRESET |
+ 	    HIFN_DMACNFG_DMARESET | HIFN_DMACNFG_MODE);
+ 
+-	crypto_unregister_all(sc->sc_cid);
+-
+ 	bus_generic_detach(dev);	/*XXX should be no children, right? */
+ 
+ 	bus_teardown_intr(dev, sc->sc_irq, sc->sc_intrhand);
+@@ -682,6 +700,7 @@
+ 	bus_release_resource(dev, SYS_RES_MEMORY, HIFN_BAR1, sc->sc_bar1res);
+ 	bus_release_resource(dev, SYS_RES_MEMORY, HIFN_BAR0, sc->sc_bar0res);
+ 
++	rw_destroy(&sc->sc_sessions_lock);
+ 	mtx_destroy(&sc->sc_mtx);
+ 
+ 	return (0);
+@@ -818,7 +837,6 @@
+ static void
+ hifn_rng(void *vsc)
+ {
+-#define	RANDOM_BITS(n)	(n)*sizeof (u_int32_t), (n)*sizeof (u_int32_t)*NBBY, 0
+ 	struct hifn_softc *sc = vsc;
+ 	u_int32_t sts, num[2];
+ 	int i;
+@@ -860,7 +878,6 @@
+ 	}
+ 
+ 	callout_reset(&sc->sc_rngto, sc->sc_rnghz, hifn_rng, sc);
+-#undef RANDOM_BITS
+ }
+ 
+ static void
+@@ -2355,12 +2372,12 @@
+ 	if (sidp == NULL || cri == NULL || sc == NULL)
+ 		return (EINVAL);
+ 
+-	HIFN_LOCK(sc);
++	rw_wlock(&sc->sc_sessions_lock);
+ 	if (sc->sc_sessions == NULL) {
+ 		ses = sc->sc_sessions = (struct hifn_session *)malloc(
+-		    sizeof(*ses), M_DEVBUF, M_NOWAIT);
++		    sizeof(*ses), M_DEVBUF, M_NOWAIT | M_ZERO);
+ 		if (ses == NULL) {
+-			HIFN_UNLOCK(sc);
++			rw_wunlock(&sc->sc_sessions_lock);
+ 			return (ENOMEM);
+ 		}
+ 		sesn = 0;
+@@ -2376,9 +2393,9 @@
+ 		if (ses == NULL) {
+ 			sesn = sc->sc_nsessions;
+ 			ses = (struct hifn_session *)malloc((sesn + 1) *
+-			    sizeof(*ses), M_DEVBUF, M_NOWAIT);
++			    sizeof(*ses), M_DEVBUF, M_NOWAIT | M_ZERO);
+ 			if (ses == NULL) {
+-				HIFN_UNLOCK(sc);
++				rw_wunlock(&sc->sc_sessions_lock);
+ 				return (ENOMEM);
+ 			}
+ 			bcopy(sc->sc_sessions, ses, sesn * sizeof(*ses));
+@@ -2389,9 +2406,7 @@
+ 			sc->sc_nsessions++;
+ 		}
+ 	}
+-	HIFN_UNLOCK(sc);
+ 
+-	bzero(ses, sizeof(*ses));
+ 	ses->hs_used = 1;
+ 
+ 	for (c = cri; c != NULL; c = c->cri_next) {
+@@ -2400,8 +2415,10 @@
+ 		case CRYPTO_SHA1:
+ 		case CRYPTO_MD5_HMAC:
+ 		case CRYPTO_SHA1_HMAC:
+-			if (mac)
++			if (mac) {
++				rw_wunlock(&sc->sc_sessions_lock);
+ 				return (EINVAL);
++			}
+ 			mac = 1;
+ 			ses->hs_mlen = c->cri_mlen;
+ 			if (ses->hs_mlen == 0) {
+@@ -2421,19 +2438,23 @@
+ 		case CRYPTO_3DES_CBC:
+ 		case CRYPTO_AES_CBC:
+ 			/* XXX this may read fewer, does it matter? */
+-			read_random(ses->hs_iv,
++			arc4rand(ses->hs_iv,
+ 				c->cri_alg == CRYPTO_AES_CBC ?
+-					HIFN_AES_IV_LENGTH : HIFN_IV_LENGTH);
++				HIFN_AES_IV_LENGTH : HIFN_IV_LENGTH, 0);
+ 			/*FALLTHROUGH*/
+ 		case CRYPTO_ARC4:
+-			if (cry)
++			if (cry) {
++				rw_wunlock(&sc->sc_sessions_lock);
+ 				return (EINVAL);
++			}
+ 			cry = 1;
+ 			break;
+ 		default:
++			rw_wunlock(&sc->sc_sessions_lock);
+ 			return (EINVAL);
+ 		}
+ 	}
++	rw_wunlock(&sc->sc_sessions_lock);
+ 	if (mac == 0 && cry == 0)
+ 		return (EINVAL);
+ 
+@@ -2458,14 +2479,14 @@
+ 	if (sc == NULL)
+ 		return (EINVAL);
+ 
+-	HIFN_LOCK(sc);
+ 	session = HIFN_SESSION(sid);
++	rw_wlock(&sc->sc_sessions_lock);
+ 	if (session < sc->sc_nsessions) {
+ 		bzero(&sc->sc_sessions[session], sizeof(struct hifn_session));
+ 		error = 0;
+ 	} else
+ 		error = EINVAL;
+-	HIFN_UNLOCK(sc);
++	rw_wunlock(&sc->sc_sessions_lock);
+ 
+ 	return (error);
+ }
+@@ -2484,11 +2505,19 @@
+ 	}
+ 	session = HIFN_SESSION(crp->crp_sid);
+ 
+-	if (sc == NULL || session >= sc->sc_nsessions) {
++	if (sc == NULL) {
+ 		err = EINVAL;
+ 		goto errout;
+ 	}
+ 
++	rw_rlock(&sc->sc_sessions_lock);
++	if (session >= sc->sc_nsessions) {
++		rw_runlock(&sc->sc_sessions_lock);
++		err = EINVAL;
++		goto errout;
++	}
++	rw_runlock(&sc->sc_sessions_lock);
++
+ 	cmd = malloc(sizeof(struct hifn_command), M_DEVBUF, M_NOWAIT | M_ZERO);
+ 	if (cmd == NULL) {
+ 		hifnstats.hst_nomem++;
+@@ -2598,9 +2627,12 @@
+ 			if (enccrd->crd_flags & CRD_F_ENCRYPT) {
+ 				if (enccrd->crd_flags & CRD_F_IV_EXPLICIT)
+ 					bcopy(enccrd->crd_iv, cmd->iv, ivlen);
+-				else
++				else {
++					rw_rlock(&sc->sc_sessions_lock);
+ 					bcopy(sc->sc_sessions[session].hs_iv,
+ 					    cmd->iv, ivlen);
++					rw_runlock(&sc->sc_sessions_lock);
++				}
+ 
+ 				if ((enccrd->crd_flags & CRD_F_IV_PRESENT)
+ 				    == 0) {
+@@ -2857,9 +2889,11 @@
+ 				continue;
+ 			ivlen = ((crd->crd_alg == CRYPTO_AES_CBC) ?
+ 				HIFN_AES_IV_LENGTH : HIFN_IV_LENGTH);
++			rw_rlock(&sc->sc_sessions_lock);
+ 			crypto_copydata(crp->crp_flags, crp->crp_buf,
+ 			    crd->crd_skip + crd->crd_len - ivlen, ivlen,
+ 			    cmd->softc->sc_sessions[cmd->session_num].hs_iv);
++			rw_runlock(&sc->sc_sessions_lock);
+ 			break;
+ 		}
+ 	}
+@@ -2874,7 +2908,9 @@
+ 			    crd->crd_alg != CRYPTO_SHA1_HMAC) {
+ 				continue;
+ 			}
++			rw_rlock(&sc->sc_sessions_lock);
+ 			len = cmd->softc->sc_sessions[cmd->session_num].hs_mlen;
++			rw_runlock(&sc->sc_sessions_lock);
+ 			crypto_copyback(crp->crp_flags, crp->crp_buf,
+ 			    crd->crd_inject, len, macbuf);
+ 			break;
+Index: sys/dev/hifn/hifn7751var.h
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/hifn/hifn7751var.h,v
+retrieving revision 1.9.10.1
+diff -u -r1.9.10.1 hifn7751var.h
+--- sys/dev/hifn/hifn7751var.h	3 Aug 2009 08:13:06 -0000	1.9.10.1
++++ sys/dev/hifn/hifn7751var.h	17 May 2010 19:54:04 -0000
+@@ -161,6 +161,7 @@
+ 	int			sc_maxses;
+ 	int			sc_nsessions;
+ 	struct hifn_session	*sc_sessions;
++	struct rwlock		sc_sessions_lock;/* sessions lock */
+ 	int			sc_ramsize;
+ 	int			sc_flags;
+ #define	HIFN_HAS_RNG		0x1	/* includes random number generator */
