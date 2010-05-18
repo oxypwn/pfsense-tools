@@ -22,6 +22,6 @@ do-build:
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/wrapresetbtn ${PREFIX}/${WHERE}/
-	${INSTALL_PROGRAM} ${WRKSRC}/alixpresetbtn ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/alixresetbtn ${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>
