@@ -46,8 +46,8 @@ PORTSTOBUILD="
 ipsec-tools-devel			/usr/ports/security/ipsec-tools-devel	/usr/local/sbin/racoon
 grub						/usr/ports/sysutils/grub				/usr/local/sbin/grub
 ipfw-classifyd				/usr/ports/net/ipfw-classifyd			/usr/local/sbin/ipfw-classifyd
-check_reload_status				/usr/ports/sysutils/check_reload_status			/usr/local/sbin/check_reload_status
-dhcplease					/usr/ports/sysutils/dhcplease				/usr/local/sbin/dhcpleases
+check_reload_status			/usr/ports/sysutils/check_reload_status		/usr/local/sbin/check_reload_status
+dhcplease					/usr/ports/sysutils/dhcplease			/usr/local/sbin/dhcpleases
 filterdns					/usr/ports/net/filterdns				/usr/local/sbin/filterdns
 apinger						/usr/ports/net/apinger					/usr/local/sbin/apinger
 rrdtool						/usr/ports/databases/rrdtool			/usr/local/bin/rrdtool
@@ -115,8 +115,9 @@ php5-json					/usr/ports/devel/php5-json				/usr/local/lib/php/20060613/json.so
 rate						/usr/ports/net-mgmt/rate				/usr/local/bin/rate
 wol							/usr/ports/net/wol						/usr/local/bin/wol
 snort						/usr/ports/security/snort				/usr/local/sbin/snort
-3gstat_um175					/usr/ports/comms/3gstat_um175				/usr/local/bin/3gstat"
-	
+3gstat_um175				/usr/ports/comms/3gstat_um175			/usr/local/bin/3gstat
+wrapalixresetbutton			/usr/ports/sysutils/wrapalixresetbutton	/usr/local/sbin/alixresetbtn"
+
 clean_make_install() {
 	# Architecture, supported ARCH values are:
 	#  Tier 1: i386, AMD64, and PC98
