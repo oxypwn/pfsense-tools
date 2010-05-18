@@ -77,6 +77,8 @@ usr/local/sbin/relayctl
 usr/local/sbin/relayd
 usr/local/sbin/ipfw-classifyd
 usr/local/sbin/sshlockout_pf
+usr/local/sbin/wrapresetbtn
+usr/local/sbin/alixresetbtn
 usr/local/lib/libevent-1.3e.so.1
 usr/local/lib/lighttpd/mod_auth.so
 usr/local/lib/lighttpd/mod_proxy.so
