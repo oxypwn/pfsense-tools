@@ -18,7 +18,7 @@ do-extract:
 
 do-build:
 	${CC} ${CFLAGS} -lpthread -o ${WRKSRC}/wrapresetbtn ${FILESDIR}/wrapresetbtn.c
-	${CC} ${CFLAGS} -lpthread -o ${WRKSRC}/alixpresetbtn ${FILESDIR}/alixresetbtn.c
+	${CC} ${CFLAGS} -lpthread -o ${WRKSRC}/alixresetbtn ${FILESDIR}/alixresetbtn.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/wrapresetbtn ${PREFIX}/${WHERE}/
