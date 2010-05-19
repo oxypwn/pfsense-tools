@@ -709,11 +709,16 @@ cust_overlay_host_binaries() {
 		if [ -f /${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | egrep "(dynamically|shared)" | wc -l | awk '{ print $1 }'`
 			if [ "$FILETYPE" -gt 0 ]; then
-				NEEDEDLIBS="$NEEDEDLIBS `ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`"
-				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
+				NEEDLIB=`ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`
+				NEEDEDLIBS="$NEEDEDLIBS $NEEDLIB" 
+				cp /${TEMPFILE} ${PFSENSEBASEDIR}/${TEMPFILE}
 				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				if [ -d $CLONEDIR ]; then
-					cp /$NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
+					for NEEDL in $NEEDLIB; do
+						if [ -f $NEEDL ]; then
+							cp /$NEEDL ${PFSENSEBASEDIR}/${NEEDL}
+						fi
+					done
 				fi
 			else
 				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
