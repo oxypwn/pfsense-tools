@@ -26,6 +26,13 @@ for FILE in `ls`; do
 	fi
 done
 
+if [ ! -z "${REVERT_PFSENSE_COMMITS:-}" ]; then
+	for revert in $REVERT_PFSENSE_COMMITS; do
+		echo ">>> Reverting PFSENSE commit $revert"
+		(cd $CVS_CO_DIR && git revert $revert --no-edit) 2>&1 | grep Revert
+	done
+fi
+
 if [ ! -z "${REVERT_TOOLS_COMMITS:-}" ]; then
 	for revert in $REVERT_TOOLS_COMMITS; do
 		echo ">>> Reverting tools commit $revert"
