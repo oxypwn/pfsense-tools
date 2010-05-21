@@ -1,19 +1,18 @@
-# New ports collection makefile for:	php5
-# Date created:				Tue Feb 18 11:17:13 CET 2003
-# Whom:					Alex Dupre <sysadmin@alexdupre.com>
+# New ports collection makefile for:	php52
+# Date created:				17 Apr 2010
+# Whom:					Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/lang/php5/Makefile,v 1.138 2009/06/25 06:25:45 ale Exp $
+# $FreeBSD: ports/lang/php52/Makefile,v 1.3 2010/04/27 05:46:40 dinoex Exp $
 #
 
-PORTNAME=	php5
+PORTNAME=	php52
 PORTVERSION=	5.2.13
-PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
 DISTNAME=	php-${PORTVERSION}
 
-MAINTAINER=	ale@FreeBSD.org
+MAINTAINER=	admin@lissyara.su
 COMMENT=	PHP Scripting Language
 
 LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
@@ -47,7 +46,7 @@ OPTIONS=	CLI "Build CLI version" on \
 		FASTCGI "Enable fastcgi support (CGI only)" on \
 		PATHINFO "Enable path-info-check support (CGI only)" on
 
-CONFLICTS=	php4-4*
+CONFLICTS=	php4-4* php5-5.3*
 
 MAN1=		php-config.1 phpize.1
 
@@ -65,7 +64,7 @@ PLIST_SUB+=	SUHOSIN="@comment "
 
 .if defined(WITH_MAILHEAD)
 #PATCHFILES+=	php-${PORTVERSION}-mail-header.patch:mail
-PATCHFILES+=	php-5.2.9-mail-header.patch:mail
+PATCHFILES+=	php-5.2.10-mail-header.patch:mail
 PATCH_SITES+=	http://choon.net/opensource/php/:mail
 .endif
 
@@ -108,8 +107,8 @@ CONFIGURE_ARGS+=--with-apxs2=${APXS}
 CONFIGURE_ARGS+=--with-apxs=${APXS}
 .endif
 PKGMESSAGE=	${PKGDIR}/pkg-message.mod
-MODULENAME=	lib${PORTNAME}
-SHORTMODNAME=	${PORTNAME}
+MODULENAME=	libphp5
+SHORTMODNAME=	php5
 PLIST_SUB+=	APACHE=""
 .else
 PLIST_SUB+=	APACHE="@comment "
@@ -131,8 +130,8 @@ CONFIGURE_ARGS+=--with-zend-vm=SWITCH
 CONFIGURE_ARGS+=--with-zend-vm=GOTO
 .endif
 
-CONFIGURE_ENV+=	ac_cv_pthreads_lib=${PTHREAD_LIBS} \
-		ac_cv_pthreads_cflags=${PTHREAD_CFLAGS} \
+CONFIGURE_ENV+=	ac_cv_pthreads_lib="" \
+		ac_cv_pthreads_cflags="" \
 		pthreads_working="yes" \
 		lt_cv_path_SED="sed"
 
@@ -158,7 +157,7 @@ pre-configure:
 	@${CAT} ${WRKSRC}/acinclude.m4 ${WRKSRC}/build/libtool.m4 > ${WRKSRC}/aclocal.m4
 
 post-build:
-	@${ECHO_CMD} "PHP_VER=5" > ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_VER=52" > ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
 
@@ -176,7 +175,6 @@ post-install:
 		cp /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* /usr/local/lib/php/20060613/
 	cp /usr/local/bin/php-cgi /usr/local/bin/php
 	chmod a+rx /usr/local/bin/php
-
 
 .else
 .include "${MASTERDIR}/Makefile.ext"
