@@ -958,6 +958,10 @@ install_custom_overlay() {
     fi
 }
 
+setup_livecd_specifics() {
+	mkdir -p $CVS_CO_DIR/tank
+}
+
 # This rotine will overlay $custom_overlay_final when
 # the build is 99% completed.  Used to overwrite globals.inc
 # and other files when we need to install packages from pfSense

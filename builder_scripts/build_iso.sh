@@ -93,7 +93,7 @@ rebuild_and_install_bsdinstaller
 update_freebsd_sources_and_apply_patches
 
 # Checkout a fresh copy from pfsense cvs depot
-echo ">>> Updating pfSense CVS depot..."
+echo ">>> Updating pfSense GIT repo..."
 update_cvs_depot
 
 # Calculate versions
@@ -167,6 +167,9 @@ cust_populate_installer_bits
 
 # Overlay final files
 install_custom_overlay_final
+
+# LiveCD specifics
+setup_livecd_specifics
 
 # Ensure config.xml exists
 copy_config_xml_from_conf_default
