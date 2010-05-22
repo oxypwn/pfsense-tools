@@ -28,13 +28,24 @@ return {
 
 	local dd = {}
 
-       	for ddd in App.state.storage:get_disks() do
-		dd = ddd
-		print("\nAuto-selecting first disk...")
-		print(dd:get_desc() .. "\n")
+	for ddd in App.state.storage:get_disks() do
+		local desc = ddd:get_desc()
+		if desc == "mirror/pfSenseMirror" then
+			print("\nAuto-selecting first disk...")
+			print("\npfSense mirror found.  Auto selecting.")
+			dd = ddd
+			break
+		end
+	end
 
-		break
-       	end
+	if next(dd) == nil then
+		for ddd in App.state.storage:get_disks() do
+			dd = ddd
+			print("\nAuto-selecting first disk...")
+			print(dd:get_desc() .. "\n")
+			break
+		end
+	end
 
 	if dd then
 		App.state.sel_disk = dd
