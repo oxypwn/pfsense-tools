@@ -959,7 +959,7 @@ install_custom_overlay() {
 }
 
 setup_livecd_specifics() {
-	mkdir -p $CVS_CO_DIR/tank
+
 }
 
 # This rotine will overlay $custom_overlay_final when
