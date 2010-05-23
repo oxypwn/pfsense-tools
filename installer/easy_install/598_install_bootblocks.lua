@@ -50,7 +50,7 @@ return {
 					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
 					cmds:add("echo \"default=0\" > /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"timeout=5\" >> /mnt/boot/grub/menu.lst")
-					cmds:add("echo \"title Centipede\" >> /mnt/boot/grub/menu.lst")
+					cmds:add("echo \"title pfSense\" >> /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"	root (hd0,0,a)\" >> /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"	kernel /boot/loader\" >> /mnt/boot/grub/menu.lst")
 					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")

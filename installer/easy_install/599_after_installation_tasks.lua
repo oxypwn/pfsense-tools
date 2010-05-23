@@ -10,7 +10,7 @@
 
 return {
     id = "pfsense_after_install",
-    name = _("Centipede Firewall After Installation Routines"),
+    name = _("pfSense after installation routines"),
     effect = function(step)
 	local cmds = CmdChain.new()
 	local filename = "/usr/local/bin/after_installation_routines.sh"
@@ -31,7 +31,4 @@ return {
 	return step:next()
 
     end
-
-    
-
 }
