@@ -25,17 +25,16 @@ return {
 				boot0cfg = "Y",
 				packet = "N"
 			}
+			--
+			-- For disks larger than 8 gigabytes in size,
+			-- enable "packet mode" booting by default.
+			--
+			if dd:get_capacity():in_units("G") >= 8 then
+				dataset.packet = "Y"
+			end
+			table.insert(datasets_list, dataset)
 		end
 
-		--
-		-- For disks larger than 8 gigabytes in size,
-		-- enable "packet mode" booting by default.
-		--
-		if dd:get_capacity():in_units("G") >= 8 then
-			dataset.packet = "Y"
-		end
-
-		table.insert(datasets_list, dataset)
 	end
 		local cmds = CmdChain.new()
 		local i, dataset
