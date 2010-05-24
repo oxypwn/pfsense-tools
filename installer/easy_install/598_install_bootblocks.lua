@@ -18,7 +18,9 @@ return {
 
 		disk_ref[raw_name] = dd
 
+		--
 		-- Only install to selected disk
+		--
 		if App.state.sel_disk == dd then
 			local dataset = {
 				disk = raw_name,
@@ -44,11 +46,13 @@ return {
 				if dataset.usegrub == "Y" then
 					dd = disk_ref[dataset.disk]
 					disk = dd:get_name()
+					--
 					-- execute Grub boot block installer
+					--
 					cmds:set_replacements{
 					    disk = disk
 					}
-					cmds:add("sysctl kern.geom.debugflags=16")
+					cmds:add("/sbin/sysctl kern.geom.debugflags=16")
 					cmds:add("/usr/local/sbin/grub-install --root-directory=/mnt/ /dev/${disk}")
 					cmds:add("echo \"default=0\" > /mnt/boot/grub/menu.lst")
 					cmds:add("echo \"timeout=5\" >> /mnt/boot/grub/menu.lst")
@@ -64,7 +68,7 @@ return {
 					cmds:set_replacements{
 					    disk = disk
 					}
-					cmds:add("boot0cfg -B -b /boot/boot0 /dev/${disk}")
+					cmds:add("/usr/sbin/boot0cfg -B -b /boot/boot0 /dev/${disk}")
 				end
 			end
 		end
