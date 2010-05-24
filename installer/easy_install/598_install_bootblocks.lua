@@ -18,11 +18,14 @@ return {
 
 		disk_ref[raw_name] = dd
 
-		local dataset = {
-			disk = raw_name,
-			boot0cfg = "Y",
-			packet = "N"
-		}
+		-- Only install to selected disk
+		if App.state.sel_disk == dd then
+			local dataset = {
+				disk = raw_name,
+				boot0cfg = "Y",
+				packet = "N"
+			}
+		end
 
 		--
 		-- For disks larger than 8 gigabytes in size,
