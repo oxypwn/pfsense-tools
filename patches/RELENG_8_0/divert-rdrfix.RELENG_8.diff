@@ -1,6 +1,5 @@
-diff -ru sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
---- sys/contrib/pf/net/pf.c	2010-04-15 03:06:12.236421881 +0000
-+++ sys/contrib/pf/net/pf.c	2010-04-16 01:03:06.044023582 +0000
+--- sys/contrib/pf/net/pf.c.orig	2010-05-25 20:44:00.338831732 +0000
++++ sys/contrib/pf/net/pf.c	2010-05-25 23:14:03.954253504 +0000
 @@ -227,6 +227,10 @@
  			    struct pf_addr *, u_int16_t,
  			    struct pf_addr *, u_int16_t,
@@ -26,7 +25,7 @@ diff -ru sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
  			*state = pf_find_state_recurse(			\
  			    kif, &key, PF_EXT_GWY);			\
  		else							\
-@@ -379,11 +388,28 @@
+@@ -379,10 +388,27 @@
  #define PF_DUMMYNET() 								\
  	do {									\
  		r = (*state)->rule.ptr;						\
@@ -42,10 +41,10 @@ diff -ru sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
 +	do {									\
 +		if (r->divert && direction != PF_DIVERT_BYPASS_DIR &&		\
 +		    !(pd->pf_mtag->flags & PF_DIVERT_TAG_PRESENT))		\
-+			return (PF_PASS);					\
-+		if (r->divert && pd->flags & PFDESC_SEEN)			\
  			return (PF_PASS);					\
- 	} while (0)
++		if (r->divert && pd->flags & PFDESC_SEEN)			\
++			return (PF_PASS);					\
++	} while (0)
 +#define PF_STATE_DIVERT_BYPASS()						\
 +	do {									\
 +		r = (*state)->rule.ptr;						\
@@ -54,10 +53,9 @@ diff -ru sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
 +			/* fake that divert already happened */			\
 +			pd->pf_mtag->flags |= PF_DIVERT_TAG_PRESENT;		\
 +		PF_DIVERT_BYPASS();						\
-+	} while (0)
+ 	} while (0)
  
  struct pf_src_tree tree_src_tracking;
- 
 @@ -2985,6 +3011,51 @@
  	return (r);
  }
@@ -229,7 +227,46 @@ diff -ru sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
  	if (s) {
  		if (divertcookie) {
  			s->divert_cookie = divertcookie;
-@@ -7324,30 +7420,7 @@
+@@ -7312,6 +7408,8 @@
+                 pd.pf_mtag->qid = divertcookie;
+         else if (divflags & PFSTATE_DIVERT_ACTION) {
+                 struct pf_rule *dlr;
++                struct pf_state_cmp key;
++
+                 action = PF_DROP;
+                 REASON_SET(&reason, PFRES_DIVERT);
+                 log = 1;
+@@ -7320,34 +7418,37 @@
+                 dlr = r;
+                 PFLOG_PACKET(kif, h, m, AF_INET, dir, reason, dlr, a,
+                         ruleset, &pd);
++		if (s) {
++			s->src.state = s->dst.state = TCPS_CLOSED;
++			pf_unlink_state(s);
++
++			/* Find matching ingress/egress rule */
++			key.af = s->af;
++			key.proto = s->proto;
++			/* switch src/dst */
++			PF_ACPY(&key.ext.addr, &s->lan.addr, s->af);
++			PF_ACPY(&key.gwy.addr, &s->ext.addr, s->af);
++			PF_ACPY(&key.lan.addr, &s->ext.addr, s->af);
++			key.ext.port = s->lan.port;
++			key.gwy.port = s->ext.port;
++			key.lan.port = s->ext.port;
++			if (s->direction == PF_IN)
++				s = pf_find_state_recurse(kif, &key,
++				    PF_LAN_EXT);	/* PF_OUT direction */
++			else
++				s = pf_find_state_recurse(kif, &key,
++				    PF_EXT_GWY);	/* PF_IN direction */
++			if (s) {
++				s->src.state = s->dst.state = TCPS_CLOSED;
++				pf_unlink_state(s);
++			}
++		}
++
+                 PF_UNLOCK();
                  return (action);
          }
  
@@ -261,7 +298,7 @@ diff -ru sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
                  !(pd.pf_mtag->flags & PF_DN_TAG_PRESENT)) {
                          struct ip_fw dummyrule;
  
-@@ -7406,6 +7479,9 @@
+@@ -7406,6 +7507,9 @@
  	    (ntohl(pd.dst->v4.s_addr) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)
  		pd.pf_mtag->flags |= PF_TAG_TRANSLATE_LOCALHOST;
  
@@ -271,7 +308,7 @@ diff -ru sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
  	if (log) {
  		struct pf_rule *lr;
  
-@@ -7481,7 +7557,20 @@
+@@ -7481,7 +7585,20 @@
  			    pd.tot_len, dir == PF_OUT, r->action == PF_PASS,
  			    tr->dst.neg);
  	}
@@ -293,9 +330,8 @@ diff -ru sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
  	if (action == PF_SYNPROXY_DROP) {
  		m_freem(*m0);
  		*m0 = NULL;
-diff -ru sys/contrib/pf/net/pfvar.h sys/contrib/pf/net/pfvar.h
---- sys/contrib/pf/net/pfvar.h	2010-04-15 03:06:11.912080314 +0000
-+++ sys/contrib/pf/net/pfvar.h	2010-04-15 22:38:48.242067019 +0000
+--- sys/contrib/pf/net/pfvar.h.orig	2010-05-25 20:44:00.363940574 +0000
++++ sys/contrib/pf/net/pfvar.h	2010-05-25 20:44:33.426739482 +0000
 @@ -1106,6 +1106,7 @@
  					 * state code. Easier than tags */
  #define PFDESC_TCP_NORM	0x0001		/* TCP shall be statefully scrubbed */
