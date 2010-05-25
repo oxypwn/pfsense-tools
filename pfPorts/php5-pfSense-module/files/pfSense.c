@@ -11,6 +11,7 @@
 #include <net/if_types.h>
 #include <net/if.h>
 #include <net/if_dl.h>
+#include <net/if_mib.h>
 #include <netinet/in.h>
 #include <net/pfvar.h>
 #include <sys/ioctl.h>
@@ -456,74 +457,14 @@ PHP_FUNCTION(pfSense_get_interface_info)
         for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
                 if (mb == NULL)
                         continue;
+		if (ifname_len != strlen(mb->ifa_name))
+                        continue;
                 if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
                         continue;
-                //printf("%s", mb->ifa_name);
-                if (mb->ifa_flags & IFF_UP)
-                        add_assoc_string(return_value, "status", "up", 1);
-                else
-                        add_assoc_string(return_value, "status", "down", 1);
-                if (mb->ifa_flags & IFF_LINK0)
-                        add_assoc_string(return_value, "link0", "down", 1);
-                else
-                        add_assoc_string(return_value, "link0", "up", 1);
-
-#if 0
-                if (mb->ifa_flags & IFF_BROADCAST)
-                        printf(" BROADCAST");
-                if (mb->ifa_flags & IFF_LOOPBACK)
-                        printf(" LOOPBACK");
-                if (mb->ifa_flags & IFF_PPROMISC)
-                        printf(" PROMISC");
-                if (mb->ifa_flags & IFF_STATICARP)
-                        printf(" STATICARP");
-                if (mb->ifa_flags & IFF_MULTICAST)
-                        printf(" MULTICAST");
-                if (mb->ifa_flags & IFF_DRV_RUNNING)
-                        printf(" RUNNING");
-                if (mb->ifa_flags & IFF_DRV_OACTIVE)
-                        printf(" FULLQUEUE");
-                printf(" ");
-#endif
                 switch (mb->ifa_addr->sa_family) {
-                case AF_INET:
-                        bzero(&outputbuf, sizeof outputbuf);
-                        tmp = (struct sockaddr_in *)mb->ifa_addr;
-                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-                        add_assoc_string(return_value, "ipaddr", outputbuf, 1);
-
-                        bzero(&outputbuf, sizeof outputbuf);
-                        tmp = (struct sockaddr_in *)mb->ifa_netmask;
-                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-                        add_assoc_string(return_value, "subnet", outputbuf, 1);
-
-                        if (mb->ifa_flags & IFF_BROADCAST) {
-                                bzero(&outputbuf, sizeof outputbuf);
-                                tmp = (struct sockaddr_in *)mb->ifa_broadaddr;
-                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-                                add_assoc_string(return_value, "broadcast", outputbuf, 1);
-                        }
-
-                        break;
-#if 0
-                case AF_INET6:
-                        printf("AF_INET6 ");
-                        break;
-#endif
                 case AF_LINK:
 
-                        tmpdl = (struct sockaddr_dl *)mb->ifa_addr;
-			bzero(&outputbuf, sizeof outputbuf);
-			ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), outputbuf);
-			add_assoc_string(return_value, "macaddr", outputbuf, 1);
                         tmpd = (struct if_data *)mb->ifa_data;
-#if 0
-                        if (tmpd->ifi_link_state == 2)
-                                printf(" Link UP");
-                        else
-                                printf(" Link DOWN");
-                        printf(" %u", tmpd->ifi_ipackets);
-#endif
 			add_assoc_long(return_value, "inerrs", tmpd->ifi_ierrors);
 			add_assoc_long(return_value, "outerrs", tmpd->ifi_oerrors);
 			add_assoc_long(return_value, "collisions", tmpd->ifi_collisions);
@@ -580,65 +521,49 @@ PHP_FUNCTION(pfSense_get_interface_info)
 
 PHP_FUNCTION(pfSense_get_interface_stats)
 {
-	struct ifaddrs *ifdata, *mb;
-        struct if_data *tmpd;
-        struct sockaddr_dl *tmpdl;
+	struct ifmibdata ifmd;
+	struct if_data *tmpd;
         char outputbuf[128];
         char *ifname;
-        int ifname_len;
+        int ifname_len, error;
+	int name[6];
+	size_t len;
+	unsigned int ifidx;
 
         if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
                 RETURN_NULL();
         }
 
+	ifidx = if_nametoindex(ifname);
+	if (ifidx == 0)
+		RETURN_NULL();
+
+	name[0] = CTL_NET;
+	name[1] = PF_LINK;
+	name[2] = NETLINK_GENERIC;
+	name[3] = IFMIB_IFDATA;
+	name[4] = ifidx;
+	name[5] = IFDATA_GENERAL;
+
+	len = sizeof(ifmd);
+
+	if (sysctl(name, 6, &ifmd, &len, (void *)0, 0) < 0)
+		RETURN_NULL();
+	
+	tmpd = &ifmd.ifmd_data;
+
         array_init(return_value);
-
-        getifaddrs(&ifdata);
-        if (ifdata == NULL) {
-                //printf("No data found\n");
-                RETURN NULL;
-        }
-
-        for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
-                if (mb == NULL)
-                        continue;
-                if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
-                        continue;
-                //printf("%s", mb->ifa_name);
-                if (mb->ifa_flags & IFF_UP)
-                        add_assoc_string(return_value, "status", "up", 1);
-                else
-                        add_assoc_string(return_value, "status", "down", 1);
-                if (mb->ifa_flags & IFF_LINK0)
-                        add_assoc_string(return_value, "link0", "down", 1);
-                else
-                        add_assoc_string(return_value, "link0", "up", 1);
-		switch (mb->ifa_addr->sa_family) {
-                case AF_LINK:
-                        tmpdl = (struct sockaddr_dl *)mb->ifa_addr;
-                        bzero(&outputbuf, sizeof outputbuf);
-                        ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), outputbuf);
-                        add_assoc_string(return_value, "macaddr", outputbuf, 1);
-                        tmpd = (struct if_data *)mb->ifa_data;
-
-                        add_assoc_long(return_value, "inpkts", tmpd->ifi_ipackets);
-                        add_assoc_long(return_value, "inbytes", tmpd->ifi_ibytes);
-                        add_assoc_long(return_value, "outpkts", tmpd->ifi_opackets);
-                        add_assoc_long(return_value, "outbytes", tmpd->ifi_obytes);
-                        add_assoc_long(return_value, "inerrs", tmpd->ifi_ierrors);
-                        add_assoc_long(return_value, "outerrs", tmpd->ifi_oerrors);
-                        add_assoc_long(return_value, "collisions", tmpd->ifi_collisions);
-                        add_assoc_long(return_value, "inmcasts", tmpd->ifi_imcasts);
-                        add_assoc_long(return_value, "outmcasts", tmpd->ifi_omcasts);
-                        add_assoc_long(return_value, "unsuppproto", tmpd->ifi_noproto);
-                        add_assoc_long(return_value, "mtu", tmpd->ifi_mtu);
-
-                        break;
-                }
-		break;
-        }
-        freeifaddrs(ifdata);
-
+	add_assoc_long(return_value, "inpkts", (long)tmpd->ifi_ipackets);
+	add_assoc_long(return_value, "inbytes", (long)tmpd->ifi_ibytes);
+	add_assoc_long(return_value, "outpkts", (long)tmpd->ifi_opackets);
+	add_assoc_long(return_value, "outbytes", (long)tmpd->ifi_obytes);
+	add_assoc_long(return_value, "inerrs", (long)tmpd->ifi_ierrors);
+	add_assoc_long(return_value, "outerrs", (long)tmpd->ifi_oerrors);
+	add_assoc_long(return_value, "collisions", (long)tmpd->ifi_collisions);
+	add_assoc_long(return_value, "inmcasts", (long)tmpd->ifi_imcasts);
+	add_assoc_long(return_value, "outmcasts", (long)tmpd->ifi_omcasts);
+	add_assoc_long(return_value, "unsuppproto", (long)tmpd->ifi_noproto);
+	add_assoc_long(return_value, "mtu", (long)tmpd->ifi_mtu);
 }
 
 PHP_FUNCTION(pfSense_get_pf_stats) {
