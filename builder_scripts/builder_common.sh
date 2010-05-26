@@ -931,7 +931,7 @@ install_custom_overlay() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
-	    if [ -d $custom_overlay ]; then
+		if [ -d $custom_overlay ]; then
 			echo "found directory, copying..."
 			for i in $custom_overlay/*
 			do
@@ -948,6 +948,25 @@ install_custom_overlay() {
 			tar xzpf $custom_overlay -C $CVS_CO_DIR
 		else
 			echo " file not found $custom_overlay"
+			print_error_pfS
+		fi
+	fi
+	if [ ! -z "${custom_overlay_archive:-}" ]; then
+		echo -n "Custom overlay archive defined - "
+		if [ -d $custom_overlay_archive ]; then
+			echo "found directory, extracting files..."
+			for i in $custom_overlay_archive/*
+			do
+			    if [ -f $i ]; then
+			        echo "extracting file: $i ..."
+			        tar xzpf $i -C $CVS_CO_DIR
+			    fi
+			done
+		elif [ -f $custom_overlay_archive ]; then
+			echo "found file, extracting..."
+			tar xzpf $custom_overlay_archive -C $CVS_CO_DIR
+		else
+			echo " file not found $custom_overlay_archive"
 			print_error_pfS
 		fi
 	fi
