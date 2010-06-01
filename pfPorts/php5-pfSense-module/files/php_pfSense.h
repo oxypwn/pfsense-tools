@@ -6,7 +6,8 @@
 #endif
 
 ZEND_BEGIN_MODULE_GLOBALS(pfSense)
-    int s;
+	int s;
+	int csock;
 ZEND_END_MODULE_GLOBALS(pfSense)
 
 #ifdef ZTS
@@ -33,6 +34,9 @@ PHP_FUNCTION(pfSense_interface_mtu);
 PHP_FUNCTION(pfSense_interface_create);
 PHP_FUNCTION(pfSense_interface_destroy);
 PHP_FUNCTION(pfSense_interface_flags);
+PHP_FUNCTION(pfSense_interface_setaddress);
+PHP_FUNCTION(pfSense_interface_capabilities);
+PHP_FUNCTION(pfSense_ngctl_name);
 
 extern zend_module_entry pfSense_module_entry;
 #define phpext_pfSense_ptr &pfSense_module_entry

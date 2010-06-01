@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <strings.h>
 
+#include <netgraph.h>
+
 ZEND_DECLARE_MODULE_GLOBALS(pfSense)
 
 static function_entry pfSense_functions[] = {
@@ -48,6 +50,9 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_interface_create, NULL)
     PHP_FE(pfSense_interface_destroy, NULL)
     PHP_FE(pfSense_interface_flags, NULL)
+    PHP_FE(pfSense_interface_capabilities, NULL)
+    PHP_FE(pfSense_interface_setaddress, NULL)
+    PHP_FE(pfSense_ngctl_name, NULL)
     {NULL, NULL, NULL}
 };
 
@@ -200,9 +205,20 @@ pfr_buf_clear(struct pfr_buffer *b)
 
 PHP_MINIT_FUNCTION(pfSense_socket)
 {
+	int csock;
+
 	PFSENSE_G(s) = socket(AF_LOCAL, SOCK_DGRAM, 0);
         if (PFSENSE_G(s) < 0)
         	return FAILURE;
+
+	/* Create a new socket node */
+/*
+        if (NgMkSockNode(NULL, &csock, NULL) < 0) {
+		return FAILURE;
+	}
+*/
+
+	PFSENSE_G(csock) = csock;
 
 	REGISTER_LONG_CONSTANT("IFF_UP", IFF_UP, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IFF_LINK0", IFF_LINK0, CONST_PERSISTENT | CONST_CS);
@@ -213,12 +229,31 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 #if defined(IFF_IPFW_FILTER)
 	REGISTER_LONG_CONSTANT("IFF_IPFW_FILTER", IFF_IPFW_FILTER, CONST_PERSISTENT | CONST_CS);
 #endif
+	REGISTER_LONG_CONSTANT("IFCAP_RXCSUM", IFCAP_RXCSUM, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_TXCSUM", IFCAP_TXCSUM, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_POLLING", IFCAP_POLLING, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_TSO", IFCAP_TSO, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_LRO", IFCAP_LRO, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_WOL", IFCAP_WOL, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_WOL_UCAST", IFCAP_WOL_UCAST, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_WOL_MCAST", IFCAP_WOL_MCAST, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_WOL_MAGIC", IFCAP_WOL_MAGIC, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_RXCSUM", IFCAP_RXCSUM, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_RXCSUM", IFCAP_RXCSUM, CONST_PERSISTENT | CONST_CS);
+
+	REGISTER_LONG_CONSTANT("IFCAP_VLAN_HWTAGGING", IFCAP_VLAN_HWTAGGING, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_VLAN_MTU", IFCAP_VLAN_MTU, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFCAP_VLAN_HWFILTER", IFCAP_VLAN_HWFILTER, CONST_PERSISTENT | CONST_CS);
+#ifdef IFCAP_VLAN_HWTSO
+	REGISTER_LONG_CONSTANT("IFCAP_VLAN_HWTSO", IFCAP_VLAN_HWTSO, CONST_PERSISTENT | CONST_CS);
+#endif
 
 	return SUCCESS;
 }
 
 PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 {
+	close(PFSENSE_G(csock));
 	close(PFSENSE_G(s));
 
 	return SUCCESS;
@@ -474,13 +509,13 @@ PHP_FUNCTION(pfSense_interface_create) {
                 RETURN_NULL();
 	}
 
-	array_init(return_value);
 	memset(&ifr, 0, sizeof(ifr));
 	strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
-	if (ioctl(PFSENSE_G(s), SIOCIFCREATE2, &ifr) < 0)
+	if (ioctl(PFSENSE_G(s), SIOCIFCREATE2, &ifr) < 0) {
+		array_init(return_value);
 		add_assoc_string(return_value, "error", "Could not create interface", 1);
-	else
-		add_assoc_string(return_value, "iface", ifr.ifr_name, 1);
+	} else
+		RETURN_STRING(ifr.ifr_name, 1)
 }
 
 PHP_FUNCTION(pfSense_interface_destroy) {
@@ -502,6 +537,36 @@ PHP_FUNCTION(pfSense_interface_destroy) {
 	RETURN_TRUE;
 }
 
+PHP_FUNCTION(pfSense_interface_setaddress) {
+	char *ifname, *ip;
+        int ifname_len, ip_len, i, mask;
+	struct sockaddr_in *sin;
+	struct ifaliasreq ifra;
+	u_int32_t addrmask;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssl", &ifname, &ifname_len, &ip, &ip_len, &mask) == FAILURE) {
+		RETURN_NULL();
+	}
+
+	memset(&ifra, 0, sizeof(ifra));
+	strlcpy(ifra.ifra_name, ifname, sizeof(ifra.ifra_name));
+	inet_pton(AF_INET, ip, &ifra.ifra_addr);
+	if (mask < 32) {
+		for (i = 31; i > 31-mask; --i)
+			addrmask |= (1 << i);
+		addrmask = htonl(addrmask);
+	}
+	sin = (struct sockaddr_in *) &ifra.ifra_mask;
+	sin->sin_family = AF_INET;
+	sin->sin_len = sizeof(*sin);
+	sin->sin_addr.s_addr = addrmask;
+	if (ioctl(PFSENSE_G(s), SIOCAIFADDR, &ifra) < 0) {
+		array_init(return_value);
+		add_assoc_string(return_value, "error", "Could not set interface address", 1);
+	} else
+		RETURN_TRUE;
+}
+
 PHP_FUNCTION(pfSense_interface_rename) {
 	char *ifname, *newifname;
 	int ifname_len, newifname_len;
@@ -519,6 +584,24 @@ PHP_FUNCTION(pfSense_interface_rename) {
 		add_assoc_string(return_value, "error", "Could not rename interface", 1);
 	} else
 		RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_ngctl_name) {
+	char *ifname, *newifname;
+	int ifname_len, newifname_len;
+	struct ngm_name name;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
+                RETURN_NULL();
+	}
+
+	snprintf(name.name, sizeof(name.name), "%s", newifname);
+	/* Send message */
+	if (NgSendMsg(PFSENSE_G(csock), ifname, NGM_GENERIC_COOKIE,
+	    NGM_NAME, &name, sizeof(name)) < 0)
+		RETURN_NULL();
+
+	RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_vlan_create) {
@@ -587,7 +670,34 @@ PHP_FUNCTION(pfSense_interface_flags) {
 	if (ioctl(PFSENSE_G(s), SIOCSIFFLAGS, (caddr_t)&ifr) < 0)
 		RETURN_NULL();
 	RETURN_TRUE;
-	
+}
+
+PHP_FUNCTION(pfSense_interface_capabilities) {
+	struct ifreq ifr;
+	char *ifname;
+	int flags, ifname_len, value;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &ifname, &ifname_len, &value) == FAILURE) {
+                RETURN_NULL();
+        }
+
+	memset(&ifr, 0, sizeof(ifr));
+	strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+	if (ioctl(PFSENSE_G(s), SIOCGIFCAP, (caddr_t)&ifr) < 0) {
+		RETURN_NULL();
+	}
+	flags = ifr.ifr_curcap;
+	if (value < 0) {
+		value = -value;
+		flags &= ~value;
+	} else
+		flags |= value; 
+	flags &= ifr.ifr_reqcap;
+	ifr.ifr_reqcap = flags;
+	if (ioctl(PFSENSE_G(s), SIOCSIFCAP, (caddr_t)&ifr) < 0)
+		RETURN_NULL();
+	RETURN_TRUE;
+
 }
 
 PHP_FUNCTION(pfSense_get_interface_info)
