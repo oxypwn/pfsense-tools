@@ -589,7 +589,7 @@ PHP_FUNCTION(pfSense_interface_setaddress) {
 }
 
 PHP_FUNCTION(pfSense_interface_deladdress) {
-        char *ifname, *ip;
+        char *ifname, *ip = NULL;
         int ifname_len, ip_len;
         struct sockaddr_in *sin;
         struct in_aliasreq ifra;
@@ -608,7 +608,7 @@ PHP_FUNCTION(pfSense_interface_deladdress) {
 
         if (ioctl(PFSENSE_G(inets), SIOCDIFADDR, &ifra) < 0) {
                 array_init(return_value);
-                add_assoc_string(return_value, "error", "Could not set interface address", 1);
+                add_assoc_string(return_value, "error", "Could not delete interface address", 1);
         } else
                 RETURN_TRUE;
 }
