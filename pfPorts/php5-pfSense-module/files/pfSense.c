@@ -19,6 +19,7 @@
 #include <net/if_dl.h>
 #include <net/if_mib.h>
 #include <netinet/in.h>
+#include <netinet/in_var.h>
 #include <net/pfvar.h>
 #include <sys/ioctl.h>
 #include <sys/sysctl.h>
@@ -52,6 +53,7 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_interface_flags, NULL)
     PHP_FE(pfSense_interface_capabilities, NULL)
     PHP_FE(pfSense_interface_setaddress, NULL)
+    PHP_FE(pfSense_interface_deladdress, NULL)
     PHP_FE(pfSense_ngctl_name, NULL)
     {NULL, NULL, NULL}
 };
@@ -211,6 +213,12 @@ PHP_MINIT_FUNCTION(pfSense_socket)
         if (PFSENSE_G(s) < 0)
         	return FAILURE;
 
+	PFSENSE_G(inets) = socket(AF_INET, SOCK_DGRAM, 0);
+        if (PFSENSE_G(inets) < 0) {
+		close(PFSENSE_G(s));
+        	return FAILURE;
+	}
+
 	/* Create a new socket node */
 /*
         if (NgMkSockNode(NULL, &csock, NULL) < 0) {
@@ -254,6 +262,7 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 {
 	close(PFSENSE_G(csock));
+	close(PFSENSE_G(inets));
 	close(PFSENSE_G(s));
 
 	return SUCCESS;
@@ -538,33 +547,70 @@ PHP_FUNCTION(pfSense_interface_destroy) {
 }
 
 PHP_FUNCTION(pfSense_interface_setaddress) {
-	char *ifname, *ip;
-        int ifname_len, ip_len, i, mask;
+	char *ifname, *ip, *p = NULL;
+        int ifname_len, ip_len;
 	struct sockaddr_in *sin;
-	struct ifaliasreq ifra;
-	u_int32_t addrmask;
+	struct in_aliasreq ifra;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssl", &ifname, &ifname_len, &ip, &ip_len, &mask) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &ip, &ip_len) == FAILURE) {
 		RETURN_NULL();
 	}
 
 	memset(&ifra, 0, sizeof(ifra));
 	strlcpy(ifra.ifra_name, ifname, sizeof(ifra.ifra_name));
-	inet_pton(AF_INET, ip, &ifra.ifra_addr);
-	if (mask < 32) {
-		for (i = 31; i > 31-mask; --i)
-			addrmask |= (1 << i);
-		addrmask = htonl(addrmask);
-	}
-	sin = (struct sockaddr_in *) &ifra.ifra_mask;
+	sin =  &ifra.ifra_mask;
 	sin->sin_family = AF_INET;
 	sin->sin_len = sizeof(*sin);
-	sin->sin_addr.s_addr = addrmask;
-	if (ioctl(PFSENSE_G(s), SIOCAIFADDR, &ifra) < 0) {
+	sin->sin_addr.s_addr = 0;
+	if ((p = strrchr(ip, '/')) != NULL) {
+		/* address is `name/masklen' */
+		int masklen;
+		int ret;
+		*p = '\0';
+		ret = sscanf(p+1, "%u", &masklen);
+		if(ret != 1 || (masklen < 0 || masklen > 32)) {
+			*p = '/';
+			RETURN_FALSE;
+		}
+		sin->sin_addr.s_addr = htonl(~((1LL << (32 - masklen)) - 1) &
+			0xffffffff);
+	}
+	sin =  &ifra.ifra_addr;
+	sin->sin_family = AF_INET;
+	sin->sin_len = sizeof(*sin);
+	if (inet_pton(AF_INET, ip, &sin->sin_addr) <= 0)
+		RETURN_FALSE;
+
+	if (ioctl(PFSENSE_G(inets), SIOCAIFADDR, &ifra) < 0) {
 		array_init(return_value);
 		add_assoc_string(return_value, "error", "Could not set interface address", 1);
 	} else
 		RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_interface_deladdress) {
+        char *ifname, *ip;
+        int ifname_len, ip_len;
+        struct sockaddr_in *sin;
+        struct in_aliasreq ifra;
+
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &ip, &ip_len) == FAILURE) {
+                RETURN_NULL();
+        }
+
+        memset(&ifra, 0, sizeof(ifra));
+        strlcpy(ifra.ifra_name, ifname, sizeof(ifra.ifra_name));
+        sin =  &ifra.ifra_addr;
+        sin->sin_family = AF_INET;
+        sin->sin_len = sizeof(*sin);
+        if (inet_pton(AF_INET, ip, &sin->sin_addr) <= 0)
+                RETURN_FALSE;
+
+        if (ioctl(PFSENSE_G(inets), SIOCDIFADDR, &ifra) < 0) {
+                array_init(return_value);
+                add_assoc_string(return_value, "error", "Could not set interface address", 1);
+        } else
+                RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_interface_rename) {

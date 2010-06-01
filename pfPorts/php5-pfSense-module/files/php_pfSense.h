@@ -7,6 +7,7 @@
 
 ZEND_BEGIN_MODULE_GLOBALS(pfSense)
 	int s;
+	int inets;
 	int csock;
 ZEND_END_MODULE_GLOBALS(pfSense)
 
@@ -35,6 +36,7 @@ PHP_FUNCTION(pfSense_interface_create);
 PHP_FUNCTION(pfSense_interface_destroy);
 PHP_FUNCTION(pfSense_interface_flags);
 PHP_FUNCTION(pfSense_interface_setaddress);
+PHP_FUNCTION(pfSense_interface_deladdress);
 PHP_FUNCTION(pfSense_interface_capabilities);
 PHP_FUNCTION(pfSense_ngctl_name);
 
