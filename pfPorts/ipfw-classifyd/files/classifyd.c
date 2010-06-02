@@ -74,7 +74,7 @@ static int IC_PKTMAXMATCH = 5;
 
 #define DIVERT_ALTQ 0x1000
 #define DIVERT_DNCOOKIE 0x2000
-#define DIVERT_ACTION 0x4000
+#define DIVERT_ACTION 0x4001
 #define DIVERT_TAG 0x8000
 
 /*
@@ -908,8 +908,7 @@ read_config(const char *file, struct ic_protocols *plist)
 				rule = PF_PASS;
 			else
 				continue;
-			rule = 0;
-			rule |= DIVERT_ACTION;
+			rule = DIVERT_ACTION;
 		} else {
 			syslog(LOG_WARNING,
 			    "invalid action specified for %s protocol: %s",
