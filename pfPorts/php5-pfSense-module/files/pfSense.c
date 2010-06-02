@@ -220,11 +220,9 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	}
 
 	/* Create a new socket node */
-/*
         if (NgMkSockNode(NULL, &csock, NULL) < 0) {
 		return FAILURE;
 	}
-*/
 
 	PFSENSE_G(csock) = csock;
 
