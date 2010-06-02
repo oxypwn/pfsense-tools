@@ -1,5 +1,5 @@
 --- sys/contrib/pf/net/pf.c.orig	2010-05-25 20:44:00.338831732 +0000
-+++ sys/contrib/pf/net/pf.c	2010-05-25 23:14:03.954253504 +0000
++++ sys/contrib/pf/net/pf.c	2010-06-02 20:10:14.333739154 +0000
 @@ -227,6 +227,10 @@
  			    struct pf_addr *, u_int16_t,
  			    struct pf_addr *, u_int16_t,
@@ -255,11 +255,11 @@
 +			key.gwy.port = s->ext.port;
 +			key.lan.port = s->ext.port;
 +			if (s->direction == PF_IN)
-+				s = pf_find_state_recurse(kif, &key,
-+				    PF_LAN_EXT);	/* PF_OUT direction */
++				s = pf_find_state_all(&key,
++				    PF_LAN_EXT, NULL);	/* PF_OUT direction */
 +			else
-+				s = pf_find_state_recurse(kif, &key,
-+				    PF_EXT_GWY);	/* PF_IN direction */
++				s = pf_find_state_all(&key,
++				    PF_EXT_GWY, NULL);	/* PF_IN direction */
 +			if (s) {
 +				s->src.state = s->dst.state = TCPS_CLOSED;
 +				pf_unlink_state(s);
