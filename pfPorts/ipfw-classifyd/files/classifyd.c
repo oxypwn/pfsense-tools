@@ -529,7 +529,6 @@ getinput:
                 }
 		pkt->fp_pktlen = len;
 
-                        syslog(LOG_ERR, "received from divert socket");
 		/*
 		 * Check if new and insert into appropriate table.
 		 */
@@ -726,7 +725,6 @@ write_pthread(void *arg __unused)
 			    		"complete packet not written: wrote %d of %zu", len,
 			    			pkt->fp_pktlen);
 			}
-                        syslog(LOG_ERR, "sent from divert socket");
 			/*
 			 * Cleanup
 			 */
