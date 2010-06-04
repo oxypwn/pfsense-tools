@@ -598,6 +598,17 @@ main(int argc, char **argv) {
 	if ((kq = kqueue()) == -1)
 		exit(1);
 
+	now = time(NULL);
+	load_dhcp(now);
+
+	write_status();
+	//syslog(LOG_INFO, "written temp hosts file after modification event.");
+
+	cleanup();
+	//syslog(LOG_INFO, "Cleaned up.");
+
+	signal_process();
+
 	/* Initialise kevent structure */
 	EV_SET(&chlist, leasefd, EVFILT_VNODE, EV_ADD | EV_CLEAR | EV_ENABLE | EV_ONESHOT,
 		NOTE_WRITE | NOTE_ATTRIB, 0, NULL);
