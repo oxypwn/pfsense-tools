@@ -230,7 +230,7 @@ for PORT in $PORTSTOBUILD; do
 		clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
 		# If the file is not found, log it.
 		if [ -f $PORT_VERIFY_INSTALL_FILE ]; then
-			echo "=== File not found $DONOTBUILD - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
+			echo "=== File not found $PORT - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
 		fi
 		# Change the for seperator to use C/R instead of whitespace
 		oIFS=$IFS
