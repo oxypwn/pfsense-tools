@@ -28,6 +28,6 @@ extract:
 	cp files/* ${WRKSRC}
 
 post-install:
-	cp /usr/home/pfsense/tools/pfPorts/php5-pfSense-module/work/pfSense-/modules/pfSense.so /usr/local/lib/php/20060613/
+	cp ${WRKSRC}/modules/pfSense.so /usr/local/lib/php/20060613/
 
 .include <bsd.port.mk>
