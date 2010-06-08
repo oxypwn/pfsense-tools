@@ -12,7 +12,6 @@ cd $BASE_DIR/installer/installer/scripts/build
 if [ -f /etc/make.conf ]; then
 	mv /etc/make.conf /tmp/
 	echo "WITHOUT_X11=yo" >> /etc/make.conf
-	echo "CFLAGS=-O2" >> /etc/make.conf
 	MKCNF="pfPorts"
 fi
 
