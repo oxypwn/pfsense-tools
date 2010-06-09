@@ -741,6 +741,7 @@ garbage_pthread(void *arg __unused)
 {
 	struct entry *e, *f;
 	unsigned int i, j, flows_expired; //, error; 
+	struct ip_flow *flow;
 	struct hashtable *h;
         struct kevent change;    /* event we want to monitor */
         struct kevent event;     /* event that was triggered */
@@ -776,25 +777,29 @@ reinitkqueue:
 
 			j = 2;
 			while (j > 0) {
-			if (j == 2)
-				h = th;
-			else
-				h = uh;
-			for (i = 0; i < h->tablelength; i++) {
-                        	e = h->table[i];
-                        	while (e != NULL) {
-                                	f = e; e = e->next;
-                                	if (f->v != NULL && ((struct ip_flow *)f->v)->expire < t_time.tv_sec) {
-                                        	freekey(f->k);
-                                        	h->entrycount--;
-                                        	if (f->v != NULL)
-							free(f->v);
-                                        	free(f);
-						flows_expired++;
-						h->table[i] = e;
-                                	}
-                        	}
-                	}
+				if (j == 2)
+					h = th;
+				else
+					h = uh;
+				for (i = 0; i < h->tablelength; i++) {
+                        		e = h->table[i];
+                        		while (e != NULL) {
+                                		f = e; e = e->next;
+                                		if (f->v != NULL && ((struct ip_flow *)f->v)->expire < t_time.tv_sec) {
+                                        		freekey(f->k);
+                                        		h->entrycount--;
+                                        		if (f->v != NULL) {
+								flow = f->v;
+								if (flow->if_data != NULL)
+									free(flow->if_data);
+								free(f->v);
+							}
+                                        		free(f);
+							flows_expired++;
+							h->table[i] = e;
+                                		}
+                        		}
+                		}
 			}
 
 			//pthread_mutex_unlock(&queue->fq_mtx);
