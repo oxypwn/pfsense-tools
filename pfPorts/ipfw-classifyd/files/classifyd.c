@@ -743,7 +743,7 @@ void *
 garbage_pthread(void *arg __unused)
 {
 	struct entry *e, *f;
-	unsigned int i, j, flows_expired; //, error; 
+	unsigned int i, j, flows_expired;
 	struct ip_flow *flow;
 	struct hashtable *h;
         struct kevent change;    /* event we want to monitor */
@@ -803,8 +803,9 @@ initkqueue:
                 		}
 				j--;
 			}
-
+#if 0
 			syslog(LOG_WARNING, "expired %u flows", flows_expired);
+#endif
 		}
 	}
 
