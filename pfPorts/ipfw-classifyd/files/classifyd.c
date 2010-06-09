@@ -776,8 +776,6 @@ initkqueue:
 			flows_expired = 0;
 			t_time.tv_sec -= time_expire;
 
-			//pthread_mutex_lock(&queue->fq_mtx);
-
 			j = 2;
 			while (j > 0) {
 				if (j == 2)
@@ -803,12 +801,10 @@ initkqueue:
                                 		}
                         		}
                 		}
+				j--;
 			}
 
-			//pthread_mutex_unlock(&queue->fq_mtx);
-
 			syslog(LOG_WARNING, "expired %u flows", flows_expired);
-			//pthread_cond_signal(&queue->fq_condvar);
 		}
 	}
 
