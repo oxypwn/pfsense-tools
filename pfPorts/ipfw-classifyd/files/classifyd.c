@@ -210,17 +210,20 @@ reinitkqueue:
 	}
 
 	/* wakeup every 5 seconds */
-	EV_SET(&change, 1, EVFILT_TIMER, EV_ADD | EV_ENABLE, 0, 5000, NULL);
+	EV_SET(&change, 1, EVFILT_TIMER, EV_ADD | EV_ENABLE, 0, 10000, NULL);
 
 	/* loop forever */
 	for (;;) {
 		nev = kevent(kq, &change, 1, &event, 1, NULL);
 
 	if (nev < 0) {
+		close(kq);
+		syslog(LOG_ERR, "Something went wrong waiting on kqueue.");
 		goto reinitkqueue;
 	}
 	else if (nev >= 0) {
 		if (event.flags & EV_ERROR) {   /* report any error */
+			close(kq);
 			syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(event.data));
 			goto reinitkqueue;
 		}
@@ -747,7 +750,7 @@ garbage_pthread(void *arg __unused)
         struct kevent event;     /* event that was triggered */
         int kq, nev;
 
-reinitkqueue:
+initkqueue:
         /* create a new kernel event queue */
         if ((kq = kqueue()) == -1) {
                 syslog(LOG_ERR, "Could not initialize kqueue");
@@ -762,12 +765,12 @@ reinitkqueue:
                 nev = kevent(kq, &change, 1, &event, 1, NULL);
 
         	if (nev < 0) {
-                	goto reinitkqueue;
+                	goto initkqueue;
         	}
         	else if (nev > 0) {
                 	if (event.flags & EV_ERROR) {   /* report any error */
                         	syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(event.data));
-                        	goto reinitkqueue;
+                        	goto initkqueue;
                 	}
 
 			flows_expired = 0;
