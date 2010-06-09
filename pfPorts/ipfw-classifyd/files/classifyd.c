@@ -171,7 +171,9 @@ pthread_rwlock_t fp_lock;
 #define FP_LOCK         pthread_rwlock_rdlock(&fp_lock)
 #define FP_UNLOCK       pthread_rwlock_unlock(&fp_lock)
 #define FP_WLOCK        pthread_rwlock_wrlock(&fp_lock)
-struct ic_protocols *fp;
+
+struct ic_protocols *fp; /* For keeping all known protocols. */
+struct phead plist; /* For actually configured protocols. */
 
 /* number of packets before kicking garbage collector */
 static unsigned int npackets = 250; 
@@ -186,9 +188,9 @@ void		*garbage_pthread(void *);
 void		*classifyd_get_time(void *);
 static int	equalkeys(void *, void *);
 static unsigned int hashfromkey(void *);
-static void	test_re(void);
 static void	handle_signal(int);
-static int	read_config(const char *, struct ic_protocols *);
+static void	clear_proto_list(void);
+static int	read_config(const char *);
 static void	usage(const char *);
 static struct pktmem_stack *pktmem_init(uint16_t);
 static void	pktmem_fini(struct pktmem_stack *);
@@ -245,9 +247,8 @@ main(int argc, char **argv)
 	const char *errstr;
 	long long  num;
 	uint16_t   port, qmaxsz;
-	int	   ch, error, tflag;
+	int	   ch, error;
 
-	tflag = 0;
 	port = IC_DPORT;
 	qmaxsz = IC_QMAXSZ;
 	while ((ch = getopt(argc, argv, "n:e:htc:P:p:q:")) != -1) {
@@ -291,9 +292,6 @@ main(int argc, char **argv)
 			}
 			qmaxsz = (uint16_t)num;
 			break;
-		case 't':
-			tflag = 1;
-			break;
 		case 'h':
 		default:
 			usage((const char *)*argv);
@@ -302,12 +300,6 @@ main(int argc, char **argv)
 	}
 	argc -= optind;
 	argv += optind;
-
-	/* The user just wants to test an RE pattern against a data file. */
-	if (tflag) {
-		test_re();
-		return (0);
-	}
 
 	if (daemon(0, 1) != 0)
 		err(EX_OSERR, "unable to daemonize");
@@ -321,7 +313,9 @@ main(int argc, char **argv)
 		exit(EX_TEMPFAIL);
 	}
 
-		/*
+	SLIST_INIT(&plist);
+
+	/*
 	 * Initialize outgoing queue.
 	 */
 	STAILQ_INIT(&outQ.fq_pkthead);
@@ -364,7 +358,7 @@ main(int argc, char **argv)
 	/*
 	 * Match protocol to ipfw(4) rule from configuration file.
 	 */
-	error = read_config(conf, fp);
+	error = read_config(conf);
 	if (error != 0){
 		syslog(LOG_ERR, "unable to open configuration file");
 		exit(error);
@@ -420,6 +414,7 @@ main(int argc, char **argv)
 		close(dvtSout);
 
 	FP_WLOCK;
+	clear_proto_list();
 	fini_protocols(fp);
 	FP_UNLOCK;
 
@@ -448,15 +443,10 @@ main(int argc, char **argv)
  *	 tester (-t switch) to use the same code, but I didn't want to put
  *	 it in a separate function of its own for performance reasons.
  */
-#define CLASSIFY(fp, pkt, proto, flow, key, pmatch, trycount, error, regerr) 	\
+#define CLASSIFY(pkt, proto, flow, key, pmatch, error, regerr) 	\
 	do {									\
-		(trycount) = 0;							\
 		FP_LOCK;							\
-		SLIST_FOREACH((proto), &(fp)->fp_p, p_next) {			\
-			if ((proto)->p_fwrule == 0)				\
-				continue;					\
-			else if ((trycount) == (fp)->fp_inuse)			\
-				break;						\
+		SLIST_FOREACH((proto), &plist, p_next) {		\
 			(pmatch).rm_so = 0;					\
 			(pmatch).rm_eo = (flow)->if_datalen;			\
 			(error) = regexec(&(proto)->p_preg, (flow)->if_data,	\
@@ -469,14 +459,13 @@ main(int argc, char **argv)
                                         ((proto)->p_fwrule & DIVERT_DNCOOKIE) ? "dnpipe" : \
                                         ((proto)->p_fwrule & DIVERT_ALTQ) ? "altq" : "tag"); \
 				break;						\
-			} else if (0) { 			\
+			} else if (error < 0) { 			\
 				regerror((error), &(proto)->p_preg, (regerr), sizeof((regerr))); \
 				syslog(LOG_WARNING, "error matching %s:%d -> %s:%d against %s: %s", \
 					inet_ntoa((key)->ik_src), ntohs((key)->ik_sport), \
 					inet_ntoa((key)->ik_dst), ntohs((key)->ik_dport), \
 					(proto)->p_name, (regerr));		\
 			}							\
-			(trycount)++;						\
 		}								\
 		FP_UNLOCK;							\
 	} while (0)
@@ -492,11 +481,10 @@ classify_pthread(void *arg __unused)
 	struct tcphdr	 *tcp = NULL;;
 	struct udphdr	 *udp;
 	struct ic_pkt	 *pkt;
-	struct protocol	 *proto;
+	struct protocol *proto;
 	struct hashtable *h = NULL;
 	regmatch_t	 pmatch;
 	u_char		 *data, *payload = NULL;
-	uint16_t	 trycount;
 	int		 len, datalen = 0, error;
 
 	memset(&tmpKey, 0, sizeof tmpKey);
@@ -647,7 +635,7 @@ getinput:
 			/*
 		 	 * Packet has not been classified yet. Attempt to classify it.
 		 	 */
-			CLASSIFY(fp, pkt, proto, flow, key, pmatch, trycount, error, errbuf);
+			CLASSIFY(pkt, proto, flow, key, pmatch, error, errbuf);
 
 enqueue:
 		/* Drop the packet if the output queue is full */
@@ -815,6 +803,25 @@ initkqueue:
 	return (NULL);
 }
 
+static void
+clear_proto_list()
+{
+	struct protocol *p;
+
+	while (!SLIST_EMPTY(&plist)) {
+                p = SLIST_FIRST(&plist);
+                SLIST_REMOVE_HEAD(&plist, p_next);
+		if (p->p_path != NULL)
+                        free(p->p_path);
+                if (p->p_name != NULL)
+                        free(p->p_name);
+                if (p->p_re != NULL)
+                        free(p->p_re);
+                regfree(&p->p_preg);
+                free(p);
+        }
+}
+
 /*
  * NOTE: The protocol list (plist) passed as an argument is a global
  *	 variable. It is accessed from 3 functions: classify_pthread,
@@ -830,10 +837,10 @@ initkqueue:
  *	 with a protocol.
  */
 static int
-read_config(const char *file, struct ic_protocols *plist)
+read_config(const char *file)
 {
 	enum { bufsize = 2048 };
-	struct protocol *proto;
+	struct protocol *proto, *prototmp;
 	properties	props;
 	const char	*errmsg, *name;
 	char		*value;
@@ -841,6 +848,8 @@ read_config(const char *file, struct ic_protocols *plist)
 	uint16_t	rule;
 	struct pfioc_ruleset trule;
 	char **ap, *argv[bufsize];
+
+	clear_proto_list();
 
 	fdpf = open("/dev/pf", O_RDONLY);
 	if (fdpf == -1) {
@@ -858,8 +867,8 @@ read_config(const char *file, struct ic_protocols *plist)
 		return (EX_DATAERR);
 	}
 	
-	plist->fp_inuse = 0;
-	SLIST_FOREACH(proto, &plist->fp_p, p_next) {
+	fp->fp_inuse = 0;
+	SLIST_FOREACH_SAFE(proto, &fp->fp_p, p_next, prototmp) {
 		name = proto->p_name;
 		value = property_find(props, name);
 		/* Do not match traffic against this pattern */
@@ -919,68 +928,18 @@ read_config(const char *file, struct ic_protocols *plist)
 			continue;
 		}
 		proto->p_fwrule = rule;
-		plist->fp_inuse++;
+		fp->fp_inuse++;
 		syslog(LOG_NOTICE, "Loaded Protocol: %s (rule %s)",
 		    proto->p_name, (rule & DIVERT_ACTION) ? "action block": 
 					(rule & DIVERT_DNCOOKIE) ? "dnpipe" : 
 					(rule & DIVERT_ALTQ) ? "altq" : "tag");
+		
+		SLIST_REMOVE(&fp->fp_p, proto, protocol, p_next);
+		SLIST_INSERT_HEAD(&plist, proto, p_next);
 	}
 	properties_free(props);
 	close(fdpf);
 	return (0);
-}
-
-static void
-test_re()
-{
-	char		 regerr[LINE_MAX];
-	struct ip_flow_key key0;
-	struct ip_flow	 *flow, flow0;
-	struct ic_pkt	 *pkt;
-	struct protocol	 *proto;
-	regmatch_t	 pmatch;
-	uint16_t	 trycount;
-	int		 error, len;
-
-	/*
-	 * Initialize list of available protocols.
-	 */
-	fp = init_protocols(protoDir);
-	if (fp == NULL)
-		err(EX_SOFTWARE, "unable to initialize list of protocols");
-
-	/*
-	 * Match protocol to ipfw(4) rule from configuration file.
-	 */
-	error = read_config(conf, fp);
-	if (error != 0){
-		syslog(LOG_ERR, "unable to open configuration file");
-		exit(error);
-	}
-
-	pkt = (struct ic_pkt *)malloc(sizeof(struct ic_pkt));
-	if (pkt == NULL)
-		err(EX_TEMPFAIL, "malloc of pkt structure failed");
-
-	len = read(STDIN_FILENO, pkt->fp_pkt, IC_PKTSZ);
-	if (len == -1)
-		err(EX_OSERR, "unable to read input");
-	else if (len == 0)
-		errx(EX_SOFTWARE, "no input to read");
-
-	flow = &flow0;
-	pkt->fp_pktlen = len;
-	flow->if_fwrule = 0;
-	flow->if_data = pkt->fp_pkt;
-	flow->if_datalen = pkt->fp_pktlen;
-	memset((void *)&key0, 0, sizeof(struct ip_flow_key));
-
-	CLASSIFY(fp, pkt, proto, flow, &key0, pmatch, trycount, error, regerr);
-
-	free(pkt->fp_pkt);
-	free(pkt);
-
-	return;
 }
 
 static void
@@ -990,7 +949,7 @@ handle_signal(int sig)
 	case SIGHUP:
 		FP_WLOCK;
 		fini_protocols(fp);
-		read_config(conf, fp);
+		read_config(conf);
 		FP_UNLOCK;
 		break;
 	case SIGTERM:
