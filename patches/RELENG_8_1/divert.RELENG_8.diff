@@ -202,7 +202,7 @@ diff -u -r1.3 pf.c
  		pd.pf_mtag->flags |= PF_PACKET_LOOPED;
  		if (rr->info & IPFW_IS_DUMMYNET)
  			loopedfrom = 1;
-+		else if (rr->info & IPFW_IS_DIVERT) {
++		if (rr->info & IPFW_IS_DIVERT) {
 +			divertcookie = rr->rulenum;
 +			divflags = (u_int8_t)(divertcookie >> 8);
 +			divertcookie &= ~PFSTATE_DIVERT_MASK;
