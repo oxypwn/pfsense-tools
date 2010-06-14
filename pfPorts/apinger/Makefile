@@ -26,9 +26,9 @@ OPTIONS=	IPV6 "With support for IPv6" on
 CONFIGURE_ARGS+=	--disable-ipv6
 .endif
 
-post-extract:
-	@${SED} -e "s,%%PREFIX%%,${PREFIX},g" ${FILESDIR}/apinger.sh \
-		> ${WRKSRC}/apinger.sh
+#post-extract:
+#	@${SED} -e "s,%%PREFIX%%,${PREFIX},g" ${FILESDIR}/apinger.sh \
+#		> ${WRKSRC}/apinger.sh
 
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/src/apinger.conf ${PREFIX}/etc/apinger.conf.sample
