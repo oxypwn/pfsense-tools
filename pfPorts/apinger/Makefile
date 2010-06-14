@@ -32,7 +32,6 @@ CONFIGURE_ARGS+=	--disable-ipv6
 
 post-install:
 	${INSTALL_DATA} ${WRKSRC}/src/apinger.conf ${PREFIX}/etc/apinger.conf.sample
-	${INSTALL_SCRIPT} ${WRKSRC}/apinger.sh ${PREFIX}/etc/rc.d/apinger.sh.sample
 .if !defined(BATCH)
 	@${ECHO_MSG} ""
 	@${ECHO_MSG} "###############################################################################"
