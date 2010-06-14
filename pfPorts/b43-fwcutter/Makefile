@@ -1,0 +1,21 @@
+# New ports collection makefile for:	b43-fwcutter
+# Date created:		7 May 2009
+# Whom:			swhetzel@gmail.com
+#
+# $FreeBSD: ports/sysutils/b43-fwcutter/Makefile,v 1.2 2010/02/18 22:20:30 imp Exp $
+#
+
+PORTNAME=	b43-fwcutter
+PORTVERSION=	012
+CATEGORIES=	sysutils
+MASTER_SITES=	http://bu3sch.de/b43/fwcutter/
+
+MAINTAINER=	swhetzel@gmail.com
+COMMENT=	Extracts firmware for Broadcom Wireless adapters
+
+USE_BZIP2=	yes
+
+MAN1=		b43-fwcutter.1
+PLIST_FILES=	bin/b43-fwcutter
+
+.include <bsd.port.mk>
