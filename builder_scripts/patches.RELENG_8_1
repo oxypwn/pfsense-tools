@@ -54,3 +54,4 @@
 ~~pf_route-to_fragemnts.RELENG_8.diff~
 ~~SR9600.diff~
 ~~netgraph_proxy_arp.diff~
+~~ng_ether_attach_command.diff~
