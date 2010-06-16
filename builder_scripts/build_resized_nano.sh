@@ -11,6 +11,12 @@
 # Be sure to copy any existing /tmp/builder/nanobsd.full.img and 
 #   nanobsd.upgrade.img to a safe place before running this again.
 
+# Copy some variables from build_nano.sh
+export IS_NANO_BUILD=yes
+export NO_COMPRESSEDFS=yes
+export NANO_BOOT0CFG="-o packet -s 1 -m 3"
+
+
 # Suck in local vars
 . ./pfsense_local.sh
 
@@ -47,14 +53,21 @@ fi
 # Setup NanoBSD specific items
 FLASH_SIZE=$1
 FlashDevice $FLASH_MODEL $FLASH_SIZE
+echo "$FLASH_SIZE" > /tmp/nanosize.txt
 setup_nanobsd_etc
 setup_nanobsd
 
 # Get rid of non-wanted files
 prune_usr
 
-# Create the NanoBSD disk image
-create_i386_diskimage
+# Create the NanoBSD disk image for i386
+if [ "$ARCH" = "i386" ]; then
+	create_i386_diskimage
+fi
+# Create the NanoBSD disk image for mips
+if [ "$ARCH" = "mips" ]; then
+	create_mips_diskimage
+fi
 
 # Wrap up the show, Johnny
 echo "Image completed."

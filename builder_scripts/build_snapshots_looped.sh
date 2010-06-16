@@ -163,38 +163,38 @@ while [ /bin/true ]; do
 			rm -f /tmp/pfSense_do_not_build_pfPorts
 		fi
 	fi
-	NANO_SIZE=`cat $PWD/pfsense-build.conf | grep FLASH_SIZE | cut -d'"' -f2`
-	# Loop through each builder run and alternate between image sizes.
-	# 512mb becomes 1g, 1g becomes 2g, 2g becomes 4g, 4g becomes 512m
-	# until the quick mode can be debugged and understand why an extra
-	# F3 partition shows when it should not.
-	if [ "$NANO_SIZE" = "" ]; then
-		NANO_SIZE="512mb"
-	fi
-	NEW_NANO_SIZE="512mb"
-	case $NANO_SIZE in
-		"512mb")
-			NEW_NANO_SIZE="1g"
-		;;
-		"1g")
-			NEW_NANO_SIZE="2g"
-		;;
-		"2g")
-			NEW_NANO_SIZE="4g"
-		;;
-		"4g")
-			NEW_NANO_SIZE="512mb"
-		;;
-	esac
-	# Tell the builder what size the image is
-	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
-	# Record the combined total flash size
-	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE > /tmp/pfsense-build.conf
-	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
-	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
-	# Note new sizes
-	update_status ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
-	update_status ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
+#	NANO_SIZE=`cat $PWD/pfsense-build.conf | grep FLASH_SIZE | cut -d'"' -f2`
+#	# Loop through each builder run and alternate between image sizes.
+#	# 512mb becomes 1g, 1g becomes 2g, 2g becomes 4g, 4g becomes 512m
+#	# until the quick mode can be debugged and understand why an extra
+#	# F3 partition shows when it should not.
+#	if [ "$NANO_SIZE" = "" ]; then
+#		NANO_SIZE="512mb"
+#	fi
+#	NEW_NANO_SIZE="512mb"
+#	case $NANO_SIZE in
+#		"512mb")
+#			NEW_NANO_SIZE="1g"
+#		;;
+#		"1g")
+#			NEW_NANO_SIZE="2g"
+#		;;
+#		"2g")
+#			NEW_NANO_SIZE="4g"
+#		;;
+#		"4g")
+#			NEW_NANO_SIZE="512mb"
+#		;;
+#	esac
+#	# Tell the builder what size the image is
+#	echo $NEW_NANO_SIZE > /tmp/nanosize.txt
+#	# Record the combined total flash size
+#	cat $PWD/pfsense-build.conf | grep -v FLASH_SIZE > /tmp/pfsense-build.conf
+#	echo "export FLASH_SIZE=\"${NEW_NANO_SIZE}\"" >>/tmp/pfsense-build.conf
+#	mv /tmp/pfsense-build.conf $PWD/pfsense-build.conf
+#	# Note new sizes
+#	update_status ">>> [nanoo] Previous NanoBSD size: $NANO_SIZE"
+#	update_status ">>> [nanoo] New size has been set to: $NEW_NANO_SIZE"
 	# Fetch last commit information
 	git_last_commit
 	# Record this commits info for later comparison

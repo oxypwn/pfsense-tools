@@ -253,7 +253,6 @@ rebuild_nano() {
 		return
 	fi
 	cd $BUILDERSCRIPTS
-	echo "$1" > /tmp/nanosize.txt	
 	./build_resized_nano.sh $1
 }
 
@@ -272,8 +271,29 @@ donanobuilds() {
 	fi
 	# Build nanobsd
 	build_nano
-	# Copy nanobsd to staging areas
 	copy_to_staging_nanobsd
+
+	# Build all other sizes except the one just built.
+	OLDSIZE=`cat /tmp/nanosize.txt`
+	if [ "$OLDSIZE" != "512mb" ]; then
+		rebuild_nano 512mb
+		copy_to_staging_nanobsd
+	fi
+
+	if [ "$OLDSIZE" != "1g" ]; then
+		rebuild_nano 1g
+		copy_to_staging_nanobsd
+	fi
+
+	if [ "$OLDSIZE" != "2g" ]; then
+		rebuild_nano 2g
+		copy_to_staging_nanobsd
+	fi
+
+	if [ "$OLDSIZE" != "4g" ]; then
+		rebuild_nano 4g
+		copy_to_staging_nanobsd
+	fi
 }
 
 dobuilds() {
