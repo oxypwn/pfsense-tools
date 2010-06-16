@@ -21,7 +21,7 @@
  	for (ifa = ifas; ifa != NULL; ifa = ifa->ifa_next) {
  #define SDL ((struct sockaddr_dl *)ifa->ifa_addr)
 -	    if (strcmp (ifa->ifa_name, ifname)
-+	    if (ifnamelen == strlen(ifa->ifa_name)
++	    if (ifnamelen != strlen(ifa->ifa_name)
 +	      || strcmp (ifa->ifa_name, ifname)
  	      || SDL->sdl_family != AF_LINK
  	      || SDL->sdl_alen != 6)
