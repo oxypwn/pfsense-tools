@@ -270,11 +270,11 @@ fixup_kernel_options() {
 
 	# Danger will robinson -- 7.2+ will NOT boot if these files are not present.
 	# the loader will stop at |
-	touch $KERNEL_BUILD_PATH/wrap/boot/loader.conf touch $KERNEL_BUILD_PATH/wrap/boot/loader.conf.local
-	touch $KERNEL_BUILD_PATH/uniprocessor/boot/loader.conf touch $KERNEL_BUILD_PATH/uniprocessor/boot/loader.conf.local
-	touch $KERNEL_BUILD_PATH/SMP/boot/loader.conf touch $KERNEL_BUILD_PATH/SMP/boot/loader.conf.local
-	touch $KERNEL_BUILD_PATH/developers/boot/loader.conf touch $KERNEL_BUILD_PATH/developers/boot/loader.conf.local
-	touch $KERNEL_BUILD_PATH/AR71XX/boot/loader.conf touch $KERNEL_BUILD_PATH/AR71XX/boot/loader.conf.local
+	touch $KERNEL_BUILD_PATH/wrap/boot/loader.conf
+	touch $KERNEL_BUILD_PATH/uniprocessor/boot/loader.conf
+	touch $KERNEL_BUILD_PATH/SMP/boot/loader.conf
+	touch $KERNEL_BUILD_PATH/developers/boot/loader.conf
+	touch $KERNEL_BUILD_PATH/AR71XX/boot/loader.conf
 	# Danger, warning, achtung
 
 }
@@ -1364,6 +1364,7 @@ create_pfSense_Full_update_tarball() {
 
 	# Remove loader.conf and friends.  Ticket #560
 	rm ${PFSENSEBASEDIR}/boot/loader.conf 2>/dev/null
+	rm ${PFSENSEBASEDIR}/boot/loader.conf.local 2>/dev/null
 
 	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
