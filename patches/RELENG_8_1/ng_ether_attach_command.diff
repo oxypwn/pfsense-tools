@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/netgraph/ng_base.c,v
 retrieving revision 1.179.2.4
 diff -u -r1.179.2.4 ng_base.c
 --- sys/netgraph/ng_base.c	16 May 2010 14:53:43 -0000	1.179.2.4
-+++ sys/netgraph/ng_base.c	15 Jun 2010 22:55:13 -0000
++++ sys/netgraph/ng_base.c	16 Jun 2010 21:03:27 -0000
 @@ -66,6 +66,10 @@
  #include <sys/smp.h>
  #include <machine/cpu.h>
@@ -56,3 +56,18 @@ diff -u -r1.179.2.4 ng_base.c
  	case NGM_TEXT_CONFIG:
  	case NGM_TEXT_STATUS:
  		/*
+Index: sys/netgraph/ng_message.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netgraph/ng_message.h,v
+retrieving revision 1.31.2.1
+diff -u -r1.31.2.1 ng_message.h
+--- sys/netgraph/ng_message.h	3 Aug 2009 08:13:06 -0000	1.31.2.1
++++ sys/netgraph/ng_message.h	16 Jun 2010 21:03:27 -0000
+@@ -138,6 +138,7 @@
+ 	NGM_ASCII2BINARY= (13|NGM_READONLY|NGM_HASREPLY),
+ 	/* (optional) Get/set text config. */
+ 	NGM_TEXT_CONFIG	= 14,
++	NGM_ETHER_ATTACH = 15,
+ };
+ 
+ /*
