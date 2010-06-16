@@ -43,7 +43,7 @@
  	#endif
 +
 +	bzero(pidfile, 128);
-+	sprintf(pidfile, "/var/run/%s.pid", ifname);
++	sprintf(pidfile, "/var/run/choparp_%s.pid", ifname);
 +	pidf = open(pidfile, O_RDWR | O_CREAT | O_FSYNC);
 +        if (pidf > 0) {
 +                ftruncate(pidf, 0);
