@@ -1,0 +1,56 @@
+--- choparp.c.orig	2010-06-16 11:47:09.000000000 +0000
++++ choparp.c	2010-06-16 11:47:12.000000000 +0000
+@@ -36,6 +36,7 @@
+ 
+ */
+ 
++#define _WITH_DPRINTF
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <stdlib.h>
+@@ -340,6 +341,7 @@
+ int
+ setmac(char *addr, char *ifname){
+     u_int m0, m1, m2, m3, m4, m5;
++    int ifnamelen = strlen(ifname);
+ 
+     if (!strcmp (addr, "auto")) {
+ 	struct ifaddrs *ifas, *ifa;
+@@ -347,7 +349,8 @@
+ 	getifaddrs (&ifas);
+ 	for (ifa = ifas; ifa != NULL; ifa = ifa->ifa_next) {
+ #define SDL ((struct sockaddr_dl *)ifa->ifa_addr)
+-	    if (strcmp (ifa->ifa_name, ifname)
++	    if (ifnamelen == strlen(ifa->ifa_name)
++	      || strcmp (ifa->ifa_name, ifname)
+ 	      || SDL->sdl_family != AF_LINK
+ 	      || SDL->sdl_alen != 6)
+ 		continue;
+@@ -389,8 +392,8 @@
+ 
+ int
+ main(int argc, char **argv){
+-    int	ch, fd;
+-    char *buf, *ifname;
++    int	ch, fd, pidf;
++    char *buf, *ifname, pidfile[128];
+     struct cidr **targets_tail = &targets, **excludes_tail = &excludes;
+ #define APPEND(LIST,ADDR,MASK) \
+     do {							\
+@@ -472,6 +475,16 @@
+ 	#ifndef DEBUG
+     		daemon(0, 0);
+ 	#endif
++
++	bzero(pidfile, 128);
++	sprintf(pidfile, "/var/run/%s.pid", ifname);
++	pidf = open(pidfile, O_RDWR | O_CREAT | O_FSYNC);
++        if (pidf > 0) {
++                ftruncate(pidf, 0);
++                dprintf(pidf, "%u\n", getpid());
++                close(pidf);
++        }
++
+     loop(fd, buf, buflen);
+     return(-1);
+ }
