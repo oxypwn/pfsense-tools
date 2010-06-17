@@ -2679,7 +2679,7 @@ rebuild_and_install_bsdinstaller() {
 	if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
 		echo ">>> Fetching BSDInstaller using CVSUP..."
 		(csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		./cvsup_bsdinstaller
+		${BUILDER_SCRIPTS}/cvsup_bsdinstaller
 	else
 		echo ">>> Fetching BSDInstaller using GIT..."
 		git checkout "${GIT_REPO_BSDINSTALLER}"
@@ -2693,7 +2693,7 @@ rebuild_and_install_bsdinstaller() {
     OLDPKGFILE="$PKGFILE"
     unset PKGFILE
 
-	./rebuild_bsdinstaller.sh
+	${BUILDER_SCRIPTS}/rebuild_bsdinstaller.sh
 
     # Restore PKGFILE
     PKGFILE="$OLDPKGFILE"; export PKGFILE
