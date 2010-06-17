@@ -14,8 +14,6 @@
 # Copy some variables from build_nano.sh
 export IS_NANO_BUILD=yes
 export NO_COMPRESSEDFS=yes
-export NANO_BOOT0CFG="-o packet -s 1 -m 3"
-
 
 # Suck in local vars
 . ./pfsense_local.sh

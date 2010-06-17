@@ -173,6 +173,8 @@ export NANO_CONFSIZE=102400
 # Add UNIONFS
 export NO_UNIONFS=YES
 export UNION_DIRS="etc usr root"
+# packet is OK for 90% of embedded
+export NANO_BOOT0CFG="-o packet -s 1 -m 3"
 
 # Architecture, supported ARCH values are: 
 #  Tier 1: i386, AMD64, and PC98
