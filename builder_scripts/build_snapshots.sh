@@ -352,6 +352,13 @@ copy_to_staging_nanobsd() {
 		sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
 		sha256 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
 	fi
+
+	# Copy NanoBSD auto update:
+	if [ -f $STAGINGAREA/nanobsd/$FILENAMEUPGRADE.gz ]; then
+		cp $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz 2>/dev/null
+		sha256 $STAGINGAREA/latest-nano-$FILESIZE.img.gz > $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz.sha256 2>/dev/null
+		echo $DATESTRING > $STAGINGAREA/version-nanobsd-$FILESIZE
+	fi
 }
 
 copy_to_staging_nanobsd_updates() {
@@ -456,7 +463,7 @@ scp_files() {
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/.updaters/version
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/nanobsd/		
 	check_for_congestion
