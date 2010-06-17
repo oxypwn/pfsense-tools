@@ -191,7 +191,12 @@ build_iso() {
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
 	./build_iso.sh
-	DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+	else
+		DATESTRING=`date "+%Y%m%d-%H%M"`
+	fi
 	gzip $MAKEOBJDIRPREFIXFINAL/pfSense.iso
 	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso.gz $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
 	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
@@ -207,7 +212,12 @@ build_deviso() {
 build_embedded() {
 	cd $BUILDERSCRIPTS 
 	rm -rf /usr/obj*
-	DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+	else
+		DATESTRING=`date "+%Y%m%d-%H%M"`
+	fi
 	rm -f $MAKEOBJDIRPREFIXFINAL/pfSense-${DATESTRING}.img.gz
 	./build_embedded.sh
 }
@@ -314,7 +324,12 @@ dobuilds() {
 
 copy_to_staging_nanobsd() {
 	cd $BUILDERSCRIPTS
-	DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+	else
+		DATESTRING=`date "+%Y%m%d-%H%M"`
+	fi
 	if [ ! -f /tmp/nanosize.txt ]; then
 		echo "1g" > /tmp/nanosize.txt
 	fi
@@ -345,7 +360,12 @@ copy_to_staging_nanobsd_updates() {
 
 copy_to_staging_deviso_updates() {
 	cd $BUILDERSCRIPTS	
-	DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+	else
+		DATESTRING=`date "+%Y%m%d-%H%M"`
+	fi
 	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
 	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
 	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5 2>/dev/null
@@ -369,8 +389,9 @@ copy_to_staging_iso_updates() {
 copy_to_staging_embedded() {
 	cd $BUILDERSCRIPTS
 	cp $MAKEOBJDIRPREFIXFINAL/pfSense.img $STAGINGAREA/ 
-	if [ -f /tmp/version.buildtime ]; then
-		DATESTRING=`cat /tmp/version.buildtime`
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
