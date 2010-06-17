@@ -429,7 +429,11 @@ scp_files() {
 	if [ -z "${RSYNC_COPY_ARGUMENTS:-}" ]; then
 		RSYNC_COPY_ARGUMENTS="-ave ssh --timeout=60" #--bwlimit=50
 	fi
-	cp $PFSENSEBASEDIR/etc/version.buildtime $STAGINGAREA/version
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		cp $PFSENSEBASEDIR/etc/version.buildtime $STAGINGAREA/version
+	else
+		date > $STAGINGAREA/version
+	fi
 	echo ">>> Copying files to snapshots.pfsense.org"
 	if [ ! -f /usr/local/bin/rsync ]; then
 		echo ">>> Could not find rsync, installing from ports..."
