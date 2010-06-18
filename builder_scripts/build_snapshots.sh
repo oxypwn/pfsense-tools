@@ -338,12 +338,14 @@ copy_to_staging_nanobsd() {
 	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${DATESTRING}-nanobsd-upgrade.img"
 	mkdir $STAGINGAREA/nanobsd
 	mkdir $STAGINGAREA/nanobsdupdates
-	cp $MAKEOBJDIRPREFIXFINAL/nanobsd.full.img $STAGINGAREA/nanobsd/ 2>/dev/null
-	cp $MAKEOBJDIRPREFIXFINAL/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates 2>/dev/null
-	mv $STAGINGAREA/nanobsd/nanobsd.full.img $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
-	mv $STAGINGAREA/nanobsdupdates/nanobsd.upgrade.img $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
-	gzip $STAGINGAREA/nanobsd/$FILENAMEFULL 2>/dev/null
-	gzip $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE 2>/dev/null
+
+	mv $MAKEOBJDIRPREFIXFINAL/nanobsd.full.img $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
+	mv $MAKEOBJDIRPREFIXFINAL/nanobsd.upgrade.img $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE 2>/dev/null
+	gzip $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
+	gzip $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL.gz $STAGINGAREA/nanobsd/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE.gz $STAGINGAREA/nanobsdupdates 2>/dev/null
+
 	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
 		md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
 		md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
