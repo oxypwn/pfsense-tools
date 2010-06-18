@@ -1111,7 +1111,11 @@ fixup_updates() {
 
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/livefs/lib/
 
-	echo `date` > ${PFSENSEBASEDIR}/etc/version.buildtime
+	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
+		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
+	else
+		date > ${PFSENSEBASEDIR}/etc/version.buildtime
+	fi
 
 	if [ -d "${PFSENSEBASEDIR}" ]; then
 		echo Removing pfSense.tgz used by installer..
@@ -1149,7 +1153,11 @@ cust_fixup_nanobsd() {
 		setup_serial_hints
 	fi
 
-    echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
+	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
+		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
+	else
+		date > ${PFSENSEBASEDIR}/etc/version.buildtime
+	fi
     echo "" > $PFSENSEBASEDIR/etc/motd
 
     mkdir -p $PFSENSEBASEDIR/cf/conf/backup
@@ -1192,7 +1200,11 @@ cust_fixup_wrap() {
     cp $CVS_CO_DIR/etc/ttys_wrap \
             $PFSENSEBASEDIR/etc/ttys
 
-    echo `date` > $PFSENSEBASEDIR/etc/version.buildtime
+	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
+		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
+	else
+		date > ${PFSENSEBASEDIR}/etc/version.buildtime
+	fi
     echo "" > $PFSENSEBASEDIR/etc/motd
 
     mkdir -p $PFSENSEBASEDIR/cf/conf/backup
