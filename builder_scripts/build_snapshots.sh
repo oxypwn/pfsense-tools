@@ -357,7 +357,7 @@ copy_to_staging_nanobsd() {
 
 	# Copy NanoBSD auto update:
 	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz ]; then
-		cp $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz 2>/dev/null
+		cp $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz 2>/dev/null
 		sha256 $STAGINGAREA/latest-nano-$FILESIZE.img.gz > $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz.sha256 2>/dev/null
 		echo $DATESTRING > $STAGINGAREA/version-nanobsd-$FILESIZE
 	fi
