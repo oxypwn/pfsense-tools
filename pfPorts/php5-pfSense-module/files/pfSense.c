@@ -27,6 +27,9 @@
 #include <arpa/inet.h>
 #include <net/ethernet.h>
 
+#include <netgraph/ng_message.h>
+#include <netgraph/ng_ether.h>
+
 #include <vm/vm_param.h>
 
 #include <fcntl.h>
@@ -55,6 +58,8 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_interface_setaddress, NULL)
     PHP_FE(pfSense_interface_deladdress, NULL)
     PHP_FE(pfSense_ngctl_name, NULL)
+    PHP_FE(pfSense_ngctl_attach, NULL)
+    PHP_FE(pfSense_ngctl_detach, NULL)
     {NULL, NULL, NULL}
 };
 
@@ -365,121 +370,115 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 	ALLOC_INIT_ZVAL(encaps);
 	array_init(caps);
 	array_init(encaps);
-	s = socket(AF_LOCAL, SOCK_DGRAM, 0);
-	if (s >= 0) {
-		strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
-		if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) == 0) {
-			if (ifr.ifr_reqcap & IFCAP_POLLING)
-				add_assoc_long(caps, "polling", 1);
-			if (ifr.ifr_reqcap & IFCAP_RXCSUM)
-				add_assoc_long(caps, "rxcsum", 1);
-			if (ifr.ifr_reqcap & IFCAP_TXCSUM)
-				add_assoc_long(caps, "txcsum", 1);
-			if (ifr.ifr_reqcap & IFCAP_VLAN_MTU)
-				add_assoc_long(caps, "vlanmtu", 1);
-			if (ifr.ifr_reqcap & IFCAP_JUMBO_MTU)
-				add_assoc_long(caps, "jumbomtu", 1);
-			if (ifr.ifr_reqcap & IFCAP_VLAN_HWTAGGING)
-				add_assoc_long(caps, "vlanhwtag", 1);
-			if (ifr.ifr_reqcap & IFCAP_VLAN_HWCSUM)
-                		add_assoc_long(caps, "vlanhwcsum", 1);
-			if (ifr.ifr_reqcap & IFCAP_TSO4)
-                		add_assoc_long(caps, "tso4", 1);
-			if (ifr.ifr_reqcap & IFCAP_TSO6)
-                		add_assoc_long(caps, "tso6", 1);
-			if (ifr.ifr_reqcap & IFCAP_LRO)
-                		add_assoc_long(caps, "lro", 1);
-			if (ifr.ifr_reqcap & IFCAP_WOL_UCAST)
-                		add_assoc_long(caps, "wolucast", 1);
-			if (ifr.ifr_reqcap & IFCAP_WOL_MCAST)
-                		add_assoc_long(caps, "wolmcast", 1);
-			if (ifr.ifr_reqcap & IFCAP_WOL_MAGIC)
-                		add_assoc_long(caps, "wolmagic", 1);
-			if (ifr.ifr_reqcap & IFCAP_TOE4)
-                		add_assoc_long(caps, "toe4", 1);
-			if (ifr.ifr_reqcap & IFCAP_TOE6)
-                		add_assoc_long(caps, "toe6", 1);
-			if (ifr.ifr_reqcap & IFCAP_VLAN_HWFILTER)
-                		add_assoc_long(caps, "vlanhwfilter", 1);
+	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+	if (ioctl(PFSENSE_G(s), SIOCGIFCAP, (caddr_t)&ifr) == 0) {
+		if (ifr.ifr_reqcap & IFCAP_POLLING)
+			add_assoc_long(caps, "polling", 1);
+		if (ifr.ifr_reqcap & IFCAP_RXCSUM)
+			add_assoc_long(caps, "rxcsum", 1);
+		if (ifr.ifr_reqcap & IFCAP_TXCSUM)
+			add_assoc_long(caps, "txcsum", 1);
+		if (ifr.ifr_reqcap & IFCAP_VLAN_MTU)
+			add_assoc_long(caps, "vlanmtu", 1);
+		if (ifr.ifr_reqcap & IFCAP_JUMBO_MTU)
+			add_assoc_long(caps, "jumbomtu", 1);
+		if (ifr.ifr_reqcap & IFCAP_VLAN_HWTAGGING)
+			add_assoc_long(caps, "vlanhwtag", 1);
+		if (ifr.ifr_reqcap & IFCAP_VLAN_HWCSUM)
+               		add_assoc_long(caps, "vlanhwcsum", 1);
+		if (ifr.ifr_reqcap & IFCAP_TSO4)
+               		add_assoc_long(caps, "tso4", 1);
+		if (ifr.ifr_reqcap & IFCAP_TSO6)
+               		add_assoc_long(caps, "tso6", 1);
+		if (ifr.ifr_reqcap & IFCAP_LRO)
+               		add_assoc_long(caps, "lro", 1);
+		if (ifr.ifr_reqcap & IFCAP_WOL_UCAST)
+               		add_assoc_long(caps, "wolucast", 1);
+		if (ifr.ifr_reqcap & IFCAP_WOL_MCAST)
+               		add_assoc_long(caps, "wolmcast", 1);
+		if (ifr.ifr_reqcap & IFCAP_WOL_MAGIC)
+               		add_assoc_long(caps, "wolmagic", 1);
+		if (ifr.ifr_reqcap & IFCAP_TOE4)
+              		add_assoc_long(caps, "toe4", 1);
+		if (ifr.ifr_reqcap & IFCAP_TOE6)
+               		add_assoc_long(caps, "toe6", 1);
+		if (ifr.ifr_reqcap & IFCAP_VLAN_HWFILTER)
+               		add_assoc_long(caps, "vlanhwfilter", 1);
 #if 0
-			if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
-                		add_assoc_long(caps, "pollingnocount", 1);
+		if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
+               		add_assoc_long(caps, "pollingnocount", 1);
 #endif
 
-			if (ifr.ifr_curcap & IFCAP_POLLING)
-                                add_assoc_long(encaps, "polling", 1);
-                        if (ifr.ifr_curcap & IFCAP_RXCSUM)
-                                add_assoc_long(encaps, "rxcsum", 1);
-                        if (ifr.ifr_curcap & IFCAP_TXCSUM)
-                                add_assoc_long(encaps, "txcsum", 1);
-                        if (ifr.ifr_curcap & IFCAP_VLAN_MTU)
-                                add_assoc_long(encaps, "vlanmtu", 1);
-                        if (ifr.ifr_curcap & IFCAP_JUMBO_MTU)
-                                add_assoc_long(encaps, "jumbomtu", 1);
-                        if (ifr.ifr_curcap & IFCAP_VLAN_HWTAGGING)
-                                add_assoc_long(encaps, "vlanhwtag", 1);
-                        if (ifr.ifr_curcap & IFCAP_VLAN_HWCSUM)
-                                add_assoc_long(encaps, "vlanhwcsum", 1);
-                        if (ifr.ifr_curcap & IFCAP_TSO4)
-                                add_assoc_long(encaps, "tso4", 1);
-                        if (ifr.ifr_curcap & IFCAP_TSO6)
-                                add_assoc_long(encaps, "tso6", 1);
-                        if (ifr.ifr_curcap & IFCAP_LRO)
-                                add_assoc_long(encaps, "lro", 1);
-                        if (ifr.ifr_curcap & IFCAP_WOL_UCAST)
-                                add_assoc_long(encaps, "wolucast", 1);
-                        if (ifr.ifr_curcap & IFCAP_WOL_MCAST)
-                                add_assoc_long(encaps, "wolmcast", 1);
-                        if (ifr.ifr_curcap & IFCAP_WOL_MAGIC)
-                                add_assoc_long(encaps, "wolmagic", 1);
-                        if (ifr.ifr_curcap & IFCAP_TOE4)
-                                add_assoc_long(encaps, "toe4", 1);
-                        if (ifr.ifr_curcap & IFCAP_TOE6)
-                                add_assoc_long(encaps, "toe6", 1);
-                        if (ifr.ifr_curcap & IFCAP_VLAN_HWFILTER)
-                                add_assoc_long(encaps, "vlanhwfilter", 1);
+		if (ifr.ifr_curcap & IFCAP_POLLING)
+                	add_assoc_long(encaps, "polling", 1);
+                if (ifr.ifr_curcap & IFCAP_RXCSUM)
+                        add_assoc_long(encaps, "rxcsum", 1);
+                if (ifr.ifr_curcap & IFCAP_TXCSUM)
+                        add_assoc_long(encaps, "txcsum", 1);
+                if (ifr.ifr_curcap & IFCAP_VLAN_MTU)
+                        add_assoc_long(encaps, "vlanmtu", 1);
+                if (ifr.ifr_curcap & IFCAP_JUMBO_MTU)
+                        add_assoc_long(encaps, "jumbomtu", 1);
+                if (ifr.ifr_curcap & IFCAP_VLAN_HWTAGGING)
+                        add_assoc_long(encaps, "vlanhwtag", 1);
+                if (ifr.ifr_curcap & IFCAP_VLAN_HWCSUM)
+                        add_assoc_long(encaps, "vlanhwcsum", 1);
+                if (ifr.ifr_curcap & IFCAP_TSO4)
+                        add_assoc_long(encaps, "tso4", 1);
+                if (ifr.ifr_curcap & IFCAP_TSO6)
+                        add_assoc_long(encaps, "tso6", 1);
+                if (ifr.ifr_curcap & IFCAP_LRO)
+                        add_assoc_long(encaps, "lro", 1);
+                if (ifr.ifr_curcap & IFCAP_WOL_UCAST)
+                        add_assoc_long(encaps, "wolucast", 1);
+                if (ifr.ifr_curcap & IFCAP_WOL_MCAST)
+                        add_assoc_long(encaps, "wolmcast", 1);
+                if (ifr.ifr_curcap & IFCAP_WOL_MAGIC)
+                        add_assoc_long(encaps, "wolmagic", 1);
+                if (ifr.ifr_curcap & IFCAP_TOE4)
+                        add_assoc_long(encaps, "toe4", 1);
+                if (ifr.ifr_curcap & IFCAP_TOE6)
+                        add_assoc_long(encaps, "toe6", 1);
+                if (ifr.ifr_curcap & IFCAP_VLAN_HWFILTER)
+			add_assoc_long(encaps, "vlanhwfilter", 1);
 #if 0
-                        if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
-                                add_assoc_long(caps, "pollingnocount", 1);
+                if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
+                	add_assoc_long(caps, "pollingnocount", 1);
 #endif
-		}
-		close(s);
 	}
 	add_assoc_zval(return_value, "caps", caps);
 	add_assoc_zval(return_value, "encaps", encaps);
-	//zval_ptr_dtor(&caps);
-	//zval_ptr_dtor(&encaps);
-		if (mb->ifa_addr == NULL)
-			continue;
-		switch (mb->ifa_addr->sa_family) {
-		case AF_INET:
-			if (addresscnt > 0)
-				break;
-                        bzero(outputbuf, sizeof outputbuf);
-                        tmp = (struct sockaddr_in *)mb->ifa_addr;
-                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-			add_assoc_string(return_value, "ipaddr", outputbuf, 1);
-			addresscnt++;
-                        tmp = (struct sockaddr_in *)mb->ifa_netmask;
-			unsigned char mask;
-			const unsigned char *byte = (unsigned char *)&tmp->sin_addr.s_addr;
-			int i = 0, n = sizeof(tmp->sin_addr.s_addr);
-			while (n--) {
-				mask = ((unsigned char)-1 >> 1) + 1;
+	if (mb->ifa_addr == NULL)
+		continue;
+	switch (mb->ifa_addr->sa_family) {
+	case AF_INET:
+		if (addresscnt > 0)
+			break;
+                bzero(outputbuf, sizeof outputbuf);
+                tmp = (struct sockaddr_in *)mb->ifa_addr;
+                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
+		add_assoc_string(return_value, "ipaddr", outputbuf, 1);
+		addresscnt++;
+                tmp = (struct sockaddr_in *)mb->ifa_netmask;
+		unsigned char mask;
+		const unsigned char *byte = (unsigned char *)&tmp->sin_addr.s_addr;
+		int i = 0, n = sizeof(tmp->sin_addr.s_addr);
+		while (n--) {
+			mask = ((unsigned char)-1 >> 1) + 1;
 				do {
 					if (mask & byte[n])
 						i++;
 					mask >>= 1;
 				} while (mask);
-			}
-			add_assoc_long(return_value, "subnetbits", i);
+		}
+		add_assoc_long(return_value, "subnetbits", i);
 
-                        bzero(outputbuf, sizeof outputbuf);
-                        inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-                        add_assoc_string(return_value, "subnet", outputbuf, 1);
+                bzero(outputbuf, sizeof outputbuf);
+                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
+                add_assoc_string(return_value, "subnet", outputbuf, 1);
 
-                        if (mb->ifa_flags & IFF_BROADCAST) {
-                                bzero(outputbuf, sizeof outputbuf);
+                if (mb->ifa_flags & IFF_BROADCAST) {
+                	bzero(outputbuf, sizeof outputbuf);
                                 tmp = (struct sockaddr_in *)mb->ifa_broadaddr;
                                 inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
                                 add_assoc_string(return_value, "broadcast", outputbuf, 1);
@@ -646,6 +645,42 @@ PHP_FUNCTION(pfSense_ngctl_name) {
 		RETURN_NULL();
 
 	RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_ngctl_attach) {
+        char *ifname, *newifname;
+        int ifname_len, newifname_len;
+        struct ngm_name name;
+
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
+                RETURN_NULL();
+        }
+
+        snprintf(name.name, sizeof(name.name), "%s", newifname);
+        /* Send message */
+        if (NgSendMsg(PFSENSE_G(csock), ifname, NGM_GENERIC_COOKIE,
+            NGM_ETHER_ATTACH, &name, sizeof(name)) < 0)
+                RETURN_NULL();
+
+        RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_ngctl_detach) {
+        char *ifname, *newifname;
+        int ifname_len, newifname_len;
+        struct ngm_name name;
+
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
+                RETURN_NULL();
+        }
+
+        snprintf(name.name, sizeof(name.name), "%s", newifname);
+        /* Send message */
+        if (NgSendMsg(PFSENSE_G(csock), ifname, NGM_ETHER_COOKIE,
+            NGM_ETHER_DETACH, &name, sizeof(name)) < 0)
+                RETURN_NULL();
+
+        RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_vlan_create) {

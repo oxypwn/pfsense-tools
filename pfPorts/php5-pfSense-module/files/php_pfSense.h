@@ -39,6 +39,8 @@ PHP_FUNCTION(pfSense_interface_setaddress);
 PHP_FUNCTION(pfSense_interface_deladdress);
 PHP_FUNCTION(pfSense_interface_capabilities);
 PHP_FUNCTION(pfSense_ngctl_name);
+PHP_FUNCTION(pfSense_ngctl_attach);
+PHP_FUNCTION(pfSense_ngctl_detach);
 
 extern zend_module_entry pfSense_module_entry;
 #define phpext_pfSense_ptr &pfSense_module_entry
