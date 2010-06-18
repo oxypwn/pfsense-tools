@@ -348,10 +348,10 @@ copy_to_staging_nanobsd() {
 
 	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
 		md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
-		md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
-	fi
-	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
 		sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
+	fi
+	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz ]; then
+		md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
 		sha256 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
 	fi
 
