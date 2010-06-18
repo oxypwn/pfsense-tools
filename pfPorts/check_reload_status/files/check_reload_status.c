@@ -77,8 +77,8 @@ struct commands {
 } known[] = {
 	{ "/tmp/restart_webgui",	"/usr/local/bin/php /etc/rc.restart_webgui",
 		"webConfigurator restart in progress", CYCLE},
-	{ "/tmp/rc.linkup", 		"/etc/rc.linkup.sh", "rc.linkup starting", CYCLE},
-	{ "/tmp/rc.newwanip",		"/usr/local/bin/php /etc/rc.newwanip `cat /tmp/rc.newwanip`",
+	{ "/tmp/rc.linkup", 		"/usr/local/bin/php /etc/rc.linkup `/bin/cat /tmp/rc.linkup`", "rc.linkup starting", CYCLE},
+	{ "/tmp/rc.newwanip",		"/usr/local/bin/php /etc/rc.newwanip `/bin/cat /tmp/rc.newwanip`",
 		"rc.newwanip starting", 10},
 	{ "/tmp/filter_dirty",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_sync",
 		"reloading filter", 10},
