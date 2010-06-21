@@ -245,6 +245,12 @@ build_updates() {
 	LATESTFILENAME="`ls $PFSENSEUPDATESDIR/*.tgz | grep Full | grep -v md5 | grep -v sha256 | tail -n1`"
 	cp $LATESTFILENAME $PFSENSEUPDATESDIR/latest.tgz
 	sha256 $PFSENSEUPDATESDIR/latest.tgz > $PFSENSEUPDATESDIR/latest.tgz.sha256
+
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		cp $PFSENSEBASEDIR/etc/version.buildtime $PFSENSEUPDATESDIR/version
+	else
+		date > $PFSENSEUPDATESDIR/version
+	fi
 }
 
 build_nano() {
@@ -359,7 +365,7 @@ copy_to_staging_nanobsd() {
 	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz ]; then
 		cp $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz 2>/dev/null
 		sha256 $STAGINGAREA/latest-nano-$FILESIZE.img.gz > $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz.sha256 2>/dev/null
-		date > $STAGINGAREA/version-nanobsd-$FILESIZE
+		echo $DATESTRING > $STAGINGAREA/version-nanobsd-$FILESIZE
 	fi
 }
 
@@ -390,6 +396,7 @@ copy_to_staging_iso_updates() {
 	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.sha256 $STAGINGAREA/ 2>/dev/null
 	# Copy updates
+	cp $PFSENSEUPDATESDIR/version $STAGINGAREA/ 2>/dev/null
 	cp $PFSENSEUPDATESDIR/*.tgz $STAGINGAREA/ 2>/dev/null
 	cp $PFSENSEUPDATESDIR/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
 	cp $PFSENSEUPDATESDIR/*.tgz.sha256 $STAGINGAREA/ 2>/dev/null
@@ -437,11 +444,6 @@ scp_files() {
 	RSYNCIP="172.29.29.249"
 	if [ -z "${RSYNC_COPY_ARGUMENTS:-}" ]; then
 		RSYNC_COPY_ARGUMENTS="-ave ssh --timeout=60" #--bwlimit=50
-	fi
-	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
-		cp $PFSENSEBASEDIR/etc/version.buildtime $STAGINGAREA/version
-	else
-		date > $STAGINGAREA/version
 	fi
 	echo ">>> Copying files to snapshots.pfsense.org"
 	if [ ! -f /usr/local/bin/rsync ]; then
