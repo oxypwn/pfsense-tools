@@ -41,6 +41,7 @@ usr/local/bin/athstats
 usr/local/bin/beep
 usr/bin/bsdiff
 usr/bin/bspatch
+usr/sbin/ntptime
 usr/local/bin/cpdup
 usr/local/bin/minicron
 usr/local/bin/voucher
