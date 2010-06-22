@@ -172,7 +172,6 @@ freesbie_make clonefs
 # Setup NanoBSD specific items
 FlashDevice $FLASH_MODEL $FLASH_SIZE
 echo "$FLASH_SIZE" > /tmp/nanosize.txt
-echo "$FLASH_SIZE" > $PFSENSEBASEDIR/etc/nanosize.txt
 setup_nanobsd_etc
 setup_nanobsd
 

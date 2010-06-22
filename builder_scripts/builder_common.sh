@@ -1171,8 +1171,6 @@ cust_fixup_nanobsd() {
 
 	echo "-h" >> $PFSENSEBASEDIR/boot.config
 
-	echo "$FLASH_SIZE" > $PFSENSEBASEDIR/etc/nanosize.txt
-
 	if [ "$FBSD_VERSION" -gt "7" ]; then
 		# Enable getty on console
 		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
@@ -1845,6 +1843,9 @@ setup_nanobsd_etc ( ) {
 	echo ">>> Configuring NanoBSD /etc"
 
 	cd ${CLONEDIR}
+
+	# Set NanoBSD image size
+	echo "$FLASH_SIZE" > etc/nanosize.txt
 
 	# create diskless marker file
 	touch etc/diskless
