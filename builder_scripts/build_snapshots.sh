@@ -365,7 +365,7 @@ copy_to_staging_nanobsd() {
 	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz ]; then
 		cp $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz 2>/dev/null
 		sha256 $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz > $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz.sha256 2>/dev/null
-		echo $DATESTRING > $STAGINGAREA/version-nanobsd-$FILESIZE
+		echo $BUILDTIME > $STAGINGAREA/version-nanobsd-$FILESIZE
 	fi
 }
 
