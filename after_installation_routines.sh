@@ -8,7 +8,6 @@ rm -rf /mnt/dist
 rm -f /mnt/etc/rc.d/freesbie_1st
 rm -f /mnt/usr/local/share/freesbie/files/000.freesbie_2nd.sh
 rm -f /mnt/etc/rc.local
-rm -f /mnt/root/.tcshrc
 rm -f /mnt/etc/rc.conf
 rm -f /mnt/etc/rc.conf
 rm -f /mnt/etc/rc.firewall
@@ -38,7 +37,7 @@ rm -f /mnt/etc/motd
 echo "pfSense" > /mnt/etc/platform
 
 # Remove TCSHRC installer alias
-echo "" > /mnt/root/.tcshrc
+grep -v lua_installer /root/.tcshrc > /mnt/root/.tcshrc
 rm -rf /mnt/scripts
 find /mnt/ -name installer -or -name lua_installer -exec rm {} \;
 find /mnt/ -name 000.unionfs -or -name lua_installer -exec rm {} \;
