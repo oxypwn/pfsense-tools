@@ -77,7 +77,8 @@ EXT_DIR=	20020429
 WITH_OPENSSL=	yes
 
 CONFLICTS?=	php4-cli-4* mod_php4-4* php4-cgi-4*
-CONFLICTS+=	php5-5* php5-cli-5* mod_php5-5* php5-cgi-5*
+CONFLICTS+=	php5-5* php5-cli-5* mod_php5-5* php5-cgi-5* \
+		php52-5* php52-cli-5* mod_php52-5* php52-cgi-5*
 
 .if ${PHP_SAPI} == "cgi"
 SAPI_FILE=	bin/php
