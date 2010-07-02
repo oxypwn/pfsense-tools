@@ -206,13 +206,15 @@ for PORT in $PORTSTOBUILD; do
 	done
 	if [ -d "$PORT_LOCATION" ]; then
 		echo ">>> Found port location $PORT_LOCATION."
-		echo ">>> Copying pfPorts/$PORT_LOCATION and building..."
-		if [ ! -f /home/pfsense/tools/pfPorts/$PORT_NAME/useports ]; then
-			rm -rf $PORT_LOCATION
-			mkdir -p $PORT_LOCATION
+		if [ -d /home/pfsense/tools/pfPorts/$PORT_NAME ]; then
+			echo ">>> Copying pfPorts/$PORT_LOCATION and building..."
+			if [ ! -f /home/pfsense/tools/pfPorts/$PORT_NAME/useports ]; then
+				rm -rf $PORT_LOCATION
+				mkdir -p $PORT_LOCATION
+			fi
+			rm -rf /home/pfsense/tools/pfPorts/$PORT_NAME/work 2>/dev/null
+			cp -R /home/pfsense/tools/pfPorts/$PORT_NAME $PORT_LOCATION/../
 		fi
-		rm -rf /home/pfsense/tools/pfPorts/$PORT_NAME/work 2>/dev/null
-		cp -R /home/pfsense/tools/pfPorts/$PORT_NAME $PORT_LOCATION/../
 		PORTSUFFIX=`echo $PORT_LOCATION | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
 			# Return the seperator back to its original value
