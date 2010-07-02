@@ -531,7 +531,7 @@ recompile_pfPorts() {
 		portsnap extract
 	fi
 
-	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ]; then
+	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ] || [ "$1" != "" ]; then
 
 		# Set some neede variables
 		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
@@ -585,6 +585,11 @@ recompile_pfPorts() {
 
 		chmod a+rx $USE_PORTS_FILE
 		echo ">>> Executing $PFPORTSBASENAME"
+
+		if [ "$1" != "" ]; then
+			USE_PORTS_FILE="${USE_PORTS_FILE} -P ${1}"
+		fi
+
 		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
 			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^===|>>>|error)"
 
@@ -597,13 +602,15 @@ recompile_pfPorts() {
 			fi
 		fi
 
-		# athstats is a rare animal since it's src contents
-		# live in $SRCDIR/tools/tools/ath/athstats
-		handle_athstats
+		if [ "$1" = "" ] || [ "$1" = "athstats" ]; then
+			# athstats is a rare animal since it's src contents
+			# live in $SRCDIR/tools/tools/ath/athstats
+			handle_athstats
 
-		touch /tmp/pfSense_do_not_build_pfPorts
+			touch /tmp/pfSense_do_not_build_pfPorts
 
-		echo "==> End of pfPorts..."
+			echo "==> End of pfPorts..."
+		fi
 
 	else
 		echo "--> /tmp/pfSense_do_not_build_pfPorts is set, skipping pfPorts build..."

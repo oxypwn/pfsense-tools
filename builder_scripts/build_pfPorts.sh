@@ -40,7 +40,7 @@
 # This should be run first
 launch
 
-recompile_pfPorts
+recompile_pfPorts $1
 
 # Email that the operation has completed
 email_operation_completed
