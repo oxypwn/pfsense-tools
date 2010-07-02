@@ -2,24 +2,26 @@
 # Date created:				1 June 2003
 # Whom:					Steven Honson
 #
-# $FreeBSD: ports/dns/dnsmasq/Makefile,v 1.58 2009/10/14 10:34:57 miwi Exp $
+# $FreeBSD: ports/dns/dnsmasq/Makefile,v 1.64 2010/06/08 20:01:50 mandree Exp $
 #
 
 PORTNAME=	dnsmasq
-PORTVERSION=	2.51
+PORTVERSION=	2.55
 PORTEPOCH=	1
 CATEGORIES=	dns ipv6
 MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/ \
 		http://homepages.uni-paderborn.de/mandree/
+EXTRACT_SUFX=	.tar.lzma
 
-MAINTAINER=	matthias.andree@gmx.de
+MAINTAINER=	mandree@FreeBSD.org
 COMMENT=	Lightweight DNS forwarder, DHCP and TFTP server
+
+USE_XZ=		yes
 
 MAN8=		dnsmasq.8
 
 PORTDOCS=	CHANGELOG CHANGELOG.archive FAQ doc.html setup.html
 
-RC_SCRIPTS_SUB=	PREFIX=${PREFIX} RC_SUBR=${RC_SUBR}
 SUB_FILES=	pkg-message
 
 MAKE_JOBS_SAFE=	yes
