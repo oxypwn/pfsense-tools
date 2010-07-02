@@ -586,7 +586,7 @@ recompile_pfPorts() {
 		chmod a+rx $USE_PORTS_FILE
 		echo ">>> Executing $PFPORTSBASENAME"
 		( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
-			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
+			| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^===|>>>|error)"
 
         # Restore PKGFILE
         PKGFILE="$OLDPKGFILE"; export PKGFILE
