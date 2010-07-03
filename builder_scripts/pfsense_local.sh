@@ -87,7 +87,7 @@ export FREESBIE_PATH=${FREESBIE_PATH:-${BASE_DIR}/${FREESBIE_DIR}}
 export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should be override our variables
 export SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
-export CLONEDIR=${CLONEDIR:-/usr/local/pfsense-clone}
+export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 export PKGFILE=${PKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfSense
 
