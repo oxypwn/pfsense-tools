@@ -195,8 +195,8 @@ fi
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
 
-# Ensure /home exists
-mkdir -p $CLONEDIR/home
+# Ensure /home and /etc exists
+mkdir -p $CLONEDIR/home $CLONEDIR/etc
 
 # Finalize iso
 echo ">>> Finalizing iso..."
