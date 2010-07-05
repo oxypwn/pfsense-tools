@@ -122,7 +122,11 @@ snort						/usr/ports/security/snort				/usr/local/sbin/snort
 wrapalixresetbutton			/usr/ports/sysutils/wrapalixresetbutton	/usr/local/sbin/alixresetbtn
 b43-fwcutter				/usr/ports/sysutils/b43-fwcutter		/usr/local/bin/b43-fwcutter
 bwi-firmware-kmod			/usr/ports/net/bwi-firmware-kmod		/boot/modules/bwi_v3_ucode.ko
-voucher					/usr/ports/sysutils/voucher			/usr/local/bin/voucher"
+voucher					/usr/ports/sysutils/voucher			/usr/local/bin/voucher
+dnswatch				/usr/ports/sysutils/dnswatch			/usr/local/sbin/dnswatch
+gzsig					/usr/ports/sysutils/gzsig			/usr/local/sbin/gzsig
+ssh_tunnel_shell			/usr/ports/sysutils/ssh_tunnel_shell		/usr/local/sbin/ssh_tunnel_shell
+sshlockout_pf				/usr/ports/sysutils/sshlockout_pf		/usr/local/sbin/sshlockout_pf"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
