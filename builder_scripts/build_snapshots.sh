@@ -193,7 +193,7 @@ build_iso() {
 	./build_iso.sh
 	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
 		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
@@ -214,7 +214,7 @@ build_embedded() {
 	rm -rf /usr/obj*
 	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
 		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
@@ -249,7 +249,7 @@ build_updates() {
 	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
 		cp $PFSENSEBASEDIR/etc/version.buildtime $PFSENSEUPDATESDIR/version
 	else
-		date > $PFSENSEUPDATESDIR/version
+		date "+%a %b %d %T %Z %Y" > $PFSENSEUPDATESDIR/version
 	fi
 }
 
@@ -332,7 +332,7 @@ copy_to_staging_nanobsd() {
 	cd $BUILDERSCRIPTS
 	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
 		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
@@ -377,7 +377,7 @@ copy_to_staging_deviso_updates() {
 	cd $BUILDERSCRIPTS	
 	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
 		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
@@ -407,7 +407,7 @@ copy_to_staging_embedded() {
 	cp $MAKEOBJDIRPREFIXFINAL/pfSense.img $STAGINGAREA/ 
 	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
 		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %d %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
