@@ -6,7 +6,7 @@
 PORTNAME=	voucher
 PORTVERSION=	0.1
 PORTREVISION?=	0
-CATEGORIES?=	sysutils
+CATEGORIES=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty

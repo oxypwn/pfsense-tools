@@ -8,7 +8,7 @@
 PORTNAME=	sshlockout_pf
 PORTVERSION=	0.0.2
 PORTREVISION?=	0
-CATEGORIES?=	sysutils
+CATEGORIES=	sysutils
 MASTER_SITES=	# empty
 DISTFILES=	# none
 EXTRACT_ONLY=	# empty
