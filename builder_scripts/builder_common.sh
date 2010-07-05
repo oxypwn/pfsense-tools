@@ -1615,7 +1615,7 @@ checkout_pfSense_git() {
                 2>&1 | egrep -wi '(^>>>|error)'
         else
             (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
-                && git checkout "${PFSENSE_TAG}") 2>&1 \
+                && git checkout "${PFSENSETAG}") 2>&1 \
                     | egrep -wi '(^>>>|error)'
         fi
     fi
