@@ -1607,7 +1607,8 @@ checkout_pfSense_git() {
     else
         echo -n "Checking out tag ${PFSENSETAG}..."
         BRANCH="${PFSENSETAG}"
-        branch_exists=`git branch | grep "${PFSENSETAG}"`
+        branch_exists=`(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
+			&& git branch | grep "${PFSENSETAG}")`
         if [ -z "$branch_exists" ]; then
             (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
                 && git checkout -b "${PFSENSETAG}" "origin/${PFSENSETAG}") \
