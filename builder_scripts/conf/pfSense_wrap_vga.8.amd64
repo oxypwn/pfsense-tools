@@ -1,40 +1,34 @@
 # $Id$
 
-makeoptions MODULES_OVERRIDE="acpi ndis if_ndis ipfw ipdivert dummynet fdescfs cpufreq ubsa  glxsb"
+makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq glxsb"
 
-machine		i386
-cpu			I486_CPU
-cpu			I586_CPU
-cpu			I686_CPU
-ident		pfSense-embedded
+nooptions         KDB
+nooptions         KDB_TRACE 
+nooptions         DDB                     # Support DDB.
+nooptions         GDB                     # Support remote GDB.
+nooptions		INVARIANTS
+nooptions		INVARIANTS_SUPPORT
+nooptions		WITNESS
+nooptions		WITNESS_SKIPSPIN
 
-options		CPU_GEODE
-options		CPU_SOEKRIS
-options		CPU_ELAN
+#makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
+
+machine			amd64
+cpu 			HAMMER
+ident			pfSense-embedded
 
 options 		GEOM_MIRROR
 options			GEOM_UZIP
 options			GEOM_LABEL
 nooption		GEOM_MBR
 options			GEOM_PART_MBR
-
-# No PLIP
-nodevice		plip
-nodevice		ppc
+options			GEOM_PART_BSD
 
 # IPSEC filtering interface
-device 		enc
+device 			enc
 
-nooptions	SCHED_4BSD
-options 	SCHED_ULE                                       # ULE scheduler
-
-# VGA
-device         atkbdc          # AT keyboard controller
-device         atkbd           # AT keyboard
-device         kbdmux          # keyboard multiplexer
-device         vga             # VGA video card driver
-device         sc              # Syscons
-# END VGA
+nooptions		SCHED_4BSD
+options 		SCHED_ULE                                       # ULE scheduler
 
 options 	INET			# InterNETworking
 options 	INET6			# InterNETworking
@@ -62,9 +56,7 @@ options 	KBD_INSTALL_CDEV	# install a CDEV entry in /dev
 					# output.  Adds ~128k to driver.
 #options 	AHD_REG_PRETTY_PRINT	# Print register bitfields in debug
 					# output.  Adds ~215k to driver.
-options 	ADAPTIVE_GIANT		# Giant mutex is adaptive.
 
-device		apic			# I/O APIC
 device		acpi
 
 # Bus support.  Do not remove isa, even if you have no isa slots
@@ -128,11 +120,8 @@ device		aac		# Adaptec FSA RAID
 device		aacp		# SCSI passthrough for aac (requires CAM)
 device		ida		# Compaq Smart RAID
 #device		mlx		# Mylex DAC960 family
-device		pst		# Promise Supertrak SX6000
+#device		pst		# Promise Supertrak SX6000
 device		twe		# 3ware ATA RAID
-
-# Floating point support - do not disable.
-device		npx
 
 # Power management support (see NOTES for more options)
 # device		apm
@@ -144,9 +133,6 @@ device		npx
 device		cbb		# cardbus (yenta) bridge
 device		pccard		# PC Card (16-bit) bus
 device		cardbus		# CardBus (32-bit) bus
-
-# Serial (COM) ports
-device		sio		# 8250, 16[45]50 based serial ports
 
 # Parallel port
 device		ppc
@@ -194,31 +180,38 @@ device		wb		# Winbond W89C840F
 device		xl		# 3Com 3c90x (``Boomerang'', ``Cyclone'')
 
 # Wireless
-device          wlan
-device          wlan_wep
-device          wlan_ccmp
-device          wlan_tkip
-device          wlan_xauth
-device          wlan_acl
-device          wlan_amrr
-device          wlan_scan_ap
-device          wlan_scan_sta
-
-device iwi
-device ale
-
-device 			ath
-device 			ath_hal
-device 			ath_rate_sample
-options 		AH_SUPPORT_AR5416
-
-device			an		# Aironet 4500/4800 802.11 wireless NICs.
-device			awi		# BayStack 660 and others
-device			ral     # Ralink Technology RT2500 wireless NICs.
-device			wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
-#device			wl		# Older non 802.11 Wavelan wireless NIC.
-device          ural            # Ralink Technology RT2500USB wireless NICs
-device          rum             # Ralink Technology RT2501USB wireless NICs
+device		wlan
+device		wlan_wep
+device		wlan_ccmp
+device		wlan_tkip
+device		wlan_xauth
+device		wlan_acl
+device		wlan_amrr
+device		iwi		# Intel PRO/Wireless 2200BG/2225BG/2915ABG IEEE 802.11 driver
+device		ipw		# Intel PRO/Wireless 2100 IEEE 802.11 driver
+device		ipwfw		# Firmware for Intel PRO/Wireless 2100 IEEE 802.11 driver
+device		wpi		# Intel 3945ABG Wireless LAN IEEE 802.11 driver
+device		wpifw		# Firmware for Intel 3945ABG Wireless LAN IEEE 802.11 driver
+device		iwn		# Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
+device		iwnfw		# Firmware for Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
+device		ath		# Atheros IEEE 802.11 wireless network driver
+device		ath_hal
+options		AH_SUPPORT_AR5416
+device		ath_rate_sample
+device		uath		# Atheros USB IEEE 802.11a/b/g wireless network device
+device		an		# Aironet 4500/4800 802.11 wireless NICs.
+device		ral		# Ralink Technology RT2500 wireless NICs.
+device		ralfw		# Firmware for Ralink Technology RT2500 wireless NICs.
+device		ural		# Ralink Technology RT2500USB IEEE 802.11 driver
+device		urtw		# Realtek RTL8187B/L USB IEEE 802.11b/g wireless network device
+device		wi		# WaveLAN/Intersil/Symbol 802.11 wireless NICs.
+device		rum		# Ralink Technology USB IEEE 802.11a/b/g wireless network device
+device		mwl		# Marvell 88W8363 IEEE 802.11n wireless network driver
+device		mwlfw		# Firmware for Marvell 88W8363 IEEE 802.11n wireless network driver
+device		zyd		# ZyDAS ZD1211/ZD1211B USB IEEE 802.11b/g wireless network device
+device		malo		# Marvell Libertas IEEE 802.11b/g wireless network driver
+device		upgt		# Conexant/Intersil PrismGT SoftMAC USB IEEE 802.11b/g wireless
+device		bwi		# Broadcom BCM43xx IEEE 802.11b/g wireless network driver
 
 # Pseudo devices.
 device		loop		# Network loopback
@@ -226,8 +219,6 @@ device		mem		# Memory and kernel memory devices
 device		io		# I/O device
 device		random		# Entropy device
 device		ether		# Ethernet support
-device		sl		# Kernel SLIP
-device		ppp		# Kernel PPP
 device		tun		# Packet tunnel.
 device		pty		# Pseudo-ttys (telnet etc)
 device		md		# Memory "disks"
@@ -258,7 +249,8 @@ device          uark
 device          uftdi
 device          uvscom
 device          umodem
-
+device			u3g
+device			ucom
 
 # Uncommented at the request of colin
 #device		uhid		# "Human Interface Devices"
@@ -301,36 +293,41 @@ options		IPSTEALTH
 
 #options		INCLUDE_CONFIG_FILE
 
-options         NETGRAPH                #netgraph(4) system
-options			NETGRAPH_L2TP
-options         NETGRAPH_ASYNC
-options         NETGRAPH_BPF
-options         NETGRAPH_BRIDGE
-options         NETGRAPH_CISCO
-options         NETGRAPH_ECHO
-options         NETGRAPH_ETHER
-options         NETGRAPH_FRAME_RELAY
-options         NETGRAPH_HOLE
-options         NETGRAPH_IFACE
-options         NETGRAPH_EIFACE
-options         NETGRAPH_KSOCKET
-options         NETGRAPH_LMI
-options         NETGRAPH_MPPC_ENCRYPTION
-options         NETGRAPH_ONE2MANY
-options         NETGRAPH_PPP
-options         NETGRAPH_PPPOE
-options         NETGRAPH_PPTPGRE
-options         NETGRAPH_RFC1490
-options         NETGRAPH_SOCKET
-options         NETGRAPH_TEE
-options         NETGRAPH_TTY
-options         NETGRAPH_UI
-options         NETGRAPH_VJC
+#options		BRIDGE
+options		NETGRAPH		#netgraph(4) system
+options		NETGRAPH_VLAN
+options		NETGRAPH_L2TP
+options		NETGRAPH_BPF
+options		NETGRAPH_ETHER
+options		NETGRAPH_IFACE
+options		NETGRAPH_EIFACE
+options		NETGRAPH_PPP
+options		NETGRAPH_PPPOE
+options		NETGRAPH_PPTPGRE
+options		NETGRAPH_RFC1490
+options		NETGRAPH_SOCKET
+options		NETGRAPH_TTY
+options		NETGRAPH_MPPC_ENCRYPTION
+options		NETGRAPH_UI
+options		NETGRAPH_VJC
+options		NETGRAPH_KSOCKET
+options		NETGRAPH_LMI
+options		NETGRAPH_ONE2MANY
+options		NETGRAPH_BRIDGE
+options		NETGRAPH_CISCO
+options		NETGRAPH_ECHO
+options		NETGRAPH_ASYNC
+options		NETGRAPH_FRAME_RELAY
+options		NETGRAPH_HOLE
+options		NETGRAPH_TEE
+options		NETGRAPH_TCPMSS
+options		NETGRAPH_PIPE
+options		NETGRAPH_CAR
+options		NETGRAPH_DEFLATE
+options		NETGRAPH_PRED1
 
 options		IPSEC
-#options         IPSEC_NAT_T
-
-options        TCP_SIGNATURE           #include support for RFC 2385
+options         IPSEC_NAT_T
 
 options		ALTQ
 options		ALTQ_CBQ
@@ -338,7 +335,6 @@ options		ALTQ_RED
 options		ALTQ_RIO
 options		ALTQ_HFSC
 options		ALTQ_PRIQ
-options		ALTQ_FAIRQ
 
 device		pf
 device		pflog
@@ -406,8 +402,21 @@ device		udav            # Davicom DM9601 USB Ethernet driver
 #options	HIFN_DEBUG      # enable debugging support: hw.hifn.debug
 #options	HIFN_RNDTEST    # enable rndtest support
 #device		rndtest         # FIPS 140-2 entropy tester
-device		u3g
 
-# Needed for Captive Portal Locking
-options 	SYSVSEM
+options		IPSEC_NAT_T
+options		ALTQ_FAIRQ
+
+options 	COMPAT_FREEBSD7
+
+#options PRINTF_BUFR_SIZE	# fights garble printf on shutdown
+
+#options 	FLOWTABLE
 device 		padlock
+
+# VGA
+device         atkbdc          # AT keyboard controller
+device         atkbd           # AT keyboard
+device         kbdmux          # keyboard multiplexer
+device         vga             # VGA video card driver
+device         sc              # Syscons
+# END VGA
