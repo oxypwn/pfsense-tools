@@ -121,7 +121,8 @@ snort						/usr/ports/security/snort				/usr/local/sbin/snort
 3gstat_um175				/usr/ports/comms/3gstat_um175			/usr/local/bin/3gstat
 wrapalixresetbutton			/usr/ports/sysutils/wrapalixresetbutton	/usr/local/sbin/alixresetbtn
 b43-fwcutter				/usr/ports/sysutils/b43-fwcutter		/usr/local/bin/b43-fwcutter
-bwi-firmware-kmod			/usr/ports/net/bwi-firmware-kmod		/boot/modules/bwi_v3_ucode.ko"
+bwi-firmware-kmod			/usr/ports/net/bwi-firmware-kmod		/boot/modules/bwi_v3_ucode.ko
+voucher					/usr/ports/sysutils/voucher			/usr/local/bin/voucher"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
