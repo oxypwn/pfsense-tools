@@ -1885,7 +1885,7 @@ setup_nanobsd ( ) {
 		FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 		#if [ "$FBSD_VERSION" -gt "7" ]; then
 			echo ">>> Using TAR to clone setup_nanobsd()..."
-			find $d -print | tar cf - | ( cd ${CONFIG_DIR}/base/; tar xfp -)
+			tar cf - `find $d -print` | ( cd ${CONFIG_DIR}/base/; tar xfp -)
 		#else
 		#	echo ">>> Using CPIO to clone..."
 		#	find $d -print | cpio -dump -l ${CONFIG_DIR}/base/
