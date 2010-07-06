@@ -450,22 +450,7 @@ build_all_kernels() {
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
 	freesbie_make buildkernel
-	echo ">>> Installing embedded kernel..."
-	freesbie_make installkernel
-	ensure_kernel_exists $KERNEL_DESTDIR
-
-	# Build embedded VGA kernel
-	echo ">>> Building embedded VGA kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_vga"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"
-	freesbie_make buildkernel
-	echo ">>> Installing embedded VGA kernel..."
+	echo ">>> Installing wrap kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 
