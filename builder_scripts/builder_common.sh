@@ -296,6 +296,7 @@ build_embedded_kernel_vga() {
 	freesbie_make buildkernel
 	echo ">>> Installing embedded VGA kernel..."
 	freesbie_make installkernel
+	mkdir -p $KERNEL_BUILD_PATH/wrap_vga/boot/defaults
 	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap_vga/boot/defaults/
 	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap_vga/boot/device.hints
 	echo -n ">>> Installing kernels to LiveCD area..."
