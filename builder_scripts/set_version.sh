@@ -1,8 +1,8 @@
 #!/bin/sh
 
 if [ $# -lt 1 ]; then
-	echo 1>&2 Usage  : $0 ./set_version branch SUP_HOST ERROR_EMAIL_ADDRESS
-	echo 1>&2 example: $0 ./set_version HEAD cvsup.livebsd.org myemail@emails.com
+	echo 1>&2 Usage  : $0 branch SUP_HOST ERROR_EMAIL_ADDRESS
+	echo 1>&2 example: $0 HEAD cvsup.livebsd.org myemail@emails.com
 	exit 127
 fi
 
