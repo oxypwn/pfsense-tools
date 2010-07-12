@@ -157,7 +157,14 @@ export NANO_IMAGES=2
 export NANO_INIT_IMG2=1
 export NANO_RAM_ETCSIZE=30720
 export NANO_RAM_TMPVARSIZE=51200
-export NANO_BOOTLOADER=${NANO_BOOTLOADER:-"boot/boot0sio"}
+export NANO_WITH_VGA=${NANO_WITH_VGA:-""}
+if [ "${NANO_WITH_VGA}" = "" ]; then
+	# It's serial
+	export NANO_BOOTLOADER=${NANO_BOOTLOADER:-"boot/boot0sio"}
+else
+	# It's vga
+	export NANO_BOOTLOADER=${NANO_BOOTLOADER:-"boot/boot0"}
+fi
 export NANO_NEWFS="-b 4096 -f 512 -i 8192 -O1"
 export FLASH_MODEL=${FLASH_MODEL:-"sandisk"}
 export FLASH_SIZE=${FLASH_SIZE:-"1g"}
