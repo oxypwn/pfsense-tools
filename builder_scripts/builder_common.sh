@@ -2582,7 +2582,17 @@ fi
 #
 # Exec PHP script which installs pfSense packages in place
 #
-(/tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg) | egrep -wi '(^>>>|error)'
+(/tmp/pfspkg_installer -q -m install -l /tmp/pkgfile.lst -p .:/etc/inc:/usr/local/www:/usr/local/captiveportal:/usr/local/pkg) > /tmp/pfspkg_installer.out 2>&1
+
+rc=\$?
+
+egrep -wi '(^>>>|error)' /tmp/pfspkg_installer.out 2>/dev/null
+rm -f /tmp/pfspkg_installer.out
+
+#
+# Check if pfspkg_installer returned 0
+#
+[ "\$rc" != "0" ] && exit 1
 
 # Copy config.xml to conf.default/
 cp /conf/config.xml conf.default/
@@ -2641,8 +2651,14 @@ EOF
 		echo ">>> Installing custom pfSense-XML packages inside chroot ..."
 		chmod a+rx ${TODIR}/${DESTNAME}
 		chroot ${TODIR} /bin/sh /${DESTNAME}
+		rc=$?
 		echo ">>> Unmounting ${TODIR}/dev ..."
 		umount -f ${TODIR}/dev
+
+		if [ "${rc}" != "0" ]; then
+			echo ">>> ERROR: Error installing custom packages"
+			exit 1
+		fi
 
 	fi
 }
