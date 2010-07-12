@@ -1152,12 +1152,12 @@ cust_fixup_nanobsd() {
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	
 	echo ">>> Fixing up NanoBSD Specific items..."
-    cp $CVS_CO_DIR/boot/loader.conf_wrap \
-            $PFSENSEBASEDIR/boot/loader.conf
-    cp $CVS_CO_DIR/etc/ttys_wrap \
-            $PFSENSEBASEDIR/etc/ttys
+	[ -z "${NANO_WITH_VGA}" ] \
+		&& cp $CVS_CO_DIR/boot/loader.conf_wrap $PFSENSEBASEDIR/boot/loader.conf
+	[ -z "${NANO_WITH_VGA}" ] \
+		&& cp $CVS_CO_DIR/etc/ttys_wrap $PFSENSEBASEDIR/etc/ttys
 
-	if [ "$FBSD_VERSION" -gt "7" ]; then
+	if [ "$FBSD_VERSION" -gt "7" -a -z "${NANO_WITH_VGA}" ]; then
 		setup_serial_hints
 	fi
 
@@ -1175,19 +1175,24 @@ cust_fixup_nanobsd() {
     rm -f $PFSENSEBASEDIR/usr/local/bin/after_installation_routines.sh 2>/dev/null
 
     echo "nanobsd" > $PFSENSEBASEDIR/etc/platform
-    echo "wrap" > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt
+	[ -z "${NANO_WITH_VGA}" ] \
+		&& echo "wrap"     > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt \
+		|| echo "wrap_vga" > $PFSENSEBASEDIR/boot/kernel/pfsense_kernel.txt
 
-	echo "-h" >> $PFSENSEBASEDIR/boot.config
-
-	if [ "$FBSD_VERSION" -gt "7" ]; then
-		# Enable getty on console
-		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
-
-		# Disable getty on syscons devices
-		sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
-
+	if [ -z "${NANO_WITH_VGA}" ]; then
 		# Tell loader to use serial console early.
-		echo " -h" > ${PFSENSEBASEDIR}/boot.config
+		echo "-h" >> $PFSENSEBASEDIR/boot.config
+
+		if [ "$FBSD_VERSION" -gt "7" ]; then
+			# Enable getty on console
+			sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
+
+			# Disable getty on syscons devices
+			sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
+		fi
+	else
+		# Empty file to identify nanobsd_vga images
+		touch ${PFSENSEBASEDIR}/etc/nano_use_vga.txt
 	fi
 	
 	setup_tcshrc_prompt
@@ -2361,7 +2366,9 @@ awk '
 	' > ${MAKEOBJDIRPREFIXFINAL}/_.fdisk
 
 	mkdir -p $MAKEOBJDIRPREFIXFINAL
-	IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img
+	[ -z "${NANO_WITH_VGA}" ] \
+		&& IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd.full.img \
+		|| IMG=${MAKEOBJDIRPREFIXFINAL}/nanobsd_vga.full.img
 	MNT=${MAKEOBJDIRPREFIXFINAL}/_.mnt
 	mkdir -p ${MNT}
 
@@ -2437,7 +2444,9 @@ awk '
 	fi
 
 	echo ">>> [nanoo] Creating NanoBSD upgrade file from first slice..."
-	IMGUPDATE="${MAKEOBJDIRPREFIXFINAL}/nanobsd.upgrade.img"
+	[ -z "${NANO_WITH_VGA}" ] \
+		&& IMGUPDATE="${MAKEOBJDIRPREFIXFINAL}/nanobsd.upgrade.img" \
+		|| IMGUPDATE="${MAKEOBJDIRPREFIXFINAL}/nanobsd_vga.upgrade.img"
 	dd if=/dev/${MD}s1 of=$IMGUPDATE bs=64k
 
 	mdconfig -d -u $MD
