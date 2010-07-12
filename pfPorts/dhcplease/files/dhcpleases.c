@@ -556,6 +556,7 @@ main(int argc, char **argv) {
 		exit(4);
 	}
 
+reopen:
 	leasefd = open(leasefile, O_RDONLY);
 	if (leasefd < 0) {
 		syslog(LOG_ERR, "Could not get descriptor");
@@ -611,7 +612,7 @@ main(int argc, char **argv) {
 
 	/* Initialise kevent structure */
 	EV_SET(&chlist, leasefd, EVFILT_VNODE, EV_ADD | EV_CLEAR | EV_ENABLE | EV_ONESHOT,
-		NOTE_WRITE | NOTE_ATTRIB, 0, NULL);
+		NOTE_WRITE | NOTE_ATTRIB | NOTE_DELETE | NOTE_RENAME, 0, NULL);
 	/* Loop forever */
 	for (;;) {
 		nev = kevent(kq, &chlist, 1, &evlist, 1, NULL);
@@ -621,6 +622,10 @@ main(int argc, char **argv) {
 			if (evlist.flags & EV_ERROR) {
 				syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(evlist.data));
 				break;
+			}
+			if ((evlist.fflags & NOTE_DELETE) || (evlist.fflags & NOTE_RENAME)) {
+				close(leasefd);
+				goto reopen;
 			}
 			now = time(NULL);
 			load_dhcp(now);
