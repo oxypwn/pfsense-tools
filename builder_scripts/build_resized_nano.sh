@@ -27,6 +27,10 @@ if [ ! -f "$PFSENSEBASEDIR/COPYRIGHT" ]; then
 	exit 1
 fi
 
+# Is it a nanobsd VGA image?
+[ -f "${PFSENSEBASEDIR}/etc/nano_use_vga.txt" ] \
+	&& NANO_WITH_VGA="yes"
+
 # Test $1 to make sure it is 512mb|1g|2g|4g
 ISGOODSIZE="no"
 case $1 in 
@@ -70,7 +74,9 @@ fi
 # Wrap up the show, Johnny
 echo "Image completed."
 echo "$MAKEOBJDIRPREFIXFINAL/"
-ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd*
+[ -z "${NANO_WITH_VGA}" ] \
+	&& ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd.* \
+	|| ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd_vga.*
 
 # Run final finish routines
 finish
