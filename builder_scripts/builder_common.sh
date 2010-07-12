@@ -1157,6 +1157,9 @@ cust_fixup_nanobsd() {
 	[ -z "${NANO_WITH_VGA}" ] \
 		&& cp $CVS_CO_DIR/etc/ttys_wrap $PFSENSEBASEDIR/etc/ttys
 
+	# Be sure loader.conf exists, to avoid errors
+	touch $PFSENSEBASEDIR/boot/loader.conf
+
 	if [ "$FBSD_VERSION" -gt "7" -a -z "${NANO_WITH_VGA}" ]; then
 		setup_serial_hints
 	fi
