@@ -41,11 +41,23 @@ fi
 # Suck in local vars
 . ./pfsense_local.sh
 
+# Read params
+while getopts c:g opt; do
+	case "${opt}" in
+		c)	ALTCONFFILE="${OPTARG}";;
+		g)	USE_VGA="yes";;
+	esac
+done
+
 # Optional Per build config file.
 # Specify a file with build parameters to override the default.
-if [ "$1" != "" ]; then
-	[ -r "$1" ] && . $1
-fi
+[ -n "${ALTCONFFILE}" -a -r "${ALTCONFFILE}" ] \
+	&& . ${ALTCONFFILE}
+
+# Create a VGA image, set NANO_WITH_VGA after source alternative
+# config file to avoid it to be replaced
+[ "${USE_VGA}" = "yes" ] \
+	&& NANO_WITH_VGA="yes"
 
 # Suck in script helper functions
 . ./builder_common.sh
@@ -102,13 +114,13 @@ echo ">>> Building world and kernels for Embedded... $FREEBSD_VERSION  $FREEBSD_
 make_world
 
 # Build embedded kernel
-if [ "$ARCH" = "i386" ]; then
-	build_embedded_kernel
-fi
-if [ "$ARCH" = "amd64" ]; then
-	build_embedded_kernel
-fi
-if [ "$ARCH" = "mips" ]; then
+if [ "$ARCH" = "i386" -o "$ARCH" = "amd64" ]; then
+	if [ -z "${NANO_WITH_VGA}" ]; then
+		build_embedded_kernel
+	else
+		build_embedded_kernel_vga
+	fi
+elif [ "$ARCH" = "mips" ]; then
 	build_rspro_kernel	
 fi
 
@@ -190,7 +202,9 @@ fi
 # Wrap up the show, Johnny
 echo "Image completed."
 echo "$MAKEOBJDIRPREFIXFINAL/"
-ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd*
+[ -z "${NANO_WITH_VGA}" ] \
+	&& ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd.* \
+	|| ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd_vga.*
 
 # E-Mail that we are done.
 email_operation_completed
