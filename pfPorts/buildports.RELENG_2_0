@@ -126,7 +126,9 @@ voucher					/usr/ports/sysutils/voucher			/usr/local/bin/voucher
 dnswatch				/usr/ports/sysutils/dnswatch			/usr/local/sbin/dnswatch
 gzsig					/usr/ports/sysutils/gzsig			/usr/local/sbin/gzsig
 ssh_tunnel_shell			/usr/ports/sysutils/ssh_tunnel_shell		/usr/local/sbin/ssh_tunnel_shell
-sshlockout_pf				/usr/ports/sysutils/sshlockout_pf		/usr/local/sbin/sshlockout_pf"
+sshlockout_pf				/usr/ports/sysutils/sshlockout_pf		/usr/local/sbin/sshlockout_pf
+smartmontools				/usr/ports/sysutils/smartmontools		/usr/local/sbin/smartctl
+ataidle					/usr/ports/sysutils/ataidle			/usr/local/sbin/ataidle"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
