@@ -13,7 +13,7 @@ DISTFILES=		miniupnpd-1.4.20100511.tar.gz
 MAINTAINER=		seth.mos@xs4all.nl rswagoner@gmail.com
 COMMENT=		UPnP daemon for firewall interface
 
-WRKSRC=         ${WRKDIR}/miniupnpd-1.4
+WRKSRC=         ${WRKDIR}/miniupnpd-1.4.20100511
 
 PLIST_FILES=    sbin/miniupnpd
 
