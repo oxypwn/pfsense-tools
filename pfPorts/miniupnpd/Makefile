@@ -8,7 +8,7 @@ PORTNAME=		miniupnpd
 PORTVERSION=	1.4.20100511
 CATEGORIES=		net
 MASTER_SITES=	http://miniupnp.free.fr/files/
-DISTFILES=		miniupnpd-1.4.tar.gz
+DISTFILES=		miniupnpd-1.4.20100511.tar.gz
 
 MAINTAINER=		seth.mos@xs4all.nl rswagoner@gmail.com
 COMMENT=		UPnP daemon for firewall interface
