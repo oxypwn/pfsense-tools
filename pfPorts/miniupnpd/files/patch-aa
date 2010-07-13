@@ -7,7 +7,7 @@ diff -urN ../miniupnpd-clean/genconfig.sh ./genconfig.sh
  # version reported in XML descriptions
 -#UPNP_VERSION=20070827
 -UPNP_VERSION=`date +"%Y%m%d"`
-+UPNP_VERSION=1.2.pf1
++UPNP_VERSION=1.4.pf1
  # Facility to syslog
 -LOG_MINIUPNPD="LOG_DAEMON"
 +LOG_MINIUPNPD="LOG_USER"
