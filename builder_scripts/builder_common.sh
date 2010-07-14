@@ -544,26 +544,30 @@ recompile_pfPorts() {
 		fi
 		PFPORTSBASENAME=`basename ${USE_PORTS_FILE}`
 
-		# Warn user about make includes operation
 		echo "--> Preparing for pfPorts build ${PFPORTSBASENAME}"
-		echo "--> WARNING!  We are about to run make includes."
-		echo -n "--> Press CTRl-C to abort this operation"
-		echo -n "."
-		sleep 1
-		echo -n "."
-		sleep 1
-		echo -n "."
-		sleep 1
-		echo -n "."
-		sleep 1
-		echo "."
-		sleep 1
+		if [ "$1" = "" ]; then
+			# Warn user about make includes operation
+			echo "--> WARNING!  We are about to run make includes."
+			echo -n "--> Press CTRl-C to abort this operation"
+			echo -n "."
+			sleep 1
+			echo -n "."
+			sleep 1
+			echo -n "."
+			sleep 1
+			echo -n "."
+			sleep 1
+			echo "."
+			sleep 1
 
-		# Since we are using NAT-T we need to run this prior
-		# to the build.  Once NAT-T is included in FreeBSD
-		# we can remove this step.
-		echo "==> Starting make includes operation..."
-		( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|error)'
+			# Since we are using NAT-T we need to run this prior
+			# to the build.  Once NAT-T is included in FreeBSD
+			# we can remove this step.
+			echo "==> Starting make includes operation..."
+			( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|error)'
+		else
+			echo "--> Skipping the make include run for a single port build."
+		fi
 
 		rm -rf ${pfSPORTS_BASE_DIR}
 		mkdir ${pfSPORTS_BASE_DIR}
