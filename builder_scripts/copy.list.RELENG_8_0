@@ -151,4 +151,4 @@ usr/local/bin/wol
 usr/local/sbin/smartctl
 usr/local/sbin/smartd
 usr/local/share/smartmontools/drivedb.h
-sbin/ataidle
+usr/local/sbin/ataidle
