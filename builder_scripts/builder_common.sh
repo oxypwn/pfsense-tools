@@ -566,7 +566,7 @@ recompile_pfPorts() {
 			echo "==> Starting make includes operation..."
 			( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|error)'
 		else
-			echo "--> Skipping the make include run for a single port build."
+			echo "--> Skipping the make includes run for a single port build."
 		fi
 
 		rm -rf ${pfSPORTS_BASE_DIR}
