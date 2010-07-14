@@ -152,3 +152,4 @@ usr/local/sbin/smartctl
 usr/local/sbin/smartd
 usr/local/share/smartmontools/drivedb.h
 usr/local/sbin/ataidle
+usr/local/bin/3gstat
