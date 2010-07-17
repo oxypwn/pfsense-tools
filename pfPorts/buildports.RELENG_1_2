@@ -90,7 +90,7 @@ PORTSTOBUILD="grub \
 	openntpd \
 	ftp-proxy \
 	php4 \
-	pecl-APC \
+	pecl-APC-php4 \
 	php4-bcmath \
 	php4-bz2 \
 	php4-ctype \
