@@ -2,12 +2,11 @@
 # Date created:			  31 August 2003
 # Whom:				  Thierry Thomas (<thierry@pompo.net>)
 #
-# $FreeBSD: ports/www/pecl-APC/Makefile,v 1.23 2008/01/25 03:01:54 mnag Exp $
+# $FreeBSD: ports/www/pecl-APC/Makefile,v 1.26 2008/06/09 22:05:03 mnag Exp $
 #
 
 PORTNAME=	APC
 DISTVERSION=	3.0.19
-PORTREVISION=	1
 CATEGORIES=	www
 MASTER_SITES=	http://pecl.php.net/get/
 PKGNAMEPREFIX=	pecl-
