@@ -32,6 +32,11 @@
 
 DIALOG=${DIALOG=/usr/bin/dialog}
 
+if [ ! -f $DIALOG ]; then
+	echo "This programs requires the dialog binary located usually in $DIALOG .. Exiting."
+	exit
+fi
+
 z() {
 	$DIALOG --title "INPUT BOX" --clear \
 	        --inputbox "$1" -1 -1 "" \
