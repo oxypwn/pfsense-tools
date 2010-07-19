@@ -15,6 +15,8 @@ else
 		SUPHOST=`fastest_cvsup -c tld -q`
 	else 
 		echo "WARNING:  Setting CVSUP host to cvsup.livebsd.org.  You must have firewall access for this to work on pfSense.org!"
+		echo "You may install the fastest_cvsup port to automatically select a server: "
+		echo "           cd  /usr/ports/sysutils/fastest_cvsup && make install"
 		SUPHOST="cvsup.livebsd.org"	
 		sleep 2
 	fi
@@ -97,7 +99,7 @@ set_items() {
 	echo export PFSPATCHDIR="${PFSPATCHDIR}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export SUPFILE="${SUPFILE}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	echo export CUSTOM_COPY_LIST="${CUSTOM_COPY_LIST}" >> $BUILDER_SCRIPTS/pfsense-build.conf	
-	echo "# Comment out the following line if you would like to automatically select an update server."
+	echo "# Comment out the following line if you would like to automatically select an update server." >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export OVERRIDE_FREEBSD_CVSUP_HOST="${SUPHOST}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export BASE_DIR="${BASE_DIR}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export BUILDER_TOOLS="${BUILDER_TOOLS}" >> $BUILDER_SCRIPTS/pfsense-build.conf
