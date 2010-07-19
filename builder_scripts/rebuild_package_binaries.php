@@ -52,7 +52,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 				$build_options = $build['build_options'];
 			if(file_exists("/var/db/ports/{$build['name']}/options")) {
 				echo ">>> Using /var/db/ports/{$build['name']}/options";
-				$build_options .= str_replace("\n", "", file_get_contents("/var/db/ports/{$build['name']}/options"));
+				$build_options .= str_replace("\n", " ", file_get_contents("/var/db/ports/{$build['name']}/options"));
 			}
 			exec("cd {$build} && make clean package-recursive WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes");
 		}
