@@ -10,7 +10,12 @@ fi
 if [ "$2" != "" ]; then 
 	SUPHOST="$2"
 else 
-	SUPHOST="cvsup.livebsd.org"
+	if [ -f /usr/local/bin/fastest_cvsup ]; then
+		SUPHOST=`fastest_cvsup -c tld -q`
+	else 
+		echo "WARNING:  Setting CVSUP host to cvsup.livebsd.org.  You must have firewall access for this to work on pfSense.org!"
+		SUPHOST="cvsup.livebsd.org"	
+	fi
 fi
 
 # Default EMAIL
