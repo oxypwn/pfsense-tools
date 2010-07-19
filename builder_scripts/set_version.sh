@@ -11,10 +11,12 @@ if [ "$2" != "" ]; then
 	SUPHOST="$2"
 else 
 	if [ -f /usr/local/bin/fastest_cvsup ]; then
+		echo "One moment please, finding the best cvsup server to use"
 		SUPHOST=`fastest_cvsup -c tld -q`
 	else 
 		echo "WARNING:  Setting CVSUP host to cvsup.livebsd.org.  You must have firewall access for this to work on pfSense.org!"
 		SUPHOST="cvsup.livebsd.org"	
+		sleep 2
 	fi
 fi
 
