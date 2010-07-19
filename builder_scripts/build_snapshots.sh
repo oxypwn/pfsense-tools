@@ -101,6 +101,7 @@ create_webdata_structure() {
 	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer
 	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
 	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates 
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd
 }
 
 set_pfsense_source() {
@@ -453,25 +454,25 @@ scp_files() {
 	rm -f /tmp/ssh-snapshots*
 	set +e
 	# Ensure directory(s) are available
-	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/livecd_installer
-	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/embedded
-	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/updates
-	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/nanobsd	
-	ssh snapshots@${RSYNCIP} rm -rf  /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/_updaters
-	ssh snapshots@${RSYNCIP} mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/.updaters
-	ssh snapshots@${RSYNCIP} chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/.
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/embedded"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd"	
+	ssh snapshots@${RSYNCIP} "rm -rf  /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/_updaters"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters"
+	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/."
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*iso* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/livecd_installer/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*iso* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*Update* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/updates/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*Update* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/.updaters
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/.updaters
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/nanobsd/		
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd/		
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsdupdates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/$ARCH/pfSense_${PFSENSETAG}/updates/			
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsdupdates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/			
 	set -e
 }
 
