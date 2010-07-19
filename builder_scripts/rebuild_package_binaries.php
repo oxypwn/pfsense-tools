@@ -31,6 +31,8 @@ if(!$pkg) {
 	exit;
 }
 
+exec("clear");
+
 echo ">>> pfSense package binary builder is starting.\n";
 
 if(!is_dir("/usr/ports")) {
@@ -49,6 +51,9 @@ foreach($pkg['packages']['package'] as $pkg) {
 		}
 	}
 }
+
+echo ">>> /usr/ports/packages/All now contains:\n";
+exec("ls /usr/ports/packages/All");
 
 echo ">>> Package binary build run ended.\n";
 
