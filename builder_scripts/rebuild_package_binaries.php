@@ -46,8 +46,11 @@ if(!is_dir("/usr/ports/packages/All"))
 foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
+			$sbuild_options="";
 			echo ">>> Processing {$build}\n";
-			exec("cd {$build} && make clean package-recursive WITHOUT_X11=yes FORCE_PKG_REGISTER=yes");
+			if($build['build_options']) 
+				$build_options = $build['build_options'];
+			exec("cd {$build} && make clean package-recursive WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes");
 		}
 	}
 }
