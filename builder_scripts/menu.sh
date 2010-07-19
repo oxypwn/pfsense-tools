@@ -2,7 +2,7 @@
 #
 #  menu.sh - a GUI front end to the pfSense builder system
 #  Part of the pfSense project
-#  Copyright (C) 2009 Scott Ullrich <sullrich@gmail.com>
+#  Copyright (C) 2009, 2010 Scott Ullrich <sullrich@gmail.com>
 #  All rights reserved.
 #  
 #  Redistribution and use in source and binary forms, with or without
