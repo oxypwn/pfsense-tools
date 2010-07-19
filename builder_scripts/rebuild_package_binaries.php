@@ -13,7 +13,7 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO")) {
 }
 
 function usage() {
-	echo "Usage: ./rebuild_packages_binaries.php <path to pkg xml>.  Example: ./rebuild_packages_binaries.php /home/pfsense/packages/pkg_info.8.xml"
+	echo "Usage: ./rebuild_packages_binaries.php <path to pkg xml>.  Example: ./rebuild_packages_binaries.php /home/pfsense/packages/pkg_info.8.xml";
 	exit;
 }
 
@@ -25,7 +25,7 @@ $xml_filename = $argv[1];
 
 $pkg = parse_xml_config_pkg($xml_filename, "packagegui");
 if(!$pkg) {
-	echo "An error occurred while trying to process {$xml_filename}.  Exiting."
+	echo "An error occurred while trying to process {$xml_filename}.  Exiting.";
 	exit;
 }
 
