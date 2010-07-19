@@ -32,7 +32,7 @@
 
 DIALOG=${DIALOG=/usr/bin/dialog}
 
-get_text() {
+z() {
 	$DIALOG --title "INPUT BOX" --clear \
 	        --inputbox "$1" -1 -1 "" \
 			2> /tmp/inputbox.tmp.$$
@@ -40,7 +40,6 @@ get_text() {
 	input=`cat /tmp/inputbox.tmp.$$`
 	get_text_value=`cat /tmp/inputbox.tmp.$$`
 	rm -f /tmp/inputbox.tmp.$$
-	clear
 }
 
 get_pfsense_version() {
@@ -55,8 +54,8 @@ get_pfsense_version() {
 			2> /tmp/radiolist.tmp.$$
 	retval=$?
 	get_pfsense_version_value=`cat /tmp/radiolist.tmp.$$`
+	cat /tmp/radiolist.tmp.$$
 	rm -f /tmp/radiolist.tmp.$$
-	clear
 }
 
 print_flags_menu() {
@@ -268,4 +267,6 @@ $TWITTER_SNAPSHOTS_PASSWORD
 	esac
 	echo
 	read -p "Press enter to continue..." opmode
+	clear
 done
+
