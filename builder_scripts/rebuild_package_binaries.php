@@ -47,7 +47,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			echo ">>> Processing {$build}\n";
-			exec("cd {$build} && make clean package-recursive FORCE_PKG_REGISTER=yes");
+			exec("cd {$build} && make clean package-recursive WITHOUT_X11=yes FORCE_PKG_REGISTER=yes");
 		}
 	}
 }
