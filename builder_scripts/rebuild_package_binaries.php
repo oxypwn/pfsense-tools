@@ -46,7 +46,7 @@ if(!is_dir("/usr/ports/packages/All"))
 foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
-			$sbuild_options="";
+			$build_options="";
 			echo ">>> Processing {$build}\n";
 			if($build['build_options']) 
 				$build_options = $build['build_options'];
