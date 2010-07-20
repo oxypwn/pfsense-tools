@@ -177,7 +177,8 @@ echo
 
 case $1 in
 HEAD)
-	echo ">>> Setting builder environment to use HEAD ..."
+RELENG_8_1)
+	echo ">>> Setting builder environment to use HEAD/RELENG_8_1 ..."
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_1"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_1-supfile"
@@ -246,19 +247,6 @@ RELENG_7_3)
 	set_items
 ;;
 
-RELENG_8_1)
-	echo ">>> Setting builder environment to use RELENG_8_1 ..."
-	export FREEBSD_VERSION="8"
-	export FREEBSD_BRANCH="RELENG_8_1"
-	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8-supfile"
-	export PFSENSE_VERSION=2.0-BETA3
-	export PFSENSETAG=HEAD
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
-	export PFSPORTSFILE=buildports.RELENG_2_0
-	set_items
-;;
 esac
 
 if [ "$HANDLED" = "false" ]; then 
