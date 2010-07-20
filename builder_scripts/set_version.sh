@@ -139,6 +139,7 @@ set_items() {
 	echo "NOTE: pfsense-build.conf values updated.  These values override pfsense_local.sh !!"
 	echo
 	echo "NOTE2: pfPorts will be rebuilt!"
+	echo "       remove /tmp/pfPorts_forced_build_required to cancel"
 	echo
 	HANDLED=true
 	touch /tmp/pfPorts_forced_build_required
