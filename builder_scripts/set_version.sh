@@ -1,4 +1,30 @@
 #!/bin/sh
+#
+#  set_version.sh
+#  Copyright (C) 2004-2010 Scott Ullrich
+#  All rights reserved.
+#  
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that the following conditions are met:
+#  
+#  1. Redistributions of source code must retain the above copyright notice,
+#     this list of conditions and the following disclaimer.
+#  
+#  2. Redistributions in binary form must reproduce the above copyright
+#     notice, this list of conditions and the following disclaimer in the
+#     documentation and/or other materials provided with the distribution.
+#  
+#  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+#  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+#  AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+#  AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+#  OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+#  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+#  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+#  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+#  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+#  POSSIBILITY OF SUCH DAMAGE.
+#
 
 if [ $# -lt 1 ]; then
 	echo 1>&2 Usage  : $0 branch SUP_HOST ERROR_EMAIL_ADDRESS
@@ -12,13 +38,13 @@ if [ "$2" != "" ]; then
 	SUPHOST="$2"
 else 
 	if [ -f /usr/local/bin/fastest_cvsup ]; then
-		echo "One moment please, finding the best cvsup server to use"
+		echo "One moment please, finding the best cvsup server to use..."
 		SUPHOST=`fastest_cvsup -c tld -q`
 	else 
 		echo "WARNING:  Setting CVSUP host to cvsup.livebsd.org.  You must have firewall access for this to work on pfSense.org!"
 		echo
 		echo "You may install the fastest_cvsup port to automatically select a server: "
-		echo "           cd  /usr/ports/sysutils/fastest_cvsup && make install"
+		echo "          cd  /usr/ports/sysutils/fastest_cvsup && make install"
 		SUPHOST="cvsup.livebsd.org"	
 		sleep 2
 	fi
