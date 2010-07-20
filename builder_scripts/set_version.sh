@@ -2,7 +2,8 @@
 
 if [ $# -lt 1 ]; then
 	echo 1>&2 Usage  : $0 branch SUP_HOST ERROR_EMAIL_ADDRESS
-	echo 1>&2 example: $0 HEAD cvsup.livebsd.org myemail@emails.com
+	echo 1>&2 Example: $0 HEAD cvsup.livebsd.org myemail@emails.com
+	echo 1>&2 Note   : Replace cvsup.livebsd.org with your favorite FreeBSD CVSUP server
 	exit 127
 fi
 
@@ -15,6 +16,7 @@ else
 		SUPHOST=`fastest_cvsup -c tld -q`
 	else 
 		echo "WARNING:  Setting CVSUP host to cvsup.livebsd.org.  You must have firewall access for this to work on pfSense.org!"
+		echo
 		echo "You may install the fastest_cvsup port to automatically select a server: "
 		echo "           cd  /usr/ports/sysutils/fastest_cvsup && make install"
 		SUPHOST="cvsup.livebsd.org"	
@@ -136,7 +138,7 @@ set_items() {
 	cat pfsense-build.conf
 	echo "---------------------------------------------------------------------------------------"
 	echo
-	echo "NOTE: pfsense-build.conf values updated.  These values override pfsense_local.sh !!"
+	echo " NOTE: pfsense-build.conf values updated.  These values override pfsense_local.sh !!"
 	echo
 	echo "NOTE2: pfPorts will be rebuilt!"
 	echo "       remove /tmp/pfPorts_forced_build_required to cancel"
