@@ -107,8 +107,8 @@ run_command(void *arg) {
         	if (fexist(cmd->file) == 1) {
         		syslog(LOG_NOTICE, cmd->syslog);
                 	write_status(cmd->file, BEFORE);
-                	unlink(cmd->file);
                 	system(cmd->command);
+                	unlink(cmd->file);
                 	write_status(cmd->file, AFTER);
         	}
 		if (cmd->sleep)
