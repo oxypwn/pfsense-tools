@@ -88,6 +88,8 @@ main(void)
 {
 	char buf[1024];
 
+	bzero(buf, sizeof buf);
+
 	// Initialize time conversion information
 	tzset();
 
