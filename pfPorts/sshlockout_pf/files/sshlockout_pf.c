@@ -86,9 +86,7 @@ static void add_new_record(int n1, int n2, int n3, int n4);
 int
 main(void) 
 {
-	char buf[1024];
-
-	bzero(buf, sizeof buf);
+	char buf[1024] = { 0 };
 
 	// Initialize time conversion information
 	tzset();
