@@ -133,8 +133,10 @@ check_for_denied_string(char *str, char *buf)
 	char *tmpstr = NULL;
 	if ((str = strstr(buf, str)) != NULL) 
 	{
-		if ((tmpstr = strstr(str, " from")) != NULL)
-			lockout(tmpstr + 5);
+		if ((tmpstr = strstr(str, " from")) != NULL) {
+			if (strlen(tmpstr) > 5)
+				lockout(tmpstr + 5);
+		}
 	}
 }
 
@@ -146,8 +148,10 @@ check_for_accepted_string(char *str, char *buf)
 	char *tmpstr = NULL;
 	if ((str = strstr(buf, str)) != NULL) 
 	{
-		if ((tmpstr = strstr(str, " from")) != NULL)
-			lockout_remove(tmpstr + 5);
+		if ((tmpstr = strstr(str, " from")) != NULL) {
+			if (strlen(tmpstr) > 5)
+				lockout_remove(tmpstr + 5);
+		}
 	}
 }
 
