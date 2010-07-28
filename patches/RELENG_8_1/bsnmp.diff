@@ -1,27 +1,7 @@
-Index: usr.sbin/bsnmpd/modules/snmp_hostres/Makefile
-===================================================================
-RCS file: /home/ncvs/src/usr.sbin/bsnmpd/modules/snmp_hostres/Makefile,v
-retrieving revision 1.3.12.1.4.1
-diff -u -r1.3.12.1.4.1 Makefile
---- usr.sbin/bsnmpd/modules/snmp_hostres/Makefile	14 Jun 2010 02:09:06 -0000	1.3.12.1.4.1
-+++ usr.sbin/bsnmpd/modules/snmp_hostres/Makefile	28 Jul 2010 19:56:25 -0000
-@@ -48,7 +48,8 @@
- 	printcap.c
- 
- #Not having NDEBUG defined will enable assertions and a lot of output on stderr
--CFLAGS+= -DNDEBUG -I${LPRSRC}
-+WARNS?=	1
-+CFLAGS+= -I${LPRSRC}
- XSYM=	host hrStorageOther hrStorageRam hrStorageVirtualMemory \
- 	hrStorageFixedDisk hrStorageRemovableDisk hrStorageFloppyDisk \
- 	hrStorageCompactDisc hrStorageRamDisk hrStorageFlashMemory \
 Index: usr.sbin/bsnmpd/modules/snmp_hostres/hostres_processor_tbl.c
 ===================================================================
-RCS file: /home/ncvs/src/usr.sbin/bsnmpd/modules/snmp_hostres/hostres_processor_tbl.c,v
-retrieving revision 1.6.10.1.4.1
-diff -u -r1.6.10.1.4.1 hostres_processor_tbl.c
---- usr.sbin/bsnmpd/modules/snmp_hostres/hostres_processor_tbl.c	14 Jun 2010 02:09:06 -0000	1.6.10.1.4.1
-+++ usr.sbin/bsnmpd/modules/snmp_hostres/hostres_processor_tbl.c	28 Jul 2010 19:56:26 -0000
+--- usr.sbin/bsnmpd/modules/snmp_hostres/hostres_processor_tbl.c	(revision 208628)
++++ usr.sbin/bsnmpd/modules/snmp_hostres/hostres_processor_tbl.c	(working copy)
 @@ -63,6 +63,7 @@
  
  	/* the samples from the last minute, as required by MIB */
@@ -30,7 +10,7 @@ diff -u -r1.6.10.1.4.1 hostres_processor_tbl.c
  
  	/* current sample to fill in next time, must be < MAX_CPU_SAMPLES */
  	uint32_t	cur_sample_idx;
-@@ -112,6 +113,44 @@
+@@ -112,6 +113,43 @@
  	return ((int)floor((double)sum/(double)e->sample_cnt));
  }
  
@@ -58,13 +38,12 @@ diff -u -r1.6.10.1.4.1 hostres_processor_tbl.c
 +		delta += e->states[e->cur_sample_idx][i];
 +		delta -= e->states[oldest][i];
 +	}
-+	/* XXX idle time is in the last index always?!? */
 +	if (delta == 0)
-+		load = (double)(e->states[e->cur_sample_idx][CPUSTATES-1] -
-+	    		e->states[oldest][CPUSTATES-1]);
-+	else
-+		load = (double)(e->states[e->cur_sample_idx][CPUSTATES-1] -
-+	    		e->states[oldest][CPUSTATES-1]) / delta;
++		return 0;
++
++	/* XXX idle time is in the last index always?!? */
++	load = (double)(e->states[e->cur_sample_idx][CPUSTATES-1] -
++	    e->states[oldest][CPUSTATES-1]) / delta;
 +	load = 100 - (load*100);
 +	HRDBG("CPU no. %d delta ticks %ld pct usage %.2f", e->cpu_no,
 +	    delta, load);
@@ -75,7 +54,7 @@ diff -u -r1.6.10.1.4.1 hostres_processor_tbl.c
  /*
   * Stolen from /usr/src/bin/ps/print.c. The idle process should never
   * be swapped out :-)
-@@ -132,11 +171,15 @@
+@@ -132,11 +170,15 @@
   * Save a new sample
   */
  static void
@@ -83,17 +62,17 @@ diff -u -r1.6.10.1.4.1 hostres_processor_tbl.c
 +save_sample(struct processor_entry *e, struct kinfo_proc *kp, long *cp_times)
  {
 +	int i;
-+
+ 
 +	for (i = 0; cp_times != NULL && i < CPUSTATES; i++)
 +		e->states[e->cur_sample_idx][i] = cp_times[i];
- 
++
  	e->samples[e->cur_sample_idx] = 100.0 - processor_getpcpu(kp);
 -	e->load = get_avg_load(e);
 +	e->load = get_avg_usage(e);
  	e->cur_sample_idx = (e->cur_sample_idx + 1) % MAX_CPU_SAMPLES;
  
  	if (++e->sample_cnt > MAX_CPU_SAMPLES)
-@@ -241,8 +284,6 @@
+@@ -241,8 +283,6 @@
  		entry->idle_pid = kp->ki_pid;
  		HRDBG("CPU no. %d with SNMP index=%d has idle PID %d",
  		    entry->cpu_no, entry->index, entry->idle_pid);
@@ -102,7 +81,7 @@ diff -u -r1.6.10.1.4.1 hostres_processor_tbl.c
  	}
  }
  
-@@ -386,12 +427,22 @@
+@@ -386,12 +426,22 @@
  refresh_processor_tbl(void)
  {
  	struct processor_entry *entry;
@@ -127,7 +106,7 @@ diff -u -r1.6.10.1.4.1 hostres_processor_tbl.c
  	need_pids = 0;
  	TAILQ_FOREACH(entry, &processor_tbl, link) {
  		if (entry->idle_pid <= 0) {
-@@ -410,7 +461,7 @@
+@@ -410,7 +460,7 @@
  			need_pids = 1;
  			continue;
  		}
@@ -136,3 +115,17 @@ diff -u -r1.6.10.1.4.1 hostres_processor_tbl.c
  	}
  
  	if (need_pids == 1)
+Index: usr.sbin/bsnmpd/modules/snmp_hostres/Makefile
+===================================================================
+--- usr.sbin/bsnmpd/modules/snmp_hostres/Makefile	(revision 208628)
++++ usr.sbin/bsnmpd/modules/snmp_hostres/Makefile	(working copy)
+@@ -48,7 +48,8 @@
+ 	printcap.c
+ 
+ #Not having NDEBUG defined will enable assertions and a lot of output on stderr
+-CFLAGS+= -DNDEBUG -I${LPRSRC}
++WARNS?=	1
++CFLAGS+= -I${LPRSRC}
+ XSYM=	host hrStorageOther hrStorageRam hrStorageVirtualMemory \
+ 	hrStorageFixedDisk hrStorageRemovableDisk hrStorageFloppyDisk \
+ 	hrStorageCompactDisc hrStorageRamDisk hrStorageFlashMemory \
