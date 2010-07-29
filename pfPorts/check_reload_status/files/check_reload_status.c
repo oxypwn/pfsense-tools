@@ -94,6 +94,8 @@ struct commands {
 		"configuring interface", 20},
 	{ "/tmp/start_sshd",		"/usr/bin/nice -n20 /etc/sshd",
 		"starting sshd", CYCLE},
+	{ "/tmp/filter_configure_xmlrpc",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_xmlrpc",
+		"reloading filter_configure_xmlrpc", CYCLE},
 	{ "/tmp/start_ntpd",		"/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf",
 		"starting ntpd", CYCLE}
 };
