@@ -379,7 +379,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                        return;
 +                }
 +                bzero(s, sizeof(*s));
-+                s->rule.ptr = r;
++                s->rule.ptr = state->rule.ptr;
 +                s->anchor.ptr = state->anchor.ptr;
 +                STATE_INC_COUNTERS(s);
 +                s->state_flags = state->state_flags;
