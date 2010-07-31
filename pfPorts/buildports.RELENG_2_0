@@ -214,7 +214,7 @@ for PORT in $PORTSTOBUILD; do
 	if [ -d "$PORT_LOCATION" ]; then
 		echo ">>> Found port location $PORT_LOCATION."
 		if [ -d /home/pfsense/tools/pfPorts/$PORT_NAME ]; then
-			echo ">>> Copying pfPorts/$PORT_LOCATION and building..."
+			echo ">>> Copying pfPorts${PORT_LOCATION} and building..."
 			if [ ! -f /home/pfsense/tools/pfPorts/$PORT_NAME/useports ]; then
 				rm -rf $PORT_LOCATION
 				mkdir -p $PORT_LOCATION
