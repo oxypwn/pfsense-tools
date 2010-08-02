@@ -1,3 +1,71 @@
+/*
+        Copyright (C) 2010 Ermal Luçi
+        All rights reserved.
+
+        Redistribution and use in source and binary forms, with or without
+        modification, are permitted provided that the following conditions are met:
+
+        1. Redistributions of source code must retain the above copyright notice,
+           this list of conditions and the following disclaimer.
+
+        2. Redistributions in binary form must reproduce the above copyright
+           notice, this list of conditions and the following disclaimer in the
+           documentation and/or other materials provided with the distribution.
+
+        THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+        INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+        AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+        AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+        OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+        SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+        CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+        ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+        POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
+/*
+
+Functions copied from util.c and modem.c of mpd5 source are protected by
+this copyright.
+They are Uulock, Uunlock, ExclusiveOpenDevice/ExclusiveCloseDevice and
+OpenSerialDevice.
+
+Copyright (c) 1995-1999 Whistle Communications, Inc. All rights reserved.
+
+Subject to the following obligations and disclaimer of warranty,
+use and redistribution of this software, in source or object code
+forms, with or without modifications are expressly permitted by
+Whistle Communications; provided, however, that:   (i) any and
+all reproductions of the source or object code must include the
+copyright notice above and the following disclaimer of warranties;
+and (ii) no rights are granted, in any manner or form, to use
+Whistle Communications, Inc. trademarks, including the mark "WHISTLE
+COMMUNICATIONS" on advertising, endorsements, or otherwise except
+as such appears in the above copyright notice or in the software.
+
+THIS SOFTWARE IS BEING PROVIDED BY WHISTLE COMMUNICATIONS "AS IS",
+AND TO THE MAXIMUM EXTENT PERMITTED BY LAW, WHISTLE COMMUNICATIONS
+MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED,
+REGARDING THIS SOFTWARE, INCLUDING WITHOUT LIMITATION, ANY AND
+ALL IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, OR NON-INFRINGEMENT.  WHISTLE COMMUNICATIONS DOES NOT
+WARRANT, GUARANTEE, OR MAKE ANY REPRESENTATIONS REGARDING THE USE
+OF, OR THE RESULTS OF THE USE OF THIS SOFTWARE IN TERMS OF ITS
+CORRECTNESS, ACCURACY, RELIABILITY OR OTHERWISE.  IN NO EVENT
+SHALL WHISTLE COMMUNICATIONS BE LIABLE FOR ANY DAMAGES RESULTING
+FROM OR ARISING OUT OF ANY USE OF THIS SOFTWARE, INCLUDING WITHOUT
+LIMITATION, ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+PUNITIVE, OR CONSEQUENTIAL DAMAGES, PROCUREMENT OF SUBSTITUTE
+GOODS OR SERVICES, LOSS OF USE, DATA OR PROFITS, HOWEVER CAUSED
+AND UNDER ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF WHISTLE COMMUNICATIONS
+IS ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
 #define IS_EXT_MODULE
 
 #ifdef HAVE_CONFIG_H
@@ -35,7 +103,12 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <strings.h>
+
+#include <glob.h>
+#include <termios.h>
+#include <poll.h>
 
 #include <netgraph.h>
 
@@ -60,6 +133,7 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_ngctl_name, NULL)
     PHP_FE(pfSense_ngctl_attach, NULL)
     PHP_FE(pfSense_ngctl_detach, NULL)
+    PHP_FE(pfSense_get_modem_devices, NULL)
     {NULL, NULL, NULL}
 };
 
@@ -1022,6 +1096,207 @@ PHP_FUNCTION(pfSense_get_pf_stats) {
 		}
 	}
 	close(dev);
+	}
+}
+
+#define PATH_LOCKFILENAME     "/var/spool/lock/LCK..%s"
+#define MAX_FILENAME              1000
+#define MAX_OPEN_DELAY    2
+#define MODEM_DEFAULT_SPEED              115200
+
+static int
+UuLock(const char *ttyname)
+{
+	int   fd, pid;
+	char  tbuf[sizeof(PATH_LOCKFILENAME) + MAX_FILENAME];
+	char  pid_buf[64];
+
+	snprintf(tbuf, sizeof(tbuf), PATH_LOCKFILENAME, ttyname);
+	if ((fd = open(tbuf, O_RDWR|O_CREAT|O_EXCL, 0664)) < 0) {
+		/* File is already locked; Check to see if the process
+		 * holding the lock still exists */
+		if ((fd = open(tbuf, O_RDWR, 0)) < 0)
+			return(-1);
+
+		if (read(fd, pid_buf, sizeof(pid_buf)) <= 0) {
+			(void)close(fd);
+			return(-1);
+		}
+
+		pid = atoi(pid_buf);
+
+		if (kill(pid, 0) == 0 || errno != ESRCH) {
+			(void)close(fd);  /* process is still running */
+			return(-1);
+		}
+
+		/* The process that locked the file isn't running, so we'll lock it */
+		if (lseek(fd, (off_t) 0, L_SET) < 0) {
+			(void)close(fd);
+			return(-1);
+		}
+	}
+
+	/* Finish the locking process */
+	sprintf(pid_buf, "%10u\n", (int) getpid());
+	if (write(fd, pid_buf, strlen(pid_buf)) != strlen(pid_buf)) {
+		(void)close(fd);
+		(void)unlink(tbuf);
+		return(-1);
+	}
+
+	(void)close(fd);
+	return(0);
+}
+
+static int
+UuUnlock(const char *ttyname)
+{
+	char  tbuf[sizeof(PATH_LOCKFILENAME) + MAX_FILENAME];
+
+	(void) sprintf(tbuf, PATH_LOCKFILENAME, ttyname);
+	return(unlink(tbuf));
+}
+
+static int
+ExclusiveOpenDevice(const char *pathname)
+{
+	int           fd, locked = 0;
+	const char    *ttyname = NULL;
+	time_t        startTime;
+
+	/* Lock device UUCP style, if it resides in /dev */
+	if (!strncmp(pathname, "/dev/", 5)) {
+		ttyname = pathname + 5;
+		if (UuLock(ttyname) < 0)
+			return(-1);
+		locked = 1;
+	}
+
+	/* Open it, but give up after so many interruptions */
+	for (startTime = time(NULL);
+	    (fd = open(pathname, O_RDWR, 0)) < 0
+	    && time(NULL) < startTime + MAX_OPEN_DELAY; )
+		if (errno != EINTR) {
+			if (locked)
+				UuUnlock(ttyname);
+			return(-1);
+		}
+
+	/* Did we succeed? */
+	if (fd < 0) {
+		if (locked)
+			UuUnlock(ttyname);
+		return(-1);
+	}
+	(void) fcntl(fd, F_SETFD, 1);
+
+	/* Done */
+	return(fd);
+}
+
+static void
+ExclusiveCloseDevice(int fd, const char *pathname)
+{
+	int           rtn = -1;
+	const char    *ttyname;
+	time_t        startTime;
+
+	/* Close file(s) */
+	for (startTime = time(NULL);
+	    time(NULL) < startTime + MAX_OPEN_DELAY &&
+	    (rtn = close(fd)) < 0; )
+		if (errno != EINTR)
+			break;
+
+	/* Did we succeed? */
+	if ((rtn < 0) && (errno == EINTR))
+		return;
+
+	/* Remove lock */
+	if (!strncmp(pathname, "/dev/", 5)) {
+		ttyname = pathname + 5;
+		UuUnlock(ttyname);
+	}
+}
+
+PHP_FUNCTION(pfSense_get_modem_devices) {
+	struct termios		attr;
+	struct pollfd		pfd;
+	glob_t			g;
+	char			buf[20] = { 0 };
+	char			*path;
+	int			nw = 0, i, fd;
+
+	array_init(return_value);
+
+	bzero(&g, sizeof g);
+	glob("/dev/cua*", 0, NULL, &g);
+        glob("/dev/modem*", GLOB_APPEND, NULL, &g);
+
+	if (g.gl_pathc > 0)
+	for (i = 0; g.gl_pathv[i] != NULL; i++) {
+		path = g.gl_pathv[i];
+		if (strstr(path, "lock") || strstr(path, "init"))
+			continue;
+		//php_printf("Found modedm devce: %s", path);
+		/* Open & lock serial port */
+		if ((fd = ExclusiveOpenDevice(path)) < 0)
+			continue;
+
+		/* Set non-blocking I/O 
+		if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+			goto errormodem;
+		*/
+
+		/* Set serial port raw mode, baud rate, hardware flow control, etc. */
+		if (tcgetattr(fd, &attr) < 0)
+			goto errormodem;
+
+		cfmakeraw(&attr);
+
+		attr.c_cflag &= ~(CSIZE|PARENB|PARODD);
+		attr.c_cflag |= (CS8|CREAD|CLOCAL|HUPCL|CCTS_OFLOW|CRTS_IFLOW);
+		attr.c_iflag &= ~(IXANY|IMAXBEL|ISTRIP|IXON|IXOFF|BRKINT|ICRNL|INLCR);
+		attr.c_iflag |= (IGNBRK|IGNPAR);
+		attr.c_oflag &= ~OPOST;
+		attr.c_lflag = 0;
+
+		cfsetspeed(&attr, (speed_t) MODEM_DEFAULT_SPEED);
+
+		if (tcsetattr(fd, TCSANOW, &attr) < 0)
+			goto errormodem;
+
+		/* OK */
+tryagain:
+		if ((nw = write(fd, "AT", strlen("AT"))) < 0) {
+			if (errno == EAGAIN)
+				goto tryagain;
+
+			goto errormodem;
+		}
+
+tryagain2:
+		//php_printf("Trying to read data\n");
+		bzero(buf, sizeof buf);
+		bzero(&pfd, sizeof pfd);
+		pfd.fd = fd;
+		pfd.events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI | POLLHUP;
+		if (poll(&pfd, 1, 2000) > 0) {
+			if ((nw = read(fd, buf, sizeof(buf))) < 0) {
+				if (errno == EAGAIN) {
+					php_printf("Trying again after errno = EAGAIN\n");
+					goto tryagain2;
+				}
+				goto errormodem;
+			}
+
+			if (strnstr(buf, "OK", sizeof(buf)))
+				add_assoc_string(return_value, path, path, 1);
+		}
+
+errormodem:
+		ExclusiveCloseDevice(fd, path);
 	}
 }
 
