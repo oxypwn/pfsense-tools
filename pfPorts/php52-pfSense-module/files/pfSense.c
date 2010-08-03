@@ -1107,6 +1107,7 @@ PHP_FUNCTION(pfSense_get_pf_stats) {
 static int
 UuLock(const char *ttyname)
 {
+	//return 0;
 	int   fd, pid;
 	char  tbuf[sizeof(PATH_LOCKFILENAME) + MAX_FILENAME];
 	char  pid_buf[64];
@@ -1152,6 +1153,7 @@ UuLock(const char *ttyname)
 static int
 UuUnlock(const char *ttyname)
 {
+	//return 0;
 	char  tbuf[sizeof(PATH_LOCKFILENAME) + MAX_FILENAME];
 
 	(void) sprintf(tbuf, PATH_LOCKFILENAME, ttyname);
@@ -1189,7 +1191,7 @@ ExclusiveOpenDevice(const char *pathname)
 			UuUnlock(ttyname);
 		return(-1);
 	}
-	(void) fcntl(fd, F_SETFD, 1);
+	//(void) fcntl(fd, F_SETFD, 1);
 
 	/* Done */
 	return(fd);
@@ -1224,7 +1226,7 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 	struct termios		attr;
 	struct pollfd		pfd;
 	glob_t			g;
-	char			buf[20] = { 0 };
+	char			buf[2048] = { 0 };
 	char			*path;
 	int			nw = 0, i, fd;
 
@@ -1239,15 +1241,17 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		path = g.gl_pathv[i];
 		if (strstr(path, "lock") || strstr(path, "init"))
 			continue;
-		//php_printf("Found modedm devce: %s", path);
+		//php_printf("Found modedm devce: %s\n", path);
 		/* Open & lock serial port */
-		if ((fd = ExclusiveOpenDevice(path)) < 0)
+		if ((fd = ExclusiveOpenDevice(path)) < 0) {
+			//php_printf("Could not open the device exlisively\n");
+			add_assoc_string(return_value, path, path, 1);
 			continue;
+		}
 
-		/* Set non-blocking I/O 
+		/* Set non-blocking I/O  */
 		if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
 			goto errormodem;
-		*/
 
 		/* Set serial port raw mode, baud rate, hardware flow control, etc. */
 		if (tcgetattr(fd, &attr) < 0)
@@ -1269,33 +1273,56 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 
 		/* OK */
 tryagain:
-		if ((nw = write(fd, "AT", strlen("AT"))) < 0) {
-			if (errno == EAGAIN)
+		if ((nw = write(fd, "AT OK\r\n", strlen("AT OK\r\n"))) < 0) {
+			if (errno == EAGAIN) {
+				//php_printf("\tRetrying write\n");
 				goto tryagain;
+			}
 
+			//php_printf("\tError ocurred\n");
 			goto errormodem;
 		}
 
 tryagain2:
-		//php_printf("Trying to read data\n");
+		//php_printf("\tTrying to read data\n");
 		bzero(buf, sizeof buf);
 		bzero(&pfd, sizeof pfd);
 		pfd.fd = fd;
 		pfd.events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI | POLLHUP;
-		if (poll(&pfd, 1, 2000) > 0) {
+		if ((nw = poll(&pfd, 1, 200)) > 0) {
 			if ((nw = read(fd, buf, sizeof(buf))) < 0) {
 				if (errno == EAGAIN) {
-					php_printf("Trying again after errno = EAGAIN\n");
+					//php_printf("\tTrying again after errno = EAGAIN\n");
 					goto tryagain2;
 				}
+				//php_printf("\tError ocurred on 1st read\n");
 				goto errormodem;
 			}
 
-			if (strnstr(buf, "OK", sizeof(buf)))
+			buf[2047] = '\0';
+			//php_printf("\tRead %s\n", buf);
+			//if (strnstr(buf, "OK", sizeof(buf))) {
+			if (nw > 0) {
+				/*
+				write(fd, "ATI3\r\n", strlen("ATI3\r\n"));
+				bzero(buf, sizeof buf);
+                		bzero(&pfd, sizeof pfd);
+                		pfd.fd = fd;
+                		pfd.events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI | POLLHUP;
+
+                		if (poll(&pfd, 1, 200) > 0) {
+					read(fd, buf, sizeof(buf));
+				buf[2047] = '\0';
+			//php_printf("\tRead %s\n", buf);
+				}
+				*/
 				add_assoc_string(return_value, path, path, 1);
-		}
+			}
+		} //else
+		//	php_printf("\ttimedout or interrupted: %d\n", nw);
 
 errormodem:
+		//php_printf("\tClosing device %s\n", path);
 		ExclusiveCloseDevice(fd, path);
 	}
 }
