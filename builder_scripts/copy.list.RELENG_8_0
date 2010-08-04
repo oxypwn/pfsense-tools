@@ -153,3 +153,4 @@ usr/local/sbin/smartd
 usr/local/share/smartmontools/drivedb.h
 usr/local/sbin/ataidle
 usr/local/bin/3gstat
+boot/modules/bwi_v3_ucode.ko
