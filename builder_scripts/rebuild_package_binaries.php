@@ -41,7 +41,7 @@ if(!is_dir("/usr/ports")) {
 }
 
 if(!is_dir("/usr/ports/packages/All")) 
-	mkdir("/usr/ports/packages/All");
+	exec("mkdir -p /usr/ports/packages/All");
 	
 foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
@@ -54,7 +54,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 				echo ">>> Using /var/db/ports/{$build['name']}/options";
 				$build_options .= str_replace("\n", " ", file_get_contents("/var/db/ports/{$build['name']}/options"));
 			}
-			exec("cd {$build} && make clean package-recursive WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes");
+			`cd {$build} && make clean package-recursive BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes 2>&1`;
 		}
 	}
 }
