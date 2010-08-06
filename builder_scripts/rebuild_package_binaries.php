@@ -79,7 +79,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 				echo ">>> Using /var/db/ports/{$build['name']}/options";
 				$build_options .= str_replace("\n", " ", file_get_contents("/var/db/ports/{$build['name']}/options"));
 			}
-			`cd {$build} && make clean package-recursive BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes </dev/null 2>&1`;
+			`cd {$build} && make clean depends package-recursive BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes </dev/null 2>&1`;
 		}
 	}
 }
