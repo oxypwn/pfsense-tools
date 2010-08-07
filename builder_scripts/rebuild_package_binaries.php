@@ -85,7 +85,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 }
 
 echo ">>> /usr/ports/packages/All now contains:\n";
-exec("ls /usr/ports/packages/All");
+system("ls /usr/ports/packages/All");
 
 echo ">>> Package binary build run ended.\n";
 
