@@ -67,7 +67,15 @@ if(!is_dir("/usr/ports")) {
 
 if(!is_dir("/usr/ports/packages/All")) 
 	exec("mkdir -p /usr/ports/packages/All");
-	
+
+if($pkg['copy_packages_to_host_ssh_port'] && 
+	$pkg['copy_packages_to_host_ssh'] &&
+	$pkg['copy_packages_to_folder_ssh']) {
+	$copy_packages_to_folder_ssh = $pkg['copy_packages_to_folder_ssh'];
+	$copy_packages_to_host_ssh = $pkg['copy_packages_to_host_ssh'];
+	$copy_packages_to_host_ssh_port = $pkg['copy_packages_to_host_ssh_port'];
+}
+
 foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
@@ -86,6 +94,11 @@ foreach($pkg['packages']['package'] as $pkg) {
 
 echo ">>> /usr/ports/packages/All now contains:\n";
 system("ls /usr/ports/packages/All");
+
+if($copy_packages_to_folder_ssh) {
+	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
+	system("cd /usr/ports/packages/All && scp -p{$copy_packages_to_host_ssh_port} * {$copy_packages_to_host_ssh}/{$copy_packages_to_folder_ssh}/");
+}
 
 echo ">>> Package binary build run ended.\n";
 
