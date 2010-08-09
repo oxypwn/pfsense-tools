@@ -74,6 +74,10 @@ if($pkg['copy_packages_to_host_ssh_port'] &&
 	$copy_packages_to_folder_ssh = $pkg['copy_packages_to_folder_ssh'];
 	$copy_packages_to_host_ssh = $pkg['copy_packages_to_host_ssh'];
 	$copy_packages_to_host_ssh_port = $pkg['copy_packages_to_host_ssh_port'];
+	echo ">>> Setting the following RSYNC/SSH parameters: \n";
+	echo "    copy_packages_to_folder_ssh:    $copy_packages_to_folder_ssh\n";
+	echo "    copy_packages_to_host_ssh:      $copy_packages_to_host_ssh\n";
+	echo "    copy_packages_to_host_ssh_port: $copy_packages_to_host_ssh_port\n";
 }
 
 foreach($pkg['packages']['package'] as $pkg) {
