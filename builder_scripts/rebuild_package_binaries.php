@@ -97,7 +97,7 @@ system("ls /usr/ports/packages/All");
 
 if($copy_packages_to_folder_ssh) {
 	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
-	system("cd /usr/ports/packages/All && scp -p{$copy_packages_to_host_ssh_port} * {$copy_packages_to_host_ssh}/{$copy_packages_to_folder_ssh}/");
+	system("cd /usr/ports/packages/All && scp -p{$copy_packages_to_host_ssh_port} cd /usr/ports/packages/All/* {$copy_packages_to_host_ssh}/{$copy_packages_to_folder_ssh}/");
 }
 
 echo ">>> Package binary build run ended.\n";
