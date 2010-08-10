@@ -101,7 +101,7 @@ system("ls /usr/ports/packages/All");
 
 if($copy_packages_to_folder_ssh) {
 	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
-	system("/usr/local/bin/rsync -ave 'ssh --timeout=60 -p{$copy_packages_to_host_ssh_port}' /usr/ports/packages/All/* {$copy_packages_to_host_ssh}/{$copy_packages_to_folder_ssh}/");
+	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' /usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
 }
 
 echo ">>> Package binary build run ended.\n";
