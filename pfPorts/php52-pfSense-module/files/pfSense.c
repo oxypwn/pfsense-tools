@@ -1233,7 +1233,7 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 	int			poll_timeout = 700;
 
 	if (ZEND_NUM_ARGS() > 2) {
-		php_printf("Maximum one parameter can be passed\n");
+		php_printf("Maximum two parameter can be passed\n");
 		RETURN_NULL();
 	}
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|bl", &show_info, &poll_timeout) == FAILURE) {
