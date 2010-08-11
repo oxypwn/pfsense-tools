@@ -1289,7 +1289,7 @@ tryagain2:
 		bzero(&pfd, sizeof pfd);
 		pfd.fd = fd;
 		pfd.events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI | POLLHUP;
-		if ((nw = poll(&pfd, 1, 200)) > 0) {
+		if ((nw = poll(&pfd, 1, 700)) > 0) {
 			if ((nw = read(fd, buf, sizeof(buf))) < 0) {
 				if (errno == EAGAIN) {
 					//php_printf("\tTrying again after errno = EAGAIN\n");
