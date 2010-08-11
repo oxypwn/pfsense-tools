@@ -1230,12 +1230,13 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 	char			*path;
 	int			nw = 0, i, fd;
 	zend_bool		show_info = 0;
+	int			poll_timeout = 700;
 
-	if (ZEND_NUM_ARGS() > 1) {
+	if (ZEND_NUM_ARGS() > 2) {
 		php_printf("Maximum one parameter can be passed\n");
 		RETURN_NULL();
 	}
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &show_info) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|bl", &show_info, &poll_timeout) == FAILURE) {
                 RETURN_NULL();
         }
 
@@ -1303,7 +1304,7 @@ tryagain2:
 		bzero(&pfd, sizeof pfd);
 		pfd.fd = fd;
 		pfd.events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI | POLLHUP;
-		if ((nw = poll(&pfd, 1, 700)) > 0) {
+		if ((nw = poll(&pfd, 1, poll_timeout)) > 0) {
 			if ((nw = read(fd, buf, sizeof(buf))) < 0) {
 				if (errno == EAGAIN) {
 					if (show_info)
