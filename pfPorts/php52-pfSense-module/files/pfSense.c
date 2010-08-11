@@ -1229,6 +1229,15 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 	char			buf[2048] = { 0 };
 	char			*path;
 	int			nw = 0, i, fd;
+	zend_bool		show_info = 0;
+
+	if (ZEND_NUM_ARGS() > 1) {
+		php_printf("Maximum one parameter can be passed\n");
+		RETURN_NULL();
+	}
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|b", &show_info) == FAILURE) {
+                RETURN_NULL();
+        }
 
 	array_init(return_value);
 
@@ -1241,10 +1250,12 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		path = g.gl_pathv[i];
 		if (strstr(path, "lock") || strstr(path, "init"))
 			continue;
-		//php_printf("Found modedm devce: %s\n", path);
+		if (show_info)
+			php_printf("Found modem device: %s\n", path);
 		/* Open & lock serial port */
 		if ((fd = ExclusiveOpenDevice(path)) < 0) {
-			//php_printf("Could not open the device exlisively\n");
+			if (show_info)
+				php_printf("Could not open the device exlusively\n");
 			add_assoc_string(return_value, path, path, 1);
 			continue;
 		}
@@ -1275,16 +1286,19 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 tryagain:
 		if ((nw = write(fd, "AT OK\r\n", strlen("AT OK\r\n"))) < 0) {
 			if (errno == EAGAIN) {
-				//php_printf("\tRetrying write\n");
+				if (show_info)
+					php_printf("\tRetrying write\n");
 				goto tryagain;
 			}
 
-			//php_printf("\tError ocurred\n");
+			if (show_info)
+				php_printf("\tError ocurred\n");
 			goto errormodem;
 		}
 
 tryagain2:
-		//php_printf("\tTrying to read data\n");
+		if (show_info)
+			php_printf("\tTrying to read data\n");
 		bzero(buf, sizeof buf);
 		bzero(&pfd, sizeof pfd);
 		pfd.fd = fd;
@@ -1292,15 +1306,18 @@ tryagain2:
 		if ((nw = poll(&pfd, 1, 700)) > 0) {
 			if ((nw = read(fd, buf, sizeof(buf))) < 0) {
 				if (errno == EAGAIN) {
-					//php_printf("\tTrying again after errno = EAGAIN\n");
+					if (show_info)
+						php_printf("\tTrying again after errno = EAGAIN\n");
 					goto tryagain2;
 				}
-				//php_printf("\tError ocurred on 1st read\n");
+				if (show_info)
+					php_printf("\tError ocurred on 1st read\n");
 				goto errormodem;
 			}
 
 			buf[2047] = '\0';
-			//php_printf("\tRead %s\n", buf);
+			if (show_info)
+				php_printf("\tRead %s\n", buf);
 			//if (strnstr(buf, "OK", sizeof(buf))) {
 			if (nw > 0) {
 				/*
@@ -1313,16 +1330,18 @@ tryagain2:
                 		if (poll(&pfd, 1, 200) > 0) {
 					read(fd, buf, sizeof(buf));
 				buf[2047] = '\0';
-			//php_printf("\tRead %s\n", buf);
+				if (show_info)
+					php_printf("\tRead %s\n", buf);
 				}
 				*/
 				add_assoc_string(return_value, path, path, 1);
 			}
-		} //else
-		//	php_printf("\ttimedout or interrupted: %d\n", nw);
+		} else if (show_info)
+			php_printf("\ttimedout or interrupted: %d\n", nw);
 
 errormodem:
-		//php_printf("\tClosing device %s\n", path);
+		if (show_info)
+			php_printf("\tClosing device %s\n", path);
 		ExclusiveCloseDevice(fd, path);
 	}
 }
