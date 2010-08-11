@@ -84,13 +84,15 @@ foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			$build_options="";
-			echo ">>> Processing {$build}\n";
 			if($build['build_options']) 
 				$build_options = $build['build_options'];
 			if(file_exists("/var/db/ports/{$build['name']}/options")) {
 				echo ">>> Using /var/db/ports/{$build['name']}/options";
 				$build_options .= str_replace("\n", " ", file_get_contents("/var/db/ports/{$build['name']}/options"));
 			}
+			echo ">>> Processing {$build}";
+			if($build_options) 
+				echo " BUILD_OPTIONS: {$build_options}\n"
 			`cd {$build} && make clean depends package-recursive BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes </dev/null 2>&1`;
 		}
 	}
