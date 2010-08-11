@@ -84,8 +84,8 @@ foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			$build_options="";
-			if($build['build_options']) 
-				$build_options = $build['build_options'];
+			if($pkg['build_options']) 
+				$build_options = $pkg['build_options'];
 			if(file_exists("/var/db/ports/{$build['name']}/options")) {
 				echo ">>> Using /var/db/ports/{$build['name']}/options";
 				$build_options .= str_replace("\n", " ", file_get_contents("/var/db/ports/{$build['name']}/options"));
