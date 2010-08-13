@@ -40,6 +40,8 @@ require_once("config.inc");
 require_once("functions.inc");
 require_once("pkg-utils.inc");
 
+global $g;
+
 if(!function_exists("read_header")) {
 	function read_header($ch, $string) {
 	        global $file_size, $fout;
@@ -137,7 +139,7 @@ function read() {
 }
 
 function genPackageList() {
-	global $pkg_info;
+	global $pkg_info, $g;
 
 	// borrowed from pkg_mgr_install.php	
 	$pkg_info = get_pkg_info('all', array('name', 'category', 'website', 'version', 'status', 'descr', 'maintainer', 'required_version'));
@@ -152,7 +154,7 @@ function genPackageList() {
 	print("==================================\n");
 	
 	// get the list of packages that should be installed from stdin	
-	print("Please provide a comma separated list of packages that should be added to the pfSense installable image:\n");
+	print("Please provide a comma separated list of packages that should be added to the {$g['product_name']} installable image:\n");
 	// turns the list provided by the user into an array of package names
 	$userPkgList = explode(",", read());
 	$saneUserPkgList = array();
@@ -160,7 +162,7 @@ function genPackageList() {
 	// try to figure out whether the user provided package names are correct
 	foreach ($userPkgList as $package) {
 		if(! in_array(trim($package), $pkgListA)) {
-			print("Package is not a pfSense package: {$package}\n");
+			print("Package is not a {$g['product_name']} package: {$package}\n");
 		} else {
 			$saneUserPkgList[] = $package;
 		}
@@ -193,7 +195,7 @@ if ($includePath != "") {
         ini_set("include_path", $includePath);
 }
 
-print("Custom pfSense package installer runs in ${mode} mode.\n");
+print("Custom {$g['product_name']} package installer runs in ${mode} mode.\n");
 
 // setup package list file interactively
 if (! file_exists($listFile) && $mode == "config") {
@@ -243,8 +245,8 @@ if (file_exists($listFile) && $mode == "install") {
 		print("Currently installed packages after {$package}: " . count($config["installedpackages"]["package"]) . "\n");
 	}
 
-	$config_from_cf = parse_xml_config("/cf/conf/config.xml", "pfsense");
-	$default_config = parse_xml_config("/conf.default/config.xml", "pfsense");
+	$config_from_cf = parse_xml_config("/cf/conf/config.xml", $g["xml_rootobj"]);
+	$default_config = parse_xml_config("/conf.default/config.xml", $g["xml_rootobj"]);
 	$installedpackages = null;
 
 	if (is_array($config_from_cf["installedpackages"])) {
@@ -258,8 +260,8 @@ if (file_exists($listFile) && $mode == "install") {
 	$default_config["installedpackages"] = $installedpackages;
 
 	// write configs to file
-	file_put_contents("/cf/conf/config.xml", dump_xml_config($config_from_cf, "pfsense"));
-	file_put_contents("/conf.default/config.xml", dump_xml_config($default_config, "pfsense"));
+	file_put_contents("/cf/conf/config.xml", dump_xml_config($config_from_cf, $g["xml_rootobj"]));
+	file_put_contents("/conf.default/config.xml", dump_xml_config($default_config, $g["xml_rootobj"]));
 }
 
 ?>
