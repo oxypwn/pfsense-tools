@@ -64,5 +64,8 @@ cd /var/db/pkg ; tar -cpf - . | (cd /mnt/var/db/pkg ; tar -xpf -)
 # If the platform is vmware, lets do some fixups.
 if [ -f /var/IS_VMWARE ]; then echo "" >> /mnt/etc/sysctl.conf; echo "kern.timecounter.hardware=i8254" >> /mnt/etc/sysctl.conf;  echo kern.hz="100" >> /mnt/boot/loader.conf; fi;
 
+# Remove the PCBSD installer items, we do not need it once we are installed
+if [ -d /mnt/PCBSD ]; then rm -rf /mnt/PCBSD; fi;
+
 #Sync disks
 /bin/sync
