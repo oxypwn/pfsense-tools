@@ -50,6 +50,9 @@ usr/local/bin/links
 usr/local/bin/php
 usr/local/bin/rrdtool
 usr/local/bin/sqlite3
+usr/local/bin/zmq_forwarder
+usr/local/bin/zmq_streamer
+usr/local/bin/zmq_queue
 usr/local/sbin/expiretable
 usr/local/sbin/bpalogin
 usr/local/sbin/choparp
@@ -129,6 +132,7 @@ usr/local/lib/php/20060613/uploadprogress.so
 usr/local/lib/php/20060613/xmlreader.so
 usr/local/lib/php/20060613/xmlwriter.so
 usr/local/lib/php/20060613/xdebug.so
+usr/local/lib/php/20060613/zmq.so
 usr/local/lib/libmhash.so.2
 usr/local/lib/olsrd_dyn_gw_plain.so.0.4
 usr/local/lib/olsrd_dot_draw.so.0.3
