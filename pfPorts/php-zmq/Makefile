@@ -1,19 +1,19 @@
 
-PORTNAME=	php-zmq
+PORTNAME=		zmq
 PORTVERSION=	0.0.1
 PORTREVISION?=	0
 CATEGORIES?=	lang
 MASTER_SITES=	# empty
-DISTFILES=	# none
+DISTFILES=		# none
 EXTRACT_ONLY=	# empty
 
 MAINTAINER?=	sullrich@gmail.com
-COMMENT?=	run various pfSense scripts on event.
+COMMENT?=		run various pfSense scripts on event.
 
-#WHERE=		sbin
-#PLIST_FILES=    ${WHERE}/${PORTNAME}
-USE_PHP=        yes
-USE_PHPEXT=     yes
+#WHERE=			sbin
+#PLIST_FILES=	${WHERE}/${PORTNAME}
+USE_PHP=		yes
+USE_PHPEXT=		yes
 
 extract:
 	mkdir -p ${WRKSRC}
