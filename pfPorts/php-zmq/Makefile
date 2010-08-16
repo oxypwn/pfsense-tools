@@ -10,16 +10,16 @@ EXTRACT_ONLY=	# empty
 MAINTAINER?=	sullrich@gmail.com
 COMMENT?=	run various pfSense scripts on event.
 
-WHERE=		sbin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
+#WHERE=		sbin
+#PLIST_FILES=    ${WHERE}/${PORTNAME}
+USE_PHP=        yes
+USE_PHPEXT=     yes
 
-do-extract:
+extract:
 	mkdir -p ${WRKSRC}
+	cp -r files/* ${WRKSRC}
 
-do-build:
-	cd files && phpize && ./configure && make
-
-do-install:
-	cd files && make install
+post-install:
+	cp ${WRKSRC}/modules/zmq.so /usr/local/lib/php/20060613/
 
 .include <bsd.port.mk>
