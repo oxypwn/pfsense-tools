@@ -57,7 +57,7 @@
 // Non changable globals
 #define MAXATTEMPTS 10
 #define MAXLOCKOUTS 256
-#define VERSION	2.0
+#define VERSION	"2.0"
 
 // Wall of shame (invalid login DB)
 static struct sshlog 
@@ -114,6 +114,7 @@ main(void)
 		check_for_denied_string("Failed password for admin from", buf);
 		check_for_denied_string("Failed password for invalid user", buf);
 		check_for_denied_string("Illegal user", buf);
+		check_for_denied_string("Invalid user", buf);
 		check_for_denied_string("authentication error for", buf);
 		check_for_accepted_string("Accepted keyboard-interactive/pam for", buf);
 	}
