@@ -10,10 +10,11 @@ EXTRACT_ONLY=	# empty
 MAINTAINER?=	sullrich@gmail.com
 COMMENT?=		run various pfSense scripts on event.
 
-#WHERE=			sbin
-#PLIST_FILES=	${WHERE}/${PORTNAME}
-USE_PHP=		yes
-USE_PHPEXT=		yes
+#WHERE=		sbin
+#PLIST_FILES=    ${WHERE}/${PORTNAME}
+USE_PHP=        yes
+USE_PHPEXT=     yes
+CONFIGURE_ARGS= --with-zmq=/usr/local/lib/php/20060613/
 
 extract:
 	mkdir -p ${WRKSRC}
