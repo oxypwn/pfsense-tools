@@ -18,6 +18,8 @@ GNU_CONFIGURE=	yes
 USE_GNOME=	gnomehack
 USE_LDCONFIG=	yes
 
+CXXFLAGS+=	-lpthread
+
 MAN1=		zmq_forwarder.1	\
 		zmq_queue.1	\
 		zmq_streamer.1
