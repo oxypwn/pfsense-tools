@@ -446,6 +446,7 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 	array_init(encaps);
 	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
 	if (ioctl(PFSENSE_G(s), SIOCGIFCAP, (caddr_t)&ifr) == 0) {
+		add_assoc_long(caps, "flags", ifr.ifr_reqcap);
 		if (ifr.ifr_reqcap & IFCAP_POLLING)
 			add_assoc_long(caps, "polling", 1);
 		if (ifr.ifr_reqcap & IFCAP_RXCSUM)
@@ -482,7 +483,7 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 		if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
                		add_assoc_long(caps, "pollingnocount", 1);
 #endif
-
+		add_assoc_long(encaps, "flags", ifr.ifr_curcap);
 		if (ifr.ifr_curcap & IFCAP_POLLING)
                 	add_assoc_long(encaps, "polling", 1);
                 if (ifr.ifr_curcap & IFCAP_RXCSUM)
