@@ -44,7 +44,8 @@ OPTIONS=	CLI "Build CLI version" on \
 		REDIRECT "Enable force-cgi-redirect support (CGI only)" off \
 		DISCARD "Enable discard-path support (CGI only)" off \
 		FASTCGI "Enable fastcgi support (CGI only)" on \
-		PATHINFO "Enable path-info-check support (CGI only)" on
+		PATHINFO "Enable path-info-check support (CGI only)" on \
+		LINKTHR "Link thread lib (for threaded extensions)" on
 
 CONFLICTS=	php4-4* php5-5.3*
 
@@ -134,6 +135,10 @@ CONFIGURE_ENV+=	ac_cv_pthreads_lib="" \
 		ac_cv_pthreads_cflags="" \
 		pthreads_working="yes" \
 		lt_cv_path_SED="sed"
+
+.if defined(WITH_LINKTHR)
+CONFIGURE_ENV+= LIBS="${LIBS} ${PTHREAD_LIBS}"
+.endif
 
 MAKE_ENV+=	LDFLAGS="${LDFLAGS}"
 
