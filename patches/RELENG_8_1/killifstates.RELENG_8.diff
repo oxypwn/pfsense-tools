@@ -211,7 +211,7 @@ diff -u -r1.1.1.1 pf_ioctl.c
 +                           &psk->psk_src.addr.v.a.mask,
 +                           &src->addr, state->af) &&
 +                           (!psk->psk_ifname[0] || !strcmp(psk->psk_ifname,
-+                           state->u.s.kif->pfik_name)) || PF_MATCHA(psk->psk_dst.neg, &psk->psk_dst.addr.v.a.addr,&psk->psk_dst.addr.v.a.mask,&state->rt_addr, state->af)) {
++                           state->u.s.kif->pfik_name)) || (PF_MATCHA(psk->psk_dst.neg, &psk->psk_dst.addr.v.a.addr,&psk->psk_dst.addr.v.a.mask,&state->rt_addr, state->af))) {
 +#if NPFSYNC > 0
 +                               /* send immediate delete of state */
 +                               pfsync_delete_state(state);
