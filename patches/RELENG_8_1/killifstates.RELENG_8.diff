@@ -54,9 +54,9 @@ diff -u -r1.1.1.1 pfctl.c
 +           sizeof(psk.psk_ifname)) >= sizeof(psk.psk_ifname))
 +               errx(1, "invalid interface: %s", iface);
 +
-+       pfctl_addrprefix(if_kill, &psk.psk_src.addr.v.a.mask);
++       pfctl_addrprefix(if_kill[0], &psk.psk_src.addr.v.a.mask);
 +
-+       if ((ret_ga = getaddrinfo(if_kill, NULL, NULL, &res[0]))) {
++       if ((ret_ga = getaddrinfo(if_kill[0], NULL, NULL, &res[0]))) {
 +               errx(1, "getaddrinfo: %s", gai_strerror(ret_ga));
 +               /* NOTREACHED */
 +       }
