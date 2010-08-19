@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/pfctl.c
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl.c
---- contrib/pf/pfctl/pfctl.c	28 Jan 2010 00:06:01 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl.c	28 Jan 2010 00:10:29 -0000
+--- contrib/pf/pfctl/pfctl.c	19 Aug 2010 19:15:20 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl.c	19 Aug 2010 19:33:40 -0000
 @@ -76,6 +76,7 @@
  void	 pfctl_addrprefix(char *, struct pf_addr *);
  int	 pfctl_kill_src_nodes(int, const char *, int);
@@ -18,7 +18,7 @@ diff -u -r1.1.1.1 pfctl.c
  int		 state_killers;
  char		*state_kill[2];
 +int		 if_kills;
-+char		*if_kill;
++char		*if_kill[2];
  int		 loadopt;
  int		 altqsupport;
  
@@ -31,7 +31,7 @@ diff -u -r1.1.1.1 pfctl.c
  	fprintf(stderr, "\t[-o [level]] [-p device] [-s modifier ]\n");
  	fprintf(stderr, "\t[-t table -T command [address ...]] [-x level]\n");
  	exit(1);
-@@ -551,6 +554,68 @@
+@@ -551,6 +554,116 @@
  }
  
  int
@@ -40,7 +40,7 @@ diff -u -r1.1.1.1 pfctl.c
 +       struct pfioc_state_kill psk;
 +       struct addrinfo *res[2], *resp[2];
 +       struct sockaddr last_src, last_dst;
-+       int killed, sources;
++       int killed, sources, dests;
 +       int ret_ga;
 +
 +       killed = sources = 0;
@@ -81,11 +81,59 @@ diff -u -r1.1.1.1 pfctl.c
 +               else
 +                       errx(1, "Unknown address family %d", psk.psk_af);
 +
-+               if (ioctl(dev, DIOCKILLIFSTATES, &psk))
-+                       err(1, "DIOCKILLIFSTATES");
-+               killed += psk.psk_af;
-+               /* fixup psk.psk_af */
-+               psk.psk_af = res[0]->ai_family;
++		 if (if_kills > 1) {
++                        dests = 0;
++                        memset(&psk.psk_dst.addr.v.a.mask, 0xff,
++                            sizeof(psk.psk_dst.addr.v.a.mask));
++                        memset(&last_dst, 0xff, sizeof(last_dst));
++                        pfctl_addrprefix(if_kill[1],
++                            &psk.psk_dst.addr.v.a.mask);
++                        if ((ret_ga = getaddrinfo(if_kill[1], NULL, NULL,
++                            &res[1]))) {
++                                errx(1, "getaddrinfo: %s",
++                                    gai_strerror(ret_ga));
++                                /* NOTREACHED */
++                        }
++                        for (resp[1] = res[1]; resp[1];
++                            resp[1] = resp[1]->ai_next) {
++                                if (resp[1]->ai_addr == NULL)
++                                        continue;
++                                if (psk.psk_af != resp[1]->ai_family)
++                                        continue;
++
++                                if (memcmp(&last_dst, resp[1]->ai_addr,
++                                    sizeof(last_dst)) == 0)
++                                        continue;
++                                last_dst = *(struct sockaddr *)resp[1]->ai_addr;
++
++                                dests++;
++
++                                if (psk.psk_af == AF_INET)
++                                        psk.psk_dst.addr.v.a.addr.v4 =
++                                            ((struct sockaddr_in *)resp[1]->
++                                            ai_addr)->sin_addr;
++                                else if (psk.psk_af == AF_INET6)
++                                        psk.psk_dst.addr.v.a.addr.v6 =
++                                            ((struct sockaddr_in6 *)resp[1]->
++                                            ai_addr)->sin6_addr;
++                                else
++                                        errx(1, "Unknown address family %d",
++                                            psk.psk_af);
++
++                                if (ioctl(dev, DIOCKILLIFSTATES, &psk))
++                                        err(1, "DIOCKILLiFSTATES");
++                                killed += psk.psk_af;
++                                /* fixup psk.psk_af */
++                                psk.psk_af = resp[1]->ai_family;
++			}
++                        freeaddrinfo(res[1]);
++                } else {
++               		if (ioctl(dev, DIOCKILLIFSTATES, &psk))
++                       		err(1, "DIOCKILLIFSTATES");
++               		killed += psk.psk_af;
++               		/* fixup psk.psk_af */
++               		psk.psk_af = res[0]->ai_family;
++		}
 +       }
 +
 +       freeaddrinfo(res[0]);
@@ -100,7 +148,7 @@ diff -u -r1.1.1.1 pfctl.c
  pfctl_kill_states(int dev, const char *iface, int opts)
  {
  	struct pfioc_state_kill psk;
-@@ -1978,11 +2043,21 @@
+@@ -1978,11 +2091,21 @@
  		usage();
  
  	while ((ch = getopt(argc, argv,
@@ -111,19 +159,19 @@ diff -u -r1.1.1.1 pfctl.c
  			anchoropt = optarg;
  			break;
 +		case 'b':
-+			if (if_kills >= 1) {
-+				warnx("can only specify -b once");
++			if (if_kills >= 2) {
++				warnx("can only specify -b twice");
 +				usage();
 +				/* NOTREACHED */
 +			}
-+			if_kill = optarg;
++			if_kill[if_kills] = optarg;
 +			if_kills++;
 +			mode = O_RDWR;
 +			break;
  		case 'd':
  			opts |= PF_OPT_DISABLE;
  			mode = O_RDWR;
-@@ -2304,6 +2379,9 @@
+@@ -2304,6 +2427,9 @@
  	if (src_node_killers)
  		pfctl_kill_src_nodes(dev, ifaceopt, opts);
  
@@ -138,8 +186,8 @@ Index: sys/contrib/pf/net/pf_ioctl.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	28 Jan 2010 00:06:06 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf_ioctl.c	28 Jan 2010 00:10:29 -0000
+--- sys/contrib/pf/net/pf_ioctl.c	19 Aug 2010 19:15:15 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_ioctl.c	19 Aug 2010 19:26:29 -0000
 @@ -2017,6 +2017,39 @@
  		break;
  	}
@@ -163,7 +211,7 @@ diff -u -r1.1.1.1 pf_ioctl.c
 +                           &psk->psk_src.addr.v.a.mask,
 +                           &src->addr, state->af) &&
 +                           (!psk->psk_ifname[0] || !strcmp(psk->psk_ifname,
-+                           state->u.s.kif->pfik_name))) {
++                           state->u.s.kif->pfik_name)) || PF_MATCHA(psk->psk_dst.neg, &psk->psk_dst.addr.v.a.addr,&psk->psk_dst.addr.v.a.mask,&state->rt_addr, state->af)) {
 +#if NPFSYNC > 0
 +                               /* send immediate delete of state */
 +                               pfsync_delete_state(state);
@@ -183,10 +231,10 @@ diff -u -r1.1.1.1 pf_ioctl.c
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.3
-diff -u -r1.3 pfvar.h
---- sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:09:44 -0000	1.3
-+++ sys/contrib/pf/net/pfvar.h	28 Jan 2010 00:10:29 -0000
+retrieving revision 1.2
+diff -u -r1.2 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	19 Aug 2010 19:16:02 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	19 Aug 2010 19:16:32 -0000
 @@ -1593,6 +1593,7 @@
  };
  #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
