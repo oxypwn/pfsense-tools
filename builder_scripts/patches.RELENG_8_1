@@ -34,7 +34,6 @@
 ~sys/netinet~tcp_output.c.diff~
 ~~~~usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
-~sys/net~if.c.diff~
 ~~netstat_ifname_size.diff~
 ~~ng_vlan_bits.patch~
 ~~~/src/ar71xx*
