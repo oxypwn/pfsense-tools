@@ -90,7 +90,7 @@ struct commands {
 		"reloading interfaces", CYCLE}, 
 	{ "/tmp/update_dyndns",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update `/bin/cat /tmp/update_dyndns`",
 		"updating dyndns", 20},
-	{ "/tmp/interface_configure",	"/usr/bin/nice -n20 /usr/local/bin/php /etc/interfaces_wan_configure `/bin/cat /tmp/interface_configure`",
+	{ "/tmp/interface_configure",	"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.interfaces_wan_configure `/bin/cat /tmp/interface_configure`",
 		"configuring interface", 20},
 	{ "/tmp/start_sshd",		"/usr/bin/nice -n20 /etc/sshd",
 		"starting sshd", CYCLE},
