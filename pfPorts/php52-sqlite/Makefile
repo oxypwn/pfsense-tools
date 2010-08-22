@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-sqlite
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-sqlite
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/databases/php5-sqlite/Makefile,v 1.1 2004/07/19 08:58:44 ale Exp $
+# $FreeBSD: ports/databases/php52-sqlite/Makefile,v 1.1 2010/04/23 22:21:56 dinoex Exp $
 #
 
 CATEGORIES=	databases
