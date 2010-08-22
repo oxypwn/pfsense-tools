@@ -2,25 +2,27 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.76 2009/11/30 17:48:17 garga Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.85 2010/08/18 22:13:21 mm Exp $
 #
 
 PORTNAME=	lighttpd
-PORTVERSION=	1.4.26
+PORTVERSION=	1.4.27
+PORTREVISION=	2
 CATEGORIES=	www
 MASTER_SITES=	http://download.lighttpd.net/lighttpd/releases-1.4.x/
 
-MAINTAINER=	mnag@FreeBSD.org
+MAINTAINER=	mm@FreeBSD.org
 COMMENT=	A secure, fast, compliant, and very flexible Web Server
 
+BUILD_DEPENDS=	pkg-config:${PORTSDIR}/devel/pkg-config
 LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
 
 USE_BZIP2=	yes
 USE_AUTOTOOLS=	libtool:22
 GNU_CONFIGURE=	yes
-USE_GNOME=	lthack pkgconfig
+USE_GNOME=	lthack
 USE_RC_SUBR=	lighttpd.sh
-CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd
+CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd --enable-static
 
 CFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
@@ -31,20 +33,73 @@ OPTIONS=	BZIP2		"Enable Bzip2 support" off \
 		CML		"Enable Cache Meta Language support" off \
 		FAM		"Enable fam/gamin support" off \
 		GDBM		"Enable gdbm storage support" off \
-		IPV6		"Enable IPV6 support" on \
+		GEOIP		"Enable GeoIP support" off \
+		H264		"Enable H.264 streaming" off \
+		IPV6		"Enable IPV6 support" off \
+		LIBEV		"Enable libev support" off \
 		MAGNET		"Enable magnet support" off \
 		MEMCACHE	"Enable memory caching support" off \
 		MYSQL		"Enable MYSQL support" off \
+		NODELAY		"Set TCP_NODELAY on listening sockets" on \
 		OPENLDAP	"Enable LDAP support" off \
 		OPENSSL		"Enable SSL support" on \
-		SPAWNFCGI	"Enable spawn-fcgi utility" on \
+		SPAWNFCGI	"Depend on spawn-fcgi utility" on \
 		VALGRIND	"Enable valgrind support" off \
 		WEBDAV		"Enable WebDAV support"	off
+
+.if !defined(NOPORTDOCS)
+PORTDOCS=	AUTHORS COPYING INSTALL NEWS README
+.endif
+
+CONF_FILES=	lighttpd.conf modules.conf
+
+CONFD_FILES=	access_log.conf auth.conf cgi.conf cml.conf \
+		compress.conf debug.conf dirlisting.conf \
+		evhost.conf expire.conf fastcgi.conf geoip.conf \
+		magnet.conf mime.conf mysql_vhost.conf proxy.conf \
+		rrdtool.conf scgi.conf secdownload.conf \
+		simple_vhost.conf ssi.conf status.conf \
+		trigger_b4_dl.conf userdir.conf webdav.conf
+
+LIGHTTPD_LOGROOT?=	/var/log/lighttpd
+LIGHTTPD_WEBROOT?=	${PREFIX}/www/data
+LIGHTTPD_USER?=		www
+LIGHTTPD_GROUP?=	www
+
+PLIST_SUB+=		LOGROOT="${LIGHTTPD_LOGROOT}" \
+			USER="${LIGHTTPD_USER}" \
+			GROUP="${LIGHTTPD_GROUP}" \
+			MKDIR="${MKDIR}" \
+			CHOWN="${CHOWN}"
 
 .include <bsd.port.pre.mk>
 
 # Default REQUIRE to rc.d script
 _REQUIRE=	DAEMON
+
+.if defined(WITH_H264) || defined(WITH_GEOIP)
+PATCH_SITES+=		${MASTER_SITE_LOCAL}
+PATCH_SITE_SUBDIR+=	mm
+USE_AUTOTOOLS+=		autoconf:262 autoheader:262 aclocal:110 automake:110
+ACLOCAL_ARGS+=		-I m4
+.endif
+
+.if defined(WITH_H264)
+PATCHFILES+=		lighttpd-1.4.26_mod_h264_streaming-2.2.9.patch.gz
+PORTDOCS+=		COPYING_H264
+#MANUAL_PACKAGE_BUILD=	free for non-commercial use only
+PLIST_SUB+=		H264=""
+.else
+PLIST_SUB+=		H264="@comment "
+.endif
+
+.if defined(WITH_GEOIP)
+PATCHFILES+=		lighttpd-1.4.26_mod_geoip.patch.gz
+LIB_DEPENDS+=		GeoIP.5:${PORTSDIR}/net/GeoIP
+PLIST_SUB+=		GEOIP=""
+.else
+PLIST_SUB+=		GEOIP="@comment "
+.endif
 
 .if !defined(WITHOUT_OPENSSL)
 .include "${PORTSDIR}/Mk/bsd.openssl.mk"
@@ -78,6 +133,11 @@ CONFIGURE_ARGS+=	--with-gdbm
 CONFIGURE_ARGS+=	--disable-ipv6
 .endif
 
+.if defined(WITH_LIBEV)
+CONFIGURE_ARGS+=	--with-libev=${LOCALBASE}
+LIB_DEPENDS+=		ev.3:${PORTSDIR}/devel/libev
+.endif
+
 .if defined(WITH_MAGNET)
 USE_LUA=		5.1+
 CONFIGURE_ARGS+=	--with-lua
@@ -93,6 +153,10 @@ CONFIGURE_ARGS+=	--with-memcache
 USE_MYSQL=		yes
 CONFIGURE_ARGS+=	--with-mysql
 _REQUIRE+=		mysql
+.endif
+
+.if defined(WITH_NODELAY)
+EXTRA_PATCHES+=		${FILESDIR}/extra-patch-nodelay
 .endif
 
 .if defined(WITH_OPENLDAP)
@@ -121,28 +185,59 @@ CONFIGURE_ARGS+=	--with-webdav-props --with-webdav-locks
 SUB_LIST+=		REQUIRE="${_REQUIRE}"
 
 post-patch:
-	@${REINPLACE_CMD} -e 's|-std=gnu99||' ${WRKSRC}/configure ${WRKSRC}/configure.ac
-	@${REINPLACE_CMD} -E -e 's|(server.document-root.*=).*|\1 "${PREFIX}/www/data/"|' \
-		-e 's|(server.errorlog.*=).*|\1 "/var/log/lighttpd.error.log"|' \
-		-e 's|# server.event-handler|server.event-handler|' \
-		-e 's|(accesslog.filename.*=).*|\1 "/var/log/lighttpd.access.log"|' \
-		-e 's|#server.pid-file|server.pid-file|' \
-		-e 's|#server.username.*|server.username            = "www"|' \
-		-e 's|#server.groupname.*|server.groupname           = "www"|' \
-		-e 's|/usr/local/bin/php|${PREFIX}/bin/php-cgi|' \
-			${WRKSRC}/doc/lighttpd.conf
-.if !defined(WITHOUT_IPV6)
-	@${ECHO} "" >> ${WRKSRC}/doc/lighttpd.conf
-	@${ECHO} "# Enable IPV6 and IPV4 together" >> ${WRKSRC}/doc/lighttpd.conf
-	@${ECHO} "server.use-ipv6 = \"enable\"" >> ${WRKSRC}/doc/lighttpd.conf
-	@${ECHO} "\$$SERVER[\"socket\"] == \"0.0.0.0:80\" { }" >> ${WRKSRC}/doc/lighttpd.conf
+	@${REINPLACE_CMD} -e 's|-std=gnu99||' \
+		${WRKSRC}/configure ${WRKSRC}/configure.ac
+	@${REINPLACE_CMD} -E -e \
+		's|^(server.document-root.*=).*|\1 "${PREFIX}/www/data/"|' \
+		-e "s|/etc/lighttpd|${PREFIX}/etc/lighttpd|g" \
+		-e 's|^(server.event-handler.*=).*|\1 "freebsd-kqueue"|' \
+		-e 's|^(server.network-backend.*=).*|\1 "writev"|' \
+		-e "s|^(server.username.*=).*|\1 \"${LIGHTTPD_USER}\"|" \
+		-e "s|^(server.groupname.*=).*|\1 \"${LIGHTTPD_GROUP}\"|" \
+		-e "s|^(var.log_root.*=).*|\1 \"${LIGHTTPD_LOGROOT}\"|" \
+		-e "s|^(var.home_dir.*=).*|\1 \"/var/spool/lighttpd\"|" \
+		-e "s|^(var.server_root.*=).*|\1 \"${LIGHTTPD_WEBROOT}\"|" \
+		${WRKSRC}/doc/config/lighttpd.conf
+	@${REINPLACE_CMD} -e "s|/etc/lighttpd|${PREFIX}/etc/lighttpd|g" \
+		${WRKSRC}/doc/config/conf.d/auth.conf
+	@${ECHO} >> ${WRKSRC}/doc/config/lighttpd.conf
+	@${ECHO} "# IPv4 listening socket" >> \
+		${WRKSRC}/doc/config/lighttpd.conf
+	@${ECHO} "\$$SERVER[\"socket\"] == \"0.0.0.0:80\" { }" >> \
+		${WRKSRC}/doc/config/lighttpd.conf
+.if defined(WITH_H264)
+	@${CAT} ${WRKSRC}/COPYING_H264
+	@sleep 10
 .endif
 
 post-install:
-	@${INSTALL_DATA} ${WRKSRC}/doc/lighttpd.conf ${PREFIX}/etc/lighttpd.conf.sample
-.if !exists(${PREFIX}/etc/lighttpd.conf)
-	@${INSTALL_DATA} ${WRKSRC}/doc/lighttpd.conf ${PREFIX}/etc/lighttpd.conf
+	@${MKDIR} ${PREFIX}/etc/lighttpd/conf.d ${PREFIX}/etc/lighttpd/vhosts.d
+.for FILE in ${CONF_FILES}
+	@${INSTALL_DATA} ${WRKSRC}/doc/config/${FILE} \
+		${PREFIX}/etc/lighttpd/${FILE}.sample
+.if !exists(${PREFIX}/etc/lighttpd/${FILE})
+	@${INSTALL_DATA} ${WRKSRC}/doc/config/${FILE} \
+		${PREFIX}/etc/lighttpd/${FILE}
 .endif
-	@${LIBTOOL} --finish ${PREFIX}/lib
+.endfor
+.for FILE in ${CONFD_FILES}
+	@${INSTALL_DATA} ${WRKSRC}/doc/config/conf.d/${FILE} \
+		${PREFIX}/etc/lighttpd/conf.d/${FILE}.sample
+.if !exists(${PREFIX}/etc/lighttpd/conf.d/${FILE})
+	@${INSTALL_DATA} ${WRKSRC}/doc/config/conf.d/${FILE} \
+		${PREFIX}/etc/lighttpd/conf.d/${FILE}
+.endif
+.endfor
+	@${INSTALL_DATA} ${WRKSRC}/doc/config/vhosts.d/vhosts.template \
+		${PREFIX}/etc/lighttpd/vhosts.d/vhosts.template
+	@${MKDIR} -m 0700 ${LIGHTTPD_LOGROOT}
+	@${CHOWN} ${LIGHTTPD_USER}:${LIGHTTPD_GROUP} ${LIGHTTPD_LOGROOT}
+
+.if !defined(NOPORTDOCS)
+	@${MKDIR} ${DOCSDIR}
+. for FILE in ${PORTDOCS}
+	@${INSTALL_DATA} ${WRKSRC}/${FILE} ${DOCSDIR}/${FILE}
+. endfor
+.endif
 
 .include <bsd.port.post.mk>
