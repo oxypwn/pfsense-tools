@@ -100,6 +100,7 @@ php52-shmop					/usr/ports/devel/php52-shmop				/usr/local/lib/php/20060613/shmo
 php52-sysvmsg				/usr/ports/devel/php52-sysvmsg				/usr/local/lib/php/20060613/sysvmsg.so
 php52-sysvsem				/usr/ports/devel/php52-sysvsem				/usr/local/lib/php/20060613/sysvsem.so
 php52-sysvshm				/usr/ports/devel/php52-sysvshm				/usr/local/lib/php/20060613/sysvshm.so
+php52-spl					/usr/ports/databases/php52-spl				/usr/local/lib/php/20060613/spl.so
 php52-sqlite				/usr/ports/databases/php52-sqlite			/usr/local/lib/php/20060613/pdo_sqlite.so
 php52-tokenizer				/usr/ports/devel/php52-tokenizer			/usr/local/lib/php/20060613/tokenizer.so
 php52-xml					/usr/ports/textproc/php52-xml				/usr/local/lib/php/20060613/xml.so
