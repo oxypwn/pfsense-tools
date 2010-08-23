@@ -50,7 +50,7 @@ fexist(char * filename)
 	if (( stat (filename, &buf)) < 0)
 		return (0);
 
-	if (! S_ISREG(buf.st_mode))
+	if (! S_ISREG(buf.st_mode) && ! S_ISDIR(buf.st_mode))
 		return (0);
 
 	return(1);
@@ -98,8 +98,8 @@ struct commands {
 		"reloading filter_configure_xmlrpc", CYCLE},
 	{ "/tmp/start_ntpd",		"/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf",
 		"starting ntpd", CYCLE},
-	{ "/tmp/resolv_conf_generate",		"/etc/rc.resolv_conf_generate",
-		"Rewriting resolv.conf", CYCLE}
+	{ "/tmp/resolv_conf_generate", "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf", CYCLE},
+	{ "/etc/php_dynamodules", "/etc/rc.php_ini_setup", "Running rc.php_init_setup", CYCLE}
 };
 
 void *
