@@ -57,7 +57,13 @@ if [ -d $CVS_CO_DIR ]; then
 	chflags -R noschg $CVS_CO_DIR
 fi 
 
-export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
+# Allow customized Kernel
+if [ ! -z "${KERNELCONF:-}" ]; then
+    echo ">>> Using ${KERNELCONF:-} ..."
+    export KERNELCONF="${KERNELCONF:-}"
+else
+    export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
+fi
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
@@ -161,9 +167,6 @@ if [ -f $PFSENSEBASEDIR/etc/rc.php_ini_setup ]; then
 	echo ">>> chroot'ing and running /etc/rc.php_ini_setup"
 	chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
 fi
-
-# Ensure installer bits are present
-cust_populate_installer_bits
 
 # Overlay final files
 install_custom_overlay_final
