@@ -97,7 +97,9 @@ struct commands {
 	{ "/tmp/filter_configure_xmlrpc",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_xmlrpc",
 		"reloading filter_configure_xmlrpc", CYCLE},
 	{ "/tmp/start_ntpd",		"/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf",
-		"starting ntpd", CYCLE}
+		"starting ntpd", CYCLE},
+	{ "/tmp/resolv_conf_generate",		"/etc/rc.rc.resolv_conf_generate",
+		"Rewriting resolv.conf", CYCLE}
 };
 
 void *
