@@ -49,7 +49,7 @@ diff -u -r1.208.2.11.2.1 if_ether.c
 +                (void)memcpy(eh.ether_shost, enaddr,
 +                        sizeof(eh.ether_shost));
 +
-+                printf("Modified sa struct\n");
++                //printf("Modified sa struct\n");
 +                (void)memcpy(sa.sa_data, &eh, sizeof(eh));
 +                sa.sa_family = pseudo_AF_HDRCMPLT;
 +                sa.sa_len = sizeof(sa);
