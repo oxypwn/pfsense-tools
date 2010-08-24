@@ -4,7 +4,7 @@ RCS file: /home/ncvs/src/sys/netinet/if_ether.c,v
 retrieving revision 1.208.2.11.2.1
 diff -u -r1.208.2.11.2.1 if_ether.c
 --- sys/netinet/if_ether.c	14 Jun 2010 02:09:06 -0000	1.208.2.11.2.1
-+++ sys/netinet/if_ether.c	24 Aug 2010 17:54:47 -0000
++++ sys/netinet/if_ether.c	24 Aug 2010 19:33:40 -0000
 @@ -82,6 +82,8 @@
  SYSCTL_NODE(_net_link_ether, PF_INET, inet, CTLFLAG_RW, 0, "");
  SYSCTL_NODE(_net_link_ether, PF_ARP, arp, CTLFLAG_RW, 0, "");
@@ -31,23 +31,41 @@ diff -u -r1.208.2.11.2.1 if_ether.c
  SYSCTL_VNET_INT(_net_link_ether_inet, OID_AUTO, max_age, CTLFLAG_RW,
  	&VNET_NAME(arpt_keep), 0,
  	"ARP entry lifetime in seconds");
-@@ -812,6 +818,19 @@
+@@ -812,12 +818,35 @@
  	}
  	(void)memcpy(ar_tpa(ah), ar_spa(ah), ah->ar_pln);
  	(void)memcpy(ar_spa(ah), &itaddr, ah->ar_pln);
 +#ifdef DEV_CARP
-+	if (V_arp_carp_mac && ifp->if_carp != NULL && carp_match) {
-+		struct m_tag *mtag;
-+		if ((mtag = m_tag_find(m, PACKET_TAG_CARP, NULL)) == NULL)
-+			mtag = m_tag_get(PACKET_TAG_CARP,
-+				sizeof(struct ifnet *), M_NOWAIT);
-+		/* XXX: Drop mbuf at all?! */
-+		if (mtag != NULL) {
-+			bcopy(&ifp, (caddr_t)(mtag + 1), sizeof(struct ifnet *));
-+			m_tag_prepend(m, mtag);
-+		}
-+	}
++	if (V_arp_carp_mac && carp_match) {
++		struct ether_header eh;
++                short type = htons(ETHERTYPE_ARP);
++
++                ah->ar_hrd = htons(ARPHRD_ETHER);
++
++                (void)memcpy(&eh.ether_type, &type,
++                        sizeof(eh.ether_type));
++                (void)memcpy(eh.ether_dhost, ar_tha(ah),
++                        sizeof (eh.ether_dhost));
++                (void)memcpy(eh.ether_shost, enaddr,
++                        sizeof(eh.ether_shost));
++
++                printf("Modified sa struct\n");
++                (void)memcpy(sa.sa_data, &eh, sizeof(eh));
++                sa.sa_family = pseudo_AF_HDRCMPLT;
++                sa.sa_len = sizeof(sa);
++        } else {
++#endif
++                sa.sa_family = AF_ARP;
++                sa.sa_len = 2;
++#ifdef DEV_CARP
++        }
 +#endif
  	ah->ar_op = htons(ARPOP_REPLY);
  	ah->ar_pro = htons(ETHERTYPE_IP); /* let's be sure! */
  	m->m_len = sizeof(*ah) + (2 * ah->ar_pln) + (2 * ah->ar_hln);   
+ 	m->m_pkthdr.len = m->m_len;   
+-	sa.sa_family = AF_ARP;
+-	sa.sa_len = 2;
+ 	(*ifp->if_output)(ifp, m, &sa, NULL);
+ 	ARPSTAT_INC(txreplies);
+ 	return;

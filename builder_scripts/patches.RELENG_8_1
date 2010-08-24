@@ -57,3 +57,4 @@
 ~~ng_ether_attach_command.diff~
 ~~bsnmp.diff~
 ~~dhclient.diff~
+~~carp_correct_mac.diff~
