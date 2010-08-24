@@ -1,0 +1,53 @@
+Index: sys/netinet/if_ether.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/if_ether.c,v
+retrieving revision 1.208.2.11.2.1
+diff -u -r1.208.2.11.2.1 if_ether.c
+--- sys/netinet/if_ether.c	14 Jun 2010 02:09:06 -0000	1.208.2.11.2.1
++++ sys/netinet/if_ether.c	24 Aug 2010 17:54:47 -0000
+@@ -82,6 +82,8 @@
+ SYSCTL_NODE(_net_link_ether, PF_INET, inet, CTLFLAG_RW, 0, "");
+ SYSCTL_NODE(_net_link_ether, PF_ARP, arp, CTLFLAG_RW, 0, "");
+ 
++static VNET_DEFINE(int, arp_carp_mac) = 0;	/* default to disabled */
++
+ /* timer values */
+ static VNET_DEFINE(int, arpt_keep) = (20*60);	/* once resolved, good for 20
+ 						 * minutes */
+@@ -93,12 +95,16 @@
+ 					       * 20 seconds */
+ static VNET_DEFINE(struct arpstat, arpstat);  /* ARP statistics, see if_arp.h */
+ 
++#define	V_arp_carp_mac		VNET(arp_carp_mac)
+ #define	V_arpt_keep		VNET(arpt_keep)
+ #define	V_arpt_down		VNET(arpt_down)
+ #define	V_arp_maxtries		VNET(arp_maxtries)
+ #define	V_arp_proxyall		VNET(arp_proxyall)
+ #define	V_arpstat		VNET(arpstat)
+ 
++SYSCTL_VNET_INT(_net_link_ether_inet, OID_AUTO, carp_mac, CTLFLAG_RW,
++	&VNET_NAME(arp_carp_mac), 0,
++	"Send CARP mac with replies to CARP ips");
+ SYSCTL_VNET_INT(_net_link_ether_inet, OID_AUTO, max_age, CTLFLAG_RW,
+ 	&VNET_NAME(arpt_keep), 0,
+ 	"ARP entry lifetime in seconds");
+@@ -812,6 +818,19 @@
+ 	}
+ 	(void)memcpy(ar_tpa(ah), ar_spa(ah), ah->ar_pln);
+ 	(void)memcpy(ar_spa(ah), &itaddr, ah->ar_pln);
++#ifdef DEV_CARP
++	if (V_arp_carp_mac && ifp->if_carp != NULL && carp_match) {
++		struct m_tag *mtag;
++		if ((mtag = m_tag_find(m, PACKET_TAG_CARP, NULL)) == NULL)
++			mtag = m_tag_get(PACKET_TAG_CARP,
++				sizeof(struct ifnet *), M_NOWAIT);
++		/* XXX: Drop mbuf at all?! */
++		if (mtag != NULL) {
++			bcopy(&ifp, (caddr_t)(mtag + 1), sizeof(struct ifnet *));
++			m_tag_prepend(m, mtag);
++		}
++	}
++#endif
+ 	ah->ar_op = htons(ARPOP_REPLY);
+ 	ah->ar_pro = htons(ETHERTYPE_IP); /* let's be sure! */
+ 	m->m_len = sizeof(*ah) + (2 * ah->ar_pln) + (2 * ah->ar_hln);   
