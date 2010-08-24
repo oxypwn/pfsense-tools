@@ -1,6 +1,6 @@
 # $Id$
 
-makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq glxsb"
+makeoptions MODULES_OVERRIDE="acpi ndis ipfw ipdivert dummynet fdescfs cpufreq glxsb runfw"
 
 nooptions         KDB
 nooptions         KDB_TRACE 
