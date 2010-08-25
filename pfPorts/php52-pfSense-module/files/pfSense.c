@@ -298,10 +298,12 @@ PHP_MINIT_FUNCTION(pfSense_socket)
         	return FAILURE;
 	}
 
+#ifdef __i386
 	/* Create a new socket node */
-        if (NgMkSockNode(NULL, &csock, NULL) < 0) {
+	if (NgMkSockNode(NULL, &csock, NULL) < 0) {
 		return FAILURE;
 	}
+#endif
 
 	PFSENSE_G(csock) = csock;
 
