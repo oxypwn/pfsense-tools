@@ -11,7 +11,7 @@ diff -u -r1.162.2.7.2.1 if_ether.c
  static int log_arp_permanent_modify = 1;
 +static int arp_carp_mac = 0;
  
-+SYSCTL_VNET_INT(_net_link_ether_inet, OID_AUTO, carp_mac, CTLFLAG_RW,
++SYSCTL_INT(_net_link_ether_inet, OID_AUTO, carp_mac, CTLFLAG_RW,
 +        &arp_carp_mac, 0,
 +        "Send CARP mac with replies to CARP ips");
  SYSCTL_INT(_net_link_ether_inet, OID_AUTO, log_arp_wrong_iface, CTLFLAG_RW,
@@ -22,7 +22,7 @@ diff -u -r1.162.2.7.2.1 if_ether.c
  	(void)memcpy(ar_tpa(ah), ar_spa(ah), ah->ar_pln);
  	(void)memcpy(ar_spa(ah), &itaddr, ah->ar_pln);
 +#ifdef DEV_CARP
-+        if (V_arp_carp_mac && carp_match) {
++        if (arp_carp_mac && carp_match) {
 +                struct ether_header *eh = (struct ether_header *)sa.sa_data;
 +                short type = htons(ETHERTYPE_ARP);
 +
