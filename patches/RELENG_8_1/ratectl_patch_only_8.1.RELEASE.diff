@@ -1,0 +1,52 @@
+--- sys/net80211/ieee80211_node.c	2010/08/14 00:50:26	211294
++++ sys/net80211/ieee80211_node.c	2010/08/14 09:29:42	211295
+@@ -817,6 +817,7 @@
+ 	if (ieee80211_iserp_rateset(&ni->ni_rates))
+ 		ni->ni_flags |= IEEE80211_NODE_ERP;
+ 	ieee80211_node_setuptxparms(ni);
++	ieee80211_ratectl_node_init(ni);
+ 
+ 	return ieee80211_sta_join1(ieee80211_ref_node(ni));
+ }
+@@ -1401,6 +1402,7 @@
+ #endif
+ 		}
+ 		ieee80211_node_setuptxparms(ni);
++		ieee80211_ratectl_node_init(ni);
+ 		if (ic->ic_newassoc != NULL)
+ 			ic->ic_newassoc(ni, 1);
+ 		/* XXX not right for 802.1x/WPA */
+@@ -1470,6 +1472,7 @@
+ 		if (ieee80211_iserp_rateset(&ni->ni_rates))
+ 			ni->ni_flags |= IEEE80211_NODE_ERP;
+ 		ieee80211_node_setuptxparms(ni);
++		ieee80211_ratectl_node_init(ni);
+ 		if (ic->ic_newassoc != NULL)
+ 			ic->ic_newassoc(ni, 1);
+ 		/* XXX not right for 802.1x/WPA */
+@@ -2338,6 +2341,7 @@
+ 	);
+ 
+ 	ieee80211_node_setuptxparms(ni);
++	ieee80211_ratectl_node_init(ni);
+ 	/* give driver a chance to setup state like ni_txrate */
+ 	if (ic->ic_newassoc != NULL)
+ 		ic->ic_newassoc(ni, newassoc);
+--- sys/net80211/ieee80211_sta.c	2010/08/14 00:50:26	211294
++++ sys/net80211/ieee80211_sta.c	2010/08/14 09:29:42	211295
+@@ -60,6 +60,7 @@
+ #ifdef IEEE80211_SUPPORT_SUPERG
+ #include <net80211/ieee80211_superg.h>
+ #endif
++#include <net80211/ieee80211_ratectl.h>
+ 
+ #define	IEEE80211_RATE2MBS(r)	(((r) & IEEE80211_RATE_VAL) / 2)
+ 
+@@ -1596,6 +1597,7 @@
+ 			     IEEE80211_F_JOIN | IEEE80211_F_DOBRS);
+ 			ieee80211_setup_basic_htrates(ni, htinfo);
+ 			ieee80211_node_setuptxparms(ni);
++			ieee80211_ratectl_node_init(ni);
+ 		} else {
+ #ifdef IEEE80211_SUPPORT_SUPERG
+ 			if (IEEE80211_ATH_CAP(vap, ni, IEEE80211_NODE_ATH))
