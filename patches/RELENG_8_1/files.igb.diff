@@ -1,0 +1,18 @@
+Index: sys/conf/files
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files,v
+retrieving revision 1.1459.2.29.2.1
+diff -u -r1.1459.2.29.2.1 files
+--- sys/conf/files	14 Jun 2010 02:09:06 -0000	1.1459.2.29.2.1
++++ sys/conf/files	27 Aug 2010 21:41:31 -0000
+@@ -933,6 +933,10 @@
+ 	compile-with "${NORMAL_C} -I$S/dev/e1000"
+ dev/e1000/e1000_osdep.c		optional em | igb \
+ 	compile-with "${NORMAL_C} -I$S/dev/e1000"
++dev/e1000/e1000_vf.c		optional em | igb \
++	compile-with "${NORMAL_C} -I$S/dev/e1000"
++dev/e1000/e1000_mbx.c		optional em | igb \
++	compile-with "${NORMAL_C} -I$S/dev/e1000"
+ dev/et/if_et.c			optional et
+ dev/en/if_en_pci.c		optional en pci
+ dev/en/midway.c			optional en
