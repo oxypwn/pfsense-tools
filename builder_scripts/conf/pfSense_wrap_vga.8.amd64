@@ -423,3 +423,5 @@ device         kbdmux          # keyboard multiplexer
 device         vga             # VGA video card driver
 device         sc              # Syscons
 # END VGA
+
+options    PPS_SYNC
