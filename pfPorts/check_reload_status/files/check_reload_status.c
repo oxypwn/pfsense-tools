@@ -105,7 +105,13 @@ struct commands {
 void *
 run_command(void *arg) {
 	struct commands *cmd = arg;
+	struct timespec ts;
         int howmany, i;
+
+	ts.tv_nsec = 0;
+	ts.tv_sec = CYCLE;
+	if (cmd->sleep)
+		ts.tv_sec = cmd->sleep;
 
 	for (;;) {
         	if (fexist(cmd->file) == 1) {
@@ -115,10 +121,7 @@ run_command(void *arg) {
                 	unlink(cmd->file);
                 	write_status(cmd->file, AFTER);
         	}
-		if (cmd->sleep)
-			__sleep(cmd->sleep);
-		else
-			__sleep(CYCLE);
+		nanosleep(&ts, NULL);
 	}
         return NULL;
 }
