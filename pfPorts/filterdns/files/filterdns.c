@@ -1,5 +1,5 @@
 /*
-	Copyright (C) 2009 Ermal Luçi
+	Copyright (C) 2009 - 2010 Ermal Luçi
 	All rights reserved.
 	
 	Redistribution and use in source and binary forms, with or without

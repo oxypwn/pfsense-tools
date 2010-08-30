@@ -1,6 +1,6 @@
 /*-
  * Copyright (c) 2008 Michael Telahun Makonnen <mtm@FreeBSD.Org>
- * Copyright (c) 2009 Ermal Luçi <eri@pfsense.org>
+ * Copyright (c) 2009 - 2010 Ermal Luçi <eri@pfsense.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
