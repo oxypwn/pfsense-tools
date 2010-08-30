@@ -200,42 +200,19 @@ static void	pktmem_push(struct pktmem_stack *, struct ic_pkt *);
 void *
 classifyd_get_time(void *arg __unused) 
 {
-	struct kevent change;    /* event we want to monitor */
-   	struct kevent event;     /* event that was triggered */
-   	int kq, nev;
+	struct timespec ts;
 
-reinitkqueue:
-	/* create a new kernel event queue */
-	if ((kq = kqueue()) == -1) {
-		syslog(LOG_ERR, "COuld not initialize kqueue");
-		return NULL;
-	}
-
-	/* wakeup every 5 seconds */
-	EV_SET(&change, 1, EVFILT_TIMER, EV_ADD | EV_ENABLE, 0, 10000, NULL);
+	/* wakeup every 10 seconds */
+	ts.tv_sec = 10;
+	ts.tv_nsec = 0;
 
 	/* loop forever */
 	for (;;) {
-		nev = kevent(kq, &change, 1, &event, 1, NULL);
-
-	if (nev < 0) {
-		close(kq);
-		syslog(LOG_ERR, "Something went wrong waiting on kqueue.");
-		goto reinitkqueue;
-	}
-	else if (nev >= 0) {
-		if (event.flags & EV_ERROR) {   /* report any error */
-			close(kq);
-			syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(event.data));
-			goto reinitkqueue;
-		}
-
 		while(gettimeofday(&t_time, NULL) != 0)
 			;
-      }
-   }
 
-   close(kq);
+		nanosleep(&ts, 0);
+	}
 }
 
 int
