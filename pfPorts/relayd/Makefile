@@ -2,61 +2,74 @@
 # Date created:         5 Jun 2007
 # Whom:                 Jun Kuriyama <kuriyama@FreeBSD.org>
 #
-# $FreeBSD: ports/net/relayd/Makefile,v 1.3 2008/04/08 15:57:29 gahr Exp $
+# $FreeBSD: ports/net/relayd/Makefile,v 1.11 2010/07/25 15:39:18 mm Exp $
 
 PORTNAME=	relayd
-PORTVERSION=	4.2.20071221
+PORTVERSION=	4.6.20090813
+PORTREVISION=	4
 CATEGORIES=	net
 MASTER_SITES=	${MASTER_SITE_LOCAL}
-MASTER_SITE_SUBDIR=	kuriyama
+MASTER_SITE_SUBDIR=	mm
 
-MAINTAINER=	kuriyama@FreeBSD.org
-COMMENT=	OpenBSD Relay Daemon
+MAINTAINER=	mm@FreeBSD.org
+COMMENT=	OpenBSD relay daemon
 
-LIB_DEPENDS=	event:${PORTSDIR}/devel/libevent
+DISTNAME=	${PORTNAME}-${PORTVERSION}-1
+USE_BZIP2=	yes
+MANCOMPRESSED=	yes
 
-WRKSRC=		${WRKDIR}/tmp
+WRKSRC=		${WRKDIR}/src/usr.sbin
 MAN5=		relayd.conf.5
 MAN8=		relayctl.8 relayd.8
 USE_RC_SUBR=	relayd
 
-CFLAGS+=	-I${PREFIX}/include
+CFLAGS+=	-I${PREFIX}/include -Wall
 
-WRKSRCC=	${WRKDIR}/tmp/relayctl
-WRKSRCD=	${WRKDIR}/tmp/relayd
-_MAKE=		${SETENV} ${MAKE_ENV} ${MAKE} ${MAKE_ARGS}
+MAKE_ARGS+=	BINDIR=${PREFIX}/sbin MANDIR=${PREFIX}/man/man
+
 RUSER=		_relayd
 RGROUP=		_relayd
+PKGINSTALL=	${WRKDIR}/pkginstall
+SUB_FILES+=	pkg-install
 
-post-extract:
-	${MKDIR} ${WRKSRC}
-	${MV} ${WRKDIR}/relayctl ${WRKSRC}/
-	${MV} ${WRKDIR}/relayd   ${WRKSRC}/
+SUB_LIST+=	RUSER=${RUSER} \
+		RGROUP=${RGROUP}
 
-pre-build:
-	${REINPLACE_CMD} -e 's|%%PREFIX%%|${PREFIX}|g' \
-		${WRKSRCD}/relayd.h \
-		${WRKSRCD}/relayd.conf.5 ${WRKSRCD}/relayd.8
-
-do-build:
-	(cd ${WRKSRCC}; ${_MAKE} ${ALL_TARGET})
-	(cd ${WRKSRCD}; ${_MAKE} ${ALL_TARGET})
-
-pre-su-install:
-	@${SETENV} PKG_PREFIX=${PREFIX} RUSER=${RUSER} RGROUP=${RGROUP} \
-		${SH} ${PKGINSTALL} ${PORTNAME} PRE-INSTALL
-
-do-install:
-	(cd ${WRKSRCC}; ${_MAKE} ${INSTALL_TARGET} install-man)
-	(cd ${WRKSRCD}; ${_MAKE} ${INSTALL_TARGET} install-man)
+OPTIONS=	LIBEVENT_STATIC "Build with static libevent" Off
 
 .include <bsd.port.pre.mk>
 
-.if ${OSVERSION} < 502106
-IGNORE=	is of no use for you because your system is too old and doesn't have pf
+.if defined(WITH_LIBEVENT_STATIC)
+BUILD_DEPENDS=	${LOCALBASE}/lib/libevent.a:${PORTSDIR}/devel/libevent
+MAKE_ARGS+=	LIBEVENT=${LOCALBASE}/lib/libevent.a
+.else
+LIB_DEPENDS=	event-1.4:${PORTSDIR}/devel/libevent
+MAKE_ARGS+=	LIBEVENT=-levent
 .endif
-.if (${OSVERSION} < 700049) && !defined(I_KNOW_WHAT_I_AM_DOING)
-IGNORE=	needs a patched kernel to work correctly (http://www.openbsd.org/cgi-bin/cvsweb/src/sys/net/pf_table.c.diff?r1=1.67&r2=1.68)
+
+.if (${OSVERSION} < 702104)
+IGNORE=		requires newer FreeBSD (osreldate 702104 and higher)
 .endif
+
+post-extract:
+	@${CP} ${FILESDIR}/Makefile.all ${WRKSRC}/Makefile
+	@${CP} ${FILESDIR}/Makefile.relayctl ${WRKSRC}/relayctl/Makefile
+	@${CP} ${FILESDIR}/Makefile.relayd ${WRKSRC}/relayd/Makefile
+	@${CP} ${FILESDIR}/arc4random.c ${WRKSRC}/relayd
+
+post-patch:
+	@${REINPLACE_CMD} -e 's|%%PREFIX%%|${PREFIX}|g' \
+		${WRKSRC}/relayd/relay.c \
+		${WRKSRC}/relayd/relayd.h \
+		${WRKSRC}/relayd/relayd.conf.5 \
+		${WRKSRC}/relayd/relayd.8
+
+pre-su-install:
+	@${SETENV} PKG_PREFIX=${PREFIX} \
+		${SH} ${PKGINSTALL} ${PORTNAME} PRE-INSTALL
+
+post-install:
+	@${INSTALL_DATA} ${WRKSRC}/../etc/relayd.conf \
+		${PREFIX}/etc/relayd.conf.sample
 
 .include <bsd.port.post.mk>
