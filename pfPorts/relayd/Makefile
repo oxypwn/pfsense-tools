@@ -35,7 +35,7 @@ SUB_FILES+=	pkg-install
 SUB_LIST+=	RUSER=${RUSER} \
 		RGROUP=${RGROUP}
 
-OPTIONS=	LIBEVENT_STATIC "Build with static libevent" Off
+OPTIONS=	LIBEVENT_STATIC "Build with static libevent" On
 
 .include <bsd.port.pre.mk>
 
