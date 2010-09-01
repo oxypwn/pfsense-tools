@@ -14,7 +14,7 @@ return {
 			"WARNING: This will erase all contents in your first hard disk! "	..
 			"This action is irreversible. Do you really want to continue?\n\n"	..
 			"If you wish to have more control on your setup, "			..
-			"choose Advanced Installation from the Main Menu."
+			"choose Custom Installation from the Main Menu."
 		)) then
 			return step:next()
 		else
