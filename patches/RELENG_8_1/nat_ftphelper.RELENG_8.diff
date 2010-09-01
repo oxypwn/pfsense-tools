@@ -1,10 +1,10 @@
 Index: sys/conf/files
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/conf/files,v
+RCS file: /root/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	2 Jun 2010 22:23:32 -0000	1.2
-+++ sys/conf/files	2 Jun 2010 22:29:41 -0000
+--- sys/conf/files	1 Sep 2010 20:49:12 -0000	1.2
++++ sys/conf/files	1 Sep 2010 20:55:26 -0000
 @@ -366,6 +366,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -16,11 +16,11 @@ diff -u -r1.2 files
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.5
-diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	2 Jun 2010 22:29:21 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	2 Jun 2010 22:29:41 -0000
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.6
+diff -u -r1.6 pf.c
+--- sys/contrib/pf/net/pf.c	1 Sep 2010 20:55:15 -0000	1.6
++++ sys/contrib/pf/net/pf.c	1 Sep 2010 20:55:26 -0000
 @@ -261,7 +261,7 @@
  int			 pf_tcp_track_full(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
@@ -220,8 +220,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	2 Jun 2010 22:31:02 -0000
-@@ -0,0 +1,726 @@
++++ sys/contrib/pf/net/pf_ftp.c	1 Sep 2010 21:29:44 -0000
+@@ -0,0 +1,730 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -416,10 +416,16 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +			if (ftp_message_type == FTP_227_REPLY || ftp_message_type == FTP_229_REPLY) {
 +				s->direction = state->direction;
 +                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = 0;
-+				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++				if (s->direction == PF_IN) {
++                       			s->ext.port = 0;
++					s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++                       			s->lan.port = htons(oport);
++				} else {
++                       			s->lan.port = 0;
++					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++                       			s->ext.port = htons(oport);
++				}
 +                       		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
-+                       		s->lan.port = htons(oport);
 +                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
 +                       		s->gwy.port = htons(oport);
 +			} else if (ftp_message_type == FTP_PORT_COMMAND || ftp_message_type == FTP_EPRT_COMMAND) {
@@ -427,10 +433,16 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
 +                       		s->gwy.port = htons(oport); 
 +                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+                       		s->lan.port = 0; 
-+				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++				if (s->direction == PF_OUT) {
++                       			s->lan.port = 0; 
++					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++                       			s->ext.port = htons(oport);
++				} else {
++                       			s->ext.port = 0; 
++					s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++                       			s->lan.port = htons(oport);
++				}
 +                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = htons(oport);
 +			}
 +		}
 +                s->src.state = TCPS_LISTEN;
@@ -439,14 +451,15 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->expire = time_second;
 +                s->timeout = PFTM_TCP_FIRST_PACKET;
 +		PF_ACPY(&s->rt_addr, &state->rt_addr, pd->af);
-+		s->nat_src_node = state->nat_src_node;
-+		if (s->nat_src_node != NULL) {
++		if (state->nat_src_node != NULL) {
++			s->nat_src_node = state->nat_src_node;
 +                        s->nat_src_node->states++;
-+			s->src_node->conn++;
++			s->nat_src_node->conn++;
 +		}
 +		if (state->src_node != NULL) {
 +                        s->src_node = state->src_node;
 +                        s->src_node->states++;
++			s->src_node->conn++;
 +                }
 +		s->rt_kif = state->rt_kif;
 +		if (pf_insert_state(BOUND_IFACE(r, s->rt_kif), s)) {
@@ -459,15 +472,6 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				state->src.seqdiffoneway -= delta;
 +                } 
 +	}
-+#if 0
-+/* Track the msgs which are CRLF term'd for PORT/PASV FW breach */
-+	if (pd->p_len) {		/* only if there's data */
-+		if (sptr[pd->tot_len - 2] == '\r' && sptr[pd->tot_len - 1] == '\n')
-+			state->ext.pad &= ~WAIT_CRLF;
-+		else
-+			state->ext.pad |= WAIT_CRLF;
-+	}
-+#endif
 +}
 +
 +static int
@@ -950,11 +954,11 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +}
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.5
-diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	2 Jun 2010 22:24:04 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	2 Jun 2010 22:29:41 -0000
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.7
+diff -u -r1.7 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	1 Sep 2010 20:55:15 -0000	1.7
++++ sys/contrib/pf/net/pfvar.h	1 Sep 2010 20:55:26 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -979,11 +983,11 @@ diff -u -r1.5 pfvar.h
  	    const struct tcphdr *);
 Index: sys/modules/pf/Makefile
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/modules/pf/Makefile,v
+RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	2 Jun 2010 22:22:13 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	2 Jun 2010 22:29:41 -0000
+--- sys/modules/pf/Makefile	1 Sep 2010 20:47:45 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	1 Sep 2010 20:55:26 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
