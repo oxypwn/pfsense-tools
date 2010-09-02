@@ -416,7 +416,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +			if (ftp_message_type == FTP_227_REPLY || ftp_message_type == FTP_229_REPLY) {
 +				s->direction = state->direction;
 +                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
-+				if (s->direction == PF_IN) {
++				if (s->direction == PF_OUT) {
 +                       			s->ext.port = 0;
 +					s->ext.pad = FTP_CONTROL_PORT_NUMBER;
 +                       			s->lan.port = htons(oport);
