@@ -2,11 +2,8 @@
 
 int main(int argc, char **argv)
 {
-	printf("This shell only supports SSH tunneling only.\n");
+	printf("This login only supports SSH tunneling.\n");
 	while(1) {
 		sleep(2000);
 	}
 }
-
-
-
