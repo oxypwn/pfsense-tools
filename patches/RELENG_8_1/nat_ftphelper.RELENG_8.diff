@@ -417,30 +417,30 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				s->direction = state->direction;
 +                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
 +				if (s->direction == PF_OUT) {
-+                       			s->ext.port = 0;
-+					s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+                       			s->lan.port = htons(oport);
-+				} else {
 +                       			s->lan.port = 0;
-+					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++						s->lan.pad = FTP_CONTROL_PORT_NUMBER;
 +                       			s->ext.port = htons(oport);
++				} else {
++                       			s->ext.port = 0;
++						s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++                       			s->lan.port = htons(oport);
 +				}
 +                       		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
-+                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                       		s->gwy.port = htons(oport);
++                       		PF_ACPY(&s->gwy.addr, &state->lan.addr, pd->af);
++                       		//s->gwy.port = htons(oport);
 +			} else if (ftp_message_type == FTP_PORT_COMMAND || ftp_message_type == FTP_EPRT_COMMAND) {
 +				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
-+                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                       		s->gwy.port = htons(oport); 
++                       		//PF_ACPY(&s->gwy.addr, &state->ext.addr, pd->af);
++                       		//s->gwy.port = htons(oport); 
 +                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
 +				if (s->direction == PF_OUT) {
-+                       			s->lan.port = 0; 
-+					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+                       			s->ext.port = htons(oport);
-+				} else {
 +                       			s->ext.port = 0; 
 +					s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+                       			s->lan.port = htons(oport);
++                       			s->lan.port = htons(oport); PF_ACPY(&s->gwy.addr, &state->ext.addr, pd->af);
++				} else {
++                       			s->lan.port = 0; 
++					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++                       			s->ext.port = htons(oport); PF_ACPY(&s->gwy.addr, &state->lan.addr, pd->af);
 +				}
 +                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
 +			}
