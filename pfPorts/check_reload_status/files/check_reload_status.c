@@ -1,63 +1,181 @@
 /*
- *   check_reload_status.c
- *   part of the pfSense project
- *   (C) 2010 Ermal Luçi
- *   (C)2005 Scott Ullrich
- *   All rights reserved
- *
- *   This file monitors for certain files to
- *   appear in /tmp and then takes action on them.
- *   It's a mini-daemon of sorts to kick off filter
- *   reloads, sshd starting, etc.   It may be expanded
- *   down to the road to kick off any type of tasks that
- *   take up too much time from the GUI perspective.
- *
- */
+        Copyright (C) 2010 Ermal Luçi
+        All rights reserved.
 
+        Redistribution and use in source and binary forms, with or without
+        modification, are permitted provided that the following conditions are met:
+
+        1. Redistributions of source code must retain the above copyright notice,
+           this list of conditions and the following disclaimer.
+
+        2. Redistributions in binary form must reproduce the above copyright
+           notice, this list of conditions and the following disclaimer in the
+           documentation and/or other materials provided with the distribution.
+
+        THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+        INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+        AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+        AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+        OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+        SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+        INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+        CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+        ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+        POSSIBILITY OF SUCH DAMAGE.
+
+*/
+
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+
+#include <ctype.h>
+
+#define _WITH_DPRINTF
 #include <stdio.h>
+#include <errno.h>
+#include <err.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <strings.h>
+#include <string.h>
 
-#include <fcntl.h>
+#include <event.h>
 
-#include <pthread.h>
-
-#define filepath 	"/tmp/check_reload_status"
-#define LOGFILE		"/var/log/check_reload_status"
-#define TMPDIR		"/tmp"
-
-/* Default cycle time value 30 seconds*/
-#define CYCLE		30
-
-/* used for writing to the status file */
-int status = -1;
-#define NONE	0
-#define BEFORE	1
-#define AFTER	2
+#include "server.h"
+#include "common.h"
 
 /* function definitions */
-void	*run_command(void *arg);
+static void			run_command(const struct command *, char *);
+static void			set_blockmode(int socket, int cmd);
+const struct command *	match_command(const struct command *target, char *wordpassed);
+const struct command *	parse_command(int fd, int argc, char **argv);
+static void			socket_read_command(int socket, short event, void *arg);
+static void			show_command_list(int fd, const struct command *list);
+static void			socket_accept_command(int socket, short event, void *arg);
+static void			socket_close_command(int fd, struct event *ev);
+static void			write_status(const char *statusline, int when);
 
-/* Check if file exists */
-static int
-fexist(char * filename)
+static void
+show_command_list(int fd, const struct command *list)
 {
-	struct stat buf;
+        int     i;
+	char	value[2048];
 
-	if (( stat (filename, &buf)) < 0)
-		return (0);
+	if (list == NULL)
+		return;
 
-	if (! S_ISREG(buf.st_mode))
-		return (0);
+        for (i = 0; list[i].action != NULLOPT; i++) {
+                switch (list[i].type) {
+                case NON:
+			bzero(value, sizeof(value));
+			snprintf(value, sizeof(value), "\t%s <cr>\n", list[i].keyword);
+                        write(fd, value, strlen(value));
+                        break;
+                case COMPOUND:
+			bzero(value, sizeof(value));
+			snprintf(value, sizeof(value), "\t%s\n", list[i].keyword);
+                        write(fd, value, strlen(value));
+                        break;
+                case ADDRESS:
+			bzero(value, sizeof(value));
+			snprintf(value, sizeof(value), "\t%s <address>\n", list[i].keyword);
+                        write(fd, value, strlen(value));
+                        break;
+                case PREFIX:
+			bzero(value, sizeof(value));
+			snprintf(value, sizeof(value), "\t%s <address>[/len]\n", list[i].keyword);
+                        write(fd, value, strlen(value));
+                        break;
+		case INTEGER:
+			bzero(value, sizeof(value));
+			snprintf(value, sizeof(value), "\t%s <number>\n", list[i].keyword);
+                        write(fd, value, strlen(value));
+			break;
+                case IFNAME:
+			bzero(value, sizeof(value));
+			snprintf(value, sizeof(value), "\t%s <interface>\n", list[i].keyword);
+                        write(fd, value, strlen(value));
+                        break;
+                case STRING:
+			bzero(value, sizeof(value));
+			snprintf(value, sizeof(value), "\t%s <string>\n", list[i].keyword);
+                        write(fd, value, strlen(value));
+                        break;
+                }
+        }
+}
 
-	return(1);
+const struct command *
+parse_command(int fd, int argc, char **argv)
+{
+	const struct command	*start = first_level;
+	const struct command	*match = NULL;
+	char *errstring = "ERROR:\tvalid commands are:\n";
+
+	while (argc >= 0) {
+		match = match_command(start, *argv);
+		if (match == NULL) {
+			errstring = "ERROR:\tNo match found.\n";
+			goto error;
+		}
+
+		argc--;
+		argv++;
+
+		if (argc > 0 && match->next == NULL) {
+			errstring = "ERROR:\textra arguments passed.\n";
+			goto error;
+		}
+		if (argc < 0 && match->type != NON) {
+			if (match->next != NULL)
+				start = match->next;
+			errstring = "ERROR:\tincomplete command.\n";
+			goto error;
+		}
+		if (argc == 0 && *argv == NULL && match->type != NON) {
+			if (match->next != NULL)
+				start = match->next;
+			errstring = "ERROR:\tincomplete command.\n";
+			goto error;
+		}
+
+		if ( match->next == NULL)
+			break;
+
+		start = match->next;	
+	}
+
+	return (match);
+error:
+	write(fd, errstring, strlen(errstring));
+	show_command_list(fd, start);
+	return (NULL);
+}
+
+const struct command *
+match_command(const struct command *target, char *wordpassed)
+{
+	int i;
+
+	if (wordpassed == NULL)
+		return NULL;
+
+	for (i = 0; target[i].action != NULLOPT; i++) {
+		if (strcmp(target[i].keyword, wordpassed) == 0)
+			return &target[i];
+	}
+
+	return (NULL);
 }
 
 static void 
-write_status(char *statusline, int when) {
+write_status(const char *statusline, int when)
+{
 
 	ftruncate(status, (off_t)0);
 	if (when == BEFORE)
@@ -68,73 +186,146 @@ write_status(char *statusline, int when) {
 		dprintf(status, "%s\n", statusline);
 }
 
-/* Various commands we support */
-struct commands {
-	char	*file;
-	char	*command;
-	char	*syslog;
-	int	sleep; /* in seconds */
-} known[] = {
-	{ "/tmp/restart_webgui",	"/usr/local/bin/php /etc/rc.restart_webgui",
-		"webConfigurator restart in progress", CYCLE},
-	{ "/tmp/rc.linkup", 		"/usr/local/bin/php /etc/rc.linkup `/bin/cat /tmp/rc.linkup`", "rc.linkup starting", CYCLE},
-	{ "/tmp/rc.newwanip",		"/usr/local/bin/php /etc/rc.newwanip `/bin/cat /tmp/rc.newwanip`",
-		"rc.newwanip starting", 10},
-	{ "/tmp/filter_dirty",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_sync",
-		"reloading filter", 10},
-	{ "/tmp/filter_sync",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_synchronize",
-		"syncing firewall", CYCLE},
-	{ "/tmp/reload_all",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_all",
-		"reloading all", CYCLE},
-	{ "/tmp/reload_interfaces",	"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.reload_interfaces",
-		"reloading interfaces", CYCLE}, 
-	{ "/tmp/update_dyndns",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.dyndns.update `/bin/cat /tmp/update_dyndns`",
-		"updating dyndns", 20},
-	{ "/tmp/interface_configure",	"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.interfaces_wan_configure `/bin/cat /tmp/interface_configure`",
-		"configuring interface", 20},
-	{ "/tmp/start_sshd",		"/usr/bin/nice -n20 /etc/sshd",
-		"starting sshd", CYCLE},
-	{ "/tmp/filter_configure_xmlrpc",		"/usr/bin/nice -n20 /usr/local/bin/php /etc/rc.filter_configure_xmlrpc",
-		"reloading filter_configure_xmlrpc", CYCLE},
-	{ "/tmp/start_ntpd",		"/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf",
-		"starting ntpd", CYCLE},
-	{ "/tmp/resolv_conf_generate",		"/etc/rc.resolv_conf_generate",
-		"Rewriting resolv.conf", CYCLE}
-};
+static void
+run_command(const struct command *cmd, char *argv) {
+	char command[2048];
 
-void *
-run_command(void *arg) {
-	struct commands *cmd = arg;
-	struct timespec ts;
-        int howmany, i;
-
-	ts.tv_nsec = 0;
-	ts.tv_sec = CYCLE;
-	if (cmd->sleep)
-		ts.tv_sec = cmd->sleep;
-
-	for (;;) {
-        	if (fexist(cmd->file) == 1) {
-        		syslog(LOG_NOTICE, cmd->syslog);
-                	write_status(cmd->file, BEFORE);
-                	system(cmd->command);
-                	unlink(cmd->file);
-                	write_status(cmd->file, AFTER);
-        	}
-		nanosleep(&ts, NULL);
+	switch (cmd->type) {
+	case NON:
+	case COMPOUND: /* XXX: Should never happen. */
+        	syslog(LOG_NOTICE, cmd->cmd.syslog);
+		break;
+	case ADDRESS:
+	case PREFIX:
+	case INTEGER:
+	case IFNAME:
+	case STRING:
+        	syslog(LOG_NOTICE, cmd->cmd.syslog, argv);
+		break;
 	}
-        return NULL;
+
+	bzero(command, sizeof(command));
+	snprintf(command, sizeof(command), cmd->cmd.command, argv);
+	system(command);
+
+        return;
+}
+
+static void
+socket_close_command(int fd, struct event *ev)
+{
+	event_del(ev);
+	free(ev);
+        close(fd);
+}
+
+static void
+socket_read_command(int fd, __unused short event, void *arg)
+{
+	const struct command *cmd;
+	struct event *ev = arg;
+	enum { bufsize = 2048 };
+	char buf[bufsize];
+	register int n;
+	char **ap, *argv[bufsize], *p;
+	int i;
+
+	bzero(buf, sizeof(buf));
+	if ((n = read (fd, buf, bufsize)) == -1) {
+		if (errno != EWOULDBLOCK && errno != EINTR) {
+			socket_close_command(fd, ev);
+			return;
+		}
+	} else if (n == 0) {
+		socket_close_command(fd, ev);
+		return;
+	}
+	
+	if (buf[n - 1] == '\n')
+		buf[n - 1] = '\0'; /* remove stray \n */
+	if (n > 1 && buf[n - 2] == '\r') {
+		n--;
+		buf[n - 1] = '\0';
+	}
+	for (i = 0; i < n - 1; i++) {
+		if (!isalpha(buf[i]) && !isspace(buf[i]) && !isdigit(buf[i])) {
+			write(fd, "ERROR:\tonly alphanumeric chars allowd", 37);
+			socket_close_command(fd, ev);
+			return;
+		}
+	}
+	p = buf; /* blah, compiler workaround */
+
+	i = 0;
+	for (ap = argv; (*ap = strsep(&p, " \t")) != NULL;) {
+		if (**ap != '\0') {
+			if (++ap >= &argv[bufsize])
+				break;
+		}
+		i++;
+	}
+	if (i > 0) {
+		p = argv[i - 1];
+		i = i - 1;
+	} else {
+		p = argv[i];
+	}
+	cmd = parse_command(fd, i, argv);
+	if (cmd != NULL) {
+		write(fd, "OK\n", 3);
+		run_command(cmd, p);
+	}
+
+	return;
+}
+
+static void
+socket_accept_command(int fd, __unused short event, __unused void *arg)
+{
+	struct sockaddr_un sun;
+	struct event *ev;
+	socklen_t len;
+	int newfd;
+
+	if ((newfd = accept(fd, (struct sockaddr *)&sun, &len)) < 0) {
+		if (errno != EWOULDBLOCK && errno != EINTR)
+			syslog(LOG_NOTICE, "problems on accept");
+	}
+	set_blockmode(fd, O_NONBLOCK);
+	
+	if ((ev = malloc(sizeof(*ev))) == NULL) {
+		syslog(LOG_ERR, "Cannot allocate new struct event.");
+		close(fd);
+		return;
+	}
+
+	event_set(ev, newfd, EV_READ | EV_PERSIST, socket_read_command, ev);
+	event_add(ev, NULL);
+}
+
+static void
+set_blockmode(int fd, int cmd)
+{
+        int     flags;
+
+        if ((flags = fcntl(fd, F_GETFL, 0)) == -1)
+                errx(errno, "fcntl F_GETFL");
+
+	flags |= cmd;
+
+        if ((flags = fcntl(fd, F_SETFL, flags)) == -1)
+                errx(errno, "fcntl F_SETFL");
 }
 
 int main(void) {
-	pthread_t *threads;
-        int threrr = 0, err = 0, i, howmany;
-
+	struct event ev;
+	struct sockaddr_un sun;
+	int fd, errcode;
 
 	/* daemonize */
 	if (daemon(0, 0) < 0) {
 		syslog(LOG_ERR, "check_reload_status could not start.");
-		err = 1;
+		errcode = 1;
 		goto error;
 	}
 
@@ -143,31 +334,57 @@ int main(void) {
 	status = open(filepath, O_RDWR | O_CREAT | O_FSYNC);
 	if (status < 0) {
 		syslog(LOG_ERR, "check_reload_status could not open file %s", filepath);
-		err = 2;
+		errcode = 2;
 		goto error;
 	}
 	write_status("starting", NONE);
 
-	howmany = sizeof(known)/ sizeof(known[0]);
-	dprintf(status, "%d commands present\n", howmany);
-	threads = malloc( howmany * sizeof(pthread_t));
-	if (threads == NULL) {
-		write_status("could not allocate memory for threads", NONE);
-		err = 4;
+	fd = socket(PF_UNIX, SOCK_STREAM, 0);
+	if (fd < 0) {
+		errcode = -1;
+		printf("Could not socket\n");
 		goto error;
 	}
-	for (i = 0; i < howmany; i++) {
-		threrr = pthread_create(&threads[i], NULL, run_command, (void *)&known[i]);
-		if (threrr != 0)
-			dprintf(status, "Could not create thread for command %s.", known[i].command);
-	}
-	for (i = 0; i < howmany; i++)
-		pthread_join(threads[i], NULL);
 
+#if 0
+	if (unlink(PATH) == -1) {
+		errcode = -2;
+		printf("Could not unlink\n");
+		close(fd);
+		goto error;
+	}
+#else
+	unlink(PATH);
+#endif
+
+	bzero(&sun, sizeof(sun));
+        sun.sun_family = PF_UNIX;
+        strlcpy(sun.sun_path, PATH, sizeof(sun.sun_path));
+	if (bind(fd, (struct sockaddr *)&sun, sizeof(sun)) < 0) {
+		errcode = -2;
+		printf("Could not bind\n");
+		close(fd);
+		goto error;
+	}
+
+	set_blockmode(fd, O_NONBLOCK);
+
+        if (listen(fd, 30) == -1) {
+                printf("control_listen: listen");
+		close(fd);
+                return (-1);
+        }
+
+	event_init();
+	event_set(&ev, fd, EV_READ | EV_PERSIST, socket_accept_command, &ev);
+	event_add(&ev, NULL);
+	event_dispatch();
+
+	return (0);
 error:
 	write_status("exiting", NONE);
 	syslog(LOG_NOTICE, "check_reload_status is stopping.");
 	close(status);
 
-	return (err);
+	return (errcode);
 }

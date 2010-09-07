@@ -18,14 +18,17 @@ COMMENT?=	run various pfSense scripts on event.
 
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
+CFLAGS+=	-I/usr/local/include -L/usr/local/lib 
 
 do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -lpthread -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	${CC} ${CFLAGS} -levent -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	${CC} ${CFLAGS} -o ${WRKSRC}/pfSctl ${FILESDIR}/pfSctl.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/pfSctl ${PREFIX}/${WHERE}/
 
 .include <bsd.port.mk>
