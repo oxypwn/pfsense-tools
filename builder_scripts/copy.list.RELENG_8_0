@@ -60,6 +60,7 @@ usr/local/sbin/bpalogin
 usr/local/sbin/choparp
 usr/local/sbin/dhcpd
 usr/local/sbin/check_reload_status
+usr/local/sbin/pfSctl
 usr/local/sbin/dhcrelay
 usr/local/sbin/dnsmasq
 usr/local/sbin/dnswatch
