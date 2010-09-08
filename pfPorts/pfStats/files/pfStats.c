@@ -279,11 +279,50 @@ sleep:
 
 }
 
+void *
+fourth_thread(void *arg __unused)
+{
+	struct timespec ts;
+	int page_count, active_count, inactive_count, free_count,
+		cache_count, wire_count;
+	size_t size, csize;
+
+	ts.tv_sec = 10;
+        ts.tv_nsec = 0;
+
+	for (;;) {
+		size = csize = sizeof(int);
+		if (sysctlbyname("vm.stats.vm.v_page_count", &page_count, &size, NULL, 0) < 0)
+			printf("Could not fetch page_count.\n");
+		size = csize;
+		if (sysctlbyname("vm.stats.vm.v_active_count", &active_count, &size, NULL, 0) < 0)
+			printf("Could not fetch active_count.\n");
+		size = csize;
+		if (sysctlbyname("vm.stats.vm.v_inactive_count", &inactive_count, &size, NULL, 0) < 0)
+			printf("Could not fetch inactive_count.\n");
+		size = csize;
+		if (sysctlbyname("vm.stats.vm.v_free_count", &free_count, &size, NULL, 0) < 0)
+			printf("Could not fetch free_count.\n");
+		size = csize;
+		if (sysctlbyname("vm.stats.vm.v_cache_count", &cache_count, &size, NULL, 0) < 0)
+			printf("Could not fetch cache_count.\n");
+		size = csize;
+		if (sysctlbyname("vm.stats.vm.v_wire_count", &wire_count, &size, NULL, 0) < 0)
+			printf("Could not fetch wire_count.\n");
+
+		printf("Statistics gathered: %d, %f, %f, %f, %f, %f\n", page_count, (double)(active_count*100)/page_count,
+			(double)(inactive_count*100)/page_count, (double)(free_count*100)/page_count, 
+			(double)(cache_count*100)/page_count, (double)(wire_count*100)/page_count);
+
+		nanosleep(&ts, NULL);
+	}
+}
+
 int
 main(int argc, char **argv)
 {
 
-	pthread_t first, second, third;
+	pthread_t first, second, third, fourth;
 
 	if ((dev = open(PFDEV, O_RDONLY)) < 0) {
 		printf("Could not open pf(4) device because %s\n", strerror(errno));
@@ -293,10 +332,12 @@ main(int argc, char **argv)
 	pthread_create(&first, NULL, first_thread, NULL);
 	pthread_create(&second, NULL, second_thread, NULL);
 	pthread_create(&third, NULL, third_thread, NULL);
+	pthread_create(&fourth, NULL, fourth_thread, NULL);
 	
 	pthread_join(first, NULL);
 	pthread_join(second, NULL);
 	pthread_join(third, NULL);
+	pthread_join(fourth, NULL);
 
 	close(dev);
 
