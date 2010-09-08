@@ -11,7 +11,7 @@ COMMENT?=	pfStats
 
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
-CFLAGS+=	-I/usr/local/include -L/usr/local/lib -lrrd
+CFLAGS+=	-I/usr/local/include -L/usr/local/lib -lrrd -Wall -Werror
 
 do-extract:
 	mkdir -p ${WRKSRC}
