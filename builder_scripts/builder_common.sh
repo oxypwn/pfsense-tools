@@ -592,9 +592,9 @@ recompile_pfPorts() {
 		echo ">>> Executing $PFPORTSBASENAME"
 
 		if [ "$1" != "" ]; then
-			( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} -P ${1} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1
+			( su root -c "${USE_PORTS_FILE} -P ${1} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1
 		else
-			( su - root -c "cd /usr/ports/ && ${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
+			( su root -c "${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
 				| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
 		fi
 
