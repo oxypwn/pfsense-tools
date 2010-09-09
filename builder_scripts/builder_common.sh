@@ -591,10 +591,12 @@ recompile_pfPorts() {
 		chmod a+rx $USE_PORTS_FILE
 		echo ">>> Executing $PFPORTSBASENAME"
 
+		PWD=`pwd`
+
 		if [ "$1" != "" ]; then
-			( su root -c "${USE_PORTS_FILE} -P ${1} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1
+			( su - root -c "cd ${PWD} && ${USE_PORTS_FILE} -P ${1} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1
 		else
-			( su root -c "${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
+			( su - root -c "cd ${PWD} && ${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
 				| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
 		fi
 
