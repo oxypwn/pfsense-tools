@@ -13,7 +13,7 @@ touch /tmp/pfPort_alreadybuilt
 
 # Backup pwd and chdir to ports
 CURRENTDIR=`pwd`
-PFPORTSDIR="${CURRENTDIR}/../pfPorts"
+PFPORTSDIR=`dirname $0`
 cd /usr/ports
 
 # Individual logs here
