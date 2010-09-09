@@ -238,15 +238,14 @@ for PORT in $PORTSTOBUILD; do
 			echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
 		fi
 	else
-		echo ">>> Copying $CURRENTDIR/$PORT_NAME $PORT_LOCATION"
-		if [ ! -d $PORT_LOCATION/$PORT_NAME ]; then
+		echo ">>> Copying /home/pfsense/tools/pfPorts/$PORT_NAME $PORT_LOCATION"
+		if [ ! -d $PORT_LOCATION ]; then
 			echo ">>> Creating directory $PORT_LOCATION"
 			mkdir -p $PORT_LOCATION
-			cp -R $CURRENTDIR/$PORT_NAME/* $PORT_LOCATION/
 		else 
 			rm -rf $PORT_LOCATION/*
-			cp -R $CURRENTDIR/$PORT_NAME/* $PORT_LOCATION/
 		fi
+		cp -R /home/pfsense/tools/pfPorts/$PORT_NAME/* $PORT_LOCATION/
 		# Return the seperator back to its original value
 		IFS=$oIFS
 		clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
