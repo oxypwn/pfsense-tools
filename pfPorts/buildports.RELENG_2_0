@@ -245,6 +245,7 @@ for PORT in $PORTSTOBUILD; do
 		else 
 			rm -rf $PORT_LOCATION/*
 		fi
+		rm -rf /home/pfsense/tools/pfPorts/$PORT_NAME/work 2>/dev/null
 		cp -R /home/pfsense/tools/pfPorts/$PORT_NAME/* $PORT_LOCATION/
 		# Return the seperator back to its original value
 		IFS=$oIFS
