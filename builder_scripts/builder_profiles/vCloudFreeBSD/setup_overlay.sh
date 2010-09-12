@@ -18,6 +18,5 @@ mkdir -p $SRCDIR
 ./clean_build.sh
 ./update_git_repos.sh
 ./apply_kernel_patches.sh
-./build_pfPorts.sh
-./build_iso.sh
+./build_freebsdisoonly.sh
 
