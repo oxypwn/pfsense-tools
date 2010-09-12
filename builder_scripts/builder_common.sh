@@ -3118,7 +3118,8 @@ install_pkg_install_ports() {
 			kill $$
 		fi
 		(su - root -c "cd $PORTDIRPFS && make clean") | egrep -wi '(^>>>|error)'
-		(su - root -c "cd $PORTDIRPFS && make package FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
+		(su - root -c "cd $PORTDIRPFS && make depend FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
+		(su - root -c "cd $PORTDIRPFS && make package-recursive FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp $PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
