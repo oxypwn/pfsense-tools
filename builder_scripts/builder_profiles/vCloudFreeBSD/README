@@ -1,0 +1,11 @@
+vCloudFreeBSD is an iso designed for cloud operators that allows rapid deployment
+of a FreeBSD machine.
+
+On first bootup vCloudFreeBSD will automatically install to the first hard disk
+that it finds and then reboot.
+
+On second bootup it will wait 15 seconds for a operator to hit a key to set
+first boot items such as IP address, hostname etc.
+
+After this the machine will boot and puppet will automatically start to finish
+the machines provisioning.

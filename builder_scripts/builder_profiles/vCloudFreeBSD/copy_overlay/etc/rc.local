@@ -1,0 +1,21 @@
+#!/bin/sh
+
+first_boot() {
+
+}
+
+second_boot() {
+
+}
+
+if [ -f /FIRST_BOOT ]; then
+	# Invoke installer
+	first_boot
+	rm /FIRST_BOOT
+	touch /SECOND_BOOT
+	shutdown -r now
+fi
+
+if [ -f /SECOND_BOOT ]; then
+	second_boot
+fi
