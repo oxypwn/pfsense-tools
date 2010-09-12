@@ -136,6 +136,13 @@ cust_populate_installer_bits_freebsd_only
 # Check to see if we have a healthy installer
 ensure_healthy_installer
 
+echo ">>> Searching and installing ports..."
+if [ -z "${PKG_INSTALL_PORTSPFS:-}" ]; then		
+	export PKG_INSTALL_PORTSPFS="${PKG_INSTALL_PORTSPFS:-} /usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
+fi
+install_pkg_install_ports
+
+
 # Prepare /usr/local/pfsense-fs -> /usr/local/pfsense-clonefs clone
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
