@@ -52,10 +52,9 @@ fi
 
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
-	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${ARCH}/conf/
-else
-	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
+	export TARGET_ARCH=i386
 fi
+TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
 
 # Set KERNEL_BUILD_PATH if it has not been set
 if [ "$KERNEL_BUILD_PATH" = "" ]; then
@@ -99,6 +98,8 @@ print_error_pfS() {
 	echo "Something went wrong, check errors!" >&2
 	echo "####################################"
 	echo
+	echo "NOTE: a lot of times you can run ./clean_build.sh to resolve."
+	echo
 	if [ "$1" != "" ]; then
 		echo $1
 	fi
@@ -138,12 +139,8 @@ fixup_kernel_options() {
 	mkdir -p $PFSENSEBASEDIR/kernels/
 
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
-	if [ "$TARGET_ARCH" = "" ]; then
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
-	else
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
-		cp $BUILDER_TOOLS/builder_scripts/conf/AR17* $SRCDIR/sys/${TARGET_ARCH}/conf/
-	fi
+	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+	cp $BUILDER_TOOLS/builder_scripts/conf/AR17* $SRCDIR/sys/${TARGET_ARCH}/conf/
 
 	# Copy stock FreeBSD configurations
 	cp $BUILDER_TOOLS/builder_scripts/conf/FreeBSD.* $SRCDIR/sys/$ARCH/conf/
@@ -3099,17 +3096,14 @@ disable_memory_disks() {
 
 # This routine assists with installing various
 # freebsd ports files into the pfsenese-fs staging
-# area.  This was handled by pkginstall.sh (freesbie)
-# previously and the need for simplicity has won out.
+# area.  The various ports are built prior to install.
 install_pkg_install_ports() {
-	echo ">>> Searching for packages..."
-	#
-	# We really want to use this code, but it need a lot of work....
-	#
-	echo -n ">>> Installing ports: "
+	if [ ! -z "$PKG_INSTALL_PORTSPFS" ]; then
+		return
+	fi  
+	echo -n ">>> Building ports (this might take a while): "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p $PFS_PKG_ALL
-	rm -f $PFS_PKG_ALL/*
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		echo -n "$PORTDIRPFS "
 		if [ ! -d $PORTDIRPFS ]; then
@@ -3117,14 +3111,15 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		(su - root -c "cd $PORTDIRPFS && make clean") | egrep -wi '(^>>>|error)'
-		(su - root -c "cd $PORTDIRPFS && make depends FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
-		(su - root -c "cd $PORTDIRPFS && make package-recursive FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
+		(cd $PORTDIRPFS && make clean) 2>&1 | egrep -wi '(^>>>|error )'
+		(cd $PORTDIRPFS && make depends BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi '(^>>>|error )'
+		(cd $PORTDIRPFS && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi '(^>>>|error )'
+		(cd $PORTDIRPFS && make clean) 2>&1 | egrep -wi '(^>>>|error )'
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp $PFS_PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
-	echo ">>> Installing packages in a chroot..."
-	chroot $PFSENSEBASEDIR pkg_add /tmp/pkg/*
+	echo ">>> Installing built ports (packages) in a chroot..."
+	chroot $PFSENSEBASEDIR "pkg_add `ls -l /tmp/pkg | sort +5 | awk '{ print $9 }'`"
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	echo -n "Done!"
 }

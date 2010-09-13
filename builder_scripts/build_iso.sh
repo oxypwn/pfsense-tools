@@ -135,7 +135,7 @@ install_custom_packages
 echo ">>> Phase set_image_as_cdrom"
 set_image_as_cdrom
 
-echo ">>> Searching and installing ports..."
+# Build custom ports and install in chroot if needed
 install_pkg_install_ports
 
 echo ">>> Installing packages: " 

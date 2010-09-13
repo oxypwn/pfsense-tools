@@ -141,7 +141,7 @@ cust_populate_installer_bits_freebsd_only
 # Check to see if we have a healthy installer
 ensure_healthy_installer
 
-echo ">>> Searching and installing ports..."
+# Build custom ports and install in chroot if needed
 install_pkg_install_ports
 
 # Prepare /usr/local/pfsense-fs -> /usr/local/pfsense-clonefs clone
