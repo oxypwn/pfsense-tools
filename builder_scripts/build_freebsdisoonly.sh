@@ -56,7 +56,7 @@ if [ ! -z "${KERNELCONF:-}" ]; then
     echo ">>> Using ${KERNELCONF:-} ..."
     export KERNELCONF="${KERNELCONF:-}"
 else
-    export KERNELCONF="${PWD}/conf/FreeBSD.$FREEBSD_VERSION"
+    export KERNELCONF="${BUILDER_SCRIPTS}/conf/FreeBSD.$FREEBSD_VERSION"
 fi
 
 # Define src.conf
