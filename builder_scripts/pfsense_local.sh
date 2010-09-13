@@ -36,12 +36,12 @@ export BASE_DIR=${BASE_DIR:-/home/pfsense}
 # pfSense and tools directory name
 # Used for Git checkout
 export TOOLS_DIR=${TOOLS_DIR:-tools}
-export PWD=${TOOLS_DIR:-tools}
 export PFSENSE_DIR=${PFSENSE_DIR:-pfSense}
 export FREESBIE_DIR=${FREESBIE_DIR:-freesbie2}
 
 # Generally /home/pfsense/tools
 export BUILDER_TOOLS=${BUILDER_TOOLS:-${BASE_DIR}/${TOOLS_DIR}}
+export PWD=${BUILDER_TOOLS:-${BASE_DIR}/${TOOLS_DIR}}
 
 # Generally /home/pfsense/tools/builder_scripts
 export BUILDER_SCRIPTS=${BUILDER_SCRIPTS:-${BUILDER_TOOLS}/builder_scripts}
