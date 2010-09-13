@@ -134,9 +134,6 @@ echo ">>> Phase set_image_as_cdrom"
 set_image_as_cdrom
 
 echo ">>> Searching and installing ports..."
-if [ -z "${PKG_INSTALL_PORTSPFS:-}" ]; then		
-	export PKG_INSTALL_PORTSPFS="${PKG_INSTALL_PORTSPFS:-} /usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
-fi
 install_pkg_install_ports
 
 echo ">>> Installing packages: " 

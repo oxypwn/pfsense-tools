@@ -3102,7 +3102,6 @@ install_pkg_install_ports() {
 	(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
 	set -e
 	freesbie_make pkginstall
-	return
 	#
 	# We really want to use this code, but it need a lot of work....
 	#
