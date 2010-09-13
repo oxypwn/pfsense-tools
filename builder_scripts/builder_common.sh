@@ -52,9 +52,10 @@ fi
 
 # Set TARGET_ARCH_CONF_DIR
 if [ "$TARGET_ARCH" = "" ]; then
-	export TARGET_ARCH=i386
+	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${ARCH}/conf/
+else
+	TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
 fi
-TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
 
 # Set KERNEL_BUILD_PATH if it has not been set
 if [ "$KERNEL_BUILD_PATH" = "" ]; then
@@ -137,8 +138,12 @@ fixup_kernel_options() {
 	mkdir -p $PFSENSEBASEDIR/kernels/
 
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
-	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
-	cp $BUILDER_TOOLS/builder_scripts/conf/AR17* $SRCDIR/sys/${TARGET_ARCH}/conf/
+	if [ "$TARGET_ARCH" = "" ]; then
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
+	else
+		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+		cp $BUILDER_TOOLS/builder_scripts/conf/AR17* $SRCDIR/sys/${TARGET_ARCH}/conf/
+	fi
 
 	# Copy stock FreeBSD configurations
 	cp $BUILDER_TOOLS/builder_scripts/conf/FreeBSD.* $SRCDIR/sys/$ARCH/conf/
