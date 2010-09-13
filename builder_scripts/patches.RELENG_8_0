@@ -54,3 +54,4 @@
 ~sys/netinet~ip_carp.c.diff~
 ~usr.bin/netstat/~netstat.8.diff~
 ~~vfs_mount.c.diff~
+~~wpa_RSN_PREAUTH_support.diff~
