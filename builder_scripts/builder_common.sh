@@ -240,6 +240,7 @@ fixup_kernel_options() {
 
 	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
 		echo "devices	$EXTRA_DEVICES" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	fi
 
 	# NOTE!  If you remove this, you WILL break booting!  These file(s) are read
 	#        by FORTH and for some reason installkernel with DESTDIR does not
