@@ -51,8 +51,13 @@ if [ -d $CVS_CO_DIR ]; then
 	chflags -R noschg $CVS_CO_DIR
 fi 
 
-# Set to stock FreeBSD kernel configration
-export KERNELCONF="${PWD}/conf/FreeBSD.$FREEBSD_VERSION"
+# Allow customized Kernel
+if [ ! -z "${KERNELCONF:-}" ]; then
+    echo ">>> Using ${KERNELCONF:-} ..."
+    export KERNELCONF="${KERNELCONF:-}"
+else
+    export KERNELCONF="${PWD}/conf/FreeBSD.$FREEBSD_VERSION"
+fi
 
 # Define src.conf
 export SRC_CONF="/dev/null"
