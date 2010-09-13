@@ -1796,31 +1796,28 @@ make_world() {
 		find $MAKEOBJDIRPREFIX/ -name .done_buildworld -exec rm {} \;
 		find $MAKEOBJDIRPREFIX/ -name .done_extra -exec rm {} \;
 		find $MAKEOBJDIRPREFIX/ -name .done_objdir -exec rm {} \;
-	fi
 
-    # Check if the world and kernel are already built and set
-    # the NO variables accordingly
-	ISINSTALLED=0
-	if [ -d $MAKEOBJDIRPREFIX ]; then
+		# Check if the world and kernel are already built and set
+		# the NO variables accordingly
 		ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
-	fi
-	if [ "$ISINSTALLED" -gt 0 ]; then
-		touch ${MAKEOBJDIRPREFIX}/.done_buildworld
-		export NO_BUILDWORLD=yo
+		if [ "$ISINSTALLED" -gt 0 ]; then
+			touch ${MAKEOBJDIRPREFIX}/.done_buildworld
+			export NO_BUILDWORLD=yo
+		fi
 	fi
 
 	# Check to see if we have installed to $PFSENSEBASEDIR
 	ISINSTALLED=0
 	if [ -d ${PFSENSEBASEDIR} ]; then
 		ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name init | wc -l`
-	fi
-	if [ "$ISINSTALLED" -gt 0 ]; then
-		touch ${MAKEOBJDIRPREFIX}/.done_installworld
-		export NO_INSTALLWORLD=yo
+		if [ "$ISINSTALLED" -gt 0 ]; then
+			touch ${MAKEOBJDIRPREFIX}/.done_installworld
+			export NO_INSTALLWORLD=yo
+		fi
 	fi
 
 	# Invoke FreeSBIE's buildworld
-    freesbie_make buildworld
+	freesbie_make buildworld
 
 	# EDGE CASE #1 btxldr ############################################
 	# Sometimes inbetween build_iso runs btxld seems to go missing.
