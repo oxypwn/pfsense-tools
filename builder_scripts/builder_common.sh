@@ -140,9 +140,15 @@ fixup_kernel_options() {
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
 	if [ "$TARGET_ARCH" = "" ]; then
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
+		if [ ! -z "${KERNELCONF}" ]; then
+			cp ${KERNELCONF} $SRCDIR/sys/i386/conf/
+		fi
 	else
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
 		cp $BUILDER_TOOLS/builder_scripts/conf/AR17* $SRCDIR/sys/${TARGET_ARCH}/conf/
+		if [ ! -z "${KERNELCONF}" ]; then
+			cp ${KERNELCONF} $SRCDIR/sys/${TARGET_ARCH}/conf/
+		fi
 	fi
 
 	# Copy stock FreeBSD configurations

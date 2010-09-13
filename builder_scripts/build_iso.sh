@@ -61,7 +61,6 @@ fi
 if [ ! -z "${KERNELCONF:-}" ]; then
     echo ">>> Using ${KERNELCONF:-} ..."
     export KERNELCONF="${KERNELCONF:-}"
-    cp ${KERNELCONF} ${TARGET_ARCH_CONF_DIR}
 else
     export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
 fi
