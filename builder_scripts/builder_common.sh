@@ -139,40 +139,15 @@ fixup_kernel_options() {
 	mkdir -p $PFSENSEBASEDIR/kernels/
 
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
-	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
-	cp $BUILDER_TOOLS/builder_scripts/conf/AR17* $SRCDIR/sys/${TARGET_ARCH}/conf/
-
-	# Copy stock FreeBSD configurations
-	cp $BUILDER_TOOLS/builder_scripts/conf/FreeBSD.* $SRCDIR/sys/$ARCH/conf/
+	cp $BUILDER_TOOLS/builder_scripts/conf/$KERNCONF $KERNELCONF
 
 	# Build extra kernels (embedded, developers edition, etc)
-	mkdir -p $KERNEL_BUILD_PATH/wrap/boot/defaults
-	mkdir -p $KERNEL_BUILD_PATH/wrap/boot/kernel
-	mkdir -p $KERNEL_BUILD_PATH/developers/boot/kernel
-	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/kernel
-	mkdir -p $KERNEL_BUILD_PATH/AR71XX/boot/kernel
+	mkdir -p $KERNEL_DESTDIR/boot/kernel
+	# Do not remove or move support to freesbie2/scripts/installkernel.sh
+	mkdir -p $KERNEL_DESTDIR/boot/defaults
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
-	mkdir -p $KERNEL_BUILD_PATH/SMP/boot/kernel
-	mkdir -p $KERNEL_BUILD_PATH/uniprocessor/boot/kernel
-	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/kernel
-	mkdir -p $KERNEL_BUILD_PATH/AR71XX/boot/kernel
-
-	# Do not remove or move support to freesbie2/scripts/installkernel.sh
-	mkdir -p $KERNEL_BUILD_PATH/wrap/boot/defaults/
-	mkdir -p $KERNEL_BUILD_PATH/developers/boot/defaults/
-	mkdir -p $KERNEL_BUILD_PATH/SMP/boot/defaults/
-	mkdir -p $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/
-	mkdir -p $KERNEL_BUILD_PATH/freebsd/boot/defaults/
-	mkdir -p $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
-
-	# Do not remove or move support to freesbie2/scripts/installkernel.sh
-	touch $KERNEL_BUILD_PATH/wrap/boot/defaults/loader.conf
-	touch $KERNEL_BUILD_PATH/developers/boot/defaults/loader.conf
-	touch  $KERNEL_BUILD_PATH/SMP/boot/defaults/loader.conf
-	touch  $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/loader.conf
-	touch  $KERNEL_BUILD_PATH/freebsd/boot/defaults/loader.conf
-	touch  $KERNEL_BUILD_PATH/AR71XX/boot/defaults/loader.conf
+	touch $KERNEL_DESTDIR/boot/defaults/loader.conf
 
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
@@ -180,103 +155,71 @@ fixup_kernel_options() {
 	if [ "$WITH_DTRACE" = "" ]; then
 		echo ">>> Not adding D-Trace to Developers Kernel..."
 	else
-		echo "options KDTRACE_HOOKS" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
-		echo "options DDB_CTF" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+		echo "options KDTRACE_HOOKS" >> $KERNELCONF
+		echo "options DDB_CTF" >> $KERNELCONF
 	fi
 
 	if [ "$TARGET_ARCH" = "" ]; then
 		TARGET_ARCH=$ARCH
 	fi
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
-	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
-	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.8 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-	echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-	echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-	echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-	if [ ! -f "$SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7" ]; then
-		echo ">>> Could not find $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7"
+	cp $BUILDER_TOOLS/builder_scripts/conf/$KERNCONF $KERNELCONF
+	echo "" >> $KERNELCONF
+	if [ ! -f "$KERNELCONF" ]; then
+		echo ">>> Could not find $KERNELCONF"
 		print_error_pfS
-	fi
-	if [ ! -z "${KERNELCONF}" ]; then
-		cp ${KERNELCONF} $SRCDIR/sys/${TARGET_ARCH}/conf/
-		echo ">>> Overriding kernel config with $KERNELCONF"
 	fi
 
 	# Add SMP and APIC options for i386 platform
 	if [ "$ARCH" = "i386" ]; then
-		echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-		echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-		echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-		echo "device 		apic" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
+		echo "device 		apic" >> $KERNELCONF
+		echo "options 		SMP"   >> $KERNELCONF
 	fi
 
 	# Add ALTQ_NOPCC which is needed for ALTQ
-	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
-	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-	echo "options		ALTQ_NOPCC" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "options		ALTQ_NOPCC" >> $KERNELCONF
 
 	# Add SMP
-	if [ "$ARCH" = "i386" ]; then
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-	fi
 	if [ "$ARCH" = "amd64" ]; then
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+		echo "options 		SMP"   >> $KERNELCONF
 	fi
 	if [ "$ARCH" = "powerpc" ]; then
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_Dev.8
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+		echo "options 		SMP"   >> $KERNELCONF
 	fi
 
 	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
-		echo "devices	$EXTRA_DEVICES" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+		echo "devices	$EXTRA_DEVICES" >> $KERNELCONF
+	fi
+	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
+		echo "nodevices	$EXTRA_DEVICES" >> $KERNELCONF
+	fi
+	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
+		echo "options	$EXTRA_OPTIONS" >> $KERNELCONF
+	fi
+	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
+		echo "nooptions	$NOEXTRA_OPTIONS" >> $KERNELCONF
 	fi
 
 	# NOTE!  If you remove this, you WILL break booting!  These file(s) are read
 	#        by FORTH and for some reason installkernel with DESTDIR does not
 	#        copy this file over and you will end up with a blank file?
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/uniprocessor/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/SMP/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/developers/boot/defaults/
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
-	#
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_DESTDIR/boot/defaults
 	if [ -f $SRCDIR/sys/$ARCH/conf/GENERIC.hints ]; then
-		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap/boot/device.hints
-		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/uniprocessor/boot/device.hints
-		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/SMP/boot/device.hints
-		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints
+		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints	$KERNEL_DESTDIR/boot/device.hints
 	fi
-	if [ -f $SRCDIR/sys/mips/conf/AR71XX.hints ]; then
-		cp $SRCDIR/sys/mips/conf/AR71XX.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
+	if [ -f $SRCDIR/sys/mips/conf/$KERNCONF.hints ]; then
+		cp $SRCDIR/sys/mips/conf/$KERNCONF.hints $KERNEL_DESTDIR/boot/device.hints
 	fi
 	# END NOTE.
 
 	# Danger will robinson -- 7.2+ will NOT boot if these files are not present.
 	# the loader will stop at |
-	touch $KERNEL_BUILD_PATH/wrap/boot/loader.conf
-	touch $KERNEL_BUILD_PATH/uniprocessor/boot/loader.conf
-	touch $KERNEL_BUILD_PATH/SMP/boot/loader.conf
-	touch $KERNEL_BUILD_PATH/developers/boot/loader.conf
-	touch $KERNEL_BUILD_PATH/AR71XX/boot/loader.conf
-	# Danger, warning, achtung
+	touch $KERNEL_DESTDIR/boot/loader.conf
 
 }
 
 # This routine builds nanobsd with VGA
 build_embedded_kernel_vga() {
-	# Common fixup code
-	fixup_kernel_options
 	# Build embedded kernel
 	echo ">>> Building embedded VGA kernel..."
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
@@ -287,6 +230,8 @@ build_embedded_kernel_vga() {
 	export KERNCONF=pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_vga"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing embedded VGA kernel..."
 	freesbie_make installkernel
@@ -304,8 +249,6 @@ build_embedded_kernel_vga() {
 
 # This routine builds the rspro kernel
 build_rspro_kernel() {
-	# Common fixup code
-	fixup_kernel_options
 	# Build embedded kernel
 	echo ">>> Building rspro kernel..."
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
@@ -317,6 +260,8 @@ build_rspro_kernel() {
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/AR71XX"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/AR71XX"
 	cp $BUILDER_TOOLS/builder_scripts/conf/AR71XX* $SRCDIR/sys/mips/conf/
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing rspro kernel..."
 	freesbie_make installkernel
@@ -333,8 +278,6 @@ build_rspro_kernel() {
 
 # This routine builds the embedded kernel aka wrap
 build_embedded_kernel() {
-	# Common fixup code
-	fixup_kernel_options
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
@@ -345,6 +288,8 @@ build_embedded_kernel() {
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}.${ARCH}
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing embedded kernel..."
 	freesbie_make installkernel
@@ -361,8 +306,6 @@ build_embedded_kernel() {
 
 # This routine builds the developers kernel
 build_dev_kernel() {
-	# Common fixup code
-	fixup_kernel_options
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
@@ -373,6 +316,8 @@ build_dev_kernel() {
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing Developers kernel..."
 	freesbie_make installkernel
@@ -385,8 +330,6 @@ build_dev_kernel() {
 
 # This routine builds a freebsd specific kernel (no pfSense options)
 build_freebsd_only_kernel() {
-	# Common fixup code
-	fixup_kernel_options
 	# Build Developers kernel
 	echo ">>> Building Developers kernel..."
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
@@ -397,6 +340,8 @@ build_freebsd_only_kernel() {
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/FreeBSD.${FREEBSD_VERSION}"
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/freebsd"
 	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing FreeBSD kernel..."
 	freesbie_make installkernel
@@ -417,8 +362,6 @@ build_all_kernels() {
 		NO_BUILDKERNEL=yo
 	fi
 
-	# Common fixup code
-	fixup_kernel_options
 	# Build uniprocessor kernel
 	echo ">>> Building uniprocessor kernel..."
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
@@ -429,6 +372,8 @@ build_all_kernels() {
 	export KERNCONF=pfSense.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/uniprocessor"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing uniprocessor kernel..."
 	freesbie_make installkernel
