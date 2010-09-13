@@ -140,9 +140,9 @@ export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j$CPUS"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-"-j$CPUS"}
 export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw"}
 export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
-export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn, bwn, run"}
+export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 export NOEXTRA_DEVICES=${NOEXTRA_DEVICES:-}
-export EXTRA_OPTIONS=${EXTRA_OPTIONS:-"siba_bwn, bwn, run"}
+export EXTRA_OPTIONS=${EXTRA_OPTIONS:-}
 export NOEXTRA_OPTIONS=${NOEXTRA_OPTIONS:-}
 
 # Do not clean.  Makes subsequent builds quicker.
