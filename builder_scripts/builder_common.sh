@@ -980,15 +980,15 @@ install_custom_packages() {
 		mount -t devfs devfs ${BASEDIR}/dev
 	fi
 
-	DESTNAME="pkginstall.sh"
+	PFSDESTNAME="pkginstall.sh"
 
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
 		# execute setup script
 	else
 		# cleanup if file does exist
-		if [ -f ${FREESBIE_PATH}/extra/customscripts/${DESTNAME} ]; then
-			rm ${FREESBIE_PATH}/extra/customscripts/${DESTNAME}
+		if [ -f ${FREESBIE_PATH}/extra/customscripts/${PFSDESTNAME} ]; then
+			rm ${FREESBIE_PATH}/extra/customscripts/${PFSDESTNAME}
 		fi
 	fi
 
@@ -2418,8 +2418,8 @@ pfsense_install_custom_packages_exec() {
 	#	Copyright (C) 2007 Daniel S. Haischt <me@daniel.stefan.haischt.name>
 	#   Copyright (C) 2009 Scott Ullrich <sullrich@gmail.com>
 
-	DESTNAME="pkginstall.sh"
-	TODIR="${PFSENSEBASEDIR}"
+	PFSDESTNAME="pkginstall.sh"
+	PFSTODIR="${PFSENSEBASEDIR}"
 
 	# Extra package list if defined.
 	if [ ! -z "${custom_package_list:-}" ]; then
@@ -2428,28 +2428,28 @@ pfsense_install_custom_packages_exec() {
 		# devfs mount is required cause PHP requires /dev/stdin
 		# php.ini needed to make PHP argv capable
 		#
-		/bin/echo ">>> Installing custom packages to: ${TODIR} ..."
+		/bin/echo ">>> Installing custom packages to: ${PFSTODIR} ..."
 
-		cp ${TODIR}/etc/platform ${TODIR}/tmp/
+		cp ${PFSTODIR}/etc/platform ${PFSTODIR}/tmp/
 
-		/sbin/mount -t devfs devfs ${TODIR}/dev
+		/sbin/mount -t devfs devfs ${PFSTODIR}/dev
 
-		/bin/mkdir -p ${TODIR}/var/etc/
-		/bin/cp /etc/resolv.conf ${TODIR}/etc/
+		/bin/mkdir -p ${PFSTODIR}/var/etc/
+		/bin/cp /etc/resolv.conf ${PFSTODIR}/etc/
 
-		/bin/echo ${custom_package_list} > ${TODIR}/tmp/pkgfile.lst
+		/bin/echo ${custom_package_list} > ${PFSTODIR}/tmp/pkgfile.lst
 
-		/bin/cp ${BUILDER_TOOLS}/builder_scripts/pfspkg_installer ${TODIR}/tmp
-		/bin/chmod a+x ${TODIR}/tmp/pfspkg_installer
+		/bin/cp ${BUILDER_TOOLS}/builder_scripts/pfspkg_installer ${PFSTODIR}/tmp
+		/bin/chmod a+x ${PFSTODIR}/tmp/pfspkg_installer
 
-		cp ${TODIR}/usr/local/lib/php.ini /tmp/
+		cp ${PFSTODIR}/usr/local/lib/php.ini /tmp/
 		if [ -f /tmp/php.ini ]; then
-			cat /tmp/php.ini | grep -v apc > ${TODIR}/usr/local/lib/php.ini
-			cat /tmp/php.ini | grep -v apc > ${TODIR}/usr/local/etc/php.ini
+			cat /tmp/php.ini | grep -v apc > ${PFSTODIR}/usr/local/lib/php.ini
+			cat /tmp/php.ini | grep -v apc > ${PFSTODIR}/usr/local/etc/php.ini
 		fi
 
 	# setup script that will be run within the chroot env
-	/bin/cat > ${TODIR}/${DESTNAME} <<EOF
+	/bin/cat > ${PFSTODIR}/${PFSDESTNAME} <<EOF
 #!/bin/sh
 #
 # ------------------------------------------------------------------------
@@ -2580,7 +2580,7 @@ fi
 
 /bin/rm /etc/resolv.conf
 
-/bin/rm /${DESTNAME}
+/bin/rm /${PFSDESTNAME}
 
 if [ -f /tmp/php.ini ]; then
 	cp /tmp/php.ini /usr/local/lib/php.ini
@@ -2590,11 +2590,11 @@ fi
 EOF
 
 		echo ">>> Installing custom pfSense-XML packages inside chroot ..."
-		chmod a+rx ${TODIR}/${DESTNAME}
-		chroot ${TODIR} /bin/sh /${DESTNAME}
+		chmod a+rx ${PFSTODIR}/${PFSDESTNAME}
+		chroot ${PFSTODIR} /bin/sh /${PFSDESTNAME}
 		rc=$?
-		echo ">>> Unmounting ${TODIR}/dev ..."
-		umount -f ${TODIR}/dev
+		echo ">>> Unmounting ${PFSTODIR}/dev ..."
+		umount -f ${PFSTODIR}/dev
 
 		if [ "${rc}" != "0" ]; then
 			echo ">>> ERROR: Error installing custom packages"
