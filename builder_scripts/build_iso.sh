@@ -68,9 +68,9 @@ fi
 # If a embedded build has been performed we need to nuke
 # /usr/obj.pfSense/ since full uses a different
 # src.conf
-if [ -f /usr/obj.pfSense/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
-	echo -n "Removing /usr/obj* since embedded build performed prior..."
-	rm -rf /usr/obj.pfSense/*
+if [ -f ${MAKEOBJDIRPREFIX}/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
+	echo -n "Removing $MAKEOBJDIRPREFIX/* since embedded build performed prior..."
+	rm -rf ${MAKEOBJDIRPREFIX}/*
 	echo "done."
 fi
 
