@@ -141,7 +141,7 @@ CPUS=`sysctl kern.smp.cpus | awk '{ print $2 }'`
 CPUS=`expr $CPUS + 1`
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j$CPUS"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-"-j$CPUS"}
-export MODULES_OVERRIDE=${MODULES_OVERRIDE:"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw"}
+export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw"}
 export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 
 # Do not clean.  Makes subsequent builds quicker.
