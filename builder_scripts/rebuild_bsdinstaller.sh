@@ -17,6 +17,10 @@ fi
 
 export CVSDIR=${CVSDIR:-"$BUILDER_SCRIPTS"}
 
+# Copy BSDInstaller build.conf
+cp ${BUILDER_TOOLS}/installer/conf/build.conf \
+       ${BASE_DIR}/installer/scripts/build/
+
 echo -n ">>> Creating installer tarballs..."
 (cd $BASE_DIR/installer/installer/scripts/build  && ./create_installer_tarballs.sh) 2>&1 | egrep -B3 -A3 -wi '(warning|error)'
 echo "Done!"
@@ -26,7 +30,7 @@ echo -n ">>> Copying ports to the ports directory..."
 echo "Done!"
 
 echo -n ">>> Rebuilding BSDInstaller..."
-(cd $BASE_DIR/installer/installer/scripts/build  && ./build_installer_packages.sh) 2>&1 | egrep -B3 -A3 -wi '(error)'
+(cd $BASE_DIR/installer/installer/scripts/build  && sh ./build_installer_packages.sh) 2>&1 | egrep -B3 -A3 -wi '(error)'
 echo "Done!"
 
 if [ -f $BUILDER_TOOLS/builder_scripts/conf/packages.tbz ]; then

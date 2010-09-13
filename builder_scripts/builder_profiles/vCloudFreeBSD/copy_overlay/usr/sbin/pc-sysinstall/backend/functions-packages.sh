@@ -102,10 +102,10 @@ parse_package_index()
 
 show_package_file()
 {
-	PKGFILE="${1}"
+	PFSPKGFILE="${1}"
 
 	exec 3<&0
-	exec 0<"${PKGFILE}"
+	exec 0<"${PFSPKGFILE}"
 
 	while read -r line
 	do

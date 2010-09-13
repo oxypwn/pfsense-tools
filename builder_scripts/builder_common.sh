@@ -523,9 +523,9 @@ recompile_pfPorts() {
 		fi
 		export FORCE_PKG_REGISTER=yo
 
-        # We need to unset PKGFILE before invoking ports
-        OLDPKGFILE="$PKGFILE"
-        unset PKGFILE
+        # We need to unset PFSPKGFILE before invoking ports
+        OLDPFSPKGFILE="$PFSPKGFILE"
+        unset PFSPKGFILE
 
 		chmod a+rx $USE_PORTS_FILE
 		echo ">>> Executing $PFPORTSBASENAME"
@@ -537,8 +537,8 @@ recompile_pfPorts() {
 				| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
 		fi
 
-        # Restore PKGFILE
-        PKGFILE="$OLDPKGFILE"; export PKGFILE
+        # Restore PFSPKGFILE
+        PFSPKGFILE="$OLDPFSPKGFILE"; export PFSPKGFILE
 
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			if [ -f /tmp/make.conf ]; then
@@ -2680,14 +2680,8 @@ rebuild_and_install_bsdinstaller() {
 		fi
 	fi
 
-    # We need to unset PKGFILE before invoking ports
-    OLDPKGFILE="$PKGFILE"
-    unset PKGFILE
-
 	${BUILDER_SCRIPTS}/rebuild_bsdinstaller.sh
 
-    # Restore PKGFILE
-    PKGFILE="$OLDPKGFILE"; export PKGFILE
 }
 
 # This routine ensures that the $SRCDIR has sources
@@ -2731,9 +2725,9 @@ install_required_builder_system_ports() {
 	oIFS=$IFS
 	IFS="
 "
-    # We need to unset PKGFILE before invoking ports
-    OLDPKGFILE="$PKGFILE"
-    unset PKGFILE
+    # We need to unset PFSPKGFILE before invoking ports
+    OLDPFSPKGFILE="$PFSPKGFILE"
+    unset PFSPKGFILE
 
 	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do			
 		PKG_STRING_T=`echo $PKG_STRING | sed "s/		/	/g"`
@@ -2774,8 +2768,8 @@ install_required_builder_system_ports() {
 		fi
 	done
 
-    # Restore PKGFILE
-    PKGFILE="$OLDPKGFILE"; export PKGFILE
+    # Restore PFSPKGFILE
+    PFSPKGFILE="$OLDPFSPKGFILE"; export PFSPKGFILE
 
 	IFS=$oIFS
 }
