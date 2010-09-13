@@ -187,16 +187,16 @@ fixup_kernel_options() {
 		echo "options 		SMP"   >> $KERNELCONF
 	fi
 
-	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
+	if [ "$EXTRA_DEVICES" != "" ]; then
 		echo "devices	$EXTRA_DEVICES" >> $KERNELCONF
 	fi
-	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
-		echo "nodevices	$EXTRA_DEVICES" >> $KERNELCONF
+	if [ "$NOEXTRA_DEVICES" != "" ]; then
+		echo "nodevices	$NOEXTRA_DEVICES" >> $KERNELCONF
 	fi
-	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
+	if [ "$EXTRA_OPTIONS" != "" ]; then
 		echo "options	$EXTRA_OPTIONS" >> $KERNELCONF
 	fi
-	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
+	if [ "$NOEXTRA_OPTIONS" != "" ]; then
 		echo "nooptions	$NOEXTRA_OPTIONS" >> $KERNELCONF
 	fi
 
