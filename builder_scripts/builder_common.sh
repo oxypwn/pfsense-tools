@@ -3095,20 +3095,13 @@ disable_memory_disks() {
 # previously and the need for simplicity has won out.
 install_pkg_install_ports() {
 	echo ">>> Searching for packages..."
-	set +e # grep could fail
-	rm -f $BASE_DIR/tools/builder_scripts/conf/packages
-	(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
-	(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
-	(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
-	set -e
-	freesbie_make pkginstall
 	#
 	# We really want to use this code, but it need a lot of work....
 	#
 	echo -n ">>> Installing ports: "
-	PKG_ALL="/usr/ports/packages/All/"
-	mkdir -p $PKG_ALL
-	rm -f $PKG_ALL/*
+	PFS_PKG_ALL="/usr/ports/packages/All/"
+	mkdir -p $PFS_PKG_ALL
+	rm -f $PFS_PKG_ALL/*
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		echo -n "$PORTDIRPFS "
 		if [ ! -d $PORTDIRPFS ]; then
@@ -3117,11 +3110,11 @@ install_pkg_install_ports() {
 			kill $$
 		fi
 		(su - root -c "cd $PORTDIRPFS && make clean") | egrep -wi '(^>>>|error)'
-		(su - root -c "cd $PORTDIRPFS && make depend FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
+		(su - root -c "cd $PORTDIRPFS && make depends FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
 		(su - root -c "cd $PORTDIRPFS && make package-recursive FORCE_PKG_INSTALL=yo") | egrep -wi '(^>>>|error)'
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
-	cp $PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
+	cp $PFS_PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
 	echo ">>> Installing packages in a chroot..."
 	chroot $PFSENSEBASEDIR pkg_add /tmp/pkg/*
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
