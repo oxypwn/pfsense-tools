@@ -84,7 +84,7 @@ print_flags_menu() {
 	printf "            pfSense Tag: %s\n" $PFSENSETAG
 	printf "       MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
 	printf "                  EXTRA: %s\n" $EXTRA
-	printf "           BUILDMODULES: %s\n" $BUILDMODULES
+	printf "           BUILDMODULES: %s\n" $MODULES_OVERRIDE
 	printf "         Git Repository: %s\n" $GIT_REPO
 	printf "             Git Branch: %s\n" $GIT_BRANCH
 	printf "          Custom Config: %s\n" $USE_CONFIG_XML

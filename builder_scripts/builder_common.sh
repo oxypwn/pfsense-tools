@@ -185,38 +185,23 @@ fixup_kernel_options() {
 	fi
 
 	if [ "$TARGET_ARCH" = "" ]; then
-		# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/$ARCH/conf/
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/$ARCH/conf/pfSense_SMP.6
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.7 $SRCDIR/sys/$ARCH/conf/pfSense_SMP.7
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.8 $SRCDIR/sys/$ARCH/conf/pfSense_SMP.8
-		echo "" >> $SRCDIR/sys/$ARCH/conf/pfSense_SMP.8
-		echo "" >> $SRCDIR/sys/$ARCH/conf/pfSense_SMP.6
-		echo "" >> $SRCDIR/sys/$ARCH/conf/pfSense_SMP.7
-		if [ ! -f "$SRCDIR/sys/$ARCH/conf/pfSense.7" ]; then
-			echo ">>> Could not find $SRCDIR/sys/$ARCH/conf/pfSense.7"
-			print_error_pfS
-		fi
-		if [ ! -z "${KERNELCONF}" ]; then
-			cp ${KERNELCONF} $SRCDIR/sys/$ARCH/conf/
-			echo ">>> Overriding kernel config with $KERNELCONF"
-		fi
-	else
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.8 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
-		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
-		echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
-		if [ ! -f "$SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7" ]; then
-			echo ">>> Could not find $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7"
-			print_error_pfS
-		fi
-		if [ ! -z "${KERNELCONF}" ]; then
-			cp ${KERNELCONF} $SRCDIR/sys/${TARGET_ARCH}/conf/
-			echo ">>> Overriding kernel config with $KERNELCONF"
-		fi
+		TARGET_ARCH=$ARCH
+	fi
+	# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
+	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
+	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.7 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.8 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+	echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.8
+	echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
+	echo "" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
+	if [ ! -f "$SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7" ]; then
+		echo ">>> Could not find $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7"
+		print_error_pfS
+	fi
+	if [ ! -z "${KERNELCONF}" ]; then
+		cp ${KERNELCONF} $SRCDIR/sys/${TARGET_ARCH}/conf/
+		echo ">>> Overriding kernel config with $KERNELCONF"
 	fi
 
 	# Add SMP and APIC options for i386 platform
@@ -252,6 +237,9 @@ fixup_kernel_options() {
 		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.7
 		echo "options 		SMP"   >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 	fi
+
+	if [ ! -z "${EXTRA_DEVICES:-}" ]; then
+		echo "devices	$EXTRA_DEVICES" >> $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
 
 	# NOTE!  If you remove this, you WILL break booting!  These file(s) are read
 	#        by FORTH and for some reason installkernel with DESTDIR does not
@@ -1699,7 +1687,7 @@ print_flags() {
 	printf "              FreeBSD branch: %s\n" $FREEBSD_BRANCH
 	printf "                 pfSense Tag: %s\n" $PFSENSETAG
 	printf "                       EXTRA: %s\n" $EXTRA
-	printf "                BUILDMODULES: %s\n" $BUILDMODULES
+	printf "                BUILDMODULES: %s\n" $MODULES_OVERRIDE
 	printf "              Git Repository: %s\n" $GIT_REPO
 	printf "                  Git Branch: %s\n" $GIT_BRANCH
 	printf "               Custom Config: %s\n" $USE_CONFIG_XML
