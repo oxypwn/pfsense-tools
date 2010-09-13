@@ -95,8 +95,10 @@ else
 fi
 
 # Use embedded src.conf
-export SRC_CONF="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
+if [ -z "${SRC_CONF:-}" ]; then
+	export SRC_CONF="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
+fi
 
 # Clean up items that should be cleaned each run
 freesbie_clean_each_run

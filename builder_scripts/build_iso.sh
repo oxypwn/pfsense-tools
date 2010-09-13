@@ -75,8 +75,10 @@ if [ -f /usr/obj.pfSense/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
 fi
 
 # Define src.conf
-export SRC_CONF="${PWD}/conf/src.conf.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/src.conf.$FREEBSD_VERSION.install"
+if [ -z "${SRC_CONF:-}" ]; then
+	export SRC_CONF="${PWD}/conf/src.conf.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${PWD}/conf/src.conf.$FREEBSD_VERSION.install"
+fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"

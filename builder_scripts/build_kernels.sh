@@ -55,7 +55,9 @@ if [ -d $CVS_CO_DIR ]; then
 fi 
 
 # Use pfSense.6 as kernel configuration file
-export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.$FREEBSD_VERSION"}
+if [ -z "${KERNELCONF:-}" ]; then
+	export KERNELCONF=${KERNELCONF:-"${PWD}/conf/pfSense.$FREEBSD_VERSION"}
+fi
 
 # " UNBREAK TEXTMATE FORMATTING. PLEASE LEAVE ME ALONE.
 
@@ -69,8 +71,10 @@ if [ -f /usr/obj.pfSense/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
 fi
 
 # Use normal src.conf
-export SRC_CONF="${PWD}/conf/src.conf.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/src.conf.$FREEBSD_VERSION.install"
+if [ -z "${SRC_CONF:-}" ]; then
+	export SRC_CONF="${PWD}/conf/src.conf.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${PWD}/conf/src.conf.$FREEBSD_VERSION.install"
+fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
