@@ -140,15 +140,9 @@ fixup_kernel_options() {
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
 	if [ "$TARGET_ARCH" = "" ]; then
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/i386/conf/
-		if [ ! -z "${KERNELCONF}" ]; then
-			cp ${KERNELCONF} $SRCDIR/sys/i386/conf/
-		fi
 	else
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
 		cp $BUILDER_TOOLS/builder_scripts/conf/AR17* $SRCDIR/sys/${TARGET_ARCH}/conf/
-		if [ ! -z "${KERNELCONF}" ]; then
-			cp ${KERNELCONF} $SRCDIR/sys/${TARGET_ARCH}/conf/
-		fi
 	fi
 
 	# Copy stock FreeBSD configurations
@@ -206,6 +200,10 @@ fixup_kernel_options() {
 			echo ">>> Could not find $SRCDIR/sys/$ARCH/conf/pfSense.7"
 			print_error_pfS
 		fi
+		if [ ! -z "${KERNELCONF}" ]; then
+			cp ${KERNELCONF} $SRCDIR/sys/$ARCH/conf/
+			echo ">>> Overriding kernel config with $KERNELCONF"
+		fi
 	else
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense* $SRCDIR/sys/${TARGET_ARCH}/conf/
 		cp $BUILDER_TOOLS/builder_scripts/conf/pfSense.6 $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense_SMP.6
@@ -217,6 +215,10 @@ fixup_kernel_options() {
 		if [ ! -f "$SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7" ]; then
 			echo ">>> Could not find $SRCDIR/sys/${TARGET_ARCH}/conf/pfSense.7"
 			print_error_pfS
+		fi
+		if [ ! -z "${KERNELCONF}" ]; then
+			cp ${KERNELCONF} $SRCDIR/sys/${TARGET_ARCH}/conf/
+			echo ">>> Overriding kernel config with $KERNELCONF"
 		fi
 	fi
 
