@@ -3075,7 +3075,6 @@ freesbie_clean_each_run() {
 
 # Imported from FreeSBIE
 buildworld() {
-	cd $SRCDIR
 	if [ -n "${NO_BUILDWORLD:-}" ]; then
 	    echo "+++ NO_BUILDWORLD set, skipping build" | tee -a ${LOGFILE}
 	    return
@@ -3127,7 +3126,6 @@ installworld() {
 # Imported from FreeSBIE
 buildkernel() {
 	# Set SRC_CONF variable if it's not already set.
-	cd $SRCDIR
 	if [ -z "${SRC_CONF:-}" ]; then
 	    if [ -n "${MINIMAL:-}" ]; then
 			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
