@@ -389,6 +389,8 @@ build_all_kernels() {
 	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}.${ARCH}
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing wrap kernel..."
 	freesbie_make installkernel
@@ -404,6 +406,8 @@ build_all_kernels() {
 	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing Developers kernel..."
 	freesbie_make installkernel
@@ -419,6 +423,8 @@ build_all_kernels() {
 	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
 	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/SMP"
 	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
+	# Common fixup code
+	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing SMP kernel..."
 	freesbie_make installkernel
