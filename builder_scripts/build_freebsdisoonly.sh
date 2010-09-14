@@ -118,13 +118,6 @@ rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 # Install BSDInstaller
 rebuild_and_install_bsdinstaller
 
-echo ">>> Searching and installing ports..."
-set +e # grep could fail
-rm -f $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
-set -e
-freesbie_make pkginstall
-
 echo ">>> Installing packages: " 
 cat $BUILDER_TOOLS/builder_scripts/conf/packages
 
