@@ -111,7 +111,9 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
 fi
 
 # Install packages needed for livecd
-PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
+if [ ! -z "${PKG_INSTALL_PORTSPFS:-}" ]; then
+	PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
+fi
 echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS" 
 install_pkg_install_ports
 
