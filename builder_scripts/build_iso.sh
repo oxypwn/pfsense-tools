@@ -140,10 +140,10 @@ install_pkg_install_ports
 
 echo ">>> Searching for packages..."
 set +e # grep could fail
-rm -f $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
-(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
+rm -f $PFSPKGFILE
+(cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
+(cd /var/db/pkg && ls | grep grub) >> $PFSPKGFILE
+(cd /var/db/pkg && ls | grep lua) >> $PFSPKGFILE
 set -e
 freesbie_make pkginstall
 
