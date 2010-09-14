@@ -138,6 +138,11 @@ set_image_as_cdrom
 # Build custom ports and install in chroot if needed
 install_pkg_install_ports
 
+# Install packages needed for livecd
+PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
+echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS" 
+install_pkg_install_ports
+
 echo ">>> Installing packages: " 
 cat $BUILDER_TOOLS/builder_scripts/conf/packages
 

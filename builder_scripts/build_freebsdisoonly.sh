@@ -110,8 +110,10 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
 	exit
 fi
 
-echo ">>> Installing packages: " 
-cat $BUILDER_TOOLS/builder_scripts/conf/packages
+# Install packages needed for livecd
+PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
+echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS" 
+install_pkg_install_ports
 
 rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
 
