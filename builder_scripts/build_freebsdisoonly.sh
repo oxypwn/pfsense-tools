@@ -110,6 +110,9 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
 	exit
 fi
 
+# Install BSDInstaller
+rebuild_and_install_bsdinstaller
+
 echo ">>> Searching for packages..."
 set +e # grep could fail
 rm -f $PFSPKGFILE
@@ -124,9 +127,6 @@ echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS"
 install_pkg_install_ports
 
 rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
-
-# Install BSDInstaller
-rebuild_and_install_bsdinstaller
 
 echo ">>> Installing packages: " 
 cat $BUILDER_TOOLS/builder_scripts/conf/packages
