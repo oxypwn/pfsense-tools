@@ -3026,10 +3026,10 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		(cd $PORTDIRPFS && make clean) 2>&1 | egrep -wi '(^>>>|error )'
-		(cd $PORTDIRPFS && make depends BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi '(^>>>|error )'
-		(cd $PORTDIRPFS && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi '(^>>>|error )'
-		(cd $PORTDIRPFS && make clean) 2>&1 | egrep -wi '(^>>>|error )'
+		(cd $PORTDIRPFS && make clean) #2>&1 | egrep -wi '(^>>>|error )'
+		(cd $PORTDIRPFS && make depends BATCH=yo FORCE_PKG_REGISTER=yo) #2>&1 | egrep -wi '(^>>>|error )'
+		(cd $PORTDIRPFS && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) #2>&1 | egrep -wi '(^>>>|error )'
+		(cd $PORTDIRPFS && make clean) #2>&1 | egrep -wi '(^>>>|error )'
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp $PFS_PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
