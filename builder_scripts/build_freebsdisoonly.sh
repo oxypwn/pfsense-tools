@@ -110,10 +110,16 @@ if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
 	exit
 fi
 
+echo ">>> Searching for packages..."
+set +e # grep could fail
+rm -f $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep grub) >> $BASE_DIR/tools/builder_scripts/conf/packages
+(cd /var/db/pkg && ls | grep lua) >> $BASE_DIR/tools/builder_scripts/conf/packages
+set -e
+freesbie_make pkginstall
+
 # Install packages needed for livecd
-if [ ! -z "${PKG_INSTALL_PORTSPFS:-}" ]; then
-	PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
-fi
 echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS" 
 install_pkg_install_ports
 
