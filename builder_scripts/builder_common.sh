@@ -3214,7 +3214,7 @@ launch() {
 	[ ! -z "${PFSENSE_DEBUG:-}" ] && set -x
 
 	# Set the absolute path for the toolkit dir
-	LOCALDIR=$(cd $(dirname $0)/.. && pwd)
+	LOCALDIR=$TOOLS_DIR
 
 	CURDIR=$1;
 	shift;
