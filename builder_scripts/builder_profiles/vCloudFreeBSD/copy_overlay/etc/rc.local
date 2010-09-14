@@ -80,7 +80,7 @@ first_boot() {
 	key = wait_keypress
 	if [ ! "$key" = "" ]; then
 		echo "Abort!"
-		halt
+		#halt
 	fi
 }
 

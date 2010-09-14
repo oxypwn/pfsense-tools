@@ -3028,16 +3028,16 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		(cd $PORTDIRPFS && make clean) #2>&1 | egrep -wi '(^>>>|error )'
-		(cd $PORTDIRPFS && make depends BATCH=yo FORCE_PKG_REGISTER=yo) #2>&1 | egrep -wi '(^>>>|error )'
-		(cd $PORTDIRPFS && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) #2>&1 | egrep -wi '(^>>>|error )'
-		(cd $PORTDIRPFS && make clean) #2>&1 | egrep -wi '(^>>>|error )'
+		(cd $PORTDIRPFS && make clean)  | egrep -wi '(^>>>|error )' 2>&1
+		(cd $PORTDIRPFS && make depends BATCH=yo FORCE_PKG_REGISTER=yo) | egrep -wi '(^>>>|error )' 2>&1
+		(cd $PORTDIRPFS && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) | egrep -wi '(^>>>|error )' 2>&1
+		(cd $PORTDIRPFS && make clean) | egrep -wi '(^>>>|error )' 2>&1
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp $PFS_PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
 	echo ">>> Installing built ports (packages) in a chroot..."
         echo "set +e" > $PFSENSEBASEDIR/pkg.sh
-        echo "cd /tmp/pkg && ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add " >> $PFSENSEBASEDIR/pkg.sh
+        echo "cd /tmp/pkg && ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
         echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR sh /pkg.sh 
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
