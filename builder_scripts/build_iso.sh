@@ -135,9 +135,6 @@ install_custom_packages
 echo ">>> Phase set_image_as_cdrom"
 set_image_as_cdrom
 
-# Build custom ports and install in chroot if needed
-install_pkg_install_ports
-
 echo ">>> Searching for packages..."
 set +e # grep could fail
 rm -f $PFSPKGFILE
