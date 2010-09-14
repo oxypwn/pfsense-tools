@@ -89,7 +89,7 @@ export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should 
 export SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
-export PFSPKGFILE=${PFSPKGFILE:-$TOOLS_DIR/packages}
+export PFSPKGFILE=${PFSPKGFILE:-/tmp/packages}
 export FREESBIE_LABEL=pfSense
 
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
