@@ -1262,7 +1262,7 @@ test_php_install() {
 
 	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
-	HOSTNAME=`chroot $PFSENSEBASEDIR /test_php.php`
+	HOSTNAME=`env SHELL=/bin/sh chroot $PFSENSEBASEDIR /test_php.php`
 	echo -n " $HOSTNAME "
 	if [ "$HOSTNAME" != "FCGI-PASSED PASSED" ]; then
 		echo
