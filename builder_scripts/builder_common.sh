@@ -3018,6 +3018,8 @@ disable_memory_disks() {
 install_pkg_install_ports() {
 	echo -n ">>> Building ports (this might take a while): "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
+	mkdir -p /usr/ports/packages/Old/
+	mv /usr/ports/packages/All/* /usr/ports/packages/Old/
 	mkdir -p $PFS_PKG_ALL
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		echo -n "$PORTDIRPFS "
@@ -3034,10 +3036,11 @@ install_pkg_install_ports() {
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp $PFS_PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
 	echo ">>> Installing built ports (packages) in a chroot..."
-	echo "ls -l /tmp/pkg/ | sort +5 | awk '{ print $9 }' | xargs pkg_add PKG_PATH=/tmp/pkg" > $PFSENSEBASEDIR/pkg.sh
+	echo "ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add PKG_PATH=/tmp/pkg" > $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR "sh /pkg.sh "
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	rm $PFSENSEBASEDIR/pkg.sh
+	mv /usr/ports/packages/Old/* /usr/ports/packages/All/
 	echo -n "Done!"
 }
 
