@@ -529,10 +529,6 @@ recompile_pfPorts() {
 		fi
 		export FORCE_PKG_REGISTER=yo
 
-        # We need to unset PFSPKGFILE before invoking ports
-        OLDPFSPKGFILE="$PFSPKGFILE"
-        unset PFSPKGFILE
-
 		chmod a+rx $USE_PORTS_FILE
 		echo ">>> Executing $PFPORTSBASENAME"
 
@@ -542,9 +538,6 @@ recompile_pfPorts() {
 			( su - root -c "${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
 				| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
 		fi
-
-        # Restore PFSPKGFILE
-        PFSPKGFILE="$OLDPFSPKGFILE"; export PFSPKGFILE
 
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
 			if [ -f /tmp/make.conf ]; then
@@ -2731,10 +2724,6 @@ install_required_builder_system_ports() {
 	oIFS=$IFS
 	IFS="
 "
-    # We need to unset PFSPKGFILE before invoking ports
-    OLDPFSPKGFILE="$PFSPKGFILE"
-    unset PFSPKGFILE
-
 	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do			
 		PKG_STRING_T=`echo $PKG_STRING | sed "s/		/	/g"`
 		CHECK_ON_DISK=`echo $PKG_STRING_T | awk '{ print $1 }'`
@@ -2773,9 +2762,6 @@ install_required_builder_system_ports() {
 			echo "Done!"
 		fi
 	done
-
-    # Restore PFSPKGFILE
-    PFSPKGFILE="$OLDPFSPKGFILE"; export PFSPKGFILE
 
 	IFS=$oIFS
 }
