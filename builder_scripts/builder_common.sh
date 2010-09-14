@@ -3036,7 +3036,7 @@ install_pkg_install_ports() {
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp $PFS_PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
 	echo ">>> Installing built ports (packages) in a chroot..."
-	echo "ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add PKG_PATH=/tmp/pkg" > $PFSENSEBASEDIR/pkg.sh
+	echo "cd /tmp/ ; ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add" > $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR sh /pkg.sh 
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	rm $PFSENSEBASEDIR/pkg.sh
