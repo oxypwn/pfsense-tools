@@ -3016,9 +3016,6 @@ disable_memory_disks() {
 # freebsd ports files into the pfsenese-fs staging
 # area.  The various ports are built prior to install.
 install_pkg_install_ports() {
-	if [ ! -z "$PKG_INSTALL_PORTSPFS" ]; then
-		return
-	fi  
 	echo -n ">>> Building ports (this might take a while): "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p $PFS_PKG_ALL
