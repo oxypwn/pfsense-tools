@@ -735,13 +735,13 @@ cust_populate_installer_bits_freebsd_only() {
 
 # Install custom BSDInstaller bits for pfSense
 cust_populate_installer_bits() {
-    # Add lua installer items
-	echo ">>> Using FreeBSD 7 BSDInstaller dfuibelua structure."
-    mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
+	# Add lua installer items
+	echo ">>> Using FreeBSD ${FREEBSD_VERSION} BSDInstaller dfuibelua structure."
+	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
 	mkdir -p $PFSENSEBASEDIR/scripts/
-    # This is now ready for general consumption! \o/
-    mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
-    cp -r $BUILDER_TOOLS/installer/conf \
+	# This is now ready for general consumption! \o/
+	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
+	cp -r $BUILDER_TOOLS/installer/conf \
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# 597_ belongs in installation directory
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/597* \
@@ -768,20 +768,20 @@ cust_populate_installer_bits() {
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/950_reboot.lua \
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Copy installer launcher scripts
-    cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
+	cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
 	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
 		cp $BUILDER_TOOLS/lua_installer_RELENG_2 $PFSENSEBASEDIR/scripts/lua_installer
 	else
 		cp $BUILDER_TOOLS/lua_installer $PFSENSEBASEDIR/scripts/lua_installer
 	fi
-    cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
-    cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
-    cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
-    cp $BUILDER_TOOLS/lua_installer_full $PFSENSEBASEDIR/scripts/
-    chmod a+rx $PFSENSEBASEDIR/scripts/*
-    cp $BUILDER_TOOLS/after_installation_routines.sh \
+	cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
+	cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
+	cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
+	cp $BUILDER_TOOLS/lua_installer_full $PFSENSEBASEDIR/scripts/
+	chmod a+rx $PFSENSEBASEDIR/scripts/*
+	cp $BUILDER_TOOLS/after_installation_routines.sh \
 		$PFSENSEBASEDIR/usr/local/bin/after_installation_routines.sh
-    chmod a+rx $PFSENSEBASEDIR/scripts/*
+	chmod a+rx $PFSENSEBASEDIR/scripts/*
 }
 
 # Copies all extra files to the CVS staging
