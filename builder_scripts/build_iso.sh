@@ -37,26 +37,6 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
-# This should be run first
-launch
-
-# Make sure source directories are present.
-ensure_source_directories_present
-
-# Ensure binaries are present that builder system requires
-install_required_builder_system_ports
-
-# Check if we need to force a ports rebuild
-check_for_forced_pfPorts_build
-
-# Clean up items that should be cleaned each run
-freesbie_clean_each_run
-
-# Allow old CVS_CO_DIR to be deleted later
-if [ -d $CVS_CO_DIR ]; then 
-	chflags -R noschg $CVS_CO_DIR
-fi 
-
 # If a embedded build has been performed we need to nuke
 # /usr/obj.$dir/ since full uses a different
 # src.conf
@@ -82,6 +62,26 @@ else
 	echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION ..."
 	export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"
 fi
+
+# This should be run first
+launch
+
+# Make sure source directories are present.
+ensure_source_directories_present
+
+# Ensure binaries are present that builder system requires
+install_required_builder_system_ports
+
+# Check if we need to force a ports rebuild
+check_for_forced_pfPorts_build
+
+# Clean up items that should be cleaned each run
+freesbie_clean_each_run
+
+# Allow old CVS_CO_DIR to be deleted later
+if [ -d $CVS_CO_DIR ]; then 
+	chflags -R noschg $CVS_CO_DIR
+fi 
 
 # Output build flags
 print_flags
