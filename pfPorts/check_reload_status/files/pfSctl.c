@@ -47,7 +47,7 @@ main(int argc, char **argv)
 	char *cmd, *path = PATH;
 	socklen_t len;
 	int fd, n, ch;
-	int ncmds = 0;
+	int ncmds = 0, nsock = 0;
 
 	if (argc != 2)
 		/* NOTREACHED */
@@ -56,12 +56,15 @@ main(int argc, char **argv)
 		switch (ch) {
 		case 'c':
 			if (ncmds > 0)
-				err(-3, "Wrong parameters passed");
+				err(-3, "Wrong parameters passed for command.");
 			cmd = optarg;
 			ncmds++;
 			break;
 		case 's':
+			if (nsock > 0)
+				err(-3, "Wrong parameters passed for socket.");
 			path = optarg;
+			nsock++;
 			break;
 		default:
 			err(-1, "cmdclient 'command string'");
