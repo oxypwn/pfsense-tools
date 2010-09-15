@@ -1248,6 +1248,10 @@ test_php_install() {
 	fi
 
 	# We might need to setup php.ini
+	if [ -f "/boot/kernel/ng_socket.so" ]; then
+		kldload -v /boot/kernel/ng_socket.ko 2>/dev/null
+		echo ">>> Loading ng_socket.ko needed for testing php."
+	fi
 	if [ -f "$PFSENSEBASEDIR/etc/rc.php_ini_setup" ]; then
 		mkdir -p $PFSENSEBASEDIR/usr/local/lib/ $PFSENSEBASEDIR/usr/local/etc/
 		chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
