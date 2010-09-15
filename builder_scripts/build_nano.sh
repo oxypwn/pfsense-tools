@@ -139,11 +139,6 @@ cust_populate_extra
 # Add extra pfSense packages
 install_custom_packages
 
-# Only include Lighty in packages list
-(cd /var/db/pkg && ls | grep lighttpd) > $PFSPKGILE
-(cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
-(cd /var/db/pkg && ls | grep cpdup) > $PFSPKGFILE
-
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
 echo ">>> Merging extra items..."
