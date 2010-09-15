@@ -47,6 +47,7 @@ main(int argc, char **argv)
 	char *cmd, *path = PATH;
 	socklen_t len;
 	int fd, n, ch;
+	int ncmds = 0;
 
 	if (argc != 2)
 		/* NOTREACHED */
@@ -54,7 +55,10 @@ main(int argc, char **argv)
 	while ((ch = getopt(argc, argv, "c:s:")) != -1) {
 		switch (ch) {
 		case 'c':
+			if (ncmds > 0)
+				err(-3, "Wrong parameters passed");
 			cmd = optarg;
+			ncmds++;
 			break;
 		case 's':
 			path = optarg;
