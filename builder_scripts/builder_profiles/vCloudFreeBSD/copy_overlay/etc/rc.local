@@ -4,7 +4,7 @@ wait_keypress() {
 	counter=9
 	/bin/stty -canon min 0 time 20
 	while [ "$COUNTER" -gt 0 ]; do
-		key=`KEY='dd count=1 2>/dev/null'; echo $KEY`
+		key=$(dd bs=1 count=1 2> /dev/null)
 		/bin/stty icanon
 		counter=`expr $counter - 1`
 		case ${key} in
@@ -72,15 +72,15 @@ first_boot() {
 	echo ">>> Welcome to vCloudFreeBSD!"
 	echo 
 	echo "One moment, detecting hard disks..."
-	disk=first_disk()
+	disk=first_disk
 	echo
 	echo "vCloudFreeBSD will automatically install to the disk "
 	echo "$disk in 9 seconds.  Press A key to abort!"
 	echo
-	key = wait_keypress
+	key=wait_keypress
 	if [ ! "$key" = "" ]; then
 		echo "Abort!"
-		halt
+		exit
 	fi
 }
 
@@ -94,13 +94,11 @@ setup_nics() {
 
 if [ -f /FIRST_BOOT ]; then
 	# Invoke installer
-	first_boot()
-	rm /FIRST_BOOT
-	touch /SECOND_BOOT
+	first_boot
 fi
 
 if [ ! -f /FIRST_BOOT ]; then
 	if [ ! -f /.setup_complete ]; then
-		second_boot()
+		second_boot
 	fi
 fi
