@@ -97,12 +97,12 @@ build_all_kernels
 # Nuke the boot directory
 [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
-rm -f conf/packages
+rm -f $PFSPKGFILE
 
 set +e # grep could fail
 mkdir -p conf
-(cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
-(cd /var/db/pkg && ls | grep rrdtool) >> conf/packages
+(cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
+(cd /var/db/pkg && ls | grep rrdtool) >> $PFSPKGFILE
 set -e
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
