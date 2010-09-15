@@ -137,6 +137,10 @@ set_image_as_cdrom
 
 echo ">>> Searching for packages..."
 set +e # grep could fail
+if [ "$PFSPKGFILE" = "" ]; then
+	echo "PFSPKGFILE is not defined.  Setting."
+	PFSPKGFILE=/tmp/pfspackages
+fi
 rm -f $PFSPKGFILE
 (cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
 (cd /var/db/pkg && ls | grep grub) >> $PFSPKGFILE
