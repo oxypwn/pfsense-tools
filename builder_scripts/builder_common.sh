@@ -132,25 +132,29 @@ ensure_kernel_exists() {
 # Removes NAT_T and other unneeded kernel options from 1.2 images.
 fixup_kernel_options() {
 
+	# Do not remove or move support to freesbie2/scripts/installkernel.sh
+
+	# Cleanup self
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
 	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	if [ -d "$KERNEL_DESTDIR/boot" ]; then
+		rm -rf $KERNEL_DESTDIR/boot/*
+	fi
 
 	# Create area where kernels will be copied on LiveCD
 	mkdir -p $PFSENSEBASEDIR/kernels/
-
-	# Copy pfSense kernel configuration files over to $SRCDIR/sys/${TARGET_ARCH}/conf
-	cp $BUILDER_TOOLS/builder_scripts/conf/$KERNCONF $KERNELCONF
-
-	# Build extra kernels (embedded, developers edition, etc)
+	# Make sure directories exist
 	mkdir -p $KERNEL_DESTDIR/boot/kernel
-	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 	mkdir -p $KERNEL_DESTDIR/boot/defaults
 
-	# Do not remove or move support to freesbie2/scripts/installkernel.sh
-	touch $KERNEL_DESTDIR/boot/defaults/loader.conf
+	# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
+	cp $BUILDER_TOOLS/builder_scripts/conf/$KERNCONF $KERNELCONF
+	if [ ! -f "$KERNELCONF" ]; then
+		echo ">>> Could not find $KERNELCONF"
+		print_error_pfS
+	fi
+	echo "" >> $KERNELCONF
 
-	# Do not remove or move support to freesbie2/scripts/installkernel.sh
-	mkdir -p $PFSENSEBASEDIR/boot/kernel
 
 	if [ "$WITH_DTRACE" = "" ]; then
 		echo ">>> Not adding D-Trace to Kernel..."
@@ -161,13 +165,6 @@ fixup_kernel_options() {
 
 	if [ "$TARGET_ARCH" = "" ]; then
 		TARGET_ARCH=$ARCH
-	fi
-	# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
-	cp $BUILDER_TOOLS/builder_scripts/conf/$KERNCONF $KERNELCONF
-	echo "" >> $KERNELCONF
-	if [ ! -f "$KERNELCONF" ]; then
-		echo ">>> Could not find $KERNELCONF"
-		print_error_pfS
 	fi
 
 	# Add SMP and APIC options for i386 platform
