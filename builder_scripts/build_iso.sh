@@ -153,7 +153,7 @@ echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS"
 install_pkg_install_ports
 
 echo ">>> Installing packages: " 
-cat $BUILDER_TOOLS/builder_scripts/conf/packages
+cat $PFSPKGFILE
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
