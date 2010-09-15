@@ -58,13 +58,13 @@ print_flags
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs customroot"
 
-export SRC_CONF="${PWD}/conf/src.conf.developer.$FREEBSD_VERSION"
+export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.$FREEBSD_VERSION"
 
 export IS_DEV_ISO=yo
 
 export PRUNE_LIST=""
 
-export KERNELCONF="${PWD}/conf/pfSense_Dev.$FREEBSD_VERSION"
+export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_Dev.$FREEBSD_VERSION"
 
 # Suck in script helper functions
 . ./builder_common.sh
