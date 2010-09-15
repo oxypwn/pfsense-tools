@@ -107,7 +107,7 @@ PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub 
 install_pkg_install_ports
 
 echo ">>> Installing packages: " 
-cat $BUILDER_TOOLS/builder_scripts/conf/packages
+cat $PFSPKGFILE
 
 # Install custom packages
 #echo ">>> Installing custom packageas..."
