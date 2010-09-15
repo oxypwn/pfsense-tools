@@ -29,15 +29,6 @@
 #  set -e 
 #  set -x
 
-# If a full build has been performed we need to nuke
-# /usr/obj.pfSense/ since embedded uses a different
-# src.conf
-if [ -f /usr/obj.pfSense/pfSense.$FREEBSD_VERSION.world.done ]; then
-	echo -n "Removing /usr/obj* since full build performed prior..."
-	rm -rf /usr/obj*
-	echo "done."
-fi
-
 # Suck in local vars
 . ./pfsense_local.sh
 
@@ -61,6 +52,15 @@ done
 
 # Suck in script helper functions
 . ./builder_common.sh
+
+# If a full build has been performed we need to nuke
+# /usr/obj.pfSense/ since embedded uses a different
+# src.conf
+if [ -f ${MAKEOBJDIRPREFIX}/pfSense.$FREEBSD_VERSION.world.done ]; then
+	echo -n "Removing $MAKEOBJDIRPREFIX since full build performed prior..."
+	rm -rf $MAKEOBJDIRPREFIX
+	echo "done."
+fi
 
 # This should be run first
 launch
