@@ -110,12 +110,6 @@ cd $CVS_CO_DIR
 # Nuke the boot directory
 [ -d "${CVS_CO_DIR}/boot" ] && rm -rf ${CVS_CO_DIR}/boot
 
-rm -f conf/packages
-
-set +e # grep could fail
-(cd /var/db/pkg && ls | grep bsdinstaller) > conf/packages
-set -e
-
 # Install custom pfSense-XML packages from a chroot
 pfsense_install_custom_packages_exec
 
