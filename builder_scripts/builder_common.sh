@@ -153,7 +153,7 @@ fixup_kernel_options() {
 	mkdir -p $PFSENSEBASEDIR/boot/kernel
 
 	if [ "$WITH_DTRACE" = "" ]; then
-		echo ">>> Not adding D-Trace to Developers Kernel..."
+		echo ">>> Not adding D-Trace to Kernel..."
 	else
 		echo "options KDTRACE_HOOKS" >> $KERNELCONF
 		echo "options DDB_CTF" >> $KERNELCONF
