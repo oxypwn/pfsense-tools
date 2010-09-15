@@ -80,7 +80,7 @@ first_boot() {
 	key = wait_keypress
 	if [ ! "$key" = "" ]; then
 		echo "Abort!"
-		#halt
+		halt
 	fi
 }
 
@@ -97,7 +97,6 @@ if [ -f /FIRST_BOOT ]; then
 	first_boot()
 	rm /FIRST_BOOT
 	touch /SECOND_BOOT
-	shutdown -r now
 fi
 
 if [ ! -f /FIRST_BOOT ]; then
