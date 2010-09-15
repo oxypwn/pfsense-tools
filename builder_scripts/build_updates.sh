@@ -31,20 +31,20 @@
 #  set -e 
 #  set -x
 
-# If a embedded build has been performed we need to nuke
-# /usr/obj.pfSense/ since full uses a different
-# src.conf
-if [ -f /usr/obj.pfSense/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
-	echo -n "Removing /usr/obj* since embedded build performed prior..."
-	rm -rf /usr/obj*
-	echo "done."
-fi
-
 # Suck in local vars
 . ./pfsense_local.sh
 
 # Suck in script helper functions
 . ./builder_common.sh
+
+# If a embedded build has been performed we need to nuke
+# /usr/obj.pfSense/ since full uses a different
+# src.conf
+if [ -f $MAKEOBJDIRPREFIX/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
+	echo -n "Removing $MAKEOBJDIRPREFIX since embedded build performed prior..."
+	rm -rf $MAKEOBJDIRPREFIX
+	echo "done."
+fi
 
 # This should be run first
 launch
@@ -56,9 +56,6 @@ print_flags
 if [ -d $CVS_CO_DIR ]; then
 	chflags -R noschg $CVS_CO_DIR
 fi
-
-# Use pfSense.$FREEBSD_VERSION as kernel configuration file
-export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense.$FREEBSD_VERSION}
 
 # Use normal src.conf
 export SRC_CONF="${PWD}/conf/src.conf.$FREEBSD_VERSION"

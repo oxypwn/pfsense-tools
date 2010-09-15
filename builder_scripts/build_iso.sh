@@ -57,16 +57,8 @@ if [ -d $CVS_CO_DIR ]; then
 	chflags -R noschg $CVS_CO_DIR
 fi 
 
-# Allow customized Kernel
-if [ ! -z "${KERNELCONF:-}" ]; then
-    echo ">>> Using ${KERNELCONF:-} ..."
-    export KERNELCONF="${KERNELCONF:-}"
-else
-    export KERNELCONF="${PWD}/conf/pfSense.$FREEBSD_VERSION"
-fi
-
 # If a embedded build has been performed we need to nuke
-# /usr/obj.pfSense/ since full uses a different
+# /usr/obj.$dir/ since full uses a different
 # src.conf
 if [ -f ${MAKEOBJDIRPREFIX}/pfSense_wrap.$FREEBSD_VERSION.world.done ]; then
 	echo -n "Removing $MAKEOBJDIRPREFIX/* since embedded build performed prior..."

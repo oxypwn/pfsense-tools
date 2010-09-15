@@ -53,36 +53,21 @@ print_flags
 chflags -R noschg $CVS_CO_DIR
 rm -rf $CVS_CO_DIR
 
-# If a full build has been performed we need to nuke
-# /usr/obj.pfSense/ since embedded uses a different
-# src.conf
-if [ -f /usr/obj.pfSense/pfSense.6.world.done ]; then
-	echo -n "Removing /usr/obj* since full build performed prior..."
-	rm -rf /usr/obj*
-	echo "done."
-fi
-
 # Checkout a fresh copy from pfsense cvs depot
 update_cvs_depot
+
+# Use pfSense_wrap.6 as kernel configuration file
+if [ $FREEBSD_VERSION = "7" ]; then
+	export SRC_CONF="${PWD}/conf/src.conf.developer.7"
+fi
+if [ $FREEBSD_VERSION = "8" ]; then
+	export SRC_CONF="${PWD}/conf/src.conf.developer.8"
+fi
 
 # Calculate versions
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
-
-# Use pfSense_wrap.6 as kernel configuration file
-if [ $FREEBSD_VERSION = "6" ]; then
-	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
-fi
-if [ $FREEBSD_VERSION = "7" ]; then
-	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
-	export SRC_CONF="${PWD}/conf/src.conf.developer.7"	
-fi
-if [ $FREEBSD_VERSION = "8" ]; then
-	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.8}
-	export SRC_CONF="${PWD}/conf/src.conf.developer.8"
-fi
-
 
 # Do not compress FS
 export NO_COMPRESSEDFS=yes
