@@ -147,12 +147,12 @@ install_pkg_install_ports
 echo ">>> Installing packages: " 
 cat $PFSPKGFILE
 
+# Add installer bits
+cust_populate_installer_bits
+
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
 cust_populate_extra
-
-# Add installer bits
-cust_populate_installer_bits
 
 # Overlay pfsense checkout on top of FreeSBIE image
 # using the customroot plugin
