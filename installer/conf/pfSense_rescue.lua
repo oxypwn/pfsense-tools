@@ -49,7 +49,7 @@ install_items = {
         "conf.default",
         "dev",
         "etc",
-		"kernels",
+	"kernels",
         "libexec",
         "lib",
         "root",
@@ -61,8 +61,9 @@ install_items = {
 
 ui_nav_control = {
 	["*/configure/*"] = "ignore",          	     		
-	["*/pit/configure_console"] = "ignore",   	 			-- do not ask about console
-	["pre_install_tasks/configure_network"] = "ignore", 
+	["*/pit/configure_console"] = "ignore",   	 		-- do not ask about console
+	["pre_install_tasks/select_language"] = "ignore",               -- do not show language selection
+	["pre_install_tasks/configure_network"] = "ignore", 		-- no need for configuring network
 	["main/install_os"] = "ignore",          	     		
 	["/install/*"] = "ignore",           	     		
 	["*/welcome"] = "ignore",           	     		

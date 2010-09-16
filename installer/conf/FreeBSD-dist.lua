@@ -6,7 +6,7 @@
 
 product = {
 	name = "FreeBSD",
-	version = "8.0-CURRENT"
+	version = "8.1"
 }
 
 install_items = {
