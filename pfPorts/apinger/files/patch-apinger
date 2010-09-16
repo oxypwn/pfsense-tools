@@ -1,6 +1,6 @@
 diff -ur src_old/apinger.c src/apinger.c
---- src_old/apinger.c	2010-09-15 21:17:22.000000000 +0000
-+++ src/apinger.c	2010-09-15 21:17:41.000000000 +0000
+--- src_old/apinger.c	2010-08-10 20:41:31.000000000 +0000
++++ src/apinger.c	2010-08-10 20:42:25.000000000 +0000
 @@ -271,23 +271,15 @@
  time_t tm;
  	
@@ -30,16 +30,7 @@ diff -ur src_old/apinger.c src/apinger.c
  }
  
  void make_reports(struct target *t,struct alarm_cfg *a,int on,char* thisid,char* lastid){
-@@ -475,6 +467,8 @@
- 			logit("alarm canceled (config reload): %s(%s)  *** %s ***",t->description,t->name,a->name);
- 	}
- 
-+	write_status();
-+
- 	if (a->combine_interval>0){
- 		for(tdr=delayed_reports;tdr!=NULL && tdr->next!=NULL;tdr=tdr->next){
- 			if (strcmp(tdr->t.name,t->name)==0 && tdr->a==a && tdr->on==on) return;
-@@ -646,7 +640,7 @@
+@@ -646,7 +638,7 @@
  struct target *t,*pt,*nt;
  struct target_cfg *tc;
  struct active_alarm_list *al,*nal;
@@ -48,7 +39,7 @@ diff -ur src_old/apinger.c src/apinger.c
  int r;
  int l;
  
-@@ -666,6 +660,8 @@
+@@ -666,6 +658,8 @@
  				nal=al->next;
  				free(al);
  			}
@@ -57,7 +48,7 @@ diff -ur src_old/apinger.c src/apinger.c
  			free(t->queue);
  			free(t->rbuf);
  			free(t->name);
-@@ -684,11 +680,6 @@
+@@ -684,11 +678,6 @@
  			memset(&addr,0,sizeof(addr));
  			r=inet_pton(AF_INET,tc->name,&addr.addr4.sin_addr);
  			if (r){
@@ -69,7 +60,7 @@ diff -ur src_old/apinger.c src/apinger.c
  				addr.addr.sa_family=AF_INET;
  			}else{
  #ifdef HAVE_IPV6
-@@ -708,12 +699,23 @@
+@@ -708,12 +697,23 @@
  				addr.addr.sa_family=AF_INET6;
  #endif
  			}
@@ -93,7 +84,7 @@ diff -ur src_old/apinger.c src/apinger.c
  			targets=t;
  		}
  		t->config=tc;
-@@ -733,6 +735,7 @@
+@@ -733,6 +733,7 @@
  		assert(t->rbuf!=NULL);
  		memset(t->rbuf,0,l);
  	}
@@ -101,7 +92,7 @@ diff -ur src_old/apinger.c src/apinger.c
  	if (targets==NULL){
  		logit("No usable targets found, exiting");
  		exit(1);
-@@ -753,6 +756,8 @@
+@@ -753,6 +754,8 @@
  			nal=al->next;
  			free(al);
  		}
@@ -110,7 +101,7 @@ diff -ur src_old/apinger.c src/apinger.c
  		free(t->queue);
  		free(t->rbuf);
  		free(t->name);
-@@ -798,25 +803,21 @@
+@@ -798,25 +801,21 @@
  		return;
  	}
  	tm=time(NULL);
@@ -143,7 +134,7 @@ diff -ur src_old/apinger.c src/apinger.c
  
  		buf1=NEW(char,t->config->avg_loss_delay_samples+1);
  		buf2=NEW(char,t->config->avg_loss_samples+1);
-@@ -850,11 +851,9 @@
+@@ -850,11 +849,9 @@
  			}
  		}
  		buf2[i]=0;
@@ -157,7 +148,7 @@ diff -ur src_old/apinger.c src/apinger.c
  			err=1;
  		}
  		free(buf1);
-@@ -866,55 +865,10 @@
+@@ -866,55 +863,10 @@
  	if (err) abort();
  }
  
@@ -214,7 +205,7 @@ diff -ur src_old/apinger.c src/apinger.c
  int timeout;
  int npfd=0;
  int i;
-@@ -923,46 +877,10 @@
+@@ -923,46 +875,10 @@
  struct alarm_list *al,*nal;
  struct active_alarm_list *aal;
  struct alarm_cfg *a;
@@ -263,7 +254,7 @@ diff -ur src_old/apinger.c src/apinger.c
  	if (config->status_interval){
  		gettimeofday(&cur_time,NULL);
  		tv.tv_sec=config->status_interval/1000;
-@@ -970,10 +888,16 @@
+@@ -970,10 +886,16 @@
  		timeradd(&cur_time,&tv,&next_status);
  	}
  	while(!interrupted_by){
@@ -280,7 +271,7 @@ diff -ur src_old/apinger.c src/apinger.c
  			for(al=t->config->alarms;al;al=nal){
  				a=al->alarm;
  				nal=al->next;
-@@ -1049,16 +973,12 @@
+@@ -1049,16 +971,12 @@
  		poll(pfd,npfd,timeout);
  		for(i=0;i<npfd;i++){
  			if (!pfd[i].revents&POLLIN) continue;
@@ -303,7 +294,7 @@ diff -ur src_old/apinger.c src/apinger.c
  			pfd[i].revents=0;
  		}
  		if (status_request){
-@@ -1074,9 +994,6 @@
+@@ -1074,9 +992,6 @@
  			reload_config();
  		}
  	}
@@ -314,8 +305,8 @@ diff -ur src_old/apinger.c src/apinger.c
  	free_targets();
  	if (macros_buf!=NULL) free(macros_buf);
 diff -ur src_old/apinger.h src/apinger.h
---- src_old/apinger.h	2010-09-15 21:17:22.000000000 +0000
-+++ src/apinger.h	2010-09-15 21:17:33.000000000 +0000
+--- src_old/apinger.h	2010-08-10 20:41:31.000000000 +0000
++++ src/apinger.h	2010-08-10 20:41:37.000000000 +0000
 @@ -47,6 +47,8 @@
  #endif
  #include "conf.h"
@@ -363,8 +354,8 @@ diff -ur src_old/apinger.h src/apinger.h
  
  int make_icmp6_socket(void);
 diff -ur src_old/cfgparser1.c src/cfgparser1.c
---- src_old/cfgparser1.c	2010-09-15 21:17:22.000000000 +0000
-+++ src/cfgparser1.c	2010-09-15 21:17:33.000000000 +0000
+--- src_old/cfgparser1.c	2010-08-10 20:41:31.000000000 +0000
++++ src/cfgparser1.c	2010-08-10 20:41:37.000000000 +0000
 @@ -1,56 +1,73 @@
 -/* A Bison parser, made from /home/users/jacek/CVS/bnet/src/pinger/src/cfgparser1.y
 -   by GNU bison 1.35.  */
@@ -3570,8 +3561,8 @@ diff -ur src_old/cfgparser1.c src/cfgparser1.c
  
 +
 diff -ur src_old/cfgparser1.h src/cfgparser1.h
---- src_old/cfgparser1.h	2010-09-15 21:17:22.000000000 +0000
-+++ src/cfgparser1.h	2010-09-15 21:17:33.000000000 +0000
+--- src_old/cfgparser1.h	2010-08-10 20:41:31.000000000 +0000
++++ src/cfgparser1.h	2010-08-10 20:41:37.000000000 +0000
 @@ -28,51 +28,52 @@
  # define YYLTYPE_IS_TRIVIAL 1
  #endif
@@ -3671,8 +3662,8 @@ diff -ur src_old/cfgparser1.h src/cfgparser1.h
  
  extern YYSTYPE yylval;
 diff -ur src_old/cfgparser1.y src/cfgparser1.y
---- src_old/cfgparser1.y	2010-09-15 21:17:22.000000000 +0000
-+++ src/cfgparser1.y	2010-09-15 21:17:33.000000000 +0000
+--- src_old/cfgparser1.y	2010-08-10 20:41:31.000000000 +0000
++++ src/cfgparser1.y	2010-08-10 20:41:37.000000000 +0000
 @@ -97,6 +97,7 @@
  %token DELAY_HIGH
  
@@ -3691,8 +3682,8 @@ diff -ur src_old/cfgparser1.y src/cfgparser1.y
  		{ cur_target->alarms=$2; }
  	| ALARMS OVERRIDE alarmlist
 diff -ur src_old/cfgparser2.l src/cfgparser2.l
---- src_old/cfgparser2.l	2010-09-15 21:17:22.000000000 +0000
-+++ src/cfgparser2.l	2010-09-15 21:17:33.000000000 +0000
+--- src_old/cfgparser2.l	2010-08-10 20:41:31.000000000 +0000
++++ src/cfgparser2.l	2010-08-10 20:41:37.000000000 +0000
 @@ -82,6 +82,7 @@
  delay_high	{ LOC; LOCINC; return DELAY_HIGH; }
  delay_low	{ LOC; LOCINC; return DELAY_LOW; }
@@ -3702,8 +3693,8 @@ diff -ur src_old/cfgparser2.l src/cfgparser2.l
  false		{ LOC; LOCINC; return FALSE; }
  file		{ LOC; LOCINC; return FILE_; }
 diff -ur src_old/conf.h src/conf.h
---- src_old/conf.h	2010-09-15 21:17:22.000000000 +0000
-+++ src/conf.h	2010-09-15 21:17:33.000000000 +0000
+--- src_old/conf.h	2010-08-10 20:41:31.000000000 +0000
++++ src/conf.h	2010-08-10 20:41:37.000000000 +0000
 @@ -72,6 +72,7 @@
  struct target_cfg {
  	char *name;
@@ -3713,8 +3704,8 @@ diff -ur src_old/conf.h src/conf.h
  	int avg_delay_samples;
  	int avg_loss_delay_samples;
 diff -ur src_old/icmp.c src/icmp.c
---- src_old/icmp.c	2010-09-15 21:17:22.000000000 +0000
-+++ src/icmp.c	2010-09-15 21:17:33.000000000 +0000
+--- src_old/icmp.c	2010-08-10 20:41:31.000000000 +0000
++++ src/icmp.c	2010-08-10 20:41:37.000000000 +0000
 @@ -151,14 +151,14 @@
  	size=sizeof(*p)+sizeof(ti);
  
@@ -3815,8 +3806,8 @@ diff -ur src_old/icmp.c src/icmp.c
  }
  
 diff -ur src_old/main.c src/main.c
---- src_old/main.c	2010-09-15 21:17:22.000000000 +0000
-+++ src/main.c	2010-09-15 21:17:33.000000000 +0000
+--- src_old/main.c	2010-08-10 20:41:31.000000000 +0000
++++ src/main.c	2010-08-10 20:41:37.000000000 +0000
 @@ -72,6 +72,7 @@
  		{		/* target defaults */
  				"default",	/* name */
