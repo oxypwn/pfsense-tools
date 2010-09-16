@@ -49,30 +49,30 @@ fi
 # Check if host is running on VMware
 if [ -f /var/log/dmesg.boot ]; then
 	if [ `cat /var/log/dmesg.boot | grep VMware | wc -l` -gt 0 ]; then
-			echo -n "VMware detected.  The installer will make changes to tune this host."
+		echo -n "VMware detected.  The installer will make changes to tune this host."
 	        touch /var/IS_VMWARE
-			sleep 1
-			echo -n "."
-			sleep 1
-			echo -n "."
-			sleep 1
-			echo -n "."
-			sleep 1
-			echo "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo "."
 	fi
 
 	# Check if host is running on pfSenseDEV
-	if [ `cat /var/log/dmesg.boot | grep pfSense_Dev.6 | wc -l` -gt 0 ]; then
-			echo -n "${product} developer iso detected."
+	if [ `cat /var/log/dmesg.boot | grep pfSense_Dev | wc -l` -gt 0 ]; then
+		echo -n "${product} developer iso detected."
 	        touch /var/pfSenseDEV
-			sleep 1
-			echo -n "."
-			sleep 1
-			echo -n "."
-			sleep 1
-			echo -n "."
-			sleep 1
-			echo "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo -n "."
+		sleep 1
+		echo "."
 	fi
 
 	if [ -f /var/run/dmesg.boot ]; then
