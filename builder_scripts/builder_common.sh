@@ -879,7 +879,7 @@ install_custom_overlay() {
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
 		if [ -d $custom_overlay ]; then
-			echo ">>> Found directory, $custom_overlay copying..."
+			echo " found directory, $custom_overlay copying..."
 			for i in $custom_overlay/*
 			do
 			    if [ -d "$i" ]; then
@@ -891,17 +891,17 @@ install_custom_overlay() {
 			    fi
 			done
 		elif [ -f $custom_overlay ]; then
-			echo ">>> Found file, $custom_overlay extracting..."
+			echo " found file, $custom_overlay extracting..."
 			tar xzpf $custom_overlay -C $CVS_CO_DIR
 		else
-			echo ">>> File not found $custom_overlay"
+			echo " file not found $custom_overlay"
 			print_error_pfS
 		fi
 	fi
 	if [ ! -z "${custom_overlay_archive:-}" ]; then
 		echo -n "Custom overlay archive defined - "
 		if [ -d $custom_overlay_archive ]; then
-			echo ">>> Found directory, $custom_overlay_archive extracting files..."
+			echo " found directory, $custom_overlay_archive extracting files..."
 			for i in $custom_overlay_archive/*
 			do
 			    if [ -f "$i" ]; then
@@ -910,10 +910,10 @@ install_custom_overlay() {
 			    fi
 			done
 		elif [ -f $custom_overlay_archive ]; then
-			echo ">>> Found file, $custom_overlay_archive extracting..."
+			echo " found file, $custom_overlay_archive extracting..."
 			tar xzpf $custom_overlay_archive -C $CVS_CO_DIR
 		else
-			echo ">>> File not found $custom_overlay_archive"
+			echo " file not found $custom_overlay_archive"
 			print_error_pfS
 		fi
 	fi
@@ -939,7 +939,7 @@ install_custom_overlay_final() {
 	if [ ! -z "${custom_overlay_final:-}" ]; then
 		echo -n "Custom overlay defined - "
 		if [ -d $custom_overlay_final ]; then
-			echo ">>> Found directory, $custom_overlay_final copying..."
+			echo " found directory, $custom_overlay_final copying..."
 			for i in $custom_overlay_final/*
 			do
 		    		if [ -d $i ]; then
@@ -951,10 +951,10 @@ install_custom_overlay_final() {
 		    		fi
 			done
 		elif [ -f $custom_overlay_final ]; then
-			echo ">>> Found file, $custom_overlay_final extracting..."
+			echo " found file, $custom_overlay_final extracting..."
 			tar xzpf $custom_overlay_final -C $PFSENSEBASEDIR
 		else
-			echo ">>> File not found $custom_overlay_final"
+			echo " file not found $custom_overlay_final"
 			print_error_pfS
 		fi
 	fi
