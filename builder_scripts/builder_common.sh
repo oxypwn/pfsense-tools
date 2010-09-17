@@ -429,12 +429,12 @@ build_all_kernels() {
 
 	# Nuke symbols
 	echo -n ">>> Cleaning up .symbols..."
-    if [ -z "${PFSENSE_DEBUG:-}" ]; then
+	if [ -z "${PFSENSE_DEBUG:-}" ]; then
 		echo -n "."
 		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm -f {} \;
 		echo -n "."
 		find $KERNEL_BUILD_PATH -name "*.symbols" -exec rm -f {} \;
-    fi
+	fi
 
 	# Nuke old kernel if it exists
 	find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
