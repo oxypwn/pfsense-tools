@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $FreeBSD: ports/sysutils/lcdproc/files/lcdproc.in,v 1.2 2006/11/21 07:24:32 rafan Exp $
+# $FreeBSD: ports/sysutils/lcdproc/files/lcdproc.in,v 1.3 2010/03/27 00:14:57 dougb Exp $
 #
 # PROVIDE: lcdproc
 # REQUIRE: LCDd
@@ -9,7 +9,7 @@
 # SET THEM IN THE /etc/rc.conf FILE
 #
 
-. %%RC_SUBR%%
+. /etc/rc.subr
 
 name="lcdproc"
 rcvar=${name}_enable

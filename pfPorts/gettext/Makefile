@@ -2,23 +2,25 @@
 # Date created:        16 March 1998
 # Whom:                Yukihiro Nakai <Nakai@technologist.com>
 #
-# $FreeBSD: ports/devel/gettext/Makefile,v 1.83 2008/08/21 06:16:39 rafan Exp $
+# $FreeBSD: ports/devel/gettext/Makefile,v 1.88 2010/09/15 18:34:10 ade Exp $
 #
 
 PORTNAME=	gettext
-PORTVERSION=	0.17
-PORTREVISION=	1
+PORTVERSION=	0.18.1.1
 CATEGORIES=	devel
 MASTER_SITES=	${MASTER_SITE_GNU}
 MASTER_SITE_SUBDIR=	gettext
 
-MAINTAINER=	ade@FreeBSD.org
+# note: before committing to this port, contact portmgr to arrange for an
+# experimental ports run.  Untested commits may be backed out at portmgr's
+# discretion.
+MAINTAINER=	autotools@FreeBSD.org
 COMMENT=	GNU gettext package
 
 USE_ICONV=	yes
-LIBTOOLFILES=	autoconf-lib-link/configure gettext-runtime/configure \
+LIBTOOLFILES=	gettext-runtime/configure \
 		gettext-runtime/libasprintf/configure gettext-tools/configure
-USE_AUTOTOOLS=	libtool:15
+USE_AUTOTOOLS=	libtool:22
 CONFIGURE_ENV=	ACLOCAL="${TRUE}" \
 		AUTOCONF="${TRUE}" \
 		AUTOMAKE="${TRUE}" \
@@ -27,10 +29,10 @@ CONFIGURE_ENV=	ACLOCAL="${TRUE}" \
 		CPPFLAGS="-I${LOCALBASE}/include" \
 		LDFLAGS="-L${LOCALBASE}/lib" \
 		EMACS="no"
-CONFIGURE_ARGS=	--disable-csharp --disable-threads --disable-openmp
+CONFIGURE_ARGS=	--disable-csharp --disable-threads --disable-openmp \
+		--with-included-gettext --with-included-glib \
+		--with-included-libcroco --with-included-libxml
 USE_LDCONFIG=	yes
-
-PLIST_SUB=	VERSION=${PORTVERSION}
 
 MAN1=		autopoint.1 envsubst.1 gettext.1 gettextize.1 msgattrib.1 \
 		msgcat.1 msgcmp.1 msgcomm.1 msgconv.1 msgen.1 msgexec.1 \

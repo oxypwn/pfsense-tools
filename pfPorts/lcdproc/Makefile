@@ -2,43 +2,84 @@
 # Date created:				Sat Jun  1 20:03:41 EDT 2002
 # Whom:					pat
 #
-# $FreeBSD: ports/sysutils/lcdproc/Makefile,v 1.11 2007/05/26 15:38:15 araujo Exp $
+# $FreeBSD: ports/sysutils/lcdproc/Makefile,v 1.24 2010/09/15 18:35:13 ade Exp $
 #
 
 PORTNAME=	lcdproc
-PORTVERSION=	0.5.2
+PORTVERSION=	0.5.3
+PORTREVISION=	1
 CATEGORIES=	sysutils
-MASTER_SITES=	${MASTER_SITE_SOURCEFORGE}
-MASTER_SITE_SUBDIR=	${PORTNAME}
+MASTER_SITES=	SF
 
 MAINTAINER=	bsdfan@nurfuerspam.de
 COMMENT=	A client/server suite for LCD devices
 
-ONLY_FOR_ARCHS=	i386
+ONLY_FOR_ARCHS=	i386 amd64
 
-USE_AUTOTOOLS=	autoconf:262 automake:19 aclocal:19
-USE_GCC=	3.2+
+USE_AUTOTOOLS=	autoconf:267 automake:19 aclocal:19
 GNU_CONFIGURE=	yes
-USE_GETOPT_LONG=yes
-USE_RC_SUBR=	LCDd lcdproc
+USE_GNOME=	pkgconfig
+USE_RC_SUBR=	LCDd lcdproc lcdexec
 
-CONFIGURE_ARGS=	--enable-drivers=all \
-		--disable-ldap \
-		--disable-doxygen \
-		--mandir=${PREFIX}/man \
-		--infodir=${PREFIX}/info
-CONFIGURE_ENV=	CFLAGS="${CFLAGS}"
+CONFIGURE_ARGS=	--enable-drivers="${LCDPROC_DRIVERS}" \
+		--disable-dependency-tracking \
+		--disable-doxygen
+
+SUB_FILES=	pkg-message
 
 MAN1=		lcdexec.1 lcdproc.1
 MAN5=		lcdproc-config.5
 MAN8=		LCDd.8
 
+OPTIONS=	USB "Enable USB support" off
+
+ACLOCAL_ARGS=
+
+LCDPROC_DRIVERS=bayrad \
+		CFontz \
+		CFontz633 \
+		CFontzPacket \
+		CwLnx \
+		curses \
+		ea65 \
+		EyeboxOne \
+		glk \
+		hd44780 \
+		icp_a106 \
+		lb216 \
+		lcdm001 \
+		lcterm \
+		MD8800 \
+		ms6931 \
+		mtc_s16209x \
+		MtxOrb \
+		NoritakeVFD \
+		pyramid \
+		sed1330 \
+		sed1520 \
+		serialPOS \
+		serialVFD \
+		sli \
+		stv5730 \
+		t6963 \
+		text \
+		tyan
+
+.include <bsd.port.pre.mk>
+
 .if defined(WITH_USB)
+. if ${OSVERSION} < 800069
 LIB_DEPENDS+=		usb-0.1.8:${PORTSDIR}/devel/libusb
-CONFIGURE_ARGS+=	--enable-libusb
+CONFIGURE_ARGS+=	--with-libusb
+. else
+CONFIGURE_ARGS+=	--with-libusb=/usr
+. endif
 PLIST_SUB+=		USB=""
+LCDPROC_DRIVERS+=IOWarrior \
+		picolcd \
+		shuttleVFD
 .else
-CONFIGURE_ARGS+=	--disable-libusb
+CONFIGURE_ARGS+=	--without-libusb
 PLIST_SUB+=		USB="@comment "
 .endif
 
@@ -49,6 +90,6 @@ post-install:
 	${INSTALL_DATA} ${WRKSRC}/LCDd.conf ${PREFIX}/etc/LCDd.conf.sample
 	${INSTALL_DATA} ${WRKSRC}/clients/lcdproc/lcdproc.conf ${PREFIX}/etc/lcdproc.conf.sample
 	${INSTALL_DATA} ${WRKSRC}/clients/lcdexec/lcdexec.conf ${PREFIX}/etc/lcdexec.conf.sample
-	${INSTALL_DATA} ${WRKSRC}/clients/lcdvc/lcdvc.conf ${PREFIX}/etc/lcdvc.conf.sample
+	@${CAT} ${PKGMESSAGE}
 
-.include <bsd.port.mk>
+.include <bsd.port.post.mk>

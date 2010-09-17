@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-shmop
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-shmop
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/devel/php5-shmop/Makefile,v 1.1 2004/07/19 09:04:37 ale Exp $
+# $FreeBSD: ports/devel/php52-shmop/Makefile,v 1.1 2010/04/23 22:14:45 dinoex Exp $
 #
 
 CATEGORIES=	devel

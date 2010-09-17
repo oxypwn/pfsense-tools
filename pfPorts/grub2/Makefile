@@ -1,46 +1,46 @@
 # New ports collection makefile for:	grub
-# Whom:					rjoseph@mammalia.org
-# Date created:				24 July 2000
+# Whom:					sem@FreeBSD.org
+# Date created:				10 June 2010
 #
-# $FreeBSD: ports/sysutils/grub/Makefile,v 1.34 2008/12/25 23:03:39 sem Exp $
+# $FreeBSD: ports/sysutils/grub2/Makefile,v 1.3 2010/07/23 20:13:06 pav Exp $
 #
 
-PORTNAME=	grub
-PORTVERSION=	1.97
-PORTREVISION=	3
+PORTNAME=	grub2
+PORTVERSION=	1.98
 CATEGORIES=	sysutils
 MASTER_SITES=	ftp://alpha.gnu.org/gnu/grub/
+DISTNAME=	grub-${PORTVERSION}
 
 MAINTAINER=	sem@FreeBSD.org
-COMMENT=	GRand Unified Bootloader
+COMMENT=	Multiboot boot loader
 
-#USE_AUTOTOOLS=	automake:19 autoconf:262
-#GNU_CONFIGURE=		yes
+CONFLICTS=	grub-0*
+
+GNU_CONFIGURE=		yes
 USE_GMAKE=		yes
-#CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-freebsd-freebsd${OSREL}
-#CONFIGURE_ARGS+=	--libdir=${PREFIX}/share
-ONLY_FOR_ARCHS=		i386
+USE_BISON=		build
+USE_GETTEXT=		yes
+ONLY_FOR_ARCHS=		i386 amd64
 
-GRUB_DIR=	${DATADIR:C|^${PREFIX}/||}/i386-freebsd
+INFO=		grub
 
-MAN1=		mbchk.1
-MAN8=		grub.8 grub-install.8 grub-md5-crypt.8 grub-terminfo.8
-INFO=		grub multiboot
-PLIST_DIRS=	${GRUB_DIR} ${DATADIR:C|^${PREFIX}/||}
-PLIST_FILES=	bin/mbchk sbin/grub sbin/grub-install sbin/grub-md5-crypt \
-		sbin/grub-terminfo sbin/grub-set-default \
-		${GRUB_DIR}/stage1 ${GRUB_DIR}/stage2
+OPTIONS=	MKFONT "Build grub-mkfont (require freetype2)" off
 
-.for f in e2fs fat ffs iso9660 jfs minix reiserfs ufs2 vstafs xfs
-PLIST_FILES+=	${GRUB_DIR}/${f}_stage1_5
-.endfor
-PLIST_FILES+=	${GRUB_DIR}/stage2_eltorito
+.include <bsd.port.pre.mk>
 
-PORTSCOUT=	limit:^0
+.if defined(WITH_MKFONT)
+LIB_DEPENDS+=	freetype.9:${PORTSDIR}/print/freetype2
+.else
+MKFONT=		"@comment "
+.endif
 
-pre-configure:
-	@cd ${WRKSRC}; ./configure
+PLIST_SUB+=	MKFONT=${MKFONT}
+
+.if ${OSVERSION} < 700000
+BROKEN=		does not compile on 6.X
+.endif
+
 post-install:
 	@${CAT} ${PKGMESSAGE}
 
-.include <bsd.port.mk>
+.include <bsd.port.post.mk>

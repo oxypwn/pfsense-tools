@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-pdo_sqlite
-# Date created:			7 Feb 2007
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-pdo_sqlite
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/databases/php5-pdo_sqlite/Makefile,v 1.1 2007/02/09 08:36:39 ale Exp $
+# $FreeBSD: ports/databases/php52-pdo_sqlite/Makefile,v 1.1 2010/04/23 16:30:34 dinoex Exp $
 #
 
 CATEGORIES=	databases

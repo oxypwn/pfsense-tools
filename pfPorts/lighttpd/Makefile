@@ -2,30 +2,35 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.85 2010/08/18 22:13:21 mm Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.91 2010/09/15 18:35:20 ade Exp $
 #
 
-PORTNAME=	lighttpd
-PORTVERSION=	1.4.27
-PORTREVISION=	2
-CATEGORIES=	www
-MASTER_SITES=	http://download.lighttpd.net/lighttpd/releases-1.4.x/
+PORTNAME?=	lighttpd
+PORTVERSION=	1.4.28
+PORTREVISION=	4
+CATEGORIES?=	www
+MASTER_SITES?=	http://download.lighttpd.net/lighttpd/releases-1.4.x/
 
-MAINTAINER=	mm@FreeBSD.org
-COMMENT=	A secure, fast, compliant, and very flexible Web Server
+MAINTAINER?=	mm@FreeBSD.org
+COMMENT?=	A secure, fast, compliant, and very flexible Web Server
 
-BUILD_DEPENDS=	pkg-config:${PORTSDIR}/devel/pkg-config
-LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
+BUILD_DEPENDS+=	pkg-config:${PORTSDIR}/devel/pkg-config
+LIB_DEPENDS+=	pcre.0:${PORTSDIR}/devel/pcre
 
 USE_BZIP2=	yes
-USE_AUTOTOOLS=	libtool:22
 GNU_CONFIGURE=	yes
 USE_GNOME=	lthack
-USE_RC_SUBR=	lighttpd.sh
-CONFIGURE_ARGS=	--libdir=${PREFIX}/lib/lighttpd --enable-static
+USE_AUTOTOOLS=	autoconf:267 autoheader:267 aclocal:110 automake:110 libtool:22
+ACLOCAL_ARGS=	-I m4
+CONFIGURE_ARGS+=	--libdir=${PREFIX}/lib/lighttpd --enable-static
 
 CFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
+
+CONFIGURE_ENV+=	LDFLAGS="${LDFLAGS}"
+
+.if !defined(_BUILDING_LIGHTTPD_MODULE)
+USE_RC_SUBR=	lighttpd.sh
 
 MAN8=		lighttpd.8
 
@@ -33,13 +38,12 @@ OPTIONS=	BZIP2		"Enable Bzip2 support" off \
 		CML		"Enable Cache Meta Language support" off \
 		FAM		"Enable fam/gamin support" off \
 		GDBM		"Enable gdbm storage support" off \
-		GEOIP		"Enable GeoIP support" off \
-		H264		"Enable H.264 streaming" off \
 		IPV6		"Enable IPV6 support" off \
 		LIBEV		"Enable libev support" off \
 		MAGNET		"Enable magnet support" off \
 		MEMCACHE	"Enable memory caching support" off \
 		MYSQL		"Enable MYSQL support" off \
+		MYSQLAUTH	"Enable mysql auth (requires WITH_MYSQL)" off \
 		NODELAY		"Set TCP_NODELAY on listening sockets" on \
 		OPENLDAP	"Enable LDAP support" off \
 		OPENSSL		"Enable SSL support" on \
@@ -48,14 +52,15 @@ OPTIONS=	BZIP2		"Enable Bzip2 support" off \
 		WEBDAV		"Enable WebDAV support"	off
 
 .if !defined(NOPORTDOCS)
-PORTDOCS=	AUTHORS COPYING INSTALL NEWS README
+DOCS=		AUTHORS COPYING INSTALL NEWS README
+PORTDOCS=	${DOCS}
 .endif
 
 CONF_FILES=	lighttpd.conf modules.conf
 
 CONFD_FILES=	access_log.conf auth.conf cgi.conf cml.conf \
 		compress.conf debug.conf dirlisting.conf \
-		evhost.conf expire.conf fastcgi.conf geoip.conf \
+		evhost.conf expire.conf fastcgi.conf \
 		magnet.conf mime.conf mysql_vhost.conf proxy.conf \
 		rrdtool.conf scgi.conf secdownload.conf \
 		simple_vhost.conf ssi.conf status.conf \
@@ -72,34 +77,13 @@ PLIST_SUB+=		LOGROOT="${LIGHTTPD_LOGROOT}" \
 			MKDIR="${MKDIR}" \
 			CHOWN="${CHOWN}"
 
+.endif # !defined(_BUILDING_LIGHTTPD_MODULE)
+
 .include <bsd.port.pre.mk>
 
+.if !defined(_BUILDING_LIGHTTPD_MODULE)
 # Default REQUIRE to rc.d script
 _REQUIRE=	DAEMON
-
-.if defined(WITH_H264) || defined(WITH_GEOIP)
-PATCH_SITES+=		${MASTER_SITE_LOCAL}
-PATCH_SITE_SUBDIR+=	mm
-USE_AUTOTOOLS+=		autoconf:262 autoheader:262 aclocal:110 automake:110
-ACLOCAL_ARGS+=		-I m4
-.endif
-
-.if defined(WITH_H264)
-PATCHFILES+=		lighttpd-1.4.26_mod_h264_streaming-2.2.9.patch.gz
-PORTDOCS+=		COPYING_H264
-#MANUAL_PACKAGE_BUILD=	free for non-commercial use only
-PLIST_SUB+=		H264=""
-.else
-PLIST_SUB+=		H264="@comment "
-.endif
-
-.if defined(WITH_GEOIP)
-PATCHFILES+=		lighttpd-1.4.26_mod_geoip.patch.gz
-LIB_DEPENDS+=		GeoIP.5:${PORTSDIR}/net/GeoIP
-PLIST_SUB+=		GEOIP=""
-.else
-PLIST_SUB+=		GEOIP="@comment "
-.endif
 
 .if !defined(WITHOUT_OPENSSL)
 .include "${PORTSDIR}/Mk/bsd.openssl.mk"
@@ -155,6 +139,15 @@ CONFIGURE_ARGS+=	--with-mysql
 _REQUIRE+=		mysql
 .endif
 
+.if defined(WITH_MYSQLAUTH) && !defined(WITH_MYSQL)
+IGNORE=		WITH_MYSQLAUTH requires WITH_MYSQL
+.endif
+
+.if defined(WITH_MYSQLAUTH)
+EXTRA_PATCHES+=		${FILESDIR}/extra-patch-mysqlauth
+PORTDOCS+=		README.mysqlauth mysql_auth.sql
+.endif
+
 .if defined(WITH_NODELAY)
 EXTRA_PATCHES+=		${FILESDIR}/extra-patch-nodelay
 .endif
@@ -205,10 +198,6 @@ post-patch:
 		${WRKSRC}/doc/config/lighttpd.conf
 	@${ECHO} "\$$SERVER[\"socket\"] == \"0.0.0.0:80\" { }" >> \
 		${WRKSRC}/doc/config/lighttpd.conf
-.if defined(WITH_H264)
-	@${CAT} ${WRKSRC}/COPYING_H264
-	@sleep 10
-.endif
 
 post-install:
 	@${MKDIR} ${PREFIX}/etc/lighttpd/conf.d ${PREFIX}/etc/lighttpd/vhosts.d
@@ -235,9 +224,15 @@ post-install:
 
 .if !defined(NOPORTDOCS)
 	@${MKDIR} ${DOCSDIR}
-. for FILE in ${PORTDOCS}
+. for FILE in ${DOCS}
 	@${INSTALL_DATA} ${WRKSRC}/${FILE} ${DOCSDIR}/${FILE}
 . endfor
 .endif
+.if defined(WITH_MYSQLAUTH)
+. for FILE in README.mysqlauth mysql_auth.sql
+	@${INSTALL_DATA} ${FILESDIR}/${FILE} ${DOCSDIR}/${FILE}
+. endfor
+.endif
+.endif # !defined(_BUILDING_LIGHTTPD_MODULE)
 
 .include <bsd.port.post.mk>

@@ -3,8 +3,8 @@ COMMENT=	The ${PHP_MODNAME} shared extension for php
 USE_PHP=	yes
 USE_PHPEXT=	yes
 PHP_MODNAME=	${PKGNAMESUFFIX:S/-//}
-DEFAULT_PHP_VER=5
-BROKEN_WITH_PHP=4
+DEFAULT_PHP_VER=52
+BROKEN_WITH_PHP=4 5
 
 EXTSUBDIR=	${DISTNAME}/ext/${PHP_MODNAME}
 WRKSRC=		${WRKDIR}/${EXTSUBDIR}
@@ -92,8 +92,8 @@ USE_OPENSSL=	yes
 
 .if ${PHP_MODNAME} == "gd"
 LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
-		png.5:${PORTSDIR}/graphics/png \
-		jpeg.9:${PORTSDIR}/graphics/jpeg
+		png.6:${PORTSDIR}/graphics/png \
+		jpeg.11:${PORTSDIR}/graphics/jpeg
 .	if !defined(WITHOUT_X11)
 USE_XORG=	xpm
 .	endif
@@ -121,7 +121,7 @@ USE_GETTEXT=	yes
 .endif
 
 .if ${PHP_MODNAME} == "gmp"
-LIB_DEPENDS+=	gmp.8:${PORTSDIR}/math/libgmp4
+LIB_DEPENDS+=	gmp.10:${PORTSDIR}/math/gmp
 
 CONFIGURE_ARGS+=--with-gmp=${LOCALBASE}
 .endif
@@ -182,7 +182,7 @@ LIB_DEPENDS+=	mcrypt.8:${PORTSDIR}/security/libmcrypt
 
 CONFIGURE_ARGS+=--with-mcrypt=${LOCALBASE}
 
-USE_AUTOTOOLS=	libltdl:15
+USE_AUTOTOOLS=	libltdl:22
 .endif
 
 .if ${PHP_MODNAME} == "mhash"
@@ -378,10 +378,9 @@ CONFIGURE_ARGS+=--with-snmp=${LOCALBASE} \
 		--with-openssl-dir=${OPENSSLBASE} \
 		--enable-ucd-snmp-hack
 
-LDFLAGS+=       -L${OPENSSLLIB} -lcrypto -lssl
-USE_OPENSSL=    yes
-
-OPTIONS=	SNMP4 "Use old UCD SNMP instead of the new NET SNMP" off
+LIB_DEPENDS+=   netsnmp.20:${PORTSDIR}/net-mgmt/net-snmp
+LDFLAGS+=	-L${OPENSSLLIB} -lcrypto -lssl
+USE_OPENSSL=	yes
 .endif
 
 .if ${PHP_MODNAME} == "soap"
@@ -599,14 +598,6 @@ LIB_DEPENDS+=	sybdb.5:${PORTSDIR}/databases/freetds-msdblib
 .else
 LIB_DEPENDS+=	ct.4:${PORTSDIR}/databases/freetds
 .endif
-.endif
-
-.if ${PHP_MODNAME} == "snmp"
-.	if defined(WITH_SNMP4) || exists(${LOCALBASE}/lib/libsnmp.so.4)
-LIB_DEPENDS+=   snmp.4:${PORTSDIR}/net-mgmt/net-snmp4
-.	else
-LIB_DEPENDS+=   netsnmp.16:${PORTSDIR}/net-mgmt/net-snmp
-.	endif
 .endif
 
 .if ${PHP_MODNAME} == "sqlite"

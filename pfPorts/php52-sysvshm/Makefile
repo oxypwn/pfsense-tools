@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-sysvshm
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-sysvshm
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/devel/php5-sysvshm/Makefile,v 1.1 2004/07/19 09:07:44 ale Exp $
+# $FreeBSD: ports/devel/php52-sysvshm/Makefile,v 1.1 2010/04/23 22:29:25 dinoex Exp $
 #
 
 CATEGORIES=	devel

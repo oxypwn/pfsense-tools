@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-curl
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-curl
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/ftp/php5-curl/Makefile,v 1.3 2007/03/11 21:57:26 ale Exp $
+# $FreeBSD: ports/ftp/php52-curl/Makefile,v 1.1 2010/04/23 15:28:15 dinoex Exp $
 #
 
 CATEGORIES=	ftp

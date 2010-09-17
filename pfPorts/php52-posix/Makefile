@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-posix
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-posix
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/sysutils/php5-posix/Makefile,v 1.4 2007/11/14 07:38:32 ale Exp $
+# $FreeBSD: ports/sysutils/php52-posix/Makefile,v 1.1 2010/04/23 16:34:38 dinoex Exp $
 #
 
 CATEGORIES=	sysutils

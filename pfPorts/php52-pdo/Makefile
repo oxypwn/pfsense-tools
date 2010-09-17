@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-pdo
-# Date created:			7 Feb 2007
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-pdo
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/databases/php5-pdo/Makefile,v 1.3 2007/02/09 08:35:34 ale Exp $
+# $FreeBSD: ports/databases/php52-pdo/Makefile,v 1.1 2010/04/23 16:23:44 dinoex Exp $
 #
 
 CATEGORIES=	databases

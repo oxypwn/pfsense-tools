@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-tokenizer
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-tokenizer
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/devel/php5-tokenizer/Makefile,v 1.1 2004/07/19 09:08:13 ale Exp $
+# $FreeBSD: ports/devel/php52-tokenizer/Makefile,v 1.1 2010/04/23 22:25:27 dinoex Exp $
 #
 
 CATEGORIES=	devel

@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-json
-# Date created:			10 Dec 2008
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-json
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/devel/php5-json/Makefile,v 1.3 2008/12/11 08:54:19 ale Exp $
+# $FreeBSD: ports/devel/php52-json/Makefile,v 1.1 2010/04/23 15:58:00 dinoex Exp $
 #
 
 CATEGORIES=	devel

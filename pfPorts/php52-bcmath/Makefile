@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-bcmath
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-bcmath
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/math/php5-bcmath/Makefile,v 1.1 2004/07/19 09:13:09 ale Exp $
+# $FreeBSD: ports/math/php52-bcmath/Makefile,v 1.1 2010/04/23 15:13:13 dinoex Exp $
 #
 
 CATEGORIES=	math

@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-simplexml
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-simplexml
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/textproc/php5-simplexml/Makefile,v 1.1 2004/07/19 09:22:53 ale Exp $
+# $FreeBSD: ports/textproc/php52-simplexml/Makefile,v 1.1 2010/04/23 22:16:04 dinoex Exp $
 #
 
 CATEGORIES=	textproc

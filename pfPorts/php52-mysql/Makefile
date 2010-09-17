@@ -1,8 +1,8 @@
-# New ports collection makefile for:	php5-mysql
-# Date created:			7 Jul 2004
-# Whom:				Alex Dupre <ale@FreeBSD.org>
+# New ports collection makefile for:	php52-mysql
+# Date created:			17 Apr 2010
+# Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/databases/php5-mysql/Makefile,v 1.1 2004/07/19 08:53:33 ale Exp $
+# $FreeBSD: ports/databases/php52-mysql/Makefile,v 1.1 2010/04/23 16:10:11 dinoex Exp $
 #
 
 CATEGORIES=	databases
