@@ -133,12 +133,14 @@ if [ "$PFSPKGFILE" = "" ]; then
 	echo "PFSPKGFILE is not defined.  Setting."
 	PFSPKGFILE=/tmp/pfspackages
 fi
+export PKGFILE=${PFSPKGFILE}
 rm -f $PFSPKGFILE
 (cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
 (cd /var/db/pkg && ls | grep grub) >> $PFSPKGFILE
 (cd /var/db/pkg && ls | grep lua) >> $PFSPKGFILE
 set -e
 freesbie_make pkginstall
+unset PKGFILE
 
 # Install packages needed for livecd
 echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS" 

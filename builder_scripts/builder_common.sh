@@ -877,7 +877,7 @@ cust_install_config_xml() {
 install_custom_overlay() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay:-}" ]; then
-		echo -n "Custom overlay defined - "
+		echo -n ">>> Custom overlay defined - "
 		if [ -d $custom_overlay ]; then
 			echo " found directory, $custom_overlay copying..."
 			for i in $custom_overlay/*
@@ -899,7 +899,7 @@ install_custom_overlay() {
 		fi
 	fi
 	if [ ! -z "${custom_overlay_archive:-}" ]; then
-		echo -n "Custom overlay archive defined - "
+		echo -n ">>> Custom overlay archive defined - "
 		if [ -d $custom_overlay_archive ]; then
 			echo " found directory, $custom_overlay_archive extracting files..."
 			for i in $custom_overlay_archive/*
@@ -937,7 +937,7 @@ setup_livecd_specifics() {
 install_custom_overlay_final() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay_final:-}" ]; then
-		echo -n "Custom overlay defined - "
+		echo -n ">>> Custom overlay defined - "
 		if [ -d $custom_overlay_final ]; then
 			echo " found directory, $custom_overlay_final copying..."
 			for i in $custom_overlay_final/*
