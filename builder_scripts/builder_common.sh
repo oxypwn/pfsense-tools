@@ -904,7 +904,7 @@ install_custom_overlay() {
 			echo ">>> Found directory, $custom_overlay_archive extracting files..."
 			for i in $custom_overlay_archive/*
 			do
-			    if [ -f "$i ]; then
+			    if [ -f "$i" ]; then
 			        echo ">>> Extracting file: $i ..."
 			        tar xzpf $i -C $CVS_CO_DIR
 			    fi
