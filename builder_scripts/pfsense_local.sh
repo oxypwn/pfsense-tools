@@ -201,7 +201,7 @@ export ARCH=${ARCH:-"`uname -m`"}
 #export CROSS_COMPILE_PORTS_BINARIES="~sullrich/mips.tgz"
 
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
-export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_TOOLS}/remove.list.iso.$FREEBSD_VERSION"}
+export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"}
 
 # Use a custom config.xml
 #export USE_CONFIG_XML=${USE_CONFIG_XML:-"/path/to/custom/config.xml"}
