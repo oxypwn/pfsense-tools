@@ -30,6 +30,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/sysctl.h>
+#include <sys/stat.h>
 
 #include <net/if.h>
 #include <net/pfvar.h>
@@ -42,6 +43,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <syslog.h>
+#include <stdarg.h>
+
 #include <errno.h>
 
 #include <rrd.h>
@@ -49,10 +53,39 @@
 #define PFDEV "/dev/pf"
 int dev = -1;
 
+#define RRDFILENAME_FORMAT	"%s-%s.rrd"
+TAILQ_HEAD(ifacehead, rrd_iface) head;
+struct rrd_iface {
+	TAILQ_ENTRY(rrd_iface)	entry;
+	char *iface[2];
+	char filename[256];
+};
+
+#define RRDSYSTEM_STATES	"system-states.rrd"
+#define RRDSYSTEM_CPU		"system-processor.rrd"
+#define RRDSYSTEM_MEMORY	"system-memory.rrd"
+
+#if 0
 static const char       *istats_text[2][2][2] = {
         { { "In4/Pass:", "In4/Block:" }, { "Out4/Pass:", "Out4/Block:" } },
         { { "In6/Pass:", "In6/Block:" }, { "Out6/Pass:", "Out6/Block:" } }
 };
+#endif
+
+/* Check if file exists */
+static int
+fexist(char * filename)
+{
+        struct stat buf;
+
+        if (( stat (filename, &buf)) < 0)
+                return (0);
+
+        if (! S_ISREG(buf.st_mode))
+                return (0);
+
+        return(1);
+}
 
 void *
 first_thread(void *arg __unused)
@@ -60,14 +93,19 @@ first_thread(void *arg __unused)
 	struct pfioc_iface ifaces;
 	struct pfi_kif *p;
 	struct timespec ts;
-	time_t tzero;
 	void	*buf;
-	int i, j, af, act, dir;
+	int j;
+	char buffer[2048];
+	rrd_context_t	*myctx;
+	struct rrd_iface *tmp;
 
 	ts.tv_sec = 5;
         ts.tv_nsec = 0;
 
 	while (1) {
+		while ((myctx = rrd_new_context()) == NULL)
+			syslog(LOG_ERR, "Could not allocate a rrdlib context.");
+			
 		printf("First thread running\n");
 
 		bzero(&ifaces, sizeof ifaces);
@@ -96,13 +134,16 @@ first_thread(void *arg __unused)
 			return NULL;
 		}
 		p = (struct pfi_kif *)ifaces.pfiio_buffer;
+		rrd_clear_error();
 		for (j = 0; j < ifaces.pfiio_size; j++) {
-			/*
-			if (strcmp("le0", p->pfik_name) != 0) {
-				p++;
-				continue;
+			TAILQ_FOREACH(tmp, &head, entry) {
+				if (strcmp(tmp->iface[0], p->pfik_name) == 0)
+					break;;
 			}
-			*/
+			if (tmp == NULL)
+				continue;
+
+			/*
 			printf("%s", p->pfik_name);
 			printf("\tCleared:     %s", ctime(&tzero));
         		printf("\tReferences:  [ States:  %-18d Rules: %-18d ]\n",
@@ -116,13 +157,40 @@ first_thread(void *arg __unused)
                     			(unsigned long long)p->pfik_packets[af][dir][act],
                     			(unsigned long long)p->pfik_bytes[af][dir][act]);
         		}
-			p++;
+			*/
+			snprintf(buffer, 2047, "N:%llu:%llu:%llu:%llu",
+				(unsigned long long)p->pfik_bytes[0][0][0], (unsigned long long)p->pfik_bytes[0][1][0],
+				(unsigned long long)p->pfik_bytes[0][1][1], (unsigned long long)p->pfik_bytes[0][1][1]);
+			snprintf(tmp->filename, sizeof(tmp->filename), RRDFILENAME_FORMAT, tmp->iface[1], "traffic");
+			if (!fexist(tmp->filename)) {
+				syslog(LOG_ERR, "%s does not exist", tmp->filename);
+				printf("%s does not exist\n", tmp->filename);
+				continue;
+			}
+			rrd_update_r(tmp->filename, NULL, 1, (const char **) &buffer);
+			syslog(LOG_ERR, "writing this data to %s: %s, %s", tmp->filename, p->pfik_name, buffer);
+			printf("writing this data to %s: %s, %s\n", tmp->filename, p->pfik_name, buffer);
+
+			snprintf(buffer, 2047, "N:%llu:%llu:%llu:%llu",
+				(unsigned long long)p->pfik_packets[2][0][0], (unsigned long long)p->pfik_packets[2][1][0],
+				(unsigned long long)p->pfik_packets[2][1][1], (unsigned long long)p->pfik_packets[2][1][1]);
+			snprintf(tmp->filename, sizeof(tmp->filename), RRDFILENAME_FORMAT, tmp->iface[1], "packets");
+			if (!fexist(tmp->filename)) {
+				syslog(LOG_ERR, "%s does not exist", tmp->filename);
+				printf("%s does not exist\n", tmp->filename);
+				continue;
+			}
+			rrd_update_r(tmp->filename, NULL, 1, (const char **) &buffer);
+			syslog(LOG_ERR, "writing this data to %s: %s, %s", tmp->filename, p->pfik_name, buffer);
+			printf("writing this data to %s: %s, %s\n", tmp->filename, p->pfik_name, buffer);
 		}
 
 		free(ifaces.pfiio_buffer);
 		p = NULL;
 		nanosleep(&ts, NULL);
 	}
+
+	rrd_free_context(myctx);
 }
 
 void *
@@ -323,6 +391,38 @@ main(int argc, char **argv)
 {
 
 	pthread_t first, second, third, fourth;
+	int ch;
+	struct rrd_iface *tmp;
+	char **ap;
+
+	TAILQ_INIT(&head);
+
+	while ((ch = getopt(argc, argv, "i:")) != -1) {
+		switch (ch) {
+		case 'i':
+			tmp = malloc(sizeof(*tmp));
+			if (tmp == NULL) {
+				syslog(LOG_ERR, "Exiting because %s.", strerror(errno));
+				return (1);
+			}
+			for (ap = tmp->iface; (*ap = strsep(&optarg, ":")) != NULL;)
+				if (**ap != '\0')
+					if (++ap >= &tmp->iface[1])
+						break;
+
+			TAILQ_INSERT_HEAD(&head, tmp, entry);
+			break;
+		default:
+			return 1;
+			break;
+		}
+	}
+	argc -= optind;
+	argv += optind;
+	
+	TAILQ_FOREACH(tmp, &head, entry) {
+		printf("Arguments: %s, %s.\n", tmp->iface[0], tmp->iface[1]);
+	}
 
 	if ((dev = open(PFDEV, O_RDONLY)) < 0) {
 		printf("Could not open pf(4) device because %s\n", strerror(errno));

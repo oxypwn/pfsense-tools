@@ -11,13 +11,13 @@ COMMENT?=	pfStats
 
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
-CFLAGS+=	-I/usr/local/include -L/usr/local/lib -lrrd -Wall -Werror
+CFLAGS+=	-I/usr/local/include -L/usr/local/lib -lrrd_th -Wall -Werror
 
 do-extract:
 	mkdir -p ${WRKSRC}
 
 do-build:
-	${CC} ${CFLAGS} -lrrd -lutil -lpthread -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
+	${CC} ${CFLAGS} -lrrd_th -lutil -lpthread -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
