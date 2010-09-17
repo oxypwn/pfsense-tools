@@ -607,13 +607,13 @@ cust_overlay_host_binaries() {
 	# to spend a fair amount of time figuring out why the built
 	# syslogd file doe snot reside in the correct directory to
 	# install from.  Just move along now, nothing to see here.
-    echo "==> Building syslogd..."
-    cd $SRCDIR/usr.sbin/syslogd
+	echo "==> Building syslogd..."
+	cd $SRCDIR/usr.sbin/syslogd
 	(make clean) | egrep -wi '(^>>>|error)'
  	(make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
 	(make install) | egrep -wi '(^>>>|error)'
 	(make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
-    echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
+	echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
 	if [ -f ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd ]; then
 		install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
 	fi
@@ -715,16 +715,16 @@ check_for_zero_size_files() {
 # Install custom BSDInstaller bits for FreeBSD
 # only installations (no pfSense bits)
 cust_populate_installer_bits_freebsd_only() {
-    # Add lua installer items
-    mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
+	# Add lua installer items
+	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
 	mkdir -p $PFSENSEBASEDIR/scripts/
-    # This is now ready for general consumption! \o/
-    mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
-    cp -r $BUILDER_TOOLS/installer/conf \
+	# This is now ready for general consumption! \o/
+	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
+	cp -r $BUILDER_TOOLS/installer/conf \
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
 	# Copy installer launcher scripts
-    cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
-    chmod a+rx $PFSENSEBASEDIR/scripts/*
+	cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
+	chmod a+rx $PFSENSEBASEDIR/scripts/*
 	rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
 	rm -f $CVS_CO_DIR/root/.hushlogin
 	rm -f $PFSENSEBASEDIR/root/.hushlogin
@@ -784,11 +784,11 @@ cust_populate_installer_bits() {
 # Copies all extra files to the CVS staging
 # area and ISO staging area (as needed)
 cust_populate_extra() {
-    # Make devd
+	# Make devd
 	echo -n ">>> Making devd... "
-    ( cd ${SRCDIR}/sbin/devd && make clean >/tmp/make_devd_clean.out 2>&1 )
-    ( cd ${SRCDIR}/sbin/devd && make >/tmp/make_devd_all.out 2>&1 )
-    if ( cd ${SRCDIR}/sbin/devd && make install DESTDIR=${PFSENSEBASEDIR} >/tmp/make_devd_install.out 2>&1 ); then
+	( cd ${SRCDIR}/sbin/devd && make clean >/tmp/make_devd_clean.out 2>&1 )
+	( cd ${SRCDIR}/sbin/devd && make >/tmp/make_devd_all.out 2>&1 )
+	if ( cd ${SRCDIR}/sbin/devd && make install DESTDIR=${PFSENSEBASEDIR} >/tmp/make_devd_install.out 2>&1 ); then
 		echo "Done."
 	else
 		echo "Failed!"
@@ -809,28 +809,28 @@ cust_populate_extra() {
 		mkdir -p ${PFSENSEBASEDIR}/${TEMPDIR}
 	done
 
-    echo exit > $CVS_CO_DIR/root/.xcustom.sh
-    touch $CVS_CO_DIR/root/.hushlogin
+	echo exit > $CVS_CO_DIR/root/.xcustom.sh
+	touch $CVS_CO_DIR/root/.hushlogin
 
-    # bsnmpd
-    mkdir -p $CVS_CO_DIR/usr/share/snmp/defs/
-    cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
+	# bsnmpd
+	mkdir -p $CVS_CO_DIR/usr/share/snmp/defs/
+	cp -R /usr/share/snmp/defs/ $CVS_CO_DIR/usr/share/snmp/defs/
 
 	# Make sure parse_config exists
 
-    # Set buildtime
-    date > $CVS_CO_DIR/etc/version.buildtime
+	# Set buildtime
+	date > $CVS_CO_DIR/etc/version.buildtime
 
 	# Record last commit info if it is available.
 	if [ -f /tmp/build_commit_info.txt ]; then
 		cp /tmp/build_commit_info.txt $CVS_CO_DIR/etc/version.lastcommit
 	fi
 
-    # Suppress extra spam when logging in
-    touch $CVS_CO_DIR/root/.hushlogin
+	# Suppress extra spam when logging in
+	touch $CVS_CO_DIR/root/.hushlogin
 
-    # Setup login environment
-    echo > $CVS_CO_DIR/root/.shrc
+	# Setup login environment
+	echo > $CVS_CO_DIR/root/.shrc
 
 	# Detect interactive logins and display the shell
 	echo "if [ \`env | grep SSH_TTY | wc -l\` -gt 0 ] || [ \`env | grep cons25 | wc -l\` -gt 0 ]; then" > $CVS_CO_DIR/root/.shrc
@@ -843,18 +843,18 @@ cust_populate_extra() {
 	echo "fi" >> $CVS_CO_DIR/root/.profile
 
 	# Turn off error checking
-    set +e
+	set +e
 
-    # Nuke CVS dirs
-    find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
-    find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
+	# Nuke CVS dirs
+	find $CVS_CO_DIR -type d -name CVS -exec rm -rf {} \; 2> /dev/null
+	find $CVS_CO_DIR -type d -name "_orange-flow" -exec rm -rf {} \; 2> /dev/null
 
 	install_custom_overlay
 
-    # Enable debug if requested
-    if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
+	# Enable debug if requested
+	if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
 		touch ${CVS_CO_DIR}/debugging
-    fi
+	fi
 }
 
 # Copy a custom defined config.xml used commonly
@@ -871,7 +871,7 @@ cust_install_config_xml() {
 	fi
 }
 
-# This routine will over $custom_overlay onto
+# This routine will copy over $custom_overlay onto
 # the staging area.  It is commonly used for rebranding
 # and or custom appliances.
 install_custom_overlay() {
@@ -879,49 +879,49 @@ install_custom_overlay() {
 	if [ ! -z "${custom_overlay:-}" ]; then
 		echo -n "Custom overlay defined - "
 		if [ -d $custom_overlay ]; then
-			echo "found directory, copying..."
+			echo ">>> Found directory, $custom_overlay copying..."
 			for i in $custom_overlay/*
 			do
-			    if [ -d $i ]; then
-			        echo "copying dir: $i ..."
+			    if [ -d "$i" ]; then
+			        echo ">>> Copying dir: $i ..."
 			        cp -R $i $CVS_CO_DIR
 			    else
-			        echo "copying file: $i ..."
+			        echo ">>> Copying file: $i ..."
 			        cp $i $CVS_CO_DIR
 			    fi
 			done
 		elif [ -f $custom_overlay ]; then
-			echo "found file, extracting..."
+			echo ">>> Found file, $custom_overlay extracting..."
 			tar xzpf $custom_overlay -C $CVS_CO_DIR
 		else
-			echo " file not found $custom_overlay"
+			echo ">>> File not found $custom_overlay"
 			print_error_pfS
 		fi
 	fi
 	if [ ! -z "${custom_overlay_archive:-}" ]; then
 		echo -n "Custom overlay archive defined - "
 		if [ -d $custom_overlay_archive ]; then
-			echo "found directory, extracting files..."
+			echo ">>> Found directory, $custom_overlay_archive extracting files..."
 			for i in $custom_overlay_archive/*
 			do
-			    if [ -f $i ]; then
-			        echo "extracting file: $i ..."
+			    if [ -f "$i ]; then
+			        echo ">>> Extracting file: $i ..."
 			        tar xzpf $i -C $CVS_CO_DIR
 			    fi
 			done
 		elif [ -f $custom_overlay_archive ]; then
-			echo "found file, extracting..."
+			echo ">>> Found file, $custom_overlay_archive extracting..."
 			tar xzpf $custom_overlay_archive -C $CVS_CO_DIR
 		else
-			echo " file not found $custom_overlay_archive"
+			echo ">>> File not found $custom_overlay_archive"
 			print_error_pfS
 		fi
 	fi
 
-    # Enable debug if requested
-    if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
+	# Enable debug if requested
+	if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
 		touch ${CVS_CO_DIR}/debugging
-    fi
+	fi
 }
 
 setup_livecd_specifics() {
@@ -938,31 +938,31 @@ install_custom_overlay_final() {
 	# Extract custom overlay if it's defined.
 	if [ ! -z "${custom_overlay_final:-}" ]; then
 		echo -n "Custom overlay defined - "
-	    if [ -d $custom_overlay_final ]; then
-			echo "found directory, copying..."
+		if [ -d $custom_overlay_final ]; then
+			echo ">>> Found directory, $custom_overlay_final copying..."
 			for i in $custom_overlay_final/*
 			do
-			    if [ -d $i ]; then
-			        echo "copying dir: $i $PFSENSEBASEDIR ..."
-			        cp -R $i $PFSENSEBASEDIR
-			    else
-			        echo "copying file: $i $PFSENSEBASEDIR ..."
-			        cp $i $PFSENSEBASEDIR
-			    fi
+		    		if [ -d $i ]; then
+		       			echo ">>> Copying dir: $i $PFSENSEBASEDIR ..."
+		        		cp -R $i $PFSENSEBASEDIR
+		    		else
+		        		echo ">>> Copying file: $i $PFSENSEBASEDIR ..."
+		        		cp $i $PFSENSEBASEDIR
+		    		fi
 			done
-		elif [ -f $custom_overlay ]; then
-			echo "found file, extracting..."
-			tar xzpf $custom_overlay -C $PFSENSEBASEDIR
+		elif [ -f $custom_overlay_final ]; then
+			echo ">>> Found file, $custom_overlay_final extracting..."
+			tar xzpf $custom_overlay_final -C $PFSENSEBASEDIR
 		else
-			echo " file not found $custom_overlay_final"
+			echo ">>> File not found $custom_overlay_final"
 			print_error_pfS
 		fi
 	fi
 
-    # Enable debug if requested
-    if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
+	# Enable debug if requested
+	if [ ! -z "${PFSENSE_DEBUG:-}" ]; then
 		touch ${CVS_CO_DIR}/debugging
-    fi
+	fi
 }
 
 # This is a FreeSBIE specific install ports -> overlay
