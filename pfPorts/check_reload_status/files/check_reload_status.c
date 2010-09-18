@@ -206,7 +206,18 @@ run_command(const struct command *cmd, char *argv) {
 
 	bzero(command, sizeof(command));
 	snprintf(command, sizeof(command), cmd->cmd.command, argv);
-	system(command);
+	switch (vfork()) {
+	case -1:
+		break;
+	case 0:
+		/* Possibly optimize by creating argument list and calling execve. */
+		execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+		_exit(127); /* Protect in case execl errors out */
+		break;
+	default:
+		write_status(command, AFTER);
+		break;
+	}
 
         return;
 }
