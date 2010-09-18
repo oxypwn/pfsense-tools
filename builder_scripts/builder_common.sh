@@ -1550,40 +1550,40 @@ checkout_pfSense_git() {
 	echo ">>> Using GIT to checkout ${PFSENSETAG}"
 	echo -n ">>> "
 
-    mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
+	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" = "RELENG_2_0" ] \
             || [ "${PFSENSETAG}" = 'HEAD' ]; then
-        echo -n 'Checking out tag master...'
-        BRANCH=master
-        (cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master) \
+        	echo -n 'Checking out tag master...'
+        	BRANCH=master
+        	(cd ${GIT_REPO_DIR}/pfSenseGITREPO && git checkout master) \
 			2>&1 | egrep -wi '(^>>>|error)'
-    else
-        echo -n "Checking out tag ${PFSENSETAG}..."
-        BRANCH="${PFSENSETAG}"
-        branch_exists=`(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
+	else
+		echo -n "Checking out tag ${PFSENSETAG}..."
+		BRANCH="${PFSENSETAG}"
+		branch_exists=`(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
 			&& git branch | grep "${PFSENSETAG}")`
-        if [ -z "$branch_exists" ]; then
-            (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
-                && git checkout -b "${PFSENSETAG}" "origin/${PFSENSETAG}") \
-                2>&1 | egrep -wi '(^>>>|error)'
-        else
-            (cd ${GIT_REPO_DIR}/pfSenseGITREPO \
-                && git checkout "${PFSENSETAG}") 2>&1 \
-                    | egrep -wi '(^>>>|error)'
-        fi
-    fi
-    echo 'Done!'
+		if [ -z "$branch_exists" ]; then
+			(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
+				&& git checkout -b "${PFSENSETAG}" "origin/${PFSENSETAG}") \
+				2>&1 | egrep -wi '(^>>>|error)'
+		else
+			(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
+				&& git checkout "${PFSENSETAG}") 2>&1 \
+				| egrep -wi '(^>>>|error)'
+		fi
+	fi
+	echo 'Done!'
 
-    echo -n '>>> Making sure we are in the right branch...'
-    selected_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && \
-        git branch | grep '^\*' | cut -d' ' -f2`
-    if [ "${selected_branch}" = "${BRANCH}" ]; then
-        echo " [OK] (${BRANCH})"
-    else
-        echo " [FAILED!] (${BRANCH})"
-        print_error_pfS 'Checked out branch differs from configured BRANCH, something is wrong with the build system!'
-        kill $$
-    fi
+	echo -n '>>> Making sure we are in the right branch...'
+	selected_branch=`cd ${GIT_REPO_DIR}/pfSenseGITREPO && \
+		git branch | grep '^\*' | cut -d' ' -f2`
+	if [ "${selected_branch}" = "${BRANCH}" ]; then
+		echo " [OK] (${BRANCH})"
+	else
+		echo " [FAILED!] (${BRANCH})"
+		print_error_pfS 'Checked out branch differs from configured BRANCH, something is wrong with the build system!'
+		kill $$
+	fi
 
 	echo -n ">>> Creating tarball of checked out contents..."
 	mkdir -p $CVS_CO_DIR
@@ -1680,18 +1680,18 @@ freesbie_make() {
 update_cvs_depot() {
 	if [ -z "${USE_GIT:-}" ]; then
 		local _cvsdate
-		echo "Launching csup pfSense-supfile..."
+		echo ">>> Launching csup pfSense-supfile..."
 		(/usr/bin/csup -b $BASE_DIR/cvsroot pfSense-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		rm -rf pfSense
-		echo "Updating ${BASE_DIR}/pfSense..."
+		echo ">>> Updating ${BASE_DIR}/pfSense..."
 		rm -rf $BASE_DIR/pfSense
 		if [ -n "$PFSENSECVSDATETIME" ]; then
 			_cvsdate="-D $PFSENSECVSDATETIME"
 		fi
-		(cd ${BASE_DIR} && cvs -d /home/pfsense/cvsroot co -r ${PFSENSETAG} $_cvsdate pfSense) \
-		| egrep -wi "(^\?|^M|^C|error|warning)"
+		(cd ${BASE_DIR} && cvs -d $BASE_DIR/cvsroot co -r ${PFSENSETAG} $_cvsdate pfSense) \
+			| egrep -wi "(^\?|^M|^C|error|warning)"
 		(cd ${BUILDER_TOOLS}/ && cvs update -d) \
-		| egrep -wi "(^\?|^M|^C|error|warning)"
+			| egrep -wi "(^\?|^M|^C|error|warning)"
 	else
 		if [ ! -d "${GIT_REPO_DIR}" ]; then
 			echo ">>> Creating ${GIT_REPO_DIR}"
@@ -1703,16 +1703,16 @@ update_cvs_depot() {
 			(cd ${GIT_REPO_DIR} && /usr/local/bin/git clone ${GIT_REPO} pfSense) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			if [ -d "${GIT_REPO_DIR}/pfSense" ]; then
 				mv "${GIT_REPO_DIR}/pfSense" "${GIT_REPO_DIR}/pfSenseGITREPO"
+				if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO/conf.default" ]; then
+					echo
+					echo "!!!! An error occured while checking out pfSense"
+					echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
+					echo
+					print_error_pfS
+					kill $$
+				fi
 			fi
 			echo "Done!"
-			if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO/conf.default" ]; then
-				echo
-				echo "!!!! An error occured while checking out pfSense"
-				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
-				echo
-				print_error_pfS
-				kill $$
-			fi
 		fi
 		checkout_pfSense_git
 		if [ $? != 0 ]; then
