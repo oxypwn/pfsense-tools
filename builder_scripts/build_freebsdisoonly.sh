@@ -59,9 +59,21 @@ else
     export KERNELCONF="${BUILDER_SCRIPTS}/conf/FreeBSD.$FREEBSD_VERSION"
 fi
 
-# Define src.conf
-export SRC_CONF="/dev/null"
-export SRC_CONF_INSTALL="/dev/null"
+if [ ! -z "${SRC_CONF:-}" ]; then
+	echo ">>> Using ${SRC_CONF:-} ..."
+	export SRC_CONF="${SRC_CONF:-}"
+else
+	echo ">>> Using /dev/null for SRC_CONF ..."
+	export SRC_CONF="/dev/null"
+fi
+
+if [ ! -z "${SRC_CONF_INSTALL:-}" ]; then
+	echo ">>> Using ${SRC_CONF_INSTALL:-} ..."
+	export SRC_CONF_INSTALL="${SRC_CONF_INSTALL:-}"
+else
+	echo ">>> Using /dev/null for SRC_CONF_INSTALL ..."
+	export SRC_CONF_INSTALL="/dev/null"
+fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
 export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
