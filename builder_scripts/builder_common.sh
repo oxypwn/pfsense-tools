@@ -1638,7 +1638,7 @@ print_flags() {
 	printf "              FreeBSD branch: %s\n" $FREEBSD_BRANCH
 	printf "                 pfSense Tag: %s\n" $PFSENSETAG
 	printf "                       EXTRA: %s\n" $EXTRA
-	printf "                BUILDMODULES: %s\n" $MODULES_OVERRIDE
+	printf "            MODULES_OVERRIDE: %s\n" $MODULES_OVERRIDE
 	printf "              Git Repository: %s\n" $GIT_REPO
 	printf "                  Git Branch: %s\n" $GIT_BRANCH
 	printf "               Custom Config: %s\n" $USE_CONFIG_XML
