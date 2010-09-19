@@ -19,6 +19,7 @@ mount_unionfs() {
 }
 
 wait_keypress() {
+	old_stty_settings=$(stty -g) # Save original settings.
 	keypress=""
 	COUNTER=9
 	stty -icanon min 0 time 10
@@ -34,6 +35,7 @@ wait_keypress() {
 			;;
 		esac
 	done
+	stty "$old_stty_settings"
 }
 
 first_disk() {
