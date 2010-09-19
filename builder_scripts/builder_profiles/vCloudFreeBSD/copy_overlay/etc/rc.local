@@ -1,29 +1,43 @@
 #!/bin/sh
 
+mount_unionfs() {
+	/bin/mkdir /tmp/unionfs
+	/bin/mkdir /tmp/unionfs/usr
+	/bin/mkdir /tmp/unionfs/sbin
+	/bin/mkdir /tmp/unionfs/bin
+	/bin/mkdir /tmp/unionfs/boot
+	echo -n "Mounting unionfs directories:"
+	echo -n " usr"
+	/sbin/mount_unionfs /tmp/unionfs/usr /usr/
+	echo -n " root"
+	/sbin/mount_unionfs /tmp/unionfs/bin /bin/		
+	echo -n " sbin"
+	/sbin/mount_unionfs /tmp/unionfs/sbin /sbin/	
+	echo -n " boot"
+	/sbin/mount_unionfs /tmp/unionfs/boot /boot/
+	echo "... done."	
+}
+
 wait_keypress() {
-	counter=9
-	/bin/stty -canon min 0 time 20
+	keypress=""
+	COUNTER=9
+	stty -icanon min 0 time 10
 	while [ "$COUNTER" -gt 0 ]; do
-		key=$(dd bs=1 count=1 2> /dev/null)
-		/bin/stty icanon
-		counter=`expr $counter - 1`
-		case ${key} in
+		keypress=`dd bs=1 count=1 2>/dev/null`
+		COUNTER=`expr $COUNTER - 1`
+		case ${keypress} in
 		A)
-			return "A"
-			counter=0
+			COUNTER=0
 			;;
 		a)
-			return "a"
-			counter=0
+			COUNTER=0
 			;;
 		esac
 	done
-	return key
 }
 
 first_disk() {
 	disk=`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list | head -n1 | cut -d':' -f1`
-	return disk
 }
 
 install_to_first_disk() {
@@ -46,7 +60,7 @@ commitDiskPart
 # Avail FS Types, UFS, UFS+S, UFS+J, ZFS, SWAP
 # Size 0 means use the rest of the slice size
 disk0-part=SWAP 4G none
-disk0-part=UFS 0 /
+disk0-part=UFS+S 0 /
 
 # Do it now!
 commitDiskLabel
@@ -70,18 +84,28 @@ EOF
 first_boot() {
 	echo
 	echo ">>> Welcome to vCloudFreeBSD!"
+	mount_unionfs
 	echo 
 	echo "One moment, detecting hard disks..."
-	disk=first_disk
+	first_disk
 	echo
-	echo "vCloudFreeBSD will automatically install to the disk "
-	echo "$disk in 9 seconds.  Press A key to abort!"
+	echo "vCloudFreeBSD will automatically install to the"
+	echo "disk $disk in 9 seconds.  Press A key to abort!"
 	echo
-	key=wait_keypress
-	if [ ! "$key" = "" ]; then
-		echo "Abort!"
-		exit
-	fi
+	wait_keypress
+	case ${keypress} in
+		A)
+			echo
+			echo "Abort!"
+			exit
+		;;
+		a)
+			echo
+			echo "Abort!"
+			exit
+		;;
+	esac
+	install_to_first_disk
 }
 
 second_boot() {
