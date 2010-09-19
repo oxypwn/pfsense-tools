@@ -18,7 +18,7 @@ mkdir -p $SRCDIR
 
 # Start building
 if [ "$1" != "noupdate" ]; then
-	echo "noupdate flag passed.  Skipping clean_build.sh , update_git_repos.sh and apply_kernel_patches.sh"
+	echo "noupdate flag not passed. Cleaning and updating GIT repo"
 	./clean_build.sh
 	./update_git_repos.sh
 	./apply_kernel_patches.sh
