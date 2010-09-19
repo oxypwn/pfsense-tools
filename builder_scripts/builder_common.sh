@@ -928,6 +928,8 @@ setup_livecd_specifics() {
 	if [ ! -d $CVS_CO_DIR/tank ]; then
 		mkdir $CVS_CO_DIR/tank
 	fi
+	# Create a copy of this file just in case
+	cp $PFSENSEBASEDIR/etc/gettytab $PFSENSEBASEDIR/etc/gettytab.bak
 }
 
 # This rotine will overlay $custom_overlay_final when
@@ -1064,6 +1066,9 @@ fixup_updates() {
 	else
 		date > ${PFSENSEBASEDIR}/etc/version.buildtime
 	fi
+
+	# Create a copy of this file just in case
+	cp $PFSENSEBASEDIR/etc/gettytab $PFSENSEBASEDIR/etc/gettytab.bak
 
 	if [ -d "${PFSENSEBASEDIR}" ]; then
 		echo Removing pfSense.tgz used by installer..
