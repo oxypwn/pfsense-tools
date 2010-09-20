@@ -1,25 +1,53 @@
 #!/bin/sh
+#
+# rc.local - part of vCloudFreeBSD
+# Copyright (c) 2010, Scott Ullrich
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without 
+# modification, are permitted provided that the following conditions are met:
+#
+# Redistributions of source code must retain the above copyright notice, this
+# list of conditions and the following disclaimer.
+# Redistributions in binary form must reproduce the above copyright notice, 
+# this list of conditions and the following disclaimer in the documentation 
+# and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. 
+# IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, 
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+# OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING 
+# NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
 mount_unionfs() {
-	/bin/mkdir /tmp/unionfs
-	/bin/mkdir /tmp/unionfs/usr
-	/bin/mkdir /tmp/unionfs/sbin
-	/bin/mkdir /tmp/unionfs/bin
-	/bin/mkdir /tmp/unionfs/boot
-	echo -n "Mounting unionfs directories:"
-	echo -n " usr"
-	/sbin/mount_unionfs /tmp/unionfs/usr /usr/
-	echo -n " root"
-	/sbin/mount_unionfs /tmp/unionfs/bin /bin/		
-	echo -n " sbin"
-	/sbin/mount_unionfs /tmp/unionfs/sbin /sbin/	
-	echo -n " boot"
-	/sbin/mount_unionfs /tmp/unionfs/boot /boot/
-	echo "... done."	
+	if [ `/sbin/mount | /usr/bin/grep 'union' | wc -l` -eq 0 ]; then
+		/bin/mkdir /tmp/unionfs
+		/bin/mkdir /tmp/unionfs/usr
+		/bin/mkdir /tmp/unionfs/sbin
+		/bin/mkdir /tmp/unionfs/bin
+		/bin/mkdir /tmp/unionfs/boot
+		echo -n "Mounting unionfs directories:"
+		echo -n " usr"
+		/sbin/mount_unionfs /tmp/unionfs/usr /usr/
+		echo -n " root"
+		/sbin/mount_unionfs /tmp/unionfs/bin /bin/		
+		echo -n " sbin"
+		/sbin/mount_unionfs /tmp/unionfs/sbin /sbin/	
+		echo -n " boot"
+		/sbin/mount_unionfs /tmp/unionfs/boot /boot/
+		echo "... done."
+	fi	
 }
 
 wait_keypress() {
-	old_stty_settings=$(stty -g) # Save original settings.
+	# Save original settings.
+	old_stty_settings=$(stty -g)
 	keypress=""
 	COUNTER=9
 	stty -icanon min 0 time 10
@@ -64,9 +92,8 @@ commitDiskPart
 # All sizes are expressed in MB
 # Avail FS Types, UFS, UFS+S, UFS+J, ZFS, SWAP
 # Size 0 means use the rest of the slice size
-disk0-part=UFS+S 2000 /
 disk0-part=SWAP $SWAPSPACE none
-disk0-part=UFS+S 0 /usr
+disk0-part=UFS+S 0 /
 
 # Do it now!
 commitDiskLabel
@@ -91,8 +118,6 @@ first_boot() {
 	echo
 	echo ">>> Welcome to vCloudFreeBSD!"
 	mount_unionfs
-	echo 
-	echo "One moment, detecting hard disks..."
 	first_disk
 	echo
 	echo "vCloudFreeBSD will automatically install to the"
@@ -102,12 +127,12 @@ first_boot() {
 	case ${keypress} in
 		A)
 			echo
-			echo "Abort!"
+			manual_setup
 			exit
 		;;
 		a)
 			echo
-			echo "Abort!"
+			manual_setup
 			exit
 		;;
 	esac
@@ -116,10 +141,13 @@ first_boot() {
 
 second_boot() {
 	touch /.setup_complete
+	# Self destruct
+	rm /etc/rc.local
 }
 
-setup_nics() {
-	
+manual_setup() {
+	echo ">>> vCloudFreeBSD Manual Setup"
+	echo "XXX"
 }
 
 if [ -f /FIRST_BOOT ]; then
