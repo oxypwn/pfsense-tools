@@ -149,8 +149,11 @@ first_boot() {
 
 second_boot() {
 	touch /.setup_complete
+	echo puppet_enable=YES >> /etc/rc.conf
 	# Self destruct
 	rm /etc/rc.local
+	echo "Self destructing /etc/rc.local and rebooting with puppet enabled..."
+	shutdown -r now
 }
 
 manual_setup() {
