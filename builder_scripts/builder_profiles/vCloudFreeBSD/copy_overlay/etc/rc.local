@@ -211,9 +211,9 @@ manual_setup() {
 	echo
 	# Prompt to use DHCP?
 	#      -> if not, prompt for IP address/subnet	
-	/bin/echo -n "Would you like to use DHCP for interface ${interface} (yes/no) [no]? "
+	/bin/echo -n "Would you like to use DHCP for interface ${interface} (yes/no)? "
 	read usedhcp
-	if [ "$usedhcp" = "" || "$usedhcp" = "no" ]; then
+	if [ "$usedhcp" = "no" ]; then
 		echo "Enter the IP address that would you like to use for the interface ${interface}: "
 		read ipaddress
 		echo
