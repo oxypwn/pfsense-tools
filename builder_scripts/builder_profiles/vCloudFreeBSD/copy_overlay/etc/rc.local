@@ -76,6 +76,7 @@ disk_size() {
 }
 
 install_to_first_disk() {
+	touch /root/.hushlogin
 	disk_size
 	MEM=`/sbin/dmesg -a | /usr/bin/grep MB | /usr/bin/grep real | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'(' -f2`
 	SWAPSPACE=$(/bin/expr $MEM \* 2)
