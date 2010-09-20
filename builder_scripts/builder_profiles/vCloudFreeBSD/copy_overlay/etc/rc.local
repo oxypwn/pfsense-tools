@@ -32,7 +32,7 @@ mount_unionfs() {
 		/bin/mkdir /tmp/unionfs/sbin
 		/bin/mkdir /tmp/unionfs/bin
 		/bin/mkdir /tmp/unionfs/boot
-		echo -n "Mounting unionfs directories:"
+		echo -n ">>> Mounting unionfs directories:"
 		echo -n " usr"
 		/sbin/mount_unionfs /tmp/unionfs/usr /usr/
 		echo -n " root"
@@ -194,7 +194,6 @@ manual_setup() {
 	echo
 	echo ">>> vCloudFreeBSD Manual Setup"
 	echo
-
 	/bin/echo "Available disks: "
 	echo
 	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list
