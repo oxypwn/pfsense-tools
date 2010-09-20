@@ -67,12 +67,12 @@ wait_keypress() {
 }
 
 first_disk() {
-	disk=`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list | head -n1 | cut -d':' -f1`
+	disk=`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list | /usr/bin/head -n1 | /usr/bin/cut -d':' -f1`
 }
 
 install_to_first_disk() {
-	MEM=`dmesg -a | grep MB | grep real | awk '{ print $5 }' | cut -d'(' -f2`
-	SWAPSPACE=`expr $MEM * 2`
+	MEM=`/sbin/dmesg -a | /usr/bin/grep MB | /usr/bin/grep real | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'(' -f2`
+	SWAPSPACE=$(/bin/expr $MEM \* 2)
 	echo ">>> Setting SWAPSPACE to $SWAPSPACE"
 	cat <<EOF >/usr/sbin/pc-sysinstall/examples/vCloudFreeBSD.cfg
 # Sample configuration file for an installation using pc-sysinstall
