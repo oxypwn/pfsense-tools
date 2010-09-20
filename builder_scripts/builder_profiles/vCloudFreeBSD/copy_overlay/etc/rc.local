@@ -172,6 +172,7 @@ first_boot() {
 	echo
 	echo ">>> Installation complete.  Rebooting in 5 seconds."
 	sleep 5
+	echo
 	/sbin/shutdown -r now
 	sleep 265535
 }
@@ -194,14 +195,17 @@ manual_setup() {
 	echo ">>> vCloudFreeBSD Manual Setup"
 	echo
 
-	/bin/echo "Available disks: " 
+	/bin/echo "Available disks: "
+	echo
 	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list
+	echo
 	/bin/echo -n "Which disk would you like to install vCloudFreeBSD to? " 
 	read disk
 	
 	# Prompt which interface
 	/bin/echo -n "Available networking interfaces: "
 	/sbin/ifconfig -l
+	echo
 	/bin/echo -n "Which interface would you like to use? "
 	read interface
 
