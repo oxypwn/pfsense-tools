@@ -3122,7 +3122,7 @@ installworld() {
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld" > /tmp/freesbie_installworld_cmd.txt
 	# make installworld
 	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld || print_error_pfS;) | egrep '^>>>'
-	makeargs="${MAKEOPT:-} SRCCONF=${SRC_CONF} MODULES_OVERRIDE=\"${MODULES_OVERRIDE:-}\" TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
+	makeargs="${MAKEOPT:-} SRCCONF=${SRC_CONF} MODULES_OVERRIDE=${MODULES_OVERRIDE:-} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
 	set +e
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution"  > /tmp/freesbie_installworld_distribution_cmd.txt
 	# make distribution
