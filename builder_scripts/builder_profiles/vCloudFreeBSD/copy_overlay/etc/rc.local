@@ -119,6 +119,9 @@ EOF
 	echo ">>> Installing vCloudFreeBSD to disk $disk"
 	/bin/echo -n ">>> One moment please ..."
 
+	# Make backup of pc-sysinstaller config file vCloudFreeBSD.cfg
+	cp /tmp/vCloudFreeBSD.cfg /root/
+
 	# Launch pc-sysinstaller into background
 	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/vCloudFreeBSD.cfg >/dev/null 2>&1 &
 	
