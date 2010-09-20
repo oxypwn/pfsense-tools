@@ -119,7 +119,7 @@ EOF
 
 	`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/vCloudFreeBSD.cfg`
 	/sbin/shutdown -r now
-
+	sleep 265535
 }
 
 first_boot() {
@@ -154,6 +154,7 @@ second_boot() {
 	rm /etc/rc.local
 	echo "Self destructing /etc/rc.local and rebooting with puppet enabled..."
 	shutdown -r now
+	sleep 265535
 }
 
 manual_setup() {
