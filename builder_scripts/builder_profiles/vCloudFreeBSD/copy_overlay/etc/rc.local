@@ -55,10 +55,10 @@ wait_keypress() {
 		keypress=`dd bs=1 count=1 2>/dev/null`
 		COUNTER=`expr $COUNTER - 1`
 		case ${keypress} in
-		A)
+		m)
 			COUNTER=0
 			;;
-		a)
+		M)
 			COUNTER=0
 			;;
 		esac
@@ -150,9 +150,8 @@ first_boot() {
 	echo
 	mount_unionfs
 	first_disk
-	echo
-	echo "vCloudFreeBSD will automatically install to the disk $disk"
-	echo "in 9 seconds.  Press M key to configure the system manually."
+	echo ">>> vCloudFreeBSD will automatically install to the disk $disk"
+	echo ">>> in 9 seconds.  Press M key to configure the system manually."
 	echo
 	wait_keypress
 	case ${keypress} in
