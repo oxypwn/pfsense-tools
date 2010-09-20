@@ -153,7 +153,9 @@ second_boot() {
 	# Self destruct
 	rm /etc/rc.local
 	echo
+	echo
 	echo ">>> Self destructing /etc/rc.local and rebooting with puppet enabled..."
+	echo
 	echo
 	shutdown -r now
 	sleep 265535
