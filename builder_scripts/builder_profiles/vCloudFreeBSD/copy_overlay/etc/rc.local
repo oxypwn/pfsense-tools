@@ -26,7 +26,7 @@
 #
 
 mount_unionfs() {
-	if [ `/sbin/mount | /usr/bin/grep 'union' | wc -l` -eq 0 ]; then
+	if [ `/sbin/mount | /usr/bin/grep 'union' | /usr/bin/wc -l` -eq 0 ]; then
 		/bin/mkdir /tmp/unionfs
 		/bin/mkdir /tmp/unionfs/usr
 		/bin/mkdir /tmp/unionfs/sbin
@@ -74,7 +74,7 @@ install_to_first_disk() {
 	MEM=`/sbin/dmesg -a | /usr/bin/grep MB | /usr/bin/grep real | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'(' -f2`
 	SWAPSPACE=$(/bin/expr $MEM \* 2)
 	echo ">>> Setting SWAPSPACE to $SWAPSPACE"
-	cat <<EOF >/usr/sbin/pc-sysinstall/examples/vCloudFreeBSD.cfg
+	cat <<EOF >/tmp/vCloudFreeBSD.cfg
 # Sample configuration file for an installation using pc-sysinstall
 
 installMode=fresh
@@ -110,7 +110,7 @@ EOF
 	echo
 	echo ">>> One moment please, installing vCloudFreeBSD..."
 
-	`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /usr/sbin/pc-sysinstall/examples/vCloudFreeBSD.cfg`
+	`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/vCloudFreeBSD.cfg`
 
 }
 
