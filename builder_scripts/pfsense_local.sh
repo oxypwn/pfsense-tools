@@ -24,6 +24,8 @@ if [ -f ./pfsense-build.conf ]; then
 	. ./pfsense-build.conf
 fi
 
+OIFS=$IFS
+IFS=%
 # Area that the final image will appear in
 export MAKEOBJDIRPREFIXFINAL=${MAKEOBJDIRPREFIXFINAL:-/tmp/builder/}
 
@@ -260,3 +262,4 @@ export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
 
 # set full-update update filename
 export UPDATES_TARBALL_FILENAME=${UPDATE_TARBALL_FILENAME:-"${UPDATESDIR}/pfSense-Full-Update-${PFSENSE_VERSION}-`date '+%Y%m%d-%H%M'`.tgz"}
+IFS=$OIFS
