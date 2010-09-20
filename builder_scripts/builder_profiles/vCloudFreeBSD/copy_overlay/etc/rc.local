@@ -46,7 +46,7 @@ install_to_first_disk() {
 	MEM=`dmesg -a | grep MB | grep real | awk '{ print $5 }' | cut -d'(' -f2`
 	SWAPSPACE=`expr $MEM * 2`
 	echo ">>> Setting SWAPSPACE to $SWAPSPACE"
-	cat <<EOF >>/usr/sbin/pc-sysinstall/examples/vCloudFreeBSD.cfg
+	cat <<EOF >/usr/sbin/pc-sysinstall/examples/vCloudFreeBSD.cfg
 # Sample configuration file for an installation using pc-sysinstall
 
 installMode=fresh
@@ -64,8 +64,9 @@ commitDiskPart
 # All sizes are expressed in MB
 # Avail FS Types, UFS, UFS+S, UFS+J, ZFS, SWAP
 # Size 0 means use the rest of the slice size
+disk0-part=UFS+S 2000 /
 disk0-part=SWAP $SWAPSPACE none
-disk0-part=UFS+S 0 /
+disk0-part=UFS+S 0 /usr
 
 # Do it now!
 commitDiskLabel
