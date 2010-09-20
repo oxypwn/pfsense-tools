@@ -27,6 +27,7 @@
 
 mount_unionfs() {
 	if [ `/sbin/mount | /usr/bin/grep 'union' | /usr/bin/wc -l` -eq 0 ]; then
+		echo
 		/bin/mkdir /tmp/unionfs
 		/bin/mkdir /tmp/unionfs/usr
 		/bin/mkdir /tmp/unionfs/sbin
@@ -114,17 +115,36 @@ packageType=cpdup
 cpdupPaths=boot,COPYRIGHT,bin,dev,etc,home,kernels,libexec,lib,root,sbin,sys,usr,var,tmp
 
 EOF
-	echo
-	echo ">>> One moment please, installing vCloudFreeBSD..."
+	echo ">>> Installing vCloudFreeBSD to disk $disk"
+	/bin/echo -n ">>> One moment please ..."
 
-	`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/vCloudFreeBSD.cfg`
-	/sbin/shutdown -r now
-	sleep 265535
+	# Launch pc-sysinstaller into background
+	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/vCloudFreeBSD.cfg >/dev/null 2>&1 &
+	
+	# Wait for pc-sysinstaller to complete it's mission
+	while [ `/bin/ps awux | /usr/bin/grep -v /usr/bin/grep | /usr/bin/grep pc-sysinstall | wc -l` -gt 0 ]; do
+		/bin/echo -n "."
+		sleep 6
+	done
+
+	# Newline after -n echo
+	echo
+	
+	# If log file exists check it over for any obvious issues
+	if [ -f /root/pc-sysinstall.log ]; then
+		ERRORS=`/bin/cat /root/pc-sysinstall.log | /usr/bin/grep -i error | /usr/bin/wc -l`
+		if [ "$ERRORS" -gt 0 ]; then
+			echo
+			echo ">>> Errors detected during installation, please review logfile: "
+			/bin/cat /root/pc-sysinstall.log | more
+		fi
+	fi
 }
 
 first_boot() {
 	echo
 	echo ">>> Welcome to vCloudFreeBSD!"
+	echo
 	mount_unionfs
 	first_disk
 	echo
@@ -135,16 +155,23 @@ first_boot() {
 	case ${keypress} in
 		A)
 			echo
+			echo
 			manual_setup
 			exit
 		;;
 		a)
+			echo
 			echo
 			manual_setup
 			exit
 		;;
 	esac
 	install_to_first_disk
+	echo
+	echo ">>> Installation complete.  Rebooting in 5 seconds."
+	sleep 5
+	/sbin/shutdown -r now
+	sleep 265535
 }
 
 second_boot() {
@@ -154,15 +181,16 @@ second_boot() {
 	rm /etc/rc.local
 	echo
 	echo
-	echo ">>> Self destructing /etc/rc.local and rebooting with puppet enabled..."
+	echo ">>> Self destructing /etc/rc.local and rebooting with puppet enabled."
 	echo
-	echo
-	shutdown -r now
-	sleep 265535
+	echo ">>> Starting Puppet (Completing vCloudFreeBSD installation)."
+	/usr/local/etc/rc.d/puppet start
 }
 
 manual_setup() {
+	echo
 	echo ">>> vCloudFreeBSD Manual Setup"
+	echo
 	echo "XXX"
 }
 
