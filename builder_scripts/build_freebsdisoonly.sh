@@ -60,18 +60,18 @@ else
 fi
 
 if [ ! -z "${SRC_CONF:-}" ]; then
-	echo ">>> Using ${SRC_CONF:-} ..."
+	echo ">>> Using SRC_CONF: ${SRC_CONF:-} ..."
 	export SRC_CONF="${SRC_CONF:-}"
 else
-	echo ">>> Using /dev/null for SRC_CONF ..."
+	echo ">>> Using SRC_CONF: /dev/null"
 	export SRC_CONF="/dev/null"
 fi
 
 if [ ! -z "${SRC_CONF_INSTALL:-}" ]; then
-	echo ">>> Using ${SRC_CONF_INSTALL:-} ..."
+	echo ">>> Using SRC_CONF_INSTALL: ${SRC_CONF_INSTALL:-}"
 	export SRC_CONF_INSTALL="${SRC_CONF_INSTALL:-}"
 else
-	echo ">>> Using /dev/null for SRC_CONF_INSTALL ..."
+	echo ">>> Using SRC_CONF_INSTALL: /dev/null"
 	export SRC_CONF_INSTALL="/dev/null"
 fi
 
