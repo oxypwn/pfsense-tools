@@ -104,7 +104,7 @@ installType=FreeBSD
 packageType=cpdup
 
 # Optional Components
-cpdupPaths=boot,COPYRIGHT,bin,conf,conf.default,dev,etc,home,kernels,libexec,lib,root,sbin,sys,usr,var
+cpdupPaths=boot,COPYRIGHT,bin,dev,etc,home,kernels,libexec,lib,root,sbin,sys,usr,var
 
 EOF
 	echo
