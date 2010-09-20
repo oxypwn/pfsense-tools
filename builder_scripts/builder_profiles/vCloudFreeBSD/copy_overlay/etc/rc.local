@@ -111,7 +111,7 @@ installType=FreeBSD
 packageType=cpdup
 
 # Optional Components
-cpdupPaths=boot,COPYRIGHT,bin,dev,etc,home,kernels,libexec,lib,root,sbin,sys,usr,var
+cpdupPaths=boot,COPYRIGHT,bin,dev,etc,home,kernels,libexec,lib,root,sbin,sys,usr,var,tmp
 
 EOF
 	echo
@@ -149,7 +149,7 @@ first_boot() {
 
 second_boot() {
 	touch /.setup_complete
-	echo puppet_enable=YES >> /etc/rc.conf
+	echo "puppet_enable='YES'" >> /etc/rc.conf
 	# Self destruct
 	rm /etc/rc.local
 	echo "Self destructing /etc/rc.local and rebooting with puppet enabled..."
