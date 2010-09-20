@@ -196,6 +196,11 @@ manual_setup() {
 	echo ">>> vCloudFreeBSD Manual Setup"
 	echo
 
+	/bin/echo -n "Available disks: " 
+	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list
+	/bin/echo -n "Which disk would you like to install vClouFreeBSD to? " 
+	read disk
+	
 	# Prompt which interface
 	/bin/echo -n "Available networking interfaces: "
 	/sbin/ifconfig -l
@@ -204,16 +209,16 @@ manual_setup() {
 
 	# Prompt to use DHCP?
 	#      -> if not, prompt for IP address/subnet	
-	/bin/echo -n "Would you like to use DHCP for interface $interface (yes/no) [no]? "
+	/bin/echo -n "Would you like to use DHCP for interface ${interface} (yes/no) [no]? "
 	read usedhcp
 	if [ "$usedhcp" = "" || "$usedhcp" = "no" ]; then
-		echo "Which IP address would you like to use for the interface $interface ? "
+		echo "Enter the IP address that would you like to use for the interface ${interface}: "
 		read ipaddress
 		
-		echo "Which netmask would you like to use for the interface $interface ? "
+		echo "Enter the netmask that would you like to use for the interface ${interface}: "
 		read subnetmask
 		
-		echo "Which default router would you like to use for interface $interface ? "
+		echo "Enter the default router that would you like to use for interface ${interface}: "
 		read defaultrouter
 		
 		/bin/cat /etc/rc.conf | /usr/bin/grep -v "ifconfig_${interface}" >> /tmp/rc.conf
@@ -223,7 +228,7 @@ manual_setup() {
 	fi
 	
 	# Prompt for hostname
-	/bin/echo -n "What hostname would you like to use for this vCloudFreeBSD installation? "
+	/bin/echo -n "Enter the hostname would you like to use for this vCloudFreeBSD installation: "
 	read hostname
 	echo "hostname=\"${hostname}\"" >> /tmp/rc.conf
 
@@ -245,7 +250,7 @@ manual_setup() {
 	fi
 	
 	# Prompt for puppetmaster server hostname
-	/bin/echo -n "What is the hostname of the Puppetmaster server? "
+	/bin/echo -n "Enter hostname of the Puppetmaster server: "
 	read puppetmaster
 	echo "[agent]" > /usr/local/etc/puppet.conf
 	echo "server = $puppetmaster" >> /usr/local/etc/puppet.conf
