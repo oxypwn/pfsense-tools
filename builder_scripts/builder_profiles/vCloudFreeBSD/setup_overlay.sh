@@ -6,7 +6,7 @@ TOOLSDIR=/home/pfsense/tools/builder_scripts/
 # Copy pfsense-build.conf into TOOLSDIR
 cp pfsense-build.conf	$TOOLSDIR
 cp remove.list  		$TOOLSDIR
-cp copy.list	  		$TOOLSDIR
+cp copy.list			$TOOLSDIR
 
 # cd $TOOLSDIR and read in pfsense_local.sh
 cd $TOOLSDIR
@@ -18,7 +18,7 @@ mkdir -p $SRCDIR
 
 # Start building
 if [ "$1" != "noupdate" ]; then
-	echo "noupdate flag not passed. Cleaning and updating GIT repo"
+	echo ">>> noupdate flag NOT passed. Cleaning and updating GIT repo"
 	./clean_build.sh
 	./update_git_repos.sh
 	./apply_kernel_patches.sh
