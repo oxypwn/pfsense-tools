@@ -196,7 +196,7 @@ manual_setup() {
 	echo ">>> vCloudFreeBSD Manual Setup"
 	echo
 
-	/bin/echo -n "Available disks: " 
+	/bin/echo "Available disks: " 
 	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list
 	/bin/echo -n "Which disk would you like to install vClouFreeBSD to? " 
 	read disk
