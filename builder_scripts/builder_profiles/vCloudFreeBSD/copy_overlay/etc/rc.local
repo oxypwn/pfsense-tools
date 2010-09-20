@@ -198,7 +198,7 @@ manual_setup() {
 
 	/bin/echo "Available disks: " 
 	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list
-	/bin/echo -n "Which disk would you like to install vClouFreeBSD to? " 
+	/bin/echo -n "Which disk would you like to install vCloudFreeBSD to? " 
 	read disk
 	
 	# Prompt which interface
