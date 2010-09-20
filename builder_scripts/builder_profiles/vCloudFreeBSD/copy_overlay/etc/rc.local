@@ -64,21 +64,21 @@ wait_keypress() {
 		esac
 	done
 	stty "$old_stty_settings"
-}
+} 	
 
 first_disk() {
 	disk=`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list | /usr/bin/head -n1 | /usr/bin/cut -d':' -f1`
 }
 
 disk_size() {
-	size=`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-info $disk | /usr/bin/grep size | /usr/bin/cut -d':' -f2`
+	size=`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-info $disk | /usr/bin/grep size | /usr/bin/cut -d':' -f2 | /usr/bin/cut -d'=' -f2`
 }
 
 install_to_first_disk() {
 	disk_size
 	MEM=`/sbin/dmesg -a | /usr/bin/grep MB | /usr/bin/grep real | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'(' -f2`
 	SWAPSPACE=$(/bin/expr $MEM \* 2)
-	DISKSIZE=$(/bin/expr $SWAPSPACE \- $size)
+	DISKSIZE=$(/bin/expr $size \- $SWAPSPACE)
 	echo ">>> Setting SWAPSPACE to $SWAPSPACE"
 	echo ">>> Setting / SIZE to $DISKSIZE"
 	cat <<EOF >/tmp/vCloudFreeBSD.cfg
@@ -99,8 +99,8 @@ commitDiskPart
 # All sizes are expressed in MB
 # Avail FS Types, UFS, UFS+S, UFS+J, ZFS, SWAP
 # Size 0 means use the rest of the slice size
-disk0-part=SWAP $SWAPSPACE none
 disk0-part=UFS+S $DISKSIZE /
+disk0-part=SWAP $SWAPSPACE none
 
 # Do it now!
 commitDiskLabel
@@ -118,6 +118,7 @@ EOF
 	echo ">>> One moment please, installing vCloudFreeBSD..."
 
 	`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/vCloudFreeBSD.cfg`
+	/sbin/shutdown -r now
 
 }
 
