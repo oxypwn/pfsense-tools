@@ -82,6 +82,7 @@ install_to_disk() {
 	MEM=`/sbin/dmesg -a | /usr/bin/grep MB | /usr/bin/grep real | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'(' -f2`
 	SWAPSPACE=$(/bin/expr $MEM \* 2)
 	DISKSIZE=$(/bin/expr $size \- $SWAPSPACE)
+	echo
 	echo ">>> Setting SWAPSPACE to $SWAPSPACE"
 	echo ">>> Setting / SIZE to $DISKSIZE"
 	/bin/cat <<EOF >/tmp/vCloudFreeBSD.cfg
