@@ -189,6 +189,7 @@ second_boot() {
 }
 
 manual_setup() {
+	clear
 	echo
 	echo ">>> vCloudFreeBSD Manual Setup"
 	echo
@@ -235,7 +236,7 @@ manual_setup() {
 	fi
 	echo
 	# Prompt for DNS Server 1
-	/bin/echo -n "Enter your first DNS server IP Address: "
+	/bin/echo "Enter your first DNS server IP Address: "
 	read firstdns
 	if [ "$firstdns" != "" ]; then
 		echo "nameserver ${firstdns}" > /tmp/rc.conf
