@@ -247,7 +247,7 @@ second_boot() {
 		echo ">>> Found puppet at $PUPPET"
 		/bin/cat <<EOF >/usr/local/etc/puppet.conf
 [agent]
-server = `/usr/bin/dig +search puppet | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
+server = $PUPPET
 client = true
 EOF
 	fi
@@ -255,7 +255,7 @@ EOF
 		echo ">>> Found puppetmaster at $PUPPETMASTER"
 		/bin/cat <<EOF >/usr/local/etc/puppet.conf
 [agent]
-server = `/usr/bin/dig +search puppetmaster | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
+server = $PUPPETMASTER
 client = true
 EOF
 	fi
