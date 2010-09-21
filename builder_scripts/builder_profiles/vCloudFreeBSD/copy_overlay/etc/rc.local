@@ -219,7 +219,7 @@ second_boot() {
 	echo "puppet_enable='YES'" >> /etc/rc.conf
 	echo
 	echo
-	echo ">>> Self destructing /etc/rc.local and rebooting with puppet enabled."
+	echo ">>> Self destructing /etc/rc.local."
 	# Self destruct
 	rm /etc/rc.local
 	echo
