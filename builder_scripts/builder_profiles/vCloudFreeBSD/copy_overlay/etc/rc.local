@@ -164,8 +164,12 @@ first_boot() {
 	echo "  ~  Invoke tcsh and then proceed with installation"
 	echo "  B  Invoke the older BSD Installer"
 	echo
-	/bin/echo -n "Seconds remaining before auto installation: "
-	wait_keypress
+	if [ "$disk" != "" ]; then
+		/bin/echo -n "Seconds remaining before auto installation: "
+		wait_keypress
+	else
+		wait_keypress_nocounter
+	fi
 	case ${keypress} in
 		A)
 			first_boot_setup
