@@ -25,24 +25,22 @@
 #
 
 mount_unionfs() {
-	if [ `/sbin/mount | /usr/bin/grep 'union' | /usr/bin/wc -l` -eq 0 ]; then
-		echo
-		/bin/mkdir /tmp/unionfs
-		/bin/mkdir /tmp/unionfs/usr
-		/bin/mkdir /tmp/unionfs/sbin
-		/bin/mkdir /tmp/unionfs/bin
-		/bin/mkdir /tmp/unionfs/boot
-		echo -n ">>> Mounting unionfs directories:"
-		echo -n " usr"
-		/sbin/mount_unionfs /tmp/unionfs/usr /usr/
-		echo -n " root"
-		/sbin/mount_unionfs /tmp/unionfs/bin /bin/		
-		echo -n " sbin"
-		/sbin/mount_unionfs /tmp/unionfs/sbin /sbin/	
-		echo -n " boot"
-		/sbin/mount_unionfs /tmp/unionfs/boot /boot/
-		echo "... done."
-	fi	
+	echo
+	/bin/mkdir /tmp/unionfs
+	/bin/mkdir /tmp/unionfs/usr
+	/bin/mkdir /tmp/unionfs/sbin
+	/bin/mkdir /tmp/unionfs/bin
+	/bin/mkdir /tmp/unionfs/boot
+	echo -n ">>> Mounting unionfs directories:"
+	echo -n " root"
+	/sbin/mount_unionfs /tmp/unionfs/bin /bin/		
+	echo -n " sbin"
+	/sbin/mount_unionfs /tmp/unionfs/sbin /sbin/	
+	echo -n " boot"
+	/sbin/mount_unionfs /tmp/unionfs/boot /boot/
+	echo -n " usr"
+	/sbin/mount_unionfs /tmp/unionfs/usr /usr/
+	echo "... done."
 }
 
 wait_keypress() {
@@ -213,6 +211,7 @@ manual_setup() {
 	/bin/echo -n "Would you like to use DHCP for interface ${interface} (yes/no)? "
 	read usedhcp
 	if [ "$usedhcp" = "no" ]; then
+		echo
 		echo "Enter the IP address that would you like to use for the interface ${interface}: "
 		read ipaddress
 		echo
@@ -229,7 +228,7 @@ manual_setup() {
 	fi
 	echo
 	# Prompt for hostname
-	/bin/echo -n "Enter the hostname would you like to use for this vCloudFreeBSD installation: "
+	/bin/echo "Enter the hostname would you like to use for this vCloudFreeBSD installation: "
 	read hostname
 	echo "hostname=\"${hostname}\"" >> /tmp/rc.conf
 	echo
@@ -241,7 +240,9 @@ manual_setup() {
 	# Prompt for DNS Server 2
 	/bin/echo -n "Enter your second DNS server IP Address: "
 	read seconddns
-	echo "nameserver ${seconddns}" >> /tmp/rc.conf
+	if [ "$seconddns" != "" ]; then
+		echo "nameserver ${seconddns}" >> /tmp/rc.conf
+	fi
 	echo
 	# Prompt for searchdomain
 	/bin/echo -n "Enter the DHCP search domain: "
