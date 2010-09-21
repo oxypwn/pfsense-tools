@@ -172,7 +172,7 @@ first_boot() {
 			exit
 		;;
 		B)
-			/scripts/freebsd_installer
+			/usr/bin/env TERM=cons25 /bin/tcsh -c /scripts/freebsd_installer
 			exit
 		;;
 		X)
@@ -181,7 +181,7 @@ first_boot() {
 		;;
 		~)
 			echo "Invoking shell."
-			/bin/tcsh
+			/usr/bin/env TERM=cons25 /bin/tcsh -c /bin/tcsh
 			echo "Invoking installation."
 			first_boot_setup
 			exit
