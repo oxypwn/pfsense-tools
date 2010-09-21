@@ -43,6 +43,13 @@ mount_unionfs() {
 	echo "... done."
 }
 
+wait_keypress_nocounter() {
+	old_stty_settings=$(stty -g)
+	keypress=""
+	stty -icanon min 0 time 10
+	keypress=`dd bs=1 count=1 2>/dev/null`	
+}
+
 wait_keypress() {
 	# Save original settings.
 	old_stty_settings=$(stty -g)
@@ -50,16 +57,12 @@ wait_keypress() {
 	COUNTER=9
 	stty -icanon min 0 time 10
 	while [ "$COUNTER" -gt 0 ]; do
+		/bin/echo -n "$COUNTER "
 		keypress=`dd bs=1 count=1 2>/dev/null`
 		COUNTER=`expr $COUNTER - 1`
-		case ${keypress} in
-		m)
+		if [ "$keypress" != "" ]; then
 			COUNTER=0
-			;;
-		M)
-			COUNTER=0
-			;;
-		esac
+		fi
 	done
 	stty "$old_stty_settings"
 } 	
@@ -72,7 +75,7 @@ disk_size() {
 	size=`/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-info $disk | /usr/bin/grep size | /usr/bin/cut -d':' -f2 | /usr/bin/cut -d'=' -f2`
 }
 
-install_to_first_disk() {
+install_to_disk() {
 	touch /root/.hushlogin
 	disk_size
 	MEM=`/sbin/dmesg -a | /usr/bin/grep MB | /usr/bin/grep real | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'(' -f2`
@@ -143,16 +146,37 @@ EOF
 }
 
 first_boot() {
+	mount_unionfs
 	echo
 	echo ">>> Welcome to vCloudFreeBSD!"
 	echo
-	mount_unionfs
 	first_disk
-	echo ">>> vCloudFreeBSD will automatically install to the disk $disk"
-	echo ">>> in 9 seconds.  Press M key to configure the system manually."
+	echo "vCloudFreeBSD will automatically install to the disk $disk in 9 seconds."
+	echo "Press M key to configure the system manually."
 	echo
+	echo "Other keys available:"
+	echo "    X  Exit immediately"
+	echo "    ~  Invoke tcsh and then proceed with installation"
+	echo "    B  Invoke the older BSD Installer"
+	echo
+	/bin/echo -n "Seconds remaining before auto installation: "
 	wait_keypress
 	case ${keypress} in
+		B)
+			/scripts/freebsd_installer
+			exit
+		;;
+		X)
+			echo "Exiting"
+			exit
+		;;
+		~)
+			echo "Invoking shell."
+			/bin/tcsh
+			echo "Invoking installation."
+			first_boot_setup
+			exit
+		;;
 		m)
 			echo
 			echo
@@ -166,13 +190,19 @@ first_boot() {
 			exit
 		;;
 	esac
-	install_to_first_disk
-	echo
+	first_boot_setup
+}
+
+first_boot_setup() {
+	# Install to selected disk
+	install_to_disk
 	echo ">>> Installation complete.  Rebooting in 5 seconds."
 	sleep 5
 	echo
+	# Time to reboot
 	/sbin/shutdown -r now
-	sleep 265535
+	# Prevent bootup from occuring
+	sleep 265535	
 }
 
 second_boot() {
@@ -184,7 +214,7 @@ second_boot() {
 	# Self destruct
 	rm /etc/rc.local
 	echo
-	echo ">>> Starting Puppet (Completing vCloudFreeBSD installation)."
+	echo ">>> Starting Puppet and completing installation."
 	/usr/local/etc/rc.d/puppet start
 }
 
@@ -222,7 +252,7 @@ manual_setup() {
 		echo "Enter the default router that would you like to use for interface ${interface}: "
 		read defaultrouter
 		# Install the items queried
-		/bin/cat /etc/rc.conf | /usr/bin/grep -v "ifconfig_${interface}" >> /tmp/rc.conf
+		/bin/cat /etc/rc.conf | /usr/bin/grep -v "ifconfig_${interface}" > /tmp/rc.conf
 		echo "ifconfig_${interface}=\"inet ${ipaddress} netmask ${netmask}\"" >> /tmp/rc.conf
 		echo "defaultrouter=\"${defaultrouter}\"" >> /tmp/rc.conf
 		mv /tmp/rc.conf /etc/rc.conf
@@ -265,9 +295,14 @@ manual_setup() {
 		echo "client = true" >> /usr/local/etc/puppet.conf
 	fi
 	echo
-	install_to_first_disk
+	# Install to selected disk
+	install_to_disk
+	echo ">>> Installation complete.  Rebooting in 5 seconds."
+	sleep 5
 	echo
+	# Time to reboot
 	/sbin/shutdown -r now
+	# Prevent bootup from occuring
 	sleep 265535
 }
 
