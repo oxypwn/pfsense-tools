@@ -262,6 +262,8 @@ EOF
 	echo
 	echo ">>> Rebooting one final time before Puppet configuration"
 	echo
+	# Remove installed package roster
+	rm -rf /var/db/pkg/*
 	# Time to reboot
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
