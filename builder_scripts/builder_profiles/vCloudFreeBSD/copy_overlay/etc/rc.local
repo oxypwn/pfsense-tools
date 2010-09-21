@@ -232,28 +232,28 @@ manual_setup() {
 	/bin/echo "Enter the hostname would you like to use for this vCloudFreeBSD installation: "
 	read hostname
 	if [ "$hostname" != "" ]; then
-		echo "hostname=\"${hostname}\"" >> /tmp/rc.conf
+		echo "hostname=\"${hostname}\"" >> /etc/rc.conf
 	fi
 	echo
 	# Prompt for DNS Server 1
 	/bin/echo "Enter your first DNS server IP Address: "
 	read firstdns
 	if [ "$firstdns" != "" ]; then
-		echo "nameserver ${firstdns}" > /tmp/rc.conf
+		echo "nameserver ${firstdns}" > /etc/resolv.conf
 	fi
 	echo
 	# Prompt for DNS Server 2
 	/bin/echo "Enter your second DNS server IP Address: "
 	read seconddns
 	if [ "$seconddns" != "" ]; then
-		echo "nameserver ${seconddns}" >> /tmp/rc.conf
+		echo "nameserver ${seconddns}" >> /etc/resolv.conf
 	fi
 	echo
 	# Prompt for searchdomain
 	/bin/echo "Enter the DHCP search domain: "
 	read searchdomain
 	if [ "$searchdomain" != "" ]; then
-		echo "searchdomain ${searchdomain}" >> /tmp/rc.conf
+		echo "searchdomain ${searchdomain}" >> /etc/resolv.conf
 	fi
 	echo
 	# Prompt for puppetmaster server hostname
