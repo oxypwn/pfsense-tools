@@ -33,9 +33,9 @@ mount_unionfs() {
 	/bin/mkdir /tmp/unionfs/boot
 	echo -n ">>> Mounting unionfs directories:"
 	echo -n " root"
-	/sbin/mount_unionfs /tmp/unionfs/bin /bin/		
+	/sbin/mount_unionfs /tmp/unionfs/bin /bin/
 	echo -n " sbin"
-	/sbin/mount_unionfs /tmp/unionfs/sbin /sbin/	
+	/sbin/mount_unionfs /tmp/unionfs/sbin /sbin/
 	echo -n " boot"
 	/sbin/mount_unionfs /tmp/unionfs/boot /boot/
 	echo -n " usr"
@@ -220,7 +220,7 @@ manual_setup() {
 		echo
 		echo "Enter the default router that would you like to use for interface ${interface}: "
 		read defaultrouter
-		echo
+		# Install the items queried
 		/bin/cat /etc/rc.conf | /usr/bin/grep -v "ifconfig_${interface}" >> /tmp/rc.conf
 		echo "ifconfig_${interface}=\"inet ${ipaddress} netmask ${netmask}\"" >> /tmp/rc.conf
 		echo "defaultrouter=\"${defaultrouter}\"" >> /tmp/rc.conf
@@ -230,36 +230,44 @@ manual_setup() {
 	# Prompt for hostname
 	/bin/echo "Enter the hostname would you like to use for this vCloudFreeBSD installation: "
 	read hostname
-	echo "hostname=\"${hostname}\"" >> /tmp/rc.conf
+	if [ "$hostname" != "" ]; then
+		echo "hostname=\"${hostname}\"" >> /tmp/rc.conf
+	fi
 	echo
 	# Prompt for DNS Server 1
 	/bin/echo -n "Enter your first DNS server IP Address: "
 	read firstdns
-	echo "nameserver ${firstdns}" > /tmp/rc.conf
+	if [ "$firstdns" != "" ]; then
+		echo "nameserver ${firstdns}" > /tmp/rc.conf
+	fi
 	echo
 	# Prompt for DNS Server 2
-	/bin/echo -n "Enter your second DNS server IP Address: "
+	/bin/echo "Enter your second DNS server IP Address: "
 	read seconddns
 	if [ "$seconddns" != "" ]; then
 		echo "nameserver ${seconddns}" >> /tmp/rc.conf
 	fi
 	echo
 	# Prompt for searchdomain
-	/bin/echo -n "Enter the DHCP search domain: "
+	/bin/echo "Enter the DHCP search domain: "
 	read searchdomain
 	if [ "$searchdomain" != "" ]; then
 		echo "searchdomain ${searchdomain}" >> /tmp/rc.conf
 	fi
 	echo
 	# Prompt for puppetmaster server hostname
-	/bin/echo -n "Enter hostname of the Puppetmaster server: "
+	/bin/echo "Enter hostname of the Puppetmaster server: "
 	read puppetmaster
-	echo "[agent]" > /usr/local/etc/puppet.conf
-	echo "server = $puppetmaster" >> /usr/local/etc/puppet.conf
-	echo "client = true" >> /usr/local/etc/puppet.conf
+	if [ "$puppetmaster" != "" ]; then
+		echo "[agent]" > /usr/local/etc/puppet.conf
+		echo "server = $puppetmaster" >> /usr/local/etc/puppet.conf
+		echo "client = true" >> /usr/local/etc/puppet.conf
+	fi
 	echo
 	install_to_first_disk
 	echo
+	/sbin/shutdown -r now
+	sleep 265535
 }
 
 if [ -f /FIRST_BOOT ]; then
