@@ -239,23 +239,26 @@ second_boot() {
 			fi
 		fi
 	fi
-	if [ "`/usr/bin/dig +search puppet | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`" ]; then
-		echo ">>> Found puppet at IP address `/usr/bin/dig +search puppet | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`"
+	PUPPETIP=`/usr/bin/dig +search puppet | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
+	PUPPETMASTERIP=`/usr/bin/dig +search puppetmaster | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
+	PUPPET=`/usr/bin/dig -x $PUPPETIP | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }' | /usr/bin/sed 's/[\.]*$//'`
+	PUPPETMASTER=`/usr/bin/dig -x $PUPPETMASTERIP | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }' | /usr/bin/sed 's/[\.]*$//'`
+	if [ "$PUPPET" != "" ]; then
+		echo ">>> Found puppet at $PUPPET"
 		/bin/cat <<EOF >/usr/local/etc/puppet.conf
 [agent]
 server = `/usr/bin/dig +search puppet | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
 client = true
 EOF
 	fi
-	if [ "`/usr/bin/dig +search puppetmaster | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`" ]; then
-			echo ">>> Found puppetmaster at IP address `/usr/bin/dig +search puppetmaster | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`"
-			/bin/cat <<EOF >/usr/local/etc/puppet.conf
+	if [ "$PUPPETMASTER" != "" ]; then		
+		echo ">>> Found puppetmaster at $PUPPETMASTER"
+		/bin/cat <<EOF >/usr/local/etc/puppet.conf
 [agent]
 server = `/usr/bin/dig +search puppetmaster | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
 client = true
 EOF
 	fi
-
 	echo
 	echo ">>> Rebooting one final time before Puppet configuration"
 	echo
