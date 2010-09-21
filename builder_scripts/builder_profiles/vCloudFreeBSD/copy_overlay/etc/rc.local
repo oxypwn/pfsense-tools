@@ -243,14 +243,14 @@ second_boot() {
 		/bin/cat <<EOF >/usr/local/etc/puppet.conf
 [agent]
 server = `/usr/bin/dig +search puppet | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
-client = true"
+client = true
 EOF
 	fi
 	if [ "`/usr/bin/dig +search puppetmaster | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`" ]; then
 			/bin/cat <<EOF >/usr/local/etc/puppet.conf
 [agent]
 server = `/usr/bin/dig +search puppetmaster | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
-client = true"
+client = true
 EOF
 	fi
 
