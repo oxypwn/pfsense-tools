@@ -243,21 +243,25 @@ second_boot() {
 	PUPPETMASTERIP=`/usr/bin/dig +search puppetmaster | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }'`
 	if [ "$PUPPETIP" != "" ]; then
 		PUPPET=`/usr/bin/dig -x $PUPPETIP | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }' | /usr/bin/sed 's/[\.]*$//'`
-		echo ">>> Found puppet at $PUPPET"
-		/bin/cat <<EOF >/usr/local/etc/puppet.conf
+		if [ "$PUPPET" != "" ]; then
+			echo ">>> Found puppet at $PUPPET"
+			/bin/cat <<EOF >/usr/local/etc/puppet.conf
 [agent]
 server = $PUPPET
 client = true
 EOF
+		fi
 	fi
 	if [ "$PUPPETMASTERIP" != "" ]; then		
 		PUPPETMASTER=`/usr/bin/dig -x $PUPPETMASTERIP | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }' | /usr/bin/sed 's/[\.]*$//'`
-		echo ">>> Found puppetmaster at $PUPPETMASTER"
-		/bin/cat <<EOF >/usr/local/etc/puppet.conf
+		if [ "$PUPPETMASTER" != "" ]; then		
+			echo ">>> Found puppetmaster at $PUPPETMASTER"
+			/bin/cat <<EOF >/usr/local/etc/puppet.conf
 [agent]
 server = $PUPPETMASTER
 client = true
 EOF
+		fi
 	fi
 	echo
 	echo ">>> Rebooting one final time before Puppet configuration"
