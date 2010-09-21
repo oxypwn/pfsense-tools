@@ -46,7 +46,7 @@ mount_unionfs() {
 wait_keypress_nocounter() {
 	old_stty_settings=$(stty -g)
 	keypress=""
-	stty -icanon min 0 time 10
+	stty -icanon min 0 time 20
 	keypress=`dd bs=1 count=1 2>/dev/null`	
 	stty "$old_stty_settings"
 }
@@ -56,7 +56,7 @@ wait_keypress() {
 	old_stty_settings=$(stty -g)
 	keypress=""
 	COUNTER=9
-	stty -icanon min 0 time 10
+	stty -icanon min 0 time 20
 	while [ "$COUNTER" -gt 0 ]; do
 		/bin/echo -n "$COUNTER "
 		keypress=`dd bs=1 count=1 2>/dev/null`
