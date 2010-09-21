@@ -154,9 +154,11 @@ first_boot() {
 	echo ">>> Welcome to vCloudFreeBSD!"
 	echo
 	first_disk
-	echo "vCloudFreeBSD will automatically install to the disk $disk in 9 seconds"
-	echo "or press M key to begin the vCloudFreeBSD configuration wizard."
-	echo
+	if [ "$disk" != "" ]; then
+		echo "vCloudFreeBSD will automatically install to the disk $disk in 9 seconds"
+		echo "or press M key to begin the vCloudFreeBSD configuration wizard."
+		echo
+	fi
 	echo "Keys available:"
 	echo "  M  Begin manual vCloudFreeBSD/Puppet configuration wizard"
 	echo "  A  Begin auto installation immediately"
