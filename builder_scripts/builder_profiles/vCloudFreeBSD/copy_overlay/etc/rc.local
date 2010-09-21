@@ -112,7 +112,7 @@ installType=FreeBSD
 packageType=cpdup
 
 # Optional Components
-cpdupPaths=boot,COPYRIGHT,bin,dev,etc,home,kernels,libexec,lib,root,sbin,sys,usr,var,tmp
+cpdupPaths=boot,COPYRIGHT,bin,dev,etc,home,kernels,libexec,lib,root,sbin,usr,var,tmp
 
 EOF
 	echo ">>> Installing vCloudFreeBSD to disk $disk"
