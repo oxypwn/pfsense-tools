@@ -262,7 +262,7 @@ manual_setup() {
 		read defaultrouter
 		# Install the items queried
 		/bin/cat /etc/rc.conf | /usr/bin/grep -v "ifconfig_${interface}" > /tmp/rc.conf
-		echo "ifconfig_${interface}=\"inet ${ipaddress} netmask ${netmask}\"" >> /tmp/rc.conf
+		echo "ifconfig_${interface}=\"inet ${ipaddress} netmask ${subnetmask}\"" >> /tmp/rc.conf
 		echo "defaultrouter=\"${defaultrouter}\"" >> /tmp/rc.conf
 		mv /tmp/rc.conf /etc/rc.conf
 	fi
