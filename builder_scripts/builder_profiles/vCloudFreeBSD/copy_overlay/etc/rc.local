@@ -83,6 +83,7 @@ install_to_disk() {
 	SWAPSPACE=$(/bin/expr $MEM \* 2)
 	DISKSIZE=$(/bin/expr $size \- $SWAPSPACE)
 	echo
+	echo
 	echo ">>> Setting SWAPSPACE to $SWAPSPACE"
 	echo ">>> Setting / SIZE to $DISKSIZE"
 	/bin/cat <<EOF >/tmp/vCloudFreeBSD.cfg
