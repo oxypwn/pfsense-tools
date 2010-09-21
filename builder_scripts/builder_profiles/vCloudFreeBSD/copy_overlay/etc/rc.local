@@ -211,7 +211,7 @@ first_boot_setup() {
 	# Time to reboot
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
-	sleep 265535	
+	sleep 265535
 }
 
 second_boot() {
@@ -223,8 +223,25 @@ second_boot() {
 	# Self destruct
 	rm /etc/rc.local
 	echo
-	echo ">>> Starting Puppet and completing installation."
-	/usr/local/etc/rc.d/puppet start
+	# Make sure we have a hostname, if not do a reverse lookup
+	if [ "`hostname`" = "" ]; then
+		IP=`/sbin/ifconfig | /usr/bin/grep inet | /usr/bin/grep netmask | /usr/bin/grep -v 127 | /usr/bin/awk '{ print \$2 }'`
+		if [ "$IP" != "" ]; then
+			HOSTNAME=`/usr/bin/dig -x $IP | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }' | /usr/bin/sed 's/[\.]*$//'`
+			if [ "$HOSTNAME" != "" ]; then
+				echo ">>> Found hostname $HOSTNAME for this host.  Setting."
+				hostname $HOSTNAME
+				echo "hostname=\"$HOSTNAME\"" >> /etc/rc.conf
+			fi
+		fi
+	fi
+	echo
+	echo ">>> Rebooting one final time before Puppet configuration"
+	echo
+	# Time to reboot
+	/sbin/shutdown -r now
+	# Prevent bootup from occuring
+	sleep 265535
 }
 
 manual_setup() {
