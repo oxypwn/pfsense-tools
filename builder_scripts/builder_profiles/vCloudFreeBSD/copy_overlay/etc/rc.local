@@ -48,6 +48,7 @@ wait_keypress_nocounter() {
 	keypress=""
 	stty -icanon min 0 time 10
 	keypress=`dd bs=1 count=1 2>/dev/null`	
+	stty "$old_stty_settings"
 }
 
 wait_keypress() {
@@ -151,17 +152,23 @@ first_boot() {
 	echo ">>> Welcome to vCloudFreeBSD!"
 	echo
 	first_disk
-	echo "vCloudFreeBSD will automatically install to the disk $disk in 9 seconds."
-	echo "Press M key to configure the system manually."
+	echo "vCloudFreeBSD will automatically install to the disk $disk in 9 seconds"
+	echo "or press M key to begin the vCloudFreeBSD configuration wizard."
 	echo
-	echo "Other keys available:"
-	echo "    X  Exit immediately"
-	echo "    ~  Invoke tcsh and then proceed with installation"
-	echo "    B  Invoke the older BSD Installer"
+	echo "Keys available:"
+	echo "  M  Begin manual vCloudFreeBSD/Puppet configuration wizard"
+	echo "  A  Begin auto installation immediately"
+	echo "  X  Exit immediately"
+	echo "  ~  Invoke tcsh and then proceed with installation"
+	echo "  B  Invoke the older BSD Installer"
 	echo
 	/bin/echo -n "Seconds remaining before auto installation: "
 	wait_keypress
 	case ${keypress} in
+		A)
+			first_boot_setup
+			exit
+		;;
 		B)
 			/scripts/freebsd_installer
 			exit
