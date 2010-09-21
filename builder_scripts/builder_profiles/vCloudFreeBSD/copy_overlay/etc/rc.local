@@ -247,7 +247,7 @@ second_boot() {
 		PUPPET=`/usr/bin/dig -x $PUPPETIP | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }' | /usr/bin/sed 's/[\.]*$//'`
 		if [ "$PUPPET" != "" ]; then
 			echo ">>> Found puppet at $PUPPET"
-			/bin/cat <<EOF >/usr/local/etc/puppet.conf
+			/bin/cat <<EOF >/usr/local/etc/puppet/puppet.conf
 [agent]
 server = $PUPPET
 client = true
@@ -258,7 +258,7 @@ EOF
 		PUPPETMASTER=`/usr/bin/dig -x $PUPPETMASTERIP | /usr/bin/grep -a1 "ANSWER SECTION" | /usr/bin/tail -n1 | /usr/bin/awk '{ print \$5 }' | /usr/bin/sed 's/[\.]*$//'`
 		if [ "$PUPPETMASTER" != "" ]; then		
 			echo ">>> Found puppetmaster at $PUPPETMASTER"
-			/bin/cat <<EOF >/usr/local/etc/puppet.conf
+			/bin/cat <<EOF >/usr/local/etc/puppet/puppet.conf
 [agent]
 server = $PUPPETMASTER
 client = true
