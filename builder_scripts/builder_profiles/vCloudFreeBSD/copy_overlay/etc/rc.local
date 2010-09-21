@@ -81,7 +81,7 @@ install_to_disk() {
 	disk_size
 	MEM=`/sbin/dmesg -a | /usr/bin/grep MB | /usr/bin/grep real | /usr/bin/awk '{ print $5 }' | /usr/bin/cut -d'(' -f2`
 	SWAPSPACE=$(/bin/expr $MEM \* 2)
-	DISKSIZE=$(/bin/expr $size \- $SWAPSPACE)
+	DISKSIZE=$(/bin/expr $size \- $SWAPSPACE \- 2)
 	echo
 	echo
 	echo ">>> Setting SWAPSPACE to $SWAPSPACE"
