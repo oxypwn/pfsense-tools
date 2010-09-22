@@ -3,8 +3,8 @@ Index: sys/conf/files
 RCS file: /root/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	1 Sep 2010 20:49:12 -0000	1.2
-+++ sys/conf/files	1 Sep 2010 20:55:26 -0000
+--- sys/conf/files	22 Sep 2010 19:33:26 -0000	1.2
++++ sys/conf/files	22 Sep 2010 19:35:07 -0000
 @@ -366,6 +366,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -17,10 +17,10 @@ diff -u -r1.2 files
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.6
-diff -u -r1.6 pf.c
---- sys/contrib/pf/net/pf.c	1 Sep 2010 20:55:15 -0000	1.6
-+++ sys/contrib/pf/net/pf.c	1 Sep 2010 20:55:26 -0000
+retrieving revision 1.5
+diff -u -r1.5 pf.c
+--- sys/contrib/pf/net/pf.c	22 Sep 2010 19:34:44 -0000	1.5
++++ sys/contrib/pf/net/pf.c	22 Sep 2010 19:35:07 -0000
 @@ -261,7 +261,7 @@
  int			 pf_tcp_track_full(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
@@ -220,8 +220,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	1 Sep 2010 21:29:44 -0000
-@@ -0,0 +1,730 @@
++++ sys/contrib/pf/net/pf_ftp.c	22 Sep 2010 19:45:17 -0000
+@@ -0,0 +1,718 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -416,33 +416,21 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +			if (ftp_message_type == FTP_227_REPLY || ftp_message_type == FTP_229_REPLY) {
 +				s->direction = state->direction;
 +                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
-+				if (s->direction == PF_OUT) {
-+                       			s->lan.port = 0;
-+						s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+                       			s->ext.port = htons(oport);
-+				} else {
-+                       			s->ext.port = 0;
-+						s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+                       			s->lan.port = htons(oport);
-+				}
++                       		s->ext.port = 0;
++				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
 +                       		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++				s->lan.port = htons(oport);
 +                       		PF_ACPY(&s->gwy.addr, &state->lan.addr, pd->af);
-+                       		//s->gwy.port = htons(oport);
++                       		s->gwy.port = htons(oport);
 +			} else if (ftp_message_type == FTP_PORT_COMMAND || ftp_message_type == FTP_EPRT_COMMAND) {
 +				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
-+                       		//PF_ACPY(&s->gwy.addr, &state->ext.addr, pd->af);
-+                       		//s->gwy.port = htons(oport); 
++                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                       		s->gwy.port = htons(oport); 
 +                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+				if (s->direction == PF_OUT) {
-+                       			s->ext.port = 0; 
-+					s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+                       			s->lan.port = htons(oport); PF_ACPY(&s->gwy.addr, &state->ext.addr, pd->af);
-+				} else {
-+                       			s->lan.port = 0; 
-+					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+                       			s->ext.port = htons(oport); PF_ACPY(&s->gwy.addr, &state->lan.addr, pd->af);
-+				}
++                       		s->lan.port = 0; 
++				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
 +                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
++                       		s->ext.port = htons(oport);
 +			}
 +		}
 +                s->src.state = TCPS_LISTEN;
@@ -955,10 +943,10 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.7
-diff -u -r1.7 pfvar.h
---- sys/contrib/pf/net/pfvar.h	1 Sep 2010 20:55:15 -0000	1.7
-+++ sys/contrib/pf/net/pfvar.h	1 Sep 2010 20:55:26 -0000
+retrieving revision 1.5
+diff -u -r1.5 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	22 Sep 2010 19:34:44 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	22 Sep 2010 19:35:07 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -986,8 +974,8 @@ Index: sys/modules/pf/Makefile
 RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	1 Sep 2010 20:47:45 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	1 Sep 2010 20:55:26 -0000
+--- sys/modules/pf/Makefile	22 Sep 2010 19:32:02 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	22 Sep 2010 19:35:07 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
