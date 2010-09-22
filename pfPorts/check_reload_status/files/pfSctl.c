@@ -29,25 +29,41 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include <syslog.h>
+#include <signal.h>
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
 
 #include "common.h"
 
+static int op = 0; 
+
+static void
+handle_signal(int sig)
+{
+	switch(sig) {
+        case SIGALRM:
+		syslog(LOG_ERR, "could not finish %s in a reasonable time. Action of event might not be completed.", op == 1 ? "write" : op == 2 ? "read" : "action" );
+                break;
+        }
+	exit(0);
+}
 
 int
 main(int argc, char **argv)
 {
 	struct sockaddr_un sun;
+	struct sigaction sa;
 	char buf[2048] = { 0 };
 	char *cmd, *path = PATH;
 	socklen_t len;
 	int fd, n, ch;
-	int ncmds = 0, nsock = 0;
+	int ncmds = 0, nsock = 0, error = 0;
 
 	if (argc != 2)
 		/* NOTREACHED */
@@ -74,6 +90,16 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
+	/*
+         * Catch SIGHUP in order to reread configuration file.
+         */
+        sa.sa_handler = handle_signal;
+        sa.sa_flags = SA_SIGINFO|SA_RESTART;
+        sigemptyset(&sa.sa_mask);
+        error = sigaction(SIGALRM, &sa, NULL);
+        if (error == -1)
+                err(-1, "unable to set signal handler");
+
 	fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0)
 		err(-2, "could not create socket.");
@@ -86,9 +112,14 @@ main(int argc, char **argv)
 	if (connect(fd, (struct sockaddr *)&sun, len) < 0)
 		errx(errno, "Could not connect to server.");
 
+	op = 1; /* Write */
+	alarm(3); /* Wait 3 seconds to complete a write. More than enough?! */
 	if (write(fd, argv[argc - 1], strlen(argv[argc - 1])) < 0)
 		errx(errno, "Could not send command to server.");
 
+	alarm(0); /* Just to be safe */
+	op = 2; /* Read */
+	alarm(3); /* Wait 3 seconds to complete a read. More than enough?! */
 	n = read(fd, buf, sizeof(buf));
 	if (n < 0)
 		warnc(errno, "Reading from socket");
