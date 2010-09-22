@@ -242,7 +242,7 @@ second_boot() {
 # Set pkg_add ENV variable. 
 # XXX: This needs to be in facter but having issues with that.
 #
-export PACKAGESITE="http://`hostname`/Latest/"
+export PACKAGESITE="http://10.0.0.110/Latest/"
 
 name="puppet"
 rcvar=`set_rcvar`
