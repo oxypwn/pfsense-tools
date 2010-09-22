@@ -225,8 +225,6 @@ second_boot() {
 	/bin/cat <<EOF >/usr/local/etc/rc.d/puppet
 #!/bin/sh
 #
-# $FreeBSD: ports/sysutils/puppet/files/puppet.in,v 1.1 2010/08/04 17:06:24 lwhsu Exp $
-#
 
 # PROVIDE: puppet
 # REQUIRE: NETWORK
@@ -247,20 +245,20 @@ export PACKAGESITE="http://10.0.0.110/Latest/"
 name="puppet"
 rcvar=`set_rcvar`
 
-load_rc_config "$name"
+load_rc_config "\$name"
 
-: ${puppet_enable="NO"}
-: ${puppet_rundir="/var/run/puppet"}
-: ${puppet_flags=""}
+: \${puppet_enable="NO"}
+: \${puppet_rundir="/var/run/puppet"}
+: \${puppet_flags=""}
 
 command_interpreter="/usr/local/bin/ruby18"
 command="/usr/local/bin/puppet"
-command_args="agent ${puppet_flags}"
+command_args="agent \${puppet_flags}"
 unset puppet_flags
 
-pidfile="${puppet_rundir}/agent.pid"
+pidfile="\${puppet_rundir}/agent.pid"
 
-run_rc_command "$1"
+run_rc_command "\$1"
 EOF
 
 	touch /.setup_complete
