@@ -221,6 +221,48 @@ first_boot_setup() {
 }
 
 second_boot() {
+
+	/bin/cat <<EOF >/usr/local/etc/rc.d/puppet
+#!/bin/sh
+#
+# $FreeBSD: ports/sysutils/puppet/files/puppet.in,v 1.1 2010/08/04 17:06:24 lwhsu Exp $
+#
+
+# PROVIDE: puppet
+# REQUIRE: NETWORK
+
+#
+# Add the following lines to /etc/rc.conf to enable the puppet agent:
+#
+# puppet_enable="YES"
+
+. /etc/rc.subr
+
+#
+# Set pkg_add ENV variable. 
+# XXX: This needs to be in facter but having issues with that.
+#
+export PACKAGESITE="http://`hostname`/Latest/"
+
+name="puppet"
+rcvar=`set_rcvar`
+
+load_rc_config "$name"
+
+: ${puppet_enable="NO"}
+: ${puppet_rundir="/var/run/puppet"}
+: ${puppet_flags=""}
+
+command_interpreter="/usr/local/bin/ruby18"
+command="/usr/local/bin/puppet"
+command_args="agent ${puppet_flags}"
+unset puppet_flags
+
+pidfile="${puppet_rundir}/agent.pid"
+
+run_rc_command "$1"
+EOF
+
 	touch /.setup_complete
 	echo "puppet_enable='YES'" >> /etc/rc.conf
 	echo
