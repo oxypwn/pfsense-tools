@@ -174,10 +174,12 @@ first_boot() {
 	fi
 	case ${keypress} in
 		A)
+			echo "Starting auto installation immediately."
 			first_boot_setup
 			exit
 		;;
 		B)
+			echo "One moment please, launching BSDInstaller..."
 			/usr/bin/env TERM=cons25 /bin/tcsh -c /scripts/freebsd_installer
 			exit
 		;;
@@ -186,7 +188,7 @@ first_boot() {
 			exit
 		;;
 		~)
-			echo "Invoking shell."
+			echo "Invoking shell. Type exit to return to vCloudFreeBSD."
 			/usr/bin/env TERM=cons25 /bin/tcsh -c /bin/tcsh
 			echo "Invoking installation."
 			first_boot_setup
@@ -222,6 +224,7 @@ first_boot_setup() {
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
 	sleep 265535
+	exit
 }
 
 second_boot() {
@@ -270,7 +273,7 @@ EOF
 		fi
 	fi
 	echo
-	echo ">>> Rebooting one final time before Puppet configuration"
+	echo ">>> Rebooting and activating Puppet configuration"
 	echo
 	# Remove boot marker
 	rm /etc/SECOND_BOOT
@@ -282,6 +285,7 @@ EOF
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
 	sleep 265535
+	exit
 }
 
 third_boot() {
@@ -290,9 +294,11 @@ third_boot() {
 	# Self destruct
 	rm /etc/rc.local
 	# Time to reboot
+	echo "Rebooting one last time before vCloudFreeBSD setup is complete."
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
 	sleep 265535
+	exit
 }
 
 manual_setup() {
@@ -381,19 +387,25 @@ manual_setup() {
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
 	sleep 265535
+	exit
 }
 
-if [ -f /etc/FIRST_BOOT ]; then
-	# Invoke installer
-	first_boot
+if [ -f /etc/THIRD_BOOT ]; then
+	# Reboot final time
+	third_boot
+	exit
 fi
 
 if [ -f /etc/SECOND_BOOT ]; then
 	# Setup puppet and such
 	second_boot
+	exit
 fi
 
-if [ -f /etc/THIRD_BOOT ]; then
-	# Reboot final time
-	third_boot
+if [ -f /etc/FIRST_BOOT ]; then
+	# Invoke installer
+	first_boot
+	exit
 fi
+
+
