@@ -283,7 +283,7 @@ EOF
 }
 
 third_boot() {
-	rm /etc/SECOND_BOOT
+	rm /etc/THIRD_BOOT
 	echo ">>> Self destructing /etc/rc.local."
 	# Self destruct
 	rm /etc/rc.local
@@ -381,7 +381,7 @@ manual_setup() {
 	sleep 265535
 }
 
-if [ -f /FIRST_BOOT ]; then
+if [ -f /etc/FIRST_BOOT ]; then
 	# Invoke installer
 	first_boot
 fi
