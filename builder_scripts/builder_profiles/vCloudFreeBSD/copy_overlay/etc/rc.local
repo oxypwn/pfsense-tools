@@ -209,6 +209,8 @@ first_boot() {
 }
 
 first_boot_setup() {
+	# Remove boot marker
+	rm /etc/FIRST_BOOT
 	# Touch marker
 	touch /etc/SECOND_BOOT
 	# Install to selected disk
