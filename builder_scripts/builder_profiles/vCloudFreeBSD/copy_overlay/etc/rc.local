@@ -290,6 +290,8 @@ EOF
 
 third_boot() {
 	rm /etc/THIRD_BOOT
+	echo
+	echo
 	echo ">>> Self destructing /etc/rc.local."
 	# Self destruct
 	rm /etc/rc.local
