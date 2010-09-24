@@ -210,7 +210,7 @@ first_boot() {
 
 first_boot_setup() {
 	# Touch marker
-	touch /.second_boot
+	touch /etc/SECOND_BOOT
 	# Install to selected disk
 	install_to_disk
 	echo ">>> Installation complete.  Rebooting in 5 seconds."
@@ -271,9 +271,9 @@ EOF
 	echo ">>> Rebooting one final time before Puppet configuration"
 	echo
 	# Remove boot marker
-	rm /.second_boot
+	rm /etc/SECOND_BOOT
 	# Add second stage boot marker
-	touch /.third_boot
+	touch /etc/THIRD_BOOT
 	# Remove installed package roster
 	rm -rf /var/db/pkg/*
 	# Time to reboot
@@ -283,8 +283,7 @@ EOF
 }
 
 third_boot() {
-	rm /FIRST_BOOT
-	touch /.setup_complete
+	rm /etc/SECOND_BOOT
 	echo ">>> Self destructing /etc/rc.local."
 	# Self destruct
 	rm /etc/rc.local
@@ -387,12 +386,12 @@ if [ -f /FIRST_BOOT ]; then
 	first_boot
 fi
 
-if [ -f /.second_boot ]; then
+if [ -f /etc/SECOND_BOOT ]; then
 	# Setup puppet and such
 	second_boot
 fi
 
-if [ -f /.third_boot ]; then
+if [ -f /etc/THIRD_BOOT ]; then
 	# Reboot final time
 	third_boot
 fi
