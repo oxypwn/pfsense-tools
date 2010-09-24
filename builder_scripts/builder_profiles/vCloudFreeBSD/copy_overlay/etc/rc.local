@@ -231,7 +231,6 @@ second_boot() {
 	echo "puppet_enable='YES'" >> /etc/rc.conf
 	echo
 	echo
-	echo
 	# Make sure we have a hostname, if not do a reverse lookup
 	if [ "`hostname`" = "" ]; then
 		IP=`/sbin/ifconfig | /usr/bin/grep inet | /usr/bin/grep netmask | /usr/bin/grep -v 127 | /usr/bin/awk '{ print \$2 }'`
@@ -296,7 +295,9 @@ third_boot() {
 	# Self destruct
 	rm /etc/rc.local
 	# Time to reboot
-	echo "Rebooting one last time before vCloudFreeBSD setup is complete."
+	echo 
+	echo ">>> Rebooting one last time before vCloudFreeBSD setup is complete."
+	echo
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
 	sleep 265535
