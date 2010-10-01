@@ -48,7 +48,7 @@ handle_signal(int sig)
 {
 	switch(sig) {
         case SIGALRM:
-		syslog(LOG_ERR, "could not finish %s in a reasonable time. Action of event might not be completed.", op == 1 ? "write" : op == 2 ? "read" : "action" );
+		syslog(LOG_ERR, "could not finish %s in a reasonable time. Action of event might not be completed.", op == 1 ? "write" : op == 2 ? "read" : op == 0 ? "connect" : "action" );
                 break;
         }
 	exit(0);
@@ -109,9 +109,12 @@ main(int argc, char **argv)
 	strlcpy(sun.sun_path, path, sizeof(sun.sun_path));
 	len = sizeof(sun);
 
+	op = 0; /* Read */
+	alarm(3); /* Wait 3 seconds to complete a connect. More than enough?! */
 	if (connect(fd, (struct sockaddr *)&sun, len) < 0)
 		errx(errno, "Could not connect to server.");
 
+	alarm(0); /* Just to be safe */
 	op = 1; /* Write */
 	alarm(3); /* Wait 3 seconds to complete a write. More than enough?! */
 	if (write(fd, argv[argc - 1], strlen(argv[argc - 1])) < 0)
