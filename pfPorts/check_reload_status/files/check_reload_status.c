@@ -332,6 +332,7 @@ int main(void) {
 	struct event ev;
 	struct sockaddr_un sun;
 	int fd, errcode;
+	sigset_t set;
 
 	/* daemonize */
 	if (daemon(0, 0) < 0) {
@@ -341,6 +342,11 @@ int main(void) {
 	}
 
 	syslog(LOG_NOTICE, "check_reload_status is starting.");
+
+	sigemptyset(&set);
+	sigfillset(&set);
+	sigdelset(&set, SIGHUP);
+	sigprocmask(SIG_BLOCK, &set, NULL);
 
 	status = open(filepath, O_RDWR | O_CREAT | O_FSYNC);
 	if (status < 0) {
