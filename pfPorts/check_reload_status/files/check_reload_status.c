@@ -26,6 +26,7 @@
 */
 
 #include <sys/types.h>
+#include <sys/event.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -59,6 +60,8 @@ static void			show_command_list(int fd, const struct command *list);
 static void			socket_accept_command(int socket, short event, void *arg);
 static void			socket_close_command(int fd, struct event *ev);
 static void			write_status(const char *statusline, int when);
+
+static pid_t ppid = -1;
 
 static void
 show_command_list(int fd, const struct command *list)
@@ -355,6 +358,27 @@ int main(void) {
 		goto error;
 	}
 	write_status("starting", NONE);
+
+	ppid = getpid();
+	if (fork() == 0) {
+		/* Prepare code to monitor the parent :) */
+		struct kevent kev;
+		int kq;
+
+		kq = kqueue();
+		EV_SET(&kev, ppid, EVFILT_PROC, EV_ADD, NOTE_EXIT, 0, NULL);
+		kevent(kq, &kev, 1, NULL, 0, NULL);
+		switch (kevent(kq, NULL, 0, &kev, 1, NULL)) {
+		case 1:
+			syslog(LOG_ERR, "Reloading check_reload_status because it exited from an error!");
+			execl("/usr/local/sbin/check_reload_status", "/usr/local/sbin/check_reload_status");
+			/* NOTREACHED */
+			break;
+		default:
+			/* XXX: Should report any event?! */
+			break;
+		}
+	}
 
 	fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0) {
