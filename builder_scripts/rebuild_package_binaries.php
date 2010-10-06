@@ -83,6 +83,11 @@ if($pkg['copy_packages_to_host_ssh_port'] &&
 foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
+			if($argv[2]) {
+				$DESTDIR="DESTDIR=/usr/pkg/{$build['name']}";
+				echo ">>> Using $DESTDIR \n";
+			} else 
+				$DESTDIR="";
 			$build_options="";
 			if($pkg['build_options']) 
 				$build_options = $pkg['build_options'];
@@ -95,7 +100,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 				echo " BUILD_OPTIONS: {$build_options}\n";
 			else 
 				echo "\n";
-			`cd {$build} && make clean depends package-recursive BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
+			`cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
 		}
 	}
 }
