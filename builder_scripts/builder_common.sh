@@ -1250,7 +1250,7 @@ test_php_install() {
 	fi
 
 	# We might need to setup php.ini
-	if [ -f "/boot/kernel/ng_socket.so" ]; then
+	if [ -f "/boot/kernel/ng_socket.ko" ]; then
 		kldload -v /boot/kernel/ng_socket.ko 2>/dev/null
 		echo ">>> Loading ng_socket.ko needed for testing php."
 	fi
