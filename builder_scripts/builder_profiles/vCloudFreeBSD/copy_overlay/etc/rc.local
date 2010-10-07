@@ -264,7 +264,6 @@ EOF
 [agent]
 server = $PUPPETMASTER
 client = true
-factsync = true
 pluginsync = true
 daemonize = true
 runinterval = 60
