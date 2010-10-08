@@ -34,16 +34,10 @@ mount_unionfs() {
 	/bin/mkdir /tmp/unionfs/sbin
 	/bin/mkdir /tmp/unionfs/bin
 	/bin/mkdir /tmp/unionfs/boot
-	echo -n ">>> Mounting unionfs directories:"
-	echo -n " root"
 	/sbin/mount_unionfs /tmp/unionfs/bin /bin/
-	echo -n " sbin"
 	/sbin/mount_unionfs /tmp/unionfs/sbin /sbin/
-	echo -n " boot"
 	/sbin/mount_unionfs /tmp/unionfs/boot /boot/
-	echo -n " usr"
 	/sbin/mount_unionfs /tmp/unionfs/usr /usr/
-	echo "... done."
 }
 
 wait_keypress_nocounter() {
