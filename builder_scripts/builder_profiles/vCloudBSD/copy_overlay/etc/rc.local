@@ -24,6 +24,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# Output logo
+cat /etc/vcloudbsd.txt
+
 mount_unionfs() {
 	echo
 	/bin/mkdir /tmp/unionfs
@@ -150,7 +153,6 @@ EOF
 
 first_boot() {
 	mount_unionfs
-	cat /etc/vcloudbsd.txt
 	first_disk
 	if [ "$disk" != "" ]; then
 		echo "vCloudBSD will automatically install to the disk $disk in 9 seconds"
