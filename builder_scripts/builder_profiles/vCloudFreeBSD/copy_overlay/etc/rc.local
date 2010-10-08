@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# rc.local - part of vCloudFreeBSD
+# rc.local - part of vCloudBSD
 # Copyright (c) 2010, Scott Ullrich <sullrich@gmail.com>
 # All rights reserved.
 #
@@ -86,7 +86,7 @@ install_to_disk() {
 	echo
 	echo ">>> Setting SWAPSPACE to $SWAPSPACE"
 	echo ">>> Setting / SIZE to $DISKSIZE"
-	/bin/cat <<EOF >/tmp/vCloudFreeBSD.cfg
+	/bin/cat <<EOF >/tmp/vCloudBSD.cfg
 # Sample configuration file for an installation using pc-sysinstall
 
 installMode=fresh
@@ -119,14 +119,14 @@ packageType=cpdup
 cpdupPaths=boot,COPYRIGHT,bin,dev,etc,home,kernels,libexec,lib,root,sbin,usr,var,tmp
 
 EOF
-	echo ">>> Installing vCloudFreeBSD to disk $disk"
+	echo ">>> Installing vCloudBSD to disk $disk"
 	/bin/echo -n ">>> One moment please ..."
 
-	# Make backup of pc-sysinstaller config file vCloudFreeBSD.cfg
-	cp /tmp/vCloudFreeBSD.cfg /root/
+	# Make backup of pc-sysinstaller config file vCloudBSD.cfg
+	cp /tmp/vCloudBSD.cfg /root/
 
 	# Launch pc-sysinstaller into background
-	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/vCloudFreeBSD.cfg >/dev/null 2>&1 &
+	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/vCloudBSD.cfg >/dev/null 2>&1 &
 	
 	# Wait for pc-sysinstaller to complete it's mission
 	while [ `/bin/ps awux | /usr/bin/grep -v /usr/bin/grep | /usr/bin/grep pc-sysinstall | wc -l` -gt 0 ]; do
@@ -150,48 +150,15 @@ EOF
 
 first_boot() {
 	mount_unionfs
-	echo
-
-	/bin/cat <<EOF
-	
-									Welcome to
-	            ,----..    ,--,                                       
-	           /   /   \ ,--.'|                                 ,---, 
-	          |   :     :|  | :      ,---.           ,--,     ,---.'| 
-	     .---..   |  ;. /:  : '     '   ,'\        ,'_ /|     |   | : 
-	   /.  ./|.   ; /--` |  ' |    /   /   |  .--. |  | :     |   | | 
-	 .-' . ' |;   | ;    '  | |   .   ; ,. :,'_ /| :  . |   ,--.__| | 
-	/___/ \: ||   : |    |  | :   '   | |: :|  ' | |  . .  /   ,'   | 
-	.   \  ' ..   | '___ '  : |__ '   | .; :|  | ' |  | | .   '  /  | 
-	 \   \   ''   ; : .'||  | '.'||   :    |:  | : ;  ; | '   ; |:  | 
-	  \   \   '   | '/  :;  :    ; \   \  / '  :  `--'   \|   | '/  ' 
-	   \   \ ||   :    / |  ,   /   `----'  :  ,      .-./|   :    :| 
-	    '---"  \   \ .'   ---`-'             `--`----'     \   \  /   
-	            `---`                                       `----'    
-	    ,---,.                               ,---,.   .--.--.       ,---,     
-	  ,'  .' |                             ,'  .'  \ /  /    '.   .'  .' `\   
-	,---.'   |  __  ,-.                  ,---.' .' ||  :  /`. / ,---.'     \  
-	|   |   .',' ,'/ /|                  |   |  |: |;  |  |--`  |   |  .`\  | 
-	:   :  :  '  | |' | ,---.     ,---.  :   :  :  /|  :  ;_    :   : |  '  | 
-	:   |  |-,|  |   ,'/     \   /     \ :   |    ;  \  \    `. |   ' '  ;  : 
-	|   :  ;/|'  :  / /    /  | /    /  ||   :     \  `----.   \'   | ;  .  | 
-	|   |   .'|  | ' .    ' / |.    ' / ||   |   . |  __ \  \  ||   | :  |  ' 
-	'   :  '  ;  : | '   ;   /|'   ;   /|'   :  '; | /  /`--'  /'   : | /  ;  
-	|   |  |  |  , ; '   |  / |'   |  / ||   |  | ; '--'.     / |   | '` ,/   
-	|   :  \   ---'  |   :    ||   :    ||   :   /    `--'---'  ;   :  .'     
-	|   | ,'          \   \  /  \   \  / |   | ,'               |   ,.'       
-	`----'             `----'    `----'  `----'                 '---'
-EOF
-
-	echo
+	cat /etc/vcloudbsd.txt
 	first_disk
 	if [ "$disk" != "" ]; then
-		echo "vCloudFreeBSD will automatically install to the disk $disk in 9 seconds"
-		echo "or press M key to begin the vCloudFreeBSD configuration wizard."
+		echo "vCloudBSD will automatically install to the disk $disk in 9 seconds"
+		echo "or press M key to begin the vCloudBSD configuration wizard."
 		echo
 	fi
 	echo "Keys available:"
-	echo "  M  Begin manual vCloudFreeBSD/Puppet configuration wizard"
+	echo "  M  Begin manual vCloudBSD/Puppet configuration wizard"
 	echo "  A  Begin auto installation immediately"
 	echo "  X  Exit immediately"
 	echo "  ~  Invoke tcsh and then proceed with installation"
@@ -219,7 +186,7 @@ EOF
 			exit
 		;;
 		~)
-			echo "Invoking shell. Type exit to return to vCloudFreeBSD."
+			echo "Invoking shell. Type exit to return to vCloudBSD."
 			/usr/bin/env TERM=cons25 /bin/tcsh -c /bin/tcsh
 			echo "Invoking installation."
 			first_boot_setup
@@ -326,7 +293,7 @@ third_boot() {
 	rm /etc/rc.local
 	# Time to reboot
 	echo 
-	echo ">>> Rebooting one last time before vCloudFreeBSD setup is complete."
+	echo ">>> Rebooting one last time before vCloudBSD setup is complete."
 	echo
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
@@ -337,13 +304,13 @@ third_boot() {
 manual_setup() {
 	clear
 	echo
-	echo ">>> vCloudFreeBSD Manual Setup"
+	echo ">>> vCloudBSD Manual Setup"
 	echo
 	/bin/echo "Available disks: "
 	echo
 	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh disk-list
 	echo
-	/bin/echo -n "Which disk would you like to install vCloudFreeBSD to? " 
+	/bin/echo -n "Which disk would you like to install vCloudBSD to? " 
 	read disk
 	echo
 	# Prompt which interface
@@ -375,7 +342,7 @@ manual_setup() {
 	fi
 	echo
 	# Prompt for hostname
-	/bin/echo "Enter the hostname would you like to use for this vCloudFreeBSD installation: "
+	/bin/echo "Enter the hostname would you like to use for this vCloudBSD installation: "
 	read hostname
 	if [ "$hostname" != "" ]; then
 		echo "hostname=\"${hostname}\"" >> /etc/rc.conf
