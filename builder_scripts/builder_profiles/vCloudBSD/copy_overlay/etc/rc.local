@@ -163,7 +163,7 @@ first_boot() {
 	echo "  B  Invoke the older BSD Installer"
 	echo
 	if [ "$disk" != "" ]; then
-		/bin/echo -n "Seconds remaining before auto installation: "
+		/bin/echo -n " Seconds remaining before auto installation: "
 		wait_keypress
 	else
 		wait_keypress_nocounter
@@ -274,9 +274,6 @@ EOF
 	touch /etc/THIRD_BOOT
 	# Remove installed package roster
 	rm -rf /var/db/pkg/*
-	echo ">>> Self destructing /etc/rc.local."
-	# Self destruct
-	rm /etc/rc.local
 	# Allow disk to sync
 	/bin/sync
 	# Time to reboot
