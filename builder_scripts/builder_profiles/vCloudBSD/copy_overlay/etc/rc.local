@@ -265,21 +265,26 @@ runinterval = 60
 EOF
 		fi
 	fi
-	echo
-	echo ">>> Rebooting and activating Puppet configuration"
-	echo
+	#echo
+	#echo ">>> Rebooting and activating Puppet configuration"
+	#echo
 	# Remove boot marker
 	rm /etc/SECOND_BOOT
 	# Add second stage boot marker
-	touch /etc/THIRD_BOOT
+	#touch /etc/THIRD_BOOT
 	# Remove installed package roster
 	rm -rf /var/db/pkg/*
 	# Allow disk to sync
 	/bin/sync
+	echo ">>> Self destructing /etc/rc.local."
+	# Self destruct
+	rm /etc/rc.local
 	# Time to reboot
-	/sbin/shutdown -r now
+	#/sbin/shutdown -r now
 	# Prevent bootup from occuring
-	sleep 265535
+	#sleep 265535
+	echo ">>> Starting puppet"
+	/usr/local/etc/rc.d/puppet start &
 	exit
 }
 
