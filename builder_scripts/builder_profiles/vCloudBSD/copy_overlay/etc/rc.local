@@ -54,8 +54,9 @@ wait_keypress() {
 	keypress=""
 	COUNTER=9
 	stty -icanon min 0 time 20
+	/bin/echo -n " "
 	while [ "$COUNTER" -gt 0 ]; do
-		/bin/echo -n "$COUNTER "
+		/bin/echo -n "$COUNTER "
 		keypress=`dd bs=1 count=1 2>/dev/null`
 		COUNTER=`expr $COUNTER - 1`
 		if [ "$keypress" != "" ]; then
