@@ -63,6 +63,7 @@ wait_keypress() {
 			COUNTER=0
 		fi
 	done
+	/bin/echo -n "0"
 	stty "$old_stty_settings"
 } 	
 
