@@ -274,6 +274,11 @@ EOF
 	touch /etc/THIRD_BOOT
 	# Remove installed package roster
 	rm -rf /var/db/pkg/*
+	echo ">>> Self destructing /etc/rc.local."
+	# Self destruct
+	rm /etc/rc.local
+	# Allow disk to sync
+	/bin/sync
 	# Time to reboot
 	/sbin/shutdown -r now
 	# Prevent bootup from occuring
