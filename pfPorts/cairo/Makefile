@@ -2,13 +2,13 @@
 # Date created:		2004-10-06
 # Whom:			Michael Johnson <ahze@FreeBSD.org>
 #
-# $FreeBSD: ports/graphics/cairo/Makefile,v 1.36 2008/04/19 17:49:57 miwi Exp $
-#   $MCom: ports/graphics/cairo/Makefile,v 1.69 2008/03/21 04:04:14 ahze Exp $
+# $FreeBSD: ports/graphics/cairo/Makefile,v 1.47 2010/06/03 12:35:42 pav Exp $
+#   $MCom: ports/graphics/cairo/Makefile,v 1.93 2010/04/03 05:40:01 marcus Exp $
 #
 
 PORTNAME=	cairo
-PORTVERSION=	1.4.14
-PORTREVISION?=	0
+PORTVERSION=	1.8.10
+PORTREVISION?=	1
 PORTEPOCH?=	1
 CATEGORIES=	graphics
 MASTER_SITES=	http://cairographics.org/releases/
@@ -20,19 +20,21 @@ COMMENT=	Vector graphics library with cross-device output support
 .if !defined(REFERENCE_PORT)
 
 LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
-		png.5:${PORTSDIR}/graphics/png \
+		png.6:${PORTSDIR}/graphics/png \
 		fontconfig.1:${PORTSDIR}/x11-fonts/fontconfig \
 		pixman-1.9:${PORTSDIR}/x11/pixman
 
 CONFIGURE_ARGS=	--with-html-dir=${DOCSDIR} \
+		--disable-directfb \
 		--enable-pdf \
 		--enable-ps
-USE_GNOME=	gnometarget gnomehack ltverhack referencehack
-USE_AUTOTOOLS=	libtool:15
+USE_GNOME=	gnomehack ltverhack referencehack
+USE_AUTOTOOLS=	libtool:22
 USE_LDCONFIG=	yes
 
-CONFIGURE_ENV=	CPPFLAGS="${PTHREAD_CFLAGS} -I${LOCALBASE}/include" \
-		LDFLAGS="${PTHREAD_LIBS}"
+CONFIGURE_ENV=	CPPFLAGS="${PTHREAD_CFLAGS}" \
+		LDFLAGS="${PTHREAD_LIBS}" \
+		png_REQUIRES="libpng"
 
 .if defined(WITHOUT_X11)
 CONFIGURE_ARGS+=--disable-xlib
@@ -42,7 +44,8 @@ USE_XORG+=	xrender
 PLIST_SUB+=	X11=""
 .endif
 
-OPTIONS+=	GLITZ "Enable Glitz OpenGL Support" Off
+OPTIONS+=	GLITZ "Enable Glitz OpenGL Support" Off \
+		XCB "Enable XCB (X C-language Binding) Support" On
 
 .include <bsd.port.pre.mk>
 
@@ -53,6 +56,16 @@ PLIST_SUB+=	GLITZ=""
 .else
 CONFIGURE_ARGS+=	--disable-glitz
 PLIST_SUB+=	GLITZ="@comment "
+.endif
+
+.ifdef(WITH_XCB)
+BUILD_DEPENDS+= 	${LOCALBASE}/libdata/pkgconfig/xcb-renderutil.pc:${PORTSDIR}/x11/xcb-util
+RUN_DEPENDS+=		${LOCALBASE}/libdata/pkgconfig/xcb-renderutil.pc:${PORTSDIR}/x11/xcb-util
+CONFIGURE_ARGS+=	--enable-xcb
+PLIST_SUB+=		XCB=""
+.else
+CONFIGURE_ARGS+=	--disable-xcb
+PLIST_SUB+=		XCB="@comment "
 .endif
 
 post-patch:

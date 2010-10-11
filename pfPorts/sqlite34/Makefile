@@ -2,7 +2,7 @@
 # Date created:				Feb 21, 2001
 # Whom:					Ying-Chieh Liao <ijliao@FreeBSD.org>
 #
-# $FreeBSD: ports/databases/sqlite34/Makefile,v 1.33 2009/03/23 05:31:39 mnag Exp $
+# $FreeBSD: ports/databases/sqlite34/Makefile,v 1.34 2009/08/02 19:32:51 mezz Exp $
 #
 
 PORTNAME=	sqlite34
@@ -19,7 +19,7 @@ CONFLICTS=	sqlite3-[0-9]*
 
 USE_GMAKE=	YES
 USE_GNOME=	pkgconfig
-USE_AUTOTOOLS=	libtool:15
+USE_AUTOTOOLS=	libtool:22
 USE_DOS2UNIX=	*.pc.in
 USE_LDCONFIG=	YES
 GNU_CONFIGURE=	YES

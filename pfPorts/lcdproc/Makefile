@@ -2,7 +2,7 @@
 # Date created:				Sat Jun  1 20:03:41 EDT 2002
 # Whom:					pat
 #
-# $FreeBSD: ports/sysutils/lcdproc/Makefile,v 1.24 2010/09/15 18:35:13 ade Exp $
+# $FreeBSD: ports/sysutils/lcdproc/Makefile,v 1.25 2010/10/05 19:57:51 ade Exp $
 #
 
 PORTNAME=	lcdproc
@@ -16,7 +16,7 @@ COMMENT=	A client/server suite for LCD devices
 
 ONLY_FOR_ARCHS=	i386 amd64
 
-USE_AUTOTOOLS=	autoconf:267 automake:19 aclocal:19
+USE_AUTOTOOLS=	autoconf:267 automake:111 aclocal:111
 GNU_CONFIGURE=	yes
 USE_GNOME=	pkgconfig
 USE_RC_SUBR=	LCDd lcdproc lcdexec
