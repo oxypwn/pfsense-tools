@@ -75,13 +75,13 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	echo ">>> Using ${PWD}/remove.list.iso.$FREEBSD_VERSION ..."
-	export PRUNE_LIST="${PWD}/remove.list.iso.$FREEBSD_VERSION"
+	echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION ..."
+	export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"
 fi
 
 # Use embedded src.conf
-export SRC_CONF="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${PWD}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
+export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.embedded.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
 
 # nopacket is required for WRAP's
 export NANO_BOOT0CFG="-o nopacket -s 1 -m 3"

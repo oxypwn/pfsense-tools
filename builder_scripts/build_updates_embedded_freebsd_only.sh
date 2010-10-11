@@ -54,13 +54,13 @@ rm -rf /usr/local/pfsense*
 
 # Use pfSense_wrap.6 as kernel configuration file
 if [ $FREEBSD_VERSION = "6" ]; then
-	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.6}
+	export KERNELCONF=${KERNELCONF:-${BUILDER_SCRIPTS}/conf/pfSense_wrap.6}
 fi
 if [ $FREEBSD_VERSION = "7" ]; then
-	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.7}
+	export KERNELCONF=${KERNELCONF:-${BUILDER_SCRIPTS}/conf/pfSense_wrap.7}
 fi
 if [ $FREEBSD_VERSION = "8" ]; then
-	export KERNELCONF=${KERNELCONF:-${PWD}/conf/pfSense_wrap.8}
+	export KERNELCONF=${KERNELCONF:-${BUILDER_SCRIPTS}/conf/pfSense_wrap.8}
 fi
 
 # Do not compress FS
@@ -68,19 +68,19 @@ export NO_COMPRESSEDFS=yes
 
 # Use normal src.conf
 if [ $FREEBSD_VERSION = "6" ]; then
-	export SRC_CONF="${PWD}/conf/src.conf"
-	export SRC_CONF_INSTALL="${PWD}/conf/src.conf"	
-	export SRC_CONF_INSTALL="${PWD}/conf/src.conf"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf"	
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf"
 fi
 if [ $FREEBSD_VERSION = "7" ]; then
-	export SRC_CONF="${PWD}/conf/src.conf.7"
-	export SRC_CONF="${PWD}/conf/src.conf.7"
-	export SRC_CONF_INSTALL="${PWD}/conf/src.conf.7.install"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.7"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.7"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.7.install"
 fi
 if [ $FREEBSD_VERSION = "8" ]; then
-	export SRC_CONF="${PWD}/conf/src.conf.8"
-	export SRC_CONF="${PWD}/conf/src.conf.8"
-	export SRC_CONF_INSTALL="${PWD}/conf/src.conf.8.install"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.8"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.8"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.8.install"
 fi
 
 if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
@@ -88,16 +88,16 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
 	if [ $FREEBSD_VERSION = "6" ]; then
-		echo ">>> Using ${PWD}/remove.list.iso ..."	
-		export PRUNE_LIST="${PWD}/remove.list.iso"
+		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso ..."	
+		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso"
 	fi
 	if [ $FREEBSD_VERSION = "7" ]; then
-		echo ">>> Using ${PWD}/remove.list.iso.7 ..."
-		export PRUNE_LIST="${PWD}/remove.list.iso.7"
+		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.7 ..."
+		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.7"
 	fi
 	if [ $FREEBSD_VERSION = "8" ]; then
-		echo ">>> Using ${PWD}/remove.list.iso.8 ..."
-		export PRUNE_LIST="${PWD}/remove.list.iso.8"
+		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.8 ..."
+		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.8"
 	fi
 fi
 
@@ -119,10 +119,10 @@ make_world
 
 
 if [ $FREEBSD_VERSION = "7" ]; then
-        export SRC_CONF="${PWD}/conf/src.conf.embedded.7.install"
+        export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.embedded.7.install"
 fi
 if [ $FREEBSD_VERSION = "8" ]; then
-        export SRC_CONF="${PWD}/conf/src.conf.embedded.8.install"
+        export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.embedded.8.install"
 fi
 
 echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."

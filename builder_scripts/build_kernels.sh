@@ -67,8 +67,8 @@ fi
 
 # Use normal src.conf
 if [ -z "${SRC_CONF:-}" ]; then
-	export SRC_CONF="${PWD}/conf/src.conf.$FREEBSD_VERSION"
-	export SRC_CONF_INSTALL="${PWD}/conf/src.conf.$FREEBSD_VERSION.install"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION.install"
 fi
 
 # Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
@@ -78,8 +78,8 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	echo ">>> Using ${PWD}/remove.list.iso.$FREEBSD_VERSION ..."
-	export PRUNE_LIST="${PWD}/remove.list.iso.$FREEBSD_VERSION"
+	echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION ..."
+	export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"
 fi
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
