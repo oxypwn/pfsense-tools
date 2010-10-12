@@ -51,6 +51,7 @@
 #include "common.h"
 
 /* function definitions */
+static void			handle_signal(int);
 static void			run_command(const struct command *, char *);
 static void			set_blockmode(int socket, int cmd);
 const struct command *	match_command(const struct command *target, char *wordpassed);
@@ -62,6 +63,7 @@ static void			socket_close_command(int fd, struct event *ev);
 static void			write_status(const char *statusline, int when);
 
 static pid_t ppid = -1;
+static int child = 0;
 
 static void
 show_command_list(int fd, const struct command *list)
@@ -190,6 +192,18 @@ write_status(const char *statusline, int when)
 }
 
 static void
+handle_signal(int sig)
+{
+        switch(sig) {
+        case SIGHUP:
+        case SIGTERM:
+		if (child)
+			_exit(0);
+                break;
+        }
+}
+
+static void
 run_command(const struct command *cmd, char *argv) {
 	char command[2048];
 
@@ -213,11 +227,13 @@ run_command(const struct command *cmd, char *argv) {
 	case -1:
 		break;
 	case 0:
+		child = 1;
 		/* Possibly optimize by creating argument list and calling execve. */
 		execl("/bin/sh", "sh", "-c", command, (char *)NULL);
 		_exit(127); /* Protect in case execl errors out */
 		break;
 	default:
+		child = 0;
 		write_status(command, AFTER);
 		break;
 	}
@@ -334,6 +350,7 @@ set_blockmode(int fd, int cmd)
 int main(void) {
 	struct event ev;
 	struct sockaddr_un sun;
+	struct sigaction sa;
 	int fd, errcode;
 	sigset_t set;
 
@@ -349,7 +366,14 @@ int main(void) {
 	sigemptyset(&set);
 	sigfillset(&set);
 	sigdelset(&set, SIGHUP);
+	sigdelset(&set, SIGTERM);
 	sigprocmask(SIG_BLOCK, &set, NULL);
+
+	sa.sa_handler = handle_signal;
+        sa.sa_flags = SA_SIGINFO|SA_RESTART;
+        sigemptyset(&sa.sa_mask);
+        sigaction(SIGHUP, &sa, NULL);
+	sigaction(SIGTERM, &sa, NULL);
 
 	status = open(filepath, O_RDWR | O_CREAT | O_FSYNC);
 	if (status < 0) {
