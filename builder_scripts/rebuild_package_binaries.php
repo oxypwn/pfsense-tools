@@ -105,8 +105,12 @@ foreach($pkg['packages']['package'] as $pkg) {
 			if($pkg['build_options']) 
 				$build_options = $pkg['build_options'];
 			if(file_exists("/var/db/ports/{$buildname}/options")) {
-				echo ">>> Using /var/db/ports/{$buildname}/options";
-				$build_options .= str_replace("\n", " ", file_get_contents("/var/db/ports/{$buildname}/options"));
+				echo ">>> Using /var/db/ports/{$buildname}/options \n";
+				$portopts = split("\n", file_get_contents("/var/db/ports/{$buildname}/options"));
+				foreach ($portopts as $po) {
+					if (substr($po, 0, 1) != '#')
+						$build_options .= " " . $po;
+				}
 			}
 			echo ">>> Processing {$build}\n";
 			if($build_options) 
