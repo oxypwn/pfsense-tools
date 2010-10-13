@@ -94,7 +94,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 		continue;
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
-			if(isset($options['d']) {
+			if(isset($options['d'])) {
 				$DESTDIR="DESTDIR=/usr/pkg/{$build['name']}";
 				echo ">>> Using $DESTDIR \n";
 			} else 
