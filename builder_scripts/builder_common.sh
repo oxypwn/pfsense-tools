@@ -1232,6 +1232,12 @@ create_FreeBSD_system_update() {
 # This routine will verify that PHP is sound and that it
 # can open and read config.xml and ensure the hostname
 test_php_install() {
+	# We might need to setup php.ini
+	if test -f "/boot/kernel/ng_socket.ko" && !(kldstat 2>&1 | grep -q ng_socket.ko); then
+		kldload -v /boot/kernel/ng_socket.ko 2>/dev/null
+		echo ">>> Loading ng_socket.ko needed for testing php."
+	fi
+
 	echo -n ">>> Testing PHP installation in ${PFSENSEBASEDIR}:"
 
 	# backup original conf dir
@@ -1249,11 +1255,6 @@ test_php_install() {
 		/usr/bin/touch $PFSENSEBASEDIR/tmp/remove_conf_symlink
 	fi
 
-	# We might need to setup php.ini
-	if [ -f "/boot/kernel/ng_socket.ko" ]; then
-		kldload -v /boot/kernel/ng_socket.ko 2>/dev/null
-		echo ">>> Loading ng_socket.ko needed for testing php."
-	fi
 	if [ -f "$PFSENSEBASEDIR/etc/rc.php_ini_setup" ]; then
 		mkdir -p $PFSENSEBASEDIR/usr/local/lib/ $PFSENSEBASEDIR/usr/local/etc/
 		chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
