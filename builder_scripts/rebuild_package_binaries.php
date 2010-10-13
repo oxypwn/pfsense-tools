@@ -41,13 +41,13 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO")) {
 
 function usage() {
 	echo "Usage: {$argv[0]} -x <path to pkg xml> [-p <package name>] [-d]\n";
-	echo "  Flags:";
-	echo "    -x XML file containing package data.";
-	echo "    -p Package name to build a single package and its dependencies.";
-	echo "    -d Use DESTDIR when building.";
-	echo "  Examples:";
-	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml";
-	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid";
+	echo "  Flags:\n";
+	echo "    -x XML file containing package data.\n";
+	echo "    -p Package name to build a single package and its dependencies.\n";
+	echo "    -d Use DESTDIR when building.\n";
+	echo "  Examples:\n";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
 	exit;
 }
 
