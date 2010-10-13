@@ -40,6 +40,7 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO")) {
 }
 
 function usage() {
+	global $argv;
 	echo "Usage: {$argv[0]} -x <path to pkg xml> [-p <package name>] [-d]\n";
 	echo "  Flags:\n";
 	echo "    -x XML file containing package data.\n";
@@ -57,7 +58,7 @@ if(!isset($options['x']))
 	usage();
 
 // Set the XML filename that we are processing
-$xml_filename = $argv[1];
+$xml_filename = $options['x'];
 
 $pkg = parse_xml_config_pkg($xml_filename, "pfsensepkgs");
 if(!$pkg) {
