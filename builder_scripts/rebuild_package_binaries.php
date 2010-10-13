@@ -95,19 +95,20 @@ foreach($pkg['packages']['package'] as $pkg) {
 		continue;
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
+			$buildname = basename($build);
 			if(isset($options['d'])) {
-				$DESTDIR="DESTDIR=/usr/pkg/{$build['name']}";
+				$DESTDIR="DESTDIR=/usr/pkg/{$buildname}";
 				echo ">>> Using $DESTDIR \n";
 			} else 
 				$DESTDIR="";
 			$build_options="";
 			if($pkg['build_options']) 
 				$build_options = $pkg['build_options'];
-			if(file_exists("/var/db/ports/{$build['name']}/options")) {
-				echo ">>> Using /var/db/ports/{$build['name']}/options";
-				$build_options .= str_replace("\n", " ", file_get_contents("/var/db/ports/{$build['name']}/options"));
+			if(file_exists("/var/db/ports/{$buildname}/options")) {
+				echo ">>> Using /var/db/ports/{$buildname}/options";
+				$build_options .= str_replace("\n", " ", file_get_contents("/var/db/ports/{$buildname}/options"));
 			}
-			echo ">>> Processing {$build}";
+			echo ">>> Processing {$build}\n";
 			if($build_options) 
 				echo " BUILD_OPTIONS: {$build_options}\n";
 			else 
