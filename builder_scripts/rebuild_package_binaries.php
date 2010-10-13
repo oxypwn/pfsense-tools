@@ -40,11 +40,20 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO")) {
 }
 
 function usage() {
-	echo "Usage: ./rebuild_packages_binaries.php <path to pkg xml>.  Example: ./rebuild_packages_binaries.php /home/pfsense/packages/pkg_info.8.xml";
+	echo "Usage: {$argv[0]} -x <path to pkg xml> [-p <package name>] [-d]\n";
+	echo "  Flags:";
+	echo "    -x XML file containing package data.";
+	echo "    -p Package name to build a single package and its dependencies.";
+	echo "    -d Use DESTDIR when building.";
+	echo "  Examples:";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid";
 	exit;
 }
 
-if(!$argv[1]) 
+$options = getopt("x:p:d");
+
+if(!isset($options['x']))
 	usage();
 
 // Set the XML filename that we are processing
@@ -81,9 +90,11 @@ if($pkg['copy_packages_to_host_ssh_port'] &&
 }
 
 foreach($pkg['packages']['package'] as $pkg) {
+	if (isset($options['p']) && ($options['p'] != $pkg['name']))
+		continue;
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
-			if($argv[2]) {
+			if(isset($options['d']) {
 				$DESTDIR="DESTDIR=/usr/pkg/{$build['name']}";
 				echo ">>> Using $DESTDIR \n";
 			} else 
