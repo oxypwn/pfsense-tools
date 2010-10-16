@@ -707,16 +707,13 @@ PHP_FUNCTION(pfSense_interface_rename) {
 PHP_FUNCTION(pfSense_ngctl_name) {
 	char *ifname, *newifname;
 	int ifname_len, newifname_len;
-	struct ngm_name name;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
                 RETURN_NULL();
 	}
 
-	snprintf(name.name, sizeof(name.name), "%s", newifname);
 	/* Send message */
-	if (NgSendMsg(PFSENSE_G(csock), ifname, NGM_GENERIC_COOKIE,
-	    NGM_NAME, &name, sizeof(name)) < 0)
+	if (NgNameNode(PFSENSE_G(csock), ifname, newifname) < 0)
 		RETURN_NULL();
 
 	RETURN_TRUE;
