@@ -1,34 +1,45 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.4
 diff -u -r1.4 pf.c
---- sys/contrib/pf/net/pf.c	23 Apr 2010 22:54:05 -0000	1.4
-+++ sys/contrib/pf/net/pf.c	23 Apr 2010 22:54:27 -0000
-@@ -6390,6 +6390,13 @@
+--- sys/contrib/pf/net/pf.c	18 Oct 2010 17:01:16 -0000	1.4
++++ sys/contrib/pf/net/pf.c	18 Oct 2010 19:48:21 -0000
+@@ -6347,6 +6347,7 @@
+ 	struct sockaddr_in	*dst;
+ 	struct ip		*ip;
+ 	struct ifnet		*ifp = NULL;
++	struct ifaddr		*ifa = NULL;
+ 	struct pf_addr		 naddr;
+ 	struct pf_src_node	*sn = NULL;
+ 	int			 error = 0;
+@@ -6388,6 +6389,9 @@
  
  	ip = mtod(m0, struct ip *);
  
 +	if (IN_MULTICAST(ntohl(ip->ip_dst.s_addr)))
 +                return;
-+	else if (r->rt == PF_REPLYTO && in_localaddr(ip->ip_dst))
-+		goto donelocal;
-+	else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
-+		goto donelocal;
 +
  	ro = &iproute;
  	bzero((caddr_t)ro, sizeof(*ro));
  	dst = satosin(&ro->ro_dst);
-@@ -6431,6 +6438,8 @@
+@@ -6429,8 +6433,15 @@
  	}
  	if (ifp == NULL)
  		goto bad;
-+	else if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
++	else if (r->rt == PF_REPLYTO && r->direction != dir && (ifa = ifaof_ifpforaddr((struct sockaddr *)dst, ifp)) != NULL) {
++		ifa_free(ifa);
++		goto donelocal;
++	} else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
 +		goto donelocal;
  
  	if (oifp != ifp) {
++		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
++			goto donelocal;
  #ifdef __FreeBSD__
-@@ -6612,6 +6621,7 @@
+ 		PF_UNLOCK();
+ 		if (pf_test(PF_OUT, ifp, &m0, NULL, NULL) != PF_PASS) {
+@@ -6610,6 +6621,7 @@
  done:
  	if (r->rt != PF_DUPTO)
  		*m = NULL;
