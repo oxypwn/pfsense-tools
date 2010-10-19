@@ -1,10 +1,10 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.4
-diff -u -r1.4 pf.c
---- sys/contrib/pf/net/pf.c	18 Oct 2010 17:01:16 -0000	1.4
-+++ sys/contrib/pf/net/pf.c	18 Oct 2010 19:48:21 -0000
+retrieving revision 1.2
+diff -u -r1.2 pf.c
+--- sys/contrib/pf/net/pf.c	19 Oct 2010 18:37:53 -0000	1.2
++++ sys/contrib/pf/net/pf.c	19 Oct 2010 18:40:56 -0000
 @@ -6347,6 +6347,7 @@
  	struct sockaddr_in	*dst;
  	struct ip		*ip;
@@ -23,13 +23,20 @@ diff -u -r1.4 pf.c
  	ro = &iproute;
  	bzero((caddr_t)ro, sizeof(*ro));
  	dst = satosin(&ro->ro_dst);
-@@ -6429,8 +6433,15 @@
+@@ -6429,8 +6433,22 @@
  	}
  	if (ifp == NULL)
  		goto bad;
-+	else if (r->rt == PF_REPLYTO && r->direction != dir && (ifa = ifaof_ifpforaddr((struct sockaddr *)dst, ifp)) != NULL) {
-+		ifa_free(ifa);
-+		goto donelocal;
++	else if (r->rt == PF_REPLYTO) {
++		struct sockaddr_in inaddr;
++		inaddr.sin_addr = ip->ip_dst;
++		inaddr.sin_family = AF_INET;
++		inaddr.sin_len = sizeof(inaddr);
++		inaddr.sin_port = 0;
++		if ((ifa = ifaof_ifpforaddr((struct sockaddr *)&inaddr, ifp)) != NULL) {
++			ifa_free(ifa);
++			goto donelocal;
++		}
 +	} else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
 +		goto donelocal;
  
@@ -39,7 +46,7 @@ diff -u -r1.4 pf.c
  #ifdef __FreeBSD__
  		PF_UNLOCK();
  		if (pf_test(PF_OUT, ifp, &m0, NULL, NULL) != PF_PASS) {
-@@ -6610,6 +6621,7 @@
+@@ -6610,6 +6628,7 @@
  done:
  	if (r->rt != PF_DUPTO)
  		*m = NULL;
