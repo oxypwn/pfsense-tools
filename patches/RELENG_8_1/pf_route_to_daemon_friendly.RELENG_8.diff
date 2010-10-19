@@ -11,7 +11,7 @@ diff -u -r1.10 pf.c
  			goto donelocal;
 +
 +		if (s && r->rt == PF_ROUTETO && pd->nat_rule != NULL &&
-+		    r->direction == PF_OUT && r->direction == dir) {
++		    r->direction == PF_OUT && r->direction == dir && pd->pf_mtag->routed < 2) {
 +			int off = ip->ip_hl << 2;
 +			switch (pd->proto) {
 +			case IPPROTO_TCP: {
