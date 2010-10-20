@@ -4,6 +4,10 @@
 #
 # $FreeBSD: ports/lang/php52/Makefile,v 1.9 2010/09/15 18:34:39 ade Exp $
 #
+#
+# NOTE: Please be sure to keep the files in php52-openssl/files/ - These custom
+#       patches are needed for the pfSense builds. -jjp
+#
 
 PORTNAME=	php52
 PORTVERSION=	5.2.14
