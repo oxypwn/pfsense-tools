@@ -2,7 +2,7 @@
 # Whom:					rjoseph@mammalia.org
 # Date created:				24 July 2000
 #
-# $FreeBSD: ports/sysutils/grub/Makefile,v 1.36 2010/10/07 15:18:54 ade Exp $
+# $FreeBSD: ports/sysutils/grub/Makefile,v 1.37 2010/10/16 11:52:36 ade Exp $
 #
 
 PORTNAME=	grub
@@ -14,7 +14,7 @@ MASTER_SITES=	ftp://alpha.gnu.org/gnu/grub/
 MAINTAINER=	sem@FreeBSD.org
 COMMENT=	GRand Unified Bootloader
 
-USE_AUTOTOOLS=	automake:111 autoconf:267
+USE_AUTOTOOLS=	automake:111 autoconf:268
 GNU_CONFIGURE=		yes
 USE_GMAKE=		yes
 CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-freebsd-freebsd${OSREL}

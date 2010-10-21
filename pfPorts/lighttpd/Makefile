@@ -2,7 +2,7 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.93 2010/10/06 22:15:16 mm Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.94 2010/10/16 11:52:42 ade Exp $
 #
 
 PORTNAME?=	lighttpd
@@ -24,7 +24,7 @@ USE_GNOME=	lthack
 .if !defined(_BUILDING_LIGHTTPD_MODULE)
 USE_AUTOTOOLS=	libtool:22
 .else
-USE_AUTOTOOLS=	autoconf:267 autoheader:267 aclocal:111 automake:111 libtool:22
+USE_AUTOTOOLS=	autoconf:268 autoheader:268 aclocal:111 automake:111 libtool:22
 ACLOCAL_ARGS=	-I m4
 .endif
 CONFIGURE_ARGS+=	--libdir=${PREFIX}/lib/lighttpd --enable-static

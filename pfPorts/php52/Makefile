@@ -2,7 +2,7 @@
 # Date created:				17 Apr 2010
 # Whom:					Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/lang/php52/Makefile,v 1.9 2010/09/15 18:34:39 ade Exp $
+# $FreeBSD: ports/lang/php52/Makefile,v 1.10 2010/10/16 11:52:15 ade Exp $
 #
 #
 # NOTE: Please be sure to keep the files in php52-openssl/files/ - These custom
@@ -25,7 +25,7 @@ LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 USE_BZIP2=	yes
 MAKE_JOBS_SAFE=	yes
 .if !defined(PKGNAMESUFFIX)
-USE_AUTOTOOLS=	autoconf:267
+USE_AUTOTOOLS=	autoconf:268
 
 CONFIGURE_ARGS=	\
 		--with-layout=GNU \
