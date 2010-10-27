@@ -97,7 +97,7 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
  struct iovec iov;
  struct msghdr msg;
  struct cmsghdr *c;
-+reloophack:
++reloophack6:
  
  	iov.iov_base=buf;
  	iov.iov_len=1000;
@@ -109,7 +109,7 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
 +	len=recvmsg(t->socket, &msg, MSG_DONTWAIT);
  #else
  socklen_t sl;
-+reloophack:
++reloophack6:
  
  	sl=sizeof(from);
 -	len=recvfrom(icmp6_sock,buf,1024,0,(struct sockaddr *)&from,&sl);
@@ -134,7 +134,7 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
 -
 +	if (icmp->icmp6_id != ident){
 +		debug("Alien echo-reply received from xxx. Expected %i, received %i", ident, icmp->icmp6_id);
-+		goto reloophack;
++		goto reloophack6;
 +		return;	
 +	}
  	name=inet_ntop(AF_INET6,&from.sin6_addr,abuf,100);
