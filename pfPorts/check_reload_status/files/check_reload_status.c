@@ -389,19 +389,24 @@ int main(void) {
 		struct kevent kev;
 		int kq;
 
-		kq = kqueue();
-		EV_SET(&kev, ppid, EVFILT_PROC, EV_ADD, NOTE_EXIT, 0, NULL);
-		kevent(kq, &kev, 1, NULL, 0, NULL);
-		switch (kevent(kq, NULL, 0, &kev, 1, NULL)) {
-		case 1:
-			syslog(LOG_ERR, "Reloading check_reload_status because it exited from an error!");
-			execl("/usr/local/sbin/check_reload_status", "/usr/local/sbin/check_reload_status");
-			/* NOTREACHED */
-			break;
-		default:
-			/* XXX: Should report any event?! */
-			break;
+		while (1) {
+			kq = kqueue();
+			EV_SET(&kev, ppid, EVFILT_PROC, EV_ADD, NOTE_EXIT, 0, NULL);
+			kevent(kq, &kev, 1, NULL, 0, NULL);
+			switch (kevent(kq, NULL, 0, &kev, 1, NULL)) {
+			case 1:
+				syslog(LOG_ERR, "Reloading check_reload_status because it exited from an error!");
+				execl("/usr/local/sbin/check_reload_status", "/usr/local/sbin/check_reload_status");
+				_exit(127);
+				/* NOTREACHED */
+				break;
+			default:
+				/* XXX: Should report any event?! */
+				break;
+			}
+			close(kq);
 		}
+		exit(2);
 	}
 
 	fd = socket(PF_UNIX, SOCK_STREAM, 0);
