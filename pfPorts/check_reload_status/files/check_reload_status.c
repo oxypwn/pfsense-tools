@@ -198,7 +198,7 @@ handle_signal(int sig)
         case SIGHUP:
         case SIGTERM:
 		if (child)
-			_exit(0);
+			exit(0);
                 break;
         }
 }
@@ -367,6 +367,7 @@ int main(void) {
 	sigfillset(&set);
 	sigdelset(&set, SIGHUP);
 	sigdelset(&set, SIGTERM);
+	sigdelset(&set, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &set, NULL);
 
 	sa.sa_handler = handle_signal;
@@ -374,6 +375,7 @@ int main(void) {
         sigemptyset(&sa.sa_mask);
         sigaction(SIGHUP, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
+	sigaction(SIGCHLD, SIG_IGN, NULL);
 
 	status = open(filepath, O_RDWR | O_CREAT | O_FSYNC);
 	if (status < 0) {
