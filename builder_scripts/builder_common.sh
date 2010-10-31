@@ -2835,7 +2835,7 @@ update_freebsd_sources_and_apply_patches() {
 	echo ">>> Removing old patch rejects..."
 	find $SRCDIR -name "*.rej" -exec rm {} \;
 
-	echo -n ">>> Applying patches from $PFSPATCHFILEBASENAME, please wait..."
+	echo -n ">>> Applying patches from $PFSPATCHFILEBASENAME - $PATCH_DIRECTORY, please wait..."
 	# Loop through and patch files
 	for LINE in `cat ${PFSPATCHFILE}`
 	do
