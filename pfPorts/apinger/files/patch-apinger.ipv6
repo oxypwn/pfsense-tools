@@ -176,3 +176,14 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
  }
  
  #else /*HAVE_IPV6*/
+@@ -233,8 +233,8 @@
+ #else /*HAVE_IPV6*/
+ #include "apinger.h"
+ 
+-int make_icmp6_socket(void){ return -1; }
+-void recv_icmp6(void){}
++int make_icmp6_socket(struct target *t){ return -1; }
++void recv_icmp6(struct target *t){}
+ void send_icmp6_probe(struct target *t,int seq){}
+ 
+ #endif /*HAVE_IPV6*/
