@@ -1,0 +1,15 @@
+--- Makefile.orig	2009-11-06 08:23:18.000000000 +0800
++++ Makefile	2009-11-06 08:23:31.000000000 +0800
+@@ -25,10 +25,12 @@
+ 
+ # better way to find if we are using ipf or pf
+ .if $(OSNAME) == "FreeBSD"
++.if defined(/etc/rc.subr) && defined(/etc/rc.conf)
+ FWNAME != . /etc/rc.subr; . /etc/rc.conf; \
+           if checkyesno ipfilter_enable; then \
+           echo "ipf"; else echo "pf"; fi
+ .endif
++.endif
+ 
+ .if $(OSNAME) == "NetBSD"
+ FWNAME != . /etc/rc.subr; . /etc/rc.conf; \
