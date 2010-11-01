@@ -1,29 +1,41 @@
 # New ports collection makefile for:	miniupnpd
-# Date created:		20 August 2006
-# Whom:			Seth Mos (seth.mos@xs4all.nl)
+# Date created:		22 March 2007
+# Whom:			Daniel O'Connor <darius@dons.net.au>
 #
-# $FreeBSD: $
+# $FreeBSD: ports/net/miniupnpd/Makefile,v 1.15 2010/10/12 14:29:11 jpaetzel Exp $
+#
 
-PORTNAME=		miniupnpd
-PORTVERSION=	1.4.20100511
-CATEGORIES=		net
-MASTER_SITES=	http://miniupnp.free.fr/files/
-DISTFILES=		miniupnpd-1.4.20100511.tar.gz
+PORTNAME=	miniupnpd
+PORTVERSION=	1.4.20100921
+CATEGORIES=	net
+MASTER_SITES=	http://miniupnp.tuxfamily.org/files/ \
+		http://miniupnp.free.fr/files/
 
-MAINTAINER=		seth.mos@xs4all.nl rswagoner@gmail.com
-COMMENT=		UPnP daemon for firewall interface
+MAINTAINER=	squat@squat.no
+COMMENT=	A UPnP IGD implementation which uses pf/ipf
 
-WRKSRC=         ${WRKDIR}/miniupnpd-1.4.20100511
+SUB_FILES=	miniupnpd.conf.sample
+SUB_LIST=	UUID=${UUID}
 
-PLIST_FILES=    sbin/miniupnpd
+UUID!=		uuidgen
+FWNAME?=	pf
+PLIST_FILES=	etc/miniupnpd.conf.sample sbin/miniupnpd
 
-.include <bsd.port.pre.mk>
+MAN8=		miniupnpd.8
 
-.if ${OSVERSION} < 500000
-IGNORE=		only for 5.0 and above
+USE_RC_SUBR=	miniupnpd.sh
+
+OPTIONS=	PF_ENABLE_FILTER_RULES		"Enable pf generation of filter rules" off \
+
+.include <bsd.port.options.mk>
+.if defined(WITH_PF_ENABLE_FILTER_RULES)
+EXTRA_PATCHES=  ${PATCHDIR}/pf_enable_filter_rules.patch
 .endif
 
 do-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin
+	@${INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin/miniupnpd
+	@${INSTALL_DATA} ${WRKDIR}/miniupnpd.conf.sample ${PREFIX}/etc/miniupnpd.conf.sample
+	@${INSTALL_MAN} ${WRKSRC}/miniupnpd.1 ${PREFIX}/man/man8/miniupnpd.8
+	@${CAT} ${PKGMESSAGE}
 
-.include <bsd.port.post.mk>
+.include <bsd.port.mk>
