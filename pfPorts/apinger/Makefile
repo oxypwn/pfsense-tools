@@ -17,6 +17,7 @@ MAINTAINER=	mich@FreeBSD.org
 COMMENT=	An IP device monitoring tool
 
 GNU_CONFIGURE=	yes
+WITH_IPV6=	yes
 
 OPTIONS=	IPV6 "With support for IPv6" on
 
