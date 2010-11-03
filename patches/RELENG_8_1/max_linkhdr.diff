@@ -1,0 +1,18 @@
+Index: uipc_domain.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/kern/uipc_domain.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 uipc_domain.c
+--- uipc_domain.c	3 Nov 2010 17:32:49 -0000	1.1.1.1
++++ uipc_domain.c	3 Nov 2010 21:04:54 -0000
+@@ -261,8 +261,8 @@
+ 	EVENTHANDLER_REGISTER(maxsockets_change, socket_zone_change, NULL,
+ 		EVENTHANDLER_PRI_FIRST);
+ 
+-	if (max_linkhdr < 16)		/* XXX */
+-		max_linkhdr = 16;
++	if (max_linkhdr < 20)		/* XXX */
++		max_linkhdr = 20;
+ 
+ 	callout_init(&pffast_callout, CALLOUT_MPSAFE);
+ 	callout_init(&pfslow_callout, CALLOUT_MPSAFE);
