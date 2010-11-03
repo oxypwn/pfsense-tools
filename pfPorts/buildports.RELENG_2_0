@@ -62,8 +62,8 @@ dnsmasq-no-isc-dhcp-parser	/usr/ports/dns/dnsmasq-no-isc-dhcp-parser	/usr/local/
 expiretable					/usr/ports/security/expiretable				/usr/local/sbin/expiretable
 ifstated					/usr/ports/net/ifstated						/usr/local/sbin/ifstated
 igmpproxy					/usr/ports/net/igmpproxy					/usr/local/sbin/igmpproxy
-isc-dhcp30-server			/usr/ports/net/isc-dhcp30-server			/usr/local/sbin/dhcpd
-isc-dhcp30-relay			/usr/ports/net/isc-dhcp30-relay				/usr/local/sbin/dhcrelay
+isc-dhcp41-server			/usr/ports/net/isc-dhcp41-server			/usr/local/sbin/dhcpd
+isc-dhcp41-relay			/usr/ports/net/isc-dhcp41-relay				/usr/local/sbin/dhcrelay
 lighttpd					/usr/ports/www/lighttpd						/usr/local/sbin/lighttpd
 miniupnpd					/usr/ports/net/miniupnpd					/usr/local/sbin/miniupnpd
 mpd4						/usr/ports/net/mpd4							/usr/local/sbin/mpd4
