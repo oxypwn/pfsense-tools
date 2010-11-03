@@ -628,8 +628,8 @@ enqueue:
 		pthread_mutex_lock(&outQ.fq_mtx);
 		STAILQ_INSERT_HEAD(&outQ.fq_pkthead, pkt, fp_link);
 		outQ.fq_size++;
-		pthread_mutex_unlock(&outQ.fq_mtx);
 		pthread_cond_signal(&outQ.fq_condvar);
+		pthread_mutex_unlock(&outQ.fq_mtx);
 	}
 
 	/* NOTREACHED */
