@@ -1,0 +1,140 @@
+Index: kern/kern_mbuf.c
+===================================================================
+--- kern/kern_mbuf.c	(revision 214406)
++++ kern/kern_mbuf.c	(working copy)
+@@ -408,6 +408,7 @@
+ 		m->m_pkthdr.ether_vtag = 0;
+ 		m->m_pkthdr.flowid = 0;
+ 		SLIST_INIT(&m->m_pkthdr.tags);
++		INIT_TAG_CONTAINER(m);
+ #ifdef MAC
+ 		/* If the label init fails, fail the alloc */
+ 		error = mac_mbuf_init(m, how);
+Index: kern/uipc_mbuf2.c
+===================================================================
+--- kern/uipc_mbuf2.c	(revision 214406)
++++ kern/uipc_mbuf2.c	(working copy)
+@@ -312,6 +312,52 @@
+ 	free(t, M_PACKET_TAGS);
+ }
+ 
++/* XXX m_tag_fast_free is a NOP;
++ *
++ * Fast tags are held in pkthdr part of the mbuf. To avoid
++ * costly manipulations here we don't try to enable reuse of
++ * the mtag when deleting a FASTTAG. The tag is simply unlinked
++ * in m_tag_delete and the container free size doesn't change.
++ */
++void
++m_tag_fast_free(struct m_tag *t)
++{
++}
++
++/* Same as m_tag_alloc but uses packet header tag container.
++ * its fast because it doesn't have the wait time/overhead of malloc but also
++ * because of its cache locality.
++ */
++struct m_tag *
++m_tag_fast_alloc(struct mbuf *m, u_int32_t cookie, int type, int len, int wait)
++{
++	struct m_tag *t;
++
++	MBUF_CHECKSLEEP(wait);
++	if (len < 0)
++		return NULL;
++	/*
++	 * fast path tag allocation mechanism.
++	 * XXX checking for M_FASTTAG is only useful if we plan on supporting
++	 * some kind of union between old style mbuf and fast tag ones.
++	 */
++	if (((m->m_flags & M_FASTTAG) &&
++	     (len + sizeof(struct m_tag)) <= m->m_pkthdr.tag_container_size)) {
++	      t = (struct m_tag *)m->m_pkthdr.tag_containerp;
++	      m->m_pkthdr.tag_containerp += len + sizeof(struct m_tag);
++	      m->m_pkthdr.tag_container_size -= len + sizeof(struct m_tag);
++	      t->m_tag_free = m_tag_fast_free;
++	}
++	else { /* revert back to using standard malloc mechanism */
++	  t = malloc(len + sizeof(struct m_tag), M_PACKET_TAGS, wait);
++	  if (t == NULL)
++	    return NULL;
++	  t->m_tag_free = m_tag_free_default;
++	}
++	m_tag_setup(t, cookie, type, len);
++	return t;
++}
++
+ /* Get a packet tag structure along with specified data following. */
+ struct m_tag *
+ m_tag_alloc(uint32_t cookie, int type, int len, int wait)
+Index: contrib/pf/net/pf_mtag.h
+===================================================================
+--- contrib/pf/net/pf_mtag.h	(revision 214406)
++++ contrib/pf/net/pf_mtag.h	(working copy)
+@@ -68,8 +68,8 @@
+ 	struct m_tag	*mtag;
+ 
+ 	if ((mtag = m_tag_find(m, PACKET_TAG_PF, NULL)) == NULL) {
+-		mtag = m_tag_get(PACKET_TAG_PF, sizeof(struct pf_mtag),
+-		    M_NOWAIT);
++		mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_PF,
++					sizeof(struct pf_mtag), M_NOWAIT);
+ 		if (mtag == NULL)
+ 			return (NULL);
+ 		bzero(mtag + 1, sizeof(struct pf_mtag));
+Index: sys/mbuf.h
+===================================================================
+--- sys/mbuf.h	(revision 214406)
++++ sys/mbuf.h	(working copy)
+@@ -53,6 +53,10 @@
+  * externally and attach it to the mbuf in a way similar to that of mbuf
+  * clusters.
+  */
++#define MTAGLEN         (84) /* Most used tags can fit inside an mbuf header:
++			      * - PF tag  (pf_mtag:20)
++			      * - 4 m_tag (m_tag:16)
++			      */
+ #define	MLEN		(MSIZE - sizeof(struct m_hdr))	/* normal data len */
+ #define	MHLEN		(MLEN - sizeof(struct pkthdr))	/* data len w/pkthdr */
+ #define	MINCLSIZE	(MHLEN + 1)	/* smallest amount to put in cluster */
+@@ -67,6 +71,12 @@
+  */
+ #define	mtod(m, t)	((t)((m)->m_data))
+ 
++#define INIT_TAG_CONTAINER(m) do {				\
++    m->m_pkthdr.tag_containerp = m->m_pkthdr.tag_container;	\
++    m->m_pkthdr.tag_container_size = MTAGLEN;			\
++    m->m_flags |= M_FASTTAG;					\
++  } while (0)
++
+ /*
+  * Argument structure passed to UMA routines during mbuf and packet
+  * allocations.
+@@ -127,6 +137,9 @@
+ 		u_int16_t vt_nrecs;	/* # of IGMPv3 records in this chain */
+ 	} PH_vt;
+ 	SLIST_HEAD(packet_tags, m_tag) tags; /* list of packet tags */
++	u_char *tag_containerp;         /* points to the free part of tag_container */
++	u_int8_t tag_container_size;    /* container free space */
++	u_char tag_container[MTAGLEN];  /* tag container stores a few mtags (fast) */
+ };
+ #define ether_vtag	PH_vt.vt_vtag
+ 
+@@ -200,6 +213,7 @@
+ #define	M_PROTO7	0x00100000 /* protocol-specific */
+ #define	M_PROTO8	0x00200000 /* protocol-specific */
+ #define	M_FLOWID	0x00400000 /* flowid is valid */
++#define M_FASTTAG       0x01000000 /* mtag allocation can use fast tags */
+ /*
+  * For RELENG_{6,7} steal these flags for limited multiple routing table
+  * support. In RELENG_8 and beyond, use just one flag and a tag.
+@@ -916,6 +930,9 @@
+ struct m_tag	*m_tag_copy(struct m_tag *, int);
+ int		 m_tag_copy_chain(struct mbuf *, struct mbuf *, int);
+ void		 m_tag_delete_nonpersistent(struct mbuf *);
++/* fast routines */
++struct m_tag	*m_tag_fast_alloc(struct mbuf *, u_int32_t, int, int, int);
++void		 m_tag_fast_free(struct m_tag *);
+ 
+ /*
+  * Initialize the list of tags associated with an mbuf.
