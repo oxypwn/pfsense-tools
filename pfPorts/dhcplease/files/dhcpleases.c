@@ -388,6 +388,7 @@ write_status() {
 		return 2;
 	}
 	/* write the tmp hosts file */
+	dprintf(fd, "\n# dhpleases automatically entered\n"); /* put a blank line just to be on safe side */
 	LIST_FOREACH(lease, &leases, next) {
 		dprintf(fd, "%s\t%s %s\t\t# dynamic entry from dhcpd.leases\n", inet_ntoa(lease->addr),
 			lease->fqdn ? lease->fqdn  : "empty", lease->name ? lease->name : "empty");
