@@ -471,7 +471,6 @@ handle_signal(int sig) {
         case SIGTERM:
 		unlink(PIDFILE);
 		cleanup();
-		write_status();
                 exit(0);
                 break;
         default:
