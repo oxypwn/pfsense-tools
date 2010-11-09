@@ -369,13 +369,13 @@ int main(void) {
 	sigdelset(&set, SIGTERM);
 	sigdelset(&set, SIGCHLD);
 	sigprocmask(SIG_BLOCK, &set, NULL);
+	signal(SIGCHLD, SIG_IGN);
 
 	sa.sa_handler = handle_signal;
         sa.sa_flags = SA_SIGINFO|SA_RESTART;
         sigemptyset(&sa.sa_mask);
         sigaction(SIGHUP, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
-	sigaction(SIGCHLD, SIG_IGN, NULL);
 
 	status = open(filepath, O_RDWR | O_CREAT | O_FSYNC);
 	if (status < 0) {
