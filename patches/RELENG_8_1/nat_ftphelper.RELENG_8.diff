@@ -364,7 +364,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +		else if (nr != NULL) {
 +
 +			if ((ftp_message_type == FTP_227_REPLY ||
-+		    	    ftp_message_type == FTP_229_REPLY) && nr->action == PF_NAT)
++		    	    ftp_message_type == FTP_229_REPLY) && (nr->action == PF_NAT || (nr->action == PF_BINAT && state->direction == PF_OUT)))
 +				return;
 +
 +			if ((ftp_message_type == FTP_PORT_COMMAND ||
