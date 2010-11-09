@@ -34,6 +34,7 @@ CONFIGURE_ARGS=	\
 		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
 		--enable-reflection \
+		--enable-trans-sid \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
