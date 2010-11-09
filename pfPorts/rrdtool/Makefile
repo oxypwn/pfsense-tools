@@ -30,7 +30,7 @@ CONFIGURE_ARGS=	--disable-tcl
 
 OPTIONS=	PYTHON_MODULE	"Build PYTHON bindings" off \
 		RUBY_MODULE	"Build RUBY bindings" off \
-		PERL_MODULE	"Build PERL module" on
+		PERL_MODULE	"Build PERL module" off
 
 .include <bsd.port.pre.mk>
 .if defined(WITH_PYTHON_MODULE)
