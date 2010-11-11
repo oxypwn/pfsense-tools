@@ -43,7 +43,7 @@ OPTIONS=	BZIP2		"Enable Bzip2 support" off \
 		CML		"Enable Cache Meta Language support" off \
 		FAM		"Enable fam/gamin support" off \
 		GDBM		"Enable gdbm storage support" off \
-		IPV6		"Enable IPV6 support" off \
+		IPV6		"Enable IPV6 support" on \
 		LIBEV		"Enable libev support" off \
 		MAGNET		"Enable magnet support" off \
 		MEMCACHE	"Enable memory caching support" off \
