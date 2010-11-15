@@ -50,6 +50,7 @@ PACKAGES="/usr/ports/net/mpd \
     /usr/ports/dns/dnsmasq \
     /usr/ports/security/openvpn \
     /usr/ports/net-mgmt/net-snmp4 \
+    /usr/ports/www/elinks \
     /usr/ports/www/links"
 
 # Uncomment this to automatically install packages.
@@ -65,6 +66,7 @@ install -s /usr/local/bin/msntp $DESTDIRROOT/usr/local/bin/
 install -s /usr/local/bin/wol $DESTDIRROOT/usr/local/bin/
 install -s /usr/local/bin/minicron $DESTDIRROOT/usr/local/bin/
 #cp /usr/local/bin/php $DESTDIRROOT/usr/local/bin/
+install -s /usr/local/bin/elinks $DESTDIRROOT/usr/local/bin/
 install -s /usr/local/bin/links $DESTDIRROOT/usr/local/bin/
 chmod a+x $DESTDIRROOT/usr/local/bin/*
 
