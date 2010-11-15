@@ -27,15 +27,15 @@ USE_GNOME=	pkgconfig
 MAKE_ENV=	LIBS="${LDFLAGS}" RPM_OPT_FLAGS="${CPPFLAGS}" COPTS="${CFLAGS}"
 MAKE_ARGS=	CC="${CC}" CFLAGS="${CFLAGS}" PREFIX="${PREFIX}"
 
-#OPTIONS=	IPV6 "IPv6 support" off
+OPTIONS=	IPV6 "IPv6 support" on
 OPTIONS+=	DBUS "D_BUS support" off
 
 .include <bsd.port.pre.mk>
 
 ### Always compile with IPv6 support
-#.if defined(WITHOUT_IPV6)
-#CFLAGS+=	-DNO_IPV6
-#.endif
+.if defined(WITHOUT_IPV6)
+CFLAGS+=	-DNO_IPV6
+.endif
 
 .if defined(WITH_DBUS)
 LIB_DEPENDS+=	dbus-1:${PORTSDIR}/devel/dbus
