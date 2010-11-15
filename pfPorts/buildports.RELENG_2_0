@@ -116,6 +116,7 @@ openvpn-devel				/usr/ports/security/openvpn-devel			/usr/local/sbin/openvpn
 syslog-ng					/usr/ports/sysutils/syslog-ng				/usr/local/sbin/syslog-ng
 zip							/usr/ports/archivers/zip					/usr/local/bin/zip
 links						/usr/ports/www/links						/usr/local/bin/links
+elinks						/usr/ports/www/elinks						/usr/local/bin/elinks
 openntpd					/usr/ports/net/openntpd						/usr/local/sbin/ntpd
 pecl-uploadprogress			/usr/ports/devel/pecl-uploadprogress		/usr/local/lib/php/20060613/uploadprogress.so
 php52-json					/usr/ports/devel/php52-json					/usr/local/lib/php/20060613/json.so
