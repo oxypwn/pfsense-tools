@@ -114,8 +114,8 @@ diff -u -r1.9 pf.c
 +		s->af = pd->af;
 +		s->direction = state->direction;
 +		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
++		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
 +		if (i == 0) {
 +			s->gwy.port = hptr.cid1;
 +			s->ext.port = hptr.cid1;
