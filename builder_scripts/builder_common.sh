@@ -2711,6 +2711,24 @@ ensure_source_directories_present() {
 	fi
 }
 
+create_memstick_image() {
+	OLDPWD=`pwd`
+	dd if=/dev/zero of=$MEMSTICKPATH bs=63b count=8048
+	mkdir -p /tmp/memstick/usbmnt
+	MD=`mdconfig -f $MEMSTICKPATH -x 63 -y 16`
+	bsdlabel -Bw $MD auto
+	newfs -L $FREESBIE_LABEL /dev/${MD}a
+	mount /dev/${MD}a /tmp/memstick/usbmnt
+	cd $PFSENSEISODIR && \
+		find . -print | cpio -dump /tmp/memstick/usbmnt/
+	rm /home/tmp/usbmnt/etc/fstab
+	echo "/dev/ufs/pfSense / ufs ro 0 0" > /home/tmp/usbmnt/etc/fstab
+	cd $OLDPWD
+	umount /home/tmp/usbmnt
+	mdconfig -d -u 1
+	mdconfig -d -u 0
+}
+
 # This routine ensures any ports / binaries that the builder
 # system needs are on disk and ready for execution.
 install_required_builder_system_ports() {

@@ -213,6 +213,8 @@ mkdir -p $CLONEDIR/home $CLONEDIR/etc
 # Finalize iso
 echo ">>> Finalizing iso..."
 freesbie_make iso
+echo ">>> Creating memstick..."
+create_memstick_image
 
 # Check for zero sized files.  loader.conf is one of the culprits.
 check_for_zero_size_files
