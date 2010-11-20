@@ -1,5 +1,5 @@
---- beastie.4th.orig	2010-11-20 16:16:36.000000000 -0500
-+++ beastie.4th	2010-11-20 16:25:22.000000000 -0500
+--- beastie.4th	2010-11-20 16:16:36.000000000 -0500
++++ beastie.4th	2010-11-20 17:09:00.000000000 -0500
 @@ -23,7 +23,7 @@
  \ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  \ SUCH DAMAGE.
@@ -17,7 +17,41 @@
  
  46 constant dot
  
-@@ -178,11 +179,11 @@
+@@ -94,19 +95,20 @@
+ ;
+ 
+ : fbsdbw-logo ( x y -- )
+-	2dup at-xy ."      ______" 1+
+-	2dup at-xy ."     |  ____| __ ___  ___ " 1+
+-	2dup at-xy ."     | |__ | '__/ _ \/ _ \" 1+
+-	2dup at-xy ."     |  __|| | |  __/  __/" 1+
+-	2dup at-xy ."     | |   | | |    |    |" 1+
+-	2dup at-xy ."     |_|   |_|  \___|\___|" 1+
+-	2dup at-xy ."      ____   _____ _____" 1+
+-	2dup at-xy ."     |  _ \ / ____|  __ \" 1+
+-	2dup at-xy ."     | |_) | (___ | |  | |" 1+
+-	2dup at-xy ."     |  _ < \___ \| |  | |" 1+
+-	2dup at-xy ."     | |_) |____) | |__| |" 1+
+-	2dup at-xy ."     |     |      |      |" 1+
+-	     at-xy ."     |____/|_____/|_____/"
++       2dup at-xy ."                              " 1+
++       2dup at-xy ."                             " 1+
++       2dup at-xy ."                             " 1+
++       2dup at-xy ."                 ______         " 1+
++       2dup at-xy ."                /      \        " 1+
++       2dup at-xy ."          _____/    f   \       " 1+
++       2dup at-xy ."         /     \        /       " 1+
++       2dup at-xy ."        /   p   \______/  Sense " 1+
++       2dup at-xy ."        \       /      \        " 1+
++       2dup at-xy ."         \_____/        \       " 1+
++       2dup at-xy ."               \        /       " 1+
++       2dup at-xy ."                \______/        " 1+
++       2dup at-xy ."                             " 1+
++            at-xy ."                             "
+ ;
+ 
+ : print-logo ( x y -- )
+@@ -178,11 +180,11 @@
  	clear
  	46 4 print-logo
  	42 20 2 2 box
@@ -32,7 +66,7 @@
  		acpienabled? if
  			." disabled"
  		else
-@@ -191,9 +192,10 @@
+@@ -191,9 +193,10 @@
  	else
  		-2 bootacpikey !
  	then
@@ -46,7 +80,7 @@
  	printmenuitem ."  Escape to loader prompt" escapekey !
  	printmenuitem ."  Reboot" rebootkey !
  	menuX @ 20 at-xy
-@@ -275,6 +277,10 @@
+@@ -275,6 +278,10 @@
  			s" 1" s" hint.kbdmux.0.disabled" setenv
  			0 boot
  		then
