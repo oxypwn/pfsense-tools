@@ -2724,7 +2724,7 @@ create_memstick_image() {
 	rm /tmp/memstick/usbmnt/etc/fstab
 	echo "/dev/ufs/pfSense / ufs ro 0 0" > /tmp/memstick/usbmnt/etc/fstab
 	cd $OLDPWD
-	umount /home/tmp/usbmnt
+	umount /tmp/memstick/usbmnt
 	mdconfig -d -u 1
 	mdconfig -d -u 0
 }
