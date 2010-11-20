@@ -2721,8 +2721,8 @@ create_memstick_image() {
 	mount /dev/${MD}a /tmp/memstick/usbmnt
 	cd $PFSENSEISODIR && \
 		find . -print | cpio -dump /tmp/memstick/usbmnt/
-	rm /home/tmp/usbmnt/etc/fstab
-	echo "/dev/ufs/pfSense / ufs ro 0 0" > /home/tmp/usbmnt/etc/fstab
+	rm /tmp/memstick/usbmnt/etc/fstab
+	echo "/dev/ufs/pfSense / ufs ro 0 0" > /tmp/memstick/usbmnt/etc/fstab
 	cd $OLDPWD
 	umount /home/tmp/usbmnt
 	mdconfig -d -u 1
