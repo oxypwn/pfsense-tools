@@ -69,4 +69,3 @@
 ~sys~mbuf_tag.diff~
 ~~IPSEC_sysctl.RELENG_8.diff~
 ~~max_linkhdr.diff~
-~sys~cam_xpt.c.diff~
