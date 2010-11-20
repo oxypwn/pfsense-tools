@@ -1,5 +1,14 @@
---- cam/cam_xpt.c	2010-11-20 15:16:59.000000000 -0500
-+++ cam/cam_xpt.c	2010-11-20 15:17:18.000000000 -0500
+--- cam/cam_xpt.c	2010-11-20 16:01:01.000000000 -0500
++++ cam/cam_xpt.c	2010-11-20 15:22:21.000000000 -0500
+@@ -152,7 +152,7 @@
+ 
+ TUNABLE_INT("kern.cam.boot_delay", &xsoftc.boot_delay);
+ SYSCTL_INT(_kern_cam, OID_AUTO, boot_delay, CTLFLAG_RDTUN,
+-           &xsoftc.boot_delay, 10000, "Bus registration wait time");
++           &xsoftc.boot_delay, 0, "Bus registration wait time");
+ 
+ /* Queues for our software interrupt handler */
+ typedef TAILQ_HEAD(cam_isrq, ccb_hdr) cam_isrq_t;
 @@ -4498,12 +4498,13 @@
  	cam_dpath = NULL;
  #endif /* CAM_DEBUG_BUS */
