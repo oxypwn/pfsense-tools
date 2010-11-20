@@ -2722,7 +2722,7 @@ create_memstick_image() {
 	cd $PFSENSEISODIR && \
 		find . -print | cpio -dump /tmp/memstick/usbmnt/
 	rm /tmp/memstick/usbmnt/etc/fstab
-	echo "/dev/ufs/pfSense / ufs ro 0 0" > /tmp/memstick/usbmnt/etc/fstab
+	echo "/dev/ufs/${FREESBIE_LABEL} / ufs ro 0 0" > /tmp/memstick/usbmnt/etc/fstab
 	cd $OLDPWD
 	umount /tmp/memstick/usbmnt
 	mdconfig -d -u 1
