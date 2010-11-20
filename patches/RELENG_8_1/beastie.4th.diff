@@ -85,7 +85,7 @@
  			0 boot
  		then
 +		dup bootusbkey @ = if
-+			s" 10000" s" loader.kern.cam.boot_delay" setenv
++			s" 10000" s" kern.cam.boot_delay" setenv
 +			0 boot
 +		then
  		dup bootverbosekey @ = if
