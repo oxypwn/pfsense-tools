@@ -223,5 +223,8 @@ report_zero_sized_files
 # Email that the operation has completed
 email_operation_completed
 
+echo "$MAKEOBJDIRPREFIXFINAL now contains:"
+ls -lah $MAKEOBJDIRPREFIXFINAL
+
 # Run final finish routines
 finish
