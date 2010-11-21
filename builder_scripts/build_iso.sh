@@ -212,9 +212,9 @@ mkdir -p $CLONEDIR/home $CLONEDIR/etc
 
 # Finalize iso
 echo ">>> Finalizing iso..."
-freesbie_make iso
+(freesbie_make iso) >/dev/null 2>&1
 echo ">>> Creating memstick..."
-create_memstick_image
+(create_memstick_image) >/dev/null 2>&1
 
 # Check for zero sized files.  loader.conf is one of the culprits.
 check_for_zero_size_files
@@ -223,7 +223,7 @@ report_zero_sized_files
 # Email that the operation has completed
 email_operation_completed
 
-echo "$MAKEOBJDIRPREFIXFINAL now contains:"
+echo ">>> $MAKEOBJDIRPREFIXFINAL now contains:"
 ls -lah $MAKEOBJDIRPREFIXFINAL
 
 # Run final finish routines
