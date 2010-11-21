@@ -199,9 +199,13 @@ build_iso() {
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
 	gzip $MAKEOBJDIRPREFIXFINAL/pfSense.iso
+	gzip $MAKEOBJDIRPREFIXFINAL/pfSense-memstick.img
 	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso.gz $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
+	mv $MAKEOBJDIRPREFIXFINAL/pfSense-memstick.img.gz $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz
 	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
+	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz.md5
 	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256	
+	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz.sha256	
 }
 
 build_deviso() {
@@ -392,6 +396,9 @@ copy_to_staging_iso_updates() {
 	# Copy ISOs
 	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso $STAGINGAREA/ 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso.* $STAGINGAREA/ 2>/dev/null
+	# Copy memstick items
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-*.img $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-*.img.* $STAGINGAREA/ 2>/dev/null
 	# Old updates, might be able to remove this.
 	cp $MAKEOBJDIRPREFIXFINAL/*.tgz $STAGINGAREA/ 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
@@ -463,6 +470,8 @@ scp_files() {
 	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/."
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*iso* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	check_for_congestion
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-memstick-*img* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*Update* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/
 	check_for_congestion
