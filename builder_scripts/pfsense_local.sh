@@ -99,7 +99,7 @@ export EXTRA="${EXTRA:-"customroot customscripts pkginstall buildmodules"}"
 # Must be defined after MAKEOBJDIRPREFIX!
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense.img}
-export MEMSTICKPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense-memstick.img}
+export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense-memstick.img}
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
