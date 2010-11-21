@@ -397,8 +397,8 @@ copy_to_staging_iso_updates() {
 	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso $STAGINGAREA/ 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso.* $STAGINGAREA/ 2>/dev/null
 	# Copy memstick items
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-*.img $STAGINGAREA/ 2>/dev/null
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-*.img.* $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense-memstick*.img $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/pfSense-memstick*.img* $STAGINGAREA/ 2>/dev/null
 	# Old updates, might be able to remove this.
 	cp $MAKEOBJDIRPREFIXFINAL/*.tgz $STAGINGAREA/ 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
@@ -471,7 +471,7 @@ scp_files() {
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*iso* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-memstick-*img* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-memstick* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*Update* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/
 	check_for_congestion
