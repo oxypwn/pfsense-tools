@@ -403,7 +403,7 @@ diff -u -r1.1.1.1 mbuf.h
   * externally and attach it to the mbuf in a way similar to that of mbuf
   * clusters.
   */
-+#define MTAGLEN         (84) /* Most used tags can fit inside an mbuf header:
++#define MTAGLEN         (64) /* Most used tags can fit inside an mbuf header:
 +			      * - PF tag  (pf_mtag:20)
 +			      * - 4 m_tag (m_tag:16)
 +			      */
