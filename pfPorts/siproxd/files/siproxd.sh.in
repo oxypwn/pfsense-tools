@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# $FreeBSD: ports/net/siproxd/files/siproxd.sh.in,v 1.3 2010/03/27 00:14:04 dougb Exp $
+#
+
+# PROVIDE: siproxd
+# REQUIRE: DAEMON
+
+# Define these siproxd_* variables in one of these files:
+#	/etc/rc.conf
+#	/etc/rc.conf.local
+#	/etc/rc.conf.d/siproxd
+#
+# DO NOT CHANGE THESE DEFAULT VALUES HERE
+# siproxd_enable="YES"
+# siproxd_flags=""		# Flags to siproxd program
+
+siproxd_enable=${siproxd_enable:-"NO"}	# Enable siproxd
+
+. /etc/rc.subr
+
+name="siproxd"
+rcvar=`set_rcvar`
+command="%%PREFIX%%/sbin/${name}"
+
+load_rc_config $name
+
+run_rc_command "$1"
