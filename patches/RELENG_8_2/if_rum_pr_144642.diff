@@ -1,0 +1,19 @@
+Index: if_rum.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/wlan/if_rum.c,v
+retrieving revision 1.20.2.7.2.1
+diff -u -r1.20.2.7.2.1 if_rum.c
+--- if_rum.c	14 Jun 2010 02:09:06 -0000	1.20.2.7.2.1
++++ if_rum.c	26 Aug 2010 18:32:50 -0000
+@@ -2113,6 +2113,11 @@
+ 	struct rum_tx_desc desc;
+ 	struct mbuf *m0;
+ 
++	/* Guard against default ni_chan */
++	if (vap->iv_bss->ni_chan == IEEE80211_CHAN_ANYC) {
++		return 0;
++	}
++
+ 	m0 = ieee80211_beacon_alloc(vap->iv_bss, &RUM_VAP(vap)->bo);
+ 	if (m0 == NULL) {
+ 		return ENOBUFS;

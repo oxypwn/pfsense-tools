@@ -1,0 +1,73 @@
+Index: sys/netgraph/ng_base.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netgraph/ng_base.c,v
+retrieving revision 1.179.2.4
+diff -u -r1.179.2.4 ng_base.c
+--- sys/netgraph/ng_base.c	16 May 2010 14:53:43 -0000	1.179.2.4
++++ sys/netgraph/ng_base.c	16 Jun 2010 21:03:27 -0000
+@@ -66,6 +66,10 @@
+ #include <sys/smp.h>
+ #include <machine/cpu.h>
+ 
++#include <sys/socket.h>
++#include <net/if.h>
++#include <net/if_var.h>
++
+ #include <net/netisr.h>
+ #include <net/vnet.h>
+ 
+@@ -229,6 +233,7 @@
+ void	ng_rmnode(node_p node, hook_p dummy1, void *dummy2, int dummy3);
+ void	ng_unname(node_p node);
+ 
++extern void    (*ng_ether_attach_p)(struct ifnet *ifp);
+ 
+ /* Our own netgraph malloc type */
+ MALLOC_DEFINE(M_NETGRAPH, "netgraph", "netgraph structures and ctrl messages");
+@@ -562,6 +567,13 @@
+ 	  &ng_parse_ng_mesg_type,
+ 	  &ng_parse_ng_mesg_type
+ 	},
++	{
++          NGM_GENERIC_COOKIE,
++          NGM_ETHER_ATTACH,
++          "attach",
++          &ng_parse_string_type,
++          NULL
++        },
+ 	{ 0 }
+ };
+ 
+@@ -2833,6 +2845,17 @@
+ 		break;
+ 	    }
+ 
++	case NGM_ETHER_ATTACH:
++		{
++			struct ifnet *ifp;
++			ifp = ifunit((char *)msg->data);
++			if (ifp && ng_ether_attach_p != NULL) {
++				ng_ether_attach_p(ifp);
++			}
++				
++			break;
++                }
++
+ 	case NGM_TEXT_CONFIG:
+ 	case NGM_TEXT_STATUS:
+ 		/*
+Index: sys/netgraph/ng_message.h
+===================================================================
+RCS file: /home/ncvs/src/sys/netgraph/ng_message.h,v
+retrieving revision 1.31.2.1
+diff -u -r1.31.2.1 ng_message.h
+--- sys/netgraph/ng_message.h	3 Aug 2009 08:13:06 -0000	1.31.2.1
++++ sys/netgraph/ng_message.h	16 Jun 2010 21:03:27 -0000
+@@ -138,6 +138,7 @@
+ 	NGM_ASCII2BINARY= (13|NGM_READONLY|NGM_HASREPLY),
+ 	/* (optional) Get/set text config. */
+ 	NGM_TEXT_CONFIG	= 14,
++	NGM_ETHER_ATTACH = 15,
+ };
+ 
+ /*

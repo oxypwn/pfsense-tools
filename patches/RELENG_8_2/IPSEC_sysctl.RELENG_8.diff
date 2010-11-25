@@ -1,0 +1,177 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.13
+diff -u -r1.13 pf.c
+--- sys/contrib/pf/net/pf.c	3 Nov 2010 18:24:32 -0000	1.13
++++ sys/contrib/pf/net/pf.c	3 Nov 2010 18:25:59 -0000
+@@ -6712,7 +6712,7 @@
+ 	 * If deferred crypto processing is needed, check that the
+ 	 * interface supports it.
+ 	 */
+-	if ((mtag = m_tag_find(m0, PACKET_TAG_IPSEC_OUT_CRYPTO_NEEDED, NULL))
++	if (V_ipipsec_in_use && (mtag = m_tag_find(m0, PACKET_TAG_IPSEC_OUT_CRYPTO_NEEDED, NULL))
+ 	    != NULL && (ifp->if_capabilities & IFCAP_IPSEC) == 0) {
+ 		/* Notify IPsec to do its own crypto. */
+ 		ipsp_skipcrypto_unmark((struct tdb_ident *)(mtag + 1));
+Index: sys/netinet/in.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/in.h,v
+retrieving revision 1.2
+diff -u -r1.2 in.h
+--- sys/netinet/in.h	3 Nov 2010 17:36:15 -0000	1.2
++++ sys/netinet/in.h	3 Nov 2010 18:34:43 -0000
+@@ -713,7 +713,8 @@
+ #define	IPCTL_FASTFORWARDING	14	/* use fast IP forwarding code */
+ #define	IPCTL_KEEPFAITH		15	/* FAITH IPv4->IPv6 translater ctl */
+ #define	IPCTL_GIF_TTL		16	/* default TTL for gif encap packet */
+-#define	IPCTL_MAXID		17
++#define	IPCTL_IPSEC_INUSE	17
++#define	IPCTL_MAXID		18
+ 
+ #define	IPCTL_NAMES { \
+ 	{ 0, 0 }, \
+@@ -731,6 +732,7 @@
+ 	{ "stats", CTLTYPE_STRUCT }, \
+ 	{ "accept_sourceroute", CTLTYPE_INT }, \
+ 	{ "fastforwarding", CTLTYPE_INT }, \
++	{ "ipsec_in_use", CTLTPE_INT }, \
+ }
+ 
+ #endif /* __BSD_VISIBLE */
+Index: sys/netinet/ip_input.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_input.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_input.c
+--- sys/netinet/ip_input.c	3 Nov 2010 17:35:57 -0000	1.2
++++ sys/netinet/ip_input.c	3 Nov 2010 18:30:11 -0000
+@@ -99,6 +99,11 @@
+     &VNET_NAME(ipforwarding), 0,
+     "Enable IP forwarding between interfaces");
+ 
++VNET_DEFINE(int, ipipsec_in_use);
++SYSCTL_VNET_INT(_net_inet_ip, IPCTL_IPSEC_INUSE, ipsec_in_use, CTLFLAG_RW,
++    &VNET_NAME(ipipsec_in_use), 0,
++    "Enable IPSec processing of packets");
++
+ static VNET_DEFINE(int, ipsendredirects) = 1;	/* XXX */
+ #define	V_ipsendredirects	VNET(ipsendredirects)
+ SYSCTL_VNET_INT(_net_inet_ip, IPCTL_SENDREDIRECTS, redirect, CTLFLAG_RW,
+@@ -518,7 +523,7 @@
+ 	/*
+ 	 * Bypass packet filtering for packets from a tunnel (gif).
+ 	 */
+-	if (ip_ipsec_filtertunnel(m))
++	if (V_ipipsec_in_use && ip_ipsec_filtertunnel(m))
+ 		goto passin;
+ #endif /* IPSEC */
+ 
+@@ -732,7 +737,7 @@
+ 		m_freem(m);
+ 	} else {
+ #ifdef IPSEC
+-		if (ip_ipsec_fwd(m))
++		if (V_ipipsec_in_use && ip_ipsec_fwd(m))
+ 			goto bad;
+ #endif /* IPSEC */
+ 		ip_forward(m, dchg);
+@@ -784,7 +789,7 @@
+ 	 * note that we do not visit this with protocols with pcb layer
+ 	 * code - like udp/tcp/raw ip.
+ 	 */
+-	if (ip_ipsec_input(m))
++	if (V_ipipsec_in_use && ip_ipsec_input(m))
+ 		goto bad;
+ #endif /* IPSEC */
+ 
+@@ -1582,7 +1587,8 @@
+ 		 * If IPsec is configured for this path,
+ 		 * override any possibly mtu value set by ip_output.
+ 		 */ 
+-		mtu = ip_ipsec_mtu(mcopy, mtu);
++		if (V_ipipsec_in_use)
++			mtu = ip_ipsec_mtu(mcopy, mtu);
+ #endif /* IPSEC */
+ 		/*
+ 		 * If the MTU was set before make sure we are below the
+Index: sys/netinet/ip_output.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_output.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_output.c
+--- sys/netinet/ip_output.c	3 Nov 2010 17:37:14 -0000	1.2
++++ sys/netinet/ip_output.c	3 Nov 2010 18:31:31 -0000
+@@ -479,18 +479,20 @@
+ 
+ sendit:
+ #ifdef IPSEC
+-	switch(ip_ipsec_output(&m, inp, &flags, &error, &ifp)) {
+-	case 1:
+-		goto bad;
+-	case -1:
+-		goto done;
+-	case 0:
+-	default:
+-		break;	/* Continue with packet processing. */
++	if (V_ipipsec_in_use) {
++		switch(ip_ipsec_output(&m, inp, &flags, &error, &ifp)) {
++		case 1:
++			goto bad;
++		case -1:
++			goto done;
++		case 0:
++		default:
++			break;	/* Continue with packet processing. */
++		}
++		/* Update variables that are affected by ipsec4_output(). */
++		ip = mtod(m, struct ip *);
++		hlen = ip->ip_hl << 2;
+ 	}
+-	/* Update variables that are affected by ipsec4_output(). */
+-	ip = mtod(m, struct ip *);
+-	hlen = ip->ip_hl << 2;
+ #endif /* IPSEC */
+ 
+ 	/* Jump over all PFIL processing if hooks are not active. */
+@@ -1087,7 +1089,7 @@
+ 		{
+ 			caddr_t req;
+ 			struct mbuf *m;
+-
++			
+ 			if ((error = soopt_getm(sopt, &m)) != 0) /* XXX */
+ 				break;
+ 			if ((error = soopt_mcopyin(sopt, m)) != 0) /* XXX */
+@@ -1209,7 +1211,7 @@
+ 			struct mbuf *m = NULL;
+ 			caddr_t req = NULL;
+ 			size_t len = 0;
+-
++			
+ 			if (m != 0) {
+ 				req = mtod(m, caddr_t);
+ 				len = m->m_len;
+Index: sys/netinet/ip_var.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_var.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_var.h
+--- sys/netinet/ip_var.h	3 Nov 2010 17:32:50 -0000	1.1.1.1
++++ sys/netinet/ip_var.h	3 Nov 2010 18:33:26 -0000
+@@ -178,6 +178,7 @@
+ VNET_DECLARE(u_short, ip_id);			/* ip packet ctr, for ids */
+ VNET_DECLARE(int, ip_defttl);			/* default IP ttl */
+ VNET_DECLARE(int, ipforwarding);		/* ip forwarding */
++VNET_DECLARE(int, ipipsec_in_use);
+ #ifdef IPSTEALTH
+ VNET_DECLARE(int, ipstealth);			/* stealth forwarding */
+ #endif
+@@ -193,6 +194,7 @@
+ #define	V_ip_id			VNET(ip_id)
+ #define	V_ip_defttl		VNET(ip_defttl)
+ #define	V_ipforwarding		VNET(ipforwarding)
++#define	V_ipipsec_in_use	VNET(ipipsec_in_use)
+ #ifdef IPSTEALTH
+ #define	V_ipstealth		VNET(ipstealth)
+ #endif

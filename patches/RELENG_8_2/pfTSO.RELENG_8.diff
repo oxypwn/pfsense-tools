@@ -1,0 +1,40 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.8
+diff -u -r1.8 pf.c
+--- sys/contrib/pf/net/pf.c	23 Apr 2010 22:57:34 -0000	1.8
++++ sys/contrib/pf/net/pf.c	23 Apr 2010 22:57:47 -0000
+@@ -6576,6 +6576,7 @@
+ 	m0->m_pkthdr.csum_flags &= ifp->if_hwassist;
+ 
+ 	if (ntohs(ip->ip_len) <= ifp->if_mtu ||
++	    (m0->m_pkthdr.csum_flags & CSUM_TSO) ||
+ 	    (ifp->if_hwassist & CSUM_FRAGMENT &&
+ 		((ip->ip_off & htons(IP_DF)) == 0))) {
+ 		/*
+@@ -6592,6 +6593,7 @@
+ 				ip->ip_sum = in_cksum(m0, ip->ip_hl << 2);
+ 			}
+ 		}
++		m0->m_flags &= ~(M_PROTOFLAGS);
+ 		PF_UNLOCK();
+ 		error = (*ifp->if_output)(ifp, m0, sintosa(dst), ro);
+ 		PF_LOCK();
+@@ -6650,7 +6652,7 @@
+ 	 * Too large for interface; fragment if possible.
+ 	 * Must be able to put at least 8 bytes per fragment.
+ 	 */
+-	if (ip->ip_off & htons(IP_DF)) {
++	if (ip->ip_off & htons(IP_DF) || (m0->m_pkthdr.csum_flags & CSUM_TSO)) {
+ 		KMOD_IPSTAT_INC(ips_cantfrag);
+ 		if (r->rt != PF_DUPTO) {
+ #ifdef __FreeBSD__
+@@ -6693,6 +6695,7 @@
+ 		m0->m_nextpkt = 0;
+ #ifdef __FreeBSD__
+ 		if (error == 0) {
++			m0->m_flags &= ~(M_PROTOFLAGS);
+ 			PF_UNLOCK();
+ 			error = (*ifp->if_output)(ifp, m0, sintosa(dst),
+ 			    NULL);

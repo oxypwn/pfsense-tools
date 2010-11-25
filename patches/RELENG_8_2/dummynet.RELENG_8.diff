@@ -1,0 +1,544 @@
+Index: contrib/pf/pfctl/parse.y
+===================================================================
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.2
+diff -u -r1.2 parse.y
+--- contrib/pf/pfctl/parse.y	2 Nov 2010 19:27:05 -0000	1.2
++++ contrib/pf/pfctl/parse.y	2 Nov 2010 19:27:21 -0000
+@@ -32,6 +32,7 @@
+ 
+ #include <sys/types.h>
+ #include <sys/socket.h>
++#include <sys/sysctl.h>
+ #include <net/if.h>
+ #include <netinet/in.h>
+ #include <netinet/in_systm.h>
+@@ -209,6 +210,9 @@
+ 	char			*tag;
+ 	char			*match_tag;
+ 	u_int8_t		 match_tag_not;
++	u_int32_t		 dnpipe;
++	u_int32_t		 pdnpipe;
++	u_int32_t		 free_flags;
+ 	int			 rtableid;
+ } filter_opts;
+ 
+@@ -426,6 +430,7 @@
+ %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
+ %token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
+ %token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
++%token  DNPIPE DNQUEUE 
+ %token	LOAD RULESET_OPTIMIZATION
+ %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
+ %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY
+@@ -1447,14 +1452,22 @@
+ 
+ 			bps = strtod($1, &cp);
+ 			if (cp != NULL) {
+-				if (!strcmp(cp, "b"))
++				if (!strcmp(cp, "b") || !strcmp(cp, "bit"))
+ 					; /* nothing */
+-				else if (!strcmp(cp, "Kb"))
++				else if (!strcmp(cp, "Kb") || !strcmp(cp, "Kbit"))
+ 					bps *= 1000;
+-				else if (!strcmp(cp, "Mb"))
++				else if (!strcmp(cp, "Mb") || !strcmp(cp, "Mbit"))
+ 					bps *= 1000 * 1000;
+-				else if (!strcmp(cp, "Gb"))
++				else if (!strcmp(cp, "Gb") || !strcmp(cp, "Gbit"))
+ 					bps *= 1000 * 1000 * 1000;
++				else if (!strcmp(cp, "B") || !strcmp(cp, "Byte"))
++					; /* nothing */
++				else if (!strcmp(cp, "KB") || !strcmp(cp, "Kbyte"))
++					bps *= 1024;
++				else if (!strcmp(cp, "MB") || !strcmp(cp, "Mbyte"))
++					bps *= 1024 * 1024;
++				else if (!strcmp(cp, "GB") || !strcmp(cp, "Gbyte"))
++					bps *= 1024 * 1024 * 1024;
+ 				else if (!strcmp(cp, "%")) {
+ 					if (bps < 0 || bps > 100) {
+ 						yyerror("bandwidth spec "
+@@ -2113,6 +2126,15 @@
+ 				free($9.queues.pqname);
+ 			}
+ 
++			if ($9.dnpipe) {
++                                r.dnpipe = $9.dnpipe;
++				if ($9.free_flags & PFRULE_DN_IS_PIPE)
++					r.free_flags |= PFRULE_DN_IS_PIPE;
++				else
++					r.free_flags |= PFRULE_DN_IS_QUEUE;
++				r.pdnpipe = $9.pdnpipe;
++			}
++
+ 			expand_rule(&r, $4, $5.host, $7, $8.src_os,
+ 			    $8.src.host, $8.src.port, $8.dst.host, $8.dst.port,
+ 			    $9.uid, $9.gid, $9.icmpspec, "");
+@@ -2210,6 +2232,32 @@
+ 			}
+ 			filter_opts.queues = $1;
+ 		}
++		| DNPIPE number			        {
++			filter_opts.dnpipe = $2;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
++		}
++		| DNPIPE '(' number ')'			{
++			filter_opts.dnpipe = $3;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
++		}
++		| DNPIPE '(' number comma number ')' {
++			filter_opts.pdnpipe = $5;
++			filter_opts.dnpipe = $3;
++			filter_opts.free_flags |= PFRULE_DN_IS_PIPE;
++		}
++		| DNQUEUE number			{
++			filter_opts.dnpipe = $2;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
++		}
++		| DNQUEUE '(' number comma number ')'	{
++			filter_opts.pdnpipe = $5;
++			filter_opts.dnpipe = $3;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
++		}
++		| DNQUEUE '(' number ')'		{
++			filter_opts.dnpipe = $3;
++			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
++		}
+ 		| TAG string				{
+ 			filter_opts.tag = $2;
+ 		}
+@@ -4253,6 +4301,11 @@
+ 		yyerror("tos and dscp cannot be used together");
+ 		problems++;
+ 	}
++	if (r->dnpipe && r->pdnpipe && !r->direction) {
++		yyerror("dummynet cannot be specified without direction");
++		problems++;
++	}
++
+ 	return (-problems);
+ }
+ 
+@@ -5045,6 +5098,8 @@
+ 		{ "code",		CODE},
+ 		{ "crop",		FRAGCROP},
+ 		{ "debug",		DEBUG},
++		{ "dnpipe",             DNPIPE},
++                { "dnqueue",            DNQUEUE},
+ 		{ "drop",		DROP},
+ 		{ "drop-ovl",		FRAGDROP},
+ 		{ "dscp",		DSCP},
+Index: contrib/pf/pfctl/pfctl_parser.c
+===================================================================
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
+retrieving revision 1.2
+diff -u -r1.2 pfctl_parser.c
+--- contrib/pf/pfctl/pfctl_parser.c	2 Nov 2010 19:27:05 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	2 Nov 2010 19:27:21 -0000
+@@ -991,6 +991,14 @@
+ 	}
+ 	if (r->label[0])
+ 		printf(" label \"%s\"", r->label);
++	if (r->dnpipe && r->pdnpipe)
++	       printf(" %s(%d, %d)", 
++			r->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
++			r->dnpipe, r->pdnpipe);
++	else if (r->dnpipe)	
++		printf(" %s %d", 
++			r->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
++			r->dnpipe);
+ 	if (r->qname[0] && r->pqname[0])
+ 		printf(" queue(%s, %s)", r->qname, r->pqname);
+ 	else if (r->qname[0])
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.2
+diff -u -r1.2 pf.c
+--- sys/contrib/pf/net/pf.c	2 Nov 2010 19:27:05 -0000	1.2
++++ sys/contrib/pf/net/pf.c	2 Nov 2010 19:33:10 -0000
+@@ -135,6 +135,10 @@
+ #include <netinet/icmp6.h>
+ #include <netinet6/nd6.h>
+ #ifdef __FreeBSD__
++#include <netinet/ip_fw.h>
++#include <netinet/ipfw/ip_fw_private.h>
++#include <netinet/ip_dummynet.h>
++
+ #include <netinet6/ip6_var.h>
+ #include <netinet6/in6_pcb.h>
+ #endif
+@@ -332,9 +336,16 @@
+ };
+ #endif
+ 
++#define PPACKET_LOOPED()						\
++	(pd->pf_mtag->flags & PF_PACKET_LOOPED)
++
++#define PACKET_LOOPED()							\
++	(pd.pf_mtag->flags & PF_PACKET_LOOPED)
++
+ #define STATE_LOOKUP()							\
+ 	do {								\
+-		if (direction == PF_IN)					\
++		if ((!PPACKET_LOOPED() && direction == PF_IN) ||	\
++		    (PPACKET_LOOPED() && direction == PF_OUT))		\
+ 			*state = pf_find_state_recurse(			\
+ 			    kif, &key, PF_EXT_GWY);			\
+ 		else							\
+@@ -342,6 +353,8 @@
+ 			    kif, &key, PF_LAN_EXT);			\
+ 		if (*state == NULL || (*state)->timeout == PFTM_PURGE)	\
+ 			return (PF_DROP);				\
++		if (PPACKET_LOOPED())					\
++			return (PF_PASS);				\
+ 		if (direction == PF_OUT &&				\
+ 		    (((*state)->rule.ptr->rt == PF_ROUTETO &&		\
+ 		    (*state)->rule.ptr->direction == PF_OUT) ||		\
+@@ -5148,7 +5161,19 @@
+ 
+ 	key.af = pd->af;
+ 	key.proto = IPPROTO_TCP;
+-	if (direction == PF_IN)	{
++	if (PPACKET_LOOPED()) {
++                if (direction == PF_IN) {
++                        PF_ACPY(&key.ext.addr, pd->src, key.af);
++                        PF_ACPY(&key.lan.addr, pd->dst, key.af);
++                        key.ext.port = th->th_sport;
++                        key.lan.port = th->th_dport;
++                } else {
++                        PF_ACPY(&key.ext.addr, pd->dst, key.af);
++                        PF_ACPY(&key.gwy.addr, pd->src, key.af);
++                        key.ext.port = th->th_dport;
++                        key.gwy.port = th->th_sport;
++                }
++        } else if (direction == PF_IN)  {
+ 		PF_ACPY(&key.ext.addr, pd->src, key.af);
+ 		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
+ 		key.ext.port = th->th_sport;
+@@ -5331,7 +5356,19 @@
+ 
+ 	key.af = pd->af;
+ 	key.proto = IPPROTO_UDP;
+-	if (direction == PF_IN)	{
++	if (PPACKET_LOOPED()) {
++                if (direction == PF_IN) {
++                        PF_ACPY(&key.lan.addr, pd->dst, key.af);
++                        PF_ACPY(&key.ext.addr, pd->src, key.af);
++                        key.lan.port = uh->uh_dport;
++                        key.ext.port = uh->uh_sport;
++                } else {
++                        PF_ACPY(&key.ext.addr, pd->dst, key.af);
++                        PF_ACPY(&key.gwy.addr, pd->src, key.af);
++                        key.ext.port = uh->uh_dport;
++                        key.gwy.port = uh->uh_sport;
++                }
++        } else if (direction == PF_IN) {
+ 		PF_ACPY(&key.ext.addr, pd->src, key.af);
+ 		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
+ 		key.ext.port = uh->uh_sport;
+@@ -5431,7 +5468,19 @@
+ 		 */
+ 		key.af = pd->af;
+ 		key.proto = pd->proto;
+-		if (direction == PF_IN)	{
++		if (PPACKET_LOOPED()) {
++                        if (direction == PF_IN) {
++                                PF_ACPY(&key.lan.addr, pd->dst, key.af);
++                                PF_ACPY(&key.ext.addr, pd->src, key.af);
++                        	key.lan.port = icmpid;
++                        	key.ext.port = 0;
++                	} else {
++                        	PF_ACPY(&key.ext.addr, pd->dst, key.af);
++                        	PF_ACPY(&key.gwy.addr, pd->src, key.af);
++                        	key.ext.port = 0;
++                        	key.gwy.port = icmpid;
++                	}
++                } else if (direction == PF_IN) {
+ 			PF_ACPY(&key.ext.addr, pd->src, key.af);
+ 			PF_ACPY(&key.gwy.addr, pd->dst, key.af);
+ 			key.ext.port = 0;
+@@ -5981,7 +6030,19 @@
+ 
+ 	key.af = pd->af;
+ 	key.proto = pd->proto;
+-	if (direction == PF_IN)	{
++	if (PPACKET_LOOPED()) {
++                if (direction == PF_IN) {
++                        PF_ACPY(&key.lan.addr, pd->dst, key.af);
++                        PF_ACPY(&key.ext.addr, pd->src, key.af);
++                        key.lan.port = 0;
++                        key.ext.port = 0;
++                } else {
++                        PF_ACPY(&key.ext.addr, pd->dst, key.af);
++                        PF_ACPY(&key.gwy.addr, pd->src, key.af);
++                        key.ext.port = 0;
++                        key.gwy.port = 0;
++                }
++        } else if (direction == PF_IN) {
+ 		PF_ACPY(&key.ext.addr, pd->src, key.af);
+ 		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
+ 		key.ext.port = 0;
+@@ -6954,6 +7015,10 @@
+ 	int			 off, dirndx, pqid = 0;
+ 
+ #ifdef __FreeBSD__
++	struct m_tag *dn_tag;
++	struct ip_fw_args	 dnflow;
++	int			 loopedfrom = 0;
++
+ 	PF_LOCK();
+ #endif
+ 	if (!pf_status.running)
+@@ -7024,8 +7089,21 @@
+ 		goto done;
+ 	}
+ 
++	if (ip_dn_io_ptr != NULL &&
++	    ((dn_tag = m_tag_locate(m, MTAG_IPFW_RULE, 0, NULL)) != NULL)) {
++		struct ipfw_rule_ref *rr = (struct ipfw_rule_ref *)(dn_tag+1);
++		pd.pf_mtag->flags |= PF_PACKET_LOOPED;
++		if (rr->info & IPFW_IS_DUMMYNET)
++			loopedfrom = 1;
++		if (pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
++                        m->m_flags |= M_FASTFWD_OURS;
++                        pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
++                }
++                m_tag_delete(m, dn_tag);
++        }
++
+ 	/* We do IP header normalization and packet reassembly here */
+-	if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
++	else if (pf_normalize_ip(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 		action = PF_DROP;
+ 		goto done;
+ 	}
+@@ -7063,6 +7141,11 @@
+ 		struct tcphdr	th;
+ 
+ 		pd.hdr.tcp = &th;
++#ifdef __FreeBSD__
++                dnflow.f_id._flags = th.th_flags;
++                dnflow.f_id.dst_port = ntohs(th.th_dport);
++                dnflow.f_id.src_port = ntohs(th.th_sport);
++#endif
+ 		if (!pf_pull_hdr(m, off, &th, sizeof(th),
+ 		    &action, &reason, AF_INET)) {
+ 			log = action != PF_PASS;
+@@ -7104,6 +7187,10 @@
+ 		struct udphdr	uh;
+ 
+ 		pd.hdr.udp = &uh;
++#ifdef __FreeBSD__
++                dnflow.f_id.dst_port = ntohs(uh.uh_dport);
++                dnflow.f_id.src_port = ntohs(uh.uh_sport);
++#endif
+ 		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
+ 		    &action, &reason, AF_INET)) {
+ 			log = action != PF_PASS;
+@@ -7224,6 +7311,51 @@
+ 	}
+ #endif /* ALTQ */
+ 
++#ifdef __FreeBSD__
++       	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
++
++                        if (dir != r->direction && r->pdnpipe) {
++                                dnflow.rule.info = r->pdnpipe;
++                        } else if (dir == r->direction) {
++                                dnflow.rule.info = r->dnpipe;
++                        } else
++                                goto continueprocessing;
++
++			if (r->free_flags & PFRULE_DN_IS_PIPE)
++				dnflow.rule.info |= IPFW_IS_PIPE;
++                        dnflow.f_id.addr_type = 4; /* IPv4 type */
++                        dnflow.f_id.proto = pd.proto;
++			if (dir == PF_OUT && s != NULL && s->nat_rule.ptr != NULL &&
++			    s->nat_rule.ptr->action == PF_NAT)
++				dnflow.f_id.src_ip = ntohl(pd.baddr.v4.s_addr);
++			else
++				dnflow.f_id.src_ip = ntohl(h->ip_src.s_addr);
++			dnflow.f_id.dst_ip = ntohl(h->ip_dst.s_addr);
++			dnflow.f_id.extra = dnflow.rule.info;
++
++			if (m->m_flags & M_FASTFWD_OURS) {
++                                pd.pf_mtag->flags |= PF_FASTFWD_OURS_PRESENT;
++                                m->m_flags &= ~M_FASTFWD_OURS;
++                        }
++
++                        PF_UNLOCK();
++
++                        ip_dn_io_ptr(m0,
++				(dir == PF_IN) ? DIR_IN : DIR_OUT,
++                                &dnflow);
++			if (*m0 != NULL) {
++				m_tag_delete(*m0, m_tag_first(*m0));
++				PF_LOCK();
++				pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
++			} else {
++                        	*m0 = NULL;
++                        	return (action);
++			}
++        } else
++		pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
++continueprocessing:
++#endif
++
+ 	/*
+ 	 * connections redirected to loopback should not match sockets
+ 	 * bound specifically to loopback due to security implications,
+@@ -7350,6 +7482,9 @@
+ 	int			 off, terminal = 0, dirndx, rh_cnt = 0;
+ 
+ #ifdef __FreeBSD__
++	struct m_tag *dn_tag;
++	struct ip_fw_args	 dnflow;
++
+ 	PF_LOCK();
+ #endif
+ 
+@@ -7417,9 +7552,15 @@
+ 		log = 1;
+ 		goto done;
+ 	}
++	
++	if (ip_dn_io_ptr != NULL &&
++                ((dn_tag = m_tag_find(m, MTAG_IPFW_RULE, NULL)) != NULL)) {
++                pd.pf_mtag->flags |= PF_PACKET_LOOPED;
++                m_tag_delete(m, dn_tag);
++        }
+ 
+ 	/* We do IP header normalization and packet reassembly here */
+-	if (pf_normalize_ip6(m0, dir, kif, &reason, &pd) != PF_PASS) {
++	else if (pf_normalize_ip6(m0, dir, kif, &reason, &pd) != PF_PASS) {
+ 		action = PF_DROP;
+ 		goto done;
+ 	}
+@@ -7525,6 +7666,11 @@
+ 		struct tcphdr	th;
+ 
+ 		pd.hdr.tcp = &th;
++#ifdef __FreeBSD__
++                dnflow.f_id._flags = th.th_flags;
++                dnflow.f_id.dst_port = th.th_dport;
++                dnflow.f_id.src_port = th.th_sport;
++#endif
+ 		if (!pf_pull_hdr(m, off, &th, sizeof(th),
+ 		    &action, &reason, AF_INET6)) {
+ 			log = action != PF_PASS;
+@@ -7565,6 +7711,10 @@
+ 		struct udphdr	uh;
+ 
+ 		pd.hdr.udp = &uh;
++#ifdef __FreeBSD__
++                dnflow.f_id.dst_port = uh.uh_dport;
++                dnflow.f_id.src_port = uh.uh_sport;
++#endif
+ 		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
+ 		    &action, &reason, AF_INET6)) {
+ 			log = action != PF_PASS;
+@@ -7687,6 +7837,45 @@
+ 	}
+ #endif /* ALTQ */
+ 
++#ifdef __FreeBSD__
++        if (r->dnpipe && ip_dn_io_ptr != NULL && !PACKET_LOOPED()) {
++
++			if (dir != r->direction && r->pdnpipe) {
++                                dnflow.rule.info = r->pdnpipe;
++                        } else if (dir == r->direction) {
++                                dnflow.rule.info = r->dnpipe;
++                        } else
++                                goto continueprocessing;
++
++                        if (r->free_flags & PFRULE_DN_IS_PIPE)
++                                dnflow.rule.info |= IPFW_IS_PIPE;
++                        dnflow.f_id.addr_type = 6; /* IPv4 type */
++                        dnflow.f_id.proto = pd.proto;
++			dnflow.f_id.src_ip6 = h->ip6_src;
++                        dnflow.f_id.dst_ip6 = h->ip6_dst;
++			dnflow.f_id.src_ip = 0;
++			dnflow.f_id.dst_ip = 0;
++			dnflow.f_id.flow_id6 = ntohl(h->ip6_flow);
++			dnflow.f_id.extra = dnflow.rule.info;
++
++                        PF_UNLOCK();
++
++                        ip_dn_io_ptr(m0,
++                                dir == PF_IN ? DIR_IN : DIR_OUT,
++                                &dnflow);
++			if (*m0 != NULL) {
++				m_tag_delete(*m0, m_tag_first(*m0));
++				PF_LOCK();
++				pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
++			} else {
++                        	*m0 = NULL;
++                        	return (action);
++			}
++        } else
++		pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
++continueprocessing:
++#endif
++
+ 	if (dir == PF_IN && action == PF_PASS && (pd.proto == IPPROTO_TCP ||
+ 	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
+ 	    (s->nat_rule.ptr->action == PF_RDR ||
+@@ -7770,7 +7959,6 @@
+ 			    tr->dst.neg);
+ 	}
+ 
+-
+ 	if (action == PF_SYNPROXY_DROP) {
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+Index: sys/contrib/pf/net/pf_mtag.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_mtag.h,v
+retrieving revision 1.2
+diff -u -r1.2 pf_mtag.h
+--- sys/contrib/pf/net/pf_mtag.h	2 Nov 2010 19:27:05 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	2 Nov 2010 19:27:22 -0000
+@@ -37,6 +37,8 @@
+ #define	PF_TAG_GENERATED		0x01
+ #define	PF_TAG_FRAGCACHE		0x02
+ #define	PF_TAG_TRANSLATE_LOCALHOST	0x04
++#define PF_PACKET_LOOPED	        0x08
++#define PF_FASTFWD_OURS_PRESENT         0x10
+ 
+ struct pf_mtag {
+ 	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.2
+diff -u -r1.2 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	2 Nov 2010 19:27:05 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	2 Nov 2010 19:27:22 -0000
+@@ -632,6 +632,11 @@
+ 	}			 max_src_conn_rate;
+ 	u_int32_t		 qid;
+ 	u_int32_t		 pqid;
++	u_int32_t                dnpipe;
++        u_int32_t                pdnpipe;
++#define	PFRULE_DN_IS_PIPE	0x00000010
++#define	PFRULE_DN_IS_QUEUE	0x00000020	
++	u_int32_t                free_flags;
+ 	u_int32_t		 rt_listid;
+ 	u_int32_t		 nr;
+ 	u_int32_t		 prob;
+Index: sys/netinet/ipfw/ip_dn_io.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dn_io.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_dn_io.c
+--- sys/netinet/ipfw/ip_dn_io.c	2 Nov 2010 19:24:55 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dn_io.c	2 Nov 2010 19:27:22 -0000
+@@ -587,6 +587,7 @@
+ 			 * to carry reinject info.
+ 			 */
+ 			dst = pkt->dn_dir;
++			pkt->rule.info |= IPFW_IS_DUMMYNET;
+ 			ifp = pkt->ifp;
+ 			tag->m_tag_cookie = MTAG_IPFW_RULE;
+ 			tag->m_tag_id = 0;

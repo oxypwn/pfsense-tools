@@ -1,0 +1,15 @@
+Index: sys/dev/usb/net/if_udav.c
+===================================================================
+RCS file: /home/ncvs/src/sys/dev/usb/net/if_udav.c,v
+retrieving revision 1.11.2.3
+diff -u -r1.11.2.3 if_udav.c
+--- sys/dev/usb/net/if_udav.c	29 Apr 2010 22:44:04 -0000	1.11.2.3
++++ sys/dev/usb/net/if_udav.c	12 May 2010 19:19:37 -0000
+@@ -206,6 +206,7 @@
+ 	{USB_VPI(USB_VENDOR_SHANTOU, USB_PRODUCT_SHANTOU_ST268, 0)},
+ 	/* Corega USB-TXC */
+ 	{USB_VPI(USB_VENDOR_COREGA, USB_PRODUCT_COREGA_FETHER_USB_TXC, 0)},
++	{USB_VPI(0x0fe6, 0x8101, 0)},
+ };
+ 
+ static void
