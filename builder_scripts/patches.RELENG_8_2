@@ -55,7 +55,6 @@
 ~~SR9600.diff~
 ~~ng_ether_attach_command.diff~
 ~~bsnmp.diff~
-~~dhclient.diff~
 ~~carp_correct_mac.diff~
 ~sys/dev/usb/net~if_axe.tgz~
 ~sys/dev/usb/wlan~if_rum_pr_144642.diff~
