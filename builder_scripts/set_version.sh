@@ -211,8 +211,8 @@ RELENG_8_2)
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_2-supfile"
 	export PFSENSE_VERSION=2.0-BETA4
 	export PFSENSETAG=HEAD
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
+	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_2
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
 	set_items
