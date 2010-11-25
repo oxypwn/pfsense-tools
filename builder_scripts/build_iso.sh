@@ -205,7 +205,7 @@ fi
 
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
-(freesbie_make clonefs) >/dev/null 2>&1
+freesbie_make clonefs
 
 # Ensure /home and /etc exists
 mkdir -p $CLONEDIR/home $CLONEDIR/etc
