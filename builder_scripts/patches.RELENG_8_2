@@ -47,7 +47,7 @@
 ~~ip_carp.c.diff~
 ~~if_lagg_vlan_handling.diff~
 ~sys/net~if_bridge_vlan_handling.diff~
-~~pfTSO.RELENG_8.diff~
+~~proto_flags.diff~
 ~~tcpmd5_RST_timeout.RELENG_8.diff~
 ~~wpa_correct_mac_address.RELENG_8.diff~
 ~~wpa_RSN_PREAUTH_support.diff~
