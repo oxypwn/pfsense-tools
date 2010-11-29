@@ -28,12 +28,9 @@
 #ifndef _SERVER_H_
 #define _SERVER_H_
 
-#define filepath        "/tmp/check_test"
-#define LOGFILE         "/var/log/check_test"
-#define TMPDIR          "/tmp"
+#include <pthread.h>
 
-/* Default cycle time value 30 seconds*/
-#define CYCLE           30
+#define filepath        "/tmp/check_test"
 
 /* used for writing to the status file */
 int status = -1;
@@ -78,9 +75,10 @@ enum argtype {
 struct run {
         const char    *command;
         const char    *syslog;
+	pthread_mutex_t	serialize;
 };
 
-#define NULLRUN { NULL, NULL }
+#define NULLRUN { NULL, NULL, PTHREAD_MUTEX_INITIALIZER }
 
 struct command {
         enum actions    action;
@@ -108,57 +106,57 @@ static const struct command first_level[] = {
 
 static const struct command c_filter[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "reloading filter" } },
+                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "reloading filter", PTHREAD_MUTEX_INITIALIZER } },
         { RECONFIGURE, NON, "reconfigure", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "reloading filter" } },
+                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "reloading filter", PTHREAD_MUTEX_INITIALIZER } },
         { RESTART, NON, "restart", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "reloading filter" } },
+                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "reloading filter", PTHREAD_MUTEX_INITIALIZER } },
         { SYNC, NON, "sync", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_synchronize", "syncing firewall" } },
+                { "/usr/local/bin/php /etc/rc.filter_synchronize", "syncing firewall", PTHREAD_MUTEX_INITIALIZER } },
         { NULLOPT, NON, "", NULL, NULLRUN }
 };
 
 static const struct command c_interface[] = {
         { ALL, STRING, "all", c_interface2, NULLRUN },
         { RELOAD, IFNAME, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "configuring interface %s" } },
+                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "configuring interface %s", PTHREAD_MUTEX_INITIALIZER } },
         { RECONFIGURE, IFNAME, "reconfigure", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "configuring interface %s" } },
+                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "configuring interface %s", PTHREAD_MUTEX_INITIALIZER } },
         { RESTART, IFNAME, "restart", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "configuring interface %s" } },
+                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "configuring interface %s", PTHREAD_MUTEX_INITIALIZER } },
         { NEWIP, STRING, "newip", NULL,
-                { "/usr/local/bin/php /etc/rc.newwanip %s", "rc.newwanip starting %s" } },
+                { "/usr/local/bin/php /etc/rc.newwanip %s", "rc.newwanip starting %s", PTHREAD_MUTEX_INITIALIZER } },
         { LINKUP, STRING, "linkup", c_interface2, NULLRUN },
         { SYNC, NON, "sync", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_xmlrpc", "reloading filter_configure_xmlrpc" } },
+                { "/usr/local/bin/php /etc/rc.filter_configure_xmlrpc", "reloading filter_configure_xmlrpc", PTHREAD_MUTEX_INITIALIZER } },
         { NULLOPT, NON, "", NULL, NULLRUN }
 };
 
 static const struct command c_interface2[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.reload_interfaces", "reloading interfaces" } },
+                { "/usr/local/bin/php /etc/rc.reload_interfaces", "reloading interfaces", PTHREAD_MUTEX_INITIALIZER } },
 	{ START, IFNAME, "start", NULL,
-                { "/usr/local/bin/php /etc/rc.linkup start %s", "Linkup starting %s" } },
+                { "/usr/local/bin/php /etc/rc.linkup start %s", "Linkup starting %s", PTHREAD_MUTEX_INITIALIZER } },
 	{ STOP, IFNAME, "stop", NULL,
-                { "/usr/local/bin/php /etc/rc.linkup stop %s", "Linkup starting %s" } },
+                { "/usr/local/bin/php /etc/rc.linkup stop %s", "Linkup starting %s", PTHREAD_MUTEX_INITIALIZER } },
         { NULLOPT, NON, "", NULL, NULLRUN }
 };
 
 static const struct command c_service2[] = {
         { ALL, NON, "all", NULL,
-                { "/usr/local/bin/php /etc/rc.reload_all", "reloading all" } },
+                { "/usr/local/bin/php /etc/rc.reload_all", "reloading all", PTHREAD_MUTEX_INITIALIZER } },
         { DNSSERVER, NON, "dns", NULL,
-                { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf" } },
+                { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf", PTHREAD_MUTEX_INITIALIZER } },
         { DYNDNS, STRING, "dyndns", NULL,
-                { "/usr/local/bin/php /etc/rc.dyndns.update %s", "updating dyndns %s" } },
+                { "/usr/local/bin/php /etc/rc.dyndns.update %s", "updating dyndns %s", PTHREAD_MUTEX_INITIALIZER } },
         { DYNDNSALL, NON, "dyndnsall", NULL,
-                { "/usr/local/bin/php /etc/rc.dyndns.update", "updating all dyndns" } },
+                { "/usr/local/bin/php /etc/rc.dyndns.update", "updating all dyndns", PTHREAD_MUTEX_INITIALIZER } },
         { NTPD, NON, "ntpd", NULL,
-                { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", "starting nptd" } },
+                { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", "starting nptd", PTHREAD_MUTEX_INITIALIZER } },
         { SSHD, NON, "sshd", NULL,
-                { "/etc/sshd", "starting sshd" } },
+                { "/etc/sshd", "starting sshd", PTHREAD_MUTEX_INITIALIZER } },
         { WEBGUI, NON, "webgui", NULL,
-                { "/usr/local/bin/php /etc/rc.restart_webgui", "webConfigurator restart in progress" } },
+                { "/usr/local/bin/php /etc/rc.restart_webgui", "webConfigurator restart in progress", PTHREAD_MUTEX_INITIALIZER } },
         { NULLOPT, NON, "", NULL, NULLRUN }
 };
 

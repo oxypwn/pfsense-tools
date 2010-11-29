@@ -182,13 +182,14 @@ static void
 write_status(const char *statusline, int when)
 {
 
-	ftruncate(status, (off_t)0);
+#ifdef DEBUG
 	if (when == BEFORE)
 		dprintf(status, "Starting %s\n", statusline);
 	else if (when == AFTER)
 		dprintf(status, "After %s\n", statusline);
 	else
 		dprintf(status, "%s\n", statusline);
+#endif
 }
 
 static void
@@ -209,8 +210,12 @@ run_command(const struct command *cmd, char *argv) {
 
 	switch (cmd->type) {
 	case NON:
-	case COMPOUND: /* XXX: Should never happen. */
         	syslog(LOG_NOTICE, cmd->cmd.syslog);
+		break;
+	case COMPOUND: /* XXX: Should never happen. */
+		syslog(LOG_ERR, "trying to execute COMPOUND entry!!! Please report it.");
+		return;
+		/* NOTREACHED */
 		break;
 	case ADDRESS:
 	case PREFIX:
@@ -222,14 +227,21 @@ run_command(const struct command *cmd, char *argv) {
 	}
 
 	bzero(command, sizeof(command));
+#ifdef maybe
+	snprintf(command, sizeof(command), "'%s'", cmd->cmd.command);
+	snprintf(command, sizeof(command), command, argv);
+#else
 	snprintf(command, sizeof(command), cmd->cmd.command, argv);
+#endif
 	switch (vfork()) {
 	case -1:
+		syslog(LOG_ERR, "Could not vfork() error %d - %s!!!", errno, strerror(errno));
 		break;
 	case 0:
 		child = 1;
 		/* Possibly optimize by creating argument list and calling execve. */
-		execl("/bin/sh", "sh", "-c", command, (char *)NULL);
+		execl("/bin/sh", "/bin/sh", "-c", command, (char *)NULL);
+		syslog(LOG_ERR, "could not run: %s", command);
 		_exit(127); /* Protect in case execl errors out */
 		break;
 	default:
@@ -254,6 +266,7 @@ socket_read_command(int fd, __unused short event, void *arg)
 {
 	const struct command *cmd;
 	struct event *ev = arg;
+	pthread_mutex_t *lock;
 	enum { bufsize = 2048 };
 	char buf[bufsize];
 	register int n;
@@ -303,7 +316,12 @@ socket_read_command(int fd, __unused short event, void *arg)
 	cmd = parse_command(fd, i, argv);
 	if (cmd != NULL) {
 		write(fd, "OK\n", 3);
+		/* Serialize commands to avoid races in called ones. */
+		/* XXX: better not loose the const property on commands or this?! */
+		lock = __DECONST(pthread_mutex_t *, &cmd->cmd.serialize);
+		pthread_mutex_lock(lock);
 		run_command(cmd, p);
+		pthread_mutex_unlock(lock);
 	}
 
 	return;
@@ -377,12 +395,15 @@ int main(void) {
         sigaction(SIGHUP, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
 
+#ifdef DEBUG
 	status = open(filepath, O_RDWR | O_CREAT | O_FSYNC);
 	if (status < 0) {
 		syslog(LOG_ERR, "check_reload_status could not open file %s", filepath);
 		errcode = 2;
 		goto error;
 	}
+	ftruncate(status, (off_t)0);
+#endif
 	write_status("starting", NONE);
 
 	ppid = getpid();
