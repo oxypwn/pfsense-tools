@@ -408,6 +408,7 @@ int main(void) {
 
 	ppid = getpid();
 	if (fork() == 0) {
+		setproctitle("Monitoring daemon of check_reload_status");
 		/* Prepare code to monitor the parent :) */
 		struct kevent kev;
 		int kq;
