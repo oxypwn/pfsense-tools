@@ -158,6 +158,10 @@ set_items() {
 		echo "export TARGETARCH=mips" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	fi
 
+	# For developers debugging on builders.
+	echo "#PFSENSE_WITH_FULL_GIT_CHECKOUT=\"true\"" >> $BUILDER_SCRIPTS/pfsense-build.conf
+
+	# Output pfsense-build.conf
 	echo
 	echo ">>> Custom pfsense-build.conf contains:"
 	echo "---------------------------------------------------------------------------------------"
