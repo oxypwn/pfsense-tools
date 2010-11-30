@@ -1,14 +1,5 @@
---- beastie.4th	2010-11-20 16:16:36.000000000 -0500
-+++ beastie.4th	2010-11-20 17:09:00.000000000 -0500
-@@ -23,7 +23,7 @@
- \ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- \ SUCH DAMAGE.
- \
--\ $FreeBSD: src/sys/boot/forth/beastie.4th,v 1.12.10.1.4.1 2010/06/14 02:09:06 kensmith Exp $
-+\ $pfSense: src/sys/boot/forth/beastie.4th,v 1.12.10.1.4.1 2010/06/14 02:09:06 kensmith Exp $
- 
- marker task-beastie.4th
- 
+--- beastie.4th.orig	2010-11-30 15:03:27.000000000 -0500
++++ beastie.4th	2010-11-30 15:06:09.000000000 -0500
 @@ -45,6 +45,7 @@
  variable bootsinglekey
  variable escapekey
@@ -80,14 +71,51 @@
  	printmenuitem ."  Escape to loader prompt" escapekey !
  	printmenuitem ."  Reboot" rebootkey !
  	menuX @ 20 at-xy
-@@ -275,6 +278,10 @@
- 			s" 1" s" hint.kbdmux.0.disabled" setenv
+@@ -254,9 +257,13 @@
+ 				s" acpi_load" unsetenv
+ 				s" 1" s" hint.acpi.0.disabled" setenv
+ 				s" 1" s" loader.acpi_disabled_by_user" setenv
++				s" 0" s" hw.mca.enabled" setenv
++				s" 0" s" hw.bce.tso_enable" setenv
+ 			else
+ 				s" YES" s" acpi_load" setenv
+ 				s" 0" s" hint.acpi.0.disabled" setenv
++                                s" 0" s" hw.mca.enabled" setenv
++                                s" 0" s" hw.bce.tso_enable" setenv
+ 			then
  			0 boot
  		then
-+		dup bootusbkey @ = if
-+			s" 10000" s" kern.cam.boot_delay" setenv
+@@ -267,19 +274,33 @@
+ 				s" 1" s" hint.acpi.0.disabled" setenv
+ 				s" 1" s" loader.acpi_disabled_by_user" setenv
+ 				s" 1" s" hint.apic.0.disabled" setenv
++                                s" 0" s" hw.mca.enabled" setenv
++                                s" 0" s" hw.bce.tso_enable" setenv
+ 			then
+ 			s" 0" s" hw.ata.ata_dma" setenv
+ 			s" 0" s" hw.ata.atapi_dma" setenv
+ 			s" 0" s" hw.ata.wc" setenv
+ 			s" 0" s" hw.eisa_slots" setenv
+ 			s" 1" s" hint.kbdmux.0.disabled" setenv
++			s" 0" s" hw.mca.enabled" setenv
++			s" 0" s" hw.bce.tso_enable" setenv
 +			0 boot
 +		then
++		dup bootusbkey @ = if
++			s" 0" s" hw.mca.enabled" setenv
++			s" 0" s" hw.bce.tso_enable" setenv
++			s" 10000" s" kern.cam.boot_delay" setenv
+ 			0 boot
+ 		then
  		dup bootverbosekey @ = if
++			s" 0" s" hw.mca.enabled" setenv
++			s" 0" s" hw.bce.tso_enable" setenv
  			s" YES" s" boot_verbose" setenv
  			0 boot
+ 		then
+ 		dup bootsinglekey @ = if
++			s" 0" s" hw.mca.enabled" setenv
++			s" 0" s" hw.bce.tso_enable" setenv
+ 			s" YES" s" boot_single" setenv
+ 			0 boot
+ 		then
