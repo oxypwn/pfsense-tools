@@ -262,7 +262,10 @@ export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
 
 # set full-update update filename
 export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/pfSense-Full-Update-${PFSENSE_VERSION}-`date '+%Y%m%d-%H%M'`.tgz"}
-IFS=$OIFS
 
 # Checkout the GIT repo every time. This is normally not necessary.
 # export PFSENSE_WITH_FULL_GIT_CHECKOUT="true"
+
+
+# This needs to be at the very end of the file.
+IFS=$OIFS
