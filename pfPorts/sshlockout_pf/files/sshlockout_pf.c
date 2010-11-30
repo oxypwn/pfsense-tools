@@ -116,6 +116,7 @@ main(void)
 		check_for_denied_string("Illegal user", buf);
 		check_for_denied_string("Invalid user", buf);
 		check_for_denied_string("authentication error for", buf);
+		check_for_denied_string("webConfigurator authentication error for", buf);
 		check_for_accepted_string("Accepted keyboard-interactive/pam for", buf);
 	}
 
