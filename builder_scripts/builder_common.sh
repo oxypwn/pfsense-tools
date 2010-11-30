@@ -1556,6 +1556,16 @@ checkout_pfSense_git() {
 	echo ">>> Using GIT to checkout ${PFSENSETAG}"
 	echo -n ">>> "
 
+	if [ "${PFSENSE_WITH_FULL_GIT_CHECKOUT}" != "" ]; then
+		echo ">>> Clearing ${GIT_REPO_DIR}/pfSenseGITREPO and ${GIT_REPO_DIR}/pfSense..."
+		if [ -d ${GIT_REPO_DIR}/pfSenseGITREPO ]; then
+			rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO
+		fi
+		if [ -d ${GIT_REPO_DIR}/pfSense ]; then
+			rm -rf ${GIT_REPO_DIR}/pfSense
+		fi
+	fi
+
 	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" = "RELENG_2_0" ] \
             || [ "${PFSENSETAG}" = 'HEAD' ]; then
