@@ -265,4 +265,4 @@ export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/pfSen
 IFS=$OIFS
 
 # Checkout the GIT repo every time. This is normally not necessary.
-# export PFSENSE_WITH_FULL_GIT_CHECKOUT
+# export PFSENSE_WITH_FULL_GIT_CHECKOUT="true"
