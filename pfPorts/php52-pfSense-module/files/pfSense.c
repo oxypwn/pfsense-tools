@@ -431,7 +431,7 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 		case IFT_FAITH:
 		case IFT_ENC:
 		case IFT_PFLOG: 
-		case IFT_Psync:
+		case IFT_PFSYNC:
 			add_assoc_string(return_value, "iftype", "virtual", 1);
 			break;
 		case IFT_CARP:
