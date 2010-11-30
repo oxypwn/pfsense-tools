@@ -42,6 +42,7 @@ PHP_FUNCTION(pfSense_ngctl_name);
 PHP_FUNCTION(pfSense_ngctl_attach);
 PHP_FUNCTION(pfSense_ngctl_detach);
 PHP_FUNCTION(pfSense_get_modem_devices);
+PHP_FUNCTION(pfSense_sync);
 
 extern zend_module_entry pfSense_module_entry;
 #define phpext_pfSense_ptr &pfSense_module_entry

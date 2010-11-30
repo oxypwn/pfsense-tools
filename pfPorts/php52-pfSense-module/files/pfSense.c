@@ -134,6 +134,7 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_ngctl_attach, NULL)
     PHP_FE(pfSense_ngctl_detach, NULL)
     PHP_FE(pfSense_get_modem_devices, NULL)
+	PHP_FE(pfSense_sync, NULL)
     {NULL, NULL, NULL}
 };
 
@@ -430,7 +431,7 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 		case IFT_FAITH:
 		case IFT_ENC:
 		case IFT_PFLOG: 
-		case IFT_PFSYNC:
+		case IFT_Psync:
 			add_assoc_string(return_value, "iftype", "virtual", 1);
 			break;
 		case IFT_CARP:
@@ -1218,6 +1219,10 @@ ExclusiveCloseDevice(int fd, const char *pathname)
 		ttyname = pathname + 5;
 		UuUnlock(ttyname);
 	}
+}
+
+PHP_FUNCTION(pfSense_sync) {
+	sync();
 }
 
 PHP_FUNCTION(pfSense_get_modem_devices) {
