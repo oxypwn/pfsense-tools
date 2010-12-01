@@ -74,13 +74,14 @@ static struct sshlog
 } lockouts[MAXLOCKOUTS + 1];
 
 // Function declarations
-static void lockout(char *str);
-static void lockout_remove(char *str);
-static void check_for_denied_string(char *str, char *buf);
-static void check_for_accepted_string(char *str, char *buf);
+static void lockout(char *str, char *lockouttable);
+static void lockout_remove(char *str, char *lockouttable);
+static void check_for_denied_string(char *str, char *lockouttable, char *buf);
+static void check_for_accepted_string(char *str, char *lockouttable, char *buf);
 static void prune_oldest_record(void);
 static void prune_record(int n1, int n2, int n3, int n4);
 static void add_new_record(int n1, int n2, int n3, int n4);
+static void prune_24hour_records(void);
 
 // Start of program - main loop
 int
@@ -110,14 +111,16 @@ main(void)
 		if (strstr(buf, "sshd") == NULL)
 			continue;
 		// Check for various bad (or good!) strings in stream
-		check_for_denied_string("Failed password for root from", buf);
-		check_for_denied_string("Failed password for admin from", buf);
-		check_for_denied_string("Failed password for invalid user", buf);
-		check_for_denied_string("Illegal user", buf);
-		check_for_denied_string("Invalid user", buf);
-		check_for_denied_string("authentication error for", buf);
-		check_for_denied_string("webConfigurator authentication error for", buf);
-		check_for_accepted_string("Accepted keyboard-interactive/pam for", buf);
+		check_for_denied_string("Failed password for root from", "sshlockout", buf);
+		check_for_denied_string("Failed password for admin from", "sshlockout",  buf);
+		check_for_denied_string("Failed password for invalid user", "sshlockout", buf);
+		check_for_denied_string("Illegal user", "sshlockout", buf);
+		check_for_denied_string("Invalid user", "sshlockout", buf);
+		check_for_denied_string("authentication error for", "sshlockout", buf);
+		check_for_denied_string("webConfigurator authentication error for", "webConfiguratorlockout", buf);
+		check_for_accepted_string("Accepted keyboard-interactive/pam for", "sshlockout", buf);
+		// prune records older than 24 hours
+		prune_24hour_records();
 	}
 
 	// We are exiting
@@ -127,17 +130,49 @@ main(void)
 	return(0);
 }
 
+// Prune records older than 24 hours
+static void prune_24hour_records(void) {
+
+	// Loop tracking variable
+	int i = 0;
+
+	// Time tracker (unix epoch)
+	time_t now = 0;
+	time_t ts = 0;
+
+	// Init
+    now = time(NULL);
+
+	// Track the oldest record id.
+	// Set the known oldest to now.
+	ts = time(&now);
+
+	while(i < MAXLOCKOUTS) 
+	{
+		// Check to see if item is older than
+		// the oldest entry found thus far.
+		if(lockouts[i].ts - ts > 86400) {
+			lockouts[i].n1 = 0;
+			lockouts[i].n2 = 0;
+			lockouts[i].n3 = 0;
+			lockouts[i].n4 = 0;
+		}
+		i++;
+	}
+}
+
+
 // Check for passed string and lockout the 
 // host if we find the log message in stream.
 static void
-check_for_denied_string(char *str, char *buf)
+check_for_denied_string(char *str, char *lockouttable, char *buf)
 {
 	char *tmpstr = NULL;
 	if ((str = strstr(buf, str)) != NULL) 
 	{
 		if ((tmpstr = strstr(str, " from")) != NULL) {
 			if (strlen(tmpstr) > 5)
-				lockout(tmpstr + 5);
+				lockout(tmpstr + 5, lockouttable);
 		}
 	}
 }
@@ -145,14 +180,14 @@ check_for_denied_string(char *str, char *buf)
 // Check for accepted string and remove the 
 // host from the local database if found.
 static void
-check_for_accepted_string(char *str, char *buf)
+check_for_accepted_string(char *str, char *lockouttable, char *buf)
 {
 	char *tmpstr = NULL;
 	if ((str = strstr(buf, str)) != NULL) 
 	{
 		if ((tmpstr = strstr(str, " from")) != NULL) {
 			if (strlen(tmpstr) > 5)
-				lockout_remove(tmpstr + 5);
+				lockout_remove(tmpstr + 5, lockouttable);
 		}
 	}
 }
@@ -308,7 +343,7 @@ prune_record(int n1, int n2, int n3, int n4)
 // if we find the specified string in stream 
 // and if the attempt account is == MAXATTEMPTS
 static void
-lockout(char *str)
+lockout(char *str, char *lockouttable)
 {
 	// IP address octets
 	int n1 = 0, n2 = 0, n3 = 0, n4 = 0;
@@ -376,8 +411,8 @@ lockout(char *str)
 			n1, n2, n3, n4, MAXATTEMPTS);
 
 		// Setup buf with the pfctl command needed to block HOST
-		ret = snprintf(buf, sizeof(buf), "/sbin/pfctl -t sshlockout -T add %d.%d.%d.%d", \
-			n1, n2, n3, n4);
+		ret = snprintf(buf, sizeof(buf), "/sbin/pfctl -t %s -T add %d.%d.%d.%d", \
+			lockouttable, n1, n2, n3, n4);
 		// Check for error condition
 		if(ret < 0) 
 		{
@@ -397,7 +432,7 @@ lockout(char *str)
 
 // Remove host from logging dabtase
 static void
-lockout_remove(char *str)
+lockout_remove(char *str, char *lockouttable)
 {
 	// IP address octets
 	int n1 = 0, n2 = 0, n3 = 0, n4 = 0;
