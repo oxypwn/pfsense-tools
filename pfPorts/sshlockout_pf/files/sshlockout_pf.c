@@ -96,7 +96,7 @@ main(void)
 	openlog("sshlockout", LOG_PID|LOG_CONS, LOG_AUTH);
 
 	// We are starting up
-	syslog(LOG_ERR, "sshlockout v%s starting up", VERSION);
+	syslog(LOG_ERR, "sshlockout/webConfigurator v%s starting up", VERSION);
 
 	// Open up stderr and stdout to the abyss
 	(void)freopen("/dev/null", "w", stdout);
@@ -107,7 +107,7 @@ main(void)
 	// attempted login but failed.
 	while (fgets(buf, (int)sizeof(buf), stdin) != NULL) 
 	{
-		/* if this is not sshd related, continue on without processing */
+		/* if this is not sshd or webConfigurator related, continue on without processing */
 		if (strstr(buf, "sshd") == NULL || strstr(buf, "webConfigurator") == NULL)
 			continue;
 		// Check for various bad (or good!) strings in stream
@@ -125,7 +125,7 @@ main(void)
 	}
 
 	// We are exiting
-	syslog(LOG_ERR, "sshlockout v%s exiting", VERSION);
+	syslog(LOG_ERR, "sshlockout/webConfigurator v%s exiting", VERSION);
 
 	// That's all folks.
 	return(0);
