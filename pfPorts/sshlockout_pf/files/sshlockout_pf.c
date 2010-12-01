@@ -108,7 +108,7 @@ main(void)
 	while (fgets(buf, (int)sizeof(buf), stdin) != NULL) 
 	{
 		/* if this is not sshd related, continue on without processing */
-		if (strstr(buf, "sshd") == NULL)
+		if (strstr(buf, "sshd") == NULL || strstr(buf, "webConfigurator") == NULL)
 			continue;
 		// Check for various bad (or good!) strings in stream
 		check_for_denied_string("Failed password for root from", "sshlockout", buf);
