@@ -54,8 +54,7 @@
 #include <errno.h>
 
 
-static int running = 0;
-static int interval = 0;
+static int interval = 30;
 static int dev = -1;
 static int debug = 0;
 
@@ -75,6 +74,9 @@ struct thread_data {
 	char *hostname;
 	int mask;
 };
+
+pthread_t *threads = NULL;
+int threadcount = 0;
 
 static void
 pf_tableentry(char *tablename, in_addr_t address, int mask, int action);
@@ -281,7 +283,7 @@ void *check_hostname(void *arg)
 
 	//flush_table(data.tablename);
 
-	while (running) {
+	for (;;) {
 
 		howmuch = host_dns(&data);	
 		if (debug >= 2)
@@ -309,10 +311,16 @@ void *check_hostname(void *arg)
 static void
 handle_signal(int sig)
 {
+	int i;
+
         switch(sig) {
         case SIGHUP:
         case SIGTERM:
-		running = 0;
+		if (threads) {
+			for (i = 0; i < threadcount; i++) {
+				pthread_cancel(threads[i]);
+			}
+		}
                 break;
         default:
 		if (debug >= 3)
@@ -322,39 +330,52 @@ handle_signal(int sig)
 
 void usage(void) {
 	
-	fprintf(stderr, "usage: filterdns pidfile interval filecfg debuglevel\n");
+	fprintf(stderr, "usage: filterdns -p pidfile -i interval -c filecfg -d debuglevel\n");
 	exit(4);
 }
 
 int main(int argc, char *argv[]) {
 	int exerr = 0;	
-	int fd, error, i;
-	char *file;
-	int threadcount = 0;
+	int fd, error, i, ch;
+	char *file, *pidfile;
 	properties list, props;
-	pthread_t *threads = NULL;
 	FILE *pidfd;
-	struct sigaction sa;
-	
-	if (argc < 4 || argc > 5)
-		usage();
-	
-	interval = atoi(argv[2]);
-	if (interval < 1) {
-		fprintf(stderr, "Invalid interval %d\n", interval);
-		exit(3);
-	}
-	
-	if (argc == 5) {
-        	debug = atoi(argv[4]);
-        	if (debug < 1) {
-                	fprintf(stderr, "Invalid debug level %d\n", debug);
-                	exit(4);
-        	}
+	sig_t sig_error;
+
+	file = NULL;
+	pidfile = NULL;
+
+	while ((ch = getopt(argc, argv, "c:d:i:p:")) != -1) {
+		switch (ch) {
+		case 'c':
+			file = optarg;
+			break;
+		case 'd':
+			debug = atoi(optarg);
+			break;
+		case 'i':
+			interval = atoi(optarg);
+			if (interval < 1) {
+				fprintf(stderr, "Invalid interval %d\n", interval);
+				return (3);
+			}
+			break;
+		case 'p':
+			pidfile = optarg;
+			break;
+		default:
+			fprintf(stderr, "Wrong option: %c given!", ch);
+			return (ch);
+			break;
+		}
 	}
 
-	file = argv[3];
-	
+	if (file == NULL) {
+		fprintf(stderr, "Configuration file is mandatory!");
+		usage();
+		return (-1);
+	}
+
 	dev = open("/dev/pf", O_RDWR);
 	if (dev < 0)
 		errx(1, "Could not open device.");
@@ -364,14 +385,16 @@ int main(int argc, char *argv[]) {
 		printf("error in daemon\n");
 		exit(1);
 	}
-	
-	/* write PID to file */
-	pidfd = fopen(argv[1], "w");
-	if (pidfd) {
-		fprintf(pidfd, "%d\n", getpid());
-		fclose(pidfd);
-	} else
-		syslog(LOG_WARNING, "could not open pid file");
+
+	if (pidfile) {
+		/* write PID to file */
+		pidfd = fopen(pidfile, "w");
+		if (pidfd) {
+			fprintf(pidfd, "%d\n", getpid());
+			fclose(pidfd);
+		} else
+			syslog(LOG_WARNING, "could not open pid file");
+	}
 
 	fd = open(file, O_RDONLY);
         if (fd == -1) {
@@ -388,14 +411,11 @@ int main(int argc, char *argv[]) {
 	/*
          * Catch SIGHUP in order to reread configuration file.
          */
-        sa.sa_handler = handle_signal;
-        sa.sa_flags = SA_SIGINFO|SA_RESTART;
-        sigemptyset(&sa.sa_mask);
-        error = sigaction(SIGHUP, &sa, NULL);
-        if (error == -1)
+	sig_error = signal(SIGHUP, handle_signal);
+        if (sig_error == SIG_ERR)
                 err(EX_OSERR, "unable to set signal handler");
-        error = sigaction(SIGTERM, &sa, NULL);
-        if (error == -1)
+        sig_error = signal(SIGTERM, handle_signal);
+        if (sig_error == SIG_ERR)
                 err(EX_OSERR, "unable to set signal handler");
 
 	list = props;
@@ -414,8 +434,6 @@ int main(int argc, char *argv[]) {
 
 	memset(threads, 0, sizeof(threads) * threadcount);
 
-	running = 1;
-
 	list = props;
 	i = 0;
 	while (list != NULL) {
@@ -430,10 +448,6 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < threadcount; i++)
 		pthread_join(threads[i], NULL);
 	
-	running = 0;
-
-	//return 0;
-
 	if (props != NULL)
 		properties_free(props);
 	if (threads != NULL)
