@@ -118,6 +118,7 @@ main(void)
 		check_for_denied_string("Invalid user", "sshlockout", buf);
 		check_for_denied_string("authentication error for", "sshlockout", buf);
 		check_for_denied_string("webConfigurator authentication error for", "webConfiguratorlockout", buf);
+		check_for_accepted_string("Successful webConfigurator login for user","webConfiguratorlockout", buf);
 		check_for_accepted_string("Accepted keyboard-interactive/pam for", "sshlockout", buf);
 		// prune records older than 24 hours
 		prune_24hour_records();
