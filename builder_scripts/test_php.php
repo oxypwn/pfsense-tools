@@ -11,7 +11,7 @@ exit(0);
 */
 
 require_once("/etc/inc/globals.inc");
-require_once("/etc/inc/config.inc");
+require_once("/etc/inc/config.lib.inc");
 require_once("/etc/inc/functions.inc");
 
 $config = parse_config(true);
