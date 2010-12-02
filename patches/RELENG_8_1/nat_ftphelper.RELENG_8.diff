@@ -368,7 +368,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				return;
 +
 +			if ((ftp_message_type == FTP_PORT_COMMAND ||
-+		    	    ftp_message_type == FTP_EPRT_COMMAND) && nr->action == PF_RDR)
++		    	    ftp_message_type == FTP_EPRT_COMMAND) && (nr->action == PF_RDR || nr->action == PF_BINAT && state->direction == PF_IN))
 +				return;
 +			NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
 +		}
