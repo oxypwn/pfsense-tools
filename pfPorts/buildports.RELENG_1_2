@@ -196,13 +196,15 @@ for PORT in $PORTSTOBUILD; do
 		set_cache ${PORT} ${DOESPORTEXIST}
 	fi
 	if [ "${DOESPORTEXIST}" != "" ]; then
-		echo "Found port.  Copying and building..."
-		if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
-			rm -rf $DOESPORTEXIST
-			mkdir -p $DOESPORTEXIST
+		if [ -d /home/pfsense/tools/pfPorts/$PORT ]; then
+			echo "Found port.  Copying and building..."
+			if [ ! -f /home/pfsense/tools/pfPorts/$PORT/useports ]; then
+				rm -rf $DOESPORTEXIST
+				mkdir -p $DOESPORTEXIST
+			fi
+			rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null
+			cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		fi
-		rm -rf /home/pfsense/tools/pfPorts/$PORT/work 2>/dev/null
-		cp -R /home/pfsense/tools/pfPorts/$PORT $DOESPORTEXIST/../
 		PORTSUFFIX=`echo $DOESPORTEXIST | cut -d'/' -f4-5`
 		if [ "$PORTSUFFIX" != "" ]; then
 			clean_build_install_clean $DOESPORTEXIST $MAKEJ_PORTS
