@@ -10,7 +10,11 @@
 require_once("/etc/inc/globals.inc");
 require_once("/etc/inc/util.inc");
 require_once("/etc/inc/xmlparse.inc");
-require_once("/etc/inc/config.lib.inc");
+/* NOTE: Helpful for 1.2.3 builds which do not have this file. */
+if (file_exists("/etc/inc/config.lib.inc"))
+	require_once("/etc/inc/config.lib.inc");
+else
+	require_once("/etc/inc/config.inc");
 require_once("/etc/inc/functions.inc");
 
 $config = parse_config(true);
