@@ -7,7 +7,7 @@
 # Please send all suggested changes to the maintainer instead of committing
 # them to CVS yourself.
 #
-# $FreeBSD: ports/Mk/bsd.php.mk,v 1.61 2010/10/16 11:51:43 ade Exp $
+# $FreeBSD: ports/Mk/bsd.php.mk,v 1.63 2010/12/04 07:30:13 ade Exp $
 #
 # Adding 'USE_PHP=yes' to a port includes this Makefile after bsd.ports.pre.mk.
 # If the port requires a predefined set of PHP extensions, they can be
@@ -157,7 +157,7 @@ SUB_LIST+=	PHP_EXT_DIR=${PHP_EXT_DIR}
 .if defined(USE_PHPIZE) || defined(USE_PHPEXT)
 BUILD_DEPENDS+=	${PHPBASE}/bin/phpize:${PORTSDIR}/${PHP_PORT}
 GNU_CONFIGURE=	yes
-USE_AUTOTOOLS+=	autoconf:268:env
+USE_AUTOTOOLS+=	autoconf:env
 CONFIGURE_ARGS+=--with-php-config=${PHPBASE}/bin/php-config
 
 configure-message: phpize-message do-phpize
@@ -244,7 +244,7 @@ php-ini:
 # non-version specific components
 _USE_PHP_ALL=	apc bcmath bitset bz2 calendar ctype curl dba \
 		exif fileinfo fribidi ftp gd gettext gmp \
-		hash iconv imap interbase json ldap mbstring mcrypt \
+		hash iconv imap interbase intl json ldap mbstring mcrypt \
 		memcache mssql mysql odbc \
 		openssl pcntl pcre pdf pgsql posix \
 		pspell radius readline recode session shmop snmp \
@@ -285,6 +285,7 @@ gmp_DEPENDS=	math/php${PHP_VER}-gmp
 iconv_DEPENDS=	converters/php${PHP_VER}-iconv
 imap_DEPENDS=	mail/php${PHP_VER}-imap
 interbase_DEPENDS=	databases/php${PHP_VER}-interbase
+intl_DEPENDS=	devel/pecl-intl
 ldap_DEPENDS=	net/php${PHP_VER}-ldap
 mbstring_DEPENDS=	converters/php${PHP_VER}-mbstring
 mcal_DEPENDS=	misc/php${PHP_VER}-mcal

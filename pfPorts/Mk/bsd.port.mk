@@ -1,7 +1,7 @@
 #-*- mode: makefile; tab-width: 4; -*-
 # ex:ts=4
 #
-# $FreeBSD: ports/Mk/bsd.port.mk,v 1.649 2010/09/29 20:51:55 pav Exp $
+# $FreeBSD: ports/Mk/bsd.port.mk,v 1.660 2010/12/04 07:30:13 ade Exp $
 #	$NetBSD: $
 #
 #	bsd.port.mk - 940820 Jordan K. Hubbard.
@@ -288,12 +288,12 @@ FreeBSD_MAINTAINER=	portmgr@FreeBSD.org
 # settable options.  (Setting USE_* in /etc/make.conf is always wrong).
 #
 # WITH_DEBUG            - If set, debugging flags are added to CFLAGS and the
-#                         binaries don't get stripped by INSTALL_PROGRAM.
-#                         Besides, individual ports might add their specific
-#                         to produce binaries for debugging purposes.
-#                         You can override the debug flags that are passed to
-#                         the compiler by setting DEBUG_FLAGS. It is set to
-#                         "-g" at default.
+#                         binaries don't get stripped by INSTALL_PROGRAM or
+#                         INSTALL_LIB. Besides, individual ports might
+#                         add their specific to produce binaries for debugging
+#                         purposes. You can override the debug flags that are
+#                         passed to the compiler by setting DEBUG_FLAGS. It is
+#                         set to "-g" at default.
 #
 # USE_BZIP2		- If set, this port tarballs use bzip2, not gzip, for
 #				  compression.
@@ -371,8 +371,7 @@ FreeBSD_MAINTAINER=	portmgr@FreeBSD.org
 #				  should not be used in Makefile.
 ##
 # USE_BISON		- Implies that the port uses bison in one way or another:
-#				  'yes' (backwards compatibility) - use bison for building
-#				  new features: 'build', 'run', 'both', implying build,
+#				  'build', 'run', 'both', implying build,
 #				  runtime, and both build/run dependencies
 ##
 # USE_IMAKE		- If set, this port uses imake.
@@ -551,6 +550,12 @@ FreeBSD_MAINTAINER=	portmgr@FreeBSD.org
 #				  pattern meta-characters "*", "?", "[", "]", and "!".
 #				  Example: apache*-1.2* apache*-1.3.[012345] apache-*+ssl_*
 #
+# CONFLICTS_BUILD
+#				- Check conflict prior to the build.
+#
+# CONFLICTS_INSTALL
+#				- Check conflict prior to the installation stage.
+#
 # Various directory definitions and variables to control them.
 # You rarely need to redefine any of these except WRKSRC and NO_WRKSUBDIR.
 #
@@ -616,6 +621,7 @@ FreeBSD_MAINTAINER=	portmgr@FreeBSD.org
 #				  default, also strips them, unless ${STRIP} is
 #				  overridden to be the empty string).
 # INSTALL_KLD	- As INSTALL_PROGRAM, but without the STRIP.
+# INSTALL_LIB	- As INSTALL_DATA, but also strips the file.
 # INSTALL_SCRIPT
 #				- A command to install executable scripts.
 # INSTALL_DATA	- A command to install sharable data.
@@ -970,6 +976,7 @@ FreeBSD_MAINTAINER=	portmgr@FreeBSD.org
 #				  Default: ${PORTSDIR}/Templates/BSD.local.dist or
 #				  /etc/mtree/BSD.usr.dist if ${PREFIX} == "/usr".
 # PLIST_DIRS	- Directories to be added to packing list
+# PLIST_DIRSTRY	- Directories to be added to packing list and try to remove them.
 # PLIST_FILES	- Files and symbolic links to be added to packing list
 #
 # PLIST			- Name of the `packing list' file.
@@ -1121,7 +1128,7 @@ FreeBSD_MAINTAINER=	portmgr@FreeBSD.org
 #				- Different checksum algorithms to check for verifying the
 #				  integrity of the distfiles. The absence of the algorithm
 #				  in distinfo doesn't make it fail.
-#				  Default: md5 sha256
+#				  Default: sha256 (md5 is deprecated, allowed but unused)
 # NO_CHECKSUM	- Don't verify the checksum.  Typically used when
 #				  when you noticed the distfile you just fetched has
 #				  a different checksum and you intend to verify if
@@ -2038,13 +2045,6 @@ RUN_DEPENDS+=	${_GL_${_component}_RUN_DEPENDS}
 .if defined(USE_BISON)
 _BISON_DEPENDS=	bison:${PORTSDIR}/devel/bison
 
-# XXX: backwards compatibility
-. if ${USE_BISON:L} == "yes"
-USE_BISON=	build
-pre-everything::
-	@${ECHO_MSG} "WARNING: USE_BISON=yes deprecated, use build/run/both"
-. endif
-
 . if ${USE_BISON:L} == "build"
 BUILD_DEPENDS+= ${_BISON_DEPENDS}
 . elif ${USE_BISON:L} == "run"
@@ -2265,16 +2265,17 @@ DO_NADA?=		${TRUE}
 # Use this as the first operand to always build dependency.
 NONEXISTENT?=	/nonexistent
 
-CHECKSUM_ALGORITHMS?= md5 sha256
+CHECKSUM_ALGORITHMS?= sha256
 
-MD5_FILE?=		${MASTERDIR}/distinfo
+DISTINFO_FILE?=		${MASTERDIR}/distinfo
 
 MAKE_FLAGS?=	-f
 MAKEFILE?=		Makefile
 MAKE_ENV+=		PREFIX=${PREFIX} \
 			LOCALBASE=${LOCALBASE} X11BASE=${X11BASE} \
 			MOTIFLIB="${MOTIFLIB}" LIBDIR="${LIBDIR}" \
-			CC="${CC}" CFLAGS="${CFLAGS}" CXX="${CXX}" CXXFLAGS="${CXXFLAGS}" \
+			CC="${CC}" CPP="${CPP}" CXX="${CXX}" \
+			CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" \
 			MANPREFIX="${MANPREFIX}"
 
 # Add -fno-strict-aliasing to CFLAGS with optimization level -O2 or higher.
@@ -2424,6 +2425,8 @@ INSTALL_PROGRAM= \
 	${INSTALL} ${COPY} ${STRIP} ${_BINOWNGRP} -m ${BINMODE}
 INSTALL_KLD= \
 	${INSTALL} ${COPY} ${_BINOWNGRP} -m ${BINMODE}
+INSTALL_LIB= \
+	${INSTALL} ${COPY} ${STRIP} ${_SHROWNGRP} -m ${SHAREMODE} 
 INSTALL_SCRIPT= \
 	${INSTALL} ${COPY} ${_BINOWNGRP} -m ${BINMODE}
 INSTALL_DATA= \
@@ -2432,6 +2435,7 @@ INSTALL_MAN= \
 	${INSTALL} ${COPY} ${_MANOWNGRP} -m ${MANMODE}
 
 INSTALL_MACROS=	BSD_INSTALL_PROGRAM="${INSTALL_PROGRAM}" \
+			BSD_INSTALL_LIB="${INSTALL_LIB}" \
 			BSD_INSTALL_SCRIPT="${INSTALL_SCRIPT}" \
 			BSD_INSTALL_DATA="${INSTALL_DATA}" \
 			BSD_INSTALL_MAN="${INSTALL_MAN}"
@@ -2494,6 +2498,12 @@ PKG_ARGS+=		-o ${PKGORIGIN}
 .endif
 .if defined(CONFLICTS) && !defined(DISABLE_CONFLICTS)
 PKG_ARGS+=		-C "${CONFLICTS}"
+.endif
+.if defined(CONFLICTS_BUILD) && !defined(DISABLE_CONFLICTS)
+PKG_ARGS+=		-C "${CONFLICTS_BUILD}"
+.endif
+.if defined(CONFLICTS_INSTALL) && !defined(DISABLE_CONFLICTS)
+PKG_ARGS+=		-C "${CONFLICTS_INSTALL}"
 .endif
 .endif
 .if defined(PKG_NOCOMPRESS)
@@ -3071,12 +3081,8 @@ check-makevars::
 	@${FALSE}
 .endif
 _MLINKS=	${_MLINKS_PREPEND}
-# XXX 20040119 This next line should read:
-# .for lang in ${MANLANG:S%^%man/%:S%^man/""$%man%}
-# but there is currently a bug in make(1) that prevents the double-quote
-# substitution from working correctly.  Once that problem is addressed,
-# and has had a enough time to mature, this hack should be removed.
-.for lang in ${MANLANG:S%^%man/%:S%^man/""$%man%:S%^man/"$%man%}
+
+.for lang in ${MANLANG:S%^%man/%:S%^man/""$%man%}
 .for ___pmlinks in ${__pmlinks}
 .for __lang in ${lang}
 _MLINKS+=	${___pmlinks:S// /g}
@@ -3094,12 +3100,7 @@ _COUNT=1
 .endif
 .endfor
 
-# XXX 20040119 This next line should read:
-# .for manlang in ${MANLANG:S%^%man/%:S%^man/""$%man%}
-# but there is currently a bug in make(1) that prevents the double-quote
-# substitution from working correctly.  Once that problem is addressed,
-# and has had a enough time to mature, this hack should be removed.
-.for manlang in ${MANLANG:S%^%man/%:S%^man/""$%man%:S%^man/"$%man%}
+.for manlang in ${MANLANG:S%^%man/%:S%^man/""$%man%}
 
 .for sect in 1 2 3 4 5 6 7 8 9 L N
 # MAN${sect} is for man pages installed for all languages in MANLANG for a given
@@ -3405,9 +3406,9 @@ build: configure
 .endif
 
 # Disable install
-.if defined(NO_INSTALL) && !target(install)
-install: build
-	@${TOUCH} ${TOUCH_FLAGS} ${INSTALL_COOKIE}
+.if defined(NO_INSTALL) && !target(do-install)
+do-install:
+	@${DO_NADA}
 .endif
 
 # Disable package
@@ -3458,9 +3459,6 @@ options-message:
 .endif
 .if defined(_OPTIONS_READ)
 	@${ECHO_MSG} "===>  Found saved configuration for ${_OPTIONS_READ}"
-.if ${OPTIONSFILE} != ${OPTIONSFILE}
-	@${ECHO_MSG} "===>  *** CAUTION *** Using wrong configuration file ${OPTIONSFILE}"
-.endif
 .endif
 
 
@@ -3513,10 +3511,10 @@ check-vulnerable:
 	fi
 .endif
 
-# set alg to any of SIZE, MD5, SHA256 (or any other checksum algorithm):
-DISTINFO_DATA?=	if [ \( -n "${DISABLE_SIZE}" -a -n "${NO_CHECKSUM}" \) -o ! -f "${MD5_FILE}" ]; then exit; fi; \
+# set alg to any of SIZE, SHA256 (or any other checksum algorithm):
+DISTINFO_DATA?=	if [ \( -n "${DISABLE_SIZE}" -a -n "${NO_CHECKSUM}" \) -o ! -f "${DISTINFO_FILE}" ]; then exit; fi; \
 	DIR=${DIST_SUBDIR}; ${AWK} -v alg=$$alg -v file=$${DIR:+$$DIR/}$${file}	\
-		'$$1 == alg && $$2 == "(" file ")" {print $$4}' ${MD5_FILE}
+		'$$1 == alg && $$2 == "(" file ")" {print $$4}' ${DISTINFO_FILE}
 
 # Fetch
 
@@ -3547,11 +3545,11 @@ do-fetch:
 				${ECHO_MSG} "=> Please correct this problem and try again."; \
 				exit 1; \
 			fi; \
-			if [ -f ${MD5_FILE} -a "x${NO_CHECKSUM}" = "x" ]; then \
-				_md5sum=`alg=MD5; ${DISTINFO_DATA}`; \
-				if [ -z "$$_md5sum" ]; then \
-					${ECHO_MSG} "=> $${DIR:+$$DIR/}$$file is not in ${MD5_FILE}."; \
-					${ECHO_MSG} "=> Either ${MD5_FILE} is out of date, or"; \
+			if [ -f ${DISTINFO_FILE} -a "x${NO_CHECKSUM}" = "x" ]; then \
+				_sha256sum=`alg=SHA256; ${DISTINFO_DATA}`; \
+				if [ -z "$$_sha256sum" ]; then \
+					${ECHO_MSG} "=> $${DIR:+$$DIR/}$$file is not in ${DISTINFO_FILE}."; \
+					${ECHO_MSG} "=> Either ${DISTINFO_FILE} is out of date, or"; \
 					${ECHO_MSG} "=> $${DIR:+$$DIR/}$$file is spelled incorrectly."; \
 					exit 1; \
 				fi; \
@@ -3750,6 +3748,11 @@ do-patch:
 	fi
 .endif
 
+.if !target(patch-autotools)
+patch-autotools:
+	@${DO_NADA}
+.endif
+
 .if !target(run-autotools)
 run-autotools:
 	@${DO_NADA}
@@ -3776,10 +3779,11 @@ do-configure:
 .if defined(HAS_CONFIGURE)
 	@(cd ${CONFIGURE_WRKSRC} && \
 	    ${SET_LATE_CONFIGURE_ARGS} \
-		if ! ${SETENV} CC="${CC}" CXX="${CXX}" \
+		if ! ${SETENV} CC="${CC}" CPP="${CPP}" CXX="${CXX}" \
 	    CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" \
 	    INSTALL="/usr/bin/install -c ${_BINOWNGRP}" \
 	    INSTALL_DATA="${INSTALL_DATA}" \
+	    INSTALL_LIB="${INSTALL_LIB}" \
 	    INSTALL_PROGRAM="${INSTALL_PROGRAM}" \
 	    INSTALL_SCRIPT="${INSTALL_SCRIPT}" \
 	    ${CONFIGURE_ENV} ./${CONFIGURE_SCRIPT} ${CONFIGURE_ARGS}; then \
@@ -3819,9 +3823,92 @@ do-build:
 # Check conflicts
 
 .if !target(check-conflicts)
-check-conflicts:
-.if defined(CONFLICTS) && !defined(DISABLE_CONFLICTS)
-	@found=`${PKG_INFO} -I ${CONFLICTS:C/.+/'&'/} 2>/dev/null | ${AWK} '{print $$1}'`; \
+check-conflicts: check-build-conflicts check-install-conflicts
+.endif
+
+.if !target(check-build-conflicts)
+check-build-conflicts:
+.if ( defined(CONFLICTS) || defined(CONFLICTS_BUILD) ) && !defined(DISABLE_CONFLICTS) && !defined(DEFER_CONFLICTS_CHECK)
+	@found=`${PKG_INFO} -I ${CONFLICTS:C/.+/'&'/} ${CONFLICTS_BUILD:C/.+/'&'/} 2>/dev/null | ${AWK} '{print $$1}'`; \
+	conflicts_with=; \
+	for entry in $${found}; do \
+		if ${PKG_INFO} -e $${entry} ; then \
+			prfx=`${PKG_INFO} -q -p "$${entry}" 2> /dev/null | ${SED} -ne '1s/^@cwd //p'`; \
+			orgn=`${PKG_INFO} -q -o "$${entry}" 2> /dev/null`; \
+			if [ "/${PREFIX}" = "/$${prfx}" -a "/${PKGORIGIN}" != "/$${orgn}" ]; then \
+				conflicts_with="$${conflicts_with} $${entry}"; \
+			fi; \
+		fi; \
+	done; \
+	if [ -n "$${conflicts_with}" ]; then \
+		${ECHO_MSG}; \
+		${ECHO_MSG} "===>  ${PKGNAME} conflicts with installed package(s): "; \
+		for entry in $${conflicts_with}; do \
+			${ECHO_MSG} "      $${entry}"; \
+		done; \
+		${ECHO_MSG}; \
+		${ECHO_MSG} "      They will not build together."; \
+		${ECHO_MSG} "      Please remove them first with pkg_delete(1)."; \
+		exit 1; \
+	fi
+.endif
+.endif
+
+.if !target(identify-install-conflicts)
+identify-install-conflicts:
+.if ( defined(CONFLICTS) || defined(CONFLICTS_INSTALL) ) && !defined(DISABLE_CONFLICTS)
+	@found=`${PKG_INFO} -I ${CONFLICTS:C/.+/'&'/} ${CONFLICTS_INSTALL:C/.+/'&'/} 2>/dev/null | ${AWK} '{print $$1}'`; \
+	conflicts_with=; \
+	for entry in $${found}; do \
+		if ${PKG_INFO} -e $${entry} ; then \
+			prfx=`${PKG_INFO} -q -p "$${entry}" 2> /dev/null | ${SED} -ne '1s/^@cwd //p'`; \
+			orgn=`${PKG_INFO} -q -o "$${entry}" 2> /dev/null`; \
+			if [ "/${PREFIX}" = "/$${prfx}" -a "/${PKGORIGIN}" != "/$${orgn}" ]; then \
+				conflicts_with="$${conflicts_with} $${entry}"; \
+			fi; \
+		fi; \
+	done; \
+	if [ -n "$${conflicts_with}" ]; then \
+		${ECHO_MSG}; \
+		${ECHO_MSG} "===>  ${PKGNAME} conflicts with installed package(s): "; \
+		for entry in $${conflicts_with}; do \
+			${ECHO_MSG} "      $${entry}"; \
+		done; \
+		${ECHO_MSG}; \
+		${ECHO_MSG} "      They install files into the same place."; \
+		${ECHO_MSG} "      You may want to stop build with Ctrl + C."; \
+		sleep 10; \
+	fi
+.endif
+.endif
+
+.if !target(check-install-conflicts)
+check-install-conflicts:
+.if ( defined(CONFLICTS) || defined(CONFLICTS_INSTALL) || ( defined(CONFLICTS_BUILD) && defined(DEFER_CONFLICTS_CHECK) ) ) && !defined(DISABLE_CONFLICTS) 
+.if defined(DEFER_CONFLICTS_CHECK)
+	@found=`${PKG_INFO} -I ${CONFLICTS:C/.+/'&'/} ${CONFLICTS_BUILD:C/.+/'&'/} ${CONFLICTS_INSTALL:C/.+/'&'/} 2>/dev/null | ${AWK} '{print $$1}'`; \
+	conflicts_with=; \
+	for entry in $${found}; do \
+		if ${PKG_INFO} -e $${entry} ; then \
+			prfx=`${PKG_INFO} -q -p "$${entry}" 2> /dev/null | ${SED} -ne '1s/^@cwd //p'`; \
+			orgn=`${PKG_INFO} -q -o "$${entry}" 2> /dev/null`; \
+			if [ "/${PREFIX}" = "/$${prfx}" -a "/${PKGORIGIN}" != "/$${orgn}" ]; then \
+				conflicts_with="$${conflicts_with} $${entry}"; \
+			fi; \
+		fi; \
+	done; \
+	if [ -n "$${conflicts_with}" ]; then \
+		${ECHO_MSG}; \
+		${ECHO_MSG} "===>  ${PKGNAME} conflicts with installed package(s): "; \
+		for entry in $${conflicts_with}; do \
+			${ECHO_MSG} "      $${entry}"; \
+		done; \
+		${ECHO_MSG}; \
+		${ECHO_MSG} "      Please remove them first with pkg_delete(1)."; \
+		exit 1; \
+	fi
+.else
+	@found=`${PKG_INFO} -I ${CONFLICTS:C/.+/'&'/} ${CONFLICTS_INSTALL:C/.+/'&'/} 2>/dev/null | ${AWK} '{print $$1}'`; \
 	conflicts_with=; \
 	for entry in $${found}; do \
 		if ${PKG_INFO} -e $${entry} ; then \
@@ -3843,7 +3930,8 @@ check-conflicts:
 		${ECHO_MSG} "      Please remove them first with pkg_delete(1)."; \
 		exit 1; \
 	fi
-.endif  # CONFLICTS
+.endif # defined(DEFER_CONFLICTS_CHECK)
+.endif
 .endif
 
 # Install
@@ -3876,20 +3964,7 @@ do-package: ${TMPPLIST}
 		fi; \
 	fi
 	@__softMAKEFLAGS='${__softMAKEFLAGS:S/'/'\''/g}'; \
-	_LATE_PKG_ARGS=""; \
-	if [ -f ${PKGINSTALL} ]; then \
-		_LATE_PKG_ARGS="$${_LATE_PKG_ARGS} -i ${PKGINSTALL}"; \
-	fi; \
-	if [ -f ${PKGDEINSTALL} ]; then \
-		_LATE_PKG_ARGS="$${_LATE_PKG_ARGS} -k ${PKGDEINSTALL}"; \
-	fi; \
-	if [ -f ${PKGREQ} ]; then \
-		_LATE_PKG_ARGS="$${_LATE_PKG_ARGS} -r ${PKGREQ}"; \
-	fi; \
-	if [ -f ${PKGMESSAGE} ]; then \
-		_LATE_PKG_ARGS="$${_LATE_PKG_ARGS} -D ${PKGMESSAGE}"; \
-	fi; \
-	if ${PKG_CMD} ${PKG_ARGS} ${PKGFILE}; then \
+	if ${PKG_CMD} -b ${PKGNAME} ${PKGFILE}; then \
 		if [ -d ${PACKAGES} ]; then \
 			cd ${.CURDIR} && eval ${MAKE} $${__softMAKEFLAGS} package-links; \
 		fi; \
@@ -4330,19 +4405,19 @@ _CHROOT_SEQ=
 .endif
 _SANITY_SEQ=	${_CHROOT_SEQ} pre-everything check-makefile \
 				check-categories check-makevars check-desktop-entries \
-				check-conflicts check-depends check-deprecated \
+				check-depends identify-install-conflicts check-deprecated \
 				check-vulnerable check-license buildanyway-message \
 				options-message
 _FETCH_DEP=		check-sanity
 _FETCH_SEQ=		fetch-depends pre-fetch pre-fetch-script \
 				do-fetch post-fetch post-fetch-script
 _EXTRACT_DEP=	fetch
-_EXTRACT_SEQ=	extract-message checksum extract-depends pre-extract \
-				pre-extract-script do-extract \
+_EXTRACT_SEQ=	check-build-conflicts extract-message checksum extract-depends \
+				pre-extract pre-extract-script do-extract \
 				post-extract post-extract-script
 _PATCH_DEP=		extract
 _PATCH_SEQ=		ask-license patch-message patch-depends patch-dos2unix pre-patch \
-				pre-patch-script do-patch post-patch post-patch-script
+				pre-patch-script do-patch patch-autotools post-patch post-patch-script
 _CONFIGURE_DEP=	patch
 _CONFIGURE_SEQ=	build-depends lib-depends configure-message \
 				pre-configure pre-configure-script \
@@ -4351,7 +4426,7 @@ _BUILD_DEP=		configure
 _BUILD_SEQ=		build-message pre-build pre-build-script do-build \
 				post-build post-build-script
 _INSTALL_DEP=	build
-_INSTALL_SEQ=	install-message run-depends lib-depends apply-slist pre-install \
+_INSTALL_SEQ=	install-message check-install-conflicts run-depends lib-depends apply-slist pre-install \
 				pre-install-script generate-plist check-already-installed
 _INSTALL_SUSEQ= check-umask install-mtree pre-su-install \
 				pre-su-install-script create-users-groups do-install \
@@ -4750,7 +4825,7 @@ fetch-url-list-int:
 			fi ; \
 			for site in `eval $$SORTED_MASTER_SITES_CMD_TMP ${_RANDOMIZE_SITES}`; do \
 				DIR=${DIST_SUBDIR}; \
-				CKSIZE=`${GREP} "^SIZE ($${DIR:+$$DIR/}$$file)" ${MD5_FILE} | ${AWK} '{print $$4}'`; \
+				CKSIZE=`${GREP} "^SIZE ($${DIR:+$$DIR/}$$file)" ${DISTINFO_FILE} | ${AWK} '{print $$4}'`; \
 				case $${file} in \
 				*/*)	args="-o $${file} $${site}$${file}";; \
 				*)		args=$${site}$${file};; \
@@ -4781,7 +4856,7 @@ fetch-url-list-int:
 			fi ; \
 			for site in `eval $$SORTED_PATCH_SITES_CMD_TMP ${_RANDOMIZE_SITES}`; do \
 				DIR=${DIST_SUBDIR}; \
-				CKSIZE=`${GREP} "^SIZE ($${DIR:+$$DIR/}$$file)" ${MD5_FILE} | ${AWK} '{print $$4}'`; \
+				CKSIZE=`${GREP} "^SIZE ($${DIR:+$$DIR/}$$file)" ${DISTINFO_FILE} | ${AWK} '{print $$4}'`; \
 				case $${file} in \
 				*/*)	args="-o $${file} $${site}$${file}";; \
 				*)		args=$${site}$${file};; \
@@ -4839,7 +4914,7 @@ checksum_init=\
 makesum: check-checksum-algorithms
 	@cd ${.CURDIR} && ${MAKE} ${__softMAKEFLAGS} fetch NO_CHECKSUM=yes \
 		DISABLE_SIZE=yes
-	@if [ -f ${MD5_FILE} ]; then ${CAT} /dev/null > ${MD5_FILE}; fi
+	@if [ -f ${DISTINFO_FILE} ]; then ${CAT} /dev/null > ${DISTINFO_FILE}; fi
 	@( \
 		cd ${DISTDIR}; \
 		\
@@ -4850,17 +4925,17 @@ makesum: check-checksum-algorithms
 				eval alg_executable=\$$$$alg; \
 				\
 				if [ $$alg_executable != "NO" ]; then \
-					$$alg_executable $$file >> ${MD5_FILE}; \
+					$$alg_executable $$file >> ${DISTINFO_FILE}; \
 				fi; \
 			done; \
 			if [ -z "${NO_SIZE}" ]; then \
-				${ECHO_CMD} "SIZE ($$file) = "`${LS} -ALln $$file | ${AWK} '{print $$5}'` >> ${MD5_FILE}; \
+				${ECHO_CMD} "SIZE ($$file) = "`${LS} -ALln $$file | ${AWK} '{print $$5}'` >> ${DISTINFO_FILE}; \
 			fi; \
 		done \
 	)
 	@for file in ${_IGNOREFILES}; do \
 		for alg in ${CHECKSUM_ALGORITHMS:U}; do \
-			${ECHO_CMD} "$$alg ($$file) = IGNORE" >> ${MD5_FILE}; \
+			${ECHO_CMD} "$$alg ($$file) = IGNORE" >> ${DISTINFO_FILE}; \
 		done; \
 	done
 .endif
@@ -4868,7 +4943,7 @@ makesum: check-checksum-algorithms
 .if !target(checksum)
 checksum: fetch check-checksum-algorithms
 	@${checksum_init} \
-	if [ -f ${MD5_FILE} ]; then \
+	if [ -f ${DISTINFO_FILE} ]; then \
 		cd ${DISTDIR}; OK="";\
 		for file in ${_CKSUMFILES}; do \
 			ignored="true"; \
@@ -4972,7 +5047,7 @@ checksum: fetch check-checksum-algorithms
 		\
 		if [ "$$OK" != "true" -a ${FETCH_REGET} -eq 0 ]; then \
 			${ECHO_MSG} "===>  Giving up on fetching files: $$refetchlist"; \
-			${ECHO_MSG} "Make sure the Makefile and distinfo file (${MD5_FILE})"; \
+			${ECHO_MSG} "Make sure the Makefile and distinfo file (${DISTINFO_FILE})"; \
 			${ECHO_MSG} "are up to date.  If you are absolutely sure you want to override this"; \
 			${ECHO_MSG} "check, type \"make NO_CHECKSUM=yes [other args]\"."; \
 			exit 1; \
@@ -4981,7 +5056,7 @@ checksum: fetch check-checksum-algorithms
 			exit 1; \
 		fi; \
 	elif [ -n "${_CKSUMFILES:M*}" ]; then \
-		${ECHO_MSG} "=> No checksum file (${MD5_FILE})."; \
+		${ECHO_MSG} "=> No checksum file (${DISTINFO_FILE})."; \
 	fi
 .endif
 
@@ -5368,7 +5443,7 @@ FETCH_LIST?=	for i in $$deps; do \
 				continue;	\
 			fi;;	\
 		esac;	\
-		echo cd $$dir; ${MAKE} $$targ; \
+		echo cd $$dir; cd $$dir; ${MAKE} $$targ; \
 	done
 
 .if !target(fetch-required)
@@ -5701,15 +5776,20 @@ generate-plist:
 	@if [ -f ${PLIST} ]; then \
 		${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} ${PLIST} >> ${TMPPLIST}; \
 	fi
+ 
+.for dir in ${PLIST_DIRS}
+	@${ECHO_CMD} ${dir} | ${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} -e 's,^,@dirrm ,' >> ${TMPPLIST}
+.endfor
+.for dir in ${PLIST_DIRSTRY}
+	@${ECHO_CMD} ${dir} | ${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} -e 's,^,@dirrmtry ,' >> ${TMPPLIST}
+.endfor
+
 .for reinplace in ${PLIST_REINPLACE}
 .if defined(PLIST_REINPLACE_${reinplace:U})
 	@${SED} -i "" -e '${PLIST_REINPLACE_${reinplace:U}}' ${TMPPLIST}
 .endif
 .endfor
- 
-.for dir in ${PLIST_DIRS}
-	@${ECHO_CMD} ${dir} | ${SED} ${PLIST_SUB:S/$/!g/:S/^/ -e s!%%/:S/=/%%!/} -e 's,^,@dirrm ,' >> ${TMPPLIST}
-.endfor
+
 .if defined(USE_LINUX_PREFIX)
 .if defined(USE_LDCONFIG)
 	@${ECHO_CMD} "@exec ${LDCONFIG_CMD}" >> ${TMPPLIST}
@@ -5932,6 +6012,7 @@ fake-pkg:
 		fi; \
 		if [ -f ${PKGMESSAGE} ]; then \
 			${CP} ${PKGMESSAGE} ${PKG_DBDIR}/${PKGNAME}/+DISPLAY; \
+			${ECHO_CMD} "@display +DISPLAY" >> ${PKG_DBDIR}/${PKGNAME}/+CONTENTS; \
 		fi; \
 		for dep in `${PKG_INFO} -qf ${PKGNAME} | ${AWK} '/^@pkgdep / {print $$2}' | ${SORT} -u`; do \
 			if [ -d ${PKG_DBDIR}/$$dep -a -z `${ECHO_CMD} $$dep | ${GREP} -E ${PKG_IGNORE_DEPENDS}` ]; then \
@@ -5992,10 +6073,6 @@ config:
 .if !defined(OPTIONS)
 	@${ECHO_MSG} "===> No options to configure"
 .else
-.if ${OPTIONSFILE} != ${OPTIONSFILE}
-	@${ECHO_MSG} "===> Using wrong configuration file ${OPTIONSFILE}"
-	@exit 1
-.endif
 .if ${UID} != 0 && !defined(INSTALL_AS_USER)
 	@optionsdir=${OPTIONSFILE}; optionsdir=$${optionsdir%/*}; \
 	${ECHO_MSG} "===>  Switching to root credentials to create $${optionsdir}"; \
@@ -6023,7 +6100,7 @@ config:
 		elif [ ! -z "$${withoutval}" ]; then \
 			val=off; \
 		else \
-			val=$$3; \
+			val=$${defaultval}; \
 		fi; \
 		DEFOPTIONS="$${DEFOPTIONS} $$1 \"$$2\" $${val}"; \
 		shift 3; \
@@ -6128,7 +6205,7 @@ showconfig:
 		elif [ ! -z "$${withoutval}" ]; then \
 			val=off; \
 		else \
-			val="$$3 (default)"; \
+			val="$${defaultval} (default)"; \
 		fi; \
 		${ECHO_MSG} "     $$1=$${val} \"$$2\""; \
 		shift 3; \
@@ -6321,7 +6398,7 @@ install-desktop-entries:
 		${ECHO_CMD} "@cwd ${DESKTOPDIR}" >> ${TMPPLIST}; \
 	fi; \
 	while [ $$# -gt 6 ]; do \
-		filename="$$4.desktop"; \
+		filename="`${ECHO_CMD} "$$4" | ${TR} -cd [:alnum:]`.desktop"; \
 		pathname="${DESKTOPDIR}/$$filename"; \
 		categories="$$5"; \
 		if [ -z "$$categories" ]; then \
