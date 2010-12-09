@@ -611,7 +611,6 @@ cust_overlay_host_binaries() {
 	cd $SRCDIR/usr.sbin/syslogd
 	(make clean) | egrep -wi '(^>>>|error)'
  	(make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-	(make install) | egrep -wi '(^>>>|error)'
 	(make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
 	echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
 	if [ -f ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd ]; then
