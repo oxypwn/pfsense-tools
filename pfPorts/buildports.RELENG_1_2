@@ -15,8 +15,11 @@ touch /tmp/pfPort_alreadybuilt
 CURRENTDIR=`pwd`
 cd /usr/ports
 
-while getopts J:c o; do
+while getopts P:J:c o; do
 	case "${o}" in
+		P)	BUILD_ONEPORT="${OPTARG}"
+			echo ">>> Building a single port: '${BUILD_ONEPORT}'"
+			;;
 		J)	MAKEJ_PORTS="${OPTARG}"
 			echo ">>> Setting MAKEJ_PORTS (-j) to '${MAKEJ_PORTS}'"
 			;;
@@ -131,6 +134,11 @@ rm -rf /usr/ports/chinese/links
 
 echo ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
+	if [ "$BUILD_ONEPORT" != "" ]; then
+		if [ "$PORT" != "$BUILD_ONEPORT" ]; then
+			continue;
+		fi
+	fi
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
 		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
