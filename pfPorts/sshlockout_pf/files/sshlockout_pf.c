@@ -115,29 +115,29 @@ static void pf_tableentry(char *, int, int, int, int);
 static void
 pf_tableentry(char *tablename, int n1, int n2, int n3, int n4)
 {
-        struct pfioc_table io;
-        struct pfr_table table;
-        struct pfr_addr addr;
+	struct pfioc_table io;
+	struct pfr_table table;
+	struct pfr_addr addr;
 	char buf[15] = { 0 };
 
-        bzero(&table, sizeof(table));
-        if (strlcpy(table.pfrt_name, tablename,
-                sizeof(table.pfrt_name)) >= sizeof(table.pfrt_name)) {
-                syslog(LOG_ERR, "could not add address to table %s", tablename);
-                return;
-        }
+	bzero(&table, sizeof(table));
+	if (strlcpy(table.pfrt_name, tablename,
+		sizeof(table.pfrt_name)) >= sizeof(table.pfrt_name)) {
+		syslog(LOG_ERR, "could not add address to table %s", tablename);
+		return;
+	}
 
-        bzero(&addr, sizeof(addr));
-        addr.pfra_af = AF_INET;
-        addr.pfra_net = 32;
+	bzero(&addr, sizeof(addr));
+	addr.pfra_af = AF_INET;
+	addr.pfra_net = 32;
 	snprintf(buf, sizeof(buf), "%d.%d.%d.%d", n1, n2, n3, n4);
 	addr.pfra_ip4addr.s_addr = inet_addr(buf);
 
-        bzero(&io, sizeof io);
-        io.pfrio_table = table;
-        io.pfrio_buffer = &addr;
-        io.pfrio_esize = sizeof(addr);
-        io.pfrio_size = 1;
+	bzero(&io, sizeof io);
+	io.pfrio_table = table;
+	io.pfrio_buffer = &addr;
+	io.pfrio_esize = sizeof(addr);
+	io.pfrio_size = 1;
 
 	if (ioctl(dev, DIOCRADDADDRS, &io))
 		syslog(LOG_ERR, "Error adding entry %s to table %s.\n", buf, tablename);
@@ -152,8 +152,8 @@ prune_24hour_records(void *arg __unused)
 	time_t ts = 0;
 
 	/* wakeup every 1/2 hour */
-        sleep.tv_sec = 60 * 30;
-        sleep.tv_nsec = 0;
+	sleep.tv_sec = 60 * 30;
+	sleep.tv_nsec = 0;
 
 	for (;;) {
 		// Reference time.
@@ -199,8 +199,8 @@ main(void)
 	TAILQ_INIT(&lockouts);
 
 	dev = open("/dev/pf", O_RDWR);
-        if (dev < 0)
-                errx(1, "Could not open device.");
+	if (dev < 0)
+		errx(1, "Could not open device.");
 
 	pthread_create(&GC, NULL, prune_24hour_records, NULL);
 
