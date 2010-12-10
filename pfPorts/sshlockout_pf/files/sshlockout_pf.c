@@ -6,6 +6,8 @@
  *  extened to keep a database of last 256 bad attempts 
  *  (MAXLOCKOUTS) and block user if they go over (MAXATTEMPTS).
  *
+ *  Rewrite from Ermal Luci to be 21st century compatible.
+ *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
  *  
@@ -47,82 +49,197 @@
  *
  */
 
+#include <sys/types.h>
+#include <sys/queue.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+
+#include <net/if.h>
+#include <net/pfvar.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <syslog.h>
 #include <time.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <err.h>
+
+#include <pthread.h>
 
 // Non changable globals
 #define MAXATTEMPTS 10
-#define MAXLOCKOUTS 256
-#define VERSION	"2.0"
+#define VERSION	"3.0"
+
+static int dev = -1;
 
 // Wall of shame (invalid login DB)
-static struct sshlog 
+struct sshlog 
 {
+	TAILQ_ENTRY(sshlog)	entry;
 	// IP ADDR Octets
-	int n1;
-	int n2;
-	int n3;
-	int n4;
+	int n1, n2, n3, n4;
 	// Invalid login attempts
 	int attempts;
 	// Last invalid timestamp
-	time_t ts;
-} lockouts[MAXLOCKOUTS + 1];
+	time_t l_ts;
+	// First invalid timestamp
+	time_t f_ts;
+	// GC or not
+	int inactive;
+};
+
+pthread_rwlock_t db_lock;
+#define LOCK_INIT    pthread_rwlock_init(&db_lock, NULL)
+#define RLOCK        pthread_rwlock_rdlock(&db_lock)
+#define UNLOCK       pthread_rwlock_unlock(&db_lock)
+#define WLOCK        pthread_rwlock_wrlock(&db_lock)
+
+TAILQ_HEAD(, sshlog) lockouts;
+
+enum action {
+	RELEASE,
+	BLOCK,
+};
 
 // Function declarations
-static void lockout(char *str, char *lockouttable);
-static void lockout_remove(char *str, char *lockouttable);
-static void check_for_denied_string(char *str, char *lockouttable, char *buf);
-static void check_for_accepted_string(char *str, char *lockouttable, char *buf);
-static void prune_oldest_record(void);
-static void prune_record(int n1, int n2, int n3, int n4);
-static void add_new_record(int n1, int n2, int n3, int n4);
-static void prune_24hour_records(void);
+static void doaction(char *, char *, enum action);
+static int check_for_string(char *, char *, char *buf, enum action);
+static void *prune_24hour_records(void *);
+static void pf_tableentry(char *, int, int, int, int);
+
+static void
+pf_tableentry(char *tablename, int n1, int n2, int n3, int n4)
+{
+        struct pfioc_table io;
+        struct pfr_table table;
+        struct pfr_addr addr;
+	char buf[15] = { 0 };
+
+        bzero(&table, sizeof(table));
+        if (strlcpy(table.pfrt_name, tablename,
+                sizeof(table.pfrt_name)) >= sizeof(table.pfrt_name)) {
+                syslog(LOG_ERR, "could not add address to table %s", tablename);
+                return;
+        }
+
+        bzero(&addr, sizeof(addr));
+        addr.pfra_af = AF_INET;
+        addr.pfra_net = 32;
+	snprintf(buf, sizeof(buf), "%d.%d.%d.%d", n1, n2, n3, n4);
+	addr.pfra_ip4addr.s_addr = inet_addr(buf);
+
+        bzero(&io, sizeof io);
+        io.pfrio_table = table;
+        io.pfrio_buffer = &addr;
+        io.pfrio_esize = sizeof(addr);
+        io.pfrio_size = 1;
+
+	if (ioctl(dev, DIOCRADDADDRS, &io))
+		syslog(LOG_ERR, "Error adding entry %s to table %s.\n", buf, tablename);
+}
+
+// Prune records older than 24 hours
+static void *
+prune_24hour_records(void *arg __unused) 
+{
+	struct timespec sleep;
+	struct sshlog *sshlog, *tmp;
+	time_t ts = 0;
+
+	/* wakeup every 1/2 hour */
+        sleep.tv_sec = 60 * 30;
+        sleep.tv_nsec = 0;
+
+	for (;;) {
+		// Reference time.
+		ts = time(NULL);
+
+		WLOCK;
+		TAILQ_FOREACH_SAFE(sshlog, &lockouts, entry, tmp) {
+			// Check to see if item is older than
+			// 24 hours.
+			if (difftime(ts, sshlog->f_ts) > 86400 ||
+			    sshlog->inactive > 0) {
+				TAILQ_REMOVE(&lockouts, sshlog, entry);
+				free(sshlog);
+			}
+		}
+		UNLOCK;
+		nanosleep(&sleep, 0);
+	}
+}
 
 // Start of program - main loop
 int
 main(void) 
 {
 	char buf[1024] = { 0 };
+	pthread_t GC;
 
 	// Initialize time conversion information
 	tzset();
 
+	// Open up stderr and stdout to the abyss
+	(void)freopen("/dev/null", "w", stdout);
+	(void)freopen("/dev/null", "w", stderr);
+	closefrom(4);
+
 	// Open syslog file
-	openlog("sshlockout", LOG_PID|LOG_CONS, LOG_AUTH);
+	openlog("sshlockout", LOG_PID|LOG_CONS, LOG_AUTH|LOG_AUTHPRIV);
 
 	// We are starting up
 	syslog(LOG_ERR, "sshlockout/webConfigurator v%s starting up", VERSION);
 
-	// Open up stderr and stdout to the abyss
-	(void)freopen("/dev/null", "w", stdout);
-	(void)freopen("/dev/null", "w", stderr);
+	// Init DB
+	TAILQ_INIT(&lockouts);
+
+	dev = open("/dev/pf", O_RDWR);
+        if (dev < 0)
+                errx(1, "Could not open device.");
+
+	pthread_create(&GC, NULL, prune_24hour_records, NULL);
+
+	LOCK_INIT;
 
 	// Loop through reading in syslog stream looking for
 	// for specific strings that indicate that a user has
 	// attempted login but failed.
 	while (fgets(buf, (int)sizeof(buf), stdin) != NULL) 
 	{
+		printf(buf);
 		/* if this is not sshd or webConfigurator related, continue on without processing */
 		if (strstr(buf, "sshd") == NULL && strstr(buf, "webConfigurator") == NULL)
 			continue;
 		// Check for various bad (or good!) strings in stream
-		check_for_denied_string("Failed password for root from", "sshlockout", buf);
-		check_for_denied_string("Failed password for admin from", "sshlockout",  buf);
-		check_for_denied_string("Failed password for invalid user", "sshlockout", buf);
-		check_for_denied_string("Illegal user", "sshlockout", buf);
-		check_for_denied_string("Invalid user", "sshlockout", buf);
-		check_for_denied_string("authentication error for", "sshlockout", buf);
-		check_for_denied_string("webConfigurator authentication error for", "webConfiguratorlockout", buf);
-		check_for_accepted_string("Successful webConfigurator login for user", "webConfiguratorlockout", buf);
-		check_for_accepted_string("Accepted keyboard-interactive/pam for", "sshlockout", buf);
-		// prune records older than 24 hours
-		prune_24hour_records();
+		if (check_for_string("Failed password for root from", "sshlockout", buf, BLOCK))
+			continue;
+		else if (check_for_string("Failed password for admin from", "sshlockout",  buf, BLOCK))
+			continue;
+		else if (check_for_string("Failed password for invalid user", "sshlockout", buf, BLOCK))
+			continue;
+		else if (check_for_string("Illegal user", "sshlockout", buf, BLOCK))
+			continue;
+		else if (check_for_string("Invalid user", "sshlockout", buf, BLOCK))
+			continue;
+		else if (check_for_string("authentication error for", "sshlockout", buf, BLOCK))
+			continue;
+		else if (check_for_string("webConfigurator authentication error for", "webConfiguratorlockout", buf, BLOCK))
+			continue;
+		else if (check_for_string("Successful webConfigurator login for user", "webConfiguratorlockout", buf, RELEASE))
+			continue;
+		else if (check_for_string("Accepted keyboard-interactive/pam for", "sshlockout", buf, RELEASE))
+			continue;
 	}
+
+	pthread_join(GC, NULL);
+
+	// stop GC
+	pthread_cancel(GC);
 
 	// We are exiting
 	syslog(LOG_ERR, "sshlockout/webConfigurator v%s exiting", VERSION);
@@ -131,320 +248,94 @@ main(void)
 	return(0);
 }
 
-// Prune records older than 24 hours
-static void prune_24hour_records(void) 
-{
-
-	// Loop tracking variable
-	int i = 0;
-
-	// Time tracker (unix epoch)
-	time_t now = 0;
-	time_t ts = 0;
-
-	// Init
-    now = time(NULL);
-
-	// Track the oldest record id.
-	// Set the known oldest to now.
-	ts = time(&now);
-
-	while(i < MAXLOCKOUTS) 
-	{
-		// Check to see if item is older than
-		// the oldest entry found thus far.
-		if(lockouts[i].ts - ts > 86400) {
-			lockouts[i].n1 = 0;
-			lockouts[i].n2 = 0;
-			lockouts[i].n3 = 0;
-			lockouts[i].n4 = 0;
-		}
-		i++;
-	}
-}
-
-
-// Check for passed string and lockout the 
-// host if we find the log message in stream.
-static void
-check_for_denied_string(char *str, char *lockouttable, char *buf)
+static int
+check_for_string(char *str, char *lockouttable, char *buf, enum action act)
 {
 	char *tmpstr = NULL;
+
 	if ((str = strstr(buf, str)) != NULL) 
 	{
 		if ((tmpstr = strstr(str, " from")) != NULL) {
 			if (strlen(tmpstr) > 5)
-				lockout(tmpstr + 5, lockouttable);
+				doaction(tmpstr + 5, lockouttable, act);
 		}
+		return (1);
 	}
+
+	return (0);
 }
 
-// Check for accepted string and remove the 
-// host from the local database if found.
 static void
-check_for_accepted_string(char *str, char *lockouttable, char *buf)
+doaction(char *str, char *lockouttable, enum action act)
 {
-	char *tmpstr = NULL;
-	if ((str = strstr(buf, str)) != NULL) 
-	{
-		if ((tmpstr = strstr(str, " from")) != NULL) {
-			if (strlen(tmpstr) > 5)
-				lockout_remove(tmpstr + 5, lockouttable);
-		}
-	}
-}
-
-// Loop through and remove the oldest entry
-static void 
-prune_oldest_record(void) 
-{
-	// Loop counter, status of record in db
-	int i = 0;
-	int oldestrecord = 0;
-
-	// Time tracker (unix epoch)
-	time_t now = 0;
-	time_t ts = 0;
-
-	// Init
-    now = time(NULL);
-
-	// Track the oldest record id.
-	// Set the known oldest to now.
-	ts = time(&now);
-
-	// Loop until we hit MAXLOCKOUTS
-	// looking for an emty slot
-	while(i < MAXLOCKOUTS) 
-	{
-		// Check to see if item is older than
-		// the oldest entry found thus far.
-		if(lockouts[i].ts < ts) 
-			oldestrecord = i;
-		// Increase by one
-		i++;
-	}
-
-	// Clear the oldest record (oldestrecord)
-	lockouts[oldestrecord].n1 = 0;
-	lockouts[oldestrecord].n2 = 0;
-	lockouts[oldestrecord].n3 = 0;
-	lockouts[oldestrecord].n4 = 0;
-	lockouts[oldestrecord].attempts = 0;
-}
-
-// Add new IP address to DB 
-static void 
-add_new_record(int n1, int n2, int n3, int n4) 
-{
-	// Loop counter, status of record in db
-	int foundrecord = 0, i = 0;
-
-	// Time tracker (unix epoch)
-	time_t now;
-
-	// Loop until we hit MAXLOCKOUTS
-	// looking for an empty slot
-	while(i < MAXLOCKOUTS && foundrecord == 0) 
-	{
-		// Look for the IP in the DB
-		if(lockouts[i].n1 == 0 &&
-			lockouts[i].n2 == 0 &&
-			lockouts[i].n3 == 0 &&
-			lockouts[i].n4 == 0) 
-		{
-			foundrecord = 1;
-			break;
-		}
-		// If we did not find an empty slot
-		// go ahead and prune a record and
-		// start the empty slot search again.
-		if(i == MAXLOCKOUTS) {
-			prune_oldest_record();
-			// Set to -1, it will ++ below (+3)
-			i = -1;
-		}
-		// Increase by one
-		i++;
-	}
-
-	// Grab the time
-    now = time(NULL);
-
-	// Add item to DB
-	lockouts[i].n1 = n1;
-	lockouts[i].n2 = n2;
-	lockouts[i].n3 = n3;
-	lockouts[i].n4 = n4;
-
-	// Add last seen epoch
-	lockouts[i].ts = time(&now);
-}
-
-// Record last IP date
-static void 
-record_event(int n1, int n2, int n3, int n4) 
-{
-	// Loop counter, status of record in db
-	int i = 0;
-
-	// Time tracker (unix epoch)
-	time_t now;
-
-	// Loop until we hit MAXLOCKOUTS
-	while(i < MAXLOCKOUTS) 
-	{
-		// Look for the IP in the DB
-		if(lockouts[i].n1 == n1 &&
-			lockouts[i].n2 == n2 &&
-			lockouts[i].n3 == n3 &&
-			lockouts[i].n4 == n4) 
-		{
-			// Update the entries epoch
-    		now = time(NULL);
-			lockouts[i].ts = time(&now);
-			// Note the invalid login attempt
-			lockouts[i].attempts++;
-			break;
-		}
-		// Increase by one
-		i++;
-	}
-}
-
-// Remove specific record from DB (IPADDR)
-static void 
-prune_record(int n1, int n2, int n3, int n4) 
-{
-	// Loop counter, status of record in db
-	int  i = 0;
-
-	// Loop until we hit MAXLOCKOUTS
-	while(i < MAXLOCKOUTS) 
-	{
-		// Look for the IP in the DB
-		if(lockouts[i].n1 == n1 &&
-			lockouts[i].n2 == n2 &&
-			lockouts[i].n3 == n3 &&
-			lockouts[i].n4 == n4) 
-		{
-			// Reset the DB entry
-			lockouts[i].n1 = 0;
-			lockouts[i].n2 = 0;
-			lockouts[i].n3 = 0;
-			lockouts[i].n4 = 0;
-			lockouts[i].attempts = 0;
-			break;
-		}
-		// Increase by one
-		i++;
-	}
-}
-
-// Check string for badness and lockout IPADDR
-// if we find the specified string in stream 
-// and if the attempt account is == MAXATTEMPTS
-static void
-lockout(char *str, char *lockouttable)
-{
+	struct sshlog *sshlog;
 	// IP address octets
 	int n1 = 0, n2 = 0, n3 = 0, n4 = 0;
 
-	// Error tracker
-	int ret = 0;
-
-	// Loop counter, status of record in db
-	int i = 0, foundrecord = 0;
-
-	// system() handler variable
-	char buf[256];
-
-	// Variable to track if we are blocking or adding
-	// to database to track invalid logins.
-	int shouldblock = 0;
-
 	// Check passed string and parse out the IP address
-	// If we cannot find a IP address then simply return.
-	if (sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) > 4 || 
-		sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) < 4) 
-			return;
-
-	// Track if we have found the record
-	foundrecord = 0;
+	if (sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) != 4)
+		return;
 
 	// Check to see if hosts IP is in our lockout table checking
 	// how many attempts.   If the attempts are over 3 then 
 	// purge the host from the table and leave shouldblock = true
-	while(i < MAXLOCKOUTS) 
-	{
+	RLOCK;
+	TAILQ_FOREACH(sshlog, &lockouts, entry) {
+		if (sshlog->inactive > 0)
+			continue;
 		// Try to find the IP in DB
-		if(lockouts[i].n1 == n1 &&
-			lockouts[i].n2 == n2 &&
-			lockouts[i].n3 == n3 &&
-			lockouts[i].n4 == n4) 
+		if (sshlog->n1 == n1 &&
+			sshlog->n2 == n2 &&
+			sshlog->n3 == n3 &&
+			sshlog->n4 == n4) 
 		{
 			// Found the record, record the attempt
-			record_event(n1, n2, n3, n4);
-			foundrecord = 1;
+			sshlog->attempts++;
+			sshlog->l_ts = time(NULL);
+			
+			/* Just wanted to remove from history */
+			if (act == RELEASE) {
+				sshlog->inactive = 1;
+				UNLOCK;
+				return;
+			}
+
 			// Check to see if user is above or == MAXATTEMPTS
-			if(lockouts[i].attempts >= MAXATTEMPTS) 
-			{
-				// Block the host
-				shouldblock = 1;
+			if(sshlog->attempts >= MAXATTEMPTS) {
 				break;
 			}
 		}
-		// Increase by one
-		i++;
 	}
+	UNLOCK;
 
 	// Entry not found, lets add it to the DB
-	if(foundrecord == 0)
-		add_new_record(n1, n2, n3, n4);
-
-	// If shouldblock is still true go ahead and block the offender
-	if(shouldblock == 1)
-	{
-		// Remove the record we are going to block this host.
-		prune_record(n1, n2, n3, n4);
-
-		// Notify syslog of the host being blocked (IPADDR)
-		syslog(LOG_ERR, "Locking out %d.%d.%d.%d after %i invalid attempts\n", \
-			n1, n2, n3, n4, MAXATTEMPTS);
-
-		// Setup buf with the pfctl command needed to block HOST
-		ret = snprintf(buf, sizeof(buf), "/sbin/pfctl -t %s -T add %d.%d.%d.%d", \
-			lockouttable, n1, n2, n3, n4);
-		// Check for error condition
-		if(ret < 0) 
-		{
-			syslog(LOG_ERR, "Error Locking out %d.%d.%d.%d while allocating snprintf()\n", \
-				n1, n2, n3, n4, MAXATTEMPTS);
+	if (sshlog == NULL) {
+		sshlog = calloc(1, sizeof(*sshlog));
+		if (sshlog == NULL) {
+			syslog(LOG_ERR, "Could not allocate memory for new enrtry in DB!");
 			return;
 		}
+		sshlog->n1 = n1;
+		sshlog->n2 = n2;
+		sshlog->n3 = n3;
+		sshlog->n4 = n4;
+		sshlog->f_ts = time(NULL);
+		sshlog->l_ts = -1;
+		sshlog->attempts = 1; /* First time */
+		/* Put it at the head so we can find it faster. */
+		WLOCK;
+		TAILQ_INSERT_HEAD(&lockouts, sshlog, entry);
+		UNLOCK;
 
-		// Execute the command in buf
-		ret = system(buf);
-		// Check for error condition
-		if(ret != 0)
-			syslog(LOG_ERR, "Error Locking out %d.%d.%d.%d while launching pfctl\n", \
-				n1, n2, n3, n4, MAXATTEMPTS);
+		return; // Its first attempt can grace for now.
 	}
-}
 
-// Remove host from logging dabtase
-static void
-lockout_remove(char *str, char *lockouttable)
-{
-	// IP address octets
-	int n1 = 0, n2 = 0, n3 = 0, n4 = 0;
+	/* Mark it for GC */
+	sshlog->inactive = 1; 
 
-	// Check passed string and parse out the IP address
-	// If we cannot find a IP address then simply return.
-	if (sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) > 4 || 
-		sscanf(str, "%d.%d.%d.%d", &n1, &n2, &n3, &n4) < 4) 
-			return;
+	// Notify syslog of the host being blocked (IPADDR)
+	syslog(LOG_ERR, "Locking out %d.%d.%d.%d after %i invalid attempts\n",
+		n1, n2, n3, n4, MAXATTEMPTS);
 
-	// User auth'd.  Remove previous lockout db entries.
-	prune_record(n1, n2, n3, n4);
+	pf_tableentry(lockouttable, n1, n2, n3, n4);
 }
