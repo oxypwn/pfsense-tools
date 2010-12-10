@@ -186,7 +186,7 @@ main(int argc, char *argv[])
 	}
 
 	// Set MAXATTEMPTS to the first argv argument
-	MAXATTEMPTS = (int)argv[1];
+	MAXATTEMPTS = attempts;
 
 	// Initialize time conversion information
 	tzset();
