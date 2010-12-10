@@ -67,10 +67,12 @@
 #include <pthread.h>
 
 // Non changable globals
-#define MAXATTEMPTS 15
 #define VERSION	"3.0"
 
 static int dev = -1;
+
+// Allow overriding
+int MAXATTEMPTS = 15;
 
 // Wall of shame (invalid login DB)
 struct sshlog 
@@ -171,10 +173,20 @@ prune_24hour_records(void *arg __unused)
 
 // Start of program - main loop
 int
-main(void) 
+main(int argc, char *argv[])
 {
 	char buf[1024] = { 0 };
 	pthread_t GC;
+	int attempts;
+
+	attempts = atoi(argv[1]);
+	if (attempts < 1) {
+		fprintf(stderr, "Invalid attempts count %d.  Use a numeric value from 1-9999\n", attempts);
+		exit(3);
+	}
+
+	// Set MAXATTEMPTS to the first argv argument
+	MAXATTEMPTS = (int)argv[1];
 
 	// Initialize time conversion information
 	tzset();
