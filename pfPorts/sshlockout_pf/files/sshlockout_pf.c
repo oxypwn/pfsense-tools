@@ -277,7 +277,7 @@ doaction(char *str, char *lockouttable, enum action act)
 		return;
 
 	// Check to see if hosts IP is in our lockout table checking
-	// how many attempts.   If the attempts are over 3 then 
+	// how many attempts.   If the attempts are over MAXATTEMPTS then 
 	// purge the host from the table and leave shouldblock = true
 	RLOCK;
 	TAILQ_FOREACH(sshlog, &lockouts, entry) {
