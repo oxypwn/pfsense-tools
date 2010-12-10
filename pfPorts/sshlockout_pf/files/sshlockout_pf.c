@@ -180,7 +180,7 @@ main(int argc, char *argv[])
 	int attempts;
 
 	attempts = atoi(argv[1]);
-	if (attempts < 1) {
+	if (argc > 2)
 		fprintf(stderr, "Invalid attempts count %d.  Use a numeric value from 1-9999\n", attempts);
 		exit(3);
 	}
