@@ -67,7 +67,7 @@
 #include <pthread.h>
 
 // Non changable globals
-#define MAXATTEMPTS 10
+#define MAXATTEMPTS 15
 #define VERSION	"3.0"
 
 static int dev = -1;
