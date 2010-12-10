@@ -42,11 +42,6 @@
  *   table <sshlockout> persist
  *   block in log quick from <sshlockout> to any label "sshlockout"
  *
- *  Some things to note:
- *   1. *VERY* simplistic.  IP table entries do not timeout without expiretable
- *   2. No checks are made for local IPs or nets, or for prior good logins, etc.
- *   3. Use expiretable binary from cron to help prune the sshlockout table
- *
  */
 
 #include <sys/types.h>
