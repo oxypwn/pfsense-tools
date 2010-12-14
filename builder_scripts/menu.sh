@@ -37,7 +37,7 @@ if [ ! -f $DIALOG ]; then
 	exit
 fi
 
-z() {
+get_text() {
 	$DIALOG --title "INPUT BOX" --clear \
 	        --inputbox "$1" -1 -1 "" \
 			2> /tmp/inputbox.tmp.$$
