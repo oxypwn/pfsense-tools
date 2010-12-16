@@ -44,7 +44,7 @@ CONFIGURE_ARGS+=--enable-ctype
 .endif
 
 .if ${PHP_MODNAME} == "curl"
-LIB_DEPENDS+=  curl.5:${PORTSDIR}/ftp/curl
+LIB_DEPENDS+=	curl.6:${PORTSDIR}/ftp/curl
 
 CONFIGURE_ARGS+=--with-curl=${LOCALBASE}
 .endif
@@ -96,8 +96,8 @@ CONFIGURE_ARGS+=--enable-ftp
 
 .if ${PHP_MODNAME} == "gd"
 LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
-		png.5:${PORTSDIR}/graphics/png \
-		jpeg.9:${PORTSDIR}/graphics/jpeg
+		png.6:${PORTSDIR}/graphics/png \
+		jpeg.11:${PORTSDIR}/graphics/jpeg
 .	if !defined(WITHOUT_X11)
 USE_XORG=	xpm
 .	endif
@@ -125,7 +125,7 @@ USE_GETTEXT=	yes
 .endif
 
 .if ${PHP_MODNAME} == "gmp"
-LIB_DEPENDS+=	gmp.7:${PORTSDIR}/math/libgmp4
+LIB_DEPENDS+=	gmp.10:${PORTSDIR}/math/gmp
 
 CONFIGURE_ARGS+=--with-gmp=${LOCALBASE}
 .endif
@@ -152,7 +152,6 @@ USE_OPENSSL=	yes
 .if ${PHP_MODNAME} == "interbase"
 CONFIGURE_ARGS+=--with-interbase=${LOCALBASE}
 
-USE_GCC=	3.4+
 USE_FIREBIRD=	yes
 .endif
 
@@ -185,7 +184,7 @@ USE_AUTOTOOLS=	libltdl
 .endif
 
 .if ${PHP_MODNAME} == "mcve"
-LIB_DEPENDS+=	mcve.5:${PORTSDIR}/devel/libmcve
+LIB_DEPENDS+=	monetra.7:${PORTSDIR}/devel/libmonetra
 
 CONFIGURE_ARGS+=--with-mcve=${LOCALBASE} \
                 --with-openssl-dir=${OPENSSLBASE}
@@ -198,12 +197,6 @@ USE_OPENSSL=    yes
 LIB_DEPENDS+=	mhash.2:${PORTSDIR}/security/mhash
 
 CONFIGURE_ARGS+=--with-mhash=${LOCALBASE}
-.endif
-
-.if ${PHP_MODNAME} == "mnogosearch"
-LIB_DEPENDS+=	udmsearch.1:${PORTSDIR}/www/mnogosearch31
-
-CONFIGURE_ARGS+=--with-mnogosearch=${LOCALBASE}
 .endif
 
 .if ${PHP_MODNAME} == "mssql"
@@ -230,8 +223,7 @@ CONFIGURE_ARGS+=--with-unixODBC=${LOCALBASE}
 .endif
 
 .if ${PHP_MODNAME} == "openssl"
-CONFIGURE_ARGS+=--with-openssl=${OPENSSLBASE} \
-		--with-openssl-dir=${OPENSSLBASE}
+CONFIGURE_ARGS+=--with-openssl=${OPENSSLBASE}
 
 LDFLAGS+=	-L${OPENSSLLIB} -lcrypto -lssl
 USE_OPENSSL=	yes
@@ -301,10 +293,9 @@ CONFIGURE_ARGS+=--with-snmp=${LOCALBASE} \
 		--with-openssl-dir=${OPENSSLBASE} \
 		--enable-ucd-snmp-hack
 
+LIB_DEPENDS+=   netsnmp.20:${PORTSDIR}/net-mgmt/net-snmp
 LDFLAGS+=       -L${OPENSSLLIB} -lcrypto -lssl
 USE_OPENSSL=    yes
-
-OPTIONS=	SNMP4 "Use old UCD SNMP instead of the new NET SNMP" off
 .endif
 
 .if ${PHP_MODNAME} == "sockets"
@@ -472,14 +463,6 @@ post-extract:
 .if ${PHP_MODNAME} == "pfpro"
 post-patch:
 	@${REINPLACE_CMD} "s|%%LOCALBASE%%|${LOCALBASE}|" ${WRKSRC}/pfpro.c
-.endif
-
-.if ${PHP_MODNAME} == "snmp"
-.	if defined(WITH_SNMP4) || exists(${LOCALBASE}/lib/libsnmp.so.4)
-LIB_DEPENDS+=   snmp.4:${PORTSDIR}/net-mgmt/net-snmp4
-.	else
-LIB_DEPENDS+=   netsnmp.16:${PORTSDIR}/net-mgmt/net-snmp
-.	endif
 .endif
 
 .if ${PHP_MODNAME} == "zlib"
