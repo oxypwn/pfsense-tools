@@ -134,11 +134,6 @@ rm -rf /usr/ports/chinese/links
 
 echo ">>> Locating ports (this will take a while)..."
 for PORT in $PORTSTOBUILD; do
-	if [ "$BUILD_ONEPORT" != "" ]; then
-		if [ "$PORT" != "$BUILD_ONEPORT" ]; then
-			continue;
-		fi
-	fi
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
 		DOESPORTEXIST=`find /usr/ports -name $PORT -type d | grep -v pfPorts | grep -v work | head -n 1`
@@ -197,6 +192,11 @@ clean_build_install_clean() {
 }
 
 for PORT in $PORTSTOBUILD; do
+	if [ "$BUILD_ONEPORT" != "" ]; then
+		if [ "$PORT" != "$BUILD_ONEPORT" ]; then
+			continue;
+		fi
+	fi
 	echo ">>> Building $PORT..."
 	DOESPORTEXIST=`cat /var/db/pfS_portcache | grep "'${PORT}'" | awk '{ print $2 }'`
 	if [ "${DOESPORTEXIST}" = "" ]; then
