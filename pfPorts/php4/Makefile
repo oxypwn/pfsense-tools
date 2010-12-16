@@ -159,7 +159,6 @@ post-patch:
 	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
 
 pre-configure:
-	# Work around issues with newer (>=2.64) autoconf
 	@${REINPLACE_CMD} -E 's:^((m4_)?divert)[(]([0-9]*)[)]:\1(600\3):' \
 		${WRKSRC}/configure.in `${FIND} ${WRKSRC} -name '*.m4'`
 	@${RM} ${WRKSRC}/configure
