@@ -29,6 +29,7 @@ options			GEOM_LABEL
 nooption		GEOM_MBR
 options			GEOM_PART_MBR
 options			GEOM_PART_BSD
+options			GEOM_UZIP
 
 # IPSEC filtering interface
 device 			enc

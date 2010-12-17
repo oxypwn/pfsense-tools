@@ -15,10 +15,12 @@ nooptions		WITNESS_SKIPSPIN
 nooptions		WITNESS
 nooptions		INVARIANTS
 
-options		GEOM_UZIP
-options		UNIONFS
+options			UNIONFS
 
+options			GEOM_UZIP
 options         GEOM_GATE
+options			GEOM_BDE
+
 device          carp
 
 #makeoptions MODULES_OVERRIDE="i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw"
