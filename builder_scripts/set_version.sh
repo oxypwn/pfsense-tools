@@ -159,7 +159,7 @@ set_items() {
 	fi
 
 	# For developers debugging on builders.
-	echo "#PFSENSE_WITH_FULL_GIT_CHECKOUT=\"true\"" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	echo "#export PFSENSE_WITH_FULL_GIT_CHECKOUT=\"true\"" >> $BUILDER_SCRIPTS/pfsense-build.conf
 
 	# Output pfsense-build.conf
 	echo
