@@ -12,7 +12,7 @@ if [ -f ]; then
 elif [ -f /usr/obj/usr/src/sys/boot/ficl/testmain ]; then
 	/bin/cp -p /usr/obj/usr/src/sys/boot/ficl/testmain $WD
 else
-	echo Can't find testmain binary.
+	echo Cannot find testmain binary.
 fi
 
 if [ -f /usr/local/pfsense-fs/boot/beastie.4th ]; then
