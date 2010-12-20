@@ -29,7 +29,7 @@ fi
 
 echo Deactivating includes in beastie.4th
 
-/usr/bin/sed -i.bak 's/^include/\/ include/' beastie.4th
+/usr/bin/sed -i.bak 's/^include/\\ include/' beastie.4th
 
 echo Hack at beastie.4th and then run:
 echo    ./testmain init.4th
