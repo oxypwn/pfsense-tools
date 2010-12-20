@@ -7,9 +7,9 @@ cd /sys/boot/ficl
 /usr/bin/make clean && /usr/bin/make testmain
 cd $WD
 echo Copying testmain to $WD
-if [ -f /sys/boot/ficl/testmain ]; then
+if [ -x /sys/boot/ficl/testmain ]; then
 	/bin/cp -p /sys/boot/ficl/testmain $WD
-elif [ -f /usr/obj/usr/src/sys/boot/ficl/testmain ]; then
+elif [ -x /usr/obj/usr/src/sys/boot/ficl/testmain ]; then
 	/bin/cp -p /usr/obj/usr/src/sys/boot/ficl/testmain $WD
 else
 	echo Cannot find testmain binary.
