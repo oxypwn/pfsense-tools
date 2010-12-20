@@ -7,7 +7,13 @@ cd /sys/boot/ficl
 /usr/bin/make clean && /usr/bin/make testmain
 cd $WD
 echo Copying testmain to $WD
-/bin/cp -p /sys/boot/ficl/testmain $WD
+if [ -f ]; then
+	/bin/cp -p /sys/boot/ficl/testmain $WD
+elif [ -f /usr/obj/usr/src/sys/boot/ficl/testmain ]; then
+	/bin/cp -p /usr/obj/usr/src/sys/boot/ficl/testmain $WD
+else
+	echo Can't find testmain binary.
+fi
 
 if [ -f /usr/local/pfsense-fs/boot/beastie.4th ]; then
 	echo Copying 4th files from /usr/local/pfsense-fs/boot/
