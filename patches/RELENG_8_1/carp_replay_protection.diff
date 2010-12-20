@@ -1,0 +1,29 @@
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/fixipfw/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_carp.c
+--- sys/netinet/ip_carp.c	20 Dec 2010 21:21:46 -0000	1.2
++++ sys/netinet/ip_carp.c	20 Dec 2010 21:22:42 -0000
+@@ -748,7 +748,20 @@
+ 	tmp_counter = tmp_counter<<32;
+ 	tmp_counter += ntohl(ch->carp_counter[1]);
+ 
+-	/* XXX Replay protection goes here */
++	if (!bcmp(&sc->sc_counter, ch->carp_counter,
++            sizeof(ch->carp_counter))) {
++                /* Do not log duplicates from non simplex interfaces */
++                if (sc->sc_carpdev->if_flags & IFF_SIMPLEX) {
++                        CARPSTATS_INC(carps_badauth);
++                        SC2IFP(sc)->if_ierrors++;
++                        CARP_UNLOCK(ifp->if_carp);
++                        CARP_LOG(LOG_WARNING, sc,
++                            ("replay or network loop detected"));
++                } else
++                        CARP_UNLOCK(ifp->if_carp);
++                m_freem(m);
++                return;
++        }
+ 
+ 	sc->sc_init_counter = 0;
+ 	sc->sc_counter = tmp_counter;
