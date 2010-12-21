@@ -17,8 +17,8 @@ diff -u -r1.2 ip_carp.c
 +                        CARPSTATS_INC(carps_badauth);
 +                        SC2IFP(sc)->if_ierrors++;
 +                        CARP_UNLOCK(ifp->if_carp);
-+                        CARP_LOG("%s", 
-+                            ("replay or network loop detected"), SC2IFP(sc)->if_xname);
++                        CARP_LOG("%s replay or network loop detected.\n", 
++                            SC2IFP(sc)->if_xname);
 +                } else
 +                        CARP_UNLOCK(ifp->if_carp);
 +                m_freem(m);
