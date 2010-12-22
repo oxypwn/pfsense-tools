@@ -278,6 +278,8 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
+	closefrom(3);
+
 	if (daemon(0, 1) != 0)
 		err(EX_OSERR, "unable to daemonize");
 
