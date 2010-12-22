@@ -29,11 +29,13 @@
 	POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <netinet/in.h>
 #include <netdb.h>
 #include <libutil.h>
 #include <err.h>
@@ -63,20 +65,15 @@ void usage(void) {
 
 int check_hostname(char *hostname, struct in_addr *ip) {
 	struct hostent *he;
+	struct in_addr *addr;
 
-	he = gethostbyname(hostname);
+	he = gethostbyname2(hostname, AF_INET);
 	if (he == NULL) {
 		syslog(LOG_WARNING, "DNS lookup for %s failed", hostname);
 		return 0;
 	}
 	
-	if (he->h_length != sizeof(struct in_addr)) {
-		/* only support a single IPv4 response for now */
-		fprintf(stderr, "Unsupported h_length (%d)\n", he->h_length);
-		return 0;
-	}
-	
-	struct in_addr* addr = (struct in_addr*)he->h_addr;
+	addr = (struct in_addr*)he->h_addr;
 	
 	if (ip->s_addr != 0 && ip->s_addr != addr->s_addr) {
 		*ip = *addr;
@@ -88,7 +85,6 @@ int check_hostname(char *hostname, struct in_addr *ip) {
 }
 
 int main(int argc, char *argv[]) {
-	
 	int interval;
 	char *file;
 	char *command;
@@ -154,7 +150,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Loop forever checking to see if a hostname changes
-	while (1) {
+	for (;;) {
 		int i = 0;
 		int changes = 0;
 		list = props;
