@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.10
-diff -u -r1.10 pf.c
---- sys/contrib/pf/net/pf.c	18 Oct 2010 19:55:34 -0000	1.10
-+++ sys/contrib/pf/net/pf.c	18 Oct 2010 22:23:07 -0000
-@@ -6534,6 +6534,34 @@
+RCS file: /root/freebsd/fixipfw/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.9
+diff -u -r1.9 pf.c
+--- sys/contrib/pf/net/pf.c	22 Dec 2010 18:45:22 -0000	1.9
++++ sys/contrib/pf/net/pf.c	22 Dec 2010 18:46:37 -0000
+@@ -6577,6 +6577,35 @@
  	if (oifp != ifp) {
  		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
  			goto donelocal;
@@ -36,6 +36,7 @@ diff -u -r1.10 pf.c
 +                                    pd->ip_sum, s->lan.addr.v4.s_addr, 0);
 +				break;
 +			}
++			pf_unlink_state(s);
 +		}
  #ifdef __FreeBSD__
  		PF_UNLOCK();
