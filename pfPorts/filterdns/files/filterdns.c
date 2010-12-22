@@ -376,6 +376,10 @@ int main(int argc, char *argv[]) {
 		return (-1);
 	}
 
+	(void)freopen("/dev/null", "w", stdout);
+        (void)freopen("/dev/null", "w", stdin);
+	closefrom(3);
+
 	dev = open("/dev/pf", O_RDWR);
 	if (dev < 0)
 		errx(1, "Could not open device.");
