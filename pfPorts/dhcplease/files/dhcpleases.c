@@ -550,6 +550,8 @@ main(int argc, char **argv) {
 		exit(6);
 	}
 
+	closefrom(3);
+
 	if (daemon(0, 0) < 0) {
 		syslog(LOG_ERR, "Could not daemonize");
 		perror("Could not daemonize");
