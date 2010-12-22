@@ -29,6 +29,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 /* usage: minicron interval pidfile cmd */
 
@@ -53,7 +54,9 @@ int main(int argc, char *argv[]) {
 	unsetenv("HTTP_REFERER"); unsetenv("SERVER_PROTOCOL");
 	unsetenv("REQUEST_METHOD"); unsetenv("SERVER_PORT");
 	unsetenv("SCRIPT_NAME"); unsetenv("SERVER_NAME");
-	
+
+	closefrom(3);
+
 	/* go into background */
 	if (daemon(0, 0) == -1)
 		exit(1);
