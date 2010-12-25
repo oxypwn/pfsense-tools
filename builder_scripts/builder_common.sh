@@ -1008,6 +1008,8 @@ create_pfSense_BaseSystem_Small_update_tarball() {
 
 	rm -rf ${CVS_CO_DIR}/usr/local/sbin/*
 	rm -rf ${CVS_CO_DIR}/usr/local/bin/*
+	rm -rf ${CVS_CO_DIR}/etc/bogons
+
 	install -s /tmp/check_reload_status ${CVS_CO_DIR}/usr/local/sbin/check_reload_status
 	install -s /tmp/mpd ${CVS_CO_DIR}/usr/local/sbin/mpd
 
@@ -1048,6 +1050,8 @@ fixup_updates() {
 	rm -f ${PFSENSEBASEDIR}/etc/master.passwd 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/fstab 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/etc/ttys 2>/dev/null
+	rm -f ${PFSENSEBASEDIR}/etc/bogons 2>/dev/null
+
 	#rm -f ${PFSENSEBASEDIR}/etc/platform 2>/dev/null
 	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
 
@@ -1337,6 +1341,9 @@ create_pfSense_Full_update_tarball() {
 	# control auto login, console menu, etc.
 	rm -f ${PFSENSEBASEDIR}/root/.* 2>/dev/null
 
+	# Do not ship bogons, client probably has newer file
+	rm -f ${PFSENSEBASEDIR}/etc/bogons
+
 	# Remove loader.conf and friends.  Ticket #560
 	rm ${PFSENSEBASEDIR}/boot/loader.conf 2>/dev/null
 	rm ${PFSENSEBASEDIR}/boot/loader.conf.local 2>/dev/null
@@ -1376,7 +1383,8 @@ create_pfSense_Embedded_update_tarball() {
 	# kernel that was built during the builder process
 	mv ${PFSENSEBASEDIR}/kernels/kernel_wrap.gz ${PFSENSEBASEDIR}/boot/kernel/kernel.gz
 	rm -rf ${PFSENSEBASEDIR}/kernels/*
-
+	rm -rf ${PFSENSEBASEDIR}/etc/bogons
+	
 	echo ; echo Creating ${UPDATESDIR}/${FILENAME} ...
 	cd ${PFSENSEBASEDIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
@@ -1415,6 +1423,7 @@ create_pfSense_Small_update_tarball() {
 	rm -f ${CVS_CO_DIR}/etc/*passwd*
 	rm -f ${CVS_CO_DIR}/etc/pw*
 	rm -f ${CVS_CO_DIR}/etc/ttys*
+	rm -f ${CVS_CO_DIR}/etc/bogons
 
 	cd ${CVS_CO_DIR} && tar czPf ${UPDATESDIR}/${FILENAME} .
 
