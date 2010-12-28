@@ -112,6 +112,8 @@ IS ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <netgraph.h>
 
+int pfSense_dhcpd;
+
 ZEND_DECLARE_MODULE_GLOBALS(pfSense)
 
 static function_entry pfSense_functions[] = {
@@ -135,7 +137,11 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_ngctl_attach, NULL)
     PHP_FE(pfSense_ngctl_detach, NULL)
     PHP_FE(pfSense_get_modem_devices, NULL)
-	PHP_FE(pfSense_sync, NULL)
+    PHP_FE(pfSense_sync, NULL)
+    PHP_FE(pfSense_open_dhcpd, NULL)
+    PHP_FE(pfSense_close_dhcpd, NULL)
+    PHP_FE(pfSense_register_lease, NULL)
+    PHP_FE(pfSense_delete_lease, NULL)
     {NULL, NULL, NULL}
 };
 
@@ -159,6 +165,15 @@ zend_module_entry pfSense_module_entry = {
 #ifdef COMPILE_DL_PFSENSE
 ZEND_GET_MODULE(pfSense)
 #endif
+
+static void
+php_pfSense_destroy_dhcpd(zend_rsrc_list_entry *rsrc TSRMLS_DC)
+{
+	omapi_data *conn = (omapi_data *)rsrc->ptr;
+
+	if (conn)
+		efree(conn);
+}
 
 /* interface management code */
 static int
@@ -237,6 +252,10 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	REGISTER_LONG_CONSTANT("IFCAP_VLAN_HWTSO", IFCAP_VLAN_HWTSO, CONST_PERSISTENT | CONST_CS);
 #endif
 
+	pfSense_dhcpd = zend_register_list_destructors_ex(php_pfSense_destroy_dhcpd, NULL, PHP_PFSENSE_RES_NAME, module_number);
+	dhcpctl_initialize();
+	omapi_init();
+
 	return SUCCESS;
 }
 
@@ -248,6 +267,183 @@ PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 	close(PFSENSE_G(s));
 
 	return SUCCESS;
+}
+
+PHP_FUNCTION(pfSense_open_dhcpd)
+{
+	omapi_data *data;
+	char *key, *addr, *name;
+	int key_len, addr_len, name_len, port;
+	dhcpctl_status status;
+	dhcpctl_handle auth = dhcpctl_null_handle, conn = dhcpctl_null_handle;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sssl", &name, &name_len, &key, &key_len, &addr, &addr_len, &port) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	status = dhcpctl_new_authenticator(&auth, name, "hmac-md5", key, key_len);
+	if (status != ISC_R_SUCCESS) {
+		php_printf("Failed to get aythenticator: %s - %s\n", isc_result_totext(status), key);
+		RETURN_NULL();
+	}
+
+	status = dhcpctl_connect(&conn, addr, port, auth);
+	if (status != ISC_R_SUCCESS) {
+		php_printf("Error occured during connecting: %s\n", isc_result_totext(status));
+		RETURN_NULL();
+	}
+
+	data = emalloc(sizeof(*data));
+	data->handle = conn;
+
+	ZEND_REGISTER_RESOURCE(return_value, data, pfSense_dhcpd);
+}
+
+PHP_FUNCTION(pfSense_register_lease)
+{
+        dhcpctl_status status = ISC_R_SUCCESS;
+        dhcpctl_status status2 = ISC_R_SUCCESS;
+        dhcpctl_handle hp = NULL;
+        struct ether_addr *ds;
+        struct in_addr nds;
+	char *mac, *ip, *gateway, *name;
+	int mac_len, ip_len, gateway_len, name_len;
+	zval *res;
+	omapi_data *conn;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zssss", &res, &name, &name_len, &mac, &mac_len, &ip, &ip_len, &gateway, &gateway_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(conn, omapi_data *, &res, -1, PHP_PFSENSE_RES_NAME, pfSense_dhcpd);
+	ZEND_VERIFY_RESOURCE(conn);
+
+        if ((status = dhcpctl_new_object(&hp, conn->handle, "host")) != ISC_R_SUCCESS) {
+		php_printf("1Error occured during connecting: %s\n", isc_result_totext(status));
+		RETURN_FALSE;
+	}
+
+	inet_aton(ip, &nds);
+        if ((status = dhcpctl_set_data_value(hp, (char *)&nds, sizeof(struct in_addr), "ip-address")) != ISC_R_SUCCESS) {
+		php_printf("3Error occured during connecting: %s\n", isc_result_totext(status));
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+
+        if ((status = dhcpctl_set_string_value(hp, name, "name")) != ISC_R_SUCCESS) {
+		php_printf("4Error occured during connecting: %s\n", isc_result_totext(status));
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+
+        if (!(ds = ether_aton(mac)))
+		RETURN_FALSE;
+        if ((status = dhcpctl_set_data_value(hp, (u_char *)ds, sizeof(struct ether_addr), "hardware-address")) != ISC_R_SUCCESS) {
+		php_printf("2Error occured during connecting: %s\n", isc_result_totext(status));
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+
+	if ((status= dhcpctl_set_int_value(hp, 1,"hardware-type")) != ISC_R_SUCCESS)  {
+		php_printf("2Error occured during connecting: %s\n", isc_result_totext(status));
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+
+	php_printf("Coonection handle %d\n", conn->handle);
+        if ((status = dhcpctl_open_object(hp, conn->handle, DHCPCTL_CREATE|DHCPCTL_EXCL)) != ISC_R_SUCCESS) {
+		php_printf("5Error occured during connecting: %s\n", isc_result_totext(status));
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+        if ((status = dhcpctl_wait_for_completion(hp, &status2)) != ISC_R_SUCCESS) {
+		php_printf("6Error occured during connecting: %s-  %s\n", isc_result_totext(status), isc_result_totext(status2));
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+        if (status2 != ISC_R_SUCCESS) {
+		php_printf("7Error occured during connecting: %s\n", isc_result_totext(status2));
+                omapi_object_dereference(&hp,__FILE__,__LINE__);
+                RETURN_FALSE;
+        }
+
+        omapi_object_dereference(&hp,__FILE__,__LINE__);
+
+        RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_delete_lease)
+{
+	dhcpctl_status status;
+        dhcpctl_status status2;
+        dhcpctl_handle hp = NULL;
+        dhcpctl_data_string ds = NULL;
+        omapi_data_string_t *nds;
+        char *mac;
+	int mac_len;
+	zval *res;
+	omapi_data *conn;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &mac, &mac_len) == FAILURE) {
+                RETURN_FALSE;
+        }
+
+	ZEND_FETCH_RESOURCE(conn, omapi_data *, &res, -1, PHP_PFSENSE_RES_NAME, pfSense_dhcpd);
+        ZEND_VERIFY_RESOURCE(conn);
+
+        if ((status = dhcpctl_new_object(&hp, conn->handle, "host")))
+		RETURN_FALSE;
+
+        if (mac) {
+                omapi_data_string_new(&ds, sizeof(struct ether_addr), __FILE__, __LINE__);
+                memcpy(ds->value,ether_aton(mac),sizeof(struct ether_addr));
+                if ((status = dhcpctl_set_value(hp, ds, "hardware-address"))) {
+			omapi_object_dereference(&hp,__FILE__,__LINE__);
+			RETURN_FALSE;
+		}
+        } else
+		RETURN_FALSE;
+        
+        if ((status = dhcpctl_open_object(hp, conn->handle, 0))) {
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+        if ((status = dhcpctl_wait_for_completion(hp, &status2))) {
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+        if (status2) {
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+        if ((status = dhcpctl_object_remove(conn->handle, hp))) {
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+        if ((status = dhcpctl_wait_for_completion(hp, &status2))) {
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+        if (status2) {
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
+        omapi_object_dereference(&hp,__FILE__,__LINE__);
+
+	RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_close_dhcpd)
+{
+	zval *data;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &data) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	zend_list_delete(Z_LVAL_P(data));
+
+	RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_getall_interface_addresses)
@@ -1197,10 +1393,10 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 	int			poll_timeout = 700;
 
 	if (ZEND_NUM_ARGS() > 2) {
-		php_printf("Maximum two parameter can be passed\n");
 		RETURN_NULL();
 	}
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|bl", &show_info, &poll_timeout) == FAILURE) {
+		php_printf("Maximum two parameter can be passed\n");
                 RETURN_NULL();
         }
 

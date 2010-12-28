@@ -398,7 +398,7 @@ socket_accept_command(int fd, __unused short event, __unused void *arg)
 		if (errno != EWOULDBLOCK && errno != EINTR)
 			syslog(LOG_NOTICE, "problems on accept");
 	}
-	set_blockmode(fd, O_NONBLOCK);
+	set_blockmode(fd, O_NONBLOCK | FD_CLOEXEC);
 	
 	if ((ev = malloc(sizeof(*ev))) == NULL) {
 		syslog(LOG_ERR, "Cannot allocate new struct event.");

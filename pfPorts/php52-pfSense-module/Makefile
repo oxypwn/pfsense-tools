@@ -19,6 +19,8 @@ COMMENT=	Library for getting useful info
 USE_PHP=	yes
 USE_PHPEXT=	yes
 
+CFLAGS+=	-I/usr/local/include -L/usr/local/lib
+
 CONFIGURE_ARGS=	--enable-pfSense
 
 extract:
