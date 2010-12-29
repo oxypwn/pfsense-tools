@@ -2,11 +2,11 @@
 # Date created:			  31 August 2003
 # Whom:				  Thierry Thomas (<thierry@pompo.net>)
 #
-# $FreeBSD: ports/www/pecl-APC/Makefile,v 1.30 2010/04/22 00:09:12 mnag Exp $
+# $FreeBSD: ports/www/pecl-APC/Makefile,v 1.33 2010/12/05 13:55:56 mnag Exp $
 #
 
 PORTNAME=	APC
-DISTVERSION=	3.1.3p1
+DISTVERSION=	3.1.6
 CATEGORIES=	www
 MASTER_SITES=	http://pecl.php.net/get/
 PKGNAMEPREFIX=	pecl-
@@ -27,7 +27,7 @@ PKGMESSAGE=	${WRKDIR}/pkg-message
 CONFIGURE_ARGS=	--enable-apc
 CFLAGS=		-I${LOCALBASE}/include
 
-OPTIONS=	MMAP		"Enable mmap memory support (default: IPC shm)"	off \
+OPTIONS=	IPC		"Enable IPC shm memory support (default: mmap)"	off \
 		SEMAPHORES	"Enable sysv IPC semaphores (default: fcntl())"	off \
 		SPINLOCKS	"Enable spinlocks (experimental)"		off \
 		FILEHITS	"Enable per request cache info"			off
@@ -36,8 +36,8 @@ PORTDOCS=	*
 
 .include <bsd.port.pre.mk>
 
-.if defined(WITH_MMAP)
-CONFIGURE_ARGS+=	--enable-apc-mmap
+.if defined(WITH_IPC)
+CONFIGURE_ARGS+=	--disable-apc-mmap
 .endif
 
 .if defined(WITH_SEMAPHORES)
