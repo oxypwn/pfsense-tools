@@ -424,7 +424,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				s->lan.port = 0;
 +				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
 +                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
-+                       		s->gwy.port = htons(oport);
++                       		s->ext.port = htons(oport);
 +			} else if (ftp_message_type == FTP_PORT_COMMAND || ftp_message_type == FTP_EPRT_COMMAND) {
 +				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
 +                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
