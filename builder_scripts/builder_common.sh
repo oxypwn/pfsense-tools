@@ -547,13 +547,10 @@ recompile_pfPorts() {
 			fi
 		fi
 
+		handle_tools_stats_crypto
+
 		if [ "$1" = "" ] || [ "$1" = "athstats" ]; then
-			# athstats is a rare animal since it's src contents
-			# live in $SRCDIR/tools/tools/ath/athstats
-			handle_tools_stats_crypto
-
 			touch /tmp/pfSense_do_not_build_pfPorts
-
 			echo "==> End of pfPorts..."
 		fi
 
