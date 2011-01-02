@@ -84,11 +84,16 @@ post_tweet() {
 # This routine handles the athstats directory since it lives in
 # SRCDIR/tools/tools/ath/athstats and changes from various freebsd
 # versions which makes adding this to pfPorts difficult.
-handle_athstats() {
+handle_tools_stats_crypto() {
 	echo -n ">>> Building athstats..."
 	cd $SRCDIR/tools/tools/ath/athstats
 	(make clean && make && make install) | egrep -wi '(^>>>|error)'
+	echo "Done!" 	
+	echo -n ">>> Building tools/crytpo..."
+	cd $SRCDIR/tools/tools/crypto/
+	(make clean && make && make install) | egrep -wi '(^>>>|error)'
 	echo "Done!"
+
 }
 
 # This routine will output that something went wrong
@@ -545,7 +550,7 @@ recompile_pfPorts() {
 		if [ "$1" = "" ] || [ "$1" = "athstats" ]; then
 			# athstats is a rare animal since it's src contents
 			# live in $SRCDIR/tools/tools/ath/athstats
-			handle_athstats
+			handle_tools_stats_crypto
 
 			touch /tmp/pfSense_do_not_build_pfPorts
 
