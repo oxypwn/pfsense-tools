@@ -162,3 +162,10 @@ usr/local/sbin/ataidle
 usr/local/bin/3gstat
 boot/modules/bwi_v3_ucode.ko
 usr/sbin/ndp
+usr/local/bin/cryptokeytest
+usr/local/bin/cryptostats
+usr/local/bin/cryptotest
+usr/local/bin/hifnstats
+usr/local/bin/ipsecstats
+usr/local/bin/safestats
+usr/local/bin/ubsecstats
