@@ -187,6 +187,9 @@ CONFIGURE_ARGS+=--enable-zend-multibyte
 CONFIGURE_ARGS+=--disable-ipv6
 .endif
 
+# Fix 2.2250738585072011e-308 numerics
+CFLAGS+=	-ffloat-store
+
 post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
 	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
