@@ -24,7 +24,6 @@ usr/bin/diff
 usr/bin/host
 usr/local/bin/rate
 usr/bin/nsupdate
-usr/sbin/syslogd
 usr/local/sbin/apinger
 usr/local/sbin/syslog-ng
 usr/sbin/fifolog_reader

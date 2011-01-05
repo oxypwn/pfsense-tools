@@ -22,7 +22,6 @@ usr/bin/host
 usr/bin/fstat
 usr/local/bin/rate
 usr/bin/nsupdate
-usr/sbin/syslogd
 usr/local/sbin/apinger
 usr/local/sbin/syslog-ng
 usr/sbin/fifolog_reader
