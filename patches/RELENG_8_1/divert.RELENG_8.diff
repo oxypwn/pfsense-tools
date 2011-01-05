@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /root/freebsd/fixipfw/repo/src/contrib/pf/pfctl/parse.y,v
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.3
 diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	22 Dec 2010 18:36:31 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	22 Dec 2010 18:36:38 -0000
+--- contrib/pf/pfctl/parse.y	5 Jan 2011 18:17:10 -0000	1.3
++++ contrib/pf/pfctl/parse.y	5 Jan 2011 18:17:20 -0000
 @@ -129,6 +129,7 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
@@ -125,11 +125,11 @@ diff -u -r1.3 parse.y
  		{ "max-src-nodes",	MAXSRCNODES},
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
-RCS file: /root/freebsd/fixipfw/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.3
 diff -u -r1.3 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	22 Dec 2010 18:36:31 -0000	1.3
-+++ contrib/pf/pfctl/pfctl_parser.c	22 Dec 2010 18:36:38 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	5 Jan 2011 18:17:10 -0000	1.3
++++ contrib/pf/pfctl/pfctl_parser.c	5 Jan 2011 18:17:20 -0000
 @@ -914,6 +914,12 @@
  			printf("max-src-conn %u", r->max_src_conn);
  			opts = 0;
@@ -154,11 +154,11 @@ diff -u -r1.3 pfctl_parser.c
  	if (r->match_tagname[0]) {
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/fixipfw/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.3
 diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	22 Dec 2010 18:36:32 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	22 Dec 2010 18:40:38 -0000
+--- sys/contrib/pf/net/pf.c	5 Jan 2011 18:17:10 -0000	1.3
++++ sys/contrib/pf/net/pf.c	5 Jan 2011 18:20:30 -0000
 @@ -138,6 +138,7 @@
  #include <netinet/ip_fw.h>
  #include <netinet/ipfw/ip_fw_private.h>
@@ -167,9 +167,9 @@ diff -u -r1.3 pf.c
  
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
-@@ -342,6 +343,14 @@
- #define PACKET_LOOPED()							\
- 	(pd.pf_mtag->flags & PF_PACKET_LOOPED)
+@@ -457,6 +458,14 @@
+ 		}				\
+ } while(0)
  
 +#define	PF_DIVERT_MAXPACKETS_REACHED()					\
 +	do {								\
@@ -181,8 +181,8 @@ diff -u -r1.3 pf.c
 +
  #define STATE_LOOKUP()							\
  	do {								\
- 		if ((!PPACKET_LOOPED() && direction == PF_IN) ||	\
-@@ -7017,6 +7026,8 @@
+ 		if (direction == PF_IN)					\
+@@ -7087,6 +7096,8 @@
  #ifdef __FreeBSD__
  	struct m_tag *dn_tag;
  	struct ip_fw_args	 dnflow;
@@ -191,7 +191,7 @@ diff -u -r1.3 pf.c
  	int			 loopedfrom = 0;
  
  	PF_LOCK();
-@@ -7089,12 +7100,17 @@
+@@ -7159,12 +7170,17 @@
  		goto done;
  	}
  
@@ -210,7 +210,7 @@ diff -u -r1.3 pf.c
  		if (pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
                          m->m_flags |= M_FASTFWD_OURS;
                          pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
-@@ -7293,6 +7309,19 @@
+@@ -7363,6 +7379,19 @@
  		    ("pf: dropping packet with ip options\n"));
  	}
  
@@ -230,7 +230,7 @@ diff -u -r1.3 pf.c
  	if ((s && s->tag) || r->rtableid)
  		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
  
-@@ -7312,9 +7341,60 @@
+@@ -7382,9 +7411,62 @@
  #endif /* ALTQ */
  
  #ifdef __FreeBSD__
@@ -257,9 +257,8 @@ diff -u -r1.3 pf.c
 +		/* NOTE: Fake this to avoid divert giving errors to the application. */
 +		return (PF_PASS);
 +	}
- 
--                        if (dir != r->direction && r->pdnpipe) {
-+	if (r->divert && ip_divert_ptr != NULL && !PACKET_LOOPED()) {
++
++	if (r->divert && ip_divert_ptr != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
 +		if (!r->spare1 ||
 +		    (s && s->packets[dir == PF_OUT] <= r->spare1)) {
 +
@@ -268,9 +267,12 @@ diff -u -r1.3 pf.c
 +			if (dn_tag != NULL) {
 +				((struct ipfw_rule_ref *)(dn_tag+1))->info = r->divert;
 +				((struct ipfw_rule_ref *)(dn_tag+1))->rulenum = dir;
-+
+ 
+-                        if (dir != r->direction && r->pdnpipe) {
 +				m_tag_prepend(m, dn_tag);
 +
++				if (s != NULL && s->nat_rule.ptr)
++					PACKET_UNDO_NAT(pd, s, dir);
 +				PF_UNLOCK();
 +			
 +				if (m->m_flags & M_FASTFWD_OURS) {
@@ -293,7 +295,7 @@ diff -u -r1.3 pf.c
                                  dnflow.rule.info = r->pdnpipe;
                          } else if (dir == r->direction) {
                                  dnflow.rule.info = r->dnpipe;
-@@ -7351,8 +7431,7 @@
+@@ -7425,8 +7507,7 @@
                          	*m0 = NULL;
                          	return (action);
  			}
@@ -303,14 +305,14 @@ diff -u -r1.3 pf.c
  continueprocessing:
  #endif
  
-@@ -7365,8 +7444,13 @@
+@@ -7439,8 +7520,13 @@
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
  	    s->nat_rule.ptr->action == PF_BINAT) &&
 -	    (ntohl(pd.dst->v4.s_addr) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET)
 +	    (ntohl(pd.dst->v4.s_addr) >> IN_CLASSA_NSHIFT) == IN_LOOPBACKNET) {
  		pd.pf_mtag->flags |= PF_TAG_TRANSLATE_LOCALHOST;
-+		if (PACKET_LOOPED() && !loopedfrom)
++		if (PACKET_LOOPED(pd.pf_mtag) && !loopedfrom)
 +                        m->m_flags |= M_FASTFWD_OURS;
 +	}
 +
@@ -320,11 +322,11 @@ diff -u -r1.3 pf.c
  		struct pf_rule *lr;
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/fixipfw/repo/src/sys/contrib/pf/net/pfvar.h,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.3
 diff -u -r1.3 pfvar.h
---- sys/contrib/pf/net/pfvar.h	22 Dec 2010 18:36:32 -0000	1.3
-+++ sys/contrib/pf/net/pfvar.h	22 Dec 2010 18:36:38 -0000
+--- sys/contrib/pf/net/pfvar.h	5 Jan 2011 18:17:10 -0000	1.3
++++ sys/contrib/pf/net/pfvar.h	5 Jan 2011 18:17:20 -0000
 @@ -649,6 +649,7 @@
  	u_int16_t		 tag;
  	u_int16_t		 match_tag;
@@ -375,11 +377,11 @@ diff -u -r1.3 pfvar.h
  
 Index: sys/netinet/ip_divert.c
 ===================================================================
-RCS file: /root/freebsd/fixipfw/repo/src/sys/netinet/ip_divert.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_divert.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.c
---- sys/netinet/ip_divert.c	22 Dec 2010 18:32:46 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.c	22 Dec 2010 18:36:38 -0000
+--- sys/netinet/ip_divert.c	4 Jan 2011 23:37:15 -0000	1.1.1.1
++++ sys/netinet/ip_divert.c	5 Jan 2011 18:17:20 -0000
 @@ -289,8 +289,7 @@
  		 * this iface name will come along for the ride.
  		 * (see div_output for the other half of this.)
@@ -430,11 +432,11 @@ diff -u -r1.1.1.1 ip_divert.c
  MODULE_VERSION(ipdivert, 1);
 Index: sys/netinet/ipfw/ip_dummynet.c
 ===================================================================
-RCS file: /root/freebsd/fixipfw/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dummynet.c
---- sys/netinet/ipfw/ip_dummynet.c	22 Dec 2010 18:32:46 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dummynet.c	22 Dec 2010 18:36:38 -0000
+--- sys/netinet/ipfw/ip_dummynet.c	4 Jan 2011 23:37:16 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dummynet.c	5 Jan 2011 18:17:20 -0000
 @@ -2290,6 +2290,5 @@
  
  DECLARE_MODULE(dummynet, dummynet_mod,

@@ -1,10 +1,10 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.9
-diff -u -r1.9 pf.c
---- sys/contrib/pf/net/pf.c	11 Nov 2010 18:35:24 -0000	1.9
-+++ sys/contrib/pf/net/pf.c	15 Nov 2010 19:01:10 -0000
+retrieving revision 1.11
+diff -u -r1.11 pf.c
+--- sys/contrib/pf/net/pf.c	5 Jan 2011 18:36:23 -0000	1.11
++++ sys/contrib/pf/net/pf.c	5 Jan 2011 18:38:04 -0000
 @@ -275,7 +275,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
@@ -21,10 +21,10 @@ diff -u -r1.9 pf.c
  
 +/* XXX: This are here until a pluggable framework for NAT is finished */
 +struct pf_grehdr {                 /* Enhanced GRE header. */
-+        u_int16_t       gh_flags;       /* Flags. */
-+        u_int16_t       gh_protocol;    /* Protocol type. */
-+        u_int16_t       gh_length;      /* Payload length. */
-+        u_int16_t       gh_call_id;     /* Call ID. */
++	u_int16_t       gh_flags;       /* Flags. */
++	u_int16_t       gh_protocol;    /* Protocol type. */
++	u_int16_t       gh_length;      /* Payload length. */
++	u_int16_t       gh_call_id;     /* Call ID. */
 +};
 +
 +struct pptpMsgHead {
@@ -44,16 +44,16 @@ diff -u -r1.9 pf.c
 +#define PPTP_INIT_MASK          0xef7fffff
 +#define PPTP_MAGIC              0x1a2b3c4d
 +#define PPTP_CTRL_MSG_TYPE      1
-+#define PPTP_CTRL_PORT_NUMBER	1723
++#define PPTP_CTRL_PORT_NUMBER 1723
 +enum {
 +	PPTP_OutCallReply = 8,
 +	PPTP_InCallReply = 10
-+};	
++};
 +
- #define PPACKET_LOOPED()						\
- 	(pd->pf_mtag->flags & PF_PACKET_LOOPED)
+ #define PACKET_LOOPED(mtag)						\
+ 	((mtag)->flags & PF_PACKET_LOOPED)
  
-@@ -652,6 +684,99 @@
+@@ -770,6 +802,99 @@
  }
  #endif
  
@@ -153,7 +153,7 @@ diff -u -r1.9 pf.c
  #ifdef INET6
  void
  pf_addrcpy(struct pf_addr *dst, struct pf_addr *src, sa_family_t af)
-@@ -4382,6 +4507,7 @@
+@@ -4500,6 +4625,7 @@
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_src_node	*nsn = NULL;
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
@@ -161,7 +161,7 @@ diff -u -r1.9 pf.c
  	sa_family_t		 af = pd->af;
  	u_short			 reason;
  	int			 tag = -1, rtableid = -1;
-@@ -4603,6 +4729,15 @@
+@@ -4721,6 +4847,15 @@
  		s->proto = pd->proto;
  		s->direction = direction;
  		s->af = af;
@@ -177,7 +177,7 @@ diff -u -r1.9 pf.c
  		if (direction == PF_OUT) {
  			PF_ACPY(&s->gwy.addr, saddr, af);
  			PF_ACPY(&s->ext.addr, daddr, af);
-@@ -6124,35 +6259,45 @@
+@@ -6208,23 +6343,33 @@
  
  int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -186,8 +186,8 @@ diff -u -r1.9 pf.c
  {
  	struct pf_state_peer	*src, *dst;
  	struct pf_state_cmp	 key;
-+	struct pf_grehdr	 gr;
-+	u_int16_t		 callid = 0;
++	struct pf_grehdr         gr;
++	u_int16_t                callid = 0;
  
  	key.af = pd->af;
  	key.proto = pd->proto;
@@ -199,23 +199,7 @@ diff -u -r1.9 pf.c
 +	    PPTP_INIT_VALUE))
 +		callid = gr.gh_call_id;
 +
- 	if (PPACKET_LOOPED()) {
-                 if (direction == PF_IN) {
-                         PF_ACPY(&key.lan.addr, pd->dst, key.af);
-                         PF_ACPY(&key.ext.addr, pd->src, key.af);
--                        key.lan.port = 0;
--                        key.ext.port = 0;
-+                        key.lan.port = callid;
-+                        key.ext.port = callid;
-                 } else {
-                         PF_ACPY(&key.ext.addr, pd->dst, key.af);
-                         PF_ACPY(&key.gwy.addr, pd->src, key.af);
--                        key.ext.port = 0;
--                        key.gwy.port = 0;
-+                        key.ext.port = callid;
-+                        key.gwy.port = callid;
-                 }
-         } else if (direction == PF_IN) {
+ 	if (direction == PF_IN)	{
  		PF_ACPY(&key.ext.addr, pd->src, key.af);
  		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
 -		key.ext.port = 0;
@@ -232,8 +216,8 @@ diff -u -r1.9 pf.c
  	}
  
  	STATE_LOOKUP();
-@@ -7377,6 +7522,8 @@
- 		if (action == PF_PASS && s != NULL && !PACKET_LOOPED()) {
+@@ -7450,6 +7595,8 @@
+ 		if (action == PF_PASS && s != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
  			if (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21)
  				pf_handle_ftp(&pd, m, s, off, dir);
 +			else if (ntohs(th.th_dport) == 1723 || ntohs(th.th_sport) == 1723)
@@ -241,7 +225,7 @@ diff -u -r1.9 pf.c
  		}
  		break;
  	}
-@@ -7471,7 +7618,7 @@
+@@ -7544,7 +7691,7 @@
  #endif
  
  	default:
@@ -250,7 +234,7 @@ diff -u -r1.9 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -8069,7 +8216,7 @@
+@@ -8153,7 +8300,7 @@
  	}
  
  	default:
