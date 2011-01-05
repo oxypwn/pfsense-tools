@@ -11,7 +11,9 @@
 # $Id$
 
 # Ensure file exists
-if [ ! -f ./pfsense-build.conf ]; then
+export BUILD_CONF=./pfsense-build.conf
+
+if [ ! -f ${BUILD_CONF} ]; then
 	echo
 	echo "You must first run ./set_version.sh !"
 	echo "See http://devwiki.pfsense.org/DevelopersBootStrapAndDevIso for more information."
@@ -20,17 +22,20 @@ if [ ! -f ./pfsense-build.conf ]; then
 	echo
 fi
 
-if [ -f ./pfsense-build.conf ]; then
-	. ./pfsense-build.conf
+if [ -f ${BUILD_CONF} ]; then
+	. ${BUILD_CONF}
 fi
 
 OIFS=$IFS
 IFS=%
+
+export PRODUCT_NAME=${PRODUCT_NAME:-pfSense}
+
 # Area that the final image will appear in
 export MAKEOBJDIRPREFIXFINAL=${MAKEOBJDIRPREFIXFINAL:-/tmp/builder/}
 
 # Leave near the top.  
-export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.pfSense}
+export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.${PRODUCT_NAME}}
 
 # Generally /home/pfsense
 export BASE_DIR=${BASE_DIR:-/home/pfsense}
@@ -90,16 +95,16 @@ export FREESBIE_CONF=${FREESBIE_CONF:-/dev/null} # No configuration file should 
 export SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
-export PFSPKGFILE=/tmp/pfspackages
-export FREESBIE_LABEL=pfSense
+export PFSPKGFILE=${PFSPKGFILE:-/tmp/pfspackages}
+export FREESBIE_LABEL=${FREESBIE_LABEL:-${PRODUCT_NAME}}
 
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
 export EXTRA="${EXTRA:-"customroot customscripts pkginstall buildmodules"}"
 
 # Must be defined after MAKEOBJDIRPREFIX!
-export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense.iso}
-export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense.img}
-export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/pfSense-memstick.img}
+export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.iso}
+export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.img}
+export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick.img}
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
@@ -136,10 +141,15 @@ export PFSPATCHFILE=${PFSPATCHFILE:-${BUILDER_TOOLS}/builder_scripts/patches.${P
 export KERNEL_BUILD_PATH=${KERNEL_BUILD_PATH:-"/tmp/kernels"}
 
 # Controls how many concurrent make processes are run for each stage
-CPUS=`sysctl kern.smp.cpus | awk '{ print $2 }'`
-CPUS=`expr $CPUS + 1`
-export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j$CPUS"}
-export MAKEJ_KERNEL=${MAKEJ_KERNEL:-"-j$CPUS"}
+if [ "${NO_MAKEJ}" = "" ]; then
+	CPUS=`sysctl kern.smp.cpus | awk '{ print $2 }'`
+	CPUS=`expr $CPUS + 1`
+	export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j$CPUS"}
+	export MAKEJ_KERNEL=${MAKEJ_KERNEL:-"-j$CPUS"}
+else
+	export MAKEJ_WORLD=${MAKEJ_WORLD:-""}
+	export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
+fi
 export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf"}
 export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
@@ -261,7 +271,7 @@ export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
 #export DO_NOT_BUILD_UPDATES="true"
 
 # set full-update update filename
-export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/pfSense-Full-Update-${PFSENSE_VERSION}-`date '+%Y%m%d-%H%M'`.tgz"}
+export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/${PRODUCT_NAME}-Full-Update-${PFSENSE_VERSION}-`date '+%Y%m%d-%H%M'`.tgz"}
 
 # Checkout the GIT repo every time. This is normally not necessary.
 # export PFSENSE_WITH_FULL_GIT_CHECKOUT="true"
