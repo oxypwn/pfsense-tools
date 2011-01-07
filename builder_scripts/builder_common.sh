@@ -1881,10 +1881,6 @@ setup_nanobsd ( ) {
 	# pick up config files from the special partition
 	echo "mount -o ro /dev/ufs/cfg" > ${CONFIG_DIR}/default/etc/remount
 
-	# Put /tmp on the /var ramdisk (could be symlink already)
-	rm -rf tmp || true
-	ln -s var/tmp tmp
-
 	# Ensure updatep1 and updatep1 are present
 	if [ ! -d $PFSENSEBASEDIR/root ]; then
 		mkdir $PFSENSEBASEDIR/root
