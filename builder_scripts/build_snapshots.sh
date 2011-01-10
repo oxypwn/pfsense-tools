@@ -200,12 +200,12 @@ build_iso() {
 	fi
 	gzip $MAKEOBJDIRPREFIXFINAL/pfSense.iso
 	gzip $MAKEOBJDIRPREFIXFINAL/pfSense-memstick.img
-	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso.gz $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz
-	mv $MAKEOBJDIRPREFIXFINAL/pfSense-memstick.img.gz $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz
-	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.md5
-	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz.md5
-	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-${PFSENSE_VERSION}-${DATESTRING}.iso.gz.sha256	
-	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-memstick-${PFSENSE_VERSION}-${DATESTRING}.img.gz.sha256	
+	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso.gz $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz
+	mv $MAKEOBJDIRPREFIXFINAL/pfSense-memstick.img.gz $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz
+	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz.md5
+	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.md5
+	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz.sha256	
+	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.sha256	
 }
 
 build_deviso() {
@@ -386,9 +386,9 @@ copy_to_staging_deviso_updates() {
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
-	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso 2>/dev/null
-	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5 2>/dev/null
+	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso 2>/dev/null
+	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso 2>/dev/null
+	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5 2>/dev/null
 }
 
 copy_to_staging_iso_updates() {
@@ -419,11 +419,11 @@ copy_to_staging_embedded() {
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz 2>/dev/null
-	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img 2>/dev/null
-	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img 2>/dev/null
-	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.md5 2>/dev/null
-	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${DATESTRING}.img.gz.sha256 2>/dev/null
+	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz 2>/dev/null
+	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img 2>/dev/null
+	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img 2>/dev/null
+	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.md5 2>/dev/null
+	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.sha256 2>/dev/null
 }
 
 cp_files() {
