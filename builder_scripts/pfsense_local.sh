@@ -271,7 +271,7 @@ export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
 #export DO_NOT_BUILD_UPDATES="true"
 
 # set full-update update filename
-export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/${PRODUCT_NAME}-Full-Update-${PFSENSE_VERSION}-`date '+%Y%m%d-%H%M'`.tgz"}
+export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/${PRODUCT_NAME}-Full-Update-${PFSENSE_VERSION}-${ARCH}-`date '+%Y%m%d-%H%M'`.tgz"}
 
 # Checkout the GIT repo every time. This is normally not necessary.
 # export PFSENSE_WITH_FULL_GIT_CHECKOUT="true"

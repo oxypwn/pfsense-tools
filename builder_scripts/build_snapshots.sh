@@ -345,8 +345,8 @@ copy_to_staging_nanobsd() {
 		echo "1g" > /tmp/nanosize.txt
 	fi
 	FILESIZE=`cat /tmp/nanosize.txt`
-	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${DATESTRING}-nanobsd.img"
-	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${DATESTRING}-nanobsd-upgrade.img"
+	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-${DATESTRING}-nanobsd.img"
+	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-${DATESTRING}-nanobsd-upgrade.img"
 	mkdir -p $STAGINGAREA/nanobsd
 	mkdir -p $STAGINGAREA/nanobsdupdates
 
