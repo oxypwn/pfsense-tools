@@ -237,22 +237,6 @@ diff -u -r1.1.1.1 ip_encap.c
  	if (tag) {
  		*(void**)(tag+1) = ep->arg;
  		m_tag_prepend(m, tag);
-Index: netinet/ip_options.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/netinet/ip_options.c,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 ip_options.c
---- netinet/ip_options.c	3 Nov 2010 17:32:50 -0000	1.1.1.1
-+++ netinet/ip_options.c	3 Nov 2010 17:39:08 -0000
-@@ -379,7 +379,7 @@
- 	unsigned olen;
- 	struct ipopt_tag *opts;
- 
--	opts = (struct ipopt_tag *)m_tag_get(PACKET_TAG_IPOPTIONS,
-+	opts = (struct ipopt_tag *)m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_IPOPTIONS,
- 	    sizeof(struct ipopt_tag), M_NOWAIT);
- 	if (opts == NULL)
- 		return;
 Index: netinet/udp_usrreq.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/netinet/udp_usrreq.c,v
