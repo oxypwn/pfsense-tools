@@ -3,8 +3,8 @@ Index: sys/conf/files
 RCS file: /root/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	4 Jan 2011 23:38:06 -0000	1.2
-+++ sys/conf/files	5 Jan 2011 18:22:14 -0000
+--- sys/conf/files	12 Jan 2011 18:43:52 -0000	1.2
++++ sys/conf/files	17 Jan 2011 19:49:59 -0000
 @@ -366,6 +366,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -19,9 +19,20 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.5
 diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	5 Jan 2011 18:22:01 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	5 Jan 2011 18:22:44 -0000
-@@ -261,7 +261,7 @@
+--- sys/contrib/pf/net/pf.c	17 Jan 2011 19:49:48 -0000	1.5
++++ sys/contrib/pf/net/pf.c	17 Jan 2011 19:57:17 -0000
+@@ -187,6 +187,10 @@
+ struct pool		 pf_state_pl, pf_altq_pl, pf_pooladdr_pl;
+ #endif
+ 
++int ftp_proxy = 0;
++SYSCTL_INT(_debug, OID_AUTO, pfftpproxy, CTLFLAG_RW, &ftp_proxy, 0,
++    "Enable/disable pf ftp protocol proxy");
++
+ void			 pf_print_host(struct pf_addr *, u_int16_t, u_int8_t);
+ 
+ void			 pf_init_threshold(struct pf_threshold *, u_int32_t,
+@@ -261,7 +265,7 @@
  int			 pf_tcp_track_full(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
  			    struct pfi_kif *, struct mbuf *, int,
@@ -30,7 +41,7 @@ diff -u -r1.5 pf.c
  int			 pf_tcp_track_sloppy(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
  			    struct pf_pdesc *, u_short *);
-@@ -307,8 +307,6 @@
+@@ -307,8 +311,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
  				u_int16_t);
@@ -39,30 +50,30 @@ diff -u -r1.5 pf.c
  int			 pf_check_proto_cksum(struct mbuf *, int, int,
  			    u_int8_t, sa_family_t);
  int			 pf_addr_wrap_neq(struct pf_addr_wrap *,
-@@ -655,6 +653,8 @@
+@@ -653,9 +655,9 @@
+ #endif /* INET6 */
+ 	}
  
- 	if ((diff = a->lan.port - b->lan.port) != 0)
+-	if ((diff = a->lan.port - b->lan.port) != 0)
++	if ((b->lan.pad == 0) && (diff = a->lan.port - b->lan.port) != 0)
  		return (diff);
-+	if (b->ext.pad)
-+		return (0);
- 	if ((diff = a->ext.port - b->ext.port) != 0)
+-	if ((diff = a->ext.port - b->ext.port) != 0)
++	if ((b->ext.pad == 0) && (diff = a->ext.port - b->ext.port) != 0)
  		return (diff);
  
-@@ -725,10 +725,12 @@
+ 	return (0);
+@@ -725,9 +727,9 @@
  #endif /* INET6 */
  	}
  
 -	if ((diff = a->ext.port - b->ext.port) != 0)
--		return (diff);
- 	if ((diff = a->gwy.port - b->gwy.port) != 0)
++	if ((b->gwy.pad == 0) && (diff = a->gwy.port - b->gwy.port) != 0)
  		return (diff);
-+	if (b->ext.pad)
-+		return (0);
-+	if ((diff = a->ext.port - b->ext.port) != 0)
-+		return (diff);
+-	if ((diff = a->gwy.port - b->gwy.port) != 0)
++	if ((b->ext.pad == 0) && (diff = a->ext.port - b->ext.port) != 0)
+ 		return (diff);
  
  	return (0);
- }
 @@ -4855,13 +4857,14 @@
  int
  pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
@@ -136,7 +147,7 @@ diff -u -r1.5 pf.c
  			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
  			*copyback = 1;
  		}
-@@ -5310,6 +5353,56 @@
+@@ -5310,6 +5353,54 @@
  		dst = &(*state)->src;
  	}
  
@@ -145,15 +156,13 @@ diff -u -r1.5 pf.c
 +                        if ((*state)->ext.pad) { (*state)->ext.port = th->th_sport; (*state)->ext.pad = 0; }
 +                        if ((*state)->lan.pad) { (*state)->lan.port = th->th_dport; (*state)->lan.pad = 0; }
 +                        if ((*state)->gwy.pad) { (*state)->gwy.port = th->th_dport; (*state)->gwy.pad = 0; }
-+                        src->state = TCPS_SYN_SENT;
-+                        dst->state = TCPS_CLOSED;
 +                 } else {
 +                        if ((*state)->ext.pad) { (*state)->ext.port = th->th_dport; (*state)->ext.pad = 0; }
 +                        if ((*state)->lan.pad) { (*state)->lan.port = th->th_sport; (*state)->lan.pad = 0; }
 +                        if ((*state)->gwy.pad) { (*state)->gwy.port = th->th_sport; (*state)->gwy.pad = 0; }
-+                        dst->state = TCPS_SYN_SENT;
-+                        src->state = TCPS_CLOSED;
 +                }
++                src->state = TCPS_SYN_SENT;
++                dst->state = TCPS_CLOSED;
 +                (*state)->src.seqlo = ntohl(th->th_seq);
 +                (*state)->src.seqhi = (*state)->src.seqlo + pd->tot_len - off - (th->th_off << 2) + 1;
 +                if ((th->th_flags & (TH_SYN|TH_ACK)) == TH_SYN &&
@@ -193,7 +202,7 @@ diff -u -r1.5 pf.c
  	if ((*state)->src.state == PF_TCPS_PROXY_SRC) {
  		if (direction != (*state)->direction) {
  			REASON_SET(reason, PFRES_SYNPROXY);
-@@ -5438,10 +5531,11 @@
+@@ -5438,10 +5529,11 @@
  			return (PF_DROP);
  	} else {
  		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
@@ -206,11 +215,11 @@ diff -u -r1.5 pf.c
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7321,6 +7415,10 @@
+@@ -7321,6 +7413,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
-+		if (action == PF_PASS && s != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
++		if (ftp_proxy == 0 && action == PF_PASS && s != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
 +			if (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21)
 +				pf_handle_ftp(&pd, m, s, off, dir);
 +		}
@@ -222,8 +231,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	5 Jan 2011 18:33:33 -0000
-@@ -0,0 +1,718 @@
++++ sys/contrib/pf/net/pf_ftp.c	17 Jan 2011 19:53:38 -0000
+@@ -0,0 +1,771 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -363,17 +372,6 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +
 +		if (ftp_message_type == FTP_UNKNOWN_MESSAGE)
 +			return;
-+		else if (nr != NULL) {
-+
-+			if ((ftp_message_type == FTP_227_REPLY ||
-+		    	    ftp_message_type == FTP_229_REPLY) && (nr->action == PF_NAT || (nr->action == PF_BINAT && state->direction == PF_OUT)))
-+				return;
-+
-+			if ((ftp_message_type == FTP_PORT_COMMAND ||
-+		    	    ftp_message_type == FTP_EPRT_COMMAND) && (nr->action == PF_RDR || (nr->action == PF_BINAT && state->direction == PF_IN)))
-+				return;
-+			NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
-+		}
 +
 +		s = pool_get(&pf_state_pl, PR_NOWAIT);
 +                if (s == NULL) {
@@ -381,6 +379,115 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                        return;
 +                }
 +                bzero(s, sizeof(*s));
++
++		switch (ftp_message_type) {
++		case FTP_PORT_COMMAND:
++		case FTP_EPRT_COMMAND:
++			if (nr != NULL) {
++				if ((nr->action == PF_NAT || (nr->action == PF_BINAT && state->direction == PF_OUT)))
++					NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
++
++               			s->nat_rule.ptr = nr;
++                                if (nr->action == PF_NAT || (state->direction == PF_OUT && nr->action == PF_BINAT)) {
++					s->direction = PF_IN;
++                                        PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                                        s->gwy.port = htons(oport);
++                                        PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++                                        s->lan.port = htons(oport);
++                                        PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++                                        s->ext.port = 0;
++                                        s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++                                } else {
++					s->direction = PF_OUT;
++                                        PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                                        s->gwy.port = 0;
++                                        s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
++                                        PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++                                        s->lan.port = 0;
++                                        s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++                                        PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++                                        s->ext.port = htons(oport);
++                                }
++			} else if (dir == PF_IN) {
++				s->direction = PF_OUT;
++				PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++				s->gwy.port = 0;
++				s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
++				PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++				s->lan.port = 0;
++				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++				PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++				s->ext.port = htons(oport);
++			} else if (dir == PF_OUT) {
++				s->direction = PF_IN;
++				PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++				s->gwy.port = htons(oport);
++				PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++				s->lan.port = htons(oport);
++				PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++				s->ext.port = 0;
++				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++			}
++			break;
++		case FTP_227_REPLY:
++		case FTP_229_REPLY:
++			if (nr != NULL) {
++				if ((nr->action == PF_RDR || (nr->action == PF_BINAT && state->direction == PF_IN)))
++					NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
++
++               			s->nat_rule.ptr = nr;
++				s->direction = state->direction;
++                                if (nr->action == PF_RDR || (dir == PF_IN && nr->action == PF_BINAT)) {
++                                        PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                                        s->gwy.port = htons(oport);
++                                        PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++                                        s->lan.port = htons(oport);
++
++                                        PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++                                        s->ext.port = 0;
++                                        s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++                                } else {
++                                        PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++                                        s->lan.port = 0;
++                                        s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++                                        PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++                                        s->gwy.port = 0;
++                                        s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
++
++                                        PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++                                        s->ext.port = htons(oport);
++                                }
++			} else if (dir == PF_IN) {
++				s->direction = PF_OUT;
++				PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++				s->gwy.port = 0;
++				s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
++				PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++				s->lan.port = 0;
++				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
++
++				PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++				s->ext.port = htons(oport);
++			} else if (dir == PF_OUT) {
++				s->direction = PF_IN;
++				PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++				s->gwy.port = htons(oport);
++				PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++				s->lan.port = htons(oport);
++
++				PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++				s->ext.port = 0;
++				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++			}
++			break;
++		default:
++			pool_put(&pf_state_pl, s);
++                        if (state->src.seqdiffoneway)
++                                state->src.seqdiffoneway -= delta;
++			return;
++			break;
++		}
++
 +                s->rule.ptr = state->rule.ptr;
 +                s->anchor.ptr = state->anchor.ptr;
 +                STATE_INC_COUNTERS(s);
@@ -389,52 +496,6 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->log = state->log;
 +                s->proto = IPPROTO_TCP;
 +                s->af = pd->af;
-+		if (nr != NULL) {
-+               		s->nat_rule.ptr = nr;
-+			if (nr->action == PF_RDR || (state->direction == PF_IN && nr->action == PF_BINAT))
-+               			s->direction = state->direction;
-+			else
-+				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
-+
-+			/* This is inverted. */
-+                	if (s->direction == PF_OUT) {
-+                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                       		s->gwy.port = htons(oport); 
-+                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+                       		s->lan.port = 0; 
-+				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = htons(oport);
-+                	} else {
-+                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = 0;
-+				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+                       		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
-+                       		s->lan.port = htons(oport);
-+                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                       		s->gwy.port = htons(oport);
-+			}
-+		} else {
-+			if (ftp_message_type == FTP_227_REPLY || ftp_message_type == FTP_229_REPLY) {
-+				s->direction = state->direction;
-+                       		PF_ACPY(&s->gwy.addr, &state->ext.addr, pd->af);
-+                       		s->gwy.port = htons(oport);
-+                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
-+                       		s->lan.port = htons(oport);
-+                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+                       		s->ext.port = 0;
-+				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+			} else if (ftp_message_type == FTP_PORT_COMMAND || ftp_message_type == FTP_EPRT_COMMAND) {
-+				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
-+                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                       		s->gwy.port = htons(oport); 
-+                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+                       		s->lan.port = 0; 
-+				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = htons(oport);
-+			}
-+		}
 +                s->src.state = TCPS_LISTEN;
 +                s->dst.state = TCPS_LISTEN;
 +                s->creation = time_second;
@@ -461,6 +522,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +			if (state->src.seqdiffoneway)
 +				state->src.seqdiffoneway -= delta;
 +                } 
++
 +	}
 +}
 +
@@ -945,10 +1007,10 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.5
-diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	5 Jan 2011 18:21:51 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	5 Jan 2011 18:22:15 -0000
+retrieving revision 1.6
+diff -u -r1.6 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	17 Jan 2011 19:49:48 -0000	1.6
++++ sys/contrib/pf/net/pfvar.h	17 Jan 2011 19:49:59 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -976,8 +1038,8 @@ Index: sys/modules/pf/Makefile
 RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	4 Jan 2011 23:37:18 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	5 Jan 2011 18:22:15 -0000
+--- sys/modules/pf/Makefile	12 Jan 2011 18:37:39 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	17 Jan 2011 19:49:59 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
