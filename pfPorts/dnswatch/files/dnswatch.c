@@ -67,6 +67,9 @@ int check_hostname(char *hostname, struct in_addr *ip) {
 	struct hostent *he;
 	struct in_addr *addr;
 
+	if (!hostname)
+		return 0;
+
 	he = gethostbyname2(hostname, AF_INET);
 	if (he == NULL) {
 		syslog(LOG_WARNING, "DNS lookup for %s failed", hostname);
@@ -155,7 +158,8 @@ int main(int argc, char *argv[]) {
 		int changes = 0;
 		list = props;
 		while (list != NULL) {
-			changes += check_hostname(list->name, &ips[i]);
+			if (list->name)
+				changes += check_hostname(list->name, &ips[i]);
 			list = list->next;
 			i++;
 		}
