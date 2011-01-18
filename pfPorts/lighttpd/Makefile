@@ -118,10 +118,6 @@ LIB_DEPENDS+=		gdbm:${PORTSDIR}/databases/gdbm
 CONFIGURE_ARGS+=	--with-gdbm
 .endif
 
-.if defined(WITHOUT_IPV6)
-CONFIGURE_ARGS+=	--disable-ipv6
-.endif
-
 .if defined(WITH_LIBEV)
 CONFIGURE_ARGS+=	--with-libev=${LOCALBASE}
 LIB_DEPENDS+=		ev.3:${PORTSDIR}/devel/libev
