@@ -183,10 +183,6 @@ CONFIGURE_ARGS+=--enable-debug
 CONFIGURE_ARGS+=--enable-zend-multibyte
 .endif
 
-.if defined(WITHOUT_IPV6)
-CONFIGURE_ARGS+=--disable-ipv6
-.endif
-
 # Fix 2.2250738585072011e-308 numerics
 CFLAGS+=	-ffloat-store
 
