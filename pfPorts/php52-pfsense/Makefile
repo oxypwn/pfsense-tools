@@ -184,10 +184,6 @@ CONFIGURE_ARGS+=--enable-debug
 CONFIGURE_ARGS+=--enable-zend-multibyte
 .endif
 
-.if defined(WITHOUT_IPV6)
-CONFIGURE_ARGS+=--disable-ipv6
-.endif
-
 post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
 	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
