@@ -46,6 +46,10 @@
 #include <sysexits.h>
 #include <string.h>
 #include <fcntl.h>
+#include <time.h>
+#include <signal.h>
+
+#include <pthread.h>
 
 /*
 	Resolves each host name in a given list at regular intervals, and runs
@@ -59,44 +63,73 @@
 	than the TTL of the DNS records being watched
 */
 
+static char *command = NULL;
+pthread_t *threads = NULL;
+static int hosts = 0;
+static int debug = 0;
+static int interval = 10;
+
 void usage(void) {
 	fprintf(stderr, "usage: dnswatch pidfile interval command hostfile\n");
 	exit(4);
 }
 
-int check_hostname(char *hostname, struct in_addr *ip) {
+void *check_hostname(void *arg)
+{
+	properties local = (properties) arg;
 	struct hostent *he;
-	struct in_addr *addr;
+	struct in_addr *addr, ip;
+	struct timespec ts;
 
-	if (!hostname)
+	ts.tv_sec = interval;
+        ts.tv_nsec = 0;
+
+	if (!local->name)
 		return 0;
 
-	he = gethostbyname2(hostname, AF_INET);
-	if (he == NULL) {
-		syslog(LOG_WARNING, "DNS lookup for %s failed", hostname);
-		return 0;
+	ip.s_addr = 0;
+	for (;;) {
+		he = gethostbyname2(local->name, AF_INET);
+		if (he == NULL) {
+			syslog(LOG_WARNING, "DNS lookup for host %s failed", local->name);
+		} else {
+			addr = (struct in_addr*)he->h_addr;
+			if (ip.s_addr != 0 && ip.s_addr != addr->s_addr) {
+				ip = *addr;
+				syslog(LOG_WARNING, "hostname %s ip changed to %s, reloading ipsec tunnel.",  local->name, inet_ntoa(*addr));
+				system(command);
+			}
+		}
+		nanosleep(&ts, NULL);
 	}
-	
-	addr = (struct in_addr*)he->h_addr;
-	
-	if (ip->s_addr != 0 && ip->s_addr != addr->s_addr) {
-		*ip = *addr;
-		syslog(LOG_INFO, "hostname %s ip changed to %s, will reload ipsec tunnel.",  hostname, inet_ntoa(*addr));
-		return 1;
-	}
-	
-	*ip = *addr;
-	return 0;
+}
+
+static void
+handle_signal(int sig)
+{
+        int i;
+
+        switch(sig) {
+        case SIGHUP:
+        case SIGTERM:
+                if (hosts) {
+                        for (i = 0; i < hosts; i++) {
+                                pthread_cancel(threads[i]);
+                        }
+                }
+                break;
+        default:
+                if (debug >= 3)
+                        syslog(LOG_WARNING, "unhandled signal");
+        }
 }
 
 int main(int argc, char *argv[]) {
-	int interval;
 	char *file;
-	char *command;
 	properties list, props;
-	struct in_addr *ips;
-	int fd;
-	FILE *pidfd;
+	int fd, i = 0, error = 0;
+	FILE *pidfd = NULL;
+	sig_t sig_error;
 
 	if (argc > 5 || argc < 4)
 		usage();
@@ -140,44 +173,49 @@ int main(int argc, char *argv[]) {
 	// Close open file handle for dnswatch configuration
 	close(fd);
 
-	int hosts = 1;
+	/*
+         * Catch SIGHUP in order to reread configuration file.
+         */
+        sig_error = signal(SIGHUP, handle_signal);
+        if (sig_error == SIG_ERR)
+                err(EX_OSERR, "unable to set signal handler");
+        sig_error = signal(SIGTERM, handle_signal);
+        if (sig_error == SIG_ERR)
+                err(EX_OSERR, "unable to set signal handler");
+
 	list = props;
 	while (list != NULL) {
 		list = list->next;
 		hosts++;
 	}
 
-	// Create a place to hold resolved ip addresses
-	ips = calloc(hosts, sizeof(struct in_addr));
-	if (ips == NULL) {
-		fprintf(stderr, "calloc failed\n");
-		exit(2);
-	}
+        threads = malloc(hosts * sizeof(pthread_t));
+        if (threads == NULL) {
+                syslog(LOG_ERR, "error while allocating memory");
+                properties_free(props);
+                exit(5);
+        }
 
-	// Loop forever checking to see if a hostname changes
-	for (;;) {
-		int i = 0;
-		int changes = 0;
-		list = props;
-		while (list != NULL) {
-			if (list->name)
-				changes += check_hostname(list->name, &ips[i]);
-			list = list->next;
-			i++;
-		}
-		
-		// If the hostname changed, run the specified command
-		if (changes > 0) {
-			syslog(LOG_INFO, "One of the monitored hostnames changed, reloading ipsec.");
-			system(command);
-		}
-		
-		// Sleep until next run
-		sleep(interval);
-	}
+        memset(threads, 0, sizeof(threads) * hosts);
 
-	// Release memory before exiting
-	properties_free(props);
+        list = props;
+        i = 0;
+        while (list != NULL) {
+                error = pthread_create(&threads[i], NULL, check_hostname, list);
+                if (error != 0) {
+                        if (debug >= 1)
+                                syslog(LOG_ERR, "Unable to create monitoring thread for host %s", list->name);
+                }
+                i = i + 1;
+                list = list->next;
+        }
+        for (i = 0; i < hosts; i++)
+                pthread_join(threads[i], NULL);
+
+        if (props != NULL)
+                properties_free(props);
+        if (threads != NULL)
+                free(threads);
 
 	return 0;
 }
