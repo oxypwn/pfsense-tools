@@ -23,10 +23,6 @@ OPTIONS=	IPV6 "With support for IPv6" on
 
 .include <bsd.port.pre.mk>
 
-.if !defined(WITH_IPV6)
-CONFIGURE_ARGS+=	--disable-ipv6
-.endif
-
 #post-extract:
 #	@${SED} -e "s,%%PREFIX%%,${PREFIX},g" ${FILESDIR}/apinger.sh \
 #		> ${WRKSRC}/apinger.sh
