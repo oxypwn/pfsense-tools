@@ -36,10 +36,6 @@ OPTIONS+=	NLS  "NLS and IDN support" on
 
 .include <bsd.port.pre.mk>
 
-.if defined(WITHOUT_IPV6)
-CFLAGS+=	-DNO_IPV6
-.endif
-
 .if !defined(WITHOUT_NLS)
 BUILD_DEPENDS=	pkg-config:${PORTSDIR}/devel/pkg-config
 LIB_DEPENDS+=	idn:${PORTSDIR}/dns/libidn
