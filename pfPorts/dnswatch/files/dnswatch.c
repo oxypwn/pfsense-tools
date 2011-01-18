@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,6 +81,7 @@ int check_hostname(char *hostname, struct in_addr *ip) {
 	
 	if (ip->s_addr != 0 && ip->s_addr != addr->s_addr) {
 		*ip = *addr;
+		syslog(LOG_INFO, "hostname %s ip changed to %s, will reload ipsec tunnel.",  hostname, inet_ntoa(*addr));
 		return 1;
 	}
 	
@@ -165,8 +167,10 @@ int main(int argc, char *argv[]) {
 		}
 		
 		// If the hostname changed, run the specified command
-		if (changes > 0)
+		if (changes > 0) {
+			syslog(LOG_INFO, "One of the monitored hostnames changed, reloading ipsec.");
 			system(command);
+		}
 		
 		// Sleep until next run
 		sleep(interval);
