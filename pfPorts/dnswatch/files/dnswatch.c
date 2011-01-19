@@ -94,7 +94,7 @@ void *check_hostname(void *arg)
 			syslog(LOG_WARNING, "DNS lookup for host %s failed", local->name);
 		} else {
 			addr = (struct in_addr*)he->h_addr;
-			if (ip.s_addr != 0 && ip.s_addr != addr->s_addr) {
+			if (ip.s_addr == 0 || ip.s_addr != addr->s_addr) {
 				ip = *addr;
 				syslog(LOG_WARNING, "hostname %s ip changed to %s, reloading ipsec tunnel.",  local->name, inet_ntoa(*addr));
 				system(command);
