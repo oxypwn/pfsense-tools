@@ -34,6 +34,7 @@
                                                                               */
 /* ========================================================================== */
 
+$builder_package_install = true;
 
 require_once("globals.inc");
 require_once("config.inc");
