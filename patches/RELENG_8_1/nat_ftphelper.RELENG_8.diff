@@ -432,7 +432,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +		case FTP_227_REPLY:
 +		case FTP_229_REPLY:
 +			if (nr != NULL) {
-+				if ((nr->action == PF_RDR || (nr->action == PF_BINAT && state->direction == PF_IN)))
++				if ((ftp_message_type == FTP_227_REPLY) && (nr->action == PF_RDR || (nr->action == PF_BINAT && state->direction == PF_IN)))
 +					NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
 +
 +               			s->nat_rule.ptr = nr;
@@ -939,10 +939,10 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +					a->addr8[2],
 +					a->addr8[3], p1, p2);
 +			} else {
-+				if (s->direction == PF_OUT || s->nat_rule.ptr->action != PF_NAT)
++				//if (s->direction == PF_OUT || s->nat_rule.ptr->action != PF_NAT)
 +					a = &s->gwy.addr;
-+				else
-+					a = &s->ext.addr;
++				//else
++				//	a = &s->ext.addr;
 +				/* Generate 227 reply string. */
 +				sprintf(stemp,
 +				    "227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)\r\n",
