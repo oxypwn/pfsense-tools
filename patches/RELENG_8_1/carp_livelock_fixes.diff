@@ -1,0 +1,160 @@
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/tmp1/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.3
+diff -u -r1.3 ip_carp.c
+--- sys/netinet/ip_carp.c	21 Jan 2011 19:04:36 -0000	1.3
++++ sys/netinet/ip_carp.c	21 Jan 2011 19:11:40 -0000
+@@ -156,23 +156,24 @@
+ 	int vhif_nvrs;
+ 
+ 	struct ifnet 	*vhif_ifp;
+-	struct mtx	 vhif_mtx;
++	struct rwlock	 vhif_mtx;
+ };
+ 
+ /* Get carp_if from softc. Valid after carp_set_addr{,6}. */
+ #define	SC2CIF(sc)		((struct carp_if *)(sc)->sc_carpdev->if_carp)
+ 
+ /* lock per carp_if queue */
+-#define	CARP_LOCK_INIT(cif)	mtx_init(&(cif)->vhif_mtx, "carp_if", 	\
+-	NULL, MTX_DEF)
+-#define	CARP_LOCK_DESTROY(cif)	mtx_destroy(&(cif)->vhif_mtx)
+-#define	CARP_LOCK_ASSERT(cif)	mtx_assert(&(cif)->vhif_mtx, MA_OWNED)
+-#define	CARP_LOCK(cif)		mtx_lock(&(cif)->vhif_mtx)
+-#define	CARP_UNLOCK(cif)	mtx_unlock(&(cif)->vhif_mtx)
+-
+-#define	CARP_SCLOCK(sc)		mtx_lock(&SC2CIF(sc)->vhif_mtx)
+-#define	CARP_SCUNLOCK(sc)	mtx_unlock(&SC2CIF(sc)->vhif_mtx)
+-#define	CARP_SCLOCK_ASSERT(sc)	mtx_assert(&SC2CIF(sc)->vhif_mtx, MA_OWNED)
++#define	CARP_LOCK_INIT(cif)	rw_init_flags(&(cif)->vhif_mtx, "carp_if", 	\
++	MTX_DEF)
++#define	CARP_LOCK_DESTROY(cif)	rw_destroy(&(cif)->vhif_mtx)
++#define	CARP_LOCK_ASSERT(cif)	rw_assert(&(cif)->vhif_mtx, MA_OWNED)
++#define	CARP_RLOCK(cif)		rw_rlock(&(cif)->vhif_mtx)
++#define	CARP_WLOCK(cif)		rw_wlock(&(cif)->vhif_mtx)
++#define	CARP_UNLOCK(cif)	rw_unlock(&(cif)->vhif_mtx)
++
++#define	CARP_SCLOCK(sc)		rw_wlock(&SC2CIF(sc)->vhif_mtx)
++#define	CARP_SCUNLOCK(sc)	rw_unlock(&SC2CIF(sc)->vhif_mtx)
++#define	CARP_SCLOCK_ASSERT(sc)	rw_assert(&SC2CIF(sc)->vhif_mtx, MA_OWNED)
+ 
+ #define	CARP_LOG(...)	do {				\
+ 	if (carp_opts[CARPCTL_LOG] > 0)			\
+@@ -520,7 +521,7 @@
+ 	/*
+ 	 * XXX: At the end of for() cycle the lock will be destroyed.
+ 	 */
+-	CARP_LOCK(cif);
++	CARP_WLOCK(cif);
+ 	for (sc = TAILQ_FIRST(&cif->vhif_vrs); sc; sc = nextsc) {
+ 		nextsc = TAILQ_NEXT(sc, sc_list);
+ 		carpdetach(sc, 0);
+@@ -693,7 +694,7 @@
+ 	struct timeval sc_tv, ch_tv;
+ 
+ 	/* verify that the VHID is valid on the receiving interface */
+-	CARP_LOCK(ifp->if_carp);
++	CARP_RLOCK(ifp->if_carp);
+ 	TAILQ_FOREACH(sc, &((struct carp_if *)ifp->if_carp)->vhif_vrs, sc_list)
+ 		if (sc->sc_vhid == ch->carp_vhid)
+ 			break;
+@@ -1157,7 +1158,7 @@
+ 	int index, count = 0;
+ 	struct ifaddr *ifa;
+ 
+-	CARP_LOCK(cif);
++	CARP_RLOCK(cif);
+ 
+ 	if (carp_opts[CARPCTL_ARPBALANCE]) {
+ 		/*
+@@ -1231,7 +1232,7 @@
+ 	struct carp_softc *vh;
+ 	struct ifaddr *ifa;
+ 
+-	CARP_LOCK(cif);
++	CARP_RLOCK(cif);
+ 	TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list) {
+ 		IF_ADDR_LOCK(SC2IFP(vh));
+ 		TAILQ_FOREACH(ifa, &SC2IFP(vh)->if_addrlist, ifa_list) {
+@@ -1261,7 +1262,7 @@
+ 	struct carp_softc *sc;
+ 	struct ifaddr *ifa;
+ 
+-	CARP_LOCK(cif);
++	CARP_RLOCK(cif);
+ 	TAILQ_FOREACH(sc, &cif->vhif_vrs, sc_list) {
+ 		IF_ADDR_LOCK(SC2IFP(sc));
+ 		TAILQ_FOREACH(ifa, &SC2IFP(sc)->if_addrlist, ifa_list) {
+@@ -1305,7 +1306,7 @@
+ 	if (ena[0] || ena[1] || ena[2] != 0x5e || ena[3] || ena[4] != 1)
+ 		return (NULL);
+ 
+-	CARP_LOCK(cif);
++	CARP_RLOCK(cif);
+ 	TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list)
+ 		if ((SC2IFP(vh)->if_flags & IFF_UP) &&
+ 		    (SC2IFP(vh)->if_drv_flags & IFF_DRV_RUNNING) &&
+@@ -1558,7 +1559,7 @@
+ 		}
+ 		
+ 		CARP_LOCK_INIT(cif);
+-		CARP_LOCK(cif);
++		CARP_WLOCK(cif);
+ 		cif->vhif_ifp = ifp;
+ 		TAILQ_INIT(&cif->vhif_vrs);
+ 		ifp->if_carp = cif;
+@@ -1567,7 +1568,7 @@
+ 		struct carp_softc *vr;
+ 
+ 		cif = (struct carp_if *)ifp->if_carp;
+-		CARP_LOCK(cif);
++		CARP_WLOCK(cif);
+ 		TAILQ_FOREACH(vr, &cif->vhif_vrs, sc_list)
+ 			if (vr != sc && vr->sc_vhid == sc->sc_vhid) {
+ 				CARP_UNLOCK(cif);
+@@ -1631,7 +1632,7 @@
+ 		struct carp_if *cif = (struct carp_if *)sc->sc_carpdev->if_carp;
+ 		struct ip_moptions *imo = &sc->sc_imo;
+ 
+-		CARP_LOCK(cif);
++		CARP_WLOCK(cif);
+ 		callout_stop(&sc->sc_ad_tmo);
+ 		SC2IFP(sc)->if_flags &= ~IFF_UP;
+ 		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
+@@ -1765,7 +1766,7 @@
+ 		}
+ 
+ 		CARP_LOCK_INIT(cif);
+-		CARP_LOCK(cif);
++		CARP_WLOCK(cif);
+ 		cif->vhif_ifp = ifp;
+ 		TAILQ_INIT(&cif->vhif_vrs);
+ 		ifp->if_carp = cif;
+@@ -1774,7 +1775,7 @@
+ 		struct carp_softc *vr;
+ 
+ 		cif = (struct carp_if *)ifp->if_carp;
+-		CARP_LOCK(cif);
++		CARP_WLOCK(cif);
+ 		TAILQ_FOREACH(vr, &cif->vhif_vrs, sc_list)
+ 			if (vr != sc && vr->sc_vhid == sc->sc_vhid) {
+ 				CARP_UNLOCK(cif);
+@@ -1836,7 +1837,7 @@
+ 	if (!--sc->sc_naddrs6) {
+ 		struct carp_if *cif = (struct carp_if *)sc->sc_carpdev->if_carp;
+ 
+-		CARP_LOCK(cif);
++		CARP_WLOCK(cif);
+ 		callout_stop(&sc->sc_ad_tmo);
+ 		SC2IFP(sc)->if_flags &= ~IFF_UP;
+ 		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
+@@ -2216,7 +2217,7 @@
+ {
+ 	struct carp_if *cif = v;
+ 
+-	CARP_LOCK(cif);
++	CARP_WLOCK(cif);
+ 	carp_carpdev_state_locked(cif);
+ 	CARP_UNLOCK(cif);
+ }
