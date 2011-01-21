@@ -1,0 +1,56 @@
+Index: sys/net/if_bridge.c
+===================================================================
+RCS file: /root/freebsd/tmp1/repo/src/sys/net/if_bridge.c,v
+retrieving revision 1.2
+diff -u -r1.2 if_bridge.c
+--- sys/net/if_bridge.c	21 Jan 2011 22:20:08 -0000	1.2
++++ sys/net/if_bridge.c	21 Jan 2011 22:21:26 -0000
+@@ -2340,7 +2340,7 @@
+ 			     OR_PFIL_HOOKED_INET6)) {			\
+ 				if (bridge_pfil(&m, NULL, ifp,		\
+ 				    PFIL_IN) != 0 || m == NULL) {	\
+-					BRIDGE_UNLOCK(sc);		\
++					/*BRIDGE_UNLOCK(sc);*/		\
+ 					return (NULL);			\
+ 				}					\
+ 			}						\
+@@ -2349,13 +2349,13 @@
+ 			error = bridge_rtupdate(sc, eh->ether_shost,	\
+ 			    vlan, bif, 0, IFBAF_DYNAMIC);		\
+ 			if (error && bif->bif_addrmax) {		\
+-				BRIDGE_UNLOCK(sc);			\
++				/*BRIDGE_UNLOCK(sc);*/			\
+ 				m_freem(m);				\
+ 				return (NULL);				\
+ 			}						\
+ 		}							\
+ 		m->m_pkthdr.rcvif = iface;				\
+-		BRIDGE_UNLOCK(sc);					\
++		/*BRIDGE_UNLOCK(sc);*/					\
+ 		return (m);						\
+ 	}								\
+ 									\
+@@ -2363,11 +2363,13 @@
+ 	if (memcmp(IF_LLADDR((iface)), eh->ether_shost, ETHER_ADDR_LEN) == 0 \
+ 	    OR_CARP_CHECK_WE_ARE_SRC((iface))			\
+ 	    ) {								\
+-		BRIDGE_UNLOCK(sc);					\
++		/*BRIDGE_UNLOCK(sc);*/					\
+ 		m_freem(m);						\
+ 		return (NULL);						\
+ 	}
+ 
++	BRIDGE_LOCK(sc);
++
+ 	/*
+ 	 * Unicast.  Make sure it's not for the bridge.
+ 	 */
+@@ -2392,6 +2394,8 @@
+ #undef OR_PFIL_HOOKED_INET6
+ #undef GRAB_OUR_PACKETS
+ 
++	BRIDGE_UNLOCK(sc);
++
+ 	/* Perform the bridge forwarding function. */
+ 	bridge_forward(sc, bif, m);
+ 
