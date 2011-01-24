@@ -494,6 +494,8 @@ build_all_kernels() {
 	echo -n "."
 	(cd $KERNEL_BUILD_PATH/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .)
 	echo -n "."
+	(cd $KERNEL_BUILD_PATH/wrap_Dev/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz .)
+	echo -n "."
 	(cd $KERNEL_BUILD_PATH/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
 	echo -n "."
 	(cd $KERNEL_BUILD_PATH/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
