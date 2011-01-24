@@ -306,6 +306,33 @@ build_embedded_kernel() {
 	echo "done."
 }
 
+build_embedded_dev_kernel() {
+	# Build embedded Dev kernel
+	echo ">>> Building embedded dev kernel..."
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	unset KERNCONF
+	unset KERNEL_DESTDIR
+	unset KERNELCONF
+	export KERNCONF=pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_Dev"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}"
+	# Common fixup code
+	fixup_kernel_options
+	freesbie_make buildkernel
+	echo ">>> Installing embedded kernel..."
+	freesbie_make installkernel
+	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap_Dev/boot/defaults/
+	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap_Dev/boot/device.hints
+	echo -n ">>> Installing kernels to LiveCD area..."
+	(cd $KERNEL_BUILD_PATH/wrap_Dev/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz .)
+	echo -n "."
+	chflags -R noschg $PFSENSEBASEDIR/boot/
+	ensure_kernel_exists $KERNEL_DESTDIR
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz -C $PFSENSEBASEDIR/boot/)
+	echo "done."
+}
+
 # This routine builds the developers kernel
 build_dev_kernel() {
 	# Build Developers kernel
@@ -395,6 +422,23 @@ build_all_kernels() {
 	fixup_kernel_options
 	freesbie_make buildkernel
 	echo ">>> Installing wrap kernel..."
+	freesbie_make installkernel
+	ensure_kernel_exists $KERNEL_DESTDIR
+
+	# Build embedded dev kernel
+	echo ">>> Building embedded dev kernel..."
+	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	unset KERNCONF
+	unset KERNEL_DESTDIR
+	unset KERNELCONF
+	export KERNCONF=pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}
+	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_Dev"
+	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}"
+	# Common fixup code
+	fixup_kernel_options
+	freesbie_make buildkernel
+	echo ">>> Installing wrap Dev kernel..."
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 
