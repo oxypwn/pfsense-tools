@@ -5,7 +5,7 @@ options		KDB_TRACE
 options		DDB                     # Support DDB.
 options		GDB                     # Support remote GDB.
 options		INVARIANTS
-options		INVARIANTS_SUPPORT
+options		INVARIANT_SUPPORT
 options		WITNESS
 options		WITNESS_SKIPSPIN
 options		BREAK_TO_DEBUGGER

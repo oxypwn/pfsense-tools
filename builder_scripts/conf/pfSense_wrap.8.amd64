@@ -5,7 +5,7 @@ nooptions         KDB_TRACE
 nooptions         DDB                     # Support DDB.
 nooptions         GDB                     # Support remote GDB.
 nooptions		INVARIANTS
-nooptions		INVARIANTS_SUPPORT
+nooptions		INVARIANT_SUPPORT
 nooptions		WITNESS
 nooptions		WITNESS_SKIPSPIN
 
