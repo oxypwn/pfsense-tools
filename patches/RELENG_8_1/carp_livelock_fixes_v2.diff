@@ -40,7 +40,7 @@ diff -u -r1.2 if_bridge.c
  		return (NULL);						\
  	}
  
-+	BRIDGE_LOCK(sc);
++	BRIDGE_UNLOCK(sc);
 +
  	/*
  	 * Unicast.  Make sure it's not for the bridge.
@@ -49,7 +49,7 @@ diff -u -r1.2 if_bridge.c
  #undef OR_PFIL_HOOKED_INET6
  #undef GRAB_OUR_PACKETS
  
-+	BRIDGE_UNLOCK(sc);
++	BRIDGE_LOCK(sc);
 +
  	/* Perform the bridge forwarding function. */
  	bridge_forward(sc, bif, m);
