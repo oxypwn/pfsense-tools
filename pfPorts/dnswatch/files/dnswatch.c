@@ -82,7 +82,7 @@ void *check_hostname(void *arg)
 	struct timespec ts;
 
 	ts.tv_sec = interval;
-        ts.tv_nsec = 0;
+		ts.tv_nsec = 0;
 
 	if (!local->name)
 		return 0;
@@ -109,21 +109,21 @@ void *check_hostname(void *arg)
 static void
 handle_signal(int sig)
 {
-        int i;
+	int i;
 
-        switch(sig) {
-        case SIGHUP:
-        case SIGTERM:
-                if (hosts) {
-                        for (i = 0; i < hosts; i++) {
-                                pthread_cancel(threads[i]);
-                        }
-                }
-                break;
-        default:
-                if (debug >= 3)
-                        syslog(LOG_WARNING, "unhandled signal");
-        }
+	switch(sig) {
+		case SIGHUP:
+		case SIGTERM:
+			if (hosts) {
+					for (i = 0; i < hosts; i++) {
+							pthread_cancel(threads[i]);
+					}
+			}
+		break;
+		default:
+			if (debug >= 3)
+				syslog(LOG_WARNING, "unhandled signal");
+	}
 }
 
 int main(int argc, char *argv[]) {
@@ -176,14 +176,14 @@ int main(int argc, char *argv[]) {
 	close(fd);
 
 	/*
-         * Catch SIGHUP in order to reread configuration file.
-         */
-        sig_error = signal(SIGHUP, handle_signal);
-        if (sig_error == SIG_ERR)
-                err(EX_OSERR, "unable to set signal handler");
-        sig_error = signal(SIGTERM, handle_signal);
-        if (sig_error == SIG_ERR)
-                err(EX_OSERR, "unable to set signal handler");
+	 * Catch SIGHUP in order to reread configuration file.
+	 */
+	sig_error = signal(SIGHUP, handle_signal);
+	if (sig_error == SIG_ERR)
+			err(EX_OSERR, "unable to set signal handler");
+	sig_error = signal(SIGTERM, handle_signal);
+	if (sig_error == SIG_ERR)
+			err(EX_OSERR, "unable to set signal handler");
 
 	list = props;
 	while (list != NULL) {
@@ -191,33 +191,33 @@ int main(int argc, char *argv[]) {
 		hosts++;
 	}
 
-        threads = malloc(hosts * sizeof(pthread_t));
-        if (threads == NULL) {
-                syslog(LOG_ERR, "error while allocating memory");
-                properties_free(props);
-                exit(5);
-        }
+	threads = malloc(hosts * sizeof(pthread_t));
+	if (threads == NULL) {
+		syslog(LOG_ERR, "error while allocating memory");
+		properties_free(props);
+		exit(5);
+	}
 
-        memset(threads, 0, sizeof(threads) * hosts);
+	memset(threads, 0, sizeof(threads) * hosts);
 
-        list = props;
-        i = 0;
-        while (list != NULL) {
-                error = pthread_create(&threads[i], NULL, check_hostname, list);
-                if (error != 0) {
-                        if (debug >= 1)
-                                syslog(LOG_ERR, "Unable to create monitoring thread for host %s", list->name);
-                }
-                i = i + 1;
-                list = list->next;
-        }
-        for (i = 0; i < hosts; i++)
-                pthread_join(threads[i], NULL);
+	list = props;
+	i = 0;
+	while (list != NULL) {
+		error = pthread_create(&threads[i], NULL, check_hostname, list);
+		if (error != 0) {
+			if (debug >= 1)
+				syslog(LOG_ERR, "Unable to create monitoring thread for host %s", list->name);
+		}
+		i = i + 1;
+		list = list->next;
+	}
+	for (i = 0; i < hosts; i++)
+		pthread_join(threads[i], NULL);
 
-        if (props != NULL)
-                properties_free(props);
-        if (threads != NULL)
-                free(threads);
+	if (props != NULL)
+		properties_free(props);
+	if (threads != NULL)
+		free(threads);
 
 	return 0;
 }
