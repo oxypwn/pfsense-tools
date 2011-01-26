@@ -12,6 +12,9 @@ COMMENT?=	filterdns
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 
+do-clean:
+	cd files && make clean
+	rm -r work
 do-extract:
 	mkdir -p ${WRKSRC}
 

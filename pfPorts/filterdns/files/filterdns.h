@@ -12,6 +12,7 @@
 
 #define IPFW_TYPE	0
 #define PF_TYPE		1
+#define CMD_TYPE	2
 
 struct table {
         struct sockaddr_in      addr;

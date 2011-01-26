@@ -47,7 +47,7 @@ typedef struct {
 
 %}
 
-%token	IPFW PF PIPE ERROR
+%token	IPFW PF PIPE ERROR CMD
 %token	<v.string>	STRING
 %token	<v.number>	NUMBER
 %type	<v.number>	ftype
@@ -111,6 +111,26 @@ dnsrule		: ftype STRING STRING pipe command {
 				TAILQ_INSERT_TAIL(&thread_list, thr, next);
 			}
 		}
+		| CMD STRING command {
+			struct thread_data *thr = NULL;
+
+			if (!$3) {
+				yyerror("Command is mandatory on CMD type directive");
+				YYERROR;
+			}
+			thr = calloc(1, sizeof(*thr));
+			if (thr == NULL) {
+				yyerror("Filterdns, could not allocate memory");
+				YYERROR;
+			}
+			thr->hostname = strdup($2);
+			free($2);
+			thr->type = CMD_TYPE;
+			thr->cmd = strdup($3);
+			free($3);
+
+                        TAILQ_INSERT_TAIL(&thread_list, thr, next);
+		}
 		;
 
 ftype		: IPFW { $$ = IPFW_TYPE; }
@@ -168,6 +188,7 @@ lookup(char *s)
 {
 	/* this has to be sorted always */
 	static const struct keywords keywords[] = {
+		{"cmd",			CMD},
 		{"ipfw",		IPFW},
 		{"pf",			PF},
 		{"pipe",		PIPE},
