@@ -139,7 +139,7 @@ filterdns_clean_table(struct thread_data *thrdata)
 				syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa_r(e->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 				pf_tableentry(thrdata, e->addr.sin_addr, DELETE);
 			}
-			if (thrdata->type == PF_TYPE) {
+			if (thrdata->type == IPFW_TYPE) {
 				if (debug >= 2)
 					syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa_r(e->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 				ipfw_tableentry(thrdata, e->addr.sin_addr, DELETE);
@@ -200,6 +200,7 @@ ipfw_tableentry(struct thread_data *ipfwd, struct in_addr address, int action)
 	ipfw_table_entry ent;
 	static int s = -1;
 
+	bzero(&ent, sizeof(ent));
 	ent.masklen = ipfwd->mask;
 	ent.tbl = ipfwd->tablenr;
 	ent.addr = address.s_addr;
