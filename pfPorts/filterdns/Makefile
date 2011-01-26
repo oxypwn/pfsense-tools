@@ -14,7 +14,7 @@ PLIST_FILES=    ${WHERE}/${PORTNAME}
 
 do-clean:
 	cd files && make clean
-	rm -r work
+	rm -rf work
 do-extract:
 	mkdir -p ${WRKSRC}
 
