@@ -56,8 +56,6 @@
 static int interval = 30;
 static int dev = -1;
 static int debug = 0;
-static int nopf = 0;
-static int noipfw = 0;
 
 static void pf_tableentry(struct thread_data *, struct in_addr, int);
 static void ipfw_tableentry(struct thread_data *, struct in_addr, int);
@@ -114,12 +112,12 @@ add_table_entry(struct table_entry *rnh, struct in_addr addr, struct thread_data
 	}
 
 	TAILQ_INSERT_HEAD(rnh, ent, entry);
-	if (!nopf && thrdata->type == PF_TYPE) {
+	if (thrdata->type == PF_TYPE) {
 		if (debug >= 2)
 			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntoa_r(addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 		pf_tableentry(thrdata, addr, ADD);
 	}
-	if (!noipfw && thrdata->type == IPFW_TYPE) {
+	if (thrdata->type == IPFW_TYPE) {
 		if (debug >= 2)	
 			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntoa_r(addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 		ipfw_tableentry(thrdata, addr, ADD);
@@ -136,12 +134,12 @@ filterdns_clean_table(struct thread_data *thrdata)
 
 	TAILQ_FOREACH_SAFE(e, thrdata->rnh, entry, tmp) {
 		if (refcount_release(&e->refcnt)) {
-			if (!nopf && thrdata->type == PF_TYPE) {
+			if (thrdata->type == PF_TYPE) {
 				if (debug >= 2)
 				syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa_r(e->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 				pf_tableentry(thrdata, e->addr.sin_addr, DELETE);
 			}
-			if (!noipfw && thrdata->type == PF_TYPE) {
+			if (thrdata->type == PF_TYPE) {
 				if (debug >= 2)
 					syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa_r(e->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 				ipfw_tableentry(thrdata, e->addr.sin_addr, DELETE);
@@ -367,7 +365,7 @@ clear_config()
 
 static void filterdns_usage(void) {
 	
-	fprintf(stderr, "usage: filterdns -p pidfile -i interval -c filecfg -d debuglevel\n");
+	fprintf(stderr, "usage: filterdns -f -p pidfile -i interval -c filecfg -d debuglevel\n");
 	exit(4);
 }
 
@@ -382,7 +380,7 @@ int main(int argc, char *argv[]) {
 	file = NULL;
 	pidfile = NULL;
 
-	while ((ch = getopt(argc, argv, "c:d:fi:p:PI")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:fi:p:")) != -1) {
 		switch (ch) {
 		case 'c':
 			file = optarg;
@@ -403,11 +401,6 @@ int main(int argc, char *argv[]) {
 		case 'p':
 			pidfile = optarg;
 			break;
-		case 'P':
-			nopf = 1;
-			break;
-		case 'I':
-			noipfw = 1;
 		default:
 			fprintf(stderr, "Wrong option: %c given!", ch);
 			return (ch);
