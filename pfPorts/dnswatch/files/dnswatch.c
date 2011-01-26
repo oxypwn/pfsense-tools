@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 	command = argv[3];
 	file = argv[4];
 
-	closefrom(1);
+	closefrom(3);
 
 	/* go into background */
 	if (daemon(0, 0) == -1)
