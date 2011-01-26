@@ -180,10 +180,10 @@ int main(int argc, char *argv[]) {
 	 */
 	sig_error = signal(SIGHUP, handle_signal);
 	if (sig_error == SIG_ERR)
-			err(EX_OSERR, "unable to set signal handler");
+			syslog(LOG_ERR, "unable to set signal handler");
 	sig_error = signal(SIGTERM, handle_signal);
 	if (sig_error == SIG_ERR)
-			err(EX_OSERR, "unable to set signal handler");
+			syslog(LOG_ERR, "unable to set signal handler");
 
 	list = props;
 	while (list != NULL) {
