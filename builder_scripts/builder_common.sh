@@ -3279,10 +3279,6 @@ installkernel() {
 	echo ">>> FreeSBIe2 is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
 	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel || print_error_pfS;) | egrep '^>>>'
 	echo ">>> Executing cd $KERNEL_DESTDIR/boot/kernel"
-	# if [ "${ARCH}" = "$(uname -p)" -a -z "${DEBUG:-}" ]; then
-	#	echo ">>> Executing strip kernel"
-	#	strip $KERNEL_DESTDIR/boot/kernel/kernel
-	# fi
 	gzip -f9 $KERNEL_DESTDIR/boot/kernel/kernel
 	cd $BUILDER_SCRIPTS
 }
