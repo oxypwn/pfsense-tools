@@ -413,11 +413,11 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +		if (ftp_message_type == FTP_UNKNOWN_MESSAGE)
 +			return;
 +
-+		if (state->linked_state != NULL) {
++		/*if (state->linked_state != NULL) {
 +			if (state->linked_state->ext.port == htons(oport) ||
 +			    state->linked_state->lan.port == htons(oport))
 +				return;
-+		}
++		}*/
 +		s = pool_get(&pf_state_pl, PR_NOWAIT);
 +                if (s == NULL) {
 +                        REASON_SET(&reason, PFRES_MEMORY);
@@ -566,8 +566,8 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                        pool_put(&pf_state_pl, s);
 +			if (state->src.seqdiffoneway)
 +				state->src.seqdiffoneway -= delta;
-+                } else
-+			state->linked_state = s;
++                } //else
++			//state->linked_state = s;
 +
 +	}
 +}
