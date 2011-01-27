@@ -111,6 +111,7 @@ strip_pfsense_local() {
 		grep -v CUSTOM_COPY_LIST | \
 		grep -v FREESBIE_ERROR_MAIL | \
 		grep -v REMOVE_PHP | \
+		grep -v EXTRA_DEVICES | \
 		grep -v OVERRIDE_FREEBSD_CVSUP_HOST > /tmp/pfsense-build.conf
 	mv /tmp/pfsense-build.conf $BUILDER_SCRIPTS/pfsense-build.conf
 }
@@ -132,6 +133,7 @@ set_items() {
 	echo export BASE_DIR="${BASE_DIR}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export BUILDER_TOOLS="${BUILDER_TOOLS}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	echo export BUILDER_SCRIPTS="${BUILDER_SCRIPTS}" >> $BUILDER_SCRIPTS/pfsense-build.conf
+	echo export EXTRA_DEVICES="${EXTRA_DEVICES}" >> $BUILDER_SCRIPTS/pfsense-build.conf
 	if [ "$FREESBIE_ERROR_MAIL" != "" ]; then 
 		echo "export FREESBIE_ERROR_MAIL=${FREESBIE_ERROR_MAIL}" >> $BUILDER_SCRIPTS/pfsense-build.conf		
 	fi
@@ -191,6 +193,7 @@ HEAD)
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
 ;;
 
@@ -205,6 +208,7 @@ RELENG_8_1)
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
 ;;
 
@@ -219,6 +223,7 @@ RELENG_8_2)
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
 ;;
 
@@ -233,6 +238,7 @@ RELENG_1_2)
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_7_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"	
 	export PFSPORTSFILE=buildports.RELENG_1_2
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-""}
 	set_items
 ;;
 
@@ -247,6 +253,7 @@ RELENG_2_0)
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
 ;;
 
@@ -261,6 +268,7 @@ RELENG_7_2)
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
 	export PFSPORTSFILE=buildports.RELENG_1_2
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-""}
 	set_items
 ;;
 
@@ -275,6 +283,7 @@ RELENG_7_3)
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_3
 	export PFSPORTSFILE=buildports.RELENG_1_2
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-""}
 	set_items
 ;;
 
