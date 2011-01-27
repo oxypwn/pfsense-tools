@@ -4,7 +4,7 @@ RCS file: /root/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
 --- sys/conf/files	25 Jan 2011 21:40:49 -0000	1.2
-+++ sys/conf/files	25 Jan 2011 21:42:02 -0000
++++ sys/conf/files	27 Jan 2011 20:12:01 -0000
 @@ -366,6 +366,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -20,7 +20,7 @@ RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.5
 diff -u -r1.5 pf.c
 --- sys/contrib/pf/net/pf.c	25 Jan 2011 21:41:48 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	25 Jan 2011 21:46:54 -0000
++++ sys/contrib/pf/net/pf.c	27 Jan 2011 20:12:01 -0000
 @@ -187,6 +187,10 @@
  struct pool		 pf_state_pl, pf_altq_pl, pf_pooladdr_pl;
  #endif
@@ -74,14 +74,14 @@ diff -u -r1.5 pf.c
  		return (diff);
  
  	return (0);
-@@ -1397,6 +1399,7 @@
- 	TAILQ_REMOVE(&state_list, cur, u.s.entry_list);
- 	if (cur->tag)
- 		pf_tag_unref(cur->tag);
+@@ -1362,6 +1364,7 @@
+ 		pfsync_delete_state(cur);
+ #endif
+ 	cur->timeout = PFTM_UNLINKED;
 +	cur->linked_state = NULL;
- 	pool_put(&pf_state_pl, cur);
- 	pf_status.fcounters[FCNT_STATE_REMOVALS]++;
- 	pf_status.states--;
+ 	pf_src_tree_remove_state(cur);
+ }
+ 
 @@ -3809,6 +3812,7 @@
  			return (PF_DROP);
  		} else
@@ -271,8 +271,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	25 Jan 2011 21:48:53 -0000
-@@ -0,0 +1,777 @@
++++ sys/contrib/pf/net/pf_ftp.c	27 Jan 2011 20:18:46 -0000
+@@ -0,0 +1,775 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -409,15 +409,15 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +		else if (ParseFtp229Reply(&oport, sptr, pd->p_len)) {
 +			ftp_message_type = FTP_229_REPLY;
 +		}
-+
-+		if (ftp_message_type == FTP_UNKNOWN_MESSAGE)
++		if (ftp_message_type == FTP_UNKNOWN_MESSAGE) {
++			/* Prevent packet retransmission as much as we can */
++			if (state->local_flags & PFSTATE_FTPMSGSEEN)
++				state->local_flags &= ~PFSTATE_FTPMSGSEEN;
++			return;
++		} else if (state->local_flags & PFSTATE_FTPMSGSEEN)
 +			return;
 +
-+		/*if (state->linked_state != NULL) {
-+			if (state->linked_state->ext.port == htons(oport) ||
-+			    state->linked_state->lan.port == htons(oport))
-+				return;
-+		}*/
++		state->local_flags |= PFSTATE_FTPMSGSEEN;
 +		s = pool_get(&pf_state_pl, PR_NOWAIT);
 +                if (s == NULL) {
 +                        REASON_SET(&reason, PFRES_MEMORY);
@@ -566,9 +566,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                        pool_put(&pf_state_pl, s);
 +			if (state->src.seqdiffoneway)
 +				state->src.seqdiffoneway -= delta;
-+                } //else
-+			//state->linked_state = s;
-+
++                }
 +	}
 +}
 +
@@ -1056,7 +1054,7 @@ RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.5
 diff -u -r1.5 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	25 Jan 2011 21:41:39 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	25 Jan 2011 21:43:44 -0000
++++ sys/contrib/pf/net/pfvar.h	27 Jan 2011 20:13:39 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -1069,7 +1067,15 @@ diff -u -r1.5 pfvar.h
  };
  
  TAILQ_HEAD(pf_state_queue, pf_state);
-@@ -875,6 +878,7 @@
+@@ -832,6 +835,7 @@
+ #ifdef __FreeBSD__
+ 	u_int8_t	 local_flags;
+ #define	PFSTATE_EXPIRING 	0x01
++#define	PFSTATE_FTPMSGSEEN	0x02
+ #define PFSTATE_DIVERT_ALTQ     0x10
+ #define PFSTATE_DIVERT_DNCOOKIE 0x20
+ #define PFSTATE_DIVERT_ACTION   0x40
+@@ -875,6 +879,7 @@
  	u_int32_t	 pfsync_time;
  	u_int16_t	 tag;
  	u_int16_t	 divert_cookie;
@@ -1077,7 +1083,7 @@ diff -u -r1.5 pfvar.h
  };
  
  TAILQ_HEAD(pf_rulequeue, pf_rule);
-@@ -1905,6 +1909,9 @@
+@@ -1905,6 +1910,9 @@
  /* The fingerprint functions can be linked into userland programs (tcpdump) */
  int	pf_osfp_add(struct pf_osfp_ioctl *);
  #ifdef _KERNEL
@@ -1093,7 +1099,7 @@ RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
 --- sys/modules/pf/Makefile	25 Jan 2011 21:37:17 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	25 Jan 2011 21:42:03 -0000
++++ sys/modules/pf/Makefile	27 Jan 2011 20:12:01 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
