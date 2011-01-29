@@ -1,0 +1,16 @@
+Index: sys/netinet/raw_ip.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/raw_ip.c,v
+retrieving revision 1.220.2.9.2.1
+diff -u -r1.220.2.9.2.1 raw_ip.c
+--- sys/netinet/raw_ip.c	14 Jun 2010 02:09:06 -0000	1.220.2.9.2.1
++++ sys/netinet/raw_ip.c	29 Jan 2011 23:35:30 -0000
+@@ -755,6 +755,8 @@
+ 		if (err == 0)
+ 			ia->ia_flags |= IFA_ROUTE;
+ 		err = ifa_add_loopback_route((struct ifaddr *)ia, sa);
++		if (err = 0)
++			ia->ia_flags |= IFA_RTSELF;
+ 		ifa_free(&ia->ia_ifa);
+ 		break;
+ 	}
