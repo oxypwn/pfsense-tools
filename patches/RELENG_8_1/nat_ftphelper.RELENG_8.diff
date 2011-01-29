@@ -411,10 +411,10 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +		}
 +		if (ftp_message_type == FTP_UNKNOWN_MESSAGE) {
 +			/* Prevent packet retransmission as much as we can */
-+			if (state->local_flags & PFSTATE_FTPMSGSEEN)
-+				state->local_flags &= ~PFSTATE_FTPMSGSEEN;
-+			return;
-+		} else if (state->local_flags & PFSTATE_FTPMSGSEEN) {
++			//if (state->local_flags & PFSTATE_FTPMSGSEEN)
++			//	state->local_flags &= ~PFSTATE_FTPMSGSEEN;
++			//return;
++		//} else if (state->local_flags & PFSTATE_FTPMSGSEEN) {
 +			return;
 +		}
 +
