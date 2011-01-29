@@ -418,7 +418,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +			return;
 +		}
 +
-+		state->local_flags |= PFSTATE_FTPMSGSEEN;
++		//state->local_flags |= PFSTATE_FTPMSGSEEN;
 +		s = pool_get(&pf_state_pl, PR_NOWAIT);
 +                if (s == NULL) {
 +                        REASON_SET(&reason, PFRES_MEMORY);
