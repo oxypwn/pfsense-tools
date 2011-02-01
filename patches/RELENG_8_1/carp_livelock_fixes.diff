@@ -3,8 +3,8 @@ Index: sys/netinet/ip_carp.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
 retrieving revision 1.3
 diff -u -r1.3 ip_carp.c
---- sys/netinet/ip_carp.c	28 Jan 2011 12:07:35 -0000	1.3
-+++ sys/netinet/ip_carp.c	28 Jan 2011 12:43:14 -0000
+--- sys/netinet/ip_carp.c	1 Feb 2011 00:13:10 -0000	1.3
++++ sys/netinet/ip_carp.c	1 Feb 2011 00:15:02 -0000
 @@ -156,23 +156,25 @@
  	int vhif_nvrs;
  
@@ -326,10 +326,11 @@ diff -u -r1.3 ip_carp.c
  		callout_stop(&sc->sc_ad_tmo);
  		SC2IFP(sc)->if_flags &= ~IFF_UP;
  		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
-@@ -1641,10 +1650,11 @@
+@@ -1641,10 +1650,12 @@
  		TAILQ_REMOVE(&cif->vhif_vrs, sc, sc_list);
  		if (!--cif->vhif_nvrs) {
  			sc->sc_carpdev->if_carp = NULL;
++			sc->sc_carpdev = NULL;
 +			CARP_WUNLOCK(cif);
  			CARP_LOCK_DESTROY(cif);
  			free(cif, M_CARP);
@@ -339,7 +340,7 @@ diff -u -r1.3 ip_carp.c
  		}
  	}
  
-@@ -1765,7 +1775,7 @@
+@@ -1765,7 +1776,7 @@
  		}
  
  		CARP_LOCK_INIT(cif);
@@ -348,7 +349,7 @@ diff -u -r1.3 ip_carp.c
  		cif->vhif_ifp = ifp;
  		TAILQ_INIT(&cif->vhif_vrs);
  		ifp->if_carp = cif;
-@@ -1774,10 +1784,10 @@
+@@ -1774,10 +1785,10 @@
  		struct carp_softc *vr;
  
  		cif = (struct carp_if *)ifp->if_carp;
@@ -361,7 +362,7 @@ diff -u -r1.3 ip_carp.c
  				error = EINVAL;
  				goto cleanup;
  			}
-@@ -1816,7 +1826,7 @@
+@@ -1816,7 +1827,7 @@
  	carp_sc_state_locked(sc);
  	carp_setrun(sc, 0);
  
@@ -370,7 +371,7 @@ diff -u -r1.3 ip_carp.c
  	ifa_free(&ia->ia_ifa);	/* XXXRW: should hold reference for softc. */
  
  	return (0);
-@@ -1836,7 +1846,7 @@
+@@ -1836,7 +1847,7 @@
  	if (!--sc->sc_naddrs6) {
  		struct carp_if *cif = (struct carp_if *)sc->sc_carpdev->if_carp;
  
@@ -379,13 +380,15 @@ diff -u -r1.3 ip_carp.c
  		callout_stop(&sc->sc_ad_tmo);
  		SC2IFP(sc)->if_flags &= ~IFF_UP;
  		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
-@@ -1844,11 +1854,12 @@
+@@ -1844,11 +1855,13 @@
  		carp_multicast6_cleanup(sc);
  		TAILQ_REMOVE(&cif->vhif_vrs, sc, sc_list);
  		if (!--cif->vhif_nvrs) {
-+			CARP_WUNLOCK(cif);
- 			CARP_LOCK_DESTROY(cif);
+-			CARP_LOCK_DESTROY(cif);
  			sc->sc_carpdev->if_carp = NULL;
++			sc->sc_carpdev = NULL;
++			CARP_WUNLOCK(cif);
++			CARP_LOCK_DESTROY(cif);
  			free(cif, M_CARP);
  		} else
 -			CARP_UNLOCK(cif);
@@ -393,7 +396,7 @@ diff -u -r1.3 ip_carp.c
  	}
  
  	return (error);
-@@ -2043,7 +2054,7 @@
+@@ -2043,7 +2056,7 @@
  		error = EINVAL;
  	}
  
@@ -402,7 +405,7 @@ diff -u -r1.3 ip_carp.c
  		CARP_SCUNLOCK(sc);
  
  	carp_hmac_prepare(sc);
-@@ -2216,9 +2227,9 @@
+@@ -2216,9 +2229,9 @@
  {
  	struct carp_if *cif = v;
  
