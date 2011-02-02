@@ -3,9 +3,19 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.11
 diff -u -r1.11 pf.c
---- sys/contrib/pf/net/pf.c	26 Jan 2011 19:41:33 -0000	1.11
-+++ sys/contrib/pf/net/pf.c	26 Jan 2011 19:44:20 -0000
-@@ -279,7 +279,8 @@
+--- sys/contrib/pf/net/pf.c	2 Feb 2011 19:55:12 -0000	1.11
++++ sys/contrib/pf/net/pf.c	2 Feb 2011 23:32:10 -0000
+@@ -190,6 +190,9 @@
+ int ftp_proxy = 0;
+ SYSCTL_INT(_debug, OID_AUTO, pfftpproxy, CTLFLAG_RW, &ftp_proxy, 0,
+     "Enable/disable pf ftp protocol proxy");
++int pptp_proxy = 0;
++SYSCTL_INT(_debug, OID_AUTO, pfpptpproxy, CTLFLAG_RW, &pptp_proxy, 0,
++    "Enable/disable pf pptp protocol proxy");
+ 
+ void			 pf_print_host(struct pf_addr *, u_int16_t, u_int8_t);
+ 
+@@ -279,7 +282,8 @@
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
  int			 pf_test_state_other(struct pf_state **, int,
@@ -15,7 +25,7 @@ diff -u -r1.11 pf.c
  int			 pf_match_tag(struct mbuf *, struct pf_rule *,
  			     struct pf_mtag *, int *);
  int			 pf_step_out_of_anchor(int *, struct pf_ruleset **,
-@@ -339,6 +340,37 @@
+@@ -339,6 +343,37 @@
  };
  #endif
  
@@ -53,12 +63,12 @@ diff -u -r1.11 pf.c
  #define PACKET_LOOPED(mtag)						\
  	((mtag)->flags & PF_PACKET_LOOPED)
  
-@@ -770,6 +802,100 @@
+@@ -770,6 +805,102 @@
  }
  #endif
  
 +static void
-+pf_handle_pptp(struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state,
++pf_handle_pptp(struct pfi_kif *kif, struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state,
 +    int off, int dir)
 +{
 +	struct pptpMsgHead hptr;
@@ -129,6 +139,7 @@ diff -u -r1.11 pf.c
 +		s->dst.state = PFOTHERS_NO_TRAFFIC;
 +		s->creation = time_second;
 +		s->expire = time_second;
++		s->tag = state->tag;
 +		s->timeout = PFTM_OTHER_FIRST_PACKET;
 +		PF_ACPY(&s->rt_addr, &state->rt_addr, pd->af);
 +		if (state->nat_src_node != NULL) {
@@ -142,8 +153,9 @@ diff -u -r1.11 pf.c
 +			s->src_node->conn++;
 +		}
 +		s->rt_kif = state->rt_kif;
-+		if (pf_insert_state(BOUND_IFACE(s->rule.ptr, s->rt_kif), s)) {
++		if (pf_insert_state(kif, s)) {
 +			REASON_SET(&reason, PFRES_STATEINS);
++			pf_src_tree_remove_state(s);
 +			STATE_DEC_COUNTERS(s);
 +			pool_put(&pf_state_pl, s);
 +		} else
@@ -154,7 +166,7 @@ diff -u -r1.11 pf.c
  #ifdef INET6
  void
  pf_addrcpy(struct pf_addr *dst, struct pf_addr *src, sa_family_t af)
-@@ -1445,6 +1571,9 @@
+@@ -1445,6 +1576,9 @@
  			}
  			pf_free_state(cur);
  		} else if (pf_state_expires(cur) <= time_second) {
@@ -164,7 +176,7 @@ diff -u -r1.11 pf.c
  			/* unlink and free expired state */
  			pf_unlink_state(cur);
  			if (! locked) {
-@@ -1457,6 +1586,7 @@
+@@ -1457,6 +1591,7 @@
  				locked = 1;
  			}
  			pf_free_state(cur);
@@ -172,7 +184,7 @@ diff -u -r1.11 pf.c
  		}
  		cur = next;
  	}
-@@ -4504,6 +4634,7 @@
+@@ -4504,6 +4639,7 @@
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_src_node	*nsn = NULL;
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
@@ -180,7 +192,7 @@ diff -u -r1.11 pf.c
  	sa_family_t		 af = pd->af;
  	u_short			 reason;
  	int			 tag = -1, rtableid = -1;
-@@ -4725,6 +4856,15 @@
+@@ -4725,6 +4861,15 @@
  		s->proto = pd->proto;
  		s->direction = direction;
  		s->af = af;
@@ -196,7 +208,16 @@ diff -u -r1.11 pf.c
  		if (direction == PF_OUT) {
  			PF_ACPY(&s->gwy.addr, saddr, af);
  			PF_ACPY(&s->ext.addr, daddr, af);
-@@ -6211,23 +6351,33 @@
+@@ -4735,7 +4880,7 @@
+ 		} else {
+ 			PF_ACPY(&s->lan.addr, daddr, af);
+ 			PF_ACPY(&s->ext.addr, saddr, af);
+-			if (nr != NULL)
++		if (nr != NULL)
+ 				PF_ACPY(&s->gwy.addr, &pd->baddr, af);
+ 			else
+ 				PF_ACPY(&s->gwy.addr, &s->lan.addr, af);
+@@ -6211,23 +6356,33 @@
  
  int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -235,16 +256,16 @@ diff -u -r1.11 pf.c
  	}
  
  	STATE_LOOKUP();
-@@ -7453,6 +7603,8 @@
+@@ -7453,6 +7608,8 @@
  		if (action == PF_PASS && s != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
  			if (ftp_proxy == 0 && (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21))
  				pf_handle_ftp(&pd, m, s, off, dir);
-+			else if (ntohs(th.th_dport) == 1723 || ntohs(th.th_sport) == 1723)
-+				pf_handle_pptp(&pd, m, s, off, dir);
++			else if (pptp_proxy == 0 && (ntohs(th.th_dport) == 1723 || ntohs(th.th_sport) == 1723))
++				pf_handle_pptp(kif, &pd, m, s, off, dir);
  		}
  		break;
  	}
-@@ -7547,7 +7699,7 @@
+@@ -7547,7 +7704,7 @@
  #endif
  
  	default:
@@ -253,7 +274,7 @@ diff -u -r1.11 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -8156,7 +8308,7 @@
+@@ -8156,7 +8313,7 @@
  	}
  
  	default:
