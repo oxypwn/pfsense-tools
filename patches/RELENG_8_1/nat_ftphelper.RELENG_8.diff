@@ -488,7 +488,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +			s->src_node->conn++;
 +                }
 +		s->rt_kif = state->rt_kif;
-+		if (pf_insert_state(BOUND_IFACE(s->rt_kif), s)) {
++		if (pf_insert_state(pfi_all, s)) {
 +                        pf_normalize_tcp_cleanup(s);
 +                        REASON_SET(&reason, PFRES_STATEINS);
 +			pf_src_tree_remove_state(s);
