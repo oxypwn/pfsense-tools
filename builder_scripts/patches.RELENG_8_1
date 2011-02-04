@@ -74,5 +74,4 @@
 ~~carp_replay_protection.diff~
 ~~carp_livelock_fixes.diff~
 ~~carp_livelock_fixes_v2.diff~
-~~carp_link_state_verify.diff~
 ~~loopback_route_install.diff~
