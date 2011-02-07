@@ -20,10 +20,10 @@ COMMENT?=	A collection of secure and reliable DNS tools
 RUN_DEPENDS=	setuidgid:${PORTSDIR}/sysutils/daemontools \
 		tcpserver:${PORTSDIR}/sysutils/ucspi-tcp
 
-OPTIONS=	DUMPCACHE	"persistent cache for dnscache" on \
+OPTIONS=	DUMPCACHE	"persistent cache for dnscache" off \
 		IPV6		"IPv6 support by Felix von Leitner" on \
-		IGNOREIP	"ignoreip2 patch by Russell Nelson" OFF \
-		JUMBO		"jumbo patch by Claudiu Costin" on \
+		IGNOREIP	"ignoreip2 patch by Russell Nelson" off \
+		JUMBO		"jumbo patch by Claudiu Costin" off \
 		MAN		"manual pages by Gerritt Pape" on \
 		PERSISTENT_MMAP	"persistent mmap patch by Lennert Buytenhek" off \
 		SRV		"SRV record patch by Michael Handler" on
