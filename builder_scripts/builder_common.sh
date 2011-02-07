@@ -2024,6 +2024,16 @@ FlashDevice () {
 			NANO_HEADS=16
 			NANO_SECTS=63
 			;;
+		8192|8192mb|8g)
+			NANO_MEDIASIZE=`expr -e 8000000000 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
+		16384|16384mb|16g)
+			NANO_MEDIASIZE=`expr -e 16000000000 / 512`
+			NANO_HEADS=16
+			NANO_SECTS=63
+			;;
 		*)
 			echo "Unknown Sandisk Flash capacity"
 			exit 2

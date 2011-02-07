@@ -315,6 +315,17 @@ donanobuilds() {
 		rebuild_nano 4g
 		copy_to_staging_nanobsd
 	fi
+
+#	Don't really build these yet for normal snaps, but leave the code here in case we need it.
+#	if [ "$OLDSIZE" != "8g" ]; then
+#		rebuild_nano 8g
+#		copy_to_staging_nanobsd
+#	fi
+#
+#	if [ "$OLDSIZE" != "16g" ]; then
+#		rebuild_nano 16g
+#		copy_to_staging_nanobsd
+#	fi
 }
 
 dobuilds() {
