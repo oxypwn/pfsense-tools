@@ -22,7 +22,7 @@ RUN_DEPENDS=	setuidgid:${PORTSDIR}/sysutils/daemontools \
 
 OPTIONS=	DUMPCACHE	"persistent cache for dnscache" on \
 		IPV6		"IPv6 support by Felix von Leitner" on \
-		IGNOREIP	"ignoreip2 patch by Russell Nelson" on \
+		IGNOREIP	"ignoreip2 patch by Russell Nelson" OFF \
 		JUMBO		"jumbo patch by Claudiu Costin" on \
 		MAN		"manual pages by Gerritt Pape" on \
 		PERSISTENT_MMAP	"persistent mmap patch by Lennert Buytenhek" off \
