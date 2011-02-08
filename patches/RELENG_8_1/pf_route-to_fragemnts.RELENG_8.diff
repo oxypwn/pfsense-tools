@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf.c,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.9
 diff -u -r1.9 pf.c
---- sys/contrib/pf/net/pf.c	26 Apr 2010 22:46:50 -0000	1.9
-+++ sys/contrib/pf/net/pf.c	26 Apr 2010 22:47:25 -0000
-@@ -6688,7 +6688,7 @@
+--- sys/contrib/pf/net/pf.c	8 Feb 2011 12:35:21 -0000	1.9
++++ sys/contrib/pf/net/pf.c	8 Feb 2011 12:35:59 -0000
+@@ -6808,7 +6808,7 @@
  		goto bad;
  	}
  
@@ -14,7 +14,7 @@ diff -u -r1.9 pf.c
  		m1 = m0->m_nextpkt;
  		m0->m_nextpkt = 0;
  #ifdef __FreeBSD__
-@@ -6696,7 +6696,7 @@
+@@ -6816,7 +6816,7 @@
  			m0->m_flags &= ~(M_PROTOFLAGS);
  			PF_UNLOCK();
  			error = (*ifp->if_output)(ifp, m0, sintosa(dst),

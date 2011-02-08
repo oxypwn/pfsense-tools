@@ -3,8 +3,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.11
 diff -u -r1.11 pf.c
---- sys/contrib/pf/net/pf.c	2 Feb 2011 19:55:12 -0000	1.11
-+++ sys/contrib/pf/net/pf.c	2 Feb 2011 23:32:10 -0000
+--- sys/contrib/pf/net/pf.c	7 Feb 2011 23:46:52 -0000	1.11
++++ sys/contrib/pf/net/pf.c	7 Feb 2011 23:47:41 -0000
 @@ -190,6 +190,9 @@
  int ftp_proxy = 0;
  SYSCTL_INT(_debug, OID_AUTO, pfftpproxy, CTLFLAG_RW, &ftp_proxy, 0,
@@ -256,16 +256,16 @@ diff -u -r1.11 pf.c
  	}
  
  	STATE_LOOKUP();
-@@ -7453,6 +7608,8 @@
+@@ -7431,6 +7586,8 @@
  		if (action == PF_PASS && s != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
  			if (ftp_proxy == 0 && (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21))
- 				pf_handle_ftp(&pd, m, s, off, dir);
+ 				pf_handle_ftp(kif, &pd, m, s, off, dir);
 +			else if (pptp_proxy == 0 && (ntohs(th.th_dport) == 1723 || ntohs(th.th_sport) == 1723))
 +				pf_handle_pptp(kif, &pd, m, s, off, dir);
  		}
  		break;
  	}
-@@ -7547,7 +7704,7 @@
+@@ -7525,7 +7682,7 @@
  #endif
  
  	default:
@@ -274,7 +274,7 @@ diff -u -r1.11 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -8156,7 +8313,7 @@
+@@ -8134,7 +8291,7 @@
  	}
  
  	default:

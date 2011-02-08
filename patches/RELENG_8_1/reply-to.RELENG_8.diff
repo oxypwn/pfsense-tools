@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.2
-diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	2 Nov 2010 21:59:38 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	2 Nov 2010 22:01:15 -0000
-@@ -6388,6 +6388,9 @@
+retrieving revision 1.4
+diff -u -r1.4 pf.c
+--- sys/contrib/pf/net/pf.c	7 Feb 2011 23:23:53 -0000	1.4
++++ sys/contrib/pf/net/pf.c	7 Feb 2011 23:24:09 -0000
+@@ -6458,6 +6458,9 @@
  
  	ip = mtod(m0, struct ip *);
  
@@ -15,7 +15,7 @@ diff -u -r1.2 pf.c
  	ro = &iproute;
  	bzero((caddr_t)ro, sizeof(*ro));
  	dst = satosin(&ro->ro_dst);
-@@ -6429,8 +6432,59 @@
+@@ -6499,8 +6502,59 @@
  	}
  	if (ifp == NULL)
  		goto bad;
@@ -75,7 +75,7 @@ diff -u -r1.2 pf.c
  #ifdef __FreeBSD__
  		PF_UNLOCK();
  		if (pf_test(PF_OUT, ifp, &m0, NULL, NULL) != PF_PASS) {
-@@ -6610,6 +6664,7 @@
+@@ -6680,6 +6734,7 @@
  done:
  	if (r->rt != PF_DUPTO)
  		*m = NULL;
