@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
---- contrib/pf/pfctl/parse.y	4 Jan 2011 23:38:06 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	5 Jan 2011 18:55:38 -0000
+--- contrib/pf/pfctl/parse.y	7 Feb 2011 23:21:24 -0000	1.2
++++ contrib/pf/pfctl/parse.y	7 Feb 2011 23:21:35 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -133,8 +133,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	4 Jan 2011 23:38:06 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	5 Jan 2011 18:55:38 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	7 Feb 2011 23:21:24 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	7 Feb 2011 23:21:35 -0000
 @@ -991,6 +991,14 @@
  	}
  	if (r->label[0])
@@ -155,8 +155,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	4 Jan 2011 23:38:06 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	5 Jan 2011 18:55:59 -0000
+--- sys/contrib/pf/net/pf.c	7 Feb 2011 23:21:24 -0000	1.2
++++ sys/contrib/pf/net/pf.c	7 Feb 2011 23:22:54 -0000
 @@ -135,6 +135,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -175,7 +175,7 @@ diff -u -r1.2 pf.c
 +#define PACKET_LOOPED(mtag)						\
 +	((mtag)->flags & PF_PACKET_LOOPED)
 +
-+#define PACKET_UNDO_NAT(pdt, state, direction)				\
++#define PACKET_UNDO_NAT(n, pdt, state, direction)				\
 +do {				\
 +	switch ((pdt).proto) { \
 +	case IPPROTO_TCP: { \
@@ -188,7 +188,7 @@ diff -u -r1.2 pf.c
 +			pf_change_ap((pdt).dst, &th->th_dport, (pdt).ip_sum, \
 +			    &th->th_sum, &(state)->gwy.addr, \
 +			    (state)->gwy.port, 0, (pdt).af); \
-+		m_copyback(m, off, sizeof(*th), (caddr_t)th); \
++		m_copyback(n, off, sizeof(*th), (caddr_t)th); \
 +	} \
 +		break; \
 +	case IPPROTO_UDP: { \
@@ -201,7 +201,7 @@ diff -u -r1.2 pf.c
 +			pf_change_ap((pdt).dst, &uh->uh_dport, (pdt).ip_sum, \
 +			    &uh->uh_sum, &(state)->gwy.addr, \
 +			    (state)->gwy.port, 1, (pdt).af); \
-+		m_copyback(m, off, sizeof(*uh), (caddr_t)uh); \
++		m_copyback(n, off, sizeof(*uh), (caddr_t)uh); \
 +	} \
 +		break; \
 +	case IPPROTO_ICMP: \
@@ -402,7 +402,7 @@ diff -u -r1.2 pf.c
 +                        }
 +
 +			if (s != NULL && s->nat_rule.ptr)
-+				PACKET_UNDO_NAT(pd, s, dir);
++				PACKET_UNDO_NAT(m, pd, s, dir);
 +                        PF_UNLOCK();
 +
 +                        ip_dn_io_ptr(m0,
@@ -535,8 +535,8 @@ Index: sys/contrib/pf/net/pf_mtag.h
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_mtag.h,v
 retrieving revision 1.2
 diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	4 Jan 2011 23:38:06 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	5 Jan 2011 18:55:38 -0000
+--- sys/contrib/pf/net/pf_mtag.h	7 Feb 2011 23:21:24 -0000	1.2
++++ sys/contrib/pf/net/pf_mtag.h	7 Feb 2011 23:21:36 -0000
 @@ -37,6 +37,8 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -551,8 +551,8 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	4 Jan 2011 23:38:06 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	5 Jan 2011 18:55:38 -0000
+--- sys/contrib/pf/net/pfvar.h	7 Feb 2011 23:21:24 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	7 Feb 2011 23:21:36 -0000
 @@ -632,6 +632,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
@@ -570,8 +570,8 @@ Index: sys/netinet/ipfw/ip_dn_io.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dn_io.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dn_io.c
---- sys/netinet/ipfw/ip_dn_io.c	4 Jan 2011 23:37:16 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dn_io.c	5 Jan 2011 18:55:38 -0000
+--- sys/netinet/ipfw/ip_dn_io.c	7 Feb 2011 23:19:29 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dn_io.c	7 Feb 2011 23:21:36 -0000
 @@ -587,6 +587,7 @@
  			 * to carry reinject info.
  			 */

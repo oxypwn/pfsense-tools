@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
-RCS file: /root/freebsd/fixipfw/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.9
-diff -u -r1.9 pf.c
---- sys/contrib/pf/net/pf.c	22 Dec 2010 18:45:22 -0000	1.9
-+++ sys/contrib/pf/net/pf.c	22 Dec 2010 18:46:37 -0000
-@@ -6577,6 +6577,35 @@
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.10
+diff -u -r1.10 pf.c
+--- sys/contrib/pf/net/pf.c	8 Feb 2011 12:36:14 -0000	1.10
++++ sys/contrib/pf/net/pf.c	8 Feb 2011 12:38:34 -0000
+@@ -6652,6 +6652,13 @@
  	if (oifp != ifp) {
  		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
  			goto donelocal;
@@ -13,29 +13,7 @@ diff -u -r1.9 pf.c
 +		if (s && r->rt == PF_ROUTETO && pd->nat_rule != NULL &&
 +		    r->direction == PF_OUT && r->direction == dir && pd->pf_mtag->routed < 2) {
 +			int off = ip->ip_hl << 2;
-+			switch (pd->proto) {
-+			case IPPROTO_TCP: {
-+				struct tcphdr *th = pd->hdr.tcp;
-+				pf_change_ap(pd->src, &pd->hdr.tcp->th_dport, pd->ip_sum,
-+                            		&pd->hdr.tcp->th_sum, &s->lan.addr,
-+                            		s->lan.port, 0, pd->af);
-+                		m_copyback(*m, off, sizeof(*th), (caddr_t)th);
-+			}	break;
-+			case IPPROTO_UDP: {
-+				struct udphdr *uh = pd->hdr.udp;
-+				pf_change_ap(pd->src, &pd->hdr.udp->uh_dport, pd->ip_sum,
-+                            		&pd->hdr.udp->uh_sum, &s->lan.addr,
-+                            		s->lan.port, 1, pd->af);
-+                		m_copyback(*m, off, sizeof(*uh), (caddr_t)uh);
-+			}	break;
-+			case IPPROTO_ICMP:
-+				/* XXX: If we want to do this for icmp is probably wrong!?! */
-+				break;
-+			default:
-+				pf_change_a(&pd->src->v4.s_addr,
-+                                    pd->ip_sum, s->lan.addr.v4.s_addr, 0);
-+				break;
-+			}
++			PACKET_UNDO_NAT(m0, (*pd), s, dir);
 +			pf_unlink_state(s);
 +		}
  #ifdef __FreeBSD__
