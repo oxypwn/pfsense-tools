@@ -45,8 +45,10 @@ case $1 in
 	;;
 	4g|4G)
 		ISGOODSIZE="YES"
+	;;
 	8g|8G)
 		ISGOODSIZE="YES"
+	;;
 	16g|16G)
 		ISGOODSIZE="YES"
 	;;
