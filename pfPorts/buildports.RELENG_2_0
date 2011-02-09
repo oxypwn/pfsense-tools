@@ -47,7 +47,7 @@ fi
 
 # Port name					Path to port								Verify install filename
 PORTSTOBUILD="
-ipsec-tools			/usr/ports/security/ipsec-tools		/usr/local/sbin/racoon
+ipsec-tools-devel			/usr/ports/security/ipsec-tools-devel		/usr/local/sbin/racoon
 grub						/usr/ports/sysutils/grub					/usr/local/sbin/grub
 ipfw-classifyd				/usr/ports/net/ipfw-classifyd				/usr/local/sbin/ipfw-classifyd
 dhcplease					/usr/ports/sysutils/dhcplease				/usr/local/sbin/dhcpleases
