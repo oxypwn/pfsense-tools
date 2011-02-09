@@ -2,8 +2,8 @@
 PORTNAME=	ipsec-tools
 PORTVERSION=	0.8
 CATEGORIES=	security
-MASTER_SITES=	http://files.pfsense.org/ports/
-DISTFILES= 	ipsec-tools-0.8-alpha20100525.tar.bz2
+MASTER_SITES=	ftp://ftp.netbsd.org/pub/NetBSD/misc/ipsec-tools/0.8/
+DISTFILES= 	ipsec-tools-0.8.0.beta2.tar.gz
 MAINTAINER=	vanhu@netasq.com
 COMMENT=	KAME racoon IKE daemon, ipsec-tools version
 
@@ -11,7 +11,6 @@ CONFLICTS=	racoon-[0-9]*
 
 USE_RC_SUBR=	racoon.sh
 USE_OPENSSL=	yes
-USE_BZIP2=	yes
 
 USE_AUTOTOOLS=	libtool
 GNU_CONFIGURE=	yes
@@ -26,12 +25,12 @@ STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
-WRKSRC=		work/ipsec-tools-0.8-alpha20100525
+WRKSRC=		work/ipsec-tools-0.8.0.beta2
 
 WITH_NATT=yo
 
 OPTIONS=	DEBUG		"enable Debug support" off \
-		IPV6		"enable IPV6 support" off \
+		IPV6		"enable IPV6 support" on \
 		ADMINPORT	"enable Admin port" on \
 		STATS		"enable Statistics logging function" off \
 		DPD		"enable Dead Peer Detection" on \
@@ -41,7 +40,7 @@ OPTIONS=	DEBUG		"enable Debug support" off \
 		HYBRID		"enable Hybrid Mode-cfg and Xauth support" on \
 		PAM		"enable PAM authentication" off \
 		GSSAPI		"enable GSS-API authentication" off \
-		RADIUS		"enable Radius authentication" off \
+		RADIUS		"enable Radius authentication" on \
 		LDAP		"enable LDAP authentication" on \
 		SAUNSPEC	"enable Unspecified SA mode" on \
 		RC5		"enable RC5 encryption (patented)" off \
