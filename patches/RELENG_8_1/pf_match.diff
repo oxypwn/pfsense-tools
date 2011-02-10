@@ -30,13 +30,31 @@ diff -u -r1.3 parse.y
  		{ "max",		MAXIMUM},
  		{ "max-mss",		MAXMSS},
  		{ "max-packets",	MAXPCKT},
+Index: contrib/pf/pfctl/pfctl_parser.c
+===================================================================
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
+retrieving revision 1.2
+diff -u -r1.2 pfctl_parser.c
+--- contrib/pf/pfctl/pfctl_parser.c	10 Feb 2011 00:26:35 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	10 Feb 2011 16:14:52 -0000
+@@ -684,7 +684,9 @@
+ 
+ 	if (verbose)
+ 		printf("@%d ", r->nr);
+-	if (r->action > PF_NORDR)
++	if (r->action == PF_MATCH)
++		printf("match");
++	else if (r->action > PF_NORDR)
+ 		printf("action(%d)", r->action);
+ 	else if (anchor_call[0]) {
+ 		if (anchor_call[0] == '_') {
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.7
 diff -u -r1.7 pf.c
 --- sys/contrib/pf/net/pf.c	10 Feb 2011 00:28:40 -0000	1.7
-+++ sys/contrib/pf/net/pf.c	10 Feb 2011 00:38:52 -0000
++++ sys/contrib/pf/net/pf.c	10 Feb 2011 16:12:29 -0000
 @@ -235,6 +235,8 @@
  			    struct pf_addr *, u_int16_t,
  			    struct pf_addr *, u_int16_t,
