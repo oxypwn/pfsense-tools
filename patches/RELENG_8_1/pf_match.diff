@@ -36,7 +36,7 @@ RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.7
 diff -u -r1.7 pf.c
 --- sys/contrib/pf/net/pf.c	10 Feb 2011 00:28:40 -0000	1.7
-+++ sys/contrib/pf/net/pf.c	10 Feb 2011 00:29:34 -0000
++++ sys/contrib/pf/net/pf.c	10 Feb 2011 00:38:52 -0000
 @@ -235,6 +235,8 @@
  			    struct pf_addr *, u_int16_t,
  			    struct pf_addr *, u_int16_t,
@@ -313,6 +313,19 @@ diff -u -r1.7 pf.c
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log)
+@@ -7741,6 +7830,12 @@
+ 		pd.pf_mtag->af = AF_INET;
+ 		pd.pf_mtag->hdr = h;
+ 	}
++	if (s) {
++		if (s->pqid)
++			pd.pf_mtag->qid = s->pqid;
++		else if (s->qid)
++			pd.pf_mtag->qid = s->qid;
++	}
+ #endif /* ALTQ */
+ 
+ #ifdef __FreeBSD__
 Index: sys/contrib/pf/net/pf_ruleset.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ruleset.c,v
@@ -334,7 +347,7 @@ RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.4
 diff -u -r1.4 pfvar.h
 --- sys/contrib/pf/net/pfvar.h	10 Feb 2011 00:28:26 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	10 Feb 2011 00:29:57 -0000
++++ sys/contrib/pf/net/pfvar.h	10 Feb 2011 00:40:15 -0000
 @@ -80,7 +80,8 @@
  enum	{ PF_INOUT, PF_IN, PF_OUT };
  enum	{ PF_LAN_EXT, PF_EXT_GWY, PF_ID };
@@ -356,6 +369,17 @@ diff -u -r1.4 pfvar.h
  
  union pf_rule_ptr {
  	struct pf_rule		*ptr;
+@@ -630,8 +635,8 @@
+ 		u_int32_t		limit;
+ 		u_int32_t		seconds;
+ 	}			 max_src_conn_rate;
+-	u_int32_t		 qid;
+-	u_int32_t		 pqid;
++	u_int16_t		 qid;
++	u_int16_t		 pqid;
+ 	u_int32_t                dnpipe;
+         u_int32_t                pdnpipe;
+ #define	PFRULE_DN_IS_PIPE	0x00000010
 @@ -877,6 +882,8 @@
  	u_int32_t	 creation;
  	u_int32_t	 expire;
