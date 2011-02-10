@@ -103,7 +103,7 @@ exec("clear");
 echo ">>> pfSense package binary builder is starting.\n";
 
 if(!is_dir("{$file_system_root}/usr/ports")) {
-	echo "!!! /usr/ports/ not found.   Please run portsnap fetch extract\n";
+	echo "!!! {$file_system_root}/usr/ports/ not found.   Please run portsnap fetch extract\n";
 	exit;
 }
 
