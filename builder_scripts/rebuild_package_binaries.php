@@ -68,7 +68,7 @@ if(!isset($options['c'])) {
 }
 
 // Handle jail building
-if(isset($options['j']) && $options['l']) {
+if(isset($options['j']) && $options['l'] <> "") {
 	$file_system_root = "{$options['l']}";
 	echo ">>> Preparing jail {$options['l']} ...";	
 	// Nuke old jail
@@ -86,11 +86,12 @@ if(isset($options['j']) && $options['l']) {
 	exec("make world DESTDIR={$options['l']}");
 	exec("make distribution DESTDIR={$options['l']}");
 	exec("mount -t devfs devfs {$options['l']}/dev");
+	exec("chroot {$options['l']} csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
 } else {
 	$file_system_root = "/";
+	exec("csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
 }
 
-exec("chroot {$options['l']} csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
 
 // Set the XML filename that we are processing
 $xml_filename = $options['x'];
