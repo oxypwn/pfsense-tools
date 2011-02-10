@@ -61,7 +61,7 @@ if(!isset($options['x']))
 	usage();
 
 // Handle jail building
-if(isset($options['p']) && $options['l']) {
+if(isset($options['j']) && $options['l']) {
 	if(!isset($options['c'])) {
 		$csup_host = "cvsup.livebsd.com";
 	} else {
