@@ -46,16 +46,48 @@ function usage() {
 	echo "    -x XML file containing package data.\n";
 	echo "    -p Package name to build a single package and its dependencies.\n";
 	echo "    -d Use DESTDIR when building.\n";
+	echo "    -j Use a fresh jail for building each invocation\n";
+	echo "    -l Location of fresh jail for building.";
+	echo "    -c csup hostname";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
 	exit;
 }
 
-$options = getopt("x:p:d");
+$options = getopt("x:p:d:j:c");
 
 if(!isset($options['x']))
 	usage();
+
+// Handle jail building
+if(isset($options['p']) && $options['l']) {
+	if(!isset($options['c'])) {
+		$csup_host = "cvsup.livebsd.com";
+	} else {
+		$csup_host = $options['c'];
+	}
+	$file_system_root = "{$options['l']}";
+	echo ">>> Preparing jail {$options['l']} ...";	
+	// Nuke old jail
+	if(is_dir($options['l'])) {
+		if(is_dir("{$options['l']}/dev")) {
+			echo ">>> Unmounting {$options['l']}/dev";
+			exec("umount {$options['l']}/dev");
+		}
+		echo ">>> Removing {$options['l']}";
+		exec("rm -rf {$options['l']}");
+	}
+	echo ">>> Creating jail structure...\n";
+	exec("cd /usr/src");
+	exec("mkdir -p {$options['l']}");
+	exec("make world DESTDIR={$options['l']}");
+	exec("make distribution DESTDIR={$options['l']}");
+	exec("mount -t devfs devfs {$options['l']}/dev");
+	exec("chroot {$options['l']} csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
+} else {
+	$file_system_root = "/";
+}
 
 // Set the XML filename that we are processing
 $xml_filename = $options['x'];
@@ -70,13 +102,13 @@ exec("clear");
 
 echo ">>> pfSense package binary builder is starting.\n";
 
-if(!is_dir("/usr/ports")) {
+if(!is_dir("{$file_system_root}/usr/ports")) {
 	echo "!!! /usr/ports/ not found.   Please run portsnap fetch extract\n";
 	exit;
 }
 
-if(!is_dir("/usr/ports/packages/All")) 
-	exec("mkdir -p /usr/ports/packages/All");
+if(!is_dir("{$file_system_root}/usr/ports/packages/All")) 
+	exec("mkdir -p {$file_system_root}/usr/ports/packages/All");
 
 if($pkg['copy_packages_to_host_ssh_port'] && 
 	$pkg['copy_packages_to_host_ssh'] &&
@@ -117,17 +149,21 @@ foreach($pkg['packages']['package'] as $pkg) {
 				echo " BUILD_OPTIONS: {$build_options}\n";
 			else 
 				echo "\n";
-			`cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
+			// Build in jail if defined.
+			if(isset($options['p']) && $options['l']) 
+				`chroot {$file_system_root} cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
+			else
+				`cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
 		}
 	}
 }
 
-echo ">>> /usr/ports/packages/All now contains:\n";
-system("ls /usr/ports/packages/All");
+echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
+system("ls {$file_system_root}/usr/ports/packages/All");
 
 if($copy_packages_to_folder_ssh) {
 	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
-	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' /usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
+	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
 }
 
 echo ">>> Package binary build run ended.\n";
