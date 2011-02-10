@@ -2,7 +2,8 @@
 <?php
 /* 
  *  rebuild_package_binaries.sh
- *  Copyright (C) 2010 Scott Ullrich
+ *  Copyright (C) 2010, 2011 Scott Ullrich
+ *  Copyright (C) 2010, 2011 Jim Pingle
  *  All rights reserved.
  *  
  *  Redistribution and use in source and binary forms, with or without
@@ -55,7 +56,7 @@ function usage() {
 	exit;
 }
 
-$options = getopt("x:p:d:l::j::c::");
+$options = getopt("x:p::d::j::l::c::");
 
 if(!isset($options['x']))
 	usage();
