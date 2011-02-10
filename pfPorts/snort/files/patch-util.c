@@ -4,7 +4,7 @@
      LogMessage("           Using ZLIB version: %s\n", zlib_ver);
  #endif
      LogMessage("\n");
-+	LogMessage("     ___   Built Date for Snort on Pfsense 2.0x86 is Feb. 9, 2011.\n");
++	LogMessage("     ___   Built Date for Snort on Pfsense is Feb. 10, 2011.\n");
 +	LogMessage(" ___/ f \\  Orion IPS Patches Copyright (C) 2009-2010 Robert Zelaya.\n");
 +	LogMessage("/ p \\___/Sense\n");
 +	LogMessage("\\___/   \\\n");
