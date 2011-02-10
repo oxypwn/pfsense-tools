@@ -58,9 +58,9 @@ function usage() {
 
 function csup($csup_host, $supfile, $jailchroot = "") {
 	if($jailchroot) 
-		exec("chroot {$jailchroot} csup -h {$csup_host} {$supfile}");
+		system("chroot {$jailchroot} csup -h {$csup_host} {$supfile}");
 	else
-		exec("csup -h {$csup_host} {$supfile}");
+		system("csup -h {$csup_host} {$supfile}");
 }
 
 $options = getopt("x:p::d::j::l::c::");
@@ -89,16 +89,16 @@ if(isset($options['j']) && $options['l'] <> "") {
 	if(is_dir($options['l'])) {
 		if(is_dir("{$options['l']}/dev")) {
 			echo ">>> Unmounting {$options['l']}/dev";
-			exec("umount {$options['l']}/dev");
+			system("umount {$options['l']}/dev");
 		}
 		echo ">>> Removing {$options['l']}";
-		exec("rm -rf {$options['l']}");
+		system("rm -rf {$options['l']}");
 	}
 	echo ">>> Creating jail structure...\n";
-	exec("cd /usr/src && mkdir -p {$options['l']}");
-	exec("cd /usr/src && make world DESTDIR={$options['l']}");
-	exec("cd /usr/src && make distribution DESTDIR={$options['l']}");
-	exec("mount -t devfs devfs {$options['l']}/dev");
+	system("cd /usr/src && mkdir -p {$options['l']}");
+	system("cd /usr/src && make world DESTDIR={$options['l']}");
+	system("cd /usr/src && make distribution DESTDIR={$options['l']}");
+	system("mount -t devfs devfs {$options['l']}/dev");
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l']);
 } else {
 	$file_system_root = "/";
@@ -122,7 +122,7 @@ if(!is_dir("{$file_system_root}/usr/ports")) {
 }
 
 if(!is_dir("{$file_system_root}/usr/ports/packages/All")) 
-	exec("mkdir -p {$file_system_root}/usr/ports/packages/All");
+	system("mkdir -p {$file_system_root}/usr/ports/packages/All");
 
 if($pkg['copy_packages_to_host_ssh_port'] && 
 	$pkg['copy_packages_to_host_ssh'] &&
