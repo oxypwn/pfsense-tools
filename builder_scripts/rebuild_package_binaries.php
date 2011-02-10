@@ -55,13 +55,13 @@ function usage() {
 	exit;
 }
 
-$options = getopt("x:p:d:L:j:C");
+$options = getopt("x:p:d:l::j::c::");
 
 if(!isset($options['x']))
 	usage();
 
 // Set csup hostname
-if(isset($options['c'])) {
+if($options['c'] <> "") {
 	echo "Setting csup hostname to {$options['c']} \n";
 	$csup_host = $options['c'];
 } else {
