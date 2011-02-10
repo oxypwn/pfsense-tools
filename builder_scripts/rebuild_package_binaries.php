@@ -48,8 +48,8 @@ function usage() {
 	echo "    -p Package name to build a single package and its dependencies.\n";
 	echo "    -d Use DESTDIR when building.\n";
 	echo "    -j Use a fresh jail for building each invocation\n";
-	echo "    -l Location of fresh jail for building.";
-	echo "    -c csup hostname";
+	echo "    -l Location of fresh jail for building.\n";
+	echo "    -c csup hostname\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
@@ -70,10 +70,21 @@ if($options['c'] <> "") {
 	$csup_host = "cvsup.livebsd.com";
 }
 
+function csup($csup_host, $supfile, $jailchroot = "") {
+	if($jailchroot) 
+		exec("chroot {$jailchroot} csup -h {$csup_host} {$supfile}");
+	else
+		exec("csup -h {$csup_host} {$supfile}");
+}
+
 // Handle jail building
 if(isset($options['j']) && $options['l'] <> "") {
+	if(!file_exists("/usr/src/COPYRIGHT")) {
+		echo ">>> /usr/src/ is not populated.  Populating, please wait...\n";
+		csup($csup_host, "/usr/share/examples/cvsup/standard-supfile");
+	}
 	$file_system_root = "{$options['l']}";
-	echo ">>> Preparing jail {$options['l']} ...";	
+	echo ">>> Preparing jail {$options['l']} ...\n";	
 	// Nuke old jail
 	if(is_dir($options['l'])) {
 		if(is_dir("{$options['l']}/dev")) {
@@ -84,15 +95,14 @@ if(isset($options['j']) && $options['l'] <> "") {
 		exec("rm -rf {$options['l']}");
 	}
 	echo ">>> Creating jail structure...\n";
-	exec("cd /usr/src");
-	exec("mkdir -p {$options['l']}");
-	exec("make world DESTDIR={$options['l']}");
-	exec("make distribution DESTDIR={$options['l']}");
+	exec("cd /usr/src && mkdir -p {$options['l']}");
+	exec("cd /usr/src && make world DESTDIR={$options['l']}");
+	exec("cd /usr/src && make distribution DESTDIR={$options['l']}");
 	exec("mount -t devfs devfs {$options['l']}/dev");
-	exec("chroot {$options['l']} csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
+	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l']);
 } else {
 	$file_system_root = "/";
-	exec("csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
+	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile");
 }
 
 // Set the XML filename that we are processing
