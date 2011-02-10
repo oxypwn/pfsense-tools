@@ -60,13 +60,15 @@ $options = getopt("x:p:d:j:c");
 if(!isset($options['x']))
 	usage();
 
+// Set csup hostname
+if(!isset($options['c'])) {
+	$csup_host = "cvsup.livebsd.com";
+} else {
+	$csup_host = $options['c'];
+}
+
 // Handle jail building
 if(isset($options['j']) && $options['l']) {
-	if(!isset($options['c'])) {
-		$csup_host = "cvsup.livebsd.com";
-	} else {
-		$csup_host = $options['c'];
-	}
 	$file_system_root = "{$options['l']}";
 	echo ">>> Preparing jail {$options['l']} ...";	
 	// Nuke old jail
@@ -84,10 +86,11 @@ if(isset($options['j']) && $options['l']) {
 	exec("make world DESTDIR={$options['l']}");
 	exec("make distribution DESTDIR={$options['l']}");
 	exec("mount -t devfs devfs {$options['l']}/dev");
-	exec("chroot {$options['l']} csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
 } else {
 	$file_system_root = "/";
 }
+
+exec("chroot {$options['l']} csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
 
 // Set the XML filename that we are processing
 $xml_filename = $options['x'];
