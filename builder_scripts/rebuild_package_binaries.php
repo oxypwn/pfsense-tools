@@ -56,6 +56,13 @@ function usage() {
 	exit;
 }
 
+function csup($csup_host, $supfile, $jailchroot = "") {
+	if($jailchroot) 
+		exec("chroot {$jailchroot} csup -h {$csup_host} {$supfile}");
+	else
+		exec("csup -h {$csup_host} {$supfile}");
+}
+
 $options = getopt("x:p::d::j::l::c::");
 
 if(!isset($options['x']))
@@ -68,13 +75,6 @@ if($options['c'] <> "") {
 } else {
 	echo "Setting csup hostname to cvsup.livebsd.com \n";
 	$csup_host = "cvsup.livebsd.com";
-}
-
-function csup($csup_host, $supfile, $jailchroot = "") {
-	if($jailchroot) 
-		exec("chroot {$jailchroot} csup -h {$csup_host} {$supfile}");
-	else
-		exec("csup -h {$csup_host} {$supfile}");
 }
 
 // Handle jail building
