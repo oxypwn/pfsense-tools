@@ -318,7 +318,7 @@ diff -u -r1.7 pf.c
  		pd.pf_mtag->hdr = h;
  	}
 +	if (s) {
-+		if (s->pqid)
++		if ((pqid || (pd.tos & IPTOS_LOWDELAY)) && s->pqid)
 +			pd.pf_mtag->qid = s->pqid;
 +		else if (s->qid)
 +			pd.pf_mtag->qid = s->qid;
