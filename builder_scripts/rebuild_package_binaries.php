@@ -55,16 +55,18 @@ function usage() {
 	exit;
 }
 
-$options = getopt("x:p:d:j:c");
+$options = getopt("x:p:d:L:j:C");
 
 if(!isset($options['x']))
 	usage();
 
 // Set csup hostname
-if(!isset($options['c'])) {
-	$csup_host = "cvsup.livebsd.com";
-} else {
+if(isset($options['c'])) {
+	echo "Setting csup hostname to {$options['c']} \n";
 	$csup_host = $options['c'];
+} else {
+	echo "Setting csup hostname to cvsup.livebsd.com \n";
+	$csup_host = "cvsup.livebsd.com";
 }
 
 // Handle jail building
@@ -92,7 +94,6 @@ if(isset($options['j']) && $options['l'] <> "") {
 	exec("csup -h {$csup_host} /usr/share/examples/cvsup/ports-supfile");
 }
 
-
 // Set the XML filename that we are processing
 $xml_filename = $options['x'];
 
@@ -101,8 +102,6 @@ if(!$pkg) {
 	echo "An error occurred while trying to process {$xml_filename}.  Exiting.";
 	exit;
 }
-
-exec("clear");
 
 echo ">>> pfSense package binary builder is starting.\n";
 
