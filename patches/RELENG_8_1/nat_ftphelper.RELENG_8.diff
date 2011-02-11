@@ -3,8 +3,8 @@ Index: sys/conf/files
 RCS file: /root/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	8 Feb 2011 12:10:36 -0000	1.2
-+++ sys/conf/files	8 Feb 2011 12:13:29 -0000
+--- sys/conf/files	11 Feb 2011 16:30:23 -0000	1.2
++++ sys/conf/files	11 Feb 2011 16:30:55 -0000
 @@ -366,6 +366,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -17,10 +17,10 @@ diff -u -r1.2 files
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.5
-diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	8 Feb 2011 12:13:15 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	8 Feb 2011 12:13:29 -0000
+retrieving revision 1.2
+diff -u -r1.2 pf.c
+--- sys/contrib/pf/net/pf.c	11 Feb 2011 16:30:24 -0000	1.2
++++ sys/contrib/pf/net/pf.c	11 Feb 2011 16:32:28 -0000
 @@ -187,6 +187,10 @@
  struct pool		 pf_state_pl, pf_altq_pl, pf_pooladdr_pl;
  #endif
@@ -132,7 +132,7 @@ diff -u -r1.5 pf.c
  
  	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
  		sws = src->wscale & PF_WSCALE_MASK;
-@@ -4946,11 +4954,51 @@
+@@ -4946,11 +4954,48 @@
  			src->max_win = win;
  
  	} else {
@@ -145,13 +145,10 @@ diff -u -r1.5 pf.c
 +		 */
 +		nat = (*state)->nat_rule.ptr;
 +		if (nat != NULL) {
-+			if (src->seqdiffoneway)
-+				delta1 = src->seqflags & SEQ_DIFF_NEGATIVE ? -src->seqdiffoneway
-+					: src->seqdiffoneway;
-+			else if (dst->seqdiffoneway)
-+				delta1 = dst->seqflags & SEQ_DIFF_NEGATIVE ? -dst->seqdiffoneway
-+					: dst->seqdiffoneway;
-+			
++			if ((*state)->src.seqdiffoneway)
++				delta1 = (*state)->src.seqflags & SEQ_DIFF_NEGATIVE ? -(*state)->src.seqdiffoneway
++					: (*state)->src.seqdiffoneway;
++
 +			if (delta1) {
 +				switch (nat->action) {
 +				case PF_NAT:
@@ -187,7 +184,7 @@ diff -u -r1.5 pf.c
  			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
  			*copyback = 1;
  		}
-@@ -5310,6 +5358,54 @@
+@@ -5310,6 +5355,54 @@
  		dst = &(*state)->src;
  	}
  
@@ -242,7 +239,7 @@ diff -u -r1.5 pf.c
  	if ((*state)->src.state == PF_TCPS_PROXY_SRC) {
  		if (direction != (*state)->direction) {
  			REASON_SET(reason, PFRES_SYNPROXY);
-@@ -5438,10 +5534,11 @@
+@@ -5438,10 +5531,11 @@
  			return (PF_DROP);
  	} else {
  		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
@@ -255,7 +252,7 @@ diff -u -r1.5 pf.c
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7321,6 +7418,10 @@
+@@ -7321,6 +7415,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -271,8 +268,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	8 Feb 2011 12:22:33 -0000
-@@ -0,0 +1,749 @@
++++ sys/contrib/pf/net/pf_ftp.c	11 Feb 2011 16:34:28 -0000
+@@ -0,0 +1,750 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -425,7 +422,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				PF_ACPY(&s->lan.addr, &state->lan.addr, state->af);
 +				s->lan.port = htons(oport);
 +				PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
-+				s->ext.port = 0;
++				s->ext.port = htons(20);
 +				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
 +			} else
 +				return;
@@ -451,7 +448,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                                s->gwy.port = htons(oport);
 +
 +                                PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
-+                                s->ext.port = 0;
++                                s->ext.port = htons(ntohs(s->ext.port) + 1);
 +                                s->ext.pad = FTP_CONTROL_PORT_NUMBER;
 +			} else
 +				return;
@@ -980,27 +977,28 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +	olen = ip->ip_len;
 +	ip->ip_len = ntohs(ip->ip_len);
 +	if (delta) {
-+		if (delta > 0) {
-+			if (s->src.seqflags & SEQ_DIFF_NEGATIVE) {
-+				if (delta >= s->src.seqdiffoneway) {
-+					s->src.seqflags &= ~SEQ_DIFF_NEGATIVE;
-+					s->src.seqdiffoneway = delta - s->src.seqdiffoneway;
-+				} else
-+					s->src.seqdiffoneway -= delta;
-+			} else {
-+				if (delta > s->src.seqdiffoneway) {
-+					s->src.seqflags |= SEQ_DIFF_NEGATIVE;
-+					s->src.seqdiffoneway = delta - s->src.seqdiffoneway;
-+				} else
-+					s->src.seqdiffoneway -= delta;
-+			}
-+		} else {
-+			if (!(s->src.seqflags & SEQ_DIFF_NEGATIVE)) {
-+				delta += s->src.seqdiffoneway;
-+				s->src.seqflags |= SEQ_DIFF_NEGATIVE;
-+			}
-+			s->src.seqdiffoneway += -delta;
-+		}
++		struct pf_state_peer *p = &s->src;
++                if (delta > 0) {
++                        if (p->seqflags & SEQ_DIFF_NEGATIVE) {
++                                if (delta >= p->seqdiffoneway) {
++                                        p->seqflags &= ~SEQ_DIFF_NEGATIVE;
++                                        p->seqdiffoneway = delta - p->seqdiffoneway;
++                                } else
++                                        p->seqdiffoneway -= delta;
++                        } else {
++                                p->seqdiffoneway += delta;
++                        }
++                } else {
++                        if (p->seqflags & SEQ_DIFF_NEGATIVE) {
++                                p->seqdiffoneway += -delta;
++                        } else {
++                                if ((delta + p->seqdiffoneway) < 0) {
++                                        p->seqdiffoneway = -(delta + p->seqdiffoneway);
++                                        p->seqflags |= SEQ_DIFF_NEGATIVE;
++                                } else
++                                        p->seqdiffoneway += delta;
++                        }
++                }
 +		pd->p_len += delta;
 +		pd->tot_len = pd->tot_len + delta;
 +		ip->ip_len += delta;
@@ -1025,10 +1023,10 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.5
-diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	8 Feb 2011 12:12:49 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	8 Feb 2011 12:14:14 -0000
+retrieving revision 1.2
+diff -u -r1.2 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	11 Feb 2011 16:30:24 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	11 Feb 2011 16:30:55 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -1072,8 +1070,8 @@ Index: sys/modules/pf/Makefile
 RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	8 Feb 2011 12:09:34 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	8 Feb 2011 12:13:29 -0000
+--- sys/modules/pf/Makefile	11 Feb 2011 16:29:06 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	11 Feb 2011 16:30:55 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
