@@ -47,20 +47,20 @@ function usage() {
 	echo "    -x XML file containing package data.\n";
 	echo "    -p Package name to build a single package and its dependencies.\n";
 	echo "    -d Use DESTDIR when building.\n";
-	echo "    -j Use a jail for building each invocation\n";
-	echo "    -l Location of jail for building.\n";
+	echo "    -j Use a chroot for building each invocation\n";
+	echo "    -l Location of chroot for building.\n";
 	echo "    -c csup hostname\n";
-	echo "    -r remove jail contents on each builder run.\n"
+	echo "    -r remove chroot contents on each builder run.\n"
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
-	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -j -l/usr/local/pkgjail -ccvsup.livebsd.com\n";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -j -l/usr/local/pkgchroot -ccvsup.livebsd.com\n";
 	exit;
 }
 
-function csup($csup_host, $supfile, $jailchroot = "") {
-	if($jailchroot) 
-		system("chroot {$jailchroot} csup -h {$csup_host} {$supfile}");
+function csup($csup_host, $supfile, $chrootchroot = "") {
+	if($chrootchroot) 
+		system("chroot {$chrootchroot} csup -h {$csup_host} {$supfile}");
 	else
 		system("csup -h {$csup_host} {$supfile}");
 }
@@ -101,15 +101,15 @@ if($pkg['copy_packages_to_host_ssh_port'] &&
 	echo "    copy_packages_to_host_ssh_port: $copy_packages_to_host_ssh_port\n";
 }
 
-// Handle jail building
+// Handle chroot building
 if(isset($options['j']) && $options['l'] <> "") {
 	if(!file_exists("/usr/src/COPYRIGHT")) {
 		echo ">>> /usr/src/ is not populated.  Populating, please wait...\n";
 		csup($csup_host, "/usr/share/examples/cvsup/standard-supfile");
 	}
 	$file_system_root = "{$options['l']}";
-	echo ">>> Preparing jail {$options['l']} ...\n";	
-	// Nuke old jail
+	echo ">>> Preparing chroot {$options['l']} ...\n";	
+	// Nuke old chroot
 	if(is_dir($options['l'])) {
 		if(is_dir("{$options['l']}/dev")) {
 			echo ">>> Unmounting {$options['l']}/dev\n";
@@ -121,8 +121,8 @@ if(isset($options['j']) && $options['l'] <> "") {
 			system("rm -rf {$options['l']}");
 		}
 	}
-	// Create new jail structure
-	echo ">>> Creating jail structure...\n";
+	// Create new chroot structure
+	echo ">>> Creating chroot structure...\n";
 	system("cd /usr/src && mkdir -p {$options['l']}");
 	system("cd /usr/src && mkdir -p {$options['l']}/etc");
 	system("cd /usr/src && mkdir -p {$options['l']}/dev");
@@ -182,7 +182,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 				echo " BUILD_OPTIONS: {$build_options}\n";
 			else 
 				echo "\n";
-			// Build in jail if defined.
+			// Build in chroot if defined.
 			if(isset($options['j']) && $options['l']) 
 				`chroot {$file_system_root} cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
 			else
