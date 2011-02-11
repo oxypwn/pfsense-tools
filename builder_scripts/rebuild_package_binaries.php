@@ -74,17 +74,30 @@ $xml_filename = $options['x'];
 
 $pkg = parse_xml_config_pkg($xml_filename, "pfsensepkgs");
 if(!$pkg) {
-	echo "An error occurred while trying to process {$xml_filename}.  Exiting.\n";
+	echo "!!! An error occurred while trying to process {$xml_filename}.  Exiting.\n";
 	exit;
 }
 
 // Set csup hostname
 if($options['c'] <> "") {
-	echo "Setting csup hostname to {$options['c']} \n";
+	echo ">>> Setting csup hostname to {$options['c']} \n";
 	$csup_host = $options['c'];
 } else {
-	echo "Setting csup hostname to cvsup.livebsd.com \n";
+	echo ">>> Setting csup hostname to cvsup.livebsd.com \n";
 	$csup_host = "cvsup.livebsd.com";
+}
+
+// Set and ouput initial flags
+if($pkg['copy_packages_to_host_ssh_port'] && 
+	$pkg['copy_packages_to_host_ssh'] &&
+	$pkg['copy_packages_to_folder_ssh']) {
+	$copy_packages_to_folder_ssh = $pkg['copy_packages_to_folder_ssh'];
+	$copy_packages_to_host_ssh = $pkg['copy_packages_to_host_ssh'];
+	$copy_packages_to_host_ssh_port = $pkg['copy_packages_to_host_ssh_port'];
+	echo ">>> Setting the following RSYNC/SSH parameters: \n";
+	echo "    copy_packages_to_folder_ssh:    $copy_packages_to_folder_ssh\n";
+	echo "    copy_packages_to_host_ssh:      $copy_packages_to_host_ssh\n";
+	echo "    copy_packages_to_host_ssh_port: $copy_packages_to_host_ssh_port\n";
 }
 
 // Handle jail building
@@ -105,42 +118,40 @@ if(isset($options['j']) && $options['l'] <> "") {
 		system("chflags -R noschg {$options['l']}/*");
 		system("rm -rf {$options['l']}");
 	}
+	// Create new jail structure
 	echo ">>> Creating jail structure...\n";
 	system("cd /usr/src && mkdir -p {$options['l']}");
 	system("cd /usr/src && mkdir -p {$options['l']}/etc");
 	system("cd /usr/src && mkdir -p {$options['l']}/dev");
+	system("mkdir -p {$options['l']}/home/pfsense");
 	system("cd /usr/src && make world NO_CLEAN=yes DESTDIR={$options['l']}");
 	system("cd /usr/src && make distribution NO_CLEAN=yes DESTDIR={$options['l']}");
+	// Mount devs and populate resolv.conf
 	system("mount -t devfs devfs {$options['l']}/dev");
 	system("cp /etc/resolv.conf {$options['l']}/etc/");
+	system("cp /home/pfsense/tools {$options['l']}/home/pfsense/");
+	// Invoke csup and populate /usr/ports inside chroot
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l']);
 } else {
+	// Invoke csup and populate /usr/ports on host (non-chroot)
 	$file_system_root = "/";
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile");
 }
 
 echo ">>> pfSense package binary builder is starting.\n";
 
+// Safety check - should no fail since we sync ports above with csup
 if(!is_dir("{$file_system_root}/usr/ports")) {
 	echo "!!! {$file_system_root}/usr/ports/ not found.   Please run portsnap fetch extract\n";
 	exit;
 }
 
+// Ensure that the All directory exists in packages staging area
 if(!is_dir("{$file_system_root}/usr/ports/packages/All")) 
 	system("mkdir -p {$file_system_root}/usr/ports/packages/All");
 
-if($pkg['copy_packages_to_host_ssh_port'] && 
-	$pkg['copy_packages_to_host_ssh'] &&
-	$pkg['copy_packages_to_folder_ssh']) {
-	$copy_packages_to_folder_ssh = $pkg['copy_packages_to_folder_ssh'];
-	$copy_packages_to_host_ssh = $pkg['copy_packages_to_host_ssh'];
-	$copy_packages_to_host_ssh_port = $pkg['copy_packages_to_host_ssh_port'];
-	echo ">>> Setting the following RSYNC/SSH parameters: \n";
-	echo "    copy_packages_to_folder_ssh:    $copy_packages_to_folder_ssh\n";
-	echo "    copy_packages_to_host_ssh:      $copy_packages_to_host_ssh\n";
-	echo "    copy_packages_to_host_ssh_port: $copy_packages_to_host_ssh_port\n";
-}
-
+// Loop through all packages and build pacakge with 
+// build_options if the port/package has this defined.
 foreach($pkg['packages']['package'] as $pkg) {
 	if (isset($options['p']) && ($options['p'] != $pkg['name']))
 		continue;
@@ -180,6 +191,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
 system("ls {$file_system_root}/usr/ports/packages/All");
 
+// Copy created packages to the package server via rsync
 if($copy_packages_to_folder_ssh) {
 	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
 	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
