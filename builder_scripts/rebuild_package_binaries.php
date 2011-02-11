@@ -115,7 +115,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 			echo ">>> Unmounting {$options['l']}/dev\n";
 			system("umount {$options['l']}/dev");
 		}
-		if(is_dir($options['r'])) {
+		if(isset($options['r'])) {
 			echo ">>> Removing {$options['l']}\n";
 			system("chflags -R noschg {$options['l']}/*");
 			system("rm -rf {$options['l']}");
