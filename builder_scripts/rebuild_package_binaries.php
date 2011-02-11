@@ -50,7 +50,7 @@ function usage() {
 	echo "    -j Use a chroot for building each invocation\n";
 	echo "    -l Location of chroot for building.\n";
 	echo "    -c csup hostname\n";
-	echo "    -r remove chroot contents on each builder run.\n"
+	echo "    -r remove chroot contents on each builder run.\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
