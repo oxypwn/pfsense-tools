@@ -53,7 +53,7 @@ function usage() {
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
-	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -j -l/usr/local/pkgjail -lcvsup.livebsd.com\n";
+	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -j -l/usr/local/pkgjail -ccvsup.livebsd.com\n";
 	exit;
 }
 
