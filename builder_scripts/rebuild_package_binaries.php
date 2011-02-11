@@ -2,8 +2,8 @@
 <?php
 /* 
  *  rebuild_package_binaries.sh
- *  Copyright (C) 2010, 2011 Scott Ullrich
- *  Copyright (C) 2010, 2011 Jim Pingle
+ *  Copyright (C) 2010, 2011 Scott Ullrich <sullrich@gmail.com>
+ *  Copyright (C) 2010, 2011 Jim Pingle <jim@pingle.org>
  *  All rights reserved.
  *  
  *  Redistribution and use in source and binary forms, with or without
