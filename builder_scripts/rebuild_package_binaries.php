@@ -132,7 +132,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	// Mount devs and populate resolv.conf
 	system("mount -t devfs devfs {$options['l']}/dev");
 	system("cp /etc/resolv.conf {$options['l']}/etc/");
-	system("cp /home/pfsense/tools {$options['l']}/home/pfsense/");
+	system("cp -R /home/pfsense/tools {$options['l']}/home/pfsense/");
 	// Invoke csup and populate /usr/ports inside chroot
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l']);
 } else {
