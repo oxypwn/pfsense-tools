@@ -47,9 +47,10 @@ function usage() {
 	echo "    -x XML file containing package data.\n";
 	echo "    -p Package name to build a single package and its dependencies.\n";
 	echo "    -d Use DESTDIR when building.\n";
-	echo "    -j Use a fresh jail for building each invocation\n";
-	echo "    -l Location of fresh jail for building.\n";
+	echo "    -j Use a jail for building each invocation\n";
+	echo "    -l Location of jail for building.\n";
 	echo "    -c csup hostname\n";
+	echo "    -r remove jail contents on each builder run.\n"
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
@@ -64,7 +65,7 @@ function csup($csup_host, $supfile, $jailchroot = "") {
 		system("csup -h {$csup_host} {$supfile}");
 }
 
-$options = getopt("x:p::d::j::l::c::");
+$options = getopt("x:p::d::j::l::c::r::");
 
 if(!isset($options['x']))
 	usage();
@@ -114,9 +115,11 @@ if(isset($options['j']) && $options['l'] <> "") {
 			echo ">>> Unmounting {$options['l']}/dev\n";
 			system("umount {$options['l']}/dev");
 		}
-		echo ">>> Removing {$options['l']}\n";
-		system("chflags -R noschg {$options['l']}/*");
-		system("rm -rf {$options['l']}");
+		if(is_dir($options['r'])) {
+			echo ">>> Removing {$options['l']}\n";
+			system("chflags -R noschg {$options['l']}/*");
+			system("rm -rf {$options['l']}");
+		}
 	}
 	// Create new jail structure
 	echo ">>> Creating jail structure...\n";
