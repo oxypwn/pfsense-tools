@@ -168,7 +168,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 			else 
 				echo "\n";
 			// Build in jail if defined.
-			if(isset($options['p']) && $options['l']) 
+			if(isset($options['j']) && $options['l']) 
 				`chroot {$file_system_root} cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
 			else
 				`cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
