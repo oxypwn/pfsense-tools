@@ -69,6 +69,15 @@ $options = getopt("x:p::d::j::l::c::");
 if(!isset($options['x']))
 	usage();
 
+// Set the XML filename that we are processing
+$xml_filename = $options['x'];
+
+$pkg = parse_xml_config_pkg($xml_filename, "pfsensepkgs");
+if(!$pkg) {
+	echo "An error occurred while trying to process {$xml_filename}.  Exiting.\n";
+	exit;
+}
+
 // Set csup hostname
 if($options['c'] <> "") {
 	echo "Setting csup hostname to {$options['c']} \n";
@@ -108,15 +117,6 @@ if(isset($options['j']) && $options['l'] <> "") {
 } else {
 	$file_system_root = "/";
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile");
-}
-
-// Set the XML filename that we are processing
-$xml_filename = $options['x'];
-
-$pkg = parse_xml_config_pkg($xml_filename, "pfsensepkgs");
-if(!$pkg) {
-	echo "An error occurred while trying to process {$xml_filename}.  Exiting.\n";
-	exit;
 }
 
 echo ">>> pfSense package binary builder is starting.\n";
