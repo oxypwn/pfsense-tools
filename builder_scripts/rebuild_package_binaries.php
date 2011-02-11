@@ -97,10 +97,12 @@ if(isset($options['j']) && $options['l'] <> "") {
 	}
 	echo ">>> Creating jail structure...\n";
 	system("cd /usr/src && mkdir -p {$options['l']}");
+	system("cd /usr/src && mkdir -p {$options['l']}");
 	system("cd /usr/src && make world DESTDIR={$options['l']}");
 	system("cd /usr/src && make distribution DESTDIR={$options['l']}");
 	system("mount -t devfs devfs {$options['l']}/dev");
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l']);
+	system("cp /etc/resolv.conf {$options['l']}/etc/");
 } else {
 	$file_system_root = "/";
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile");
