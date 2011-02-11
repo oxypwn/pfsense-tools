@@ -89,10 +89,10 @@ if(isset($options['j']) && $options['l'] <> "") {
 	// Nuke old jail
 	if(is_dir($options['l'])) {
 		if(is_dir("{$options['l']}/dev")) {
-			echo ">>> Unmounting {$options['l']}/dev";
+			echo ">>> Unmounting {$options['l']}/dev\n";
 			system("umount {$options['l']}/dev");
 		}
-		echo ">>> Removing {$options['l']}";
+		echo ">>> Removing {$options['l']}\n";
 		system("rm -rf {$options['l']}");
 	}
 	echo ">>> Creating jail structure...\n";
@@ -111,7 +111,7 @@ $xml_filename = $options['x'];
 
 $pkg = parse_xml_config_pkg($xml_filename, "pfsensepkgs");
 if(!$pkg) {
-	echo "An error occurred while trying to process {$xml_filename}.  Exiting.";
+	echo "An error occurred while trying to process {$xml_filename}.  Exiting.\n";
 	exit;
 }
 
