@@ -100,8 +100,8 @@ if(isset($options['j']) && $options['l'] <> "") {
 	system("cd /usr/src && mkdir -p {$options['l']}");
 	system("cd /usr/src && mkdir -p {$options['l']}/etc");
 	system("cd /usr/src && mkdir -p {$options['l']}/dev");
-	system("cd /usr/src && make world DESTDIR={$options['l']}");
-	system("cd /usr/src && make distribution DESTDIR={$options['l']}");
+	system("cd /usr/src && make world NO_CLEAN=yes DESTDIR={$options['l']}");
+	system("cd /usr/src && make distribution NO_CLEAN=yes DESTDIR={$options['l']}");
 	system("mount -t devfs devfs {$options['l']}/dev");
 	system("cp /etc/resolv.conf {$options['l']}/etc/");
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l']);
