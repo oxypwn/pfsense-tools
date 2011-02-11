@@ -93,6 +93,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 			system("umount {$options['l']}/dev");
 		}
 		echo ">>> Removing {$options['l']}\n";
+		system("chflags -R noschg {$options['l']}/*");
 		system("rm -rf {$options['l']}");
 	}
 	echo ">>> Creating jail structure...\n";
