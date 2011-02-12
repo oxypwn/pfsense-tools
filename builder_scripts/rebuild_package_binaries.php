@@ -62,7 +62,7 @@ function usage() {
 function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
 	echo ">>> Update sources from file {$supfile}\n";
 	if($chrootchroot) 
-		system("/usr/sbin/chroot {$chrootchroot} csup -h {$csup_host} {$supfile} {$quiet_mode}");
+		system("/usr/sbin/chroot {$chrootchroot} csup -L0 -h {$csup_host} {$supfile} {$quiet_mode}");
 	else
 		system("/usr/bin/csup -h {$csup_host} {$supfile} {$quiet_mode}");
 }
