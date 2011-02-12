@@ -61,6 +61,7 @@ function usage() {
 
 function csup($csup_host, $supfile, $chrootchroot = "") {
 	global $quiet_mode;
+	echo ">>> Update sources from file {$supfile}\n";
 	if($chrootchroot) 
 		system("chroot {$chrootchroot} csup -h {$csup_host} {$supfile} {$quiet_mode}");
 	else
