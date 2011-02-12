@@ -158,7 +158,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	if($set_version)
 		$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}\n";
 	$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh\n";
-	$command_to_run .= "cd /usr/pfSensesrc && make includes\n";
+	$command_to_run .= "cd /usr/pfSensesrc/ && make includes\n";
 	chroot_command($options['l'], $command_to_run);
 } else {
 	// Invoke csup and populate /usr/ports on host (non-chroot)
@@ -170,7 +170,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 		exec("cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
 	exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
 	echo ">>> Running make includes...\n";
-	exec("cd /usr/pfSensesrc && make includes");
+	exec("cd /usr/pfSensesrc/ && make includes");
 }
 
 echo ">>> pfSense package binary builder is starting.\n";
