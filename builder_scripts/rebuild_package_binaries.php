@@ -59,13 +59,14 @@ function usage() {
 }
 
 function csup($csup_host, $supfile, $chrootchroot = "") {
+	global $quiet_mode;
 	if($chrootchroot) 
-		system("chroot {$chrootchroot} csup -h {$csup_host} {$supfile}");
+		system("chroot {$chrootchroot} csup -h {$csup_host} {$supfile} {$quiet_mode}");
 	else
-		system("csup -h {$csup_host} {$supfile}");
+		system("csup -h {$csup_host} {$supfile} {$quiet_mode}");
 }
 
-$options = getopt("x:p::d::j::l::c::r::");
+$options = getopt("x:p::d::j::l::c::r::q::");
 
 if(!isset($options['x']))
 	usage();
@@ -87,6 +88,9 @@ if($options['c'] <> "") {
 	echo ">>> Setting csup hostname to cvsup.livebsd.com \n";
 	$csup_host = "cvsup.livebsd.com";
 }
+
+if(isset($options['q'])) 
+	$quiet_mode = "</dev/null 2>&1";
 
 // Set and ouput initial flags
 if($pkg['copy_packages_to_host_ssh_port'] && 
@@ -128,9 +132,9 @@ if(isset($options['j']) && $options['l'] <> "") {
 	system("cd /usr/src && mkdir -p {$options['l']}/dev");
 	system("mkdir -p {$options['l']}/home/pfsense");
 	echo ">>> Building world...\n";
-	exec("cd /usr/src && make world NO_CLEAN=yes DESTDIR={$options['l']} </dev/null 2>&1");
+	exec("cd /usr/src && make world NO_CLEAN=yes DESTDIR={$options['l']} {$quiet_mode}");
 	echo ">>> Building distribution...\n";
-	exec("cd /usr/src && make distribution NO_CLEAN=yes DESTDIR={$options['l']} </dev/null 2>&1");
+	exec("cd /usr/src && make distribution NO_CLEAN=yes DESTDIR={$options['l']} {$quiet_mode}");
 	// Mount devs and populate resolv.conf
 	system("mount -t devfs devfs {$options['l']}/dev");
 	system("cp /etc/resolv.conf {$options['l']}/etc/");
@@ -188,12 +192,12 @@ foreach($pkg['packages']['package'] as $pkg) {
 				$command_to_run .= "if [ ! -L /usr/home ]; then\n";
 				$command_to_run .= "	 ln -s /home/ /usr/home\n";
 				$command_to_run .= "fi\n";
-				$command_to_run .= "cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1\n";
+				$command_to_run .= "cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}\n";
 				file_put_contents("{$options['l']}/cmd.sh", $command_to_run);
 				exec("chmod a+rx {$options['l']}/cmd.sh");
 				`chroot {$options['l']} /cmd.sh`;
 			} else
-				`cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1`;
+				`cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}`;
 		}
 	}
 }
