@@ -127,8 +127,10 @@ if(isset($options['j']) && $options['l'] <> "") {
 	system("cd /usr/src && mkdir -p {$options['l']}/etc");
 	system("cd /usr/src && mkdir -p {$options['l']}/dev");
 	system("mkdir -p {$options['l']}/home/pfsense");
-	system("cd /usr/src && make world NO_CLEAN=yes DESTDIR={$options['l']}");
-	system("cd /usr/src && make distribution NO_CLEAN=yes DESTDIR={$options['l']}");
+	echo ">>> Building world...\n";
+	exec("cd /usr/src && make world NO_CLEAN=yes DESTDIR={$options['l']} </dev/null 2>&1");
+	echo ">>> Building distribution...\n";
+	exec("cd /usr/src && make distribution NO_CLEAN=yes DESTDIR={$options['l']} </dev/null 2>&1");
 	// Mount devs and populate resolv.conf
 	system("mount -t devfs devfs {$options['l']}/dev");
 	system("cp /etc/resolv.conf {$options['l']}/etc/");
@@ -180,8 +182,6 @@ foreach($pkg['packages']['package'] as $pkg) {
 			echo ">>> Processing {$build}\n";
 			if($build_options) 
 				echo " BUILD_OPTIONS: {$build_options}\n";
-			else 
-				echo "\n";
 			// Build in chroot if defined.
 			if(isset($options['j']) && $options['l']) {
 				$command_to_run  = "#!/bin/sh\n";
