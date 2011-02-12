@@ -143,10 +143,18 @@ if(isset($options['j']) && $options['l'] <> "") {
 	system("cp -R /home/pfsense/tools {$options['l']}/home/pfsense/");
 	// Invoke csup and populate /usr/ports inside chroot
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l']);
+	echo ">>> Applying kernel patches...\n";
+	$command_to_run = "#!/bin/sh\n";
+	$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh\n";
+	file_put_contents("{$options['l']}/cmd.sh", $command_to_run);
+	exec("chmod a+rx {$options['l']} /cmd.sh");
+	`chroot {$options['l']} /cmd.sh`;
 } else {
 	// Invoke csup and populate /usr/ports on host (non-chroot)
 	$file_system_root = "/";
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile");
+	echo ">>> Applying kernel patches...\n";
+	exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
 }
 
 echo ">>> pfSense package binary builder is starting.\n";
