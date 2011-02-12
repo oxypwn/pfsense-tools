@@ -51,7 +51,7 @@ function usage() {
 	echo "    -l Location of chroot for building.\n";
 	echo "    -c csup hostname\n";
 	echo "    -r remove chroot contents on each builder run.\n";
-	echo "    -q quiet mode - surpresses commands output\n";
+	echo "    -q quiet mode - surpresses command output\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
@@ -59,19 +59,18 @@ function usage() {
 	exit;
 }
 
-function csup($csup_host, $supfile, $chrootchroot = "") {
-	global $quiet_mode;
+function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
 	echo ">>> Update sources from file {$supfile}\n";
 	if($chrootchroot) 
-		exec("chroot {$chrootchroot} csup -h {$csup_host} {$supfile} {$quiet_mode}");
+		system("/usr/sbin/chroot {$chrootchroot} csup -h {$csup_host} {$supfile} {$quiet_mode}");
 	else
-		system("csup -h {$csup_host} {$supfile} {$quiet_mode}");
+		system("/usr/bin/csup -h {$csup_host} {$supfile} {$quiet_mode}");
 }
 
 function chroot_command($chroot_location, $command_to_run) {
 	file_put_contents("{$chroot_location}/cmd.sh", $command_to_run);
 	exec("chmod a+rx {$chroot_location} /cmd.sh");
-	exec("chroot {$chroot_location} /cmd.sh");
+	system("/usr/sbin/chroot {$chroot_location} /cmd.sh");
 }
 
 $options = getopt("x:p::d::j::l::c::r::q::");
@@ -117,7 +116,7 @@ if($pkg['copy_packages_to_host_ssh_port'] &&
 if(isset($options['j']) && $options['l'] <> "") {
 	if(!file_exists("/usr/src/COPYRIGHT")) {
 		echo ">>> /usr/src/ is not populated.  Populating, please wait...\n";
-		csup($csup_host, "/usr/share/examples/cvsup/standard-supfile");
+		csup($csup_host, "/usr/share/examples/cvsup/standard-supfile", $quiet_mode);
 	}
 	$file_system_root = "{$options['l']}";
 	echo ">>> Preparing chroot {$options['l']} ...\n";	
@@ -148,7 +147,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	system("cp /etc/resolv.conf {$options['l']}/etc/");
 	system("cp -R /home/pfsense/tools {$options['l']}/home/pfsense/");
 	// Invoke csup and populate /usr/ports inside chroot
-	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l']);
+	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l'], $quiet_mode);
 	echo ">>> Applying kernel patches...\n";
 	$command_to_run = "#!/bin/sh\n";
 	$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh\n";
@@ -156,7 +155,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 } else {
 	// Invoke csup and populate /usr/ports on host (non-chroot)
 	$file_system_root = "/";
-	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile");
+	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $quiet_mode);
 	echo ">>> Applying kernel patches...\n";
 	exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
 }
