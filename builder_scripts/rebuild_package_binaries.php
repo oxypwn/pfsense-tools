@@ -70,7 +70,7 @@ function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
 function chroot_command($chroot_location, $command_to_run) {
 	file_put_contents("{$chroot_location}/cmd.sh", $command_to_run);
 	exec("chmod a+rx {$chroot_location} /cmd.sh");
-	system("/usr/sbin/chroot {$chroot_location} /cmd.sh");
+	`/usr/sbin/chroot {$chroot_location} /cmd.sh`;
 }
 
 $options = getopt("x:p::d::j::l::c::r::q::");
