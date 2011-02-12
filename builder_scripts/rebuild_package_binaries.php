@@ -185,7 +185,9 @@ foreach($pkg['packages']['package'] as $pkg) {
 			// Build in chroot if defined.
 			if(isset($options['j']) && $options['l']) {
 				$command_to_run  = "#!/bin/sh\n";
-				$command_to_run .= "ln -s /home/ /usr/home\n";
+				$command_to_run .= "if [ ! -L /usr/home ]; then\n"
+				$command_to_run .= "	 ln -s /home/ /usr/home\n";
+				$command_to_run .= "fi\n";
 				$command_to_run .= "cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean </dev/null 2>&1\n";
 				file_put_contents("{$options['l']}/cmd.sh", $command_to_run);
 				exec("chmod a+rx {$options['l']}/cmd.sh");
