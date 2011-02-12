@@ -68,6 +68,12 @@ function csup($csup_host, $supfile, $chrootchroot = "") {
 		system("csup -h {$csup_host} {$supfile} {$quiet_mode}");
 }
 
+function chroot_command($chroot_location, $command_to_run) {
+	file_put_contents("{$chroot_location}/cmd.sh", $command_to_run);
+	exec("chmod a+rx {$chroot_location} /cmd.sh");
+	exec("chroot {$chroot_location} /cmd.sh");
+}
+
 $options = getopt("x:p::d::j::l::c::r::q::");
 
 if(!isset($options['x']))
@@ -146,9 +152,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	echo ">>> Applying kernel patches...\n";
 	$command_to_run = "#!/bin/sh\n";
 	$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh\n";
-	file_put_contents("{$options['l']}/cmd.sh", $command_to_run);
-	exec("chmod a+rx {$options['l']} /cmd.sh");
-	`chroot {$options['l']} /cmd.sh`;
+	chroot_command($options['l'], $command_to_run);
 } else {
 	// Invoke csup and populate /usr/ports on host (non-chroot)
 	$file_system_root = "/";
@@ -204,9 +208,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 				$command_to_run .= "	 ln -s /home/ /usr/home\n";
 				$command_to_run .= "fi\n";
 				$command_to_run .= "cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}\n";
-				file_put_contents("{$options['l']}/cmd.sh", $command_to_run);
-				exec("chmod a+rx {$options['l']}/cmd.sh");
-				`chroot {$options['l']} /cmd.sh`;
+				chroot_command($options['l'], $command_to_run);
 			} else
 				`cd {$build} && make clean depends package-recursive {$DESTDIR} BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}`;
 		}
