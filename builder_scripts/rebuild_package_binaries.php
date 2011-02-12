@@ -44,14 +44,15 @@ function usage() {
 	global $argv;
 	echo "Usage: {$argv[0]} -x <path to pkg xml> [-p <package name>] [-d]\n";
 	echo "  Flags:\n";
-	echo "    -x XML file containing package data.\n";
-	echo "    -p Package name to build a single package and its dependencies.\n";
+	echo "    -c csup hostname\n";
 	echo "    -d Use DESTDIR when building.\n";
 	echo "    -j Use a chroot for building each invocation\n";
 	echo "    -l Location of chroot for building.\n";
-	echo "    -c csup hostname\n";
-	echo "    -r remove chroot contents on each builder run.\n";
+	echo "    -p Package name to build a single package and its dependencies.\n";
 	echo "    -q quiet mode - surpresses command output\n";
+	echo "    -r remove chroot contents on each builder run.\n";
+	echo "    -s pfSense version to pass to set_version.sh during chroot build\n";
+	echo "    -x XML file containing package data.\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
@@ -73,7 +74,7 @@ function chroot_command($chroot_location, $command_to_run) {
 	`/usr/sbin/chroot {$chroot_location} /cmd.sh`;
 }
 
-$options = getopt("x:p::d::j::l::c::r::q::");
+$options = getopt("x:p::d::j::l::c::r::q::s::");
 
 if(!isset($options['x']))
 	usage();
@@ -98,6 +99,9 @@ if($options['c'] <> "") {
 
 if(isset($options['q'])) 
 	$quiet_mode = "</dev/null 2>&1";
+
+if($options['s'] <> "") 
+	$set_version = $options['s'];
 
 // Set and ouput initial flags
 if($pkg['copy_packages_to_host_ssh_port'] && 
@@ -151,6 +155,8 @@ if(isset($options['j']) && $options['l'] <> "") {
 	echo ">>> Applying kernel patches and make includes...\n";
 	exec("rm -rf {$options['l']}/tmp/pf*");
 	$command_to_run = "#!/bin/sh\n";
+	if($set_version)
+		$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./set_versionsh {$set_version}\n";
 	$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh\n";
 	$command_to_run .= "cd /usr/pfSensesrc && make includes\n";
 	chroot_command($options['l'], $command_to_run);
@@ -160,6 +166,8 @@ if(isset($options['j']) && $options['l'] <> "") {
 	exec("rm -rf /tmp/pf*");
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $quiet_mode);
 	echo ">>> Applying kernel patches...\n";
+	if($set_version)
+		exec("cd /home/pfsense/tools/builder_scripts && ./set_versionsh {$set_version}");
 	exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
 	echo ">>> Running make includes...\n";
 	exec("cd /usr/pfSensesrc && make includes");
