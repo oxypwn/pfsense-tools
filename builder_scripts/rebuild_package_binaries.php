@@ -167,7 +167,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $quiet_mode);
 	echo ">>> Applying kernel patches...\n";
 	if($set_version)
-		exec("cd /home/pfsense/tools/builder_scripts && ./set_versionsh {$set_version}");
+		exec("cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
 	exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
 	echo ">>> Running make includes...\n";
 	exec("cd /usr/pfSensesrc && make includes");
