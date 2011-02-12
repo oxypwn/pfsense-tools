@@ -119,7 +119,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	if(is_dir($options['l'])) {
 		if(is_dir("{$options['l']}/dev")) {
 			echo ">>> Unmounting {$options['l']}/dev\n";
-			system("umount {$options['l']}/dev");
+			system("umount {$options['l']}/dev 2>/dev/null");
 		}
 		if(isset($options['r'])) {
 			echo ">>> Removing {$options['l']}\n";
@@ -187,7 +187,8 @@ foreach($pkg['packages']['package'] as $pkg) {
 			}
 			echo ">>> Processing {$build}\n";
 			if($build_options) 
-				echo " BUILD_OPTIONS: {$build_options}\n";
+				if(!isset($options['q'])) 
+					echo " BUILD_OPTIONS: {$build_options}\n";
 			// Build in chroot if defined.
 			if(isset($options['j']) && $options['l']) {
 				$command_to_run  = "#!/bin/sh\n";
