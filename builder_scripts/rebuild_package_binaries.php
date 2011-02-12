@@ -156,7 +156,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	exec("rm -rf {$options['l']}/tmp/pf*");
 	$command_to_run = "#!/bin/sh\n";
 	if($set_version)
-		$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./set_versionsh {$set_version}\n";
+		$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}\n";
 	$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh\n";
 	$command_to_run .= "cd /usr/pfSensesrc && make includes\n";
 	chroot_command($options['l'], $command_to_run);
