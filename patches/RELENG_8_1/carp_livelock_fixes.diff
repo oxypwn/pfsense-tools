@@ -3,8 +3,8 @@ Index: sys/netinet/ip_carp.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
 retrieving revision 1.3
 diff -u -r1.3 ip_carp.c
---- sys/netinet/ip_carp.c	10 Feb 2011 21:39:04 -0000	1.3
-+++ sys/netinet/ip_carp.c	10 Feb 2011 21:52:58 -0000
+--- sys/netinet/ip_carp.c	14 Feb 2011 21:02:15 -0000	1.3
++++ sys/netinet/ip_carp.c	14 Feb 2011 21:03:26 -0000
 @@ -127,7 +127,6 @@
  
  	struct callout		 sc_ad_tmo;	/* advertisement timeout */
@@ -126,16 +126,25 @@ diff -u -r1.3 ip_carp.c
  
  	if (sc->sc_suppress)
  		carp_suppress_preempt--;
-@@ -485,7 +480,7 @@
+@@ -485,25 +480,23 @@
  
  	carp_set_state(sc, INIT);
  	SC2IFP(sc)->if_flags &= ~IFF_UP;
 -	carp_setrun(sc, 0);
+-	if (unlock)
+-		carp_multicast_cleanup(sc);
+-#ifdef INET6
+-	carp_multicast6_cleanup(sc);
+-#endif
 +	carp_setrun(sc);
- 	if (unlock)
- 		carp_multicast_cleanup(sc);
- #ifdef INET6
-@@ -497,13 +492,11 @@
+ 
+ 	if (sc->sc_carpdev != NULL) {
++		if (unlock)
++			carp_multicast_cleanup(sc);
++#ifdef INET6
++		carp_multicast6_cleanup(sc);
++#endif
+ 		cif = (struct carp_if *)sc->sc_carpdev->if_carp;
  		CARP_LOCK_ASSERT(cif);
  		TAILQ_REMOVE(&cif->vhif_vrs, sc, sc_list);
  		if (!--cif->vhif_nvrs) {
@@ -793,13 +802,47 @@ diff -u -r1.3 ip_carp.c
  	}
  
  	return (error);
-@@ -1935,20 +1921,18 @@
- 	case SIOCSIFFLAGS:
- 		if (sc->sc_carpdev) {
- 			locked = 1;
--			CARP_SCLOCK(sc);
-+			CARP_SCWLOCK(sc);
+@@ -1863,7 +1849,7 @@
+ 	struct ifaddr *ifa;
+ 	struct ifreq *ifr;
+ 	struct ifaliasreq *ifra;
+-	int locked = 0, error = 0;
++	int locked = 0, error = 0, needed = 1;
+ 
+ 	ifa = (struct ifaddr *)addr;
+ 	ifra = (struct ifaliasreq *)addr;
+@@ -1888,6 +1874,7 @@
+ #endif /* INET6 */
+ 		default:
+ 			error = EAFNOSUPPORT;
++			needed = 0;
+ 			break;
  		}
+ 		break;
+@@ -1910,6 +1897,7 @@
+ #endif /* INET6 */
+ 		default:
+ 			error = EAFNOSUPPORT;
++			needed = 0;
+ 			break;
+ 		}
+ 		break;
+@@ -1928,27 +1916,27 @@
+ #endif /* INET6 */
+ 		default:
+ 			error = EAFNOSUPPORT;
++			needed = 0;
+ 			break;
+ 		}
+ 		break;
+ 
+ 	case SIOCSIFFLAGS:
+-		if (sc->sc_carpdev) {
+-			locked = 1;
+-			CARP_SCLOCK(sc);
+-		}
++		if (sc->sc_carpdev)
++			CARP_SCWLOCK(sc);
  		if (sc->sc_state != INIT && !(ifr->ifr_flags & IFF_UP)) {
   			callout_stop(&sc->sc_ad_tmo);
   			callout_stop(&sc->sc_md_tmo);
@@ -814,10 +857,13 @@ diff -u -r1.3 ip_carp.c
 -			carp_setrun(sc, 0);
  		}
 +		carp_setrun(sc);
++		if (sc->sc_carpdev)
++			CARP_SCWUNLOCK(sc);
++		needed = 0;
  		break;
  
  	case SIOCSVH:
-@@ -1960,14 +1944,14 @@
+@@ -1960,14 +1948,14 @@
  		error = 1;
  		if (sc->sc_carpdev) {
  			locked = 1;
@@ -834,7 +880,7 @@ diff -u -r1.3 ip_carp.c
  				carp_setroute(sc, RTM_DELETE);
  				break;
  			case MASTER:
-@@ -2021,7 +2005,7 @@
+@@ -2021,7 +2009,7 @@
  			error = EINVAL;
  		else {
  			error = 0;
@@ -843,15 +889,23 @@ diff -u -r1.3 ip_carp.c
  		}
  		break;
  
-@@ -2043,10 +2027,12 @@
+@@ -2037,16 +2025,20 @@
+ 			bcopy(sc->sc_key, carpr.carpr_key,
+ 			    sizeof(carpr.carpr_key));
+ 		error = copyout(&carpr, ifr->ifr_data, sizeof(carpr));
++		needed = 0;
+ 		break;
+ 
+ 	default:
  		error = EINVAL;
++		needed = 0;
  	}
  
 -	if (locked)
 -		CARP_SCUNLOCK(sc);
 -
 -	carp_hmac_prepare(sc);
-+	if (sc->sc_carpdev) {
++	if (needed && sc->sc_carpdev && sc->sc_carpdev->if_carp != NULL) {
 +		if (!locked)
 +			CARP_SCWLOCK(sc);
 +		carp_hmac_prepare(sc);
@@ -860,7 +914,7 @@ diff -u -r1.3 ip_carp.c
  
  	return (error);
  }
-@@ -2216,9 +2202,9 @@
+@@ -2216,9 +2208,9 @@
  {
  	struct carp_if *cif = v;
  
@@ -872,7 +926,7 @@ diff -u -r1.3 ip_carp.c
  }
  
  static void
-@@ -2242,22 +2228,22 @@
+@@ -2242,22 +2234,22 @@
  		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
  		callout_stop(&sc->sc_ad_tmo);
  		callout_stop(&sc->sc_md_tmo);
