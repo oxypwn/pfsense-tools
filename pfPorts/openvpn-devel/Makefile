@@ -2,11 +2,11 @@
 # Date created:		2010-02-19
 # Whom:			Eric F Crist <ecrist@secure-computing.net>
 #
-# $FreeBSD: ports/security/openvpn-devel/Makefile,v 1.67 2011/01/25 23:31:23 jpaetzel Exp $
+# $FreeBSD: ports/security/openvpn-devel/Makefile,v 1.57 2010/05/14 21:17:42 jpaetzel Exp $
 #
 
 PORTNAME=	openvpn
-DISTVERSION=	201104
+DISTVERSION=	201019
 CATEGORIES=	security net
 MASTER_SITES=	ftp://ftp.secure-computing.net/pub/FreeBSD/ports/openvpn-devel/ \
 		ftp://ftp2.secure-computing.net/pub/FreeBSD/ports/openvpn-devel/
@@ -17,7 +17,7 @@ COMMENT=	Secure IP/Ethernet tunnel daemon
 
 WRKSRC=		${WRKDIR}/${PORTNAME}${PKGNAMESUFFIX}
 
-CONFLICTS=	openvpn-2.0* openvpn-beta-[0-9]*
+CONFLICTS=	openvpn-[0-9]*
 
 GNU_CONFIGURE=	yes
 USE_OPENSSL=	yes
