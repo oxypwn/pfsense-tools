@@ -3,7 +3,7 @@ PORTNAME=	ipsec-tools
 PORTVERSION=	0.8
 CATEGORIES=	security
 MASTER_SITES=	ftp://ftp.netbsd.org/pub/NetBSD/misc/ipsec-tools/0.8/
-DISTFILES= 	ipsec-tools-0.8.0.beta2.tar.gz
+DISTFILES= 	ipsec-tools-0.8.0.beta3.tar.gz
 MAINTAINER=	vanhu@netasq.com
 COMMENT=	KAME racoon IKE daemon, ipsec-tools version
 
@@ -25,7 +25,7 @@ STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
-WRKSRC=		work/ipsec-tools-0.8.0.beta2
+WRKSRC=		work/ipsec-tools-0.8.0.beta3
 
 WITH_NATT=yo
 
