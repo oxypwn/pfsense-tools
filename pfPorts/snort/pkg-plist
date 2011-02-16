@@ -1,4 +1,4 @@
-@comment $FreeBSD: ports/security/snort/pkg-plist,v 1.35 2011/02/09 06:50:03 clsung Exp $
+@comment $FreeBSD: ports/security/snort/pkg-plist,v 1.37 2011/02/13 22:17:19 pav Exp $
 bin/snort
 bin/u2boat
 bin/u2spewfoo
@@ -11,7 +11,6 @@ etc/snort/gen-msg.map-sample
 @unexec if cmp  -s %D/etc/snort/reference.config-sample %D/etc/snort/reference.config; then rm -f %D/etc/snort/reference.config; fi
 etc/snort/reference.config-sample
 @exec if [ ! -f %D/etc/snort/reference.config ] ; then cp -p %D/%F %B/reference.config; fi
-@exec if [ ! -f %D/etc/snort/sid-msg.map ] ; then cp -p %D/%F %B/sid-msg.map; fi
 @unexec if cmp  -s %D/etc/snort/snort.conf-sample %D/etc/snort/snort.conf; then rm -f %D/etc/snort/snort.conf; fi
 etc/snort/snort.conf-sample
 @exec if [ ! -f %D/etc/snort/snort.conf ] ; then cp -p %D/%F %B/snort.conf; fi
@@ -161,6 +160,7 @@ etc/snort/preproc_rules/sensitive-data.rules-sample
 %%PORTDOCS%%%%DOCSDIR%%/README.thresholding
 %%PORTDOCS%%%%DOCSDIR%%/README.u2boat
 %%PORTDOCS%%%%DOCSDIR%%/README.variables
+%%PORTDOCS%%%%DOCSDIR%%/README.rzb_saac
 %%PORTDOCS%%%%DOCSDIR%%/RELEASE.NOTES
 %%PORTDOCS%%%%DOCSDIR%%/TODO
 %%PORTDOCS%%%%DOCSDIR%%/USAGE

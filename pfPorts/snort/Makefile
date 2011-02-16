@@ -2,17 +2,18 @@
 # Date created:		Mon Aug  2 12:04:08 CEST 1999
 # Whom:			Dirk Froemberg <dirk@FreeBSD.org>
 #
-# $FreeBSD: ports/security/snort/Makefile,v 1.128 2011/02/09 06:50:03 clsung Exp $
+# $FreeBSD: ports/security/snort/Makefile,v 1.131 2011/02/13 22:17:19 pav Exp $
 #
 
 PORTNAME=	snort
 PORTVERSION=	2.9.0.4
+PORTREVISION=	1
 CATEGORIES=	security
 MASTER_SITES=	SF/snort/snort
 
 PATCH_DIST_STRIP=	-p1
 
-MAINTAINER=	wfreeman@gmail.com
+MAINTAINER=	wfreeman@sourcefire.com
 COMMENT=	Lightweight network intrusion detection system
 
 LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
@@ -38,6 +39,7 @@ OPTIONS=	IPV6 "Enable IPv6 support" off \
 		SNORTSAM "Unofficial Snortsam Patch" off \
 		PFSENSE "Enable Pfsense Options" off
 
+
 .include <bsd.port.options.mk>
 
 USE_RC_SUBR=	snort.sh
@@ -61,21 +63,21 @@ PREPROC_RULES=		decoder.rules preprocessor.rules sensitive-data.rules
 USE_AUTOTOOLS=	libtool
 USE_LDCONFIG=	yes
 LIBNET_CONFIG?=		${LOCALBASE}/bin/libnet11-config
-.if exists($(LIBNET_CONFIG}))
+.if exists(${LIBNET_CONFIG})
 LIBNET_CFLAGS!=	${LIBNET_CONFIG} --cflags
 LIBNET_LIBS!=	${LIBNET_CONFIG} --libs
 .else
-LIBNET_CFLAGS=-I${LOCALBASE}/include/libnet11
-LIBNET_LIBS=-L${LOCALBASE}/lib/libnet11 -lnet
+LIBNET_CFLAGS=	-I${LOCALBASE}/include/libnet11
+LIBNET_LIBS=	-L${LOCALBASE}/lib/libnet11 -lnet
 .endif
 LIBNET_INCDIR=	${LIBNET_CFLAGS:M-I*:S/-I//}
 LIBNET_LIBDIR=	${LIBNET_LIBS:M-L*:S/-L//}
 
-CONFIGURE_ARGS+=	--enable-dynamicplugin --enable-build-dynamic-examples \
-			--enable-reload --enable-reload-restart \
-			--disable-corefiles \
-			--with-dnet-includes=${LIBNET_INCDIR} \
-			--with-dnet-libraries=${LIBNET_LIBDIR}
+CONFIGURE_ARGS=	--enable-dynamicplugin --enable-build-dynamic-examples \
+		--enable-reload --enable-reload-restart \
+		--disable-corefiles \
+		--with-dnet-includes=${LIBNET_INCDIR} \
+		--with-dnet-libraries=${LIBNET_LIBDIR}
 
 PLIST_SUB+=	DYNAMIC=""
 
@@ -159,7 +161,7 @@ CONFIGURE_ARGS+=	--enable-react
 .endif
 
 .if defined(WITH_SNORTSAM)
-USE_AUTOTOOLS+= automake
+USE_AUTOTOOLS+=	automake
 PATCH_SITES+=	http://www.snortsam.net/files/snort-plugin/:snortsam
 PATCHFILES+=	snortsam-2.9.0.3.diff.gz:snortsam
 .endif
@@ -170,10 +172,8 @@ post-patch:
 .endif
 
 pre-configure:
-	${FIND} ${WRKSRC} -name 'Makefile.in' | ${XARGS} ${REINPLACE_CMD} -e \
-	    's|lib/snort_|lib/snort/|g'
-	${REINPLACE_CMD} "s,/etc/snort.conf,${CONFIG_DIR}/snort.conf," \
-		${WRKSRC}/src/snort.c ${WRKSRC}/snort.8
+	${FIND} ${WRKSRC} -name 'Makefile.in' | ${XARGS} ${REINPLACE_CMD} -e 's|lib/snort_|lib/snort/|g'
+	${REINPLACE_CMD} "s,/etc/snort.conf,${CONFIG_DIR}/snort.conf," ${WRKSRC}/src/snort.c ${WRKSRC}/snort.8
 	${REINPLACE_CMD} -e 's|lib/snort_|lib/snort/|g' ${WRKSRC}/etc/snort.conf
 	${REINPLACE_CMD} -e 's|^dynamicdetection|#dynamicdetection|' ${WRKSRC}/etc/snort.conf
 	${REINPLACE_CMD} -e '/var HOME_NET/s/any/[YOU_NEED_TO_SET_HOME_NET_IN_snort.conf]/' ${WRKSRC}/etc/snort.conf
@@ -208,7 +208,7 @@ post-install:
 	@cd ${LOCALBASE}/lib && ${MV} snort_dynamicrules/* snort/dynamicrules
 	@cd ${LOCALBASE}/lib && ${MV} snort_dynamicengine/* snort/dynamicengine
 	@cd ${LOCALBASE}/lib && ${MV} snort_dynamicpreprocessor/* snort/dynamicpreprocessor
-	@cd ${LOCALBASE}/lib && ${${RMDIR} snort_dynamic*
+	@cd ${LOCALBASE}/lib && ${RMDIR} snort_dynamic*
 	@${MKDIR} ${LOCALBASE}/libdata/pkgconfig/ && ${MV} ${LOCALBASE}/lib/pkgconfig/snort.pc ${LOCALBASE}/libdata/pkgconfig/snort.pc
 	@${RMDIR} ${LOCALBASE}/lib/pkgconfig
 .endif
