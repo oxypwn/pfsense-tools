@@ -1,0 +1,13 @@
+--- sys/contrib/pf/net/pf.c.old	2011-02-17 22:53:55.000000000 +0000
++++ sys/contrib/pf/net/pf.c	2011-02-17 22:57:14.000000000 +0000
+@@ -6900,7 +6900,9 @@
+ 			PACKET_UNDO_NAT(m0, (*pd), s, dir);
+ 			pf_unlink_state(s);
+ 			pd->pf_mtag->flags |= PF_TAG_FRIENDLY;
+-		}
++		} else if (r->rt == PF_ROUTETO && r->direction == PF_IN  &&
++		    r->direction == dir)
++			pd->pf_mtag->flags |= PF_TAG_FRIENDLY;
+ #ifdef __FreeBSD__
+ 		PF_UNLOCK();
+ 		if (pf_test(PF_OUT, ifp, &m0, NULL, NULL) != PF_PASS) {
