@@ -3,8 +3,8 @@ Index: sys/conf/files
 RCS file: /root/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	11 Feb 2011 16:30:23 -0000	1.2
-+++ sys/conf/files	11 Feb 2011 16:30:55 -0000
+--- sys/conf/files	18 Feb 2011 16:40:06 -0000	1.2
++++ sys/conf/files	18 Feb 2011 16:43:32 -0000
 @@ -366,6 +366,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -17,10 +17,10 @@ diff -u -r1.2 files
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.2
-diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	11 Feb 2011 16:30:24 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	11 Feb 2011 16:32:28 -0000
+retrieving revision 1.5
+diff -u -r1.5 pf.c
+--- sys/contrib/pf/net/pf.c	18 Feb 2011 16:43:19 -0000	1.5
++++ sys/contrib/pf/net/pf.c	18 Feb 2011 16:43:57 -0000
 @@ -187,6 +187,10 @@
  struct pool		 pf_state_pl, pf_altq_pl, pf_pooladdr_pl;
  #endif
@@ -74,47 +74,7 @@ diff -u -r1.2 pf.c
  		return (diff);
  
  	return (0);
-@@ -1362,6 +1364,7 @@
- 		pfsync_delete_state(cur);
- #endif
- 	cur->timeout = PFTM_UNLINKED;
-+	cur->linked_state = NULL;
- 	pf_src_tree_remove_state(cur);
- }
- 
-@@ -3809,6 +3812,7 @@
- 			return (PF_DROP);
- 		} else
- 			*sm = s;
-+		s->linked_state = NULL;
- 		if (tag > 0) {
- 			pf_tag_ref(tag);
- 			s->tag = tag;
-@@ -4155,6 +4159,7 @@
- 			return (PF_DROP);
- 		} else
- 			*sm = s;
-+		s->linked_state = NULL;
- 		if (tag > 0) {
- 			pf_tag_ref(tag);
- 			s->tag = tag;
-@@ -4472,6 +4477,7 @@
- 			return (PF_DROP);
- 		} else
- 			*sm = s;
-+		s->linked_state = NULL;
- 		if (tag > 0) {
- 			pf_tag_ref(tag);
- 			s->tag = tag;
-@@ -4757,6 +4763,7 @@
- 			return (PF_DROP);
- 		} else
- 			*sm = s;
-+		s->linked_state = NULL;
- 		if (tag > 0) {
- 			pf_tag_ref(tag);
- 			s->tag = tag;
-@@ -4855,13 +4862,14 @@
+@@ -4855,13 +4857,14 @@
  int
  pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
  	struct pf_state **state, struct pfi_kif *kif, struct mbuf *m, int off,
@@ -132,7 +92,7 @@ diff -u -r1.2 pf.c
  
  	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
  		sws = src->wscale & PF_WSCALE_MASK;
-@@ -4946,11 +4954,48 @@
+@@ -4946,11 +4949,48 @@
  			src->max_win = win;
  
  	} else {
@@ -184,7 +144,7 @@ diff -u -r1.2 pf.c
  			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
  			*copyback = 1;
  		}
-@@ -5310,6 +5355,54 @@
+@@ -5310,6 +5350,54 @@
  		dst = &(*state)->src;
  	}
  
@@ -239,7 +199,7 @@ diff -u -r1.2 pf.c
  	if ((*state)->src.state == PF_TCPS_PROXY_SRC) {
  		if (direction != (*state)->direction) {
  			REASON_SET(reason, PFRES_SYNPROXY);
-@@ -5438,10 +5531,11 @@
+@@ -5438,10 +5526,11 @@
  			return (PF_DROP);
  	} else {
  		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
@@ -252,7 +212,7 @@ diff -u -r1.2 pf.c
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7321,6 +7415,10 @@
+@@ -7321,6 +7410,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -268,7 +228,7 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	11 Feb 2011 16:34:28 -0000
++++ sys/contrib/pf/net/pf_ftp.c	18 Feb 2011 16:43:32 -0000
 @@ -0,0 +1,750 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
@@ -1023,10 +983,10 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.2
-diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	11 Feb 2011 16:30:24 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	11 Feb 2011 16:30:55 -0000
+retrieving revision 1.5
+diff -u -r1.5 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	18 Feb 2011 16:42:17 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	18 Feb 2011 16:43:43 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
@@ -1047,15 +1007,7 @@ diff -u -r1.2 pfvar.h
  #define PFSTATE_DIVERT_ALTQ     0x10
  #define PFSTATE_DIVERT_DNCOOKIE 0x20
  #define PFSTATE_DIVERT_ACTION   0x40
-@@ -875,6 +879,7 @@
- 	u_int32_t	 pfsync_time;
- 	u_int16_t	 tag;
- 	u_int16_t	 divert_cookie;
-+	struct pf_state	*linked_state;
- };
- 
- TAILQ_HEAD(pf_rulequeue, pf_rule);
-@@ -1905,6 +1910,9 @@
+@@ -1905,6 +1909,9 @@
  /* The fingerprint functions can be linked into userland programs (tcpdump) */
  int	pf_osfp_add(struct pf_osfp_ioctl *);
  #ifdef _KERNEL
@@ -1070,8 +1022,8 @@ Index: sys/modules/pf/Makefile
 RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	11 Feb 2011 16:29:06 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	11 Feb 2011 16:30:55 -0000
+--- sys/modules/pf/Makefile	18 Feb 2011 16:38:11 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	18 Feb 2011 16:43:32 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf

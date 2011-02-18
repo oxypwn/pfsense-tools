@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.3
-diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	10 Feb 2011 00:27:32 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	10 Feb 2011 00:28:55 -0000
+retrieving revision 1.6
+diff -u -r1.6 parse.y
+--- contrib/pf/pfctl/parse.y	18 Feb 2011 16:45:23 -0000	1.6
++++ contrib/pf/pfctl/parse.y	18 Feb 2011 16:54:22 -0000
 @@ -423,7 +423,7 @@
  
  %}
@@ -33,10 +33,10 @@ diff -u -r1.3 parse.y
 Index: contrib/pf/pfctl/pfctl_parser.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
-retrieving revision 1.2
-diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	10 Feb 2011 00:26:35 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	10 Feb 2011 16:14:52 -0000
+retrieving revision 1.4
+diff -u -r1.4 pfctl_parser.c
+--- contrib/pf/pfctl/pfctl_parser.c	18 Feb 2011 16:42:06 -0000	1.4
++++ contrib/pf/pfctl/pfctl_parser.c	18 Feb 2011 16:54:22 -0000
 @@ -684,7 +684,9 @@
  
  	if (verbose)
@@ -51,10 +51,10 @@ diff -u -r1.2 pfctl_parser.c
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.7
-diff -u -r1.7 pf.c
---- sys/contrib/pf/net/pf.c	10 Feb 2011 00:28:40 -0000	1.7
-+++ sys/contrib/pf/net/pf.c	10 Feb 2011 16:12:29 -0000
+retrieving revision 1.13
+diff -u -r1.13 pf.c
+--- sys/contrib/pf/net/pf.c	18 Feb 2011 16:52:58 -0000	1.13
++++ sys/contrib/pf/net/pf.c	18 Feb 2011 16:54:22 -0000
 @@ -235,6 +235,8 @@
  			    struct pf_addr *, u_int16_t,
  			    struct pf_addr *, u_int16_t,
@@ -64,7 +64,7 @@ diff -u -r1.7 pf.c
  int			 pf_test_tcp(struct pf_rule **, struct pf_state **,
  			    int, struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, struct pf_rule **,
-@@ -3561,6 +3563,15 @@
+@@ -3555,6 +3557,15 @@
  	}
  }
  
@@ -80,7 +80,7 @@ diff -u -r1.7 pf.c
  int
  pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
      struct pfi_kif *kif, struct mbuf *m, int off, void *h,
-@@ -3579,6 +3590,7 @@
+@@ -3573,6 +3584,7 @@
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -88,7 +88,7 @@ diff -u -r1.7 pf.c
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	int			 rewrite = 0;
-@@ -3697,10 +3709,20 @@
+@@ -3691,10 +3703,20 @@
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -113,7 +113,7 @@ diff -u -r1.7 pf.c
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -3716,6 +3738,9 @@
+@@ -3710,6 +3732,9 @@
  	a = *am;
  	ruleset = *rsm;
  
@@ -123,7 +123,7 @@ diff -u -r1.7 pf.c
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->natpass && nr->log)) {
-@@ -3840,6 +3865,8 @@
+@@ -3834,6 +3859,8 @@
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = IPPROTO_TCP;
@@ -132,7 +132,7 @@ diff -u -r1.7 pf.c
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4009,6 +4036,7 @@
+@@ -4002,6 +4029,7 @@
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -140,7 +140,7 @@ diff -u -r1.7 pf.c
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	int			 rewrite = 0;
-@@ -4123,10 +4151,20 @@
+@@ -4116,10 +4144,20 @@
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -165,7 +165,7 @@ diff -u -r1.7 pf.c
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4142,6 +4180,9 @@
+@@ -4135,6 +4173,9 @@
  	a = *am;
  	ruleset = *rsm;
  
@@ -175,7 +175,7 @@ diff -u -r1.7 pf.c
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->natpass && nr->log)) {
-@@ -4244,6 +4285,8 @@
+@@ -4237,6 +4278,8 @@
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = IPPROTO_UDP;
@@ -184,7 +184,7 @@ diff -u -r1.7 pf.c
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4318,6 +4361,7 @@
+@@ -4310,6 +4353,7 @@
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -192,7 +192,7 @@ diff -u -r1.7 pf.c
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	u_int16_t		 icmpid = 0, bport, nport = 0;
-@@ -4467,10 +4511,20 @@
+@@ -4459,10 +4503,20 @@
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -217,7 +217,7 @@ diff -u -r1.7 pf.c
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4486,6 +4540,9 @@
+@@ -4478,6 +4532,9 @@
  	a = *am;
  	ruleset = *rsm;
  
@@ -227,7 +227,7 @@ diff -u -r1.7 pf.c
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->natpass && nr->log)) {
-@@ -4564,6 +4621,8 @@
+@@ -4556,6 +4613,8 @@
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = pd->proto;
@@ -236,7 +236,7 @@ diff -u -r1.7 pf.c
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4637,6 +4696,7 @@
+@@ -4628,6 +4687,7 @@
  	struct pf_rule		*nr = NULL;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -244,7 +244,7 @@ diff -u -r1.7 pf.c
  	struct pf_src_node	*nsn = NULL;
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
  	struct pf_grehdr	 gr;
-@@ -4734,10 +4794,20 @@
+@@ -4725,10 +4785,20 @@
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -269,7 +269,7 @@ diff -u -r1.7 pf.c
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4753,6 +4823,9 @@
+@@ -4744,6 +4814,9 @@
  	a = *am;
  	ruleset = *rsm;
  
@@ -279,7 +279,7 @@ diff -u -r1.7 pf.c
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->natpass && nr->log))
-@@ -4859,6 +4932,8 @@
+@@ -4850,6 +4923,8 @@
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = pd->proto;
@@ -288,7 +288,7 @@ diff -u -r1.7 pf.c
  		s->direction = direction;
  		s->af = af;
  		if (pd->proto == IPPROTO_GRE &&
-@@ -4925,6 +5000,7 @@
+@@ -4915,6 +4990,7 @@
  {
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -296,7 +296,7 @@ diff -u -r1.7 pf.c
  	sa_family_t		 af = pd->af;
  	u_short			 reason;
  	int			 tag = -1;
-@@ -4968,10 +5044,20 @@
+@@ -4958,10 +5034,20 @@
  			r = TAILQ_NEXT(r, entries);
  		else {
  			if (r->anchor == NULL) {
@@ -321,7 +321,7 @@ diff -u -r1.7 pf.c
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4987,6 +5073,9 @@
+@@ -4977,6 +5063,9 @@
  	a = *am;
  	ruleset = *rsm;
  
@@ -331,7 +331,7 @@ diff -u -r1.7 pf.c
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log)
-@@ -7741,6 +7830,12 @@
+@@ -7728,6 +7817,12 @@
  		pd.pf_mtag->af = AF_INET;
  		pd.pf_mtag->hdr = h;
  	}
@@ -349,8 +349,8 @@ Index: sys/contrib/pf/net/pf_ruleset.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ruleset.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_ruleset.c
---- sys/contrib/pf/net/pf_ruleset.c	10 Feb 2011 00:24:32 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf_ruleset.c	10 Feb 2011 00:29:46 -0000
+--- sys/contrib/pf/net/pf_ruleset.c	18 Feb 2011 16:38:07 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_ruleset.c	18 Feb 2011 16:54:22 -0000
 @@ -127,6 +127,7 @@
  		return (PF_RULESET_SCRUB);
  		break;
@@ -362,10 +362,10 @@ diff -u -r1.1.1.1 pf_ruleset.c
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.4
-diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	10 Feb 2011 00:28:26 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	10 Feb 2011 00:40:15 -0000
+retrieving revision 1.8
+diff -u -r1.8 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	18 Feb 2011 16:51:29 -0000	1.8
++++ sys/contrib/pf/net/pfvar.h	18 Feb 2011 16:54:22 -0000
 @@ -80,7 +80,8 @@
  enum	{ PF_INOUT, PF_IN, PF_OUT };
  enum	{ PF_LAN_EXT, PF_EXT_GWY, PF_ID };
@@ -406,4 +406,4 @@ diff -u -r1.4 pfvar.h
 +	u_int16_t	 pqid;
  	u_int16_t	 tag;
  	u_int16_t	 divert_cookie;
- 	struct pf_state	*linked_state;
+ };

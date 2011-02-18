@@ -3,8 +3,8 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.11
 diff -u -r1.11 pf.c
---- sys/contrib/pf/net/pf.c	7 Feb 2011 23:46:52 -0000	1.11
-+++ sys/contrib/pf/net/pf.c	7 Feb 2011 23:47:41 -0000
+--- sys/contrib/pf/net/pf.c	18 Feb 2011 16:51:46 -0000	1.11
++++ sys/contrib/pf/net/pf.c	18 Feb 2011 16:52:18 -0000
 @@ -190,6 +190,9 @@
  int ftp_proxy = 0;
  SYSCTL_INT(_debug, OID_AUTO, pfftpproxy, CTLFLAG_RW, &ftp_proxy, 0,
@@ -63,7 +63,7 @@ diff -u -r1.11 pf.c
  #define PACKET_LOOPED(mtag)						\
  	((mtag)->flags & PF_PACKET_LOOPED)
  
-@@ -770,6 +805,102 @@
+@@ -770,6 +805,101 @@
  }
  #endif
  
@@ -158,33 +158,14 @@ diff -u -r1.11 pf.c
 +			pf_src_tree_remove_state(s);
 +			STATE_DEC_COUNTERS(s);
 +			pool_put(&pf_state_pl, s);
-+		} else
-+			s->linked_state = state;
++		}
 +	}
 +}
 +
  #ifdef INET6
  void
  pf_addrcpy(struct pf_addr *dst, struct pf_addr *src, sa_family_t af)
-@@ -1445,6 +1576,9 @@
- 			}
- 			pf_free_state(cur);
- 		} else if (pf_state_expires(cur) <= time_second) {
-+			if (cur->proto == IPPROTO_GRE && cur->linked_state != NULL && !(cur->linked_state->local_flags & PFSTATE_EXPIRING))
-+				cur->timeout = time_second + 10;
-+			else {
- 			/* unlink and free expired state */
- 			pf_unlink_state(cur);
- 			if (! locked) {
-@@ -1457,6 +1591,7 @@
- 				locked = 1;
- 			}
- 			pf_free_state(cur);
-+			}
- 		}
- 		cur = next;
- 	}
-@@ -4504,6 +4639,7 @@
+@@ -4500,6 +4630,7 @@
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_src_node	*nsn = NULL;
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
@@ -192,7 +173,7 @@ diff -u -r1.11 pf.c
  	sa_family_t		 af = pd->af;
  	u_short			 reason;
  	int			 tag = -1, rtableid = -1;
-@@ -4725,6 +4861,15 @@
+@@ -4721,6 +4852,15 @@
  		s->proto = pd->proto;
  		s->direction = direction;
  		s->af = af;
@@ -208,7 +189,7 @@ diff -u -r1.11 pf.c
  		if (direction == PF_OUT) {
  			PF_ACPY(&s->gwy.addr, saddr, af);
  			PF_ACPY(&s->ext.addr, daddr, af);
-@@ -4735,7 +4880,7 @@
+@@ -4731,7 +4871,7 @@
  		} else {
  			PF_ACPY(&s->lan.addr, daddr, af);
  			PF_ACPY(&s->ext.addr, saddr, af);
@@ -217,7 +198,7 @@ diff -u -r1.11 pf.c
  				PF_ACPY(&s->gwy.addr, &pd->baddr, af);
  			else
  				PF_ACPY(&s->gwy.addr, &s->lan.addr, af);
-@@ -6211,23 +6356,33 @@
+@@ -6203,23 +6343,33 @@
  
  int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -256,7 +237,7 @@ diff -u -r1.11 pf.c
  	}
  
  	STATE_LOOKUP();
-@@ -7431,6 +7586,8 @@
+@@ -7424,6 +7574,8 @@
  		if (action == PF_PASS && s != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
  			if (ftp_proxy == 0 && (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21))
  				pf_handle_ftp(kif, &pd, m, s, off, dir);
@@ -265,7 +246,7 @@ diff -u -r1.11 pf.c
  		}
  		break;
  	}
-@@ -7525,7 +7682,7 @@
+@@ -7518,7 +7670,7 @@
  #endif
  
  	default:
@@ -274,7 +255,7 @@ diff -u -r1.11 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -8134,7 +8291,7 @@
+@@ -8128,7 +8280,7 @@
  	}
  
  	default:
