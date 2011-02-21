@@ -64,7 +64,7 @@ PORTSTOBUILD="grub \
 	cpdup \
 	beep \
 	check_reload_status \
-	choparp \
+	choparp-old \
 	dnsmasq \
 	expiretable \
 	ifstated \
@@ -72,7 +72,7 @@ PORTSTOBUILD="grub \
 	isc-dhcp30-server \
 	isc-dhcp30-relay \
 	lighttpd \
-	minicron \
+	minicron-old \
 	miniupnpd \
 	mpd \
 	olsrd \
@@ -82,13 +82,13 @@ PORTSTOBUILD="grub \
 	fping \
 	slbd \
 	ssh_tunnel_shell \
-	sshlockout_pf \
+	sshlockout_pf-old \
 	stats \
 	vtsh \
 	openvpn-old \
 	zip \
 	links \
-	dnswatch \
+	dnswatch-old \
 	verifysig \
 	openntpd \
 	ftp-proxy \
