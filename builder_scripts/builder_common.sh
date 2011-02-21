@@ -576,6 +576,7 @@ recompile_pfPorts() {
 			echo "TARGET_BIG_ENDIAN=yes" >> /etc/make.conf
 		fi
 		export FORCE_PKG_REGISTER=yo
+		export DISABLE_VULNERABILITIES=yo
 
 		chmod a+rx $USE_PORTS_FILE
 		echo ">>> Executing $PFPORTSBASENAME"
