@@ -14,6 +14,8 @@ MASTER_SITE_SUBDIR=	distfiles
 MAINTAINER=	farrokhi@FreeBSD.org
 COMMENT=	Lightweight, easy to configure DNS forwarder and DHCP server
 
+DISABLE_VULNERABILITIES=yo
+
 MAN8=		dnsmasq.8
 
 docs=		CHANGELOG FAQ doc.html setup.html
