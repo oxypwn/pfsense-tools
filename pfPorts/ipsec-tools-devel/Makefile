@@ -117,11 +117,7 @@ CONFIGURE_ARGS+=	--enable-gssapi
 CONFIGURE_ARGS+=	--disable-gssapi
 .endif
 
-.ifdef(WITH_RADIUS)
 CONFIGURE_ARGS+=	--with-libradius
-.else
-CONFIGURE_ARGS+=	--without-libradius
-.endif
 
 .ifdef(WITH_LDAP)
 USE_OPENLDAP=   YES
