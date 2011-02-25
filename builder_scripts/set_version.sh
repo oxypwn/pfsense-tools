@@ -187,7 +187,7 @@ HEAD)
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_1"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_1-supfile"
-	export PFSENSE_VERSION=2.0-BETA5
+	export PFSENSE_VERSION=2.0-RC1
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
@@ -202,7 +202,7 @@ RELENG_8_1)
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_1"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_1-supfile"
-	export PFSENSE_VERSION=2.0-BETA5
+	export PFSENSE_VERSION=2.0-RC1
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
@@ -217,7 +217,7 @@ RELENG_8_2)
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_2"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_2-supfile"
-	export PFSENSE_VERSION=2.0-BETA5
+	export PFSENSE_VERSION=2.0-RC1
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_2
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_2
@@ -247,7 +247,7 @@ RELENG_2_0)
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_1"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_1-supfile"
-	export PFSENSE_VERSION=2.0-BETA5
+	export PFSENSE_VERSION=2.0-RC1
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
