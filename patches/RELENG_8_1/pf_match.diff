@@ -84,7 +84,7 @@ diff -u -r1.13 pf.c
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
-+	struct pf_rule_actions	 act;
++	struct pf_rule_actions	 act = { 0 };
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	int			 rewrite = 0;
