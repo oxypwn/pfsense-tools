@@ -2317,7 +2317,7 @@ awk '
 }
 
 # This routine originated in nanobsd.sh
-create_i386_diskimage () {
+create_nanobsd_diskimage () {
 	echo ">>> building NanoBSD disk image (i386)..."
 	echo "" > /tmp/nanobsd_cmds.sh
 

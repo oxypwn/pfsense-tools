@@ -159,7 +159,7 @@ setup_nanobsd
 prune_usr
 
 # Create the NanoBSD disk image
-create_i386_diskimage
+create_nanobsd_diskimage
 
 # Wrap up the show, Johnny
 echo "Image completed."
