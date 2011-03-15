@@ -67,11 +67,7 @@ CONFIGURE_ARGS+=	--enable-debug
 CONFIGURE_ARGS+=	--disable-debug
 .endif
 
-.ifdef(WITH_IPV6)
 CONFIGURE_ARGS+=	--enable-ipv6
-.else
-CONFIGURE_ARGS+=	--disable-ipv6
-.endif
 
 .ifdef(WITH_ADMINPORT)
 CONFIGURE_ARGS+=	--enable-adminport
