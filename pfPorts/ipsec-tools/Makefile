@@ -37,7 +37,7 @@ SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
 OPTIONS=	DEBUG		"enable Debug support" off \
-		IPV6		"enable IPV6 support" off \
+		IPV6		"enable IPV6 support" on \
 		ADMINPORT	"enable Admin port" on \
 		STATS		"enable Statistics logging function" off \
 		DPD		"enable Dead Peer Detection" on \
