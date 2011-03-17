@@ -65,7 +65,6 @@
 ~~files.igb.diff~
 ~~pfvar_addr_compare.RELENG_8.diff~
 ~~pf_route_to_daemon_friendly.RELENG_8.diff~
-~~pptp_gre_state.RELENG_8.diff~
 ~~IPSEC_sysctl.RELENG_8.diff~
 ~~max_linkhdr.diff~
 ~sys/boot/forth~beastie.4th.diff~
