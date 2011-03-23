@@ -55,7 +55,7 @@ filterdns					/usr/ports/net/filterdns					/usr/local/sbin/filterdns
 apinger						/usr/ports/net/apinger						/usr/local/sbin/apinger
 rrdtool						/usr/ports/databases/rrdtool				/usr/local/bin/rrdtool
 cpdup						/usr/ports/sysutils/cpdup					/usr/local/bin/cpdup
-cpustats					/usr/ports/sysutils/cpustats					/usr/local/bin/cpustats
+cpustats					/usr/ports/sysutils/cpustats					/usr/local/sbin/cpustats
 beep						/usr/ports/audio/beep						/usr/local/bin/beep
 choparp						/usr/ports/net-mgmt/choparp					/usr/local/sbin/choparp
 dnsmasq-no-isc-dhcp-parser	/usr/ports/dns/dnsmasq-no-isc-dhcp-parser	/usr/local/sbin/dnsmasq
