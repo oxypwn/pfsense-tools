@@ -47,6 +47,7 @@ fi
 
 # Port name					Path to port								Verify install filename
 PORTSTOBUILD="
+pfflowd-0.8					/usr/ports/net/pfflowd-0.8					/usr/local/sbin/pfflowd
 ipsec-tools-devel			/usr/ports/security/ipsec-tools-devel		/usr/local/sbin/racoon
 grub						/usr/ports/sysutils/grub					/usr/local/sbin/grub
 ipfw-classifyd				/usr/ports/net/ipfw-classifyd				/usr/local/sbin/ipfw-classifyd
@@ -55,7 +56,7 @@ filterdns					/usr/ports/net/filterdns					/usr/local/sbin/filterdns
 apinger						/usr/ports/net/apinger						/usr/local/sbin/apinger
 rrdtool						/usr/ports/databases/rrdtool				/usr/local/bin/rrdtool
 cpdup						/usr/ports/sysutils/cpdup					/usr/local/bin/cpdup
-cpustats					/usr/ports/sysutils/cpustats					/usr/local/sbin/cpustats
+cpustats					/usr/ports/sysutils/cpustats				/usr/local/sbin/cpustats
 beep						/usr/ports/audio/beep						/usr/local/bin/beep
 choparp						/usr/ports/net-mgmt/choparp					/usr/local/sbin/choparp
 dnsmasq-no-isc-dhcp-parser	/usr/ports/dns/dnsmasq-no-isc-dhcp-parser	/usr/local/sbin/dnsmasq
@@ -76,7 +77,7 @@ fping						/usr/ports/net/fping						/usr/local/sbin/fping
 minicron					/usr/ports/sysutils/minicron				/usr/local/bin/minicron
 php52						/usr/ports/lang/php52						/usr/local/bin/php
 pecl-APC					/usr/ports/www/pecl-APC						/usr/local/lib/php/20060613/apc.so
-php52-bcmath					/usr/ports/math/php52-bcmath			/usr/local/lib/php/20060613/bcmath.so
+php52-bcmath				/usr/ports/math/php52-bcmath				/usr/local/lib/php/20060613/bcmath.so
 php52-bz2					/usr/ports/archivers/php52-bz2				/usr/local/lib/php/20060613/bz2.so
 php52-ctype					/usr/ports/textproc/php52-ctype				/usr/local/lib/php/20060613/ctype.so
 php52-curl					/usr/ports/ftp/php52-curl					/usr/local/lib/php/20060613/curl.so
