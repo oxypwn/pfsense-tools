@@ -1,0 +1,23 @@
+Index: sys/net80211/ieee80211_proto.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net80211/ieee80211_proto.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ieee80211_proto.c
+--- sys/net80211/ieee80211_proto.c	24 Mar 2011 19:24:20 -0000	1.1.1.1
++++ sys/net80211/ieee80211_proto.c	24 Mar 2011 20:00:14 -0000
+@@ -989,6 +989,15 @@
+ 	}
+ 
+ 	/*
++	 * Clear the wme cap_info field so a qoscount from a previous
++	 * vap doesn't confuse later code which only parses the beacon
++	 * field and updates hardware when said field changes.
++	 * Otherwise the hardware is programmed with defaults, not what
++	 * the beacon actually announces.
++	 */
++	wme->wme_wmeChanParams.cap_info = 0;
++
++	/*
+ 	 * Select mode; we can be called early in which case we
+ 	 * always use auto mode.  We know we'll be called when
+ 	 * entering the RUN state with bsschan setup properly
