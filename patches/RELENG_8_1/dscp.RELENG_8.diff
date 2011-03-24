@@ -105,7 +105,7 @@ diff -u -r1.2 parse.y
 +                                $$ = strtoul($2, NULL, 16);
 +                        else
 +                                $$ = strtoul($2, NULL, 10);
-+                        if (!$$ || $$ > 64) {
++                        if (!$$ || $$ > 184) {
 +                                yyerror("illegal dscp value %s", $2);
 +                                free($2);
 +                                YYERROR;
