@@ -63,7 +63,7 @@ PORTSTOBUILD="grub \
 	atareinit \
 	cpdup \
 	beep \
-	check_reload_status \
+	check_reload_status_legacy \
 	choparp-old \
 	dnsmasq \
 	expiretable \
