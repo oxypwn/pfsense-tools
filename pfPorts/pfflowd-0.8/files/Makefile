@@ -5,9 +5,9 @@
 	-Wcast-qual -WformatC=2 -Wformat-nonliteral -Wunused
 
 LIBS=-lpcap -lutil
-LDFLAGS=-g -static
+LDFLAGS=-static
 
-CFLAGS= -g -O -DNF9 -DIPV6  -DEGRESS -DULL
+CFLAGS= -O -DNF9 -DIPV6  -DEGRESS -DULL
 
 .if defined(OLD_PFSYNC)
 CFLAGS+=-DOLD_PFSYNC

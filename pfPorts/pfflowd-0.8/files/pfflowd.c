@@ -185,6 +185,34 @@ static u_int32_t
    return ((u_int32_t)res.tv_sec * 1000 + (u_int32_t)res.tv_usec / 1000);
 }
 
+static void
+  parse_host(const char *s, struct sockaddr *addr, socklen_t *len)
+{
+   struct addrinfo hints, *res;
+   int herr;
+
+   memset(&hints, '\0', sizeof(hints));
+   hints.ai_socktype = SOCK_DGRAM;
+   if ((herr = getaddrinfo(s, NULL, &hints, &res)) == -1)
+     {
+        fprintf(stderr, "Address lookup failed: %s\n",
+                gai_strerror(herr));
+        exit(1);
+     }
+   if (res == NULL || res->ai_addr == NULL)
+     {
+        fprintf(stderr, "No addresses found for %s\n", s);
+        exit(1);
+     }
+   if (res->ai_addrlen > *len)
+     {
+        fprintf(stderr, "Address too long\n");
+        exit(1);
+     }
+   memcpy(addr, res->ai_addr, res->ai_addrlen);
+   *len = res->ai_addrlen;
+}
+
 /*
  * Parse host:port into sockaddr. Will exit on failure
  */
@@ -237,6 +265,36 @@ static void
    memcpy(addr, res->ai_addr, res->ai_addrlen);
    free(orig);
    *len = res->ai_addrlen;
+}
+
+/*
+ * Return a connected socket to the specified address and bind it to the specified address
+ */
+static int
+  connsock_bind(struct sockaddr *addr, socklen_t len, struct sockaddr *saddr, socklen_t slen)
+{
+   int s;
+
+   if ((s = socket(addr->sa_family, SOCK_DGRAM, 0)) == -1)
+     {
+	fprintf(stderr, "socket() error: %s\n",
+		strerror(errno));
+	exit(1);
+     }
+   if ((bind(s, saddr, slen)) == -1)
+     {
+	fprintf(stderr, "bind() error: %s\n",
+		strerror(errno));
+	exit(1);
+     }
+   if (connect(s, addr, len) == -1)
+     {
+	fprintf(stderr, "connect() error: %s\n",
+		strerror(errno));
+	exit(1);
+     }
+
+   return(s);
 }
 
 /*
@@ -1118,8 +1176,8 @@ int
    extern char *__progname;
    int ch, dontfork_flag, r;
    pcap_t *pcap = NULL;
-   struct sockaddr_storage dest;
-   socklen_t destlen;
+   struct sockaddr_storage dest, src;
+   socklen_t destlen, srclen;
 #ifdef NF9
    int opt =0;
 #endif
@@ -1127,10 +1185,12 @@ int
    dev = capfile = NULL;
    dontfork_flag = 0;
    memset(&dest, '\0', sizeof(dest));
+   memset(&src, '\0', sizeof(src));
    destlen = 0;
+   srclen = 0;
 
 #ifdef NF9
-   while ((ch = getopt(argc, argv, "hdDi:n:r:S:v:m:p:e:")) != -1)
+   while ((ch = getopt(argc, argv, "hdDi:n:r:S:s:v:m:p:e:")) != -1)
      {
 #else
 	while ((ch = getopt(argc, argv, "hdDi:n:r:S:v:")) != -1)
@@ -1190,6 +1250,12 @@ int
 		  capfile = optarg;
 		  dontfork_flag = 1;
 		  break;
+		case 's':
+			/* Will exit on failure */
+		  srclen = sizeof(src);
+		  parse_host(optarg, (struct sockaddr *)&src,
+				 &srclen);
+		  break;
 		case 'v':
 		  switch((export_version = atoi(optarg)))
 		    {
@@ -1240,7 +1306,9 @@ int
 	setup_packet_capture(&pcap, dev, capfile, bpf_prog);
 
 	/* Netflow send socket */
-	if (dest.ss_family != 0)
+	if (dest.ss_family != 0 && src.ss_family != 0)
+	  netflow_socket = connsock_bind((struct sockaddr *)&dest, destlen, (struct sockaddr *)&src, srclen);
+	else if (dest.ss_family != 0)
 	  netflow_socket = connsock((struct sockaddr *)&dest, destlen);
 	else
 	  {

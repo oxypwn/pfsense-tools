@@ -16,12 +16,13 @@ CFLAGS+=	-I/usr/local/include -L/usr/local/lib
 
 do-extract:
 	mkdir -p ${WRKSRC}
+	${CP} files/* ${WRKSRC}
 
-do-build:
-	${CC} -g -static -o work/pfflowd files/pfflowd.o files/pidfile.o files/nf9.o -lpcap -lutil
+#do-build:
+#	${CC} -g -static -o ${WRKSRC}/${PORTNAME} files/pfflowd.o files/pidfile.o files/nf9.o -lpcap -lutil
 
 do-install:
-	${INSTALL_PROGRAM} work/${PORTNAME} ${PREFIX}/${WHERE}/
+	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
 
 	
 .include <bsd.port.mk>
