@@ -137,6 +137,7 @@ export PKGFILE=${PFSPKGFILE}
 rm -f $PFSPKGFILE
 (cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
 (cd /var/db/pkg && ls | grep grub) >> $PFSPKGFILE
+(cd /var/db/pkg && ls | grep lua) >> $PFSPKGFILE
 set -e
 freesbie_make pkginstall
 unset PKGFILE
