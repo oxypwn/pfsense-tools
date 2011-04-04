@@ -91,6 +91,15 @@ add_table_entry(struct table_entry *rnh, struct in_addr addr, struct thread_data
 	struct table *ent, *tmp;
 	char buffer[256];
 
+	TAILQ_FOREACH(tmp, rnh, entry) {
+		if (addr.s_addr == tmp->addr.sin_addr.s_addr) {
+			if (debug >= 2)
+				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntoa_r(tmp->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename);
+			refcount_acquire(&tmp->refcnt);
+			return (EEXIST);
+		}
+	}
+
 	ent = calloc(1, sizeof(*ent));
 	if (ent == NULL) {
 		if (debug >= 1)
@@ -100,16 +109,6 @@ add_table_entry(struct table_entry *rnh, struct in_addr addr, struct thread_data
 	ent->addr.sin_addr = addr;
 	refcount_init(&ent->refcnt, 1);
 	refcount_acquire(&ent->refcnt);
-	TAILQ_FOREACH(tmp, rnh, entry) {
-		if (addr.s_addr == tmp->addr.sin_addr.s_addr) {
-			if (debug >= 2)
-				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntoa_r(tmp->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename);
-			refcount_acquire(&tmp->refcnt);
-			free(ent);
-			return (EEXIST);
-		}
-	}
-
 	TAILQ_INSERT_HEAD(rnh, ent, entry);
 	if (thrdata->type == PF_TYPE) {
 		if (debug >= 2)
@@ -164,6 +163,7 @@ host_dns(struct thread_data *hostd)
         int                      error, cnt = 0;
 	char buffer[256];
 
+	res0 = NULL;
         bzero(&hints, sizeof(hints));
         hints.ai_family = PF_UNSPEC;
         hints.ai_socktype = SOCK_DGRAM; /* DUMMY */
@@ -171,6 +171,8 @@ host_dns(struct thread_data *hostd)
         if (error == EAI_AGAIN) {
 		if (debug >= 1)
 			syslog(LOG_WARNING, "failed to resolve host %s will retry later again.", hostd->hostname);
+		if (res0 != NULL)
+			freeaddrinfo(res0);
                 return (0);
 	}
         if (error) {
