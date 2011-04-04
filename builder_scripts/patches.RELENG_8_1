@@ -79,3 +79,6 @@
 ~~if_bridge_gif_mtu.diff~
 ~~if_lagg_panic.diff~
 ~~net80211_WME_fix.diff~
+~~dummynet_leaking.diff~
+~~ipsec_ipcomp_protection.diff~
+~~tcp_long_standing_bug.diff~
