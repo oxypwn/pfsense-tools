@@ -177,8 +177,10 @@ host_dns(struct thread_data *hostd)
 	}
         if (error) {
 		if (debug >= 1)
-                	syslog(LOG_WARNING, "host_dns: could not parse \"%s\": %s", hostd->hostname,
+                	syslog(LOG_WARNING, "host_dns: failed looking up \"%s\": %s", hostd->hostname,
                     		gai_strerror(error));
+		if (res0 != NULL)
+			freeaddrinfo(res0);
                 return (-1);
         }
 
