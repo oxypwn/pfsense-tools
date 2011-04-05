@@ -84,3 +84,4 @@
 ~~tcp_long_standing_bug.diff~
 ~sys/net~ifaces_race_during_removal.diff~
 ~~ifaddr_dereference.diff~
+~sys~FreeBSD-VirtIO-0001.obj~
