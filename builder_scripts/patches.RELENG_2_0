@@ -71,3 +71,4 @@
 ~sys/net~if.c.diff~
 ~~netstat_ifname_size.diff~
 ~~fifo_vnops.c.diff~
+-p1~sys~FreeBSD-VirtIO-0001.obj~
