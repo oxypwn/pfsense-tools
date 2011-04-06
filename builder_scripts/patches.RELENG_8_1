@@ -85,3 +85,4 @@
 ~sys/net~ifaces_race_during_removal.diff~
 ~~ifaddr_dereference.diff~
 -p1~~FreeBSD-VirtIO-0001.obj~
+-p1~~ng_base_imprvements.diff~
