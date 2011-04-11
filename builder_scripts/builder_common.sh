@@ -3122,6 +3122,9 @@ install_pkg_install_ports() {
 	if [ "$PKG_INSTALL_PORTSPFS" = "" ]; then
 		return
 	fi
+	# Some ports are unhappy with cross building and fail spectacularly.
+	OLDTGTARCH=${TARGET_ARCH}
+	unset TARGET_ARCH
 	echo -n ">>> Building ports (this might take a while): "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p /usr/ports/packages/Old/
@@ -3150,6 +3153,7 @@ install_pkg_install_ports() {
 	rm $PFSENSEBASEDIR/pkg.sh
 	mv /usr/ports/packages/Old/* /usr/ports/packages/All/
 	echo -n "Done!"
+	TARGET_ARCH=${OLDTGTARCH}
 }
 
 # Mildly based on FreeSBIE
