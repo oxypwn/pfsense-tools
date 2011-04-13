@@ -102,13 +102,14 @@ php52-shmop					/usr/ports/devel/php52-shmop				/usr/local/lib/php/20060613/shmo
 php52-sysvmsg				/usr/ports/devel/php52-sysvmsg				/usr/local/lib/php/20060613/sysvmsg.so
 php52-sysvsem				/usr/ports/devel/php52-sysvsem				/usr/local/lib/php/20060613/sysvsem.so
 php52-sysvshm				/usr/ports/devel/php52-sysvshm				/usr/local/lib/php/20060613/sysvshm.so
-php52-spl					/usr/ports/devel/php52-spl				/usr/local/lib/php/20060613/spl.so
+php52-spl					/usr/ports/devel/php52-spl					/usr/local/lib/php/20060613/spl.so
 php52-sqlite				/usr/ports/databases/php52-sqlite			/usr/local/lib/php/20060613/pdo_sqlite.so
 php52-tokenizer				/usr/ports/devel/php52-tokenizer			/usr/local/lib/php/20060613/tokenizer.so
 php52-xml					/usr/ports/textproc/php52-xml				/usr/local/lib/php/20060613/xml.so
 php52-zlib					/usr/ports/archivers/php52-zlib				/usr/local/lib/php/20060613/zlib.so
 php52-xmlreader				/usr/ports/textproc/php52-xmlreader			/usr/local/lib/php/20060613/xmlreader.so
 php52-xmlwriter				/usr/ports/textproc/php52-xmlwriter			/usr/local/lib/php/20060613/xmlwriter.so
+pecl-inclued				/usr/ports/devel/pecl-inclued				/usr/local/lib/php/20060613/inclued.so
 zmq							/usr/ports/devel/zmq						/usr/local/bin/zmq_queue
 php-zmq						/usr/ports/devel/php-zmq					/usr/local/lib/php/20060613/zmq.so
 php-xdebug					/usr/ports/devel/php-xdebug					/usr/local/lib/php/extensions/no-debug-non-zts-20020429/xdebug.so
