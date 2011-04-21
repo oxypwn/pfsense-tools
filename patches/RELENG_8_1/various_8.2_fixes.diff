@@ -1,0 +1,78 @@
+Index: sys/kern/uipc_sockbuf.c
+===================================================================
+RCS file: /home/ncvs/src/sys/kern/uipc_sockbuf.c,v
+retrieving revision 1.182.2.1.4.1
+diff -u -r1.182.2.1.4.1 uipc_sockbuf.c
+--- sys/kern/uipc_sockbuf.c	14 Jun 2010 02:09:06 -0000	1.182.2.1.4.1
++++ sys/kern/uipc_sockbuf.c	21 Apr 2011 18:51:24 -0000
+@@ -528,9 +528,6 @@
+ 
+ 	SBLASTMBUFCHK(sb);
+ 
+-	/* Remove all packet headers and mbuf tags to get a pure data chain. */
+-	m_demote(m, 1);
+-	
+ 	sbcompress(sb, m, sb->sb_mbtail);
+ 
+ 	sb->sb_lastrecord = sb->sb_mb;
+Index: sys/net/if_llatbl.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/if_llatbl.c,v
+retrieving revision 1.8.2.10.2.1
+diff -u -r1.8.2.10.2.1 if_llatbl.c
+--- sys/net/if_llatbl.c	14 Jun 2010 02:09:06 -0000	1.8.2.10.2.1
++++ sys/net/if_llatbl.c	21 Apr 2011 18:51:33 -0000
+@@ -323,7 +323,7 @@
+ 	LLTABLE_RUNLOCK();
+ 	KASSERT(llt != NULL, ("Yep, ugly hacks are bad\n"));
+ 
+-	if (flags && LLE_CREATE)
++	if (flags & LLE_CREATE)
+ 		flags |= LLE_EXCLUSIVE;
+ 	
+ 	IF_AFDATA_LOCK(ifp);
+@@ -337,6 +337,7 @@
+ 			 * LLE_DELETED flag, and reset the expiration timer
+ 			 */
+ 			bcopy(LLADDR(dl), &lle->ll_addr, ifp->if_addrlen);
++			lle->la_flags |= (flags & (LLE_PUB | LLE_PROXY));
+ 			lle->la_flags |= LLE_VALID;
+ 			lle->la_flags &= ~LLE_DELETED;
+ #ifdef INET6
+Index: sys/netinet/if_ether.c
+===================================================================
+RCS file: /home/ncvs/src/sys/netinet/if_ether.c,v
+retrieving revision 1.208.2.11.2.1
+diff -u -r1.208.2.11.2.1 if_ether.c
+--- sys/netinet/if_ether.c	14 Jun 2010 02:09:06 -0000	1.208.2.11.2.1
++++ sys/netinet/if_ether.c	21 Apr 2011 18:51:40 -0000
+@@ -182,16 +188,17 @@
+ 			LLE_REMREF(lle);
+ 			(void) llentry_free(lle);
+ 			ARPSTAT_INC(timeouts);
+-		} 
++		} else {
+ #ifdef DIAGNOSTIC
+-		else {
+ 			struct sockaddr *l3addr = L3_ADDR(lle);
+ 			log(LOG_INFO, 
+ 			    "arptimer issue: %p, IPv4 address: \"%s\"\n", lle,
+ 			    inet_ntoa(
+ 			        ((const struct sockaddr_in *)l3addr)->sin_addr));
+-		}
++		
+ #endif
++			LLE_WUNLOCK(lle);
++		}
+ 	}
+ 	IF_AFDATA_UNLOCK(ifp);
+ 	CURVNET_RESTORE();
+@@ -385,7 +392,7 @@
+ 		int canceled;
+ 
+ 		LLE_ADDREF(la);
+-		la->la_expire = time_second + V_arpt_down;
++		la->la_expire = time_second;
+ 		canceled = callout_reset(&la->la_timer, hz * V_arpt_down,
+ 		    arptimer, la);
+ 		if (canceled)

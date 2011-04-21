@@ -88,3 +88,4 @@
 -p1~~ng_base_imprvements.diff~
 ~~pfaltq_interface_bw.diff~
 ~~tcp_lro_fix.diff~
+~~various_8.2_fixes.diff~
