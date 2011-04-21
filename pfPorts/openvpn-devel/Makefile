@@ -22,7 +22,8 @@ CONFLICTS=	openvpn-[0-9]*
 GNU_CONFIGURE=	yes
 USE_OPENSSL=	yes
 CONFIGURE_ARGS=	--with-lzo-lib=${LOCALBASE}/lib \
-		--with-lzo-headers=${LOCALBASE}/include
+		--with-lzo-headers=${LOCALBASE}/include \
+		--enable-ipv6
 INSTALL_TARGET=	install mandir=${MANPREFIX}/man
 
 MAN8=		openvpn.8

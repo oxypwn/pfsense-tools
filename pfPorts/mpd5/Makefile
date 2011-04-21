@@ -28,6 +28,8 @@ USE_OPENSSL=	yes
 
 .include <bsd.port.pre.mk>
 
+CONFIGURE_ARGS+= --enable-ipv6
+
 .if ${OSVERSION} < 700041 && defined(WITH_NG_CAR)
 BUILD_DEPENDS+=	${LOCALBASE}/include/netgraph/ng_car.h:${PORTSDIR}/net/ng_car
 .if exists(${KMODDIR}/ng_car.ko)
