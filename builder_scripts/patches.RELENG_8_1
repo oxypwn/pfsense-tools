@@ -72,6 +72,7 @@
 ~~carp_replay_protection.diff~
 ~~carp_livelock_fixes.diff~
 ~~carp_livelock_fixes_v2.diff~
+~~carp_allow.diff~
 ~~loopback_route_install.diff~
 ~~pf_match.diff~
 ~~ipsec-oneshot-dumps.RELENG_8.diff~

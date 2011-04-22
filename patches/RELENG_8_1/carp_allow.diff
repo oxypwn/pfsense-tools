@@ -1,0 +1,27 @@
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.3
+diff -u -r1.3 ip_carp.c
+--- sys/netinet/ip_carp.c	22 Apr 2011 20:22:24 -0000	1.3
++++ sys/netinet/ip_carp.c	22 Apr 2011 20:25:41 -0000
+@@ -855,6 +855,9 @@
+ {
+ 	struct carp_softc *sc;
+ 
++	if (!carp_opts[CARPCTL_ALLOW])
++                return;
++
+ 	mtx_lock(&carp_mtx);
+ 	LIST_FOREACH(sc, &carpif_list, sc_next) {
+ 		if (sc->sc_carpdev == NULL)
+@@ -888,6 +891,9 @@
+ 	struct mbuf *m;
+ 	int len, advbase, advskew;
+ 
++	if (!carp_opts[CARPCTL_ALLOW])
++                return;
++
+ 	if (sc->sc_carpdev)
+ 		CARP_SCLOCK_ASSERT(sc);
+ 
