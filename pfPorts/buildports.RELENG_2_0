@@ -114,7 +114,7 @@ zmq							/usr/ports/devel/zmq						/usr/local/bin/zmq_queue
 php-zmq						/usr/ports/devel/php-zmq					/usr/local/lib/php/20060613/zmq.so
 php-xdebug					/usr/ports/devel/php-xdebug					/usr/local/lib/php/extensions/no-debug-non-zts-20020429/xdebug.so
 php-suhosin					/usr/ports/security/php-suhosin				/usr/local/lib/php/20060613/suhosin.so
-openvpn-devel				/usr/ports/security/openvpn-devel			/usr/local/sbin/openvpn
+openvpn-ipv6				/usr/ports/security/openvpn-ipv6			/usr/local/sbin/openvpn
 syslog-ng					/usr/ports/sysutils/syslog-ng				/usr/local/sbin/syslog-ng
 zip							/usr/ports/archivers/zip					/usr/local/bin/zip
 links						/usr/ports/www/links						/usr/local/bin/links
