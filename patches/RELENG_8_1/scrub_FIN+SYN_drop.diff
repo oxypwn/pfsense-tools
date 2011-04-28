@@ -1,0 +1,16 @@
+Index: sys/contrib/pf/net/pf_norm.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_norm.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 pf_norm.c
+--- sys/contrib/pf/net/pf_norm.c	28 Apr 2011 21:53:45 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_norm.c	28 Apr 2011 21:54:56 -0000
+@@ -1439,7 +1439,7 @@
+ 			goto tcp_drop;
+ 
+ 		if (flags & TH_FIN)
+-			flags &= ~TH_FIN;
++			goto tcp_drop;
+ 	} else {
+ 		/* Illegal packet */
+ 		if (!(flags & (TH_ACK|TH_RST)))
