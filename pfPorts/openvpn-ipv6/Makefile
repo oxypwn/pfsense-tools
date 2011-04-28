@@ -6,10 +6,8 @@
 #
 
 PORTNAME=	openvpn
-PORTVERSION=	2.2
-PORTVERSIONSUFFIX=	RC2
-DISTVERSION=	2.2
-DISTVERSIONSUFFIX=	-RC2
+PORTVERSION=	2.2.0
+DISTVERSION=	2.2.0
 
 CATEGORIES=	security net
 MASTER_SITES=	http://swupdate.openvpn.net/community/releases/
@@ -24,7 +22,8 @@ CONFLICTS=	openvpn-[0-9]*
 GNU_CONFIGURE=	yes
 USE_OPENSSL=	yes
 CONFIGURE_ARGS=	--with-lzo-lib=${LOCALBASE}/lib \
-		--with-lzo-headers=${LOCALBASE}/include 
+		--with-lzo-headers=${LOCALBASE}/include \
+		--enable-ipv6
 INSTALL_TARGET=	install mandir=${MANPREFIX}/man
 
 MAN8=		openvpn.8
