@@ -175,9 +175,6 @@ pthread_rwlock_t fp_lock;
 struct ic_protocols *fp; /* For keeping all known protocols. */
 struct phead plist; /* For actually configured protocols. */
 
-/* number of packets before kicking garbage collector */
-static unsigned int npackets = 250; 
-
 static time_t time_expire = 40; /* 40 seconds */
 /*
  * Forward function declarations.
@@ -247,7 +244,6 @@ main(int argc, char **argv)
                         if (num == 0 && errstr != NULL) {
                                 errx(EX_USAGE, "invalid number for packets: %s", errstr);
                         }
-                        npackets = (unsigned int)num;
 			IC_PKTMAXMATCH = num;
 			break;
 		case 'P':
@@ -584,7 +580,7 @@ getinput:
 			}
 			
 		} else if (datalen > 0 && flow->if_fwrule == 0 &&
-		    flow->if_pktcount < IC_PKTMAXMATCH) {
+		    flow->if_pktcount <= IC_PKTMAXMATCH) {
 			data = (char *)realloc((void *)flow->if_data,
 			    flow->if_datalen + datalen);
 			if (data == NULL) {
@@ -599,7 +595,6 @@ getinput:
 			flow->if_pktcount++;
 
 		}
-		flow->expire = t_time.tv_sec;
 
 		/*
 		 * Inform divert(4) what rule to send it to by
@@ -608,13 +603,17 @@ getinput:
 		 * number because processing in ipfw(4) will start with
 		 * the next rule *after* the supplied rule number.
 		 */
-		if (flow != NULL && flow->if_fwrule != 0)
-			pkt->fp_saddr.sin_port = flow->if_fwrule;
-		else if (datalen > 0)
-			/*
-		 	 * Packet has not been classified yet. Attempt to classify it.
-		 	 */
-			CLASSIFY(pkt, proto, flow, key, pmatch, error, errbuf);
+		if (flow != NULL) {
+			flow->expire = t_time.tv_sec;
+
+			if (flow->if_fwrule != 0)
+				pkt->fp_saddr.sin_port = flow->if_fwrule;
+			else if (datalen > 0 && flow->if_pktcount <= IC_PKTMAXMATCH)
+				/*
+				 * Packet has not been classified yet. Attempt to classify it.
+				 */
+				CLASSIFY(pkt, proto, flow, key, pmatch, error, errbuf);
+		}
 
 enqueue:
 		/* Drop the packet if the output queue is full */
