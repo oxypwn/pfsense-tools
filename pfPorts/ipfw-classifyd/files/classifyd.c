@@ -926,8 +926,14 @@ handle_signal(int sig)
 {
 	switch(sig) {
 	case SIGHUP:
+		syslog(LOG_WARNING, "Reloading config...");
 		FP_WLOCK;
 		fini_protocols(fp);
+		fp = init_protocols(protoDir);
+		if (fp == NULL) {
+			syslog(LOG_ERR, "unable to initialize list of protocols: %m");
+			exit(EX_SOFTWARE);
+		}
 		read_config(conf);
 		FP_UNLOCK;
 		break;
