@@ -338,6 +338,7 @@ handle_signal(int sig)
         case SIGHUP:
         case SIGTERM:
 		clear_config();
+		exit(0);
                 break;
         default:
 		if (debug >= 3)
