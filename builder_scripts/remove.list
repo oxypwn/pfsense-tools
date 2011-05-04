@@ -518,7 +518,6 @@
 ./usr/sbin/rrenumd
 ./usr/sbin/rtadvd
 ./usr/sbin/rtprio
-./usr/sbin/rtsold
 ./usr/sbin/rwhod
 ./usr/sbin/sa
 ./usr/sbin/scon
