@@ -33,6 +33,8 @@ usr/sbin/kldxref
 sbin/zfs
 sbin/zpool
 sbin/bsdlabel
+sbin/rtsol
+sbin/rtsold
 usr/bin/cpio
 usr/local/lib/libxml.so
 usr/local/sbin/slbd.sh
