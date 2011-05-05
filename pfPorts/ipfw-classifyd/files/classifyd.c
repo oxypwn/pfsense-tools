@@ -176,6 +176,8 @@ struct ic_protocols *fp; /* For keeping all known protocols. */
 struct phead plist; /* For actually configured protocols. */
 
 static time_t time_expire = 40; /* 40 seconds */
+static int debug = 0; /* Debugging messages */
+
 /*
  * Forward function declarations.
  */
@@ -231,6 +233,9 @@ main(int argc, char **argv)
 			conf = strdup(optarg);
 			if (conf == NULL)
 				err(EX_TEMPFAIL, "config file path");
+			break;
+		case 'd':
+			debug++;
 			break;
 		case 'e':
 			num = strtonum((const char *)optarg, 1, 400, &errstr);
@@ -335,7 +340,7 @@ main(int argc, char **argv)
 	 */
 	error = read_config(conf);
 	if (error != 0){
-		syslog(LOG_ERR, "unable to open configuration file");
+		syslog(LOG_ERR, "unable to read configuration file");
 		exit(error);
 	}
 
@@ -429,10 +434,12 @@ main(int argc, char **argv)
                         if ((error) == 0) {                                     \
                                 (flow)->if_fwrule = (proto)->p_fwrule;          \
                                 (pkt)->fp_saddr.sin_port = (flow)->if_fwrule;   \
-				syslog(LOG_WARNING, "Found Protocol: %s (rule %s)", \
-                    			(proto)->p_name, ((proto)->p_fwrule & DIVERT_ACTION) ? "action block": \
-                                        ((proto)->p_fwrule & DIVERT_DNCOOKIE) ? "dnpipe" : \
-                                        ((proto)->p_fwrule & DIVERT_ALTQ) ? "altq" : "tag"); \
+				if (debug > 0) {				\
+					syslog(LOG_WARNING, "Found Protocol: %s (rule %s)", \
+						(proto)->p_name, ((proto)->p_fwrule & DIVERT_ACTION) ? "action block": \
+						((proto)->p_fwrule & DIVERT_DNCOOKIE) ? "dnpipe" : \
+						((proto)->p_fwrule & DIVERT_ALTQ) ? "altq" : "tag"); \
+				}						\
 				break;						\
 			} else if (error < 0) { 			\
 				regerror((error), &(proto)->p_preg, (regerr), sizeof((regerr))); \
@@ -490,7 +497,7 @@ getinput:
                 len = recvfrom(dvtSin, (void *)pkt->fp_pkt, IC_PKTSZ, 0,
                     (struct sockaddr *)&pkt->fp_saddr, &pkt->fp_salen);
                 if (len == -1) {
-                        syslog(LOG_ERR, "receive from divert socket failed: %m");
+			syslog(LOG_ERR, "receive from divert socket failed: %m");
                         goto getinput; /* XXX */
                 }
 		pkt->fp_pktlen = len;
@@ -933,7 +940,10 @@ handle_signal(int sig)
 			syslog(LOG_ERR, "unable to initialize list of protocols: %m");
 			exit(EX_SOFTWARE);
 		}
-		read_config(conf);
+		if (read_config(conf) != 0) {
+			syslog(LOG_ERR, "Could not read config exiting.");
+			exit(-1);
+		}
 		FP_UNLOCK;
 		break;
 	case SIGTERM:
