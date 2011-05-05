@@ -61,6 +61,7 @@ usr/local/sbin/dhcpd
 usr/local/sbin/check_reload_status
 usr/local/sbin/pfSctl
 usr/local/sbin/dhcrelay
+usr/local/sbin/dhcp6c
 usr/local/sbin/dnsmasq
 usr/local/sbin/dnswatch
 usr/local/sbin/igmpproxy
