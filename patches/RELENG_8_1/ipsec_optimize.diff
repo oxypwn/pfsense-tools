@@ -1,0 +1,412 @@
+Index: sys/netipsec/ipsec.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/ipsec.h,v
+retrieving revision 1.2
+diff -u -r1.2 ipsec.h
+--- sys/netipsec/ipsec.h	6 May 2011 18:18:06 -0000	1.2
++++ sys/netipsec/ipsec.h	6 May 2011 18:58:33 -0000
+@@ -123,7 +123,7 @@
+ 
+ 	struct secasvar *sav;	/* place holder of SA for use */
+ 	struct secpolicy *sp;	/* back pointer to SP */
+-	struct mtx lock;	/* to interlock updates */
++	struct rwlock lock;	/* to interlock updates */
+ };
+ 
+ /*
+@@ -132,11 +132,15 @@
+  * hard it is to remove this...
+  */
+ #define	IPSECREQUEST_LOCK_INIT(_isr) \
+-	mtx_init(&(_isr)->lock, "ipsec request", NULL, MTX_DEF | MTX_RECURSE)
+-#define	IPSECREQUEST_LOCK(_isr)		mtx_lock(&(_isr)->lock)
+-#define	IPSECREQUEST_UNLOCK(_isr)	mtx_unlock(&(_isr)->lock)
+-#define	IPSECREQUEST_LOCK_DESTROY(_isr)	mtx_destroy(&(_isr)->lock)
+-#define	IPSECREQUEST_LOCK_ASSERT(_isr)	mtx_assert(&(_isr)->lock, MA_OWNED)
++	rw_init_flags(&(_isr)->lock, "ipsec request", RW_RECURSE)
++#define	IPSECREQUEST_LOCK(_isr)		rw_rlock(&(_isr)->lock)
++#define	IPSECREQUEST_UNLOCK(_isr)	rw_runlock(&(_isr)->lock)
++#define	IPSECREQUEST_WLOCK(_isr)	rw_wlock(&(_isr)->lock)
++#define	IPSECREQUEST_WUNLOCK(_isr)	rw_wunlock(&(_isr)->lock)
++#define	IPSECREQUEST_UPGRADE(_isr)	rw_try_upgrade(&(_isr)->lock)
++#define	IPSECREQUEST_DOWNGRADE(_isr)	rw_downgrade(&(_isr)->lock)
++#define	IPSECREQUEST_LOCK_DESTROY(_isr)	rw_destroy(&(_isr)->lock)
++#define	IPSECREQUEST_LOCK_ASSERT(_isr)	rw_assert(&(_isr)->lock, RA_LOCKED)
+ 
+ /* security policy in PCB */
+ struct inpcbpolicy {
+Index: sys/netipsec/ipsec_output.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/ipsec_output.c,v
+retrieving revision 1.2
+diff -u -r1.2 ipsec_output.c
+--- sys/netipsec/ipsec_output.c	6 May 2011 18:18:06 -0000	1.2
++++ sys/netipsec/ipsec_output.c	6 May 2011 18:54:31 -0000
+@@ -261,7 +261,6 @@
+ 	panic("ipsec_process_done");
+ bad:
+ 	m_freem(m);
+-	KEY_FREESAV(&sav);
+ 	return (error);
+ }
+ 
+Index: sys/netipsec/key.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/key.c,v
+retrieving revision 1.2
+diff -u -r1.2 key.c
+--- sys/netipsec/key.c	6 May 2011 18:27:27 -0000	1.2
++++ sys/netipsec/key.c	6 May 2011 19:02:58 -0000
+@@ -809,6 +809,7 @@
+ {
+ 	u_int level;
+ 	int error;
++	struct secasvar *sav;
+ 
+ 	IPSEC_ASSERT(isr != NULL, ("null isr"));
+ 	IPSEC_ASSERT(saidx != NULL, ("null saidx"));
+@@ -826,45 +827,31 @@
+ 
+ 	/* get current level */
+ 	level = ipsec_get_reqlevel(isr);
+-#if 0
+-	/*
+-	 * We do allocate new SA only if the state of SA in the holder is
+-	 * SADB_SASTATE_DEAD.  The SA for outbound must be the oldest.
+-	 */
+-	if (isr->sav != NULL) {
+-		if (isr->sav->sah == NULL)
+-			panic("%s: sah is null.\n", __func__);
+-		if (isr->sav == (struct secasvar *)LIST_FIRST(
+-			    &isr->sav->sah->savtree[SADB_SASTATE_DEAD])) {
+-			KEY_FREESAV(&isr->sav);
+-			isr->sav = NULL;
+-		}
+-	}
+-#else
++
+ 	/*
+-	 * we free any SA stashed in the IPsec request because a different
++	 * We check new SA in the IPsec request because a different
+ 	 * SA may be involved each time this request is checked, either
+ 	 * because new SAs are being configured, or this request is
+ 	 * associated with an unconnected datagram socket, or this request
+ 	 * is associated with a system default policy.
+ 	 *
+-	 * The operation may have negative impact to performance.  We may
+-	 * want to check cached SA carefully, rather than picking new SA
+-	 * every time.
+-	 */
+-	if (isr->sav != NULL) {
+-		KEY_FREESAV(&isr->sav);
+-		isr->sav = NULL;
+-	}
+-#endif
+-
+-	/*
+-	 * new SA allocation if no SA found.
+ 	 * key_allocsa_policy should allocate the oldest SA available.
+ 	 * See key_do_allocsa_policy(), and draft-jenkins-ipsec-rekeying-03.txt.
+ 	 */
+-	if (isr->sav == NULL)
+-		isr->sav = key_allocsa_policy(saidx);
++	sav = key_allocsa_policy(saidx);
++	if (sav != isr->sav) {
++		/* SA need to be updated. */
++		if (!IPSECREQUEST_UPGRADE(isr)) {
++			/* Kick everyone off. */
++			IPSECREQUEST_UNLOCK(isr);
++			IPSECREQUEST_WLOCK(isr);
++		}
++		if (isr->sav != NULL)
++			KEY_FREESAV(&isr->sav);
++		isr->sav = sav;
++		IPSECREQUEST_DOWNGRADE(isr);
++	} else if (sav != NULL)
++		KEY_FREESAV(&sav);
+ 
+ 	/* When there is SA. */
+ 	if (isr->sav != NULL) {
+@@ -1239,6 +1226,16 @@
+ 	KEY_FREESP(sp);
+ }
+ 
++void
++key_addrefsa(struct secasvar *sav, const char* where, int tag)
++{
++
++	IPSEC_ASSERT(sav != NULL, ("null sav"));
++	IPSEC_ASSERT(sav->refcnt > 0, ("refcount must exist"));
++
++	sa_addref(sav);
++}
++
+ /*
+  * Must be called after calling key_allocsa().
+  * This function is called by key_freesp() to free some SA allocated
+Index: sys/netipsec/key.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/key.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 key.h
+--- sys/netipsec/key.h	6 May 2011 18:13:08 -0000	1.1.1.1
++++ sys/netipsec/key.h	6 May 2011 19:03:58 -0000
+@@ -76,10 +76,13 @@
+ 
+ extern struct secasvar *key_allocsa(union sockaddr_union *, u_int, u_int32_t,
+ 	const char*, int);
++extern void key_addrefsa(struct secasvar *, const char*, int);
+ extern void key_freesav(struct secasvar **, const char*, int);
+ 
+ #define	KEY_ALLOCSA(dst, proto, spi)				\
+ 	key_allocsa(dst, proto, spi, __FILE__, __LINE__)
++#define	KEY_ADDREFSA(sav)					\
++	key_addrefsa(sav, __FILE__, __LINE__)
+ #define	KEY_FREESAV(psav)					\
+ 	key_freesav(psav, __FILE__, __LINE__)
+ 
+Index: sys/netipsec/xform.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/xform.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 xform.h
+--- sys/netipsec/xform.h	6 May 2011 18:13:08 -0000	1.1.1.1
++++ sys/netipsec/xform.h	6 May 2011 19:04:28 -0000
+@@ -74,6 +74,7 @@
+ 	int			tc_protoff;	/* current protocol offset */
+ 	int			tc_skip;	/* data offset */
+ 	caddr_t			tc_ptr;		/* associated crypto data */
++	struct secasvar         *tc_sav;        /* related SA */
+ };
+ 
+ struct secasvar;
+Index: sys/netipsec/xform_ah.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/xform_ah.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 xform_ah.c
+--- sys/netipsec/xform_ah.c	6 May 2011 18:13:08 -0000	1.1.1.1
++++ sys/netipsec/xform_ah.c	6 May 2011 19:08:54 -0000
+@@ -695,6 +695,8 @@
+ 	tc->tc_protoff = protoff;
+ 	tc->tc_skip = skip;
+ 	tc->tc_ptr = (caddr_t) mtag; /* Save the mtag we've identified. */
++	KEY_ADDREFSA(sav);
++	tc->tc_sav = sav;
+ 
+ 	if (mtag == NULL)
+ 		return crypto_dispatch(crp);
+@@ -744,13 +746,8 @@
+ 	mtag = (struct m_tag *) tc->tc_ptr;
+ 	m = (struct mbuf *) crp->crp_buf;
+ 
+-	sav = KEY_ALLOCSA(&tc->tc_dst, tc->tc_proto, tc->tc_spi);
+-	if (sav == NULL) {
+-		V_ahstat.ahs_notdb++;
+-		DPRINTF(("%s: SA expired while in crypto\n", __func__));
+-		error = ENOBUFS;		/*XXX*/
+-		goto bad;
+-	}
++	sav = tc->tc_sav;
++	IPSEC_ASSERT(sav != NULL, ("null SA!"));
+ 
+ 	saidx = &sav->sah->saidx;
+ 	IPSEC_ASSERT(saidx->dst.sa.sa_family == AF_INET ||
+@@ -1090,6 +1087,8 @@
+ 
+ 	/* These are passed as-is to the callback. */
+ 	tc->tc_isr = isr;
++	KEY_ADDREFSA(sav);
++	tc->tc_sav = sav;
+ 	tc->tc_spi = sav->spi;
+ 	tc->tc_dst = sav->sah->saidx.dst;
+ 	tc->tc_proto = sav->sah->saidx.proto;
+@@ -1126,14 +1125,14 @@
+ 
+ 	isr = tc->tc_isr;
+ 	IPSECREQUEST_LOCK(isr);
+-	sav = KEY_ALLOCSA(&tc->tc_dst, tc->tc_proto, tc->tc_spi);
+-	if (sav == NULL) {
++	sav = tc->tc_sav;
++	/* With the isr lock released SA pointer can be updated. */
++	if (sav != isr->sav) {
+ 		V_ahstat.ahs_notdb++;
+ 		DPRINTF(("%s: SA expired while in crypto\n", __func__));
+ 		error = ENOBUFS;		/*XXX*/
+ 		goto bad;
+ 	}
+-	IPSEC_ASSERT(isr->sav == sav, ("SA changed\n"));
+ 
+ 	/* Check for crypto errors. */
+ 	if (crp->crp_etype) {
+@@ -1141,7 +1140,6 @@
+ 			sav->tdb_cryptoid = crp->crp_sid;
+ 
+ 		if (crp->crp_etype == EAGAIN) {
+-			KEY_FREESAV(&sav);
+ 			IPSECREQUEST_UNLOCK(isr);
+ 			error = crypto_dispatch(crp);
+ 			return error;
+Index: sys/netipsec/xform_esp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/xform_esp.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 xform_esp.c
+--- sys/netipsec/xform_esp.c	6 May 2011 18:13:08 -0000	1.1.1.1
++++ sys/netipsec/xform_esp.c	6 May 2011 19:12:03 -0000
+@@ -411,6 +411,8 @@
+ 	tc->tc_proto = sav->sah->saidx.proto;
+ 	tc->tc_protoff = protoff;
+ 	tc->tc_skip = skip;
++	KEY_ADDREFSA(sav);
++	tc->tc_sav = sav;
+ 
+ 	/* Decryption descriptor */
+ 	if (espx) {
+@@ -472,15 +474,8 @@
+ 	mtag = (struct m_tag *) tc->tc_ptr;
+ 	m = (struct mbuf *) crp->crp_buf;
+ 
+-	sav = KEY_ALLOCSA(&tc->tc_dst, tc->tc_proto, tc->tc_spi);
+-	if (sav == NULL) {
+-		V_espstat.esps_notdb++;
+-		DPRINTF(("%s: SA gone during crypto (SA %s/%08lx proto %u)\n",
+-		    __func__, ipsec_address(&tc->tc_dst),
+-		    (u_long) ntohl(tc->tc_spi), tc->tc_proto));
+-		error = ENOBUFS;		/*XXX*/
+-		goto bad;
+-	}
++	sav = tc->tc_sav;
++	IPSEC_ASSERT(sav != NULL, ("null SA!"));
+ 
+ 	saidx = &sav->sah->saidx;
+ 	IPSEC_ASSERT(saidx->dst.sa.sa_family == AF_INET ||
+@@ -497,7 +492,6 @@
+ 			sav->tdb_cryptoid = crp->crp_sid;
+ 
+ 		if (crp->crp_etype == EAGAIN) {
+-			KEY_FREESAV(&sav);
+ 			error = crypto_dispatch(crp);
+ 			return error;
+ 		}
+@@ -846,6 +840,8 @@
+ 
+ 	/* Callback parameters */
+ 	tc->tc_isr = isr;
++	KEY_ADDREFSA(sav);
++	tc->tc_sav = sav;
+ 	tc->tc_spi = sav->spi;
+ 	tc->tc_dst = saidx->dst;
+ 	tc->tc_proto = saidx->proto;
+@@ -895,8 +891,9 @@
+ 
+ 	isr = tc->tc_isr;
+ 	IPSECREQUEST_LOCK(isr);
+-	sav = KEY_ALLOCSA(&tc->tc_dst, tc->tc_proto, tc->tc_spi);
+-	if (sav == NULL) {
++	sav = tc->tc_sav;
++	/* With the isr lock released SA pointer can be updated. */
++	if (sav != isr->sav) {
+ 		V_espstat.esps_notdb++;
+ 		DPRINTF(("%s: SA gone during crypto (SA %s/%08lx proto %u)\n",
+ 		    __func__, ipsec_address(&tc->tc_dst),
+@@ -904,8 +901,6 @@
+ 		error = ENOBUFS;		/*XXX*/
+ 		goto bad;
+ 	}
+-	IPSEC_ASSERT(isr->sav == sav,
+-		("SA changed was %p now %p\n", isr->sav, sav));
+ 
+ 	/* Check for crypto errors. */
+ 	if (crp->crp_etype) {
+@@ -914,7 +909,6 @@
+ 			sav->tdb_cryptoid = crp->crp_sid;
+ 
+ 		if (crp->crp_etype == EAGAIN) {
+-			KEY_FREESAV(&sav);
+ 			IPSECREQUEST_UNLOCK(isr);
+ 			error = crypto_dispatch(crp);
+ 			return error;
+Index: sys/netipsec/xform_ipcomp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/xform_ipcomp.c,v
+retrieving revision 1.2
+diff -u -r1.2 xform_ipcomp.c
+--- sys/netipsec/xform_ipcomp.c	6 May 2011 18:28:40 -0000	1.2
++++ sys/netipsec/xform_ipcomp.c	6 May 2011 19:15:25 -0000
+@@ -37,6 +37,7 @@
+ #include <sys/mbuf.h>
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
++#include <sys/rwlock.h>
+ #include <sys/socket.h>
+ #include <sys/kernel.h>
+ #include <sys/protosw.h>
+@@ -206,6 +207,8 @@
+ 	tc->tc_proto = sav->sah->saidx.proto;
+ 	tc->tc_protoff = protoff;
+ 	tc->tc_skip = skip;
++	KEY_ADDREFSA(sav);
++	tc->tc_sav = sav;
+ 
+ 	return crypto_dispatch(crp);
+ }
+@@ -249,13 +252,8 @@
+ 	mtag = (struct mtag *) tc->tc_ptr;
+ 	m = (struct mbuf *) crp->crp_buf;
+ 
+-	sav = KEY_ALLOCSA(&tc->tc_dst, tc->tc_proto, tc->tc_spi);
+-	if (sav == NULL) {
+-		V_ipcompstat.ipcomps_notdb++;
+-		DPRINTF(("%s: SA expired while in crypto\n", __func__));
+-		error = ENOBUFS;		/*XXX*/
+-		goto bad;
+-	}
++	sav = tc->tc_sav;
++	IPSEC_ASSERT(sav != NULL, ("null SA!"));
+ 
+ 	saidx = &sav->sah->saidx;
+ 	IPSEC_ASSERT(saidx->dst.sa.sa_family == AF_INET ||
+@@ -269,7 +267,6 @@
+ 			sav->tdb_cryptoid = crp->crp_sid;
+ 
+ 		if (crp->crp_etype == EAGAIN) {
+-			KEY_FREESAV(&sav);
+ 			return crypto_dispatch(crp);
+ 		}
+ 		V_ipcompstat.ipcomps_noxform++;
+@@ -452,6 +449,8 @@
+ 	}
+ 
+ 	tc->tc_isr = isr;
++	KEY_ADDREFSA(sav);
++	tc->tc_sav = sav;
+ 	tc->tc_spi = sav->spi;
+ 	tc->tc_dst = sav->sah->saidx.dst;
+ 	tc->tc_proto = sav->sah->saidx.proto;
+@@ -492,14 +491,14 @@
+ 
+ 	isr = tc->tc_isr;
+ 	IPSECREQUEST_LOCK(isr);
+-	sav = KEY_ALLOCSA(&tc->tc_dst, tc->tc_proto, tc->tc_spi);
+-	if (sav == NULL) {
++	sav = tc->tc_sav;
++	/* With the isr lock released SA pointer can be updated. */
++	if (sav != isr->sav) {
+ 		V_ipcompstat.ipcomps_notdb++;
+ 		DPRINTF(("%s: SA expired while in crypto\n", __func__));
+ 		error = ENOBUFS;		/*XXX*/
+ 		goto bad;
+ 	}
+-	IPSEC_ASSERT(isr->sav == sav, ("SA changed\n"));
+ 
+ 	/* Check for crypto errors */
+ 	if (crp->crp_etype) {
+@@ -508,7 +507,6 @@
+ 			sav->tdb_cryptoid = crp->crp_sid;
+ 
+ 		if (crp->crp_etype == EAGAIN) {
+-			KEY_FREESAV(&sav);
+ 			IPSECREQUEST_UNLOCK(isr);
+ 			return crypto_dispatch(crp);
+ 		}
