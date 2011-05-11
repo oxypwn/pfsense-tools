@@ -1,8 +1,8 @@
-# Ports collection makefile for:    isc-dhcp41-server
+# Ports collection makefile for:    isc-dhcp42-server
 # Date created:         28 March 2010
 # Whom:                 Wesley Shields <wxs@FreeBSD.org>
 #
-# $FreeBSD: ports/net/isc-dhcp41-server/Makefile,v 1.13 2010/10/24 13:56:34 wxs Exp $
+# $FreeBSD: ports/net/isc-dhcp42-server/Makefile,v 1.13 2010/10/24 13:56:34 wxs Exp $
 #
 
 PORTNAME=	dhcp
