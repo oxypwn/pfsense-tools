@@ -115,7 +115,7 @@ pf_tableentry(char *tablename, int n1, int n2, int n3, int n4)
 	struct pfioc_table io;
 	struct pfr_table table;
 	struct pfr_addr addr;
-	char buf[15] = { 0 };
+	char buf[16] = { 0 };
 
 	bzero(&table, sizeof(table));
 	if (strlcpy(table.pfrt_name, tablename,
