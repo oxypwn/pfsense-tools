@@ -461,7 +461,7 @@ int main(void) {
 		goto error;
 	}
 
-	set_blockmode(fd, O_NONBLOCK);
+	set_blockmode(fd, O_NONBLOCK | FD_CLOEXEC);
 
         if (listen(fd, 30) == -1) {
                 printf("control_listen: listen");
