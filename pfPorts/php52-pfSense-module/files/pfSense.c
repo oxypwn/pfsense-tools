@@ -884,6 +884,7 @@ PHP_FUNCTION(pfSense_get_interface_info)
         getifaddrs(&ifdata);
         if (ifdata == NULL) {
                 //printf("No data found\n");
+		close(dev);
 		RETURN NULL;
         }
 
