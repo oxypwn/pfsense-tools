@@ -1,11 +1,11 @@
 Index: sys/kern/uipc_sockbuf.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/kern/uipc_sockbuf.c,v
-retrieving revision 1.182.2.1.4.1
-diff -u -r1.182.2.1.4.1 uipc_sockbuf.c
---- sys/kern/uipc_sockbuf.c	14 Jun 2010 02:09:06 -0000	1.182.2.1.4.1
-+++ sys/kern/uipc_sockbuf.c	21 Apr 2011 19:49:02 -0000
-@@ -528,9 +528,6 @@
+RCS file: /root/freebsd/repo/src/sys/kern/uipc_sockbuf.c,v
+retrieving revision 1.2
+diff -u -r1.2 uipc_sockbuf.c
+--- sys/kern/uipc_sockbuf.c	30 May 2011 12:28:53 -0000	1.2
++++ sys/kern/uipc_sockbuf.c	30 May 2011 12:32:53 -0000
+@@ -531,9 +531,6 @@
  
  	SBLASTMBUFCHK(sb);
  
@@ -17,11 +17,11 @@ diff -u -r1.182.2.1.4.1 uipc_sockbuf.c
  	sb->sb_lastrecord = sb->sb_mb;
 Index: sys/net/if_llatbl.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/net/if_llatbl.c,v
-retrieving revision 1.8.2.10.2.1
-diff -u -r1.8.2.10.2.1 if_llatbl.c
---- sys/net/if_llatbl.c	14 Jun 2010 02:09:06 -0000	1.8.2.10.2.1
-+++ sys/net/if_llatbl.c	21 Apr 2011 19:49:02 -0000
+RCS file: /root/freebsd/repo/src/sys/net/if_llatbl.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_llatbl.c
+--- sys/net/if_llatbl.c	30 May 2011 09:43:38 -0000	1.1.1.1
++++ sys/net/if_llatbl.c	30 May 2011 12:32:53 -0000
 @@ -323,7 +323,7 @@
  	LLTABLE_RUNLOCK();
  	KASSERT(llt != NULL, ("Yep, ugly hacks are bad\n"));
@@ -41,12 +41,12 @@ diff -u -r1.8.2.10.2.1 if_llatbl.c
  #ifdef INET6
 Index: sys/netgraph/ng_base.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netgraph/ng_base.c,v
-retrieving revision 1.179.2.4.2.1
-diff -u -r1.179.2.4.2.1 ng_base.c
---- sys/netgraph/ng_base.c	14 Jun 2010 02:09:06 -0000	1.179.2.4.2.1
-+++ sys/netgraph/ng_base.c	21 Apr 2011 19:49:05 -0000
-@@ -596,7 +596,7 @@
+RCS file: /root/freebsd/repo/src/sys/netgraph/ng_base.c,v
+retrieving revision 1.2
+diff -u -r1.2 ng_base.c
+--- sys/netgraph/ng_base.c	30 May 2011 12:21:03 -0000	1.2
++++ sys/netgraph/ng_base.c	30 May 2011 12:32:53 -0000
+@@ -608,7 +608,7 @@
  	 */
  	if (type->constructor != NULL) {
  		if ((error = ng_make_node_common(type, nodepp)) == 0) {
@@ -57,12 +57,12 @@ diff -u -r1.179.2.4.2.1 ng_base.c
  		}
 Index: sys/netinet/if_ether.c
 ===================================================================
-RCS file: /home/ncvs/src/sys/netinet/if_ether.c,v
-retrieving revision 1.208.2.11.2.1
-diff -u -r1.208.2.11.2.1 if_ether.c
---- sys/netinet/if_ether.c	14 Jun 2010 02:09:06 -0000	1.208.2.11.2.1
-+++ sys/netinet/if_ether.c	21 Apr 2011 19:49:06 -0000
-@@ -182,16 +188,17 @@
+RCS file: /root/freebsd/repo/src/sys/netinet/if_ether.c,v
+retrieving revision 1.2
+diff -u -r1.2 if_ether.c
+--- sys/netinet/if_ether.c	30 May 2011 12:21:38 -0000	1.2
++++ sys/netinet/if_ether.c	30 May 2011 12:32:53 -0000
+@@ -188,16 +188,17 @@
  			LLE_REMREF(lle);
  			(void) llentry_free(lle);
  			ARPSTAT_INC(timeouts);
@@ -83,7 +83,7 @@ diff -u -r1.208.2.11.2.1 if_ether.c
  	}
  	IF_AFDATA_UNLOCK(ifp);
  	CURVNET_RESTORE();
-@@ -385,7 +392,7 @@
+@@ -391,7 +392,7 @@
  		int canceled;
  
  		LLE_ADDREF(la);
@@ -92,3 +92,18 @@ diff -u -r1.208.2.11.2.1 if_ether.c
  		canceled = callout_reset(&la->la_timer, hz * V_arpt_down,
  		    arptimer, la);
  		if (canceled)
+Index: sys/netipsec/key.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/key.c,v
+retrieving revision 1.2
+diff -u -r1.2 key.c
+--- sys/netipsec/key.c	30 May 2011 12:28:53 -0000	1.2
++++ sys/netipsec/key.c	30 May 2011 12:34:28 -0000
+@@ -2295,6 +2295,7 @@
+ 	}
+ 
+ 	n = key_setdumpsp(sp, SADB_X_SPDGET, 0, mhp->msg->sadb_msg_pid);
++	KEY_FREESP(&sp);
+ 	if (n != NULL) {
+ 		m_freem(m);
+ 		return key_sendup_mbuf(so, n, KEY_SENDUP_ONE);
