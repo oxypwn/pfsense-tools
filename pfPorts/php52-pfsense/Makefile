@@ -85,7 +85,8 @@ OPTIONS=	CLI "Build CLI version" on \
 		REDIRECT "Enable force-cgi-redirect support (CGI only)" off \
 		DISCARD "Enable discard-path support (CGI only)" off \
 		FASTCGI "Enable fastcgi support (CGI only)" on \
-		PATHINFO "Enable path-info-check support (CGI only)" on
+		PATHINFO "Enable path-info-check support (CGI only)" on \
+		LINKTHR "Link thread lib (for threaded extensions)" on
 
 CONFLICTS=	php4-4*
 
@@ -173,6 +174,10 @@ CONFIGURE_ARGS+=--with-zend-vm=GOTO
 CONFIGURE_ENV+=	ac_cv_pthreads_lib=${PTHREAD_LIBS} \
 		ac_cv_pthreads_cflags=${PTHREAD_CFLAGS} \
 		pthreads_working="yes"
+
+.if defined(WITH_LINKTHR)
+CONFIGURE_ENV+= LIBS="${LIBS} ${PTHREAD_LIBS}"
+.endif
 
 MAKE_ENV+=	LDFLAGS="${LDFLAGS}"
 
