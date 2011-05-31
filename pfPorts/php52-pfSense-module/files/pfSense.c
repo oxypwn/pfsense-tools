@@ -178,11 +178,8 @@ static int
 pfi_get_ifaces(int dev, const char *filter, struct pfi_kif *buf, int *size)
 {
 	struct pfioc_iface io;
+	caddr_t buff[sizeof(struct pfi_kif) + 1] = { 0 };
 
-	if (size == NULL || *size < 0 || (*size && buf == NULL)) {
-		errno = EINVAL;
-		return (-1);
-	}
 	bzero(&io, sizeof io);
 	if (filter != NULL)
 		if (strlcpy(io.pfiio_name, filter, sizeof(io.pfiio_name)) >=
@@ -191,7 +188,7 @@ pfi_get_ifaces(int dev, const char *filter, struct pfi_kif *buf, int *size)
 			return (-1);
 		}
 	io.pfiio_buffer = buf;
-	io.pfiio_esize = sizeof(*buf);
+	io.pfiio_esize = sizeof(struct pfi_kif);
 	io.pfiio_size = *size;
 	if (ioctl(dev, DIOCIGETIFACES, &io))
 		return (-1);
@@ -365,16 +362,15 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 	zval *encaps;
 
         if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
-                RETURN NULL;
+                RETURN_NULL();
         }
-
-        array_init(return_value);
 
 	getifaddrs(&ifdata);
         if (ifdata == NULL) {
-                //printf("No data found\n");
-                RETURN NULL;
+                RETURN_NULL();
         }
+
+	array_init(return_value);
 
         for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
 		if (mb == NULL)
@@ -383,6 +379,7 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
                         continue;
                 if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
                         continue;
+
 	if (mb->ifa_flags & IFF_UP)
 		add_assoc_string(return_value, "status", "up", 1);
 	else
@@ -863,11 +860,11 @@ PHP_FUNCTION(pfSense_get_interface_info)
 	struct if_data *tmpd;
         struct sockaddr_in *tmp;
         struct sockaddr_dl *tmpdl;
+	struct pfi_kif kif = { 0 };
+	int size = 1, found = 0;
         char outputbuf[128];
         char *ifname;
         int ifname_len;
-	struct pfr_buffer b;
-	struct pfi_kif *p;
         int i = 0, error = 0;
 	int dev;
 	char *pf_status;
@@ -877,15 +874,12 @@ PHP_FUNCTION(pfSense_get_interface_info)
         }
 
 	if ((dev = open("/dev/pf", O_RDWR)) < 0)
-		RETURN NULL;
-
-        array_init(return_value);
+		RETURN_NULL();
 
         getifaddrs(&ifdata);
         if (ifdata == NULL) {
-                //printf("No data found\n");
 		close(dev);
-		RETURN NULL;
+		RETURN_NULL();
         }
 
         for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
@@ -895,6 +889,12 @@ PHP_FUNCTION(pfSense_get_interface_info)
                         continue;
                 if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
                         continue;
+
+		if (found == 0)
+			array_init(return_value);
+
+		found = 1;
+
                 switch (mb->ifa_addr->sa_family) {
                 case AF_LINK:
 
@@ -912,44 +912,38 @@ PHP_FUNCTION(pfSense_get_interface_info)
         }
         freeifaddrs(ifdata);
 
-	bzero(&b, sizeof(b));
-	b.pfrb_type = PFRB_IFACES;
-	for (;;) {
-		pfr_buf_grow(&b, b.pfrb_size);
-		b.pfrb_size = b.pfrb_msize;
-		if (pfi_get_ifaces(dev, ifname, b.pfrb_caddr, &b.pfrb_size)) {
-			error = 1;
-			break;
-		}
-		if (b.pfrb_size <= b.pfrb_msize)
-			break;
-		i++;
+	if (found == 0) {
+		close(dev);
+		RETURN_NULL();
 	}
+
+	if (pfi_get_ifaces(dev, ifname, &kif, &size))
+		error = 1;
+
 	if (error == 0) {
-                add_assoc_string(return_value, "interface", p->pfik_name, 1);
+                add_assoc_string(return_value, "interface", kif.pfik_name, 1);
 
 #define PAF_INET 0
 #define PPF_IN 0
 #define PPF_OUT 1
-                add_assoc_long(return_value, "inpktspass", (unsigned long long)p->pfik_packets[PAF_INET][PPF_IN][PF_PASS]);
-                add_assoc_long(return_value, "outpktspass", (unsigned long long)p->pfik_packets[PAF_INET][PPF_OUT][PF_PASS]);
-                add_assoc_long(return_value, "inbytespass", (unsigned long long)p->pfik_bytes[PAF_INET][PPF_IN][PF_PASS]);
-                add_assoc_long(return_value, "outbytespass", (unsigned long long)p->pfik_bytes[PAF_INET][PPF_OUT][PF_PASS]);
+                add_assoc_long(return_value, "inpktspass", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_IN][PF_PASS]);
+                add_assoc_long(return_value, "outpktspass", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_OUT][PF_PASS]);
+                add_assoc_long(return_value, "inbytespass", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_IN][PF_PASS]);
+                add_assoc_long(return_value, "outbytespass", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_OUT][PF_PASS]);
 
-                add_assoc_long(return_value, "inpktsblock", (unsigned long long)p->pfik_packets[PAF_INET][PPF_IN][PF_DROP]);
-                add_assoc_long(return_value, "outpktsblock", (unsigned long long)p->pfik_packets[PAF_INET][PPF_OUT][PF_DROP]);
-                add_assoc_long(return_value, "inbytesblock", (unsigned long long)p->pfik_bytes[PAF_INET][PPF_IN][PF_DROP]);
-                add_assoc_long(return_value, "outbytesblock", (unsigned long long)p->pfik_bytes[PAF_INET][PPF_OUT][PF_DROP]);
+                add_assoc_long(return_value, "inpktsblock", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_IN][PF_DROP]);
+                add_assoc_long(return_value, "outpktsblock", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_OUT][PF_DROP]);
+                add_assoc_long(return_value, "inbytesblock", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_IN][PF_DROP]);
+                add_assoc_long(return_value, "outbytesblock", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_OUT][PF_DROP]);
 
-                add_assoc_long(return_value, "inbytes", (unsigned long long)(p->pfik_bytes[PAF_INET][PPF_IN][PF_DROP] + p->pfik_bytes[PAF_INET][PPF_IN][PF_PASS]));
-                add_assoc_long(return_value, "outbytes", (unsigned long long)(p->pfik_bytes[PAF_INET][PPF_OUT][PF_DROP] + p->pfik_bytes[PAF_INET][PPF_OUT][PF_PASS]));
-                add_assoc_long(return_value, "inpkts", (unsigned long long)(p->pfik_packets[PAF_INET][PPF_IN][PF_DROP] + p->pfik_packets[PAF_INET][PPF_IN][PF_PASS]));
-                add_assoc_long(return_value, "outpkts", (unsigned long long)(p->pfik_packets[PAF_INET][PPF_OUT][PF_DROP] + p->pfik_packets[PAF_INET][PPF_OUT][PF_PASS]));
+                add_assoc_long(return_value, "inbytes", (unsigned long long)(kif.pfik_bytes[PAF_INET][PPF_IN][PF_DROP] + kif.pfik_bytes[PAF_INET][PPF_IN][PF_PASS]));
+                add_assoc_long(return_value, "outbytes", (unsigned long long)(kif.pfik_bytes[PAF_INET][PPF_OUT][PF_DROP] + kif.pfik_bytes[PAF_INET][PPF_OUT][PF_PASS]));
+                add_assoc_long(return_value, "inpkts", (unsigned long long)(kif.pfik_packets[PAF_INET][PPF_IN][PF_DROP] + kif.pfik_packets[PAF_INET][PPF_IN][PF_PASS]));
+                add_assoc_long(return_value, "outpkts", (unsigned long long)(kif.pfik_packets[PAF_INET][PPF_OUT][PF_DROP] + kif.pfik_packets[PAF_INET][PPF_OUT][PF_PASS]));
 #undef PPF_IN
 #undef PPF_OUT
 #undef PAF_INET
         }
-	pfr_buf_clear(&b);
 	close(dev);
 }
 
