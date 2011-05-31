@@ -159,21 +159,7 @@ zend_module_entry pfSense_module_entry = {
 ZEND_GET_MODULE(pfSense)
 #endif
 
-enum {	PFRB_TABLES = 1, PFRB_TSTATS, PFRB_ADDRS, PFRB_ASTATS,
-	PFRB_IFACES, PFRB_TRANS, PFRB_MAX };
-struct pfr_buffer {
-	int	 pfrb_type;	/* type of content, see enum above */
-	int	 pfrb_size;	/* number of objects in buffer */
-	int	 pfrb_msize;	/* maximum number of objects in buffer */
-	void	*pfrb_caddr;	/* malloc'ated memory area */
-};
-#define PFRB_FOREACH(var, buf)				\
-	for ((var) = pfr_buf_next((buf), NULL);		\
-	    (var) != NULL;				\
-	    (var) = pfr_buf_next((buf), (var)))
-
 /* interface management code */
-
 static int
 pfi_get_ifaces(int dev, const char *filter, struct pfi_kif *buf, int *size)
 {
@@ -194,92 +180,6 @@ pfi_get_ifaces(int dev, const char *filter, struct pfi_kif *buf, int *size)
 		return (-1);
 	*size = io.pfiio_size;
 	return (0);
-}
-
-/* buffer management code */
-
-size_t buf_esize[PFRB_MAX] = { 0,
-	sizeof(struct pfr_table), sizeof(struct pfr_tstats),
-	sizeof(struct pfr_addr), sizeof(struct pfr_astats),
-	sizeof(struct pfi_kif), sizeof(struct pfioc_trans_e)
-};
-
-/*
- * return next element of the buffer (or first one if prev is NULL)
- * see PFRB_FOREACH macro
- */
-static void *
-pfr_buf_next(struct pfr_buffer *b, const void *prev)
-{
-	size_t bs;
-
-	if (b == NULL || b->pfrb_type <= 0 || b->pfrb_type >= PFRB_MAX)
-		return (NULL);
-	if (b->pfrb_size == 0)
-		return (NULL);
-	if (prev == NULL)
-		return (b->pfrb_caddr);
-	bs = buf_esize[b->pfrb_type];
-	if ((((caddr_t)prev)-((caddr_t)b->pfrb_caddr)) / bs >= b->pfrb_size-1)
-		return (NULL);
-	return (((caddr_t)prev) + bs);
-}
-
-/*
- * minsize:
- *    0: make the buffer somewhat bigger
- *    n: make room for "n" entries in the buffer
- */
-static int
-pfr_buf_grow(struct pfr_buffer *b, int minsize)
-{
-	caddr_t p;
-	size_t bs;
-
-	if (b == NULL || b->pfrb_type <= 0 || b->pfrb_type >= PFRB_MAX) {
-		errno = EINVAL;
-		return (-1);
-	}
-	if (minsize != 0 && minsize <= b->pfrb_msize)
-		return (0);
-	bs = buf_esize[b->pfrb_type];
-	if (!b->pfrb_msize) {
-		if (minsize < 64)
-			minsize = 64;
-		b->pfrb_caddr = calloc(bs, minsize);
-		if (b->pfrb_caddr == NULL)
-			return (-1);
-		b->pfrb_msize = minsize;
-	} else {
-		if (minsize == 0)
-			minsize = b->pfrb_msize * 2;
-		if (minsize < 0 || minsize >= SIZE_T_MAX / bs) {
-			/* msize overflow */
-			errno = ENOMEM;
-			return (-1);
-		}
-		p = realloc(b->pfrb_caddr, minsize * bs);
-		if (p == NULL)
-			return (-1);
-		bzero(p + b->pfrb_msize * bs, (minsize - b->pfrb_msize) * bs);
-		b->pfrb_caddr = p;
-		b->pfrb_msize = minsize;
-	}
-	return (0);
-}
-
-/*
- * reset buffer and free memory.
- */
-static void
-pfr_buf_clear(struct pfr_buffer *b)
-{
-	if (b == NULL)
-		return;
-	if (b->pfrb_caddr != NULL)
-		free(b->pfrb_caddr);
-	b->pfrb_caddr = NULL;
-	b->pfrb_size = b->pfrb_msize = 0;
 }
 
 PHP_MINIT_FUNCTION(pfSense_socket)
