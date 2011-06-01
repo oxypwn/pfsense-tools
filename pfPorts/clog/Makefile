@@ -27,5 +27,6 @@ do-build:
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} /usr/${WHERE}/
+	${INSTALL_DATA} ${FILESDIR}/${PORTNAME}.h ${PREFIX}/include
 
 .include <bsd.port.mk>
