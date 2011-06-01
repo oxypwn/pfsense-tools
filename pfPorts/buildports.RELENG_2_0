@@ -124,7 +124,7 @@ pecl-uploadprogress			/usr/ports/devel/pecl-uploadprogress		/usr/local/lib/php/2
 php52-json					/usr/ports/devel/php52-json					/usr/local/lib/php/20060613/json.so
 rate						/usr/ports/net-mgmt/rate					/usr/local/bin/rate
 wol							/usr/ports/net/wol							/usr/local/bin/wol
-dhcp6							/usr/ports/net/dhcp6							/usr/local/sbin/dhcp6c	
+dhcp6						/usr/ports/net/dhcp6						/usr/local/sbin/dhcp6c	
 3gstat_um175				/usr/ports/comms/3gstat_um175				/usr/local/bin/3gstat
 wrapalixresetbutton			/usr/ports/sysutils/wrapalixresetbutton		/usr/local/sbin/alixresetbtn
 b43-fwcutter				/usr/ports/sysutils/b43-fwcutter			/usr/local/bin/b43-fwcutter
@@ -135,7 +135,8 @@ ssh_tunnel_shell			/usr/ports/sysutils/ssh_tunnel_shell		/usr/local/sbin/ssh_tun
 sshlockout_pf				/usr/ports/sysutils/sshlockout_pf			/usr/local/sbin/sshlockout_pf
 smartmontools				/usr/ports/sysutils/smartmontools			/usr/local/sbin/smartctl
 check_reload_status			/usr/ports/sysutils/check_reload_status		/usr/local/sbin/check_reload_status
-ataidle						/usr/ports/sysutils/ataidle					/usr/local/sbin/ataidle"
+ataidle						/usr/ports/sysutils/ataidle					/usr/local/sbin/ataidle
+syslogd						/usr/ports/sysutils/syslogd					/usr/sbin/syslogd"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
