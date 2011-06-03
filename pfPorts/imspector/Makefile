@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	imspector
-PORTVERSION=	0.8
+PORTVERSION=	0.9
 CATEGORIES=	net-im
 MASTER_SITES=	http://www.imspector.org/downloads/
 
