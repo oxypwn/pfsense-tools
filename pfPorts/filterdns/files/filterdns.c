@@ -337,6 +337,8 @@ handle_signal(int sig)
         switch(sig) {
         case SIGHUP:
         case SIGTERM:
+		if (debug >= 3)
+			syslog(LOG_WARNING, "Received signal %s.", (sig == SIGHUP) ? "SIGHUP" : "SIGTERM");
 		clear_config();
 		exit(0);
                 break;
