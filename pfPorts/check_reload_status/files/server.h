@@ -149,7 +149,7 @@ static const struct command c_service2[] = {
                 { "/usr/local/bin/php /etc/rc.reload_all", "Reloading all", PTHREAD_MUTEX_INITIALIZER } },
         { DNSSERVER, NON, "dns", NULL,
                 { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf", PTHREAD_MUTEX_INITIALIZER } },
-        { IPSECDNS, NON, "dns", NULL,
+        { IPSECDNS, NON, "ipsecdns", NULL,
                 { "/etc/rc.newipsecdns", "Restarting ipsec tunnels", PTHREAD_MUTEX_INITIALIZER } },
         { DYNDNS, STRING, "dyndns", NULL,
                 { "/usr/local/bin/php /etc/rc.dyndns.update %s", "updating dyndns %s", PTHREAD_MUTEX_INITIALIZER } },
