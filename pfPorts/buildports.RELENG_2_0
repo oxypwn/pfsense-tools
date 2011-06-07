@@ -137,7 +137,8 @@ smartmontools				/usr/ports/sysutils/smartmontools			/usr/local/sbin/smartctl
 check_reload_status			/usr/ports/sysutils/check_reload_status		/usr/local/sbin/check_reload_status
 ataidle						/usr/ports/sysutils/ataidle					/usr/local/sbin/ataidle
 syslogd						/usr/ports/sysutils/syslogd					/usr/sbin/syslogd
-pecl-ssh2					/usr/ports/security/pecl-ssh2				/usr/local/lib/php/20060613/ssh2.so"
+pecl-ssh2					/usr/ports/security/pecl-ssh2				/usr/local/lib/php/20060613/ssh2.so
+ioncube						/usr/ports/devel/ioncube					/usr/local/lib/php/20060613/ioncube/ioncube_loader.so"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
