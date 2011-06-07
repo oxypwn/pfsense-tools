@@ -54,8 +54,8 @@
 static void			handle_signal(int);
 static void			run_command(const struct command *, char *);
 static void			set_blockmode(int socket, int cmd);
-const struct command *	match_command(const struct command *target, char *wordpassed);
-const struct command *	parse_command(int fd, int argc, char **argv);
+struct command *	match_command(struct command *target, char *wordpassed);
+struct command *	parse_command(int fd, int argc, char **argv);
 static void			socket_read_command(int socket, short event, void *arg);
 static void			show_command_list(int fd, const struct command *list);
 static void			socket_accept_command(int socket, short event, void *arg);
@@ -115,11 +115,11 @@ show_command_list(int fd, const struct command *list)
         }
 }
 
-const struct command *
+struct command *
 parse_command(int fd, int argc, char **argv)
 {
-	const struct command	*start = first_level;
-	const struct command	*match = NULL;
+	struct command	*start = first_level;
+	struct command	*match = NULL;
 	char *errstring = "ERROR:\tvalid commands are:\n";
 
 	while (argc >= 0) {
@@ -162,8 +162,8 @@ error:
 	return (NULL);
 }
 
-const struct command *
-match_command(const struct command *target, char *wordpassed)
+struct command *
+match_command(struct command *target, char *wordpassed)
 {
 	int i;
 
@@ -239,6 +239,7 @@ run_command(const struct command *cmd, char *argv) {
 		break;
 	case 0:
 		child = 1;
+		closefrom(0);
 		/* Possibly optimize by creating argument list and calling execve. */
 		execl("/bin/sh", "/bin/sh", "-c", command, (char *)NULL);
 		syslog(LOG_ERR, "could not run: %s", command);
@@ -264,7 +265,7 @@ socket_close_command(int fd, struct event *ev)
 static void
 socket_read_command(int fd, __unused short event, void *arg)
 {
-	const struct command *cmd;
+	struct command *cmd;
 	struct event *ev = arg;
 	pthread_mutex_t *lock;
 	enum { bufsize = 2048 };
@@ -316,11 +317,18 @@ socket_read_command(int fd, __unused short event, void *arg)
 	cmd = parse_command(fd, i, argv);
 	if (cmd != NULL) {
 		write(fd, "OK\n", 3);
+		time_t now = time(NULL);
+
+		/* Aggregate commands to not do the same work multiple times. 5 sec interval */
+		if (cmd->cmd.request && (now - cmd->cmd.request) <= 5 ) {
+			syslog(LOG_NOTICE, "Aggregating event %s", cmd->cmd.syslog);
+			return; /* We do not run the command since one already scheduled. */
+		}
 		/* Serialize commands to avoid races in called ones. */
-		/* XXX: better not loose the const property on commands or this?! */
-		lock = __DECONST(pthread_mutex_t *, &cmd->cmd.serialize);
+		lock = &cmd->cmd.serialize;
 		pthread_mutex_lock(lock);
 		run_command(cmd, p);
+		cmd->cmd.request = now;
 		pthread_mutex_unlock(lock);
 	}
 
