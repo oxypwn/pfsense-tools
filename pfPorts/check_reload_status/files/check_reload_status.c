@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <sys/queue.h>
 
 #include <ctype.h>
 
@@ -52,7 +53,7 @@
 
 /* function definitions */
 static void			handle_signal(int);
-static void			run_command(const struct command *, char *);
+static void			run_command(struct command *, char *);
 static void			set_blockmode(int socket, int cmd);
 struct command *	match_command(struct command *target, char *wordpassed);
 struct command *	parse_command(int fd, int argc, char **argv);
@@ -61,6 +62,21 @@ static void			show_command_list(int fd, const struct command *list);
 static void			socket_accept_command(int socket, short event, void *arg);
 static void			socket_close_command(int fd, struct event *ev);
 static void			write_status(const char *statusline, int when);
+static void *			listen_thread(void *);
+static void *			runqueue_thread(void *);
+
+/*
+ * Internal representation of a packet.
+ */
+struct runq {
+	TAILQ_ENTRY(runq) rq_link;
+	struct event ev;
+	char   command[2048];
+	int aggregate;
+};
+TAILQ_HEAD(runqueue, runq) cmds = TAILQ_HEAD_INITIALIZER(cmds);;
+
+pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
 
 static pid_t ppid = -1;
 static int child = 0;
@@ -126,7 +142,7 @@ parse_command(int fd, int argc, char **argv)
 		match = match_command(start, *argv);
 		if (match == NULL) {
 			errstring = "ERROR:\tNo match found.\n";
-			goto error;
+			goto error3;
 		}
 
 		argc--;
@@ -134,19 +150,19 @@ parse_command(int fd, int argc, char **argv)
 
 		if (argc > 0 && match->next == NULL) {
 			errstring = "ERROR:\textra arguments passed.\n";
-			goto error;
+			goto error3;
 		}
 		if (argc < 0 && match->type != NON) {
 			if (match->next != NULL)
 				start = match->next;
 			errstring = "ERROR:\tincomplete command.\n";
-			goto error;
+			goto error3;
 		}
 		if (argc == 0 && *argv == NULL && match->type != NON) {
 			if (match->next != NULL)
 				start = match->next;
 			errstring = "ERROR:\tincomplete command.\n";
-			goto error;
+			goto error3;
 		}
 
 		if ( match->next == NULL)
@@ -156,7 +172,7 @@ parse_command(int fd, int argc, char **argv)
 	}
 
 	return (match);
-error:
+error3:
 	write(fd, errstring, strlen(errstring));
 	show_command_list(fd, start);
 	return (NULL);
@@ -205,12 +221,79 @@ handle_signal(int sig)
 }
 
 static void
-run_command(const struct command *cmd, char *argv) {
-	char command[2048];
+run_command_detailed(int fd, short event, void *arg) {
+	struct runq *cmd;
+
+	cmd = (struct runq *)arg;
+
+	if (cmd == NULL)
+		return;
+
+	if (event != EV_TIMEOUT) {
+		syslog(LOG_NOTICE, "Wrong event fired");
+		return;
+	}
+	pthread_mutex_lock(&mtx);
+	TAILQ_REMOVE(&cmds, cmd, rq_link);
+	pthread_mutex_unlock(&mtx);
+	write_status(cmd->command, AFTER);
+	timeout_del(&cmd->ev);
+
+	switch (vfork()) {
+	case -1:
+		syslog(LOG_ERR, "Could not vfork() error %d - %s!!!", errno, strerror(errno));
+		break;
+	case 0:
+		child = 1;
+		closefrom(0);
+		/* Possibly optimize by creating argument list and calling execve. */
+		execl("/bin/sh", "/bin/sh", "-c", cmd->command, (char *)NULL);
+		syslog(LOG_ERR, "could not run: %s", cmd->command);
+		_exit(127); /* Protect in case execl errors out */
+		break;
+	default:
+		child = 0;
+		if (cmd != NULL)
+			free(cmd);
+		break;
+	}
+}
+
+static void
+run_command(struct command *cmd, char *argv) {
+	struct runq *command, *tmpcmd;
+	struct timeval tv = { 5, 0 };
+
+	command = calloc(1, sizeof(*command));
+	if (command == NULL) {
+		syslog(LOG_ERR, "Calloc failure for command %s", cmd);
+		return;
+	}
+
+#ifdef maybe
+	snprintf(command, sizeof(command), "'%s'", cmd->cmd.command);
+	snprintf(command, sizeof(command), command, argv);
+#else
+	snprintf(command->command, sizeof(command->command), cmd->cmd.command, argv);
+#endif
+	pthread_mutex_lock(&mtx);
+	TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
+		if (!strcmp(tmpcmd->command, command->command)) {
+			command->aggregate += tmpcmd->aggregate;
+			command->aggregate++;
+			if (command->aggregate > 1) {
+				free(command);
+				pthread_mutex_unlock(&mtx);
+				return;
+			}
+		}
+	}
+	TAILQ_INSERT_HEAD(&cmds, command, rq_link);
+	pthread_mutex_unlock(&mtx);
 
 	switch (cmd->type) {
 	case NON:
-        	syslog(LOG_NOTICE, cmd->cmd.syslog);
+		syslog(LOG_NOTICE, cmd->cmd.syslog);
 		break;
 	case COMPOUND: /* XXX: Should never happen. */
 		syslog(LOG_ERR, "trying to execute COMPOUND entry!!! Please report it.");
@@ -222,36 +305,17 @@ run_command(const struct command *cmd, char *argv) {
 	case INTEGER:
 	case IFNAME:
 	case STRING:
-        	syslog(LOG_NOTICE, cmd->cmd.syslog, argv);
+		syslog(LOG_NOTICE, cmd->cmd.syslog, argv);
 		break;
 	}
 
-	bzero(command, sizeof(command));
-#ifdef maybe
-	snprintf(command, sizeof(command), "'%s'", cmd->cmd.command);
-	snprintf(command, sizeof(command), command, argv);
-#else
-	snprintf(command, sizeof(command), cmd->cmd.command, argv);
-#endif
-	switch (vfork()) {
-	case -1:
-		syslog(LOG_ERR, "Could not vfork() error %d - %s!!!", errno, strerror(errno));
-		break;
-	case 0:
-		child = 1;
-		closefrom(0);
-		/* Possibly optimize by creating argument list and calling execve. */
-		execl("/bin/sh", "/bin/sh", "-c", command, (char *)NULL);
-		syslog(LOG_ERR, "could not run: %s", command);
-		_exit(127); /* Protect in case execl errors out */
-		break;
-	default:
-		child = 0;
-		write_status(command, AFTER);
-		break;
-	}
+	if (command->aggregate == 0)
+		tv.tv_sec = 2;
 
-        return;
+	timeout_set(&command->ev, run_command_detailed, command);
+	timeout_add(&command->ev, &tv);
+
+	return;
 }
 
 static void
@@ -317,19 +381,7 @@ socket_read_command(int fd, __unused short event, void *arg)
 	cmd = parse_command(fd, i, argv);
 	if (cmd != NULL) {
 		write(fd, "OK\n", 3);
-		time_t now = time(NULL);
-
-		/* Aggregate commands to not do the same work multiple times. 5 sec interval */
-		if (cmd->cmd.request && (now - cmd->cmd.request) <= 5 ) {
-			syslog(LOG_NOTICE, "Aggregating event %s", cmd->cmd.syslog);
-			return; /* We do not run the command since one already scheduled. */
-		}
-		/* Serialize commands to avoid races in called ones. */
-		lock = &cmd->cmd.serialize;
-		pthread_mutex_lock(lock);
 		run_command(cmd, p);
-		cmd->cmd.request = now;
-		pthread_mutex_unlock(lock);
 	}
 
 	return;
@@ -377,8 +429,8 @@ int main(void) {
 	struct event ev;
 	struct sockaddr_un sun;
 	struct sigaction sa;
-	int fd, errcode;
 	sigset_t set;
+	int fd, errcode = 0;
 
 	/* daemonize */
 	if (daemon(0, 0) < 0) {
@@ -474,15 +526,17 @@ int main(void) {
         if (listen(fd, 30) == -1) {
                 printf("control_listen: listen");
 		close(fd);
-                return (-1);
+                return;
         }
+
+	TAILQ_INIT(&cmds);
 
 	event_init();
 	event_set(&ev, fd, EV_READ | EV_PERSIST, socket_accept_command, &ev);
 	event_add(&ev, NULL);
 	event_dispatch();
 
-	return (0);
+	return;
 error:
 	write_status("exiting", NONE);
 	syslog(LOG_NOTICE, "check_reload_status is stopping.");

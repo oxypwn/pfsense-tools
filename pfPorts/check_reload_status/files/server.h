@@ -75,18 +75,14 @@ enum argtype {
 };
 
 struct run {
-        const char    *command;
-        const char    *syslog;
-	pthread_mutex_t	serialize;
-	volatile time_t	request; /* last time command executed */
+        char    *command;
+        char    *syslog;
 };
-
-#define NULLRUN { NULL, NULL, PTHREAD_MUTEX_INITIALIZER }
 
 struct command {
         enum actions    action;
         enum argtype    type;
-        const char      *keyword;
+        char      *keyword;
         struct command  *next;
         struct run      cmd;
 };
@@ -99,78 +95,78 @@ static struct command c_service2[];
 
 
 static struct command first_level[] = {
-        { FILTER, COMPOUND, "filter", c_filter, NULLRUN },
-        { INTERFACE, COMPOUND, "interface", c_interface, NULLRUN },
-        /* { GATEWAY, COMPOUND, "gateway", c_reload, NULLRUN }, */
-        { SERVICE, COMPOUND, "service", c_service, NULLRUN },
-        { NULLOPT, NON, "", NULL, NULLRUN }
+        { FILTER, COMPOUND, "filter", c_filter},
+        { INTERFACE, COMPOUND, "interface", c_interface },
+        /* { GATEWAY, COMPOUND, "gateway", c_reload }, */
+        { SERVICE, COMPOUND, "service", c_service },
+        { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_filter[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter" } },
         { RECONFIGURE, NON, "reconfigure", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter" } },
         { RESTART, NON, "restart", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter" } },
         { SYNC, NON, "sync", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_synchronize", "Syncing firewall", PTHREAD_MUTEX_INITIALIZER, 0 } },
-        { NULLOPT, NON, "", NULL, NULLRUN }
+                { "/usr/local/bin/php /etc/rc.filter_synchronize", "Syncing firewall" } },
+        { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_interface[] = {
-        { ALL, STRING, "all", c_interface2, NULLRUN },
+        { ALL, STRING, "all", c_interface2 },
         { RELOAD, IFNAME, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
         { RECONFIGURE, IFNAME, "reconfigure", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
         { RESTART, IFNAME, "restart", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
         { NEWIP, STRING, "newip", NULL,
-                { "/usr/local/bin/php /etc/rc.newwanip %s", "rc.newwanip starting %s", PTHREAD_MUTEX_INITIALIZER, 0 } },
-        { LINKUP, STRING, "linkup", c_interface2, NULLRUN },
+                { "/usr/local/bin/php /etc/rc.newwanip %s", "rc.newwanip starting %s" } },
+        { LINKUP, STRING, "linkup", c_interface2 },
         { SYNC, NON, "sync", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc", PTHREAD_MUTEX_INITIALIZER, 0 } },
-        { NULLOPT, NON, "", NULL, NULLRUN }
+                { "/usr/local/bin/php /etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc" } },
+        { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_interface2[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.reload_interfaces", "Reloading interfaces", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.reload_interfaces", "Reloading interfaces" } },
 	{ START, IFNAME, "start", NULL,
-                { "/usr/local/bin/php /etc/rc.linkup start %s", "Linkup starting %s", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.linkup start %s", "Linkup starting %s" } },
 	{ STOP, IFNAME, "stop", NULL,
-                { "/usr/local/bin/php /etc/rc.linkup stop %s", "Linkup starting %s", PTHREAD_MUTEX_INITIALIZER, 0 } },
-        { NULLOPT, NON, "", NULL, NULLRUN }
+                { "/usr/local/bin/php /etc/rc.linkup stop %s", "Linkup starting %s" } },
+        { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_service2[] = {
         { ALL, NON, "all", NULL,
-                { "/usr/local/bin/php /etc/rc.reload_all", "Reloading all", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.reload_all", "Reloading all" } },
         { DNSSERVER, NON, "dns", NULL,
-                { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf" } },
         { IPSECDNS, NON, "ipsecdns", NULL,
-                { "/etc/rc.newipsecdns", "Restarting ipsec tunnels", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/etc/rc.newipsecdns", "Restarting ipsec tunnels" } },
         { DYNDNS, STRING, "dyndns", NULL,
-                { "/usr/local/bin/php /etc/rc.dyndns.update %s", "updating dyndns %s", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.dyndns.update %s", "updating dyndns %s" } },
         { DYNDNSALL, NON, "dyndnsall", NULL,
-                { "/usr/local/bin/php /etc/rc.dyndns.update", "Updating all dyndns", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.dyndns.update", "Updating all dyndns" } },
         { NTPD, NON, "ntpd", NULL,
-                { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", "Starting nptd", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", "Starting nptd" } },
         { PACKAGES, NON, "packages", NULL,
-                { "/usr/local/bin/php /etc/rc.start_packages", "Starting packages", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/usr/local/bin/php /etc/rc.start_packages", "Starting packages" } },
         { SSHD, NON, "sshd", NULL,
-                { "/etc/sshd", "starting sshd", PTHREAD_MUTEX_INITIALIZER, 0 } },
+                { "/etc/sshd", "starting sshd" } },
         { WEBGUI, NON, "webgui", NULL,
-                { "/usr/local/bin/php /etc/rc.restart_webgui", "webConfigurator restart in progress", PTHREAD_MUTEX_INITIALIZER, 0 } },
-        { NULLOPT, NON, "", NULL, NULLRUN }
+                { "/usr/local/bin/php /etc/rc.restart_webgui", "webConfigurator restart in progress" } },
+        { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_service[] = {
-        { RELOAD, STRING, "reload", c_service2, NULLRUN },
-        { RECONFIGURE, STRING, "reconfigure", c_service2, NULLRUN},
-        { RESTART, STRING, "restart", c_service2, NULLRUN },
-        { NULLOPT, NON, "", NULL, NULLRUN }
+        { RELOAD, STRING, "reload", c_service2 },
+        { RECONFIGURE, STRING, "reconfigure", c_service2},
+        { RESTART, STRING, "restart", c_service2 },
+        { NULLOPT, NON, "", NULL }
 };
 
 #endif /* _SERVER_H_ */
