@@ -61,6 +61,7 @@ enum actions {
 	START,
 	STOP,
         SYNC,
+	VOUCHERS,
         NULLOPT
 };
 
@@ -162,10 +163,17 @@ static struct command c_service2[] = {
         { NULLOPT, NON, "", NULL }
 };
 
+static struct command c_service_sync[] = {
+	{ VOUCHERS, NON, "vouchers", NULL,
+		{ "/etc/rc.savevoucher", "Synching vouchers" } },
+        { NULLOPT, NON, "", NULL }
+};
+
 static struct command c_service[] = {
         { RELOAD, STRING, "reload", c_service2 },
         { RECONFIGURE, STRING, "reconfigure", c_service2},
         { RESTART, STRING, "restart", c_service2 },
+	{ SYNC, STRING, "sync", c_service_sync },
         { NULLOPT, NON, "", NULL }
 };
 
