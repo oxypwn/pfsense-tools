@@ -241,9 +241,8 @@ run_command_detailed(int fd, short event, void *arg) {
 		break;
 	case 0:
 		child = 1;
-		closefrom(0);
 		/* Possibly optimize by creating argument list and calling execve. */
-		execl("/bin/sh", "/bin/sh", "-c", cmd->command, (char *)NULL);
+		execl(cmd->command, cmd->command, (char *)NULL);
 		syslog(LOG_ERR, "could not run: %s", cmd->command);
 		_exit(127); /* Protect in case execl errors out */
 		break;
@@ -266,12 +265,8 @@ run_command(struct command *cmd, char *argv) {
 		return;
 	}
 
-#ifdef maybe
-	snprintf(command, sizeof(command), "'%s'", cmd->cmd.command);
-	snprintf(command, sizeof(command), command, argv);
-#else
 	snprintf(command->command, sizeof(command->command), cmd->cmd.command, argv);
-#endif
+
 	pthread_mutex_lock(&mtx);
 	TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
 		if (!strcmp(tmpcmd->command, command->command)) {

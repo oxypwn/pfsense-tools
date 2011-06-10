@@ -104,61 +104,61 @@ static struct command first_level[] = {
 
 static struct command c_filter[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter" } },
+                { "/etc/rc.filter_configure_sync", "Reloading filter" } },
         { RECONFIGURE, NON, "reconfigure", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter" } },
+                { "/etc/rc.filter_configure_sync", "Reloading filter" } },
         { RESTART, NON, "restart", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_sync", "Reloading filter" } },
+                { "/etc/rc.filter_configure_sync", "Reloading filter" } },
         { SYNC, NON, "sync", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_synchronize", "Syncing firewall" } },
+                { "/etc/rc.filter_synchronize", "Syncing firewall" } },
         { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_interface[] = {
         { ALL, STRING, "all", c_interface2 },
         { RELOAD, IFNAME, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
+                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
         { RECONFIGURE, IFNAME, "reconfigure", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
+                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
         { RESTART, IFNAME, "restart", NULL,
-                { "/usr/local/bin/php /etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
+                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
         { NEWIP, STRING, "newip", NULL,
-                { "/usr/local/bin/php /etc/rc.newwanip %s", "rc.newwanip starting %s" } },
+                { "/etc/rc.newwanip %s", "rc.newwanip starting %s" } },
         { LINKUP, STRING, "linkup", c_interface2 },
         { SYNC, NON, "sync", NULL,
-                { "/usr/local/bin/php /etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc" } },
+                { "/etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc" } },
         { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_interface2[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/usr/local/bin/php /etc/rc.reload_interfaces", "Reloading interfaces" } },
+                { "/etc/rc.reload_interfaces", "Reloading interfaces" } },
 	{ START, IFNAME, "start", NULL,
-                { "/usr/local/bin/php /etc/rc.linkup start %s", "Linkup starting %s" } },
+                { "/etc/rc.linkup start %s", "Linkup starting %s" } },
 	{ STOP, IFNAME, "stop", NULL,
-                { "/usr/local/bin/php /etc/rc.linkup stop %s", "Linkup starting %s" } },
+                { "/etc/rc.linkup stop %s", "Linkup starting %s" } },
         { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_service2[] = {
         { ALL, NON, "all", NULL,
-                { "/usr/local/bin/php /etc/rc.reload_all", "Reloading all" } },
+                { "/etc/rc.reload_all", "Reloading all" } },
         { DNSSERVER, NON, "dns", NULL,
                 { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf" } },
         { IPSECDNS, NON, "ipsecdns", NULL,
                 { "/etc/rc.newipsecdns", "Restarting ipsec tunnels" } },
         { DYNDNS, STRING, "dyndns", NULL,
-                { "/usr/local/bin/php /etc/rc.dyndns.update %s", "updating dyndns %s" } },
+                { "/etc/rc.dyndns.update %s", "updating dyndns %s" } },
         { DYNDNSALL, NON, "dyndnsall", NULL,
-                { "/usr/local/bin/php /etc/rc.dyndns.update", "Updating all dyndns" } },
+                { "/etc/rc.dyndns.update", "Updating all dyndns" } },
         { NTPD, NON, "ntpd", NULL,
                 { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", "Starting nptd" } },
         { PACKAGES, NON, "packages", NULL,
-                { "/usr/local/bin/php /etc/rc.start_packages", "Starting packages" } },
+                { "/etc/rc.start_packages", "Starting packages" } },
         { SSHD, NON, "sshd", NULL,
                 { "/etc/sshd", "starting sshd" } },
         { WEBGUI, NON, "webgui", NULL,
-                { "/usr/local/bin/php /etc/rc.restart_webgui", "webConfigurator restart in progress" } },
+                { "/etc/rc.restart_webgui", "webConfigurator restart in progress" } },
         { NULLOPT, NON, "", NULL }
 };
 
