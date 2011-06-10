@@ -229,10 +229,6 @@ run_command_detailed(int fd, short event, void *arg) {
 	if (cmd == NULL)
 		return;
 
-	if (event != EV_TIMEOUT) {
-		syslog(LOG_NOTICE, "Wrong event fired");
-		return;
-	}
 	pthread_mutex_lock(&mtx);
 	TAILQ_REMOVE(&cmds, cmd, rq_link);
 	pthread_mutex_unlock(&mtx);
