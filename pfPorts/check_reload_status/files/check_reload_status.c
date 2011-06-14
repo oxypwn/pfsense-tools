@@ -242,7 +242,7 @@ run_command_detailed(int fd, short event, void *arg) {
 	case 0:
 		child = 1;
 		/* Possibly optimize by creating argument list and calling execve. */
-		execl(cmd->command, cmd->command, (char *)NULL);
+		execl("/bin/sh", "/bin/sh", "-c", cmd->command, (char *)NULL);
 		syslog(LOG_ERR, "could not run: %s", cmd->command);
 		_exit(127); /* Protect in case execl errors out */
 		break;
