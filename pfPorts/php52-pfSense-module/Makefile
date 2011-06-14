@@ -6,14 +6,12 @@
 #
 
 PORTNAME=	pfSense
-PORTVERSION=            0.1
-CATEGORIES=             net
-MASTER_SITES=           #
-DISTFILES=              #
-PORTVERSION=
-CATEGORIES=
-MASTER_SITES=
-PKGNAMEPREFIX=	pfSense-
+PORTVERSION=	0.1
+CATEGORIES=	net
+MASTER_SITES=	#
+DISTFILES=	#
+PKGNAMEPREFIX=	php52-
+PKGNAMESUFFIX=	-module
 
 MAINTAINER=	eri@pfsense.org
 COMMENT=	Library for getting useful info
