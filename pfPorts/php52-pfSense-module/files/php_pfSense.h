@@ -29,6 +29,7 @@ PHP_FUNCTION(pfSense_get_pf_stats);
 PHP_FUNCTION(pfSense_get_os_hw_data);
 PHP_FUNCTION(pfSense_get_os_kern_data);
 PHP_FUNCTION(pfSense_get_interface_addresses);
+PHP_FUNCTION(pfSense_getall_interface_addresses);
 PHP_FUNCTION(pfSense_vlan_create);
 PHP_FUNCTION(pfSense_interface_rename);
 PHP_FUNCTION(pfSense_interface_mtu);

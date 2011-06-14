@@ -117,6 +117,7 @@ ZEND_DECLARE_MODULE_GLOBALS(pfSense)
 static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_get_interface_info, NULL)
     PHP_FE(pfSense_get_interface_addresses, NULL)
+    PHP_FE(pfSense_getall_interface_addresses, NULL)
     PHP_FE(pfSense_get_interface_stats, NULL)
     PHP_FE(pfSense_get_pf_stats, NULL)
     PHP_FE(pfSense_get_os_hw_data, NULL)
@@ -248,6 +249,58 @@ PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 	return SUCCESS;
 }
 
+PHP_FUNCTION(pfSense_getall_interface_addresses)
+{
+	struct ifaddrs *ifdata, *mb;
+        struct if_data *md;
+	struct sockaddr_in *tmp;
+        char outputbuf[132];
+        char *ifname;
+        int ifname_len, s;
+
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE)
+                RETURN_NULL();
+
+	getifaddrs(&ifdata);
+        if (ifdata == NULL)
+                RETURN_NULL();
+
+	array_init(return_value);
+
+        for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
+		if (mb == NULL)
+                        continue;
+		if (ifname_len != strlen(mb->ifa_name))
+                        continue;
+                if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
+                        continue;
+		if (mb->ifa_addr == NULL)
+			continue;
+
+		switch (mb->ifa_addr->sa_family) {
+		case AF_INET:
+			bzero(outputbuf, sizeof outputbuf);
+			tmp = (struct sockaddr_in *)mb->ifa_addr;
+			inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 132);
+			tmp = (struct sockaddr_in *)mb->ifa_netmask;
+			unsigned char mask;
+			const unsigned char *byte = (unsigned char *)&tmp->sin_addr.s_addr;
+			int i = 0, n = sizeof(tmp->sin_addr.s_addr);
+			while (n--) {
+				mask = ((unsigned char)-1 >> 1) + 1;
+					do {
+						if (mask & byte[n])
+							i++;
+						mask >>= 1;
+					} while (mask);
+			}
+			snprintf(outputbuf + strlen(outputbuf), sizeof(outputbuf) - strlen(outputbuf), "/%d", i);
+			add_next_index_string(return_value, outputbuf, 1);
+			break;
+		}
+	}
+}
+
 PHP_FUNCTION(pfSense_get_interface_addresses)
 {
 	struct ifaddrs *ifdata, *mb;
@@ -261,14 +314,12 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 	zval *caps;
 	zval *encaps;
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE)
                 RETURN_NULL();
-        }
 
 	getifaddrs(&ifdata);
-        if (ifdata == NULL) {
+        if (ifdata == NULL)
                 RETURN_NULL();
-        }
 
 	array_init(return_value);
 
