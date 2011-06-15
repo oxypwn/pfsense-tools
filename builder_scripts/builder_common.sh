@@ -2557,21 +2557,21 @@ EOF
 	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1a /mnt/
 	echo ">>> Duplicating ${CLONEDIR} to /mnt/..."	
-	cpdup -vvv -I -o ${CLONEDIR} /boot /mnt/boot
-	cpdup -vvv -I -o ${CLONEDIR} /COPYRIGHT /mnt/COPYRIGHT
-	cpdup -vvv -I -o ${CLONEDIR} /bin /mnt/bin
-	cpdup -vvv -I -o ${CLONEDIR} /conf /mnt/conf
-	cpdup -vvv -I -o ${CLONEDIR} /conf.default /mnt/conf.default
-	cpdup -vvv -I -o ${CLONEDIR} /dev /mnt/dev
-	cpdup -vvv -I -o ${CLONEDIR} /etc /mnt/etc
-	cpdup -vvv -I -o ${CLONEDIR} /home /mnt/home
-	cpdup -vvv -I -o ${CLONEDIR} /kernels /mnt/kernels
-	cpdup -vvv -I -o ${CLONEDIR} /libexec /mnt/libexec
-	cpdup -vvv -I -o ${CLONEDIR} /lib /mnt/lib
-	cpdup -vvv -I -o ${CLONEDIR} /root /mnt/root
-	cpdup -vvv -I -o ${CLONEDIR} /sbin /mnt/sbin
-	cpdup -vvv -I -o ${CLONEDIR} /usr /mnt/usr
-	cpdup -vvv -I -o ${CLONEDIR} /var /mnt/var
+	cpdup -vvv -I -o ${CLONEDIR}/boot /mnt/boot
+	cpdup -vvv -I -o ${CLONEDIR}/COPYRIGHT /mnt/COPYRIGHT
+	cpdup -vvv -I -o ${CLONEDIR}/bin /mnt/bin
+	cpdup -vvv -I -o ${CLONEDIR}/conf /mnt/conf
+	cpdup -vvv -I -o ${CLONEDIR}/conf.default /mnt/conf.default
+	cpdup -vvv -I -o ${CLONEDIR}/dev /mnt/dev
+	cpdup -vvv -I -o ${CLONEDIR}/etc /mnt/etc
+	cpdup -vvv -I -o ${CLONEDIR}/home /mnt/home
+	cpdup -vvv -I -o ${CLONEDIR}/kernels /mnt/kernels
+	cpdup -vvv -I -o ${CLONEDIR}/libexec /mnt/libexec
+	cpdup -vvv -I -o ${CLONEDIR}/lib /mnt/lib
+	cpdup -vvv -I -o ${CLONEDIR}/root /mnt/root
+	cpdup -vvv -I -o ${CLONEDIR}/sbin /mnt/sbin
+	cpdup -vvv -I -o ${CLONEDIR}/usr /mnt/usr
+	cpdup -vvv -I -o ${CLONEDIR}/var /mnt/var
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
 	awk '{gsub(/vr0/,"em0",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
 	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ ${OVFPATH}/${$PRODUCT_NAME}.ovf
