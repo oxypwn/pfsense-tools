@@ -107,7 +107,7 @@ export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.img}
 export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick.img}
 export OVFPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/}
 export OVFFILE=${PRODUCT_NAME}.ovf
-export OVFMDK=pfSense-ovf.vmdk
+export OVFVMDK=pfSense-ovf.vmdk
 export OVAFILE=${PRODUCT_NAME}.ova
 
 # Binary staging area for pfSense specific binaries.

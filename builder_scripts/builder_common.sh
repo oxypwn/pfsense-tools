@@ -1717,12 +1717,10 @@ print_flags() {
 	printf "        TARGET_ARCH_CONF_DIR: %s\n" $TARGET_ARCH_CONF_DIR
 	printf "     FREESBIE_COMPLETED_MAIL: %s\n" $FREESBIE_COMPLETED_MAIL
 	printf "         FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
-	
 	printf "                     OVFPATH: %s\n" $OVFPATH
 	printf "                     OVFFILE: %s\n" $OVFFILE
-	printf "                      OVFMDK: %s\n" $OVFMDK
-	
-	
+	printf "                     OVAFILE: %s\n" $OVAFILE
+	printf "                     OVFVMDK: %s\n" $OVFVMDK
 if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "              pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
@@ -2502,8 +2500,8 @@ awk '
 	fi
 }
 
-# This routine creates a vmdk/ovf image for 
-# vmware and virtualbox, etc.
+# This routine creates a vmdk/ovf/ova image  
+# for vmware and virtualbox, etc.
 create_ovf_image() {
 	if [ ! -f /usr/local/bin/VBoxManage ]; then
 		echo <<EOF >>/var/db/ports/virtualbox-ose/options
@@ -2519,23 +2517,31 @@ WITHOUT_VNC=true
 WITHOUT_WEBSERVICE=true
 WITHOUT_NLS=true
 EOF
-		echo ">>> Installing VirtualBOX, one moment please..."
+		if [ ! -d /usr/ports ]; then
+			echo ">>> /usr/ports does not exist, fetching..."
+			portsnap fetch extract
+		fi
+		echo ">>> Installing VirtualBOX from ports, one moment please..."
 		cd /usr/ports/emulators/virtualbox-ose && make install clean
 	fi
 	rm ${OVFPATH}/${OVFFILE} 2>/dev/null
+	rm ${OVFPATH}/${OVAFILE} 2>/dev/null
 	echo ">>> Truncating 10 gigabyte OVF image..."
 	truncate -s 10G $OVFPATH
 	echo ">>> Creating 10 gigabyte OVF image..."
 	dd if=/dev/zero of=$OVFPATH bs=1m count=10240
-	echo ">>> Creating mdconfig image..."
+	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f $OVFPATH`
+	echo $MD
 	echo ">>> Zeroing out /dev/${MD}..."
 	dd if=/dev/zero of=/dev/$MD count=3000
 	dd if=/dev/zero of=/dev/$MD count=2048
 	echo ">>> Setting up disk partitions and such..."
 	gpart create -s mbr /dev/$MD
 	gpart add -b 63 -s 20971457 -t freebsd -i 1 /dev/$MD
+	echo ">>> Cleaning up /dev/$MD"
 	dd if=/dev/zero of=/dev/$MD count=1024
+	echo ">>> Stamping boot code..."
 	gpart bootcode -b /boot/boot1 /dev/$MD
 	if [ ! -f /dev/${MD}s1a]; then
 		echo "/dev/${MD}s1a does not exist.  Cannot continue."
@@ -2549,21 +2555,21 @@ EOF
 	sync ; sync
 	glabel label swap0 /dev/${MD}s1b
 	sync ; sync
-	echo ">>> Mounting vmdk image to /mnt..."
+	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1a /mnt/
 	echo ">>> Duplicating ${CLONEDIR} to /mnt/..."
 	cpdup -vvv -I -o ${CLONEDIR} /mnt/
 	umount /mnt
 	echo ">>> Creating final vmdk..."
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFMDK} -rawdisk /dev/${MD}
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} -rawdisk /dev/${MD}
 	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${$PRODUCT_NAME}.ovf
 	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
 	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
-	echo ">>> Compacting ${OVFPATH}/${OVFFILE}..."
-	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFFILE} --compact
-	echo ">>> Creating OVA file ${OVFFILE}..."
-	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMDK} 
-	echo ">>> Image created."
+	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
+	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFVMDK} --compact
+	echo ">>> Creating OVA file ${OVAFILE}..."
+	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFVMDK} 
+	echo ">>> ${OVFPATH}/${OVAFILE} created."
 	ls -lah ${OVFPATH}/${OVAFILE}
 }
 
