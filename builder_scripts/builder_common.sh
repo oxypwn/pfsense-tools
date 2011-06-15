@@ -2522,9 +2522,9 @@ EOF
 		echo ">>> Installing VirtualBOX, one moment please..."
 		cd /usr/ports/emulators/virtualbox-ose && make install clean
 	fi
-	echo ">>> Truncating 10 gigabyte ODF image..."
+	echo ">>> Truncating 10 gigabyte OVF image..."
 	truncate -s 10G $OVFPATH
-	echo ">>> Creating 10 gigabyte ODF image..."
+	echo ">>> Creating 10 gigabyte OVF image..."
 	dd if=/dev/zero of=$OVFPATH bs=1m count=10240
 	echo ">>> Creating mdconfig image..."
 	MD=`mdconfig -a -t vnode -f $OVFPATH`
