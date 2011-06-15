@@ -106,8 +106,9 @@ export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.img}
 export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick.img}
 export OVFPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/}
-export OVFFILE=${PRODUCT_NAME}.ova
+export OVFFILE=${PRODUCT_NAME}.ovf
 export OVFMDK=pfSense-ovf.vmdk
+export OVAFILE=${PRODUCT_NAME}.ova
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}

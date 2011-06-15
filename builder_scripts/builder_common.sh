@@ -2522,31 +2522,49 @@ EOF
 		echo ">>> Installing VirtualBOX, one moment please..."
 		cd /usr/ports/emulators/virtualbox-ose && make install clean
 	fi
+	rm ${OVFPATH}/${OVFFILE} 2>/dev/null
 	echo ">>> Truncating 10 gigabyte OVF image..."
 	truncate -s 10G $OVFPATH
 	echo ">>> Creating 10 gigabyte OVF image..."
 	dd if=/dev/zero of=$OVFPATH bs=1m count=10240
 	echo ">>> Creating mdconfig image..."
 	MD=`mdconfig -a -t vnode -f $OVFPATH`
+	echo ">>> Zeroing out /dev/${MD}..."
+	dd if=/dev/zero of=/dev/$MD count=3000
+	dd if=/dev/zero of=/dev/$MD count=2048
 	echo ">>> Setting up disk partitions and such..."
 	gpart create -s mbr /dev/$MD
 	gpart add -b 63 -s 20971457 -t freebsd -i 1 /dev/$MD
+	dd if=/dev/zero of=/dev/$MD count=1024
 	gpart bootcode -b /boot/boot1 /dev/$MD
+	if [ ! -f /dev/${MD}s1a]; then
+		echo "/dev/${MD}s1a does not exist.  Cannot continue."
+		print_error_pfS	
+	fi
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}s1a
-	echo ">>> Labeling partitions"
+	sync ; sync ; sync ; sync
+	echo ">>> Labeling partitions..."
 	glabel label pfSense /dev/${MD}s1a
+	sync ; sync
 	glabel label swap0 /dev/${MD}s1b
+	sync ; sync
+	echo ">>> Mounting vmdk image to /mnt..."
 	mount -o rw /dev/${MD}s1a /mnt/
+	echo ">>> Duplicating ${CLONEDIR} to /mnt/..."
 	cpdup -vvv -I -o ${CLONEDIR} /mnt/
 	umount /mnt
+	echo ">>> Creating final vmdk..."
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFMDK} -rawdisk /dev/${MD}
-	rm ${OVFPATH}/${OVFFILE}
 	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${$PRODUCT_NAME}.ovf
-	# XXX: Change pfSense -> PRODUCT_NAME inside ovf file contents
+	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
+	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
+	echo ">>> Compacting ${OVFPATH}/${OVFFILE}..."
 	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFFILE} --compact
-	cd $OVFPATH && tar cpf $OVFFILE ${OVFMDK} ${PRODUCT_NAME}.ovf
-	ls -lah $OVFPATH/$OVFFILE
+	echo ">>> Creating OVA file ${OVFFILE}..."
+	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMDK} 
+	echo ">>> Image created."
+	ls -lah ${OVFPATH}/${OVAFILE}
 }
 
 # This routine installs pfSense packages into the staging area.
