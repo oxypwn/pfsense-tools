@@ -2534,11 +2534,14 @@ EOF
 	mount -o rw /dev/${MD}s1a /mnt/
 	cpdup -vvv -I -o ${CLONEDIR} /mnt/
 	umount /mnt
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}.final -rawdisk /dev/${MD}
-	rm ${OVFPATH}
-	mv ${OVFPATH}.final ${OVFPATH}
-	# XXX: Create OVF file
-	# XXX: Tar up OVF file and VMDK into 1 file .ova
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/pfSense-ovf.vmdk -rawdisk /dev/${MD}
+	rm ${OVFPATH}/${OVFFILE}
+	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/
+	/usr/local/bin/VBoxManage modifyhd -filename ${OVFPATH}/${OVFFILE} --compact
+	cd $OVFPATH && tar cpf $OVFFILE ${OVFMDK} pfSense.ovf
+	rm $OVFPATH/pfSense.ovf
+	rm $OVFPATH/$OVFMDK
+	ls -lah $OVFPATH/$OVFFILE
 }
 
 # This routine installs pfSense packages into the staging area.

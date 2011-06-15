@@ -105,7 +105,9 @@ export EXTRA="${EXTRA:-"customroot customscripts pkginstall buildmodules"}"
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.img}
 export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick.img}
-export OVFPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-ovf.vmdk}
+export OVFPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/}
+export OVFFILE=${PRODUCT_NAME}.ova
+export OVFMDK=pfSense-ovf.vmdk
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
