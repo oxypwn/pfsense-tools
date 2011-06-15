@@ -2530,7 +2530,7 @@ EOF
 	echo ">>> Creating 10 gigabyte OVF image..."
 	dd if=/dev/zero of=$OVFPATH bs=1m count=10240
 	/bin/echo -n ">>> Creating mdconfig image... "
-	MD=`mdconfig -a -t vnode -f $OVFPATH`
+	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}`
 	echo $MD
 	echo ">>> Zeroing out /dev/${MD}..."
 	dd if=/dev/zero of=/dev/$MD count=3000
