@@ -2526,6 +2526,7 @@ EOF
 	fi
 	rm ${OVFPATH}/${OVFFILE} 2>/dev/null
 	rm ${OVFPATH}/${OVAFILE} 2>/dev/null
+	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${$PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
 	truncate -s 10G $OVFPATH
 	echo ">>> Creating 10 gigabyte OVF image..."
@@ -2559,10 +2560,14 @@ EOF
 	mount -o rw /dev/${MD}s1a /mnt/
 	echo ">>> Duplicating ${CLONEDIR} to /mnt/..."
 	cpdup -vvv -I -o ${CLONEDIR} /mnt/
+	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
+	awk '{gsub(/vr0/,"em0",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
+	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ ${OVFPATH}/${$PRODUCT_NAME}.ovf
+	awk '{gsub(/vr1/,"em1",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
+	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
 	umount /mnt
 	echo ">>> Creating final vmdk..."
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} -rawdisk /dev/${MD}
-	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${$PRODUCT_NAME}.ovf
 	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
 	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
 	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
