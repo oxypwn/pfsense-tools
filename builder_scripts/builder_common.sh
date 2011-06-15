@@ -2534,7 +2534,7 @@ EOF
 	mount -o rw /dev/${MD}s1a /mnt/
 	cpdup -vvv -I -o ${CLONEDIR} /mnt/
 	umount /mnt
-	VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}.final -rawdisk /dev/${MD}
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}.final -rawdisk /dev/${MD}
 	rm ${OVFPATH}
 	mv ${OVFPATH}.final ${OVFPATH}
 	# XXX: Create OVF file
