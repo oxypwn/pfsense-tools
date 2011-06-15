@@ -2496,6 +2496,47 @@ awk '
 	fi
 }
 
+# This routine creates a vmdk/ovf image for 
+# vmware and virtualbox, etc.
+create_odf_image() {
+	if [ ! -f /usr/local/bin/VBoxManage ]; then
+		echo <<EOF >>/var/db/ports/virtualbox-ose/options
+_OPTIONS_READ=virtualbox-ose-4.0.8
+WITHOUT_QT4=true
+WITHOUT_DEBUG=true
+WITH_GUESTADDITIONS=true
+WITH_DBUS=true
+WITHOUT_PULSEAUDIO=true
+WITHOUT_X11=true
+WITHOUT_VDE=true
+WITHOUT_VNC=true
+WITHOUT_WEBSERVICE=true
+WITHOUT_NLS=true
+EOF
+		echo ">>> Installing VirtualBOX, one moment please..."
+		cd /usr/ports/emulators/virtualbox-ose && make install clean
+	fi
+	echo ">>> Truncating 10 gigabyte ODF image..."
+	truncate -s 10G $OVFPATH
+	echo ">>> Creating 10 gigabyte ODF image..."
+	dd if=/dev/zero of=$OVFPATH bs=1m count=10240
+	echo ">>> Creating mdconfig image..."
+	MD=`mdconfig -a -t vnode -f $OVFPATH`
+	echo ">>> Setting up disk partitions and such..."
+	gpart create -s mbr /dev/$MD
+	gpart add -b 63 -s 20971457 -t freebsd -i 1 /dev/$MD
+	gpart bootcode -b /boot/boot1 /dev/$MD
+	echo ">>> Running newfs..."
+	newfs -U /dev/{$MD}s1a
+	echo ">>> Labeling partitions"
+	glabel label pfSense /dev/{$MD}s1a
+	glabel label swap0 /dev/{$MD}s1b
+	mount -o rw /dev/{$MD}s1a /mnt/
+	cpdup -vvv -I -o ${CLONEDIR} /mnt/
+	umount /mnt
+	VBoxManage internalcommands createrawvmdk -filename {$OVFPATH}.final -rawdisk /dev/$MD
+}
+
 # This routine installs pfSense packages into the staging area.
 # Packages such as squid, snort, autoconfigbackup, etc.
 pfsense_install_custom_packages_exec() {
