@@ -2524,7 +2524,7 @@ EOF
 		echo ">>> Installing VirtualBOX from ports, one moment please..."
 		cd /usr/ports/emulators/virtualbox-ose && make install clean
 	fi
-	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${$PRODUCT_NAME}.ovf
+	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
 	truncate -s 10G $OVFPATH
 	echo ">>> Creating 10 gigabyte OVF image..."
@@ -2550,7 +2550,7 @@ EOF
 	newfs -U /dev/${MD}s1a
 	sync ; sync ; sync ; sync
 	echo ">>> Labeling partitions..."
-	glabel label pfSense /dev/${MD}s1a
+	glabel label ${PRODUCT_NAME} /dev/${MD}s1a
 	sync ; sync
 	glabel label swap0 /dev/${MD}s1b
 	sync ; sync

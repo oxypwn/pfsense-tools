@@ -108,7 +108,7 @@ export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-mem
 # OVF/vmdk parms
 export OVFPATH=${MAKEOBJDIRPREFIXFINAL}
 export OVFFILE=${PRODUCT_NAME}.ovf
-export OVFVMDK=pfSense-ovf.vmdk
+export OVFVMDK=${PRODUCT_NAME}.vmdk
 export OVAFILE=${PRODUCT_NAME}.ova
 
 # Binary staging area for pfSense specific binaries.
