@@ -2586,7 +2586,7 @@ EOF
 	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFVMDK} --compact
 	echo ">>> Creating OVA file ${OVAFILE}..."
 	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFVMDK}
-	echo ">>> Removing ova and ovf files..."
+	echo ">>> Removing ova and vmdk files..."
 	rm ${OVFPATH}/${OVFFILE} 2>/dev/null
 	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
 	echo ">>> ${OVFPATH}/${OVAFILE} created."

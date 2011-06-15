@@ -105,7 +105,8 @@ export EXTRA="${EXTRA:-"customroot customscripts pkginstall buildmodules"}"
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.img}
 export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick.img}
-export OVFPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/}
+# OVF/vmdk parms
+export OVFPATH=${MAKEOBJDIRPREFIXFINAL}
 export OVFFILE=${PRODUCT_NAME}.ovf
 export OVFVMDK=pfSense-ovf.vmdk
 export OVAFILE=${PRODUCT_NAME}.ova
