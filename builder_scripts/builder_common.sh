@@ -1717,6 +1717,12 @@ print_flags() {
 	printf "        TARGET_ARCH_CONF_DIR: %s\n" $TARGET_ARCH_CONF_DIR
 	printf "     FREESBIE_COMPLETED_MAIL: %s\n" $FREESBIE_COMPLETED_MAIL
 	printf "         FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
+	
+	printf "                     OVFPATH: %s\n" $OVFPATH
+	printf "                     OVFFILE: %s\n" $OVFFILE
+	printf "                      OVFMDK: %s\n" $OVFMDK
+	
+	
 if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "              pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
