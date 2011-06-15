@@ -2534,13 +2534,12 @@ EOF
 	mount -o rw /dev/${MD}s1a /mnt/
 	cpdup -vvv -I -o ${CLONEDIR} /mnt/
 	umount /mnt
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/pfSense-ovf.vmdk -rawdisk /dev/${MD}
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFMDK} -rawdisk /dev/${MD}
 	rm ${OVFPATH}/${OVFFILE}
-	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/
+	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${$PRODUCT_NAME}.ovf
+	# XXX: Change pfSense -> PRODUCT_NAME inside ovf file contents
 	/usr/local/bin/VBoxManage modifyhd -filename ${OVFPATH}/${OVFFILE} --compact
-	cd $OVFPATH && tar cpf $OVFFILE ${OVFMDK} pfSense.ovf
-	rm $OVFPATH/pfSense.ovf
-	rm $OVFPATH/$OVFMDK
+	cd $OVFPATH && tar cpf $OVFFILE ${OVFMDK} ${PRODUCT_NAME}.ovf
 	ls -lah $OVFPATH/$OVFFILE
 }
 
