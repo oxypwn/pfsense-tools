@@ -2498,7 +2498,7 @@ awk '
 
 # This routine creates a vmdk/ovf image for 
 # vmware and virtualbox, etc.
-create_odf_image() {
+create_ovf_image() {
 	if [ ! -f /usr/local/bin/VBoxManage ]; then
 		echo <<EOF >>/var/db/ports/virtualbox-ose/options
 _OPTIONS_READ=virtualbox-ose-4.0.8
