@@ -2573,10 +2573,10 @@ EOF
 	cpdup -vvv -I -o ${CLONEDIR}/usr /mnt/usr
 	cpdup -vvv -I -o ${CLONEDIR}/var /mnt/var
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
-	awk '{gsub(/vr0/,"em0",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
-	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ ${OVFPATH}/${$PRODUCT_NAME}.ovf
-	awk '{gsub(/vr1/,"em1",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
-	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
+	awk '{gsub(/vr0/,"em0",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.$$
+	mv ${CLONEDIR}/conf.default/config.xml.$$ ${CLONEDIR}/conf.default/config.xml.ovf
+	awk '{gsub(/vr1/,"em1",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.ovf.$$
+	mv ${CLONEDIR}/conf.default/config.xml.$$ >${CLONEDIR}/conf.default/config.xml
 	umount /mnt
 	echo ">>> Creating final vmdk..."
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} -rawdisk /dev/${MD}
