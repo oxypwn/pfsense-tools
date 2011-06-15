@@ -2544,7 +2544,7 @@ EOF
 	rm ${OVFPATH}/${OVFFILE}
 	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${$PRODUCT_NAME}.ovf
 	# XXX: Change pfSense -> PRODUCT_NAME inside ovf file contents
-	/usr/local/bin/VBoxManage modifyhd -filename ${OVFPATH}/${OVFFILE} --compact
+	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFFILE} --compact
 	cd $OVFPATH && tar cpf $OVFFILE ${OVFMDK} ${PRODUCT_NAME}.ovf
 	ls -lah $OVFPATH/$OVFFILE
 }
