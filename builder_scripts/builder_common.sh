@@ -2527,14 +2527,18 @@ EOF
 	gpart add -b 63 -s 20971457 -t freebsd -i 1 /dev/$MD
 	gpart bootcode -b /boot/boot1 /dev/$MD
 	echo ">>> Running newfs..."
-	newfs -U /dev/{$MD}s1a
+	newfs -U /dev/${MD}s1a
 	echo ">>> Labeling partitions"
-	glabel label pfSense /dev/{$MD}s1a
-	glabel label swap0 /dev/{$MD}s1b
-	mount -o rw /dev/{$MD}s1a /mnt/
+	glabel label pfSense /dev/${MD}s1a
+	glabel label swap0 /dev/${MD}s1b
+	mount -o rw /dev/${MD}s1a /mnt/
 	cpdup -vvv -I -o ${CLONEDIR} /mnt/
 	umount /mnt
-	VBoxManage internalcommands createrawvmdk -filename {$OVFPATH}.final -rawdisk /dev/$MD
+	VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}.final -rawdisk /dev/${MD}
+	rm ${OVFPATH}
+	mv ${OVFPATH}.final ${OVFPATH}
+	# XXX: Create OVF file
+	# XXX: Tar up OVF file and VMDK into 1 file .ova
 }
 
 # This routine installs pfSense packages into the staging area.
