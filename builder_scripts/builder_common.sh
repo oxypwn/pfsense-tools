@@ -2526,9 +2526,9 @@ EOF
 	fi
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
-	truncate -s 10G $OVFPATH
+	truncate -s 10G $OVFPATH/${OVFVMDK}
 	echo ">>> Creating 10 gigabyte OVF image..."
-	dd if=/dev/zero of=$OVFPATH bs=1m count=10240
+	dd if=/dev/zero of=$OVFPATH/${OVFVMDK} bs=1m count=10240
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}`
 	echo $MD
