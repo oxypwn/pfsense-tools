@@ -2577,7 +2577,7 @@ create_ova_image() {
 	sync ; sync
 	# Unmount /dev/mdX
 	mdconfig -d -u $MD
-	echo ">>> Creating vmdk..."
+	echo ">>> Creating vmdk using qemu..."
 	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
 	echo ">>> Finalizing vmdk using ovftool..."
 	/usr/local/vmware/ovftool/ovftool --diskMode monolithicSparse --compress 9 ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
@@ -2590,9 +2590,9 @@ create_ova_image() {
 	#   MyPackage.strings
 	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
 	if [ -f ${OVFPATH}/${OVAFILE} ]; then
-		#echo ">>> Removing ovf and vmdk files..."
-		# rm ${OVFPATH}/${OVFFILE} 2>/dev/null
-		# rm ${OVFPATH}/${OVFVMDK}.raw 2>/dev/null
+		echo ">>> Removing ovf and vmdk files..."
+		rm ${OVFPATH}/${OVFFILE} 2>/dev/null
+		rm ${OVFPATH}/${OVFVMDK}.raw 2>/dev/null
 		sync ; sync
 		echo ">>> ${OVFPATH}/${OVAFILE} created."
 		ls -lah ${OVFPATH}/${OVAFILE}
