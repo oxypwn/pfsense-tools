@@ -2554,7 +2554,7 @@ EOF
 	#file_search_replace vr0 em0 ${CLONEDIR}/conf.default/config.xml
 	#file_search_replace vr1 em1 ${CLONEDIR}/conf.default/config.xml	
 	awk '{gsub(/vr0/,"em0",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.$$
-	mv ${CLONEDIR}/conf.default/config.xml.$$ ${CLONEDIR}/conf.default/config.xml.ovf
+	mv ${CLONEDIR}/conf.default/config.xml.$$ ${CLONEDIR}/conf.default/config.xml
 	awk '{gsub(/vr1/,"em1",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.ovf.$$
 	mv ${CLONEDIR}/conf.default/config.xml.$$ >${CLONEDIR}/conf.default/config.xml
 	echo ">>> Mounting image to /mnt..."
@@ -2578,12 +2578,14 @@ EOF
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} -relative -rawdisk /dev/${MD}
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK}.final -relative -rawdisk /dev/${MD}
 	#file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${$PRODUCT_NAME}.ovf
 	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
 	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
 	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
-	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFVMDK} --compact
+	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFVMDK}.final --compact
+	echo ">>> Moving final ovf file into place..."
+	mv ${OVFPATH}/${OVFVMDK}.final ${OVFPATH}/${OVFVMDK}
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# Vmware tar format has restrictions.  ordering is:
 	#   MyPackage.ovf
