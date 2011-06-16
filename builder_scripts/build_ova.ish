@@ -206,21 +206,21 @@ if [ "$1" = "" ]; then
 	# Check to see if we have a healthy installer
 	ensure_healthy_installer
 
+	# Create md5 summary file listing checksums
+	create_md5_summary_file
+
+	# Setup custom tcshrc prompt
+	setup_tcshrc_prompt
+
+	# Setup serial port helper hints
+	if [ "$FBSD_VERSION" = "8" ]; then
+		setup_serial_hints
+	fi
+
+	# Ensure /home and /etc exists
+	mkdir -p $PFSENSEBASEDIR/home $PFSENSEBASEDIR/etc
+
 fi
-
-# Create md5 summary file listing checksums
-create_md5_summary_file
-
-# Setup custom tcshrc prompt
-setup_tcshrc_prompt
-
-# Setup serial port helper hints
-if [ "$FBSD_VERSION" = "8" ]; then
-	setup_serial_hints
-fi
-
-# Ensure /home and /etc exists
-mkdir -p $PFSENSEBASEDIR/home $PFSENSEBASEDIR/etc
 
 # Create OVA image (ovf + vmdk)
 create_ova_image
