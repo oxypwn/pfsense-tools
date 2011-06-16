@@ -2592,6 +2592,10 @@ create_ova_image() {
 	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
 	echo ">>> Finalizing vmdk using ovftool..."
 	/usr/local/vmware/ovftool/ovftool --acceptAllEulas --diskMode monolithicSparse --compress9 ${OVFPATH}/${PRODUCT_NAME}.ovf ${OVFPATH}/${OVFVMDK}.final
+	if [ -f ${OVFPATH}/${OVFVMDK}.final ]; then
+		# Move ovftool generated file into place
+		mv ${OVFPATH}/${OVFVMDK}.final ${OVFPATH}/${OVFVMDK}
+	fi
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# OVA tar format has restrictions.  Correct ordering is:
 	#   MyPackage.ovf
