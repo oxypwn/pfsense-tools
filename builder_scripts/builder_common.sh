@@ -2539,12 +2539,12 @@ EOF
 	dd if=/dev/zero of=/dev/$MD count=3000
 	dd if=/dev/zero of=/dev/$MD count=2048
 	echo ">>> Setting up disk partitions and such..."
-	gpart create -s mbr /dev/$MD
-	gpart add -b 63 -s 20971457 -t freebsd 1 /dev/$MD
+	gpart create -s mbr $MD
+	gpart add -b 63 -s 20971457 -t freebsd 1 $MD
 	echo ">>> Cleaning up /dev/$MD"
 	dd if=/dev/zero of=/dev/$MD count=1024
 	echo ">>> Stamping boot code..."
-	gpart bootcode -b /boot/boot1 /dev/$MD
+	gpart bootcode -b /boot/boot1 $MD
 	if [ ! -f /dev/${MD}s1a ]; then
 		echo "/dev/${MD}s1a does not exist.  Cannot continue."
 		print_error_pfS	
@@ -2553,9 +2553,9 @@ EOF
 	newfs -U /dev/${MD}s1a
 	sync ; sync ; sync ; sync
 	echo ">>> Labeling partitions..."
-	glabel label ${PRODUCT_NAME} /dev/${MD}s1a
+	glabel label ${PRODUCT_NAME} ${MD}s1a
 	sync ; sync
-	glabel label swap0 /dev/${MD}s1b
+	glabel label swap0 ${MD}s1b
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
 	awk '{gsub(/vr0/,"em0",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.$$
