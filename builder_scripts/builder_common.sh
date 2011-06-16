@@ -2535,29 +2535,28 @@ EOF
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}`
 	echo $MD
-	echo ">>> Zeroing out /dev/${MD}..."
-	dd if=/dev/zero of=/dev/$MD count=3000
-	dd if=/dev/zero of=/dev/$MD count=2048
 	echo ">>> Setting up disk partitions and such..."
 	gpart create -s mbr $MD
-	gpart add -b 63 -s 20971457 -t freebsd -i 1 $MD
-	echo ">>> Cleaning up /dev/$MD"
-	dd if=/dev/zero of=/dev/$MD count=1024
+	gpart delete -i 1 $MD
+    gpart add -s 8G -t freebsd -i 1 $MD
+	gpart add -s 2G -t freebsd-swap -i 2 $MD
 	echo ">>> Stamping boot code..."
 	gpart bootcode -b /boot/boot1 $MD
-	if [ ! -f /dev/${MD}s1a ]; then
-		echo "/dev/${MD}s1a does not exist.  Cannot continue."
+	if [ ! -f /dev/${MD}s1 ]; then
+		echo "/dev/${MD}s1 does not exist.  Cannot continue."
 		print_error_pfS	
 	fi
 	echo ">>> Running newfs..."
-	newfs -U /dev/${MD}s1a
+	newfs -U /dev/${MD}s1
 	sync ; sync ; sync ; sync
 	echo ">>> Labeling partitions..."
-	glabel label ${PRODUCT_NAME} ${MD}s1a
+	glabel label ${PRODUCT_NAME} ${MD}s1
 	sync ; sync
 	glabel label swap0 ${MD}s1b
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
+	#file_search_replace vr0 em0 ${CLONEDIR}/conf.default/config.xml
+	#file_search_replace vr1 em1 ${CLONEDIR}/conf.default/config.xml	
 	awk '{gsub(/vr0/,"em0",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.$$
 	mv ${CLONEDIR}/conf.default/config.xml.$$ ${CLONEDIR}/conf.default/config.xml.ovf
 	awk '{gsub(/vr1/,"em1",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.ovf.$$
@@ -2584,6 +2583,7 @@ EOF
 	sync ; sync
 	echo ">>> Creating final vmdk..."
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} --format vmdk -rawdisk /dev/${MD}
+	#file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${$PRODUCT_NAME}.ovf
 	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
 	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
 	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
@@ -2602,6 +2602,14 @@ EOF
 	sync ; sync
 	echo ">>> ${OVFPATH}/${OVAFILE} created."
 	ls -lah ${OVFPATH}/${OVAFILE}
+}
+
+file_search_replace() {
+	SEARCH=$1
+	REPLACE=$2
+	FILENAME=$3
+	awk '{gsub(/${SEARCH}/,"${REPLACE}",$0)}' $FILENAME >$FILENAME.$$
+	mv $FILENAME >$FILENAME.$$ >$FILENAME >$FILENAME
 }
 
 # This routine installs pfSense packages into the staging area.
