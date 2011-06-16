@@ -2554,9 +2554,10 @@ create_ova_image() {
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}s1
 	sync ; sync ; sync ; sync
-	echo ">>> Labeling partitions..."
+	echo ">>> Labeling partitions: ${MD}s1..."
 	glabel label ${PRODUCT_NAME} ${MD}s1
 	sync ; sync
+	echo ">>> Labeling partitions: ${MD}s2..."
 	glabel label swap0 ${MD}s2
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
@@ -2582,9 +2583,9 @@ create_ova_image() {
 	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
 	echo ">>> Calculating size of /mnt..."
 	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
+	du -d1 -h /mnt/
 	echo ">>> Setting vmdk install size to ${INSTALLSIZE}..."
 	file_search_replace INSTALLSIZE $INSTALLSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
-	du -d1 -h /mnt/
 	umount /mnt
 	sync ; sync
 	# Unmount /dev/mdX
