@@ -2578,16 +2578,13 @@ EOF
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
-	rm ${OVFPATH}/${OVFVMDK}* 2>/dev/null
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk \
-		-filename ${OVFPATH}/${OVFVMDK}.final \
-		-partitions 1 \
-		-relative \
-		-rawdisk /dev/${MD}
+	rm ${OVFPATH}/${OVFVMDK}*.final 2>/dev/null
+	rm ${OVFPATH}/${OVFVMDK}-pt* 2>/dev/null
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK}.final -partitions 1 -relative -rawdisk /dev/${MD}
 	echo ">>> Moving final ovf file into place..."
 	mv ${OVFPATH}/${OVFVMDK}.final ${OVFPATH}/${OVFVMDK}
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
-	# Vmware tar format has restrictions.  ordering is:
+	# OVA tar format has restrictions.  Correct ordering is:
 	#   MyPackage.ovf
 	#   MyPackage.mf
 	#   MyPackage.cert
@@ -2595,7 +2592,7 @@ EOF
 	#   MyPackage.strings
 	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
 	if [ -f ${OVFPATH}/${OVAFILE} ]; then
-		#echo ">>> Removing ova and vmdk files..."
+		#echo ">>> Removing ovf and vmdk files..."
 		#rm ${OVFPATH}/${OVFFILE} 2>/dev/null
 		#rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
 		sync ; sync
