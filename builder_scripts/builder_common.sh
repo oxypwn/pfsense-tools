@@ -2543,12 +2543,13 @@ create_ova_image() {
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
 	echo $MD
-	echo ">>> Setting up disk partitions and such..."
+	echo ">>> Setting up disk slices: ${MD}s1..."
 	gpart create -s mbr $MD
 	gpart delete -i 1 $MD
     gpart add -s 8G -t freebsd -i 1 $MD
 	echo ">>> Stamping boot code..."
 	gpart bootcode -b /boot/boot1 $MD
+	echo ">>> Setting up disk slices: ${MD}s2 (swap)..."
 	gpart add -s 1G -t freebsd-swap -i 2 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}s1
