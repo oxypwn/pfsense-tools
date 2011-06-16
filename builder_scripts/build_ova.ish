@@ -2,8 +2,8 @@
 #
 # Common functions to be used by build scripts
 #
-#  build_iso.sh
-#  Copyright (C) 2004-2009 Scott Ullrich
+#  build_ova.sh
+#  Copyright (C) 2004-2011 Scott Ullrich
 #  All rights reserved.
 #  
 #  Redistribution and use in source and binary forms, with or without
@@ -66,17 +66,21 @@ fi
 # This should be run first
 launch
 
-# Make sure source directories are present.
-ensure_source_directories_present
+if [ "$1" = "" ]; then
 
-# Ensure binaries are present that builder system requires
-install_required_builder_system_ports
+	# Make sure source directories are present.
+	ensure_source_directories_present
 
-# Check if we need to force a ports rebuild
-check_for_forced_pfPorts_build
+	# Ensure binaries are present that builder system requires
+	install_required_builder_system_ports
 
-# Clean up items that should be cleaned each run
-freesbie_clean_each_run
+	# Check if we need to force a ports rebuild
+	check_for_forced_pfPorts_build
+
+	# Clean up items that should be cleaned each run
+	freesbie_clean_each_run
+
+fi
 
 # Allow old CVS_CO_DIR to be deleted later
 if [ -d $CVS_CO_DIR ]; then 
@@ -86,11 +90,15 @@ fi
 # Output build flags
 print_flags
 
-# Install BSDInstaller
-rebuild_and_install_bsdinstaller
+if [ "$1" = "" ]; then
 
-# Update FreeBSD sources and install custom patches
-update_freebsd_sources_and_apply_patches
+	# Install BSDInstaller
+	rebuild_and_install_bsdinstaller
+
+	# Update FreeBSD sources and install custom patches
+	update_freebsd_sources_and_apply_patches
+
+fi
 
 # Checkout a fresh copy from pfsense cvs depot
 echo ">>> Updating pfSense GIT repo..."
@@ -101,75 +109,79 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
-# Prepare object directry
-echo ">>> Preparing object directory..."
-freesbie_make obj
+if [ "$1" = "" ]; then
 
-# Build world, kernel and install
-echo ">>> Building world and kernels for ISO... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
-make_world
+	# Prepare object directry
+	echo ">>> Preparing object directory..."
+	freesbie_make obj
 
-# Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
-build_all_kernels
+	# Build world, kernel and install
+	echo ">>> Building world and kernels for ISO... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+	make_world
 
-# Check for freesbie builder issues
-if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
-	echo "Something has gone wrong!  Press ENTER to view log file."
-	read ans
-	more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild 
-	exit
+	# Build SMP, Embedded (wrap) and Developers edition kernels
+	echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+	build_all_kernels
+
+	# Check for freesbie builder issues
+	if [ -f ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild ]; then
+		echo "Something has gone wrong!  Press ENTER to view log file."
+		read ans
+		more ${MAKEOBJDIRPREFIX}/usr/home/pfsense/freesbie2/.tmp_kernelbuild 
+		exit
+	fi
+
+	# Add extra pfSense packages
+	echo ">>> Phase install_custom_packages"
+	install_custom_packages
+	echo ">>> Phase set_image_as_cdrom"
+	set_image_as_cdrom
+
+	echo ">>> Searching for packages..."
+	set +e # grep could fail
+	if [ "$PFSPKGFILE" = "" ]; then
+		echo "PFSPKGFILE is not defined.  Setting."
+		PFSPKGFILE=/tmp/pfspackages
+	fi
+	export PKGFILE=${PFSPKGFILE}
+	rm -f $PFSPKGFILE
+	(cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
+	(cd /var/db/pkg && ls | grep grub) >> $PFSPKGFILE
+	(cd /var/db/pkg && ls | grep lua) >> $PFSPKGFILE
+	set -e
+	freesbie_make pkginstall
+	unset PKGFILE
+
+	# Install packages needed for livecd
+	echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS" 
+	install_pkg_install_ports
+
+	echo ">>> Installing packages: " 
+	cat $PFSPKGFILE
+
+	# Add installer bits
+	cust_populate_installer_bits
+
+	# Add extra files such as buildtime of version, bsnmpd, etc.
+	echo ">>> Phase populate_extra..."
+	cust_populate_extra
+
+	# Overlay pfsense checkout on top of FreeSBIE image
+	# using the customroot plugin
+	echo ">>> Merging extra items..."
+	freesbie_make extra
+
+	# Overlay host binaries
+	cust_overlay_host_binaries
+	check_for_zero_size_files
+
+	# Check for custom config.xml
+	cust_install_config_xml
+
+	# Install custom pfSense-XML packages from a chroot
+	pfsense_install_custom_packages_exec
+
 fi
-
-# Add extra pfSense packages
-echo ">>> Phase install_custom_packages"
-install_custom_packages
-echo ">>> Phase set_image_as_cdrom"
-set_image_as_cdrom
-
-echo ">>> Searching for packages..."
-set +e # grep could fail
-if [ "$PFSPKGFILE" = "" ]; then
-	echo "PFSPKGFILE is not defined.  Setting."
-	PFSPKGFILE=/tmp/pfspackages
-fi
-export PKGFILE=${PFSPKGFILE}
-rm -f $PFSPKGFILE
-(cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
-(cd /var/db/pkg && ls | grep grub) >> $PFSPKGFILE
-(cd /var/db/pkg && ls | grep lua) >> $PFSPKGFILE
-set -e
-freesbie_make pkginstall
-unset PKGFILE
-
-# Install packages needed for livecd
-echo ">>> Installing packages: $PKG_INSTALL_PORTSPFS" 
-install_pkg_install_ports
-
-echo ">>> Installing packages: " 
-cat $PFSPKGFILE
-
-# Add installer bits
-cust_populate_installer_bits
-
-# Add extra files such as buildtime of version, bsnmpd, etc.
-echo ">>> Phase populate_extra..."
-cust_populate_extra
-
-# Overlay pfsense checkout on top of FreeSBIE image
-# using the customroot plugin
-echo ">>> Merging extra items..."
-freesbie_make extra
-
-# Overlay host binaries
-cust_overlay_host_binaries
-check_for_zero_size_files
-
-# Check for custom config.xml
-cust_install_config_xml
-
-# Install custom pfSense-XML packages from a chroot
-pfsense_install_custom_packages_exec
 
 # See if php configuration script is available
 if [ -f $PFSENSEBASEDIR/etc/rc.php_ini_setup ]; then
@@ -180,17 +192,21 @@ fi
 # Overlay final files
 install_custom_overlay_final
 
-# LiveCD specifics
-setup_livecd_specifics
+if [ "$1" = "" ]; then
 
-# Ensure config.xml exists
-copy_config_xml_from_conf_default
+	# LiveCD specifics
+	setup_livecd_specifics
 
-# Test PHP installation
-test_php_install
+	# Ensure config.xml exists
+	copy_config_xml_from_conf_default
 
-# Check to see if we have a healthy installer
-ensure_healthy_installer
+	# Test PHP installation
+	test_php_install
+
+	# Check to see if we have a healthy installer
+	ensure_healthy_installer
+
+fi
 
 # Create md5 summary file listing checksums
 create_md5_summary_file
