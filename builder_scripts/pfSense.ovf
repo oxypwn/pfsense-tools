@@ -99,7 +99,7 @@
       <Info>Describes product information for the service</Info>
       <Product>pfSense</Product>
       <Vendor>BSD Perimeter, LLC</Vendor>
-      <Version>20110615</Version>
+      <Version>2.0-RC3</Version>
       <ProductUrl>http://www.pfsense.org</ProductUrl>
       <VendorUrl>http://www.pfsense.org</VendorUrl>
     </ProductSection>
