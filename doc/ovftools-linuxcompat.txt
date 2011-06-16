@@ -1,11 +1,13 @@
-cd /usr/ports/emulators/linux_base-f10/
-make install clean
+OVFTool prep instructions
 
 echo 'linux_enable="YES"' >> /etc/rc.conf
 kldload linux
 
 echo "linproc         /usr/compat/linux/proc linprocfs rw 0 0" >> /etc/fstab
 mount -a
+
+cd /usr/ports/emulators/linux_base-f10/
+make install clean
 
 cd /usr/ports/ftp/linux-f10-curl
 make install clean
