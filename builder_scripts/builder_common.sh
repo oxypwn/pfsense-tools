@@ -2571,6 +2571,7 @@ create_ova_image() {
 	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
 	echo ">>> Calculating size of /mnt..."
 	INSTALLSIZE=`du -d0 /mnt/ | awk '{ print $1 }'`
+	echo ">>> Setting vmdk install size to ${INSTALLSIZE}..."
 	file_search_replace INSTALLSIZE $INSTALLSIZE ${PFSENSEBASEDIR}/conf.default/config.xml
 	du -d1 -h /mnt/
 	umount /mnt
@@ -2580,7 +2581,7 @@ create_ova_image() {
 	echo ">>> Creating vmdk using qemu..."
 	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
 	echo ">>> Finalizing vmdk using ovftool..."
-	/usr/local/vmware/ovftool/ovftool --diskMode monolithicSparse --compress 9 ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
+	/usr/local/vmware/ovftool/ovftool --diskMode monolithicSparse --compress ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# OVA tar format has restrictions.  Correct ordering is:
 	#   MyPackage.ovf
