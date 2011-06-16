@@ -2551,40 +2551,37 @@ EOF
 	glabel label swap0 ${MD}s1
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
-	#file_search_replace vr0 em0 ${CLONEDIR}/conf.default/config.xml
-	#file_search_replace vr1 em1 ${CLONEDIR}/conf.default/config.xml	
-	awk '{gsub(/vr0/,"em0",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.$$
-	mv ${CLONEDIR}/conf.default/config.xml.$$ ${CLONEDIR}/conf.default/config.xml
-	awk '{gsub(/vr1/,"em1",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.ovf.$$
-	mv ${CLONEDIR}/conf.default/config.xml.$$ >${CLONEDIR}/conf.default/config.xml
+	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml
+	file_search_replace vr1 em1 ${PFSENSEBASEDIR}/conf.default/config.xml	
 	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1 /mnt/
 	echo ">>> Populating vmdk staging area..."	
-	cpdup -o ${CLONEDIR}/COPYRIGHT /mnt/COPYRIGHT
-	cpdup -o ${CLONEDIR}/boot /mnt/boot
-	cpdup -o ${CLONEDIR}/bin /mnt/bin
-	cpdup -o ${CLONEDIR}/conf /mnt/conf
-	cpdup -o ${CLONEDIR}/conf.default /mnt/conf.default
-	cpdup -o ${CLONEDIR}/dev /mnt/dev
-	cpdup -o ${CLONEDIR}/etc /mnt/etc
-	cpdup -o ${CLONEDIR}/home /mnt/home
-	cpdup -o ${CLONEDIR}/kernels /mnt/kernels
-	cpdup -o ${CLONEDIR}/libexec /mnt/libexec
-	cpdup -o ${CLONEDIR}/lib /mnt/lib
-	cpdup -o ${CLONEDIR}/root /mnt/root
-	cpdup -o ${CLONEDIR}/sbin /mnt/sbin
-	cpdup -o ${CLONEDIR}/usr /mnt/usr
-	cpdup -o ${CLONEDIR}/var /mnt/var
+	cpdup -vvv -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
+	cpdup -vvv -o ${PFSENSEBASEDIR}/boot /mnt/boot
+	cpdup -vvv -o ${PFSENSEBASEDIR}/bin /mnt/bin
+	cpdup -vvv -o ${PFSENSEBASEDIR}/conf /mnt/conf
+	cpdup -vvv -o ${PFSENSEBASEDIR}/conf.default /mnt/conf.default
+	cpdup -vvv -o ${PFSENSEBASEDIR}/dev /mnt/dev
+	cpdup -vvv -o ${PFSENSEBASEDIR}/etc /mnt/etc
+	cpdup -vvv -o ${PFSENSEBASEDIR}/home /mnt/home
+	cpdup -vvv -o ${PFSENSEBASEDIR}/kernels /mnt/kernels
+	cpdup -vvv -o ${PFSENSEBASEDIR}/libexec /mnt/libexec
+	cpdup -vvv -o ${PFSENSEBASEDIR}/lib /mnt/lib
+	cpdup -vvv -o ${PFSENSEBASEDIR}/root /mnt/root
+	cpdup -vvv -o ${PFSENSEBASEDIR}/sbin /mnt/sbin
+	cpdup -vvv -o ${PFSENSEBASEDIR}/usr /mnt/usr
+	cpdup -vvv -o ${PFSENSEBASEDIR}/var /mnt/var
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
 	rm ${OVFPATH}/${OVFVMDK}.final 2>/dev/null
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK}.final -relative -rawdisk /dev/${MD}
-	#file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
-	awk '{gsub(/pfSense/,"${PRODUCT_NAME}",$0)}' ${OVFPATH}/${PRODUCT_NAME}.ovf >${OVFPATH}/${PRODUCT_NAME}.ovf.$$
-	mv ${OVFPATH}/${PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${PRODUCT_NAME}.ovf
-	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
-	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFVMDK}.final --compact
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk \
+		-filename ${OVFPATH}/${OVFVMDK}.final \
+		-partitions 1 \
+		-mbr \
+		-relative \
+		-rawdisk /dev/${MD}
+	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Moving final ovf file into place..."
 	mv ${OVFPATH}/${OVFVMDK}.final ${OVFPATH}/${OVFVMDK}
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
@@ -2597,8 +2594,8 @@ EOF
 	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
 	if [ -f ${OVFPATH}/${OVAFILE} ]; then
 		echo ">>> Removing ova and vmdk files..."
-		rm ${OVFPATH}/${OVFFILE} 2>/dev/null
-		rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
+		#rm ${OVFPATH}/${OVFFILE} 2>/dev/null
+		#rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
 		sync ; sync
 		echo ">>> ${OVFPATH}/${OVAFILE} created."
 		ls -lah ${OVFPATH}/${OVAFILE}
