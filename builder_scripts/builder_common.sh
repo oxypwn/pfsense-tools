@@ -2517,7 +2517,9 @@ create_ova_image() {
 	#     1. total size of installed image to.
 	#     2. license 
 	#     3. product name
-	#     4. ?
+	#     4. version
+	#     5. number of network interface cards
+	#     6. 
 	if [ ! -f /usr/local/vmware/ovftool/ovftool ]; then
 		echo "vmware ovf tool not found.  cannot continue."
 		print_error_pfS
