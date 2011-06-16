@@ -2540,7 +2540,7 @@ EOF
 	dd if=/dev/zero of=/dev/$MD count=2048
 	echo ">>> Setting up disk partitions and such..."
 	gpart create -s mbr $MD
-	gpart add -b 63 -s 20971457 -t freebsd 1 $MD
+	gpart add -b 63 -s 20971457 -t freebsd -i 1 $MD
 	echo ">>> Cleaning up /dev/$MD"
 	dd if=/dev/zero of=/dev/$MD count=1024
 	echo ">>> Stamping boot code..."
@@ -2564,7 +2564,7 @@ EOF
 	mv ${CLONEDIR}/conf.default/config.xml.$$ >${CLONEDIR}/conf.default/config.xml
 	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1a /mnt/
-	echo ">>> Duplicating ${CLONEDIR} to /mnt/..."	
+	echo ">>> Populating vmdk staging area..."	
 	cpdup -o ${CLONEDIR}/COPYRIGHT /mnt/COPYRIGHT
 	cpdup -o ${CLONEDIR}/boot /mnt/boot
 	cpdup -o ${CLONEDIR}/bin /mnt/bin
