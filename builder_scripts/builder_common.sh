@@ -43,6 +43,10 @@
 #  set -e
 #  set -x
 
+if [ "$1" != "" ]; then
+	echo ">>> Engaging fast rebuild mode.  Skipping most building steps."
+fi
+
 if [ "$MAKEOBJDIRPREFIXFINAL" ]; then
 	mkdir -p $MAKEOBJDIRPREFIXFINAL
 else
@@ -2572,9 +2576,9 @@ create_ova_image() {
 	cpdup -o ${PFSENSEBASEDIR}/usr /mnt/usr
 	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
 	echo ">>> Calculating size of /mnt..."
-	INSTALLSIZE=`du -s -d0 /mnt/ | awk '{ print $1 }'`
+	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
 	echo ">>> Setting vmdk install size to ${INSTALLSIZE}..."
-	file_search_replace INSTALLSIZE $INSTALLSIZE ${PFSENSEBASEDIR}/conf.default/config.xml
+	file_search_replace INSTALLSIZE $INSTALLSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
 	du -d1 -h /mnt/
 	umount /mnt
 	sync ; sync
@@ -2583,7 +2587,7 @@ create_ova_image() {
 	echo ">>> Creating vmdk using qemu..."
 	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
 	echo ">>> Finalizing vmdk using ovftool..."
-	/usr/local/vmware/ovftool/ovftool --diskMode monolithicSparse --compress ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
+	/usr/local/vmware/ovftool/ovftool --compress ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# OVA tar format has restrictions.  Correct ordering is:
 	#   MyPackage.ovf
@@ -2594,8 +2598,8 @@ create_ova_image() {
 	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
 	if [ -f ${OVFPATH}/${OVAFILE} ]; then
 		echo ">>> Removing ovf and vmdk files..."
-		rm ${OVFPATH}/${OVFFILE} 2>/dev/null
-		rm ${OVFPATH}/${OVFVMDK}.raw 2>/dev/null
+		#rm ${OVFPATH}/${OVFFILE} 2>/dev/null
+		#rm ${OVFPATH}/${OVFVMDK}.raw 2>/dev/null
 		sync ; sync
 		echo ">>> ${OVFPATH}/${OVAFILE} created."
 		ls -lah ${OVFPATH}/${OVAFILE}
