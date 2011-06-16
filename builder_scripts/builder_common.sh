@@ -2558,27 +2558,27 @@ EOF
 	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1 /mnt/
 	echo ">>> Populating vmdk staging area..."	
-	cpdup -v -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
-	cpdup -v -o ${PFSENSEBASEDIR}/boot /mnt/boot
-	cpdup -v -o ${PFSENSEBASEDIR}/bin /mnt/bin
-	cpdup -v -o ${PFSENSEBASEDIR}/conf /mnt/conf
-	cpdup -v -o ${PFSENSEBASEDIR}/conf.default /mnt/conf.default
-	cpdup -v -o ${PFSENSEBASEDIR}/dev /mnt/dev
-	cpdup -v -o ${PFSENSEBASEDIR}/etc /mnt/etc
-	cpdup -v -o ${PFSENSEBASEDIR}/home /mnt/home
-	cpdup -v -o ${PFSENSEBASEDIR}/kernels /mnt/kernels
-	cpdup -v -o ${PFSENSEBASEDIR}/libexec /mnt/libexec
-	cpdup -v -o ${PFSENSEBASEDIR}/lib /mnt/lib
-	cpdup -v -o ${PFSENSEBASEDIR}/root /mnt/root
-	cpdup -v -o ${PFSENSEBASEDIR}/sbin /mnt/sbin
-	cpdup -v -o ${PFSENSEBASEDIR}/usr /mnt/usr
-	cpdup -v -o ${PFSENSEBASEDIR}/var /mnt/var
+	cpdup -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
+	cpdup -o ${PFSENSEBASEDIR}/boot /mnt/boot
+	cpdup -o ${PFSENSEBASEDIR}/bin /mnt/bin
+	cpdup -o ${PFSENSEBASEDIR}/conf /mnt/conf
+	cpdup -o ${PFSENSEBASEDIR}/conf.default /mnt/conf.default
+	cpdup -o ${PFSENSEBASEDIR}/dev /mnt/dev
+	cpdup -o ${PFSENSEBASEDIR}/etc /mnt/etc
+	cpdup -o ${PFSENSEBASEDIR}/home /mnt/home
+	cpdup -o ${PFSENSEBASEDIR}/kernels /mnt/kernels
+	cpdup -o ${PFSENSEBASEDIR}/libexec /mnt/libexec
+	cpdup -o ${PFSENSEBASEDIR}/lib /mnt/lib
+	cpdup -o ${PFSENSEBASEDIR}/root /mnt/root
+	cpdup -o ${PFSENSEBASEDIR}/sbin /mnt/sbin
+	cpdup -o ${PFSENSEBASEDIR}/usr /mnt/usr
+	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
 	echo ">>> Calculating size of /mnt..."
 	du -d1 -h /mnt/
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
-	rm ${OVFPATH}/${OVFVMDK}.final 2>/dev/null
+	rm ${OVFPATH}/${OVFVMDK}* 2>/dev/null
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk \
 		-filename ${OVFPATH}/${OVFVMDK}.final \
 		-partitions 1 \
