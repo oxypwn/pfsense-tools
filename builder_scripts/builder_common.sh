@@ -2577,8 +2577,9 @@ create_ova_image() {
 	sync ; sync
 	# Unmount /dev/mdX
 	mdconfig -d -u $MD
-	echo ">>> Creating final vmdk..."
+	echo ">>> Creating vmdk..."
 	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
+	echo ">>> Finalizing vmdk using ovftool..."
 	/usr/local/vmware/ovftool/ovftool --diskMode monolithicSparse --compress 9 ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# OVA tar format has restrictions.  Correct ordering is:
