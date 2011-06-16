@@ -2579,7 +2579,7 @@ EOF
 	sync ; sync
 	echo ">>> Creating final vmdk..."
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK}.final -relative -rawdisk /dev/${MD}
-	#file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${$PRODUCT_NAME}.ovf
+	#file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	awk '{gsub(/pfSense/,"${PRODUCT_NAME}",$0)}' ${OVFPATH}/${PRODUCT_NAME}.ovf >${OVFPATH}/${PRODUCT_NAME}.ovf.$$
 	mv ${OVFPATH}/${PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
@@ -2594,12 +2594,17 @@ EOF
 	#   MyPackage.vmdk
 	#   MyPackage.strings
 	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
-	echo ">>> Removing ova and vmdk files..."
-	rm ${OVFPATH}/${OVFFILE} 2>/dev/null
-	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
-	sync ; sync
-	echo ">>> ${OVFPATH}/${OVAFILE} created."
-	ls -lah ${OVFPATH}/${OVAFILE}
+	if [ -f ${OVFPATH}/${OVAFILE} ]; then
+		echo ">>> Removing ova and vmdk files..."
+		rm ${OVFPATH}/${OVFFILE} 2>/dev/null
+		rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
+		sync ; sync
+		echo ">>> ${OVFPATH}/${OVAFILE} created."
+		ls -lah ${OVFPATH}/${OVAFILE}
+	else
+		echo "!!! Something went wrong - ova file not created."
+		print_error_pfS
+	fi
 }
 
 file_search_replace() {
