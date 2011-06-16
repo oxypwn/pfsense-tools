@@ -2580,8 +2580,8 @@ EOF
 	echo ">>> Creating final vmdk..."
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK}.final -relative -rawdisk /dev/${MD}
 	#file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${$PRODUCT_NAME}.ovf
-	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
-	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
+	awk '{gsub(/pfSense/,"${PRODUCT_NAME}",$0)}' ${OVFPATH}/${PRODUCT_NAME}.ovf >${OVFPATH}/${PRODUCT_NAME}.ovf.$$
+	mv ${OVFPATH}/${PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
 	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFVMDK}.final --compact
 	echo ">>> Moving final ovf file into place..."
