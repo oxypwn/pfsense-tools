@@ -2530,6 +2530,7 @@ EOF
 		cd /usr/ports/emulators/virtualbox-ose && make install clean
 	fi
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
+	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
 	truncate -s 10G ${OVFPATH}/${OVFVMDK}
 	/bin/echo -n ">>> Creating mdconfig image... "
@@ -2556,21 +2557,23 @@ EOF
 	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1 /mnt/
 	echo ">>> Populating vmdk staging area..."	
-	cpdup -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
-	cpdup -o ${PFSENSEBASEDIR}/boot /mnt/boot
-	cpdup -o ${PFSENSEBASEDIR}/bin /mnt/bin
-	cpdup -o ${PFSENSEBASEDIR}/conf /mnt/conf
-	cpdup -o ${PFSENSEBASEDIR}/conf.default /mnt/conf.default
-	cpdup -o ${PFSENSEBASEDIR}/dev /mnt/dev
-	cpdup -o ${PFSENSEBASEDIR}/etc /mnt/etc
-	cpdup -o ${PFSENSEBASEDIR}/home /mnt/home
-	cpdup -o ${PFSENSEBASEDIR}/kernels /mnt/kernels
-	cpdup -o ${PFSENSEBASEDIR}/libexec /mnt/libexec
-	cpdup -o ${PFSENSEBASEDIR}/lib /mnt/lib
-	cpdup -o ${PFSENSEBASEDIR}/root /mnt/root
-	cpdup -o ${PFSENSEBASEDIR}/sbin /mnt/sbin
-	cpdup -o ${PFSENSEBASEDIR}/usr /mnt/usr
-	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
+	cpdup -v -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
+	cpdup -v -o ${PFSENSEBASEDIR}/boot /mnt/boot
+	cpdup -v -o ${PFSENSEBASEDIR}/bin /mnt/bin
+	cpdup -v -o ${PFSENSEBASEDIR}/conf /mnt/conf
+	cpdup -v -o ${PFSENSEBASEDIR}/conf.default /mnt/conf.default
+	cpdup -v -o ${PFSENSEBASEDIR}/dev /mnt/dev
+	cpdup -v -o ${PFSENSEBASEDIR}/etc /mnt/etc
+	cpdup -v -o ${PFSENSEBASEDIR}/home /mnt/home
+	cpdup -v -o ${PFSENSEBASEDIR}/kernels /mnt/kernels
+	cpdup -v -o ${PFSENSEBASEDIR}/libexec /mnt/libexec
+	cpdup -v -o ${PFSENSEBASEDIR}/lib /mnt/lib
+	cpdup -v -o ${PFSENSEBASEDIR}/root /mnt/root
+	cpdup -v -o ${PFSENSEBASEDIR}/sbin /mnt/sbin
+	cpdup -v -o ${PFSENSEBASEDIR}/usr /mnt/usr
+	cpdup -v -o ${PFSENSEBASEDIR}/var /mnt/var
+	echo ">>> Calculating size of /mnt..."
+	du -d1 -h /mnt/
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
@@ -2580,7 +2583,6 @@ EOF
 		-partitions 1 \
 		-relative \
 		-rawdisk /dev/${MD}
-	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Moving final ovf file into place..."
 	mv ${OVFPATH}/${OVFVMDK}.final ${OVFPATH}/${OVFVMDK}
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
@@ -2592,7 +2594,7 @@ EOF
 	#   MyPackage.strings
 	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
 	if [ -f ${OVFPATH}/${OVAFILE} ]; then
-		echo ">>> Removing ova and vmdk files..."
+		#echo ">>> Removing ova and vmdk files..."
 		#rm ${OVFPATH}/${OVFFILE} 2>/dev/null
 		#rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
 		sync ; sync
@@ -2608,8 +2610,8 @@ file_search_replace() {
 	SEARCH=$1
 	REPLACE=$2
 	FILENAME=$3
-	awk '{gsub(/${SEARCH}/,"${REPLACE}",$0)}' $FILENAME >$FILENAME.$$
-	mv $FILENAME >$FILENAME.$$ >$FILENAME >$FILENAME
+	awk '{gsub(/${SEARCH}/,"${REPLACE}",\$0)}' $FILENAME >$FILENAME.$$
+	mv $FILENAME.$$ $FILENAME
 }
 
 # This routine installs pfSense packages into the staging area.
