@@ -2548,7 +2548,7 @@ EOF
 	echo ">>> Labeling partitions..."
 	glabel label ${PRODUCT_NAME} ${MD}s1
 	sync ; sync
-	glabel label swap0 ${MD}s1b
+	glabel label swap0 ${MD}s1
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
 	#file_search_replace vr0 em0 ${CLONEDIR}/conf.default/config.xml
@@ -2578,7 +2578,7 @@ EOF
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} --format vmdk -rawdisk /dev/${MD}
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} -relative -rawdisk /dev/${MD}
 	#file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${$PRODUCT_NAME}.ovf
 	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
 	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
