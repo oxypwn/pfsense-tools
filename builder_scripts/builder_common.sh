@@ -2514,12 +2514,14 @@ awk '
 # http://www.vmware.com/pdf/ovf_whitepaper_specification.pdf
 create_ova_image() {
 	# XXX create a .ovf php creator that you can pass:
-	#     1. total size of installed image to.
+	#     1. populatedSize
 	#     2. license 
 	#     3. product name
 	#     4. version
 	#     5. number of network interface cards
-	#     6. 
+	#     6. allocationUnits
+	#     7. capacity
+	#     8. capacityAllocationUnits
 	if [ ! -f /usr/local/vmware/ovftool/ovftool ]; then
 		echo "vmware ovf tool not found.  cannot continue."
 		print_error_pfS
