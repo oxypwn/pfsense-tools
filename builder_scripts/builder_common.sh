@@ -2509,33 +2509,20 @@ awk '
 # (and many other emulation platforms)
 # http://www.vmware.com/pdf/ovf_whitepaper_specification.pdf
 create_ova_image() {
-	if [ ! -f /usr/local/bin/VBoxManage ]; then
-		echo <<EOF >>/var/db/ports/virtualbox-ose/options
-_OPTIONS_READ=virtualbox-ose-4.0.8
-WITHOUT_QT4=true
-WITHOUT_DEBUG=true
-WITH_GUESTADDITIONS=true
-WITH_DBUS=true
-WITHOUT_PULSEAUDIO=true
-WITHOUT_X11=true
-WITHOUT_VDE=true
-WITHOUT_VNC=true
-WITHOUT_WEBSERVICE=true
-WITHOUT_NLS=true
-EOF
+	if [ ! -f /usr/local/bin/qemu-img ]; then
 		if [ ! -d /usr/ports ]; then
 			echo ">>> /usr/ports does not exist, fetching..."
 			portsnap fetch extract
 		fi
-		echo ">>> Installing VirtualBOX from ports, one moment please..."
-		cd /usr/ports/emulators/virtualbox-ose && make install clean
+		echo ">>> Installing Qemu from ports, one moment please..."
+		cd /usr/ports/emulators/qemu && make install clean
 	fi
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
-	truncate -s 10G ${OVFPATH}/${OVFVMDK}
+	truncate -s 10G ${OVFPATH}/${OVFVMDK}.raw
 	/bin/echo -n ">>> Creating mdconfig image... "
-	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}`
+	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
 	echo $MD
 	echo ">>> Setting up disk partitions and such..."
 	gpart create -s mbr $MD
@@ -2577,12 +2564,10 @@ EOF
 	du -d1 -h /mnt/
 	umount /mnt
 	sync ; sync
+	# Unmount /dev/mdX
+	mdconfig -d -u $MD
 	echo ">>> Creating final vmdk..."
-	rm ${OVFPATH}/${OVFVMDK}.final 2>/dev/null
-	rm ${OVFPATH}/${OVFVMDK}-pt.final 2>/dev/null
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK}.final -partitions 1 -relative -rawdisk /dev/${MD}
-	echo ">>> Moving final ovf file into place..."
-	mv ${OVFPATH}/${OVFVMDK}.final ${OVFPATH}/${OVFVMDK}
+	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# OVA tar format has restrictions.  Correct ordering is:
 	#   MyPackage.ovf
@@ -2593,8 +2578,8 @@ EOF
 	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
 	if [ -f ${OVFPATH}/${OVAFILE} ]; then
 		#echo ">>> Removing ovf and vmdk files..."
-		#rm ${OVFPATH}/${OVFFILE} 2>/dev/null
-		#rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
+		# rm ${OVFPATH}/${OVFFILE} 2>/dev/null
+		# rm ${OVFPATH}/${OVFVMDK}.raw 2>/dev/null
 		sync ; sync
 		echo ">>> ${OVFPATH}/${OVAFILE} created."
 		ls -lah ${OVFPATH}/${OVAFILE}
@@ -2604,6 +2589,7 @@ EOF
 	fi
 }
 
+# This routine will replace a string in a file
 file_search_replace() {
 	SEARCH=$1
 	REPLACE=$2
