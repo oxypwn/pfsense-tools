@@ -5,7 +5,7 @@
   </References>
   <DiskSection>
     <Info>Virtual disk information</Info>
-    <Disk ovf:allocationUnits="1048576" ovf:capacity="51200" ovf:capacityAllocationUnits="byte * 2^20" ovf:diskId="vmdisk1" ovf:fileRef="file1" ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" ovf:populatedSize="120"/>
+    <Disk ovf:allocationUnits="1048576" ovf:capacity="10000" ovf:capacityAllocationUnits="byte * 2^20" ovf:diskId="vmdisk1" ovf:fileRef="file1" ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" ovf:populatedSize="120"/>
   </DiskSection>
   <NetworkSection>
     <Info>The list of logical networks</Info>
@@ -77,7 +77,7 @@
         <rasd:ResourceType>10</rasd:ResourceType>
       </Item>
       <Item>
-        <rasd:AddressOnParent>7</rasd:AddressOnParent>
+        <rasd:AddressOnParent>8</rasd:AddressOnParent>
         <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
         <rasd:Connection>VM Network</rasd:Connection>
         <rasd:Description>E1000 ethernet adapter on &quot;VM Network&quot;</rasd:Description>
