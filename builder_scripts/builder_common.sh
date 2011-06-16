@@ -2572,7 +2572,7 @@ create_ova_image() {
 	cpdup -o ${PFSENSEBASEDIR}/usr /mnt/usr
 	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
 	echo ">>> Calculating size of /mnt..."
-	INSTALLSIZE=`du -d0 /mnt/ | awk '{ print $1 }'`
+	INSTALLSIZE=`du -s -d0 /mnt/ | awk '{ print $1 }'`
 	echo ">>> Setting vmdk install size to ${INSTALLSIZE}..."
 	file_search_replace INSTALLSIZE $INSTALLSIZE ${PFSENSEBASEDIR}/conf.default/config.xml
 	du -d1 -h /mnt/
