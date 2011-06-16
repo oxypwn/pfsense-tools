@@ -116,6 +116,7 @@ export OVAFILE=${OVAFILE:-${PRODUCT_NAME}.ova}
 export OVFCERT=${OVFCERT:-""} 
 export OVFVMDK=${OVFVMDK:-""}
 export OVFSTRINGS=${OVFSTRINGS:-""}
+export OVFMF=${OVFMF:-""}
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}

@@ -1721,6 +1721,9 @@ print_flags() {
 	printf "                     OVFFILE: %s\n" $OVFFILE
 	printf "                     OVAFILE: %s\n" $OVAFILE
 	printf "                     OVFVMDK: %s\n" $OVFVMDK
+	printf "                  OVFSTRINGS: %s\n" $OVFSTRINGS
+	printf "                       OVFMF: %s\n" $OVFMF
+	printf "                     OVFCERT: %s\n" $OVFCERT 
 if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "              pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
