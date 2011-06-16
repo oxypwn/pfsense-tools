@@ -2509,6 +2509,10 @@ awk '
 # (and many other emulation platforms)
 # http://www.vmware.com/pdf/ovf_whitepaper_specification.pdf
 create_ova_image() {
+	if [ ! -f /usr/local/vmware/ovftool/ovftool ]; then
+		echo "vmware ovf tool not found.  cannot continue."
+		print_error_pfS
+	fi
 	if [ ! -f /usr/local/bin/qemu-img ]; then
 		if [ ! -d /usr/ports ]; then
 			echo ">>> /usr/ports does not exist, fetching..."
@@ -2516,11 +2520,6 @@ create_ova_image() {
 		fi
 		echo ">>> Installing Qemu from ports, one moment please..."
 		cd /usr/ports/emulators/qemu && make install clean
-	fi
-	if [ ! -f /usr/local/vmware/ovftool ]; then
-			echo "vmware ovf tool not found.  cannot continue."
-			print_error_pfS
-
 	fi
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
