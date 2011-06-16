@@ -2530,7 +2530,7 @@ EOF
 	echo ">>> Truncating 10 gigabyte OVF image..."
 	truncate -s 10G ${OVFPATH}/${OVFVMDK}
 	echo ">>> Creating 10 gigabyte OVF image..."
-	dd if=/dev/zero of=$OVFPATH/${OVFVMDK} bs=1m count=10240
+	dd if=/dev/zero of=$OVFPATH/${OVFVMDK} bs=1024m count=10
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}`
 	echo $MD
