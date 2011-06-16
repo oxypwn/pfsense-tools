@@ -2529,8 +2529,6 @@ EOF
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
 	truncate -s 10G ${OVFPATH}/${OVFVMDK}
-	echo ">>> Creating 10 gigabyte OVF image..."
-	dd if=/dev/zero of=$OVFPATH/${OVFVMDK} bs=1024m count=10
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}`
 	echo $MD
@@ -2582,7 +2580,7 @@ EOF
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
-	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} -rawdisk /dev/${MD}
+	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} --format vmdk -rawdisk /dev/${MD}
 	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
 	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
 	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
