@@ -2526,8 +2526,8 @@ create_ova_image() {
 		echo ">>> Installing Qemu from ports, one moment please..."
 		cd /usr/ports/emulators/qemu && make install clean
 	fi
-	rm ${OVFPATH}*.ovf 2>/dev/null
-	rm ${OVFPATH}*.ova 2>/dev/null
+	rm ${OVFPATH}/*.ovf 2>/dev/null
+	rm ${OVFPATH}/*.ova 2>/dev/null
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
