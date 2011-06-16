@@ -2526,7 +2526,7 @@ EOF
 	fi
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
-	truncate -s 10G $OVFPATH/${OVFVMDK}
+	truncate -s 10G ${OVFPATH}/${OVFVMDK}
 	echo ">>> Creating 10 gigabyte OVF image..."
 	dd if=/dev/zero of=$OVFPATH/${OVFVMDK} bs=1m count=10240
 	/bin/echo -n ">>> Creating mdconfig image... "
@@ -2554,6 +2554,11 @@ EOF
 	sync ; sync
 	glabel label swap0 /dev/${MD}s1b
 	sync ; sync
+	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
+	awk '{gsub(/vr0/,"em0",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.$$
+	mv ${CLONEDIR}/conf.default/config.xml.$$ ${CLONEDIR}/conf.default/config.xml.ovf
+	awk '{gsub(/vr1/,"em1",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.ovf.$$
+	mv ${CLONEDIR}/conf.default/config.xml.$$ >${CLONEDIR}/conf.default/config.xml
 	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1a /mnt/
 	echo ">>> Duplicating ${CLONEDIR} to /mnt/..."	
@@ -2572,12 +2577,8 @@ EOF
 	cpdup -vvv -I -o ${CLONEDIR}/sbin /mnt/sbin
 	cpdup -vvv -I -o ${CLONEDIR}/usr /mnt/usr
 	cpdup -vvv -I -o ${CLONEDIR}/var /mnt/var
-	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
-	awk '{gsub(/vr0/,"em0",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.$$
-	mv ${CLONEDIR}/conf.default/config.xml.$$ ${CLONEDIR}/conf.default/config.xml.ovf
-	awk '{gsub(/vr1/,"em1",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.ovf.$$
-	mv ${CLONEDIR}/conf.default/config.xml.$$ >${CLONEDIR}/conf.default/config.xml
 	umount /mnt
+	sync ; sync
 	echo ">>> Creating final vmdk..."
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK} -rawdisk /dev/${MD}
 	awk '{gsub(/pfSense/,"${$PRODUCT_NAME}",$0)}' ${OVFPATH}/${$PRODUCT_NAME}.ovf >${OVFPATH}/${$PRODUCT_NAME}.ovf.$$
@@ -2589,6 +2590,7 @@ EOF
 	echo ">>> Removing ova and vmdk files..."
 	rm ${OVFPATH}/${OVFFILE} 2>/dev/null
 	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
+	sync ; sync
 	echo ">>> ${OVFPATH}/${OVAFILE} created."
 	ls -lah ${OVFPATH}/${OVAFILE}
 }
