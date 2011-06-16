@@ -2539,13 +2539,9 @@ EOF
 	gpart create -s mbr $MD
 	gpart delete -i 1 $MD
     gpart add -s 8G -t freebsd -i 1 $MD
-	gpart add -s 2G -t freebsd-swap -i 2 $MD
 	echo ">>> Stamping boot code..."
 	gpart bootcode -b /boot/boot1 $MD
-	if [ ! -f /dev/${MD}s1 ]; then
-		echo "/dev/${MD}s1 does not exist.  Cannot continue."
-		print_error_pfS	
-	fi
+	gpart add -s 2G -t freebsd-swap -i 2 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}s1
 	sync ; sync ; sync ; sync
