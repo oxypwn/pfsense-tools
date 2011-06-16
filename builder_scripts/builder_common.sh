@@ -2509,6 +2509,11 @@ awk '
 # (and many other emulation platforms)
 # http://www.vmware.com/pdf/ovf_whitepaper_specification.pdf
 create_ova_image() {
+	# XXX create a .ovf php creator that you can pass:
+	#     1. total size of installed image to.
+	#     2. license 
+	#     3. product name
+	#     4. ?
 	if [ ! -f /usr/local/vmware/ovftool/ovftool ]; then
 		echo "vmware ovf tool not found.  cannot continue."
 		print_error_pfS
@@ -2545,7 +2550,7 @@ create_ova_image() {
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
 	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml
-	file_search_replace vr1 em1 ${PFSENSEBASEDIR}/conf.default/config.xml	
+	file_search_replace vr1 em1 ${PFSENSEBASEDIR}/conf.default/config.xml
 	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1 /mnt/
 	echo ">>> Populating vmdk staging area..."	
@@ -2565,6 +2570,8 @@ create_ova_image() {
 	cpdup -o ${PFSENSEBASEDIR}/usr /mnt/usr
 	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
 	echo ">>> Calculating size of /mnt..."
+	INSTALLSIZE=`du -d0 /mnt/ | awk '{ print $1 }'`
+	file_search_replace INSTALLSIZE $INSTALLSIZE ${PFSENSEBASEDIR}/conf.default/config.xml
 	du -d1 -h /mnt/
 	umount /mnt
 	sync ; sync
@@ -2572,7 +2579,7 @@ create_ova_image() {
 	mdconfig -d -u $MD
 	echo ">>> Creating final vmdk..."
 	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
-	/usr/local/vmware/ovftool/ovftool --diskmode monolithicSparse --compress 9 ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
+	/usr/local/vmware/ovftool/ovftool --diskMode monolithicSparse --compress 9 ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# OVA tar format has restrictions.  Correct ordering is:
 	#   MyPackage.ovf
