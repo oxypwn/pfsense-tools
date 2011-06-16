@@ -2507,6 +2507,7 @@ awk '
 # a ovf and vmdk file. These files can be imported 
 # right into vmware or virtual box.
 # (and many other emulation platforms)
+# http://www.vmware.com/pdf/ovf_whitepaper_specification.pdf
 create_ova_image() {
 	if [ ! -f /usr/local/bin/VBoxManage ]; then
 		echo <<EOF >>/var/db/ports/virtualbox-ose/options
@@ -2542,14 +2543,14 @@ EOF
     gpart add -s 8G -t freebsd -i 1 $MD
 	echo ">>> Stamping boot code..."
 	gpart bootcode -b /boot/boot1 $MD
-	gpart add -s 2G -t freebsd-swap -i 2 $MD
+	gpart add -s 1G -t freebsd-swap -i 2 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}s1
 	sync ; sync ; sync ; sync
 	echo ">>> Labeling partitions..."
 	glabel label ${PRODUCT_NAME} ${MD}s1
 	sync ; sync
-	glabel label swap0 ${MD}s1
+	glabel label swap0 ${MD}s2
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
 	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml
