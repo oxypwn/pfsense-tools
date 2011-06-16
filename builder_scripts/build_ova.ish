@@ -203,6 +203,13 @@ if [ "$FBSD_VERSION" = "8" ]; then
 	setup_serial_hints
 fi
 
+# Prepare /usr/local/pfsense-clonefs
+echo ">>> Cloning filesystem..."
+freesbie_make clonefs
+
+# Ensure /home and /etc exists
+mkdir -p $CLONEDIR/home $CLONEDIR/etc
+
 # Create OVA image (ovf + vmdk)
 create_ova_image
 
