@@ -2500,9 +2500,11 @@ awk '
 	fi
 }
 
-# This routine creates a vmdk/ovf/ova image  
-# for vmware and virtualbox, etc.
-create_ovf_image() {
+# This routine creates a ova image that contains
+# a ovf and vmdk file. These files can be imported 
+# right into vmware or virtual box.
+# (and many other emulation platforms)
+create_ova_image() {
 	if [ ! -f /usr/local/bin/VBoxManage ]; then
 		echo <<EOF >>/var/db/ports/virtualbox-ose/options
 _OPTIONS_READ=virtualbox-ose-4.0.8

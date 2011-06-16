@@ -203,8 +203,8 @@ if [ "$FBSD_VERSION" = "8" ]; then
 	setup_serial_hints
 fi
 
-# Create OVF/VMDK image
-create_ovf_image
+# Create OVA image (ovf + vmdk)
+create_ova_image
 
 # Check for zero sized files.  loader.conf is one of the culprits.
 check_for_zero_size_files
