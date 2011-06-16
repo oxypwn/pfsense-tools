@@ -2558,7 +2558,7 @@ EOF
 	awk '{gsub(/vr1/,"em1",$0)}' ${CLONEDIR}/conf.default/config.xml >${CLONEDIR}/conf.default/config.xml.ovf.$$
 	mv ${CLONEDIR}/conf.default/config.xml.$$ >${CLONEDIR}/conf.default/config.xml
 	echo ">>> Mounting image to /mnt..."
-	mount -o rw /dev/${MD}s1a /mnt/
+	mount -o rw /dev/${MD}s1 /mnt/
 	echo ">>> Populating vmdk staging area..."	
 	cpdup -o ${CLONEDIR}/COPYRIGHT /mnt/COPYRIGHT
 	cpdup -o ${CLONEDIR}/boot /mnt/boot
