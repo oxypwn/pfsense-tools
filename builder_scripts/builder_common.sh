@@ -2545,7 +2545,7 @@ EOF
 	dd if=/dev/zero of=/dev/$MD count=1024
 	echo ">>> Stamping boot code..."
 	gpart bootcode -b /boot/boot1 /dev/$MD
-	if [ ! -f /dev/${MD}s1a]; then
+	if [ ! -f /dev/${MD}s1a ]; then
 		echo "/dev/${MD}s1a does not exist.  Cannot continue."
 		print_error_pfS	
 	fi
