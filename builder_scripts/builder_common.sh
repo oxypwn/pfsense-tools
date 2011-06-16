@@ -1185,10 +1185,10 @@ cust_fixup_nanobsd() {
 
 		if [ "$FBSD_VERSION" -gt "7" ]; then
 			# Enable getty on console
-			sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
+			sed "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
 
 			# Disable getty on syscons devices
-			sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
+			sed "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
 		fi
 	else
 		# Empty file to identify nanobsd_vga images
@@ -1232,10 +1232,10 @@ cust_fixup_wrap() {
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" -gt "7" ]; then
 		# Enable getty on console
-		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
+		sed "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
 
 		# Disable getty on syscons devices
-		sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
+		sed "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
 
 		# Tell loader to use serial console early.
 		echo " -h" > ${PFSENSEBASEDIR}/boot.config
@@ -2235,8 +2235,8 @@ awk '
 
 	pprint 2 "Write partition table ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ..."
 	FDISK=${MAKEOBJDIRPREFIXFINAL}/_.fdisk
-	pprint 2 "fdisk -i -f ${FDISK} ${MD}"
-	fdisk -i -f ${FDISK} ${MD}
+	pprint 2 "fdisk -f ${FDISK} ${MD}"
+	fdisk -f ${FDISK} ${MD}
 	pprint 2 "fdisk ${MD}"
 	fdisk ${MD}
 
@@ -2256,7 +2256,7 @@ awk '
 		pprint 2 "Create second image ${IMG2}..."
 		for f in ${NANO_WORLDDIR}/etc/fstab
 		do
-			sed -i "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
+			sed "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
 		done
 		SIZE=`awk '/^p 2/ { print $5 "b" }' ${FDISK}`
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}"
@@ -2410,7 +2410,7 @@ awk '
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 
-	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
+	fdisk -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
 	fdisk ${MD}
 	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
 	bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
@@ -2420,9 +2420,9 @@ awk '
 	newfs ${NANO_NEWFS} /dev/${MD}s1a
 	tunefs -L pfsense0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
-	df -i ${MNT}
+	df ${MNT}
 	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
-	df -i ${MNT}
+	df ${MNT}
 	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIXFINAL}/_.mtree
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIXFINAL}/_.du
 	umount ${MNT}
@@ -2437,12 +2437,12 @@ awk '
 		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k
 		tunefs -L pfsense1 /dev/${MD}s2a
 		mount /dev/${MD}s2a ${MNT}
-		df -i ${MNT}
+		df ${MNT}
 		mkdir -p ${MNT}/conf/base/etc/
 		cp ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		do
-			sed -i "" "s/pfsense0/pfsense1/g" $f
+			sed "" "s/pfsense0/pfsense1/g" $f
 		done
 		umount ${MNT}
 		bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s2
@@ -2537,7 +2537,7 @@ EOF
 	dd if=/dev/zero of=/dev/$MD count=2048
 	echo ">>> Setting up disk partitions and such..."
 	gpart create -s mbr /dev/$MD
-	gpart add -b 63 -s 20971457 -t freebsd -i 1 /dev/$MD
+	gpart add -b 63 -s 20971457 -t freebsd 1 /dev/$MD
 	echo ">>> Cleaning up /dev/$MD"
 	dd if=/dev/zero of=/dev/$MD count=1024
 	echo ">>> Stamping boot code..."
@@ -2562,21 +2562,21 @@ EOF
 	echo ">>> Mounting image to /mnt..."
 	mount -o rw /dev/${MD}s1a /mnt/
 	echo ">>> Duplicating ${CLONEDIR} to /mnt/..."	
-	cpdup -vvv -I -o ${CLONEDIR}/boot /mnt/boot
-	cpdup -vvv -I -o ${CLONEDIR}/COPYRIGHT /mnt/COPYRIGHT
-	cpdup -vvv -I -o ${CLONEDIR}/bin /mnt/bin
-	cpdup -vvv -I -o ${CLONEDIR}/conf /mnt/conf
-	cpdup -vvv -I -o ${CLONEDIR}/conf.default /mnt/conf.default
-	cpdup -vvv -I -o ${CLONEDIR}/dev /mnt/dev
-	cpdup -vvv -I -o ${CLONEDIR}/etc /mnt/etc
-	cpdup -vvv -I -o ${CLONEDIR}/home /mnt/home
-	cpdup -vvv -I -o ${CLONEDIR}/kernels /mnt/kernels
-	cpdup -vvv -I -o ${CLONEDIR}/libexec /mnt/libexec
-	cpdup -vvv -I -o ${CLONEDIR}/lib /mnt/lib
-	cpdup -vvv -I -o ${CLONEDIR}/root /mnt/root
-	cpdup -vvv -I -o ${CLONEDIR}/sbin /mnt/sbin
-	cpdup -vvv -I -o ${CLONEDIR}/usr /mnt/usr
-	cpdup -vvv -I -o ${CLONEDIR}/var /mnt/var
+	cpdup -o ${CLONEDIR}/COPYRIGHT /mnt/COPYRIGHT
+	cpdup -o ${CLONEDIR}/boot /mnt/boot
+	cpdup -o ${CLONEDIR}/bin /mnt/bin
+	cpdup -o ${CLONEDIR}/conf /mnt/conf
+	cpdup -o ${CLONEDIR}/conf.default /mnt/conf.default
+	cpdup -o ${CLONEDIR}/dev /mnt/dev
+	cpdup -o ${CLONEDIR}/etc /mnt/etc
+	cpdup -o ${CLONEDIR}/home /mnt/home
+	cpdup -o ${CLONEDIR}/kernels /mnt/kernels
+	cpdup -o ${CLONEDIR}/libexec /mnt/libexec
+	cpdup -o ${CLONEDIR}/lib /mnt/lib
+	cpdup -o ${CLONEDIR}/root /mnt/root
+	cpdup -o ${CLONEDIR}/sbin /mnt/sbin
+	cpdup -o ${CLONEDIR}/usr /mnt/usr
+	cpdup -o ${CLONEDIR}/var /mnt/var
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
@@ -2585,8 +2585,14 @@ EOF
 	mv ${OVFPATH}/${$PRODUCT_NAME}.ovf.$$ >${OVFPATH}/${$PRODUCT_NAME}.ovf
 	echo ">>> Compacting ${OVFPATH}/${OVFVMDK}..."
 	/usr/local/bin/VBoxManage modifyhd ${OVFPATH}/${OVFVMDK} --compact
-	echo ">>> Creating OVA file ${OVAFILE}..."
-	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFVMDK}
+	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
+	# Vmware tar format has restrictions.  ordering is:
+	#   MyPackage.ovf
+	#   MyPackage.mf
+	#   MyPackage.cert
+	#   MyPackage.vmdk
+	#   MyPackage.strings
+	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
 	echo ">>> Removing ova and vmdk files..."
 	rm ${OVFPATH}/${OVFFILE} 2>/dev/null
 	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null

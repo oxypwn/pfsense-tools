@@ -101,15 +101,21 @@ export FREESBIE_LABEL=${FREESBIE_LABEL:-${PRODUCT_NAME}}
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
 export EXTRA="${EXTRA:-"customroot customscripts pkginstall buildmodules"}"
 
-# Must be defined after MAKEOBJDIRPREFIX!
+# Items beyond this must be defined after MAKEOBJDIRPREFIX!
+
+# General builder output filenames
 export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.iso}
 export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.img}
 export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick.img}
+
 # OVF/vmdk parms
 export OVFPATH=${MAKEOBJDIRPREFIXFINAL}
 export OVFFILE=${PRODUCT_NAME}.ovf
 export OVFVMDK=${PRODUCT_NAME}.vmdk
 export OVAFILE=${PRODUCT_NAME}.ova
+export OVFCERT=${OVFCERT:-""} 
+export OVFVMDK=${OVFVMDK:-""}
+export OVFSTRINGS=${OVFSTRINGS:-""}
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
