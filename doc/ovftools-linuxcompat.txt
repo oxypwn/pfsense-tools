@@ -3,14 +3,18 @@ OVFTool prep instructions
 echo 'linux_enable="YES"' >> /etc/rc.conf
 kldload linux
 
-echo "linproc         /usr/compat/linux/proc linprocfs rw 0 0" >> /etc/fstab
-mount -a
-
+# linux base
 cd /usr/ports/emulators/linux_base-f10/
 make install clean
-
+# bash
+cd /usr/ports/shells/bash
+make install clean
+# linux-f10-curl
 cd /usr/ports/ftp/linux-f10-curl
 make install clean
+
+echo "linproc         /usr/compat/linux/proc linprocfs rw 0 0" >> /etc/fstab
+mount -a
 
 fetch http://www.luizgustavo.pro.br/~lgcosta/pfsense/ovftool.tar.bz2
 tar -C /usr/local -jxvf ovftool.tar.bz2

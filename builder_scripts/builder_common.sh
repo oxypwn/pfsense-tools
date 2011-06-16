@@ -2517,6 +2517,11 @@ create_ova_image() {
 		echo ">>> Installing Qemu from ports, one moment please..."
 		cd /usr/ports/emulators/qemu && make install clean
 	fi
+	if [ ! -f /usr/local/vmware/ovftool ]; then
+			echo "vmware ovf tool not found.  cannot continue."
+			print_error_pfS
+
+	fi
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Truncating 10 gigabyte OVF image..."
@@ -2568,6 +2573,7 @@ create_ova_image() {
 	mdconfig -d -u $MD
 	echo ">>> Creating final vmdk..."
 	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
+	/usr/local/vmware/ovftool/ovftool --diskmode monolithicSparse --compress 9 ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${OVFVMDK}.final
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# OVA tar format has restrictions.  Correct ordering is:
 	#   MyPackage.ovf
