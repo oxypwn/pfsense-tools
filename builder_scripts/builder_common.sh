@@ -2523,7 +2523,7 @@ create_ova_image() {
 	#     7. capacity
 	#     8. capacityAllocationUnits
 	if [ ! -f /usr/local/vmware/ovftool/ovftool ]; then
-		echo "vmware ovf tool not found.  cannot continue."
+		echo "vmware ovftool not found.  cannot continue."
 		print_error_pfS
 	fi
 	if [ ! -f /usr/local/bin/qemu-img ]; then
@@ -2592,12 +2592,17 @@ create_ova_image() {
 	mdconfig -d -u $MD
 	echo ">>> Creating vmdk using qemu..."
 	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
-	echo ">>> Finalizing vmdk using ovftool..."
-	/usr/local/vmware/ovftool/ovftool --acceptAllEulas --diskMode monolithicSparse --compress9 ${OVFPATH}/${PRODUCT_NAME}.ovf ${OVFPATH}/${OVFVMDK}.final
+	if [ /usr/local/vmware/ovftool/ovftool ]; then 
+		echo ">>> Finalizing vmdk using ovftool..."
+		/usr/local/vmware/ovftool/ovftool --acceptAllEulas --compress ${OVFPATH}/${PRODUCT_NAME}.ovf ${OVFPATH}/${OVFVMDK}.final
+	fi
 	if [ -f ${OVFPATH}/${OVFVMDK}.final ]; then
 		# Move ovftool generated file into place
 		mv ${OVFPATH}/${OVFVMDK}.final ${OVFPATH}/${OVFVMDK}
 	fi
+	VMDKSIZE=`ls -la ${OVFPATH}/${OVFVMDK} | awk '{ print $5 }'`
+	echo ">>> Setting vmdk on disk size to ${VMDKSIZE}..."
+	file_search_replace VMDKSIZE $VMDKSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
 	# OVA tar format has restrictions.  Correct ordering is:
 	#   MyPackage.ovf
