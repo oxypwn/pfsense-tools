@@ -2611,7 +2611,7 @@ file_search_replace() {
 	SEARCH=$1
 	REPLACE=$2
 	FILENAME=$3
-	awk '{gsub(/${SEARCH}/,"${REPLACE}",\$0)}' $FILENAME >$FILENAME.$$
+	sed "s/${SEARCH}/${REPLACE}/g" $3 > $FILENAME.$$
 	mv $FILENAME.$$ $FILENAME
 }
 
