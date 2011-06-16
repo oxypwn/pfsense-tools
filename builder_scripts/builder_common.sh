@@ -2578,6 +2578,7 @@ EOF
 	umount /mnt
 	sync ; sync
 	echo ">>> Creating final vmdk..."
+	rm ${OVFPATH}/${OVFVMDK}.final 2>/dev/null
 	/usr/local/bin/VBoxManage internalcommands createrawvmdk -filename ${OVFPATH}/${OVFVMDK}.final -relative -rawdisk /dev/${MD}
 	#file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	awk '{gsub(/pfSense/,"${PRODUCT_NAME}",$0)}' ${OVFPATH}/${PRODUCT_NAME}.ovf >${OVFPATH}/${PRODUCT_NAME}.ovf.$$
