@@ -2534,12 +2534,16 @@ create_ova_image() {
 		echo ">>> Installing Qemu from ports, one moment please..."
 		cd /usr/ports/emulators/qemu && make install clean
 	fi
+	rm ${OVFPATH}/*.ovf.final 2>/dev/null
 	rm ${OVFPATH}/*.ovf 2>/dev/null
 	rm ${OVFPATH}/*.ova 2>/dev/null
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
-	echo ">>> Truncating 10 gigabyte OVF image..."
-	truncate -s 10G ${OVFPATH}/${OVFVMDK}.raw
+	echo ">>> Creating raw backing file..."
+	DISKSIZE=10737418240
+	BLOCKSIZE=4096
+	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
+	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$BLOCKSIZE count=$COUNT
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
 	echo $MD
@@ -2589,17 +2593,14 @@ create_ova_image() {
 	umount /mnt
 	sync ; sync
 	# Unmount /dev/mdX
+	echo ">>> Unmounting ${MD}..."
 	mdconfig -d -u $MD
-	echo ">>> Creating vmdk using qemu..."
-	/usr/local/bin/qemu-img convert -fraw -Ovmdk ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
-	if [ /usr/local/vmware/ovftool/ovftool ]; then 
-		echo ">>> Finalizing vmdk using ovftool..."
-		/usr/local/vmware/ovftool/ovftool --acceptAllEulas --compress ${OVFPATH}/${PRODUCT_NAME}.ovf ${OVFPATH}/${OVFVMDK}.final
-	fi
-	if [ -f ${OVFPATH}/${OVFVMDK}.final ]; then
-		# Move ovftool generated file into place
-		mv ${OVFPATH}/${OVFVMDK}.final ${OVFPATH}/${OVFVMDK}
-	fi
+	# VirtualBox
+	echo ">>> Creating image using VBoxManage..."
+	rm ${OVFPATH}/${OVFVMDK}
+	VBoxManage convertfromraw ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK} --format VMDK
+	VBOXSIZE=`ls -lah ${OVFPATH}/${OVFVMDK}`
+	echo ">>> Virtual box VMDK size: $VBOXSIZE"
 	VMDKSIZE=`ls -la ${OVFPATH}/${OVFVMDK} | awk '{ print $5 }'`
 	echo ">>> Setting vmdk on disk size to ${VMDKSIZE}..."
 	file_search_replace VMDKSIZE $VMDKSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
@@ -2622,6 +2623,21 @@ create_ova_image() {
 		echo "!!! Something went wrong - ova file not created."
 		print_error_pfS
 	fi
+}
+
+create_vbox_vm() { 
+	VBoxManage createvm --name "${PRODUCT_NAME}" --settingsfile ${OVFPATH}/${OVFVMDK}.xml
+	VBoxManage modifyvm "${PRODUCT_NAME}" --memory "512MB" --settingsfile ${OVFPATH}/${OVFVMDK}.xml
+}
+
+import_ova_vm() {
+	VBoxManage import ${PRODUCT_NAME}.ovf --vsys 0 --eula accept
+	pfSense --type hdd --medium ${OVFPATH}/${OVFVMDK} --storagectl "IDE Controller" --port 1 --device 1
+}
+
+export_vbox_vm() {
+	rm ${OVFPATH}/${OVAFILE} 2>/dev/null
+	VBoxManage export pfSense -o ${OVFPATH}/${OVAFILE}
 }
 
 # This routine will replace a string in a file
