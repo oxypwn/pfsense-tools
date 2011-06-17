@@ -2712,7 +2712,7 @@ file_search_replace() {
 ova_setup_pc_sysinstaller_conf() {
 	echo ">>> Copying ${PFSENSEBASEDIR}/usr/sbin/pc-sysinstall /usr/sbin/..."
 	cp -R ${PFSENSEBASEDIR}/usr/sbin/pc-sysinstall /usr/sbin/
-	cat <<EOF >>/tmp/pcsysinstall.conf
+	cat <<EOF >/tmp/pcsysinstall.conf
 installMode=fresh
 installInteractive=yes
 installType=FreeBSD
@@ -2721,8 +2721,8 @@ disk0=$1
 partition=all
 bootManager=bsd
 commitDiskPart
-disk1-part=UFS+S 7990 /
-disk0-part=SWAP 2000 none
+disk0-part=UFS+S 8000 /
+disk0-part=SWAP 1990 none
 commitDiskLabel
 installType=FreeBSD
 packageType=cpdup
@@ -2736,6 +2736,9 @@ EOF
 ova_invoke_pc_sysinstaller() {
 	echo ">>> Invoking pc-sysinstall with -c /tmp/pcsysinstall.conf..."
 	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/pcsysinstall.conf
+	if [ "$?" != "0" ]; then 
+		print_error_pfS	
+	fi
 }
 
 # This routine installs pfSense packages into the staging area.
