@@ -1,218 +1,129 @@
-<?xml version="1.0"?>
-<Envelope ovf:version="1.0" xml:lang="en-US" xmlns="http://schemas.dmtf.org/ovf/envelope/1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData" xmlns:vssd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:vbox="http://www.virtualbox.org/ovf/machine">
+<?xml version="1.0" encoding="UTF-8"?>
+<Envelope vmw:buildId="build-171294" xmlns="http://schemas.dmtf.org/ovf/envelope/1" xmlns:cim="http://schemas.dmtf.org/wbem/wscim/1/common" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData" xmlns:vmw="http://www.vmware.com/schema/ovf" xmlns:vssd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NetworkSection>
-    <Info>Logical networks used in the package</Info>
-    <Network ovf:name="Bridged">
-      <Description>Logical network used by this appliance.</Description>
+    <Info>The list of logical networks</Info>
+    <Network ovf:name="VM Network">
+      <Description>The VM Network network</Description>
     </Network>
   </NetworkSection>
   <VirtualSystem ovf:id="pfSense">
     <Info>A virtual machine</Info>
-    <AnnotationSection>
-      <Info>A human-readable annotation</Info>
-      <Annotation>pfSense is a free, open source customized distribution of FreeBSD tailored for use as a firewall and router. In addition to being a powerful, flexible firewalling and routing platform, it includes a long list of related features and a package system allowing further expandability without adding bloat and potential security vulnerabilities to the base distribution. pfSense is a popular project with more than 1 million downloads since its inception, and proven in countless installations ranging from small home networks protecting a PC and an Xbox to large corporations, universities and other organizations protecting thousands of network devices.</Annotation>
-    </AnnotationSection>
-    <OperatingSystemSection ovf:id="100">
-      <Info>The kind of installed guest operating system</Info>
-      <Description>Linux26_64</Description>
-      <vbox:OSType ovf:required="false">Linux26_64</vbox:OSType>
+    <Name>pfSense</Name>
+    <OperatingSystemSection ovf:id="101" vmw:osType="FreeBSD">
+      <Info>FreeBSD</Info>
+      <Description>FreeBSD</Description>
     </OperatingSystemSection>
     <VirtualHardwareSection>
-      <Info>Virtual hardware requirements for a virtual machine</Info>
+      <Info>Virtual hardware requirements</Info>
       <System>
         <vssd:ElementName>Virtual Hardware Family</vssd:ElementName>
         <vssd:InstanceID>0</vssd:InstanceID>
         <vssd:VirtualSystemIdentifier>pfSense</vssd:VirtualSystemIdentifier>
-        <vssd:VirtualSystemType>virtualbox-2.2</vssd:VirtualSystemType>
+        <vssd:VirtualSystemType>vmx-07</vssd:VirtualSystemType>
       </System>
       <Item>
-        <rasd:Caption>1 virtual CPU</rasd:Caption>
-        <rasd:Description>Number of virtual CPUs</rasd:Description>
-        <rasd:ElementName>1 virtual CPU</rasd:ElementName>
+        <rasd:AllocationUnits>hertz * 10^6</rasd:AllocationUnits>
+        <rasd:Description>Number of Virtual CPUs</rasd:Description>
+        <rasd:ElementName>1 virtual CPU(s)</rasd:ElementName>
         <rasd:InstanceID>1</rasd:InstanceID>
         <rasd:ResourceType>3</rasd:ResourceType>
         <rasd:VirtualQuantity>1</rasd:VirtualQuantity>
       </Item>
       <Item>
-        <rasd:AllocationUnits>MegaBytes</rasd:AllocationUnits>
-        <rasd:Caption>1024 MB of memory</rasd:Caption>
+        <rasd:AllocationUnits>byte * 2^20</rasd:AllocationUnits>
         <rasd:Description>Memory Size</rasd:Description>
-        <rasd:ElementName>1024 MB of memory</rasd:ElementName>
+        <rasd:ElementName>1024MB of memory</rasd:ElementName>
         <rasd:InstanceID>2</rasd:InstanceID>
         <rasd:ResourceType>4</rasd:ResourceType>
         <rasd:VirtualQuantity>1024</rasd:VirtualQuantity>
       </Item>
       <Item>
         <rasd:Address>0</rasd:Address>
-        <rasd:Caption>ideController0</rasd:Caption>
-        <rasd:Description>IDE Controller</rasd:Description>
-        <rasd:ElementName>ideController0</rasd:ElementName>
-        <rasd:InstanceID>3</rasd:InstanceID>
-        <rasd:ResourceSubType>PIIX4</rasd:ResourceSubType>
-        <rasd:ResourceType>5</rasd:ResourceType>
-      </Item>
-      <Item>
-        <rasd:Address>1</rasd:Address>
-        <rasd:Caption>ideController1</rasd:Caption>
-        <rasd:Description>IDE Controller</rasd:Description>
-        <rasd:ElementName>ideController1</rasd:ElementName>
-        <rasd:InstanceID>4</rasd:InstanceID>
-        <rasd:ResourceSubType>PIIX4</rasd:ResourceSubType>
-        <rasd:ResourceType>5</rasd:ResourceType>
-      </Item>
-      <Item>
-        <rasd:Address>0</rasd:Address>
-        <rasd:Caption>scsiController0</rasd:Caption>
         <rasd:Description>SCSI Controller</rasd:Description>
-        <rasd:ElementName>scsiController0</rasd:ElementName>
-        <rasd:InstanceID>5</rasd:InstanceID>
+        <rasd:ElementName>scsi0</rasd:ElementName>
+        <rasd:InstanceID>3</rasd:InstanceID>
         <rasd:ResourceSubType>lsilogic</rasd:ResourceSubType>
         <rasd:ResourceType>6</rasd:ResourceType>
       </Item>
       <Item>
+        <rasd:Address>1</rasd:Address>
+        <rasd:Description>IDE Controller</rasd:Description>
+        <rasd:ElementName>VirtualIDEController 1</rasd:ElementName>
+        <rasd:InstanceID>4</rasd:InstanceID>
+        <rasd:ResourceType>5</rasd:ResourceType>
+      </Item>
+      <Item>
+        <rasd:Address>0</rasd:Address>
+        <rasd:Description>IDE Controller</rasd:Description>
+        <rasd:ElementName>VirtualIDEController 0</rasd:ElementName>
+        <rasd:InstanceID>5</rasd:InstanceID>
+        <rasd:ResourceType>5</rasd:ResourceType>
+      </Item>
+      <Item>
+        <rasd:AddressOnParent>7</rasd:AddressOnParent>
         <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
-        <rasd:Caption>Ethernet adapter on 'Bridged'</rasd:Caption>
-        <rasd:Connection>Bridged</rasd:Connection>
-        <rasd:ElementName>Ethernet adapter on 'Bridged'</rasd:ElementName>
+        <rasd:Connection>VM Network</rasd:Connection>
+        <rasd:Description>E1000 ethernet adapter on &quot;VM Network&quot;</rasd:Description>
+        <rasd:ElementName>ethernet0</rasd:ElementName>
         <rasd:InstanceID>6</rasd:InstanceID>
         <rasd:ResourceSubType>E1000</rasd:ResourceSubType>
         <rasd:ResourceType>10</rasd:ResourceType>
       </Item>
       <Item>
+        <rasd:AddressOnParent>8</rasd:AddressOnParent>
         <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
-        <rasd:Caption>Ethernet adapter on 'Bridged'</rasd:Caption>
-        <rasd:Connection>Bridged</rasd:Connection>
-        <rasd:ElementName>Ethernet adapter on 'Bridged'</rasd:ElementName>
+        <rasd:Connection>VM Network</rasd:Connection>
+        <rasd:Description>E1000 ethernet adapter on &quot;VM Network&quot;</rasd:Description>
+        <rasd:ElementName>ethernet0</rasd:ElementName>
         <rasd:InstanceID>7</rasd:InstanceID>
         <rasd:ResourceSubType>E1000</rasd:ResourceSubType>
         <rasd:ResourceType>10</rasd:ResourceType>
       </Item>
+      <Item>
+        <rasd:AddressOnParent>0</rasd:AddressOnParent>
+        <rasd:ElementName>scsi0:0</rasd:ElementName>
+        <rasd:HostResource>ovf:/disk/vmdisk1</rasd:HostResource>
+        <rasd:InstanceID>8</rasd:InstanceID>
+        <rasd:Parent>3</rasd:Parent>
+        <rasd:ResourceType>17</rasd:ResourceType>
+      </Item>
     </VirtualHardwareSection>
-    <vbox:Machine ovf:required="false" version="1.11-freebsd" uuid="{88b47fa6-df46-45e1-8840-0d7158e5c1e7}" name="pfSense" OSType="Linux26_64" snapshotFolder="Snapshots" lastStateChange="2011-06-17T02:01:32Z">
-      <ovf:Info>Complete VirtualBox machine configuration in VirtualBox format</ovf:Info>
-      <Description>pfSense is a free, open source customized distribution of FreeBSD tailored for use as a firewall and router. In addition to being a powerful, flexible firewalling and routing platform, it includes a long list of related features and a package system allowing further expandability without adding bloat and potential security vulnerabilities to the base distribution. pfSense is a popular project with more than 1 million downloads since its inception, and proven in countless installations ranging from small home networks protecting a PC and an Xbox to large corporations, universities and other organizations protecting thousands of network devices.</Description>
-      <Hardware version="2">
-        <CPU count="1" hotplug="false">
-          <HardwareVirtEx enabled="true" exclusive="true"/>
-          <HardwareVirtExNestedPaging enabled="true"/>
-          <HardwareVirtExVPID enabled="true"/>
-          <PAE enabled="true"/>
-          <HardwareVirtExLargePages enabled="true"/>
-          <HardwareVirtForce enabled="false"/>
-        </CPU>
-        <Memory RAMSize="1024" PageFusion="false"/>
-        <HID Pointing="PS2Mouse" Keyboard="PS2Keyboard"/>
-        <HPET enabled="false"/>
-        <Chipset type="PIIX3"/>
-        <Boot>
-          <Order position="1" device="Floppy"/>
-          <Order position="2" device="DVD"/>
-          <Order position="3" device="HardDisk"/>
-          <Order position="4" device="None"/>
-        </Boot>
-        <Display VRAMSize="4" monitorCount="1" accelerate3D="false" accelerate2DVideo="false"/>
-        <RemoteDisplay enabled="false" authType="Null" authTimeout="5000"/>
-        <BIOS>
-          <ACPI enabled="true"/>
-          <IOAPIC enabled="true"/>
-          <Logo fadeIn="true" fadeOut="true" displayTime="0"/>
-          <BootMenu mode="MessageAndMenu"/>
-          <TimeOffset value="0"/>
-          <PXEDebug enabled="false"/>
-        </BIOS>
-        <USBController enabled="false" enabledEhci="false"/>
-        <Network>
-          <Adapter slot="0" enabled="true" MACAddress="08002783CDC8" cable="true" speed="0" type="82545EM">
-            <DisabledModes>
-              <NAT>
-                <DNS pass-domain="true" use-proxy="false" use-host-resolver="false"/>
-                <Alias logging="false" proxy-only="false" use-same-ports="false"/>
-              </NAT>
-            </DisabledModes>
-            <BridgedInterface name="em0"/>
-          </Adapter>
-          <Adapter slot="1" enabled="true" MACAddress="0800274B3258" cable="true" speed="0" type="82545EM">
-            <DisabledModes>
-              <NAT>
-                <DNS pass-domain="true" use-proxy="false" use-host-resolver="false"/>
-                <Alias logging="false" proxy-only="false" use-same-ports="false"/>
-              </NAT>
-            </DisabledModes>
-            <BridgedInterface name="em0"/>
-          </Adapter>
-          <Adapter slot="2" enabled="false" MACAddress="080027411BCC" cable="true" speed="0" type="82540EM">
-            <DisabledModes>
-              <NAT>
-                <DNS pass-domain="true" use-proxy="false" use-host-resolver="false"/>
-                <Alias logging="false" proxy-only="false" use-same-ports="false"/>
-              </NAT>
-            </DisabledModes>
-          </Adapter>
-          <Adapter slot="3" enabled="false" MACAddress="08002754586C" cable="true" speed="0" type="82540EM">
-            <DisabledModes>
-              <NAT>
-                <DNS pass-domain="true" use-proxy="false" use-host-resolver="false"/>
-                <Alias logging="false" proxy-only="false" use-same-ports="false"/>
-              </NAT>
-            </DisabledModes>
-          </Adapter>
-          <Adapter slot="4" enabled="false" MACAddress="080027BB8950" cable="true" speed="0" type="82540EM">
-            <DisabledModes>
-              <NAT>
-                <DNS pass-domain="true" use-proxy="false" use-host-resolver="false"/>
-                <Alias logging="false" proxy-only="false" use-same-ports="false"/>
-              </NAT>
-            </DisabledModes>
-          </Adapter>
-          <Adapter slot="5" enabled="false" MACAddress="08002711F800" cable="true" speed="0" type="82540EM">
-            <DisabledModes>
-              <NAT>
-                <DNS pass-domain="true" use-proxy="false" use-host-resolver="false"/>
-                <Alias logging="false" proxy-only="false" use-same-ports="false"/>
-              </NAT>
-            </DisabledModes>
-          </Adapter>
-          <Adapter slot="6" enabled="false" MACAddress="080027C067B6" cable="true" speed="0" type="82540EM">
-            <DisabledModes>
-              <NAT>
-                <DNS pass-domain="true" use-proxy="false" use-host-resolver="false"/>
-                <Alias logging="false" proxy-only="false" use-same-ports="false"/>
-              </NAT>
-            </DisabledModes>
-          </Adapter>
-          <Adapter slot="7" enabled="false" MACAddress="08002798CCB2" cable="true" speed="0" type="82540EM">
-            <DisabledModes>
-              <NAT>
-                <DNS pass-domain="true" use-proxy="false" use-host-resolver="false"/>
-                <Alias logging="false" proxy-only="false" use-same-ports="false"/>
-              </NAT>
-            </DisabledModes>
-          </Adapter>
-        </Network>
-        <UART>
-          <Port slot="0" enabled="false" IOBase="0x3f8" IRQ="4" hostMode="Disconnected"/>
-          <Port slot="1" enabled="false" IOBase="0x2f8" IRQ="3" hostMode="Disconnected"/>
-        </UART>
-        <LPT>
-          <Port slot="0" enabled="false" IOBase="0x378" IRQ="4"/>
-          <Port slot="1" enabled="false" IOBase="0x378" IRQ="4"/>
-        </LPT>
-        <AudioAdapter controller="AC97" driver="OSS" enabled="false"/>
-        <RTC localOrUTC="local"/>
-        <SharedFolders/>
-        <Clipboard mode="Bidirectional"/>
-        <IO>
-          <IoCache enabled="true" size="5"/>
-          <BandwidthGroups/>
-        </IO>
-        <Guest memoryBalloonSize="0"/>
-        <GuestProperties/>
-      </Hardware>
-      <StorageControllers>
-        <StorageController name="IDE Controller" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
-        </StorageController>
-        <StorageController name="SCSI Controller" type="LsiLogic" PortCount="16" useHostIOCache="false" Bootable="true"/>
-      </StorageControllers>
-    </vbox:Machine>
+    <ProductSection xsi:type="ovf:ProductSection_Type">
+      <Info>Describes product information for the service</Info>
+      <Product>pfSense</Product>
+      <Vendor>BSD Perimeter, LLC</Vendor>
+      <Version>2.0-RC3</Version>
+      <ProductUrl>http://www.pfsense.org</ProductUrl>
+      <VendorUrl>http://www.pfsense.org</VendorUrl>
+    </ProductSection>
+    <AnnotationSection xsi:type="ovf:AnnotationSection_Type">
+      <Info>An annotation</Info>
+      <Annotation>pfSense is a free, open source customized distribution of FreeBSD tailored for use as a firewall and router. In addition to being a powerful, flexible firewalling and routing platform, it includes a long list of related features and a package system allowing further expandability without adding bloat and potential security vulnerabilities to the base distribution. pfSense is a popular project with more than 1 million downloads since its inception, and proven in countless installations ranging from small home networks protecting a PC and an Xbox to large corporations, universities and other organizations protecting thousands of network devices.</Annotation>
+    </AnnotationSection>
+    <EulaSection>
+      <Info>The End User License Agreement</Info>
+      <License>
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+POSSIBILITY OF SUCH DAMAGE.
+      </License>
+    </EulaSection>
   </VirtualSystem>
 </Envelope>
