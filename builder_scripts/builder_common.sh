@@ -2550,15 +2550,15 @@ create_ova_image() {
 	gpart add -t freebsd-boot -s 64 $MD
 	echo ">>> Stamping boot code..."
 	gpart bootcode -b /boot/pmbr -p /boot/gptboot -i 1 $MD
-	echo ">>> Setting up disk slices: ${MD}p2..."
+	echo ">>> Setting up disk slices: ${MD}s2..."
     gpart add -s 8G -t freebsd -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
 	gpart add -s 1G -t freebsd-swap -i 3 $MD
 	echo ">>> Running newfs..."
-	newfs -U /dev/${MD}p1
+	newfs -U /dev/${MD}s2
 	sync ; sync ; sync ; sync
-	echo ">>> Labeling partitions: ${MD}p2..."
-	glabel label ${PRODUCT_NAME} ${MD}p2
+	echo ">>> Labeling partitions: ${MD}s2..."
+	glabel label ${PRODUCT_NAME} ${MD}s2
 	sync ; sync
 	echo ">>> Labeling partitions: ${MD}p3..."
 	glabel label swap0 ${MD}p3
@@ -2567,7 +2567,7 @@ create_ova_image() {
 	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml
 	file_search_replace vr1 em1 ${PFSENSEBASEDIR}/conf.default/config.xml
 	echo ">>> Mounting image to /mnt..."
-	mount -o rw /dev/${MD}p2 /mnt/
+	mount -o rw /dev/${MD}s2 /mnt/
 	echo ">>> Populating vmdk staging area..."	
 	cpdup -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
 	cpdup -o ${PFSENSEBASEDIR}/boot /mnt/boot
