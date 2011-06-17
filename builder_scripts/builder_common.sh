@@ -2587,7 +2587,7 @@ create_ova_image() {
 	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
 	echo ">>> Calculating size of /mnt..."
 	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
-	du -d1 -h /mnt/
+	du -d0 -h /mnt/
 	umount /mnt
 	sync ; sync
 	# Unmount /dev/mdX
