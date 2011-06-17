@@ -2513,7 +2513,6 @@ awk '
 # (and many other emulation platforms)
 # http://www.vmware.com/pdf/ovf_whitepaper_specification.pdf
 create_ova_image() {
-	sysctl kern.geom.debugflags=0x10
 	# XXX create a .ovf php creator that you can pass:
 	#     1. populatedSize
 	#     2. license 
@@ -2523,6 +2522,58 @@ create_ova_image() {
 	#     6. allocationUnits
 	#     7. capacity
 	#     8. capacityAllocationUnits
+	ova_prereq_check
+	ova_remove_old_tmp_files
+	ova_setup_ovf_file
+	ova_create_raw_backed_file
+	/bin/echo -n ">>> Creating mdconfig image... "
+	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
+	echo $MD
+	# comment out if using pc-sysinstall
+	#     ova_partition_gpart $MD
+	ova_setup_pc_sysinstaller_conf $MD
+	ova_invoke_pc_sysinstaller
+	ova_set_default_network_interfaces
+	ova_mount_mnt $MD
+	ova_cpdup_files
+	ova_calculate_mnt_size
+	ova_umount_mnt $MD
+	ova_create_vbox_image
+}
+
+# called from create_ova_image
+ova_umount_mnt() {
+	# Unmount /dev/mdX
+	ova_umount_mnt
+	umount /mnt
+	sync ; sync
+}
+
+# called from create_ova_image
+ova_umount_mdconfig() {
+	MD=$1
+	# Show gpart info
+	gpart show $MD	
+	echo ">>> Unmounting ${MD}..."
+	mdconfig -d -u $MD
+	sync ; sync
+}
+
+# called from create_ova_image
+ova_mount_mnt() {
+	MD=$1
+	echo ">>> Mounting image to /mnt..."
+	mount -o rw /dev/${MD}s2 /mnt/
+}
+
+# called from create_ova_image
+ova_setup_ovf_file() {
+	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
+	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
+}
+
+# called from create_ova_image
+ova_prereq_check() {
 	if [ ! -f /usr/local/bin/VBoxManage ]; then
 		if [ ! -d /usr/ports ]; then
 			echo ">>> /usr/ports does not exist, fetching..."
@@ -2531,19 +2582,80 @@ create_ova_image() {
 		echo ">>> Installing Qemu from ports, one moment please..."
 		cd /usr/ports/emulators/virtualbox-ose && make install clean
 	fi
-	rm ${OVFPATH}/*.ovf.final 2>/dev/null
-	rm ${OVFPATH}/*.ovf 2>/dev/null
-	rm ${OVFPATH}/*.ova 2>/dev/null
-	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
-	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
+	sysctl kern.geom.debugflags=16
+}
+
+# called from create_ova_image
+ova_calculate_mnt_size() {
+	echo ">>> Calculating size of /mnt..."
+	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
+	du -d0 -h /mnt/	
+}
+
+# called from create_ova_image
+ova_create_raw_backed_file() {
 	echo ">>> Creating raw backing file..."
 	DISKSIZE=10737418240
 	BLOCKSIZE=409600
 	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
 	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$BLOCKSIZE count=$COUNT
-	/bin/echo -n ">>> Creating mdconfig image... "
-	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
-	echo $MD
+}
+
+# called from create_ova_image
+ova_remove_old_tmp_files() {
+	rm ${OVFPATH}/*.ovf.final 2>/dev/null
+	rm ${OVFPATH}/*.ovf 2>/dev/null
+	rm ${OVFPATH}/*.ova 2>/dev/null	
+}
+
+# called from create_ova_image
+ova_set_default_network_interfaces() {
+	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
+	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml
+	file_search_replace vr1 em1 ${PFSENSEBASEDIR}/conf.default/config.xml
+}
+
+# called from create_ova_image
+ova_create_vbox_image() {
+	# VirtualBox
+	echo ">>> Creating image using VBoxManage..."
+	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
+	VBoxManage convertfromraw ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK} --format vmdk
+	OVFVMDKSIZE=`ls -lah ${OVFPATH}/${OVFVMDK}`
+	echo ">>> Importing virtual machine ${PRODUCT_NAME}..."
+	import_ova_vm $PRODUCT_NAME
+	echo ">>> Exporting virtual machine ${PRODUCT_NAME}..."
+	export_vbox_vm $PRODUCT_NAME
+	echo ">>> Deleting imported virtual machine ${PRODUCT_NAME}..."
+	delete_vbox_vm $PRODUCT_NAME
+	echo ">>> ${OVFPATH}/${OVAFILE} created."
+	ls -lah ${OVFPATH}/${OVAFILE}
+}
+
+# called from create_ova_image
+ova_cpdup_files() {
+	echo ">>> Populating vmdk staging area..."	
+	cpdup -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
+	cpdup -o ${PFSENSEBASEDIR}/boot /mnt/boot
+	cpdup -o ${PFSENSEBASEDIR}/bin /mnt/bin
+	cpdup -o ${PFSENSEBASEDIR}/conf /mnt/conf
+	cpdup -o ${PFSENSEBASEDIR}/conf.default /mnt/conf.default
+	cpdup -o ${PFSENSEBASEDIR}/dev /mnt/dev
+	cpdup -o ${PFSENSEBASEDIR}/etc /mnt/etc
+	cpdup -o ${PFSENSEBASEDIR}/home /mnt/home
+	cpdup -o ${PFSENSEBASEDIR}/kernels /mnt/kernels
+	cpdup -o ${PFSENSEBASEDIR}/libexec /mnt/libexec
+	cpdup -o ${PFSENSEBASEDIR}/lib /mnt/lib
+	cpdup -o ${PFSENSEBASEDIR}/root /mnt/root
+	cpdup -o ${PFSENSEBASEDIR}/sbin /mnt/sbin
+	cpdup -o ${PFSENSEBASEDIR}/usr /mnt/usr
+	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
+	sync ; sync ; sync ; sync
+}
+
+# called from create_ova_image
+ova_partition_gpart() {
+	MD=$1
 	echo ">>> Creating GPT..."
 	gpart create -s gpt $MD
 	echo ">>> Creating GPT boot partition..."
@@ -2564,67 +2676,29 @@ create_ova_image() {
 	echo ">>> Labeling partitions: ${MD}p3..."
 	glabel label swap0 ${MD}p3
 	sync ; sync
-	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
-	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml
-	file_search_replace vr1 em1 ${PFSENSEBASEDIR}/conf.default/config.xml
-	echo ">>> Mounting image to /mnt..."
-	mount -o rw /dev/${MD}s2 /mnt/
-	echo ">>> Populating vmdk staging area..."	
-	cpdup -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
-	cpdup -o ${PFSENSEBASEDIR}/boot /mnt/boot
-	cpdup -o ${PFSENSEBASEDIR}/bin /mnt/bin
-	cpdup -o ${PFSENSEBASEDIR}/conf /mnt/conf
-	cpdup -o ${PFSENSEBASEDIR}/conf.default /mnt/conf.default
-	cpdup -o ${PFSENSEBASEDIR}/dev /mnt/dev
-	cpdup -o ${PFSENSEBASEDIR}/etc /mnt/etc
-	cpdup -o ${PFSENSEBASEDIR}/home /mnt/home
-	cpdup -o ${PFSENSEBASEDIR}/kernels /mnt/kernels
-	cpdup -o ${PFSENSEBASEDIR}/libexec /mnt/libexec
-	cpdup -o ${PFSENSEBASEDIR}/lib /mnt/lib
-	cpdup -o ${PFSENSEBASEDIR}/root /mnt/root
-	cpdup -o ${PFSENSEBASEDIR}/sbin /mnt/sbin
-	cpdup -o ${PFSENSEBASEDIR}/usr /mnt/usr
-	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
-	echo ">>> Calculating size of /mnt..."
-	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
-	du -d0 -h /mnt/
-	umount /mnt
-	sync ; sync
-	# Show gpart info
-	gpart show $MD
-	# Unmount /dev/mdX
-	echo ">>> Unmounting ${MD}..."
-	mdconfig -d -u $MD
-	sync ; sync
-	# VirtualBox
-	echo ">>> Creating image using VBoxManage..."
-	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
-	VBoxManage convertfromraw ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK} --format vmdk
-	OVFVMDKSIZE=`ls -lah ${OVFPATH}/${OVFVMDK}`
-	echo ">>> Importing virtual machine ${PRODUCT_NAME}..."
-	import_ova_vm $PRODUCT_NAME
-	echo ">>> Exporting virtual machine ${PRODUCT_NAME}..."
-	export_vbox_vm $PRODUCT_NAME
-	echo ">>> Deleting imported virtual machine ${PRODUCT_NAME}..."
-	delete_vbox_vm $PRODUCT_NAME
-	echo ">>> ${OVFPATH}/${OVAFILE} created."
-	ls -lah ${OVFPATH}/${OVAFILE}
 }
 
+# called from create_ova_image
 import_ova_vm() {
+	VMNAME=$1
 	VBoxManage import ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf --vsys 0 --eula accept
-	VBoxManage storageattach $1 --type hdd --medium ${OVFPATH}/${OVFVMDK} --storagectl "IDE Controller" --port 0 --device 0
+	VBoxManage storageattach $VMNAME --type hdd --medium ${OVFPATH}/${OVFVMDK} --storagectl "IDE Controller" --port 0 --device 0
 }
 
+# called from create_ova_image
 export_vbox_vm() {
+	VMNAME=$1
 	rm ${OVFPATH}/${OVAFILE} 2>/dev/null
-	VBoxManage export $1 -o ${OVFPATH}/${OVAFILE}
+	VBoxManage export $VMNAME -o ${OVFPATH}/${OVAFILE}
 }
 
+# called from create_ova_image
 delete_vbox_vm() {
-	VBoxManage unregistervm $1 --delete
+	VMNAME=$1
+	VBoxManage unregistervm $VMNAME --delete
 }
 
+# called from create_ova_image
 # This routine will replace a string in a file
 file_search_replace() {
 	SEARCH=$1
@@ -2632,6 +2706,36 @@ file_search_replace() {
 	FILENAME=$3
 	sed "s/${SEARCH}/${REPLACE}/g" $3 > $FILENAME.$$
 	mv $FILENAME.$$ $FILENAME
+}
+
+# called from create_ova_image
+ova_setup_pc_sysinstaller_conf() {
+	echo ">>> Copying ${PFSENSEBASEDIR}/usr/sbin/pc-sysinstall /usr/sbin/..."
+	cp -R ${PFSENSEBASEDIR}/usr/sbin/pc-sysinstall /usr/sbin/
+	cat <<EOF >>/tmp/pcsysinstall.conf
+installMode=fresh
+installInteractive=yes
+installType=FreeBSD
+installMedium=LiveCD
+disk0=$1
+partition=all
+bootManager=bsd
+commitDiskPart
+disk1-part=UFS+S 7990 /
+disk0-part=SWAP 2000 none
+commitDiskLabel
+installType=FreeBSD
+packageType=cpdup
+cpdupPaths=boot,COPYRIGHT,bin,conf,conf.default,dev,etc,home,kernels,libexec,lib,root,sbin,sys,usr,var
+
+EOF
+
+}
+
+# called from create_ova_image
+ova_invoke_pc_sysinstaller() {
+	echo ">>> Invoking pc-sysinstall with -c /tmp/pcsysinstall.conf..."
+	/usr/sbin/pc-sysinstall/pc-sysinstall/pc-sysinstall.sh -c /tmp/pcsysinstall.conf
 }
 
 # This routine installs pfSense packages into the staging area.
