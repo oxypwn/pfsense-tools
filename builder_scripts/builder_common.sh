@@ -2544,10 +2544,9 @@ create_ova_image() {
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
 	echo $MD
-	gpart create -s gpt $MD
 	echo ">>> Setting up disk slices: ${MD}s1..."
 	gpart create -s mbr $MD
-    gpart add  -b 34 -s 8G -t freebsd -i 1 $MD
+    gpart add -s 8G -t freebsd -i 1 $MD
 	echo ">>> Setting up disk slices: ${MD}s2 (swap)..."
 	gpart add -s 1G -t freebsd-swap -i 2 $MD
 	echo ">>> Stamping boot code..."
@@ -2586,8 +2585,6 @@ create_ova_image() {
 	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
 	du -d0 -h /mnt/
 	umount /mnt
-	echo ">>> Setting partition 1 to active..."
-	gpart set -a active -i 1 $MD
 	sync ; sync
 	# Unmount /dev/mdX
 	echo ">>> Unmounting ${MD}..."
