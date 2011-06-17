@@ -2550,6 +2550,7 @@ create_ova_image() {
 	gpart add -t freebsd-boot -s 64 $MD
 	echo ">>> Stamping boot code..."
 	gpart bootcode -b /boot/pmbr -p /boot/gptboot -i 1 $MD
+	#gpart set -a bootme -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}s2..."
     gpart add -s 8G -t freebsd -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
@@ -2589,6 +2590,8 @@ create_ova_image() {
 	du -d0 -h /mnt/
 	umount /mnt
 	sync ; sync
+	# Show gpart info
+	gpart show $MD
 	# Unmount /dev/mdX
 	echo ">>> Unmounting ${MD}..."
 	mdconfig -d -u $MD
