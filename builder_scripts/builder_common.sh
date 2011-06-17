@@ -2599,45 +2599,31 @@ create_ova_image() {
 	echo ">>> Creating image using VBoxManage..."
 	rm ${OVFPATH}/${OVFVMDK}
 	VBoxManage convertfromraw ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK} --format VMDK
-	VBOXSIZE=`ls -lah ${OVFPATH}/${OVFVMDK}`
-	echo ">>> Virtual box VMDK size: $VBOXSIZE"
-	VMDKSIZE=`ls -la ${OVFPATH}/${OVFVMDK} | awk '{ print $5 }'`
-	echo ">>> Setting vmdk on disk size to ${VMDKSIZE}..."
-	file_search_replace VMDKSIZE $VMDKSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
-	echo ">>> Creating OVA file ${OVFPATH}/${OVAFILE}..."
-	# OVA tar format has restrictions.  Correct ordering is:
-	#   MyPackage.ovf
-	#   MyPackage.mf
-	#   MyPackage.cert
-	#   MyPackage.vmdk
-	#   MyPackage.strings
-	cd $OVFPATH && tar cpf ${OVFPATH}/${OVAFILE} ${PRODUCT_NAME}.ovf ${OVFMF} ${OVFCERT} ${OVFVMDK} ${OVFSTRINGS}
-	if [ -f ${OVFPATH}/${OVAFILE} ]; then
-		echo ">>> Removing ovf and vmdk files..."
-		#rm ${OVFPATH}/${OVFFILE} 2>/dev/null
-		#rm ${OVFPATH}/${OVFVMDK}.raw 2>/dev/null
-		sync ; sync
-		echo ">>> ${OVFPATH}/${OVAFILE} created."
-		ls -lah ${OVFPATH}/${OVAFILE}
-	else
-		echo "!!! Something went wrong - ova file not created."
-		print_error_pfS
-	fi
-}
-
-create_vbox_vm() { 
-	VBoxManage createvm --name "${PRODUCT_NAME}" --settingsfile ${OVFPATH}/${OVFVMDK}.xml
-	VBoxManage modifyvm "${PRODUCT_NAME}" --memory "512MB" --settingsfile ${OVFPATH}/${OVFVMDK}.xml
+	OVFVMDKSIZE=`ls -lah ${OVFPATH}/${OVFVMDK}`
+	echo ">>> Virtual box VMDK size: $OVFVMDKSIZE"
+	file_search_replace VMDKSIZE $VMDKSIZE ${BUILDER_SCRIPTS}.ovf
+	echo ">>> Importing virtual machine ${PRODUCT_NAME}..."
+	import_ova_vm $PRODUCT_NAME
+	echo ">>> Exporting virtual machine ${PRODUCT_NAME}..."
+	export_vbox_vm $PRODUCT_NAME
+	echo ">>> Deleting imported virtual machine ${PRODUCT_NAME}..."
+	delete_vbox_vm $PRODUCT_NAME
+	echo ">>> ${OVFPATH}/${OVAFILE} created."
+	ls -lah ${OVFPATH}/${OVAFILE}
 }
 
 import_ova_vm() {
 	VBoxManage import ${PRODUCT_NAME}.ovf --vsys 0 --eula accept
-	pfSense --type hdd --medium ${OVFPATH}/${OVFVMDK} --storagectl "IDE Controller" --port 1 --device 1
+	VBoxManage storageattach $1 --type hdd --medium ${OVFPATH}/${OVFVMDK} --storagectl "IDE Controller" --port 1 --device 1
 }
 
 export_vbox_vm() {
 	rm ${OVFPATH}/${OVAFILE} 2>/dev/null
-	VBoxManage export pfSense -o ${OVFPATH}/${OVAFILE}
+	VBoxManage export $1 -o ${OVFPATH}/${OVAFILE}
+}
+
+delete_vbox_vm() {
+	VBoxManage unregistervm $1 --delete
 }
 
 # This routine will replace a string in a file
