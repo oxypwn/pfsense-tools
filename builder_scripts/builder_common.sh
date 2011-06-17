@@ -2563,6 +2563,8 @@ create_ova_image() {
 	sync ; sync
 	echo ">>> Labeling partitions: ${MD}s2..."
 	glabel label swap0 ${MD}s2
+	echo ">>> Setting partition 1 to active..."
+	gpart set -a active -i 1 $MD
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
 	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml

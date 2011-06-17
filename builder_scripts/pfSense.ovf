@@ -88,7 +88,7 @@
         <rasd:ResourceType>10</rasd:ResourceType>
       </Item>
     </VirtualHardwareSection>
-    <vbox:Machine ovf:required="false" version="1.11-macosx" uuid="{b7b81c20-3153-40ba-a0be-9475c5b8e1f8}" name="pfSense" OSType="Linux26_64" snapshotFolder="Snapshots" lastStateChange="2011-06-17T03:08:31Z">
+    <vbox:Machine ovf:required="false" version="2.0-RC3" uuid="{b7b81c20-3153-40ba-a0be-9475c5b8e1f8}" name="pfSense" OSType="FreeBSD" snapshotFolder="Snapshots" lastStateChange="2011-06-17T03:08:31Z">
       <ovf:Info>Complete VirtualBox machine configuration in VirtualBox format</ovf:Info>
       <Description>pfSense is a free, open source customized distribution of FreeBSD tailored for use as a firewall and router. In addition to being a powerful, flexible firewalling and routing platform, it includes a long list of related features and a package system allowing further expandability without adding bloat and potential security vulnerabilities to the base distribution. pfSense is a popular project with more than 1 million downloads since its inception, and proven in countless installations ranging from small home networks protecting a PC and an Xbox to large corporations, universities and other organizations protecting thousands of network devices.</Description>
       <ExtraData>
