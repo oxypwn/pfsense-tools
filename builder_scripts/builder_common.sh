@@ -2549,7 +2549,7 @@ create_ova_image() {
 	echo ">>> Creating GPT boot partition..."
 	gpart add -t freebsd-boot -s 64 $MD
 	echo ">>> Stamping boot code..."
-	gpart bootcode -b /boot/pmbr -p /boot/gptboot -i 2 $MD
+	gpart bootcode -b /boot/pmbr -p /boot/gptboot -i 1 $MD
 	echo ">>> Setting up disk slices: ${MD}p2..."
     gpart add -s 8G -t freebsd -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
