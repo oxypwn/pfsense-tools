@@ -2598,8 +2598,6 @@ create_ova_image() {
 	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
 	VBoxManage convertfromraw ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK} --format vmdk
 	OVFVMDKSIZE=`ls -lah ${OVFPATH}/${OVFVMDK}`
-	echo ">>> Virtual box VMDK size: $OVFVMDKSIZE"
-	file_search_replace VMDKSIZE $VMDKSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Importing virtual machine ${PRODUCT_NAME}..."
 	import_ova_vm $PRODUCT_NAME
 	echo ">>> Exporting virtual machine ${PRODUCT_NAME}..."
