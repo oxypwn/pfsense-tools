@@ -1,12 +1,5 @@
 <?xml version="1.0"?>
 <Envelope ovf:version="1.0" xml:lang="en-US" xmlns="http://schemas.dmtf.org/ovf/envelope/1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData" xmlns:vssd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:vbox="http://www.virtualbox.org/ovf/machine">
-  <References>
-    <File ovf:href="pfSense-disk1.vmdk" ovf:id="file1"/>
-  </References>
-  <DiskSection>
-    <Info>List of the virtual disks used in the package</Info>
-    <Disk ovf:capacity="10737418240" ovf:diskId="vmdisk1" ovf:fileRef="file1" ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" vbox:uuid="d91496b6-9dfc-4fc1-8e56-958e5ef0b929"/>
-  </DiskSection>
   <NetworkSection>
     <Info>Logical networks used in the package</Info>
     <Network ovf:name="Bridged">
@@ -93,16 +86,6 @@
         <rasd:InstanceID>7</rasd:InstanceID>
         <rasd:ResourceSubType>E1000</rasd:ResourceSubType>
         <rasd:ResourceType>10</rasd:ResourceType>
-      </Item>
-      <Item>
-        <rasd:AddressOnParent>1</rasd:AddressOnParent>
-        <rasd:Caption>disk1</rasd:Caption>
-        <rasd:Description>Disk Image</rasd:Description>
-        <rasd:ElementName>disk1</rasd:ElementName>
-        <rasd:HostResource>/disk/vmdisk1</rasd:HostResource>
-        <rasd:InstanceID>8</rasd:InstanceID>
-        <rasd:Parent>4</rasd:Parent>
-        <rasd:ResourceType>17</rasd:ResourceType>
       </Item>
     </VirtualHardwareSection>
     <vbox:Machine ovf:required="false" version="1.11-freebsd" uuid="{88b47fa6-df46-45e1-8840-0d7158e5c1e7}" name="pfSense" OSType="Linux26_64" snapshotFolder="Snapshots" lastStateChange="2011-06-17T02:01:32Z">
@@ -227,9 +210,6 @@
       </Hardware>
       <StorageControllers>
         <StorageController name="IDE Controller" type="PIIX4" PortCount="2" useHostIOCache="true" Bootable="true">
-          <AttachedDevice type="HardDisk" port="1" device="1">
-            <Image uuid="{d91496b6-9dfc-4fc1-8e56-958e5ef0b929}"/>
-          </AttachedDevice>
         </StorageController>
         <StorageController name="SCSI Controller" type="LsiLogic" PortCount="16" useHostIOCache="false" Bootable="true"/>
       </StorageControllers>

@@ -2541,7 +2541,7 @@ create_ova_image() {
 	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Creating raw backing file..."
 	DISKSIZE=10737418240
-	BLOCKSIZE=4096
+	BLOCKSIZE=409600
 	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
 	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$BLOCKSIZE count=$COUNT
 	/bin/echo -n ">>> Creating mdconfig image... "
@@ -2588,8 +2588,6 @@ create_ova_image() {
 	echo ">>> Calculating size of /mnt..."
 	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
 	du -d1 -h /mnt/
-	echo ">>> Setting vmdk install size to ${INSTALLSIZE}..."
-	file_search_replace INSTALLSIZE $INSTALLSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
 	umount /mnt
 	sync ; sync
 	# Unmount /dev/mdX
@@ -2597,11 +2595,11 @@ create_ova_image() {
 	mdconfig -d -u $MD
 	# VirtualBox
 	echo ">>> Creating image using VBoxManage..."
-	rm ${OVFPATH}/${OVFVMDK}
-	VBoxManage convertfromraw ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK} --format VMDK
+	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
+	VBoxManage convertfromraw ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK} --format vmdk
 	OVFVMDKSIZE=`ls -lah ${OVFPATH}/${OVFVMDK}`
 	echo ">>> Virtual box VMDK size: $OVFVMDKSIZE"
-	file_search_replace VMDKSIZE $VMDKSIZE ${BUILDER_SCRIPTS}.ovf
+	file_search_replace VMDKSIZE $VMDKSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Importing virtual machine ${PRODUCT_NAME}..."
 	import_ova_vm $PRODUCT_NAME
 	echo ">>> Exporting virtual machine ${PRODUCT_NAME}..."
@@ -2613,7 +2611,7 @@ create_ova_image() {
 }
 
 import_ova_vm() {
-	VBoxManage import ${PRODUCT_NAME}.ovf --vsys 0 --eula accept
+	VBoxManage import ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf --vsys 0 --eula accept
 	VBoxManage storageattach $1 --type hdd --medium ${OVFPATH}/${OVFVMDK} --storagectl "IDE Controller" --port 1 --device 1
 }
 
