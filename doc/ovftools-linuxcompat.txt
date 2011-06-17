@@ -19,7 +19,7 @@ mount -a
 fetch http://www.luizgustavo.pro.br/~lgcosta/pfsense/ovftool.tar.bz2
 tar -C /usr/local -jxvf ovftool.tar.bz2
 
-# modify /usr/local/vmware/ovftool/ovftool and change the top line to #!/usr/local/bin/bash
+# modify /usr/local/vmware/ovftool/ovftool and change the top line to #!/usr/compat/linux/bin/bash
 
 cd /usr/local/vmware/ovftool
 ./ovftool --help
