@@ -2522,17 +2522,13 @@ create_ova_image() {
 	#     6. allocationUnits
 	#     7. capacity
 	#     8. capacityAllocationUnits
-	if [ ! -f /usr/local/vmware/ovftool/ovftool ]; then
-		echo "vmware ovftool not found.  cannot continue."
-		print_error_pfS
-	fi
-	if [ ! -f /usr/local/bin/qemu-img ]; then
+	if [ ! -f /usr/local/bin/VBoxManage ]; then
 		if [ ! -d /usr/ports ]; then
 			echo ">>> /usr/ports does not exist, fetching..."
 			portsnap fetch extract
 		fi
 		echo ">>> Installing Qemu from ports, one moment please..."
-		cd /usr/ports/emulators/qemu && make install clean
+		cd /usr/ports/emulators/virtualbox-ose && make install clean
 	fi
 	rm ${OVFPATH}/*.ovf.final 2>/dev/null
 	rm ${OVFPATH}/*.ovf 2>/dev/null
@@ -2549,12 +2545,11 @@ create_ova_image() {
 	echo $MD
 	echo ">>> Setting up disk slices: ${MD}s1..."
 	gpart create -s mbr $MD
-	gpart delete -i 1 $MD
     gpart add -s 8G -t freebsd -i 1 $MD
-	echo ">>> Stamping boot code..."
-	gpart bootcode -b /boot/boot1 $MD
 	echo ">>> Setting up disk slices: ${MD}s2 (swap)..."
 	gpart add -s 1G -t freebsd-swap -i 2 $MD
+	echo ">>> Stamping boot code..."
+	gpart bootcode -b /boot/boot1 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}s1
 	sync ; sync ; sync ; sync
@@ -2563,8 +2558,6 @@ create_ova_image() {
 	sync ; sync
 	echo ">>> Labeling partitions: ${MD}s2..."
 	glabel label swap0 ${MD}s2
-	echo ">>> Setting partition 1 to active..."
-	gpart set -a active -i 1 $MD
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
 	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml
@@ -2591,8 +2584,11 @@ create_ova_image() {
 	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
 	du -d0 -h /mnt/
 	umount /mnt
+	echo ">>> Setting partition 1 to active..."
+	gpart set -a active -i 1 $MD
 	sync ; sync
 	# Unmount /dev/mdX
+	echo ">>> Installing boot block..."
 	echo ">>> Unmounting ${MD}..."
 	mdconfig -d -u $MD
 	# VirtualBox
