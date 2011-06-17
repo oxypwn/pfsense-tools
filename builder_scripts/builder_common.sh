@@ -2513,6 +2513,7 @@ awk '
 # (and many other emulation platforms)
 # http://www.vmware.com/pdf/ovf_whitepaper_specification.pdf
 create_ova_image() {
+	sysctl kern.geom.debugflags=0x10
 	# XXX create a .ovf php creator that you can pass:
 	#     1. populatedSize
 	#     2. license 
@@ -2543,9 +2544,10 @@ create_ova_image() {
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
 	echo $MD
+	gpart create -s gpt $MD
 	echo ">>> Setting up disk slices: ${MD}s1..."
 	gpart create -s mbr $MD
-    gpart add -s 8G -t freebsd -i 1 $MD
+    gpart add  -b 34 -s 8G -t freebsd -i 1 $MD
 	echo ">>> Setting up disk slices: ${MD}s2 (swap)..."
 	gpart add -s 1G -t freebsd-swap -i 2 $MD
 	echo ">>> Stamping boot code..."
@@ -2588,9 +2590,9 @@ create_ova_image() {
 	gpart set -a active -i 1 $MD
 	sync ; sync
 	# Unmount /dev/mdX
-	echo ">>> Installing boot block..."
 	echo ">>> Unmounting ${MD}..."
 	mdconfig -d -u $MD
+	sync ; sync
 	# VirtualBox
 	echo ">>> Creating image using VBoxManage..."
 	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
