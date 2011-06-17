@@ -2544,27 +2544,30 @@ create_ova_image() {
 	/bin/echo -n ">>> Creating mdconfig image... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
 	echo $MD
-	echo ">>> Setting up disk slices: ${MD}s1..."
-	gpart create -s mbr $MD
-    gpart add -s 8G -t freebsd -i 1 $MD
-	echo ">>> Setting up disk slices: ${MD}s2 (swap)..."
-	gpart add -s 1G -t freebsd-swap -i 2 $MD
+	echo ">>> Creating GPT..."
+	gpart create -s gpt $MD
+	echo ">>> Creating GPT boot partition..."
+	gpart add -t freebsd-boot -s 64 $MD
 	echo ">>> Stamping boot code..."
-	gpart bootcode -b /boot/boot1 $MD
+	gpart bootcode -b /boot/pmbr -p /boot/gptboot -i 2 $MD
+	echo ">>> Setting up disk slices: ${MD}p2..."
+    gpart add -s 8G -t freebsd -i 2 $MD
+	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
+	gpart add -s 1G -t freebsd-swap -i 3 $MD
 	echo ">>> Running newfs..."
-	newfs -U /dev/${MD}s1
+	newfs -U /dev/${MD}p1
 	sync ; sync ; sync ; sync
-	echo ">>> Labeling partitions: ${MD}s1..."
-	glabel label ${PRODUCT_NAME} ${MD}s1
+	echo ">>> Labeling partitions: ${MD}p2..."
+	glabel label ${PRODUCT_NAME} ${MD}p2
 	sync ; sync
-	echo ">>> Labeling partitions: ${MD}s2..."
-	glabel label swap0 ${MD}s2
+	echo ">>> Labeling partitions: ${MD}p3..."
+	glabel label swap0 ${MD}p3
 	sync ; sync
 	echo ">>> Setting default interfaces to em0 and em1 in config.xml..."
 	file_search_replace vr0 em0 ${PFSENSEBASEDIR}/conf.default/config.xml
 	file_search_replace vr1 em1 ${PFSENSEBASEDIR}/conf.default/config.xml
 	echo ">>> Mounting image to /mnt..."
-	mount -o rw /dev/${MD}s1 /mnt/
+	mount -o rw /dev/${MD}p2 /mnt/
 	echo ">>> Populating vmdk staging area..."	
 	cpdup -o ${PFSENSEBASEDIR}/COPYRIGHT /mnt/COPYRIGHT
 	cpdup -o ${PFSENSEBASEDIR}/boot /mnt/boot
