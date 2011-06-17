@@ -2530,9 +2530,9 @@ create_ova_image() {
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
 	echo $MD
 	# comment out if using pc-sysinstall
-	#     ova_partition_gpart $MD
-	ova_setup_pc_sysinstaller_conf $MD
-	ova_invoke_pc_sysinstaller
+	ova_partition_gpart $MD
+	#ova_setup_pc_sysinstaller_conf $MD
+	#ova_invoke_pc_sysinstaller
 	ova_set_default_network_interfaces
 	ova_mount_mnt $MD
 	ova_cpdup_files
@@ -2658,15 +2658,17 @@ ova_partition_gpart() {
 	MD=$1
 	echo ">>> Creating GPT..."
 	gpart create -s gpt $MD
+	echo ">>> Embedding GPT bootstrap into protective MBR..."
+	gpart bootcode -b /boot/pmbr $MD
 	echo ">>> Creating GPT boot partition..."
-	gpart add -t freebsd-boot -s 64 $MD
-	echo ">>> Stamping boot code..."
-	gpart bootcode -b /boot/pmbr -p /boot/gptboot -i 1 $MD
-	#gpart set -a bootme -i 2 $MD
+	gpart add -b 34 -s 128 -t freebsd-boot $MD
+	gpart bootcode -p /boot/gptboot -i 1 $MD
 	echo ">>> Setting up disk slices: ${MD}s2..."
-    gpart add -s 8G -t freebsd -i 2 $MD
+    gpart add -s 8G -t freebsd-ufs -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
 	gpart add -s 4193853 -t freebsd-swap -i 3 $MD
+	echo ">>> Embedding bootstrap code into partitions..."
+	gpart bootcode -p /boot/boot1 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}s2
 	sync ; sync ; sync ; sync
@@ -2721,7 +2723,7 @@ disk0=$1
 partition=all
 bootManager=bsd
 commitDiskPart
-disk0-part=UFS+S 8000 /
+disk0-part=UFS+S 8100 /
 disk0-part=SWAP 1990 none
 commitDiskLabel
 installType=FreeBSD
