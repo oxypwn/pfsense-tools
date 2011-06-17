@@ -2727,6 +2727,7 @@ commitDiskLabel
 installType=FreeBSD
 packageType=cpdup
 cpdupPaths=boot,COPYRIGHT,bin,conf,conf.default,dev,etc,home,kernels,libexec,lib,root,sbin,sys,usr,var
+cpdupPathsPrefix=/usr/local/pfsense-fs
 
 EOF
 
