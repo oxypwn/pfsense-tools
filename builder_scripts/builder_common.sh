@@ -2554,7 +2554,7 @@ create_ova_image() {
 	echo ">>> Setting up disk slices: ${MD}s2..."
     gpart add -s 8G -t freebsd -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
-	gpart add -s 1G -t freebsd-swap -i 3 $MD
+	gpart add -s 4193853 -t freebsd-swap -i 3 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}s2
 	sync ; sync ; sync ; sync
