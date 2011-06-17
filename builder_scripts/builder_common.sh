@@ -2663,17 +2663,17 @@ ova_partition_gpart() {
 	echo ">>> Creating GPT boot partition..."
 	gpart add -b 34 -s 128 -t freebsd-boot $MD
 	gpart bootcode -p /boot/gptboot -i 1 $MD
-	echo ">>> Setting up disk slices: ${MD}s2..."
+	echo ">>> Setting up disk slices: ${MD}p2..."
     gpart add -s 8G -t freebsd-ufs -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
 	gpart add -s 4193789 -t freebsd-swap -i 3 $MD
 	echo ">>> Embedding bootstrap code into partitions..."
 	gpart bootcode -p /boot/boot1 $MD
 	echo ">>> Running newfs..."
-	newfs -U /dev/${MD}s2
-	sync ; sync ; sync ; sync
-	echo ">>> Labeling partitions: ${MD}s2..."
-	glabel label ${PRODUCT_NAME} ${MD}s2
+	newfs -U /dev/${MD}p2
+	sync ; sync ; sync ; syncgpart
+	echo ">>> Labeling partitions: ${MD}p2..."
+	glabel label ${PRODUCT_NAME} ${MD}p2
 	sync ; sync
 	echo ">>> Labeling partitions: ${MD}p3..."
 	glabel label swap0 ${MD}p3
