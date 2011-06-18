@@ -2666,8 +2666,6 @@ ova_partition_gpart() {
     gpart add -s 8G -t freebsd-ufs -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
 	gpart add -s 4193789 -t freebsd-swap -i 3 $MD
-	echo ">>> Embedding bootstrap code into partitions..."
-	gpart bootcode -p /boot/boot1 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}p2
 	sync ; sync ; sync ; sync
