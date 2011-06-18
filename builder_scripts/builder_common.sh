@@ -2541,6 +2541,14 @@ create_ova_image() {
 	ova_umount_mnt $MD
 	ova_create_vbox_image
 	ova_repack_vbox_image
+	ova_cleanup_finished
+}
+
+ova_cleanup_finished() {
+	echo ">>> Cleaning up after build run..."
+	rm $OVFPATH/${PRODUCT_NAME}.vmdk.raw
+	rm $OVFPATH/${PRODUCT_NAME}-disk1.vmdk
+	rm $OVFPATH/${PRODUCT_NAME}.ovf
 }
 
 ova_repack_vbox_image() {
