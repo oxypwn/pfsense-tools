@@ -504,6 +504,7 @@ scp_files() {
 	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd"
 	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/virtualization"
 	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters"
+	# ensure permissions are correct for r+w
 	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/."
 	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/."
 	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/*/."

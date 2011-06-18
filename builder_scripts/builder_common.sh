@@ -2540,6 +2540,22 @@ create_ova_image() {
 	ova_calculate_mnt_size
 	ova_umount_mnt $MD
 	ova_create_vbox_image
+	ova_repack_vbox_image
+}
+
+ova_repack_vbox_image() {
+	cd /tmp/builder && tar xpf pfSense.ova
+	POPULATEDSIZE=`du -d0 -h $PFSENSEBASEDIR | awk '{ print $1 }' | cut -dM -f1`
+	POPULATEDSIZEBYTES=`echo "${POPULATEDSIZE}*1024^2" | bc`
+	REFERENCESSIZE=`ls -la $PFSENSEBASEDIR/${PRODUCT_NAME}-disk1.vmdk | awk '{ print $5 }'`
+	file_search_replace virtualbox-2.2 vmx-07 ${OVFPATH}/${PRODUCT_NAME}.ovf
+	file_search_replace REFERENCESSIZE REFERENCESSIZE ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace DISKSECTIONALLOCATIONUNITS 10737254400 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace DISKSECTIONCAPACITY 10737418240 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	mv ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf`
+	echo ">>> Repacking OVA with universal OVF file..."
+	cd /tmp/builder && tar cpf ${PRODUCT_NAME}.ovf ${PRODUCT_NAME}-disk1.vmdk
 }
 
 # called from create_ova_image
@@ -2569,7 +2585,9 @@ ova_mount_mnt() {
 # called from create_ova_image
 ova_setup_ovf_file() {
 	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
+	cp ${BUILDER_SCRIPTS}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
+	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 }
 
 # called from create_ova_image
@@ -2666,7 +2684,6 @@ ova_setup_platform_specific() {
 	cp /mnt/conf.default/config.xml /mnt/cf/conf/
 	chroot /mnt /bin/ln -s /cf/conf /conf
 	mkdir /mnt/tmp
-	ls -lah /mnt/
 }
 
 # called from create_ova_image
