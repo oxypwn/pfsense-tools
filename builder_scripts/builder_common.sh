@@ -2553,7 +2553,7 @@ ova_repack_vbox_image() {
 	file_search_replace DISKSECTIONALLOCATIONUNITS 10737254400 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	file_search_replace DISKSECTIONCAPACITY 10737418240 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
-	mv ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf`
+	mv ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Repacking OVA with universal OVF file..."
 	cd /tmp/builder && tar cpf ${PRODUCT_NAME}.ovf ${PRODUCT_NAME}-disk1.vmdk
 }
