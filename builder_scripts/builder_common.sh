@@ -2544,7 +2544,6 @@ create_ova_image() {
 # called from create_ova_image
 ova_umount_mnt() {
 	# Unmount /dev/mdX
-	ova_umount_mnt
 	umount /mnt
 	sync ; sync
 }
@@ -2563,7 +2562,7 @@ ova_umount_mdconfig() {
 ova_mount_mnt() {
 	MD=$1
 	echo ">>> Mounting image to /mnt..."
-	mount -o rw /dev/${MD}s2 /mnt/
+	mount -o rw /dev/${MD}p2 /mnt/
 }
 
 # called from create_ova_image
@@ -2671,7 +2670,7 @@ ova_partition_gpart() {
 	gpart bootcode -p /boot/boot1 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}p2
-	sync ; sync ; sync ; syncgpart
+	sync ; sync ; sync ; sync
 	echo ">>> Labeling partitions: ${MD}p2..."
 	glabel label ${PRODUCT_NAME} ${MD}p2
 	sync ; sync
