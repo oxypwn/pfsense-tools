@@ -2544,18 +2544,26 @@ create_ova_image() {
 }
 
 ova_repack_vbox_image() {
-	cd /tmp/builder && tar xpf pfSense.ova
-	POPULATEDSIZE=`du -d0 -h $PFSENSEBASEDIR | awk '{ print $1 }' | cut -dM -f1`
+	echo ">>> Extracting virtual box created ova file..."
+	cd ${OVFPATH} && tar xpf ${PRODUCT_NAME}.ova
+	POPULATEDSIZE=`du -d0 -h $PFSENSEBASEDIR | awk '{ print \$1 }' | cut -dM -f1`
 	POPULATEDSIZEBYTES=`echo "${POPULATEDSIZE}*1024^2" | bc`
-	REFERENCESSIZE=`ls -la $PFSENSEBASEDIR/${PRODUCT_NAME}-disk1.vmdk | awk '{ print $5 }'`
-	file_search_replace virtualbox-2.2 vmx-07 ${OVFPATH}/${PRODUCT_NAME}.ovf
+	REFERENCESSIZE=`ls -la ${OVFPATH}/${PRODUCT_NAME}-disk1.vmdk | awk '{ print \$5 }'`
+	echo ">>> Setting REFERENCESSIZE to ${REFERENCESSIZE}..."
 	file_search_replace REFERENCESSIZE REFERENCESSIZE ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
-	file_search_replace DISKSECTIONALLOCATIONUNITS 10737254400 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
-	file_search_replace DISKSECTIONCAPACITY 10737418240 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	echo ">>> Setting POPULATEDSIZEBYTES to ${POPULATEDSIZEBYTES}..."
 	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	# 10737254400 = 10240MB = virtual box vmdk file size XXX grab this value from vbox creation
+	# 10737418240 = 10GB
+	echo ">>> Setting DISKSECTIONALLOCATIONUNITS to 10737254400..."
+	file_search_replace DISKSECTIONALLOCATIONUNITS 10737254400 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	echo ">>> Setting DISKSECTIONCAPACITY to 10737418240..."
+	file_search_replace DISKSECTIONCAPACITY 10737418240 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	echo ">>> Moving universal disk ovf file into place..."
 	mv ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Repacking OVA with universal OVF file..."
-	cd /tmp/builder && tar cpf ${PRODUCT_NAME}.ovf ${PRODUCT_NAME}-disk1.vmdk
+	cd ${OVFPATH} && tar cpf ${PRODUCT_NAME}.ova ${PRODUCT_NAME}.ovf ${PRODUCT_NAME}-disk1.vmdk
+	ls -lah ${OVFPATH}/${PRODUCT_NAME}*ov*
 }
 
 # called from create_ova_image
@@ -2648,7 +2656,6 @@ ova_create_vbox_image() {
 	echo ">>> Deleting imported virtual machine ${PRODUCT_NAME}..."
 	delete_vbox_vm $PRODUCT_NAME
 	echo ">>> ${OVFPATH}/${OVAFILE} created."
-	ls -lah ${OVFPATH}/${OVAFILE}
 }
 
 # called from create_ova_image

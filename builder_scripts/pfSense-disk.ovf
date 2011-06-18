@@ -14,11 +14,11 @@
     </Network>
   </NetworkSection>
   <VirtualSystem ovf:id="pfSense">
-    <Info>A virtual machine</Info>
+    <Info>pfSense virtual machine</Info>
     <Name>pfSense</Name>
-    <OperatingSystemSection ovf:id="101" vmw:osType="FreeBSD">
-      <Info>FreeBSD</Info>
-      <Description>FreeBSD</Description>
+    <OperatingSystemSection ovf:id="88" vmw:osType="FreeBSD 64-Bit">
+      <Info>FreeBSD 64-Bit</Info>
+      <Description>FreeBSD 64-Bit (pfSense)</Description>
     </OperatingSystemSection>
     <VirtualHardwareSection>
       <Info>Virtual hardware requirements</Info>
@@ -34,7 +34,7 @@
         <rasd:ElementName>1 virtual CPU(s)</rasd:ElementName>
         <rasd:InstanceID>1</rasd:InstanceID>
         <rasd:ResourceType>3</rasd:ResourceType>
-        <rasd:VirtualSystemIdentifierQuantity>1</rasd:VirtualQuantity>
+        <rasd:VirtualQuantity>1</rasd:VirtualQuantity>
       </Item>
       <Item>
         <rasd:AllocationUnits>byte * 2^20</rasd:AllocationUnits>
@@ -85,6 +85,14 @@
         <rasd:InstanceID>7</rasd:InstanceID>
         <rasd:ResourceSubType>E1000</rasd:ResourceSubType>
         <rasd:ResourceType>10</rasd:ResourceType>
+      </Item>
+      <Item>
+        <rasd:AddressOnParent>0</rasd:AddressOnParent>
+        <rasd:ElementName>scsi0:0</rasd:ElementName>
+        <rasd:HostResource>ovf:/disk/vmdisk1</rasd:HostResource>
+        <rasd:InstanceID>8</rasd:InstanceID>
+        <rasd:Parent>3</rasd:Parent>
+        <rasd:ResourceType>17</rasd:ResourceType>
       </Item>
     </VirtualHardwareSection>
     <ProductSection xsi:type="ovf:ProductSection_Type">
