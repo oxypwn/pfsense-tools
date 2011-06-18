@@ -2536,6 +2536,7 @@ create_ova_image() {
 	ova_set_default_network_interfaces
 	ova_mount_mnt $MD
 	ova_cpdup_files
+	ova_setup_platform_specific # after cpdup
 	ova_calculate_mnt_size
 	ova_umount_mnt $MD
 	ova_create_vbox_image
@@ -2586,9 +2587,10 @@ ova_prereq_check() {
 
 # called from create_ova_image
 ova_calculate_mnt_size() {
-	echo ">>> Calculating size of /mnt..."
+	/bin/echo -n ">>> Calculating size of /mnt..."
 	INSTALLSIZE=`du -s /mnt/ | awk '{ print $1 }'`
-	du -d0 -h /mnt/	
+	INSTALLSIZEH=`du -d0 -h /mnt/ | awk '{ print $1 }'`
+	echo $INSTALLSIZEH
 }
 
 # called from create_ova_image
@@ -2650,6 +2652,20 @@ ova_cpdup_files() {
 	cpdup -o ${PFSENSEBASEDIR}/usr /mnt/usr
 	cpdup -o ${PFSENSEBASEDIR}/var /mnt/var
 	sync ; sync ; sync ; sync
+}
+
+ova_setup_platform_specific() {
+	echo ">>> Installing platform specific items..."
+	echo "/dev/label/${PRODUCT_NAME}	/	ufs		rw	0	0" > /mnt/etc/fstab
+	echo "/dev/label/swap0	none	swap	sw	0	0" >>/mnt/etc/fstab
+	echo pfSense > /mnt/etc/platform
+	rmdir /mnt/conf
+	mkdir /mnt/cf
+	mkdir /mnt/cf/conf
+	cp $BASE_DIR/pfSense/cf/conf/* /mnt/cf/conf/
+	cp /mnt/conf.default/config.xml /mnt/cf/conf/
+	chroot /mnt /bin/ln -s /cf/conf /conf
+	ls -lah /mnt/
 }
 
 # called from create_ova_image
