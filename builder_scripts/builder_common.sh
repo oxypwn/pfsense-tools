@@ -2539,7 +2539,10 @@ create_ova_image() {
 	ova_setup_platform_specific # after cpdup
 	ova_calculate_mnt_size
 	ova_umount_mnt $MD
+	# We use vbox because it compresses the vmdk on export
 	ova_create_vbox_image
+	# We repack the file with a more universal xml file that
+	# works in both virtual box and esx server
 	ova_repack_vbox_image
 	ova_cleanup_finished
 }
@@ -2630,7 +2633,9 @@ ova_calculate_mnt_size() {
 # called from create_ova_image
 ova_create_raw_backed_file() {
 	echo ">>> Creating raw backing file..."
+	# 10 Gigabyte file
 	DISKSIZE=10737418240
+	# Just used for buffering
 	BLOCKSIZE=409600
 	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
 	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$BLOCKSIZE count=$COUNT
