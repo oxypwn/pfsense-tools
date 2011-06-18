@@ -102,6 +102,7 @@ create_webdata_structure() {
 	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
 	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates 
 	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/virtualization
 }
 
 set_pfsense_source() {
@@ -206,6 +207,15 @@ build_iso() {
 	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.md5
 	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz.sha256	
 	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.sha256	
+
+	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova > ${MAKEOBJDIRPREFIXFINAL}/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova.sha256	
+	
+}
+
+build_ova() {
+	cd $BUILDERSCRIPTS
+	./clean_build.sh
+	./build_ova.sh
 }
 
 build_deviso() {
@@ -344,6 +354,22 @@ dobuilds() {
 	donanobuilds	
 }
 
+copy_staging_ova() {
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+	else
+		DATESTRING=`date "+%Y%m%d-%H%M"`
+	fi
+	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova"
+	mkdir -p $STAGINGAREA/virtualization
+	mv $MAKEOBJDIRPREFIXFINAL/pfSense.ova $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL $STAGINGAREA/virtualization/
+	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
+		sha256 $STAGINGAREA/virtualization/$FILENAMEFULL > $STAGINGAREA/virtualization/$FILENAMEFULL.sha256 2>/dev/null
+	fi
+}
+
 copy_to_staging_nanobsd() {
 	cd $BUILDERSCRIPTS
 	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
@@ -475,24 +501,36 @@ scp_files() {
 	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer"
 	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/embedded"
 	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates"
-	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd"	
-	ssh snapshots@${RSYNCIP} "rm -rf  /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/_updaters"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/virtualization"
 	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters"
 	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/."
+	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/."
+	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/*/."
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*iso* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*iso* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-memstick* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-memstick* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*Update* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*Update* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/latest* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/latest* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsd/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd/		
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsd/* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsdupdates/* snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/			
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsdupdates/* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/
+	check_for_congestion
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/virtualization/* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/virtualization/
 	set -e
 }
 
