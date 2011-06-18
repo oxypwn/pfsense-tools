@@ -2665,6 +2665,7 @@ ova_setup_platform_specific() {
 	cp $BASE_DIR/pfSense/cf/conf/* /mnt/cf/conf/
 	cp /mnt/conf.default/config.xml /mnt/cf/conf/
 	chroot /mnt /bin/ln -s /cf/conf /conf
+	mkdir /mnt/tmp
 	ls -lah /mnt/
 }
 
