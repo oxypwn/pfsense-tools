@@ -2550,7 +2550,7 @@ ova_repack_vbox_image() {
 	POPULATEDSIZEBYTES=`echo "${POPULATEDSIZE}*1024^2" | bc`
 	REFERENCESSIZE=`ls -la ${OVFPATH}/${PRODUCT_NAME}-disk1.vmdk | awk '{ print \$5 }'`
 	echo ">>> Setting REFERENCESSIZE to ${REFERENCESSIZE}..."
-	file_search_replace REFERENCESSIZE REFERENCESSIZE ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace REFERENCESSIZE ${REFERENCESSIZE} ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	echo ">>> Setting POPULATEDSIZEBYTES to ${POPULATEDSIZEBYTES}..."
 	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	# 10737254400 = 10240MB = virtual box vmdk file size XXX grab this value from vbox creation
