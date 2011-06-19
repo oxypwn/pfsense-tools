@@ -117,7 +117,9 @@ export OVFCERT=${OVFCERT:-""}
 export OVFVMDK=${OVFVMDK:-""}
 export OVFSTRINGS=${OVFSTRINGS:-""}
 export OVFMF=${OVFMF:-""}
-export OVADISKSIZE=${OVADISKSIZE:-"10737418240"} # 10 gigs
+# 10 gigs
+export OVADISKSIZE=${OVADISKSIZE:-"10737418240"}
+# dd buffering size
 export OVABLOCKSIZE=${OVABLOCKSIZE:-"409600"}
 
 # Binary staging area for pfSense specific binaries.
