@@ -117,6 +117,8 @@ export OVFCERT=${OVFCERT:-""}
 export OVFVMDK=${OVFVMDK:-""}
 export OVFSTRINGS=${OVFSTRINGS:-""}
 export OVFMF=${OVFMF:-""}
+export OVADISKSIZE=${OVASIZE:-"10737418240"} # 10 gigs
+export OVABLOCKSIZE=${OVABLOCKSIZE:-"409600"}
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}

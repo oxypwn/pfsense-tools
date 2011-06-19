@@ -2633,12 +2633,8 @@ ova_calculate_mnt_size() {
 # called from create_ova_image
 ova_create_raw_backed_file() {
 	echo ">>> Creating raw backing file..."
-	# 10 Gigabyte file
-	DISKSIZE=10737418240
-	# Just used for buffering
-	BLOCKSIZE=409600
-	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
-	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$BLOCKSIZE count=$COUNT
+	COUNT=`expr $OVADISKSIZE / $OVABLOCKSIZE`
+	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$OVABLOCKSIZE count=$COUNT
 }
 
 # called from create_ova_image
