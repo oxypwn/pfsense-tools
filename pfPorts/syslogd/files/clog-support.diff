@@ -13,7 +13,7 @@ diff -urN syslogd.c syslogd.c
  #include <utmpx.h>
  
  #include "pathnames.h"
-+#include <clog.h>
++#include "clog.h"
 +
  #include "ttymsg.h"
  
