@@ -19,15 +19,15 @@ fi
 # Update BSDInstaller
 echo -n ">>> Updating BSDInstaller collection..."
 if [ -d $BASE_DIR/installer ]; then
-	cd $BASE_DIR/installer && git fetch ; git rebase origin ; git reset --hard
+	cd $BASE_DIR && git fetch ; git rebase origin ; git reset --hard
 else
-	cd $BASE_DIR && git clone git@github.com:sullrich/pfSense-bsdinstaller.git installer
+	cd $BASE_DIR && git clone https://github.com/sullrich/pfSense-freesbie2.git installer
 fi
 
 ln -s ${BUILDER_TOOLS}/builder_scripts/installer ${BASE_DIR}/installer/ 2>/dev/null
 
 # Copy BSDInstaller build.conf
-cp ${BUILDER_TOOLS}/installer/conf/build.conf \
+cp ${BASE_DIR}/installer/conf/build.conf \
         ${BASE_DIR}/installer/scripts/build/
 
 # Build BSDInstaller
