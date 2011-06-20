@@ -139,7 +139,6 @@ usr/local/lib/php/20060613/xmlreader.so
 usr/local/lib/php/20060613/xmlwriter.so
 usr/local/lib/php/20060613/xdebug.so
 usr/local/lib/php/20060613/zmq.so
-usr/local/lib/php/20060613/ioncube/ioncube_loader.so
 usr/local/lib/libmhash.so.2
 usr/local/lib/olsrd_dyn_gw_plain.so.0.4
 usr/local/lib/olsrd_dot_draw.so.0.3
