@@ -9,33 +9,23 @@ if [ ! -d "/usr/ports" ]; then
 	echo "Done!"
 fi
 
-# Add cpdup
-if [ ! -f "/usr/local/bin/cpdup" ]; then
-	echo "Cannot find cpdup, building from ports..."
-	(cd /usr/ports/sysutils/cpdup/ && make deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/sysutils/cpdup/ && make ${MAKEJ_PORTS} BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	(cd /usr/ports/sysutils/cpdup/ && make  install FORCE_PKG_REGISTER=yo BATCH=yo) 2>&1 | egrep -B3 -A3 -wi '(error)'
-	if [ ! -f "/usr/local/bin/cpdup" ]; then
-		echo "!!!! Something went wrong while attempting installation of cpdup."
-		sleep 999
-		exit 1
-	fi
-fi
-
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
 # Update BSDInstaller
 echo -n ">>> Updating BSDInstaller collection..."
-(/usr/bin/csup -b $BUILDER_SCRIPTS ${CURRENTDIR}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
-echo "Done!"
+if [ -d $BASE_DIR/ ]; then
+	cd $BASE_DIR/installer && git fetch ; git rebase origin ; git reset --hard
+else
+	cd $BASE_DIR && git clone git@github.com:sullrich/pfSense-bsdinstaller.git installer
+fi
 
-mkdir -p ${BASE_DIR}/installer
-ln -s ${BUILDER_TOOLS}/builder_scripts/installer ${BASE_DIR}/installer/installer 2>/dev/null
+ln -s ${BUILDER_TOOLS}/builder_scripts/installer ${BASE_DIR}/installer/ 2>/dev/null
 
 # Copy BSDInstaller build.conf
 cp ${BUILDER_TOOLS}/installer/conf/build.conf \
         ${BASE_DIR}/installer/installer/scripts/build/
+
 # Build BSDInstaller
 mkdir -p /usr/ports/packages/All
 
