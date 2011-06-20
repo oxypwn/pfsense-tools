@@ -3048,21 +3048,8 @@ copy_config_xml_from_conf_default() {
 # the Ports directory sysutils/bsdinstaller, etc.
 rebuild_and_install_bsdinstaller() {
 	# Add BSDInstaller
-	if [ -z "${GIT_REPO_BSDINSTALLER:-}" ]; then
-		echo ">>> Fetching BSDInstaller using CVSUP..."
-		(csup -b $BASE_DIR ${BUILDER_SCRIPTS}/bsdinstaller-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		${BUILDER_SCRIPTS}/cvsup_bsdinstaller
-	else
-		echo ">>> Fetching BSDInstaller using GIT..."
-		git checkout "${GIT_REPO_BSDINSTALLER}"
-		if [ $? != 0 ]; then
-			echo "Something went wrong while checking out GIT."
-			exit
-		fi
-	fi
-
+	${BUILDER_SCRIPTS}/cvsup_bsdinstaller
 	${BUILDER_SCRIPTS}/rebuild_bsdinstaller.sh
-
 }
 
 # This routine ensures that the $SRCDIR has sources
