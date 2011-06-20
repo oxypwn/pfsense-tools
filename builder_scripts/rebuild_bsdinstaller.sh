@@ -15,8 +15,6 @@ if [ -f /etc/make.conf ]; then
 	MKCNF="pfPorts"
 fi
 
-export CVSDIR=${CVSDIR:-"$BUILDER_SCRIPTS"}
-
 # Copy BSDInstaller build.conf
 cp ${BUILDER_TOOLS}/installer/conf/build.conf \
        ${BASE_DIR}/installer/scripts/build/
