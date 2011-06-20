@@ -26,10 +26,6 @@ fi
 
 ln -s ${BUILDER_TOOLS}/builder_scripts/installer ${BASE_DIR}/installer/ 2>/dev/null
 
-# Copy BSDInstaller build.conf
-cp ${BASE_DIR}/installer/conf/build.conf \
-        ${BASE_DIR}/installer/scripts/build/
-
 # Build BSDInstaller
 mkdir -p /usr/ports/packages/All
 
