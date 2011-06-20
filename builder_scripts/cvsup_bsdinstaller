@@ -12,9 +12,13 @@ fi
 CURRENTDIR=`pwd`
 [ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
 
+if [ -d $BASE_DIR/installer/CVS ]; then
+	rm -rf $BASE_DIR/installer
+fi
+
 # Update BSDInstaller
 echo -n ">>> Updating BSDInstaller collection..."
-if [ -d $BASE_DIR/ ]; then
+if [ -d $BASE_DIR/installer ]; then
 	cd $BASE_DIR/installer && git fetch ; git rebase origin ; git reset --hard
 else
 	cd $BASE_DIR && git clone git@github.com:sullrich/pfSense-bsdinstaller.git installer
