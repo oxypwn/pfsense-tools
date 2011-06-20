@@ -216,6 +216,7 @@ build_ova() {
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
 	./build_ova.sh
+	copy_staging_ova
 }
 
 build_deviso() {
@@ -351,7 +352,9 @@ dobuilds() {
 	# Copy files before embedded, it wipes out usr.obj*
 	copy_to_staging_iso_updates
 	# Build nanobsd
-	donanobuilds	
+	donanobuilds
+	# build ova
+	build_ova
 }
 
 copy_staging_ova() {
