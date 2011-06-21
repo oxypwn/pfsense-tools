@@ -1,0 +1,32 @@
+Index: sys/contrib/altq/altq/altq_cbq.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/altq/altq/altq_cbq.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 altq_cbq.h
+--- sys/contrib/altq/altq/altq_cbq.h	21 Jun 2011 19:47:46 -0000	1.1.1.1
++++ sys/contrib/altq/altq/altq_cbq.h	21 Jun 2011 19:57:52 -0000
+@@ -186,7 +186,7 @@
+ #define	CBQ_TIMEOUT		10
+ #define	CBQ_LS_TIMEOUT		(20 * hz / 1000)
+ 
+-#define	CBQ_MAX_CLASSES	256
++#define	CBQ_MAX_CLASSES	2048
+ 
+ #ifdef ALTQ3_COMPAT
+ #define	CBQ_MAX_FILTERS 256
+Index: sys/contrib/altq/altq/altq_hfsc.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/altq/altq/altq_hfsc.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 altq_hfsc.h
+--- sys/contrib/altq/altq/altq_hfsc.h	21 Jun 2011 19:47:46 -0000	1.1.1.1
++++ sys/contrib/altq/altq/altq_hfsc.h	21 Jun 2011 19:57:52 -0000
+@@ -49,7 +49,7 @@
+ 
+ /* special class handles */
+ #define	HFSC_NULLCLASS_HANDLE	0
+-#define	HFSC_MAX_CLASSES	64
++#define	HFSC_MAX_CLASSES	2048
+ 
+ /* hfsc class flags */
+ #define	HFCF_RED		0x0001	/* use RED */
