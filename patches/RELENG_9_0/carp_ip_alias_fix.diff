@@ -1,0 +1,81 @@
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.5
+diff -u -r1.5 ip_carp.c
+--- sys/netinet/ip_carp.c	21 Jun 2011 21:33:46 -0000	1.5
++++ sys/netinet/ip_carp.c	21 Jun 2011 21:42:29 -0000
+@@ -1516,7 +1516,7 @@
+ 	struct ip_moptions *imo = &sc->sc_imo;
+ 	struct in_addr addr;
+ 	u_long iaddr = htonl(sin->sin_addr.s_addr);
+-	int own, error;
++	int error;
+ 
+ 	if (sin->sin_addr.s_addr == 0) {
+ 		if (sc->sc_carpdev)
+@@ -1532,7 +1532,7 @@
+ 	}
+ 
+ 	/* we have to do it by hands to check we won't match on us */
+-	ia_if = NULL; own = 0;
++	ia_if = NULL;
+ 	IN_IFADDR_RLOCK();
+ 	TAILQ_FOREACH(ia, &V_in_ifaddrhead, ia_link) {
+ 		/* and, yeah, we need a multicast-capable iface too */
+@@ -1541,9 +1541,6 @@
+ 		    (iaddr & ia->ia_subnetmask) == ia->ia_subnet) {
+ 			if (!ia_if)
+ 				ia_if = ia;
+-			if (sin->sin_addr.s_addr ==
+-			    ia->ia_addr.sin_addr.s_addr)
+-				own++;
+ 		}
+ 	}
+ 
+@@ -1639,8 +1636,6 @@
+ 
+ 	sc->sc_naddrs++;
+ 	SC2IFP(sc)->if_flags |= IFF_UP;
+-	if (own)
+-		sc->sc_advskew = 0;
+ 	carp_sc_state_locked(sc);
+ 	carp_setrun(sc);
+ 
+@@ -1697,7 +1692,7 @@
+ 	struct in6_ifaddr *ia, *ia_if;
+ 	struct ip6_moptions *im6o = &sc->sc_im6o;
+ 	struct in6_addr in6;
+-	int own, error;
++	int error;
+ 
+ 	error = 0;
+ 
+@@ -1715,7 +1710,7 @@
+ 	}
+ 
+ 	/* we have to do it by hands to check we won't match on us */
+-	ia_if = NULL; own = 0;
++	ia_if = NULL;
+ 	IN6_IFADDR_RLOCK();
+ 	TAILQ_FOREACH(ia, &V_in6_ifaddrhead, ia_link) {
+ 		int i;
+@@ -1733,9 +1728,6 @@
+ 		    (i == 4)) {
+ 			if (!ia_if)
+ 				ia_if = ia;
+-			if (IN6_ARE_ADDR_EQUAL(&sin6->sin6_addr,
+-			    &ia->ia_addr.sin6_addr))
+-				own++;
+ 		}
+ 	}
+ 
+@@ -1848,8 +1840,6 @@
+ 
+ 	sc->sc_naddrs6++;
+ 	SC2IFP(sc)->if_flags |= IFF_UP;
+-	if (own)
+-		sc->sc_advskew = 0;
+ 	carp_sc_state_locked(sc);
+ 	carp_setrun(sc);
+ 

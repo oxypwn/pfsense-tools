@@ -1,0 +1,29 @@
+Index: sbin/ipfw/dummynet.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sbin/ipfw/dummynet.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 dummynet.c
+--- sbin/ipfw/dummynet.c	21 Jun 2011 19:47:47 -0000	1.1.1.1
++++ sbin/ipfw/dummynet.c	21 Jun 2011 20:31:35 -0000
+@@ -538,10 +538,10 @@
+ 		if_name[namelen] = '\0';
+ 		*bandwidth = 0;
+ 	} else {	/* read bandwidth value */
+-		int bw;
++		double bw;
+ 		char *end = NULL;
+ 
+-		bw = strtoul(arg, &end, 0);
++		bw = strtod(arg, &end);
+ 		if (*end == 'K' || *end == 'k') {
+ 			end++;
+ 			bw *= 1000;
+@@ -557,7 +557,7 @@
+ 		if (bw < 0)
+ 			errx(EX_DATAERR, "bandwidth too large");
+ 
+-		*bandwidth = bw;
++		*bandwidth = (int)bw;
+ 		if (if_name)
+ 			if_name[0] = '\0';
+ 	}

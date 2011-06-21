@@ -1,0 +1,121 @@
+--- beastie.4th.orig	2010-11-30 15:03:27.000000000 -0500
++++ beastie.4th	2010-11-30 15:06:09.000000000 -0500
+@@ -45,6 +45,7 @@
+ variable bootsinglekey
+ variable escapekey
+ variable rebootkey
++variable bootusbkey
+ 
+ 46 constant dot
+ 
+@@ -94,19 +95,20 @@
+ ;
+ 
+ : fbsdbw-logo ( x y -- )
+-	2dup at-xy ."      ______" 1+
+-	2dup at-xy ."     |  ____| __ ___  ___ " 1+
+-	2dup at-xy ."     | |__ | '__/ _ \/ _ \" 1+
+-	2dup at-xy ."     |  __|| | |  __/  __/" 1+
+-	2dup at-xy ."     | |   | | |    |    |" 1+
+-	2dup at-xy ."     |_|   |_|  \___|\___|" 1+
+-	2dup at-xy ."      ____   _____ _____" 1+
+-	2dup at-xy ."     |  _ \ / ____|  __ \" 1+
+-	2dup at-xy ."     | |_) | (___ | |  | |" 1+
+-	2dup at-xy ."     |  _ < \___ \| |  | |" 1+
+-	2dup at-xy ."     | |_) |____) | |__| |" 1+
+-	2dup at-xy ."     |     |      |      |" 1+
+-	     at-xy ."     |____/|_____/|_____/"
++       2dup at-xy ."                              " 1+
++       2dup at-xy ."                             " 1+
++       2dup at-xy ."                             " 1+
++       2dup at-xy ."                 ______         " 1+
++       2dup at-xy ."                /      \        " 1+
++       2dup at-xy ."          _____/    f   \       " 1+
++       2dup at-xy ."         /     \        /       " 1+
++       2dup at-xy ."        /   p   \______/  Sense " 1+
++       2dup at-xy ."        \       /      \        " 1+
++       2dup at-xy ."         \_____/        \       " 1+
++       2dup at-xy ."               \        /       " 1+
++       2dup at-xy ."                \______/        " 1+
++       2dup at-xy ."                             " 1+
++            at-xy ."                             "
+ ;
+ 
+ : print-logo ( x y -- )
+@@ -178,11 +180,11 @@
+ 	clear
+ 	46 4 print-logo
+ 	42 20 2 2 box
+-	13 6 at-xy ." Welcome to FreeBSD!"
+-	printmenuitem ."  Boot FreeBSD [default]" bootkey !
++	13 6 at-xy ." Welcome to pfSense!"
++	printmenuitem ."  Boot pfSense [default]" bootkey !
+ 	s" arch-i386" environment? if
+ 		drop
+-		printmenuitem ."  Boot FreeBSD with ACPI " bootacpikey !
++		printmenuitem ."  Boot pfSense with ACPI " bootacpikey !
+ 		acpienabled? if
+ 			." disabled"
+ 		else
+@@ -191,9 +193,10 @@
+ 	else
+ 		-2 bootacpikey !
+ 	then
+-	printmenuitem ."  Boot FreeBSD in Safe Mode" bootsafekey !
+-	printmenuitem ."  Boot FreeBSD in single user mode" bootsinglekey !
+-	printmenuitem ."  Boot FreeBSD with verbose logging" bootverbosekey !
++	printmenuitem ."  Boot pfSense using USB device" bootusbkey !
++	printmenuitem ."  Boot pfSense in Safe Mode" bootsafekey !
++	printmenuitem ."  Boot pfSense in single user mode" bootsinglekey !
++	printmenuitem ."  Boot pfSense with verbose logging" bootverbosekey !
+ 	printmenuitem ."  Escape to loader prompt" escapekey !
+ 	printmenuitem ."  Reboot" rebootkey !
+ 	menuX @ 20 at-xy
+@@ -254,9 +257,13 @@
+ 				s" acpi_load" unsetenv
+ 				s" 1" s" hint.acpi.0.disabled" setenv
+ 				s" 1" s" loader.acpi_disabled_by_user" setenv
++				s" 0" s" hw.mca.enabled" setenv
++				s" 0" s" hw.bce.tso_enable" setenv
+ 			else
+ 				s" YES" s" acpi_load" setenv
+ 				s" 0" s" hint.acpi.0.disabled" setenv
++                                s" 0" s" hw.mca.enabled" setenv
++                                s" 0" s" hw.bce.tso_enable" setenv
+ 			then
+ 			0 boot
+ 		then
+@@ -267,19 +274,33 @@
+ 				s" 1" s" hint.acpi.0.disabled" setenv
+ 				s" 1" s" loader.acpi_disabled_by_user" setenv
+ 				s" 1" s" hint.apic.0.disabled" setenv
++                                s" 0" s" hw.mca.enabled" setenv
++                                s" 0" s" hw.bce.tso_enable" setenv
+ 			then
+ 			s" 0" s" hw.ata.ata_dma" setenv
+ 			s" 0" s" hw.ata.atapi_dma" setenv
+ 			s" 0" s" hw.ata.wc" setenv
+ 			s" 0" s" hw.eisa_slots" setenv
+ 			s" 1" s" hint.kbdmux.0.disabled" setenv
++			s" 0" s" hw.mca.enabled" setenv
++			s" 0" s" hw.bce.tso_enable" setenv
++			0 boot
++		then
++		dup bootusbkey @ = if
++			s" 0" s" hw.mca.enabled" setenv
++			s" 0" s" hw.bce.tso_enable" setenv
++			s" 10000" s" kern.cam.boot_delay" setenv
+ 			0 boot
+ 		then
+ 		dup bootverbosekey @ = if
++			s" 0" s" hw.mca.enabled" setenv
++			s" 0" s" hw.bce.tso_enable" setenv
+ 			s" YES" s" boot_verbose" setenv
+ 			0 boot
+ 		then
+ 		dup bootsinglekey @ = if
++			s" 0" s" hw.mca.enabled" setenv
++			s" 0" s" hw.bce.tso_enable" setenv
+ 			s" YES" s" boot_single" setenv
+ 			0 boot
+ 		then

@@ -1,0 +1,295 @@
+Index: contrib/pf/pfctl/parse.y
+===================================================================
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.6
+diff -u -r1.6 parse.y
+--- contrib/pf/pfctl/parse.y	21 Jun 2011 20:21:02 -0000	1.6
++++ contrib/pf/pfctl/parse.y	21 Jun 2011 20:23:11 -0000
+@@ -208,6 +208,7 @@
+ 	int			 fragment;
+ 	int			 allowopts;
+ 	char			*label;
++	char 			*schedule;
+ 	struct node_qassign	 queues;
+ 	u_int16_t		 divert;
+ 	char			*tag;
+@@ -314,6 +315,7 @@
+ int	 atoul(char *, u_long *);
+ int	 getservice(char *);
+ int	 rule_label(struct pf_rule *, char *);
++int	 rule_schedule(struct pf_rule *, char *);
+ 
+ TAILQ_HEAD(symhead, sym)	 symhead = TAILQ_HEAD_INITIALIZER(symhead);
+ struct sym {
+@@ -424,7 +426,7 @@
+ %token	PASS BLOCK SCRUB RETURN IN OS OUT LOG QUICK ON FROM TO FLAGS
+ %token	RETURNRST RETURNICMP RETURNICMP6 PROTO INET INET6 ALL ANY ICMPTYPE
+ %token	ICMP6TYPE CODE KEEP MODULATE STATE PORT RDR NAT BINAT ARROW NODF
+-%token	MINTTL ERROR ALLOWOPTS FASTROUTE FILENAME ROUTETO DUPTO REPLYTO NO LABEL
++%token	MINTTL ERROR ALLOWOPTS FASTROUTE FILENAME ROUTETO DUPTO REPLYTO NO LABEL SCHEDULE
+ %token	NOROUTE URPFFAILED FRAGMENT USER GROUP MAXMSS MAXIMUM TTL TOS DSCP DROP TABLE
+ %token	REASSEMBLE FRAGDROP FRAGCROP ANCHOR NATANCHOR RDRANCHOR BINATANCHOR
+ %token	SET OPTIMIZATION TIMEOUT LIMIT LOGINTERFACE BLOCKPOLICY RANDOMID
+@@ -464,7 +466,7 @@
+ %type	<v.gid>			gids gid_list gid_item
+ %type	<v.route>		route
+ %type	<v.redirection>		redirection redirpool
+-%type	<v.string>		label string tag anchorname
++%type	<v.string>		label schedule string tag anchorname
+ %type	<v.number>		divert
+ %type	<v.keep_state>		keep
+ %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
+@@ -1808,6 +1810,9 @@
+ 			if (rule_label(&r, $9.label))
+ 				YYERROR;
+ 			free($9.label);
++			if  (rule_schedule(&r, $9.schedule))
++				YYERROR;
++			free($9.schedule);
+ 			r.flags = $9.flags.b1;
+ 			r.flagset = $9.flags.b2;
+ 			if (($9.flags.b1 & $9.flags.b2) != $9.flags.b1) {
+@@ -2239,6 +2244,13 @@
+ 			}
+ 			filter_opts.label = $1;
+ 		}
++		| schedule {
++			if (filter_opts.schedule) {
++				yyerror("schedule label cannot be redefined");
++				YYERROR;
++			}
++			filter_opts.schedule = $1;
++		}
+ 		| qname	{
+ 			if (filter_opts.queues.qname) {
+ 				yyerror("queue cannot be redefined");
+@@ -3464,6 +3476,11 @@
+ 		}
+ 		;
+ 
++schedule	: SCHEDULE STRING 		{
++			$$ = $2;
++		}
++		;
++
+ qname		: QUEUE STRING				{
+ 			$$.qname = $2;
+ 		}
+@@ -4893,6 +4910,7 @@
+ 	int			 added = 0, error = 0;
+ 	char			 ifname[IF_NAMESIZE];
+ 	char			 label[PF_RULE_LABEL_SIZE];
++	char			 schedule[PF_RULE_LABEL_SIZE];
+ 	char			 tagname[PF_TAG_NAME_SIZE];
+ 	char			 match_tagname[PF_TAG_NAME_SIZE];
+ 	struct pf_pooladdr	*pa;
+@@ -4901,6 +4919,8 @@
+ 
+ 	if (strlcpy(label, r->label, sizeof(label)) >= sizeof(label))
+ 		errx(1, "expand_rule: strlcpy");
++	if (strlcpy(schedule, r->schedule, sizeof(schedule)) > sizeof(schedule))
++		errx(1, "expand_rule: strlcpy");
+ 	if (strlcpy(tagname, r->tagname, sizeof(tagname)) >= sizeof(tagname))
+ 		errx(1, "expand_rule: strlcpy");
+ 	if (strlcpy(match_tagname, r->match_tagname, sizeof(match_tagname)) >=
+@@ -4952,6 +4972,9 @@
+ 		if (strlcpy(r->label, label, sizeof(r->label)) >=
+ 		    sizeof(r->label))
+ 			errx(1, "expand_rule: strlcpy");
++		if (strlcpy(r->schedule, schedule, sizeof(r->schedule)) >=
++			sizeof(r->schedule))
++			errx(1, "expand_rule: strlcpy");
+ 		if (strlcpy(r->tagname, tagname, sizeof(r->tagname)) >=
+ 		    sizeof(r->tagname))
+ 			errx(1, "expand_rule: strlcpy");
+@@ -4960,6 +4983,8 @@
+ 			errx(1, "expand_rule: strlcpy");
+ 		expand_label(r->label, PF_RULE_LABEL_SIZE, r->ifname, r->af,
+ 		    src_host, src_port, dst_host, dst_port, proto->proto);
++		expand_label(r->schedule, PF_RULE_LABEL_SIZE, r->ifname, r->af,
++			src_host, src_port, dst_host, dst_port, proto->proto);
+ 		expand_label(r->tagname, PF_TAG_NAME_SIZE, r->ifname, r->af,
+ 		    src_host, src_port, dst_host, dst_port, proto->proto);
+ 		expand_label(r->match_tagname, PF_TAG_NAME_SIZE, r->ifname,
+@@ -5223,6 +5248,7 @@
+ 		{ "rtable",		RTABLE},
+ 		{ "rule",		RULE},
+ 		{ "ruleset-optimization",	RULESET_OPTIMIZATION},
++		{ "schedule",		SCHEDULE},
+ 		{ "scrub",		SCRUB},
+ 		{ "set",		SET},
+ 		{ "skip",		SKIP},
+@@ -5726,6 +5752,20 @@
+ 	return (0);
+ }
+ 
++int 
++rule_schedule(struct pf_rule *r, char *s)
++{
++	if (s) {
++		if (strlcpy(r->schedule, s, sizeof(r->label)) >=
++		   sizeof(r->label)) {
++			yyerror("rule schedule label too long (max %d chars)",
++				sizeof(r->label)-1);
++			return (-1);
++		}
++	}
++	return (0);
++}
++
+ u_int16_t
+ parseicmpspec(char *w, sa_family_t af)
+ {
+Index: contrib/pf/pfctl/pfctl.c
+===================================================================
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl.c,v
+retrieving revision 1.2
+diff -u -r1.2 pfctl.c
+--- contrib/pf/pfctl/pfctl.c	21 Jun 2011 20:11:55 -0000	1.2
++++ contrib/pf/pfctl/pfctl.c	21 Jun 2011 20:24:02 -0000
+@@ -77,6 +77,7 @@
+ int	 pfctl_kill_src_nodes(int, const char *, int);
+ int	 pfctl_kill_states(int, const char *, int);
+ int      pfctl_kill_ifstates(int, const char *, int);
++int      pfctl_kill_schedule(int, const char *, int);
+ void	 pfctl_init_options(struct pfctl *);
+ int	 pfctl_load_options(struct pfctl *);
+ int	 pfctl_load_limit(struct pfctl *, unsigned int, unsigned int);
+@@ -115,6 +116,7 @@
+ char		*pf_device = "/dev/pf";
+ char		*ifaceopt;
+ char		*tableopt;
++char		*schedule = NULL;
+ const char	*tblcmdopt;
+ int		 src_node_killers;
+ char		*src_node_kill[2];
+@@ -554,6 +556,25 @@
+ }
+ 
+ int
++pfctl_kill_schedule(int dev, const char *sched, int opts)
++{
++	struct pfioc_schedule_kill psk;
++
++       memset(&psk, 0, sizeof(psk));
++       if (sched != NULL && strlcpy(psk.schedule, sched,
++           sizeof(psk.schedule)) >= sizeof(psk.schedule))
++               errx(1, "invalid schedule label: %s", sched);
++
++	if (ioctl(dev, DIOCKILLSCHEDULE, &psk))
++		err(1, "DIOCKILLSCHEDULE");
++
++	if ((opts & PF_OPT_QUIET) == 0)
++		fprintf(stderr, "killed %d states from %s schedule label\n",
++			psk.numberkilled, sched);
++       return (0);
++}
++
++int
+ pfctl_kill_ifstates(int dev, const char *iface, int opts)
+ {
+        struct pfioc_state_kill psk;
+@@ -2093,7 +2114,7 @@
+ 		usage();
+ 
+ 	while ((ch = getopt(argc, argv,
+-	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::Pp:rRs:t:T:vx:z")) != -1) {
++	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::Pp:rRs:t:T:vx:y:z")) != -1) {
+ 		switch (ch) {
+ 		case 'a':
+ 			anchoropt = optarg;
+@@ -2230,6 +2251,12 @@
+ 				opts |= PF_OPT_VERBOSE2;
+ 			opts |= PF_OPT_VERBOSE;
+ 			break;
++		case 'y':
++			if (schedule != NULL && strlen(schedule) > 64)
++				errx(1, "Schedule label cannot be more than 64 characters\n");
++			schedule = optarg;
++			mode = O_RDWR;
++			break;
+ 		case 'x':
+ 			debugopt = pfctl_lookup_option(optarg, debugopt_list);
+ 			if (debugopt == NULL) {
+@@ -2434,6 +2461,9 @@
+ 
+ 	if (if_kills)
+ 		pfctl_kill_ifstates(dev, ifaceopt, opts);
++	
++	if (schedule)
++		pfctl_kill_schedule(dev, schedule, opts);
+ 
+ 	if (tblcmdopt != NULL) {
+ 		error = pfctl_command_tables(argc, argv, tableopt,
+Index: sys/contrib/pf/net/pf_ioctl.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.3
+diff -u -r1.3 pf_ioctl.c
+--- sys/contrib/pf/net/pf_ioctl.c	21 Jun 2011 20:19:18 -0000	1.3
++++ sys/contrib/pf/net/pf_ioctl.c	21 Jun 2011 20:23:11 -0000
+@@ -2056,6 +2056,29 @@
+                break;
+        }
+ 
++	case DIOCKILLSCHEDULE: {
++               struct pf_state         *state, *nexts;
++		struct pfioc_schedule_kill *psk = (struct pfioc_schedule_kill *)addr;
++               int                      killed = 0;
++                    
++               for (state = RB_MIN(pf_state_tree_id, &tree_id); state;
++                   state = nexts) {
++                       nexts = RB_NEXT(pf_state_tree_id, &tree_id, state);
++                                
++                       if (!strcmp(psk->schedule, state->rule.ptr->schedule)) {
++#if NPFSYNC > 0
++                               /* send immediate delete of state */
++                               pfsync_delete_state(state);
++                               state->sync_flags |= PFSTATE_NOSYNC;
++#endif
++                               pf_unlink_state(state);
++                               killed++;
++                       }
++               }
++               psk->numberkilled = killed;
++               break;
++       }
++
+ 	case DIOCADDSTATE: {
+ 		struct pfioc_state	*ps = (struct pfioc_state *)addr;
+ 		struct pf_state		*state;
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.8
+diff -u -r1.8 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	21 Jun 2011 20:22:03 -0000	1.8
++++ sys/contrib/pf/net/pfvar.h	21 Jun 2011 20:23:11 -0000
+@@ -594,6 +594,7 @@
+ 	union pf_rule_ptr	 skip[PF_SKIP_COUNT];
+ #define PF_RULE_LABEL_SIZE	 64
+ 	char			 label[PF_RULE_LABEL_SIZE];
++	char                     schedule[PF_RULE_LABEL_SIZE];
+ #define PF_QNAME_SIZE		 64
+ 	char			 ifname[IFNAMSIZ];
+ 	char			 qname[PF_QNAME_SIZE];
+@@ -1425,6 +1426,11 @@
+ 	char			psk_ifname[IFNAMSIZ];
+ };
+ 
++struct pfioc_schedule_kill {
++	int		numberkilled;
++	char		schedule[PF_RULE_LABEL_SIZE];
++};
++
+ struct pfioc_states {
+ 	int	ps_len;
+ 	union {
+@@ -1614,6 +1620,7 @@
+ #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
+ #define DIOCGETNAMEDALTQ        _IOWR('D', 94, struct pfioc_ruleset)
+ #define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)
++#define DIOCKILLSCHEDULE	_IOWR('D', 96, struct pfioc_schedule_kill)
+ 
+ #ifdef _KERNEL
+ RB_HEAD(pf_src_tree, pf_src_node);

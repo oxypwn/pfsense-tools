@@ -1,0 +1,75 @@
+Index: sys/contrib/pf/net/pf_ioctl.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
+retrieving revision 1.2
+diff -u -r1.2 pf_ioctl.c
+--- sys/contrib/pf/net/pf_ioctl.c	21 Jun 2011 20:11:55 -0000	1.2
++++ sys/contrib/pf/net/pf_ioctl.c	21 Jun 2011 20:18:45 -0000
+@@ -1292,6 +1292,8 @@
+ 		case DIOCCLRRULECTRS:
+ 		case DIOCGETLIMIT:
+ 		case DIOCGETALTQS:
++		case DIOCGETNAMEDALTQ:
++		case DIOCGETNAMEDTAG:
+ 		case DIOCGETALTQ:
+ 		case DIOCGETQSTATS:
+ 		case DIOCGETRULESETS:
+@@ -1340,6 +1342,8 @@
+ 		case DIOCGETTIMEOUT:
+ 		case DIOCGETLIMIT:
+ 		case DIOCGETALTQS:
++		case DIOCGETNAMEDALTQ:
++		case DIOCGETNAMEDTAG:
+ 		case DIOCGETALTQ:
+ 		case DIOCGETQSTATS:
+ 		case DIOCGETRULESETS:
+@@ -2497,6 +2501,16 @@
+ 		break;
+ 	}
+ 
++	case DIOCGETNAMEDALTQ: {
++		struct pfioc_ruleset	*pa = (struct pfioc_ruleset *)addr;
++
++		if (pa->name[0]) {
++                        pa->nr = pf_qname2qid(pa->name);
++                        pf_qid_unref(pa->nr);
++                }
++		break;
++	}
++	
+ 	case DIOCGETALTQS: {
+ 		struct pfioc_altq	*pa = (struct pfioc_altq *)addr;
+ 		struct pf_altq		*altq;
+@@ -2576,6 +2590,16 @@
+ 	}
+ #endif /* ALTQ */
+ 
++	case DIOCGETNAMEDTAG: {
++                /* Little abuse. */
++                struct pfioc_ruleset    *pa = (struct pfioc_ruleset *)addr;
++
++                if (pa->name[0])
++                        pa->nr = pf_tagname2tag(pa->name);
++
++                break;
++        }
++
+ 	case DIOCBEGINADDRS: {
+ 		struct pfioc_pooladdr	*pp = (struct pfioc_pooladdr *)addr;
+ 
+Index: sys/contrib/pf/net/pfvar.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.6
+diff -u -r1.6 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	21 Jun 2011 20:18:12 -0000	1.6
++++ sys/contrib/pf/net/pfvar.h	21 Jun 2011 20:18:45 -0000
+@@ -1608,6 +1608,8 @@
+ #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
+ #endif
+ #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
++#define DIOCGETNAMEDALTQ        _IOWR('D', 94, struct pfioc_ruleset)
++#define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)
+ 
+ #ifdef _KERNEL
+ RB_HEAD(pf_src_tree, pf_src_node);

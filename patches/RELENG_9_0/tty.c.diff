@@ -1,0 +1,16 @@
+Index: sys/kern/tty.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/kern/tty.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 tty.c
+--- sys/kern/tty.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
++++ sys/kern/tty.c	21 Jun 2011 20:49:03 -0000
+@@ -110,7 +110,7 @@
+ 	ttyinq_setsize(&tp->t_inq, tp, bs);
+ 
+ 	/* Set low watermark at 10% (when 90% is available). */
+-	tp->t_inlow = (ttyinq_getallocatedsize(&tp->t_inq) * 9) / 10;
++	tp->t_inlow = (ttyinq_getallocatedsize(&tp->t_inq) * 9) / 20;
+ 
+ 	/* Provide an ouput buffer for 0.2 seconds of data. */
+ 	bs = MIN(tp->t_termios.c_ospeed / 5, TTYBUF_MAX);

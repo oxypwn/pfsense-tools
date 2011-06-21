@@ -1,0 +1,24 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.9
+diff -u -r1.9 pf.c
+--- sys/contrib/pf/net/pf.c	21 Jun 2011 20:43:27 -0000	1.9
++++ sys/contrib/pf/net/pf.c	21 Jun 2011 20:58:18 -0000
+@@ -6811,14 +6811,14 @@
+ 		goto bad;
+ 	}
+ 
+-	for (m0 = m1; m0; m0 = m1) {
++	for (; m0; m0 = m1) {
+ 		m1 = m0->m_nextpkt;
+ 		m0->m_nextpkt = 0;
+ #ifdef __FreeBSD__
+ 		if (error == 0) {
+ 			PF_UNLOCK();
+ 			error = (*ifp->if_output)(ifp, m0, sintosa(dst),
+-			    NULL);
++			    ro);
+ 			PF_LOCK();
+ 		} else
+ #else

@@ -1,0 +1,95 @@
+Index: if_bridge.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net/if_bridge.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_bridge.c
+--- if_bridge.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
++++ if_bridge.c	21 Jun 2011 20:50:36 -0000
+@@ -100,6 +100,7 @@
+ #include <sys/lock.h>
+ #include <sys/mutex.h>
+ #include <sys/rwlock.h>
++#include <sys/eventhandler.h>
+ 
+ #include <net/bpf.h>
+ #include <net/if.h>
+@@ -224,6 +225,8 @@
+ 	uint32_t		sc_brtexceeded;	/* # of cache drops */
+ 	struct ifnet		*sc_ifaddr;	/* member mac copied from */
+ 	u_char			sc_defaddr[6];	/* Default MAC address */
++	eventhandler_tag	vlan_attach;	/* Notify members of vlan addition */
++	eventhandler_tag	vlan_detach;	/* Notify members of vlan removal */
+ };
+ 
+ static struct mtx 	bridge_list_mtx;
+@@ -551,6 +554,48 @@
+ 	    &pfil_ipfw, 0, &sysctl_pfil_ipfw, "I", "Layer2 filter with IPFW");
+ 
+ /*
++ * This routine is run via an vlan
++ * config EVENT
++ */
++static void
++bridge_register_vlan(void *arg, struct ifnet *ifp, u_int16_t vtag)
++{
++	struct bridge_softc	*sc = ifp->if_softc;
++	struct bridge_iflist	*bif;
++
++	if (ifp->if_softc !=  arg)   /* Not our event */
++		return;
++
++	BRIDGE_LOCK(sc);
++	if (!LIST_EMPTY(&sc->sc_iflist)) {
++		LIST_FOREACH(bif, &sc->sc_iflist, bif_next)
++			EVENTHANDLER_INVOKE(vlan_config, bif->bif_ifp, vtag);
++	}
++	BRIDGE_UNLOCK(sc);
++}
++
++/*
++ * This routine is run via an vlan
++ * unconfig EVENT
++ */
++static void
++bridge_unregister_vlan(void *arg, struct ifnet *ifp, u_int16_t vtag)
++{
++	struct bridge_softc	*sc = ifp->if_softc;
++	struct bridge_iflist	*bif;
++
++	if (ifp->if_softc !=  arg)   /* Not our event */
++		return;
++
++	BRIDGE_LOCK(sc);
++	if (!LIST_EMPTY(&sc->sc_iflist)) {
++		LIST_FOREACH(bif, &sc->sc_iflist, bif_next)
++			EVENTHANDLER_INVOKE(vlan_unconfig, bif->bif_ifp, vtag);
++	}
++	BRIDGE_UNLOCK(sc);
++}
++
++/*
+  * bridge_clone_create:
+  *
+  *	Create a new bridge instance.
+@@ -621,6 +666,11 @@
+ 	ifp->if_baudrate = 0;
+ 	ifp->if_type = IFT_BRIDGE;
+ 
++	sc->vlan_attach = EVENTHANDLER_REGISTER(vlan_config,
++                bridge_register_vlan, sc, EVENTHANDLER_PRI_FIRST);
++        sc->vlan_detach = EVENTHANDLER_REGISTER(vlan_unconfig,
++                bridge_unregister_vlan, sc, EVENTHANDLER_PRI_FIRST);
++
+ 	mtx_lock(&bridge_list_mtx);
+ 	LIST_INSERT_HEAD(&bridge_list, sc, sc_list);
+ 	mtx_unlock(&bridge_list_mtx);
+@@ -644,6 +694,9 @@
+ 	bridge_stop(ifp, 1);
+ 	ifp->if_flags &= ~IFF_UP;
+ 
++	EVENTHANDLER_DEREGISTER(vlan_config, sc->vlan_attach);
++        EVENTHANDLER_DEREGISTER(vlan_unconfig, sc->vlan_detach);
++
+ 	while ((bif = LIST_FIRST(&sc->sc_iflist)) != NULL)
+ 		bridge_delete_member(sc, bif, 0);
+ 

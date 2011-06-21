@@ -1,0 +1,85 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.5
+diff -u -r1.5 pf.c
+--- sys/contrib/pf/net/pf.c	21 Jun 2011 20:18:12 -0000	1.5
++++ sys/contrib/pf/net/pf.c	21 Jun 2011 20:19:29 -0000
+@@ -6470,6 +6470,9 @@
+ 
+ 	ip = mtod(m0, struct ip *);
+ 
++	if (IN_MULTICAST(ntohl(ip->ip_dst.s_addr)))
++                return;
++
+ 	ro = &iproute;
+ 	bzero((caddr_t)ro, sizeof(*ro));
+ 	dst = satosin(&ro->ro_dst);
+@@ -6511,8 +6514,59 @@
+ 	}
+ 	if (ifp == NULL)
+ 		goto bad;
++	else if (r->rt == PF_REPLYTO) {
++		/* XXX: Copied from ifaof_ifpforaddr() since it mostly will not return NULL! */
++		struct sockaddr_in inaddr;
++		struct sockaddr *addr;
++		struct ifaddr *ifa;
++		char *cp, *cp2, *cp3;
++		char *cplim;
++
++		inaddr.sin_addr = ip->ip_dst;
++		inaddr.sin_family = AF_INET;
++		inaddr.sin_len = sizeof(inaddr);
++		inaddr.sin_port = 0;
++		addr = (struct sockaddr *)&inaddr;
++
++		IF_ADDR_LOCK(ifp);
++		TAILQ_FOREACH(ifa, &ifp->if_addrhead, ifa_link) {
++			if (ifa->ifa_addr->sa_family != AF_INET)
++				continue;
++			if (ifa->ifa_netmask == 0) {
++				if ((bcmp(addr, ifa->ifa_addr, addr->sa_len) == 0) ||
++			    	    (ifa->ifa_dstaddr &&
++				    (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0))) {
++					IF_ADDR_UNLOCK(ifp);
++					goto donelocal;
++				}
++				continue;
++			}
++			if (ifp->if_flags & IFF_POINTOPOINT) {
++				if (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0) {
++					IF_ADDR_UNLOCK(ifp);
++					goto donelocal;
++				}
++			} else {
++				cp = addr->sa_data;
++				cp2 = ifa->ifa_addr->sa_data;
++				cp3 = ifa->ifa_netmask->sa_data;
++				cplim = ifa->ifa_netmask->sa_len + (char *)ifa->ifa_netmask;
++				for (; cp3 < cplim; cp3++)
++					if ((*cp++ ^ *cp2++) & *cp3)
++						break;
++				if (cp3 == cplim) {
++					IF_ADDR_UNLOCK(ifp);
++					goto donelocal;
++				}
++			}
++		}
++		IF_ADDR_UNLOCK(ifp);
++	} else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
++		goto donelocal;
+ 
+ 	if (oifp != ifp) {
++		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
++			goto donelocal;
+ #ifdef __FreeBSD__
+ 		PF_UNLOCK();
+ 		if (pf_test(PF_OUT, ifp, &m0, NULL, NULL) != PF_PASS) {
+@@ -6693,6 +6747,7 @@
+ done:
+ 	if (r->rt != PF_DUPTO)
+ 		*m = NULL;
++donelocal:
+ 	if (ro == &iproute && ro->ro_rt)
+ 		RTFREE(ro->ro_rt);
+ 	return;
