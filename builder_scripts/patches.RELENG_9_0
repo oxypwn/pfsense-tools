@@ -49,7 +49,6 @@
 ~~SR9600.diff~
 ~~ng_ether_attach_command.diff~
 ~~bsnmp.diff~
-~~dhclient.diff~
 ~~carp_correct_mac.diff~
 ~~route-to_without_gw.diff~
 ~~pfvar_addr_compare.RELENG_9.diff~
