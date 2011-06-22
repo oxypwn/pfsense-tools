@@ -1,0 +1,72 @@
+? sys/dev/virtio
+? sys/modules/virtio
+Index: sys/conf/files.amd64
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.amd64,v
+retrieving revision 1.180
+diff -u -r1.180 files.amd64
+--- sys/conf/files.amd64	20 Apr 2011 12:58:30 -0000	1.180
++++ sys/conf/files.amd64	22 Jun 2011 17:45:39 -0000
+@@ -224,6 +224,12 @@
+ dev/tpm/tpm_acpi.c		optional	tpm acpi
+ dev/tpm/tpm_isa.c		optional	tpm isa
+ dev/uart/uart_cpu_amd64.c	optional	uart
++dev/virtio/virtio.c             optional	virtio
++dev/virtio/virtio_if.m          optional 	virtio
++dev/virtio/virtio_bus_if.m      optional	virtio
++dev/virtio/virtqueue.c          optional	virtio
++dev/virtio/pci/virtio_pci.c     optional	virtio_pci pci
++dev/virtio/network/if_vtnet.c   optional	vtnet
+ dev/wpi/if_wpi.c		optional	wpi
+ isa/syscons_isa.c		optional	sc
+ isa/vga_isa.c			optional	vga
+Index: sys/conf/files.i386
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/files.i386,v
+retrieving revision 1.665
+diff -u -r1.665 files.i386
+--- sys/conf/files.i386	15 May 2011 14:01:23 -0000	1.665
++++ sys/conf/files.i386	22 Jun 2011 17:45:40 -0000
+@@ -236,6 +236,12 @@
+ dev/tpm/tpm_acpi.c		optional tpm acpi
+ dev/tpm/tpm_isa.c		optional tpm isa
+ dev/uart/uart_cpu_i386.c	optional uart
++dev/virtio/virtio.c             optional virtio
++dev/virtio/virtio_if.m          optional virtio
++dev/virtio/virtio_bus_if.m      optional virtio
++dev/virtio/virtqueue.c          optional virtio
++dev/virtio/pci/virtio_pci.c     optional virtio_pci pci
++dev/virtio/network/if_vtnet.c   optional vtnet
+ dev/acpica/acpi_if.m		standard
+ dev/acpi_support/acpi_wmi_if.m	standard
+ dev/wpi/if_wpi.c		optional wpi
+Index: sys/conf/kmod.mk
+===================================================================
+RCS file: /home/ncvs/src/sys/conf/kmod.mk,v
+retrieving revision 1.243
+diff -u -r1.243 kmod.mk
+--- sys/conf/kmod.mk	23 May 2011 21:32:45 -0000	1.243
++++ sys/conf/kmod.mk	22 Jun 2011 17:45:40 -0000
+@@ -352,6 +352,7 @@
+ 	dev/sound/pcm/feeder_if.m dev/sound/pcm/mixer_if.m \
+ 	dev/sound/midi/mpu_if.m dev/sound/midi/mpufoi_if.m \
+ 	dev/sound/midi/synth_if.m dev/usb/usb_if.m isa/isa_if.m \
++	dev/virtio/virtio_bus_if.m dev/virtio/virtio_if.m \
+ 	kern/bus_if.m kern/clock_if.m \
+ 	kern/cpufreq_if.m kern/device_if.m kern/serdev_if.m \
+ 	libkern/iconv_converter_if.m opencrypto/cryptodev_if.m \
+Index: sys/modules/Makefile
+===================================================================
+RCS file: /home/ncvs/src/sys/modules/Makefile,v
+retrieving revision 1.681
+diff -u -r1.681 Makefile
+--- sys/modules/Makefile	19 Jun 2011 22:08:55 -0000	1.681
++++ sys/modules/Makefile	22 Jun 2011 17:45:40 -0000
+@@ -313,6 +313,7 @@
+ 	utopia \
+ 	${_vesa} \
+ 	vge \
++	${_virtio} \
+ 	vkbd \
+ 	${_vpo} \
+ 	vr \
