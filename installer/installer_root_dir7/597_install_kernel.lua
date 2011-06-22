@@ -28,12 +28,8 @@ return {
 
 	    actions = {
 		{
-		    id = "Default",
+		    id = "SMP",
 		    name = _("Symmetric multiprocessing kernel (more than one processor)")
-		},
-		{
-		    id = "UP",
-		    name = _("Uniprocessor kernel (one processor)")
 		},
 		{
 		    id = "Embedded",
@@ -50,16 +46,10 @@ return {
 	    extensible = "false"
 	})
 
-	if response.action_id == "Default" then
+	if response.action_id == "SMP" then
 		local cmds = CmdChain.new()
 		cmds:add("tar xzpf /kernels/kernel_SMP.gz -C /mnt/boot/")
 		cmds:add("echo SMP > /mnt/boot/kernel/pfsense_kernel.txt")
-		cmds:execute()
-	end
-	if response.action_id == "UP" then
-		local cmds = CmdChain.new()
-		cmds:add("tar xzpf /kernels/kernel_uniprocessor.gz -C /mnt/boot/")
-		cmds:add("echo UP > /mnt/boot/kernel/pfsense_kernel.txt")
 		cmds:execute()
 	end
 	if response.action_id == "Embedded" then
