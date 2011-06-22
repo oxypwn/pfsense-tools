@@ -29,7 +29,7 @@ return {
 	    actions = {
 		{
 		    id = "SMP",
-		    name = _("Uniprocessor kernel (one processor)")
+		    name = _("Symmetric multiprocessing kernel (more than one processor)")
 		},
 		{
 		    id = "Embedded",
