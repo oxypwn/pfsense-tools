@@ -55,7 +55,6 @@
 ~~pfvar_addr_compare.RELENG_9.diff~
 ~~pf_route_to_daemon_friendly.RELENG_9.diff~
 ~~max_linkhdr.diff~
-~~bce_performance.diff~
 ~~carp_replay_protection.diff~
 ~~carp_livelock_fixes.diff~
 ~~carp_livelock_fixes_v2.diff~
