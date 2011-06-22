@@ -184,7 +184,7 @@ echo
 case $1 in
 RELENG_9_0)
 	echo ">>> Setting builder environment to use HEAD/RELENG_9_0 ..."
-	export FREEBSD_VERSION="9"
+	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_9_0"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_9_0-supfile"
 	export PFSENSE_VERSION=2.0-RC3
