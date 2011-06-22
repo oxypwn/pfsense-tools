@@ -182,6 +182,20 @@ set_items() {
 echo
 
 case $1 in
+RELENG_9_0)
+	echo ">>> Setting builder environment to use HEAD/RELENG_9_0 ..."
+	export FREEBSD_VERSION="8"
+	export FREEBSD_BRANCH="RELENG_9_0"
+	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_9_0-supfile"
+	export PFSENSE_VERSION=2.0-RC3
+	export PFSENSETAG=HEAD
+	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_9_0
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_9_0
+	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_9_0"	
+	export PFSPORTSFILE=buildports.RELENG_2_0
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
+	set_items
+;;
 HEAD)
 	echo ">>> Setting builder environment to use HEAD/RELENG_8_1 ..."
 	export FREEBSD_VERSION="8"
