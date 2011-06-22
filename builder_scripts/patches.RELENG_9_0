@@ -44,7 +44,6 @@
 ~~ip_carp.c.diff~
 ~sys/net~if_bridge_vlan_handling.diff~
 ~~tcpmd5_RST_timeout.RELENG_9.diff~
-~~wpa_correct_mac_address.RELENG_9.diff~
 ~~wpa_RSN_PREAUTH_support.diff~
 ~~pf_route-to_fragemnts.RELENG_9.diff~
 ~~SR9600.diff~
@@ -56,7 +55,6 @@
 ~~pfvar_addr_compare.RELENG_9.diff~
 ~~pf_route_to_daemon_friendly.RELENG_9.diff~
 ~~max_linkhdr.diff~
-~sys/boot/forth~beastie.4th.diff~
 ~~bce_performance.diff~
 ~~carp_replay_protection.diff~
 ~~carp_livelock_fixes.diff~
