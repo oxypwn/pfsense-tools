@@ -122,9 +122,9 @@ export OVADISKSIZE=${OVADISKSIZE:-"10737418240"}
 # dd buffering size
 export OVABLOCKSIZE=${OVABLOCKSIZE:-"409600"}
 # first partition size (freebsd-ufs)
-OVA_FIRST_PART_SIZE="8G"
+export OVA_FIRST_PART_SIZE="8G"
 # swap partition size (freebsd-swap)
-OVA_SWAP_PART_SIZE="4193789"
+export OVA_SWAP_PART_SIZE="4193789"
 
 
 # Binary staging area for pfSense specific binaries.
