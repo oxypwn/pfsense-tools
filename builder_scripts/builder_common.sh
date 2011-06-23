@@ -2646,9 +2646,10 @@ ova_calculate_mnt_size() {
 # called from create_ova_image
 ova_create_raw_backed_file() {
 	echo ">>> Creating raw backing file..."
-	COUNT=`expr $OVADISKSIZE / $OVABLOCKSIZE`
-	# Create 'growable' file on disk
-	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$OVADISKSIZE seek=1024 count=0
+	DISKSIZE=10737418240
+	BLOCKSIZE=409600
+	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
+	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$BLOCKSIZE count=$COUNT
 }
 
 # called from create_ova_image
