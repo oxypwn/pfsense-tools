@@ -2617,6 +2617,19 @@ ova_prereq_check() {
 			portsnap fetch extract
 		fi
 		echo ">>> Installing Qemu from ports, one moment please..."
+		echo <<EOF >/var/db/ports/virtualbox-ose/options
+_OPTIONS_READ=virtualbox-ose-4.0.8
+WITHOUT_QT4=true
+WITHOUT_DEBUG=true
+WITH_GUESTADDITIONS=true
+WITHOUT_DBUS=true
+WITHOUT_PULSEAUDIO=true
+WITHOUT_X11=true
+WITHOUT_VDE=true
+WITHOUT_VNC=true
+WITHOUT_WEBSERVICE=true
+WITHOUT_NLS=true
+EOF
 		cd /usr/ports/emulators/virtualbox-ose && make install clean
 	fi
 	sysctl kern.geom.debugflags=16
