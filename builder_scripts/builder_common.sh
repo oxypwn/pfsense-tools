@@ -2745,7 +2745,7 @@ ova_partition_gpart() {
 # called from create_ova_image
 import_ova_vm() {
 	VMNAME=$1
-	VBoxManage import ${BUILDER_SCRIPTS}/${PRODUCT_NAME}.ovf --vsys 0 --eula accept
+	VBoxManage import ${OVFPATH}/${PRODUCT_NAME}.ovf --vsys 0 --eula accept
 	VBoxManage storageattach $VMNAME --type hdd --medium ${OVFPATH}/${OVFVMDK} --storagectl "IDE Controller" --port 0 --device 0
 }
 

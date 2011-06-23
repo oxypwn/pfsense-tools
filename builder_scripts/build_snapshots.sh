@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# pfSense snapshot building system
+# ${PRODUCT_NAME} snapshot building system
 # (C)2007, 2008, 2009 Scott Ullrich
 # All rights reserved
 #
@@ -17,7 +17,7 @@
 #
 #
 # This script glues together the various FreeSBIE style pieces of the 
-# pfSense builder system and will build each style image: ISO, NanoBSD,
+# ${PRODUCT_NAME} builder system and will build each style image: ISO, NanoBSD,
 # DevISO, full update and NanoBSD updates and then copy the results of
 # all the builds to the public facing WWW server.  This script will 
 # invoke the scripts directly such as build_iso.sh and build_nano.sh, 
@@ -34,15 +34,15 @@ fi
 
 # Local variables that are used by builder scripts
 MAKEOBJDIRPREFIXFINAL=/tmp/builder/
-PFSENSEOBJDIR=/usr/obj.pfSense
-MAKEOBJDIRPREFIX=/usr/obj.pfSense
+PFSENSEOBJDIR=/usr/obj.${PRODUCT_NAME}
+MAKEOBJDIRPREFIX=/usr/obj.${PRODUCT_NAME}
 WEBDATAROOT=/usr/local/www/data
 WEBROOT=/usr/local/www
 SNAPSHOTSCRIPTSDIR=/root
 STAGINGAREA=/tmp/staging
 PFSENSEHOMEDIR=/home/pfsense
 PFSENSECVSROOT=${PFSENSEHOMEDIR}/cvsroot
-PFSENSECHECKOUTDIR=${PFSENSEHOMEDIR}/pfSense
+PFSENSECHECKOUTDIR=${PFSENSEHOMEDIR}/${PRODUCT_NAME}
 PFSENSEUPDATESDIR=${MAKEOBJDIRPREFIXFINAL}/updates
 TOOLDIR=${PFSENSEHOMEDIR}/tools
 BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
@@ -51,7 +51,7 @@ PINGTIME="999"
 PINGMAX="40"
 PINGIP="172.29.29.1"
 
-# Source pfSense / FreeSBIE variables
+# Source ${PRODUCT_NAME} / FreeSBIE variables
 # *** DO NOT SOURCE BUILDER_COMMON.SH!
 # *** IT WILL BREAK EVERYTHING FOR 
 # *** SOME UNKNOWN LAYERING REASON.
@@ -95,18 +95,18 @@ post_tweet() {
 
 sync_cvs() {
 	# Sync with pfsense.org
-	echo ">>> Syncing with pfSense.org"
-	/usr/bin/csup -b $CVS_CO_DIR $BUILDERSCRIPTS/pfSense-supfile
+	echo ">>> Syncing with ${PRODUCT_NAME}.org"
+	/usr/bin/csup -b $CVS_CO_DIR $BUILDERSCRIPTS/${PRODUCT_NAME}-supfile
 	/usr/bin/csup -b $FREESBIE_PATH $BUILDERSCRIPTS/freesbie2-supfile
 	cd $BUILDERSCRIPTS && cvs up -d
 }
 
 create_webdata_structure() {
-	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer
-	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded
-	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates 
-	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/nanobsd
-	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/virtualization
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/livecd_installer
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/embedded
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates 
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/nanobsd
+	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/virtualization
 }
 
 set_pfsense_source() {
@@ -203,17 +203,15 @@ build_iso() {
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-	gzip $MAKEOBJDIRPREFIXFINAL/pfSense.iso
-	gzip $MAKEOBJDIRPREFIXFINAL/pfSense-memstick.img
-	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso.gz $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz
-	mv $MAKEOBJDIRPREFIXFINAL/pfSense-memstick.img.gz $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz
-	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz.md5
-	md5 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.md5
-	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz.sha256	
-	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > ${MAKEOBJDIRPREFIXFINAL}/pfSense-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.sha256	
-
-	sha256 $MAKEOBJDIRPREFIXFINAL/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova > ${MAKEOBJDIRPREFIXFINAL}/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova.sha256	
-	
+	gzip $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.iso
+	gzip $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-memstick.img
+	mv $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.iso.gz $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz
+	mv $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-memstick.img.gz $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz
+	md5 $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz.md5
+	md5 $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.md5
+	sha256 $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > ${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz.sha256	
+	sha256 $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > ${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.sha256	
+	sha256 $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova > ${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova.sha256		
 }
 
 build_ova() {
@@ -238,7 +236,7 @@ build_embedded() {
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-	rm -f $MAKEOBJDIRPREFIXFINAL/pfSense-${DATESTRING}.img.gz
+	rm -f $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-${DATESTRING}.img.gz
 	./build_embedded.sh
 }
 
@@ -368,9 +366,9 @@ copy_staging_ova() {
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova"
+	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova"
 	mkdir -p $STAGINGAREA/virtualization
-	mv $MAKEOBJDIRPREFIXFINAL/pfSense.ova $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
+	mv $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.ova $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL $STAGINGAREA/virtualization/
 	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
 		sha256 $STAGINGAREA/virtualization/$FILENAMEFULL > $STAGINGAREA/virtualization/$FILENAMEFULL.sha256 2>/dev/null
@@ -389,8 +387,8 @@ copy_to_staging_nanobsd() {
 		echo "1g" > /tmp/nanosize.txt
 	fi
 	FILESIZE=`cat /tmp/nanosize.txt`
-	FILENAMEFULL="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-${DATESTRING}-nanobsd.img"
-	FILENAMEUPGRADE="pfSense-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-${DATESTRING}-nanobsd-upgrade.img"
+	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-${DATESTRING}-nanobsd.img"
+	FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-${DATESTRING}-nanobsd-upgrade.img"
 	mkdir -p $STAGINGAREA/nanobsd
 	mkdir -p $STAGINGAREA/nanobsdupdates
 
@@ -430,19 +428,19 @@ copy_to_staging_deviso_updates() {
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-	mv $MAKEOBJDIRPREFIXFINAL/pfSense.iso $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso 2>/dev/null
-	gzip $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso 2>/dev/null
-	md5 $STAGINGAREA/pfSense-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > $STAGINGAREA/pfSense-Developers.iso.gz.md5 2>/dev/null
+	mv $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.iso $STAGINGAREA/${PRODUCT_NAME}-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso 2>/dev/null
+	gzip $STAGINGAREA/${PRODUCT_NAME}-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso 2>/dev/null
+	md5 $STAGINGAREA/${PRODUCT_NAME}-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso.gz > $STAGINGAREA/${PRODUCT_NAME}-Developers.iso.gz.md5 2>/dev/null
 }
 
 copy_to_staging_iso_updates() {
 	cd $BUILDERSCRIPTS
 	# Copy ISOs
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso $STAGINGAREA/ 2>/dev/null
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense-*.iso.* $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-*.iso $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-*.iso.* $STAGINGAREA/ 2>/dev/null
 	# Copy memstick items
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense-memstick*.img $STAGINGAREA/ 2>/dev/null
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense-memstick*.img* $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-memstick*.img $STAGINGAREA/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-memstick*.img* $STAGINGAREA/ 2>/dev/null
 	# Old updates, might be able to remove this.
 	cp $MAKEOBJDIRPREFIXFINAL/*.tgz $STAGINGAREA/ 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/*.tgz.md5 $STAGINGAREA/ 2>/dev/null
@@ -456,25 +454,25 @@ copy_to_staging_iso_updates() {
 
 copy_to_staging_embedded() {
 	cd $BUILDERSCRIPTS
-	cp $MAKEOBJDIRPREFIXFINAL/pfSense.img $STAGINGAREA/ 
+	cp $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.img $STAGINGAREA/ 
 	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
 		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
 		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-	rm -f $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz 2>/dev/null
-	mv $STAGINGAREA/pfSense.img $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img 2>/dev/null
-	gzip $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img 2>/dev/null
-	md5 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.md5 2>/dev/null
-	sha256 $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $STAGINGAREA/pfSense-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.sha256 2>/dev/null
+	rm -f $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz 2>/dev/null
+	mv $STAGINGAREA/${PRODUCT_NAME}.img $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img 2>/dev/null
+	gzip $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img 2>/dev/null
+	md5 $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.md5 2>/dev/null
+	sha256 $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz > $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz.sha256 2>/dev/null
 }
 
 cp_files() {
 	cd $BUILDERSCRIPTS
-	cp $STAGINGAREA/pfSense-*iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/livecd_installer 2>/dev/null
-	cp $STAGINGAREA/pfSense-*img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/embedded 2>/dev/null
-	cp $STAGINGAREA/pfSense-*Update* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/pfSense_${PFSENSETAG}/updates 2>/dev/null
+	cp $STAGINGAREA/${PRODUCT_NAME}-*iso* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/livecd_installer 2>/dev/null
+	cp $STAGINGAREA/${PRODUCT_NAME}-*img* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/embedded 2>/dev/null
+	cp $STAGINGAREA/${PRODUCT_NAME}-*Update* $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates 2>/dev/null
 }
 
 check_for_congestion() {
@@ -501,40 +499,40 @@ scp_files() {
 	rm -f /tmp/ssh-snapshots*
 	set +e
 	# Ensure directory(s) are available
-	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer"
-	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/embedded"
-	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates"
-	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd"
-	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/virtualization"
-	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/livecd_installer"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/embedded"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/nanobsd"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/virtualization"
+	ssh snapshots@${RSYNCIP} "mkdir -p /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters"
 	# ensure permissions are correct for r+w
 	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/."
-	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/."
-	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/*/."
+	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/."
+	ssh snapshots@${RSYNCIP} "chmod -R ug+rw /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/*/."
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*iso* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/${PRODUCT_NAME}-*iso* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-memstick* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/livecd_installer/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/${PRODUCT_NAME}-memstick* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/livecd_installer/
 	check_for_congestion
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/pfSense-*Update* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/
+	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/${PRODUCT_NAME}-*Update* \
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/latest* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/.updaters
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsd/* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/nanobsd/
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/nanobsd/
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/nanobsdupdates/* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/updates/
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/virtualization/* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/virtualization/
+		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/virtualization/
 	set -e
 }
 
@@ -546,10 +544,10 @@ cleanup_builds() {
 	rm -rf $STAGINGAREA/*
 	rm -f $PFSENSEUPDATESDIR/*  # Keep updates dir slimmed down
 	rm -rf $MAKEOBJDIRPREFIXFINAL/*
-	if [ -d /home/pfsense/pfSense ]; then
-		echo -n ">>> Clearing out previous pfSense checkout directory..."
-		chflags -R noschg /home/pfsense/pfSense
-		rm -rf /home/pfsense/pfSense
+	if [ -d /home/pfsense/${PRODUCT_NAME} ]; then
+		echo -n ">>> Clearing out previous ${PRODUCT_NAME} checkout directory..."
+		chflags -R noschg /home/pfsense/${PRODUCT_NAME}
+		rm -rf /home/pfsense/${PRODUCT_NAME}
 		echo "Done!"
 	fi
 	rm -f /tmp/version.buildtime
@@ -569,7 +567,7 @@ build_loop_operations() {
 	# SCP files to snapshot web hosting area
 	scp_files
 	# Alert the world that we have some snapshots ready.
-	post_tweet "Snapshots for FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense-${PFSENSETAG} have been copied http://snapshots.pfsense.org/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/pfSense_${PFSENSETAG}/"
+	post_tweet "Snapshots for FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}-${PFSENSETAG} have been copied http://snapshots.pfsense.org/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/"
 }
 
 # Main builder loop - if you want to loop a build invoke build_snapshots_looped.sh
