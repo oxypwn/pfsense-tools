@@ -8,11 +8,9 @@
 # sourced at the beginning of this file   #
 ###########################################
 
-# $Id$
-
-# Ensure file exists
 export BUILD_CONF=./pfsense-build.conf
 
+# Ensure file exists
 if [ ! -f ${BUILD_CONF} ]; then
 	echo
 	echo "You must first run ./set_version.sh !"
@@ -142,9 +140,9 @@ export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 #### User settable options follow ### 
 
 # FreeBSD version and build information
-export pfSense_version=${pfSense_version:-"7"}
-export FREEBSD_VERSION=${FREEBSD_VERSION:-"7"}
-export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_7_2"}
+export pfSense_version=${pfSense_version:-"8"}
+export FREEBSD_VERSION=${FREEBSD_VERSION:-"8"}
+export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_1"}
 
 # Define FreeBSD SUPFILE
 export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"} 
@@ -152,13 +150,10 @@ export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-su
 # "UNBREAK TEXTMATE FORMATTING.  PLEASE LEAVE ME THANKS.
 
 # Version that will be applied to this build
-export PFSENSE_VERSION=${PFSENSE_VERSION:-1.2.1-RC2}
+export PFSENSE_VERSION=${PFSENSE_VERSION:-2.0-RC3}
 
 # pfSense cvs tag to build
-export PFSENSETAG=${PFSENSETAG:-RELENG_1_2}
-
-# Development version
-# export PFSENSETAG=${PFSENSETAG:-HEAD}
+export PFSENSETAG=${PFSENSETAG:-RELENG_2_0}
 
 # Patch directory and patch file that lists patches to apply
 export PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
@@ -185,7 +180,7 @@ export NOEXTRA_OPTIONS=${NOEXTRA_OPTIONS:-}
 
 # DO NOT SET THIS.  IT WILL BREAK 1.2.3 builds.  This is now
 # set by default in setup_overlay.sh
-#  export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
+# export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 
 # Do not clean.  Makes subsequent builds quicker.
 export NO_CLEAN=${NO_CLEAN:-"yo"}
@@ -245,6 +240,8 @@ export ARCH=${ARCH:-"`uname -m`"}
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
 export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"}
 
+# " - UNBREAK TEXTMATE FORMATTING - PLEASE LEAVE.
+
 # Use a custom config.xml
 #export USE_CONFIG_XML=${USE_CONFIG_XML:-"/path/to/custom/config.xml"}
 
@@ -254,7 +251,6 @@ export GIT_REPO=${GIT_REPO:-"https://github.com/bsdperimeter/pfsense.git"}
 export GIT_REPO_DIR="${BASE_DIR}/pfSenseGITREPO"
 export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"http://gitweb.pfsense.org/freesbie2/mainline.git"}
 export GIT_REPO_TOOLS=${GIT_TOOLS_REPO:-"https://github.com/bsdperimeter/pfsense-tools.git tools"}
-#export GIT_REPO_BSDINSTALLER=${GIT_REPO_BSDINSTALLER:-"http://gitweb.pfsense.org/bsdinstaller/mainline.git"}
 
 # Custom overlay for people building or extending pfSense images.
 # The custom overlay tar gzipped file will be extracted over the root
@@ -303,9 +299,10 @@ export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
 # set full-update update filename
 export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/${PRODUCT_NAME}-Full-Update-${PFSENSE_VERSION}-${ARCH}-`date '+%Y%m%d-%H%M'`.tgz"}
 
+# " - UNBREAK TEXTMATE FORMATTING - PLEASE LEAVE.
+
 # Checkout the GIT repo every time. This is normally not necessary.
 # export PFSENSE_WITH_FULL_GIT_CHECKOUT="true"
-
 
 # This needs to be at the very end of the file.
 IFS=$OIFS
