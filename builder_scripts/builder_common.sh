@@ -2646,8 +2646,8 @@ ova_calculate_mnt_size() {
 # called from create_ova_image
 ova_create_raw_backed_file() {
 	echo ">>> Creating raw backing file..."
-	DISKSIZE=10737418240
-	BLOCKSIZE=409600
+	DISKSIZE=$OVADISKSIZE
+	BLOCKSIZE=$OVABLOCKSIZE
 	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
 	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$BLOCKSIZE count=$COUNT
 }
@@ -2728,9 +2728,9 @@ ova_partition_gpart() {
 	gpart add -b 34 -s 128 -t freebsd-boot $MD
 	gpart bootcode -p /boot/gptboot -i 1 $MD
 	echo ">>> Setting up disk slices: ${MD}p2..."
-    gpart add -s 8G -t freebsd-ufs -i 2 $MD
+    gpart add -s $OVA_FIRST_PART_SIZE -t freebsd-ufs -i 2 $MD
 	echo ">>> Setting up disk slices: ${MD}p3 (swap)..."
-	gpart add -s 4193789 -t freebsd-swap -i 3 $MD
+	gpart add -s $OVA_SWAP_PART_SIZE -t freebsd-swap -i 3 $MD
 	echo ">>> Running newfs..."
 	newfs -U /dev/${MD}p2
 	sync ; sync ; sync ; sync
