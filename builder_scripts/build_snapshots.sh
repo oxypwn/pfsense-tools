@@ -46,6 +46,7 @@ PFSENSECHECKOUTDIR=${PFSENSEHOMEDIR}/pfSense
 PFSENSEUPDATESDIR=${MAKEOBJDIRPREFIXFINAL}/updates
 TOOLDIR=${PFSENSEHOMEDIR}/tools
 BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
+RSYNCIP="172.29.29.249"
 
 # Source pfSense / FreeSBIE variables
 # *** DO NOT SOURCE BUILDER_COMMON.SH!
@@ -489,7 +490,6 @@ check_for_congestion() {
 
 scp_files() {
 	cd $BUILDERSCRIPTS
-	RSYNCIP="172.29.29.249"
 	if [ -z "${RSYNC_COPY_ARGUMENTS:-}" ]; then
 		RSYNC_COPY_ARGUMENTS="-ave ssh --timeout=60" #--bwlimit=50
 	fi
