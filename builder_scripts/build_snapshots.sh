@@ -47,6 +47,9 @@ PFSENSEUPDATESDIR=${MAKEOBJDIRPREFIXFINAL}/updates
 TOOLDIR=${PFSENSEHOMEDIR}/tools
 BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 RSYNCIP="172.29.29.249"
+PINGTIME="999"
+PINGMAX="40"
+PINGIP="172.29.29.1"
 
 # Source pfSense / FreeSBIE variables
 # *** DO NOT SOURCE BUILDER_COMMON.SH!
@@ -476,9 +479,6 @@ cp_files() {
 
 check_for_congestion() {
 	cd $BUILDERSCRIPTS
-	PINGTIME="999"
-	PINGMAX="40"
-	PINGIP="172.29.29.1"
 	echo -n ">>> Waiting for Internet congestion to die down before rsync operations: $PINGTIME "
 	while [ "$PINGTIME" -gt "$PINGMAX" ]; do
 		PINGTIME=`ping -c1 $PINGIP | grep time | cut -d"=" -f4 | cut -d" " -f1 | cut -d"." -f1`
