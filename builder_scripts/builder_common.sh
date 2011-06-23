@@ -2616,7 +2616,7 @@ ova_prereq_check() {
 			echo ">>> /usr/ports does not exist, fetching..."
 			portsnap fetch extract
 		fi
-		echo ">>> Installing Qemu from ports, one moment please..."
+		echo ">>> Installing VirtualBOX from ports, one moment please..."
 		echo <<EOF >/var/db/ports/virtualbox-ose/options
 _OPTIONS_READ=virtualbox-ose-4.0.8
 WITHOUT_QT4=true
