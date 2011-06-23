@@ -110,8 +110,11 @@ export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-mem
 
 # OVF/vmdk parms
 export OVFPATH=${OVFPATH:-${MAKEOBJDIRPREFIXFINAL}}
+# Name of ovf file included inside OVA archive
 export OVFFILE=${OVFFILE:-${PRODUCT_NAME}.ovf}
+# On disk name of VMDK file included in OVA
 export OVFVMDK=${OVFVMDK:-${PRODUCT_NAME}.vmdk}
+# Filename of final image output
 export OVAFILE=${OVAFILE:-${PRODUCT_NAME}.ova}
 # optional
 export OVFCERT=${OVFCERT:-""} 
