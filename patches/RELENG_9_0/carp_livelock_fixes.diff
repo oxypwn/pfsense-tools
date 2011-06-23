@@ -151,7 +151,7 @@ diff -u -r1.3 ip_carp.c
  		if (!--cif->vhif_nvrs) {
  			ifpromisc(sc->sc_carpdev, 0);
  			sc->sc_carpdev->if_carp = NULL;
-+			c->sc_carpdev = NULL;
++			sc->sc_carpdev = NULL;
  			CARP_LOCK_DESTROY(cif);
  			free(cif, M_CARP);
 -		} else if (unlock)
