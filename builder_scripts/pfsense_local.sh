@@ -113,19 +113,22 @@ export OVFPATH=${OVFPATH:-${MAKEOBJDIRPREFIXFINAL}}
 export OVFFILE=${OVFFILE:-${PRODUCT_NAME}.ovf}
 export OVFVMDK=${OVFVMDK:-${PRODUCT_NAME}.vmdk}
 export OVAFILE=${OVAFILE:-${PRODUCT_NAME}.ova}
+# optional
 export OVFCERT=${OVFCERT:-""} 
-export OVFVMDK=${OVFVMDK:-""}
+# optional
 export OVFSTRINGS=${OVFSTRINGS:-""}
+# optional
 export OVFMF=${OVFMF:-""}
-# 10 gigs
+# 10 gigabyte on disk VMDK size
 export OVADISKSIZE=${OVADISKSIZE:-"10737418240"}
-# dd buffering size
+# dd buffering size when creating raw backed VMDK
 export OVABLOCKSIZE=${OVABLOCKSIZE:-"409600"}
-# first partition size (freebsd-ufs)
+# first partition size (freebsd-ufs) GPT
 export OVA_FIRST_PART_SIZE=${OVA_FIRST_PART_SIZE:-"8G"}
-# swap partition size (freebsd-swap) - remaining space of 10G-8G - 128 block beg
+# swap partition size (freebsd-swap) GPT - 
+# remaining space of 10G-8G - 128 block beginning/loader
 export OVA_SWAP_PART_SIZE=${OVA_SWAP_PART_SIZE:-"4193789"}
-#end of OVF
+# end of OVF
 
 # Binary staging area for pfSense specific binaries.
 export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
