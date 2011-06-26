@@ -55,6 +55,7 @@
 static int interval = 30;
 static int dev = -1;
 static int debug = 0;
+static char *ipfwctx = NULL;
 
 static void pf_tableentry(struct thread_data *, struct in_addr, int);
 static void ipfw_tableentry(struct thread_data *, struct in_addr, int);
@@ -214,6 +215,11 @@ ipfw_tableentry(struct thread_data *ipfwd, struct in_addr address, int action)
 	if (s < 0)
 		return;
 
+#ifndef IP_FW_CTX_SET
+#define	IP_FW_CTX_SET	92
+#endif
+	if (ipfwctx != NULL)
+		setsockopt(s, IPPROTO_IP, IP_FW_CTX_SET, (void *)ipfwctx, strlen(ipfwctx));
 	setsockopt(s, IPPROTO_IP, action == ADD ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL, (void *)&ent, sizeof(ent));
 }
 
@@ -387,7 +393,7 @@ int main(int argc, char *argv[]) {
 	file = NULL;
 	pidfile = NULL;
 
-	while ((ch = getopt(argc, argv, "c:d:fi:p:")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:fi:p:y:")) != -1) {
 		switch (ch) {
 		case 'c':
 			file = optarg;
@@ -407,6 +413,9 @@ int main(int argc, char *argv[]) {
 			break;
 		case 'p':
 			pidfile = optarg;
+			break;
+		case 'y':
+			ipfwctx = optarg;
 			break;
 		default:
 			fprintf(stderr, "Wrong option: %c given!", ch);
