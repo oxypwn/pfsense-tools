@@ -660,28 +660,28 @@ cust_overlay_host_binaries() {
 	# to spend a fair amount of time figuring out why the built
 	# syslogd file doe snot reside in the correct directory to
 	# install from.  Just move along now, nothing to see here.
-	echo "==> Building syslogd..."
-	cd $SRCDIR/usr.sbin/syslogd
-	(make clean) | egrep -wi '(^>>>|error)'
- 	(make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-	(make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
-	echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
-	if [ -f ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd ]; then
-		install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
-	fi
-	cd $PWD
+	#echo "==> Building syslogd..."
+	#cd $SRCDIR/usr.sbin/syslogd
+	#(make clean) | egrep -wi '(^>>>|error)'
+ 	#(make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
+	#(make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
+	#echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
+	#if [ -f ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd ]; then
+	#	install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
+	#fi
+	#cd $PWD
 
 	# Handle clog
-	echo "==> Building clog..."
-	if [ -d $SRCDIR/usr.sbin/clog ]; then
-		(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
-		(cd $SRCDIR/usr.sbin/clog && make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-		(cd $SRCDIR/usr.sbin/clog && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
-	    echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-		if [ -f $SRCDIR/usr.sbin/clog/clog ]; then
-	    	install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
-		fi
-	fi
+	#echo "==> Building clog..."
+	#if [ -d $SRCDIR/usr.sbin/clog ]; then
+	#	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
+	#	(cd $SRCDIR/usr.sbin/clog && make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
+	#	(cd $SRCDIR/usr.sbin/clog && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
+	#    echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
+	#	if [ -f $SRCDIR/usr.sbin/clog/clog ]; then
+	#    	install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
+	#	fi
+	#fi
 
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
