@@ -20,7 +20,6 @@ LIB_DEPENDS=	czmq:${PORTSDIR}/devel/czmq
 DISTDIR=	${FILESDIR}
 # overwrite base
 PREFIX=		/usr
-CFLAGS+=	-I${LOCALBASE}/include -L${LOCALBASE}/lib
 PLIST_FILES=	sbin/syslogd
 
 # apply in order
@@ -30,6 +29,7 @@ EXTRA_PATCHES+=	${PATCHDIR}/zmq-support.diff
 do-fetch:
 
 post-patch:
-	@${SED} -i '' -e 's|%%PREFIX%%|${PREFIX}|' ${WRKSRC}/Makefile
+	@${SED} -i '' -e 's|%%PREFIX%%|${PREFIX}|g' \
+		-e 's|%%LOCALBASE%%|${LOCALBASE}|g' ${WRKSRC}/Makefile
 
 .include <bsd.port.mk>
