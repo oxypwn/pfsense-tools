@@ -73,12 +73,12 @@ int main(int argc, char *argv[]) {
 
 	len = strlen(argv[3]);
 	if (argc > 4) {
-		len += strlen(argv[4]);
-		command = calloc(1, (len + 1) * sizeof(char));
-		snprintf(command, len + 1, "%s %s", argv[3], argv[4]);
+		len += strlen(argv[4]) + 2;
+		command = calloc(1, len * sizeof(char));
+		snprintf(command, len, "%s %s", argv[3], argv[4]);
 	} else {
-		command = calloc(1, (len + 1) * sizeof(char));
-		snprintf(command, len + 1, "%s %s", argv[3], argv[4]);
+		command = calloc(1, (len + 2) * sizeof(char));
+		snprintf(command, len + 2, "%s %s", argv[3], argv[4]);
 	}
 
 	while (1) {
