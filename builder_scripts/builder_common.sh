@@ -682,6 +682,9 @@ cust_overlay_host_binaries() {
 	#    	install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
 	#	fi
 	#fi
+	
+	install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+	install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
 
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
