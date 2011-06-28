@@ -30,13 +30,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 /* usage: minicron interval pidfile cmd */
 
 int main(int argc, char *argv[]) {
 	
 	int interval;
+	size_t len;
 	FILE *pidfd;
+	char *command;
 	
 	if (argc < 4)
 		exit(1);
@@ -67,10 +70,22 @@ int main(int argc, char *argv[]) {
 		fprintf(pidfd, "%d\n", getpid());
 		fclose(pidfd);
 	}
-		
+
+	len = strlen(argv[3]);
+	if (argc > 4) {
+		len += strlen(argv[4]);
+		command = calloc(1, (len + 1) * sizeof(char));
+		snprintf(command, len + 1, "%s %s", argv[3], argv[4]);
+	} else {
+		command = calloc(1, (len + 1) * sizeof(char));
+		snprintf(command, len + 1, "%s %s", argv[3], argv[4]);
+	}
+
 	while (1) {
 		sleep(interval);
 		
-		system(argv[3]);
+		system(command);
 	}
+
+	free(command);
 }
