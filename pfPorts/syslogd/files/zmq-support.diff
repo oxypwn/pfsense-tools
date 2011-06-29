@@ -148,7 +148,7 @@ diff -urN syslogd.c syslogd.c
  		case F_PIPE:
  			if (f->f_un.f_pipe.f_pid > 0) {
  				(void)close(f->f_file);
-@@ -1726,6 +1791,45 @@
+@@ -1726,6 +1791,47 @@
  	/* close the configuration file */
  	(void)fclose(cf);
  
@@ -186,6 +186,8 @@ diff -urN syslogd.c syslogd.c
 +			dprintf("ZMQ: zsocket_new failed\n");
 +			continue;
 +		}
++		/* max 1024 * 1k messages in memory */
++		zsockopt_hwm(f->f_zmq, 1024);
 +		zsocket_connect(f->f_zmq, f->f_un.f_zmqaddr);
 +		dprintf("ZMQ: zsocket_connect(%p, %s)\n", f->f_zmq, f->f_un.f_zmqaddr);
 +	}
@@ -194,7 +196,7 @@ diff -urN syslogd.c syslogd.c
  	Initialized = 1;
  
  	if (Debug) {
-@@ -1770,6 +1874,11 @@
+@@ -1770,6 +1876,11 @@
  				for (i = 0; i < MAXUNAMES && *f->f_un.f_uname[i]; i++)
  					printf("%s, ", f->f_un.f_uname[i]);
  				break;
@@ -206,7 +208,7 @@ diff -urN syslogd.c syslogd.c
  			}
  			if (f->f_program)
  				printf(" (%s)", f->f_program);
-@@ -2065,6 +2174,14 @@
+@@ -2065,6 +2176,14 @@
  		f->f_type = F_WALL;
  		break;
  
