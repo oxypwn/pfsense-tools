@@ -1,5 +1,5 @@
---- Makefile.orig	2011-06-28 09:02:38.060403307 +1200
-+++ Makefile	2011-06-28 09:03:45.077440584 +1200
+--- Makefile.orig	2011-06-15 02:41:30.000000000 +1200
++++ Makefile	2011-06-29 14:23:15.467203755 +1200
 @@ -3,10 +3,10 @@
  
  .include <bsd.own.mk>
@@ -13,12 +13,9 @@
  SRCS=	syslogd.c ttymsg.c
  
  DPADD=	${LIBUTIL}
-@@ -19,8 +19,8 @@
+@@ -18,6 +18,6 @@
+ CFLAGS+= -DINET6
  .endif
- 
- CFLAGS+= -DWITH_ZMQ
--LDADD+= -lczmq
-+LDADD+= -lczmq -lzmq -lpthread -lstdc++
  
 -CFLAGS+= -I${.CURDIR}/../../usr.bin/wall
 +CFLAGS+= -I%%LOCALBASE%%/include -L%%LOCALBASE%%/lib

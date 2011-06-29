@@ -1,18 +1,18 @@
 diff -urN Makefile Makefile
---- Makefile	2011-06-01 12:57:35.242073809 +1200
-+++ Makefile	2011-06-01 12:57:44.362070773 +1200
-@@ -16,4 +16,7 @@
- CFLAGS+= -DINET6
- .endif
+--- Makefile	2011-06-29 14:24:38.452192218 +1200
++++ Makefile	2011-06-29 14:27:47.379193306 +1200
+@@ -20,4 +20,7 @@
+ 
+ CFLAGS+= -I%%LOCALBASE%%/include -L%%LOCALBASE%%/lib
  
 +CFLAGS+= -DWITH_ZMQ
-+LDADD+= -lczmq
++LDADD+= -lczmq -lzmq -lpthread -lstdc++
 +
  .include <bsd.prog.mk>
 diff -urN syslogd.c syslogd.c
---- syslogd.c	2011-06-01 12:57:35.242073809 +1200
-+++ syslogd.c	2011-06-01 12:57:59.037071759 +1200
-@@ -117,6 +117,10 @@
+--- syslogd.c	2011-06-29 14:24:38.451232902 +1200
++++ syslogd.c	2011-06-29 14:25:14.620192770 +1200
+@@ -121,6 +121,10 @@
  #define SYSLOG_NAMES
  #include <sys/syslog.h>
  
@@ -23,7 +23,7 @@ diff -urN syslogd.c syslogd.c
  const char	*ConfFile = _PATH_LOGCONF;
  const char	*PidFile = _PATH_LOGPID;
  const char	ctty[] = _PATH_CONSOLE;
-@@ -190,7 +194,13 @@
+@@ -194,7 +198,13 @@
  			struct clog_footer *f_footer;
  			size_t	f_size;
  		} f_ring;
@@ -37,7 +37,7 @@ diff -urN syslogd.c syslogd.c
  	char	f_prevline[MAXSVLINE];		/* last message logged */
  	char	f_lasttime[16];			/* time of last occurrence */
  	char	f_prevhost[MAXHOSTNAMELEN];	/* host from which recd. */
-@@ -201,6 +211,7 @@
+@@ -205,6 +215,7 @@
  	int	f_flags;			/* file-specific flags */
  #define	FFLAG_SYNC 0x01
  #define	FFLAG_NEEDSYNC	0x02
@@ -45,7 +45,7 @@ diff -urN syslogd.c syslogd.c
  };
  
  /*
-@@ -269,11 +280,12 @@
+@@ -273,11 +284,12 @@
  #define F_WALL		6		/* everyone logged on */
  #define F_PIPE		7		/* pipe to program */
  #define F_RING		8		/* ring buffer (circular log) */
@@ -60,7 +60,7 @@ diff -urN syslogd.c syslogd.c
  };
  
  static struct filed *Files;	/* Log files that we write to */
-@@ -315,6 +327,10 @@
+@@ -319,6 +331,10 @@
  
  volatile sig_atomic_t MarkSet, WantDie;
  
@@ -71,7 +71,7 @@ diff -urN syslogd.c syslogd.c
  static int	allowaddr(char *);
  static void	cfline(const char *, struct filed *,
  		    const char *, const char *);
-@@ -507,6 +523,13 @@
+@@ -511,6 +527,13 @@
  	if (NumAllowed)
  		endservent();
  
@@ -85,7 +85,7 @@ diff -urN syslogd.c syslogd.c
  	consfile.f_type = F_CONSOLE;
  	(void)strlcpy(consfile.f_un.f_fname, ctty + sizeof _PATH_DEV - 1,
  	    sizeof(consfile.f_un.f_fname));
-@@ -1355,6 +1378,36 @@
+@@ -1359,6 +1382,39 @@
  		v->iov_len = 2;
  		wallmsg(f, iov, IOV_SIZE);
  		break;
@@ -99,14 +99,17 @@ diff -urN syslogd.c syslogd.c
 +		/* check for local vs remote messages */
 +		if (strcasecmp(f->f_prevhost, LocalHostName))
 +			l = snprintf(line, sizeof line - 1,
-+			    "%.15s %s Forwarded from %s: %s",
-+			    (char *)iov[0].iov_base, LocalHostName,
-+			    f->f_prevhost, (char *)iov[5].iov_base);
++			    "{  \"pri\" : %d, \"time\": \"%.15s\", \"msg\" : \"%s\","
++			    " \"hostname\":  \"%s\", \"remote\": \"%s\" }",
++			    f->f_prevpri, (char *)iov[0].iov_base,
++			    (char *)iov[5].iov_base, LocalHostName,
++			    f->f_prevhost);
 +		else
-+			l = snprintf(line, sizeof line - 1, "%.15s %s %s",
-+			    (char *)iov[0].iov_base,
-+			    LocalHostName,
-+			    (char *)iov[5].iov_base);
++			l = snprintf(line, sizeof line - 1,
++			    "{ \"pri\" : %d, \"time\": \"%.15s\", \"msg\" : \"%s\","
++			    " \"hostname\":  \"%s\" }",
++			    f->f_prevpri, (char *)iov[0].iov_base,
++			    (char *)iov[5].iov_base, LocalHostName);
 +		if (l < 0)
 +			l = 0;
 +		else if (l > MAXLINE)
@@ -122,7 +125,7 @@ diff -urN syslogd.c syslogd.c
  	}
  	f->f_prevcount = 0;
  	free(wmsg);
-@@ -1544,6 +1597,9 @@
+@@ -1550,6 +1606,9 @@
  	}
  	STAILQ_FOREACH(fx, &funixes, next)
  		(void)unlink(fx->name);
@@ -132,7 +135,7 @@ diff -urN syslogd.c syslogd.c
  	pidfile_remove(pfh);
  
  	exit(1);
-@@ -1599,6 +1655,12 @@
+@@ -1605,6 +1664,12 @@
  		case F_TTY:
  			(void)close(f->f_file);
  			break;
@@ -145,7 +148,7 @@ diff -urN syslogd.c syslogd.c
  		case F_PIPE:
  			if (f->f_un.f_pipe.f_pid > 0) {
  				(void)close(f->f_file);
-@@ -1720,6 +1782,45 @@
+@@ -1726,6 +1791,45 @@
  	/* close the configuration file */
  	(void)fclose(cf);
  
@@ -162,7 +165,7 @@ diff -urN syslogd.c syslogd.c
 +			int dup = 0;
 +
 +			/* make sure its not already opened */
-+			for (f2 = Files; f2 && f2 != f; f = f->f_next) {
++			for (f2 = Files; f2 && f2 != f; f2 = f2->f_next) {
 +				if (f2->f_zmq != NULL &&
 +				    strcmp(f2->f_un.f_zmqaddr, f->f_un.f_zmqaddr) == 0) {
 +					/* reuse ZMQ connector */
@@ -191,7 +194,7 @@ diff -urN syslogd.c syslogd.c
  	Initialized = 1;
  
  	if (Debug) {
-@@ -1764,6 +1865,11 @@
+@@ -1770,6 +1874,11 @@
  				for (i = 0; i < MAXUNAMES && *f->f_un.f_uname[i]; i++)
  					printf("%s, ", f->f_un.f_uname[i]);
  				break;
@@ -203,7 +206,7 @@ diff -urN syslogd.c syslogd.c
  			}
  			if (f->f_program)
  				printf(" (%s)", f->f_program);
-@@ -2059,6 +2165,14 @@
+@@ -2065,6 +2174,14 @@
  		f->f_type = F_WALL;
  		break;
  
