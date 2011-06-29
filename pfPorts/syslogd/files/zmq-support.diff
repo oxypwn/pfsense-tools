@@ -187,7 +187,7 @@ diff -urN syslogd.c syslogd.c
 +			continue;
 +		}
 +		/* max 1024 * 1k messages in memory */
-+		zsockopt_hwm(f->f_zmq, 1024);
++		zsockopt_set_hwm(f->f_zmq, 1024);
 +		zsocket_connect(f->f_zmq, f->f_un.f_zmqaddr);
 +		dprintf("ZMQ: zsocket_connect(%p, %s)\n", f->f_zmq, f->f_un.f_zmqaddr);
 +	}
