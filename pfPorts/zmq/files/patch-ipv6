@@ -1,0 +1,24 @@
+--- src/ip.cpp.orig	2011-03-10 07:00:25.000000000 +1300
++++ src/ip.cpp	2011-06-28 14:37:58.912480944 +1200
+@@ -240,8 +240,8 @@
+ #endif
+     memset (&req, 0, sizeof (req));
+ 
+-    //  We only support IPv4 addresses for now.
+-    req.ai_family = AF_INET;
++    //  We don't care about family. IPv4 is as good as IPv6.
++    req.ai_family = AF_UNSPEC;
+ 
+     //  Arbitrary, not used in the output, but avoids duplicate results.
+     req.ai_socktype = SOCK_STREAM;
+@@ -288,8 +288,8 @@
+     addrinfo req;
+     memset (&req, 0, sizeof (req));
+ 
+-    //  We only support IPv4 addresses for now.
+-    req.ai_family = AF_INET;
++    //  Don't specify the family. We want both IPv4 and IPv6.
++    req.ai_family = AF_UNSPEC;
+ 
+     //  Need to choose one to avoid duplicate results from getaddrinfo() - this
+     //  doesn't really matter, since it's not included in the addr-output.
