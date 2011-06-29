@@ -2,11 +2,11 @@
 # Date created:        27 August 2008
 # Whom:                Danton Dorati <urisso@bsd.com.br>
 #
-# $FreeBSD: ports/security/snortsam/Makefile,v 1.3 2009/12/31 20:18:29 miwi Exp $
+# $FreeBSD: ports/security/snortsam/Makefile,v 1.4 2011/06/15 13:52:50 wxs Exp $
 #
 
 PORTNAME=	snortsam
-PORTVERSION=	2.69
+PORTVERSION=	2.70
 CATEGORIES=	security
 MASTER_SITES=	http://www.snortsam.net/files/snortsam/
 DISTNAME=	${PORTNAME}-src-${PORTVERSION}

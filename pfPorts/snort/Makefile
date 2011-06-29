@@ -2,12 +2,11 @@
 # Date created:		Mon Aug  2 12:04:08 CEST 1999
 # Whom:			Dirk Froemberg <dirk@FreeBSD.org>
 #
-# $FreeBSD: ports/security/snort/Makefile,v 1.131 2011/02/13 22:17:19 pav Exp $
+# $FreeBSD: ports/security/snort/Makefile,v 1.134 2011/04/12 04:31:21 dhn Exp $
 #
 
 PORTNAME=	snort
-PORTVERSION=	2.9.0.4
-PORTREVISION=	1
+PORTVERSION=	2.9.0.5
 CATEGORIES=	security
 MASTER_SITES=	SF/snort/snort
 
@@ -22,7 +21,7 @@ BUILD_DEPENDS=	daq>=0.5_1:${PORTSDIR}/net/daq \
 RUN_DEPENDS=	daq>=0.5_1:${PORTSDIR}/net/daq \
 		${LOCALBASE}/lib/libnet11/libnet.a:${PORTSDIR}/net/libnet
 
-OPTIONS=	IPV6 "Enable IPv6 support" off \
+OPTIONS=	IPV6 "Enable IPv6 support" on \
 		MPLS "Enable MPLS support" on \
 		GRE "Enable GRE support" on \
 		TARGETBASED "Enable Targetbased support" off \
@@ -38,7 +37,6 @@ OPTIONS=	IPV6 "Enable IPv6 support" off \
 		PRELUDE "Enable Prelude NIDS integration" off \
 		SNORTSAM "Unofficial Snortsam Patch" off \
 		PFSENSE "Enable Pfsense Options" off
-
 
 .include <bsd.port.options.mk>
 
@@ -212,7 +210,7 @@ post-install:
 	@${MKDIR} ${LOCALBASE}/libdata/pkgconfig/ && ${MV} ${LOCALBASE}/lib/pkgconfig/snort.pc ${LOCALBASE}/libdata/pkgconfig/snort.pc
 	@${RMDIR} ${LOCALBASE}/lib/pkgconfig
 .endif
-	@${LIBTOOL} --finish ${LOCALBASE}/snort/dynamicpreprocessor
+	@${LIBTOOL} --finish ${LOCALBASE}/lib/snort/dynamicpreprocessor
 	[ -d ${CONFIG_DIR} ] || ${MKDIR} ${CONFIG_DIR}
 	[ -d ${EXAMPLESDIR} ] || ${MKDIR} ${EXAMPLESDIR}
 	[ -d ${RULES_DIR} ] || ${MKDIR} ${RULES_DIR}
