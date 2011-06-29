@@ -15,11 +15,13 @@ if test "$PHP_ZMQ" != "no"; then
   if test "x$PHP_ZMQ" = "xyes"; then
     export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/local/lib/pkgconfig:/opt/lib/pkgconfig:/opt/local/lib/pkgconfig
   else
-    export PKG_CONFIG_PATH=$PHP_ZMQ:$PHP_ZMQ/lib/pkgconfig
+    export PKG_CONFIG_PATH="$PHP_ZMQ:$PHP_ZMQ/lib/pkgconfig"
   fi
 
   if $PKG_CONFIG --exists libzmq; then
-    AC_MSG_RESULT([found])
+    PHP_ZMQ_VERSION=`$PKG_CONFIG libzmq --modversion`
+
+    AC_MSG_RESULT([found version $PHP_ZMQ_VERSION])
     PHP_ZMQ_LIBS=`$PKG_CONFIG libzmq --libs`
     PHP_ZMQ_INCS=`$PKG_CONFIG libzmq --cflags`
 

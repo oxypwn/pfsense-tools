@@ -1,4 +1,4 @@
-Experimental PHP bindings for 0MQ. The documentation is available at http://valokuva.org/~mikko/php-zmq/
+Experimental PHP bindings for 0MQ. The documentation is available at http://php.zero.mq/
 
 The API is roughly as follows:
 
@@ -14,3 +14,5 @@ $queue->connect("tcp://127.0.0.1:5555");
 var_dump($queue->send("hello there, using socket 1")->recv());
 
 ?>
+
+For installation instructions see http://pear.zero.mq/

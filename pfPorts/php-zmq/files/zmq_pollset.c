@@ -81,8 +81,7 @@ void php_zmq_pollset_deinit(php_zmq_pollset *set TSRMLS_DC)
 			zend_objects_store_del_ref(set->php_items[i].entry TSRMLS_CC);
 	 	}
 		zval_ptr_dtor(&(set->php_items[i].entry));
-	} 
-	
+	}
 	php_zmq_pollset_clear(set, 0 TSRMLS_CC);
 	
 	zval_dtor(set->errors);
@@ -115,7 +114,7 @@ static void php_spl_object_hash(zval *obj, char *result TSRMLS_DC) /* {{{*/
     
     result[0] = '\0';
     PHP_MD5Init(&context);
-    PHP_MD5Update(&context, (unsigned char*)hash, len);
+    PHP_MD5Update(&context, (unsigned char*) hash, len);
     PHP_MD5Final(digest, &context);
     make_digest(result, digest);
     efree(hash);
@@ -324,12 +323,8 @@ int php_zmq_pollset_poll(php_zmq_pollset *set, int timeout, zval *r_array, zval 
 {
 	int rc, i;
 	zend_bool readable = 0, writable = 0;
-
-	rc = zmq_poll(set->items, set->num_items, timeout);
 	
-	if (rc == -1) {
-		return -1;
-	}
+	zend_hash_clean(Z_ARRVAL_P(e_array));
 	
 	if (r_array && Z_TYPE_P(r_array) == IS_ARRAY) {
 		if (zend_hash_num_elements(Z_ARRVAL_P(r_array)) > 0) {
@@ -347,9 +342,13 @@ int php_zmq_pollset_poll(php_zmq_pollset *set, int timeout, zval *r_array, zval 
 	
 	assert(set->num_items == set->num_php_items);
 	
+	rc = zmq_poll(set->items, set->num_items, timeout);
+	
+	if (rc == -1) {
+		return -1;
+	}
+	
 	if (rc > 0) {
-		zend_hash_clean(Z_ARRVAL_P(e_array));
-		
 		for (i = 0; i < set->num_items; i++) {
 			if (readable && set->items[i].revents & ZMQ_POLLIN) {
 				Z_ADDREF_P(set->php_items[i].entry);
