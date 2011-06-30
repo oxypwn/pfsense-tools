@@ -1,4 +1,5 @@
 usr/sbin/syslogd
+usr/sbin/clog
 lib/libipx.so.4
 lib/libgeom.so.4
 lib/geom/geom_cache.so
