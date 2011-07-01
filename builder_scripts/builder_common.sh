@@ -819,6 +819,10 @@ cust_populate_installer_bits() {
 	# Copy custom 950_reboot.lua script which touches /tmp/install_complete
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/950_reboot.lua \
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
+	# Copy cleargpt.sh utility
+	cp $BUILDER_TOOLS/installer/cleargpt.sh \
+		$PFSENSEBASEDIR/usr/sbin/
+	chmod a+rx $PFSENSEBASEDIR/usr/sbin/cleargpt.sh
 	# Copy installer launcher scripts
 	cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
 	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
