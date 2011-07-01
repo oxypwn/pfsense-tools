@@ -7,7 +7,7 @@
 
 CATEGORIES=	textproc
 
-MASTERDIR=      ${.CURDIR}/../php52-pfsense
+MASTERDIR=      ${.CURDIR}/../php52
 
 PKGNAMESUFFIX=	-xml
 
