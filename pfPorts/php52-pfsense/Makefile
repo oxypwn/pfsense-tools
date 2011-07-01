@@ -193,13 +193,17 @@ post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
 	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
 
+# Work around issues with newer (>=2.64) autoconf
 pre-configure:
-	@${CAT} ${WRKSRC}/acinclude.m4 ${WRKSRC}/build/libtool.m4 > ${WRKSRC}/aclocal.m4
+		@${REINPLACE_CMD} -E 's:^((m4_)?divert)[(]([0-9]*)[)]:\1(600\3):' \
+			${WRKSRC}/configure.in `${FIND} ${WRKSRC} -name '*.m4'`
+		@${RM} ${WRKSRC}/configure
+		@${CAT} ${WRKSRC}/acinclude.m4 ${WRKSRC}/build/libtool.m4 > ${WRKSRC}/aclocal.m4
 
 post-build:
-	@${ECHO_CMD} "PHP_VER=5" > ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
-	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
+		@${ECHO_CMD} "PHP_VER=52" > ${WRKDIR}/php.conf
+		@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
+		@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
 
 post-install:
 # TODO: This is a hack. It installs the PHP binary to /usr/local/bin
