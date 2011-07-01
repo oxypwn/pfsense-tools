@@ -7,7 +7,7 @@
 
 CATEGORIES=	databases
 
-MASTERDIR=      ${.CURDIR}/../php52-pfsense
+MASTERDIR=      ${.CURDIR}/../php52
 
 PKGNAMESUFFIX=	-pdo_sqlite
 
