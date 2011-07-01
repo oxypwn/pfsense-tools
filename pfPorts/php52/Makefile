@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	php5
-PORTVERSION=	5.2.5
+PORTVERSION=	5.2.17
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
@@ -97,7 +97,7 @@ MAN1=		php-config.1 phpize.1
 PATCH_DIST_STRIP=	-p1
 
 .if !defined(WITHOUT_SUHOSIN)
-PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.6.2.patch.gz:suhosin
+PATCHFILES+=	suhosin-patch-5.2.16-0.9.7.patch.gz:suhosin
 PATCH_SITES+=	http://www.hardened-php.net/suhosin/_media/:suhosin
 PLIST_SUB+=	SUHOSIN=""
 .else
