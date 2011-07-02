@@ -12,6 +12,7 @@ rm -f /mnt/etc/rc.conf
 rm -f /mnt/etc/rc.conf
 rm -f /mnt/etc/rc.firewall
 rm -f /mnt/etc/rc.sendmail
+rm -f /mnt/usr/sbin/cleargpt.sh
 touch /mnt/etc/rc.conf
 
 # Copy the current running systems config.xml to the target installation area.
