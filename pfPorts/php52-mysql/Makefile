@@ -7,7 +7,7 @@
 
 CATEGORIES=	databases
 
-MASTERDIR=      ${.CURDIR}/../php52
+MASTERDIR=     ${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-mysql
 

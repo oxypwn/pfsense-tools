@@ -7,7 +7,7 @@
 
 CATEGORIES=	math
 
-MASTERDIR=	${.CURDIR}/../../lang/php5
+MASTERDIR=     ${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-gmp
 

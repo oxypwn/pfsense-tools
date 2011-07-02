@@ -7,7 +7,7 @@
 
 CATEGORIES=	textproc
 
-MASTERDIR=      ${.CURDIR}/../php52
+MASTERDIR=     ${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-xml
 

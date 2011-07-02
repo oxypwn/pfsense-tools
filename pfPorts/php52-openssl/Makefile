@@ -7,7 +7,7 @@
 
 CATEGORIES=	security
 
-MASTERDIR=      ${.CURDIR}/../php52
+MASTERDIR=     ${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-openssl
 

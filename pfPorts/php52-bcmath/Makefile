@@ -7,7 +7,8 @@
 
 CATEGORIES=	math
 
-MASTERDIR=      ${.CURDIR}/../php52
+MASTERDIR=     ${.CURDIR}/../../lang/php52
+
 PKGNAMESUFFIX=	-bcmath
 
 .include "${MASTERDIR}/Makefile"
