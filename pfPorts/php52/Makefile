@@ -214,10 +214,8 @@ post-install:
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
 	@${TOUCH} ${PREFIX}/include/php/ext/php_config.h
-	${MKDIR} /usr/local/lib/php/20060613 \
-		/usr/local/lib/php/extensions/no-debug-non-zts-20060613/
-	${CP} -R /usr/local/lib/php/extensions/no-debug-non-zts-20060613/* /usr/local/lib/php/20060613/
-	${CP} /usr/local/bin/php-cgi /usr/local/bin/php
+	rm -rf /usr/local/lib/php/20060613
+	ln -s /usr/local/lib/php/extensions/no-debug-non-zts-20060613 /usr/local/lib/php/20060613
 	${CHMOD} a+rx /usr/local/bin/php
 
 .else
