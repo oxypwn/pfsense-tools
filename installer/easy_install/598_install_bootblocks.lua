@@ -34,7 +34,9 @@ return {
 			if dd:get_capacity():in_units("G") >= 8 then
 				dataset.packet = "Y"
 			end
-			table.insert(datasets_list, dataset)
+			if raw_name == App.state.sel_disk:get_name() then
+				table.insert(datasets_list, dataset)		
+			end
 		end
 
 	end
