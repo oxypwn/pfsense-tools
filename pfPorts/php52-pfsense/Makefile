@@ -86,6 +86,7 @@ OPTIONS=	CLI "Build CLI version" on \
 		REDIRECT "Enable force-cgi-redirect support (CGI only)" off \
 		DISCARD "Enable discard-path support (CGI only)" off \
 		FASTCGI "Enable fastcgi support (CGI only)" on \
+		FPM "Enable fastcgi process manager (CGI only)" off \
 		PATHINFO "Enable path-info-check support (CGI only)" on \
 		LINKTHR "Link thread lib (for threaded extensions)" on
 
@@ -96,6 +97,37 @@ MAN1=		php-config.1 phpize.1
 .include <bsd.port.pre.mk>
 
 PATCH_DIST_STRIP=	-p1
+
+.if defined(WITH_FPM) && defined(WITH_CGI)
+. if defined(WITHOUT_FASTCGI)
+IGNORE=		FPM requires FastCGI support
+. endif
+PATCHFILES+=	php-5.2.14-fpm-0.5.14-freebsd.patch.gz
+PATCH_SITES+=	${MASTER_SITE_LOCAL}
+PATCH_SITE_SUBDIR+=	mm
+LIB_DEPENDS+=	event-1.4:${PORTSDIR}/devel/libevent
+PHP_FPM_UID?=	www
+PHP_FPM_GID?=	www
+PHP_FPM_PID?=	/var/run/php-fpm/php-fpm.pid
+PHP_FPM_LOG?=	/var/log/php-fpm/php-fpm.log
+SUB_FILES+=	php-fpm.conf.sample
+SUB_LIST+=	PHP_FPM_UID=${PHP_FPM_UID} \
+		PHP_FPM_GID=${PHP_FPM_GID} \
+		PHP_FPM_PID=${PHP_FPM_PID} \
+		PHP_FPM_LOG=${PHP_FPM_LOG}
+USE_RC_SUBR+=	php-fpm
+PLIST_SUB+=	FPM="" \
+		PHP_FPM_PID=${PHP_FPM_PID} \
+		PHP_FPM_LOG=${PHP_FPM_LOG}
+
+CONFIGURE_ARGS+=	--enable-fpm \
+			--with-fpm-conf=${PREFIX}/etc/php-fpm.conf \
+			--with-fpm-pid=${PHP_FPM_PID} \
+			--with-fpm-log=${PHP_FPM_LOG} \
+			--with-libevent=${LOCALBASE}
+.else
+PLIST_SUB+=	FPM="@comment "
+.endif
 
 .if !defined(WITHOUT_SUHOSIN)
 PATCHFILES+=	suhosin-patch-5.2.16-0.9.7.patch.gz:suhosin
@@ -218,6 +250,15 @@ post-install:
 	rm -rf /usr/local/lib/php/20060613
 	ln -s /usr/local/lib/php/extensions/no-debug-non-zts-20060613 /usr/local/lib/php/20060613
 	${CHMOD} a+rx /usr/local/bin/php
+.if defined(WITH_FPM) && defined(WITH_CGI)
+	@${INSTALL_DATA} ${WRKDIR}/php-fpm.conf.sample ${PREFIX}/etc
+	@${MKDIR} `dirname ${PHP_FPM_PID}`
+	@${MKDIR} `dirname ${PHP_FPM_LOG}`
+	@cd ${PREFIX}/etc && ${CP} -n php-fpm.conf.sample php-fpm.conf
+.endif
+.if defined(WITH_APACHE)
+	@${CAT} ${PKGMESSAGE}
+.endif
 
 .else
 .include "${MASTERDIR}/Makefile.ext"
