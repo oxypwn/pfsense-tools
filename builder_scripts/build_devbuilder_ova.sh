@@ -38,7 +38,7 @@
 . ./builder_common.sh
 
 # Override PRODUCT_NAME
-export PRODUCT_NAME="pfSenseDevBuilder"
+#export PRODUCT_NAME="pfSenseDevBuilder"
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.$dir/ since full uses a different
