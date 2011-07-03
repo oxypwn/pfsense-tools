@@ -1,23 +1,14 @@
-# New ports collection makefile for:	php5
-# Date created:				Tue Feb 18 11:17:13 CET 2003
-# Whom:					Alex Dupre <sysadmin@alexdupre.com>
-#
-# $FreeBSD: ports/lang/php5/Makefile,v 1.122 2007/11/14 07:38:31 ale Exp $
-#
-
-PORTNAME=	php5
-PORTVERSION=	5.2.17
-PORTREVISION?=	0
-CATEGORIES?=	lang devel www
-MASTER_SITES=	${MASTER_SITE_PHP}
+PORTNAME=			php5
+PORTVERSION=		5.2.17
+PORTREVISION?=		0
+CATEGORIES?=		lang devel www
+MASTER_SITES=		${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
-DISTNAME=	php-${PORTVERSION}
-
-MAINTAINER=	ale@FreeBSD.org
-COMMENT=	PHP Scripting Language
-
-LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
-
+DISTNAME=			php-${PORTVERSION}
+MAINTAINER=			dev@pfsense.org
+COMMENT=			pfSense's PHP5 Scripting Language environment
+LATEST_LINK=		${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
+PHPSUHOSEN_VERSION=	5.2.16-0.9.7
 USE_BZIP2=	yes
 .if !defined(PKGNAMESUFFIX)
 USE_AUTOTOOLS=	autoconf
@@ -130,7 +121,7 @@ PLIST_SUB+=	FPM="@comment "
 .endif
 
 .if !defined(WITHOUT_SUHOSIN)
-PATCHFILES+=	suhosin-patch-5.2.16-0.9.7.patch.gz:suhosin
+PATCHFILES+=	suhosin-patch-${PHPSUHOSEN_VERSION}.patch.gz:suhosin
 PATCH_SITES+=	http://www.hardened-php.net/suhosin/_media/:suhosin
 PLIST_SUB+=	SUHOSIN=""
 .else
