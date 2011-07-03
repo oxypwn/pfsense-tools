@@ -43,9 +43,10 @@ if [ -f /tmp/builder/pfSense.iso ]; then
 	echo ">>> ISO build completed."
 	echo ">>> Moving devbootstrap.sh to /root/"
 	/bin/mv /etc/rc.local /root/devbootstrap.sh
+	chmod a+rx /root/devbootstrap.sh
 	ls -lah /tmp/builder/
 fi
 
 echo
-echo ">>> Thanks for using the pfSense OVA build environment.  Goodbye."
+echo ">>> Thanks for using the pfSense OVA build environment."
 echo
