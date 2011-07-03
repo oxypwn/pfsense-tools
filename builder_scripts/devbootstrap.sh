@@ -20,6 +20,7 @@ echo "BATCH=yo" >> /etc/make.conf
 
 /bin/mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
 
+echo ">>> One moment please, starting portsnap.  This make take up to 3600 seconds."
 /usr/sbin/portsnap cron extract 
 
 cd /usr/ports/textproc/expat2 && make depends install
