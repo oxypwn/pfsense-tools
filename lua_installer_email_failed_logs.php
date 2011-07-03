@@ -1,5 +1,7 @@
 <?php
 
+exec("tar cpf /tmp/installer_logs.tgz /tmp/installer*");
+
 $type = array('gif'  => 'image/gif',
                        'jpg'  => 'image/jpeg',
                        'jpeg' => 'image/jpeg',
