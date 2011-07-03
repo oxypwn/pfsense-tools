@@ -303,6 +303,8 @@ RELENG_7_3)
 
 esac
 
+./apply_kernel_patches.sh 
+
 if [ "$HANDLED" = "false" ]; then 
 	echo "Invalid verison."
 fi
