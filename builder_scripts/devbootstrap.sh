@@ -1,13 +1,15 @@
 #!/bin/sh
 
+HOME=/root/
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:/usr/local/sbin
+export HOME PATH
+
 echo
 sleep 3
 echo
 echo ">>> Starting the pfSense builder setup in 30 seconds..."
 /bin/sleep 30
-HOME=/
-PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:/usr/local/sbin
-export HOME PATH
+
 echo ""
 echo ""
 echo ">>> Welcome to the pfSense builder environment"
@@ -15,8 +17,11 @@ echo ">>> Please wait while we configure the environment..."
 echo ""
 echo "WITHOUT_X11=yo" > /etc/make.conf
 echo "BATCH=yo" >> /etc/make.conf
+
 /bin/mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
-/usr/sbin/portsnap fetch extract 
+
+/usr/sbin/portsnap cron extract 
+
 cd /usr/ports/textproc/expat2 && make depends install
 cd /usr/ports/devel/git && make depends install
 cd /usr/ports/sysutils/fastest_cvsup/ && make depends install
