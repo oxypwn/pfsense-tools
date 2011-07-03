@@ -206,7 +206,8 @@ CONFIGURE_ARGS+=--with-zend-vm=GOTO
 
 CONFIGURE_ENV+=	ac_cv_pthreads_lib=${PTHREAD_LIBS} \
 		ac_cv_pthreads_cflags=${PTHREAD_CFLAGS} \
-		pthreads_working="yes"
+		pthreads_working="yes" \
+		lt_cv_path_SED="sed"
 
 .if defined(WITH_LINKTHR)
 CONFIGURE_ENV+= LIBS="${LIBS} ${PTHREAD_LIBS}"
@@ -243,9 +244,6 @@ post-build:
 		@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
 
 post-install:
-# TODO: This is a hack. It installs the PHP binary to /usr/local/bin
-#       cause for some reason it will be build by the PHP distribution
-#       but not installed.
 	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-dist ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
