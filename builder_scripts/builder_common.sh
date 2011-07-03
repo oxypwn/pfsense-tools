@@ -2623,6 +2623,14 @@ ova_prereq_check() {
 			echo ">>> /usr/ports does not exist, fetching..."
 			portsnap fetch extract
 		fi
+		
+		BUILDPLATFORM=`uname -p`
+		if [ "$BUILDPLATFORM" = "amd64" ]; then
+			if [ ! -d /usr/lib32 ]; then
+				echo ">>> Building 32bit library compat support"
+				cd /usr/src ; make build32 install32 ; /etc/rc.d/ldconfig restart
+			fi
+		fi
 		echo ">>> Installing VirtualBOX from ports, one moment please..."
 		mkdir -p /var/db/ports/virtualbox-ose
 		echo <<EOF >/var/db/ports/virtualbox-ose/options
@@ -2638,7 +2646,7 @@ WITHOUT_VNC=true
 WITHOUT_WEBSERVICE=true
 WITHOUT_NLS=true
 EOF
-		cd /usr/ports/emulators/virtualbox-ose && make install clean
+		cd /usr/ports/emulators/virtualbox-ose && make install clean BATCH=yes
 	fi
 	sysctl kern.geom.debugflags=16
 }
