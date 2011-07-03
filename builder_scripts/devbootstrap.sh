@@ -5,6 +5,9 @@ sleep 3
 echo
 echo ">>> Starting the pfSense builder setup in 30 seconds..."
 /bin/sleep 30
+HOME=/
+PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:/usr/local/sbin
+export HOME PATH
 echo ""
 echo ""
 echo ">>> Welcome to the pfSense builder environment"
