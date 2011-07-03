@@ -6,7 +6,8 @@ export HOME PATH
 
 echo
 sleep 3
-echo
+echo ""
+echo ""
 echo ">>> Starting the pfSense builder setup in 30 seconds..."
 /bin/sleep 30
 
