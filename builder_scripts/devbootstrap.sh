@@ -18,8 +18,8 @@ echo ">>> Please wait while we configure the environment..."
 echo "WITHOUT_X11=yo" > /etc/make.conf
 echo "BATCH=yo" >> /etc/make.conf
 /bin/mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
-echo ">>> One moment please, starting portsnap.  This make take up to 3600 seconds."
-/usr/sbin/portsnap cron extract 
+pkg_add -r fastest_cvsup
+/usr/bin/csup -h `fastest_cvsup -c tld -q` /usr/share/examples/cvsup/ports-supfile
 cd /usr/ports/textproc/expat2 && make depends install
 cd /usr/ports/devel/git && make depends install
 cd /usr/ports/sysutils/fastest_cvsup/ && make depends install
