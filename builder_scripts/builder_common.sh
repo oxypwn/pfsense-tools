@@ -2631,7 +2631,7 @@ ova_prereq_check() {
 			fi
 		fi
 		mkdir -p /var/db/ports/virtualbox-ose
-		echo <<EOF >/var/db/ports/virtualbox-ose/options
+		cat <<EOF >/var/db/ports/virtualbox-ose/options
 _OPTIONS_READ=virtualbox-ose-4.0.8
 WITHOUT_QT4=true
 WITHOUT_DEBUG=true
@@ -2652,6 +2652,17 @@ EOF
 
 create_ova_image_dev_addons() {
 	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
+	cat <<EOF >>/root/.tcshrc
+alias builder_scripts 'cd /home/pfsense/tools/builder_scripts'
+alias builder_profiles 'cd /home/pfsense/tools/builder_scripts/builder_profiles'
+alias build_iso.sh 'cd /home/pfsense/tools/builder_scripts && ./build_iso.sh'
+alias update_git_repos.sh 'cd /home/pfsense/tools/builder_scripts && ./update_git_repos.sh'
+alias clean_build.sh 'cd /home/pfsense/tools/builder_scripts && ./clean_build.sh'
+alias build_nano.sh 'cd /home/pfsense/tools/builder_scripts && ./build_nano.sh'
+alias apply_kernel_patches.sh 'cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh'
+
+EOF
+
 }
 
 # called from create_ova_image
