@@ -237,7 +237,7 @@ post-build:
 		@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
 
 post-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin
+	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin/php
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-dist ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
