@@ -63,6 +63,9 @@ fi
 if [ $FREEBSD_VERSION = "8" ]; then
 	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.8"
 fi
+if [ $FREEBSD_VERSION = "9" ]; then
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.9"
+fi
 
 # Calculate versions
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
@@ -87,6 +90,10 @@ else
 	if [ $FREEBSD_VERSION = "8" ]; then
 		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.8 ..."
 		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.8"
+	fi
+	if [ $FREEBSD_VERSION = "9" ]; then
+		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.9 ..."
+		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.9"
 	fi
 fi
 

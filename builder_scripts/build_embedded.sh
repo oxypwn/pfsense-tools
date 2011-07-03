@@ -169,6 +169,10 @@ else
 	ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 236 megabytes (for 256 cards)
 	CONFSIZE=${CONFSIZE:-"10240"}
 fi
+if [ "$FBSD_VERSION" = "9" ]; then
+	ROOTSIZE=${ROOTSIZE:-"470096"}  # Total number of sectors - 128 megabytes
+	CONFSIZE=${CONFSIZE:-"10240"}
+fi 
 
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
 # Temp file and directory to be used later
@@ -204,6 +208,11 @@ echo "Writing files..."
 cd ${CLONEDIR}
 
 FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
+if [ "$FBSD_VERSION" = "9" ]; then
+	echo ">>> Using TAR to clone build_embedded.sh..."
+	mkdir -p ${TMPDIR}
+	( tar cf - * | ( cd /$TMPDIR; tar xfp - ) )
+fi
 if [ "$FBSD_VERSION" = "8" ]; then
 	echo ">>> Using TAR to clone build_embedded.sh..."
 	mkdir -p ${TMPDIR}

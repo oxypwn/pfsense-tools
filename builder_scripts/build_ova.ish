@@ -199,6 +199,9 @@ if [ "$1" = "" ]; then
 	if [ "$FBSD_VERSION" = "8" ]; then
 		setup_serial_hints
 	fi
+	if [ "$FBSD_VERSION" = "9" ]; then
+		setup_serial_hints
+	fi
 
 	# Ensure /home and /etc exists
 	mkdir -p $PFSENSEBASEDIR/home $PFSENSEBASEDIR/etc

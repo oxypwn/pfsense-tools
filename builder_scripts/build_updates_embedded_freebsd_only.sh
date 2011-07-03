@@ -62,6 +62,9 @@ fi
 if [ $FREEBSD_VERSION = "8" ]; then
 	export KERNELCONF=${KERNELCONF:-${BUILDER_SCRIPTS}/conf/pfSense_wrap.8}
 fi
+if [ $FREEBSD_VERSION = "9" ]; then
+	export KERNELCONF=${KERNELCONF:-${BUILDER_SCRIPTS}/conf/pfSense_wrap.8}
+fi
 
 # Do not compress FS
 export NO_COMPRESSEDFS=yes

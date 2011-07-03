@@ -202,6 +202,9 @@ setup_tcshrc_prompt
 if [ "$FBSD_VERSION" = "8" ]; then
 	setup_serial_hints
 fi
+if [ "$FBSD_VERSION" = "9" ]; then
+	setup_serial_hints
+fi
 
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
