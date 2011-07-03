@@ -17,6 +17,7 @@ echo ">>> Welcome to the pfSense builder environment"
 echo ">>> Please wait while we configure the environment..."
 echo "WITHOUT_X11=yo" > /etc/make.conf
 echo "BATCH=yo" >> /etc/make.conf
+rm -rf /home/pfsense/pfSenseGITREPO /usr/pfSensesrc 2>/dev/null
 /bin/mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
 if [ ! -f /usr/local/bin/fastest_cvsup ]; then
 	echo ">>> Installing fastest_cvsup binary package..."
