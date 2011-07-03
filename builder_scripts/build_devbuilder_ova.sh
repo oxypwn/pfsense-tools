@@ -218,7 +218,7 @@ export OVABLOCKSIZE="3276800"
 # / partitino size
 export OVA_FIRST_PART_SIZE="77G"
 # Swap partition size
-export OVA_SWAP_PART_SIZE="4193789"
+export OVA_SWAP_PART_SIZE="6288701"
 # 85898035200 = 81919MB (Virtual box sizes)
 export OVA_DISKSECTIONALLOCATIONUNITS="85898035200"
 # Add the builder specifc scripts
