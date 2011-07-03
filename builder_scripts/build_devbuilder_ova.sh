@@ -216,7 +216,7 @@ export OVADISKSIZE="85899345920"
 # dd block size - used to speed up dd operation
 export OVABLOCKSIZE="3276800"
 # / partitino size
-export OVA_FIRST_PART_SIZE="74G"
+export OVA_FIRST_PART_SIZE="77G"
 # Swap partition size
 export OVA_SWAP_PART_SIZE="4193789"
 # 85898035200 = 81919MB (Virtual box sizes)
