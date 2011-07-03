@@ -37,6 +37,9 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+# Override PRODUCT_NAME
+export PRODUCT_NAME="pfSenseDevBuilder"
+
 # If a embedded build has been performed we need to nuke
 # /usr/obj.$dir/ since full uses a different
 # src.conf
@@ -208,13 +211,19 @@ if [ "$1" = "" ]; then
 fi
 
 # Create OVA image (ovf + vmdk)
+# This will be roughly a 80GB image
 export OVADISKSIZE="85899345920"
+# dd block size - used to speed up dd operation
 export OVABLOCKSIZE="3276800"
-export OVA_FIRST_PART_SIZE="64G"
+# / partitino size
+export OVA_FIRST_PART_SIZE="74G"
+# Swap partition size
 export OVA_SWAP_PART_SIZE="4193789"
+# 85898035200 = 81919MB (Virtual box sizes)
 export OVA_DISKSECTIONALLOCATIONUNITS="85898035200"
-export OVA_DISKSECTIONCAPACITY="85899345920"
+# Add the builder specifc scripts
 create_ova_image_dev_addons
+# Create the OVA image
 create_ova_image
 
 # Check for zero sized files.  loader.conf is one of the culprits.
