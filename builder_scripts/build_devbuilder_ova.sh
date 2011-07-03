@@ -209,13 +209,11 @@ fi
 
 # Create OVA image (ovf + vmdk)
 export OVADISKSIZE="85899345920"
-# dd buffering size when creating raw backed VMDK
 export OVABLOCKSIZE="3276800"
-# first partition size (freebsd-ufs) GPT
 export OVA_FIRST_PART_SIZE="64G"
-# swap partition size (freebsd-swap) GPT - 
-# remaining space of 10G-8G - 128 block beginning/loader
 export OVA_SWAP_PART_SIZE="4193789"
+export OVA_DISKSECTIONALLOCATIONUNITS="85898035200"
+export OVA_DISKSECTIONCAPACITY="85899345920"
 create_ova_image_dev_addons
 create_ova_image
 

@@ -2573,10 +2573,12 @@ ova_repack_vbox_image() {
 	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	# 10737254400 = 10240MB = virtual box vmdk file size XXX grab this value from vbox creation
 	# 10737418240 = 10GB
+	# 85898035200 = 81919MB
+	# 85899345920 = 80GB
 	echo ">>> Setting DISKSECTIONALLOCATIONUNITS to 10737254400..."
-	file_search_replace DISKSECTIONALLOCATIONUNITS 10737254400 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace DISKSECTIONALLOCATIONUNITS $OVA_DISKSECTIONALLOCATIONUNITS ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	echo ">>> Setting DISKSECTIONCAPACITY to 10737418240..."
-	file_search_replace DISKSECTIONCAPACITY 10737418240 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace DISKSECTIONCAPACITY $OVA_DISKSECTIONCAPACITY ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	echo ">>> Moving universal disk ovf file into place..."
 	mv ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Repacking OVA with universal OVF file..."
