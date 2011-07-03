@@ -19,3 +19,7 @@ cd /home/pfsense/tools/builder_scripts
 rm -rf /home/pfsense/installer
 /cvsup_bsdinstaller ; ./rebuild_bsdinstaller.sh
 ./build_iso.sh
+if [ -f /tmp/pfSense.iso ]; then
+	echo ">>> Moving devbootstrap.sh to /root/"
+	mv /etc/rc.local /root/devbootstrap.sh
+fi

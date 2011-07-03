@@ -2652,7 +2652,6 @@ EOF
 
 create_ova_image_dev_addons() {
 	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
-	echo "rm /etc/rc.local" >>$PFSENSEBASEDIR/etc/rc.local
 }
 
 # called from create_ova_image
