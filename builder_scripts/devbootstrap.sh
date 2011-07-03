@@ -1,5 +1,11 @@
 #!/bin/sh
 
+
+echo ""
+echo ""
+echo ">>> Welcome to the pfSense builder environment"
+echo ">>> Please wait while we configure the environment..."
+echo ""
 echo "WITHOUT_X11=yo" > /etc/make.conf
 echo "BATCH=yo" >> /etc/make.conf
 mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
@@ -18,8 +24,11 @@ cd /home/pfsense/tools/builder_scripts
 ./build_pfPorts.sh
 rm -rf /home/pfsense/installer
 /cvsup_bsdinstaller ; ./rebuild_bsdinstaller.sh
+echo ">>> Environment is complete. Building ISO..."
 ./build_iso.sh
 if [ -f /tmp/pfSense.iso ]; then
+	echo ">>> ISO build completed."
 	echo ">>> Moving devbootstrap.sh to /root/"
 	mv /etc/rc.local /root/devbootstrap.sh
 fi
+echo ">>> Thanks for using the pfSense OVA build environment.  Goodbye."
