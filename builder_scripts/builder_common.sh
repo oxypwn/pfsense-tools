@@ -2552,6 +2552,7 @@ create_ova_image() {
 	# works in both virtual box and esx server
 	ova_repack_vbox_image
 	ova_cleanup_finished
+	ova_umount_mdconfig
 }
 
 ova_cleanup_finished() {
