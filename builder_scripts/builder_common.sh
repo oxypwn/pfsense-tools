@@ -2652,7 +2652,7 @@ EOF
 
 create_ova_image_dev_addons() {
 	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
-	cat <<EOF >>/root/.tcshrc
+	cat <<EOF >>$PFSENSEBASEDIR/root/.tcshrc
 alias builder_scripts 'cd /home/pfsense/tools/builder_scripts'
 alias builder_profiles 'cd /home/pfsense/tools/builder_scripts/builder_profiles'
 alias build_iso.sh 'cd /home/pfsense/tools/builder_scripts && ./build_iso.sh'
