@@ -34,7 +34,6 @@ cd /home/pfsense/tools/builder_scripts && chmod a+rx *.sh
 /usr/bin/csup -h `/usr/local/bin/fastest_cvsup -c tld -q` /usr/share/examples/cvsup/standard-supfile
 cd /home/pfsense/tools/builder_scripts 
 cd /home/pfsense/tools/builder_scripts && ./set_version.sh RELENG_2_0
-cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh
 cd /home/pfsense/tools/builder_scripts && ./build_pfPorts.sh
 /bin/rm -rf /home/pfsense/installer
 cd /home/pfsense/tools/builder_scripts && ./cvsup_bsdinstaller ; ./rebuild_bsdinstaller.sh
