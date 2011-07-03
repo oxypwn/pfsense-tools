@@ -1,6 +1,6 @@
 #!/bin/sh
 
-
+sleep 15
 echo ""
 echo ""
 echo ">>> Welcome to the pfSense builder environment"
