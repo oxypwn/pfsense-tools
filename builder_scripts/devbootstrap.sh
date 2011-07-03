@@ -23,7 +23,7 @@ cd /home/pfsense/tools/builder_scripts
 ./apply_kernel_patches.sh
 ./build_pfPorts.sh
 rm -rf /home/pfsense/installer
-/cvsup_bsdinstaller ; ./rebuild_bsdinstaller.sh
+./cvsup_bsdinstaller ; ./rebuild_bsdinstaller.sh
 echo ">>> Environment is complete. Building ISO..."
 ./build_iso.sh
 if [ -f /tmp/pfSense.iso ]; then
