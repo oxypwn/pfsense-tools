@@ -90,7 +90,7 @@ OPTIONS=	CLI "Build CLI version" on \
 		PATHINFO "Enable path-info-check support (CGI only)" on \
 		LINKTHR "Link thread lib (for threaded extensions)" on
 
-CONFLICTS=	php4-4*
+CONFLICTS=	php4-4* php5-5.3*
 
 MAN1=		php-config.1 phpize.1
 
@@ -225,6 +225,10 @@ CONFIGURE_ARGS+=--enable-zend-multibyte
 post-patch:
 	@${TOUCH} ${WRKSRC}/ext/php_config.h
 	@${REINPLACE_CMD} "s|^\(extension_dir\)|; \1|" ${WRKSRC}/php.ini-*
+.if defined(WITH_FPM) && defined(WITH_CGI)
+	@${REINPLACE_CMD} -e 's,BUILD_CGI=\"\\$$\(.*\)\\$$(EXTRA_LIBS),BUILD_CGI=\"\\$$\1\\$$(EXTRA_LIBS) \\$$(SAPI_EXTRA_LIBS),g' \
+		${WRKSRC}/sapi/cgi/config9.m4
+.endif
 
 # Work around issues with newer (>=2.64) autoconf
 pre-configure:

@@ -90,7 +90,7 @@ OPTIONS=	CLI "Build CLI version" on \
 		PATHINFO "Enable path-info-check support (CGI only)" on \
 		LINKTHR "Link thread lib (for threaded extensions)" on
 
-CONFLICTS=	php4-4*
+CONFLICTS=	php4-4* php5-5.3*
 
 MAN1=		php-config.1 phpize.1
 
