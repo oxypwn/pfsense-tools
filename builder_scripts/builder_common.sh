@@ -2666,6 +2666,53 @@ alias apply_kernel_patches.sh 'cd /home/pfsense/tools/builder_scripts && ./apply
 
 EOF
 
+	cat <<EOF >$PFSENSEBASEDIR/remove_lan.php
+#!/usr/local/bin/php -f
+<?php
+require_once("globals.inc");
+require_once("functions.inc");
+require_once("config.inc");
+require_once("util.inc");
+\$config = parse_config(true);
+echo "Disable LAN interface...\n";
+unset(\$config['interfaces']['lan']);
+echo "Disabling DHCPD on LAN interface...\n";
+unset(\$config['dhcpd']['lan']['enable']);
+\$config['system']['enablesshd'] = true;
+echo "Adding allow all rule...\n";
+\$filterent = array();
+\$filterent["type"] = "pass";
+\$filterent["interface"] = "wan";
+\$filterent["source"]["any"] = "";
+\$filterent["destination"]["any"] = "";
+\$filterent["statetype"] = "keep state";
+\$filterent["os"] = "";
+\$filterent["descr"] = "Allow all via DevBuilder";
+\$config["filter"]["rule"][] = \$filterent;
+echo "Turning off block private networks (if on)...\n";
+unset(\$config["interfaces"]["wan"]["blockpriv"]);
+unset(\$config['interfaces']['wan']['blockbogons']);
+unlink_if_exists("/tmp/config.cache");
+write_config("DevBuilder changes.");
+\$config = parse_config(true);
+?>
+
+EOF
+
+	# Setup config environment
+	cp $PFSENSEBASEDIR/cf/conf/config.xml $PFSENSEBASEDIR/conf/
+	mkdir -p $PFSENSEBASEDIR/conf/backup
+	mkdir -p $PFSENSEBASEDIR/cf/conf/backup
+	chmod a+rx $PFSENSEBASEDIR/remove_lan.php
+	# chroot in and do the operations
+	chroot $PFSENSEBASEDIR /remove_lan.php
+	# copy the altered config.xml into place
+	cp $PFSENSEBASEDIR/cf/conf/config.xml $PFSENSEBASEDIR/conf.default/config.xml
+	# Break environment back down
+	rm -rf $PFSENSEBASEDIR/cf/conf/backup
+	rm -rf $PFSENSEBASEDIR/conf/*
+	rm $PFSENSEBASEDIR/tmp/*
+	rm $PFSENSEBASEDIR/remove_lan.php
 }
 
 # called from create_ova_image
