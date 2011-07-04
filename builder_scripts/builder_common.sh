@@ -2663,7 +2663,6 @@ alias update_git_repos.sh 'cd /home/pfsense/tools/builder_scripts && ./update_gi
 alias clean_build.sh 'cd /home/pfsense/tools/builder_scripts && ./clean_build.sh'
 alias build_nano.sh 'cd /home/pfsense/tools/builder_scripts && ./build_nano.sh'
 alias apply_kernel_patches.sh 'cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh'
-
 EOF
 
 	cat <<EOF >$PFSENSEBASEDIR/remove_lan.php
@@ -2674,12 +2673,12 @@ require_once("functions.inc");
 require_once("config.inc");
 require_once("util.inc");
 \$config = parse_config(true);
-echo "Disable LAN interface...\n";
+echo ">>> Disabling LAN interface...\n";
 unset(\$config['interfaces']['lan']);
-echo "Disabling DHCPD on LAN interface...\n";
+echo ">>> Disabling DHCPD on LAN interface...\n";
 unset(\$config['dhcpd']['lan']['enable']);
 \$config['system']['enablesshd'] = true;
-echo "Adding allow all rule...\n";
+echo ">> Adding allow all rule to WAN...\n";
 \$filterent = array();
 \$filterent["type"] = "pass";
 \$filterent["interface"] = "wan";
@@ -2689,14 +2688,15 @@ echo "Adding allow all rule...\n";
 \$filterent["os"] = "";
 \$filterent["descr"] = "Allow all via DevBuilder";
 \$config["filter"]["rule"][] = \$filterent;
-echo "Turning off block private networks (if on)...\n";
+echo ">>> Turning off block private networks (if on)...\n";
 unset(\$config["interfaces"]["wan"]["blockpriv"]);
 unset(\$config['interfaces']['wan']['blockbogons']);
 unlink_if_exists("/tmp/config.cache");
+echo ">>> Writing config...\n";
 write_config("DevBuilder changes.");
 \$config = parse_config(true);
+echo ">>> Finished with config.xml modificaitons...\n";
 ?>
-
 EOF
 
 	# Setup config environment
