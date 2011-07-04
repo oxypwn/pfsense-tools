@@ -2654,6 +2654,7 @@ EOF
 create_ova_image_dev_addons() {
 	file_search_replace 1024 2048 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
+	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.running.sh $PFSENSEBASEDIR/etc/rc.local.running
 	cat <<EOF >>$PFSENSEBASEDIR/root/.tcshrc
 alias builder_scripts 'cd /home/pfsense/tools/builder_scripts'
 alias builder_profiles 'cd /home/pfsense/tools/builder_scripts/builder_profiles'
