@@ -19,6 +19,11 @@ echo "WITHOUT_X11=yo" > /etc/make.conf
 echo "BATCH=yo" >> /etc/make.conf
 echo
 
+echo ">>> To watch the progress use option 8 and then type:"
+echo "    tail -f /tmp/pfSense_Dev_Builder.txt "
+echo
+exec > /tmp/pfSense_Dev_Builder.txt 2>&1
+
 rm -rf /home/pfsense /usr/pfSensesrc 2>/dev/null
 /bin/mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
 if [ ! -f /usr/local/bin/fastest_cvsup ]; then
