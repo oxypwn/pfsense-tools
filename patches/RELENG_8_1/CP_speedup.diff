@@ -116,7 +116,7 @@ diff -u -r1.1.1.1 ipfw2.c
 +
 +	strncpy(tbuf, inet_ntoa(*(struct in_addr *)
 +		&ent.addr), 127);
-+	printf("%s/%u %u %lu %lu %u\n", tbuf, ent.masklen,
++	printf("%s/%u %u %zu %zu %u\n", tbuf, ent.masklen,
 +		ent.value, ent.packets, ent.bytes, ent.timestamp);
 +}
 +
