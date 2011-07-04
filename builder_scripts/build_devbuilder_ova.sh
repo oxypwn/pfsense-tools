@@ -225,6 +225,7 @@ export OVA_DISKSECTIONALLOCATIONUNITS="85898035200"
 # Add the builder specifc scripts
 create_ova_image_dev_addons
 # Create the OVA image
+build_dev_kernel
 create_ova_image
 
 # Check for zero sized files.  loader.conf is one of the culprits.
