@@ -1,4 +1,4 @@
-#!/usr/local/bin/php -f -c /usr/local/etc/php.ini
+#!/usr/local/bin/php -f
 <?php
 
 /*
