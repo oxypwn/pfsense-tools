@@ -18,10 +18,7 @@ echo ">>> Please wait while we configure the environment..."
 echo "WITHOUT_X11=yo" > /etc/make.conf
 echo "BATCH=yo" >> /etc/make.conf
 echo
-echo ">>> Note: You can watch the progress with option 8 and then:"
-echo "          tail -f /tmp/pfSense_Dev_Builder.txt"
-echo
-script /tmp/pfSense_Dev_Builder.txt
+
 rm -rf /home/pfsense /usr/pfSensesrc 2>/dev/null
 /bin/mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
 if [ ! -f /usr/local/bin/fastest_cvsup ]; then
