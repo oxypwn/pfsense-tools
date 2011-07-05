@@ -14,7 +14,7 @@ echo ""
 echo ""
 
 echo ">>> Starting the pfSense builder setup in 30 seconds..."
-/bin/sleep 30
+/bin/sleep 15
 
 echo "WITHOUT_X11=yo" > /etc/make.conf
 echo "BATCH=yo" >> /etc/make.conf
@@ -27,6 +27,7 @@ echo
 echo ">>> To watch the progress use option 8 and then type:"
 echo "    tail -f /tmp/pfSense_Dev_Builder.txt "
 echo
+/bin/echo -n "Enter an option: "
 
 exec > /tmp/pfSense_Dev_Builder.txt 2>&1
 
