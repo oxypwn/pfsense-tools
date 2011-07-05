@@ -204,8 +204,8 @@ post-install:
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
 	@${TOUCH} ${PREFIX}/include/php/ext/php_config.h
-	rm -rf /usr/local/lib/php/20060613
-	ln -s /usr/local/lib/php/extensions/no-debug-non-zts-20060613 /usr/local/lib/php/20060613
+	#rm -rf /usr/local/lib/php/20060613
+	#ln -s /usr/local/lib/php/extensions/no-debug-non-zts-20060613 /usr/local/lib/php/20060613
 	${CHMOD} a+rx /usr/local/bin/php
 .if defined(WITH_FPM) && defined(WITH_CGI)
 	@${INSTALL_DATA} ${WRKDIR}/php-fpm.conf.sample ${PREFIX}/etc
