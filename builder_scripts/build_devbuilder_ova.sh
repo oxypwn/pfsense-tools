@@ -39,7 +39,7 @@
 
 # Override PRODUCT_NAME
 #export PRODUCT_NAME="pfSenseDevBuilder"
-MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw"}
+MODULES_OVERRIDE="i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw"
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.$dir/ since full uses a different
