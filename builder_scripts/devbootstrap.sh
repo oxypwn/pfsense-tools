@@ -13,7 +13,7 @@ sleep 3
 echo ""
 echo ""
 
-echo ">>> Starting the pfSense builder setup in 30 seconds..."
+echo ">>> Starting the pfSense builder setup in 15 seconds..."
 /bin/sleep 15
 
 echo "WITHOUT_X11=yo" > /etc/make.conf
