@@ -2611,10 +2611,14 @@ ova_mount_mnt() {
 
 # called from create_ova_image
 ova_setup_ovf_file() {
-	cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
-	cp ${BUILDER_SCRIPTS}/pfSense-disk.ovf ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
-	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
-	file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	if [ ! -f ${OVFPATH}/${PRODUCT_NAME}.ovf ]; then
+		cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
+		file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
+	fi
+	if [ ! -f ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ]; then
+		cp ${BUILDER_SCRIPTS}/pfSense-disk.ovf ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+		file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	fi
 }
 
 # called from create_ova_image

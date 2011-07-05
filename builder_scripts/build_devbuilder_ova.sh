@@ -223,6 +223,8 @@ export OVA_FIRST_PART_SIZE="77G"
 export OVA_SWAP_PART_SIZE="6288701"
 # 85898035200 = 81919MB (Virtual box sizes)
 export OVA_DISKSECTIONALLOCATIONUNITS="85898035200"
+# Call early so file is in place
+ova_setup_ovf_file
 # Add the builder specifc scripts
 create_ova_image_dev_addons
 # Create the OVA image
