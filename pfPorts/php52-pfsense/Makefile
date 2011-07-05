@@ -19,52 +19,15 @@ USE_GETOPT_LONG=yes
 LDFLAGS+=       -L${OPENSSLLIB} -lcrypto -lssl
 USE_OPENSSL=    yes
 
-CONFIGURE_ARGS= --with-config-file-path=${LOCALBASE}/lib \
-                --with-regex=php \
-                --with-zend-vm=GOTO \
-                --with-openssl=${OPENSSLBASE} \
-                --with-openssl-dir=${OPENSSLBASE} \
-                --with-curl=shared,${LOCALBASE} \
-                --with-gettext=shared,${LOCALBASE} \
-                --with-zlib=shared \
-                --with-zlib-dir=/usr \
-                --with-pcre-regex \
-                --with-bz2=shared,/usr \
-                --with-ncurses=shared,/usr \
-                --without-pear \
-                --without-sqlite \
-                --without-mysql \
-                --disable-all \
-                --disable-cli \
-                --enable-bcmath=shared \
-                --enable-zend-multibyte=shared \
-                --enable-reflection=shared \
-                --enable-spl=yes \
-                --enable-memory-limit=yes \
-                --enable-versioning=shared \
-                --enable-cgi=yes \
-                --enable-fastcgi=yes \
-                --enable-force-cgi-redirect=yes \
-                --enable-discard-path=yes \
-                --enable-libxml=shared \
-                --with-libxml-dir=${LOCALBASE} \
-                --enable-xml=shared \
-                --enable-xmlreader=shared \
-                --enable-xmlwriter=shared \
-                --enable-mbstring=shared \
-                --enable-pcntl=shared \
-                --enable-sysvmsg=shared \
-                --enable-sysvsem=shared \
-                --enable-sysvshm=shared \
-                --enable-session=shared \
-                --enable-shmop=shared \
-                --enable-json=shared \
-                --enable-posix=shared \
-                --enable-simplexml=shared \
-                --enable-tokenizer=shared \
-                --enable-ctype=shared \
-                --program-prefix="" \
-                --with-readline
+CONFIGURE_ARGS=	\
+		--with-layout=GNU \
+		--with-config-file-scan-dir=${PREFIX}/etc/php \
+		--disable-all \
+		--enable-libxml \
+		--with-libxml-dir=${LOCALBASE} \
+		--enable-reflection \
+		--enable-trans-sid \
+		--program-prefix=""
 
 USE_GNOME=	libxml2
 
