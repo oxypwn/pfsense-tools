@@ -269,7 +269,6 @@ for PORT in $PORTSTOBUILD; do
 	fi
 done
 # Change the for seperator to use C/R instead of whitespace
-oIFS=$IFS
 IFS="
 "
 
@@ -281,3 +280,6 @@ sleep 1
 
 # Change back to original directory
 cd $CURRENTDIR
+
+# Restore
+IFS=$oIFS
