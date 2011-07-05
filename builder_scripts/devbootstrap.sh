@@ -50,9 +50,6 @@ cd /usr/ports/devel/git && make depends install
 cd /usr/ports/sysutils/screen && make depends install
 cd /usr/ports/sysutils/fastest_cvsup/ && make depends install
 
-# Back to the builder_scripts dir
-cd /home/pfsense/tools/builder_scripts 
-
 # Checkout tools if needed
 if [ ! -d tools ]; then
 	cd /home/pfsense && git clone git://github.com/bsdperimeter/pfsense-tools.git tools
