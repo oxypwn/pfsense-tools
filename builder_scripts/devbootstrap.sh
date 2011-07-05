@@ -24,7 +24,7 @@ echo ""
 echo ">>> Welcome to the pfSense builder environment"
 echo ">>> Please wait while we configure the environment..."
 echo
-echo ">>> To watch the progress use option 8 and then type:"
+echo ">>> To watch the progress use option 8 (shell) and then type:"
 echo "    tail -f /tmp/pfSense_Dev_Builder.txt "
 echo
 /bin/echo -n "Enter an option: "
