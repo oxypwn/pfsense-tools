@@ -2682,7 +2682,7 @@ unset(\$config['interfaces']['lan']);
 echo ">>> Disabling DHCPD on LAN interface...\n";
 unset(\$config['dhcpd']['lan']['enable']);
 \$config['system']['enablesshd'] = true;
-echo ">> Adding allow all rule to WAN...\n";
+echo ">>> Adding allow all rule to WAN...\n";
 \$filterent = array();
 \$filterent["type"] = "pass";
 \$filterent["interface"] = "wan";
