@@ -37,6 +37,8 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
+export MODULES_OVERRIDE="i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw"
+
 # This should be run first
 launch
 
