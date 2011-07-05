@@ -1,23 +1,28 @@
-PORTNAME=			php5
-PORTVERSION=		5.2.17
-PHPSUHOSEN_VERSION=	5.2.16-0.9.7
-PORTREVISION?=		0
-CATEGORIES?=		lang devel www
-MASTER_SITES=		${MASTER_SITE_PHP}
+# New ports collection makefile for:	php52
+# Date created:				17 Apr 2010
+# Whom:					Alex Keda <admin@lissyara.su>
+#
+# $FreeBSD: ports/lang/php52/Makefile,v 1.18 2011/06/29 19:51:17 jlaffaye Exp $
+#
+
+PORTNAME=	php52
+PORTVERSION=	5.2.17
+PORTREVISION=	1
+CATEGORIES?=	lang devel www
+MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
-DISTNAME=			php-${PORTVERSION}
-MAINTAINER=			dev@pfsense.org
-COMMENT=			pfSense's PHP5 Scripting Language environment
-LATEST_LINK=		${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
+DISTNAME=	php-${PORTVERSION}
+
+MAINTAINER=	admin@lissyara.su
+COMMENT=	PHP Scripting Language
+
+LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
 USE_BZIP2=	yes
 MAKE_JOBS_SAFE=	yes
 .if !defined(PKGNAMESUFFIX)
 USE_AUTOTOOLS=	autoconf
 AUTOTOOLSFILES=	scripts/phpize.in
-USE_GETOPT_LONG=yes
-LDFLAGS+=       -L${OPENSSLLIB} -lcrypto -lssl
-USE_OPENSSL=    yes
 
 CONFIGURE_ARGS=	\
 		--with-layout=GNU \
@@ -85,15 +90,16 @@ PLIST_SUB+=	FPM="@comment "
 .endif
 
 .if !defined(WITHOUT_SUHOSIN)
-PATCHFILES+=	suhosin-patch-${PHPSUHOSEN_VERSION}.patch.gz:suhosin
-PATCH_SITES+=	http://www.hardened-php.net/suhosin/_media/:suhosin
+PATCHFILES+=	suhosin-patch-5.2.16-0.9.7.patch.gz:suhosin
+PATCH_SITES+=	http://download.suhosin.org/:suhosin
 PLIST_SUB+=	SUHOSIN=""
 .else
 PLIST_SUB+=	SUHOSIN="@comment "
 .endif
 
 .if defined(WITH_MAILHEAD)
-PATCHFILES+=	php-${PORTVERSION}-mail-header.patch:mail
+#PATCHFILES+=	php-${PORTVERSION}-mail-header.patch:mail
+PATCHFILES+=	php-5.2.10-mail-header.patch:mail
 PATCH_SITES+=	http://choon.net/opensource/php/:mail
 .endif
 
@@ -136,8 +142,8 @@ CONFIGURE_ARGS+=--with-apxs2=${APXS}
 CONFIGURE_ARGS+=--with-apxs=${APXS}
 .endif
 PKGMESSAGE=	${PKGDIR}/pkg-message.mod
-MODULENAME=	lib${PORTNAME}
-SHORTMODNAME=	${PORTNAME}
+MODULENAME=	libphp5
+SHORTMODNAME=	php5
 PLIST_SUB+=	APACHE=""
 .else
 PLIST_SUB+=	APACHE="@comment "
@@ -159,16 +165,16 @@ CONFIGURE_ARGS+=--with-zend-vm=SWITCH
 CONFIGURE_ARGS+=--with-zend-vm=GOTO
 .endif
 
-CONFIGURE_ENV+=	ac_cv_pthreads_lib=${PTHREAD_LIBS} \
-		ac_cv_pthreads_cflags=${PTHREAD_CFLAGS} \
+CONFIGURE_ENV+=	ac_cv_pthreads_lib="" \
+		ac_cv_pthreads_cflags="" \
 		pthreads_working="yes" \
 		lt_cv_path_SED="sed"
 
-.if defined(WITH_LINKTHR)
-CONFIGURE_ENV+= LIBS="${LIBS} ${PTHREAD_LIBS}"
-.endif
-
 MAKE_ENV+=	LDFLAGS="${LDFLAGS}"
+
+.if defined(WITH_LINKTHR)
+CONFIGURE_ENV+=        LIBS="${LIBS} ${PTHREAD_LIBS}"
+.endif
 
 .if defined(WITH_DEBUG)
 CONFIGURE_ARGS+=--enable-debug
@@ -176,6 +182,10 @@ CONFIGURE_ARGS+=--enable-debug
 
 .if defined(WITH_MULTIBYTE)
 CONFIGURE_ARGS+=--enable-zend-multibyte
+.endif
+
+.if defined(WITHOUT_IPV6)
+CONFIGURE_ARGS+=--disable-ipv6
 .endif
 
 post-patch:
@@ -188,25 +198,22 @@ post-patch:
 
 # Work around issues with newer (>=2.64) autoconf
 pre-configure:
-		@${REINPLACE_CMD} -E 's:^((m4_)?divert)[(]([0-9]*)[)]:\1(600\3):' \
-			${WRKSRC}/configure.in `${FIND} ${WRKSRC} -name '*.m4'`
-		@${RM} ${WRKSRC}/configure
-		@${CAT} ${WRKSRC}/acinclude.m4 ${WRKSRC}/build/libtool.m4 > ${WRKSRC}/aclocal.m4
+	@${REINPLACE_CMD} -E 's:^((m4_)?divert)[(]([0-9]*)[)]:\1(600\3):' \
+		${WRKSRC}/configure.in `${FIND} ${WRKSRC} -name '*.m4'`
+	@${RM} ${WRKSRC}/configure
+	@${CAT} ${WRKSRC}/acinclude.m4 ${WRKSRC}/build/libtool.m4 > ${WRKSRC}/aclocal.m4
 
 post-build:
-		@${ECHO_CMD} "PHP_VER=52" > ${WRKDIR}/php.conf
-		@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
-		@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_VER=52" > ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
 
 post-install:
-	${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin/php
+	@${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin/php
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-dist ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-recommended ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
 	@${TOUCH} ${PREFIX}/include/php/ext/php_config.h
-	#rm -rf /usr/local/lib/php/20060613
-	#ln -s /usr/local/lib/php/extensions/no-debug-non-zts-20060613 /usr/local/lib/php/20060613
-	${CHMOD} a+rx /usr/local/bin/php
 .if defined(WITH_FPM) && defined(WITH_CGI)
 	@${INSTALL_DATA} ${WRKDIR}/php-fpm.conf.sample ${PREFIX}/etc
 	@${MKDIR} `dirname ${PHP_FPM_PID}`
