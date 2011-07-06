@@ -208,7 +208,7 @@ fi
 
 # Allow a custom function to be called from pfsense-build.conf
 if [ "$CUSTOM_CALL_SHELL_FUNCTION" ]; then
-	$CUSTOM_CALL_SHELL_FUNCTION
+	eval $CUSTOM_CALL_SHELL_FUNCTION
 fi
 
 # Prepare /usr/local/pfsense-clonefs
