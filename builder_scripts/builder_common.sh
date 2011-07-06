@@ -40,8 +40,8 @@
 #  build_iso.sh and build_nano.sh, etc.
 #
 # Crank up error reporting, debugging.
-set -e
-set -x
+# set -e
+# set -x
 
 if [ "$1" != "" ]; then
 	echo ">>> Engaging fast rebuild mode.  Skipping most building steps."
