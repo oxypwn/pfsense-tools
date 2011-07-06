@@ -3498,7 +3498,6 @@ disable_memory_disks() {
 	echo "Done!"
 }
 
-
 # This routine assists with installing various
 # freebsd ports files into the pfsenese-fs staging
 # area.  The various ports are built prior to install.
@@ -3523,10 +3522,10 @@ install_pkg_install_ports() {
 		EXTRA_PORTS="`cd $PORTDIRPFS && make build-depends-list` $PORTDIRPFS"
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			echo -n "$PORTDIRPFSA "
-			(cd $PORTDIRPFSA && make clean) 2>&1 | egrep -wi 'error' 
-			(cd $PORTDIRPFSA && make depends BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi 'error' 
-			(cd $PORTDIRPFSA && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi 'error'
-			(cd $PORTDIRPFSA && make clean) 2>&1 | egrep -wi 'error'
+			(cd $PORTDIRPFSA && make clean) 2>&1 | egrep -wi '***' 
+			(cd $PORTDIRPFSA && make depends BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi '***' 
+			(cd $PORTDIRPFSA && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi '***'
+			(cd $PORTDIRPFSA && make clean) 2>&1 | egrep -wi '***'
 		done
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
