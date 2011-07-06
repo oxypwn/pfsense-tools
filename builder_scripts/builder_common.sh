@@ -2657,10 +2657,7 @@ EOF
 	sysctl kern.geom.debugflags=16
 }
 
-create_ova_image_dev_addons() {
-	file_search_replace 1024 2048 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
-	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
-	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.running.sh $PFSENSEBASEDIR/etc/rc.local.running
+create_ova_image_dev_addons_alias() {
 	cat <<EOF >>$PFSENSEBASEDIR/root/.tcshrc
 alias builder_scripts 'cd /home/pfsense/tools/builder_scripts'
 alias builder_profiles 'cd /home/pfsense/tools/builder_scripts/builder_profiles'
@@ -2670,7 +2667,10 @@ alias clean_build.sh 'cd /home/pfsense/tools/builder_scripts && ./clean_build.sh
 alias build_nano.sh 'cd /home/pfsense/tools/builder_scripts && ./build_nano.sh'
 alias apply_kernel_patches.sh 'cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh'
 EOF
+	
+}
 
+disable_lan_disable_dhcpd_enable_sshd() {
 	cat <<EOF >$PFSENSEBASEDIR/remove_lan.php
 #!/usr/local/bin/php -f
 <?php
@@ -2719,6 +2719,14 @@ EOF
 	rm -rf $PFSENSEBASEDIR/conf/*
 	rm $PFSENSEBASEDIR/tmp/*
 	rm $PFSENSEBASEDIR/remove_lan.php
+}
+
+create_ova_image_dev_addons() {
+	file_search_replace 1024 2048 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
+	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.running.sh $PFSENSEBASEDIR/etc/rc.local.running
+	create_ova_image_dev_addons_alias
+	disable_lan_disable_dhcpd_enable_sshd
 }
 
 # called from create_ova_image

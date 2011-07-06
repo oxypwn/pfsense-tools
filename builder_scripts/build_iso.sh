@@ -206,6 +206,11 @@ if [ "$FBSD_VERSION" = "9" ]; then
 	setup_serial_hints
 fi
 
+# Allow a custom function to be called from pfsense-build.conf
+if [ "$CUSTOM_CALL_SHELL_FUNCTION" ]; then
+	$CUSTOM_CALL_SHELL_FUNCTION
+fi
+
 # Prepare /usr/local/pfsense-clonefs
 echo ">>> Cloning filesystem..."
 freesbie_make clonefs
