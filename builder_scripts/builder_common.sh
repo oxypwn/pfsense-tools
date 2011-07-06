@@ -3520,10 +3520,10 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		EXTRA_PORTS="$PORTDIRPFS `cd $PORTDIRPFS && make build-depends-list`"
+		EXTRA_PORTS="`cd $PORTDIRPFS && make build-depends-list` $PORTDIRPFS"
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			echo -n "$PORTDIRPFSA "
-			(cd $PORTDIRPFSA && make clean) 2>&1 | egrep  -wi 'error' 
+			(cd $PORTDIRPFSA && make clean) 2>&1 | egrep -wi 'error' 
 			(cd $PORTDIRPFSA && make depends BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi 'error' 
 			(cd $PORTDIRPFSA && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi 'error'
 			(cd $PORTDIRPFSA && make clean) 2>&1 | egrep -wi 'error'
