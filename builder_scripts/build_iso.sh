@@ -207,7 +207,7 @@ if [ "$FBSD_VERSION" = "9" ]; then
 fi
 
 # Allow a custom function to be called from pfsense-build.conf
-if [ "$CUSTOM_CALL_SHELL_FUNCTION" ]; then
+if [ "$CUSTOM_CALL_SHELL_FUNCTION" != "" ]; then
 	eval $CUSTOM_CALL_SHELL_FUNCTION
 fi
 
