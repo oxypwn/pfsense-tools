@@ -3,7 +3,7 @@
 # Common functions to be used by build scripts
 #
 #  build_pfPorts.sh
-#  Copyright (C) 2004-2009 Scott Ullrich
+#  Copyright (C) 2004-2011 Scott Ullrich
 #  All rights reserved.
 #  
 #  Redistribution and use in source and binary forms, with or without

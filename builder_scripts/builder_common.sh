@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 #  builder_common.sh
-#  Copyright (C) 2004-2009 Scott Ullrich
+#  Copyright (C) 2004-2011 Scott Ullrich
 #  All rights reserved.
 #
 #  NanoBSD portions of the code
