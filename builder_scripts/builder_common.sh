@@ -3512,7 +3512,7 @@ install_pkg_install_ports() {
 	echo -n ">>> Building ports (this might take a while): "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p /usr/ports/packages/Old/
-	mv /usr/ports/packages/All/* /usr/ports/packages/Old/
+	mv ${PFS_PKG_ALL}* /usr/ports/packages/Old/
 	mkdir -p $PFS_PKG_ALL
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		echo -n "$PORTDIRPFS "
@@ -3521,17 +3521,20 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		(cd $PORTDIRPFS && make clean) # | egrep -wi '(^>>>|error )' 2>&1
-		(cd $PORTDIRPFS && make depends BATCH=yo FORCE_PKG_REGISTER=yo) # | egrep -wi '(^>>>|error )' 2>&1
-		(cd $PORTDIRPFS && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) # | egrep -wi '(^>>>|error )' 2>&1
-		(cd $PORTDIRPFS && make clean) #| egrep -wi '(^>>>|error )' 2>&1
+		EXTRA_PORTS="$PORTDIRPFS `cd $PORTDIRPFS && make build-depends-list`"
+		for PORTDIRPFSA in $EXTRA_PORTS; do
+			(cd $PORTDIRPFSA && make clean)  2>&1 | egrep  -wi 'error' 
+			(cd $PORTDIRPFSA && make depends BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi  'error' 
+			(cd $PORTDIRPFSA && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | egrep -wi  'error'
+			(cd $PORTDIRPFSA && make clean) 2>&1 | egrep -wi  'error'
+		done
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp $PFS_PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
 	echo ">>> Installing built ports (packages) in a chroot..."
-        echo "set +e" > $PFSENSEBASEDIR/pkg.sh
-        echo "cd /tmp/pkg && ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
-        echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
+	echo "set +e" > $PFSENSEBASEDIR/pkg.sh
+	echo "cd /tmp/pkg && ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
+	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR sh /pkg.sh 
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	rm $PFSENSEBASEDIR/pkg.sh
