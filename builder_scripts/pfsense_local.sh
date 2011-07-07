@@ -128,7 +128,7 @@ export OVABLOCKSIZE=${OVABLOCKSIZE:-"409600"}
 export OVA_FIRST_PART_SIZE=${OVA_FIRST_PART_SIZE:-"8G"}
 # swap partition size (freebsd-swap) GPT - 
 # remaining space of 10G-8G - 128 block beginning/loader
-export OVA_SWAP_PART_SIZE=${OVA_SWAP_PART_SIZE:-"4193789"}
+export OVA_SWAP_PART_SIZE=${OVA_SWAP_PART_SIZE:-"4193725"}
 # 10737254400 = 10240MB = virtual box vmdk file size XXX grab this value from vbox creation
 export OVA_DISKSECTIONALLOCATIONUNITS=${OVA_DISKSECTIONALLOCATIONUNITS:-"10737254400"}
 # end of OVF
