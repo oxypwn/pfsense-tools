@@ -3541,7 +3541,15 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		EXTRA_PORTS="`cd $PORTDIRPFS && make build-depends-list` $PORTDIRPFS"	
+		oIFS=$IFS
+		IFS="
+"
+		EXTRA_PORTS=""
+		for EXTRA in `cd $PORTDIRPFS && make build-depends-list`; do
+			EXTRA_PORTS="$EXTRA $PORTDIRPFS"
+		done
+		EXTRA_PORTS="$EXTRA_PORTS $PORTDIRPFS"
+		IFS=$oIFS
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			PORTNAME=`basename $PORTDIRPFSA`
 			ISBUILT=`echo "$PORTS_BUILT" | grep "\"$PORTNAME\""`
@@ -3551,7 +3559,6 @@ install_pkg_install_ports() {
 			fi
 			echo -n "$PORTNAME "
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
-			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package-depends </dev/null 2>&1 >/dev/null
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
 			if [ "$?" != "0" ]; then
 				echo "!!! Something went wrong while building ${PORTNAME}"
