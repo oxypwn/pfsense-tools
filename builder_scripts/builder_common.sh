@@ -3558,7 +3558,6 @@ install_pkg_install_ports() {
 				# Already built
 				continue
 			fi
-			echo -n "$PORTNAME "
 			install_pkg_install_ports_build $PORTDIRPFSA
 			PORTS_BUILT="$PORTS_BUILT \"$PORTNAME\""
 		done
@@ -3597,6 +3596,7 @@ install_pkg_install_ports_build() {
 		install_pkg_install_ports_build $EXTRA
 	done
 	IFS=$oIFS
+	echo -n "$PORTNAME "
 	script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
 	script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
 	if [ "$?" != "0" ]; then
