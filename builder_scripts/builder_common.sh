@@ -2773,7 +2773,6 @@ ova_create_vbox_image() {
 	export_vbox_vm $PRODUCT_NAME
 	echo ">>> Deleting imported virtual machine ${PRODUCT_NAME}..."
 	delete_vbox_vm $PRODUCT_NAME
-	mv ${OVFPATH}/${OVAFILE}
 	echo ">>> ${OVFPATH}/${OVAFILE} created."
 }
 
