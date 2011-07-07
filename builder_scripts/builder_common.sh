@@ -3539,7 +3539,7 @@ install_pkg_install_ports() {
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			PORTNAME=`basename $PORTDIRPFSA`
 			ISBUILT=`echo "$PORTS_BUILT" | grep "\"$PORTNAME\""`
-			if [ $ISBUILT != "" ]; then
+			if [ "$ISBUILT" != "" ]; then
 				# Already built
 				continue
 			fi
