@@ -3519,8 +3519,11 @@ install_pkg_install_ports() {
 	if [ "$PKG_INSTALL_PORTSPFS" = "" ]; then
 		return
 	fi
-	echo > /tmp/install_pkg_install_ports.pkgs.txt
-	PORTS_BUILT=""
+	ALREADYBUILT="/tmp/install_pkg_install_ports"
+	if [ -d $ALREADYBUILT ]; then
+		rm -rf /tmp/install_pkg_install_ports/
+	fi
+	mkdir -p $ALREADYBUILT
 	# Some ports are unhappy with cross building and fail spectacularly.
 	OLDTGTARCH=${TARGET_ARCH}
 	unset TARGET_ARCH
@@ -3542,24 +3545,15 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		oIFS=$IFS
-		IFS="
-"
 		EXTRA_PORTS=""
 		for EXTRA in `cd $PORTDIRPFS && make build-depends-list`; do
 			EXTRA_PORTS="$EXTRA $PORTDIRPFS"
 		done
-		EXTRA_PORTS="$EXTRA_PORTS $PORTDIRPFS"
-		IFS=$oIFS
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			PORTNAME=`basename $PORTDIRPFSA`
-			ISBUILT=`echo "$PORTS_BUILT" | grep "|$PORTNAME|"`
-			if [ "$ISBUILT" != "" ]; then
-				# Already built
-				continue
+			if [ ! -f $ALREADYBUILT/$PORTNAME ]; then 
+				install_pkg_install_ports_build $PORTDIRPFSA
 			fi
-			install_pkg_install_ports_build $PORTDIRPFSA
-			PORTS_BUILT="$PORTS_BUILT |$PORTNAME|"
 		done
 	done
 	echo "done."
@@ -3571,41 +3565,41 @@ install_pkg_install_ports() {
 	echo "cd /tmp/pkg && ls -lUtr /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>>/tmp/pfpkg_install.txt" >> $PFSENSEBASEDIR/pkg.sh
 	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR sh /pkg.sh
-	#rm -rf $PFSENSEBASEDIR/tmp/pkg
-	#rm $PFSENSEBASEDIR/pkg.sh
+	# rm -rf $PFSENSEBASEDIR/tmp/pkg
+	# rm $PFSENSEBASEDIR/pkg.sh
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
-	echo "Done!"
+	echo "done!"
 	TARGET_ARCH=${OLDTGTARCH}
 	rm /tmp/install_pkg_install_ports.pkgs.txt 2>/dev/null
 }
 
 install_pkg_install_ports_build() {
 	PORTDIRPFSA="$1"
-	PORTNAME=`basename $PORTDIRPFSA`
-	oIFS=$IFS
-	IFS="
-"
-	BUILT=`cat /tmp/install_pkg_install_ports.pkgs.txt | grep "|$PORTNAME|"`
-	if [ "$BUILT" !=  "" ]; then
-		# Already built
-		return
+	PORTNAME="`basename $PORTDIRPFSA`"
+	ALREADYBUILT="/tmp/install_pkg_install_ports"
+	if [ "$PORTNAME" = "" ]; then
+		echo "PORTNAME is blank.  Cannot continue."
+		print_error_pfS
+		kill $$		
 	fi
-	EXTRA_PORTS=""
 	for EXTRA in `cd $PORTDIRPFSA && make build-depends-list`; do
-		install_pkg_install_ports_build $EXTRA
+		if [ ! -f $ALREADYBUILT/$EXTRA ]; then 
+			install_pkg_install_ports_build $EXTRA
+		fi
 	done
-	IFS=$oIFS
-	echo -n "$PORTNAME "
-	script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
-	script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
-	if [ "$?" != "0" ]; then
-		echo "!!! Something went wrong while building ${PORTNAME}"
-		echo "    Press RETURN/ENTER to view the log from this build."
-		read inputline
-		more /tmp/pfPorts/${PORTNAME}.txt
+	if [ ! -f $ALREADYBUILT/$PORTNAME ]; then 
+		echo -n "$PORTNAME "
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
+		if [ "$?" != "0" ]; then
+			echo "!!! Something went wrong while building ${PORTNAME}"
+			echo "    Press RETURN/ENTER to view the log from this build."
+			read inputline
+			more /tmp/pfPorts/${PORTNAME}.txt
+		fi
 	fi
-	echo "|$PORTNAME|" >> /tmp/install_pkg_install_ports.pkgs.txt
+	touch $ALREADYBUILT/$PORTNAME
 }
 
 # Mildly based on FreeSBIE
