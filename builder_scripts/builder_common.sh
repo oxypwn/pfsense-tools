@@ -3526,7 +3526,7 @@ install_pkg_install_ports() {
 	echo -n ">>> Building ports: "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p /usr/ports/packages/Old/
-	mv /usr/ports/packages/* /usr/ports/packages/Old/ 2>/dev/null
+	mv /usr/ports/packages/All/* /usr/ports/packages/Old/ 2>/dev/null
 	mkdir -p /usr/ports/packages/All/
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
