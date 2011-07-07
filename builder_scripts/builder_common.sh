@@ -506,14 +506,7 @@ build_all_kernels() {
 	echo -n "."
 	chflags -R noschg $PFSENSEBASEDIR/boot/
 	echo -n "."
-	# Install DEV ISO kernel if we are building a dev iso
-	if [ -z "${IS_DEV_ISO:-}" ]; then
-		echo -n "DEF:SMP."
-		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz -C $PFSENSEBASEDIR/boot/)
-	else
-		echo -n "DEF:DEV."
-		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
-	fi
+	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz -C $PFSENSEBASEDIR/boot/)
 	echo ".done"
 
 }
@@ -3546,7 +3539,7 @@ install_pkg_install_ports() {
 			kill $$
 		fi
 		EXTRA_PORTS=""
-		for EXTRA in `cd $PORTDIRPFS && make build-depends-list`; do
+		for EXTRA in `cd $PORTDIRPFS && make all-depends-list`; do
 			EXTRA_PORTS="$EXTRA $PORTDIRPFS"
 		done
 		for PORTDIRPFSA in $EXTRA_PORTS; do
@@ -3565,8 +3558,8 @@ install_pkg_install_ports() {
 	echo "cd /tmp/pkg && ls -lUtr /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>>/tmp/pfpkg_install.txt" >> $PFSENSEBASEDIR/pkg.sh
 	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR sh /pkg.sh
-	# rm -rf $PFSENSEBASEDIR/tmp/pkg
-	# rm $PFSENSEBASEDIR/pkg.sh
+	rm -rf $PFSENSEBASEDIR/tmp/pkg
+	rm $PFSENSEBASEDIR/pkg.sh
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
 	echo "done!"
@@ -3588,7 +3581,7 @@ install_pkg_install_ports_build() {
 			install_pkg_install_ports_build $EXTRA
 		fi
 	done
-	if [ ! -f $ALREADYBUILT/$PORTNAME ]; then 
+	if [ ! -f $ALREADYBUILT/$PORTNAME ]; then
 		echo -n "$PORTNAME "
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
