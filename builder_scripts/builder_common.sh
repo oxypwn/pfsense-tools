@@ -1743,7 +1743,7 @@ fi
 	printf "            SPLIT_ARCH_BUILD: %s\n" $SPLIT_ARCH_BUILD
 	printf "    UPDATES_TARBALL_FILENAME: %s\n" $UPDATES_TARBALL_FILENAME
 	printf "        PKG_INSTALL_PORTSPFS: %s\n" $PKG_INSTALL_PORTSPFS
-	
+	printf "  CUSTOM_CALL_SHELL_FUNCTION: %s\n" $CUSTOM_CALL_SHELL_FUNCTION
 if [ -n "$SHOW_ENV" ]; then
 	for LINE in `env | grep -v "terminal" | grep -v "PASS" | grep -v "NAME" | grep -v "USER" | grep -v "SSH" | grep -v "GROUP" | grep -v "HOST"`; do
 		echo "SHOW_ENV: $LINE"
