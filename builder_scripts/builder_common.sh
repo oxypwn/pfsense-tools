@@ -3505,6 +3505,13 @@ disable_memory_disks() {
 	echo "Done!"
 }
 
+# Print basenames
+print_basenames() {
+	for NAME in "$1"; do
+		echo `basename $NAME`
+	done
+}
+
 # This routine assists with installing various
 # freebsd ports files into the pfsenese-fs staging
 # area.  The various ports are built prior to install.
@@ -3515,7 +3522,7 @@ install_pkg_install_ports() {
 	# Some ports are unhappy with cross building and fail spectacularly.
 	OLDTGTARCH=${TARGET_ARCH}
 	unset TARGET_ARCH
-	echo -n ">>> Building ports (this might take a while): "
+	echo -n ">>> Building ports: "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p /usr/ports/packages/Old/
 	mv /usr/ports/packages/* /usr/ports/packages/Old/ 2>/dev/null

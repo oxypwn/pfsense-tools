@@ -108,13 +108,9 @@ echo ">>> Searching and installing ports..."
 PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
 install_pkg_install_ports
 
-echo ">>> Installing packages: " 
-cat $PFSPKGFILE
-
-# Install custom packages
-#echo ">>> Installing custom packageas..."
-#rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*
-#freesbie_make pkginstall
+/bin/echo -n ">>> Installing packages: " 
+print_basenames $PKG_INSTALL_PORTSPFS
+install_pkg_install_ports
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
