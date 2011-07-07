@@ -3536,8 +3536,8 @@ install_pkg_install_ports() {
 		EXTRA_PORTS="`cd $PORTDIRPFS && make build-depends-list` $PORTDIRPFS"
 		mkdir -p /tmp/pfPorts
 		for PORTDIRPFSA in $EXTRA_PORTS; do
-			echo -n "$PORTNAME "
 			PORTNAME=`basename $PORTDIRPFSA`
+			echo -n "$PORTNAME "
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean depends package clean </dev/null 2>&1 >/dev/null
 		done
 	done
