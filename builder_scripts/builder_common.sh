@@ -3519,6 +3519,7 @@ install_pkg_install_ports() {
 	if [ "$PKG_INSTALL_PORTSPFS" = "" ]; then
 		return
 	fi
+	PORTS_BUILT=""
 	# Some ports are unhappy with cross building and fail spectacularly.
 	OLDTGTARCH=${TARGET_ARCH}
 	unset TARGET_ARCH
