@@ -3531,7 +3531,7 @@ install_pkg_install_ports() {
 		mkdir -p /tmp/pfPorts
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			echo -n "$PORTDIRPFSA "
-			script /tmp/pfPorts/$PORTDIRPFSA.txt make -C $PORTDIRPFSA clean depends package-recursive clean </dev/null
+			script /tmp/pfPorts/$PORTDIRPFSA.txt make -C $PORTDIRPFSA clean depends package clean </dev/null
 		done
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
@@ -3540,7 +3540,7 @@ install_pkg_install_ports() {
 	echo "set +e" > $PFSENSEBASEDIR/pkg.sh
 	echo "cd /tmp/pkg && ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
 	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
-	chroot $PFSENSEBASEDIR sh /pkg.sh 
+	chroot $PFSENSEBASEDIR sh /pkg.sh
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	rm $PFSENSEBASEDIR/pkg.sh
 	mv /usr/ports/packages/Old/* /usr/ports/packages/All/
