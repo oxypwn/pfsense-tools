@@ -3551,7 +3551,13 @@ install_pkg_install_ports() {
 			fi
 			echo -n "$PORTNAME "
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
-			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes package FORCE_PKG_REGISTER=yes </dev/null 2>&1 >/dev/null
+			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
+			if [ "$?" != "0" ]; then
+				echo "!!! Something went wrong while building ${PORTNAME}"
+				echo "Press RETURN/ENTER to view the log from this build."
+				read inputline
+				more /tmp/pfPorts/${PORTNAME}.txt
+			fi
 			PORTS_BUILT="$PORTS_BUILT \"$PORTNAME\""
 		done
 	done
@@ -3565,6 +3571,7 @@ install_pkg_install_ports() {
 	chroot $PFSENSEBASEDIR sh /pkg.sh
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	rm $PFSENSEBASEDIR/pkg.sh
+	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
 	echo -n "Done!"
 	TARGET_ARCH=${OLDTGTARCH}
