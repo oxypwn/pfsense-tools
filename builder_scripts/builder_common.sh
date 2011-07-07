@@ -3567,7 +3567,7 @@ install_pkg_install_ports() {
 	/bin/echo -n ">>> Installing built ports (packages) in a chroot..."
 	echo "set +e" > $PFSENSEBASEDIR/pkg.sh
 	echo "rm /tmp/pfpkg_install.txt 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
-	echo "cd /tmp/pkg && ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>>/tmp/pfpkg_install.txt" >> $PFSENSEBASEDIR/pkg.sh
+	echo "cd /tmp/pkg && ls -lUtr /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>>/tmp/pfpkg_install.txt" >> $PFSENSEBASEDIR/pkg.sh
 	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR sh /pkg.sh
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
