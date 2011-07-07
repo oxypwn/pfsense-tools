@@ -3528,12 +3528,10 @@ install_pkg_install_ports() {
 			kill $$
 		fi
 		EXTRA_PORTS="`cd $PORTDIRPFS && make build-depends-list` $PORTDIRPFS"
+		mkdir -p /tmp/pfPorts
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			echo -n "$PORTDIRPFSA "
-			(cd $PORTDIRPFSA && make clean) 2>&1 | grep '***' 
-			(cd $PORTDIRPFSA && make depends BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | grep '***' 
-			(cd $PORTDIRPFSA && make package-recursive BATCH=yo FORCE_PKG_REGISTER=yo) 2>&1 | grep '***'
-			(cd $PORTDIRPFSA && make clean) 2>&1 | grep '***'
+			script /tmp/pfPorts/$PORTDIRPFSA.txt make -C $PORTDIRPFSA clean depends package-recursive clean </dev/null
 		done
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
