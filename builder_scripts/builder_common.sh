@@ -3525,17 +3525,23 @@ install_pkg_install_ports() {
 	unset TARGET_ARCH
 	echo -n ">>> Building ports: "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
-	mkdir -p /usr/ports/packages/Old/
-	mv /usr/ports/packages/All/* /usr/ports/packages/Old/ 2>/dev/null
-	mkdir -p /usr/ports/packages/All/ 2>/dev/null
+	PFS_PKG_OLD="/usr/ports/packages/Old/"
+	mkdir -p ${PFS_PKG_OLD}
+	# port build log files will be stored here
+	mkdir -p /tmp/pfPorts
+	# Make a backup of existing packages so we can figure out
+	# which packages need to be installed in pfsense-fs chroot.
+	# otherwise you will get a bunch of extra pkgs that where
+	# on the system prior to invoking this build run.
+	mv ${PFS_PKG_ALL}/* ${PFS_PKG_OLD}/ 2>/dev/null
+	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
 			echo "!!!! Could not locate $PORTDIRPFS"
 			print_error_pfS
 			kill $$
 		fi
-		EXTRA_PORTS="`cd $PORTDIRPFS && make build-depends-list` $PORTDIRPFS"
-		mkdir -p /tmp/pfPorts
+		EXTRA_PORTS="`cd $PORTDIRPFS && make build-depends-list` $PORTDIRPFS"	
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			PORTNAME=`basename $PORTDIRPFSA`
 			ISBUILT=`echo "$PORTS_BUILT" | grep "\"$PORTNAME\""`
@@ -3551,7 +3557,7 @@ install_pkg_install_ports() {
 	done
 	echo ""
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
-	cp /usr/ports/packages/All/* $PFSENSEBASEDIR/tmp/pkg/
+	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
 	echo ">>> Installing built ports (packages) in a chroot..."
 	echo "set +e" > $PFSENSEBASEDIR/pkg.sh
 	echo "cd /tmp/pkg && ls -l /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
@@ -3559,7 +3565,7 @@ install_pkg_install_ports() {
 	chroot $PFSENSEBASEDIR sh /pkg.sh
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	rm $PFSENSEBASEDIR/pkg.sh
-	mv /usr/ports/packages/Old/* /usr/ports/packages/All/ 2>/dev/null
+	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
 	echo -n "Done!"
 	TARGET_ARCH=${OLDTGTARCH}
 }
