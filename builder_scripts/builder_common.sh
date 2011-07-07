@@ -3551,6 +3551,7 @@ install_pkg_install_ports() {
 			fi
 			echo -n "$PORTNAME "
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
+			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package-depends </dev/null 2>&1 >/dev/null
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
 			if [ "$?" != "0" ]; then
 				echo "!!! Something went wrong while building ${PORTNAME}"
