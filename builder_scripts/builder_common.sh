@@ -3546,6 +3546,7 @@ install_pkg_install_ports() {
 			PORTS_BUILT="$PORTS_BUILT \"$PORTNAME\""
 		done
 	done
+	echo ""
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp $PFS_PKG_ALL/* $PFSENSEBASEDIR/tmp/pkg/
 	echo ">>> Installing built ports (packages) in a chroot..."
