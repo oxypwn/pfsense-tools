@@ -3538,7 +3538,8 @@ install_pkg_install_ports() {
 		mkdir -p /tmp/pfPorts
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			PORTNAME=`basename $PORTDIRPFSA`
-			if [ `echo "$PORTS_BUILT" | grep "\"$PORTNAME\""` != "" ]; then
+			ISBUILT=`echo "$PORTS_BUILT" | grep "\"$PORTNAME\""`
+			if [ $ISBUILT != "" ]; then
 				# Already built
 				continue
 			fi
