@@ -3537,13 +3537,13 @@ install_pkg_install_ports() {
 		mkdir -p /tmp/pfPorts
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			PORTNAME=`basename $PORTDIRPFSA`
-			if [ `echo "$PORTS_BUILT" | grep "$PORTNAME"` != "" ]; then
+			if [ `echo "$PORTS_BUILT" | grep "\"$PORTNAME\""` != "" ]; then
 				# Already built
 				continue
 			fi
 			echo -n "$PORTNAME "
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean depends package clean </dev/null 2>&1 >/dev/null
-			PORTS_BUILT="$PORTS_BUILD $PORTNAME"
+			PORTS_BUILT="$PORTS_BUILD \"$PORTNAME\""
 		done
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
