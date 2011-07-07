@@ -3570,8 +3570,8 @@ install_pkg_install_ports() {
 	echo "cd /tmp/pkg && ls -lUtr /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>>/tmp/pfpkg_install.txt" >> $PFSENSEBASEDIR/pkg.sh
 	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR sh /pkg.sh
-	rm -rf $PFSENSEBASEDIR/tmp/pkg
-	rm $PFSENSEBASEDIR/pkg.sh
+	#rm -rf $PFSENSEBASEDIR/tmp/pkg
+	#rm $PFSENSEBASEDIR/pkg.sh
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
 	echo "Done!"
