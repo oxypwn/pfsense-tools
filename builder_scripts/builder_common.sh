@@ -1635,7 +1635,7 @@ checkout_pfSense_git() {
 	fi
 
 	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
-	if [ "${PFSENSETAG}" = "RELENG_2_0" ] \
+	if [ "${PFSENSETAG}" = "MASTER" ] \
             || [ "${PFSENSETAG}" = 'HEAD' ]; then
         	echo -n 'Checking out tag master...'
         	BRANCH=master
@@ -3519,7 +3519,7 @@ install_pkg_install_ports() {
 	echo -n ">>> Building ports (this might take a while): "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p /usr/ports/packages/Old/
-	mv ${PFS_PKG_ALL}* /usr/ports/packages/Old/
+	mv /usr/ports/packages/* /usr/ports/packages/Old/
 	mkdir -p $PFS_PKG_ALL
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
@@ -3532,7 +3532,7 @@ install_pkg_install_ports() {
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			echo -n "$PORTDIRPFSA "
 			PORTNAME=`basename $PORTDIRPFSA`
-			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA clean depends package clean BATCH=yes </dev/null 2>&1 >/dev/null
+			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean depends package clean </dev/null 2>&1 >/dev/null
 		done
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
