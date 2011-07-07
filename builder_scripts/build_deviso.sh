@@ -109,7 +109,7 @@ PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub 
 install_pkg_install_ports
 
 /bin/echo -n ">>> Installing packages: " 
-print_basenames $PKG_INSTALL_PORTSPFS
+print_basenames "$PKG_INSTALL_PORTSPFS"
 install_pkg_install_ports
 
 # Add extra files such as buildtime of version, bsnmpd, etc.

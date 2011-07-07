@@ -136,7 +136,7 @@ freesbie_make pkginstall
 
 # Install packages needed for livecd
 /bin/echo -n ">>> Installing packages: " 
-print_basenames $PKG_INSTALL_PORTSPFS
+print_basenames "$PKG_INSTALL_PORTSPFS"
 install_pkg_install_ports
 
 rm -f $MAKEOBJDIRPREFIX/usr/home/pfsense/freesbie2/*pkginstall*

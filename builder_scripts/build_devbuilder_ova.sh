@@ -147,7 +147,7 @@ if [ "$1" = "" ]; then
 
 	# Install packages needed for livecd
 	/bin/echo -n ">>> Installing packages: " 
-	print_basenames $PKG_INSTALL_PORTSPFS
+	print_basenames "$PKG_INSTALL_PORTSPFS"
 	install_pkg_install_ports
 
 	echo ">>> Installing packages: " 
