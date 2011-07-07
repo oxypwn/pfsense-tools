@@ -306,5 +306,8 @@ export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/${PRO
 # Checkout the GIT repo every time. This is normally not necessary.
 # export PFSENSE_WITH_FULL_GIT_CHECKOUT="true"
 
+# Can call custom functions during build such as disable_lan_disable_dhcpd_enable_sshd
+export CUSTOM_CALL_SHELL_FUNCTION=${CUSTOM_CALL_SHELL_FUNCTION:-""}
+
 # This needs to be at the very end of the file.
 IFS=$OIFS
