@@ -3527,7 +3527,7 @@ install_pkg_install_ports() {
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p /usr/ports/packages/Old/
 	mv /usr/ports/packages/All/* /usr/ports/packages/Old/ 2>/dev/null
-	mkdir -p /usr/ports/packages/All/
+	mkdir -p /usr/ports/packages/All/ 2>/dev/null
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
 			echo "!!!! Could not locate $PORTDIRPFS"
@@ -3545,7 +3545,7 @@ install_pkg_install_ports() {
 			fi
 			echo -n "$PORTNAME "
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
-			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes package </dev/null 2>&1 >/dev/null
+			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes package FORCE_PKG_REGISTER=yes </dev/null 2>&1 >/dev/null
 			PORTS_BUILT="$PORTS_BUILT \"$PORTNAME\""
 		done
 	done
