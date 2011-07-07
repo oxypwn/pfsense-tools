@@ -3518,7 +3518,7 @@ install_pkg_install_ports() {
 	echo -n ">>> Building ports (this might take a while): "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	mkdir -p /usr/ports/packages/Old/
-	mv /usr/ports/packages/* /usr/ports/packages/Old/
+	mv /usr/ports/packages/* /usr/ports/packages/Old/ 2>/dev/null
 	mkdir -p $PFS_PKG_ALL
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
@@ -3543,7 +3543,7 @@ install_pkg_install_ports() {
 	chroot $PFSENSEBASEDIR sh /pkg.sh
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	rm $PFSENSEBASEDIR/pkg.sh
-	mv /usr/ports/packages/Old/* /usr/ports/packages/All/
+	mv /usr/ports/packages/Old/* /usr/ports/packages/All/ 2>/dev/null
 	echo -n "Done!"
 	TARGET_ARCH=${OLDTGTARCH}
 }
