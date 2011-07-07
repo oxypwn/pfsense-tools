@@ -3519,6 +3519,7 @@ install_pkg_install_ports() {
 	if [ "$PKG_INSTALL_PORTSPFS" = "" ]; then
 		return
 	fi
+	echo > /tmp/$$.pkgs.txt
 	PORTS_BUILT=""
 	# Some ports are unhappy with cross building and fail spectacularly.
 	OLDTGTARCH=${TARGET_ARCH}
@@ -3558,14 +3559,7 @@ install_pkg_install_ports() {
 				continue
 			fi
 			echo -n "$PORTNAME "
-			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
-			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
-			if [ "$?" != "0" ]; then
-				echo "!!! Something went wrong while building ${PORTNAME}"
-				echo "    Press RETURN/ENTER to view the log from this build."
-				read inputline
-				more /tmp/pfPorts/${PORTNAME}.txt
-			fi
+			install_pkg_install_ports_build $PORTDIRPFSA
 			PORTS_BUILT="$PORTS_BUILT \"$PORTNAME\""
 		done
 	done
@@ -3584,6 +3578,34 @@ install_pkg_install_ports() {
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
 	echo "Done!"
 	TARGET_ARCH=${OLDTGTARCH}
+	rm /tmp/$$.pkgs.txt 2>/dev/null
+}
+
+install_pkg_install_ports_build() {
+	PORTDIRPFSA="$1"
+	PORTNAME=`basename $PORTDIRPFSA`
+	oIFS=$IFS
+	IFS="
+"
+	BUILT=`cat /tmp/$$.pkgs.txt | grep "\"$PORTNAME\""`
+	if [ "$BUILT" !=  ""]; then
+		# Already built
+		return
+	fi
+	EXTRA_PORTS=""
+	for EXTRA in `cd $PORTDIRPFSA && make build-depends-list`; do
+		install_pkg_install_ports_build $EXTRA
+	done
+	IFS=$oIFS
+	script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
+	script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
+	if [ "$?" != "0" ]; then
+		echo "!!! Something went wrong while building ${PORTNAME}"
+		echo "    Press RETURN/ENTER to view the log from this build."
+		read inputline
+		more /tmp/pfPorts/${PORTNAME}.txt
+	fi
+	echo "\"$PORTNAME\"" >> /tmp/$$.pkgs.txt
 }
 
 # Mildly based on FreeSBIE
