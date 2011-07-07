@@ -29,6 +29,19 @@ echo "    tail -f /tmp/pfSense_Dev_Builder.txt "
 echo
 /bin/echo -n "Enter an option: "
 
+# Check to see if the internet connection is working.
+INTERNETUP=false
+while [ "$INTERNETUP" = "false" ]; do
+	STATUS=`ping -q -c1 google.com | grep transmitted | awk '{ print $4 }'`
+	if [ "$STATUS" = "1" ]; then
+		INTERNETUP=true
+	else 
+		echo "!!! Warning.  It appears the internet connection is not working."
+		echo "              Will check again in 10 seconds."
+		sleep 10
+	fi
+done
+
 exec > /tmp/pfSense_Dev_Builder.txt 2>&1
 
 # Ensure folders are present
