@@ -3574,7 +3574,7 @@ install_pkg_install_ports() {
 	rm $PFSENSEBASEDIR/pkg.sh
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
-	echo -n "Done!"
+	echo "Done!"
 	TARGET_ARCH=${OLDTGTARCH}
 }
 
