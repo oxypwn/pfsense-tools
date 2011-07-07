@@ -3554,14 +3554,14 @@ install_pkg_install_ports() {
 			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
 			if [ "$?" != "0" ]; then
 				echo "!!! Something went wrong while building ${PORTNAME}"
-				echo "Press RETURN/ENTER to view the log from this build."
+				echo "    Press RETURN/ENTER to view the log from this build."
 				read inputline
 				more /tmp/pfPorts/${PORTNAME}.txt
 			fi
 			PORTS_BUILT="$PORTS_BUILT \"$PORTNAME\""
 		done
 	done
-	echo ""
+	echo "done."
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
 	echo ">>> Installing built ports (packages) in a chroot..."
