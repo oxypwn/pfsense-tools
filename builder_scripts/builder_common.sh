@@ -3519,7 +3519,7 @@ install_pkg_install_ports() {
 	if [ "$PKG_INSTALL_PORTSPFS" = "" ]; then
 		return
 	fi
-	echo > /tmp/$$.pkgs.txt
+	echo > /tmp/install_pkg_install_ports.pkgs.txt
 	PORTS_BUILT=""
 	# Some ports are unhappy with cross building and fail spectacularly.
 	OLDTGTARCH=${TARGET_ARCH}
@@ -3553,13 +3553,13 @@ install_pkg_install_ports() {
 		IFS=$oIFS
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			PORTNAME=`basename $PORTDIRPFSA`
-			ISBUILT=`echo "$PORTS_BUILT" | grep "\"$PORTNAME\""`
+			ISBUILT=`echo "$PORTS_BUILT" | grep "|$PORTNAME|"`
 			if [ "$ISBUILT" != "" ]; then
 				# Already built
 				continue
 			fi
 			install_pkg_install_ports_build $PORTDIRPFSA
-			PORTS_BUILT="$PORTS_BUILT \"$PORTNAME\""
+			PORTS_BUILT="$PORTS_BUILT |$PORTNAME|"
 		done
 	done
 	echo "done."
@@ -3577,7 +3577,7 @@ install_pkg_install_ports() {
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
 	echo "Done!"
 	TARGET_ARCH=${OLDTGTARCH}
-	rm /tmp/$$.pkgs.txt 2>/dev/null
+	rm /tmp/install_pkg_install_ports.pkgs.txt 2>/dev/null
 }
 
 install_pkg_install_ports_build() {
@@ -3586,7 +3586,7 @@ install_pkg_install_ports_build() {
 	oIFS=$IFS
 	IFS="
 "
-	BUILT=`cat /tmp/$$.pkgs.txt | grep "\"$PORTNAME\""`
+	BUILT=`cat /tmp/install_pkg_install_ports.pkgs.txt | grep "|$PORTNAME|"`
 	if [ "$BUILT" !=  "" ]; then
 		# Already built
 		return
@@ -3605,7 +3605,7 @@ install_pkg_install_ports_build() {
 		read inputline
 		more /tmp/pfPorts/${PORTNAME}.txt
 	fi
-	echo "\"$PORTNAME\"" >> /tmp/$$.pkgs.txt
+	echo "|$PORTNAME|" >> /tmp/install_pkg_install_ports.pkgs.txt
 }
 
 # Mildly based on FreeSBIE
