@@ -3531,7 +3531,8 @@ install_pkg_install_ports() {
 		mkdir -p /tmp/pfPorts
 		for PORTDIRPFSA in $EXTRA_PORTS; do
 			echo -n "$PORTDIRPFSA "
-			script /tmp/pfPorts/$PORTDIRPFSA.txt make -C $PORTDIRPFSA clean depends package clean </dev/null
+			PORTNAME=`basename $PORTDIRPFSA`
+			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA clean depends package clean </dev/null
 		done
 	done
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
