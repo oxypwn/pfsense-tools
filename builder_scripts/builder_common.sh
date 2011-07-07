@@ -3542,7 +3542,7 @@ install_pkg_install_ports() {
 				continue
 			fi
 			echo -n "$PORTNAME "
-			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean depends package clean </dev/null 2>&1 >/dev/null
+			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean package clean </dev/null 2>&1 >/dev/null
 			PORTS_BUILT="$PORTS_BUILT \"$PORTNAME\""
 		done
 	done
