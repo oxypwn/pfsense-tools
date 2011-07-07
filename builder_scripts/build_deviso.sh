@@ -108,8 +108,6 @@ echo ">>> Searching and installing ports..."
 PKG_INSTALL_PORTSPFS="/usr/ports/sysutils/bsdinstaller /usr/ports/sysutils/grub /usr/ports/devel/git"
 install_pkg_install_ports
 
-/bin/echo -n ">>> Installing packages: " 
-print_basenames "$PKG_INSTALL_PORTSPFS"
 install_pkg_install_ports
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
