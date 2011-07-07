@@ -19,6 +19,9 @@ COMMENT?=	Circular log support for FreeBSD syslogd
 WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 
+# -O2 is dangerous for clog! It breaks on i386 -O works.
+CFLAGS+=	-O
+
 do-extract:
 	mkdir -p ${WRKSRC}
 
