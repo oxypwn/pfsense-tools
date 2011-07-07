@@ -3588,7 +3588,7 @@ install_pkg_install_ports_build() {
 	IFS="
 "
 	BUILT=`cat /tmp/$$.pkgs.txt | grep "\"$PORTNAME\""`
-	if [ "$BUILT" !=  ""]; then
+	if [ "$BUILT" !=  "" ]; then
 		# Already built
 		return
 	fi
