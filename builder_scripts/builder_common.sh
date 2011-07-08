@@ -3579,6 +3579,8 @@ install_pkg_install_ports_build() {
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null 2>&1 >/dev/null
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
+			echo
+			echo
 			echo "!!! Something went wrong while building ${PORTNAME}"
 			echo "    Press RETURN/ENTER to view the log from this build."
 			read inputline
