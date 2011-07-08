@@ -1364,6 +1364,8 @@ test_php_install() {
 		cp /tmp/php.ini $PFSENSEBASEDIR/usr/local/lib/php.ini
 		cp /tmp/php.ini $PFSENSEBASEDIR/usr/local/etc/php.ini
 	fi
+	
+	rm $PFSENSEBASEDIR/test_php.php
 
 }
 
@@ -3555,6 +3557,8 @@ install_pkg_install_ports() {
 	chroot $PFSENSEBASEDIR sh /pkg.sh
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
+	rm -rf $PFSENSEBASEDIR/tmp/pkg
+	rm -rf $PFSENSEBASEDIR/tmp/pkg.sh	
 	echo "done!"
 	TARGET_ARCH=${OLDTGTARCH}
 	rm /tmp/install_pkg_install_ports.pkgs.txt 2>/dev/null
