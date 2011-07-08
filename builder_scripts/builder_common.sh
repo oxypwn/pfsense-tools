@@ -2713,7 +2713,7 @@ EOF
 	# Break environment back down
 	rm -rf $PFSENSEBASEDIR/cf/conf/backup
 	rm -rf $PFSENSEBASEDIR/conf/*
-	rm $PFSENSEBASEDIR/tmp/*
+	rm -rf $PFSENSEBASEDIR/tmp/*
 	rm $PFSENSEBASEDIR/remove_lan.php
 }
 
