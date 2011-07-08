@@ -1695,7 +1695,8 @@ print_flags() {
 	printf "             pfSense version: %s\n" $PFSENSE_VERSION
 	printf "                    CVS User: %s\n" $CVS_USER
 	printf "                   Verbosity: %s\n" $BE_VERBOSE
-	printf "                    Base dir: %s\n" $BASE_DIR
+	printf "                    BASE_DIR: %s\n" $BASE_DIR
+	printf "                     BASEDIR: %s\n" $BASEDIR	
 	printf "                Checkout dir: %s\n" $CVS_CO_DIR
 	printf "                 Custom root: %s\n" $CUSTOMROOT
 	printf "              CVS IP address: %s\n" $CVS_IP
