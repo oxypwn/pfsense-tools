@@ -37,7 +37,7 @@
 # Suck in script helper functions
 . ./builder_common.sh
 
-export MODULES_OVERRIDE="i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw"
+export MODULES_OVERRIDE="i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq"
 
 # If a embedded build has been performed we need to nuke
 # /usr/obj.$dir/ since full uses a different
