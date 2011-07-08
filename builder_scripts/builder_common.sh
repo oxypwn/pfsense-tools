@@ -3541,7 +3541,7 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		for EXTRAPORT in `cd $PORTDIRPFS && make run-depends-list build-depends-list | xargs /bin/echo -n `; do
+		for EXTRAPORT in `cd $PORTDIRPFS && make run-depends-list build-depends-list all-depends-list | xargs /bin/echo -n `; do
 			install_pkg_install_ports_build $EXTRAPORT
 		done
 		install_pkg_install_ports_build $PORTDIRPFS
