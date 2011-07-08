@@ -208,7 +208,7 @@ post-build:
 	@${ECHO_CMD} "PHP_VER=52" > ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
-	@${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin/php
+	@${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${WRKSRC}/sapi/cli/php
 
 post-install:
 	@${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin/php
