@@ -3532,26 +3532,22 @@ install_pkg_install_ports() {
 	# on the system prior to invoking this build run.
 	mv ${PFS_PKG_ALL}/* ${PFS_PKG_OLD}/ 2>/dev/null
 	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
+	EXTRA_PORTS=""
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
 			echo "!!!! Could not locate $PORTDIRPFS"
 			print_error_pfS
 			kill $$
 		fi
-		EXTRA_PORTS=""
-		for EXTRA in `cd $PORTDIRPFS && make all-depends-list`; do
-			EXTRA_PORTS="$EXTRA $PORTDIRPFS"
+		for EXTRA in `cd $PORTDIRPFS && make build-depends-list`; do
+			install_pkg_install_ports_build $EXTRA
 		done
-		for PORTDIRPFSA in $EXTRA_PORTS; do
-			PORTNAME=`basename $PORTDIRPFSA`
-			if [ ! -f $ALREADYBUILT/$PORTNAME ]; then 
-				install_pkg_install_ports_build $PORTDIRPFSA
-			fi
-		done
+		install_pkg_install_ports_build $PORTDIRPFS
 	done
-	echo "done."
+	exit
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
+	echo "done."
 	/bin/echo -n ">>> Installing built ports (packages) in a chroot..."
 	echo "set +e" > $PFSENSEBASEDIR/pkg.sh
 	echo "rm /tmp/pfpkg_install.txt 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
@@ -3576,11 +3572,11 @@ install_pkg_install_ports_build() {
 		print_error_pfS
 		kill $$		
 	fi
-	for EXTRA in `cd $PORTDIRPFSA && make build-depends-list`; do
-		if [ ! -f $ALREADYBUILT/$EXTRA ]; then 
-			install_pkg_install_ports_build $EXTRA
-		fi
-	done
+	#for EXTRA in `cd $PORTDIRPFSA && make run-depends-list`; do
+	#	if [ ! -f $ALREADYBUILT/$EXTRA ]; then 
+	#		install_pkg_install_ports_build $EXTRA
+	#	fi
+	#done
 	if [ ! -f $ALREADYBUILT/$PORTNAME ]; then
 		echo -n "$PORTNAME "
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
