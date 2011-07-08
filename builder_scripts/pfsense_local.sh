@@ -96,8 +96,8 @@ export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 export PFSPKGFILE=${PFSPKGFILE:-/tmp/pfspackages}
 export FREESBIE_LABEL=${FREESBIE_LABEL:-${PRODUCT_NAME}}
 
-# IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
-export EXTRA="${EXTRA:-"customroot customscripts pkginstall buildmodules"}"
+# IMPORTANT NOTE: Maintain the order of EXTRAPLUGINS freesbie plugins!
+export EXTRAPLUGINS="${EXTRAPLUGINS:-"customroot customscripts pkginstall buildmodules"}"
 
 # Items beyond this must be defined after MAKEOBJDIRPREFIX!
 
