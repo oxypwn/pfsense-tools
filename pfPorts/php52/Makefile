@@ -36,7 +36,7 @@ CONFIGURE_ARGS=	\
 
 USE_GNOME=	libxml2
 
-OPTIONS=	CLI "Build CLI version" on \
+OPTIONS=	CLI "Build CLI version" off \
 		CGI "Build CGI version" on \
 		APACHE "Build Apache module" off \
 		DEBUG "Enable debug" off \
