@@ -165,7 +165,7 @@ clean_make_install() {
 		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$1" | wc -l` -gt 0 ]; then 
 			#echo ">>> Already built $1 on this run.  Skipping..."
 		else
-			ARGUMENTS="TARGET_ARCH=${ARCH} $MAKEJ_PORTS -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
+			ARGUMENTS="TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
 			echo ">>> Building port $PORT"
 			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install </dev/null; then
 				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures

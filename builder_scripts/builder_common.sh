@@ -3532,30 +3532,26 @@ install_pkg_install_ports() {
 	# on the system prior to invoking this build run.
 	mv ${PFS_PKG_ALL}/* ${PFS_PKG_OLD}/ 2>/dev/null
 	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
-	EXTRA_PORTS=""
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
-			echo "!!!! Could not locate $PORTDIRPFS"
+			echo "!!! Could not locate $PORTDIRPFS"
 			print_error_pfS
 			kill $$
 		fi
-		for EXTRA in `cd $PORTDIRPFS && make build-depends-list`; do
+		for EXTRA in `cd $PORTDIRPFS && make run-depends-list build-depends-list | xargs /bin/echo -n `; do
 			install_pkg_install_ports_build $EXTRA
 		done
 		install_pkg_install_ports_build $PORTDIRPFS
 	done
-	exit
 	mkdir $PFSENSEBASEDIR/tmp/pkg/
 	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
 	echo "done."
-	/bin/echo -n ">>> Installing built ports (packages) in a chroot..."
+	/bin/echo -n ">>> Installing built ports (packages) in chroot (${PFSENSEBASEDIR})..."
 	echo "set +e" > $PFSENSEBASEDIR/pkg.sh
 	echo "rm /tmp/pfpkg_install.txt 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
 	echo "cd /tmp/pkg && ls -lUtr /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>>/tmp/pfpkg_install.txt" >> $PFSENSEBASEDIR/pkg.sh
 	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
 	chroot $PFSENSEBASEDIR sh /pkg.sh
-	rm -rf $PFSENSEBASEDIR/tmp/pkg
-	rm $PFSENSEBASEDIR/pkg.sh
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
 	echo "done!"
@@ -3570,17 +3566,13 @@ install_pkg_install_ports_build() {
 	if [ "$PORTNAME" = "" ]; then
 		echo "PORTNAME is blank.  Cannot continue."
 		print_error_pfS
-		kill $$		
+		kill $$
 	fi
-	#for EXTRA in `cd $PORTDIRPFSA && make run-depends-list`; do
-	#	if [ ! -f $ALREADYBUILT/$EXTRA ]; then 
-	#		install_pkg_install_ports_build $EXTRA
-	#	fi
-	#done
 	if [ ! -f $ALREADYBUILT/$PORTNAME ]; then
 		echo -n "$PORTNAME "
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes clean </dev/null 2>&1 >/dev/null
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
+		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null 2>&1 >/dev/null
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
 			echo "!!! Something went wrong while building ${PORTNAME}"
 			echo "    Press RETURN/ENTER to view the log from this build."
@@ -3788,3 +3780,4 @@ launch() {
 finish() {
 	echo ">>> Operation $0 has ended at `date`"
 }
+
