@@ -92,6 +92,12 @@ if [ ! -f /usr/local/bin/rsync ]; then
 	cd /usr/ports/net/rsync && make install clean
 fi
 
+# Handle screen
+if [ ! -f /usr/local/bin/screen ]; then
+	echo ">>> Installing screen..."
+	cd /usr/ports/sysutils/screen && make install clean	
+fi
+
 # Sync pfSense dev tools
 if [ ! -d /home/pfsense ]; then
 	mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
