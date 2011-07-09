@@ -43,7 +43,8 @@ echo ">>> Starting the pfSense builder setup in 15 seconds..."
 /bin/sleep 15
 
 DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
-CPUS=`expr $DCPUS '*' 2`
+CPUS=`expr $DCPUS '*' 3
+echo ">>> Detected CPUs * 3: $CPUS"
 
 echo WITHOUT_X11="yo" > /etc/make.conf
 echo BATCH="yo" >> /etc/make.conf
@@ -58,6 +59,8 @@ echo ">>> To watch the progress use option 8 (shell) and then type:"
 echo "    tail -f /tmp/pfSense_Dev_Builder.txt "
 echo
 /bin/echo -n "Enter an option: "
+
+# " UNBREAK TEXTMATE FORMATTING.
 
 # Check to see if the internet connection is working.
 INTERNETUP=false
