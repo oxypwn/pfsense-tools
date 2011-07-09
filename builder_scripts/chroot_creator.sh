@@ -29,6 +29,10 @@
 
 BUILDER_CHROOTDIR=$1
 
+DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
+CPUS=`expr $DCPUS '*' 2`
+echo ">>> Detected CPUs * 2: $CPUS"
+
 ntpdate time.nist.gov 2>/dev/null
 
 if [ "$BUILDER_CHROOTDIR" = "" ]; then
@@ -87,7 +91,7 @@ fi
 # Install git on host
 if [ ! -f /usr/local/bin/git ]; then
 	echo BATCH="YES" >> /etc/make.conf
-	echo SUBTHREADS="`sysctl kern.smp.cpus | cut -d' ' -f2`" >> /etc/make.conf
+	echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 	cd /usr/ports/devel/git && make install clean
 fi
 
@@ -124,10 +128,10 @@ mkdir -p $BUILDER_CHROOTDIR
 # Build chroot and install
 echo ">>> Building world with NO_CLEAN=yes..."
 cd /usr/src
-make world -j`sysctl kern.smp.cpus | cut -d' ' -f2` \
+make world -j${CPUS} \
 	DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 echo ">>> Building distribution with NO_CLEAN=yes..."
-make distribution -j`sysctl kern.smp.cpus | cut -d' ' -f2` \
+make distribution -j${CPUS} \
 	DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
 echo <<EOF >>/etc/rc.local

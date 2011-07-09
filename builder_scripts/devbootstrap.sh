@@ -42,9 +42,12 @@ echo ""
 echo ">>> Starting the pfSense builder setup in 15 seconds..."
 /bin/sleep 15
 
+DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
+CPUS=`expr $DCPUS '*' 2`
+
 echo WITHOUT_X11="yo" > /etc/make.conf
 echo BATCH="yo" >> /etc/make.conf
-echo SUBTHREADS="`sysctl kern.smp.cpus | cut -d' ' -f2`" >> /etc/make.conf"
+echo SUBTHREADS="${CPUS}" >> /etc/make.conf"
 
 echo ""
 echo ""
