@@ -163,7 +163,7 @@ sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 echo
 echo ">>> Creating dev chroot... Please wait..."
-chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh >/dev/null &
+chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh $FASTEST_CVSUP >/dev/null &
 sleep 20
 tail -f $BUILDER_CHROOTDIR/tmp/pfSense_Dev_Builder.txt
 echo ">>> chroot_creator.sh has finished."
