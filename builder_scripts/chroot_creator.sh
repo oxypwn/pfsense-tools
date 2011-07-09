@@ -110,8 +110,10 @@ fi
 mkdir -p $BUILDER_CHROOTDIR
 
 # Build chroot and install
+echo ">>> Building world..."
 cd /usr/src
 make world DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
+echo ">>> Building distribution..."
 make distribution DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
 echo "mount -t devfs devfs $BUILDER_CHROOTDIR/dev" >> /etc/rc.local
@@ -120,7 +122,8 @@ echo "mount -t devfs devfs $BUILDER_CHROOTDIR/dev" >> /etc/rc.local
 cp /etc/resolv.conf $BUILDER_CHROOTDIR/etc/
 
 # Populate ports
-rsync -av /usr/ports $BUILDER_CHROOTDIR/usr/
+echo ">>> Copying ports..."
+rsync -av /usr/ports $BUILDER_CHROOTDIR/usr/ >/dev/null
 
 # Do a devbootstrap
 cp /home/pfsense/tools/builder_scripts/devbootstrap.sh \
