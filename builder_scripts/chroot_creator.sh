@@ -105,9 +105,10 @@ mkdir -p $BUILDER_CHROOTDIR
 
 # Build chroot and install
 cd /usr/src
-make world DESTDIR=$BUILDER_CHROOTDIR
-make distribution DESTDIR=$BUILDER_CHROOTDIR
+make world DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes
+make distribution DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
+echo "mount -t devfs devfs $BUILDER_CHROOTDIR/dev" >> /etc/rc.local
 
 # Copy resolv.conf to chroot
 cp /etc/resolv.conf $BUILDER_CHROOTDIR/etc/
@@ -116,7 +117,8 @@ cp /etc/resolv.conf $BUILDER_CHROOTDIR/etc/
 rsync -av /usr/ports $BUILDER_CHROOTDIR/usr/
 
 # Do a devbootstrap
-cp /home/pfsense/tools/builder_scripts/devbootstrap.sh $BUILDER_CHROOTDIR/etc/
+cp /home/pfsense/tools/builder_scripts/devbootstrap.sh \
+	$BUILDER_CHROOTDIR/etc/
 chmod a+rx $BUILDER_CHROOTDIR/etc/devbootstrap.sh
 echo ">>> Creating dev chroot... Please wait..."
 chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh
