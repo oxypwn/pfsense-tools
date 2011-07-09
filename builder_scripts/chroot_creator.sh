@@ -68,14 +68,20 @@ else
 fi
 
 # Update /usr/src
-echo ">>> Fetching /usr/src/ from $FASTEST_CVSUP ..."
-/usr/bin/csup -h $FASTEST_CVSUP \
-	/usr/share/examples/cvsup/standard-supfile >/dev/null
+if [ ! -d /usr/src ]; then
+	echo ">>> Fetching /usr/src/ from $FASTEST_CVSUP ..."
+	/usr/bin/csup -h $FASTEST_CVSUP \
+		/usr/share/examples/cvsup/standard-supfile >/dev/null
+fi
 
 # Handle ports if needed
 if [ ! -d /usr/ports ]; then
 	echo ">>> Fetching ports using portsnap..."
 	portsnap fetch extract
+else 
+	echo ">>> Updating /usr/ports/ from $FASTEST_CVSUP ..."
+	/usr/bin/csup -h $FASTEST_CVSUP \
+		/usr/share/examples/cvsup/ports-supfile >/dev/null
 fi
 
 # Install git on host
@@ -116,11 +122,11 @@ fi
 mkdir -p $BUILDER_CHROOTDIR
 
 # Build chroot and install
-echo ">>> Building world..."
+echo ">>> Building world with NO_CLEAN=yes..."
 cd /usr/src
 make world -j`sysctl kern.smp.cpus | cut -d' ' -f2` \
 	DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
-echo ">>> Building distribution..."
+echo ">>> Building distribution with NO_CLEAN=yes..."
 make distribution -j`sysctl kern.smp.cpus | cut -d' ' -f2` \
 	DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
