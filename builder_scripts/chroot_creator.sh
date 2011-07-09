@@ -130,8 +130,11 @@ echo ">>> Building distribution with NO_CLEAN=yes..."
 make distribution -j`sysctl kern.smp.cpus | cut -d' ' -f2` \
 	DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
-echo "mount -t devfs devfs $BUILDER_CHROOTDIR/dev" \
-	>> /etc/rc.local
+echo <<EOF >>/etc/rc.local
+if [ -d $BUILDER_CHROOTDIR/dev ]; then
+	mount -t devfs devfs $BUILDER_CHROOTDIR/dev
+fi
+EOF
 
 # Copy resolv.conf to chroot
 cp /etc/resolv.conf $BUILDER_CHROOTDIR/etc/
