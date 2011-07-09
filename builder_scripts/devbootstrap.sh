@@ -32,12 +32,6 @@ PFS_VERSION=RELENG_2_0
 # Needs changing of pfsense-build.conf if you change this.
 SRCDIR=/usr/pfSensesrc
 
-if [ "$1" != "" ]; then
-	CVSUP_HOST="$1"
-else
-	CVSUP_HOST="`/usr/local/bin/fastest_cvsup -c tld -q`"
-fi
-
 echo
 
 sleep 3
@@ -92,6 +86,12 @@ if [ ! -f /usr/local/bin/fastest_cvsup ]; then
 	echo ">>> Installing fastest_cvsup binary package..."
 	( pkg_add -r fastest_cvsup ) >/dev/null
 	rm -rf /var/db/pkg/*
+fi
+
+if [ "$1" != "" ]; then
+	CVSUP_HOST="$1"
+else
+	CVSUP_HOST="`/usr/local/bin/fastest_cvsup -c tld -q`"
 fi
 
 # CVSUp /usr/ports
