@@ -135,5 +135,7 @@ sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 echo
 echo ">>> Creating dev chroot... Please wait..."
-chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh >/dev/null
+chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh >/dev/null &
+sleep 5
+tail -f $BUILDER_CHROOTDIR/tmp/pfSense_Dev_Builder.txt
 echo ">>> chroot_creator.sh has finished."
