@@ -28,7 +28,6 @@
 #
 
 BUILDER_CHROOTDIR=$1
-CPUS="-j`sysctl kern.smp.cpus | cut -d' ' -f2`"
 
 if [ "$BUILDER_CHROOTDIR" = "" ]; then
 	echo "!!! You must specify a directory to hold the new chroot"
@@ -85,19 +84,19 @@ fi
 if [ ! -f /usr/local/bin/git ]; then
 	echo BATCH="YES" >> /etc/make.conf
 	echo SUBTHREADS="`sysctl kern.smp.cpus | cut -d' ' -f2`" >> /etc/make.conf
-	cd /usr/ports/devel/git && make $CPUS install clean
+	cd /usr/ports/devel/git && make install clean
 fi
 
 # Handle rsync
 if [ ! -f /usr/local/bin/rsync ]; then
 	echo ">>> Installing rsync..."
-	cd /usr/ports/net/rsync && make $CPUS install clean
+	cd /usr/ports/net/rsync && make install clean
 fi
 
 # Handle screen
 if [ ! -f /usr/local/bin/screen ]; then
 	echo ">>> Installing screen..."
-	cd /usr/ports/sysutils/screen && make $CPUS install clean	
+	cd /usr/ports/sysutils/screen && make install clean	
 fi
 
 # Sync pfSense dev tools
@@ -120,9 +119,9 @@ mkdir -p $BUILDER_CHROOTDIR
 # Build chroot and install
 echo ">>> Building world..."
 cd /usr/src
-make $CPUS world DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
+make world DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 echo ">>> Building distribution..."
-make $CPUS distribution DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
+make distribution DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
 echo "mount -t devfs devfs $BUILDER_CHROOTDIR/dev" >> /etc/rc.local
 
