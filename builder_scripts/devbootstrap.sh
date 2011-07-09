@@ -48,7 +48,7 @@ echo ">>> Detected CPUs * 2: $CPUS"
 
 echo WITHOUT_X11="yo" > /etc/make.conf
 echo BATCH="yo" >> /etc/make.conf
-echo SUBTHREADS="${CPUS}" >> /etc/make.conf"
+echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 
 echo ""
 echo ""
