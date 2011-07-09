@@ -30,8 +30,8 @@
 BUILDER_CHROOTDIR=$1
 
 DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
-CPUS=`expr $DCPUS '*' 3`
-echo ">>> Detected CPUs * 3: $CPUS"
+CPUS=`expr $DCPUS '*' 2`
+echo ">>> Detected CPUs * 2: $CPUS"
 
 ntpdate time.nist.gov 2>/dev/null
 
