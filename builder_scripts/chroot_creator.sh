@@ -76,10 +76,6 @@ echo ">>> Fetching /usr/src/ from $FASTEST_CVSUP ..."
 if [ ! -d /usr/ports ]; then
 	echo ">>> Fetching ports using portsnap..."
 	portsnap fetch extract
-else 
-	echo ">>> Updating /usr/ports/ from $FASTEST_CVSUP ..."
-	/usr/bin/csup -h $FASTEST_CVSUP \
-		/usr/share/examples/cvsup/ports-supfile >/dev/null
 fi
 
 # Install git on host
@@ -151,7 +147,7 @@ sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 echo
 echo ">>> Creating dev chroot... Please wait..."
-chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh &
+chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh >/dev/null &
 sleep 20
 tail -f $BUILDER_CHROOTDIR/tmp/pfSense_Dev_Builder.txt
 echo ">>> chroot_creator.sh has finished."
