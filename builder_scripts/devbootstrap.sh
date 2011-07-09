@@ -141,8 +141,8 @@ cd /home/pfsense/tools/builder_scripts && ./build_iso.sh
 if [ -f /tmp/builder/pfSense.iso ]; then
 	echo ">>> ISO build completed."
 	echo ">>> Moving devbootstrap.sh to /root/"
-	/bin/mv /etc/rc.local /root/devbootstrap.sh
-	chmod a+rx /root/devbootstrap.sh
+	/bin/mv /etc/rc.local /root/devbootstrap.sh 2>/dev/null
+	chmod a+rx /root/devbootstrap.sh 2>/dev/null
 	ls -lah /tmp/builder/
 fi
 
