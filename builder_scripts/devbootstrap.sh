@@ -69,6 +69,7 @@ while [ "$INTERNETUP" = "false" ]; do
 done
 
 exec > /tmp/pfSense_Dev_Builder.txt 2>&1
+kldload ng_socket 2>/dev/null
 
 # Ensure folders are present
 /bin/mkdir -p /home/pfsense/pfSenseGITREPO $SRCDIR
