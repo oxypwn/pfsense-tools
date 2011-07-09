@@ -32,6 +32,12 @@ PFS_VERSION=RELENG_2_0
 # Needs changing of pfsense-build.conf if you change this.
 SRCDIR=/usr/pfSensesrc
 
+if [ "$1" != "" ]; then
+	CVSUP_HOST="$1"
+else
+	CVSUP_HOST="`/usr/local/bin/fastest_cvsup -c tld -q`"
+fi
+
 echo
 
 sleep 3
@@ -89,7 +95,7 @@ if [ ! -f /usr/local/bin/fastest_cvsup ]; then
 fi
 
 # CVSUp /usr/ports
-/usr/bin/csup -h `/usr/local/bin/fastest_cvsup -c tld -q` /usr/share/examples/cvsup/ports-supfile
+/usr/bin/csup -h $CVSUP_HOST /usr/share/examples/cvsup/ports-supfile
 
 # Build a few required ports
 cd /usr/ports/textproc/expat2 && make depends install
@@ -113,7 +119,7 @@ fi
 cd /home/pfsense/tools/builder_scripts && chmod a+rx *.sh
 
 # CVSUp /usr/src/ in case some packages need kernel src
-/usr/bin/csup -h `/usr/local/bin/fastest_cvsup -c tld -q` /usr/share/examples/cvsup/standard-supfile
+/usr/bin/csup -h $CVSUP_HOST /usr/share/examples/cvsup/standard-supfile
 
 # Set version as $PFS_VERSION
 cd /home/pfsense/tools/builder_scripts && ./set_version.sh $PFS_VERSION
