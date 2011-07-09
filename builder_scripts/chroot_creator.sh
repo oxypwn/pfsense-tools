@@ -66,7 +66,7 @@ else
 fi
 
 # Update /usr/src
-echo ">>> Fetching /usr/src/..."
+echo ">>> Fetching /usr/src/ from $FASTEST_CVSUP ..."
 /usr/bin/csup -h $FASTEST_CVSUP \
 	/usr/share/examples/cvsup/standard-supfile >/dev/null
 
@@ -75,7 +75,7 @@ if [ ! -d /usr/ports ]; then
 	echo ">>> Fetching ports using portsnap..."
 	portsnap fetch extract
 else 
-	echo ">>> Updating /usr/ports/ ..."
+	echo ">>> Updating /usr/ports/ from $FASTEST_CVSUP ..."
 	/usr/bin/csup -h $FASTEST_CVSUP \
 		/usr/share/examples/cvsup/ports-supfile >/dev/null
 fi
