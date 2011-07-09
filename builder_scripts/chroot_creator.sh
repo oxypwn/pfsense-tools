@@ -120,6 +120,11 @@ rsync -av /usr/ports $BUILDER_CHROOTDIR/usr/
 cp /home/pfsense/tools/builder_scripts/devbootstrap.sh \
 	$BUILDER_CHROOTDIR/etc/
 chmod a+rx $BUILDER_CHROOTDIR/etc/devbootstrap.sh
+echo ">>> Launching dev bootstrap in 10 seconds"
+/bin/echo -n "!!! CTRL-C to cancel..."
+sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
+sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
+echo
 echo ">>> Creating dev chroot... Please wait..."
 chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh
 echo ">>> chroot_creator.sh has finished."
