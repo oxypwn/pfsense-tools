@@ -29,6 +29,8 @@
 
 BUILDER_CHROOTDIR=$1
 
+ntpdate time.nist.gov 2>/dev/null
+
 if [ "$BUILDER_CHROOTDIR" = "" ]; then
 	echo "!!! You must specify a directory to hold the new chroot"
 	exit 1
@@ -110,7 +112,8 @@ if [ ! -d /home/pfsense ]; then
 	chmod a+rx /home/pfsense/tools/builder_scripts/*.sh
 else
 	echo ">>> Making sure git repos are in sync..."
-	cd /home/pfsense/tools/builder_scripts && ./update_git_repos.sh
+	cd /home/pfsense/tools/builder_scripts && \
+		./update_git_repos.sh >/dev/null
 fi
 
 # Create the chroot and get it ready
@@ -119,11 +122,14 @@ mkdir -p $BUILDER_CHROOTDIR
 # Build chroot and install
 echo ">>> Building world..."
 cd /usr/src
-make world DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
+make world -j`sysctl kern.smp.cpus | cut -d' ' -f2` \
+	DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 echo ">>> Building distribution..."
-make distribution DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
+make distribution -j`sysctl kern.smp.cpus | cut -d' ' -f2` \
+	DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
-echo "mount -t devfs devfs $BUILDER_CHROOTDIR/dev" >> /etc/rc.local
+echo "mount -t devfs devfs $BUILDER_CHROOTDIR/dev" \
+	>> /etc/rc.local
 
 # Copy resolv.conf to chroot
 cp /etc/resolv.conf $BUILDER_CHROOTDIR/etc/
@@ -145,7 +151,7 @@ sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 echo
 echo ">>> Creating dev chroot... Please wait..."
-chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh >/dev/null &
-sleep 5
+chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh &
+sleep 20
 tail -f $BUILDER_CHROOTDIR/tmp/pfSense_Dev_Builder.txt
 echo ">>> chroot_creator.sh has finished."
