@@ -59,9 +59,15 @@ if [ ! -f /usr/local/bin/fastest_cvsup ]; then
 	pkg_add -r fastest_cvsup >/dev/null
 fi
 
+if [ "$2" = "" ]; then
+	FASTEST_CVSUP=`/usr/local/bin/fastest_cvsup -c tld -q`
+else 
+	FASTEST_CVSUP="$2"
+fi
+
 # Update /usr/src
 echo ">>> Fetching /usr/src/..."
-/usr/bin/csup -h `/usr/local/bin/fastest_cvsup -c tld -q` \
+/usr/bin/csup -h $FASTEST_CVSUP \
 	/usr/share/examples/cvsup/standard-supfile >/dev/null
 
 # Handle ports if needed
@@ -70,7 +76,7 @@ if [ ! -d /usr/ports ]; then
 	portsnap fetch extract
 else 
 	echo ">>> Updating /usr/ports/ ..."
-	/usr/bin/csup -h `/usr/local/bin/fastest_cvsup -c tld -q` \
+	/usr/bin/csup -h $FASTEST_CVSUP \
 		/usr/share/examples/cvsup/ports-supfile >/dev/null
 fi
 
@@ -87,7 +93,7 @@ if [ ! -f /usr/local/bin/rsync ]; then
 fi
 
 # Sync pfSense dev tools
-if [ -! -d /home/pfsense ]; then
+if [ ! -d /home/pfsense ]; then
 	mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
 	echo ">>> Grabbing pfSense tools..."
 	cd /home/pfsense && git clone \
@@ -105,8 +111,8 @@ mkdir -p $BUILDER_CHROOTDIR
 
 # Build chroot and install
 cd /usr/src
-make world DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes
-make distribution DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes
+make world DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
+make distribution DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
 echo "mount -t devfs devfs $BUILDER_CHROOTDIR/dev" >> /etc/rc.local
 
