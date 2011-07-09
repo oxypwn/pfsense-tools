@@ -135,5 +135,5 @@ sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 sleep_one ; sleep_one ; sleep_one ; sleep_one ; sleep_one
 echo
 echo ">>> Creating dev chroot... Please wait..."
-chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh
+chroot $BUILDER_CHROOTDIR /etc/devbootstrap.sh >/dev/null
 echo ">>> chroot_creator.sh has finished."
