@@ -142,6 +142,9 @@ cp /etc/resolv.conf $BUILDER_CHROOTDIR/etc/
 # Copy make.conf to chroot
 cp /etc/make.conf $BUILDER_CHROOTDIR/etc/
 
+# Copy localtime
+cp /etc/localtime $BUILDER_CHROOTDIR/etc/
+
 # Populate ports
 echo ">>> Copying ports..."
 rsync -av /usr/ports $BUILDER_CHROOTDIR/usr/ >/dev/null
