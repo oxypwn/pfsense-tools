@@ -565,6 +565,9 @@ recompile_pfPorts() {
 		echo "==> Compiling pfPorts..."
 		if [ -f /etc/make.conf ]; then
 			mv /etc/make.conf /tmp/
+			DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
+			CPUS=`expr $DCPUS '*' 2`
+			echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 			echo "WITHOUT_X11=yo" >> /etc/make.conf
 			MKCNF="pfPorts"
 		fi
