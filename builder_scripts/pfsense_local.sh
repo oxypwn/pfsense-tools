@@ -167,7 +167,7 @@ export KERNEL_BUILD_PATH=${KERNEL_BUILD_PATH:-"/tmp/kernels"}
 # Controls how many concurrent make processes are run for each stage
 if [ "${NO_MAKEJ}" = "" ]; then
 	CPUS=`sysctl kern.smp.cpus | awk '{ print $2 }'`
-	CPUS=`expr $CPUS + 1`
+	CPUS=`expr $CPUS '*' 2`
 	export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j$CPUS"}
 	export MAKEJ_KERNEL=${MAKEJ_KERNEL:-"-j$CPUS"}
 else
