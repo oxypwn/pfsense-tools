@@ -3575,7 +3575,7 @@ install_pkg_install_ports_build() {
 	fi
 	if [ ! -f $ALREADYBUILT/$PORTNAME ]; then
 		echo -n "$PORTNAME "
-		BUILT_PKGNAME="`cd $PORTDIRPFSA && make -V PKGNAME`.tbz"
+		BUILT_PKGNAME="`make -C $PORTDIRPFSA -V PKGNAME`.tbz"
 		if [ -f /usr/ports/packages/Old/$BUILT_PKGNAME ]; then
 			cp -R /usr/ports/packages/Old/$BUILT_PKGNAME \
 				/usr/ports/packages/All/
