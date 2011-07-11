@@ -1,0 +1,169 @@
+Index: sbin/ifconfig/ifpfsync.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sbin/ifconfig/ifpfsync.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ifpfsync.c
+--- sbin/ifconfig/ifpfsync.c	11 Jul 2011 19:04:01 -0000	1.1.1.1
++++ sbin/ifconfig/ifpfsync.c	11 Jul 2011 19:25:35 -0000
+@@ -184,7 +184,13 @@
+ 
+ 	if (preq.pfsyncr_syncdev[0] != '\0' ||
+ 	    preq.pfsyncr_syncpeer.s_addr != INADDR_PFSYNC_GROUP)
+-		printf("maxupd: %d\n", preq.pfsyncr_maxupdates);
++		printf("maxupd: %d ", preq.pfsyncr_maxupdates);
++
++	if (preq.pfsyncr_syncdev[0] != '\0' ||
++	    preq.pfsyncr_syncpeer.s_addr != INADDR_PFSYNC_GROUP)
++		printf("syncok: %d", preq.pfsyncr_sync_ok);
++
++	printf("\n");
+ }
+ 
+ static struct cmd pfsync_cmds[] = {
+Index: sys/contrib/pf/net/if_pfsync.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/if_pfsync.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_pfsync.c
+--- sys/contrib/pf/net/if_pfsync.c	11 Jul 2011 19:04:00 -0000	1.1.1.1
++++ sys/contrib/pf/net/if_pfsync.c	11 Jul 2011 19:22:53 -0000
+@@ -173,7 +173,7 @@
+ 
+ #ifdef __FreeBSD__
+ void	pfsync_ifdetach(void *, struct ifnet *);
+-void	pfsync_senddef(void *, int);
++//void	pfsync_senddef(void *, int);
+ 
+ /* XXX: ugly */
+ #define	betoh64		(unsigned long long)be64toh
+@@ -242,11 +242,13 @@
+ 		return (ENOSPC);
+ 	}
+ 
++#if 0
+ 	pfsyncif->sc_ifq.ifq_maxlen = ifqmaxlen;
+ 	mtx_init(&pfsyncif->sc_ifq.ifq_mtx, ifp->if_xname,
+ 	    "pfsync send queue", MTX_DEF);
+ 	TASK_INIT(&pfsyncif->sc_send_task, 0, pfsync_senddef, pfsyncif);
+ #endif
++#endif
+ 	pfsyncif->sc_mbuf = NULL;
+ 	pfsyncif->sc_mbuf_net = NULL;
+ #ifdef PFSYNC_TDB
+@@ -1144,6 +1146,7 @@
+ 			    sc->sc_sync_ifp->if_xname, IFNAMSIZ);
+ 		pfsyncr.pfsyncr_syncpeer = sc->sc_sync_peer;
+ 		pfsyncr.pfsyncr_maxupdates = sc->sc_maxupdates;
++		pfsyncr.pfsyncr_sync_ok = pfsync_sync_ok;
+ 		if ((error = copyout(&pfsyncr, ifr->ifr_data, sizeof(pfsyncr))))
+ 			return (error);
+ 		break;
+@@ -2058,11 +2061,12 @@
+ 
+ 		pfsyncstats.pfsyncs_opackets++;
+ 
+-#ifdef __FreeBSD__
++#if 0
+ 		if (!IF_HANDOFF(&sc->sc_ifq, m, NULL))
+ 			pfsyncstats.pfsyncs_oerrors++;
+ 		taskqueue_enqueue(taskqueue_thread, &pfsyncif->sc_send_task);
+ #else
++		m->m_flags |= M_SKIP_FIREWALL;
+ 		if (ip_output(m, NULL, NULL, IP_RAWOUTPUT, &sc->sc_imo, NULL))
+ 			pfsyncstats.pfsyncs_oerrors++;
+ #endif
+@@ -2274,6 +2278,7 @@
+ 	PF_UNLOCK();
+ }
+ 
++#if 0
+ void
+ pfsync_senddef(void *arg, __unused int pending)
+ {
+@@ -2294,6 +2299,7 @@
+ 			pfsyncstats.pfsyncs_oerrors++;
+ 	}
+ }
++#endif
+ 
+ static int
+ pfsync_modevent(module_t mod, int type, void *data)
+Index: sys/contrib/pf/net/if_pfsync.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/if_pfsync.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_pfsync.h
+--- sys/contrib/pf/net/if_pfsync.h	11 Jul 2011 19:04:00 -0000	1.1.1.1
++++ sys/contrib/pf/net/if_pfsync.h	11 Jul 2011 19:26:27 -0000
+@@ -193,7 +193,7 @@
+ #ifdef PFSYNC_TDB
+     	struct mbuf		*sc_mbuf_tdb;	/* dito for TDB updates */
+ #endif
+-#ifdef __FreeBSD__
++#if 0
+ 	struct ifqueue		 sc_ifq;
+ 	struct task		 sc_send_task;
+ #endif
+@@ -277,6 +277,7 @@
+ 	struct in_addr	 pfsyncr_syncpeer;
+ 	int		 pfsyncr_maxupdates;
+ 	int		 pfsyncr_authlevel;
++	int		 pfsyncr_sync_ok;
+ };
+ 
+ #ifdef __FreeBSD__
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.10
+diff -u -r1.10 pf.c
+--- sys/contrib/pf/net/pf.c	11 Jul 2011 19:17:30 -0000	1.10
++++ sys/contrib/pf/net/pf.c	11 Jul 2011 19:22:27 -0000
+@@ -7346,33 +7346,32 @@
+         u_int8_t		 divflags = 0;
+ 	int			 loopedfrom = 0;
+ 
+-	PF_LOCK();
+-#endif
+-	if (!pf_status.running)
+-#ifdef __FreeBSD__
+-	{
+-		PF_UNLOCK();
+-#endif
++	if (m->m_flags & M_SKIP_FIREWALL)
+ 		return (PF_PASS);
+-#ifdef __FreeBSD__
+-	}
+-#endif
+ 
++#endif
+ 	memset(&pd, 0, sizeof(pd));
+ 	if ((pd.pf_mtag = pf_get_mtag(m)) == NULL) {
+-#ifdef __FreeBSD__
+-		PF_UNLOCK();
+-#endif
+ 		DPFPRINTF(PF_DEBUG_URGENT,
+ 		    ("pf_test: pf_get_mtag returned NULL\n"));
+ 		return (PF_DROP);
+ 	}
++
++#ifdef __FreeBSD__
++	PF_LOCK();
++#endif
++
++	if (!pf_status.running)
+ #ifdef __FreeBSD__
+-	if (m->m_flags & M_SKIP_FIREWALL) {
++	{
+ 		PF_UNLOCK();
++#endif
+ 		return (PF_PASS);
++#ifdef __FreeBSD__
+ 	}
+-#else
++#endif
++
++#if 0
+ 	if (pd.pf_mtag->flags & PF_TAG_GENERATED)
+ 		return (PF_PASS);
+ #endif
