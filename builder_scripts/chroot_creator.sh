@@ -134,7 +134,7 @@ echo ">>> Building distribution with NO_CLEAN=yes..."
 make distribution -j${CPUS} \
 	DESTDIR=$BUILDER_CHROOTDIR NO_CLEAN=yes >/dev/null
 mount -t devfs devfs $BUILDER_CHROOTDIR/dev
-echo <<EOF >>/etc/rc.local
+cat <<EOF >>/etc/rc.local
 if [ -d $BUILDER_CHROOTDIR/dev ]; then
 	mount -t devfs devfs $BUILDER_CHROOTDIR/dev
 fi
