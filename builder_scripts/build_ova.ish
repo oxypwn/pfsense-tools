@@ -138,6 +138,8 @@ if [ "$1" = "" ]; then
 
 	echo ">>> Searching for packages..."
 	set +e # grep could fail
+	rm /tmp/pfspackages 2>/dev/null
+	touch /tmp/pfspackages
 	if [ "$PFSPKGFILE" = "" ]; then
 		echo "PFSPKGFILE is not defined.  Setting."
 		PFSPKGFILE=/tmp/pfspackages
