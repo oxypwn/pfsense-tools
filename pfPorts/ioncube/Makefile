@@ -53,9 +53,9 @@ PHP_INSTVER=	5.2
 do-install:
 	@${MKDIR} ${PREFIX}/lib/php/${PHP_EXT_DIR}/ioncube/
 	${INSTALL_DATA} ${WRKDIR}/ioncube/ioncube_loader_fre_${PHP_INSTVER}.so \
-		${PREFIX}/lib/php/${PHP_EXT_DIR}/ioncube/ioncube_loader.so
+		${PREFIX}/lib/php/${PHP_EXT_DIR}/ioncube/ioncube_loader_fre_${PHP_INSTVER}.so
 	${INSTALL_DATA} ${WRKDIR}/ioncube/ioncube_loader_fre_${PHP_INSTVER}_ts.so \
-		${PREFIX}/lib/php/${PHP_EXT_DIR}/ioncube/ioncube_loader_ts.so
+		${PREFIX}/lib/php/${PHP_EXT_DIR}/ioncube/ioncube_loader_fre_${PHP_INSTVER}_ts.so
 post-install:
 	@${CAT} ${PKGMESSAGE}
 

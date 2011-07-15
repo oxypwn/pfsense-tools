@@ -141,7 +141,7 @@ clog						/usr/ports/sysutils/clog					/usr/sbin/clog
 pecl-ssh2					/usr/ports/security/pecl-ssh2				/usr/local/lib/php/20060613/ssh2.so
 autoconf-wrapper			/usr/ports/devel/autoconf-wrapper			/usr/local/bin/autoconf-wrapper
 rsync						/usr/ports/net/rsync						/usr/local/bin/rsync
-ioncube						/usr/ports/devel/ioncube					/usr/local/lib/php/20060613/ioncube/ioncube_loader_ts.so"
+ioncube						/usr/ports/devel/ioncube					/usr/local/lib/php/20060613/ioncube/ioncube_loader_fre_5.2.so"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
