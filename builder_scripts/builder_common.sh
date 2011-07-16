@@ -3438,6 +3438,8 @@ setup_deviso_specific_items() {
 	mkdir -p $PFSENSEBASEDIR/home/pfsense/installer
 	mkdir -p $PFSENSEBASEDIR/usr/pfSensesrc
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
+	CPUS=`expr $DCPUS '*' 2`
+	echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 	if [ "$ARCH" = "mips" ]; then
 		echo "WITHOUT_PERL_MALLOC=1" >> $PFSENSEBASEDIR/etc/make.conf
 		echo "TARGET_BIG_ENDIAN=yes" >> $PFSENSEBASEDIR/etc/make.conf
