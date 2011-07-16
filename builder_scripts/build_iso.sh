@@ -135,9 +135,9 @@ if [ "$PFSPKGFILE" = "" ]; then
 fi
 export PKGFILE=${PFSPKGFILE}
 rm -f $PFSPKGFILE
-(cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
-(cd /var/db/pkg && ls | grep grub) >> $PFSPKGFILE
-(cd /var/db/pkg && ls | grep lua) >> $PFSPKGFILE
+(pkg_info | grep bsdinstaller) > $PFSPKGFILE
+(pkg_info | grep grub) >> $PFSPKGFILE
+(pkg_info | grep lua) >> $PFSPKGFILE
 set -e
 freesbie_make pkginstall
 unset PKGFILE
