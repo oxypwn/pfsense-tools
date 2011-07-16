@@ -3533,7 +3533,6 @@ install_pkg_install_ports() {
 	PFS_PKG_OLD="/usr/ports/packages/Old/"
 	mkdir -p ${PFS_PKG_OLD}
 	mkdir -p ${VAR_DB_PKG_TMP}
-	mv ${VAR_DB_PKG}/* ${VAR_DB_PKG} 2>/dev/null
 	# port build log files will be stored here
 	mkdir -p /tmp/pfPorts
 	# Make a backup of existing packages so we can figure out
@@ -3557,6 +3556,7 @@ install_pkg_install_ports() {
 	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
 	echo "done."
 	/bin/echo -n ">>> Installing built ports (packages) in chroot (${PFSENSEBASEDIR})..."
+	mv ${VAR_DB_PKG}/* ${VAR_DB_PKG} || true 2>/dev/null
 	cp ${BUILDER_SCRIPTS}/install_tmp_pkgs_in_chroot.sh $PFSENSEBASEDIR/pkg.sh
 	chmod a+rx $PFSENSEBASEDIR/pkg.sh
 	# chroot into staging area and pkg_add all of the packages
