@@ -3542,7 +3542,6 @@ install_pkg_install_ports() {
 	# on the system prior to invoking this build run.
 	mv ${PFS_PKG_ALL}/* ${VAR_DB_PKG_TMP}/ 2>/dev/null
 	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
-	set +e
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
 			echo "!!! Could not locate $PORTDIRPFS"
@@ -3558,24 +3557,24 @@ install_pkg_install_ports() {
 	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
 	echo "done."
 	/bin/echo -n ">>> Installing built ports (packages) in chroot (${PFSENSEBASEDIR})..."
-	echo "set +e" > $PFSENSEBASEDIR/pkg.sh
-	echo "rm /tmp/pfpkg_install.txt 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
-	echo "cd /tmp/pkg && ls -lUtr /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>>/tmp/pfpkg_install.txt" >> $PFSENSEBASEDIR/pkg.sh
-	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
-	chroot $PFSENSEBASEDIR sh /pkg.sh 2>&1 >/tmp/install_pkg_install_ports.txt
+	echo "#!/bin/sh" > $PFSENSEBASEDIR/pkg.sh
+	echo "cd /tmp/pkg" >> $PFSENSEBASEDIR/pkg.sh
+	echo "FILELIST=ls -lUtr" >> $PFSENSEBASEDIR/pkg.sh
+	echo "for FILE in \$FILELIST; do" >> $PFSENSEBASEDIR/pkg.sh
+	echo "	pkg_add \$FILE || true" >> $PFSENSEBASEDIR/pkg.sh
+	echo "done" >> $PFSENSEBASEDIR/pkg.sh
+	chmod a+rx $PFSENSEBASEDIR/pkg.sh
+	# chroot into staging area and pkg_add all of the packages
+	chroot $PFSENSEBASEDIR /pkg.sh || true 2>&1 >/tmp/install_pkg_install_ports.txt
 	# Restore the previously backed up items
-	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
-	mv ${VAR_DB_PKG_TMP}/* ${VAR_DB_PKG} 2>/dev/null
-	rm -rf $PFSENSEBASEDIR/tmp/pkg
-	rm -rf $PFSENSEBASEDIR/tmp/pkg.sh	
+	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL} || true 2>/dev/null
+	mv ${VAR_DB_PKG_TMP}/* ${VAR_DB_PKG} || true 2>/dev/null
+	rm -rf $PFSENSEBASEDIR/tmp/pkg*
 	echo "done!"
 	TARGET_ARCH=${OLDTGTARCH}
-	rm /tmp/install_pkg_install_ports.pkgs.txt 2>/dev/null
-	set -e
 }
 
 install_pkg_install_ports_build() {
-	set +e
 	PORTDIRPFSA="$1"
 	PORTNAME="`basename $PORTDIRPFSA`"
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
@@ -3606,7 +3605,6 @@ install_pkg_install_ports_build() {
 		fi
 	fi
 	touch $ALREADYBUILT/$PORTNAME
-	set -e
 }
 
 # Mildly based on FreeSBIE
