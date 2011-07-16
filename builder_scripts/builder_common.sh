@@ -3557,12 +3557,7 @@ install_pkg_install_ports() {
 	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
 	echo "done."
 	/bin/echo -n ">>> Installing built ports (packages) in chroot (${PFSENSEBASEDIR})..."
-	echo "#!/bin/sh" > $PFSENSEBASEDIR/pkg.sh
-	echo "cd /tmp/pkg" >> $PFSENSEBASEDIR/pkg.sh
-	echo "FILELIST=ls -lUtr" >> $PFSENSEBASEDIR/pkg.sh
-	echo "for FILE in \$FILELIST; do" >> $PFSENSEBASEDIR/pkg.sh
-	echo "	pkg_add \$FILE || true" >> $PFSENSEBASEDIR/pkg.sh
-	echo "done" >> $PFSENSEBASEDIR/pkg.sh
+	cp ${BUILDER_SCRIPTS}/install_tmp_pkgs_in_chroot.sh $PFSENSEBASEDIR/pkg.sh
 	chmod a+rx $PFSENSEBASEDIR/pkg.sh
 	# chroot into staging area and pkg_add all of the packages
 	chroot $PFSENSEBASEDIR /pkg.sh || true 2>&1 >/tmp/install_pkg_install_ports.txt
