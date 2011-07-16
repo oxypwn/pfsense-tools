@@ -1,4 +1,4 @@
-Bu#!/bin/sh
+#!/bin/sh
 #
 #  builder_common.sh
 #  Copyright (C) 2004-2011 Scott Ullrich
@@ -119,7 +119,7 @@ print_error_pfS() {
 	echo
 	echo "Press enter to continue."
     read ans
-    kill $$ # NOTE: kill $$ won't work.
+    kill $$
 }
 
 # This routine will verify that the kernel has been
@@ -3542,8 +3542,7 @@ install_pkg_install_ports() {
 	# on the system prior to invoking this build run.
 	mv ${PFS_PKG_ALL}/* ${VAR_DB_PKG_TMP}/ 2>/dev/null
 	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
-	set -e
-	set -x
+	set +e
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
 			echo "!!! Could not locate $PORTDIRPFS"
@@ -3563,7 +3562,7 @@ install_pkg_install_ports() {
 	echo "rm /tmp/pfpkg_install.txt 2>/dev/null" >> $PFSENSEBASEDIR/pkg.sh
 	echo "cd /tmp/pkg && ls -lUtr /tmp/pkg/ | sort +5 | awk '{ print \$9 }' | xargs pkg_add 2>>/tmp/pfpkg_install.txt" >> $PFSENSEBASEDIR/pkg.sh
 	echo "set -e" >> $PFSENSEBASEDIR/pkg.sh
-	chroot $PFSENSEBASEDIR sh /pkg.sh
+	chroot $PFSENSEBASEDIR sh /pkg.sh 2>&1 >/tmp/install_pkg_install_ports.txt
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
 	mv ${VAR_DB_PKG_TMP}/* ${VAR_DB_PKG} 2>/dev/null
@@ -3572,11 +3571,11 @@ install_pkg_install_ports() {
 	echo "done!"
 	TARGET_ARCH=${OLDTGTARCH}
 	rm /tmp/install_pkg_install_ports.pkgs.txt 2>/dev/null
+	set -e
 }
 
 install_pkg_install_ports_build() {
-	set -e
-	set -x
+	set +e
 	PORTDIRPFSA="$1"
 	PORTNAME="`basename $PORTDIRPFSA`"
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
@@ -3607,6 +3606,7 @@ install_pkg_install_ports_build() {
 		fi
 	fi
 	touch $ALREADYBUILT/$PORTNAME
+	set -e
 }
 
 # Mildly based on FreeSBIE
