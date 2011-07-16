@@ -1,4 +1,4 @@
-#!/bin/sh
+Bu#!/bin/sh
 #
 #  builder_common.sh
 #  Copyright (C) 2004-2011 Scott Ullrich
@@ -3528,16 +3528,22 @@ install_pkg_install_ports() {
 	unset TARGET_ARCH
 	echo -n ">>> Building ports: "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
+	VAR_DB_PKG_TMP="/tmp/vardbpkg/"
+	VAR_DB_PKG="/var/db/pkg/"
 	PFS_PKG_OLD="/usr/ports/packages/Old/"
 	mkdir -p ${PFS_PKG_OLD}
+	mkdir -p ${VAR_DB_PKG_TMP}
+	mv ${VAR_DB_PKG}/* ${VAR_DB_PKG} 2>/dev/null
 	# port build log files will be stored here
 	mkdir -p /tmp/pfPorts
 	# Make a backup of existing packages so we can figure out
 	# which packages need to be installed in pfsense-fs chroot.
 	# otherwise you will get a bunch of extra pkgs that where
 	# on the system prior to invoking this build run.
-	mv ${PFS_PKG_ALL}/* ${PFS_PKG_OLD}/ 2>/dev/null
+	mv ${PFS_PKG_ALL}/* ${VAR_DB_PKG_TMP}/ 2>/dev/null
 	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
+	set -e
+	set -x
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
 			echo "!!! Could not locate $PORTDIRPFS"
@@ -3560,6 +3566,7 @@ install_pkg_install_ports() {
 	chroot $PFSENSEBASEDIR sh /pkg.sh
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL}/ 2>/dev/null
+	mv ${VAR_DB_PKG_TMP}/* ${VAR_DB_PKG} 2>/dev/null
 	rm -rf $PFSENSEBASEDIR/tmp/pkg
 	rm -rf $PFSENSEBASEDIR/tmp/pkg.sh	
 	echo "done!"
@@ -3568,6 +3575,8 @@ install_pkg_install_ports() {
 }
 
 install_pkg_install_ports_build() {
+	set -e
+	set -x
 	PORTDIRPFSA="$1"
 	PORTNAME="`basename $PORTDIRPFSA`"
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
