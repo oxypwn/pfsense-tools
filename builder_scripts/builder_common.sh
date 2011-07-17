@@ -3591,8 +3591,11 @@ install_pkg_install_ports_build() {
 			return;
 		fi
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null 2>&1 >/dev/null
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 >/dev/null
+		if [ -d $BUILDER_TOOLS/${PORTNAME} ]; then
+			cp -R $BUILDER_TOOLS/${PORTNAME}/* $PORTDIRPFSA/
+		fi
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null || true 2>&1 >/dev/null
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null || true 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
 			echo
 			echo
