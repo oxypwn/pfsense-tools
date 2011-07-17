@@ -3802,5 +3802,6 @@ launch() {
 
 finish() {
 	echo ">>> Operation $0 has ended at `date`"
+	killall -9 check_reload_status 2>/dev/null
 }
 
