@@ -61,8 +61,8 @@ fi
 export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION"
 export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION.install"
 
-# Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
-export EXTRA="${EXTRA:-} rootmfs etcmfs"
+# Add etcmfs and rootmfs to the EXTRAPLUGINS plugins used by freesbie2
+export EXTRAPLUGINS="${EXTRAPLUGINS:-} rootmfs etcmfs"
 
 if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."

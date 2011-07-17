@@ -75,8 +75,8 @@ else
 	export SRC_CONF_INSTALL="/dev/null"
 fi
 
-# Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
-export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs"
+# Add etcmfs and rootmfs to the EXTRAPLUGINS plugins used by freesbie2
+export EXTRAPLUGINS="${EXTRAPLUGINS:-} rootmfs varmfs etcmfs"
 
 # Clean up items that should be cleaned each run
 freesbie_clean_each_run

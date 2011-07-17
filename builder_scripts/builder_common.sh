@@ -1715,7 +1715,7 @@ print_flags() {
 	printf "             pfSense version: %s\n" $FREEBSD_VERSION
 	printf "              FreeBSD branch: %s\n" $FREEBSD_BRANCH
 	printf "                 pfSense Tag: %s\n" $PFSENSETAG
-	printf "                       EXTRA: %s\n" $EXTRA
+	printf "                EXTRAPLUGINS: %s\n" $EXTRAPLUGINS
 	printf "            MODULES_OVERRIDE: %s\n" $MODULES_OVERRIDE
 	printf "              Git Repository: %s\n" $GIT_REPO
 	printf "                  Git Branch: %s\n" $GIT_BRANCH
@@ -3645,7 +3645,6 @@ buildworld() {
 	fi
 	echo ">>> Building world for ${ARCH} architecture..."
 	cd $SRCDIR
-	unset EXTRA
 	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld" > /tmp/freesbie_buildworld_cmd.txt
 	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld || print_error_pfS;) | egrep '^>>>'
@@ -3708,7 +3707,6 @@ buildkernel() {
 	if [ "$DTRACE" != "" ]; then
 		echo ">>> DTRACE:      ${DTRACE}"
 	fi
-	unset EXTRA
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} MODULES_OVERRIDE=${MODULES_OVERRIDE:-} TARGET_ARCH=${ARCH} ${DTRACE}"
 	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel" > /tmp/freesbie_buildkernel_cmd.txt
 	cd $SRCDIR

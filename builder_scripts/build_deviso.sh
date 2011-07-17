@@ -57,8 +57,8 @@ freesbie_clean_each_run
 # Output build flags
 print_flags
 
-# Add etcmfs and rootmfs to the EXTRA plugins used by freesbie2
-export EXTRA="${EXTRA:-} rootmfs varmfs etcmfs customroot"
+# Add etcmfs and rootmfs to the EXTRAPLUGINS plugins used by freesbie2
+export EXTRAPLUGINS="${EXTRAPLUGINS:-} rootmfs varmfs etcmfs customroot"
 
 export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.$FREEBSD_VERSION"
 

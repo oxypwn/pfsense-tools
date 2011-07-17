@@ -104,7 +104,7 @@ else
 	fi
 fi
 
-export EXTRA=""
+export EXTRAPLUGINS=""
 
 # Clean up items that should be cleaned each run
 freesbie_clean_each_run
