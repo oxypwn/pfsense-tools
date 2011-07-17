@@ -3438,6 +3438,7 @@ setup_deviso_specific_items() {
 	mkdir -p $PFSENSEBASEDIR/home/pfsense/installer
 	mkdir -p $PFSENSEBASEDIR/usr/pfSensesrc
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
+	DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
 	CPUS=`expr $DCPUS '*' 2`
 	echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 	if [ "$ARCH" = "mips" ]; then
