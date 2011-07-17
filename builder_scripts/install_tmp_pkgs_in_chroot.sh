@@ -2,5 +2,5 @@
 
 FILELIST=`cd /tmp/pkg && ls -Utr`
 for FILE in $FILELIST; do
-	pkg_add $FILE || true
+	cd /tmp/pkg && pkg_add $FILE || true
 done
