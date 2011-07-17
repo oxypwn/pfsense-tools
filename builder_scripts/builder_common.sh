@@ -3592,7 +3592,7 @@ install_pkg_install_ports_build() {
 		fi
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 		if [ -d $BUILDER_TOOLS/${PORTNAME} ]; then
-			cp -R $BUILDER_TOOLS/${PORTNAME}/* $PORTDIRPFSA/
+			cp -R $BUILDER_TOOLS/${PORTNAME}/* $PORTDIRPFSA/${PORTNAME}/
 		fi
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null || true 2>&1 >/dev/null
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null || true 2>&1 >/dev/null
