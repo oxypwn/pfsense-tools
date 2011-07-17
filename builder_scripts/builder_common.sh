@@ -3559,7 +3559,7 @@ install_pkg_install_ports() {
 	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
 	echo "done."
 	/bin/echo -n ">>> Installing built ports (packages) in chroot (${PFSENSEBASEDIR})..."
-	mv ${VAR_DB_PKG}/* ${VAR_DB_PKG} || true 2>/dev/null
+	mv ${VAR_DB_PKG}/* ${VAR_DB_PKG_TMP} || true 2>/dev/null
 	cp ${BUILDER_SCRIPTS}/install_tmp_pkgs_in_chroot.sh $PFSENSEBASEDIR/pkg.sh
 	chmod a+rx $PFSENSEBASEDIR/pkg.sh
 	# chroot into staging area and pkg_add all of the packages
