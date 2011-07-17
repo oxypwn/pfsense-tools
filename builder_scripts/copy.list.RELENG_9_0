@@ -16,6 +16,7 @@ lib/geom/geom_part.so
 lib/geom/geom_label.so
 lib/geom/geom_raid3.so
 sbin/gmirror
+usr/bin/install-info
 usr/bin/tip
 usr/lib/libstdc++.so.6
 usr/bin/egrep
