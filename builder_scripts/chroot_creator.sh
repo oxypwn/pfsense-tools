@@ -91,6 +91,8 @@ fi
 # Install git on host
 if [ ! -f /usr/local/bin/git ]; then
 	echo BATCH="YES" >> /etc/make.conf
+	DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
+	CPUS=`expr $DCPUS '*' 2`
 	echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 	cd /usr/ports/devel/git && make install clean
 fi
