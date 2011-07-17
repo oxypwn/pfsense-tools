@@ -3542,7 +3542,7 @@ install_pkg_install_ports() {
 	# which packages need to be installed in pfsense-fs chroot.
 	# otherwise you will get a bunch of extra pkgs that where
 	# on the system prior to invoking this build run.
-	mv ${PFS_PKG_ALL}/* ${VAR_DB_PKG_TMP}/ 2>/dev/null
+	mv ${PFS_PKG_ALL}/* ${PFS_PKG_OLD}/ 2>/dev/null
 	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
 		if [ ! -d $PORTDIRPFS ]; then
