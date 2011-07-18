@@ -1316,7 +1316,7 @@ test_php_install() {
 
 	if [ -f "$PFSENSEBASEDIR/etc/rc.php_ini_setup" ]; then
 		mkdir -p $PFSENSEBASEDIR/usr/local/lib/ $PFSENSEBASEDIR/usr/local/etc/
-		chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup
+		chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup 2>/dev/null
 	fi
 
 	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
