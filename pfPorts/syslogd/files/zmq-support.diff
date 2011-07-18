@@ -10,9 +10,17 @@ diff -urN Makefile Makefile
 +
  .include <bsd.prog.mk>
 diff -urN syslogd.c syslogd.c
---- syslogd.c	2011-06-29 14:24:38.451232902 +1200
-+++ syslogd.c	2011-06-29 14:25:14.620192770 +1200
-@@ -121,6 +121,10 @@
+--- syslogd.c	2011-07-19 07:41:13.646453076 +1200
++++ syslogd.c	2011-07-19 07:41:26.460496953 +1200
+@@ -89,6 +89,7 @@
+ #include <sys/syslimits.h>
+ #include <sys/types.h>
+ #include <sys/mman.h>
++#include <sys/sysctl.h>
+ 
+ #include <netinet/in.h>
+ #include <netdb.h>
+@@ -121,6 +122,10 @@
  #define SYSLOG_NAMES
  #include <sys/syslog.h>
  
@@ -23,7 +31,7 @@ diff -urN syslogd.c syslogd.c
  const char	*ConfFile = _PATH_LOGCONF;
  const char	*PidFile = _PATH_LOGPID;
  const char	ctty[] = _PATH_CONSOLE;
-@@ -194,7 +198,13 @@
+@@ -194,7 +199,13 @@
  			struct clog_footer *f_footer;
  			size_t	f_size;
  		} f_ring;
@@ -37,7 +45,7 @@ diff -urN syslogd.c syslogd.c
  	char	f_prevline[MAXSVLINE];		/* last message logged */
  	char	f_lasttime[16];			/* time of last occurrence */
  	char	f_prevhost[MAXHOSTNAMELEN];	/* host from which recd. */
-@@ -205,6 +215,7 @@
+@@ -205,6 +216,7 @@
  	int	f_flags;			/* file-specific flags */
  #define	FFLAG_SYNC 0x01
  #define	FFLAG_NEEDSYNC	0x02
@@ -45,7 +53,7 @@ diff -urN syslogd.c syslogd.c
  };
  
  /*
-@@ -273,11 +284,12 @@
+@@ -273,11 +285,12 @@
  #define F_WALL		6		/* everyone logged on */
  #define F_PIPE		7		/* pipe to program */
  #define F_RING		8		/* ring buffer (circular log) */
@@ -60,7 +68,15 @@ diff -urN syslogd.c syslogd.c
  };
  
  static struct filed *Files;	/* Log files that we write to */
-@@ -319,6 +331,10 @@
+@@ -286,6 +299,7 @@
+ static int	Debug;		/* debug flag */
+ static int	resolve = 1;	/* resolve hostname */
+ static char	LocalHostName[MAXHOSTNAMELEN];	/* our hostname */
++static char	LocalHostUUID[64];		/* our UUID */
+ static const char *LocalDomain;	/* our local domain name */
+ static int	*finet;		/* Internet datagram socket */
+ static int	fklog = -1;	/* /dev/klog */
+@@ -319,6 +333,10 @@
  
  volatile sig_atomic_t MarkSet, WantDie;
  
@@ -71,7 +87,7 @@ diff -urN syslogd.c syslogd.c
  static int	allowaddr(char *);
  static void	cfline(const char *, struct filed *,
  		    const char *, const char *);
-@@ -511,6 +527,13 @@
+@@ -511,6 +529,13 @@
  	if (NumAllowed)
  		endservent();
  
@@ -85,7 +101,7 @@ diff -urN syslogd.c syslogd.c
  	consfile.f_type = F_CONSOLE;
  	(void)strlcpy(consfile.f_un.f_fname, ctty + sizeof _PATH_DEV - 1,
  	    sizeof(consfile.f_un.f_fname));
-@@ -1359,6 +1382,39 @@
+@@ -1359,6 +1384,39 @@
  		v->iov_len = 2;
  		wallmsg(f, iov, IOV_SIZE);
  		break;
@@ -99,17 +115,17 @@ diff -urN syslogd.c syslogd.c
 +		/* check for local vs remote messages */
 +		if (strcasecmp(f->f_prevhost, LocalHostName))
 +			l = snprintf(line, sizeof line - 1,
-+			    "{  \"pri\" : %d, \"time\": \"%.15s\", \"msg\" : \"%s\","
-+			    " \"hostname\":  \"%s\", \"remote\": \"%s\" }",
++			    "{\"pri\":%d,\"time\":\"%.15s\",\"msg\":\"%s\","
++			    "\"hostname\":\"%s\",\"uuid\":\"%s\",\"remote\":\"%s\"}",
 +			    f->f_prevpri, (char *)iov[0].iov_base,
-+			    (char *)iov[5].iov_base, LocalHostName,
++			    (char *)iov[5].iov_base, LocalHostName, LocalHostUUID,
 +			    f->f_prevhost);
 +		else
 +			l = snprintf(line, sizeof line - 1,
-+			    "{ \"pri\" : %d, \"time\": \"%.15s\", \"msg\" : \"%s\","
-+			    " \"hostname\":  \"%s\" }",
++			    "{\"pri\":%d,\"time\":\"%.15s\",\"msg\":\"%s\","
++			    "\"hostname\":\"%s\",\"uuid\":\"%s\"}",
 +			    f->f_prevpri, (char *)iov[0].iov_base,
-+			    (char *)iov[5].iov_base, LocalHostName);
++			    (char *)iov[5].iov_base, LocalHostName, LocalHostUUID);
 +		if (l < 0)
 +			l = 0;
 +		else if (l > MAXLINE)
@@ -125,7 +141,7 @@ diff -urN syslogd.c syslogd.c
  	}
  	f->f_prevcount = 0;
  	free(wmsg);
-@@ -1550,6 +1606,9 @@
+@@ -1550,6 +1608,9 @@
  	}
  	STAILQ_FOREACH(fx, &funixes, next)
  		(void)unlink(fx->name);
@@ -135,7 +151,26 @@ diff -urN syslogd.c syslogd.c
  	pidfile_remove(pfh);
  
  	exit(1);
-@@ -1605,6 +1664,12 @@
+@@ -1571,6 +1632,7 @@
+ 	char oldLocalHostName[MAXHOSTNAMELEN];
+ 	char hostMsg[2*MAXHOSTNAMELEN+40];
+ 	char bootfileMsg[LINE_MAX];
++	size_t len;
+ 
+ 	dprintf("init\n");
+ 
+@@ -1588,6 +1650,10 @@
+ 	} else {
+ 		LocalDomain = "";
+ 	}
++	/* grab the host UUID */
++	len = sizeof(LocalHostUUID) - 1;
++	sysctlbyname("kern.hostuuid", LocalHostUUID, &len, NULL, 0);
++	LocalHostUUID[len] = '\0';
+ 
+ 	/*
+ 	 *  Close all open log files.
+@@ -1605,6 +1671,12 @@
  		case F_TTY:
  			(void)close(f->f_file);
  			break;
@@ -148,7 +183,7 @@ diff -urN syslogd.c syslogd.c
  		case F_PIPE:
  			if (f->f_un.f_pipe.f_pid > 0) {
  				(void)close(f->f_file);
-@@ -1726,6 +1791,47 @@
+@@ -1726,6 +1798,47 @@
  	/* close the configuration file */
  	(void)fclose(cf);
  
@@ -196,7 +231,7 @@ diff -urN syslogd.c syslogd.c
  	Initialized = 1;
  
  	if (Debug) {
-@@ -1770,6 +1876,11 @@
+@@ -1770,6 +1883,11 @@
  				for (i = 0; i < MAXUNAMES && *f->f_un.f_uname[i]; i++)
  					printf("%s, ", f->f_un.f_uname[i]);
  				break;
@@ -208,7 +243,7 @@ diff -urN syslogd.c syslogd.c
  			}
  			if (f->f_program)
  				printf(" (%s)", f->f_program);
-@@ -2065,6 +2176,14 @@
+@@ -2065,6 +2183,14 @@
  		f->f_type = F_WALL;
  		break;
  
