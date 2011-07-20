@@ -1,3 +1,5 @@
+
+include         GENERIC
 options		KDB
 nooptions         KDB_TRACE 
 options		DDB                     # Support DDB.
@@ -7,9 +9,9 @@ nooptions		INVARIANT_SUPPORT
 nooptions		WITNESS
 nooptions		WITNESS_SKIPSPIN
 
+nomakeoptions	DEBUG=-g
 #makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
 
-include         GENERIC
 ident           pfSense8_SMP
 
 nooptions		SCHED_4BSD
