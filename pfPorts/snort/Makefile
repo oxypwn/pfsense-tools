@@ -35,8 +35,8 @@ OPTIONS=	IPV6 "Enable IPv6 support" on \
 		ODBC "Enable ODBC support" off \
 		POSTGRESQL "Enable PostgreSQL support" off \
 		PRELUDE "Enable Prelude NIDS integration" off \
-		SNORTSAM "Unofficial Snortsam Patch" off \
-		PFSENSE "Enable Pfsense Options" off
+		SNORTSAM "Unofficial Snortsam Patch" on \
+		PFSENSE "Enable Pfsense Options" on
 
 .include <bsd.port.options.mk>
 

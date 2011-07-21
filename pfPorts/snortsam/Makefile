@@ -14,7 +14,7 @@ DISTNAME=	${PORTNAME}-src-${PORTVERSION}
 MAINTAINER=	urisso@bsd.com.br
 COMMENT=	SnortSam is a output plugin for Snort
 
-OPTIONS=	IPFW	"checks if configured tables are available" on \
+OPTIONS=	IPFW	"checks if configured tables are available" off \
 		SAMTOOL "install samtool" on \
 		DEBUG	"build with verbose messages" off
 
