@@ -436,7 +436,7 @@ main(int argc, char **argv)
                                 (pkt)->fp_saddr.sin_port = (flow)->if_fwrule;   \
 				if (debug > 0) {				\
 					syslog(LOG_WARNING, "Found Protocol: %s (rule %s)", \
-						(proto)->p_name, ((proto)->p_fwrule & DIVERT_ACTION) ? "action block": \
+						(proto)->p_name, ((proto)->p_fwrule == DIVERT_ACTION) ? "action block": \
 						((proto)->p_fwrule & DIVERT_DNCOOKIE) ? "dnpipe" : \
 						((proto)->p_fwrule & DIVERT_ALTQ) ? "altq" : "tag"); \
 				}						\
@@ -915,7 +915,7 @@ read_config(const char *file)
 		proto->p_fwrule = rule;
 		fp->fp_inuse++;
 		syslog(LOG_NOTICE, "Loaded Protocol: %s (rule %s)",
-		    proto->p_name, (rule & DIVERT_ACTION) ? "action block": 
+		    proto->p_name, (rule == DIVERT_ACTION) ? "action block": 
 					(rule & DIVERT_DNCOOKIE) ? "dnpipe" : 
 					(rule & DIVERT_ALTQ) ? "altq" : "tag");
 		
