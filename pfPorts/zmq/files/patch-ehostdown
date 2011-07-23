@@ -1,0 +1,23 @@
+--- src/tcp_connecter.cpp
++++ src/tcp_connecter.cpp
+@@ -297,7 +297,8 @@
+         //  Networking problems are OK. No need to assert.
+         errno = err;
+         errno_assert (errno == ECONNREFUSED || errno == ECONNRESET ||
+-            errno == ETIMEDOUT || errno == EHOSTUNREACH);
++            errno == ETIMEDOUT || errno == EHOSTUNREACH ||
++            errno == ENETUNREACH || errno == EHOSTDOWN);
+ 
+         return retired_fd;
+     }
+--- src/tcp_socket.cpp
++++ src/tcp_socket.cpp
+@@ -217,7 +217,7 @@ int zmq::tcp_socket_t::read (void *data, int size)
+ 
+     //  Signalise peer failure.
+     if (nbytes == -1 && (errno == ECONNRESET || errno == ECONNREFUSED ||
+-          errno == ETIMEDOUT || errno == EHOSTUNREACH))
++          errno == ETIMEDOUT || errno == EHOSTUNREACH || errno == EHOSTDOWN))
+         return -1;
+ 
+     errno_assert (nbytes != -1);
