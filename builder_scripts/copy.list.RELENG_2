@@ -125,7 +125,8 @@ usr/local/lib/php/20060613/zlib.so
 usr/local/lib/php/20060613/uploadprogress.so
 usr/local/lib/php/20060613/xmlreader.so
 usr/local/lib/php/20060613/xmlwriter.so
-usr/local/lib/php/20060613/ioncube/ioncube_loader.so
+usr/local/lib/php/20060613/ioncube/ioncube_loader_fre_5.2.so
+usr/local/lib/php/20060613/ioncube/ioncube_loader_fre_5.2_ts.so
 usr/local/lib/php/extensions/no-debug-non-zts-20020429/xdebug.so
 usr/local/lib/libmhash.so.2
 usr/local/lib/olsrd_dyn_gw_plain.so.0.4
