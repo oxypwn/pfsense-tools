@@ -709,6 +709,7 @@ cust_overlay_host_binaries() {
 			if [ "$FILETYPE" -gt 0 ]; then
 				NEEDLIB=`ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`
 				NEEDEDLIBS="$NEEDEDLIBS $NEEDLIB" 
+				mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
 				cp /${TEMPFILE} ${PFSENSEBASEDIR}/${TEMPFILE}
 				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				if [ -d $CLONEDIR ]; then
