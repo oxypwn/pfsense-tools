@@ -992,10 +992,10 @@ diff -u -r1.5 pfvar.h
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
  	struct pf_state_scrub	*scrub;	/* state is scrubbed		*/
 -	u_int8_t	pad[3];
-+        u_int8_t        seqdiffoneway;  /* used on ftp modulation of sequencies for now */
++        u_int32_t        seqdiffoneway;  /* used on ftp modulation of sequencies for now */
 +#define SEQ_DIFF_NEGATIVE       0x01
 +        u_int8_t        seqflags;       /* Since we use unsigned types ... */
-+	u_int8_t	pad[1];
++	u_int8_t	pad[2];
  };
  
  TAILQ_HEAD(pf_state_queue, pf_state);
