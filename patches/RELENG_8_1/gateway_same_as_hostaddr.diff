@@ -1,0 +1,21 @@
+--- sys/netinet/in.c.old	2011-07-29 12:59:43.000000000 +0000
++++ sys/netinet/in.c	2011-07-29 13:00:53.000000000 +0000
+@@ -1381,6 +1381,18 @@
+ 
+ 	/* XXX rtalloc1 should take a const param */
+ 	rt = rtalloc1(__DECONST(struct sockaddr *, l3addr), 0, 0);
++
++	/*
++	 * If the gateway for an existing host route matches the target L3
++	 * address, allow for ARP to proceed.
++	 */
++	if (rt != NULL && (rt->rt_flags & (RTF_HOST|RTF_GATEWAY)) &&
++	    rt->rt_gateway->sa_family == AF_INET &&
++	    memcmp(rt->rt_gateway->sa_data, l3addr->sa_data, 4) == 0) {
++		RTFREE_LOCKED(rt);
++		return (0);
++	}
++
+ 	if (rt == NULL || (!(flags & LLE_PUB) &&
+ 			   ((rt->rt_flags & RTF_GATEWAY) || 
+ 			    (rt->rt_ifp != ifp)))) {
