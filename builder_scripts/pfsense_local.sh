@@ -309,5 +309,7 @@ export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/${PRO
 # Can call custom functions during build such as disable_lan_disable_dhcpd_enable_sshd
 export CUSTOM_CALL_SHELL_FUNCTION=${CUSTOM_CALL_SHELL_FUNCTION:-""}
 
+export BUILDER_AUTO_UPDATE_APPLY_PATCHES=${BUILDER_AUTO_UPDATE_APPLY_PATCHES:-"YES"}
+
 # This needs to be at the very end of the file.
 IFS=$OIFS
