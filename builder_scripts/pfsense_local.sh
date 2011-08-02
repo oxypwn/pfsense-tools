@@ -174,7 +174,7 @@ else
 	export MAKEJ_WORLD=${MAKEJ_WORLD:-""}
 	export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
 fi
-export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf puc"}
+export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf"}
 export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 export NOEXTRA_DEVICES=${NOEXTRA_DEVICES:-}
 export EXTRA_OPTIONS=${EXTRA_OPTIONS:-}
