@@ -75,7 +75,11 @@ export KERNELCONF="${BUILDER_SCRIPTS}/conf/pfSense_Dev.$FREEBSD_VERSION"
 rebuild_and_install_bsdinstaller
 
 # Update FreeBSD sources and install custom patches
-update_freebsd_sources_and_apply_patches
+if [ "$BUILDER_AUTO_UPDATE_APPLY_PATCHES" = "YES" ]; then
+	update_freebsd_sources_and_apply_patches
+else
+	echo ">>> BUILDER_AUTO_UPDATE_APPLY_PATCHES is set to no.  Skipping builder update and patches."
+fi
 
 # Allow old CVS_CO_DIR to be deleted later
 if [ -d $CVS_CO_DIR ]; then
