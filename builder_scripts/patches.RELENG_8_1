@@ -103,5 +103,4 @@
 ~~if_pfsync.diff~
 -p1~~pucdata.diff~
 ~~route.diff~
-~~ng_tcpmss.diff~
 ~~gateway_same_as_hostaddr.diff~
