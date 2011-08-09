@@ -3188,6 +3188,7 @@ create_memstick_image() {
 		find . -print | cpio -dump /tmp/memstick/usbmnt/
 	rm /tmp/memstick/usbmnt/etc/fstab
 	echo "/dev/ufs/${FREESBIE_LABEL} / ufs ro 0 0" > /tmp/memstick/usbmnt/etc/fstab
+	echo "kern.cam.boot_delay=10000" >> /tmp/memstick/usbmnt/boot/loader.conf.local
 	cd $OLDPWD
 	umount /tmp/memstick/usbmnt
 	mdconfig -d -u $MD
