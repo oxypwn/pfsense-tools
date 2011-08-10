@@ -45,8 +45,61 @@ if [ "$REMOVE_PHP" = "true" ]; then
 	rm -rf /var/db/pkg/php*
 fi
 
+clean_make_install() {
+	# Architecture, supported ARCH values are:
+	#  Tier 1: i386, AMD64, and PC98
+	#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
+	#  Tier 3: MIPS and S/390
+	#  Tier 4: None at the moment
+	#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
+	# Default is i386
+	ARCH=""
+	if [ -f pfsense_local.sh ]; then
+		MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+	elif [ -f ../builder_scripts/pfsense_local.sh ]; then
+		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+	fi
+	PORTNOBASENAME=`basename $1`
+	echo ">>> Building $PORTNOBASENAME"
+	PKGNAME=`make -C $1 -V PKGNAME`
+	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
+		echo ">>> Already built, skipping..."
+	else
+		# Check to see if item is already built
+		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$1" | wc -l` -gt 0 ]; then 
+			#echo ">>> Already built $1 on this run.  Skipping..."
+		else
+			ARGUMENTS="TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
+			echo ">>> Building port $PORT"
+			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install </dev/null; then
+				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
+			fi
+			mv /tmp/$PORT /tmp/pfPort/$PORTNOBASENAME
+			echo "$1" >> /tmp/pfPort_alreadybuilt
+		fi
+	fi
+}
+
+clean_build_install_clean() {
+	PORTPATH=$1
+	PORT=`basename $PORTPATH`
+	RUNLIST=`cd $PORTPATH && make build-depends-list`
+	for RUN in $RUNLIST; do
+		RUNBASENAME=`basename $RUN`
+		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$RUN" | wc -l` -lt 1 ]; then
+			echo ">>> Build dependency $RUNBASENAME of $PORT"
+			clean_make_install $RUN ${CHECK_INSTALLED}
+		fi
+	done	
+	clean_make_install $PORTPATH
+}
+
+# Change the for seperator to use C/R instead of whitespace
+oIFS=$IFS
+IFS="
+"
 # Port name					Path to port								Verify install filename
-PORTSTOBUILD="
+echo "
 pfflowd-0.8					/usr/ports/net/pfflowd-0.8					/usr/local/sbin/pfflowd
 ipsec-tools-devel			/usr/ports/security/ipsec-tools-devel		/usr/local/sbin/racoon
 grub						/usr/ports/sysutils/grub					/usr/local/sbin/grub
@@ -141,62 +194,8 @@ clog						/usr/ports/sysutils/clog					/usr/sbin/clog
 pecl-ssh2					/usr/ports/security/pecl-ssh2				/usr/local/lib/php/20060613/ssh2.so
 autoconf-wrapper			/usr/ports/devel/autoconf-wrapper			/usr/local/bin/autoconf-wrapper
 rsync						/usr/ports/net/rsync						/usr/local/bin/rsync
-ioncube 					/usr/ports/devel/ioncube					/usr/local/lib/php/20060613/ioncube/ioncube_loader.so"
-
-clean_make_install() {
-	# Architecture, supported ARCH values are:
-	#  Tier 1: i386, AMD64, and PC98
-	#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
-	#  Tier 3: MIPS and S/390
-	#  Tier 4: None at the moment
-	#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
-	# Default is i386
-	ARCH=""
-	if [ -f pfsense_local.sh ]; then
-		MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-	elif [ -f ../builder_scripts/pfsense_local.sh ]; then
-		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-	fi
-	PORTNOBASENAME=`basename $1`
-	echo ">>> Building $PORTNOBASENAME"
-	PKGNAME=`make -C $1 -V PKGNAME`
-	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
-		echo ">>> Already built, skipping..."
-	else
-		# Check to see if item is already built
-		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$1" | wc -l` -gt 0 ]; then 
-			#echo ">>> Already built $1 on this run.  Skipping..."
-		else
-			ARGUMENTS="TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
-			echo ">>> Building port $PORT"
-			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install </dev/null; then
-				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
-			fi
-			mv /tmp/$PORT /tmp/pfPort/$PORTNOBASENAME
-			echo "$1" >> /tmp/pfPort_alreadybuilt
-		fi
-	fi
-}
-
-clean_build_install_clean() {
-	PORTPATH=$1
-	PORT=`basename $PORTPATH`
-	RUNLIST=`cd $PORTPATH && make build-depends-list`
-	for RUN in $RUNLIST; do
-		RUNBASENAME=`basename $RUN`
-		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$RUN" | wc -l` -lt 1 ]; then
-			echo ">>> Build dependency $RUNBASENAME of $PORT"
-			clean_make_install $RUN ${CHECK_INSTALLED}
-		fi
-	done	
-	clean_make_install $PORTPATH
-}
-
-# Change the for seperator to use C/R instead of whitespace
-oIFS=$IFS
-IFS="
-"
-for PORT in $PORTSTOBUILD; do
+ioncube 					/usr/ports/devel/ioncube					/usr/local/lib/php/20060613/ioncube/ioncube_loader.so" \
+| while read PORT; do
 	PORT_T=`echo $PORT | sed "s/		/	/g"`
 	PORT_NAME=`echo $PORT_T | awk '{ print $1 }'`
 	if [ "$BUILD_ONEPORT" != "" ]; then
