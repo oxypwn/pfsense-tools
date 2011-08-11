@@ -570,7 +570,7 @@ diff -u -r1.3 ip_carp.c
 -#endif /* INET6 */
 -		carp_setrun(sc, 0);
 +		carp_send_ad_locked(sc, 1);
-+		if (sc->sc_naddrs || sc->sc_naddrs6)
++		//if (sc->sc_naddrs || sc->sc_naddrs6)
 +			carp_send_arp(sc);
 +		carp_setrun(sc);
  		carp_setroute(sc, RTM_ADD);
@@ -605,7 +605,7 @@ diff -u -r1.3 ip_carp.c
 -			carp_send_na(sc);
 -#endif /* INET6 */
 +			carp_send_ad_locked(sc, 1);
-+			if (sc->sc_naddrs || sc->sc_naddrs6)
++			//if (sc->sc_naddrs || sc->sc_naddrs6)
 +				carp_send_arp(sc);
  			CARP_LOG("%s: INIT -> MASTER (preempting)\n",
  			    SC2IFP(sc)->if_xname);
