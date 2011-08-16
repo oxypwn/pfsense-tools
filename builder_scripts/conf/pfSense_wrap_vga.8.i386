@@ -208,6 +208,7 @@ device		wpifw		# Firmware for Intel 3945ABG Wireless LAN IEEE 802.11 driver
 device		iwn		# Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
 device		iwnfw		# Firmware for Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
 device		ath		# Atheros IEEE 802.11 wireless network driver
+device		alc		# Atheros IEEE 802.11 wireless network driver
 device		ath_hal
 options		AH_SUPPORT_AR5416
 device		ath_rate_sample
