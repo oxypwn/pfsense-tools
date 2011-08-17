@@ -198,16 +198,16 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	}
 
 	/* Create a new socket node */
-	if (NgMkSockNode(NULL, &csock, NULL) < 0) {
-		return FAILURE;
-	}
+	if (NgMkSockNode(NULL, &csock, NULL) < 0)
+		csock = -1;
+	else
+		fcntl(PFSENSE_G(csock), F_SETFD, fcntl(PFSENSE_G(csock), F_GETFD, 0) | FD_CLOEXEC);
 
 	PFSENSE_G(csock) = csock;
 
 	/* Don't leak these sockets to child processes */
 	fcntl(PFSENSE_G(s), F_SETFD, fcntl(PFSENSE_G(s), F_GETFD, 0) | FD_CLOEXEC);
 	fcntl(PFSENSE_G(inets), F_SETFD, fcntl(PFSENSE_G(inets), F_GETFD, 0) | FD_CLOEXEC);
-	fcntl(PFSENSE_G(csock), F_SETFD, fcntl(PFSENSE_G(csock), F_GETFD, 0) | FD_CLOEXEC);
 
 	REGISTER_LONG_CONSTANT("IFF_UP", IFF_UP, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IFF_LINK0", IFF_LINK0, CONST_PERSISTENT | CONST_CS);
@@ -242,7 +242,8 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 
 PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 {
-	close(PFSENSE_G(csock));
+	if (PFSENSE_G(csock) != -1)
+		close(PFSENSE_G(csock));
 	close(PFSENSE_G(inets));
 	close(PFSENSE_G(s));
 
@@ -662,6 +663,9 @@ PHP_FUNCTION(pfSense_ngctl_name) {
 	char *ifname, *newifname;
 	int ifname_len, newifname_len;
 
+	if (PFSENSE_G(csock) == -1)
+		RETURN_NULL();
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
                 RETURN_NULL();
 	}
@@ -677,6 +681,9 @@ PHP_FUNCTION(pfSense_ngctl_attach) {
         char *ifname, *newifname;
         int ifname_len, newifname_len;
         struct ngm_name name;
+
+	if (PFSENSE_G(csock) == -1)
+		RETURN_NULL();
 
         if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
                 RETURN_NULL();
@@ -695,6 +702,9 @@ PHP_FUNCTION(pfSense_ngctl_detach) {
         char *ifname, *newifname;
         int ifname_len, newifname_len;
         struct ngm_name name;
+
+	if (PFSENSE_G(csock) == -1)
+		RETURN_NULL();
 
         if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
                 RETURN_NULL();
