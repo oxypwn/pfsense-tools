@@ -1,0 +1,18 @@
+--- syslogd.c.orig	2011-08-17 17:43:40.206865768 +1200
++++ syslogd.c	2011-08-17 17:43:55.690802038 +1200
+@@ -2310,6 +2310,7 @@
+ 	case 0:
+ 		break;
+ 	default:
++#if 0
+ 		signal(SIGALRM, timedout);
+ 		alarm(maxwait);
+ 		while ((pid = wait3(&status, 0, NULL)) != -1) {
+@@ -2324,6 +2325,7 @@
+ 			if (pid == childpid)	/* it's gone... */
+ 				break;
+ 		}
++#endif
+ 		exit(0);
+ 	}
+ 
