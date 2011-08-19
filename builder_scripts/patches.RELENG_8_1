@@ -104,3 +104,5 @@
 -p1~~pucdata.diff~
 ~~route.diff~
 ~~gateway_same_as_hostaddr.diff~
+~~ip_disable_FASTFWD.diff~
+~~ip_divert_increase_buf.diff~
