@@ -327,13 +327,21 @@ socket_read_command(int fd, __unused short event, void *arg)
 	char buf[bufsize];
 	register int n;
 	char **ap, *argv[bufsize], *p;
-	int i;
+	int i, loop = 0;
 
+tryagain:
 	bzero(buf, sizeof(buf));
 	if ((n = read (fd, buf, bufsize)) == -1) {
 		if (errno != EWOULDBLOCK && errno != EINTR) {
 			socket_close_command(fd, ev);
 			return;
+		} else {
+			if (loop > 3) {
+				socket_close_command(fd, ev);
+				return;
+			}
+			loop++;
+			goto tryagain;
 		}
 	} else if (n == 0) {
 		socket_close_command(fd, ev);
