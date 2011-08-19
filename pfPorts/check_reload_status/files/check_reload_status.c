@@ -257,7 +257,7 @@ run_command_detailed(int fd, short event, void *arg) {
 static void
 run_command(struct command *cmd, char *argv) {
 	struct runq *command, *tmpcmd;
-	struct timeval tv = { 5, 0 };
+	struct timeval tv = { 10, 0 };
 
 	command = calloc(1, sizeof(*command));
 	if (command == NULL) {
@@ -301,7 +301,7 @@ run_command(struct command *cmd, char *argv) {
 	}
 
 	if (command->aggregate == 0)
-		tv.tv_sec = 2;
+		tv.tv_sec = 5;
 
 	timeout_set(&command->ev, run_command_detailed, command);
 	timeout_add(&command->ev, &tv);
