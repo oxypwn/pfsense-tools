@@ -147,6 +147,7 @@ cp /etc/resolv.conf $BUILDER_CHROOTDIR/etc/
 
 # Copy make.conf to chroot
 cp /etc/make.conf $BUILDER_CHROOTDIR/etc/
+cp /etc/make.conf $BUILDER_CHROOTDIR/usr/local/etc/buildflags.conf
 
 # Copy localtime
 cp /etc/localtime $BUILDER_CHROOTDIR/etc/
