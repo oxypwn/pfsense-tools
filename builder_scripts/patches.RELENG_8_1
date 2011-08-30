@@ -106,3 +106,4 @@
 ~~gateway_same_as_hostaddr.diff~
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
+~~arp_cant_allocate_llinfo-in.c.diff~
