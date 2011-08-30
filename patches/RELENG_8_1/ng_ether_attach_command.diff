@@ -45,9 +45,9 @@ diff -u -r1.179.2.4 ng_base.c
 +	case NGM_ETHER_ATTACH:
 +		{
 +			struct ifnet *ifp;
-+			ifp = ifunit((char *)msg->data);
++			ifp = ifunit_ref((char *)msg->data);
 +			if (ifp && ng_ether_attach_p != NULL) {
-+				ng_ether_attach_p(ifp);
++				ng_ether_attach_p(ifp); if_rele(ifp);
 +			}
 +				
 +			break;
