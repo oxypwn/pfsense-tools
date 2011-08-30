@@ -233,9 +233,9 @@ main(int argc, char *argv[])
 			continue;
 		else if (check_for_string("Invalid user", "sshlockout", buf, BLOCK))
 			continue;
-		else if (check_for_string("authentication error for", "sshlockout", buf, BLOCK))
-			continue;
 		else if (check_for_string("webConfigurator authentication error for", "webConfiguratorlockout", buf, BLOCK))
+			continue;
+		else if (check_for_string("authentication error for", "sshlockout", buf, BLOCK))
 			continue;
 		else if (check_for_string("Successful webConfigurator login for user", "webConfiguratorlockout", buf, RELEASE))
 			continue;
