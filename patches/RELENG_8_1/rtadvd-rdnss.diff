@@ -1,0 +1,619 @@
+--- sys/netinet/icmp6.h.orig	2011-02-22 11:20:50.000000000 -0500
++++ sys/netinet/icmp6.h	2011-03-15 20:51:12.000000000 -0400
+@@ -297,6 +297,8 @@
+ #define ND_OPT_PREFIX_INFORMATION	3
+ #define ND_OPT_REDIRECTED_HEADER	4
+ #define ND_OPT_MTU			5
++#define ND_OPT_RDNSS			25
++#define ND_OPT_DNSSL			31
+ 
+ #define ND_OPT_ROUTE_INFO		200	/* draft-ietf-ipngwg-router-preference, not officially assigned yet */
+ 
+@@ -338,6 +340,22 @@
+ 	/* prefix follows */
+ } __packed;
+ 
++struct nd_opt_rdnss {		/* RDNSS option */
++	u_int8_t	nd_opt_rdnss_type;
++	u_int8_t	nd_opt_rdnss_len;
++	u_int16_t	nd_opt_rdnss_reserved;
++	u_int32_t	nd_opt_rdnss_lifetime;
++	/* followed by list of recursive DNS servers */
++} __packed;
++
++struct nd_opt_dnssl {		/* DNSSL option */
++	u_int8_t	nd_opt_dnssl_type;
++	u_int8_t	nd_opt_dnssl_len;
++	u_int16_t	nd_opt_dnssl_reserved;
++	u_int32_t	nd_opt_dnssl_lifetime;
++	/* followed by list of DNS search domains */
++} __packed;
++
+ /*
+  * icmp6 namelookup
+  */
+--- usr.sbin/rtadvd/Makefile.orig	2011-02-22 11:23:53.000000000 -0500
++++ usr.sbin/rtadvd/Makefile	2011-03-15 21:52:10.000000000 -0400
+@@ -18,6 +18,6 @@
+ MAN=	rtadvd.conf.5 rtadvd.8
+ SRCS=	rtadvd.c rrenum.c advcap.c if.c config.c timer.c dump.c
+ 
+-CFLAGS+= -DHAVE_ARC4RANDOM -DHAVE_POLL_H -DROUTEINFO
++CFLAGS+= -DHAVE_ARC4RANDOM -DHAVE_POLL_H -DROUTEINFO -DRDNSS
+ 
+ .include <bsd.prog.mk>
+--- usr.sbin/rtadvd/config.c.orig	2011-02-22 11:23:53.000000000 -0500
++++ usr.sbin/rtadvd/config.c	2011-03-28 15:22:17.000000000 -0400
+@@ -123,6 +123,10 @@
+ #ifdef ROUTEINFO
+ 	tmp->route.next = tmp->route.prev = &tmp->route;
+ #endif
++#ifdef RDNSS
++	tmp->rdnss.next = tmp->rdnss.prev = &tmp->rdnss;
++	tmp->dnssl.next = tmp->dnssl.prev = &tmp->dnssl;
++#endif
+ 
+ 	/* check if we are allowed to forward packets (if not determined) */
+ 	if (forwarding < 0) {
+@@ -585,6 +589,137 @@
+ 	}
+ #endif
+ 
++#ifdef RDNSS
++	/* DNS server and DNS search list information */
++	for (i = -1; ; i++) {
++		struct rdnss *rdn;
++		struct rdnss_addr *rdna, **rdnap;
++		char entbuf[512];
++		char *ap;
++		char abuf[256];
++		int c;
++
++		makeentry(entbuf, sizeof(entbuf), i, "rdnss");
++		addr = (char *)agetstr(entbuf, &bp);
++		if (addr == NULL)
++			break;
++		rdn = malloc(sizeof(struct rdnss));
++		if (rdn == NULL) {
++			syslog(LOG_ERR,
++			       "<%s> can't get allocate buffer for rdnss entry",
++			       __func__);
++			exit(1);
++		}
++		memset(rdn, 0, sizeof(*rdn));
++		rdnap = &rdn->rd_list;
++		for (ap = addr; ap - addr < strlen(addr); ap += c+1) {
++			c = strcspn(ap, ",");
++			strncpy(abuf, ap, c);
++			abuf[c] = '\0';
++			rdna = malloc(sizeof(struct rdnss_addr));
++			if (rdna == NULL) {
++				syslog(LOG_ERR,
++				       "<%s> can't get allocate buffer for rdnss_addr entry",
++				       __func__);
++				exit(1);
++			}
++			memset(rdna, 0, sizeof(*rdna));
++			*rdnap = rdna;
++			rdnap = &rdna->next;
++			if (inet_pton(AF_INET6, abuf, &rdna->ra_dns) != 1) {
++				syslog(LOG_ERR, "inet_pton failed for %s", abuf);
++				exit(1);
++			} 
++			rdn->rd_cnt++;
++		}
++
++		makeentry(entbuf, sizeof(entbuf), i, "rdnssltime");
++		MAYHAVE(val, entbuf, (tmp->maxinterval * 3 / 2));
++		if (val < tmp->maxinterval || val > tmp->maxinterval * 2) {
++			syslog(LOG_ERR, "%s (%ld) on %s is invalid "
++			    "(must be between %d and %d)",
++			    entbuf, val, intface, tmp->maxinterval,
++			    tmp->maxinterval * 2);
++			exit(1);
++		}
++		rdn->rd_ltime = val;
++
++		/* link into chain */
++		insque(rdn, &tmp->rdnss);
++	}
++
++	for (i = -1; ; i++) {
++		struct dnssl *dns;
++		struct dnssl_addr *dnsa, **dnsap;
++		char entbuf[512];
++		char *ap;
++		char abuf[256];
++		int c;
++		char *p, *q;
++
++		makeentry(entbuf, sizeof(entbuf), i, "dnssl");
++		addr = (char *)agetstr(entbuf, &bp);
++		if (addr == NULL)
++			break;
++		dns = malloc(sizeof(struct dnssl));
++		if (dns == NULL) {
++			syslog(LOG_ERR,
++			       "<%s> can't get allocate buffer for dnssl entry",
++			       __func__);
++			exit(1);
++		}
++		memset(dns, 0, sizeof(*dns));
++		dnsap = &dns->dn_list;
++		for (ap = addr; ap - addr < strlen(addr); ap += c+1) {
++			c = strcspn(ap, ",");
++			strncpy(abuf, ap, c);
++			abuf[c] = '\0';
++			dnsa = malloc(sizeof(struct dnssl_addr));
++			if (dnsa == NULL) {
++				syslog(LOG_ERR,
++				       "<%s> can't get allocate buffer for dnssl_addr entry",
++				       __func__);
++				exit(1);
++			}
++			memset(dnsa, 0, sizeof(*dnsa));
++			*dnsap = dnsa;
++			dnsap = &dnsa->next;
++			/* RFC 6106 requires us to encode domain name as RFC 1035 labels */
++			p = abuf;
++			q = dnsa->da_dom;
++			while (*p) {
++				val = strlen(p);
++				if (val > 63)
++					val = 63;
++				*q++ = (unsigned char) val;	/* label size */
++				strncpy(q, p, val);	/* label data, up to 63 octets */
++				p += val;
++				q += val;
++			}
++			*q++ = 0;		 /* null label to indicate end of labels */
++			val = ((q - dnsa->da_dom) + 7) & ~7; 
++			while (q - dnsa->da_dom < val)
++				*q++ = 0;	/* pad to next 8-octet boundary */
++			dnsa->da_len = val;
++			dns->dn_size += val;
++		}
++
++		makeentry(entbuf, sizeof(entbuf), i, "dnsslltime");
++		MAYHAVE(val, entbuf, (tmp->maxinterval * 3 / 2));
++		if (val < tmp->maxinterval || val > tmp->maxinterval * 2) {
++			syslog(LOG_ERR, "%s (%ld) on %s is invalid "
++			    "(must be between %d and %d)",
++			    entbuf, val, intface, tmp->maxinterval,
++			    tmp->maxinterval * 2);
++			exit(1);
++		}
++		dns->dn_ltime = val;
++
++		/* link into chain */
++		insque(dns, &tmp->dnssl);
++	}
++#endif
++
+ 	/* okey */
+ 	tmp->next = ralist;
+ 	ralist = tmp;
+@@ -913,6 +1048,12 @@
+ 	struct nd_opt_route_info *ndopt_rti;
+ 	struct rtinfo *rti;
+ #endif
++#ifdef RDNSS
++	struct nd_opt_rdnss *ndopt_rdnss;
++	struct rdnss *rdn;
++	struct nd_opt_dnssl *ndopt_dnssl;
++	struct dnssl *dns;
++#endif
+ 	struct prefix *pfx;
+ 
+ 	/* calculate total length */
+@@ -936,6 +1077,12 @@
+ 		packlen += sizeof(struct nd_opt_route_info) + 
+ 			   ((rti->prefixlen + 0x3f) >> 6) * 8;
+ #endif
++#ifdef RDNSS
++	for (rdn = rainfo->rdnss.next; rdn != &rainfo->rdnss; rdn = rdn->next)
++		packlen += sizeof(struct nd_opt_rdnss) + rdn->rd_cnt * 16;
++	for (dns = rainfo->dnssl.next; dns != &rainfo->dnssl; dns = dns->next)
++		packlen += sizeof(struct nd_opt_dnssl) + dns->dn_size;
++#endif
+ 
+ 	/* allocate memory for the packet */
+ 	if ((buf = malloc(packlen)) == NULL) {
+@@ -1056,6 +1203,36 @@
+ 	}
+ #endif
+ 
++#ifdef RDNSS
++	for (rdn = rainfo->rdnss.next; rdn != &rainfo->rdnss; rdn = rdn->next) {
++		struct rdnss_addr *rdna;
++
++		ndopt_rdnss = (struct nd_opt_rdnss *) buf;
++		ndopt_rdnss->nd_opt_rdnss_type = ND_OPT_RDNSS;
++		ndopt_rdnss->nd_opt_rdnss_len = 1 + rdn->rd_cnt * 2;
++		ndopt_rdnss->nd_opt_rdnss_reserved = 0;
++		ndopt_rdnss->nd_opt_rdnss_lifetime = htonl(rdn->rd_ltime);
++		buf += sizeof(struct nd_opt_rdnss);
++		for (rdna = rdn->rd_list; rdna; rdna = rdna->next) {
++			memcpy(buf, &rdna->ra_dns, 16);
++			buf += 16;
++		}
++	}
++	for (dns = rainfo->dnssl.next; dns != &rainfo->dnssl; dns = dns->next) {
++		struct dnssl_addr *dnsa;
++
++		ndopt_dnssl = (struct nd_opt_dnssl *) buf;
++		ndopt_dnssl->nd_opt_dnssl_type = ND_OPT_DNSSL;
++		ndopt_dnssl->nd_opt_dnssl_len = 1 + dns->dn_size / 8;
++		ndopt_dnssl->nd_opt_dnssl_reserved = 0;
++		ndopt_dnssl->nd_opt_dnssl_lifetime = htonl(dns->dn_ltime);
++		buf += sizeof(struct nd_opt_dnssl);
++		for (dnsa = dns->dn_list; dnsa; dnsa = dnsa->next) {
++			memcpy(buf, dnsa->da_dom, dnsa->da_len);
++			buf += dnsa->da_len;
++		}
++	}
++#endif
+ 	return;
+ }
+ 
+--- usr.sbin/rtadvd/dump.c.orig	2011-02-22 11:23:53.000000000 -0500
++++ usr.sbin/rtadvd/dump.c	2011-03-28 15:16:32.000000000 -0400
+@@ -96,6 +96,10 @@
+ #ifdef ROUTEINFO
+ 	struct rtinfo *rti;
+ #endif
++#ifdef RDNSS
++	struct rdnss *rdn;
++	struct dnssl *dns;
++#endif
+ 	char prefixbuf[INET6_ADDRSTRLEN];
+ 	int first;
+ 	struct timeval now;
+@@ -230,6 +234,62 @@
+ 			fprintf(fp, ")\n");
+ 		}
+ #endif
++
++#ifdef RDNSS
++		for (first = 1, rdn = rai->rdnss.next; rdn != &rai->rdnss;
++		    rdn = rdn->next) {
++			struct rdnss_addr *rdna;
++
++			if (first) {
++				fprintf(fp, "  Recursive DNS servers:\n");
++				first = 0;
++			}
++			fprintf(fp, "	Servers:");
++			for (rdna = rdn->rd_list; rdna; rdna = rdna->next) {
++				inet_ntop(AF_INET6, &rdna->ra_dns,
++				    prefixbuf, sizeof(prefixbuf));
++				fprintf(fp, "	%s", prefixbuf);
++			}
++			fprintf(fp, "\n");
++			fprintf(fp, "	Lifetime:	%u\n", rdn->rd_ltime);
++		}
++
++		for (first = 1, dns = rai->dnssl.next; dns != &rai->dnssl;
++		    dns = dns->next) {
++			struct dnssl_addr *dnsa;
++			char buf[256];
++			char *p, *q;
++
++			if (first) {
++				fprintf(fp, "  DNS search list:\n");
++				first = 0;
++			}
++			fprintf(fp, "	Domains:");
++			for (dnsa = dns->dn_list; dnsa; dnsa = dnsa->next) {
++				p = (char *) dnsa->da_dom;
++				q = buf;
++				while (p - (char *) dnsa->da_dom < dnsa->da_len) {
++					/* RFC 1035 label sequence */
++					if (*p > 0) {
++						/* label, up to 63 octets long */
++						memcpy(q, p + 1, *p);
++						q += *p;
++						p += *p + 1;
++					}
++					if (*p == 0) {
++						/* zero-length label, ends string */
++						*q = 0;
++						if (q != buf)
++							fprintf(fp, "	%s", buf);
++						q = buf;
++						p++;
++					}
++				}
++			}
++			fprintf(fp, "\n");
++			fprintf(fp, "	Lifetime:	%u\n", dns->dn_ltime);
++		}
++#endif
+ 	}
+ }
+ 
+--- usr.sbin/rtadvd/rtadvd.c.orig	2010-12-21 12:09:25.000000000 -0500
++++ usr.sbin/rtadvd/rtadvd.c	2011-03-28 14:54:21.000000000 -0400
+@@ -37,6 +37,7 @@
+ #include <sys/queue.h>
+ 
+ #include <net/if.h>
++#include <net/if_media.h>
+ #include <net/route.h>
+ #include <net/if_dl.h>
+ #include <netinet/in.h>
+@@ -113,15 +114,26 @@
+ #define nd_opts_mtu		nd_opt_each.mtu
+ #define nd_opts_list		nd_opt_each.list
+ 
+-#define NDOPT_FLAG_SRCLINKADDR 0x1
+-#define NDOPT_FLAG_TGTLINKADDR 0x2
+-#define NDOPT_FLAG_PREFIXINFO 0x4
+-#define NDOPT_FLAG_RDHDR 0x8
+-#define NDOPT_FLAG_MTU 0x10
++#define NDOPT_FLAG_SRCLINKADDR	(1 << 0)
++#define NDOPT_FLAG_TGTLINKADDR	(1 << 1)
++#define NDOPT_FLAG_PREFIXINFO	(1 << 2)
++#define NDOPT_FLAG_RDHDR	(1 << 3)
++#define NDOPT_FLAG_MTU		(1 << 4)
++#ifdef RDNSS
++#define NDOPT_FLAG_RDNSS	(1 << 5)
++#define NDOPT_FLAG_DNSSL	(1 << 6)
++#endif
+ 
+ u_int32_t ndopt_flags[] = {
+-	0, NDOPT_FLAG_SRCLINKADDR, NDOPT_FLAG_TGTLINKADDR,
+-	NDOPT_FLAG_PREFIXINFO, NDOPT_FLAG_RDHDR, NDOPT_FLAG_MTU,
++	[ND_OPT_SOURCE_LINKADDR]	= NDOPT_FLAG_SRCLINKADDR,
++	[ND_OPT_TARGET_LINKADDR]	= NDOPT_FLAG_TGTLINKADDR,
++	[ND_OPT_PREFIX_INFORMATION]	= NDOPT_FLAG_PREFIXINFO,
++	[ND_OPT_REDIRECTED_HEADER]	= NDOPT_FLAG_RDHDR,
++	[ND_OPT_MTU]			= NDOPT_FLAG_MTU,
++#ifdef RDNSS
++	[ND_OPT_RDNSS]			= NDOPT_FLAG_RDNSS,
++	[ND_OPT_DNSSL]			= NDOPT_FLAG_DNSSL,
++#endif
+ };
+ 
+ int main(int, char *[]);
+@@ -366,6 +378,10 @@
+ die()
+ {
+ 	struct rainfo *ra;
++#ifdef RDNSS
++	struct rdnss *rdn;
++	struct dnssl *dns;
++#endif
+ 	int i;
+ 	const int retrans = MAX_FINAL_RTR_ADVERTISEMENTS;
+ 
+@@ -376,6 +392,12 @@
+ 
+ 	for (ra = ralist; ra; ra = ra->next) {
+ 		ra->lifetime = 0;
++#ifdef RDNSS
++		for (rdn = ra->rdnss.next; rdn != &ra->rdnss; rdn = rdn->next)
++			rdn->rd_ltime = 0;
++		for (dns = ra->dnssl.next; dns != &ra->dnssl; dns = dns->next)
++			dns->dn_ltime = 0;
++#endif
+ 		make_packet(ra);
+ 	}
+ 	for (i = 0; i < retrans; i++) {
+@@ -948,7 +970,11 @@
+ 	if (nd6_options((struct nd_opt_hdr *)(ra + 1),
+ 			len - sizeof(struct nd_router_advert),
+ 			&ndopts, NDOPT_FLAG_SRCLINKADDR |
+-			NDOPT_FLAG_PREFIXINFO | NDOPT_FLAG_MTU)) {
++			NDOPT_FLAG_PREFIXINFO | NDOPT_FLAG_MTU
++#ifdef RDNSS
++			| NDOPT_FLAG_RDNSS | NDOPT_FLAG_DNSSL
++#endif
++	    )) {
+ 		syslog(LOG_INFO,
+ 		       "<%s> ND option check failed for an RA from %s on %s",
+ 		       __func__,
+@@ -1287,7 +1313,12 @@
+ 			goto bad;
+ 		}
+ 
+-		if (hdr->nd_opt_type > ND_OPT_MTU) {
++		if (hdr->nd_opt_type > ND_OPT_MTU
++#ifdef RDNSS
++		    && hdr->nd_opt_type != ND_OPT_RDNSS &&
++		       hdr->nd_opt_type != ND_OPT_DNSSL
++#endif
++		    ) {
+ 			syslog(LOG_INFO, "<%s> unknown ND option(type %d)",
+ 			    __func__, hdr->nd_opt_type);
+ 			continue;
+@@ -1304,9 +1335,18 @@
+ 		 * options.
+ 		 */
+ 		if ((hdr->nd_opt_type == ND_OPT_MTU &&
+-		    (optlen != sizeof(struct nd_opt_mtu))) ||
+-		    ((hdr->nd_opt_type == ND_OPT_PREFIX_INFORMATION &&
+-		    optlen != sizeof(struct nd_opt_prefix_info)))) {
++			optlen != sizeof(struct nd_opt_mtu)) ||
++#ifdef RDNSS
++		    (hdr->nd_opt_type == ND_OPT_RDNSS &&
++			(optlen < 24 ||
++			(optlen - sizeof(struct nd_opt_rdnss)) % 16 != 0)) ||
++		    (hdr->nd_opt_type == ND_OPT_DNSSL &&
++			(optlen < 16 ||
++			(optlen - sizeof(struct nd_opt_dnssl)) % 8 != 0)) ||
++#endif
++		    (hdr->nd_opt_type == ND_OPT_PREFIX_INFORMATION &&
++			optlen != sizeof(struct nd_opt_prefix_info))
++		) {
+ 			syslog(LOG_INFO, "<%s> invalid option length",
+ 			    __func__);
+ 			continue;
+@@ -1315,6 +1355,10 @@
+ 		switch (hdr->nd_opt_type) {
+ 		case ND_OPT_TARGET_LINKADDR:
+ 		case ND_OPT_REDIRECTED_HEADER:
++#ifdef RDNSS
++		case ND_OPT_RDNSS:
++		case ND_OPT_DNSSL:
++#endif
+ 			break;	/* we don't care about these options */
+ 		case ND_OPT_SOURCE_LINKADDR:
+ 		case ND_OPT_MTU:
+--- usr.sbin/rtadvd/rtadvd.conf.5.orig	2011-02-22 11:23:55.000000000 -0500
++++ usr.sbin/rtadvd/rtadvd.conf.5	2011-03-28 12:47:52.000000000 -0400
+@@ -355,6 +355,58 @@
+ .Dq Li rtr
+ have basically been obsoleted, and should not be used any more.
+ .Pp
++The following items are for ICMPv6 DNS nameserver and
++domain search list options,
++which will be attached to router advertisement header.
++These items are optional.
++.Bl -tag -width indent
++.It Cm \&rdnss
++(str) The IPv6 address of one or more DNS servers.
++The argument must be inside double quotes.
++Multiple DNS servers can be comma-separated.
++If different lifetimes are needed for different servers,
++separate entries can be given using
++.Cm rdnss ,
++.Cm rdnss0 ,
++.Cm rdnss1 ,
++.Cm rdnss2 ...
++options with corresponding
++.Cm rdnssltime ,
++.Cm rdnssltime0 ,
++.Cm rdnssltime1 ,
++.Cm rdnssltime2 ...
++entries.
++Note that many hosts have a limit on the number of nameservers
++they will query; FreeBSD's resolver limits this to 3.
++.It Cm \&rdnssltime
++The lifetime of the
++.Cm rdnss
++DNS server entries.  The default value is 3/2 of the interval
++time.
++.It Cm \&dnssl
++(str) One or more domain names, comma-separated, that should be
++searched when making DNS queries on a simple hostname.
++If different lifetimes are needed for different domains,
++separate entries can be given using
++.Cm dnssl ,
++.Cm dnssl0 ,
++.Cm dnssl1 ,
++.Cm dnssl2 ...
++options with corresponding
++.Cm dnsslltime ,
++.Cm dnsslltime0 ,
++.Cm dnsslltime1 ,
++.Cm dnsslltime2 ...
++entries.
++Note that many hosts have a limit on the number of domains
++they will search; FreeBSD's resolver limits this to 6.
++.It Cm \&dnsslltime
++The lifetime of the
++.Cm dnssl
++DNS search list entries.  The default value is 3/2 of the interval
++time.
++.El
++.Pp
+ You can also refer one line from another by using
+ .Cm tc
+ capability.
+@@ -388,7 +440,18 @@
+ .Xr rtadvd 8 .
+ .Bd -literal -offset
+ ef0:\\
+-	:addr="3ffe:501:ffff:1000::":prefixlen#64:
++	:addr="2001:db8:ffff:1000::":prefixlen#64:
++.Ed
++.Pp
++The following example configures the
++.Li wlan0
++interface and adds two DNS servers and a DNS domain search options
++using the default option lifetime values.
++.Bd -literal -offset
++wlan0:\\
++	:addr="2001:db8:ffff:1000::":prefixlen#64:\\
++	:rdnss="2001:db8:ffff::10,2001:db8:ffff::2:43:\\
++	:dnssl="foo.com":
+ .Ed
+ .Pp
+ The following example presents the default values in an explicit manner.
+@@ -399,7 +462,7 @@
+ 	:chlim#64:raflags#0:rltime#1800:rtime#0:retrans#0:\\
+ 	:pinfoflags="la":vltime#2592000:pltime#604800:mtu#0:
+ ef0:\\
+-	:addr="3ffe:501:ffff:1000::":prefixlen#64:tc=default:
++	:addr="2001:db8:ffff:1000::":prefixlen#64:tc=default:
+ .Ed
+ .Sh SEE ALSO
+ .Xr termcap 5 ,
+--- usr.sbin/rtadvd/rtadvd.conf.orig	2011-02-22 11:23:55.000000000 -0500
++++ usr.sbin/rtadvd/rtadvd.conf	2011-03-28 12:28:10.000000000 -0400
+@@ -18,4 +18,5 @@
+ #   this part by hand, and then invoke rtadvd with the -s option.
+  
+ #ef0:\
+-#	:addr="3ffe:501:ffff:1000::":prefixlen#64:
++#	:addr="2001:db8:ffff:1000::":prefixlen#64:\
++#	:rddns="2001:db8:ffff:1000::1":dnssl="foo.com":
+--- usr.sbin/rtadvd/rtadvd.h.orig	2011-02-22 11:23:55.000000000 -0500
++++ usr.sbin/rtadvd/rtadvd.h	2011-03-28 12:09:24.000000000 -0400
+@@ -94,6 +94,44 @@
+ };
+ #endif
+ 
++#ifdef RDNSS
++struct rdnss_addr {
++	struct rdnss_addr *next; /* forward link */
++
++	struct in6_addr ra_dns;	/* DNS server entry */
++};
++struct rdnss {
++	/*
++	 * NB: Linked list pointers next, prev are deliberately
++	 * reversed here, so that list sorts the right way.
++	 */
++	struct rdnss *prev;	/* reverse link */
++	struct rdnss *next;	/* forward link */
++
++	struct rdnss_addr *rd_list; /* list of DNS servers */
++	int rd_cnt;		/* number of DNS servers */
++	u_int32_t rd_ltime;	/* number of seconds valid */
++};
++struct dnssl_addr {
++	struct dnssl_addr *next; /* forward link */
++
++	char da_dom[512]; 	/* search domain name entry */
++	int da_len;		/* length of entry */
++};
++struct dnssl {
++	/*
++	 * NB: Linked list pointers next, prev are deliberately
++	 * reversed here, so that list sorts the right way.
++	 */
++	struct dnssl *prev;	/* reverse link */
++	struct dnssl *next;	/* forward link */
++
++	struct dnssl_addr *dn_list; /* list of search domains */
++	u_int32_t dn_size;	/* total size of search domains */
++	u_int32_t dn_ltime;	/* number of seconds valid */
++};
++#endif
++
+ struct soliciter {
+ 	struct soliciter *next;
+ 	struct sockaddr_in6 addr;
+@@ -130,6 +168,10 @@
+ 	u_int	hoplimit;	/* AdvCurHopLimit */
+ 	struct prefix prefix;	/* AdvPrefixList(link head) */
+ 	int	pfxs;		/* number of prefixes */
++#ifdef RDNSS
++	struct rdnss rdnss;	/* DNS server list (link head) */
++	struct dnssl dnssl;	/* search domain list (link head) */
++#endif
+ 	long	clockskew;	/* used for consisitency check of lifetimes */
+ 
+ #ifdef ROUTEINFO
