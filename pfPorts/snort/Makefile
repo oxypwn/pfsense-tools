@@ -40,7 +40,7 @@ OPTIONS=	IPV6 "Enable IPv6 support" on \
 
 .include <bsd.port.options.mk>
 
-USE_RC_SUBR=	snort.sh
+#USE_RC_SUBR=	snort.sh
 SUB_FILES=	pkg-message
 GNU_CONFIGURE=	yes
 CONFIGURE_ENV=	LDFLAGS="${LDFLAGS}"
@@ -189,13 +189,13 @@ pre-configure:
 	@cd ${WRKSRC} && ${SH} ${WRKSRC}/autojunk.sh
 .endif
 
-pre-install:
-.if defined(WITH_POSTGRESQL)
-	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| postgresql|' ${WRKDIR}/snort.sh
-.endif
-.if defined(WITH_MYSQL)
-	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| mysql|' ${WRKDIR}/snort.sh
-.endif
+#pre-install:
+#.if defined(WITH_POSTGRESQL)
+#	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| postgresql|' ${WRKDIR}/snort.sh
+#.endif
+#.if defined(WITH_MYSQL)
+#	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| mysql|' ${WRKDIR}/snort.sh
+#.endif
 
 post-install:
 .if defined(WITH_SNORTSAM)
