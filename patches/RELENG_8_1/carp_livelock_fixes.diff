@@ -301,10 +301,10 @@ diff -u -r1.3 ip_carp.c
  				carp_suppress_preempt++;
  				if (carp_suppress_preempt == 1) {
 -					CARP_SCUNLOCK(sc);
-+					CARP_SCRUNLOCK(sc);
++					if (wlocked) CARP_SCWUNLOCK(sc); else  CARP_SCRUNLOCK(sc);
  					carp_send_ad_all();
 -					CARP_SCLOCK(sc);
-+					CARP_SCRLOCK(sc);
++					if (wlocked) CARP_SCWLOCK(sc); else  CARP_SCRLOCK(sc);
  				}
  			}
  			sc->sc_sendad_success = 0;
@@ -338,10 +338,10 @@ diff -u -r1.3 ip_carp.c
  				carp_suppress_preempt++;
  				if (carp_suppress_preempt == 1) {
 -					CARP_SCUNLOCK(sc);
-+					CARP_SCRUNLOCK(sc);
++					if (wlocked) CARP_SCWUNLOCK(sc); else  CARP_SCRUNLOCK(sc);
  					carp_send_ad_all();
 -					CARP_SCLOCK(sc);
-+					CARP_SCRLOCK(sc);
++					if (wlocked) CARP_SCWLOCK(sc); else  CARP_SCRLOCK(sc);
  				}
  			}
  			sc->sc_sendad_success = 0;
