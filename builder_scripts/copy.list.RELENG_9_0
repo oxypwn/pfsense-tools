@@ -47,6 +47,7 @@ usr/bin/bsdiff
 usr/bin/bspatch
 usr/sbin/ntptime
 usr/local/bin/cpdup
+usr/local/bin/gogoc
 usr/local/bin/minicron
 usr/local/bin/voucher
 usr/local/bin/verifysig
