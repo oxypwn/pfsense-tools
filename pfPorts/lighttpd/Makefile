@@ -2,17 +2,21 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.94 2010/10/16 11:52:42 ade Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.98 2011/07/06 12:52:24 mm Exp $
 #
 
 PORTNAME?=	lighttpd
-PORTVERSION=	1.4.28
-PORTREVISION=	4
+PORTVERSION=	1.4.29
 CATEGORIES?=	www
 MASTER_SITES?=	http://download.lighttpd.net/lighttpd/releases-1.4.x/
 
 MAINTAINER?=	mm@FreeBSD.org
 COMMENT?=	A secure, fast, compliant, and very flexible Web Server
+
+.if !defined(_BUILDING_LIGHTTPD_MODULE)
+LICENSE=	BSD
+LICENSE_FILE=	${WRKSRC}/COPYING
+.endif
 
 BUILD_DEPENDS+=	pkg-config:${PORTSDIR}/devel/pkg-config
 LIB_DEPENDS+=	pcre.0:${PORTSDIR}/devel/pcre
@@ -61,15 +65,16 @@ DOCS=		AUTHORS COPYING INSTALL NEWS README
 PORTDOCS=	${DOCS}
 .endif
 
-CONF_FILES=	lighttpd.conf modules.conf
+LIGHTTPD_CONF_FILES=	lighttpd.conf modules.conf
 
-CONFD_FILES=	access_log.conf auth.conf cgi.conf cml.conf \
-		compress.conf debug.conf dirlisting.conf \
-		evhost.conf expire.conf fastcgi.conf \
-		magnet.conf mime.conf mysql_vhost.conf proxy.conf \
-		rrdtool.conf scgi.conf secdownload.conf \
-		simple_vhost.conf ssi.conf status.conf \
-		trigger_b4_dl.conf userdir.conf webdav.conf
+LIGHTTPD_CONF_D_FILES=	access_log.conf \
+	auth.conf cgi.conf cml.conf \
+	compress.conf debug.conf dirlisting.conf \
+	evhost.conf expire.conf fastcgi.conf \
+	magnet.conf mime.conf mysql_vhost.conf proxy.conf \
+	rrdtool.conf scgi.conf secdownload.conf \
+	simple_vhost.conf ssi.conf status.conf \
+	trigger_b4_dl.conf userdir.conf webdav.conf
 
 LIGHTTPD_LOGROOT?=	/var/log/lighttpd
 LIGHTTPD_WEBROOT?=	${PREFIX}/www/data
@@ -141,7 +146,7 @@ _REQUIRE+=		mysql
 .endif
 
 .if defined(WITH_MYSQLAUTH) && !defined(WITH_MYSQL)
-IGNORE=		WITH_MYSQLAUTH requires WITH_MYSQL
+IGNORE=		option WITH_MYSQLAUTH requires WITH_MYSQL
 .endif
 
 .if defined(WITH_MYSQLAUTH)
@@ -202,7 +207,7 @@ post-patch:
 
 post-install:
 	@${MKDIR} ${PREFIX}/etc/lighttpd/conf.d ${PREFIX}/etc/lighttpd/vhosts.d
-.for FILE in ${CONF_FILES}
+.for FILE in ${LIGHTTPD_CONF_FILES}
 	@${INSTALL_DATA} ${WRKSRC}/doc/config/${FILE} \
 		${PREFIX}/etc/lighttpd/${FILE}.sample
 .if !exists(${PREFIX}/etc/lighttpd/${FILE})
@@ -210,7 +215,7 @@ post-install:
 		${PREFIX}/etc/lighttpd/${FILE}
 .endif
 .endfor
-.for FILE in ${CONFD_FILES}
+.for FILE in ${LIGHTTPD_CONF_D_FILES}
 	@${INSTALL_DATA} ${WRKSRC}/doc/config/conf.d/${FILE} \
 		${PREFIX}/etc/lighttpd/conf.d/${FILE}.sample
 .if !exists(${PREFIX}/etc/lighttpd/conf.d/${FILE})
