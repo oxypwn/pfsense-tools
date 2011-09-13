@@ -152,7 +152,7 @@ export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-su
 # "UNBREAK TEXTMATE FORMATTING.  PLEASE LEAVE ME THANKS.
 
 # Version that will be applied to this build
-export PFSENSE_VERSION=${PFSENSE_VERSION:-2.0-RC3}
+export PFSENSE_VERSION=${PFSENSE_VERSION:-2.0-RELEASE}
 
 # pfSense cvs tag to build
 export PFSENSETAG=${PFSENSETAG:-RELENG_2_0}
