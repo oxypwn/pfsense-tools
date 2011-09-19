@@ -201,7 +201,7 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	if (NgMkSockNode(NULL, &csock, NULL) < 0)
 		csock = -1;
 	else
-		fcntl(PFSENSE_G(csock), F_SETFD, fcntl(PFSENSE_G(csock), F_GETFD, 0) | FD_CLOEXEC);
+		fcntl(csock, F_SETFD, fcntl(csock, F_GETFD, 0) | FD_CLOEXEC);
 
 	PFSENSE_G(csock) = csock;
 
