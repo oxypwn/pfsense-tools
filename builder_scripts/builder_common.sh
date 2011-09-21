@@ -1644,10 +1644,18 @@ checkout_pfSense_git() {
 		echo -n "Checking out tag ${PFSENSETAG}..."
 		BRANCH="${PFSENSETAG}"
 		branch_exists=`(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
-			&& git branch | grep "${PFSENSETAG}")`
-		if [ -z "$branch_exists" ]; then
+			&& git branch | grep "${PFSENSETAG}\$")`
+		tag_exists=`(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
+			&& git tag -l | grep "^${PFSENSETAG}\$")`
+
+		# If we are using a git tag, don't specify origin/ in the remote.
+		if [ -z "${tag_exists}" ]; then
+			ORIGIN=origin/
+		fi
+
+		if [ -z "${branch_exists}" ]; then
 			(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
-				&& git checkout -b "${PFSENSETAG}" "origin/${PFSENSETAG}") \
+				&& git checkout -b "${PFSENSETAG}" "${ORIGIN}${PFSENSETAG}") \
 				2>&1 | egrep -wi '(^>>>|error)'
 		else
 			(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
@@ -1663,9 +1671,14 @@ checkout_pfSense_git() {
 	if [ "${selected_branch}" = "${BRANCH}" ]; then
 		echo " [OK] (${BRANCH})"
 	else
-		echo " [FAILED!] (${BRANCH})"
-		print_error_pfS 'Checked out branch differs from configured BRANCH, something is wrong with the build system!'
-		kill $$
+		tag_exists=`(cd ${GIT_REPO_DIR}/pfSenseGITREPO \
+			&& git tag -l | grep "^${PFSENSETAG}\$")`
+
+		if [ -z "${tag_exists}" ] || [ "${selected_branch}" != "(no" ]; then
+			echo " [FAILED!] (${BRANCH})"
+			print_error_pfS 'Checked out branch/tag differs from configured BRANCH, something is wrong with the build system!'
+			kill $$
+		fi
 	fi
 
 	echo -n ">>> Creating tarball of checked out contents..."
