@@ -204,7 +204,7 @@ diff -u -r1.1.1.1 pf_ioctl.c
 +			nexts = RB_NEXT(pf_state_tree_id, &tree_id, state);
 +			sk = state->key[PF_SK_WIRE];
 +		
-+			if (s->direction == PF_OUT)
++			if (state->direction == PF_OUT)
 +				src = &sk->addr[1];
 +			else 
 +				src = &sk->addr[0];
@@ -217,7 +217,7 @@ diff -u -r1.1.1.1 pf_ioctl.c
 +                           &psk->psk_src.addr.v.a.mask,
 +                           &src, sk->af) &&
 +                           (!psk->psk_ifname[0] || !strcmp(psk->psk_ifname,
-+                           s->kif->pfik_name))) || (PF_MATCHA(psk->psk_dst.neg, &psk->psk_dst.addr.v.a.addr,&psk->psk_dst.addr.v.a.mask,&state->rt_addr, state->af))) {
++                           state->kif->pfik_name))) || (PF_MATCHA(psk->psk_dst.neg, &psk->psk_dst.addr.v.a.addr,&psk->psk_dst.addr.v.a.mask,&state->rt_addr, state->af))) {
 +                               pf_unlink_state(state);
 +                               killed++;
 +                       }
