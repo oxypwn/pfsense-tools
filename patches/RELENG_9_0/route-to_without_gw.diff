@@ -3,8 +3,8 @@ Index: sys/netinet/ip_output.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_output.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_output.c
---- sys/netinet/ip_output.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
-+++ sys/netinet/ip_output.c	21 Jun 2011 21:05:41 -0000
+--- sys/netinet/ip_output.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netinet/ip_output.c	27 Sep 2011 17:06:23 -0000
 @@ -126,12 +126,10 @@
  	struct route iproute;
  	struct rtentry *rte;	/* cache for ro->ro_rt */
