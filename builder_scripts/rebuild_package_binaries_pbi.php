@@ -306,8 +306,8 @@ if(isset($options['j']) && $options['l'] <> "") {
 	system("mount -t devfs devfs {$options['l']}/dev");
 	system("cp /etc/resolv.conf {$options['l']}/etc/");
 	system("cp -R /home/pfsense/tools {$options['l']}/home/pfsense/");
-	system("cp -R /usr/local/sbin/pbi_* {$options['l']}/usr/local/sbin/")
-	system("chmod a+rx {$options['l']}/usr/local/sbin/")
+	system("cp -R /usr/local/sbin/pbi_* {$options['l']}/usr/local/sbin/");
+	system("chmod a+rx {$options['l']}/usr/local/sbin/");
 	// Invoke csup and populate /usr/ports inside chroot
 	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l'], $quiet_mode);
 	echo ">>> Applying kernel patches and make includes...\n";
