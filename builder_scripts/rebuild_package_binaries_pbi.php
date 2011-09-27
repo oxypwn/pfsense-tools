@@ -234,7 +234,7 @@ if(!isset($options['x']))
 // Bootstrap
 file_put_contents("/tmp/preq.sh", $preq_txt);
 exec("chmod a+rx /tmp/preq.sh");
-echo ">>> Bootstrapping PBI...";
+echo ">>> Bootstrapping PBI...\n";
 exec("/tmp/preq.sh");
 
 // Set the XML filename that we are processing
