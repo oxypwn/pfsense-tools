@@ -306,7 +306,7 @@ diff -u -r1.3 pf.c
 -		if (PPACKET_LOOPED())					\
 -			return (PF_PASS);				\
 +		if (PACKET_LOOPED(pd->pf_mtag)) {                       \
-+			if (STATE_TRANSLATE((*state))) {                \
++			if ((*state)->key[PF_SK_WIRE] != (*state)->key[PF_SK_STACK]) { \
 +				PACKET_REDO_NAT((*pd), *state, direction);      \
 +			}                                               \
 +			return (PF_PASS);                               \
