@@ -3,8 +3,8 @@ Index: sbin/ipfw/dummynet.c
 RCS file: /root/freebsd/repo/src/sbin/ipfw/dummynet.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 dummynet.c
---- sbin/ipfw/dummynet.c	21 Jun 2011 19:47:47 -0000	1.1.1.1
-+++ sbin/ipfw/dummynet.c	21 Jun 2011 20:31:35 -0000
+--- sbin/ipfw/dummynet.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sbin/ipfw/dummynet.c	27 Sep 2011 14:14:52 -0000
 @@ -538,10 +538,10 @@
  		if_name[namelen] = '\0';
  		*bandwidth = 0;
