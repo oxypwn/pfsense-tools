@@ -3,15 +3,19 @@ Index: Makefile
 RCS file: /root/freebsd/repo/src/sys/modules/ipfw/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- Makefile	21 Jun 2011 19:47:46 -0000	1.1.1.1
-+++ Makefile	21 Jun 2011 20:38:37 -0000
-@@ -18,7 +18,8 @@
+--- Makefile	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ Makefile	27 Sep 2011 14:25:21 -0000
+@@ -16,10 +16,9 @@
+ #If you want it verbose
+ #CFLAGS+= -DIPFIREWALL_VERBOSE
  #CFLAGS+= -DIPFIREWALL_VERBOSE_LIMIT=100
- #
- #If you want it to pass all packets by default
+-#
+-#If you want it to pass all packets by default
 -#CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
-+CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
-+CFLAGS+= -DIPFIREWALL_FORWARD
- #
+-#
++
++CFLAGS+=	-DIPFIREWALL_DEFAULT_TO_ACCEPT
++CFLAGS+=	-DIPFIREWALL_FORWARD
  
  .if !defined(KERNBUILDDIR)
+ .if ${MK_INET6_SUPPORT} != "no"
