@@ -33,10 +33,11 @@ $preq_txt = <<<EOF
 
 # pbi installation for pfSense
 cd /usr/ports/devel/xdg-utils && make install clean
+cd /root
 svn co svn://svn.pcbsd.org/pcbsd/current
-cd current/
+cd current
 cd src-sh
-cd pbi-manager/
+cd pbi-manager
 
 LB="/usr/local"
 DIR=`dirname $0`
@@ -274,22 +275,24 @@ foreach($pkg['packages']['package'] as $pkg) {
 			if($build_options) 
 				if(!isset($options['q'])) 
 					echo " BUILD_OPTIONS: {$build_options}\n";
+					
+			// XXX: output build options to file
 			// Build in chroot if defined.
 			if(isset($options['j']) && $options['l']) {
 				$command_to_run  = "#!/bin/sh\n";
 				$command_to_run .= "if [ ! -L /usr/home ]; then\n";
 				$command_to_run .= "	 ln -s /home/ /usr/home\n";
 				$command_to_run .= "fi\n";
-				$command_to_run .= "pbi_makeport {$category}/{$port}\n";
+				$command_to_run .= "pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
 				chroot_command($options['l'], $command_to_run);
 			} else
-				`pbi_makeport {$category}/{$port}`;
+				`pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}`;
 		}
 	}
 }
 
-//echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
-//system("ls {$file_system_root}/usr/ports/packages/All");
+echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
+system("ls {$file_system_root}/usr/ports/packages/All");
 
 // Copy created packages to the package server via rsync
 if($copy_packages_to_folder_ssh) {
