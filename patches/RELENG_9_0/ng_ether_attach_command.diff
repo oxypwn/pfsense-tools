@@ -3,8 +3,8 @@ Index: sys/netgraph/ng_base.c
 RCS file: /root/freebsd/repo/src/sys/netgraph/ng_base.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ng_base.c
---- sys/netgraph/ng_base.c	21 Jun 2011 19:47:45 -0000	1.1.1.1
-+++ sys/netgraph/ng_base.c	21 Jun 2011 20:59:09 -0000
+--- sys/netgraph/ng_base.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netgraph/ng_base.c	27 Sep 2011 15:07:07 -0000
 @@ -66,6 +66,10 @@
  #include <sys/smp.h>
  #include <machine/cpu.h>
@@ -38,16 +38,16 @@ diff -u -r1.1.1.1 ng_base.c
  	{ 0 }
  };
  
-@@ -2824,6 +2836,17 @@
+@@ -2815,6 +2827,17 @@
  		break;
  	    }
  
 +	case NGM_ETHER_ATTACH:
 +		{
 +			struct ifnet *ifp;
-+			ifp = ifunit((char *)msg->data);
++			ifp = ifunit_ref((char *)msg->data);
 +			if (ifp && ng_ether_attach_p != NULL) {
-+				ng_ether_attach_p(ifp);
++				ng_ether_attach_p(ifp); if_rele(ifp);
 +			}
 +				
 +			break;
@@ -61,8 +61,8 @@ Index: sys/netgraph/ng_message.h
 RCS file: /root/freebsd/repo/src/sys/netgraph/ng_message.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ng_message.h
---- sys/netgraph/ng_message.h	21 Jun 2011 19:47:45 -0000	1.1.1.1
-+++ sys/netgraph/ng_message.h	21 Jun 2011 20:59:09 -0000
+--- sys/netgraph/ng_message.h	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netgraph/ng_message.h	27 Sep 2011 15:07:07 -0000
 @@ -138,6 +138,7 @@
  	NGM_ASCII2BINARY= (13|NGM_READONLY|NGM_HASREPLY),
  	/* (optional) Get/set text config. */
