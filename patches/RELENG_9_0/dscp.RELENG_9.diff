@@ -3,9 +3,9 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.2
 diff -u -r1.2 parse.y
---- contrib/pf/pfctl/parse.y	21 Jun 2011 20:06:02 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	21 Jun 2011 20:06:15 -0000
-@@ -185,6 +185,7 @@
+--- contrib/pf/pfctl/parse.y	27 Sep 2011 04:36:35 -0000	1.2
++++ contrib/pf/pfctl/parse.y	27 Sep 2011 04:42:22 -0000
+@@ -214,6 +214,7 @@
  #define FOM_TOS		0x04
  #define FOM_KEEP	0x08
  #define FOM_SRCTRACK	0x10
@@ -13,7 +13,7 @@ diff -u -r1.2 parse.y
  	struct node_uid		*uid;
  	struct node_gid		*gid;
  	struct {
-@@ -195,6 +196,7 @@
+@@ -224,6 +225,7 @@
  	} flags;
  	struct node_icmp	*icmpspec;
  	u_int32_t		 tos;
@@ -21,7 +21,7 @@ diff -u -r1.2 parse.y
  	u_int32_t		 prob;
  	struct {
  		int			 action;
-@@ -416,7 +418,7 @@
+@@ -440,7 +442,7 @@
  %token	RETURNRST RETURNICMP RETURNICMP6 PROTO INET INET6 ALL ANY ICMPTYPE
  %token	ICMP6TYPE CODE KEEP MODULATE STATE PORT RDR NAT BINAT ARROW NODF
  %token	MINTTL ERROR ALLOWOPTS FASTROUTE FILENAME ROUTETO DUPTO REPLYTO NO LABEL
@@ -30,16 +30,16 @@ diff -u -r1.2 parse.y
  %token	REASSEMBLE FRAGDROP FRAGCROP ANCHOR NATANCHOR RDRANCHOR BINATANCHOR
  %token	SET OPTIMIZATION TIMEOUT LIMIT LOGINTERFACE BLOCKPOLICY RANDOMID
  %token	REQUIREORDER SYNPROXY FINGERPRINTS NOSYNC DEBUG SKIP HOSTID
-@@ -432,7 +434,7 @@
+@@ -458,7 +460,7 @@
  %token	<v.i>			PORTBINARY
  %type	<v.interface>		interface if_list if_item_not if_item
  %type	<v.number>		number icmptype icmp6type uid gid
 -%type	<v.number>		tos not yesno
 +%type	<v.number>		tos dscp not yesno
+ %type	<v.probability>		probability
  %type	<v.i>			no dir af fragcache optimizer
  %type	<v.i>			sourcetrack flush unaryop statelock
- %type	<v.b>			action nataction natpass scrubaction
-@@ -1818,7 +1820,14 @@
+@@ -1993,7 +1995,14 @@
  #endif
  			}
  
@@ -53,11 +53,11 @@ diff -u -r1.2 parse.y
 +				r.rule_flag |= PFRULE_DSCP;
 +			}
  			r.keep_state = $9.keep.action;
+ 			o = $9.keep.options;
  
- 			/* 'keep state' by default on pass rules. */
-@@ -2164,6 +2173,14 @@
+@@ -2380,6 +2389,14 @@
  			filter_opts.marker |= FOM_TOS;
- 			filter_opts.tos = $1;
+ 			filter_opts.tos = $2;
  		}
 +		| dscp {
 +			if (filter_opts.marker & FOM_DSCP) {
@@ -70,7 +70,7 @@ diff -u -r1.2 parse.y
  		| keep {
  			if (filter_opts.marker & FOM_KEEP) {
  				yyerror("modulate or keep cannot be redefined");
-@@ -3152,6 +3169,46 @@
+@@ -3492,6 +3509,46 @@
  		}
  		;
  
@@ -117,7 +117,7 @@ diff -u -r1.2 parse.y
  sourcetrack	: SOURCETRACK		{ $$ = PF_SRCTRACK; }
  		| SOURCETRACK GLOBAL	{ $$ = PF_SRCTRACK_GLOBAL; }
  		| SOURCETRACK RULE	{ $$ = PF_SRCTRACK_RULE; }
-@@ -4192,6 +4249,10 @@
+@@ -4542,6 +4599,10 @@
  		    "synproxy state or modulate state");
  		problems++;
  	}
@@ -128,8 +128,8 @@ diff -u -r1.2 parse.y
  	return (-problems);
  }
  
-@@ -4986,6 +5047,7 @@
- 		{ "debug",		DEBUG},
+@@ -5338,6 +5399,7 @@
+ 		{ "divert-to",		DIVERTTO},
  		{ "drop",		DROP},
  		{ "drop-ovl",		FRAGDROP},
 +		{ "dscp",		DSCP},
@@ -141,9 +141,9 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	21 Jun 2011 19:47:47 -0000	1.1.1.1
-+++ contrib/pf/pfctl/pfctl_parser.c	21 Jun 2011 20:06:15 -0000
-@@ -844,8 +844,10 @@
+--- contrib/pf/pfctl/pfctl_parser.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ contrib/pf/pfctl/pfctl_parser.c	27 Sep 2011 04:41:39 -0000
+@@ -847,8 +847,10 @@
  				printf(" code %u", r->code-1);
  		}
  	}
@@ -161,36 +161,10 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.2
 diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	21 Jun 2011 20:06:03 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	21 Jun 2011 20:06:15 -0000
-@@ -3386,7 +3386,10 @@
- 		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
- 		    r->dst.port[0], r->dst.port[1], th->th_dport))
- 			r = r->skip[PF_SKIP_DST_PORT].ptr;
--		else if (r->tos && !(r->tos == pd->tos))
-+		else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
-+                        r = TAILQ_NEXT(r, entries);
-+		else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+                        !(r->tos & (pd->tos & DSCP_MASK)))
- 			r = TAILQ_NEXT(r, entries);
- 		else if (r->rule_flag & PFRULE_FRAGMENT)
- 			r = TAILQ_NEXT(r, entries);
-@@ -3811,8 +3814,11 @@
- 		else if (r->dst.port_op && !pf_match_port(r->dst.port_op,
- 		    r->dst.port[0], r->dst.port[1], uh->uh_dport))
- 			r = r->skip[PF_SKIP_DST_PORT].ptr;
--		else if (r->tos && !(r->tos == pd->tos))
--			r = TAILQ_NEXT(r, entries);
-+                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
-+                        r = TAILQ_NEXT(r, entries);
-+                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+                        !(r->tos & (pd->tos & DSCP_MASK)))
-+                        r = TAILQ_NEXT(r, entries);
- 		else if (r->rule_flag & PFRULE_FRAGMENT)
- 			r = TAILQ_NEXT(r, entries);
- 		else if (r->uid.op && (pd->lookup.done || (pd->lookup.done =
-@@ -4169,8 +4175,11 @@
- 			r = TAILQ_NEXT(r, entries);
+--- sys/contrib/pf/net/pf.c	27 Sep 2011 04:36:35 -0000	1.2
++++ sys/contrib/pf/net/pf.c	27 Sep 2011 04:48:02 -0000
+@@ -3583,8 +3583,11 @@
+ 		/* icmp only. type always 0 in other cases */
  		else if (r->code && r->code != icmpcode + 1)
  			r = TAILQ_NEXT(r, entries);
 -		else if (r->tos && !(r->tos == pd->tos))
@@ -202,29 +176,27 @@ diff -u -r1.2 pf.c
 +                        r = TAILQ_NEXT(r, entries);
  		else if (r->rule_flag & PFRULE_FRAGMENT)
  			r = TAILQ_NEXT(r, entries);
- 		else if (r->prob && r->prob <= arc4random())
-@@ -4431,8 +4440,11 @@
+ 		else if (pd->proto == IPPROTO_TCP &&
+@@ -4109,7 +4112,10 @@
  		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, af,
  		    r->dst.neg, NULL))
  			r = r->skip[PF_SKIP_DST_ADDR].ptr;
 -		else if (r->tos && !(r->tos == pd->tos))
--			r = TAILQ_NEXT(r, entries);
-+                else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
-+                        r = TAILQ_NEXT(r, entries);
-+                else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
-+                        !(r->tos & (pd->tos & DSCP_MASK)))
-+                        r = TAILQ_NEXT(r, entries);
- 		else if (r->rule_flag & PFRULE_FRAGMENT)
++		else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++			r = TAILQ_NEXT(r, entries);
++		else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
++		    !(r->tos & (pd->tos & DSCP_MASK)))
  			r = TAILQ_NEXT(r, entries);
- 		else if (r->prob && r->prob <= arc4random())
+ 		else if (r->os_fingerprint != PF_OSFP_ANY)
+ 			r = TAILQ_NEXT(r, entries);
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.2
 diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Jun 2011 20:06:03 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	21 Jun 2011 20:06:15 -0000
-@@ -672,6 +672,28 @@
+--- sys/contrib/pf/net/pfvar.h	27 Sep 2011 04:36:35 -0000	1.2
++++ sys/contrib/pf/net/pfvar.h	27 Sep 2011 04:41:39 -0000
+@@ -695,6 +695,28 @@
  	u_int8_t		 allow_opts;
  	u_int8_t		 rt;
  	u_int8_t		 return_ttl;
@@ -251,11 +223,11 @@ diff -u -r1.2 pfvar.h
 +#define AF_DROPPRECMASK         0x18
 +#endif
  	u_int8_t		 tos;
+ 	u_int8_t		 set_tos;
  	u_int8_t		 anchor_relative;
- 	u_int8_t		 anchor_wildcard;
-@@ -698,6 +720,13 @@
- #define PFRULE_RANDOMID		0x0800
+@@ -728,6 +750,13 @@
  #define PFRULE_REASSEMBLE_TCP	0x1000
+ #define PFRULE_SET_TOS		0x2000
  
 +/* rule flags for TOS or DSCP differentiation */
 +#define PFRULE_TOS		0x2000
