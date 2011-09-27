@@ -374,9 +374,9 @@ foreach($pkg['packages']['package'] as $pkg) {
 				if(!isset($options['q'])) 
 					echo " BUILD_OPTIONS: {$build_options}\n";
 			$pbi_conf = create_pbi_conf($build,$build_options);
-			if(!is_dir("/pbi-build/modules/$buildname"))
-				exec("mkdir -p /pbi-build/modules/$buildname");
-			file_put_contents("/pbi-build/modules/$buildname/pbi.conf");
+			if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
+				exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
+			file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf");
 			// Build in chroot if defined.
 			if(isset($options['j']) && $options['l']) {
 				$command_to_run  = "#!/bin/sh\n";
