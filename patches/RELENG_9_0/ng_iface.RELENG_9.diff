@@ -3,8 +3,8 @@ Index: ng_iface.c
 RCS file: /root/freebsd/repo/src/sys/netgraph/ng_iface.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ng_iface.c
---- ng_iface.c	21 Jun 2011 19:47:45 -0000	1.1.1.1
-+++ ng_iface.c	21 Jun 2011 20:39:48 -0000
+--- ng_iface.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ ng_iface.c	27 Sep 2011 14:26:29 -0000
 @@ -70,9 +70,11 @@
  #include <sys/socket.h>
  #include <sys/syslog.h>
@@ -97,8 +97,8 @@ Index: ng_iface.h
 RCS file: /root/freebsd/repo/src/sys/netgraph/ng_iface.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ng_iface.h
---- ng_iface.h	21 Jun 2011 19:47:45 -0000	1.1.1.1
-+++ ng_iface.h	21 Jun 2011 20:39:48 -0000
+--- ng_iface.h	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ ng_iface.h	27 Sep 2011 14:26:29 -0000
 @@ -70,6 +70,7 @@
  	NGM_IFACE_POINT2POINT,
  	NGM_IFACE_BROADCAST,
