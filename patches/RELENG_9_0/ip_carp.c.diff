@@ -3,8 +3,8 @@ Index: sys/netinet/ip_carp.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_carp.c
---- sys/netinet/ip_carp.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
-+++ sys/netinet/ip_carp.c	21 Jun 2011 21:00:52 -0000
+--- sys/netinet/ip_carp.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netinet/ip_carp.c	27 Sep 2011 14:44:04 -0000
 @@ -579,9 +579,9 @@
  	/* check if received on a valid carp interface */
  	if (m->m_pkthdr.rcvif->if_carp == NULL) {
