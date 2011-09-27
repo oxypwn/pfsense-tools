@@ -1,0 +1,146 @@
+Index: sbin/ifconfig/ifpfsync.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sbin/ifconfig/ifpfsync.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ifpfsync.c
+--- sbin/ifconfig/ifpfsync.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sbin/ifconfig/ifpfsync.c	27 Sep 2011 19:59:08 -0000
+@@ -184,7 +184,13 @@
+ 
+ 	if (preq.pfsyncr_syncdev[0] != '\0' ||
+ 	    preq.pfsyncr_syncpeer.s_addr != INADDR_PFSYNC_GROUP)
+-		printf("maxupd: %d\n", preq.pfsyncr_maxupdates);
++		printf("maxupd: %d ", preq.pfsyncr_maxupdates);
++
++	if (preq.pfsyncr_syncdev[0] != '\0' ||
++	    preq.pfsyncr_syncpeer.s_addr != INADDR_PFSYNC_GROUP)
++		printf("syncok: %d", preq.pfsyncr_sync_ok);
++
++	printf("\n");
+ }
+ 
+ static struct cmd pfsync_cmds[] = {
+Index: sys/contrib/pf/net/if_pfsync.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/if_pfsync.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_pfsync.c
+--- sys/contrib/pf/net/if_pfsync.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/contrib/pf/net/if_pfsync.c	27 Sep 2011 20:03:04 -0000
+@@ -1827,6 +1827,7 @@
+ 		}
+ 		pfsyncr.pfsyncr_syncpeer = sc->sc_sync_peer;
+ 		pfsyncr.pfsyncr_maxupdates = sc->sc_maxupdates;
++		pfsyncr.pfsyncr_sync_ok = pfsync_sync_ok;
+ 		return (copyout(&pfsyncr, ifr->ifr_data, sizeof(pfsyncr)));
+ 
+ 	case SIOCSETPFSYNC:
+@@ -2344,6 +2345,7 @@
+ 
+ #ifdef __FreeBSD__
+ 	PF_UNLOCK();
++	m->m_flags |= M_SKIP_FIREWALL;
+ #endif
+ 	if (ip_output(m, NULL, NULL, IP_RAWOUTPUT, &sc->sc_imo, NULL) == 0)
+ #ifdef __FreeBSD__
+@@ -2368,6 +2370,7 @@
+ 	sc->sc_len = PFSYNC_MINPKT;
+ }
+ 
++#if 0
+ void
+ pfsync_insert_state(struct pf_state *st)
+ {
+@@ -2416,6 +2419,7 @@
+ 	else
+ 		st->sync_updates = 0;
+ }
++#endif
+ 
+ int defer = 10;
+ 
+@@ -2494,6 +2498,7 @@
+ #ifdef __FreeBSD__
+ 		/* XXX: use pf_defered?! */
+ 		PF_UNLOCK();
++		m->m_flags |= M_SKIP_FIREWALL;
+ #endif
+ 		ip_output(pd->pd_m, (void *)NULL, (void *)NULL, 0,
+ 		    (void *)NULL, (void *)NULL);
+Index: sys/contrib/pf/net/if_pfsync.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/if_pfsync.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_pfsync.h
+--- sys/contrib/pf/net/if_pfsync.h	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/contrib/pf/net/if_pfsync.h	27 Sep 2011 20:04:18 -0000
+@@ -266,6 +266,7 @@
+ 	struct in_addr	 pfsyncr_syncpeer;
+ 	int		 pfsyncr_maxupdates;
+ 	int		 pfsyncr_authlevel;
++	int		 pfsyncr_sync_ok;
+ };
+ 
+ #ifdef __FreeBSD__
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.12
+diff -u -r1.12 pf.c
+--- sys/contrib/pf/net/pf.c	27 Sep 2011 19:40:43 -0000	1.12
++++ sys/contrib/pf/net/pf.c	27 Sep 2011 20:09:00 -0000
+@@ -6894,12 +6894,9 @@
+         u_int8_t		 divflags = 0;
+ 	int			 loopedfrom = 0;
+ 
+-	PF_LOCK();
+-	if (!V_pf_status.running)
+-	{
+-		PF_UNLOCK();
++	if (m->m_flags & M_SKIP_FIREWALL)
+ 		return (PF_PASS);
+-	}
++
+ #else
+ 	if (!pf_status.running)
+ 		return (PF_PASS);
+@@ -6913,6 +6910,13 @@
+ 		    ("pf_test: pf_get_mtag returned NULL\n"));
+ 		return (PF_DROP);
+ 	}
++
++	PF_LOCK();
++	if (!V_pf_status.running)
++	{
++		PF_UNLOCK();
++		return (PF_PASS);
++	}
+ #endif
+ #ifndef __FreeBSD__
+ 	if (ifp->if_type == IFT_CARP && ifp->if_carpdev)
+@@ -7529,11 +7533,9 @@
+ 	struct m_tag *dn_tag;
+ 	struct ip_fw_args	 dnflow;
+ 
+-	PF_LOCK();
+-	if (!V_pf_status.running) {
+-		PF_UNLOCK();
++	if (m->m_flags & M_SKIP_FIREWALL)
+ 		return (PF_PASS);
+-	}
++
+ #else
+ 	if (!pf_status.running)
+ 		return (PF_PASS);
+@@ -7547,6 +7549,11 @@
+ 		    ("pf_test: pf_get_mtag returned NULL\n"));
+ 		return (PF_DROP);
+ 	}
++	PF_LOCK();
++	if (!V_pf_status.running) {
++		PF_UNLOCK();
++		return (PF_PASS);
++	}
+ #endif
+ #ifndef __FreeBSD__
+ 	if (ifp->if_type == IFT_CARP && ifp->if_carpdev)
