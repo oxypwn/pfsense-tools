@@ -72,9 +72,6 @@ ensure_source_directories_present
 # Ensure binaries are present that builder system requires
 install_required_builder_system_ports
 
-# Check if we need to force a ports rebuild
-check_for_forced_pfPorts_build
-
 # Clean up items that should be cleaned each run
 freesbie_clean_each_run
 
