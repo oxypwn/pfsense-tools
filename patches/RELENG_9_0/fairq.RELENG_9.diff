@@ -1964,7 +1964,7 @@ retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf.c
 --- sys/contrib/pf/net/pf.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
 +++ sys/contrib/pf/net/pf.c	27 Sep 2011 04:31:56 -0000
-@@ -518,6 +518,22 @@
+@@ -518,6 +518,21 @@
  	return (0);
  }
  
@@ -1975,9 +1975,8 @@ diff -u -r1.1.1.1 pf.c
 +{
 +	u_int32_t hv = (intptr_t)s / sizeof(*s);
 +
-+	hv ^= crc32(&s->lan, sizeof(s->lan));
-+	hv ^= crc32(&s->gwy, sizeof(s->gwy));
-+	hv ^= crc32(&s->ext, sizeof(s->ext));
++	hv ^= crc32(&s->key[0], sizeof(s->key[0]));
++	hv ^= crc32(&s->key[1], sizeof(s->key[1]));
 +	if (hv == 0)
 +		hv = 1;
 +	return (hv);
