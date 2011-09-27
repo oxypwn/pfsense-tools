@@ -1,0 +1,29 @@
+Index: sys/net/netisr.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net/netisr.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 netisr.c
+--- sys/net/netisr.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/net/netisr.c	27 Sep 2011 19:56:00 -0000
+@@ -178,7 +178,7 @@
+     &netisr_maxthreads, 0,
+     "Use at most this many CPUs for netisr processing");
+ 
+-static int	netisr_bindthreads = 0;		/* Bind threads to CPUs. */
++static int	netisr_bindthreads = 1;		/* Bind threads to CPUs. */
+ TUNABLE_INT("net.isr.bindthreads", &netisr_bindthreads);
+ SYSCTL_INT(_net_isr, OID_AUTO, bindthreads, CTLFLAG_RDTUN,
+     &netisr_bindthreads, 0, "Bind netisr threads to CPUs.");
+@@ -1169,7 +1169,11 @@
+ 
+ 	NETISR_LOCK_INIT();
+ 	if (netisr_maxthreads < 1)
+-		netisr_maxthreads = 1;
++		netisr_maxthreads = mp_ncpus;
++	if (mp_ncpus <= 4)
++		netisr_direct_force = 1;
++	else
++		netisr_direct_force = 0;
+ 	if (netisr_maxthreads > mp_ncpus) {
+ 		printf("netisr_init: forcing maxthreads from %d to %d\n",
+ 		    netisr_maxthreads, mp_ncpus);
