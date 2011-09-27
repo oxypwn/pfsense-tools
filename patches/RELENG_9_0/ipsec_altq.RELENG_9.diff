@@ -1,11 +1,11 @@
 Index: sys/conf/files
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/conf/files,v
-retrieving revision 1.3
-diff -u -r1.3 files
---- sys/conf/files	21 Jun 2011 20:22:03 -0000	1.3
-+++ sys/conf/files	21 Jun 2011 20:30:46 -0000
-@@ -2571,7 +2571,8 @@
+retrieving revision 1.2
+diff -u -r1.2 files
+--- sys/conf/files	27 Sep 2011 04:36:35 -0000	1.2
++++ sys/conf/files	27 Sep 2011 14:12:24 -0000
+@@ -2576,7 +2576,8 @@
  net/if_disc.c			optional disc
  net/if_edsc.c			optional edsc
  net/if_ef.c			optional ef
@@ -15,7 +15,7 @@ diff -u -r1.3 files
  net/if_epair.c			optional epair
  net/if_ethersubr.c		optional ether \
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
-@@ -2852,7 +2853,8 @@
+@@ -2857,7 +2858,8 @@
  netipsec/ipsec.c		optional ipsec inet | ipsec inet6
  netipsec/ipsec_input.c		optional ipsec inet | ipsec inet6
  netipsec/ipsec_mbuf.c		optional ipsec inet | ipsec inet6
@@ -30,8 +30,8 @@ Index: sys/net/if_enc.c
 RCS file: /root/freebsd/repo/src/sys/net/if_enc.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_enc.c
---- sys/net/if_enc.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
-+++ sys/net/if_enc.c	21 Jun 2011 20:30:46 -0000
+--- sys/net/if_enc.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/net/if_enc.c	27 Sep 2011 14:12:24 -0000
 @@ -52,6 +52,9 @@
  #include <net/bpf.h>
  #include <net/vnet.h>
@@ -70,8 +70,8 @@ Index: sys/netipsec/ipsec.h
 RCS file: /root/freebsd/repo/src/sys/netipsec/ipsec.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipsec.h
---- sys/netipsec/ipsec.h	21 Jun 2011 19:47:44 -0000	1.1.1.1
-+++ sys/netipsec/ipsec.h	21 Jun 2011 20:30:46 -0000
+--- sys/netipsec/ipsec.h	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netipsec/ipsec.h	27 Sep 2011 14:12:24 -0000
 @@ -440,7 +440,7 @@
  #define	ENC_AFTER	0x0002
  #define	ENC_IN		0x0100
@@ -86,9 +86,9 @@ Index: sys/netipsec/ipsec_input.c
 RCS file: /root/freebsd/repo/src/sys/netipsec/ipsec_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipsec_input.c
---- sys/netipsec/ipsec_input.c	21 Jun 2011 19:47:44 -0000	1.1.1.1
-+++ sys/netipsec/ipsec_input.c	21 Jun 2011 20:30:46 -0000
-@@ -484,7 +484,8 @@
+--- sys/netipsec/ipsec_input.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netipsec/ipsec_input.c	27 Sep 2011 14:12:24 -0000
+@@ -486,7 +486,8 @@
  	ipsec_bpf(m, sav, AF_INET, ENC_IN|ENC_BEFORE);
  
  	if (prot != IPPROTO_IPIP)
@@ -98,7 +98,7 @@ diff -u -r1.1.1.1 ipsec_input.c
  			return (error);
  #endif
  
-@@ -751,7 +752,8 @@
+@@ -753,7 +754,8 @@
  
  	/* XXX-BZ does not make sense. */
  	if (prot != IPPROTO_IPIP)
@@ -113,8 +113,8 @@ Index: sys/netipsec/ipsec_output.c
 RCS file: /root/freebsd/repo/src/sys/netipsec/ipsec_output.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ipsec_output.c
---- sys/netipsec/ipsec_output.c	21 Jun 2011 19:47:44 -0000	1.1.1.1
-+++ sys/netipsec/ipsec_output.c	21 Jun 2011 20:30:46 -0000
+--- sys/netipsec/ipsec_output.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netipsec/ipsec_output.c	27 Sep 2011 14:12:24 -0000
 @@ -43,6 +43,11 @@
  #include <sys/errno.h>
  #include <sys/syslog.h>
@@ -135,9 +135,9 @@ diff -u -r1.1.1.1 ipsec_output.c
  	int error;
  
  	IPSEC_ASSERT(m != NULL, ("null mbuf"));
-@@ -191,6 +197,14 @@
- 	}
- 	key_sa_recordxfer(sav, m);		/* record data transfer */
+@@ -156,6 +162,14 @@
+ 	tdbi->spi = sav->spi;
+ 	m_tag_prepend(m, mtag);
  
 +#ifdef DEV_ENC
 +	if (saidx->qid && (atag = pf_get_mtag(m)) != NULL) {
@@ -148,9 +148,9 @@ diff -u -r1.1.1.1 ipsec_output.c
 +	}
 +#endif
  	/*
- 	 * We're done with IPsec processing, transmit the packet using the
- 	 * appropriate network protocol (IP or IPv6). SPD lookup will be
-@@ -452,7 +466,8 @@
+ 	 * If there's another (bundled) SA to apply, do so.
+ 	 * Note that this puts a burden on the kernel stack size.
+@@ -454,7 +468,8 @@
  	/* pass the mbuf to enc0 for bpf processing */
  	ipsec_bpf(m, sav, AF_INET, ENC_OUT|ENC_BEFORE);
  	/* pass the mbuf to enc0 for packet filtering */
@@ -160,7 +160,7 @@ diff -u -r1.1.1.1 ipsec_output.c
  		goto bad;
  #endif
  
-@@ -557,7 +572,8 @@
+@@ -559,7 +574,8 @@
  	/* pass the mbuf to enc0 for bpf processing */
  	ipsec_bpf(m, sav, AF_INET, ENC_OUT|ENC_AFTER);
  	/* pass the mbuf to enc0 for packet filtering */
@@ -170,7 +170,7 @@ diff -u -r1.1.1.1 ipsec_output.c
  		goto bad;
  #endif
  
-@@ -815,7 +831,8 @@
+@@ -817,7 +833,8 @@
  	/* pass the mbuf to enc0 for bpf processing */
  	ipsec_bpf(m, isr->sav, AF_INET6, ENC_OUT|ENC_BEFORE);
  	/* pass the mbuf to enc0 for packet filtering */
@@ -180,7 +180,7 @@ diff -u -r1.1.1.1 ipsec_output.c
  		goto bad;
  #endif
  
-@@ -891,7 +908,8 @@
+@@ -893,7 +910,8 @@
  	/* pass the mbuf to enc0 for bpf processing */
  	ipsec_bpf(m, isr->sav, AF_INET6, ENC_OUT|ENC_AFTER);
  	/* pass the mbuf to enc0 for packet filtering */
@@ -195,8 +195,8 @@ Index: sys/netipsec/keydb.h
 RCS file: /root/freebsd/repo/src/sys/netipsec/keydb.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 keydb.h
---- sys/netipsec/keydb.h	21 Jun 2011 19:47:44 -0000	1.1.1.1
-+++ sys/netipsec/keydb.h	21 Jun 2011 20:30:46 -0000
+--- sys/netipsec/keydb.h	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netipsec/keydb.h	27 Sep 2011 14:12:24 -0000
 @@ -58,6 +58,8 @@
  	u_int8_t mode;			/* mode of protocol, see ipsec.h */
  	u_int32_t reqid;		/* reqid id who owned this SA */
@@ -211,8 +211,8 @@ Index: sys/netipsec/xform_ipip.c
 RCS file: /root/freebsd/repo/src/sys/netipsec/xform_ipip.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 xform_ipip.c
---- sys/netipsec/xform_ipip.c	21 Jun 2011 19:47:44 -0000	1.1.1.1
-+++ sys/netipsec/xform_ipip.c	21 Jun 2011 20:30:46 -0000
+--- sys/netipsec/xform_ipip.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netipsec/xform_ipip.c	27 Sep 2011 14:12:24 -0000
 @@ -365,7 +365,7 @@
  		panic("%s: bogus ip version %u", __func__, v>>4);
  	}
