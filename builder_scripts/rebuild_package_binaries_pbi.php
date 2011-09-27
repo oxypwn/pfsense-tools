@@ -274,64 +274,16 @@ if($pkg['copy_packages_to_host_ssh_port'] &&
 	echo "    copy_packages_to_host_ssh_port: $copy_packages_to_host_ssh_port\n";
 }
 
-// Handle chroot building
-if(isset($options['j']) && $options['l'] <> "") {
-	if(!file_exists("/usr/src/COPYRIGHT")) {
-		echo ">>> /usr/src/ is not populated.  Populating, please wait...\n";
-		csup($csup_host, "/usr/share/examples/cvsup/standard-supfile", $quiet_mode);
-	}
-	$file_system_root = "{$options['l']}";
-	echo ">>> Preparing chroot {$options['l']} ...\n";	
-	// Nuke old chroot
-	if(is_dir($options['l'])) {
-		if(is_dir("{$options['l']}/dev")) {
-			echo ">>> Unmounting {$options['l']}/dev\n";
-			system("umount {$options['l']}/dev 2>/dev/null");
-		}
-		if(isset($options['r'])) {
-			echo ">>> Removing {$options['l']}\n";
-			system("chflags -R noschg {$options['l']}/*");
-			system("rm -rf {$options['l']}");
-		}
-	}
-	// Create new chroot structure
-	echo ">>> Creating chroot structure...\n";
-	system("cd /usr/src && mkdir -p {$options['l']}");
-	system("cd /usr/src && mkdir -p {$options['l']}/etc");
-	system("cd /usr/src && mkdir -p {$options['l']}/dev");
-	system("mkdir -p {$options['l']}/home/pfsense");
-	echo ">>> Building world...\n";
-	exec("cd /usr/src && make world NO_CLEAN=yes DESTDIR={$options['l']} {$quiet_mode}");
-	echo ">>> Building distribution...\n";
-	exec("cd /usr/src && make distribution NO_CLEAN=yes DESTDIR={$options['l']} {$quiet_mode}");
-	// Mount devs and populate resolv.conf
-	system("mount -t devfs devfs {$options['l']}/dev");
-	system("cp /etc/resolv.conf {$options['l']}/etc/");
-	system("cp -R /home/pfsense/tools {$options['l']}/home/pfsense/");
-	system("cp -R /usr/local/sbin/pbi_* {$options['l']}/usr/local/sbin/");
-	system("chmod a+rx {$options['l']}/usr/local/sbin/");
-	// Invoke csup and populate /usr/ports inside chroot
-	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l'], $quiet_mode);
-	echo ">>> Applying kernel patches and make includes...\n";
-	exec("rm -rf {$options['l']}/tmp/pf*");
-	$command_to_run = "#!/bin/sh\n";
-	if($set_version)
-		$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}\n";
-	$command_to_run .= "cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh\n";
-	$command_to_run .= "cd /usr/pfSensesrc/src && make includes\n";
-	chroot_command($options['l'], $command_to_run);
-} else {
-	// Invoke csup and populate /usr/ports on host (non-chroot)
-	$file_system_root = "/";
-	exec("rm -rf /tmp/pf*");
-	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $quiet_mode);
-	echo ">>> Applying kernel patches...\n";
-	if($set_version)
-		exec("cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
-	exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
-	echo ">>> Running make includes...\n";
-	exec("cd /usr/pfSensesrc/src && make includes");
-}
+// Invoke csup and populate /usr/ports on host (non-chroot)
+$file_system_root = "/";
+exec("rm -rf /tmp/pf*");
+csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $quiet_mode);
+echo ">>> Applying kernel patches...\n";
+if($set_version)
+	exec("cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
+exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
+echo ">>> Running make includes...\n";
+exec("cd /usr/pfSensesrc/src && make includes");
 
 echo ">>> pfSense package binary builder is starting.\n";
 
