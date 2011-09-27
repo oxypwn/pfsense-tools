@@ -82,10 +82,6 @@ cp \${DIR}/rc.d/pbid \${LB}/etc/rc.d/pbid
 cp \${DIR}/etc/pbi.conf \${LB}/etc/pbi.conf
 EOF;
 
-file_put_contents("/tmp/preq.sh");
-echo ">>> Bootstrapping PBI...";
-exec("/tmp/preq.sh");
-
 if(file_exists("/etc/inc/")) {
 	include("/etc/inc/functions.inc");
 	include("/etc/inc/util.inc");
@@ -234,6 +230,12 @@ $options = getopt("x:p::d::j::l::c::r::q::s::");
 
 if(!isset($options['x']))
 	usage();
+
+// Bootstrap
+file_put_contents("/tmp/preq.sh", $preq_txt);
+exec("chmod a+rx /tmp/preq.sh");
+echo ">>> Bootstrapping PBI...";
+exec("/tmp/preq.sh");
 
 // Set the XML filename that we are processing
 $xml_filename = $options['x'];
