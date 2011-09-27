@@ -3,12 +3,12 @@ Index: sys/contrib/pf/net/pf_ioctl.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.4
 diff -u -r1.4 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	21 Jun 2011 20:25:08 -0000	1.4
-+++ sys/contrib/pf/net/pf_ioctl.c	21 Jun 2011 20:26:28 -0000
-@@ -3849,8 +3849,10 @@
+--- sys/contrib/pf/net/pf_ioctl.c	27 Sep 2011 14:07:56 -0000	1.4
++++ sys/contrib/pf/net/pf_ioctl.c	27 Sep 2011 14:08:49 -0000
+@@ -4348,8 +4348,10 @@
+ 	pfh_inet = pfil_head_get(PFIL_TYPE_AF, AF_INET);
  	if (pfh_inet == NULL)
  		return (ESRCH); /* XXX */
- #ifdef INET
 -	pfil_add_hook(pf_check_in, NULL, PFIL_IN | PFIL_WAITOK, pfh_inet);
 -	pfil_add_hook(pf_check_out, NULL, PFIL_OUT | PFIL_WAITOK, pfh_inet);
 +	pfil_add_named_hook(pf_check_in, NULL, "pf", PFIL_IN | PFIL_WAITOK, 
@@ -18,7 +18,7 @@ diff -u -r1.4 pf_ioctl.c
  #endif
  #ifdef INET6
  	pfh_inet6 = pfil_head_get(PFIL_TYPE_AF, AF_INET6);
-@@ -3863,8 +3865,10 @@
+@@ -4362,8 +4364,10 @@
  #endif
  		return (ESRCH); /* XXX */
  	}
@@ -30,14 +30,14 @@ diff -u -r1.4 pf_ioctl.c
 +		pfh_inet6);
  #endif
  
- 	pf_pfil_hooked = 1;
+ 	V_pf_pfil_hooked = 1;
 Index: sys/net/pfil.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/net/pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.c
---- sys/net/pfil.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
-+++ sys/net/pfil.c	21 Jun 2011 20:25:23 -0000
+--- sys/net/pfil.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/net/pfil.c	27 Sep 2011 14:08:03 -0000
 @@ -34,6 +34,7 @@
  #include <sys/errno.h>
  #include <sys/lock.h>
@@ -234,8 +234,8 @@ Index: sys/net/pfil.h
 RCS file: /root/freebsd/repo/src/sys/net/pfil.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pfil.h
---- sys/net/pfil.h	21 Jun 2011 19:47:43 -0000	1.1.1.1
-+++ sys/net/pfil.h	21 Jun 2011 20:27:23 -0000
+--- sys/net/pfil.h	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/net/pfil.h	27 Sep 2011 14:09:25 -0000
 @@ -38,6 +38,7 @@
  #include <sys/_mutex.h>
  #include <sys/lock.h>
@@ -281,8 +281,8 @@ Index: sys/netinet/ip_input.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_input.c
---- sys/netinet/ip_input.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
-+++ sys/netinet/ip_input.c	21 Jun 2011 20:25:23 -0000
+--- sys/netinet/ip_input.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netinet/ip_input.c	27 Sep 2011 14:08:03 -0000
 @@ -301,6 +301,9 @@
  	if ((i = pfil_head_register(&V_inet_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
@@ -298,9 +298,9 @@ Index: sys/netinet/ipfw/ip_fw_pfil.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_fw_pfil.c
---- sys/netinet/ipfw/ip_fw_pfil.c	21 Jun 2011 19:47:44 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_fw_pfil.c	21 Jun 2011 20:25:23 -0000
-@@ -340,7 +340,11 @@
+--- sys/netinet/ipfw/ip_fw_pfil.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_fw_pfil.c	27 Sep 2011 14:08:03 -0000
+@@ -387,7 +387,11 @@
  	if (pfh == NULL)
  		return ENOENT;
  
@@ -318,9 +318,9 @@ Index: sys/netinet6/ip6_input.c
 RCS file: /root/freebsd/repo/src/sys/netinet6/ip6_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip6_input.c
---- sys/netinet6/ip6_input.c	21 Jun 2011 19:47:44 -0000	1.1.1.1
-+++ sys/netinet6/ip6_input.c	21 Jun 2011 20:25:23 -0000
-@@ -135,6 +135,7 @@
+--- sys/netinet6/ip6_input.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/netinet6/ip6_input.c	27 Sep 2011 14:08:03 -0000
+@@ -137,6 +137,7 @@
  VNET_DECLARE(struct callout, in6_tmpaddrtimer_ch);
  #define	V_in6_tmpaddrtimer_ch		VNET(in6_tmpaddrtimer_ch)
  
@@ -328,7 +328,7 @@ diff -u -r1.1.1.1 ip6_input.c
  VNET_DEFINE(struct pfil_head, inet6_pfil_hook);
  
  VNET_DEFINE(struct ip6stat, ip6stat);
-@@ -170,6 +171,9 @@
+@@ -172,6 +173,9 @@
  	if ((i = pfil_head_register(&V_inet6_pfil_hook)) != 0)
  		printf("%s: WARNING: unable to register pfil hook, "
  			"error %d\n", __func__, i);
