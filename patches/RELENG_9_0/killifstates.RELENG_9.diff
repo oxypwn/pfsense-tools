@@ -188,7 +188,7 @@ retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_ioctl.c
 --- sys/contrib/pf/net/pf_ioctl.c	27 Sep 2011 22:12:37 -0000	1.1.1.1
 +++ sys/contrib/pf/net/pf_ioctl.c	27 Sep 2011 22:33:58 -0000
-@@ -2307,6 +2307,40 @@
+@@ -2307,6 +2307,39 @@
  		break;
  	}
  
@@ -208,7 +208,6 @@ diff -u -r1.1.1.1 pf_ioctl.c
 +				src = &sk->addr[1];
 +			else 
 +				src = &sk->addr[0];
-+			src = &state->gwy;
 +			if (((!psk->psk_af || sk->af == psk->psk_af)
 +                           && (!psk->psk_proto || psk->psk_proto ==
 +                           sk->proto) &&
