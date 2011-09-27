@@ -1,11 +1,11 @@
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.9
-diff -u -r1.9 pfvar.h
---- sys/contrib/pf/net/pfvar.h	21 Jun 2011 20:25:08 -0000	1.9
-+++ sys/contrib/pf/net/pfvar.h	21 Jun 2011 21:06:21 -0000
-@@ -301,21 +301,20 @@
+retrieving revision 1.8
+diff -u -r1.8 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	27 Sep 2011 14:07:56 -0000	1.8
++++ sys/contrib/pf/net/pfvar.h	27 Sep 2011 17:11:10 -0000
+@@ -320,21 +320,20 @@
  
  #define PF_AEQ(a, b, c) \
  	((c == AF_INET && (a)->addr32[0] == (b)->addr32[0]) || \
