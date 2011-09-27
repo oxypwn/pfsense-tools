@@ -3,9 +3,9 @@ Index: sys/kern/tty.c
 RCS file: /root/freebsd/repo/src/sys/kern/tty.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 tty.c
---- sys/kern/tty.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
-+++ sys/kern/tty.c	21 Jun 2011 20:49:03 -0000
-@@ -110,7 +110,7 @@
+--- sys/kern/tty.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ sys/kern/tty.c	27 Sep 2011 14:40:38 -0000
+@@ -112,7 +112,7 @@
  	ttyinq_setsize(&tp->t_inq, tp, bs);
  
  	/* Set low watermark at 10% (when 90% is available). */
