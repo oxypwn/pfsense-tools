@@ -3,8 +3,8 @@ Index: contrib/pf/pfctl/parse.y
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
 retrieving revision 1.7
 diff -u -r1.7 parse.y
---- contrib/pf/pfctl/parse.y	27 Sep 2011 14:07:56 -0000	1.7
-+++ contrib/pf/pfctl/parse.y	27 Sep 2011 19:23:58 -0000
+--- contrib/pf/pfctl/parse.y	27 Sep 2011 23:20:28 -0000	1.7
++++ contrib/pf/pfctl/parse.y	27 Sep 2011 23:23:20 -0000
 @@ -447,7 +447,7 @@
  
  %}
@@ -35,8 +35,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.4
 diff -u -r1.4 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	27 Sep 2011 07:30:40 -0000	1.4
-+++ contrib/pf/pfctl/pfctl_parser.c	27 Sep 2011 19:23:58 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	27 Sep 2011 23:19:29 -0000	1.4
++++ contrib/pf/pfctl/pfctl_parser.c	27 Sep 2011 23:23:20 -0000
 @@ -692,7 +692,9 @@
  
  	if (verbose)
@@ -51,10 +51,10 @@ diff -u -r1.4 pfctl_parser.c
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.11
-diff -u -r1.11 pf.c
---- sys/contrib/pf/net/pf.c	27 Sep 2011 17:20:03 -0000	1.11
-+++ sys/contrib/pf/net/pf.c	27 Sep 2011 19:36:19 -0000
+retrieving revision 1.10
+diff -u -r1.10 pf.c
+--- sys/contrib/pf/net/pf.c	27 Sep 2011 23:22:51 -0000	1.10
++++ sys/contrib/pf/net/pf.c	27 Sep 2011 23:24:00 -0000
 @@ -288,6 +288,8 @@
  void			 pf_detach_state(struct pf_state *);
  void			 pf_state_key_detach(struct pf_state *, int);
@@ -73,7 +73,7 @@ diff -u -r1.11 pf.c
  int			 pf_test_fragment(struct pf_rule **, int,
  			    struct pfi_kif *, struct mbuf *, void *,
  			    struct pf_pdesc *, struct pf_rule **,
-@@ -3454,6 +3456,15 @@
+@@ -3453,6 +3455,15 @@
  #endif
  }
  
@@ -89,7 +89,7 @@ diff -u -r1.11 pf.c
  int
  pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
      struct pfi_kif *kif, struct mbuf *m, int off, void *h,
-@@ -3469,6 +3480,7 @@
+@@ -3468,6 +3479,7 @@
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -97,7 +97,7 @@ diff -u -r1.11 pf.c
  	struct pf_src_node	*nsn = NULL;
  	struct tcphdr		*th = pd->hdr.tcp;
  	struct pf_state_key	*skw = NULL, *sks = NULL;
-@@ -3770,10 +3782,20 @@
+@@ -3769,10 +3781,20 @@
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -122,7 +122,7 @@ diff -u -r1.11 pf.c
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -3789,6 +3811,9 @@
+@@ -3788,6 +3810,9 @@
  	a = *am;
  	ruleset = *rsm;
  
@@ -132,7 +132,7 @@ diff -u -r1.11 pf.c
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->log)) {
-@@ -3887,7 +3912,7 @@
+@@ -3886,7 +3911,7 @@
  		int action;
  		action = pf_create_state(r, nr, a, pd, nsn, skw, sks, nk, sk, m,
  		    off, sport, dport, &rewrite, kif, sm, tag, bproto_sum,
@@ -141,7 +141,7 @@ diff -u -r1.11 pf.c
  		if (action != PF_PASS)
  			return (action);
  	} else {
-@@ -3954,7 +3979,7 @@
+@@ -3953,7 +3978,7 @@
      struct pf_state_key *sks, struct pf_state_key *nk, struct pf_state_key *sk,
      struct mbuf *m, int off, u_int16_t sport, u_int16_t dport, int *rewrite,
      struct pfi_kif *kif, struct pf_state **sm, int tag, u_int16_t bproto_sum,
@@ -150,7 +150,7 @@ diff -u -r1.11 pf.c
  {
  	struct pf_state		*s = NULL;
  	struct pf_src_node	*sn = NULL;
-@@ -4010,6 +4035,8 @@
+@@ -4009,6 +4034,8 @@
  		s->state_flags |= PFSTATE_PFLOW;
  	s->log = r->log & PF_LOG_ALL;
  	s->sync_state = PFSYNC_S_NONE;
@@ -159,7 +159,15 @@ diff -u -r1.11 pf.c
  	if (nr != NULL)
  		s->log |= nr->log & PF_LOG_ALL;
  	switch (pd->proto) {
-@@ -4273,10 +4300,20 @@
+@@ -4221,6 +4248,7 @@
+ {
+ 	struct pf_rule		*r, *a = NULL;
+ 	struct pf_ruleset	*ruleset = NULL;
++	struct pf_rule_actions   act = { 0 };
+ 	sa_family_t		 af = pd->af;
+ 	u_short			 reason;
+ 	int			 tag = -1;
+@@ -4272,10 +4300,20 @@
  			r = TAILQ_NEXT(r, entries);
  		else {
  			if (r->anchor == NULL) {
@@ -184,7 +192,7 @@ diff -u -r1.11 pf.c
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4292,6 +4329,9 @@
+@@ -4291,6 +4329,9 @@
  	a = *am;
  	ruleset = *rsm;
  
@@ -194,7 +202,7 @@ diff -u -r1.11 pf.c
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log)
-@@ -7198,6 +7238,12 @@
+@@ -7197,6 +7238,12 @@
  		m->m_pkthdr.pf.hdr = h;
  #endif
  	}
@@ -212,8 +220,8 @@ Index: sys/contrib/pf/net/pf_ruleset.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ruleset.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 pf_ruleset.c
---- sys/contrib/pf/net/pf_ruleset.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
-+++ sys/contrib/pf/net/pf_ruleset.c	27 Sep 2011 19:23:58 -0000
+--- sys/contrib/pf/net/pf_ruleset.c	27 Sep 2011 22:12:37 -0000	1.1.1.1
++++ sys/contrib/pf/net/pf_ruleset.c	27 Sep 2011 23:23:20 -0000
 @@ -134,6 +134,7 @@
  		return (PF_RULESET_SCRUB);
  		break;
@@ -227,8 +235,8 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.9
 diff -u -r1.9 pfvar.h
---- sys/contrib/pf/net/pfvar.h	27 Sep 2011 17:12:08 -0000	1.9
-+++ sys/contrib/pf/net/pfvar.h	27 Sep 2011 19:39:13 -0000
+--- sys/contrib/pf/net/pfvar.h	27 Sep 2011 23:22:51 -0000	1.9
++++ sys/contrib/pf/net/pfvar.h	27 Sep 2011 23:23:20 -0000
 @@ -78,7 +78,7 @@
  
  enum	{ PF_INOUT, PF_IN, PF_OUT };
