@@ -3,25 +3,23 @@ Index: sys/netinet/ip_carp.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
 retrieving revision 1.4
 diff -u -r1.4 ip_carp.c
---- sys/netinet/ip_carp.c	21 Jun 2011 21:32:07 -0000	1.4
-+++ sys/netinet/ip_carp.c	21 Jun 2011 21:33:27 -0000
-@@ -891,6 +891,9 @@
- {
- 	struct carp_softc *sc;
+--- sys/netinet/ip_carp.c	27 Sep 2011 19:19:07 -0000	1.4
++++ sys/netinet/ip_carp.c	27 Sep 2011 19:21:18 -0000
+@@ -940,6 +940,9 @@
+ 		tv.tv_usec = advskew * 1000000 / 256;
+ 	}
  
 +	if (!carp_opts[CARPCTL_ALLOW])
-+                return;
++                goto resettimer;
 +
- 	mtx_lock(&carp_mtx);
- 	LIST_FOREACH(sc, &carpif_list, sc_next) {
- 		if (sc->sc_carpdev == NULL)
-@@ -924,6 +927,9 @@
- 	struct mbuf *m;
- 	int len, advbase, advskew;
+ 	ch.carp_version = CARP_VERSION;
+ 	ch.carp_type = CARP_ADVERTISEMENT;
+ 	ch.carp_vhid = sc->sc_vhid;
+@@ -1113,6 +1116,7 @@
+ 	}
+ #endif /* INET6 */
  
-+	if (!carp_opts[CARPCTL_ALLOW])
-+                return;
-+
- 	if (sc->sc_carpdev)
- 		CARP_SCLOCK_ASSERT(sc);
- 
++resettimer:
+ 	if (advbase != 255 || advskew != 255)
+ 		callout_reset(&sc->sc_ad_tmo, tvtohz(&tv),
+ 		    carp_send_ad, sc);
