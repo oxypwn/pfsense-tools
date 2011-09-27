@@ -3,8 +3,8 @@ Index: sys/netinet/ip_carp.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
 retrieving revision 1.5
 diff -u -r1.5 ip_carp.c
---- sys/netinet/ip_carp.c	21 Jun 2011 21:33:46 -0000	1.5
-+++ sys/netinet/ip_carp.c	21 Jun 2011 21:42:29 -0000
+--- sys/netinet/ip_carp.c	27 Sep 2011 19:21:30 -0000	1.5
++++ sys/netinet/ip_carp.c	27 Sep 2011 19:50:02 -0000
 @@ -1516,7 +1516,7 @@
  	struct ip_moptions *imo = &sc->sc_imo;
  	struct in_addr addr;
