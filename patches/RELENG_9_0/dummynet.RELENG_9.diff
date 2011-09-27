@@ -168,7 +168,7 @@ diff -u -r1.3 pf.c
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
  #endif
-@@ -381,19 +385,139 @@
+@@ -381,19 +385,140 @@
  #endif
  
  #ifdef __FreeBSD__
@@ -296,6 +296,7 @@ diff -u -r1.3 pf.c
 +		break;  \
 +	}               \
 +	break;                  \
++	} \
 +} while(0)
  
  #define	STATE_LOOKUP(i, k, d, s, m, pt)					\
@@ -306,8 +307,8 @@ diff -u -r1.3 pf.c
 -		if (PPACKET_LOOPED())					\
 -			return (PF_PASS);				\
 +		if (PACKET_LOOPED(pd->pf_mtag)) {                       \
-+			if (state->key[PF_SK_WIRE] != state->key[PF_SK_STACK]) { \
-+				PACKET_REDO_NAT((*pd), *state, direction);      \
++			if (s->key[PF_SK_WIRE] != s->key[PF_SK_STACK]) { \
++				PACKET_REDO_NAT((*pd), s, direction);      \
 +			}                                               \
 +			return (PF_PASS);                               \
 +		}                                                       \
