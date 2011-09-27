@@ -3,9 +3,9 @@ Index: if_bridge.c
 RCS file: /root/freebsd/repo/src/sys/net/if_bridge.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_bridge.c
---- if_bridge.c	21 Jun 2011 19:47:43 -0000	1.1.1.1
-+++ if_bridge.c	21 Jun 2011 20:50:36 -0000
-@@ -100,6 +100,7 @@
+--- if_bridge.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
++++ if_bridge.c	27 Sep 2011 14:48:48 -0000
+@@ -101,6 +101,7 @@
  #include <sys/lock.h>
  #include <sys/mutex.h>
  #include <sys/rwlock.h>
@@ -13,7 +13,7 @@ diff -u -r1.1.1.1 if_bridge.c
  
  #include <net/bpf.h>
  #include <net/if.h>
-@@ -224,6 +225,8 @@
+@@ -225,6 +226,8 @@
  	uint32_t		sc_brtexceeded;	/* # of cache drops */
  	struct ifnet		*sc_ifaddr;	/* member mac copied from */
  	u_char			sc_defaddr[6];	/* Default MAC address */
@@ -22,7 +22,7 @@ diff -u -r1.1.1.1 if_bridge.c
  };
  
  static struct mtx 	bridge_list_mtx;
-@@ -551,6 +554,48 @@
+@@ -552,6 +555,48 @@
  	    &pfil_ipfw, 0, &sysctl_pfil_ipfw, "I", "Layer2 filter with IPFW");
  
  /*
@@ -71,7 +71,7 @@ diff -u -r1.1.1.1 if_bridge.c
   * bridge_clone_create:
   *
   *	Create a new bridge instance.
-@@ -621,6 +666,11 @@
+@@ -636,6 +681,11 @@
  	ifp->if_baudrate = 0;
  	ifp->if_type = IFT_BRIDGE;
  
@@ -83,7 +83,7 @@ diff -u -r1.1.1.1 if_bridge.c
  	mtx_lock(&bridge_list_mtx);
  	LIST_INSERT_HEAD(&bridge_list, sc, sc_list);
  	mtx_unlock(&bridge_list_mtx);
-@@ -644,6 +694,9 @@
+@@ -659,6 +709,9 @@
  	bridge_stop(ifp, 1);
  	ifp->if_flags &= ~IFF_UP;
  
