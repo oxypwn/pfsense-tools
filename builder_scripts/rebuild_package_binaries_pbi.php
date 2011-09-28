@@ -28,6 +28,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+if(!file_exists("/usr/local/sbin/subversion")) 
+	die("Could not find subversion");
+
 $preq_txt = <<<EOF
 #!/bin/sh
 
@@ -40,7 +43,7 @@ cd src-sh
 cd pbi-manager
 
 LB="/usr/local"
-DIR=`dirname $0`
+DIR=`dirname \$0`
 cd \${DIR}
 
 # Install the app
