@@ -39,7 +39,7 @@ diff -u -r1.1.1.1 if_pfsync.c
  
  #ifdef __FreeBSD__
  	PF_UNLOCK();
-+	pd->pd_m->m_flags |= M_SKIP_FIREWALL;
++	m->m_flags |= M_SKIP_FIREWALL;
  #endif
  	if (ip_output(m, NULL, NULL, IP_RAWOUTPUT, &sc->sc_imo, NULL) == 0)
  #ifdef __FreeBSD__
@@ -63,7 +63,7 @@ diff -u -r1.1.1.1 if_pfsync.c
  #ifdef __FreeBSD__
  		/* XXX: use pf_defered?! */
  		PF_UNLOCK();
-+		m->m_flags |= M_SKIP_FIREWALL;
++		pd->pd_m->m_flags |= M_SKIP_FIREWALL;
  #endif
  		ip_output(pd->pd_m, (void *)NULL, (void *)NULL, 0,
  		    (void *)NULL, (void *)NULL);
