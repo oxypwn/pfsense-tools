@@ -159,9 +159,10 @@ CONFIGURE_ARGS+=	--enable-react
 .endif
 
 .if defined(WITH_SNORTSAM)
-USE_AUTOTOOLS+=	automake
-PATCH_SITES+=	http://www.snortsam.net/files/snort-plugin/:snortsam
-PATCHFILES+=	snortsam-2.9.0.3.diff.gz:snortsam
+BUILD_DEPENDS=  automake>=1.10:${PORTSDIR}/devel/automake \
+		pkg-config>=0.25:${PORTSDIR}/devel/pkg-config
+USE_AUTOTOOLS+= automake
+EXTRA_PATCHES+= ${FILESDIR}/pfSense_snortsam_snort.diff
 .endif
 
 post-patch:
