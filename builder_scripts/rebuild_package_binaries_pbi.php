@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-if(!file_exists("/usr/local/sbin/subversion")) 
+if(!file_exists("/usr/local/sbin/svn")) 
 	die("Could not find subversion");
 
 $preq_txt = <<<EOF
