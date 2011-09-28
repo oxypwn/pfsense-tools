@@ -31,7 +31,7 @@ diff -u -r1.1.1.1 if_pfsync.c
  		}
  		pfsyncr.pfsyncr_syncpeer = sc->sc_sync_peer;
  		pfsyncr.pfsyncr_maxupdates = sc->sc_maxupdates;
-+		pfsyncr.pfsyncr_sync_ok = pfsync_sync_ok;
++		pfsyncr.pfsyncr_sync_ok = sc->pfsync_sync_ok;
  		return (copyout(&pfsyncr, ifr->ifr_data, sizeof(pfsyncr)));
  
  	case SIOCSETPFSYNC:
