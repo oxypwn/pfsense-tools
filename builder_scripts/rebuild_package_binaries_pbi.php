@@ -44,6 +44,7 @@ cd pbi-manager
 ./install.sh
 EOF;
 
+echo ">>> Checking out pfSense sources...\n";
 if(file_exists("/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh")) 
 	exec("cd /home/pfsense/tools/builder_scripts && /home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh");
 
@@ -51,9 +52,16 @@ if(file_exists("/etc/inc/")) {
 	include("/etc/inc/functions.inc");
 	include("/etc/inc/util.inc");
 	include("/etc/inc/xmlparse.inc");
+	$handled = true;
 }
 
-if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO")) {
+if(file_exists("/home/pfsense/pfSenseGITREPO/pfSenseGITREPO") && !$handled) {
+	include("/home/pfsense/pfSense/etc/inc/functions.inc");
+	include("/home/pfsense/pfSense/etc/inc/util.inc");
+	include("/home/pfsense/pfSense/etc/inc/xmlparse.inc");
+}
+
+if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO") && !$handled) {
 	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/functions.inc");
 	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/util.inc");
 	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/xmlparse.inc");
