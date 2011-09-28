@@ -198,8 +198,6 @@ function usage() {
 	echo "  Flags:\n";
 	echo "    -c csup hostname\n";
 	echo "    -d Use DESTDIR when building.\n";
-	echo "    -j Use a chroot for building each invocation\n";
-	echo "    -l Location of chroot for building.\n";
 	echo "    -p Package name to build a single package and its dependencies.\n";
 	echo "    -q quiet mode - surpresses command output\n";
 	echo "    -r remove chroot contents on each builder run.\n";
@@ -218,12 +216,6 @@ function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
 		system("/usr/sbin/chroot {$chrootchroot} csup -L0 -h {$csup_host} {$supfile} {$quiet_mode}");
 	else
 		system("/usr/bin/csup -h {$csup_host} {$supfile} {$quiet_mode}");
-}
-
-function chroot_command($chroot_location, $command_to_run) {
-	file_put_contents("{$chroot_location}/cmd.sh", $command_to_run);
-	exec("/bin/chmod a+rx {$chroot_location}/cmd.sh");
-	`/usr/sbin/chroot {$chroot_location} /cmd.sh`;
 }
 
 $options = getopt("x:p::d::j::l::c::r::q::s::");
@@ -307,7 +299,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 			if(isset($options['d'])) {
 				$DESTDIR="DESTDIR=/usr/pkg/{$buildname}";
 				echo ">>> Using $DESTDIR \n";
-			} else 
+			} else 	
 				$DESTDIR="";
 			$build_options="";
 			if($pkg['build_options']) 
@@ -322,7 +314,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 			}
 			echo ">>> Processing {$build}\n";
 			$category = trim(`echo \"$build\" | cut -d'/' -f4`);
-			$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f2`);
+			$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
 			echo ">>> Category: $category/$port \n";
 			if($build_options) 
 				if(!isset($options['q'])) 
