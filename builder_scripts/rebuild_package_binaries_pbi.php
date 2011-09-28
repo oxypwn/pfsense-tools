@@ -59,12 +59,14 @@ if(file_exists("/home/pfsense/pfSenseGITREPO/pfSenseGITREPO") && !$handled) {
 	include("/home/pfsense/pfSense/etc/inc/functions.inc");
 	include("/home/pfsense/pfSense/etc/inc/util.inc");
 	include("/home/pfsense/pfSense/etc/inc/xmlparse.inc");
+	$handled = true;
 }
 
 if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO") && !$handled) {
 	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/functions.inc");
 	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/util.inc");
 	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/xmlparse.inc");
+	$handled = true;
 }
 
 function create_pbi_conf($port_path,$MAKEOPTS="") {
