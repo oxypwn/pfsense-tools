@@ -41,6 +41,7 @@ svn co svn://svn.pcbsd.org/pcbsd/current
 cd current
 cd src-sh
 cd pbi-manager
+./install.sh
 
 LB="/usr/local"
 DIR=`dirname \$0`
