@@ -321,8 +321,8 @@ foreach($pkg['packages']['package'] as $pkg) {
 				}
 			}
 			echo ">>> Processing {$build}\n";
-			$category = trim(`echo \"$build\" | cut -d'/' -f3`);
-			$port = trim(`echo \"$build\" | cut -d'/' -f4`);
+			$category = trim(`echo \"$build\" | cut -d'/' -f4`);
+			$port = trim(`echo \"$build\" | cut -d'/' -f5`);
 			echo ">>> Category: $category/$port \n";
 			if($build_options) 
 				if(!isset($options['q'])) 
