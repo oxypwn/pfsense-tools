@@ -281,7 +281,7 @@ diff -u -r1.3 pf.c
 +				0); \
 +		break;  \
 +		case AF_INET6:  \
-+			PF_ACPY((pdt).src, nk->addr[pd->sidx], (pdt).af); \
++			PF_ACPY((pdt).src, &nk->addr[pd->sidx], (pdt).af); \
 +		break;  \
 +		}               \
 +	else                    \
@@ -306,8 +306,8 @@ diff -u -r1.3 pf.c
  			return (PF_DROP);				\
 -		if (PPACKET_LOOPED())					\
 -			return (PF_PASS);				\
-+		if (PACKET_LOOPED(pd->pf_mtag)) {                       \
-+			if (s->key[PF_SK_WIRE] != s->key[PF_SK_STACK]) { \
++		if (PACKET_LOOPED(pt)) {                       \
++			if ((s)->key[PF_SK_WIRE] != (s)->key[PF_SK_STACK]) { \
 +				PACKET_REDO_NAT((*pd), s, direction);      \
 +			}                                               \
 +			return (PF_PASS);                               \
