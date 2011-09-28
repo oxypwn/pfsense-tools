@@ -274,7 +274,8 @@ if(!is_dir("{$file_system_root}/usr/ports/packages/All"))
 foreach($pkg['packages']['package'] as $pkg) {
 	if (isset($options['p']) && ($options['p'] != $pkg['name']))
 		continue;
-	$processes = 10000; // set to large # will check in while() below.
+	$processes = 0;
+	$counter = 0;
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			$buildname = basename($build);
@@ -306,8 +307,14 @@ foreach($pkg['packages']['package'] as $pkg) {
 				exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 			file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
 			while($processes >= $CPUS) {
+				echo ">>> Waiting for previous build processes to finish...";
 				$processes = intval(trim(`ps awwwux | grep pbi_makeport | grep -v grep | wc -l`));
 				sleep(1);
+				$counter++;
+				if($counter > 60) {
+					$counter = 0;
+					echo ".";
+				}
 			}
 			echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
 			mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
