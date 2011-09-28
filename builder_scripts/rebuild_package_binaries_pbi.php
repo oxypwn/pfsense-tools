@@ -28,6 +28,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+$DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`;
+$CPUS=`expr $DCPUS '*' 2`;
+
 if(!file_exists("/usr/local/bin/svn")) 
 	die("Could not find subversion");
 
@@ -270,6 +274,7 @@ if(!is_dir("{$file_system_root}/usr/ports/packages/All"))
 foreach($pkg['packages']['package'] as $pkg) {
 	if (isset($options['p']) && ($options['p'] != $pkg['name']))
 		continue;
+	$processes = 10000; // set to large # will check in while() below.
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			$buildname = basename($build);
@@ -300,8 +305,12 @@ foreach($pkg['packages']['package'] as $pkg) {
 			if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 				exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 			file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
+			while($processes >= $CPUS) {
+				$processes = intval(trim(`ps awwwux | grep pbi_makeport | grep -v grep | wc -l`));
+				sleep(1);
+			}
 			echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
-			exec("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
+			mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
 		}
 	}
 }
