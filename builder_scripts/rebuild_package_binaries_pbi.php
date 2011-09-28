@@ -86,6 +86,9 @@ cp \${DIR}/rc.d/pbid \${LB}/etc/rc.d/pbid
 cp \${DIR}/etc/pbi.conf \${LB}/etc/pbi.conf
 EOF;
 
+if(file_exists("/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh")) 
+	exec("cd /home/pfsense/tools/builder_scripts && /home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh");
+
 if(file_exists("/etc/inc/")) {
 	include("/etc/inc/functions.inc");
 	include("/etc/inc/util.inc");
