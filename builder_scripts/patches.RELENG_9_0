@@ -28,6 +28,7 @@
 ~~ipsec_altq.RELENG_9.diff~
 ~~ipfw_dummynet_bandwidth.diff~
 ~~CP_speedup.diff~
+~~CP_multi_instance_ipfw.diff~
 ~sys/net~if_vlan.c.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.RELENG_9.diff~

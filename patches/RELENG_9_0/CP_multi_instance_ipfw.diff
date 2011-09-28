@@ -1,0 +1,665 @@
+Index: sys/net/if_var.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net/if_var.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_var.h
+--- sys/net/if_var.h	28 Sep 2011 22:15:48 -0000	1.1.1.1
++++ sys/net/if_var.h	28 Sep 2011 22:28:57 -0000
+@@ -205,7 +205,8 @@
+ 	 * be used with care where binary compatibility is required.
+ 	 */
+ 	char	if_cspare[3];
+-	int	if_ispare[4];
++	int     if_context;
++	int	if_ispare[3];
+ 	void	*if_pspare[8];		/* 1 netmap, 7 TDB */
+ };
+ 
+Index: sys/netinet/in.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/in.h,v
+retrieving revision 1.2
+diff -u -r1.2 in.h
+--- sys/netinet/in.h	28 Sep 2011 22:27:42 -0000	1.2
++++ sys/netinet/in.h	28 Sep 2011 22:27:51 -0000
+@@ -479,6 +479,13 @@
+ #define	MCAST_BLOCK_SOURCE		84   /* block a source */
+ #define	MCAST_UNBLOCK_SOURCE		85   /* unblock a source */
+ 
++#define	IP_FW_CTX_ADD			90
++#define	IP_FW_CTX_DEL			91
++#define	IP_FW_CTX_SET			92
++#define	IP_FW_CTX_ADDMEMBER		93
++#define	IP_FW_CTX_DELMEMBER		94
++#define	IP_FW_CTX_GET			95
++
+ /*
+  * Defaults and limits for options
+  */
+Index: sys/netinet/raw_ip.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/raw_ip.c,v
+retrieving revision 1.2
+diff -u -r1.2 raw_ip.c
+--- sys/netinet/raw_ip.c	28 Sep 2011 22:27:42 -0000	1.2
++++ sys/netinet/raw_ip.c	28 Sep 2011 22:27:51 -0000
+@@ -565,6 +565,7 @@
+ 		case IP_FW3:	/* generic ipfw v.3 functions */
+ 		case IP_FW_ADD:	/* ADD actually returns the body... */
+ 		case IP_FW_GET:
++		case IP_FW_CTX_GET:
+ 		case IP_FW_TABLE_GETSIZE:
+ 		case IP_FW_TABLE_LIST:
+ 		case IP_FW_TABLE_GET_ENTRY:
+@@ -634,6 +635,11 @@
+ 		case IP_FW_TABLE_FLUSH:
+ 		case IP_FW_NAT_CFG:
+ 		case IP_FW_NAT_DEL:
++		case IP_FW_CTX_ADD:
++		case IP_FW_CTX_DEL:
++		case IP_FW_CTX_SET:
++		case IP_FW_CTX_ADDMEMBER:
++		case IP_FW_CTX_DELMEMBER:
+ 			if (V_ip_fw_ctl_ptr != NULL)
+ 				error = V_ip_fw_ctl_ptr(sopt);
+ 			else
+Index: sys/netinet/ipfw/ip_fw2.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw2.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_fw2.c
+--- sys/netinet/ipfw/ip_fw2.c	28 Sep 2011 22:27:42 -0000	1.2
++++ sys/netinet/ipfw/ip_fw2.c	28 Sep 2011 22:27:51 -0000
+@@ -135,9 +135,8 @@
+ /* counter for ipfw_log(NULL...) */
+ VNET_DEFINE(u_int64_t, norule_counter);
+ VNET_DEFINE(int, verbose_limit);
+-
+-/* layer3_chain contains the list of rules for layer 3 */
+-VNET_DEFINE(struct ip_fw_chain, layer3_chain);
++VNET_DEFINE(struct ipfw_context, ipfw_context);
++VNET_DEFINE(struct ip_fw_ctx_list, ip_fw_contexts);
+ 
+ ipfw_nat_t *ipfw_nat_ptr = NULL;
+ struct cfg_nat *(*lookup_nat_ptr)(struct nat_list *, int);
+@@ -175,9 +174,6 @@
+     &default_to_accept, 0,
+     "Make the default rule accept all packets.");
+ TUNABLE_INT("net.inet.ip.fw.default_to_accept", &default_to_accept);
+-SYSCTL_VNET_INT(_net_inet_ip_fw, OID_AUTO, static_count,
+-    CTLFLAG_RD, &VNET_NAME(layer3_chain.n_rules), 0,
+-    "Number of static rules");
+ 
+ #ifdef INET6
+ SYSCTL_DECL(_net_inet6_ip6);
+@@ -868,6 +864,9 @@
+ 	if (oif && !(oif->if_flags & IFF_IPFW_FILTER))
+ 		return (IP_FW_PASS);
+ 
++	if (V_ipfw_context.ctx[oif->if_context] == NULL)
++		return (IP_FW_PASS);
++
+ 	int f_pos = 0;		/* index of current rule in the array */
+ 	int retval = 0;
+ 
+@@ -918,7 +917,7 @@
+ 	 */
+ 	int dyn_dir = MATCH_UNKNOWN;
+ 	ipfw_dyn_rule *q = NULL;
+-	struct ip_fw_chain *chain = &V_layer3_chain;
++	struct ip_fw_chain *chain = V_ipfw_context.ctx[oif->if_context];
+ 
+ 	/*
+ 	 * We store in ulp a pointer to the upper layer protocol header.
+@@ -2587,12 +2586,6 @@
+ static int
+ vnet_ipfw_init(const void *unused)
+ {
+-	int error;
+-	struct ip_fw *rule = NULL;
+-	struct ip_fw_chain *chain;
+-
+-	chain = &V_layer3_chain;
+-
+ 	/* First set up some values that are compile time options */
+ 	V_autoinc_step = 100;	/* bounded to 1..1000 in add_rule() */
+ 	V_fw_deny_unknown_exthdrs = 1;
+@@ -2602,6 +2595,51 @@
+ #ifdef IPFIREWALL_VERBOSE_LIMIT
+ 	V_verbose_limit = IPFIREWALL_VERBOSE_LIMIT;
+ #endif
++
++	/* First set up some values that are compile time options */
++	V_ipfw_vnet_ready = 1;		/* Open for business */
++
++	ipfw_dyn_init();
++
++	/* Context initialization */
++	V_ipfw_context.ctx = malloc(sizeof(struct ip_fw_chain *) * IP_FW_MAXCTX, M_IPFW, M_NOWAIT | M_ZERO);
++	if (V_ipfw_context.ctx == NULL)
++		panic("could not initialize vnet context structures"); /* XXX */
++	
++	V_ipfw_context.n_ctx = 0; /* We start with no context at all */
++	V_ipfw_context.n_ctxid = 1; /* We start with context 1 to simplify code */
++	IPFW_CTX_LOCK_INIT(V_ipfw_context);
++
++	TAILQ_INIT(&V_ip_fw_contexts);
++
++	V_ipfw_context.ifnet_arrival = EVENTHANDLER_REGISTER(ifnet_arrival_event,
++		ipfw_attach_ifnet_event, NULL, EVENTHANDLER_PRI_ANY);
++
++	/*
++	 * Hook the sockopt handler, and the layer2 (V_ip_fw_chk_ptr)
++	 * and pfil hooks for ipv4 and ipv6. Even if the latter two fail
++	 * we still keep the module alive because the sockopt and
++	 * layer2 paths are still useful.
++	 * ipfw[6]_hook return 0 on success, ENOENT on failure,
++	 * so we can ignore the exact return value and just set a flag.
++	 *
++	 * Note that V_fw[6]_enable are manipulated by a SYSCTL_PROC so
++	 * changes in the underlying (per-vnet) variables trigger
++	 * immediate hook()/unhook() calls.
++	 * In layer2 we have the same behaviour, except that V_ether_ipfw
++	 * is checked on each packet because there are no pfil hooks.
++	 */
++	V_ip_fw_ctl_ptr = ipfw_ctl;
++	V_ip_fw_chk_ptr = ipfw_chk;
++	return ipfw_attach_hooks(1);
++}
++
++int
++ipfw_context_init(struct ip_fw_chain *chain)
++{
++	int error;
++	struct ip_fw *rule = NULL;
++
+ #ifdef IPFIREWALL_NAT
+ 	LIST_INIT(&chain->nat);
+ #endif
+@@ -2619,9 +2657,17 @@
+ 			"(support disabled)\n");
+ 		return (ENOSPC);
+ 	}
++
++	IPFW_LOCK_INIT(chain);
++
+ 	error = ipfw_init_tables(chain);
+ 	if (error) {
++		printf("Error happened during init\n");
++		ipfw_context_uninit(chain);
++		return (-1);
++#if 0
+ 		panic("init_tables"); /* XXX Marko fix this ! */
++#endif
+ 	}
+ 
+ 	/* fill and insert the default rule */
+@@ -2634,29 +2680,6 @@
+ 	chain->rules = chain->default_rule = chain->map[0] = rule;
+ 	chain->id = rule->id = 1;
+ 
+-	IPFW_LOCK_INIT(chain);
+-	ipfw_dyn_init();
+-
+-	/* First set up some values that are compile time options */
+-	V_ipfw_vnet_ready = 1;		/* Open for business */
+-
+-	/*
+-	 * Hook the sockopt handler, and the layer2 (V_ip_fw_chk_ptr)
+-	 * and pfil hooks for ipv4 and ipv6. Even if the latter two fail
+-	 * we still keep the module alive because the sockopt and
+-	 * layer2 paths are still useful.
+-	 * ipfw[6]_hook return 0 on success, ENOENT on failure,
+-	 * so we can ignore the exact return value and just set a flag.
+-	 *
+-	 * Note that V_fw[6]_enable are manipulated by a SYSCTL_PROC so
+-	 * changes in the underlying (per-vnet) variables trigger
+-	 * immediate hook()/unhook() calls.
+-	 * In layer2 we have the same behaviour, except that V_ether_ipfw
+-	 * is checked on each packet because there are no pfil hooks.
+-	 */
+-	V_ip_fw_ctl_ptr = ipfw_ctl;
+-	V_ip_fw_chk_ptr = ipfw_chk;
+-	error = ipfw_attach_hooks(1);
+ 	return (error);
+ }
+ 
+@@ -2666,11 +2689,12 @@
+ static int
+ vnet_ipfw_uninit(const void *unused)
+ {
+-	struct ip_fw *reap, *rule;
+-	struct ip_fw_chain *chain = &V_layer3_chain;
+-	int i;
++	struct ifnet *ifp;
++	struct ip_fw_ctx *ctx;
++	struct ip_fw_ctx_iflist *ifl;
+ 
+ 	V_ipfw_vnet_ready = 0; /* tell new callers to go away */
++
+ 	/*
+ 	 * disconnect from ipv4, ipv6, layer2 and sockopt.
+ 	 * Then grab, release and grab again the WLOCK so we make
+@@ -2679,6 +2703,47 @@
+ 	(void)ipfw_attach_hooks(0 /* detach */);
+ 	V_ip_fw_chk_ptr = NULL;
+ 	V_ip_fw_ctl_ptr = NULL;
++
++	ipfw_dyn_uninit(0);	/* run the callout_drain */
++
++	IPFW_CTX_WLOCK(V_ipfw_context);
++	EVENTHANDLER_DEREGISTER(ifnet_arrival_event, V_ipfw_context.ifnet_arrival);
++	if (V_ipfw_context.ctx != NULL) {
++		for (int i = 0; i < IP_FW_MAXCTX; i++)
++			ipfw_context_uninit(V_ipfw_context.ctx[i]);
++		free(V_ipfw_context.ctx, M_IPFW);
++	}
++	IPFW_CTX_WUNLOCK(V_ipfw_context);
++	IPFW_CTX_LOCK_DESTROY(V_ipfw_context);
++
++	while (!TAILQ_EMPTY(&V_ip_fw_contexts)) {
++		ctx = TAILQ_FIRST(&V_ip_fw_contexts);
++		while (!TAILQ_EMPTY(&ctx->iflist)) {
++			ifl = TAILQ_FIRST(&ctx->iflist);
++			TAILQ_REMOVE(&ctx->iflist, ifl, entry);
++			ifp = ifunit(ifl->ifname);
++			if (ifp != NULL)
++				ifp->if_context = 0;
++			free(ifl, M_IPFW);
++		}
++		TAILQ_REMOVE(&V_ip_fw_contexts, ctx, entry);
++		free(ctx, M_IPFW);
++	}
++
++	ipfw_dyn_uninit(1);	/* free the remaining parts */
++
++	return (0);
++}
++
++int
++ipfw_context_uninit(struct ip_fw_chain *chain)
++{
++	struct ip_fw *reap, *rule;
++	int i;
++
++	if (chain == NULL)
++		return 0;
++
+ 	IPFW_UH_WLOCK(chain);
+ 	IPFW_UH_WUNLOCK(chain);
+ 	IPFW_UH_WLOCK(chain);
+@@ -2687,7 +2752,6 @@
+ 	IPFW_WUNLOCK(chain);
+ 	IPFW_WLOCK(chain);
+ 
+-	ipfw_dyn_uninit(0);	/* run the callout_drain */
+ 	ipfw_destroy_tables(chain);
+ 	reap = NULL;
+ 	for (i = 0; i < chain->n_rules; i++) {
+@@ -2702,7 +2766,9 @@
+ 	if (reap != NULL)
+ 		ipfw_reap_rules(reap);
+ 	IPFW_LOCK_DESTROY(chain);
+-	ipfw_dyn_uninit(1);	/* free the remaining parts */
++
++	free(chain, M_IPFW);
++
+ 	return 0;
+ }
+ 
+Index: sys/netinet/ipfw/ip_fw_private.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw_private.h,v
+retrieving revision 1.2
+diff -u -r1.2 ip_fw_private.h
+--- sys/netinet/ipfw/ip_fw_private.h	28 Sep 2011 22:27:42 -0000	1.2
++++ sys/netinet/ipfw/ip_fw_private.h	28 Sep 2011 22:27:51 -0000
+@@ -159,6 +159,7 @@
+ 	struct ip *ip);
+ VNET_DECLARE(u_int64_t, norule_counter);
+ #define	V_norule_counter	VNET(norule_counter)
++
+ VNET_DECLARE(int, verbose_limit);
+ #define	V_verbose_limit		VNET(verbose_limit)
+ 
+@@ -201,7 +202,7 @@
+ VNET_DECLARE(int, fw_verbose);
+ #define	V_fw_verbose		VNET(fw_verbose)
+ 
+-VNET_DECLARE(struct ip_fw_chain, layer3_chain);
++VNET_DECLARE(struct ip_fw_chain *, layer3_chain);
+ #define	V_layer3_chain		VNET(layer3_chain)
+ 
+ VNET_DECLARE(u_int32_t, set_disable);
+@@ -230,6 +231,53 @@
+ 	uint32_t	gencnt;		/* generation count */
+ };
+ 
++struct ip_fw_ctx_iflist {
++	TAILQ_ENTRY(ip_fw_ctx_iflist) entry;
++	char ifname[IFNAMSIZ];
++};
++
++#define	IP_FW_MAXCTX		4096
++#define	IP_FW_CTX_MAXNAME	64
++
++struct ip_fw_ctxmember {
++	char ctxname[IP_FW_CTX_MAXNAME];
++	char ifname[IFNAMSIZ];
++};
++
++struct ip_fw_ctx {
++	TAILQ_ENTRY(ip_fw_ctx) entry;
++	TAILQ_HEAD(, ip_fw_ctx_iflist) iflist;
++	int contextid;
++	char ctxname[IP_FW_CTX_MAXNAME];
++};
++
++TAILQ_HEAD(ip_fw_ctx_list, ip_fw_ctx);
++VNET_DECLARE(struct ip_fw_ctx_list,	ip_fw_contexts);
++#define	V_ip_fw_contexts	VNET(ip_fw_contexts)
++
++struct ipfw_context {
++	struct ip_fw_chain	**ctx; /* Arrays of contextes */
++	int n_ctx;	/* Number of contenxtes */
++	int n_ctxid;	
++	struct rwlock rwctx;
++	eventhandler_tag	ifnet_arrival;
++};
++
++#define	IPFW_CTX_LOCK_INIT(ctx)		rw_init(&(ctx).rwctx, "IPFW context")
++#define	IPFW_CTX_LOCK_DESTROY(ctx)	rw_destroy(&(ctx).rwctx)
++#define	IPFW_CTX_WLOCK(ctx)		rw_wlock(&(ctx).rwctx)
++#define	IPFW_CTX_WUNLOCK(ctx)		rw_wunlock(&(ctx).rwctx)
++#define	IPFW_CTX_RLOCK(ctx)		rw_rlock(&(ctx).rwctx)
++#define	IPFW_CTX_RUNLOCK(ctx)		rw_runlock(&(ctx).rwctx)
++
++VNET_DECLARE(struct ipfw_context, ipfw_context);
++#define	V_ipfw_context		VNET(ipfw_context)
++
++void	ipfw_attach_ifnet_event(void *, struct ifnet *);
++int	ipfw_context_init(struct ip_fw_chain *);
++int	ipfw_context_uninit(struct ip_fw_chain *);
++
++
+ struct sockopt;	/* used by tcp_var.h */
+ 
+ /*
+Index: sys/netinet/ipfw/ip_fw_sockopt.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw_sockopt.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_fw_sockopt.c
+--- sys/netinet/ipfw/ip_fw_sockopt.c	28 Sep 2011 22:27:42 -0000	1.2
++++ sys/netinet/ipfw/ip_fw_sockopt.c	28 Sep 2011 22:27:51 -0000
+@@ -72,6 +72,7 @@
+ #endif
+ 
+ MALLOC_DEFINE(M_IPFW, "IpFw/IpAcct", "IpFw/IpAcct chain's");
++VNET_DEFINE(struct ip_fw_chain *, layer3_chain);
+ 
+ /*
+  * static variables followed by global ones (none in this file)
+@@ -955,9 +956,14 @@
+ #define	RULE_MAXSIZE	(256*sizeof(u_int32_t))
+ 	int error;
+ 	size_t size;
++	struct ifnet *ifp;
+ 	struct ip_fw *buf, *rule;
+ 	struct ip_fw_chain *chain;
++	struct ip_fw_ctx *ctx, *tmpctx;
++	struct ip_fw_ctx_iflist *tmpifl, *tmpifl2;
++	struct ip_fw_ctxmember ctxmember;
+ 	u_int32_t rulenum[2];
++	char ctxname[IP_FW_CTX_MAXNAME];
+ 
+ 	error = priv_check(sopt->sopt_td, PRIV_NETINET_IPFW);
+ 	if (error)
+@@ -974,7 +980,209 @@
+ 			return (error);
+ 	}
+ 
+-	chain = &V_layer3_chain;
++	switch (sopt->sopt_name) {
++	case IP_FW_CTX_ADD:
++
++		bzero(ctxname, sizeof ctxname);
++                error = sooptcopyin(sopt, ctxname, sizeof ctxname,
++                        sizeof(char));
++		if (error)
++			return (error);
++		
++		ctx = malloc(sizeof(*ctx), M_IPFW, M_WAITOK | M_ZERO);
++		chain = malloc(sizeof(struct ip_fw_chain), M_IPFW, M_WAITOK | M_ZERO);
++		TAILQ_INIT(&ctx->iflist);
++		strlcpy(ctx->ctxname, ctxname, sizeof(ctx->ctxname));
++		IPFW_CTX_WLOCK(V_ipfw_context);
++		TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++			if (!strcmp(tmpctx->ctxname, ctxname))
++				break;
++		}
++		if (tmpctx != NULL) {
++			free(ctx, M_IPFW);
++			free(chain, M_IPFW);
++			IPFW_CTX_WUNLOCK(V_ipfw_context);
++			return (EEXIST);
++		}
++		++V_ipfw_context.n_ctx;
++		ctx->contextid = V_ipfw_context.n_ctxid++;
++		V_ipfw_context.ctx[ctx->contextid] = chain;
++		ipfw_context_init(V_ipfw_context.ctx[ctx->contextid]); /* XXX: error checking */
++		TAILQ_INSERT_TAIL(&V_ip_fw_contexts, ctx, entry);
++		if (V_ipfw_context.ctx[V_ipfw_context.n_ctxid] != NULL) {
++			for (int i = V_ipfw_context.n_ctxid; i < IP_FW_MAXCTX; i++) {
++				if (V_ipfw_context.ctx[i] == NULL) {
++					V_ipfw_context.n_ctxid = i;
++					break;
++				}
++			}
++		}
++		IPFW_CTX_WUNLOCK(V_ipfw_context);
++		return (0);
++		break;
++	case IP_FW_CTX_DEL:
++
++		bzero(ctxname, sizeof ctxname);
++                error = sooptcopyin(sopt, ctxname, sizeof ctxname,
++                        sizeof(char));
++		if (error)
++			return (error);
++		IPFW_CTX_WLOCK(V_ipfw_context);
++		TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++			if (!strcmp(tmpctx->ctxname, ctxname))
++				break;
++		}
++		if (tmpctx != NULL) {
++			TAILQ_REMOVE(&V_ip_fw_contexts, tmpctx, entry);
++			if (V_ipfw_context.ctx[tmpctx->contextid] != NULL) {
++				if (V_layer3_chain == V_ipfw_context.ctx[tmpctx->contextid])
++					V_layer3_chain = NULL;
++				ipfw_context_uninit(V_ipfw_context.ctx[tmpctx->contextid]);
++				V_ipfw_context.ctx[tmpctx->contextid] = NULL;
++			}
++			if (V_ipfw_context.n_ctxid > tmpctx->contextid)
++				V_ipfw_context.n_ctxid = tmpctx->contextid;
++			free(tmpctx, M_IPFW);
++			error = 0;
++		} else 
++			error = EINVAL;
++		IPFW_CTX_WUNLOCK(V_ipfw_context);
++		return (error);
++		break;
++	case IP_FW_CTX_GET:
++		{
++                        int len = 0, want;
++			char *bufout, *tmpbuf;
++
++                	IPFW_CTX_RLOCK(V_ipfw_context);
++			TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++				len += strlen(tmpctx->ctxname) + 2;
++				TAILQ_FOREACH(tmpifl, &tmpctx->iflist, entry) {
++					len += strlen(tmpifl->ifname) + 1;
++				}
++				len++; // newline
++			}
++                	IPFW_CTX_RUNLOCK(V_ipfw_context);
++
++                        if (len >= sopt->sopt_valsize)
++                                break;
++                        bufout = malloc(len, M_TEMP, M_WAITOK | M_ZERO);
++                        if (bufout == NULL)
++                                break;
++			
++                	IPFW_CTX_RLOCK(V_ipfw_context);
++			want = 0;
++			tmpbuf = bufout;
++			TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++				want = strlen(tmpctx->ctxname) + 2;
++				sprintf(tmpbuf, "%s: ", tmpctx->ctxname);
++				tmpbuf += want;
++				TAILQ_FOREACH(tmpifl, &tmpctx->iflist, entry) {
++					sprintf(tmpbuf, "%s,", tmpifl->ifname);
++					want = strlen(tmpifl->ifname) + 1;
++					tmpbuf += want;
++				}
++				sprintf(tmpbuf, "\n");
++				tmpbuf++;
++			}
++                	IPFW_CTX_RUNLOCK(V_ipfw_context);
++
++			error = sooptcopyout(sopt, bufout, len);
++                        free(bufout, M_TEMP);
++		}
++		return (error);
++		break;
++	case IP_FW_CTX_SET:
++
++		bzero(ctxname, sizeof ctxname);
++                error = sooptcopyin(sopt, ctxname, sizeof ctxname,
++                        sizeof(char));
++		if (error)
++			return (error);
++
++		IPFW_CTX_RLOCK(V_ipfw_context);
++		TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++			if (!strcmp(tmpctx->ctxname, ctxname))
++				break;
++		}
++		if (tmpctx != NULL) {
++			V_layer3_chain = V_ipfw_context.ctx[tmpctx->contextid];
++			error = 0;
++		} else
++			error = EINVAL;
++		IPFW_CTX_RUNLOCK(V_ipfw_context);
++		return (error);
++		break;
++	case IP_FW_CTX_ADDMEMBER:
++                error = sooptcopyin(sopt, &ctxmember, sizeof ctxmember, sizeof(ctxmember));
++		if (error)
++			return (error);
++		ifp = ifunit(ctxmember.ifname);
++		if (ifp == NULL)
++			return (ENOENT);
++		tmpifl = malloc(sizeof(*tmpifl), M_IPFW, M_WAITOK | M_ZERO);
++		IPFW_CTX_WLOCK(V_ipfw_context);
++		TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++			if (!strcmp(tmpctx->ctxname, ctxmember.ctxname))
++				break;
++		}
++		if (tmpctx != NULL) {
++			TAILQ_FOREACH(tmpifl2, &tmpctx->iflist, entry) {
++				if (strlen(tmpifl2->ifname) != strlen(ctxmember.ifname))
++					continue;
++				if (!strcmp(tmpifl2->ifname, ctxmember.ifname))
++					break;
++			}
++			if (tmpifl2 != NULL) {
++				free(tmpifl, M_IPFW);
++				IPFW_CTX_WUNLOCK(V_ipfw_context);
++				return (EEXIST);
++			}
++
++			strlcpy(tmpifl->ifname, ctxmember.ifname, sizeof(tmpifl->ifname));
++			TAILQ_INSERT_HEAD(&tmpctx->iflist, tmpifl, entry);
++			ifp->if_context = tmpctx->contextid;
++		} else
++			free(tmpifl, M_IPFW);
++		IPFW_CTX_WUNLOCK(V_ipfw_context);
++		return (error);
++		break;
++	case IP_FW_CTX_DELMEMBER:
++                error = sooptcopyin(sopt, &ctxmember, sizeof ctxmember, sizeof(ctxmember));
++		if (error)
++			return (error);
++		IPFW_CTX_WLOCK(V_ipfw_context);
++		TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++			if (!strcmp(tmpctx->ctxname, ctxmember.ctxname))
++				break;
++		}
++		if (tmpctx != NULL) {
++			TAILQ_FOREACH(tmpifl2, &tmpctx->iflist, entry) {
++				if (strlen(tmpifl2->ifname) != strlen(ctxmember.ifname))
++					continue;
++				if (!strcmp(tmpifl2->ifname, ctxmember.ifname)) 
++					break;
++			}
++			if (tmpifl2 == NULL) {
++				IPFW_CTX_WUNLOCK(V_ipfw_context);
++				return (ENOENT);
++			}
++
++			ifp = ifunit(ctxmember.ifname);
++			if (ifp != NULL)
++				ifp->if_context = 0;
++			TAILQ_REMOVE(&tmpctx->iflist, tmpifl2, entry);
++			free(tmpifl2, M_IPFW);
++		}
++		IPFW_CTX_WUNLOCK(V_ipfw_context);
++		return (error);
++		break;
++	}
++
++	if (V_layer3_chain == NULL)
++		return (ENOENT);
++
++	chain = V_layer3_chain;
+ 	error = 0;
+ 
+ 	switch (sopt->sopt_name) {
+@@ -1273,6 +1481,36 @@
+ #undef RULE_MAXSIZE
+ }
+ 
++void
++ipfw_attach_ifnet_event(void *arg __unused, struct ifnet *ifp)
++{
++	struct ip_fw_ctx *tmpctx;
++	struct ip_fw_ctx_iflist *tmpifl;
++	int found;
++
++	CURVNET_SET(ifp->if_vnet);
++
++	found = 0;
++	IPFW_CTX_RLOCK(V_ipfw_context);
++	TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++		TAILQ_FOREACH(tmpifl, &tmpctx->iflist, entry) {
++			if (strlen(tmpifl->ifname) != strlen(ifp->if_xname))
++				continue;
++			if (!strcmp(tmpifl->ifname, ifp->if_xname)) {
++				printf("Restoring context for interface %s to %d(%s)\n", ifp->if_xname, tmpctx->contextid, tmpctx->ctxname);
++				ifp->if_context = tmpctx->contextid;
++				found = 1;
++				break;
++			}
++		}
++		if (found) {
++			break;
++		}
++	}
++	IPFW_CTX_RUNLOCK(V_ipfw_context);
++
++	CURVNET_RESTORE();
++}
+ 
+ #define	RULE_MAXSIZE	(256*sizeof(u_int32_t))
+ 
