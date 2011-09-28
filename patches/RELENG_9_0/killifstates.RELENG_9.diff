@@ -214,7 +214,7 @@ diff -u -r1.1.1.1 pf_ioctl.c
 +                           PF_MATCHA(psk->psk_src.neg,
 +                           &psk->psk_src.addr.v.a.addr,
 +                           &psk->psk_src.addr.v.a.mask,
-+                           &src, sk->af) &&
++                           src, sk->af) &&
 +                           (!psk->psk_ifname[0] || !strcmp(psk->psk_ifname,
 +                           state->kif->pfik_name))) || (PF_MATCHA(psk->psk_dst.neg, &psk->psk_dst.addr.v.a.addr,&psk->psk_dst.addr.v.a.mask,&state->rt_addr, sk->af))) {
 +                               pf_unlink_state(state);
