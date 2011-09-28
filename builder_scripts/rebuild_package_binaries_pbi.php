@@ -42,48 +42,6 @@ cd current
 cd src-sh
 cd pbi-manager
 ./install.sh
-
-LB="/usr/local"
-DIR=`dirname \$0`
-cd \${DIR}
-
-# Install the app
-mkdir \${LB}/sbin >/dev/null 2>/dev/null
-cp pbi-manager \${LB}/sbin/pbi_create
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_add
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_addrepo
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_browser
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_autobuild
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_delete
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_deleterepo
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_icon
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_info
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_indextool
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_listrepo
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_makepatch
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_makeport
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_makerepo
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_metatool
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_patch
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_update
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi_update_hashdir
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbid
-ln -f \${LB}/sbin/pbi_create \${LB}/sbin/pbi-crashhandler
-
-if [ -d "\${LB}/share/pbi-manager" ] ; then rm -rf "\${LB}/share/pbi-manager" ; fi
-
-# If this is a new install, add the PC-BSD master repo
-if [ ! -d "/var/db/pbi/keys" ] ; then
-        pbi_addrepo \${DIR}/repo/pcbsd.rpo
-fi
-chmod 755 /var/db/pbi/keys
-
-# Tickle the info command to setup default dirs
-/usr/local/sbin/pbi_info >/dev/null 2>/dev/null
-
-# Copy the ldconfig script / pbi.conf
-cp \${DIR}/rc.d/pbid \${LB}/etc/rc.d/pbid
-cp \${DIR}/etc/pbi.conf \${LB}/etc/pbi.conf
 EOF;
 
 if(file_exists("/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh")) 
@@ -231,10 +189,12 @@ if(!isset($options['x']))
 	usage();
 
 // Bootstrap
-file_put_contents("/tmp/preq.sh", $preq_txt);
-exec("chmod a+rx /tmp/preq.sh");
-echo ">>> Bootstrapping PBI...\n";
-exec("/tmp/preq.sh");
+if(!file_exists("/usr/local/sbin/pbi_create")) {
+	file_put_contents("/tmp/preq.sh", $preq_txt);
+	exec("chmod a+rx /tmp/preq.sh");
+	echo ">>> Bootstrapping PBI...\n";
+	exec("/tmp/preq.sh");
+}
 
 // Set the XML filename that we are processing
 $xml_filename = $options['x'];
