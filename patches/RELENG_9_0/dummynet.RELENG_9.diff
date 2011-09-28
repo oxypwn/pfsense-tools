@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.3
-diff -u -r1.3 parse.y
---- contrib/pf/pfctl/parse.y	28 Sep 2011 00:41:31 -0000	1.3
-+++ contrib/pf/pfctl/parse.y	28 Sep 2011 00:44:23 -0000
+retrieving revision 1.2
+diff -u -r1.2 parse.y
+--- contrib/pf/pfctl/parse.y	28 Sep 2011 16:05:45 -0000	1.2
++++ contrib/pf/pfctl/parse.y	28 Sep 2011 16:16:29 -0000
 @@ -32,6 +32,7 @@
  
  #include <sys/types.h>
@@ -133,8 +133,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	28 Sep 2011 00:41:31 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	28 Sep 2011 00:44:23 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	28 Sep 2011 16:05:45 -0000	1.2
++++ contrib/pf/pfctl/pfctl_parser.c	28 Sep 2011 16:16:29 -0000
 @@ -1007,6 +1007,14 @@
  	}
  	if (r->label[0])
@@ -153,10 +153,10 @@ diff -u -r1.2 pfctl_parser.c
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.3
-diff -u -r1.3 pf.c
---- sys/contrib/pf/net/pf.c	28 Sep 2011 00:41:31 -0000	1.3
-+++ sys/contrib/pf/net/pf.c	28 Sep 2011 01:07:18 -0000
+retrieving revision 1.2
+diff -u -r1.2 pf.c
+--- sys/contrib/pf/net/pf.c	28 Sep 2011 16:05:45 -0000	1.2
++++ sys/contrib/pf/net/pf.c	28 Sep 2011 16:30:39 -0000
 @@ -155,6 +155,10 @@
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
@@ -458,7 +458,23 @@ diff -u -r1.3 pf.c
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7138,6 +7327,9 @@
+@@ -6983,6 +7172,7 @@
+ 		m->m_pkthdr.pf.flags |= PF_TAG_TRANSLATE_LOCALHOST;
+ #endif
+ 
++#if 0
+ #ifdef __FreeBSD__
+ 	if (action == PF_PASS && r->divert.port &&
+ 	    ip_divert_ptr != NULL && !PACKET_LOOPED()) {
+@@ -7027,6 +7217,7 @@
+ 		}
+ 	}
+ #endif
++#endif
+ 
+ 	if (log) {
+ 		struct pf_rule *lr;
+@@ -7138,6 +7329,9 @@
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
@@ -468,7 +484,7 @@ diff -u -r1.3 pf.c
  	PF_LOCK();
  	if (!V_pf_status.running) {
  		PF_UNLOCK();
-@@ -7205,6 +7397,13 @@
+@@ -7205,6 +7399,13 @@
  #endif
  		return (PF_PASS);
  
@@ -482,7 +498,7 @@ diff -u -r1.3 pf.c
  	/* We do IP header normalization and packet reassembly here */
  	if (pf_normalize_ip6(m0, dir, kif, &reason, &pd) != PF_PASS) {
  		action = PF_DROP;
-@@ -7316,6 +7515,11 @@
+@@ -7316,6 +7517,11 @@
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -494,7 +510,7 @@ diff -u -r1.3 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7354,6 +7558,10 @@
+@@ -7354,6 +7560,10 @@
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -505,7 +521,7 @@ diff -u -r1.3 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7432,7 +7640,7 @@
+@@ -7432,7 +7642,7 @@
  	}
  
  	default:
@@ -514,7 +530,7 @@ diff -u -r1.3 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC > 0
  #ifdef __FreeBSD__
-@@ -7508,6 +7716,45 @@
+@@ -7508,6 +7718,45 @@
  	}
  #endif /* ALTQ */
  
@@ -560,13 +576,22 @@ diff -u -r1.3 pf.c
  	if (dir == PF_IN && action == PF_PASS && (pd.proto == IPPROTO_TCP ||
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
+@@ -7521,7 +7770,7 @@
+ 
+ #ifdef __FreeBSD__
+ 	/* XXX: Anybody working on it?! */
+-	if (r->divert.port)
++	if (r->divert)
+ 		printf("pf: divert(9) is not supported for IPv6\n");
+ #else
+ 	if (dir == PF_IN && action == PF_PASS && r->divert.port) {
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.4
-diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	28 Sep 2011 00:44:11 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	28 Sep 2011 00:44:23 -0000
+retrieving revision 1.3
+diff -u -r1.3 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	28 Sep 2011 16:16:21 -0000	1.3
++++ sys/contrib/pf/net/pfvar.h	28 Sep 2011 16:16:29 -0000
 @@ -655,6 +655,11 @@
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
@@ -584,8 +609,8 @@ Index: sys/netinet/ipfw/ip_dn_io.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dn_io.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_dn_io.c
---- sys/netinet/ipfw/ip_dn_io.c	28 Sep 2011 00:37:41 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dn_io.c	28 Sep 2011 00:44:23 -0000
+--- sys/netinet/ipfw/ip_dn_io.c	28 Sep 2011 16:02:17 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dn_io.c	28 Sep 2011 16:16:29 -0000
 @@ -645,6 +645,7 @@
  			 * to carry reinject info.
  			 */
