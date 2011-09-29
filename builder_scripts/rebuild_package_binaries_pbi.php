@@ -212,7 +212,6 @@ function wait_for_procs_finish() {
 		$counter++;
 		if($counter > 120) {
 			$counter = 0;
-		}	else {
 			echo ".";
 		}
 		sleep(1);
