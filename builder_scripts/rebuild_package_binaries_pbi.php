@@ -306,9 +306,9 @@ foreach($pkg['packages']['package'] as $pkg) {
 			if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 				exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 			file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
-			while($processes >= $CPUS) {
+			while($processes >= $DCPUS) {
 				echo ">>> Waiting for previous build processes to finish...";
-				$processes = intval(trim(`ps awwwux | grep pbi_makeport | grep -v grep | wc -l`));
+				$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
 				sleep(1);
 				$counter++;
 				if($counter > 60) {
