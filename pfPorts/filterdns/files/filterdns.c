@@ -57,8 +57,8 @@ static int dev = -1;
 static int debug = 0;
 static char *ipfwctx = NULL;
 
-static void pf_tableentry(struct thread_data *, struct in_addr, int);
-static void ipfw_tableentry(struct thread_data *, struct in_addr, int);
+static void pf_tableentry(struct thread_data *, struct sockaddr *, int);
+static void ipfw_tableentry(struct thread_data *, struct sockaddr *, int);
 static int host_dns(struct thread_data *);
 static int filterdns_clean_table(struct thread_data *);
 
@@ -68,6 +68,8 @@ void clear_config(void);
 #define DELETE 1
 #define ADD 2
 
+#define satosin(sa)	((struct sockaddr_in *)(sa))
+#define satosin6(sa)	((struct sockaddr_in6 *)(sa))
 
 #if 0
 static void
@@ -87,18 +89,26 @@ flush_table(char *tablename)
 #endif
 
 static int
-add_table_entry(struct table_entry *rnh, struct in_addr addr, struct thread_data *thrdata)
+add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_data *thrdata)
 {
 	struct table *ent, *tmp;
-	char buffer[256];
+	char buffer[INET6_ADDRSTRLEN] = { 0 };
 
 	TAILQ_FOREACH(tmp, rnh, entry) {
-		if (addr.s_addr == tmp->addr.sin_addr.s_addr) {
-			if (debug >= 2)
-				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntoa_r(tmp->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename);
-			refcount_acquire(&tmp->refcnt);
-			return (EEXIST);
+		if (addr->sa_family != tmp->addr->sa_family)
+			continue;
+		if (addr->sa_family == AF_INET) {
+			if ((satosin(addr))->sin_addr.s_addr != satosin(tmp->addr)->sin_addr.s_addr)
+				continue;
+		} else if (addr->sa_family == AF_INET6) {
+			if ((satosin6(addr))->sin6_addr.s6_addr != satosin6(tmp->addr)->sin6_addr.s6_addr)
+				continue;
 		}
+
+		if (debug >= 2)
+			syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntop(addr->sa_family, tmp->addr->sa_data, buffer, sizeof buffer), thrdata->tablename);
+		refcount_acquire(&tmp->refcnt);
+		return (EEXIST);
 	}
 
 	ent = calloc(1, sizeof(*ent));
@@ -107,18 +117,25 @@ add_table_entry(struct table_entry *rnh, struct in_addr addr, struct thread_data
 			syslog(LOG_WARNING, "Failed to allocate new entry for table %s.", thrdata->tablename);
 		return (ENOMEM);
 	}
-	ent->addr.sin_addr = addr;
+	ent->addr = calloc(1, addr->sa_len);
+	if (ent->addr == NULL) {
+		free(ent);
+		if (debug >= 1)
+			syslog(LOG_WARNING, "Failed to allocate new address entry for table %s.", thrdata->tablename);
+		return (ENOMEM);
+	}
+	memcpy(ent->addr, addr, sizeof(*addr));;
 	refcount_init(&ent->refcnt, 1);
 	refcount_acquire(&ent->refcnt);
 	TAILQ_INSERT_HEAD(rnh, ent, entry);
 	if (thrdata->type == PF_TYPE) {
 		if (debug >= 2)
-			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntoa_r(addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 		pf_tableentry(thrdata, addr, ADD);
 	}
-	if (thrdata->type == IPFW_TYPE) {
+	else if (thrdata->type == IPFW_TYPE) {
 		if (debug >= 2)	
-			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntoa_r(addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 		ipfw_tableentry(thrdata, addr, ADD);
 	}
 	
@@ -129,21 +146,22 @@ static int
 filterdns_clean_table(struct thread_data *thrdata)
 {
 	struct table *e, *tmp;
-	char buffer[256];
+	char buffer[INET6_ADDRSTRLEN] = { 0 };
 
 	TAILQ_FOREACH_SAFE(e, thrdata->rnh, entry, tmp) {
 		if (refcount_release(&e->refcnt)) {
 			if (thrdata->type == PF_TYPE) {
 				if (debug >= 2)
-				syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa_r(e->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
-				pf_tableentry(thrdata, e->addr.sin_addr, DELETE);
+				syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+				pf_tableentry(thrdata, e->addr, DELETE);
 			}
 			if (thrdata->type == IPFW_TYPE) {
 				if (debug >= 2)
-					syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntoa_r(e->addr.sin_addr, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
-				ipfw_tableentry(thrdata, e->addr.sin_addr, DELETE);
+					syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+				ipfw_tableentry(thrdata, e->addr, DELETE);
 			}
 			TAILQ_REMOVE(thrdata->rnh, e, entry);
+			free(e->addr);
 			free(e);
 		}
 	}
@@ -162,7 +180,7 @@ host_dns(struct thread_data *hostd)
 {
         struct addrinfo          hints, *res0, *res;
         int                      error, cnt = 0;
-	char buffer[256];
+	char buffer[INET6_ADDRSTRLEN];
 
 	res0 = NULL;
         bzero(&hints, sizeof(hints));
@@ -186,11 +204,10 @@ host_dns(struct thread_data *hostd)
         }
 
         for (res = res0; res; res = res->ai_next) {
-                if (res->ai_family == AF_INET) {
+                if (res->ai_family == AF_INET || res->ai_family == AF_INET6) {
 			if (debug >= 2)
-				syslog(LOG_WARNING, "found entry %s for %s", inet_ntoa_r(((struct sockaddr_in *)res->ai_addr)->sin_addr, buffer, sizeof buffer), hostd->tablename);
-			if (!add_table_entry(hostd->rnh, ((struct sockaddr_in *)
-			    res->ai_addr)->sin_addr, hostd))
+				syslog(LOG_WARNING, "found entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data, buffer, sizeof buffer), hostd->tablename);
+			if (!add_table_entry(hostd->rnh, res->ai_addr, hostd))
                 		cnt++;
                 }
         }
@@ -199,15 +216,17 @@ host_dns(struct thread_data *hostd)
 }
 
 static void
-ipfw_tableentry(struct thread_data *ipfwd, struct in_addr address, int action)
+ipfw_tableentry(struct thread_data *ipfwd, struct sockaddr *address, int action)
 {
 	ipfw_table_entry ent;
 	static int s = -1;
 
+	if (address->sa_family != AF_INET) /* XXX */
+		return;
 	bzero(&ent, sizeof(ent));
 	ent.masklen = ipfwd->mask;
 	ent.tbl = ipfwd->tablenr;
-	ent.addr = address.s_addr;
+	ent.addr = satosin(address)->sin_addr.s_addr;
 	ent.value = ipfwd->pipe; /* XXX */
 
 	if (s == -1)
@@ -224,13 +243,33 @@ ipfw_tableentry(struct thread_data *ipfwd, struct in_addr address, int action)
 }
 
 static void
-pf_tableentry(struct thread_data *pfd, struct in_addr address, int action)
+set_ipmask(struct in6_addr *h, int b)
+{
+        struct pf_addr m;
+        int i, j = 0;
+
+	memset(&m, 0, sizeof m);
+
+	while (b >= 32) {
+                m.addr32[j++] = 0xffffffff;
+                b -= 32;
+        }
+        for (i = 31; i > 31-b; --i)
+                m.addr32[j] |= (1 << i);
+        if (b)
+                m.addr32[j] = htonl(m.addr32[j]);
+
+        /* Mask off bits of the address that will never be used. */
+        for (i = 0; i < 4; i++)
+        	h->__u6_addr.__u6_addr32[i] = h->__u6_addr.__u6_addr32[i] & m.addr32[i];
+}
+
+static void
+pf_tableentry(struct thread_data *pfd, struct sockaddr *address, int action)
 {
 	struct pfioc_table io;
 	struct pfr_table table;
 	struct pfr_addr addr;
-	u_int32_t addrmask = 0;
-	int i;
 
 	bzero(&table, sizeof(table));
 	if (strlcpy(table.pfrt_name, pfd->tablename,
@@ -241,15 +280,14 @@ pf_tableentry(struct thread_data *pfd, struct in_addr address, int action)
 	}
 	
 	bzero(&addr, sizeof(addr));
-	addr.pfra_af = AF_INET;
+	addr.pfra_af = address->sa_family;
 	addr.pfra_net = pfd->mask;
-	if (pfd->mask < 32) {
-		for (i = 31; i > 31 - pfd->mask; --i)
-                	addrmask |= (1 << i);
-               	addrmask = htonl(addrmask);
-		addr.pfra_ip4addr.s_addr = ((u_int32_t)address.s_addr) & addrmask;
-	} else
-		addr.pfra_ip4addr = address;
+	if (address->sa_family == AF_INET) {
+		addr.pfra_ip4addr = satosin(address)->sin_addr;
+	} else if (address->sa_family == AF_INET6) {
+		addr.pfra_ip6addr = satosin6(address)->sin6_addr;
+	}
+	set_ipmask(&addr.pfra_ip6addr, pfd->mask);
 	
 	bzero(&io, sizeof io);
         io.pfrio_table = table;
@@ -364,6 +402,8 @@ clear_config()
 		TAILQ_REMOVE(&thread_list, thr, next);
 		while ((a = TAILQ_FIRST(thr->rnh)) != NULL) {
 			TAILQ_REMOVE(thr->rnh, a, entry);
+			if (a->addr)
+				free(a->addr);
 			free(a);
 		}
 		if (thr->hostname)

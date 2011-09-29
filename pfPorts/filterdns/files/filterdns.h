@@ -41,7 +41,7 @@
 #define CMD_TYPE	2
 
 struct table {
-        struct sockaddr_in      addr;
+        struct sockaddr	*addr;
         u_int refcnt;
         TAILQ_ENTRY(table) entry;
 };
