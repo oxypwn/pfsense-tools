@@ -323,6 +323,18 @@ foreach($pkg['packages']['package'] as $pkg) {
 	}
 }
 
+$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
+while($processes >= $DCPUS) {
+	$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
+	sleep(1);
+	$counter++;
+	if($counter > 60) {
+		$counter = 0;
+		echo ".";
+	}
+	
+}
+
 echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
 system("ls {$file_system_root}/usr/ports/packages/All");
 
