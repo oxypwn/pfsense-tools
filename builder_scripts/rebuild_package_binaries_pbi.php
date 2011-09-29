@@ -212,12 +212,12 @@ function wait_for_procs_finish() {
 		$counter++;
 		if($counter > 120) {
 			$counter = 0;
-			echo "\n";
 		}	else {
 			echo ".";
 		}
 		sleep(1);
 	}
+	echo "\n";
 }
 
 $options = getopt("x:p::d::j::l::c::r::q::s::");
