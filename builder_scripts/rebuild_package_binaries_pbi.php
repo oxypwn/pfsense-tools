@@ -308,7 +308,8 @@ foreach($pkg['packages']['package'] as $pkg) {
 			file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
 			$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
 			while($processes >= $DCPUS) {
-				echo ">>> Waiting for previous build processes to finish...";
+				if($counter == 0) 
+					echo ">>> Waiting for previous build processes to finish...";
 				$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
 				sleep(1);
 				$counter++;
