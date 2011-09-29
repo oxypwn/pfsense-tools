@@ -197,6 +197,29 @@ function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
 		system("/usr/bin/csup -h {$csup_host} {$supfile} {$quiet_mode}");
 }
 
+function get_procs_count() {
+	$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
+	return($processes);
+}
+
+function wait_for_procs_finish() {
+	global $counter, $DCPUS;
+	$processes = get_procs_count();
+	if($counter == 0) 
+		echo ">>> Waiting for previous build processes to finish...";
+	while($processes >= $DCPUS) {
+		$processes = get_procs_count();
+		$counter++;
+		if($counter > 60) {
+			$counter = 0;
+			echo "\n";
+		}	else {
+			echo ".";
+		}
+		sleep(1);
+	}
+}
+
 $options = getopt("x:p::d::j::l::c::r::q::s::");
 
 if(!isset($options['x']))
@@ -306,35 +329,14 @@ foreach($pkg['packages']['package'] as $pkg) {
 			if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 				exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 			file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
-			$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
-			while($processes >= $DCPUS) {
-				if($counter == 0) 
-					echo ">>> Waiting for previous build processes to finish...";
-				$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
-				sleep(1);
-				$counter++;
-				if($counter > 60) {
-					$counter = 0;
-					echo ".";
-				}
-			}
+			wait_for_procs_finish();
 			echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
 			mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
 		}
 	}
 }
 
-$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
-while($processes >= $DCPUS) {
-	$processes = intval(trim(`ps awwwux | grep -v grep | grep pbi_makeport | wc -l`));
-	sleep(1);
-	$counter++;
-	if($counter > 60) {
-		$counter = 0;
-		echo ".";
-	}
-	
-}
+
 
 echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
 system("ls {$file_system_root}/usr/ports/packages/All");
