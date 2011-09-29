@@ -317,7 +317,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 				}
 			}
 			echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
-			mwexec_bg("/usr/local/sbin/pbi_makeport -k -o /usr/ports/packages/All/ {$category}/{$port}");
+			mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
 		}
 	}
 }
