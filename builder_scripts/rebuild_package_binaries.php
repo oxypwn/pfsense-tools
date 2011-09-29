@@ -29,15 +29,24 @@
  */
 
 if(file_exists("/etc/inc/")) {
-	include("/etc/inc/functions.inc");
-	include("/etc/inc/util.inc");
-	include("/etc/inc/xmlparse.inc");
+	require("/etc/inc/functions.inc");
+	require("/etc/inc/util.inc");
+	require("/etc/inc/xmlparse.inc");
+	$handled = true;
 }
 
-if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO")) {
-	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/functions.inc");
-	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/util.inc");
-	include("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/xmlparse.inc");
+if(file_exists("/home/pfsense/pfSense/etc/inc") && !$handled) {
+	require("/home/pfsense/pfSense/etc/inc/functions.inc");
+	require("/home/pfsense/pfSense/etc/inc/util.inc");
+	require("/home/pfsense/pfSense/etc/inc/xmlparse.inc");
+	$handled = true;
+}
+
+if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc") && !$handled) {
+	require("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/functions.inc");
+	require("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/util.inc");
+	require("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc/xmlparse.inc");
+	$handled = true;
 }
 
 function usage() {
