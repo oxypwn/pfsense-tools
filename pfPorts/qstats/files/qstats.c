@@ -89,13 +89,13 @@ struct pf_altq_node	*pfctl_find_altq_node(struct pf_altq_node *,
 			    const char *, const char *);
 void			 pfctl_print_altq_node(int, const struct pf_altq_node *,
 			    unsigned, struct sbuf *);
-void			 print_cbqstats(struct queue_stats, struct sbuf *sb);
-void			 print_priqstats(struct queue_stats, struct sbuf *sb);
-void			 print_hfscstats(struct queue_stats, struct sbuf *sb);
-void			 print_fairqstats(struct queue_stats, struct sbuf *sb);
+void			 print_cbqstats(struct queue_stats, struct sbuf *sb, int);
+void			 print_priqstats(struct queue_stats, struct sbuf *sb, int);
+void			 print_hfscstats(struct queue_stats, struct sbuf *sb, int);
+void			 print_fairqstats(struct queue_stats, struct sbuf *sb, int);
 void			 pfctl_free_altq_node(struct pf_altq_node *);
 void                     pfctl_print_altq_nodestat(int,
-                            const struct pf_altq_node *, struct sbuf *sb);
+                            const struct pf_altq_node *, struct sbuf *sb, int);
 
 void			 update_avg(struct pf_altq_node *);
 
@@ -104,7 +104,7 @@ int main(int argc, char **argv)
 	struct pf_altq_node	*root = NULL, *node;
 	int			 nodes, ch, req, fd;
 	int			 debug = 0, dev = -1;
-	char			*iface = NULL, *pidfile = NULL;
+	char			*iface = NULL, *pidfile = NULL, buf[4096];
 	struct sbuf *sb;
 	struct sockaddr_un sun, sun1;
 	socklen_t len;
@@ -181,25 +181,6 @@ int main(int argc, char **argv)
                 return (-1);
         }
 
-#if 0
-	sb = sbuf_new_auto();
-
-	if ((nodes = pfctl_update_qstats(dev, &root)) < 0)
-		return (-1);
-
-	if (nodes == 0)
-		sbuf_printf(sb, "No queue in use\n");
-	for (node = root; node != NULL; node = node->next) {
-		if (iface != NULL && (strlen(iface) != strlen(node->altq.ifname) || strcmp(node->altq.ifname, iface)))
-			continue;
-		pfctl_print_altq_node(dev, node, 0, sb);
-	}
-
-	sbuf_finish(sb);
-	printf("%s\n", sbuf_data(sb));
-	sbuf_delete(sb);
-#endif
-
 	for (;;) {
 		req = accept(fd, (struct sockaddr *)&sun1, &len);
 		if (req < 0) {
@@ -207,23 +188,24 @@ int main(int argc, char **argv)
 				syslog(LOG_NOTICE, "problems on accept");
 			continue;
 		}
-		sb = sbuf_new_auto();
+		while (read(req, buf, 4096) > 0) {
+			sb = sbuf_new_auto();
 
-		//sleep(STAT_INTERVAL);
-		if ((nodes = pfctl_update_qstats(dev, &root)) == -1)
-			return (-1);
-		for (node = root; node != NULL; node = node->next) {
-			if (iface != NULL && strcmp(node->altq.ifname, iface))
-				continue;
-			if (node->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
-				continue;
-			pfctl_print_altq_node(dev, node, 0, sb);
+			if ((nodes = pfctl_update_qstats(dev, &root)) == -1)
+				return (-1);
+			for (node = root; node != NULL; node = node->next) {
+				if (iface != NULL && strcmp(node->altq.ifname, iface))
+					continue;
+				if (node->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
+					continue;
+				pfctl_print_altq_node(dev, node, 0, sb);
+			}
+			fflush(stdout);
+
+			sbuf_finish(sb);
+			dprintf(req, "%s\n", sbuf_data(sb));
+			sbuf_delete(sb);
 		}
-		fflush(stdout);
-
-		sbuf_finish(sb);
-		dprintf(req, "%s\n", sbuf_data(sb));
-		sbuf_delete(sb);
 		close(req);
 	}
 
@@ -273,28 +255,28 @@ print_queue(const struct pf_altq *a, unsigned int level,
     struct node_queue_opt *qopts __unused, struct sbuf *sb)
 {
         unsigned int    i;
+	char buf[20] = { 0 };
 
         if (a->local_flags & PFALTQ_FLAG_IF_REMOVED)
-                sbuf_printf(sb, "INACTIVE ");
+                sbuf_printf(sb, "<status>INACTIVE</status>");
 
-        sbuf_printf(sb, "queue ");
         for (i = 0; i < level; ++i)
-                sbuf_printf(sb, " ");
-        sbuf_printf(sb, "%s ", a->qname);
+                buf[i] = '\t';
+	sbuf_printf(sb, "%s<name>%s</name>\n", buf, a->qname);
         if (print_interface)
-                sbuf_printf(sb, "on %s ", a->ifname);
+		sbuf_printf(sb, "%s<interface>%s</interface>\n", buf, a->ifname);
         if (a->scheduler == ALTQT_CBQ || a->scheduler == ALTQT_HFSC ||
                 a->scheduler == ALTQT_FAIRQ) {
                 if (bw != NULL && bw->bw_percent > 0) {
                         if (bw->bw_percent < 100)
-                                sbuf_printf(sb, "bandwidth %u%% ", bw->bw_percent);
+				sbuf_printf(sb, "%s<bandwidth>%u%%</bandwidth>\n", buf, bw->bw_percent);
                 } else
-                        sbuf_printf(sb, "bandwidth %s ", rate2str((double)a->bandwidth));
+			sbuf_printf(sb, "%s<bandwidth>%s</bandwidth>\n", buf, rate2str((double)a->ifbandwidth));
         }       
         if (a->priority != DEFAULT_PRIORITY)
-                sbuf_printf(sb, "priority %u ", a->priority);   
+		sbuf_printf(sb, "%s<priority>%u</priority>\n", buf, a->priority);
         if (a->qlimit != DEFAULT_QLIMIT)
-                sbuf_printf(sb, "qlimit %u ", a->qlimit);
+		sbuf_printf(sb, "%s<qlimit>%u</qlimit>\n", buf, a->qlimit);
 }
 
 static void
@@ -309,32 +291,32 @@ print_altq(const struct pf_altq *a, unsigned int level,
         if (a->local_flags & PFALTQ_FLAG_IF_REMOVED)
                 sbuf_printf(sb, "INACTIVE ");
 
-        sbuf_printf(sb, "altq on %s ", a->ifname);
+	sbuf_printf(sb, "\t<interface>%s</interface>\n", a->ifname);
 
         switch (a->scheduler) {
         case ALTQT_CBQ:
-                sbuf_printf(sb, "cbq ");
+		sbuf_printf(sb, "\t<scheduler>%s</scheduler>\n", "cbq");
                 break;
         case ALTQT_PRIQ:
-                sbuf_printf(sb, "priq ");
+		sbuf_printf(sb, "\t<scheduler>%s</scheduler>\n", "priq");
                 break;
         case ALTQT_HFSC:
-                sbuf_printf(sb, "hfsc ");
+		sbuf_printf(sb, "\t<scheduler>%s</scheduler>\n", "hfsc");
                 break;
         case ALTQT_FAIRQ:
-                sbuf_printf(sb, "fairq ");
+		sbuf_printf(sb, "\t<scheduler>%s</scheduler>\n", "fairq");
                 break;
         }
 
         if (bw != NULL && bw->bw_percent > 0) {
                 if (bw->bw_percent < 100)
-                        sbuf_printf(sb, "bandwidth %u%% ", bw->bw_percent);
+                        sbuf_printf(sb, "\t<bandwidth>%u%%</bandwidth>\n", bw->bw_percent);
         } else
-                sbuf_printf(sb, "bandwidth %s ", rate2str((double)a->ifbandwidth));
+                sbuf_printf(sb, "\t<bandwidth>%s</bandwidth>\n", rate2str((double)a->ifbandwidth));
 
         if (a->qlimit != DEFAULT_QLIMIT)
-                sbuf_printf(sb, "qlimit %u ", a->qlimit);
-        sbuf_printf(sb, "tbrsize %u ", a->tbrsize);
+                sbuf_printf(sb, "\t<qlimit>%u</qlimit>\n", a->qlimit);
+        sbuf_printf(sb, "\t<tbrsize>%u</tbrsize>", a->tbrsize);
 }
 
 
@@ -472,12 +454,19 @@ pfctl_print_altq_node(int dev, const struct pf_altq_node *node,
     unsigned int level, struct sbuf *sb)
 {
 	const struct pf_altq_node	*child;
-
+	char buf[20] = { 0 };
+	int i;
+ 
 	if (node == NULL)
 		return;
 
-	print_altq(&node->altq, level, NULL, NULL, sb);
+        for (i = 0; i < level; ++i)
+                buf[i] = '\t';
 
+	sbuf_printf(sb, "%s<queue>\n", buf);
+	print_altq(&node->altq, level + 1, NULL, NULL, sb);
+
+#if 0
 	if (node->children != NULL) {
 		sbuf_printf(sb, "{");
 		for (child = node->children; child != NULL;
@@ -490,19 +479,23 @@ pfctl_print_altq_node(int dev, const struct pf_altq_node *node,
 	}
 	sbuf_printf(sb, "\n");
 
-	pfctl_print_altq_nodestat(dev, node, sb);
+	pfctl_print_altq_nodestat(dev, node, sb, level);
 
 	sbuf_printf(sb, "  [ qid=%u ifname=%s ifbandwidth=%s ]\n",
 	    node->altq.qid, node->altq.ifname,
 	    rate2str((double)(node->altq.ifbandwidth)));
+#endif
+	pfctl_print_altq_nodestat(dev, node, sb, level + 1);
 
 	for (child = node->children; child != NULL;
 	    child = child->next)
 		pfctl_print_altq_node(dev, child, level + 1, sb);
+
+	sbuf_printf(sb, "%s</queue>\n", buf);
 }
 
 void
-pfctl_print_altq_nodestat(int dev __unused, const struct pf_altq_node *a, struct sbuf *sb)
+pfctl_print_altq_nodestat(int dev __unused, const struct pf_altq_node *a, struct sbuf *sb, int level)
 {
 	if (a->altq.qid == 0)
 		return;
@@ -512,97 +505,125 @@ pfctl_print_altq_nodestat(int dev __unused, const struct pf_altq_node *a, struct
 
 	switch (a->altq.scheduler) {
 	case ALTQT_CBQ:
-		print_cbqstats(a->qstats, sb);
+		print_cbqstats(a->qstats, sb, level);
 		break;
 	case ALTQT_PRIQ:
-		print_priqstats(a->qstats, sb);
+		print_priqstats(a->qstats, sb, level);
 		break;
 	case ALTQT_HFSC:
-		print_hfscstats(a->qstats, sb);
+		print_hfscstats(a->qstats, sb, level);
 		break;
 	case ALTQT_FAIRQ:
-		print_fairqstats(a->qstats, sb);
+		print_fairqstats(a->qstats, sb, level);
 		break;
 	}
 }
 
 void
-print_cbqstats(struct queue_stats cur, struct sbuf *sb)
+print_cbqstats(struct queue_stats cur, struct sbuf *sb, int level)
 {
-	sbuf_printf(sb, "  [ pkts: %10llu  bytes: %10llu  "
-	    "dropped pkts: %6llu bytes: %6llu ]\n",
+	int i;
+
+        for (i = 0; i < level; ++i)
+                sbuf_printf(sb, "\t");
+
+	sbuf_printf(sb, "<pkts>%llu</pkts><bytes>%llu</bytes>"
+	    "<droppedpkts>%llu</droppedpkts><droppedbytes>%llu</droppedbytes>",
 	    (unsigned long long)cur.data.cbq_stats.xmit_cnt.packets,
 	    (unsigned long long)cur.data.cbq_stats.xmit_cnt.bytes,
 	    (unsigned long long)cur.data.cbq_stats.drop_cnt.packets,
 	    (unsigned long long)cur.data.cbq_stats.drop_cnt.bytes);
-	sbuf_printf(sb, "  [ qlength: %3d/%3d  borrows: %6u  suspends: %6u ]\n",
+	sbuf_printf(sb, "<qlength>%d/%d</qlength><borrows>%u</borrows><suspends>%u</suspends>",
 	    cur.data.cbq_stats.qcnt, cur.data.cbq_stats.qmax,
 	    cur.data.cbq_stats.borrows, cur.data.cbq_stats.delays);
 
-	if (cur.avgn < 2)
+	if (cur.avgn < 2) {
+		sbuf_printf(sb, "\n");
 		return;
+	}
 
-	sbuf_printf(sb, "  [ measured: %7.1f packets/s, %s/s ]\n",
+	sbuf_printf(sb, "<measured>%f packets/s, %s/s</measured>\n",
 	    cur.avg_packets / STAT_INTERVAL,
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
 
 void
-print_priqstats(struct queue_stats cur, struct sbuf *sb)
+print_priqstats(struct queue_stats cur, struct sbuf *sb, int level)
 {
-	sbuf_printf(sb, "  [ pkts: %10llu  bytes: %10llu  "
-	    "dropped pkts: %6llu bytes: %6llu ]\n",
+	int i;
+
+        for (i = 0; i < level; ++i)
+                sbuf_printf(sb, "\t");
+
+	sbuf_printf(sb, "<pkts>%llu</pkts><bytes>%llu</bytes>"
+	    "<droppedpkts>%llu</droppedpkts><droppedbytes>%llu</droppedbytes>",
 	    (unsigned long long)cur.data.priq_stats.xmitcnt.packets,
 	    (unsigned long long)cur.data.priq_stats.xmitcnt.bytes,
 	    (unsigned long long)cur.data.priq_stats.dropcnt.packets,
 	    (unsigned long long)cur.data.priq_stats.dropcnt.bytes);
-	sbuf_printf(sb, "  [ qlength: %3d/%3d ]\n",
+	sbuf_printf(sb, "<qlength>%d/%d</qlength>",
 	    cur.data.priq_stats.qlength, cur.data.priq_stats.qlimit);
 
-	if (cur.avgn < 2)
+	if (cur.avgn < 2) {
+		sbuf_printf(sb, "\n");
 		return;
+	}
 
-	sbuf_printf(sb, "  [ measured: %7.1f packets/s, %s/s ]\n",
+	sbuf_printf(sb, "<measured>%f packets/s, %s/s</measured>\n",
 	    cur.avg_packets / STAT_INTERVAL,
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
 
 void
-print_hfscstats(struct queue_stats cur, struct sbuf *sb)
+print_hfscstats(struct queue_stats cur, struct sbuf *sb, int level)
 {
-	sbuf_printf(sb, "  [ pkts: %10llu  bytes: %10llu  "
-	    "dropped pkts: %6llu bytes: %6llu ]\n",
+	int i;
+
+        for (i = 0; i < level; ++i)
+                sbuf_printf(sb, "\t");
+
+	sbuf_printf(sb, "<pkts>%llu</pkts><bytes>%llu</bytes>"
+	    "<droppedpkts>%llu</droppedpkts><droppedbytes>%llu</droppedbytes>",
 	    (unsigned long long)cur.data.hfsc_stats.xmit_cnt.packets,
 	    (unsigned long long)cur.data.hfsc_stats.xmit_cnt.bytes,
 	    (unsigned long long)cur.data.hfsc_stats.drop_cnt.packets,
 	    (unsigned long long)cur.data.hfsc_stats.drop_cnt.bytes);
-	sbuf_printf(sb, "  [ qlength: %3d/%3d ]\n",
+	sbuf_printf(sb, "<qlength>%d/%d</qlength>",
 	    cur.data.hfsc_stats.qlength, cur.data.hfsc_stats.qlimit);
 
-	if (cur.avgn < 2)
+	if (cur.avgn < 2) {
+		sbuf_printf(sb, "\n");
 		return;
+	}
 
-	sbuf_printf(sb, "  [ measured: %7.1f packets/s, %s/s ]\n",
+	sbuf_printf(sb, "<measured>%f packets/s, %s/s</measured>\n",
 	    cur.avg_packets / STAT_INTERVAL,
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
 
 void
-print_fairqstats(struct queue_stats cur, struct sbuf *sb)
+print_fairqstats(struct queue_stats cur, struct sbuf *sb, int level)
 {
-	sbuf_printf(sb, "  [ pkts: %10llu  bytes: %10llu  "
-	    "dropped pkts: %6llu bytes: %6llu ]\n",
+	int i;
+
+        for (i = 0; i < level; ++i)
+                sbuf_printf(sb, "\t");
+
+	sbuf_printf(sb, "<pkts>%llu</pkts><bytes>%llu</bytes>"
+	    "<droppedpkts>%llu</droppedpkts><droppedbytes>%llu</droppedbytes>",
 	    (unsigned long long)cur.data.fairq_stats.xmit_cnt.packets,
 	    (unsigned long long)cur.data.fairq_stats.xmit_cnt.bytes,
 	    (unsigned long long)cur.data.fairq_stats.drop_cnt.packets,
 	    (unsigned long long)cur.data.fairq_stats.drop_cnt.bytes);
-	sbuf_printf(sb, "  [ qlength: %3d/%3d ]\n",
+	sbuf_printf(sb, "<qlength>%d/%d</qlength>",
 	    cur.data.fairq_stats.qlength, cur.data.fairq_stats.qlimit);
 
-	if (cur.avgn < 2)
+	if (cur.avgn < 2) {
+		sbuf_printf(sb, "\n");
 		return;
+	}
 
-	sbuf_printf(sb, "  [ measured: %7.1f packets/s, %s/s ]\n",
+	sbuf_printf(sb, "<measured>%f packets/s, %s/s</measured>\n",
 	    cur.avg_packets / STAT_INTERVAL,
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
