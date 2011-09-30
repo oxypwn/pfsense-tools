@@ -105,13 +105,7 @@ int main(int argc, char **argv)
 	char			*iface = NULL;
 	struct sbuf *sb;
                 
-	dev = open("/dev/pf", O_RDWR);
-	if (dev < 0) {
-		syslog(LOG_ERR, "could not open pf(4) device for operation");
-		return (-1);
-	}
-
-	while ((ch = getopt(argc, argv, "n:e:htc:P:p:q:")) != -1) {
+	while ((ch = getopt(argc, argv, "di:h")) != -1) {
                 switch(ch) {
                 case 'd':
                         debug++;
@@ -128,10 +122,18 @@ int main(int argc, char **argv)
         argc -= optind;
         argv += optind;
 
-        closefrom(3);
+	if (debug <= 0) {
+		closefrom(3);
 
-        if (!debug && daemon(0, 1) != 0) {
-                syslog(LOG_ERR, "unable to daemonize");
+		if (daemon(0, 1) != 0) {
+			syslog(LOG_ERR, "unable to daemonize");
+			return (-1);
+		}
+	}
+
+	dev = open("/dev/pf", O_RDWR);
+	if (dev < 0) {
+		syslog(LOG_ERR, "could not open pf(4) device for operation");
 		return (-1);
 	}
 
@@ -163,11 +165,14 @@ int main(int argc, char **argv)
 				pfctl_print_altq_node(dev, node, 0, sb);
 			}
 		}
-		pfctl_free_altq_node(root);
 
 		sbuf_finish(sb);
 		printf("%s\n", sbuf_data(sb));
+		sbuf_delete(sb);
+
+		sleep(1);
 	}
+	pfctl_free_altq_node(root);
 	return (0);
 }
 
@@ -178,7 +183,7 @@ int main(int argc, char **argv)
 #define RATESTR_MAX     16
                 
 static char *
-rate2str(double rate, struct sbuf *sb)
+rate2str(double rate)
 {
         char            *buf;
         static char      r2sbuf[R2S_BUFS][RATESTR_MAX];  /* ring bufer */
@@ -194,9 +199,9 @@ rate2str(double rate, struct sbuf *sb)
                 rate /= 1000;
                 
         if ((int)(rate * 100) % 100)
-                sbuf_printf(sb, buf, RATESTR_MAX, "%.2f%cb", rate, unit[i]);
+                snprintf(buf, RATESTR_MAX, "%.2f%cb", rate, unit[i]);
         else
-                sbuf_printf(sb, buf, RATESTR_MAX, "%d%cb", (int)rate, unit[i]);
+                snprintf(buf, RATESTR_MAX, "%d%cb", (int)rate, unit[i]);
                  
         return (buf);
 }
@@ -223,13 +228,12 @@ print_queue(const struct pf_altq *a, unsigned int level,
                         if (bw->bw_percent < 100)
                                 sbuf_printf(sb, "bandwidth %u%% ", bw->bw_percent);
                 } else
-                        sbuf_printf(sb, "bandwidth %s ", rate2str((double)a->bandwidth, sb));
+                        sbuf_printf(sb, "bandwidth %s ", rate2str((double)a->bandwidth));
         }       
         if (a->priority != DEFAULT_PRIORITY)
                 sbuf_printf(sb, "priority %u ", a->priority);   
         if (a->qlimit != DEFAULT_QLIMIT)
                 sbuf_printf(sb, "qlimit %u ", a->qlimit);
-	sbuf_printf(sb, "\n");
 }
 
 static void
@@ -265,12 +269,11 @@ print_altq(const struct pf_altq *a, unsigned int level,
                 if (bw->bw_percent < 100)
                         sbuf_printf(sb, "bandwidth %u%% ", bw->bw_percent);
         } else
-                sbuf_printf(sb, "bandwidth %s ", rate2str((double)a->ifbandwidth, sb));
+                sbuf_printf(sb, "bandwidth %s ", rate2str((double)a->ifbandwidth));
 
         if (a->qlimit != DEFAULT_QLIMIT)
                 sbuf_printf(sb, "qlimit %u ", a->qlimit);
         sbuf_printf(sb, "tbrsize %u ", a->tbrsize);
-	sbuf_printf(sb, "\n");
 }
 
 
@@ -430,7 +433,7 @@ pfctl_print_altq_node(int dev, const struct pf_altq_node *node,
 
 	sbuf_printf(sb, "  [ qid=%u ifname=%s ifbandwidth=%s ]\n",
 	    node->altq.qid, node->altq.ifname,
-	    rate2str((double)(node->altq.ifbandwidth), sb));
+	    rate2str((double)(node->altq.ifbandwidth)));
 
 	for (child = node->children; child != NULL;
 	    child = child->next)
@@ -480,7 +483,7 @@ print_cbqstats(struct queue_stats cur, struct sbuf *sb)
 
 	sbuf_printf(sb, "  [ measured: %7.1f packets/s, %s/s ]\n",
 	    cur.avg_packets / STAT_INTERVAL,
-	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL, sb));
+	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
 
 void
@@ -500,7 +503,7 @@ print_priqstats(struct queue_stats cur, struct sbuf *sb)
 
 	sbuf_printf(sb, "  [ measured: %7.1f packets/s, %s/s ]\n",
 	    cur.avg_packets / STAT_INTERVAL,
-	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL, sb));
+	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
 
 void
@@ -520,7 +523,7 @@ print_hfscstats(struct queue_stats cur, struct sbuf *sb)
 
 	sbuf_printf(sb, "  [ measured: %7.1f packets/s, %s/s ]\n",
 	    cur.avg_packets / STAT_INTERVAL,
-	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL, sb));
+	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
 
 void
@@ -540,7 +543,7 @@ print_fairqstats(struct queue_stats cur, struct sbuf *sb)
 
 	sbuf_printf(sb, "  [ measured: %7.1f packets/s, %s/s ]\n",
 	    cur.avg_packets / STAT_INTERVAL,
-	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL, sb));
+	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
 
 void
