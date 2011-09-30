@@ -22,6 +22,7 @@ __FBSDID("$FreeBSD: src/contrib/pf/pfctl/pfctl_qstats.c,v 1.8.2.1 2011/09/23 00:
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/sbuf.h>
 
 #include <net/if.h>
@@ -36,6 +37,7 @@ __FBSDID("$FreeBSD: src/contrib/pf/pfctl/pfctl_qstats.c,v 1.8.2.1 2011/09/23 00:
 #include <string.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <errno.h>
 
 #include <altq/altq.h>
 #include <altq/altq_cbq.h>
@@ -100,10 +102,12 @@ void			 update_avg(struct pf_altq_node *);
 int main(int argc, char **argv)
 {
 	struct pf_altq_node	*root = NULL, *node;
-	int			 nodes, ch;
+	int			 nodes, ch, req, fd;
 	int			 debug = 0, dev = -1;
 	char			*iface = NULL;
 	struct sbuf *sb;
+	struct sockaddr_un sun, sun1;
+	socklen_t len;
                 
 	while ((ch = getopt(argc, argv, "di:h")) != -1) {
                 switch(ch) {
@@ -137,42 +141,81 @@ int main(int argc, char **argv)
 		return (-1);
 	}
 
+	fd = socket(AF_UNIX, SOCK_STREAM, 0);
+	if (fd < 0) {
+		syslog(LOG_ERR, "Could not create listening socket");
+		close(dev);
+		return (-1);
+	}
+
+	unlink("/var/run/qstats");
+
+	bzero(&sun, sizeof(sun));
+        sun.sun_family = PF_UNIX;
+        strlcpy(sun.sun_path, "/var/run/qstats", sizeof(sun.sun_path));
+        if (bind(fd, (struct sockaddr *)&sun, sizeof(sun)) < 0) {
+                syslog(LOG_ERR, "Could not listen for requests");
+                close(fd);
+		close(dev);
+                return (-1);
+        }
+
+        if (listen(fd, 30) == -1) {
+                syslog(LOG_ERR, "control_listen: listen");
+                close(fd);
+		close(dev);
+                return (-1);
+        }
+
+#if 0
+	sb = sbuf_new_auto();
+
+	if ((nodes = pfctl_update_qstats(dev, &root)) < 0)
+		return (-1);
+
+	if (nodes == 0)
+		sbuf_printf(sb, "No queue in use\n");
+	for (node = root; node != NULL; node = node->next) {
+		if (iface != NULL && (strlen(iface) != strlen(node->altq.ifname) || strcmp(node->altq.ifname, iface)))
+			continue;
+		pfctl_print_altq_node(dev, node, 0, sb);
+	}
+
+	sbuf_finish(sb);
+	printf("%s\n", sbuf_data(sb));
+	sbuf_delete(sb);
+#endif
+
 	for (;;) {
+		req = accept(fd, (struct sockaddr *)&sun1, &len);
+		if (req < 0) {
+			if (errno != EWOULDBLOCK && errno != EINTR)
+				syslog(LOG_NOTICE, "problems on accept");
+			continue;
+		}
 		sb = sbuf_new_auto();
 
-		if ((nodes = pfctl_update_qstats(dev, &root)) < 0)
+		//sleep(STAT_INTERVAL);
+		if ((nodes = pfctl_update_qstats(dev, &root)) == -1)
 			return (-1);
-
-		if (nodes == 0)
-			sbuf_printf(sb, "No queue in use\n");
 		for (node = root; node != NULL; node = node->next) {
-			if (iface != NULL && (strlen(iface) != strlen(node->altq.ifname) || strcmp(node->altq.ifname, iface)))
+			if (iface != NULL && strcmp(node->altq.ifname, iface))
+				continue;
+			if (node->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
 				continue;
 			pfctl_print_altq_node(dev, node, 0, sb);
 		}
-
-		if (nodes > 0) {
-			sbuf_printf(sb, "\n");
-			fflush(stdout);
-			sleep(STAT_INTERVAL);
-			if ((nodes = pfctl_update_qstats(dev, &root)) == -1)
-				return (-1);
-			for (node = root; node != NULL; node = node->next) {
-				if (iface != NULL && strcmp(node->altq.ifname, iface))
-					continue;
-				if (node->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
-					continue;
-				pfctl_print_altq_node(dev, node, 0, sb);
-			}
-		}
+		fflush(stdout);
 
 		sbuf_finish(sb);
-		printf("%s\n", sbuf_data(sb));
+		dprintf(req, "%s\n", sbuf_data(sb));
 		sbuf_delete(sb);
-
-		sleep(1);
+		close(req);
 	}
+
 	pfctl_free_altq_node(root);
+	close(fd);
+	close(dev);
 	return (0);
 }
 
