@@ -104,12 +104,12 @@ int main(int argc, char **argv)
 	struct pf_altq_node	*root = NULL, *node;
 	int			 nodes, ch, req, fd;
 	int			 debug = 0, dev = -1;
-	char			*iface = NULL;
+	char			*iface = NULL, *pidfile = NULL;
 	struct sbuf *sb;
 	struct sockaddr_un sun, sun1;
 	socklen_t len;
                 
-	while ((ch = getopt(argc, argv, "di:h")) != -1) {
+	while ((ch = getopt(argc, argv, "di:hp:")) != -1) {
                 switch(ch) {
                 case 'd':
                         debug++;
@@ -117,6 +117,9 @@ int main(int argc, char **argv)
                 case 'i':
                         iface = strdup(optarg);
                         break;
+		case 'p':
+			pidfile = strdup(optarg);
+			break;
                 case 'h':
                 default:
                         //usage((const char *)*argv);
@@ -139,6 +142,17 @@ int main(int argc, char **argv)
 	if (dev < 0) {
 		syslog(LOG_ERR, "could not open pf(4) device for operation");
 		return (-1);
+	}
+
+	if (pidfile) {
+		fd = open(pidfile, O_RDWR);
+		if (fd < 0) {
+			syslog(LOG_ERR, "Could not create listening socket");
+			close(dev);
+			return (-1);
+		}
+		dprintf(fd, "%d\n", getpid());
+		close(fd);
 	}
 
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -214,6 +228,10 @@ int main(int argc, char **argv)
 	}
 
 	pfctl_free_altq_node(root);
+	if (iface)
+		free(iface);
+	if (pidfile)
+		free(pidfile);
 	close(fd);
 	close(dev);
 	return (0);
