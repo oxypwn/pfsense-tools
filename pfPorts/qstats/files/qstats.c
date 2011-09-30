@@ -191,17 +191,17 @@ int main(int argc, char **argv)
 		while (read(req, buf, 4096) > 0) {
 			sb = sbuf_new_auto();
 
-			if ((nodes = pfctl_update_qstats(dev, &root)) == -1)
-				return (-1);
-			for (node = root; node != NULL; node = node->next) {
-				if (iface != NULL && strcmp(node->altq.ifname, iface))
-					continue;
-				if (node->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
-					continue;
-				pfctl_print_altq_node(dev, node, 0, sb);
+			sbuf_printf(sb, "<altqstats>\n");
+			if ((nodes = pfctl_update_qstats(dev, &root)) >= 0) {
+				for (node = root; node != NULL; node = node->next) {
+					if (iface != NULL && strcmp(node->altq.ifname, iface))
+						continue;
+					if (node->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
+						continue;
+					pfctl_print_altq_node(dev, node, 0, sb);
+				}
 			}
-			fflush(stdout);
-
+			sbuf_printf(sb, "</altqstats>\n");
 			sbuf_finish(sb);
 			dprintf(req, "%s\n", sbuf_data(sb));
 			sbuf_delete(sb);
