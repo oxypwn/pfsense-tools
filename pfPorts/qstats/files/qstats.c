@@ -188,24 +188,22 @@ int main(int argc, char **argv)
 				syslog(LOG_NOTICE, "problems on accept");
 			continue;
 		}
-		while (read(req, buf, 4096) > 0) {
-			sb = sbuf_new_auto();
+		sb = sbuf_new_auto();
 
-			sbuf_printf(sb, "<altqstats>\n");
-			if ((nodes = pfctl_update_qstats(dev, &root)) >= 0) {
-				for (node = root; node != NULL; node = node->next) {
-					if (iface != NULL && strcmp(node->altq.ifname, iface))
-						continue;
-					if (node->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
-						continue;
-					pfctl_print_altq_node(dev, node, 0, sb);
-				}
+		sbuf_printf(sb, "<altqstats>\n");
+		if ((nodes = pfctl_update_qstats(dev, &root)) >= 0) {
+			for (node = root; node != NULL; node = node->next) {
+				if (iface != NULL && strcmp(node->altq.ifname, iface))
+					continue;
+				if (node->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
+					continue;
+				pfctl_print_altq_node(dev, node, 0, sb);
 			}
-			sbuf_printf(sb, "</altqstats>\n");
-			sbuf_finish(sb);
-			dprintf(req, "%s\n", sbuf_data(sb));
-			sbuf_delete(sb);
 		}
+		sbuf_printf(sb, "</altqstats>\n");
+		sbuf_finish(sb);
+		dprintf(req, "%s\n", sbuf_data(sb));
+		sbuf_delete(sb);
 		close(req);
 	}
 
@@ -486,12 +484,12 @@ pfctl_print_altq_node(int dev, const struct pf_altq_node *node,
 	    rate2str((double)(node->altq.ifbandwidth)));
 #endif
 	pfctl_print_altq_nodestat(dev, node, sb, level + 1);
+	sbuf_printf(sb, "%s</queue>\n", buf);
 
 	for (child = node->children; child != NULL;
 	    child = child->next)
 		pfctl_print_altq_node(dev, child, level + 1, sb);
 
-	sbuf_printf(sb, "%s</queue>\n", buf);
 }
 
 void
@@ -542,7 +540,7 @@ print_cbqstats(struct queue_stats cur, struct sbuf *sb, int level)
 		return;
 	}
 
-	sbuf_printf(sb, "<measured>%f packets/s, %s/s</measured>\n",
+	sbuf_printf(sb, "<measured>%.1f</measured><measuredspeed>%s</measuredspeed>\n",
 	    cur.avg_packets / STAT_INTERVAL,
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
@@ -569,7 +567,7 @@ print_priqstats(struct queue_stats cur, struct sbuf *sb, int level)
 		return;
 	}
 
-	sbuf_printf(sb, "<measured>%f packets/s, %s/s</measured>\n",
+	sbuf_printf(sb, "<measured>%.1f</measured><measuredspeed>%s</measuredspeed>\n",
 	    cur.avg_packets / STAT_INTERVAL,
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
@@ -596,7 +594,7 @@ print_hfscstats(struct queue_stats cur, struct sbuf *sb, int level)
 		return;
 	}
 
-	sbuf_printf(sb, "<measured>%f packets/s, %s/s</measured>\n",
+	sbuf_printf(sb, "<measured>%.1f</measured><measuredspeed>%s</measuredspeed>\n",
 	    cur.avg_packets / STAT_INTERVAL,
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
@@ -623,7 +621,7 @@ print_fairqstats(struct queue_stats cur, struct sbuf *sb, int level)
 		return;
 	}
 
-	sbuf_printf(sb, "<measured>%f packets/s, %s/s</measured>\n",
+	sbuf_printf(sb, "<measured>%.1f</measured><measuredspeed>%s</measuredspeed>\n",
 	    cur.avg_packets / STAT_INTERVAL,
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
