@@ -145,9 +145,9 @@ int main(int argc, char **argv)
 	}
 
 	if (pidfile) {
-		fd = open(pidfile, O_RDWR);
+		fd = open(pidfile, O_RDWR|O_CREAT|O_TRUNC);
 		if (fd < 0) {
-			syslog(LOG_ERR, "Could not create listening socket");
+			syslog(LOG_ERR, "Could not open pidfile");
 			close(dev);
 			return (-1);
 		}
