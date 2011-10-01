@@ -1,6 +1,6 @@
-diff -ur src_old/bund.c src/bund.c
---- src_old/bund.c	2010-03-23 21:07:41.000000000 +0000
-+++ src/bund.c	2010-03-23 21:06:27.000000000 +0000
+diff -ur src.old/bund.c src/bund.c
+--- src.old/bund.c	2011-10-01 19:26:53.000000000 +0000
++++ src/bund.c	2011-10-01 19:28:11.000000000 +0000
 @@ -1666,6 +1666,7 @@
        Log(LG_ERR, ("[%s] can't create netgraph interface", b->name));
        goto fail;
@@ -18,9 +18,9 @@ diff -ur src_old/bund.c src/bund.c
  	NgFuncShutdownNode(gLinksCsock, b->name, path);
      }
      if (ppp) {
-diff -ur src_old/iface.c src/iface.c
---- src_old/iface.c	2010-03-23 21:07:35.000000000 +0000
-+++ src/iface.c	2010-03-23 21:06:45.000000000 +0000
+diff -ur src.old/iface.c src/iface.c
+--- src.old/iface.c	2011-10-01 19:26:53.000000000 +0000
++++ src/iface.c	2011-10-01 19:30:35.000000000 +0000
 @@ -70,6 +70,7 @@
      SET_ADDRS,
      SET_ROUTE,
@@ -86,7 +86,18 @@ diff -ur src_old/iface.c src/iface.c
      case SET_UP_SCRIPT:
        switch (ac) {
  	case 0:
-@@ -1917,7 +1952,7 @@
+@@ -1652,8 +1687,9 @@
+ 
+ 	res = ioctl(s, add?SIOCAIFADDR:SIOCDIFADDR, &ifra);
+ 	if (res == -1) {
+-	    Perror("[%s] IFACE: %s IPv4 address %s %s failed", 
++	    Perror("[%s] IFACE: %s IPv4 address %s %s failed(IGNORING for now. This should be only for PPPoE friendly!)", 
+ 		b->name, add?"Adding":"Removing", add?"to":"from", b->iface.ifname);
++		res = 0;
+ 	}
+ 	break;
+ 
+@@ -1917,7 +1953,7 @@
  
      /* Connect graph to the iface node. */
      strcpy(cn.ourhook, hook);
@@ -95,7 +106,7 @@ diff -ur src_old/iface.c src/iface.c
      strcpy(cn.peerhook, NG_IFACE_HOOK_INET);
      if (NgSendMsg(gLinksCsock, path,
      	    NGM_GENERIC_COOKIE, NGM_CONNECT, &cn, sizeof(cn)) < 0) {
-@@ -2006,7 +2041,7 @@
+@@ -2006,7 +2042,7 @@
      snprintf(path, sizeof(path), "[%x]:", b->nodeID);
      NgFuncDisconnect(gLinksCsock, b->name, path, NG_PPP_HOOK_INET);
  
@@ -104,7 +115,7 @@ diff -ur src_old/iface.c src/iface.c
      NgFuncDisconnect(gLinksCsock, b->name, path, NG_IFACE_HOOK_INET);
  }
  
-@@ -2037,7 +2072,7 @@
+@@ -2037,7 +2073,7 @@
  
      /* Connect graph to the iface node. */
      strcpy(cn.ourhook, hook);
@@ -113,7 +124,7 @@ diff -ur src_old/iface.c src/iface.c
      strcpy(cn.peerhook, NG_IFACE_HOOK_INET6);
      if (NgSendMsg(gLinksCsock, path,
      	    NGM_GENERIC_COOKIE, NGM_CONNECT, &cn, sizeof(cn)) < 0) {
-@@ -2069,7 +2104,7 @@
+@@ -2069,7 +2105,7 @@
      snprintf(path, sizeof(path), "[%x]:", b->nodeID);
      NgFuncDisconnect(gLinksCsock, b->name, path, NG_PPP_HOOK_IPV6);
  
@@ -122,9 +133,9 @@ diff -ur src_old/iface.c src/iface.c
      NgFuncDisconnect(gLinksCsock, b->name, path, NG_IFACE_HOOK_INET6);
  }
  
-diff -ur src_old/iface.h src/iface.h
---- src_old/iface.h	2010-03-23 21:07:32.000000000 +0000
-+++ src/iface.h	2010-03-23 21:06:27.000000000 +0000
+diff -ur src.old/iface.h src/iface.h
+--- src.old/iface.h	2011-10-01 19:26:53.000000000 +0000
++++ src/iface.h	2011-10-01 19:28:11.000000000 +0000
 @@ -90,6 +90,7 @@
    
    struct ifacestate {
