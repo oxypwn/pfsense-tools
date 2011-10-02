@@ -50,7 +50,6 @@
 ~sys/net~if_bridge_vlan_handling.diff~
 ~~if_bridge_gif_mtu.diff~
 ~~tcpmd5_RST_timeout.RELENG_9.diff~
-~~wpa_RSN_PREAUTH_support.diff~
 ~~SR9600.diff~
 ~~ng_ether_attach_command.diff~
 ~~bsnmp.diff~
