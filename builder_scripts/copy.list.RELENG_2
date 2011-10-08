@@ -29,8 +29,6 @@ usr/sbin/fifolog_create
 usr/sbin/fifolog_writer
 usr/sbin/kldxref
 usr/local/lib/libxml.so
-usr/local/sbin/pftpx
-usr/local/sbin/slbd.sh
 usr/local/bin/athstats
 usr/local/bin/beep
 usr/bin/bsdiff
@@ -54,10 +52,8 @@ usr/local/sbin/pfSctl
 usr/local/sbin/dhcrelay
 usr/local/sbin/dhcp6c
 usr/local/sbin/dnsmasq
-usr/local/sbin/ftp-proxy
 usr/local/sbin/igmpproxy
 usr/local/sbin/gzsig
-usr/local/sbin/ftpsesame
 usr/local/sbin/lighttpd
 usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
