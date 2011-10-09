@@ -1,5 +1,5 @@
---- ip_carp.c.orig	2011-10-09 15:02:34.000000000 +0000
-+++ ip_carp.c	2011-10-09 15:56:45.000000000 +0000
+--- ip_carp.c.orig	2011-10-09 15:59:28.000000000 +0000
++++ ip_carp.c	2011-10-09 16:26:22.000000000 +0000
 @@ -97,6 +97,11 @@
  static MALLOC_DEFINE(M_CARP, "CARP", "CARP interfaces");
  SYSCTL_DECL(_net_inet_carp);
@@ -20,7 +20,17 @@
  	LIST_ENTRY(carp_softc)	 sc_next;	/* Interface clue */
  };
  #define	SC2IFP(sc)	((sc)->sc_ifp)
-@@ -436,7 +442,7 @@
+@@ -230,6 +236,9 @@
+ #endif
+ enum	{ CARP_COUNT_MASTER, CARP_COUNT_RUNNING };
+ 
++static int 	carp_setmulti(struct ifnet *);
++static void	carp_purgemulti(struct carp_softc *);
++
+ #ifdef INET
+ static void	carp_multicast_cleanup(struct carp_softc *, int dofree);
+ static int	carp_set_addr(struct carp_softc *, struct sockaddr_in *);
+@@ -436,7 +445,7 @@
  	ifp->if_softc = sc;
  	if_initname(ifp, CARP_IFNAME, unit);
  	ifp->if_mtu = ETHERMTU;
@@ -29,7 +39,7 @@
  	ifp->if_ioctl = carp_ioctl;
  	ifp->if_output = carp_looutput;
  	ifp->if_start = carp_start;
-@@ -510,6 +516,7 @@
+@@ -510,6 +519,7 @@
  	carp_setrun(sc);
  
  	if (sc->sc_carpdev != NULL) {
@@ -37,7 +47,7 @@
  #ifdef INET
  	carp_multicast_cleanup(sc, unlock);
  #endif
-@@ -2072,6 +2079,12 @@
+@@ -2072,6 +2082,12 @@
  		needed = 0;
  		break;
  
@@ -50,7 +60,7 @@
  	default:
  		error = EINVAL;
  		needed = 0;
-@@ -2303,6 +2316,76 @@
+@@ -2303,6 +2319,76 @@
  	return;
  }
  
@@ -74,11 +84,11 @@
 +	CURVNET_SET_QUIET(ifp_p->if_vnet);
 +
 +	/* First, remove any existing filter entries. */
-+	while ((mc = SLIST_FIRST(&sc->vlan_mc_listhead)) != NULL) {
++	while ((mc = LIST_FIRST(&sc->carp_mc_listhead)) != NULL) {
 +		error = if_delmulti(ifp_p, (struct sockaddr *)&mc->mc_addr);
 +		if (error)
 +			return (error);
-+		SLIST_REMOVE_HEAD(&sc->vlan_mc_listhead, mc_entries);
++		LIST_REMOVE(mc, mc_entries);
 +		free(mc, M_CARP);
 +	}
 +
@@ -91,7 +101,7 @@
 +			return (ENOMEM);
 +		bcopy(ifma->ifma_addr, &mc->mc_addr, ifma->ifma_addr->sa_len);
 +		mc->mc_addr.sdl_index = ifp_p->if_index;
-+		SLIST_INSERT_HEAD(&sc->vlan_mc_listhead, mc, mc_entries);
++		LIST_INSERT_HEAD(&sc->carp_mc_listhead, mc, mc_entries);
 +		error = if_addmulti(ifp_p, (struct sockaddr *)&mc->mc_addr,
 +		    &rifma);
 +		if (error)
