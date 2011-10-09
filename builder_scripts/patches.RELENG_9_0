@@ -74,3 +74,4 @@
 ~~route.diff~
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
+~sys/netinet~carp_rtadvd.diff~
