@@ -2652,7 +2652,7 @@ ova_prereq_check() {
 		if [ "$BUILDPLATFORM" = "amd64" ]; then
 			if [ ! -d /usr/lib32 ]; then
 				echo ">>> Building 32bit library compat support"
-				cd /usr/src ; make build32 install32 ; /etc/rc.d/ldconfig restart
+				cd /usr/src && make build32 install32 && /etc/rc.d/ldconfig restart
 			fi
 		fi
 		mkdir -p /var/db/ports/virtualbox-ose
