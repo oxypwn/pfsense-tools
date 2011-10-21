@@ -55,9 +55,9 @@ else
 fi
 
 # Set TARGET_ARCH_CONF_DIR
-#if [ "$TARGET_ARCH" = "" ]; then
-#	export TARGET_ARCH=`uname -p`
-#fi
+if [ "$TARGET_ARCH" = "" ]; then
+	export TARGET_ARCH=i386
+fi
 TARGET_ARCH_CONF_DIR=$SRCDIR/sys/${TARGET_ARCH}/conf/
 
 # Set KERNEL_BUILD_PATH if it has not been set
@@ -2653,7 +2653,7 @@ ova_prereq_check() {
 			if [ ! -d /usr/lib32 ]; then
 				echo ">>> Building 32bit library compat support"
 				echo ">>> If this fails, run: cd /usr/src && make build32 install32 && /etc/rc.d/ldconfig restart"
-				cd /usr/src && make build32 install32 && /etc/rc.d/ldconfig restart
+				cd /usr/src && make TARGET_ARCH=`uname -p` build32 install32 && /etc/rc.d/ldconfig restart
 			fi
 		fi
 		mkdir -p /var/db/ports/virtualbox-ose
