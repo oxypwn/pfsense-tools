@@ -232,7 +232,7 @@ export NANO_BOOT0CFG="-o packet -s 1 -m 3"
 #  Tier 4: None at the moment
 #  Source: http://www.freebsd.org/doc/en/articles/committers-guide/archs.html
 export ARCH=${ARCH:-"`uname -m`"}
-#export TARGET_ARCH=${TARGET_ARCH:-"i386"}
+export TARGET_ARCH=${TARGET_ARCH:-`uname -p`}
 
 # Set this if you are cross compiling on i386 and have a 
 # .tgz file which includes full path to all of the platforms
