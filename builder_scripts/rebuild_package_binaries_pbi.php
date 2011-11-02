@@ -44,7 +44,11 @@ $preq_txt = <<<EOF
 # pbi installation for pfSense
 cd /usr/ports/devel/xdg-utils && make install clean
 cd /root
-svn co svn://svn.pcbsd.org/pcbsd/current
+if [ -d current ]; then
+	svn up
+else
+	svn co svn://svn.pcbsd.org/pcbsd/current
+fi
 cd current
 cd src-sh
 cd pbi-manager
