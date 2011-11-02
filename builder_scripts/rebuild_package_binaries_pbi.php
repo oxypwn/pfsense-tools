@@ -28,6 +28,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+echo ">>> Forcing bootstrap of PBI tools..."
+if(file_exists("/usr/local/sbin/pbi_create"))
+	exec("rm /usr/local/sbin/pbi_create");
 
 $DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`;
 $CPUS=`expr $DCPUS '*' 2`;
