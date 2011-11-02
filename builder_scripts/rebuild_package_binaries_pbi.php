@@ -183,7 +183,6 @@ function usage() {
 	echo "Usage: {$argv[0]} -x <path to pkg xml> [-p <package name>] [-d]\n";
 	echo "  Flags:\n";
 	echo "    -c csup hostname\n";
-	echo "    -d Use DESTDIR when building.\n";
 	echo "    -p Package name to build a single package and its dependencies.\n";
 	echo "    -q quiet mode - surpresses command output\n";
 	echo "    -r remove chroot contents on each builder run.\n";
@@ -192,7 +191,7 @@ function usage() {
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -p squid\n";
-	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -j -l/usr/local/pkgchroot -ccvsup.livebsd.com\n";
+	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -ccvsup.livebsd.com\n";
 	exit;
 }
 
@@ -341,8 +340,6 @@ foreach($pkg['packages']['package'] as $pkg) {
 		}
 	}
 }
-
-
 
 echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
 system("ls {$file_system_root}/usr/ports/packages/All");
