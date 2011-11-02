@@ -335,9 +335,9 @@ foreach($pkg['packages']['package'] as $pkg) {
 			if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 				exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 			file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
-			wait_for_procs_finish();
 			echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
 			mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
+			wait_for_procs_finish();
 		}
 	}
 }
