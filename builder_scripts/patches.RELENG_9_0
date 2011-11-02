@@ -52,8 +52,6 @@
 ~~tcpmd5_RST_timeout.RELENG_9.diff~
 ~~SR9600.diff~
 ~~ng_ether_attach_command.diff~
-~~bsnmp.diff~
-~~dhclient.diff~
 ~~ip_carp.c.diff~
 ~~carp_correct_mac.diff~
 ~~carp_replay_protection.diff~
