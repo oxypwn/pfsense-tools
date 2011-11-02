@@ -101,7 +101,7 @@ PROGAUTHOR="$MAINTAINER"
  
 # Default Icon
 # Relative to overlay-dir, the main icon you want to show up for this PBI
-PROGICON="share/pixmaps/FireFox-128.png"
+# PROGICON="share/pixmaps/FireFox-128.png"
  
 # Port we want to build
 # The port the server will track to determine when it's time for a rebuild
