@@ -52,8 +52,8 @@ cd pbi-manager
 EOF;
 
 echo ">>> Checking out pfSense sources...\n";
-if(file_exists("/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh")) 
-	exec("cd /home/pfsense/tools/builder_scripts && /home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh");
+if(file_exists("/usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh")) 
+	exec("cd /usr/home/pfsense/tools/builder_scripts && /usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh");
 
 if(file_exists("/etc/inc/")) {
 	require("/etc/inc/functions.inc");
@@ -62,10 +62,10 @@ if(file_exists("/etc/inc/")) {
 	$handled = true;
 }
 
-if(file_exists("/home/pfsense/pfSense/etc/inc") && !$handled) {
-	require("/home/pfsense/pfSense/etc/inc/functions.inc");
-	require("/home/pfsense/pfSense/etc/inc/util.inc");
-	require("/home/pfsense/pfSense/etc/inc/xmlparse.inc");
+if(file_exists("/usr/home/pfsense/pfSense/etc/inc") && !$handled) {
+	require("/usr/home/pfsense/pfSense/etc/inc/functions.inc");
+	require("/usr/home/pfsense/pfSense/etc/inc/util.inc");
+	require("/usr/home/pfsense/pfSense/etc/inc/xmlparse.inc");
 	$handled = true;
 }
 
@@ -186,9 +186,9 @@ function usage() {
 	echo "    -s pfSense version to pass to set_version.sh during chroot build\n";
 	echo "    -x XML file containing package data.\n";
 	echo "  Examples:\n";
-	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml\n";
-	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -p squid\n";
-	echo "     {$argv[0]} -x /home/pfsense/packages/pkg_info.8.xml -j -l/usr/local/pkgchroot -ccvsup.livebsd.com\n";
+	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml\n";
+	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -p squid\n";
+	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -j -l/usr/local/pkgchroot -ccvsup.livebsd.com\n";
 	exit;
 }
 
@@ -277,8 +277,8 @@ $file_system_root = "/";
 exec("rm -rf /tmp/pf*");
 echo ">>> Applying kernel patches...\n";
 if($set_version)
-	exec("cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
-exec("cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
+	exec("cd /usr/home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
+exec("cd /usr/home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
 echo ">>> Running make includes...\n";
 exec("cd /usr/pfSensesrc/src && make includes");
 
