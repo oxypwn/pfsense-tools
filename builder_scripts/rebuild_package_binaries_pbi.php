@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-echo ">>> Forcing bootstrap of PBI tools..."
+echo ">>> Forcing bootstrap of PBI tools...\n";
 if(file_exists("/usr/local/sbin/pbi_create"))
 	exec("rm /usr/local/sbin/pbi_create");
 
