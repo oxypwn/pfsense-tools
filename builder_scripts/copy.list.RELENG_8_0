@@ -184,3 +184,5 @@ usr/local/bin/xmllint
 usr/share/doc/legal/intel_ipw/LICENSE
 usr/share/doc/legal/intel_iwi/LICENSE
 usr/share/doc/legal/intel_wpi/LICENSE
+usr/sbin/cdcontrol
+sbin/camcontrol

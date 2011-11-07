@@ -180,3 +180,5 @@ usr/local/bin/safestats
 usr/local/bin/ubsecstats
 usr/local/sbin/cpustats
 usr/local/bin/xmllint
+usr/sbin/cdcontrol
+sbin/camcontrol
