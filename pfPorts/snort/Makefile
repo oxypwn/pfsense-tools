@@ -72,7 +72,7 @@ LIBNET_INCDIR=	${LIBNET_CFLAGS:M-I*:S/-I//}
 LIBNET_LIBDIR=	${LIBNET_LIBS:M-L*:S/-L//}
 
 CONFIGURE_ARGS=	--enable-dynamicplugin --enable-build-dynamic-examples \
-		--enable-reload --enable-reload-restart \
+		--enable-reload --enable-reload-error-restart \
 		--disable-corefiles \
 		--with-dnet-includes=${LIBNET_INCDIR} \
 		--with-dnet-libraries=${LIBNET_LIBDIR}
