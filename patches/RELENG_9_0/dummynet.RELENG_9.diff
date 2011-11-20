@@ -124,7 +124,7 @@ diff -u -r1.2 parse.y
  		{ "divert-reply",	DIVERTREPLY},
  		{ "divert-to",		DIVERTTO},
 +		{ "dnpipe",             DNPIPE},
-+		{ "dnqueue",            DNQUEUE}
++		{ "dnqueue",            DNQUEUE},
  		{ "drop",		DROP},
  		{ "drop-ovl",		FRAGDROP},
  		{ "dscp",		DSCP},
