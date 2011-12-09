@@ -306,12 +306,12 @@ PHP_FUNCTION(pfSense_register_lease)
         dhcpctl_handle hp = NULL;
         struct ether_addr *ds;
         struct in_addr nds;
-	char *mac, *ip, *gateway, *name;
-	int mac_len, ip_len, gateway_len, name_len;
+	char *mac, *ip, *name;
+	int mac_len, ip_len, name_len;
 	zval *res;
 	omapi_data *conn;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zssss", &res, &name, &name_len, &mac, &mac_len, &ip, &ip_len, &gateway, &gateway_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zssss", &res, &name, &name_len, &mac, &mac_len, &ip, &ip_len) == FAILURE) {
 		RETURN_FALSE;
 	}
 
