@@ -1,0 +1,18 @@
+--- sbin/route/route.c.old	2011-07-25 17:23:02.000000000 +0000
++++ sbin/route/route.c	2011-07-25 17:20:14.000000000 +0000
+@@ -1234,10 +1234,15 @@
+ 		print_rtmsg(&rtm, l);
+ 	if (debugonly)
+ 		return (0);
++testagain:
+ 	if ((rlen = write(s, (char *)&m_rtmsg, l)) < 0) {
+ 		if (errno == EPERM)
+ 			err(1, "writing to routing socket");
+ 		warn("writing to routing socket");
++		if (rtm.rtm_type == RTM_CHANGE) {
++			rtm.rtm_type = RTM_ADD;
++			goto testagain;
++		}
+ 		return (-1);
+ 	}
+ 	if (cmd == RTM_GET) {
