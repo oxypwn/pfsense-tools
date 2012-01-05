@@ -66,7 +66,6 @@
 ~sys/net~ifqueue_maxlen.diff~
 ~~netisr_default_values.diff~
 ~~ip_dstchng_fix.diff~
-~~if_pfsync.diff~
 ~~route.diff~
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
