@@ -62,13 +62,11 @@
 ~~IPSEC_sysctl.RELENG_9.diff~
 ~~max_linkhdr.diff~
 -p1~~FreeBSD-VirtIO-0001.obj~
--p1~~ng_base_imprvements.diff~
 ~~scrub_FIN+SYN_drop.diff~
 ~sys/net~ifqueue_maxlen.diff~
 ~~netisr_default_values.diff~
 ~~ip_dstchng_fix.diff~
 ~~if_pfsync.diff~
--p1~~pucdata.diff~
 ~~route.diff~
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
