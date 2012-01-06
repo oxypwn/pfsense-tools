@@ -1,0 +1,23 @@
+Index: usr.sbin/wpa/hostapd/Makefile
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/wpa/hostapd/Makefile,v
+retrieving revision 1.9.2.1.2.1
+diff -u -r1.9.2.1.2.1 Makefile
+--- usr.sbin/wpa/hostapd/Makefile	11 Nov 2011 04:20:22 -0000	1.9.2.1.2.1
++++ usr.sbin/wpa/hostapd/Makefile	6 Jan 2012 14:31:30 -0000
+@@ -62,13 +62,10 @@
+ 
+ CFLAGS+=-DEAP_TLS -DEAP_PEAP -DEAP_MSCHAPv2 -DEAP_PSK \
+ 	-DEAP_TLS_FUNCS -DEAP_TLS_OPENSSL
+-SRCS+=	crypto_openssl.c
+-SRCS+=	eap_tls.c eap_peap.c eap_peap_common.c eap_mschapv2.c \
+-	eap_psk.c eap_psk_common.c \
+-	eap_tls_common.c tls_openssl.c ms_funcs.c chap.c
++SRCS+=	eap_server_psk.c eap_psk_common.c \
++	tls_openssl.c aes-encblock.c aes-omac1.c aes-eax.c aes-ctr.c
+ 
+ CFLAGS+=-DEAP_TTLS -DEAP_MD5
+-SRCS+=	eap_ttls.c eap_md5.c
+ 
+ .if !empty(CFLAGS:M*-DEAP_GTC)
+ SRCS+=	eap_gtc.c
