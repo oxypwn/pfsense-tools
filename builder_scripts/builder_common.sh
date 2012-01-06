@@ -3348,6 +3348,14 @@ update_freebsd_sources_and_apply_patches() {
 		MOVE_FILE=`echo $LINE | cut -d~ -f4`
 		MOVE_FILE_LEN=`echo $MOVE_FILE | wc -c`
 		IS_TGZ=`echo $LINE | grep -v grep | grep .tgz | wc -l`
+		if [ ! -f "${PFSPATCHDIR}/${PATCH_FILE}" ]; then
+			echo
+			echo "ERROR!  Patch file(${PATCH_FILE}) not found!  Please fix before building!"
+			echo
+			print_error_pfS
+			kill $$
+		fi
+
 		if [ $PATCH_FILE_LEN -gt "2" ]; then
 			if [ $IS_TGZ -gt "0" ]; then
 				(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
