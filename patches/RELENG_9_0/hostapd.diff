@@ -3,6 +3,16 @@ Index: usr.sbin/wpa/hostapd/Makefile
 RCS file: /home/ncvs/src/usr.sbin/wpa/hostapd/Makefile,v
 retrieving revision 1.9.2.1.2.1
 diff -u -r1.9.2.1.2.1 Makefile
+--- usr.sbin/wpa/hostapd/Makefile	2012-01-06 16:19:01.000000000 +0100
++++ usr.sbin/wpa/hostapd/Makefile	2012-01-06 16:23:09.000000000 +0100
+@@ -6,6 +6,7 @@
+ 	${WPA_DISTDIR}/src/ap \
+ 	${WPA_DISTDIR}/src/eap_server \
+ 	${WPA_DISTDIR}/src/eap_common \
++	${WPA_DISTDIR}/src/eap_peer \
+ 	${WPA_DISTDIR}/src/eapol_auth \
+ 	${WPA_DISTDIR}/src/eap_peer \
+ 	${WPA_DISTDIR}/src/drivers \
 --- usr.sbin/wpa/hostapd/Makefile	11 Nov 2011 04:20:22 -0000	1.9.2.1.2.1
 +++ usr.sbin/wpa/hostapd/Makefile	6 Jan 2012 14:31:30 -0000
 @@ -62,13 +62,10 @@
