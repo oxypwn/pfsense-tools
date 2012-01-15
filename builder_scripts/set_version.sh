@@ -196,6 +196,7 @@ RELENG_9_0)
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
 ;;
+
 HEAD)
 	echo ">>> Setting builder environment to use HEAD/RELENG_8_1 ..."
 	export FREEBSD_VERSION="8"
