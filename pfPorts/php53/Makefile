@@ -27,29 +27,31 @@ LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
 
 CONFIGURE_ARGS=	\
 		--with-layout=GNU \
-		--localstatedir=/var \
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-libxml \
-		--enable-mysqlnd \
 		--with-libxml-dir=${LOCALBASE} \
-		--with-pcre-regex=${LOCALBASE} \
-		--with-zlib-dir=/usr \
+		--enable-reflection \
+		--with-pcre-regex \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
 
-OPTIONS=	CLI "Build CLI version" on \
+OPTIONS=CLI "Build CLI version" on \
 		CGI "Build CGI version" on \
-		FPM "Build FPM version (experimental)" off \
 		APACHE "Build Apache module" off \
-		AP2FILTER " Use Apache 2.x filter interface (experimental)" off \
 		DEBUG "Enable debug" off \
-		SUHOSIN "Enable Suhosin protection system" on \
+		SUHOSIN "Enable Suhosin protection system (not for jails)" on \
 		MULTIBYTE "Enable zend multibyte support" off \
 		IPV6 "Enable ipv6 support" on \
 		MAILHEAD "Enable mail header patch" off \
-		LINKTHR "Link thread lib (for threaded extensions)" off
+		REDIRECT "Enable force-cgi-redirect support (CGI only)" off \
+		DISCARD "Enable discard-path support (CGI only)" off \
+		FASTCGI "Enable fastcgi support (CGI only)" on \
+		FPM "Enable fastcgi process manager (CGI only)" off \
+		PATHINFO "Enable path-info-check support (CGI only)" on \
+		LINKTHR "Link thread lib (for threaded extensions)" on
+
 
 CONFLICTS=	php4-4* php5-pcre-* php5-spl-*
 
