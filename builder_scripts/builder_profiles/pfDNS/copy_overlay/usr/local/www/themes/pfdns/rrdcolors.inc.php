@@ -3,7 +3,7 @@
 /*
 	rrdcolors.inc.php
 	Part of pfSense
-	Copyright (C) 2006 Seth Mos <seth.mos@xs4all.nl>
+	Copyright (C) 2006 Seth Mos <seth.mos@dds.nl>
 	All rights reserved.
 
 	Redistribution and use in source and binary forms, with or without
