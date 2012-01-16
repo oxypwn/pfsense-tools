@@ -19,13 +19,16 @@ COMMENT=	Library for getting useful info
 USE_PHP=	yes
 USE_PHPEXT=	yes
 
-CFLAGS+=	-I/usr/local/include -L/usr/local/lib
+BUILD_DEPENDS+= ${PREFIX}/sbin/named:${PORTSDIR}/dns/bind98
+BUILD_DEPENDS+= dhcpd:${PORTSDIR}/net/isc-dhcp42-server
+
+CFLAGS+=	-I/usr/local/include -L/usr/local/lib -I.
 
 CONFIGURE_ARGS=	--enable-pfSense
 
 extract:
 	mkdir -p ${WRKSRC}
-	cp files/* ${WRKSRC}
+	cp -r files/* ${WRKSRC}
 
 post-install:
 	cp ${WRKSRC}/modules/pfSense.so /usr/local/lib/php/20060613/
