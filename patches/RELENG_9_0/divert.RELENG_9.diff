@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.4
-diff -u -r1.4 parse.y
---- contrib/pf/pfctl/parse.y	27 Sep 2011 06:42:29 -0000	1.4
-+++ contrib/pf/pfctl/parse.y	27 Sep 2011 07:27:14 -0000
+retrieving revision 1.3
+diff -u -r1.3 parse.y
+--- contrib/pf/pfctl/parse.y	17 Jan 2012 11:44:42 -0000	1.3
++++ contrib/pf/pfctl/parse.y	17 Jan 2012 13:46:52 -0000
 @@ -157,6 +157,7 @@
  enum	{ PF_STATE_OPT_MAX, PF_STATE_OPT_NOSYNC, PF_STATE_OPT_SRCTRACK,
  	    PF_STATE_OPT_MAX_SRC_STATES, PF_STATE_OPT_MAX_SRC_CONN,
@@ -29,7 +29,20 @@ diff -u -r1.4 parse.y
  	char			*tag;
  	char			*match_tag;
  	u_int8_t		 match_tag_not;
-@@ -458,8 +461,8 @@
+@@ -243,10 +246,12 @@
+ 	u_int32_t                pdnpipe;
+ 	u_int32_t                free_flags;
+ 	u_int			 rtableid;
++#if 0
+ 	struct {
+ 		struct node_host	*addr;
+ 		u_int16_t		port;
+ 	}			 divert;
++#endif
+ } filter_opts;
+ 
+ struct antispoof_opts {
+@@ -458,8 +463,8 @@
  %token	LOAD RULESET_OPTIMIZATION
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
  %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY PFLOW
@@ -40,7 +53,7 @@ diff -u -r1.4 parse.y
  %token	<v.string>		STRING
  %token	<v.number>		NUMBER
  %token	<v.i>			PORTBINARY
-@@ -492,6 +495,7 @@
+@@ -492,6 +497,7 @@
  %type	<v.redirection>		redirection redirpool
  %type	<v.string>		label stringall tag anchorname
  %type	<v.string>		string varstring numberstring
@@ -48,7 +61,7 @@ diff -u -r1.4 parse.y
  %type	<v.keep_state>		keep
  %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
  %type	<v.logquick>		logquick quick log logopts logopt
-@@ -1959,6 +1963,8 @@
+@@ -1959,6 +1965,8 @@
  			r.rtableid = $9.rtableid;
  
  			r.af = $6;
@@ -57,7 +70,7 @@ diff -u -r1.4 parse.y
  			if ($9.tag)
  				if (strlcpy(r.tagname, $9.tag,
  				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
-@@ -2047,6 +2053,14 @@
+@@ -2047,6 +2055,14 @@
  					}
  					r.rule_flag |= PFRULE_NOSYNC;
  					break;
@@ -72,7 +85,23 @@ diff -u -r1.4 parse.y
  				case PF_STATE_OPT_SRCTRACK:
  					if (srctrack) {
  						yyerror("state option "
-@@ -2474,6 +2488,9 @@
+@@ -2313,6 +2329,7 @@
+ 				}
+ 				free($9.queues.pqname);
+ 			}
++#if 0
+ #ifdef __FreeBSD__
+ 			r.divert.port = $9.divert.port;
+ #else
+@@ -2341,6 +2358,7 @@
+ 				}
+ 			}
+ #endif
++#endif
+ 
+ 			if ($9.dnpipe) {
+                                 r.dnpipe = $9.dnpipe;
+@@ -2474,6 +2492,9 @@
  			filter_opts.dnpipe = $3;
  			filter_opts.free_flags |= PFRULE_DN_IS_QUEUE;
  		}
@@ -82,7 +111,32 @@ diff -u -r1.4 parse.y
  		| TAG string				{
  			filter_opts.tag = $2;
  		}
-@@ -3681,6 +3698,15 @@
+@@ -2501,7 +2522,7 @@
+ 			filter_opts.rtableid = $2;
+ 		}
+ 		| DIVERTTO portplain {
+-#ifdef __FreeBSD__
++#ifndef __FreeBSD__
+ 			filter_opts.divert.port = $2.a;
+ 			if (!filter_opts.divert.port) {
+ 				yyerror("invalid divert port: %u", ntohs($2.a));
+@@ -2510,6 +2531,7 @@
+ #endif
+ 		}
+ 		| DIVERTTO STRING PORT portplain {
++#if 0
+ #ifndef __FreeBSD__
+ 			if ((filter_opts.divert.addr = host($2)) == NULL) {
+ 				yyerror("could not parse divert address: %s",
+@@ -2526,6 +2548,7 @@
+ 				yyerror("invalid divert port: %u", ntohs($4.a));
+ 				YYERROR;
+ 			}
++#endif
+ 		}
+ 		| DIVERTREPLY {
+ #ifdef __FreeBSD__
+@@ -3681,6 +3704,15 @@
  			$$->next = NULL;
  			$$->tail = $$;
  		}
@@ -98,7 +152,7 @@ diff -u -r1.4 parse.y
  		| MAXSRCCONN NUMBER			{
  			if ($2 < 0 || $2 > UINT_MAX) {
  				yyerror("only positive values permitted");
-@@ -4353,6 +4379,10 @@
+@@ -4353,6 +4385,10 @@
  		}
  		;
  
@@ -109,19 +163,19 @@ diff -u -r1.4 parse.y
  tag		: /* empty */		{ $$ = NULL; }
  		| TAG STRING		{ $$ = $2; }
  		;
-@@ -5448,8 +5478,11 @@
+@@ -5448,8 +5484,11 @@
  		{ "code",		CODE},
  		{ "crop",		FRAGCROP},
  		{ "debug",		DEBUG},
 +		{ "divert",		DIVERT},
-+#ifndef __FreeBSD__
++#ifdef __FreeBSD__
  		{ "divert-reply",	DIVERTREPLY},
  		{ "divert-to",		DIVERTTO},
 +#endif
  		{ "dnpipe",             DNPIPE},
- 		{ "dnqueue",            DNQUEUE}
+ 		{ "dnqueue",            DNQUEUE},
  		{ "drop",		DROP},
-@@ -5487,6 +5520,7 @@
+@@ -5487,6 +5526,7 @@
  		{ "loginterface",	LOGINTERFACE},
  		{ "max",		MAXIMUM},
  		{ "max-mss",		MAXMSS},
@@ -134,8 +188,8 @@ Index: contrib/pf/pfctl/pfctl_parser.c
 RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
 retrieving revision 1.3
 diff -u -r1.3 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	27 Sep 2011 06:42:29 -0000	1.3
-+++ contrib/pf/pfctl/pfctl_parser.c	27 Sep 2011 06:48:07 -0000
+--- contrib/pf/pfctl/pfctl_parser.c	17 Jan 2012 11:44:42 -0000	1.3
++++ contrib/pf/pfctl/pfctl_parser.c	17 Jan 2012 13:41:45 -0000
 @@ -922,6 +922,12 @@
  			printf("max-src-conn %u", r->max_src_conn);
  			opts = 0;
@@ -158,13 +212,29 @@ diff -u -r1.3 pfctl_parser.c
  	if (r->tagname[0])
  		printf(" tag %s", r->tagname);
  	if (r->match_tagname[0]) {
+@@ -1028,6 +1036,7 @@
+ 	}
+ 	if (r->rtableid != -1)
+ 		printf(" rtable %u", r->rtableid);
++#if 0
+ 	if (r->divert.port) {
+ #ifdef __FreeBSD__
+ 		printf(" divert-to %u", ntohs(r->divert.port));
+@@ -1048,6 +1057,7 @@
+ 		}
+ #endif
+ 	}
++#endif
+ 	if (!anchor_call[0] && (r->action == PF_NAT ||
+ 	    r->action == PF_BINAT || r->action == PF_RDR)) {
+ 		printf(" -> ");
 Index: sys/contrib/pf/net/pf.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.4
-diff -u -r1.4 pf.c
---- sys/contrib/pf/net/pf.c	27 Sep 2011 06:42:29 -0000	1.4
-+++ sys/contrib/pf/net/pf.c	27 Sep 2011 07:04:55 -0000
+retrieving revision 1.3
+diff -u -r1.3 pf.c
+--- sys/contrib/pf/net/pf.c	17 Jan 2012 11:44:42 -0000	1.3
++++ sys/contrib/pf/net/pf.c	17 Jan 2012 13:49:26 -0000
 @@ -158,6 +158,7 @@
  #include <netinet/ip_fw.h>
  #include <netinet/ipfw/ip_fw_private.h>
@@ -173,8 +243,8 @@ diff -u -r1.4 pf.c
  
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
-@@ -507,6 +508,14 @@
- 	break;                  \
+@@ -508,6 +509,14 @@
+ 	} \
  } while(0)
  
 +#define	PF_DIVERT_MAXPACKETS_REACHED()				\
@@ -324,11 +394,11 @@ diff -u -r1.4 pf.c
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.5
-diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	27 Sep 2011 06:42:29 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	27 Sep 2011 07:19:57 -0000
-@@ -731,10 +731,14 @@
+retrieving revision 1.3
+diff -u -r1.3 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	17 Jan 2012 11:44:42 -0000	1.3
++++ sys/contrib/pf/net/pfvar.h	17 Jan 2012 13:25:42 -0000
+@@ -720,10 +720,14 @@
  #define PF_FLUSH_GLOBAL		0x02
  	u_int8_t		 flush;
  
@@ -343,7 +413,7 @@ diff -u -r1.5 pfvar.h
  };
  
  /* rule flags */
-@@ -882,6 +886,11 @@
+@@ -871,6 +875,11 @@
  	u_int8_t		 pad[2];
  	u_int8_t		 local_flags;
  #define	PFSTATE_EXPIRING 0x01
@@ -355,7 +425,7 @@ diff -u -r1.5 pfvar.h
  #else
  	u_int8_t		 pad[3];
  #endif
-@@ -906,6 +915,7 @@
+@@ -895,6 +904,7 @@
  	u_int32_t	 	 expire;
  	u_int32_t		 pfsync_time;
  	u_int16_t		 tag;
@@ -363,7 +433,7 @@ diff -u -r1.5 pfvar.h
  	u_int8_t		 log;
  	u_int8_t		 state_flags;
  #define	PFSTATE_ALLOWOPTS	0x01
-@@ -1362,7 +1372,8 @@
+@@ -1351,7 +1361,8 @@
  #define PFRES_MAXSTATES	12		/* State limit */
  #define PFRES_SRCLIMIT	13		/* Source node/conn limit */
  #define PFRES_SYNPROXY	14		/* SYN proxy */
@@ -373,7 +443,7 @@ diff -u -r1.5 pfvar.h
  
  #define PFRES_NAMES { \
  	"match", \
-@@ -1380,6 +1391,7 @@
+@@ -1369,6 +1380,7 @@
  	"state-limit", \
  	"src-limit", \
  	"synproxy", \
@@ -386,8 +456,8 @@ Index: sys/netinet/ip_divert.c
 RCS file: /root/freebsd/repo/src/sys/netinet/ip_divert.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 ip_divert.c
---- sys/netinet/ip_divert.c	27 Sep 2011 04:25:20 -0000	1.1.1.1
-+++ sys/netinet/ip_divert.c	27 Sep 2011 06:48:07 -0000
+--- sys/netinet/ip_divert.c	17 Jan 2012 08:56:17 -0000	1.1.1.1
++++ sys/netinet/ip_divert.c	17 Jan 2012 13:25:42 -0000
 @@ -273,8 +273,7 @@
  		 * this iface name will come along for the ride.
  		 * (see div_output for the other half of this.)
