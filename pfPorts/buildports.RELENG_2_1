@@ -84,11 +84,9 @@ php5-curl					/usr/ports/ftp/php5-curl					/usr/local/lib/php/20060613/curl.so
 php5-gettext				/usr/ports/devel/php5-gettext				/usr/local/lib/php/20060613/gettext.so
 php5-ldap					/usr/ports/net/php5-ldap					/usr/local/lib/php/20060613/ldap.so
 php5-mbstring				/usr/ports/converters/php5-mbstring			/usr/local/lib/php/20060613/mbstring.so
-php5-mhash					/usr/ports/security/php5-mhash				/usr/local/lib/php/20060613/mhash.so
 php5-mysql					/usr/ports/databases/php5-mysql				/usr/local/lib/php/20060613/mysql.so
 php5-openssl				/usr/ports/security/php5-openssl			/usr/local/lib/php/20060613/openssl.so
 php5-pcntl					/usr/ports/devel/php5-pcntl					/usr/local/lib/php/20060613/pcntl.so
-php5-pcre					/usr/ports/devel/php5-pcre					/usr/local/lib/php/20060613/pcre.so
 php5-posix					/usr/ports/sysutils/php5-posix				/usr/local/lib/php/20060613/posix.so
 php5-pdo					/usr/ports/databases/php5-pdo				/usr/local/lib/php/20060613/pdo.so
 php5-pdo_sqlite				/usr/ports/databases/php5-pdo_sqlite		/usr/local/lib/php/20060613/pdo_sqlite.so
@@ -102,7 +100,6 @@ php5-shmop					/usr/ports/devel/php5-shmop					/usr/local/lib/php/20060613/shmop
 php5-sysvmsg				/usr/ports/devel/php5-sysvmsg				/usr/local/lib/php/20060613/sysvmsg.so
 php5-sysvsem				/usr/ports/devel/php5-sysvsem				/usr/local/lib/php/20060613/sysvsem.so
 php5-sysvshm				/usr/ports/devel/php5-sysvshm				/usr/local/lib/php/20060613/sysvshm.so
-php5-spl					/usr/ports/devel/php5-spl					/usr/local/lib/php/20060613/spl.so
 php5-sqlite					/usr/ports/databases/php5-sqlite			/usr/local/lib/php/20060613/pdo_sqlite.so
 php5-tokenizer				/usr/ports/devel/php5-tokenizer				/usr/local/lib/php/20060613/tokenizer.so
 php5-xml					/usr/ports/textproc/php5-xml				/usr/local/lib/php/20060613/xml.so
