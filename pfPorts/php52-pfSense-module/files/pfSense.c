@@ -212,7 +212,7 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 		return FAILURE;
 	}
 
-	if (geteuid() == 0) {
+	if (geteuid() == 0 || getuid() == 0) {
 		/* Create a new socket node */
 		if (NgMkSockNode(NULL, &csock, NULL) < 0)
 			csock = -1;
