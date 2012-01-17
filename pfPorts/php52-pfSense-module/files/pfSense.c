@@ -203,22 +203,25 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	int csock;
 
 	PFSENSE_G(s) = socket(AF_LOCAL, SOCK_DGRAM, 0);
-        if (PFSENSE_G(s) < 0)
-        	return FAILURE;
+	if (PFSENSE_G(s) < 0)
+		return FAILURE;
 
 	PFSENSE_G(inets) = socket(AF_INET, SOCK_DGRAM, 0);
-        if (PFSENSE_G(inets) < 0) {
+	if (PFSENSE_G(inets) < 0) {
 		close(PFSENSE_G(s));
-        	return FAILURE;
+		return FAILURE;
 	}
 
-	/* Create a new socket node */
-	if (NgMkSockNode(NULL, &csock, NULL) < 0)
-		csock = -1;
-	else
-		fcntl(csock, F_SETFD, fcntl(csock, F_GETFD, 0) | FD_CLOEXEC);
+	if (geteuid() == 0) {
+		/* Create a new socket node */
+		if (NgMkSockNode(NULL, &csock, NULL) < 0)
+			csock = -1;
+		else
+			fcntl(csock, F_SETFD, fcntl(csock, F_GETFD, 0) | FD_CLOEXEC);
 
-	PFSENSE_G(csock) = csock;
+		PFSENSE_G(csock) = csock;
+	} else
+		PFSENSE_G(csock) = -1;
 
 	/* Don't leak these sockets to child processes */
 	fcntl(PFSENSE_G(s), F_SETFD, fcntl(PFSENSE_G(s), F_GETFD, 0) | FD_CLOEXEC);
@@ -263,8 +266,10 @@ PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 {
 	if (PFSENSE_G(csock) != -1)
 		close(PFSENSE_G(csock));
-	close(PFSENSE_G(inets));
-	close(PFSENSE_G(s));
+	if (PFSENSE_G(inets) != -1)
+		close(PFSENSE_G(inets));
+	if (PFSENSE_G(s) != -1)
+		close(PFSENSE_G(s));
 
 	return SUCCESS;
 }
@@ -764,9 +769,8 @@ PHP_FUNCTION(pfSense_interface_destroy) {
 	if (ioctl(PFSENSE_G(s), SIOCIFDESTROY, &ifr) < 0) {
 		array_init(return_value);
 		add_assoc_string(return_value, "error", "Could not create interface", 1);
-	}
-	
-	RETURN_TRUE;
+	} else
+		RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_interface_setaddress) {
