@@ -31,9 +31,9 @@ diff -u -r1.5 parse.y
 -				binat.af = $8->af;
 -			if (!binat.af && $9 != NULL && $9->af)
 -				binat.af = $9->af;
-+			if (!binat.af && $8 != NULL && $8.host->af)
++			if (!binat.af && $8.host != NULL && $8.host->af)
 +				binat.af = $8.host->af;
-+			if (!binat.af && $10 != NULL && $10.host->af)
++			if (!binat.af && $10.host != NULL && $10.host->af)
 +				binat.af = $10.host->af;
  
 -			if (!binat.af && $13 != NULL && $13->host)
@@ -107,7 +107,7 @@ diff -u -r1.5 parse.y
 -				if ($8->addr.type == PF_ADDR_DYNIFTL)
 -					$8->af = binat.af;
 -				if ($8->af != binat.af) {
-+				if ($8host.->addr.type == PF_ADDR_DYNIFTL)
++				if ($8.host.->addr.type == PF_ADDR_DYNIFTL)
 +					$8.host->af = binat.af;
 +				if ($8.host->af != binat.af) {
  					yyerror("binat ip versions must match");
