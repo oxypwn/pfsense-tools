@@ -24,6 +24,8 @@ MAKE_JOBS_SAFE=	yes
 USE_AUTOTOOLS=	autoconf
 AUTOTOOLSFILES=	scripts/phpize.in
 
+PHP_EXT_DIR=20060613
+
 CONFIGURE_ARGS=	\
 		--with-layout=GNU \
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
