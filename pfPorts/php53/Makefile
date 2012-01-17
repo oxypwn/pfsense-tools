@@ -183,6 +183,7 @@ test: build
 	@(cd ${WRKSRC} && ${MAKE} test)
 
 post-install:
+	@${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin/php
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-development ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-production ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
