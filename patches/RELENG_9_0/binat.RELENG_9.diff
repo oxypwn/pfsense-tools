@@ -107,7 +107,7 @@ diff -u -r1.5 parse.y
 -				if ($8->addr.type == PF_ADDR_DYNIFTL)
 -					$8->af = binat.af;
 -				if ($8->af != binat.af) {
-+				if ($8.host.->addr.type == PF_ADDR_DYNIFTL)
++				if ($8.host->addr.type == PF_ADDR_DYNIFTL)
 +					$8.host->af = binat.af;
 +				if ($8.host->af != binat.af) {
  					yyerror("binat ip versions must match");
