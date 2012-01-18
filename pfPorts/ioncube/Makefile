@@ -6,10 +6,10 @@
 #
 
 PORTNAME=	ioncube
-DISTVERSION=	4.0.10
+DISTVERSION=	4.0.12
 CATEGORIES=	devel
 MASTER_SITES=	http://downloads2.ioncube.com/loader_downloads/ \
-		http://ls.fvds.ru/ioncube/4.0.10/
+		http://ls.fvds.ru/ioncube/4.0.12/
 DISTNAME=	${PORTNAME}_loaders_fre_${VER}_${ARCH_DIST}
 
 MAINTAINER=	svyatoslav.lempert@gmail.com
@@ -50,6 +50,10 @@ PHP_INSTVER=	5.3
 # If you have old lang/php52
 .if ${PHP_VER} == 52
 PHP_INSTVER=	5.2
+.endif
+# If you have old lang/php53
+.if ${PHP_VER} == 53
+PHP_INSTVER=	5.3
 .endif
 
 do-install:
