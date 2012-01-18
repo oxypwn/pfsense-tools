@@ -31,6 +31,6 @@ extract:
 	cp -r files/* ${WRKSRC}
 
 post-install:
-	cp ${WRKSRC}/modules/pfSense.so /usr/local/lib/php/20060613/
+	cp ${WRKSRC}/modules/pfSense.so /usr/local/lib/php/${PHP_EXT_DIR}/
 
 .include <bsd.port.mk>
