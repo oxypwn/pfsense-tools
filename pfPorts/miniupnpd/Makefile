@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	miniupnpd
-PORTVERSION=	1.4.20100921
+PORTVERSION=	1.6.20111118
 CATEGORIES=	net
 MASTER_SITES=	http://miniupnp.tuxfamily.org/files/ \
 		http://miniupnp.free.fr/files/
