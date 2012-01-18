@@ -18,7 +18,7 @@
 #define _PFFLOWD_H
 
 #define PROGNAME                "pfflowd"
-#define PROGVER                 "0.7"
+#define PROGVER                 "0.8"
 
 #ifndef PRIVDROP_USER
 # define PRIVDROP_USER          "nobody"

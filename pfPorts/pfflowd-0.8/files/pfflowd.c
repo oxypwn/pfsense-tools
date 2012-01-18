@@ -357,6 +357,9 @@ static int
 #ifdef NF9
    int src_idx, dst_idx;
 #endif
+#if __FreeBSD_version > 900000
+	const struct pfsync_state_key *nk;
+#endif
    if (verbose_flag)
      {
 	now = time(NULL);
@@ -421,6 +424,20 @@ static int
 	if (creation > uptime_ms)
 	  creation = uptime_ms; /* Avoid u_int wrap */
 
+#if __FreeBSD_version > 900000
+	if (st[i].direction == PF_OUT)
+	  {
+	     nk = &st[i].key[PF_SK_WIRE];
+	  }
+	else
+	  {
+	     nk = &st[i].key[PF_SK_STACK];
+	  }
+	src.addr = nk->addr[1];
+	src.port = nk->port[1];
+	dst.addr = nk->addr[0];
+	dst.port = nk->port[0];
+#else
 	if (st[i].direction == PF_OUT)
 	  {
 	     memcpy(&src, &st[i].lan, sizeof(src));
@@ -431,6 +448,7 @@ static int
 	     memcpy(&src, &st[i].ext, sizeof(src));
 	     memcpy(&dst, &st[i].lan, sizeof(dst));
 	  }
+#endif
 #ifdef NF9
 	src_idx = resolve_interface(&src.addr, st[i].af);
 	dst_idx = resolve_interface( &dst.addr, st[i].af);
@@ -587,6 +605,9 @@ static int
 #ifdef NF9
    int src_idx, dst_idx;
 #endif
+#if __FreeBSD_version > 900000
+   const struct pfsync_state_key *nk;
+#endif
 
    if (verbose_flag)
      {
@@ -652,6 +673,20 @@ static int
 	if (creation > uptime_ms)
 	  creation = uptime_ms; /* Avoid u_int wrap */
 
+#if __FreeBSD_version > 900000
+	if (st[i].direction == PF_OUT)
+	  {
+	     nk = &st[i].key[PF_SK_WIRE];
+	  }
+	else
+	  {
+	     nk = &st[i].key[PF_SK_STACK];
+	  }
+	src.addr = nk->addr[1];
+	src.port = nk->port[1];
+	dst.addr = nk->addr[0];
+	dst.port = nk->port[0];
+#else
 	if (st[i].direction == PF_OUT)
 	  {
 	     memcpy(&src, &st[i].lan, sizeof(src));
@@ -662,6 +697,7 @@ static int
 	     memcpy(&src, &st[i].ext, sizeof(src));
 	     memcpy(&dst, &st[i].lan, sizeof(dst));
 	  }
+#endif
 #ifdef NF9
 	src_idx = resolve_interface(&src.addr, st[i].af);
 	dst_idx = resolve_interface(&dst.addr, st[i].af);
@@ -849,6 +885,9 @@ static void
 
 #endif
    const struct pfsync_header *ph = (const struct pfsync_header *)pkt;
+#if __FreeBSD_version > 900000
+   const struct pfsync_subheader *psh = (const struct pfsync_subheader *)pkt + sizeof(*ph);
+#endif
    const struct pfsync_state *st;
    u_int64_t bytes[2], packets[2];
 
@@ -863,21 +902,35 @@ static void
 	       ph->version);
 	exit(1);
      }
+#if __FreeBSD_version > 900000
+   if (psh->count == 0)
+#else
    if (ph->count == 0)
+#endif
      {
 	syslog(LOG_WARNING, "Empty pfsync packet");
 	return;
      }
 	/* Skip non-delete messages */
+#if __FreeBSD_version > 900000
+   if (psh->action != PFSYNC_ACT_DEL)
+     return;
+   if (sizeof(*ph) + sizeof(*psh) + ((sizeof(*st) * psh->count)) > phdr->caplen)
+#else
    if (ph->action != PFSYNC_ACT_DEL)
      return;
    if (sizeof(*ph) + (sizeof(*st) * ph->count) > phdr->caplen)
+#endif
      {
 	syslog(LOG_WARNING, "Runt pfsync packet");
 	return;
      }
 
+#if __FreeBSD_version > 900000
+   st = (const struct pfsync_state *)((const u_int8_t *)psh + sizeof(*psh));
+#else
    st = (const struct pfsync_state *)((const u_int8_t *)ph + sizeof(*ph));
+#endif
 
 #ifdef NF9
 
@@ -892,14 +945,22 @@ static void
 	 */
    if(NF9_VERSION == export_version)
      {
+#if __FreeBSD_version > 900000
+	send_flow(st, psh->count, &flows_exported);
+#else
 	send_flow(st, ph->count, &flows_exported);
+#endif
      }
 
    else
 # endif
      do
      {
+#if __FreeBSD_version > 900000
+	for(count=i=0 ; i < psh->count ;i++)
+#else
 	for(count=i=0 ; i < ph->count ;i++)
+#endif
 	  {
 	     pf_state_counter_ntoh(st[i].packets[0],packets[0]);
 	     pf_state_counter_ntoh(st[i].packets[1],packets[1]);

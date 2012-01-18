@@ -473,6 +473,9 @@ int
    struct NF9_FLOWSET_HEADER *fst = NULL;
    struct NF9_IPV4_DATA *ipv4 =NULL;
    struct NF9_IPV6_DATA *ipv6 =NULL;
+#if __FreeBSD_version > 900000
+   const struct pfsync_state_key *sk, *nk;
+#endif
 
    if (verbose_flag)
      {
@@ -624,6 +627,22 @@ int
 
 	     /*add data records*/
 
+#if __FreeBSD_version > 900000
+		if (st[i].direction == PF_OUT)
+		  {
+		     sk = &st[i].key[PF_SK_STACK];
+		     nk = &st[i].key[PF_SK_WIRE];
+		  }
+		else
+		  {
+		     sk = &st[i].key[PF_SK_WIRE];
+		     nk = &st[i].key[PF_SK_STACK];
+		  }
+		src.addr = nk->addr[1];
+		src.port = nk->port[1];
+		dst.addr = nk->addr[0];
+		dst.port = nk->port[0];
+#else
 	       /* 0 , src -> dst, 1 dst -> source , */
 	       if (st[i].direction == PF_OUT)
 		 {
@@ -636,6 +655,7 @@ int
 		    memcpy(&src, &st[i].ext, sizeof(src));
 		    memcpy(&dst, &st[i].lan, sizeof(dst));
 		 }
+#endif
 
 	       src_idx = resolve_interface( &src.addr, st[i].af);
 	       dst_idx = resolve_interface( &dst.addr, st[i].af);
