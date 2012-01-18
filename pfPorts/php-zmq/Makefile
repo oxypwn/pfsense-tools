@@ -14,13 +14,13 @@ COMMENT?=		run various pfSense scripts on event.
 #PLIST_FILES=    ${WHERE}/${PORTNAME}
 USE_PHP=        yes
 USE_PHPEXT=     yes
-CONFIGURE_ARGS= --with-zmq=/usr/local/lib/php/20060613/
+CONFIGURE_ARGS= --with-zmq=/usr/local/lib/php/${PHP_EXT_DIR}/
 
 extract:
 	mkdir -p ${WRKSRC}
 	cp -r files/* ${WRKSRC}
 
 post-install:
-	cp ${WRKSRC}/modules/zmq.so /usr/local/lib/php/20060613/
+	cp ${WRKSRC}/modules/zmq.so /usr/local/lib/php/${PHP_EXT_DIR}/
 
 .include <bsd.port.mk>
