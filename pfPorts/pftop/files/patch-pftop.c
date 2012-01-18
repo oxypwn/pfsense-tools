@@ -78,46 +78,6 @@ diff -ur ../pftop-0.7.old/config.h ./config.h
 diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
 --- ../pftop-0.7.old/pftop.c	2012-01-18 21:04:40.000000000 +0000
 +++ ./pftop.c	2012-01-18 21:05:04.000000000 +0000
-@@ -502,39 +502,6 @@
- 	return 0;
- }
- 
--int
--compare_addr(int af, const struct pf_addr *a, const struct pf_addr *b)
--{
--	switch (af) {
--	case AF_INET:
--		if (ntohl(a->addr32[0]) > ntohl(b->addr32[0]))
--			return 1;
--		if (a->addr32[0] != b->addr32[0])
--			return -1;
--		break;
--	case AF_INET6:
--		if (ntohl(a->addr32[0]) > ntohl(b->addr32[0]))
--			return 1;
--		if (a->addr32[0] != b->addr32[0])
--			return -1;
--		if (ntohl(a->addr32[1]) > ntohl(b->addr32[1]))
--			return 1;
--		if (a->addr32[1] != b->addr32[1])
--			return -1;
--		if (ntohl(a->addr32[2]) > ntohl(b->addr32[2]))
--			return 1;
--		if (a->addr32[2] != b->addr32[2])
--			return -1;
--		if (ntohl(a->addr32[3]) > ntohl(b->addr32[3]))
--			return 1;
--		if (a->addr32[3] != b->addr32[3])
--			return -1;
--		break;
--	}
--	
--	return 0;
--}
--
- #ifdef __GNUC__
- __inline__
- #endif
 @@ -552,6 +519,17 @@
  	if (af < s2->af)
  		return -sortdir;
@@ -141,7 +101,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  	}
  
 -	ret = compare_addr(af, &a->addr, &b->addr);
-+	ret = PF_AEQ(&a->addr, &b->addr, af);
++	ret = compare_addr(af, &a->addr, &b->addr);
  	if (ret)
  		return ret * sortdir;
  
@@ -168,7 +128,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
 +	a = &s1->key[PF_SK_WIRE];
 +	b = &s1->key[PF_SK_WIRE];
 +
-+	ret = PF_AEQ(&a->addr[dir], &b->addr[dir], af);
++	ret = compare_addr(af, &a->addr[dir], &b->addr[dir]);
 +	if (ret)
 +		return ret * sortdir;
 +
@@ -183,7 +143,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  		return -sortdir;
  
 -	if (compare_addr(af, &a->addr, &b->addr) > 0)
-+	if (PF_AEQ(&a->addr, &b->addr, af) > 0)
++	if (compare_addr(af, &a->addr, &b->addr) > 0)
  		return sortdir;
 +#endif
  	return -sortdir;
