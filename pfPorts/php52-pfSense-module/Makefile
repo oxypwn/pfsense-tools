@@ -19,8 +19,8 @@ COMMENT=	Library for getting useful info
 USE_PHP=	yes
 USE_PHPEXT=	yes
 
-BUILD_DEPENDS+= ${PREFIX}/sbin/named:${PORTSDIR}/dns/bind98
-BUILD_DEPENDS+= dhcpd:${PORTSDIR}/net/isc-dhcp42-server
+# BUILD_DEPENDS+= ${PREFIX}/sbin/named:${PORTSDIR}/dns/bind98
+# BUILD_DEPENDS+= dhcpd:${PORTSDIR}/net/isc-dhcp42-server
 
 CFLAGS+=	-I/usr/local/include -L/usr/local/lib -I.
 

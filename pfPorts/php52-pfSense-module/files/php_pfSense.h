@@ -4,8 +4,10 @@
 #ifdef ZTS
 #include "TSRM.h"
 #endif
+#ifdef DHCP_INTEGRATION
 #include <isc-dhcp/dst.h>
 #include <dhcpctl.h>
+#endif
 
 ZEND_BEGIN_MODULE_GLOBALS(pfSense)
 	int s;
@@ -20,10 +22,12 @@ extern int pfSense_globals_id;
 #define PFSENSE_G(v) (pfSense_globals.v)
 #endif
 
+#ifdef DHCP_INTEGRATION
 typedef struct _omapi_data {
 	dhcpctl_handle handle;
 } omapi_data;
 #define PHP_PFSENSE_RES_NAME "DHCP data"
+#endif
 
 #define PHP_PFSENSE_WORLD_VERSION "1.0"
 #define PHP_PFSENSE_WORLD_EXTNAME "pfSense"
@@ -52,10 +56,12 @@ PHP_FUNCTION(pfSense_ngctl_attach);
 PHP_FUNCTION(pfSense_ngctl_detach);
 PHP_FUNCTION(pfSense_get_modem_devices);
 PHP_FUNCTION(pfSense_sync);
+#ifdef DHCP_INTEGRATION
 PHP_FUNCTION(pfSense_open_dhcpd);
 PHP_FUNCTION(pfSense_close_dhcpd);
 PHP_FUNCTION(pfSense_register_lease);
 PHP_FUNCTION(pfSense_delete_lease);
+#endif
 
 extern zend_module_entry pfSense_module_entry;
 #define phpext_pfSense_ptr &pfSense_module_entry

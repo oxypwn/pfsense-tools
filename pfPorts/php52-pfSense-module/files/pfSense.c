@@ -138,10 +138,12 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_ngctl_detach, NULL)
     PHP_FE(pfSense_get_modem_devices, NULL)
     PHP_FE(pfSense_sync, NULL)
+#ifdef DHCP_INTEGRATION
     PHP_FE(pfSense_open_dhcpd, NULL)
     PHP_FE(pfSense_close_dhcpd, NULL)
     PHP_FE(pfSense_register_lease, NULL)
     PHP_FE(pfSense_delete_lease, NULL)
+#endif
     {NULL, NULL, NULL}
 };
 
@@ -166,6 +168,7 @@ zend_module_entry pfSense_module_entry = {
 ZEND_GET_MODULE(pfSense)
 #endif
 
+#ifdef DHCP_INTEGRATION
 static void
 php_pfSense_destroy_dhcpd(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 {
@@ -174,6 +177,7 @@ php_pfSense_destroy_dhcpd(zend_rsrc_list_entry *rsrc TSRMLS_DC)
 	if (conn)
 		efree(conn);
 }
+#endif
 
 /* interface management code */
 static int
@@ -255,9 +259,11 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	REGISTER_LONG_CONSTANT("IFCAP_VLAN_HWTSO", IFCAP_VLAN_HWTSO, CONST_PERSISTENT | CONST_CS);
 #endif
 
+#ifdef DHCP_INTEGRATION
 	pfSense_dhcpd = zend_register_list_destructors_ex(php_pfSense_destroy_dhcpd, NULL, PHP_PFSENSE_RES_NAME, module_number);
 	dhcpctl_initialize();
 	omapi_init();
+#endif
 
 	return SUCCESS;
 }
@@ -274,6 +280,7 @@ PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 	return SUCCESS;
 }
 
+#ifdef DHCP_INTEGRATION
 PHP_FUNCTION(pfSense_open_dhcpd)
 {
 	omapi_data *data;
@@ -450,6 +457,7 @@ PHP_FUNCTION(pfSense_close_dhcpd)
 
 	RETURN_TRUE;
 }
+#endif
 
 PHP_FUNCTION(pfSense_getall_interface_addresses)
 {
