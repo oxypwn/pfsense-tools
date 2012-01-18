@@ -192,7 +192,7 @@ RELENG_9_0)
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_9_0
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_9_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_9_0"	
-	export PFSPORTSFILE=buildports.RELENG_2_1
+	export PFSPORTSFILE=buildports.RELENG_2_0
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
 ;;
