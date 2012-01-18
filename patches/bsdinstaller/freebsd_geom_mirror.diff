@@ -6,7 +6,7 @@ diff -u -r1.13 BSDInstaller.lua
 --- backend/lua/conf/BSDInstaller.lua	5 Oct 2005 21:29:03 -0000	1.13
 +++ backend/lua/conf/BSDInstaller.lua	11 Jul 2006 05:26:16 -0000
 @@ -154,7 +154,7 @@
-     ["usr/local"] = "etc/mtree/BSD.local.dist",
+     -- ["usr/local"] = "etc/mtree/BSD.local.dist",
      ["usr/X11R6"] = "etc/mtree/BSD.x11-4.dist"
  }
 -
