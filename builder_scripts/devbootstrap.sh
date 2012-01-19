@@ -139,7 +139,7 @@ cd /home/pfsense/tools/builder_scripts && ./cvsup_bsdinstaller ; ./rebuild_bsdin
 # We should be done!
 echo ">>> Environment is complete. Building ISO..."
 cd /home/pfsense/tools/builder_scripts && ./build_iso.sh
-if [ -f /tmp/builder/pfSense.iso ]; then
+if [ -f "$ISOPATH" ]; then
 	echo ">>> ISO build completed."
 	echo ">>> Moving devbootstrap.sh to /root/"
 	/bin/mv /etc/rc.local /root/devbootstrap.sh 2>/dev/null
