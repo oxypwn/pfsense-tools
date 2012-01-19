@@ -101,11 +101,6 @@ export EXTRAPLUGINS="${EXTRAPLUGINS:-"customroot customscripts pkginstall buildm
 
 # Items beyond this must be defined after MAKEOBJDIRPREFIX!
 
-# General builder output filenames
-export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.iso}
-export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}.img}
-export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick.img}
-
 # OVF/vmdk parms
 export OVFPATH=${OVFPATH:-${MAKEOBJDIRPREFIXFINAL}}
 # Name of ovf file included inside OVA archive
@@ -297,6 +292,11 @@ export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
 #export DO_NOT_BUILD_NANOBSD="true"
 #export DO_NOT_BUILD_PFPORTS="true"
 #export DO_NOT_BUILD_UPDATES="true"
+
+# General builder output filenames
+export ISOPATH=${ISOPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-`date '+%Y%m%d-%H%M'`.iso}
+export IMGPATH=${IMGPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-`date '+%Y%m%d-%H%M'`.img}
+export MEMSTICKPATH=${MEMSTICKPATH:-${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-memstick-${PFSENSE_VERSION}-${ARCH}-`date '+%Y%m%d-%H%M'`.img}
 
 # set full-update update filename
 export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/${PRODUCT_NAME}-Full-Update-${PFSENSE_VERSION}-${ARCH}-`date '+%Y%m%d-%H%M'`.tgz"}
