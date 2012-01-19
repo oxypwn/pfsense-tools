@@ -32,7 +32,8 @@ CONFIGURE_ARGS=	\
 		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
 		--enable-reflection \
-		--with-pcre-regex \
+		--with-pcre-regex=${LOCALBASE} \
+		--enable-mysqlnd \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
