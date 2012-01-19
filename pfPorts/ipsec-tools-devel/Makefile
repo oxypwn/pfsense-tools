@@ -35,9 +35,9 @@ STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
-OPTIONS=	DEBUG		"enable Debug support" on \
+OPTIONS=	DEBUG		"enable Debug support" off \
 		IPV6		"enable IPV6 support" on \
-		ADMINPORT	"enable Admin port" off \
+		ADMINPORT	"enable Admin port" on \
 		STATS		"enable Statistics logging function" off \
 		DPD		"enable Dead Peer Detection" on \
 		NATT		"enable NAT-Traversal (kernel-patch required)" on \
@@ -45,10 +45,10 @@ OPTIONS=	DEBUG		"enable Debug support" on \
 		FRAG		"enable IKE fragmentation payload support" on \
 		HYBRID		"enable Hybrid, Xauth and Mode-cfg support" on \
 		PAM		"enable PAM authentication (Xauth server)" off \
-		RADIUS		"enable Radius authentication (Xauth server)" off \
-		LDAP		"enable LDAP authentication (Xauth server)" off \
+		RADIUS		"enable Radius authentication (Xauth server)" on \
+		LDAP		"enable LDAP authentication (Xauth server)" on \
 		GSSAPI		"enable GSS-API authentication" off \
-		SAUNSPEC	"enable Unspecified SA mode" off \
+		SAUNSPEC	"enable Unspecified SA mode" on \
 		RC5		"enable RC5 encryption (patented)" off \
 		IDEA		"enable IDEA encryption (patented)" off
 
