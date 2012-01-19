@@ -54,6 +54,10 @@ PORTDOCS=	*
 
 .include <bsd.port.pre.mk>
 
+.if ${OSVERSION} < 900007
+EXTRA_PATCHES=files/patch8-isakmp_cfg.c-utmp
+.endif
+
 .ifdef(WITH_DEBUG)
 CONFIGURE_ARGS+=	--enable-debug
 .else
