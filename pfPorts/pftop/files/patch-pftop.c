@@ -1,6 +1,17 @@
+diff -ur ../pftop-0.7.old/bpf_image.c ./bpf_image.c
+--- ../pftop-0.7.old/bpf_image.c	2012-01-19 14:59:38.000000000 +0000
++++ ./bpf_image.c	2012-01-19 15:00:20.000000000 +0000
+@@ -28,6 +28,7 @@
+ #include <stdio.h>
+ #include <string.h>
+ 
++#include "config.h"
+ #include "pcap-int.h"
+ 
+ #ifdef HAVE_OS_PROTO_H
 diff -ur ../pftop-0.7.old/cache.c ./cache.c
---- ../pftop-0.7.old/cache.c	2012-01-18 21:04:40.000000000 +0000
-+++ ./cache.c	2012-01-18 21:05:04.000000000 +0000
+--- ../pftop-0.7.old/cache.c	2012-01-19 14:59:38.000000000 +0000
++++ ./cache.c	2012-01-19 14:59:42.000000000 +0000
 @@ -105,6 +105,9 @@
  add_state(pf_state_t *st)
  {
@@ -64,10 +75,16 @@ diff -ur ../pftop-0.7.old/cache.c ./cache.c
  	ent.proto = st->proto;
  
 diff -ur ../pftop-0.7.old/config.h ./config.h
---- ../pftop-0.7.old/config.h	2012-01-18 21:04:40.000000000 +0000
-+++ ./config.h	2012-01-18 21:05:04.000000000 +0000
-@@ -76,7 +76,7 @@
+--- ../pftop-0.7.old/config.h	2012-01-19 14:59:38.000000000 +0000
++++ ./config.h	2012-01-19 15:00:00.000000000 +0000
+@@ -74,9 +74,13 @@
+ #define HAVE_PFSYNC_STATE
+ #endif
  
++/* XXX: Kludge for pcap */
++#define HAVE_SNPRINTF
++#define	HAVE_VSNPRINTF
++
  #ifdef HAVE_PFSYNC_STATE
  typedef struct pfsync_state pf_state_t;
 -typedef struct pfsync_state_host pf_state_host_t;
@@ -76,9 +93,9 @@ diff -ur ../pftop-0.7.old/config.h ./config.h
  #define COUNTER(c) ((((u_int64_t) c[0])<<32) + c[1])
  #define pfs_ifname ifname
 diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
---- ../pftop-0.7.old/pftop.c	2012-01-18 21:04:40.000000000 +0000
-+++ ./pftop.c	2012-01-18 21:05:04.000000000 +0000
-@@ -552,6 +519,17 @@
+--- ../pftop-0.7.old/pftop.c	2012-01-19 14:59:38.000000000 +0000
++++ ./pftop.c	2012-01-19 14:59:42.000000000 +0000
+@@ -552,6 +552,17 @@
  	if (af < s2->af)
  		return -sortdir;
  	
@@ -96,14 +113,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  	if (s1->direction == dir) {
  		a = &s1->lan;
  	} else {
-@@ -564,12 +542,13 @@
- 		b = &s2->ext;
- 	}
- 
--	ret = compare_addr(af, &a->addr, &b->addr);
-+	ret = compare_addr(af, &a->addr, &b->addr);
- 	if (ret)
- 		return ret * sortdir;
+@@ -570,6 +581,7 @@
  
  	if (ntohs(a->port) > ntohs(b->port))
  		return sortdir;
@@ -111,7 +121,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  	return -sortdir;
  }
  
-@@ -595,7 +574,7 @@
+@@ -595,7 +607,7 @@
  		   const pf_state_t *s2, int dir)
  {
  	const pf_state_host_t *a, *b;
@@ -120,7 +130,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  
  	af = s1->af;
  
-@@ -604,6 +583,17 @@
+@@ -604,6 +616,17 @@
  	if (af < s2->af)
  		return -sortdir;
  	
@@ -138,18 +148,15 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  	if (s1->direction == dir) {
  		a = &s1->lan;
  	} else {
-@@ -621,8 +611,9 @@
- 	if (ntohs(a->port) < ntohs(b->port))
- 		return -sortdir;
+@@ -623,6 +646,7 @@
  
--	if (compare_addr(af, &a->addr, &b->addr) > 0)
-+	if (compare_addr(af, &a->addr, &b->addr) > 0)
+ 	if (compare_addr(af, &a->addr, &b->addr) > 0)
  		return sortdir;
 +#endif
  	return -sortdir;
  }
  
-@@ -867,9 +858,17 @@
+@@ -867,9 +891,17 @@
  }
  
  void
@@ -168,7 +175,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  
  	if (fld == NULL)
  		return;
-@@ -880,7 +879,11 @@
+@@ -880,7 +912,11 @@
  	}
  
  	tb_start();
@@ -180,7 +187,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  
  	if (af == AF_INET)
  		tbprintf(":%u", p);
-@@ -944,6 +947,9 @@
+@@ -944,6 +980,9 @@
  {
  	pf_state_peer_t *src, *dst;
  	struct protoent *p;
@@ -190,7 +197,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  
  	if (s->direction == PF_OUT) {
  		src = &s->src;
-@@ -960,6 +966,23 @@
+@@ -960,6 +999,23 @@
  	else
  		print_fld_uint(FLD_PROTO, s->proto);
  
@@ -214,7 +221,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  	if (s->direction == PF_OUT) {
  		print_fld_host(FLD_SRC, &s->lan, s->af);
  		print_fld_host(FLD_DEST, &s->ext, s->af);
-@@ -972,6 +995,7 @@
+@@ -972,6 +1028,7 @@
  	    (s->lan.port != s->gwy.port)) {
  		print_fld_host(FLD_GW, &s->gwy, s->af);
  	}
@@ -222,7 +229,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  
  	if (s->direction == PF_OUT)
  		print_fld_str(FLD_DIR, "Out");
-@@ -1475,8 +1499,12 @@
+@@ -1475,8 +1532,12 @@
  	print_fld_str(FLD_LABEL, pr->label);
  #endif
  #ifdef HAVE_RULE_STATES
@@ -235,7 +242,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  
  #ifdef HAVE_INOUT_COUNT_RULES
  	print_fld_size(FLD_PKTS, pr->packets[0] + pr->packets[1]);
-@@ -1570,10 +1598,10 @@
+@@ -1570,10 +1631,10 @@
  #ifdef HAVE_RULE_UGID
  	if (pr->uid.op)
  		tb_print_ugid(pr->uid.op, pr->uid.uid[0], pr->uid.uid[1],
@@ -248,7 +255,7 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  #endif
  
  	if (pr->flags || pr->flagset) {
-@@ -1765,7 +1793,12 @@
+@@ -1765,7 +1826,12 @@
  				  strerror(errno));
  			return (-1);
  		}
@@ -262,8 +269,23 @@ diff -ur ../pftop-0.7.old/pftop.c ./pftop.c
  			pq.ticket = pa.ticket;
  			pq.buf = &qstats;
 diff -ur ../pftop-0.7.old/sf-gencode.c ./sf-gencode.c
---- ../pftop-0.7.old/sf-gencode.c	2012-01-18 21:04:40.000000000 +0000
-+++ ./sf-gencode.c	2012-01-18 21:05:04.000000000 +0000
+--- ../pftop-0.7.old/sf-gencode.c	2012-01-19 14:59:38.000000000 +0000
++++ ./sf-gencode.c	2012-01-19 14:59:42.000000000 +0000
+@@ -44,12 +44,12 @@
+ 
+ #define INET6
+ 
++#include "config.h"
++
+ #include <pcap-int.h>
+ #include <pcap-namedb.h>
+ #include "sf-gencode.h"
+ 
+-#include "config.h"
+-
+ #define JMP(c) ((c)|BPF_JMP|BPF_K)
+ 
+ /* Locals */
 @@ -478,9 +478,15 @@
  gen_hostop(bpf_u_int32 addr, bpf_u_int32 mask, int dir)
  {
@@ -312,3 +334,14 @@ diff -ur ../pftop-0.7.old/sf-gencode.c ./sf-gencode.c
  
  	port = ntohs(port);
  
+diff -ur ../pftop-0.7.old/sf-gencode.h ./sf-gencode.h
+--- ../pftop-0.7.old/sf-gencode.h	2012-01-19 14:59:38.000000000 +0000
++++ ./sf-gencode.h	2012-01-19 14:59:42.000000000 +0000
+@@ -28,6 +28,7 @@
+ #ifndef _SF_GENCODE_H_
+ #define _SF_GENCODE_H_
+ 
++#include "config.h"
+ #include "pcap-int.h"
+ 
+ /* Address qualifiers. */
