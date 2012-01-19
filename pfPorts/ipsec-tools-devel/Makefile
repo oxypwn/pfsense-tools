@@ -1,9 +1,20 @@
+# New ports collection makefile for:	ipsec-tools
+# Date created:		20 dec 2004
+# Whom:			vanhu
+#
+# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.30 2011/07/21 05:14:57 dougb Exp $
+
+# TODO: - libipsec issue ?
+#       - cleanup...
+#       - SYSCONFDIR
+#       - $LOCALBASE/sbin/setkey Vs /usr/sbin/setkey
 
 PORTNAME=	ipsec-tools
-PORTVERSION=	0.8
+PORTVERSION=	0.8.0
+PORTREVISION=	2
 CATEGORIES=	security
-MASTER_SITES=	ftp://ftp.netbsd.org/pub/NetBSD/misc/ipsec-tools/0.8/
-DISTFILES= 	ipsec-tools-0.8.0.tar.gz
+MASTER_SITES=	SF
+
 MAINTAINER=	vanhu@netasq.com
 COMMENT=	KAME racoon IKE daemon, ipsec-tools version
 
@@ -11,38 +22,33 @@ CONFLICTS=	racoon-[0-9]*
 
 USE_RC_SUBR=	racoon.sh
 USE_OPENSSL=	yes
+USE_BZIP2=	yes
 
 USE_AUTOTOOLS=	libtool
 GNU_CONFIGURE=	yes
 USE_LDCONFIG=	yes
-CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 CONFIGURE_ARGS=	--enable-shared --sysconfdir=${PREFIX}/etc/racoon \
 		--localstatedir=${STATEDIR:S/\/racoon//} \
-		--with-pkgversion=freebsd-${PORTVERSION} \
-		--enable-adminport
+		--with-pkgversion=freebsd-${PORTVERSION}
 
 STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
-WRKSRC=		work/ipsec-tools-0.8.0
-
-WITH_NATT=yo
-
-OPTIONS=	DEBUG		"enable Debug support" off \
+OPTIONS=	DEBUG		"enable Debug support" on \
 		IPV6		"enable IPV6 support" on \
-		ADMINPORT	"enable Admin port" on \
+		ADMINPORT	"enable Admin port" off \
 		STATS		"enable Statistics logging function" off \
 		DPD		"enable Dead Peer Detection" on \
 		NATT		"enable NAT-Traversal (kernel-patch required)" on \
 		NATTF		"require NAT-Traversal (fail without kernel-patch)" off \
 		FRAG		"enable IKE fragmentation payload support" on \
-		HYBRID		"enable Hybrid Mode-cfg and Xauth support" on \
-		PAM		"enable PAM authentication" off \
+		HYBRID		"enable Hybrid, Xauth and Mode-cfg support" on \
+		PAM		"enable PAM authentication (Xauth server)" off \
+		RADIUS		"enable Radius authentication (Xauth server)" off \
+		LDAP		"enable LDAP authentication (Xauth server)" off \
 		GSSAPI		"enable GSS-API authentication" off \
-		RADIUS		"enable Radius authentication" on \
-		LDAP		"enable LDAP authentication" on \
-		SAUNSPEC	"enable Unspecified SA mode" on \
+		SAUNSPEC	"enable Unspecified SA mode" off \
 		RC5		"enable RC5 encryption (patented)" off \
 		IDEA		"enable IDEA encryption (patented)" off
 
@@ -55,7 +61,7 @@ PORTDOCS=	*
 .include <bsd.port.pre.mk>
 
 .if ${OSVERSION} < 900007
-EXTRA_PATCHES=files/patch8-isakmp_cfg.c-utmp
+EXTRA_PATCHES=files/patch8-utmp.diff
 .endif
 
 .ifdef(WITH_DEBUG)
@@ -64,7 +70,11 @@ CONFIGURE_ARGS+=	--enable-debug
 CONFIGURE_ARGS+=	--disable-debug
 .endif
 
+.ifdef(WITH_IPV6)
 CONFIGURE_ARGS+=	--enable-ipv6
+.else
+CONFIGURE_ARGS+=	--disable-ipv6
+.endif
 
 .ifdef(WITH_ADMINPORT)
 CONFIGURE_ARGS+=	--enable-adminport
@@ -72,7 +82,11 @@ CONFIGURE_ARGS+=	--enable-adminport
 CONFIGURE_ARGS+=	--disable-adminport
 .endif
 
+.ifdef(WITH_STATS)
+CONFIGURE_ARGS+=	--enable-stats
+.else
 CONFIGURE_ARGS+=	--disable-stats
+.endif
 
 .ifdef(WITH_DPD)
 CONFIGURE_ARGS+=	--enable-dpd
@@ -117,10 +131,14 @@ CONFIGURE_ARGS+=	--enable-gssapi
 CONFIGURE_ARGS+=	--disable-gssapi
 .endif
 
+.ifdef(WITH_RADIUS)
 CONFIGURE_ARGS+=	--with-libradius
+.else
+CONFIGURE_ARGS+=	--without-libradius
+.endif
 
 .ifdef(WITH_LDAP)
-USE_OPENLDAP=   YES
+USE_OPENLDAP=	YES
 CONFIGURE_ARGS+=	--with-libldap=${LOCALBASE}
 .else
 CONFIGURE_ARGS+=	--without-libldap
@@ -144,15 +162,17 @@ CONFIGURE_ARGS+=	--enable-idea
 CONFIGURE_ARGS+=	--disable-idea
 .endif
 
+.if ${OSVERSION} < 800000
 .ifdef(WITH_NATT)
 pre-configure:
 	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
 	@${ECHO_MSG} "===> ATTENTION: You need a kernel patch to enable NAT-Traversal functionality!"
-	@${ECHO_MSG} "===> You can download the patch here:"
-	@${ECHO_MSG} "===>     http://ipsec-tools.sf.net/freebsd6-natt.diff"
+	@${ECHO_MSG} "===> latest known patch for FreeBSD 7 is available here:"
+	@${ECHO_MSG} "===>     http://people.freebsd.org/~bz/20110123-01-stable7-natt.diff"
 	@${ECHO_MSG} "===> You might possibly have to do some steps manually if it fails to apply."
 	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
 	@sleep 3
+.endif
 .endif
 
 post-install:
