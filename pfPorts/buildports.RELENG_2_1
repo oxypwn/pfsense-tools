@@ -138,6 +138,7 @@ clog						/usr/ports/sysutils/clog					/usr/sbin/clog
 pecl-ssh2					/usr/ports/security/pecl-ssh2				/usr/local/lib/php/20060613/ssh2.so
 autoconf-wrapper			/usr/ports/devel/autoconf-wrapper			/usr/local/bin/autoconf-wrapper
 rsync						/usr/ports/net/rsync						/usr/local/bin/rsync
+qstats						/usr/ports/sysutils/rsync			/usr/local/sbin/qstats
 gogoc 						/usr/ports/net/gogoc						/usr/local/bin/gogoc"
 
 clean_make_install() {
