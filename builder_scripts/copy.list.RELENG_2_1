@@ -115,7 +115,7 @@ usr/local/lib/php/20090626/curl.so
 usr/local/lib/php/20090626/gettext.so
 usr/local/lib/php/20090626/json.so
 usr/local/lib/php/20090626/mbstring.so
-usr/local/lib/php/20090626/mhash.so
+usr/local/lib/php/20090626/hash.so
 usr/local/lib/php/20090626/mysql.so
 usr/local/lib/php/20090626/openssl.so
 usr/local/lib/php/20090626/pfSense.so
