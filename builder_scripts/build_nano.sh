@@ -199,9 +199,24 @@ fi
 # Wrap up the show, Johnny
 echo "Image completed."
 echo "$MAKEOBJDIRPREFIXFINAL/"
-[ -z "${NANO_WITH_VGA}" ] \
-	&& ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd.* \
-	|| ls -lah $MAKEOBJDIRPREFIXFINAL/nanobsd_vga.*
+
+FILESIZE=`cat /tmp/nanosize.txt`
+DATESTRING=`date "+%Y%m%d-%H%M"`
+
+FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd-${DATESTRING}.img"
+FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd-upgrade-${DATESTRING}.img"
+if [ "$USE_VGA" = "yes" ]; then
+	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd_vga-${DATESTRING}.img"
+	FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd_vga-${DATESTRING}.img"
+fi
+
+mv $MAKEOBJDIRPREFIXFINAL/nanobsd.full.img $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL
+mv $MAKEOBJDIRPREFIXFINAL/nanobsd.upgrade.img $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE
+gzip $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL
+gzip $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE
+
+
+ls -lah $MAKEOBJDIRPREFIXFINAL
 
 # E-Mail that we are done.
 email_operation_completed
@@ -211,3 +226,4 @@ email_operation_completed
 
 # Run final finish routines
 finish
+
