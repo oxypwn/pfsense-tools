@@ -1873,20 +1873,20 @@ make_world() {
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" = "7" ]; then
 		(cd $SRCDIR/sys/boot && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CTF=yo NO_SHARE=yo NO_CLEAN=yo) 2>&1 \
 			| egrep -wi '(warning|error)'
 	fi
-	(cd $SRCDIR/usr.sbin/btxld && env ARCH=$ARCH TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+	(cd $SRCDIR/usr.sbin/btxld && env ARCH=$ARCH TARGET_ARCH=${ARCH} MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CTF=yo NO_SHARE=yo NO_CLEAN=yo) 2>&1 \
 		| egrep -wi '(warning|error)'
 	(cd $SRCDIR/usr.sbin/btxld && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CTF=yo NO_SHARE=yo NO_CLEAN=yo) 2>&1 \
 		| egrep -wi '(warning|error)'
 	(cd $SRCDIR/sys/boot/$ARCH/btx/btx && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CTF=yo NO_SHARE=yo NO_CLEAN=yo) 2>&1 \
 		| egrep -wi '(warning|error)'
 	if [ "$ARCH" = "i386" ]; then
 		(cd $SRCDIR/sys/boot/i386/pxeldr && env ARCH=$ARCH TARGET_ARCH=${ARCH} \
-			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CLEAN=yo) 2>&1 \
+			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD NO_CTF=yo NO_SHARE=yo NO_CLEAN=yo) 2>&1 \
 			| egrep -wi '(warning|error)'
 	fi
 
@@ -1897,7 +1897,7 @@ make_world() {
 		rm -rf $MAKEOBJDIRPREFIX/$SRCDIR/lib/libc
 		(cd $SRCDIR/lib/libc && env TARGET_ARCH=${ARCH} \
 			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
-			NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
+			NO_CTF=yo NO_SHARE=yo NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
 	fi
 
 	# EDGE CASE #3 libc_p.a  #########################################
