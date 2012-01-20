@@ -61,6 +61,10 @@
 ~~carp_ip_alias_fix.diff~
 ~~IPSEC_sysctl.RELENG_9.diff~
 ~~max_linkhdr.diff~
+~sys/boot/forth~brand.4th.diff~
+~sys/boot/forth~beastie.4th.diff~
+~sys/boot/forth~menu.4th.diff~
+~sys/boot/forth~menu-commands.4th.diff~
 -p1~~FreeBSD-VirtIO-0001.obj~
 ~~scrub_FIN+SYN_drop.diff~
 ~sys/net~ifqueue_maxlen.diff~
