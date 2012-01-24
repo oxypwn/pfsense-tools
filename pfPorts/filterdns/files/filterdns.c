@@ -400,6 +400,7 @@ clear_config()
 
 	while ((thr = TAILQ_FIRST(&thread_list)) != NULL) {
 		TAILQ_REMOVE(&thread_list, thr, next);
+		pthread_cancel(thr->thr_pid);
 		while ((a = TAILQ_FIRST(thr->rnh)) != NULL) {
 			TAILQ_REMOVE(thr->rnh, a, entry);
 			if (a->addr)
