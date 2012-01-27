@@ -17,7 +17,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/handler.c ./src/racoon/handler.c
  		pd->created = iph1->created;
  		pd->ph2cnt = iph1->ph2cnt;
 +#ifdef ENABLE_HYBRID
-+		if (iph1->mode_cfg != NULL && iph1->mode_cfg->xauth != NULL)
++		if (iph1->mode_cfg != NULL)
 +			memcpy(pd->user, iph1->mode_cfg->xauth.authdata.generic.usr, LOGINLEN);
 +#endif
  		pd++;
