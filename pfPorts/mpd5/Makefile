@@ -2,19 +2,17 @@
 # Date created:				20 Sep 2005
 # Whom:					Archie Cobbs
 #
-# $FreeBSD: ports/net/mpd5/Makefile,v 1.27 2010/02/25 12:32:37 sem Exp $
+# $FreeBSD: ports/net/mpd5/Makefile,v 1.28 2011/12/21 16:16:43 sem Exp $
 #
 
 PORTNAME=	mpd
-DISTVERSION=	5.5
+DISTVERSION=	5.6
 CATEGORIES=	net
 MASTER_SITES=	SF/${PORTNAME}/Mpd5/Mpd-${PORTVERSION}
 DIST_SUBDIR=	mpd5
 
 MAINTAINER=	mav@FreeBSD.org
 COMMENT=	Multi-link PPP daemon based on netgraph(4)
-
-LIB_DEPENDS=	pdel.0:${PORTSDIR}/devel/libpdel
 
 LATEST_LINK=	mpd5
 
@@ -60,4 +58,3 @@ PLIST_DIRS=	etc/mpd5
 PLIST_FILES=	${CONFSUF:S/^/etc\/mpd5\/mpd./:S/$/.sample/} sbin/mpd5
 
 .include <bsd.port.post.mk>
-
