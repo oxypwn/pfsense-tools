@@ -61,8 +61,9 @@ PORTDOCS=	*
 .include <bsd.port.pre.mk>
 
 .if ${OSVERSION} < 900007
-EXTRA_PATCHES=files/patch8-utmp.diff
+EXTRA_PATCHES+=files/patch8-utmp.diff
 .endif
+EXTRA_PATCHES+=files/patch9-external_script.diff
 
 .ifdef(WITH_DEBUG)
 CONFIGURE_ARGS+=	--enable-debug
