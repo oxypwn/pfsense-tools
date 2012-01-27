@@ -1,0 +1,35 @@
+diff -ur ../mpd-5.6.old/src/iface.c ./src/iface.c
+--- ../mpd-5.6.old/src/iface.c	2012-01-27 17:41:11.000000000 +0000
++++ ./src/iface.c	2012-01-27 17:48:00.000000000 +0000
+@@ -1881,8 +1881,9 @@
+ 
+ 	res = ioctl(s, add?SIOCAIFADDR:SIOCDIFADDR, &ifra);
+ 	if (res == -1) {
+-	    Perror("[%s] IFACE: %s IPv4 address %s %s failed", 
++	    Perror("[%s] IFACE: %s IPv4 address %s %s failed(IGNORING for now. This should be only for PPPoE friendly!)", 
+ 		b->name, add?"Adding":"Removing", add?"to":"from", b->iface.ifname);
++	    res = 0;
+ 	}
+ 	break;
+ 
+diff -ur ../mpd-5.6.old/src/modem.c ./src/modem.c
+--- ../mpd-5.6.old/src/modem.c	2012-01-27 17:41:10.000000000 +0000
++++ ./src/modem.c	2012-01-27 17:51:05.000000000 +0000
+@@ -513,7 +513,7 @@
+     struct ngm_connect	cn;
+     char       		path[NG_PATHSIZ];
+     int			hotchar = PPP_FLAG;
+-#if NGM_TTY_COOKIE < 1226109660
++#if 0
+     struct nodeinfo	ngtty;
+     int			ldisc = NETGRAPHDISC;
+ #else
+@@ -533,7 +533,7 @@
+ 	return(-1);
+     }
+ 
+-#if NGM_TTY_COOKIE < 1226109660
++#if 0
+     /* Install ng_tty line discipline */
+     if (ioctl(m->fd, TIOCSETD, &ldisc) < 0) {
+ 
