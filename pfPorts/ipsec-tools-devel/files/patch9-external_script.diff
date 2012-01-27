@@ -1,6 +1,6 @@
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
---- ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y	2012-01-27 17:33:09.000000000 +0000
-+++ ./src/racoon/cfparse.y	2012-01-27 17:33:24.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y	2012-01-27 18:36:22.000000000 +0000
++++ ./src/racoon/cfparse.y	2012-01-27 18:52:39.000000000 +0000
 @@ -201,9 +201,11 @@
  %token LDAP_ATTR_USER LDAP_ATTR_ADDR LDAP_ATTR_MASK LDAP_ATTR_GROUP LDAP_ATTR_MEMBER
  	/* radius config */
@@ -22,22 +22,27 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
  	|	modecfg_statement
  	|	timer_statement
  	|	sainfo_statement
-@@ -485,6 +488,14 @@
+@@ -485,6 +488,19 @@
  	|	PORT		{ $$ = $1; }
  	;
  
 +	/* external script parameters */
 +external_statement
 +	: EXTERNALCFG BOC SCRIPT QUOTEDSTRING EOC {
++#ifdef ENABLE_HYBRID
 +		vfree(xauth_external_config.script);
 +		xauth_external_config.script = vdup($4);
++#else
++		yyerror("racoon not configured with --enable-hybrid");
++		return -1;
++#endif
 +	}
 +	;
 +
  	/* radius configuration */
  radcfg_statement
  	:	RADCFG {
-@@ -830,6 +841,15 @@
+@@ -830,6 +846,15 @@
  #endif
  		}
  		EOS
@@ -54,8 +59,8 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
  		{
  #ifdef ENABLE_HYBRID
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l ./src/racoon/cftoken.l
---- ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l	2012-01-27 17:33:09.000000000 +0000
-+++ ./src/racoon/cftoken.l	2012-01-27 17:33:24.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l	2012-01-27 18:36:23.000000000 +0000
++++ ./src/racoon/cftoken.l	2012-01-27 18:36:34.000000000 +0000
 @@ -132,7 +132,7 @@
  decstring	{digit}+
  hexstring	0x{hexdigit}+
@@ -87,8 +92,8 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l ./src/racoon/cftoken.l
  <S_CFG>none		{ YYD; return(CFG_NONE); }
  <S_CFG>radius		{ YYD; return(CFG_RADIUS); }
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_cfg.h ./src/racoon/isakmp_cfg.h
---- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_cfg.h	2012-01-27 17:33:09.000000000 +0000
-+++ ./src/racoon/isakmp_cfg.h	2012-01-27 17:33:24.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_cfg.h	2012-01-27 18:36:23.000000000 +0000
++++ ./src/racoon/isakmp_cfg.h	2012-01-27 18:36:34.000000000 +0000
 @@ -111,6 +111,7 @@
  #define ISAKMP_CFG_AUTH_RADIUS	1
  #define ISAKMP_CFG_AUTH_PAM	2
@@ -98,8 +103,8 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_cfg.h ./src/racoon/isakmp_cf
  /* For groupsource */
  #define ISAKMP_CFG_GROUP_SYSTEM	0
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_xauth.c
---- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c	2012-01-27 17:33:08.000000000 +0000
-+++ ./src/racoon/isakmp_xauth.c	2012-01-27 17:34:52.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c	2012-01-27 18:36:22.000000000 +0000
++++ ./src/racoon/isakmp_xauth.c	2012-01-27 19:00:22.000000000 +0000
 @@ -37,6 +37,7 @@
  #include <sys/param.h>
  #include <sys/socket.h>
@@ -108,40 +113,64 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_
  
  #include <netinet/in.h>
  
-@@ -101,6 +102,8 @@
+@@ -101,6 +102,10 @@
  struct xauth_rad_config xauth_rad_config;
  #endif
  
++#ifdef ENABLE_HYBRID
 +struct xauth_ext_config xauth_external_config;
++#endif
 +
  #ifdef HAVE_LIBPAM
  #include <security/pam_appl.h>
  
-@@ -293,6 +296,9 @@
+@@ -293,6 +298,11 @@
  			res = xauth_login_ldap(iph1, usr, pwd);
  			break;
  #endif
++#ifdef ENABLE_HYBRID
 +		case ISAKMP_CFG_AUTH_EXTERNAL:
-+			res = xauth_login_script(usr, pwd);
++			res = xauth_login_script(iph1, usr, pwd);
 +			break;
++#endif
  		default:
  			plog(LLV_ERROR, LOCATION, NULL, 
  			    "Unexpected authentication source\n");
-@@ -1257,6 +1263,41 @@
+@@ -1256,6 +1266,64 @@
+ 
  #endif
  
- int
-+xauth_login_script(char *user, char *pwd)
++#ifdef ENABLE_HYBRID
++int
++xauth_login_script(struct ph1handle *iph1, char *user, char *pwd)
 +{
 +	pid_t pid, rpid;
-+	int ret;
++	char **envp, **c;
++	char *argv[] = { NULL, NULL, NULL };
++	int envc = 0;
++	int ret = -1;
 +
-+	setenv("username", user, 1);
-+	setenv("password", user, 1);
++	argv[0] = xauth_external_config.script->v;
++	argv[1] = xauth_external_config.script->v;
++	argv[2] = NULL;
++
++        (void)isakmp_cfg_setenv(iph1, &envp, &envc);
++
++	if (script_env_append(&envp, &envc, "username", user) != 0) {
++                plog(LLV_ERROR, LOCATION, NULL, "Cannot set username\n");
++                goto outscript;
++        }
++	if (script_env_append(&envp, &envc, "password", pwd) != 0) {
++                plog(LLV_ERROR, LOCATION, NULL, "Cannot set password\n");
++                goto outscript;
++        }
 +
 +	pid = fork();
 +	if (pid == (pid_t)0) {
-+		execl(xauth_external_config.script->v, xauth_external_config.script->v,(char *) NULL);
++		execve(argv[0], argv, envp);
++		plog(LLV_ERROR, LOCATION, NULL,
++                    "execve(\"%s\") failed: %s\n",
++                    argv[0], strerror(errno));
 +		exit (127);
 +	} else if (pid <= (pid_t)0)
 +		ret = -1;
@@ -153,8 +182,6 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_
 +			ret = -1;
 +	}
 +
-+	unsetenv("password");
-+
 +	if (WIFEXITED(ret)) {
 +		if (WEXITSTATUS(ret) > 0)
 +			ret = -1;
@@ -162,25 +189,32 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_
 +			ret = 0;
 +	}
 +
++outscript:
++	for (c = envp; *c; c++)
++		racoon_free(*c);
++	racoon_free(envp);
++
 +	return (ret);
 +}
++#endif
 +
-+int
+ int
  xauth_login_system(usr, pwd)
  	char *usr;
- 	char *pwd;
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.h ./src/racoon/isakmp_xauth.h
---- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.h	2012-01-27 17:33:08.000000000 +0000
-+++ ./src/racoon/isakmp_xauth.h	2012-01-27 17:33:24.000000000 +0000
-@@ -120,6 +120,12 @@
+--- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.h	2012-01-27 18:36:22.000000000 +0000
++++ ./src/racoon/isakmp_xauth.h	2012-01-27 18:39:50.000000000 +0000
+@@ -120,6 +120,14 @@
  int xauth_login_pam(int, struct sockaddr *, char *, char *);
  #endif
  
++#ifdef  ENABLE_HYBRID
 +struct xauth_ext_config {
 +	vchar_t  *script;
 +};
 +extern struct xauth_ext_config xauth_external_config;
-+int xauth_login_script(char *, char *);
++int xauth_login_script(struct ph1handle *, char *, char *);
++#endif
 +
  #ifdef HAVE_LIBRADIUS
  
