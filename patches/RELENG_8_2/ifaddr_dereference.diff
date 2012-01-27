@@ -1,0 +1,23 @@
+Index: sys/netinet/in.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/in.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 in.c
+--- sys/netinet/in.c	4 Apr 2011 20:51:36 -0000	1.1.1.1
++++ sys/netinet/in.c	4 Apr 2011 22:13:37 -0000
+@@ -1159,6 +1159,7 @@
+ 		    && (ia->ia_ifp->if_type != IFT_CARP)
+ #endif
+ 							) {
++			ifa_ref(&ia->ia_ifa);
+ 			IN_IFADDR_RUNLOCK();
+ 			rtinit(&(target->ia_ifa), (int)RTM_DELETE,
+ 			    rtinitflags(target));
+@@ -1168,6 +1169,7 @@
+ 			    rtinitflags(ia) | RTF_UP);
+ 			if (error == 0)
+ 				ia->ia_flags |= IFA_ROUTE;
++			ifa_free(&ia->ia_ifa);
+ 			return (error);
+ 		}
+ 	}

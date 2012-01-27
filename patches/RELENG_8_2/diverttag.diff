@@ -1,0 +1,152 @@
+diff -urN sys/contrib/pf/net/pf.c sys/contrib/pf/net/pf.c
+--- sys/contrib/pf/net/pf.c	2011-12-12 21:56:25.000000000 -0500
++++ sys/contrib/pf/net/pf.c	2011-12-12 18:16:21.000000000 -0500
+@@ -7707,6 +7707,7 @@
+ 			if (dn_tag != NULL) {
+ 				((struct ipfw_rule_ref *)(dn_tag+1))->info = r->divert;
+ 				((struct ipfw_rule_ref *)(dn_tag+1))->rulenum = dir;
++				((struct ipfw_rule_ref *)(dn_tag+1))->chain_id = r->spare2;
+ 
+ 				m_tag_prepend(m, dn_tag);
+ 
+diff -urN sys/netinet/ip_divert.c sys/netinet/ip_divert.c
+--- sys/netinet/ip_divert.c	2011-12-12 21:56:22.000000000 -0500
++++ sys/netinet/ip_divert.c	2011-12-13 15:57:14.000000000 -0500
+@@ -111,6 +111,15 @@
+  * will apply the entire ruleset to the packet).
+  */
+ 
++/*
++ * Overlay over sin_zero (8 bytes)
++ */
++struct div_info {
++	uint16_t	if_index;
++	uint16_t	spare1;
++	uint32_t	cookie;
++} __packed;
++
+ /* Internal variables. */
+ static VNET_DEFINE(struct inpcbhead, divcb);
+ static VNET_DEFINE(struct inpcbinfo, divcbinfo);
+@@ -211,6 +220,7 @@
+ 	struct socket *sa;
+ 	u_int16_t nport;
+ 	struct sockaddr_in divsrc;
++	struct div_info *di = (struct div_info *)&divsrc.sin_zero;
+ 	struct m_tag *mtag;
+ 
+ 	mtag = m_tag_locate(m, MTAG_IPFW_RULE, 0, NULL);
+@@ -289,8 +299,10 @@
+ 		 * this iface name will come along for the ride.
+ 		 * (see div_output for the other half of this.)
+ 		 */ 
+-		*((u_short *)divsrc.sin_zero) = m->m_pkthdr.rcvif->if_index;
++		di->if_index = m->m_pkthdr.rcvif->if_index;
+ 	}
++	/* use the last four bytes of sin_zero for a 32bit cookie */
++	di->cookie = ((struct ipfw_rule_ref *)(mtag+1))->chain_id;
+ 
+ 	/* Put packet on socket queue, if any */
+ 	sa = NULL;
+@@ -363,7 +375,7 @@
+ 
+ 	/* Loopback avoidance and state recovery */
+ 	if (sin) {
+-		u_short idx;
++		struct div_info *di;
+ 
+ 		/* set the starting point. We provide a non-zero slot,
+ 		 * but a non_matching chain_id to skip that info and use
+@@ -379,9 +391,9 @@
+ 		 * The name is user supplied data so don't trust its size
+ 		 * or that it is zero terminated.
+ 		 */
+-		idx = *((u_short *)sin->sin_zero);
+-		if ( idx > 0 )
+-			m->m_pkthdr.rcvif = ifnet_byindex(idx);
++		di = (struct div_info *)&sin->sin_zero;
++		if ( di->if_index > 0 )
++			m->m_pkthdr.rcvif = ifnet_byindex(di->if_index);
+ 	}
+ 
+ 	/* Reinject packet into the system as incoming or outgoing */
+
+diff -ur contrib/pf/pfctl/parse.y contrib/pf/pfctl/parse.y
+--- contrib/pf/pfctl/parse.y	2011-12-12 21:56:25.000000000 -0500
++++ contrib/pf/pfctl/parse.y	2011-12-13 16:24:12.000000000 -0500
+@@ -211,6 +211,7 @@
+ 	char 			*schedule;
+ 	struct node_qassign	 queues;
+ 	u_int16_t		 divert;
++	u_int16_t		 diverttag;
+ 	char			*tag;
+ 	char			*match_tag;
+ 	u_int8_t		 match_tag_not;
+@@ -439,7 +440,7 @@
+ %token	LOAD RULESET_OPTIMIZATION
+ %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
+ %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY
+-%token	TAGGED TAG IFBOUND FLOATING DIVERT STATEPOLICY ROUTE MAXPCKT
++%token	TAGGED TAG IFBOUND FLOATING DIVERT DIVERTTAG STATEPOLICY ROUTE MAXPCKT
+ %token	<v.string>		STRING
+ %token	<v.i>			PORTBINARY
+ %type	<v.interface>		interface if_list if_item_not if_item
+@@ -467,7 +468,7 @@
+ %type	<v.route>		route
+ %type	<v.redirection>		redirection redirpool
+ %type	<v.string>		label schedule string tag anchorname
+-%type	<v.number>		divert
++%type	<v.number>		divert diverttag
+ %type	<v.keep_state>		keep
+ %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
+ %type	<v.logquick>		logquick quick log logopts logopt
+@@ -1792,6 +1793,8 @@
+ 			r.af = $6;
+ 			if ($9.divert)
+ 				r.divert = $9.divert;
++			if ($9.diverttag)
++				r.spare2 = $9.diverttag;
+ 			if ($9.tag)
+ 				if (strlcpy(r.tagname, $9.tag,
+ 				    PF_TAG_NAME_SIZE) >= PF_TAG_NAME_SIZE) {
+@@ -2287,6 +2290,9 @@
+ 		| DIVERT number				{
+ 			filter_opts.divert = $2;
+ 		}
++		| DIVERTTAG number				{
++			filter_opts.diverttag = $2;
++		}
+ 		| TAG string				{
+ 			filter_opts.tag = $2;
+ 		}
+@@ -4066,6 +4072,10 @@
+ 		| DIVERT number		{ $$ = $2;   }
+ 		;
+ 
++diverttag	: /* empty */		{ $$ = 0; }
++		| DIVERTTAG number	{ $$ = $2;   }
++		;
++
+ tag		: /* empty */		{ $$ = NULL; }
+ 		| TAG STRING		{ $$ = $2; }
+ 		;
+@@ -5168,6 +5178,7 @@
+ 		{ "crop",		FRAGCROP},
+ 		{ "debug",		DEBUG},
+ 		{ "divert",             DIVERT},
++		{ "diverttag",          DIVERTTAG},
+ 		{ "dnpipe",             DNPIPE},
+                 { "dnqueue",            DNQUEUE},
+ 		{ "drop",		DROP},
+diff -ur contrib/pf/pfctl/pfctl_parser.c contrib/pf/pfctl/pfctl_parser.c
+--- contrib/pf/pfctl/pfctl_parser.c	2011-12-12 21:56:25.000000000 -0500
++++ contrib/pf/pfctl/pfctl_parser.c	2011-12-13 16:23:56.000000000 -0500
+@@ -1013,6 +1013,8 @@
+ 		printf(" queue %s", r->qname);
+ 	if (r->divert)
+ 		printf(" divert %u", r->divert);
++	if (r->spare2)
++		printf(" diverttag %u", r->spare2);
+ 	if (r->tagname[0])
+ 		printf(" tag %s", r->tagname);
+ 	if (r->match_tagname[0]) {

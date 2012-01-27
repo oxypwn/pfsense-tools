@@ -1,0 +1,17 @@
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.4
+diff -u -r1.4 ip_carp.c
+--- sys/netinet/ip_carp.c	28 Jan 2011 12:43:38 -0000	1.4
++++ sys/netinet/ip_carp.c	28 Jan 2011 12:48:51 -0000
+@@ -1381,7 +1381,8 @@
+ 		CARP_SCLOCK_ASSERT(sc);
+ 
+ 	if (SC2IFP(sc)->if_flags & IFF_UP &&
+-	    sc->sc_vhid > 0 && (sc->sc_naddrs || sc->sc_naddrs6))
++	    sc->sc_vhid > 0 && (sc->sc_naddrs || sc->sc_naddrs6) &&
++	    sc->sc_carpdev->if_link_state == LINK_STATE_UP)
+ 		SC2IFP(sc)->if_drv_flags |= IFF_DRV_RUNNING;
+ 	else {
+ 		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;

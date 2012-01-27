@@ -1,0 +1,45 @@
+Index: sys/netinet/ipfw/ip_dn_glue.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dn_glue.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_dn_glue.c
+--- sys/netinet/ipfw/ip_dn_glue.c	4 Apr 2011 20:51:37 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dn_glue.c	4 Apr 2011 21:51:15 -0000
+@@ -807,7 +807,7 @@
+ 		if (error)
+ 			break;
+ 		error = dn_compat_del(v);
+-		free(v, M_DUMMYNET);
++		free(v, M_TEMP);
+ 		break;
+ 
+ 	case IP_DUMMYNET_CONFIGURE:
+@@ -816,7 +816,7 @@
+ 		if (error)
+ 			break;
+ 		error = dn_compat_configure(v);
+-		free(v, M_DUMMYNET);
++		free(v, M_TEMP);
+ 		break;
+ 
+ 	case IP_DUMMYNET_GET: {
+Index: sys/netinet/ipfw/ip_dummynet.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_dummynet.c
+--- sys/netinet/ipfw/ip_dummynet.c	4 Apr 2011 21:03:08 -0000	1.2
++++ sys/netinet/ipfw/ip_dummynet.c	4 Apr 2011 21:50:29 -0000
+@@ -747,9 +747,10 @@
+ #endif
+ 	fsk_detach_list(&s->fsk_list, arg ? DN_DESTROY : 0);
+ 	/* no more flowset pointing to us now */
+-	if (s->sch.flags & DN_HAVE_MASK)
++	if (s->sch.flags & DN_HAVE_MASK) {
+ 		dn_ht_scan(s->siht, si_destroy, NULL);
+-	else if (s->siht)
++		dn_ht_free(s->siht, 0);
++	} else if (s->siht)
+ 		si_destroy(s->siht, NULL);
+ 	if (s->profile) {
+ 		free(s->profile, M_DUMMYNET);

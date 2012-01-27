@@ -1,0 +1,18 @@
+--- sys/netinet/ip_input.c.old	2011-07-04 19:12:00.000000000 +0000
++++ sys/netinet/ip_input.c	2011-07-04 19:12:42.000000000 +0000
+@@ -554,13 +554,13 @@
+ 		m->m_flags &= ~M_FASTFWD_OURS;
+ 		goto ours;
+ 	}
+-	if ((dchg = (m_tag_find(m, PACKET_TAG_IPFORWARD, NULL) != NULL)) != 0) {
++	if (m_tag_find(m, PACKET_TAG_IPFORWARD, NULL) != NULL) {
+ 		/*
+ 		 * Directly ship the packet on.  This allows forwarding
+ 		 * packets originally destined to us to some other directly
+ 		 * connected host.
+ 		 */
+-		ip_forward(m, dchg);
++		ip_forward(m, 1);
+ 		return;
+ 	}
+ #endif /* IPFIREWALL_FORWARD */

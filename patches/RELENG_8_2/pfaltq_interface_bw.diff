@@ -1,0 +1,27 @@
+Index: contrib/pf/pfctl/pfctl_altq.c
+===================================================================
+RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
+retrieving revision 1.10.2.1.4.1
+diff -u -r1.10.2.1.4.1 pfctl_altq.c
+--- contrib/pf/pfctl/pfctl_altq.c	14 Jun 2010 02:09:06 -0000	1.10.2.1.4.1
++++ contrib/pf/pfctl/pfctl_altq.c	6 Apr 2011 19:30:01 -0000
+@@ -238,15 +238,11 @@
+ 		pa->ifbandwidth = bw->bw_absolute;
+ 	else
+ #ifdef __FreeBSD__
+-		if ((rate = getifspeed(pf->dev, pa->ifname)) == 0) {
+-#else
+-		if ((rate = getifspeed(pa->ifname)) == 0) {
++		rate = getifspeed(pf->dev, pa->ifname); 
++		if (rate == 0)
++			rate = IF_Mbps(100);
+ #endif
+-			fprintf(stderr, "interface %s does not know its bandwidth, "
+-			    "please specify an absolute bandwidth\n",
+-			    pa->ifname);
+-			errors++;
+-		} else if ((pa->ifbandwidth = eval_bwspec(bw, rate)) == 0)
++		if ((pa->ifbandwidth = eval_bwspec(bw, rate)) == 0)
+ 			pa->ifbandwidth = rate;
+ 
+ 	errors += eval_queue_opts(pa, opts, pa->ifbandwidth);

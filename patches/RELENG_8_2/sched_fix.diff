@@ -1,0 +1,40 @@
+Index: sys/kern/sched_4bsd.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/kern/sched_4bsd.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 sched_4bsd.c
+--- sys/kern/sched_4bsd.c	6 May 2011 18:13:06 -0000	1.1.1.1
++++ sys/kern/sched_4bsd.c	6 May 2011 19:20:12 -0000
+@@ -943,13 +943,9 @@
+ 	if ((p->p_flag & P_NOLOAD) == 0)
+ 		sched_load_rem();
+ 
+-	if (newtd) {
+-		MPASS(newtd->td_lock == &sched_lock);
+-		newtd->td_flags |= (td->td_flags & TDF_NEEDRESCHED);
+-	}
+-
+ 	td->td_lastcpu = td->td_oncpu;
+-	td->td_flags &= ~TDF_NEEDRESCHED;
++	if (!(flags & SW_PREEMPT))
++		td->td_flags &= ~TDF_NEEDRESCHED;
+ 	td->td_owepreempt = 0;
+ 	td->td_oncpu = NOCPU;
+ 
+Index: sys/kern/sched_ule.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/kern/sched_ule.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 sched_ule.c
+--- sys/kern/sched_ule.c	6 May 2011 18:13:06 -0000	1.1.1.1
++++ sys/kern/sched_ule.c	6 May 2011 19:20:59 -0000
+@@ -1788,7 +1788,8 @@
+ 	ts->ts_rltick = ticks;
+ 	td->td_lastcpu = td->td_oncpu;
+ 	td->td_oncpu = NOCPU;
+-	td->td_flags &= ~TDF_NEEDRESCHED;
++	if (!(flags & SW_PREEMPT))
++		 td->td_flags &= ~TDF_NEEDRESCHED;
+ 	td->td_owepreempt = 0;
+ 	tdq->tdq_switchcnt++;
+ 	/*

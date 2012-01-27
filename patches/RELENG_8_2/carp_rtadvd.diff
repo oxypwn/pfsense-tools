@@ -1,0 +1,135 @@
+Index: ip_carp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_carp.c
+--- ip_carp.c	9 Oct 2011 16:45:01 -0000	1.2
++++ ip_carp.c	9 Oct 2011 16:48:08 -0000
+@@ -91,6 +91,11 @@
+ static MALLOC_DEFINE(M_CARP, "CARP", "CARP interfaces");
+ SYSCTL_DECL(_net_inet_carp);
+ 
++struct carp_mc_entry {
++	LIST_ENTRY(carp_mc_entry)	mc_entries;
++	struct sockaddr_dl		mc_addr;
++};
++
+ struct carp_softc {
+ 	struct ifnet	 	*sc_ifp;	/* Interface clue */
+ 	struct ifnet		*sc_carpdev;	/* Pointer to parent interface */
+@@ -128,6 +133,7 @@
+ 	struct callout		 sc_ad_tmo;	/* advertisement timeout */
+ 	struct callout		 sc_md_tmo;	/* master down timeout */
+ 	
++	LIST_HEAD(, carp_mc_entry)	carp_mc_listhead;
+ 	LIST_ENTRY(carp_softc)	 sc_next;	/* Interface clue */
+ };
+ #define	SC2IFP(sc)	((sc)->sc_ifp)
+@@ -412,6 +418,7 @@
+ 	
+ 	ifp->if_softc = sc;
+ 	if_initname(ifp, CARP_IFNAME, unit);
++	ifp->if_flags = IFF_LOOPBACK | IFF_SIMPLEX | IFF_MULTICAST;
+ 	ifp->if_mtu = ETHERMTU;
+ 	ifp->if_flags = IFF_LOOPBACK;
+ 	ifp->if_ioctl = carp_ioctl;
+@@ -918,6 +925,9 @@
+ 	ch.carp_pad1 = 0;	/* must be zero */
+ 	ch.carp_cksum = 0;
+ 
++static int 	carp_setmulti(struct ifnet *);
++static void	carp_purgemulti(struct carp_softc *);
++
+ #ifdef INET
+ 	if (sc->sc_ia) {
+ 		struct ip *ip;
+@@ -2023,6 +2033,12 @@
+ 		needed = 0;
+ 		break;
+ 
++	case SIOCADDMULTI:
++	case SIOCDELMULTI:
++		if (sc->sc_carpdev != NULL)
++			error = carp_setmulti(ifp);
++		break;
++
+ 	default:
+ 		error = EINVAL;
+ 		needed = 0;
+@@ -2254,6 +2270,76 @@
+ }
+ 
+ static int
++carp_setmulti(struct ifnet *ifp)
++{
++        struct ifnet *ifp_p;
++        struct ifmultiaddr *ifma, *rifma = NULL;
++        struct carp_mc_entry *mc;
++        struct carp_softc *sc;
++        int error;
++
++        if (ifp == NULL)
++                return (EINVAL);
++                        
++        sc = ifp->if_softc;
++        if (!sc->sc_carpdev)
++                return (EINVAL);
++ 
++        ifp_p = sc->sc_carpdev;
++        CURVNET_SET_QUIET(ifp_p->if_vnet);
++
++        /* First, remove any existing filter entries. */
++        while ((mc = LIST_FIRST(&sc->carp_mc_listhead)) != NULL) {
++                error = if_delmulti(ifp_p, (struct sockaddr *)&mc->mc_addr);
++                if (error)
++                        return (error);
++                LIST_REMOVE(mc, mc_entries);
++                free(mc, M_CARP);
++        }
++        
++        /* Now program new ones. */
++        TAILQ_FOREACH(ifma, &ifp->if_multiaddrs, ifma_link) {
++                if (ifma->ifma_addr->sa_family != AF_LINK)
++                        continue;
++                mc = malloc(sizeof(struct carp_mc_entry), M_CARP, M_NOWAIT);
++                if (mc == NULL)
++                        return (ENOMEM);
++                bcopy(ifma->ifma_addr, &mc->mc_addr, ifma->ifma_addr->sa_len);
++                mc->mc_addr.sdl_index = ifp_p->if_index;
++                LIST_INSERT_HEAD(&sc->carp_mc_listhead, mc, mc_entries);
++                error = if_addmulti(ifp_p, (struct sockaddr *)&mc->mc_addr,
++                    &rifma);
++                if (error)
++                        return (error);
++        }
++
++        CURVNET_RESTORE();
++        return (0);
++}
++
++/*
++ * Delete any multicast address we have asked to add from parent
++ * interface.  Called when the carp is being unconfigured.
++ */
++static void
++carp_purgemulti(struct carp_softc *sc)
++{
++        struct ifnet *ifp;
++        struct carp_mc_entry *mc;
++                
++        if (sc->sc_carpdev == NULL)
++                return;
++                
++        ifp = sc->sc_carpdev;
++                 
++        while ((mc = LIST_FIRST(&sc->carp_mc_listhead)) != NULL) {
++                (void)if_delmulti(ifp, (struct sockaddr *)&mc->mc_addr);
++                LIST_REMOVE(mc, mc_entries);
++                free(mc, M_CARP);
++        }
++}
++
++static int
+ carp_modevent(module_t mod, int type, void *data)
+ {
+ 	switch (type) {

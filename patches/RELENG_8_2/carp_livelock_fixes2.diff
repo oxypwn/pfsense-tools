@@ -1,0 +1,101 @@
+--- sys/netinet/ip_carp.c.orig	2012-01-27 19:57:05.000000000 +0000
++++ sys/netinet/ip_carp.c	2012-01-27 20:12:49.000000000 +0000
+@@ -157,7 +157,7 @@
+ 	int vhif_nvrs;
+ 
+ 	struct ifnet 	*vhif_ifp;
+-	struct mtx	 vhif_mtx;
++	struct rwlock	 vhif_mtx;
+ };
+ 
+ #define	CARP_INET	0
+@@ -168,16 +168,19 @@
+ #define	SC2CIF(sc)		((struct carp_if *)(sc)->sc_carpdev->if_carp)
+ 
+ /* lock per carp_if queue */
+-#define	CARP_LOCK_INIT(cif)	mtx_init(&(cif)->vhif_mtx, "carp_if", 	\
+-	NULL, MTX_DEF)
+-#define	CARP_LOCK_DESTROY(cif)	mtx_destroy(&(cif)->vhif_mtx)
+-#define	CARP_LOCK_ASSERT(cif)	mtx_assert(&(cif)->vhif_mtx, MA_OWNED)
+-#define	CARP_LOCK(cif)		mtx_lock(&(cif)->vhif_mtx)
+-#define	CARP_UNLOCK(cif)	mtx_unlock(&(cif)->vhif_mtx)
+-
+-#define	CARP_SCLOCK(sc)		mtx_lock(&SC2CIF(sc)->vhif_mtx)
+-#define	CARP_SCUNLOCK(sc)	mtx_unlock(&SC2CIF(sc)->vhif_mtx)
+-#define	CARP_SCLOCK_ASSERT(sc)	mtx_assert(&SC2CIF(sc)->vhif_mtx, MA_OWNED)
++#define	CARP_LOCK_INIT(cif)	rw_init(&(cif)->vhif_mtx, "carp_if")
++#define	CARP_LOCK_DESTROY(cif)	rw_destroy(&(cif)->vhif_mtx)
++#define	CARP_LOCK_ASSERT(cif)	rw_assert(&(cif)->vhif_mtx, MA_OWNED)
++#define	CARP_RLOCK(cif)		rw_rlock(&(cif)->vhif_mtx)
++#define	CARP_RUNLOCK(cif)	rw_runlock(&(cif)->vhif_mtx)
++#define	CARP_WLOCK(cif)		rw_wlock(&(cif)->vhif_mtx)
++#define	CARP_WUNLOCK(cif)	rw_wunlock(&(cif)->vhif_mtx)
++
++#define	CARP_SCWLOCK(sc)	rw_wlock(&SC2CIF(sc)->vhif_mtx)
++#define	CARP_SCRLOCK(sc)	rw_rlock(&SC2CIF(sc)->vhif_mtx)
++#define	CARP_SCWUNLOCK(sc)	rw_wunlock(&SC2CIF(sc)->vhif_mtx)
++#define	CARP_SCRUNLOCK(sc)	rw_runlock(&SC2CIF(sc)->vhif_mtx)
++#define	CARP_SCLOCK_ASSERT(sc)	rw_assert(&SC2CIF(sc)->vhif_mtx, MA_OWNED)
+ 
+ #define	CARP_LOG(...)	do {				\
+ 	if (carp_opts[CARPCTL_LOG] > 0)			\
+@@ -1169,7 +1172,7 @@
+ 	struct ifaddr *ifa;
+ 
+ 	cif = ifp->if_carp;
+-	CARP_LOCK(cif);
++	CARP_RLOCK(cif);
+ 
+ 	if (carp_opts[CARPCTL_ARPBALANCE]) {
+ 		/*
+@@ -1244,7 +1247,7 @@
+ 	struct ifaddr *ifa;
+ 
+ 	cif = ifp->if_carp;
+-	CARP_LOCK(cif);
++	CARP_RLOCK(cif);
+ 	TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list) {
+ 		IF_ADDR_LOCK(SC2IFP(vh));
+ 		TAILQ_FOREACH(ifa, &SC2IFP(vh)->if_addrlist, ifa_list) {
+@@ -1275,7 +1278,7 @@
+ 	struct ifaddr *ifa;
+ 
+ 	cif = ifp->if_carp;
+-	CARP_LOCK(cif);
++	CARP_RLOCK(cif);
+ 	TAILQ_FOREACH(sc, &cif->vhif_vrs, sc_list) {
+ 		IF_ADDR_LOCK(SC2IFP(sc));
+ 		TAILQ_FOREACH(ifa, &SC2IFP(sc)->if_addrlist, ifa_list) {
+@@ -1320,17 +1323,17 @@
+ 		return (NULL);
+ 
+ 	cif = ifp->if_carp;
+-	CARP_LOCK(cif);
++	CARP_RLOCK(cif);
+ 	TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list)
+ 		if ((SC2IFP(vh)->if_flags & IFF_UP) &&
+ 		    (SC2IFP(vh)->if_drv_flags & IFF_DRV_RUNNING) &&
+ 		    vh->sc_state == MASTER &&
+ 		    !bcmp(dhost, IF_LLADDR(vh->sc_ifp), ETHER_ADDR_LEN)) {
+-		    	CARP_UNLOCK(cif);
++		    	CARP_RUNLOCK(cif);
+ 			return (SC2IFP(vh));
+ 		}
+ 
+-    	CARP_UNLOCK(cif);
++    	CARP_RUNLOCK(cif);
+ 	return (NULL);
+ }
+ 
+@@ -2221,9 +2214,9 @@
+ 	struct carp_if *cif;
+ 
+ 	cif = ifp->if_carp;
+-	CARP_LOCK(cif);
++	CARP_WLOCK(cif);
+ 	carp_carpdev_state_locked(cif);
+-	CARP_UNLOCK(cif);
++	CARP_WUNLOCK(cif);
+ }
+ 
+ static void

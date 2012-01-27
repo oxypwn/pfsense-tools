@@ -1,0 +1,144 @@
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_carp.c
+--- sys/netinet/ip_carp.c	1 Dec 2010 17:51:35 -0000	1.2
++++ sys/netinet/ip_carp.c	1 Dec 2010 18:27:10 -0000
+@@ -241,6 +241,7 @@
+ {
+ 	u_int8_t version = CARP_VERSION, type = CARP_ADVERTISEMENT;
+ 	u_int8_t vhid = sc->sc_vhid & 0xff;
++	u_int8_t vhidx = sc->sc_vhid <= 255 ? 0 : sc->sc_vhid >> 8;
+ 	struct ifaddr *ifa;
+ 	int i, found;
+ #ifdef INET
+@@ -267,6 +268,8 @@
+ 	SHA1Update(&sc->sc_sha1, (void *)&version, sizeof(version));
+ 	SHA1Update(&sc->sc_sha1, (void *)&type, sizeof(type));
+ 	SHA1Update(&sc->sc_sha1, (void *)&vhid, sizeof(vhid));
++	if (vhidx)
++		SHA1Update(&sc->sc_sha1, (void *)&vhidx, sizeof(vhidx));
+ #ifdef INET
+ 	cur.s_addr = 0;
+ 	do {
+@@ -693,11 +696,17 @@
+ 	struct carp_softc *sc;
+ 	u_int64_t tmp_counter;
+ 	struct timeval sc_tv, ch_tv;
++	int vhid;
++
++	if (ch->carp_vhidx)
++		vhid = (ch->carp_vhidx << 8 ) | ch->carp_vhid;
++	else
++		vhid = ch->carp_vhid;
+ 
+ 	/* verify that the VHID is valid on the receiving interface */
+ 	CARP_LOCK(ifp->if_carp);
+ 	TAILQ_FOREACH(sc, &((struct carp_if *)ifp->if_carp)->vhif_vrs, sc_list)
+-		if (sc->sc_vhid == ch->carp_vhid)
++		if (sc->sc_vhid == vhid)
+ 			break;
+ 
+ 	if (!sc || !((SC2IFP(sc)->if_flags & IFF_UP) &&
+@@ -911,11 +920,16 @@
+ 
+ 	ch.carp_version = CARP_VERSION;
+ 	ch.carp_type = CARP_ADVERTISEMENT;
+-	ch.carp_vhid = sc->sc_vhid;
++	if (sc->sc_vhid <= 255)
++		ch.carp_vhid = sc->sc_vhid;
++	else {
++		ch.carp_vhid = sc->sc_vhid & 0xff;
++		ch.carp_vhidx = sc->sc_vhid >> 8;
++	}
+ 	ch.carp_advbase = advbase;
+ 	ch.carp_advskew = advskew;
+ 	ch.carp_authlen = 7;	/* XXX DEFINE */
+-	ch.carp_pad1 = 0;	/* must be zero */
++	//ch.carp_pad1 = 0;	/* pfSense HACK */
+ 	ch.carp_cksum = 0;
+ 
+ #ifdef INET
+@@ -1299,7 +1313,7 @@
+ 	struct carp_softc *vh;
+ 	u_int8_t *ena = dhost;
+ 
+-	if (ena[0] || ena[1] || ena[2] != 0x5e || ena[3] || ena[4] != 1)
++	if (ena[0] || ena[1] || ena[2] != 0x5e || ena[3])
+ 		return (NULL);
+ 
+ 	CARP_LOCK(cif);
+@@ -1975,7 +1989,7 @@
+ 			}
+ 		}
+ 		if (carpr.carpr_vhid > 0) {
+-			if (carpr.carpr_vhid > 255) {
++			if (carpr.carpr_vhid > 65536) {
+ 				error = EINVAL;
+ 				break;
+ 			}
+@@ -1996,8 +2010,13 @@
+ 			IF_LLADDR(sc->sc_ifp)[1] = 0;
+ 			IF_LLADDR(sc->sc_ifp)[2] = 0x5e;
+ 			IF_LLADDR(sc->sc_ifp)[3] = 0;
+-			IF_LLADDR(sc->sc_ifp)[4] = 1;
+-			IF_LLADDR(sc->sc_ifp)[5] = sc->sc_vhid;
++			if (sc->sc_vhid <= 255) {
++				IF_LLADDR(sc->sc_ifp)[4] = 1;
++				IF_LLADDR(sc->sc_ifp)[5] = sc->sc_vhid;
++			} else {
++				IF_LLADDR(sc->sc_ifp)[4] = sc->sc_vhid >> 8;
++				IF_LLADDR(sc->sc_ifp)[5] = sc->sc_vhid & 0xff;
++			}
+ 			error--;
+ 		}
+ 		if (carpr.carpr_advbase > 0 || carpr.carpr_advskew > 0) {
+@@ -2146,8 +2165,13 @@
+ 			eh->ether_shost[1] = 0;
+ 			eh->ether_shost[2] = 0x5e;
+ 			eh->ether_shost[3] = 0;
+-			eh->ether_shost[4] = 1;
+-			eh->ether_shost[5] = sc->sc_vhid;
++			if (sc->sc_vhid <= 255) {
++				eh->ether_shost[4] = 1;
++				eh->ether_shost[5] = sc->sc_vhid;
++			} else {
++				eh->ether_shost[4] = sc->sc_vhid >> 8;
++				eh->ether_shost[5] = sc->sc_vhid & 0xff;
++			}
+ 		}
+ 		break;
+ 	case IFT_FDDI: {
+@@ -2158,8 +2182,13 @@
+ 			fh->fddi_shost[1] = 0;
+ 			fh->fddi_shost[2] = 0x5e;
+ 			fh->fddi_shost[3] = 0;
+-			fh->fddi_shost[4] = 1;
+-			fh->fddi_shost[5] = sc->sc_vhid;
++			if (sc->sc_vhid <= 255) {
++				fh->fddi_shost[4] = 1;
++				fh->fddi_shost[5] = sc->sc_vhid;
++			} else {
++				fh->fddi_shost[4] = sc->sc_vhid >> 8;
++				fh->fddi_shost[5] = sc->sc_vhid & 0xff;
++			}
+ 		}
+ 		break;
+ 	case IFT_ISO88025: {
+Index: sys/netinet/ip_carp.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_carp.h
+--- sys/netinet/ip_carp.h	1 Dec 2010 17:48:26 -0000	1.1.1.1
++++ sys/netinet/ip_carp.h	1 Dec 2010 18:28:58 -0000
+@@ -69,7 +69,7 @@
+ 	u_int8_t	carp_vhid;	/* virtual host id */
+ 	u_int8_t	carp_advskew;	/* advertisement skew */
+ 	u_int8_t	carp_authlen;   /* size of counter+md, 32bit chunks */
+-	u_int8_t	carp_pad1;	/* reserved */
++	u_int8_t	carp_vhidx;	/* pfSense vhid expansion */
+ 	u_int8_t	carp_advbase;	/* advertisement interval */
+ 	u_int16_t	carp_cksum;
+ 	u_int32_t	carp_counter[2];

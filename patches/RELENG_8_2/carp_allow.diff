@@ -1,0 +1,25 @@
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_carp.c
+--- sys/netinet/ip_carp.c	14 Jul 2011 20:36:22 -0000	1.2
++++ sys/netinet/ip_carp.c	14 Jul 2011 20:39:01 -0000
+@@ -906,6 +906,9 @@
+ 		tv.tv_usec = advskew * 1000000 / 256;
+ 	}
+ 
++	if (!carp_opts[CARPCTL_ALLOW])
++                goto resettimer;
++
+ 	ch.carp_version = CARP_VERSION;
+ 	ch.carp_type = CARP_ADVERTISEMENT;
+ 	ch.carp_vhid = sc->sc_vhid;
+@@ -1079,6 +1082,7 @@
+ 	}
+ #endif /* INET6 */
+ 
++resettimer:
+ 	if (advbase != 255 || advskew != 255)
+ 		callout_reset(&sc->sc_ad_tmo, tvtohz(&tv),
+ 		    carp_send_ad, sc);
