@@ -5,14 +5,6 @@ retrieving revision 1.37.2.1
 diff -u -r1.37.2.1 if_lagg.c
 --- sys/net/if_lagg.c	3 Aug 2009 08:13:06 -0000	1.37.2.1
 +++ sys/net/if_lagg.c	3 Feb 2010 20:20:38 -0000
-@@ -39,6 +39,7 @@
- #include <sys/lock.h>
- #include <sys/rwlock.h>
- #include <sys/taskqueue.h>
-+#include <sys/eventhandler.h>
- 
- #include <net/ethernet.h>
- #include <net/if.h>
 @@ -196,6 +197,50 @@
  
  DECLARE_MODULE(if_lagg, lagg_mod, SI_SUB_PSEUDO, SI_ORDER_ANY);
@@ -90,21 +82,3 @@ diff -u -r1.37.2.1 if_lagg.c
  	/* Shutdown and remove lagg ports */
  	while ((lp = SLIST_FIRST(&sc->sc_ports)) != NULL)
  		lagg_port_destroy(lp, 1);
-Index: sys/net/if_lagg.h
-===================================================================
-RCS file: /home/ncvs/src/sys/net/if_lagg.h,v
-retrieving revision 1.12.2.1
-diff -u -r1.12.2.1 if_lagg.h
---- sys/net/if_lagg.h	3 Aug 2009 08:13:06 -0000	1.12.2.1
-+++ sys/net/if_lagg.h	3 Feb 2010 20:20:38 -0000
-@@ -198,6 +198,10 @@
- 	void	(*sc_lladdr)(struct lagg_softc *);
- 	void	(*sc_req)(struct lagg_softc *, caddr_t);
- 	void	(*sc_portreq)(struct lagg_port *, caddr_t);
-+#if __FreeBSD_version >= 800000
-+	eventhandler_tag vlan_attach;
-+	eventhandler_tag vlan_detach;
-+#endif
- };
- 
- struct lagg_port {
