@@ -31,7 +31,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/handler.h ./src/racoon/handler.h
  	time_t created;
  	int ph2cnt;
 +#ifdef ENABLE_HYBRID
-+	char user[LOGINLEN];
++	char user[31];
 +#endif
  };
  
