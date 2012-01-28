@@ -202,8 +202,8 @@ echo "$MAKEOBJDIRPREFIXFINAL/"
 
 FILESIZE=`cat /tmp/nanosize.txt`
 DATESTRING=`date "+%Y%m%d-%H%M"`
-gzip $MAKEOBJDIRPREFIXFINAL/nanobsd.full.img
-gzip $MAKEOBJDIRPREFIXFINAL/nanobsd.upgrade.img
+gzip -f $MAKEOBJDIRPREFIXFINAL/nanobsd.full.img
+gzip -f $MAKEOBJDIRPREFIXFINAL/nanobsd.upgrade.img
 
 FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd-${DATESTRING}.img"
 FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd-upgrade-${DATESTRING}.img"
