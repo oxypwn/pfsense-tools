@@ -5,57 +5,6 @@ retrieving revision 1.37.2.1
 diff -u -r1.37.2.1 if_lagg.c
 --- sys/net/if_lagg.c	3 Aug 2009 08:13:06 -0000	1.37.2.1
 +++ sys/net/if_lagg.c	3 Feb 2010 20:20:38 -0000
-@@ -196,6 +197,50 @@
- 
- DECLARE_MODULE(if_lagg, lagg_mod, SI_SUB_PSEUDO, SI_ORDER_ANY);
- 
-+#if __FreeBSD_version >= 800000
-+/*
-+ * This routine is run via an vlan
-+ * config EVENT
-+ */
-+static void
-+lagg_register_vlan(void *arg, struct ifnet *ifp, u_int16_t vtag)
-+{
-+        struct lagg_softc       *sc = ifp->if_softc;
-+        struct lagg_port        *lp;
-+
-+        if (ifp->if_softc !=  arg)   /* Not our event */
-+                return;
-+
-+        LAGG_RLOCK(sc);
-+        if (!SLIST_EMPTY(&sc->sc_ports)) {
-+                SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
-+                        EVENTHANDLER_INVOKE(vlan_config, lp->lp_ifp, vtag);
-+        }
-+        LAGG_RUNLOCK(sc);
-+}
-+
-+/*
-+ * This routine is run via an vlan
-+ * unconfig EVENT
-+ */
-+static void
-+lagg_unregister_vlan(void *arg, struct ifnet *ifp, u_int16_t vtag)
-+{
-+        struct lagg_softc       *sc = ifp->if_softc;
-+        struct lagg_port        *lp;
-+
-+        if (ifp->if_softc !=  arg)   /* Not our event */
-+                return;
-+
-+        LAGG_RLOCK(sc);
-+        if (!SLIST_EMPTY(&sc->sc_ports)) {
-+                SLIST_FOREACH(lp, &sc->sc_ports, lp_entries)
-+                        EVENTHANDLER_INVOKE(vlan_unconfig, lp->lp_ifp, vtag);
-+        }
-+        LAGG_RUNLOCK(sc);
-+}
-+#endif
-+
- static int
- lagg_clone_create(struct if_clone *ifc, int unit, caddr_t params)
- {
 @@ -251,6 +296,13 @@
  	 */
  	ether_ifattach(ifp, eaddr);

@@ -70,7 +70,6 @@
 ~~carp_livelock_fixes_v2.diff~
 ~~carp_allow.diff~
 ~~loopback_route_install.diff~
-~~pf_match.diff~
 ~~ipsec-oneshot-dumps.RELENG_8.diff~
 ~~aes_enhancment.diff~
 ~~if_bridge_gif_mtu.diff~
@@ -90,7 +89,6 @@
 ~~tcp_receive_buffers.diff~
 ~~ipsec_optimize.diff~
 ~~sched_fix.diff~
-~~pfctl_print_state_queue.diff~
 ~~carp_ip_alias_fix.diff~
 ~sys/net~ifqueue_maxlen.diff~
 ~~pf_stickies_fix2.diff~
@@ -105,6 +103,5 @@
 ~~arp_cant_allocate_llinfo-in.c.diff~
 ~src/~r222728_defroute.patch~
 ~~rtadvd-rdnss.diff~
-~~pf_match_dummynet.diff~
 ~~makefile.inc1.diff~
 ~~stf_6rd_20100921-1.diff~
