@@ -1,0 +1,72 @@
+Index: usr.sbin/rtadvd/config.c
+===================================================================
+RCS file: /root/freebsd/repo/src/usr.sbin/rtadvd/config.c,v
+retrieving revision 1.2
+diff -u -r1.2 config.c
+--- usr.sbin/rtadvd/config.c	30 Jan 2012 21:09:09 -0000	1.2
++++ usr.sbin/rtadvd/config.c	30 Jan 2012 21:09:44 -0000
+@@ -84,7 +84,7 @@
+ 	int64_t val64;
+ 	char buf[BUFSIZ];
+ 	char *bp = buf;
+-	char *addr, *flagstr;
++	char *addr, *flagstr, *lladdr;
+ 	static int forwarding = -1;
+ 
+ #define MUSTHAVE(var, cap)	\
+@@ -127,6 +127,7 @@
+ 	tmp->rdnss.next = tmp->rdnss.prev = &tmp->rdnss;
+ 	tmp->dnssl.next = tmp->dnssl.prev = &tmp->dnssl;
+ #endif
++	tmp->saddr = IN6ADDR_ANY_INIT;
+ 
+ 	/* check if we are allowed to forward packets (if not determined) */
+ 	if (forwarding < 0) {
+@@ -322,6 +323,16 @@
+ 			       " advertised on %s",
+ 			       __func__, addr, intface);
+ 
++		makeentry(entbuf, sizeof(entbuf), i, "lladdr");
++		if ((lladdr = (char *)agetstr(entbuf, &bp))) {
++			if (inet_pton(AF_INET6, lladr, &tmp->saddr) != 1) {
++				syslog(LOG_ERR,
++				       "<%s> inet_pton failed for %s",
++				       __func__, lladr);
++				exit(1);
++			}
++		}
++
+ 		makeentry(entbuf, sizeof(entbuf), i, "prefixlen");
+ 		MAYHAVE(val, entbuf, 64);
+ 		if (val < 0 || val > 128) {
+Index: usr.sbin/rtadvd/rtadvd.c
+===================================================================
+RCS file: /root/freebsd/repo/src/usr.sbin/rtadvd/rtadvd.c,v
+retrieving revision 1.2
+diff -u -r1.2 rtadvd.c
+--- usr.sbin/rtadvd/rtadvd.c	30 Jan 2012 21:09:09 -0000	1.2
++++ usr.sbin/rtadvd/rtadvd.c	30 Jan 2012 21:09:34 -0000
+@@ -1621,6 +1621,8 @@
+ 	pi = (struct in6_pktinfo *)CMSG_DATA(cm);
+ 	memset(&pi->ipi6_addr, 0, sizeof(pi->ipi6_addr));	/*XXX*/
+ 	pi->ipi6_ifindex = rainfo->ifindex;
++	if (!IN6_IS_ADDR_UNSPECIFIED(&rainfo->saddr))
++		memcpy(&pi->ipi6_addr, &rainfo->saddr, sizeof(pi->ipi6_addr));
+ 
+ 	/* specify the hop limit of the packet */
+ 	{
+Index: usr.sbin/rtadvd/rtadvd.h
+===================================================================
+RCS file: /root/freebsd/repo/src/usr.sbin/rtadvd/rtadvd.h,v
+retrieving revision 1.2
+diff -u -r1.2 rtadvd.h
+--- usr.sbin/rtadvd/rtadvd.h	30 Jan 2012 21:09:09 -0000	1.2
++++ usr.sbin/rtadvd/rtadvd.h	30 Jan 2012 21:09:34 -0000
+@@ -149,6 +149,7 @@
+ 
+ 	/* interface information */
+ 	int	ifindex;
++	struct in6_addr saddr;
+ 	int	advlinkopt;	/* bool: whether include link-layer addr opt */
+ 	struct sockaddr_dl *sdl;
+ 	char	ifname[16];
