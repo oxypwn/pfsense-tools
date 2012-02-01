@@ -103,5 +103,6 @@
 ~~arp_cant_allocate_llinfo-in.c.diff~
 ~src/~r222728_defroute.patch~
 ~~rtadvd-rdnss.diff~
+~~rtadvd-lladdr.diff~
 ~~makefile.inc1.diff~
 ~~stf_6rd_20100921-1.diff~
