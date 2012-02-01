@@ -256,7 +256,7 @@ diff -urN ../snort-2.9.0.5.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +
 +    if (toks[3] == NULL)
 +     	data->kill = 0;
-+    else if (!strncmp("kill", toks[2], strlen("kill")))
++    else if (!strncmp("kill", toks[3], strlen("kill")))
 +	data->kill = 1;
 +    else
 +     	data->kill = 0;
