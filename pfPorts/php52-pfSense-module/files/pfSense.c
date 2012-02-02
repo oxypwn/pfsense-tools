@@ -298,11 +298,11 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 {
 	ipfw_table_entry ent;
 	socklen_t size;
-	int mask = 0;
+	int mask = 0, table;
 	char *ip, *name;
 	int ip_len, name_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|l", &name, &name_len, &ip, &ip_len, &mask) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sls|l", &name, &name_len, &table, &ip, &ip_len, &mask) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -311,14 +311,17 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 	if (strchr(ip, ':')) {
 		if (!inet_pton(AF_INET6, ip, &ent.addr))
 			RETURN_FALSE;
-	} else if (!inet_pton(AF_INET, ip, &ent.addr))
+	} else if (!inet_pton(AF_INET, ip, &ent.addr)) {
+		php_printf("error during conversion\n");
 		RETURN_FALSE;
+	}
 
 	if (mask)
 		ent.masklen = mask;
 	else
 		ent.masklen = 32;
 	size = sizeof(ent);
+	ent.tbl = table;
 	if (getsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW_TABLE_GET_ENTRY, &ent, &size) < 0)
 		RETURN_FALSE;
 
