@@ -27,6 +27,10 @@ CFLAGS+=	-I/usr/local/include -L/usr/local/lib -I. -DDHCP_INTEGRATION -DIPFW_FUN
 CONFIGURE_ARGS=	--enable-pfSense
 
 extract:
+	if [ ! -d ${PREFIX}/include/isc ]; then \
+		echo "Please reinstall isc-dhcp42-server port from pfPorts"; \
+		exit 1; \
+	fi
 	mkdir -p ${WRKSRC}
 	cp -r files/* ${WRKSRC}
 
