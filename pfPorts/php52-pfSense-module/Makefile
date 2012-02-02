@@ -22,7 +22,8 @@ USE_PHPEXT=	yes
 # BUILD_DEPENDS+= ${PREFIX}/sbin/named:${PORTSDIR}/dns/bind98
 BUILD_DEPENDS+= dhcpd:${PORTSDIR}/net/isc-dhcp42-server
 
-CFLAGS+=	-I/usr/local/include -L/usr/local/lib -I. -DDHCP_INTEGRATION -DIPFW_FUNCTIONS -lomapi -ldns -ldhcpctl -lisc
+CFLAGS+=	-I/usr/local/include -L/usr/local/lib -I. -DDHCP_INTEGRATION -DIPFW_FUNCTIONS
+LDFLAGS+=	-lomapi -ldhcpctl -ldns -lisc 
 
 CONFIGURE_ARGS=	--enable-pfSense
 
