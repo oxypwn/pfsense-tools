@@ -5,7 +5,7 @@
 #include "TSRM.h"
 #endif
 #ifdef DHCP_INTEGRATION
-#include <isc-dhcp/dst.h>
+#include <dst/dst.h>
 #include <dhcpctl.h>
 #endif
 
