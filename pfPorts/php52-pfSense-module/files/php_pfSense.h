@@ -5,7 +5,10 @@
 #include "TSRM.h"
 #endif
 #ifdef DHCP_INTEGRATION
-#include <dst/dst.h>
+#define DNS_TSEC_H 1
+
+typedef char dns_tsec_t;
+
 #include <dhcpctl.h>
 #endif
 

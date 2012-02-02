@@ -159,9 +159,8 @@ do-install:
 	${MAKE} -C ${WRKSRC}/includes install
 	${MAKE} -C ${WRKSRC}/common install
 	${INSTALL_DATA} ${WRKSRC}/dhcpctl/dhcpctl.h ${PREFIX}/include
-	@${CP} -r ${WRKSRC}/bind/include/dst ${PREFIX}/include
-	@${CP} -r ${WRKSRC}/bind/include/isc ${PREFIX}/include
-	@${CP} -r ${WRKSRC}/bind/include/dns ${PREFIX}/include
+	${INSTALL_DATA} ${WRKSRC}/bind/lib/libisc.a ${PREFIX}/lib
+	${INSTALL_DATA} ${WRKSRC}/bind/lib/libdns.a ${PREFIX}/lib
 .if defined(WITH_DHCP_IPV6)
 	${INSTALL_DATA} ${WRKSRC}/doc/examples/dhcpd-dhcpv6.conf \
 		${PREFIX}/etc/dhcpd6.conf.sample
@@ -202,6 +201,5 @@ post-install:
 	@${ECHO_MSG}
 	@${CAT} ${PKGMESSAGE}
 	@${ECHO_MSG}
-	@${RM} -r ${PREFIX}/include/isc-dhcp
 
 .include <bsd.port.mk>
