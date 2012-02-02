@@ -1,0 +1,44 @@
+Index: sys/netinet/tcp_output.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/tcp_output.c,v
+retrieving revision 1.2
+diff -u -r1.2 tcp_output.c
+--- sys/netinet/tcp_output.c	6 May 2011 18:20:09 -0000	1.2
++++ sys/netinet/tcp_output.c	6 May 2011 18:45:25 -0000
+@@ -558,14 +558,24 @@
+ 		 * taking into account that we are limited by
+ 		 * TCP_MAXWIN << tp->rcv_scale.
+ 		 */
+-		long adv = min(recwin, (long)TCP_MAXWIN << tp->rcv_scale) -
+-			(tp->rcv_adv - tp->rcv_nxt);
++		long adv;
++		int oldwin;
+ 
++		adv = min(recwin, (long)TCP_MAXWIN << tp->rcv_scale);
++		if (SEQ_GT(tp->rcv_adv, tp->rcv_nxt)) {
++			oldwin = (tp->rcv_adv - tp->rcv_nxt);
++			adv -= oldwin;
++		} else
++			oldwin = 0;
++
++		if (oldwin >> tp->rcv_scale == (adv + oldwin) >> tp->rcv_scale)
++			goto dontupdate;
+ 		if (adv >= (long) (2 * tp->t_maxseg))
+ 			goto send;
+ 		if (2 * adv >= (long) so->so_rcv.sb_hiwat)
+ 			goto send;
+ 	}
++dontupdate:
+ 
+ 	/*
+ 	 * Send if we owe the peer an ACK, RST, SYN, or urgent data.  ACKNOW
+@@ -971,7 +981,8 @@
+ 	if (recwin < (long)(so->so_rcv.sb_hiwat / 4) &&
+ 	    recwin < (long)tp->t_maxseg)
+ 		recwin = 0;
+-	if (recwin < (long)(tp->rcv_adv - tp->rcv_nxt))
++	if (SEQ_GT(tp->rcv_adv, tp->rcv_nxt) &&
++	    recwin < (long)(tp->rcv_adv - tp->rcv_nxt))
+ 		recwin = (long)(tp->rcv_adv - tp->rcv_nxt);
+ 	if (recwin > (long)TCP_MAXWIN << tp->rcv_scale)
+ 		recwin = (long)TCP_MAXWIN << tp->rcv_scale;

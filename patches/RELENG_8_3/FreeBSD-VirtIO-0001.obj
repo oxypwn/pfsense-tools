@@ -1,0 +1,5493 @@
+diff --git a/sys/conf/files.amd64 b/sys/conf/files.amd64
+--- a/sys/conf/files.amd64
++++ b/sys/conf/files.amd64
+@@ -225,6 +225,12 @@
+ dev/tpm/tpm_acpi.c		optional	tpm acpi
+ dev/tpm/tpm_isa.c		optional	tpm isa
+ dev/uart/uart_cpu_amd64.c	optional	uart
++dev/virtio/virtio.c             optional	virtio
++dev/virtio/virtio_if.m          optional 	virtio
++dev/virtio/virtio_bus_if.m      optional	virtio
++dev/virtio/virtqueue.c          optional	virtio
++dev/virtio/pci/virtio_pci.c     optional	virtio_pci pci
++dev/virtio/network/if_vtnet.c   optional	vtnet
+ dev/wpi/if_wpi.c		optional	wpi
+ isa/syscons_isa.c		optional	sc
+ isa/vga_isa.c			optional	vga
+diff --git a/sys/conf/files.i386 b/sys/conf/files.i386
+--- a/sys/conf/files.i386
++++ b/sys/conf/files.i386
+@@ -235,6 +235,12 @@
+ dev/tpm/tpm_acpi.c		optional tpm acpi
+ dev/tpm/tpm_isa.c		optional tpm isa
+ dev/uart/uart_cpu_i386.c	optional uart
++dev/virtio/virtio.c             optional virtio
++dev/virtio/virtio_if.m          optional virtio
++dev/virtio/virtio_bus_if.m      optional virtio
++dev/virtio/virtqueue.c          optional virtio
++dev/virtio/pci/virtio_pci.c     optional virtio_pci pci
++dev/virtio/network/if_vtnet.c   optional vtnet
+ dev/acpica/acpi_if.m		standard
+ dev/acpi_support/acpi_wmi_if.m	standard
+ dev/wpi/if_wpi.c		optional wpi
+diff --git a/sys/conf/kmod.mk b/sys/conf/kmod.mk
+--- a/sys/conf/kmod.mk
++++ b/sys/conf/kmod.mk
+@@ -361,6 +361,7 @@
+ 	dev/sound/pcm/feeder_if.m dev/sound/pcm/mixer_if.m \
+ 	dev/sound/midi/mpu_if.m dev/sound/midi/mpufoi_if.m \
+ 	dev/sound/midi/synth_if.m dev/usb/usb_if.m isa/isa_if.m \
++	dev/virtio/virtio_bus_if.m dev/virtio/virtio_if.m \
+ 	kern/bus_if.m kern/clock_if.m \
+ 	kern/cpufreq_if.m kern/device_if.m kern/serdev_if.m \
+ 	libkern/iconv_converter_if.m opencrypto/cryptodev_if.m \
+diff --git a/sys/dev/virtio/network/if_vtnet.c b/sys/dev/virtio/network/if_vtnet.c
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/network/if_vtnet.c
+@@ -0,0 +1,2758 @@
++/* Driver for VirtIO network devices. */
++
++#include <sys/cdefs.h>
++
++#ifdef HAVE_KERNEL_OPTION_HEADERS
++#include "opt_device_polling.h"
++#endif
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/kernel.h>
++#include <sys/sockio.h>
++#include <sys/mbuf.h>
++#include <sys/malloc.h>
++#include <sys/module.h>
++#include <sys/queue.h>
++#include <sys/socket.h>
++#include <sys/sysctl.h>
++#include <sys/taskqueue.h>
++#include <sys/random.h>
++#include <sys/sglist.h>
++#include <sys/lock.h>
++#include <sys/mutex.h>
++
++#include <net/if.h>
++#include <net/if_arp.h>
++#include <net/ethernet.h>
++#include <net/if_dl.h>
++#include <net/if_types.h>
++#include <net/if_vlan_var.h>
++
++#include <net/bpf.h>
++
++#include <netinet/in_systm.h>
++#include <netinet/in.h>
++#include <netinet/ip.h>
++#include <netinet/ip6.h>
++#include <netinet/udp.h>
++#include <netinet/tcp.h>
++#include <netinet/sctp.h>
++
++#include <machine/bus.h>
++#include <machine/in_cksum.h>
++#include <machine/resource.h>
++#include <sys/bus.h>
++#include <sys/rman.h>
++
++#include <dev/virtio/virtio.h>
++#include <dev/virtio/virtqueue.h>
++#include <dev/virtio/network/virtio_net_reg.h>
++
++#include "virtio_bus_if.h"
++#include "virtio_if.h"
++
++struct vtnet_statistics {
++	unsigned long	mbuf_alloc_failed;
++
++	/* Rx statistics. */
++	unsigned long	rx_mergeable_failed;
++	unsigned long	rx_csum_offloaded;
++	unsigned long	rx_csum_unknown_etype;
++	unsigned long	rx_csum_bad_start;
++	unsigned long	rx_csum_unknown_ipproto;
++	unsigned long	rx_csum_bad_offset;
++
++	/* Tx statistics. */
++	unsigned long	tx_enqueue_failed;
++	unsigned long	tx_csum_offloaded;
++	unsigned long	tx_csum_unknown_etype;
++	unsigned long	tx_tso_unknown_etype;
++};
++
++struct vtnet_softc {
++	device_t		 vtnet_dev;
++	struct ifnet		*vtnet_ifp;
++	struct mtx		 vtnet_mtx;
++
++	uint32_t		 vtnet_flags;
++#define VTNET_FLAG_LINK		 0x0001
++#define VTNET_FLAG_SUSPENDED	 0x0002
++#define VTNET_FLAG_CTRL_VQ	 0x0004
++#define VTNET_FLAG_CTRL_RX	 0x0008
++#define VTNET_FLAG_VLAN_FILTER	 0x0010
++#define VTNET_FLAG_HW_CSUM	 0x0020
++#define VTNET_FLAG_TSO_ECN	 0x0040
++#define VTNET_FLAG_MRG_RXBUFS	 0x0080
++
++	struct virtqueue	*vtnet_rx_vq;
++	struct virtqueue	*vtnet_tx_vq;
++	struct virtqueue	*vtnet_ctrl_vq;
++
++	int			 vtnet_hdr_size;
++	int			 vtnet_rx_size;
++	int			 vtnet_rx_process_limit;
++	int			 vtnet_rx_mbuf_size;
++	int			 vtnet_tx_size;
++	int			 vtnet_tx_hiwat;
++	int		 	 vtnet_if_flags;
++	int			 vtnet_watchdog_timer;
++	uint32_t		 vtnet_features;
++
++	struct taskqueue	*vtnet_tq;
++	struct task		 vtnet_rx_intr_task;
++	struct task		 vtnet_tx_intr_task;
++	struct task		 vtnet_tx_task;
++	struct task		 vtnet_cfgchg_task;
++
++	struct vtnet_statistics	 vtnet_stats;
++
++	struct callout		 vtnet_tick_ch;
++
++	eventhandler_tag	 vtnet_vlan_attach;
++	eventhandler_tag	 vtnet_vlan_detach;
++
++	char			 vtnet_hwaddr[ETHER_ADDR_LEN];
++
++	/*
++	 * On reset, VLAN's registered with host are lost. Use
++	 * this table to remember what VLANs we're filtering.
++	 *
++	 * 4096 VLANs / 32 = 128 entries needed.
++	 */
++#define VTNET_VLAN_TABLE_SZ	 128
++	int			 vtnet_nvlans;
++	uint32_t		 vtnet_vlan_table[VTNET_VLAN_TABLE_SZ];
++};
++
++/*
++ * Data structure prepended to each Rx mbuf's data area when
++ * not using mergeable Rx buffers. When using mergeable Rx
++ * buffers, the header is inline with the leading mbuf's data.
++ *
++ * Pad with 4 bytes to keep the header and data areas non-
++ * contiguous and the frame payload starting on a 4 byte
++ * boundary: (10 + 4 + 14) % 4 == 0.
++ */
++#define VTNET_RX_MBUF_HEADER_PAD	4
++struct vtnet_rx_mbuf_header {
++	struct virtio_net_hdr	vrh_hdr;
++	char			vrh_pad[VTNET_RX_MBUF_HEADER_PAD];
++} __packed;
++
++/*
++ * Structure prepended to each Tx mbuf's data area, regardless if
++ * mergeable buffers have been negotiated. When using mergeable
++ * buffers, the `num_buffers` of the mergeable header must be zero.
++ * To make things easier, we prepend the same structure regardless,
++ * and use `vtnet_hdr_size` as the header size we tell the host.
++ */
++struct vtnet_tx_mbuf_header {
++	union {
++		struct virtio_net_hdr		hdr;
++		struct virtio_net_hdr_mrg_rxbuf	mhdr;
++	} vth_uhdr;
++
++	/* Make header and data non-contiguous. */
++	char					vth_pad[2];
++} __packed;
++
++/*
++ * For MAC address filtering, we're suppose to assume an infinite limit.
++ * In practice, we're limited by the host's available resources. It makes
++ * things easier if we impose a reasonable limit on ourselves, ensuring
++ * the resulting unicast and multicast tables fit in one page.
++ */
++#define VTNET_MAX_MAC_ENTRIES	256
++struct vtnet_mac_table {
++	uint32_t	nentries;
++	uint8_t 	macs[VTNET_MAX_MAC_ENTRIES][ETHER_ADDR_LEN];
++} __packed;
++
++struct vtnet_mac_filter {
++	struct vtnet_mac_table	vmf_uni;
++
++	/* Pad to make the unicast and multicast tables non-contiguous. */
++	uint16_t		vmf_pad;
++
++	struct vtnet_mac_table	vmf_mul;
++};
++CTASSERT(sizeof(struct vtnet_mac_filter) <= PAGE_SIZE);
++
++static struct virtio_feature_desc vtnet_feature_desc[] = {
++	{ VIRTIO_NET_F_CSUM,		"TxChecksum"	},
++	{ VIRTIO_NET_F_GUEST_CSUM,	"RxChecksum"	},
++	{ VIRTIO_NET_F_MAC,		"MacAddress"	},
++	{ VIRTIO_NET_F_GSO,		"TxAllGSO"	},
++	{ VIRTIO_NET_F_GUEST_TSO4,	"RxTSOv4"	},
++	{ VIRTIO_NET_F_GUEST_TSO6,	"RxTSOv6"	},
++	{ VIRTIO_NET_F_GUEST_ECN,	"RxECN"		},
++	{ VIRTIO_NET_F_GUEST_UFO,	"RxUFO"		},
++	{ VIRTIO_NET_F_HOST_TSO4,	"TxTSOv4"	},
++	{ VIRTIO_NET_F_HOST_TSO6,	"TxTSOv6"	},
++	{ VIRTIO_NET_F_HOST_ECN,	"TxTSOECN"	},
++	{ VIRTIO_NET_F_HOST_UFO,	"TxUFO"		},
++	{ VIRTIO_NET_F_MRG_RXBUF,	"MrgRxBuf"	},
++	{ VIRTIO_NET_F_STATUS,		"Status"	},
++	{ VIRTIO_NET_F_CTRL_VQ,		"ControlVq"	},
++	{ VIRTIO_NET_F_CTRL_RX,		"RxMode"	},
++	{ VIRTIO_NET_F_CTRL_VLAN,	"VLanFilter"	},
++	{ VIRTIO_NET_F_CTRL_RX_EXTRA,	"RxModeExtra"	},
++
++	{ 0, NULL }
++};
++
++static int	vtnet_probe(device_t);
++static int	vtnet_attach(device_t);
++static int 	vtnet_detach(device_t);
++static int	vtnet_suspend(device_t);
++static int	vtnet_resume(device_t);
++static int	vtnet_shutdown(device_t);
++static int	vtnet_config_change(device_t);
++
++static void	vtnet_negotiate_features(struct vtnet_softc *);
++static int	vtnet_alloc_virtqueues(struct vtnet_softc *);
++static void	vtnet_get_hwaddr(struct vtnet_softc *);
++static void	vtnet_set_hwaddr(struct vtnet_softc *);
++static void	vtnet_update_link_status(struct vtnet_softc *);
++static void	vtnet_watchdog(struct vtnet_softc *);
++static void	vtnet_config_change_task(void *, int);
++static int	vtnet_change_mtu(struct vtnet_softc *, int);
++static int	vtnet_ioctl(struct ifnet *, u_long, caddr_t);
++
++static int	vtnet_init_rx_vq(struct vtnet_softc *);
++static void	vtnet_free_rx_mbufs(struct vtnet_softc *);
++static void	vtnet_free_tx_mbufs(struct vtnet_softc *);
++static void	vtnet_free_ctrl_vq(struct vtnet_softc *);
++
++#ifdef DEVICE_POLLING
++static poll_handler_t vtnet_poll;
++#endif
++
++static int	vtnet_newbuf(struct vtnet_softc *);
++static void	vtnet_discard_merged_rxbuf(struct vtnet_softc *, int);
++static void	vtnet_discard_rxbuf(struct vtnet_softc *, struct mbuf *);
++static int	vtnet_enqueue_rxbuf(struct vtnet_softc *, struct mbuf *);
++static void	vtnet_vlan_tag_remove(struct mbuf *);
++static int	vtnet_rx_csum(struct vtnet_softc *, struct mbuf *,
++		    struct virtio_net_hdr *);
++static int	vtnet_rxeof_merged(struct vtnet_softc *, struct mbuf *,
++		    int);
++static int	vtnet_rxeof(struct vtnet_softc *, int, int *);
++static void	vtnet_rx_intr_task(void *, int);
++static int	vtnet_rx_vq_intr(void *);
++
++static void	vtnet_txeof(struct vtnet_softc *);
++static struct mbuf * vtnet_vlan_tag_insert(struct mbuf *);
++static struct mbuf * vtnet_get_frame_type(struct mbuf *, uint16_t *, int *);
++static struct mbuf * vtnet_setup_tso(struct vtnet_softc *, struct mbuf *,
++		    struct virtio_net_hdr *, uint16_t, int);
++static struct mbuf * vtnet_tx_csum(struct vtnet_softc *, struct mbuf *,
++		    struct virtio_net_hdr *, uint16_t, int);
++static int	vtnet_enqueue_txbuf(struct vtnet_softc *, struct mbuf **,
++		    struct vtnet_tx_mbuf_header *);
++static int	vtnet_encap(struct vtnet_softc *, struct mbuf **);
++static void	vtnet_start_locked(struct ifnet *);
++static void	vtnet_start(struct ifnet *);
++static void	vtnet_tx_task(void *, int);
++static void	vtnet_tick(void *);
++static void	vtnet_tx_intr_task(void *, int);
++static int	vtnet_tx_vq_intr(void *);
++
++static void	vtnet_stop(struct vtnet_softc *);
++static int	vtnet_reinit(struct vtnet_softc *);
++static void	vtnet_init_locked(struct vtnet_softc *);
++static void	vtnet_init(void *);
++
++static void	vtnet_exec_ctrl_cmd(struct vtnet_softc *, void *,
++		    struct sglist *, int, int);
++
++static void	vtnet_rx_filter(struct vtnet_softc *sc);
++static int	vtnet_ctrl_rx_cmd(struct vtnet_softc *, int, int);
++static int	vtnet_set_promisc(struct vtnet_softc *, int);
++static int	vtnet_set_allmulti(struct vtnet_softc *, int);
++static void	vtnet_rx_filter_mac(struct vtnet_softc *);
++
++static int	vtnet_exec_vlan_filter(struct vtnet_softc *, int, uint16_t);
++static void	vtnet_rx_filter_vlan(struct vtnet_softc *);
++static void	vtnet_set_vlan_filter(struct vtnet_softc *, int, uint16_t);
++static void	vtnet_register_vlan(void *, struct ifnet *, uint16_t);
++static void	vtnet_unregister_vlan(void *, struct ifnet *, uint16_t);
++
++static void	vtnet_add_statistics(struct vtnet_softc *);
++
++static int	vtnet_enable_rx_intr(struct vtnet_softc *);
++static int	vtnet_enable_tx_intr(struct vtnet_softc *);
++static void	vtnet_disable_rx_intr(struct vtnet_softc *);
++static void	vtnet_disable_tx_intr(struct vtnet_softc *);
++static void	vtnet_disable_ctrl_intr(struct vtnet_softc *);
++
++/* Features desired/implemented by this driver. */
++#define VTNET_IMPL_FEATURES \
++    (VIRTIO_NET_F_MAC | VIRTIO_NET_F_STATUS | VIRTIO_NET_F_CTRL_VQ	| \
++     VIRTIO_NET_F_CTRL_RX | VIRTIO_NET_F_CTRL_VLAN			| \
++     VIRTIO_NET_F_CSUM | VIRTIO_NET_F_HOST_TSO4 | VIRTIO_NET_F_HOST_ECN	| \
++     VIRTIO_NET_F_GUEST_CSUM | VIRTIO_NET_F_MRG_RXBUF			| \
++     VIRTIO_F_NOTIFY_ON_EMPTY | VIRTIO_F_RING_INDIRECT_DESC)
++
++/* Features only available with VIRTIO_NET_F_CSUM (Tx). */
++#define VTNET_HOST_CSUM_FEATURES \
++    (VIRTIO_NET_F_HOST_TSO4 | VIRTIO_NET_F_HOST_TSO6 | \
++     VIRTIO_NET_F_HOST_ECN | VIRTIO_NET_F_HOST_UFO)
++
++/* Features only available with VIRTIO_NET_F_GUEST_CSUM (Rx). */
++#define VTNET_GUEST_CSUM_FEATURES \
++    (VIRTIO_NET_F_GUEST_TSO4 | VIRTIO_NET_F_GUEST_TSO6 | \
++     VIRTIO_NET_F_GUEST_ECN | VIRTIO_NET_F_GUEST_UFO)
++
++/*
++ * Used to preallocate the Vq indirect descriptors. One segment
++ * is reserved for the header.
++ */
++#define VTNET_MAX_RX_SEGS	2
++#define VTNET_MAX_TX_SEGS	33
++
++#define VTNET_MAX_MTU		65536
++
++/* Assert we can transmit MAX_MTU with regular size clusters. */
++CTASSERT(((VTNET_MAX_TX_SEGS - 1) * MCLBYTES) >= VTNET_MAX_MTU);
++
++#define VTNET_CSUM_FEATURES	(CSUM_TCP | CSUM_UDP)
++
++#define VTNET_WATCHDOG_TIMEOUT	5
++
++#define VTNET_MTX(_sc)		&(_sc)->vtnet_mtx
++#define VTNET_LOCK_INIT(_sc, _name) \
++				mtx_init(VTNET_MTX((_sc)), _name, \
++				    "VTNET Lock", MTX_DEF)
++#define VTNET_LOCK(_sc)		mtx_lock(VTNET_MTX((_sc)))
++#define VTNET_UNLOCK(_sc)	mtx_unlock(VTNET_MTX((_sc)))
++#define VTNET_LOCK_DESTROY(_sc)	mtx_destroy(VTNET_MTX((_sc)))
++#define VTNET_LOCK_ASSERT(_sc)	mtx_assert(VTNET_MTX((_sc)), MA_OWNED)
++#define VTNET_LOCK_ASSERT_NOTOWNED(_sc) \
++    				mtx_assert(VTNET_MTX((_sc)), MA_NOTOWNED)
++
++/* Tunables. */
++static int vtnet_csum_disable = 0;
++TUNABLE_INT("hw.vtnet.csum_disable", &vtnet_csum_disable);
++static int vtnet_tso_disable = 0;
++TUNABLE_INT("hw.vtnet.tso_disable", &vtnet_tso_disable);
++static int vtnet_lro_disable = 1;
++TUNABLE_INT("hw.vtnet.lro_disable", &vtnet_lro_disable);
++
++static device_method_t vtnet_methods[] = {
++	/* Device methods. */
++	DEVMETHOD(device_probe,		vtnet_probe),
++	DEVMETHOD(device_attach,	vtnet_attach),
++	DEVMETHOD(device_detach,	vtnet_detach),
++	DEVMETHOD(device_suspend,	vtnet_suspend),
++	DEVMETHOD(device_resume,	vtnet_resume),
++	DEVMETHOD(device_shutdown,	vtnet_shutdown),
++
++	/* VirtIO methods. */
++	DEVMETHOD(virtio_config_change, vtnet_config_change),
++
++	{ 0, 0 }
++};
++
++static driver_t vtnet_driver = {
++	"vtnet",
++	vtnet_methods,
++	sizeof(struct vtnet_softc)
++};
++static devclass_t vtnet_devclass;
++
++DRIVER_MODULE(vtnet, virtio_pci, vtnet_driver, vtnet_devclass, 0, 0);
++MODULE_VERSION(vtnet, 1);
++MODULE_DEPEND(vtnet, virtio, 1, 1, 1);
++
++static int
++vtnet_probe(device_t dev)
++{
++	struct virtio_ivars *ivars;
++
++	ivars = device_get_ivars(dev);
++	if (ivars == NULL)
++		return (ENXIO);
++
++	if (ivars->vtivar_devtype != VIRTIO_ID_NETWORK)
++		return (ENXIO);
++
++	device_set_desc(dev, "VirtIO Networking Adapter");
++
++	return (BUS_PROBE_DEFAULT);
++}
++
++static int
++vtnet_attach(device_t dev)
++{
++	struct vtnet_softc *sc;
++	struct virtio_ivars *ivars;
++	struct ifnet *ifp;
++	int tx_size;
++	int error;
++
++	sc = device_get_softc(dev);
++	sc->vtnet_dev = dev;
++
++	VTNET_LOCK_INIT(sc, device_get_nameunit(dev));
++	callout_init_mtx(&sc->vtnet_tick_ch, VTNET_MTX(sc), 0);
++
++	/* Attach statistics sysctl. */
++	vtnet_add_statistics(sc);
++
++	ivars = device_get_ivars(dev);
++	ivars->vtivar_features = vtnet_feature_desc;
++
++	vtnet_negotiate_features(sc);
++
++	if (virtio_with_feature(dev, VIRTIO_NET_F_MRG_RXBUF)) {
++		sc->vtnet_flags |= VTNET_FLAG_MRG_RXBUFS;
++		sc->vtnet_hdr_size = sizeof(struct virtio_net_hdr_mrg_rxbuf);
++	} else
++		sc->vtnet_hdr_size = sizeof(struct virtio_net_hdr);
++
++	sc->vtnet_rx_mbuf_size = MCLBYTES;
++
++	if (virtio_with_feature(dev, VIRTIO_NET_F_CTRL_VQ)) {
++		sc->vtnet_flags |= VTNET_FLAG_CTRL_VQ;
++
++		if (virtio_with_feature(dev, VIRTIO_NET_F_CTRL_RX))
++			sc->vtnet_flags |= VTNET_FLAG_CTRL_RX;
++		if (virtio_with_feature(dev, VIRTIO_NET_F_CTRL_VLAN))
++			sc->vtnet_flags |= VTNET_FLAG_VLAN_FILTER;
++	}
++
++	vtnet_get_hwaddr(sc);
++
++	error = vtnet_alloc_virtqueues(sc);
++	if (error) {
++		device_printf(dev, "cannot allocate virtqueues\n");
++		goto fail;
++	}
++
++	ifp = sc->vtnet_ifp = if_alloc(IFT_ETHER);
++	if (ifp == NULL) {
++		device_printf(dev, "cannot allocate ifnet structure\n");
++		error = ENOSPC;
++		goto fail;
++	}
++
++	ifp->if_softc = sc;
++	if_initname(ifp, device_get_name(dev), device_get_unit(dev));
++	ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST;
++	ifp->if_init = vtnet_init;
++	ifp->if_start = vtnet_start;
++	ifp->if_ioctl = vtnet_ioctl;
++
++	sc->vtnet_rx_size = virtqueue_size(sc->vtnet_rx_vq);
++	sc->vtnet_rx_process_limit = (sc->vtnet_rx_size * 3) / 4;
++
++	tx_size = virtqueue_size(sc->vtnet_tx_vq);
++	sc->vtnet_tx_size = tx_size;
++	sc->vtnet_tx_hiwat = tx_size - ((tx_size * 2) / 10);
++
++	IFQ_SET_MAXLEN(&ifp->if_snd, tx_size - 1);
++	ifp->if_snd.ifq_drv_maxlen = tx_size - 1;
++	IFQ_SET_READY(&ifp->if_snd);
++
++	ether_ifattach(ifp, sc->vtnet_hwaddr);
++
++	if (virtio_with_feature(dev, VIRTIO_NET_F_STATUS))
++		ifp->if_capabilities |= IFCAP_LINKSTATE;
++
++	/* Tell the upper layer(s) we support long frames. */
++	ifp->if_data.ifi_hdrlen = sizeof(struct ether_vlan_header);
++	ifp->if_capabilities |= IFCAP_JUMBO_MTU | IFCAP_VLAN_MTU;
++
++	if (virtio_with_feature(dev, VIRTIO_NET_F_CSUM)) {
++		ifp->if_capabilities |= IFCAP_TXCSUM;
++
++		if (virtio_with_feature(dev, VIRTIO_NET_F_HOST_TSO4))
++			ifp->if_capabilities |= IFCAP_TSO4;
++		if (virtio_with_feature(dev, VIRTIO_NET_F_HOST_TSO6))
++			ifp->if_capabilities |= IFCAP_TSO6;
++
++		if (virtio_with_feature(dev, VIRTIO_NET_F_HOST_ECN))
++			sc->vtnet_flags |= VTNET_FLAG_TSO_ECN;
++
++		if (ifp->if_capabilities & IFCAP_TSO)
++			ifp->if_capabilities |= IFCAP_VLAN_HWTSO;
++	}
++
++	if (virtio_with_feature(dev, VIRTIO_NET_F_GUEST_CSUM)) {
++		ifp->if_capabilities |= IFCAP_RXCSUM;
++
++		if (virtio_with_feature(dev, VIRTIO_NET_F_GUEST_TSO4) ||
++		    virtio_with_feature(dev, VIRTIO_NET_F_GUEST_TSO6))
++			ifp->if_capabilities |= IFCAP_LRO;
++	}
++
++	if (ifp->if_capabilities & IFCAP_HWCSUM) {
++		/*
++		 * VirtIO does not support `hardware` VLAN tagging. Instead
++		 * we emulate it during receive and transmit, and we're then
++		 * able to support checksum offloading of VLAN frames.
++		 */
++		ifp->if_capabilities |=
++		    IFCAP_VLAN_HWTAGGING | IFCAP_VLAN_HWCSUM;
++	}
++
++	ifp->if_capenable = ifp->if_capabilities;
++
++	/*
++	 * Capabilities after this are not enabled by default.
++	 */
++
++	if (sc->vtnet_flags & VTNET_FLAG_VLAN_FILTER) {
++		ifp->if_capabilities |= IFCAP_VLAN_HWFILTER;
++
++		sc->vtnet_vlan_attach = EVENTHANDLER_REGISTER(vlan_config,
++		    vtnet_register_vlan, sc, EVENTHANDLER_PRI_FIRST);
++		sc->vtnet_vlan_detach = EVENTHANDLER_REGISTER(vlan_unconfig,
++		    vtnet_unregister_vlan, sc, EVENTHANDLER_PRI_FIRST);
++	}
++
++#ifdef DEVICE_POLLING
++	ifp->if_capabilities |= IFCAP_POLLING;
++#endif
++
++	TASK_INIT(&sc->vtnet_tx_task, 1, vtnet_tx_task, ifp);
++	TASK_INIT(&sc->vtnet_cfgchg_task, 0, vtnet_config_change_task, sc);
++
++	TASK_INIT(&sc->vtnet_rx_intr_task, 0, vtnet_rx_intr_task, sc);
++	TASK_INIT(&sc->vtnet_tx_intr_task, 0, vtnet_tx_intr_task, sc);
++
++	sc->vtnet_tq = taskqueue_create_fast("vtnet_taskq", M_WAITOK,
++	    taskqueue_thread_enqueue, &sc->vtnet_tq);
++	if (sc->vtnet_tq == NULL) {
++		error = ENOMEM;
++		device_printf(dev, "cannot allocate taskqueue\n");
++		ether_ifdetach(ifp);
++		goto fail;
++	}
++	taskqueue_start_threads(&sc->vtnet_tq, 1, PI_NET, "%s taskq",
++	    device_get_nameunit(dev));
++
++	error = virtio_setup_intr(dev, INTR_TYPE_NET);
++	if (error) {
++		device_printf(dev, "cannot setup virtqueue interrupts\n");
++		taskqueue_free(sc->vtnet_tq);
++		sc->vtnet_tq = NULL;
++		ether_ifdetach(ifp);
++		goto fail;
++	}
++
++	/*
++	 * Host defaults to promiscuous mode for backwards
++	 * compatibility. Turn it off if possible.
++	 */
++	if (sc->vtnet_flags & VTNET_FLAG_CTRL_RX) {
++		VTNET_LOCK(sc);
++		if (vtnet_set_promisc(sc, 0) != 0) {
++			/* Unable to disable, inform stack. */
++			ifp->if_flags |= IFF_PROMISC;
++			device_printf(dev,
++			    "cannot disable promiscuous mode\n");
++		}
++		VTNET_UNLOCK(sc);
++	} else
++		ifp->if_flags |= IFF_PROMISC;
++
++fail:
++	if (error)
++		vtnet_detach(dev);
++
++	return (error);
++}
++
++static int
++vtnet_detach(device_t dev)
++{
++	struct vtnet_softc *sc;
++	struct ifnet *ifp;
++
++	sc = device_get_softc(dev);
++	ifp = sc->vtnet_ifp;
++
++	KASSERT(mtx_initialized(VTNET_MTX(sc)),
++	    ("vtnet mutex not initialized"));
++
++#ifdef DEVICE_POLLING
++	if (ifp != NULL && ifp->if_capenable & IFCAP_POLLING)
++		ether_poll_deregister(ifp);
++#endif
++
++	if (device_is_attached(dev)) {
++		VTNET_LOCK(sc);
++		vtnet_stop(sc);
++		ifp->if_flags &= ~IFF_UP;
++		VTNET_UNLOCK(sc);
++
++		callout_drain(&sc->vtnet_tick_ch);
++		taskqueue_drain(taskqueue_fast, &sc->vtnet_cfgchg_task);
++		taskqueue_drain(taskqueue_fast, &sc->vtnet_tx_task);
++
++		ether_ifdetach(ifp);
++	}
++
++	if (sc->vtnet_tq != NULL) {
++		taskqueue_drain(sc->vtnet_tq, &sc->vtnet_rx_intr_task);
++		taskqueue_drain(sc->vtnet_tq, &sc->vtnet_tx_intr_task);
++		taskqueue_free(sc->vtnet_tq);
++		sc->vtnet_tq = NULL;
++	}
++
++	if (sc->vtnet_vlan_attach != NULL) {
++		EVENTHANDLER_DEREGISTER(vlan_config, sc->vtnet_vlan_attach);
++		sc->vtnet_vlan_attach = NULL;
++	}
++	if (sc->vtnet_vlan_detach != NULL) {
++		EVENTHANDLER_DEREGISTER(vlan_unconfg, sc->vtnet_vlan_detach);
++		sc->vtnet_vlan_detach = NULL;
++	}
++
++	if (ifp) {
++		if_free(ifp);
++		sc->vtnet_ifp = NULL;
++	}
++
++	if (sc->vtnet_rx_vq != NULL)
++		vtnet_free_rx_mbufs(sc);
++	if (sc->vtnet_tx_vq != NULL)
++		vtnet_free_tx_mbufs(sc);
++	if (sc->vtnet_ctrl_vq != NULL)
++		vtnet_free_ctrl_vq(sc);
++
++	VTNET_LOCK_DESTROY(sc);
++
++	return (0);
++}
++
++static int
++vtnet_suspend(device_t dev)
++{
++	struct vtnet_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	VTNET_LOCK(sc);
++	vtnet_stop(sc);
++	sc->vtnet_flags |= VTNET_FLAG_SUSPENDED;
++	VTNET_UNLOCK(sc);
++
++	return (0);
++}
++
++static int
++vtnet_resume(device_t dev)
++{
++	struct vtnet_softc *sc;
++	struct ifnet *ifp;
++
++	sc = device_get_softc(dev);
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK(sc);
++	if (ifp->if_flags & IFF_UP)
++		vtnet_init_locked(sc);
++	sc->vtnet_flags &= ~VTNET_FLAG_SUSPENDED;
++	VTNET_UNLOCK(sc);
++
++	return (0);
++}
++
++static int
++vtnet_shutdown(device_t dev)
++{
++
++	/*
++	 * Suspend is all we need to do here, we just
++	 * never expect to be resumed.
++	 */
++	return (vtnet_suspend(dev));
++}
++
++static int
++vtnet_config_change(device_t dev)
++{
++	struct vtnet_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	taskqueue_enqueue_fast(taskqueue_fast, &sc->vtnet_cfgchg_task);
++
++	return (1);
++}
++
++static void
++vtnet_negotiate_features(struct vtnet_softc *sc)
++{
++	device_t dev;
++	uint32_t new_features;
++
++	dev = sc->vtnet_dev;
++	new_features = VTNET_IMPL_FEATURES;
++
++	if (vtnet_csum_disable)
++		new_features &=
++		    ~(VIRTIO_NET_F_CSUM | VTNET_HOST_CSUM_FEATURES |
++		      VIRTIO_NET_F_GUEST_CSUM | VTNET_GUEST_CSUM_FEATURES);
++
++	if (vtnet_tso_disable)
++		new_features &=
++		    ~(VIRTIO_NET_F_HOST_TSO4 | VIRTIO_NET_F_HOST_TSO6 |
++		      VIRTIO_NET_F_HOST_UFO);
++
++	if (vtnet_lro_disable)
++		new_features &=
++		    ~(VIRTIO_NET_F_GUEST_TSO4 | VIRTIO_NET_F_GUEST_TSO6 |
++		      VIRTIO_NET_F_GUEST_UFO);
++
++	sc->vtnet_features = virtio_negotiate_features(dev, new_features);
++
++	if (virtio_with_feature(dev, VIRTIO_NET_F_MRG_RXBUF) == 0 &&
++	   (virtio_with_feature(dev, VIRTIO_NET_F_GUEST_TSO4) ||
++	    virtio_with_feature(dev, VIRTIO_NET_F_GUEST_TSO6) ||
++	    virtio_with_feature(dev, VIRTIO_NET_F_GUEST_UFO))) {
++		/*
++		 * We currently only support TSO receive (LRO) when paired
++		 * with mergeable buffers. Otherwise, each Rx buffer must
++		 * be at least 65550 bytes big, which is a lot of memory to
++		 * hold up in the virtqueue.
++		 *
++		 * N.B. We don't support any of this yet anyways.
++		 */
++		new_features &=
++		    ~(VIRTIO_NET_F_GUEST_TSO4 | VIRTIO_NET_F_GUEST_TSO6 |
++		      VIRTIO_NET_F_GUEST_UFO);
++
++		sc->vtnet_features = virtio_negotiate_features(dev,
++		    new_features);
++	}
++}
++
++static int
++vtnet_alloc_virtqueues(struct vtnet_softc *sc)
++{
++	device_t dev;
++	struct vq_alloc_info vq_info[3];
++	int nvqs, rxsegs;
++
++	dev = sc->vtnet_dev;
++	nvqs = 2;
++
++	/*
++	 * Indirect descriptors are not needed for the Rx
++	 * virtqueue when mergeable buffers are negotiated.
++	 * The header is placed inline with the data, not
++	 * in a separate descriptor, and mbuf clusters are
++	 * always physically contiguous.
++	 */
++	rxsegs = sc->vtnet_flags & VTNET_FLAG_MRG_RXBUFS ? 0 :
++	    VTNET_MAX_RX_SEGS;
++
++	VQ_ALLOC_INFO_INIT(&vq_info[0], rxsegs,
++	    vtnet_rx_vq_intr, sc, &sc->vtnet_rx_vq,
++	    "%s receive", device_get_nameunit(dev));
++
++	VQ_ALLOC_INFO_INIT(&vq_info[1], VTNET_MAX_TX_SEGS,
++	    vtnet_tx_vq_intr, sc, &sc->vtnet_tx_vq,
++	    "%s transmit", device_get_nameunit(dev));
++
++	if (sc->vtnet_flags & VTNET_FLAG_CTRL_VQ) {
++		nvqs++;
++
++		VQ_ALLOC_INFO_INIT(&vq_info[2], 0, NULL, NULL,
++		    &sc->vtnet_ctrl_vq, "%s control",
++		    device_get_nameunit(dev));
++	}
++
++	return (virtio_alloc_vqs(dev, 0, nvqs, vq_info));
++}
++
++static void
++vtnet_get_hwaddr(struct vtnet_softc *sc)
++{
++	device_t dev;
++
++	dev = sc->vtnet_dev;
++
++	if (virtio_with_feature(dev, VIRTIO_NET_F_MAC) == 0) {
++		/* Make random, locally administered, unicast address. */
++		sc->vtnet_hwaddr[0] = 0xb2;
++		read_random(&sc->vtnet_hwaddr[1], ETHER_ADDR_LEN - 1);
++		vtnet_set_hwaddr(sc);
++	} else {
++		virtio_read_device_config(dev,
++		    offsetof(struct virtio_net_config, mac),
++		    sc->vtnet_hwaddr, ETHER_ADDR_LEN);
++	}
++}
++
++static void
++vtnet_set_hwaddr(struct vtnet_softc *sc)
++{
++	device_t dev;
++
++	dev = sc->vtnet_dev;
++
++	virtio_write_device_config(dev,
++	    offsetof(struct virtio_net_config, mac),
++	    sc->vtnet_hwaddr, ETHER_ADDR_LEN);
++}
++
++static void
++vtnet_update_link_status(struct vtnet_softc *sc)
++{
++	device_t dev;
++	struct ifnet *ifp;
++	int link;
++	uint16_t status;
++
++	dev = sc->vtnet_dev;
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK_ASSERT(sc);
++
++	if (ifp->if_capabilities & IFCAP_LINKSTATE) {
++		status = virtio_read_dev_config_2(dev,
++		    offsetof(struct virtio_net_config, status));
++		if (status & VIRTIO_NET_S_LINK_UP)
++			link = 1;
++		else
++			link = 0;
++	} else
++		link = 1;
++
++	if (link && ((sc->vtnet_flags & VTNET_FLAG_LINK) == 0)) {
++		sc->vtnet_flags |= VTNET_FLAG_LINK;
++		if (bootverbose)
++			device_printf(dev, "Link is up\n");
++
++		if_link_state_change(ifp, LINK_STATE_UP);
++		if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++			vtnet_start_locked(ifp);
++	} else if (!link && (sc->vtnet_flags & VTNET_FLAG_LINK)) {
++		sc->vtnet_flags &= ~VTNET_FLAG_LINK;
++		if (bootverbose)
++			device_printf(dev, "Link is down\n");
++
++		if_link_state_change(ifp, LINK_STATE_DOWN);
++	}
++}
++
++static void
++vtnet_watchdog(struct vtnet_softc *sc)
++{
++	struct ifnet *ifp;
++
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK_ASSERT(sc);
++
++	if (sc->vtnet_watchdog_timer == 0 || --sc->vtnet_watchdog_timer)
++		return;
++
++	/* Complete any already received frames. */
++	vtnet_rxeof(sc, sc->vtnet_rx_size, NULL);
++
++	if_printf(ifp, "watchdog timeout -- resetting\n");
++	ifp->if_oerrors++;
++	ifp->if_drv_flags &= ~IFF_DRV_RUNNING;
++	vtnet_init_locked(sc);
++
++	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++		taskqueue_enqueue_fast(sc->vtnet_tq,
++		    &sc->vtnet_tx_task);
++}
++
++static void
++vtnet_config_change_task(void *arg, int pending)
++{
++	struct vtnet_softc *sc;
++
++	sc = arg;
++
++	VTNET_LOCK(sc);
++	vtnet_update_link_status(sc);
++	VTNET_UNLOCK(sc);
++}
++
++static int
++vtnet_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
++{
++	struct vtnet_softc *sc;
++	struct ifreq *ifr;
++	int error;
++
++	sc = ifp->if_softc;
++	ifr = (struct ifreq *) data;
++	error = 0;
++
++	switch (cmd) {
++	case SIOCSIFMTU:
++		if (ifr->ifr_mtu < ETHERMIN || ifr->ifr_mtu > VTNET_MAX_MTU)
++			error = EINVAL;
++		else if (ifp->if_mtu != ifr->ifr_mtu) {
++			VTNET_LOCK(sc);
++			error = vtnet_change_mtu(sc, ifr->ifr_mtu);
++			VTNET_UNLOCK(sc);
++		}
++		break;
++
++	case SIOCSIFFLAGS:
++		VTNET_LOCK(sc);
++		if (ifp->if_flags & IFF_UP) {
++			if (ifp->if_drv_flags & IFF_DRV_RUNNING) {
++				if (((ifp->if_flags ^ sc->vtnet_if_flags) &
++				    (IFF_PROMISC | IFF_ALLMULTI)) != 0) {
++					/* Cannot change without CTRL_RX. */
++					if (sc->vtnet_flags &
++					    VTNET_FLAG_CTRL_RX)
++						vtnet_rx_filter(sc);
++					else
++						error = ENOTSUP;
++				}
++			} else
++				vtnet_init_locked(sc);
++		} else {
++			if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++				vtnet_stop(sc);
++		}
++
++		if (error == 0)
++			sc->vtnet_if_flags = ifp->if_flags;
++		VTNET_UNLOCK(sc);
++		break;
++
++	case SIOCADDMULTI:
++	case SIOCDELMULTI:
++		VTNET_LOCK(sc);
++		if (sc->vtnet_flags & VTNET_FLAG_CTRL_RX) {
++			if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++				vtnet_rx_filter_mac(sc);
++		}
++		VTNET_UNLOCK(sc);
++		break;
++
++	case SIOCSIFCAP:
++	    {
++		int reinit, mask;
++
++		reinit = 0;
++		mask = ifr->ifr_reqcap ^ ifp->if_capenable;
++
++#ifdef DEVICE_POLLING
++		if (mask & IFCAP_POLLING) {
++			if (ifr->ifr_reqcap & IFCAP_POLLING) {
++				error = ether_poll_register(vtnet_poll, ifp);
++				if (error)
++					break;
++
++				VTNET_LOCK(sc);
++				vtnet_disable_rx_intr(sc);
++				vtnet_disable_tx_intr(sc);
++				ifp->if_capenable |= IFCAP_POLLING;
++				VTNET_UNLOCK(sc);
++			} else {
++				error = ether_poll_deregister(ifp);
++				/* Enable interrupts even in error case. */
++				VTNET_LOCK(sc);
++				vtnet_enable_tx_intr(sc);
++				vtnet_enable_rx_intr(sc);
++				ifp->if_capenable &= ~IFCAP_POLLING;
++				VTNET_UNLOCK(sc);
++			}
++		}
++#endif
++		VTNET_LOCK(sc);
++
++		if (mask & IFCAP_TXCSUM &&
++		    ifp->if_capabilities & IFCAP_TXCSUM) {
++			if (ifp->if_capenable & IFCAP_TXCSUM) {
++				/* TSO requires TX checksum offload. */
++				ifp->if_capenable &=
++				    ~(IFCAP_TXCSUM | IFCAP_TSO);
++				ifp->if_hwassist &=
++				    ~(VTNET_CSUM_FEATURES | CSUM_TSO);
++			} else {
++				ifp->if_capenable |= IFCAP_TXCSUM;
++				ifp->if_hwassist |= VTNET_CSUM_FEATURES;
++			}
++		}
++
++		if (mask & IFCAP_RXCSUM &&
++		    ifp->if_capabilities & IFCAP_RXCSUM) {
++			ifp->if_capenable ^= IFCAP_RXCSUM;
++			reinit = 1;
++		}
++
++		if (mask & IFCAP_TSO4 &&
++		    ifp->if_capabilities & IFCAP_TSO4) {
++			if (ifp->if_capenable & IFCAP_TSO4) {
++				ifp->if_capenable &= ~IFCAP_TSO4;
++				ifp->if_hwassist &= ~CSUM_TSO;
++			} else if (ifp->if_capenable & IFCAP_TXCSUM) {
++				ifp->if_capenable |= IFCAP_TSO4;
++				ifp->if_hwassist |= CSUM_TSO;
++			} else {
++				if_printf(ifp,
++				    "TSO requires Tx checksum offload\n");
++				error = EINVAL;
++			}
++		}
++
++		if (mask & IFCAP_LRO &&
++		    ifp->if_capabilities & IFCAP_LRO) {
++			ifp->if_capenable ^= IFCAP_LRO;
++			reinit = 1;
++		}
++
++		if (mask & IFCAP_VLAN_HWFILTER &&
++		    ifp->if_capabilities & IFCAP_VLAN_HWFILTER) {
++			ifp->if_capenable ^= IFCAP_VLAN_HWFILTER;
++			reinit = 1;
++		}
++
++		if (mask & IFCAP_VLAN_HWTSO &&
++		    ifp->if_capabilities & IFCAP_VLAN_HWTSO)
++			ifp->if_capenable ^= IFCAP_VLAN_HWTSO;
++
++		if (mask & IFCAP_VLAN_HWTAGGING &&
++		    ifp->if_capabilities & IFCAP_VLAN_HWTAGGING)
++			ifp->if_capenable ^= IFCAP_VLAN_HWTAGGING;
++
++		if (reinit && ifp->if_drv_flags & IFF_DRV_RUNNING) {
++			ifp->if_drv_flags &= ~IFF_DRV_RUNNING;
++			vtnet_init_locked(sc);
++		}
++
++		VLAN_CAPABILITIES(ifp);
++		VTNET_UNLOCK(sc);
++	    }
++	    break;
++
++	default:
++		error = ether_ioctl(ifp, cmd, data);
++		break;
++	}
++
++	VTNET_LOCK_ASSERT_NOTOWNED(sc);
++
++	return (error);
++}
++
++static int
++vtnet_change_mtu(struct vtnet_softc *sc, int new_mtu)
++{
++	struct ifnet *ifp;
++	int new_frame_size, clsize;
++
++	ifp = sc->vtnet_ifp;
++
++	if ((sc->vtnet_flags & VTNET_FLAG_MRG_RXBUFS) == 0) {
++		new_frame_size = sizeof(struct vtnet_rx_mbuf_header) +
++		    sizeof(struct ether_vlan_header) + new_mtu;
++
++		if (new_frame_size > MJUM9BYTES)
++			return (EINVAL);
++
++		if (new_frame_size <= MCLBYTES)
++			clsize = MCLBYTES;
++		else
++			clsize = MJUM9BYTES;
++
++	} else {
++		/*
++		 * NOTE: We have already compared 'new_mtu' against
++		 * VTNET_MAX_MTU (in vtnet_ioctl), and we have a
++		 * CTASSERT ensuring VTNET_MAX_TX_SEGS-1 can hold at
++		 * least VTNET_MAX_MTU with MCLBYTES sized clusters.
++		 */
++
++		new_frame_size = sizeof(struct virtio_net_hdr_mrg_rxbuf) +
++		    sizeof(struct ether_vlan_header) + new_mtu;
++
++		if (new_frame_size <= MCLBYTES)
++			clsize = MCLBYTES;
++		else
++			clsize = MJUMPAGESIZE;
++	}
++
++	ifp->if_mtu = new_mtu;
++	sc->vtnet_rx_mbuf_size = clsize;
++
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING) {
++		ifp->if_drv_flags &= ~IFF_DRV_RUNNING;
++		vtnet_init_locked(sc);
++	}
++
++	return (0);
++}
++
++static int
++vtnet_init_rx_vq(struct vtnet_softc *sc)
++{
++	struct virtqueue *vq;
++	int i, error;
++
++	vq = sc->vtnet_rx_vq;
++	error = ENOSPC;
++
++	for (i = 0; !virtqueue_full(vq); i++) {
++		if ((error = vtnet_newbuf(sc)) != 0)
++			break;
++	}
++
++	if (i > 0) {
++		vq_ring_sync(vq);
++
++		/*
++		 * EMSGSIZE signifies the virtqueue did not
++		 * have enough entries available to hold the
++		 * last mbuf. This is not an error. We should
++		 * not get ENOSPC since we check if the Vq
++		 * is full before attempting to add a buffer.
++		 */
++		if (error == EMSGSIZE)
++			error = 0;
++	}
++
++	return (error);
++}
++
++static void
++vtnet_free_rx_mbufs(struct vtnet_softc *sc)
++{
++	struct virtqueue *vq;
++	struct mbuf *m;
++
++	vq = sc->vtnet_rx_vq;
++
++	while ((m = virtqueue_drain(vq)) != NULL)
++		m_freem(m);
++
++	KASSERT(virtqueue_empty(vq), ("mbufs remaining in Rx Vq"));
++}
++
++static void
++vtnet_free_tx_mbufs(struct vtnet_softc *sc)
++{
++	struct virtqueue *vq;
++	struct mbuf *m;
++
++	vq = sc->vtnet_tx_vq;
++
++	while ((m = virtqueue_drain(vq)) != NULL)
++		m_freem(m);
++
++	KASSERT(virtqueue_empty(vq), ("mbufs remaining in Tx Vq"));
++}
++
++static void
++vtnet_free_ctrl_vq(struct vtnet_softc *sc)
++{
++	struct virtqueue *vq;
++
++	vq = sc->vtnet_ctrl_vq;
++
++	/*
++	 * Since the control virtqueue is always polled for
++	 * responses, it should be empty.
++	 */
++	KASSERT(virtqueue_empty(vq), ("Ctrl Vq not empty"));
++}
++
++#ifdef DEVICE_POLLING
++static int
++vtnet_poll(struct ifnet *ifp, enum poll_cmd cmd, int count)
++{
++	struct vtnet_softc *sc;
++	int rx_done;
++
++	sc = ifp->if_softc;
++	rx_done = 0;
++
++	VTNET_LOCK(sc);
++	if ((ifp->if_drv_flags & IFF_DRV_RUNNING) == 0) {
++		VTNET_UNLOCK(sc);
++		return (rx_done);
++	}
++
++	if (cmd == POLL_AND_CHECK_STATUS)
++		vtnet_update_link_status(sc);
++
++	vtnet_rxeof(sc, count, &rx_done);
++
++	vtnet_txeof(sc);
++	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++		taskqueue_enqueue_fast(sc->vtnet_tq, &sc->vtnet_tx_task);
++
++	VTNET_UNLOCK(sc);
++
++	return (rx_done);
++}
++#endif /* DEVICE_POLLING */
++
++static int
++vtnet_newbuf(struct vtnet_softc *sc)
++{
++	struct mbuf *m;
++	int clsize, error;
++
++	clsize = sc->vtnet_rx_mbuf_size;
++
++	m = m_getjcl(M_DONTWAIT, MT_DATA, M_PKTHDR, clsize);
++	if (m == NULL) {
++		sc->vtnet_stats.mbuf_alloc_failed++;
++		return (ENOBUFS);
++	}
++
++	m->m_len = m->m_pkthdr.len = clsize;
++
++	error = vtnet_enqueue_rxbuf(sc, m);
++	if (error)
++		m_freem(m);
++
++	return (error);
++}
++
++static void
++vtnet_discard_merged_rxbuf(struct vtnet_softc *sc, int nbufs)
++{
++	struct virtqueue *vq;
++	struct mbuf *m;
++
++	vq = sc->vtnet_rx_vq;
++
++	/* NOTE: The leading mbuf has already been discarded. */
++
++	while (--nbufs > 0) {
++		if ((m = vq_ring_dequeue(vq, NULL)) == NULL)
++			break;
++
++		vtnet_discard_rxbuf(sc, m);
++	}
++}
++
++static void
++vtnet_discard_rxbuf(struct vtnet_softc *sc, struct mbuf *m)
++{
++	int error;
++
++	error = vtnet_enqueue_rxbuf(sc, m);
++
++	/*
++	 * The discarded buffer should always be successfully requeued
++	 * since it was just dequeued and we still hold VTNET_MTX.
++	 */
++	KASSERT(error == 0, ("cannot requeued discarded mbuf"));
++}
++
++static int
++vtnet_enqueue_rxbuf(struct vtnet_softc *sc, struct mbuf *m)
++{
++	struct sglist sg;
++	struct sglist_seg segs[VTNET_MAX_RX_SEGS];
++	struct vtnet_rx_mbuf_header *rxhdr;
++	struct virtio_net_hdr *hdr;
++	uint8_t *mdata;
++	int offset, error;
++
++	VTNET_LOCK_ASSERT(sc);
++	KASSERT(m->m_next == NULL, ("unexpected mbuf chain"));
++
++	sglist_init(&sg, VTNET_MAX_RX_SEGS, segs);
++
++	mdata = mtod(m, uint8_t *);
++	offset = 0;
++
++	if ((sc->vtnet_flags & VTNET_FLAG_MRG_RXBUFS) == 0) {
++		rxhdr = (struct vtnet_rx_mbuf_header *) mdata;
++		hdr = &rxhdr->vrh_hdr;
++		offset += sizeof(struct vtnet_rx_mbuf_header);
++
++		error = sglist_append(&sg, hdr, sc->vtnet_hdr_size);
++		KASSERT(error == 0, ("cannot add header to sglist"));
++	}
++
++	error = sglist_append(&sg, mdata + offset, m->m_len - offset);
++	KASSERT(error == 0, ("cannot add mbuf to sglist"));
++
++	error = vq_ring_enqueue(sc->vtnet_rx_vq, m, &sg, 0, sg.sg_nseg);
++	return (error);
++}
++
++static void
++vtnet_vlan_tag_remove(struct mbuf *m)
++{
++	struct ether_vlan_header *evl;
++
++	evl = mtod(m, struct ether_vlan_header *);
++
++	m->m_pkthdr.ether_vtag = ntohs(evl->evl_tag);
++	m->m_flags |= M_VLANTAG;
++
++	/* Strip the 802.1Q header. */
++	bcopy((char *) evl, (char *) evl + ETHER_VLAN_ENCAP_LEN,
++	    ETHER_HDR_LEN - ETHER_TYPE_LEN);
++	m_adj(m, ETHER_VLAN_ENCAP_LEN);
++}
++
++static int
++vtnet_rx_csum(struct vtnet_softc *sc, struct mbuf *m,
++    struct virtio_net_hdr *hdr)
++{
++	struct ether_header *eh;
++	struct ether_vlan_header *evh;
++	uint8_t *proto_hdr;
++	int ck_start, ck_offset;
++	uint16_t etype;
++	uint8_t ip_proto;
++
++	/*
++	 * Translate VirtIO's checksum interface to FreeBSD's interface.
++	 * The host only provides us with the offset at which to start
++	 * checksumming, and the offset from that to place the complete
++	 * checksum. While apparently mapping well to how Linux handles
++	 * checksum offload, for FreeBSD we must peek inside the received
++	 * packet in order to set the appropriate flags.
++	 *
++	 * Since we only populate the Rx virtqueue with MCLBYTES or bigger
++	 * clusters, figure something is amiss if the first mbuf does not
++	 * contain the Ethernet and protocol headers.
++	 */
++
++	eh = mtod(m, struct ether_header *);
++	if (eh->ether_type == htons(ETHERTYPE_VLAN)) {
++		evh = mtod(m, struct ether_vlan_header *);
++		etype = ntohs(evh->evl_proto);
++		ck_start = sizeof(struct ether_vlan_header);
++	} else {
++		etype = ntohs(eh->ether_type);
++		ck_start = sizeof(struct ether_header);
++	}
++
++	proto_hdr = mtod(m, uint8_t *) + ck_start;
++
++	switch (etype) {
++	case ETHERTYPE_IP:
++		{
++			struct ip *ip;
++			int hlen;
++
++			if (m->m_len < ck_start + sizeof(struct ip))
++				return (1);
++
++			ip = (struct ip *) proto_hdr;
++
++			 /* Santiy check IP header. */
++			if (ip->ip_v != IPVERSION)
++				return (1);
++			hlen = ip->ip_hl << 2;
++			if (hlen < sizeof(struct ip))
++				return (1);
++			if (ntohs(ip->ip_len) < hlen)
++				return (1);
++			if (ntohs(ip->ip_len) != (m->m_pkthdr.len - ck_start))
++				return (1);
++
++			ip_proto = ip->ip_p;
++			ck_start += hlen;
++		}
++		break;
++
++	case ETHERTYPE_IPV6:
++		{
++			struct ip6_hdr *ip6;
++
++			if (m->m_len < ck_start + sizeof(struct ip6_hdr))
++				return (1);
++			ip6 = (struct ip6_hdr *) proto_hdr;
++
++			/*
++			 * TODO Need to handle any extension headers.
++			 */
++
++			ip_proto = ip6->ip6_nxt;
++			ck_start += sizeof(struct ip6_hdr);
++		}
++		break;
++
++	default:
++		sc->vtnet_stats.rx_csum_unknown_etype++;
++		return (1);
++	}
++
++	/* Assume checksum begins right after the IP header ends. */
++	if (ck_start != hdr->csum_start) {
++		sc->vtnet_stats.rx_csum_bad_start++;
++		return (1);
++	}
++
++	switch (ip_proto) {
++	case IPPROTO_TCP:
++		ck_offset = offsetof(struct tcphdr, th_sum);
++		break;
++
++	case IPPROTO_UDP:
++		ck_offset = offsetof(struct udphdr, uh_sum);
++		break;
++
++	case IPPROTO_SCTP:
++		ck_offset = offsetof(struct sctphdr, checksum);
++		break;
++
++	default:
++		sc->vtnet_stats.rx_csum_unknown_ipproto++;
++		return (1);
++	}
++
++	if (ck_offset != hdr->csum_offset) {
++		sc->vtnet_stats.rx_csum_bad_offset++;
++		return (1);
++	}
++
++	/*
++	 * The IP header checksum is almost certainly valid but I'm
++	 * uncertain if that is guaranteed.
++	 *
++	 * m->m_pkthdr.csum_flags |=
++	 *     CSUM_IP_CHECKED | CSUM_IP_VALID;
++	 */
++
++	switch (ip_proto) {
++	case IPPROTO_UDP:
++	    {
++		struct udphdr *udp;
++
++		if (m->m_len < ck_start + sizeof(struct udphdr))
++			return (1);
++
++		udp = (struct udphdr *)(mtod(m, uint8_t *) + ck_start);
++		if (udp->uh_sum == 0)
++			break;
++	    }
++	    /* FALLTHROUGH */
++
++	case IPPROTO_TCP:
++		m->m_pkthdr.csum_flags |=
++		    CSUM_DATA_VALID | CSUM_PSEUDO_HDR;
++		m->m_pkthdr.csum_data = 0xFFFF;
++		break;
++
++	case IPPROTO_SCTP:
++		m->m_pkthdr.csum_flags |= CSUM_SCTP_VALID;
++		break;
++	}
++
++	sc->vtnet_stats.rx_csum_offloaded++;
++
++	return (0);
++}
++
++static int
++vtnet_rxeof_merged(struct vtnet_softc *sc, struct mbuf *m_head,
++    int nbufs)
++{
++	struct ifnet *ifp;
++	struct virtqueue *vq;
++	struct mbuf *m, *m_tail;
++	int len;
++
++	ifp = sc->vtnet_ifp;
++	vq = sc->vtnet_rx_vq;
++	m_tail = m_head;
++
++	while (--nbufs > 0) {
++		m = vq_ring_dequeue(vq, &len);
++		if (m == NULL)
++			break;
++
++		if (vtnet_newbuf(sc) != 0) {
++			ifp->if_iqdrops++;
++			vtnet_discard_rxbuf(sc, m);
++			if (nbufs > 1)
++				vtnet_discard_merged_rxbuf(sc, nbufs);
++			break;
++		}
++
++		if (m->m_len < len)
++			len = m->m_len;
++
++		m->m_len = len;
++		m->m_flags &= ~M_PKTHDR;
++
++		m_head->m_pkthdr.len += len;
++		m_tail->m_next = m;
++		m_tail = m;
++	}
++
++	if (nbufs > 0) {
++		sc->vtnet_stats.rx_mergeable_failed++;
++		m_freem(m_head);
++		return (1);
++	}
++
++	return (0);
++}
++
++static int
++vtnet_rxeof(struct vtnet_softc *sc, int count, int *rx_npktsp)
++{
++	struct virtio_net_hdr lhdr;
++	struct ifnet *ifp;
++	struct virtqueue *vq;
++	struct mbuf *m;
++	struct ether_header *eh;
++	struct virtio_net_hdr *hdr;
++	struct virtio_net_hdr_mrg_rxbuf *mhdr;
++	int len, ndeq, nbufs, adjsz, rx_npkts;
++
++	ifp = sc->vtnet_ifp;
++	vq = sc->vtnet_rx_vq;
++	hdr = NULL;
++	ndeq = 0;
++	rx_npkts = 0;
++
++	VTNET_LOCK_ASSERT(sc);
++
++	while (--count >= 0) {
++		m = vq_ring_dequeue(vq, &len);
++		if (m == NULL)
++			break;
++
++		/* Virtqueue sync required later. */
++		ndeq++;
++
++		if (len < sc->vtnet_hdr_size + ETHER_HDR_LEN) {
++			ifp->if_ierrors++;
++			vtnet_discard_rxbuf(sc, m);
++			continue;
++		}
++
++		if ((sc->vtnet_flags & VTNET_FLAG_MRG_RXBUFS) == 0) {
++			nbufs = 1;
++			adjsz = sizeof(struct vtnet_rx_mbuf_header);
++
++			/*
++			 * Account for our pad between the header and
++			 * the actual start of the frame.
++			 */
++			len += VTNET_RX_MBUF_HEADER_PAD;
++		} else {
++			mhdr = mtod(m, struct virtio_net_hdr_mrg_rxbuf *);
++			nbufs = mhdr->num_buffers;
++			adjsz = sizeof(struct virtio_net_hdr_mrg_rxbuf);
++		}
++
++		if (vtnet_newbuf(sc) != 0) {
++			ifp->if_iqdrops++;
++			vtnet_discard_rxbuf(sc, m);
++			if (nbufs > 1)
++				vtnet_discard_merged_rxbuf(sc, nbufs);
++			continue;
++		}
++
++		m->m_len = m->m_pkthdr.len = len;
++		m->m_pkthdr.rcvif = ifp;
++		m->m_pkthdr.csum_flags = 0;
++
++		if (nbufs > 1) {
++			if (vtnet_rxeof_merged(sc, m, nbufs) != 0)
++				continue;
++		}
++
++		ifp->if_ipackets++;
++
++		/*
++		 * Save copy of header before we strip it. For both mergeable
++		 * and non-mergeable, the VirtIO header is placed first in the
++		 * mbuf's data. Note we no longer need num_buffers, so always
++		 * use virtio_net_hdr.
++		 */
++		hdr = &lhdr;
++		memcpy(hdr, mtod(m, void *), sizeof(struct virtio_net_hdr));
++
++		/* Strip header. */
++		m_adj(m, adjsz);
++
++		if (ifp->if_capenable & IFCAP_VLAN_HWTAGGING) {
++			eh = mtod(m, struct ether_header *);
++			if (eh->ether_type == htons(ETHERTYPE_VLAN)) {
++				vtnet_vlan_tag_remove(m);
++
++				/*
++				 * With the 802.1Q header removed, update the
++				 * checksum starting location accordingly.
++				 */
++				if (hdr->flags & VIRTIO_NET_HDR_F_NEEDS_CSUM)
++					hdr->csum_start -=
++					    ETHER_VLAN_ENCAP_LEN;
++			}
++		}
++
++		if (ifp->if_capenable & IFCAP_RXCSUM &&
++		    hdr->flags & VIRTIO_NET_HDR_F_NEEDS_CSUM)
++			vtnet_rx_csum(sc, m, hdr);
++
++		VTNET_UNLOCK(sc);
++		(*ifp->if_input)(ifp, m);
++		VTNET_LOCK(sc);
++		rx_npkts++;
++
++		/*
++		 * The interface may have been stopped while we were
++		 * passing the packet up the network stack.
++		 */
++		if ((ifp->if_drv_flags & IFF_DRV_RUNNING) == 0)
++			break;
++	}
++
++	if (ndeq > 0)
++		vq_ring_sync(vq);
++
++	if (rx_npktsp != NULL)
++		*rx_npktsp = rx_npkts;
++
++	return (count > 0 ? 0 : EAGAIN);
++}
++
++static void
++vtnet_rx_intr_task(void *arg, int pending)
++{
++	struct vtnet_softc *sc;
++	struct ifnet *ifp;
++	int domore;
++
++	sc = arg;
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK(sc);
++
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING) {
++		VTNET_UNLOCK(sc);
++		return;
++	}
++#endif
++
++	if ((ifp->if_drv_flags & IFF_DRV_RUNNING) == 0) {
++		vtnet_enable_rx_intr(sc);
++		VTNET_UNLOCK(sc);
++		return;
++	}
++
++	domore = vtnet_rxeof(sc, sc->vtnet_rx_process_limit, NULL);
++	if (!domore && vtnet_enable_rx_intr(sc) != 0) {
++		domore = 1;
++		vtnet_disable_rx_intr(sc);
++	}
++
++	VTNET_UNLOCK(sc);
++
++	if (domore)
++		taskqueue_enqueue_fast(sc->vtnet_tq,
++		    &sc->vtnet_rx_intr_task);
++}
++
++static int
++vtnet_rx_vq_intr(void *xsc)
++{
++	struct vtnet_softc *sc;
++
++	sc = xsc;
++
++	vtnet_disable_rx_intr(sc);
++	taskqueue_enqueue_fast(sc->vtnet_tq, &sc->vtnet_rx_intr_task);
++
++	return (1);
++}
++
++static void
++vtnet_txeof(struct vtnet_softc *sc)
++{
++	struct virtqueue *vq;
++	struct ifnet *ifp;
++	struct mbuf *m;
++	int deq;
++
++	vq = sc->vtnet_tx_vq;
++	ifp = sc->vtnet_ifp;
++	deq = 0;
++
++	VTNET_LOCK_ASSERT(sc);
++
++	while ((m = vq_ring_dequeue(vq, NULL)) != NULL) {
++		deq++;
++		ifp->if_opackets++;
++		m_freem(m);
++	}
++
++	if (deq > 0) {
++		ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
++		if (virtqueue_empty(vq))
++			sc->vtnet_watchdog_timer = 0;
++	}
++}
++
++static struct mbuf *
++vtnet_vlan_tag_insert(struct mbuf *m)
++{
++	struct mbuf *n;
++	struct ether_vlan_header *evl;
++
++	if (M_WRITABLE(m) == 0) {
++		n = m_dup(m, M_DONTWAIT);
++		m_freem(m);
++		if ((m = n) == NULL)
++			return (NULL);
++	}
++
++	M_PREPEND(m, ETHER_VLAN_ENCAP_LEN, M_DONTWAIT);
++	if (m == NULL)
++		return (NULL);
++	if (m->m_len < sizeof(struct ether_vlan_header)) {
++		m = m_pullup(m, sizeof(struct ether_vlan_header));
++		if (m == NULL)
++			return (NULL);
++	}
++
++	/* Insert 802.1Q header into the existing Ethernet header. */
++	evl = mtod(m, struct ether_vlan_header *);
++	bcopy((char *) evl + ETHER_VLAN_ENCAP_LEN,
++	      (char *) evl, ETHER_HDR_LEN - ETHER_TYPE_LEN);
++	evl->evl_encap_proto = htons(ETHERTYPE_VLAN);
++	evl->evl_tag = htons(m->m_pkthdr.ether_vtag);
++	m->m_flags &= ~M_VLANTAG;
++
++	return (m);
++}
++
++static struct mbuf *
++vtnet_get_frame_type(struct mbuf *m, uint16_t *etype, int *ip_off)
++{
++	struct ether_header *eh;
++	struct ether_vlan_header *evh;
++	int offset;
++
++	/*
++	 * Determine payload type - IPv4, IPv6, etc - of the frame.
++	 */
++
++	offset = sizeof(struct ether_header);
++	if (m->m_len < offset)
++		if ((m = m_pullup(m, offset)) == NULL)
++			return (NULL);
++
++	eh = mtod(m, struct ether_header *);
++	if (eh->ether_type == htons(ETHERTYPE_VLAN)) {
++		offset = sizeof(struct ether_vlan_header);
++		if ((m = m_pullup(m, offset)) == NULL)
++			return (NULL);
++
++		evh = mtod(m, struct ether_vlan_header *);
++		*etype = ntohs(evh->evl_proto);
++	} else
++		*etype = ntohs(eh->ether_type);
++	*ip_off = offset;
++
++	return (m);
++}
++
++static struct mbuf *
++vtnet_setup_tso(struct vtnet_softc *sc, struct mbuf *m,
++    struct virtio_net_hdr *hdr, uint16_t etype, int ip_off)
++{
++	struct ifnet *ifp;
++	struct tcphdr *tcp;
++	uint8_t gso_type;
++	int tcp_off;
++
++	ifp = sc->vtnet_ifp;
++
++	switch (etype) {
++	case ETHERTYPE_IP:
++	    {
++		struct ip *ip;
++
++		if (m->m_len < ip_off + sizeof(struct ip)) {
++			m = m_pullup(m, ip_off + sizeof(struct ip));
++			if (m == NULL)
++				return (NULL);
++		}
++		ip = (struct ip *)(mtod(m, uint8_t *) + ip_off);
++
++		gso_type = VIRTIO_NET_HDR_GSO_TCPV4;
++		tcp_off = ip_off + (ip->ip_hl << 2);
++	    }
++	    break;
++
++	case ETHERTYPE_IPV6:
++	    {
++		struct ip6_hdr *ip6;
++
++		if (m->m_len < ip_off + sizeof(struct ip6_hdr)) {
++			m = m_pullup(m, ip_off + sizeof(struct ip6_hdr));
++			if (m == NULL)
++				return (NULL);
++		}
++
++		ip6 = (struct ip6_hdr *)(mtod(m, uint8_t *) + ip_off);
++
++		/*
++		 * FreeBSD doesn't support TSO over IPv6 yet.
++		 */
++
++		gso_type = VIRTIO_NET_HDR_GSO_TCPV6;
++		tcp_off = 0;
++	    }
++	    /* FALLTHROUGH */
++
++	default:
++		sc->vtnet_stats.tx_tso_unknown_etype++;
++		m_freem(m);
++		return (NULL);
++	}
++
++	if (m->m_len < tcp_off + sizeof(struct tcphdr)) {
++		m = m_pullup(m, tcp_off + sizeof(struct tcphdr));
++		if (m == NULL)
++			return (NULL);
++	}
++	tcp = (struct tcphdr *)(mtod(m, uint8_t *) + tcp_off);
++
++	hdr->gso_type = gso_type;
++	hdr->hdr_len = tcp_off + (tcp->th_off << 2);
++	hdr->gso_size = m->m_pkthdr.tso_segsz;
++
++	if (tcp->th_flags & TH_CWR) {
++		/*
++		 * Drop packet if did not negotiate VIRTIO_NET_F_HOST_ECN.
++		 * FreeBSD does not distinguish TSO/ECN support on a per-
++		 * interface basis. Rather, it is controlled globally via
++		 * the `net.inet.tcp.ecn.enable` sysctl.
++		 */
++		if ((sc->vtnet_flags & VTNET_FLAG_TSO_ECN) == 0) {
++			if_printf(ifp, "TSO with ECN not supported by host\n");
++			m_freem(m);
++			return (NULL);
++		}
++
++		hdr->flags |= VIRTIO_NET_HDR_GSO_ECN;
++	}
++
++	return (m);
++}
++
++static struct mbuf *
++vtnet_tx_csum(struct vtnet_softc *sc, struct mbuf *m,
++    struct virtio_net_hdr *hdr, uint16_t etype, int ip_off)
++{
++	uint16_t csum_start;
++
++	switch (etype) {
++	case ETHERTYPE_IP:
++	    {
++		struct ip *ip;
++
++		if (m->m_len < ip_off + sizeof(struct ip)) {
++			m = m_pullup(m, ip_off + sizeof(struct ip));
++			if (m == NULL)
++				return (NULL);
++		}
++
++		ip = (struct ip *)(mtod(m, uint8_t *) + ip_off);
++		/* Assume checksum begins right after end of header. */
++		csum_start = ip_off + (ip->ip_hl << 2);
++	    }
++	    break;
++
++	    /*
++	     * FreeBSD does not do checksum offloading of IPv6 yet.
++	     */
++
++	default:
++		sc->vtnet_stats.tx_csum_unknown_etype++;
++		return (m);
++	}
++
++	hdr->flags |= VIRTIO_NET_HDR_F_NEEDS_CSUM;
++	hdr->csum_start = csum_start;
++	hdr->csum_offset = m->m_pkthdr.csum_data;
++
++	sc->vtnet_stats.tx_csum_offloaded++;
++
++	return (m);
++}
++
++static int
++vtnet_enqueue_txbuf(struct vtnet_softc *sc, struct mbuf **m_head,
++    struct vtnet_tx_mbuf_header *txhdr)
++{
++	struct sglist sg;
++	struct sglist_seg segs[VTNET_MAX_TX_SEGS];
++	struct virtqueue *vq;
++	struct mbuf *m;
++	uint8_t *data;
++	int txhdrsz, resid, collapsed, error;
++
++	vq = sc->vtnet_tx_vq;
++	m = *m_head;
++	txhdrsz = sizeof(struct vtnet_tx_mbuf_header);
++	collapsed = 0;
++
++	/*
++	 * Ensure there is sufficient leading space in the mbuf
++	 * to hold our header. Ideally, our header will fix in
++	 * the remaining space in of the `max_linkdhr` region,
++	 * so no additional allocation will be required.
++	 */
++	M_PREPEND(m, txhdrsz, M_DONTWAIT);
++	if (m == NULL)
++		goto fail;
++
++	*m_head = m;
++
++again:
++	sglist_init(&sg, VTNET_MAX_TX_SEGS, segs);
++
++	data = mtod(m, uint8_t *);
++	memcpy(data, txhdr, txhdrsz);
++
++	/* Add header to sglist. */
++	error = sglist_append(&sg, data, sc->vtnet_hdr_size);
++	KASSERT(error == 0, ("cannot add header to sglist"));
++
++	/* Add remainder of the first mbuf. */
++	if ((resid = m->m_len - txhdrsz) > 0) {
++		error = sglist_append(&sg, data + txhdrsz, resid);
++		KASSERT(error == 0, ("cannot add rest of mbuf to sglist"));
++	}
++
++	if (m->m_next != NULL) {
++		/* Add the rest of the mbuf chain. */
++		error = sglist_append_mbuf(&sg, m->m_next);
++		if (error) {
++			if (collapsed)
++				goto fail;
++
++			m = m_collapse(m, M_DONTWAIT, VTNET_MAX_TX_SEGS - 1);
++			if (m == NULL)
++				goto fail;
++
++			*m_head = m;
++			collapsed = 1;
++			goto again;
++		}
++	}
++
++	return (vq_ring_enqueue(vq, m, &sg, sg.sg_nseg, 0));
++
++fail:
++	sc->vtnet_stats.tx_enqueue_failed++;
++	m_freem(*m_head);
++	*m_head = NULL;
++	return (ENOBUFS);
++}
++
++static int
++vtnet_encap(struct vtnet_softc *sc, struct mbuf **m_head)
++{
++	struct vtnet_tx_mbuf_header txhdr;
++	struct virtio_net_hdr *hdr;
++	struct mbuf *m;
++	int ip_off;
++	uint16_t etype;
++
++	m = *m_head;
++	hdr = &txhdr.vth_uhdr.hdr;
++	bzero(&txhdr, sizeof(struct vtnet_tx_mbuf_header));
++
++	if (m->m_flags & M_VLANTAG) {
++		m = vtnet_vlan_tag_insert(m);
++		if ((*m_head = m) == NULL)
++			return (ENOBUFS);
++	}
++
++	if (m->m_pkthdr.csum_flags != 0) {
++		m = vtnet_get_frame_type(m, &etype, &ip_off);
++		if ((*m_head = m) == NULL)
++		    return (ENOBUFS);
++
++		if (m->m_pkthdr.csum_flags & CSUM_DELAY_DATA) {
++			m = vtnet_tx_csum(sc, m, hdr, etype, ip_off);
++			if ((*m_head = m) == NULL)
++				return (ENOBUFS);
++		}
++
++		if (m->m_pkthdr.csum_flags & CSUM_TSO) {
++			m = vtnet_setup_tso(sc, m, hdr, etype, ip_off);
++			if ((*m_head = m) == NULL)
++				return (ENOBUFS);
++		} else
++			hdr->gso_type = VIRTIO_NET_HDR_GSO_NONE;
++	}
++
++	return (vtnet_enqueue_txbuf(sc, m_head, &txhdr));
++}
++
++static void
++vtnet_start(struct ifnet *ifp)
++{
++	struct vtnet_softc *sc;
++
++	sc = ifp->if_softc;
++
++	VTNET_LOCK(sc);
++	vtnet_start_locked(ifp);
++	VTNET_UNLOCK(sc);
++}
++
++static void
++vtnet_start_locked(struct ifnet *ifp)
++{
++	struct vtnet_softc *sc;
++	struct virtqueue *vq;
++	struct mbuf *m0;
++	int enq;
++
++	sc = ifp->if_softc;
++	vq = sc->vtnet_tx_vq;
++	enq = 0;
++
++	VTNET_LOCK_ASSERT(sc);
++
++	if ((ifp->if_drv_flags & (IFF_DRV_RUNNING | IFF_DRV_OACTIVE)) !=
++	    IFF_DRV_RUNNING || ((sc->vtnet_flags & VTNET_FLAG_LINK) == 0))
++		return;
++
++	while (!IFQ_DRV_IS_EMPTY(&ifp->if_snd)) {
++		if (virtqueue_full(vq)) {
++			ifp->if_drv_flags |= IFF_DRV_OACTIVE;
++			break;
++		}
++
++		IFQ_DRV_DEQUEUE(&ifp->if_snd, m0);
++		if (m0 == NULL)
++			break;
++
++		if (vtnet_encap(sc, &m0) != 0) {
++			if (m0 == NULL)
++				break;
++			IFQ_DRV_PREPEND(&ifp->if_snd, m0);
++			ifp->if_drv_flags |= IFF_DRV_OACTIVE;
++			break;
++		}
++
++		enq++;
++		ETHER_BPF_MTAP(ifp, m0);
++	}
++
++	if (enq > 0) {
++		vq_ring_sync(vq);
++
++		sc->vtnet_watchdog_timer = VTNET_WATCHDOG_TIMEOUT;
++	}
++}
++
++static void
++vtnet_tx_task(void *arg, int pending)
++{
++	struct ifnet *ifp;
++
++	ifp = arg;
++	vtnet_start(ifp);
++}
++
++static void
++vtnet_tick(void *xsc)
++{
++	struct vtnet_softc *sc;
++	struct ifnet *ifp;
++
++	sc = xsc;
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK_ASSERT(sc);
++
++#ifdef VTNET_DEBUG
++	virtqueue_dump(sc->vtnet_rx_vq);
++	virtqueue_dump(sc->vtnet_tx_vq);
++#endif
++
++#ifdef DEVICE_POLLING
++	if ((ifp->if_capenable & IFCAP_POLLING) == 0)
++#endif
++	{
++	/* In polling mode, we poll link state in vtnet_poll(). */
++	vtnet_update_link_status(sc);
++	}
++
++	vtnet_watchdog(sc);
++	callout_reset(&sc->vtnet_tick_ch, hz, vtnet_tick, sc);
++}
++
++static void
++vtnet_tx_intr_task(void *arg, int pending)
++{
++	struct vtnet_softc *sc;
++	struct ifnet *ifp;
++
++	sc = arg;
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK(sc);
++
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING) {
++		VTNET_UNLOCK(sc);
++		return;
++	}
++#endif
++
++	if ((ifp->if_drv_flags & IFF_DRV_RUNNING) == 0) {
++		vtnet_enable_tx_intr(sc);
++		VTNET_UNLOCK(sc);
++		return;
++	}
++
++	vtnet_txeof(sc);
++
++	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++		taskqueue_enqueue_fast(sc->vtnet_tq, &sc->vtnet_tx_task);
++
++	if (vtnet_enable_tx_intr(sc) != 0) {
++		vtnet_disable_tx_intr(sc);
++		VTNET_UNLOCK(sc);
++		taskqueue_enqueue_fast(sc->vtnet_tq, &sc->vtnet_tx_intr_task);
++		return;
++	}
++
++	VTNET_UNLOCK(sc);
++}
++
++static int
++vtnet_tx_vq_intr(void *xsc)
++{
++	struct vtnet_softc *sc;
++
++	sc = xsc;
++
++	vtnet_disable_tx_intr(sc);
++	taskqueue_enqueue_fast(sc->vtnet_tq, &sc->vtnet_tx_intr_task);
++
++	return (1);
++}
++
++static void
++vtnet_stop(struct vtnet_softc *sc)
++{
++	device_t dev;
++	struct ifnet *ifp;
++
++	dev = sc->vtnet_dev;
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK_ASSERT(sc);
++
++	sc->vtnet_watchdog_timer = 0;
++	ifp->if_drv_flags &= ~(IFF_DRV_RUNNING | IFF_DRV_OACTIVE);
++
++	callout_stop(&sc->vtnet_tick_ch);
++
++	vtnet_disable_rx_intr(sc);
++	vtnet_disable_tx_intr(sc);
++	if (sc->vtnet_flags & VTNET_FLAG_CTRL_VQ)
++		vtnet_disable_ctrl_intr(sc);
++
++	/*
++	 * Stop the host VirtIO adapter. Note this will reset the host
++	 * adapter's state back to the pre-initialized state, so in
++	 * order to make the device usable again, we must drive it
++	 * through virtio_reinit and virtio_reinit_complete.
++	 */
++	virtio_stop(dev);
++
++	sc->vtnet_flags &= ~VTNET_FLAG_LINK;
++
++	vtnet_rxeof(sc, sc->vtnet_rx_size, NULL);
++	vtnet_txeof(sc);
++
++	vtnet_free_rx_mbufs(sc);
++	vtnet_free_tx_mbufs(sc);
++}
++
++static int
++vtnet_reinit(struct vtnet_softc *sc)
++{
++	struct ifnet *ifp;
++	uint32_t features;
++
++	ifp = sc->vtnet_ifp;
++	features = sc->vtnet_features;
++
++	/*
++	 * Re-negotiate with host, disabling any Rx features we
++	 * no longer wish to support. Tx features are handled on
++	 * our side via if_capenable and if_hwassist.
++	 */
++
++	if (ifp->if_capabilities & IFCAP_RXCSUM) {
++		if (ifp->if_capenable & IFCAP_RXCSUM)
++			features |= VIRTIO_NET_F_GUEST_CSUM;
++		else
++			features &= ~(VIRTIO_NET_F_GUEST_CSUM |
++			    VTNET_GUEST_CSUM_FEATURES);
++	}
++
++	if (ifp->if_capabilities & IFCAP_LRO) {
++		if (ifp->if_capenable & IFCAP_LRO)
++			features |= VIRTIO_NET_F_GUEST_TSO4 |
++			    VIRTIO_NET_F_GUEST_TSO6;
++		else
++			features &= ~(VIRTIO_NET_F_GUEST_TSO4 |
++			    VIRTIO_NET_F_GUEST_TSO6);
++	}
++
++	if (ifp->if_capabilities & IFCAP_VLAN_HWFILTER) {
++		if (ifp->if_capenable & IFCAP_VLAN_HWFILTER)
++			features |= VIRTIO_NET_F_CTRL_VLAN;
++		else
++			features &= ~VIRTIO_NET_F_CTRL_VLAN;
++	}
++
++	return (virtio_reinit(sc->vtnet_dev, features));
++}
++
++static void
++vtnet_init_locked(struct vtnet_softc *sc)
++{
++	struct ifnet *ifp;
++	int error;
++
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK_ASSERT(sc);
++
++	if (ifp->if_drv_flags & IFF_DRV_RUNNING)
++		return;
++
++	/* Stop host's adapter, cancel any pending I/O. */
++	vtnet_stop(sc);
++
++	/* Reinitialize the host's device. */
++	error = vtnet_reinit(sc);
++	if (error) {
++		device_printf(sc->vtnet_dev,
++		    "reinitialization failed, stopping device...\n");
++		vtnet_stop(sc);
++		return;
++	}
++
++	/* Get latest MAC address and update host. */
++	bcopy(IF_LLADDR(ifp), sc->vtnet_hwaddr, ETHER_ADDR_LEN);
++	vtnet_set_hwaddr(sc);
++
++	ifp->if_hwassist = 0;
++	if (ifp->if_capenable & IFCAP_TXCSUM)
++		ifp->if_hwassist |= VTNET_CSUM_FEATURES;
++	if (ifp->if_capenable & IFCAP_TSO4)
++		ifp->if_hwassist |= CSUM_TSO;
++
++	error = vtnet_init_rx_vq(sc);
++	if (error) {
++		device_printf(sc->vtnet_dev,
++		    "cannot allocate mbufs for Rx virtqueue\n");
++		vtnet_stop(sc);
++		return;
++	}
++
++	if (sc->vtnet_flags & VTNET_FLAG_CTRL_VQ) {
++		if (sc->vtnet_flags & VTNET_FLAG_CTRL_RX) {
++			/* Restore promiscuous and all-multicast modes. */
++			vtnet_rx_filter(sc);
++
++			/* Restore MAC filters. */
++			vtnet_rx_filter_mac(sc);
++		}
++
++		/* Restore VLAN filters. */
++		if (sc->vtnet_flags & VTNET_FLAG_VLAN_FILTER)
++			vtnet_rx_filter_vlan(sc);
++	}
++
++#ifdef DEVICE_POLLING
++	if (ifp->if_capenable & IFCAP_POLLING) {
++		vtnet_disable_rx_intr(sc);
++		vtnet_disable_tx_intr(sc);
++	} else
++#endif
++	{
++		vtnet_enable_rx_intr(sc);
++		vtnet_enable_tx_intr(sc);
++	}
++
++	ifp->if_drv_flags |= IFF_DRV_RUNNING;
++	ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
++
++	virtio_reinit_complete(sc->vtnet_dev);
++
++	vtnet_update_link_status(sc);
++	callout_reset(&sc->vtnet_tick_ch, hz, vtnet_tick, sc);
++}
++
++static void
++vtnet_init(void *xsc)
++{
++	struct vtnet_softc *sc;
++
++	sc = xsc;
++
++	VTNET_LOCK(sc);
++	vtnet_init_locked(sc);
++	VTNET_UNLOCK(sc);
++}
++
++static void
++vtnet_exec_ctrl_cmd(struct vtnet_softc *sc, void *cookie,
++    struct sglist *sg, int readable, int writable)
++{
++	struct virtqueue *vq;
++	void *c;
++	int error;
++
++	vq = sc->vtnet_ctrl_vq;
++
++	VTNET_LOCK_ASSERT(sc);
++	KASSERT(sc->vtnet_flags & VTNET_FLAG_CTRL_VQ, ("no control vq"));
++	/* Nobody should be pending before us. */
++	KASSERT(virtqueue_empty(vq), ("ctrl cmd already enqueued"));
++
++	error = vq_ring_enqueue(vq, cookie, sg, readable, writable);
++	KASSERT(error == 0, ("cannot enqueue ctrl command"));
++
++	vq_ring_sync(vq);
++
++	/*
++	 * Poll until the command is complete. Previously, we would
++	 * mtx_sleep() until the interrupt handler woke up us, but
++	 * dropping the lock opened us to all sorts of serialization
++	 * issues.
++	 *
++	 * Also, KVM only allocates three MSIX vectors - presumably
++	 * one for the configuration changes and one each for the Rx
++	 * and Tx virtqueues - leaving none for the control virtqueue.
++	 */
++
++	while ((c = vq_ring_dequeue(vq, NULL)) == NULL)
++		cpu_spinwait();
++	KASSERT(c == cookie, ("not my ctrl cmd response"));
++}
++
++static void
++vtnet_rx_filter(struct vtnet_softc *sc)
++{
++	struct ifnet *ifp;
++
++	ifp = sc->vtnet_ifp;
++
++	VTNET_LOCK_ASSERT(sc);
++	KASSERT(sc->vtnet_flags & VTNET_FLAG_CTRL_RX,
++	    ("CTRL_RX not negotiated"));
++
++	if (vtnet_set_promisc(sc, ifp->if_flags & IFF_PROMISC) != 0)
++		device_printf(sc->vtnet_dev,
++		    "cannot %s promiscuous mode\n",
++		    ifp->if_flags & IFF_PROMISC ? "enable" : "disable");
++
++	if (vtnet_set_allmulti(sc, ifp->if_flags & IFF_ALLMULTI) != 0)
++		device_printf(sc->vtnet_dev,
++		    "cannot %s all-multicast mode\n",
++		    ifp->if_flags & IFF_ALLMULTI ? "enable" : "disable");
++}
++
++static int
++vtnet_ctrl_rx_cmd(struct vtnet_softc *sc, int cmd, int on)
++{
++	struct virtio_net_ctrl_hdr hdr;
++	struct sglist sg;
++	struct sglist_seg segs[3];
++	uint8_t onoff, ack;
++	int error;
++
++	if ((sc->vtnet_flags & VTNET_FLAG_CTRL_RX) == 0)
++		return (ENOTSUP);
++
++	hdr.class = VIRTIO_NET_CTRL_RX;
++	hdr.cmd = cmd;
++	onoff = !!on;
++	ack = VIRTIO_NET_ERR;
++
++	sglist_init(&sg, 3, segs);
++
++	error = sglist_append(&sg, &hdr, sizeof(hdr));
++	KASSERT(error == 0, ("cannot add control header to sglist"));
++	error = sglist_append(&sg, &onoff, sizeof(onoff));
++	KASSERT(error == 0, ("cannot add on/off to sglist"));
++	error = sglist_append(&sg, &ack, sizeof(ack));
++	KASSERT(error == 0, ("cannot add ack to sglist"));
++
++	vtnet_exec_ctrl_cmd(sc, &ack, &sg, sg.sg_nseg - 1, 1);
++
++	return (ack == VIRTIO_NET_OK ? 0 : EIO);
++}
++
++static int
++vtnet_set_promisc(struct vtnet_softc *sc, int on)
++{
++	int error;
++
++	error = vtnet_ctrl_rx_cmd(sc, VIRTIO_NET_CTRL_RX_PROMISC, on);
++	return (error);
++}
++
++static int
++vtnet_set_allmulti(struct vtnet_softc *sc, int on)
++{
++	int error;
++
++	error = vtnet_ctrl_rx_cmd(sc, VIRTIO_NET_CTRL_RX_ALLMULTI, on);
++	return (error);
++}
++
++static void
++vtnet_rx_filter_mac(struct vtnet_softc *sc)
++{
++	struct virtio_net_ctrl_hdr hdr;
++	struct vtnet_mac_filter *filter;
++	struct ifnet *ifp;
++	struct ifaddr *ifa;
++	struct ifmultiaddr *ifma;
++	struct sglist sg;
++	struct sglist_seg segs[4];
++	int ucnt, mcnt;
++	int promisc, allmulti;
++	uint8_t ack;
++	int error;
++
++	ifp = sc->vtnet_ifp;
++	filter = NULL;
++	ucnt = mcnt = 0;
++	promisc = allmulti = 0;
++
++	VTNET_LOCK_ASSERT(sc);
++	KASSERT(sc->vtnet_flags & VTNET_FLAG_CTRL_RX,
++	    ("CTRL_RX not negotiated"));
++
++	filter = contigmalloc(PAGE_SIZE, M_DEVBUF, M_NOWAIT | M_ZERO,
++	    0, ~0ul, PAGE_SIZE, 0);
++	if (filter == NULL) {
++		device_printf(sc->vtnet_dev, "cannot alloc buffer for "
++		    "MAC address filtering\n");
++		return;
++	}
++
++	/* Unicast. */
++	if_addr_rlock(ifp);
++	TAILQ_FOREACH(ifa, &ifp->if_addrhead, ifa_link) {
++		if (ifa->ifa_addr->sa_family != AF_LINK)
++			continue;
++
++		if (ucnt == VTNET_MAX_MAC_ENTRIES)
++			break;
++
++		bcopy(LLADDR((struct sockaddr_dl *)ifa->ifa_addr),
++		    filter->vmf_uni.macs[ucnt], ETHER_ADDR_LEN);
++		ucnt++;
++	}
++	if_addr_runlock(ifp);
++
++	if (ucnt >= VTNET_MAX_MAC_ENTRIES) {
++		if_printf(ifp, "too many unicast addresses, "
++		    "enabling promiscuous mode\n");
++		filter->vmf_uni.nentries = 0;
++		promisc = 1;
++	} else
++		filter->vmf_uni.nentries = ucnt;
++
++	/* Multicast. */
++	if_maddr_rlock(ifp);
++	TAILQ_FOREACH(ifma, &ifp->if_multiaddrs, ifma_link) {
++		if (ifma->ifma_addr->sa_family != AF_LINK)
++			continue;
++
++		if (mcnt == VTNET_MAX_MAC_ENTRIES)
++			break;
++
++		bcopy(LLADDR((struct sockaddr_dl *)ifma->ifma_addr),
++		    &filter->vmf_mul.macs[mcnt], ETHER_ADDR_LEN);
++		mcnt++;
++	}
++	if_maddr_runlock(ifp);
++
++	if (mcnt >= VTNET_MAX_MAC_ENTRIES) {
++		if_printf(ifp, "too many multicast addresses, "
++		    "enabling all-multicast mode\n");
++		filter->vmf_mul.nentries = 0;
++		allmulti = 1;
++	} else
++		filter->vmf_mul.nentries = mcnt;
++
++	if (promisc && allmulti)
++		goto out;
++
++	hdr.class = VIRTIO_NET_CTRL_MAC;
++	hdr.cmd = VIRTIO_NET_CTRL_MAC_TABLE_SET;
++	ack = VIRTIO_NET_ERR;
++
++	sglist_init(&sg, 4, segs);
++
++	error = sglist_append(&sg, &hdr, sizeof(hdr));
++	KASSERT(error == 0, ("cannot add control header to sglist"));
++	error = sglist_append(&sg, &filter->vmf_uni, sizeof(filter->vmf_uni));
++	KASSERT(error == 0, ("cannot add unicast macs to sglist"));
++	error = sglist_append(&sg, &filter->vmf_mul, sizeof(filter->vmf_mul));
++	KASSERT(error == 0, ("cannot add multicast macs to sglist"));
++	error = sglist_append(&sg, &ack, sizeof(ack));
++	KASSERT(error == 0, ("cannot add ack to sglist"));
++
++	vtnet_exec_ctrl_cmd(sc, &ack, &sg, sg.sg_nseg - 1, 1);
++
++	if (ack != VIRTIO_NET_OK) {
++		/* Failure, do promisc/allmulti instead. */
++		device_printf(sc->vtnet_dev, "cannot set mac address "
++		    "table, falling back to promisc/allmulti\n");
++		if (ucnt > 1)
++			promisc = 1;
++		if (mcnt > 0)
++			allmulti = 1;
++	}
++
++out:
++	if (filter != NULL)
++		contigfree(filter, PAGE_SIZE, M_DEVBUF);
++
++	if (promisc) {
++		if (vtnet_set_promisc(sc, 1) != 0)
++			if_printf(ifp, "cannot enable promiscuous mode\n");
++	}
++
++	if (allmulti) {
++		if (vtnet_set_allmulti(sc, 1) != 0)
++			if_printf(ifp, "cannot enable all-multicast mode\n");
++	}
++}
++
++static int
++vtnet_exec_vlan_filter(struct vtnet_softc *sc, int add, uint16_t tag)
++{
++	struct virtio_net_ctrl_hdr hdr;
++	struct sglist sg;
++	struct sglist_seg segs[3];
++	uint8_t ack;
++	int error;
++
++	hdr.class = VIRTIO_NET_CTRL_VLAN;
++	hdr.cmd = add ? VIRTIO_NET_CTRL_VLAN_ADD : VIRTIO_NET_CTRL_VLAN_DEL;
++	ack = VIRTIO_NET_ERR;
++
++	VTNET_LOCK_ASSERT(sc);
++	KASSERT(sc->vtnet_flags & VTNET_FLAG_VLAN_FILTER,
++	    ("VLAN_FILTER not negotiated"));
++
++	sglist_init(&sg, 3, segs);
++	error = sglist_append(&sg, &hdr, sizeof(hdr));
++	KASSERT(error == 0, ("cannot add control header to sglist"));
++	error = sglist_append(&sg, &tag, sizeof(tag));
++	KASSERT(error == 0, ("cannot add vlan tag to sglist"));
++	error = sglist_append(&sg, &ack, sizeof(ack));
++	KASSERT(error == 0, ("cannot add ack to sglist"));
++
++	vtnet_exec_ctrl_cmd(sc, &ack, &sg, sg.sg_nseg - 1, 1);
++
++	return (ack == VIRTIO_NET_OK ? 0 : EIO);
++}
++
++static void
++vtnet_rx_filter_vlan(struct vtnet_softc *sc)
++{
++	struct ifnet *ifp;
++	uint32_t w;
++	uint16_t vlan;
++	int i, j, error;
++
++	ifp = sc->vtnet_ifp;
++	error = 0;
++
++	VTNET_LOCK_ASSERT(sc);
++	KASSERT(sc->vtnet_flags & VTNET_FLAG_VLAN_FILTER,
++	    ("VLAN_FILTER not negotiated"));
++
++	if ((ifp->if_capenable & IFCAP_VLAN_HWFILTER) == 0 ||
++	    sc->vtnet_nvlans <= 0)
++		return;
++
++	for (i = 0; i < VTNET_VLAN_TABLE_SZ; i++) {
++		w = sc->vtnet_vlan_table[i];
++		for (j = 0; w != 0; j++) {
++			if (w & (1 << j)) {
++				w &= ~(1 << j);
++				vlan = i * 32 + j;
++				error |= vtnet_exec_vlan_filter(sc, 1, vlan);
++			}
++		}
++	}
++
++	if (error)
++		device_printf(sc->vtnet_dev,
++		    "cannot restore the host's VLAN table\n");
++}
++
++static void
++vtnet_set_vlan_filter(struct vtnet_softc *sc, int add, uint16_t tag)
++{
++	struct ifnet *ifp;
++	int idx, bit;
++	int error;
++
++	ifp = sc->vtnet_ifp;
++	error = 0;
++
++	if ((tag == 0) || (tag > 4095))
++		return;
++
++	idx = (tag >> 5) & 0x7F;
++	bit = tag & 0x1F;
++
++	VTNET_LOCK(sc);
++	KASSERT(sc->vtnet_flags & VTNET_FLAG_VLAN_FILTER,
++	    ("VLAN_FILTER not negotiated"));
++
++	/* Update shadow VLAN table. */
++	if (add) {
++		sc->vtnet_nvlans++;
++		sc->vtnet_vlan_table[idx] |= (1 << bit);
++	} else {
++		sc->vtnet_nvlans--;
++		sc->vtnet_vlan_table[idx] &= ~(1 << bit);
++	}
++
++	if (ifp->if_capenable & IFCAP_VLAN_HWFILTER)
++		error = vtnet_exec_vlan_filter(sc, add, tag);
++
++	VTNET_UNLOCK(sc);
++
++	if (error)
++		device_printf(sc->vtnet_dev, "unable to update host "
++		    "VLAN table\n");
++}
++
++static void
++vtnet_register_vlan(void *arg, struct ifnet *ifp, uint16_t tag)
++{
++
++	if (ifp->if_softc != arg)
++		return;
++
++	vtnet_set_vlan_filter(arg, 1, tag);
++}
++
++static void
++vtnet_unregister_vlan(void *arg, struct ifnet *ifp, uint16_t tag)
++{
++
++	if (ifp->if_softc != arg)
++		return;
++
++	vtnet_set_vlan_filter(arg, 0, tag);
++}
++
++static void
++vtnet_add_statistics(struct vtnet_softc *sc)
++{
++	device_t dev;
++	struct vtnet_statistics *stats;
++        struct sysctl_ctx_list *ctx;
++	struct sysctl_oid *tree;
++	struct sysctl_oid_list *child;
++
++	dev = sc->vtnet_dev;
++	stats = &sc->vtnet_stats;
++	ctx = device_get_sysctl_ctx(dev);
++	tree = device_get_sysctl_tree(dev);
++	child = SYSCTL_CHILDREN(tree);
++
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "mbuf_alloc_failed",
++	    CTLFLAG_RD, &stats->mbuf_alloc_failed,
++	    "Mbuf cluster allocation failures");
++
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "rx_mergeable_failed",
++	    CTLFLAG_RD, &stats->rx_mergeable_failed,
++	    "Mergeable buffers receive failures");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "rx_csum_offloaded",
++	    CTLFLAG_RD, &stats->rx_csum_offloaded,
++	    "Received buffer with checksum offloaded");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "rx_csum_unknown_etype",
++	    CTLFLAG_RD, &stats->rx_csum_unknown_etype,
++	    "Received checksum offloaded buffer with unknown Ethernet type");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "rx_csum_bad_start",
++	    CTLFLAG_RD, &stats->rx_csum_bad_start,
++	    "Received checksum offloaded buffer with incorrect start offset");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "rx_csum_unknown_ipproto",
++	    CTLFLAG_RD, &stats->rx_csum_unknown_ipproto,
++	    "Received checksum offloaded buffer with incorrect IP protocol");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "rx_csum_bad_offset",
++	    CTLFLAG_RD, &stats->rx_csum_bad_offset,
++	    "Received checksum offloaded buffer with incorrect offset");
++
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "tx_enqueue_failed",
++	    CTLFLAG_RD, &stats->tx_enqueue_failed,
++	    "Enqueueing buffer to transmit virtqueue failures");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "tx_csum_offloaded",
++	    CTLFLAG_RD, &stats->tx_csum_offloaded,
++	    "Offloaded checksum of transmitted buffer");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "tx_csum_unknown_etype",
++	    CTLFLAG_RD, &stats->tx_csum_unknown_etype,
++	    "Aborted transmit of checksum offloaded buffer with unknown "
++	    "Ethernet type");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "tx_tso_unknown_etype",
++	    CTLFLAG_RD, &stats->tx_tso_unknown_etype,
++	    "Aborted transmit of TSO buffer with unknown Ethernet type");
++}
++
++static int
++vtnet_enable_rx_intr(struct vtnet_softc *sc)
++{
++
++	return (virtqueue_enable_intr(sc->vtnet_rx_vq));
++}
++
++static void
++vtnet_disable_rx_intr(struct vtnet_softc *sc)
++{
++
++	virtqueue_disable_intr(sc->vtnet_rx_vq);
++}
++
++static int
++vtnet_enable_tx_intr(struct vtnet_softc *sc)
++{
++
++	return (virtqueue_enable_intr(sc->vtnet_tx_vq));
++}
++
++static void
++vtnet_disable_tx_intr(struct vtnet_softc *sc)
++{
++
++	virtqueue_disable_intr(sc->vtnet_tx_vq);
++}
++
++static void
++vtnet_disable_ctrl_intr(struct vtnet_softc *sc)
++{
++
++	virtqueue_disable_intr(sc->vtnet_ctrl_vq);
++}
+diff --git a/sys/dev/virtio/network/virtio_net_reg.h b/sys/dev/virtio/network/virtio_net_reg.h
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/network/virtio_net_reg.h
+@@ -0,0 +1,136 @@
++#ifndef _VIRTIO_NET_REG_H
++#define _VIRTIO_NET_REG_H
++
++/*
++ * This header is BSD licensed so anyone can use the definitions to implement
++ * compatible drivers/servers.
++ */
++
++#include <sys/types.h>
++
++/* The feature bitmap for virtio net */
++#define VIRTIO_NET_F_CSUM	0x00001 /* Host handles pkts w/ partial csum */
++#define VIRTIO_NET_F_GUEST_CSUM 0x00002 /* Guest handles pkts w/ partial csum*/
++#define VIRTIO_NET_F_MAC	0x00020 /* Host has given MAC address. */
++#define VIRTIO_NET_F_GSO	0x00040 /* Host handles pkts w/ any GSO type */
++#define VIRTIO_NET_F_GUEST_TSO4	0x00080 /* Guest can handle TSOv4 in. */
++#define VIRTIO_NET_F_GUEST_TSO6	0x00100 /* Guest can handle TSOv6 in. */
++#define VIRTIO_NET_F_GUEST_ECN	0x00200 /* Guest can handle TSO[6] w/ ECN in.*/
++#define VIRTIO_NET_F_GUEST_UFO	0x00400 /* Guest can handle UFO in. */
++#define VIRTIO_NET_F_HOST_TSO4	0x00800 /* Host can handle TSOv4 in. */
++#define VIRTIO_NET_F_HOST_TSO6	0x01000 /* Host can handle TSOv6 in. */
++#define VIRTIO_NET_F_HOST_ECN	0x02000 /* Host can handle TSO[6] w/ ECN in. */
++#define VIRTIO_NET_F_HOST_UFO	0x04000 /* Host can handle UFO in. */
++#define VIRTIO_NET_F_MRG_RXBUF	0x08000 /* Host can merge receive buffers. */
++#define VIRTIO_NET_F_STATUS	0x10000 /* virtio_net_config.status available*/
++#define VIRTIO_NET_F_CTRL_VQ	0x20000 /* Control channel available */
++#define VIRTIO_NET_F_CTRL_RX	0x40000 /* Control channel RX mode support */
++#define VIRTIO_NET_F_CTRL_VLAN	0x80000 /* Control channel VLAN filtering */
++#define VIRTIO_NET_F_CTRL_RX_EXTRA 0x100000 /* Extra RX mode control support */
++
++#define VIRTIO_NET_S_LINK_UP	1	/* Link is up */
++
++struct virtio_net_config {
++	/* The config defining mac address (if VIRTIO_NET_F_MAC) */
++	uint8_t		mac[ETHER_ADDR_LEN]; 
++	/* See VIRTIO_NET_F_STATUS and VIRTIO_NET_S_* above */
++	uint16_t	status;
++} __packed;
++
++/*
++ * This is the first element of the scatter-gather list.  If you don't
++ * specify GSO or CSUM features, you can simply ignore the header.
++ */
++struct virtio_net_hdr {
++#define VIRTIO_NET_HDR_F_NEEDS_CSUM	1	/* Use csum_start,csum_offset*/
++	uint8_t	flags;
++#define VIRTIO_NET_HDR_GSO_NONE		0	/* Not a GSO frame */
++#define VIRTIO_NET_HDR_GSO_TCPV4	1	/* GSO frame, IPv4 TCP (TSO) */
++#define VIRTIO_NET_HDR_GSO_UDP		3	/* GSO frame, IPv4 UDP (UFO) */
++#define VIRTIO_NET_HDR_GSO_TCPV6	4	/* GSO frame, IPv6 TCP */
++#define VIRTIO_NET_HDR_GSO_ECN		0x80	/* TCP has ECN set */
++	uint8_t gso_type;
++	uint16_t hdr_len;	/* Ethernet + IP + tcp/udp hdrs */
++	uint16_t gso_size;	/* Bytes to append to hdr_len per frame */
++	uint16_t csum_start;	/* Position to start checksumming from */
++	uint16_t csum_offset;	/* Offset after that to place checksum */
++};
++
++/*
++ * This is the version of the header to use when the MRG_RXBUF
++ * feature has been negotiated.
++ */
++struct virtio_net_hdr_mrg_rxbuf {
++	struct virtio_net_hdr hdr;
++	uint16_t num_buffers;	/* Number of merged rx buffers */
++};
++
++/*
++ * Control virtqueue data structures
++ *
++ * The control virtqueue expects a header in the first sg entry
++ * and an ack/status response in the last entry.  Data for the
++ * command goes in between.
++ */
++struct virtio_net_ctrl_hdr {
++	uint8_t class;
++	uint8_t cmd;
++} __packed;
++
++typedef uint8_t virtio_net_ctrl_ack;
++
++#define VIRTIO_NET_OK	0
++#define VIRTIO_NET_ERR	1
++
++/*
++ * Control the RX mode, ie. promiscuous, allmulti, etc...
++ * All commands require an "out" sg entry containing a 1 byte
++ * state value, zero = disable, non-zero = enable.  Commands
++ * 0 and 1 are supported with the VIRTIO_NET_F_CTRL_RX feature.
++ * Commands 2-5 are added with VIRTIO_NET_F_CTRL_RX_EXTRA.
++ */
++#define VIRTIO_NET_CTRL_RX	0
++#define VIRTIO_NET_CTRL_RX_PROMISC	0
++#define VIRTIO_NET_CTRL_RX_ALLMULTI	1
++#define VIRTIO_NET_CTRL_RX_ALLUNI	2
++#define VIRTIO_NET_CTRL_RX_NOMULTI	3
++#define VIRTIO_NET_CTRL_RX_NOUNI	4
++#define VIRTIO_NET_CTRL_RX_NOBCAST	5
++
++/*
++ * Control the MAC filter table.
++ *
++ * The MAC filter table is managed by the hypervisor, the guest should
++ * assume the size is infinite.  Filtering should be considered
++ * non-perfect, ie. based on hypervisor resources, the guest may
++ * received packets from sources not specified in the filter list.
++ *
++ * In addition to the class/cmd header, the TABLE_SET command requires
++ * two out scatterlists.  Each contains a 4 byte count of entries followed
++ * by a concatenated byte stream of the ETH_ALEN MAC addresses.  The
++ * first sg list contains unicast addresses, the second is for multicast.
++ * This functionality is present if the VIRTIO_NET_F_CTRL_RX feature
++ * is available.
++ */
++struct virtio_net_ctrl_mac {
++	uint32_t	entries;
++	uint8_t		macs[][ETHER_ADDR_LEN];
++} __packed;
++
++#define VIRTIO_NET_CTRL_MAC	1
++#define VIRTIO_NET_CTRL_MAC_TABLE_SET	0
++
++/*
++ * Control VLAN filtering
++ *
++ * The VLAN filter table is controlled via a simple ADD/DEL interface.
++ * VLAN IDs not added may be filtered by the hypervisor.  Del is the
++ * opposite of add.  Both commands expect an out entry containing a 2
++ * byte VLAN ID.  VLAN filtering is available with the
++ * VIRTIO_NET_F_CTRL_VLAN feature bit.
++ */
++#define VIRTIO_NET_CTRL_VLAN	2
++#define VIRTIO_NET_CTRL_VLAN_ADD	0
++#define VIRTIO_NET_CTRL_VLAN_DEL	1
++
++#endif /* _VIRTIO_NET_REG_H */
+diff --git a/sys/dev/virtio/pci/virtio_pci.c b/sys/dev/virtio/pci/virtio_pci.c
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/pci/virtio_pci.c
+@@ -0,0 +1,976 @@
++/* Driver for the VirtIO PCI interface. */
++
++#include <sys/cdefs.h>
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/bus.h>
++#include <sys/kernel.h>
++#include <sys/module.h>
++#include <sys/malloc.h>
++
++#include <machine/bus.h>
++#include <machine/resource.h>
++#include <sys/bus.h>
++#include <sys/rman.h>
++
++#include <dev/pci/pcivar.h>
++#include <dev/pci/pcireg.h>
++
++#include <dev/virtio/virtio.h>
++#include <dev/virtio/virtqueue.h>
++#include <dev/virtio/pci/virtio_pci_reg.h>
++
++#include "virtio_bus_if.h"
++#include "virtio_if.h"
++
++/*
++ * Maximum number of virtqueues per device.
++ */
++#define VIRTIO_PCI_MAX_VIRTQUEUES 8
++
++struct virtio_pci_softc {
++	device_t		 vtpci_dev;
++	struct resource		*vtpci_ioport;
++	struct resource		*vtpci_msix_tbl;
++	uint32_t	 	 vtpci_features;
++	uint32_t	 	 vtpci_flags;
++#define VIRTIO_PCI_FLAG_NO_MSIX		0x0001
++#define VIRTIO_PCI_FLAG_MSIX		0x0002
++#define VIRTIO_PCI_FLAG_SHARED_MSIX	0x0004
++
++	/* Our lone child device. */
++	device_t		 vtpci_child_dev;
++	struct virtio_ivars	 vtpci_child_ivars;
++
++	/*
++	 * If sufficient MSIX vectors are available, then each
++	 * virtqueue with a non-NULL interrupt callback will
++	 * have its own interrupt handler assigned. If there
++	 * are insufficient vectors available for that, but at
++	 * least two are available, then all the virtqueues
++	 * will share the same MSIX vector. Note that for MSIX,
++	 * the configuration changed notifications receive their
++	 * own MSIX vector. If there are insufficient vectors
++	 * available for the shared setup, then everything uses
++	 * one legacy interrupt.
++	 */
++	int			 vtpci_nvqs;
++	struct virtio_pci_vqx {
++		struct virtqueue *vq;
++		/* Index into vtpci_ires[] below. Unused, then -1. */
++		int		 ires_idx;
++	} vtpci_vqx[VIRTIO_PCI_MAX_VIRTQUEUES];
++
++	/*
++	 * When using legacy interrupts, only the first element of
++	 * vtpci_ires is used.
++	 *
++	 * When using MSIX interrupts, the first element of vtpci_ires
++	 * is used for the configuration changed interrupt; the remaining
++	 * elements are used for the virtqueues.
++	 */
++	int			 vtpci_nires;
++	struct virtio_pci_intr_res {
++		struct resource	*irq;
++		int		 rid;
++		void		*intrhand;
++	} vtpci_ires[1 + VIRTIO_PCI_MAX_VIRTQUEUES];
++};
++
++static int	virtio_pci_probe(device_t);
++static int	virtio_pci_attach(device_t);
++static int	virtio_pci_detach(device_t);
++static int	virtio_pci_suspend(device_t);
++static int	virtio_pci_resume(device_t);
++static int	virtio_pci_shutdown(device_t);
++static void	virtio_pci_driver_added(device_t, driver_t *);
++static void	virtio_pci_child_detached(device_t, device_t);
++
++static uint32_t	virtio_pci_negotiate_features(device_t, uint32_t);
++static int	virtio_pci_with_feature(device_t, uint32_t);
++static int	virtio_pci_alloc_vqs(device_t, int, int,
++		    struct vq_alloc_info *);
++static int	virtio_pci_setup_intr(device_t, enum intr_type);
++static void	virtio_pci_stop(device_t);
++static int	virtio_pci_reinit(device_t, uint32_t);
++static void	virtio_pci_reinit_complete(device_t);
++static void	virtio_pci_notify_vq(device_t, uint16_t);
++static uint8_t	virtio_pci_get_status(device_t);
++static void	virtio_pci_set_status(device_t, uint8_t);
++static void	virtio_pci_read_dev_config(device_t, bus_size_t,
++		    void *, int);
++static void	virtio_pci_write_dev_config(device_t, bus_size_t,
++		    void *, int);
++
++static void	virtio_pci_probe_and_attach_child(struct virtio_pci_softc *);
++
++static int	virtio_pci_alloc_intr(struct virtio_pci_softc *, int, int,
++		    struct vq_alloc_info *);
++static int	virtio_pci_alloc_intr_res(struct virtio_pci_softc *, int,
++		    struct vq_alloc_info *);
++static int	virtio_pci_alloc_msix(struct virtio_pci_softc *, int);
++static int 	virtio_pci_register_msix(struct virtio_pci_softc *, int, int);
++
++static void	virtio_pci_free_intr_res(struct virtio_pci_softc *);
++static void	virtio_pci_free_vqs(struct virtio_pci_softc *);
++static void	virtio_pci_release_child_res(struct virtio_pci_softc *);
++static void	virtio_pci_reset(struct virtio_pci_softc *);
++
++static int	virtio_pci_legacy_intr(void *);
++static int	virtio_pci_vq_shared_intr(void *);
++static int	virtio_pci_vq_intr(void *);
++static int	virtio_pci_config_intr(void *);
++
++/*
++ * I/O port read/write wrappers.
++ */
++#define virtio_pci_read_config_1(sc, o) \
++    bus_read_1((sc)->vtpci_ioport, (o))
++#define virtio_pci_read_config_2(sc, o) \
++    bus_read_2((sc)->vtpci_ioport, (o))
++#define virtio_pci_read_config_4(sc, o) \
++    bus_read_4((sc)->vtpci_ioport, (o))
++#define virtio_pci_write_config_1(sc, o, v) \
++    bus_write_1((sc)->vtpci_ioport, (o), (v))
++#define virtio_pci_write_config_2(sc, o, v) \
++    bus_write_2((sc)->vtpci_ioport, (o), (v))
++#define virtio_pci_write_config_4(sc, o, v) \
++    bus_write_4((sc)->vtpci_ioport, (o), (v))
++
++/* Tunables. */
++static int virtio_pci_disable_msix = 0;
++TUNABLE_INT("hw.virtio.pci.disable_msix", &virtio_pci_disable_msix);
++
++static device_method_t virtio_pci_methods[] = {
++	/* Device interface. */
++	DEVMETHOD(device_probe,		virtio_pci_probe),
++	DEVMETHOD(device_attach,	virtio_pci_attach),
++	DEVMETHOD(device_detach,	virtio_pci_detach),
++	DEVMETHOD(device_suspend,	virtio_pci_suspend),
++	DEVMETHOD(device_resume,	virtio_pci_resume),
++	DEVMETHOD(device_shutdown,	virtio_pci_shutdown),
++
++	/* Bus interface. */
++	DEVMETHOD(bus_driver_added,	virtio_pci_driver_added),
++	DEVMETHOD(bus_child_detached,	virtio_pci_child_detached),
++
++	/* VirtIO bus interface. */
++	DEVMETHOD(virtio_bus_negotiate_features, virtio_pci_negotiate_features),
++	DEVMETHOD(virtio_bus_with_feature,	 virtio_pci_with_feature),
++	DEVMETHOD(virtio_bus_alloc_vqs,		 virtio_pci_alloc_vqs),
++	DEVMETHOD(virtio_bus_setup_intr,	 virtio_pci_setup_intr),
++	DEVMETHOD(virtio_bus_stop,		 virtio_pci_stop),
++	DEVMETHOD(virtio_bus_reinit,		 virtio_pci_reinit),
++	DEVMETHOD(virtio_bus_reinit_complete,	 virtio_pci_reinit_complete),
++	DEVMETHOD(virtio_bus_notify_vq,		 virtio_pci_notify_vq),
++	DEVMETHOD(virtio_bus_read_device_config, virtio_pci_read_dev_config),
++	DEVMETHOD(virtio_bus_write_device_config, virtio_pci_write_dev_config),
++
++	{ 0, 0 }
++};
++
++static driver_t virtio_pci_driver = {
++	"virtio_pci",
++	virtio_pci_methods,
++	sizeof(struct virtio_pci_softc)
++};
++
++devclass_t virtio_pci_devclass;
++
++DRIVER_MODULE(virtio_pci, pci, virtio_pci_driver, virtio_pci_devclass, 0, 0);
++MODULE_VERSION(virtio_pci, 1);
++MODULE_DEPEND(virtio_pci, pci, 1, 1, 1);
++MODULE_DEPEND(virtio_pci, virtio, 1, 1, 1);
++
++static int
++virtio_pci_probe(device_t dev)
++{
++	char desc[36];
++	const char *name;
++
++	if (pci_get_vendor(dev) != VIRTIO_PCI_VENDORID)
++		return (ENXIO);
++
++	if (pci_get_device(dev) < VIRTIO_PCI_DEVICEID_MIN ||
++	    pci_get_device(dev) > VIRTIO_PCI_DEVICEID_MAX)
++		return (ENXIO);
++
++	if (pci_get_revid(dev) != VIRTIO_PCI_ABI_VERSION)
++		return (ENXIO);
++
++	name = virtio_device_name(pci_get_subdevice(dev));
++	if (name == NULL)
++		name = "Unknown";
++
++	snprintf(desc, sizeof(desc), "VirtIO PCI %s adapter", name);
++	device_set_desc_copy(dev, desc);
++
++	return (BUS_PROBE_DEFAULT);
++}
++
++static int
++virtio_pci_attach(device_t dev)
++{
++	struct virtio_pci_softc *sc;
++	device_t child;
++	int rid;
++
++	sc = device_get_softc(dev);
++	sc->vtpci_dev = dev;
++
++	pci_enable_busmaster(dev);
++
++	rid = PCIR_BAR(0);
++	sc->vtpci_ioport = bus_alloc_resource_any(dev, SYS_RES_IOPORT,
++	    &rid, RF_ACTIVE);
++	if (sc->vtpci_ioport == NULL) {
++		device_printf(dev, "cannot map I/O space\n");
++		return (ENXIO);
++	}
++
++	if (pci_find_extcap(dev, PCIY_MSIX, NULL) == 0) {
++		rid = PCIR_BAR(1);
++		sc->vtpci_msix_tbl = bus_alloc_resource_any(dev, SYS_RES_MEMORY,
++		    &rid, RF_ACTIVE);
++		if (sc->vtpci_msix_tbl == NULL)
++			/* Not fatal. */
++			sc->vtpci_flags |= VIRTIO_PCI_FLAG_NO_MSIX;
++	} else
++		sc->vtpci_flags |= VIRTIO_PCI_FLAG_NO_MSIX;
++
++	virtio_pci_reset(sc);
++
++	/* Tell the host we've noticed this device. */
++	virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_ACK);
++
++	if ((child = device_add_child(dev, NULL, -1)) == NULL) {
++		device_printf(dev, "cannot create child device\n");
++		virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_FAILED);
++		virtio_pci_detach(dev);
++		return (ENOMEM);
++	}
++
++	sc->vtpci_child_dev = child;
++	sc->vtpci_child_ivars.vtivar_devtype = pci_get_subdevice(dev);
++	device_set_ivars(child, &sc->vtpci_child_ivars);
++
++	virtio_pci_probe_and_attach_child(sc);
++
++	return (0);
++}
++
++static int
++virtio_pci_detach(device_t dev)
++{
++	struct virtio_pci_softc *sc;
++	device_t child;
++	int error;
++
++	sc = device_get_softc(dev);
++
++	if ((child = sc->vtpci_child_dev) != NULL) {
++		error = device_delete_child(dev, child);
++		if (error)
++			return (error);
++		sc->vtpci_child_dev = NULL;
++	}
++
++	/* Reset to initial state. */
++	virtio_pci_reset(sc);
++
++	if (sc->vtpci_msix_tbl != NULL) {
++		bus_release_resource(dev, SYS_RES_MEMORY,
++		    PCIR_BAR(1), sc->vtpci_msix_tbl);
++		sc->vtpci_msix_tbl = NULL;
++	}
++
++	if (sc->vtpci_ioport != NULL) {
++		bus_release_resource(dev, SYS_RES_IOPORT,
++		    PCIR_BAR(0), sc->vtpci_ioport);
++		sc->vtpci_ioport = NULL;
++	}
++
++	return (0);
++}
++
++static int
++virtio_pci_suspend(device_t dev)
++{
++
++	return (bus_generic_suspend(dev));
++}
++
++static int
++virtio_pci_resume(device_t dev)
++{
++
++	return (bus_generic_resume(dev));
++}
++
++static int
++virtio_pci_shutdown(device_t dev)
++{
++
++	(void) bus_generic_shutdown(dev);
++
++	/* Forcibly stop the host device. */
++	virtio_pci_stop(dev);
++
++	return (0);
++}
++
++static void
++virtio_pci_driver_added(device_t dev, driver_t *driver)
++{
++	struct virtio_pci_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	virtio_pci_probe_and_attach_child(sc);
++}
++
++static void
++virtio_pci_child_detached(device_t dev, device_t child)
++{
++	struct virtio_pci_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	virtio_pci_reset(sc);
++	virtio_pci_release_child_res(sc);
++}
++
++static uint32_t
++virtio_pci_negotiate_features(device_t dev, uint32_t child_features)
++{
++	struct virtio_pci_softc *sc;
++	device_t child;
++	struct virtio_ivars *ivars;
++	uint32_t features;
++	int verbose;
++
++	sc = device_get_softc(dev);
++	child = sc->vtpci_child_dev;
++	ivars = device_get_ivars(child);
++
++	/* Don't print description again during re-negotiation. */
++	verbose = (device_is_attached(child) == 0);
++
++	features = virtio_pci_read_config_4(sc, VIRTIO_PCI_HOST_FEATURES);
++
++	if (verbose)
++		virtio_describe(dev, "available", features,
++		    ivars->vtivar_features);
++
++	features &= child_features;
++	features = virtqueue_filter_features(features);
++	sc->vtpci_features = features;
++	virtio_pci_write_config_4(sc, VIRTIO_PCI_GUEST_FEATURES, features);
++
++	if (verbose)
++		virtio_describe(dev, "negotiated", features,
++		    ivars->vtivar_features);
++
++	return (features);
++}
++
++static int
++virtio_pci_with_feature(device_t dev, uint32_t feature)
++{
++	struct virtio_pci_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	return ((sc->vtpci_features & feature) == feature);
++}
++
++static int
++virtio_pci_alloc_vqs(device_t dev, int flags, int nvqs,
++    struct vq_alloc_info *vq_info)
++{
++	struct virtio_pci_softc *sc;
++	struct virtio_pci_vqx *vqx;
++	struct vq_alloc_info *info;
++	int queue, error;
++	uint16_t size;
++
++	sc = device_get_softc(dev);
++
++	if (sc->vtpci_nvqs != 0 ||
++	    nvqs <= 0 || nvqs > VIRTIO_PCI_MAX_VIRTQUEUES)
++		return (EINVAL);
++
++	error = virtio_pci_alloc_intr(sc, flags, nvqs, vq_info);
++	if (error) {
++		device_printf(dev,
++		    "cannot allocate interrupt resources\n");
++		return (error);
++	}
++
++	if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
++		error = virtio_pci_register_msix(sc,
++		    VIRTIO_MSI_CONFIG_VECTOR, 0);
++		if (error)
++			return (error);
++	}
++
++	for (queue = 0; queue < nvqs; queue++) {
++		vqx = &sc->vtpci_vqx[queue];
++		info = &vq_info[queue];
++
++		virtio_pci_write_config_2(sc, VIRTIO_PCI_QUEUE_SEL, queue);
++		size = virtio_pci_read_config_2(sc, VIRTIO_PCI_QUEUE_NUM);
++
++		error = virtqueue_alloc(dev, queue, size,
++		    VIRTIO_PCI_VRING_ALIGN, info, &vqx->vq);
++		if (error)
++			break;
++
++		if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
++			error = virtio_pci_register_msix(sc,
++			    VIRTIO_MSI_QUEUE_VECTOR, vqx->ires_idx);
++			if (error)
++				break;
++		}
++
++		virtio_pci_write_config_4(sc, VIRTIO_PCI_QUEUE_PFN,
++		    vq_ring_paddr(vqx->vq) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT);
++
++		sc->vtpci_nvqs++;
++		*info->vqai_vq = vqx->vq;
++	}
++
++	return (error);
++}
++
++static int
++virtio_pci_setup_intr(device_t dev, enum intr_type type)
++{
++	struct virtio_pci_softc *sc;
++	struct virtio_pci_intr_res *ires;
++	struct virtio_pci_vqx *vqx;
++	int i, flags, error;
++
++	sc = device_get_softc(dev);
++	flags = type | INTR_MPSAFE;
++	error = 0;
++
++	if ((sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) == 0) {
++		ires = &sc->vtpci_ires[0];
++		error = bus_setup_intr(dev, ires->irq, flags,
++		    virtio_pci_legacy_intr, NULL, sc, &ires->intrhand);
++
++		return (error);
++	}
++
++	ires = &sc->vtpci_ires[0];
++	error = bus_setup_intr(dev, ires->irq, flags,
++	    virtio_pci_config_intr, NULL, sc, &ires->intrhand);
++	if (error)
++		return (error);
++
++	if (sc->vtpci_flags & VIRTIO_PCI_FLAG_SHARED_MSIX) {
++		ires = &sc->vtpci_ires[1];
++		error = bus_setup_intr(dev, ires->irq, flags,
++		    virtio_pci_vq_shared_intr, NULL, sc, &ires->intrhand);
++
++		return (error);
++	}
++
++	for (i = 0; i < sc->vtpci_nvqs; i++) {
++		vqx = &sc->vtpci_vqx[i];
++		if (vqx->ires_idx < 1)
++			continue;
++
++		ires = &sc->vtpci_ires[vqx->ires_idx];
++
++		error = bus_setup_intr(dev, ires->irq, flags,
++		    virtio_pci_vq_intr, NULL, vqx->vq, &ires->intrhand);
++		if (error)
++			break;
++	}
++
++	return (error);
++}
++
++static void
++virtio_pci_stop(device_t dev)
++{
++
++	virtio_pci_reset(device_get_softc(dev));
++}
++
++static int
++virtio_pci_reinit(device_t dev, uint32_t features)
++{
++	struct virtio_pci_softc *sc;
++	struct virtio_pci_vqx *vqx;
++	struct virtqueue *vq;
++	uint16_t size;
++	int queue, res_idx, error;
++
++	sc = device_get_softc(dev);
++	error = 0;
++
++	/*
++	 * NOTE: We're pretty sensitive here if the host's device
++	 * radically changes from what was originally negotiated
++	 * during attach; i.e. MSIX goes away, virtqueue size
++	 * changes, etc.
++	 *
++	 * Presently, both KVM and VirtualBox seem to play nice,
++	 * but eventually this should be more robust, effectively
++	 * re-driving the whole device through device_attach()
++	 * with the new desired features.
++	 */
++	if (virtio_pci_get_status(dev) != VIRTIO_CONFIG_STATUS_RESET)
++		virtio_pci_stop(dev);
++
++	virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_ACK);
++	virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_DRIVER);
++
++	virtio_pci_negotiate_features(dev, features);
++
++	/*
++	 * Reinitialize the host device.
++	 * XXX Mostly duplicated from virtio_pci_alloc_vqs().
++	 */
++
++	if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
++		error = virtio_pci_register_msix(sc,
++		    VIRTIO_MSI_CONFIG_VECTOR, 0);
++		if (error)
++			return (error);
++	}
++
++	for (queue = 0; queue < sc->vtpci_nvqs; queue++) {
++		vqx = &sc->vtpci_vqx[queue];
++
++		vq = vqx->vq;
++		res_idx = vqx->ires_idx;
++
++		KASSERT(vq != NULL,
++		    ("virtqueue %d not allocated", queue));
++
++		virtio_pci_write_config_2(sc, VIRTIO_PCI_QUEUE_SEL, queue);
++		size = virtio_pci_read_config_2(sc, VIRTIO_PCI_QUEUE_NUM);
++
++		error = virtqueue_reinit(vq, size);
++		if (error)
++			break;
++
++		if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
++			error = virtio_pci_register_msix(sc,
++			    VIRTIO_MSI_QUEUE_VECTOR, res_idx);
++			if (error)
++				break;
++		}
++
++		virtio_pci_write_config_4(sc, VIRTIO_PCI_QUEUE_PFN,
++		    vq_ring_paddr(vq) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT);
++	}
++
++	return (error);
++}
++
++static void
++virtio_pci_reinit_complete(device_t dev)
++{
++
++	virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_DRIVER_OK);
++}
++
++static void
++virtio_pci_notify_vq(device_t dev, uint16_t queue)
++{
++	struct virtio_pci_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	virtio_pci_write_config_2(sc, VIRTIO_PCI_QUEUE_NOTIFY, queue);
++}
++
++static uint8_t
++virtio_pci_get_status(device_t dev)
++{
++	struct virtio_pci_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	return (virtio_pci_read_config_1(sc, VIRTIO_PCI_STATUS));
++}
++
++static void
++virtio_pci_set_status(device_t dev, uint8_t status)
++{
++	struct virtio_pci_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	virtio_pci_write_config_1(sc, VIRTIO_PCI_STATUS, status);
++}
++
++static void
++virtio_pci_read_dev_config(device_t dev, bus_size_t offset,
++    void *dst, int len)
++{
++	struct virtio_pci_softc *sc;
++	bus_size_t o;
++	uint8_t *d;
++
++	sc = device_get_softc(dev);
++	o = VIRTIO_PCI_CONFIG(sc) + offset;
++
++	for (d = dst; len-- > 0; d++, o++)
++		*d = virtio_pci_read_config_1(sc, o);
++}
++
++static void
++virtio_pci_write_dev_config(device_t dev, bus_size_t offset,
++    void *src, int len)
++{
++	struct virtio_pci_softc *sc;
++	bus_size_t o;
++	uint8_t *s;
++
++	sc = device_get_softc(dev);
++	o = VIRTIO_PCI_CONFIG(sc) + offset;
++
++	for (s = src; len-- > 0; s++, o++)
++		virtio_pci_write_config_1(sc, o, *s);
++}
++
++static void
++virtio_pci_probe_and_attach_child(struct virtio_pci_softc *sc)
++{
++	device_t dev, child;
++	int error;
++
++	dev = sc->vtpci_dev;
++	child = sc->vtpci_child_dev;
++
++	if (child == NULL)
++		return;
++
++	if (device_get_state(child) != DS_NOTPRESENT)
++		return;
++
++	error = device_probe(child);
++	if (error == ENXIO)
++		return;
++	else if (error)
++		goto fail;
++
++	virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_DRIVER);
++	if (device_attach(child) == 0) {
++		virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_DRIVER_OK);
++		return;
++	}
++
++fail:
++	virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_FAILED);
++	virtio_pci_reset(sc);
++	virtio_pci_release_child_res(sc);
++
++	/* Reset for later attempt. */
++	virtio_pci_set_status(dev, VIRTIO_CONFIG_STATUS_ACK);
++}
++
++static int
++virtio_pci_alloc_intr(struct virtio_pci_softc *sc, int flags, int nvqs,
++    struct vq_alloc_info *vq_info)
++{
++	int i, nvect;
++
++	for (nvect = 0, i = 0; i < nvqs; i++)
++		if (vq_info[i].vqai_intr != NULL)
++			nvect++;
++
++	if (virtio_pci_disable_msix != 0 ||
++	    flags & VIRTIO_ALLOC_VQS_DISABLE_MSIX ||
++	    sc->vtpci_flags & VIRTIO_PCI_FLAG_NO_MSIX ||
++	    virtio_pci_alloc_msix(sc, nvect) != 0) {
++		/* Fall-back to legacy interrupts. */
++		sc->vtpci_nires = 1;
++	}
++
++	return (virtio_pci_alloc_intr_res(sc, nvqs, vq_info));
++}
++
++static int
++virtio_pci_alloc_intr_res(struct virtio_pci_softc *sc, int nvqs,
++    struct vq_alloc_info *vq_info)
++{
++	device_t dev;
++	struct resource *irq;
++	struct virtio_pci_vqx *vqx;
++	int i, rid, flags, res_idx;
++
++	dev = sc->vtpci_dev;
++
++	if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
++		rid = 1;
++		flags = RF_ACTIVE;
++	} else {
++		rid = 0;
++		flags = RF_ACTIVE | RF_SHAREABLE;
++		KASSERT(sc->vtpci_nires == 1, ("too many legacy intr res"));
++	}
++
++	for (i = 0; i < sc->vtpci_nires; i++, rid++) {
++		irq = bus_alloc_resource_any(dev, SYS_RES_IRQ, &rid, flags);
++		if (irq == NULL)
++			return (ENXIO);
++
++		sc->vtpci_ires[i].irq = irq;
++		sc->vtpci_ires[i].rid = rid;
++	}
++
++	for (i = 0, res_idx = 1; i < nvqs; i++) {
++		vqx = &sc->vtpci_vqx[i];
++
++		if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
++			if (vq_info[i].vqai_intr == NULL)
++				vqx->ires_idx = -1;
++			else if (sc->vtpci_flags & VIRTIO_PCI_FLAG_SHARED_MSIX)
++				vqx->ires_idx = res_idx;
++			else
++				vqx->ires_idx = res_idx++;
++		} else
++			vqx->ires_idx = -1;
++	}
++
++	return (0);
++}
++
++static int
++virtio_pci_alloc_msix(struct virtio_pci_softc *sc, int nvect)
++{
++	device_t dev;
++	int nmsix, cnt, required;
++
++	dev = sc->vtpci_dev;
++	nmsix = pci_msix_count(dev);
++
++	if (nmsix < 1)
++		return (1);
++
++	/*
++	 * NOTE: Need an additional vector for configuration
++	 * changed notifications.
++	 */
++
++	cnt = required = nvect + 1;
++	if (nmsix >= required) {
++		if (pci_alloc_msix(dev, &cnt) == 0 &&
++		    cnt >= required)
++			goto out;
++		else
++			/* Release any partial allocation. */
++			pci_release_msi(dev);
++	}
++
++	/* Attempt shared MSIX allocation. */
++	cnt = required = 2;
++	if (nmsix < required ||
++	    pci_alloc_msix(dev, &cnt) != 0 ||
++	    cnt < required) {
++		pci_release_msi(dev);
++		return (1);
++	}
++
++	sc->vtpci_flags |= VIRTIO_PCI_FLAG_SHARED_MSIX;
++
++out:
++	sc->vtpci_nires = required;
++	sc->vtpci_flags |= VIRTIO_PCI_FLAG_MSIX;
++
++	if (bootverbose) {
++		if (sc->vtpci_flags & VIRTIO_PCI_FLAG_SHARED_MSIX)
++			device_printf(dev, "using shared virtqueue MSIX\n");
++		else
++			device_printf(dev, "using per virtqueue MSIX\n");
++	}
++
++	return (0);
++}
++
++static int
++virtio_pci_register_msix(struct virtio_pci_softc *sc, int offset,
++    int res_idx)
++{
++	device_t dev;
++	uint16_t vector, host_vector;
++
++	dev = sc->vtpci_dev;
++
++	if (res_idx == -1)
++		vector = VIRTIO_MSI_NO_VECTOR;
++	else
++		/* Map from rid to host vector. */
++		vector = sc->vtpci_ires[res_idx].rid - 1;
++
++	/* Ensure the config change vector isn't being misused. */
++	if (res_idx == 0)
++		KASSERT(offset == VIRTIO_MSI_CONFIG_VECTOR &&
++		    	vector == 0, ("reusing config change vector"));
++
++	virtio_pci_write_config_2(sc, offset, vector);
++	if (vector == VIRTIO_MSI_NO_VECTOR)
++		return (0);
++
++	host_vector = virtio_pci_read_config_2(sc, offset);
++	if (host_vector == VIRTIO_MSI_NO_VECTOR) {
++		device_printf(dev,
++		    "insufficient host resources for MSIX interrupts\n");
++		return (ENODEV);
++	}
++
++	return (0);
++}
++
++static void
++virtio_pci_free_intr_res(struct virtio_pci_softc *sc)
++{
++	device_t dev;
++	struct virtio_pci_intr_res *ires;
++	int i;
++
++	dev = sc->vtpci_dev;
++	sc->vtpci_nires = 0;
++
++	for (i = 0; i < 1 + VIRTIO_PCI_MAX_VIRTQUEUES; i++) {
++		ires = &sc->vtpci_ires[i];
++
++		if (ires->intrhand != NULL) {
++			bus_teardown_intr(dev, ires->irq, ires->intrhand);
++			ires->intrhand = NULL;
++		}
++
++		if (ires->irq != NULL) {
++			bus_release_resource(dev, SYS_RES_IRQ, ires->rid,
++			    ires->irq);
++			ires->irq = NULL;
++		}
++
++		ires->rid = -1;
++	}
++}
++
++static void
++virtio_pci_free_vqs(struct virtio_pci_softc *sc)
++{
++	struct virtio_pci_vqx *vqx;
++	int i;
++
++	sc->vtpci_nvqs = 0;
++
++	for (i = 0; i < VIRTIO_PCI_MAX_VIRTQUEUES; i++) {
++		vqx = &sc->vtpci_vqx[i];
++
++		if (vqx->vq != NULL) {
++			virtqueue_free(vqx->vq);
++			vqx->vq = NULL;
++		}
++	}
++}
++
++static void
++virtio_pci_release_child_res(struct virtio_pci_softc *sc)
++{
++	device_t dev;
++
++	dev = sc->vtpci_dev;
++
++	/* Release any resources the child may have allocated. */
++	virtio_pci_free_intr_res(sc);
++	virtio_pci_free_vqs(sc);
++
++	if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
++		pci_release_msi(dev);
++		sc->vtpci_flags &= ~(VIRTIO_PCI_FLAG_MSIX |
++		    		     VIRTIO_PCI_FLAG_SHARED_MSIX);
++	}
++}
++
++static void
++virtio_pci_reset(struct virtio_pci_softc *sc)
++{
++
++	/*
++	 * Setting the status to RESET restores the host's
++	 * device to the original uninitialized state.
++	 */
++	virtio_pci_set_status(sc->vtpci_dev, VIRTIO_CONFIG_STATUS_RESET);
++}
++
++static int
++virtio_pci_legacy_intr(void *xsc)
++{
++	struct virtio_pci_softc *sc;
++	struct virtio_pci_vqx *vqx;
++	int i;
++	uint8_t isr;
++
++	sc = xsc;
++	vqx = &sc->vtpci_vqx[0];
++
++	/* Reading the ISR also clears it. */
++	isr = virtio_pci_read_config_1(sc, VIRTIO_PCI_ISR);
++
++	if (isr & VIRTIO_PCI_ISR_CONFIG)
++		virtio_pci_config_intr(sc);
++
++	if (isr & VIRTIO_PCI_ISR_INTR)
++		for (i = 0; i < sc->vtpci_nvqs; i++, vqx++)
++			virtqueue_intr(vqx->vq);
++
++	return (isr ? FILTER_HANDLED : FILTER_STRAY);
++}
++
++static int
++virtio_pci_vq_shared_intr(void *xsc)
++{
++	struct virtio_pci_softc *sc;
++	struct virtio_pci_vqx *vqx;
++	int i, rc;
++
++	rc = 0;
++	sc = xsc;
++	vqx = &sc->vtpci_vqx[0];
++
++	for (i = 0; i < sc->vtpci_nvqs; i++, vqx++)
++		rc |= virtqueue_intr(vqx->vq);
++
++	return (rc ? FILTER_HANDLED : FILTER_STRAY);
++}
++
++static int
++virtio_pci_vq_intr(void *xvq)
++{
++	struct virtqueue *vq;
++	int rc;
++
++	vq = xvq;
++	rc = virtqueue_intr(vq);
++
++	return (rc ? FILTER_HANDLED : FILTER_STRAY);
++}
++
++static int
++virtio_pci_config_intr(void *xsc)
++{
++	struct virtio_pci_softc *sc;
++	device_t child;
++	int rc;
++
++	rc = 0;
++	sc = xsc;
++	child = sc->vtpci_child_dev;
++
++	if (child != NULL)
++		rc = VIRTIO_CONFIG_CHANGE(child);
++
++	return (rc ? FILTER_HANDLED : FILTER_STRAY);
++}
+diff --git a/sys/dev/virtio/pci/virtio_pci_reg.h b/sys/dev/virtio/pci/virtio_pci_reg.h
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/pci/virtio_pci_reg.h
+@@ -0,0 +1,48 @@
++#ifndef _VIRTIO_PCI_REG_H
++#define _VIRTIO_PCI_REG_H
++
++/* VirtIO PCI vendor/device ID. */
++#define VIRTIO_PCI_VENDORID	0x1AF4
++#define VIRTIO_PCI_DEVICEID_MIN	0x1000
++#define VIRTIO_PCI_DEVICEID_MAX	0x103F
++
++/* VirtIO ABI version, this must match exactly. */
++#define VIRTIO_PCI_ABI_VERSION	0
++
++/*
++ * VirtIO Header, located in BAR 0.
++ */
++#define VIRTIO_PCI_HOST_FEATURES  0  /* host's supported features (32bit, RO)*/
++#define VIRTIO_PCI_GUEST_FEATURES 4  /* guest's supported features (32, RW) */
++#define VIRTIO_PCI_QUEUE_PFN      8  /* physical address of VQ (32, RW) */
++#define VIRTIO_PCI_QUEUE_NUM      12 /* number of ring entries (16, RO) */
++#define VIRTIO_PCI_QUEUE_SEL      14 /* current VQ selection (16, RW) */
++#define VIRTIO_PCI_QUEUE_NOTIFY	  16 /* notify host regarding VQ (16, RW) */
++#define VIRTIO_PCI_STATUS         18 /* device status register (8, RW) */
++#define VIRTIO_PCI_ISR            19 /* interrupt status register, reading
++				      * also clears the register (8, RO) */
++/* Only if MSIX is enabled: */
++#define VIRTIO_MSI_CONFIG_VECTOR  20 /* configuration change vector (16, RW) */
++#define VIRTIO_MSI_QUEUE_VECTOR   22 /* vector for selected VQ notifications
++					(16, RW) */
++
++/* The bit of the ISR which indicates a device has an interrupt. */
++#define VIRTIO_PCI_ISR_INTR	0x1
++/* The bit of the ISR which indicates a device configuration change. */
++#define VIRTIO_PCI_ISR_CONFIG	0x2
++/* Vector value used to disable MSI for queue. */
++#define VIRTIO_MSI_NO_VECTOR	0xFFFF
++
++/* The remaining space is defined by each driver as the per-driver
++ * configuration space. */
++#define VIRTIO_PCI_CONFIG(sc) \
++    (((sc)->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) ? 24 : 20)
++
++/* How many bits to shift physical queue address written to QUEUE_PFN.
++ * 12 is historical, and due to x86 page size. */
++#define VIRTIO_PCI_QUEUE_ADDR_SHIFT	12
++
++/* The alignment to use between consumer and producer parts of vring. */
++#define VIRTIO_PCI_VRING_ALIGN	4096
++
++#endif /* _VIRTIO_PCI_REG_H */
+diff --git a/sys/dev/virtio/virtio.c b/sys/dev/virtio/virtio.c
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/virtio.c
+@@ -0,0 +1,231 @@
++#include <sys/cdefs.h>
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/kernel.h>
++#include <sys/malloc.h>
++#include <sys/module.h>
++#include <sys/sbuf.h>
++
++#include <machine/bus.h>
++#include <machine/resource.h>
++#include <sys/bus.h>
++#include <sys/rman.h>
++
++#include <dev/virtio/virtio.h>
++#include <dev/virtio/virtqueue.h>
++
++#include "virtio_bus_if.h"
++
++static int virtio_modevent(module_t, int, void *);
++static const char *virtio_feature_name(uint32_t, struct virtio_feature_desc *);
++
++static struct virtio_ident {
++	uint16_t devid;
++	char	*name;
++} virtio_ident_table[] = {
++	{ VIRTIO_ID_NETWORK,	"Network"	},
++	{ VIRTIO_ID_BLOCK,	"Block"		},
++	{ VIRTIO_ID_CONSOLE, 	"Console" 	},
++	{ VIRTIO_ID_ENTROPY,	"Entropy" 	},
++	{ VIRTIO_ID_BALLOON,	"Balloon" 	},
++	{ VIRTIO_ID_9P,		"9P Transport"	},
++
++	{ 0, NULL }
++};
++
++/* Device independent features. */
++static struct virtio_feature_desc virtio_common_feature_desc[] = {
++	{ VIRTIO_F_NOTIFY_ON_EMPTY,	"NotifyOnEmpty"	},
++	{ VIRTIO_F_RING_INDIRECT_DESC,	"RingIndirect"	},
++	{ VIRTIO_F_BAD_FEATURE,		"BadFeature"	},
++
++	{ 0, NULL }
++};
++
++const char *
++virtio_device_name(uint16_t devid)
++{
++	struct virtio_ident *ident;
++
++	for (ident = virtio_ident_table; ident->name != NULL; ident++) {
++		if (ident->devid == devid)
++			return (ident->name);
++	}
++
++	return (NULL);
++}
++
++static const char *
++virtio_feature_name(uint32_t val, struct virtio_feature_desc *feature_desc)
++{
++	int i;
++
++	for (i = 0; feature_desc[i].vfd_val != 0; i++)
++		if (val == feature_desc[i].vfd_val)
++			return (feature_desc[i].vfd_str);
++
++	return (NULL);
++}
++
++void
++virtio_describe(device_t dev, const char *msg,
++    uint32_t features, struct virtio_feature_desc *feature_desc)
++{
++	struct sbuf sb;
++	char *buf;
++	const char *name;
++	uint32_t val;
++	int i, n;
++
++	if ((buf = malloc(512, M_TEMP, M_NOWAIT)) == NULL)
++		return;
++
++	sbuf_new(&sb, buf, 512, SBUF_FIXEDLEN);
++	sbuf_printf(&sb, "%s features: 0x%x", msg, features);
++
++	/* Decode feature bits during verbose boots. */
++	for (n = 0, i = 31; bootverbose && i >= 0; i--) {
++		val = 1 << i;
++
++		if ((features & val) == 0)
++			continue;
++
++		if (n++ == 0)
++			sbuf_cat(&sb, " <");
++		else
++			sbuf_cat(&sb, ",");
++
++		name = NULL;
++		if (feature_desc != NULL)
++			name = virtio_feature_name(val, feature_desc);
++		if (name == NULL)
++			name = virtio_feature_name(val,
++			    virtio_common_feature_desc);
++
++		if (name == NULL)
++			sbuf_printf(&sb, "0x%x", val);
++		else
++			sbuf_cat(&sb, name);
++	}
++
++	if (n > 0)
++		sbuf_cat(&sb, ">");
++
++#if __FreeBSD_version < 900020
++	sbuf_finish(&sb);
++	if (sbuf_overflowed(&sb) == 0)
++#else
++	if (sbuf_finish(&sb) == 0)
++#endif
++		device_printf(dev, "%s\n", sbuf_data(&sb));
++
++	sbuf_delete(&sb);
++	free(buf, M_TEMP);
++}
++
++/*
++ * VirtIO bus method wrappers.
++ */
++
++uint32_t
++virtio_negotiate_features(device_t dev, uint32_t child_features)
++{
++
++	return (VIRTIO_BUS_NEGOTIATE_FEATURES(device_get_parent(dev),
++	    child_features));
++}
++
++int
++virtio_alloc_vqs(device_t dev, int flags, int nvqs,
++    struct vq_alloc_info *info)
++{
++
++	return (VIRTIO_BUS_ALLOC_VQS(device_get_parent(dev), flags, nvqs,
++	    info));
++}
++
++int
++virtio_setup_intr(device_t dev, enum intr_type type)
++{
++
++	return (VIRTIO_BUS_SETUP_INTR(device_get_parent(dev), type));
++}
++
++int
++virtio_with_feature(device_t dev, uint32_t feature)
++{
++
++	return (VIRTIO_BUS_WITH_FEATURE(device_get_parent(dev), feature));
++}
++
++void
++virtio_stop(device_t dev)
++{
++
++	VIRTIO_BUS_STOP(device_get_parent(dev));
++}
++
++int
++virtio_reinit(device_t dev, uint32_t features)
++{
++
++	return (VIRTIO_BUS_REINIT(device_get_parent(dev), features));
++}
++
++void
++virtio_reinit_complete(device_t dev)
++{
++
++	VIRTIO_BUS_REINIT_COMPLETE(device_get_parent(dev));
++}
++
++void
++virtio_read_device_config(device_t dev, bus_size_t offset, void *dst, int len)
++{
++	device_t parent;
++
++	parent = device_get_parent(dev);
++
++	VIRTIO_BUS_READ_DEVICE_CONFIG(parent, offset, dst, len);
++}
++
++void
++virtio_write_device_config(device_t dev, bus_size_t offset, void *dst, int len)
++{
++	device_t parent;
++
++	parent = device_get_parent(dev);
++
++	VIRTIO_BUS_WRITE_DEVICE_CONFIG(parent, offset, dst, len);
++}
++
++static int
++virtio_modevent(module_t mod, int type, void *unused)
++{
++	int error;
++
++	error = 0;
++
++	switch (type) {
++	case MOD_LOAD:
++	case MOD_QUIESCE:
++	case MOD_UNLOAD:
++	case MOD_SHUTDOWN:
++		break;
++	default:
++		error = EOPNOTSUPP;
++		break;
++	}
++
++	return (error);
++}
++
++static moduledata_t virtio_mod = {
++	"virtio",
++	virtio_modevent,
++	0
++};
++
++DECLARE_MODULE(virtio, virtio_mod, SI_SUB_DRIVERS, SI_ORDER_FIRST);
++MODULE_VERSION(virtio, 1);
+diff --git a/sys/dev/virtio/virtio.h b/sys/dev/virtio/virtio.h
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/virtio.h
+@@ -0,0 +1,103 @@
++#ifndef _VIRTIO_H_
++#define _VIRTIO_H_
++
++#include <sys/types.h>
++
++struct vq_alloc_info;
++
++/* VirtIO device IDs. */
++#define VIRTIO_ID_NETWORK	0x01
++#define VIRTIO_ID_BLOCK		0x02
++#define VIRTIO_ID_CONSOLE	0x03
++#define VIRTIO_ID_ENTROPY	0x04
++#define VIRTIO_ID_BALLOON	0x05
++#define VIRTIO_ID_9P		0x09
++
++/* Status byte for guest to report progress. */
++#define VIRTIO_CONFIG_STATUS_RESET	0x00
++#define VIRTIO_CONFIG_STATUS_ACK	0x01
++#define VIRTIO_CONFIG_STATUS_DRIVER	0x02
++#define VIRTIO_CONFIG_STATUS_DRIVER_OK 	0x04
++#define VIRTIO_CONFIG_STATUS_FAILED	0x80
++
++/*
++ * Generate interrupt when the virtqueue ring is
++ * completely used, even if we've suppressed them.
++ */
++#define VIRTIO_F_NOTIFY_ON_EMPTY (1 << 24)
++
++/*
++ * The guest should never negotiate this feature; it
++ * is used to detect faulty drivers.
++ */
++#define VIRTIO_F_BAD_FEATURE (1 << 30)
++
++/*
++ * Some VirtIO feature bits (currently bits 28 through 31) are
++ * reserved for the transport being used (eg. virtio_ring), the
++ * rest are per-device feature bits.
++ */
++#define VIRTIO_TRANSPORT_F_START	28
++#define VIRTIO_TRANSPORT_F_END		32
++
++struct virtio_feature_desc {
++	uint32_t	 vfd_val;
++	char		*vfd_str;
++};
++
++struct virtio_ivars {
++	uint16_t			 vtivar_devtype;
++	struct virtio_feature_desc	*vtivar_features;
++};
++
++const char *virtio_device_name(uint16_t devid);
++
++void	 virtio_describe(device_t dev, const char *msg,
++	      uint32_t features,
++	      struct virtio_feature_desc *feature_desc);
++
++/*
++ * VirtIO Bus Methods.
++ */
++uint32_t virtio_negotiate_features(device_t dev, uint32_t child_features);
++int	 virtio_alloc_vqs(device_t dev, int flags, int nvqs,
++	     struct vq_alloc_info *info);
++int	 virtio_setup_intr(device_t dev, enum intr_type type);
++int 	 virtio_with_feature(device_t dev, uint32_t feature);
++void	 virtio_stop(device_t dev);
++int	 virtio_reinit(device_t dev, uint32_t features);
++void	 virtio_reinit_complete(device_t dev);
++
++/*
++ * Read/write a variable amount from the device specific (ie, network)
++ * configuration region. This region must be encoded in the same
++ * endianness of the guest, so we can read fields greater than one byte,
++ * one byte at a time.
++ */
++void	 virtio_read_device_config(device_t dev, bus_size_t offset,
++	     void *dst, int len);
++void	 virtio_write_device_config(device_t dev, bus_size_t offset,
++	     void *dst, int len);
++
++/* Provide read/write macros for common lengths. */
++#define VIRTIO_RDWR_DEVICE_CONFIG(type, size) \
++static inline type \
++__CONCAT(virtio_read_dev_config_,size)(device_t dev, \
++    bus_size_t offset) \
++{ \
++	type d; \
++	virtio_read_device_config(dev, offset, &d, sizeof(type)); \
++	return (d); \
++} \
++static inline void \
++__CONCAT(virtio_write_dev_config_,size)(device_t dev, \
++    bus_size_t offset, type s) \
++{ \
++	virtio_write_device_config(dev, offset, &s, sizeof(type)); \
++}
++
++VIRTIO_RDWR_DEVICE_CONFIG(uint8_t, 1);
++VIRTIO_RDWR_DEVICE_CONFIG(uint16_t, 2);
++VIRTIO_RDWR_DEVICE_CONFIG(uint32_t, 4);
++
++#endif /* _VIRTIO_H_ */
+diff --git a/sys/dev/virtio/virtio_bus_if.m b/sys/dev/virtio/virtio_bus_if.m
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/virtio_bus_if.m
+@@ -0,0 +1,65 @@
++#include <sys/bus.h>
++#include <machine/bus.h>
++
++INTERFACE virtio_bus;
++
++HEADER {
++struct vq_alloc_info;
++};
++
++METHOD uint32_t negotiate_features {
++	device_t	dev;
++	uint32_t	child_features;
++};
++
++METHOD int with_feature {
++	device_t	dev;
++	uint32_t	feature;
++};
++
++METHOD int alloc_vqs {
++	device_t	dev;
++	int		flags;
++	int		nvqs;
++	struct vq_alloc_info *info;
++};
++HEADER {
++#define VIRTIO_ALLOC_VQS_DISABLE_MSIX 0x1
++};
++
++METHOD int setup_intr {
++	device_t	dev;
++	enum intr_type	type;
++};
++
++METHOD void stop {
++	device_t	dev;
++};
++
++METHOD int reinit {
++	device_t	dev;
++	uint32_t	features;
++};
++
++METHOD void reinit_complete {
++	device_t	dev;
++};
++
++METHOD void notify_vq {
++	device_t	dev;
++	uint16_t	queue;
++};
++
++METHOD void read_device_config {
++	device_t	dev;
++	bus_size_t	offset;
++	void		*dst;
++	int		len;
++};
++
++METHOD void write_device_config {
++	device_t	dev;
++	bus_size_t	offset;
++	void		*src;
++	int		len;
++};
+diff --git a/sys/dev/virtio/virtio_if.m b/sys/dev/virtio/virtio_if.m
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/virtio_if.m
+@@ -0,0 +1,7 @@
++#include <sys/bus.h>
++
++INTERFACE virtio;
++
++METHOD int config_change {
++	device_t	dev;
++};
+diff --git a/sys/dev/virtio/virtio_ring.h b/sys/dev/virtio/virtio_ring.h
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/virtio_ring.h
+@@ -0,0 +1,145 @@
++/* An interface for efficient virtio implementation.
++ *
++ * This header is BSD licensed so anyone can use the definitions
++ * to implement compatible drivers/servers.
++ *
++ * Copyright 2007, 2009, IBM Corporation
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. Neither the name of IBM nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL IBM OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ */
++
++#ifndef VIRTIO_RING_H
++#define	VIRTIO_RING_H
++
++#include <sys/types.h>
++
++/* This marks a buffer as continuing via the next field. */
++#define VRING_DESC_F_NEXT       1
++/* This marks a buffer as write-only (otherwise read-only). */
++#define VRING_DESC_F_WRITE      2
++/* This means the buffer contains a list of buffer descriptors. */
++#define VRING_DESC_F_INDIRECT	4
++
++/* The Host uses this in used->flags to advise the Guest: don't kick me
++ * when you add a buffer.  It's unreliable, so it's simply an
++ * optimization.  Guest will still kick if it's out of buffers. */
++#define VRING_USED_F_NO_NOTIFY  1
++/* The Guest uses this in avail->flags to advise the Host: don't
++ * interrupt me when you consume a buffer.  It's unreliable, so it's
++ * simply an optimization.  */
++#define VRING_AVAIL_F_NO_INTERRUPT      1
++
++/* Virtio ring descriptors: 16 bytes.
++ * These can chain together via "next". */
++struct vring_desc {
++        /* Address (guest-physical). */
++        uint64_t addr;
++        /* Length. */
++        uint32_t len;
++        /* The flags as indicated above. */
++        uint16_t flags;
++        /* We chain unused descriptors via this, too. */
++        uint16_t next;
++};
++
++struct vring_avail {
++        uint16_t flags;
++        uint16_t idx;
++        uint16_t ring[0];
++};
++
++/* uint32_t is used here for ids for padding reasons. */
++struct vring_used_elem {
++        /* Index of start of used descriptor chain. */
++        uint32_t id;
++        /* Total length of the descriptor chain which was written to. */
++        uint32_t len;
++};
++
++struct vring_used {
++        uint16_t flags;
++        uint16_t idx;
++        struct vring_used_elem ring[0];
++};
++
++struct vring {
++	unsigned int num; /* unused */
++
++	struct vring_desc *desc;
++	struct vring_avail *avail;
++	struct vring_used *used;
++};
++
++/* The standard layout for the ring is a continuous chunk of memory which
++ * looks like this.  We assume num is a power of 2.
++ *
++ * struct vring {
++ *      // The actual descriptors (16 bytes each)
++ *      struct vring_desc desc[num];
++ *
++ *      // A ring of available descriptor heads with free-running index.
++ *      __u16 avail_flags;
++ *      __u16 avail_idx;
++ *      __u16 available[num];
++ *
++ *      // Padding to the next align boundary.
++ *      char pad[];
++ *
++ *      // A ring of used descriptor heads with free-running index.
++ *      __u16 used_flags;
++ *      __u16 used_idx;
++ *      struct vring_used_elem used[num];
++ * };
++ *
++ * NOTE: for VirtIO PCI, align is 4096.
++ */
++
++static inline int
++vring_size(unsigned int num, unsigned long align)
++{
++	int size;
++
++	size = num * sizeof(struct vring_desc);
++	size += sizeof(struct vring_avail) + (num * sizeof(uint16_t));
++	size = (size + align - 1) & ~(align - 1);
++	size += sizeof(struct vring_used) +
++	    (num * sizeof(struct vring_used_elem));
++	return (size);
++}
++
++static inline void
++vring_init(struct vring *vr, unsigned int num, uint8_t *p,
++    unsigned long align)
++{
++        vr->num = num;
++        vr->desc = (struct vring_desc *) p;
++        vr->avail = (struct vring_avail *) (p +
++	    num * sizeof(struct vring_desc));
++        vr->used = (void *)
++	    (((unsigned long) &vr->avail->ring[num] + align-1) & ~(align-1));
++}
++
++
++#endif /* VIRTIO_RING_H */
+diff --git a/sys/dev/virtio/virtqueue.c b/sys/dev/virtio/virtqueue.c
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/virtqueue.c
+@@ -0,0 +1,660 @@
++#include <sys/cdefs.h>
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/kernel.h>
++#include <sys/malloc.h>
++#include <sys/sglist.h>
++#include <vm/vm.h>
++#include <vm/pmap.h>
++
++#include <machine/bus.h>
++#include <machine/resource.h>
++#include <sys/bus.h>
++#include <sys/rman.h>
++
++#include <machine/atomic.h>
++
++#include <dev/virtio/virtio.h>
++#include <dev/virtio/virtqueue.h>
++#include <dev/virtio/virtio_ring.h>
++
++#include "virtio_bus_if.h"
++
++struct virtqueue {
++	device_t	 	 vq_dev;
++	char		 	 vq_name[VIRTQUEUE_MAX_NAME_SZ];
++	uint16_t	 	 vq_queue_index;
++	uint16_t	 	 vq_nentries;
++	uint32_t	 	 vq_flags;
++#define	VIRTQUEUE_INDIRECT	 0x0001
++
++	int			 vq_alignment;
++	int		 	 vq_ring_size;
++	void			*vq_ring_mem;
++	int			 vq_max_indirect_sz;
++	int			 vq_indirect_mem_sz;
++	struct vring_desc	*vq_indirect_mem;
++	virtqueue_intr_t	*vq_intrhand;
++	void			*vq_intrhand_arg;
++
++	struct vring		 vq_vring;
++	/* Number of free descriptors. */
++	uint16_t		 vq_free_cnt;
++	/* Index of first free descriptor. */
++	uint16_t		 vq_head_idx;
++	/* Number of descriptors awaiting virtio_sync(). */
++	uint16_t		 vq_queued_cnt;
++	/* Index of last descriptor we've processed. */
++	uint16_t		 vq_last_used_idx;
++
++	/*
++	 * TODO This doesn't need to be a struct anymore. Back
++	 * when the indirect descriptors weren't preallocated,
++	 * the address was also hung off here.
++	 */
++	struct vq_desc_extra {
++		void 	*cookie;
++	} vq_descx[0];
++};
++
++/*
++ * The architected maximum virtqueue size is 2^15, so
++ * this will never be a valid index in the descriptor
++ * chain. We use this to verify we are not miss-handling
++ * vq_free_cnt.
++ */
++#define VQ_RING_DESC_CHAIN_END 32768
++
++#define VQASSERT(_vq, _exp, _msg, ...) \
++	KASSERT((_exp),("%s: %s - "_msg, __func__, \
++	    (_vq)->vq_name, ##__VA_ARGS__))
++
++#define VQ_RING_ASSERT_VALID_IDX(_vq, _idx) \
++	    VQASSERT((_vq), (_idx) < (_vq)->vq_nentries, \
++		"invalid ring index: %d, max: %d", \
++		(_idx), (_vq)->vq_nentries)
++
++#define VQ_RING_ASSERT_CHAIN_TERM(_vq) \
++    	    VQASSERT((_vq), (_vq)->vq_head_idx == VQ_RING_DESC_CHAIN_END, \
++		"full ring not terminated correctly")
++
++static int	virtqueue_init_indirect(struct virtqueue *vq);
++static void	virtqueue_free_indirect(struct virtqueue *vq);
++
++static void	vq_ring_init(struct virtqueue *);
++static int	vq_ring_do_indirect(struct virtqueue *, int);
++static void	vq_ring_enqueue_indirect(struct virtqueue *, void *,
++    		    struct sglist *, int, int);
++static void	vq_ring_free_chain(struct virtqueue *, int);
++
++uint32_t
++virtqueue_filter_features(uint32_t features)
++{
++	uint32_t mask;
++
++	mask = ((1 << VIRTIO_TRANSPORT_F_START) - 1);
++	mask |= VIRTIO_F_RING_INDIRECT_DESC;
++
++	return (features & mask);
++}
++
++int
++virtqueue_alloc(device_t dev, uint16_t queue, uint16_t size,
++    int align, struct vq_alloc_info *info, struct virtqueue **vqp)
++{
++	struct virtqueue *vq;
++	int error;
++
++	*vqp = NULL;
++	error = 0;
++
++	if (size == 0) {
++		device_printf(dev, "virtqueue size is zero\n");
++		return (ENODEV);
++	} else if (!powerof2(size)) {
++		device_printf(dev, "virtqueue size is not power of 2: %d\n",
++		    size);
++		return (ENXIO);
++	}
++
++	vq = malloc(sizeof(struct virtqueue) +
++	    size * sizeof(struct vq_desc_extra), M_DEVBUF,
++	    M_NOWAIT | M_ZERO);
++	if (vq == NULL) {
++		device_printf(dev, "cannot allocate virtqueue\n");
++		return (ENOMEM);
++	}
++
++	/* Initialize virtqueue. */
++	vq->vq_dev = dev;
++	strlcpy(vq->vq_name, info->vqai_name, sizeof(vq->vq_name));
++	vq->vq_queue_index = queue;
++	vq->vq_alignment = align;
++	vq->vq_nentries = size;
++	vq->vq_free_cnt = size;
++	vq->vq_max_indirect_sz = info->vqai_maxindirsz;
++	vq->vq_intrhand = info->vqai_intr;
++	vq->vq_intrhand_arg = info->vqai_intr_arg;
++
++	/* Allocate memory for indirect descriptors. */
++	if (vq->vq_max_indirect_sz > 1 &&
++	    VIRTIO_BUS_WITH_FEATURE(dev,
++	        VIRTIO_F_RING_INDIRECT_DESC)) {
++
++		error = virtqueue_init_indirect(vq);
++		if (error) {
++			device_printf(dev, "cannot allocate memory "
++			    "for indirect descriptors\n");
++			goto fail;
++		}
++	}
++
++	/*
++	 * Allocate memory for the vring.
++	 * XXX: The 4GB upper boundary is a PCI limitation.
++	 */
++	vq->vq_ring_size = round_page(vring_size(size, align));
++	vq->vq_ring_mem = contigmalloc(vq->vq_ring_size, M_DEVBUF,
++	    M_WAITOK | M_ZERO, 0, 0xFFFFFFFFUL, PAGE_SIZE, 0);
++	if (vq->vq_ring_mem == NULL) {
++		device_printf(dev,
++		    "cannot allocate memory for virtqueue ring\n");
++		error = ENOMEM;
++		goto fail;
++	}
++
++	vq_ring_init(vq);
++
++	/* Default to interrupts disabled. */
++	virtqueue_disable_intr(vq);
++
++	*vqp = vq;
++
++fail:
++	if (error)
++		virtqueue_free(vq);
++
++	return (error);
++}
++
++static int
++virtqueue_init_indirect(struct virtqueue *vq)
++{
++	struct vring_desc *desc;
++	int size;
++
++	size = vq->vq_max_indirect_sz * sizeof(struct vring_desc);
++	size *= vq->vq_nentries;
++
++	desc = contigmalloc(size, M_DEVBUF, M_NOWAIT | M_ZERO,
++	    0, ~0ul, PAGE_SIZE, 0);
++	if (desc == NULL)
++		return (ENOMEM);
++
++	vq->vq_flags |= VIRTQUEUE_INDIRECT;
++	vq->vq_indirect_mem = desc;
++	vq->vq_indirect_mem_sz = size;
++
++	return (0);
++}
++
++static void
++virtqueue_free_indirect(struct virtqueue *vq)
++{
++
++	if ((vq->vq_flags & VIRTQUEUE_INDIRECT) == 0)
++		return;
++
++	contigfree(vq->vq_indirect_mem, vq->vq_indirect_mem_sz, M_DEVBUF);
++
++	vq->vq_flags &= ~VIRTQUEUE_INDIRECT;
++	vq->vq_indirect_mem = NULL;
++	vq->vq_indirect_mem_sz = 0;
++}
++
++int
++virtqueue_reinit(struct virtqueue *vq, uint16_t size)
++{
++
++	if (vq->vq_nentries != size) {
++		device_printf(vq->vq_dev,
++		    "vq_reinit: '%s' changed size; old=%hu, new=%hu\n",
++		    vq->vq_name, vq->vq_nentries, size);
++		return (EINVAL);
++	}
++
++	/* Warn if the virtqueue was not properly cleaned up. */
++	if (vq->vq_free_cnt != vq->vq_nentries) {
++		device_printf(vq->vq_dev,
++		    "vq_reinit: warning, '%s' virtqueue not empty, "
++		    "leaking %d entries\n", vq->vq_name,
++		    vq->vq_nentries - vq->vq_free_cnt);
++	}
++
++	vq->vq_head_idx = 0;
++	vq->vq_last_used_idx = 0;
++	vq->vq_queued_cnt = 0;
++	vq->vq_free_cnt = vq->vq_nentries;
++
++	/* To be safe, zero all our allocated memory. */
++	bzero(&vq->vq_descx[0], size * sizeof(struct vq_desc_extra));
++	bzero(vq->vq_ring_mem, vq->vq_ring_size);
++	if (vq->vq_flags & VIRTQUEUE_INDIRECT)
++		bzero(vq->vq_indirect_mem, vq->vq_indirect_mem_sz);
++
++	vq_ring_init(vq);
++	virtqueue_disable_intr(vq);
++
++	return (0);
++}
++
++static void
++vq_ring_init(struct virtqueue *vq)
++{
++	struct vring *vr;
++	char *ring_mem;
++	int i, size;
++
++	ring_mem = vq->vq_ring_mem;
++	size = vq->vq_nentries;
++	vr = &vq->vq_vring;
++
++	vring_init(vr, size, ring_mem, vq->vq_alignment);
++
++	for (i = 0; i < size - 1; i++)
++		vr->desc[i].next = i + 1;
++	vr->desc[i].next = VQ_RING_DESC_CHAIN_END;
++}
++
++vm_paddr_t
++vq_ring_paddr(struct virtqueue *vq)
++{
++
++	return (vtophys(vq->vq_ring_mem));
++}
++
++void
++virtqueue_free(struct virtqueue *vq)
++{
++	int nleaking;
++
++	nleaking = vq->vq_nentries - vq->vq_free_cnt;
++	if (nleaking > 0) {
++		device_printf(vq->vq_dev, "%s: freeing non-empty virtqueue, "
++		    "leaking %d entries\n", vq->vq_name, nleaking);
++	}
++
++	virtqueue_free_indirect(vq);
++
++	if (vq->vq_ring_mem != NULL) {
++		contigfree(vq->vq_ring_mem, vq->vq_ring_size, M_DEVBUF);
++		vq->vq_ring_size = 0;
++		vq->vq_ring_mem = NULL;
++	}
++
++	free(vq, M_DEVBUF);
++}
++
++int
++virtqueue_size(struct virtqueue *vq)
++{
++
++	return (vq->vq_nentries);
++}
++
++int
++virtqueue_empty(struct virtqueue *vq)
++{
++
++	return (vq->vq_nentries == vq->vq_free_cnt);
++}
++
++int
++virtqueue_full(struct virtqueue *vq)
++{
++
++	return (vq->vq_free_cnt == 0);
++}
++
++int
++virtqueue_nused(struct virtqueue *vq)
++{
++	uint16_t nused;
++
++	if (vq->vq_vring.used->idx >= vq->vq_last_used_idx)
++		nused = vq->vq_vring.used->idx - vq->vq_last_used_idx;
++	else
++		nused = UINT16_MAX - vq->vq_last_used_idx +
++		    vq->vq_vring.used->idx + 1;
++
++	KASSERT(nused <= vq->vq_nentries, ("used more than available"));
++
++	return (nused);
++}
++
++void
++virtqueue_disable_intr(struct virtqueue *vq)
++{
++
++	/*
++	 * Note this is only considered a hint to the host.
++	 */
++	vq->vq_vring.avail->flags |= VRING_AVAIL_F_NO_INTERRUPT;
++}
++
++int
++virtqueue_enable_intr(struct virtqueue *vq)
++{
++
++	/*
++	 * Enable interrupts, making sure we get the latest
++	 * index of what's already been used.
++	 */
++	vq->vq_vring.avail->flags &= ~VRING_AVAIL_F_NO_INTERRUPT;
++
++	mb();
++
++	/*
++	 * Additional items may have been used in the time between
++	 * since we last checked and enabled interrupts above. Let
++	 * our caller know so it processes the new used entries.
++	 */
++	if (vq->vq_last_used_idx != vq->vq_vring.used->idx)
++		return (1);
++
++	return (0);
++}
++
++int
++virtqueue_intr_enabled(struct virtqueue *vq)
++{
++
++	return ((vq->vq_vring.avail->flags & VRING_AVAIL_F_NO_INTERRUPT) == 0);
++}
++
++int
++virtqueue_intr(struct virtqueue *vq)
++{
++
++	if (vq->vq_last_used_idx == vq->vq_vring.used->idx)
++		return (0);
++
++	if (vq->vq_intrhand != NULL)
++		vq->vq_intrhand(vq->vq_intrhand_arg);
++
++	return (1);
++}
++
++void
++virtqueue_notify(struct virtqueue *vq, int force)
++{
++
++	if (force ||
++	    (vq->vq_vring.used->flags & VRING_USED_F_NO_NOTIFY) == 0)
++		VIRTIO_BUS_NOTIFY_VQ(vq->vq_dev, vq->vq_queue_index);
++}
++
++void *
++virtqueue_drain(struct virtqueue *vq)
++{
++	void *cookie;
++	int i;
++
++	cookie = NULL;
++
++	/* Virtqueues are small - always start over at the beginning. */
++	for (i = 0; i < vq->vq_nentries; i++) {
++		if ((cookie = vq->vq_descx[i].cookie) != NULL) {
++			vq_ring_free_chain(vq, i);
++			vq->vq_descx[i].cookie = NULL;
++			break;
++		}
++	}
++
++	return (cookie);
++}
++
++int
++vq_ring_enqueue(struct virtqueue *vq, void *cookie, struct sglist *sg,
++    int readable, int writable)
++{
++	struct sglist_seg *seg;
++	struct vring_desc *dp;
++	int i, idx, needed, head, avail_idx;
++
++	needed = readable + writable;
++
++	VQASSERT(vq, cookie != NULL, "NULL cookie");
++	VQASSERT(vq, needed == sg->sg_nseg, "segment count mismatch, %d, %d",
++	    needed, sg->sg_nseg);
++	VQASSERT(vq,
++	    needed <= vq->vq_nentries || needed <= vq->vq_max_indirect_sz,
++	    "too many segments to enqueue: %d, %d/%d", needed,
++	    vq->vq_nentries, vq->vq_max_indirect_sz);
++
++	if (needed < 1)
++		return (EINVAL);
++
++	/* Use indirect if possible. */
++	if (vq_ring_do_indirect(vq, needed)) {
++		vq_ring_enqueue_indirect(vq, cookie, sg, readable, writable);
++		return (0);
++	}
++
++	if (vq->vq_free_cnt < needed) {
++		/*
++		 * Notify the host only for read-only buffers.
++		 */
++		if (writable == 0)
++			virtqueue_notify(vq, 1);
++
++		if (vq->vq_free_cnt == 0)
++			return (ENOSPC);
++		else
++			/* Caller may defrag and try again. */
++			return (EMSGSIZE);
++	}
++
++	head = vq->vq_head_idx;
++
++	for (i = 0, idx = head, seg = sg->sg_segs;
++	     i < needed;
++	     i++, idx = dp->next, seg++) {
++		VQ_RING_ASSERT_VALID_IDX(vq, idx);
++
++		dp = &vq->vq_vring.desc[idx];
++		dp->addr = seg->ss_paddr;
++		dp->len = seg->ss_len;
++		dp->flags = VRING_DESC_F_NEXT;
++		if (i >= readable)
++			dp->flags |= VRING_DESC_F_WRITE;
++	}
++	dp->flags &= ~VRING_DESC_F_NEXT;
++
++	/* Set the new head. */
++	vq->vq_head_idx = dp->next;
++	vq->vq_free_cnt -= needed;
++	if (vq->vq_free_cnt == 0)
++		VQ_RING_ASSERT_CHAIN_TERM(vq);
++	else
++		VQ_RING_ASSERT_VALID_IDX(vq, vq->vq_head_idx);
++
++	/*
++	 * Add a new entry to the available ring, but postpone
++	 * telling the host about it until vq_ring_sync(). The
++	 * specification advocates doing this to reduce guest/host
++	 * context switches.
++	 */
++	avail_idx = (vq->vq_vring.avail->idx + vq->vq_queued_cnt++) %
++	    vq->vq_nentries;
++	vq->vq_vring.avail->ring[avail_idx] = head;
++	VQASSERT(vq, vq->vq_descx[head].cookie == NULL,
++	    "cookie already exists for idx %d", head);
++	vq->vq_descx[head].cookie = cookie;
++
++	return (0);
++}
++
++static int
++vq_ring_do_indirect(struct virtqueue *vq, int needed)
++{
++
++	if ((vq->vq_flags & VIRTQUEUE_INDIRECT) == 0)
++		return (0);
++
++	if (vq->vq_free_cnt == 0)
++		return (0);
++
++	if (vq->vq_max_indirect_sz < needed)
++		return (0);
++
++	if (needed < 2)
++		return (0);
++
++	return (1);
++}
++
++static void
++vq_ring_enqueue_indirect(struct virtqueue *vq, void *cookie,
++    struct sglist *sg, int readable, int writable)
++{
++	struct sglist_seg *seg;
++	struct vring_desc *dp, *indirect, *idp;
++	int i, needed, head, avail_idx;
++
++	head = vq->vq_head_idx;
++	VQ_RING_ASSERT_VALID_IDX(vq, head);
++	needed = readable + writable;
++
++	VQASSERT(vq, needed <= vq->vq_max_indirect_sz,
++	    "enqueuing too many indirect descriptors");
++
++	indirect = idp = &vq->vq_indirect_mem[head * vq->vq_max_indirect_sz];
++
++	for (i = 0, seg = sg->sg_segs;
++	     i < needed;
++	     i++, seg++) {
++
++		idp = &indirect[i];
++		idp->addr = seg->ss_paddr;
++		idp->len = seg->ss_len;
++		idp->flags = VRING_DESC_F_NEXT;
++		idp->next = i + 1;
++		if (i >= readable)
++			idp->flags |= VRING_DESC_F_WRITE;
++	}
++	idp->flags &= ~VRING_DESC_F_NEXT;
++	idp->next = VQ_RING_DESC_CHAIN_END;
++
++	dp = &vq->vq_vring.desc[head];
++	dp->addr = vtophys(indirect);
++	dp->len = needed * sizeof(struct vring_desc);
++	dp->flags = VRING_DESC_F_INDIRECT;
++
++	/* Set the new head. */
++	vq->vq_head_idx = dp->next;
++	vq->vq_free_cnt--;
++	if (vq->vq_free_cnt == 0)
++		VQ_RING_ASSERT_CHAIN_TERM(vq);
++	else
++		VQ_RING_ASSERT_VALID_IDX(vq, vq->vq_head_idx);
++
++	VQASSERT(vq, vq->vq_descx[head].cookie == NULL,
++	    "cookie already exists for idx %d", head);
++	vq->vq_descx[head].cookie = cookie;
++
++	avail_idx = (vq->vq_vring.avail->idx + vq->vq_queued_cnt++) %
++	    vq->vq_nentries;
++	vq->vq_vring.avail->ring[avail_idx] = head;
++}
++
++void
++vq_ring_sync(struct virtqueue *vq)
++{
++
++	/* Update available ring. */
++	mb();
++	vq->vq_vring.avail->idx += vq->vq_queued_cnt;
++	vq->vq_queued_cnt = 0;
++
++	/* Notify host. */
++	mb();
++	virtqueue_notify(vq, 0);
++}
++
++void *
++vq_ring_dequeue(struct virtqueue *vq, uint32_t *len)
++{
++	struct vring_used_elem *uep;
++	void *cookie;
++	int used_idx, desc_idx;
++
++	if (vq->vq_last_used_idx == vq->vq_vring.used->idx)
++		return (NULL);
++
++	mb();
++	used_idx = vq->vq_last_used_idx % vq->vq_nentries;
++	uep = &vq->vq_vring.used->ring[used_idx];
++	vq->vq_last_used_idx++;
++
++	desc_idx = uep->id;
++	if (len != NULL)
++		*len = uep->len;
++	cookie = vq->vq_descx[desc_idx].cookie;
++	VQASSERT(vq, cookie != NULL, "no cookie for index %d", desc_idx);
++	vq->vq_descx[desc_idx].cookie = NULL;
++
++	vq_ring_free_chain(vq, desc_idx);
++
++	return (cookie);
++}
++
++static void
++vq_ring_free_chain(struct virtqueue *vq, int desc_idx)
++{
++	struct vring_desc *hdp, *dp;
++
++	hdp = dp = &vq->vq_vring.desc[desc_idx];
++	if (vq->vq_free_cnt == 0)
++		VQ_RING_ASSERT_CHAIN_TERM(vq);
++
++	if ((dp->flags & VRING_DESC_F_INDIRECT) == 0) {
++		/* Mark the chain as free. */
++		while (dp->flags & VRING_DESC_F_NEXT) {
++			VQ_RING_ASSERT_VALID_IDX(vq, dp->next);
++
++			dp = &vq->vq_vring.desc[dp->next];
++			dp->flags &= VRING_DESC_F_NEXT;
++			vq->vq_free_cnt++;
++		}
++	}
++
++	/* Mark *hdp as free. */
++	hdp->flags &= VRING_DESC_F_NEXT;
++	vq->vq_free_cnt++;
++
++	/*
++	 * Append the existing free chain, if any, to the newly freed
++	 * chain. Must append old to new in case the virtqueue was
++	 * full.
++	 */
++	dp->next = vq->vq_head_idx;
++	dp->flags = VRING_DESC_F_NEXT;
++	/* Set desc_idx as the new head. */
++	vq->vq_head_idx = desc_idx;
++}
++
++void
++virtqueue_dump(struct virtqueue *vq)
++{
++
++	if (vq == NULL)
++		return;
++
++	printf("VQ: %s - last_used_idx: %d; used.idx: %d; "
++	    "avail.idx: %d; free: %d; flags: 0x%x\n", vq->vq_name,
++	    vq->vq_last_used_idx, vq->vq_vring.used->idx,
++	    vq->vq_vring.avail->idx, vq->vq_free_cnt,
++	    vq->vq_vring.avail->flags);
++}
+diff --git a/sys/dev/virtio/virtqueue.h b/sys/dev/virtio/virtqueue.h
+new file mode 100644
+--- /dev/null
++++ b/sys/dev/virtio/virtqueue.h
+@@ -0,0 +1,68 @@
++#ifndef _VIRTIO_VIRTQUEUE_H
++#define _VIRTIO_VIRTQUEUE_H
++
++#include <sys/types.h>
++
++struct virtqueue;
++struct sglist;
++
++/* Support for indirect buffer descriptors. */
++#define VIRTIO_F_RING_INDIRECT_DESC	(1 << 28)
++
++/* Device callback for a virtqueue interrupt. */
++typedef int virtqueue_intr_t(void *);
++
++#define VIRTQUEUE_MAX_NAME_SZ	32
++
++/* One for each virtqueue the driver wishes to allocate. */
++struct vq_alloc_info {
++	char		   vqai_name[VIRTQUEUE_MAX_NAME_SZ];
++	int		   vqai_maxindirsz;
++	virtqueue_intr_t  *vqai_intr;
++	void		  *vqai_intr_arg;
++	struct virtqueue **vqai_vq;
++};
++
++#define VQ_ALLOC_INFO_INIT(_i,_nsegs,_intr,_arg,_vqp,_str,...) do {	\
++	snprintf((_i)->vqai_name, VIRTQUEUE_MAX_NAME_SZ, _str,		\
++	    ##__VA_ARGS__);						\
++	(_i)->vqai_maxindirsz = (_nsegs);				\
++	(_i)->vqai_intr = (_intr);					\
++	(_i)->vqai_intr_arg = (_arg);					\
++	(_i)->vqai_vq = (_vqp);						\
++} while (0)
++
++uint32_t virtqueue_filter_features(uint32_t);
++
++int	virtqueue_alloc(device_t dev, uint16_t queue, uint16_t size,
++	    int align, struct vq_alloc_info *info,
++	    struct virtqueue **vqp);
++void	*virtqueue_drain(struct virtqueue *vq);
++void	 virtqueue_free(struct virtqueue *vq);
++int	 virtqueue_reinit(struct virtqueue *vq, uint16_t size);
++
++int	 virtqueue_intr(struct virtqueue *vq);
++int 	 virtqueue_enable_intr(struct virtqueue *vq);
++void 	 virtqueue_disable_intr(struct virtqueue *vq);
++int	 virtqueue_intr_enabled(struct virtqueue *vq);
++void	 virtqueue_notify(struct virtqueue *vq, int force);
++
++int	 virtqueue_full(struct virtqueue *vq);
++int	 virtqueue_empty(struct virtqueue *vq);
++int	 virtqueue_size(struct virtqueue *vq);
++int	 virtqueue_nused(struct virtqueue *vq);
++void	 virtqueue_dump(struct virtqueue *vq);
++
++/*
++ * The VirtIO ring is the only transport we support.
++ */
++
++/* Get physical address of the vq ring. */
++vm_paddr_t vq_ring_paddr(struct virtqueue *vq);
++
++int	 vq_ring_enqueue(struct virtqueue *vq, void *cookie,
++	     struct sglist *sg, int readable, int writable);
++void	 vq_ring_sync(struct virtqueue *vq);
++void	*vq_ring_dequeue(struct virtqueue *vq, uint32_t *len);
++
++#endif /* _VIRTIO_VIRTQUEUE_H */
+diff --git a/sys/modules/Makefile b/sys/modules/Makefile
+--- a/sys/modules/Makefile
++++ b/sys/modules/Makefile
+@@ -302,6 +302,7 @@
+ 	utopia \
+ 	${_vesa} \
+ 	vge \
++	${_virtio} \
+ 	vkbd \
+ 	${_vpo} \
+ 	vr \
+diff --git a/sys/modules/virtio/Makefile b/sys/modules/virtio/Makefile
+new file mode 100644
+--- /dev/null
++++ b/sys/modules/virtio/Makefile
+@@ -0,0 +1,28 @@
++#
++# $FreeBSD$
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions
++# are met:
++# 1. Redistributions of source code must retain the above copyright
++#    notice, this list of conditions and the following disclaimer.
++# 2. Redistributions in binary form must reproduce the above copyright
++#    notice, this list of conditions and the following disclaimer in the
++#    documentation and/or other materials provided with the distribution.
++#
++# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGE.
++#
++
++SUBDIR=	virtio pci network
++
++.include <bsd.subdir.mk>
+diff --git a/sys/modules/virtio/block/Makefile b/sys/modules/virtio/block/Makefile
+new file mode 100644
+--- /dev/null
++++ b/sys/modules/virtio/block/Makefile
+@@ -0,0 +1,33 @@
++#
++# $FreeBSD$
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions
++# are met:
++# 1. Redistributions of source code must retain the above copyright
++#    notice, this list of conditions and the following disclaimer.
++# 2. Redistributions in binary form must reproduce the above copyright
++#    notice, this list of conditions and the following disclaimer in the
++#    documentation and/or other materials provided with the distribution.
++#
++# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGE.
++#
++
++.PATH: ${.CURDIR}/../../../dev/virtio/block
++
++KMOD=	vtblk
++SRCS=	vtblk.c
++SRCS+=	virtio_bus_if.h virtio_if.h
++SRCS+=	bus_if.h device_if.h 
++
++.include <bsd.kmod.mk>
+diff --git a/sys/modules/virtio/network/Makefile b/sys/modules/virtio/network/Makefile
+new file mode 100644
+--- /dev/null
++++ b/sys/modules/virtio/network/Makefile
+@@ -0,0 +1,33 @@
++#
++# $FreeBSD$
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions
++# are met:
++# 1. Redistributions of source code must retain the above copyright
++#    notice, this list of conditions and the following disclaimer.
++# 2. Redistributions in binary form must reproduce the above copyright
++#    notice, this list of conditions and the following disclaimer in the
++#    documentation and/or other materials provided with the distribution.
++#
++# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGE.
++#
++
++.PATH: ${.CURDIR}/../../../dev/virtio/network
++
++KMOD=	if_vtnet
++SRCS=	if_vtnet.c
++SRCS+=	virtio_bus_if.h virtio_if.h
++SRCS+=	bus_if.h device_if.h 
++
++.include <bsd.kmod.mk>
+diff --git a/sys/modules/virtio/pci/Makefile b/sys/modules/virtio/pci/Makefile
+new file mode 100644
+--- /dev/null
++++ b/sys/modules/virtio/pci/Makefile
+@@ -0,0 +1,33 @@
++#
++# $FreeBSD$
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions
++# are met:
++# 1. Redistributions of source code must retain the above copyright
++#    notice, this list of conditions and the following disclaimer.
++# 2. Redistributions in binary form must reproduce the above copyright
++#    notice, this list of conditions and the following disclaimer in the
++#    documentation and/or other materials provided with the distribution.
++#
++# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGE.
++#
++
++.PATH: ${.CURDIR}/../../../dev/virtio/pci
++
++KMOD=	virtio_pci
++SRCS=	virtio_pci.c
++SRCS+=	virtio_bus_if.h virtio_if.h 
++SRCS+=	bus_if.h device_if.h pci_if.h
++
++.include <bsd.kmod.mk>
+diff --git a/sys/modules/virtio/virtio/Makefile b/sys/modules/virtio/virtio/Makefile
+new file mode 100644
+--- /dev/null
++++ b/sys/modules/virtio/virtio/Makefile
+@@ -0,0 +1,35 @@
++#
++# $FreeBSD$
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions
++# are met:
++# 1. Redistributions of source code must retain the above copyright
++#    notice, this list of conditions and the following disclaimer.
++# 2. Redistributions in binary form must reproduce the above copyright
++#    notice, this list of conditions and the following disclaimer in the
++#    documentation and/or other materials provided with the distribution.
++#
++# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGE.
++#
++
++.PATH: ${.CURDIR}/../../../dev/virtio
++
++KMOD=	virtio
++
++SRCS=	virtio.c virtqueue.c
++SRCS+=	virtio_bus_if.c virtio_bus_if.h
++SRCS+=	virtio_if.c virtio_if.h
++SRCS+=	bus_if.h device_if.h 
++
++.include <bsd.kmod.mk>

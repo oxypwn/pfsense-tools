@@ -1,0 +1,453 @@
+Index: contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.12
+diff -u -r1.12 pf.c
+--- contrib/pf/net/pf.c	3 Nov 2010 17:37:40 -0000	1.12
++++ contrib/pf/net/pf.c	3 Nov 2010 17:39:44 -0000
+@@ -2276,7 +2276,7 @@
+ 	struct m_tag	*mtag;
+ 
+ 	if ((mtag = m_tag_find(m, PACKET_TAG_PF, NULL)) == NULL) {
+-		mtag = m_tag_get(PACKET_TAG_PF, sizeof(struct pf_mtag),
++		mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_PF, sizeof(struct pf_mtag),
+ 		    M_NOWAIT);
+ 		if (mtag == NULL)
+ 			return (NULL);
+@@ -7588,7 +7588,7 @@
+ 		if (!r->spare1 ||
+ 		    (s && s->packets[dir == PF_OUT] <= r->spare1)) {
+ 
+-			dn_tag = m_tag_alloc(MTAG_IPFW_RULE, 0,
++			dn_tag = m_tag_fast_alloc(*m0, MTAG_IPFW_RULE, 0,
+ 			    sizeof(struct ipfw_rule_ref), M_NOWAIT | M_ZERO);
+ 			if (dn_tag != NULL) {
+ 				((struct ipfw_rule_ref *)(dn_tag+1))->info = r->divert;
+Index: contrib/pf/net/pf_mtag.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_mtag.h,v
+retrieving revision 1.3
+diff -u -r1.3 pf_mtag.h
+--- contrib/pf/net/pf_mtag.h	3 Nov 2010 17:34:38 -0000	1.3
++++ contrib/pf/net/pf_mtag.h	3 Nov 2010 17:39:08 -0000
+@@ -71,8 +71,8 @@
+ 	struct m_tag	*mtag;
+ 
+ 	if ((mtag = m_tag_find(m, PACKET_TAG_PF, NULL)) == NULL) {
+-		mtag = m_tag_get(PACKET_TAG_PF, sizeof(struct pf_mtag),
+-		    M_NOWAIT);
++		mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_PF,
++					sizeof(struct pf_mtag), M_NOWAIT);
+ 		if (mtag == NULL)
+ 			return (NULL);
+ 		bzero(mtag + 1, sizeof(struct pf_mtag));
+Index: kern/kern_mbuf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/kern/kern_mbuf.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 kern_mbuf.c
+--- kern/kern_mbuf.c	3 Nov 2010 17:32:48 -0000	1.1.1.1
++++ kern/kern_mbuf.c	3 Nov 2010 17:39:08 -0000
+@@ -408,6 +408,7 @@
+ 		m->m_pkthdr.ether_vtag = 0;
+ 		m->m_pkthdr.flowid = 0;
+ 		SLIST_INIT(&m->m_pkthdr.tags);
++		INIT_TAG_CONTAINER(m);
+ #ifdef MAC
+ 		/* If the label init fails, fail the alloc */
+ 		error = mac_mbuf_init(m, how);
+Index: kern/uipc_mbuf2.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/kern/uipc_mbuf2.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 uipc_mbuf2.c
+--- kern/uipc_mbuf2.c	3 Nov 2010 17:32:49 -0000	1.1.1.1
++++ kern/uipc_mbuf2.c	3 Nov 2010 17:39:08 -0000
+@@ -312,6 +312,52 @@
+ 	free(t, M_PACKET_TAGS);
+ }
+ 
++/* XXX m_tag_fast_free is a NOP;
++ *
++ * Fast tags are held in pkthdr part of the mbuf. To avoid
++ * costly manipulations here we don't try to enable reuse of
++ * the mtag when deleting a FASTTAG. The tag is simply unlinked
++ * in m_tag_delete and the container free size doesn't change.
++ */
++void
++m_tag_fast_free(struct m_tag *t)
++{
++}
++
++/* Same as m_tag_alloc but uses packet header tag container.
++ * its fast because it doesn't have the wait time/overhead of malloc but also
++ * because of its cache locality.
++ */
++struct m_tag *
++m_tag_fast_alloc(struct mbuf *m, u_int32_t cookie, int type, int len, int wait)
++{
++	struct m_tag *t;
++
++	MBUF_CHECKSLEEP(wait);
++	if (len < 0)
++		return NULL;
++	/*
++	 * fast path tag allocation mechanism.
++	 * XXX checking for M_FASTTAG is only useful if we plan on supporting
++	 * some kind of union between old style mbuf and fast tag ones.
++	 */
++	if (((m->m_flags & M_FASTTAG) &&
++	     (len + sizeof(struct m_tag)) <= m->m_pkthdr.tag_container_size)) {
++	      t = (struct m_tag *)m->m_pkthdr.tag_containerp;
++	      m->m_pkthdr.tag_containerp += len + sizeof(struct m_tag);
++	      m->m_pkthdr.tag_container_size -= len + sizeof(struct m_tag);
++	      t->m_tag_free = m_tag_fast_free;
++	}
++	else { /* revert back to using standard malloc mechanism */
++	  t = malloc(len + sizeof(struct m_tag), M_PACKET_TAGS, wait);
++	  if (t == NULL)
++	    return NULL;
++	  t->m_tag_free = m_tag_free_default;
++	}
++	m_tag_setup(t, cookie, type, len);
++	return t;
++}
++
+ /* Get a packet tag structure along with specified data following. */
+ struct m_tag *
+ m_tag_alloc(u_int32_t cookie, int type, int len, int wait)
+Index: net/if_gif.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net/if_gif.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_gif.c
+--- net/if_gif.c	3 Nov 2010 17:32:49 -0000	1.1.1.1
++++ net/if_gif.c	3 Nov 2010 17:39:08 -0000
+@@ -414,7 +414,7 @@
+ 		error = EIO;	/* is there better errno? */
+ 		goto end;
+ 	}
+-	mtag = m_tag_alloc(MTAG_GIF, MTAG_GIF_CALLED, sizeof(struct ifnet *),
++	mtag = m_tag_fast_alloc(m, MTAG_GIF, MTAG_GIF_CALLED, sizeof(struct ifnet *),
+ 	    M_NOWAIT);
+ 	if (mtag == NULL) {
+ 		m_freem(m);
+Index: net/rtsock.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net/rtsock.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 rtsock.c
+--- net/rtsock.c	3 Nov 2010 17:32:50 -0000	1.1.1.1
++++ net/rtsock.c	3 Nov 2010 17:39:08 -0000
+@@ -1361,7 +1361,7 @@
+ 	 * the netisr.
+ 	 */
+ 	if (sa != NULL) {
+-		tag = m_tag_get(PACKET_TAG_RTSOCKFAM, sizeof(unsigned short),
++		tag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_RTSOCKFAM, sizeof(unsigned short),
+ 		    M_NOWAIT);
+ 		if (tag == NULL) {
+ 			m_freem(m);
+Index: netgraph/ng_iface.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netgraph/ng_iface.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ng_iface.c
+--- netgraph/ng_iface.c	3 Nov 2010 17:32:51 -0000	1.1.1.1
++++ netgraph/ng_iface.c	3 Nov 2010 17:39:08 -0000
+@@ -377,7 +377,7 @@
+ 			return (EDEADLK);
+ 		}
+ 	}
+-	mtag = m_tag_alloc(MTAG_NGIF, MTAG_NGIF_CALLED, sizeof(struct ifnet *),
++	mtag = m_tag_fast_alloc(m, MTAG_NGIF, MTAG_NGIF_CALLED, sizeof(struct ifnet *),
+ 	    M_NOWAIT);
+ 	if (mtag == NULL) {
+ 		m_freem(m);
+Index: netgraph/ng_ksocket.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netgraph/ng_ksocket.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ng_ksocket.c
+--- netgraph/ng_ksocket.c	3 Nov 2010 17:32:51 -0000	1.1.1.1
++++ netgraph/ng_ksocket.c	3 Nov 2010 17:41:21 -0000
+@@ -1136,7 +1136,7 @@
+ 		if (sa != NULL) {
+ 			struct sa_tag	*stag;
+ 
+-			stag = (struct sa_tag *)m_tag_alloc(NGM_KSOCKET_COOKIE,
++			stag = (struct sa_tag *)m_tag_fast_alloc(m, NGM_KSOCKET_COOKIE,
+ 			    NG_KSOCKET_TAG_SOCKADDR, sizeof(ng_ID_t) +
+ 			    sa->sa_len, M_NOWAIT);
+ 			if (stag == NULL) {
+Index: netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_carp.c
+--- netinet/ip_carp.c	3 Nov 2010 17:32:50 -0000	1.1.1.1
++++ netinet/ip_carp.c	3 Nov 2010 17:39:08 -0000
+@@ -842,7 +842,7 @@
+ 	carp_hmac_generate(sc, ch->carp_counter, ch->carp_md);
+ 
+ 	/* Tag packet for carp_output */
+-	mtag = m_tag_get(PACKET_TAG_CARP, sizeof(struct ifnet *), M_NOWAIT);
++	mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_CARP, sizeof(struct ifnet *), M_NOWAIT);
+ 	if (mtag == NULL) {
+ 		m_freem(m);
+ 		SC2IFP(sc)->if_oerrors++;
+@@ -1267,7 +1267,7 @@
+  			    (SC2IFP(sc)->if_flags & IFF_UP) &&
+ 			    (SC2IFP(sc)->if_drv_flags & IFF_DRV_RUNNING)) {
+ 				struct ifnet *ifp = SC2IFP(sc);
+-				mtag = m_tag_get(PACKET_TAG_CARP,
++				mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_CARP,
+ 				    sizeof(struct ifnet *), M_NOWAIT);
+ 				if (mtag == NULL) {
+ 					/* better a bit than nothing */
+Index: netinet/ip_divert.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_divert.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_divert.c
+--- netinet/ip_divert.c	3 Nov 2010 17:34:47 -0000	1.2
++++ netinet/ip_divert.c	3 Nov 2010 17:39:08 -0000
+@@ -351,7 +351,7 @@
+ 	mtag = m_tag_locate(m, MTAG_IPFW_RULE, 0, NULL);
+ 	if (mtag == NULL) {
+ 		/* this should be normal */
+-		mtag = m_tag_alloc(MTAG_IPFW_RULE, 0,
++		mtag = m_tag_fast_alloc(m, MTAG_IPFW_RULE, 0,
+ 		    sizeof(struct ipfw_rule_ref), M_NOWAIT | M_ZERO);
+ 		if (mtag == NULL) {
+ 			error = ENOBUFS;
+Index: netinet/ip_encap.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_encap.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_encap.c
+--- netinet/ip_encap.c	3 Nov 2010 17:32:50 -0000	1.1.1.1
++++ netinet/ip_encap.c	3 Nov 2010 17:39:08 -0000
+@@ -441,7 +441,7 @@
+ {
+ 	struct m_tag *tag;
+ 
+-	tag = m_tag_get(PACKET_TAG_ENCAP, sizeof (void*), M_NOWAIT);
++	tag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_ENCAP, sizeof (void*), M_NOWAIT);
+ 	if (tag) {
+ 		*(void**)(tag+1) = ep->arg;
+ 		m_tag_prepend(m, tag);
+Index: netinet/ip_options.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ip_options.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_options.c
+--- netinet/ip_options.c	3 Nov 2010 17:32:50 -0000	1.1.1.1
++++ netinet/ip_options.c	3 Nov 2010 17:39:08 -0000
+@@ -379,7 +379,7 @@
+ 	unsigned olen;
+ 	struct ipopt_tag *opts;
+ 
+-	opts = (struct ipopt_tag *)m_tag_get(PACKET_TAG_IPOPTIONS,
++	opts = (struct ipopt_tag *)m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_IPOPTIONS,
+ 	    sizeof(struct ipopt_tag), M_NOWAIT);
+ 	if (opts == NULL)
+ 		return;
+Index: netinet/udp_usrreq.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/udp_usrreq.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 udp_usrreq.c
+--- netinet/udp_usrreq.c	3 Nov 2010 17:32:50 -0000	1.1.1.1
++++ netinet/udp_usrreq.c	3 Nov 2010 17:39:08 -0000
+@@ -1355,7 +1355,7 @@
+ 	 * NB: ports are maintained in network byte order everywhere
+ 	 *     in the NAT-T code.
+ 	 */
+-	tag = m_tag_get(PACKET_TAG_IPSEC_NAT_T_PORTS,
++	tag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_IPSEC_NAT_T_PORTS,
+ 		2 * sizeof(uint16_t), M_NOWAIT);
+ 	if (tag == NULL) {
+ 		V_ipsec4stat.in_nomem++;
+Index: netinet/ipfw/ip_dn_io.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dn_io.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_dn_io.c
+--- netinet/ipfw/ip_dn_io.c	3 Nov 2010 17:34:39 -0000	1.2
++++ netinet/ipfw/ip_dn_io.c	3 Nov 2010 17:39:08 -0000
+@@ -662,7 +662,7 @@
+ 	struct dn_pkt_tag *dt;
+ 	struct m_tag *mtag;
+ 
+-	mtag = m_tag_get(PACKET_TAG_DUMMYNET,
++	mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_DUMMYNET,
+ 		    sizeof(*dt), M_NOWAIT | M_ZERO);
+ 	if (mtag == NULL)
+ 		return 1;		/* Cannot allocate packet header. */
+Index: netinet/ipfw/ip_fw2.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw2.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip_fw2.c
+--- netinet/ipfw/ip_fw2.c	3 Nov 2010 17:36:15 -0000	1.2
++++ netinet/ipfw/ip_fw2.c	3 Nov 2010 17:39:08 -0000
+@@ -1797,7 +1797,7 @@
+ 						m_tag_delete(m, mtag);
+ 					match = 0;
+ 				} else if (mtag == NULL) {
+-					if ((mtag = m_tag_alloc(MTAG_IPFW,
++					if ((mtag = m_tag_fast_alloc(m, MTAG_IPFW,
+ 					    tag, 0, M_NOWAIT)) != NULL)
+ 						m_tag_prepend(m, mtag);
+ 					match = 1;
+@@ -2085,7 +2085,7 @@
+ 					struct m_tag *fwd_tag;
+ 				    	struct sockaddr_in *sa;
+ 				    	sa = &(((ipfw_insn_sa *)cmd)->sa);
+-					fwd_tag = m_tag_get(PACKET_TAG_IPFORWARD,
++					fwd_tag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_IPFORWARD,
+                                 		sizeof(struct sockaddr_in), M_NOWAIT);
+                 			if (fwd_tag == NULL)
+ 						retval = IP_FW_DENY;
+Index: netinet/ipfw/ip_fw_pfil.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_fw_pfil.c,v
+retrieving revision 1.3
+diff -u -r1.3 ip_fw_pfil.c
+--- netinet/ipfw/ip_fw_pfil.c	3 Nov 2010 17:36:15 -0000	1.3
++++ netinet/ipfw/ip_fw_pfil.c	3 Nov 2010 17:39:08 -0000
+@@ -168,7 +168,7 @@
+ 		if (fwd_tag != NULL) {
+ 			m_tag_unlink(*m0, fwd_tag);
+ 		} else {
+-			fwd_tag = m_tag_get(PACKET_TAG_IPFORWARD,
++			fwd_tag = m_tag_fast_alloc(*m0, MTAG_ABI_COMPAT, PACKET_TAG_IPFORWARD,
+ 				sizeof(struct sockaddr_in), M_NOWAIT);
+ 			if (fwd_tag == NULL) {
+ 				ret = EACCES;
+@@ -312,7 +312,7 @@
+ 		clone = reass;
+ 	}
+ 	/* attach a tag to the packet with the reinject info */
+-	tag = m_tag_alloc(MTAG_IPFW_RULE, 0,
++	tag = m_tag_fast_alloc(clone, MTAG_IPFW_RULE, 0,
+ 		    sizeof(struct ipfw_rule_ref), M_NOWAIT);
+ 	if (tag == NULL) {
+ 		FREE_PKT(clone);
+Index: netinet6/ip6_input.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet6/ip6_input.c,v
+retrieving revision 1.2
+diff -u -r1.2 ip6_input.c
+--- netinet6/ip6_input.c	3 Nov 2010 17:35:57 -0000	1.2
++++ netinet6/ip6_input.c	3 Nov 2010 17:39:08 -0000
+@@ -1616,7 +1616,7 @@
+ 
+ 	mtag = m_tag_find(m, PACKET_TAG_IPV6_INPUT, NULL);
+ 	if (!mtag) {
+-		mtag = m_tag_get(PACKET_TAG_IPV6_INPUT, sizeof(struct ip6aux),
++		mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_IPV6_INPUT, sizeof(struct ip6aux),
+ 		    M_NOWAIT);
+ 		if (mtag) {
+ 			m_tag_prepend(m, mtag);
+Index: netipsec/ipsec_input.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/ipsec_input.c,v
+retrieving revision 1.2
+diff -u -r1.2 ipsec_input.c
+--- netipsec/ipsec_input.c	3 Nov 2010 17:35:57 -0000	1.2
++++ netipsec/ipsec_input.c	3 Nov 2010 17:39:08 -0000
+@@ -445,7 +445,7 @@
+ 	 * PACKET_TAG_IPSEC_IN_DONE type; in that case, just change the type.
+ 	 */
+ 	if (mt == NULL && sproto != IPPROTO_IPCOMP) {
+-		mtag = m_tag_get(PACKET_TAG_IPSEC_IN_DONE,
++		mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_IPSEC_IN_DONE,
+ 		    sizeof(struct tdb_ident), M_NOWAIT);
+ 		if (mtag == NULL) {
+ 			DPRINTF(("%s: failed to get tag\n", __func__));
+@@ -711,7 +711,7 @@
+ 	 * PACKET_TAG_IPSEC_IN_DONE type; in that case, just change the type.
+ 	 */
+ 	if (mt == NULL && sproto != IPPROTO_IPCOMP) {
+-		mtag = m_tag_get(PACKET_TAG_IPSEC_IN_DONE,
++		mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_IPSEC_IN_DONE,
+ 		    sizeof(struct tdb_ident), M_NOWAIT);
+ 		if (mtag == NULL) {
+ 			DPRINTF(("%s: failed to get tag\n", __func__));
+Index: netipsec/ipsec_output.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/ipsec_output.c,v
+retrieving revision 1.2
+diff -u -r1.2 ipsec_output.c
+--- netipsec/ipsec_output.c	3 Nov 2010 17:35:57 -0000	1.2
++++ netipsec/ipsec_output.c	3 Nov 2010 17:39:08 -0000
+@@ -148,7 +148,7 @@
+ 	 * Add a record of what we've done or what needs to be done to the
+ 	 * packet.
+ 	 */
+-	mtag = m_tag_get(PACKET_TAG_IPSEC_OUT_DONE,
++	mtag = m_tag_fast_alloc(m, MTAG_ABI_COMPAT, PACKET_TAG_IPSEC_OUT_DONE,
+ 			sizeof(struct tdb_ident), M_NOWAIT);
+ 	if (mtag == NULL) {
+ 		DPRINTF(("%s: could not get packet tag\n", __func__));
+Index: sys/mbuf.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/sys/mbuf.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 mbuf.h
+--- sys/mbuf.h	3 Nov 2010 17:32:47 -0000	1.1.1.1
++++ sys/mbuf.h	3 Nov 2010 17:39:08 -0000
+@@ -53,6 +53,10 @@
+  * externally and attach it to the mbuf in a way similar to that of mbuf
+  * clusters.
+  */
++#define MTAGLEN         (84) /* Most used tags can fit inside an mbuf header:
++			      * - PF tag  (pf_mtag:20)
++			      * - 4 m_tag (m_tag:16)
++			      */
+ #define	MLEN		(MSIZE - sizeof(struct m_hdr))	/* normal data len */
+ #define	MHLEN		(MLEN - sizeof(struct pkthdr))	/* data len w/pkthdr */
+ #define	MINCLSIZE	(MHLEN + 1)	/* smallest amount to put in cluster */
+@@ -67,6 +71,12 @@
+  */
+ #define	mtod(m, t)	((t)((m)->m_data))
+ 
++#define INIT_TAG_CONTAINER(m) do {				\
++    m->m_pkthdr.tag_containerp = m->m_pkthdr.tag_container;	\
++    m->m_pkthdr.tag_container_size = MTAGLEN;			\
++    m->m_flags |= M_FASTTAG;					\
++  } while (0)
++
+ /*
+  * Argument structure passed to UMA routines during mbuf and packet
+  * allocations.
+@@ -127,6 +137,9 @@
+ 		u_int16_t vt_nrecs;	/* # of IGMPv3 records in this chain */
+ 	} PH_vt;
+ 	SLIST_HEAD(packet_tags, m_tag) tags; /* list of packet tags */
++	u_char *tag_containerp;         /* points to the free part of tag_container */
++	u_int8_t tag_container_size;    /* container free space */
++	u_char tag_container[MTAGLEN];  /* tag container stores a few mtags (fast) */
+ };
+ #define ether_vtag	PH_vt.vt_vtag
+ 
+@@ -200,6 +213,7 @@
+ #define	M_PROTO7	0x00100000 /* protocol-specific */
+ #define	M_PROTO8	0x00200000 /* protocol-specific */
+ #define	M_FLOWID	0x00400000 /* flowid is valid */
++#define M_FASTTAG       0x01000000 /* mtag allocation can use fast tags */
+ /*
+  * For RELENG_{6,7} steal these flags for limited multiple routing table
+  * support. In RELENG_8 and beyond, use just one flag and a tag.
+@@ -915,6 +929,9 @@
+ struct m_tag	*m_tag_copy(struct m_tag *, int);
+ int		 m_tag_copy_chain(struct mbuf *, struct mbuf *, int);
+ void		 m_tag_delete_nonpersistent(struct mbuf *);
++/* fast routines */
++struct m_tag	*m_tag_fast_alloc(struct mbuf *, u_int32_t, int, int, int);
++void		 m_tag_fast_free(struct m_tag *);
+ 
+ /*
+  * Initialize the list of tags associated with an mbuf.

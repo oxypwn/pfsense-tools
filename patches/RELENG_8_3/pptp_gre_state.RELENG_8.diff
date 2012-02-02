@@ -1,0 +1,261 @@
+Index: sys/contrib/pf/net/pf.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
+retrieving revision 1.9
+diff -u -r1.9 pf.c
+--- sys/contrib/pf/net/pf.c	11 Nov 2010 18:35:24 -0000	1.9
++++ sys/contrib/pf/net/pf.c	15 Nov 2010 19:01:10 -0000
+@@ -275,7 +275,8 @@
+ 			    struct pfi_kif *, struct mbuf *, int,
+ 			    void *, struct pf_pdesc *, u_short *);
+ int			 pf_test_state_other(struct pf_state **, int,
+-			    struct pfi_kif *, struct pf_pdesc *);
++			    struct pfi_kif *, struct mbuf *, int,
++			    struct pf_pdesc *);
+ int			 pf_match_tag(struct mbuf *, struct pf_rule *,
+ 			     struct pf_mtag *, int *);
+ int			 pf_step_out_of_anchor(int *, struct pf_ruleset **,
+@@ -335,6 +336,37 @@
+ };
+ #endif
+ 
++/* XXX: This are here until a pluggable framework for NAT is finished */
++struct pf_grehdr {                 /* Enhanced GRE header. */
++        u_int16_t       gh_flags;       /* Flags. */
++        u_int16_t       gh_protocol;    /* Protocol type. */
++        u_int16_t       gh_length;      /* Payload length. */
++        u_int16_t       gh_call_id;     /* Call ID. */
++};
++
++struct pptpMsgHead {
++	u_int16_t       length; /* total length */
++	u_int16_t       msgType;/* PPTP message type */
++	u_int32_t       magic;  /* magic cookie */
++	u_int16_t       type;   /* control message type */
++	u_int16_t       resv0;  /* reserved */
++	u_int16_t       cid1;   /* Call ID field #1 */
++	u_int16_t       cid2;   /* Call ID field #2 */
++};
++
++/* The PPTP protocol ID used in the GRE 'proto' field. */
++#define PPTP_GRE_PROTO          0x880b
++/* Bits that must be set a certain way in all PPTP/GRE packets. */
++#define PPTP_INIT_VALUE         ((0x2001 << 16) | PPTP_GRE_PROTO)
++#define PPTP_INIT_MASK          0xef7fffff
++#define PPTP_MAGIC              0x1a2b3c4d
++#define PPTP_CTRL_MSG_TYPE      1
++#define PPTP_CTRL_PORT_NUMBER	1723
++enum {
++	PPTP_OutCallReply = 8,
++	PPTP_InCallReply = 10
++};	
++
+ #define PPACKET_LOOPED()						\
+ 	(pd->pf_mtag->flags & PF_PACKET_LOOPED)
+ 
+@@ -652,6 +684,99 @@
+ }
+ #endif
+ 
++static void
++pf_handle_pptp(struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state,
++    int off, int dir)
++{
++	struct pptpMsgHead hptr;
++	struct pf_state *s;
++	struct tcphdr *th;
++	u_short reason;
++	int i;
++
++	/* Verify data length */
++	if (pd->p_len < (int)(sizeof(struct pptpMsgHead)))
++		return;
++
++	/* NB: We assume pf(4) has done its checks. */
++	th = pd->hdr.tcp;
++
++	/* Move up to PPTP message header */
++	if (!pf_pull_hdr(m, off + (th->th_off << 2), &hptr,
++	    sizeof(struct pptpMsgHead), NULL, NULL, pd->af))
++		return;
++
++	/* Verify PPTP Control Message */
++	if ((ntohs(hptr.msgType) != PPTP_CTRL_MSG_TYPE) ||
++	    (ntohl(hptr.magic) != PPTP_MAGIC))
++		return;
++
++	/* Check the control message type */
++	switch (ntohs(hptr.type)) {
++	/* Only these are interesting for us. */
++	case PPTP_OutCallReply:
++	case PPTP_InCallReply:
++		break;
++	default:
++		return;
++		/* NOTREACHED */
++		break;
++	}
++
++	for (i = 0; i < 2; i++) {
++		s = pool_get(&pf_state_pl, PR_NOWAIT);
++		if (s == NULL) {
++			REASON_SET(&reason, PFRES_MEMORY);
++			return;
++		}
++		bzero(s, sizeof(*s));
++		s->rule.ptr = state->rule.ptr;
++		s->anchor.ptr = state->anchor.ptr;
++		s->nat_rule.ptr = state->nat_rule.ptr;
++		STATE_INC_COUNTERS(s);
++		s->state_flags = state->state_flags;
++		s->local_flags = state->local_flags;
++		s->log = state->log;
++		s->proto = IPPROTO_GRE;
++		s->af = pd->af;
++		s->direction = state->direction;
++		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
++		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
++		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
++		if (i == 0) {
++			s->gwy.port = hptr.cid1;
++			s->ext.port = hptr.cid1;
++			s->lan.port = hptr.cid1;
++		} else {
++			s->gwy.port = hptr.cid2;
++			s->ext.port = hptr.cid2;
++			s->lan.port = hptr.cid2;
++		}
++		s->src.state = PFOTHERS_NO_TRAFFIC;
++		s->dst.state = PFOTHERS_NO_TRAFFIC;
++		s->creation = time_second;
++		s->expire = time_second;
++		s->timeout = PFTM_OTHER_FIRST_PACKET;
++		PF_ACPY(&s->rt_addr, &state->rt_addr, pd->af);
++		if (state->nat_src_node != NULL) {
++			s->nat_src_node = state->nat_src_node;
++			s->nat_src_node->states++;
++			s->nat_src_node->conn++;
++		}
++		if (state->src_node != NULL) {
++			s->src_node = state->src_node;
++			s->src_node->states++;
++			s->src_node->conn++;
++		}
++		s->rt_kif = state->rt_kif;
++		if (pf_insert_state(BOUND_IFACE(s->rule.ptr, s->rt_kif), s)) {
++			REASON_SET(&reason, PFRES_STATEINS);
++			STATE_DEC_COUNTERS(s);
++			pool_put(&pf_state_pl, s);
++		}
++	}
++}
++
+ #ifdef INET6
+ void
+ pf_addrcpy(struct pf_addr *dst, struct pf_addr *src, sa_family_t af)
+@@ -4382,6 +4507,7 @@
+ 	struct pf_ruleset	*ruleset = NULL;
+ 	struct pf_src_node	*nsn = NULL;
+ 	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
++	struct pf_grehdr	 gr;
+ 	sa_family_t		 af = pd->af;
+ 	u_short			 reason;
+ 	int			 tag = -1, rtableid = -1;
+@@ -4603,6 +4729,15 @@
+ 		s->proto = pd->proto;
+ 		s->direction = direction;
+ 		s->af = af;
++		if (pd->proto == IPPROTO_GRE &&
++		    pf_pull_hdr(m, off, &gr, sizeof(gr),
++		    NULL, NULL, pd->af)  != NULL &&
++		    ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) ==
++		    PPTP_INIT_VALUE)) {
++			s->lan.port = gr.gh_call_id;
++			s->ext.port = gr.gh_call_id;
++			s->gwy.port = gr.gh_call_id;
++		}
+ 		if (direction == PF_OUT) {
+ 			PF_ACPY(&s->gwy.addr, saddr, af);
+ 			PF_ACPY(&s->ext.addr, daddr, af);
+@@ -6124,35 +6259,45 @@
+ 
+ int
+ pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
+-    struct pf_pdesc *pd)
++    struct mbuf *m, int off, struct pf_pdesc *pd)
+ {
+ 	struct pf_state_peer	*src, *dst;
+ 	struct pf_state_cmp	 key;
++	struct pf_grehdr	 gr;
++	u_int16_t		 callid = 0;
+ 
+ 	key.af = pd->af;
+ 	key.proto = pd->proto;
++
++	if (pd->proto == IPPROTO_GRE &&
++	    pf_pull_hdr(m, off, &gr, sizeof(gr),
++	    NULL, NULL, pd->af)  != NULL &&
++	    ((ntohl(*((u_int32_t *) &gr)) & PPTP_INIT_MASK) ==
++	    PPTP_INIT_VALUE))
++		callid = gr.gh_call_id;
++
+ 	if (PPACKET_LOOPED()) {
+                 if (direction == PF_IN) {
+                         PF_ACPY(&key.lan.addr, pd->dst, key.af);
+                         PF_ACPY(&key.ext.addr, pd->src, key.af);
+-                        key.lan.port = 0;
+-                        key.ext.port = 0;
++                        key.lan.port = callid;
++                        key.ext.port = callid;
+                 } else {
+                         PF_ACPY(&key.ext.addr, pd->dst, key.af);
+                         PF_ACPY(&key.gwy.addr, pd->src, key.af);
+-                        key.ext.port = 0;
+-                        key.gwy.port = 0;
++                        key.ext.port = callid;
++                        key.gwy.port = callid;
+                 }
+         } else if (direction == PF_IN) {
+ 		PF_ACPY(&key.ext.addr, pd->src, key.af);
+ 		PF_ACPY(&key.gwy.addr, pd->dst, key.af);
+-		key.ext.port = 0;
+-		key.gwy.port = 0;
++		key.ext.port = callid;
++		key.gwy.port = callid;
+ 	} else {
+ 		PF_ACPY(&key.lan.addr, pd->src, key.af);
+ 		PF_ACPY(&key.ext.addr, pd->dst, key.af);
+-		key.lan.port = 0;
+-		key.ext.port = 0;
++		key.lan.port = callid;
++		key.ext.port = callid;
+ 	}
+ 
+ 	STATE_LOOKUP();
+@@ -7377,6 +7522,8 @@
+ 		if (action == PF_PASS && s != NULL && !PACKET_LOOPED()) {
+ 			if (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21)
+ 				pf_handle_ftp(&pd, m, s, off, dir);
++			else if (ntohs(th.th_dport) == 1723 || ntohs(th.th_sport) == 1723)
++				pf_handle_pptp(&pd, m, s, off, dir);
+ 		}
+ 		break;
+ 	}
+@@ -7471,7 +7618,7 @@
+ #endif
+ 
+ 	default:
+-		action = pf_test_state_other(&s, dir, kif, &pd);
++		action = pf_test_state_other(&s, dir, kif, m, off, &pd);
+ 		if (action == PF_PASS) {
+ #if NPFSYNC
+ 			pfsync_update_state(s);
+@@ -8069,7 +8216,7 @@
+ 	}
+ 
+ 	default:
+-		action = pf_test_state_other(&s, dir, kif, &pd);
++		action = pf_test_state_other(&s, dir, kif, m, off, &pd);
+ 		if (action == PF_PASS) {
+ #if NPFSYNC
+ 			pfsync_update_state(s);

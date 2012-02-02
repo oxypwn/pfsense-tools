@@ -1,0 +1,43 @@
+Index: usr.bin/netstat/if.c
+===================================================================
+RCS file: /root/freebsd/freebsd/repo/src/usr.bin/netstat/if.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if.c
+--- usr.bin/netstat/if.c	22 Jan 2010 11:00:09 -0000	1.1.1.1
++++ usr.bin/netstat/if.c	22 Jan 2010 11:13:29 -0000
+@@ -223,9 +223,9 @@
+ 
+ 	if (!pfunc) {
+ 		if (Wflag)
+-			printf("%-7.7s", "Name");
++			printf("%-16.16s", "Name");
+ 		else
+-			printf("%-5.5s", "Name");
++			printf("%-16.16s", "Name");
+ 		printf(" %5.5s %-13.13s %-17.17s %8.8s %5.5s %5.5s",
+ 		    "Mtu", "Network", "Address", "Ipkts", "Ierrs", "Idrop");
+ 		if (bflag)
+@@ -293,9 +293,9 @@
+ 
+ 		if (ifaddraddr == 0) {
+ 			if (Wflag)
+-				printf("%-7.7s", name);
++				printf("%-16.16s", name);
+ 			else
+-				printf("%-5.5s", name);
++				printf("%-16.16s", name);
+ 			printf(" %5lu ", ifnet.if_mtu);
+ 			printf("%-13.13s ", "none");
+ 			printf("%-17.17s ", "none");
+@@ -315,9 +315,9 @@
+ 				continue;
+ 			}
+ 			if (Wflag)
+-				printf("%-7.7s", name);
++				printf("%-16.16s", name);
+ 			else
+-				printf("%-5.5s", name);
++				printf("%-16.16s", name);
+ 			printf(" %5lu ", ifnet.if_mtu);
+ 			switch (sa->sa_family) {
+ 			case AF_UNSPEC:

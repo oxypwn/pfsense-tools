@@ -1,0 +1,15 @@
+Index: if.c
+===================================================================
+RCS file: /root/freebsd/test/repo/src/sys/net/if.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if.c
+--- if.c	4 Jun 2010 18:01:27 -0000	1.1.1.1
++++ if.c	4 Jun 2010 18:12:24 -0000
+@@ -1355,6 +1355,7 @@
+ static int
+ if_rtdel(struct radix_node *rn, void *arg)
+ {
++	return (0);
+ 	struct rtentry	*rt = (struct rtentry *)rn;
+ 	struct ifnet	*ifp = arg;
+ 	int		err;

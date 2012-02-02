@@ -1,0 +1,20 @@
+Index: sys/netinet/ip_carp.c
+===================================================================
+RCS file: /root/freebsd/test/repo/src/sys/netinet/ip_carp.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_carp.c
+--- sys/netinet/ip_carp.c	27 Apr 2010 20:20:33 -0000	1.1.1.1
++++ sys/netinet/ip_carp.c	27 Apr 2010 20:32:22 -0000
+@@ -550,9 +550,9 @@
+ 	/* check if received on a valid carp interface */
+ 	if (m->m_pkthdr.rcvif->if_carp == NULL) {
+ 		CARPSTATS_INC(carps_badif);
+-		CARP_DEBUG("carp_input: packet received on non-carp "
+-		    "interface: %s\n",
+-		    m->m_pkthdr.rcvif->if_xname);
++		//CARP_DEBUG("carp_input: packet received on non-carp "
++		//    "interface: %s\n",
++		//    m->m_pkthdr.rcvif->if_xname);
+ 		m_freem(m);
+ 		return;
+ 	}

@@ -1,0 +1,36 @@
+Index: sys/net/netisr.c
+===================================================================
+RCS file: /home/ncvs/src/sys/net/netisr.c,v
+retrieving revision 1.32.2.2.2.1
+diff -u -r1.32.2.2.2.1 netisr.c
+--- sys/net/netisr.c	14 Jun 2010 02:09:06 -0000	1.32.2.2.2.1
++++ sys/net/netisr.c	27 Jul 2011 10:08:07 -0000
+@@ -138,7 +138,7 @@
+  * misordered processing, but this is considered acceptable as compared to
+  * the complexity of enforcing ordering during policy changes.
+  */
+-static int	netisr_direct_force = 1;	/* Always direct dispatch. */
++static int	netisr_direct_force = 0;	/* Always direct dispatch. */
+ TUNABLE_INT("net.isr.direct_force", &netisr_direct_force);
+ SYSCTL_INT(_net_isr, OID_AUTO, direct_force, CTLFLAG_RW,
+     &netisr_direct_force, 0, "Force direct dispatch");
+@@ -160,7 +160,7 @@
+     &netisr_maxthreads, 0,
+     "Use at most this many CPUs for netisr processing");
+ 
+-static int	netisr_bindthreads = 0;		/* Bind threads to CPUs. */
++static int	netisr_bindthreads = 1;		/* Bind threads to CPUs. */
+ TUNABLE_INT("net.isr.bindthreads", &netisr_bindthreads);
+ SYSCTL_INT(_net_isr, OID_AUTO, bindthreads, CTLFLAG_RD,
+     &netisr_bindthreads, 0, "Bind netisr threads to CPUs.");
+@@ -1066,7 +1066,9 @@
+ 
+ 	NETISR_LOCK_INIT();
+ 	if (netisr_maxthreads < 1)
+-		netisr_maxthreads = 1;
++		netisr_maxthreads = mp_ncpus;
++	if (mp_ncpus <= 4)
++		netisr_direct_force = 1;
+ 	if (netisr_maxthreads > mp_ncpus) {
+ 		printf("netisr_init: forcing maxthreads from %d to %d\n",
+ 		    netisr_maxthreads, mp_ncpus);

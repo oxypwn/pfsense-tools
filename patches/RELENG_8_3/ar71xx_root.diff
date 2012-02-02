@@ -1,0 +1,693 @@
+---  sys/cddl/contrib/opensolaris/uts/common/fs/zfs/zfs_ioctl.c.orig
++++  sys/cddl/contrib/opensolaris/uts/common/fs/zfs/zfs_ioctl.c
+@@ -3058,7 +3058,6 @@
+ 		destroy_dev(zfsdev);
+ }
+ 
+-static struct root_hold_token *zfs_root_token;
+ struct proc *zfsproc;
+ 
+ uint_t zfs_fsyncer_key;
+@@ -3071,8 +3070,6 @@
+ 
+ 	switch (type) {
+ 	case MOD_LOAD:
+-		zfs_root_token = root_mount_hold("ZFS");
+-
+ 		mutex_init(&zfs_share_lock, NULL, MUTEX_DEFAULT, NULL);
+ 
+ 		spa_init(FREAD | FWRITE);
+@@ -3083,7 +3080,6 @@
+ 		tsd_create(&rrw_tsd_key, NULL);
+ 
+ 		printf("ZFS storage pool version " SPA_VERSION_STRING "\n");
+-		root_mount_rel(zfs_root_token);
+ 
+ 		zfsdev_init();
+ 		break;
+
+
+---  sys/dev/pccbb/pccbb.c.orig
++++  sys/dev/pccbb/pccbb.c
+@@ -500,15 +500,6 @@
+ 		mtx_unlock(&Giant);
+ 
+ 		/*
+-		 * First time through we need to tell mountroot that we're
+-		 * done.
+-		 */
+-		if (sc->sc_root_token) {
+-			root_mount_rel(sc->sc_root_token);
+-			sc->sc_root_token = NULL;
+-		}
+-
+-		/*
+ 		 * Wait until it has been 250ms since the last time we
+ 		 * get an interrupt.  We handle the rest of the interrupt
+ 		 * at the top of the loop.  Although we clear the bit in the
+
+
+---  sys/dev/pccbb/pccbb_pci.c.orig
++++  sys/dev/pccbb/pccbb_pci.c
+@@ -439,7 +439,6 @@
+ 		device_printf(brdev, "unable to create event thread.\n");
+ 		panic("cbb_create_event_thread");
+ 	}
+-	sc->sc_root_token = root_mount_hold(device_get_nameunit(sc->dev));
+ 	return (0);
+ err:
+ 	if (sc->irq_res)
+
+
+---  sys/dev/pccbb/pccbbvar.h.orig
++++  sys/dev/pccbb/pccbbvar.h
+@@ -88,7 +88,6 @@
+ 	struct proc	*event_thread;
+ 	void (*chipinit)(struct cbb_softc *);
+ 	int	powerintr;
+-	struct root_hold_token *sc_root_token;
+ };
+ 
+ /* result of detect_card */
+
+
+--- sys/dev/usb/controller/usb_controller.c	(revision 199165)
++++ sys/dev/usb/controller/usb_controller.c	(working copy)
+@@ -79,11 +79,6 @@ SYSCTL_INT(_hw_usb_ctrl, OID_AUTO, debug, CTLFLAG_
+     "Debug level");
+ #endif
+ 
+-static int usb_no_boot_wait = 0;
+-TUNABLE_INT("hw.usb.no_boot_wait", &usb_no_boot_wait);
+-SYSCTL_INT(_hw_usb, OID_AUTO, no_boot_wait, CTLFLAG_RDTUN, &usb_no_boot_wait, 0,
+-    "No device enumerate waiting at boot.");
+-
+ static uint8_t usb_post_init_called = 0;
+ 
+ static devclass_t usb_devclass;
+@@ -137,11 +132,6 @@ usb_attach(device_t dev)
+ 		return (ENXIO);
+ 	}
+ 
+-	if (usb_no_boot_wait == 0) {
+-		/* delay vfs_mountroot until the bus is explored */
+-		bus->bus_roothold = root_mount_hold(device_get_nameunit(dev));
+-	}
+-
+ 	if (usb_post_init_called) {
+ 		mtx_lock(&Giant);
+ 		usb_attach_sub(dev, bus);
+@@ -168,12 +158,6 @@ usb_detach(device_t dev)
+ 	/* Stop power watchdog */
+ 	usb_callout_drain(&bus->power_wdog);
+ 
+-	/* Let the USB explore process detach all devices. */
+-	if (bus->bus_roothold != NULL) {
+-		root_mount_rel(bus->bus_roothold);
+-		bus->bus_roothold = NULL;
+-	}
+-
+ 	USB_BUS_LOCK(bus);
+ 	if (usb_proc_msignal(&bus->explore_proc,
+ 	    &bus->detach_msg[0], &bus->detach_msg[1])) {
+@@ -244,10 +228,6 @@ usb_bus_explore(struct usb_proc_msg *pm)
+ 
+ 		USB_BUS_LOCK(bus);
+ 	}
+-	if (bus->bus_roothold != NULL) {
+-		root_mount_rel(bus->bus_roothold);
+-		bus->bus_roothold = NULL;
+-	}
+ }
+ 
+
+--- sys/dev/usb/usb_bus.h	(revision 199236)
++++ sys/dev/usb/usb_bus.h	(working copy)
+@@ -51,7 +51,6 @@ struct usb_bus_stat {
+ struct usb_bus {
+ 	struct usb_bus_stat stats_err;
+ 	struct usb_bus_stat stats_ok;
+-	struct root_hold_token *bus_roothold;
+ 	/*
+ 	 * There are two callback processes. One for Giant locked
+ 	 * callbacks. One for non-Giant locked callbacks. This should
+
+
+---  sys/geom/journal/g_journal.c.orig
++++  sys/geom/journal/g_journal.c
+@@ -2108,12 +2108,6 @@
+ 	g_topology_unlock();
+ 	last_write = time_second;
+ 
+-	if (sc->sc_rootmount != NULL) {
+-		GJ_DEBUG(1, "root_mount_rel %p", sc->sc_rootmount);
+-		root_mount_rel(sc->sc_rootmount);
+-		sc->sc_rootmount = NULL;
+-	}
+-
+ 	for (;;) {
+ 		/* Get first request from the queue. */
+ 		mtx_lock(&sc->sc_mtx);
+@@ -2311,9 +2305,6 @@
+ 		sc->sc_inactive.jj_queue = NULL;
+ 		sc->sc_active.jj_queue = NULL;
+ 
+-		sc->sc_rootmount = root_mount_hold("GJOURNAL");
+-		GJ_DEBUG(1, "root_mount_hold %p", sc->sc_rootmount);
+-
+ 		callout_init(&sc->sc_callout, CALLOUT_MPSAFE);
+ 		if (md->md_type != GJ_TYPE_COMPLETE) {
+ 			/*
+@@ -2445,12 +2436,6 @@
+ 
+ 	g_topology_unlock();
+ 
+-	if (sc->sc_rootmount != NULL) {
+-		GJ_DEBUG(1, "root_mount_rel %p", sc->sc_rootmount);
+-		root_mount_rel(sc->sc_rootmount);
+-		sc->sc_rootmount = NULL;
+-	}
+-
+ 	callout_drain(&sc->sc_callout);
+ 	mtx_lock(&sc->sc_mtx);
+ 	wakeup(sc);
+
+
+---  sys/geom/journal/g_journal.h.orig
++++  sys/geom/journal/g_journal.h
+@@ -163,8 +163,6 @@
+ 
+ 	struct callout	 sc_callout;
+ 	struct proc	*sc_worker;
+-
+-	struct root_hold_token *sc_rootmount;
+ };
+ #define	sc_dprovider	sc_dconsumer->provider
+ #define	sc_jprovider	sc_jconsumer->provider
+
+
+---  sys/geom/mirror/g_mirror.c.orig
++++  sys/geom/mirror/g_mirror.c
+@@ -1726,13 +1726,6 @@
+ static int
+ g_mirror_try_destroy(struct g_mirror_softc *sc)
+ {
+-
+-	if (sc->sc_rootmount != NULL) {
+-		G_MIRROR_DEBUG(1, "root_mount_rel[%u] %p", __LINE__,
+-		    sc->sc_rootmount);
+-		root_mount_rel(sc->sc_rootmount);
+-		sc->sc_rootmount = NULL;
+-	}
+ 	g_topology_lock();
+ 	if (!g_mirror_can_destroy(sc)) {
+ 		g_topology_unlock();
+@@ -2190,10 +2183,6 @@
+ 			 */
+ 			callout_drain(&sc->sc_callout);
+ 			sc->sc_flags |= G_MIRROR_DEVICE_FLAG_DESTROY;
+-			G_MIRROR_DEBUG(1, "root_mount_rel[%u] %p", __LINE__,
+-			    sc->sc_rootmount);
+-			root_mount_rel(sc->sc_rootmount);
+-			sc->sc_rootmount = NULL;
+ 			return;
+ 		} else {
+ 			return;
+@@ -2217,10 +2206,6 @@
+ 			if (ndisks == 0) {
+ 				/* No valid disks found, destroy device. */
+ 				sc->sc_flags |= G_MIRROR_DEVICE_FLAG_DESTROY;
+-				G_MIRROR_DEBUG(1, "root_mount_rel[%u] %p",
+-				    __LINE__, sc->sc_rootmount);
+-				root_mount_rel(sc->sc_rootmount);
+-				sc->sc_rootmount = NULL;
+ 				return;
+ 			}
+ 		} else {
+@@ -2374,12 +2359,6 @@
+ 			 */
+ 			if (sc->sc_provider == NULL)
+ 				g_mirror_launch_provider(sc);
+-			if (sc->sc_rootmount != NULL) {
+-				G_MIRROR_DEBUG(1, "root_mount_rel[%u] %p",
+-				    __LINE__, sc->sc_rootmount);
+-				root_mount_rel(sc->sc_rootmount);
+-				sc->sc_rootmount = NULL;
+-			}
+ 		}
+ 		/*
+ 		 * Genid should be bumped immediately, so do it here.
+@@ -2907,8 +2886,6 @@
+ 	G_MIRROR_DEBUG(1, "Device %s created (%u components, id=%u).",
+ 	    sc->sc_name, sc->sc_ndisks, sc->sc_id);
+ 
+-	sc->sc_rootmount = root_mount_hold("GMIRROR");
+-	G_MIRROR_DEBUG(1, "root_mount_hold %p", sc->sc_rootmount);
+ 	/*
+ 	 * Run timeout.
+ 	 */
+
+
+---  sys/geom/mirror/g_mirror.h.orig
++++  sys/geom/mirror/g_mirror.h
+@@ -207,8 +207,6 @@
+ 	struct mtx	sc_events_mtx;
+ 
+ 	struct callout	sc_callout;
+-
+-	struct root_hold_token *sc_rootmount;
+ };
+ #define	sc_name	sc_geom->name
+ 
+
+
+---  sys/geom/part/g_part.c.orig
++++  sys/geom/part/g_part.c
+@@ -1448,7 +1448,6 @@
+ 	struct g_geom *gp;
+ 	struct g_part_entry *entry;
+ 	struct g_part_table *table;
+-	struct root_hold_token *rht;
+ 	int attr, depth;
+ 	int error;
+ 
+@@ -1470,7 +1469,6 @@
+ 		return (NULL);
+ 	}
+ 
+-	rht = root_mount_hold(mp->name);
+ 	g_topology_unlock();
+ 
+ 	/*
+@@ -1515,13 +1513,11 @@
+ 			g_part_new_provider(gp, table, entry);
+ 	}
+ 
+-	root_mount_rel(rht);
+ 	g_access(cp, -1, 0, 0);
+ 	return (gp);
+ 
+  fail:
+ 	g_topology_lock();
+-	root_mount_rel(rht);
+ 	g_access(cp, -1, 0, 0);
+ 	g_part_wither(gp, error);
+ 	return (NULL);
+
+
+---  sys/geom/raid3/g_raid3.c.orig
++++  sys/geom/raid3/g_raid3.c
+@@ -1974,13 +1974,6 @@
+ 	g_topology_assert_not();
+ 	sx_assert(&sc->sc_lock, SX_XLOCKED);
+ 
+-	if (sc->sc_rootmount != NULL) {
+-		G_RAID3_DEBUG(1, "root_mount_rel[%u] %p", __LINE__,
+-		    sc->sc_rootmount);
+-		root_mount_rel(sc->sc_rootmount);
+-		sc->sc_rootmount = NULL;
+-	}
+-
+ 	g_topology_lock();
+ 	if (!g_raid3_can_destroy(sc)) {
+ 		g_topology_unlock();
+@@ -2464,10 +2457,6 @@
+ 				 * Timeout expired, so destroy device.
+ 				 */
+ 				sc->sc_flags |= G_RAID3_DEVICE_FLAG_DESTROY;
+-				G_RAID3_DEBUG(1, "root_mount_rel[%u] %p",
+-				    __LINE__, sc->sc_rootmount);
+-				root_mount_rel(sc->sc_rootmount);
+-				sc->sc_rootmount = NULL;
+ 			}
+ 			return;
+ 		}
+@@ -2610,12 +2599,6 @@
+ 		}
+ 		if (sc->sc_provider == NULL)
+ 			g_raid3_launch_provider(sc);
+-		if (sc->sc_rootmount != NULL) {
+-			G_RAID3_DEBUG(1, "root_mount_rel[%u] %p", __LINE__,
+-			    sc->sc_rootmount);
+-			root_mount_rel(sc->sc_rootmount);
+-			sc->sc_rootmount = NULL;
+-		}
+ 		break;
+ 	case G_RAID3_DEVICE_STATE_COMPLETE:
+ 		/*
+@@ -2643,12 +2626,6 @@
+ 		}
+ 		if (sc->sc_provider == NULL)
+ 			g_raid3_launch_provider(sc);
+-		if (sc->sc_rootmount != NULL) {
+-			G_RAID3_DEBUG(1, "root_mount_rel[%u] %p", __LINE__,
+-			    sc->sc_rootmount);
+-			root_mount_rel(sc->sc_rootmount);
+-			sc->sc_rootmount = NULL;
+-		}
+ 		break;
+ 	default:
+ 		KASSERT(1 == 0, ("Wrong device state (%s, %s).", sc->sc_name,
+@@ -3193,9 +3170,6 @@
+ 	G_RAID3_DEBUG(1, "Device %s created (%u components, id=%u).",
+ 	    sc->sc_name, sc->sc_ndisks, sc->sc_id);
+ 
+-	sc->sc_rootmount = root_mount_hold("GRAID3");
+-	G_RAID3_DEBUG(1, "root_mount_hold %p", sc->sc_rootmount);
+-
+ 	/*
+ 	 * Run timeout.
+ 	 */
+
+
+---  sys/geom/raid3/g_raid3.h.orig
++++  sys/geom/raid3/g_raid3.h
+@@ -240,8 +240,6 @@
+ 	struct mtx	sc_events_mtx;
+ 
+ 	struct callout	sc_callout;
+-
+-	struct root_hold_token *sc_rootmount;
+ };
+ #define	sc_name	sc_geom->name
+ 
+
+
+---  sys/kern/kern_cons.c.orig
++++  sys/kern/kern_cons.c
+@@ -353,8 +353,10 @@
+ 
+ 	if (cn_mute)
+ 		return (-1);
+-	while ((c = cncheckc()) == -1)
+-		;
++	while ((c = cncheckc()) == -1) {
++		if (!kdb_active)
++			pause("WKEY", hz / 100);	/* give USB a chance */
++	}
+ 	if (c == '\r')
+ 		c = '\n';		/* console input is always ICRNL */
+ 	return (c);
+@@ -369,6 +371,7 @@
+ 
+ 	if (cn_mute)
+ 		return (-1);
++
+ 	STAILQ_FOREACH(cnd, &cn_devlist, cnd_next) {
+ 		cn = cnd->cnd_cn;
+ 		if (!kdb_active || !(cn->cn_flags & CN_FLAG_NODEBUG)) {
+
+
+---  sys/kern/vfs_mount.c.orig
++++  sys/kern/vfs_mount.c
+@@ -58,6 +58,7 @@
+ #include <sys/sysent.h>
+ #include <sys/systm.h>
+ #include <sys/vnode.h>
++#include <sys/cons.h>
+ #include <vm/uma.h>
+ 
+ #include <geom/geom.h>
+@@ -76,7 +77,7 @@
+ static int	vfs_domount(struct thread *td, const char *fstype,
+ 		    char *fspath, int fsflags, void *fsdata);
+ static int	vfs_mountroot_ask(void);
+-static int	vfs_mountroot_try(const char *mountfrom, const char *options);
++static int	vfs_mountroot_try(const char *mountfrom, const char *options, int asked);
+ static void	free_mntarg(struct mntarg *ma);
+ 
+ static int	usermount = 0;
+@@ -1344,82 +1345,9 @@
+  *
+  */
+ 
+-struct root_hold_token {
+-	const char			*who;
+-	LIST_ENTRY(root_hold_token)	list;
+-};
+-
+-static LIST_HEAD(, root_hold_token)	root_holds =
+-    LIST_HEAD_INITIALIZER(&root_holds);
+-
+ static int root_mount_complete;
+ 
+ /*
+- * Hold root mount.
+- */
+-struct root_hold_token *
+-root_mount_hold(const char *identifier)
+-{
+-	struct root_hold_token *h;
+-
+-	if (root_mounted())
+-		return (NULL);
+-
+-	h = malloc(sizeof *h, M_DEVBUF, M_ZERO | M_WAITOK);
+-	h->who = identifier;
+-	mtx_lock(&mountlist_mtx);
+-	LIST_INSERT_HEAD(&root_holds, h, list);
+-	mtx_unlock(&mountlist_mtx);
+-	return (h);
+-}
+-
+-/*
+- * Release root mount.
+- */
+-void
+-root_mount_rel(struct root_hold_token *h)
+-{
+-
+-	if (h == NULL)
+-		return;
+-	mtx_lock(&mountlist_mtx);
+-	LIST_REMOVE(h, list);
+-	wakeup(&root_holds);
+-	mtx_unlock(&mountlist_mtx);
+-	free(h, M_DEVBUF);
+-}
+-
+-/*
+- * Wait for all subsystems to release root mount.
+- */
+-static void
+-root_mount_prepare(void)
+-{
+-	struct root_hold_token *h;
+-	struct timeval lastfail;
+-	int curfail = 0;
+-
+-	for (;;) {
+-		DROP_GIANT();
+-		g_waitidle();
+-		PICKUP_GIANT();
+-		mtx_lock(&mountlist_mtx);
+-		if (LIST_EMPTY(&root_holds)) {
+-			mtx_unlock(&mountlist_mtx);
+-			break;
+-		}
+-		if (ppsratecheck(&lastfail, &curfail, 1)) {
+-			printf("Root mount waiting for:");
+-			LIST_FOREACH(h, &root_holds, list)
+-				printf(" %s", h->who);
+-			printf("\n");
+-		}
+-		msleep(&root_holds, &mountlist_mtx, PZERO | PDROP, "roothold",
+-		    hz);
+-	}
+-}
+-
+-/*
+  * Root was mounted, share the good news.
+  */
+ static void
+@@ -1452,27 +1380,6 @@
+ 	return (root_mount_complete);
+ }
+ 
+-/*
+- * Wait until root is mounted.
+- */
+-void
+-root_mount_wait(void)
+-{
+-
+-	/*
+-	 * Panic on an obvious deadlock - the function can't be called from
+-	 * a thread which is doing the whole SYSINIT stuff.
+-	 */
+-	KASSERT(curthread->td_proc->p_pid != 0,
+-	    ("root_mount_wait: cannot be called from the swapper thread"));
+-	mtx_lock(&mountlist_mtx);
+-	while (!root_mount_complete) {
+-		msleep(&root_mount_complete, &mountlist_mtx, PZERO, "rootwait",
+-		    hz);
+-	}
+-	mtx_unlock(&mountlist_mtx);
+-}
+-
+ static void
+ set_rootvnode()
+ {
+@@ -1644,24 +1551,23 @@
+ vfs_mountroot(void)
+ {
+ 	char *cp, *options;
+-	int error, i, asked = 0;
++	int error, i, t, asked = 0;
+ 
+ 	options = NULL;
+ 
+-	root_mount_prepare();
+-
+ 	mount_zone = uma_zcreate("Mountpoints", sizeof(struct mount),
+ 	    NULL, NULL, mount_init, mount_fini,
+ 	    UMA_ALIGN_PTR, UMA_ZONE_NOFREE);
+ 	devfs_first();
+ 
++repeat:
+ 	/*
+ 	 * We are booted with instructions to prompt for the root filesystem.
+ 	 */
+ 	if (boothowto & RB_ASKNAME) {
+ 		if (!vfs_mountroot_ask())
+ 			goto mounted;
+-		asked = 1;
++		asked++;
+ 	}
+ 
+ 	options = getenv("vfs.root.mountfrom.options");
+@@ -1671,7 +1577,7 @@
+ 	 * booted with instructions to use it.
+ 	 */
+ 	if (ctrootdevname != NULL && (boothowto & RB_DFLTROOT)) {
+-		if (!vfs_mountroot_try(ctrootdevname, options))
++		if (!vfs_mountroot_try(ctrootdevname, options, asked))
+ 			goto mounted;
+ 		ctrootdevname = NULL;
+ 	}
+@@ -1683,7 +1589,7 @@
+ 	 */
+ 	if (boothowto & RB_CDROM) {
+ 		for (i = 0; cdrom_rootdevnames[i] != NULL; i++) {
+-			if (!vfs_mountroot_try(cdrom_rootdevnames[i], options))
++			if (!vfs_mountroot_try(cdrom_rootdevnames[i], options, asked))
+ 				goto mounted;
+ 		}
+ 	}
+@@ -1695,7 +1601,7 @@
+ 	 */
+ 	cp = getenv("vfs.root.mountfrom");
+ 	if (cp != NULL) {
+-		error = vfs_mountroot_try(cp, options);
++		error = vfs_mountroot_try(cp, options, asked);
+ 		freeenv(cp);
+ 		if (!error)
+ 			goto mounted;
+@@ -1704,22 +1610,39 @@
+ 	/*
+ 	 * Try values that may have been computed by code during boot
+ 	 */
+-	if (!vfs_mountroot_try(rootdevnames[0], options))
++	if (!vfs_mountroot_try(rootdevnames[0], options, asked))
+ 		goto mounted;
+-	if (!vfs_mountroot_try(rootdevnames[1], options))
++	if (!vfs_mountroot_try(rootdevnames[1], options, asked))
+ 		goto mounted;
+ 
+ 	/*
+ 	 * If we (still) have a compiled-in default, try it.
+ 	 */
+ 	if (ctrootdevname != NULL)
+-		if (!vfs_mountroot_try(ctrootdevname, options))
++		if (!vfs_mountroot_try(ctrootdevname, options, asked))
+ 			goto mounted;
++
++	asked ++;
++
++	t = 16;
++	i = -1;
++	while (t-- && (i == -1)) {
++		pause("WKEY", hz / 16);		/* give USB a chance */
++		i = cncheckc();
++	}
++
+ 	/*
+ 	 * Everything so far has failed, prompt on the console if we haven't
+ 	 * already tried that.
+ 	 */
+-	if (!asked)
++	if (i == 'C')		/* XXX also check for CTRL pressed */
++		if (!vfs_mountroot_ask())
++			goto mounted;
++
++	if (asked < (3 * 60))	/* Wait a maximum of 3 minutes */
++		goto repeat;
++
++	if (i != 'C')
+ 		if (!vfs_mountroot_ask())
+ 			goto mounted;
+ 
+@@ -1780,7 +1703,7 @@
+  * Mount (mountfrom) as the root filesystem.
+  */
+ static int
+-vfs_mountroot_try(const char *mountfrom, const char *options)
++vfs_mountroot_try(const char *mountfrom, const char *options, int asked)
+ {
+ 	struct mount	*mp;
+ 	struct mntarg	*ma;
+@@ -1799,7 +1722,7 @@
+ 
+ 	if (mountfrom == NULL)
+ 		return (error);		/* don't complain */
+-	printf("Trying to mount root from %s\n", mountfrom);
++	printf("Trying to mount root from %s. Press CTRL+C to abort.\n", mountfrom);
+ 
+ 	/* parse vfs name and path */
+ 	vfsname = malloc(MFSNAMELEN, M_MOUNT, M_WAITOK);
+@@ -1847,7 +1770,7 @@
+ 		devfs_fixup(curthread);
+ 	}
+ 
+-	if (error != 0 ) {
++	if ((error != 0) && (asked == 0)) {
+ 		printf("ROOT MOUNT ERROR: %s\n", errmsg);
+ 		printf("If you have invalid mount options, reboot, and ");
+ 		printf("first try the following from\n");
+@@ -1875,6 +1798,7 @@
+ 	char *options;
+ 
+ 	for(;;) {
++		printf("\n");
+ 		printf("Loader variables:\n");
+ 		printf("vfs.root.mountfrom=");
+ 		mountfrom = getenv("vfs.root.mountfrom");
+@@ -1908,7 +1832,7 @@
+ 			g_dev_print();
+ 			continue;
+ 		}
+-		if (!vfs_mountroot_try(name, NULL))
++		if (!vfs_mountroot_try(name, NULL, 0))
+ 			return (0);
+ 	}
+ }
+
+
+---  sys/sys/systm.h.orig
++++  sys/sys/systm.h
+@@ -333,15 +333,8 @@
+ /* XXX: Should be void nanodelay(u_int nsec); */
+ void	DELAY(int usec);
+ 
+-/* Root mount holdback API */
+-struct root_hold_token;
+-
+-struct root_hold_token *root_mount_hold(const char *identifier);
+-void root_mount_rel(struct root_hold_token *h);
+-void root_mount_wait(void);
+ int root_mounted(void);
+ 
+-
+ /*
+  * Unit number allocation API. (kern/subr_unit.c)
+  */

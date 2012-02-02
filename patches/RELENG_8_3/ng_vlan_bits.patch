@@ -1,0 +1,45 @@
+Index: sys/conf/NOTES
+===================================================================
+RCS file: /root/freebsd/freebsd/repo/src/sys/conf/NOTES,v
+retrieving revision 1.2
+diff -u -r1.2 NOTES
+--- sys/conf/NOTES	2 Feb 2010 11:55:09 -0000	1.2
++++ sys/conf/NOTES	2 Feb 2010 12:31:58 -0000
+@@ -708,6 +708,7 @@
+ options 	NETGRAPH_TEE
+ options 	NETGRAPH_UI
+ options 	NETGRAPH_VJC
++options 	NETGRAPH_VLAN
+ 
+ # NgATM - Netgraph ATM
+ options 	NGATM_ATM
+Index: sys/conf/files
+===================================================================
+RCS file: /root/freebsd/freebsd/repo/src/sys/conf/files,v
+retrieving revision 1.4
+diff -u -r1.4 files
+--- sys/conf/files	2 Feb 2010 12:27:57 -0000	1.4
++++ sys/conf/files	2 Feb 2010 12:31:58 -0000
+@@ -2434,6 +2434,7 @@
+ netgraph/ng_tee.c		optional netgraph_tee
+ netgraph/ng_tty.c		optional netgraph_tty
+ netgraph/ng_vjc.c		optional netgraph_vjc
++netgraph/ng_vlan.c		optional netgraph_vlan
+ netinet/accf_data.c		optional accept_filter_data inet
+ netinet/accf_dns.c		optional accept_filter_dns inet
+ netinet/accf_http.c		optional accept_filter_http inet
+Index: sys/conf/options
+===================================================================
+RCS file: /root/freebsd/freebsd/repo/src/sys/conf/options,v
+retrieving revision 1.2
+diff -u -r1.2 options
+--- sys/conf/options	2 Feb 2010 11:55:09 -0000	1.2
++++ sys/conf/options	2 Feb 2010 12:31:59 -0000
+@@ -499,6 +499,7 @@
+ NETGRAPH_TTY		opt_netgraph.h
+ NETGRAPH_UI		opt_netgraph.h
+ NETGRAPH_VJC		opt_netgraph.h
++NETGRAPH_VLAN		opt_netgraph.h
+ 
+ # NgATM options
+ NGATM_ATM		opt_netgraph.h

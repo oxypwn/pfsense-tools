@@ -1,0 +1,24 @@
+Index: if_bridge.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net/if_bridge.c,v
+retrieving revision 1.2
+diff -u -r1.2 if_bridge.c
+--- if_bridge.c	9 Aug 2010 18:12:40 -0000	1.2
++++ if_bridge.c	9 Aug 2010 18:16:30 -0000
+@@ -2354,6 +2354,16 @@
+ 				return (NULL);				\
+ 			}						\
+ 		}							\
++		/* Filter on the physical interface. */			\
++		if (pfil_member &&					\
++		    (PFIL_HOOKED(&V_inet_pfil_hook)			\
++		     OR_PFIL_HOOKED_INET6)) {				\
++			if (bridge_pfil(&m, NULL, ifp,			\
++			    PFIL_IN) != 0 || m == NULL) {		\
++				BRIDGE_UNLOCK(sc);			\
++				return (NULL);				\
++			}						\
++		}							\
+ 		m->m_pkthdr.rcvif = iface;				\
+ 		BRIDGE_UNLOCK(sc);					\
+ 		return (m);						\

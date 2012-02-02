@@ -1,0 +1,15 @@
+Index: usr.sbin/wpa/l2_packet.c
+===================================================================
+RCS file: /home/ncvs/src/usr.sbin/wpa/l2_packet.c,v
+retrieving revision 1.5.2.1
+diff -u -r1.5.2.1 l2_packet.c
+--- usr.sbin/wpa/l2_packet.c	3 Aug 2009 08:13:06 -0000	1.5.2.1
++++ usr.sbin/wpa/l2_packet.c	23 Feb 2010 16:36:13 -0000
+@@ -242,6 +242,7 @@
+ 		    (ifm->ifm_addrs & RTA_IFP) == 0)
+ 			continue;
+ 		if (sdl->sdl_family != AF_LINK || sdl->sdl_nlen == 0 ||
++		    (strlen(device) != sdl->sdl_nlen) ||
+ 		    memcmp(sdl->sdl_data, device, sdl->sdl_nlen) != 0)
+ 			continue;
+ 		memcpy(ea, LLADDR(sdl), sdl->sdl_alen);

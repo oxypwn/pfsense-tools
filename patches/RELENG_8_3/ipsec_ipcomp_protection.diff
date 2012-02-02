@@ -1,0 +1,37 @@
+Index: sys/netipsec/xform_ipcomp.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netipsec/xform_ipcomp.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 xform_ipcomp.c
+--- sys/netipsec/xform_ipcomp.c	4 Apr 2011 20:51:37 -0000	1.1.1.1
++++ sys/netipsec/xform_ipcomp.c	4 Apr 2011 21:56:33 -0000
+@@ -141,8 +141,29 @@
+ 	struct tdb_crypto *tc;
+ 	struct cryptodesc *crdc;
+ 	struct cryptop *crp;
++	struct ipcomp *ipcomp;
++	caddr_t addr;
+ 	int hlen = IPCOMP_HLENGTH;
+ 
++	/*
++	 * Check that the next header of the IPComp is not IPComp again, before
++	 * doing any real work.  Given it is not possible to do double
++	 * compression it means someone is playing tricks on us.
++	 */
++	if (m->m_len < skip + hlen && (m = m_pullup(m, skip + hlen)) == NULL) {
++		V_ipcompstat.ipcomps_hdrops++;          /*XXX*/
++		DPRINTF(("%s: m_pullup failed\n", __func__));
++		return (ENOBUFS);
++	}
++	addr = (caddr_t) mtod(m, struct ip *) + skip;
++	ipcomp = (struct ipcomp *)addr;
++	if (ipcomp->comp_nxt == IPPROTO_IPCOMP) {
++		m_freem(m);
++		V_ipcompstat.ipcomps_pdrops++;  /* XXX have our own stats? */
++		DPRINTF(("%s: recursive compression detected\n", __func__));
++		return (EINVAL);
++	}
++
+ 	/* Get crypto descriptors */
+ 	crp = crypto_getreq(1);
+ 	if (crp == NULL) {

@@ -1,0 +1,13 @@
+--- sys/netinet/ip_divert.c.old	2011-08-19 20:42:06.000000000 +0000
++++ sys/netinet/ip_divert.c	2011-08-19 20:42:34.000000000 +0000
+@@ -82,8 +82,8 @@
+ /*
+  * Allocate enough space to hold a full IP packet
+  */
+-#define	DIVSNDQ		(65536 + 100)
+-#define	DIVRCVQ		(65536 + 100)
++#define	DIVSNDQ		((65536 + 100) * 4)
++#define	DIVRCVQ		((65536 + 100) * 4)
+ 
+ /*
+  * Divert sockets work in conjunction with ipfw or other packet filters,

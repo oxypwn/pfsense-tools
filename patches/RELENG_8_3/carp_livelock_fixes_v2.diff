@@ -1,0 +1,56 @@
+Index: sys/net/if_bridge.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/net/if_bridge.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 if_bridge.c
+--- sys/net/if_bridge.c	25 Jan 2011 18:02:30 -0000	1.1.1.1
++++ sys/net/if_bridge.c	25 Jan 2011 18:12:02 -0000
+@@ -2274,6 +2274,7 @@
+ #define GRAB_OUR_PACKETS(iface) \
+ 	if ((iface)->if_type == IFT_GIF) \
+ 		continue; \
++	BRIDGE_UNLOCK(sc);						\
+ 	/* It is destined for us. */ \
+ 	if (memcmp(IF_LLADDR((iface)), eh->ether_dhost,  ETHER_ADDR_LEN) == 0 \
+ 	    OR_CARP_CHECK_WE_ARE_DST((iface))				\
+@@ -2287,22 +2288,23 @@
+ 			     OR_PFIL_HOOKED_INET6)) {			\
+ 				if (bridge_pfil(&m, NULL, ifp,		\
+ 				    PFIL_IN) != 0 || m == NULL) {	\
+-					BRIDGE_UNLOCK(sc);		\
++					/*BRIDGE_UNLOCK(sc);*/		\
+ 					return (NULL);			\
+ 				}					\
+ 			}						\
+ 		}							\
+ 		if (bif->bif_flags & IFBIF_LEARNING) {			\
++			BRIDGE_LOCK(sc);				\
+ 			error = bridge_rtupdate(sc, eh->ether_shost,	\
+ 			    vlan, bif, 0, IFBAF_DYNAMIC);		\
++			BRIDGE_UNLOCK(sc);				\
+ 			if (error && bif->bif_addrmax) {		\
+-				BRIDGE_UNLOCK(sc);			\
+ 				m_freem(m);				\
+ 				return (NULL);				\
+ 			}						\
+ 		}							\
+ 		m->m_pkthdr.rcvif = iface;				\
+-		BRIDGE_UNLOCK(sc);					\
++		/*BRIDGE_UNLOCK(sc);*/					\
+ 		return (m);						\
+ 	}								\
+ 									\
+@@ -2310,10 +2312,11 @@
+ 	if (memcmp(IF_LLADDR((iface)), eh->ether_shost, ETHER_ADDR_LEN) == 0 \
+ 	    OR_CARP_CHECK_WE_ARE_SRC((iface))			\
+ 	    ) {								\
+-		BRIDGE_UNLOCK(sc);					\
++		/*BRIDGE_UNLOCK(sc);*/					\
+ 		m_freem(m);						\
+ 		return (NULL);						\
+-	}
++	}								\
++	BRIDGE_LOCK(sc);
+ 
+ 	/*
+ 	 * Unicast.  Make sure it's not for the bridge.

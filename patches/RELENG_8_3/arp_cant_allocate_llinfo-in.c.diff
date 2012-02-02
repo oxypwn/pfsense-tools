@@ -1,0 +1,12 @@
+--- sys/netinet/in.c.old	2011-08-30 14:37:31.000000000 +0000
++++ sys/netinet/in.c	2011-08-30 14:38:08.000000000 +0000
+@@ -1144,7 +1144,8 @@
+ 			p.s_addr &= ia->ia_sockmask.sin_addr.s_addr;
+ 		}
+ 
+-		if (prefix.s_addr != p.s_addr)
++		if ((prefix.s_addr != p.s_addr) ||
++		    !(ia->ia_ifp->if_flags & IFF_UP))
+ 			continue;
+ 
+ 		/*

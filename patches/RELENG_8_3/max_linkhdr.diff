@@ -1,0 +1,37 @@
+Index: sys/kern/uipc_domain.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/kern/uipc_domain.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 uipc_domain.c
+--- sys/kern/uipc_domain.c	3 Nov 2010 17:32:49 -0000	1.1.1.1
++++ sys/kern/uipc_domain.c	3 Nov 2010 21:04:54 -0000
+@@ -261,8 +261,8 @@
+ 	EVENTHANDLER_REGISTER(maxsockets_change, socket_zone_change, NULL,
+ 		EVENTHANDLER_PRI_FIRST);
+ 
+-	if (max_linkhdr < 16)		/* XXX */
+-		max_linkhdr = 16;
++	if (max_linkhdr < 20)		/* XXX */
++		max_linkhdr = 20;
+ 
+ 	callout_init(&pffast_callout, CALLOUT_MPSAFE);
+ 	callout_init(&pfslow_callout, CALLOUT_MPSAFE);
+Index: sys/sys/param.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/sys/param.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 param.h
+--- sys/sys/param.h	3 Nov 2010 17:32:48 -0000	1.1.1.1
++++ sys/sys/param.h	8 Nov 2010 22:21:35 -0000
+@@ -137,7 +137,11 @@
+  * MCLBYTES must be no larger than PAGE_SIZE.
+  */
+ #ifndef	MSIZE
++#if defined(__amd64__)
++#define MSIZE		512		/* size of an mbuf */
++#else
+ #define MSIZE		256		/* size of an mbuf */
++#endif
+ #endif	/* MSIZE */
+ 
+ #ifndef	MCLSHIFT
