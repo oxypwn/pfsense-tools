@@ -89,6 +89,8 @@ IS ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <netinet/in.h>
 #include <netinet/in_var.h>
 #include <net/pfvar.h>
+
+#include <netinet/ip_fw.h>
 #include <sys/ioctl.h>
 #include <sys/sysctl.h>
 #include <netinet/in.h>
@@ -143,6 +145,9 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_close_dhcpd, NULL)
     PHP_FE(pfSense_register_lease, NULL)
     PHP_FE(pfSense_delete_lease, NULL)
+#endif
+#ifdef IPFW_FUNCTIONS
+   PHP_FE(pfSense_ipfw_getTablestats, NULL)
 #endif
     {NULL, NULL, NULL}
 };
@@ -216,6 +221,15 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 		return FAILURE;
 	}
 
+#ifdef IPFW_FUNCTIONS
+	PFSENSE_G(ipfw) = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+	if (PFSENSE_G(ipfw) < 0) {
+		close(PFSENSE_G(s));
+		close(PFSENSE_G(inets));
+		return FAILURE;
+	}
+	
+#endif
 	if (geteuid() == 0 || getuid() == 0) {
 		/* Create a new socket node */
 		if (NgMkSockNode(NULL, &csock, NULL) < 0)
@@ -230,6 +244,7 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	/* Don't leak these sockets to child processes */
 	fcntl(PFSENSE_G(s), F_SETFD, fcntl(PFSENSE_G(s), F_GETFD, 0) | FD_CLOEXEC);
 	fcntl(PFSENSE_G(inets), F_SETFD, fcntl(PFSENSE_G(inets), F_GETFD, 0) | FD_CLOEXEC);
+	fcntl(PFSENSE_G(ipfw), F_SETFD, fcntl(PFSENSE_G(ipfw), F_GETFD, 0) | FD_CLOEXEC);
 
 	REGISTER_LONG_CONSTANT("IFF_UP", IFF_UP, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IFF_LINK0", IFF_LINK0, CONST_PERSISTENT | CONST_CS);
@@ -277,6 +292,43 @@ PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 
 	return SUCCESS;
 }
+
+#ifdef IPFW_FUNCTIONS
+PHP_FUNCTION(pfSense_ipfw_getTablestats)
+{
+	ipfw_table_entry ent;
+	socklen_t size;
+	int mask = 0;
+	char *ip, *name;
+	int ip_len, name_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|l", &name, &name_len, &ip, &ip_len, &mask) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	/* XXX: Use context data! */
+
+	if (strchr(ip, ':')) {
+		if (!inet_pton(AF_INET6, ip, &ent.addr))
+			RETURN_FALSE;
+	} else if (!inet_pton(AF_INET, ip, &ent.addr))
+		RETURN_FALSE;
+
+	if (mask)
+		ent.masklen = mask;
+	else
+		ent.masklen = 32;
+	size = sizeof(ent);
+	if (getsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW_TABLE_GET_ENTRY, &ent, &size) < 0)
+		RETURN_FALSE;
+
+	array_init(return_value);
+	add_assoc_long(return_value, "packets", (unsigned long long)ent.packets);
+	add_assoc_long(return_value, "bytes", (unsigned long long)ent.bytes);
+	add_assoc_long(return_value, "timestamp", ent.timestamp);
+	add_assoc_long(return_value, "dnpipe", ent.value);
+}
+#endif
 
 #ifdef DHCP_INTEGRATION
 PHP_FUNCTION(pfSense_open_dhcpd)

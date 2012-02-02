@@ -12,6 +12,9 @@
 ZEND_BEGIN_MODULE_GLOBALS(pfSense)
 	int s;
 	int inets;
+#ifdef IPFW_FUNCTIONS
+	int ipfw;
+#endif
 	int csock;
 ZEND_END_MODULE_GLOBALS(pfSense)
 
@@ -61,6 +64,10 @@ PHP_FUNCTION(pfSense_open_dhcpd);
 PHP_FUNCTION(pfSense_close_dhcpd);
 PHP_FUNCTION(pfSense_register_lease);
 PHP_FUNCTION(pfSense_delete_lease);
+#endif
+
+#ifdef IPFW_FUNCTIONS
+PHP_FUNCTION(pfSense_ipfw_getTablestats);
 #endif
 
 extern zend_module_entry pfSense_module_entry;
