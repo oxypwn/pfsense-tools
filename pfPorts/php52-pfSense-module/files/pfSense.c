@@ -348,13 +348,13 @@ PHP_FUNCTION(pfSense_open_dhcpd)
 
 	status = dhcpctl_new_authenticator(&auth, name, "hmac-md5", key, key_len);
 	if (status != ISC_R_SUCCESS) {
-		php_printf("Failed to get aythenticator: %s - %s\n", isc_result_totext(status), key);
+		//php_printf("Failed to get aythenticator: %s - %s\n", isc_result_totext(status), key);
 		RETURN_NULL();
 	}
 
 	status = dhcpctl_connect(&conn, addr, port, auth);
 	if (status != ISC_R_SUCCESS) {
-		php_printf("Error occured during connecting: %s\n", isc_result_totext(status));
+		//php_printf("Error occured during connecting: %s\n", isc_result_totext(status));
 		RETURN_NULL();
 	}
 
@@ -384,19 +384,19 @@ PHP_FUNCTION(pfSense_register_lease)
 	ZEND_VERIFY_RESOURCE(conn);
 
         if ((status = dhcpctl_new_object(&hp, conn->handle, "host")) != ISC_R_SUCCESS) {
-		php_printf("1Error occured during connecting: %s\n", isc_result_totext(status));
+		//php_printf("1Error occured during connecting: %s\n", isc_result_totext(status));
 		RETURN_FALSE;
 	}
 
 	inet_aton(ip, &nds);
         if ((status = dhcpctl_set_data_value(hp, (char *)&nds, sizeof(struct in_addr), "ip-address")) != ISC_R_SUCCESS) {
-		php_printf("3Error occured during connecting: %s\n", isc_result_totext(status));
+		//php_printf("3Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
 
         if ((status = dhcpctl_set_string_value(hp, name, "name")) != ISC_R_SUCCESS) {
-		php_printf("4Error occured during connecting: %s\n", isc_result_totext(status));
+		//php_printf("4Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
@@ -404,30 +404,30 @@ PHP_FUNCTION(pfSense_register_lease)
         if (!(ds = ether_aton(mac)))
 		RETURN_FALSE;
         if ((status = dhcpctl_set_data_value(hp, (u_char *)ds, sizeof(struct ether_addr), "hardware-address")) != ISC_R_SUCCESS) {
-		php_printf("2Error occured during connecting: %s\n", isc_result_totext(status));
+		//php_printf("2Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
 
 	if ((status= dhcpctl_set_int_value(hp, 1,"hardware-type")) != ISC_R_SUCCESS)  {
-		php_printf("2Error occured during connecting: %s\n", isc_result_totext(status));
+		//php_printf("2Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
 
-	php_printf("Coonection handle %d\n", conn->handle);
+	//php_printf("Coonection handle %d\n", conn->handle);
         if ((status = dhcpctl_open_object(hp, conn->handle, DHCPCTL_CREATE|DHCPCTL_EXCL)) != ISC_R_SUCCESS) {
-		php_printf("5Error occured during connecting: %s\n", isc_result_totext(status));
+		//php_printf("5Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
         if ((status = dhcpctl_wait_for_completion(hp, &status2)) != ISC_R_SUCCESS) {
-		php_printf("6Error occured during connecting: %s-  %s\n", isc_result_totext(status), isc_result_totext(status2));
+		//php_printf("6Error occured during connecting: %s-  %s\n", isc_result_totext(status), isc_result_totext(status2));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
         if (status2 != ISC_R_SUCCESS) {
-		php_printf("7Error occured during connecting: %s\n", isc_result_totext(status2));
+		//php_printf("7Error occured during connecting: %s\n", isc_result_totext(status2));
                 omapi_object_dereference(&hp,__FILE__,__LINE__);
                 RETURN_FALSE;
         }
