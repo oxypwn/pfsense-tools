@@ -1,12 +1,12 @@
-# New ports collection makefile for:	php5
-# Date created:				Tue Feb 18 11:17:13 CET 2003
-# Whom:					Alex Dupre <sysadmin@alexdupre.com>
+# New ports collection makefile for:    php5
+# Date created:                         Tue Feb 18 11:17:13 CET 2003
+# Whom:                                 Alex Dupre <sysadmin@alexdupre.com>
 #
-# $FreeBSD: ports/lang/php5/Makefile,v 1.166 2012/01/12 16:19:13 ale Exp $
+# $FreeBSD: ports/lang/php5/Makefile,v 1.167 2012/02/03 09:03:06 ale Exp $
 #
 
 PORTNAME=	php5
-PORTVERSION=	5.3.9
+PORTVERSION=	5.3.10
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
@@ -27,6 +27,7 @@ LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
 
 CONFIGURE_ARGS=	\
 		--with-layout=GNU \
+		--localstatedir=/var \
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-libxml \
@@ -34,25 +35,22 @@ CONFIGURE_ARGS=	\
 		--enable-reflection \
 		--with-pcre-regex=${LOCALBASE} \
 		--enable-mysqlnd \
+		--with-zlib-dir=/usr \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
 
-OPTIONS=CLI "Build CLI version" on \
-		CGI "Build CGI version" on \
-		APACHE "Build Apache module" off \
-		DEBUG "Enable debug" off \
-		SUHOSIN "Enable Suhosin protection system (not for jails)" on \
-		MULTIBYTE "Enable zend multibyte support" off \
-		IPV6 "Enable ipv6 support" on \
-		MAILHEAD "Enable mail header patch" off \
-		REDIRECT "Enable force-cgi-redirect support (CGI only)" off \
-		DISCARD "Enable discard-path support (CGI only)" off \
-		FASTCGI "Enable fastcgi support (CGI only)" on \
-		FPM "Enable fastcgi process manager (CGI only)" off \
-		PATHINFO "Enable path-info-check support (CGI only)" on \
-		LINKTHR "Link thread lib (for threaded extensions)" on
-
+OPTIONS=	CLI "Build CLI version" on \
+			CGI "Build CGI version" on \
+			FPM "Build FPM version (experimental)" off \
+			APACHE "Build Apache module" off \
+			AP2FILTER " Use Apache 2.x filter interface (experimental)" off \
+			DEBUG "Enable debug" off \
+			SUHOSIN "Enable Suhosin protection system" on \
+			MULTIBYTE "Enable zend multibyte support" off \
+			IPV6 "Enable ipv6 support" on \
+			MAILHEAD "Enable mail header patch" off \
+			LINKTHR "Link thread lib (for threaded extensions)" off
 
 CONFLICTS=	php4-4* php5-pcre-* php5-spl-*
 
@@ -66,7 +64,7 @@ PATCH_SITES+=	${MASTER_SITE_LOCAL}
 PATCH_SITE_SUBDIR=	ale
 
 .if !defined(WITHOUT_SUHOSIN)
-PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.10.patch.gz:suhosin
+PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.10.patch.gz
 PATCH_SITES+=	http://download.suhosin.org/:suhosin
 PLIST_SUB+=	SUHOSIN=""
 .else
