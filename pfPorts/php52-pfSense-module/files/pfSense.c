@@ -376,7 +376,7 @@ PHP_FUNCTION(pfSense_register_lease)
 	zval *res;
 	omapi_data *conn;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zssss", &res, &name, &name_len, &mac, &mac_len, &ip, &ip_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zsss", &res, &name, &name_len, &mac, &mac_len, &ip, &ip_len) == FAILURE) {
 		RETURN_FALSE;
 	}
 
