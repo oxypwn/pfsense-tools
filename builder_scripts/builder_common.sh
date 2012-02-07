@@ -396,21 +396,21 @@ build_all_kernels() {
 	fi
 
 	# Build uniprocessor kernel
-	echo ">>> Building uniprocessor kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/uniprocessor"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
+	#echo ">>> Building uniprocessor kernel..."
+	#find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	#find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	#unset KERNCONF
+	#unset KERNEL_DESTDIR
+	#unset KERNELCONF
+	#export KERNCONF=pfSense.${FREEBSD_VERSION}
+	#export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/uniprocessor"
+	#export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
 	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing uniprocessor kernel..."
-	freesbie_make installkernel
-	ensure_kernel_exists $KERNEL_DESTDIR
+	#fixup_kernel_options
+	#freesbie_make buildkernel
+	#echo ">>> Installing uniprocessor kernel..."
+	#freesbie_make installkernel
+	#ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Build embedded kernel
 	echo ">>> Building embedded kernel..."
@@ -430,38 +430,38 @@ build_all_kernels() {
 	ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Build embedded dev kernel
-	echo ">>> Building embedded dev kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_Dev"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}"
+	#echo ">>> Building embedded dev kernel..."
+	#find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	#find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	#unset KERNCONF
+	#unset KERNEL_DESTDIR
+	#unset KERNELCONF
+	#export KERNCONF=pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}
+	#export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_Dev"
+	#export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}"
 	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing wrap Dev kernel..."
-	freesbie_make installkernel
-	ensure_kernel_exists $KERNEL_DESTDIR
+	#fixup_kernel_options
+	#freesbie_make buildkernel
+	#echo ">>> Installing wrap Dev kernel..."
+	#freesbie_make installkernel
+	#ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Build Developers kernel
-	echo ">>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
+	#echo ">>> Building Developers kernel..."
+	#find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
+	#find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	#unset KERNCONF
+	#unset KERNEL_DESTDIR
+	#unset KERNELCONF
+	#export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
+	#export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
+	#export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
 	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing Developers kernel..."
-	freesbie_make installkernel
-	ensure_kernel_exists $KERNEL_DESTDIR
+	#fixup_kernel_options
+	#freesbie_make buildkernel
+	#echo ">>> Installing Developers kernel..."
+	#freesbie_make installkernel
+	#ensure_kernel_exists $KERNEL_DESTDIR
 
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
@@ -493,14 +493,14 @@ build_all_kernels() {
 	find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
 	echo "done."
 
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .)
+	#echo -n ">>> Installing kernels to LiveCD area..."
+	#(cd $KERNEL_BUILD_PATH/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .)
 	echo -n "."
 	(cd $KERNEL_BUILD_PATH/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .)
-	echo -n "."
-	(cd $KERNEL_BUILD_PATH/wrap_Dev/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz .)
-	echo -n "."
-	(cd $KERNEL_BUILD_PATH/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
+	#echo -n "."
+	#(cd $KERNEL_BUILD_PATH/wrap_Dev/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz .)
+	#echo -n "."
+	#(cd $KERNEL_BUILD_PATH/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
 	echo -n "."
 	(cd $KERNEL_BUILD_PATH/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
 	echo -n "."
