@@ -34,10 +34,6 @@ return {
 		{
 		    id = "Embedded",
 		    name = _("Embedded kernel (no vga console, keyboard")
-		},
-		{
-		    id = "Developers",
-		    name = _("Developers kernel (includes GDB, etc)")
 		}
 	    },
 
@@ -61,14 +57,6 @@ return {
 		cmds:add("echo -D >> /mnt/boot.config")
 		cmds:add("echo console=\"comconsole\" >> /mnt/boot/loader.conf")
 		cmds:execute()
-	end
-	if response.action_id == "Developers" then
-		local cmds = CmdChain.new()
-		cmds:add("tar xzpf /kernels/kernel_Dev.gz -C /mnt/boot/")
-		cmds:add("echo Developers > /mnt/boot/kernel/pfsense_kernel.txt")
-		cmds:execute()
-	end
-
 	return step:next()
 
     end
