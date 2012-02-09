@@ -1,0 +1,1245 @@
+diff -Naru src.orig/sbin/ifconfig/Makefile src/sbin/ifconfig/Makefile
+--- src.orig/sbin/ifconfig/Makefile	2009-10-25 10:10:29.000000000 +0900
++++ src/sbin/ifconfig/Makefile	2010-01-26 16:25:03.000000000 +0900
+@@ -25,6 +25,7 @@
+ SRCS+=	ifvlan.c		# SIOC[GS]ETVLAN support
+ SRCS+=	ifgre.c			# GRE keys etc
+ SRCS+=	ifgif.c			# GIF reversed header workaround
++SRCS+=	ifsrd.c			# 6rd support
+ 
+ SRCS+=	ifieee80211.c regdomain.c # SIOC[GS]IEEE80211 support
+ DPADD+=	${LIBBSDXML} ${LIBSBUF} ${LIBJAIL}
+diff -Naru src.orig/sbin/ifconfig/ifsrd.c src/sbin/ifconfig/ifsrd.c
+--- src.orig/sbin/ifconfig/ifsrd.c	1970-01-01 09:00:00.000000000 +0900
++++ src/sbin/ifconfig/ifsrd.c	2010-01-29 22:28:39.000000000 +0900
+@@ -0,0 +1,213 @@
++/*-
++ * Copyright (c) 2010 Masakazu Asama.  All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
++ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
++ * IN NO EVENT SHALL THE AUTHOR OR HIS RELATIVES BE LIABLE FOR ANY DIRECT,
++ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
++ * SERVICES; LOSS OF MIND, USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
++ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
++ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
++ * THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++#ifndef lint
++static const char rcsid[] =
++  "$FreeBSD: src/sbin/ifconfig/ifsrd.c,v XXX $";
++#endif
++
++#include <sys/param.h>
++#include <sys/ioctl.h>
++#include <sys/socket.h>
++#include <sys/sockio.h>
++#include <sys/types.h>
++
++#include <stdlib.h>
++#include <unistd.h>
++
++#include <net/ethernet.h>
++#include <net/if.h>
++#include <net/if_srd.h>
++#include <net/route.h>
++
++#include <netinet/in.h>
++#include <arpa/inet.h>
++
++#include <ctype.h>
++#include <stdio.h>
++#include <string.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <err.h>
++#include <errno.h>
++
++#include "ifconfig.h"
++
++static void	srd_status(int);
++
++static void
++srd_status(int s)
++{
++	struct srdopts opts;
++	char pfix[INET6_ADDRSTRLEN];
++	char braddr[INET_ADDRSTRLEN];
++
++	memset(pfix, 0, INET6_ADDRSTRLEN);
++	memset(braddr, 0, INET_ADDRSTRLEN);
++
++	memset((char *)&opts, 0, sizeof(struct srdopts));
++	ifr.ifr_data = (caddr_t)&opts;
++
++	if (ioctl(s, SRDGOPTS, (caddr_t)&ifr) == -1)
++		return;
++
++	inet_ntop(AF_INET6, &opts.srd_pfix, pfix, INET6_ADDRSTRLEN);
++	inet_ntop(AF_INET, &opts.srd_braddr, braddr, INET_ADDRSTRLEN);
++	printf("\tsrd: v4plen %d pfix %s plen %d braddr %s\n",
++		opts.srd_v4plen, pfix, opts.srd_plen, braddr);
++
++	return;
++}
++
++static void
++setsrd_v4plen(const char *val,
++	int d, int s, const struct afswtch *afp)
++{
++	struct srdopts opts;
++
++	memset((char *)&opts, 0, sizeof(struct srdopts));
++	ifr.ifr_data = (caddr_t)&opts;
++
++	if (ioctl(s, SRDGOPTS, (caddr_t)&ifr) == -1) {
++		warn("ioctl(SRDGOPTS)");
++		return;
++	}
++
++	opts.srd_v4plen = strtoul(val, NULL, 10);
++	/* XXX */
++	if ((opts.srd_v4plen > 32) ||
++	    ((32 - opts.srd_v4plen) + opts.srd_plen > 64)) {
++		warn("ioctl(SRDSOPTS)");
++		return;
++	}
++
++	if (ioctl(s, SRDSOPTS, (caddr_t)&ifr) == -1) {
++		warn("ioctl(SRDSOPTS)");
++		return;
++	}
++}
++
++static void
++setsrd_pfix(const char *val,
++	int d, int s, const struct afswtch *afp)
++{
++	struct srdopts opts;
++
++	memset((char *)&opts, 0, sizeof(struct srdopts));
++	ifr.ifr_data = (caddr_t)&opts;
++
++	if (ioctl(s, SRDGOPTS, (caddr_t)&ifr) == -1) {
++		warn("ioctl(SRDGOPTS)");
++		return;
++	}
++
++	if (inet_pton(AF_INET6, val, &opts.srd_pfix) != 1) {
++		warn("ioctl(SRDSOPTS)");
++		return;
++	}
++
++	if (ioctl(s, SRDSOPTS, (caddr_t)&ifr) == -1) {
++		warn("ioctl(SRDSOPTS)");
++		return;
++	}
++}
++
++static void
++setsrd_plen(const char *val,
++	int d, int s, const struct afswtch *afp)
++{
++	struct srdopts opts;
++
++	memset((char *)&opts, 0, sizeof(struct srdopts));
++	ifr.ifr_data = (caddr_t)&opts;
++
++	if (ioctl(s, SRDGOPTS, (caddr_t)&ifr) == -1) {
++		warn("ioctl(SRDGOPTS)");
++		return;
++	}
++
++	opts.srd_plen = strtoul(val, NULL, 10);
++	/* XXX */
++	if ((opts.srd_plen > 64) ||
++	    ((32 - opts.srd_v4plen) + opts.srd_plen > 64)) {
++		warn("ioctl(SRDSOPTS)");
++		return;
++	}
++
++	if (ioctl(s, SRDSOPTS, (caddr_t)&ifr) == -1) {
++		warn("ioctl(SRDSOPTS)");
++		return;
++	}
++}
++
++static void
++setsrd_braddr(const char *val,
++	int d, int s, const struct afswtch *afp)
++{
++	struct srdopts opts;
++
++	memset((char *)&opts, 0, sizeof(struct srdopts));
++	ifr.ifr_data = (caddr_t)&opts;
++
++	if (ioctl(s, SRDGOPTS, (caddr_t)&ifr) == -1) {
++		warn("ioctl(SRDGOPTS)");
++		return;
++	}
++
++	if (inet_pton(AF_INET, val, &opts.srd_braddr) != 1) {
++		warn("ioctl(SRDSOPTS)");
++		return;
++	}
++
++	if (ioctl(s, SRDSOPTS, (caddr_t)&ifr) == -1) {
++		warn("ioctl(SRDSOPTS)");
++		return;
++	}
++}
++
++static struct cmd srd_cmds[] = {
++	DEF_CMD_ARG("v4plen",	setsrd_v4plen),
++	DEF_CMD_ARG("pfix",	setsrd_pfix),
++	DEF_CMD_ARG("plen",	setsrd_plen),
++	DEF_CMD_ARG("braddr",	setsrd_braddr),
++};
++
++static struct afswtch af_srd = {
++	.af_name	= "af_srd",
++	.af_af		= AF_UNSPEC,
++	.af_other_status = srd_status,
++};
++
++static __constructor void
++srd_ctor(void)
++{
++#define	N(a)	(sizeof(a) / sizeof(a[0]))
++	size_t i;
++
++	for (i = 0; i < N(srd_cmds); i++)
++		cmd_register(&srd_cmds[i]);
++	af_register(&af_srd);
++#undef N
++}
+diff -Naru src.orig/sys/conf/NOTES src/sys/conf/NOTES
+--- src.orig/sys/conf/NOTES	2009-10-30 00:42:50.000000000 +0900
++++ src/sys/conf/NOTES	2010-01-26 16:21:12.000000000 +0900
+@@ -812,8 +812,10 @@
+ #  The `faith' device captures packets sent to it and diverts them
+ #  to the IPv4/IPv6 translation daemon.
+ #  The `stf' device implements 6to4 encapsulation.
++#  The `srd' device implements 6rd encapsulation.
+ device		faith
+ device		stf
++device		srd
+ 
+ #  The `ef' device provides support for multiple ethernet frame types
+ #  specified via ETHER_* options. See ef(4) for details.
+diff -Naru src.orig/sys/conf/files src/sys/conf/files
+--- src.orig/sys/conf/files	2009-10-25 10:10:29.000000000 +0900
++++ src/sys/conf/files	2010-01-26 15:55:14.000000000 +0900
+@@ -2218,6 +2218,7 @@
+ net/if_mib.c			standard
+ net/if_spppfr.c			optional sppp | netgraph_sppp
+ net/if_spppsubr.c		optional sppp | netgraph_sppp
++net/if_srd.c			optional srd inet inet6
+ net/if_stf.c			optional stf inet inet6
+ net/if_tun.c			optional tun
+ net/if_tap.c			optional tap
+diff -Naru src.orig/sys/modules/Makefile src/sys/modules/Makefile
+--- src.orig/sys/modules/Makefile	2009-10-25 10:10:29.000000000 +0900
++++ src/sys/modules/Makefile	2010-01-26 15:56:56.000000000 +0900
+@@ -115,6 +115,7 @@
+ 	if_gre \
+ 	if_lagg \
+ 	${_if_ndis} \
++	if_srd \
+ 	if_stf \
+ 	if_tap \
+ 	if_tun \
+diff -Naru src.orig/sys/modules/if_srd/Makefile src/sys/modules/if_srd/Makefile
+--- src.orig/sys/modules/if_srd/Makefile	1970-01-01 09:00:00.000000000 +0900
++++ src/sys/modules/if_srd/Makefile	2010-01-26 15:56:40.000000000 +0900
+@@ -0,0 +1,15 @@
++
++.PATH: ${.CURDIR}/../../net
++
++KMOD=	if_srd
++SRCS=	if_srd.c opt_inet.h opt_inet6.h
++
++.if !defined(KERNBUILDDIR)
++opt_inet.h:
++	echo "#define INET 1" > ${.TARGET}
++
++opt_inet6.h:
++	echo "#define INET6 1" > ${.TARGET}
++.endif
++
++.include <bsd.kmod.mk>
+diff -Naru src.orig/sys/net/if_srd.c src/sys/net/if_srd.c
+--- src.orig/sys/net/if_srd.c	1970-01-01 09:00:00.000000000 +0900
++++ src/sys/net/if_srd.c	2010-01-30 00:55:19.000000000 +0900
+@@ -0,0 +1,890 @@
++/*	$FreeBSD: src/sys/net/if_srd.c,v XXX $	*/
++/*	$FreeBSD: src/sys/net/if_stf.c,v 1.75.2.1.2.1 2009/10/25 01:10:29 kensmith Exp $	*/
++/*	$KAME: if_stf.c,v 1.73 2001/12/03 11:08:30 keiichi Exp $	*/
++
++/*-
++ * Copyright (C) 2010 Masakazu Asama.
++ * Copyright (C) 2000 WIDE Project.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. Neither the name of the project nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ */
++
++#include "opt_inet.h"
++#include "opt_inet6.h"
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/socket.h>
++#include <sys/sockio.h>
++#include <sys/mbuf.h>
++#include <sys/errno.h>
++#include <sys/kernel.h>
++#include <sys/module.h>
++#include <sys/protosw.h>
++#include <sys/proc.h>
++#include <sys/queue.h>
++#include <sys/sysctl.h>
++#include <machine/cpu.h>
++
++#include <sys/malloc.h>
++
++#include <net/if.h>
++#include <net/if_clone.h>
++#include <net/route.h>
++#include <net/netisr.h>
++#include <net/if_types.h>
++#include <net/if_srd.h>
++#include <net/vnet.h>
++
++#include <netinet/in.h>
++#include <netinet/in_systm.h>
++#include <netinet/ip.h>
++#include <netinet/ip_var.h>
++#include <netinet/in_var.h>
++
++#include <netinet/ip6.h>
++#include <netinet6/ip6_var.h>
++#include <netinet6/in6_var.h>
++#include <netinet/ip_ecn.h>
++
++#include <netinet/ip_encap.h>
++
++#include <machine/stdarg.h>
++
++#include <net/bpf.h>
++
++#include <security/mac/mac_framework.h>
++
++SYSCTL_DECL(_net_link);
++SYSCTL_NODE(_net_link, IFT_SRD, srd, CTLFLAG_RW, 0, "6rd Interface");
++
++static int srd_route_cache = 1;
++SYSCTL_INT(_net_link_srd, OID_AUTO, route_cache, CTLFLAG_RW,
++    &srd_route_cache, 0, "Caching of IPv4 routes for 6rd Output");
++
++#define SRDNAME		"srd"
++#define SRDUNIT		0
++
++struct srd_softc {
++	struct ifnet	*sc_ifp;
++	union {
++		struct route  __sc_ro4;
++		struct route_in6 __sc_ro6; /* just for safety */
++	} __sc_ro46;
++#define sc_ro	__sc_ro46.__sc_ro4
++	struct mtx	sc_ro_mtx;
++	u_int	sc_fibnum;
++	const struct encaptab *encap_cookie;
++	/* 6rd elements */
++	u_int		sc_srd_v4plen;
++	struct in6_addr	sc_srd_pfix;
++	u_int		sc_srd_plen;
++	struct in_addr	sc_srd_braddr;
++	/* 6rd calculated variables */
++	struct in_addr	sc_srd_v4pmask;
++	struct in6_addr sc_srd_pmask;
++	struct in6_addr sc_srd_dpmask;
++};
++#define SRD2IFP(sc)	((sc)->sc_ifp)
++
++/*
++ * Note that mutable fields in the softc are not currently locked.
++ * We do lock sc_ro in srd_output though.
++ */
++static MALLOC_DEFINE(M_SRD, SRDNAME, "6rd Tunnel Interface");
++static const int ip_srd_ttl = 40;
++
++extern  struct domain inetdomain;
++struct protosw in_srd_protosw = {
++	.pr_type =		SOCK_RAW,
++	.pr_domain =		&inetdomain,
++	.pr_protocol =		IPPROTO_IPV6,
++	.pr_flags =		PR_ATOMIC|PR_ADDR,
++	.pr_input =		in_srd_input,
++	.pr_output =		(pr_output_t *)rip_output,
++	.pr_ctloutput =		rip_ctloutput,
++	.pr_usrreqs =		&rip_usrreqs
++};
++
++static char *srdnames[] = {"srd0", "srd", "6rd", NULL};
++
++static int srdmodevent(module_t, int, void *);
++static int getin4mask(struct in_addr *, u_int);
++static int getin6mask(struct in6_addr *, u_int);
++static int srd_getin4addr(struct in_addr *, struct in6_addr *,
++	struct srd_softc *);
++static int srd_pfixmatch(struct in6_addr *, struct in6_addr *,
++	struct in6_addr *);
++static int srd_encapcheck(const struct mbuf *, int, int, void *);
++static int srd_output(struct ifnet *, struct mbuf *, struct sockaddr *,
++	struct route *);
++static int srd_checkaddr4(struct srd_softc *, struct in_addr *,
++	struct ifnet *);
++static int srd_checkaddr6(struct srd_softc *, struct in6_addr *,
++	struct ifnet *);
++static void srd_rtrequest(int, struct rtentry *, struct rt_addrinfo *);
++static int srd_ioctl(struct ifnet *, u_long, caddr_t);
++
++static int srd_clone_match(struct if_clone *, const char *);
++static int srd_clone_create(struct if_clone *, char *, size_t, caddr_t);
++static int srd_clone_destroy(struct if_clone *, struct ifnet *);
++struct if_clone srd_cloner = IFC_CLONE_INITIALIZER(SRDNAME, NULL, 0,
++    NULL, srd_clone_match, srd_clone_create, srd_clone_destroy);
++
++static int
++srd_clone_match(struct if_clone *ifc, const char *name)
++{
++	int i;
++
++	for(i = 0; srdnames[i] != NULL; i++) {
++		if (strcmp(srdnames[i], name) == 0)
++			return (1);
++	}
++
++	return (0);
++}
++
++static int
++srd_clone_create(struct if_clone *ifc, char *name, size_t len, caddr_t params)
++{
++	int err, unit;
++	struct srd_softc *sc;
++	struct ifnet *ifp;
++
++	/*
++	 * We can only have one unit, but since unit allocation is
++	 * already locked, we use it to keep from allocating extra
++	 * interfaces.
++	 */
++	unit = SRDUNIT;
++	err = ifc_alloc_unit(ifc, &unit);
++	if (err != 0)
++		return (err);
++
++	sc = malloc(sizeof(struct srd_softc), M_SRD, M_WAITOK | M_ZERO);
++	ifp = SRD2IFP(sc) = if_alloc(IFT_SRD);
++	if (ifp == NULL) {
++		free(sc, M_SRD);
++		ifc_free_unit(ifc, unit);
++		return (ENOSPC);
++	}
++	ifp->if_softc = sc;
++	sc->sc_fibnum = curthread->td_proc->p_fibnum;
++
++	/*
++	 * Set the name manually rather then using if_initname because
++	 * we don't conform to the default naming convention for interfaces.
++	 */
++	strlcpy(ifp->if_xname, name, IFNAMSIZ);
++	ifp->if_dname = ifc->ifc_name;
++	ifp->if_dunit = IF_DUNIT_NONE;
++
++	mtx_init(&(sc)->sc_ro_mtx, "srd ro", NULL, MTX_DEF);
++	sc->encap_cookie = encap_attach_func(AF_INET, IPPROTO_IPV6,
++	    srd_encapcheck, &in_srd_protosw, sc);
++	if (sc->encap_cookie == NULL) {
++		if_printf(ifp, "attach failed\n");
++		free(sc, M_SRD);
++		ifc_free_unit(ifc, unit);
++		return (ENOMEM);
++	}
++
++	ifp->if_mtu    = IPV6_MMTU;
++	ifp->if_ioctl  = srd_ioctl;
++	ifp->if_output = srd_output;
++	ifp->if_snd.ifq_maxlen = IFQ_MAXLEN;
++	if_attach(ifp);
++	bpfattach(ifp, DLT_NULL, sizeof(u_int32_t));
++	return (0);
++}
++
++static int
++srd_clone_destroy(struct if_clone *ifc, struct ifnet *ifp)
++{
++	struct srd_softc *sc = ifp->if_softc;
++	int err;
++
++	err = encap_detach(sc->encap_cookie);
++	KASSERT(err == 0, ("Unexpected error detaching encap_cookie"));
++	mtx_destroy(&(sc)->sc_ro_mtx);
++	bpfdetach(ifp);
++	if_detach(ifp);
++	if_free(ifp);
++
++	free(sc, M_SRD);
++	ifc_free_unit(ifc, SRDUNIT);
++
++	return (0);
++}
++
++static int
++srdmodevent(mod, type, data)
++	module_t mod;
++	int type;
++	void *data;
++{
++
++	switch (type) {
++	case MOD_LOAD:
++		if_clone_attach(&srd_cloner);
++		break;
++	case MOD_UNLOAD:
++		if_clone_detach(&srd_cloner);
++		break;
++	default:
++		return (EOPNOTSUPP);
++	}
++
++	return (0);
++}
++
++static moduledata_t srd_mod = {
++	"if_srd",
++	srdmodevent,
++	0
++};
++
++DECLARE_MODULE(if_srd, srd_mod, SI_SUB_PSEUDO, SI_ORDER_ANY);
++
++static int
++getin4mask(mask, plen)
++	struct in_addr *mask;
++	u_int plen;
++{
++	if (plen < 0 || plen > 32)
++		return -1;
++	mask->s_addr = ntohl(0xffffffff << (32 - plen));
++	return 0;
++}
++
++static int
++getin6mask(mask, plen)
++	struct in6_addr *mask;
++	u_int plen;
++{
++	if (plen < 0 || plen > 128)
++		return -1;
++	if (plen <= 32) {
++		mask->s6_addr32[0] = ntohl(0xffffffff << (32 - plen));
++		mask->s6_addr32[1] = 0x00000000;
++		mask->s6_addr32[2] = 0x00000000;
++		mask->s6_addr32[3] = 0x00000000;
++	}
++	if (plen > 32 && plen <= 64) {
++		mask->s6_addr32[0] = 0xffffffff;
++		mask->s6_addr32[1] = ntohl(0xffffffff << (64 - plen));
++		mask->s6_addr32[2] = 0x00000000;
++		mask->s6_addr32[3] = 0x00000000;
++	}
++	if (plen > 64 && plen <= 96) {
++		mask->s6_addr32[0] = 0xffffffff;
++		mask->s6_addr32[1] = 0xffffffff;
++		mask->s6_addr32[2] = ntohl(0xffffffff << (96 - plen));
++		mask->s6_addr32[3] = 0x00000000;
++	}
++	if (plen > 96) {
++		mask->s6_addr32[0] = 0xffffffff;
++		mask->s6_addr32[1] = 0xffffffff;
++		mask->s6_addr32[2] = 0xffffffff;
++		mask->s6_addr32[3] = ntohl(0xffffffff << (128 - plen));
++	}
++	return 0;
++}
++
++static int
++srd_getin4addr(v4addr, v6addr, sc)
++	struct in_addr *v4addr;
++	struct in6_addr *v6addr;
++	struct srd_softc *sc;
++{
++	struct in_addr mask;
++	struct in_addr part1, part2;
++	int idx1, idx2;
++	int bitl, bitr;
++
++	bitl = (sc->sc_srd_plen + (32 - sc->sc_srd_v4plen)) % 32;
++	bitr = 32 - bitl;
++
++	bcopy(&sc->sc_srd_braddr, v4addr, sizeof(struct in_addr));
++	v4addr->s_addr &= sc->sc_srd_v4pmask.s_addr;
++
++	idx1 = sc->sc_srd_plen / 32;
++	idx2 = (sc->sc_srd_plen + (32 - sc->sc_srd_v4plen) - 1) / 32;
++	part1.s_addr = v6addr->s6_addr32[idx1];
++	part2.s_addr = v6addr->s6_addr32[idx2];
++	if (idx1 == idx2) {
++		part1.s_addr = ntohl(htonl(part1.s_addr) >> bitr);
++	} else {
++		getin4mask(&mask, bitr);
++		part1.s_addr = ntohl(htonl(part1.s_addr) << bitl);
++		part2.s_addr = ntohl(htonl(part2.s_addr) >> bitr);
++		part2.s_addr &= ~mask.s_addr;
++		part1.s_addr |= part2.s_addr;
++	}	
++	part1.s_addr &= ~sc->sc_srd_v4pmask.s_addr;
++	v4addr->s_addr |= part1.s_addr;
++
++	return 0;
++}
++
++static int
++srd_pfixmatch(in6, pfix, mask)
++	struct in6_addr *in6;
++	struct in6_addr *pfix;
++	struct in6_addr *mask;
++{
++	if (((in6->s6_addr32[0] & mask->s6_addr32[0]) ==
++	     (pfix->s6_addr32[0] & mask->s6_addr32[0])) &&
++	    ((in6->s6_addr32[1] & mask->s6_addr32[1]) ==
++	     (pfix->s6_addr32[1] & mask->s6_addr32[1])) &&
++	    ((in6->s6_addr32[2] & mask->s6_addr32[2]) ==
++	     (pfix->s6_addr32[2] & mask->s6_addr32[2])) &&
++	    ((in6->s6_addr32[3] & mask->s6_addr32[3]) ==
++	     (pfix->s6_addr32[3] & mask->s6_addr32[3])))
++		return 1;
++	return 0;
++}
++
++static int
++srd_encapcheck(m, off, proto, arg)
++	const struct mbuf *m;
++	int off;
++	int proto;
++	void *arg;
++{
++	struct srd_softc *sc;
++	struct in_ifaddr *ia4;
++	struct ip ip;
++	struct ip6_hdr ip6;
++	struct in_addr in4;
++	int br = 0;
++
++	sc = (struct srd_softc *)arg;
++	if (sc == NULL)
++		return 0;
++
++	if ((SRD2IFP(sc)->if_flags & IFF_UP) == 0)
++		return 0;
++
++	/* IFF_LINK0 means "no decapsulation" */
++	if ((SRD2IFP(sc)->if_flags & IFF_LINK0) != 0)
++		return 0;
++
++	if (proto != IPPROTO_IPV6)
++		return 0;
++
++	/* LINTED const cast */
++	m_copydata((struct mbuf *)(uintptr_t)m, 0, sizeof(ip), (caddr_t)&ip);
++
++	if (ip.ip_v != 4)
++		return 0;
++
++	/*
++	 * check if IPv4 src in local 6rd domain
++	 */
++	if ((sc->sc_srd_braddr.s_addr & sc->sc_srd_v4pmask.s_addr) != 
++	    (ip.ip_src.s_addr & sc->sc_srd_v4pmask.s_addr))
++		return 0;
++
++	/*
++	 * check if IPv4 dst in local 6rd domain
++	 */
++	if ((sc->sc_srd_braddr.s_addr & sc->sc_srd_v4pmask.s_addr) != 
++	    (ip.ip_dst.s_addr & sc->sc_srd_v4pmask.s_addr))
++		return 0;
++
++	/*
++	 * check BR or CE
++	 */
++	IN_IFADDR_RLOCK();
++	TAILQ_FOREACH(ia4, &V_in_ifaddrhead, ia_link) {
++		struct in_addr *addr = &ia4->ia_addr.sin_addr;
++		if (addr->s_addr == sc->sc_srd_braddr.s_addr)
++			br++;
++	}
++	IN_IFADDR_RUNLOCK();
++
++	m_copydata((struct mbuf *)(uintptr_t)m, sizeof(ip), sizeof(ip6),
++		(caddr_t)&ip6);
++	if (br) {
++		/* original IPv6 src must be 6rd prefix */
++		if (!srd_pfixmatch(&ip6.ip6_src, &sc->sc_srd_pfix,
++		   &sc->sc_srd_pmask))
++			return 0;
++		/* IPv4 src address generated from IPv6 src address must be
++		   equals to original IPv4 src address */
++		srd_getin4addr(&in4, &ip6.ip6_src, sc);
++		if (in4.s_addr != ip.ip_src.s_addr)
++			return 0;
++	} else {
++		/* original IPv6 dst must be 6rd prefix */
++		if (!srd_pfixmatch(&ip6.ip6_dst, &sc->sc_srd_pfix,
++		   &sc->sc_srd_pmask))
++			return 0;
++		/* IPv4 dst address generated from IPv6 dst address must be
++		   equals to this packet's IPv4 dst address */
++		srd_getin4addr(&in4, &ip6.ip6_dst, sc);
++		if (in4.s_addr != ip.ip_dst.s_addr)
++			return 0;
++	}
++
++	/* srd interface makes single side match only */
++	return 32;
++}
++
++static int
++srd_output(ifp, m, dst, ro)
++	struct ifnet *ifp;
++	struct mbuf *m;
++	struct sockaddr *dst;
++	struct route *ro;
++{
++	struct srd_softc *sc;
++	struct sockaddr_in6 *dst6;
++	struct route *cached_route;
++	struct in_addr in4;
++	struct sockaddr_in *dst4;
++	u_int8_t tos;
++	struct ip *ip;
++	struct ip6_hdr *ip6;
++	struct in_ifaddr *ia4;
++	u_int32_t af;
++	int error;
++
++#ifdef MAC
++	error = mac_ifnet_check_transmit(ifp, m);
++	if (error) {
++		m_freem(m);
++		return (error);
++	}
++#endif
++
++	sc = ifp->if_softc;
++	dst6 = (struct sockaddr_in6 *)dst;
++
++	/* just in case */
++	if ((ifp->if_flags & IFF_UP) == 0) {
++		m_freem(m);
++		ifp->if_oerrors++;
++		return ENETDOWN;
++	}
++
++	if (m->m_len < sizeof(*ip6)) {
++		m = m_pullup(m, sizeof(*ip6));
++		if (!m) {
++			ifp->if_oerrors++;
++			return ENOBUFS;
++		}
++	}
++	ip6 = mtod(m, struct ip6_hdr *);
++	tos = (ntohl(ip6->ip6_flow) >> 20) & 0xff;
++
++	/*
++	 * BPF writes need to be handled specially.
++	 * This is a null operation, nothing here checks dst->sa_family.
++	 */
++	if (dst->sa_family == AF_UNSPEC) {
++		bcopy(dst->sa_data, &af, sizeof(af));
++		dst->sa_family = af;
++	}
++
++	/*
++	 * Pickup the right outer dst addr from the list of candidates.
++	 * ip6_dst has priority as it may be able to give us shorter IPv4 hops.
++	 */
++	if (srd_pfixmatch(&ip6->ip6_dst, &sc->sc_srd_pfix,
++	    &sc->sc_srd_pmask))
++		srd_getin4addr(&in4, &ip6->ip6_dst, sc);
++	else
++		bcopy(&sc->sc_srd_braddr, &in4, sizeof(in4));
++
++	if (bpf_peers_present(ifp->if_bpf)) {
++		/*
++		 * We need to prepend the address family as
++		 * a four byte field.  Cons up a dummy header
++		 * to pacify bpf.  This is safe because bpf
++		 * will only read from the mbuf (i.e., it won't
++		 * try to free it or keep a pointer a to it).
++		 */
++		af = AF_INET6;
++		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m);
++	}
++
++	M_PREPEND(m, sizeof(struct ip), M_DONTWAIT);
++	if (m && m->m_len < sizeof(struct ip))
++		m = m_pullup(m, sizeof(struct ip));
++	if (m == NULL) {
++		ifp->if_oerrors++;
++		return ENOBUFS;
++	}
++	ip = mtod(m, struct ip *);
++
++	bzero(ip, sizeof(*ip));
++
++	IN_IFADDR_RLOCK();
++	TAILQ_FOREACH(ia4, &V_in_ifaddrhead, ia_link) {
++		struct in_addr *addr = &ia4->ia_addr.sin_addr;
++		if ((addr->s_addr & sc->sc_srd_v4pmask.s_addr) ==
++		    (sc->sc_srd_braddr.s_addr & sc->sc_srd_v4pmask.s_addr)) {
++			bcopy(&ia4->ia_addr.sin_addr, &ip->ip_src,
++				sizeof(ip->ip_src));
++			break;
++		}
++	}
++	IN_IFADDR_RUNLOCK();
++	if (ip->ip_src.s_addr == 0) {
++		m_freem(m);
++		ifp->if_oerrors++;
++		return ENETUNREACH;
++	}
++	bcopy(&in4, &ip->ip_dst, sizeof(ip->ip_dst));
++	ip->ip_p = IPPROTO_IPV6;
++	ip->ip_ttl = ip_srd_ttl;
++	ip->ip_len = m->m_pkthdr.len;	/*host order*/
++	if (ifp->if_flags & IFF_LINK1)
++		ip_ecn_ingress(ECN_ALLOWED, &ip->ip_tos, &tos);
++	else
++		ip_ecn_ingress(ECN_NOCARE, &ip->ip_tos, &tos);
++
++	if (!srd_route_cache) {
++		cached_route = NULL;
++		goto sendit;
++	}
++
++	/*
++	 * Do we have a cached route?
++	 */
++	mtx_lock(&(sc)->sc_ro_mtx);
++	dst4 = (struct sockaddr_in *)&sc->sc_ro.ro_dst;
++	if (dst4->sin_family != AF_INET ||
++	    bcmp(&dst4->sin_addr, &ip->ip_dst, sizeof(ip->ip_dst)) != 0) {
++		/* cache route doesn't match */
++		dst4->sin_family = AF_INET;
++		dst4->sin_len = sizeof(struct sockaddr_in);
++		bcopy(&ip->ip_dst, &dst4->sin_addr, sizeof(dst4->sin_addr));
++		if (sc->sc_ro.ro_rt) {
++			RTFREE(sc->sc_ro.ro_rt);
++			sc->sc_ro.ro_rt = NULL;
++		}
++	}
++
++	if (sc->sc_ro.ro_rt == NULL) {
++		rtalloc_fib(&sc->sc_ro, sc->sc_fibnum);
++		if (sc->sc_ro.ro_rt == NULL) {
++			m_freem(m);
++			mtx_unlock(&(sc)->sc_ro_mtx);
++			ifp->if_oerrors++;
++			return ENETUNREACH;
++		}
++	}
++	cached_route = &sc->sc_ro;
++
++sendit:
++	M_SETFIB(m, sc->sc_fibnum);
++	ifp->if_opackets++;
++	error = ip_output(m, NULL, cached_route, 0, NULL, NULL);
++
++	if (cached_route != NULL)
++		mtx_unlock(&(sc)->sc_ro_mtx);
++	return error;
++}
++
++static int
++srd_checkaddr4(sc, in, inifp)
++	struct srd_softc *sc;
++	struct in_addr *in;
++	struct ifnet *inifp;	/* incoming interface */
++{
++	struct in_ifaddr *ia4;
++
++	/*
++	 * reject packets with the following address:
++	 * 224.0.0.0/4 0.0.0.0/8 127.0.0.0/8 255.0.0.0/8
++	 */
++	if (IN_MULTICAST(ntohl(in->s_addr)))
++		return -1;
++	switch ((ntohl(in->s_addr) & 0xff000000) >> 24) {
++	case 0: case 127: case 255:
++		return -1;
++	}
++
++	/*
++	 * reject packets with broadcast
++	 */
++	IN_IFADDR_RLOCK();
++	for (ia4 = TAILQ_FIRST(&V_in_ifaddrhead);
++	     ia4;
++	     ia4 = TAILQ_NEXT(ia4, ia_link))
++	{
++		if ((ia4->ia_ifa.ifa_ifp->if_flags & IFF_BROADCAST) == 0)
++			continue;
++		if (in->s_addr == ia4->ia_broadaddr.sin_addr.s_addr) {
++			IN_IFADDR_RUNLOCK();
++			return -1;
++		}
++	}
++	IN_IFADDR_RUNLOCK();
++
++	/*
++	 * perform ingress filter
++	 */
++	if (sc && (SRD2IFP(sc)->if_flags & IFF_LINK2) == 0 && inifp) {
++		struct sockaddr_in sin;
++		struct rtentry *rt;
++
++		bzero(&sin, sizeof(sin));
++		sin.sin_family = AF_INET;
++		sin.sin_len = sizeof(struct sockaddr_in);
++		sin.sin_addr = *in;
++		rt = rtalloc1_fib((struct sockaddr *)&sin, 0,
++		    0UL, sc->sc_fibnum);
++		if (!rt || rt->rt_ifp != inifp) {
++#if 0
++			log(LOG_WARNING, "%s: packet from 0x%x dropped "
++			    "due to ingress filter\n", if_name(SRD2IFP(sc)),
++			    (u_int32_t)ntohl(sin.sin_addr.s_addr));
++#endif
++			if (rt)
++				RTFREE_LOCKED(rt);
++			return -1;
++		}
++		RTFREE_LOCKED(rt);
++	}
++
++	return 0;
++}
++
++static int
++srd_checkaddr6(sc, in6, inifp)
++	struct srd_softc *sc;
++	struct in6_addr *in6;
++	struct ifnet *inifp;	/* incoming interface */
++{
++	/*
++	 * check 6rd addresses
++	 */
++	if (srd_pfixmatch(in6, &sc->sc_srd_pfix, &sc->sc_srd_pmask)) {
++		struct in_addr in4;
++		srd_getin4addr(&in4, in6, sc);
++		return srd_checkaddr4(sc, &in4, inifp);
++	}
++
++	/*
++	 * reject anything that look suspicious.  the test is implemented
++	 * in ip6_input too, but we check here as well to
++	 * (1) reject bad packets earlier, and
++	 * (2) to be safe against future ip6_input change.
++	 */
++	if (IN6_IS_ADDR_V4COMPAT(in6) || IN6_IS_ADDR_V4MAPPED(in6))
++		return -1;
++
++	return 0;
++}
++
++void
++in_srd_input(m, off)
++	struct mbuf *m;
++	int off;
++{
++	int proto;
++	struct srd_softc *sc;
++	struct ip *ip;
++	struct ip6_hdr *ip6;
++	u_int8_t otos, itos;
++	struct ifnet *ifp;
++
++	proto = mtod(m, struct ip *)->ip_p;
++
++	if (proto != IPPROTO_IPV6) {
++		m_freem(m);
++		return;
++	}
++
++	ip = mtod(m, struct ip *);
++
++	sc = (struct srd_softc *)encap_getarg(m);
++
++	if (sc == NULL || (SRD2IFP(sc)->if_flags & IFF_UP) == 0) {
++		m_freem(m);
++		return;
++	}
++
++	ifp = SRD2IFP(sc);
++
++#ifdef MAC
++	mac_ifnet_create_mbuf(ifp, m);
++#endif
++
++	/*
++	 * perform sanity check against outer src/dst.
++	 * for source, perform ingress filter as well.
++	 */
++	if (srd_checkaddr4(sc, &ip->ip_dst, NULL) < 0 ||
++	    srd_checkaddr4(sc, &ip->ip_src, m->m_pkthdr.rcvif) < 0) {
++		m_freem(m);
++		return;
++	}
++
++	otos = ip->ip_tos;
++	m_adj(m, off);
++
++	if (m->m_len < sizeof(*ip6)) {
++		m = m_pullup(m, sizeof(*ip6));
++		if (!m)
++			return;
++	}
++	ip6 = mtod(m, struct ip6_hdr *);
++
++	/*
++	 * perform sanity check against inner src/dst.
++	 * for source, perform ingress filter as well.
++	 */
++	if (srd_checkaddr6(sc, &ip6->ip6_dst, NULL) < 0 ||
++	    srd_checkaddr6(sc, &ip6->ip6_src, m->m_pkthdr.rcvif) < 0) {
++		m_freem(m);
++		return;
++	}
++
++	itos = (ntohl(ip6->ip6_flow) >> 20) & 0xff;
++	if ((ifp->if_flags & IFF_LINK1) != 0)
++		ip_ecn_egress(ECN_ALLOWED, &otos, &itos);
++	else
++		ip_ecn_egress(ECN_NOCARE, &otos, &itos);
++	ip6->ip6_flow &= ~htonl(0xff << 20);
++	ip6->ip6_flow |= htonl((u_int32_t)itos << 20);
++
++	m->m_pkthdr.rcvif = ifp;
++	
++	if (bpf_peers_present(ifp->if_bpf)) {
++		/*
++		 * We need to prepend the address family as
++		 * a four byte field.  Cons up a dummy header
++		 * to pacify bpf.  This is safe because bpf
++		 * will only read from the mbuf (i.e., it won't
++		 * try to free it or keep a pointer a to it).
++		 */
++		u_int32_t af = AF_INET6;
++		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m);
++	}
++
++	/*
++	 * Put the packet to the network layer input queue according to the
++	 * specified address family.
++	 * See net/if_gif.c for possible issues with packet processing
++	 * reorder due to extra queueing.
++	 */
++	ifp->if_ipackets++;
++	ifp->if_ibytes += m->m_pkthdr.len;
++	netisr_dispatch(NETISR_IPV6, m);
++}
++
++/* ARGSUSED */
++static void
++srd_rtrequest(cmd, rt, info)
++	int cmd;
++	struct rtentry *rt;
++	struct rt_addrinfo *info;
++{
++	RT_LOCK_ASSERT(rt);
++	rt->rt_rmx.rmx_mtu = IPV6_MMTU;
++}
++
++static int
++srd_ioctl(ifp, cmd, data)
++	struct ifnet *ifp;
++	u_long cmd;
++	caddr_t data;
++{
++	struct srd_softc *sc = ifp->if_softc;
++	struct ifaddr *ifa;
++	struct ifreq *ifr;
++	struct srdopts opts;
++	int error;
++
++	error = 0;
++	switch (cmd) {
++	case SIOCSIFADDR:
++		ifa = (struct ifaddr *)data;
++		if (ifa == NULL || ifa->ifa_addr->sa_family != AF_INET6) {
++			error = EAFNOSUPPORT;
++			break;
++		}
++		ifa->ifa_rtrequest = srd_rtrequest;
++		ifp->if_flags |= IFF_UP;
++		break;
++
++	case SIOCADDMULTI:
++	case SIOCDELMULTI:
++		ifr = (struct ifreq *)data;
++		if (ifr && ifr->ifr_addr.sa_family == AF_INET6)
++			;
++		else
++			error = EAFNOSUPPORT;
++		break;
++
++	case SRDGOPTS:
++		ifr = (struct ifreq *)data;
++		opts.srd_v4plen = sc->sc_srd_v4plen;
++		bcopy(&sc->sc_srd_pfix, &opts.srd_pfix,
++			sizeof(struct in6_addr));
++		opts.srd_plen = sc->sc_srd_plen;
++		bcopy(&sc->sc_srd_braddr, &opts.srd_braddr,
++			sizeof(struct in_addr));
++		error = copyout(&opts, ifr->ifr_data, sizeof(opts));
++		break;
++
++	case SRDSOPTS:
++		ifr = (struct ifreq *)data;
++		error = copyin(ifr->ifr_data, &opts, sizeof(opts));
++		if (error)
++			break;
++		/* XXX */
++		if ((opts.srd_v4plen > 32) || (opts.srd_plen > 64) || 
++		    ((32 - opts.srd_v4plen) + opts.srd_plen > 64)) {
++			error = EINVAL;
++			break;
++		}
++		/* 6rd elements */
++		sc->sc_srd_v4plen = opts.srd_v4plen;
++		memcpy(&sc->sc_srd_pfix, &opts.srd_pfix,
++			sizeof(struct in6_addr));
++		sc->sc_srd_plen = opts.srd_plen;
++		memcpy(&sc->sc_srd_braddr, &opts.srd_braddr,
++			sizeof(struct in_addr));
++		/* 6rd calculated variables */
++		getin4mask(&sc->sc_srd_v4pmask, sc->sc_srd_v4plen);
++		getin6mask(&sc->sc_srd_pmask, sc->sc_srd_plen);
++		getin6mask(&sc->sc_srd_dpmask, sc->sc_srd_plen +
++			   (32 - sc->sc_srd_v4plen));
++		break;
++
++	default:
++		error = EINVAL;
++		break;
++	}
++
++	return error;
++}
+diff -Naru src.orig/sys/net/if_srd.h src/sys/net/if_srd.h
+--- src.orig/sys/net/if_srd.h	1970-01-01 09:00:00.000000000 +0900
++++ src/sys/net/if_srd.h	2010-01-28 22:56:53.000000000 +0900
+@@ -0,0 +1,53 @@
++/*	$FreeBSD: src/sys/net/if_srd.h,v XXX $	*/
++/*	$FreeBSD: src/sys/net/if_stf.h,v 1.5.22.1.2.1 2009/10/25 01:10:29 kensmith Exp $	*/
++/*	$KAME: if_stf.h,v 1.5 2001/10/12 10:09:17 keiichi Exp $	*/
++
++/*-
++ * Copyright (C) 2010 Masakazu Asama.
++ * Copyright (C) 2000 WIDE Project.
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ * 3. Neither the name of the project nor the names of its contributors
++ *    may be used to endorse or promote products derived from this software
++ *    without specific prior written permission.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE PROJECT AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL THE PROJECT OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ */
++
++#ifndef _NET_IF_SRD_H_
++#define _NET_IF_SRD_H_
++
++#include <sys/socket.h>
++#include <netinet/in.h>
++
++void in_srd_input(struct mbuf *, int);
++
++struct srdopts {
++	u_int		srd_v4plen;
++	struct in6_addr	srd_pfix;
++	u_int		srd_plen;
++	struct in_addr	srd_braddr;
++};
++
++#define SRDGOPTS        _IOWR('i', 160, struct ifreq)
++#define SRDSOPTS        _IOW('i', 161, struct ifreq)
++
++#endif /* _NET_IF_SRD_H_ */
+diff -Naru src.orig/sys/net/if_types.h src/sys/net/if_types.h
+--- src.orig/sys/net/if_types.h	2009-10-25 10:10:29.000000000 +0900
++++ src/sys/net/if_types.h	2010-01-26 16:40:26.000000000 +0900
+@@ -241,6 +241,7 @@
+ #define	IFT_BRIDGE		   0xd1 /* Transparent bridge interface */
+ 
+ #define	IFT_STF			   0xd7	/* 6to4 interface */
++#define	IFT_SRD			   0xd8	/* 6rd interface */
+ 
+ /* not based on IANA assignments */
+ #define	IFT_GIF		0xf0
