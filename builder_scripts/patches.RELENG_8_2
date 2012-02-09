@@ -105,5 +105,4 @@
 ~~rtadvd-rdnss.diff~
 ~~makefile.inc1.diff~
 ~~stf_6rd_20100923-1.diff~
-~src/~freebsd8-6rd-20100130.patch~
-
+-p1~~freebsd8-6rd-20100130.patch~
