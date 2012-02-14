@@ -312,7 +312,6 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 		if (!inet_pton(AF_INET6, ip, &ent.addr))
 			RETURN_FALSE;
 	} else if (!inet_pton(AF_INET, ip, &ent.addr)) {
-		php_printf("error during conversion\n");
 		RETURN_FALSE;
 	}
 
