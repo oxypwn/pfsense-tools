@@ -1,0 +1,118 @@
+diff -ur ../src.old/contrib/pf/pfctl/pf_print_state.c ./contrib/pf/pfctl/pf_print_state.c
+--- ../src.old/contrib/pf/pfctl/pf_print_state.c	2012-01-25 09:56:22.000000000 +0000
++++ ./contrib/pf/pfctl/pf_print_state.c	2012-01-25 09:56:45.000000000 +0000
+@@ -298,6 +298,10 @@
+ 			printf(", priqueue %u", s->pqid);
+ 		if (s->qid)
+ 			printf(", queue %u", s->qid);
++		if (s->pdnpipe)
++			printf(", pdnpipe %u", s->pdnpipe);
++		if (s->dnpipe)
++			printf(", dnpipe %u", s->dnpipe);
+ 		if (s->state_flags & PFSTATE_SLOPPY)
+ 			printf(", sloppy");
+ 		if (s->src_node != NULL)
+diff -ur ../src.old/sys/contrib/pf/net/pf.c ./sys/contrib/pf/net/pf.c
+--- ../src.old/sys/contrib/pf/net/pf.c	2012-01-25 09:55:56.000000000 +0000
++++ ./sys/contrib/pf/net/pf.c	2012-01-25 09:56:38.000000000 +0000
+@@ -3436,6 +3436,12 @@
+ 		a->qid = r->qid;
+ 	if (r->pqid)
+ 		a->pqid = r->pqid;
++	if (r->pdnpipe)
++		a->pdnpipe = r->pdnpipe;
++	if (r->dnpipe)
++		a->dnpipe = r->dnpipe;
++	if (r->free_flags & PFRULE_DN_IS_PIPE)
++		a->flags |= PFRULE_DN_IS_PIPE;
+ }
+ 
+ int
+@@ -3733,6 +3739,9 @@
+ 		s->proto = IPPROTO_TCP;
+ 		s->qid = act.qid;
+ 		s->pqid = act.pqid;
++		s->pdnpipe = act.pdnpipe;
++		s->dnpipe = act.dnpipe;
++		s->state_flags |= act.flags;
+ 		s->direction = direction;
+ 		s->af = af;
+ 		if (direction == PF_OUT) {
+@@ -4152,6 +4161,9 @@
+ 		s->proto = IPPROTO_UDP;
+ 		s->qid = act.qid;
+                 s->pqid = act.pqid;
++		s->pdnpipe = act.pdnpipe;
++		s->dnpipe = act.dnpipe;
++		s->state_flags |= act.flags;
+ 		s->direction = direction;
+ 		s->af = af;
+ 		if (direction == PF_OUT) {
+@@ -4487,6 +4499,9 @@
+ 		s->proto = pd->proto;
+ 		s->qid = act.qid;
+                 s->pqid = act.pqid;
++		s->pdnpipe = act.pdnpipe;
++		s->dnpipe = act.dnpipe;
++		s->state_flags |= act.flags;
+ 		s->direction = direction;
+ 		s->af = af;
+ 		if (direction == PF_OUT) {
+@@ -4796,6 +4811,9 @@
+ 		s->proto = pd->proto;
+ 		s->qid = act.qid;
+                 s->pqid = act.pqid;
++		s->pdnpipe = act.pdnpipe;
++		s->dnpipe = act.dnpipe;
++		s->state_flags |= act.flags;
+ 		s->direction = direction;
+ 		s->af = af;
+ 		if (direction == PF_OUT) {
+@@ -7725,11 +7743,15 @@
+ 				return (action);
+ 			}
+ 		}
+-       	} else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
++       	} else if (((s && s->dnpipe) || r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
+ 	    ip_dn_io_ptr != NULL && loopedfrom != 1) {
+ 
+ 			if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
+ 				dnflow.rule.info = divertcookie;
++                        } else if (dir != r->direction && s && s->pdnpipe) {
++                                dnflow.rule.info = s->pdnpipe;
++                        } else if (dir == r->direction && s && s->dnpipe) {
++                                dnflow.rule.info = s->dnpipe;
+                         } else if (dir != r->direction && r->pdnpipe) {
+                                 dnflow.rule.info = r->pdnpipe;
+                         } else if (dir == r->direction) {
+@@ -7739,6 +7761,8 @@
+ 
+ 			if (r->free_flags & PFRULE_DN_IS_PIPE)
+ 				dnflow.rule.info |= IPFW_IS_PIPE;
++			if (s && s->state_flags & PFRULE_DN_IS_PIPE)
++				dnflow.rule.info |= IPFW_IS_PIPE;
+                         dnflow.f_id.addr_type = 4; /* IPv4 type */
+                         dnflow.f_id.proto = pd.proto;
+ 			if (dir == PF_OUT && s != NULL && s->nat_rule.ptr != NULL &&
+diff -ur ../src.old/sys/contrib/pf/net/pfvar.h ./sys/contrib/pf/net/pfvar.h
+--- ../src.old/sys/contrib/pf/net/pfvar.h	2012-01-25 09:56:03.000000000 +0000
++++ ./sys/contrib/pf/net/pfvar.h	2012-01-25 09:56:38.000000000 +0000
+@@ -574,6 +574,9 @@
+ struct pf_rule_actions {
+ 	u_int16_t	qid;
+ 	u_int16_t	pqid;
++	u_int32_t	pdnpipe;
++	u_int32_t	dnpipe;
++	u_int8_t	flags;
+ };
+ 
+ union pf_rule_ptr {
+@@ -884,6 +887,8 @@
+ 	u_int32_t	 pfsync_time;
+ 	u_int16_t	 qid;
+ 	u_int16_t	 pqid;
++	u_int32_t        pdnpipe;
++	u_int32_t        dnpipe;
+ 	u_int16_t	 tag;
+ 	u_int16_t	 divert_cookie;
+ };
