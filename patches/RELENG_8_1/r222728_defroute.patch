@@ -89,13 +89,13 @@
  		return (1);
  	}
 @@ -1018,7 +1018,7 @@
- 
- 	ifp = ln->lle_tbl->llt_ifp;
+	/* cancel timer */
+	nd6_llinfo_settimer(ln, -1);
  
 -	if (!V_ip6_forwarding) {
 +	if (ND_IFINFO(ifp)->flags & ND6_IFF_ACCEPT_RTADV) {
- 
- 		dr = defrouter_lookup(&L3_ADDR_SIN6(ln)->sin6_addr, ifp);
+		int s;
+		s = splnet();
  
 @@ -1651,7 +1651,7 @@
  	 * for those are not autoconfigured hosts, we explicitly avoid such
