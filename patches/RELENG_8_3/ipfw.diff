@@ -1,31 +1,13 @@
-Index: Makefile
-===================================================================
---- Makefile	(revision 206501)
-+++ Makefile	(working copy)
-@@ -6,21 +6,20 @@
- 
- KMOD=	ipfw
- SRCS=	ip_fw2.c ip_fw_pfil.c
--SRCS+=	ip_fw_dynamic.c ip_fw_log.c ip_fw_nat.c
-+SRCS+=	ip_fw_dynamic.c ip_fw_log.c
- SRCS+=	ip_fw_sockopt.c ip_fw_table.c
- SRCS+=	opt_inet6.h opt_ipsec.h
- 
- CFLAGS+= -DIPFIREWALL
- CFLAGS+= -I${.CURDIR}/../../contrib/pf
--#
-+
- #If you want it verbose
- #CFLAGS+= -DIPFIREWALL_VERBOSE
+--- Makefile	2012-02-15 17:27:51.000000000 +0100
++++ Makefile	2012-02-15 17:30:50.000000000 +0100
+@@ -18,8 +18,8 @@
  #CFLAGS+= -DIPFIREWALL_VERBOSE_LIMIT=100
--#
--#If you want it to pass all packets by default
+ #
+ #If you want it to pass all packets by default
 -#CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
 -#
- 
 +CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
 +CFLAGS+= -DIPFIREWALL_FORWARD
-+
+ 
  .if !defined(KERNBUILDDIR)
- .if ${MK_INET6_SUPPORT} != "no"
- opt_inet6.h:
+ .if ${MK_INET_SUPPORT} != "no"

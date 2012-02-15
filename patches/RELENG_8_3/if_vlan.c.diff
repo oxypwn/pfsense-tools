@@ -5,11 +5,10 @@ retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_vlan.c
 --- if_vlan.c	4 Jun 2010 18:01:27 -0000	1.1.1.1
 +++ if_vlan.c	4 Jun 2010 18:08:53 -0000
-@@ -779,7 +779,12 @@
+@@ -779,6 +779,12 @@
  	ifp->if_init = vlan_init;
  	ifp->if_start = vlan_start;
  	ifp->if_ioctl = vlan_ioctl;
--	ifp->if_snd.ifq_maxlen = ifqmaxlen;
 +
 +//	ifp->if_snd.ifq_maxlen = ifqmaxlen;
 +        IFQ_SET_MAXLEN(&ifp->if_snd, ifqmaxlen);

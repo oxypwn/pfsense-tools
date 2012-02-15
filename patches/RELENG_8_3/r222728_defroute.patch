@@ -95,7 +95,7 @@
 -	if (!V_ip6_forwarding) {
 +	if (ND_IFINFO(ifp)->flags & ND6_IFF_ACCEPT_RTADV) {
  
- 		dr = defrouter_lookup(&L3_ADDR_SIN6(ln)->sin6_addr, ifp);
+ 	dr = defrouter_lookup(&L3_ADDR_SIN6(ln)->sin6_addr, ifp);
  
 @@ -1651,7 +1651,7 @@
  	 * for those are not autoconfigured hosts, we explicitly avoid such
@@ -124,7 +124,7 @@
  	int tlladdr;
 +	int rflag;
  	union nd_opts ndopts;
- 	struct sockaddr_dl *proxydl = NULL;
+ 	struct sockaddr_dl proxydl;
  	char ip6bufs[INET6_ADDRSTRLEN], ip6bufd[INET6_ADDRSTRLEN];
 +	rflag = (V_ip6_forwarding) ? ND_NA_FLAG_ROUTER : 0;
 +	if (ND_IFINFO(ifp)->flags & ND6_IFF_ACCEPT_RTADV && V_ip6_norbit_raif)
@@ -137,8 +137,8 @@
  		nd6_na_output(ifp, &in6_all, &taddr6,
  		    ((anycast || proxy || !tlladdr) ? 0 : ND_NA_FLAG_OVERRIDE) |
 -		    (V_ip6_forwarding ? ND_NA_FLAG_ROUTER : 0),
--		    tlladdr, (struct sockaddr *)proxydl);
-+		    rflag, tlladdr, (struct sockaddr *)proxydl);
+-		    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
++		    rflag, tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
  		goto freeit;
  	}
  
@@ -148,19 +148,9 @@
  	    ((anycast || proxy || !tlladdr) ? 0 : ND_NA_FLAG_OVERRIDE) |
 -	    (V_ip6_forwarding ? ND_NA_FLAG_ROUTER : 0) | ND_NA_FLAG_SOLICITED,
 +	    rflag | ND_NA_FLAG_SOLICITED,
- 	    tlladdr, (struct sockaddr *)proxydl);
+ 	    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
   freeit:
  	if (ifa != NULL)
-@@ -843,7 +846,8 @@
- 			dr = defrouter_lookup(in6, ln->lle_tbl->llt_ifp);
- 			if (dr)
- 				defrtrlist_del(dr);
--			else if (!V_ip6_forwarding) {
-+			else if (ND_IFINFO(ln->lle_tbl->llt_ifp)->flags &
-+				ND6_IFF_ACCEPT_RTADV) {
- 				/*
- 				 * Even if the neighbor is not in the default
- 				 * router list, the neighbor may be used
 --- sys/netinet6/nd6_rtr.c.orig	2010-12-21 17:09:25.000000000 +0000
 +++ sys/netinet6/nd6_rtr.c	2011-07-11 10:40:21.000000000 +0100
 @@ -127,9 +127,12 @@

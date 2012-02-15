@@ -1,6 +1,6 @@
 --- Makefile.inc1	2010-06-14 02:26:33.000000000 +0000
 +++ Makefile.inc1.new	2012-01-26 19:33:39.000000000 +0000
-@@ -604,7 +604,7 @@
+@@ -606,7 +606,7 @@
  ITOOLS=	[ awk cap_mkdb cat chflags chmod chown \
  	date echo egrep find grep ${_install-info} \
  	ln lockf make mkdir mtree mv pwd_mkdb rm sed sh sysctl \

@@ -9,7 +9,10 @@
 ~~dscp.RELENG_8.diff~
 ~~queuestats.RELENG_8.diff~
 ~~hfscconfig.RELENG_8.diff~
+~~killifstates.RELENG_8.diff~
 ~~dummynet.RELENG_8.diff~
+~~divert.RELENG_8.diff~
+~~get_tag_altq_ids.RELENG_8.diff~
 ~~reply-to.RELENG_8.diff~
 ~~binat.RELENG_8.diff~
 ~~nat_ftphelper.RELENG_8.diff~
@@ -19,6 +22,7 @@
 ~~ipsec_altq.RELENG_8.diff~
 ~~ipfw_dummynet_bandwidth.diff~
 ~sys/sys~proc.h.diff~
+~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.RELENG_8.diff~
 ~~ng_eiface.RELENG_8.diff~
 ~sys/boot~lib386boot.diff~
@@ -45,16 +49,19 @@
 ~~wpa_RSN_PREAUTH_support.diff~
 ~~pf_route-to_fragemnts.RELENG_8.diff~
 ~~ng_ether_attach_command.diff~
+~~carp_correct_mac.diff~
 ~sys/dev/usb/net~if_axe.tgz~
 ~sys/dev/usb/wlan~if_rum_pr_144642.diff~
 ~~route-to_without_gw.diff~
 ~~e1000_head.tgz~
 ~~files.igb.diff~
+~~pfvar_addr_compare.RELENG_8.diff~
 ~~pf_route_to_daemon_friendly.RELENG_8.diff~
 ~~IPSEC_sysctl.RELENG_8.diff~
 ~~max_linkhdr.diff~
 ~sys/boot/forth~beastie.4th.diff~
 ~~carp_replay_protection.diff~
+~~carp_livelock_fixes.diff~
 ~~carp_livelock_fixes_v2.diff~
 ~~carp_allow.diff~
 ~~ipsec-oneshot-dumps.RELENG_8.diff~
@@ -62,6 +69,7 @@
 ~~if_bridge_gif_mtu.diff~
 ~~if_lagg_panic.diff~
 ~~net80211_WME_fix.diff~
+-p1~~FreeBSD-VirtIO-0001.obj~
 ~~pfaltq_interface_bw.diff~
 ~~tcp_lro_fix.diff~
 ~~scrub_FIN+SYN_drop.diff~
@@ -74,5 +82,7 @@
 ~~route.diff~
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
+~~r222728_defroute.patch~
+~~rtadvd-rdnss.diff~
 ~~makefile.inc1.diff~
-
+-p1~~freebsd8-6rd-20100130.patch~

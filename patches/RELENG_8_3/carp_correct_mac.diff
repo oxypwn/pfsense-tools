@@ -5,7 +5,7 @@ retrieving revision 1.208.2.11.2.1
 diff -u -r1.208.2.11.2.1 if_ether.c
 --- sys/netinet/if_ether.c	14 Jun 2010 02:09:06 -0000	1.208.2.11.2.1
 +++ sys/netinet/if_ether.c	24 Aug 2010 21:49:51 -0000
-@@ -82,6 +82,8 @@
+@@ -80,6 +80,8 @@ SYSCTL_DECL(_net_link_ether);
  SYSCTL_NODE(_net_link_ether, PF_INET, inet, CTLFLAG_RW, 0, "");
  SYSCTL_NODE(_net_link_ether, PF_ARP, arp, CTLFLAG_RW, 0, "");
  
@@ -14,16 +14,17 @@ diff -u -r1.208.2.11.2.1 if_ether.c
  /* timer values */
  static VNET_DEFINE(int, arpt_keep) = (20*60);	/* once resolved, good for 20
  						 * minutes */
-@@ -93,12 +95,16 @@
- 					       * 20 seconds */
- static VNET_DEFINE(struct arpstat, arpstat);  /* ARP statistics, see if_arp.h */
+@@ -93,6 +95,7 @@ VNET_DEFINE(struct arpstat, arpstat);  /* ARP statistics, see if_arp.h */
+ 
+ static VNET_DEFINE(int, arp_maxhold) = 1;
  
 +#define	V_arp_carp_mac		VNET(arp_carp_mac)
  #define	V_arpt_keep		VNET(arpt_keep)
  #define	V_arpt_down		VNET(arpt_down)
  #define	V_arp_maxtries		VNET(arp_maxtries)
- #define	V_arp_proxyall		VNET(arp_proxyall)
+@@ -100,6 +103,9 @@ static VNET_DEFINE(int, arp_maxhold) = 1;
  #define	V_arpstat		VNET(arpstat)
+ #define	V_arp_maxhold		VNET(arp_maxhold)
  
 +SYSCTL_VNET_INT(_net_link_ether_inet, OID_AUTO, carp_mac, CTLFLAG_RW,
 +	&VNET_NAME(arp_carp_mac), 0,
@@ -31,13 +32,13 @@ diff -u -r1.208.2.11.2.1 if_ether.c
  SYSCTL_VNET_INT(_net_link_ether_inet, OID_AUTO, max_age, CTLFLAG_RW,
  	&VNET_NAME(arpt_keep), 0,
  	"ARP entry lifetime in seconds");
-@@ -812,12 +818,33 @@
+@@ -839,13 +845,34 @@ reply:
  	}
  	(void)memcpy(ar_tpa(ah), ar_spa(ah), ah->ar_pln);
  	(void)memcpy(ar_spa(ah), &itaddr, ah->ar_pln);
 +#ifdef DEV_CARP
-+	if (V_arp_carp_mac && carp_match) {
-+		struct ether_header *eh = (struct ether_header *) sa.sa_data;
++      if (V_arp_carp_mac && carp_match) {
++              struct ether_header *eh = (struct ether_header *) sa.sa_data;
 +                short type = htons(ETHERTYPE_ARP);
 +
 +                ah->ar_hrd = htons(ARPHRD_ETHER);
@@ -62,6 +63,7 @@ diff -u -r1.208.2.11.2.1 if_ether.c
  	ah->ar_pro = htons(ETHERTYPE_IP); /* let's be sure! */
  	m->m_len = sizeof(*ah) + (2 * ah->ar_pln) + (2 * ah->ar_hln);   
  	m->m_pkthdr.len = m->m_len;   
+ 	m->m_pkthdr.rcvif = NULL;
 -	sa.sa_family = AF_ARP;
 -	sa.sa_len = 2;
  	(*ifp->if_output)(ifp, m, &sa, NULL);

@@ -11,13 +11,13 @@ diff --git a/sys/conf/files.amd64 b/sys/conf/files.amd64
 +dev/virtio/virtqueue.c          optional	virtio
 +dev/virtio/pci/virtio_pci.c     optional	virtio_pci pci
 +dev/virtio/network/if_vtnet.c   optional	vtnet
+ dev/viawd/viawd.c		optional	viawd
  dev/wpi/if_wpi.c		optional	wpi
  isa/syscons_isa.c		optional	sc
- isa/vga_isa.c			optional	vga
 diff --git a/sys/conf/files.i386 b/sys/conf/files.i386
 --- a/sys/conf/files.i386
 +++ b/sys/conf/files.i386
-@@ -235,6 +235,12 @@
+@@ -243,6 +243,12 @@
  dev/tpm/tpm_acpi.c		optional tpm acpi
  dev/tpm/tpm_isa.c		optional tpm isa
  dev/uart/uart_cpu_i386.c	optional uart
@@ -27,9 +27,9 @@ diff --git a/sys/conf/files.i386 b/sys/conf/files.i386
 +dev/virtio/virtqueue.c          optional virtio
 +dev/virtio/pci/virtio_pci.c     optional virtio_pci pci
 +dev/virtio/network/if_vtnet.c   optional vtnet
+ dev/viawd/viawd.c		optional viawd
  dev/acpica/acpi_if.m		standard
  dev/acpi_support/acpi_wmi_if.m	standard
- dev/wpi/if_wpi.c		optional wpi
 diff --git a/sys/conf/kmod.mk b/sys/conf/kmod.mk
 --- a/sys/conf/kmod.mk
 +++ b/sys/conf/kmod.mk
@@ -5301,9 +5301,9 @@ diff --git a/sys/modules/Makefile b/sys/modules/Makefile
  	${_vesa} \
  	vge \
 +	${_virtio} \
+	${_viawd} \
  	vkbd \
  	${_vpo} \
- 	vr \
 diff --git a/sys/modules/virtio/Makefile b/sys/modules/virtio/Makefile
 new file mode 100644
 --- /dev/null
