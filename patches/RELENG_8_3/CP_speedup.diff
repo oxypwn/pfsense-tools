@@ -389,9 +389,9 @@ diff -u -r1.1.1.1 ip_fw2.c
 -				if (args->eh)	/* not valid on layer2 pkts */
 -					break;
 +				if (!args->eh) {
- 				if (!q || dyn_dir == MATCH_FORWARD) {
+ 				if (q == NULL || q->rule != f ||
+				    dyn_dir == MATCH_FORWARD) {
  				    struct sockaddr_in *sa;
- 				    sa = &(((ipfw_insn_sa *)cmd)->sa);
 @@ -2073,6 +2081,22 @@
  					args->next_hop = sa;
  				    }
