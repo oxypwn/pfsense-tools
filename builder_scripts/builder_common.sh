@@ -3364,8 +3364,7 @@ update_freebsd_sources_and_apply_patches() {
 				(cd ${SRCDIR}/${PATCH_DIRECTORY} && tar xzvpf ${PFSPATCHDIR}/${PATCH_FILE}) 2>&1 \
 				| egrep -wi '(warning|error)'
 			else
-				(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE} 2>&1 ) \
-				2>&1 >/dev/null ;
+				(cd ${SRCDIR}/${PATCH_DIRECTORY} && patch --quiet -f ${PATCH_DEPTH} < ${PFSPATCHDIR}/${PATCH_FILE} 2>&1 );
 				if [ "$?" != "0" ]; then
 					echo "failed to apply ${PATCH_FILE}";
 				fi
