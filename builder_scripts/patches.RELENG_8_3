@@ -17,6 +17,7 @@
 ~~binat.RELENG_8.diff~
 ~~nat_ftphelper.RELENG_8.diff~
 ~sys/contrib/pf/net~ipfw_forward.RELENG_8.diff~
+~~schedule_label.RELENG_8.diff~
 ~~pfil.RELENG_8.diff~
 ~~ipsec_wrong_check.RELENG_8.diff~
 ~~ipsec_altq.RELENG_8.diff~
@@ -85,4 +86,3 @@
 ~~r222728_defroute.patch~
 ~~rtadvd-rdnss.diff~
 ~~makefile.inc1.diff~
--p1~~freebsd8-6rd-20100130.patch~

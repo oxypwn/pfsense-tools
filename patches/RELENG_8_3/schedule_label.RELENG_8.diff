@@ -193,8 +193,8 @@ diff -u -r1.2 pfctl.c
  		usage();
  
  	while ((ch = getopt(argc, argv,
--	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::p:rRs:t:T:vx:z")) != -1) {
-+	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::p:rRs:t:T:vx:y:z")) != -1) {
+-	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::Pp:rRs:t:T:vx:z")) != -1) {
++	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::Pp:rRs:t:T:vx:y:z")) != -1) {
  		switch (ch) {
  		case 'a':
  			anchoropt = optarg;
