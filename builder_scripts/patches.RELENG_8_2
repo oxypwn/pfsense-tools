@@ -104,5 +104,3 @@
 -p0~~r222728_defroute.patch~
 ~~rtadvd-rdnss.diff~
 ~~makefile.inc1.diff~
-~~stf_6rd_20100923-1.diff~
--p1~~freebsd8-6rd-20100130.patch~
