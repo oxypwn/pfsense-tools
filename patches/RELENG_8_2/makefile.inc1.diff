@@ -5,7 +5,7 @@
  	date echo egrep find grep ${_install-info} \
  	ln lockf make mkdir mtree mv pwd_mkdb rm sed sh sysctl \
 -	test true uname wc zic
-+	test true uname wc zic uuencode uudecode ex
++	test true uname wc zic uuencode uudecode ex touch
  
  #
  # distributeworld
