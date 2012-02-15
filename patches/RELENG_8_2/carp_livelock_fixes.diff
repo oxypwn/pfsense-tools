@@ -13,7 +13,7 @@ diff -u -r1.3 ip_carp.c
  	
  	LIST_ENTRY(carp_softc)	 sc_next;	/* Interface clue */
  };
-@@ -156,23 +155,26 @@
+@@ -157,7 +157,7 @@
  	int vhif_nvrs;
  
  	struct ifnet 	*vhif_ifp;
@@ -21,7 +21,8 @@ diff -u -r1.3 ip_carp.c
 +	struct rwlock	 vhif_mtx;
  };
  
- /* Get carp_if from softc. Valid after carp_set_addr{,6}. */
+ #define	CARP_INET	0
+@@ -168,16 +168,19 @@
  #define	SC2CIF(sc)		((struct carp_if *)(sc)->sc_carpdev->if_carp)
  
  /* lock per carp_if queue */
@@ -420,16 +421,16 @@ diff -u -r1.3 ip_carp.c
  
  static int
  carp_addrcount(struct carp_if *cif, struct in_ifaddr *ia, int type)
-@@ -1157,7 +1161,7 @@
- 	int index, count = 0;
+@@ -1169,7 +1172,7 @@
  	struct ifaddr *ifa;
  
+ 	cif = ifp->if_carp;
 -	CARP_LOCK(cif);
 +	CARP_RLOCK(cif);
  
  	if (carp_opts[CARPCTL_ARPBALANCE]) {
  		/*
-@@ -1170,7 +1174,7 @@
+@@ -1175,7 +1179,7 @@
  		count = carp_addrcount(cif, ia, CARP_COUNT_RUNNING);
  		if (count == 0) {
  			/* should never reach this */
@@ -467,10 +468,10 @@ diff -u -r1.3 ip_carp.c
  	return (0);
  }
  
-@@ -1231,7 +1235,7 @@
- 	struct carp_softc *vh;
+@@ -1244,7 +1247,7 @@
  	struct ifaddr *ifa;
  
+ 	cif = ifp->if_carp;
 -	CARP_LOCK(cif);
 +	CARP_RLOCK(cif);
  	TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list) {
@@ -492,10 +493,10 @@ diff -u -r1.3 ip_carp.c
  	
  	return (NULL);
  }
-@@ -1261,7 +1265,7 @@
- 	struct carp_softc *sc;
+@@ -1275,7 +1278,7 @@
  	struct ifaddr *ifa;
  
+ 	cif = ifp->if_carp;
 -	CARP_LOCK(cif);
 +	CARP_RLOCK(cif);
  	TAILQ_FOREACH(sc, &cif->vhif_vrs, sc_list) {
@@ -526,10 +527,10 @@ diff -u -r1.3 ip_carp.c
  
  	return (NULL);
  }
-@@ -1305,17 +1309,17 @@
- 	if (ena[0] || ena[1] || ena[2] != 0x5e || ena[3] || ena[4] != 1)
+@@ -1320,17 +1323,17 @@
  		return (NULL);
  
+ 	cif = ifp->if_carp;
 -	CARP_LOCK(cif);
 +	CARP_RLOCK(cif);
  	TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list)
@@ -914,10 +915,10 @@ diff -u -r1.3 ip_carp.c
  
  	return (error);
  }
-@@ -2216,9 +2209,9 @@
- {
- 	struct carp_if *cif = v;
+@@ -2221,9 +2214,9 @@
+ 	struct carp_if *cif;
  
+ 	cif = ifp->if_carp;
 -	CARP_LOCK(cif);
 +	CARP_WLOCK(cif);
  	carp_carpdev_state_locked(cif);
@@ -925,7 +926,7 @@ diff -u -r1.3 ip_carp.c
 +	CARP_WUNLOCK(cif);
  }
  
- static void
+ 
 @@ -2242,22 +2235,22 @@
  		SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
  		callout_stop(&sc->sc_ad_tmo);
