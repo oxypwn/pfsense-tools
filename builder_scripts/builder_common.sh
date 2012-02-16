@@ -3212,6 +3212,7 @@ create_memstick_image() {
 	cd $OLDPWD
 	umount /tmp/memstick/usbmnt
 	mdconfig -d -u $MD
+	gzip -f $MEMSTICKPATH
 }
 
 # This routine ensures any ports / binaries that the builder
