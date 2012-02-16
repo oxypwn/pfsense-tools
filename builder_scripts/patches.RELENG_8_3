@@ -53,7 +53,6 @@
 ~~ng_ether_attach_command.diff~
 ~~carp_correct_mac.diff~
 ~sys/dev/usb/net~if_axe.tgz~
-~sys/dev/usb/wlan~if_rum_pr_144642.diff~
 ~~route-to_without_gw.diff~
 ~~e1000_head.tgz~
 ~~files.igb.diff~
@@ -85,5 +84,4 @@
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
 ~~r222728_defroute.patch~
-~~rtadvd-rdnss.diff~
 ~~makefile.inc1.diff~
