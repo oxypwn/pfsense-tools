@@ -1,10 +1,10 @@
 Index: contrib/pf/pfctl/parse.y
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.4
-diff -u -r1.4 parse.y
---- contrib/pf/pfctl/parse.y	27 Apr 2010 20:22:32 -0000	1.4
-+++ contrib/pf/pfctl/parse.y	27 Apr 2010 20:23:03 -0000
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
+retrieving revision 1.6
+diff -u -r1.6 parse.y
+--- contrib/pf/pfctl/parse.y	16 Feb 2012 15:37:06 -0000	1.6
++++ contrib/pf/pfctl/parse.y	16 Feb 2012 15:37:45 -0000
 @@ -208,6 +208,7 @@
  	int			 fragment;
  	int			 allowopts;
@@ -75,7 +75,7 @@ diff -u -r1.4 parse.y
  qname		: QUEUE STRING				{
  			$$.qname = $2;
  		}
-@@ -4897,6 +4914,7 @@
+@@ -4893,6 +4910,7 @@
  	int			 added = 0, error = 0;
  	char			 ifname[IF_NAMESIZE];
  	char			 label[PF_RULE_LABEL_SIZE];
@@ -83,7 +83,7 @@ diff -u -r1.4 parse.y
  	char			 tagname[PF_TAG_NAME_SIZE];
  	char			 match_tagname[PF_TAG_NAME_SIZE];
  	struct pf_pooladdr	*pa;
-@@ -4905,6 +4923,8 @@
+@@ -4901,6 +4919,8 @@
  
  	if (strlcpy(label, r->label, sizeof(label)) >= sizeof(label))
  		errx(1, "expand_rule: strlcpy");
@@ -92,7 +92,7 @@ diff -u -r1.4 parse.y
  	if (strlcpy(tagname, r->tagname, sizeof(tagname)) >= sizeof(tagname))
  		errx(1, "expand_rule: strlcpy");
  	if (strlcpy(match_tagname, r->match_tagname, sizeof(match_tagname)) >=
-@@ -4956,6 +4976,9 @@
+@@ -4952,6 +4972,9 @@
  		if (strlcpy(r->label, label, sizeof(r->label)) >=
  		    sizeof(r->label))
  			errx(1, "expand_rule: strlcpy");
@@ -102,7 +102,7 @@ diff -u -r1.4 parse.y
  		if (strlcpy(r->tagname, tagname, sizeof(r->tagname)) >=
  		    sizeof(r->tagname))
  			errx(1, "expand_rule: strlcpy");
-@@ -4964,6 +4987,8 @@
+@@ -4960,6 +4983,8 @@
  			errx(1, "expand_rule: strlcpy");
  		expand_label(r->label, PF_RULE_LABEL_SIZE, r->ifname, r->af,
  		    src_host, src_port, dst_host, dst_port, proto->proto);
@@ -111,7 +111,7 @@ diff -u -r1.4 parse.y
  		expand_label(r->tagname, PF_TAG_NAME_SIZE, r->ifname, r->af,
  		    src_host, src_port, dst_host, dst_port, proto->proto);
  		expand_label(r->match_tagname, PF_TAG_NAME_SIZE, r->ifname,
-@@ -5227,6 +5252,7 @@
+@@ -5223,6 +5248,7 @@
  		{ "rtable",		RTABLE},
  		{ "rule",		RULE},
  		{ "ruleset-optimization",	RULESET_OPTIMIZATION},
@@ -119,7 +119,7 @@ diff -u -r1.4 parse.y
  		{ "scrub",		SCRUB},
  		{ "set",		SET},
  		{ "skip",		SKIP},
-@@ -5730,6 +5756,20 @@
+@@ -5726,6 +5752,20 @@
  	return (0);
  }
  
@@ -142,11 +142,11 @@ diff -u -r1.4 parse.y
  {
 Index: contrib/pf/pfctl/pfctl.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/contrib/pf/pfctl/pfctl.c,v
+RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl.c,v
 retrieving revision 1.2
 diff -u -r1.2 pfctl.c
---- contrib/pf/pfctl/pfctl.c	27 Apr 2010 20:21:51 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	27 Apr 2010 20:23:23 -0000
+--- contrib/pf/pfctl/pfctl.c	16 Feb 2012 15:33:09 -0000	1.2
++++ contrib/pf/pfctl/pfctl.c	16 Feb 2012 15:38:46 -0000
 @@ -77,6 +77,7 @@
  int	 pfctl_kill_src_nodes(int, const char *, int);
  int	 pfctl_kill_states(int, const char *, int);
@@ -189,7 +189,7 @@ diff -u -r1.2 pfctl.c
  pfctl_kill_ifstates(int dev, const char *iface, int opts)
  {
         struct pfioc_state_kill psk;
-@@ -2043,7 +2064,7 @@
+@@ -2093,7 +2114,7 @@
  		usage();
  
  	while ((ch = getopt(argc, argv,
@@ -198,7 +198,7 @@ diff -u -r1.2 pfctl.c
  		switch (ch) {
  		case 'a':
  			anchoropt = optarg;
-@@ -2177,6 +2198,12 @@
+@@ -2230,6 +2251,12 @@
  				opts |= PF_OPT_VERBOSE2;
  			opts |= PF_OPT_VERBOSE;
  			break;
@@ -211,7 +211,7 @@ diff -u -r1.2 pfctl.c
  		case 'x':
  			debugopt = pfctl_lookup_option(optarg, debugopt_list);
  			if (debugopt == NULL) {
-@@ -2381,6 +2408,9 @@
+@@ -2434,6 +2461,9 @@
  
  	if (if_kills)
  		pfctl_kill_ifstates(dev, ifaceopt, opts);
@@ -223,11 +223,11 @@ diff -u -r1.2 pfctl.c
  		error = pfctl_command_tables(argc, argv, tableopt,
 Index: sys/contrib/pf/net/pf_ioctl.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
 retrieving revision 1.3
 diff -u -r1.3 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	27 Apr 2010 20:22:20 -0000	1.3
-+++ sys/contrib/pf/net/pf_ioctl.c	27 Apr 2010 20:23:03 -0000
+--- sys/contrib/pf/net/pf_ioctl.c	16 Feb 2012 15:36:41 -0000	1.3
++++ sys/contrib/pf/net/pf_ioctl.c	16 Feb 2012 15:37:45 -0000
 @@ -2054,6 +2054,29 @@
                 break;
         }
@@ -260,11 +260,11 @@ diff -u -r1.3 pf_ioctl.c
  		struct pf_state		*state;
 Index: sys/contrib/pf/net/pfvar.h
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.6
-diff -u -r1.6 pfvar.h
---- sys/contrib/pf/net/pfvar.h	27 Apr 2010 20:22:42 -0000	1.6
-+++ sys/contrib/pf/net/pfvar.h	27 Apr 2010 20:23:03 -0000
+RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
+retrieving revision 1.8
+diff -u -r1.8 pfvar.h
+--- sys/contrib/pf/net/pfvar.h	16 Feb 2012 15:37:18 -0000	1.8
++++ sys/contrib/pf/net/pfvar.h	16 Feb 2012 15:37:45 -0000
 @@ -594,6 +594,7 @@
  	union pf_rule_ptr	 skip[PF_SKIP_COUNT];
  #define PF_RULE_LABEL_SIZE	 64
@@ -273,7 +273,7 @@ diff -u -r1.6 pfvar.h
  #define PF_QNAME_SIZE		 64
  	char			 ifname[IFNAMSIZ];
  	char			 qname[PF_QNAME_SIZE];
-@@ -1424,6 +1425,11 @@
+@@ -1425,6 +1426,11 @@
  	char			psk_ifname[IFNAMSIZ];
  };
  
@@ -285,7 +285,7 @@ diff -u -r1.6 pfvar.h
  struct pfioc_states {
  	int	ps_len;
  	union {
-@@ -1613,6 +1619,7 @@
+@@ -1614,6 +1620,7 @@
  #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
  #define DIOCGETNAMEDALTQ        _IOWR('D', 94, struct pfioc_ruleset)
  #define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)

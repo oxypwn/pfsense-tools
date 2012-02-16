@@ -1,11 +1,11 @@
 Index: sys/netinet/tcp_input.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/netinet/tcp_input.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/tcp_input.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 tcp_input.c
---- sys/netinet/tcp_input.c	4 Jun 2010 18:01:27 -0000	1.1.1.1
-+++ sys/netinet/tcp_input.c	4 Jun 2010 18:15:03 -0000
-@@ -198,7 +198,7 @@
+--- sys/netinet/tcp_input.c	16 Feb 2012 15:19:13 -0000	1.1.1.1
++++ sys/netinet/tcp_input.c	16 Feb 2012 15:53:38 -0000
+@@ -210,7 +210,7 @@
  		     struct socket *, struct tcpcb *, int, int, uint8_t,
  		     int);
  static void	 tcp_dropwithreset(struct mbuf *, struct tcphdr *,
@@ -14,7 +14,7 @@ diff -u -r1.1.1.1 tcp_input.c
  static void	 tcp_pulloutofband(struct socket *,
  		     struct tcphdr *, struct mbuf *, int);
  static void	 tcp_xmit_timer(struct tcpcb *, int);
-@@ -1040,10 +1040,10 @@
+@@ -1324,10 +1324,10 @@
  	ti_locked = TI_UNLOCKED;
  
  	if (inp != NULL) {
@@ -27,7 +27,7 @@ diff -u -r1.1.1.1 tcp_input.c
  	m = NULL;	/* mbuf chain got consumed. */
  	goto drop;
  
-@@ -1075,6 +1075,7 @@
+@@ -1359,6 +1359,7 @@
  	int thflags, acked, ourfinisacked, needoutput = 0;
  	int rstreason, todrop, win;
  	u_long tiwin;
@@ -35,7 +35,7 @@ diff -u -r1.1.1.1 tcp_input.c
  	struct tcpopt to;
  
  #ifdef TCPDEBUG
-@@ -1871,6 +1872,13 @@
+@@ -2153,6 +2154,13 @@
  			    s, __func__, tcpstates[tp->t_state], tlen);
  			free(s, M_TCPLOG);
  		}
@@ -49,7 +49,7 @@ diff -u -r1.1.1.1 tcp_input.c
  		tp = tcp_close(tp);
  		TCPSTAT_INC(tcps_rcvafterclose);
  		rstreason = BANDLIM_UNLIMITED;
-@@ -2760,10 +2768,10 @@
+@@ -2970,10 +2978,10 @@
  	ti_locked = TI_UNLOCKED;
  
  	if (tp != NULL) {
@@ -62,7 +62,7 @@ diff -u -r1.1.1.1 tcp_input.c
  	return;
  
  drop:
-@@ -2797,7 +2805,7 @@
+@@ -3007,7 +3015,7 @@
   */
  static void
  tcp_dropwithreset(struct mbuf *m, struct tcphdr *th, struct tcpcb *tp,
@@ -71,7 +71,7 @@ diff -u -r1.1.1.1 tcp_input.c
  {
  	struct ip *ip;
  #ifdef INET6
-@@ -2836,12 +2844,12 @@
+@@ -3046,12 +3054,12 @@
  	/* tcp_respond consumes the mbuf chain. */
  	if (th->th_flags & TH_ACK) {
  		tcp_respond(tp, mtod(m, void *), th, m, (tcp_seq)0,
@@ -88,12 +88,12 @@ diff -u -r1.1.1.1 tcp_input.c
  drop:
 Index: sys/netinet/tcp_subr.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/netinet/tcp_subr.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/tcp_subr.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 tcp_subr.c
---- sys/netinet/tcp_subr.c	4 Jun 2010 18:01:28 -0000	1.1.1.1
-+++ sys/netinet/tcp_subr.c	4 Jun 2010 18:15:03 -0000
-@@ -515,7 +515,7 @@
+--- sys/netinet/tcp_subr.c	16 Feb 2012 15:19:13 -0000	1.1.1.1
++++ sys/netinet/tcp_subr.c	16 Feb 2012 15:53:38 -0000
+@@ -537,7 +537,7 @@
   */
  void
  tcp_respond(struct tcpcb *tp, void *ipgen, struct tcphdr *th, struct mbuf *m,
@@ -102,7 +102,7 @@ diff -u -r1.1.1.1 tcp_subr.c
  {
  	int tlen;
  	int win = 0;
-@@ -527,6 +527,11 @@
+@@ -549,6 +549,11 @@
  #endif /* INET6 */
  	int ipflags = 0;
  	struct inpcb *inp;
@@ -114,7 +114,7 @@ diff -u -r1.1.1.1 tcp_subr.c
  
  	KASSERT(tp != NULL || m != NULL, ("tcp_respond: tp and m both NULL"));
  
-@@ -549,7 +554,18 @@
+@@ -571,7 +576,18 @@
  			if (win > (long)TCP_MAXWIN << tp->rcv_scale)
  				win = (long)TCP_MAXWIN << tp->rcv_scale;
  		}
@@ -133,7 +133,7 @@ diff -u -r1.1.1.1 tcp_subr.c
  	if (m == NULL) {
  		m = m_gethdr(M_DONTWAIT, MT_DATA);
  		if (m == NULL)
-@@ -601,21 +617,22 @@
+@@ -623,21 +639,22 @@
  			nth->th_sport = th->th_sport;
  			nth->th_dport = th->th_dport;
  		}
@@ -161,7 +161,7 @@ diff -u -r1.1.1.1 tcp_subr.c
  		ip->ip_len = tlen;
  		ip->ip_ttl = V_ip_defttl;
  		if (V_path_mtu_discovery)
-@@ -643,13 +660,23 @@
+@@ -665,13 +682,23 @@
  	nth->th_seq = htonl(seq);
  	nth->th_ack = htonl(ack);
  	nth->th_x2 = 0;
@@ -188,11 +188,11 @@ diff -u -r1.1.1.1 tcp_subr.c
  		nth->th_sum = 0;
 Index: sys/netinet/tcp_timer.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/netinet/tcp_timer.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/tcp_timer.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 tcp_timer.c
---- sys/netinet/tcp_timer.c	4 Jun 2010 18:01:28 -0000	1.1.1.1
-+++ sys/netinet/tcp_timer.c	4 Jun 2010 18:15:03 -0000
+--- sys/netinet/tcp_timer.c	16 Feb 2012 15:19:13 -0000	1.1.1.1
++++ sys/netinet/tcp_timer.c	16 Feb 2012 15:53:38 -0000
 @@ -329,7 +329,7 @@
  		if (t_template) {
  			tcp_respond(tp, t_template->tt_ipgen,
@@ -204,11 +204,11 @@ diff -u -r1.1.1.1 tcp_timer.c
  		callout_reset(&tp->t_timers->tt_keep, tcp_keepintvl, tcp_timer_keep, tp);
 Index: sys/netinet/tcp_timewait.c
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/netinet/tcp_timewait.c,v
+RCS file: /root/freebsd/repo/src/sys/netinet/tcp_timewait.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 tcp_timewait.c
---- sys/netinet/tcp_timewait.c	4 Jun 2010 18:01:28 -0000	1.1.1.1
-+++ sys/netinet/tcp_timewait.c	4 Jun 2010 18:15:03 -0000
+--- sys/netinet/tcp_timewait.c	16 Feb 2012 15:19:13 -0000	1.1.1.1
++++ sys/netinet/tcp_timewait.c	16 Feb 2012 15:53:38 -0000
 @@ -34,6 +34,7 @@
  
  #include "opt_inet.h"
@@ -236,7 +236,7 @@ diff -u -r1.1.1.1 tcp_timewait.c
  
  static int
  tcptw_auto_size(void)
-@@ -241,6 +247,10 @@
+@@ -244,6 +250,10 @@
  		tw->t_recent = 0;
  		tw->ts_offset = 0;
  	}
@@ -247,7 +247,7 @@ diff -u -r1.1.1.1 tcp_timewait.c
  
  	tw->snd_nxt = tp->snd_nxt;
  	tw->rcv_nxt = tp->rcv_nxt;
-@@ -484,7 +494,7 @@
+@@ -487,7 +497,7 @@
  	uma_zfree(V_tcptw_zone, tw);
  }
  
@@ -256,7 +256,7 @@ diff -u -r1.1.1.1 tcp_timewait.c
  tcp_twrespond(struct tcptw *tw, int flags)
  {
  	struct inpcb *inp = tw->tw_inpcb;
-@@ -535,6 +545,11 @@
+@@ -538,6 +548,11 @@
  		to.to_tsval = ticks + tw->ts_offset;
  		to.to_tsecr = tw->t_recent;
  	}
@@ -268,7 +268,7 @@ diff -u -r1.1.1.1 tcp_timewait.c
  	optlen = tcp_addoptions(&to, (u_char *)(th + 1));
  
  	m->m_len = hdrlen + optlen;
-@@ -548,6 +563,13 @@
+@@ -551,6 +566,13 @@
  	th->th_flags = flags;
  	th->th_win = htons(tw->last_win);
  
@@ -284,12 +284,12 @@ diff -u -r1.1.1.1 tcp_timewait.c
  		th->th_sum = in6_cksum(m, IPPROTO_TCP, sizeof(struct ip6_hdr),
 Index: sys/netinet/tcp_var.h
 ===================================================================
-RCS file: /root/freebsd/test/repo/src/sys/netinet/tcp_var.h,v
+RCS file: /root/freebsd/repo/src/sys/netinet/tcp_var.h,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 tcp_var.h
---- sys/netinet/tcp_var.h	4 Jun 2010 18:01:28 -0000	1.1.1.1
-+++ sys/netinet/tcp_var.h	4 Jun 2010 18:15:03 -0000
-@@ -319,6 +319,7 @@
+--- sys/netinet/tcp_var.h	16 Feb 2012 15:19:13 -0000	1.1.1.1
++++ sys/netinet/tcp_var.h	16 Feb 2012 15:53:38 -0000
+@@ -336,6 +336,7 @@
  	u_int32_t	ts_offset;	/* our timestamp offset */
  	u_int		t_starttime;
  	int		tw_time;
@@ -297,7 +297,7 @@ diff -u -r1.1.1.1 tcp_var.h
  	TAILQ_ENTRY(tcptw) tw_2msl;
  };
  
-@@ -621,7 +622,7 @@
+@@ -672,7 +673,7 @@
  	 tcp_newtcpcb(struct inpcb *);
  int	 tcp_output(struct tcpcb *);
  void	 tcp_respond(struct tcpcb *, void *,
@@ -306,7 +306,7 @@ diff -u -r1.1.1.1 tcp_var.h
  void	 tcp_tw_init(void);
  #ifdef VIMAGE
  void	 tcp_tw_destroy(void);
-@@ -629,7 +630,6 @@
+@@ -680,7 +681,6 @@
  void	 tcp_tw_zone_change(void);
  int	 tcp_twcheck(struct inpcb *, struct tcpopt *, struct tcphdr *,
  	    struct mbuf *, int);

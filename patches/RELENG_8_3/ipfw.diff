@@ -1,13 +1,16 @@
---- Makefile	2012-02-15 17:27:51.000000000 +0100
-+++ Makefile	2012-02-15 17:30:50.000000000 +0100
-@@ -18,8 +18,8 @@
+Index: Makefile
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/modules/ipfw/Makefile,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 Makefile
+--- Makefile	16 Feb 2012 15:19:18 -0000	1.1.1.1
++++ Makefile	16 Feb 2012 15:49:38 -0000
+@@ -18,7 +18,7 @@
  #CFLAGS+= -DIPFIREWALL_VERBOSE_LIMIT=100
  #
  #If you want it to pass all packets by default
 -#CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
--#
-+CFLAGS+= -DIPFIREWALL_DEFAULT_TO_ACCEPT
-+CFLAGS+= -DIPFIREWALL_FORWARD
++CFLAGS+=	-DIPFIREWALL_DEFAULT_TO_ACCEPT -DIPFIREWALL_FORWARD
+ #
  
  .if !defined(KERNBUILDDIR)
- .if ${MK_INET_SUPPORT} != "no"

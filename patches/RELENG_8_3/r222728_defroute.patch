@@ -1,5 +1,10 @@
---- sys/netinet6/in6.h.orig	2010-12-21 17:09:25.000000000 +0000
-+++ sys/netinet6/in6.h	2011-07-11 10:29:34.000000000 +0100
+Index: sys/netinet6/in6.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet6/in6.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 in6.h
+--- sys/netinet6/in6.h	16 Feb 2012 15:19:14 -0000	1.1.1.1
++++ sys/netinet6/in6.h	16 Feb 2012 16:31:56 -0000
 @@ -611,7 +611,10 @@
  #define IPV6CTL_STEALTH		45
  
@@ -12,9 +17,14 @@
  #endif /* __BSD_VISIBLE */
  
  /*
---- sys/netinet6/in6_proto.c.orig	2010-12-21 17:09:25.000000000 +0000
-+++ sys/netinet6/in6_proto.c	2011-07-11 10:31:46.000000000 +0100
-@@ -394,6 +394,9 @@
+Index: sys/netinet6/in6_proto.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet6/in6_proto.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 in6_proto.c
+--- sys/netinet6/in6_proto.c	16 Feb 2012 15:19:14 -0000	1.1.1.1
++++ sys/netinet6/in6_proto.c	16 Feb 2012 16:31:56 -0000
+@@ -386,6 +386,9 @@
  VNET_DEFINE(int, ip6_defhlim) = IPV6_DEFHLIM;
  VNET_DEFINE(int, ip6_defmcasthlim) = IPV6_DEFAULT_MULTICAST_HOPS;
  VNET_DEFINE(int, ip6_accept_rtadv) = 0;
@@ -24,7 +34,7 @@
  VNET_DEFINE(int, ip6_maxfragpackets);	/* initialized in frag6.c:frag6_init() */
  VNET_DEFINE(int, ip6_maxfrags);		/* initialized in frag6.c:frag6_init() */
  VNET_DEFINE(int, ip6_log_interval) = 5;
-@@ -520,6 +523,12 @@
+@@ -512,6 +515,12 @@
  	CTLFLAG_RW, &VNET_NAME(ip6_maxfragpackets), 0, "");
  SYSCTL_VNET_INT(_net_inet6_ip6, IPV6CTL_ACCEPT_RTADV, accept_rtadv,
  	CTLFLAG_RW, &VNET_NAME(ip6_accept_rtadv), 0, "");
@@ -37,8 +47,13 @@
  SYSCTL_VNET_INT(_net_inet6_ip6, IPV6CTL_KEEPFAITH, keepfaith, CTLFLAG_RW,
  	&VNET_NAME(ip6_keepfaith), 0, "");
  SYSCTL_VNET_INT(_net_inet6_ip6, IPV6CTL_LOG_INTERVAL, log_interval,
---- sys/netinet6/ip6_var.h.orig	2010-12-21 17:09:25.000000000 +0000
-+++ sys/netinet6/ip6_var.h	2011-07-11 14:07:30.000000000 +0100
+Index: sys/netinet6/ip6_var.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet6/ip6_var.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip6_var.h
+--- sys/netinet6/ip6_var.h	16 Feb 2012 15:19:14 -0000	1.1.1.1
++++ sys/netinet6/ip6_var.h	16 Feb 2012 16:31:56 -0000
 @@ -316,6 +316,9 @@
  VNET_DECLARE(int, ip6_maxfrags);	/* Maximum fragments in reassembly
  					 * queue */
@@ -59,8 +74,13 @@
  #define	V_ip6_keepfaith			VNET(ip6_keepfaith)
  #define	V_ip6_log_interval		VNET(ip6_log_interval)
  #define	V_ip6_log_time			VNET(ip6_log_time)
---- sys/netinet6/nd6.c.orig	2011-07-05 23:02:19.000000000 +0000
-+++ sys/netinet6/nd6.c	2011-07-05 23:48:18.000000000 +0000
+Index: sys/netinet6/nd6.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet6/nd6.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 nd6.c
+--- sys/netinet6/nd6.c	16 Feb 2012 15:19:14 -0000	1.1.1.1
++++ sys/netinet6/nd6.c	16 Feb 2012 16:32:54 -0000
 @@ -184,7 +184,7 @@
  	 * we won't accept RAs by default even if we set ND6_IFF_ACCEPT_RTADV
  	 * here.
@@ -70,7 +90,7 @@
  
  	/* XXX: we cannot call nd6_setmtu since ifp is not fully initialized */
  	nd6_setmtu0(ifp, nd);
-@@ -817,7 +817,7 @@
+@@ -815,7 +815,7 @@
  	if (V_nd6_defifindex == ifp->if_index)
  		nd6_setdefaultiface(0);
  
@@ -79,7 +99,7 @@
  		/* refresh default router list
  		 *
  		 * 
-@@ -957,7 +957,7 @@
+@@ -955,7 +955,7 @@
  	 * XXX: we restrict the condition to hosts, because routers usually do
  	 * not have the "default router list".
  	 */
@@ -88,16 +108,16 @@
  	    V_nd6_defifindex == ifp->if_index) {
  		return (1);
  	}
-@@ -1018,7 +1018,7 @@
+@@ -1016,7 +1016,7 @@
  
  	ifp = ln->lle_tbl->llt_ifp;
  
 -	if (!V_ip6_forwarding) {
 +	if (ND_IFINFO(ifp)->flags & ND6_IFF_ACCEPT_RTADV) {
  
- 	dr = defrouter_lookup(&L3_ADDR_SIN6(ln)->sin6_addr, ifp);
+ 		dr = defrouter_lookup(&L3_ADDR_SIN6(ln)->sin6_addr, ifp);
  
-@@ -1651,7 +1651,7 @@
+@@ -1689,7 +1689,7 @@
  	 * for those are not autoconfigured hosts, we explicitly avoid such
  	 * cases for safety.
  	 */
@@ -106,8 +126,13 @@
  		/*
  		 * guaranteed recursion
  		 */
---- sys/netinet6/nd6.h.orig	2011-07-05 23:02:25.000000000 +0000
-+++ sys/netinet6/nd6.h	2011-07-05 23:50:53.000000000 +0000
+Index: sys/netinet6/nd6.h
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet6/nd6.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 nd6.h
+--- sys/netinet6/nd6.h	16 Feb 2012 15:19:14 -0000	1.1.1.1
++++ sys/netinet6/nd6.h	16 Feb 2012 16:31:56 -0000
 @@ -84,6 +84,7 @@
  				     * DAD failure.  (XXX: not ND-specific)
  				     */
@@ -116,9 +141,14 @@
  
  #define	ND6_CREATE		LLE_CREATE
  #define	ND6_EXCLUSIVE		LLE_EXCLUSIVE
---- sys/netinet6/nd6_nbr.c.orig	2011-07-06 00:00:01.000000000 +0000
-+++ sys/netinet6/nd6_nbr.c	2011-07-06 00:05:41.000000000 +0000
-@@ -111,9 +111,13 @@
+Index: sys/netinet6/nd6_nbr.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet6/nd6_nbr.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 nd6_nbr.c
+--- sys/netinet6/nd6_nbr.c	16 Feb 2012 15:19:14 -0000	1.1.1.1
++++ sys/netinet6/nd6_nbr.c	16 Feb 2012 16:35:48 -0000
+@@ -111,10 +111,14 @@
  	int lladdrlen = 0;
  	int anycast = 0, proxy = 0, tentative = 0;
  	int tlladdr;
@@ -126,34 +156,52 @@
  	union nd_opts ndopts;
  	struct sockaddr_dl proxydl;
  	char ip6bufs[INET6_ADDRSTRLEN], ip6bufd[INET6_ADDRSTRLEN];
+ 
 +	rflag = (V_ip6_forwarding) ? ND_NA_FLAG_ROUTER : 0;
 +	if (ND_IFINFO(ifp)->flags & ND6_IFF_ACCEPT_RTADV && V_ip6_norbit_raif)
 +		rflag = 0;
- 
  #ifndef PULLDOWN_TEST
  	IP6_EXTHDR_CHECK(m, off, icmp6len,);
-@@ -331,8 +335,7 @@
+ 	nd_ns = (struct nd_neighbor_solicit *)((caddr_t)ip6 + off);
+@@ -338,8 +342,7 @@
  			goto bad;
  		nd6_na_output(ifp, &in6_all, &taddr6,
  		    ((anycast || proxy || !tlladdr) ? 0 : ND_NA_FLAG_OVERRIDE) |
 -		    (V_ip6_forwarding ? ND_NA_FLAG_ROUTER : 0),
 -		    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
-+		    rflag, tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
++		    rflag, tlladdr, (struct sockaddr *)proxydl);
  		goto freeit;
  	}
  
-@@ -341,7 +344,7 @@
+@@ -348,8 +351,8 @@
  
  	nd6_na_output(ifp, &saddr6, &taddr6,
  	    ((anycast || proxy || !tlladdr) ? 0 : ND_NA_FLAG_OVERRIDE) |
 -	    (V_ip6_forwarding ? ND_NA_FLAG_ROUTER : 0) | ND_NA_FLAG_SOLICITED,
+-	    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
 +	    rflag | ND_NA_FLAG_SOLICITED,
- 	    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
++	    tlladdr, (struct sockaddr *)proxydl);
   freeit:
  	if (ifa != NULL)
---- sys/netinet6/nd6_rtr.c.orig	2010-12-21 17:09:25.000000000 +0000
-+++ sys/netinet6/nd6_rtr.c	2011-07-11 10:40:21.000000000 +0100
-@@ -127,9 +127,12 @@
+ 		ifa_free(ifa);
+@@ -850,7 +853,8 @@
+ 			dr = defrouter_lookup(in6, ln->lle_tbl->llt_ifp);
+ 			if (dr)
+ 				defrtrlist_del(dr);
+-			else if (!V_ip6_forwarding) {
++			else if (ND_IFINFO(ln->lle_tbl->llt_ifp)->flags &
++				ND6_IFF_ACCEPT_RTADV) {
+ 				/*
+ 				 * Even if the neighbor is not in the default
+ 				 * router list, the neighbor may be used
+Index: sys/netinet6/nd6_rtr.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet6/nd6_rtr.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 nd6_rtr.c
+--- sys/netinet6/nd6_rtr.c	16 Feb 2012 15:19:14 -0000	1.1.1.1
++++ sys/netinet6/nd6_rtr.c	16 Feb 2012 16:31:56 -0000
+@@ -130,9 +130,12 @@
  	union nd_opts ndopts;
  	char ip6bufs[INET6_ADDRSTRLEN], ip6bufd[INET6_ADDRSTRLEN];
  
@@ -169,7 +217,7 @@
  
  	/* Sanity checks */
  	if (ip6->ip6_hlim != 255) {
-@@ -213,10 +216,9 @@
+@@ -216,10 +219,9 @@
  	char ip6bufs[INET6_ADDRSTRLEN], ip6bufd[INET6_ADDRSTRLEN];
  
  	/*
@@ -183,7 +231,7 @@
  	if (V_ip6_accept_rtadv == 0)
  		goto freeit;
  	if (!(ndi->flags & ND6_IFF_ACCEPT_RTADV))
-@@ -268,7 +270,15 @@
+@@ -271,7 +273,15 @@
  	bzero(&dr0, sizeof(dr0));
  	dr0.rtaddr = saddr6;
  	dr0.flags  = nd_ra->nd_ra_flags_reserved;
@@ -200,7 +248,7 @@
  	dr0.expire = time_second + dr0.rtlifetime;
  	dr0.ifp = ifp;
  	/* unspecified or not? (RFC 2461 6.3.4) */
-@@ -559,7 +569,7 @@
+@@ -562,7 +572,7 @@
  	 * Flush all the routing table entries that use the router
  	 * as a next hop.
  	 */
@@ -209,7 +257,7 @@
  		rt6_flush(&dr->rtaddr, dr->ifp);
  
  	if (dr->installed) {
-@@ -618,20 +628,6 @@
+@@ -621,20 +631,6 @@
  	struct llentry *ln = NULL;
  
  	/*

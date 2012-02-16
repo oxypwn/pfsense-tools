@@ -1,11 +1,11 @@
 Index: proc.h
 ===================================================================
-RCS file: /home/ncvs/src/sys/sys/proc.h,v
-retrieving revision 1.535.2.4
-diff -u -r1.535.2.4 proc.h
---- proc.h	12 Dec 2009 20:06:25 -0000	1.535.2.4
-+++ proc.h	29 Dec 2009 23:54:53 -0000
-@@ -654,7 +654,7 @@
+RCS file: /root/freebsd/repo/src/sys/sys/proc.h,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 proc.h
+--- proc.h	16 Feb 2012 15:19:08 -0000	1.1.1.1
++++ proc.h	16 Feb 2012 15:44:07 -0000
+@@ -673,7 +673,7 @@
   * We use process IDs <= PID_MAX; PID_MAX + 1 must also fit in a pid_t,
   * as it is used to represent "no process group".
   */

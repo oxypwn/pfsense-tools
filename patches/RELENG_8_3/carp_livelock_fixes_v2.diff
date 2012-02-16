@@ -3,9 +3,9 @@ Index: sys/net/if_bridge.c
 RCS file: /root/freebsd/repo/src/sys/net/if_bridge.c,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 if_bridge.c
---- sys/net/if_bridge.c	25 Jan 2011 18:02:30 -0000	1.1.1.1
-+++ sys/net/if_bridge.c	25 Jan 2011 18:12:02 -0000
-@@ -2274,6 +2274,7 @@
+--- sys/net/if_bridge.c	16 Feb 2012 15:19:11 -0000	1.1.1.1
++++ sys/net/if_bridge.c	16 Feb 2012 16:23:33 -0000
+@@ -2286,6 +2286,7 @@
  #define GRAB_OUR_PACKETS(iface) \
  	if ((iface)->if_type == IFT_GIF) \
  		continue; \
@@ -13,7 +13,7 @@ diff -u -r1.1.1.1 if_bridge.c
  	/* It is destined for us. */ \
  	if (memcmp(IF_LLADDR((iface)), eh->ether_dhost,  ETHER_ADDR_LEN) == 0 \
  	    OR_CARP_CHECK_WE_ARE_DST((iface))				\
-@@ -2287,22 +2288,23 @@
+@@ -2299,22 +2300,23 @@
  			     OR_PFIL_HOOKED_INET6)) {			\
  				if (bridge_pfil(&m, NULL, ifp,		\
  				    PFIL_IN) != 0 || m == NULL) {	\
@@ -40,7 +40,7 @@ diff -u -r1.1.1.1 if_bridge.c
  		return (m);						\
  	}								\
  									\
-@@ -2310,10 +2312,11 @@
+@@ -2322,10 +2324,11 @@
  	if (memcmp(IF_LLADDR((iface)), eh->ether_shost, ETHER_ADDR_LEN) == 0 \
  	    OR_CARP_CHECK_WE_ARE_SRC((iface))			\
  	    ) {								\
