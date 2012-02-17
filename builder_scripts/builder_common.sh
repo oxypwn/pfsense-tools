@@ -700,7 +700,6 @@ cust_overlay_host_binaries() {
 		touch /tmp/pfPort/copy.list
 	fi
 
-	export DONTSTRIP=1
 	# Process base system libraries
 	NEEDEDLIBS=""
 	echo ">>> Populating newer binaries found on host jail/os (usr/local)..."
@@ -734,6 +733,7 @@ cust_overlay_host_binaries() {
 			fi
 		fi
 	done
+	export DONTSTRIP=1
 	echo ">>> Installing collected library information (usr/local), please wait..."
 	# Unique the libraries so we only copy them once
 	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
@@ -741,7 +741,7 @@ cust_overlay_host_binaries() {
 		if [ -f $NEEDLIB ]; then
 			install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
 			if [ -d $CLONEDIR ]; then
-				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
+				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB} 2>/dev/null 
 			fi
 		fi
 	done
