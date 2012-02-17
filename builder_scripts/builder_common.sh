@@ -3327,12 +3327,6 @@ update_freebsd_sources_and_apply_patches() {
 		fi
 	done
 
-	echo ">>> Removing old patch rejects..."
-	find $SRCDIR -name "*.rej" -exec rm {} \;
-	echo ">>> Removing original files ..."
-	find $SRCDIR -name "*.orig" | sed 's/.orig//g' | xargs rm -f
-	find $SRCDIR -name "*.orig" | xargs rm -f
-
 	# CVSUp freebsd version -- this MUST be after Loop through and remove files
 	BASENAMESUPFILE=`basename $SUPFILE`
 	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
@@ -3341,6 +3335,9 @@ update_freebsd_sources_and_apply_patches() {
 		| grep -v "error\." | grep -v "opensolaris" | \
 		grep -v "httpd-error"
 	echo "Done!"
+
+	echo ">>> Removing old patch rejects..."
+	find $SRCDIR -name "*.rej" -exec rm {} \;
 
 	echo -n ">>> Applying patches from $PFSPATCHFILE please wait..."
 	# Loop through and patch files
