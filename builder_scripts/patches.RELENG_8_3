@@ -80,8 +80,4 @@
 ~~ip_divert_increase_buf.diff~
 ~~r222728_defroute.patch~
 ~~makefile.inc1.diff~
-~~~/sys/net/if_srd.c
-~~~/sys/net/if_srd.h
-~~~/sbin/ifconfig/ifsrd.c
-~~~/sys/modules/if_srd/Makefile
 -p1~~freebsd8-6rd-20100130.patch~
