@@ -65,7 +65,7 @@
 ~~if_bridge_gif_mtu.diff~
 ~~if_lagg_panic.diff~
 ~~net80211_WME_fix.diff~
-~~virtio.tbz~
+~~virtio.tgz~
 ~~pfaltq_interface_bw.diff~
 ~~tcp_lro_fix.diff~
 ~~scrub_FIN+SYN_drop.diff~
