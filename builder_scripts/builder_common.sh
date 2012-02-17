@@ -700,6 +700,7 @@ cust_overlay_host_binaries() {
 		touch /tmp/pfPort/copy.list
 	fi
 
+	export DONTSTRIP=1
 	# Process base system libraries
 	NEEDEDLIBS=""
 	echo ">>> Populating newer binaries found on host jail/os (usr/local)..."
@@ -744,6 +745,7 @@ cust_overlay_host_binaries() {
 			fi
 		fi
 	done
+	unset DONTSTRIP
 
 }
 
