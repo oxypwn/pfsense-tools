@@ -169,7 +169,7 @@ diff -u -r1.1.1.1 nd6_nbr.c
  		    ((anycast || proxy || !tlladdr) ? 0 : ND_NA_FLAG_OVERRIDE) |
 -		    (V_ip6_forwarding ? ND_NA_FLAG_ROUTER : 0),
 -		    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
-+		    rflag, tlladdr, (struct sockaddr *)proxydl);
++		    rflag, tlladdr, (struct sockaddr *)&proxydl);
  		goto freeit;
  	}
  
@@ -180,7 +180,7 @@ diff -u -r1.1.1.1 nd6_nbr.c
 -	    (V_ip6_forwarding ? ND_NA_FLAG_ROUTER : 0) | ND_NA_FLAG_SOLICITED,
 -	    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
 +	    rflag | ND_NA_FLAG_SOLICITED,
-+	    tlladdr, (struct sockaddr *)proxydl);
++	    tlladdr, (struct sockaddr *)&proxydl);
   freeit:
  	if (ifa != NULL)
  		ifa_free(ifa);
