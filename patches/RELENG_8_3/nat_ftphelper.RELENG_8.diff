@@ -3,8 +3,8 @@ Index: sys/conf/files
 RCS file: /root/freebsd/repo/src/sys/conf/files,v
 retrieving revision 1.2
 diff -u -r1.2 files
---- sys/conf/files	22 Sep 2010 19:33:26 -0000	1.2
-+++ sys/conf/files	22 Sep 2010 19:35:07 -0000
+--- sys/conf/files	18 Feb 2011 16:40:06 -0000	1.2
++++ sys/conf/files	18 Feb 2011 16:43:32 -0000
 @@ -366,6 +366,8 @@
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
@@ -19,9 +19,20 @@ Index: sys/contrib/pf/net/pf.c
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
 retrieving revision 1.5
 diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	22 Sep 2010 19:34:44 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	22 Sep 2010 19:35:07 -0000
-@@ -261,7 +261,7 @@
+--- sys/contrib/pf/net/pf.c	18 Feb 2011 16:43:19 -0000	1.5
++++ sys/contrib/pf/net/pf.c	18 Feb 2011 16:43:57 -0000
+@@ -187,6 +187,10 @@
+ struct pool		 pf_state_pl, pf_altq_pl, pf_pooladdr_pl;
+ #endif
+ 
++int ftp_proxy = 0;
++SYSCTL_INT(_debug, OID_AUTO, pfftpproxy, CTLFLAG_RW, &ftp_proxy, 0,
++    "Enable/disable pf ftp protocol proxy");
++
+ void			 pf_print_host(struct pf_addr *, u_int16_t, u_int8_t);
+ 
+ void			 pf_init_threshold(struct pf_threshold *, u_int32_t,
+@@ -261,7 +265,7 @@
  int			 pf_tcp_track_full(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
  			    struct pfi_kif *, struct mbuf *, int,
@@ -30,7 +41,7 @@ diff -u -r1.5 pf.c
  int			 pf_tcp_track_sloppy(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
  			    struct pf_pdesc *, u_short *);
-@@ -307,8 +307,6 @@
+@@ -307,8 +311,6 @@
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
  				u_int16_t);
@@ -39,31 +50,31 @@ diff -u -r1.5 pf.c
  int			 pf_check_proto_cksum(struct mbuf *, int, int,
  			    u_int8_t, sa_family_t);
  int			 pf_addr_wrap_neq(struct pf_addr_wrap *,
-@@ -537,6 +535,8 @@
+@@ -653,9 +655,9 @@
+ #endif /* INET6 */
+ 	}
  
- 	if ((diff = a->lan.port - b->lan.port) != 0)
+-	if ((diff = a->lan.port - b->lan.port) != 0)
++	if ((b->lan.pad == 0) && (diff = a->lan.port - b->lan.port) != 0)
  		return (diff);
-+	if (b->ext.pad)
-+		return (0);
- 	if ((diff = a->ext.port - b->ext.port) != 0)
+-	if ((diff = a->ext.port - b->ext.port) != 0)
++	if ((b->ext.pad == 0) && (diff = a->ext.port - b->ext.port) != 0)
  		return (diff);
  
-@@ -607,10 +607,12 @@
+ 	return (0);
+@@ -725,9 +727,9 @@
  #endif /* INET6 */
  	}
  
 -	if ((diff = a->ext.port - b->ext.port) != 0)
--		return (diff);
- 	if ((diff = a->gwy.port - b->gwy.port) != 0)
++	if ((b->gwy.pad == 0) && (diff = a->gwy.port - b->gwy.port) != 0)
  		return (diff);
-+	if (b->ext.pad)
-+		return (0);
-+	if ((diff = a->ext.port - b->ext.port) != 0)
-+		return (diff);
+-	if ((diff = a->gwy.port - b->gwy.port) != 0)
++	if ((b->ext.pad == 0) && (diff = a->ext.port - b->ext.port) != 0)
+ 		return (diff);
  
  	return (0);
- }
-@@ -4737,13 +4739,14 @@
+@@ -4855,13 +4857,14 @@
  int
  pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
  	struct pf_state **state, struct pfi_kif *kif, struct mbuf *m, int off,
@@ -81,7 +92,7 @@ diff -u -r1.5 pf.c
  
  	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
  		sws = src->wscale & PF_WSCALE_MASK;
-@@ -4828,11 +4831,51 @@
+@@ -4946,11 +4949,48 @@
  			src->max_win = win;
  
  	} else {
@@ -94,13 +105,10 @@ diff -u -r1.5 pf.c
 +		 */
 +		nat = (*state)->nat_rule.ptr;
 +		if (nat != NULL) {
-+			if (src->seqdiffoneway)
-+				delta1 = src->seqflags & SEQ_DIFF_NEGATIVE ? -src->seqdiffoneway
-+					: src->seqdiffoneway;
-+			else if (dst->seqdiffoneway)
-+				delta1 = dst->seqflags & SEQ_DIFF_NEGATIVE ? -dst->seqdiffoneway
-+					: dst->seqdiffoneway;
-+			
++			if ((*state)->src.seqdiffoneway)
++				delta1 = (*state)->src.seqflags & SEQ_DIFF_NEGATIVE ? -(*state)->src.seqdiffoneway
++					: (*state)->src.seqdiffoneway;
++
 +			if (delta1) {
 +				switch (nat->action) {
 +				case PF_NAT:
@@ -136,22 +144,22 @@ diff -u -r1.5 pf.c
  			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
  			*copyback = 1;
  		}
-@@ -5204,6 +5247,54 @@
+@@ -5310,6 +5350,54 @@
  		dst = &(*state)->src;
  	}
  
 +	if (src->state == TCPS_LISTEN || dst->state == TCPS_LISTEN) {
 +                if (direction == PF_IN) {
-+                        (*state)->ext.port = th->th_sport;
-+                        (*state)->ext.pad = 0;
-+                        src->state = TCPS_SYN_SENT;
-+                        dst->state = TCPS_CLOSED;
++                        if ((*state)->ext.pad) { (*state)->ext.port = th->th_sport; (*state)->ext.pad = 0; }
++                        if ((*state)->lan.pad || (*state)->gwy.pad) {
++                        	(*state)->lan.port = (*state)->gwy.port = th->th_dport; (*state)->lan.pad = (*state)->gwy.pad = 0; }
 +                 } else {
-+                        (*state)->ext.port = th->th_dport;
-+                        (*state)->ext.pad = 0;
-+                        dst->state = TCPS_SYN_SENT;
-+                        src->state = TCPS_CLOSED;
++                        if ((*state)->ext.pad) { (*state)->ext.port = th->th_dport; (*state)->ext.pad = 0; }
++                        if ((*state)->lan.pad || (*state)->gwy.pad) {
++                        	(*state)->lan.port = (*state)->gwy.port = th->th_sport; (*state)->lan.pad = (*state)->gwy.pad = 0; }
 +                }
++                src->state = TCPS_SYN_SENT;
++                dst->state = TCPS_CLOSED;
 +                (*state)->src.seqlo = ntohl(th->th_seq);
 +                (*state)->src.seqhi = (*state)->src.seqlo + pd->tot_len - off - (th->th_off << 2) + 1;
 +                if ((th->th_flags & (TH_SYN|TH_ACK)) == TH_SYN &&
@@ -191,7 +199,7 @@ diff -u -r1.5 pf.c
  	if ((*state)->src.state == PF_TCPS_PROXY_SRC) {
  		if (direction != (*state)->direction) {
  			REASON_SET(reason, PFRES_SYNPROXY);
-@@ -5332,10 +5423,11 @@
+@@ -5438,10 +5526,11 @@
  			return (PF_DROP);
  	} else {
  		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
@@ -204,13 +212,13 @@ diff -u -r1.5 pf.c
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7206,6 +7298,10 @@
+@@ -7321,6 +7410,10 @@
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
-+		if (action == PF_PASS && s != NULL && !PACKET_LOOPED()) {
-+			if (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21)
-+				pf_handle_ftp(&pd, m, s, off, dir);
++		if (action == PF_PASS && s != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
++			if (ftp_proxy == 0 && (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21))
++				pf_handle_ftp(kif, &pd, m, s, off, dir);
 +		}
  		break;
  	}
@@ -220,8 +228,8 @@ Index: sys/contrib/pf/net/pf_ftp.c
 RCS file: sys/contrib/pf/net/pf_ftp.c
 diff -N sys/contrib/pf/net/pf_ftp.c
 --- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	22 Sep 2010 19:45:17 -0000
-@@ -0,0 +1,718 @@
++++ sys/contrib/pf/net/pf_ftp.c	18 Feb 2011 16:43:32 -0000
+@@ -0,0 +1,750 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -293,12 +301,12 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +	FTP_UNKNOWN_MESSAGE
 +};
 +
-+static int	ParseFtpPortCommand(u_int16_t *, char *, int);
-+static int	ParseFtpEprtCommand(u_int16_t *, char *, int);
-+static int	ParseFtp227Reply(u_int16_t *, char *, int);
-+static int	ParseFtp229Reply(u_int16_t *, char *, int);
++static int	ParseFtpPortCommand(struct mbuf *, int, int);
++static int	ParseFtpEprtCommand(struct mbuf *, int, int);
++static int	ParseFtp227Reply(struct mbuf *, int, int);
++static int	ParseFtp229Reply(struct mbuf *, int, int);
 +static void	NewFtpMessage(struct pf_pdesc *, struct pf_state *, struct mbuf *,
-+			int *, int, u_int16_t, int);
++			int, u_int16_t, int);
 +
 +#define STATE_INC_COUNTERS(s)                           \
 +        do {                                            \
@@ -318,127 +326,114 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->rule.ptr->states--;                  \
 +        } while (0)
 +
-+#define BOUND_IFACE(r, k) 				\
-+        ((r)->rule_flag & PFRULE_IFBOUND) ? (k) : pfi_all
++#define BOUND_IFACE(k) 				\
++        (k) != NULL ? (k) : pfi_all
 +
 +void
-+pf_handle_ftp(struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state, int off, int dir) 
++pf_handle_ftp(struct pfi_kif *kif, struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state, int off, int dir) 
 +{
-+	int hlen;
-+	char *sptr;
-+	struct tcphdr *tc;
-+	int ftp_message_type, reason, delta = 0;
-+	u_int16_t oport = 0; /* Make compiler happy */
 +	struct pf_state *s = NULL;
-+	struct pf_rule *r = state->rule.ptr;
 +	struct pf_rule *nr = state->nat_rule.ptr;
++	int ftp_message_type = FTP_UNKNOWN_MESSAGE, reason, odelta = 0;
++	u_int16_t oport = 0; /* Make compiler happy */
++	int hlen;
 +
-+	hlen = pd->tot_len - pd->p_len;
-+	/* Place string pointer at beginning of data */
-+	/* m = m_pullup(m, MAX_MESSAGE_SIZE); */
-+	sptr = mtod(m, char *);
-+	sptr += hlen;
-+	tc = (struct tcphdr *)sptr;
 +
 +	/*
 + 	 * Check that data length is not too long and previous message was
 + 	 * properly terminated with CRLF.
 + 	*/
 +	if (pd->p_len <= MAX_MESSAGE_SIZE ) { 
-+		ftp_message_type = FTP_UNKNOWN_MESSAGE;
++		/* Place string pointer at beginning of data */
++		hlen = pd->tot_len - pd->p_len;
 +		
 + 		/* When aliasing a client, check for the PORT/EPRT command. */
 + 		/* When aliasing a server, check for the 227/229 reply. */
-+		if (ParseFtpPortCommand(&oport, sptr, pd->p_len))
-+			ftp_message_type = FTP_PORT_COMMAND;
-+		else if (ParseFtpEprtCommand(&oport, sptr, pd->p_len))
-+			ftp_message_type = FTP_EPRT_COMMAND;
-+		else if (ParseFtp227Reply(&oport, sptr, pd->p_len))
-+			ftp_message_type = FTP_227_REPLY;
-+		else if (ParseFtp229Reply(&oport, sptr, pd->p_len)) {
++		if ((oport = ParseFtp229Reply(m, hlen, pd->p_len)) > 0)
 +			ftp_message_type = FTP_229_REPLY;
-+		}
++		else if ((oport = ParseFtp227Reply(m, hlen, pd->p_len)) > 0)
++			ftp_message_type = FTP_227_REPLY;
++		else if ((oport = ParseFtpPortCommand(m, hlen, pd->p_len)) > 0)
++			ftp_message_type = FTP_PORT_COMMAND;
++		else if ((oport = ParseFtpEprtCommand(m, hlen, pd->p_len)) > 0)
++			ftp_message_type = FTP_EPRT_COMMAND;
 +
 +		if (ftp_message_type == FTP_UNKNOWN_MESSAGE)
 +			return;
-+		else if (nr != NULL) {
 +
-+			if ((ftp_message_type == FTP_227_REPLY ||
-+		    	    ftp_message_type == FTP_229_REPLY) && (nr->action == PF_NAT || (nr->action == PF_BINAT && state->direction == PF_OUT)))
-+				return;
++		switch (ftp_message_type) {
++		case FTP_PORT_COMMAND:
++		case FTP_EPRT_COMMAND:
++			if (dir == PF_OUT && state->direction == dir) {
++				s = pool_get(&pf_state_pl, PR_NOWAIT);
++				if (s == NULL) {
++					REASON_SET(&reason, PFRES_MEMORY);
++					return;
++				}
++				bzero(s, sizeof(*s));
 +
-+			if ((ftp_message_type == FTP_PORT_COMMAND ||
-+		    	    ftp_message_type == FTP_EPRT_COMMAND) && nr->action == PF_RDR)
++				if (nr != NULL && nr->action != PF_RDR) {
++					odelta = state->src.seqdiffoneway;
++					NewFtpMessage(pd, state, m, off, oport, ftp_message_type);
++				}
++				s->direction = PF_IN;
++				PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
++				s->gwy.port = htons(oport);
++				PF_ACPY(&s->lan.addr, &state->lan.addr, state->af);
++				s->lan.port = htons(oport);
++				PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
++				s->ext.port = htons(20);
++				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++			} else
 +				return;
-+			NewFtpMessage(pd, state, m, &delta, off, oport, ftp_message_type);
++			break;
++		case FTP_227_REPLY:
++		case FTP_229_REPLY:
++			if (dir == PF_OUT && state->direction != dir) {
++				s = pool_get(&pf_state_pl, PR_NOWAIT);
++				if (s == NULL) {
++					REASON_SET(&reason, PFRES_MEMORY);
++					return;
++				}
++				bzero(s, sizeof(*s));
++
++				if (ftp_message_type == FTP_227_REPLY && nr != NULL && (nr->action == PF_RDR || nr->action == PF_BINAT)) {
++					odelta = state->src.seqdiffoneway;
++					NewFtpMessage(pd, state, m, off, oport, ftp_message_type);
++				}
++				s->direction = PF_IN;
++				PF_ACPY(&s->lan.addr, &state->lan.addr, state->af);
++                                s->lan.port = htons(oport);
++                                PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
++                                s->gwy.port = htons(oport);
++
++                                PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
++                                s->ext.port = htons(ntohs(s->ext.port) + 1);
++                                s->ext.pad = FTP_CONTROL_PORT_NUMBER;
++			} else
++				return;
++			break;
++		default:
++			return;
++
++			break;
 +		}
 +
-+		s = pool_get(&pf_state_pl, PR_NOWAIT);
-+                if (s == NULL) {
-+                        REASON_SET(&reason, PFRES_MEMORY);
-+                        return;
-+                }
-+                bzero(s, sizeof(*s));
 +                s->rule.ptr = state->rule.ptr;
++               	s->nat_rule.ptr = state->nat_rule.ptr;
 +                s->anchor.ptr = state->anchor.ptr;
 +                STATE_INC_COUNTERS(s);
 +                s->state_flags = state->state_flags;
 +		s->local_flags = state->local_flags;
 +                s->log = state->log;
 +                s->proto = IPPROTO_TCP;
-+                s->af = pd->af;
-+		if (nr != NULL) {
-+               		s->nat_rule.ptr = nr;
-+			if (nr->action == PF_RDR || (state->direction == PF_IN && nr->action == PF_BINAT))
-+               			s->direction = state->direction;
-+			else
-+				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
-+
-+			/* This is inverted. */
-+                	if (s->direction == PF_OUT) {
-+                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                       		s->gwy.port = htons(oport); 
-+                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+                       		s->lan.port = 0; 
-+				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = htons(oport);
-+                	} else {
-+                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = 0;
-+				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+                       		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
-+                       		s->lan.port = htons(oport);
-+                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                       		s->gwy.port = htons(oport);
-+			}
-+		} else {
-+			if (ftp_message_type == FTP_227_REPLY || ftp_message_type == FTP_229_REPLY) {
-+				s->direction = state->direction;
-+                       		PF_ACPY(&s->ext.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = 0;
-+				s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+                       		PF_ACPY(&s->lan.addr, &state->lan.addr, pd->af);
-+				s->lan.port = htons(oport);
-+                       		PF_ACPY(&s->gwy.addr, &state->lan.addr, pd->af);
-+                       		s->gwy.port = htons(oport);
-+			} else if (ftp_message_type == FTP_PORT_COMMAND || ftp_message_type == FTP_EPRT_COMMAND) {
-+				s->direction = (state->direction == PF_IN ? PF_OUT : PF_IN);
-+                       		PF_ACPY(&s->gwy.addr, &state->gwy.addr, pd->af);
-+                       		s->gwy.port = htons(oport); 
-+                       		PF_ACPY(&s->ext.addr, &state->lan.addr, pd->af);
-+                       		s->lan.port = 0; 
-+				s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+                       		PF_ACPY(&s->lan.addr, &state->ext.addr, pd->af);
-+                       		s->ext.port = htons(oport);
-+			}
-+		}
++                s->af = state->af;
 +                s->src.state = TCPS_LISTEN;
 +                s->dst.state = TCPS_LISTEN;
 +                s->creation = time_second;
 +                s->expire = time_second;
 +                s->timeout = PFTM_TCP_FIRST_PACKET;
-+		PF_ACPY(&s->rt_addr, &state->rt_addr, pd->af);
++		PF_ACPY(&s->rt_addr, &state->rt_addr, state->af);
 +		if (state->nat_src_node != NULL) {
 +			s->nat_src_node = state->nat_src_node;
 +                        s->nat_src_node->states++;
@@ -450,23 +445,23 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +			s->src_node->conn++;
 +                }
 +		s->rt_kif = state->rt_kif;
-+		if (pf_insert_state(BOUND_IFACE(r, s->rt_kif), s)) {
++		if (pf_insert_state(BOUND_IFACE(kif), s)) {
 +                        pf_normalize_tcp_cleanup(s);
 +                        REASON_SET(&reason, PFRES_STATEINS);
-+                        pf_src_tree_remove_state(s);
++			pf_src_tree_remove_state(s);
 +                        STATE_DEC_COUNTERS(s);
 +                        pool_put(&pf_state_pl, s);
-+			if (state->src.seqdiffoneway)
-+				state->src.seqdiffoneway -= delta;
-+                } 
++			state->src.seqdiffoneway = odelta;
++                }
 +	}
 +}
 +
 +static int
-+ParseFtpPortCommand(u_int16_t *oport, char *sptr, int dlen)
++ParseFtpPortCommand(struct mbuf *n, int off, int dlen)
 +{
-+	char ch;
-+	int i, state;
++	struct mbuf *m = n;
++	char ch, *sptr = mtod(m, char *) + off;
++	int i, j, state;
 +	u_int32_t addr;
 +	u_short port;
 +	u_int8_t octet;
@@ -479,7 +474,13 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +
 +	addr = port = octet = 0;
 +	state = -4;
++	j = off;
 +	for (i = 0; i < dlen; i++) {
++		if ((j) >= m->m_len) {
++                        m = m->m_next;
++                        j = 0;
++                        sptr = mtod(m, char *);
++                }
 +		ch = sptr[i];
 +		switch (state) {
 +		case -4:
@@ -547,20 +548,21 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				return (0);
 +			break;
 +		}
++		j++;
 +	}
 +
-+	if (state == 13) {
-+		*oport = port;
-+		return (1);
-+	} else
++	if (state == 13)
++		return (port);
++	else
 +		return (0);
 +}
 +
 +static int
-+ParseFtpEprtCommand(u_int16_t *oport, char *sptr, int dlen)
++ParseFtpEprtCommand(struct mbuf *n, int off, int dlen)
 +{
-+	char ch, delim;
-+	int i, state;
++	struct mbuf *m = n;
++	char ch, delim, *sptr = mtod(m, char *) + off;
++	int i, j, state;
 +	u_int32_t addr;
 +	u_short port;
 +	u_int8_t octet;
@@ -574,7 +576,13 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +	addr = port = octet = 0;
 +	delim = '|';		/* XXX gcc -Wuninitialized */
 +	state = -4;
++	j = off;
 +	for (i = 0; i < dlen; i++) {
++		if ((j) >= m->m_len) {
++                        m = m->m_next;
++                        j = 0;
++                        sptr = mtod(m, char *);
++                }
 +		ch = sptr[i];
 +		switch (state) {
 +		case -4:
@@ -658,20 +666,21 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				return (0);
 +			break;
 +		}
++		j++;
 +	}
 +
 +	if (state == 13) {
-+		*oport = port;
-+		return (1);
++		return (port);
 +	} else
 +		return (0);
 +}
 +
 +static int
-+ParseFtp227Reply(u_int16_t *oport, char *sptr, int dlen)
++ParseFtp227Reply(struct mbuf *n, int off, int dlen)
 +{
-+	char ch;
-+	int i, state;
++	struct mbuf *m = n;
++	char ch, *sptr = mtod(m, char *) + off;
++	int i, j, state;
 +	u_int32_t addr;
 +	u_short port;
 +	u_int8_t octet;
@@ -685,7 +694,13 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +	addr = port = octet = 0;
 +
 +	state = -3;
++	j = off;
 +	for (i = 0; i < dlen; i++) {
++		if ((j) >= m->m_len) {
++                        m = m->m_next;
++                        j = 0;
++                        sptr = mtod(m, char *);
++                }
 +		ch = sptr[i];
 +		switch (state) {
 +		case -3:
@@ -746,21 +761,23 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				return (0);
 +			break;
 +		}
++		j++;
 +	}
 +
 +	if (state == 13) {
-+		*oport = port;
-+		return (1);
++		return (port);
 +	} else
 +		return (0);
 +}
 +
 +static int
-+ParseFtp229Reply(u_int16_t *oport, char *sptr, int dlen)
++ParseFtp229Reply(struct mbuf *n, int off, int dlen)
 +{
++	struct mbuf *m = n;
 +	char ch, delim;
-+	int i, state;
++	int i, j, state;
 +	u_short port;
++	char *sptr = mtod(m, char *) + off;
 +
 +	/* Format: "229 Entering Extended Passive Mode (|||PORT|)" */
 +
@@ -772,7 +789,14 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +	delim = '|';		/* XXX gcc -Wuninitialized */
 +
 +	state = -3;
++	j = off;
 +	for (i = 0; i < dlen; i++) {
++		if ((j) >= m->m_len) {
++			m = m->m_next;
++			j = 0;
++			sptr = mtod(m, char *);
++		}
++			
 +		ch = sptr[i];
 +		switch (state) {
 +		case -3:
@@ -831,25 +855,25 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +				return (0);
 +			break;
 +		}
++		j++;
 +	}
 +
 +	if (state == 7) {
-+		*oport = port;
-+		return (1);
++		return (port);
 +	} else
 +		return (0);
 +}
 +
 +static void
 +NewFtpMessage(struct pf_pdesc *pd, struct pf_state *s, struct mbuf *m,
-+    int *delta, int off, u_int16_t alias_port, int ftp_message_type)
++    int off, u_int16_t alias_port, int ftp_message_type)
 +{
 +	/* Create new FTP message. */
 +	char stemp[MAX_MESSAGE_SIZE + 1];
 +	struct ip *ip = mtod(m, struct ip *);
 +	struct tcphdr *th;
 +	struct pf_addr *a;
-+	int hlen, slen;
++	int hlen, slen, delta;
 +	int p1, p2;
 +	u_char *ptr;
 +	u_int16_t olen;
@@ -875,10 +899,10 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +					a->addr8[2],
 +					a->addr8[3], p1, p2);
 +			} else {
-+				if (s->direction == PF_OUT || s->nat_rule.ptr->action != PF_NAT)
++				//if (s->direction == PF_OUT || s->nat_rule.ptr->action != PF_NAT)
 +					a = &s->gwy.addr;
-+				else
-+					a = &s->ext.addr;
++				//else
++				//	a = &s->ext.addr;
 +				/* Generate 227 reply string. */
 +				sprintf(stemp,
 +				    "227 Entering Passive Mode (%d,%d,%d,%d,%d,%d)\r\n",
@@ -909,19 +933,35 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +	slen = strlen(stemp);
 +
 +	/* Save information regarding modified seq and ack numbers */
-+	*delta = slen - pd->p_len;
++	delta = slen - pd->p_len;
 +	olen = ip->ip_len;
 +	ip->ip_len = ntohs(ip->ip_len);
-+	if (*delta) {
-+		if (*delta > 0) 
-+			s->src.seqdiffoneway += *delta;
-+		else {
-+			s->src.seqdiffoneway += -*delta;
-+			s->src.seqflags |= SEQ_DIFF_NEGATIVE;
-+		}
-+		pd->p_len += *delta;
-+		pd->tot_len = pd->tot_len + *delta;
-+		ip->ip_len += *delta;
++	if (delta) {
++		struct pf_state_peer *p = &s->src;
++                if (delta > 0) {
++                        if (p->seqflags & SEQ_DIFF_NEGATIVE) {
++                                if (delta >= p->seqdiffoneway) {
++                                        p->seqflags &= ~SEQ_DIFF_NEGATIVE;
++                                        p->seqdiffoneway = delta - p->seqdiffoneway;
++                                } else
++                                        p->seqdiffoneway -= delta;
++                        } else {
++                                p->seqdiffoneway += delta;
++                        }
++                } else {
++                        if (p->seqflags & SEQ_DIFF_NEGATIVE) {
++                                p->seqdiffoneway += -delta;
++                        } else {
++                                if ((delta + p->seqdiffoneway) < 0) {
++                                        p->seqdiffoneway = -(delta + p->seqdiffoneway);
++                                        p->seqflags |= SEQ_DIFF_NEGATIVE;
++                                } else
++                                        p->seqdiffoneway += delta;
++                        }
++                }
++		pd->p_len += delta;
++		pd->tot_len = pd->tot_len + delta;
++		ip->ip_len += delta;
 +		m->m_len = m->m_pkthdr.len = ip->ip_len;
 +	}
 +	th->th_x2 = 0;
@@ -934,7 +974,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +
 +	/* Revise IP header */
 +	ip->ip_len = htons(ip->ip_len);
-+	if (*delta)
++	if (delta)
 +		ip->ip_sum = pf_cksum_fixup(ip->ip_sum,
 +			olen, ip->ip_len, 0);		
 +
@@ -945,25 +985,33 @@ Index: sys/contrib/pf/net/pfvar.h
 RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
 retrieving revision 1.5
 diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	22 Sep 2010 19:34:44 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	22 Sep 2010 19:35:07 -0000
+--- sys/contrib/pf/net/pfvar.h	18 Feb 2011 16:42:17 -0000	1.5
++++ sys/contrib/pf/net/pfvar.h	18 Feb 2011 16:43:43 -0000
 @@ -802,7 +802,10 @@
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
  	struct pf_state_scrub	*scrub;	/* state is scrubbed		*/
 -	u_int8_t	pad[3];
-+        u_int8_t        seqdiffoneway;  /* used on ftp modulation of sequencies for now */
++        u_int32_t        seqdiffoneway;  /* used on ftp modulation of sequencies for now */
 +#define SEQ_DIFF_NEGATIVE       0x01
 +        u_int8_t        seqflags;       /* Since we use unsigned types ... */
-+	u_int8_t	pad[1];
++	u_int8_t	pad[2];
  };
  
  TAILQ_HEAD(pf_state_queue, pf_state);
-@@ -1905,6 +1908,9 @@
+@@ -832,6 +835,7 @@
+ #ifdef __FreeBSD__
+ 	u_int8_t	 local_flags;
+ #define	PFSTATE_EXPIRING 	0x01
++#define	PFSTATE_FTPMSGSEEN	0x02
+ #define PFSTATE_DIVERT_ALTQ     0x10
+ #define PFSTATE_DIVERT_DNCOOKIE 0x20
+ #define PFSTATE_DIVERT_ACTION   0x40
+@@ -1905,6 +1909,9 @@
  /* The fingerprint functions can be linked into userland programs (tcpdump) */
  int	pf_osfp_add(struct pf_osfp_ioctl *);
  #ifdef _KERNEL
-+void	pf_handle_ftp(struct pf_pdesc *, struct mbuf *, struct pf_state *, int, int);
++void	pf_handle_ftp(struct pfi_kif *, struct pf_pdesc *, struct mbuf *, struct pf_state *, int, int);
 +void	pf_set_rt_ifp(struct pf_state *, struct pf_addr *);
 +
  struct pf_osfp_enlist *
@@ -974,8 +1022,8 @@ Index: sys/modules/pf/Makefile
 RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
 retrieving revision 1.1.1.1
 diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	22 Sep 2010 19:32:02 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	22 Sep 2010 19:35:07 -0000
+--- sys/modules/pf/Makefile	18 Feb 2011 16:38:11 -0000	1.1.1.1
++++ sys/modules/pf/Makefile	18 Feb 2011 16:43:32 -0000
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
