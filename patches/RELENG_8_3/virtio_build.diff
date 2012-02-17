@@ -1,0 +1,54 @@
+diff --git a/sys/conf/files.amd64 b/sys/conf/files.amd64
+--- a/sys/conf/files.amd64
++++ b/sys/conf/files.amd64
+@@ -225,6 +225,12 @@
+ dev/tpm/tpm_acpi.c		optional	tpm acpi
+ dev/tpm/tpm_isa.c		optional	tpm isa
+ dev/uart/uart_cpu_amd64.c	optional	uart
++dev/virtio/virtio.c             optional	virtio
++dev/virtio/virtio_if.m          optional 	virtio
++dev/virtio/virtio_bus_if.m      optional	virtio
++dev/virtio/virtqueue.c          optional	virtio
++dev/virtio/pci/virtio_pci.c     optional	virtio_pci pci
++dev/virtio/network/if_vtnet.c   optional	vtnet
+ dev/viawd/viawd.c		optional	viawd
+ dev/wpi/if_wpi.c		optional	wpi
+ isa/syscons_isa.c		optional	sc
+diff --git a/sys/conf/files.i386 b/sys/conf/files.i386
+--- a/sys/conf/files.i386
++++ b/sys/conf/files.i386
+@@ -243,6 +243,12 @@
+ dev/tpm/tpm_acpi.c		optional tpm acpi
+ dev/tpm/tpm_isa.c		optional tpm isa
+ dev/uart/uart_cpu_i386.c	optional uart
++dev/virtio/virtio.c             optional virtio
++dev/virtio/virtio_if.m          optional virtio
++dev/virtio/virtio_bus_if.m      optional virtio
++dev/virtio/virtqueue.c          optional virtio
++dev/virtio/pci/virtio_pci.c     optional virtio_pci pci
++dev/virtio/network/if_vtnet.c   optional vtnet
+ dev/viawd/viawd.c		optional viawd
+ dev/acpica/acpi_if.m		standard
+ dev/acpi_support/acpi_wmi_if.m	standard
+diff --git a/sys/conf/kmod.mk b/sys/conf/kmod.mk
+--- a/sys/conf/kmod.mk
++++ b/sys/conf/kmod.mk
+@@ -361,6 +361,7 @@
+ 	dev/sound/pcm/feeder_if.m dev/sound/pcm/mixer_if.m \
+ 	dev/sound/midi/mpu_if.m dev/sound/midi/mpufoi_if.m \
+ 	dev/sound/midi/synth_if.m dev/usb/usb_if.m isa/isa_if.m \
++	dev/virtio/virtio_bus_if.m dev/virtio/virtio_if.m \
+ 	kern/bus_if.m kern/clock_if.m \
+ 	kern/cpufreq_if.m kern/device_if.m kern/serdev_if.m \
+ 	libkern/iconv_converter_if.m opencrypto/cryptodev_if.m \
+diff --git a/sys/modules/Makefile b/sys/modules/Makefile
+--- a/sys/modules/Makefile
++++ b/sys/modules/Makefile
+@@ -302,6 +302,7 @@
+ 	utopia \
+ 	${_vesa} \
+ 	vge \
++	${_virtio} \
+	${_viawd} \
+ 	vkbd \
+ 	${_vpo} \
