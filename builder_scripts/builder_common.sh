@@ -2560,7 +2560,7 @@ create_ova_image() {
 	ova_remove_old_tmp_files
 	ova_setup_ovf_file
 	ova_create_raw_backed_file
-	/bin/echo -n ">>> Creating mdconfig image... "
+	/bin/echo -n ">>> Creating mdconfig image ${OVFPATH}/${OVFVMDK}.raw... "
 	MD=`mdconfig -a -t vnode -f ${OVFPATH}/${OVFVMDK}.raw`
 	echo $MD
 	# comment out if using pc-sysinstall
