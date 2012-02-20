@@ -2767,7 +2767,7 @@ ova_calculate_mnt_size() {
 ova_create_raw_backed_file() {
 	DISKSIZE=$OVADISKSIZE
 	BLOCKSIZE=$OVABLOCKSIZE
-	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
+	COUNT=`expr -e $DISKSIZE / $BLOCKSIZE`
 	DISKFILE=${OVFPATH}/${OVFVMDK}.raw
 	echo ">>> Creating raw backing file ${DISKFILE} (Disk Size: ${DISKSIZE}, Block Size: ${BLOCKSIZE}, Count: ${COUNT})..."
 	dd if=/dev/zero of=$DISKFILE bs=$BLOCKSIZE count=$COUNT
