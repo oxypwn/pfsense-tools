@@ -1746,6 +1746,10 @@ print_flags() {
 	printf "         FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
 	printf "                     OVFPATH: %s\n" $OVFPATH
 	printf "                     OVFFILE: %s\n" $OVFFILE
+	printf "                 OVADISKSIZE: %s\n" $OVADISKSIZE
+	printf "                OVABLOCKSIZE: %s\n" $OVABLOCKSIZE
+	printf "         OVA_FIRST_PART_SIZE: %s\n" $OVA_FIRST_PART_SIZE
+	printf "          OVA_SWAP_PART_SIZE: %s\n" $OVA_SWAP_PART_SIZE
 	printf "                     OVAFILE: %s\n" $OVAFILE
 	printf "                     OVFVMDK: %s\n" $OVFVMDK
 	printf "                  OVFSTRINGS: %s\n" $OVFSTRINGS
