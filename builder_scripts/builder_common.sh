@@ -2765,11 +2765,12 @@ ova_calculate_mnt_size() {
 
 # called from create_ova_image
 ova_create_raw_backed_file() {
-	echo ">>> Creating raw backing file..."
 	DISKSIZE=$OVADISKSIZE
 	BLOCKSIZE=$OVABLOCKSIZE
 	COUNT=`expr $DISKSIZE / $BLOCKSIZE`
-	dd if=/dev/zero of=${OVFPATH}/${OVFVMDK}.raw bs=$BLOCKSIZE count=$COUNT
+	DISKFILE=${OVFPATH}/${OVFVMDK}.raw
+	echo ">>> Creating raw backing file ${DISKFILE} (Disk Size: ${DISKSIZE}, Block Size: ${BLOCKSIZE}, Count: ${COUNT})..."
+	dd if=/dev/zero of=$DISKFILE bs=$BLOCKSIZE count=$COUNT
 }
 
 # called from create_ova_image
