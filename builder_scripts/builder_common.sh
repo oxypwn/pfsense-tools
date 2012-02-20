@@ -2556,10 +2556,6 @@ create_ova_image() {
 	#     6. allocationUnits
 	#     7. capacity
 	#     8. capacityAllocationUnits
-	#		
-	#  OperatingSystemSection (pfSense.ovf)
-	#  42   FreeBSD 32-Bit
-	#  78   FreeBSD 64-Bit 
 	ova_prereq_check
 	ova_remove_old_tmp_files
 	ova_setup_ovf_file
@@ -2603,6 +2599,9 @@ ova_repack_vbox_image() {
 	echo ">>> Setting REFERENCESSIZE to ${REFERENCESSIZE}..."
 	file_search_replace REFERENCESSIZE ${REFERENCESSIZE} ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	echo ">>> Setting POPULATEDSIZEBYTES to ${POPULATEDSIZEBYTES}..."
+	#  OperatingSystemSection (pfSense.ovf)
+	#  42   FreeBSD 32-Bit
+	#  78   FreeBSD 64-Bit 
 	if [ "$BUILDPLATFORM" = "i386" ]; then
 		file_search_replace '"101"' '"42"' ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	fi
