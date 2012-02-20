@@ -2595,6 +2595,7 @@ ova_cleanup_finished() {
 
 ova_repack_vbox_image() {
 	echo ">>> Extracting virtual box created ova file..."
+	BUILDPLATFORM=`uname -p`
 	cd ${OVFPATH} && tar xpf ${PRODUCT_NAME}.ova
 	POPULATEDSIZE=`du -d0 -h $PFSENSEBASEDIR | awk '{ print \$1 }' | cut -dM -f1`
 	POPULATEDSIZEBYTES=`echo "${POPULATEDSIZE}*1024^2" | bc`
@@ -2602,6 +2603,12 @@ ova_repack_vbox_image() {
 	echo ">>> Setting REFERENCESSIZE to ${REFERENCESSIZE}..."
 	file_search_replace REFERENCESSIZE ${REFERENCESSIZE} ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	echo ">>> Setting POPULATEDSIZEBYTES to ${POPULATEDSIZEBYTES}..."
+	if [ "$BUILDPLATFORM" = "i386" ]; then
+		file_search_replace '"101"' '"42"' ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	fi
+	if [ "$BUILDPLATFORM" = "amd64" ]; then
+		file_search_replace '"101"' '"78"' ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	fi
 	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	# 10737254400 = 10240MB = virtual box vmdk file size XXX grab this value from vbox creation
 	# 10737418240 = 10GB
