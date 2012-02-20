@@ -2556,6 +2556,10 @@ create_ova_image() {
 	#     6. allocationUnits
 	#     7. capacity
 	#     8. capacityAllocationUnits
+	#		
+	#  OperatingSystemSection (pfSense.ovf)
+	#  78   FreeBSD 64-Bit
+	#  78   FreeBSD 64-Bit 
 	ova_prereq_check
 	ova_remove_old_tmp_files
 	ova_setup_ovf_file
