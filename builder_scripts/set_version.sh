@@ -243,15 +243,15 @@ RELENG_8_2)
 ;;
 
 RELENG_8_3)
-	echo ">>> Setting builder environment to use HEAD/RELENG_8_2 ..."
+	echo ">>> Setting builder environment to use HEAD/RELENG_8_3 ..."
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_3"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_3-supfile"
-	export PFSENSE_VERSION=2.0-RELEASE
+	export PFSENSE_VERSION=2.0.2-DEVELOPMENT
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_3
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_3
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
+	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2_1"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
@@ -273,22 +273,22 @@ RELENG_1_2)
 ;;
 
 RELENG_2_1)
-	echo ">>> Setting builder environment to use RELENG_8_1 ..."
+	echo ">>> Setting builder environment to use head + RELENG_8_3 ..."
 	export FREEBSD_VERSION="8"
-	export FREEBSD_BRANCH="RELENG_8_1"
-	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_1-supfile"
+	export FREEBSD_BRANCH="RELENG_8_3"
+	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_3-supfile"
 	export PFSENSE_VERSION=2.1-DEVELOPMENT
 	export PFSENSETAG=HEAD
-	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
+	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_3
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_3
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2_1"	
 	export PFSPORTSFILE=buildports.RELENG_2_1
-	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
+	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run,srd"}
 	set_items
 ;;
 
 RELENG_2_0)
-	echo ">>> Setting builder environment to use RELENG_8_1 ..."
+	echo ">>> Setting builder environment to use RELENG_2_0 + RELENG_8_1 ..."
 	export FREEBSD_VERSION="8"
 	export FREEBSD_BRANCH="RELENG_8_1"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_8_1-supfile"
