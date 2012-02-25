@@ -30,6 +30,7 @@ CONFIGURE_ARGS=	\
 		--localstatedir=/var \
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
+		--enable-hash \
 		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
 		--enable-reflection \
