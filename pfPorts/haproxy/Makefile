@@ -27,7 +27,7 @@ CFLAGS+=	-DTPROXY
 
 .if defined(WITH_PCRE)
 PKGNAMESUFFIX=	-pcre
-LIB_DEPENDS+=	pcre.0:${PORTSDIR}/devel/pcre
+LIB_DEPENDS+=	pcre.1:${PORTSDIR}/devel/pcre
 MAKE_ENV+=	"REGEX=pcre"
 CFLAGS+=	-DUSE_PCRE -I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib -lpcreposix -lpcre

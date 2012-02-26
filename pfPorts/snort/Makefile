@@ -16,7 +16,7 @@ PATCH_DIST_STRIP=	-p1
 MAINTAINER=	wfreeman@sourcefire.com
 COMMENT=	Lightweight network intrusion detection system
 
-LIB_DEPENDS=	pcre.0:${PORTSDIR}/devel/pcre
+LIB_DEPENDS=	pcre.1:${PORTSDIR}/devel/pcre
 BUILD_DEPENDS=	daq>=0.5_1:${PORTSDIR}/net/daq \
 		${LOCALBASE}/lib/libnet11/libnet.a:${PORTSDIR}/net/libnet
 RUN_DEPENDS=	daq>=0.5_1:${PORTSDIR}/net/daq \
