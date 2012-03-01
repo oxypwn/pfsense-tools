@@ -1,0 +1,57 @@
+diff -ur ../ntpd.old/log.c ./log.c
+--- ../ntpd.old/log.c	2012-03-01 22:10:50.000000000 +0000
++++ ./log.c	2012-03-01 22:14:55.000000000 +0000
+@@ -42,7 +42,7 @@
+ 
+ 	debug = n_debug;
+ 
+-	if (!debug)
++	if (!debugsyslog)
+ 		openlog(__progname, LOG_PID | LOG_NDELAY, LOG_NTP);
+ 
+ 	tzset();
+@@ -73,7 +73,9 @@
+ 			free(nfmt);
+ 		}
+ 		fflush(stderr);
+-	} else
++	}
++
++	if (debugsyslog)
+ 		vsyslog(pri, fmt, ap);
+ }
+ 
+diff -ur ../ntpd.old/ntpd.c ./ntpd.c
+--- ../ntpd.old/ntpd.c	2012-03-01 22:10:50.000000000 +0000
++++ ./ntpd.c	2012-03-01 22:13:41.000000000 +0000
+@@ -144,6 +144,7 @@
+ 	if ((pw = getpwnam(NTPD_USER)) == NULL)
+ 		errx(1, "unknown user %s", NTPD_USER);
+ 
++reinit:
+ 	reset_adjtime();
+ 	if (!lconf.settime) {
+ 		log_init(lconf.debug);
+@@ -185,15 +186,17 @@
+ 				quit = 1;
+ 			}
+ 
+-		if (nfds == 0 && lconf.settime) {
++		if (lconf.settime) {
+ 			lconf.settime = 0;
+ 			timeout = INFTIM;
+-			log_init(lconf.debug);
++			signal(SIGCHLD, SIG_DFL);
++			if (chld_pid)
++				kill(chld_pid, SIGTERM);
++			msgbuf_clear(&ibuf->w);
++			free(ibuf);
+ 			log_debug("no reply received in time, skipping initial "
+ 			    "time setting");
+-			if (!lconf.debug)
+-				if (daemon(1, 0))
+-					fatal("daemon");
++			goto reinit;
+ 		}
+ 
+ 		if (nfds > 0 && (pfd[PFD_PIPE].revents & POLLOUT))
