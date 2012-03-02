@@ -33,6 +33,7 @@
 #include <dirent.h>
 #include <err.h>
 #include <limits.h>
+#include <syslog.h>
 #include <regex.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,6 +87,7 @@ init_protocols(const char *dir)
 		error = parse_protocol_file(p);
 		if (error != 0) {
 			warn("unable to parse %s", path);
+			syslog(LOG_ERR, "unable to parse %s", path);
 			if (p->p_name != NULL)
 				free(p->p_name);
 			if (p->p_re != NULL)
@@ -99,6 +101,7 @@ init_protocols(const char *dir)
 		error = regcomp(&p->p_preg, p->p_re, fp->fp_reflags);
 		if (error != 0) {
 			regerror(error, &p->p_preg, errmsg, sizeof(errmsg));
+			syslog(LOG_ERR, "unable to compile %s: %s", p->p_name, errmsg);
 			warnx("unable to compile %s: %s", p->p_name,
 			    errmsg);
 			if (p->p_name != NULL)
