@@ -383,6 +383,7 @@ tryagain:
 		run_command(cmd, p);
 	}
 
+	socket_close_command(fd, ev);
 	return;
 }
 
