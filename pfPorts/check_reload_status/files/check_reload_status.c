@@ -402,7 +402,7 @@ socket_accept_command(int fd, __unused short event, __unused void *arg)
 
 	if ((ev = malloc(sizeof(*ev))) == NULL) {
 		syslog(LOG_ERR, "Cannot allocate new struct event.");
-		close(fd);
+		close(newfd);
 		return;
 	}
 
