@@ -163,13 +163,12 @@ diff -u -r1.1.1.1 nd6_nbr.c
  #ifndef PULLDOWN_TEST
  	IP6_EXTHDR_CHECK(m, off, icmp6len,);
  	nd_ns = (struct nd_neighbor_solicit *)((caddr_t)ip6 + off);
-@@ -338,9 +342,7 @@
+@@ -338,8 +342,7 @@
  			goto bad;
  		nd6_na_output(ifp, &in6_all, &taddr6,
  		    ((anycast || proxy || !tlladdr) ? 0 : ND_NA_FLAG_OVERRIDE) |
 -		    (V_ip6_forwarding ? ND_NA_FLAG_ROUTER : 0),
--		    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL,
--		    M_GETFIB(m));
+-		    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
 +		    rflag, tlladdr, (struct sockaddr *)&proxydl);
  		goto freeit;
  	}
@@ -179,7 +178,7 @@ diff -u -r1.1.1.1 nd6_nbr.c
  	nd6_na_output(ifp, &saddr6, &taddr6,
  	    ((anycast || proxy || !tlladdr) ? 0 : ND_NA_FLAG_OVERRIDE) |
 -	    (V_ip6_forwarding ? ND_NA_FLAG_ROUTER : 0) | ND_NA_FLAG_SOLICITED,
--	    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL, M_GETFIB(m));
+-	    tlladdr, proxy ? (struct sockaddr *)&proxydl : NULL);
 +	    rflag | ND_NA_FLAG_SOLICITED,
 +	    tlladdr, (struct sockaddr *)&proxydl);
   freeit:
