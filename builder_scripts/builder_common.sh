@@ -3579,7 +3579,7 @@ install_pkg_install_ports() {
 	fi
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
 	if [ -d $ALREADYBUILT ]; then
-		rm -rf /tmp/install_pkg_install_ports/
+		rm -rf $ALREADYBUILT
 	fi
 	mkdir -p $ALREADYBUILT
 	# Some ports are unhappy with cross building and fail spectacularly.
@@ -3606,12 +3606,21 @@ install_pkg_install_ports() {
 			print_error_pfS
 			kill $$
 		fi
-		for EXTRAPORT in `cd $PORTDIRPFS && make run-depends-list build-depends-list all-depends-list | xargs /bin/echo -n `; do
+		for EXTRAPORT in `cd $PORTDIRPFS && make run-depends-list build-depends-list all-depends-list | sort | uniq | xargs /bin/echo -n `; do
+			PORTNAME="`basename $EXTRAPORT`"
+			if [ "$PORTNAME" = "" ]; then
+				echo "PORTNAME is blank.  Cannot continue."
+				print_error_pfS
+				kill $$
+			fi
+			if [ -d $BUILDER_TOOLS/${PORTNAME} ]; then
+				cp -R $BUILDER_TOOLS/${PORTNAME}/* $EXTRAPORT
+			fi
 			install_pkg_install_ports_build $EXTRAPORT
 		done
 		install_pkg_install_ports_build $PORTDIRPFS
 	done
-	mkdir $PFSENSEBASEDIR/tmp/pkg/
+	mkdir -p $PFSENSEBASEDIR/tmp/pkg/
 	cp ${PFS_PKG_ALL}/* $PFSENSEBASEDIR/tmp/pkg/
 	echo "done."
 	/bin/echo -n ">>> Installing built ports (packages) in chroot (${PFSENSEBASEDIR})..."
@@ -3630,26 +3639,25 @@ install_pkg_install_ports() {
 
 install_pkg_install_ports_build() {
 	PORTDIRPFSA="$1"
+
+	# XXX: Maybe remove this code as its already done above!
 	PORTNAME="`basename $PORTDIRPFSA`"
-	ALREADYBUILT="/tmp/install_pkg_install_ports"
 	if [ "$PORTNAME" = "" ]; then
 		echo "PORTNAME is blank.  Cannot continue."
 		print_error_pfS
 		kill $$
 	fi
-	if [ ! -f $ALREADYBUILT/$PORTNAME ]; then
-		echo -n "$PORTNAME "
-		BUILT_PKGNAME="`make -C $PORTDIRPFSA -V PKGNAME`.tbz"
+	ALREADYBUILT="/tmp/install_pkg_install_ports"
+	BUILT_PKGNAME="`make -C $PORTDIRPFSA package-name`".tbz
+	if [ ! -f $ALREADYBUILT/$BUILT_PKGNAME ]; then
+		echo -n "$PORTNAME($BUILT_PKGNAME) "
 		if [ -f /usr/ports/packages/Old/$BUILT_PKGNAME ]; then
 			cp -R /usr/ports/packages/Old/$BUILT_PKGNAME \
 				/usr/ports/packages/All/
-			touch $ALREADYBUILT/$PORTNAME
+			touch $ALREADYBUILT/$BUILT_PKGNAME
 			return;
 		fi
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		if [ -d $BUILDER_TOOLS/${PORTNAME} ]; then
-			cp -R $BUILDER_TOOLS/${PORTNAME}/* $PORTDIRPFSA/${PORTNAME}/
-		fi
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null || true 2>&1 >/dev/null
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null || true 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
@@ -3661,7 +3669,7 @@ install_pkg_install_ports_build() {
 			more /tmp/pfPorts/${PORTNAME}.txt
 		fi
 	fi
-	touch $ALREADYBUILT/$PORTNAME
+	touch $ALREADYBUILT/$BUILT_PKGNAME
 }
 
 # Mildly based on FreeSBIE
