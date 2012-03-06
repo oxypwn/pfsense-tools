@@ -3614,6 +3614,8 @@ install_pkg_install_ports() {
 				kill $$
 			fi
 			if [ -d $BUILDER_TOOLS/${PORTNAME} ]; then
+				# Cleanup to avoid issues with extra/different patches
+				rm -rf $EXTRAPORT/*
 				cp -R $BUILDER_TOOLS/${PORTNAME}/* $EXTRAPORT
 			fi
 			install_pkg_install_ports_build $EXTRAPORT
