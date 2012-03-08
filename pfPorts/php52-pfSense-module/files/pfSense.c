@@ -903,6 +903,10 @@ PHP_FUNCTION(pfSense_interface_listget) {
 	struct ifaddrs *ifdata, *mb;
         char *ifname;
 	int ifname_len;
+	int flags = 0;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &flags) == FAILURE)
+                RETURN_NULL();
 
         getifaddrs(&ifdata);
         if (ifdata == NULL)
@@ -915,6 +919,13 @@ PHP_FUNCTION(pfSense_interface_listget) {
                 if (mb == NULL)
                         continue;
 
+		if (flags != 0) {
+			if (mb->ifa_flags & IFF_UP && flags < 0)
+				continue;
+			if (!(mb->ifa_flags & IFF_UP) && flags > 0)
+				continue;
+		}
+
 		if (ifname != NULL && ifname_len == strlen(mb->ifa_name) && strcmp(ifname, mb->ifa_name) == 0)
 			continue;
 		ifname = mb->ifa_name;
@@ -922,6 +933,8 @@ PHP_FUNCTION(pfSense_interface_listget) {
 
 		add_next_index_string(return_value, mb->ifa_name, 1);
 	}
+
+        freeifaddrs(ifdata);
 }
 
 PHP_FUNCTION(pfSense_interface_create) {
