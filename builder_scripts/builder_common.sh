@@ -3574,7 +3574,9 @@ print_basenames() {
 install_extra_loader_conf_options() {
 	if [ -z ${LOADER_CONF_CUSTOM} ];
 		if [ -f ${LOADER_CONF_CUSTOM} ];
+			echo -n  ">>> loader.conf custom option addition..."
 			cat ${LOADER_CONF_CUSTOM} >> $PFSENSEBASEDIR/boot/loader.conf.local
+			echo "Done!"
 		fi
 	fi
 }
