@@ -3621,8 +3621,10 @@ install_pkg_install_ports() {
 		fi
 		if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
 			# Cleanup to avoid issues with extra/different patches
+			echo -n ">>> Overlaying port $PORTNAME from pfPorts..."
 			rm -rf $PORTDIRPFS/*
 			cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $PORTDIRPFS
+			echo "Done!"
 		fi
 		if [ ! -d $PORTDIRPFS ]; then
 			echo "!!! Could not locate $PORTDIRPFS"
@@ -3637,9 +3639,11 @@ install_pkg_install_ports() {
 				kill $$
 			fi
 			if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
+				echo -n ">>> Overlaying port $PORTNAME from pfPorts..."
 				# Cleanup to avoid issues with extra/different patches
 				rm -rf $EXTRAPORT/*
 				cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $EXTRAPORT
+				echo "Done!"
 			fi
 			install_pkg_install_ports_build $EXTRAPORT
 		done
