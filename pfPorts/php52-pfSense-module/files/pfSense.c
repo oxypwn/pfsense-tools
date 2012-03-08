@@ -86,6 +86,7 @@ IS ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <net/if_vlan_var.h>
 #include <net/if_dl.h>
 #include <net/if_mib.h>
+#include <net/if_bridgevar.h>
 #include <netinet/in.h>
 #include <netinet/in_var.h>
 #include <net/pfvar.h>
@@ -129,6 +130,9 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_vlan_create, NULL)
     PHP_FE(pfSense_interface_rename, NULL)
     PHP_FE(pfSense_interface_mtu, NULL)
+    PHP_FE(pfSense_bridge_add_member, NULL)
+    PHP_FE(pfSense_bridge_del_member, NULL)
+    PHP_FE(pfSense_bridge_member_flags, NULL)
     PHP_FE(pfSense_interface_create, NULL)
     PHP_FE(pfSense_interface_destroy, NULL)
     PHP_FE(pfSense_interface_flags, NULL)
@@ -274,6 +278,19 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 #ifdef IFCAP_VLAN_HWTSO
 	REGISTER_LONG_CONSTANT("IFCAP_VLAN_HWTSO", IFCAP_VLAN_HWTSO, CONST_PERSISTENT | CONST_CS);
 #endif
+
+	REGISTER_LONG_CONSTANT("IFBIF_LEARNING", IFBIF_LEARNING, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_DISCOVER", IFBIF_DISCOVER, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_STP", IFBIF_STP, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_SPAN", IFBIF_SPAN, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_STICKY", IFBIF_STICKY, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_BSTP_EDGE", IFBIF_BSTP_EDGE, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_BSTP_AUTOEDGE", IFBIF_BSTP_AUTOEDGE, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_BSTP_PTP", IFBIF_BSTP_PTP, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_BSTP_AUTOPTP", IFBIF_BSTP_AUTOPTP, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_BSTP_ADMEDGE", IFBIF_BSTP_ADMEDGE, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_BSTP_ADMCOST", IFBIF_BSTP_ADMCOST, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IFBIF_PRIVATE", IFBIF_PRIVATE, CONST_PERSISTENT | CONST_CS);
 
 #ifdef DHCP_INTEGRATION
 	pfSense_dhcpd = zend_register_list_destructors_ex(php_pfSense_destroy_dhcpd, NULL, PHP_PFSENSE_RES_NAME, module_number);
@@ -797,6 +814,86 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
                }
         }
 	freeifaddrs(ifdata);
+}
+
+PHP_FUNCTION(pfSense_bridge_add_member) {
+	char *ifname, *ifchld;
+        int ifname_len, ifchld_len;
+	struct ifdrv drv;
+	struct ifbreq req;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &ifchld, &ifchld_len) == FAILURE) {
+                RETURN_NULL();
+	}
+
+	memset(&drv, 0, sizeof(drv));
+	memset(&req, 0, sizeof(req));
+	strlcpy(drv.ifd_name, ifname, sizeof(drv.ifd_name));
+	strlcpy(req.ifbr_ifsname, ifchld, sizeof(req.ifbr_ifsname));
+	drv.ifd_cmd = BRDGADD;
+	drv.ifd_data = &req;
+	drv.ifd_len = sizeof(req);
+	if (ioctl(PFSENSE_G(s), SIOCSDRVSPEC, (caddr_t)&drv) < 0)
+		RETURN_FALSE;
+
+	RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_bridge_del_member) {
+	char *ifname, *ifchld;
+        int ifname_len, ifchld_len;
+	struct ifdrv drv;
+	struct ifbreq req;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &ifchld, &ifchld_len) == FAILURE) {
+                RETURN_NULL();
+	}
+
+	memset(&drv, 0, sizeof(drv));
+	memset(&req, 0, sizeof(req));
+	strlcpy(drv.ifd_name, ifname, sizeof(drv.ifd_name));
+	strlcpy(req.ifbr_ifsname, ifchld, sizeof(req.ifbr_ifsname));
+	drv.ifd_cmd = BRDGDEL;
+	drv.ifd_data = &req;
+	drv.ifd_len = sizeof(req);
+	if (ioctl(PFSENSE_G(s), SIOCSDRVSPEC, (caddr_t)&drv) < 0)
+		RETURN_FALSE;
+
+	RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_bridge_member_flags) {
+	char *ifname, *ifchld;
+        int ifname_len, ifchld_len;
+	struct ifdrv drv;
+	struct ifbreq req;
+	int flags;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssl", &ifname, &ifname_len, &ifchld, &ifchld_len, &flags) == FAILURE) {
+                RETURN_NULL();
+	}
+
+	memset(&drv, 0, sizeof(drv));
+	memset(&req, 0, sizeof(req));
+	strlcpy(drv.ifd_name, ifname, sizeof(drv.ifd_name));
+	strlcpy(req.ifbr_ifsname, ifchld, sizeof(req.ifbr_ifsname));
+	drv.ifd_cmd = BRDGGIFFLGS;
+	drv.ifd_data = &req;
+	drv.ifd_len = sizeof(req);
+	if (ioctl(PFSENSE_G(s), SIOCGDRVSPEC, (caddr_t)&drv) < 0)
+		RETURN_FALSE;
+
+	if (flags < 0) {
+		flags -= flags;
+		req.ifbr_ifsflags &= ~flags;
+	} else
+		req.ifbr_ifsflags |= flags;
+
+	drv.ifd_cmd = BRDGSIFFLGS;
+	if (ioctl(PFSENSE_G(s), SIOCSDRVSPEC, (caddr_t)&drv) < 0)
+                RETURN_FALSE;
+
+	RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_interface_create) {
