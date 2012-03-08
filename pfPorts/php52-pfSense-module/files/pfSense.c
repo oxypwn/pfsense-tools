@@ -133,6 +133,7 @@ static function_entry pfSense_functions[] = {
     PHP_FE(pfSense_bridge_add_member, NULL)
     PHP_FE(pfSense_bridge_del_member, NULL)
     PHP_FE(pfSense_bridge_member_flags, NULL)
+    PHP_FE(pfSense_interface_listget, NULL)
     PHP_FE(pfSense_interface_create, NULL)
     PHP_FE(pfSense_interface_destroy, NULL)
     PHP_FE(pfSense_interface_flags, NULL)
@@ -896,6 +897,31 @@ PHP_FUNCTION(pfSense_bridge_member_flags) {
                 RETURN_FALSE;
 
 	RETURN_TRUE;
+}
+
+PHP_FUNCTION(pfSense_interface_listget) {
+	struct ifaddrs *ifdata, *mb;
+        char *ifname;
+	int ifname_len;
+
+        getifaddrs(&ifdata);
+        if (ifdata == NULL)
+                RETURN_NULL();
+
+	array_init(return_value);
+	ifname = NULL;
+	ifname_len = 0;
+        for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
+                if (mb == NULL)
+                        continue;
+
+		if (ifname != NULL && ifname_len == strlen(mb->ifa_name) && strcmp(ifname, mb->ifa_name) == 0)
+			continue;
+		ifname = mb->ifa_name;
+		ifname_len = strlen(mb->ifa_name);
+
+		add_next_index_string(return_value, mb->ifa_name, 1);
+	}
 }
 
 PHP_FUNCTION(pfSense_interface_create) {
