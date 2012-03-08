@@ -733,7 +733,7 @@ cust_overlay_host_binaries() {
 			fi
 		fi
 	done
-	export DONTSTRIP=1
+	#export DONTSTRIP=1
 	echo ">>> Installing collected library information (usr/local), please wait..."
 	# Unique the libraries so we only copy them once
 	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
@@ -745,7 +745,7 @@ cust_overlay_host_binaries() {
 			fi
 		fi
 	done
-	unset DONTSTRIP
+	#unset DONTSTRIP
 
 }
 
