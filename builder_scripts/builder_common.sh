@@ -525,7 +525,7 @@ recompile_pfPorts() {
 	if [ ! -f /tmp/pfSense_do_not_build_pfPorts ] || [ "$1" != "" ]; then
 
 		# Set some neede variables
-		pfSPORTS_COPY_BASE_DIR="$BUILDER_TOOLS/pfPorts"
+		pfSPORTS_COPY_BASE_DIR="$pfSPORTS_BASE_DIR"
 		pfSPORTS_BASE_DIR="/usr/ports/pfPorts"
 		if [ -n "$PFSPORTSFILE" ]; then
 			USE_PORTS_FILE="${pfSPORTS_COPY_BASE_DIR}/${PFSPORTSFILE}"
@@ -550,9 +550,10 @@ recompile_pfPorts() {
 			echo "."
 			sleep 1
 
-			# Since we are using NAT-T we need to run this prior
-			# to the build.  Once NAT-T is included in FreeBSD
-			# we can remove this step.
+			# Since we are using NAT-T and custom patches
+			# to the build this is needed.
+			# The other option is to create build env for ports and
+			# not pollute the host
 			echo "==> Starting make includes operation..."
 			( cd $SRCDIR && make includes ) | egrep -wi '(^>>>|error)'
 		else
@@ -3612,6 +3613,17 @@ install_pkg_install_ports() {
 	mv ${PFS_PKG_ALL}/* ${PFS_PKG_OLD}/ 2>/dev/null
 	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
+		PORTNAME="`basename $PORTDIRPFS`"
+		if [ "$PORTNAME" = "" ]; then
+			echo "PORTNAME is blank.  Cannot continue."
+			print_error_pfS
+			kill $$
+		fi
+		if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
+			# Cleanup to avoid issues with extra/different patches
+			rm -rf $PORTDIRPFS/*
+			cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $PORTDIRPFS
+		fi
 		if [ ! -d $PORTDIRPFS ]; then
 			echo "!!! Could not locate $PORTDIRPFS"
 			print_error_pfS
@@ -3624,10 +3636,10 @@ install_pkg_install_ports() {
 				print_error_pfS
 				kill $$
 			fi
-			if [ -d $BUILDER_TOOLS/${PORTNAME} ]; then
+			if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
 				# Cleanup to avoid issues with extra/different patches
 				rm -rf $EXTRAPORT/*
-				cp -R $BUILDER_TOOLS/${PORTNAME}/* $EXTRAPORT
+				cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $EXTRAPORT
 			fi
 			install_pkg_install_ports_build $EXTRAPORT
 		done
