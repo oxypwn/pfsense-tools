@@ -3570,6 +3570,15 @@ print_basenames() {
 	done
 }
 
+# Put extra options in loader.conf.local if needed
+install_extra_loader_conf_options() {
+	if [ -z ${LOADER_CONF_CUSTOM} ];
+		if [ -f ${LOADER_CONF_CUSTOM} ];
+			cat ${LOADER_CONF_CUSTOM} >> $PFSENSEBASEDIR/boot/loader.conf.local
+		fi
+	fi
+}
+
 # This routine assists with installing various
 # freebsd ports files into the pfsenese-fs staging
 # area.  The various ports are built prior to install.

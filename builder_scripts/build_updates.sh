@@ -122,6 +122,9 @@ find $BASE_DIR -name loader.conf -exec rm {} \;
 # Install custom pfSense-XML packages from a chroot
 pfsense_install_custom_packages_exec
 
+# Overlay any loader.conf customziations
+install_extra_loader_conf_options
+
 create_pfSense_Full_update_tarball
 #create_pfSense_Embedded_update_tarball
 

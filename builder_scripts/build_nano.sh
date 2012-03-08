@@ -184,6 +184,9 @@ echo "$FLASH_SIZE" > /tmp/nanosize.txt
 setup_nanobsd_etc
 setup_nanobsd
 
+# Overlay any loader.conf customziations
+install_extra_loader_conf_options
+
 # Get rid of non-wanted files
 prune_usr
 

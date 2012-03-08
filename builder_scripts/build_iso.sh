@@ -195,6 +195,9 @@ test_php_install
 # Check to see if we have a healthy installer
 ensure_healthy_installer
 
+# Overlay any loader.conf customziations
+install_extra_loader_conf_options
+
 # Create md5 summary file listing checksums
 create_md5_summary_file
 
