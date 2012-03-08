@@ -867,7 +867,7 @@ PHP_FUNCTION(pfSense_bridge_member_flags) {
         int ifname_len, ifchld_len;
 	struct ifdrv drv;
 	struct ifbreq req;
-	int flags;
+	int flags = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssl", &ifname, &ifname_len, &ifchld, &ifchld_len, &flags) == FAILURE) {
                 RETURN_NULL();
@@ -884,12 +884,14 @@ PHP_FUNCTION(pfSense_bridge_member_flags) {
 		RETURN_FALSE;
 
 	if (flags < 0) {
-		flags -= flags;
+		flags = -flags;
 		req.ifbr_ifsflags &= ~flags;
 	} else
 		req.ifbr_ifsflags |= flags;
 
 	drv.ifd_cmd = BRDGSIFFLGS;
+	drv.ifd_data = &req;
+	drv.ifd_len = sizeof(req);
 	if (ioctl(PFSENSE_G(s), SIOCSDRVSPEC, (caddr_t)&drv) < 0)
                 RETURN_FALSE;
 
