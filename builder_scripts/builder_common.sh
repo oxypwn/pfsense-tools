@@ -3679,9 +3679,9 @@ install_pkg_install_ports_build() {
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
 	BUILT_PKGNAME="`make -C $PORTDIRPFSA package-name`".tbz
 	if [ ! -f $ALREADYBUILT/$BUILT_PKGNAME ]; then
-		echo -n "$PORTNAME($BUILT_PKGNAME) "
+		echo -n ">>> Building package $PORTNAME($BUILT_PKGNAME)..."
 		if [ -f /usr/ports/packages/Old/$BUILT_PKGNAME ]; then
-			echo -n " --Using already built port found in cache--"
+			echo -n " Using already built port found in cache... "
 			cp -R /usr/ports/packages/Old/$BUILT_PKGNAME \
 				/usr/ports/packages/All/
 			touch $ALREADYBUILT/$BUILT_PKGNAME
