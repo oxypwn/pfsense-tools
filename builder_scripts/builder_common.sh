@@ -3681,9 +3681,11 @@ install_pkg_install_ports_build() {
 	if [ ! -f $ALREADYBUILT/$BUILT_PKGNAME ]; then
 		echo -n "$PORTNAME($BUILT_PKGNAME) "
 		if [ -f /usr/ports/packages/Old/$BUILT_PKGNAME ]; then
+			echo " --Using already built port found in cache--"
 			cp -R /usr/ports/packages/Old/$BUILT_PKGNAME \
 				/usr/ports/packages/All/
 			touch $ALREADYBUILT/$BUILT_PKGNAME
+			echo "Done!"
 			return;
 		fi
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
@@ -3696,6 +3698,8 @@ install_pkg_install_ports_build() {
 			echo "    Press RETURN/ENTER to view the log from this build."
 			read inputline
 			more /tmp/pfPorts/${PORTNAME}.txt
+		else
+			echo "Done!"
 		fi
 	fi
 	touch $ALREADYBUILT/$BUILT_PKGNAME
