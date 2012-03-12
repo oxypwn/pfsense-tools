@@ -31,12 +31,13 @@ CONFIGURE_ARGS=	\
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-hash \
-		--enable-libxml \
-		--with-libxml-dir=${LOCALBASE} \
+		--with-libxml-dir= \
+		--with-libxmlrpc \
+		--with-libexpat-dir= \
 		--enable-reflection \
-		--with-pcre-regex=${LOCALBASE} \
+		--with-pcre-dir= \
 		--enable-mysqlnd \
-		--with-zlib-dir=/usr \
+		--with-zlib \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
