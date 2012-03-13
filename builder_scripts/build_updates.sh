@@ -102,6 +102,12 @@ mkdir -p conf
 (cd /var/db/pkg && ls | grep rrdtool) >> $PFSPKGFILE
 set -e
 
+# Install packages needed for livecd
+install_pkg_install_ports
+
+echo ">>> Installing packages: "
+cat $PFSPKGFILE
+
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra"
 cust_populate_extra
