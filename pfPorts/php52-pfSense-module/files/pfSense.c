@@ -315,6 +315,16 @@ PHP_MSHUTDOWN_FUNCTION(pfSense_socket_close)
 }
 
 #ifdef IPFW_FUNCTIONS
+/* Stolen from ipfw2.c code */
+static unsigned long long
+pfSense_align_uint64(const uint64_t *pll)
+{
+        uint64_t ret;
+
+        bcopy (pll, &ret, sizeof(ret));
+        return ret;
+}
+
 PHP_FUNCTION(pfSense_ipfw_getTablestats)
 {
 	ipfw_table_entry ent;
@@ -346,8 +356,8 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 		RETURN_FALSE;
 
 	array_init(return_value);
-	add_assoc_long(return_value, "packets", (unsigned long long)ent.packets);
-	add_assoc_long(return_value, "bytes", (unsigned long long)ent.bytes);
+	add_assoc_long(return_value, "packets", pfSense_align_uint64(&ent.packets));
+	add_assoc_long(return_value, "bytes", pfSense_align_uint64(&ent.bytes));
 	add_assoc_long(return_value, "timestamp", ent.timestamp);
 	add_assoc_long(return_value, "dnpipe", ent.value);
 }
