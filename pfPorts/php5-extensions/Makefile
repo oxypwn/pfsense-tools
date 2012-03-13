@@ -104,7 +104,7 @@ OPTIONS=	BCMATH          "bc style precision math functions" off \
 		XSL             "XSL support (Implies DOM)" off \
 		YAZ             "YAZ support (ANSI/NISO Z39.50)" off \
 		ZIP             "ZIP support" off \
-		ZLIB            "ZLIB support" off
+		ZLIB            "ZLIB support" on
 
 ALL_OPTIONS=	BCMATH BZ2 CALENDAR CTYPE CURL DBA \
 		DOM EXIF FILEINFO FILTER FRIBIDI FTP GD GETTEXT \
