@@ -31,6 +31,9 @@ CONFIGURE_ARGS=	\
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-hash \
+		--enable-xml \
+		--enable-xmlreader \
+		--enable-libxml \
 		--with-libxml-dir= \
 		--with-libxmlrpc \
 		--with-libexpat-dir= \
