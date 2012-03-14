@@ -1579,7 +1579,7 @@ clone_system_only()
 	    MOUNTPOINT=$FREESBIEISODIR/$2
 	    cd $CLONEDIR
 	    FSSIZE=$((`du -kd 0 | cut -f 1` + 94000))
-	    dd if=/dev/zero of=$UFSFILE bs=1k count=$FSSIZE > /dev/null 2>&1
+	    time dd if=/dev/zero of=$UFSFILE bs=1k count=0 seek=$FSSIZE > /dev/null 2>&1
 
 	    DEVICE=/dev/`mdconfig -a -t vnode -f $UFSFILE`
 	    newfs $DEVICE > /dev/null 2>&1
@@ -2267,8 +2267,8 @@ awk '
 	else
 		pprint 2 "Creating md backing file ${IMG} ..."
 		_c=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
-		pprint 2 "dd if=/dev/zero of=${IMG} bs=${BS} count=${_c}"
-		dd if=/dev/zero of=${IMG} bs=${BS} count=${_c}
+		pprint 2 "dd if=/dev/zero of=${IMG} bs=${BS} count=0 seek=${_c}"
+		dd if=/dev/zero of=${IMG} bs=${BS} count=0 seek=${_c}
 		pprint 2 "mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}"
 		MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 	fi
@@ -2288,8 +2288,8 @@ awk '
 	SIZE=`awk '/^p 1/ { print $5 "b" }' ${FDISK}`
 	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}"
 	${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}
-	pprint 2 "dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}"
-	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}
+	pprint 2 "dd if=${IMG1} of=/dev/${MD}s1 bs=${BS} conv=sparse"
+	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS} conv=sparse
 	pprint 2 "tunefs -L pfsense0 /dev/${MD}s1"
 	tunefs -L pfsense0 /dev/${MD}s1
 
@@ -2303,8 +2303,8 @@ awk '
 		SIZE=`awk '/^p 2/ { print $5 "b" }' ${FDISK}`
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}"
 		${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}
-		pprint 2 "dd if=${IMG2} of=/dev/${MD}s2 bs=${BS}"
-		dd if=${IMG1} of=/dev/${MD}s2 bs=${BS}
+		pprint 2 "dd if=${IMG2} of=/dev/${MD}s2 bs=${BS} conv=sparse"
+		dd if=${IMG1} of=/dev/${MD}s2 bs=${BS} conv=sparse
 	fi
 
 	# Create Config slice
@@ -2314,8 +2314,8 @@ awk '
 		SIZE=`awk '/^p 3/ { print $5 "b" }' ${FDISK}`
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}"
 		${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}
-		pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS}"
-		dd if=${CFG} of=/dev/${MD}s3 bs=${BS}
+		pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS} conv=sparse"
+		dd if=${CFG} of=/dev/${MD}s3 bs=${BS} conv=sparse
 		pprint 2 "tunefs -L cf /dev/${MD}s3"
 		tunefs -L cf /dev/${MD}s3
 		pprint 2 "rm ${CFG}"
@@ -2336,8 +2336,8 @@ awk '
 	#	# XXX: fill from where ?
 	#	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty"
 	#	${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty
-	#	pprint 2 "dd if=${DATA} of=/dev/${MD}s4 bs=${BS}"
-	#	dd if=${DATA} of=/dev/${MD}s4 bs=${BS}
+	#	pprint 2 "dd if=${DATA} of=/dev/${MD}s4 bs=${BS} conv=sparse"
+	#	dd if=${DATA} of=/dev/${MD}s4 bs=${BS} conv=sparse
 	#	pprint 2 "rm ${DATA}"
 	#	rm ${DATA}; DATA=	# NB: disable printing below
 	#else
@@ -2346,7 +2346,7 @@ awk '
 
 	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
 		pprint 2 "Writing out ${IMG}..."
-		dd if=/dev/${MD} of=${IMG} bs=${BS}
+		dd if=/dev/${MD} of=${IMG} bs=${BS} conv=sparse
 	fi
 
 	pprint 2 "IMG1:             $IMG1"
@@ -2448,7 +2448,7 @@ awk '
 	mkdir -p ${MNT}
 
 	dd if=/dev/zero of=${IMG} bs=${NANO_SECTS}b \
-	    count=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
+	    count=0 seek=`expr ${NANO_MEDIASIZE} / ${NANO_SECTS}`
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 
@@ -2476,8 +2476,8 @@ awk '
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		# Duplicate to second image (if present)
 		echo ">>> Mounting and duplicating NanoBSD pfsense1 /dev/${MD}s2a ${MNT}"
-		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k
-		tunefs -L pfsense1 /dev/${MD}s2a
+		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k conv=sparse
+		tunefs -L pfsense1 /dev/${MD}s2a conv=sparse
 		mount /dev/${MD}s2a ${MNT}
 		df ${MNT}
 		mkdir -p ${MNT}/conf/base/etc/
@@ -2522,7 +2522,7 @@ awk '
 	[ -z "${NANO_WITH_VGA}" ] \
 		&& IMGUPDATE="${MAKEOBJDIRPREFIXFINAL}/nanobsd.upgrade.img" \
 		|| IMGUPDATE="${MAKEOBJDIRPREFIXFINAL}/nanobsd_vga.upgrade.img"
-	dd if=/dev/${MD}s1 of=$IMGUPDATE bs=64k
+	dd if=/dev/${MD}s1 of=$IMGUPDATE bs=64k conv=sparse
 
 	mdconfig -d -u $MD
 
@@ -2781,7 +2781,7 @@ ova_create_raw_backed_file() {
 	COUNT=`expr -e $DISKSIZE / $BLOCKSIZE`
 	DISKFILE=${OVFPATH}/${OVFVMDK}.raw
 	echo ">>> Creating raw backing file ${DISKFILE} (Disk Size: ${DISKSIZE}, Block Size: ${BLOCKSIZE}, Count: ${COUNT})..."
-	dd if=/dev/zero of=$DISKFILE bs=$BLOCKSIZE count=$COUNT
+	dd if=/dev/zero of=$DISKFILE bs=$BLOCKSIZE count=0 seek=$COUNT
 }
 
 # called from create_ova_image
@@ -3216,7 +3216,7 @@ ensure_source_directories_present() {
 
 create_memstick_image() {
 	OLDPWD=`pwd`
-	dd if=/dev/zero of=$MEMSTICKPATH bs=63b count=8048
+	dd if=/dev/zero of=$MEMSTICKPATH bs=63b count=0 seek=8048
 	mkdir -p /tmp/memstick/usbmnt
 	MD=`mdconfig -f $MEMSTICKPATH -x 63 -y 16`
 	bsdlabel -Bw $MD auto
@@ -3247,7 +3247,7 @@ install_required_builder_system_ports() {
 	NEEDED_INSTALLED_PKGS="\
 /usr/local/bin/mkisofs				/usr/ports/sysutils/cdrtools
 /usr/local/bin/fastest_cvsup		/usr/ports/sysutils/fastest_cvsup
-/usr/local/lib/libpcre.so.0			/usr/ports/devel/pcre
+/usr/local/lib/libpcre.so.1			/usr/ports/devel/pcre
 /usr/local/bin/curl					/usr/ports/ftp/curl
 /usr/local/bin/rsync				/usr/ports/net/rsync
 /usr/local/bin/cpdup				/usr/ports/sysutils/cpdup
