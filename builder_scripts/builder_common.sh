@@ -1197,10 +1197,10 @@ cust_fixup_nanobsd() {
 
 		if [ "$FBSD_VERSION" -gt "7" ]; then
 			# Enable getty on console
-			sed "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
+			sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
 
 			# Disable getty on syscons devices
-			sed "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
+			sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
 		fi
 	else
 		# Empty file to identify nanobsd_vga images
@@ -1244,10 +1244,10 @@ cust_fixup_wrap() {
 	FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
 	if [ "$FBSD_VERSION" -gt "7" ]; then
 		# Enable getty on console
-		sed "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
+		sed -i "" -e /ttyd0/s/off/on/ ${PFSENSEBASEDIR}/etc/ttys
 
 		# Disable getty on syscons devices
-		sed "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
+		sed -i "" -e '/^ttyv[0-8]/s/    on/     off/' ${PFSENSEBASEDIR}/etc/ttys
 
 		# Tell loader to use serial console early.
 		echo " -h" > ${PFSENSEBASEDIR}/boot.config
@@ -2277,8 +2277,8 @@ awk '
 
 	pprint 2 "Write partition table ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ..."
 	FDISK=${MAKEOBJDIRPREFIXFINAL}/_.fdisk
-	pprint 2 "fdisk -f ${FDISK} ${MD}"
-	fdisk -f ${FDISK} ${MD}
+	pprint 2 "fdisk -i -f ${FDISK} ${MD}"
+	fdisk -i -f ${FDISK} ${MD}
 	pprint 2 "fdisk ${MD}"
 	fdisk ${MD}
 
@@ -2298,7 +2298,7 @@ awk '
 		pprint 2 "Create second image ${IMG2}..."
 		for f in ${NANO_WORLDDIR}/etc/fstab
 		do
-			sed "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
+			sed -i "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
 		done
 		SIZE=`awk '/^p 2/ { print $5 "b" }' ${FDISK}`
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}"
@@ -2452,7 +2452,7 @@ awk '
 
 	MD=`mdconfig -a -t vnode -f ${IMG} -x ${NANO_SECTS} -y ${NANO_HEADS}`
 
-	fdisk -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
+	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
 	fdisk ${MD}
 	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
 	bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
@@ -2462,9 +2462,9 @@ awk '
 	newfs ${NANO_NEWFS} /dev/${MD}s1a
 	tunefs -L pfsense0 /dev/${MD}s1a
 	mount /dev/${MD}s1a ${MNT}
-	df ${MNT}
+	df -i ${MNT}
 	( cd ${CLONEDIR} && find . -print | cpio -dump ${MNT} )
-	df ${MNT}
+	df -i ${MNT}
 	( cd ${MNT} && mtree -c ) > ${MAKEOBJDIRPREFIXFINAL}/_.mtree
 	( cd ${MNT} && du -k ) > ${MAKEOBJDIRPREFIXFINAL}/_.du
 	umount ${MNT}
@@ -2479,12 +2479,12 @@ awk '
 		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k conv=sparse
 		tunefs -L pfsense1 /dev/${MD}s2a
 		mount /dev/${MD}s2a ${MNT}
-		df ${MNT}
+		df -i ${MNT}
 		mkdir -p ${MNT}/conf/base/etc/
 		cp ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		do
-			sed "s/pfsense0/pfsense1/g" $f
+			sed -i "" "s/pfsense0/pfsense1/g" $f
 		done
 		umount ${MNT}
 		bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s2
