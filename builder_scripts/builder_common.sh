@@ -2477,7 +2477,7 @@ awk '
 		# Duplicate to second image (if present)
 		echo ">>> Mounting and duplicating NanoBSD pfsense1 /dev/${MD}s2a ${MNT}"
 		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k conv=sparse
-		tunefs -L pfsense1 /dev/${MD}s2a conv=sparse
+		tunefs -L pfsense1 /dev/${MD}s2a
 		mount /dev/${MD}s2a ${MNT}
 		df ${MNT}
 		mkdir -p ${MNT}/conf/base/etc/
