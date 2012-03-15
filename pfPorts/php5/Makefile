@@ -7,7 +7,7 @@
 
 PORTNAME=	php5
 PORTVERSION=	5.3.10
-PORTREVISION?=	0
+PORTREVISION?=	1
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
@@ -31,16 +31,14 @@ CONFIGURE_ARGS=	\
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-hash \
-		--enable-xml \
-		--enable-xmlreader \
 		--enable-libxml \
-		--with-libxml-dir= \
+		--with-libxml-dir=${LOCALBASE} \
 		--with-libxmlrpc \
 		--with-libexpat-dir= \
 		--enable-reflection \
-		--with-pcre-dir= \
+		--with-pcre-regex=${LOCALBASE} \
 		--enable-mysqlnd \
-		--with-zlib \
+		--with-zlib-dir=/usr \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
