@@ -2298,7 +2298,7 @@ awk '
 		pprint 2 "Create second image ${IMG2}..."
 		for f in ${NANO_WORLDDIR}/etc/fstab
 		do
-			sed "" "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
+			sed "s/${NANO_DRIVE}s1/${NANO_DRIVE}s2/g" $f
 		done
 		SIZE=`awk '/^p 2/ { print $5 "b" }' ${FDISK}`
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}"
@@ -2484,7 +2484,7 @@ awk '
 		cp ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		for f in ${MNT}/etc/fstab ${MNT}/conf/base/etc/fstab
 		do
-			sed "" "s/pfsense0/pfsense1/g" $f
+			sed "s/pfsense0/pfsense1/g" $f
 		done
 		umount ${MNT}
 		bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s2
