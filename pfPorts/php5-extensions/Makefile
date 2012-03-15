@@ -48,7 +48,7 @@ OPTIONS=	BCMATH          "bc style precision math functions" off \
 		BZ2             "bzip2 library support" off \
 		CALENDAR        "calendar conversion support" off \
 		CTYPE           "ctype functions" on \
-		CURL            "CURL support" off \
+		CURL            "CURL support" on \
 		DBA             "dba support" off \
 		DOM             "DOM support" on \
 		EXIF            "EXIF support" off \
@@ -66,7 +66,7 @@ OPTIONS=	BCMATH          "bc style precision math functions" off \
 		JSON            "JavaScript Object Serialization support" on \
 		LDAP            "OpenLDAP support" off \
 		MBSTRING        "multibyte string support" off \
-		MCRYPT          "Encryption support" off \
+		MCRYPT          "Encryption support" on \
 		MSSQL           "MS-SQL database support" off \
 		MYSQL           "MySQL database support" off \
 		MYSQLI          "MySQLi database support" off \
