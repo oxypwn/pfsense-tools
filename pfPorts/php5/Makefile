@@ -31,10 +31,10 @@ CONFIGURE_ARGS=	\
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-hash \
+		--enable-xmlreader \
 		--enable-libxml \
 		--with-libxml-dir=${LOCALBASE} \
 		--with-libxmlrpc \
-		--with-libexpat-dir= \
 		--enable-reflection \
 		--with-pcre-regex=${LOCALBASE} \
 		--enable-mysqlnd \
