@@ -3233,6 +3233,72 @@ create_memstick_image() {
 	gzip -f $MEMSTICKPATH
 }
 
+create_memstick_serial_image() {
+	MNT=/tmp/memstick/usbmnt
+	mkdir -p ${MNT}
+
+	BOOTCONF=${MNT}/boot.config
+	LOADERCONF=${MNT}/boot/loader.conf
+	ACTIVECONF=${MNT}/cf/conf/config.xml
+	DEFAULTCONF=${MNT}/conf.default/config.xml
+	TTYS=${MNT}/etc/ttys
+	echo ">>> Creating serial memstick."
+	# Locate existing memstick
+	if [ -f ${MEMSTICKPATH}.gz ]; then
+		cp ${MEMSTICKPATH}.gz ${MEMSTICKSERIALPATH}.gz
+		echo ">>>   Decompressing memstick..."
+		WANT_GZIP=yes
+		gzip -d ${MEMSTICKSERIALPATH}.gz
+	elif [ -f ${MEMSTICKPATH} ]; then
+		cp ${MEMSTICKPATH} ${MEMSTICKSERIALPATH}
+	else
+		echo ">>> ERROR: No memstick found (${MEMSTICKPATH} or ${MEMSTICKPATH}.gz do not exist), so we cannot create a serial version."
+		exit 1
+	fi
+
+	if [ "${MEMSTICKSERIALPATH}" = "" ]; then
+		echo ">>> ERROR: MEMSTICKSERIALPATH undefined"
+		exit 1
+	fi
+
+	echo ">>>   Mounting memstick image..."
+	MD=`mdconfig -f $MEMSTICKSERIALPATH`
+	mount /dev/${MD}a ${MNT}
+
+	echo ">>>   Activating serial console..."
+	# Activate serial console in boot.config
+	if [ -f ${BOOTCONF} ]; then
+		sed -i "" '/^-D$/d' ${BOOTCONF}
+	fi
+	echo "-D" >> ${BOOTCONF}
+
+	# Activate serial console in config.xml
+	# If it was there before, clear the setting to be sure we don't add it twice.
+	sed -i "" -e "/		<enableserial\/>/d" ${ACTIVECONF}
+	# Enable serial in the config
+	sed -i "" -e "s/	<\/system>/		<enableserial\/>\\`echo -e \\\n`	<\/system>/" ${ACTIVECONF}
+	# Make sure to update the default config as well.
+	cp ${ACTIVECONF} ${DEFAULTCONF}
+
+	# Remove old console options if present.
+	sed -i "" -Ee "/(console|boot_multicons|boot_serial)/d" ${LOADERCONF}
+	# Activate serial console+video console in loader.conf
+	echo 'boot_multicons="YES"' >>  ${LOADERCONF}
+	echo 'boot_serial="YES"' >> ${LOADERCONF}
+	echo 'console="comconsole,vidconsole"' >> ${LOADERCONF}
+
+	# Activate serial console TTY
+	sed -i "" -Ee "s/^ttyu0.*$/ttyu0	\"\/usr\/libexec\/getty bootupcli\"	cons25	on	secure/" ${TTYS}
+
+	echo ">>>   Unmounting memstick image..."
+	umount /tmp/memstick/usbmnt
+	mdconfig -d -u $MD
+
+	if [ "${WANT_GZIP}" = "yes" ]; then
+		gzip -f $MEMSTICKSERIALPATH
+	fi
+}
+
 # This routine ensures any ports / binaries that the builder
 # system needs are on disk and ready for execution.
 install_required_builder_system_ports() {
