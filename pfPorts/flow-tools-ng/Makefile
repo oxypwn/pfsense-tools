@@ -16,7 +16,7 @@ COMMENT=	Suite of tools and library to work with netflow data
 
 CONFLICTS=	flow-tools-[0-9]*
 
-USE_PYTHON_RUN=	yes
+#USE_PYTHON_RUN=	yes
 GNU_CONFIGURE=	yes
 CONFIGURE_ARGS+=--localstatedir="${PREFIX}"
 USE_BZIP2=	Yes
