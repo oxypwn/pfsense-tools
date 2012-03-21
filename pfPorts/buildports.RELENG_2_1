@@ -141,7 +141,8 @@ pecl-ssh2					/usr/ports/security/pecl-ssh2				/usr/local/lib/php/20090626/ssh2.
 autoconf-wrapper			/usr/ports/devel/autoconf-wrapper			/usr/local/bin/autoconf-wrapper
 rsync						/usr/ports/net/rsync						/usr/local/bin/rsync
 qstats						/usr/ports/sysutils/qstats			/usr/local/sbin/qstats
-gogoc 						/usr/ports/net/gogoc						/usr/local/bin/gogoc"
+gogoc 						/usr/ports/net/gogoc						/usr/local/bin/gogoc
+unbound						/usr/ports/dns/unbound						/usr/local/sbin/unbound"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
