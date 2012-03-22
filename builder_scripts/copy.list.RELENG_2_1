@@ -91,7 +91,6 @@ usr/local/sbin/sshlockout_pf
 usr/local/sbin/wrapresetbtn
 usr/local/sbin/alixresetbtn
 usr/local/sbin/qstats
-usr/local/lib/libevent-1.3e.so.1
 usr/local/lib/lighttpd/mod_auth.so
 usr/local/lib/lighttpd/mod_proxy.so
 usr/local/lib/lighttpd/mod_access.so
@@ -187,3 +186,9 @@ usr/share/doc/legal/intel_iwi/LICENSE
 usr/share/doc/legal/intel_wpi/LICENSE
 usr/sbin/cdcontrol
 sbin/camcontrol
+usr/local/sbin/unbound
+usr/local/lib/libunbound.so.3
+usr/local/sbin/unbound-checkconf
+usr/local/sbin/unbound-control
+usr/local/lib/libldns.so.1
+usr/local/lib/libevent-1.4.so.4
