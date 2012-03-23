@@ -207,14 +207,22 @@ build_iso() {
 	# Ensure the images are compressed.
 	if [ -f ${ISOPATH} ]; then
 		gzip ${ISOPATH}
-		ISOPATH=${ISOPATH}.gz
 	fi
 	if [ -f ${MEMSTICKPATH} ]; then
 		gzip ${MEMSTICKPATH}
-		MEMSTICKPATH=${MEMSTICKPATH}.gz
 	fi
 	if [ -f ${MEMSTICKSERIALPATH} ]; then
 		gzip ${MEMSTICKSERIALPATH}
+	fi
+
+	# Sometimes the files have already been gzipped before hitting this area, so we should adjust for that.
+	if [ -f ${ISOPATH}.gz ]; then
+		ISOPATH=${ISOPATH}.gz
+	fi
+	if [ -f ${MEMSTICKPATH}.gz ]; then
+		MEMSTICKPATH=${MEMSTICKPATH}.gz
+	fi
+	if [ -f ${MEMSTICKSERIALPATH}.gz ]; then
 		MEMSTICKSERIALPATH=${MEMSTICKSERIALPATH}.gz
 	fi
 
