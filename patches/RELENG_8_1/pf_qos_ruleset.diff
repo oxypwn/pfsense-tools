@@ -1,0 +1,1368 @@
+diff --git a/contrib/pf/pfctl/parse.y b/contrib/pf/pfctl/parse.y
+index e1e1595..9e0ceef 100644
+--- a/contrib/pf/pfctl/parse.y
++++ b/contrib/pf/pfctl/parse.y
+@@ -88,7 +88,8 @@ enum {
+ 	PFCTL_STATE_SCRUB,
+ 	PFCTL_STATE_QUEUE,
+ 	PFCTL_STATE_NAT,
+-	PFCTL_STATE_FILTER
++	PFCTL_STATE_FILTER,
++	PFCTL_STATE_QOS
+ };
+ 
+ struct node_proto {
+@@ -189,6 +190,9 @@ struct filter_opts {
+ #define FOM_KEEP	0x08
+ #define FOM_SRCTRACK	0x10
+ #define FOM_DSCP	0x20
++#define FOM_IPLEN	0x40
++#define FOM_BANDWIDTH	0x80
++#define FOM_QOS		0x100
+ 	struct node_uid		*uid;
+ 	struct node_gid		*gid;
+ 	struct {
+@@ -217,6 +221,8 @@ struct filter_opts {
+ 	u_int32_t		 dnpipe;
+ 	u_int32_t		 pdnpipe;
+ 	u_int32_t		 free_flags;
++	struct node_port	 *iplen;
++	struct node_port	 *bytes;
+ 	int			 rtableid;
+ } filter_opts;
+ 
+@@ -278,6 +284,7 @@ int	yyerror(const char *, ...);
+ int	disallow_table(struct node_host *, const char *);
+ int	disallow_urpf_failed(struct node_host *, const char *);
+ int	disallow_alias(struct node_host *, const char *);
++int	qos_consistent(struct pf_rule *, int);
+ int	rule_consistent(struct pf_rule *, int);
+ int	filter_consistent(struct pf_rule *, int);
+ int	nat_consistent(struct pf_rule *);
+@@ -433,8 +440,8 @@ typedef struct {
+ %token	REQUIREORDER SYNPROXY FINGERPRINTS NOSYNC DEBUG SKIP HOSTID
+ %token	ANTISPOOF FOR
+ %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
+-%token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
+-%token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
++%token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT QOS IPLEN BYTES
++%token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE EVALUATEQOS
+ %token  DNPIPE DNQUEUE 
+ %token	LOAD RULESET_OPTIMIZATION
+ %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
+@@ -449,7 +456,7 @@ typedef struct {
+ %type	<v.i>			sourcetrack flush unaryop statelock
+ %type	<v.b>			action nataction natpass scrubaction
+ %type	<v.b>			flags flag blockspec
+-%type	<v.range>		port rport
++%type	<v.range>		port rport bytestraff iplen
+ %type	<v.hashkey>		hashkey
+ %type	<v.proto>		proto proto_list proto_item
+ %type	<v.icmp>		icmpspec
+@@ -462,6 +469,8 @@ typedef struct {
+ %type	<v.host>		route_host route_host_list routespec
+ %type	<v.os>			os xos os_list
+ %type	<v.port>		portspec port_list port_item
++%type	<v.port>		iplenspec iplen_list iplen_item
++%type	<v.port>		bandwidthspec bandwidth_list bandwidth_item
+ %type	<v.uid>			uids uid_list uid_item
+ %type	<v.gid>			gids gid_list gid_item
+ %type	<v.route>		route
+@@ -1760,8 +1769,13 @@ pfrule		: action dir logquick interface route af proto fromto
+ 			int			 statelock = 0;
+ 			int			 adaptive = 0;
+ 
+-			if (check_rulestate(PFCTL_STATE_FILTER))
+-				YYERROR;
++			if ($1.b1 == PF_QOS) {
++				if (check_rulestate(PFCTL_STATE_QOS))
++					YYERROR;
++			} else {
++				if (check_rulestate(PFCTL_STATE_FILTER))
++					YYERROR;
++			}
+ 
+ 			memset(&r, 0, sizeof(r));
+ 
+@@ -2035,6 +2049,20 @@ pfrule		: action dir logquick interface route af proto fromto
+ 				r.flags = parse_flags("S");
+ 				r.flagset =  parse_flags("SA");
+ 			}
++			if ($9.marker & FOM_BANDWIDTH) {
++				r.bandwidth.match[0] = $9.bytes->port[0];
++				r.bandwidth.match[1] = $9.bytes->port[1];
++				r.bandwidth.match_op = $9.bytes->op;
++				//r.bandwidth.neg = $9.bandwidth.neg_opt;
++				free($9.bytes);
++			}
++			if ($9.marker & FOM_IPLEN) {
++				r.iplen.match[0] = $9.iplen->port[0];
++				r.iplen.match[1] = $9.iplen->port[1];
++				r.iplen.match_op = $9.iplen->op;
++				//r.iplen.neg = $9.iplen.neg_opt;
++				free($9.iplen);
++			}
+ 			if (!adaptive && r.max_states) {
+ 				r.timeout[PFTM_ADAPTIVE_START] =
+ 				    (r.max_states / 10) * 6;
+@@ -2153,6 +2181,8 @@ pfrule		: action dir logquick interface route af proto fromto
+ 					r.free_flags |= PFRULE_DN_IS_QUEUE;
+ 				r.pdnpipe = $9.pdnpipe;
+ 			}
++			if ($9.marker & FOM_QOS)
++				r.rule_flag |= PFRULE_QOS;
+ 
+ 			expand_rule(&r, $4, $5.host, $7, $8.src_os,
+ 			    $8.src.host, $8.src.port, $8.dst.host, $8.dst.port,
+@@ -2214,13 +2244,36 @@ filter_opt	: USER uids {
+ 			filter_opts.marker |= FOM_TOS;
+ 			filter_opts.tos = $1;
+ 		}
+-		| dscp {
++		| EVALUATEQOS {
++			if (filter_opts.marker & FOM_QOS) {
++				yyerror("evaluateqos cannot be redefined");
++				YYERROR;
++			}
++			filter_opts.marker |= FOM_QOS;
++		}
++		| BYTES bandwidthspec {
++			if (filter_opts.marker & FOM_BANDWIDTH) {
++				yyerror("bandwidth cannot be redefined");
++				YYERROR;
++			}
++			filter_opts.marker |= FOM_BANDWIDTH;
++			filter_opts.bytes = $2;
++		}
++		| IPLEN iplenspec {
++			if (filter_opts.marker & FOM_IPLEN) {
++				yyerror("iplen cannot be redefined");
++				YYERROR;
++			}
++			filter_opts.marker |= FOM_IPLEN;
++			filter_opts.iplen = $2;
++		}
++		| DSCP dscp {
+ 			if (filter_opts.marker & FOM_DSCP) {
+ 				yyerror("dscp cannot be redefined");
+ 				YYERROR;
+ 			}
+ 			filter_opts.marker |= FOM_DSCP;
+-			filter_opts.dscp = $1;
++			filter_opts.dscp = $2;
+ 		}
+ 		| keep {
+ 			if (filter_opts.marker & FOM_KEEP) {
+@@ -2329,6 +2382,7 @@ filter_opt	: USER uids {
+ 
+ action		: PASS			{ $$.b1 = PF_PASS; $$.b2 = $$.w = 0; }
+ 		| MATCH			{ $$.b1 = PF_MATCH; $$.b2 = $$.w = 0; }
++		| QOS			{ $$.b1 = PF_QOS; $$.b2 = $$.w = 0; }
+ 		| BLOCK blockspec	{ $$ = $2; $$.b1 = PF_DROP; }
+ 		;
+ 
+@@ -2808,6 +2862,184 @@ dynaddr		: '(' STRING ')'		{
+ 		}
+ 		;
+ 
++iplenspec        : iplen_item                     { $$ = $1; }
++                | '{' iplen_list '}'             { $$ = $2; }
++                ;
++
++iplen_list       : iplen_item                     { $$ = $1; }
++                | iplen_list comma iplen_item     {
++                        $1->tail->next = $3;
++                        $1->tail = $3;
++                        $$ = $1;
++                }
++                ;
++
++iplen_item       : iplen                          {
++                        $$ = calloc(1, sizeof(struct node_port));
++                        if ($$ == NULL)
++                                err(1, "iplen_item: calloc");
++                        $$->port[0] = $1.a;
++                        $$->port[1] = $1.b;
++                        if ($1.t)
++                                $$->op = PF_OP_RRG;
++                        else
++                                $$->op = PF_OP_EQ;
++                        $$->next = NULL;
++                        $$->tail = $$;
++                }
++                | unaryop iplen          {
++                        if ($2.t) {
++                                yyerror("':' cannot be used with an other "
++                                    "iplen operator");
++                                YYERROR;
++                        }
++                        $$ = calloc(1, sizeof(struct node_port));
++                        if ($$ == NULL)
++                                err(1, "iplen_item: calloc");
++                        $$->port[0] = $2.a;
++                        $$->port[1] = $2.b;
++                        $$->op = $1;
++                        $$->next = NULL;
++                        $$->tail = $$;
++                }
++                | iplen PORTBINARY iplen          {
++                        if ($1.t || $3.t) {
++                                yyerror("':' cannot be used with an other "
++                                    "iplen operator");
++                                YYERROR;
++                        }
++                        $$ = calloc(1, sizeof(struct node_port));
++                        if ($$ == NULL)
++                                err(1, "iplen_item: calloc");
++                        $$->port[0] = $1.a;
++                        $$->port[1] = $3.a;
++                        $$->op = $2;
++                        $$->next = NULL;
++                        $$->tail = $$;
++                }
++                ;
++
++iplen            : STRING                        {
++			const char *errstr;
++                        char    *p = strchr($1, ':');
++
++			if (p == NULL) {
++				$$.a = strtonum($1, 20, 65535, &errstr);
++				if (errstr) {
++					yyerror("%s: %s", $1, errstr);
++					free($1);
++					YYERROR;
++				}
++			} else {
++				*p++ = 0;
++
++				$$.a = strtonum($1, 20, 65535, &errstr);
++				if (errstr) {
++					yyerror("%s: %s", $1, errstr);
++					free($1);
++					YYERROR;
++				}
++				$$.b = strtonum(p, 0, INT_MAX, NULL);
++				if (errstr) {
++					yyerror("%s: %s", $1, errstr);
++					free($1);
++					YYERROR;
++				}
++                                $$.t = PF_OP_RRG;
++                        }
++                        free($1);
++                }
++                ;
++
++bandwidthspec        : bandwidth_item                     { $$ = $1; }
++                | '{' bandwidth_list '}'             { $$ = $2; }
++                ;
++
++bandwidth_list       : bandwidth_item                     { $$ = $1; }
++                | bandwidth_list comma bandwidth_item     {
++                        $1->tail->next = $3;
++                        $1->tail = $3;
++                        $$ = $1;
++                }
++                ;
++
++bandwidth_item : bytestraff			{
++                        $$ = calloc(1, sizeof(struct node_port));
++                        if ($$ == NULL)
++                                err(1, "bandwidth_item: calloc");
++                        $$->port[0] = $1.a;
++                        $$->port[1] = $1.b;
++                        if ($1.t)
++                                $$->op = PF_OP_RRG;
++                        else
++                                $$->op = PF_OP_EQ;
++                        $$->next = NULL;
++                        $$->tail = $$;
++                }
++                | unaryop bytestraff			{
++                        if ($2.t) {
++                                yyerror("':' cannot be used with an other "
++                                    "bandwidth operator");
++                                YYERROR;
++                        }
++                        $$ = calloc(1, sizeof(struct node_port));
++                        if ($$ == NULL)
++                                err(1, "bandwidth_item: calloc");
++                        $$->port[0] = $2.a;
++                        $$->port[1] = $2.b;
++                        $$->op = $1;
++                        $$->next = NULL;
++                        $$->tail = $$;
++                }
++                | bytestraff PORTBINARY bytestraff	{
++                        if ($1.t || $3.t) {
++                                yyerror("':' cannot be used with an other "
++                                    "bandwidth operator");
++                                YYERROR;
++                        }
++                        $$ = calloc(1, sizeof(struct node_port));
++                        if ($$ == NULL)
++                                err(1, "bandwidth_item: calloc");
++                        $$->port[0] = $1.a;
++                        $$->port[1] = $3.a;
++                        $$->op = $2;
++                        $$->next = NULL;
++                        $$->tail = $$;
++                }
++                ;
++
++bytestraff	: STRING                        {
++			const char *errstr;
++                        char    *p = strchr($1, ':');
++
++			if (p == NULL) {
++				$$.a = strtonum($1, 0, INT_MAX, &errstr);
++				if (errstr) {
++					yyerror("%s: %s", $1, errstr);
++					free($1);
++					YYERROR;
++				}
++			} else {
++				*p++ = 0;
++
++				$$.a = strtonum($1, 0, INT_MAX, &errstr);
++				if (errstr) {
++					yyerror("%s: %s", $1, errstr);
++					free($1);
++					YYERROR;
++				}
++				$$.b = strtonum(p, 0, INT_MAX, NULL);
++				if (errstr) {
++					yyerror("%s: %s", $1, errstr);
++					free($1);
++					YYERROR;
++				}
++                                $$.t = PF_OP_RRG;
++                        }
++                        free($1);
++                }
++                ;
++
+ portspec	: port_item			{ $$ = $1; }
+ 		| '{' port_list '}'		{ $$ = $2; }
+ 		;
+@@ -3247,43 +3479,43 @@ tos		: TOS STRING			{
+ 		}
+ 		;
+ 
+-dscp		: DSCP STRING			{
+-                        if (!strcmp($2, "EF"))
++dscp		: STRING			{
++                        if (!strcmp($1, "EF"))
+                                 $$ = DSCP_EF;
+-                        else if (!strcmp($2, "af11"))
++                        else if (!strcmp($1, "af11"))
+                                 $$ = DSCP_AF11;
+-                        else if (!strcmp($2, "af12"))
++                        else if (!strcmp($1, "af12"))
+                                 $$ = DSCP_AF12;
+-                        else if (!strcmp($2, "af13"))
++                        else if (!strcmp($1, "af13"))
+                                 $$ = DSCP_AF13;
+-                        else if (!strcmp($2, "af21"))
++                        else if (!strcmp($1, "af21"))
+                                 $$ = DSCP_AF21;
+-                        else if (!strcmp($2, "af22"))
++                        else if (!strcmp($1, "af22"))
+                                 $$ = DSCP_AF22;
+-                        else if (!strcmp($2, "af23"))
++                        else if (!strcmp($1, "af23"))
+                                 $$ = DSCP_AF23;
+-                        else if (!strcmp($2, "af31"))
++                        else if (!strcmp($1, "af31"))
+                                 $$ = DSCP_AF31;
+-                        else if (!strcmp($2, "af32"))
++                        else if (!strcmp($1, "af32"))
+                                 $$ = DSCP_AF32;
+-                        else if (!strcmp($2, "af33"))
++                        else if (!strcmp($1, "af33"))
+                                 $$ = DSCP_AF33;
+-                        else if (!strcmp($2, "af41"))
++                        else if (!strcmp($1, "af41"))
+                                 $$ = DSCP_AF41;
+-                        else if (!strcmp($2, "af42"))
++                        else if (!strcmp($1, "af42"))
+                                 $$ = DSCP_AF42;
+-                        else if (!strcmp($2, "af43"))
++                        else if (!strcmp($1, "af43"))
+                                 $$ = DSCP_AF43;
+-                        else if ($2[0] == '0' && $2[1] == 'x')
+-                                $$ = strtoul($2, NULL, 16);
++                        else if ($1[0] == '0' && $1[1] == 'x')
++                                $$ = strtoul($1, NULL, 16);
+                         else
+-                                $$ = strtoul($2, NULL, 10);
++                                $$ = strtoul($1, NULL, 10);
+                         if (!$$ || $$ > 184) {
+-                                yyerror("illegal dscp value %s", $2);
+-                                free($2);
++                                yyerror("illegal dscp value %s", $1);
++                                free($1);
+                                 YYERROR;
+                         }
+-                        free($2);
++                        free($1);
+                }
+ 		;
+ 
+@@ -4290,6 +4522,9 @@ rule_consistent(struct pf_rule *r, int anchor_call)
+ 	case PF_NORDR:
+ 		problems = rdr_consistent(r);
+ 		break;
++	case PF_QOS:
++		problems = qos_consistent(r, anchor_call);
++		break;
+ 	case PF_BINAT:
+ 	case PF_NOBINAT:
+ 	default:
+@@ -4299,6 +4534,69 @@ rule_consistent(struct pf_rule *r, int anchor_call)
+ }
+ 
+ int
++qos_consistent(struct pf_rule *r, int anchor_call)
++{
++	int	problems = 0;
++
++	if (r->proto != IPPROTO_TCP && r->proto != IPPROTO_UDP &&
++	    (r->src.port_op || r->dst.port_op)) {
++		yyerror("port only applies to tcp/udp");
++		problems++;
++	}
++	if (r->proto != IPPROTO_ICMP && r->proto != IPPROTO_ICMPV6 &&
++	    (r->type || r->code)) {
++		yyerror("icmp-type/code only applies to icmp");
++		problems++;
++	}
++	if (!r->af && (r->type || r->code)) {
++		yyerror("must indicate address family with icmp-type/code");
++		problems++;
++	}
++	if (r->overload_tblname[0]) {
++		yyerror("'overload' does not apply to QOS rules");
++		problems++;
++	}
++	if ((r->proto == IPPROTO_ICMP && r->af == AF_INET6) ||
++	    (r->proto == IPPROTO_ICMPV6 && r->af == AF_INET)) {
++		yyerror("proto %s doesn't match address family %s",
++		    r->proto == IPPROTO_ICMP ? "icmp" : "icmp6",
++		    r->af == AF_INET ? "inet" : "inet6");
++		problems++;
++	}
++	if (r->allow_opts) {
++		yyerror("allow-opts can only be specified for pass rules");
++		problems++;
++	}
++	if (r->rule_flag & PFRULE_FRAGMENT && (r->src.port_op ||
++	    r->dst.port_op || r->flagset || r->type || r->code)) {
++		yyerror("fragments can be filtered only on IP header fields");
++		problems++;
++	}
++	if (r->rule_flag & PFRULE_RETURNRST) {
++		yyerror("return-rst cannot be applied to QOS rules");
++		problems++;
++	}
++	if (r->keep_state) {
++		yyerror("keep state cannot be applied to QOS rules");
++		problems++;
++	}
++	if (r->rt) {
++		yyerror("keep state cannot be applied to QOS rules");
++		problems++;
++	}
++	if ((r->rule_flag & PFRULE_TOS) && (r->rule_flag & PFRULE_DSCP)) {
++		yyerror("tos and dscp cannot be used together");
++		problems++;
++	}
++	if (r->dnpipe && r->pdnpipe && !r->direction) {
++		yyerror("dummynet cannot be specified without direction");
++		problems++;
++	}
++
++	return (-problems);
++}
++
++int
+ filter_consistent(struct pf_rule *r, int anchor_call)
+ {
+ 	int	problems = 0;
+@@ -5163,6 +5461,7 @@ lookup(char *s)
+ 		{ "block",		BLOCK},
+ 		{ "block-policy",	BLOCKPOLICY},
+ 		{ "buckets",		BUCKETS},
++		{ "bytes",		BYTES},
+ 		{ "cbq",		CBQ},
+ 		{ "code",		CODE},
+ 		{ "crop",		FRAGCROP},
+@@ -5174,6 +5473,7 @@ lookup(char *s)
+ 		{ "drop-ovl",		FRAGDROP},
+ 		{ "dscp",		DSCP},
+ 		{ "dup-to",		DUPTO},
++		{ "evaluateqos",	EVALUATEQOS},
+ 		{ "fairq",		FAIRQ},
+ 		{ "fastroute",		FASTROUTE},
+ 		{ "file",		FILENAME},
+@@ -5195,6 +5495,7 @@ lookup(char *s)
+ 		{ "in",			IN},
+ 		{ "inet",		INET},
+ 		{ "inet6",		INET6},
++		{ "iplen",		IPLEN},
+ 		{ "keep",		KEEP},
+ 		{ "label",		LABEL},
+ 		{ "limit",		LIMIT},
+@@ -5230,6 +5531,7 @@ lookup(char *s)
+ 		{ "probability",	PROBABILITY},
+ 		{ "proto",		PROTO},
+ 		{ "qlimit",		QLIMIT},
++		{ "qos",		QOS},
+ 		{ "queue",		QUEUE},
+ 		{ "quick",		QUICK},
+ 		{ "random",		RANDOM},
+diff --git a/contrib/pf/pfctl/pfctl.c b/contrib/pf/pfctl/pfctl.c
+index 652d947..8109b39 100644
+--- a/contrib/pf/pfctl/pfctl.c
++++ b/contrib/pf/pfctl/pfctl.c
+@@ -89,6 +89,7 @@ int	 pfctl_get_pool(int, struct pf_pool *, u_int32_t, u_int32_t, int,
+ 	    char *);
+ void	 pfctl_print_rule_counters(struct pf_rule *, int);
+ int	 pfctl_show_rules(int, char *, int, enum pfctl_show, char *, int);
++int	 pfctl_show_qosrules(int, char *, int, enum pfctl_show, char *, int);
+ int	 pfctl_show_nat(int, int, char *);
+ int	 pfctl_show_src_nodes(int, int);
+ int	 pfctl_show_states(int, const char *, int);
+@@ -213,13 +214,13 @@ static const struct {
+ 
+ static const char *clearopt_list[] = {
+ 	"nat", "queue", "rules", "Sources",
+-	"state", "info", "Tables", "osfp", "all", NULL
++	"state", "info", "Tables", "osfp", "Qos", "all", NULL
+ };
+ 
+ static const char *showopt_list[] = {
+ 	"nat", "queue", "rules", "Anchors", "Sources", "state", "info",
+-	"Interfaces", "labels", "timeouts", "memory", "Tables", "osfp",
+-	"all", NULL
++	"Interfaces", "labels", "LablesQoS", "timeouts", "memory", "Tables", "osfp",
++	"Qos", "all", NULL
+ };
+ 
+ static const char *tblcmdopt_list[] = {
+@@ -898,6 +899,104 @@ pfctl_print_title(char *title)
+ }
+ 
+ int
++pfctl_show_qosrules(int dev, char *path, int opts, enum pfctl_show format,
++    char *anchorname, int depth)
++{
++	struct pfioc_rule pr;
++	u_int32_t nr, mnr, header = 0;
++	int rule_numbers = opts & (PF_OPT_VERBOSE2 | PF_OPT_DEBUG);
++	int len = strlen(path);
++	int brace;
++	char *p;
++
++	if (path[0])
++		snprintf(&path[len], MAXPATHLEN - len, "/%s", anchorname);
++	else
++		snprintf(&path[len], MAXPATHLEN - len, "%s", anchorname);
++
++	memset(&pr, 0, sizeof(pr));
++	memcpy(pr.anchor, path, sizeof(pr.anchor));
++	if (opts & PF_OPT_SHOWALL) {
++		pr.rule.action = PF_PASS;
++		if (ioctl(dev, DIOCGETRULES, &pr)) {
++			warn("DIOCGETRULES");
++			goto error;
++		}
++		header++;
++	}
++	pr.rule.action = PF_QOS;
++	if (ioctl(dev, DIOCGETRULES, &pr)) {
++		warn("DIOCGETRULES");
++		goto error;
++	}
++	mnr = pr.nr;
++	for (nr = 0; nr < mnr; ++nr) {
++		pr.nr = nr;
++		if (ioctl(dev, DIOCGETRULE, &pr)) {
++			warn("DIOCGETRULE");
++			goto error;
++		}
++
++		switch (format) {
++		case PFCTL_SHOW_LABELS:
++			if (pr.rule.label[0]) {
++				printf("%s ", pr.rule.label);
++				printf("%llu %llu %llu %llu %llu %llu %llu\n",
++				    (unsigned long long)pr.rule.evaluations,
++				    (unsigned long long)(pr.rule.packets[0] +
++				    pr.rule.packets[1]),
++				    (unsigned long long)(pr.rule.bytes[0] +
++				    pr.rule.bytes[1]),
++				    (unsigned long long)pr.rule.packets[0],
++				    (unsigned long long)pr.rule.bytes[0],
++				    (unsigned long long)pr.rule.packets[1],
++				    (unsigned long long)pr.rule.bytes[1]);
++			}
++			break;
++		case PFCTL_SHOW_RULES:
++			brace = 0;
++			if (pr.rule.label[0] && (opts & PF_OPT_SHOWALL))
++				labels = 1;
++			INDENT(depth, !(opts & PF_OPT_VERBOSE));
++			if (pr.anchor_call[0] &&
++			   ((((p = strrchr(pr.anchor_call, '_')) != NULL) &&
++			   ((void *)p == (void *)pr.anchor_call ||
++			   *(--p) == '/')) || (opts & PF_OPT_RECURSE))) {
++				brace++;
++				if ((p = strrchr(pr.anchor_call, '/')) !=
++				    NULL)
++					p++;
++				else
++					p = &pr.anchor_call[0];
++			} else
++				p = &pr.anchor_call[0];
++		
++			print_rule(&pr.rule, p, rule_numbers);
++			if (brace)
++				printf(" {\n");
++			else
++				printf("\n");
++			pfctl_print_rule_counters(&pr.rule, opts);
++			if (brace) { 
++				pfctl_show_qosrules(dev, path, opts, format,
++				    p, depth + 1);
++				INDENT(depth, !(opts & PF_OPT_VERBOSE));
++				printf("}\n");
++			}
++			break;
++		case PFCTL_SHOW_NOTHING:
++			break;
++		}
++	}
++	path[len] = '\0';
++	return (0);
++
++ error:
++	path[len] = '\0';
++	return (-1);
++}
++
++int
+ pfctl_show_rules(int dev, char *path, int opts, enum pfctl_show format,
+     char *anchorname, int depth)
+ {
+@@ -1053,7 +1152,6 @@ pfctl_show_rules(int dev, char *path, int opts, enum pfctl_show format,
+ 	path[len] = '\0';
+ 	return (-1);
+ }
+-
+ int
+ pfctl_show_nat(int dev, int opts, char *anchorname)
+ {
+@@ -1339,6 +1437,10 @@ pfctl_ruleset_trans(struct pfctl *pf, char *path, struct pf_anchor *a)
+ 		    pfctl_add_trans(pf->trans, PF_RULESET_FILTER, path))
+ 			return (3);
+ 	}
++	if ((pf->loadopt & PFCTL_FLAG_QOS) != 0) {
++		if (pfctl_add_trans(pf->trans, PF_RULESET_QOS, path))
++			return (3);
++	}
+ 	if (pf->loadopt & PFCTL_FLAG_TABLE)
+ 		if (pfctl_add_trans(pf->trans, PF_RULESET_TABLE, path))
+ 			return (4);
+@@ -1577,7 +1679,9 @@ pfctl_rules(int dev, char *filename, FILE *fin, int opts, int optimize,
+ 	    pfctl_load_ruleset(&pf, path, rs, PF_RULESET_RDR, 0) ||
+ 	    pfctl_load_ruleset(&pf, path, rs, PF_RULESET_BINAT, 0))) ||
+ 	    (pf.loadopt & PFCTL_FLAG_FILTER &&
+-	    pfctl_load_ruleset(&pf, path, rs, PF_RULESET_FILTER, 0))) {
++	    pfctl_load_ruleset(&pf, path, rs, PF_RULESET_FILTER, 0)) ||
++	    (pf.loadopt & PFCTL_FLAG_QOS &&
++	    pfctl_load_ruleset(&pf, path, rs, PF_RULESET_QOS, 0))) {
+ 		if ((opts & PF_OPT_NOACTION) == 0)
+ 			ERRX("Unable to load rules into kernel");
+ 		else
+@@ -2112,7 +2216,7 @@ main(int argc, char *argv[])
+ 		usage();
+ 
+ 	while ((ch = getopt(argc, argv,
+-	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::p:rRs:t:T:vx:y:z")) != -1) {
++	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::p:QrRs:t:T:vx:y:z")) != -1) {
+ 		switch (ch) {
+ 		case 'a':
+ 			anchoropt = optarg;
+@@ -2224,6 +2328,9 @@ main(int argc, char *argv[])
+ 		case 'p':
+ 			pf_device = optarg;
+ 			break;
++		case 'Q':
++			loadopt |= PFCTL_FLAG_QOS;
++			break;
+ 		case 's':
+ 			showopt = pfctl_lookup_option(optarg, showopt_list);
+ 			if (showopt == NULL) {
+@@ -2306,7 +2413,7 @@ main(int argc, char *argv[])
+ 		    sizeof(anchorname)) >= sizeof(anchorname))
+ 			errx(1, "anchor name '%s' too long",
+ 			    anchoropt);
+-		loadopt &= PFCTL_FLAG_FILTER|PFCTL_FLAG_NAT|PFCTL_FLAG_TABLE;
++		loadopt &= PFCTL_FLAG_FILTER|PFCTL_FLAG_NAT|PFCTL_FLAG_TABLE|PFCTL_FLAG_QOS;
+ 	}
+ 
+ 	if ((opts & PF_OPT_NOACTION) == 0) {
+@@ -2347,6 +2454,10 @@ main(int argc, char *argv[])
+ 			pfctl_show_rules(dev, path, opts, PFCTL_SHOW_LABELS,
+ 			    anchorname, 0);
+ 			break;
++		case 'L':
++			pfctl_show_qosrules(dev, path, opts, PFCTL_SHOW_LABELS,
++			    anchorname, 0);
++			break;
+ 		case 'n':
+ 			pfctl_load_fingerprints(dev, opts);
+ 			pfctl_show_nat(dev, opts, anchorname);
+@@ -2355,6 +2466,10 @@ main(int argc, char *argv[])
+ 			pfctl_show_altq(dev, ifaceopt, opts,
+ 			    opts & PF_OPT_VERBOSE2);
+ 			break;
++		case 'Q':
++			pfctl_show_qosrules(dev, path, opts, PFCTL_SHOW_RULES,
++			    anchorname, 0);
++			break;
+ 		case 's':
+ 			pfctl_show_states(dev, ifaceopt, opts);
+ 			break;
+@@ -2376,11 +2491,13 @@ main(int argc, char *argv[])
+ 
+ 			pfctl_show_nat(dev, opts, anchorname);
+ 			pfctl_show_rules(dev, path, opts, 0, anchorname, 0);
++			pfctl_show_qosrules(dev, path, opts, 0, anchorname, 0);
+ 			pfctl_show_altq(dev, ifaceopt, opts, 0);
+ 			pfctl_show_states(dev, ifaceopt, opts);
+ 			pfctl_show_src_nodes(dev, opts);
+ 			pfctl_show_status(dev, opts);
+ 			pfctl_show_rules(dev, path, opts, 1, anchorname, 0);
++			pfctl_show_qosrules(dev, path, opts, 1, anchorname, 0);
+ 			pfctl_show_timeouts(dev, opts);
+ 			pfctl_show_limits(dev, opts);
+ 			pfctl_show_tables(anchorname, opts);
+@@ -2399,9 +2516,12 @@ main(int argc, char *argv[])
+ 		}
+ 	}
+ 
+-	if ((opts & PF_OPT_CLRRULECTRS) && showopt == NULL)
++	if ((opts & PF_OPT_CLRRULECTRS) && showopt == NULL) {
+ 		pfctl_show_rules(dev, path, opts, PFCTL_SHOW_NOTHING,
+ 		    anchorname, 0);
++		pfctl_show_qosrules(dev, path, opts, PFCTL_SHOW_NOTHING,
++		    anchorname, 0);
++	}
+ 
+ 	if (clearopt != NULL) {
+ 		if (anchorname[0] == '_' || strstr(anchorname, "/_") != NULL)
+diff --git a/contrib/pf/pfctl/pfctl_parser.c b/contrib/pf/pfctl/pfctl_parser.c
+index 2f57668..5a3316e 100644
+--- a/contrib/pf/pfctl/pfctl_parser.c
++++ b/contrib/pf/pfctl/pfctl_parser.c
+@@ -65,6 +65,7 @@ __FBSDID("$FreeBSD: src/contrib/pf/pfctl/pfctl_parser.c,v 1.8.10.2.2.1 2010/06/1
+ 
+ void		 print_op (u_int8_t, const char *, const char *);
+ void		 print_port (u_int8_t, u_int16_t, u_int16_t, const char *);
++void		 print_iplen (u_int8_t, unsigned, unsigned, const char *);
+ void		 print_ugid (u_int8_t, unsigned, unsigned, const char *, unsigned);
+ void		 print_flags (u_int8_t);
+ void		 print_fromto(struct pf_rule_addr *, pf_osfp_t,
+@@ -338,6 +339,17 @@ print_port(u_int8_t op, u_int16_t p1, u_int16_t p2, const char *proto)
+ }
+ 
+ void
++print_iplen(u_int8_t op, unsigned u1, unsigned u2, const char *t)
++{
++	char	a1[11], a2[11];
++
++	snprintf(a1, sizeof(a1), "%u", u1);
++	snprintf(a2, sizeof(a2), "%u", u2);
++	printf(" %s", t);
++	print_op(op, a1, a2);
++}
++
++void
+ print_ugid(u_int8_t op, unsigned u1, unsigned u2, const char *t, unsigned umax)
+ {
+ 	char	a1[11], a2[11];
+@@ -676,7 +688,7 @@ void
+ print_rule(struct pf_rule *r, const char *anchor_call, int verbose)
+ {
+ 	static const char *actiontypes[] = { "pass", "block", "scrub",
+-	    "no scrub", "nat", "no nat", "binat", "no binat", "rdr", "no rdr" };
++	    "no scrub", "nat", "no nat", "binat", "no binat", "rdr", "no rdr", "qos" };
+ 	static const char *anchortypes[] = { "anchor", "anchor", "anchor",
+ 	    "anchor", "nat-anchor", "nat-anchor", "binat-anchor",
+ 	    "binat-anchor", "rdr-anchor", "rdr-anchor" };
+@@ -686,6 +698,8 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose)
+ 		printf("@%d ", r->nr);
+ 	if (r->action == PF_MATCH)
+ 		printf("match");
++	else if (r->action == PF_QOS)
++		printf("qos");
+ 	else if (r->action > PF_NORDR)
+ 		printf("action(%d)", r->action);
+ 	else if (anchor_call[0]) {
+@@ -845,6 +859,12 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose)
+                 printf(" tos 0x%2.2x", r->tos);
+         if (r->tos && (r->rule_flag & PFRULE_DSCP))
+                 printf(" dscp 0x%2.2x", r->tos & DSCP_MASK);
++	if (r->iplen.match_op)
++		print_iplen(r->iplen.match_op, r->iplen.match[0], r->iplen.match[1], "iplen");
++	if (r->bandwidth.match_op)
++		print_iplen(r->bandwidth.match_op, r->bandwidth.match[0], r->bandwidth.match[1], "bytes");
++        if (r->rule_flag & PFRULE_QOS)
++                printf(" evaluateqos");
+ 	if (!r->keep_state && r->action == PF_PASS && !anchor_call[0])
+ 		printf(" no state");
+ 	else if (r->keep_state == PF_STATE_NORMAL)
+diff --git a/contrib/pf/pfctl/pfctl_parser.h b/contrib/pf/pfctl/pfctl_parser.h
+index a324ab0..5f9eb01 100644
+--- a/contrib/pf/pfctl/pfctl_parser.h
++++ b/contrib/pf/pfctl/pfctl_parser.h
+@@ -301,6 +301,7 @@ struct pf_timeout {
+ #define PFCTL_FLAG_OPTION	0x08
+ #define PFCTL_FLAG_ALTQ		0x10
+ #define PFCTL_FLAG_TABLE	0x20
++#define PFCTL_FLAG_QOS		0x40
+ 
+ extern const struct pf_timeout pf_timeouts[];
+ 
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index 8959ef7..ed28c7f 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -233,7 +233,10 @@ struct pf_rule		*pf_get_translation(struct pf_pdesc *, struct mbuf *,
+ 			    struct pf_addr *, u_int16_t,
+ 			    struct pf_addr *, u_int16_t *);
+ void			 pf_rule_to_actions(struct pf_rule *,
+-			    struct pf_rule_actions *);
++			    struct pf_pdesc *);
++void			 pf_qos_policy_apply(struct pf_state *s, int direction,
++			    struct pfi_kif *kif, struct mbuf *m,
++			    struct pf_pdesc *pd);
+ int			 pf_test_tcp(struct pf_rule **, struct pf_state **,
+ 			    int, struct pfi_kif *, struct mbuf *, int,
+ 			    void *, struct pf_pdesc *, struct pf_rule **,
+@@ -3430,7 +3433,7 @@ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
+ }
+ 
+ void
+-pf_rule_to_actions(struct pf_rule *r, struct pf_rule_actions *a)
++pf_rule_to_actions(struct pf_rule *r, struct pf_pdesc *a)
+ {
+ 	if (r->qid)
+ 		a->qid = r->qid;
+@@ -3444,6 +3447,109 @@ pf_rule_to_actions(struct pf_rule *r, struct pf_rule_actions *a)
+ 		a->flags |= PFRULE_DN_IS_PIPE;
+ }
+ 
++void
++pf_qos_policy_apply(struct pf_state *s, int direction,
++    struct pfi_kif *kif, struct mbuf *m,
++    struct pf_pdesc *pd)
++{
++	struct pf_rule		*r, *a = NULL;
++	int			 tag = -1, rtableid = -1;
++	struct pf_ruleset	*ruleset = NULL;
++	int			 match = 0;
++	int			 asd = 0;
++
++	r = TAILQ_FIRST(pf_main_ruleset.rules[PF_RULESET_QOS].active.ptr);
++
++	while (r != NULL) {
++		r->evaluations++;
++		if (pfi_kif_match(r->kif, kif) == r->ifnot)
++			r = r->skip[PF_SKIP_IFP].ptr;
++		else if (r->direction && r->direction != direction)
++			r = r->skip[PF_SKIP_DIR].ptr;
++		else if (r->af && r->af != pd->af)
++			r = r->skip[PF_SKIP_AF].ptr;
++		else if (r->proto && r->proto != pd->proto)
++			r = r->skip[PF_SKIP_PROTO].ptr;
++		else if (PF_MISMATCHAW(&r->src.addr, &pd->baddr, pd->af,
++		    r->src.neg, kif))
++			r = r->skip[PF_SKIP_SRC_ADDR].ptr;
++		else if (PF_MISMATCHAW(&r->dst.addr, pd->dst, pd->af,
++		    r->dst.neg, NULL))
++			r = r->skip[PF_SKIP_DST_ADDR].ptr;
++		else if (pd->proto == IPPROTO_TCP && r->src.port_op && !pf_match_port(r->src.port_op,
++		    r->src.port[0], r->src.port[1], pd->hdr.tcp->th_sport))
++			r = r->skip[PF_SKIP_SRC_PORT].ptr;
++		else if (pd->proto == IPPROTO_TCP && r->dst.port_op && !pf_match_port(r->dst.port_op,
++		    r->dst.port[0], r->dst.port[1], pd->hdr.tcp->th_dport))
++			r = r->skip[PF_SKIP_DST_PORT].ptr;
++		else if (pd->proto == IPPROTO_UDP && r->src.port_op && !pf_match_port(r->src.port_op,
++		    r->src.port[0], r->src.port[1], pd->hdr.udp->uh_sport))
++			r = r->skip[PF_SKIP_SRC_PORT].ptr;
++		else if (pd->proto == IPPROTO_UDP && r->dst.port_op && !pf_match_port(r->dst.port_op,
++		    r->dst.port[0], r->dst.port[1], pd->hdr.udp->uh_dport))
++			r = r->skip[PF_SKIP_DST_PORT].ptr;
++		else if ((r->rule_flag & PFRULE_TOS) && r->tos && !(r->tos & pd->tos))
++                        r = TAILQ_NEXT(r, entries);
++		else if ((r->rule_flag & PFRULE_DSCP) && r->tos &&
++                        !(r->tos & (pd->tos & DSCP_MASK)))
++			r = TAILQ_NEXT(r, entries);
++		else if (r->iplen.match_op && !pf_match(r->iplen.match_op, r->iplen.match[0], r->iplen.match[1], pd->tot_len))
++			r = TAILQ_NEXT(r, entries);
++		else if (r->bandwidth.match_op && s != NULL && !pf_match(r->bandwidth.match_op, r->bandwidth.match[0], r->bandwidth.match[1], s->bytes[(direction == PF_OUT)] + pd->tot_len))
++			r = TAILQ_NEXT(r, entries);
++		else if (r->rule_flag & PFRULE_FRAGMENT)
++			r = TAILQ_NEXT(r, entries);
++		else if (pd->proto == IPPROTO_TCP && (r->flagset & pd->hdr.tcp->th_flags) != r->flags)
++			r = TAILQ_NEXT(r, entries);
++		else if (r->prob && r->prob <= arc4random())
++			r = TAILQ_NEXT(r, entries);
++		else if (r->match_tag && !pf_match_tag(m, r, pd->pf_mtag, &tag))
++			r = TAILQ_NEXT(r, entries);
++		else {
++			if (r->tag)
++				tag = r->tag;
++			if (r->rtableid >= 0)
++				rtableid = r->rtableid;
++			if (r->anchor == NULL) {
++				if (r->action == PF_MATCH) {
++					a = r;
++					r->packets[direction == PF_OUT]++;
++					r->bytes[direction == PF_OUT] += pd->tot_len;
++					pf_rule_to_actions(r, pd);
++					if (r->log)
++						PFLOG_PACKET(kif, h, m, pd->af,
++						    direction, PFRES_MATCH, a,
++						    a, ruleset, pd);
++				} else {
++					match = 1;
++					a = r;
++					if (r->quick)
++						break;
++				}
++				r = TAILQ_NEXT(r, entries);
++			} else
++				pf_step_into_anchor(&asd, &ruleset,
++				    PF_RULESET_QOS, &r, &a, &match);
++		}
++		if (r == NULL && pf_step_out_of_anchor(&asd, &ruleset,
++		    PF_RULESET_QOS, &r, &a, &match))
++			break;
++	}
++
++	if (a) {
++		pf_rule_to_actions(a, pd);
++
++		a->packets[direction == PF_OUT]++;
++		a->bytes[direction == PF_OUT] += pd->tot_len;
++		if (a->log)
++			PFLOG_PACKET(kif, h, m, pd->af,
++			    direction, PFRES_MATCH, a,
++			    a, ruleset, pd);
++	}
++
++	return;
++}
++
+ int
+ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+     struct pfi_kif *kif, struct mbuf *m, int off, void *h,
+@@ -3462,7 +3568,6 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 	sa_family_t		 af = pd->af;
+ 	struct pf_rule		*r, *a = NULL;
+ 	struct pf_ruleset	*ruleset = NULL;
+-	struct pf_rule_actions	 act = { 0 };
+ 	struct pf_src_node	*nsn = NULL;
+ 	u_short			 reason;
+ 	int			 rewrite = 0;
+@@ -3584,7 +3689,7 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 				if (r->action == PF_MATCH) {
+ 					r->packets[direction == PF_OUT]++;
+ 					r->bytes[direction == PF_OUT] += pd->tot_len;
+-					pf_rule_to_actions(r, &act);
++					pf_rule_to_actions(r, pd);
+ 					if (r->log)
+ 						PFLOG_PACKET(kif, h, m, af,
+ 						    direction, PFRES_MATCH, r,
+@@ -3611,7 +3716,7 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 	ruleset = *rsm;
+ 
+ 	/* apply actions for last matching pass/block rule */
+-	pf_rule_to_actions(r, &act);
++	pf_rule_to_actions(r, pd);
+ 
+ 	REASON_SET(&reason, PFRES_MATCH);
+ 
+@@ -3737,11 +3842,6 @@ cleanup:
+ 		if (nr != NULL)
+ 			s->log |= nr->log & PF_LOG_ALL;
+ 		s->proto = IPPROTO_TCP;
+-		s->qid = act.qid;
+-		s->pqid = act.pqid;
+-		s->pdnpipe = act.pdnpipe;
+-		s->dnpipe = act.dnpipe;
+-		s->state_flags |= act.flags;
+ 		s->direction = direction;
+ 		s->af = af;
+ 		if (direction == PF_OUT) {
+@@ -3910,7 +4010,6 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 	sa_family_t		 af = pd->af;
+ 	struct pf_rule		*r, *a = NULL;
+ 	struct pf_ruleset	*ruleset = NULL;
+-	struct pf_rule_actions   act = { 0 };
+ 	struct pf_src_node	*nsn = NULL;
+ 	u_short			 reason;
+ 	int			 rewrite = 0;
+@@ -4028,7 +4127,7 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 				if (r->action == PF_MATCH) {
+                                         r->packets[direction == PF_OUT]++;
+                                         r->bytes[direction == PF_OUT] += pd->tot_len;
+-                                        pf_rule_to_actions(r, &act);
++                                        pf_rule_to_actions(r, pd);
+                                         if (r->log)
+                                                 PFLOG_PACKET(kif, h, m, af,
+                                                     direction, PFRES_MATCH, r,
+@@ -4055,7 +4154,7 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 	ruleset = *rsm;
+ 
+ 	/* apply actions for last matching pass/block rule */
+-        pf_rule_to_actions(r, &act);
++        pf_rule_to_actions(r, pd);
+ 
+ 	REASON_SET(&reason, PFRES_MATCH);
+ 
+@@ -4159,11 +4258,6 @@ cleanup:
+ 		if (nr != NULL)
+ 			s->log |= nr->log & PF_LOG_ALL;
+ 		s->proto = IPPROTO_UDP;
+-		s->qid = act.qid;
+-                s->pqid = act.pqid;
+-		s->pdnpipe = act.pdnpipe;
+-		s->dnpipe = act.dnpipe;
+-		s->state_flags |= act.flags;
+ 		s->direction = direction;
+ 		s->af = af;
+ 		if (direction == PF_OUT) {
+@@ -4237,7 +4331,6 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
+ 	struct pf_rule		*r, *a = NULL;
+ 	struct pf_ruleset	*ruleset = NULL;
+-	struct pf_rule_actions   act = { 0 };
+ 	struct pf_src_node	*nsn = NULL;
+ 	u_short			 reason;
+ 	u_int16_t		 icmpid = 0, bport, nport = 0;
+@@ -4390,7 +4483,7 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 				if (r->action == PF_MATCH) {
+                                         r->packets[direction == PF_OUT]++;
+                                         r->bytes[direction == PF_OUT] += pd->tot_len;
+-                                        pf_rule_to_actions(r, &act);
++                                        pf_rule_to_actions(r, pd);
+                                         if (r->log)
+                                                 PFLOG_PACKET(kif, h, m, af,
+                                                     direction, PFRES_MATCH, r,
+@@ -4417,7 +4510,7 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 	ruleset = *rsm;
+ 
+ 	/* apply actions for last matching pass/block rule */
+-        pf_rule_to_actions(r, &act);
++        pf_rule_to_actions(r, pd);
+ 
+ 	REASON_SET(&reason, PFRES_MATCH);
+ 
+@@ -4497,11 +4590,6 @@ cleanup:
+ 		if (nr != NULL)
+ 			s->log |= nr->log & PF_LOG_ALL;
+ 		s->proto = pd->proto;
+-		s->qid = act.qid;
+-                s->pqid = act.pqid;
+-		s->pdnpipe = act.pdnpipe;
+-		s->dnpipe = act.dnpipe;
+-		s->state_flags |= act.flags;
+ 		s->direction = direction;
+ 		s->af = af;
+ 		if (direction == PF_OUT) {
+@@ -4574,7 +4662,6 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 	struct pf_rule		*nr = NULL;
+ 	struct pf_rule		*r, *a = NULL;
+ 	struct pf_ruleset	*ruleset = NULL;
+-	struct pf_rule_actions   act = { 0 };
+ 	struct pf_src_node	*nsn = NULL;
+ 	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
+ 	sa_family_t		 af = pd->af;
+@@ -4674,7 +4761,7 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 				if (r->action == PF_MATCH) {
+                                         r->packets[direction == PF_OUT]++;
+                                         r->bytes[direction == PF_OUT] += pd->tot_len;
+-                                        pf_rule_to_actions(r, &act);
++                                        pf_rule_to_actions(r, pd);
+                                         if (r->log)
+                                                 PFLOG_PACKET(kif, h, m, af,
+                                                     direction, PFRES_MATCH, r,
+@@ -4701,7 +4788,7 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+ 	ruleset = *rsm;
+ 
+ 	/* apply actions for last matching pass/block rule */
+-        pf_rule_to_actions(r, &act);
++        pf_rule_to_actions(r, pd);
+ 
+ 	REASON_SET(&reason, PFRES_MATCH);
+ 
+@@ -4809,11 +4896,6 @@ cleanup:
+ 		if (nr != NULL)
+ 			s->log |= nr->log & PF_LOG_ALL;
+ 		s->proto = pd->proto;
+-		s->qid = act.qid;
+-                s->pqid = act.pqid;
+-		s->pdnpipe = act.pdnpipe;
+-		s->dnpipe = act.dnpipe;
+-		s->state_flags |= act.flags;
+ 		s->direction = direction;
+ 		s->af = af;
+ 		if (direction == PF_OUT) {
+@@ -4870,7 +4952,6 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+ {
+ 	struct pf_rule		*r, *a = NULL;
+ 	struct pf_ruleset	*ruleset = NULL;
+-	struct pf_rule_actions   act = { 0 };
+ 	sa_family_t		 af = pd->af;
+ 	u_short			 reason;
+ 	int			 tag = -1;
+@@ -4917,7 +4998,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+ 				if (r->action == PF_MATCH) {
+                                         r->packets[direction == PF_OUT]++;
+                                         r->bytes[direction == PF_OUT] += pd->tot_len;
+-                                        pf_rule_to_actions(r, &act);
++                                        pf_rule_to_actions(r, pd);
+                                         if (r->log)
+                                                 PFLOG_PACKET(kif, h, m, af,
+                                                     direction, PFRES_MATCH, r,
+@@ -4944,7 +5025,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+ 	ruleset = *rsm;
+ 
+ 	/* apply actions for last matching pass/block rule */
+-        pf_rule_to_actions(r, &act);
++        pf_rule_to_actions(r, pd);
+ 
+ 	REASON_SET(&reason, PFRES_MATCH);
+ 
+@@ -7671,25 +7752,52 @@ done:
+ 	if ((s && s->tag) || r->rtableid)
+ 		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
+ 
++	if (r->rule_flag & PFRULE_QOS && !PACKET_LOOPED(pd.pf_mtag))
++		pf_qos_policy_apply(s, dir, kif, m, &pd);
++
++	if (!pd.dnpipe) {
++		if (s && s->dnpipe) {
++			pd.pdnpipe = s->pdnpipe;
++			pd.dnpipe = s->dnpipe;
++			pd.free_flags |= s->state_flags;
++		} else if (r->dnpipe) {
++			pd.pdnpipe = r->pdnpipe;
++			pd.dnpipe = r->dnpipe;
++			pd.free_flags |= r->free_flags;
++		}
++	} else if (s) {
++		s->dnpipe = pd.dnpipe;
++		s->pdnpipe = pd.pdnpipe;
++		s->state_flags |= pd.free_flags;
++	}
++		
++	if (!pd.qid) {
++		if (s && s->qid) {
++			pd.qid = s->qid;
++			pd.pqid = s->pqid;
++		} else if (r->qid) {
++			pd.pqid = r->pqid;
++			pd.qid = r->qid;
++		}
++	} else if (s) {
++		s->pqid = pd.qid;
++		s->qid = pd.qid;
++	}
++
+ #ifdef ALTQ
+-	if (action == PF_PASS && r->qid) {
+-		if (s)
++	if (action == PF_PASS && pd.qid) {
++		if (s) {
+ 			pd.pf_mtag->qid_hash = pf_state_hash(s);
++		}
+ 
+ 		if (pqid || (pd.tos & IPTOS_LOWDELAY))
+-			pd.pf_mtag->qid = r->pqid;
++			pd.pf_mtag->qid = pd.pqid;
+ 		else
+-			pd.pf_mtag->qid = r->qid;
++			pd.pf_mtag->qid = pd.qid;
+ 		/* add hints for ecn */
+ 		pd.pf_mtag->af = AF_INET;
+ 		pd.pf_mtag->hdr = h;
+ 	}
+-	if (s) {
+-		if ((pqid || (pd.tos & IPTOS_LOWDELAY)) && s->pqid)
+-			pd.pf_mtag->qid = s->pqid;
+-		else if (s->qid)
+-			pd.pf_mtag->qid = s->qid;
+-	}
+ #endif /* ALTQ */
+ 
+ #ifdef __FreeBSD__
+@@ -7743,25 +7851,19 @@ done:
+ 				return (action);
+ 			}
+ 		}
+-       	} else if (((s && s->dnpipe) || r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
++       	} else if ((pd.dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
+ 	    ip_dn_io_ptr != NULL && loopedfrom != 1) {
+ 
+ 			if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
+ 				dnflow.rule.info = divertcookie;
+-                        } else if (dir != r->direction && s && s->pdnpipe) {
+-                                dnflow.rule.info = s->pdnpipe;
+-                        } else if (dir == r->direction && s && s->dnpipe) {
+-                                dnflow.rule.info = s->dnpipe;
+-                        } else if (dir != r->direction && r->pdnpipe) {
+-                                dnflow.rule.info = r->pdnpipe;
+-                        } else if (dir == r->direction) {
+-                                dnflow.rule.info = r->dnpipe;
++                        } else if (dir != r->direction && pd.pdnpipe) {
++                                dnflow.rule.info = pd.pdnpipe;
++                        } else if (dir == r->direction && pd.dnpipe) {
++                                dnflow.rule.info = pd.dnpipe;
+                         } else
+                                 goto continueprocessing;
+ 
+-			if (r->free_flags & PFRULE_DN_IS_PIPE)
+-				dnflow.rule.info |= IPFW_IS_PIPE;
+-			if (s && s->state_flags & PFRULE_DN_IS_PIPE)
++			if (pd.free_flags & PFRULE_DN_IS_PIPE)
+ 				dnflow.rule.info |= IPFW_IS_PIPE;
+                         dnflow.f_id.addr_type = 4; /* IPv4 type */
+                         dnflow.f_id.proto = pd.proto;
+diff --git a/sys/contrib/pf/net/pf_ioctl.c b/sys/contrib/pf/net/pf_ioctl.c
+index 2bb9db4..4c9bd8b 100644
+--- a/sys/contrib/pf/net/pf_ioctl.c
++++ b/sys/contrib/pf/net/pf_ioctl.c
+@@ -3642,7 +3642,7 @@ static int
+ shutdown_pf(void)
+ {
+ 	int error = 0;
+-	u_int32_t t[5];
++	u_int32_t t[6];
+ 	char nn = '\0';
+ 
+ 	pf_status.running = 0;
+@@ -3657,6 +3657,11 @@ shutdown_pf(void)
+ 			DPFPRINTF(PF_DEBUG_MISC, ("shutdown_pf: FILTER\n"));
+ 			break;		/* XXX: rollback? */
+ 		}
++		if ((error = pf_begin_rules(&t[5], PF_RULESET_QOS, &nn))
++		    != 0) {
++			DPFPRINTF(PF_DEBUG_MISC, ("shutdown_pf: QOS\n"));
++			break;		/* XXX: rollback? */
++		}
+ 		if ((error = pf_begin_rules(&t[2], PF_RULESET_NAT, &nn))
+ 		    != 0) {
+ 			DPFPRINTF(PF_DEBUG_MISC, ("shutdown_pf: NAT\n"));
+@@ -3676,6 +3681,7 @@ shutdown_pf(void)
+ 		/* XXX: these should always succeed here */
+ 		pf_commit_rules(t[0], PF_RULESET_SCRUB, &nn);
+ 		pf_commit_rules(t[1], PF_RULESET_FILTER, &nn);
++		pf_commit_rules(t[5], PF_RULESET_QOS, &nn);
+ 		pf_commit_rules(t[2], PF_RULESET_NAT, &nn);
+ 		pf_commit_rules(t[3], PF_RULESET_BINAT, &nn);
+ 		pf_commit_rules(t[4], PF_RULESET_RDR, &nn);
+diff --git a/sys/contrib/pf/net/pf_ruleset.c b/sys/contrib/pf/net/pf_ruleset.c
+index af01e61..0c4c01a 100644
+--- a/sys/contrib/pf/net/pf_ruleset.c
++++ b/sys/contrib/pf/net/pf_ruleset.c
+@@ -143,6 +143,9 @@ pf_get_ruleset_number(u_int8_t action)
+ 	case PF_NORDR:
+ 		return (PF_RULESET_RDR);
+ 		break;
++	case PF_QOS:
++		return (PF_RULESET_QOS);
++		break;
+ 	default:
+ 		return (PF_RULESET_MAX);
+ 		break;
+diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
+index de17eb6..51dbe73 100644
+--- a/sys/contrib/pf/net/pfvar.h
++++ b/sys/contrib/pf/net/pfvar.h
+@@ -81,9 +81,9 @@ enum	{ PF_INOUT, PF_IN, PF_OUT };
+ enum	{ PF_LAN_EXT, PF_EXT_GWY, PF_ID };
+ enum	{ PF_PASS, PF_DROP, PF_SCRUB, PF_NOSCRUB, PF_NAT, PF_NONAT,
+ 	  PF_BINAT, PF_NOBINAT, PF_RDR, PF_NORDR, PF_SYNPROXY_DROP, 
+-	  PF_MATCH };
++	  PF_MATCH, PF_QOS };
+ enum	{ PF_RULESET_SCRUB, PF_RULESET_FILTER, PF_RULESET_NAT,
+-	  PF_RULESET_BINAT, PF_RULESET_RDR, PF_RULESET_MAX };
++	  PF_RULESET_BINAT, PF_RULESET_RDR, PF_RULESET_QOS, PF_RULESET_MAX };
+ enum	{ PF_OP_NONE, PF_OP_IRG, PF_OP_EQ, PF_OP_NE, PF_OP_LT,
+ 	  PF_OP_LE, PF_OP_GT, PF_OP_GE, PF_OP_XRG, PF_OP_RRG };
+ enum	{ PF_DEBUG_NONE, PF_DEBUG_URGENT, PF_DEBUG_MISC, PF_DEBUG_NOISY };
+@@ -431,6 +431,12 @@ struct pf_rule_gid {
+ 	u_int8_t	 op;
+ };
+ 
++struct pf_match_op {
++	u_int16_t		 match[2];
++	u_int8_t		 neg;
++	u_int8_t		 match_op;
++};
++
+ struct pf_rule_addr {
+ 	struct pf_addr_wrap	 addr;
+ 	u_int16_t		 port[2];
+@@ -571,14 +577,6 @@ struct pf_osfp_ioctl {
+ 	int			fp_getnum;	/* DIOCOSFPGET number */
+ };
+ 
+-struct pf_rule_actions {
+-	u_int16_t	qid;
+-	u_int16_t	pqid;
+-	u_int32_t	pdnpipe;
+-	u_int32_t	dnpipe;
+-	u_int8_t	flags;
+-};
+-
+ union pf_rule_ptr {
+ 	struct pf_rule		*ptr;
+ 	u_int32_t		 nr;
+@@ -638,6 +636,8 @@ struct pf_rule {
+ 		u_int32_t		limit;
+ 		u_int32_t		seconds;
+ 	}			 max_src_conn_rate;
++	struct pf_match_op	 iplen;
++	struct pf_match_op	 bandwidth;
+ 	u_int16_t		 qid;
+ 	u_int16_t		 pqid;
+ 	u_int32_t                dnpipe;
+@@ -737,6 +737,7 @@ struct pf_rule {
+ /* rule flags for TOS or DSCP differentiation */
+ #define PFRULE_TOS		0x2000
+ #define PFRULE_DSCP		0x4000
++#define PFRULE_QOS		0x8000
+ 
+ /* rule flags for handling ALTQ hashing required by certain disciplines */
+ #define PFRULE_ALTQ_HASH	0x8000
+@@ -1124,6 +1125,12 @@ struct pf_pdesc {
+ 	sa_family_t	 af;
+ 	u_int8_t	 proto;
+ 	u_int8_t	 tos;
++
++	u_int32_t	 pqid;
++	u_int32_t	 qid;
++	u_int32_t	 pdnpipe;
++	u_int32_t	 dnpipe;
++	u_int32_t	 free_flags;
+ };
+ 
+ /* flags for RDR options */
