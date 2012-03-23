@@ -878,7 +878,7 @@ index 8959ef7..7c9f761 100644
  	if (r->free_flags & PFRULE_DN_IS_PIPE)
  		a->flags |= PFRULE_DN_IS_PIPE;
 +	if (r->direction)
-+		pd.direction = r->direction;
++		a->direction = r->direction;
 +}
 +
 +void
