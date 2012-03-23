@@ -838,10 +838,21 @@ index a324ab0..5f9eb01 100644
  extern const struct pf_timeout pf_timeouts[];
  
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index 8959ef7..76ff290 100644
+index 8959ef7..7c9f761 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
-@@ -233,7 +233,10 @@ struct pf_rule		*pf_get_translation(struct pf_pdesc *, struct mbuf *,
+@@ -190,6 +190,10 @@ struct pool		 pf_state_pl, pf_altq_pl, pf_pooladdr_pl;
+ int ftp_proxy = 0;
+ SYSCTL_INT(_debug, OID_AUTO, pfftpproxy, CTLFLAG_RW, &ftp_proxy, 0,
+     "Enable/disable pf ftp protocol proxy");
++int always_qos = 0;
++SYSCTL_INT(_debug, OID_AUTO, alwaysqos, CTLFLAG_RW, &always_qos, 0,
++    "Set to always send packets through QoS ruleset");
++
+ 
+ void			 pf_print_host(struct pf_addr *, u_int16_t, u_int8_t);
+ 
+@@ -233,7 +237,10 @@ struct pf_rule		*pf_get_translation(struct pf_pdesc *, struct mbuf *,
  			    struct pf_addr *, u_int16_t,
  			    struct pf_addr *, u_int16_t *);
  void			 pf_rule_to_actions(struct pf_rule *,
@@ -853,7 +864,7 @@ index 8959ef7..76ff290 100644
  int			 pf_test_tcp(struct pf_rule **, struct pf_state **,
  			    int, struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, struct pf_rule **,
-@@ -3430,7 +3433,7 @@ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
+@@ -3430,7 +3437,7 @@ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
  }
  
  void
@@ -862,7 +873,7 @@ index 8959ef7..76ff290 100644
  {
  	if (r->qid)
  		a->qid = r->qid;
-@@ -3442,6 +3445,111 @@ pf_rule_to_actions(struct pf_rule *r, struct pf_rule_actions *a)
+@@ -3442,6 +3449,111 @@ pf_rule_to_actions(struct pf_rule *r, struct pf_rule_actions *a)
  		a->dnpipe = r->dnpipe;
  	if (r->free_flags & PFRULE_DN_IS_PIPE)
  		a->flags |= PFRULE_DN_IS_PIPE;
@@ -974,7 +985,7 @@ index 8959ef7..76ff290 100644
  }
  
  int
-@@ -3462,7 +3570,6 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3462,7 +3574,6 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -982,7 +993,7 @@ index 8959ef7..76ff290 100644
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	int			 rewrite = 0;
-@@ -3584,7 +3691,7 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3584,7 +3695,7 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
  				if (r->action == PF_MATCH) {
  					r->packets[direction == PF_OUT]++;
  					r->bytes[direction == PF_OUT] += pd->tot_len;
@@ -991,7 +1002,7 @@ index 8959ef7..76ff290 100644
  					if (r->log)
  						PFLOG_PACKET(kif, h, m, af,
  						    direction, PFRES_MATCH, r,
-@@ -3611,7 +3718,7 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3611,7 +3722,7 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	ruleset = *rsm;
  
  	/* apply actions for last matching pass/block rule */
@@ -1000,7 +1011,7 @@ index 8959ef7..76ff290 100644
  
  	REASON_SET(&reason, PFRES_MATCH);
  
-@@ -3737,11 +3844,6 @@ cleanup:
+@@ -3737,11 +3848,6 @@ cleanup:
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = IPPROTO_TCP;
@@ -1012,7 +1023,7 @@ index 8959ef7..76ff290 100644
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -3910,7 +4012,6 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3910,7 +4016,6 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -1020,7 +1031,7 @@ index 8959ef7..76ff290 100644
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	int			 rewrite = 0;
-@@ -4028,7 +4129,7 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4028,7 +4133,7 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
  				if (r->action == PF_MATCH) {
                                          r->packets[direction == PF_OUT]++;
                                          r->bytes[direction == PF_OUT] += pd->tot_len;
@@ -1029,7 +1040,7 @@ index 8959ef7..76ff290 100644
                                          if (r->log)
                                                  PFLOG_PACKET(kif, h, m, af,
                                                      direction, PFRES_MATCH, r,
-@@ -4055,7 +4156,7 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4055,7 +4160,7 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	ruleset = *rsm;
  
  	/* apply actions for last matching pass/block rule */
@@ -1038,7 +1049,7 @@ index 8959ef7..76ff290 100644
  
  	REASON_SET(&reason, PFRES_MATCH);
  
-@@ -4159,11 +4260,6 @@ cleanup:
+@@ -4159,11 +4264,6 @@ cleanup:
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = IPPROTO_UDP;
@@ -1050,7 +1061,7 @@ index 8959ef7..76ff290 100644
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4237,7 +4333,6 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4237,7 +4337,6 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -1058,7 +1069,7 @@ index 8959ef7..76ff290 100644
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	u_int16_t		 icmpid = 0, bport, nport = 0;
-@@ -4390,7 +4485,7 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4390,7 +4489,7 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
  				if (r->action == PF_MATCH) {
                                          r->packets[direction == PF_OUT]++;
                                          r->bytes[direction == PF_OUT] += pd->tot_len;
@@ -1067,7 +1078,7 @@ index 8959ef7..76ff290 100644
                                          if (r->log)
                                                  PFLOG_PACKET(kif, h, m, af,
                                                      direction, PFRES_MATCH, r,
-@@ -4417,7 +4512,7 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4417,7 +4516,7 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	ruleset = *rsm;
  
  	/* apply actions for last matching pass/block rule */
@@ -1076,7 +1087,7 @@ index 8959ef7..76ff290 100644
  
  	REASON_SET(&reason, PFRES_MATCH);
  
-@@ -4497,11 +4592,6 @@ cleanup:
+@@ -4497,11 +4596,6 @@ cleanup:
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = pd->proto;
@@ -1088,7 +1099,7 @@ index 8959ef7..76ff290 100644
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4574,7 +4664,6 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4574,7 +4668,6 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
  	struct pf_rule		*nr = NULL;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -1096,7 +1107,7 @@ index 8959ef7..76ff290 100644
  	struct pf_src_node	*nsn = NULL;
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
  	sa_family_t		 af = pd->af;
-@@ -4674,7 +4763,7 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4674,7 +4767,7 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
  				if (r->action == PF_MATCH) {
                                          r->packets[direction == PF_OUT]++;
                                          r->bytes[direction == PF_OUT] += pd->tot_len;
@@ -1105,7 +1116,7 @@ index 8959ef7..76ff290 100644
                                          if (r->log)
                                                  PFLOG_PACKET(kif, h, m, af,
                                                      direction, PFRES_MATCH, r,
-@@ -4701,7 +4790,7 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4701,7 +4794,7 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
  	ruleset = *rsm;
  
  	/* apply actions for last matching pass/block rule */
@@ -1114,7 +1125,7 @@ index 8959ef7..76ff290 100644
  
  	REASON_SET(&reason, PFRES_MATCH);
  
-@@ -4809,11 +4898,6 @@ cleanup:
+@@ -4809,11 +4902,6 @@ cleanup:
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = pd->proto;
@@ -1126,7 +1137,7 @@ index 8959ef7..76ff290 100644
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4870,7 +4954,6 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -4870,7 +4958,6 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  {
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -1134,7 +1145,7 @@ index 8959ef7..76ff290 100644
  	sa_family_t		 af = pd->af;
  	u_short			 reason;
  	int			 tag = -1;
-@@ -4917,7 +5000,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -4917,7 +5004,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  				if (r->action == PF_MATCH) {
                                          r->packets[direction == PF_OUT]++;
                                          r->bytes[direction == PF_OUT] += pd->tot_len;
@@ -1143,7 +1154,7 @@ index 8959ef7..76ff290 100644
                                          if (r->log)
                                                  PFLOG_PACKET(kif, h, m, af,
                                                      direction, PFRES_MATCH, r,
-@@ -4944,7 +5027,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -4944,7 +5031,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  	ruleset = *rsm;
  
  	/* apply actions for last matching pass/block rule */
@@ -1152,11 +1163,11 @@ index 8959ef7..76ff290 100644
  
  	REASON_SET(&reason, PFRES_MATCH);
  
-@@ -7671,25 +7754,54 @@ done:
+@@ -7671,25 +7758,54 @@ done:
  	if ((s && s->tag) || r->rtableid)
  		pf_tag_packet(m, pd.pf_mtag, s ? s->tag : 0, r->rtableid);
  
-+	if (r->rule_flag & PFRULE_QOS && !PACKET_LOOPED(pd.pf_mtag))
++	if ((always_qos || r->rule_flag & PFRULE_QOS) && !PACKET_LOOPED(pd.pf_mtag))
 +		pf_qos_policy_apply(s, dir, kif, m, &pd);
 +
 +	if (!pd.dnpipe) {
@@ -1217,7 +1228,7 @@ index 8959ef7..76ff290 100644
  #endif /* ALTQ */
  
  #ifdef __FreeBSD__
-@@ -7743,25 +7855,19 @@ done:
+@@ -7743,25 +7859,19 @@ done:
  				return (action);
  			}
  		}
