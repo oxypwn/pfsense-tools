@@ -197,11 +197,13 @@ build_iso() {
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
 	./build_iso.sh
-	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
-		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ "${DATESTRING}" = "" ]; then
+		if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+			BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+			DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		else
+			DATESTRING=`date "+%Y%m%d-%H%M"`
+		fi
 	fi
 
 	# Ensure the images are compressed.
@@ -253,11 +255,13 @@ build_deviso() {
 build_embedded() {
 	cd $BUILDERSCRIPTS 
 	rm -rf /usr/obj*
-	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
-		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ "${DATESTRING}" = "" ]; then
+		if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+			BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+			DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		else
+			DATESTRING=`date "+%Y%m%d-%H%M"`
+		fi
 	fi
 	rm -f $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-${DATESTRING}.img.gz
 	./build_embedded.sh
@@ -365,6 +369,15 @@ donanobuilds() {
 }
 
 dobuilds() {
+	# Set a common DATESTRING for the build.
+	if [ "${DATESTRING}" = "" ]; then
+		if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+			BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+			export DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		else
+			export DATESTRING=`date "+%Y%m%d-%H%M"`
+		fi
+	fi
 	cd $BUILDERSCRIPTS
 	# Update sources and build iso
 	update_sources
@@ -383,11 +396,13 @@ dobuilds() {
 }
 
 copy_staging_ova() {
-	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
-		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ "${DATESTRING}" = "" ]; then
+		if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+			BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+			DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		else
+			DATESTRING=`date "+%Y%m%d-%H%M"`
+		fi
 	fi
 	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova"
 	mkdir -p $STAGINGAREA/virtualization
@@ -400,18 +415,25 @@ copy_staging_ova() {
 
 copy_to_staging_nanobsd() {
 	cd $BUILDERSCRIPTS
-	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
-		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ "${DATESTRING}" = "" ]; then
+		if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+			BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+			DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		else
+			DATESTRING=`date "+%Y%m%d-%H%M"`
+		fi
 	fi
 	if [ ! -f /tmp/nanosize.txt ]; then
 		echo "1g" > /tmp/nanosize.txt
 	fi
 	FILESIZE=`cat /tmp/nanosize.txt`
-	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-${DATESTRING}-nanobsd.img"
-	FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-${DATESTRING}-nanobsd-upgrade.img"
+
+	if [ "$USE_VGA" = "yes" ]; then
+		_VGA="_vga"
+	fi
+
+	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd${_VGA}-${DATESTRING}.img.gz"
+	FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd${_VGA}-upgrade-${DATESTRING}.img.gz"
 	mkdir -p $STAGINGAREA/nanobsd
 	mkdir -p $STAGINGAREA/nanobsdupdates
 
@@ -445,11 +467,13 @@ copy_to_staging_nanobsd_updates() {
 
 copy_to_staging_deviso_updates() {
 	cd $BUILDERSCRIPTS	
-	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
-		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ "${DATESTRING}" = "" ]; then
+		if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+			BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+			DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		else
+			DATESTRING=`date "+%Y%m%d-%H%M"`
+		fi
 	fi
 	mv $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.iso $STAGINGAREA/${PRODUCT_NAME}-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso 2>/dev/null
 	gzip $STAGINGAREA/${PRODUCT_NAME}-Developers-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.iso 2>/dev/null
@@ -478,11 +502,13 @@ copy_to_staging_iso_updates() {
 copy_to_staging_embedded() {
 	cd $BUILDERSCRIPTS
 	cp $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.img $STAGINGAREA/ 
-	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
-		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
-		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
-	else
-		DATESTRING=`date "+%Y%m%d-%H%M"`
+	if [ "${DATESTRING}" = "" ]; then
+		if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+			BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+			DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+		else
+			DATESTRING=`date "+%Y%m%d-%H%M"`
+		fi
 	fi
 	rm -f $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img.gz 2>/dev/null
 	mv $STAGINGAREA/${PRODUCT_NAME}.img $STAGINGAREA/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.img 2>/dev/null

@@ -204,7 +204,14 @@ echo "Image completed."
 echo "$MAKEOBJDIRPREFIXFINAL/"
 
 FILESIZE=`cat /tmp/nanosize.txt`
-DATESTRING=`date "+%Y%m%d-%H%M"`
+if [ "${DATESTRING}" = "" ]; then
+	if [ -f $PFSENSEBASEDIR/etc/version.buildtime ]; then
+		BUILDTIME=`cat $PFSENSEBASEDIR/etc/version.buildtime`
+		DATESTRING=`date -j -f "%a %b %e %T %Z %Y" "$BUILDTIME" "+%Y%m%d-%H%M"`
+	else
+		DATESTRING=`date "+%Y%m%d-%H%M"`
+	fi
+fi
 
 if [ "$USE_VGA" = "yes" ]; then
 	_VGA="_vga"
