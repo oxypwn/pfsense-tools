@@ -210,33 +210,29 @@ build_iso() {
 	if [ -f ${ISOPATH} ]; then
 		gzip ${ISOPATH}
 	fi
-	if [ -f ${MEMSTICKPATH} ]; then
-		gzip ${MEMSTICKPATH}
-	fi
-	if [ -f ${MEMSTICKSERIALPATH} ]; then
-		gzip ${MEMSTICKSERIALPATH}
-	fi
-
-	# Sometimes the files have already been gzipped before hitting this area, so we should adjust for that.
 	if [ -f ${ISOPATH}.gz ]; then
 		ISOPATH=${ISOPATH}.gz
+	fi
+	md5 ${ISOPATH} > ${ISOPATH}.md5
+	sha256 ${ISOPATH} > ${ISOPATH}.sha256
+
+	if [ -f ${MEMSTICKPATH} ]; then
+		gzip ${MEMSTICKPATH}
 	fi
 	if [ -f ${MEMSTICKPATH}.gz ]; then
 		MEMSTICKPATH=${MEMSTICKPATH}.gz
 	fi
+	md5 ${MEMSTICKPATH} > ${MEMSTICKPATH}.md5
+	sha256 ${MEMSTICKPATH} > ${MEMSTICKPATH}.sha256
+
+	if [ -f ${MEMSTICKSERIALPATH} ]; then
+		gzip ${MEMSTICKSERIALPATH}
+	fi
 	if [ -f ${MEMSTICKSERIALPATH}.gz ]; then
 		MEMSTICKSERIALPATH=${MEMSTICKSERIALPATH}.gz
 	fi
-
-	md5 ${ISOPATH} > ${ISOPATH}.md5
-	md5 ${MEMSTICKPATH} > ${MEMSTICKPATH}.md5
 	md5 ${MEMSTICKSERIALPATH} > ${MEMSTICKSERIALPATH}.md5
-
-	sha256 ${ISOPATH} > ${ISOPATH}.sha256
-	sha256 ${MEMSTICKPATH} > ${MEMSTICKPATH}.sha256
 	sha256 ${MEMSTICKSERIALPATH} > ${MEMSTICKSERIALPATH}.sha256
-
-	sha256 $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova > ${MAKEOBJDIRPREFIXFINAL}/${PRODUCT_NAME}-${PFSENSE_VERSION}-${ARCH}-${DATESTRING}.ova.sha256		
 }
 
 build_ova() {
@@ -408,7 +404,7 @@ copy_staging_ova() {
 	mkdir -p $STAGINGAREA/virtualization
 	mv $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.ova $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL $STAGINGAREA/virtualization/
-	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
+	if [ -f $STAGINGAREA/virtualization/$FILENAMEFULL.gz ]; then
 		sha256 $STAGINGAREA/virtualization/$FILENAMEFULL > $STAGINGAREA/virtualization/$FILENAMEFULL.sha256 2>/dev/null
 	fi
 }
