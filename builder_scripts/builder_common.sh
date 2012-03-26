@@ -3727,6 +3727,7 @@ install_pkg_install_ports() {
 				else
 					echo "Done!"
 				fi
+			fi
 		done
 
 		# Package up what's needed to execute and run
