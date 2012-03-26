@@ -437,21 +437,21 @@ copy_to_staging_nanobsd() {
 	mv $MAKEOBJDIRPREFIXFINAL/nanobsd.upgrade.img $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE 2>/dev/null
 	gzip $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
 	gzip $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE 2>/dev/null
-	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL.gz $STAGINGAREA/nanobsd/ 2>/dev/null
-	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE.gz $STAGINGAREA/nanobsdupdates 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL $STAGINGAREA/nanobsd/ 2>/dev/null
+	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE $STAGINGAREA/nanobsdupdates 2>/dev/null
 
-	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL.gz ]; then
-		md5 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.md5 2>/dev/null
-		sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL.gz > $STAGINGAREA/nanobsd/$FILENAMEFULL.gz.sha256 2>/dev/null
+	if [ -f $STAGINGAREA/nanobsd/$FILENAMEFULL ]; then
+		md5 $STAGINGAREA/nanobsd/$FILENAMEFULL > $STAGINGAREA/nanobsd/$FILENAMEFULL.md5 2>/dev/null
+		sha256 $STAGINGAREA/nanobsd/$FILENAMEFULL > $STAGINGAREA/nanobsd/$FILENAMEFULL.sha256 2>/dev/null
 	fi
-	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz ]; then
-		md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.md5 2>/dev/null
-		sha256 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz.sha256 2>/dev/null
+	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE ]; then
+		md5 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.md5 2>/dev/null
+		sha256 $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE > $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.sha256 2>/dev/null
 	fi
 
 	# Copy NanoBSD auto update:
-	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz ]; then
-		cp $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE.gz $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz 2>/dev/null
+	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE ]; then
+		cp $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz 2>/dev/null
 		sha256 $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz > $STAGINGAREA/latest-nanobsd-$FILESIZE.img.gz.sha256 2>/dev/null
 		cp $PFSENSEBASEDIR/etc/version.buildtime $STAGINGAREA/version-nanobsd-$FILESIZE
 	fi
