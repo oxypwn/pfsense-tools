@@ -428,8 +428,8 @@ copy_to_staging_nanobsd() {
 		_VGA="_vga"
 	fi
 
-	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd${_VGA}-${DATESTRING}.img.gz"
-	FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd${_VGA}-upgrade-${DATESTRING}.img.gz"
+	FILENAMEFULL="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd${_VGA}-${DATESTRING}.img"
+	FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${FILESIZE}-${ARCH}-nanobsd${_VGA}-upgrade-${DATESTRING}.img"
 	mkdir -p $STAGINGAREA/nanobsd
 	mkdir -p $STAGINGAREA/nanobsdupdates
 
@@ -437,6 +437,11 @@ copy_to_staging_nanobsd() {
 	mv $MAKEOBJDIRPREFIXFINAL/nanobsd.upgrade.img $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE 2>/dev/null
 	gzip $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
 	gzip $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE 2>/dev/null
+
+	# Fix names now that they're actually compressed.
+	FILENAMEFULL=${FILENAMEFULL}.gz
+	FILENAMEUPGRADE=${FILENAMEUPGRADE}.gz
+
 	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL $STAGINGAREA/nanobsd/ 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEUPGRADE $STAGINGAREA/nanobsdupdates 2>/dev/null
 
