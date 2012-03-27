@@ -160,21 +160,21 @@ clean_make_install() {
 	fi
 	PORTNOBASENAME=`basename $1`
 	echo ">>> Building $PORTNOBASENAME"
-	PKGNAME=`make -C $1 -V PKGNAME`
+	PKGNAME=`make -C $1  package-name`
 	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
 		echo ">>> Already built, skipping..."
 	else
 		# Check to see if item is already built
-		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$1" | wc -l` -gt 0 ]; then 
+		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$PKGNAME" | wc -l` -gt 0 ]; then 
 			#echo ">>> Already built $1 on this run.  Skipping..."
 		else
 			ARGUMENTS="TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
 			echo ">>> Building port $PORT"
-			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install </dev/null; then
+			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install clean </dev/null; then
 				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
 			fi
-			mv /tmp/$PORT /tmp/pfPort/$PORTNOBASENAME
-			echo "$1" >> /tmp/pfPort_alreadybuilt
+			mv /tmp/$PORT /tmp/pfPort/$PKGNAME
+			echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
 		fi
 	fi
 }
