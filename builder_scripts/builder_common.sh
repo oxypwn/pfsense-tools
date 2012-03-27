@@ -3711,7 +3711,7 @@ install_pkg_install_ports_build() {
 		kill $$
 	fi
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
-	BUILT_PKGNAME="`make -C $PORTDIRPFSA package-name`".tbz
+	BUILT_PKGNAME="`make -C $PORTDIRPFSA -V PKGNAME`".tbz
 	if [ ! -f $ALREADYBUILT/$BUILT_PKGNAME ]; then
 		echo -n ">>> Building package $PORTNAME($BUILT_PKGNAME)..."
 		if [ -f /usr/ports/packages/Old/$BUILT_PKGNAME ]; then
@@ -3737,7 +3737,7 @@ install_pkg_install_ports_build() {
                                 cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $EXTRAPORT
                                 echo "Done!"
                         fi
-                        _BUILT_PKGNAME="`make -C $EXTRAPORT package-name`"
+                        _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
                         pkg_info -e $_BUILT_PKGNAME
                         if [ "$?" != "0" ]; then
                                 script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes install </dev/null || true 2>&1 >/dev/null
