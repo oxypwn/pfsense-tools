@@ -404,7 +404,8 @@ copy_staging_ova() {
 	mkdir -p $STAGINGAREA/virtualization
 	mv $MAKEOBJDIRPREFIXFINAL/${PRODUCT_NAME}.ova $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL 2>/dev/null
 	cp $MAKEOBJDIRPREFIXFINAL/$FILENAMEFULL $STAGINGAREA/virtualization/
-	if [ -f $STAGINGAREA/virtualization/$FILENAMEFULL.gz ]; then
+	if [ -f $STAGINGAREA/virtualization/$FILENAMEFULL ]; then
+		chmod a+r $STAGINGAREA/virtualization/$FILENAMEFULL
 		sha256 $STAGINGAREA/virtualization/$FILENAMEFULL > $STAGINGAREA/virtualization/$FILENAMEFULL.sha256 2>/dev/null
 	fi
 }
