@@ -182,13 +182,28 @@ clean_make_install() {
 clean_build_install_clean() {
 	PORTPATH=$1
 	PORT=`basename $PORTPATH`
+
+	if [ ! -d $PORTPATH ]; then
+		echo ">>> Creating directory $PORTPATH"
+		mkdir -p $PORTPATH
+	else 
+		echo ">>> Found port location $PORTPATH."
+		rm -rf $PORTPATH/*
+	fi
+
+	if [ -d ${PFPORTSDIR}/$PORT ]; then
+		echo ">>> Copying pfPorts ${PORTPATH} and building..."
+		if [ ! -f ${PFPORTSDIR}/$PORT/useports ]; then
+			rm -rf $PORTPATH
+			mkdir -p $PORTPATH
+		fi
+		rm -rf ${PFPORTSDIR}/$PORT/work 2>/dev/null
+		cp -R ${PFPORTSDIR}/$PORT/* $PORTPATH/
+	fi
 	RUNLIST=`cd $PORTPATH && make build-depends-list`
 	for RUN in $RUNLIST; do
 		RUNBASENAME=`basename $RUN`
-		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$RUN" | wc -l` -lt 1 ]; then
-			echo ">>> Build dependency $RUNBASENAME of $PORT"
-			clean_make_install $RUN ${CHECK_INSTALLED}
-		fi
+		clean_make_install $RUN ${CHECK_INSTALLED}
 	done	
 	clean_make_install $PORTPATH
 }
@@ -225,51 +240,27 @@ for PORT in $PORTSTOBUILD; do
 			fi
 		fi
 	done
-	if [ -d "$PORT_LOCATION" ]; then
-		echo ">>> Found port location $PORT_LOCATION."
-		if [ -d ${PFPORTSDIR}/$PORT_NAME ]; then
-			echo ">>> Copying pfPorts${PORT_LOCATION} and building..."
-			if [ ! -f ${PFPORTSDIR}/$PORT_NAME/useports ]; then
-				rm -rf $PORT_LOCATION
-				mkdir -p $PORT_LOCATION
-			fi
-			rm -rf ${PFPORTSDIR}/$PORT_NAME/work 2>/dev/null
-			cp -R ${PFPORTSDIR}/$PORT_NAME $PORT_LOCATION/../
-		fi
-		PORTSUFFIX=`echo $PORT_LOCATION | cut -d'/' -f4-5`
-		if [ "$PORTSUFFIX" != "" ]; then
-			# Return the seperator back to its original value
-			IFS=$oIFS
-			clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
-			# Change the for seperator to use C/R instead of whitespace
-			oIFS=$IFS
-			IFS="
-"
-		else
-			echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
-		fi
-	else
-		echo ">>> Copying ${PFPORTSDIR}/$PORT_NAME $PORT_LOCATION"
-		if [ ! -d $PORT_LOCATION ]; then
-			echo ">>> Creating directory $PORT_LOCATION"
-			mkdir -p $PORT_LOCATION
-		else 
-			rm -rf $PORT_LOCATION/*
-		fi
-		rm -rf ${PFPORTSDIR}/$PORT_NAME/work 2>/dev/null
-		cp -R ${PFPORTSDIR}/$PORT_NAME/* $PORT_LOCATION/
+
+	PORTSUFFIX=`echo $PORT_LOCATION | cut -d'/' -f4-5`
+	if [ "$PORTSUFFIX" != "" ]; then
 		# Return the seperator back to its original value
 		IFS=$oIFS
 		clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
-		# If the file is not found, log it.
-		if [ ! -f $PORT_VERIFY_INSTALL_FILE ]; then
-			echo ">>> File not found $PORT - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
-		fi
 		# Change the for seperator to use C/R instead of whitespace
 		oIFS=$IFS
 		IFS="
 "
+	else
+		echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
 	fi
+	# If the file is not found, log it.
+	if [ ! -f $PORT_VERIFY_INSTALL_FILE ]; then
+		echo ">>> File not found $PORT - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
+	fi
+	# Change the for seperator to use C/R instead of whitespace
+	oIFS=$IFS
+	IFS="
+"
 done
 # Change the for seperator to use C/R instead of whitespace
 IFS="
