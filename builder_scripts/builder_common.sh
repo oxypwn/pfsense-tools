@@ -3751,6 +3751,8 @@ install_pkg_install_ports_build() {
                                 else
                                         echo "Done!"
                                 fi
+			else
+				echo ">>> Port ${EXTRAPORT} already installed...skipping."
                         fi
                 done
                         
