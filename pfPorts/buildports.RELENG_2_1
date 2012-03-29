@@ -142,6 +142,7 @@ autoconf-wrapper			/usr/ports/devel/autoconf-wrapper			/usr/local/bin/autoconf-w
 rsync						/usr/ports/net/rsync						/usr/local/bin/rsync
 qstats						/usr/ports/sysutils/qstats			/usr/local/sbin/qstats
 gogoc 						/usr/ports/net/gogoc						/usr/local/bin/gogoc
+radvd						/usr/ports/net/radvd						/usr/local/sbin/radvd
 unbound						/usr/ports/dns/unbound						/usr/local/sbin/unbound"
 
 clean_make_install() {

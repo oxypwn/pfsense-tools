@@ -39,6 +39,7 @@ sbin/bsdlabel
 sbin/rtsol
 sbin/rtsold
 usr/bin/cpio
+usr/local/sbin/radvd
 usr/local/sbin/slbd.sh
 usr/local/bin/athstats
 usr/local/bin/beep
