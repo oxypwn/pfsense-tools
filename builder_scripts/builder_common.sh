@@ -716,7 +716,7 @@ cust_overlay_host_binaries() {
 				if [ -d $CLONEDIR ]; then
 					for NEEDL in $NEEDLIB; do
 						if [ -f $NEEDL ]; then
-							cp /$NEEDL ${PFSENSEBASEDIR}/${NEEDL}
+							cp $NEEDL ${PFSENSEBASEDIR}/${NEEDL}
 						fi
 					done
 				fi
@@ -735,7 +735,7 @@ cust_overlay_host_binaries() {
 		fi
 	done
 	#export DONTSTRIP=1
-	echo ">>> Installing collected library information (usr/local), please wait..."
+	echo ">>> Installing collected library information, please wait..."
 	# Unique the libraries so we only copy them once
 	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
 	for NEEDLIB in $NEEDEDLIBS; do
