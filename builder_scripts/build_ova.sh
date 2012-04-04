@@ -110,6 +110,8 @@ export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 export version_base=`cat $CVS_CO_DIR/etc/version_base`
 export version=`cat $CVS_CO_DIR/etc/version`
 
+export PKG_INSTALL_PORTSPFS="${PKG_INSTALL_PORTSPFS} /usr/ports/emulators/open-vm-tools-nox11"
+
 if [ "$1" = "" ]; then
 
 	# Prepare object directry
