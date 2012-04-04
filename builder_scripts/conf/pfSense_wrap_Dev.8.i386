@@ -381,7 +381,7 @@ device		speaker
 
 device		hme
 
-options		DEVICE_POLLING
+nooptions		DEVICE_POLLING
 
 #options		ZERO_COPY_SOCKETS
 
