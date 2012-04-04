@@ -115,6 +115,7 @@ usr/local/lib/php/20090626/dom.so
 usr/local/lib/php/20090626/gettext.so
 usr/local/lib/php/20090626/json.so
 usr/local/lib/php/20090626/mbstring.so
+usr/local/lib/php/20090626/mcrypt.so
 usr/local/lib/php/20090626/hash.so
 usr/local/lib/php/20090626/mysql.so
 usr/local/lib/php/20090626/openssl.so
@@ -150,6 +151,8 @@ usr/local/lib/php/20090626/pdo_pgsql.so
 usr/local/lib/php/20090626/ioncube/ioncube_loader.so
 usr/local/lib/php/20090626/ioncube/ioncube_loader_ts.so
 usr/local/lib/libmhash.so.2
+usr/local/lib/libmcrypt.so.8
+usr/local/lib/libltdl.so.7
 usr/local/lib/olsrd_dyn_gw_plain.so.0.4
 usr/local/lib/olsrd_dot_draw.so.0.3
 usr/local/lib/olsrd_dyn_gw.so.0.4
