@@ -92,7 +92,7 @@ php5-pcntl					/usr/ports/devel/php5-pcntl					/usr/local/lib/php/20090626/pcntl
 php5-posix					/usr/ports/sysutils/php5-posix				/usr/local/lib/php/20090626/posix.so
 php5-pdo					/usr/ports/databases/php5-pdo				/usr/local/lib/php/20090626/pdo.so
 php5-pdo_sqlite				/usr/ports/databases/php5-pdo_sqlite		/usr/local/lib/php/20090626/pdo_sqlite.so
-pecl-radius					/usr/ports/net/pecl-radius					/usr/local/lib/php/20090626/pdo_sqlite.so
+pecl-radius					/usr/ports/net/pecl-radius					/usr/local/lib/php/20090626/radius.so
 php52-pfSense-module		/usr/ports/devel/php52-pfSense-module		/usr/local/lib/php/20090626/pfSense.so
 php5-readline				/usr/ports/devel/php5-readline				/usr/local/lib/php/20090626/readline.so
 php5-session				/usr/ports/www/php5-session					/usr/local/lib/php/20090626/session.so
