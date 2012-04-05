@@ -11,8 +11,6 @@ touch /tmp/pfPort_build_failures
 #rm -f /tmp/pfPort_alreadybuilt
 #touch /tmp/pfPort_alreadybuilt
 
-# Backup pwd and chdir to ports
-CURRENTDIR=`pwd`
 PFPORTSDIR=`dirname $0`
 
 # Individual logs here
@@ -32,7 +30,7 @@ while getopts P:J:c o; do
 done
 
 if [ -f ./pfsense-build.conf ]; then
-	if [ `cat pfsense-build.conf | grep -c 'REMOVE_PHP=true'` -gt 0 ]; then
+	if [ `grep -c 'REMOVE_PHP=true' pfsense-build.conf` -gt 0 ]; then
 		REMOVE_PHP=true
 	fi
 fi
@@ -275,9 +273,6 @@ cat /tmp/pfPort_build_failures
 echo
 
 sleep 1
-
-# Change back to original directory
-cd $CURRENTDIR
 
 # Restore
 IFS=$oIFS

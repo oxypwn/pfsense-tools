@@ -8,13 +8,10 @@ rm -f /tmp/pfPort_build_failures
 touch /tmp/pfPort_build_failures
 
 # Keep track of items already built (dependencies)
-rm -f /tmp/pfPort_alreadybuilt
-touch /tmp/pfPort_alreadybuilt
+#rm -f /tmp/pfPort_alreadybuilt
+#touch /tmp/pfPort_alreadybuilt
 
-# Backup pwd and chdir to ports
-CURRENTDIR=`pwd`
 PFPORTSDIR=`dirname $0`
-cd /usr/ports
 
 # Individual logs here
 mkdir -p /tmp/pfPort
@@ -33,7 +30,7 @@ while getopts P:J:c o; do
 done
 
 if [ -f ./pfsense-build.conf ]; then
-	if [ `cat pfsense-build.conf | grep 'REMOVE_PHP=true' | grep -v grep | wc -l` -gt 0 ]; then
+	if [ `grep -c 'REMOVE_PHP=true' pfsense-build.conf` -gt 0 ]; then
 		REMOVE_PHP=true
 	fi
 fi
@@ -146,52 +143,72 @@ radvd						/usr/ports/net/radvd						/usr/local/sbin/radvd
 unbound						/usr/ports/dns/unbound						/usr/local/sbin/unbound"
 
 clean_make_install() {
-	# Architecture, supported ARCH values are:
-	#  Tier 1: i386, AMD64, and PC98
-	#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
-	#  Tier 3: MIPS and S/390
-	#  Tier 4: None at the moment
-	#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
-	# Default is i386
-	ARCH=""
-	if [ -f pfsense_local.sh ]; then
-		MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-	elif [ -f ../builder_scripts/pfsense_local.sh ]; then
-		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-	fi
-	PORTNOBASENAME=`basename $1`
-	echo ">>> Building $PORTNOBASENAME"
-	PKGNAME=`make -C $1 -V PKGNAME`
-	if [ "$2" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
-		echo ">>> Already built, skipping..."
-	else
-		# Check to see if item is already built
-		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$1" | wc -l` -gt 0 ]; then 
-			#echo ">>> Already built $1 on this run.  Skipping..."
-		else
-			ARGUMENTS="TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} -DBATCH -DFORCE_PKG_REGISTER -DNOPORTDOCS"
-			echo ">>> Building port $PORT"
-			if ! script /tmp/$PORT make -C $1 $ARGUMENTS clean build install </dev/null; then
-				echo ">>> ERROR Building $PORT" >> /tmp/pfPort_build_failures
-			fi
-			mv /tmp/$PORT /tmp/pfPort/$PORTNOBASENAME
-			echo "$1" >> /tmp/pfPort_alreadybuilt
-		fi
-	fi
+        # Architecture, supported ARCH values are:
+        #  Tier 1: i386, AMD64, and PC98
+        #  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
+        #  Tier 3: MIPS and S/390
+        #  Tier 4: None at the moment
+        #  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
+        # Default is i386
+        ARCH=""
+        if [ -f pfsense_local.sh ]; then
+                MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+        elif [ -f ../builder_scripts/pfsense_local.sh ]; then
+                MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+        fi
+        PORTNAME=`basename $1`
+        PKGNAME=`make -C $1 -V PKGNAME`
+
+        # Complete dependency chain first
+        BUILDLIST=`cd $1 && make build-depends-list 2>/dev/null`
+        for BUILD in $BUILDLIST; do
+                clean_build_install_clean $BUILD $2
+        done
+
+        echo -n ">>> Building $PORTNAME(${PKGNAME})..."
+        if [ "$3" = "check_installed" -a -d /var/db/pkg/${PKGNAME} -a -f $2 ]; then
+                echo "already built, skipping."
+        else
+                # Check to see if item is already built
+                if [ `cat /tmp/pfPort_alreadybuilt | grep -c "$PKGNAME"` -gt 0 -a -f $2 ]; then
+                        echo "already built on this run.  Skipping..."
+                else
+                        if ! script /tmp/$PORTNAME make -C $1 TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null; then
+                                echo ">>> Building $PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
+                                echo "ERROR!"
+                                kill $$
+                        fi
+                        mv /tmp/$PORTNAME /tmp/pfPort/$PKGNAME
+                        echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
+                        echo "SUCCESS!"
+                fi
+        fi
 }
 
 clean_build_install_clean() {
-	PORTPATH=$1
-	PORT=`basename $PORTPATH`
-	RUNLIST=`cd $PORTPATH && make build-depends-list`
-	for RUN in $RUNLIST; do
-		RUNBASENAME=`basename $RUN`
-		if [ `cat /tmp/pfPort_alreadybuilt | grep -v grep | grep "$RUN" | wc -l` -lt 1 ]; then
-			echo ">>> Build dependency $RUNBASENAME of $PORT"
-			clean_make_install $RUN ${CHECK_INSTALLED}
-		fi
-	done	
-	clean_make_install $PORTPATH
+        PORTPATH=$1
+        PORTNAME=`basename $PORTPATH`
+
+        if [ ! -d $PORTPATH ]; then
+                echo -n ">>> Creating directory $PORTPATH..."
+                mkdir -p $PORTPATH
+        else
+                echo -n ">>> Found port location $PORTPATH..."
+                rm -rf $PORTPATH/*
+        fi
+
+        if [ -d ${PFPORTSDIR}/$PORTNAME ]; then
+                echo "overlaying pfPorts ${PFPORTSDIR}/$PORTNAME to ${PORTPATH} and building...Done."
+                if [ ! -f ${PFPORTSDIR}/$PORTNAME/useports ]; then
+                        rm -rf $PORTPATH
+                        mkdir -p $PORTPATH
+                fi
+                rm -rf ${PFPORTSDIR}/$PORTNAME/work 2>/dev/null
+                cp -R ${PFPORTSDIR}/$PORTNAME/* $PORTPATH/
+        else
+                echo "Done."
+        fi
+        clean_make_install $PORTPATH $2 ${CHECK_INSTALLED}
 }
 
 # Change the for seperator to use C/R instead of whitespace
@@ -199,78 +216,54 @@ oIFS=$IFS
 IFS="
 "
 for PORT in $PORTSTOBUILD; do
-	PORT_T=`echo $PORT | sed "s/		/	/g"`
-	PORT_NAME=`echo $PORT_T | awk '{ print $1 }'`
-	if [ "$BUILD_ONEPORT" != "" ]; then
-		if [ "$PORT_NAME" != "$BUILD_ONEPORT" ]; then
-			continue;
-		fi
-	fi
-	PORT_LOCATION=`echo $PORT_T | awk '{ print $2 }'`
-	PORT_VERIFY_INSTALL_FILE=`echo $PORT_T | awk '{ print $3 }'`
-	MIPS_DO_NOT_BUILD="grub 
-	beep"
-	for DONOTBUILD in $MIPS_DO_NOT_BUILD; do
-		if [ "$PORT_NAME" = "$DONOTBUILD" ]; then
-			if [ "$ARCH" = "mips" ]; then
-				echo ">>> Skipping $PORT_NAME on MIPS platform..."
-				continue;
-			fi
-			if [ "$ARCH" = "amd64" ]; then
-				echo ">>> Skipping $PORT_NAME on AMD64 platform..."
-				continue;
-			fi
-			if [ "$ARCH" = "powerpc" ]; then
-				echo ">>> Skipping $PORT_NAME on POWERPC platform..."
-				continue;
-			fi
-		fi
-	done
-	if [ -d "$PORT_LOCATION" ]; then
-		echo ">>> Found port location $PORT_LOCATION."
-		if [ -d ${PFPORTSDIR}/$PORT_NAME ]; then
-			echo ">>> Copying pfPorts${PORT_LOCATION} and building..."
-			if [ ! -f ${PFPORTSDIR}/$PORT_NAME/useports ]; then
-				rm -rf $PORT_LOCATION
-				mkdir -p $PORT_LOCATION
-			fi
-			rm -rf ${PFPORTSDIR}/$PORT_NAME/work 2>/dev/null
-			cp -R ${PFPORTSDIR}/$PORT_NAME $PORT_LOCATION/../
-		fi
-		PORTSUFFIX=`echo $PORT_LOCATION | cut -d'/' -f4-5`
-		if [ "$PORTSUFFIX" != "" ]; then
-			# Return the seperator back to its original value
-			IFS=$oIFS
-			clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
-			# Change the for seperator to use C/R instead of whitespace
-			oIFS=$IFS
-			IFS="
+        PORT_T=`echo $PORT | sed "s/            /       /g"`
+        PORT_NAME=`echo $PORT_T | awk '{ print $1 }'`
+        if [ "$BUILD_ONEPORT" != "" ]; then
+                if [ "$PORT_NAME" != "$BUILD_ONEPORT" ]; then
+                        continue;
+                fi
+        fi
+        PORT_LOCATION=`echo $PORT_T | awk '{ print $2 }'`
+        PORT_VERIFY_INSTALL_FILE=`echo $PORT_T | awk '{ print $3 }'`
+        MIPS_DO_NOT_BUILD="grub
+        beep"
+        for DONOTBUILD in $MIPS_DO_NOT_BUILD; do
+                if [ "$PORT_NAME" = "$DONOTBUILD" ]; then
+                        if [ "$ARCH" = "mips" ]; then
+                                echo ">>> Skipping $PORT_NAME on MIPS platform..."
+                                continue;
+                        fi
+                        if [ "$ARCH" = "amd64" ]; then
+                                echo ">>> Skipping $PORT_NAME on AMD64 platform..."
+                                continue;
+                        fi
+                        if [ "$ARCH" = "powerpc" ]; then
+                                echo ">>> Skipping $PORT_NAME on POWERPC platform..."
+                                continue;
+                        fi
+                fi
+        done
+
+        PORTSUFFIX=`echo $PORT_LOCATION | cut -d'/' -f4-5`
+        if [ "$PORTSUFFIX" != "" ]; then
+                # Return the seperator back to its original value
+                IFS=$oIFS
+                clean_build_install_clean $PORT_LOCATION $PORT_VERIFY_INSTALL_FILE
+                # Change the for seperator to use C/R instead of whitespace
+                oIFS=$IFS
+                IFS="
 "
-		else
-			echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
-		fi
-	else
-		echo ">>> Copying ${PFPORTSDIR}/$PORT_NAME $PORT_LOCATION"
-		if [ ! -d $PORT_LOCATION ]; then
-			echo ">>> Creating directory $PORT_LOCATION"
-			mkdir -p $PORT_LOCATION
-		else 
-			rm -rf $PORT_LOCATION/*
-		fi
-		rm -rf ${PFPORTSDIR}/$PORT_NAME/work 2>/dev/null
-		cp -R ${PFPORTSDIR}/$PORT_NAME/* $PORT_LOCATION/
-		# Return the seperator back to its original value
-		IFS=$oIFS
-		clean_build_install_clean $PORT_LOCATION $MAKEJ_PORTS
-		# If the file is not found, log it.
-		if [ ! -f $PORT_VERIFY_INSTALL_FILE ]; then
-			echo ">>> File not found $PORT - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
-		fi
-		# Change the for seperator to use C/R instead of whitespace
-		oIFS=$IFS
-		IFS="
+        else
+                echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
+        fi
+        # If the file is not found, log it.
+        if [ ! -f $PORT_VERIFY_INSTALL_FILE ]; then
+                echo ">>> File not found $PORT - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
+        fi
+        # Change the for seperator to use C/R instead of whitespace
+        oIFS=$IFS
+        IFS="
 "
-	fi
 done
 # Change the for seperator to use C/R instead of whitespace
 IFS="
@@ -281,9 +274,6 @@ cat /tmp/pfPort_build_failures
 echo
 
 sleep 1
-
-# Change back to original directory
-cd $CURRENTDIR
 
 # Restore
 IFS=$oIFS
