@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <syslog.h>
 
 /* usage: minicron interval pidfile cmd */
 
@@ -41,8 +42,10 @@ int main(int argc, char *argv[]) {
 	FILE *pidfd;
 	char *command;
 	
-	if (argc < 4)
+	if (argc < 4) {
+		syslog(LOG_ERR, "minicron: Wrong number of arguments passed");
 		exit(1);
+	}
 	
 	interval = atoi(argv[1]);
 	if (interval == 0)

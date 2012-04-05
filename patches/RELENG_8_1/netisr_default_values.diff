@@ -4,8 +4,22 @@ RCS file: /home/ncvs/src/sys/net/netisr.c,v
 retrieving revision 1.32.2.2.2.1
 diff -u -r1.32.2.2.2.1 netisr.c
 --- sys/net/netisr.c	14 Jun 2010 02:09:06 -0000	1.32.2.2.2.1
-+++ sys/net/netisr.c	27 Jul 2011 10:08:07 -0000
-@@ -138,7 +138,7 @@
++++ sys/net/netisr.c	5 Apr 2012 21:54:07 -0000
+@@ -120,6 +120,13 @@
+ 
+ SYSCTL_NODE(_net, OID_AUTO, isr, CTLFLAG_RW, 0, "netisr");
+ 
++#ifdef DEVICE_POLLING
++static int	netisr_polling = 0;	/* Enable Polling. */
++TUNABLE_INT("net.isr.polling_enable", &netisr_polling);
++SYSCTL_INT(_net_isr, OID_AUTO, polling_enable, CTLFLAG_RW,
++    &netisr_polling, 0, "Enable polling");
++#endif
++
+ /*-
+  * Three direct dispatch policies are supported:
+  *
+@@ -138,7 +145,7 @@
   * misordered processing, but this is considered acceptable as compared to
   * the complexity of enforcing ordering during policy changes.
   */
@@ -14,7 +28,7 @@ diff -u -r1.32.2.2.2.1 netisr.c
  TUNABLE_INT("net.isr.direct_force", &netisr_direct_force);
  SYSCTL_INT(_net_isr, OID_AUTO, direct_force, CTLFLAG_RW,
      &netisr_direct_force, 0, "Force direct dispatch");
-@@ -160,7 +160,7 @@
+@@ -160,7 +167,7 @@
      &netisr_maxthreads, 0,
      "Use at most this many CPUs for netisr processing");
  
@@ -23,7 +37,42 @@ diff -u -r1.32.2.2.2.1 netisr.c
  TUNABLE_INT("net.isr.bindthreads", &netisr_bindthreads);
  SYSCTL_INT(_net_isr, OID_AUTO, bindthreads, CTLFLAG_RD,
      &netisr_bindthreads, 0, "Bind netisr threads to CPUs.");
-@@ -1066,7 +1066,9 @@
+@@ -743,9 +750,11 @@
+ 	nwsp = arg;
+ 
+ #ifdef DEVICE_POLLING
+-	KASSERT(nws_count == 1,
+-	    ("%s: device_polling but nws_count != 1", __func__));
+-	netisr_poll();
++	if (netisr_polling) {
++		KASSERT(nws_count == 1,
++		    ("%s: device_polling but nws_count != 1", __func__));
++		netisr_poll();
++	}
+ #endif
+ #ifdef NETISR_LOCKING
+ 	NETISR_RLOCK(&tracker);
+@@ -770,7 +779,8 @@
+ 	NETISR_RUNLOCK(&tracker);
+ #endif
+ #ifdef DEVICE_POLLING
+-	netisr_pollmore();
++	if (netisr_polling)
++		netisr_pollmore();
+ #endif
+ }
+ 
+@@ -1015,6 +1025,9 @@
+ {
+ 	struct netisr_workstream *nwsp;
+ 
++	if (!netisr_polling)
++		return;
++
+ 	nwsp = DPCPU_ID_PTR(nws_array[0], nws);
+ 	NWS_SIGNAL(nwsp);
+ }
+@@ -1066,7 +1079,9 @@
  
  	NETISR_LOCK_INIT();
  	if (netisr_maxthreads < 1)
@@ -34,3 +83,12 @@ diff -u -r1.32.2.2.2.1 netisr.c
  	if (netisr_maxthreads > mp_ncpus) {
  		printf("netisr_init: forcing maxthreads from %d to %d\n",
  		    netisr_maxthreads, mp_ncpus);
+@@ -1083,7 +1098,7 @@
+ 	 * multiple netisr threads, so for the time being compiling in device
+ 	 * polling disables parallel netisr workers.
+ 	 */
+-	if (netisr_maxthreads != 1 || netisr_bindthreads != 0) {
++	if (netisr_polling && (netisr_maxthreads != 1 || netisr_bindthreads != 0)) {
+ 		printf("netisr_init: forcing maxthreads to 1 and "
+ 		    "bindthreads to 0 for device polling\n");
+ 		netisr_maxthreads = 1;
