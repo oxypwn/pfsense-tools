@@ -88,6 +88,7 @@ static char *pidfile = NULL;
 static char *HOSTS = NULL;
 static FILE *fp = NULL;
 static char *domain_suffix = NULL;
+static char *command = NULL;
 static size_t hostssize = 0;
 
 /* Check if file exists */
@@ -489,8 +490,11 @@ main(int argc, char **argv) {
 	if (argc != 5) {
 	}
 
-	while ((ch = getopt(argc, argv, "d:p:h:l:")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:p:h:l:")) != -1) {
 		switch (ch) {
+		case 'c':
+			command = optarg;
+			break;
 		case 'd':
 			domain_suffix = optarg;
 			break;
@@ -602,15 +606,17 @@ reopen:
 		exit(1);
 
 	now = time(NULL);
-	load_dhcp(now);
+	if (command == NULL) {
+		load_dhcp(now);
 
-	write_status();
-	//syslog(LOG_INFO, "written temp hosts file after modification event.");
+		write_status();
+		//syslog(LOG_INFO, "written temp hosts file after modification event.");
 
-	cleanup();
-	//syslog(LOG_INFO, "Cleaned up.");
+		cleanup();
+		//syslog(LOG_INFO, "Cleaned up.");
 
-	signal_process();
+		signal_process();
+	}
 
 	/* Initialise kevent structure */
 	EV_SET(&chlist, leasefd, EVFILT_VNODE, EV_ADD | EV_CLEAR | EV_ENABLE | EV_ONESHOT,
@@ -630,15 +636,19 @@ reopen:
 				goto reopen;
 			}
 			now = time(NULL);
-			load_dhcp(now);
+			if (command != NULL)
+				system(command);
+			else {
+				load_dhcp(now);
 
-			write_status();
-			//syslog(LOG_INFO, "written temp hosts file after modification event.");
+				write_status();
+				//syslog(LOG_INFO, "written temp hosts file after modification event.");
 
-			cleanup();
-			//syslog(LOG_INFO, "Cleaned up.");
+				cleanup();
+				//syslog(LOG_INFO, "Cleaned up.");
 
-			signal_process();
+				signal_process();
+			}
 		}
 	}
 
