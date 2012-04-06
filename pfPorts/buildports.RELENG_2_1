@@ -37,18 +37,12 @@ while getopts P:J:c o; do
 done
 
 if [ -f ./pfsense-build.conf ]; then
-        if [ `grep -c 'REMOVE_PHP=true' pfsense-build.conf` -gt 0 ]; then
-                REMOVE_PHP=true
-        fi
-else
-        REMOVE_PHP="false"
-fi
-
-if [ "$REMOVE_PHP" = "true" ]; then
-        echo ">>> Removing previous PHP environment..."
-        find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
-        find /usr/local -name extensions.ini -exec rm {} \;
-        rm -rf /var/db/pkg/php*
+	if [ `grep -c 'REMOVE_PHP=true' pfsense-build.conf` -gt 0 ]; then
+		echo ">>> Removing previous PHP environment..."
+		find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
+		find /usr/local -name extensions.ini -exec rm {} \;
+		rm -rf /var/db/pkg/php*
+	fi
 fi
 
 # Port name					Path to port								Verify install filename
@@ -166,10 +160,10 @@ clean_make_install() {
                 VERIFY="$2"
         fi
 
-        if [ -f pfsense_local.sh ]; then
-                MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-        elif [ -f ../builder_scripts/pfsense_local.sh ]; then
-                MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+		if [ -f pfsense_local.sh ]; then
+			MAKEJ_PORTS=`grep MAKEJ_PORTS pfsense_local.sh | cut -d'"' -f2`
+		elif [ -f ../builder_scripts/pfsense_local.sh ]; then
+			MAKEJ_PORTS=`grep MAKEJ_PORTS ../builder_scripts/pfsense_local.sh | cut -d'"' -f2`
         fi
         PORTNAME=`basename $PORTA`
         PKGNAME=`make -C $PORTA -V PKGNAME`
