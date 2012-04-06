@@ -194,7 +194,6 @@ clean_build_install_clean() {
                 mkdir -p $PORTPATH
         else
                 echo -n ">>> Found port location $PORTPATH..."
-                rm -rf $PORTPATH/*
         fi
 
         if [ -d ${PFPORTSDIR}/$PORTNAME ]; then
