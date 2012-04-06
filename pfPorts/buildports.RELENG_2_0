@@ -9,7 +9,7 @@ rm -f /tmp/pfPort_build_failures
 touch /tmp/pfPort_build_failures
 
 # Keep track of items already built (dependencies)
-#rm -f /tmp/pfPort_alreadybuilt
+rm -f /tmp/pfPort_alreadybuilt
 if [ ! -f /tmp/pfPort_alreadybuilt ]; then
         touch /tmp/pfPort_alreadybuilt
 fi
