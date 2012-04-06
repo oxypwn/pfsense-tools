@@ -1,0 +1,51 @@
+--- if_pfsync.c.oirg	2012-04-06 21:41:40.000000000 +0000
++++ if_pfsync.c	2012-04-06 21:50:29.000000000 +0000
+@@ -460,7 +460,17 @@
+ 
+ 	bcopy(&sp->rt_addr, &st->rt_addr, sizeof(st->rt_addr));
+ 	st->creation = time_second - ntohl(sp->creation);
+-	st->expire = ntohl(sp->expire) + time_second;
++	st->expire = time_second;
++	if (sp->expire) {
++		uint32_t timeout;
++
++		timeout = r->timeout[sp->timeout];
++		if (!timeout)
++			timeout = pf_default_rule.timeout[sp->timeout];
++
++			/* sp->expire may have been adaptively scaled by export. */
++			st->expire -= timeout - ntohl(sp->expire);
++	}
+ 
+ 	st->af = sp->af;
+ 	st->proto = sp->proto;
+@@ -762,7 +772,7 @@
+ 	    		pfsync_alloc_scrub_memory(&sp->dst, &st->dst);
+ 			pf_state_peer_ntoh(&sp->src, &st->src);
+ 			pf_state_peer_ntoh(&sp->dst, &st->dst);
+-			st->expire = ntohl(sp->expire) + time_second;
++			st->expire = time_second;
+ 			st->timeout = sp->timeout;
+ 		}
+ 		if (stale && sc->sc_mbuf != NULL)
+@@ -903,7 +913,7 @@
+ 	    		pfsync_alloc_scrub_memory(&up->dst, &st->dst);
+ 			pf_state_peer_ntoh(&up->src, &st->src);
+ 			pf_state_peer_ntoh(&up->dst, &st->dst);
+-			st->expire = ntohl(up->expire) + time_second;
++			st->expire = time_second;
+ 			st->timeout = up->timeout;
+ 		}
+ 		if ((update_requested || stale) && sc->sc_mbuf)
+@@ -1591,11 +1601,6 @@
+ 	pf_state_peer_hton(&st->src, &sp->src);
+ 	pf_state_peer_hton(&st->dst, &sp->dst);
+ 
+-	if (st->expire <= secs)
+-		sp->expire = htonl(0);
+-	else
+-		sp->expire = htonl(st->expire - secs);
+-
+ 	/* do we need to build "compressed" actions for network transfer? */
+ 	if (sc->sc_sync_ifp && flags & PFSYNC_FLAG_COMPRESS) {
+ 		switch (action) {
