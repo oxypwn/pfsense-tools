@@ -2,6 +2,7 @@
 
 #set -e
 #set -x
+#set -u
 
 # Keep track of build failures
 rm -f /tmp/pfPort_build_failures
@@ -9,37 +10,45 @@ touch /tmp/pfPort_build_failures
 
 # Keep track of items already built (dependencies)
 #rm -f /tmp/pfPort_alreadybuilt
-#touch /tmp/pfPort_alreadybuilt
+if [ ! -f /tmp/pfPort_alreadybuilt ]; then
+        touch /tmp/pfPort_alreadybuilt
+fi
 
 PFPORTSDIR=`dirname $0`
 
 # Individual logs here
 mkdir -p /tmp/pfPort
 
+BUILD_ONEPORT=""
+MAKEJ_PORTS=""
+CHECK_INSTALLED=""
+
 while getopts P:J:c o; do
-	case "${o}" in
-		P)	BUILD_ONEPORT="${OPTARG}"
-			echo ">>> Building a single port: '${BUILD_ONEPORT}'"
-			;;
-		J)	MAKEJ_PORTS="${OPTARG}"
-			echo ">>> Setting MAKEJ_PORTS (-j) to '${MAKEJ_PORTS}'"
-			;;
-		c)	CHECK_INSTALLED="check_installed"
-			;;
-	esac
+        case "${o}" in
+                P)      BUILD_ONEPORT="${OPTARG}"
+                        echo ">>> Building a single port: '${BUILD_ONEPORT}'"
+                        ;;
+                J)      MAKEJ_PORTS="${OPTARG}"
+                        echo ">>> Setting MAKEJ_PORTS (-j) to '${MAKEJ_PORTS}'"
+                        ;;
+                c)      CHECK_INSTALLED="check_installed"
+                        ;;
+        esac
 done
 
 if [ -f ./pfsense-build.conf ]; then
-	if [ `grep -c 'REMOVE_PHP=true' pfsense-build.conf` -gt 0 ]; then
-		REMOVE_PHP=true
-	fi
+        if [ `grep -c 'REMOVE_PHP=true' pfsense-build.conf` -gt 0 ]; then
+                REMOVE_PHP=true
+        fi
+else
+        REMOVE_PHP="false"
 fi
 
 if [ "$REMOVE_PHP" = "true" ]; then
-	echo ">>> Removing previous PHP environment..."
-	find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
-	find /usr/local -name extensions.ini -exec rm {} \;
-	rm -rf /var/db/pkg/php*
+        echo ">>> Removing previous PHP environment..."
+        find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
+        find /usr/local -name extensions.ini -exec rm {} \;
+        rm -rf /var/db/pkg/php*
 fi
 
 # Port name					Path to port								Verify install filename
@@ -151,9 +160,11 @@ clean_make_install() {
         #  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
         # Default is i386
         ARCH=""
-	PORTA=$1
-	shift
-	VERIFY="$1"
+        PORTA=$1
+        VERIFY=""
+        if [ $# -gt 1 ]; then
+                VERIFY="$2"
+        fi
 
         if [ -f pfsense_local.sh ]; then
                 MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
@@ -166,54 +177,63 @@ clean_make_install() {
         # Complete dependency chain first
         BUILDLIST=`cd $PORTA && make build-depends-list 2>/dev/null`
         for BUILD in $BUILDLIST; do
+                echo "    Building dependency $BUILD of $PORTA"
                 clean_build_install_clean $BUILD
         done
+        unset BUILD
+        unset BUILDLIST
 
         echo -n ">>> Building $PORTNAME(${PKGNAME})..."
-	if [ -z $VERIFY -a "${CHECK_INSTALLED}" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
-                echo "already built, skipping."
-        elif [ "${CHECK_INSTALLED}" = "check_installed" -a -d /var/db/pkg/${PKGNAME} -a -f $VERIFY ]; then
-                echo "already built, skipping."
-        else
-                # Check to see if item is already built
-                if [ `cat /tmp/pfPort_alreadybuilt | grep -c "$PKGNAME"` -gt 0 -a -f $VERIFY ]; then
-                        echo "already built on this run.  Skipping..."
-                else
-                        if ! script /tmp/$PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null; then
-                                echo ">>> Building $PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
-                                echo "ERROR!"
-                                kill $$
+        if [ "${CHECK_INSTALLED}" = "check_installed" ]; then
+                if [ -d /var/db/pkg/${PKGNAME} ]; then
+                        if [ -z $VERIFY -o -f $VERIFY ]; then
+                                echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
+                                echo "already built.  Skipping."
+                                return
                         fi
-                        mv /tmp/$PORTNAME /tmp/pfPort/$PKGNAME
-                        echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
-                        echo "SUCCESS!"
                 fi
         fi
+
+        # Check to see if item is already built
+        if [ `grep -c "$PKGNAME" /tmp/pfPort_alreadybuilt` -gt 0 ]; then
+                if [ -z "$VERIFY" -o -f $VERIFY ]; then
+                        echo "already built on this run.  Skipping."
+                        return;
+                fi
+        fi
+
+        script /tmp/$PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null 2>&1 1>/dev/null
+        if [ "$?" != "0" ]; then
+                echo ">>> Building $PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
+                echo "Error log on /tmp/$PORTNAME"
+                echo "Failed."
+                kill $$
+        fi
+        mv /tmp/$PORTNAME /tmp/pfPort/$PKGNAME
+        echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
+        echo "Done."
 }
 
 clean_build_install_clean() {
         PORTPATH=$1
-	shift
-	VERIFYPORT="$1"
+        VERIFYPORT=""
+        if [ $# -gt 1 ]; then
+                VERIFYPORT="$2"
+        fi
         PORTNAME=`basename $PORTPATH`
 
         if [ ! -d $PORTPATH ]; then
-                echo -n ">>> Creating directory $PORTPATH..."
                 mkdir -p $PORTPATH
-        else
-                echo -n ">>> Found port location $PORTPATH..."
         fi
 
         if [ -d ${PFPORTSDIR}/$PORTNAME ]; then
-                echo "overlaying pfPorts ${PFPORTSDIR}/$PORTNAME to ${PORTPATH} and building...Done."
+                echo ">>> Overlaying pfPorts ${PFPORTSDIR}/$PORTNAME to ${PORTPATH} and building...Done."
                 if [ ! -f ${PFPORTSDIR}/$PORTNAME/useports ]; then
                         rm -rf $PORTPATH
                         mkdir -p $PORTPATH
                 fi
                 rm -rf ${PFPORTSDIR}/$PORTNAME/work 2>/dev/null
                 cp -R ${PFPORTSDIR}/$PORTNAME/* $PORTPATH/
-        else
-                echo "Done."
         fi
         clean_make_install $PORTPATH $VERIFYPORT
 }
@@ -222,6 +242,7 @@ clean_build_install_clean() {
 oIFS=$IFS
 IFS="
 "
+
 for PORT in $PORTSTOBUILD; do
         PORT_T=`echo $PORT | sed "s/            /       /g"`
         PORT_NAME=`echo $PORT_T | awk '{ print $1 }'`
