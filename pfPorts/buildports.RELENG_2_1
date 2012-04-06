@@ -153,7 +153,7 @@ clean_make_install() {
         ARCH=""
 	PORTA=$1
 	shift
-	VERIFY=$1
+	VERIFY="$1"
 
         if [ -f pfsense_local.sh ]; then
                 MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
@@ -194,7 +194,7 @@ clean_make_install() {
 clean_build_install_clean() {
         PORTPATH=$1
 	shift
-	VERIFYPORT=$1
+	VERIFYPORT="$1"
         PORTNAME=`basename $PORTPATH`
 
         if [ ! -d $PORTPATH ]; then
