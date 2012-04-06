@@ -158,14 +158,14 @@ clean_make_install() {
         #  Tier 4: None at the moment
         #  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
         # Default is i386
-	local PORTA
-	local VERIFY
-	local _PORTNAME
-	local PKGNAME
-	local _PKGNAME
-	local BUILDLIST
+		local PORTA
+		local VERIFY
+		local _PORTNAME
+		local PKGNAME
+		local _PKGNAME
+		local BUILDLIST
 
-        ARCH=""
+        ARCH=`uname -m`
         PORTA=$1
         VERIFY=""
         if [ $# -gt 1 ]; then
