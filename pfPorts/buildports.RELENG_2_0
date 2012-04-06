@@ -150,26 +150,26 @@ clean_make_install() {
 	#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
 	# Default is i386
 	ARCH=""
-	PORT = $1
+	PORTA=$1
 	shift
-	VERIFY = $1
+	VERIFY=$1
 
 	if [ -f pfsense_local.sh ]; then
 		MAKEJ_PORTS=`cat pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 	elif [ -f ../builder_scripts/pfsense_local.sh ]; then
 		MAKEJ_PORTS=`cat ../builder_scripts/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 	fi
-	PORTNAME=`basename $PORT`
-	PKGNAME=`make -C $PORT -V PKGNAME`
+	PORTNAME=`basename $PORTA`
+	PKGNAME=`make -C $PORTA -V PKGNAME`
 
 	# Complete dependency chain first
-	BUILDLIST=`cd $PORT && make build-depends-list 2>/dev/null`
+	BUILDLIST=`cd $PORTA && make build-depends-list 2>/dev/null`
 	for BUILD in $BUILDLIST; do
 		clean_build_install_clean $BUILD
 	done	
 
 	echo -n ">>> Building $PORTNAME(${PKGNAME})..."
-	if [ -n $VERIFY -a "${CHECK_INSTALLED}" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
+	if [ -z $VERIFY -a "${CHECK_INSTALLED}" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
 		echo "already built, skipping."
 	elif [ "${CHECK_INSTALLED}" = "check_installed" -a -d /var/db/pkg/${PKGNAME} -a -f $VERIFY ]; then
 		echo "already built, skipping."
@@ -178,7 +178,7 @@ clean_make_install() {
 		if [ `cat /tmp/pfPort_alreadybuilt | grep -c "$PKGNAME"` -gt 0 -a -f $VERIFY ]; then 
 			echo "already built on this run.  Skipping..."
 		else
-			if ! script /tmp/$PORTNAME make -C $PORT TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null; then
+			if ! script /tmp/$PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null; then
 				echo ">>> Building $PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
 				echo "ERROR!"
 				kill $$
