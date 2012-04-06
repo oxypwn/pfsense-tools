@@ -162,11 +162,13 @@ clean_make_install() {
         # Complete dependency chain first
         BUILDLIST=`cd $1 && make build-depends-list 2>/dev/null`
         for BUILD in $BUILDLIST; do
-                clean_build_install_clean $BUILD $2
+                clean_build_install_clean $BUILD
         done
 
         echo -n ">>> Building $PORTNAME(${PKGNAME})..."
-        if [ "$3" = "check_installed" -a -d /var/db/pkg/${PKGNAME} -a -f $2 ]; then
+	if [ -n $2 -a "$3" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ] then
+                echo "already built, skipping."
+        elif [ "$3" = "check_installed" -a -d /var/db/pkg/${PKGNAME} -a -f $2 ]; then
                 echo "already built, skipping."
         else
                 # Check to see if item is already built
@@ -187,6 +189,8 @@ clean_make_install() {
 
 clean_build_install_clean() {
         PORTPATH=$1
+	shift
+	VERIFYPORT=$1
         PORTNAME=`basename $PORTPATH`
 
         if [ ! -d $PORTPATH ]; then
@@ -207,7 +211,7 @@ clean_build_install_clean() {
         else
                 echo "Done."
         fi
-        clean_make_install $PORTPATH $2 ${CHECK_INSTALLED}
+        clean_make_install $PORTPATH $VERIFYPORT ${CHECK_INSTALLED}
 }
 
 # Change the for seperator to use C/R instead of whitespace

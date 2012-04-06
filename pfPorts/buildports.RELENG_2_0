@@ -161,7 +161,7 @@ clean_make_install() {
 	# Complete dependency chain first
 	BUILDLIST=`cd $1 && make build-depends-list 2>/dev/null`
 	for BUILD in $BUILDLIST; do
-		clean_build_install_clean $BUILD $2
+		clean_build_install_clean $BUILD
 	done	
 
 	echo -n ">>> Building $PORTNAME(${PKGNAME})..."
