@@ -166,7 +166,7 @@ clean_make_install() {
         done
 
         echo -n ">>> Building $PORTNAME(${PKGNAME})..."
-	if [ -n $2 -a "$3" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ] then
+	if [ -n $2 -a "$3" = "check_installed" -a -d /var/db/pkg/${PKGNAME} ]; then
                 echo "already built, skipping."
         elif [ "$3" = "check_installed" -a -d /var/db/pkg/${PKGNAME} -a -f $2 ]; then
                 echo "already built, skipping."
