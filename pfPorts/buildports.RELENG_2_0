@@ -164,7 +164,6 @@ clean_make_install() {
 	local _PKGNAME
 	local BUILDLIST
 
-	ARCH=`uname -m`
 	PORTA=$1
 	VERIFY=""
 	if [ $# -gt 1 ]; then
@@ -208,8 +207,7 @@ clean_make_install() {
 		fi
 	fi
 
-	script /tmp/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null 2>&1 1>/dev/null
-	if [ "$?" != "0" ]; then
+	if ! script /tmp/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null 2>&1 1>/dev/null; then
 		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
 		echo "Error log on /tmp/$_PORTNAME"
 		echo "Failed."
@@ -264,20 +262,20 @@ for PORT in $PORTSTOBUILD; do
 	PORT_LOCATION=`echo $PORT_T | awk '{ print $2 }'`
 	PORT_VERIFY_INSTALL_FILE=`echo $PORT_T | awk '{ print $3 }'`
 	MIPS_DO_NOT_BUILD="grub
- beep"
+beep"
 	for DONOTBUILD in $MIPS_DO_NOT_BUILD; do
 		if [ "$PORT_NAME" = "$DONOTBUILD" ]; then
 			if [ "$ARCH" = "mips" ]; then
 				echo ">>> Skipping $PORT_NAME on MIPS platform..."
-				continue;
+				continue 2;
 			fi
 			if [ "$ARCH" = "amd64" ]; then
 				echo ">>> Skipping $PORT_NAME on AMD64 platform..."
-				continue;
+				continue 2;
 			fi
 			if [ "$ARCH" = "powerpc" ]; then
 				echo ">>> Skipping $PORT_NAME on POWERPC platform..."
-				continue;
+				continue 2;
 			fi
 		fi
 	done
