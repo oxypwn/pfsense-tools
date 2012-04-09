@@ -42,6 +42,8 @@ if [ -f ./pfsense-build.conf ]; then
 		find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
 		find /usr/local -name extensions.ini -exec rm {} \;
 		rm -rf /var/db/pkg/php*
+		sed -e '/php/d' -e '/pecl/d' /tmp/pfPort_alreadybuilt > /tmp/pfPort_alreadybuilt_REMOVE_PHP
+		mv /tmp/pfPort_alreadybuilt_REMOVE_PHP /tmp/pfPort_alreadybuilt
 	fi
 fi
 if [ -f pfsense_local.sh ]; then
