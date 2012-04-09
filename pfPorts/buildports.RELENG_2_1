@@ -213,7 +213,6 @@ clean_make_install() {
 		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
 		echo "Error log on /tmp/$_PORTNAME"
 		echo "Failed."
-		kill $$
 	fi
 	mv /tmp/$_PORTNAME /tmp/pfPort/$PKGNAME
 	echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
