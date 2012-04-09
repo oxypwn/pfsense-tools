@@ -115,7 +115,7 @@ php5-zlib					/usr/ports/archivers/php5-zlib				/usr/local/lib/php/20090626/zlib
 php5-xmlreader				/usr/ports/textproc/php5-xmlreader			/usr/local/lib/php/20090626/xmlreader.so
 php5-xmlwriter				/usr/ports/textproc/php5-xmlwriter			/usr/local/lib/php/20090626/xmlwriter.so
 pecl-inclued				/usr/ports/devel/pecl-inclued				/usr/local/lib/php/20090626/inclued.so
-zmq							/usr/ports/devel/zmq						/usr/local/bin/zmq_queue
+zmq							/usr/ports/devel/zmq						/usr/local/lib/libzmq.so.1
 php-zmq						/usr/ports/devel/php-zmq					/usr/local/lib/php/20090626/zmq.so
 php-xdebug					/usr/ports/devel/php-xdebug					/usr/local/lib/php/extensions/no-debug-non-zts-20020429/xdebug.so
 php5-suhosin					/usr/ports/security/php5-suhosin				/usr/local/lib/php/20090626/suhosin.so
