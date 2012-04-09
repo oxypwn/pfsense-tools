@@ -119,7 +119,7 @@ php52-xmlwriter				/usr/ports/textproc/php52-xmlwriter			/usr/local/lib/php/2006
 pecl-inclued				/usr/ports/devel/pecl-inclued				/usr/local/lib/php/20060613/inclued.so
 zmq							/usr/ports/devel/zmq						/usr/local/lib/libzmq.so.1
 php-zmq						/usr/ports/devel/php-zmq					/usr/local/lib/php/20060613/zmq.so
-php-xdebug					/usr/ports/devel/php-xdebug					/usr/local/lib/php/extensions/no-debug-non-zts-20020429/xdebug.so
+php-xdebug					/usr/ports/devel/php-xdebug					/usr/local/lib/php/20060613/xdebug.so
 php-suhosin					/usr/ports/security/php-suhosin				/usr/local/lib/php/20060613/suhosin.so
 openvpn-ipv6				/usr/ports/security/openvpn-ipv6			/usr/local/sbin/openvpn
 syslog-ng					/usr/ports/sysutils/syslog-ng				/usr/local/sbin/syslog-ng
