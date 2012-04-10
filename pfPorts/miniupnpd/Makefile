@@ -6,12 +6,12 @@
 #
 
 PORTNAME=	miniupnpd
-PORTVERSION=	1.6.20120305
+PORTVERSION=	1.6.20120406
 CATEGORIES=	net
 MASTER_SITES=	http://miniupnp.tuxfamily.org/files/ \
 		http://miniupnp.free.fr/files/
 
-MAINTAINER=	squat@squat.no
+MAINTAINER=	seth.mos@dds.nl
 COMMENT=	A UPnP IGD implementation which uses pf/ipf
 
 SUB_FILES=	miniupnpd.conf.sample
