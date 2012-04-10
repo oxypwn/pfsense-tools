@@ -57,6 +57,8 @@ return {
 		cmds:add("echo -D >> /mnt/boot.config")
 		cmds:add("echo console=\"comconsole\" >> /mnt/boot/loader.conf")
 		cmds:execute()
+	end
+
 	return step:next()
 
     end
