@@ -27,23 +27,40 @@
 	POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <syslog.h>
+#include <signal.h>
+
+
+static pid_t pid = 0;
+static int quit = 0;
 
 /* usage: minicron interval pidfile cmd */
+static void
+killchild(int signal) {
+	quit = 1;
+	if (pid) {
+		kill(pid, SIGTERM);
+		//syslog(LOG_ERR, "Killing   child %d", signal);
+		pid = 0;
+	}
+}
 
 int main(int argc, char *argv[]) {
 	
-	int interval;
+	int interval, status, sig;
 	size_t len;
 	FILE *pidfd;
-	char *command;
+	char *command, *signame;
 	
 	if (argc < 4) {
-		syslog(LOG_ERR, "minicron: Wrong number of arguments passed");
+		syslog(LOG_ERR, "Wrong number of arguments passed");
 		exit(1);
 	}
 	
@@ -64,31 +81,71 @@ int main(int argc, char *argv[]) {
 	closefrom(3);
 
 	/* go into background */
-	if (daemon(0, 0) == -1)
+	if (daemon(0, 0) == -1) {
+		syslog(LOG_ERR, "Failed to daemonize");
 		exit(1);
-	
+	}
+
 	/* write PID to file */
 	pidfd = fopen(argv[2], "w");
 	if (pidfd) {
 		fprintf(pidfd, "%d\n", getpid());
 		fclose(pidfd);
+	} else
+		syslog(LOG_ERR, "Failed to write pidfile");
+
+	while (!quit) {
+		signal(SIGTERM, SIG_DFL);
+		pid = fork();
+
+		switch (pid) {
+		case 0:
+			len = strlen(argv[3]);
+			if (argc > 4) {
+				len += strlen(argv[4]) + 2;
+				command = calloc(1, len * sizeof(char));
+				snprintf(command, len, "%s %s", argv[3], argv[4]);
+			} else {
+				command = calloc(1, (len + 2) * sizeof(char));
+				snprintf(command, len + 2, "%s %s", argv[3], argv[4]);
+			}
+
+			setproctitle("helper %s", command);
+
+			while (1) {
+				sleep(interval);
+				
+				system(command);
+			}
+			free(command);
+
+			return;
+			/* NOTREACHED */
+			break;
+		case -1:
+			syslog(LOG_ERR, "Something went wrong during fork call");
+			break;
+		default:
+			break;
+		}
+
+		signal(SIGTERM, killchild);
+
+		if (wait(&status) > 0) {
+			if (WIFEXITED(status))
+				syslog(LOG_ERR, "(%s) terminated with exit code (%d)", argv[3], WEXITSTATUS(status));
+			else if (WIFSIGNALED(status)) {
+				sig = WTERMSIG(status);
+				signame = strsignal(sig) ? strsignal(sig) : "unknown";
+				syslog(LOG_ERR, "(%s) terminated by signal %d (%s)", argv[3], sig, signame);
+			}
+			//syslog(LOG_INFO, "Restarting command %s(%d)", argv[3], quit);
+		}
 	}
 
-	len = strlen(argv[3]);
-	if (argc > 4) {
-		len += strlen(argv[4]) + 2;
-		command = calloc(1, len * sizeof(char));
-		snprintf(command, len, "%s %s", argv[3], argv[4]);
-	} else {
-		command = calloc(1, (len + 2) * sizeof(char));
-		snprintf(command, len + 2, "%s %s", argv[3], argv[4]);
+	if (pid) {
+		kill(pid, SIGTERM);
+		//syslog(LOG_ERR, "1Killing   child");
+		pid = 0;
 	}
-
-	while (1) {
-		sleep(interval);
-		
-		system(command);
-	}
-
-	free(command);
 }
