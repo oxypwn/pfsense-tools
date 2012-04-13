@@ -1,6 +1,6 @@
-diff -ur ../ntpd.orig/log.c ./log.c
---- ../ntpd.orig/log.c	2012-04-11 19:36:59.000000000 +0000
-+++ ./log.c	2012-04-11 19:37:12.000000000 +0000
+diff -ur ../ntpd.old/log.c ./log.c
+--- ../ntpd.old/log.c	2012-04-13 12:29:24.000000000 +0000
++++ ./log.c	2012-04-13 12:29:33.000000000 +0000
 @@ -42,7 +42,7 @@
  
  	debug = n_debug;
@@ -21,9 +21,22 @@ diff -ur ../ntpd.orig/log.c ./log.c
  		vsyslog(pri, fmt, ap);
  }
  
-diff -ur ../ntpd.orig/ntpd.c ./ntpd.c
---- ../ntpd.orig/ntpd.c	2012-04-11 19:36:59.000000000 +0000
-+++ ./ntpd.c	2012-04-11 19:42:08.000000000 +0000
+diff -ur ../ntpd.old/ntp.c ./ntp.c
+--- ../ntpd.old/ntp.c	2012-04-13 12:29:24.000000000 +0000
++++ ./ntp.c	2012-04-13 12:43:43.000000000 +0000
+@@ -396,6 +396,9 @@
+ 		ntp_report = 0;
+ 	}
+ 
++	if (dns_pid)
++		kill(dns_pid, SIGTERM);
++
+ 	msgbuf_write(&ibuf_main->w);
+ 	msgbuf_clear(&ibuf_main->w);
+ 	free(ibuf_main);
+diff -ur ../ntpd.old/ntpd.c ./ntpd.c
+--- ../ntpd.old/ntpd.c	2012-04-13 12:29:24.000000000 +0000
++++ ./ntpd.c	2012-04-13 12:46:08.000000000 +0000
 @@ -144,6 +144,7 @@
  	if ((pw = getpwnam(NTPD_USER)) == NULL)
  		errx(1, "unknown user %s", NTPD_USER);
