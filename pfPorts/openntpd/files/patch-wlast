@@ -1,12 +1,12 @@
 diff -ur ../ntpd.old/log.c ./log.c
---- ../ntpd.old/log.c	2012-03-01 22:10:50.000000000 +0000
-+++ ./log.c	2012-03-01 22:14:55.000000000 +0000
+--- ../ntpd.old/log.c	2012-04-13 18:12:25.000000000 +0000
++++ ./log.c	2012-04-13 18:13:04.000000000 +0000
 @@ -42,7 +42,7 @@
  
  	debug = n_debug;
  
 -	if (!debug)
-+	if (!debugsyslog)
++	if (debugsyslog)
  		openlog(__progname, LOG_PID | LOG_NDELAY, LOG_NTP);
  
  	tzset();
@@ -21,9 +21,38 @@ diff -ur ../ntpd.old/log.c ./log.c
  		vsyslog(pri, fmt, ap);
  }
  
+diff -ur ../ntpd.old/ntp.c ./ntp.c
+--- ../ntpd.old/ntp.c	2012-04-13 18:12:25.000000000 +0000
++++ ./ntp.c	2012-04-13 18:12:34.000000000 +0000
+@@ -396,6 +396,9 @@
+ 		ntp_report = 0;
+ 	}
+ 
++	if (dns_pid)
++		kill(dns_pid, SIGTERM);
++
+ 	msgbuf_write(&ibuf_main->w);
+ 	msgbuf_clear(&ibuf_main->w);
+ 	free(ibuf_main);
 diff -ur ../ntpd.old/ntpd.c ./ntpd.c
---- ../ntpd.old/ntpd.c	2012-03-01 22:10:50.000000000 +0000
-+++ ./ntpd.c	2012-03-01 22:13:41.000000000 +0000
+--- ../ntpd.old/ntpd.c	2012-04-13 18:12:25.000000000 +0000
++++ ./ntpd.c	2012-04-13 18:13:43.000000000 +0000
+@@ -50,7 +50,6 @@
+ volatile sig_atomic_t	 sigchld = 0;
+ struct imsgbuf		*ibuf;
+ int			 debugsyslog = 0;
+-int			 timeout = INFTIM;
+ 
+ void
+ sighdlr(int sig)
+@@ -91,6 +90,7 @@
+ 	int			 ch, nfds;
+ 	int			 pipe_chld[2];
+ 	struct passwd		*pw;
++	int			 timeout = INFTIM;
+ 
+ 	conffile = CONFFILE;
+ 
 @@ -144,6 +144,7 @@
  	if ((pw = getpwnam(NTPD_USER)) == NULL)
  		errx(1, "unknown user %s", NTPD_USER);
@@ -32,26 +61,80 @@ diff -ur ../ntpd.old/ntpd.c ./ntpd.c
  	reset_adjtime();
  	if (!lconf.settime) {
  		log_init(lconf.debug);
-@@ -185,15 +186,17 @@
+@@ -185,17 +186,6 @@
  				quit = 1;
  			}
  
 -		if (nfds == 0 && lconf.settime) {
-+		if (lconf.settime) {
- 			lconf.settime = 0;
- 			timeout = INFTIM;
+-			lconf.settime = 0;
+-			timeout = INFTIM;
 -			log_init(lconf.debug);
+-			log_debug("no reply received in time, skipping initial "
+-			    "time setting");
+-			if (!lconf.debug)
+-				if (daemon(1, 0))
+-					fatal("daemon");
+-		}
+-
+ 		if (nfds > 0 && (pfd[PFD_PIPE].revents & POLLOUT))
+ 			if (msgbuf_write(&ibuf->w) < 0) {
+ 				log_warn("pipe write error (to child)");
+@@ -208,6 +198,21 @@
+ 				quit = 1;
+ 		}
+ 
++		if (lconf.settime) {
++			lconf.settime = 0;
++			timeout = INFTIM;
 +			signal(SIGCHLD, SIG_DFL);
 +			if (chld_pid)
 +				kill(chld_pid, SIGTERM);
 +			msgbuf_clear(&ibuf->w);
++			close(pipe_chld[0]);
 +			free(ibuf);
- 			log_debug("no reply received in time, skipping initial "
- 			    "time setting");
--			if (!lconf.debug)
++			if (nfds == 0)
++				log_debug("no reply received in time, skipping initial "
++				    "time setting");
++			goto reinit;
++		}
++
+ 		if (sigchld) {
+ 			if (check_child(chld_pid, "child")) {
+ 				quit = 1;
+@@ -276,12 +281,12 @@
+ 		return (-1);
+ 	}
+ 
+-	for (;;) {
++	//for (;;) {
+ 		if ((n = imsg_get(ibuf, &imsg)) == -1)
+ 			return (-1);
+ 
+ 		if (n == 0)
+-			break;
++			return (-1);
+ 
+ 		switch (imsg.hdr.type) {
+ 		case IMSG_ADJTIME:
+@@ -306,12 +311,6 @@
+ 			log_init(lconf->debug);
+ 			memcpy(&d, imsg.data, sizeof(d));
+ 			ntpd_settime(d);
+-			/* daemonize now */
+-			if (!lconf->debug)
 -				if (daemon(1, 0))
 -					fatal("daemon");
-+			goto reinit;
+-			lconf->settime = 0;
+-			timeout = INFTIM;
+ 			break;
+ 		case IMSG_HOST_DNS:
+ 			name = imsg.data;
+@@ -338,7 +337,7 @@
+ 			break;
  		}
+ 		imsg_free(&imsg);
+-	}
++	//}
+ 	return (0);
+ }
  
- 		if (nfds > 0 && (pfd[PFD_PIPE].revents & POLLOUT))
