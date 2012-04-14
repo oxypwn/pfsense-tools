@@ -200,7 +200,7 @@ main(int argc, char *argv[])
 	openlog("sshlockout", LOG_PID|LOG_CONS, LOG_AUTH|LOG_AUTHPRIV);
 
 	// We are starting up
-	syslog(LOG_ERR, "sshlockout/webConfigurator v%s starting up", VERSION);
+	syslog(LOG_NOTICE, "sshlockout/webConfigurator v%s starting up", VERSION);
 
 	// Init DB
 	TAILQ_INIT(&lockouts);
@@ -249,7 +249,7 @@ main(int argc, char *argv[])
 	pthread_cancel(GC);
 
 	// We are exiting
-	syslog(LOG_ERR, "sshlockout/webConfigurator v%s exiting", VERSION);
+	syslog(LOG_NOTICE, "sshlockout/webConfigurator v%s exiting", VERSION);
 
 	// That's all folks.
 	return(0);
@@ -341,7 +341,7 @@ doaction(char *str, char *lockouttable, enum action act)
 	sshlog->inactive = 1; 
 
 	// Notify syslog of the host being blocked (IPADDR)
-	syslog(LOG_ERR, "Locking out %d.%d.%d.%d after %i invalid attempts\n",
+	syslog(LOG_WARNING, "Locking out %d.%d.%d.%d after %i invalid attempts\n",
 		n1, n2, n3, n4, MAXATTEMPTS);
 
 	pf_tableentry(lockouttable, n1, n2, n3, n4);
