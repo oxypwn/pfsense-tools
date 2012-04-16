@@ -119,7 +119,7 @@ diff -u -r1.152 syslogd.c
  
  	dprintf("cfline(\"%s\", f, \"%s\", \"%s\")\n", line, prog, host);
  
-@@ -1947,10 +1947,16 @@
+@@ -1947,9 +1947,16 @@
  			tp = f->f_un.f_forw.f_hname;
  			p++;
  
@@ -127,17 +127,16 @@ diff -u -r1.152 syslogd.c
 +			while (*p && (*p != ':') && (*p != '[') && (i-- > 0)) {
  				*tp++ = *p++;
  			}
--			*tp = '\0';
 +			if (*p == '[') {
 +				p++;
 +				while (*p && (*p != ']') && (i-- > 0)) {
 +					*tp++ = *p++;
 +				}
 +				p++;
-+			}			*tp = '\0';
++			}
+ 			*tp = '\0';
  		}
  		/* See if we copied a domain and have a port */
- 		if (*p == ':')
 @@ -1951,6 +1987,38 @@
  		}
  		break;
