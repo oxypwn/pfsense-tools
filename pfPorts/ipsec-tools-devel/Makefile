@@ -45,8 +45,8 @@ OPTIONS=	DEBUG		"enable Debug support" off \
 		FRAG		"enable IKE fragmentation payload support" on \
 		HYBRID		"enable Hybrid, Xauth and Mode-cfg support" on \
 		PAM		"enable PAM authentication (Xauth server)" off \
-		RADIUS		"enable Radius authentication (Xauth server)" on \
-		LDAP		"enable LDAP authentication (Xauth server)" on \
+		RADIUS		"enable Radius authentication (Xauth server)" off \
+		LDAP		"enable LDAP authentication (Xauth server)" off \
 		GSSAPI		"enable GSS-API authentication" off \
 		SAUNSPEC	"enable Unspecified SA mode" on \
 		RC5		"enable RC5 encryption (patented)" off \
