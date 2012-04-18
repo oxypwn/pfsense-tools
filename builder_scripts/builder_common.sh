@@ -3745,7 +3745,7 @@ install_pkg_install_ports_build() {
                         fi
                         _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
                         if [ "`pkg_info -e $_BUILT_PKGNAME`" != "0" ]; then
-                                script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes clean install </dev/null || true 2>&1 >/dev/null
+                                script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes clean install </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
                                 if [ "$?" != "0" ]; then
                                         echo
                                         echo
@@ -3780,8 +3780,8 @@ install_pkg_install_ports_build() {
                 done
 
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null || true 2>&1 >/dev/null
-		script -a /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null || true 2>&1 >/dev/null
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
+		script -a /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
 			echo
 			echo
