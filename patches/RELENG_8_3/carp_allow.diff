@@ -1,11 +1,8 @@
-Index: sys/netinet/ip_carp.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/netinet/ip_carp.c,v
-retrieving revision 1.2
-diff -u -r1.2 ip_carp.c
---- sys/netinet/ip_carp.c	14 Jul 2011 20:36:22 -0000	1.2
-+++ sys/netinet/ip_carp.c	14 Jul 2011 20:39:01 -0000
-@@ -906,6 +906,9 @@
+diff --git a/sys/netinet/ip_carp.c b/sys/netinet/ip_carp.c
+index a4890dd..5b5fb19 100644
+--- a/sys/netinet/ip_carp.c
++++ b/sys/netinet/ip_carp.c
+@@ -914,6 +914,9 @@ carp_send_ad_locked(struct carp_softc *sc, int wlocked)
  		tv.tv_usec = advskew * 1000000 / 256;
  	}
  
@@ -15,7 +12,56 @@ diff -u -r1.2 ip_carp.c
  	ch.carp_version = CARP_VERSION;
  	ch.carp_type = CARP_ADVERTISEMENT;
  	ch.carp_vhid = sc->sc_vhid;
-@@ -1079,6 +1082,7 @@
+@@ -932,10 +935,7 @@ carp_send_ad_locked(struct carp_softc *sc, int wlocked)
+ 			SC2IFP(sc)->if_oerrors++;
+ 			CARPSTATS_INC(carps_onomem);
+ 			/* XXX maybe less ? */
+-			if (advbase != 255 || advskew != 255)
+-				callout_reset(&sc->sc_ad_tmo, tvtohz(&tv),
+-				    carp_send_ad, sc);
+-			return;
++			goto resettimer;
+ 		}
+ 		len = sizeof(*ip) + sizeof(ch);
+ 		m->m_pkthdr.len = len;
+@@ -959,7 +959,7 @@ carp_send_ad_locked(struct carp_softc *sc, int wlocked)
+ 		ch_ptr = (struct carp_header *)(&ip[1]);
+ 		bcopy(&ch, ch_ptr, sizeof(ch));
+ 		if (carp_prepare_ad(m, sc, ch_ptr))
+-			return;
++			goto resettimer;
+ 
+ 		m->m_data += sizeof(*ip);
+ 		ch_ptr->carp_cksum = carp_cksum(m, len - sizeof(*ip));
+@@ -1011,10 +1011,7 @@ carp_send_ad_locked(struct carp_softc *sc, int wlocked)
+ 			SC2IFP(sc)->if_oerrors++;
+ 			CARPSTATS_INC(carps_onomem);
+ 			/* XXX maybe less ? */
+-			if (advbase != 255 || advskew != 255)
+-				callout_reset(&sc->sc_ad_tmo, tvtohz(&tv),
+-				    carp_send_ad, sc);
+-			return;
++			goto resettimer;
+ 		}
+ 		len = sizeof(*ip6) + sizeof(ch);
+ 		m->m_pkthdr.len = len;
+@@ -1037,13 +1034,13 @@ carp_send_ad_locked(struct carp_softc *sc, int wlocked)
+ 			SC2IFP(sc)->if_oerrors++;
+ 			m_freem(m);
+ 			CARP_DEBUG("%s: in6_setscope failed\n", __func__);
+-			return;
++			goto resettimer;
+ 		}
+ 
+ 		ch_ptr = (struct carp_header *)(&ip6[1]);
+ 		bcopy(&ch, ch_ptr, sizeof(ch));
+ 		if (carp_prepare_ad(m, sc, ch_ptr))
+-			return;
++			goto resettimer;
+ 
+ 		m->m_data += sizeof(*ip6);
+ 		ch_ptr->carp_cksum = carp_cksum(m, len - sizeof(*ip6));
+@@ -1087,6 +1084,7 @@ carp_send_ad_locked(struct carp_softc *sc, int wlocked)
  	}
  #endif /* INET6 */
  
