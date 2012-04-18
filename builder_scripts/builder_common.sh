@@ -3719,16 +3719,6 @@ install_pkg_install_ports_build() {
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
 	BUILT_PKGNAME="`make -C $PORTDIRPFSA -V PKGNAME`".tbz
 	if [ ! -f $ALREADYBUILT/$BUILT_PKGNAME ]; then
-		echo -n ">>> Building package $PORTNAME($BUILT_PKGNAME)..."
-		if [ -f /usr/ports/packages/Old/$BUILT_PKGNAME ]; then
-			echo -n " Using already built port found in cache... "
-			cp -R /usr/ports/packages/Old/$BUILT_PKGNAME \
-				/usr/ports/packages/All/
-			touch $ALREADYBUILT/$BUILT_PKGNAME
-			echo "Done!"
-			return;
-		fi
-
                 # Package up what's needed to execute and run
                 for EXTRAPORT in `cd $PORTDIRPFSA && make build-depends-list run-depends-list all-depends-list | sort | uniq | xargs /bin/echo -n `; do
                         _PORTNAME="`basename $EXTRAPORT`"
@@ -3746,6 +3736,16 @@ install_pkg_install_ports_build() {
                         fi
                         install_pkg_install_ports_build $EXTRAPORT
                 done
+
+		echo -n ">>> Building package $PORTNAME($BUILT_PKGNAME)..."
+		if [ -f /usr/ports/packages/Old/$BUILT_PKGNAME ]; then
+			echo -n " Using already built port found in cache... "
+			cp -R /usr/ports/packages/Old/$BUILT_PKGNAME \
+				/usr/ports/packages/All/
+			touch $ALREADYBUILT/$BUILT_PKGNAME
+			echo "Done!"
+			return;
+		fi
 
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
