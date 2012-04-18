@@ -3702,6 +3702,11 @@ install_pkg_install_ports() {
 }
 
 install_pkg_install_ports_build() {
+	local PORTDIRPFSA
+	local PORTNAME
+	local _PORTNAME
+	local BUILT_PKGNAME
+
 	PORTDIRPFSA="$1"
 
 	# XXX: Maybe remove this code as its already done above!
@@ -3725,22 +3730,22 @@ install_pkg_install_ports_build() {
 		fi
 		# Install the required port for the build environment
                 for EXTRAPORT in `cd $PORTDIRPFSA && make build-depends-list | sort | uniq | xargs /bin/echo -n `; do
-                        PORTNAME="`basename $EXTRAPORT`"
-                        if [ "$PORTNAME" = "" ]; then
-                                echo "PORTNAME is blank.  Cannot continue."
+                        _PORTNAME="`basename $EXTRAPORT`"
+                        if [ "$_PORTNAME" = "" ]; then
+                                echo "_PORTNAME is blank.  Cannot continue."
                                 print_error_pfS
                                 kill $$
                         fi
-                        if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
+                        if [ -d $pfSPORTS_BASE_DIR/${_PORTNAME} ]; then
                                 echo -n ">>> Overlaying port $PORTNAME from pfPorts..."
                                 # Cleanup to avoid issues with extra/different patches
                                 rm -rf $EXTRAPORT/*
-                                cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $EXTRAPORT
+                                cp -R $pfSPORTS_BASE_DIR/${_PORTNAME}/* $EXTRAPORT
                                 echo "Done!"
                         fi
                         _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
                         if [ "`pkg_info -e $_BUILT_PKGNAME`" != "0" ]; then
-                                script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes install </dev/null || true 2>&1 >/dev/null
+                                script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes clean install </dev/null || true 2>&1 >/dev/null
                                 if [ "$?" != "0" ]; then
                                         echo
                                         echo
@@ -3758,17 +3763,17 @@ install_pkg_install_ports_build() {
                         
                 # Package up what's needed to execute and run
                 for EXTRAPORT in `cd $PORTDIRPFSA && make run-depends-list | sort | uniq | xargs /bin/echo -n `; do
-                        PORTNAME="`basename $EXTRAPORT`"
-                        if [ "$PORTNAME" = "" ]; then
-                                echo "PORTNAME is blank.  Cannot continue."
+                        _PORTNAME="`basename $EXTRAPORT`"
+                        if [ "$_PORTNAME" = "" ]; then
+                                echo "Run list _PORTNAME is blank.  Cannot continue."
                                 print_error_pfS
                                 kill $$
                         fi
-                        if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
-                                echo -n ">>> Overlaying port $PORTNAME from pfPorts..."
+                        if [ -d $pfSPORTS_BASE_DIR/${_PORTNAME} ]; then
+                                echo -n ">>> Overlaying port $_PORTNAME from pfPorts..."
                                 # Cleanup to avoid issues with extra/different patches
                                 rm -rf $EXTRAPORT/*
-                                cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $EXTRAPORT
+                                cp -R $pfSPORTS_BASE_DIR/${_PORTNAME}/* $EXTRAPORT
                                 echo "Done!"
                         fi
                         install_pkg_install_ports_build $EXTRAPORT
@@ -3776,7 +3781,7 @@ install_pkg_install_ports_build() {
 
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
 		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null || true 2>&1 >/dev/null
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null || true 2>&1 >/dev/null
+		script -a /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes package </dev/null || true 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
 			echo
 			echo
