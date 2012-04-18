@@ -3728,41 +3728,9 @@ install_pkg_install_ports_build() {
 			echo "Done!"
 			return;
 		fi
-		# Install the required port for the build environment
-                for EXTRAPORT in `cd $PORTDIRPFSA && make build-depends-list | sort | uniq | xargs /bin/echo -n `; do
-                        _PORTNAME="`basename $EXTRAPORT`"
-                        if [ "$_PORTNAME" = "" ]; then
-                                echo "_PORTNAME is blank.  Cannot continue."
-                                print_error_pfS
-                                kill $$
-                        fi
-                        if [ -d $pfSPORTS_BASE_DIR/${_PORTNAME} ]; then
-                                echo -n ">>> Overlaying port $PORTNAME from pfPorts..."
-                                # Cleanup to avoid issues with extra/different patches
-                                rm -rf $EXTRAPORT/*
-                                cp -R $pfSPORTS_BASE_DIR/${_PORTNAME}/* $EXTRAPORT
-                                echo "Done!"
-                        fi
-                        _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
-                        if [ "`pkg_info -e $_BUILT_PKGNAME`" != "0" ]; then
-                                script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes clean install </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
-                                if [ "$?" != "0" ]; then
-                                        echo
-                                        echo
-                                        echo "!!! Something went wrong while building ${EXTRAPORT}"
-                                        echo "    Press RETURN/ENTER to view the log from this build."
-                                        read inputline
-                                        more /tmp/pfPorts/${PORTNAME}.txt
-                                else
-                                        echo "Done!"
-                                fi
-			else
-				echo ">>> Port ${EXTRAPORT} already installed...skipping."
-                        fi
-                done
-                        
+
                 # Package up what's needed to execute and run
-                for EXTRAPORT in `cd $PORTDIRPFSA && make run-depends-list | sort | uniq | xargs /bin/echo -n `; do
+                for EXTRAPORT in `cd $PORTDIRPFSA && make build-depends-list run-depends-list all-depends-list | sort | uniq | xargs /bin/echo -n `; do
                         _PORTNAME="`basename $EXTRAPORT`"
                         if [ "$_PORTNAME" = "" ]; then
                                 echo "Run list _PORTNAME is blank.  Cannot continue."
