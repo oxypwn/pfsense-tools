@@ -1,0 +1,37 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index 5ab428c..74d1e85 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -6698,6 +6698,9 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 		ip = mtod(m0, struct ip *);
+ 	}
+ 
++	if (ifp->if_flags & IFF_LOOPBACK)
++		m0->m_flags |= M_SKIP_FIREWALL;
++
+ #ifdef __FreeBSD__
+ 	/* Copied from FreeBSD 5.1-CURRENT ip_output. */
+ 	m0->m_pkthdr.csum_flags |= CSUM_IP;
+@@ -6981,6 +6984,9 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 		ip6 = mtod(m0, struct ip6_hdr *);
+ 	}
+ 
++	if (ifp->if_flags & IFF_LOOPBACK)
++		m0->m_flags |= M_SKIP_FIREWALL;
++
+ 	/*
+ 	 * If the packet is too large for the outgoing interface,
+ 	 * send back an icmp6 error.
+diff --git a/sys/sys/mbuf.h b/sys/sys/mbuf.h
+index 60631f2..979f234 100644
+--- a/sys/sys/mbuf.h
++++ b/sys/sys/mbuf.h
+@@ -898,7 +898,7 @@ struct mbuf	*m_unshare(struct mbuf *, int how);
+ #define	PACKET_TAG_DIVERT			17 /* divert info */
+ #define	PACKET_TAG_IPFORWARD			18 /* ipforward info */
+ #define	PACKET_TAG_MACLABEL	(19 | MTAG_PERSISTENT) /* MAC label */
+-#define	PACKET_TAG_PF				21 /* PF + ALTQ information */
++#define	PACKET_TAG_PF				(21 | MTAG_PERSISTENT) /* PF + ALTQ information */
+ #define	PACKET_TAG_RTSOCKFAM			25 /* rtsock sa family */
+ #define	PACKET_TAG_IPOPTIONS			27 /* Saved IP options */
+ #define	PACKET_TAG_CARP				28 /* CARP info */
