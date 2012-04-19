@@ -2289,8 +2289,8 @@ awk '
 	SIZE=`awk '/^p 1/ { print $5 "b" }' ${FDISK}`
 	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}"
 	${NANO_MAKEFS} -s ${SIZE} ${IMG1} ${NANO_WORLDDIR}
-	pprint 2 "dd if=${IMG1} of=/dev/${MD}s1 bs=${BS} conv=sparse"
-	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS} conv=sparse
+	pprint 2 "dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}"
+	dd if=${IMG1} of=/dev/${MD}s1 bs=${BS}
 	pprint 2 "tunefs -L pfsense0 /dev/${MD}s1"
 	tunefs -L pfsense0 /dev/${MD}s1
 
@@ -2304,8 +2304,8 @@ awk '
 		SIZE=`awk '/^p 2/ { print $5 "b" }' ${FDISK}`
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}"
 		${NANO_MAKEFS} -s ${SIZE} ${IMG2} ${NANO_WORLDDIR}
-		pprint 2 "dd if=${IMG2} of=/dev/${MD}s2 bs=${BS} conv=sparse"
-		dd if=${IMG1} of=/dev/${MD}s2 bs=${BS} conv=sparse
+		pprint 2 "dd if=${IMG2} of=/dev/${MD}s2 bs=${BS}"
+		dd if=${IMG1} of=/dev/${MD}s2 bs=${BS}
 	fi
 
 	# Create Config slice
@@ -2315,8 +2315,8 @@ awk '
 		SIZE=`awk '/^p 3/ { print $5 "b" }' ${FDISK}`
 		pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}"
 		${NANO_MAKEFS} -s ${SIZE} ${CFG} ${NANO_CFGDIR}
-		pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS} conv=sparse"
-		dd if=${CFG} of=/dev/${MD}s3 bs=${BS} conv=sparse
+		pprint 2 "dd if=${CFG} of=/dev/${MD}s3 bs=${BS}"
+		dd if=${CFG} of=/dev/${MD}s3 bs=${BS}
 		pprint 2 "tunefs -L cf /dev/${MD}s3"
 		tunefs -L cf /dev/${MD}s3
 		pprint 2 "rm ${CFG}"
@@ -2337,8 +2337,8 @@ awk '
 	#	# XXX: fill from where ?
 	#	pprint 2 "${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty"
 	#	${NANO_MAKEFS} -s ${SIZE} ${DATA} /var/empty
-	#	pprint 2 "dd if=${DATA} of=/dev/${MD}s4 bs=${BS} conv=sparse"
-	#	dd if=${DATA} of=/dev/${MD}s4 bs=${BS} conv=sparse
+	#	pprint 2 "dd if=${DATA} of=/dev/${MD}s4 bs=${BS}"
+	#	dd if=${DATA} of=/dev/${MD}s4 bs=${BS}
 	#	pprint 2 "rm ${DATA}"
 	#	rm ${DATA}; DATA=	# NB: disable printing below
 	#else
@@ -2347,7 +2347,7 @@ awk '
 
 	if [ "${NANO_MD_BACKING}" = "swap" ] ; then
 		pprint 2 "Writing out ${IMG}..."
-		dd if=/dev/${MD} of=${IMG} bs=${BS} conv=sparse
+		dd if=/dev/${MD} of=${IMG} bs=${BS}
 	fi
 
 	pprint 2 "IMG1:             $IMG1"
@@ -2477,7 +2477,7 @@ awk '
 	if [ $NANO_IMAGES -gt 1 -a $NANO_INIT_IMG2 -gt 0 ] ; then
 		# Duplicate to second image (if present)
 		echo ">>> Mounting and duplicating NanoBSD pfsense1 /dev/${MD}s2a ${MNT}"
-		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k conv=sparse
+		dd if=/dev/${MD}s1 of=/dev/${MD}s2 bs=64k
 		tunefs -L pfsense1 /dev/${MD}s2a
 		mount /dev/${MD}s2a ${MNT}
 		df -i ${MNT}
@@ -2523,7 +2523,7 @@ awk '
 	[ -z "${NANO_WITH_VGA}" ] \
 		&& IMGUPDATE="${MAKEOBJDIRPREFIXFINAL}/nanobsd.upgrade.img" \
 		|| IMGUPDATE="${MAKEOBJDIRPREFIXFINAL}/nanobsd_vga.upgrade.img"
-	dd if=/dev/${MD}s1 of=$IMGUPDATE bs=64k conv=sparse
+	dd if=/dev/${MD}s1 of=$IMGUPDATE bs=64k
 
 	mdconfig -d -u $MD
 
