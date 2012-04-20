@@ -587,7 +587,7 @@ recompile_pfPorts() {
 			( su -m root -c "${USE_PORTS_FILE} -P ${1} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1
 		else
 			( su -m root -c "${USE_PORTS_FILE} -J '${MAKEJ_PORTS}' ${CHECK_PORTS_INSTALLED}" ) 2>&1 \
-				| egrep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)"
+				| egrep -wi "(^>>>|error)"
 		fi
 
 		if [ "${MKCNF}x" = "pfPortsx" ]; then
