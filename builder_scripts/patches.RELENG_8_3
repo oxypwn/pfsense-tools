@@ -57,7 +57,7 @@
 ~~max_linkhdr.diff~
 ~sys/boot/forth~beastie.4th.diff~
 ~~carp_replay_protection.diff~
-~~carp_livelock_fixes.diff~
+-p1~~carp_livelock_fixes.diff~
 ~~carp_livelock_fixes_v2.diff~
 ~~carp_allow.diff~
 ~~ipsec-oneshot-dumps.RELENG_8.diff~
@@ -69,7 +69,7 @@
 ~~pfaltq_interface_bw.diff~
 ~~tcp_lro_fix.diff~
 ~~scrub_FIN+SYN_drop.diff~
-~~carp_ip_alias_fix.diff~
+-p1~~carp_ip_alias_fix.diff~
 ~sys/net~ifqueue_maxlen.diff~
 ~~pf_stickies_fix2.diff~
 ~~netisr_default_values.diff~
@@ -82,4 +82,4 @@
 -p1~~freebsd8-6rd-20100130.patch~
 ~~stf_6rd_20100923-1.diff~
 ~sys/contrib/pf/net~pfsync_state_timeout.diff~
-~~pf_route-to-crash_fixes.diff~
+-p1~~pf_route-to-crash_fixes.diff~
