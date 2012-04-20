@@ -55,7 +55,6 @@ install_items = {
         "lib",
         "root",
         "sbin",
-        "sys",
         "usr",
         "var"
 }
