@@ -59,7 +59,7 @@
 ~~carp_replay_protection.diff~
 -p1~~carp_livelock_fixes.diff~
 ~~carp_livelock_fixes_v2.diff~
-~~carp_allow.diff~
+-p1~~carp_allow.diff~
 ~~ipsec-oneshot-dumps.RELENG_8.diff~
 ~~aes_enhancment.diff~
 ~~if_bridge_gif_mtu.diff~
