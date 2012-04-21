@@ -146,14 +146,14 @@ set -e
 freesbie_make pkginstall
 unset PKGFILE
 
-# Install packages needed for livecd
-install_pkg_install_ports
-
 echo ">>> Installing packages: " 
 cat $PFSPKGFILE
 
 # Add installer bits
 cust_populate_installer_bits
+
+# Install packages needed for livecd
+install_pkg_install_ports
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
