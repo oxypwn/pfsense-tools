@@ -3677,7 +3677,7 @@ install_pkg_install_ports() {
 	# which packages need to be installed in pfsense-fs chroot.
 	# otherwise you will get a bunch of extra pkgs that where
 	# on the system prior to invoking this build run.
-	mv ${PFS_PKG_ALL}/* ${PFS_PKG_OLD}/ 2>/dev/null
+	mv ${PFS_PKG_ALL}* ${PFS_PKG_OLD}/ 2>/dev/null
 	mkdir -p ${PFS_PKG_ALL} 2>/dev/null
 
 	for PORTDIRPFS in $PKG_INSTALL_PORTSPFS; do
@@ -3694,7 +3694,7 @@ install_pkg_install_ports() {
 	# chroot into staging area and pkg_add all of the packages
 	chroot $PFSENSEBASEDIR /pkg.sh || true 2>&1 >/tmp/install_pkg_install_ports.txt
 	# Restore the previously backed up items
-	mv ${PFS_PKG_OLD}/* ${PFS_PKG_ALL} || true 2>/dev/null
+	mv ${PFS_PKG_OLD}* ${PFS_PKG_ALL} || true 2>/dev/null
 	mv ${VAR_DB_PKG_TMP}/* ${VAR_DB_PKG} || true 2>/dev/null
 	rm -rf $PFSENSEBASEDIR/tmp/pkg*
 	echo "done!"
