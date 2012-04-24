@@ -880,7 +880,11 @@ cust_populate_extra() {
 	# Make sure parse_config exists
 
 	# Set buildtime
-	date > $CVS_CO_DIR/etc/version.buildtime
+	if [ "${DATESTRING}" = "" ]; then
+		date -j -f "%Y%m%d-%H%M" "${DATESTRING}" "+%a %b %e %T %Z %Y" > $CVS_CO_DIR/etc/version.buildtime
+	else
+		date > $CVS_CO_DIR/etc/version.buildtime
+	fi
 
 	# Record last commit info if it is available.
 	if [ -f /tmp/build_commit_info.txt ]; then
@@ -1128,6 +1132,8 @@ fixup_updates() {
 
 	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
 		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
+	elif [ "${DATESTRING}" = "" ]; then
+		date -j -f "%Y%m%d-%H%M" "${DATESTRING}" "+%a %b %e %T %Z %Y" > $CVS_CO_DIR/etc/version.buildtime
 	else
 		date > ${PFSENSEBASEDIR}/etc/version.buildtime
 	fi
@@ -1176,9 +1182,12 @@ cust_fixup_nanobsd() {
 
 	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
 		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
+	elif [ "${DATESTRING}" = "" ]; then
+		date -j -f "%Y%m%d-%H%M" "${DATESTRING}" "+%a %b %e %T %Z %Y" > $CVS_CO_DIR/etc/version.buildtime
 	else
 		date > ${PFSENSEBASEDIR}/etc/version.buildtime
 	fi
+
     echo "" > $PFSENSEBASEDIR/etc/motd
 
     mkdir -p $PFSENSEBASEDIR/cf/conf/backup
@@ -1226,9 +1235,12 @@ cust_fixup_wrap() {
 
 	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
 		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
+	elif [ "${DATESTRING}" = "" ]; then
+		date -j -f "%Y%m%d-%H%M" "${DATESTRING}" "+%a %b %e %T %Z %Y" > $CVS_CO_DIR/etc/version.buildtime
 	else
 		date > ${PFSENSEBASEDIR}/etc/version.buildtime
 	fi
+
     echo "" > $PFSENSEBASEDIR/etc/motd
 
     mkdir -p $PFSENSEBASEDIR/cf/conf/backup
