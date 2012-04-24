@@ -143,8 +143,6 @@ rm -f $PFSPKGFILE
 (pkg_info | grep grub) >> $PFSPKGFILE
 (pkg_info | grep lua) >> $PFSPKGFILE
 set -e
-freesbie_make pkginstall
-unset PKGFILE
 
 echo ">>> Installing packages: " 
 cat $PFSPKGFILE
@@ -154,6 +152,9 @@ cust_populate_installer_bits
 
 # Install packages needed for livecd
 install_pkg_install_ports
+
+freesbie_make pkginstall
+unset PKGFILE
 
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
