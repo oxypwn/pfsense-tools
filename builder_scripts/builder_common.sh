@@ -880,7 +880,7 @@ cust_populate_extra() {
 	# Make sure parse_config exists
 
 	# Set buildtime
-	if [ "${DATESTRING}" = "" ]; then
+	if [ "${DATESTRING}" != "" ]; then
 		date -j -f "%Y%m%d-%H%M" "${DATESTRING}" "+%a %b %e %T %Z %Y" > $CVS_CO_DIR/etc/version.buildtime
 	else
 		date > $CVS_CO_DIR/etc/version.buildtime
@@ -1132,7 +1132,7 @@ fixup_updates() {
 
 	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
 		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
-	elif [ "${DATESTRING}" = "" ]; then
+	elif [ "${DATESTRING}" != "" ]; then
 		date -j -f "%Y%m%d-%H%M" "${DATESTRING}" "+%a %b %e %T %Z %Y" > $CVS_CO_DIR/etc/version.buildtime
 	else
 		date > ${PFSENSEBASEDIR}/etc/version.buildtime
@@ -1182,7 +1182,7 @@ cust_fixup_nanobsd() {
 
 	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
 		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
-	elif [ "${DATESTRING}" = "" ]; then
+	elif [ "${DATESTRING}" != "" ]; then
 		date -j -f "%Y%m%d-%H%M" "${DATESTRING}" "+%a %b %e %T %Z %Y" > $CVS_CO_DIR/etc/version.buildtime
 	else
 		date > ${PFSENSEBASEDIR}/etc/version.buildtime
@@ -1235,7 +1235,7 @@ cust_fixup_wrap() {
 
 	if [ -f ${CVS_CO_DIR}/etc/version.buildtime ]; then
 		cp ${CVS_CO_DIR}/etc/version.buildtime ${PFSENSEBASEDIR}/etc/version.buildtime
-	elif [ "${DATESTRING}" = "" ]; then
+	elif [ "${DATESTRING}" != "" ]; then
 		date -j -f "%Y%m%d-%H%M" "${DATESTRING}" "+%a %b %e %T %Z %Y" > $CVS_CO_DIR/etc/version.buildtime
 	else
 		date > ${PFSENSEBASEDIR}/etc/version.buildtime
