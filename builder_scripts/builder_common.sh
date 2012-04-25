@@ -3676,7 +3676,7 @@ install_pkg_install_ports() {
 	# Some ports are unhappy with cross building and fail spectacularly.
 	OLDTGTARCH=${TARGET_ARCH}
 	unset TARGET_ARCH
-	echo -n ">>> Building ports: "
+	echo ">>> Building ports: "
 	PFS_PKG_ALL="/usr/ports/packages/All/"
 	VAR_DB_PKG_TMP="/tmp/vardbpkg/"
 	VAR_DB_PKG="/var/db/pkg/"
@@ -3709,7 +3709,7 @@ install_pkg_install_ports() {
 	mv ${PFS_PKG_OLD}* ${PFS_PKG_ALL} || true 2>/dev/null
 	mv ${VAR_DB_PKG_TMP}/* ${VAR_DB_PKG} || true 2>/dev/null
 	rm -rf $PFSENSEBASEDIR/tmp/pkg*
-	echo "done!"
+	echo ">>> Building ports...Done!"
 	TARGET_ARCH=${OLDTGTARCH}
 }
 
@@ -3748,7 +3748,8 @@ install_pkg_install_ports_build() {
                                 echo "Done!"
                         fi
                         _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
-                        if [ "`pkg_info -e $_BUILT_PKGNAME`" != "0" ]; then
+                        if [ `pkg_info -e $_BUILT_PKGNAME` ]; then
+				echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
                                 script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes clean install </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
                                 if [ "$?" != "0" ]; then
                                         echo
@@ -3781,6 +3782,7 @@ install_pkg_install_ports_build() {
                                 echo "Done!"
                         fi
                         install_pkg_install_ports_build $EXTRAPORT
+			echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as runtime dependency of ($PORTNAME)...Done!"
                 done
 
 		echo -n ">>> Building package $PORTNAME($BUILT_PKGNAME)..."
