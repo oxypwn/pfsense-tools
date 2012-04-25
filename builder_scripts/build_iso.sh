@@ -142,6 +142,7 @@ rm -f $PFSPKGFILE
 (pkg_info | grep bsdinstaller) > $PFSPKGFILE
 (pkg_info | grep grub) >> $PFSPKGFILE
 (pkg_info | grep lua) >> $PFSPKGFILE
+set -e
 
 # Install packages needed for livecd
 install_pkg_install_ports
