@@ -3783,7 +3783,7 @@ install_pkg_install_ports_build() {
                         fi
                         install_pkg_install_ports_build $EXTRAPORT
                         _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
-			echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as runtime dependency of ($PORTNAME)...Done!"
+			echo ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as runtime dependency of ($PORTNAME)...Done!"
                 done
 
 		echo -n ">>> Building package $PORTNAME($BUILT_PKGNAME)..."
