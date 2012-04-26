@@ -3762,7 +3762,7 @@ install_pkg_install_ports_build() {
                                         echo "Done!"
                                 fi
 			else
-				echo ">>> Port ${EXTRAPORT} already installed...skipping."
+				echo ">>> Port ${EXTRAPORT}($_BUILT_PKGNAME) already installed...skipping."
                         fi
                 done
                         
