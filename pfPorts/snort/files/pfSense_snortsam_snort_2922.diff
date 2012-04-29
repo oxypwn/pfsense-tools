@@ -1,6 +1,6 @@
 diff -ruN snort-2.9.2.2/autojunk.sh ./autojunk.sh
 --- snort-2.9.2.2/autojunk.sh	1969-12-31 16:00:00.000000000 -0800
-+++ ./autojunk.sh	2012-04-28 17:50:38.000000000 -0700
++++ ./autojunk.sh	2012-04-29 03:09:37.000000000 -0700
 @@ -0,0 +1,7 @@
 +#!/bin/sh
 +# the list of commands that need to run before we do a compile
@@ -11,7 +11,7 @@ diff -ruN snort-2.9.2.2/autojunk.sh ./autojunk.sh
 +autoconf
 diff -ruN snort-2.9.2.2/etc/snort.conf ./etc/snort.conf
 --- snort-2.9.2.2/etc/snort.conf	2012-03-19 15:57:09.000000000 -0700
-+++ ./etc/snort.conf	2012-04-28 17:50:38.000000000 -0700
++++ ./etc/snort.conf	2012-04-29 03:09:37.000000000 -0700
 @@ -536,11 +536,38 @@
  # prelude
  # output alert_prelude
@@ -54,7 +54,7 @@ diff -ruN snort-2.9.2.2/etc/snort.conf ./etc/snort.conf
  # For more information, see Snort Manual, Writing Snort Rules
 diff -ruN snort-2.9.2.2/src/Makefile.am ./src/Makefile.am
 --- snort-2.9.2.2/src/Makefile.am	2011-10-26 11:28:52.000000000 -0700
-+++ ./src/Makefile.am	2012-04-28 17:50:38.000000000 -0700
++++ ./src/Makefile.am	2012-04-29 03:09:37.000000000 -0700
 @@ -59,6 +59,7 @@
  rate_filter.c rate_filter.h \
  obfuscation.c obfuscation.h \
@@ -65,7 +65,7 @@ diff -ruN snort-2.9.2.2/src/Makefile.am ./src/Makefile.am
  
 diff -ruN snort-2.9.2.2/src/fatal.h ./src/fatal.h
 --- snort-2.9.2.2/src/fatal.h	1969-12-31 16:00:00.000000000 -0800
-+++ ./src/fatal.h	2012-04-28 17:50:38.000000000 -0700
++++ ./src/fatal.h	2012-04-29 03:09:37.000000000 -0700
 @@ -0,0 +1,40 @@
 +/* $Id$ */
 +/*
@@ -109,18 +109,18 @@ diff -ruN snort-2.9.2.2/src/fatal.h ./src/fatal.h
 +#endif	/* __FATAL_H__ */
 diff -ruN snort-2.9.2.2/src/output-plugins/Makefile.am ./src/output-plugins/Makefile.am
 --- snort-2.9.2.2/src/output-plugins/Makefile.am	2010-06-09 15:05:17.000000000 -0700
-+++ ./src/output-plugins/Makefile.am	2012-04-28 17:50:38.000000000 -0700
-@@ -15,6 +15,7 @@
- spo_log_tcpdump.h spo_unified.c spo_unified2.c spo_unified.h spo_unified2.h \
- spo_log_ascii.c spo_log_ascii.h spo_alert_sf_socket.h spo_alert_sf_socket.c \
- $(PRELUDE_CODE) spo_alert_arubaaction.c spo_alert_arubaaction.h \
-+spo_alert_fwsam.c spo_alert_fwsam.h \
- spo_alert_test.c spo_alert_test.h
++++ ./src/output-plugins/Makefile.am	2012-04-29 03:11:11.000000000 -0700
+@@ -9,6 +9,7 @@
  
- INCLUDES = @INCLUDES@
+ libspo_a_SOURCES = spo_alert_fast.c spo_alert_fast.h \
+ spo_alert_full.c spo_alert_full.h \
++spo_alert_fwsam.c spo_alert_fwsam.h \
+ spo_alert_syslog.c spo_alert_syslog.h spo_alert_unixsock.c     \
+ spo_alert_unixsock.h spo_csv.c spo_csv.h spo_database.c spo_database.h         \
+ spo_log_null.c spo_log_null.h spo_log_tcpdump.c \
 diff -ruN snort-2.9.2.2/src/output-plugins/spo_alert_fwsam.c ./src/output-plugins/spo_alert_fwsam.c
 --- snort-2.9.2.2/src/output-plugins/spo_alert_fwsam.c	1969-12-31 16:00:00.000000000 -0800
-+++ ./src/output-plugins/spo_alert_fwsam.c	2012-04-28 17:52:15.000000000 -0700
++++ ./src/output-plugins/spo_alert_fwsam.c	2012-04-29 03:09:37.000000000 -0700
 @@ -0,0 +1,1438 @@
 +/* $id: snortpatchb,v 1.2 2002/10/26 03:32:35 fknobbe Exp $
 +**
@@ -1562,7 +1562,7 @@ diff -ruN snort-2.9.2.2/src/output-plugins/spo_alert_fwsam.c ./src/output-plugin
 +
 diff -ruN snort-2.9.2.2/src/output-plugins/spo_alert_fwsam.h ./src/output-plugins/spo_alert_fwsam.h
 --- snort-2.9.2.2/src/output-plugins/spo_alert_fwsam.h	1969-12-31 16:00:00.000000000 -0800
-+++ ./src/output-plugins/spo_alert_fwsam.h	2012-04-28 17:50:38.000000000 -0700
++++ ./src/output-plugins/spo_alert_fwsam.h	2012-04-29 03:09:37.000000000 -0700
 @@ -0,0 +1,218 @@
 +/* $Id: snortpatchb,v 1.5 2005/10/06 08:50:39 fknobbe Exp $
 +**
@@ -1784,7 +1784,7 @@ diff -ruN snort-2.9.2.2/src/output-plugins/spo_alert_fwsam.h ./src/output-plugin
 +#endif  /* __SPO_FWSAM_H__ */
 diff -ruN snort-2.9.2.2/src/plugbase.c ./src/plugbase.c
 --- snort-2.9.2.2/src/plugbase.c	2012-03-17 14:40:16.000000000 -0700
-+++ ./src/plugbase.c	2012-04-28 17:50:38.000000000 -0700
++++ ./src/plugbase.c	2012-04-29 03:09:37.000000000 -0700
 @@ -130,6 +130,7 @@
  #endif
  
@@ -1803,7 +1803,7 @@ diff -ruN snort-2.9.2.2/src/plugbase.c ./src/plugbase.c
  /****************************************************************************
 diff -ruN snort-2.9.2.2/src/plugin_enum.h ./src/plugin_enum.h
 --- snort-2.9.2.2/src/plugin_enum.h	2012-01-12 14:11:40.000000000 -0800
-+++ ./src/plugin_enum.h	2012-04-28 17:50:38.000000000 -0700
++++ ./src/plugin_enum.h	2012-04-29 03:09:37.000000000 -0700
 @@ -60,6 +60,7 @@
      PLUGIN_URILEN_CHECK,
      PLUGIN_DYNAMIC,
@@ -1814,7 +1814,7 @@ diff -ruN snort-2.9.2.2/src/plugin_enum.h ./src/plugin_enum.h
      PLUGIN_MAX  /* sentinel value */
 diff -ruN snort-2.9.2.2/src/twofish.c ./src/twofish.c
 --- snort-2.9.2.2/src/twofish.c	1969-12-31 16:00:00.000000000 -0800
-+++ ./src/twofish.c	2012-04-28 17:50:38.000000000 -0700
++++ ./src/twofish.c	2012-04-29 03:09:37.000000000 -0700
 @@ -0,0 +1,971 @@
 +/* $Id: twofish.c,v 2.1 2008/12/15 20:36:05 fknobbe Exp $
 + *
@@ -2789,7 +2789,7 @@ diff -ruN snort-2.9.2.2/src/twofish.c ./src/twofish.c
 +#endif
 diff -ruN snort-2.9.2.2/src/twofish.h ./src/twofish.h
 --- snort-2.9.2.2/src/twofish.h	1969-12-31 16:00:00.000000000 -0800
-+++ ./src/twofish.h	2012-04-28 17:50:38.000000000 -0700
++++ ./src/twofish.h	2012-04-29 03:09:37.000000000 -0700
 @@ -0,0 +1,276 @@
 +/* $Id: twofish.h,v 2.1 2008/12/15 20:36:05 fknobbe Exp $
 + *
