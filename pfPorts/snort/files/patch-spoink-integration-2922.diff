@@ -1,6 +1,6 @@
-diff -urN snort-2.9.2.2/src/output-plugins/Makefile.am ./src/output-plugins/Makefile.am
+diff -ruN snort-2.9.2.2/src/output-plugins/Makefile.am snort-2.9.2.2_bkup/src/output-plugins/Makefile.am
 --- snort-2.9.2.2/src/output-plugins/Makefile.am	2010-06-09 15:05:17.000000000 -0700
-+++ ./src/output-plugins/Makefile.am	2012-04-28 15:49:57.000000000 -0700
++++ snort-2.9.2.2_bkup/src/output-plugins/Makefile.am	2012-04-29 02:12:39.000000000 -0700
 @@ -15,6 +15,6 @@
  spo_log_tcpdump.h spo_unified.c spo_unified2.c spo_unified.h spo_unified2.h \
  spo_log_ascii.c spo_log_ascii.h spo_alert_sf_socket.h spo_alert_sf_socket.c \
@@ -9,9 +9,9 @@ diff -urN snort-2.9.2.2/src/output-plugins/Makefile.am ./src/output-plugins/Make
 +spo_alert_test.c spo_alert_test.h spo_pf.h spo_pf.c
  
  INCLUDES = @INCLUDES@
-diff -urN snort-2.9.2.2/src/output-plugins/Makefile.in ./src/output-plugins/Makefile.in
+diff -ruN snort-2.9.2.2/src/output-plugins/Makefile.in snort-2.9.2.2_bkup/src/output-plugins/Makefile.in
 --- snort-2.9.2.2/src/output-plugins/Makefile.in	2012-03-19 15:55:57.000000000 -0700
-+++ ./src/output-plugins/Makefile.in	2012-04-28 15:51:25.000000000 -0700
++++ snort-2.9.2.2_bkup/src/output-plugins/Makefile.in	2012-04-29 02:12:39.000000000 -0700
 @@ -68,7 +68,7 @@
  	spo_log_tcpdump.$(OBJEXT) spo_unified.$(OBJEXT) \
  	spo_unified2.$(OBJEXT) spo_log_ascii.$(OBJEXT) \
@@ -30,10 +30,10 @@ diff -urN snort-2.9.2.2/src/output-plugins/Makefile.in ./src/output-plugins/Make
  
  all: all-am
  
-diff -urN snort-2.9.2.2/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.c
+diff -ruN snort-2.9.2.2/src/output-plugins/spo_pf.c snort-2.9.2.2_bkup/src/output-plugins/spo_pf.c
 --- snort-2.9.2.2/src/output-plugins/spo_pf.c	1969-12-31 16:00:00.000000000 -0800
-+++ ./src/output-plugins/spo_pf.c	2012-04-28 16:01:37.000000000 -0700
-@@ -0,0 +1,510 @@
++++ snort-2.9.2.2_bkup/src/output-plugins/spo_pf.c	2012-04-29 02:14:25.000000000 -0700
+@@ -0,0 +1,514 @@
 +/*
 +* Copyright (c) 2012  Ermal Lu√i
 +* Copyright (c) 2006  Antonio Benojar <zz.stalker@gmail.com>
@@ -170,7 +170,11 @@ diff -urN snort-2.9.2.2/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.
 +
 +    AddFuncToOutputList(AlertPf, OUTPUT_TYPE__ALERT, data);
 +    AddFuncToCleanExitList(AlertPfCleanExit, data);
-+    AddFuncToRestartList(AlertPfRestart, data);
++
++#ifdef SNORT_RELOAD
++    AddFuncToReloadList(AlertPfRestart, data);
++#endif
++
 +}
 +
 +
@@ -544,9 +548,9 @@ diff -urN snort-2.9.2.2/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.
 +		return (0);
 +	}
 +}
-diff -urN snort-2.9.2.2/src/output-plugins/spo_pf.h ./src/output-plugins/spo_pf.h
+diff -ruN snort-2.9.2.2/src/output-plugins/spo_pf.h snort-2.9.2.2_bkup/src/output-plugins/spo_pf.h
 --- snort-2.9.2.2/src/output-plugins/spo_pf.h	1969-12-31 16:00:00.000000000 -0800
-+++ ./src/output-plugins/spo_pf.h	2012-04-28 16:01:37.000000000 -0700
++++ snort-2.9.2.2_bkup/src/output-plugins/spo_pf.h	2012-04-29 02:12:39.000000000 -0700
 @@ -0,0 +1,58 @@
 +/*
 +*
@@ -607,9 +611,9 @@ diff -urN snort-2.9.2.2/src/output-plugins/spo_pf.h ./src/output-plugins/spo_pf.
 +
 +#endif 
 \ No newline at end of file
-diff -urN snort-2.9.2.2/src/plugbase.c ./src/plugbase.c
+diff -ruN snort-2.9.2.2/src/plugbase.c snort-2.9.2.2_bkup/src/plugbase.c
 --- snort-2.9.2.2/src/plugbase.c	2012-03-17 14:40:16.000000000 -0700
-+++ ./src/plugbase.c	2012-04-28 15:55:39.000000000 -0700
++++ snort-2.9.2.2_bkup/src/plugbase.c	2012-04-29 02:12:39.000000000 -0700
 @@ -115,6 +115,7 @@
  #include "output-plugins/spo_unified.h"
  #include "output-plugins/spo_log_null.h"
