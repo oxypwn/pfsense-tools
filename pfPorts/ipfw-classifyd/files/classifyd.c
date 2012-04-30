@@ -841,7 +841,7 @@ read_config(const char *file)
 	int		fd, fdpf;
 	uint16_t	rule;
 	struct pfioc_ruleset trule;
-	char **ap, *argv[bufsize];
+	char **ap, *argf[bufsize];
 
 	clear_proto_list();
 
@@ -868,49 +868,49 @@ read_config(const char *file)
 		/* Do not match traffic against this pattern */
 		if (value == NULL)
 			continue;
-		for (ap = argv; (*ap = strsep(&value, " \t")) != NULL;)
+		for (ap = argf; (*ap = strsep(&value, " \t")) != NULL;)
  	       		if (**ap != '\0')
-        	     		if (++ap >= &argv[bufsize])
+        	     		if (++ap >= &argf[bufsize])
                 			break;
-		if (!strncmp(argv[0], "queue", strlen("queue"))) {
+		if (!strncmp(argf[0], "queue", strlen("queue"))) {
 			bzero(&trule, sizeof(trule));
-			strlcpy(trule.name, argv[1], sizeof(trule.name));
+			strlcpy(trule.name, argf[1], sizeof(trule.name));
 			if (ioctl(fdpf, DIOCGETNAMEDALTQ, &trule)) {
 				syslog(LOG_WARNING, 
 					"could not get ALTQ translation for"
-					" queue %s", argv[1]);
+					" queue %s", argf[1]);
 				continue;
 			}
 			if (trule.nr == 0) {
 				syslog(LOG_WARNING,
-					"queue %s does not exists!", argv[1]);
+					"queue %s does not exists!", argf[1]);
 				continue;
 			}
 			trule.nr |= DIVERT_ALTQ;
 			rule = trule.nr;
-		} else if (!strncmp(argv[0], "dnqueue", strlen("dnqueue"))) {
-			rule = strtonum(argv[1], 1, 65535, &errmsg);
+		} else if (!strncmp(argf[0], "dnqueue", strlen("dnqueue"))) {
+			rule = strtonum(argf[1], 1, 65535, &errmsg);
 			rule |= DIVERT_DNCOOKIE;
-		} else if (!strncmp(argv[0], "dnpipe", strlen("dnpipe"))) {
-			rule = strtonum(argv[1], 1, 65535, &errmsg);
+		} else if (!strncmp(argf[0], "dnpipe", strlen("dnpipe"))) {
+			rule = strtonum(argf[1], 1, 65535, &errmsg);
 			rule |= DIVERT_DNCOOKIE;
-		} else if (!strncmp(argv[0], "tag", strlen("tag"))) {
+		} else if (!strncmp(argf[0], "tag", strlen("tag"))) {
                         if (ioctl(fdpf, DIOCGETNAMEDTAG, &rule)) {
                                 syslog(LOG_WARNING,
                                         "could not get tag translation for"
-                                        " queue %s", argv[1]);
+                                        " queue %s", argf[1]);
                                 continue;
                         }
                         if (rule == 0) {
                                 syslog(LOG_WARNING,
-                                        "tag %s does not exists!", argv[1]);
+                                        "tag %s does not exists!", argf[1]);
                                 continue;
                         }
 			rule |= DIVERT_TAG;
-		} else if (!strncmp(argv[0], "action", strlen("action"))) {
-			if (strncmp(argv[1], "block", strlen("block"))) 
+		} else if (!strncmp(argf[0], "action", strlen("action"))) {
+			if (strncmp(argf[1], "block", strlen("block"))) 
 				rule = PF_DROP;
-			else if (strncmp(argv[1], "allow", strlen("allow"))) 
+			else if (strncmp(argf[1], "allow", strlen("allow"))) 
 				rule = PF_PASS;
 			else
 				continue;
