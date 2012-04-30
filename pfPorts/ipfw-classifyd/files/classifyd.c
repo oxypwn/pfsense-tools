@@ -154,6 +154,7 @@ struct hashtable *th, *uh;
  * a thread to it.
  */
 static struct timeval   t_time;
+static int reconfigure_protocols = 0;
 
 /* divert(4) socket */
 static int dvtSin = 0;
@@ -187,6 +188,7 @@ void		*garbage_pthread(void *);
 void		*classifyd_get_time(void *);
 static int	equalkeys(void *, void *);
 static unsigned int hashfromkey(void *);
+static void	reconfigure_protos(void);
 static void	handle_signal(int);
 static void	clear_proto_list(void);
 static int	read_config(const char *);
@@ -740,6 +742,7 @@ initkqueue:
         	if (nev < 0) {
                 	goto initkqueue;
         	}
+
         	else if (nev > 0) {
                 	if (event.flags & EV_ERROR) {   /* report any error */
                         	syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(event.data));
@@ -779,6 +782,12 @@ initkqueue:
 #if 0
 			syslog(LOG_WARNING, "expired %u flows", flows_expired);
 #endif
+		}
+
+		/* If SIGHUP is catched reload protos */
+		if (reconfigure_protocols) {
+			reconfigure_protos();
+			reconfigure_protocols = 0;
 		}
 	}
 
@@ -927,27 +936,32 @@ read_config(const char *file)
 	return (0);
 }
 
+/* Called by garbage pthread */
+static void
+reconfigure_protos()
+{
+
+	syslog(LOG_WARNING, "Reloading config...");
+	FP_WLOCK;
+	fini_protocols(fp);
+	fp = init_protocols(protoDir);
+	if (fp == NULL) {
+		syslog(LOG_ERR, "unable to initialize list of protocols: %m");
+		exit(EX_SOFTWARE);
+	}
+	if (read_config(conf) != 0) {
+		syslog(LOG_ERR, "Could not read config exiting.");
+		exit(-1);
+	}
+	FP_UNLOCK;
+}
+
 static void
 handle_signal(int sig)
 {
 	switch(sig) {
 	case SIGHUP:
-		syslog(LOG_WARNING, "Reloading config...");
-		FP_WLOCK;
-		fini_protocols(fp);
-		fp = init_protocols(protoDir);
-		if (fp == NULL) {
-			syslog(LOG_ERR, "unable to initialize list of protocols: %m");
-			exit(EX_SOFTWARE);
-		}
-		if (read_config(conf) != 0) {
-			syslog(LOG_ERR, "Could not read config exiting.");
-			exit(-1);
-		}
-		FP_UNLOCK;
-		break;
-	case SIGTERM:
-		exit(0);
+		reconfigure_protocols = 1;
 		break;
 	default:
 		syslog(LOG_WARNING, "unhandled signal");
