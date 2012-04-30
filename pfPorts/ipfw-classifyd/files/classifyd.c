@@ -522,7 +522,7 @@ getinput:
 			h = th;
 		} else if (hdr->ah_ip.ip_p == IPPROTO_UDP) {
                         udp = &hdr->ah_udp;
-                        payload = (u_char *)((u_char *)udp + ntohs(udp->uh_ulen));
+                        payload = (u_char *)((u_char *)udp + sizeof(*udp));
                         datalen = ntohs(hdr->ah_ip.ip_len) -
                             (int)((caddr_t)payload - (caddr_t)&hdr->ah_ip);
 			if (datalen < 0) {
