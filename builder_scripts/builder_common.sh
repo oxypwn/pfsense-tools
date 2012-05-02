@@ -3728,17 +3728,18 @@ install_pkg_install_ports_build() {
 		print_error_pfS
 		kill $$
 	fi
+
+	if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
+		echo -n ">>> Overlaying port $PORTNAME from pfPorts..."
+		# Cleanup to avoid issues with extra/different patches
+		rm -rf $PORTDIRPFSA/*
+		cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $PORTDIRPFSA
+		echo "Done!"
+	fi
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
 	BUILT_PKGNAME="`make -C $PORTDIRPFSA -V PKGNAME`"
 	if [ ! -f $ALREADYBUILT/$BUILT_PKGNAME ]; then
 
-		if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
-                        echo -n ">>> Overlaying port $PORTNAME from pfPorts..."
-                        # Cleanup to avoid issues with extra/different patches
-                        rm -rf $PORTDIRPFSA/*
-                        cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $PORTDIRPFSA
-                        echo "Done!"
-                fi
 		# Install the required port for the build environment
                 for EXTRAPORT in `cd $PORTDIRPFSA && make build-depends-list | sort | uniq | xargs /bin/echo -n `; do
                         _PORTNAME="`basename $EXTRAPORT`"
