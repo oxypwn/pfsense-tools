@@ -3677,7 +3677,7 @@ install_pkg_install_ports() {
 	OLDTGTARCH=${TARGET_ARCH}
 	unset TARGET_ARCH
 	echo ">>> Building ports: "
-	PFS_PKG_ALL="/usr/ports/packages/All/"
+	export PFS_PKG_ALL="/usr/ports/packages/All/"
 	VAR_DB_PKG_TMP="/tmp/vardbpkg/"
 	VAR_DB_PKG="/var/db/pkg/"
 	PFS_PKG_OLD="/usr/ports/packages/Old/"
@@ -3729,7 +3729,7 @@ install_pkg_install_ports_build() {
 		kill $$
 	fi
 	ALREADYBUILT="/tmp/install_pkg_install_ports"
-	BUILT_PKGNAME="`make -C $PORTDIRPFSA -V PKGNAME`".tbz
+	BUILT_PKGNAME="`make -C $PORTDIRPFSA -V PKGNAME`"
 	if [ ! -f $ALREADYBUILT/$BUILT_PKGNAME ]; then
 
 		# Install the required port for the build environment
@@ -3750,7 +3750,7 @@ install_pkg_install_ports_build() {
                         _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
                         if [ `pkg_info -e $_BUILT_PKGNAME` ]; then
 				echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-                                script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes clean install </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
+                                script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV BATCH=yes FORCE_PKG_REGISTER=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
                                 if [ "$?" != "0" ]; then
                                         echo
                                         echo
@@ -3787,28 +3787,38 @@ install_pkg_install_ports_build() {
                 done
 
 		echo -n ">>> Building package $PORTNAME($BUILT_PKGNAME)..."
-		if [ -f /usr/ports/packages/Old/$BUILT_PKGNAME ]; then
+		if [ -f /usr/ports/packages/Old/${BUILT_PKGNAME}.tbz ]; then
 			echo -n " Using already built port found in cache... "
-			cp -R /usr/ports/packages/Old/$BUILT_PKGNAME \
+			cp -R /usr/ports/packages/Old/${BUILT_PKGNAME}.tbz \
 				/usr/ports/packages/All/
 			touch $ALREADYBUILT/$BUILT_PKGNAME
 			echo "Done!"
 			return;
 		fi
 
-		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS BATCH=yes clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
-		script -a /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes NO_LATEST_LINK=yes package </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
+		if [ `pkg_info -e $BUILT_PKGNAME` ]; then
+			MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes NO_LATEST_LINK=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
+			if [ "$?" != "0" ]; then
+				echo
+				echo
+				echo "!!! Something went wrong while building ${PORTNAME}"
+				echo "    Press RETURN/ENTER to view the log from this build."
+				read inputline
+				more /tmp/pfPorts/${PORTNAME}.txt
+			fi
+		fi
+
+		script -a /tmp/pfPorts/${PORTNAME}.txt pkg_create -b $BUILT_PKGNAME $PFS_PKG_ALL/${BUILT_PKGNAME}.tbz
 		if [ "$?" != "0" ]; then
 			echo
 			echo
-			echo "!!! Something went wrong while building ${PORTNAME}"
+			echo "!!! Something went wrong while building package($BUILT_PKGNAME) for ${PORTNAME}"
 			echo "    Press RETURN/ENTER to view the log from this build."
 			read inputline
 			more /tmp/pfPorts/${PORTNAME}.txt
-		else
-			echo "Done!"
 		fi
+		echo "Done!"
 	fi
 	touch $ALREADYBUILT/$BUILT_PKGNAME
 }
