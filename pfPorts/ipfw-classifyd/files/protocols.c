@@ -60,18 +60,18 @@ init_protocols(const char *dir)
 	if (num == -1)
 		return (NULL);
 
+	/*
+	 * Directory is empty (only ./ and ../)
+	 */
+	if (num <= 2)
+		return (NULL);
+
 	fp = (struct ic_protocols *)malloc(sizeof(struct ic_protocols));
 	if (fp == NULL)
 		return (NULL);
 	SLIST_INIT(&fp->fp_p);
 	fp->fp_reflags = REG_EXTENDED | REG_ICASE | REG_NOSUB | REG_PEND;
 	fp->fp_inuse = 0;
-
-	/*
-	 * Directory is empty (only ./ and ../)
-	 */
-	if (num <= 2)
-		return (fp);
 
 	for (num--; num > 0; num--) {
 		if (nlp[num]->d_type == DT_DIR)
@@ -93,23 +93,22 @@ init_protocols(const char *dir)
 				free(p->p_re);
 			free(p->p_path);
 			free(p);
-			continue;
+		} else {
+			/* For REG_PEND specify the end of the RE explicitly */
+			p->p_preg.re_endp = &p->p_re[p->p_relen];
+			error = regcomp(&p->p_preg, p->p_re, fp->fp_reflags);
+			if (error != 0) {
+				regerror(error, &p->p_preg, errmsg, sizeof(errmsg));
+				syslog(LOG_ERR, "unable to compile %s: %s", p->p_name, errmsg);
+				if (p->p_name != NULL)
+					free(p->p_name);
+				if (p->p_re != NULL)
+					free(p->p_re);
+				free(p->p_path);
+				free(p);
+			} else
+				SLIST_INSERT_HEAD(&fp->fp_p, p, p_next);
 		}
-		/* For REG_PEND specify the end of the RE explicitly */
-		p->p_preg.re_endp = &p->p_re[p->p_relen];
-		error = regcomp(&p->p_preg, p->p_re, fp->fp_reflags);
-		if (error != 0) {
-			regerror(error, &p->p_preg, errmsg, sizeof(errmsg));
-			syslog(LOG_ERR, "unable to compile %s: %s", p->p_name, errmsg);
-			if (p->p_name != NULL)
-				free(p->p_name);
-			if (p->p_re != NULL)
-				free(p->p_re);
-			free(p->p_path);
-			free(p);
-			continue;
-		}
-		SLIST_INSERT_HEAD(&fp->fp_p, p, p_next);
 	}
 
 	return (fp);
