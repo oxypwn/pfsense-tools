@@ -3732,6 +3732,13 @@ install_pkg_install_ports_build() {
 	BUILT_PKGNAME="`make -C $PORTDIRPFSA -V PKGNAME`"
 	if [ ! -f $ALREADYBUILT/$BUILT_PKGNAME ]; then
 
+		if [ -d $pfSPORTS_BASE_DIR/${PORTNAME} ]; then
+                        echo -n ">>> Overlaying port $PORTNAME from pfPorts..."
+                        # Cleanup to avoid issues with extra/different patches
+                        rm -rf $PORTDIRPFSA/*
+                        cp -R $pfSPORTS_BASE_DIR/${PORTNAME}/* $PORTDIRPFSA
+                        echo "Done!"
+                fi
 		# Install the required port for the build environment
                 for EXTRAPORT in `cd $PORTDIRPFSA && make build-depends-list | sort | uniq | xargs /bin/echo -n `; do
                         _PORTNAME="`basename $EXTRAPORT`"
@@ -3796,17 +3803,15 @@ install_pkg_install_ports_build() {
 			return;
 		fi
 
-		if [ `pkg_info -e $BUILT_PKGNAME` ]; then
-			MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-			script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes NO_LATEST_LINK=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
-			if [ "$?" != "0" ]; then
-				echo
-				echo
-				echo "!!! Something went wrong while building ${PORTNAME}"
-				echo "    Press RETURN/ENTER to view the log from this build."
-				read inputline
-				more /tmp/pfPorts/${PORTNAME}.txt
-			fi
+		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes NO_LATEST_LINK=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
+		if [ "$?" != "0" ]; then
+			echo
+			echo
+			echo "!!! Something went wrong while building ${PORTNAME}"
+			echo "    Press RETURN/ENTER to view the log from this build."
+			read inputline
+			more /tmp/pfPorts/${PORTNAME}.txt
 		fi
 
 		script -a /tmp/pfPorts/${PORTNAME}.txt pkg_create -b $BUILT_PKGNAME $PFS_PKG_ALL/${BUILT_PKGNAME}.tbz
