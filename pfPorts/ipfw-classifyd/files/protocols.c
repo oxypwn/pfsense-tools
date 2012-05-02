@@ -43,7 +43,7 @@
 
 static char	*get_token(FILE *, size_t *);
 static int	hex2dec(char);
-static int	parse_protocol_file(struct protocol *);
+static int	parse_protocol_file(struct ic_protocols *, struct protocol *);
 static char	*translate_re(char *, size_t *);
 
 struct ic_protocols *
@@ -84,9 +84,12 @@ init_protocols(const char *dir)
 		}
 		snprintf(path, LINE_MAX, "%s/%s", dir, nlp[num]->d_name);
 		p->p_path = strdup(path);
-		error = parse_protocol_file(p);
+		error = parse_protocol_file(fp, p);
 		if (error != 0) {
-			syslog(LOG_ERR, "unable to parse %s", path);
+			if (error == -2) /* Duplicate pattern */
+				syslog(LOG_ERR, "Duplicate pattern for %s from file %s", p->p_name == NULL ? "unknown" : p->p_name, path);
+			else
+				syslog(LOG_ERR, "unable to parse %s", path);
 			if (p->p_name != NULL)
 				free(p->p_name);
 			if (p->p_re != NULL)
@@ -134,8 +137,9 @@ fini_protocols(struct ic_protocols *fp)
 }
 
 static int
-parse_protocol_file(struct protocol *p)
+parse_protocol_file(struct ic_protocols *fp, struct protocol *p)
 {
+	struct protocol *tmp;
 	FILE   *f;
 
 	f = fopen((const char *)p->p_path, "r");
@@ -147,6 +151,14 @@ parse_protocol_file(struct protocol *p)
 		return (-1);
 	}
 
+	if (fp != NULL) {
+		SLIST_FOREACH(tmp, &fp->fp_p, p_next) {
+			if (!strcmp(tmp->p_name, p->p_name)) {
+				fclose(f);
+				return (-2);
+			}
+		}
+	}
 	/*
 	 * The RE needs to be cooked a little before it is fit for
 	 * consumption.
