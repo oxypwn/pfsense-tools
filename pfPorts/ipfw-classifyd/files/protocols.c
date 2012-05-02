@@ -74,7 +74,7 @@ init_protocols(const char *dir)
 	fp->fp_inuse = 0;
 
 	for (num--; num > 0; num--) {
-		if (nlp[num]->d_type == DT_DIR)
+		if (nlp[num]->d_type != DT_REG)
 			continue;
 
 		p = (struct protocol *)calloc(1, sizeof(struct protocol));
