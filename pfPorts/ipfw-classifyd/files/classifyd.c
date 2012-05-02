@@ -863,6 +863,8 @@ read_config(const char *file)
 	
 	fp->fp_inuse = 0;
 	SLIST_FOREACH_SAFE(proto, &fp->fp_p, p_next, prototmp) {
+		if (proto->p_name == NULL)
+			continue;
 		name = proto->p_name;
 		value = property_find(props, name);
 		/* Do not match traffic against this pattern */
