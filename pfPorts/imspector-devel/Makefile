@@ -13,7 +13,7 @@ MASTER_SITES=	http://www.imspector.org/downloads/snapshots/
 MAINTAINER=	m.tsatsenko@gmail.com
 COMMENT=	IM transparent proxy with monitoring, blocking and content-filtering
 
-LIB_DEPENDS=    mysqlclient.18:${PORTSDIR}/databases/mysql55-client
+LIB_DEPENDS=    mysqlclient.16:${PORTSDIR}/databases/mysql51-client
 LIB_DEPENDS+=	sqlite3.8:${PORTSDIR}/databases/sqlite3
 
 LICENSE=	GPLv2
