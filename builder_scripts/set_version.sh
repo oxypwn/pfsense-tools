@@ -27,10 +27,13 @@
 #
 
 if [ $# -lt 1 ]; then
-	cat <<"END_OF_USAGE" 1>&2
-Usage  : $0 BRANCH [SUP_HOST] [ERROR_EMAIL_ADDRESS] [COMPLETED_EMAIL_ADDRESS]
-         [TWITTER_USERNAME] [TWITTER_PASSWORD] [REMOVE_PHP]
+	cat <<END_OF_USAGE 1>&2
+Usage  : $0 BRANCH [SUP_HOST] [ERROR_EMAIL_ADDRESS] \\
+         [COMPLETED_EMAIL_ADDRESS] [TWITTER_USERNAME] [TWITTER_PASSWORD] \\
+         [REMOVE_PHP]
 Example: $0 HEAD cvsup.example.com errors@example.com notify@example.com
+
+BRANCH is required.
 
 If SUP_HOST is omitted, fastest_cvsup will be used to select a CVSUp server
 for you.  To omit SUP_HOST without omitting the following arguments, pass
