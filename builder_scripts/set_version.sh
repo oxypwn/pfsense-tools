@@ -31,7 +31,8 @@ if [ $# -lt 1 ]; then
 Usage  : $0 BRANCH [SUP_HOST] [ERROR_EMAIL_ADDRESS] \\
          [COMPLETED_EMAIL_ADDRESS] [TWITTER_USERNAME] [TWITTER_PASSWORD] \\
          [REMOVE_PHP]
-Example: $0 HEAD cvsup.example.com errors@example.com notify@example.com
+Example: $0 HEAD cvsup.example.com \\
+         errors@example.com notify@example.com
 
 BRANCH is required.
 
