@@ -27,9 +27,19 @@
 #
 
 if [ $# -lt 1 ]; then
-	echo 1>&2 Usage  : $0 branch SUP_HOST ERROR_EMAIL_ADDRESS
-	echo 1>&2 Example: $0 HEAD cvsup.livebsd.org myemail@emails.com
-	echo 1>&2 Note   : Replace cvsup.livebsd.org with your favorite FreeBSD CVSUP server
+	echo 1>&2 <<"END_OF_USAGE"
+Usage  : $0 BRANCH [SUP_HOST] [ERROR_EMAIL_ADDRESS] [COMPLETED_EMAIL_ADDRESS]
+         [TWITTER_USERNAME] [TWITTER_PASSWORD] [REMOVE_PHP]
+Example: $0 HEAD cvsup.example.com errors@example.com notify@example.com
+
+If SUP_HOST is omitted, fastest_cvsup will be used to select a CVSUp server
+for you.  To omit SUP_HOST without omitting the following arguments, pass
+'' in that position on the command line.
+
+All other arguments may be omitted; when not present, that action will not
+be taken.
+
+END_OF_USAGE
 	exit 127
 fi
 
@@ -68,11 +78,7 @@ if [ "$6" != "" ]; then
 fi
 
 if [ "$7" != "" ]; then
-	TWITTER_PASSWORD="$6"
-fi
-
-if [ "$8" != "" ]; then
-	REMOVE_PHP="$6"
+	REMOVE_PHP="$7"
 fi
 
 HANDLED=false

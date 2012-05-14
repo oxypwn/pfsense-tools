@@ -168,22 +168,22 @@ Choose the option you would like:" -1 -1 9 \
 		fi
 		get_text "Enter the cvsup server address or hit enter to use the fastest found"
 		CVSUP_SOURCE=$get_text_value
-		get_text "Enter the E-mail address to send a message to upon operation finish"
+		get_text "Enter the E-mail address to send a message to upon operation finish (optional)"
 		EMAIL_ADDRESS_WHEN_FINISHED=$get_text_value
-		get_text "Enter the E-mail address to send a message to upon operation error"
+		get_text "Enter the E-mail address to send a message to upon operation error (optional)"
 		EMAIL_ADDRESS_WHEN_ERROR=$get_text_value
-		get_text "Enter the twitter username to update upon snapshot posting"
+		get_text "Enter the twitter username to update upon snapshot posting (optional)"
 		TWITTER_SNAPSHOTS_USERNAME=$get_text_value
 		if [ ! "$TWITTER_SNAPSHOTS_USERNAME" = "" ]; then
 			get_text "Enter the twitter password to update upon snapshot posting"
 			TWITTER_SNAPSHOTS_PASSWORD=$get_text_value
 		fi
-		./set_version.sh $PFSENSE_VERSION \
-$CVSUP_SOURCE \
-$EMAIL_ADDRESS_WHEN_FINISHED \
-$EMAIL_ADDRESS_WHEN_ERROR \
-$TWITTER_SNAPSHOTS_USERNAME \
-$TWITTER_SNAPSHOTS_PASSWORD
+		./set_version.sh "$PFSENSE_VERSION" \
+"$CVSUP_SOURCE" \
+"$EMAIL_ADDRESS_WHEN_ERROR" \
+"$EMAIL_ADDRESS_WHEN_FINISHED" \
+"$TWITTER_SNAPSHOTS_USERNAME" \
+"$TWITTER_SNAPSHOTS_PASSWORD"
 		get_text "Enter the complete path to a overlay directory or tarball (optional)"
 		if [ "$get_text_value" != "" ]; then
 			echo "custom_overlay=\"$get_text_value\"" >> pfsense-build.conf
