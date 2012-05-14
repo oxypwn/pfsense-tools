@@ -27,7 +27,7 @@
 #
 
 if [ $# -lt 1 ]; then
-	echo 1>&2 <<"END_OF_USAGE"
+	cat <<"END_OF_USAGE" 1>&2
 Usage  : $0 BRANCH [SUP_HOST] [ERROR_EMAIL_ADDRESS] [COMPLETED_EMAIL_ADDRESS]
          [TWITTER_USERNAME] [TWITTER_PASSWORD] [REMOVE_PHP]
 Example: $0 HEAD cvsup.example.com errors@example.com notify@example.com
