@@ -1,13 +1,13 @@
-# New ports collection makefile for:    php5
-# Date created:                         Tue Feb 18 11:17:13 CET 2003
-# Whom:                                 Alex Dupre <sysadmin@alexdupre.com>
+# New ports collection makefile for:	php5
+# Date created:				Tue Feb 18 11:17:13 CET 2003
+# Whom:					Alex Dupre <sysadmin@alexdupre.com>
 #
-# $FreeBSD: ports/lang/php5/Makefile,v 1.167 2012/02/03 09:03:06 ale Exp $
+# $FreeBSD: ports/lang/php5/Makefile,v 1.170 2012/05/09 05:43:32 ale Exp $
 #
 
 PORTNAME=	php5
-PORTVERSION=	5.3.10
-PORTREVISION?=	1
+PORTVERSION=	5.3.13
+PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
@@ -31,26 +31,26 @@ CONFIGURE_ARGS=	\
 		--with-config-file-scan-dir=${PREFIX}/etc/php \
 		--disable-all \
 		--enable-libxml \
-		--with-libxml-dir=${LOCALBASE} \
 		--with-libxmlrpc \
-		--with-pcre-regex=${LOCALBASE} \
 		--enable-mysqlnd \
+		--with-libxml-dir=${LOCALBASE} \
+		--with-pcre-regex=${LOCALBASE} \
 		--with-zlib-dir=/usr \
 		--program-prefix=""
 
 USE_GNOME=	libxml2
 
 OPTIONS=	CLI "Build CLI version" on \
-			CGI "Build CGI version" on \
-			FPM "Build FPM version (experimental)" off \
-			APACHE "Build Apache module" off \
-			AP2FILTER " Use Apache 2.x filter interface (experimental)" off \
-			DEBUG "Enable debug" off \
-			SUHOSIN "Enable Suhosin protection system" on \
-			MULTIBYTE "Enable zend multibyte support" off \
-			IPV6 "Enable ipv6 support" on \
-			MAILHEAD "Enable mail header patch" off \
-			LINKTHR "Link thread lib (for threaded extensions)" off
+		CGI "Build CGI version" on \
+		FPM "Build FPM version (experimental)" off \
+		APACHE "Build Apache module" off \
+		AP2FILTER " Use Apache 2.x filter interface (experimental)" off \
+		DEBUG "Enable debug" off \
+		SUHOSIN "Enable Suhosin protection system" on \
+		MULTIBYTE "Enable zend multibyte support" off \
+		IPV6 "Enable ipv6 support" on \
+		MAILHEAD "Enable mail header patch" off \
+		LINKTHR "Link thread lib (for threaded extensions)" on
 
 CONFLICTS=	php4-4* php5-pcre-* php5-spl-*
 
@@ -64,7 +64,7 @@ PATCH_SITES+=	${MASTER_SITE_LOCAL}
 PATCH_SITE_SUBDIR=	ale
 
 .if !defined(WITHOUT_SUHOSIN)
-PATCHFILES+=	suhosin-patch-${PORTVERSION}-0.9.10.patch.gz
+PATCHFILES+=	suhosin-patch-5.3.x-0.9.10.patch.gz
 PATCH_SITES+=	http://download.suhosin.org/:suhosin
 PLIST_SUB+=	SUHOSIN=""
 .else
@@ -72,7 +72,7 @@ PLIST_SUB+=	SUHOSIN="@comment "
 .endif
 
 .if defined(WITH_MAILHEAD)
-PATCHFILES+=	php-${PORTVERSION}-mail-header.patch
+PATCHFILES+=	php-5.3.x-mail-header.patch:mail
 PATCH_SITES+=	http://choon.net/opensource/php/:mail
 .endif
 
@@ -182,7 +182,6 @@ test: build
 	@(cd ${WRKSRC} && ${MAKE} test)
 
 post-install:
-	@${INSTALL_PROGRAM} ${WRKSRC}/sapi/cgi/php-cgi ${PREFIX}/bin/php
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-development ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKSRC}/php.ini-production ${PREFIX}/etc
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
