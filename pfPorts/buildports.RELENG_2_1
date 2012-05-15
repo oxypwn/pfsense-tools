@@ -126,7 +126,7 @@ syslog-ng					/usr/ports/sysutils/syslog-ng				/usr/local/sbin/syslog-ng
 zip							/usr/ports/archivers/zip					/usr/local/bin/zip
 links						/usr/ports/www/links						/usr/local/bin/links
 elinks						/usr/ports/www/elinks						/usr/local/bin/elinks
-openntpd					/usr/ports/net/openntpd						/usr/local/sbin/ntpd
+ntp					/usr/ports/net/ntp						/usr/local/bin/ntpd
 pecl-uploadprogress			/usr/ports/devel/pecl-uploadprogress		/usr/local/lib/php/20090626/uploadprogress.so
 php5-json					/usr/ports/devel/php5-json					/usr/local/lib/php/20090626/json.so
 rate						/usr/ports/net-mgmt/rate					/usr/local/bin/rate
