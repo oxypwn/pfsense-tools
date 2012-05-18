@@ -112,5 +112,4 @@
 ~~makefile.inc1.diff~
 ~~stf_6rd_20100921-1.diff~
 ~~if_bridge_sticky_mac.diff~
--p1~~pf_qos_ruleset.diff~
 ~sys/contrib/pf/net~pfsync_state_timeout.diff~
