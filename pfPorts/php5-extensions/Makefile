@@ -25,6 +25,7 @@ NO_BUILD=	yes
 
 LATEST_LINK=	${PORTNAME}${PKGNAMESUFFIX}
 
+WITH_BCMATH=	yes
 WITH_CTYPE=	yes
 WITH_DOM=	yes
 WITH_FILTER=	yes
@@ -44,7 +45,7 @@ WITH_XML=	yes
 WITH_XMLREADER=	yes
 WITH_XMLWRITER=	yes
 
-OPTIONS=	BCMATH          "bc style precision math functions" off \
+OPTIONS=	BCMATH          "bc style precision math functions" on \
 		BZ2             "bzip2 library support" off \
 		CALENDAR        "calendar conversion support" off \
 		CTYPE           "ctype functions" on \
