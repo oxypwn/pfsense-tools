@@ -94,7 +94,7 @@ index 217d5ca..9a36db1 100644
 +			filter_opts.ieee8021q_pcp.pcp[1] = 0;
 +			filter_opts.ieee8021q_pcp.op = PF_OP_EQ;
 +		}
-+		| IEEE8021QPCP NUMBER {
++		| IEEE8021QPCP number {
 +			u_int pcp;
 +
 +			pcp = $2;
@@ -140,7 +140,7 @@ index 217d5ca..9a36db1 100644
 +			free($2);
 +			filter_opts.ieee8021q_pcp.setpcp = pcp | SETPCP_VALID;
 +		}
-+		| IEEE8021QSETPCP NUMBER {
++		| IEEE8021QSETPCP number {
 +			u_int pcp;
 +
 +			pcp = $2;
@@ -591,7 +591,7 @@ index 8008f8b..08d93b5 100644
 +vlan_tag_recalculate(struct ifvlan *ifv)
 +{
 +
-+	ifv->ifv_mib.ifvm_tag = EVL_MAKETAG(ifv->ifv_vid, ifv->ifv_pcp, 0);
++	ifv->ifv_mib.ifvm_tag = EVL_MAKETAG(ifv->ifv_tag, ifv->ifv_pcp, 0);
 +}
 +
 +/*
