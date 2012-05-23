@@ -61,6 +61,7 @@
 ~~carp_livelock_fixes_v2.diff~
 -p1~~carp_allow.diff~
 ~~ipsec-oneshot-dumps.RELENG_8.diff~
+-p1~~pf_match.diff~
 ~~aes_enhancment.diff~
 ~~if_bridge_gif_mtu.diff~
 ~~if_lagg_panic.diff~
@@ -79,8 +80,10 @@
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
 ~~makefile.inc1.diff~
+-p1~~pf_match_dummynet.diff~
 -p1~~freebsd8-6rd-20100130.patch~
 ~~stf_6rd_20100923-1.diff~
 ~sys/contrib/pf/net~pfsync_state_timeout.diff~
 -p1~~pf_route-to-crash_fixes.diff~
 -p1~~pf_802.1p.diff~
+-p1~~pfctl_print_state_queue.diff~
