@@ -151,7 +151,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/racoonctl.c ./src/racoon/racoonctl.
 +		/* source address */
 +		GETNAMEINFO((struct sockaddr *)&pd->local, _addr1_, _addr2_);
 +		/* destination address */
-+		GETNAMEINFO((struct sockaddr *)&pd->remote, _addr1_, _addr2_);
++		GETNAMEINFO((struct sockaddr *)&pd->remote, _addr3_, _addr4_);
 +
 +		printf("%s|%s:%s|%s:%s|%s\n", pd->user,_addr1_,_addr2_,_addr3_,_addr4_,tbuf);
 +		pd++;
