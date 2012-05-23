@@ -1,11 +1,8 @@
-Index: contrib/pf/pfctl/pfctl_altq.c
-===================================================================
-RCS file: /home/ncvs/src/contrib/pf/pfctl/pfctl_altq.c,v
-retrieving revision 1.10.2.1.4.1
-diff -u -r1.10.2.1.4.1 pfctl_altq.c
---- contrib/pf/pfctl/pfctl_altq.c	14 Jun 2010 02:09:06 -0000	1.10.2.1.4.1
-+++ contrib/pf/pfctl/pfctl_altq.c	6 Apr 2011 19:30:01 -0000
-@@ -238,15 +238,11 @@
+diff --git a/contrib/pf/pfctl/pfctl_altq.c b/contrib/pf/pfctl/pfctl_altq.c
+index 4eb4bcb..3afe4fd 100644
+--- a/contrib/pf/pfctl/pfctl_altq.c
++++ b/contrib/pf/pfctl/pfctl_altq.c
+@@ -254,15 +254,11 @@ eval_pfaltq(struct pfctl *pf, struct pf_altq *pa, struct node_queue_bw *bw,
  		pa->ifbandwidth = bw->bw_absolute;
  	else
  #ifdef __FreeBSD__
