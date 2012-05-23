@@ -355,7 +355,7 @@ tryagain:
 		buf[n - 1] = '\0';
 	}
 	for (i = 0; i < n - 1; i++) {
-		if (!isalpha(buf[i]) && !isspace(buf[i]) && !isdigit(buf[i])) {
+		if (!isalpha(buf[i]) && !isspace(buf[i]) && !isdigit(buf[i]) && !ispunct(buf[i])) {
 			write(fd, "ERROR:\tonly alphanumeric chars allowd", 37);
 			socket_close_command(fd, ev);
 			return;
