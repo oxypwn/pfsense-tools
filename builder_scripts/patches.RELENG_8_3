@@ -67,7 +67,7 @@
 ~~if_lagg_panic.diff~
 ~~net80211_WME_fix.diff~
 ~~virtio.tgz~
-~~pfaltq_interface_bw.diff~
+-p1~~pfaltq_interface_bw.diff~
 ~~tcp_lro_fix.diff~
 ~~scrub_FIN+SYN_drop.diff~
 -p1~~carp_ip_alias_fix.diff~
