@@ -136,7 +136,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/racoonctl.c ./src/racoon/racoonctl.
 +	if (len % sizeof(*pd))
 +		printf("invalid length %d\n", len);
 +
-+	printf("User|Source|Destination|CreatedOn\n");
++	printf("User|Source|Destination|CreatedOn|SPI\n");
 +
 +	len /= sizeof(*pd);
 +	pd = (struct ph1dump *)buf;
@@ -153,7 +153,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/racoonctl.c ./src/racoon/racoonctl.
 +		/* destination address */
 +		GETNAMEINFO((struct sockaddr *)&pd->remote, _addr3_, _addr4_);
 +
-+		printf("%s|%s:%s|%s:%s|%s\n", pd->user,_addr1_,_addr2_,_addr3_,_addr4_,tbuf);
++		printf("%s|%s:%s|%s:%s|%s|%s\n", pd->user,_addr1_,_addr2_,_addr3_,_addr4_,tbuf,pindex_isakmp(&pd->index));
 +		pd++;
 +	}
 +
