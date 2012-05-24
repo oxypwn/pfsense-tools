@@ -63,7 +63,7 @@
 ~~ipsec-oneshot-dumps.RELENG_8.diff~
 -p1~~pf_match.diff~
 ~~aes_enhancment.diff~
-~~if_bridge_gif_mtu.diff~
+-p1~~if_bridge_gif_mtu.diff~
 ~~if_lagg_panic.diff~
 ~~net80211_WME_fix.diff~
 ~~virtio.tgz~
