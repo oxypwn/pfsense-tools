@@ -132,6 +132,12 @@ if [ ! -z "${SPLIT_ARCH_BUILD:-}" ]; then
 	kill $$
 fi
 
+# Install ports on normal image
+install_pkg_install_ports
+
+echo ">>> Installing packages: "
+cat $PFSPKGFILE
+
 # Add extra files such as buildtime of version, bsnmpd, etc.
 echo ">>> Phase populate_extra..."
 cust_populate_extra
