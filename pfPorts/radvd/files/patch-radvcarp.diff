@@ -1,0 +1,526 @@
+diff --git device-bsd44.c device-bsd44.c
+index 8cd82e9..64f394f 100644
+--- device-bsd44.c
++++ device-bsd44.c
+@@ -17,8 +17,21 @@
+ #include "radvd.h"
+ #include "defaults.h"
+ #include "pathnames.h"		/* for PATH_PROC_NET_IF_INET6 */
++#include "rtsock.h"
++
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <net/if.h>
++#include <net/route.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <errno.h>
++#include <string.h>
++
++#include <netinet/ip_carp.h>
+ 
+ static uint8_t ll_prefix[] = { 0xfe, 0x80 };
++extern struct Interface *IfaceList;
+ 
+ /*
+  * this function gets the hardware type and address of an interface,
+@@ -136,6 +149,124 @@ ret:
+ 	return -1;
+ }
+ 
++int
++setup_carpinfo(struct Interface *iface)
++{
++	struct ifaddrs *addresses = 0, *ifa;
++	struct AdvPrefix *prefix, **pptr;
++	struct Interface *iface2;
++	struct ifreq	ifr;
++	struct carpreq carpr;
++	struct in6_addr nw;
++
++	if (iface->AdvPrefixList == NULL ||
++	    (iface->AdvPrefixList != NULL &&
++	    iface->AdvPrefixList->next != NULL)) {
++		flog(LOG_ERR, "%s must have one prefix configured", iface->Name);
++		return -1;
++	}
++
++	strncpy(ifr.ifr_name, iface->Name, IFNAMSIZ-1);
++	ifr.ifr_name[IFNAMSIZ-1] = '\0';
++
++	memset((char *)&carpr, 0, sizeof(struct carpreq));
++	ifr.ifr_data = (caddr_t)&carpr;
++	if (ioctl(sock, SIOCGVH, &ifr) < 0) {
++		flog(LOG_ERR, "ioctl SIOCGVH failed: %s(%d)", strerror(errno), errno);
++		return -1;
++	}
++
++	if (getifaddrs(&addresses) != 0)
++	{
++		flog(LOG_ERR, "getifaddrs failed: %s(%d)", strerror(errno), errno);
++		return -1;
++	}
++
++	for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next)
++	{
++		struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)ifa->ifa_addr;
++		struct sockaddr_in6 *mask = (struct sockaddr_in6 *)ifa->ifa_netmask;
++
++		if (strcmp(ifa->ifa_name, iface->Name) == 0)
++			continue;	/* looking for !carp */
++
++		if (ifa->ifa_addr == NULL)
++			continue;
++
++		if (ifa->ifa_addr->sa_family != AF_INET6)
++			continue;
++
++		if (IN6_IS_ADDR_LINKLOCAL(&s6->sin6_addr))
++			continue;
++
++		dlog(LOG_DEBUG, 3, "finding interface %s", ifa->ifa_name);
++		/* find the interface this prefix is on */
++		iface2 = IfaceList;
++		while (iface2)
++		{
++			if (!strcmp(iface2->Name, ifa->ifa_name))
++				break;	/* found it */
++			iface2 = iface2->next;
++		}
++		if (iface2 == NULL)
++			continue;
++		dlog(LOG_DEBUG, 3, "found interface %s", ifa->ifa_name);
++
++		nw = get_prefix6(&s6->sin6_addr, &mask->sin6_addr);
++		prefix = iface->AdvPrefixList;
++		while (prefix)
++		{
++			if (IN6_ARE_ADDR_EQUAL(&prefix->Prefix, &nw)) {
++				dlog(LOG_DEBUG, 3, "Carp prefix found on %s", iface2->Name);
++				iface->CarpDev = iface2;
++				break;
++			}
++			prefix = prefix->next;
++		}
++		if (iface->CarpDev == NULL)
++			continue;
++		break;
++	}
++	freeifaddrs(addresses);
++
++	if (iface->CarpDev == NULL) {
++		flog(LOG_ERR, "Carp master for %s not found", iface->Name);
++		return -1;
++	}
++	if (iface->CarpDev->if_hwaddr_len != 48) {
++		flog(LOG_ERR, "Unexpected if_hwaddr_len on %s ", iface->Name);
++		return -1;
++	}
++
++	iface->if_maxmtu = iface->CarpDev->if_maxmtu;
++	iface->if_hwaddr_len = iface->CarpDev->if_hwaddr_len;
++	iface->if_prefix_len = iface->CarpDev->if_prefix_len;
++	iface->if_hwaddr[0] = 0x00;
++	iface->if_hwaddr[1] = 0x00;
++	iface->if_hwaddr[2] = 0x5e;
++	iface->if_hwaddr[3] = 0x00;
++	iface->if_hwaddr[4] = 0x01;
++	iface->if_hwaddr[5] = carpr.carpr_vhid;
++
++	if (carpr.carpr_state != 2 /* master */)
++		iface->LinkDown = 1;
++
++	/* remove the prefix from the carp parent, if it exists */
++	pptr = &iface->CarpDev->AdvPrefixList;
++	while (*pptr) {
++		prefix = *pptr;
++
++		if (IN6_ARE_ADDR_EQUAL(&prefix->Prefix, &iface->AdvPrefixList->Prefix)) {
++			*pptr = prefix->next;
++			free(prefix);
++			break;
++		}
++		pptr = &prefix->next;
++	}
++
++	return 0;
++}
++
+ /*
+  * Saves the first link local address seen on the specified interface to iface->if_addr
+  *
+@@ -143,6 +274,18 @@ ret:
+ int setup_linklocal_addr(struct Interface *iface)
+ {
+ 	struct ifaddrs *addresses = 0, *ifa;
++	const char *ifname;
++
++	if (iface->IsCarp) {
++		if (iface->CarpDev == NULL) {
++			flog(LOG_ERR, "CarpDev not found for %s",
++			    iface->Name);
++			return -1;
++		}
++		ifname = iface->CarpDev->Name;
++	} else {
++		ifname = iface->Name;
++	}
+ 
+ 	if (getifaddrs(&addresses) != 0)
+ 	{
+@@ -152,7 +295,7 @@ int setup_linklocal_addr(struct Interface *iface)
+ 
+ 	for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next)
+ 	{
+-		if (strcmp(ifa->ifa_name, iface->Name) != 0)
++		if (strcmp(ifa->ifa_name, ifname) != 0)
+ 			continue;
+ 
+ 		if (ifa->ifa_addr == NULL)
+@@ -160,8 +303,8 @@ int setup_linklocal_addr(struct Interface *iface)
+ 
+ 		if (ifa->ifa_addr->sa_family == AF_LINK) {
+ 			struct sockaddr_dl *dl = (struct sockaddr_dl*)ifa->ifa_addr;
+-			if (memcmp(iface->Name, dl->sdl_data, dl->sdl_nlen) == 0)
+-				iface->if_index = dl->sdl_index;
++			if (memcmp(ifname, dl->sdl_data, dl->sdl_nlen) == 0)
++				iface->if_index = iface->if_realindex = dl->sdl_index;
+ 			continue;
+ 		}
+ 
+@@ -228,3 +371,82 @@ set_interface_retranstimer(const char *iface, uint32_t rettimer)
+ 	return -1;
+ }
+ 
++int carp_master(const char *iface)
++{
++	struct ifreq	ifr;
++	struct carpreq carpr;
++
++	strncpy(ifr.ifr_name, iface, IFNAMSIZ-1);
++	ifr.ifr_name[IFNAMSIZ-1] = '\0';
++
++	memset((char *)&carpr, 0, sizeof(struct carpreq));
++	ifr.ifr_data = (caddr_t)&carpr;
++	if (ioctl(sock, SIOCGVH, &ifr) < 0)
++		return -1;
++
++	return carpr.carpr_state == 2;
++}
++
++void process_rtsock_msg(int sock)
++{
++	char buf[2048];
++	struct Interface *iface;
++	struct if_msghdr *ifm;
++	struct rt_msghdr *rtm;
++	int n;
++
++	n = read(sock, buf, sizeof(buf));
++	if (n < 0) {
++		if (errno != EINTR && errno != EAGAIN)
++			perror("read(PF_ROUTE)");
++		return;
++	}
++
++	rtm = (struct rt_msghdr *) buf;
++	if (rtm->rtm_version != RTM_VERSION) {
++		dlog(LOG_DEBUG, 3, "Routing message version %d not "
++			"understood\n", rtm->rtm_version);
++		return;
++	}
++	switch (rtm->rtm_type) {
++	case RTM_IFINFO:
++		ifm = (struct if_msghdr *) rtm;
++		dlog(LOG_DEBUG, 3, "Routing message version %d iface %d\n",
++			rtm->rtm_version, ifm->ifm_index);
++		iface = IfaceList;
++		while (iface) {
++			if (ifm->ifm_index == iface->if_realindex)
++				break;
++			iface = iface->next;
++		}
++		if (iface == NULL)
++			break;	/* not ours */
++
++		switch (ifm->ifm_data.ifi_link_state) {
++			case LINK_STATE_DOWN:
++				iface->LinkDown = 1;
++				break;
++			case LINK_STATE_UP:
++				iface->LinkDown = 0;
++				break;
++			default:
++				/* dont know... assume up */
++				iface->LinkDown = 1;
++				break;
++		}
++		dlog(LOG_DEBUG, 3, "Interface %s changed to %s",
++		    iface->Name, iface->LinkDown ? "DOWN":"UP");
++		/* Should check other flags like IFF_UP */
++		break;
++	}
++}
++
++int rt_socket(void)
++{
++	int sock;
++
++	sock = socket(PF_ROUTE, SOCK_RAW, 0);
++
++	return sock;
++}
++
+diff --git device-common.c device-common.c
+index 4bcc9c9..2b9c356 100644
+--- device-common.c
++++ device-common.c
+@@ -46,14 +46,14 @@ check_device(struct Interface *iface)
+ 		return (-1);
+ 	}
+ 
+-	if (! iface->UnicastOnly && !(ifr.ifr_flags & IFF_MULTICAST))
++	if (! iface->IsCarp && ! iface->UnicastOnly && !(ifr.ifr_flags & IFF_MULTICAST))
+ 	{
+ 		flog(LOG_WARNING, "interface %s does not support multicast",
+ 			iface->Name);
+ 		flog(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
+ 	}
+ 
+-	if (! iface->UnicastOnly && !(ifr.ifr_flags & IFF_BROADCAST))
++	if (! iface->IsCarp && ! iface->UnicastOnly && !(ifr.ifr_flags & IFF_BROADCAST))
+ 	{
+ 		flog(LOG_WARNING, "interface %s does not support broadcast",
+ 			iface->Name);
+diff --git device-linux.c device-linux.c
+index a29cbbc..617805f 100644
+--- device-linux.c
++++ device-linux.c
+@@ -155,7 +155,7 @@ int setup_linklocal_addr(struct Interface *iface)
+ 			}
+ 			memcpy(&iface->if_addr, &addr, sizeof(iface->if_addr));
+ 
+-			iface->if_index = if_idx;
++			iface->if_index = iface->if_realindex = if_idx;
+ 			fclose(fp);
+ 			return 0;
+ 		}
+diff --git gram.y gram.y
+index 43f3c29..226bf83 100644
+--- gram.y
++++ gram.y
+@@ -33,7 +33,6 @@ static void cleanup(void);
+ static void yyerror(char *msg);
+ static int countbits(int b);
+ static int count_mask(struct sockaddr_in6 *m);
+-static struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask);
+ 
+ #if 0 /* no longer necessary? */
+ #ifndef HAVE_IN6_ADDR_S6_ADDR
+@@ -168,6 +167,10 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
+ 				iface2 = iface2->next;
+ 			}
+ 
++#ifdef __FreeBSD__
++			if (carp_master(iface->Name) != -1)
++				iface->IsCarp = 1;
++#endif
+ 			if (check_device(iface) < 0) {
+ 				if (iface->IgnoreIfMissing) {
+ 					dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
+@@ -180,6 +183,8 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
+ 			if (setup_deviceinfo(iface) < 0)
+ 				if (!iface->IgnoreIfMissing)
+ 				ABORT;
++			if (iface->IsCarp && setup_carpinfo(iface) < 0)
++				ABORT;
+ 			if (check_iface(iface) < 0)
+ 				if (!iface->IgnoreIfMissing)
+ 				ABORT;
+@@ -191,6 +196,7 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
+ 				ABORT;
+ 
+ 			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
++			dlog(LOG_DEBUG, 4, "%s: if_index %d", iface->Name, iface->if_realindex);
+ 
+ 			iface->next = IfaceList;
+ 			IfaceList = iface;
+@@ -940,7 +946,6 @@ int count_mask(struct sockaddr_in6 *m)
+ 	return count;
+ }
+ 
+-static
+ struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask)
+ {
+ 	struct in6_addr prefix = *addr;
+diff --git process.c process.c
+index cbc93d3..60a0079 100644
+--- process.c
++++ process.c
+@@ -96,11 +96,11 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
+ 
+ 	dlog(LOG_DEBUG, 4, "if_index %u", pkt_info->ipi6_ifindex);
+ 
+-	/* get iface by received if_index */
++	/* get iface by received if_realindex */
+ 
+ 	for (iface = ifacel; iface; iface=iface->next)
+ 	{
+-		if (iface->if_index == pkt_info->ipi6_ifindex)
++		if (iface->if_realindex == pkt_info->ipi6_ifindex)
+ 		{
+ 			break;
+ 		}
+diff --git radvd.c radvd.c
+index 111c21c..6641aa8 100644
+--- radvd.c
++++ radvd.c
+@@ -17,6 +17,7 @@
+ #include "includes.h"
+ #include "radvd.h"
+ #include "pathnames.h"
++#include "rtsock.h"
+ 
+ #ifdef HAVE_NETLINK
+ #include "netlink.h"
+@@ -202,6 +203,10 @@ main(int argc, char *argv[])
+ 			exit(1);
+ 		}
+ 	}
++	daemonize = 0;
++	conf_file = "radvd.conf";
++	log_method = L_STDERR;
++	set_debuglevel(5);
+ 
+ 	if (chrootdir) {
+ 		if (!username) {
+@@ -387,8 +392,8 @@ void main_loop(void)
+ 	fds[1].events = POLLIN;
+ 	fds[1].revents = 0;
+ #else
+-	fds[1].fd = -1;
+-	fds[1].events = 0;
++	fds[1].fd = rt_socket();
++	fds[1].events = POLLIN;
+ 	fds[1].revents = 0;
+ #endif
+ 
+@@ -431,14 +436,17 @@ void main_loop(void)
+ 						&rcv_addr, pkt_info, hoplimit);
+ 				}
+ 			}
+-#ifdef HAVE_NETLINK
+ 			if (fds[1].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+ 				flog(LOG_WARNING, "socket error on fds[1].fd");
+ 			}
+ 			else if (fds[1].revents & POLLIN) {
++#ifdef HAVE_NETLINK
+ 				process_netlink_msg(fds[1].fd);
+-			}
++#else
++				process_rtsock_msg(fds[1].fd);
++
+ #endif
++			}
+ 		}
+ 		else if ( rc == 0 ) {
+ 			if (next)
+diff --git radvd.h radvd.h
+index d1304f4..35d79ed 100644
+--- radvd.h
++++ radvd.h
+@@ -38,6 +38,7 @@ struct Interface {
+ 
+ 	struct in6_addr		if_addr;
+ 	unsigned int		if_index;
++	unsigned int		if_realindex;
+ 
+ 	uint8_t			init_racount;	/* Initial RAs */
+ 
+@@ -66,6 +67,10 @@ struct Interface {
+ 	int			AdvSourceLLAddress;
+ 	int			UnicastOnly;
+ 
++	/* FreeBSD Carp */
++	int			IsCarp;
++	struct Interface	*CarpDev;
++
+ 	/* Mobile IPv6 extensions */
+ 	int			AdvIntervalOpt;
+ 	int			AdvHomeAgentInfo;
+@@ -86,6 +91,7 @@ struct Interface {
+ 
+ 	/* Info whether this interface has failed in the past (and may need to be reinitialized) */
+ 	int			HasFailed;
++	int			LinkDown;
+ 
+ 	struct Interface	*next;
+ };
+@@ -179,6 +185,7 @@ struct HomeAgentInfo {
+ 
+ /* gram.y */
+ int yyparse(void);
++struct in6_addr get_prefix6(struct in6_addr const *, struct in6_addr const *);
+ 
+ /* scanner.l */
+ int yylex(void);
+@@ -196,6 +203,7 @@ int expired(struct Interface const * iface);
+ 
+ /* device.c */
+ int setup_deviceinfo(struct Interface *);
++int setup_carpinfo(struct Interface *);
+ int check_device(struct Interface *);
+ int setup_linklocal_addr(struct Interface *);
+ int setup_allrouters_membership(struct Interface *);
+@@ -206,6 +214,7 @@ int set_interface_linkmtu(const char *, uint32_t);
+ int set_interface_curhlim(const char *, uint8_t);
+ int set_interface_reachtime(const char *, uint32_t);
+ int set_interface_retranstimer(const char *, uint32_t);
++int carp_master(const char *);
+ 
+ /* interface.c */
+ void iface_init_defaults(struct Interface *);
+diff --git rtsock.h rtsock.h
+new file mode 100644
+index 0000000..d7f7569
+--- /dev/null
++++ rtsock.h
+@@ -0,0 +1,20 @@
++/*
++ *
++ *   Authors:
++ *    Lars Fenneberg		<lf@elemental.net>	 
++ *    Reuben Hawkins		<reubenhwk@gmail.com>
++ *
++ *   This software is Copyright 1996,1997 by the above mentioned author(s), 
++ *   All Rights Reserved.
++ *
++ *   The license which is distributed with this software in the file COPYRIGHT
++ *   applies to this software. If your distribution is missing this file, you
++ *   may request it from <pekkas@netcore.fi>.
++ *
++ */
++
++#pragma once
++
++void process_rtsock_msg(int sock);
++int rt_socket(void);
++
+diff --git send.c send.c
+index 9e6a29c..6e771a0 100644
+--- send.c
++++ send.c
+@@ -133,6 +133,13 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
+ 	size_t len = 0;
+ 	ssize_t err;
+ 
++#ifdef __FreeBSD__
++	if (iface->IsCarp && carp_master(iface->Name) != 1) {
++		dlog(LOG_DEBUG, 4, "interface %s is not carp master", iface->Name);
++		/* not really a 'success', but we need to schedule new timers.. */
++		return 0;
++	} else
++#endif
+ 	/* First we need to check that the interface hasn't been removed or deactivated */
+ 	if(check_device(iface) < 0) {
+ 		if (iface->IgnoreIfMissing)  /* a bit more quiet warning message.. */
