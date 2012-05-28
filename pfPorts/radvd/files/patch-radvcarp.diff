@@ -383,17 +383,6 @@ index 111c21c..6641aa8 100644
  
  #ifdef HAVE_NETLINK
  #include "netlink.h"
-@@ -202,6 +203,10 @@ main(int argc, char *argv[])
- 			exit(1);
- 		}
- 	}
-+	daemonize = 0;
-+	conf_file = "radvd.conf";
-+	log_method = L_STDERR;
-+	set_debuglevel(5);
- 
- 	if (chrootdir) {
- 		if (!username) {
 @@ -387,8 +392,8 @@ void main_loop(void)
  	fds[1].events = POLLIN;
  	fds[1].revents = 0;
