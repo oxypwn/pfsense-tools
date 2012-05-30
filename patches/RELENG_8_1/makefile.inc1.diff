@@ -1,5 +1,10 @@
---- Makefile.inc1	2010-06-14 02:26:33.000000000 +0000
-+++ Makefile.inc1.new	2012-01-26 19:33:39.000000000 +0000
+Index: Makefile.inc1
+===================================================================
+RCS file: /home/ncvs/src/Makefile.inc1,v
+retrieving revision 1.628.2.9.2.2
+diff -u -r1.628.2.9.2.2 Makefile.inc1
+--- Makefile.inc1	14 Jun 2010 02:26:33 -0000	1.628.2.9.2.2
++++ Makefile.inc1	30 May 2012 17:07:43 -0000
 @@ -604,7 +604,7 @@
  ITOOLS=	[ awk cap_mkdb cat chflags chmod chown \
  	date echo egrep find grep ${_install-info} \
