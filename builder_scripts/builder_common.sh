@@ -796,6 +796,14 @@ cust_populate_installer_bits() {
 	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
 	cp -r $BUILDER_TOOLS/installer/conf \
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
+	# Rebrand installer!
+	if [ "${PRODUCT_NAME}" != "" ]; then
+		sed -i "" -e "s/name = \"pfSense\"/name = \"${PRODUCT_NAME}\"/" $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/pfSense.lua
+	fi
+	if [ "${PFSENSE_VERSION}" !- "" ]; then
+		sed -i "" -e "s/version = \"1.2RC3\"/version = \"${PFSENSE_VERSION}\"/" $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/pfSense.lua
+	fi
+
 	# 597_ belongs in installation directory
 	cp $BUILDER_TOOLS/installer/installer_root_dir7/597* \
 		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
