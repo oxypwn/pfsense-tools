@@ -45,7 +45,6 @@ usr/local/bin/athstats
 usr/local/bin/beep
 usr/bin/bsdiff
 usr/bin/bspatch
-usr/sbin/ntptime
 usr/local/bin/cpdup
 usr/local/bin/gogoc
 usr/local/bin/minicron
@@ -79,7 +78,6 @@ usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
 usr/local/sbin/mpd4
 usr/local/sbin/mpd5
-usr/local/sbin/ntpd
 usr/local/sbin/olsrd
 usr/local/sbin/openvpn
 usr/local/sbin/pftop
@@ -197,3 +195,12 @@ usr/local/sbin/unbound-checkconf
 usr/local/sbin/unbound-control
 usr/local/lib/libldns.so.1
 usr/local/lib/libevent-1.4.so.4
+usr/local/bin/ntp-wait
+usr/local/bin/ntpd
+usr/local/bin/ntpdate
+usr/local/bin/ntpdc
+usr/local/bin/ntpq
+usr/local/bin/ntptime
+usr/local/bin/ntptrace
+usr/local/bin/sntp
+usr/local/bin/tickadj
