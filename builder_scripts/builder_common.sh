@@ -800,7 +800,7 @@ cust_populate_installer_bits() {
 	if [ "${PRODUCT_NAME}" != "" ]; then
 		sed -i "" -e "s/name = \"pfSense\"/name = \"${PRODUCT_NAME}\"/" $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/pfSense.lua
 	fi
-	if [ "${PFSENSE_VERSION}" !- "" ]; then
+	if [ "${PFSENSE_VERSION}" != "" ]; then
 		sed -i "" -e "s/version = \"1.2RC3\"/version = \"${PFSENSE_VERSION}\"/" $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/pfSense.lua
 	fi
 
