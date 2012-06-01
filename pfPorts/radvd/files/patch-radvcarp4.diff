@@ -1,5 +1,5 @@
-diff --git device-bsd44.c device-bsd44.c
-index 8cd82e9..64f394f 100644
+diff --git a/device-bsd44.c b/device-bsd44.c
+index 8cd82e9..e21aa44 100644
 --- device-bsd44.c
 +++ device-bsd44.c
 @@ -17,8 +17,21 @@
@@ -24,7 +24,7 @@ index 8cd82e9..64f394f 100644
  
  /*
   * this function gets the hardware type and address of an interface,
-@@ -136,6 +149,124 @@ ret:
+@@ -136,6 +149,127 @@ ret:
  	return -1;
  }
  
@@ -33,10 +33,11 @@ index 8cd82e9..64f394f 100644
 +{
 +	struct ifaddrs *addresses = 0, *ifa;
 +	struct AdvPrefix *prefix, **pptr;
-+	struct Interface *iface2;
++	struct Interface *parent;
 +	struct ifreq	ifr;
 +	struct carpreq carpr;
 +	struct in6_addr nw;
++	unsigned int pix = 0;
 +
 +	if (iface->AdvPrefixList == NULL ||
 +	    (iface->AdvPrefixList != NULL &&
@@ -61,6 +62,7 @@ index 8cd82e9..64f394f 100644
 +		return -1;
 +	}
 +
++	parent = NULL;
 +	for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next)
 +	{
 +		struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)ifa->ifa_addr;
@@ -78,48 +80,62 @@ index 8cd82e9..64f394f 100644
 +		if (IN6_IS_ADDR_LINKLOCAL(&s6->sin6_addr))
 +			continue;
 +
-+		dlog(LOG_DEBUG, 3, "finding interface %s", ifa->ifa_name);
-+		/* find the interface this prefix is on */
-+		iface2 = IfaceList;
-+		while (iface2)
-+		{
-+			if (!strcmp(iface2->Name, ifa->ifa_name))
-+				break;	/* found it */
-+			iface2 = iface2->next;
-+		}
-+		if (iface2 == NULL)
-+			continue;
-+		dlog(LOG_DEBUG, 3, "found interface %s", ifa->ifa_name);
-+
 +		nw = get_prefix6(&s6->sin6_addr, &mask->sin6_addr);
 +		prefix = iface->AdvPrefixList;
 +		while (prefix)
 +		{
-+			if (IN6_ARE_ADDR_EQUAL(&prefix->Prefix, &nw)) {
-+				dlog(LOG_DEBUG, 3, "Carp prefix found on %s", iface2->Name);
-+				iface->CarpDev = iface2;
++			if (addr_match(&prefix->Prefix, &nw,
++				    prefix->PrefixLen)) {
++				flog(LOG_ERR, "Carp prefix found on %s", ifa->ifa_name);
 +				break;
 +			}
 +			prefix = prefix->next;
 +		}
-+		if (iface->CarpDev == NULL)
++		if (prefix == NULL)
 +			continue;
++		pix = if_nametoindex(ifa->ifa_name);
++
++		flog(LOG_ERR, "finding interface %s", ifa->ifa_name);
++		/* find the interface this prefix is on */
++		parent = IfaceList;
++		while (parent)
++		{
++			if (!strcmp(parent->Name, ifa->ifa_name))
++				break;	/* found it */
++			parent = parent->next;
++		}
 +		break;
 +	}
 +	freeifaddrs(addresses);
 +
-+	if (iface->CarpDev == NULL) {
-+		flog(LOG_ERR, "Carp master for %s not found", iface->Name);
-+		return -1;
-+	}
-+	if (iface->CarpDev->if_hwaddr_len != 48) {
-+		flog(LOG_ERR, "Unexpected if_hwaddr_len on %s ", iface->Name);
-+		return -1;
++	if (parent != NULL) {
++		if (parent->if_hwaddr_len != 48) {
++			flog(LOG_ERR, "if_hwaddr_len %d, expected 48", parent->if_hwaddr_len);
++			return -1;
++		}
++
++		iface->if_maxmtu = parent->if_maxmtu;
++		iface->if_prefix_len = parent->if_prefix_len;
++
++		/* remove the prefix from the carp parent, if it exists */
++		pptr = &parent->AdvPrefixList;
++		while (*pptr) {
++			prefix = *pptr;
++
++			if (IN6_ARE_ADDR_EQUAL(&prefix->Prefix, &iface->AdvPrefixList->Prefix)) {
++				*pptr = prefix->next;
++				free(prefix);
++				break;
++			}
++			pptr = &prefix->next;
++		}
 +	}
 +
-+	iface->if_maxmtu = iface->CarpDev->if_maxmtu;
-+	iface->if_hwaddr_len = iface->CarpDev->if_hwaddr_len;
-+	iface->if_prefix_len = iface->CarpDev->if_prefix_len;
++	iface->carp_p_index = pix;
++	flog(LOG_ERR, "PIX = %d", pix);
++	iface->if_index = if_nametoindex(iface->Name);
++	/* Only ethernet supported at the moment */
++	iface->if_hwaddr_len = 48;
 +	iface->if_hwaddr[0] = 0x00;
 +	iface->if_hwaddr[1] = 0x00;
 +	iface->if_hwaddr[2] = 0x5e;
@@ -130,65 +146,13 @@ index 8cd82e9..64f394f 100644
 +	if (carpr.carpr_state != 2 /* master */)
 +		iface->LinkDown = 1;
 +
-+	/* remove the prefix from the carp parent, if it exists */
-+	pptr = &iface->CarpDev->AdvPrefixList;
-+	while (*pptr) {
-+		prefix = *pptr;
-+
-+		if (IN6_ARE_ADDR_EQUAL(&prefix->Prefix, &iface->AdvPrefixList->Prefix)) {
-+			*pptr = prefix->next;
-+			free(prefix);
-+			break;
-+		}
-+		pptr = &prefix->next;
-+	}
-+
 +	return 0;
 +}
 +
  /*
   * Saves the first link local address seen on the specified interface to iface->if_addr
   *
-@@ -143,6 +274,18 @@ ret:
- int setup_linklocal_addr(struct Interface *iface)
- {
- 	struct ifaddrs *addresses = 0, *ifa;
-+	const char *ifname;
-+
-+	if (iface->IsCarp) {
-+		if (iface->CarpDev == NULL) {
-+			flog(LOG_ERR, "CarpDev not found for %s",
-+			    iface->Name);
-+			return -1;
-+		}
-+		ifname = iface->CarpDev->Name;
-+	} else {
-+		ifname = iface->Name;
-+	}
- 
- 	if (getifaddrs(&addresses) != 0)
- 	{
-@@ -152,7 +295,7 @@ int setup_linklocal_addr(struct Interface *iface)
- 
- 	for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next)
- 	{
--		if (strcmp(ifa->ifa_name, iface->Name) != 0)
-+		if (strcmp(ifa->ifa_name, ifname) != 0)
- 			continue;
- 
- 		if (ifa->ifa_addr == NULL)
-@@ -160,8 +303,8 @@ int setup_linklocal_addr(struct Interface *iface)
- 
- 		if (ifa->ifa_addr->sa_family == AF_LINK) {
- 			struct sockaddr_dl *dl = (struct sockaddr_dl*)ifa->ifa_addr;
--			if (memcmp(iface->Name, dl->sdl_data, dl->sdl_nlen) == 0)
--				iface->if_index = dl->sdl_index;
-+			if (memcmp(ifname, dl->sdl_data, dl->sdl_nlen) == 0)
-+				iface->if_index = iface->if_realindex = dl->sdl_index;
- 			continue;
- 		}
- 
-@@ -228,3 +371,82 @@ set_interface_retranstimer(const char *iface, uint32_t rettimer)
+@@ -228,3 +362,82 @@ set_interface_retranstimer(const char *iface, uint32_t rettimer)
  	return -1;
  }
  
@@ -236,7 +200,7 @@ index 8cd82e9..64f394f 100644
 +			rtm->rtm_version, ifm->ifm_index);
 +		iface = IfaceList;
 +		while (iface) {
-+			if (ifm->ifm_index == iface->if_realindex)
++			if (ifm->ifm_index == iface->if_index)
 +				break;
 +			iface = iface->next;
 +		}
@@ -271,7 +235,7 @@ index 8cd82e9..64f394f 100644
 +	return sock;
 +}
 +
-diff --git device-common.c device-common.c
+diff --git a/device-common.c b/device-common.c
 index 4bcc9c9..2b9c356 100644
 --- device-common.c
 +++ device-common.c
@@ -292,21 +256,8 @@ index 4bcc9c9..2b9c356 100644
  	{
  		flog(LOG_WARNING, "interface %s does not support broadcast",
  			iface->Name);
-diff --git device-linux.c device-linux.c
-index a29cbbc..617805f 100644
---- device-linux.c
-+++ device-linux.c
-@@ -155,7 +155,7 @@ int setup_linklocal_addr(struct Interface *iface)
- 			}
- 			memcpy(&iface->if_addr, &addr, sizeof(iface->if_addr));
- 
--			iface->if_index = if_idx;
-+			iface->if_index = iface->if_realindex = if_idx;
- 			fclose(fp);
- 			return 0;
- 		}
-diff --git gram.y gram.y
-index 43f3c29..226bf83 100644
+diff --git a/gram.y b/gram.y
+index 43f3c29..096e073 100644
 --- gram.y
 +++ gram.y
 @@ -33,7 +33,6 @@ static void cleanup(void);
@@ -341,7 +292,7 @@ index 43f3c29..226bf83 100644
  				ABORT;
  
  			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
-+			dlog(LOG_DEBUG, 4, "%s: if_index %d", iface->Name, iface->if_realindex);
++			dlog(LOG_DEBUG, 4, "%s: if_index %d", iface->Name, iface->if_index);
  
  			iface->next = IfaceList;
  			IfaceList = iface;
@@ -353,26 +304,52 @@ index 43f3c29..226bf83 100644
  struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask)
  {
  	struct in6_addr prefix = *addr;
-diff --git process.c process.c
-index cbc93d3..60a0079 100644
+diff --git a/process.c b/process.c
+index cbc93d3..67b85cf 100644
 --- process.c
 +++ process.c
-@@ -96,11 +96,11 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
+@@ -21,14 +21,12 @@ static void process_rs(struct Interface *, unsigned char *msg,
+ 		       int len, struct sockaddr_in6 *);
+ static void process_ra(struct Interface *, unsigned char *msg, int len,
+ 	struct sockaddr_in6 *);
+-static int  addr_match(struct in6_addr *a1, struct in6_addr *a2,
+-	int prefixlen);
  
- 	dlog(LOG_DEBUG, 4, "if_index %u", pkt_info->ipi6_ifindex);
+ void
+ process(struct Interface *ifacel, unsigned char *msg, int len,
+ 	struct sockaddr_in6 *addr, struct in6_pktinfo *pkt_info, int hoplimit)
+ {
+-	struct Interface *iface;
++	struct Interface *iface, *carp;
+ 	struct icmp6_hdr *icmph;
+ 	char addr_str[INET6_ADDRSTRLEN];
  
--	/* get iface by received if_index */
-+	/* get iface by received if_realindex */
- 
- 	for (iface = ifacel; iface; iface=iface->next)
- 	{
--		if (iface->if_index == pkt_info->ipi6_ifindex)
-+		if (iface->if_realindex == pkt_info->ipi6_ifindex)
+@@ -104,8 +102,14 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
  		{
  			break;
  		}
-diff --git radvd.c radvd.c
-index 111c21c..6641aa8 100644
++		if (iface->carp_p_index == pkt_info->ipi6_ifindex)
++		{
++			carp = iface;
++		}
+ 	}
+ 
++	if (iface == NULL && carp != NULL)
++		iface = carp;
+ 	if (iface == NULL)
+ 	{
+ 		dlog(LOG_DEBUG, 2, "received packet from unknown interface: %d",
+@@ -473,7 +477,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
+ 	}
+ }
+ 
+-static int
++int
+ addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
+ {
+ 	unsigned int pdw;
+diff --git a/radvd.c b/radvd.c
+index 111c21c..b3e27cd 100644
 --- radvd.c
 +++ radvd.c
 @@ -17,6 +17,7 @@
@@ -383,7 +360,7 @@ index 111c21c..6641aa8 100644
  
  #ifdef HAVE_NETLINK
  #include "netlink.h"
-@@ -387,8 +392,8 @@ void main_loop(void)
+@@ -387,8 +388,8 @@ void main_loop(void)
  	fds[1].events = POLLIN;
  	fds[1].revents = 0;
  #else
@@ -394,7 +371,7 @@ index 111c21c..6641aa8 100644
  	fds[1].revents = 0;
  #endif
  
-@@ -431,14 +436,17 @@ void main_loop(void)
+@@ -431,14 +432,17 @@ void main_loop(void)
  						&rcv_addr, pkt_info, hoplimit);
  				}
  			}
@@ -414,30 +391,22 @@ index 111c21c..6641aa8 100644
  		}
  		else if ( rc == 0 ) {
  			if (next)
-diff --git radvd.h radvd.h
-index d1304f4..35d79ed 100644
+diff --git a/radvd.h b/radvd.h
+index d1304f4..f709b4e 100644
 --- radvd.h
 +++ radvd.h
-@@ -38,6 +38,7 @@ struct Interface {
- 
- 	struct in6_addr		if_addr;
- 	unsigned int		if_index;
-+	unsigned int		if_realindex;
- 
- 	uint8_t			init_racount;	/* Initial RAs */
- 
-@@ -66,6 +67,10 @@ struct Interface {
+@@ -66,6 +66,10 @@ struct Interface {
  	int			AdvSourceLLAddress;
  	int			UnicastOnly;
  
 +	/* FreeBSD Carp */
 +	int			IsCarp;
-+	struct Interface	*CarpDev;
++	unsigned int		carp_p_index;
 +
  	/* Mobile IPv6 extensions */
  	int			AdvIntervalOpt;
  	int			AdvHomeAgentInfo;
-@@ -86,6 +91,7 @@ struct Interface {
+@@ -86,6 +90,7 @@ struct Interface {
  
  	/* Info whether this interface has failed in the past (and may need to be reinitialized) */
  	int			HasFailed;
@@ -445,7 +414,7 @@ index d1304f4..35d79ed 100644
  
  	struct Interface	*next;
  };
-@@ -179,6 +185,7 @@ struct HomeAgentInfo {
+@@ -179,6 +184,7 @@ struct HomeAgentInfo {
  
  /* gram.y */
  int yyparse(void);
@@ -453,7 +422,7 @@ index d1304f4..35d79ed 100644
  
  /* scanner.l */
  int yylex(void);
-@@ -196,6 +203,7 @@ int expired(struct Interface const * iface);
+@@ -196,6 +202,7 @@ int expired(struct Interface const * iface);
  
  /* device.c */
  int setup_deviceinfo(struct Interface *);
@@ -461,7 +430,7 @@ index d1304f4..35d79ed 100644
  int check_device(struct Interface *);
  int setup_linklocal_addr(struct Interface *);
  int setup_allrouters_membership(struct Interface *);
-@@ -206,6 +214,7 @@ int set_interface_linkmtu(const char *, uint32_t);
+@@ -206,6 +213,7 @@ int set_interface_linkmtu(const char *, uint32_t);
  int set_interface_curhlim(const char *, uint8_t);
  int set_interface_reachtime(const char *, uint32_t);
  int set_interface_retranstimer(const char *, uint32_t);
@@ -469,7 +438,16 @@ index d1304f4..35d79ed 100644
  
  /* interface.c */
  void iface_init_defaults(struct Interface *);
-diff --git rtsock.h rtsock.h
+@@ -225,6 +233,8 @@ int send_ra_forall(struct Interface *iface, struct in6_addr *dest);
+ /* process.c */
+ void process(struct Interface *, unsigned char *, int,
+ 	struct sockaddr_in6 *, struct in6_pktinfo *, int);
++int  addr_match(struct in6_addr *a1, struct in6_addr *a2,
++	int prefixlen);
+ 
+ /* recv.c */
+ int recv_rs_ra(unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
+diff --git a/rtsock.h b/rtsock.h
 new file mode 100644
 index 0000000..d7f7569
 --- /dev/null
@@ -495,7 +473,7 @@ index 0000000..d7f7569
 +void process_rtsock_msg(int sock);
 +int rt_socket(void);
 +
-diff --git send.c send.c
+diff --git a/send.c b/send.c
 index 9e6a29c..6e771a0 100644
 --- send.c
 +++ send.c
