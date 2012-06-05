@@ -226,16 +226,17 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 		return FAILURE;
 	}
 
+	if (geteuid() == 0 || getuid() == 0) {
 #ifdef IPFW_FUNCTIONS
-	PFSENSE_G(ipfw) = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-	if (PFSENSE_G(ipfw) < 0) {
-		close(PFSENSE_G(s));
-		close(PFSENSE_G(inets));
-		return FAILURE;
-	}
+		PFSENSE_G(ipfw) = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+		if (PFSENSE_G(ipfw) < 0) {
+			close(PFSENSE_G(s));
+			close(PFSENSE_G(inets));
+			return FAILURE;
+		} else
+			fcntl(PFSENSE_G(ipfw), F_SETFD, fcntl(PFSENSE_G(ipfw), F_GETFD, 0) | FD_CLOEXEC);
 	
 #endif
-	if (geteuid() == 0 || getuid() == 0) {
 		/* Create a new socket node */
 		if (NgMkSockNode(NULL, &csock, NULL) < 0)
 			csock = -1;
@@ -243,13 +244,18 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 			fcntl(csock, F_SETFD, fcntl(csock, F_GETFD, 0) | FD_CLOEXEC);
 
 		PFSENSE_G(csock) = csock;
+
+#ifdef DHCP_INTEGRATION
+		pfSense_dhcpd = zend_register_list_destructors_ex(php_pfSense_destroy_dhcpd, NULL, PHP_PFSENSE_RES_NAME, module_number);
+		dhcpctl_initialize();
+		omapi_init();
+#endif
 	} else
 		PFSENSE_G(csock) = -1;
 
 	/* Don't leak these sockets to child processes */
 	fcntl(PFSENSE_G(s), F_SETFD, fcntl(PFSENSE_G(s), F_GETFD, 0) | FD_CLOEXEC);
 	fcntl(PFSENSE_G(inets), F_SETFD, fcntl(PFSENSE_G(inets), F_GETFD, 0) | FD_CLOEXEC);
-	fcntl(PFSENSE_G(ipfw), F_SETFD, fcntl(PFSENSE_G(ipfw), F_GETFD, 0) | FD_CLOEXEC);
 
 	REGISTER_LONG_CONSTANT("IFF_UP", IFF_UP, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IFF_LINK0", IFF_LINK0, CONST_PERSISTENT | CONST_CS);
@@ -292,12 +298,6 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	REGISTER_LONG_CONSTANT("IFBIF_BSTP_ADMEDGE", IFBIF_BSTP_ADMEDGE, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IFBIF_BSTP_ADMCOST", IFBIF_BSTP_ADMCOST, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IFBIF_PRIVATE", IFBIF_PRIVATE, CONST_PERSISTENT | CONST_CS);
-
-#ifdef DHCP_INTEGRATION
-	pfSense_dhcpd = zend_register_list_destructors_ex(php_pfSense_destroy_dhcpd, NULL, PHP_PFSENSE_RES_NAME, module_number);
-	dhcpctl_initialize();
-	omapi_init();
-#endif
 
 	return SUCCESS;
 }
