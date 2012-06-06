@@ -59,11 +59,11 @@ main(int argc, char **argv)
 {
 	struct sockaddr_un sun;
 	struct sigaction sa;
-	char buf[2048] = { 0 };
-	char *cmd, *path = PATH;
+	char buf[2048];
+	char *cmd[6], *path = PATH;
 	socklen_t len;
 	int fd, n, ch;
-	int ncmds = 0, nsock = 0, error = 0;
+	int ncmds = 0, nsock = 0, error = 0, i;
 
 	if (argc != 2)
 		/* NOTREACHED */
@@ -71,9 +71,9 @@ main(int argc, char **argv)
 	while ((ch = getopt(argc, argv, "c:s:")) != -1) {
 		switch (ch) {
 		case 'c':
-			if (ncmds > 0)
+			if (ncmds > 5)
 				err(-3, "Wrong parameters passed for command.");
-			cmd = optarg;
+			cmd[ncmds] = strdup(optarg);
 			ncmds++;
 			break;
 		case 's':
@@ -114,20 +114,24 @@ main(int argc, char **argv)
 	if (connect(fd, (struct sockaddr *)&sun, len) < 0)
 		errx(errno, "Could not connect to server.");
 
-	alarm(0); /* Just to be safe */
-	op = 1; /* Write */
-	alarm(3); /* Wait 3 seconds to complete a write. More than enough?! */
-	if (write(fd, argv[argc - 1], strlen(argv[argc - 1])) < 0)
-		errx(errno, "Could not send command to server.");
+	for (i = 0; i < ncmds; i++) {
+		alarm(0); /* Just to be safe */
+		op = 1; /* Write */
+		alarm(3); /* Wait 3 seconds to complete a write. More than enough?! */
+		if (write(fd, cmd[i], strlen(cmd[i])) < 0)
+			errx(errno, "Could not send command to server.");
 
-	alarm(0); /* Just to be safe */
-	op = 2; /* Read */
-	alarm(3); /* Wait 3 seconds to complete a read. More than enough?! */
-	n = read(fd, buf, sizeof(buf));
-	if (n < 0)
-		warnc(errno, "Reading from socket");
-	else if (n > 0)
-		printf("%s", buf);
+		alarm(0); /* Just to be safe */
+		op = 2; /* Read */
+		bzero(buf, sizeof(buf));
+		alarm(3); /* Wait 3 seconds to complete a read. More than enough?! */
+		n = read(fd, buf, sizeof(buf));
+		if (n < 0)
+			warnc(errno, "Reading from socket");
+		else if (n > 0)
+			printf("%s", buf);
+		
+	}
 	close(fd);
 
 	return (0);
