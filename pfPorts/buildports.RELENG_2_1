@@ -56,7 +56,6 @@ fi
 PORTSTOBUILD="
 pfflowd-0.8					/usr/ports/net/pfflowd-0.8					/usr/local/sbin/pfflowd
 ipsec-tools-devel			/usr/ports/security/ipsec-tools-devel		/usr/local/sbin/racoon
-grub						/usr/ports/sysutils/grub					/usr/local/sbin/grub
 ipfw-classifyd				/usr/ports/net/ipfw-classifyd				/usr/local/sbin/ipfw-classifyd
 dhcplease					/usr/ports/sysutils/dhcplease				/usr/local/sbin/dhcpleases
 dhcpleases6					/usr/ports/sysutils/dhcpleases6				/usr/local/sbin/dhcpleases6
@@ -265,8 +264,8 @@ for PORT in $PORTSTOBUILD; do
 	fi
 	PORT_LOCATION=`echo $PORT_T | awk '{ print $2 }'`
 	PORT_VERIFY_INSTALL_FILE=`echo $PORT_T | awk '{ print $3 }'`
-	MIPS_DO_NOT_BUILD="grub
-beep"
+	MIPS_DO_NOT_BUILD="beep
+"
 	for DONOTBUILD in $MIPS_DO_NOT_BUILD; do
 		if [ "$PORT_NAME" = "$DONOTBUILD" ]; then
 			if [ "$ARCH" = "mips" ]; then
