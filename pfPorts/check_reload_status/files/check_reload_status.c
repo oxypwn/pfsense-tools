@@ -34,7 +34,6 @@
 
 #include <ctype.h>
 
-#define _WITH_DPRINTF
 #include <stdio.h>
 #include <errno.h>
 #include <err.h>
@@ -61,7 +60,6 @@ static void			socket_read_command(int socket, short event, void *arg);
 static void			show_command_list(int fd, const struct command *list);
 static void			socket_accept_command(int socket, short event, void *arg);
 static void			socket_close_command(int fd, struct event *ev);
-static void			write_status(const char *statusline, int when);
 static void *			listen_thread(void *);
 static void *			runqueue_thread(void *);
 
@@ -193,20 +191,6 @@ match_command(struct command *target, char *wordpassed)
 	}
 
 	return (NULL);
-}
-
-static void 
-write_status(const char *statusline, int when)
-{
-
-#ifdef DEBUG
-	if (when == BEFORE)
-		dprintf(status, "Starting %s\n", statusline);
-	else if (when == AFTER)
-		dprintf(status, "After %s\n", statusline);
-	else
-		dprintf(status, "%s\n", statusline);
-#endif
 }
 
 static void
@@ -457,17 +441,6 @@ int main(void) {
         sigaction(SIGHUP, &sa, NULL);
 	sigaction(SIGTERM, &sa, NULL);
 
-#ifdef DEBUG
-	status = open(filepath, O_RDWR | O_CREAT | O_FSYNC);
-	if (status < 0) {
-		syslog(LOG_ERR, "check_reload_status could not open file %s", filepath);
-		errcode = 2;
-		goto error;
-	}
-	ftruncate(status, (off_t)0);
-#endif
-	write_status("starting", NONE);
-
 	ppid = getpid();
 	if (fork() == 0) {
 		setproctitle("Monitoring daemon of check_reload_status");
@@ -540,9 +513,7 @@ int main(void) {
 
 	return;
 error:
-	write_status("exiting", NONE);
 	syslog(LOG_NOTICE, "check_reload_status is stopping.");
-	close(status);
 
 	return (errcode);
 }

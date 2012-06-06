@@ -32,12 +32,6 @@
 
 #define filepath        "/tmp/check_test"
 
-/* used for writing to the status file */
-int status = -1;
-#define NONE	0
-#define BEFORE  1
-#define AFTER   2
-
 enum actions {
         ALL,
         FILTER,
