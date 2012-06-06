@@ -129,7 +129,6 @@ echo ">>> Searching for packages..."
 set +e # grep could fail
 rm -f $PFSPKGFILE
 (cd /var/db/pkg && ls | grep bsdinstaller) > $PFSPKGFILE
-(cd /var/db/pkg && ls | grep grub) >> $PFSPKGFILE
 (cd /var/db/pkg && ls | grep lua) >> $PFSPKGFILE
 set -e
 freesbie_make pkginstall

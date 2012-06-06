@@ -140,7 +140,6 @@ fi
 export PKGFILE=${PFSPKGFILE}
 rm -f $PFSPKGFILE
 (pkg_info | grep bsdinstaller) > $PFSPKGFILE
-(pkg_info | grep grub) >> $PFSPKGFILE
 (pkg_info | grep lua) >> $PFSPKGFILE
 set -e
 

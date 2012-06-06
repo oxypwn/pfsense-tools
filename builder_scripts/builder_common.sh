@@ -3339,7 +3339,6 @@ install_required_builder_system_ports() {
 /usr/local/bin/rsync				/usr/ports/net/rsync
 /usr/local/bin/cpdup				/usr/ports/sysutils/cpdup
 /usr/local/bin/git					/usr/ports/devel/git
-/usr/local/sbin/grub				/usr/ports/sysutils/grub
 /usr/local/bin/screen				/usr/ports/sysutils/screen
 "
 	oIFS=$IFS
@@ -3349,32 +3348,6 @@ install_required_builder_system_ports() {
 		PKG_STRING_T=`echo $PKG_STRING | sed "s/		/	/g"`
 		CHECK_ON_DISK=`echo $PKG_STRING_T | awk '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING_T | awk '{ print $2 }'`
-		if [ "$CHECK_ON_DISK" = "/usr/local/sbin/grub" ]; then
-			if [ "$ARCH" = "amd64" ]; then
-				# Grub will not build on AMD64
-				# Simply set the check to /sbin/init
-				# which we know is a valid binary on 
-				# any installed machine.
-				echo ">>> Grub is not buildable on AMD64.  Skipping."
-				CHECK_ON_DISK="/sbin/init"
-			fi
-			if [ "$ARCH" = "mips" ]; then
-				# Grub will not build on mips
-				# Simply set the check to /sbin/init
-				# which we know is a valid binary on 
-				# any installed machine.
-				echo ">>> Grub is not buildable on MIPS.  Skipping."
-				CHECK_ON_DISK="/sbin/init"
-			fi
-			if [ "$ARCH" = "powerpc" ]; then
-				# Grub will not build on mips
-				# Simply set the check to /sbin/init
-				# which we know is a valid binary on 
-				# any installed machine.
-				echo ">>> Grub is not buildable on POWERPC.  Skipping."
-				CHECK_ON_DISK="/sbin/init"
-			fi
-		fi
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
 			(cd $PORT_LOCATION && make -DBATCH deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
