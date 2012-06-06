@@ -1,0 +1,365 @@
+diff -ur net/if.c net/if.c
+--- net/if.c	2012-06-01 19:58:54.814571242 +1200
++++ net/if.c	2012-06-01 20:09:17.485571638 +1200
+@@ -141,6 +141,7 @@
+     u_int8_t **);
+ #endif
+ #ifdef INET6
++struct ifnet *(*carp_llmatch6_p)(struct ifnet *ifp, struct in6_addr *src, struct in6_addr *dst);
+ struct ifaddr *(*carp_iamatch6_p)(struct ifnet *ifp, struct in6_addr *taddr6);
+ caddr_t (*carp_macmatch6_p)(struct ifnet *ifp, struct mbuf *m,
+     const struct in6_addr *taddr);
+diff -ur netinet/ip_carp.c netinet/ip_carp.c
+--- netinet/ip_carp.c	2012-06-01 20:03:47.495575611 +1200
++++ netinet/ip_carp.c	2012-06-01 20:10:36.143605851 +1200
+@@ -80,6 +80,7 @@
+ #include <netinet/icmp6.h>
+ #include <netinet/ip6.h>
+ #include <netinet6/ip6protosw.h>
++#include <netinet6/in6_ifattach.h>
+ #include <netinet6/ip6_var.h>
+ #include <netinet6/scope6_var.h>
+ #include <netinet6/nd6.h>
+@@ -100,6 +101,8 @@
+ #ifdef INET6
+ 	struct in6_ifaddr 	*sc_ia6;	/* primary iface address v6 */
+ 	struct ip6_moptions 	 sc_im6o;
++	struct in6_addr		 sc_ll6;
++	struct in6_ifaddr	*sc_ll6ia;
+ #endif /* INET6 */
+ 	TAILQ_ENTRY(carp_softc)	 sc_list;
+ 
+@@ -1235,16 +1238,81 @@
+ }
+ 
+ #ifdef INET6
++struct ifnet *
++carp_llmatch6(struct ifnet *ifp, struct in6_addr *src, struct in6_addr *dst)
++{
++	struct carp_if *cif;
++	struct carp_softc *vh;
++	/* char ip6buf[INET6_ADDRSTRLEN]; */
++
++	if (src != NULL) {
++		/* printf("%s: looking for src %s\n", __func__,
++		    ip6_sprintf(ip6buf, src)); */
++		mtx_lock(&carp_mtx);
++		LIST_FOREACH(vh, &carpif_list, sc_next) {
++			if (vh->sc_carpdev == NULL)
++				continue;
++			if (vh->sc_ll6ia && IN6_ARE_ADDR_EQUAL(src, &vh->sc_ll6ia->ia_addr.sin6_addr) &&
++			    (SC2IFP(vh)->if_flags & IFF_UP) &&
++			    (SC2IFP(vh)->if_drv_flags & IFF_DRV_RUNNING) &&
++			    vh->sc_state == MASTER) {
++				/* printf("%s: found %s\n", __func__, vh->sc_carpdev->if_xname); */
++				mtx_unlock(&carp_mtx);
++				return (vh->sc_carpdev);
++			}
++		}
++		mtx_unlock(&carp_mtx);
++	} else {
++		/* printf("%s: looking for dst %s %s\n", __func__, ifp->if_xname,
++		    ip6_sprintf(ip6buf, dst)); */
++		cif = ifp->if_carp;
++		CARP_RLOCK(cif);
++		TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list) {
++			if (IN6_ARE_ADDR_EQUAL(dst, &vh->sc_ll6) &&
++			    (SC2IFP(vh)->if_flags & IFF_UP) &&
++			    (SC2IFP(vh)->if_drv_flags & IFF_DRV_RUNNING) &&
++			    vh->sc_state == MASTER) {
++				/* printf("%s: found %s\n", __func__, vh->sc_ifp->if_xname); */
++				CARP_RUNLOCK(cif);
++				return (vh->sc_ifp);
++			}
++		}
++		CARP_RUNLOCK(cif);
++
++
++	}
++
++	return (NULL);
++}
++
+ struct ifaddr *
+ carp_iamatch6(struct ifnet *ifp, struct in6_addr *taddr)
+ {
+ 	struct carp_if *cif;
+ 	struct carp_softc *vh;
+ 	struct ifaddr *ifa;
++	/* char ip6buf[INET6_ADDRSTRLEN]; */
+ 
++	/* printf("%s: looking for %s\n", __func__,
++	    ip6_sprintf(ip6buf, taddr)); */
+ 	cif = ifp->if_carp;
+ 	CARP_RLOCK(cif);
+ 	TAILQ_FOREACH(vh, &cif->vhif_vrs, sc_list) {
++		if (vh->sc_ll6ia && IN6_ARE_ADDR_EQUAL(taddr, &vh->sc_ll6)) {
++			/* printf("%s: found1 %s\n", __func__,
++			    ip6_sprintf(ip6buf, &vh->sc_ll6)); */
++
++			if ((SC2IFP(vh)->if_flags & IFF_UP) &&
++			    (SC2IFP(vh)->if_drv_flags & IFF_DRV_RUNNING) &&
++			    vh->sc_state == MASTER) {
++				/* printf("%s: found %s\n", __func__,
++				    ip6_sprintf(ip6buf, &vh->sc_ll6)); */
++				ifa = (struct ifaddr *)vh->sc_ll6ia;
++				ifa_ref(ifa);
++				CARP_RUNLOCK(cif);
++				return (ifa);
++			}
++		}
+ 		IF_ADDR_LOCK(SC2IFP(vh));
+ 		TAILQ_FOREACH(ifa, &SC2IFP(vh)->if_addrlist, ifa_list) {
+ 			if (IN6_ARE_ADDR_EQUAL(taddr,
+@@ -1272,10 +1340,35 @@
+ 	struct carp_if *cif;
+ 	struct carp_softc *sc;
+ 	struct ifaddr *ifa;
++	/* char ip6buf[INET6_ADDRSTRLEN]; */
+ 
++	/* printf("%s: looking for %s\n", __func__,
++	    ip6_sprintf(ip6buf, taddr)); */
+ 	cif = ifp->if_carp;
+ 	CARP_RLOCK(cif);
+ 	TAILQ_FOREACH(sc, &cif->vhif_vrs, sc_list) {
++		if (IN6_ARE_ADDR_EQUAL(taddr, &sc->sc_ll6) &&
++		    (SC2IFP(sc)->if_flags & IFF_UP) &&
++		    (SC2IFP(sc)->if_drv_flags & IFF_DRV_RUNNING) &&
++		    sc->sc_state == MASTER) {
++			struct ifnet *ifp = SC2IFP(sc);
++			/* printf("%s: found %s\n", __func__,
++			    ip6_sprintf(ip6buf, &sc->sc_ll6)); */
++			mtag = m_tag_get(PACKET_TAG_CARP,
++			    sizeof(struct ifnet *), M_NOWAIT);
++			if (mtag == NULL) {
++				/* better a bit than nothing */
++				IF_ADDR_RUNLOCK(SC2IFP(sc));
++				CARP_RUNLOCK(cif);
++				return (IF_LLADDR(sc->sc_ifp));
++			}
++			bcopy(&ifp, (caddr_t)(mtag + 1),
++			    sizeof(struct ifnet *));
++			m_tag_prepend(m, mtag);
++
++			CARP_RUNLOCK(cif);
++			return (IF_LLADDR(sc->sc_ifp));
++		}
+ 		IF_ADDR_LOCK(SC2IFP(sc));
+ 		TAILQ_FOREACH(ifa, &SC2IFP(sc)->if_addrlist, ifa_list) {
+ 			if (IN6_ARE_ADDR_EQUAL(taddr,
+@@ -1699,6 +1792,7 @@
+ 
+ 	if (!sc->sc_naddrs6) {
+ 		struct in6_multi *in6m;
++		struct in6_aliasreq ifra;
+ 
+ 		im6o->im6o_multicast_ifp = ifp;
+ 
+@@ -1730,7 +1824,60 @@
+ 			goto cleanup;
+ 		im6o->im6o_membership[1] = in6m;
+ 		im6o->im6o_num_memberships++;
++
++		/* Add link local */
++		bzero(&ifra, sizeof(ifra));
++		bzero(&sc->sc_ll6, sizeof(sc->sc_ll6));
++		ifra.ifra_addr.sin6_family = AF_INET6;
++		ifra.ifra_addr.sin6_len = sizeof(struct sockaddr_in6);
++		sc->sc_ll6.s6_addr32[0] = htonl(0xfe800000);
++		sc->sc_ll6.s6_addr32[1] = 0;
++		sc->sc_ll6.s6_addr[8] = 0x02;
++		sc->sc_ll6.s6_addr[9] = 0;
++		sc->sc_ll6.s6_addr[10] = 0x5e;
++		sc->sc_ll6.s6_addr[11] = 0xff;
++		sc->sc_ll6.s6_addr[12] = 0xfe;
++		sc->sc_ll6.s6_addr[13] = 0;
++		sc->sc_ll6.s6_addr[14] = 1;
++		sc->sc_ll6.s6_addr[15] = sc->sc_vhid;
++		ifra.ifra_addr.sin6_addr = sc->sc_ll6;
++		ifra.ifra_prefixmask.sin6_len = sizeof(struct sockaddr_in6);
++		ifra.ifra_prefixmask.sin6_family = AF_INET6;
++		ifra.ifra_prefixmask.sin6_addr = in6mask64;
++		/* link-local addresses should NEVER expire. */
++		ifra.ifra_lifetime.ia6t_vltime = ND6_INFINITE_LIFETIME;
++		ifra.ifra_lifetime.ia6t_pltime = ND6_INFINITE_LIFETIME;
++
++		if ((error = in6_setscope(&sc->sc_ll6, ifp, NULL)))
++			goto noll6;
++		if ((error = in6_setscope(&ifra.ifra_addr.sin6_addr, sc->sc_ifp, NULL)))
++			goto noll6;
++		if ((error = in6_update_ifa(sc->sc_ifp, &ifra, NULL,
++				    IN6_IFAUPDATE_DADDELAY)) != 0)
++			goto noll6;
++		sc->sc_ll6ia = in6ifa_ifpwithaddr(sc->sc_ifp, &ifra.ifra_addr.sin6_addr);
++		if (sc->sc_ll6ia == NULL) {
++			error = ESRCH;
++			goto noll6;
++		}
++
++		/* join link local multicast address */
++		bzero(&in6, sizeof(in6));
++		in6.s6_addr16[0] = htons(0xff02);
++		in6.s6_addr32[1] = 0;
++		in6.s6_addr32[2] = htonl(1);
++		in6.s6_addr32[3] = sc->sc_ll6.s6_addr32[3];
++		in6.s6_addr8[12] = 0xff;
++		if (in6_setscope(&in6, ifp, NULL) != 0)
++			goto noll6;
++		in6m = NULL;
++		error = in6_mc_join(ifp, &in6, NULL, &in6m, 0);
++		if (error)
++			goto noll6;
++		im6o->im6o_membership[2] = in6m;
++		im6o->im6o_num_memberships++;
+ 	}
++noll6:
+ 
+ 	if (!ifp->if_carp) {
+ 		cif = malloc(sizeof(*cif), M_CARP,
+@@ -1818,6 +1965,8 @@
+ 		CARP_WLOCK(cif);
+ 		if (!sc->sc_naddrs) {
+ 			callout_stop(&sc->sc_ad_tmo);
++			if (sc->sc_ll6ia) ifa_free(&sc->sc_ll6ia->ia_ifa);
++			sc->sc_ll6ia = NULL;
+ 			SC2IFP(sc)->if_flags &= ~IFF_UP;
+ 			SC2IFP(sc)->if_drv_flags &= ~IFF_DRV_RUNNING;
+ 			sc->sc_vhid = -1;
+@@ -2114,7 +2263,21 @@
+ #endif /* INET */
+ #ifdef INET6
+ 	case AF_INET6:
++		{
++#if 0
++		char ip6buf[INET6_ADDRSTRLEN], ip6buf2[INET6_ADDRSTRLEN];
++		struct ip6_hdr *ip6;
++		struct ether_header *eh;
++
++		eh = mtod(m, struct ether_header *);
++
++		ip6 = (struct ip6_hdr *)(eh+1);
++		/* address is not ready, so discard the packet. */
++		printf("carp_output: ifp %s %s -> %s\n",
++		    ifp->if_xname, ip6_sprintf(ip6buf, &ip6->ip6_src), ip6_sprintf(ip6buf2, &ip6->ip6_dst));
++#endif
+ 		break;
++		}
+ #endif /* INET6 */
+ 	default:
+ 		return (0);
+@@ -2332,6 +2495,7 @@
+ 	carp_output_p = carp_output;
+ #ifdef INET6
+ 	carp_iamatch6_p = carp_iamatch6;
++	carp_llmatch6_p = carp_llmatch6;
+ 	carp_macmatch6_p = carp_macmatch6;
+ 	proto_reg[CARP_INET6] = pf_proto_register(PF_INET6,
+ 	    (struct protosw *)&in6_carp_protosw);
+diff -ur netinet/ip_carp.h netinet/ip_carp.h
+--- netinet/ip_carp.h	2012-06-01 19:58:56.064571255 +1200
++++ netinet/ip_carp.h	2012-06-01 20:09:17.483575265 +1200
+@@ -157,6 +157,8 @@
+ }
+ 
+ #ifdef _KERNEL
++struct in_ifaddr;
++
+ void		 carp_carpdev_state(struct ifnet *);
+ void		 carp_input (struct mbuf *, int);
+ int		 carp6_input (struct mbuf **, int *, int);
+@@ -164,6 +166,7 @@
+ 		     struct rtentry *);
+ int		 carp_iamatch (struct ifnet *, struct in_ifaddr *, struct in_addr *,
+ 		     u_int8_t **);
++struct ifnet	*carp_llmatch6(struct ifnet *, struct in6_addr *, struct in6_addr *);
+ struct ifaddr	*carp_iamatch6(struct ifnet *, struct in6_addr *);
+ caddr_t		carp_macmatch6(struct ifnet *, struct mbuf *, const struct in6_addr *);
+ struct	ifnet	*carp_forus (struct ifnet *, u_char *);
+@@ -183,6 +186,7 @@
+ #endif
+ #ifdef INET6
+ /* netinet6/nd6_nbr.c */
++extern struct ifnet *(*carp_llmatch6_p)(struct ifnet *, struct in6_addr *, struct in6_addr *);
+ extern struct ifaddr *(*carp_iamatch6_p)(struct ifnet *, struct in6_addr *);
+ extern caddr_t (*carp_macmatch6_p)(struct ifnet *, struct mbuf *,
+     const struct in6_addr *);
+diff -ur netinet6/ip6_input.c netinet6/ip6_input.c
+--- netinet6/ip6_input.c	2012-06-01 19:58:56.297571202 +1200
++++ netinet6/ip6_input.c	2012-06-01 20:09:17.487571921 +1200
+@@ -111,6 +111,7 @@
+ #include <netipsec/ipsec6.h>
+ #endif /* IPSEC */
+ 
++#include <netinet/ip_carp.h>
+ #include <netinet6/ip6protosw.h>
+ 
+ extern struct domain inet6domain;
+@@ -521,6 +522,18 @@
+ 		V_ip6stat.ip6s_badscope++;
+ 		goto bad;
+ 	}
++	if (m->m_pkthdr.rcvif->if_carp &&
++	    (IN6_IS_ADDR_LINKLOCAL(&ip6->ip6_dst) || IN6_IS_ADDR_MC_LINKLOCAL(&ip6->ip6_dst))) {
++		struct ifnet *carpif;
++
++		carpif = (*carp_llmatch6_p)(m->m_pkthdr.rcvif, NULL, &ip6->ip6_dst);
++		if (carpif) {
++			m->m_pkthdr.rcvif = carpif;
++			if (IN6_IS_ADDR_LINKLOCAL(&ip6->ip6_src))
++				in6_setscope(&ip6->ip6_src, carpif, NULL);
++			in6_setscope(&ip6->ip6_dst, carpif, NULL);
++		}
++	}
+ 
+ 	/*
+ 	 * Multicast check. Assume packet is for us to avoid
+diff -ur netinet6/ip6_output.c netinet6/ip6_output.c
+--- netinet6/ip6_output.c	2012-06-01 19:58:56.275573462 +1200
++++ netinet6/ip6_output.c	2012-06-01 20:09:17.486571256 +1200
+@@ -108,6 +108,7 @@
+ #include <netinet/sctp_crc32.h>
+ #endif
+ 
++#include <netinet/ip_carp.h>
+ #include <netinet6/ip6protosw.h>
+ #include <netinet6/scope6_var.h>
+ 
+@@ -194,7 +195,7 @@
+     struct ifnet **ifpp, struct inpcb *inp)
+ {
+ 	struct ip6_hdr *ip6, *mhip6;
+-	struct ifnet *ifp, *origifp;
++	struct ifnet *ifp, *origifp, *outif;
+ 	struct mbuf *m = m0;
+ 	struct mbuf *mprev = NULL;
+ 	int hlen, tlen, len, off;
+@@ -572,6 +573,20 @@
+ 	/* adjust pointer */
+ 	ip6 = mtod(m, struct ip6_hdr *);
+ 
++	outif = NULL;
++	if (IN6_IS_ADDR_LINKLOCAL(&ip6->ip6_src) && carp_llmatch6_p != NULL) {
++		if ((outif = (*carp_llmatch6_p)(NULL, &ip6->ip6_src, NULL))) {
++			in6_setscope(&ip6->ip6_src, outif, NULL);
++			if (IN6_IS_ADDR_LINKLOCAL(&ip6->ip6_dst) ||
++			    IN6_IS_ADDR_MC_LINKLOCAL(&ip6->ip6_dst)) {
++				uint32_t zoneid;
++
++				in6_setscope(&ip6->ip6_dst, outif, &zoneid);
++				ip6->ip6_dst.s6_addr16[1] = htons(zoneid & 0xffff); /* XXX */
++			}
++		}
++	}
++
+ 	bzero(&dst_sa, sizeof(dst_sa));
+ 	dst_sa.sin6_family = AF_INET6;
+ 	dst_sa.sin6_len = sizeof(dst_sa);
+@@ -590,6 +605,8 @@
+ 			in6_ifstat_inc(ifp, ifs6_out_discard);
+ 		goto bad;
+ 	}
++	if (outif != NULL)
++		ifp = outif;
+ 	if (rt == NULL) {
+ 		/*
+ 		 * If in6_selectroute() does not return a route entry,
