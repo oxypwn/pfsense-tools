@@ -266,15 +266,15 @@ run_command(struct command *cmd, char *argv) {
 	}
 
 	snprintf(command->command, sizeof(command->command), cmd->cmd.command, argv);
+	command->aggregate = 1;
 
 	pthread_mutex_lock(&mtx);
 	TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
 		if (!strcmp(tmpcmd->command, command->command)) {
 			command->aggregate += tmpcmd->aggregate;
-			command->aggregate++;
 			if (command->aggregate > 1) {
-				free(command);
 				pthread_mutex_unlock(&mtx);
+				free(command);
 				return;
 			}
 		}
@@ -300,7 +300,7 @@ run_command(struct command *cmd, char *argv) {
 		break;
 	}
 
-	if (command->aggregate == 0)
+	if (command->aggregate == 1)
 		tv.tv_sec = 5;
 
 	timeout_set(&command->ev, run_command_detailed, command);
@@ -318,7 +318,7 @@ socket_close_command(int fd, struct event *ev)
 }
 
 static void
-socket_read_command(int fd, __unused short event, void *arg)
+socket_read_command(int fd, short event, void *arg)
 {
 	struct command *cmd;
 	struct event *ev = arg;
@@ -329,22 +329,22 @@ socket_read_command(int fd, __unused short event, void *arg)
 	char **ap, *argv[bufsize], *p;
 	int i, loop = 0;
 
+	if (event == EV_TIMEOUT)
+		socket_close_command(fd, ev);
+		
 tryagain:
 	bzero(buf, sizeof(buf));
 	if ((n = read (fd, buf, bufsize)) == -1) {
 		if (errno != EWOULDBLOCK && errno != EINTR) {
-			socket_close_command(fd, ev);
 			return;
 		} else {
 			if (loop > 3) {
-				socket_close_command(fd, ev);
 				return;
 			}
 			loop++;
 			goto tryagain;
 		}
 	} else if (n == 0) {
-		socket_close_command(fd, ev);
 		return;
 	}
 	
@@ -383,7 +383,6 @@ tryagain:
 		run_command(cmd, p);
 	}
 
-	socket_close_command(fd, ev);
 	return;
 }
 
@@ -391,6 +390,7 @@ static void
 socket_accept_command(int fd, __unused short event, __unused void *arg)
 {
 	struct sockaddr_un sun;
+	struct timeval tv = { 10, 0 };
 	struct event *ev;
 	socklen_t len;
 	int newfd;
@@ -408,7 +408,7 @@ socket_accept_command(int fd, __unused short event, __unused void *arg)
 	}
 
 	event_set(ev, newfd, EV_READ | EV_PERSIST, socket_read_command, ev);
-	event_add(ev, NULL);
+	event_add(ev, &tv);
 }
 
 static void
