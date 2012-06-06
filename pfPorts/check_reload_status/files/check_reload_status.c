@@ -73,6 +73,7 @@ struct runq {
 	struct event ev;
 	char   command[2048];
 	int aggregate;
+	int dontexec;
 };
 TAILQ_HEAD(runqueue, runq) cmds = TAILQ_HEAD_INITIALIZER(cmds);;
 
@@ -223,17 +224,22 @@ handle_signal(int sig)
 static void
 run_command_detailed(int fd, short event, void *arg) {
 	struct runq *cmd;
+	struct timeval tv = { 8, 0 };
 
 	cmd = (struct runq *)arg;
 
 	if (cmd == NULL)
 		return;
 
-	pthread_mutex_lock(&mtx);
-	TAILQ_REMOVE(&cmds, cmd, rq_link);
-	pthread_mutex_unlock(&mtx);
-	write_status(cmd->command, AFTER);
-	timeout_del(&cmd->ev);
+	if (cmd->dontexec) {
+		pthread_mutex_lock(&mtx);
+		TAILQ_REMOVE(&cmds, cmd, rq_link);
+		pthread_mutex_unlock(&mtx);
+		child = 0;
+		if (cmd != NULL)
+			free(cmd);
+		return;
+	}
 
 	switch (vfork()) {
 	case -1:
@@ -247,9 +253,8 @@ run_command_detailed(int fd, short event, void *arg) {
 		_exit(127); /* Protect in case execl errors out */
 		break;
 	default:
-		child = 0;
-		if (cmd != NULL)
-			free(cmd);
+		cmd->dontexec = 1;
+		timeout_add(&cmd->ev, &tv);
 		break;
 	}
 }
@@ -257,7 +262,7 @@ run_command_detailed(int fd, short event, void *arg) {
 static void
 run_command(struct command *cmd, char *argv) {
 	struct runq *command, *tmpcmd;
-	struct timeval tv = { 10, 0 };
+	struct timeval tv = { 2, 0 };
 
 	command = calloc(1, sizeof(*command));
 	if (command == NULL) {
@@ -299,9 +304,6 @@ run_command(struct command *cmd, char *argv) {
 		syslog(LOG_NOTICE, cmd->cmd.syslog, argv);
 		break;
 	}
-
-	if (command->aggregate == 1)
-		tv.tv_sec = 5;
 
 	timeout_set(&command->ev, run_command_detailed, command);
 	timeout_add(&command->ev, &tv);
