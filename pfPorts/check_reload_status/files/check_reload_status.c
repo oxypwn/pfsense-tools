@@ -415,6 +415,7 @@ int main(void) {
 	struct event ev;
 	struct sockaddr_un sun;
 	struct sigaction sa;
+	mode_t *mset, mode;
 	sigset_t set;
 	int fd, errcode = 0;
 
@@ -505,7 +506,11 @@ int main(void) {
         }
 
 	/* 0666 */
-	fchmod(fd, S_IRUSR|S_IWUSR | S_IRGRP|S_IWGRP | S_IROTH|S_IWOTH);
+	if ((mset = setmode("0666")) != NULL) {
+		mode = getmode(mset, S_IRUSR|S_IWUSR | S_IRGRP|S_IWGRP | S_IROTH|S_IWOTH);
+		chmod(PATH, mode);
+		free(mset);
+	}
 
 	TAILQ_INIT(&cmds);
 
