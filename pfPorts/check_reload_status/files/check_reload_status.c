@@ -504,6 +504,9 @@ int main(void) {
                 return;
         }
 
+	/* 0666 */
+	fchmod(fd, S_IRUSR|S_IWUSR | S_IRGRP|S_IWGRP | S_IROTH|S_IWOTH);
+
 	TAILQ_INIT(&cmds);
 
 	event_init();
