@@ -78,7 +78,6 @@ usr/local/sbin/ssh_tunnel_shell
 usr/local/sbin/miniupnpd
 usr/local/sbin/mpd4
 usr/local/sbin/mpd5
-usr/local/sbin/olsrd
 usr/local/sbin/openvpn
 usr/local/sbin/pftop
 usr/local/sbin/haproxy
@@ -152,15 +151,6 @@ usr/local/lib/php/20090626/ioncube/ioncube_loader_ts.so
 usr/local/lib/libmhash.so.2
 usr/local/lib/libmcrypt.so.8
 usr/local/lib/libltdl.so.7
-usr/local/lib/olsrd_dyn_gw_plain.so.0.4
-usr/local/lib/olsrd_dot_draw.so.0.3
-usr/local/lib/olsrd_dyn_gw.so.0.4
-usr/local/lib/olsrd_nameservice.so.0.3
-usr/local/lib/olsrd_httpinfo.so.0.1
-usr/local/lib/olsrd_mini.so.0.1
-usr/local/lib/olsrd_pgraph.so.1.1
-usr/local/lib/olsrd_secure.so.0.5
-usr/local/lib/olsrd_txtinfo.so.0.1
 usr/local/lib/mysql/libmysqlclient.so.15
 usr/local/sbin/setkey
 usr/local/share/rrdtool/fonts/DejaVuSansMono-Roman.ttf 
