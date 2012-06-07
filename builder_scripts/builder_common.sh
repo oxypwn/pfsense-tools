@@ -714,13 +714,14 @@ cust_overlay_host_binaries() {
 				mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
 				cp /${TEMPFILE} ${PFSENSEBASEDIR}/${TEMPFILE}
 				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
-				if [ -d $CLONEDIR ]; then
-					for NEEDL in $NEEDLIB; do
-						if [ -f $NEEDL ]; then
-							cp $NEEDL ${PFSENSEBASEDIR}/${NEEDL}
+				for NEEDL in $NEEDLIB; do
+					if [ -f $NEEDL ]; then
+						cp $NEEDL ${PFSENSEBASEDIR}${NEEDL}
+						if [ -d "${CLONEDIR}" ]; then
+							cp $NEEDL ${CLONEDIR}${NEEDL}
 						fi
-					done
-				fi
+					fi
+				done
 			else
 				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
 			fi
@@ -742,8 +743,8 @@ cust_overlay_host_binaries() {
 	for NEEDLIB in $NEEDEDLIBS; do
 		if [ -f $NEEDLIB ]; then
 			install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
-			if [ -d $CLONEDIR ]; then
-				install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB} 2>/dev/null 
+			if [ -d "${CLONEDIR}" ]; then
+				install $NEEDLIB ${CLONEDIR}${NEEDLIB} 2>/dev/null 
 			fi
 		fi
 	done
