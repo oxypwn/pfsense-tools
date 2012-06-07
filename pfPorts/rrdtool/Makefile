@@ -16,7 +16,7 @@ COMMENT=	Round Robin Database Tools
 
 LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
 		art_lgpl_2.5:${PORTSDIR}/graphics/libart_lgpl \
-		png.15:${PORTSDIR}/graphics/png
+		png15:${PORTSDIR}/graphics/png
 
 CONFLICTS=	rrdtool-1.0*
 
