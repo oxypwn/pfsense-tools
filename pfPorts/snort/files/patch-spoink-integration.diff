@@ -1,6 +1,6 @@
-diff -urN ../snort-2.9.0.5.old/src/output-plugins/Makefile.am ./src/output-plugins/Makefile.am
---- ../snort-2.9.0.5.old/src/output-plugins/Makefile.am	2012-01-25 20:31:54.000000000 +0000
-+++ ./src/output-plugins/Makefile.am	2012-01-25 20:32:07.000000000 +0000
+diff -urN ../snort-2.9.2.3.orig/src/output-plugins/Makefile.am ./src/output-plugins/Makefile.am
+--- ../snort-2.9.2.3.orig/src/output-plugins/Makefile.am	2012-06-08 21:02:52.000000000 +0000
++++ ./src/output-plugins/Makefile.am	2012-06-08 21:05:41.000000000 +0000
 @@ -16,6 +16,6 @@
  spo_log_ascii.c spo_log_ascii.h spo_alert_sf_socket.h spo_alert_sf_socket.c \
  $(PRELUDE_CODE) spo_alert_arubaaction.c spo_alert_arubaaction.h \
@@ -9,9 +9,9 @@ diff -urN ../snort-2.9.0.5.old/src/output-plugins/Makefile.am ./src/output-plugi
 +spo_alert_test.c spo_alert_test.h spo_pf.h spo_pf.c
  
  INCLUDES = @INCLUDES@
-diff -urN ../snort-2.9.0.5.old/src/output-plugins/Makefile.in ./src/output-plugins/Makefile.in
---- ../snort-2.9.0.5.old/src/output-plugins/Makefile.in	2012-01-25 20:31:54.000000000 +0000
-+++ ./src/output-plugins/Makefile.in	2012-01-25 20:32:07.000000000 +0000
+diff -urN ../snort-2.9.2.3.orig/src/output-plugins/Makefile.in ./src/output-plugins/Makefile.in
+--- ../snort-2.9.2.3.orig/src/output-plugins/Makefile.in	2012-06-08 21:02:51.000000000 +0000
++++ ./src/output-plugins/Makefile.in	2012-06-08 21:05:41.000000000 +0000
 @@ -68,7 +68,7 @@
  	spo_log_tcpdump.$(OBJEXT) spo_unified.$(OBJEXT) \
  	spo_unified2.$(OBJEXT) spo_log_ascii.$(OBJEXT) \
@@ -21,7 +21,7 @@ diff -urN ../snort-2.9.0.5.old/src/output-plugins/Makefile.in ./src/output-plugi
  libspo_a_OBJECTS = $(am_libspo_a_OBJECTS)
  DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
  depcomp =
-@@ -224,7 +224,7 @@
+@@ -236,7 +236,7 @@
  spo_log_tcpdump.h spo_unified.c spo_unified2.c spo_unified.h spo_unified2.h \
  spo_log_ascii.c spo_log_ascii.h spo_alert_sf_socket.h spo_alert_sf_socket.c \
  $(PRELUDE_CODE) spo_alert_arubaaction.c spo_alert_arubaaction.h \
@@ -30,10 +30,10 @@ diff -urN ../snort-2.9.0.5.old/src/output-plugins/Makefile.in ./src/output-plugi
  
  all: all-am
  
-diff -urN ../snort-2.9.0.5.old/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.c
---- ../snort-2.9.0.5.old/src/output-plugins/spo_pf.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./src/output-plugins/spo_pf.c	2012-01-25 20:32:20.000000000 +0000
-@@ -0,0 +1,510 @@
+diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.c
+--- ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c	1970-01-01 00:00:00.000000000 +0000
++++ ./src/output-plugins/spo_pf.c	2012-06-08 21:05:41.000000000 +0000
+@@ -0,0 +1,511 @@
 +/*
 +* Copyright (c) 2012  Ermal Lu√i
 +* Copyright (c) 2006  Antonio Benojar <zz.stalker@gmail.com>
@@ -86,7 +86,6 @@ diff -urN ../snort-2.9.0.5.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +#include "decode.h"
 +#include "plugbase.h"
 +#include "spo_plugbase.h"
-+#include "debug.h"
 +#include "parser.h"
 +#include "util.h"
 +#include "log.h"
@@ -170,7 +169,9 @@ diff -urN ../snort-2.9.0.5.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +
 +    AddFuncToOutputList(AlertPf, OUTPUT_TYPE__ALERT, data);
 +    AddFuncToCleanExitList(AlertPfCleanExit, data);
-+    AddFuncToRestartList(AlertPfRestart, data);
++#ifdef SNORT_RELOAD
++    AddFuncToReloadList(AlertPfRestart, data);
++#endif
 +}
 +
 +
@@ -544,9 +545,9 @@ diff -urN ../snort-2.9.0.5.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +		return (0);
 +	}
 +}
-diff -urN ../snort-2.9.0.5.old/src/output-plugins/spo_pf.h ./src/output-plugins/spo_pf.h
---- ../snort-2.9.0.5.old/src/output-plugins/spo_pf.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./src/output-plugins/spo_pf.h	2012-01-25 20:32:07.000000000 +0000
+diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.h ./src/output-plugins/spo_pf.h
+--- ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.h	1970-01-01 00:00:00.000000000 +0000
++++ ./src/output-plugins/spo_pf.h	2012-06-08 21:05:41.000000000 +0000
 @@ -0,0 +1,58 @@
 +/*
 +*
@@ -606,10 +607,10 @@ diff -urN ../snort-2.9.0.5.old/src/output-plugins/spo_pf.h ./src/output-plugins/
 +void AlertPfSetup(void);
 +
 +#endif 
-diff -urN ../snort-2.9.0.5.old/src/plugbase.c ./src/plugbase.c
---- ../snort-2.9.0.5.old/src/plugbase.c	2012-01-25 20:31:56.000000000 +0000
-+++ ./src/plugbase.c	2012-01-25 20:32:07.000000000 +0000
-@@ -114,6 +114,7 @@
+diff -urN ../snort-2.9.2.3.orig/src/plugbase.c ./src/plugbase.c
+--- ../snort-2.9.2.3.orig/src/plugbase.c	2012-06-08 21:02:57.000000000 +0000
++++ ./src/plugbase.c	2012-06-08 21:05:41.000000000 +0000
+@@ -115,6 +115,7 @@
  #include "output-plugins/spo_unified.h"
  #include "output-plugins/spo_log_null.h"
  #include "output-plugins/spo_log_ascii.h"
@@ -617,7 +618,7 @@ diff -urN ../snort-2.9.0.5.old/src/plugbase.c ./src/plugbase.c
  #include "output-plugins/spo_unified2.h"
  
  #ifdef ARUBA
-@@ -1377,6 +1378,7 @@
+@@ -1497,6 +1498,7 @@
      DatabaseSetup();
      AlertFastSetup();
      AlertFullSetup();

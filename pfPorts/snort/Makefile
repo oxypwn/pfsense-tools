@@ -2,30 +2,33 @@
 # Date created:		Mon Aug  2 12:04:08 CEST 1999
 # Whom:			Dirk Froemberg <dirk@FreeBSD.org>
 #
-# $FreeBSD: ports/security/snort/Makefile,v 1.134 2011/04/12 04:31:21 dhn Exp $
+# $FreeBSD: ports/security/snort/Makefile,v 1.156 2012/05/16 18:12:54 zi Exp $
 #
 
 PORTNAME=	snort
-PORTVERSION=	2.9.0.5
-PORTREVISION=	1
+PORTVERSION=	2.9.2.3
 CATEGORIES=	security
-MASTER_SITES=	SF/snort/snort
+MASTER_SITES=	SF/snort/snort \
+		http://mirrors.rit.edu/zi/
 
 PATCH_DIST_STRIP=	-p1
 
-MAINTAINER=	wfreeman@sourcefire.com
+MAINTAINER=	zi@FreeBSD.org
 COMMENT=	Lightweight network intrusion detection system
 
+LICENSE=	GPLv2
+LICENSE_FILE=	${WRKSRC}/LICENSE
+
 LIB_DEPENDS=	pcre.1:${PORTSDIR}/devel/pcre
-BUILD_DEPENDS=	daq>=0.5_1:${PORTSDIR}/net/daq \
+BUILD_DEPENDS=	daq>=0.6.2:${PORTSDIR}/net/daq \
 		${LOCALBASE}/lib/libnet11/libnet.a:${PORTSDIR}/net/libnet
-RUN_DEPENDS=	daq>=0.5_1:${PORTSDIR}/net/daq \
+RUN_DEPENDS=	daq>=0.6.2:${PORTSDIR}/net/daq \
 		${LOCALBASE}/lib/libnet11/libnet.a:${PORTSDIR}/net/libnet
 
 OPTIONS=	IPV6 "Enable IPv6 support" on \
 		MPLS "Enable MPLS support" on \
 		GRE "Enable GRE support" on \
-		TARGETBASED "Enable Targetbased support" off \
+		TARGETBASED "Enable Targetbased support" on \
 		DECODERPRE "Enable Decoded-Preprocessor-Rules" on \
 		ZLIB "Enable GZIP support" on \
 		NORMALIZER "Enable Normalizer" on \
@@ -36,15 +39,16 @@ OPTIONS=	IPV6 "Enable IPv6 support" on \
 		ODBC "Enable ODBC support" off \
 		POSTGRESQL "Enable PostgreSQL support" off \
 		PRELUDE "Enable Prelude NIDS integration" off \
+		LRGPCAP "Enable pcaps larger than 2GB" off \
 		SNORTSAM "Unofficial Snortsam Patch" on \
-		PFSENSE "Enable Pfsense Options" on
+		SOURCEFIRE "Enable Sourcefire specific build options" on \
+		DBGSNORT "Enable debugging symbols+core dumps" off
 
 .include <bsd.port.options.mk>
 
 #USE_RC_SUBR=	snort.sh
 SUB_FILES=	pkg-message
 GNU_CONFIGURE=	yes
-CONFIGURE_ENV=	LDFLAGS="${LDFLAGS}"
 MAKE_JOBS_UNSAFE=	yes
 
 CONFIG_DIR?=	${PREFIX}/etc/snort
@@ -72,6 +76,7 @@ LIBNET_LIBS=	-L${LOCALBASE}/lib/libnet11 -lnet
 LIBNET_INCDIR=	${LIBNET_CFLAGS:M-I*:S/-I//}
 LIBNET_LIBDIR=	${LIBNET_LIBS:M-L*:S/-L//}
 
+CFLAGS+=	-fstack-protector
 CONFIGURE_ARGS=	--enable-dynamicplugin --enable-build-dynamic-examples \
 		--enable-reload --enable-reload-error-restart \
 		--disable-corefiles \
@@ -93,7 +98,7 @@ CONFIGURE_ARGS+=	--with-mysql=no
 .endif
 
 .if defined(WITH_ODBC)
-LIB_DEPENDS+=		odbc.1:${PORTSDIR}/databases/unixODBC
+LIB_DEPENDS+=		odbc.2:${PORTSDIR}/databases/unixODBC
 CONFIGURE_ARGS+=	--with-odbc=${LOCALBASE}
 LDFLAGS+=		${PTHREAD_LIBS}
 .else
@@ -119,16 +124,27 @@ CONFIGURE_ARGS+=	--disable-prelude
 PLIST_SUB+=		PRELUDE="@comment "
 .endif
 
+.if defined(WITH_LRGPCAP)
+CONFIGURE_ARGS+=	--enable-large-pcap
+.endif
+
+.if defined(WITH_DBGSNORT)
+CONFIGURE_ARGS+=	--enable-corefiles --enable-debug
+MAKE_ENV+=		DONTSTRIP="yes"
+.else
+CONFIGURE_ARGS+=	--disable-corefiles
+.endif
+
+.if defined(WITH_SOURCEFIRE)
+CONFIGURE_ARGS+=	--enable-sourcefire
+.endif
+
 .if defined(WITH_PERFPROFILE)
 CONFIGURE_ARGS+=	--enable-perfprofiling --enable-ppm
 .endif
 
-.if defined(WITH_IPV6)
-CONFIGURE_ARGS+=	--enable-ipv6
-.endif
-
-.if defined(WITH_PFSENSE)
-CONFIGURE_ARGS+=        --enable-pthread --enable-inline-init-failopen
+.if defined(WITHOUT_IPV6)
+CONFIGURE_ARGS+=	--disable-ipv6
 .endif
 
 .if defined(WITH_GRE)
@@ -160,71 +176,69 @@ CONFIGURE_ARGS+=	--enable-react
 .endif
 
 .if defined(WITH_SNORTSAM)
-BUILD_DEPENDS=  automake>=1.10:${PORTSDIR}/devel/automake \
-		pkg-config>=0.25:${PORTSDIR}/devel/pkg-config
-USE_AUTOTOOLS+= automake
-EXTRA_PATCHES+= ${FILESDIR}/pfSense_snortsam_snort.diff
+#BROKEN=		current snortsam patch results in build failures
+USE_AUTOTOOLS+=	automake
+USE_GNOME=	pkgconfig
+PATCH_SITES+=	http://www.snortsam.net/files/snort-plugin/:snortsam
+PATCHFILES+=	snortsam-2.9.2.2.diff.gz:snortsam
 .endif
 
 post-patch:
+	@${FIND} ${WRKSRC} -name 'Makefile.in' | ${XARGS} ${REINPLACE_CMD} -e 's|lib/snort_|lib/snort/|g'
+	@${REINPLACE_CMD} "s,/etc/snort.conf,${CONFIG_DIR}/snort.conf," ${WRKSRC}/src/snort.c ${WRKSRC}/snort.8
+	@${REINPLACE_CMD} -e 's|lib/snort_|lib/snort/|g' ${WRKSRC}/etc/snort.conf
+	@${REINPLACE_CMD} -e 's|^dynamicdetection|#dynamicdetection|' ${WRKSRC}/etc/snort.conf
+	@${REINPLACE_CMD} -e '/var HOME_NET/s/any/[YOU_NEED_TO_SET_HOME_NET_IN_snort.conf]/' ${WRKSRC}/etc/snort.conf
+	@${REINPLACE_CMD} -e 's|libdir)/pkgconfig|prefix)/libdata/pkgconfig|' ${WRKSRC}/Makefile.in \
+		${WRKSRC}/src/dynamic-preprocessors/libs/Makefile.in
+	@${REINPLACE_CMD} -e 's|libnet-config|${LIBNET_CONFIG}|g' ${WRKSRC}/configure
+.if defined(WITHOUT_IPV6)
+	@${REINPLACE_CMD} -e 's|^ipvar |var |' ${WRKSRC}/etc/snort.conf
+	@${REINPLACE_CMD} -e '/normalize_ip6/s/^preprocessor/#preprocessor/'  ${WRKSRC}/etc/snort.conf
+	@${REINPLACE_CMD} -e '/normalize_icmp6/s/^preprocessor/#preprocessor/'  ${WRKSRC}/etc/snort.conf
+.endif
+.if defined(WITH_DECODERPRE)
+	@${REINPLACE_CMD} -e '/^# include .PREPROC_RULE/s/# include/include/' ${WRKSRC}/etc/snort.conf
+.endif
 .if defined(NOPORTDOCS)
-	@${REINPLACE_CMD} '/SUBDIRS = /s/doc//' ${WRKSRC}/Makefile.in
+	@${REINPLACE_CMD} '/SUBDIRS = /s/doc//' ${WRKSRC}/Makefile.in ${WRKSRC}/Makefile.am
+	@${REINPLACE_CMD} -e '/README.u2boat/d' \
+		-e '/test.*docdir.*MKDIR.*DEST/d' ${WRKSRC}/tools/u2boat/Makefile.*
 .endif
 
 pre-configure:
-	${FIND} ${WRKSRC} -name 'Makefile.in' | ${XARGS} ${REINPLACE_CMD} -e 's|lib/snort_|lib/snort/|g'
-	${REINPLACE_CMD} "s,/etc/snort.conf,${CONFIG_DIR}/snort.conf," ${WRKSRC}/src/snort.c ${WRKSRC}/snort.8
-	${REINPLACE_CMD} -e 's|lib/snort_|lib/snort/|g' ${WRKSRC}/etc/snort.conf
-	${REINPLACE_CMD} -e 's|^dynamicdetection|#dynamicdetection|' ${WRKSRC}/etc/snort.conf
-	${REINPLACE_CMD} -e '/var HOME_NET/s/any/[YOU_NEED_TO_SET_HOME_NET_IN_snort.conf]/' ${WRKSRC}/etc/snort.conf
-	${REINPLACE_CMD} -e 's|libdir)/pkgconfig|prefix)/libdata/pkgconfig|' ${WRKSRC}/Makefile.in
-	${REINPLACE_CMD} -e 's|libnet-config|${LIBNET_CONFIG}|g' ${WRKSRC}/configure
-.if !defined(WITH_IPV6)
-	${REINPLACE_CMD} -e 's|^ipvar |var |' ${WRKSRC}/etc/snort.conf
-	${REINPLACE_CMD} -e '/normalize_ip6/s/^preprocessor/#preprocessor/'  ${WRKSRC}/etc/snort.conf
-	${REINPLACE_CMD} -e '/normalize_icmp6/s/^preprocessor/#preprocessor/'  ${WRKSRC}/etc/snort.conf
-.endif
-.if defined(WITH_DECODERPRE)
-	${REINPLACE_CMD} -e '/^# include .PREPROC_RULE/s/# include/include/' ${WRKSRC}/etc/snort.conf
-.endif
 .if defined(WITH_SNORTSAM)
+	@${FIND} ${WRKSRC} -name 'Makefile.am' | ${XARGS} ${REINPLACE_CMD} -e 's|lib/snort_|lib/snort/|g'
+	@${REINPLACE_CMD} -e 's|libdir)/pkgconfig|prefix)/libdata/pkgconfig|' ${WRKSRC}/Makefile.am \
+		${WRKSRC}/src/dynamic-preprocessors/libs/Makefile.am
+	@${ECHO_MSG} "===>   Rebuilding required files for snortsam patches..."
 	@cd ${WRKSRC} && ${SH} ${WRKSRC}/autojunk.sh
+	@${ECHO_MSG} "===>   Done.  Configuring..."
 .endif
 
-#pre-install:
-#.if defined(WITH_POSTGRESQL)
-#	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| postgresql|' ${WRKDIR}/snort.sh
-#.endif
-#.if defined(WITH_MYSQL)
-#	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| mysql|' ${WRKDIR}/snort.sh
-#.endif
+pre-install:
+.if defined(WITH_POSTGRESQL)
+	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| postgresql|' ${WRKDIR}/snort.sh
+.endif
+.if defined(WITH_MYSQL)
+	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| mysql|' ${WRKDIR}/snort.sh
+.endif
 
 post-install:
-.if defined(WITH_SNORTSAM)
-	# mss: only doing this because snortsam patch/autojunk messes up paths
-	# life is too short to figure out why.
-	@${MKDIR} ${LOCALBASE}/lib/snort/dynamicrules
-	@cd ${LOCALBASE}/lib && ${MKDIR} snort/dynamicrules &&  ${MKDIR} snort/dynamicengine &&  ${MKDIR} snort/dynamicpreprocessor
-	@cd ${LOCALBASE}/lib && ${MV} snort_dynamicrules/* snort/dynamicrules
-	@cd ${LOCALBASE}/lib && ${MV} snort_dynamicengine/* snort/dynamicengine
-	@cd ${LOCALBASE}/lib && ${MV} snort_dynamicpreprocessor/* snort/dynamicpreprocessor
-	@cd ${LOCALBASE}/lib && ${RMDIR} snort_dynamic*
-	@${MKDIR} ${LOCALBASE}/libdata/pkgconfig/ && ${MV} ${LOCALBASE}/lib/pkgconfig/snort.pc ${LOCALBASE}/libdata/pkgconfig/snort.pc
-	@${RMDIR} ${LOCALBASE}/lib/pkgconfig
-.endif
 	@${LIBTOOL} --finish ${LOCALBASE}/lib/snort/dynamicpreprocessor
 	[ -d ${CONFIG_DIR} ] || ${MKDIR} ${CONFIG_DIR}
-	[ -d ${EXAMPLESDIR} ] || ${MKDIR} ${EXAMPLESDIR}
 	[ -d ${RULES_DIR} ] || ${MKDIR} ${RULES_DIR}
 	[ -d ${LOGS_DIR} ] || ${MKDIR} ${LOGS_DIR}
+.if !defined(NOPORTEXAMPLES)
+	[ -d ${EXAMPLESDIR} ] || ${MKDIR} ${EXAMPLESDIR}
+	${INSTALL_DATA} ${WRKSRC}/schemas/create* ${EXAMPLESDIR}
+.endif
 .for f in ${CONFIG_FILES}
 	${INSTALL_DATA} ${WRKSRC}/etc/${f} ${CONFIG_DIR}/${f}-sample
-	${INSTALL_DATA} ${WRKSRC}/etc/${f} ${EXAMPLESDIR}/${f}-sample
 	@if [ ! -f ${CONFIG_DIR}/${f} ]; then \
 		${CP} -p ${CONFIG_DIR}/${f}-sample ${CONFIG_DIR}/${f} ; \
 	fi
 .endfor
-	${INSTALL_DATA} ${WRKSRC}/schemas/create* ${EXAMPLESDIR}
 .if !defined(NOPORTDOCS)
 	@${MKDIR} ${DOCSDIR}
 	cd ${WRKSRC} && ${INSTALL_DATA} ${DOCS} ${DOCSDIR}
