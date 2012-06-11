@@ -170,9 +170,9 @@ else
 	export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}
 fi
 if [ ${FREEBSD_VERSION} -gt 7 -a "$FREEBSD_BRANCH" != "RELENG_8_1" ]; then
-	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf virtio"}
+	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf virtio coretemp amdtemp aesni"}
 else
-	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf"}
+	export MODULES_OVERRIDE=${MODULES_OVERRIDE:-"i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq opensolaris zfs glxsb runfw if_stf coretemp amdtemp"}
 fi
 export MAKEJ_PORTS=${MAKEJ_PORTS:-""}
 export NOEXTRA_DEVICES=${NOEXTRA_DEVICES:-}
