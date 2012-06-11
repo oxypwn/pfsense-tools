@@ -17,6 +17,7 @@ GNU_CONFIGURE=	yes
 CONFIGURE_ARGS=	--program-transform-name=
 USE_GMAKE=	yes
 USE_RC_SUBR=	radvd
+WITH_DEBUG=    yes
 
 MAN5=	radvd.conf.5
 MAN8=	radvd.8 radvdump.8
