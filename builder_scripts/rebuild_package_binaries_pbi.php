@@ -32,8 +32,8 @@ echo ">>> Forcing bootstrap of PBI tools...\n";
 if(file_exists("/usr/local/sbin/pbi_create"))
 	exec("rm /usr/local/sbin/pbi_create");
 
-$DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`;
-$CPUS=`expr $DCPUS '*' 2`;
+$DCPUS=trim(`sysctl -n kern.smp.cpus`);
+$CPUS=$DCPUS * 2;
 
 if(!file_exists("/usr/local/bin/svn")) 
 	die("Could not find subversion");
