@@ -195,6 +195,20 @@ function usage() {
 	exit;
 }
 
+function overlay_pfPort($package_name, $port_path) {
+	$pfports = "/home/pfsense/tools/pfPorts";
+	// If a pfport by $package_name exists, overlay that folder onto $port_path
+	if (file_exists("{$pfports}/{$package_name}") && is_dir("{$pfports}/{$package_name}")) {
+		echo ">>> Overelaying pfPort {$package_name} onto {$port_path} ... ";
+		if (!file_exists("{$port_path}")) {
+			echo "Creating {$port_path} ... ";
+			system("/bin/mkdir -p {$port_path}");
+		}
+		system("/bin/cp -R {$pfports}/{$package_name}/* {$port_path}");
+		echo "Done.\n";
+	}
+}
+
 function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
 	echo ">>> Update sources from file {$supfile}\n";
 	if($chrootchroot) 
@@ -306,6 +320,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 	$counter = 0;
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
+			overlay_pfPort($pkg['name'], $build);
 			$buildname = basename($build);
 			if(isset($options['d'])) {
 				$DESTDIR="DESTDIR=/usr/pkg/{$buildname}";
