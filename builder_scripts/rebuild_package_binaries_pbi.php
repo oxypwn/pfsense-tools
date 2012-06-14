@@ -82,9 +82,9 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc") && !$h
 
 function create_pbi_conf($port_path,$MAKEOPTS="") {
 	
-	$PROGNAME=trim(`cat $port_path/Makefile | grep PORTNAME | cut -d'=' -f2'`);
-	$MAINTAINER=trim(`cat $port_path/Makefile | grep MAINTAINER | cut -d'=' -f2'`);
-	$PROGWEB=trim(`cat $port_path/Makefile | grep MASTER_SITES | cut -d'=' -f2'`);
+	$PROGNAME=trim(`cat $port_path/Makefile | grep PORTNAME | cut -d'=' -f2`);
+	$MAINTAINER=trim(`cat $port_path/Makefile | grep MAINTAINER | cut -d'=' -f2`);
+	$PROGWEB=trim(`cat $port_path/Makefile | grep MASTER_SITES | cut -d'=' -f2`);
 	
 	$PBI_CONF = <<<EOF
 # Program Name
