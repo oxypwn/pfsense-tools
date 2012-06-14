@@ -314,13 +314,13 @@ if(!is_dir("{$file_system_root}/usr/ports/packages/All"))
 // Loop through all packages and build pacakge with 
 // build_options if the port/package has this defined.
 foreach($pkg['packages']['package'] as $pkg) {
-	if (isset($options['p']) && ($options['p'] != $pkg['name']))
+	if (isset($options['p']) && strtolower(($options['p']) != strtolower($pkg['name'])))
 		continue;
 	$processes = 0;
 	$counter = 0;
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
-			overlay_pfPort($pkg['name'], $build);
+			overlay_pfPort(strtolower($pkg['name']), $build);
 			$buildname = basename($build);
 			if(isset($options['d'])) {
 				$DESTDIR="DESTDIR=/usr/pkg/{$buildname}";
