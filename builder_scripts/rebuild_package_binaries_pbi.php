@@ -188,6 +188,9 @@ function usage() {
 	echo "    -r remove chroot contents on each builder run.\n";
 	echo "    -s pfSense version to pass to set_version.sh during chroot build\n";
 	echo "    -x XML file containing package data.\n";
+	echo "    -P Skip applying kernel patches before build run.\n";
+	echo "    -I Skip 'make includes' operation.\n";
+	echo "    -U Skip uploading of packages.\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -p squid\n";
@@ -239,7 +242,20 @@ function wait_for_procs_finish() {
 	echo "\n";
 }
 
-$options = getopt("x:p::d::j::l::c::r::q::s::");
+$opts  = "x:";  // Path to XML file
+$opts .= "p::"; // Package name to build (optional)
+$opts .= "d::"; // DESTDIR for packages (optional)
+$opts .= "j::"; // jail use (not currently implemented/needed)
+$opts .= "l::"; // chroot location (not currently implemented/needed)
+$opts .= "c::"; // csup hostname (not fully active)
+$opts .= "r::"; // remove chroot before run (not currently implemented/needed)
+$opts .= "q::"; // quiet mode
+$opts .= "s::"; // pfSense version to pass to set_version.sh
+$opts .= "P::"; // Skip applying kernel patches before the run
+$opts .= "I::"; // Skip make includes
+$opts .= "U::"; // Skip uploading compiled binaries
+
+$options = getopt($opts);
 
 if(!isset($options['x']))
 	usage();
@@ -292,13 +308,18 @@ if($pkg['copy_packages_to_host_ssh_port'] &&
 // Invoke csup and populate /usr/ports on host (non-chroot)
 $file_system_root = "/";
 exec("rm -rf /tmp/pf*");
-echo ">>> Applying kernel patches...\n";
-if($set_version)
-	exec("cd /usr/home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
-exec("cd /usr/home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
-echo ">>> Running make includes...\n";
-exec("cd /usr/pfSensesrc/src && make includes");
 
+if (!isset($options['P'])) {
+	echo ">>> Applying kernel patches...\n";
+	if($set_version)
+		exec("cd /usr/home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
+	exec("cd /usr/home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
+}
+
+if (!isset($options['I'])) {
+	echo ">>> Running make includes...\n";
+	exec("cd /usr/pfSensesrc/src && make includes");
+}
 echo ">>> pfSense package binary builder is starting.\n";
 
 // Safety check - should no fail since we sync ports above with csup
@@ -360,7 +381,7 @@ echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
 system("ls {$file_system_root}/usr/ports/packages/All");
 
 // Copy created packages to the package server via rsync
-if($copy_packages_to_folder_ssh) {
+if($copy_packages_to_folder_ssh && !isset($options['U'])) {
 	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
 	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
 }
