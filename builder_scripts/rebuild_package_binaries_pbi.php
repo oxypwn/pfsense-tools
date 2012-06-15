@@ -207,7 +207,6 @@ function overlay_pfPort($package_name, $port_path) {
 			echo "Preserving old port in {$port_path}.orig ...";
 			system("/bin/mv {$port_path} {$port_path}.orig");
 		}
-		system("/bin/mkdir -p {$port_path}");
 		system("/bin/cp -R {$pfports}/{$package_name} {$port_path}");
 		echo "Done.\n";
 	}
