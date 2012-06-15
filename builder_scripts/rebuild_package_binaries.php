@@ -74,11 +74,13 @@ function overlay_pfPort($package_name, $port_path) {
 	// If a pfport by $package_name exists, overlay that folder onto $port_path
 	if (file_exists("{$pfports}/{$package_name}") && is_dir("{$pfports}/{$package_name}")) {
 		echo ">>> Overelaying pfPort {$package_name} onto {$port_path} ... ";
-		if (!file_exists("{$port_path}")) {
-			echo "Creating {$port_path} ... ";
-			system("/bin/mkdir -p {$port_path}");
+		if (file_exists($port_path) && is_dir($port_path)) {
+			echo "Preserving old port in {$port_path}.orig ...";
+			system("/bin/rm -rf {$port_path}.orig");
+			system("/bin/mv {$port_path} {$port_path}.orig");
 		}
-		system("/bin/cp -R {$pfports}/{$package_name}/* {$port_path}");
+		system("/bin/mkdir -p {$port_path}");
+		system("/bin/cp -R {$pfports}/{$package_name}/ {$port_path}");
 		echo "Done.\n";
 	}
 }
