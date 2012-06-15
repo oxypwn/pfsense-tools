@@ -352,6 +352,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 			$build_options="";
 			if($pkg['build_options']) 
 				$build_options = $pkg['build_options'];
+/*
 			if(file_exists("/var/db/ports/{$buildname}/options")) {
 				echo ">>> Using /var/db/ports/{$buildname}/options \n";
 				$portopts = split("\n", file_get_contents("/var/db/ports/{$buildname}/options"));
@@ -360,6 +361,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 						$build_options .= " " . $po;
 				}
 			}
+*/
 			echo ">>> Processing {$build}\n";
 			$category = trim(`echo \"$build\" | cut -d'/' -f4`);
 			$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
