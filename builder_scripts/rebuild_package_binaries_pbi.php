@@ -206,6 +206,7 @@ function overlay_pfPort($port_path) {
 		echo ">>> Overelaying pfPort {$port_name} onto {$port_path} ... ";
 		if (file_exists($port_path) && is_dir($port_path)) {
 			echo "Preserving old port in {$port_path}.orig ...";
+			system("/bin/rm -rf {$port_path}.orig");
 			system("/bin/mv {$port_path} {$port_path}.orig");
 		}
 		system("/bin/cp -R {$pfports}/{$port_name} {$port_path}");
