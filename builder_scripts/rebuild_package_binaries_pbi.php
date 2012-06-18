@@ -336,13 +336,23 @@ if(!is_dir("{$file_system_root}/usr/ports/packages/All"))
 
 // Loop through all packages and build pacakge with 
 // build_options if the port/package has this defined.
+$j = 0;
 foreach($pkg['packages']['package'] as $pkg) {
+	$j++;
 	if (isset($options['p']) && strtolower(($options['p']) != strtolower($pkg['name'])))
 		continue;
 	$processes = 0;
 	$counter = 0;
+	$build_list = array();
 	if($pkg['build_port_path']) {
+		echo ">>> Building required ports for {$pkg['name']} ({$j}/" . count($pkg['packages']['package']) . ")";
 		foreach($pkg['build_port_path'] as $build) {
+			if (in_array($build, $build_list)) {
+				echo ">>> Skipping {$build} - already built once this run.\n";
+				continue;
+			} else {
+				$build_list[] = $build;
+			}
 			overlay_pfPort($build);
 			$buildname = basename($build);
 			if(isset($options['d'])) {
