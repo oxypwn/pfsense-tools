@@ -123,7 +123,7 @@ OTHERPORT=""
 # Enter your custom make options here
 # Options that will be put into the make.conf for the build of this port
 # Options get inserted into the build's /etc/make.conf file and effect all the ports built for that PBI
-MAKEOPTS="$MAKEOPTS"
+MAKEOPTS="WITHOUT_X11=true $MAKEOPTS"
 
 # FBSD7BASE - (7.1 or 7.2)
 # This variable can be used to set the specific version of FreeBSD this port needs to be compiled
