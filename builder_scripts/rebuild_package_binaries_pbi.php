@@ -366,7 +366,6 @@ foreach ($build_list as $build => $build_options) {
 	$processes = 0;
 	$counter = 0;
 	$j++;
-	echo ">>> Building {$build} ({$j}/{$total_to_build})\n";
 	overlay_pfPort($build);
 	$buildname = basename($build);
 	if(isset($options['d'])) {
@@ -384,10 +383,10 @@ foreach ($build_list as $build => $build_options) {
 		}
 	}
 */
-	echo ">>> Processing {$build}\n";
+	echo ">>> Processing {$build} ({$j}/{$total_to_build})\n";
 	$category = trim(`echo \"$build\" | cut -d'/' -f4`);
 	$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
-	echo ">>> Category: $category/$port \n";
+	//echo ">>> Category: $category/$port \n";
 	if($build_options)
 		if(!isset($options['q']))
 			echo " BUILD_OPTIONS: {$build_options}\n";
