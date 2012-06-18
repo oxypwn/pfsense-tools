@@ -1,21 +1,21 @@
 #!/usr/local/bin/php -q
 <?php
-/* 
+/*
  *  rebuild_package_binaries.sh
  *  Copyright (C) 2010, 2011 Scott Ullrich <sullrich@gmail.com>
  *  Copyright (C) 2010, 2011 Jim Pingle <jim@pingle.org>
  *  All rights reserved.
- *  
+ *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
- *  
+ *
  *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
- *  
+ *
  *  2. Redistributions in binary form must reproduce the above copyright
  *     notice, this list of conditions and the following disclaimer in the
  *     documentation and/or other materials provided with the distribution.
- *  
+ *
  *  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES,
  *  INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
  *  AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
@@ -35,7 +35,7 @@ if(file_exists("/usr/local/sbin/pbi_create"))
 $DCPUS=trim(`sysctl -n kern.smp.cpus`);
 $CPUS=$DCPUS * 2;
 
-if(!file_exists("/usr/local/bin/svn")) 
+if(!file_exists("/usr/local/bin/svn"))
 	die("Could not find subversion");
 
 $preq_txt = <<<EOF
@@ -56,7 +56,7 @@ cd pbi-manager
 EOF;
 
 echo ">>> Checking out pfSense sources...\n";
-if(file_exists("/usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh")) 
+if(file_exists("/usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh"))
 	exec("cd /usr/home/pfsense/tools/builder_scripts && /usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh");
 
 if(file_exists("/etc/inc/")) {
@@ -81,99 +81,99 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc") && !$h
 }
 
 function create_pbi_conf($port_path,$MAKEOPTS="") {
-	
+
 	$PROGNAME=trim(`cat $port_path/Makefile | grep PORTNAME | cut -d'=' -f2`);
 	$MAINTAINER=trim(`cat $port_path/Makefile | grep MAINTAINER | cut -d'=' -f2`);
 	$PROGWEB=trim(`cat $port_path/Makefile | grep MASTER_SITES | cut -d'=' -f2`);
-	
+
 	$PBI_CONF = <<<EOF
 # Program Name
 # The name of the PBI file being built
 PROGNAME="$PROGNAME"
- 
+
 # Program Website
 # Website of the program the module is building
 PROGWEB="$PROGWEB"
- 
+
 # Program Author
 # Who created / maintains the program being built
 PROGAUTHOR="$MAINTAINER"
- 
+
 # Default Icon
 # Relative to overlay-dir, the main icon you want to show up for this PBI
 # PROGICON="share/pixmaps/FireFox-128.png"
- 
+
 # Port we want to build
 # The port the server will track to determine when it's time for a rebuild
 PBIPORT="$port_path"
- 
+
 # Set to "Auto or NONE" to have the PBI creator auto-populate libs or not
 # This allows you to also use the autolibs/ directory in your overlay-dir as a location for extra
 # library files
 PROGLIBS="Auto"
- 
+
 # PBI Update URL set to "" or the http:// URL of update checker
 # Leave this as update.pbidir.com normally
 PBIUPDATE="http://files.pfsense.org"
- 
+
 # Other Ports we need built
 # One per line, any additional ports that need to be built for this PBI
 OTHERPORT=""
- 
+
 # Enter your custom make options here
 # Options that will be put into the make.conf for the build of this port
 # Options get inserted into the build's /etc/make.conf file and effect all the ports built for that PBI
 MAKEOPTS="$MAKEOPTS"
- 
+
 # FBSD7BASE - (7.1 or 7.2)
 # This variable can be used to set the specific version of FreeBSD this port needs to be compiled
 # under. Use this is a port is known to not build / work when compiled on FreeBSD 7.0 (the default)
 FBSD7BASE="7.2"; export FBSD7BASE
- 
+
 # This option determines if the pbi-builder will auto-copy files from the target port
 # Can be set to YES/NO/FULL
 # YES - Copy only target port files automatically
 # No - Don't copy any target port files (will need to use copy-files config instead)
 # FULL - Copy target port files, and recursive dependency files as well (Makes very large PBI)
 PBIAUTOPOPULATE="YES" ; export PBIAUTOPOPULATE
- 
+
 # Can be set to OFF/NO to disable copying all files from ports made with the OTHERPORT variable
 # Leaving this unset will have the builder auto-copy all files from OTHERPORT targets
 PBIAUTOPOPULATE_OTHERPORT="" ; export PBIAUTOPOPULATE_OTHERPORT
- 
+
 # Set this variable to any target ports you want to autopopulate files from, in addition to
 # the main target port
 # List additional ports one-per-line
 PBIAUTOPOPULATE_PORTS="/usr/ports/www/mplayer-plugin/" ; export PBIAUTOPOPULATE_PORTS
- 
+
 # By default the PBI will remove any xorg-fonts, and create a symlink to the the users system fonts
 # Setting this to YES keeps the PBIs internal fonts and doesn't create a link
 # PBIDISABLEFONTLINK="" ; export PBIDISABLEFONTLINK
- 
+
 # By default the libGL* libraries will be removed from a PBI in order to use the systems libGL
 # Set this to YES to keep the PBIs libGL* libraries, and not use the system's
 # PBIKEEPGL="" ; export PBIKEEPGL
- 
+
 # By default we prune any include/ files used for building,
 # Set this to NO to keep any include/ directories in the resulting PBI
 # PBIPRUNEINCLUDE="" ; export PBIPRUNEINCLUDE
- 
+
 # By default we prune the python files used for building,
 # Set this to NO to keep any python files in the resulting PBI
 # PBIPRUNEPYTHON="" ; export PBIPRUNEPYTHON
- 
+
 # By default we prune any perl files used for building,
 # Set this to NO to keep any perl files in the resulting PBI
 # PBIPRUNEPERL="" ; export PBIPRUNEPERL
- 
+
 # By default we prune any doc files (such as man, info, share/doc)
 # Set this to NO to keep any doc files in the resulting PBI
 # PBIPRUNEDOC="" ; export PBIPRUNEDOC
- 
+
 # Build Key - Change this to anything else to trigger a rebuild
 #           - The rebuild will take place even if port is still the same ver
 BUILDKEY="01"
-	
+
 EOF;
 	return($PBI_CONF);
 }
@@ -216,7 +216,7 @@ function overlay_pfPort($port_path) {
 
 function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
 	echo ">>> Update sources from file {$supfile}\n";
-	if($chrootchroot) 
+	if($chrootchroot)
 		system("/usr/sbin/chroot {$chrootchroot} csup -L0 -h {$csup_host} {$supfile} {$quiet_mode}");
 	else
 		system("/usr/bin/csup -h {$csup_host} {$supfile} {$quiet_mode}");
@@ -230,7 +230,7 @@ function get_procs_count() {
 function wait_for_procs_finish() {
 	global $counter, $DCPUS;
 	$processes = get_procs_count();
-	if($counter == 0) 
+	if($counter == 0)
 		echo ">>> Waiting for previous build processes to finish...";
 	while($processes >= $DCPUS) {
 		$processes = get_procs_count();
@@ -288,14 +288,14 @@ if($options['c'] <> "") {
 	$csup_host = "cvsup.livebsd.com";
 }
 
-if(isset($options['q'])) 
+if(isset($options['q']))
 	$quiet_mode = "</dev/null 2>&1";
 
-if($options['s'] <> "") 
+if($options['s'] <> "")
 	$set_version = $options['s'];
 
 // Set and ouput initial flags
-if($pkg['copy_packages_to_host_ssh_port'] && 
+if($pkg['copy_packages_to_host_ssh_port'] &&
 	$pkg['copy_packages_to_host_ssh'] &&
 	$pkg['copy_packages_to_folder_ssh']) {
 	$copy_packages_to_folder_ssh = $pkg['copy_packages_to_folder_ssh'];
@@ -331,64 +331,73 @@ if(!is_dir("{$file_system_root}/usr/ports")) {
 }
 
 // Ensure that the All directory exists in packages staging area
-if(!is_dir("{$file_system_root}/usr/ports/packages/All")) 
+if(!is_dir("{$file_system_root}/usr/ports/packages/All"))
 	system("mkdir -p {$file_system_root}/usr/ports/packages/All");
 
-// Loop through all packages and build pacakge with 
+// Loop through all packages and build pacakge with
 // build_options if the port/package has this defined.
-$j = 0;
+echo ">>> Creating port build list...\n";
+$skipped=0;
+$build_list = array();
 foreach($pkg['packages']['package'] as $pkg) {
-	$j++;
 	if (isset($options['p']) && strtolower(($options['p']) != strtolower($pkg['name'])))
 		continue;
-	$processes = 0;
-	$counter = 0;
-	$build_list = array();
 	if($pkg['build_port_path']) {
-		echo ">>> Building required ports for {$pkg['name']} ({$j}/" . count($pkg['packages']['package']) . ")";
 		foreach($pkg['build_port_path'] as $build) {
-			if (in_array($build, $build_list)) {
-				echo ">>> Skipping {$build} - already built once this run.\n";
+			if (!is_dir($build) && !is_dir("/home/pfsense/tools/pfPorts/" . basename($build))) {
+				echo ">>> Skipping {$build} - port does not exist and no pfPort to use instead.";
+				continue;
+			}
+			if (array_key_exists($build, $build_list)) {
+				echo ">>> Skipping {$build} - already in build list.\n";
+				$skipped++;
 				continue;
 			} else {
-				$build_list[] = $build;
+				$build_list[$build] = isset($pkg['build_options']) ? $pkg['build_options'] : "";
 			}
-			overlay_pfPort($build);
-			$buildname = basename($build);
-			if(isset($options['d'])) {
-				$DESTDIR="DESTDIR=/usr/pkg/{$buildname}";
-				echo ">>> Using $DESTDIR \n";
-			} else 	
-				$DESTDIR="";
-			$build_options="";
-			if($pkg['build_options']) 
-				$build_options = $pkg['build_options'];
-/*
-			if(file_exists("/var/db/ports/{$buildname}/options")) {
-				echo ">>> Using /var/db/ports/{$buildname}/options \n";
-				$portopts = split("\n", file_get_contents("/var/db/ports/{$buildname}/options"));
-				foreach ($portopts as $po) {
-					if (substr($po, 0, 1) != '#')
-						$build_options .= " " . $po;
-				}
-			}
-*/
-			echo ">>> Processing {$build}\n";
-			$category = trim(`echo \"$build\" | cut -d'/' -f4`);
-			$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
-			echo ">>> Category: $category/$port \n";
-			if($build_options) 
-				if(!isset($options['q'])) 
-					echo " BUILD_OPTIONS: {$build_options}\n";
-			$pbi_conf = create_pbi_conf($build,$build_options);
-			if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
-				exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
-			file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
-			echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
-			mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
-			wait_for_procs_finish();
 		}
 	}
+}
+$total_to_build = count($build_list);
+$skipped = ($skipped > 0) ? " (skipped {$skipped})" : "";
+echo ">>> Found {$total_to_build} unique ports to build{$skipped}.\n";
+$j = 0;
+foreach ($build_list as $build => $build_options) {
+	$processes = 0;
+	$counter = 0;
+	$j++;
+	echo ">>> Building {$build} ({$j}/{$total_to_build})\n";
+	overlay_pfPort($build);
+	$buildname = basename($build);
+	if(isset($options['d'])) {
+		$DESTDIR="DESTDIR=/usr/pkg/{$buildname}";
+		echo ">>> Using $DESTDIR \n";
+	} else
+		$DESTDIR="";
+/*
+	if(file_exists("/var/db/ports/{$buildname}/options")) {
+		echo ">>> Using /var/db/ports/{$buildname}/options \n";
+		$portopts = split("\n", file_get_contents("/var/db/ports/{$buildname}/options"));
+		foreach ($portopts as $po) {
+			if (substr($po, 0, 1) != '#')
+				$build_options .= " " . $po;
+		}
+	}
+*/
+	echo ">>> Processing {$build}\n";
+	$category = trim(`echo \"$build\" | cut -d'/' -f4`);
+	$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
+	echo ">>> Category: $category/$port \n";
+	if($build_options)
+		if(!isset($options['q']))
+			echo " BUILD_OPTIONS: {$build_options}\n";
+	$pbi_conf = create_pbi_conf($build,$build_options);
+	if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
+		exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
+	file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
+	echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
+	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
+	wait_for_procs_finish();
 }
 
 echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
