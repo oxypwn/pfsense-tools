@@ -345,7 +345,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			if (!is_dir($build) && !is_dir("/home/pfsense/tools/pfPorts/" . basename($build))) {
-				echo ">>> Skipping {$build} - port does not exist and no pfPort to use instead.";
+				echo ">>> Skipping {$build} - port does not exist and no pfPort to use instead.\n";
 				continue;
 			}
 			if (array_key_exists($build, $build_list)) {
@@ -360,7 +360,8 @@ foreach($pkg['packages']['package'] as $pkg) {
 }
 $total_to_build = count($build_list);
 $skipped = ($skipped > 0) ? " (skipped {$skipped})" : "";
-echo ">>> Found {$total_to_build} unique ports to build{$skipped}.\n";
+$plur = ($total_to_build == 1) ? "" : "s";
+echo ">>> Found {$total_to_build} unique port{$plur} to build{$skipped}.\n";
 $j = 0;
 foreach ($build_list as $build => $build_options) {
 	$processes = 0;
