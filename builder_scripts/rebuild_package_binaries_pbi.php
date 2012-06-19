@@ -340,7 +340,7 @@ echo ">>> Creating port build list...\n";
 $skipped=0;
 $build_list = array();
 foreach($pkg['packages']['package'] as $pkg) {
-	if (isset($options['p']) && strtolower(($options['p']) != strtolower($pkg['name'])))
+	if (isset($options['p']) && (strtolower($options['p']) != strtolower($pkg['name'])))
 		continue;
 	if($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
