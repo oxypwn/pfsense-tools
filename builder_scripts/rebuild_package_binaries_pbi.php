@@ -148,6 +148,7 @@ function usage() {
 	echo "    -x XML file containing package data.\n";
 	echo "    -P Skip applying kernel patches before build run.\n";
 	echo "    -I Skip 'make includes' operation.\n";
+	echo "    -u Upload after each port is built rather than at the end.\n";
 	echo "    -U Skip uploading of packages.\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml\n";
@@ -202,6 +203,11 @@ function wait_for_procs_finish() {
 	echo "\n";
 }
 
+function copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh) {
+	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
+	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
+}
+
 $opts  = "x:";  // Path to XML file
 $opts .= "p::"; // Package name to build (optional)
 $opts .= "d::"; // DESTDIR for packages (optional)
@@ -213,6 +219,7 @@ $opts .= "q::"; // quiet mode
 $opts .= "s::"; // pfSense version to pass to set_version.sh
 $opts .= "P::"; // Skip applying kernel patches before the run
 $opts .= "I::"; // Skip make includes
+$opts .= "u::"; // Upload after every port, not just at the end.
 $opts .= "U::"; // Skip uploading compiled binaries
 
 $options = getopt($opts);
@@ -357,6 +364,9 @@ foreach ($build_list as $build => $build_options) {
 	echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
 	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}");
 	wait_for_procs_finish();
+	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
+		copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh);
+	}
 }
 
 echo ">>> {$file_system_root}/usr/ports/packages/All now contains:\n";
@@ -364,8 +374,7 @@ system("ls {$file_system_root}/usr/ports/packages/All");
 
 // Copy created packages to the package server via rsync
 if($copy_packages_to_folder_ssh && !isset($options['U'])) {
-	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
-	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
+	copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh);
 }
 
 echo ">>> Package binary build run ended.\n";
