@@ -349,7 +349,7 @@ foreach ($build_list as $build => $build_options) {
 	if($build_options)
 		if(!isset($options['q']))
 			echo " BUILD_OPTIONS: {$build_options}\n";
-	$pbi_conf = create_pbi_conf($build,$build_options);
+	$pbi_conf = create_pbi_conf("{$category}/{$port}",$build_options);
 	if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 		exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
