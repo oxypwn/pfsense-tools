@@ -86,6 +86,8 @@ function create_pbi_conf($port_path,$MAKEOPTS="") {
 	$MAINTAINER=trim(`cat $port_path/Makefile | grep MAINTAINER | cut -d'=' -f2`);
 	$PROGWEB=trim(`cat $port_path/Makefile | grep MASTER_SITES | cut -d'=' -f2`);
 
+	$MAKEOPTS = str_replace(" ", "\n", $MAKEOPTS);
+
 	$PBI_CONF = <<<EOF
 # Program Name
 # The name of the PBI file being built
@@ -123,7 +125,8 @@ OTHERPORT=""
 # Enter your custom make options here
 # Options that will be put into the make.conf for the build of this port
 # Options get inserted into the build's /etc/make.conf file and effect all the ports built for that PBI
-MAKEOPTS="WITHOUT_X11=true $MAKEOPTS"
+MAKEOPTS="WITHOUT_X11=true
+$MAKEOPTS"
 
 # FBSD7BASE - (7.1 or 7.2)
 # This variable can be used to set the specific version of FreeBSD this port needs to be compiled
