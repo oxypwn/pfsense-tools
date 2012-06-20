@@ -83,6 +83,11 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc") && !$h
 function create_pbi_conf($port_path,$MAKEOPTS="") {
 
 	$PROGNAME=trim(`grep ^PORTNAME= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
+	// $port_path Format should be, e.g. www/squid so we can grab the port name there if the makefile is empty.
+	$PROGNAME = empty($PROGNAME) ? substr($port_path, strpos($port_path, '/')+1) : $PROGNAME;
+	// If it's still empty, comment it out
+	$usepn = empty($PROGNAME) ? "#" : "";
+
 	$MAINTAINER=trim(`grep ^MAINTAINER= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
 	// $PROGWEB=trim(`grep ^MASTER_SITES= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
 
@@ -91,7 +96,7 @@ function create_pbi_conf($port_path,$MAKEOPTS="") {
 	$PBI_CONF = <<<EOF
 # Format of this file changed, new example: http://wiki.pcbsd.org/index.php/PBI_Module_Builder_Guide
 # Program Name
-PBI_PROGNAME="$PROGNAME"
+{$usepn}PBI_PROGNAME="$PROGNAME"
 
 # Program Website
 # PBI_PROGWEB="$PROGWEB"
