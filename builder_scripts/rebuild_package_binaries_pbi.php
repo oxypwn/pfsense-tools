@@ -352,9 +352,10 @@ foreach ($build_list as $build => $build_options) {
 	$pbi_conf = create_pbi_conf($build,$build_options);
 	if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 		exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
-	file_put_contents("/pbi-build/modules/{$category}/{$port}/pbi.conf", $pbi_conf);
-	echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}\n";
-	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ {$category}/{$port}");
+	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
+	file_put_contents("{$pbi_confdir}/pbi.conf", $pbi_conf);
+	echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
+	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}");
 	wait_for_procs_finish();
 }
 
