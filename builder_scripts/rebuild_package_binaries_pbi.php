@@ -84,7 +84,7 @@ function create_pbi_conf($port_path,$MAKEOPTS="") {
 
 	$PROGNAME=trim(`cat $port_path/Makefile | grep PORTNAME | cut -d'=' -f2`);
 	$MAINTAINER=trim(`cat $port_path/Makefile | grep MAINTAINER | cut -d'=' -f2`);
-	$PROGWEB=trim(`cat $port_path/Makefile | grep MASTER_SITES | cut -d'=' -f2`);
+	// $PROGWEB=trim(`cat $port_path/Makefile | grep MASTER_SITES | cut -d'=' -f2`);
 
 	$MAKEOPTS = str_replace(" ", "\n", $MAKEOPTS);
 
@@ -94,7 +94,7 @@ function create_pbi_conf($port_path,$MAKEOPTS="") {
 PBI_PROGNAME="$PROGNAME"
 
 # Program Website
-PBI_PROGWEB="$PROGWEB"
+# PBI_PROGWEB="$PROGWEB"
 
 # Program Author / Vendor
 PBI_PROGAUTHOR="$MAINTAINER"
