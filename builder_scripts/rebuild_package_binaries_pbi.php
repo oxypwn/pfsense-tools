@@ -89,94 +89,49 @@ function create_pbi_conf($port_path,$MAKEOPTS="") {
 	$MAKEOPTS = str_replace(" ", "\n", $MAKEOPTS);
 
 	$PBI_CONF = <<<EOF
+# Format of this file changed, new example: http://wiki.pcbsd.org/index.php/PBI_Module_Builder_Guide
 # Program Name
-# The name of the PBI file being built
-PROGNAME="$PROGNAME"
+PBI_PROGNAME="$PROGNAME"
 
 # Program Website
-# Website of the program the module is building
-PROGWEB="$PROGWEB"
+PBI_PROGWEB="$PROGWEB"
 
-# Program Author
-# Who created / maintains the program being built
-PROGAUTHOR="$MAINTAINER"
+# Program Author / Vendor
+PBI_PROGAUTHOR="$MAINTAINER"
 
-# Default Icon
-# Relative to overlay-dir, the main icon you want to show up for this PBI
-# PROGICON="share/pixmaps/FireFox-128.png"
-
-# Port we want to build
-# The port the server will track to determine when it's time for a rebuild
-PBIPORT="$port_path"
-
-# Set to "Auto or NONE" to have the PBI creator auto-populate libs or not
-# This allows you to also use the autolibs/ directory in your overlay-dir as a location for extra
-# library files
-PROGLIBS="Auto"
-
-# PBI Update URL set to "" or the http:// URL of update checker
-# Leave this as update.pbidir.com normally
-PBIUPDATE="http://files.pfsense.org"
-
-# Other Ports we need built
-# One per line, any additional ports that need to be built for this PBI
-OTHERPORT=""
+# The target port we are building
+PBI_MAKEPORT="$port_path"
 
 # Enter your custom make options here
 # Options that will be put into the make.conf for the build of this port
 # Options get inserted into the build's /etc/make.conf file and effect all the ports built for that PBI
-MAKEOPTS="WITHOUT_X11=true
+PBI_MAKEOPTS="WITHOUT_X11=true
 $MAKEOPTS"
 
-# FBSD7BASE - (7.1 or 7.2)
-# This variable can be used to set the specific version of FreeBSD this port needs to be compiled
-# under. Use this is a port is known to not build / work when compiled on FreeBSD 7.0 (the default)
-FBSD7BASE="7.2"; export FBSD7BASE
+# Ports to build before / after
+# PBI_MKPORTBEFORE=""
+# PBI_MKPORTAFTER=""
 
-# This option determines if the pbi-builder will auto-copy files from the target port
-# Can be set to YES/NO/FULL
-# YES - Copy only target port files automatically
-# No - Don't copy any target port files (will need to use copy-files config instead)
-# FULL - Copy target port files, and recursive dependency files as well (Makes very large PBI)
+# Exclude List
+PBI_EXCLUDELIST="./share/doc"
+
+# Increment to trigger rebuild of PBI on build servers
+PBI_BUILDKEY="01"
+
+# This app needs to install as root
+PBI_REQUIRESROOT="YES"
+
+# Set the priority of this build
+PBI_AB_PRIORITY="10"
+
+# Set the files we want to exclude from the shared hashdir
+# PBI_HASH_EXCLUDES="lib/firefox/firefox"
+
+export PBI_PROGNAME PBI_PROGWEB PBI_PROGAUTHOR PBI_PROGICON PBI_MAKEPORT PBI_MAKEOPTS PBI_MKPORTBEFORE PBI_MKPORTAFTER PBI_BUILDKEY PBI_REQUIRESROOT PBI_EXCLUDELIST
+
+# Format of this file changed, these don't seem to be used any longer. Still needed?
 PBIAUTOPOPULATE="YES" ; export PBIAUTOPOPULATE
-
-# Can be set to OFF/NO to disable copying all files from ports made with the OTHERPORT variable
-# Leaving this unset will have the builder auto-copy all files from OTHERPORT targets
 PBIAUTOPOPULATE_OTHERPORT="" ; export PBIAUTOPOPULATE_OTHERPORT
-
-# Set this variable to any target ports you want to autopopulate files from, in addition to
-# the main target port
-# List additional ports one-per-line
-PBIAUTOPOPULATE_PORTS="/usr/ports/www/mplayer-plugin/" ; export PBIAUTOPOPULATE_PORTS
-
-# By default the PBI will remove any xorg-fonts, and create a symlink to the the users system fonts
-# Setting this to YES keeps the PBIs internal fonts and doesn't create a link
-# PBIDISABLEFONTLINK="" ; export PBIDISABLEFONTLINK
-
-# By default the libGL* libraries will be removed from a PBI in order to use the systems libGL
-# Set this to YES to keep the PBIs libGL* libraries, and not use the system's
-# PBIKEEPGL="" ; export PBIKEEPGL
-
-# By default we prune any include/ files used for building,
-# Set this to NO to keep any include/ directories in the resulting PBI
-# PBIPRUNEINCLUDE="" ; export PBIPRUNEINCLUDE
-
-# By default we prune the python files used for building,
-# Set this to NO to keep any python files in the resulting PBI
-# PBIPRUNEPYTHON="" ; export PBIPRUNEPYTHON
-
-# By default we prune any perl files used for building,
-# Set this to NO to keep any perl files in the resulting PBI
-# PBIPRUNEPERL="" ; export PBIPRUNEPERL
-
-# By default we prune any doc files (such as man, info, share/doc)
-# Set this to NO to keep any doc files in the resulting PBI
-# PBIPRUNEDOC="" ; export PBIPRUNEDOC
-
-# Build Key - Change this to anything else to trigger a rebuild
-#           - The rebuild will take place even if port is still the same ver
-BUILDKEY="01"
-
 EOF;
 	return($PBI_CONF);
 }
