@@ -28,6 +28,8 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+echo "PBI Buld run started at " date(DATE_RFC822) . "\n";
+
 echo ">>> [" . date("H:i:s") . "] Forcing bootstrap of PBI tools...\n";
 if(file_exists("/usr/local/sbin/pbi_create"))
 	exec("rm /usr/local/sbin/pbi_create");
@@ -403,6 +405,6 @@ if($copy_packages_to_folder_ssh && !isset($options['U'])) {
 	copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh);
 }
 
-echo ">>> Package binary build run ended.\n";
+echo ">>> Package binary build run ended at " . date(DATE_RFC822) . ".\n";
 
 ?>
