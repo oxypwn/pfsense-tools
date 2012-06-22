@@ -29,6 +29,7 @@
  */
 
 echo "PBI Buld run started at " date(DATE_RFC822) . "\n";
+$full_start_time = time();
 
 echo ">>> [" . date("H:i:s") . "] Forcing bootstrap of PBI tools...\n";
 if(file_exists("/usr/local/sbin/pbi_create"))
@@ -218,6 +219,29 @@ function copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_po
 	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
 }
 
+function format_elapsed_time($seconds) {
+	$days = (int)($seconds / 86400);
+	$seconds %= 86400;
+	$hours = (int)($seconds / 3600);
+	$seconds %= 3600;
+	$mins = (int)($seconds / 60);
+	$seconds %= 60;
+	$secs = (int)($seconds);
+
+	$timestr = "";
+	if ($days > 1)
+		$timestr .= "{$days} Days ";
+	else if ($days > 0)
+		$timestr .= "1 Day ";
+
+	$hourspl = ($hours != 1) ? "s" : "";
+	$minspl = ($mins != 1) ? "s" : "";
+	$secspl = ($mins != 1) ? "s" : "";
+
+	$timestr .= "{$hours} Hour{$hourspl} {$mins} Minute$minspl {$secs} Second{$secspl}";
+	return $timestr;
+}
+
 $opts  = "x:";  // Path to XML file
 $opts .= "p::"; // Package name to build (optional)
 $opts .= "d::"; // DESTDIR for packages (optional)
@@ -375,7 +399,7 @@ foreach ($build_list as $build => $pbi_options) {
 		}
 	}
 */
-	$start_time = time();
+	$port_start_time = time();
 	echo ">>> [" . date("H:i:s") . "] Processing {$build} ({$j}/{$total_to_build})\n";
 	$category = trim(`echo \"$build\" | cut -d'/' -f4`);
 	$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
@@ -391,7 +415,7 @@ foreach ($build_list as $build => $pbi_options) {
 	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
 	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}");
 	wait_for_procs_finish();
-	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . gmdate("H:i:s", time() - $start_time);
+	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . format_elapsed_time(time() - $port_start_time);
 	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
 		copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh);
 	}
@@ -406,5 +430,6 @@ if($copy_packages_to_folder_ssh && !isset($options['U'])) {
 }
 
 echo ">>> Package binary build run ended at " . date(DATE_RFC822) . ".\n";
+echo ">>> Total time: " . format_elapsed_time(time() - $port_start_time);
 
 ?>
