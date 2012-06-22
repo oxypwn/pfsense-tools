@@ -80,7 +80,7 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc") && !$h
 	$handled = true;
 }
 
-function create_pbi_conf($port_path,$MAKEOPTS="") {
+function create_pbi_conf($port_path,$MAKEOPTS="",$portsbefore="",$portsafter="") {
 
 	$PROGNAME=trim(`grep ^PORTNAME= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
 	// $port_path Format should be, e.g. www/squid so we can grab the port name there if the makefile is empty.
@@ -92,6 +92,9 @@ function create_pbi_conf($port_path,$MAKEOPTS="") {
 	// $PROGWEB=trim(`grep ^MASTER_SITES= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
 
 	$MAKEOPTS = str_replace(" ", "\n", $MAKEOPTS);
+
+	$portsbefore = empty($portsbefore) ? "" : "PBI_MKPORTBEFORE=\"$portsbefore\"";
+	$portsafter  = empty($portsafter) ? "" : "PBI_MKPORTAFTER=\"$portsafter\"";
 
 	$PBI_CONF = <<<EOF
 # Format of this file changed, new example: http://wiki.pcbsd.org/index.php/PBI_Module_Builder_Guide
@@ -114,8 +117,8 @@ PBI_MAKEOPTS="WITHOUT_X11=true
 $MAKEOPTS"
 
 # Ports to build before / after
-# PBI_MKPORTBEFORE=""
-# PBI_MKPORTAFTER=""
+{$portsbefore}
+{$portsafter}
 
 # Exclude List
 PBI_EXCLUDELIST="./share/doc"
@@ -312,7 +315,18 @@ $build_list = array();
 foreach($pkg['packages']['package'] as $pkg) {
 	if (isset($options['p']) && (strtolower($options['p']) != strtolower($pkg['name'])))
 		continue;
-	if($pkg['build_port_path']) {
+	if ($pkg['build_pbi']) {
+		if (empty($pkg['build_pbi']['port']))
+			continue;
+		if (array_key_exists($pkg['build_pbi']['port'], $build_list)) {
+			echo ">>> Skipping {$build} - already in build list.\n";
+			$skipped++;
+			continue;
+		}
+		$build_list[$build]['build_options'] = isset($pkg['build_options']) ? $pkg['build_options'] : "";
+		$build_list[$build]['ports_before']  = isset($pkg['build_pbi']['ports_before']) ? $pkg['build_pbi']['ports_before'] : "";
+		$build_list[$build]['ports_after']   = isset($pkg['build_pbi']['ports_after']) ? $pkg['build_pbi']['ports_after'] :  "";
+	} elseif ($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			if (!is_dir($build) && !is_dir("/home/pfsense/tools/pfPorts/" . basename($build))) {
 				echo ">>> Skipping {$build} - port does not exist and no pfPort to use instead.\n";
@@ -322,9 +336,8 @@ foreach($pkg['packages']['package'] as $pkg) {
 				echo ">>> Skipping {$build} - already in build list.\n";
 				$skipped++;
 				continue;
-			} else {
-				$build_list[$build] = isset($pkg['build_options']) ? $pkg['build_options'] : "";
 			}
+			$build_list[$build]['build_options'] = isset($pkg['build_options']) ? $pkg['build_options'] : "";
 		}
 	}
 }
@@ -333,7 +346,7 @@ $skipped = ($skipped > 0) ? " (skipped {$skipped})" : "";
 $plur = ($total_to_build == 1) ? "" : "s";
 echo ">>> Found {$total_to_build} unique port{$plur} to build{$skipped}.\n";
 $j = 0;
-foreach ($build_list as $build => $build_options) {
+foreach ($build_list as $build => $pbi_options) {
 	$processes = 0;
 	$counter = 0;
 	$j++;
@@ -350,7 +363,7 @@ foreach ($build_list as $build => $build_options) {
 		$portopts = split("\n", file_get_contents("/var/db/ports/{$buildname}/options"));
 		foreach ($portopts as $po) {
 			if (substr($po, 0, 1) != '#')
-				$build_options .= " " . $po;
+				$pbi_options['build_options'] .= " " . $po;
 		}
 	}
 */
@@ -358,10 +371,10 @@ foreach ($build_list as $build => $build_options) {
 	$category = trim(`echo \"$build\" | cut -d'/' -f4`);
 	$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
 	//echo ">>> Category: $category/$port \n";
-	if($build_options)
+	if($pbi_options['build_options'])
 		if(!isset($options['q']))
-			echo " BUILD_OPTIONS: {$build_options}\n";
-	$pbi_conf = create_pbi_conf("{$category}/{$port}",$build_options);
+			echo " BUILD_OPTIONS: {$pbi_options['build_options']}\n";
+	$pbi_conf = create_pbi_conf("{$category}/{$port}",$pbi_options['build_options'],$pbi_options['ports_before'],$pbi_options['ports_after']);
 	if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 		exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
