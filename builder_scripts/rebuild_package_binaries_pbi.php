@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-echo ">>> Forcing bootstrap of PBI tools...\n";
+echo ">>> [" . date("H:i:s") . "] Forcing bootstrap of PBI tools...\n";
 if(file_exists("/usr/local/sbin/pbi_create"))
 	exec("rm /usr/local/sbin/pbi_create");
 
@@ -52,10 +52,10 @@ fi
 cd current
 cd src-sh
 cd pbi-manager
-./install.sh
+./install.sh 2>/dev/null
 EOF;
 
-echo ">>> Checking out pfSense sources...\n";
+echo ">>> [" . date("H:i:s") . "] Checking out pfSense sources...\n";
 if(file_exists("/usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh"))
 	exec("cd /usr/home/pfsense/tools/builder_scripts && /usr/home/pfsense/tools/builder_scripts/checkout_pfsense_sources.sh");
 
@@ -170,7 +170,7 @@ function overlay_pfPort($port_path) {
 	// If a pfport exists, overlay that folder onto $port_path
 	$port_name = basename($port_path);
 	if (file_exists("{$pfports}/{$port_name}") && is_dir("{$pfports}/{$port_name}")) {
-		echo ">>> Overelaying pfPort {$port_name} onto {$port_path} ... ";
+		echo ">>> [" . date("H:i:s") . "] Overelaying pfPort {$port_name} onto {$port_path} ... ";
 		if (file_exists($port_path) && is_dir($port_path)) {
 			echo "Preserving old port in {$port_path}.orig ...";
 			system("/bin/rm -rf {$port_path}.orig");
@@ -182,7 +182,7 @@ function overlay_pfPort($port_path) {
 }
 
 function csup($csup_host, $supfile, $chrootchroot = "", $quiet_mode = "") {
-	echo ">>> Update sources from file {$supfile}\n";
+	echo ">>> [" . date("H:i:s") . "] Update sources from file {$supfile}\n";
 	if($chrootchroot)
 		system("/usr/sbin/chroot {$chrootchroot} csup -L0 -h {$csup_host} {$supfile} {$quiet_mode}");
 	else
@@ -198,7 +198,7 @@ function wait_for_procs_finish() {
 	global $counter, $DCPUS;
 	$processes = get_procs_count();
 	if($counter == 0)
-		echo ">>> Waiting for previous build processes to finish...";
+		echo ">>> [" . date("H:i:s") . "] Waiting for previous build processes to finish...";
 	while($processes >= $DCPUS) {
 		$processes = get_procs_count();
 		$counter++;
@@ -212,7 +212,7 @@ function wait_for_procs_finish() {
 }
 
 function copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh) {
-	echo ">>> Copying packages to {$copy_packages_to_host_ssh}\n";
+	echo ">>> [" . date("H:i:s") . "] Copying packages to {$copy_packages_to_host_ssh}\n";
 	system("/usr/local/bin/rsync -ave ssh --timeout=60 --rsh='ssh -p{$copy_packages_to_host_ssh_port}' {$file_system_root}/usr/ports/packages/All/* {$copy_packages_to_host_ssh}:{$copy_packages_to_folder_ssh}/");
 }
 
@@ -239,7 +239,7 @@ if(!isset($options['x']))
 if(!file_exists("/usr/local/sbin/pbi_create")) {
 	file_put_contents("/tmp/preq.sh", $preq_txt);
 	exec("chmod a+rx /tmp/preq.sh");
-	echo ">>> Bootstrapping PBI...\n";
+	echo ">>> [" . date("H:i:s") . "] Bootstrapping PBI...\n";
 	exec("/tmp/preq.sh");
 }
 
@@ -254,10 +254,10 @@ if(!$pkg) {
 
 // Set csup hostname
 if($options['c'] <> "") {
-	echo ">>> Setting csup hostname to {$options['c']} \n";
+	echo ">>> [" . date("H:i:s") . "] Setting csup hostname to {$options['c']} \n";
 	$csup_host = $options['c'];
 } else {
-	echo ">>> Setting csup hostname to cvsup.livebsd.com \n";
+	echo ">>> [" . date("H:i:s") . "] Setting csup hostname to cvsup.livebsd.com \n";
 	$csup_host = "cvsup.livebsd.com";
 }
 
@@ -274,7 +274,7 @@ if($pkg['copy_packages_to_host_ssh_port'] &&
 	$copy_packages_to_folder_ssh = $pkg['copy_packages_to_folder_ssh'];
 	$copy_packages_to_host_ssh = $pkg['copy_packages_to_host_ssh'];
 	$copy_packages_to_host_ssh_port = $pkg['copy_packages_to_host_ssh_port'];
-	echo ">>> Setting the following RSYNC/SSH parameters: \n";
+	echo ">>> [" . date("H:i:s") . "] Setting the following RSYNC/SSH parameters: \n";
 	echo "    copy_packages_to_folder_ssh:    $copy_packages_to_folder_ssh\n";
 	echo "    copy_packages_to_host_ssh:      $copy_packages_to_host_ssh\n";
 	echo "    copy_packages_to_host_ssh_port: $copy_packages_to_host_ssh_port\n";
@@ -285,17 +285,17 @@ $file_system_root = "/";
 exec("rm -rf /tmp/pf*");
 
 if (!isset($options['P'])) {
-	echo ">>> Applying kernel patches...\n";
+	echo ">>> [" . date("H:i:s") . "] Applying kernel patches...\n";
 	if($set_version)
 		exec("cd /usr/home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
 	exec("cd /usr/home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh");
 }
 
 if (!isset($options['I'])) {
-	echo ">>> Running make includes...\n";
+	echo ">>> [" . date("H:i:s") . "] Running make includes...\n";
 	exec("cd /usr/pfSensesrc/src && make includes");
 }
-echo ">>> pfSense package binary builder is starting.\n";
+echo ">>> [" . date("H:i:s") . "] pfSense package binary builder is starting.\n";
 
 // Safety check - should no fail since we sync ports above with csup
 if(!is_dir("{$file_system_root}/usr/ports")) {
@@ -309,7 +309,7 @@ if(!is_dir("{$file_system_root}/usr/ports/packages/All"))
 
 // Loop through all packages and build pacakge with
 // build_options if the port/package has this defined.
-echo ">>> Creating port build list...\n";
+echo ">>> [" . date("H:i:s") . "] Creating port build list...\n";
 $skipped=0;
 $build_list = array();
 foreach($pkg['packages']['package'] as $pkg) {
@@ -319,7 +319,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 		if (empty($pkg['build_pbi']['port']))
 			continue;
 		if (array_key_exists($pkg['build_pbi']['port'], $build_list)) {
-			echo ">>> Skipping {$build} - already in build list.\n";
+			echo ">>> [" . date("H:i:s") . "] Skipping {$build} - already in build list.\n";
 			$skipped++;
 			continue;
 		}
@@ -335,11 +335,11 @@ foreach($pkg['packages']['package'] as $pkg) {
 	} elseif ($pkg['build_port_path']) {
 		foreach($pkg['build_port_path'] as $build) {
 			if (!is_dir($build) && !is_dir("/home/pfsense/tools/pfPorts/" . basename($build))) {
-				echo ">>> Skipping {$build} - port does not exist and no pfPort to use instead.\n";
+				echo ">>> [" . date("H:i:s") . "] Skipping {$build} - port does not exist and no pfPort to use instead.\n";
 				continue;
 			}
 			if (array_key_exists($build, $build_list)) {
-				echo ">>> Skipping {$build} - already in build list.\n";
+				echo ">>> [" . date("H:i:s") . "] Skipping {$build} - already in build list.\n";
 				$skipped++;
 				continue;
 			}
@@ -350,7 +350,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 $total_to_build = count($build_list);
 $skipped = ($skipped > 0) ? " (skipped {$skipped})" : "";
 $plur = ($total_to_build == 1) ? "" : "s";
-echo ">>> Found {$total_to_build} unique port{$plur} to build{$skipped}.\n";
+echo ">>> [" . date("H:i:s") . "] Found {$total_to_build} unique port{$plur} to build{$skipped}.\n";
 $j = 0;
 foreach ($build_list as $build => $pbi_options) {
 	$processes = 0;
@@ -360,7 +360,7 @@ foreach ($build_list as $build => $pbi_options) {
 	$buildname = basename($build);
 	if(isset($options['d'])) {
 		$DESTDIR="DESTDIR=/usr/pkg/{$buildname}";
-		echo ">>> Using $DESTDIR \n";
+		echo ">>> [" . date("H:i:s") . "] Using $DESTDIR \n";
 	} else
 		$DESTDIR="";
 /*
@@ -373,21 +373,23 @@ foreach ($build_list as $build => $pbi_options) {
 		}
 	}
 */
-	echo ">>> Processing {$build} ({$j}/{$total_to_build})\n";
+	$start_time = time();
+	echo ">>> [" . date("H:i:s") . "] Processing {$build} ({$j}/{$total_to_build})\n";
 	$category = trim(`echo \"$build\" | cut -d'/' -f4`);
 	$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
 	//echo ">>> Category: $category/$port \n";
 	if($pbi_options['build_options'])
 		if(!isset($options['q']))
-			echo " BUILD_OPTIONS: {$pbi_options['build_options']}\n";
+			echo ">>> [" . date("H:i:s") . "] BUILD_OPTIONS: {$pbi_options['build_options']}\n";
 	$pbi_conf = create_pbi_conf("{$category}/{$port}",$pbi_options['build_options'],$pbi_options['ports_before'],$pbi_options['ports_after']);
 	if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 		exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
 	file_put_contents("{$pbi_confdir}/pbi.conf", $pbi_conf);
-	echo ">>> Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
+	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
 	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}");
 	wait_for_procs_finish();
+	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . gmdate("H:i:s", time() - $start_time);
 	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
 		copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh);
 	}
