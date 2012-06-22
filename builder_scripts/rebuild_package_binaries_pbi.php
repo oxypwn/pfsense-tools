@@ -323,7 +323,13 @@ foreach($pkg['packages']['package'] as $pkg) {
 			$skipped++;
 			continue;
 		}
-		$build_list[$build]['build_options'] = isset($pkg['build_options']) ? $pkg['build_options'] : "";
+
+		if (isset($pkg['build_pbi']['build_options']))
+			$build_list[$build]['build_options'] = $pkg['build_pbi']['build_options'];
+		elseif (isset($pkg['build_options']))
+			$build_list[$build]['build_options'] = $pkg['build_options'];
+		else
+			$build_list[$build]['build_options'] = "";
 		$build_list[$build]['ports_before']  = isset($pkg['build_pbi']['ports_before']) ? $pkg['build_pbi']['ports_before'] : "";
 		$build_list[$build]['ports_after']   = isset($pkg['build_pbi']['ports_after']) ? $pkg['build_pbi']['ports_after'] :  "";
 	} elseif ($pkg['build_port_path']) {
