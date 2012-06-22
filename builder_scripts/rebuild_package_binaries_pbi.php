@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-echo "PBI Buld run started at " date(DATE_RFC822) . "\n";
+echo "PBI Buld run started at " . date(DATE_RFC822) . "\n";
 $full_start_time = time();
 
 echo ">>> [" . date("H:i:s") . "] Forcing bootstrap of PBI tools...\n";
