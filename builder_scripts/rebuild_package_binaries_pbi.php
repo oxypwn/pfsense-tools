@@ -169,9 +169,12 @@ function usage() {
 }
 
 function overlay_pfPort($port_path) {
+	if (empty($port_path))
+		return;
 	$pfports = "/home/pfsense/tools/pfPorts";
 	// If a pfport exists, overlay that folder onto $port_path
 	$port_name = basename($port_path);
+	$port_path = "/usr/ports/" . $port_path;
 	if (file_exists("{$pfports}/{$port_name}") && is_dir("{$pfports}/{$port_name}")) {
 		echo ">>> [" . date("H:i:s") . "] Overelaying pfPort {$port_name} onto {$port_path} ... ";
 		if (file_exists($port_path) && is_dir($port_path)) {
@@ -357,6 +360,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 			$build_list[$build]['build_options'] = $pkg['build_options'];
 		else
 			$build_list[$build]['build_options'] = "";
+
 		$build_list[$build]['ports_before']  = isset($pkg['build_pbi']['ports_before']) ? $pkg['build_pbi']['ports_before'] : "";
 		$build_list[$build]['ports_after']   = isset($pkg['build_pbi']['ports_after']) ? $pkg['build_pbi']['ports_after'] :  "";
 	} elseif ($pkg['build_port_path']) {
@@ -384,6 +388,18 @@ foreach ($build_list as $build => $pbi_options) {
 	$counter = 0;
 	$j++;
 	overlay_pfPort($build);
+	if (!empty($pbi_options['ports_before'])) {
+		$overlay_list = explode(" ", $pbi_options['ports_before']);
+		foreach ($overlay_list as $ol) {
+			overlay_pfPort($ol);
+		}
+	}
+	if (!empty($pbi_options['ports_after'])) {
+		$overlay_list = explode(" ", $pbi_options['ports_after']);
+		foreach ($overlay_list as $ol) {
+			overlay_pfPort($ol);
+		}
+	}
 	$buildname = basename($build);
 	if(isset($options['d'])) {
 		$DESTDIR="DESTDIR=/usr/pkg/{$buildname}";
@@ -402,8 +418,9 @@ foreach ($build_list as $build => $pbi_options) {
 */
 	$port_start_time = time();
 	echo ">>> [" . date("H:i:s") . "] Processing {$build} ({$j}/{$total_to_build})\n";
-	$category = trim(`echo \"$build\" | cut -d'/' -f4`);
-	$port = trim(`echo \"$build\" | cut -d'/' -f5 | cut -d'"' -f1`);
+	// Kill /usr/ports/ if it's there
+	$build = str_replace("/usr/ports/", "", $build);
+	list($category, $port) = explode('/', $build);
 	//echo ">>> Category: $category/$port \n";
 	if($pbi_options['build_options'])
 		if(!isset($options['q']))
