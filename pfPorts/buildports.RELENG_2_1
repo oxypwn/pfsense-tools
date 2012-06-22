@@ -149,7 +149,8 @@ rsync						/usr/ports/net/rsync						/usr/local/bin/rsync
 qstats						/usr/ports/sysutils/qstats			/usr/local/sbin/qstats
 gogoc 						/usr/ports/net/gogoc						/usr/local/bin/gogoc
 radvd						/usr/ports/net/radvd						/usr/local/sbin/radvd
-unbound						/usr/ports/dns/unbound						/usr/local/sbin/unbound"
+unbound						/usr/ports/dns/unbound						/usr/local/sbin/unbound
+ipfw_context					/usr/ports/net/ipfw_context					/usr/local/sbin/ipfw_context"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
