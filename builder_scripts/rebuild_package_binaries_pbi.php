@@ -415,7 +415,7 @@ foreach ($build_list as $build => $pbi_options) {
 	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
 	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}");
 	wait_for_procs_finish();
-	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . format_elapsed_time(time() - $port_start_time);
+	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
 	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
 		copy_packages($copy_packages_to_host_ssh, $copy_packages_to_host_ssh_port, $file_system_root, $copy_packages_to_folder_ssh);
 	}
@@ -430,6 +430,6 @@ if($copy_packages_to_folder_ssh && !isset($options['U'])) {
 }
 
 echo ">>> Package binary build run ended at " . date(DATE_RFC822) . ".\n";
-echo ">>> Total time: " . format_elapsed_time(time() - $port_start_time);
+echo ">>> Total time: " . format_elapsed_time(time() - $port_start_time) . "\n";
 
 ?>
