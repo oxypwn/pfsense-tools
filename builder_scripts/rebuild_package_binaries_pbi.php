@@ -344,7 +344,8 @@ foreach($pkg['packages']['package'] as $pkg) {
 	if ($pkg['build_pbi']) {
 		if (empty($pkg['build_pbi']['port']))
 			continue;
-		if (array_key_exists($pkg['build_pbi']['port'], $build_list)) {
+		$build = $pkg['build_pbi']['port'];
+		if (array_key_exists($build, $build_list)) {
 			echo ">>> [" . date("H:i:s") . "] Skipping {$build} - already in build list.\n";
 			$skipped++;
 			continue;
