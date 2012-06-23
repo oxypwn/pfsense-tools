@@ -83,13 +83,17 @@ if(file_exists("/usr/home/pfsense/pfSenseGITREPO/pfSenseGITREPO/etc/inc") && !$h
 	$handled = true;
 }
 
-function create_pbi_conf($port_path,$MAKEOPTS="",$portsbefore="",$portsafter="") {
+function create_pbi_conf($port_path,$custom_name="",$MAKEOPTS="",$portsbefore="",$portsafter="") {
 
-	$PROGNAME=trim(`grep ^PORTNAME= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
-	// $port_path Format should be, e.g. www/squid so we can grab the port name there if the makefile is empty.
-	$PROGNAME = empty($PROGNAME) ? substr($port_path, strpos($port_path, '/')+1) : $PROGNAME;
-	// If it's still empty, comment it out
-	$usepn = empty($PROGNAME) ? "#" : "";
+	if (!empty($custom_name)) {
+		$PROGNAME = $custom_name;
+	} else {
+		$PROGNAME=trim(`grep ^PORTNAME= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
+		// $port_path Format should be, e.g. www/squid so we can grab the port name there if the makefile is empty.
+		$PROGNAME = empty($PROGNAME) ? substr($port_path, strpos($port_path, '/')+1) : $PROGNAME;
+		// If it's still empty, comment it out
+		$usepn = empty($PROGNAME) ? "#" : "";
+	}
 
 	$MAINTAINER=trim(`grep ^MAINTAINER= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
 	// $PROGWEB=trim(`grep ^MASTER_SITES= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
@@ -361,6 +365,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 		else
 			$build_list[$build]['build_options'] = "";
 
+		$build_list[$build]['custom_name']    = isset($pkg['build_pbi']['custom_name']) ? $pkg['build_pbi']['custom_name'] : "";
 		$build_list[$build]['ports_before']  = isset($pkg['build_pbi']['ports_before']) ? $pkg['build_pbi']['ports_before'] : "";
 		$build_list[$build]['ports_after']   = isset($pkg['build_pbi']['ports_after']) ? $pkg['build_pbi']['ports_after'] :  "";
 	} elseif ($pkg['build_port_path']) {
@@ -425,7 +430,7 @@ foreach ($build_list as $build => $pbi_options) {
 	if($pbi_options['build_options'])
 		if(!isset($options['q']))
 			echo ">>> [" . date("H:i:s") . "] BUILD_OPTIONS: {$pbi_options['build_options']}\n";
-	$pbi_conf = create_pbi_conf("{$category}/{$port}",$pbi_options['build_options'],$pbi_options['ports_before'],$pbi_options['ports_after']);
+	$pbi_conf = create_pbi_conf("{$category}/{$port}",$pbi_options['custom_name'],$pbi_options['build_options'],$pbi_options['ports_before'],$pbi_options['ports_after']);
 	if(!is_dir("/pbi-build/modules/{$category}/{$port}"))
 		exec("mkdir -p /pbi-build/modules/{$category}/{$port}");
 	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
