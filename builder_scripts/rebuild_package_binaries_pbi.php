@@ -443,7 +443,7 @@ foreach ($build_list as $build => $pbi_options) {
 	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
 	file_put_contents("{$pbi_confdir}/pbi.conf", $pbi_conf);
 	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
-	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}");
+	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port} > {$pbi_confdir}/pbi.log");
 	wait_for_procs_finish();
 	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
 	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
