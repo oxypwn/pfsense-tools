@@ -216,14 +216,6 @@ pre-configure:
 	@${ECHO_MSG} "===>   Done.  Configuring..."
 .endif
 
-pre-install:
-.if defined(WITH_POSTGRESQL)
-	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| postgresql|' ${WRKDIR}/snort.sh
-.endif
-.if defined(WITH_MYSQL)
-	@${REINPLACE_CMD} -e '/REQUIRE:/ s|$$| mysql|' ${WRKDIR}/snort.sh
-.endif
-
 post-install:
 	@${LIBTOOL} --finish ${LOCALBASE}/lib/snort/dynamicpreprocessor
 	[ -d ${CONFIG_DIR} ] || ${MKDIR} ${CONFIG_DIR}
