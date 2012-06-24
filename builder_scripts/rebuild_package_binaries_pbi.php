@@ -28,6 +28,14 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
+/* TODO:
+	* Add prefetch_distfiles so we can grab source from wherever we want before building, in case ports can't get it
+	* Add support for multiple manual port builds instead of either a full run or a single port
+	* Add pbi_autobuild support
+	* Add support for more PBI variables such as the build key, exclude list, and so on.
+	* Add an optional way to dump output from pbi_makeport to the screen or a log file.
+*/
+
 echo "PBI Buld run started at " . date(DATE_RFC822) . "\n";
 $full_start_time = time();
 
