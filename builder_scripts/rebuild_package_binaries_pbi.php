@@ -173,6 +173,7 @@ function usage() {
 	echo "    -I Skip 'make includes' operation.\n";
 	echo "    -u Upload after each port is built rather than at the end.\n";
 	echo "    -U Skip uploading of packages.\n";
+	echo "    -v Show PBI build output.\n";
 	echo "  Examples:\n";
 	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml\n";
 	echo "     {$argv[0]} -x /usr/home/pfsense/packages/pkg_info.8.xml -p squid\n";
@@ -269,6 +270,7 @@ $opts .= "P::"; // Skip applying kernel patches before the run
 $opts .= "I::"; // Skip make includes
 $opts .= "u::"; // Upload after every port, not just at the end.
 $opts .= "U::"; // Skip uploading compiled binaries
+$opts .= "v::"; // Verbose, show PBI build output
 
 $options = getopt($opts);
 
@@ -443,7 +445,8 @@ foreach ($build_list as $build => $pbi_options) {
 	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
 	file_put_contents("{$pbi_confdir}/pbi.conf", $pbi_conf);
 	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
-	mwexec_bg("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port} > {$pbi_confdir}/pbi.log");
+	$redirbg = isset($options['v']) ? "": " > {$pbi_confdir}/pbi.log &";
+	system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}{$redirbg}");
 	wait_for_procs_finish();
 	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
 	if($copy_packages_to_folder_ssh && isset($options['u']) && !isset($options['U'])) {
