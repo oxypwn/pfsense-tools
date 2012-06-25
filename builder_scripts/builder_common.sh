@@ -570,6 +570,9 @@ recompile_pfPorts() {
 			CPUS=`expr $DCPUS '*' 2`
 			echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 			echo "WITHOUT_X11=yo" >> /etc/make.conf
+			echo "WITHOUT_PORTS_SSL=yo" >> /etc/make.conf
+			echo "WITHOUT_OPENSSL_PORT=yo" >> /etc/make.conf
+			echo "WITH_SYS_SSL=yo" >> /etc/make.conf
 			MKCNF="pfPorts"
 		fi
 		if [ "$ARCH" = "mips" ]; then
