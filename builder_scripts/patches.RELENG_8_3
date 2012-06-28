@@ -90,6 +90,3 @@
 ~~virtio.makefile.diff~
 ~~huawei_k3770.diff~
 ~sys~carpv6-4.diff~
--R~sys/ufs/ufs~ufs_acl.c.diff
--R~sys/ufs/ufs~ufs_vnops.c.diff
--R~sys/ufs/ffs~ffs_vfsops.c.diff
