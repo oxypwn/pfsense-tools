@@ -445,7 +445,7 @@ foreach ($build_list as $build => $pbi_options) {
 	$pbi_confdir = "/pbi-build/modules/{$category}/{$port}";
 	file_put_contents("{$pbi_confdir}/pbi.conf", $pbi_conf);
 	echo ">>> [" . date("H:i:s") . "] Executing /usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}\n";
-	$redirbg = isset($options['v']) ? "": " > {$pbi_confdir}/pbi.log &";
+	$redirbg = isset($options['v']) ? "": " > {$pbi_confdir}/pbi.log 2>&1 &";
 	system("/usr/local/sbin/pbi_makeport -o /usr/ports/packages/All/ -c {$pbi_confdir} {$category}/{$port}{$redirbg}");
 	wait_for_procs_finish();
 	echo ">>> [" . date("H:i:s") . "] Finished building {$build} - Elapsed time: " . format_elapsed_time(time() - $port_start_time) . "\n";
