@@ -3,8 +3,8 @@ COMMENT=	The ${PHP_MODNAME} shared extension for php
 USE_PHP=	yes
 USE_PHPEXT=	yes
 PHP_MODNAME=	${PKGNAMESUFFIX:S/-//}
-DEFAULT_PHP_VER=5
-IGNORE_WITH_PHP=4 52
+DEFAULT_PHP_VER=53
+IGNORE_WITH_PHP=52 5
 
 EXTSUBDIR=	${DISTNAME}/ext/${PHP_MODNAME}
 WRKSRC=		${WRKDIR}/${EXTSUBDIR}
@@ -83,7 +83,7 @@ USE_OPENSSL=	yes
 
 .if ${PHP_MODNAME} == "gd"
 LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
-		png.6:${PORTSDIR}/graphics/png \
+		png15:${PORTSDIR}/graphics/png \
 		jpeg.11:${PORTSDIR}/graphics/jpeg
 .	if !defined(WITHOUT_X11)
 USE_XORG=	xpm

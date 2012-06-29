@@ -2,18 +2,18 @@
 # Date created:				Tue Feb 18 11:17:13 CET 2003
 # Whom:					Alex Dupre <sysadmin@alexdupre.com>
 #
-# $FreeBSD: ports/lang/php5/Makefile,v 1.170 2012/05/09 05:43:32 ale Exp $
+# $FreeBSD: ports/lang/php53/Makefile,v 1.173 2012/06/19 19:39:05 flo Exp $
 #
 
-PORTNAME=	php5
-PORTVERSION=	5.3.13
+PORTNAME=	php53
+PORTVERSION=	5.3.14
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
 DISTNAME=	php-${PORTVERSION}
 
-MAINTAINER=	ale@FreeBSD.org
+MAINTAINER=	flo@FreeBSD.org
 COMMENT=	PHP Scripting Language
 
 LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
@@ -52,7 +52,7 @@ OPTIONS=	CLI "Build CLI version" on \
 		MAILHEAD "Enable mail header patch" off \
 		LINKTHR "Link thread lib (for threaded extensions)" on
 
-CONFLICTS=	php4-4* php5-pcre-* php5-spl-*
+CONFLICTS=	php52-5* php5-5*
 
 MAN1=		php-config.1 phpize.1
 
@@ -115,8 +115,8 @@ CONFIGURE_ARGS+=--with-apxs2filter=${APXS}
 CONFIGURE_ARGS+=--with-apxs2=${APXS}
 .endif
 PKGMESSAGE=	${PKGDIR}/pkg-message.mod
-MODULENAME=	lib${PORTNAME}
-SHORTMODNAME=	${PORTNAME}
+MODULENAME=	libphp5
+SHORTMODNAME=	php5
 PLIST_SUB+=	APACHE=""
 .else
 PLIST_SUB+=	APACHE="@comment "
@@ -173,7 +173,7 @@ pre-configure:
 	@${CAT} ${WRKSRC}/acinclude.m4 ${WRKSRC}/build/libtool.m4 > ${WRKSRC}/aclocal.m4
 
 post-build:
-	@${ECHO_CMD} "PHP_VER=5" > ${WRKDIR}/php.conf
+	@${ECHO_CMD} "PHP_VER=53" > ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_VERSION=${PORTVERSION}" >> ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_SAPI=${PHP_SAPI}" >> ${WRKDIR}/php.conf
 	@${ECHO_CMD} "PHP_EXT_INC=pcre spl" >> ${WRKDIR}/php.conf
