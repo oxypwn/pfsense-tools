@@ -144,7 +144,7 @@ static struct command c_service2[] = {
         { IPSECDNS, NON, "ipsecdns", NULL,
                 { "/etc/rc.newipsecdns", "Restarting ipsec tunnels" } },
         { OPENVPN, NON, "openvpn", NULL,
-                { "/etc/rc.openvpn", "Restarting ipsec tunnels" } },
+                { "/etc/rc.openvpn", "Restarting OpenVPN tunnels/interfaces" } },
         { DYNDNS, STRING, "dyndns", NULL,
                 { "/etc/rc.dyndns.update %s", "updating dyndns %s" } },
         { DYNDNSALL, NON, "dyndnsall", NULL,
