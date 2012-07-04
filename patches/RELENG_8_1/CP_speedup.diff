@@ -215,10 +215,10 @@ diff -u -r1.1.1.1 if_ethersubr.c
  		mtag->m_tag_id = PACKET_TAG_NONE;
  		r = (struct ipfw_rule_ref *)(mtag + 1);
 -		if (r->info & IPFW_ONEPASS)
-+		if (r->info & IPFW_ONEPASS) {
++		//if (r->info & IPFW_ONEPASS) {
 +			m_tag_delete(*m0, mtag);
  			return (1);
-+		}
++		//}
  		args.rule = *r;
  	}
  

@@ -85,6 +85,7 @@
 ~~stf_6rd_20100923-1.diff~
 ~sys/contrib/pf/net~pfsync_state_timeout.diff~
 -p1~~pf_route-to-crash_fixes.diff~
+-p1~~pf_802.1p.diff~
 -p1~~pf_print_state_queue.diff~
 -p1~~CP_multi_instance_ipfw.diff~
 ~~virtio.makefile.diff~
