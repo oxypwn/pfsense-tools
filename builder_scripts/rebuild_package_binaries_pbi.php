@@ -136,7 +136,7 @@ $MAKEOPTS"
 {$portsafter}
 
 # Exclude List
-PBI_EXCLUDELIST="./share/doc"
+PBI_EXCLUDELIST="./share/doc ./man ./*/man ./*/*/man ./*/*/*/man ./*/*/*/*/man"
 
 # Increment to trigger rebuild of PBI on build servers
 PBI_BUILDKEY="01"
