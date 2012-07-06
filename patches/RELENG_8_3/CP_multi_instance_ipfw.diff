@@ -32,7 +32,7 @@ index 775fd31..b882d27 100644
   * Defaults and limits for options
   */
 diff --git a/sys/netinet/ipfw/ip_fw2.c b/sys/netinet/ipfw/ip_fw2.c
-index a8ea95c..5bad23d 100644
+index c7975f7..a2b349f 100644
 --- a/sys/netinet/ipfw/ip_fw2.c
 +++ b/sys/netinet/ipfw/ip_fw2.c
 @@ -130,9 +130,8 @@ VNET_DEFINE(int, fw_verbose);
@@ -73,10 +73,10 @@ index a8ea95c..5bad23d 100644
  	ipfw_dyn_rule *q = NULL;
 -	struct ip_fw_chain *chain = &V_layer3_chain;
 +	struct ip_fw_chain *chain = V_ipfw_context.ctx[oif->if_context];
+ 	struct table_entry *tblent = NULL;
  
  	/*
- 	 * We store in ulp a pointer to the upper layer protocol header.
-@@ -2504,12 +2503,6 @@ ipfw_destroy(void)
+@@ -2515,12 +2514,6 @@ ipfw_destroy(void)
  static int
  vnet_ipfw_init(const void *unused)
  {
@@ -89,7 +89,7 @@ index a8ea95c..5bad23d 100644
  	/* First set up some values that are compile time options */
  	V_autoinc_step = 100;	/* bounded to 1..1000 in add_rule() */
  	V_fw_deny_unknown_exthdrs = 1;
-@@ -2519,6 +2512,51 @@ vnet_ipfw_init(const void *unused)
+@@ -2530,6 +2523,51 @@ vnet_ipfw_init(const void *unused)
  #ifdef IPFIREWALL_VERBOSE_LIMIT
  	V_verbose_limit = IPFIREWALL_VERBOSE_LIMIT;
  #endif
@@ -141,7 +141,7 @@ index a8ea95c..5bad23d 100644
  #ifdef IPFIREWALL_NAT
  	LIST_INIT(&chain->nat);
  #endif
-@@ -2536,9 +2574,17 @@ vnet_ipfw_init(const void *unused)
+@@ -2547,9 +2585,17 @@ vnet_ipfw_init(const void *unused)
  			"(support disabled)\n");
  		return (ENOSPC);
  	}
@@ -159,7 +159,7 @@ index a8ea95c..5bad23d 100644
  	}
  
  	/* fill and insert the default rule */
-@@ -2551,29 +2597,6 @@ vnet_ipfw_init(const void *unused)
+@@ -2562,29 +2608,6 @@ vnet_ipfw_init(const void *unused)
  	chain->rules = chain->default_rule = chain->map[0] = rule;
  	chain->id = rule->id = 1;
  
@@ -189,7 +189,7 @@ index a8ea95c..5bad23d 100644
  	return (error);
  }
  
-@@ -2583,11 +2606,12 @@ vnet_ipfw_init(const void *unused)
+@@ -2594,11 +2617,12 @@ vnet_ipfw_init(const void *unused)
  static int
  vnet_ipfw_uninit(const void *unused)
  {
@@ -205,7 +205,7 @@ index a8ea95c..5bad23d 100644
  	/*
  	 * disconnect from ipv4, ipv6, layer2 and sockopt.
  	 * Then grab, release and grab again the WLOCK so we make
-@@ -2596,6 +2620,47 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2607,6 +2631,47 @@ vnet_ipfw_uninit(const void *unused)
  	(void)ipfw_attach_hooks(0 /* detach */);
  	V_ip_fw_chk_ptr = NULL;
  	V_ip_fw_ctl_ptr = NULL;
@@ -253,7 +253,7 @@ index a8ea95c..5bad23d 100644
  	IPFW_UH_WLOCK(chain);
  	IPFW_UH_WUNLOCK(chain);
  	IPFW_UH_WLOCK(chain);
-@@ -2604,7 +2669,6 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2615,7 +2680,6 @@ vnet_ipfw_uninit(const void *unused)
  	IPFW_WUNLOCK(chain);
  	IPFW_WLOCK(chain);
  
@@ -261,7 +261,7 @@ index a8ea95c..5bad23d 100644
  	ipfw_destroy_tables(chain);
  	reap = NULL;
  	for (i = 0; i < chain->n_rules; i++) {
-@@ -2619,7 +2683,9 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2630,7 +2694,9 @@ vnet_ipfw_uninit(const void *unused)
  	if (reap != NULL)
  		ipfw_reap_rules(reap);
  	IPFW_LOCK_DESTROY(chain);
@@ -273,10 +273,10 @@ index a8ea95c..5bad23d 100644
  }
  
 diff --git a/sys/netinet/ipfw/ip_fw_private.h b/sys/netinet/ipfw/ip_fw_private.h
-index cef760d..58b3088 100644
+index 2d1e381..63d15e0 100644
 --- a/sys/netinet/ipfw/ip_fw_private.h
 +++ b/sys/netinet/ipfw/ip_fw_private.h
-@@ -158,6 +158,7 @@ void ipfw_log(struct ip_fw *f, u_int hlen, struct ip_fw_args *args,
+@@ -169,6 +169,7 @@ void ipfw_log(struct ip_fw *f, u_int hlen, struct ip_fw_args *args,
  	struct ip *ip);
  VNET_DECLARE(u_int64_t, norule_counter);
  #define	V_norule_counter	VNET(norule_counter)
@@ -284,7 +284,7 @@ index cef760d..58b3088 100644
  VNET_DECLARE(int, verbose_limit);
  #define	V_verbose_limit		VNET(verbose_limit)
  
-@@ -200,7 +201,7 @@ VNET_DECLARE(int, fw_one_pass);
+@@ -211,7 +212,7 @@ VNET_DECLARE(int, fw_one_pass);
  VNET_DECLARE(int, fw_verbose);
  #define	V_fw_verbose		VNET(fw_verbose)
  
@@ -293,7 +293,7 @@ index cef760d..58b3088 100644
  #define	V_layer3_chain		VNET(layer3_chain)
  
  VNET_DECLARE(u_int32_t, set_disable);
-@@ -229,6 +230,53 @@ struct ip_fw_chain {
+@@ -240,6 +241,53 @@ struct ip_fw_chain {
  	uint32_t	gencnt;		/* generation count */
  };
  
