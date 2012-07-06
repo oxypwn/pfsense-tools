@@ -353,7 +353,7 @@ index 758de4e..c7975f7 100644
 -					cmd->arg1, key, &v);
 -				    if (!match)
 +				    tblent = ipfw_lookup_table(chain,
-+					cmd->arg1, key, ea, &v, pktlen);
++					cmd->arg1, key, ea, &v);
 +				    if (tblent == NULL) {
 +					match = 0;
  					break;
