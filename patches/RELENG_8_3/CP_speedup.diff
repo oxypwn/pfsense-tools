@@ -649,7 +649,7 @@ index b167aa5..14584a3 100644
 +		ent2 = (struct table_entry *)(rnh->rnh_lookup(&ent->addr, NULL, rnh));
 +		if (ent2 != NULL) {
 +			if (ent2->mac_addr) {
-+				if (!bcmp(&mac_addr, &ent2->mac_addr, ETHER_ADDR_LEN)) {
++				if (!bcmp(&mac_addr, &ent2->mac_addr, ETHER_ADDR_LEN))
 +					ent2->value = value;
 +			} else
 +				ent2->value = value;
