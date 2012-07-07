@@ -25,7 +25,7 @@ MAN8=		miniupnpd.8
 
 USE_RC_SUBR=	miniupnpd.sh
 
-OPTIONS=	PF_ENABLE_FILTER_RULES		"Enable pf generation of filter rules" off \
+OPTIONS=	PF_ENABLE_FILTER_RULES		"Enable pf generation of filter rules" on \
 
 .include <bsd.port.options.mk>
 .if defined(WITH_PF_ENABLE_FILTER_RULES)
