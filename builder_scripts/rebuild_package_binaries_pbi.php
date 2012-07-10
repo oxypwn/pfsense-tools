@@ -256,7 +256,7 @@ function format_elapsed_time($seconds) {
 	$minspl = ($mins != 1) ? "s" : "";
 	$secspl = ($mins != 1) ? "s" : "";
 
-	$timestr .= "{$hours} Hour{$hourspl} {$mins} Minute$minspl {$secs} Second{$secspl}";
+	$timestr .= "{$days}{$hours} Hour{$hourspl} {$mins} Minute$minspl {$secs} Second{$secspl}";
 	return $timestr;
 }
 
