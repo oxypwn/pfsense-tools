@@ -2,11 +2,12 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.98 2011/07/06 12:52:24 mm Exp $
+# $FreeBSD: ports/www/lighttpd/Makefile,v 1.112 2012/06/16 22:28:41 mm Exp $
 #
 
 PORTNAME?=	lighttpd
-PORTVERSION=	1.4.29
+PORTVERSION=	1.4.31
+PORTREVISION=	2
 CATEGORIES?=	www
 MASTER_SITES?=	http://download.lighttpd.net/lighttpd/releases-1.4.x/
 
@@ -24,19 +25,20 @@ LIB_DEPENDS+=	pcre.1:${PORTSDIR}/devel/pcre
 USE_BZIP2=	yes
 GNU_CONFIGURE=	yes
 USE_GNOME=	lthack
+USE_GMAKE=	yes
+MAKE_JOBS_SAFE=	yes
 
-.if !defined(_BUILDING_LIGHTTPD_MODULE)
-USE_AUTOTOOLS=	libtool
-.else
+#.if !defined(_BUILDING_LIGHTTPD_MODULE)
+#USE_AUTOTOOLS=	libtool
+#.else
 USE_AUTOTOOLS=	autoconf autoheader aclocal automake libtool
 ACLOCAL_ARGS=	-I m4
-.endif
+AUTOMAKE_ARGS=	--add-missing
+#.endif
 CONFIGURE_ARGS+=	--libdir=${PREFIX}/lib/lighttpd --enable-static
 
 CFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
-
-CONFIGURE_ENV+=	LDFLAGS="${LDFLAGS}"
 
 .if !defined(_BUILDING_LIGHTTPD_MODULE)
 USE_RC_SUBR=	lighttpd.sh
@@ -58,7 +60,8 @@ OPTIONS=	BZIP2		"Enable Bzip2 support" off \
 		OPENSSL		"Enable SSL support" on \
 		SPAWNFCGI	"Depend on spawn-fcgi utility" on \
 		VALGRIND	"Enable valgrind support" off \
-		WEBDAV		"Enable WebDAV support"	off
+		WEBDAV		"Enable WebDAV support"	off \
+		REMOTEUSER	"Add remote-user to conditionals" off
 
 .if !defined(NOPORTDOCS)
 DOCS=		AUTHORS COPYING INSTALL NEWS README
@@ -125,7 +128,7 @@ CONFIGURE_ARGS+=	--with-gdbm
 
 .if defined(WITH_LIBEV)
 CONFIGURE_ARGS+=	--with-libev=${LOCALBASE}
-LIB_DEPENDS+=		ev.3:${PORTSDIR}/devel/libev
+LIB_DEPENDS+=		ev.4:${PORTSDIR}/devel/libev
 .endif
 
 .if defined(WITH_MAGNET)
@@ -179,6 +182,11 @@ USE_GNOME+=		libxml2
 LIB_DEPENDS+=		uuid.1:${PORTSDIR}/misc/e2fsprogs-libuuid \
 			sqlite3.8:${PORTSDIR}/databases/sqlite3
 CONFIGURE_ARGS+=	--with-webdav-props --with-webdav-locks
+.endif
+
+# 3rd party remoteuser patch (lighttpd feature request #2415)
+.if defined(WITH_REMOTEUSER)
+EXTRA_PATCHES+=		${FILESDIR}/extra-patch-remoteuser
 .endif
 
 SUB_LIST+=		REQUIRE="${_REQUIRE}"
@@ -239,6 +247,14 @@ post-install:
 	@${INSTALL_DATA} ${FILESDIR}/${FILE} ${DOCSDIR}/${FILE}
 . endfor
 .endif
+
+test: build
+	@cd ${WRKSRC}/tests && ${SETENV} ${MAKE_ENV} ${MAKE} \
+		${MAKE_FLAGS} ${MAKEFILE} ${MAKE_ARGS} \
+		check-TESTS
+
+regression-test: test
+
 .endif # !defined(_BUILDING_LIGHTTPD_MODULE)
 
 .include <bsd.port.post.mk>
