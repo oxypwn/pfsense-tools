@@ -456,10 +456,10 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
 -            TextLog_Putc(log, ',');
 +	    break;
 +	case _CLASIFICATION:
-+	    TextLog_Print(log, "%s", otn_tmp->sigInfo.classType->name);
++	    if (otn_tmp != NULL) TextLog_Print(log, "%s", otn_tmp->sigInfo.classType->name);
 +	    break;
 +	case _PRIORITY:
-+	    TextLog_Print(log, "%d", otn_tmp->sigInfo.priority);
++	    if (otn_tmp != NULL) TextLog_Print(log, "%d", otn_tmp->sigInfo.priority);
 +	    break;
 +	case _XREF:
 +            if (IPH_IS_VALID(p))

@@ -1,6 +1,6 @@
-diff -urN ../snort-2.9.2.3.orig/src/output-plugins/Makefile.am ./src/output-plugins/Makefile.am
---- ../snort-2.9.2.3.orig/src/output-plugins/Makefile.am	2012-06-08 21:02:52.000000000 +0000
-+++ ./src/output-plugins/Makefile.am	2012-06-08 21:05:41.000000000 +0000
+diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.am ./src/output-plugins/Makefile.am
+--- ../snort-2.9.2.3.old/src/output-plugins/Makefile.am	2012-07-14 14:34:55.000000000 +0000
++++ ./src/output-plugins/Makefile.am	2012-07-14 14:35:21.000000000 +0000
 @@ -16,6 +16,6 @@
  spo_log_ascii.c spo_log_ascii.h spo_alert_sf_socket.h spo_alert_sf_socket.c \
  $(PRELUDE_CODE) spo_alert_arubaaction.c spo_alert_arubaaction.h \
@@ -9,9 +9,9 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/Makefile.am ./src/output-plug
 +spo_alert_test.c spo_alert_test.h spo_pf.h spo_pf.c
  
  INCLUDES = @INCLUDES@
-diff -urN ../snort-2.9.2.3.orig/src/output-plugins/Makefile.in ./src/output-plugins/Makefile.in
---- ../snort-2.9.2.3.orig/src/output-plugins/Makefile.in	2012-06-08 21:02:51.000000000 +0000
-+++ ./src/output-plugins/Makefile.in	2012-06-08 21:05:41.000000000 +0000
+diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.in ./src/output-plugins/Makefile.in
+--- ../snort-2.9.2.3.old/src/output-plugins/Makefile.in	2012-07-14 14:34:55.000000000 +0000
++++ ./src/output-plugins/Makefile.in	2012-07-14 14:35:21.000000000 +0000
 @@ -68,7 +68,7 @@
  	spo_log_tcpdump.$(OBJEXT) spo_unified.$(OBJEXT) \
  	spo_unified2.$(OBJEXT) spo_log_ascii.$(OBJEXT) \
@@ -30,10 +30,10 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/Makefile.in ./src/output-plug
  
  all: all-am
  
-diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.c
---- ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./src/output-plugins/spo_pf.c	2012-06-08 21:05:41.000000000 +0000
-@@ -0,0 +1,511 @@
+diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.c
+--- ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c	1970-01-01 00:00:00.000000000 +0000
++++ ./src/output-plugins/spo_pf.c	2012-07-14 14:41:02.000000000 +0000
+@@ -0,0 +1,517 @@
 +/*
 +* Copyright (c) 2012  Ermal Lu√i
 +* Copyright (c) 2006  Antonio Benojar <zz.stalker@gmail.com>
@@ -130,6 +130,7 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins
 +    int kill;
 +    enum spblock block;
 +    struct wlist_head head;
++    char *args;
 +} SpoAlertPfData;
 +
 +void AlertPfInit(char *);
@@ -269,6 +270,9 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins
 +    if (res == -1)
 +    	FatalError("snort.conf => Unable to load whitelist: %s\n", strerror(errno)); 
 +    
++    if (data->args != NULL && strcmp(args, data->args)
++	data->args = strdup(args);
++
 +    return data;
 +}
 +
@@ -280,6 +284,8 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins
 +    s2c_parse_free_wl(&data->head);
 +    fclose(data->wlfile);
 +    close(data->fd);
++    if (data->args != NULL)
++	free(data->args);
 +    
 +    free(data);
 +}
@@ -292,8 +298,8 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins
 +    s2c_parse_free_wl(&data->head);
 +    fclose(data->wlfile);
 +    close(data->fd);
-+    
-+    free(data);
++
++    ParseAlertPfArgs(data->args);
 +}
 +
 +
@@ -316,18 +322,18 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins
 +            
 +        strlcpy(table.pfrt_name, data->pftable, PF_TABLE_NAME_SIZE); 
 +        
-+        net_addr->family == AF_INET ? memcpy(&addr.pfra_ip4addr.s_addr, &net_addr->ip32, sizeof(in_addr_t)) : memcpy(&addr.pfra_ip6addr, &net_addr->ip8, sizeof(struct in6_addr));
++        net_addr->family == AF_INET ? memcpy(&addr.pfra_ip4addr.s_addr, &net_addr->ip32, sizeof(in_addr_t)) : memcpy(&addr.pfra_ip6addr, net_addr->ip8, sizeof(struct in6_addr));
 +
 +        addr.pfra_af  = net_addr->family; 
 +        addr.pfra_net = net_addr->family == AF_INET ? 32 : 128;; 
 +
 +        io.pfrio_table  = table; 
 +        io.pfrio_buffer = &addr; 
-+        io.pfrio_esize  = sizeof(struct pfr_addr); 
++        io.pfrio_esize  = sizeof(addr); 
 +        io.pfrio_size   = 1; 
 +        
 +        if (ioctl(data->fd, DIOCRADDADDRS, &io))
-+		FatalError("s2c_pf_block() => ioctl() DIOCRADDADDRS: %s\n", strerror(errno));
++		ErrorMessage("s2c_pf_block() => ioctl() DIOCRADDADDRS: %s\n", strerror(errno));
 + 
 +	if (data->kill) {
 +		struct pfioc_state_kill psk;
@@ -338,7 +344,7 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins
 +		if (psk.psk_af == AF_INET)
 +			memcpy(&psk.psk_src.addr.v.a.addr.v4.s_addr, &net_addr->ip32, sizeof(in_addr_t));
 +		else if (psk.psk_af == AF_INET6)
-+			memcpy(&psk.psk_src.addr.v.a.addr.v6, &net_addr->ip8, sizeof(struct in6_addr));
++			memcpy(&psk.psk_src.addr.v.a.addr.v6, net_addr->ip8, sizeof(struct in6_addr));
 +		else
 +			return (-1);
 +
@@ -545,9 +551,9 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.c ./src/output-plugins
 +		return (0);
 +	}
 +}
-diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.h ./src/output-plugins/spo_pf.h
---- ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./src/output-plugins/spo_pf.h	2012-06-08 21:05:41.000000000 +0000
+diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h ./src/output-plugins/spo_pf.h
+--- ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h	1970-01-01 00:00:00.000000000 +0000
++++ ./src/output-plugins/spo_pf.h	2012-07-14 14:35:21.000000000 +0000
 @@ -0,0 +1,58 @@
 +/*
 +*
@@ -607,9 +613,9 @@ diff -urN ../snort-2.9.2.3.orig/src/output-plugins/spo_pf.h ./src/output-plugins
 +void AlertPfSetup(void);
 +
 +#endif 
-diff -urN ../snort-2.9.2.3.orig/src/plugbase.c ./src/plugbase.c
---- ../snort-2.9.2.3.orig/src/plugbase.c	2012-06-08 21:02:57.000000000 +0000
-+++ ./src/plugbase.c	2012-06-08 21:05:41.000000000 +0000
+diff -urN ../snort-2.9.2.3.old/src/plugbase.c ./src/plugbase.c
+--- ../snort-2.9.2.3.old/src/plugbase.c	2012-07-14 14:35:01.000000000 +0000
++++ ./src/plugbase.c	2012-07-14 14:35:21.000000000 +0000
 @@ -115,6 +115,7 @@
  #include "output-plugins/spo_unified.h"
  #include "output-plugins/spo_log_null.h"
