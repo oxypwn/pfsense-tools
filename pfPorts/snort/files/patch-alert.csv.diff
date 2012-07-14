@@ -1,11 +1,11 @@
 diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/spo_csv.c
---- ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c	2012-07-13 10:40:45.000000000 +0000
-+++ ./src/output-plugins/spo_csv.c	2012-07-13 12:36:12.000000000 +0000
+--- ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c	2012-07-14 05:12:03.000000000 +0000
++++ ./src/output-plugins/spo_csv.c	2012-07-14 05:25:31.000000000 +0000
 @@ -68,6 +68,7 @@
  #include "sfutil/sf_textlog.h"
  #include "log_text.h"
  
-+enum _COLUMNS { _TIMESTAMP,_SIG_GENERATOR,_SIG_ID,_SIG_REV,_MSG,_PROTO,_SRC,_SRCPORT,_DST,_DSTPORT,_ETHSRC,_ETHDST,_ETHLEN,_TCPFLAGS,_TCPSEQ,_TCPACK,_TCPLEN,_TCPWINDOW,_TTL,_TOS,_ID,_DGMLEN,_IPLEN,_ICMPTYPE,_ICMPCODE,_ICMPID,_ICMPSEQ,_PRIORITY,_CLASIFICATION,_ETHTYPE,_UDPLENGTH };
++enum _COLUMNS { _TIMESTAMP,_SIG_GENERATOR,_SIG_ID,_SIG_REV,_MSG,_PROTO,_SRC,_SRCPORT,_DST,_DSTPORT,_ETHSRC,_ETHDST,_ETHLEN,_TCPFLAGS,_TCPSEQ,_TCPACK,_TCPLEN,_TCPWINDOW,_TTL,_TOS,_ID,_DGMLEN,_IPLEN,_ICMPTYPE,_ICMPCODE,_ICMPID,_ICMPSEQ,_PRIORITY,_CLASIFICATION,_ETHTYPE,_UDPLENGTH, _XREF };
  #define DEFAULT_CSV "timestamp,sig_generator,sig_id,sig_rev,msg,proto,src,srcport,dst,dstport,ethsrc,ethdst,ethlen,tcpflags,tcpseq,tcpack,tcpln,tcpwindow,ttl,tos,id,dgmlen,iplen,icmptype,icmpcode,icmpid,icmpseq"
  
  #define DEFAULT_FILE  "alert.csv"
@@ -54,7 +54,7 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
                  limit = strtol(tok, &end, 10);
  
                  if ( tok == end )
-@@ -234,12 +239,95 @@
+@@ -234,12 +239,101 @@
      data->log = TextLog_Init(filename, LOG_BUFFER, limit);
      if ( filename ) free(filename);
  
@@ -137,6 +137,12 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
 +            col->ctype = _TCPWINDOW;
 +        else if (!strcasecmp("tcpflags",type))
 +            col->ctype = _TCPFLAGS;
++        else if (!strcasecmp("classification",type))
++            col->ctype = _CLASIFICATION;
++        else if (!strcasecmp("priority",type))
++            col->ctype = _PRIORITY;
++        else if (!strcasecmp("xref",type))
++            col->ctype = _XREF;
 +    }
 +
      return data;
@@ -150,7 +156,7 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
      /* close alert file */
      DEBUG_WRAP(DebugMessage(DEBUG_LOG,"%s\n", msg););
  
-@@ -248,6 +336,14 @@
+@@ -248,6 +342,14 @@
          mSplitFree(&data->args, data->numargs);
          if (data->log) TextLog_Term(data->log);
          free(data->csvargs);
@@ -165,7 +171,7 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
          /* free memory from SpoCSVData */
          free(data);
      }
-@@ -261,7 +357,7 @@
+@@ -261,7 +363,7 @@
  static void AlertCSV(Packet *p, char *msg, void *arg, Event *event)
  {
      AlertCSVData *data = (AlertCSVData *)arg;
@@ -174,7 +180,7 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
  }
  
  /*
-@@ -278,49 +374,43 @@
+@@ -278,49 +380,43 @@
   * Returns: void function
   *
   */
@@ -245,7 +251,7 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
              if (IPH_IS_VALID(p))
              {
                  switch (GET_IPH_PROTO(p))
-@@ -338,49 +428,36 @@
+@@ -338,49 +434,36 @@
                          break;
                  }
              }
@@ -307,7 +313,7 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
              if (IPH_IS_VALID(p))
              {
                  switch (GET_IPH_PROTO(p))
-@@ -393,9 +470,8 @@
+@@ -393,9 +476,8 @@
                          break;
                  }
              }
@@ -319,7 +325,7 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
              if (IPH_IS_VALID(p))
              {
                  switch (GET_IPH_PROTO(p))
-@@ -408,102 +484,91 @@
+@@ -408,102 +490,95 @@
                          break;
                  }
              }
@@ -454,6 +460,10 @@ diff -ur ../snort-2.9.2.3.old/src/output-plugins/spo_csv.c ./src/output-plugins/
 +	    break;
 +	case _PRIORITY:
 +	    TextLog_Print(log, "%d", otn_tmp->sigInfo.priority);
++	    break;
++	case _XREF:
++            if (IPH_IS_VALID(p))
++		    LogXrefs(data->log, 0);
 +	    break;
 +	}
 +	TextLog_Puts(log, ",");
