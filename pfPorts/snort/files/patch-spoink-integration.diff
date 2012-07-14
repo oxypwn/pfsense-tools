@@ -270,7 +270,7 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +    if (res == -1)
 +    	FatalError("snort.conf => Unable to load whitelist: %s\n", strerror(errno)); 
 +    
-+    if (data->args != NULL && strcmp(args, data->args)
++    if (data->args != NULL && strcmp(args, data->args))
 +	data->args = strdup(args);
 +
 +    return data;
