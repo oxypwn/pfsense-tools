@@ -1,6 +1,6 @@
 diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.am ./src/output-plugins/Makefile.am
---- ../snort-2.9.2.3.old/src/output-plugins/Makefile.am	2012-07-14 14:34:55.000000000 +0000
-+++ ./src/output-plugins/Makefile.am	2012-07-14 14:35:21.000000000 +0000
+--- ../snort-2.9.2.3.old/src/output-plugins/Makefile.am	2012-07-15 18:56:24.000000000 +0000
++++ ./src/output-plugins/Makefile.am	2012-07-15 19:32:22.000000000 +0000
 @@ -16,6 +16,6 @@
  spo_log_ascii.c spo_log_ascii.h spo_alert_sf_socket.h spo_alert_sf_socket.c \
  $(PRELUDE_CODE) spo_alert_arubaaction.c spo_alert_arubaaction.h \
@@ -10,8 +10,8 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.am ./src/output-plugi
  
  INCLUDES = @INCLUDES@
 diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.in ./src/output-plugins/Makefile.in
---- ../snort-2.9.2.3.old/src/output-plugins/Makefile.in	2012-07-14 14:34:55.000000000 +0000
-+++ ./src/output-plugins/Makefile.in	2012-07-14 14:35:21.000000000 +0000
+--- ../snort-2.9.2.3.old/src/output-plugins/Makefile.in	2012-07-15 18:56:24.000000000 +0000
++++ ./src/output-plugins/Makefile.in	2012-07-15 19:32:22.000000000 +0000
 @@ -68,7 +68,7 @@
  	spo_log_tcpdump.$(OBJEXT) spo_unified.$(OBJEXT) \
  	spo_unified2.$(OBJEXT) spo_log_ascii.$(OBJEXT) \
@@ -32,8 +32,8 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.in ./src/output-plugi
  
 diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.c
 --- ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./src/output-plugins/spo_pf.c	2012-07-14 14:41:02.000000000 +0000
-@@ -0,0 +1,517 @@
++++ ./src/output-plugins/spo_pf.c	2012-07-15 19:50:10.000000000 +0000
+@@ -0,0 +1,527 @@
 +/*
 +* Copyright (c) 2012  Ermal Lu√i
 +* Copyright (c) 2006  Antonio Benojar <zz.stalker@gmail.com>
@@ -124,13 +124,12 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +enum spblock { SPOINK_BLOCK_SRC, SPOINK_BLOCK_DST, SPOINK_BLOCK_BOTH };
 +
 +typedef struct _SpoAlertPfData {
-+    FILE *wlfile; 
++    char *wlfile; 
 +    char *pftable; 
 +    int fd;
 +    int kill;
 +    enum spblock block;
 +    struct wlist_head head;
-+    char *args;
 +} SpoAlertPfData;
 +
 +void AlertPfInit(char *);
@@ -211,16 +210,16 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +    char **toks;
 +    int num_toks;
 +    SpoAlertPfData *data;
++    FILE *wl;
 +    
 +    int res = 0;
 +    
 +    data = (SpoAlertPfData *)SnortAlloc(sizeof(SpoAlertPfData));
 +    
 +    if(args == NULL) 
-+	FatalError("Unable to load pf args: %s\n", strerror(errno));    
++	FatalError("Unable to load alert_pf args: %s\n", strerror(errno));    
 +
 +    data->fd = s2c_pf_init();
-+
 +    if (data->fd == -1)
 +    	FatalError("s2c_pf_init() => no pf device\n");
 +    
@@ -234,24 +233,30 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +    if(strstr(toks[0], "..") != NULL) 
 +        FatalError("snort.conf => File definition contains \"..\".  Do not do that!\n");
 +
-+    data->wlfile = fopen(toks[0], "r");
-+    
-+    if (data->wlfile == NULL)
++    data->wlfile = strdup(toks[0]);
++    wl = fopen(data->wlfile, "r");
++    if (wl == NULL)
 +	FatalError("snort.conf => Unable to open whitelist file: %s\n", strerror(errno));
-+	    	
++    res = s2c_parse_load_wl(wl, &data->head, 0);
++    if (res == -1)
++    	FatalError("snort.conf => Unable to load whitelist: %s\n", strerror(errno)); 
++    fclose(wl);
++
 +    if (toks[1] == NULL)
 +     	FatalError("snort.conf => No pf table defined %s\n", strerror(errno));                
 +    else
-+     	data->pftable = toks[1];
++     	data->pftable = strdup(toks[1]);
++
++    if (s2c_pf_intbl(data->fd, data->pftable, 0) == 0)
++    	FatalError("pf.conf => Table %s don't exists in packet filter: %s\n", data->pftable, strerror(errno));	
 +
 +    if (toks[2] == NULL)
-+     	FatalError("snort.conf => No option on which ip to block src/dst/both: %s \n", strerror(errno));                
-+    
-+    if (!strncmp("src", toks[2], strlen("src")))
++	data->block = SPOINK_BLOCK_SRC;
++    else if (!strncmp("src", toks[2], strlen("src")))
 +     	data->block = SPOINK_BLOCK_SRC;
 +    else if (!strncmp("dst", toks[2], strlen("dst")))
 +     	data->block = SPOINK_BLOCK_DST;
-+    if (!strncmp("both", toks[2], strlen("both")))
++    else if (!strncmp("both", toks[2], strlen("both")))
 +     	data->block = SPOINK_BLOCK_BOTH;
 +    else
 +     	data->block = SPOINK_BLOCK_SRC;
@@ -263,16 +268,6 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +    else
 +     	data->kill = 0;
 +
-+    if (s2c_pf_intbl(data->fd, data->pftable, 0) == 0)
-+    	FatalError("pf.conf => Table %s don't exists in packet filter: %s\n", data->pftable, strerror(errno));	
-+    
-+    res = s2c_parse_load_wl(data->wlfile, &data->head, 0);
-+    if (res == -1)
-+    	FatalError("snort.conf => Unable to load whitelist: %s\n", strerror(errno)); 
-+    
-+    if (data->args != NULL && strcmp(args, data->args))
-+	data->args = strdup(args);
-+
 +    return data;
 +}
 +
@@ -282,24 +277,32 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +    DEBUG_WRAP(DebugMessage(DEBUG_LOG,"AlertPfCleanExit\n"););
 + 
 +    s2c_parse_free_wl(&data->head);
-+    fclose(data->wlfile);
 +    close(data->fd);
-+    if (data->args != NULL)
-+	free(data->args);
-+    
++
++    if(data->pftable != NULL)
++	free(data->pftable);
++    if(data->wlfile != NULL)
++	free(data->wlfile);
 +    free(data);
 +}
 +
 +void AlertPfRestart(int signal, void *arg)
 +{
 +    SpoAlertPfData *data = (SpoAlertPfData *)arg;
++    FILE *wl; int res;
++
 +    DEBUG_WRAP(DebugMessage(DEBUG_LOG,"AlertPfRestart\n"););
 +    
 +    s2c_parse_free_wl(&data->head);
-+    fclose(data->wlfile);
-+    close(data->fd);
-+
-+    ParseAlertPfArgs(data->args);
++    if (data->wlfile == NULL)
++	FatalError("Missing whitelist file from arguments");
++    wl = fopen(data->wlfile, "r");
++    if (wl == NULL)
++	FatalError("snort.conf => Unable to open whitelist file: %s\n", strerror(errno));
++    res = s2c_parse_load_wl(wl, &data->head, 0);
++    if (res == -1)
++    	FatalError("snort.conf => Unable to load whitelist: %s\n", strerror(errno)); 
++    fclose(wl);
 +}
 +
 +
@@ -315,6 +318,13 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +	struct pfioc_table io; 
 +    	struct pfr_table table; 
 +      	struct pfr_addr addr; 
++
++	if (data->fd < 0)
++		s2c_pf_init();
++	if (data->fd == -1) {
++		ErrorMessage("s2c_pf_init() => no pf device\n");
++		return -1;
++	}
 +
 +        memset(&io,    0x00, sizeof(struct pfioc_table)); 
 +        memset(&table, 0x00, sizeof(struct pfr_table)); 
@@ -553,7 +563,7 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +}
 diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h ./src/output-plugins/spo_pf.h
 --- ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./src/output-plugins/spo_pf.h	2012-07-14 14:35:21.000000000 +0000
++++ ./src/output-plugins/spo_pf.h	2012-07-15 19:32:22.000000000 +0000
 @@ -0,0 +1,58 @@
 +/*
 +*
@@ -614,8 +624,8 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h ./src/output-plugins/
 +
 +#endif 
 diff -urN ../snort-2.9.2.3.old/src/plugbase.c ./src/plugbase.c
---- ../snort-2.9.2.3.old/src/plugbase.c	2012-07-14 14:35:01.000000000 +0000
-+++ ./src/plugbase.c	2012-07-14 14:35:21.000000000 +0000
+--- ../snort-2.9.2.3.old/src/plugbase.c	2012-07-15 18:56:30.000000000 +0000
++++ ./src/plugbase.c	2012-07-15 19:32:22.000000000 +0000
 @@ -115,6 +115,7 @@
  #include "output-plugins/spo_unified.h"
  #include "output-plugins/spo_log_null.h"
