@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $FreeBSD: ports/net/miniupnpd/files/miniupnpd.sh.in,v 1.3 2010/03/27 00:13:48 dougb Exp $
+# $FreeBSD: ports/net/miniupnpd/files/miniupnpd.sh.in,v 1.4 2012/01/14 08:56:19 dougb Exp $
 #
 
 # PROVIDE: miniupnpd
@@ -13,7 +13,7 @@
 # miniupnpd_flags="<set as needed>"
 
 name=miniupnpd
-rcvar=`set_rcvar`
+rcvar=miniupnpd_enable
 load_rc_config $name
 
 miniupnpd_enable=${miniupnpd_enable:-"NO"}
@@ -26,4 +26,3 @@ command_args="-f $miniupnpd_config"
 required_files=$miniupnpd_config
 
 run_rc_command "$1"
-
