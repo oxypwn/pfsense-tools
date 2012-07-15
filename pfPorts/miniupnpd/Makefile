@@ -35,7 +35,7 @@ EXTRA_PATCHES=	${PATCHDIR}/pf_enable_filter_rules.patch
 .endif
 
 do-install:
-	@{INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin/miniupnpd
+	@${INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin/miniupnpd
 	@${INSTALL_DATA} ${WRKDIR}/miniupnpd.conf.sample ${PREFIX}/etc/miniupnpd.conf.sample
 	@${INSTALL_MAN} ${WRKSRC}/miniupnpd.1 ${PREFIX}/man/man8/miniupnpd.8
 	@${CAT} ${PKGMESSAGE}
