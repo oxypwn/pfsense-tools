@@ -464,8 +464,8 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +				ErrorMessage("Non ip(%s) parameter passed with white list, skipping...", cad);
 +				free(ipw);
 +				continue;
-+			} else
-+				printf("IP(%s) parsed succesfuly", cad);
++			} // else
++				//printf("IP(%s) parsed succesfuly", cad);
 +
 +			LIST_INSERT_HEAD(head, ipw, elem);		
 +		} else 
