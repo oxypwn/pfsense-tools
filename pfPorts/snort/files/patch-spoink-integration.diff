@@ -1,6 +1,6 @@
 diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.am ./src/output-plugins/Makefile.am
---- ../snort-2.9.2.3.old/src/output-plugins/Makefile.am	2012-07-15 18:56:24.000000000 +0000
-+++ ./src/output-plugins/Makefile.am	2012-07-15 19:32:22.000000000 +0000
+--- ../snort-2.9.2.3.old/src/output-plugins/Makefile.am	2012-07-16 10:08:04.000000000 +0000
++++ ./src/output-plugins/Makefile.am	2012-07-16 10:08:42.000000000 +0000
 @@ -16,6 +16,6 @@
  spo_log_ascii.c spo_log_ascii.h spo_alert_sf_socket.h spo_alert_sf_socket.c \
  $(PRELUDE_CODE) spo_alert_arubaaction.c spo_alert_arubaaction.h \
@@ -10,8 +10,8 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.am ./src/output-plugi
  
  INCLUDES = @INCLUDES@
 diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.in ./src/output-plugins/Makefile.in
---- ../snort-2.9.2.3.old/src/output-plugins/Makefile.in	2012-07-15 18:56:24.000000000 +0000
-+++ ./src/output-plugins/Makefile.in	2012-07-15 19:32:22.000000000 +0000
+--- ../snort-2.9.2.3.old/src/output-plugins/Makefile.in	2012-07-16 10:08:04.000000000 +0000
++++ ./src/output-plugins/Makefile.in	2012-07-16 10:08:42.000000000 +0000
 @@ -68,7 +68,7 @@
  	spo_log_tcpdump.$(OBJEXT) spo_unified.$(OBJEXT) \
  	spo_unified2.$(OBJEXT) spo_log_ascii.$(OBJEXT) \
@@ -32,8 +32,8 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/Makefile.in ./src/output-plugi
  
 diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/spo_pf.c
 --- ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c	1970-01-01 00:00:00.000000000 +0000
-+++ ./src/output-plugins/spo_pf.c	2012-07-15 19:50:10.000000000 +0000
-@@ -0,0 +1,527 @@
++++ ./src/output-plugins/spo_pf.c	2012-07-16 10:43:35.000000000 +0000
+@@ -0,0 +1,473 @@
 +/*
 +* Copyright (c) 2012  Ermal Lu√i
 +* Copyright (c) 2006  Antonio Benojar <zz.stalker@gmail.com>
@@ -146,7 +146,6 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +static int s2c_parse_load_wl(FILE*, struct wlist_head*, int);
 +static int s2c_parse_search_wl(snort_ip *, struct wlist_head);
 +static int s2c_parse_free_wl(struct wlist_head*);
-+static int s2c_parse_ip(char *, char *, int); 
 +
 + 
 +void AlertPfSetup(void)
@@ -416,76 +415,66 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +
 +
 +static int
-+s2c_parse_line(char buf[WLMAX] , FILE* wfile)
++s2c_parse_line(char buf[WLMAX], FILE* wfile)
 +{
-+	static char     next_ch = ' ';
++	static char     next_ch = '\n';
 +        int             i = 0;
-+        
-+	if (feof(wfile)) {
++
++	if (feof(wfile))
 +	        return (0);
-+	}                                
++
 +	do {
 +		next_ch = fgetc(wfile);
 +		if (i < WLMAX)
 +	        	buf[i++] = next_ch;
-+	} while (!feof(wfile) && !isspace(next_ch));
-+	if (i >= WLMAX) {
++	} while (!feof(wfile) && next_ch != '\n');
++	if (i >= WLMAX)
 +		return (-1);
-+	}		                 
-+	
-+	buf[i] = '\0';
++
++	buf[--i] = '\0';
++
 +	return (1);
 +}
-+
 +
 +static int
 +s2c_parse_load_wl(FILE *wfile, struct wlist_head *head, int debug)
 +{
-+
-+	char cad[WLMAX];
-+	char ret[WLMAX];
-+	struct ipwlist *ipw2, *ipw1 = NULL;
++	struct ipwlist *ipw = NULL;
 +	struct flock lock;
-+	
++	char cad[WLMAX];
++	int ret;
++
 +	if (wfile == NULL)
 +		FatalError("s2c_parse_load_wl() => Unable to open whitelist file: %s\n", strerror(errno));
-+	
++
 +	memset(&lock, 0x00, sizeof(struct flock));
 +	lock.l_type = F_RDLCK;
 +	fcntl(fileno(wfile), F_SETLKW, &lock);
-+	
++
 +	LIST_INIT(head);
-+	
-+	if (s2c_parse_line(cad, wfile) == 1) {
-+		if (s2c_parse_ip(cad, ret, debug) == 1) {
-+			ipw1 = (struct ipwlist*)malloc(sizeof(struct ipwlist));	
-+			if (ipw1 == NULL) 
-+				FatalError("s2c_parse_load_wl() => malloc(): %s\n", strerror(errno));
-+			sfip_pton(ret, &ipw1->waddr);
-+			LIST_INSERT_HEAD(head, ipw1, elem);		
-+			
-+		} else {
-+			FatalError("s2c_parse_load_wl() => Invalid data in whitelist file: %s\n", strerror(errno));
-+		}
++
++	while((ret = s2c_parse_line(cad, wfile)) != 0) {
++		if (ret == 1) {
++			ipw = malloc(sizeof(struct ipwlist));
++			if (ipw == NULL) {
++				ErrorMessage("Could not allocate memory");
++				continue;
++			}
++			if (sfip_pton(cad, &ipw->waddr) != SFIP_SUCCESS) {
++				ErrorMessage("Non ip(%s) parameter passed with white list, skipping...", cad);
++				free(ipw);
++				continue;
++			} else
++				printf("IP(%s) parsed succesfuly", cad);
++
++			LIST_INSERT_HEAD(head, ipw, elem);		
++		} else 
++			ErrorMessage("Errors with line(%s) passed with white list, skipping...", cad);
 +	}
-+	
-+	while(s2c_parse_line(cad, wfile) == 1) {
-+		if (s2c_parse_ip(cad, ret, debug) == 1) {
-+			ipw2 = (struct ipwlist*)malloc(sizeof(struct ipwlist));
-+			if (ipw2 == NULL) 
-+				FatalError("s2c_parse_load_wl() => malloc(): %s\n", strerror(errno));
-+			sfip_pton(ret, &ipw2->waddr);
-+			LIST_INSERT_AFTER(ipw1, ipw2, elem);		
-+			ipw1 = ipw2;
-+		} else {
-+			break;
-+		}
-+			
-+	}
-+	
++
 +	lock.l_type = F_UNLCK;
 +	fcntl(fileno(wfile), F_SETLKW, &lock);
-+	
++
 +	return (0);
 +}
 +
@@ -493,7 +482,7 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +s2c_parse_search_wl(snort_ip *ip, struct wlist_head wl)
 +{
 +	struct ipwlist *aux2;	
-+	
++
 +	LIST_FOREACH(aux2, &wl, elem) {
 +		if (IP_EQUALITY(ip, &aux2->waddr))
 +			return 1;
@@ -514,57 +503,14 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +	if (LIST_EMPTY(wl)) { 
 +		return (1);
 +	} else { 
-+		FatalError("s2c_parse_free_wl() => Unable to free whitelist: %s\n", strerror(errno));
-+		return (0);
-+	}
-+}
-+
-+/* XXX: too much complex ? */
-+static int
-+s2c_parse_ip(char *cad, char ret[WLMAX], int debug)
-+{
-+	int len;
-+	unsigned int enc=1;
-+	regex_t *expr;
-+	regmatch_t *resultado;
-+	expr = (regex_t*)malloc(sizeof(regex_t));	
-+	
-+	bzero(ret, WLMAX);
-+	
-+	if (expr == NULL) 
-+		FatalError("s2c_parse_ip() => malloc(): %s\n", strerror(errno));
-+	
-+	resultado = (regmatch_t*)malloc(sizeof(regmatch_t));
-+	
-+	if (resultado == NULL) 
-+		FatalError("s2c_parse_ip() => malloc(): %s\n", strerror(errno));
-+	
-+	if (regcomp(expr, REG_ADDR, REG_EXTENDED) !=0) 
-+		FatalError("s2c_parse_ip() => regcomp(): %s\n", strerror(errno));
-+	
-+	if (regexec(expr, cad, 1, resultado, 0) !=0) 
-+		enc=0;
-+	
-+	if (enc !=0) {
-+		len = resultado->rm_eo - resultado->rm_so;
-+		memcpy(ret, cad + resultado->rm_so, len);
-+		ret[len]='\0';
-+	}
-+	
-+	free(resultado);
-+	regfree(expr);
-+	
-+	if(enc)
-+		return (1);
-+	else {
-+		errno = EINVAL;
++		ErrorMessage("s2c_parse_free_wl() => Unable to free whitelist: %s\n", strerror(errno));
 +		return (0);
 +	}
 +}
 diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h ./src/output-plugins/spo_pf.h
 --- ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h	1970-01-01 00:00:00.000000000 +0000
-+++ ./src/output-plugins/spo_pf.h	2012-07-15 19:32:22.000000000 +0000
-@@ -0,0 +1,58 @@
++++ ./src/output-plugins/spo_pf.h	2012-07-16 10:29:10.000000000 +0000
+@@ -0,0 +1,55 @@
 +/*
 +*
 +* Copyright (c) 2006  Antonio Benojar <zz.stalker@gmail.com>
@@ -609,12 +555,9 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h ./src/output-plugins/
 +#include <stdio.h>
 +
 +#define WLMAX   1024
-+#define IPMAX	20
-+#define REG_ADDR	"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}"
-+
 +
 +struct ipwlist {   
-+  snort_ip waddr;
++  sfip_t waddr;
 +  LIST_ENTRY(ipwlist) elem;
 +};
 +                
@@ -624,8 +567,8 @@ diff -urN ../snort-2.9.2.3.old/src/output-plugins/spo_pf.h ./src/output-plugins/
 +
 +#endif 
 diff -urN ../snort-2.9.2.3.old/src/plugbase.c ./src/plugbase.c
---- ../snort-2.9.2.3.old/src/plugbase.c	2012-07-15 18:56:30.000000000 +0000
-+++ ./src/plugbase.c	2012-07-15 19:32:22.000000000 +0000
+--- ../snort-2.9.2.3.old/src/plugbase.c	2012-07-16 10:08:10.000000000 +0000
++++ ./src/plugbase.c	2012-07-16 10:08:42.000000000 +0000
 @@ -115,6 +115,7 @@
  #include "output-plugins/spo_unified.h"
  #include "output-plugins/spo_log_null.h"
