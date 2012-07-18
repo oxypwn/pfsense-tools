@@ -59,7 +59,6 @@ usr/local/bin/zmq_forwarder
 usr/local/bin/zmq_streamer
 usr/local/bin/zmq_queue
 usr/local/sbin/expiretable
-usr/local/sbin/dhclient6
 usr/local/sbin/dhcpleases
 usr/local/sbin/dhcpleases6
 usr/local/sbin/bpalogin
