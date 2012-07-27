@@ -55,6 +55,7 @@ struct thread_data {
 	int tablenr;
         int pipe;
         int mask;
+        int mask6;
 	char *cmd;
         TAILQ_ENTRY(thread_data) next;
 	pthread_t thr_pid;
