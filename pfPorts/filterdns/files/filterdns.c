@@ -93,20 +93,18 @@ add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_da
 {
 	struct table *ent, *tmp;
 	char buffer[INET6_ADDRSTRLEN] = { 0 };
-
 	TAILQ_FOREACH(tmp, rnh, entry) {
-		if (addr->sa_family != tmp->addr->sa_family)
-			continue;
 		if (addr->sa_family == AF_INET) {
 			if ((satosin(addr))->sin_addr.s_addr != satosin(tmp->addr)->sin_addr.s_addr)
 				continue;
-		} else if (addr->sa_family == AF_INET6) {
+		}
+		if (addr->sa_family == AF_INET6) {
 			if ((satosin6(addr))->sin6_addr.s6_addr != satosin6(tmp->addr)->sin6_addr.s6_addr)
 				continue;
 		}
-
 		if (debug >= 2)
-			syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntop(addr->sa_family, tmp->addr->sa_data, buffer, sizeof buffer), thrdata->tablename);
+			syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntop(addr->sa_family, 
+				addr->sa_data, buffer, sizeof buffer), thrdata->tablename);
 		refcount_acquire(&tmp->refcnt);
 		return (EEXIST);
 	}
@@ -204,7 +202,7 @@ host_dns(struct thread_data *hostd)
         }
 
         for (res = res0; res; res = res->ai_next) {
-                if (res->ai_family == AF_INET || res->ai_family == AF_INET6) {
+                if (res->ai_family == AF_INET) || (res->ai_family == AF_INET6) {
 			if (debug >= 2)
 				syslog(LOG_WARNING, "found entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data, buffer, sizeof buffer), hostd->tablename);
 			if (!add_table_entry(hostd->rnh, res->ai_addr, hostd))
@@ -280,15 +278,20 @@ pf_tableentry(struct thread_data *pfd, struct sockaddr *address, int action)
 	}
 	
 	bzero(&addr, sizeof(addr));
-	addr.pfra_af = address->sa_family;
-	addr.pfra_net = pfd->mask;
 	if (address->sa_family == AF_INET) {
+		addr.pfra_af = address->sa_family;
+		addr.pfra_net = pfd->mask;
 		addr.pfra_ip4addr = satosin(address)->sin_addr;
-	} else if (address->sa_family == AF_INET6) {
-		addr.pfra_ip6addr = satosin6(address)->sin6_addr;
 	}
-	set_ipmask(&addr.pfra_ip6addr, pfd->mask);
-	
+	if (address->sa_family == AF_INET6) {
+		addr.pfra_af = address->sa_family;
+		addr.pfra_ip6addr = satosin6(address)->sin6_addr;
+		addr.pfra_net = pfd->mask6;
+		set_ipmask(&addr.pfra_ip6addr, pfd->mask6);
+	}
+	if(debug -> 2)
+		syslog(LOG_WARNING, "setting subnet mask for family %i to %i", addr.pfra_af, addr.pfra_net);
+
 	bzero(&io, sizeof io);
         io.pfrio_table = table;
         io.pfrio_buffer = &addr;
@@ -326,6 +329,10 @@ void *check_hostname(void *arg)
 
         if ((p = strrchr(thrd->hostname, '/')) != NULL) {
                 thrd->mask = strtol(p+1, &q, 0);
+		if(thrd->mask == 32)
+			thrd->mask6 = 128;
+		if(thrd->mask <32)
+			thrd->mask6 = thrd->mask *2;
                 if (!q || *q || thrd->mask > 32 || q == (p+1)) {
 			if (debug >= 1)
                         	syslog(LOG_WARNING, "invalid netmask '%s' for hostname %s\n", p, thrd->hostname);
@@ -337,6 +344,7 @@ void *check_hostname(void *arg)
 		free(q);
         } else {
 		thrd->mask = 32;
+		thrd->mask6 = 128;
 	}
 
 	thrd->rnh = &rnh;
