@@ -98,7 +98,7 @@ add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_da
 			if ((satosin(addr))->sin_addr.s_addr != satosin(tmp->addr)->sin_addr.s_addr)
 				continue;
 			if (debug >= 2)
-				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntop(addr->sa_family, satosin(addr)->sin_addr.s_addr, buffer, sizeof buffer), thrdata->tablename);
+				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntop(addr->sa_family, &satosin(addr)->sin_addr.s_addr, buffer, sizeof buffer), thrdata->tablename);
 		}
 		if (addr->sa_family == AF_INET6) {
 			if ((satosin6(addr))->sin6_addr.s6_addr != satosin6(tmp->addr)->sin6_addr.s6_addr)
