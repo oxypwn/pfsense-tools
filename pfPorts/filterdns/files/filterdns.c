@@ -202,7 +202,7 @@ host_dns(struct thread_data *hostd)
         }
 
         for (res = res0; res; res = res->ai_next) {
-                if (res->ai_family == AF_INET) || (res->ai_family == AF_INET6) {
+                if ((res->ai_family == AF_INET) || (res->ai_family == AF_INET6)) {
 			if (debug >= 2)
 				syslog(LOG_WARNING, "found entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data, buffer, sizeof buffer), hostd->tablename);
 			if (!add_table_entry(hostd->rnh, res->ai_addr, hostd))
@@ -289,7 +289,7 @@ pf_tableentry(struct thread_data *pfd, struct sockaddr *address, int action)
 		addr.pfra_net = pfd->mask6;
 		set_ipmask(&addr.pfra_ip6addr, pfd->mask6);
 	}
-	if(debug -> 2)
+	if(debug >= 2)
 		syslog(LOG_WARNING, "setting subnet mask for family %i to %i", addr.pfra_af, addr.pfra_net);
 
 	bzero(&io, sizeof io);
