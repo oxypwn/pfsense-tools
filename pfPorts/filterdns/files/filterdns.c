@@ -97,14 +97,15 @@ add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_da
 		if (addr->sa_family == AF_INET) {
 			if ((satosin(addr))->sin_addr.s_addr != satosin(tmp->addr)->sin_addr.s_addr)
 				continue;
+			if (debug >= 2)
+				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename);
 		}
 		if (addr->sa_family == AF_INET6) {
 			if ((satosin6(addr))->sin6_addr.s6_addr != satosin6(tmp->addr)->sin6_addr.s6_addr)
 				continue;
+			if (debug >= 2)
+				syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntop(addr->sa_family, addr->sa_data + 6, buffer, sizeof buffer), thrdata->tablename);
 		}
-		if (debug >= 2)
-			syslog(LOG_WARNING, "entry %s exists in table %s", inet_ntop(addr->sa_family, 
-				addr->sa_data, buffer, sizeof buffer), thrdata->tablename);
 		refcount_acquire(&tmp->refcnt);
 		return (EEXIST);
 	}
@@ -127,13 +128,17 @@ add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_da
 	refcount_acquire(&ent->refcnt);
 	TAILQ_INSERT_HEAD(rnh, ent, entry);
 	if (thrdata->type == PF_TYPE) {
-		if (debug >= 2)
-			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+		if (debug >= 2) {
+			if(addr->sa_family == AF_INET)
+				syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+			if(addr->sa_family == AF_INET6)
+				syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 6, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+		}
 		pf_tableentry(thrdata, addr, ADD);
 	}
 	else if (thrdata->type == IPFW_TYPE) {
 		if (debug >= 2)	
-			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+			syslog(LOG_WARNING, "adding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 		ipfw_tableentry(thrdata, addr, ADD);
 	}
 	
@@ -149,13 +154,17 @@ filterdns_clean_table(struct thread_data *thrdata)
 	TAILQ_FOREACH_SAFE(e, thrdata->rnh, entry, tmp) {
 		if (refcount_release(&e->refcnt)) {
 			if (thrdata->type == PF_TYPE) {
-				if (debug >= 2)
-				syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+				if (debug >= 2) {
+					if(e->addr->sa_family == AF_INET)
+						syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+					if(e->addr->sa_family == AF_INET6)
+						syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 6, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+				}
 				pf_tableentry(thrdata, e->addr, DELETE);
 			}
 			if (thrdata->type == IPFW_TYPE) {
 				if (debug >= 2)
-					syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+					syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 				ipfw_tableentry(thrdata, e->addr, DELETE);
 			}
 			TAILQ_REMOVE(thrdata->rnh, e, entry);
@@ -202,9 +211,15 @@ host_dns(struct thread_data *hostd)
         }
 
         for (res = res0; res; res = res->ai_next) {
-                if ((res->ai_family == AF_INET) || (res->ai_family == AF_INET6)) {
+                if (res->ai_family == AF_INET) {
 			if (debug >= 2)
-				syslog(LOG_WARNING, "found entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data, buffer, sizeof buffer), hostd->tablename);
+				syslog(LOG_WARNING, "found entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 2, buffer, sizeof buffer), hostd->tablename);
+			if (!add_table_entry(hostd->rnh, res->ai_addr, hostd))
+                		cnt++;
+		}
+		if(res->ai_family == AF_INET6) {
+			if (debug >= 2)
+				syslog(LOG_WARNING, "found entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 6, buffer, sizeof buffer), hostd->tablename);
 			if (!add_table_entry(hostd->rnh, res->ai_addr, hostd))
                 		cnt++;
                 }
