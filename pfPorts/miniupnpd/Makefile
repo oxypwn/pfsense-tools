@@ -31,7 +31,7 @@ OPTIONS=	PF_ENABLE_FILTER_RULES		"Enable pf generation of filter rules" on
 
 .include <bsd.port.options.mk>
 .if defined(WITH_PF_ENABLE_FILTER_RULES)
-EXTRA_PATCHES=	${PATCHDIR}/pf_enable_filter_rules.patch ${PATCHDIR}/enable_ipv6.patch ${PATCHDIR}/getstatus.patch
+EXTRA_PATCHES=	${PATCHDIR}/pf_enable_filter_rules.patch
 .endif
 
 do-install:

@@ -1,24 +1,11 @@
---- Makefile.orig	2012-05-30 10:27:24.587226775 +0200
-+++ Makefile	2012-05-30 10:28:12.497226510 +0200
-@@ -15,7 +15,7 @@
+diff -ur ../miniupnpd-1.7.old/Makefile ./Makefile
+--- ../miniupnpd-1.7.old/Makefile	2012-07-30 17:47:38.000000000 +0000
++++ ./Makefile	2012-07-30 17:49:06.000000000 +0000
+@@ -15,6 +15,7 @@
  # $ CONFIG_OPTIONS="--ipv6 --igd2" make
  #
  
--CFLAGS ?= -pipe -Os
-+CFLAGS ?= -pipe
++CONFIG_OPTIONS=--ipv6 --igd2
+ CFLAGS ?= -pipe -Os
  #CFLAGS = -pipe -O -g -DDEBUG
  CFLAGS += -ansi
- CFLAGS += -Wall
-@@ -43,10 +43,12 @@
- 
- # better way to find if we are using ipf or pf
- .if $(OSNAME) == "FreeBSD"
-+.if defined(/etc/rc.subr) && defined(/etc/rc.conf)
- FWNAME != . /etc/rc.subr; . /etc/rc.conf; \
-           if checkyesno ipfilter_enable; then \
-           echo "ipf"; else echo "pf"; fi
- .endif
-+.endif
- 
- .if $(OSNAME) == "NetBSD"
- FWNAME != . /etc/rc.subr; . /etc/rc.conf; \
