@@ -2716,6 +2716,11 @@ EOF
 		echo ">>> Installing VirtualBOX from ports, one moment please..."
 		( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes install clean ) >/dev/null
 	fi
+
+	if [ ! -f /usr/local/bin/VBoxManage ]; then
+		echo "VBoxManage is not present please check port emulators/virtualbox-ose[-legacy] installation"
+		exit
+	fi
 	sysctl kern.geom.debugflags=16
 }
 
