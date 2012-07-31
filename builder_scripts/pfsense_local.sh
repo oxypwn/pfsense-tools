@@ -30,7 +30,7 @@ IFS=%
 export PRODUCT_NAME=${PRODUCT_NAME:-pfSense}
 
 # Area that the final image will appear in
-export MAKEOBJDIRPREFIXFINAL=${MAKEOBJDIRPREFIXFINAL:-/tmp/builder/}
+export MAKEOBJDIRPREFIXFINAL=${MAKEOBJDIRPREFIXFINAL:-/tmp/${PRODUCT_NAME}/}
 
 # Leave near the top.  
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.${PRODUCT_NAME}}
