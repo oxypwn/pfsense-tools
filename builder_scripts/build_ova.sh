@@ -39,6 +39,13 @@
 
 export MODULES_OVERRIDE="i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq"
 
+if [ ! -f ${PRODUCTNAME}-disk.ovf ]; then
+	echo "Please create a copy of pfSense-disk1.ovf to $PRODUCTNAME-disk.ovf"
+	echo "This will make sure that the output is correct during OVA build"
+	echo "This operation will be now terminated and you can restart it again"
+	exit
+fi
+
 # If a embedded build has been performed we need to nuke
 # /usr/obj.$dir/ since full uses a different
 # src.conf
