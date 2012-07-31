@@ -1,5 +1,4 @@
 ~~~/usr.sbin/clog
-~~~/sys/dev/ath~
 ~~~/contrib/pf/pfctl/pfctl_dn.c~
 ~~~/sys/contrib/pf/net/pf_ftp.c~
 ~~~/sys/contrib/altq/altq/altq_fairq.h~
@@ -93,4 +92,3 @@
 ~~huawei_k3770.diff~
 ~~huawei_k4505.diff~
 ~sys~carpv6-4.diff~
-~~ath_9-STABLE.tgz~
