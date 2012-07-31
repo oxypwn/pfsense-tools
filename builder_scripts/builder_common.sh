@@ -2599,13 +2599,13 @@ create_ova_image() {
 	ova_setup_platform_specific # after cpdup
 	ova_calculate_mnt_size
 	ova_umount_mnt $MD
+	ova_umount_mdconfig $MD
 	# We use vbox because it compresses the vmdk on export
 	ova_create_vbox_image
 	# We repack the file with a more universal xml file that
 	# works in both virtual box and esx server
 	ova_repack_vbox_image
 	ova_cleanup_finished
-	ova_umount_mdconfig $MD
 }
 
 ova_cleanup_finished() {
