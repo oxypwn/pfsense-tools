@@ -162,6 +162,7 @@ do-install:
 	${MAKE} -C ${WRKSRC}/omapip install
 	${MAKE} -C ${WRKSRC}/includes install
 	${MAKE} -C ${WRKSRC}/common install
+	@${CP} -r ${WRKSRC}/bind/include/isc ${PREFIX}/include
 	${INSTALL_DATA} ${WRKSRC}/dhcpctl/dhcpctl.h ${PREFIX}/include
 .if ${PORT_OPTIONS:MIPV6}
 	${INSTALL_DATA} ${WRKSRC}/doc/examples/dhcpd-dhcpv6.conf \
