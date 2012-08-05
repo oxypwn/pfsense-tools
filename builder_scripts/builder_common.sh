@@ -193,6 +193,11 @@ fixup_kernel_options() {
 		echo "options 		SMP"   >> $KERNELCONF
 	fi
 
+	# If We're on 8.3 and the kernel has ath support in it, make sure we have ath_pci if it's not already present.
+	if [ "${FREEBSD_BRANCH}" = "RELENG_8_3" ] && [ `/usr/bin/grep -c ath ${KERNELCONF}` -gt 0 ] && [ `/usr/bin/grep -c ath_pci ${KERNELCONF}` = 0 ]; then
+		echo "device		ath_pci" >> ${KERNELCONF}
+	fi
+
 	if [ "$EXTRA_DEVICES" != "" ]; then
 		echo "devices	$EXTRA_DEVICES" >> $KERNELCONF
 	fi
