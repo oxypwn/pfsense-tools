@@ -6,7 +6,7 @@
 #
 
 PORTNAME=	miniupnpd
-PORTVERSION=	1.7
+PORTVERSION=	1.7.20120711
 PORTEPOCH=	1
 CATEGORIES=	net
 MASTER_SITES=	http://miniupnp.tuxfamily.org/files/ \
