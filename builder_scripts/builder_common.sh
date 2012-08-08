@@ -2617,12 +2617,13 @@ ova_cleanup_finished() {
 	echo ">>> Cleaning up after build run..."
 	rm $OVFPATH/${PRODUCT_NAME}.vmdk.raw
 	rm $OVFPATH/${PRODUCT_NAME}-disk1.vmdk
-	rm $OVFPATH/${PRODUCT_NAME}.ovf
+	# rm $OVFPATH/${PRODUCT_NAME}.ovf
 }
 
 ova_repack_vbox_image() {
 	echo ">>> Extracting virtual box created ova file..."
 	BUILDPLATFORM=`uname -p`
+	OWD=`pwd`
 	cd ${OVFPATH} && tar xpf ${PRODUCT_NAME}.ova
 	POPULATEDSIZE=`du -d0 -h $PFSENSEBASEDIR | awk '{ print \$1 }' | cut -dM -f1`
 	POPULATEDSIZEBYTES=`echo "${POPULATEDSIZE}*1024^2" | bc`
@@ -2650,6 +2651,7 @@ ova_repack_vbox_image() {
 	mv ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Repacking OVA with universal OVF file..."
 	cd ${OVFPATH} && tar cpf ${PRODUCT_NAME}.ova ${PRODUCT_NAME}.ovf ${PRODUCT_NAME}-disk1.vmdk
+	cd ${OWD}
 	ls -lah ${OVFPATH}/${PRODUCT_NAME}*ov*
 }
 
@@ -2679,10 +2681,10 @@ ova_mount_mnt() {
 
 # called from create_ova_image
 ova_setup_ovf_file() {
-	if [ ! -f ${OVFPATH}/${PRODUCT_NAME}.ovf ]; then
-		cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
-		file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
+	if [ -f ${OVFFILE} ]; then
+		cp ${OVFFILE} ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	fi
+		
 	if [ ! -f ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ]; then
 		cp ${BUILDER_SCRIPTS}/pfSense-disk.ovf ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 		file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
