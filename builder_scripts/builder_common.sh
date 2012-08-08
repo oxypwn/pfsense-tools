@@ -2822,7 +2822,6 @@ ova_create_raw_backed_file() {
 # called from create_ova_image
 ova_remove_old_tmp_files() {
 	rm ${OVFPATH}/*.ovf.final 2>/dev/null
-	rm ${OVFPATH}/*.ovf 2>/dev/null
 	rm ${OVFPATH}/*.ova 2>/dev/null	
 }
 
