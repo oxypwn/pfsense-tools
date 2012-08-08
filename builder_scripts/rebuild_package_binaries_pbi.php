@@ -215,11 +215,11 @@ function get_procs_count() {
 }
 
 function wait_for_procs_finish() {
-	global $counter, $DCPUS;
+	global $counter;
 	$processes = get_procs_count();
 	if($counter == 0)
 		echo ">>> [" . date("H:i:s") . "] Waiting for previous build processes to finish...";
-	while($processes >= $DCPUS) {
+	while($processes >= 1) {
 		$processes = get_procs_count();
 		$counter++;
 		if($counter > 120) {
