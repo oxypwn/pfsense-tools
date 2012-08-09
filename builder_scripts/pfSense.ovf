@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Envelope vmw:buildId="build-171294" xmlns="http://schemas.dmtf.org/ovf/envelope/1" xmlns:cim="http://schemas.dmtf.org/wbem/wscim/1/common" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData" xmlns:vmw="http://www.vmware.com/schema/ovf" xmlns:vssd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <References>
+    <File ovf:href="pfSense-disk1.vmdk" ovf:id="file1" ovf:size="REFERENCESSIZE"/>
+  </References>
+  <DiskSection>
+    <Info>List of the virtual disks used in the package</Info>
+    <Disk ovf:capacityAllocationUnits="byte" ovf:allocationUnits="DISKSECTIONALLOCATIONUNITS" ovf:capacity="DISKSECTIONCAPACITY" ovf:diskId="vmdisk1" ovf:fileRef="file1" ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" populatedSize="DISKSECTIONPOPULATEDSIZE"/>
+  </DiskSection>
   <NetworkSection>
     <Info>The list of logical networks</Info>
     <Network ovf:name="VM Network">
@@ -7,11 +14,11 @@
     </Network>
   </NetworkSection>
   <VirtualSystem ovf:id="pfSense">
-    <Info>A virtual machine</Info>
+    <Info>pfSense virtual machine</Info>
     <Name>pfSense</Name>
-    <OperatingSystemSection ovf:id="101" vmw:osType="FreeBSD">
-      <Info>FreeBSD</Info>
-      <Description>FreeBSD</Description>
+    <OperatingSystemSection ovf:id="78" vmw:osType="FreeBSD 64-Bit">
+      <Info>FreeBSD 64-Bit</Info>
+      <Description>FreeBSD 64-Bit (pfSense)</Description>
     </OperatingSystemSection>
     <VirtualHardwareSection>
       <Info>Virtual hardware requirements</Info>
@@ -78,6 +85,14 @@
         <rasd:InstanceID>7</rasd:InstanceID>
         <rasd:ResourceSubType>E1000</rasd:ResourceSubType>
         <rasd:ResourceType>10</rasd:ResourceType>
+      </Item>
+      <Item>
+        <rasd:AddressOnParent>0</rasd:AddressOnParent>
+        <rasd:ElementName>scsi0:0</rasd:ElementName>
+        <rasd:HostResource>ovf:/disk/vmdisk1</rasd:HostResource>
+        <rasd:InstanceID>8</rasd:InstanceID>
+        <rasd:Parent>3</rasd:Parent>
+        <rasd:ResourceType>17</rasd:ResourceType>
       </Item>
     </VirtualHardwareSection>
     <ProductSection xsi:type="ovf:ProductSection_Type">
