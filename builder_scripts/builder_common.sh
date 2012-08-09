@@ -2619,26 +2619,26 @@ ova_repack_vbox_image() {
 	POPULATEDSIZEBYTES=`echo "${POPULATEDSIZE}*1024^2" | bc`
 	REFERENCESSIZE=`ls -la ${OVFPATH}/${OVFVMDK} | awk '{ print \$5 }'`
 	echo ">>> Setting REFERENCESSIZE to ${REFERENCESSIZE}..."
-	file_search_replace REFERENCESSIZE ${REFERENCESSIZE} ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace REFERENCESSIZE ${REFERENCESSIZE} ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Setting POPULATEDSIZEBYTES to ${POPULATEDSIZEBYTES}..."
 	#  OperatingSystemSection (pfSense.ovf)
 	#  42   FreeBSD 32-Bit
 	#  78   FreeBSD 64-Bit 
 	if [ "$BUILDPLATFORM" = "i386" ]; then
-		file_search_replace '"101"' '"42"' ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+		file_search_replace '"101"' '"42"' ${OVFPATH}/${PRODUCT_NAME}.ovf
 	fi
 	if [ "$BUILDPLATFORM" = "amd64" ]; then
-		file_search_replace '"101"' '"78"' ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+		file_search_replace '"101"' '"78"' ${OVFPATH}/${PRODUCT_NAME}.ovf
 	fi
-	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}.ovf
 	# 10737254400 = 10240MB = virtual box vmdk file size XXX grab this value from vbox creation
 	# 10737418240 = 10GB
 	echo ">>> Setting DISKSECTIONALLOCATIONUNITS to 10737254400..."
-	file_search_replace DISKSECTIONALLOCATIONUNITS $OVA_DISKSECTIONALLOCATIONUNITS ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace DISKSECTIONALLOCATIONUNITS $OVA_DISKSECTIONALLOCATIONUNITS ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Setting DISKSECTIONCAPACITY to 10737418240..."
-	file_search_replace DISKSECTIONCAPACITY $OVADISKSIZE ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace DISKSECTIONCAPACITY $OVADISKSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Moving universal disk ovf file into place..."
-	mv ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
+	mv ${OVFPATH}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Repacking OVA with universal OVF file..."
 	mv ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${PRODUCT_NAME}-disk1.vmdk
 	OWD=`pwd`
@@ -2675,12 +2675,12 @@ ova_mount_mnt() {
 # called from create_ova_image
 ova_setup_ovf_file() {
 	if [ -f ${OVFFILE} ]; then
-		cp ${OVFFILE} ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+		cp ${OVFFILE} ${OVFPATH}/${PRODUCT_NAME}.ovf
 	fi
 		
-	if [ ! -f ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ]; then
-		cp ${BUILDER_SCRIPTS}/pfSense-disk.ovf ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
-		file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	if [ ! -f ${OVFPATH}/${PRODUCT_NAME}.ovf ]; then
+		cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
+		file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
 	fi
 }
 
@@ -2789,7 +2789,7 @@ EOF
 }
 
 create_ova_image_dev_addons() {
-	file_search_replace 1024 2048 ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
+	file_search_replace 1024 2048 ${OVFPATH}/${PRODUCT_NAME}.ovf
 	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
 	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.running.sh $PFSENSEBASEDIR/etc/rc.local.running
 	create_ova_image_dev_addons_alias
