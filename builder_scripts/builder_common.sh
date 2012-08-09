@@ -2610,24 +2610,14 @@ create_ova_image() {
 	# We repack the file with a more universal xml file that
 	# works in both virtual box and esx server
 	ova_repack_vbox_image
-	ova_cleanup_finished
-}
-
-ova_cleanup_finished() {
-	echo ">>> Cleaning up after build run..."
-	rm $OVFPATH/${PRODUCT_NAME}.vmdk.raw
-	rm $OVFPATH/${PRODUCT_NAME}-disk1.vmdk
-	# rm $OVFPATH/${PRODUCT_NAME}.ovf
 }
 
 ova_repack_vbox_image() {
 	echo ">>> Extracting virtual box created ova file..."
 	BUILDPLATFORM=`uname -p`
-	OWD=`pwd`
-	cd ${OVFPATH} && tar xpf ${PRODUCT_NAME}.ova
 	POPULATEDSIZE=`du -d0 -h $PFSENSEBASEDIR | awk '{ print \$1 }' | cut -dM -f1`
 	POPULATEDSIZEBYTES=`echo "${POPULATEDSIZE}*1024^2" | bc`
-	REFERENCESSIZE=`ls -la ${OVFPATH}/${PRODUCT_NAME}-disk1.vmdk | awk '{ print \$5 }'`
+	REFERENCESSIZE=`ls -la ${OVFPATH}/${OVFVMDK} | awk '{ print \$5 }'`
 	echo ">>> Setting REFERENCESSIZE to ${REFERENCESSIZE}..."
 	file_search_replace REFERENCESSIZE ${REFERENCESSIZE} ${OVFPATH}/${PRODUCT_NAME}-disk.ovf
 	echo ">>> Setting POPULATEDSIZEBYTES to ${POPULATEDSIZEBYTES}..."
@@ -2650,8 +2640,11 @@ ova_repack_vbox_image() {
 	echo ">>> Moving universal disk ovf file into place..."
 	mv ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Repacking OVA with universal OVF file..."
+	mv ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${PRODUCT_NAME}-disk1.vmdk
+	OWD=`pwd`
 	cd ${OVFPATH} && tar cpf ${PRODUCT_NAME}.ova ${PRODUCT_NAME}.ovf ${PRODUCT_NAME}-disk1.vmdk
 	cd ${OWD}
+	rm $OVFPATH/${PRODUCT_NAME}-disk1.vmdk
 	ls -lah ${OVFPATH}/${PRODUCT_NAME}*ov*
 }
 
@@ -2839,15 +2832,9 @@ ova_create_vbox_image() {
 	# VirtualBox
 	echo ">>> Creating image using VBoxManage..."
 	rm ${OVFPATH}/${OVFVMDK} 2>/dev/null
-	VBoxManage convertfromraw ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK} --format vmdk
-	OVFVMDKSIZE=`ls -lah ${OVFPATH}/${OVFVMDK}`
-	echo ">>> Importing virtual machine ${PRODUCT_NAME}..."
-	import_ova_vm $PRODUCT_NAME
-	echo ">>> Exporting virtual machine ${PRODUCT_NAME}..."
-	export_vbox_vm $PRODUCT_NAME
-	echo ">>> Deleting imported virtual machine ${PRODUCT_NAME}..."
-	delete_vbox_vm $PRODUCT_NAME
-	echo ">>> ${OVFPATH}/${OVAFILE} created."
+	VBoxManage internalcommands converthd -srcformat RAW -dstformat VMDK ${OVFPATH}/${OVFVMDK}.raw ${OVFPATH}/${OVFVMDK}
+	rm -rf ${OVFPATH}/${OVFVMDK}.raw
+	echo ">>> ${OVFPATH}/${OVFVMDK} created."
 }
 
 # called from create_ova_image
@@ -2908,26 +2895,6 @@ ova_partition_gpart() {
 	echo ">>> Labeling partitions: ${MD}p3..."
 	glabel label swap0 ${MD}p3
 	sync ; sync
-}
-
-# called from create_ova_image
-import_ova_vm() {
-	VMNAME=$1
-	VBoxManage import ${OVFPATH}/${PRODUCT_NAME}-disk.ovf --vsys 0 --eula accept
-	VBoxManage storageattach $VMNAME --type hdd --medium ${OVFPATH}/${OVFVMDK} --storagectl "IDE Controller" --port 0 --device 0
-}
-
-# called from create_ova_image
-export_vbox_vm() {
-	VMNAME=$1
-	rm ${OVFPATH}/${OVAFILE} 2>/dev/null
-	VBoxManage export $VMNAME -o ${OVFPATH}/${OVAFILE}
-}
-
-# called from create_ova_image
-delete_vbox_vm() {
-	VMNAME=$1
-	VBoxManage unregistervm $VMNAME --delete
 }
 
 # called from create_ova_image
