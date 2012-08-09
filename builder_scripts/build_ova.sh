@@ -39,8 +39,8 @@
 
 export MODULES_OVERRIDE="i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq"
 
-if [ ! -f ${OVFFILE} ] && [ ! -f ${OVFPATH}/${PRODUCT_NAME}-disk.ovf ]; then
-	echo "Please create a copy of pfSense-disk.ovf to $OVFPATH/$PRODUCT_NAME-disk.ovf"
+if [ ! -f ${OVFFILE} ] && [ ! -f ${OVFPATH}/${PRODUCT_NAME}.ovf ]; then
+	echo "Please create a copy of pfSense.ovf to $OVFPATH/$PRODUCT_NAME.ovf"
 	echo "This will make sure that the output is correct during OVA build"
 	echo "This operation will be now terminated and you can restart it again"
 	exit
