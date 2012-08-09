@@ -2637,8 +2637,6 @@ ova_repack_vbox_image() {
 	file_search_replace DISKSECTIONALLOCATIONUNITS $OVA_DISKSECTIONALLOCATIONUNITS ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Setting DISKSECTIONCAPACITY to 10737418240..."
 	file_search_replace DISKSECTIONCAPACITY $OVADISKSIZE ${OVFPATH}/${PRODUCT_NAME}.ovf
-	echo ">>> Moving universal disk ovf file into place..."
-	mv ${OVFPATH}/${PRODUCT_NAME}.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 	echo ">>> Repacking OVA with universal OVF file..."
 	mv ${OVFPATH}/${OVFVMDK} ${OVFPATH}/${PRODUCT_NAME}-disk1.vmdk
 	OWD=`pwd`
