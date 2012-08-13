@@ -47,6 +47,7 @@ PFSENSEUPDATESDIR=${MAKEOBJDIRPREFIXFINAL}/updates
 TOOLDIR=${PFSENSEHOMEDIR}/tools
 BUILDERSCRIPTS=${TOOLDIR}/builder_scripts
 RSYNCIP="snapshots.pfsense.org"
+RSYNCKBYTELIMIT="10000"
 PINGTIME="999"
 PINGMAX="40"
 PINGIP="snapshots.pfsense.org"
@@ -540,7 +541,7 @@ check_for_congestion() {
 scp_files() {
 	cd $BUILDERSCRIPTS
 	if [ -z "${RSYNC_COPY_ARGUMENTS:-}" ]; then
-		RSYNC_COPY_ARGUMENTS="-ave ssh --timeout=60" #--bwlimit=50
+		RSYNC_COPY_ARGUMENTS="-ave ssh --timeout=60 --bwlimit=${RSYNCKBYTELIMIT}" #--bwlimit=50
 	fi
 	echo ">>> Copying files to snapshots.pfsense.org"
 	if [ ! -f /usr/local/bin/rsync ]; then
