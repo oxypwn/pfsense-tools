@@ -430,7 +430,7 @@ copy_to_staging_nanobsd() {
 	fi
 	FILESIZE=`cat /tmp/nanosize.txt`
 
-	if [ "$USE_VGA" = "yes" ]; then
+	if [ -n "${NANO_WITH_VGA}" ]; then
 		_VGA="_vga"
 	fi
 
