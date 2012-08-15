@@ -392,6 +392,9 @@ dobuilds() {
 	copy_to_staging_iso_updates
 	# Build nanobsd
 	donanobuilds
+	# Do the NanoBSD+VGA builds too
+	export NANO_WITH_VGA=yes
+	donanobuilds
 	# build ova
 	build_ova
 }
