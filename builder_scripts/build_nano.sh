@@ -219,7 +219,7 @@ if [ "${DATESTRING}" = "" ]; then
 	fi
 fi
 
-if [ "$USE_VGA" = "yes" ]; then
+if [ -n "${NANO_WITH_VGA}" ]; then
 	_VGA="_vga"
 fi
 
