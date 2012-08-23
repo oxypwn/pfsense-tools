@@ -2678,7 +2678,7 @@ ova_setup_ovf_file() {
 		
 	if [ ! -f ${OVFPATH}/${PRODUCT_NAME}.ovf ]; then
 		cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
-		file_search_replace pfSense $PRODUCT_NAME ${OVFPATH}/${PRODUCT_NAME}.ovf
+		file_search_replace PFSENSE_VERSION $PFSENSE_VERSION ${OVFPATH}/${PRODUCT_NAME}.ovf
 	fi
 }
 
