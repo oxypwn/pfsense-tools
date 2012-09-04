@@ -465,6 +465,9 @@ copy_to_staging_nanobsd() {
 
 	# Copy NanoBSD auto update:
 	if [ -f $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE ]; then
+		if [ -n "${_VGA}" ]; then
+			_VGA="-vga"
+		fi
 		cp $STAGINGAREA/nanobsdupdates/$FILENAMEUPGRADE $STAGINGAREA/latest-nanobsd${_VGA}-$FILESIZE.img.gz 2>/dev/null
 		sha256 $STAGINGAREA/latest-nanobsd${_VGA}-$FILESIZE.img.gz > $STAGINGAREA/latest-nanobsd${_VGA}-$FILESIZE.img.gz.sha256 2>/dev/null
 		cp $PFSENSEBASEDIR/etc/version.buildtime $STAGINGAREA/version-nanobsd${_VGA}-$FILESIZE
