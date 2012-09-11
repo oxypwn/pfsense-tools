@@ -2484,6 +2484,15 @@ awk '
 
 	fdisk -i -f ${MAKEOBJDIRPREFIXFINAL}/_.fdisk ${MD}
 	fdisk ${MD}
+
+	if [ -z "${NANO_WITH_VGA}" ]; then
+		# It's serial
+		export NANO_BOOTLOADER="boot/boot0sio"
+	else
+		# It's vga
+		export NANO_BOOTLOADER="boot/boot0"
+	fi
+
 	boot0cfg -B -b ${CLONEDIR}/${NANO_BOOTLOADER} ${NANO_BOOT0CFG} ${MD}
 	bsdlabel -m i386 -w -B -b ${CLONEDIR}/boot/boot ${MD}s1
 	bsdlabel -m i386 ${MD}s1
