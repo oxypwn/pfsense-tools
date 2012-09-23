@@ -98,7 +98,7 @@ php52-pcre					/usr/ports/devel/php52-pcre					/usr/local/lib/php/20060613/pcre.
 php52-posix					/usr/ports/sysutils/php52-posix				/usr/local/lib/php/20060613/posix.so
 php52-pdo					/usr/ports/databases/php52-pdo				/usr/local/lib/php/20060613/pdo.so
 php52-pdo_sqlite			/usr/ports/databases/php52-pdo_sqlite		/usr/local/lib/php/20060613/pdo_sqlite.so
-pecl-radius					/usr/ports/net/pecl-radius					/usr/local/lib/php/20060613/pdo_sqlite.so
+pecl-radius					/usr/ports/net/pecl-radius					/usr/local/lib/php/20060613/radius.so
 php52-pfSense-module		/usr/ports/devel/php52-pfSense-module		/usr/local/lib/php/20060613/pfSense.so
 php52-readline				/usr/ports/devel/php52-readline				/usr/local/lib/php/20060613/readline.so
 php52-session				/usr/ports/www/php52-session				/usr/local/lib/php/20060613/session.so
