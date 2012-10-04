@@ -1,0 +1,199 @@
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./racoon/cfparse.y
+--- ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y	2012-10-04 13:27:16.000000000 +0000
++++ ./src/racoon/cfparse.y	2012-10-04 13:27:43.000000000 +0000
+@@ -216,7 +216,7 @@
+ 	/* algorithm */
+ %token ALGORITHM_CLASS ALGORITHMTYPE STRENGTHTYPE
+ 	/* sainfo */
+-%token SAINFO FROM
++%token SAINFO FROM NAT
+ 	/* remote */
+ %token REMOTE ANONYMOUS CLIENTADDR INHERIT REMOTE_ADDRESS
+ %token EXCHANGE_MODE EXCHANGETYPE DOI DOITYPE SITUATION SITUATIONTYPE
+@@ -1301,31 +1301,57 @@
+ 		{
+ 			cur_sainfo->idsrc = SAINFO_ANONYMOUS;
+ 			cur_sainfo->iddst = SAINFO_ANONYMOUS;
++			cur_sainfo->idsnat = SAINFO_ANONYMOUS;
++			cur_sainfo->iddnat = SAINFO_ANONYMOUS;
+ 		}
+ 	|	ANONYMOUS CLIENTADDR
+ 		{
+ 			cur_sainfo->idsrc = SAINFO_ANONYMOUS;
+ 			cur_sainfo->iddst = SAINFO_CLIENTADDR;
++			cur_sainfo->idsnat = SAINFO_ANONYMOUS;
++			cur_sainfo->iddnat = SAINFO_ANONYMOUS;
+ 		}
+ 	|	ANONYMOUS sainfo_id
+ 		{
+ 			cur_sainfo->idsrc = SAINFO_ANONYMOUS;
+ 			cur_sainfo->iddst = $2;
++			cur_sainfo->idsnat = SAINFO_ANONYMOUS;
++			cur_sainfo->iddnat = SAINFO_ANONYMOUS;
+ 		}
+ 	|	sainfo_id ANONYMOUS
+ 		{
+ 			cur_sainfo->idsrc = $1;
+ 			cur_sainfo->iddst = SAINFO_ANONYMOUS;
++			cur_sainfo->idsnat = SAINFO_ANONYMOUS;
++			cur_sainfo->iddnat = SAINFO_ANONYMOUS;
+ 		}
+ 	|	sainfo_id CLIENTADDR
+ 		{
+ 			cur_sainfo->idsrc = $1;
+ 			cur_sainfo->iddst = SAINFO_CLIENTADDR;
++			cur_sainfo->idsnat = SAINFO_ANONYMOUS;
++			cur_sainfo->iddnat = SAINFO_ANONYMOUS;
+ 		}
+ 	|	sainfo_id sainfo_id
+ 		{
+ 			cur_sainfo->idsrc = $1;
+ 			cur_sainfo->iddst = $2;
++			cur_sainfo->idsnat = SAINFO_ANONYMOUS;
++			cur_sainfo->iddnat = SAINFO_ANONYMOUS;
++		}
++	|	sainfo_id NAT sainfo_id sainfo_id
++		{
++			cur_sainfo->idsrc = $1;
++			cur_sainfo->iddst = $4;
++			cur_sainfo->idsnat = $3;
++			cur_sainfo->iddnat = SAINFO_ANONYMOUS;
++		}
++	|	sainfo_id sainfo_id NAT sainfo_id
++		{
++			cur_sainfo->idsrc = $1;
++			cur_sainfo->iddst = $2;
++			cur_sainfo->idsnat = SAINFO_ANONYMOUS;
++			cur_sainfo->iddnat = $4;
+ 		}
+ 	;
+ sainfo_id
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l ./racoon/cftoken.l
+--- ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l	2012-10-04 13:27:17.000000000 +0000
++++ ./src/racoon/cftoken.l	2012-10-04 13:27:44.000000000 +0000
+@@ -295,6 +295,7 @@
+ <S_SAINF>any		{ YYD; return(ANY); }
+ <S_SAINF>from		{ YYD; return(FROM); }
+ <S_SAINF>group		{ YYD; return(GROUP); }
++<S_SAINF>nat		{ YYD; return(NAT); }
+ 	/* sainfo spec */
+ <S_SAINF>{bcl}		{ BEGIN S_SAINFS; return(BOC); }
+ <S_SAINF>{semi}		{ BEGIN S_INI; return(EOS); }
+diff -ur ../../ipsec-tools-0.8.0.old/src/racoon/ipsec_doi.c ./racoon/ipsec_doi.c
+--- ../ipsec-tools-0.8.0.old/src/racoon/ipsec_doi.c	2012-10-04 13:27:16.000000000 +0000
++++ ./src/racoon/ipsec_doi.c	2012-10-04 13:27:43.000000000 +0000
+@@ -3939,7 +3939,10 @@
+ 	}
+ 
+ 	if (!ipsecdoi_transportmode(iph2->proposal))
+-		iph2->id = ipsecdoi_sockaddr2id((struct sockaddr *)&sp->spidx.src,
++		if (iph2->sainfo && iph2->sainfo->idsnat != SAINFO_ANONYMOUS)
++			iph2->id = iph2->sainfo->idsnat;
++		else
++			iph2->id = ipsecdoi_sockaddr2id((struct sockaddr *)&sp->spidx.src,
+ 				sp->spidx.prefs, sp->spidx.ul_proto);
+ 	else if (iph2->sa_src != NULL) {
+ 		/* He have a specific hint indicating that the transport
+@@ -3968,7 +3971,10 @@
+ 
+ 	/* remote side */
+ 	if (!ipsecdoi_transportmode(iph2->proposal))
+-		iph2->id_p = ipsecdoi_sockaddr2id((struct sockaddr *)&sp->spidx.dst,
++		if (iph2->sainfo && iph2->sainfo->iddnat != SAINFO_ANONYMOUS)
++			iph2->id_p = iph2->sainfo->iddnat;
++		else
++			iph2->id_p = ipsecdoi_sockaddr2id((struct sockaddr *)&sp->spidx.dst,
+ 				sp->spidx.prefd, sp->spidx.ul_proto);
+ 	else if (iph2->sa_dst != NULL) {
+ 		/* See comment above for local side. */
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c ./racoon/sainfo.c
+--- ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c	2012-10-04 13:27:16.000000000 +0000
++++ ./src/racoon/sainfo.c	2012-10-04 13:27:43.000000000 +0000
+@@ -170,6 +170,12 @@
+ 				if (!ipsecdoi_chkcmpids(loc, s->idsrc, 0) &&
+ 				    !ipsecdoi_chkcmpids(rmt, client, 0))
+ 					return s;
++				if (s->idsnat != SAINFO_ANONYMOUS && !ipsecdoi_chkcmpids(loc, s->idsnat, 0) &&
++				    !ipsecdoi_chkcmpids(rmt, s->iddst, 0))
++					return s;
++				if (s->iddnat != SAINFO_ANONYMOUS && !ipsecdoi_chkcmpids(rmt, s->iddnat, 0) &&
++				    !ipsecdoi_chkcmpids(loc, s->idsrc, 0))
++					return s;
+ 			}
+ 
+ 			continue;
+@@ -180,6 +186,13 @@
+ 		if (!ipsecdoi_chkcmpids(loc, s->idsrc, 0) &&
+ 		    !ipsecdoi_chkcmpids(rmt, s->iddst, 0))
+ 			return s;
++
++		if (s->idsnat != SAINFO_ANONYMOUS && !ipsecdoi_chkcmpids(loc, s->idsnat, 0) &&
++		    !ipsecdoi_chkcmpids(rmt, s->iddst, 0))
++			return s;
++		if (s->iddnat != SAINFO_ANONYMOUS && !ipsecdoi_chkcmpids(rmt, s->iddnat, 0) &&
++		    !ipsecdoi_chkcmpids(loc, s->idsrc, 0))
++			return s;
+ 	}
+ 
+ 	return NULL;
+@@ -364,13 +377,23 @@
+ {
+         static char buf[256];
+ 
+-        char *idloc = NULL, *idrmt = NULL, *id_i;
++        char *idloc = NULL, *idrmt = NULL, *idsnat = NULL, *iddnat = NULL, *id_i;
+  
+         if (si->idsrc == SAINFO_ANONYMOUS)
+                 idloc = strdup("ANONYMOUS");
+         else
+                 idloc = ipsecdoi_id2str(si->idsrc);
+  
++        if (si->idsnat == SAINFO_ANONYMOUS)
++                idsnat = strdup("ANONYMOUS");
++        else
++                idsnat = ipsecdoi_id2str(si->idsnat);
++
++        if (si->iddnat == SAINFO_ANONYMOUS)
++                iddnat = strdup("ANONYMOUS");
++        else
++                iddnat = ipsecdoi_id2str(si->iddnat);
++
+         if (si->iddst == SAINFO_ANONYMOUS)
+                 idrmt = strdup("ANONYMOUS");
+ 	else if (si->iddst == SAINFO_CLIENTADDR)
+@@ -383,11 +406,20 @@
+         else
+                 id_i = ipsecdoi_id2str(si->id_i);
+  
+-        snprintf(buf, 255, "loc=\'%s\', rmt=\'%s\', peer=\'%s\', id=%u",
+-		idloc, idrmt, id_i, si->remoteid);
++	if (si->idsnat != SAINFO_ANONYMOUS)
++		snprintf(buf, 255, "loc=\'%s\'(nat=\'%s\'), rmt=\'%s\', peer=\'%s\', id=%u",
++			idloc, idsnat, idrmt, id_i, si->remoteid);
++	else if (si->iddnat != SAINFO_ANONYMOUS)
++		snprintf(buf, 255, "loc=\'%s\', rmt=\'%s\'(nat=\'%s\'), peer=\'%s\', id=%u",
++			idloc, idrmt, iddnat, id_i, si->remoteid);
++	else
++		snprintf(buf, 255, "loc=\'%s\', rmt=\'%s\', peer=\'%s\', id=%u",
++			idloc, idrmt, id_i, si->remoteid);
+  
+         racoon_free(idloc);
+         racoon_free(idrmt);
++        racoon_free(idsnat);
++        racoon_free(iddnat);
+         racoon_free(id_i);
+  
+         return buf;
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.h ./racoon/sainfo.h
+--- ../ipsec-tools-0.8.0.old/src/racoon/sainfo.h	2012-10-04 13:27:16.000000000 +0000
++++ ./src/racoon/sainfo.h	2012-10-04 13:27:43.000000000 +0000
+@@ -42,7 +42,9 @@
+ /* SA info */
+ struct sainfo {
+ 	vchar_t *idsrc;
++	vchar_t *idsnat;
+ 	vchar_t *iddst;
++	vchar_t *iddnat;
+ 		/*
+ 		 * idsrc and iddst are constructed body of ID payload.
+ 		 * that is (struct ipsecdoi_id_b) + ID value.
