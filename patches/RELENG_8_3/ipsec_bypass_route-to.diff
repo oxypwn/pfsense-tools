@@ -1,0 +1,21 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index 3aa8b38..cbc623d 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -99,6 +99,7 @@ __FBSDID("$FreeBSD: src/sys/contrib/pf/net/pf.c,v 1.69.2.4.4.1 2012/03/03 06:15:
+ #include <net/if_types.h>
+ #include <net/ethernet.h>
+ #include <net/if_vlan_var.h>
++#include <net/if_enc.h>
+ #include <net/bpf.h>
+ #include <net/route.h>
+ #ifndef __FreeBSD__
+@@ -8002,7 +8003,7 @@ continueprocessing:
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt &&
++	} else if (r->rt && ifp != encif &&
+ 		/* Check to avoid breaking ipfw forward rules needed on CP and proxies listening on loclhost*/
+ 		!((m->m_flags & M_FASTFWD_OURS) || (pd.pf_mtag->flags & PF_TAG_TRANSLATE_LOCALHOST)))
+ 		/* pf_route can free the mbuf causing *m0 to become NULL */
