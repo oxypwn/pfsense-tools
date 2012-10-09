@@ -1,11 +1,8 @@
-Index: contrib/pf/pfctl/parse.y
-===================================================================
-RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.2
-diff -u -r1.2 parse.y
---- contrib/pf/pfctl/parse.y	18 Mar 2011 18:49:55 -0000	1.2
-+++ contrib/pf/pfctl/parse.y	18 Mar 2011 18:50:59 -0000
-@@ -32,6 +32,7 @@
+diff --git a/contrib/pf/pfctl/parse.y b/contrib/pf/pfctl/parse.y
+index 43a11a3..5c6adea 100644
+--- a/contrib/pf/pfctl/parse.y
++++ b/contrib/pf/pfctl/parse.y
+@@ -32,6 +32,7 @@ __FBSDID("$FreeBSD: src/contrib/pf/pfctl/parse.y,v 1.9.2.2.6.1 2012/03/03 06:15:
  
  #include <sys/types.h>
  #include <sys/socket.h>
@@ -13,7 +10,7 @@ diff -u -r1.2 parse.y
  #include <net/if.h>
  #include <netinet/in.h>
  #include <netinet/in_systm.h>
-@@ -209,6 +210,9 @@
+@@ -209,6 +210,9 @@ struct filter_opts {
  	char			*tag;
  	char			*match_tag;
  	u_int8_t		 match_tag_not;
@@ -23,7 +20,7 @@ diff -u -r1.2 parse.y
  	int			 rtableid;
  } filter_opts;
  
-@@ -426,6 +430,7 @@
+@@ -426,6 +430,7 @@ typedef struct {
  %token	BITMASK RANDOM SOURCEHASH ROUNDROBIN STATICPORT PROBABILITY
  %token	ALTQ CBQ PRIQ HFSC FAIRQ BANDWIDTH TBRSIZE LINKSHARE REALTIME UPPERLIMIT
  %token	QUEUE PRIORITY QLIMIT HOGS BUCKETS RTABLE
@@ -31,7 +28,7 @@ diff -u -r1.2 parse.y
  %token	LOAD RULESET_OPTIMIZATION
  %token	STICKYADDRESS MAXSRCSTATES MAXSRCNODES SOURCETRACK GLOBAL RULE
  %token	MAXSRCCONN MAXSRCCONNRATE OVERLOAD FLUSH SLOPPY
-@@ -1447,14 +1452,22 @@
+@@ -1447,14 +1452,22 @@ bandwidth	: STRING {
  
  			bps = strtod($1, &cp);
  			if (cp != NULL) {
@@ -58,7 +55,7 @@ diff -u -r1.2 parse.y
  				else if (!strcmp(cp, "%")) {
  					if (bps < 0 || bps > 100) {
  						yyerror("bandwidth spec "
-@@ -2113,6 +2126,15 @@
+@@ -2113,6 +2126,15 @@ pfrule		: action dir logquick interface route af proto fromto
  				free($9.queues.pqname);
  			}
  
@@ -74,7 +71,7 @@ diff -u -r1.2 parse.y
  			expand_rule(&r, $4, $5.host, $7, $8.src_os,
  			    $8.src.host, $8.src.port, $8.dst.host, $8.dst.port,
  			    $9.uid, $9.gid, $9.icmpspec, "");
-@@ -2210,6 +2232,32 @@
+@@ -2210,6 +2232,32 @@ filter_opt	: USER uids {
  			}
  			filter_opts.queues = $1;
  		}
@@ -107,7 +104,7 @@ diff -u -r1.2 parse.y
  		| TAG string				{
  			filter_opts.tag = $2;
  		}
-@@ -4253,6 +4301,11 @@
+@@ -4253,6 +4301,11 @@ filter_consistent(struct pf_rule *r, int anchor_call)
  		yyerror("tos and dscp cannot be used together");
  		problems++;
  	}
@@ -119,7 +116,7 @@ diff -u -r1.2 parse.y
  	return (-problems);
  }
  
-@@ -5045,6 +5098,8 @@
+@@ -5045,6 +5098,8 @@ lookup(char *s)
  		{ "code",		CODE},
  		{ "crop",		FRAGCROP},
  		{ "debug",		DEBUG},
@@ -128,14 +125,11 @@ diff -u -r1.2 parse.y
  		{ "drop",		DROP},
  		{ "drop-ovl",		FRAGDROP},
  		{ "dscp",		DSCP},
-Index: contrib/pf/pfctl/pfctl_parser.c
-===================================================================
-RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl_parser.c,v
-retrieving revision 1.2
-diff -u -r1.2 pfctl_parser.c
---- contrib/pf/pfctl/pfctl_parser.c	18 Mar 2011 18:49:55 -0000	1.2
-+++ contrib/pf/pfctl/pfctl_parser.c	18 Mar 2011 18:50:59 -0000
-@@ -991,6 +991,14 @@
+diff --git a/contrib/pf/pfctl/pfctl_parser.c b/contrib/pf/pfctl/pfctl_parser.c
+index 8bc88f9..ec0a8d4 100644
+--- a/contrib/pf/pfctl/pfctl_parser.c
++++ b/contrib/pf/pfctl/pfctl_parser.c
+@@ -996,6 +996,14 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
  	}
  	if (r->label[0])
  		printf(" label \"%s\"", r->label);
@@ -150,14 +144,11 @@ diff -u -r1.2 pfctl_parser.c
  	if (r->qname[0] && r->pqname[0])
  		printf(" queue(%s, %s)", r->qname, r->pqname);
  	else if (r->qname[0])
-Index: sys/contrib/pf/net/pf.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.2
-diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	18 Mar 2011 18:49:56 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	18 Mar 2011 18:53:22 -0000
-@@ -135,6 +135,10 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index db64cd5..2953139 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -135,6 +135,10 @@ __FBSDID("$FreeBSD: src/sys/contrib/pf/net/pf.c,v 1.69.2.4.4.1 2012/03/03 06:15:
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
  #ifdef __FreeBSD__
@@ -168,7 +159,7 @@ diff -u -r1.2 pf.c
  #include <netinet6/ip6_var.h>
  #include <netinet6/in6_pcb.h>
  #endif
-@@ -270,7 +274,8 @@
+@@ -270,7 +274,8 @@ int			 pf_test_state_icmp(struct pf_state **, int,
  			    struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, u_short *);
  int			 pf_test_state_other(struct pf_state **, int,
@@ -178,7 +169,7 @@ diff -u -r1.2 pf.c
  int			 pf_match_tag(struct mbuf *, struct pf_rule *,
  			     struct pf_mtag *, int *);
  int			 pf_step_out_of_anchor(int *, struct pf_ruleset **,
-@@ -332,6 +337,127 @@
+@@ -332,6 +337,127 @@ struct pf_pool_limit pf_pool_limits[PF_LIMIT_MAX] = {
  };
  #endif
  
@@ -306,7 +297,7 @@ diff -u -r1.2 pf.c
  #define STATE_LOOKUP()							\
  	do {								\
  		if (direction == PF_IN)					\
-@@ -342,6 +468,12 @@
+@@ -342,6 +468,12 @@ struct pf_pool_limit pf_pool_limits[PF_LIMIT_MAX] = {
  			    kif, &key, PF_LAN_EXT);			\
  		if (*state == NULL || (*state)->timeout == PFTM_PURGE)	\
  			return (PF_DROP);				\
@@ -319,7 +310,7 @@ diff -u -r1.2 pf.c
  		if (direction == PF_OUT &&				\
  		    (((*state)->rule.ptr->rt == PF_ROUTETO &&		\
  		    (*state)->rule.ptr->direction == PF_OUT) ||		\
-@@ -5974,7 +6106,7 @@
+@@ -5974,7 +6106,7 @@ pf_test_state_icmp(struct pf_state **state, int direction, struct pfi_kif *kif,
  
  int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -328,7 +319,7 @@ diff -u -r1.2 pf.c
  {
  	struct pf_state_peer	*src, *dst;
  	struct pf_state_cmp	 key;
-@@ -6951,9 +7083,13 @@
+@@ -6952,9 +7084,13 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  	struct pf_state		*s = NULL;
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_pdesc		 pd;
@@ -343,7 +334,7 @@ diff -u -r1.2 pf.c
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -7024,8 +7160,21 @@
+@@ -7025,8 +7161,21 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  		goto done;
  	}
  
@@ -366,7 +357,7 @@ diff -u -r1.2 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7063,6 +7212,11 @@
+@@ -7064,6 +7213,11 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -378,7 +369,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7104,6 +7258,10 @@
+@@ -7105,6 +7259,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -389,7 +380,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7177,7 +7335,7 @@
+@@ -7178,7 +7336,7 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  	}
  
  	default:
@@ -398,7 +389,7 @@ diff -u -r1.2 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -7224,6 +7382,55 @@
+@@ -7225,6 +7383,55 @@ done:
  	}
  #endif /* ALTQ */
  
@@ -454,24 +445,32 @@ diff -u -r1.2 pf.c
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7350,6 +7557,9 @@
+@@ -7351,6 +7558,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  	int			 off, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
 +	struct m_tag *dn_tag;
 +	struct ip_fw_args	 dnflow;
++	int			 loopedfrom = 0;
 +
  	PF_LOCK();
  #endif
  
-@@ -7417,9 +7627,15 @@
+@@ -7418,9 +7629,22 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  		log = 1;
  		goto done;
  	}
 +	
 +	if (ip_dn_io_ptr != NULL &&
-+                ((dn_tag = m_tag_find(m, MTAG_IPFW_RULE, NULL)) != NULL)) {
-+                pd.pf_mtag->flags |= PF_PACKET_LOOPED;
++	    ((dn_tag = m_tag_locate(m, MTAG_IPFW_RULE, 0, NULL)) != NULL)) {
++		struct ipfw_rule_ref *rr = (struct ipfw_rule_ref *)(dn_tag+1);
++		pd.pf_mtag->flags |= PF_PACKET_LOOPED;
++		if (rr->info & IPFW_IS_DUMMYNET)
++			loopedfrom = 1;
++		if (pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
++                        m->m_flags |= M_FASTFWD_OURS;
++                        pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
++                }
 +                m_tag_delete(m, dn_tag);
 +        }
  
@@ -481,7 +480,7 @@ diff -u -r1.2 pf.c
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7525,6 +7741,11 @@
+@@ -7526,6 +7750,11 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -493,7 +492,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7565,6 +7786,10 @@
+@@ -7566,6 +7795,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -504,7 +503,7 @@ diff -u -r1.2 pf.c
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7640,7 +7865,7 @@
+@@ -7641,7 +7874,7 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  	}
  
  	default:
@@ -513,53 +512,59 @@ diff -u -r1.2 pf.c
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -7687,6 +7912,45 @@
+@@ -7688,6 +7921,51 @@ done:
  	}
  #endif /* ALTQ */
  
 +#ifdef __FreeBSD__
-+        if (r->dnpipe && ip_dn_io_ptr != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
++	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
 +
-+			if (dir != r->direction && r->pdnpipe) {
++                        if (dir != r->direction && r->pdnpipe) {
 +                                dnflow.rule.info = r->pdnpipe;
 +                        } else if (dir == r->direction) {
 +                                dnflow.rule.info = r->dnpipe;
 +                        } else
-+                                goto continueprocessing;
++                                goto continueprocessing6;
 +
-+                        if (r->free_flags & PFRULE_DN_IS_PIPE)
-+                                dnflow.rule.info |= IPFW_IS_PIPE;
++			if (r->free_flags & PFRULE_DN_IS_PIPE)
++				dnflow.rule.info |= IPFW_IS_PIPE;
 +                        dnflow.f_id.addr_type = 6; /* IPv4 type */
 +                        dnflow.f_id.proto = pd.proto;
-+			dnflow.f_id.src_ip6 = h->ip6_src;
-+                        dnflow.f_id.dst_ip6 = h->ip6_dst;
 +			dnflow.f_id.src_ip = 0;
 +			dnflow.f_id.dst_ip = 0;
-+			dnflow.f_id.flow_id6 = ntohl(h->ip6_flow);
-+			dnflow.f_id.extra = dnflow.rule.info;
++			if (dir == PF_OUT && s != NULL && s->nat_rule.ptr != NULL &&
++			    s->nat_rule.ptr->action == PF_NAT)
++				dnflow.f_id.src_ip6 = pd.baddr.v6;
++			else
++				dnflow.f_id.src_ip6 = h->ipi6_src;
++			dnflow.f_id.dst_ip6 = h->ip6_dst;
 +
++			if (s != NULL && s->nat_rule.ptr)
++				PACKET_UNDO_NAT(m, pd, s, dir);
 +                        PF_UNLOCK();
 +
 +                        ip_dn_io_ptr(m0,
-+                                dir == PF_IN ? DIR_IN : DIR_OUT,
++				(dir == PF_IN) ? DIR_IN : DIR_OUT,
 +                                &dnflow);
 +			if (*m0 != NULL) {
 +				m_tag_delete(*m0, m_tag_first(*m0));
 +				PF_LOCK();
 +				pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
++				if (s != NULL && s->nat_rule.ptr)
++					PACKET_REDO_NAT(pd, s, dir);
 +			} else {
 +                        	*m0 = NULL;
 +                        	return (action);
 +			}
 +        } else
 +		pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
-+continueprocessing:
++continueprocessing6:
 +#endif
 +
  	if (dir == PF_IN && action == PF_PASS && (pd.proto == IPPROTO_TCP ||
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
-@@ -7770,7 +8034,6 @@
+@@ -7771,7 +8049,6 @@ done:
  			    tr->dst.neg);
  	}
  
@@ -567,13 +572,10 @@ diff -u -r1.2 pf.c
  	if (action == PF_SYNPROXY_DROP) {
  		m_freem(*m0);
  		*m0 = NULL;
-Index: sys/contrib/pf/net/pf_mtag.h
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_mtag.h,v
-retrieving revision 1.2
-diff -u -r1.2 pf_mtag.h
---- sys/contrib/pf/net/pf_mtag.h	18 Mar 2011 18:49:56 -0000	1.2
-+++ sys/contrib/pf/net/pf_mtag.h	18 Mar 2011 18:50:59 -0000
+diff --git a/sys/contrib/pf/net/pf_mtag.h b/sys/contrib/pf/net/pf_mtag.h
+index 75581ce..85a5322 100644
+--- a/sys/contrib/pf/net/pf_mtag.h
++++ b/sys/contrib/pf/net/pf_mtag.h
 @@ -37,6 +37,8 @@
  #define	PF_TAG_GENERATED		0x01
  #define	PF_TAG_FRAGCACHE		0x02
@@ -583,14 +585,11 @@ diff -u -r1.2 pf_mtag.h
  
  struct pf_mtag {
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
-Index: sys/contrib/pf/net/pfvar.h
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.2
-diff -u -r1.2 pfvar.h
---- sys/contrib/pf/net/pfvar.h	18 Mar 2011 18:49:56 -0000	1.2
-+++ sys/contrib/pf/net/pfvar.h	18 Mar 2011 18:50:59 -0000
-@@ -632,6 +632,11 @@
+diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
+index 405e40b..6781f27 100644
+--- a/sys/contrib/pf/net/pfvar.h
++++ b/sys/contrib/pf/net/pfvar.h
+@@ -632,6 +632,11 @@ struct pf_rule {
  	}			 max_src_conn_rate;
  	u_int32_t		 qid;
  	u_int32_t		 pqid;
@@ -602,14 +601,11 @@ diff -u -r1.2 pfvar.h
  	u_int32_t		 rt_listid;
  	u_int32_t		 nr;
  	u_int32_t		 prob;
-Index: sys/netinet/ipfw/ip_dn_io.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dn_io.c,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 ip_dn_io.c
---- sys/netinet/ipfw/ip_dn_io.c	18 Mar 2011 18:36:00 -0000	1.1.1.1
-+++ sys/netinet/ipfw/ip_dn_io.c	18 Mar 2011 18:50:59 -0000
-@@ -587,6 +587,7 @@
+diff --git a/sys/netinet/ipfw/ip_dn_io.c b/sys/netinet/ipfw/ip_dn_io.c
+index 837f9bb..6ff24ea 100644
+--- a/sys/netinet/ipfw/ip_dn_io.c
++++ b/sys/netinet/ipfw/ip_dn_io.c
+@@ -641,6 +641,7 @@ dummynet_send(struct mbuf *m)
  			 * to carry reinject info.
  			 */
  			dst = pkt->dn_dir;

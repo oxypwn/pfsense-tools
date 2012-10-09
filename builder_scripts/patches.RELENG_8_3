@@ -11,7 +11,7 @@
 ~~queuestats.RELENG_8.diff~
 ~~hfscconfig.RELENG_8.diff~
 ~~killifstates.RELENG_8.diff~
-~~dummynet.RELENG_8.diff~
+-p1~~dummynet.RELENG_8.diff~
 ~~divert.RELENG_8.diff~
 ~~get_tag_altq_ids.RELENG_8.diff~
 ~~reply-to.RELENG_8.diff~
