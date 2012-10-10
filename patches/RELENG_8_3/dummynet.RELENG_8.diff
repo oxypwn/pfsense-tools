@@ -536,7 +536,7 @@ index db64cd5..2953139 100644
 +			    s->nat_rule.ptr->action == PF_NAT)
 +				dnflow.f_id.src_ip6 = pd.baddr.v6;
 +			else
-+				dnflow.f_id.src_ip6 = h->ipi6_src;
++				dnflow.f_id.src_ip6 = h->ip6_src;
 +			dnflow.f_id.dst_ip6 = h->ip6_dst;
 +
 +			if (s != NULL && s->nat_rule.ptr)
