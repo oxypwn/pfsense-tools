@@ -145,7 +145,7 @@ index 8bc88f9..ec0a8d4 100644
  		printf(" queue(%s, %s)", r->qname, r->pqname);
  	else if (r->qname[0])
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index db64cd5..2953139 100644
+index db64cd5..f01c1c0 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
 @@ -135,6 +135,10 @@ __FBSDID("$FreeBSD: src/sys/contrib/pf/net/pf.c,v 1.69.2.4.4.1 2012/03/03 06:15:
@@ -445,8 +445,12 @@ index db64cd5..2953139 100644
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7351,6 +7558,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
- 	int			 off, terminal = 0, dirndx, rh_cnt = 0;
+@@ -7348,9 +7555,13 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
+ 	struct pf_state		*s = NULL;
+ 	struct pf_ruleset	*ruleset = NULL;
+ 	struct pf_pdesc		 pd;
+-	int			 off, terminal = 0, dirndx, rh_cnt = 0;
++	int			 off = 0, terminal = 0, dirndx, rh_cnt = 0;
  
  #ifdef __FreeBSD__
 +	struct m_tag *dn_tag;
