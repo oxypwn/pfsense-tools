@@ -1,5 +1,5 @@
 diff --git a/sys/netinet/ip_carp.c b/sys/netinet/ip_carp.c
-index 5b5fb19..dfea9be 100644
+index 5b5fb19..d39b55a 100644
 --- a/sys/netinet/ip_carp.c
 +++ b/sys/netinet/ip_carp.c
 @@ -1466,7 +1466,7 @@ carp_set_addr(struct carp_softc *sc, struct sockaddr_in *sin)
@@ -30,16 +30,19 @@ index 5b5fb19..dfea9be 100644
  		}
  	}
  
-@@ -1589,8 +1586,6 @@ carp_set_addr(struct carp_softc *sc, struct sockaddr_in *sin)
+@@ -1589,9 +1586,8 @@ carp_set_addr(struct carp_softc *sc, struct sockaddr_in *sin)
  
  	sc->sc_naddrs++;
  	SC2IFP(sc)->if_flags |= IFF_UP;
 -	if (own)
 -		sc->sc_advskew = 0;
- 	carp_sc_state_locked(sc);
+-	carp_sc_state_locked(sc);
++	if (sc->sc_naddrs == 1)
++		carp_sc_state_locked(sc);
  	carp_setrun(sc);
  
-@@ -1648,7 +1643,7 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
+ 	CARP_WUNLOCK(cif);
+@@ -1648,7 +1644,7 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
  	struct in6_ifaddr *ia, *ia_if;
  	struct ip6_moptions *im6o = &sc->sc_im6o;
  	struct in6_addr in6;
@@ -48,7 +51,7 @@ index 5b5fb19..dfea9be 100644
  
  	error = 0;
  
-@@ -1666,7 +1661,7 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
+@@ -1666,7 +1662,7 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
  	}
  
  	/* we have to do it by hands to check we won't match on us */
@@ -57,7 +60,7 @@ index 5b5fb19..dfea9be 100644
  	IN6_IFADDR_RLOCK();
  	TAILQ_FOREACH(ia, &V_in6_ifaddrhead, ia_link) {
  		int i;
-@@ -1684,9 +1679,6 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
+@@ -1684,9 +1680,6 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
  		    (i == 4)) {
  			if (!ia_if)
  				ia_if = ia;
@@ -67,12 +70,15 @@ index 5b5fb19..dfea9be 100644
  		}
  	}
  
-@@ -1799,8 +1791,6 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
+@@ -1799,9 +1792,8 @@ carp_set_addr6(struct carp_softc *sc, struct sockaddr_in6 *sin6)
  
  	sc->sc_naddrs6++;
  	SC2IFP(sc)->if_flags |= IFF_UP;
 -	if (own)
 -		sc->sc_advskew = 0;
- 	carp_sc_state_locked(sc);
+-	carp_sc_state_locked(sc);
++	if (sc->sc_naddrs6 == 1)
++		carp_sc_state_locked(sc);
  	carp_setrun(sc);
  
+ 	CARP_WUNLOCK(cif);
