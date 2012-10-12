@@ -71,7 +71,7 @@ expiretable					/usr/ports/security/expiretable				/usr/local/sbin/expiretable
 ifstated					/usr/ports/net/ifstated						/usr/local/sbin/ifstated
 igmpproxy					/usr/ports/net/igmpproxy					/usr/local/sbin/igmpproxy
 isc-dhcp42-server			/usr/ports/net/isc-dhcp42-server			/usr/local/sbin/dhcpd
-isc-dhcp42-client			/usr/ports/net/isc-dhcp42-client			/usr/local/sbin/dhclient6
+isc-dhcp42-client			/usr/ports/net/isc-dhcp42-client			/usr/local/sbin/dhclient
 isc-dhcp42-relay			/usr/ports/net/isc-dhcp42-relay				/usr/local/sbin/dhcrelay
 lighttpd					/usr/ports/www/lighttpd						/usr/local/sbin/lighttpd
 miniupnpd					/usr/ports/net/miniupnpd					/usr/local/sbin/miniupnpd
