@@ -1,13 +1,13 @@
-# Ports collection makefile for:    isc-dhcp42-relay
-# Date created:         28 March 2010
-# Whom:                 Wesley Shields <wxs@FreeBSD.org>
+# Ports collection makefile for:	isc-dhcp42-client
+# Date created:				29 June 2011
+# Whom:					Ryan Steinmetz <rpsfa@rit.edu>
 #
-# $FreeBSD: ports/net/isc-dhcp42-relay/Makefile,v 1.1 2010/05/06 20:24:00 wxs Exp $
+# $FreeBSD: head/net/isc-dhcp42-client/Makefile 300897 2012-07-14 14:29:18Z beat $
 #
 
 COMMENT=	The ISC Dynamic Host Configuration Protocol client
 
-SUBSYS=		relay
-MASTERDIR=	${.CURDIR}/../isc-dhcp42-client
+SUBSYS=		client
+MASTERDIR=	${.CURDIR}/../isc-dhcp42-server
 
 .include "${MASTERDIR}/Makefile"
