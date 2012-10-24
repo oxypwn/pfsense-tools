@@ -430,3 +430,18 @@ diff -u -r1.1.1.1 ip_divert.c
  DECLARE_MODULE(ipdivert, ipdivertmod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
 -MODULE_DEPEND(ipdivert, ipfw, 2, 2, 2);
  MODULE_VERSION(ipdivert, 1);
+Index: sys/netinet/ipfw/ip_dummynet.c
+===================================================================
+RCS file: /root/freebsd/repo/src/sys/netinet/ipfw/ip_dummynet.c,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 ip_dummynet.c
+--- sys/netinet/ipfw/ip_dummynet.c	16 Feb 2012 15:19:13 -0000	1.1.1.1
++++ sys/netinet/ipfw/ip_dummynet.c	16 Feb 2012 15:34:29 -0000
+@@ -2290,7 +2290,6 @@
+ #define	DN_SI_SUB	SI_SUB_PROTO_IFATTACHDOMAIN
+ #define	DN_MODEV_ORD	(SI_ORDER_ANY - 128) /* after ipfw */
+ DECLARE_MODULE(dummynet, dummynet_mod, DN_SI_SUB, DN_MODEV_ORD);
+-MODULE_DEPEND(dummynet, ipfw, 2, 2, 2);
+ MODULE_VERSION(dummynet, 3);
+ 
+ /*
