@@ -1,0 +1,33 @@
+--- ext/standard/exec.c.orig	2012-10-26 09:56:54.000000000 +0000
++++ ext/standard/exec.c	2012-10-26 09:57:01.000000000 +0000
+@@ -63,6 +63,9 @@
+ 	FILE *fp;
+ 	char *buf, *tmp=NULL;
+ 	int l = 0, pclose_return;
++#ifdef __FreeBSD__
++	int fd, flags;
++#endif
+ 	char *cmd_p, *b, *c, *d=NULL;
+ 	php_stream *stream;
+ 	size_t buflen, bufl = 0;
+@@ -104,11 +107,20 @@
+ 	sig_handler = signal (SIGCHLD, SIG_DFL);
+ #endif
+ 
++#ifdef __FreeBSD__
++	for (fd = 3; fd < 20; fd++) {
++		if ((flags = fcntl(fd, F_GETFD, 0)) < 0)
++			continue;
++		flags |= FD_CLOEXEC;
++		fcntl(fd, F_SETFL, flags);
++	}
++#endif
+ #ifdef PHP_WIN32
+ 	fp = VCWD_POPEN(cmd_p, "rb");
+ #else
+ 	fp = VCWD_POPEN(cmd_p, "r");
+ #endif
++
+ 	if (!fp) {
+ 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to fork [%s]", cmd);
+ 		goto err;
