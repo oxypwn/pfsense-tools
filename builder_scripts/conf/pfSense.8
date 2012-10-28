@@ -15,12 +15,12 @@ nomakeoptions	DEBUG
 
 ident           pfSense8
 
-nooptions		MAC                     # TrustedBSD MAC Framework
+nooptions	MAC                     # TrustedBSD MAC Framework
 nooptions         COMPAT_43TTY            # BSD 4.3 TTY compat (sgtty)
 nooptions         COMPAT_FREEBSD4         # Compatible with FreeBSD4
 nooptions         COMPAT_FREEBSD5         # Compatible with FreeBSD5
 nooptions         COMPAT_FREEBSD6         # Compatible with FreeBSD6
-nooptions      FLOWTABLE
+nooptions	FLOWTABLE
 nooptions		SCHED_4BSD
 options			SCHED_ULE	# add inULE scheduler
 
@@ -54,9 +54,9 @@ device		wpi		# Intel 3945ABG Wireless LAN IEEE 802.11 driver
 device		wpifw		# Firmware for Intel 3945ABG Wireless LAN IEEE 802.11 driver
 device		iwn		# Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
 device		iwnfw		# Firmware for Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
+device		alc		# Atheros IEEE 802.11 wireless network driver
 device		ath		# Atheros IEEE 802.11 wireless network driver
 device		ath_hal
-device		alc
 options		AH_SUPPORT_AR5416
 device		ath_rate_sample
 device		uath		# Atheros USB IEEE 802.11a/b/g wireless network device
