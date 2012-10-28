@@ -2,42 +2,42 @@
 include         GENERIC
 
 options		KDB
-nooptions         KDB_TRACE 
+nooptions       KDB_TRACE 
 options		DDB                     # Support DDB.
-nooptions         GDB                     # Support remote GDB.
-nooptions		INVARIANTS
-nooptions		INVARIANT_SUPPORT
-nooptions		WITNESS
-nooptions		WITNESS_SKIPSPIN
+nooptions       GDB                     # Support remote GDB.
+nooptions	INVARIANTS
+nooptions	INVARIANT_SUPPORT
+nooptions	WITNESS
+nooptions	WITNESS_SKIPSPIN
 
 nomakeoptions	DEBUG
-#makeoptions     DEBUG=-g                # Build kernel with gdb(1) debug symbols
+#makeoptions    DEBUG=-g                # Build kernel with gdb(1) debug symbols
 
 ident           pfSense8
 
-nooptions		MAC                     # TrustedBSD MAC Framework
-nooptions         COMPAT_43TTY            # BSD 4.3 TTY compat (sgtty)
-nooptions         COMPAT_FREEBSD4         # Compatible with FreeBSD4
-nooptions         COMPAT_FREEBSD5         # Compatible with FreeBSD5
-nooptions         COMPAT_FREEBSD6         # Compatible with FreeBSD6
-nooptions      FLOWTABLE
-nooptions		SCHED_4BSD
-options			SCHED_ULE	# add inULE scheduler
+nooptions	MAC                     # TrustedBSD MAC Framework
+nooptions       COMPAT_43TTY            # BSD 4.3 TTY compat (sgtty)
+nooptions       COMPAT_FREEBSD4         # Compatible with FreeBSD4
+nooptions       COMPAT_FREEBSD5         # Compatible with FreeBSD5
+nooptions       COMPAT_FREEBSD6         # Compatible with FreeBSD6
+nooptions	FLOWTABLE
+nooptions	SCHED_4BSD
+options		SCHED_ULE	# add inULE scheduler
 
 # IPSEC filtering interface
-device			enc
+device		enc
 
-options 		GEOM_MIRROR
-options			GEOM_UZIP
-options			GEOM_LABEL
-nooption		GEOM_MBR
-options			GEOM_PART_MBR
-options			GEOM_PART_BSD
-options			GEOM_ELI
-options			GEOM_BDE
+options 	GEOM_MIRROR
+options		GEOM_UZIP
+options		GEOM_LABEL
+nooption	GEOM_MBR
+options		GEOM_PART_MBR
+options		GEOM_PART_BSD
+options		GEOM_ELI
+options		GEOM_BDE
 
 # Need for LiveCD's
-options 		CD9660
+options 	CD9660
 
 # Wireless
 device		wlan
@@ -54,9 +54,9 @@ device		wpi		# Intel 3945ABG Wireless LAN IEEE 802.11 driver
 device		wpifw		# Firmware for Intel 3945ABG Wireless LAN IEEE 802.11 driver
 device		iwn		# Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
 device		iwnfw		# Firmware for Intel Wireless WiFi Link 4965AGN IEEE 802.11n driver
+device		alc		# Atheros IEEE 802.11 wireless network driver
 device		ath		# Atheros IEEE 802.11 wireless network driver
 device		ath_hal
-device		alc
 options		AH_SUPPORT_AR5416
 device		ath_rate_sample
 device		uath		# Atheros USB IEEE 802.11a/b/g wireless network device
@@ -85,7 +85,7 @@ options         IPFIREWALL_FORWARD
 options         IPFIREWALL_VERBOSE
 options         IPFIREWALL_VERBOSE_LIMIT
 
-device			bpf
+device		bpf
 device          carp
 device          pf
 device          pflog
@@ -129,9 +129,9 @@ options		NETGRAPH_DEFLATE
 options		NETGRAPH_PRED1
 
 # 3G devices
-device			ubsa
-device			ufoma
-#device			umsm
+device		ubsa
+device		ufoma
+#device		umsm
 device          ucom
 device          uplcom
 device          ubsa
@@ -141,14 +141,14 @@ device          uark
 device          uftdi
 device          uvscom
 device          umodem
-device			ufoma
-device			u3g
-device			ucom
+device		ufoma
+device		u3g
+device		ucom
 
 options         IPSEC
 options         IPSEC_NAT_T
 
-options        TCP_SIGNATURE           #include support for RFC 2385
+options         TCP_SIGNATURE           #include support for RFC 2385
 
 options         ALTQ
 options         ALTQ_CBQ
@@ -179,7 +179,7 @@ options         DEVICE_POLLING
 
 device          lagg
 
-options			MROUTING
+options		MROUTING
 
 # Additional cards
 device		bktr			# bktr -- Brooktree Bt848/849/878/879 and Pinnacle PCTV video capture
@@ -213,4 +213,4 @@ options 	COMPAT_FREEBSD7
 
 device 		padlock
 
-options    PPS_SYNC
+options		PPS_SYNC
