@@ -3,24 +3,24 @@ include GENERIC
 
 ident           FreeBSD-9
 
-nooptions		INVARIANTS
-nooptions		INVARIANTS_SUPPORT
-nooptions		WITNESS
-nooptions		WITNESS_SKIPSPIN
+nooptions	INVARIANTS
+nooptions	INVARIANTS_SUPPORT
+nooptions	WITNESS
+nooptions	WITNESS_SKIPSPIN
 
-nooptions		SCHED_4BSD
-options			SCHED_ULE	# add inULE scheduler
+nooptions	SCHED_4BSD
+options		SCHED_ULE	# add inULE scheduler
 
-nooptions		WITNESS_SKIPSPIN
-nooptions		WITNESS
-nooptions		INVARIANTS
+nooptions	WITNESS_SKIPSPIN
+nooptions	WITNESS
+nooptions	INVARIANTS
 
-options			UNIONFS
+options		UNIONFS
 
-options			GEOM_UZIP
+options		GEOM_UZIP
 options         GEOM_GATE
-options			GEOM_ELI
-options			GEOM_BDE
+options		GEOM_ELI
+options		GEOM_BDE
 
 device          carp
 
