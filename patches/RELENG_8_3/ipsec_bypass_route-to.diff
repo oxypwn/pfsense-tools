@@ -15,7 +15,7 @@ index 3aa8b38..cbc623d 100644
  		*m0 = NULL;
  		action = PF_PASS;
 -	} else if (r->rt &&
-+	} else if (r->rt && ifp != encif &&
++	} else if (r->rt && (ifp == NULL || ifp->if_type != IFT_ENC) &&
  		/* Check to avoid breaking ipfw forward rules needed on CP and proxies listening on loclhost*/
  		!((m->m_flags & M_FASTFWD_OURS) || (pd.pf_mtag->flags & PF_TAG_TRANSLATE_LOCALHOST)))
  		/* pf_route can free the mbuf causing *m0 to become NULL */
