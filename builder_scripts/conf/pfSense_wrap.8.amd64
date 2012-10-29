@@ -391,7 +391,6 @@ options MROUTING
 
 # Additional cards
 device			uart			# uart -- driver for Universal Asynchronous Receiver/Transmitter (UART)
-device			bktr			# bktr -- Brooktree Bt848/849/878/879 and Pinnacle PCTV video capture
 device			ale				# ale -- Atheros AR8121/AR8113/AR8114 Gigabit/Fast Ethernet driver
 device			safe			# safe -- SafeNet crypto accelerator
 device			et				# et(4) for AGERE ET1310 fastE and gigE
