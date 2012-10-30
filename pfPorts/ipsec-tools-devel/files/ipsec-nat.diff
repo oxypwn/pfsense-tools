@@ -1,6 +1,6 @@
-diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./racoon/cfparse.y
---- ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y	2012-10-04 13:27:16.000000000 +0000
-+++ ./src/racoon/cfparse.y	2012-10-04 13:27:43.000000000 +0000
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
+--- ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y	2012-10-30 21:46:52.000000000 +0000
++++ ./src/racoon/cfparse.y	2012-10-30 21:47:54.000000000 +0000
 @@ -216,7 +216,7 @@
  	/* algorithm */
  %token ALGORITHM_CLASS ALGORITHMTYPE STRENGTHTYPE
@@ -68,9 +68,9 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./racoon/cfparse.y
  		}
  	;
  sainfo_id
-diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l ./racoon/cftoken.l
---- ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l	2012-10-04 13:27:17.000000000 +0000
-+++ ./src/racoon/cftoken.l	2012-10-04 13:27:44.000000000 +0000
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l ./src/racoon/cftoken.l
+--- ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l	2012-10-30 21:46:52.000000000 +0000
++++ ./src/racoon/cftoken.l	2012-10-30 21:47:54.000000000 +0000
 @@ -295,6 +295,7 @@
  <S_SAINF>any		{ YYD; return(ANY); }
  <S_SAINF>from		{ YYD; return(FROM); }
@@ -79,16 +79,16 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l ./racoon/cftoken.l
  	/* sainfo spec */
  <S_SAINF>{bcl}		{ BEGIN S_SAINFS; return(BOC); }
  <S_SAINF>{semi}		{ BEGIN S_INI; return(EOS); }
-diff -ur ../../ipsec-tools-0.8.0.old/src/racoon/ipsec_doi.c ./racoon/ipsec_doi.c
---- ../ipsec-tools-0.8.0.old/src/racoon/ipsec_doi.c	2012-10-04 13:27:16.000000000 +0000
-+++ ./src/racoon/ipsec_doi.c	2012-10-04 13:27:43.000000000 +0000
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/ipsec_doi.c ./src/racoon/ipsec_doi.c
+--- ../ipsec-tools-0.8.0.old/src/racoon/ipsec_doi.c	2012-10-30 21:46:52.000000000 +0000
++++ ./src/racoon/ipsec_doi.c	2012-10-30 21:47:54.000000000 +0000
 @@ -3939,7 +3939,10 @@
  	}
  
  	if (!ipsecdoi_transportmode(iph2->proposal))
 -		iph2->id = ipsecdoi_sockaddr2id((struct sockaddr *)&sp->spidx.src,
 +		if (iph2->sainfo && iph2->sainfo->idsnat != SAINFO_ANONYMOUS)
-+			iph2->id = iph2->sainfo->idsnat;
++			iph2->id = vdup(iph2->sainfo->idsnat);
 +		else
 +			iph2->id = ipsecdoi_sockaddr2id((struct sockaddr *)&sp->spidx.src,
  				sp->spidx.prefs, sp->spidx.ul_proto);
@@ -100,15 +100,15 @@ diff -ur ../../ipsec-tools-0.8.0.old/src/racoon/ipsec_doi.c ./racoon/ipsec_doi.c
  	if (!ipsecdoi_transportmode(iph2->proposal))
 -		iph2->id_p = ipsecdoi_sockaddr2id((struct sockaddr *)&sp->spidx.dst,
 +		if (iph2->sainfo && iph2->sainfo->iddnat != SAINFO_ANONYMOUS)
-+			iph2->id_p = iph2->sainfo->iddnat;
++			iph2->id_p = vdup(iph2->sainfo->iddnat);
 +		else
 +			iph2->id_p = ipsecdoi_sockaddr2id((struct sockaddr *)&sp->spidx.dst,
  				sp->spidx.prefd, sp->spidx.ul_proto);
  	else if (iph2->sa_dst != NULL) {
  		/* See comment above for local side. */
-diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c ./racoon/sainfo.c
---- ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c	2012-10-04 13:27:16.000000000 +0000
-+++ ./src/racoon/sainfo.c	2012-10-04 13:27:43.000000000 +0000
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c ./src/racoon/sainfo.c
+--- ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c	2012-10-30 21:46:51.000000000 +0000
++++ ./src/racoon/sainfo.c	2012-10-30 21:49:31.000000000 +0000
 @@ -170,6 +170,12 @@
  				if (!ipsecdoi_chkcmpids(loc, s->idsrc, 0) &&
  				    !ipsecdoi_chkcmpids(rmt, client, 0))
@@ -136,7 +136,18 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c ./racoon/sainfo.c
  	}
  
  	return NULL;
-@@ -364,13 +377,23 @@
+@@ -211,6 +224,10 @@
+ 
+ 	if (si->idsrc)
+ 		vfree(si->idsrc);
++	if (si->idsnat)
++		vfree(si->idsnat);
++	if (si->iddnat)
++		vfree(si->iddnat);
+ 	if (si->iddst != NULL &&
+ 		si->iddst != SAINFO_CLIENTADDR)
+ 		vfree(si->iddst);
+@@ -364,13 +381,23 @@
  {
          static char buf[256];
  
@@ -161,7 +172,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c ./racoon/sainfo.c
          if (si->iddst == SAINFO_ANONYMOUS)
                  idrmt = strdup("ANONYMOUS");
  	else if (si->iddst == SAINFO_CLIENTADDR)
-@@ -383,11 +406,20 @@
+@@ -383,11 +410,20 @@
          else
                  id_i = ipsecdoi_id2str(si->id_i);
   
@@ -184,9 +195,9 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.c ./racoon/sainfo.c
          racoon_free(id_i);
   
          return buf;
-diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.h ./racoon/sainfo.h
---- ../ipsec-tools-0.8.0.old/src/racoon/sainfo.h	2012-10-04 13:27:16.000000000 +0000
-+++ ./src/racoon/sainfo.h	2012-10-04 13:27:43.000000000 +0000
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/sainfo.h ./src/racoon/sainfo.h
+--- ../ipsec-tools-0.8.0.old/src/racoon/sainfo.h	2012-10-30 21:46:51.000000000 +0000
++++ ./src/racoon/sainfo.h	2012-10-30 21:47:54.000000000 +0000
 @@ -42,7 +42,9 @@
  /* SA info */
  struct sainfo {
