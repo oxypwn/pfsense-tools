@@ -104,6 +104,7 @@ usr/local/lib/lighttpd/mod_expire.so
 usr/local/lib/lighttpd/mod_compress.so
 usr/local/lib/lighttpd/mod_rewrite.so
 usr/local/lib/lighttpd/mod_redirect.so
+usr/local/lib/lighttpd/mod_evasive.so
 usr/local/lib/php/20060613/apc.so
 usr/local/lib/php/20060613/pcre.so
 usr/local/lib/php/20060613/bz2.so
