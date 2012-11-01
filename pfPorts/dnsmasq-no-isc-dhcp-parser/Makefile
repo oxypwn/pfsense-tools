@@ -2,21 +2,24 @@
 # Date created:				1 June 2003
 # Whom:					Steven Honson
 #
-# $FreeBSD: ports/dns/dnsmasq/Makefile,v 1.64 2010/06/08 20:01:50 mandree Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	dnsmasq
-PORTVERSION=	2.55
+DISTVERSION=	2.63
 PORTEPOCH=	1
 CATEGORIES=	dns ipv6
 MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/ \
-		http://homepages.uni-paderborn.de/mandree/
-EXTRACT_SUFX=	.tar.lzma
+		${MASTER_SITE_LOCAL}/
+#MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/release-candidates/
+MASTER_SITE_SUBDIR=	mandree
 
 MAINTAINER=	mandree@FreeBSD.org
-COMMENT=	Lightweight DNS forwarder, DHCP and TFTP server
+COMMENT=	Lightweight DNS forwarder, DHCP, and TFTP server
 
-USE_XZ=		yes
+LICENSE=	GPLv2
+
+CONFLICTS_INSTALL=dnsmasq-devel-*
 
 MAN8=		dnsmasq.8
 
@@ -24,20 +27,26 @@ PORTDOCS=	CHANGELOG CHANGELOG.archive FAQ doc.html setup.html
 
 SUB_FILES=	pkg-message
 
+USE_XZ=		yes
 MAKE_JOBS_SAFE=	yes
-MAKE_ENV=	LIBS="${LDFLAGS}" RPM_OPT_FLAGS="${CPPFLAGS}" COPTS="${CFLAGS}"
-MAKE_ARGS=	CC="${CC}" CFLAGS="${CFLAGS}" PREFIX="${PREFIX}"
+CFLAGS+=	-Wall -Wno-unused-value
+MAKE_ARGS=	CC="${CC}" CFLAGS="${CFLAGS}" PREFIX="${PREFIX}" COPTS="${CFLAGS}" LIBS="${LDFLAGS}" RPM_OPT_FLAGS="${CPPFLAGS}"
 
-OPTIONS=	IPV6 "IPv6 support" on
-OPTIONS+=	DBUS "DBUS support" off
-OPTIONS+=	NLS  "NLS and IDN support" on
-# unfortunately, NLS and IDN are inseparable in dnsmasq 2.51rc1, this
-# has been reported to Simon Kelley on 2009-10-01 by the port maintainer.
+OPTIONS_DEFINE=		IPV6 DBUS NLS IDN LUA
+OPTIONS_DEFAULT=	IPV6 NLS
+OPTIONS_EXCLUDE+=	EXAMPLES
+NLS_DESC=	National Language Support (NLS, enables IDN)
+IDN_DESC=	International Domain Names (IDN) WITHOUT NLS
+LUA_DESC=	Support lease-change scripts in LUA
 
-.include <bsd.port.pre.mk>
+.include <bsd.port.options.mk>
 
-.if !defined(WITHOUT_NLS)
-BUILD_DEPENDS=	pkg-config:${PORTSDIR}/devel/pkg-config
+.if empty(PORT_OPTIONS:MIPV6)
+CFLAGS+=	-DNO_IPV6
+.endif
+
+.if ${PORT_OPTIONS:MNLS}
+USE_PKGCONFIG=	build
 LIB_DEPENDS+=	idn:${PORTSDIR}/dns/libidn
 PLIST_SUB+=	NLS=""
 ALL_TARGET=	all-i18n
@@ -45,28 +54,56 @@ USE_GETTEXT=	yes
 USE_GMAKE=	yes
 .else
 PLIST_SUB+=	NLS="@comment "
+.if ${PORT_OPTIONS:MIDN}
+CFLAGS+=	-DHAVE_IDN
+LIB_DEPENDS+=	idn:${PORTSDIR}/dns/libidn
+.endif
 .endif
 
-.if defined(WITH_DBUS)
+.if ${PORT_OPTIONS:MDBUS}
 LIB_DEPENDS+=	dbus-1:${PORTSDIR}/devel/dbus
-BUILD_DEPENDS=	pkg-config:${PORTSDIR}/devel/pkg-config
+USE_PKGCONFIG=	build
 CFLAGS+=	-DHAVE_DBUS
-.if ${OSVERSION} < 700000
-LDFLAGS+=	${PTHREAD_LIBS}
-.endif
 .endif
 
-USE_RC_SUBR=	dnsmasq.sh
+.if ${PORT_OPTIONS:MLUA}
+CFLAGS+=	-DHAVE_LUASCRIPT
+USE_LUA=	5.1
+.endif
+
+USE_RC_SUBR=	dnsmasq
+
+.include <bsd.port.pre.mk>
+
+post-patch:
+	${REINPLACE_CMD} -e "s/lua5\.1/lua-5.1/" ${WRKSRC}/Makefile
+	# Simon forgot...
+	# see http://lists.thekelleys.org.uk/pipermail/dnsmasq-discuss/2012q3/006156.html
+	${REINPLACE_CMD} -e "s/2\.63rc6/2.63/" ${WRKSRC}/VERSION
+
+pre-configure:
+	@:
+.if ${PORT_OPTIONS:MIDN}
+.if empty(PORT_OPTIONS:MNLS)
+	@if ${OBJDUMP} -p ${LOCALBASE}/lib/libidn.so \
+		| ${EGREP} -q "NEEDED[[:space:]]+lib(intl|iconv)\.so" ; \
+	then ${ECHO} ; ${ECHO} 'WARNING: dns/libidn was compiled with NLS support!' ; \
+	${ECHO} 'Recompile libidn WITHOUT_NLS to get rid of NLS dependencies.' ; ${ECHO} ; \
+	fi
+.else
+	@${ECHO} 'WARNING: IDN and NLS enabled, building IDN WITH NLS.'
+.endif
+.endif
 
 do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/src/dnsmasq ${PREFIX}/sbin
 	${INSTALL_DATA} ${WRKSRC}/dnsmasq.conf.example ${PREFIX}/etc
 	${INSTALL_MAN} ${WRKSRC}/man/${PORTNAME}.8 ${PREFIX}/man/man8
-.if !defined(NOPORTDOCS)
+.if ${PORT_OPTIONS:MDOCS}
 	@${MKDIR} ${DOCSDIR}
 	cd ${WRKSRC} && ${INSTALL_DATA} ${PORTDOCS} ${DOCSDIR}
 .endif
-.if !defined(WITHOUT_NLS)
+.if ${PORT_OPTIONS:MNLS}
 .for i in de es fi fr id it no pl pt_BR ro
 	${MKDIR} ${PREFIX}/share/locale/${i}/LC_MESSAGES
 	${INSTALL_DATA} ${WRKSRC}/src/${i}.mo \
