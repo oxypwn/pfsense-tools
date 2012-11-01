@@ -247,10 +247,10 @@ foreach($pkg['packages']['package'] as $pkg) {
 				$command_to_run .= "if [ ! -L /usr/home ]; then\n";
 				$command_to_run .= "	 ln -s /home/ /usr/home\n";
 				$command_to_run .= "fi\n";
-				$command_to_run .= "cd {$build} && make clean depends package-recursive {$DESTDIR} NOPORTDOCS=yes BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}\n";
+				$command_to_run .= "cd {$build} && make clean depends package-recursive {$DESTDIR} NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}\n";
 				chroot_command($options['l'], $command_to_run);
 			} else
-				`cd {$build} && make clean depends package-recursive {$DESTDIR} NOPORTDOCS=yes BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}`;
+				`cd {$build} && make clean depends package-recursive {$DESTDIR} NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}`;
 		}
 	}
 }

@@ -127,7 +127,7 @@ PBI_MAKEPORT="$port_path"
 # Enter your custom make options here
 # Options that will be put into the make.conf for the build of this port
 # Options get inserted into the build's /etc/make.conf file and effect all the ports built for that PBI
-PBI_MAKEOPTS="WITHOUT_X11=true
+PBI_MAKEOPTS="WITHOUT_X11=true NOPORTEXAMPLES=yes NOPORTDOCS=yes
 $MAKEOPTS"
 
 # Ports to build before / after
