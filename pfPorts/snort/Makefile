@@ -33,7 +33,7 @@ OPTIONS=	IPV6 "Enable IPv6 support" on \
 		ZLIB "Enable GZIP support" on \
 		NORMALIZER "Enable Normalizer" on \
 		REACT "Enable React" on \
-		PERFPROFILE "Enable Performance Profiling" on \
+		PERFPROFILE "Enable Performance Profiling" off \
 		FLEXRESP3 "Flexible response to events (version 3)" on \
 		MYSQL "Enable MySQL support" off \
 		ODBC "Enable ODBC support" off \
