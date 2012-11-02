@@ -32,7 +32,7 @@ export PRODUCT_NAME=${PRODUCT_NAME:-pfSense}
 # Area that the final image will appear in
 export MAKEOBJDIRPREFIXFINAL=${MAKEOBJDIRPREFIXFINAL:-/tmp/${PRODUCT_NAME}/}
 
-# Leave near the top.  
+# Leave near the top.
 export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX:-/usr/obj.${PRODUCT_NAME}}
 
 # Generally /home/pfsense
@@ -110,7 +110,7 @@ export OVFVMDK=${OVFVMDK:-${PRODUCT_NAME}.vmdk}
 # Filename of final image output
 export OVAFILE=${OVAFILE:-${PRODUCT_NAME}.ova}
 # optional
-export OVFCERT=${OVFCERT:-""} 
+export OVFCERT=${OVFCERT:-""}
 # optional
 export OVFSTRINGS=${OVFSTRINGS:-""}
 # optional
@@ -121,7 +121,7 @@ export OVADISKSIZE=${OVADISKSIZE:-"10737418240"}
 export OVABLOCKSIZE=${OVABLOCKSIZE:-"409600"}
 # first partition size (freebsd-ufs) GPT
 export OVA_FIRST_PART_SIZE=${OVA_FIRST_PART_SIZE:-"8G"}
-# swap partition size (freebsd-swap) GPT - 
+# swap partition size (freebsd-swap) GPT -
 # remaining space of 10G-8G - 128 block beginning/loader
 export OVA_SWAP_PART_SIZE=${OVA_SWAP_PART_SIZE:-"4193725"}
 # 10737254400 = 10240MB = virtual box vmdk file size XXX grab this value from vbox creation
@@ -134,12 +134,12 @@ export PFSENSE_HOST_BIN_PATH=${PFSENSE_HOST_BIN_PATH:-/usr/local/pfsense-bin/}
 # Leave this alone.
 export SRC_CONF_INSTALL=${SRC_CONF_INSTALL:-"/dev/null"}
 
-#### User settable options follow ### 
+#### User settable options follow ###
 
 # FreeBSD version and build information
 export pfSense_version=${pfSense_version:-"8"}
 export FREEBSD_VERSION=${FREEBSD_VERSION:-"8"}
-export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_1"}
+export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_3"}
 
 # Define FreeBSD SUPFILE
 export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"} 
@@ -147,10 +147,10 @@ export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-su
 # "UNBREAK TEXTMATE FORMATTING.  PLEASE LEAVE ME THANKS.
 
 # Version that will be applied to this build
-export PFSENSE_VERSION=${PFSENSE_VERSION:-2.0-RELEASE}
+export PFSENSE_VERSION=${PFSENSE_VERSION:-2.1-DEVELOPMENT}
 
 # pfSense cvs tag to build
-export PFSENSETAG=${PFSENSETAG:-RELENG_2_0}
+export PFSENSETAG=${PFSENSETAG:-HEAD}
 
 # Patch directory and patch file that lists patches to apply
 export PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
@@ -226,7 +226,7 @@ export NANO_BOOT0CFG="-o packet -s 1 -m 3"
 export ARCH=${ARCH:-"`uname -m`"}
 #export TARGET_ARCH=${TARGET_ARCH:-"i386"}
 
-# Set this if you are cross compiling on i386 and have a 
+# Set this if you are cross compiling on i386 and have a
 # .tgz file which includes full path to all of the platforms
 # pfPorts binaries.  An example of this is with mips.
 #export CROSS_COMPILE_PORTS_BINARIES="~sullrich/mips.tgz"
@@ -253,7 +253,7 @@ export GIT_REPO_TOOLS=${GIT_TOOLS_REPO:-"git://github.com/bsdperimeter/pfsense-t
 # Note: It is also possible to specify a directory instead of a
 #       gzipped tarball.
 #
-# Tarball overlay (please uncomment): 
+# Tarball overlay (please uncomment):
 #export custom_overlay="${BASE_DIR}/custom_overlay.tgz"
 #
 # Directory overlay (please uncomment):
@@ -277,13 +277,13 @@ export GIT_REPO_TOOLS=${GIT_TOOLS_REPO:-"git://github.com/bsdperimeter/pfsense-t
 # This will allow overriding of which pfSense components
 # to include during this build run.  'all' will use
 # the old behavior and install *everything*
-# Available modules: 
+# Available modules:
 # all auth authgui captiveportal certificate_managaer
-# config crypto filter interfaces ipsec notifications 
+# config crypto filter interfaces ipsec notifications
 # openvpn  pkg routing rrd shaper utils vpn
 export PFSENSE_MODULES=${PFSENSE_MODULES:-"all"}
 
-# Items that can be turned off (snapshots) 
+# Items that can be turned off (snapshots)
 #
 #export DO_NOT_BUILD_ISO="true"
 #export DO_NOT_BUILD_NANOBSD="true"
