@@ -2,14 +2,16 @@
 # Date created:         28 Oct 1999
 # Whom:                 dillon
 #
-# $FreeBSD: ports/sysutils/cpdup/Makefile,v 1.15 2007/05/31 06:19:26 ale Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	cpdup
-PORTVERSION=	1.07
+PORTVERSION=	1.17
+PORTREVISION=	1
 CATEGORIES=	sysutils
-MASTER_SITES=	http://apollo.backplane.com/FreeBSDPorts/ \
+MASTER_SITES=	http://apollo.backplane.com/FreeSrc/ \
 		http://utenti.gufi.org/~gmarco/files/distfiles/
+EXTRACT_SUFX=	.tgz
 
 MAINTAINER=	gmarco@gufi.org
 COMMENT=	A comprehensive filesystem mirroring and backup program
@@ -25,4 +27,10 @@ do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/cpdup ${PREFIX}/bin
 	${INSTALL_MAN} ${WRKSRC}/cpdup.1 ${PREFIX}/man/man1
 
-.include <bsd.port.mk>
+.include <bsd.port.pre.mk>
+
+.if ${ARCH} == "sparc64"
+BROKEN=		Does not compile on sparc64
+.endif
+
+.include <bsd.port.post.mk>
