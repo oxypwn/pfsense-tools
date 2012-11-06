@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
     u_int32_t   checksum;
     u_int32_t   ticketcount = 0;
 
-    int         roll_bits, ticket_bits, checksum_bits, magic_bits;
+    int         roll_bits, ticket_bits, checksum_bits, magic_bits, exponent;
     int         voucher_len, avail_len, crypt_len;
     int         num;
 
@@ -267,7 +267,9 @@ int main(int argc, char *argv[]) {
     int         report_keysize = 0; 
     int			genkey_size = 0;
 
-    while ((ch = getopt(argc, argv, "sdp:k:c:g:")) != -1)
+    exponent = 65537;
+
+    while ((ch = getopt(argc, argv, "e:sdp:k:c:g:")) != -1)
     {
         switch(ch)
         {
@@ -298,6 +300,10 @@ int main(int argc, char *argv[]) {
                 action = GENRSA;
                 genkey_size = atoi(optarg);
                 break;
+
+	    case 'e':
+		exponent = atoi(optarg);
+		break;
 
             case '?':
             default:
@@ -337,7 +343,7 @@ int main(int argc, char *argv[]) {
     if (GENRSA == action)
     {
         // generate RSA key pair with the specified number of bits
-        RSA *k = RSA_generate_key(genkey_size, 65537, NULL, NULL);
+        RSA *k = RSA_generate_key(genkey_size, exponent, NULL, NULL);
         
         if (k == NULL)
         {
