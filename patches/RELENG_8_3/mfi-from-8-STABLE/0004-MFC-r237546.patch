@@ -1,0 +1,70 @@
+From 51ea30cea61a42a7cc5fd788823a5619d3f0ba36 Mon Sep 17 00:00:00 2001
+From: marius <marius@FreeBSD.org>
+Date: Mon, 2 Jul 2012 19:19:21 +0000
+Subject: [PATCH 4/8] MFC: r237546
+
+Correct sizeof usage
+
+Obtained from:	DragonFly
+---
+ sys/dev/mfi/mfi_tbolt.c  |    2 +-
+ sys/dev/mps/mps_sas.c    |    2 +-
+ sys/dev/mpt/mpt_cam.c    |    2 +-
+ sys/kern/subr_firmware.c |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/sys/dev/mfi/mfi_tbolt.c b/sys/dev/mfi/mfi_tbolt.c
+index 42ce566..2555f13 100644
+--- a/sys/dev/mfi/mfi_tbolt.c
++++ b/sys/dev/mfi/mfi_tbolt.c
+@@ -1078,7 +1078,7 @@ mfi_tbolt_build_mpt_cmd(struct mfi_softc *sc, struct mfi_command *cmd)
+ 	if (!req_desc)
+ 		return NULL;
+ 
+-	bzero(req_desc, sizeof(req_desc));
++	bzero(req_desc, sizeof(*req_desc));
+ 	req_desc->header.RequestFlags = (MPI2_REQ_DESCRIPT_FLAGS_SCSI_IO <<
+ 	    MFI_REQ_DESCRIPT_FLAGS_TYPE_SHIFT);
+ 	req_desc->header.SMID = index;
+diff --git a/sys/dev/mps/mps_sas.c b/sys/dev/mps/mps_sas.c
+index 65009bc..01af9fb 100644
+--- a/sys/dev/mps/mps_sas.c
++++ b/sys/dev/mps/mps_sas.c
+@@ -2214,7 +2214,7 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 			sense_len = min(returned_sense_len,
+ 			    ccb->csio.sense_len - ccb->csio.sense_resid);
+ 			bzero(&ccb->csio.sense_data,
+-			      sizeof(&ccb->csio.sense_data));
++			      sizeof(ccb->csio.sense_data));
+ 			bcopy(cm->cm_sense, &ccb->csio.sense_data, sense_len);
+ 			ccb->ccb_h.status |= CAM_AUTOSNS_VALID;
+ 		}
+diff --git a/sys/dev/mpt/mpt_cam.c b/sys/dev/mpt/mpt_cam.c
+index 2fc60fc..176670a 100644
+--- a/sys/dev/mpt/mpt_cam.c
++++ b/sys/dev/mpt/mpt_cam.c
+@@ -3179,7 +3179,7 @@ mpt_scsi_reply_frame_handler(struct mpt_softc *mpt, request_t *req,
+ 		ccb->ccb_h.status |= CAM_AUTOSNS_VALID;
+ 		ccb->csio.sense_resid =
+ 		    ccb->csio.sense_len - le32toh(scsi_io_reply->SenseCount);
+-		bzero(&ccb->csio.sense_data, sizeof(&ccb->csio.sense_data));
++		bzero(&ccb->csio.sense_data, sizeof(ccb->csio.sense_data));
+ 		bcopy(req->sense_vbuf, &ccb->csio.sense_data,
+ 		    min(ccb->csio.sense_len,
+ 		    le32toh(scsi_io_reply->SenseCount)));
+diff --git a/sys/kern/subr_firmware.c b/sys/kern/subr_firmware.c
+index 3f5e52b..44fb4b2 100644
+--- a/sys/kern/subr_firmware.c
++++ b/sys/kern/subr_firmware.c
+@@ -193,7 +193,7 @@ firmware_register(const char *imagename, const void *data, size_t datasize,
+ 		    __func__, imagename);
+ 		return NULL;
+ 	}
+-	bzero(frp, sizeof(frp));	/* start from a clean record */
++	bzero(frp, sizeof(*frp));	/* start from a clean record */
+ 	frp->fw.name = imagename;
+ 	frp->fw.data = data;
+ 	frp->fw.datasize = datasize;
+-- 
+1.7.9.5
+

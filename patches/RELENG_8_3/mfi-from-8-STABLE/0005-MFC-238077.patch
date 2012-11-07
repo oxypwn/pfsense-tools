@@ -1,0 +1,74 @@
+From 3c07522040846b1a149ad89bf27f61661c3a3446 Mon Sep 17 00:00:00 2001
+From: jhb <jhb@FreeBSD.org>
+Date: Wed, 29 Aug 2012 17:36:31 +0000
+Subject: [PATCH 5/8] MFC 238077: Fix panics triggered by older mfiutil
+ binaries run on the new mfi(4) driver. The new driver
+ changed the size of the mfi_dcmd_frame structure in
+ such a way that a MFI_IOC_PASSTHRU ioctl from an old
+ amd64 binary is treated as an MFI_IOC_PASSTHRU32 ioctl
+ in the new driver.  As a result, the user pointer is
+ treated as the buffer length.  mfi_user_command()
+ doesn't have a bounds check on the buffer length, so it
+ passes a really big value to malloc() which panics when
+ it tries to exhaust the kmem_map.  Fix this two ways: -
+ Only honor MFI_IOC_PASSTHRU32 if the binary has the
+ SV_ILP32 flag set,   otherwise treat it as an unknown
+ ioctl. - Add a bounds check on the buffer length passed
+ by the user.  For now   it fails any user attempts to
+ use a buffer larger than 1MB.
+
+While here, fix a few other nits:
+- Remove an unnecessary check for a NULL return from malloc(M_WAITOK).
+- Use the ENOTTY errno for invalid ioctl commands instead of ENOENT.
+---
+ sys/dev/mfi/mfi.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/sys/dev/mfi/mfi.c b/sys/dev/mfi/mfi.c
+index 323ed8c..f801cde 100644
+--- a/sys/dev/mfi/mfi.c
++++ b/sys/dev/mfi/mfi.c
+@@ -73,6 +73,7 @@ __FBSDID("$FreeBSD$");
+ #include <sys/uio.h>
+ #include <sys/proc.h>
+ #include <sys/signalvar.h>
++#include <sys/sysent.h>
+ #include <sys/taskqueue.h>
+ 
+ #include <machine/bus.h>
+@@ -2832,10 +2833,9 @@ mfi_user_command(struct mfi_softc *sc, struct mfi_ioc_passthru *ioc)
+ 
+ 
+ 	if (ioc->buf_size > 0) {
+-		ioc_buf = malloc(ioc->buf_size, M_MFIBUF, M_WAITOK);
+-		if (ioc_buf == NULL) {
++		if (ioc->buf_size > 1024 * 1024)
+ 			return (ENOMEM);
+-		}
++		ioc_buf = malloc(ioc->buf_size, M_MFIBUF, M_WAITOK);
+ 		error = copyin(ioc->buf, ioc_buf, ioc->buf_size);
+ 		if (error) {
+ 			device_printf(sc->mfi_dev, "failed to copyin\n");
+@@ -3244,6 +3244,10 @@ out:
+ 		}
+ #ifdef COMPAT_FREEBSD32
+ 	case MFIIO_PASSTHRU32:
++		if (!SV_CURPROC_FLAG(SV_ILP32)) {
++			error = ENOTTY;
++			break;
++		}
+ 		iop_swab.ioc_frame	= iop32->ioc_frame;
+ 		iop_swab.buf_size	= iop32->buf_size;
+ 		iop_swab.buf		= PTRIN(iop32->buf);
+@@ -3259,7 +3263,7 @@ out:
+ 		break;
+ 	default:
+ 		device_printf(sc->mfi_dev, "IOCTL 0x%lx not handled\n", cmd);
+-		error = ENOENT;
++		error = ENOTTY;
+ 		break;
+ 	}
+ 
+-- 
+1.7.9.5
+

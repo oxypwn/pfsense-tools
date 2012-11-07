@@ -1,0 +1,64 @@
+From a2b54ef1a18dcd8fa1f1da9ae1efac221db1c573 Mon Sep 17 00:00:00 2001
+From: bz <bz@FreeBSD.org>
+Date: Sat, 19 May 2012 14:32:47 +0000
+Subject: [PATCH 1/3] MFC r233713:
+
+  Remove the magic mfi_array is 288 bytes and just use the
+  sizeof the array since it is not 288 bytes.
+
+  Change reporting of a "SYSTEM" disk to "JBOD" to match
+  LSI MegaCli and firmware reporting.
+
+  This means that mfiutil command to "create jbod" is now a
+  little confusing since a RAID per drive is not really what
+  LSI defines JBOD to be.  This should be fixed in the future
+  and support added to really create LSI JBOD and enable that
+  feature on cards that support it.
+
+To unbreak the build after:	r235625 (?)
+---
+ usr.sbin/mfiutil/mfi_config.c |    7 +++----
+ usr.sbin/mfiutil/mfi_drive.c  |    2 +-
+ 2 files changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/usr.sbin/mfiutil/mfi_config.c b/usr.sbin/mfiutil/mfi_config.c
+index 32cb171..feb285d 100644
+--- a/usr.sbin/mfiutil/mfi_config.c
++++ b/usr.sbin/mfiutil/mfi_config.c
+@@ -211,9 +211,8 @@ clear_config(int ac, char **av)
+ }
+ MFI_COMMAND(top, clear, clear_config);
+ 
+-#define	MFI_ARRAY_SIZE		288
+-#define	MAX_DRIVES_PER_ARRAY						\
+-	((MFI_ARRAY_SIZE - sizeof(struct mfi_array)) / 8)
++#define MAX_DRIVES_PER_ARRAY MFI_MAX_ROW_SIZE
++#define MFI_ARRAY_SIZE sizeof(struct mfi_array)
+ 
+ #define	RT_RAID0	0
+ #define	RT_RAID1	1
+@@ -305,7 +304,7 @@ parse_array(int fd, int raid_type, char *array_str, struct array_info *info)
+ 
+ 	/* Validate the number of drives for this array. */
+ 	if (count >= MAX_DRIVES_PER_ARRAY) {
+-		warnx("Too many drives for a single array: max is %zu",
++		warnx("Too many drives for a single array: max is %d",
+ 		    MAX_DRIVES_PER_ARRAY);
+ 		return (EINVAL);
+ 	}
+diff --git a/usr.sbin/mfiutil/mfi_drive.c b/usr.sbin/mfiutil/mfi_drive.c
+index 6341fd8..231b070 100644
+--- a/usr.sbin/mfiutil/mfi_drive.c
++++ b/usr.sbin/mfiutil/mfi_drive.c
+@@ -149,7 +149,7 @@ mfi_pdstate(enum mfi_pd_state state)
+ 	case MFI_PD_STATE_COPYBACK:
+ 		return ("COPYBACK");
+ 	case MFI_PD_STATE_SYSTEM:
+-		return ("SYSTEM");
++		return ("JBOD");
+ 	default:
+ 		sprintf(buf, "PSTATE 0x%04x", state);
+ 		return (buf);
+-- 
+1.7.9.5
+

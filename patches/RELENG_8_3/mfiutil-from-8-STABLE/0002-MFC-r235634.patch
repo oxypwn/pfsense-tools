@@ -1,0 +1,47 @@
+From 2c9e1096387e2f61beae1d4a40a4a2cca6e1cdc3 Mon Sep 17 00:00:00 2001
+From: sbruno <sbruno@FreeBSD.org>
+Date: Thu, 24 May 2012 16:41:26 +0000
+Subject: [PATCH 2/3] MFC r235634
+
+Decode new battery status indications.
+---
+ usr.sbin/mfiutil/mfi_show.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/usr.sbin/mfiutil/mfi_show.c b/usr.sbin/mfiutil/mfi_show.c
+index 4f83b52..8311f4b 100644
+--- a/usr.sbin/mfiutil/mfi_show.c
++++ b/usr.sbin/mfiutil/mfi_show.c
+@@ -224,7 +224,29 @@ show_battery(int ac, char **av)
+ 	}
+ 	if (stat.fw_status & MFI_BBU_STATE_DISCHARGE_ACTIVE) {
+ 		printf("%s DISCHARGING", comma ? "," : "");
++		comma = 1;
++	}
++	if (stat.fw_status & MFI_BBU_STATE_LEARN_CYC_REQ) {
++		printf("%s LEARN_CYCLE_REQUESTED", comma ? "," : "");
++		comma = 1;
++	}
++	if (stat.fw_status & MFI_BBU_STATE_LEARN_CYC_ACTIVE) {
++		printf("%s LEARN_CYCLE_ACTIVE", comma ? "," : "");
++		comma = 1;
++	}
++	if (stat.fw_status & MFI_BBU_STATE_LEARN_CYC_FAIL) {
++		printf("%s LEARN_CYCLE_FAIL", comma ? "," : "");
++		comma = 1;
++	}
++	if (stat.fw_status & MFI_BBU_STATE_LEARN_CYC_TIMEOUT) {
++		printf("%s LEARN_CYCLE_TIMEOUT", comma ? "," : "");
++		comma = 1;
+ 	}
++	if (stat.fw_status & MFI_BBU_STATE_I2C_ERR_DETECT) {
++		printf("%s I2C_ERROR_DETECT", comma ? "," : "");
++		comma = 1;
++	}
++
+ 	if (!comma)
+ 		printf(" normal");
+ 	printf("\n");
+-- 
+1.7.9.5
+
