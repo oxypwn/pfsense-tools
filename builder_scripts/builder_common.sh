@@ -758,6 +758,8 @@ cust_overlay_host_binaries() {
 	done
 	#unset DONTSTRIP
 
+	echo ">>> Deleting files listed in ${PRUNE_LIST}"
+	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 }
 
 # This routine outputs the zero found files report
@@ -1427,7 +1429,6 @@ create_pfSense_Full_update_tarball() {
 
 	PREVIOUSDIR=`pwd`
 
-	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
 	set +e
 
 	# Ensure that we do not step on /root/ scripts that
@@ -1440,8 +1441,6 @@ create_pfSense_Full_update_tarball() {
 	# Remove loader.conf and friends.  Ticket #560
 	rm ${PFSENSEBASEDIR}/boot/loader.conf 2>/dev/null
 	rm ${PFSENSEBASEDIR}/boot/loader.conf.local 2>/dev/null
-
-	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
 	install_custom_overlay
 	install_custom_overlay_final
@@ -1468,9 +1467,7 @@ create_pfSense_Embedded_update_tarball() {
 
 	PREVIOUSDIR=`pwd`
 
-	echo ; echo "Deleting files listed in ${PRUNE_LIST}"
 	set +e
-	(cd ${PFSENSEBASEDIR} && sed 's/^#.*//g' ${PRUNE_LIST} | xargs rm -rvf > /dev/null 2>&1)
 
 	# Remove all other kernels and replace full kernel with the embedded
 	# kernel that was built during the builder process
