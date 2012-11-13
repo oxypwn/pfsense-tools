@@ -1,7 +1,0 @@
-*default host=cvs.pfsense.com
-#*default base=/home/pfsense/cvsroot
-*default release=cvs
-*default delete use-rel-suffix
-pfSense
-*default compress
-
