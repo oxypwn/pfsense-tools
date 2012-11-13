@@ -1,0 +1,22 @@
+diff -ur ../tmp/sys/dev/usb/serial/u3g.c ./sys/dev/usb/serial/u3g.c
+--- ../tmp/sys/dev/usb/serial/u3g.c	2012-11-13 21:30:19.000000000 +0000
++++ ./sys/dev/usb/serial/u3g.c	2012-11-13 21:31:04.000000000 +0000
+@@ -452,6 +452,7 @@
+ 	U3G_DEV(SIERRA, MC5727, 0),
+ 	U3G_DEV(SIERRA, MC5727_2, 0),
+ 	U3G_DEV(SIERRA, MC5728, 0),
++	U3G_DEV(SIERRA, MC8705, 0),
+ 	U3G_DEV(SIERRA, MC8755, 0),
+ 	U3G_DEV(SIERRA, MC8755_2, 0),
+ 	U3G_DEV(SIERRA, MC8755_3, 0),
+diff -ur ../tmp/sys/dev/usb/usbdevs ./sys/dev/usb/usbdevs
+--- ../tmp/sys/dev/usb/usbdevs	2012-11-13 21:30:07.000000000 +0000
++++ ./sys/dev/usb/usbdevs	2012-11-13 21:30:48.000000000 +0000
+@@ -2713,6 +2713,7 @@
+ product SIERRA MC5720		0x0218	MC5720 Wireless Modem
+ product SIERRA MINI5725		0x0220	Sierra Wireless miniPCI 5275
+ product SIERRA MC5727_2		0x0224	MC5727
++product SIERRA MC8705		0x68a3	MC8705
+ product SIERRA MC8755_2		0x6802	MC8755
+ product SIERRA MC8765		0x6803	MC8765
+ product SIERRA MC8755		0x6804	MC8755
