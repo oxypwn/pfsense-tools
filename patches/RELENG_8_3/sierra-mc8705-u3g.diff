@@ -1,10 +1,10 @@
 diff -ur ../tmp/sys/dev/usb/serial/u3g.c ./sys/dev/usb/serial/u3g.c
 --- ../tmp/sys/dev/usb/serial/u3g.c	2012-11-13 21:30:19.000000000 +0000
 +++ ./sys/dev/usb/serial/u3g.c	2012-11-13 21:31:04.000000000 +0000
-@@ -468,6 +468,7 @@
+@@ -452,6 +452,7 @@
+ 	U3G_DEV(SIERRA, MC5727, 0),
  	U3G_DEV(SIERRA, MC5727_2, 0),
  	U3G_DEV(SIERRA, MC5728, 0),
-	U3G_DEV(SIERRA, MC8700, 0),
 +	U3G_DEV(SIERRA, MC8705, 0),
  	U3G_DEV(SIERRA, MC8755, 0),
  	U3G_DEV(SIERRA, MC8755_2, 0),
