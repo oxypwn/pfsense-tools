@@ -1,0 +1,590 @@
+From ac257cd8b3560a7846350082575e0c9a877ef48b Mon Sep 17 00:00:00 2001
+From: jhb <jhb@FreeBSD.org>
+Date: Thu, 17 May 2012 15:45:00 +0000
+Subject: [PATCH 3/6] MFC 233708,234154: Fix a few issues with transmit
+ handling in em(4) and igb(4): - Do not define the
+ foo_start() methods or set if_start in the ifnet if  
+ multiq transmit is enabled.  Also, set if_transmit and
+ if_qflush before   ether_ifattach rather than after
+ when multiq transmit is enabled.  This   helps to
+ ensure that the drivers never try to mix different
+ transmit   methods. - Properly restart transmit during
+ resume.  igb(4) was not restarting it   at all, and
+ em(4) was restarting even if the link was down and was 
+  calling the wrong method if multiq transmit was
+ enabled. - Remove all the 'more' handling for transmit
+ completions.  Transmit   completion processing does not
+ have a processing limit, so it always   runs to
+ completion and never has more work to do when it
+ returns.   Instead, the previous code was returning
+ 'true' anytime there were   packets in the queue that
+ weren't still in the process of being   transmitted. 
+ The effect was that the driver would continuously  
+ reschedule a task to process TX completions in effect
+ running at 100%   CPU polling the hardware until it
+ finished transmitting all of the   packets in the ring.
+  Now it will just wait for the next TX completion  
+ interrupt. - Restart packet transmission when the link
+ becomes active. - Fix the MSI-X queue interrupt
+ handlers to restart packet transmission if   there are
+ pending packets in the relevant software queue (IFQ or
+ buf_ring)   after processing TX completions.  This is
+ the root cause for the OACTIVE   hangs as if the MSI-X
+ queue handler drained all the pending packets from  
+ the TX ring, nothing would ever restart it.  As such,
+ remove some   previously-added workarounds to
+ reschedule a task to poll the TX ring   anytime OACTIVE
+ was set. - Use a dedicated task to handle deferred
+ transmits from the if_transmit   method instead of
+ reusing the existing per-queue interrupt task.  
+ Reusing the per-queue interrupt task could result in
+ both an interrupt   thread and the taskqueue thread
+ trying to handle received packets on a   single queue
+ resulting in out-of-order packet processing. - Call
+ ether_ifdetach() earlier in igb_detach(). - Drain tasks
+ and free taskqueues during igb_detach().
+
+---
+ sys/dev/e1000/if_em.c  |   94 ++++++++++++++++++++++++------------
+ sys/dev/e1000/if_igb.c |  126 +++++++++++++++++++++++++++++++++++++++++-------
+ sys/dev/e1000/if_igb.h |    1 +
+ 3 files changed, 171 insertions(+), 50 deletions(-)
+
+diff --git a/sys/dev/e1000/if_em.c b/sys/dev/e1000/if_em.c
+index 283f776..0ae4cdd 100644
+--- a/sys/dev/e1000/if_em.c
++++ b/sys/dev/e1000/if_em.c
+@@ -193,13 +193,14 @@ static int	em_detach(device_t);
+ static int	em_shutdown(device_t);
+ static int	em_suspend(device_t);
+ static int	em_resume(device_t);
+-static void	em_start(struct ifnet *);
+-static void	em_start_locked(struct ifnet *, struct tx_ring *);
+ #ifdef EM_MULTIQUEUE
+ static int	em_mq_start(struct ifnet *, struct mbuf *);
+ static int	em_mq_start_locked(struct ifnet *,
+ 		    struct tx_ring *, struct mbuf *);
+ static void	em_qflush(struct ifnet *);
++#else
++static void	em_start(struct ifnet *);
++static void	em_start_locked(struct ifnet *, struct tx_ring *);
+ #endif
+ static int	em_ioctl(struct ifnet *, u_long, caddr_t);
+ static void	em_init(void *);
+@@ -234,7 +235,7 @@ static void	em_enable_intr(struct adapter *);
+ static void	em_disable_intr(struct adapter *);
+ static void	em_update_stats_counters(struct adapter *);
+ static void	em_add_hw_stats(struct adapter *adapter);
+-static bool	em_txeof(struct tx_ring *);
++static void	em_txeof(struct tx_ring *);
+ static bool	em_rxeof(struct rx_ring *, int, int *);
+ #ifndef __NO_STRICT_ALIGNMENT
+ static int	em_fixup_rx(struct rx_ring *);
+@@ -836,6 +837,7 @@ static int
+ em_resume(device_t dev)
+ {
+ 	struct adapter *adapter = device_get_softc(dev);
++	struct tx_ring	*txr = adapter->tx_rings;
+ 	struct ifnet *ifp = adapter->ifp;
+ 
+ 	EM_CORE_LOCK(adapter);
+@@ -843,8 +845,22 @@ em_resume(device_t dev)
+ 		e1000_resume_workarounds_pchlan(&adapter->hw);
+ 	em_init_locked(adapter);
+ 	em_init_manageability(adapter);
++
++	if ((ifp->if_flags & IFF_UP) &&
++	    (ifp->if_drv_flags & IFF_DRV_RUNNING) && adapter->link_active) {
++		for (int i = 0; i < adapter->num_queues; i++, txr++) {
++			EM_TX_LOCK(txr);
++#ifdef EM_MULTIQUEUE
++			if (!drbr_empty(ifp, txr->br))
++				em_mq_start_locked(ifp, txr, NULL);
++#else
++			if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++				em_start_locked(ifp, txr);
++#endif
++			EM_TX_UNLOCK(txr);
++		}
++	}
+ 	EM_CORE_UNLOCK(adapter);
+-	em_start(ifp);
+ 
+ 	return bus_generic_resume(dev);
+ }
+@@ -948,7 +964,7 @@ em_qflush(struct ifnet *ifp)
+ 	}
+ 	if_qflush(ifp);
+ }
+-#endif /* EM_MULTIQUEUE */
++#else  /* !EM_MULTIQUEUE */
+ 
+ static void
+ em_start_locked(struct ifnet *ifp, struct tx_ring *txr)
+@@ -1009,14 +1025,9 @@ em_start(struct ifnet *ifp)
+ 		em_start_locked(ifp, txr);
+ 		EM_TX_UNLOCK(txr);
+ 	}
+-	/*
+-	** If we went inactive schedule
+-	** a task to clean up.
+-	*/
+-	if (ifp->if_drv_flags & IFF_DRV_OACTIVE)
+-		taskqueue_enqueue(txr->tq, &txr->tx_task);
+ 	return;
+ }
++#endif /* EM_MULTIQUEUE */
+ 
+ /*********************************************************************
+  *  Ioctl entry point
+@@ -1413,7 +1424,8 @@ em_poll(struct ifnet *ifp, enum poll_cmd cmd, int count)
+ 	if (!drbr_empty(ifp, txr->br))
+ 		em_mq_start_locked(ifp, txr, NULL);
+ #else
+-	em_start_locked(ifp, txr);
++	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++		em_start_locked(ifp, txr);
+ #endif
+ 	EM_TX_UNLOCK(txr);
+ 
+@@ -1486,10 +1498,11 @@ em_handle_que(void *context, int pending)
+ 		if (!drbr_empty(ifp, txr->br))
+ 			em_mq_start_locked(ifp, txr, NULL);
+ #else
+-		em_start_locked(ifp, txr);
++		if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++			em_start_locked(ifp, txr);
+ #endif
+ 		EM_TX_UNLOCK(txr);
+-		if (more || (ifp->if_drv_flags & IFF_DRV_OACTIVE)) {
++		if (more) {
+ 			taskqueue_enqueue(adapter->tq, &adapter->que_task);
+ 			return;
+ 		}
+@@ -1510,17 +1523,21 @@ em_msix_tx(void *arg)
+ {
+ 	struct tx_ring *txr = arg;
+ 	struct adapter *adapter = txr->adapter;
+-	bool		more;
++	struct ifnet	*ifp = adapter->ifp;
+ 
+ 	++txr->tx_irq;
+ 	EM_TX_LOCK(txr);
+-	more = em_txeof(txr);
++	em_txeof(txr);
++#ifdef EM_MULTIQUEUE
++	if (!drbr_empty(ifp, txr->br))
++		em_mq_start_locked(ifp, txr, NULL);
++#else
++	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++		em_start_locked(ifp, txr);
++#endif
++	/* Reenable this interrupt */
++	E1000_WRITE_REG(&adapter->hw, E1000_IMS, txr->ims);
+ 	EM_TX_UNLOCK(txr);
+-	if (more)
+-		taskqueue_enqueue(txr->tq, &txr->tx_task);
+-	else
+-		/* Reenable this interrupt */
+-		E1000_WRITE_REG(&adapter->hw, E1000_IMS, txr->ims);
+ 	return;
+ }
+ 
+@@ -1598,7 +1615,8 @@ em_handle_tx(void *context, int pending)
+ 	if (!drbr_empty(ifp, txr->br))
+ 		em_mq_start_locked(ifp, txr, NULL);
+ #else
+-	em_start_locked(ifp, txr);
++	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++		em_start_locked(ifp, txr);
+ #endif
+ 	E1000_WRITE_REG(&adapter->hw, E1000_IMS, txr->ims);
+ 	EM_TX_UNLOCK(txr);
+@@ -1608,6 +1626,7 @@ static void
+ em_handle_link(void *context, int pending)
+ {
+ 	struct adapter	*adapter = context;
++	struct tx_ring	*txr = adapter->tx_rings;
+ 	struct ifnet *ifp = adapter->ifp;
+ 
+ 	if (!(ifp->if_drv_flags & IFF_DRV_RUNNING))
+@@ -1619,6 +1638,19 @@ em_handle_link(void *context, int pending)
+ 	callout_reset(&adapter->timer, hz, em_local_timer, adapter);
+ 	E1000_WRITE_REG(&adapter->hw, E1000_IMS,
+ 	    EM_MSIX_LINK | E1000_IMS_LSC);
++	if (adapter->link_active) {
++		for (int i = 0; i < adapter->num_queues; i++, txr++) {
++			EM_TX_LOCK(txr);
++#ifdef EM_MULTIQUEUE
++			if (!drbr_empty(ifp, txr->br))
++				em_mq_start_locked(ifp, txr, NULL);
++#else
++			if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++				em_start_locked(ifp, txr);
++#endif
++			EM_TX_UNLOCK(txr);
++		}
++	}
+ 	EM_CORE_UNLOCK(adapter);
+ }
+ 
+@@ -2891,20 +2923,21 @@ em_setup_interface(device_t dev, struct adapter *adapter)
+ 	ifp->if_softc = adapter;
+ 	ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST;
+ 	ifp->if_ioctl = em_ioctl;
++#ifdef EM_MULTIQUEUE
++	/* Multiqueue stack interface */
++	ifp->if_transmit = em_mq_start;
++	ifp->if_qflush = em_qflush;
++#else
+ 	ifp->if_start = em_start;
+ 	IFQ_SET_MAXLEN(&ifp->if_snd, adapter->num_tx_desc - 1);
+ 	ifp->if_snd.ifq_drv_maxlen = adapter->num_tx_desc - 1;
+ 	IFQ_SET_READY(&ifp->if_snd);
++#endif	
+ 
+ 	ether_ifattach(ifp, adapter->hw.mac.addr);
+ 
+ 	ifp->if_capabilities = ifp->if_capenable = 0;
+ 
+-#ifdef EM_MULTIQUEUE
+-	/* Multiqueue stack interface */
+-	ifp->if_transmit = em_mq_start;
+-	ifp->if_qflush = em_qflush;
+-#endif	
+ 
+ 	ifp->if_capabilities |= IFCAP_HWCSUM | IFCAP_VLAN_HWCSUM;
+ 	ifp->if_capabilities |= IFCAP_TSO4;
+@@ -3710,7 +3743,7 @@ em_tso_setup(struct tx_ring *txr, struct mbuf *mp, int ip_off,
+  *  tx_buffer is put back on the free queue.
+  *
+  **********************************************************************/
+-static bool
++static void
+ em_txeof(struct tx_ring *txr)
+ {
+ 	struct adapter	*adapter = txr->adapter;
+@@ -3724,7 +3757,7 @@ em_txeof(struct tx_ring *txr)
+ 	/* No work, make sure watchdog is off */
+         if (txr->tx_avail == adapter->num_tx_desc) {
+ 		txr->queue_status = EM_QUEUE_IDLE;
+-                return (FALSE);
++                return;
+ 	}
+ 
+ 	processed = 0;
+@@ -3813,10 +3846,7 @@ em_txeof(struct tx_ring *txr)
+ 	/* Disable watchdog if all clean */
+ 	if (txr->tx_avail == adapter->num_tx_desc) {
+ 		txr->queue_status = EM_QUEUE_IDLE;
+-		return (FALSE);
+ 	} 
+-
+-	return (TRUE);
+ }
+ 
+ 
+diff --git a/sys/dev/e1000/if_igb.c b/sys/dev/e1000/if_igb.c
+index b9501f7..d0ac8b5 100644
+--- a/sys/dev/e1000/if_igb.c
++++ b/sys/dev/e1000/if_igb.c
+@@ -171,13 +171,15 @@ static int	igb_detach(device_t);
+ static int	igb_shutdown(device_t);
+ static int	igb_suspend(device_t);
+ static int	igb_resume(device_t);
+-static void	igb_start(struct ifnet *);
+-static void	igb_start_locked(struct tx_ring *, struct ifnet *ifp);
+ #if __FreeBSD_version >= 800000
+ static int	igb_mq_start(struct ifnet *, struct mbuf *);
+ static int	igb_mq_start_locked(struct ifnet *,
+ 		    struct tx_ring *, struct mbuf *);
+ static void	igb_qflush(struct ifnet *);
++static void	igb_deferred_mq_start(void *, int);
++#else
++static void	igb_start(struct ifnet *);
++static void	igb_start_locked(struct tx_ring *, struct ifnet *ifp);
+ #endif
+ static int	igb_ioctl(struct ifnet *, u_long, caddr_t);
+ static void	igb_init(void *);
+@@ -261,6 +263,7 @@ static void	igb_msix_que(void *);
+ static void	igb_msix_link(void *);
+ static void	igb_handle_que(void *context, int pending);
+ static void	igb_handle_link(void *context, int pending);
++static void	igb_handle_link_locked(struct adapter *);
+ 
+ static void	igb_set_sysctl_value(struct adapter *, const char *,
+ 		    const char *, int *, int);
+@@ -707,6 +710,8 @@ igb_detach(device_t dev)
+ 		return (EBUSY);
+ 	}
+ 
++	ether_ifdetach(adapter->ifp);
++
+ 	if (adapter->led_dev != NULL)
+ 		led_destroy(adapter->led_dev);
+ 
+@@ -738,8 +743,6 @@ igb_detach(device_t dev)
+ 	if (adapter->vlan_detach != NULL)
+ 		EVENTHANDLER_DEREGISTER(vlan_unconfig, adapter->vlan_detach);
+ 
+-	ether_ifdetach(adapter->ifp);
+-
+ 	callout_drain(&adapter->timer);
+ 
+ 	igb_free_pci_resources(adapter);
+@@ -798,6 +801,7 @@ static int
+ igb_resume(device_t dev)
+ {
+ 	struct adapter *adapter = device_get_softc(dev);
++	struct tx_ring	*txr = adapter->tx_rings;
+ 	struct ifnet *ifp = adapter->ifp;
+ 
+ 	IGB_CORE_LOCK(adapter);
+@@ -805,9 +809,21 @@ igb_resume(device_t dev)
+ 	igb_init_manageability(adapter);
+ 
+ 	if ((ifp->if_flags & IFF_UP) &&
+-	    (ifp->if_drv_flags & IFF_DRV_RUNNING))
+-		igb_start(ifp);
+-
++	    (ifp->if_drv_flags & IFF_DRV_RUNNING) && adapter->link_active) {
++		for (int i = 0; i < adapter->num_queues; i++, txr++) {
++			IGB_TX_LOCK(txr);
++#if __FreeBSD_version >= 800000
++			/* Process the stack queue only if not depleted */
++			if (((txr->queue_status & IGB_QUEUE_DEPLETED) == 0) &&
++			    !drbr_empty(ifp, txr->br))
++				igb_mq_start_locked(ifp, txr, NULL);
++#else
++			if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++				igb_start_locked(txr, ifp);
++#endif
++			IGB_TX_UNLOCK(txr);
++		}
++	}
+ 	IGB_CORE_UNLOCK(adapter);
+ 
+ 	return bus_generic_resume(dev);
+@@ -919,7 +935,7 @@ igb_mq_start(struct ifnet *ifp, struct mbuf *m)
+ 		IGB_TX_UNLOCK(txr);
+ 	} else {
+ 		err = drbr_enqueue(ifp, txr->br, m);
+-		taskqueue_enqueue(que->tq, &que->que_task);
++		taskqueue_enqueue(que->tq, &txr->txq_task);
+ 	}
+ 
+ 	return (err);
+@@ -979,6 +995,22 @@ igb_mq_start_locked(struct ifnet *ifp, struct tx_ring *txr, struct mbuf *m)
+ }
+ 
+ /*
++ * Called from a taskqueue to drain queued transmit packets.
++ */
++static void
++igb_deferred_mq_start(void *arg, int pending)
++{
++	struct tx_ring *txr = arg;
++	struct adapter *adapter = txr->adapter;
++	struct ifnet *ifp = adapter->ifp;
++
++	IGB_TX_LOCK(txr);
++	if (!drbr_empty(ifp, txr->br))
++		igb_mq_start_locked(ifp, txr, NULL);
++	IGB_TX_UNLOCK(txr);
++}
++
++/*
+ ** Flush all ring buffers
+ */
+ static void
+@@ -1321,19 +1353,19 @@ igb_handle_que(void *context, int pending)
+ 		more = igb_rxeof(que, adapter->rx_process_limit, NULL);
+ 
+ 		IGB_TX_LOCK(txr);
+-		if (igb_txeof(txr))
+-			more = TRUE;
++		igb_txeof(txr);
+ #if __FreeBSD_version >= 800000
+ 		/* Process the stack queue only if not depleted */
+ 		if (((txr->queue_status & IGB_QUEUE_DEPLETED) == 0) &&
+ 		    !drbr_empty(ifp, txr->br))
+ 			igb_mq_start_locked(ifp, txr, NULL);
+ #else
+-		igb_start_locked(txr, ifp);
++		if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++			igb_start_locked(txr, ifp);
+ #endif
+ 		IGB_TX_UNLOCK(txr);
+ 		/* Do we need another? */
+-		if (more || (ifp->if_drv_flags & IFF_DRV_OACTIVE)) {
++		if (more) {
+ 			taskqueue_enqueue(que->tq, &que->que_task);
+ 			return;
+ 		}
+@@ -1356,8 +1388,35 @@ igb_handle_link(void *context, int pending)
+ {
+ 	struct adapter *adapter = context;
+ 
++	IGB_CORE_LOCK(adapter);
++	igb_handle_link_locked(adapter);
++	IGB_CORE_UNLOCK(adapter);
++}
++
++static void
++igb_handle_link_locked(struct adapter *adapter)
++{
++	struct tx_ring	*txr = adapter->tx_rings;
++	struct ifnet *ifp = adapter->ifp;
++
++	IGB_CORE_LOCK_ASSERT(adapter);
+ 	adapter->hw.mac.get_link_status = 1;
+ 	igb_update_link_status(adapter);
++	if ((ifp->if_drv_flags & IFF_DRV_RUNNING) && adapter->link_active) {
++		for (int i = 0; i < adapter->num_queues; i++, txr++) {
++			IGB_TX_LOCK(txr);
++#if __FreeBSD_version >= 800000
++			/* Process the stack queue only if not depleted */
++			if (((txr->queue_status & IGB_QUEUE_DEPLETED) == 0) &&
++			    !drbr_empty(ifp, txr->br))
++				igb_mq_start_locked(ifp, txr, NULL);
++#else
++			if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++				igb_start_locked(txr, ifp);
++#endif
++			IGB_TX_UNLOCK(txr);
++		}
++	}
+ }
+ 
+ /*********************************************************************
+@@ -1437,7 +1496,7 @@ igb_poll(struct ifnet *ifp, enum poll_cmd cmd, int count)
+ 		reg_icr = E1000_READ_REG(&adapter->hw, E1000_ICR);
+ 		/* Link status change */
+ 		if (reg_icr & (E1000_ICR_RXSEQ | E1000_ICR_LSC))
+-			igb_handle_link(adapter, 0);
++			igb_handle_link_locked(adapter);
+ 
+ 		if (reg_icr & E1000_ICR_RXO)
+ 			adapter->rx_overruns++;
+@@ -1454,7 +1513,8 @@ igb_poll(struct ifnet *ifp, enum poll_cmd cmd, int count)
+ 	if (!drbr_empty(ifp, txr->br))
+ 		igb_mq_start_locked(ifp, txr, NULL);
+ #else
+-	igb_start_locked(txr, ifp);
++	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++		igb_start_locked(txr, ifp);
+ #endif
+ 	IGB_TX_UNLOCK(txr);
+ 	return POLL_RETURN_COUNT(rx_done);
+@@ -1471,16 +1531,26 @@ igb_msix_que(void *arg)
+ {
+ 	struct igb_queue *que = arg;
+ 	struct adapter *adapter = que->adapter;
++	struct ifnet   *ifp = adapter->ifp;
+ 	struct tx_ring *txr = que->txr;
+ 	struct rx_ring *rxr = que->rxr;
+ 	u32		newitr = 0;
+-	bool		more_tx, more_rx;
++	bool		more_rx;
+ 
+ 	E1000_WRITE_REG(&adapter->hw, E1000_EIMC, que->eims);
+ 	++que->irqs;
+ 
+ 	IGB_TX_LOCK(txr);
+-	more_tx = igb_txeof(txr);
++	igb_txeof(txr);
++#if __FreeBSD_version >= 800000
++	/* Process the stack queue only if not depleted */
++	if (((txr->queue_status & IGB_QUEUE_DEPLETED) == 0) &&
++	    !drbr_empty(ifp, txr->br))
++		igb_mq_start_locked(ifp, txr, NULL);
++#else
++	if (!IFQ_DRV_IS_EMPTY(&ifp->if_snd))
++		igb_start_locked(txr, ifp);
++#endif
+ 	IGB_TX_UNLOCK(txr);
+ 
+ 	more_rx = igb_rxeof(que, adapter->rx_process_limit, NULL);
+@@ -1538,7 +1608,7 @@ igb_msix_que(void *arg)
+ 
+ no_calc:
+ 	/* Schedule a clean task if needed*/
+-	if (more_tx || more_rx)
++	if (more_rx)
+ 		taskqueue_enqueue(que->tq, &que->que_task);
+ 	else
+ 		/* Reenable this interrupt */
+@@ -2320,6 +2390,7 @@ igb_allocate_legacy(struct adapter *adapter)
+ {
+ 	device_t		dev = adapter->dev;
+ 	struct igb_queue	*que = adapter->queues;
++	struct tx_ring		*txr = adapter->tx_rings;
+ 	int			error, rid = 0;
+ 
+ 	/* Turn off all interrupts */
+@@ -2338,6 +2409,10 @@ igb_allocate_legacy(struct adapter *adapter)
+ 		return (ENXIO);
+ 	}
+ 
++#if __FreeBSD_version >= 800000
++	TASK_INIT(&txr->txq_task, 0, igb_deferred_mq_start, txr);
++#endif
++
+ 	/*
+ 	 * Try allocating a fast interrupt and the associated deferred
+ 	 * processing contexts.
+@@ -2411,9 +2486,13 @@ igb_allocate_msix(struct adapter *adapter)
+ 		*/
+ 		if (adapter->num_queues > 1)
+ 			bus_bind_intr(dev, que->res, i);
++#if __FreeBSD_version >= 800000
++		TASK_INIT(&que->txr->txq_task, 0, igb_deferred_mq_start,
++		    que->txr);
++#endif
+ 		/* Make tasklet for deferred handling */
+ 		TASK_INIT(&que->que_task, 0, igb_handle_que, que);
+-		que->tq = taskqueue_create_fast("igb_que", M_NOWAIT,
++		que->tq = taskqueue_create("igb_que", M_NOWAIT,
+ 		    taskqueue_thread_enqueue, &que->tq);
+ 		taskqueue_start_threads(&que->tq, 1, PI_NET, "%s que",
+ 		    device_get_nameunit(adapter->dev));
+@@ -2620,13 +2699,24 @@ igb_free_pci_resources(struct adapter *adapter)
+ 	else
+ 		(adapter->msix != 0) ? (rid = 1):(rid = 0);
+ 
++	que = adapter->queues;
+ 	if (adapter->tag != NULL) {
++		taskqueue_drain(que->tq, &adapter->link_task);
+ 		bus_teardown_intr(dev, adapter->res, adapter->tag);
+ 		adapter->tag = NULL;
+ 	}
+ 	if (adapter->res != NULL)
+ 		bus_release_resource(dev, SYS_RES_IRQ, rid, adapter->res);
+ 
++	for (int i = 0; i < adapter->num_queues; i++, que++) {
++		if (que->tq != NULL) {
++#if __FreeBSD_version >= 800000
++			taskqueue_drain(que->tq, &que->txr->txq_task);
++#endif
++			taskqueue_drain(que->tq, &que->que_task);
++			taskqueue_free(que->tq);
++		}
++	}
+ mem:
+ 	if (adapter->msix)
+ 		pci_release_msi(dev);
+diff --git a/sys/dev/e1000/if_igb.h b/sys/dev/e1000/if_igb.h
+index 9989206..8ff1b44 100644
+--- a/sys/dev/e1000/if_igb.h
++++ b/sys/dev/e1000/if_igb.h
+@@ -301,6 +301,7 @@ struct tx_ring {
+ 	struct buf_ring		*br;
+ #endif
+ 	bus_dma_tag_t		txtag;
++	struct task		txq_task;
+ 
+ 	u32			bytes;
+ 	u32			packets;
+-- 
+1.7.9.5
+

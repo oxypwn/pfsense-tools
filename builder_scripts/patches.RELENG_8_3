@@ -97,6 +97,12 @@
 ~sys/conf~ath_conf_files.diff~
 -p1~~atom_video_fix.diff~
 -p1~~ipsec_bypass_route-to.diff~
+-p1~~e1000-from-8-STABLE/0001-MFC-232367.patch~
+-p1~~e1000-from-8-STABLE/0002-MFC-r233423.patch~
+-p1~~e1000-from-8-STABLE/0003-MFC-233708-234154.patch~
+-p1~~e1000-from-8-STABLE/0004-MFC-r235210.patch~
+-p1~~e1000-from-8-STABLE/0005-MFC-r225640.patch~
+-p1~~e1000-from-8-STABLE/0006-MFC-r240879.patch~
 -p1~~mfi-from-8-STABLE/0001-MFC-of-head-thunderbolt-support-for-mfi-4.patch~
 -p1~~mfi-from-8-STABLE/0002-MFC-r235634.patch~
 -p1~~mfi-from-8-STABLE/0003-MFC-r236323.patch~

@@ -1,0 +1,5 @@
+These patches are specific to FreeBSD 8.3.
+
+They can be safely dropped as soon as pfSense switches to a base 
+FreeBSD with following versions: > 8.3, >= 9.1 or -CURRENT as of 
+writing.
