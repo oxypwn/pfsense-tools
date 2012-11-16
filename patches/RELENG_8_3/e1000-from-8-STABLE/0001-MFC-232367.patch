@@ -1,0 +1,41 @@
+From bf2ccc68356cfce1586b86f9be7000efc6b1c8fe Mon Sep 17 00:00:00 2001
+From: jhb <jhb@FreeBSD.org>
+Date: Fri, 23 Mar 2012 18:22:38 +0000
+Subject: [PATCH 1/6] MFC 232367: Properly handle failures in igb_setup_msix()
+ by returning 0 if MSI or MSI-X allocation fails.
+
+---
+ sys/dev/e1000/if_igb.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/sys/dev/e1000/if_igb.c b/sys/dev/e1000/if_igb.c
+index 82dee40..b9501f7 100644
+--- a/sys/dev/e1000/if_igb.c
++++ b/sys/dev/e1000/if_igb.c
+@@ -2702,7 +2702,7 @@ igb_setup_msix(struct adapter *adapter)
+ 		    "MSIX Configuration Problem, "
+ 		    "%d vectors configured, but %d queues wanted!\n",
+ 		    msgs, want);
+-		return (ENXIO);
++		return (0);
+ 	}
+ 	if ((msgs) && pci_alloc_msix(dev, &msgs) == 0) {
+                	device_printf(adapter->dev,
+@@ -2712,9 +2712,11 @@ igb_setup_msix(struct adapter *adapter)
+ 	}
+ msi:
+        	msgs = pci_msi_count(dev);
+-       	if (msgs == 1 && pci_alloc_msi(dev, &msgs) == 0)
+-               	device_printf(adapter->dev,"Using MSI interrupt\n");
+-	return (msgs);
++	if (msgs == 1 && pci_alloc_msi(dev, &msgs) == 0) {
++		device_printf(adapter->dev," Using MSI interrupt\n");
++		return (msgs);
++	}
++	return (0);
+ }
+ 
+ /*********************************************************************
+-- 
+1.7.9.5
+

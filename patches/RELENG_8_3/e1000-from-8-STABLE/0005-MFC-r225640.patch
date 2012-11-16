@@ -1,0 +1,31 @@
+From 7906018ad11a83aa97f36f1a98ec671919a6a62f Mon Sep 17 00:00:00 2001
+From: rstone <rstone@FreeBSD.org>
+Date: Sun, 27 May 2012 19:03:16 +0000
+Subject: [PATCH 5/6] MFC r225640
+
+ Clear transmit checksum offload context state upon lem(4) interface
+ initialization.  Prior to this change packets may be transmitted with an
+ incorrect checksum.
+
+ em(4) already has an equivalent change in r213234.
+
+ Obtained From:  Sandvine
+---
+ sys/dev/e1000/if_lem.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/sys/dev/e1000/if_lem.c b/sys/dev/e1000/if_lem.c
+index 61c9645..2124ebe 100644
+--- a/sys/dev/e1000/if_lem.c
++++ b/sys/dev/e1000/if_lem.c
+@@ -2655,6 +2655,7 @@ lem_setup_transmit_structures(struct adapter *adapter)
+ 	}
+ 
+ 	/* Reset state */
++	adapter->last_hw_offload = 0;
+ 	adapter->next_avail_tx_desc = 0;
+ 	adapter->next_tx_to_clean = 0;
+ 	adapter->num_tx_desc_avail = adapter->num_tx_desc;
+-- 
+1.7.9.5
+

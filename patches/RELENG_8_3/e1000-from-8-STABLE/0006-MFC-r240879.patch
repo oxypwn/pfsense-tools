@@ -1,0 +1,59 @@
+From c257b9809bca7064e457aed3a9627c74fda1f4bd Mon Sep 17 00:00:00 2001
+From: sbruno <sbruno@FreeBSD.org>
+Date: Tue, 9 Oct 2012 18:02:05 +0000
+Subject: [PATCH 6/6] MFC r240879
+
+This patch fixes a nit in the em, lem, and igb driver statistics.  Increment
+adapter->dropped_pkts instead of if_ierrors because if_ierrors is
+overwritten by hw stats collection.
+
+Submitted by: Andrew Boyer <aboyer@averesystems.com>
+Reviewed by:  Jack F Vogel <jfv@freebsd.org>
+---
+ sys/dev/e1000/if_em.c  |    2 +-
+ sys/dev/e1000/if_igb.c |    2 +-
+ sys/dev/e1000/if_lem.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/sys/dev/e1000/if_em.c b/sys/dev/e1000/if_em.c
+index 0ae4cdd..65960ce 100644
+--- a/sys/dev/e1000/if_em.c
++++ b/sys/dev/e1000/if_em.c
+@@ -4336,7 +4336,7 @@ em_rxeof(struct rx_ring *rxr, int count, int *done)
+ 
+ 		if ((cur->errors & E1000_RXD_ERR_FRAME_ERR_MASK) ||
+ 		    (rxr->discard == TRUE)) {
+-			ifp->if_ierrors++;
++			adapter->dropped_pkts++;
+ 			++rxr->rx_discarded;
+ 			if (!eop) /* Catch subsequent segs */
+ 				rxr->discard = TRUE;
+diff --git a/sys/dev/e1000/if_igb.c b/sys/dev/e1000/if_igb.c
+index 149437b..721e88b 100644
+--- a/sys/dev/e1000/if_igb.c
++++ b/sys/dev/e1000/if_igb.c
+@@ -4610,7 +4610,7 @@ igb_rxeof(struct igb_queue *que, int count, int *done)
+ 		/* Make sure all segments of a bad packet are discarded */
+ 		if (((staterr & E1000_RXDEXT_ERR_FRAME_ERR_MASK) != 0) ||
+ 		    (rxr->discard)) {
+-			ifp->if_ierrors++;
++			adapter->dropped_pkts++;
+ 			++rxr->rx_discarded;
+ 			if (!eop) /* Catch subsequent segs */
+ 				rxr->discard = TRUE;
+diff --git a/sys/dev/e1000/if_lem.c b/sys/dev/e1000/if_lem.c
+index 2124ebe..4690249 100644
+--- a/sys/dev/e1000/if_lem.c
++++ b/sys/dev/e1000/if_lem.c
+@@ -3522,7 +3522,7 @@ skip:
+ 				adapter->lmp = NULL;
+ 			}
+ 		} else {
+-			ifp->if_ierrors++;
++			adapter->dropped_pkts++;
+ discard:
+ 			/* Reuse loaded DMA map and just update mbuf chain */
+ 			mp = adapter->rx_buffer_area[i].m_head;
+-- 
+1.7.9.5
+
