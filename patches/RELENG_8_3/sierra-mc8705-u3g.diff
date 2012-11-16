@@ -1,4 +1,5 @@
-diff -ur ../tmp/sys/dev/usb/serial/u3g.c ./sys/dev/usb/serial/u3g.c
+Upstream status: Only in pfSense
+
 --- ../tmp/sys/dev/usb/serial/u3g.c	2012-11-13 21:30:19.000000000 +0000
 +++ ./sys/dev/usb/serial/u3g.c	2012-11-13 21:31:04.000000000 +0000
 @@ -452,6 +452,7 @@

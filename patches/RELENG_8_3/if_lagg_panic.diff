@@ -1,3 +1,14 @@
+Upstream status: Fix included starting 9.0-RELEASE
+
+Commit message:
+Author: eri <eri@FreeBSD.org>
+Date:   Fri Mar 4 20:37:38 2011 +0000
+
+    Fix a panic that can happen when trying to destroy a lagg(4) with scheduler set to none.
+    
+    Approved by:        thompsa(mentor)
+    MFC after:  1 week
+
 Index: sys/net/if_lagg.c
 ===================================================================
 RCS file: /home/ncvs/src/sys/net/if_lagg.c,v
