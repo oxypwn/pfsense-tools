@@ -16,12 +16,12 @@ return {
 	
 	local response = App.ui:present({
 	    id = "install_kernel",
-	    name = _("Install Kernel(s)"),
+	    name = _("Install Kernel"),
 	    short_desc = _(
 		"You may now wish to install a custom Kernel configuration. ",
 		App.conf.product.name, App.conf.product.name),
 	    long_desc = _(
-	        "Selecting a custom kernel will help you get the most out of your hardware.  For example most hardware these days comes in multiple cores.  Pick the SMP option if your hardware supports this. ",
+	        "",
 		App.conf.product.name
 	    ),
 	    special = "bsdinstaller_install_kernel",
@@ -29,11 +29,11 @@ return {
 	    actions = {
 		{
 		    id = "SMP",
-		    name = _("Symmetric multiprocessing kernel (more than one processor)")
+		    name = _("Standard Kernel")
 		},
 		{
 		    id = "Embedded",
-		    name = _("Embedded kernel (no vga console, keyboard")
+		    name = _("Embedded kernel (no VGA console, keyboard")
 		}
 	    },
 
