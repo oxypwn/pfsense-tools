@@ -2161,9 +2161,9 @@ FlashDevice () {
 			NANO_SECTS=32
 			;;
 		2048|2g)
-			NANO_MEDIASIZE=4061232
+			NANO_MEDIASIZE=3980592
 			NANO_HEADS=16
-			NANO_SECTS=32
+			NANO_SECTS=63
 			;;
 		*)
 			echo "Unknown Transcend Flash capacity"
