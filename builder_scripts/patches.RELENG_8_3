@@ -67,7 +67,6 @@
 -p1~~if_bridge_gif_mtu.diff~
 ~~if_lagg_panic.diff~
 ~~net80211_WME_fix.diff~
-~~virtio.tgz~
 -p1~~pfaltq_interface_bw.diff~
 ~~tcp_lro_fix.diff~
 ~~scrub_FIN+SYN_drop.diff~
@@ -89,7 +88,6 @@
 -p1~~pf_802.1p.diff~
 -p1~~pf_print_state_queue.diff~
 -p1~~CP_multi_instance_ipfw.diff~
-~~virtio.makefile.diff~
 ~~huawei_k3770.diff~
 ~~huawei_k4505.diff~
 ~sys~carpv6-4.diff~
@@ -114,3 +112,4 @@
 -p1~~mfiutil-from-8-STABLE/0001-MFC-r233713.patch~
 -p1~~mfiutil-from-8-STABLE/0002-MFC-r235634.patch~
 -p1~~mfiutil-from-8-STABLE/0003-MFC-r237259-r237260-r237329.patch~
+-p1~~virtio-from-8-STABLE/0001-MFC-r227652-r228301-r234270-r234349.patch~
