@@ -63,7 +63,8 @@ PORTDOCS=	*
 .if ${OSVERSION} < 900007
 EXTRA_PATCHES+=files/patch8-utmp.diff
 .endif
-EXTRA_PATCHES+=files/patch9-external_script.diff files/patch10-show_users.diff files/patch11-purge_sp_fix.diff files/ipsec-nat.diff
+#EXTRA_PATCHES+=files/patch9-external_script.diff files/patch10-show_users.diff files/patch11-purge_sp_fix.diff files/ipsec-nat.diff
+EXTRA_PATCHES+=files/patch10-show_users.diff files/patch11-purge_sp_fix.diff files/ipsec-nat.diff
 
 .ifdef(WITH_DEBUG)
 CONFIGURE_ARGS+=	--enable-debug
