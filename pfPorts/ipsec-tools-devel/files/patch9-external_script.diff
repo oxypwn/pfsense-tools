@@ -171,7 +171,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_
 +		plog(LLV_ERROR, LOCATION, NULL,
 +                    "execve(\"%s\") failed: %s\n",
 +                    argv[0], strerror(errno));
-+		exit (127);
++		_exit (127);
 +	} else if (pid <= (pid_t)0)
 +		ret = -1;
 +	else {
