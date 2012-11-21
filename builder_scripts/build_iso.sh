@@ -137,7 +137,6 @@ if [ "$PFSPKGFILE" = "" ]; then
 	echo "PFSPKGFILE is not defined.  Setting."
 	PFSPKGFILE=/tmp/pfspackages
 fi
-export PKGFILE=${PFSPKGFILE}
 rm -f $PFSPKGFILE
 (pkg_info | grep bsdinstaller) > $PFSPKGFILE
 (pkg_info | grep lua) >> $PFSPKGFILE
@@ -152,6 +151,7 @@ cat $PFSPKGFILE
 # Add installer bits
 cust_populate_installer_bits
 
+export PKGFILE=${PFSPKGFILE}
 freesbie_make pkginstall
 unset PKGFILE
 
