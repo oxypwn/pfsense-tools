@@ -157,7 +157,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_
 +        //(void)isakmp_cfg_setenv(iph1, &envp, &envc);
 +
 +	plog(LLV_DEBUG, LOCATION, NULL,
-+		"External authentication script starting for user \"%s\""\n", usr);
++		"External authentication script starting for user \"%s\"\n", usr);
 +
 +	if (script_env_append(&envp, &envc, "username", user) != 0) {
 +                plog(LLV_ERROR, LOCATION, NULL, "Cannot set username\n");
@@ -193,7 +193,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_
 +	}
 +
 +	plog(LLV_DEBUG, LOCATION, NULL,
-+		"External authentication script ended for user \"%s\" with status: %d"\n", usr, ret);
++		"External authentication script ended for user \"%s\" with status: %d\n", usr, ret);
 +
 +outscript:
 +	for (c = envp; *c; c++)
