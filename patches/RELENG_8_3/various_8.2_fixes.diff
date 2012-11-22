@@ -1,36 +1,3 @@
-Index: sys/kern/uipc_sockbuf.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/kern/uipc_sockbuf.c,v
-retrieving revision 1.2
-diff -u -r1.2 uipc_sockbuf.c
---- sys/kern/uipc_sockbuf.c	30 May 2011 12:28:53 -0000	1.2
-+++ sys/kern/uipc_sockbuf.c	30 May 2011 12:32:53 -0000
-@@ -531,9 +531,6 @@
- 
- 	SBLASTMBUFCHK(sb);
- 
--	/* Remove all packet headers and mbuf tags to get a pure data chain. */
--	m_demote(m, 1);
--	
- 	sbcompress(sb, m, sb->sb_mbtail);
- 
- 	sb->sb_lastrecord = sb->sb_mb;
-Index: sys/netgraph/ng_base.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/netgraph/ng_base.c,v
-retrieving revision 1.2
-diff -u -r1.2 ng_base.c
---- sys/netgraph/ng_base.c	30 May 2011 12:21:03 -0000	1.2
-+++ sys/netgraph/ng_base.c	30 May 2011 12:32:53 -0000
-@@ -608,7 +608,7 @@
- 	 */
- 	if (type->constructor != NULL) {
- 		if ((error = ng_make_node_common(type, nodepp)) == 0) {
--			if ((error = ((*type->constructor)(*nodepp)) != 0)) {
-+			if ((error = ((*type->constructor)(*nodepp))) != 0) {
- 				NG_NODE_UNREF(*nodepp);
- 			}
- 		}
 Index: sys/netinet/if_ether.c
 ===================================================================
 RCS file: /root/freebsd/repo/src/sys/netinet/if_ether.c,v
@@ -59,18 +26,3 @@ diff -u -r1.2 if_ether.c
  	}
  	IF_AFDATA_UNLOCK(ifp);
  	CURVNET_RESTORE();
-Index: sys/netipsec/key.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/netipsec/key.c,v
-retrieving revision 1.2
-diff -u -r1.2 key.c
---- sys/netipsec/key.c	30 May 2011 12:28:53 -0000	1.2
-+++ sys/netipsec/key.c	30 May 2011 12:34:28 -0000
-@@ -2295,6 +2295,7 @@
- 	}
- 
- 	n = key_setdumpsp(sp, SADB_X_SPDGET, 0, mhp->msg->sadb_msg_pid);
-+	KEY_FREESP(&sp);
- 	if (n != NULL) {
- 		m_freem(m);
- 		return key_sendup_mbuf(so, n, KEY_SENDUP_ONE);
