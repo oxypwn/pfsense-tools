@@ -2,7 +2,7 @@
 # Date created:		20 dec 2004
 # Whom:			vanhu
 #
-# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.30 2011/07/21 05:14:57 dougb Exp $
+# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.19 2007/10/04 06:00:21 edwin Exp $
 
 # TODO: - libipsec issue ?
 #       - cleanup...
@@ -10,10 +10,9 @@
 #       - $LOCALBASE/sbin/setkey Vs /usr/sbin/setkey
 
 PORTNAME=	ipsec-tools
-PORTVERSION=	0.8.0
-PORTREVISION=	2
+PORTVERSION=	0.7.3
 CATEGORIES=	security
-MASTER_SITES=	SF
+MASTER_SITES=	http://ftp.netbsd.org/pub/NetBSD/misc/ipsec-tools/0.7/
 
 MAINTAINER=	vanhu@netasq.com
 COMMENT=	KAME racoon IKE daemon, ipsec-tools version
@@ -27,9 +26,11 @@ USE_BZIP2=	yes
 USE_AUTOTOOLS=	libtool
 GNU_CONFIGURE=	yes
 USE_LDCONFIG=	yes
+CONFIGURE_TARGET=	--build=${MACHINE_ARCH}-portbld-freebsd${OSREL}
 CONFIGURE_ARGS=	--enable-shared --sysconfdir=${PREFIX}/etc/racoon \
 		--localstatedir=${STATEDIR:S/\/racoon//} \
-		--with-pkgversion=freebsd-${PORTVERSION}
+		--with-pkgversion=freebsd-${PORTVERSION} \
+		--enable-adminport --disable-stats
 
 STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
@@ -43,11 +44,11 @@ OPTIONS=	DEBUG		"enable Debug support" off \
 		NATT		"enable NAT-Traversal (kernel-patch required)" on \
 		NATTF		"require NAT-Traversal (fail without kernel-patch)" off \
 		FRAG		"enable IKE fragmentation payload support" on \
-		HYBRID		"enable Hybrid, Xauth and Mode-cfg support" on \
-		PAM		"enable PAM authentication (Xauth server)" off \
-		RADIUS		"enable Radius authentication (Xauth server)" off \
-		LDAP		"enable LDAP authentication (Xauth server)" off \
+		HYBRID		"enable Hybrid Mode-cfg and Xauth support" on \
+		PAM		"enable PAM authentication" off \
 		GSSAPI		"enable GSS-API authentication" off \
+		RADIUS		"enable Radius authentication" on \
+		LDAP		"enable LDAP authentication" on \
 		SAUNSPEC	"enable Unspecified SA mode" on \
 		RC5		"enable RC5 encryption (patented)" off \
 		IDEA		"enable IDEA encryption (patented)" off
@@ -60,22 +61,13 @@ PORTDOCS=	*
 
 .include <bsd.port.pre.mk>
 
-.if ${OSVERSION} < 900007
-EXTRA_PATCHES+=files/patch8-utmp.diff
-.endif
-EXTRA_PATCHES+=files/patch9-external_script.diff files/patch10-show_users.diff files/patch11-purge_sp_fix.diff files/ipsec-nat.diff
-
 .ifdef(WITH_DEBUG)
 CONFIGURE_ARGS+=	--enable-debug
 .else
 CONFIGURE_ARGS+=	--disable-debug
 .endif
 
-.ifdef(WITH_IPV6)
 CONFIGURE_ARGS+=	--enable-ipv6
-.else
-CONFIGURE_ARGS+=	--disable-ipv6
-.endif
 
 .ifdef(WITH_ADMINPORT)
 CONFIGURE_ARGS+=	--enable-adminport
@@ -132,14 +124,10 @@ CONFIGURE_ARGS+=	--enable-gssapi
 CONFIGURE_ARGS+=	--disable-gssapi
 .endif
 
-.ifdef(WITH_RADIUS)
 CONFIGURE_ARGS+=	--with-libradius
-.else
-CONFIGURE_ARGS+=	--without-libradius
-.endif
 
 .ifdef(WITH_LDAP)
-USE_OPENLDAP=	YES
+USE_OPENLDAP=   YES
 CONFIGURE_ARGS+=	--with-libldap=${LOCALBASE}
 .else
 CONFIGURE_ARGS+=	--without-libldap
@@ -163,17 +151,15 @@ CONFIGURE_ARGS+=	--enable-idea
 CONFIGURE_ARGS+=	--disable-idea
 .endif
 
-.if ${OSVERSION} < 800000
 .ifdef(WITH_NATT)
 pre-configure:
 	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
 	@${ECHO_MSG} "===> ATTENTION: You need a kernel patch to enable NAT-Traversal functionality!"
-	@${ECHO_MSG} "===> latest known patch for FreeBSD 7 is available here:"
-	@${ECHO_MSG} "===>     http://people.freebsd.org/~bz/20110123-01-stable7-natt.diff"
+	@${ECHO_MSG} "===> You can download the patch here:"
+	@${ECHO_MSG} "===>     http://ipsec-tools.sf.net/freebsd6-natt.diff"
 	@${ECHO_MSG} "===> You might possibly have to do some steps manually if it fails to apply."
 	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
 	@sleep 3
-.endif
 .endif
 
 post-install:
