@@ -22,7 +22,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
  	|	modecfg_statement
  	|	timer_statement
  	|	sainfo_statement
-@@ -485,6 +488,19 @@
+@@ -485,6 +488,20 @@
  	|	PORT		{ $$ = $1; }
  	;
  
@@ -32,6 +32,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
 +#ifdef ENABLE_HYBRID
 +		vfree(xauth_external_config.script);
 +		xauth_external_config.script = vdup($4);
++		vfree($4);
 +#else
 +		yyerror("racoon not configured with --enable-hybrid");
 +		return -1;
@@ -145,7 +146,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_
 +xauth_login_script(struct ph1handle *iph1, char *user, char *pwd)
 +{
 +	pid_t pid, rpid;
-+	char **envp, **c;
++	char **envp = NULL, **c;
 +	char *argv[] = { NULL, NULL, NULL };
 +	int envc = 1;
 +	int ret = -1;
