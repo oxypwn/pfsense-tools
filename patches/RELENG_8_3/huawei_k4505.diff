@@ -1,3 +1,6 @@
+Upstream status: pfSense only, PR opened 
+FreeBSD PR: usb/173503: Add IDs for Huawei K3770 and K4507
+
 --- ./sys/dev/usb/serial/u3g.c	2012-03-06 14:37:00.000000000 +0100
 +++ ./sys/dev/usb/serial/u3g.c.new	2012-06-03 18:19:07.000000000 +0200
 @@ -290,6 +290,8 @@
