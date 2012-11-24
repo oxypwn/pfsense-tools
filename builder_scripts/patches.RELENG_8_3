@@ -95,6 +95,10 @@
 ~sys/conf~ath_conf_files.diff~
 -p1~~atom_video_fix.diff~
 -p1~~ipsec_bypass_route-to.diff~
+-p1~~cardbus-from-8-STABLE/0001-MFC-r232991.patch~
+-p1~~cardbus-from-8-STABLE/0002-MFC-232360.patch~
+-p1~~cardbus-from-8-STABLE/0003-MFC-232403-232667.patch~
+-p1~~cardbus-from-8STABLE/0004-MFC-201279-201280-201286-213907-214146-220195-222753.patch~
 -p1~~e1000-from-8-STABLE/0001-MFC-232367.patch~
 -p1~~e1000-from-8-STABLE/0002-MFC-r233423.patch~
 -p1~~e1000-from-8-STABLE/0003-MFC-233708-234154.patch~
