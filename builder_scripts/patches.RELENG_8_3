@@ -81,7 +81,6 @@
 ~~ip_divert_increase_buf.diff~
 ~~makefile.inc1.diff~
 -p1~~pf_match_dummynet.diff~
--p1~~freebsd8-6rd-20100130.patch~
 ~~stf_6rd_20100923-1.diff~
 ~sys/contrib/pf/net~pfsync_state_timeout.diff~
 -p1~~pf_route-to-crash_fixes.diff~
