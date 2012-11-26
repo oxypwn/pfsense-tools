@@ -2,12 +2,11 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: ports/www/lighttpd/Makefile,v 1.112 2012/06/16 22:28:41 mm Exp $
+# $FreeBSD: head/www/lighttpd/Makefile 307617 2012-11-21 14:36:24Z mm $
 #
 
 PORTNAME?=	lighttpd
-PORTVERSION=	1.4.31
-PORTREVISION=	2
+PORTVERSION=	1.4.32
 CATEGORIES?=	www
 MASTER_SITES?=	http://download.lighttpd.net/lighttpd/releases-1.4.x/
 
@@ -19,13 +18,13 @@ LICENSE=	BSD
 LICENSE_FILE=	${WRKSRC}/COPYING
 .endif
 
-BUILD_DEPENDS+=	pkg-config:${PORTSDIR}/devel/pkg-config
 LIB_DEPENDS+=	pcre.1:${PORTSDIR}/devel/pcre
 
 USE_BZIP2=	yes
 GNU_CONFIGURE=	yes
 USE_GNOME=	lthack
 USE_GMAKE=	yes
+USE_PKGCONFIG=	yes
 MAKE_JOBS_SAFE=	yes
 
 #.if !defined(_BUILDING_LIGHTTPD_MODULE)
@@ -41,32 +40,27 @@ CFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
 
 .if !defined(_BUILDING_LIGHTTPD_MODULE)
-USE_RC_SUBR=	lighttpd.sh
+USE_RC_SUBR=	lighttpd
 
 MAN8=		lighttpd.8
 
-OPTIONS=	BZIP2		"Enable Bzip2 support" off \
-		CML		"Enable Cache Meta Language support" off \
-		FAM		"Enable fam/gamin support" off \
-		GDBM		"Enable gdbm storage support" off \
-		IPV6		"Enable IPV6 support" on \
-		LIBEV		"Enable libev support" off \
-		MAGNET		"Enable magnet support" off \
-		MEMCACHE	"Enable memory caching support" off \
-		MYSQL		"Enable MYSQL support" off \
-		MYSQLAUTH	"Enable mysql auth (requires WITH_MYSQL)" off \
-		NODELAY		"Set TCP_NODELAY on listening sockets" on \
-		OPENLDAP	"Enable LDAP support" off \
-		OPENSSL		"Enable SSL support" on \
-		SPAWNFCGI	"Depend on spawn-fcgi utility" on \
-		VALGRIND	"Enable valgrind support" off \
-		WEBDAV		"Enable WebDAV support"	off \
-		REMOTEUSER	"Add remote-user to conditionals" off
+OPTIONS_DEFINE=	BZIP2 FAM GDBM IPV6 LIBEV LUA MEMCACHE MYSQL MYSQLAUTH \
+		NODELAY LDAP OPENSSL SPAWNFCGI VALGRIND WEBDAV REMOTEUSER
 
-.if !defined(NOPORTDOCS)
-DOCS=		AUTHORS COPYING INSTALL NEWS README
-PORTDOCS=	${DOCS}
-.endif
+OPTIONS_DEFAULT=	IPV6 OPENSSL NODELAY SPAWNFCGI
+
+BZIP2_DESC=	bzip2 support (mod_compress)
+GDBM_DESC=	gdbm storage (mod_trigger_b4_dl)
+LDAP_DESC=	LDAP authentication
+LUA_DESC=	lua support (mod_cml, mod_magnet)
+MEMCACHE_DESC=	memcached storage (mod_trigger_b4_dl)
+MYSQL_DESC=	MySQL support (mod_mysql_vhost)
+MYSQLAUTH_DESC=	MySQL authentication (requires WITH_MYSQL)
+NODELAY_DESC=	Set TCP_NODELAY on listening sockets
+SPAWNFCGI_DESC=	Depend on spawn-fcgi utility
+VALGRIND_DESC=	valgrind support
+WEBDAV_DESC=	WebDAV support
+REMOTEUSER_DESC=	Add remote-user to conditionals
 
 LIGHTTPD_CONF_FILES=	lighttpd.conf modules.conf
 
@@ -98,86 +92,89 @@ PLIST_SUB+=		LOGROOT="${LIGHTTPD_LOGROOT}" \
 # Default REQUIRE to rc.d script
 _REQUIRE=	DAEMON
 
-.if !defined(WITHOUT_OPENSSL)
+.if ${PORT_OPTIONS:MDOCS}
+DOCS=		AUTHORS COPYING INSTALL NEWS README
+PORTDOCS=	${DOCS}
+.endif
+
+.if ${PORT_OPTIONS:MOPENSSL}
 .include "${PORTSDIR}/Mk/bsd.openssl.mk"
 CONFIGURE_ARGS+=	--with-openssl \
 			--with-openssl-includes=${OPENSSLINC} \
 			--with-openssl-libs=${OPENSSLLIB}
 .endif
 
-.if defined(WITH_BZIP2)
+.if ${PORT_OPTIONS:MBZIP2}
 CONFIGURE_ARGS+=	--with-bzip2
 .endif
 
-.if defined(WITH_CML)
-USE_LUA=		yes
-CONFIGURE_ARGS+=	--with-lua
-CONFIGURE_ENV+=		LUA_CFLAGS="-I${LUA_INCDIR}" LUA_LIBS="-L${LUA_LIBDIR} -llua"
-.endif
-
-.if defined(WITH_FAM)
+.if ${PORT_OPTIONS:MFAM}
 USE_FAM=		yes
 CONFIGURE_ARGS+=	--with-fam
 CONFIGURE_ENV+=		FAM_CFLAGS="-I${LOCALBASE}/include" FAM_LIBS="-L${LOCALBASE}/lib"
 .endif
 
-.if defined(WITH_GDBM)
+.if ${PORT_OPTIONS:MGDBM}
 LIB_DEPENDS+=		gdbm:${PORTSDIR}/databases/gdbm
 CONFIGURE_ARGS+=	--with-gdbm
 .endif
 
-.if defined(WITH_LIBEV)
+.if empty(PORT_OPTIONS:MIPV6)
+CONFIGURE_ARGS+=	--disable-ipv6
+.endif
+
+.if ${PORT_OPTIONS:MLIBEV}
 CONFIGURE_ARGS+=	--with-libev=${LOCALBASE}
 LIB_DEPENDS+=		ev.4:${PORTSDIR}/devel/libev
 .endif
 
-.if defined(WITH_MAGNET)
-USE_LUA=		5.1+
+.if ${PORT_OPTIONS:MLUA}
+USE_LUA=		5.1
 CONFIGURE_ARGS+=	--with-lua
 CONFIGURE_ENV+=		LUA_CFLAGS="-I${LUA_INCDIR}" LUA_LIBS="-L${LUA_LIBDIR} -llua"
 .endif
 
-.if defined(WITH_MEMCACHE)
+.if ${PORT_OPTIONS:MMEMCACHE}
 LIB_DEPENDS+=		memcache.4:${PORTSDIR}/databases/libmemcache
 CONFIGURE_ARGS+=	--with-memcache
 .endif
 
-.if defined(WITH_MYSQL)
+.if ${PORT_OPTIONS:MMYSQL}
 USE_MYSQL=		yes
 CONFIGURE_ARGS+=	--with-mysql
 _REQUIRE+=		mysql
 .endif
 
-.if defined(WITH_MYSQLAUTH) && !defined(WITH_MYSQL)
+.if ${PORT_OPTIONS:MMYSQLAUTH} && empty(PORT_OPTIONS:MMYSQL)
 IGNORE=		option WITH_MYSQLAUTH requires WITH_MYSQL
 .endif
 
-.if defined(WITH_MYSQLAUTH)
+.if ${PORT_OPTIONS:MMYSQLAUTH}
 EXTRA_PATCHES+=		${FILESDIR}/extra-patch-mysqlauth
 PORTDOCS+=		README.mysqlauth mysql_auth.sql
 .endif
 
-.if defined(WITH_NODELAY)
+.if ${PORT_OPTIONS:MNODELAY}
 EXTRA_PATCHES+=		${FILESDIR}/extra-patch-nodelay
 .endif
 
-.if defined(WITH_OPENLDAP)
+.if ${PORT_OPTIONS:MLDAP}
 USE_OPENLDAP=		yes
 CONFIGURE_ARGS+=	--with-ldap
 _REQUIRE+=		slapd
 .endif
 
-.if defined(WITH_SPAWNFCGI)
+.if ${PORT_OPTIONS:MSPAWNFCGI}
 RUN_DEPENDS+=		spawn-fcgi:${PORTSDIR}/www/spawn-fcgi
 .endif
 
-.if defined(WITH_VALGRIND)
+.if ${PORT_OPTIONS:MVALGRIND}
 BUILD_DEPENDS+=		valgrind:${PORTSDIR}/devel/valgrind
 RUN_DEPENDS+=		valgrind:${PORTSDIR}/devel/valgrind
 CONFIGURE_ARGS+=	--with-valgrind
 .endif
 
-.if defined(WITH_WEBDAV)
+.if ${PORT_OPTIONS:MWEBDAV}
 USE_GNOME+=		libxml2
 LIB_DEPENDS+=		uuid.1:${PORTSDIR}/misc/e2fsprogs-libuuid \
 			sqlite3.8:${PORTSDIR}/databases/sqlite3
@@ -185,7 +182,7 @@ CONFIGURE_ARGS+=	--with-webdav-props --with-webdav-locks
 .endif
 
 # 3rd party remoteuser patch (lighttpd feature request #2415)
-.if defined(WITH_REMOTEUSER)
+.if ${PORT_OPTIONS:MREMOTEUSER}
 EXTRA_PATCHES+=		${FILESDIR}/extra-patch-remoteuser
 .endif
 
@@ -207,6 +204,9 @@ post-patch:
 		${WRKSRC}/doc/config/lighttpd.conf
 	@${REINPLACE_CMD} -e "s|/etc/lighttpd|${PREFIX}/etc/lighttpd|g" \
 		${WRKSRC}/doc/config/conf.d/auth.conf
+	@${REINPLACE_CMD} -e "s|/usr/bin/python|${LOCALBASE}/bin/python|" \
+		${WRKSRC}/doc/config/conf.d/cgi.conf \
+		${WRKSRC}/tests/*.conf
 	@${ECHO} >> ${WRKSRC}/doc/config/lighttpd.conf
 	@${ECHO} "# IPv4 listening socket" >> \
 		${WRKSRC}/doc/config/lighttpd.conf
@@ -236,13 +236,13 @@ post-install:
 	@${MKDIR} -m 0700 ${LIGHTTPD_LOGROOT}
 	@${CHOWN} ${LIGHTTPD_USER}:${LIGHTTPD_GROUP} ${LIGHTTPD_LOGROOT}
 
-.if !defined(NOPORTDOCS)
+.if ${PORT_OPTIONS:MDOCS}
 	@${MKDIR} ${DOCSDIR}
 . for FILE in ${DOCS}
 	@${INSTALL_DATA} ${WRKSRC}/${FILE} ${DOCSDIR}/${FILE}
 . endfor
 .endif
-.if defined(WITH_MYSQLAUTH)
+.if ${PORT_OPTIONS:MMYSQLAUTH}
 . for FILE in README.mysqlauth mysql_auth.sql
 	@${INSTALL_DATA} ${FILESDIR}/${FILE} ${DOCSDIR}/${FILE}
 . endfor
