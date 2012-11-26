@@ -24,7 +24,6 @@
 ~~ipsec_altq.RELENG_8.diff~
 ~~ipfw_dummynet_bandwidth.diff~
 -p1~~CP_speedup.diff~
-~sys/sys~proc.h.diff~
 ~sys/modules/ipfw~ipfw.diff~
 ~sys/netgraph~ng_iface.RELENG_8.diff~
 ~~ng_eiface.RELENG_8.diff~
@@ -53,7 +52,7 @@
 ~~carp_correct_mac.diff~
 ~~route-to_without_gw.diff~
 ~~pfvar_addr_compare.RELENG_8.diff~
-~~pf_route_to_daemon_friendly.RELENG_8.diff~
+-p1~~pf_route_to_daemon_friendly.RELENG_8.diff~
 ~~IPSEC_sysctl.RELENG_8.diff~
 ~~max_linkhdr.diff~
 ~sys/boot/forth~beastie.4th.diff~
@@ -80,7 +79,6 @@
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
 ~~makefile.inc1.diff~
--p1~~pf_match_dummynet.diff~
 ~~stf_6rd_20100923-1.diff~
 ~sys/contrib/pf/net~pfsync_state_timeout.diff~
 -p1~~pf_route-to-crash_fixes.diff~
