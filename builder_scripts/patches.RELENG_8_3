@@ -17,7 +17,6 @@
 ~~reply-to.RELENG_8.diff~
 ~~binat.RELENG_8.diff~
 ~~nat_ftphelper.RELENG_8.diff~
-~sys/contrib/pf/net~ipfw_forward.RELENG_8.diff~
 ~~schedule_label.RELENG_8.diff~
 ~~pfil.RELENG_8.diff~
 ~~ipsec_wrong_check.RELENG_8.diff~
@@ -29,7 +28,7 @@
 ~~ng_eiface.RELENG_8.diff~
 ~sys/boot~lib386boot.diff~
 ~usr.sbin/syslogd~syslogd.c.diff~
-~sys/contrib/pf/net~pf.c.diff~
+-p1~sys/contrib/pf/net~pf.c.diff~
 ~~~~usr.sbin/clog~
 ~usr.sbin/clog~clog.diff~
 ~~netstat_ifname_size.diff~
@@ -47,13 +46,13 @@
 ~~tcpmd5_RST_timeout.RELENG_8.diff~
 ~~wpa_correct_mac_address.RELENG_8.diff~
 ~~wpa_RSN_PREAUTH_support.diff~
-~~pf_route-to_fragemnts.RELENG_8.diff~
+-p1~~pf_route-to_fragemnts.RELENG_8.diff~
 ~~ng_ether_attach_command.diff~
 ~~carp_correct_mac.diff~
 ~~route-to_without_gw.diff~
 ~~pfvar_addr_compare.RELENG_8.diff~
 -p1~~pf_route_to_daemon_friendly.RELENG_8.diff~
-~~IPSEC_sysctl.RELENG_8.diff~
+-p1~~IPSEC_sysctl.RELENG_8.diff~
 ~~max_linkhdr.diff~
 ~sys/boot/forth~beastie.4th.diff~
 ~~carp_replay_protection.diff~
@@ -71,7 +70,7 @@
 ~~scrub_FIN+SYN_drop.diff~
 -p1~~carp_ip_alias_fix.diff~
 ~sys/net~ifqueue_maxlen.diff~
-~~pf_stickies_fix2.diff~
+-p1~~pf_stickies_fix2.diff~
 ~~netisr_default_values.diff~
 ~~ip_dstchng_fix.diff~
 ~~if_pfsync.diff~
@@ -91,7 +90,6 @@
 ~~ath_9-STABLE.tgz~
 ~sys/conf~ath_conf_files.diff~
 -p1~~atom_video_fix.diff~
--p1~~ipsec_bypass_route-to.diff~
 -p1~~cardbus-from-8-STABLE/0001-MFC-r232991.patch~
 -p1~~cardbus-from-8-STABLE/0002-MFC-232360.patch~
 -p1~~cardbus-from-8-STABLE/0003-MFC-232403-232667.patch~
