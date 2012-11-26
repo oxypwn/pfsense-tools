@@ -14,7 +14,7 @@
 -p1~~dummynet.RELENG_8.diff~
 ~~divert.RELENG_8.diff~
 ~~get_tag_altq_ids.RELENG_8.diff~
-~~reply-to.RELENG_8.diff~
+-p1~~reply-to.RELENG_8.diff~
 ~~binat.RELENG_8.diff~
 ~~nat_ftphelper.RELENG_8.diff~
 ~~schedule_label.RELENG_8.diff~
