@@ -1,11 +1,8 @@
-Index: sys/contrib/pf/net/pf.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.10
-diff -u -r1.10 pf.c
---- sys/contrib/pf/net/pf.c	18 Oct 2010 19:55:34 -0000	1.10
-+++ sys/contrib/pf/net/pf.c	18 Oct 2010 22:23:07 -0000
-@@ -6534,6 +6534,34 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index faacde1..197f38e 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -6645,6 +6645,34 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  	if (oifp != ifp) {
  		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
  			goto donelocal;
