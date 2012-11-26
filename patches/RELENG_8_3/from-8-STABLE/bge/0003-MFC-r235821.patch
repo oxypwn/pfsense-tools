@@ -1,0 +1,30 @@
+From 8e2ee6b7b39b2e56c73ea846ac5458cfe28e8866 Mon Sep 17 00:00:00 2001
+From: yongari <yongari@FreeBSD.org>
+Date: Tue, 29 May 2012 04:53:46 +0000
+Subject: [PATCH 03/12] MFC r235821:   Don't force max payload size to 128.
+ Root complex and Endpoint will   negotiate with each
+ other on the TLP payload size so blindly   forcing
+ the size to 128 can cause a completion error which in
+ turn   will stop device.
+
+  Reported by:	Geans Pin < geanspin <> broadcom dot com >
+---
+ sys/dev/bge/if_bge.c |    2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/sys/dev/bge/if_bge.c b/sys/dev/bge/if_bge.c
+index 3b6b951..5e7fe03 100644
+--- a/sys/dev/bge/if_bge.c
++++ b/sys/dev/bge/if_bge.c
+@@ -3663,8 +3663,6 @@ bge_reset(struct bge_softc *sc)
+ 		/* Clear enable no snoop and disable relaxed ordering. */
+ 		devctl &= ~(PCIM_EXP_CTL_RELAXED_ORD_ENABLE |
+ 		    PCIM_EXP_CTL_NOSNOOP_ENABLE);
+-		/* Set PCIE max payload size to 128. */
+-		devctl &= ~PCIM_EXP_CTL_MAX_PAYLOAD;
+ 		pci_write_config(dev, sc->bge_expcap + PCIR_EXPRESS_DEVICE_CTL,
+ 		    devctl, 2);
+ 		/* Clear error status. */
+-- 
+1.7.9.5
+

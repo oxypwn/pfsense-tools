@@ -1,0 +1,40 @@
+From 5ded9f57d85f8f81020aab1e361cb09c50c060da Mon Sep 17 00:00:00 2001
+From: Mathieu Simon <mathieu.simon@simweb.ch>
+Date: Mon, 26 Nov 2012 15:49:57 +0100
+Subject: [PATCH 05/12] MFC: r236488
+
+Take advantage of nitems().
+
+pfSense note: Exludes modifications to sys/dev/sym_hipd.c
+Cause: Only want to track the changes against bge.
+---
+ sys/dev/bge/if_bge.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/sys/dev/bge/if_bge.c b/sys/dev/bge/if_bge.c
+index bbc770a..f3d5ca9 100644
+--- a/sys/dev/bge/if_bge.c
++++ b/sys/dev/bge/if_bge.c
+@@ -2791,9 +2791,8 @@ bge_mbox_reorder(struct bge_softc *sc)
+ 	};
+ 	devclass_t pci, pcib;
+ 	device_t bus, dev;
+-	int count, i;
++	int i;
+ 
+-	count = sizeof(mbox_reorder_lists) / sizeof(mbox_reorder_lists[0]);
+ 	pci = devclass_find("pci");
+ 	pcib = devclass_find("pcib");
+ 	dev = sc->bge_dev;
+@@ -2806,7 +2805,7 @@ bge_mbox_reorder(struct bge_softc *sc)
+ 		    device_get_name(bus), device_get_unit(bus));
+ 		if (device_get_devclass(dev) != pcib)
+ 			break;
+-		for (i = 0; i < count; i++) {
++		for (i = 0; i < nitems(mbox_reorder_lists); i++) {
+ 			device_printf(sc->bge_dev,
+ 			    "probing dev : %s%d, vendor : 0x%04x "
+ 			    "device : 0x%04x\n",
+-- 
+1.7.9.5
+

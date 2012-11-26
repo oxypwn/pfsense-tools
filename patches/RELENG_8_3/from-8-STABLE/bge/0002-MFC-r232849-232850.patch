@@ -1,0 +1,162 @@
+From c5d4c11e2d196af57c0d3e3b5b97c14f2700d716 Mon Sep 17 00:00:00 2001
+From: yongari <yongari@FreeBSD.org>
+Date: Mon, 26 Mar 2012 04:49:57 +0000
+Subject: [PATCH 02/12] MFC r232849-232850: r232849:   Show PCI bus speed and
+ width as well as running mode of PCI-X   device in
+ device attach.  This would help to narrow down issue
+ to a   specific controller and operating mode of the
+ controller.   While I'm here rename
+ BGE_MISCCFG_BOARD_ID with  
+ BGE_MISCCFG_BOARD_ID_MASK.
+
+r232850:
+  Make if_ierrors updated whenever any of the following counters are
+  updated.
+   o Number of times NIC ran out of RX buffer descriptors
+   o Number of inbound packet errors
+   o Number of inbound packets that were chosen to be discarded
+  Previously only the discarded packet counter was used to update
+  if_ierrors.  This change fixes wrong if_ierrors counter on
+  BCM570[0-4] controllers.  For BCM5705 and later controllers bge(4)
+  already correctly counted it.
+
+  Reported by:	Eugene Grosbein <egrosbein <> rdtc dot ru>
+---
+ sys/dev/bge/if_bge.c    |   68 ++++++++++++++++++++++++++++++++++++++++++-----
+ sys/dev/bge/if_bgereg.h |    6 ++++-
+ 2 files changed, 67 insertions(+), 7 deletions(-)
+
+diff --git a/sys/dev/bge/if_bge.c b/sys/dev/bge/if_bge.c
+index 5a8d28e..3b6b951 100644
+--- a/sys/dev/bge/if_bge.c
++++ b/sys/dev/bge/if_bge.c
+@@ -380,6 +380,7 @@ static void bge_dma_free(struct bge_softc *);
+ static int bge_dma_ring_alloc(struct bge_softc *, bus_size_t, bus_size_t,
+     bus_dma_tag_t *, uint8_t **, bus_dmamap_t *, bus_addr_t *, const char *);
+ 
++static void bge_devinfo(struct bge_softc *);
+ static int bge_mbox_reorder(struct bge_softc *);
+ 
+ static int bge_get_eaddr_fw(struct bge_softc *sc, uint8_t ether_addr[]);
+@@ -2828,6 +2829,59 @@ bge_mbox_reorder(struct bge_softc *sc)
+ 	return (0);
+ }
+ 
++static void
++bge_devinfo(struct bge_softc *sc)
++{
++	uint32_t cfg, clk;
++
++	device_printf(sc->bge_dev,
++	    "CHIP ID 0x%08x; ASIC REV 0x%02x; CHIP REV 0x%02x; ",
++	    sc->bge_chipid, sc->bge_asicrev, sc->bge_chiprev);
++	if (sc->bge_flags & BGE_FLAG_PCIE)
++		printf("PCI-E\n");
++	else if (sc->bge_flags & BGE_FLAG_PCIX) {
++		printf("PCI-X ");
++		cfg = CSR_READ_4(sc, BGE_MISC_CFG) & BGE_MISCCFG_BOARD_ID_MASK;
++		if (cfg == BGE_MISCCFG_BOARD_ID_5704CIOBE)
++			clk = 133;
++		else {
++			clk = CSR_READ_4(sc, BGE_PCI_CLKCTL) & 0x1F;
++			switch (clk) {
++			case 0:
++				clk = 33;
++				break;
++			case 2:
++				clk = 50;
++				break;
++			case 4:
++				clk = 66;
++				break;
++			case 6:
++				clk = 100;
++				break;
++			case 7:
++				clk = 133;
++				break;
++			}
++		}
++		printf("%u MHz\n", clk);
++	} else {
++		if (sc->bge_pcixcap != 0)
++			printf("PCI on PCI-X ");
++		else
++			printf("PCI ");
++		cfg = pci_read_config(sc->bge_dev, BGE_PCI_PCISTATE, 4);
++		if (cfg & BGE_PCISTATE_PCI_BUSSPEED)
++			clk = 66;
++		else
++			clk = 33;
++		if (cfg & BGE_PCISTATE_32BIT_BUS)
++			printf("%u MHz; 32bit\n", clk);
++		else
++			printf("%u MHz; 64bit\n", clk);
++	}
++}
++
+ static int
+ bge_attach(device_t dev)
+ {
+@@ -3056,7 +3110,7 @@ bge_attach(device_t dev)
+ 	if (sc->bge_asicrev == BGE_ASICREV_BCM5719)
+ 		sc->bge_flags |= BGE_FLAG_4K_RDMA_BUG;
+ 
+-	misccfg = CSR_READ_4(sc, BGE_MISC_CFG) & BGE_MISCCFG_BOARD_ID;
++	misccfg = CSR_READ_4(sc, BGE_MISC_CFG) & BGE_MISCCFG_BOARD_ID_MASK;
+ 	if (sc->bge_asicrev == BGE_ASICREV_BCM5705) {
+ 		if (misccfg == BGE_MISCCFG_BOARD_ID_5788 ||
+ 		    misccfg == BGE_MISCCFG_BOARD_ID_5788M)
+@@ -3196,11 +3250,7 @@ bge_attach(device_t dev)
+ 		goto fail;
+ 	}
+ 
+-	device_printf(dev,
+-	    "CHIP ID 0x%08x; ASIC REV 0x%02x; CHIP REV 0x%02x; %s\n",
+-	    sc->bge_chipid, sc->bge_asicrev, sc->bge_chiprev,
+-	    (sc->bge_flags & BGE_FLAG_PCIX) ? "PCI-X" :
+-	    ((sc->bge_flags & BGE_FLAG_PCIE) ? "PCI-E" : "PCI"));
++	bge_devinfo(sc);
+ 
+ 	BGE_LOCK_INIT(sc, device_get_nameunit(dev));
+ 
+@@ -4464,6 +4514,12 @@ bge_stats_update(struct bge_softc *sc)
+ 	ifp->if_collisions += (uint32_t)(cnt - sc->bge_tx_collisions);
+ 	sc->bge_tx_collisions = cnt;
+ 
++	cnt = READ_STAT(sc, stats, nicNoMoreRxBDs.bge_addr_lo);
++	ifp->if_ierrors += (uint32_t)(cnt - sc->bge_rx_nobds);
++	sc->bge_rx_nobds = cnt;
++	cnt = READ_STAT(sc, stats, ifInErrors.bge_addr_lo);
++	ifp->if_ierrors += (uint32_t)(cnt - sc->bge_rx_inerrs);
++	sc->bge_rx_inerrs = cnt;
+ 	cnt = READ_STAT(sc, stats, ifInDiscards.bge_addr_lo);
+ 	ifp->if_ierrors += (uint32_t)(cnt - sc->bge_rx_discards);
+ 	sc->bge_rx_discards = cnt;
+diff --git a/sys/dev/bge/if_bgereg.h b/sys/dev/bge/if_bgereg.h
+index e9a59a5..309114a 100644
+--- a/sys/dev/bge/if_bgereg.h
++++ b/sys/dev/bge/if_bgereg.h
+@@ -1989,7 +1989,9 @@
+ /* Misc. config register */
+ #define	BGE_MISCCFG_RESET_CORE_CLOCKS	0x00000001
+ #define	BGE_MISCCFG_TIMER_PRESCALER	0x000000FE
+-#define	BGE_MISCCFG_BOARD_ID		0x0001E000
++#define	BGE_MISCCFG_BOARD_ID_MASK	0x0001E000
++#define	BGE_MISCCFG_BOARD_ID_5704	0x00000000
++#define	BGE_MISCCFG_BOARD_ID_5704CIOBE	0x00004000
+ #define	BGE_MISCCFG_BOARD_ID_5788	0x00010000
+ #define	BGE_MISCCFG_BOARD_ID_5788M	0x00018000
+ #define	BGE_MISCCFG_EPHY_IDDQ		0x00200000
+@@ -2869,6 +2871,8 @@ struct bge_softc {
+ 	int			bge_csum_features;
+ 	struct callout		bge_stat_ch;
+ 	uint32_t		bge_rx_discards;
++	uint32_t		bge_rx_inerrs;
++	uint32_t		bge_rx_nobds;
+ 	uint32_t		bge_tx_discards;
+ 	uint32_t		bge_tx_collisions;
+ #ifdef DEVICE_POLLING
+-- 
+1.7.9.5
+
