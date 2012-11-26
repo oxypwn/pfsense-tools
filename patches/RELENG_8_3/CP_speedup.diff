@@ -1,27 +1,5 @@
-diff --git a/sbin/ifconfig/ifconfig.c b/sbin/ifconfig/ifconfig.c
-index 6bc02b6..851afe4 100644
---- a/sbin/ifconfig/ifconfig.c
-+++ b/sbin/ifconfig/ifconfig.c
-@@ -862,7 +862,7 @@ unsetifdescr(const char *val, int value, int s, const struct afswtch *afp)
- #define	IFFBITS \
- "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\6SMART\7RUNNING" \
- "\10NOARP\11PROMISC\12ALLMULTI\13OACTIVE\14SIMPLEX\15LINK0\16LINK1\17LINK2" \
--"\20MULTICAST\22PPROMISC\23MONITOR\24STATICARP"
-+"\20MULTICAST\22PPROMISC\23MONITOR\24STATICARP\25IPFW_FILTER"
- 
- #define	IFCAPBITS \
- "\020\1RXCSUM\2TXCSUM\3NETCONS\4VLAN_MTU\5VLAN_HWTAGGING\6JUMBO_MTU\7POLLING" \
-@@ -1127,6 +1127,8 @@ static struct cmd basic_cmds[] = {
- 	DEF_CMD("-monitor",	-IFF_MONITOR,	setifflags),
- 	DEF_CMD("staticarp",	IFF_STATICARP,	setifflags),
- 	DEF_CMD("-staticarp",	-IFF_STATICARP,	setifflags),
-+	DEF_CMD("ipfwfilter",	IFF_IPFW_FILTER,	setifflags),
-+	DEF_CMD("-ipfwfilter",	-IFF_IPFW_FILTER,	setifflags),
- 	DEF_CMD("rxcsum",	IFCAP_RXCSUM,	setifcap),
- 	DEF_CMD("-rxcsum",	-IFCAP_RXCSUM,	setifcap),
- 	DEF_CMD("txcsum",	IFCAP_TXCSUM,	setifcap),
 diff --git a/sbin/ipfw/ipfw2.c b/sbin/ipfw/ipfw2.c
-index dcf0067..39921c5 100644
+index 6d1ffb4..adee94f 100644
 --- a/sbin/ipfw/ipfw2.c
 +++ b/sbin/ipfw/ipfw2.c
 @@ -377,7 +377,9 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
@@ -155,20 +133,8 @@ index dcf0067..39921c5 100644
  	}
  	free(tbl);
  }
-diff --git a/sys/net/if.h b/sys/net/if.h
-index 0046233..e6e3cae 100644
---- a/sys/net/if.h
-+++ b/sys/net/if.h
-@@ -151,6 +151,7 @@ struct if_data {
- #define	IFF_STATICARP	0x80000		/* (n) static ARP */
- #define	IFF_DYING	0x200000	/* (n) interface is winding down */
- #define	IFF_RENAMING	0x400000	/* (n) interface is being renamed */
-+#define	IFF_IPFW_FILTER 0x100000        /* pfSense hack for CP speeding up */
- 
- /*
-  * Old names for driver flags so that user space tools can continue to use
 diff --git a/sys/net/if_ethersubr.c b/sys/net/if_ethersubr.c
-index d5ed209..3b3d2ff 100644
+index 72f02fe..6c10211 100644
 --- a/sys/net/if_ethersubr.c
 +++ b/sys/net/if_ethersubr.c
 @@ -143,7 +143,7 @@ MALLOC_DEFINE(M_ARPCOM, "arpcom", "802.* interface internals");
@@ -258,7 +224,7 @@ index d5ed209..3b3d2ff 100644
  
  	/*
 diff --git a/sys/netinet/in.h b/sys/netinet/in.h
-index 233b44f..5688e10 100644
+index eb6a0c7..1929cdd 100644
 --- a/sys/netinet/in.h
 +++ b/sys/netinet/in.h
 @@ -453,6 +453,8 @@ __END_DECLS
@@ -271,7 +237,7 @@ index 233b44f..5688e10 100644
  #define	IP_FW3			48   /* generic ipfw v.3 sockopts */
  #define	IP_DUMMYNET3		49   /* generic dummynet v.3 sockopts */
 diff --git a/sys/netinet/ip_fw.h b/sys/netinet/ip_fw.h
-index 6f418ec..852c2ea 100644
+index c46d212..abb4271 100644
 --- a/sys/netinet/ip_fw.h
 +++ b/sys/netinet/ip_fw.h
 @@ -570,9 +570,13 @@ struct _ipfw_dyn_rule {
@@ -289,20 +255,10 @@ index 6f418ec..852c2ea 100644
  
  typedef struct	_ipfw_table {
 diff --git a/sys/netinet/ipfw/ip_fw2.c b/sys/netinet/ipfw/ip_fw2.c
-index 758de4e..f479f29 100644
+index 7664946..eddacb9 100644
 --- a/sys/netinet/ipfw/ip_fw2.c
 +++ b/sys/netinet/ipfw/ip_fw2.c
-@@ -831,6 +831,9 @@ ipfw_chk(struct ip_fw_args *args)
- 	 */
- 	struct ifnet *oif = args->oif;
- 
-+	if (oif && !(oif->if_flags & IFF_IPFW_FILTER))
-+		return (IP_FW_PASS);
-+
- 	int f_pos = 0;		/* index of current rule in the array */
- 	int retval = 0;
- 
-@@ -882,6 +885,7 @@ ipfw_chk(struct ip_fw_args *args)
+@@ -882,6 +882,7 @@ ipfw_chk(struct ip_fw_args *args)
  	int dyn_dir = MATCH_UNKNOWN;
  	ipfw_dyn_rule *q = NULL;
  	struct ip_fw_chain *chain = &V_layer3_chain;
@@ -310,7 +266,7 @@ index 758de4e..f479f29 100644
  
  	/*
  	 * We store in ulp a pointer to the upper layer protocol header.
-@@ -1215,6 +1219,7 @@ do {								\
+@@ -1215,6 +1216,7 @@ do {								\
  			continue;
  
  		skip_or = 0;
@@ -318,7 +274,7 @@ index 758de4e..f479f29 100644
  		for (l = f->cmd_len, cmd = f->cmd ; l > 0 ;
  		    l -= cmdlen, cmd += cmdlen) {
  			int match;
-@@ -1332,7 +1337,7 @@ do {								\
+@@ -1332,7 +1334,7 @@ do {								\
  				break;
  
  			case O_IN:	/* "out" is "not in" */
@@ -327,7 +283,7 @@ index 758de4e..f479f29 100644
  				break;
  
  			case O_LAYER2:
-@@ -1368,11 +1373,17 @@ do {								\
+@@ -1368,11 +1370,17 @@ do {								\
  			case O_IP_SRC_LOOKUP:
  			case O_IP_DST_LOOKUP:
  				if (is_ipv4) {
@@ -345,7 +301,7 @@ index 758de4e..f479f29 100644
  				    if (cmdlen > F_INSN_SIZE(ipfw_insn_u32)) {
  					/* generic lookup. The key must be
  					 * in 32bit big-endian format.
-@@ -1417,10 +1428,14 @@ do {								\
+@@ -1417,10 +1425,14 @@ do {								\
  					} else
  					    break;
  				    }
@@ -363,7 +319,7 @@ index 758de4e..f479f29 100644
  				    if (cmdlen == F_INSN_SIZE(ipfw_insn_u32))
  					match =
  					    ((ipfw_insn_u32 *)cmd)->d[0] == v;
-@@ -1701,7 +1716,7 @@ do {								\
+@@ -1701,7 +1713,7 @@ do {								\
  
  			case O_ANTISPOOF:
  				/* Outgoing packets automatically pass/match */
@@ -372,7 +328,7 @@ index 758de4e..f479f29 100644
  				    (  (is_ipv4 && in_localaddr(src_ip))
  #ifdef INET6
  				    || (is_ipv6 &&
-@@ -2195,8 +2210,7 @@ do {								\
+@@ -2195,8 +2207,7 @@ do {								\
  				break;
  
  			case O_FORWARD_IP:
@@ -382,7 +338,7 @@ index 758de4e..f479f29 100644
  				if (q == NULL || q->rule != f ||
  				    dyn_dir == MATCH_FORWARD) {
  				    struct sockaddr_in *sa;
-@@ -2211,6 +2225,49 @@ do {								\
+@@ -2211,6 +2222,49 @@ do {								\
  					args->next_hop = sa;
  				    }
  				}
@@ -432,7 +388,7 @@ index 758de4e..f479f29 100644
  				retval = IP_FW_PASS;
  				l = 0;          /* exit inner loop */
  				done = 1;       /* exit outer loop */
-@@ -2357,6 +2414,11 @@ do {								\
+@@ -2357,6 +2411,11 @@ do {								\
  		rule->pcnt++;
  		rule->bcnt += pktlen;
  		rule->timestamp = time_uptime;
@@ -445,20 +401,10 @@ index 758de4e..f479f29 100644
  		retval = IP_FW_DENY;
  		printf("ipfw: ouch!, skip past end of rules, denying packet\n");
 diff --git a/sys/netinet/ipfw/ip_fw_pfil.c b/sys/netinet/ipfw/ip_fw_pfil.c
-index ab86270..89b6f72 100644
+index f7fe486..7294021 100644
 --- a/sys/netinet/ipfw/ip_fw_pfil.c
 +++ b/sys/netinet/ipfw/ip_fw_pfil.c
-@@ -106,6 +106,9 @@ ipfw_check_hook(void *arg, struct mbuf **m0, struct ifnet *ifp, int dir,
- 	int ipfw;
- 	int ret;
- 
-+	if (!(ifp->if_flags & IFF_IPFW_FILTER))
-+		return (0);
-+	
- 	/* all the processing now uses ip_len in net format */
- 	if (mtod(*m0, struct ip *)->ip_v == 4)
- 		SET_NET_IPLEN(mtod(*m0, struct ip *));
-@@ -131,7 +134,8 @@ again:
+@@ -131,7 +131,8 @@ again:
  	}
  
  	args.m = *m0;
@@ -468,7 +414,7 @@ index ab86270..89b6f72 100644
  	args.inp = inp;
  
  	ipfw = ipfw_chk(&args);
-@@ -338,7 +342,7 @@ ipfw_hook(int onoff, int pf)
+@@ -338,7 +339,7 @@ ipfw_hook(int onoff, int pf)
  		return ENOENT;
  
  	if (onoff)
@@ -478,7 +424,7 @@ index ab86270..89b6f72 100644
  	else
  	(void) pfil_remove_hook
 diff --git a/sys/netinet/ipfw/ip_fw_private.h b/sys/netinet/ipfw/ip_fw_private.h
-index caa3bae..2d1e381 100644
+index a726549..9fccf5f 100644
 --- a/sys/netinet/ipfw/ip_fw_private.h
 +++ b/sys/netinet/ipfw/ip_fw_private.h
 @@ -34,6 +34,7 @@
@@ -545,7 +491,7 @@ index caa3bae..2d1e381 100644
  
  /* In ip_fw_nat.c -- XXX to be moved to ip_var.h */
 diff --git a/sys/netinet/ipfw/ip_fw_sockopt.c b/sys/netinet/ipfw/ip_fw_sockopt.c
-index 4da2649..e9fa478 100644
+index a54f840..343a899 100644
 --- a/sys/netinet/ipfw/ip_fw_sockopt.c
 +++ b/sys/netinet/ipfw/ip_fw_sockopt.c
 @@ -1099,7 +1099,7 @@ ipfw_ctl(struct sockopt *sopt)
@@ -596,10 +542,10 @@ index 4da2649..e9fa478 100644
  		{
  			ipfw_table *tbl;
 diff --git a/sys/netinet/ipfw/ip_fw_table.c b/sys/netinet/ipfw/ip_fw_table.c
-index b167aa5..593a56a 100644
+index fe1a816..ee8850a 100644
 --- a/sys/netinet/ipfw/ip_fw_table.c
 +++ b/sys/netinet/ipfw/ip_fw_table.c
-@@ -60,6 +60,7 @@ __FBSDID("$FreeBSD: src/sys/netinet/ipfw/ip_fw_table.c,v 1.9.2.3.2.1 2012/03/03
+@@ -60,6 +60,7 @@ __FBSDID("$FreeBSD: src/sys/netinet/ipfw/ip_fw_table.c,v 1.9.2.3.2.2 2012/11/17
  
  #include <netinet/in.h>
  #include <netinet/ip_var.h>	/* struct ipfw_rule_ref */
@@ -607,7 +553,7 @@ index b167aa5..593a56a 100644
  #include <netinet/ip_fw.h>
  #include <sys/queue.h> /* LIST_HEAD */
  #include <netinet/ipfw/ip_fw_private.h>
-@@ -70,11 +71,17 @@ __FBSDID("$FreeBSD: src/sys/netinet/ipfw/ip_fw_table.c,v 1.9.2.3.2.1 2012/03/03
+@@ -70,11 +71,17 @@ __FBSDID("$FreeBSD: src/sys/netinet/ipfw/ip_fw_table.c,v 1.9.2.3.2.2 2012/11/17
  
  MALLOC_DEFINE(M_IPFW_TBL, "ipfw_tbl", "IpFw tables");
  
@@ -793,7 +739,7 @@ index b167aa5..593a56a 100644
  }
  /* end of file */
 diff --git a/sys/netinet/raw_ip.c b/sys/netinet/raw_ip.c
-index 7af7606..560cff3 100644
+index d17de65..635f2e8 100644
 --- a/sys/netinet/raw_ip.c
 +++ b/sys/netinet/raw_ip.c
 @@ -558,6 +558,8 @@ rip_ctloutput(struct socket *so, struct sockopt *sopt)
