@@ -1,6 +1,39 @@
---- sys/contrib/pf/net/pf.c.old	2011-06-29 20:11:19.000000000 +0000
-+++ sys/contrib/pf/net/pf.c	2011-06-29 20:11:54.000000000 +0000
-@@ -3406,6 +3406,7 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index 5af59fe..88e97e9 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -1011,13 +1011,13 @@ pf_insert_src_node(struct pf_src_node **sn, struct pf_rule *rule,
+ 		*sn = RB_FIND(pf_src_tree, &tree_src_tracking, &k);
+ 	}
+ 	if (*sn == NULL) {
+-		if (!rule->max_src_nodes ||
+-		    rule->src_nodes < rule->max_src_nodes)
+-			(*sn) = pool_get(&pf_src_tree_pl, PR_NOWAIT);
+-		else
+-			pf_status.lcounters[LCNT_SRCNODES]++;
++		if (rule->max_src_nodes &&
++		    rule->src_nodes >= rule->max_src_nodes)
++			return (-1);
++		(*sn) = pool_get(&pf_src_tree_pl, PR_NOWAIT);
+ 		if ((*sn) == NULL)
+ 			return (-1);
++		pf_status.lcounters[LCNT_SRCNODES]++;
+ 		bzero(*sn, sizeof(struct pf_src_node));
+ 
+ 		pf_init_threshold(&(*sn)->conn_rate,
+@@ -2786,8 +2786,10 @@ pf_map_addr(sa_family_t af, struct pf_rule *r, struct pf_addr *saddr,
+ 		PF_AINC(&rpool->counter, af);
+ 		break;
+ 	}
+-	if (*sn != NULL)
++	if (*sn != NULL) {
+ 		PF_ACPY(&(*sn)->raddr, naddr, af);
++		(*sn)->kif = rpool.cur->kif;
++	}
+ 
+ 	if (pf_status.debug >= PF_DEBUG_MISC &&
+ 	    (rpool->opts & PF_POOL_TYPEMASK) != PF_POOL_NONE) {
+@@ -3406,6 +3408,7 @@ void
  pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
  {
  	struct pf_rule *r = s->rule.ptr;
@@ -8,20 +41,28 @@
  
  	s->rt_kif = NULL;
  	if (!r->rt || r->rt == PF_FASTROUTE)
-@@ -3414,14 +3415,14 @@
+@@ -3414,18 +3417,20 @@ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
  #ifdef INET
  	case AF_INET:
  		pf_map_addr(AF_INET, r, saddr, &s->rt_addr, NULL,
 -		    &s->nat_src_node);
+-		s->rt_kif = r->rpool.cur->kif;
 +		    &sn);
- 		s->rt_kif = r->rpool.cur->kif;
  		break;
  #endif /* INET */
  #ifdef INET6
  	case AF_INET6:
  		pf_map_addr(AF_INET6, r, saddr, &s->rt_addr, NULL,
 -		    &s->nat_src_node);
+-		s->rt_kif = r->rpool.cur->kif;
 +		    &sn);
- 		s->rt_kif = r->rpool.cur->kif;
  		break;
  #endif /* INET6 */
+ 	}
++	if (sn != NULL && sn->kif != NULL)
++		s->rt_kif = sn->kif;
++	else
++		s->rt_kif = r->rpool.cur->kif;
+ }
+ 
+ void
