@@ -1,5 +1,5 @@
 diff --git a/contrib/pf/pfctl/parse.y b/contrib/pf/pfctl/parse.y
-index 217d5ca..bf4ed16 100644
+index 4e47b1e..957d70c 100644
 --- a/contrib/pf/pfctl/parse.y
 +++ b/contrib/pf/pfctl/parse.y
 @@ -423,7 +423,7 @@ typedef struct {
@@ -27,8 +27,23 @@ index 217d5ca..bf4ed16 100644
  		{ "max",		MAXIMUM},
  		{ "max-mss",		MAXMSS},
  		{ "max-packets",	MAXPCKT},
+diff --git a/contrib/pf/pfctl/pf_print_state.c b/contrib/pf/pfctl/pf_print_state.c
+index 87a7c29..c3c34ef 100644
+--- a/contrib/pf/pfctl/pf_print_state.c
++++ b/contrib/pf/pfctl/pf_print_state.c
+@@ -294,6 +294,10 @@ print_state(struct pf_state *s, int opts)
+ 			printf(", anchor %u", s->anchor.nr);
+ 		if (s->rule.nr != -1)
+ 			printf(", rule %u", s->rule.nr);
++		if (s->pdnpipe)
++			printf(", pdnpipe %u", s->pdnpipe);
++		if (s->dnpipe)
++			printf(", dnpipe %u", s->dnpipe);
+ 		if (s->state_flags & PFSTATE_SLOPPY)
+ 			printf(", sloppy");
+ 		if (s->src_node != NULL)
 diff --git a/contrib/pf/pfctl/pfctl_parser.c b/contrib/pf/pfctl/pfctl_parser.c
-index 1a1ed39..e257ebb 100644
+index 204cbc7..19eea73 100644
 --- a/contrib/pf/pfctl/pfctl_parser.c
 +++ b/contrib/pf/pfctl/pfctl_parser.c
 @@ -689,7 +689,9 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -43,7 +58,7 @@ index 1a1ed39..e257ebb 100644
  	else if (anchor_call[0]) {
  		if (anchor_call[0] == '_') {
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index 5d3ebab..50d6b19 100644
+index 57eda13..5af59fe 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
 @@ -232,6 +232,8 @@ struct pf_rule		*pf_get_translation(struct pf_pdesc *, struct mbuf *,
@@ -55,7 +70,7 @@ index 5d3ebab..50d6b19 100644
  int			 pf_test_tcp(struct pf_rule **, struct pf_state **,
  			    int, struct pfi_kif *, struct mbuf *, int,
  			    void *, struct pf_pdesc *, struct pf_rule **,
-@@ -3426,6 +3428,15 @@ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
+@@ -3426,6 +3428,21 @@ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
  	}
  }
  
@@ -66,12 +81,18 @@ index 5d3ebab..50d6b19 100644
 +		a->qid = r->qid;
 +	if (r->pqid)
 +		a->pqid = r->pqid;
++	if (r->pdnpipe)
++		a->pdnpipe = r->pdnpipe;
++	if (r->dnpipe)
++		a->dnpipe = r->dnpipe;
++	if (r->free_flags & PFRULE_DN_IS_PIPE)
++		a->flags |= PFRULE_DN_IS_PIPE;
 +}
 +
  int
  pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
      struct pfi_kif *kif, struct mbuf *m, int off, void *h,
-@@ -3444,6 +3455,7 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3444,6 +3461,7 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -79,7 +100,7 @@ index 5d3ebab..50d6b19 100644
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	int			 rewrite = 0;
-@@ -3562,10 +3574,20 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3562,10 +3580,20 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -104,7 +125,7 @@ index 5d3ebab..50d6b19 100644
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -3581,6 +3603,9 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3581,6 +3609,9 @@ pf_test_tcp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	a = *am;
  	ruleset = *rsm;
  
@@ -114,16 +135,19 @@ index 5d3ebab..50d6b19 100644
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->natpass && nr->log)) {
-@@ -3705,6 +3730,8 @@ cleanup:
+@@ -3705,6 +3736,11 @@ cleanup:
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = IPPROTO_TCP;
 +		s->qid = act.qid;
 +		s->pqid = act.pqid;
++		s->pdnpipe = act.pdnpipe;
++		s->dnpipe = act.dnpipe;
++		s->state_flags |= act.flags;
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -3873,6 +3900,7 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3873,6 +3909,7 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -131,7 +155,7 @@ index 5d3ebab..50d6b19 100644
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	int			 rewrite = 0;
-@@ -3987,10 +4015,20 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3987,10 +4024,20 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -156,7 +180,7 @@ index 5d3ebab..50d6b19 100644
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4006,6 +4044,9 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4006,6 +4053,9 @@ pf_test_udp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	a = *am;
  	ruleset = *rsm;
  
@@ -166,16 +190,19 @@ index 5d3ebab..50d6b19 100644
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->natpass && nr->log)) {
-@@ -4108,6 +4149,8 @@ cleanup:
+@@ -4108,6 +4158,11 @@ cleanup:
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = IPPROTO_UDP;
 +		s->qid = act.qid;
 +                s->pqid = act.pqid;
++		s->pdnpipe = act.pdnpipe;
++		s->dnpipe = act.dnpipe;
++		s->state_flags |= act.flags;
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4181,6 +4224,7 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4181,6 +4236,7 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -183,7 +210,7 @@ index 5d3ebab..50d6b19 100644
  	struct pf_src_node	*nsn = NULL;
  	u_short			 reason;
  	u_int16_t		 icmpid = 0, bport, nport = 0;
-@@ -4330,10 +4374,20 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4330,10 +4386,20 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -208,7 +235,7 @@ index 5d3ebab..50d6b19 100644
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4349,6 +4403,9 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4349,6 +4415,9 @@ pf_test_icmp(struct pf_rule **rm, struct pf_state **sm, int direction,
  	a = *am;
  	ruleset = *rsm;
  
@@ -218,16 +245,19 @@ index 5d3ebab..50d6b19 100644
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->natpass && nr->log)) {
-@@ -4427,6 +4484,8 @@ cleanup:
+@@ -4427,6 +4496,11 @@ cleanup:
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = pd->proto;
 +		s->qid = act.qid;
 +                s->pqid = act.pqid;
++		s->pdnpipe = act.pdnpipe;
++		s->dnpipe = act.dnpipe;
++		s->state_flags |= act.flags;
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4499,6 +4558,7 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4499,6 +4573,7 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
  	struct pf_rule		*nr = NULL;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -235,7 +265,7 @@ index 5d3ebab..50d6b19 100644
  	struct pf_src_node	*nsn = NULL;
  	struct pf_addr		*saddr = pd->src, *daddr = pd->dst;
  	sa_family_t		 af = pd->af;
-@@ -4595,10 +4655,20 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4595,10 +4670,20 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -260,7 +290,7 @@ index 5d3ebab..50d6b19 100644
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4614,6 +4684,9 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -4614,6 +4699,9 @@ pf_test_other(struct pf_rule **rm, struct pf_state **sm, int direction,
  	a = *am;
  	ruleset = *rsm;
  
@@ -270,16 +300,19 @@ index 5d3ebab..50d6b19 100644
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log || (nr != NULL && nr->natpass && nr->log))
-@@ -4720,6 +4793,8 @@ cleanup:
+@@ -4720,6 +4808,11 @@ cleanup:
  		if (nr != NULL)
  			s->log |= nr->log & PF_LOG_ALL;
  		s->proto = pd->proto;
 +		s->qid = act.qid;
 +                s->pqid = act.pqid;
++		s->pdnpipe = act.pdnpipe;
++		s->dnpipe = act.dnpipe;
++		s->state_flags |= act.flags;
  		s->direction = direction;
  		s->af = af;
  		if (direction == PF_OUT) {
-@@ -4776,6 +4851,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -4776,6 +4869,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  {
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -287,7 +320,7 @@ index 5d3ebab..50d6b19 100644
  	sa_family_t		 af = pd->af;
  	u_short			 reason;
  	int			 tag = -1;
-@@ -4819,10 +4895,20 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -4819,10 +4913,20 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  			r = TAILQ_NEXT(r, entries);
  		else {
  			if (r->anchor == NULL) {
@@ -312,7 +345,7 @@ index 5d3ebab..50d6b19 100644
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -4838,6 +4924,9 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -4838,6 +4942,9 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  	a = *am;
  	ruleset = *rsm;
  
@@ -322,7 +355,7 @@ index 5d3ebab..50d6b19 100644
  	REASON_SET(&reason, PFRES_MATCH);
  
  	if (r->log)
-@@ -7595,6 +7684,12 @@ done:
+@@ -7647,6 +7754,12 @@ done:
  		pd.pf_mtag->af = AF_INET;
  		pd.pf_mtag->hdr = h;
  	}
@@ -335,8 +368,34 @@ index 5d3ebab..50d6b19 100644
  #endif /* ALTQ */
  
  #ifdef __FreeBSD__
+@@ -7700,11 +7813,15 @@ done:
+ 				return (action);
+ 			}
+ 		}
+-       	} else if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
++       	} else if (((s && s->dnpipe) || r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
+ 	    ip_dn_io_ptr != NULL && loopedfrom != 1) {
+ 
+ 			if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
+ 				dnflow.rule.info = divertcookie;
++                        } else if (dir != r->direction && s && s->pdnpipe) {
++                                dnflow.rule.info = s->pdnpipe;
++                        } else if (dir == r->direction && s && s->dnpipe) {
++                                dnflow.rule.info = s->dnpipe;
+                         } else if (dir != r->direction && r->pdnpipe) {
+                                 dnflow.rule.info = r->pdnpipe;
+                         } else if (dir == r->direction) {
+@@ -7714,6 +7831,8 @@ done:
+ 
+ 			if (r->free_flags & PFRULE_DN_IS_PIPE)
+ 				dnflow.rule.info |= IPFW_IS_PIPE;
++			if (s && s->state_flags & PFRULE_DN_IS_PIPE)
++				dnflow.rule.info |= IPFW_IS_PIPE;
+                         dnflow.f_id.addr_type = 4; /* IPv4 type */
+                         dnflow.f_id.proto = pd.proto;
+ 			if (dir == PF_OUT && s != NULL && s->nat_rule.ptr != NULL &&
 diff --git a/sys/contrib/pf/net/pf_ruleset.c b/sys/contrib/pf/net/pf_ruleset.c
-index c53481d..24e0888 100644
+index b33396e..31c3e99 100644
 --- a/sys/contrib/pf/net/pf_ruleset.c
 +++ b/sys/contrib/pf/net/pf_ruleset.c
 @@ -127,6 +127,7 @@ pf_get_ruleset_number(u_int8_t action)
@@ -348,7 +407,7 @@ index c53481d..24e0888 100644
  		return (PF_RULESET_FILTER);
  		break;
 diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
-index ae19f54..4ab8ba9 100644
+index 972144b..3d8bc84 100644
 --- a/sys/contrib/pf/net/pfvar.h
 +++ b/sys/contrib/pf/net/pfvar.h
 @@ -80,7 +80,8 @@ struct inpcb;
@@ -361,18 +420,21 @@ index ae19f54..4ab8ba9 100644
  enum	{ PF_RULESET_SCRUB, PF_RULESET_FILTER, PF_RULESET_NAT,
  	  PF_RULESET_BINAT, PF_RULESET_RDR, PF_RULESET_MAX };
  enum	{ PF_OP_NONE, PF_OP_IRG, PF_OP_EQ, PF_OP_NE, PF_OP_LT,
-@@ -570,6 +571,10 @@ struct pf_osfp_ioctl {
+@@ -570,6 +571,13 @@ struct pf_osfp_ioctl {
  	int			fp_getnum;	/* DIOCOSFPGET number */
  };
  
 +struct pf_rule_actions {
 +	u_int16_t	qid;
 +	u_int16_t	pqid;
++	u_int32_t	pdnpipe;
++	u_int32_t	dnpipe;
++	u_int8_t	flags;
 +};
  
  union pf_rule_ptr {
  	struct pf_rule		*ptr;
-@@ -630,8 +635,8 @@ struct pf_rule {
+@@ -630,8 +638,8 @@ struct pf_rule {
  		u_int32_t		limit;
  		u_int32_t		seconds;
  	}			 max_src_conn_rate;
@@ -383,12 +445,14 @@ index ae19f54..4ab8ba9 100644
  	u_int32_t                dnpipe;
          u_int32_t                pdnpipe;
  #define	PFRULE_DN_IS_PIPE	0x00000010
-@@ -877,6 +882,8 @@ struct pf_state {
+@@ -877,6 +885,10 @@ struct pf_state {
  	u_int32_t	 creation;
  	u_int32_t	 expire;
  	u_int32_t	 pfsync_time;
 +	u_int16_t	 qid;
 +	u_int16_t	 pqid;
++	u_int32_t        pdnpipe;
++	u_int32_t        dnpipe;
  	u_int16_t	 tag;
  	u_int16_t	 divert_cookie;
  };
