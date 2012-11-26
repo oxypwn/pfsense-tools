@@ -1,8 +1,8 @@
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index ea089e7..4635051 100644
+index 106b659..1f87348 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
-@@ -6717,7 +6717,7 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -6745,7 +6745,7 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  	 * If deferred crypto processing is needed, check that the
  	 * interface supports it.
  	 */
@@ -87,10 +87,10 @@ index 50040b3..4ca431b 100644
  		/*
  		 * If the MTU was set before make sure we are below the
 diff --git a/sys/netinet/ip_output.c b/sys/netinet/ip_output.c
-index d826d43..7dd37ce 100644
+index c7c3082..3e5fb3a 100644
 --- a/sys/netinet/ip_output.c
 +++ b/sys/netinet/ip_output.c
-@@ -480,26 +480,28 @@ again:
+@@ -479,18 +479,20 @@ again:
  
  sendit:
  #ifdef IPSEC
@@ -102,14 +102,6 @@ index d826d43..7dd37ce 100644
 -	case 0:
 -	default:
 -		break;	/* Continue with packet processing. */
--	}
--	/*
--	 * Check if there was a route for this packet; return error if not.
--	 */
--	if (no_route_but_check_spd) {
--		IPSTAT_INC(ips_noroute);
--		error = EHOSTUNREACH;
--		goto bad;
 +	if (V_ipipsec_in_use) {
 +		switch(ip_ipsec_output(&m, inp, &flags, &error, &ifp)) {
 +		case 1:
@@ -119,14 +111,6 @@ index d826d43..7dd37ce 100644
 +		case 0:
 +		default:
 +			break;	/* Continue with packet processing. */
-+		}
-+		/*
-+		 * Check if there was a route for this packet; return error if not.
-+		 */
-+		if (no_route_but_check_spd) {
-+			IPSTAT_INC(ips_noroute);
-+			error = EHOSTUNREACH;
-+			goto bad;
 +		}
 +		/* Update variables that are affected by ipsec4_output(). */
 +		ip = mtod(m, struct ip *);
@@ -138,7 +122,7 @@ index d826d43..7dd37ce 100644
  #endif /* IPSEC */
  
  	/* Jump over all PFIL processing if hooks are not active. */
-@@ -1082,7 +1084,7 @@ ip_ctloutput(struct socket *so, struct sockopt *sopt)
+@@ -1087,7 +1089,7 @@ ip_ctloutput(struct socket *so, struct sockopt *sopt)
  		{
  			caddr_t req;
  			struct mbuf *m;
@@ -147,7 +131,7 @@ index d826d43..7dd37ce 100644
  			if ((error = soopt_getm(sopt, &m)) != 0) /* XXX */
  				break;
  			if ((error = soopt_mcopyin(sopt, m)) != 0) /* XXX */
-@@ -1208,7 +1210,7 @@ ip_ctloutput(struct socket *so, struct sockopt *sopt)
+@@ -1213,7 +1215,7 @@ ip_ctloutput(struct socket *so, struct sockopt *sopt)
  			struct mbuf *m = NULL;
  			caddr_t req = NULL;
  			size_t len = 0;
