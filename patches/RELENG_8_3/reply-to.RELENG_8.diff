@@ -1,11 +1,8 @@
-Index: sys/contrib/pf/net/pf.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.2
-diff -u -r1.2 pf.c
---- sys/contrib/pf/net/pf.c	2 Nov 2010 21:59:38 -0000	1.2
-+++ sys/contrib/pf/net/pf.c	2 Nov 2010 22:01:15 -0000
-@@ -6388,6 +6388,9 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index 0aeea69..e09b094 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -6459,6 +6459,9 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	ip = mtod(m0, struct ip *);
  
@@ -15,7 +12,7 @@ diff -u -r1.2 pf.c
  	ro = &iproute;
  	bzero((caddr_t)ro, sizeof(*ro));
  	dst = satosin(&ro->ro_dst);
-@@ -6429,8 +6432,59 @@
+@@ -6500,8 +6503,59 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  	}
  	if (ifp == NULL)
  		goto bad;
@@ -75,7 +72,7 @@ diff -u -r1.2 pf.c
  #ifdef __FreeBSD__
  		PF_UNLOCK();
  		if (pf_test(PF_OUT, ifp, &m0, NULL, NULL) != PF_PASS) {
-@@ -6610,6 +6664,7 @@
+@@ -6682,6 +6736,7 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  done:
  	if (r->rt != PF_DUPTO)
  		*m = NULL;
@@ -83,3 +80,92 @@ diff -u -r1.2 pf.c
  	if (ro == &iproute && ro->ro_rt)
  		RTFREE(ro->ro_rt);
  	return;
+@@ -6737,6 +6792,9 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 	}
+ 	ip6 = mtod(m0, struct ip6_hdr *);
+ 
++	if (IN6_IS_ADDR_MULTICAST(&ip6->ip6_src))
++		return;
++
+ 	ro = &ip6route;
+ 	bzero((caddr_t)ro, sizeof(*ro));
+ 	dst = (struct sockaddr_in6 *)&ro->ro_dst;
+@@ -6782,6 +6840,56 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 	}
+ 	if (ifp == NULL)
+ 		goto bad;
++       else if (r->rt == PF_REPLYTO) {
++               /* XXX: Copied from ifaof_ifpforaddr() since it mostly will not return NULL! */
++               struct sockaddr_in6 inaddr6;
++               struct sockaddr *addr;
++               struct ifaddr *ifa;
++               char *cp, *cp2, *cp3;
++               char *cplim;
++
++               inaddr6.sin6_addr = ip6->ip6_dst;
++               inaddr6.sin6_family = AF_INET6;
++               inaddr6.sin6_len = sizeof(inaddr6);
++               inaddr6.sin6_port = 0;
++               inaddr6.sin6_flowinfo = 0;
++               addr = (struct sockaddr *)&inaddr6;
++
++               IF_ADDR_RLOCK(ifp);
++               TAILQ_FOREACH(ifa, &ifp->if_addrhead, ifa_link) {
++                       if (ifa->ifa_addr->sa_family != AF_INET6)
++                               continue;
++                       if (ifa->ifa_netmask == 0) {
++                               if ((bcmp(addr, ifa->ifa_addr, addr->sa_len) == 0) ||
++                                   (ifa->ifa_dstaddr &&
++                                   (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0))) {
++                                       IF_ADDR_RUNLOCK(ifp);
++                                       return;
++                               }
++                               continue;
++                       }
++                       if (ifp->if_flags & IFF_POINTOPOINT) {
++                               if (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0) {
++                                       IF_ADDR_RUNLOCK(ifp);
++                                       return;
++                               }
++                       } else {
++                               cp = addr->sa_data;
++                               cp2 = ifa->ifa_addr->sa_data;
++                               cp3 = ifa->ifa_netmask->sa_data;
++                               cplim = ifa->ifa_netmask->sa_len + (char *)ifa->ifa_netmask;
++                               for (; cp3 < cplim; cp3++)
++                                       if ((*cp++ ^ *cp2++) & *cp3)
++                                               break;
++                               if (cp3 == cplim) {
++                                       IF_ADDR_RUNLOCK(ifp);
++                                       return;
++                               }
++                       }
++               }
++               IF_ADDR_RUNLOCK(ifp);
++       } else if (r->rt == PF_ROUTETO && r->direction == dir && in6_localaddr(ip6->ip6_dst))
++		return;
+ 
+ 	if (oifp != ifp) {
+ #ifdef __FreeBSD__
+@@ -7611,7 +7719,9 @@ continueprocessing:
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt)
++	} else if (r->rt && (ifp == NULL || ifp->if_type != IFT_ENC) &&
++		/* Check to avoid breaking ipfw forward rules needed on CP and proxies listening on loclhost*/
++		!((m->m_flags & M_FASTFWD_OURS) || (pd.pf_mtag->flags & PF_TAG_TRANSLATE_LOCALHOST)))
+ 		/* pf_route can free the mbuf causing *m0 to become NULL */
+ 		pf_route(m0, r, dir, ifp, s, &pd);
+ 
+@@ -8139,7 +8249,9 @@ continueprocessing6:
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt)
++	} else if (r->rt && (ifp == NULL || ifp->if_type != IFT_ENC) &&
++		/* Check to avoid breaking ipfw forward rules needed on CP and proxies listening on loclhost*/
++		!((m->m_flags & M_FASTFWD_OURS) || (pd.pf_mtag->flags & PF_TAG_TRANSLATE_LOCALHOST)))
+ 		/* pf_route6 can free the mbuf causing *m0 to become NULL */
+ 		pf_route6(m0, r, dir, ifp, s, &pd);
+ 
