@@ -1,0 +1,26 @@
+From a5639f8ce3c62170f477072f8e5a5426371f090f Mon Sep 17 00:00:00 2001
+From: davide <davide@FreeBSD.org>
+Date: Sat, 27 Oct 2012 23:17:22 +0000
+Subject: [PATCH 5/6] MFC r239110: Remove a spurious brace which causes build
+ fail in case BCE_DEBUG option is turned on.
+
+---
+ sys/dev/bce/if_bce.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sys/dev/bce/if_bce.c b/sys/dev/bce/if_bce.c
+index 29228f5..cd3ff8b 100644
+--- a/sys/dev/bce/if_bce.c
++++ b/sys/dev/bce/if_bce.c
+@@ -10513,7 +10513,7 @@ bce_dump_ftqs(struct bce_softc *sc)
+ 	    (BCE_HC_STAT_GEN_SEL_0_GEN_SEL_0_CPQ_VALID_CNT  <<  8) |
+ 	    (BCE_HC_STAT_GEN_SEL_0_GEN_SEL_0_MGMQ_VALID_CNT);
+ 
+-	if ((BCE_CHIP_NUM(sc) == BCE_CHIP_NUM_5709)
++	if (BCE_CHIP_NUM(sc) == BCE_CHIP_NUM_5709)
+ 		val = val |
+ 		    (BCE_HC_STAT_GEN_SEL_0_GEN_SEL_0_RV2PCSQ_VALID_CNT_XI <<
+ 		     24);
+-- 
+1.7.9.5
+
