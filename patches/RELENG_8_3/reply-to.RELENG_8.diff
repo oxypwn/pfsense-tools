@@ -142,7 +142,7 @@ index 0aeea69..e09b094 100644
 +                       }
 +               }
 +               IF_ADDR_RUNLOCK(ifp);
-+       } else if (r->rt == PF_ROUTETO && r->direction == dir && in6_localaddr(ip6->ip6_dst))
++       } else if (r->rt == PF_ROUTETO && r->direction == dir && in6_localaddr(&ip6->ip6_dst))
 +		return;
  
  	if (oifp != ifp) {
