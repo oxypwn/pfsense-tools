@@ -213,7 +213,7 @@ Choose the option you would like:" -1 -1 9 \
 		;;
 		"Rebuild BSDInstaller")
 		clear
-		./cvsup_bsdinstaller
+		./cvsup_bsdinstaller.sh
 		./rebuild_bsdinstaller.sh
 		;;
 		"Reset builder")

@@ -134,7 +134,7 @@ cd /home/pfsense/tools/pfPorts && ./buildports.RELENG_2_0
 
 # Tidy up installer
 /bin/rm -rf /home/pfsense/installer
-cd /home/pfsense/tools/builder_scripts && ./cvsup_bsdinstaller ; ./rebuild_bsdinstaller.sh
+cd /home/pfsense/tools/builder_scripts && ./cvsup_bsdinstaller.sh ; ./rebuild_bsdinstaller.sh
 
 # We should be done!
 echo ">>> Environment is complete. Building ISO..."
