@@ -161,10 +161,18 @@ index b474e82..eb7b62d 100644
  #define	V_ipstealth		VNET(ipstealth)
  #endif
 diff --git a/sys/netinet6/ip6_input.c b/sys/netinet6/ip6_input.c
-index 8250579..c5636e1 100644
+index 8250579..875f7ae 100644
 --- a/sys/netinet6/ip6_input.c
 +++ b/sys/netinet6/ip6_input.c
-@@ -921,6 +921,7 @@ passin:
+@@ -125,6 +125,7 @@ static struct netisr_handler ip6_nh = {
+ 	.nh_policy = NETISR_POLICY_FLOW,
+ };
+ 
++VNET_DECLARE(int, ipipsec_in_use);
+ VNET_DECLARE(struct callout, in6_tmpaddrtimer_ch);
+ #define	V_in6_tmpaddrtimer_ch		VNET(in6_tmpaddrtimer_ch)
+ 
+@@ -921,6 +922,7 @@ passin:
  		}
  
  #ifdef IPSEC
@@ -172,7 +180,7 @@ index 8250579..c5636e1 100644
  		/*
  		 * enforce IPsec policy checking if we are seeing last header.
  		 * note that we do not visit this with protocols with pcb layer
-@@ -928,6 +929,7 @@ passin:
+@@ -928,6 +930,7 @@ passin:
  		 */
  		if (ip6_ipsec_input(m, nxt))
  			goto bad;
@@ -181,10 +189,18 @@ index 8250579..c5636e1 100644
  
  		/*
 diff --git a/sys/netinet6/ip6_output.c b/sys/netinet6/ip6_output.c
-index 51441af..9a5c1a7 100644
+index 51441af..20e91e9 100644
 --- a/sys/netinet6/ip6_output.c
 +++ b/sys/netinet6/ip6_output.c
-@@ -262,15 +262,17 @@ ip6_output(struct mbuf *m0, struct ip6_pktopts *opt,
+@@ -138,6 +138,7 @@ static int ip6_getpmtu __P((struct route_in6 *, struct route_in6 *,
+ 	struct ifnet *, struct in6_addr *, u_long *, int *));
+ static int copypktopts(struct ip6_pktopts *, struct ip6_pktopts *, int);
+ 
++VNET_DECLARE(int, ipipsec_in_use);
+ 
+ /*
+  * Make an extension header from option data.  hp is the source, and
+@@ -262,15 +263,17 @@ ip6_output(struct mbuf *m0, struct ip6_pktopts *opt,
  	 * FAST IPSEC: We re-injected the packet.
  	 */
  #ifdef IPSEC
@@ -211,7 +227,7 @@ index 51441af..9a5c1a7 100644
  	}
  #endif /* IPSEC */
  
-@@ -371,67 +373,69 @@ ip6_output(struct mbuf *m0, struct ip6_pktopts *opt,
+@@ -371,67 +374,69 @@ ip6_output(struct mbuf *m0, struct ip6_pktopts *opt,
  		   IPPROTO_ROUTING);
  
  #ifdef IPSEC
@@ -338,7 +354,7 @@ index 51441af..9a5c1a7 100644
  	}
  skip_ipsec2:;
  #endif /* IPSEC */
-@@ -499,73 +503,75 @@ again:
+@@ -499,73 +504,75 @@ again:
  	}
  
  #ifdef IPSEC
@@ -474,15 +490,3 @@ index 51441af..9a5c1a7 100644
  	}
  #endif /* IPSEC */
  
-diff --git a/sys/netinet6/ip6_var.h b/sys/netinet6/ip6_var.h
-index fcfd823..dbf6a6a 100644
---- a/sys/netinet6/ip6_var.h
-+++ b/sys/netinet6/ip6_var.h
-@@ -300,6 +300,7 @@ VNET_DECLARE(int, ip6_rr_prune);	/* router renumbering prefix
- 					 * walk list every 5 sec.    */
- VNET_DECLARE(int, ip6_mcast_pmtu);	/* enable pMTU discovery for multicast? */
- VNET_DECLARE(int, ip6_v6only);
-+VNET_DECLARE(int, ipipsec_in_use);
- #define	V_ip6stat			VNET(ip6stat)
- #define	V_ip6_defhlim			VNET(ip6_defhlim)
- #define	V_ip6_defmcasthlim		VNET(ip6_defmcasthlim)
