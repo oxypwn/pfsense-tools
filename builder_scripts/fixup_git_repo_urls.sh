@@ -29,8 +29,8 @@ if [ -d /home/pfsense/freesbie2/.git ]; then
 fi
 
 if [ -d /home/pfsense/installer/.git ]; then
-	echo ">>>   Setting installer repo to git://github.com/sullrich/pfSense-bsdinstaller.git"
+	echo ">>>   Setting installer repo to git://github.com/bsdperimeter/bsdinstaller.git"
 	cd /home/pfsense/installer/
-	git remote set-url origin git://github.com/sullrich/pfSense-bsdinstaller.git
+	git remote set-url origin git://github.com/bsdperimeter/bsdinstaller.git
 fi
 
