@@ -28,7 +28,7 @@ index 5af59fe..88e97e9 100644
 -	if (*sn != NULL)
 +	if (*sn != NULL) {
  		PF_ACPY(&(*sn)->raddr, naddr, af);
-+		(*sn)->kif = rpool.cur->kif;
++		(*sn)->kif = rpool->cur->kif;
 +	}
  
  	if (pf_status.debug >= PF_DEBUG_MISC &&
