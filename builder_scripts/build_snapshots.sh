@@ -94,14 +94,6 @@ post_tweet() {
 	echo "Done!"
 }
 
-sync_cvs() {
-	# Sync with pfsense.org
-	echo ">>> Syncing with ${PRODUCT_NAME}.org"
-	/usr/bin/csup -b $CVS_CO_DIR $BUILDERSCRIPTS/${PRODUCT_NAME}-supfile
-	/usr/bin/csup -b $FREESBIE_PATH $BUILDERSCRIPTS/freesbie2-supfile
-	cd $BUILDERSCRIPTS && cvs up -d
-}
-
 create_webdata_structure() {
 	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/livecd_installer
 	mkdir -p $WEBDATAROOT/FreeBSD_${FREEBSD_BRANCH}/${PRODUCT_NAME}_${PFSENSETAG}/embedded
