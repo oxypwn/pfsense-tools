@@ -228,7 +228,7 @@ index c7975f7..a2b349f 100644
 +			ifl = TAILQ_FIRST(&ctx->iflist);
 +			TAILQ_REMOVE(&ctx->iflist, ifl, entry);
 +			ifp = ifunit(ifl->ifname);
-+			if (ifp != NULL) { ifp->if_flags &= ~IFF_IPFW_FILTER;
++			if (ifp != NULL) {
 +				ifp->if_context = 0; }
 +			free(ifl, M_IPFW);
 +		}
@@ -540,7 +540,7 @@ index e9fa478..b4cb105 100644
 +
 +			strlcpy(tmpifl->ifname, ctxmember.ifname, sizeof(tmpifl->ifname));
 +			TAILQ_INSERT_HEAD(&tmpctx->iflist, tmpifl, entry);
-+			ifp->if_context = tmpctx->contextid; ifp->if_flags |= IFF_IPFW_FILTER;
++			ifp->if_context = tmpctx->contextid;
 +		} else
 +			free(tmpifl, M_IPFW);
 +		IPFW_CTX_WUNLOCK(V_ipfw_context);
@@ -569,7 +569,7 @@ index e9fa478..b4cb105 100644
 +
 +			ifp = ifunit(ctxmember.ifname);
 +			if (ifp != NULL) {
-+				ifp->if_context = 0; ifp->if_flags &= ~IFF_IPFW_FILTER; }
++				ifp->if_context = 0; }
 +			TAILQ_REMOVE(&tmpctx->iflist, tmpifl2, entry);
 +			free(tmpifl2, M_IPFW);
 +		}
@@ -606,7 +606,7 @@ index e9fa478..b4cb105 100644
 +				continue;
 +			if (!strcmp(tmpifl->ifname, ifp->if_xname)) {
 +				printf("Restoring context for interface %s to %d(%s)\n", ifp->if_xname, tmpctx->contextid, tmpctx->ctxname);
-+				ifp->if_context = tmpctx->contextid; ifp->if_flags |= IFF_IPFW_FILTER;
++				ifp->if_context = tmpctx->contextid;
 +				found = 1;
 +				break;
 +			}
