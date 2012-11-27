@@ -1,5 +1,5 @@
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index 106b659..1f87348 100644
+index ab18409..5fbe475 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
 @@ -6745,7 +6745,7 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
@@ -474,3 +474,15 @@ index 51441af..9a5c1a7 100644
  	}
  #endif /* IPSEC */
  
+diff --git a/sys/netinet6/ip6_var.h b/sys/netinet6/ip6_var.h
+index fcfd823..dbf6a6a 100644
+--- a/sys/netinet6/ip6_var.h
++++ b/sys/netinet6/ip6_var.h
+@@ -300,6 +300,7 @@ VNET_DECLARE(int, ip6_rr_prune);	/* router renumbering prefix
+ 					 * walk list every 5 sec.    */
+ VNET_DECLARE(int, ip6_mcast_pmtu);	/* enable pMTU discovery for multicast? */
+ VNET_DECLARE(int, ip6_v6only);
++VNET_DECLARE(int, ipipsec_in_use);
+ #define	V_ip6stat			VNET(ip6stat)
+ #define	V_ip6_defhlim			VNET(ip6_defhlim)
+ #define	V_ip6_defmcasthlim		VNET(ip6_defmcasthlim)
