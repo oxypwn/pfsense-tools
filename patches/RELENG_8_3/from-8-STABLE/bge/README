@@ -1,9 +1,0 @@
-This backport is specific to FreeBSD 8.3.
-
-These patches can be safely dropped as soon as
-pfSense switches to base FreeBSD > 8.3, >= 9.1 or >=10.
-
-We omit patches that are not required to make functional
-patches for bge apply, where possible.
-
-Tracks 8-STABLE where possible, last sync: Mon, 26 Nov 2012
