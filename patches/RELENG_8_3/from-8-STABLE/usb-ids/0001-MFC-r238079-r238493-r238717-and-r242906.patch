@@ -1,0 +1,63 @@
+From 070fa3f47388b23d7c6e922480e416cf94cf4d28 Mon Sep 17 00:00:00 2001
+From: hselasky <hselasky@FreeBSD.org>
+Date: Wed, 28 Nov 2012 17:55:18 +0000
+Subject: [PATCH] MFC r238079, r238493, r238717 and r242906: Add new USB ID's.
+
+PR:	usb/169789, usb/173503
+---
+ sys/dev/usb/serial/u3g.c |    8 ++++++++
+ sys/dev/usb/usbdevs      |    8 ++++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/sys/dev/usb/serial/u3g.c b/sys/dev/usb/serial/u3g.c
+index e0b38bd..8d499c6 100644
+--- a/sys/dev/usb/serial/u3g.c
++++ b/sys/dev/usb/serial/u3g.c
+@@ -282,14 +282,22 @@ static const STRUCT_USB_HOST_ID u3g_devs[] = {
+ 	U3G_DEV(HUAWEI, E143F, U3GINIT_HUAWEI),
+ 	U3G_DEV(HUAWEI, E173, 0),
+ 	U3G_DEV(HUAWEI, E173_INIT, U3GINIT_HUAWEISCSI),
++	U3G_DEV(HUAWEI, E3131, 0),
++	U3G_DEV(HUAWEI, E3131_INIT, U3GINIT_HUAWEISCSI),
+ 	U3G_DEV(HUAWEI, E180V, U3GINIT_HUAWEI),
+ 	U3G_DEV(HUAWEI, E220, U3GINIT_HUAWEI),
+ 	U3G_DEV(HUAWEI, E220BIS, U3GINIT_HUAWEI),
++	U3G_DEV(HUAWEI, E392, U3GINIT_HUAWEISCSI),
+ 	U3G_DEV(HUAWEI, MOBILE, U3GINIT_HUAWEI),
+ 	U3G_DEV(HUAWEI, E1752, U3GINIT_HUAWEISCSI),
+ 	U3G_DEV(HUAWEI, E1820, U3GINIT_HUAWEISCSI),
+ 	U3G_DEV(HUAWEI, K3765, U3GINIT_HUAWEI),
+ 	U3G_DEV(HUAWEI, K3765_INIT, U3GINIT_HUAWEISCSI),
++	U3G_DEV(HUAWEI, K3770, U3GINIT_HUAWEI),
++	U3G_DEV(HUAWEI, K3770_INIT, U3GINIT_HUAWEISCSI),
++	U3G_DEV(HUAWEI, K4505, U3GINIT_HUAWEI),
++	U3G_DEV(HUAWEI, K4505_INIT, U3GINIT_HUAWEISCSI),
++	U3G_DEV(HUAWEI, ETS2055, U3GINIT_HUAWEI),
+ 	U3G_DEV(KYOCERA2, CDMA_MSM_K, 0),
+ 	U3G_DEV(KYOCERA2, KPC680, 0),
+ 	U3G_DEV(LONGCHEER, WM66, U3GINIT_HUAWEI),
+diff --git a/sys/dev/usb/usbdevs b/sys/dev/usb/usbdevs
+index edf585c..6ac75b5 100644
+--- a/sys/dev/usb/usbdevs
++++ b/sys/dev/usb/usbdevs
+@@ -1875,9 +1875,17 @@ product HUAWEI E143D		0x143d	3G modem
+ product HUAWEI E143E		0x143e	3G modem
+ product HUAWEI E143F		0x143f	3G modem
+ product HUAWEI E1752		0x1446	3G modem
++product HUAWEI K4505		0x1464	3G modem
+ product HUAWEI K3765		0x1465	3G modem
+ product HUAWEI E1820		0x14ac	E1820 HSPA+ USB Slider
++product HUAWEI K3770		0x14c9  3G modem
++product HUAWEI K3770_INIT	0x14d1  K3770 Initial
++product HUAWEI E3131_INIT	0x14fe	3G modem initial
++product HUAWEI E392		0x1505	LTE modem
++product HUAWEI E3131		0x1506	3G modem
+ product HUAWEI K3765_INIT	0x1520	K3765 Initial
++product HUAWEI K4505_INIT	0x1521	K4505 Initial
++product HUAWEI ETS2055		0x1803	CDMA modem
+ product HUAWEI E173		0x1c05	3G modem
+ product HUAWEI E173_INIT	0x1c0b	3G modem initial
+ 
+-- 
+1.7.9.5
+

@@ -84,8 +84,6 @@
 -p1~~pf_802.1p.diff~
 -p1~~pf_print_state_queue.diff~
 -p1~~CP_multi_instance_ipfw.diff~
-~~huawei_k3770.diff~
-~~huawei_k4505.diff~
 ~sys~carpv6-4.diff~
 ~~ath_9-STABLE.tgz~
 ~sys/conf~ath_conf_files.diff~
@@ -111,5 +109,6 @@
 -p1~~from-8-STABLE/mfiutil/0001-MFC-r233713.patch~
 -p1~~from-8-STABLE/mfiutil/0002-MFC-r235634.patch~
 -p1~~from-8-STABLE/mfiutil/0003-MFC-r237259-r237260-r237329.patch~
+-p1~~from-8-STABLE/usb-ids/0001-MFC-r238079-r238493-r238717-and-r242906.patch~
 -p1~~from-8-STABLE/virtio/0001-MFC-r227652-r228301-r234270-r234349.patch~
 ~~sfxge.tgz~
