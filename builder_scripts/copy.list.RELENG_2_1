@@ -197,3 +197,11 @@ usr/local/bin/ntptrace
 usr/local/bin/sntp
 usr/local/bin/tickadj
 usr/local/sbin/ipfw_context
+usr/local/lib/snmp_regex.a
+usr/local/lib/snmp_regex.la
+usr/local/lib/snmp_regex.so
+usr/local/lib/snmp_regex.so.0
+usr/local/lib/snmp_ucd.a
+usr/local/lib/snmp_ucd.la
+usr/local/lib/snmp_ucd.so
+usr/local/lib/snmp_ucd.so.1
