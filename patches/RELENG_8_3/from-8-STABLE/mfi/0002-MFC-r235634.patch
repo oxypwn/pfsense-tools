@@ -1,7 +1,7 @@
-From 2c5e29f91cbe6c42f683b22bb9e031d87d6d9afe Mon Sep 17 00:00:00 2001
+From 9edda7cae4d5a9522b87b0035705d9dbb3f7502e Mon Sep 17 00:00:00 2001
 From: sbruno <sbruno@FreeBSD.org>
 Date: Mon, 21 May 2012 22:23:21 +0000
-Subject: [PATCH 2/8] MFC r235634
+Subject: [PATCH 2/9] MFC r235634
 
 Fix and update battery status bits according to linux driver
 ---
@@ -29,5 +29,5 @@ index 5bed6c2..dab9cf7 100644
  	union mfi_bbu_status_detail detail;
  } __packed;
 -- 
-1.7.9.5
+1.7.10.4
 

@@ -1,7 +1,7 @@
-From 14a13b7561541d2704f692944dc6a75f98817f85 Mon Sep 17 00:00:00 2001
+From 985c28e07a020522ab616b73392b79700698a771 Mon Sep 17 00:00:00 2001
 From: sbruno <sbruno@FreeBSD.org>
 Date: Sun, 23 Sep 2012 20:16:17 +0000
-Subject: [PATCH 6/8] MFC r238373
+Subject: [PATCH 6/9] MFC r238373
 
 sys/dev/mfivar.h contains references to MFI_DEBUG, but it never gets turned on
 unless the file also includes opt_mfi.h.
@@ -24,5 +24,5 @@ index f63b64c..e4345cc 100644
  /*
   * SCSI structures and definitions are used from here, but no linking
 -- 
-1.7.9.5
+1.7.10.4
 

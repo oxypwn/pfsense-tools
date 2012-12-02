@@ -1,0 +1,30 @@
+From 36bb320c23611638395d9bee77c2308483fe24a2 Mon Sep 17 00:00:00 2001
+From: eadler <eadler@FreeBSD.org>
+Date: Fri, 30 Nov 2012 03:38:01 +0000
+Subject: [PATCH 9/9] MFC r243078: 	Add deviceid to the disk output on boot
+ to help debugging.
+
+PR:		kern/173290
+Approved by:	cperciva (implicit)
+---
+ sys/dev/mfi/mfi_syspd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sys/dev/mfi/mfi_syspd.c b/sys/dev/mfi/mfi_syspd.c
+index a8a8b24..f3185d6 100644
+--- a/sys/dev/mfi/mfi_syspd.c
++++ b/sys/dev/mfi/mfi_syspd.c
+@@ -116,8 +116,8 @@ mfi_syspd_attach(device_t dev)
+ 	mtx_lock(&sc->pd_controller->mfi_io_lock);
+ 	TAILQ_INSERT_TAIL(&sc->pd_controller->mfi_syspd_tqh, sc, pd_link);
+ 	mtx_unlock(&sc->pd_controller->mfi_io_lock);
+-	device_printf(dev, "%juMB (%ju sectors) SYSPD volume\n",
+-		      sectors / (1024 * 1024 / secsize), sectors);
++	device_printf(dev, "%juMB (%ju sectors) SYSPD volume (deviceid: %d)\n",
++		      sectors / (1024 * 1024 / secsize), sectors, sc->pd_id);
+ 	sc->pd_disk = disk_alloc();
+ 	sc->pd_disk->d_drv1 = sc;
+ 	sc->pd_disk->d_maxsize = sc->pd_controller->mfi_max_io * secsize;
+-- 
+1.7.10.4
+

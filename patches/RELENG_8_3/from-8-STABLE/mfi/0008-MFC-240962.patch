@@ -1,7 +1,7 @@
-From a83b197741433f5f442cb4575141a3577490de76 Mon Sep 17 00:00:00 2001
+From 4e548d7e9a5dcae911c1590e3e0c69cc6bee427d Mon Sep 17 00:00:00 2001
 From: jhb <jhb@FreeBSD.org>
 Date: Sun, 7 Oct 2012 18:42:02 +0000
-Subject: [PATCH 8/8] MFC 240962: Grab the mfi_config_lock while performing a
+Subject: [PATCH 8/9] MFC 240962: Grab the mfi_config_lock while performing a
  MFI_DCMD_CFG_FOREIGN_IMPORT request on behalf of a user
  utility.
 
@@ -22,5 +22,5 @@ index f801cde..c1ddb5c 100644
  		return (1);
  	default:
 -- 
-1.7.9.5
+1.7.10.4
 

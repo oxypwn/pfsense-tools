@@ -1,7 +1,7 @@
-From 3c07522040846b1a149ad89bf27f61661c3a3446 Mon Sep 17 00:00:00 2001
+From 6d364e27bf3d2fe09e63dd1da3764ae6af91436b Mon Sep 17 00:00:00 2001
 From: jhb <jhb@FreeBSD.org>
 Date: Wed, 29 Aug 2012 17:36:31 +0000
-Subject: [PATCH 5/8] MFC 238077: Fix panics triggered by older mfiutil
+Subject: [PATCH 5/9] MFC 238077: Fix panics triggered by older mfiutil
  binaries run on the new mfi(4) driver. The new driver
  changed the size of the mfi_dcmd_frame structure in
  such a way that a MFI_IOC_PASSTHRU ioctl from an old
@@ -70,5 +70,5 @@ index 323ed8c..f801cde 100644
  	}
  
 -- 
-1.7.9.5
+1.7.10.4
 
