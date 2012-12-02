@@ -1,7 +1,7 @@
-From 122428f5008a7647c80b39e491b3f83c5f587c1d Mon Sep 17 00:00:00 2001
+From ccfbdb515c4ee3e027f7452da14bff7d372dafd3 Mon Sep 17 00:00:00 2001
 From: sbruno <sbruno@FreeBSD.org>
 Date: Sun, 23 Sep 2012 20:24:17 +0000
-Subject: [PATCH 7/8] MFC r238371
+Subject: [PATCH 7/9] MFC r238371
 
 When an MFI command fails, the driver needs to set bio->bio_resid so that
 the upper levels notice.  Otherwise we see commands silently failing leading
@@ -25,5 +25,5 @@ index fc43e67..18ceb99 100644
  			bio->bio_error = EIO;
  		disk_err(bio, "hard error", -1, 1);
 -- 
-1.7.9.5
+1.7.10.4
 

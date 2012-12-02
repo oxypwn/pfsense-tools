@@ -1,7 +1,7 @@
-From db08e205836f4f256a27ddf628d6a033773cb2ef Mon Sep 17 00:00:00 2001
+From 67bdc9b841789e56bd1257cf0414cd3e91393a83 Mon Sep 17 00:00:00 2001
 From: sbruno <sbruno@FreeBSD.org>
 Date: Fri, 18 May 2012 19:48:33 +0000
-Subject: [PATCH 1/8] MFC of head thunderbolt support for mfi(4)
+Subject: [PATCH 1/9] MFC of head thunderbolt support for mfi(4)
 
 r233711 -- IFV head_mfi into head for initial thunderbolt support
 r233768 -- atomic_t --> mfi_atomic
@@ -12,6 +12,15 @@ r235016 -- style(9)
 r235040 -- fix returns from mfi_tbolt_sync_map_info()
 r235318 -- repair panic on PAE i386
 r235321 -- repair the repair of panics on PAE i386
+
+pfSense note:
+Omits following preceding patch to keep our patches to a minimum
+and keep the targeted to fixing issues with mfi(4).
+
+Author: scottl <scottl@FreeBSD.org>
+Date:   Fri Mar 16 09:22:59 2012 +0000
+
+    MFC 232854,232874,232882,232883,232886 for bus_get_dma_tag()
 ---
  sys/conf/files           |    2 +
  sys/dev/mfi/mfi.c        | 1473 +++++++++++++++++++++++++++++++++++++++-------
@@ -5604,5 +5613,5 @@ index a58e968..b04a9f7 100644
  
  #CFLAGS += -DMFI_DEBUG
 -- 
-1.7.9.5
+1.7.10.4
 

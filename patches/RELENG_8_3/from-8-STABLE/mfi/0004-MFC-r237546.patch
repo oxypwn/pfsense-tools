@@ -1,7 +1,7 @@
-From 51ea30cea61a42a7cc5fd788823a5619d3f0ba36 Mon Sep 17 00:00:00 2001
+From 6a487df061f34094551b42e82b2479d67c497ac4 Mon Sep 17 00:00:00 2001
 From: marius <marius@FreeBSD.org>
 Date: Mon, 2 Jul 2012 19:19:21 +0000
-Subject: [PATCH 4/8] MFC: r237546
+Subject: [PATCH 4/9] MFC: r237546
 
 Correct sizeof usage
 
@@ -66,5 +66,5 @@ index 3f5e52b..44fb4b2 100644
  	frp->fw.data = data;
  	frp->fw.datasize = datasize;
 -- 
-1.7.9.5
+1.7.10.4
 
