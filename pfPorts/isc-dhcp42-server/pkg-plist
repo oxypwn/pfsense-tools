@@ -1,4 +1,4 @@
-@comment $FreeBSD: head/net/isc-dhcp42-server/pkg-plist 301656 2012-07-28 13:00:57Z zi $
+@comment $FreeBSD$
 @unexec if cmp -s %D/etc/dhcpd.conf.sample %D/etc/dhcpd.conf; then rm -f %D/etc/dhcpd.conf; fi
 @unexec echo "You should stop the dhcpd and dhcpd6 daemons if you are permanently removing this port."
 etc/dhcpd.conf.sample
