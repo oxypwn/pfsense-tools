@@ -1,5 +1,156 @@
 This backport is specific to FreeBSD 8.3.
 
-These patches can be safely dropped as soon as
-pfSense switches to base FreeBSD > 8.3, >= 9.1 or >=10.
+This backported driver can be dropped as soon as we switch to a more 
+recent base FreeBSD. See notes above to see which included patch is
+present in upon a certain release/branch (as of 2012-12-04):
 
+---------------------------------------
+> RELENG 8.3, >= RELENG 9.1, 10-CURRENT
+---------------------------------------
+Author: sbruno <sbruno@FreeBSD.org>
+Date:   Fri May 18 19:48:33 2012 +0000
+
+    MFC of head thunderbolt support for mfi(4)
+    
+    r233711 -- IFV head_mfi into head for initial thunderbolt support
+    r233768 -- atomic_t --> mfi_atomic
+    r233805 -- fix tinderbuild, move megasas_sge to mfivar.h
+    r233877 -- remove atomic.h from includes
+    r235014 -- fix reading of sector >= 2^32 or 2^21, repair RAID handling
+    r235016 -- style(9)
+    r235040 -- fix returns from mfi_tbolt_sync_map_info()
+    r235318 -- repair panic on PAE i386
+    r235321 -- repair the repair of panics on PAE i386
+    
+    pfSense note:
+    Omits following preceding patch to keep our patches to a minimum
+    and keep the targeted to fixing issues with mfi(4).
+    
+    Author: scottl <scottl@FreeBSD.org>
+    Date:   Fri Mar 16 09:22:59 2012 +0000
+    
+        MFC 232854,232874,232882,232883,232886 for bus_get_dma_tag()
+
+Author: sbruno <sbruno@FreeBSD.org>
+Date:   Mon May 21 22:23:21 2012 +0000
+
+    MFC r235634
+    
+    Fix and update battery status bits according to linux driver
+
+Author: sbruno <sbruno@FreeBSD.org>
+Date:   Thu Jun 7 18:54:42 2012 +0000
+
+    MFC r236323
+    
+    Cosmetic nit.  If a configured volume has no label, don't emit an empty
+    string for the name during probe.  Simply indicate that it has no label.
+
+Author: marius <marius@FreeBSD.org>
+Date:   Mon Jul 2 19:19:21 2012 +0000
+
+    MFC: r237546
+    
+    Correct sizeof usage
+    
+    Obtained from:	DragonFly
+
+------------------------------------------
+>= RELENG 8.3, > RELENG 9.1, >= 10-CURRENT
+------------------------------------------
+Author: jhb <jhb@FreeBSD.org>
+Date:   Wed Aug 29 17:36:31 2012 +0000
+
+    MFC 238077:
+    Fix panics triggered by older mfiutil binaries run on the new mfi(4) driver.
+    The new driver changed the size of the mfi_dcmd_frame structure in such a
+    way that a MFI_IOC_PASSTHRU ioctl from an old amd64 binary is treated as an
+    MFI_IOC_PASSTHRU32 ioctl in the new driver.  As a result, the user pointer
+    is treated as the buffer length.  mfi_user_command() doesn't have a bounds
+    check on the buffer length, so it passes a really big value to malloc()
+    which panics when it tries to exhaust the kmem_map.  Fix this two ways:
+    - Only honor MFI_IOC_PASSTHRU32 if the binary has the SV_ILP32 flag set,
+      otherwise treat it as an unknown ioctl.
+    - Add a bounds check on the buffer length passed by the user.  For now
+      it fails any user attempts to use a buffer larger than 1MB.
+    
+    While here, fix a few other nits:
+    - Remove an unnecessary check for a NULL return from malloc(M_WAITOK).
+    - Use the ENOTTY errno for invalid ioctl commands instead of ENOENT.
+
+Author: sbruno <sbruno@FreeBSD.org>
+Date:   Sun Sep 23 20:16:17 2012 +0000
+
+    MFC r238373
+    
+    sys/dev/mfivar.h contains references to MFI_DEBUG, but it never gets turned on
+    unless the file also includes opt_mfi.h.
+    
+    Submitted by: Andrew Boyer aboyer@averesystems.com
+
+Author: sbruno <sbruno@FreeBSD.org>
+Date:   Sun Sep 23 20:24:17 2012 +0000
+
+    MFC r238371
+    
+    When an MFI command fails, the driver needs to set bio->bio_resid so that
+    the upper levels notice.  Otherwise we see commands silently failing leading
+    to data corruption.  This mirrors dadone()
+    
+    Submitted by: Andrew Boyer aboyer@averesystems.com
+
+Author: jhb <jhb@FreeBSD.org>
+Date:   Sun Oct 7 18:42:02 2012 +0000
+
+    MFC 240962:
+    Grab the mfi_config_lock while performing a MFI_DCMD_CFG_FOREIGN_IMPORT
+    request on behalf of a user utility.
+
+Author: eadler <eadler@FreeBSD.org>
+Date:   Fri Nov 30 03:38:01 2012 +0000
+
+    MFC r243078:
+    	Add deviceid to the disk output on boot to help debugging.
+    
+    PR:		kern/173290
+    Approved by:	cperciva (implicit)
+
+Author: delphij <delphij@FreeBSD.org>
+Date:   Mon Dec 3 18:39:29 2012 +0000
+
+    MFC r242497:
+    
+    Copy code from scsi_read_write() as mfi_build_syspd_cdb() to build SCSI
+    command properly.  Without this change, mfi(4) always sends 10 byte READ
+    and WRITE commands, which will cause data corruption when device is
+    larger than 2^32 sectors.
+    
+    PR:		kern/173291
+    Submitted by:	Steven Hartland <steven.hartland multiplay.co.uk>
+    Reviewed by:	mav
+
+Author: delphij <delphij@FreeBSD.org>
+Date:   Mon Dec 3 18:47:25 2012 +0000
+
+    MFC r242681 (ambrisko):
+    
+    - Extend the prior commit to use the generic SCSI command building
+      function use that for JBOD and Thunderbolt disk write command.  Now
+      we only have one implementation in mfi.
+    - Fix dumping on Thunderbolt cards.  Polled IO commands do not seem to
+      be normally acknowledged by changing cmd_status to MFI_STAT_OK.
+      In order to get acknowledgement of the IO is complete, the Thunderbolt
+      command queue needs to be run through.  I added a flag MFI_CMD_SCSI
+      to indicate this command is being polled and to complete the
+      Thunderbolt wrapper and indicate the result.  This flag needs to be
+      set in the JBOD case in case if that us using Thunderbolt card.
+      When in the polling loop check for completed commands.
+    - Remove mfi_tbolt_is_ldio and just do the check when needed.
+    - Fix an issue when attaching of disk device happens when a device is
+      already scheduled to be attached but hasn't attached.
+    - add a tunable to allow raw disk attachment to CAM via:
+            hw.mfi.allow_cam_disk_passthrough=1
+    - fixup aborting of commands (AEN and LD state change).  Use a generic
+      abort function and only wait the command being aborted not both.
+      Thunderbolt cards don't seem to abort commands so the abort times
+      out.
