@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# $FreeBSD: ports/net/isc-dhcp42-server/files/isc-dhcpd.in,v 1.3 2012/03/19 01:28:35 zi Exp $
+# $FreeBSD$
 #
 # PROVIDE: dhcpd
 # REQUIRE: DAEMON

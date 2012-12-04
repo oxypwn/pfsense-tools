@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# $FreeBSD: ports/net/isc-dhcp42-server/files/isc-dhcrelay.in,v 1.2 2012/04/18 17:55:19 zi Exp $
+# $FreeBSD$
 #
 # PROVIDE: dhcrelay
 # REQUIRE: DAEMON
