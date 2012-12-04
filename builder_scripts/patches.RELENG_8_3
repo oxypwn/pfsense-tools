@@ -98,6 +98,7 @@
 -p1~~from-8-STABLE/e1000/0004-MFC-r235210.patch~
 -p1~~from-8-STABLE/e1000/0005-MFC-r225640.patch~
 -p1~~from-8-STABLE/e1000/0006-MFC-r240879.patch~
+~~from-8-STABLE/mfi/mfi_8-STABLE.tgz~
 -p1~~from-8-STABLE/mfiutil/0001-MFC-r233713.patch~
 -p1~~from-8-STABLE/mfiutil/0002-MFC-r235634.patch~
 -p1~~from-8-STABLE/mfiutil/0003-MFC-r237259-r237260-r237329.patch~
