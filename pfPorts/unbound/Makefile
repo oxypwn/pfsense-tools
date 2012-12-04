@@ -2,21 +2,25 @@
 # Date created:				25 Apr 2008
 # Whom:					Sergey Matveychuk <sem@FreeBSD.org>
 #
-# $FreeBSD: ports/dns/unbound/Makefile,v 1.48 2012/02/02 13:53:27 sem Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	unbound
-PORTVERSION=	1.4.16
+PORTVERSION=	1.4.18
+PORTREVISION=	3
 CATEGORIES=	dns
 MASTER_SITES=	http://unbound.net/downloads/
 
 MAINTAINER=	sem@FreeBSD.org
 COMMENT=	A validating, recursive, and caching DNS resolver
 
+LICENSE=	BSD
+LICENSE_FILE=	${WRKSRC}/LICENSE
+
 USE_GMAKE=	yes
 USE_OPENSSL=	yes
 GNU_CONFIGURE=	yes
-CONFIGURE_ARGS+=	--with-ssl=${OPENSSLBASE} --with-ldns-builtin
+CONFIGURE_ARGS+=--with-ssl=${OPENSSLBASE}
 USE_LDCONFIG=	yes
 
 USERS=		${PORTNAME}
@@ -31,43 +35,62 @@ MAN8=		unbound.8 unbound-anchor.8 unbound-control.8 unbound-checkconf.8
 PORTDOCS=	CREDITS Changelog FEATURES LICENSE README README.svn \
 		README.tests TODO control_proto_spec.txt ietf67-design-02.odp \
 		ietf67-design-02.pdf requirements.txt
-SUB_FILES=	pkg-install pkg-deinstall
-PLIST_SUB+=	PYTHON=${PYTHON}
+PLIST_SUB+=	PYTHON=${PYTHON} MUNIN=${MUNIN}
 
-OPTIONS=	LIBEVENT "is useful when using many (10000) outgoing ports" on \
-		THREADS "build with threads support" on \
-		PYTHON "build python bindings" off \
-		GOST "build GOST support (requires OpenSSL from ports)" off
+OPTIONS_DEFINE=	LIBEVENT THREADS PYTHON GOST ECDSA MUNIN
+OPTIONS_DEFAULT=THREADS ECDSA
+
+LIBEVENT_DESC=	Enable whenever using many (10000) outgoing ports
+GOST_DESC=	Enable GOST support (requires OpenSSL from ports)
+ECDSA_DESC=	Enable ECDSA support (requires OpenSSL from ports)
+MUNIN_DESC=	Install Munin plugin
 
 .include <bsd.port.options.mk>
 
-LIB_DEPENDS+=	expat.6:${PORTSDIR}/textproc/expat2 \
+LIB_DEPENDS+=	expat:${PORTSDIR}/textproc/expat2 \
 		ldns:${PORTSDIR}/dns/ldns
 
-.if defined(WITH_PYTHON)
+.if ${PORT_OPTIONS:MPYTHON}
 USE_PYTHON=	yes
-CONFIGURE_ARGS+=	--with-pyunbound=yes --with-pythonmodule=yes
-BUILD_DEPENDS+=		swig:${PORTSDIR}/devel/swig13
+CONFIGURE_ARGS+=--with-pyunbound=yes --with-pythonmodule=yes
+BUILD_DEPENDS+=	swig:${PORTSDIR}/devel/swig13
 PYTHON=
 .else
 PYTHON=		"@comment "
 .endif
 
-.if defined(WITH_GOST)
+.if ${PORT_OPTIONS:MGOST}
 WITH_OPENSSL_PORT=	yes
+DEPENDS_ARGS+=	WITH_GOST=yes
 .else
-CONFIGURE_ARGS+=	--disable-gost
+CONFIGURE_ARGS+=--disable-gost
 .endif
 
-.if defined(WITH_LIBEVENT)
-LIB_DEPENDS+=		event-1.4:${PORTSDIR}/devel/libevent
-CONFIGURE_ARGS+=	--with-libevent=${LOCALBASE}
+.if ${PORT_OPTIONS:MECDSA}
+WITH_OPENSSL_PORT=yes
+DEPENDS_ARGS+=	WITH_ECDSA=yes
 .else
-CONFIGURE_ARGS+=	--with-libevent=no
+CONFIGURE_ARGS+=--disable-ecdsa
 .endif
 
-.if !defined(WITH_THREADS)
-CONFIGURE_ARGS+=	--without-pthreads
+.if ${PORT_OPTIONS:MMUNIN}
+SUB_FILES+=	pkg-message
+MUNIN_ALL=	hits queue memory by_type by_class by_opcode by_rcode \
+		by_flags histogram
+MUNIN=
+.else
+MUNIN=		"@comment "
+.endif
+
+.if ${PORT_OPTIONS:MLIBEVENT}
+LIB_DEPENDS+=	event-1:${PORTSDIR}/devel/libevent
+CONFIGURE_ARGS+=--with-libevent=${LOCALBASE}
+.else
+CONFIGURE_ARGS+=--with-libevent=no
+.endif
+
+.if empty(PORT_OPTIONS:MTHREADS)
+CONFIGURE_ARGS+=--without-pthreads
 .endif
 
 post-patch:
@@ -75,7 +98,21 @@ post-patch:
 	@${RM} ${WRKSRC}/util/configlexer.c
 
 post-install:
-	@${SH} ${PKGINSTALL} ${PKGNAME} POST-INSTALL
+	@${CHOWN} ${USERS} ${ETCDIR}
+.if ${PORT_OPTIONS:MMUNIN}
+	@${MKDIR} ${PREFIX}/share/munin/plugins
+	@${MKDIR} ${PREFIX}/etc/munin/plugins
+	@${INSTALL_SCRIPT} ${WRKDIR}/unbound-${PORTVERSION}/contrib/unbound_munin_\
+		${PREFIX}/share/munin/plugins/
+	@for i in ${MUNIN_ALL}; do\
+		${LN} -fs ${PREFIX}/share/munin/plugins/unbound_munin_\
+			${PREFIX}/etc/munin/plugins/unbound_munin_$$i ;\
+	done
+	@${ECHO_MSG}
+	@${ECHO_MSG} "============================================================="
+	@${CAT} ${WRKDIR}/pkg-message
+	@${ECHO_MSG} "============================================================="
+.endif
 .if !defined(NOPORTDOCS)
 	@${MKDIR} ${DOCSDIR}; \
 	for f in ${PORTDOCS}; do \
