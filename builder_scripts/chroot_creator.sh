@@ -116,7 +116,7 @@ if [ ! -d /home/pfsense ]; then
 	cd /home/pfsense && git clone \
 		git://github.com/bsdperimeter/pfsense-tools.git tools
 	cd /home/pfsense && git clone \
-		git://github.com/sullrich/pfSense-freesbie2.git freesbie2
+		git://github.com/bsdperimeter/freesbie2.git freesbie2
 	chmod a+rx /home/pfsense/tools/builder_scripts/*.sh
 else
 	echo ">>> Making sure git repos are in sync..."

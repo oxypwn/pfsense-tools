@@ -243,7 +243,7 @@ export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_SCRIPTS}/remove.list.
 export USE_GIT=${USE_GIT:-"yo"}
 export GIT_REPO=${GIT_REPO:-"git://github.com/bsdperimeter/pfsense.git"}
 export GIT_REPO_DIR="${BASE_DIR}/pfSenseGITREPO"
-export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"git://gitweb.pfsense.org/freesbie2/mainline.git"}
+export GIT_REPO_FREESBIE2=${GIT_REPO_FREESBIE2:-"git://github.com/bsdperimeter/freesbie2.git freesbie2"}
 export GIT_REPO_TOOLS=${GIT_TOOLS_REPO:-"git://github.com/bsdperimeter/pfsense-tools.git tools"}
 
 # Custom overlay for people building or extending pfSense images.

@@ -113,7 +113,7 @@ fi
 
 # Checkout freesbie2 if needed
 if [ ! -d freesbie2 ]; then
-	cd /home/pfsense && git clone https://github.com/sullrich/pfSense-freesbie2.git freesbie2
+	cd /home/pfsense && git clone https://github.com/bsdperimeter/freesbie2.git freesbie2
 fi
 
 # Ensure scripts have +x

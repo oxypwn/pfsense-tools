@@ -23,9 +23,9 @@ if [ -d /home/pfsense/packages/.git ]; then
 fi
 
 if [ -d /home/pfsense/freesbie2/.git ]; then
-	echo ">>>   Setting freesbie repo to git://github.com/sullrich/pfSense-freesbie2.git"
+	echo ">>>   Setting freesbie repo to git://github.com/bsdperimeter/freesbie2.git"
 	cd /home/pfsense/freesbie2/
-	git remote set-url origin git://github.com/sullrich/pfSense-freesbie2.git
+	git remote set-url origin git://github.com/bsdperimeter/freesbie2.git
 fi
 
 if [ -d /home/pfsense/installer/.git ]; then
