@@ -2,7 +2,7 @@
 # Date created:		23 June 2003
 # Whom:			Max Laier <max@love2party.net>
 #
-# $FreeBSD: ports/sysutils/pftop/Makefile,v 1.18 2012/02/14 17:07:07 flo Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	pftop
