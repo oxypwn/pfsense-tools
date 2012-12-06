@@ -121,6 +121,7 @@ usr/local/lib/php/20090626/mysql.so
 usr/local/lib/php/20090626/openssl.so
 usr/local/lib/php/20090626/pfSense.so
 usr/local/lib/php/20090626/pcntl.so
+usr/local/lib/php/20090626/spl.so
 usr/local/lib/php/20090626/pdo.so
 usr/local/lib/php/20090626/pdo_sqlite.so
 usr/local/lib/php/20090626/posix.so

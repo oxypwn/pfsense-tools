@@ -99,6 +99,7 @@ usr/local/lib/php/20060613/mysql.so
 usr/local/lib/php/20060613/openssl.so
 usr/local/lib/php/20060613/pfSense.so
 usr/local/lib/php/20060613/pcntl.so
+usr/local/lib/php/20060613/spl.so
 usr/local/lib/php/20060613/pdo.so
 usr/local/lib/php/20060613/pdo_sqlite.so
 usr/local/lib/php/20060613/posix.so
