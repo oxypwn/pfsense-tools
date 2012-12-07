@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  *
  * $Id: protocols.c 566 2008-08-01 17:13:16Z mtm $
+ * Compile with: cc -o prototest protocols.c
+ * Run as: ./prototest $dir_of_patterns
  */
 
 #include <sys/types.h>
