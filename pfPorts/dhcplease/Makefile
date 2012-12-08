@@ -1,9 +1,5 @@
-# New ports collection makefile for:	php4
-# Date created:				Tue Feb 18 11:17:13 CET 2003
-# Whom:					Alex Dupre <sysadmin@alexdupre.com>
-#
-# $FreeBSD: ports/lang/php4/Makefile,v 1.88 2005/07/13 19:56:27 ale Exp $
-#
+# Created by: Ermal Luçi <eri@pfsense.org>
+# $FreeBSD$
 
 PORTNAME=	dhcpleases
 PORTVERSION=	0.1
