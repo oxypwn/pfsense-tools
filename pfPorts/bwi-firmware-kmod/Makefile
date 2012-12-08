@@ -2,7 +2,7 @@
 # Date created:				May 01 2009
 # Whom:					Andrew Thompson <thompsa@FreeBSD.org>
 #
-# $FreeBSD: ports/net/bwi-firmware-kmod/Makefile,v 1.3 2009/05/16 00:04:10 wxs Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	bwi-firmware

@@ -2,7 +2,7 @@
 # Date created:        16 March 1998
 # Whom:                Yukihiro Nakai <Nakai@technologist.com>
 #
-# $FreeBSD: ports/devel/gettext/Makefile,v 1.88 2010/09/15 18:34:10 ade Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	gettext
@@ -26,9 +26,9 @@ CONFIGURE_ENV=	ACLOCAL="${TRUE}" \
 		AUTOMAKE="${TRUE}" \
 		AUTOHEADER="${TRUE}" \
 		MAKEINFO="makeinfo --no-split" \
-		CPPFLAGS="-I${LOCALBASE}/include" \
-		LDFLAGS="-L${LOCALBASE}/lib" \
 		EMACS="no"
+CPPFLAGS+=	-I${LOCALBASE}/include
+LDFLAGS+=	-L${LOCALBASE}/lib
 CONFIGURE_ARGS=	--disable-csharp --disable-threads --disable-openmp \
 		--with-included-gettext --with-included-glib \
 		--with-included-libcroco --with-included-libxml \

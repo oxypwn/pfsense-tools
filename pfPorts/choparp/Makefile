@@ -2,7 +2,7 @@
 # Date created:		7 October 1997
 # Whom:			itojun@itojun.org
 #
-# $FreeBSD: ports/net-mgmt/choparp/Makefile,v 1.17 2010/05/04 14:03:13 nork Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	choparp
@@ -11,10 +11,10 @@ PORTREVISION=	4
 CATEGORIES=	net-mgmt
 MASTER_SITES=	SF
 
-MAINTAINER=	nork@FreeBSD.org
+MAINTAINER=	ports@FreeBSD.org
 COMMENT=	Simple proxy arp daemon
 
-USE_RC_SUBR=	choparp.sh
+USE_RC_SUBR=	choparp
 
 MANCOMPRESSED=	yes
 MAN8=		choparp.8
