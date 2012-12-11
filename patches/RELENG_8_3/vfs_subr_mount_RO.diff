@@ -1,0 +1,31 @@
+diff --git a/sys/kern/vfs_subr.c b/sys/kern/vfs_subr.c
+index 4944230..43c55b9 100644
+--- a/sys/kern/vfs_subr.c
++++ b/sys/kern/vfs_subr.c
+@@ -127,6 +127,10 @@ static unsigned long	numvnodes;
+ SYSCTL_LONG(_vfs, OID_AUTO, numvnodes, CTLFLAG_RD, &numvnodes, 0,
+     "Number of vnodes in existence");
+ 
++static int forcesync;
++SYSCTL_INT(_vfs, OID_AUTO, forcesync, CTLFLAG_RD, &forcesync, 0,
++    "Do full checks when switchint to RO mount of FS");
++
+ /*
+  * Conversion tables for conversion from vnode types to inode formats
+  * and back.
+@@ -2501,6 +2505,7 @@ loop:
+ 		 * vnodes open for writing.
+ 		 */
+ 		if (flags & WRITECLOSE) {
++			if (forcesync) {
+ 			if (vp->v_object != NULL) {
+ 				VM_OBJECT_LOCK(vp->v_object);
+ 				vm_object_page_clean(vp->v_object, 0, 0, 0);
+@@ -2513,6 +2518,7 @@ loop:
+ 				MNT_VNODE_FOREACH_ABORT(mp, mvp);
+ 				return (error);
+ 			}
++			}
+ 			error = VOP_GETATTR(vp, &vattr, td->td_ucred);
+ 			VI_LOCK(vp);
+ 
