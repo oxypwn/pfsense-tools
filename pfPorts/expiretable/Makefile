@@ -1,33 +1,19 @@
-# New ports collection makefile for:	php4
-# Date created:				Tue Feb 18 11:17:13 CET 2003
-# Whom:					Alex Dupre <sysadmin@alexdupre.com>
+# New ports collection makefile for: expiretable
+# Date created:		7 January 2006
+# Whom:			Cristiano Deana <cris@gufi.org>
 #
-# $FreeBSD: ports/lang/php4/Makefile,v 1.88 2005/07/13 19:56:27 ale Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	expiretable
-PORTVERSION=	0.0.2
-PORTREVISION?=	0
-CATEGORIES?=	sysutils
-MASTER_SITES=	# empty
-DISTFILES=	# none
-EXTRACT_ONLY=	# empty
+PORTVERSION=	0.6
+CATEGORIES=	security
+MASTER_SITES=	http://expiretable.fnord.se/
 
-MAINTAINER?=	jebc@c4solutions.net
-COMMENT?=	reinits ata channel 0
+MAINTAINER=	cris@gufi.org
+COMMENT=	Utility to remove entries from the pf(4) table based on their age
 
-WHERE=		sbin
-PLIST_FILES=    ${WHERE}/${PORTNAME}
-
-do-extract:
-	mkdir -p ${WRKSRC}
-	cp ${FILESDIR}/Makefile ${WRKSRC}/
-	cp ${FILESDIR}/*.* ${WRKSRC}/
-
-#do-build:
-#	${CC} ${CFLAGS} -o ${WRKSRC}/${PORTNAME} ${FILESDIR}/${PORTNAME}.c
-
-#do-install:
-#	${INSTALL_PROGRAM} ${WRKSRC}/${PORTNAME} ${PREFIX}/${WHERE}/
+USE_RC_SUBR=	expiretable
+MAN1=		expiretable.1
 
 .include <bsd.port.mk>

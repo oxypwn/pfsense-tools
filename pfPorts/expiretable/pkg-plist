@@ -1,0 +1,2 @@
+@stopdaemon expiretable
+sbin/expiretable
