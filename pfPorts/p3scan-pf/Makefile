@@ -16,7 +16,7 @@ WRKSRC=		${WRKDIR}/p3scan-${PORTVERSION}
 MAINTAINER=	edwin@mavetju.org
 COMMENT=	A transparent POP3-Proxy with virus-scanning capabilities
 
-LIB_DEPENDS=	pcre.1:${PORTSDIR}/devel/pcre
+LIB_DEPENDS=	pcre.3:${PORTSDIR}/devel/pcre
 
 USE_GMAKE=	yes
 USE_GETOPT_LONG=yes

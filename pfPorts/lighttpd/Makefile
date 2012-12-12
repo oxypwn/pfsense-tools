@@ -18,7 +18,7 @@ LICENSE=	BSD
 LICENSE_FILE=	${WRKSRC}/COPYING
 .endif
 
-LIB_DEPENDS+=	pcre.1:${PORTSDIR}/devel/pcre
+LIB_DEPENDS+=	pcre.3:${PORTSDIR}/devel/pcre
 
 USE_BZIP2=	yes
 GNU_CONFIGURE=	yes
