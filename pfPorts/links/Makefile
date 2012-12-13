@@ -2,87 +2,103 @@
 # Date created:		21 January 2000
 # Whom:			Michael Vasilenko <acid@stu.cn.ua>
 #
-# $FreeBSD: ports/www/links/Makefile,v 1.58 2009/07/31 13:56:29 dinoex Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	links
-DISTVERSION=	2.2
-PORTREVISION=	1
+DISTVERSION=	2.7
 PORTEPOCH=	1
-CATEGORIES?=	www
-MASTER_SITES=	http://links.twibright.com/download/
+CATEGORIES=	www ipv6
+MASTER_SITES=	http://links.twibright.com/download/ LOCAL/bf
 
-PATCH_SITES=	ftp://ftp.linux.ee/pub/gentoo/distfiles/distfiles/ \
-		ftp://ftp.osuosl.org/pub/blfs/conglomeration/links/ \
-		ftp://ftp.ntua.gr/pub/linux/gentoo/distfiles/
-PATCH_DIST_STRIP=-p1
-
-MAINTAINER?=	demon@FreeBSD.org
+MAINTAINER=	bf@FreeBSD.org
 COMMENT=	Lynx-like text WWW browser
 
-CONFLICTS=	links-0*
+LICENSE=	GPLv2
+
+CONFLICTS=	links-0* links-hacked-[0-9]*
 
 GNU_CONFIGURE=	yes
 CONFIGURE_ARGS+=	--with-ssl --without-pmshell --without-atheos \
-			--without-gpm --without-fb
-CONFIGURE_ENV+=	CPPFLAGS="${CPPFLAGS} -I${LOCALBASE}/include"
+			--without-gpm --without-fb --without-windows
+CPPFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
 
 USE_OPENSSL=	yes
 USE_BZIP2=	yes
 
-OPTIONS=	SVGALIB "non-X11 graphics support" off \
-		DIRECTFB "directfb driver support" off \
-		X11 "X11 graphics support" off \
-		UTF8 "With gentoo utf-8 patch" on \
-		TRANS "Hack for background transparency" off
+OPTIONS_DEFINE=	DIRECTFB SVGALIB TRANS UTF8 X11
 
-.include <bsd.port.pre.mk>
+DIRECTFB_DESC=	DirectFB graphics support
+SVGALIB_DESC=	SVGALib graphics support
+TRANS_DESC=	Hack for background transparency
+UTF8_DESC=	UTF-8 support
+X11_DESC=	X11 graphics support
 
-.ifdef(WITH_SVGALIB) || defined(WITH_X11) || defined(WITH_DIRECTFB)
-LIB_DEPENDS+=	png.5:${PORTSDIR}/graphics/png \
-		jpeg.10:${PORTSDIR}/graphics/jpeg \
-		tiff.4:${PORTSDIR}/graphics/tiff
+OPTIONS_DEFAULT=	UTF8
+
+MAN1=		links.1
+PLIST_FILES=	bin/links
+
+.include <bsd.port.options.mk>
+
+.if ${OSVERSION} < 800505 || (${OSVERSION} >= 900000 && ${OSVERSION} < 900012)
+LIB_DEPENDS+=	lzma:${PORTSDIR}/archivers/xz
+.endif
+
+.if ${PORT_OPTIONS:MDIRECTFB} || ${PORT_OPTIONS:MSVGALIB} || ${PORT_OPTIONS:MX11}
+LIB_DEPENDS+=	png15:${PORTSDIR}/graphics/png \
+		jpeg:${PORTSDIR}/graphics/jpeg \
+		tiff:${PORTSDIR}/graphics/tiff
 CONFIGURE_ARGS+=	--enable-graphics
 .else
 CONFIGURE_ARGS+=	--disable-graphics --without-libjpeg --without-libtiff
 .endif
 
-.ifdef(WITH_SVGALIB)
-LIB_DEPENDS+=	vga.1:${PORTSDIR}/graphics/svgalib
-CONFIGURE_ARGS+=	--with-svgalib
-.else
-CONFIGURE_ARGS+=	--without-svgalib
-.endif
-
-.ifdef(WITH_DIRECTFB)
-LIB_DEPENDS+=		directfb-1.1.1:${PORTSDIR}/devel/directfb
+.if ${PORT_OPTIONS:MDIRECTFB}
+LIB_DEPENDS+=	directfb-1.4.5:${PORTSDIR}/devel/directfb
 CONFIGURE_ARGS+=	--with-directfb
 .else
 CONFIGURE_ARGS+=	--without-directfb
 .endif
 
-.if !defined(WITHOUT_X11)
+.if ${PORT_OPTIONS:MSVGALIB}
+LIB_DEPENDS+=	vga:${PORTSDIR}/graphics/svgalib
+CONFIGURE_ARGS+=	--with-svgalib
+.else
+CONFIGURE_ARGS+=	--without-svgalib
+.endif
+
+.if ${PORT_OPTIONS:MTRANS}
+EXTRA_PATCHES+=		${FILESDIR}/extra-terminal.c.diff
+.endif
+
+.if ${PORT_OPTIONS:MUTF8}
+CONFIGURE_ARGS+=	--enable-utf8
+.else
+CONFIGURE_ARGS+=	--disable-utf8
+.endif
+
+.if ${PORT_OPTIONS:MX11}
 USE_XORG=	x11 xproto
 CONFIGURE_ARGS+=	--with-x
+DESKTOP_ENTRIES="links" \
+		"Lynx-like text WWW browser" \
+		"links" \
+		"links -g" \
+		"Application;Network;WebBrowser;" \
+		false
+PLIST_FILES+=	share/pixmaps/links.xpm
 .else
 CONFIGURE_ARGS+=	--without-x
 .endif
 
-.if defined(WITH_UTF8)
-PATCHFILES=	links-2.1pre33-utf8.diff.bz2
-pre-configure:
-		pwd && cd ${WRKSRC}/intl && ./gen-intl && ./synclang && cd ..
-.endif
-
-.if defined(WITH_TRANS)
-EXTRA_PATCHES+=		${FILESDIR}/extra-terminal.c.diff
-.endif
-
-MAN1=		links.1
-PLIST_FILES=	bin/links
-
 post-patch:
 	@${REINPLACE_CMD} -e "s!/etc/!${PREFIX}/etc/!" ${WRKSRC}/os_dep.h
 
-.include <bsd.port.post.mk>
+.if ${PORT_OPTIONS:MX11}
+post-install:
+	@${INSTALL_DATA} ${WRKSRC}/graphics/links.xpm ${PREFIX}/share/pixmaps/links.xpm
+.endif
+
+.include <bsd.port.mk>
