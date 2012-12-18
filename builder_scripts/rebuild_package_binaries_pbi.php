@@ -128,7 +128,7 @@ PBI_MAKEPORT="$port_path"
 # Options that will be put into the make.conf for the build of this port
 # Options get inserted into the build's /etc/make.conf file and effect all the ports built for that PBI
 PBI_MAKEOPTS="WITHOUT_X11=true
-OPTIONS_UNSET=X11
+OPTIONS_UNSET=X11 DOCS
 NOPORTEXAMPLES=yes
 NOPORTDOCS=yes
 $MAKEOPTS"
