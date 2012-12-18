@@ -431,6 +431,7 @@ device         atkbd           # AT keyboard
 device         kbdmux          # keyboard multiplexer
 device         vga             # VGA video card driver
 device         sc              # Syscons
+device		splash
 # END VGA
 
 options    PPS_SYNC
