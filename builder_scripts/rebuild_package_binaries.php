@@ -238,9 +238,11 @@ foreach($pkg['packages']['package'] as $pkg) {
 			}
 */
 			echo ">>> Processing {$build}\n";
-			if($build_options) 
+			if(!empty($build_options)) {
 				if(!isset($options['q'])) 
 					echo " BUILD_OPTIONS: {$build_options}\n";
+				$build_options = '"' . str_replace(';', '" "', $build_options) . '"';
+			}
 			// Build in chroot if defined.
 			if(isset($options['j']) && $options['l']) {
 				$command_to_run  = "#!/bin/sh\n";

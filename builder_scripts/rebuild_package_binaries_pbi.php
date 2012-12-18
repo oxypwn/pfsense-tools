@@ -105,7 +105,7 @@ function create_pbi_conf($port_path,$custom_name="",$MAKEOPTS="",$portsbefore=""
 	$MAINTAINER=trim(`grep ^MAINTAINER= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
 	// $PROGWEB=trim(`grep ^MASTER_SITES= /usr/ports/$port_path/Makefile | cut -d'=' -f2`);
 
-	$MAKEOPTS = str_replace(" ", "\n", $MAKEOPTS);
+	$MAKEOPTS = str_replace(";", "\n", $MAKEOPTS);
 
 	$portsbefore = empty($portsbefore) ? "" : "PBI_MKPORTBEFORE=\"$portsbefore\"";
 	$portsafter  = empty($portsafter) ? "" : "PBI_MKPORTAFTER=\"$portsafter\"";
@@ -127,7 +127,10 @@ PBI_MAKEPORT="$port_path"
 # Enter your custom make options here
 # Options that will be put into the make.conf for the build of this port
 # Options get inserted into the build's /etc/make.conf file and effect all the ports built for that PBI
-PBI_MAKEOPTS="WITHOUT_X11=true NOPORTEXAMPLES=yes NOPORTDOCS=yes
+PBI_MAKEOPTS="WITHOUT_X11=true
+OPTIONS_UNSET=X11
+NOPORTEXAMPLES=yes
+NOPORTDOCS=yes
 $MAKEOPTS"
 
 # Ports to build before / after
