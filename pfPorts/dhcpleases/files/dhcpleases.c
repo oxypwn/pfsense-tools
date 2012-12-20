@@ -409,7 +409,7 @@ write_status() {
 		return 2;
 	}
 	/* write the tmp hosts file */
-	dprintf(fd, "\n# dhpleases automatically entered\n"); /* put a blank line just to be on safe side */
+	dprintf(fd, "\n# dhcpleases automatically entered\n"); /* put a blank line just to be on safe side */
 	LIST_FOREACH(lease, &leases, next) {
 		if (foreground)
 			printf("%s\t%s %s\t\t# dynamic entry from dhcpd.leases\n", inet_ntoa(lease->addr),
@@ -571,7 +571,7 @@ main(int argc, char **argv) {
 			exit(8);
 		}
 		if (!fexist(HOSTS)) {
-			syslog(LOG_ERR, "Hosts file %s does not exists!", HOSTS);
+			syslog(LOG_ERR, "Hosts file %s does not exist!", HOSTS);
 			perror("Hosts file passed as parameter does not exist");
 			exit(8);
 		}
@@ -601,8 +601,8 @@ reopen:
 
 	fp = fdopen(leasefd, "r");
 	if (fp == NULL) {
-		syslog(LOG_ERR, "could not open leasefile");
-		perror("could not open leasefile");
+		syslog(LOG_ERR, "could not open leases file");
+		perror("could not open leases file");
 		exit(5);
 	}
 
