@@ -472,6 +472,7 @@ signal_process() {
 	pidno = atoi(pid);
 	free(pid);
 
+	syslog(LOG_INFO, "Sending HUP signal to dns daemon(%u)", pidno);
 	if (kill((pid_t)pidno, SIGHUP) < 0)
 		goto error;
 
