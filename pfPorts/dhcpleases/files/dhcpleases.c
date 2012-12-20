@@ -560,8 +560,8 @@ main(int argc, char **argv) {
 	}
 
 	if (pidfile == NULL && !foreground) {
-		syslog(LOG_ERR, "pidfile argument not passed it is manadatory");
-		perror("pidfile argument not passed it is manadatory");
+		syslog(LOG_ERR, "pidfile argument not passed it is mandatory");
+		perror("pidfile argument not passed it is mandatory");
 		exit(1);
 	}
 
