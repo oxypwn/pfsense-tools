@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $FreeBSD: ports/net/rsync/files/rsyncd.sh.in,v 1.4 2010/03/27 00:13:56 dougb Exp $
+# $FreeBSD$
 #
 
 # PROVIDE: %%NAME%%
@@ -19,7 +19,7 @@
 . /etc/rc.subr
 
 name="%%NAME%%"
-rcvar=`set_rcvar`
+rcvar=%%NAME%%_enable
 
 command="%%PREFIX%%/bin/rsync"
 command_args="--daemon"
