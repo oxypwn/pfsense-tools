@@ -388,7 +388,7 @@ write_status() {
 		return 2;
 	}
 	/* write the tmp hosts file */
-	dprintf(fd, "\n# dhpleases automatically entered\n"); /* put a blank line just to be on safe side */
+	dprintf(fd, "\n# dhcpleases automatically entered\n"); /* put a blank line just to be on safe side */
 	LIST_FOREACH(lease, &leases, next) {
 		dprintf(fd, "%s\t%s %s\t\t# dynamic entry from dhcpd.leases\n", inet_ntoa(lease->addr),
 			lease->fqdn ? lease->fqdn  : "empty", lease->name ? lease->name : "empty");
@@ -470,8 +470,8 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 	if (!fexist(leasefile)) {
-		syslog(LOG_ERR, "lease file nees to exist before starting dhcpleases");	
-		perror("lease file nees to exist before starting dhcpleases");	
+		syslog(LOG_ERR, "lease file needs to exist before starting dhcpleases");	
+		perror("lease file needs to exist before starting dhcpleases");	
 		exit(1);
 	}
 
@@ -493,8 +493,8 @@ reopen:
 
 	fp = fdopen(leasefd, "r");
 	if (fp == NULL) {
-		syslog(LOG_ERR, "could not open leasefile");
-		perror("could not open leasefile");
+		syslog(LOG_ERR, "could not open leases file");
+		perror("could not open leases file");
 		exit(5);
 	}
 
