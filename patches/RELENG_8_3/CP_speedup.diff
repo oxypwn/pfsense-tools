@@ -414,15 +414,6 @@ index f7fe486..7294021 100644
  	args.inp = inp;
  
  	ipfw = ipfw_chk(&args);
-@@ -338,7 +339,7 @@ ipfw_hook(int onoff, int pf)
- 		return ENOENT;
- 
- 	if (onoff)
--	(void) pfil_add_hook
-+	(void) pfil_add_named_hook
- 	    (ipfw_check_hook, NULL, "ipfw", PFIL_IN | PFIL_OUT | PFIL_WAITOK, pfh);
- 	else
- 	(void) pfil_remove_hook
 diff --git a/sys/netinet/ipfw/ip_fw_private.h b/sys/netinet/ipfw/ip_fw_private.h
 index a726549..9fccf5f 100644
 --- a/sys/netinet/ipfw/ip_fw_private.h
