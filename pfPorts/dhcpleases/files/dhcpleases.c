@@ -90,6 +90,7 @@ static FILE *fp = NULL;
 static char *domain_suffix = NULL;
 static char *command = NULL;
 static size_t hostssize = 0;
+static size_t foreground = 0;
 
 /* Check if file exists */
 static int
@@ -208,8 +209,10 @@ next_token (char *token, int buffsize, FILE * fp)
 			count++;
 		}
 	}
-
 	*cp = 0;
+#if DEBUG
+	printf("|TOEN: %s, %d\n", token, count);
+#endif
 	return count ? 1 : 0;
 }
 
@@ -253,18 +256,26 @@ load_dhcp(time_t now) {
 
 	while ((next_token(token, MAXTOK, fp))) {
 		if (strcmp(token, "lease") == 0) {
-			hostname[0] = '\0';
+			*hostname = 0;
 			ttd = tts = (time_t)(-1);
 			if (next_token(token, MAXTOK, fp) && 
 			    (inet_pton(AF_INET, token, &host_address))) {
 				if (next_token(token, MAXTOK, fp) && *token == '{') {
 					while (next_token(token, MAXTOK, fp) && *token != '}') {
+#if DEBUG
+						printf("token: %s\n", token);
+#endif
 						if ((strcmp(token, "client-hostname") == 0) ||
 						    (strcmp(token, "hostname") == 0)) {
 							if (next_token(hostname, MAXDNAME, fp))
-								if (!canonicalise(hostname)) {
+								if (*hostname == '}') {
 									*hostname = 0;
-									syslog(LOG_ERR, "bad name in %s", leasefile); 
+								} else if (!canonicalise(hostname)) {
+									if (foreground)
+										printf("bad name(%s) in %s\n", hostname, leasefile);
+									else
+										syslog(LOG_ERR, "bad name in %s", leasefile); 
+									*hostname = 0;
 								}
 						} else if ((strcmp(token, "ends") == 0) ||
 							    (strcmp(token, "starts") == 0)) {
@@ -302,9 +313,12 @@ load_dhcp(time_t now) {
 
 				if ((dot = strchr(hostname, '.'))) {
 					if (!domain_suffix || hostname_isequal(dot+1, domain_suffix)) {
-						syslog(LOG_WARNING, 
-							"Ignoring DHCP lease for %s because it has an illegal domain part", 
-							hostname);
+						if (foreground)
+							printf("Ignoring DHCP lease for %s because it has an illegal domain part", hostname);
+						else
+							syslog(LOG_WARNING, 
+								"Ignoring DHCP lease for %s because it has an illegal domain part", 
+								hostname);
 						continue;
 					}
 					*dot = 0;
@@ -331,6 +345,9 @@ load_dhcp(time_t now) {
 					if (lease->fqdn != NULL)
 						free(lease->fqdn);
 				}
+
+				if (foreground)
+					printf("Found hostname: %s\n", hostname);
 
 				if (!(lease->name = malloc(strlen(hostname)+1)))
 					free(lease);
@@ -380,7 +397,10 @@ write_status() {
 	else
 		tmpsize = tmp.st_size;
 	if (tmpsize < hostssize) {
-		syslog(LOG_WARNING, "%s changed size from original!", HOSTS);
+		if (foreground)
+			printf("%s changed size from original!", HOSTS);
+		else
+			syslog(LOG_WARNING, "%s changed size from original!", HOSTS);
 		hostssize = tmpsize;
 	}
 	ftruncate(fd, hostssize);
@@ -391,8 +411,12 @@ write_status() {
 	/* write the tmp hosts file */
 	dprintf(fd, "\n# dhpleases automatically entered\n"); /* put a blank line just to be on safe side */
 	LIST_FOREACH(lease, &leases, next) {
-		dprintf(fd, "%s\t%s %s\t\t# dynamic entry from dhcpd.leases\n", inet_ntoa(lease->addr),
-			lease->fqdn ? lease->fqdn  : "empty", lease->name ? lease->name : "empty");
+		if (foreground)
+			printf("%s\t%s %s\t\t# dynamic entry from dhcpd.leases\n", inet_ntoa(lease->addr),
+				lease->fqdn ? lease->fqdn  : "empty", lease->name ? lease->name : "empty");
+		else
+			dprintf(fd, "%s\t%s %s\t\t# dynamic entry from dhcpd.leases\n", inet_ntoa(lease->addr),
+				lease->fqdn ? lease->fqdn  : "empty", lease->name ? lease->name : "empty");
 	}
 	close(fd);
 
@@ -490,13 +514,16 @@ main(int argc, char **argv) {
 	if (argc != 5) {
 	}
 
-	while ((ch = getopt(argc, argv, "c:d:p:h:l:")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:fp:h:l:")) != -1) {
 		switch (ch) {
 		case 'c':
 			command = optarg;
 			break;
 		case 'd':
 			domain_suffix = optarg;
+			break;
+		case 'f':
+			foreground = 1;
 			break;
 		case 'p':
 			pidfile = optarg;
@@ -531,35 +558,37 @@ main(int argc, char **argv) {
 		domain_suffix = "local";
 	}
 
-	if (pidfile == NULL) {
-		syslog(LOG_ERR, "pidfile argument not passed it is mandatory");
-		perror("pidfile argument not passed it is mandatory");
+	if (pidfile == NULL && !foreground) {
+		syslog(LOG_ERR, "pidfile argument not passed it is manadatory");
+		perror("pidfile argument not passed it is manadatory");
 		exit(1);
 	}
 
-	if (HOSTS == NULL) {
-		syslog(LOG_ERR, "You need to specify the hosts file path.");
-		perror("You need to specify the hosts file path.");
-		exit(8);
-	}
-	if (!fexist(HOSTS)) {
-		syslog(LOG_ERR, "Hosts file %s does not exist!", HOSTS);
-		perror("Hosts file passed as parameter does not exist");
-		exit(8);
-	}
+	if (!foreground) {
+		if (HOSTS == NULL) {
+			syslog(LOG_ERR, "You need to specify the hosts file path.");
+			perror("You need to specify the hosts file path.");
+			exit(8);
+		}
+		if (!fexist(HOSTS)) {
+			syslog(LOG_ERR, "Hosts file %s does not exists!", HOSTS);
+			perror("Hosts file passed as parameter does not exist");
+			exit(8);
+		}
 
-	if ((hostssize = fsize(HOSTS)) < 0) {
-		syslog(LOG_ERR, "Error while getting %s file size.", HOSTS);
-		perror("Error while getting /etc/hosts file size.");
-		exit(6);
-	}
+		if ((hostssize = fsize(HOSTS)) < 0) {
+			syslog(LOG_ERR, "Error while getting %s file size.", HOSTS);
+			perror("Error while getting /etc/hosts file size.");
+			exit(6);
+		}
 
-	closefrom(3);
+		closefrom(3);
 
-	if (daemon(0, 0) < 0) {
-		syslog(LOG_ERR, "Could not daemonize");
-		perror("Could not daemonize");
-		exit(4);
+		if (daemon(0, 0) < 0) {
+			syslog(LOG_ERR, "Could not daemonize");
+			perror("Could not daemonize");
+			exit(4);
+		}
 	}
 
 reopen:
@@ -577,33 +606,35 @@ reopen:
 		exit(5);
 	}
 
-	pidf = open(PIDFILE, O_RDWR | O_CREAT | O_FSYNC);
-	if (pidf < 0)
-		syslog(LOG_ERR, "could not write pid file, %m");
-	else {
-		ftruncate(pidf, 0);
-		dprintf(pidf, "%u\n", getpid());
-		close(pidf);
-	}
+	if (!foreground) {
+		pidf = open(PIDFILE, O_RDWR | O_CREAT | O_FSYNC);
+		if (pidf < 0)
+			syslog(LOG_ERR, "could not write pid file, %m");
+		else {
+			ftruncate(pidf, 0);
+			dprintf(pidf, "%u\n", getpid());
+			close(pidf);
+		}
 
-	/*
-         * Catch SIGHUP in order to reread configuration file.
-         */
-        sa.sa_handler = handle_signal;
-        sa.sa_flags = SA_SIGINFO|SA_RESTART;
-        sigemptyset(&sa.sa_mask);
-        if (sigaction(SIGHUP, &sa, NULL) < 0) {
-                syslog(LOG_ERR, "unable to set signal handler, %m");
-		exit(9);
-	}
-        if (sigaction(SIGTERM, &sa, NULL) < 0) {
-                syslog(LOG_ERR, "unable to set signal handler, %m");
-		exit(10);
-	}
+		/*
+		 * Catch SIGHUP in order to reread configuration file.
+		 */
+		sa.sa_handler = handle_signal;
+		sa.sa_flags = SA_SIGINFO|SA_RESTART;
+		sigemptyset(&sa.sa_mask);
+		if (sigaction(SIGHUP, &sa, NULL) < 0) {
+			syslog(LOG_ERR, "unable to set signal handler, %m");
+			exit(9);
+		}
+		if (sigaction(SIGTERM, &sa, NULL) < 0) {
+			syslog(LOG_ERR, "unable to set signal handler, %m");
+			exit(10);
+		}
 
-	/* Create a new kernel event queue */
-	if ((kq = kqueue()) == -1)
-		exit(1);
+		/* Create a new kernel event queue */
+		if ((kq = kqueue()) == -1)
+			exit(1);
+	}
 
 	now = time(NULL);
 	if (command == NULL) {
@@ -615,39 +646,42 @@ reopen:
 		cleanup();
 		//syslog(LOG_INFO, "Cleaned up.");
 
-		signal_process();
+		if (!foreground)
+			signal_process();
 	}
 
-	/* Initialise kevent structure */
-	EV_SET(&chlist, leasefd, EVFILT_VNODE, EV_ADD | EV_CLEAR | EV_ENABLE | EV_ONESHOT,
-		NOTE_WRITE | NOTE_ATTRIB | NOTE_DELETE | NOTE_RENAME, 0, NULL);
-	/* Loop forever */
-	for (;;) {
-		nev = kevent(kq, &chlist, 1, &evlist, 1, NULL);
-		if (nev == -1)
-			perror("kevent()");
-		else if (nev > 0) {
-			if (evlist.flags & EV_ERROR) {
-				syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(evlist.data));
-				break;
-			}
-			if ((evlist.fflags & NOTE_DELETE) || (evlist.fflags & NOTE_RENAME)) {
-				close(leasefd);
-				goto reopen;
-			}
-			now = time(NULL);
-			if (command != NULL)
-				system(command);
-			else {
-				load_dhcp(now);
+	if (!foreground) {
+		/* Initialise kevent structure */
+		EV_SET(&chlist, leasefd, EVFILT_VNODE, EV_ADD | EV_CLEAR | EV_ENABLE | EV_ONESHOT,
+			NOTE_WRITE | NOTE_ATTRIB | NOTE_DELETE | NOTE_RENAME, 0, NULL);
+		/* Loop forever */
+		for (;;) {
+			nev = kevent(kq, &chlist, 1, &evlist, 1, NULL);
+			if (nev == -1)
+				perror("kevent()");
+			else if (nev > 0) {
+				if (evlist.flags & EV_ERROR) {
+					syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(evlist.data));
+					break;
+				}
+				if ((evlist.fflags & NOTE_DELETE) || (evlist.fflags & NOTE_RENAME)) {
+					close(leasefd);
+					goto reopen;
+				}
+				now = time(NULL);
+				if (command != NULL)
+					system(command);
+				else {
+					load_dhcp(now);
 
-				write_status();
-				//syslog(LOG_INFO, "written temp hosts file after modification event.");
+					write_status();
+					//syslog(LOG_INFO, "written temp hosts file after modification event.");
 
-				cleanup();
-				//syslog(LOG_INFO, "Cleaned up.");
+					cleanup();
+					//syslog(LOG_INFO, "Cleaned up.");
 
-				signal_process();
+					signal_process();
+				}
 			}
 		}
 	}
