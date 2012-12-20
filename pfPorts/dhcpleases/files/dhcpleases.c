@@ -522,8 +522,8 @@ main(int argc, char **argv) {
 		exit(1);
 	}
 	if (!fexist(leasefile)) {
-		syslog(LOG_ERR, "lease file nees to exist before starting dhcpleases");	
-		perror("lease file nees to exist before starting dhcpleases");	
+		syslog(LOG_ERR, "lease file needs to exist before starting dhcpleases");	
+		perror("lease file needs to exist before starting dhcpleases");	
 		exit(1);
 	}
 	if (domain_suffix == NULL) {
@@ -532,8 +532,8 @@ main(int argc, char **argv) {
 	}
 
 	if (pidfile == NULL) {
-		syslog(LOG_ERR, "pidfile argument not passed it is manadatory");
-		perror("pidfile argument not passed it is manadatory");
+		syslog(LOG_ERR, "pidfile argument not passed it is mandatory");
+		perror("pidfile argument not passed it is mandatory");
 		exit(1);
 	}
 
@@ -543,7 +543,7 @@ main(int argc, char **argv) {
 		exit(8);
 	}
 	if (!fexist(HOSTS)) {
-		syslog(LOG_ERR, "Hosts file %s does not exists!", HOSTS);
+		syslog(LOG_ERR, "Hosts file %s does not exist!", HOSTS);
 		perror("Hosts file passed as parameter does not exist");
 		exit(8);
 	}
