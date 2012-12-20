@@ -2,11 +2,12 @@
 # Date created:					20 May 2004
 # Whom:						k@123.org
 #
-# $FreeBSD: head/www/lighttpd/Makefile 307617 2012-11-21 14:36:24Z mm $
+# $FreeBSD$
 #
 
 PORTNAME?=	lighttpd
 PORTVERSION=	1.4.32
+PORTREVISION=	1
 CATEGORIES?=	www
 MASTER_SITES?=	http://download.lighttpd.net/lighttpd/releases-1.4.x/
 
