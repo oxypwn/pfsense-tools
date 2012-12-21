@@ -1,0 +1,21 @@
+#Hoster					Location			URL						CONTACT					STATUS		BACKBONE
+http://www.basis06.com			Berne, Switzerland		http://pfsense.basis06.com/download		hostmaster@basis06.com			enabled		Multiple national carriers and direct peerings
+NCSA					UofI at Urbana-Champaign, USA	ftp://reflection.ncsa.uiuc.edu/pub/pfSense	buraglio@ncsa.edu			enabled		Mcleod, ICN and MREN
+Iserv.nl				Amsterdam Netherlands		http://pfsense.iserv.nl				Seth@arosa.nl, seth.mos@xs4all.nl	disabled	Xs4all & AMS-IX
+Saarwave				Saarbrücken, Germany		http://pfsense.saarwave.de			admin@saarwave.de			disabled	DE-CIX & BCIX
+loquefaltaba.com			Spain				http://pfsense.loquefaltaba.com			David Barbero <sico@loquefaltaba.com>	enabled		Teleglobe
+Bol2riz Team				Paris, France			http://pfsense.bol2riz.com			team@bol2riz.com			enabled		Above.net
+NHLUE_FTP				Hualien, Taiwan(R.O.C.)		http://ftp.nhlue.edu.tw/pfsense			Chen Jian-Bang <s22@ms1.szps.kl.edu.tw>	disabled	Taiwan Academic Network
+Qube Managed Services			London, UK			http://mirror.qubenet.net/mirror/pfsense	mirror-admin@qubenet.net		enabled		Level3 Communications, AboveNet, LINX
+Range-ID				Genoa, Italy			http://pfsense.mirror.range-id.it		mirrors@range-id.it			enabled		ITnet/Wind	
+NYI.net					New York City, USA		http://files.pfsense.org/mirror			cmb@pfsense.org				disabled	BBN Planet/Genuity, UUNet, Sprint, Qwest, PSI, Intermedia, and others
+icehosting				Germany				http://pfsense.icehosting.com			info@icehosting.com			disabled	Global Crossing, Decix,Tiscali,Eweka
+NSA.co.il				Tel-Aviv, Israel		http://mirrors.nsa.co.il/pfsense		aric@nsa.co.il				enabled		Bezeq International
+Anduin.net				Oslo, Norway			http://pfsense01.anduin.net			ltning-pfsense@anduin.net		disabled	TDC
+ServerGurus				Chicago, USA			http://files.chi.pfsense.org/mirror		cmb@pfsense.org				enabled		nLayer	
+TK9					Nuremberg, Germany		http://88.198.81.53				info@TK9.de				disabled	Noris, DT, LambdaNet, Aixit, DE-CIX, Tiscali, KPN EuroRings, N-IX
+Coltex					Amsterdam Netherlands		http://files.nl.pfsense.org/mirror		cmb@pfsense.org				enabled		AMS-IX
+Singtel Optus PTY LTD			Sydney, Australia		http://mirror.optus.net/pub/pfSense		mirror@staff.optusnet.com.au		enabled		optusnet.com.au
+Fleximus				Germany				http://www.fleximus.org/mirror/pfsense		flex@fleximus.de			enabled		Level3 Communications, Versatel
+Departamento de Informatica, UTFSM	Valparaiso, Chile		ftp://ftp.inf.utfsm.cl/pub/pfsense		smorales@inf.utfsm.cl			enabled		gblx.net
+Phoenixkv.net				Fremont, CA			http://pfsense.phoenixkv.net/			chris.hesselrode@phoenixkv.com		enabled		Hurricane Electric
