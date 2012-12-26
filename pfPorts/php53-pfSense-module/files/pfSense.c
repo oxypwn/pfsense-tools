@@ -719,7 +719,7 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 	/* XXX: Use context data! */
 
 	memset(&ent, 0, sizeof(ent));
-	if (action != IP_FW_TABLE_DEL && action != IP_FW_TABLE_ADD)
+	if (action != IP_FW_TABLE_DEL && action != IP_FW_TABLE_ADD && action != IP_FW_TABLE_ZERO_ENTRY_STATS)
 		RETURN_FALSE;
 
 	if (strchr(ip, ':')) {
