@@ -92,6 +92,20 @@ static char *command = NULL;
 static size_t hostssize = 0;
 static size_t foreground = 0;
 
+static int fexist(char *);
+static int fsize(char *);
+static int legal_char(char);
+static int canonicalise(char *);
+static int hostname_isequal(char *, char *);
+static int next_token (char *, int, FILE *);
+static time_t convert_time(struct tm);
+static int load_dhcp(time_t);
+
+static int write_status(void);
+static void cleanup(void);
+static void signal_process(void);
+static void handle_signal(int);
+
 /* Check if file exists */
 static int
 fexist(char * filename)
@@ -245,7 +259,7 @@ convert_time(struct tm lease_time) {
 static int
 load_dhcp(time_t now) {
 	char namebuff[256];
-	char *hostname = namebuff;
+	char *hostname = namebuff, *suffix = NULL;
 	char token[MAXTOK], *dot;
 	struct in_addr host_address;
 	time_t ttd, tts;
@@ -267,7 +281,7 @@ load_dhcp(time_t now) {
 #endif
 						if ((strcmp(token, "client-hostname") == 0) ||
 						    (strcmp(token, "hostname") == 0)) {
-							if (next_token(hostname, MAXDNAME, fp))
+							if (next_token(hostname, MAXDNAME, fp)) {
 								if (*hostname == '}') {
 									*hostname = 0;
 								} else if (!canonicalise(hostname)) {
@@ -277,6 +291,7 @@ load_dhcp(time_t now) {
 										syslog(LOG_ERR, "bad name in %s", leasefile); 
 									*hostname = 0;
 								}
+							}
 						} else if ((strcmp(token, "ends") == 0) ||
 							    (strcmp(token, "starts") == 0)) {
 								struct tm lease_time;
@@ -299,6 +314,8 @@ load_dhcp(time_t now) {
 								}
 						}
 					}
+				}
+
 				/* missing info? */
 				if (!*hostname)
 					continue;
@@ -312,15 +329,16 @@ load_dhcp(time_t now) {
 				if ((dot = strchr(hostname, '.'))) {
 					if (!domain_suffix || hostname_isequal(dot+1, domain_suffix)) {
 						if (foreground)
-							printf("Ignoring DHCP lease for %s because it has an illegal domain part", hostname);
+							printf("Other suffix in DHCP lease for %s", hostname);
 						else
-							syslog(LOG_WARNING, 
-								"Ignoring DHCP lease for %s because it has an illegal domain part", 
-								hostname);
-						continue;
-					}
-					*dot = 0;
-				}
+							syslog(LOG_WARNING, "Other suffix in DHCP lease for %s", hostname);
+
+						suffix = (dot + 1);
+						*dot = 0;
+					} else
+						suffix = domain_suffix;
+				} else
+					suffix = domain_suffix;
 
 				LIST_FOREACH(lease, &leases, next) {
 					if (hostname_isequal(lease->name, hostname)) {
@@ -330,41 +348,40 @@ load_dhcp(time_t now) {
 					}
 				}
 
-				if (!lease) { 
+				if (!lease) {
 					if ((lease = malloc(sizeof(struct isc_lease))) == NULL)
 						continue;
 					lease->expires = ttd;
 					lease->addr = host_address;
-					lease->fqdn =  NULL;
+					lease->fqdn = NULL;
+					lease->name = NULL;
 					LIST_INSERT_HEAD(&leases, lease, next); 
-				} else {
+				} else if (lease->fqdn != NULL)
+						free(lease->fqdn);
+
+				if (foreground)
+					printf("Found hostname: %s.%s\n", hostname, suffix);
+
+				if (asprintf(&lease->name, "%s", hostname) < 0) {
+					LIST_REMOVE(lease, next);
 					if (lease->name != NULL)
 						free(lease->name);
 					if (lease->fqdn != NULL)
 						free(lease->fqdn);
-				}
-
-				if (foreground)
-					printf("Found hostname: %s\n", hostname);
-
-				if (!(lease->name = malloc(strlen(hostname)+1)))
 					free(lease);
-				strcpy(lease->name, hostname);
-				if ((lease->fqdn = malloc(strlen(hostname) + strlen(domain_suffix) + 2)) != NULL) {
-					strcpy(lease->fqdn, hostname);
-					strcat(lease->fqdn, ".");
-					strcat(lease->fqdn, domain_suffix);
-				} else {
+				}
+				if (asprintf(&lease->fqdn, "%s.%s", hostname, suffix) < 0) {
 					LIST_REMOVE(lease, next);
-					free(lease->name);
+					if (lease->name != NULL)
+						free(lease->name);
+					if (lease->fqdn != NULL)
+						free(lease->fqdn);
 					free(lease);
-				}
 				}
 			}
 		}
 	}
-
-  
+ 
 	/* prune expired leases */
 	LIST_FOREACH_SAFE(lease, &leases, next, tmp) {
 		if (lease->expires != (time_t)0 && difftime(now, lease->expires) > 0) {
