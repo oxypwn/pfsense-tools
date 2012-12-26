@@ -303,13 +303,11 @@ load_dhcp(time_t now) {
 				if (!*hostname)
 					continue;
 				if (ttd == (time_t)(-1))
-					continue;
+					ttd = (time_t)0;
 
 				/* We use 0 as infinite in ttd */
 				if ((tts != -1) && (ttd == tts - 1))
 					ttd = (time_t)0;
-				else if (difftime(now, ttd) > 0)
-					continue;
 
 				if ((dot = strchr(hostname, '.'))) {
 					if (!domain_suffix || hostname_isequal(dot+1, domain_suffix)) {
@@ -658,12 +656,15 @@ reopen:
 		/* Loop forever */
 		for (;;) {
 			nev = kevent(kq, &chlist, 1, &evlist, 1, NULL);
-			if (nev == -1)
-				perror("kevent()");
-			else if (nev > 0) {
+			if (nev == -1) {
+				syslog(LOG_ERR, "kqueue error: unkown");
+				close(leasefd);
+				goto reopen;
+			} else if (nev > 0) {
 				if (evlist.flags & EV_ERROR) {
 					syslog(LOG_ERR, "EV_ERROR: %s\n", strerror(evlist.data));
-					break;
+					close(leasefd);
+					goto reopen;
 				}
 				if ((evlist.fflags & NOTE_DELETE) || (evlist.fflags & NOTE_RENAME)) {
 					close(leasefd);
