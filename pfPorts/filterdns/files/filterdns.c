@@ -42,6 +42,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <pthread_np.h>
 #include <syslog.h>
 #include <stdarg.h>
 #include <err.h>
@@ -56,14 +57,21 @@ static int interval = 30;
 static int dev = -1;
 static int debug = 0;
 static char *ipfwctx = NULL;
+static char *file = NULL;
+static pthread_attr_t attr;
+static pthread_cond_t sig_condvar;
+static pthread_mutex_t sig_mtx;
+static pthread_t sig_thr;
+static pthread_rwlock_t main_lock;
 
 static void pf_tableentry(struct thread_data *, struct sockaddr *, int);
 static void ipfw_tableentry(struct thread_data *, struct sockaddr *, int);
 static int host_dns(struct thread_data *);
-static int filterdns_clean_table(struct thread_data *);
+static int filterdns_clean_table(struct thread_data *, int);
+static void clear_config(struct thread_list *);
+static void clear_hostname_addresses(struct thread_data *);
 
 void *check_hostname(void *arg);
-void clear_config(void);
 
 #define DELETE 1
 #define ADD 2
@@ -146,13 +154,13 @@ add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_da
 }
 
 static int
-filterdns_clean_table(struct thread_data *thrdata)
+filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 {
 	struct table *e, *tmp;
 	char buffer[INET6_ADDRSTRLEN] = { 0 };
 
 	TAILQ_FOREACH_SAFE(e, thrdata->rnh, entry, tmp) {
-		if (refcount_release(&e->refcnt)) {
+		if (donotcheckrefcount || refcount_release(&e->refcnt)) {
 			if (thrdata->type == PF_TYPE) {
 				if (debug >= 2) {
 					if(e->addr->sa_family == AF_INET)
@@ -371,6 +379,7 @@ void *check_hostname(void *arg)
 
 	for (;;) {
 
+		pthread_rwlock_rdlock(&main_lock);
 		howmuch = host_dns(thrd);	
 		if (debug >= 2)
 			syslog(LOG_WARNING, "Found %d entries for %s", howmuch, thrd->hostname);
@@ -385,57 +394,136 @@ void *check_hostname(void *arg)
 				if (debug >= 2)
 					syslog(LOG_WARNING, "Ran command %s with exit status %d because a dns change on hostname %s was detected.", thrd->cmd, error1, thrd->hostname);
 			}
-			filterdns_clean_table(thrd);
+			filterdns_clean_table(thrd, 0);
 			if (debug >= 3)
 				syslog(LOG_WARNING, "cleaning table %s host %s. ", thrd->tablename, thrd->hostname);
 		}
+		pthread_rwlock_unlock(&main_lock);
 		nanosleep(&ts, NULL);
 	}
 
-	filterdns_clean_table(thrd);
+	filterdns_clean_table(thrd, 1);
 	//flush_table(thrd->tablename);
 
 	return (NULL);
 }
 
 static void
+clear_hostname_addresses(struct thread_data *thr)
+{
+	struct table *a;
+
+	filterdns_clean_table(thr, 1);
+
+	while ((a = TAILQ_FIRST(thr->rnh)) != NULL) {
+		TAILQ_REMOVE(thr->rnh, a, entry);
+		if (a->addr)
+			free(a->addr);
+		free(a);
+	}
+}
+
+static void *
+merge_config(void *arg __unused) {
+	struct thread_list tmp_thread_list;
+	struct thread_data *thr, *tmpthr;
+	int foundexisting, error;
+
+	TAILQ_INIT(&tmp_thread_list);
+
+	for (;;) {
+		pthread_mutex_lock(&sig_mtx);
+		error = pthread_cond_wait(&sig_condvar, &sig_mtx);
+		if (error != 0) {
+			syslog(LOG_ERR, "unable to wait on output queue retrying");
+			continue;
+		}
+
+		while ((thr = TAILQ_FIRST(&thread_list)) != NULL) {
+			TAILQ_REMOVE(&thread_list, thr, next);
+			TAILQ_INSERT_TAIL(&tmp_thread_list, thr, next);
+		}
+
+		if (parse_config(file)) {
+			syslog(LOG_ERR, "could not parse new configuration file, exiting...");
+			exit(10);
+		}
+
+		while ((thr = TAILQ_FIRST(&thread_list)) != NULL) {
+			foundexisting = 0;
+
+			while ((tmpthr = TAILQ_FIRST(&tmp_thread_list)) != NULL) {
+				if (thr->type != tmpthr->type)
+					continue;
+				if (strlen(thr->hostname) != strlen(tmpthr->hostname))
+					continue;
+				if (strncmp(thr->hostname, tmpthr->hostname, strlen(thr->hostname)))
+					continue;
+
+				if (strlen(thr->tablename) == strlen(tmpthr->tablename) && !strncmp(thr->tablename, tmpthr->tablename, strlen(thr->tablename))) {
+					struct table *a;
+
+					/* Do not forget existing addresses */
+					while ((a = TAILQ_FIRST(tmpthr->rnh)) != NULL) {
+						TAILQ_REMOVE(tmpthr->rnh, a, entry);
+						TAILQ_INSERT_TAIL(thr->rnh, a, entry);
+					}
+				}
+				thr->thr_pid = tmpthr->thr_pid;
+				foundexisting = 1;
+			}
+
+			if (foundexisting == 0) {
+				error = pthread_create(&thr->thr_pid, &attr, check_hostname, thr);
+				if (error != 0) {
+					if (debug >= 1)
+						syslog(LOG_ERR, "Unable to create monitoring thread for host %s! It will not be monitored!", thr->hostname);
+				}
+				pthread_set_name_np(thr->thr_pid, thr->hostname);
+			}
+
+		}
+
+		clear_config(&tmp_thread_list);
+	}
+}
+
+static void
 handle_signal(int sig)
 {
-        switch(sig) {
+	if (debug >= 3)
+		syslog(LOG_WARNING, "Received signal %s(%d).", (sig == SIGHUP) ? "SIGHUP" : (sig == SIGTERM) ? "SIGTERM" : "", sig);
+	switch(sig) {
         case SIGHUP:
-        case SIGTERM:
-		if (debug >= 3)
-			syslog(LOG_WARNING, "Received signal %s.", (sig == SIGHUP) ? "SIGHUP" : "SIGTERM");
-		clear_config();
-		exit(0);
+		pthread_rwlock_wrlock(&main_lock);
+		pthread_mutex_lock(&sig_mtx);
+		pthread_cond_signal(&sig_condvar);
+		pthread_mutex_unlock(&sig_mtx);
+		pthread_rwlock_unlock(&main_lock);
                 break;
+        case SIGTERM:
+		clear_config(&thread_list);
+		exit(0);
+		break;
         default:
 		if (debug >= 3)
                 	syslog(LOG_WARNING, "unhandled signal");
         }
 }
 
-void
-clear_config()
+static void
+clear_config(struct thread_list *thrlist)
 {
 	struct thread_data *thr;
-	struct table *a;
 
-	while ((thr = TAILQ_FIRST(&thread_list)) != NULL) {
-		TAILQ_REMOVE(&thread_list, thr, next);
+	while ((thr = TAILQ_FIRST(thrlist)) != NULL) {
+		TAILQ_REMOVE(thrlist, thr, next);
 		pthread_cancel(thr->thr_pid);
-		while ((a = TAILQ_FIRST(thr->rnh)) != NULL) {
-			TAILQ_REMOVE(thr->rnh, a, entry);
-			if (a->addr)
-				free(a->addr);
-			free(a);
-		}
+		clear_hostname_addresses(thr);
 		if (thr->hostname)
 			free(thr->hostname);
 		if (thr->tablename)
 			free(thr->tablename);
-		if (thr->thr_pid)
-			pthread_cancel(thr->thr_pid);
 		free(thr);
 	}
 }
@@ -449,7 +537,7 @@ static void filterdns_usage(void) {
 int main(int argc, char *argv[]) {
 	struct thread_data *thr;
 	int error, ch;
-	char *file, *pidfile;
+	char *pidfile;
 	FILE *pidfd;
 	sig_t sig_error;
 	int foreground = 0;
@@ -534,17 +622,33 @@ int main(int argc, char *argv[]) {
         if (sig_error == SIG_ERR)
                 err(EX_OSERR, "unable to set signal handler");
 
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
 	TAILQ_FOREACH(thr, &thread_list, next) {
-		error = pthread_create(&thr->thr_pid, NULL, check_hostname, thr);
+		error = pthread_create(&thr->thr_pid, &attr, check_hostname, thr);
 		if (error != 0) {
 			if (debug >= 1)
 				syslog(LOG_ERR, "Unable to create monitoring thread for host %s", thr->hostname);
 		}
+		pthread_set_name_np(thr->thr_pid, thr->hostname);
 	}
+
+	pthread_rwlock_init(&main_lock, NULL);
+	sig_mtx = PTHREAD_MUTEX_INITIALIZER;
+        sig_condvar = PTHREAD_COND_INITIALIZER;
+	error = pthread_create(&sig_thr, &attr, merge_config, NULL);
+	if (error != 0) {
+		if (debug >= 1)
+			syslog(LOG_ERR, "Unable to create signal thread %s", thr->hostname);
+	}
+	pthread_set_name_np(sig_thr, "signal-thread");
+#if 0
 	TAILQ_FOREACH(thr, &thread_list, next)
 		pthread_join(thr->thr_pid, NULL);
 	
-	clear_config();
+	clear_config(&thread_list);
+#endif
 
-	return (0);
+	pthread_exit(NULL);
 }
