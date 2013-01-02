@@ -607,7 +607,10 @@ int main(int argc, char *argv[]) {
 		/* write PID to file */
 		pidfd = fopen(pidfile, "w");
 		if (pidfd) {
+			while (flock(fileno(pidfd), LOCK_EX) != 0)
+				;
 			fprintf(pidfd, "%d\n", getpid());
+			flock(fileno(pidfd), LOCK_UN);
 			fclose(pidfd);
 		} else
 			syslog(LOG_WARNING, "could not open pid file");
