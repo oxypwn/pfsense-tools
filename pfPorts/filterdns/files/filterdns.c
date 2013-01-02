@@ -159,7 +159,10 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 	struct table *e, *tmp;
 	char buffer[INET6_ADDRSTRLEN] = { 0 };
 
-	TAILQ_FOREACH_SAFE(e, thrdata->rnh, entry, tmp) {
+	if (TAILQ_EMPTY(&thrdata->rnh))
+		return (0);
+
+	TAILQ_FOREACH_SAFE(e, &thrdata->rnh, entry, tmp) {
 		if (donotcheckrefcount || refcount_release(&e->refcnt)) {
 			if (thrdata->type == PF_TYPE) {
 				if (debug >= 2) {
@@ -175,19 +178,13 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 					syslog(LOG_WARNING, "clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 				ipfw_tableentry(thrdata, e->addr, DELETE);
 			}
-			TAILQ_REMOVE(thrdata->rnh, e, entry);
+			TAILQ_REMOVE(&thrdata->rnh, e, entry);
 			free(e->addr);
 			free(e);
 		}
 	}
 
 	return (0);
-}
-
-static void
-init_table(struct table_entry *rnh)
-{
-	TAILQ_INIT(rnh);
 }
 
 static int
@@ -222,13 +219,13 @@ host_dns(struct thread_data *hostd)
                 if (res->ai_family == AF_INET) {
 			if (debug >= 2)
 				syslog(LOG_WARNING, "found entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 2, buffer, sizeof buffer), hostd->tablename);
-			if (!add_table_entry(hostd->rnh, res->ai_addr, hostd))
+			if (!add_table_entry(&hostd->rnh, res->ai_addr, hostd))
                 		cnt++;
 		}
 		if(res->ai_family == AF_INET6) {
 			if (debug >= 2)
 				syslog(LOG_WARNING, "found entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 6, buffer, sizeof buffer), hostd->tablename);
-			if (!add_table_entry(hostd->rnh, res->ai_addr, hostd))
+			if (!add_table_entry(&hostd->rnh, res->ai_addr, hostd))
                 		cnt++;
                 }
         }
@@ -334,7 +331,6 @@ pf_tableentry(struct thread_data *pfd, struct sockaddr *address, int action)
 
 void *check_hostname(void *arg)
 {
-	struct table_entry rnh;
 	struct thread_data *thrd = arg;
 	struct timespec ts;
         char *p, *q;
@@ -346,9 +342,6 @@ void *check_hostname(void *arg)
 	
 	if (!thrd->hostname)
 		return (NULL);
-
-	init_table(&rnh);
-
 
         if ((p = strrchr(thrd->hostname, '/')) != NULL) {
                 thrd->mask = strtol(p+1, &q, 0);
@@ -369,8 +362,6 @@ void *check_hostname(void *arg)
 		thrd->mask = 32;
 		thrd->mask6 = 128;
 	}
-
-	thrd->rnh = &rnh;
 
 	if (debug >= 2)
 		syslog(LOG_WARNING, "Found hostname %s with netmask %d.", thrd->hostname, thrd->mask);
@@ -413,10 +404,13 @@ clear_hostname_addresses(struct thread_data *thr)
 {
 	struct table *a;
 
+	if (TAILQ_EMPTY(&thr->rnh))
+		return;
+
 	filterdns_clean_table(thr, 1);
 
-	while ((a = TAILQ_FIRST(thr->rnh)) != NULL) {
-		TAILQ_REMOVE(thr->rnh, a, entry);
+	while ((a = TAILQ_FIRST(&thr->rnh)) != NULL) {
+		TAILQ_REMOVE(&thr->rnh, a, entry);
 		if (a->addr)
 			free(a->addr);
 		free(a);
@@ -438,6 +432,9 @@ merge_config(void *arg __unused) {
 			syslog(LOG_ERR, "unable to wait on output queue retrying");
 			continue;
 		}
+		pthread_mutex_unlock(&sig_mtx);
+
+		pthread_rwlock_wrlock(&main_lock);
 
 		while ((thr = TAILQ_FIRST(&thread_list)) != NULL) {
 			TAILQ_REMOVE(&thread_list, thr, next);
@@ -449,41 +446,49 @@ merge_config(void *arg __unused) {
 			exit(10);
 		}
 
-		while ((thr = TAILQ_FIRST(&thread_list)) != NULL) {
-			foundexisting = 0;
+		if (!TAILQ_EMPTY(&thread_list)) {
+			TAILQ_FOREACH(thr, &thread_list, next) {
+				foundexisting = 0;
 
-			while ((tmpthr = TAILQ_FIRST(&tmp_thread_list)) != NULL) {
-				if (thr->type != tmpthr->type)
-					continue;
-				if (strlen(thr->hostname) != strlen(tmpthr->hostname))
-					continue;
-				if (strncmp(thr->hostname, tmpthr->hostname, strlen(thr->hostname)))
-					continue;
+				TAILQ_FOREACH(tmpthr, &tmp_thread_list, next) {
+					if (thr->type != tmpthr->type)
+						continue;
+					if (strlen(thr->hostname) != strlen(tmpthr->hostname))
+						continue;
+					if (strncmp(thr->hostname, tmpthr->hostname, strlen(thr->hostname)))
+						continue;
 
-				if (strlen(thr->tablename) == strlen(tmpthr->tablename) && !strncmp(thr->tablename, tmpthr->tablename, strlen(thr->tablename))) {
-					struct table *a;
+					if (strlen(thr->tablename) == strlen(tmpthr->tablename) && !strncmp(thr->tablename, tmpthr->tablename, strlen(thr->tablename))) {
+						struct table *a;
 
-					/* Do not forget existing addresses */
-					while ((a = TAILQ_FIRST(tmpthr->rnh)) != NULL) {
-						TAILQ_REMOVE(tmpthr->rnh, a, entry);
-						TAILQ_INSERT_TAIL(thr->rnh, a, entry);
+						/* Do not forget existing addresses */
+						while ((a = TAILQ_FIRST(&tmpthr->rnh)) != NULL) {
+							TAILQ_REMOVE(&tmpthr->rnh, a, entry);
+							TAILQ_INSERT_TAIL(&thr->rnh, a, entry);
+						}
 					}
+					thr->thr_pid = tmpthr->thr_pid;
+					tmpthr->thr_pid = 0;
+					foundexisting = 1;
 				}
-				thr->thr_pid = tmpthr->thr_pid;
-				foundexisting = 1;
-			}
 
-			if (foundexisting == 0) {
-				error = pthread_create(&thr->thr_pid, &attr, check_hostname, thr);
-				if (error != 0) {
-					if (debug >= 1)
-						syslog(LOG_ERR, "Unable to create monitoring thread for host %s! It will not be monitored!", thr->hostname);
+				if (foundexisting == 0) {
+					if (debug > 3)
+						syslog(LOG_ERR, "Creating a new thread for host %s!", thr->hostname);
+					error = pthread_create(&thr->thr_pid, &attr, check_hostname, thr);
+					if (error != 0) {
+						if (debug >= 1)
+							syslog(LOG_ERR, "Unable to create monitoring thread for host %s! It will not be monitored!", thr->hostname);
+					}
+					pthread_set_name_np(thr->thr_pid, thr->hostname);
 				}
-				pthread_set_name_np(thr->thr_pid, thr->hostname);
-			}
 
+			}
 		}
+		pthread_rwlock_unlock(&main_lock);
 
+		if (debug > 3)
+			syslog(LOG_ERR, "Cleaning up previous hostnames");
 		clear_config(&tmp_thread_list);
 	}
 }
@@ -495,11 +500,9 @@ handle_signal(int sig)
 		syslog(LOG_WARNING, "Received signal %s(%d).", (sig == SIGHUP) ? "SIGHUP" : (sig == SIGTERM) ? "SIGTERM" : "", sig);
 	switch(sig) {
         case SIGHUP:
-		pthread_rwlock_wrlock(&main_lock);
 		pthread_mutex_lock(&sig_mtx);
 		pthread_cond_signal(&sig_condvar);
 		pthread_mutex_unlock(&sig_mtx);
-		pthread_rwlock_unlock(&main_lock);
                 break;
         case SIGTERM:
 		clear_config(&thread_list);
@@ -516,9 +519,13 @@ clear_config(struct thread_list *thrlist)
 {
 	struct thread_data *thr;
 
+	pthread_mutex_lock(&sig_mtx);
 	while ((thr = TAILQ_FIRST(thrlist)) != NULL) {
+		if (debug >= 4)
+			syslog(LOG_ERR, "Cleaning up hostname %s", thr->hostname);
 		TAILQ_REMOVE(thrlist, thr, next);
-		pthread_cancel(thr->thr_pid);
+		if (thr->thr_pid != 0)
+			pthread_cancel(thr->thr_pid);
 		clear_hostname_addresses(thr);
 		if (thr->hostname)
 			free(thr->hostname);
@@ -526,6 +533,7 @@ clear_config(struct thread_list *thrlist)
 			free(thr->tablename);
 		free(thr);
 	}
+	pthread_rwlock_unlock(&main_lock);
 }
 
 static void filterdns_usage(void) {

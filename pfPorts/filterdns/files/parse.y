@@ -131,6 +131,7 @@ dnsrule		: ftype STRING STRING pipe command {
 					thr->cmd = strdup($5);
 					free($5);
 				} 
+				TAILQ_INIT(&thr->rnh); 
 
 				TAILQ_INSERT_TAIL(&thread_list, thr, next);
 			}
