@@ -570,7 +570,8 @@ int main(int argc, char *argv[]) {
 			ipfwctx = optarg;
 			break;
 		default:
-			fprintf(stderr, "Wrong option: %c given!", ch);
+			fprintf(stderr, "Wrong option: %c given!\n", ch);
+			filterdns_usage();
 			return (ch);
 			break;
 		}
