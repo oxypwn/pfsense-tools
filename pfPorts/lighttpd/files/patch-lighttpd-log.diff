@@ -1,0 +1,12 @@
+diff -ur ../lighttpd-1.4.32.old/src/log.c ./src/log.c
+--- ../lighttpd-1.4.32.old/src/log.c	2013-01-03 09:25:22.000000000 +0000
++++ ./src/log.c	2013-01-03 09:33:58.000000000 +0000
+@@ -163,7 +163,7 @@
+ 		srv->errorlog_mode = (logfile[0] == '|') ? ERRORLOG_PIPE : ERRORLOG_FILE;
+ 	}
+ 
+-	log_error_write(srv, __FILE__, __LINE__, "s", "server started");
++	/*log_error_write(srv, __FILE__, __LINE__, "s", "server started");*/
+ 
+ 	if (srv->errorlog_mode == ERRORLOG_FD && !srv->srvconf.dont_daemonize) {
+ 		/* We can only log to stderr in dont-daemonize mode;
