@@ -505,7 +505,9 @@ handle_signal(int sig)
 		pthread_mutex_unlock(&sig_mtx);
                 break;
         case SIGTERM:
+		pthread_rwlock_wrlock(&main_lock);
 		clear_config(&thread_list);
+		pthread_rwlock_unlock(&main_lock);
 		exit(0);
 		break;
         default:
