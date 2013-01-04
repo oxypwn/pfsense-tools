@@ -76,7 +76,7 @@ typedef struct {
 %token	<v.number>	NUMBER
 %type	<v.number>	ftype
 %type	<v.number>	pipe
-%type	<v.string>	string command
+%type	<v.string>	command
 
 %%
 
@@ -84,15 +84,6 @@ grammar		: /* empty */
 		| grammar '\n'
 		| grammar dnsrule '\n'
 		| grammar error '\n' { errors++; }
-		;
-
-string		: STRING string				{
-			if (asprintf(&$$, "%s %s", $1, $2) == -1)
-				err(1, "string: asprintf");
-			free($1);
-			free($2);
-		}
-		| STRING
 		;
 
 dnsrule		: ftype STRING STRING pipe command {
@@ -132,6 +123,8 @@ dnsrule		: ftype STRING STRING pipe command {
 					free($5);
 				} 
 				TAILQ_INIT(&thr->rnh); 
+				thr->cond = PTHREAD_COND_INITIALIZER;
+				thr->mtx = PTHREAD_MUTEX_INITIALIZER;
 
 				TAILQ_INSERT_TAIL(&thread_list, thr, next);
 			}

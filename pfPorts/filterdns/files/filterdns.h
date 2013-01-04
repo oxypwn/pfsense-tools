@@ -59,6 +59,8 @@ struct thread_data {
 	char *cmd;
         TAILQ_ENTRY(thread_data) next;
 	pthread_t thr_pid;
+	pthread_cond_t cond;
+	pthread_mutex_t mtx;
 };
 TAILQ_HEAD(thread_list, thread_data) thread_list;
 
