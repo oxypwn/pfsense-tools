@@ -51,11 +51,11 @@ OPTIONS=	DEBUG		"enable Debug support" off \
 		RC5		"enable RC5 encryption (patented)" off \
 		IDEA		"enable IDEA encryption (patented)" off
 
-MAN3=		ipsec_set_policy.3 ipsec_strerror.3
-MAN5=		racoon.conf.5
-MAN8=		racoon.8 racoonctl.8 setkey.8 plainrsa-gen.8
+#MAN3=		ipsec_set_policy.3 ipsec_strerror.3
+#MAN5=		racoon.conf.5
+#MAN8=		racoon.8 racoonctl.8 setkey.8 plainrsa-gen.8
 
-PORTDOCS=	*
+#PORTDOCS=	*
 
 .include <bsd.port.pre.mk>
 
