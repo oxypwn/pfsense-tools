@@ -2,7 +2,7 @@
 # Date created:		20 dec 2004
 # Whom:			vanhu
 #
-# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.30 2011/07/21 05:14:57 dougb Exp $
+# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.33 2012/11/17 06:01:05 svnexp Exp $
 
 # TODO: - libipsec issue ?
 #       - cleanup...
@@ -11,7 +11,7 @@
 
 PORTNAME=	ipsec-tools
 PORTVERSION=	0.8.0
-PORTREVISION=	2
+PORTREVISION=	3
 CATEGORIES=	security
 MASTER_SITES=	SF
 
@@ -20,7 +20,6 @@ COMMENT=	KAME racoon IKE daemon, ipsec-tools version
 
 CONFLICTS=	racoon-[0-9]*
 
-USE_RC_SUBR=	racoon.sh
 USE_OPENSSL=	yes
 USE_BZIP2=	yes
 
@@ -61,9 +60,9 @@ PORTDOCS=	*
 .include <bsd.port.pre.mk>
 
 .if ${OSVERSION} < 900007
-EXTRA_PATCHES+=files/patch8-utmp.diff
+EXTRA_PATCHES=	${FILESDIR}/patch8-utmp.diff
 .endif
-EXTRA_PATCHES+=files/patch9-external_script.diff files/patch10-show_users.diff files/patch11-purge_sp_fix.diff files/ipsec-nat.diff
+EXTRA_PATCHES+=${FILESDIR}/patch9-external_script.diff ${FILESDIR}/patch10-show_users.diff ${FILESDIR}/patch11-purge_sp_fix.diff ${FILESDIR}/ipsec-nat.diff
 
 .ifdef(WITH_DEBUG)
 CONFIGURE_ARGS+=	--enable-debug
