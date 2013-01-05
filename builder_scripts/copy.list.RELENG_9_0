@@ -141,7 +141,6 @@ usr/local/lib/php/20090626/tokenizer.so
 usr/local/lib/php/20090626/xml.so
 usr/local/lib/php/20090626/ldap.so
 usr/local/lib/php/20090626/zlib.so
-usr/local/lib/php/20090626/uploadprogress.so
 usr/local/lib/php/20090626/xmlreader.so
 usr/local/lib/php/20090626/xmlwriter.so
 usr/local/lib/php/20090626/xdebug.so

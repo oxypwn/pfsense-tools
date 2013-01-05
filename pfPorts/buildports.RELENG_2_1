@@ -126,7 +126,6 @@ zip							/usr/ports/archivers/zip					/usr/local/bin/zip
 links						/usr/ports/www/links						/usr/local/bin/links
 elinks						/usr/ports/www/elinks						/usr/local/bin/elinks
 ntp					/usr/ports/net/ntp						/usr/local/bin/ntpd
-pecl-uploadprogress			/usr/ports/devel/pecl-uploadprogress		/usr/local/lib/php/20090626/uploadprogress.so
 php53-json					/usr/ports/devel/php53-json					/usr/local/lib/php/20090626/json.so
 rate						/usr/ports/net-mgmt/rate					/usr/local/bin/rate
 wol							/usr/ports/net/wol							/usr/local/bin/wol

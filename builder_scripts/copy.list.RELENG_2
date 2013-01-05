@@ -119,7 +119,6 @@ usr/local/lib/php/20060613/tokenizer.so
 usr/local/lib/php/20060613/xml.so
 usr/local/lib/php/20060613/ldap.so
 usr/local/lib/php/20060613/zlib.so
-usr/local/lib/php/20060613/uploadprogress.so
 usr/local/lib/php/20060613/xmlreader.so
 usr/local/lib/php/20060613/xmlwriter.so
 usr/local/lib/php/20060613/ioncube/ioncube_loader.so
