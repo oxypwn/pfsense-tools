@@ -1,0 +1,190 @@
+This backport is specific to FreeBSD 8.3.
+
+This backported driver can be dropped as soon as we switch to a more 
+recent base FreeBSD. See notes above to see which included patch is
+present in upon a certain release/branch (as of 2012-12-26):
+
+---------------------------------------
+> RELENG 8.3, >= RELENG 9.1, 10-CURRENT
+---------------------------------------
+Author: ken <ken@FreeBSD.org>
+Date:   Sun Jul 1 05:23:59 2012 +0000
+
+    MFC 237683:
+    
+      r237683 | ken | 2012-06-27 21:48:54 -0600 (Wed, 27 Jun 2012) | 129 lines
+    
+      Bring in LSI's latest mps(4) 6Gb SAS and WarpDrive driver, version
+      14.00.00.01-fbsd.
+    
+      Their description of the changes is as follows:
+    
+      1.	Copyright contents has been changed in all respective .c
+      	and .h files
+    
+      2.	Support for WRITE12 and READ12 for direct-io (warpdrive only)
+      	has been added.
+    
+      3.      Driver has added checks to see if Drive has READ_CAP_16
+      	support before sending it down to the device.
+      	If SPC3_SID_PROTECT flag is set in the inquiry data, the
+      	device supports protection information, and must support
+      	the 16 byte read capacity command, otherwise continue without
+      	sending read cap 16. This will optimize driver performance,
+      	since it will not send READ_CAP_16 to the drive which does
+      	not have support of READ_CAP_16.
+    
+      4.      With new approach, "MPTIOCTL_RESET_ADAPTER" IOCTL will not
+      	use DELAY() which is busy loop implementation.
+      	It will use <msleep> (Better way to sleep without busy
+      	loop). Also from the HBA reset code path and some other
+      	places, DELAY() is replaced with msleep() or "pause()",
+      	which is based on sleep/wakeup style calls.  Driver use
+      	msleep()/pause() instead of DELAY based on CAN_SLEEP/NO_SLEEP
+      	flags to avoid busy loop which is not required all the
+      	time.e.a
+    
+      	a. While driver is getting loaded, driver calls most of the
+      	   commands with NO_SLEEP.
+      	b. When Driver is functional and it needs Reinit of HBA,
+      	   CAN_SLEEP flag is used.
+    
+      5.	<mpslsi> driver is not Endian safe. It will not work on Big
+      	Endian machines	like Sparc and PowerPC platforms because it
+      	assumes it is running on a Little Endian machine.
+    
+      	Driver code is modified such way that it does not assume CPU
+      	arch is Little Endian.
+      	a. All places where Driver interacts from HBA to Host, it
+      	   converts Little Endian format to CPU format.
+      	b. All places where Driver interacts from Host to HBA, it
+      	   converts CPU format to Little Endian.
+    
+      6.	Findout memory leaks in FreeBSD Driver and resolve those,
+      	such as memory leak in targ's luns creation/deletion.
+      	Also added additional checks to see memory allocation
+      	success/fail.
+    
+      7.	Add loginfo prints as debug message, i.e. When FW sends any
+      	loginfo, Driver should print those as debug message.
+      	This will help for debugging purpose.
+    
+      8.	There is possibility to get config request timeout. Current
+      	driver is able to detect config request timetout, but it does
+      	not do anything on config_request timeout.  Driver should
+      	call mps_reinit() if any request_poll (which is called as
+      	part of config_request) is time out.
+    
+      9.	cdb length check is required for 32 byte CDB. Add correct mpi
+      	control value for 32 bit CDB as below while submitting SCSI IO
+      	Request to controller.
+      	mpi_control |= 4 << MPI2_SCSIIO_CONTROL_ADDCDBLEN_SHIFT;
+    
+      10.	Check the actual status of Message unit reset
+      	(mps_message_unit_reset).Previously FreeBSD Driver just writes
+      	MPI2_FUNCTION_IOC_MESSAGE_UNIT_RESET and never check the ack
+      	(it just wait for 50 millisecond).  So, Driver now check the
+      	status of "MPI2_FUNCTION_IOC_MESSAGE_UNIT_RESET" after writing
+      	it to the FW.
+    
+      	Now it also checking for whether doorbell ack uses msleep with
+      	proper sleep flags, instead of <DELAY>.
+    
+      11.	Previously CAM does not detect Multi-Lun Devices. In order to
+      	detect Multi-Lun Devices by CAM the driver needs following change
+      	set:
+      	a. There is "max_lun" field which Driver need to set based on
+      	   hw/fw support. Currently LSI released driver does not set
+      	   this field.
+      	b. Default of "max_lun" should not be 0 in OS, but it is
+      	   currently set to 0 in CAM layer.
+      	c. Export max_lun capacity to 255
+    
+      12.	Driver will not reset target info after port enable complete and
+      	also do Device removal when Device remove from FW.  The detail
+      	description is as follows
+      	a. When Driver receive WD PD add events, it will add all
+      	   information in driver local data structure.
+      	b. Only for WD, we have below checks after port enable
+      	   completes, where driver clear off all information retrieved
+      	   at #1.
+      	if ((sc->WD_available &&
+                   (sc->WD_hide_expose == MPS_WD_HIDE_ALWAYS)) ||
+                   (sc->WD_valid_config && (sc->WD_hide_expose ==
+                                  MPS_WD_HIDE_IF_VOLUME)) {
+      		  // clear off target data structure.
+      	}
+      	It is mainly not to attach PDs to OS.
+    
+      	FreeBSD does bus rescan as older Parallel scsi style. So Driver
+      	needs to handle which Drive is visible to OS.  That is a reason
+      	we have to clear off targ information for PDs.
+    
+      	Again, above logic was implemented long time ago. Similar concept
+      	we have for non-wd also. For that, LSI have introduced different
+      	logic to hide PDs.
+    
+      	Eventually, because of above gap, when Phy goes offline, we
+      	observe below failure. That is what Driver is not doing complete
+      	removal of device with FW. (which was pointed by Scott)
+      	Apr  5 02:39:24 Freebsd7 kernel: mpslsi0: mpssas_prepare_remove
+      	Apr  5 02:39:24 Freebsd7 kernel: mpssas_prepare_remove 497 : invalid handle 0xe
+    
+      	Now Driver will not reset target info after port enable complete
+      	and also will do Device removal when Device remove from FW.
+    
+      13.	Returning "CAM_SEL_TIMEOUT" instead of "CAM_TID_INVALID"
+      	error code on request to the Target IDs that have no devices
+      	conected at that moment.  As if "CAM_TID_INVALID" error code
+      	is returned to the CAM Layaer then it results in a huge chain
+      	of errors in verbose kernel messages on boot and every
+      	hot-plug event.
+    
+    Submitted by:	Sreekanth Reddy <Sreekanth.Reddy@lsi.com>
+
+Author: ken <ken@FreeBSD.org>
+Date:   Mon Jul 2 02:57:52 2012 +0000
+
+    MFC 237800:
+      r237800 | ken | 2012-06-29 11:00:52 -0600 (Fri, 29 Jun 2012) | 7 lines
+    
+      Change the mps(4) driver to only scan a target if that is what is
+      needed instead of scanning the full bus every time.
+    
+    Submitted by:	mav
+    Discussed with:	Sreekanth Reddy <Sreekanth.Reddy@lsi.com>
+
+Author: marius <marius@FreeBSD.org>
+Date:   Mon Jul 2 19:19:21 2012 +0000
+
+    MFC: r237546
+    
+    Correct sizeof usage
+    
+    Obtained from:	DragonFly
+    
+Author: brueffer <brueffer@FreeBSD.org>
+Date:   Wed Jul 25 12:06:52 2012 +0000
+
+    MFC: r238574
+    
+    Fix a small memory leak in mpssas_get_sata_identify().  The change has
+    been submitted upstream as well.
+
+Author: mav <mav@FreeBSD.org>
+Date:   Mon Aug 20 12:11:09 2012 +0000
+
+    MFC r238969:
+    Fix kernel panic on `camcontrol reset` for specific target, caused by
+    uninitialized cm_targ in mpssas_action_resetdev().
+
+------------------------------------------
+>= RELENG 8.3, > RELENG 9.1, >= 10-CURRENT
+------------------------------------------
+Author: eadler <eadler@FreeBSD.org>
+Date:   Sun Nov 4 01:20:57 2012 +0000
+
+    MFC r241844:
+    	remove duplicate semicolons where possible.
+    
+    Approved by:	cperciva (implicit)

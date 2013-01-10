@@ -1,0 +1,2598 @@
+diff --git a/sys/dev/mps/mpi/mpi2.h b/sys/dev/mps/mpi/mpi2.h
+index b9e46ad..45fb7d9 100644
+--- a/sys/dev/mps/mpi/mpi2.h
++++ b/sys/dev/mps/mpi/mpi2.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2.h
+diff --git a/sys/dev/mps/mpi/mpi2_cnfg.h b/sys/dev/mps/mpi/mpi2_cnfg.h
+index ef3334f..4db5f09 100644
+--- a/sys/dev/mps/mpi/mpi2_cnfg.h
++++ b/sys/dev/mps/mpi/mpi2_cnfg.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_cnfg.h
+diff --git a/sys/dev/mps/mpi/mpi2_hbd.h b/sys/dev/mps/mpi/mpi2_hbd.h
+index e31fc5e..d8645e6 100644
+--- a/sys/dev/mps/mpi/mpi2_hbd.h
++++ b/sys/dev/mps/mpi/mpi2_hbd.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2009-2011 LSI Corporation.
++ *  Copyright (c) 2009-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_hbd.h
+diff --git a/sys/dev/mps/mpi/mpi2_history.txt b/sys/dev/mps/mpi/mpi2_history.txt
+index 01dc3b6e..e6bb5b0 100644
+--- a/sys/dev/mps/mpi/mpi2_history.txt
++++ b/sys/dev/mps/mpi/mpi2_history.txt
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -32,7 +32,7 @@
+  Fusion-MPT MPI 2.0 Header File Change History
+  ==============================
+ 
+- Copyright (c) 2000-2011 LSI Corporation.
++ Copyright (c) 2000-2012 LSI Corporation.
+ 
+  ---------------------------------------
+  Header Set Release Version:    02.00.18
+diff --git a/sys/dev/mps/mpi/mpi2_init.h b/sys/dev/mps/mpi/mpi2_init.h
+index ca4a685..0f0a192 100644
+--- a/sys/dev/mps/mpi/mpi2_init.h
++++ b/sys/dev/mps/mpi/mpi2_init.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_init.h
+diff --git a/sys/dev/mps/mpi/mpi2_ioc.h b/sys/dev/mps/mpi/mpi2_ioc.h
+index ca19a5c..fd4df2b2 100644
+--- a/sys/dev/mps/mpi/mpi2_ioc.h
++++ b/sys/dev/mps/mpi/mpi2_ioc.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_ioc.h
+diff --git a/sys/dev/mps/mpi/mpi2_ra.h b/sys/dev/mps/mpi/mpi2_ra.h
+index 0f01226..2847fa9d 100644
+--- a/sys/dev/mps/mpi/mpi2_ra.h
++++ b/sys/dev/mps/mpi/mpi2_ra.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2011 LSI Corporation.
++ *  Copyright (c) 2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_ra.h
+diff --git a/sys/dev/mps/mpi/mpi2_raid.h b/sys/dev/mps/mpi/mpi2_raid.h
+index 557468a..2d497ee 100644
+--- a/sys/dev/mps/mpi/mpi2_raid.h
++++ b/sys/dev/mps/mpi/mpi2_raid.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_raid.h
+diff --git a/sys/dev/mps/mpi/mpi2_sas.h b/sys/dev/mps/mpi/mpi2_sas.h
+index 1f3341f..54a995b 100644
+--- a/sys/dev/mps/mpi/mpi2_sas.h
++++ b/sys/dev/mps/mpi/mpi2_sas.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_sas.h
+diff --git a/sys/dev/mps/mpi/mpi2_targ.h b/sys/dev/mps/mpi/mpi2_targ.h
+index fcd694c..179ca53 100644
+--- a/sys/dev/mps/mpi/mpi2_targ.h
++++ b/sys/dev/mps/mpi/mpi2_targ.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_targ.h
+diff --git a/sys/dev/mps/mpi/mpi2_tool.h b/sys/dev/mps/mpi/mpi2_tool.h
+index 16c0ffc..73ece21 100644
+--- a/sys/dev/mps/mpi/mpi2_tool.h
++++ b/sys/dev/mps/mpi/mpi2_tool.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_tool.h
+diff --git a/sys/dev/mps/mpi/mpi2_type.h b/sys/dev/mps/mpi/mpi2_type.h
+index fa4ecd9..0ea541a 100644
+--- a/sys/dev/mps/mpi/mpi2_type.h
++++ b/sys/dev/mps/mpi/mpi2_type.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -29,7 +29,7 @@
+  */
+ 
+ /*
+- *  Copyright (c) 2000-2011 LSI Corporation.
++ *  Copyright (c) 2000-2012 LSI Corporation.
+  *
+  *
+  *           Name:  mpi2_type.h
+diff --git a/sys/dev/mps/mps.c b/sys/dev/mps/mps.c
+index e11e9a6..1d935be 100644
+--- a/sys/dev/mps/mps.c
++++ b/sys/dev/mps/mps.c
+@@ -1,31 +1,6 @@
+ /*-
+  * Copyright (c) 2009 Yahoo! Inc.
+- * All rights reserved.
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- * 1. Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- * 2. Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in the
+- *    documentation and/or other materials provided with the distribution.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+- * SUCH DAMAGE.
+- *
+- */
+-/*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -82,6 +57,7 @@ __FBSDID("$FreeBSD$");
+ #include <machine/bus.h>
+ #include <machine/resource.h>
+ #include <sys/rman.h>
++#include <sys/proc.h>
+ 
+ #include <dev/pci/pcivar.h>
+ 
+@@ -98,9 +74,9 @@ __FBSDID("$FreeBSD$");
+ #include <dev/mps/mpsvar.h>
+ #include <dev/mps/mps_table.h>
+ 
+-static int mps_diag_reset(struct mps_softc *sc);
++static int mps_diag_reset(struct mps_softc *sc, int sleep_flag);
+ static int mps_init_queues(struct mps_softc *sc);
+-static int mps_message_unit_reset(struct mps_softc *sc);
++static int mps_message_unit_reset(struct mps_softc *sc, int sleep_flag);
+ static int mps_transition_operational(struct mps_softc *sc);
+ static void mps_startup(void *arg);
+ static int mps_send_iocinit(struct mps_softc *sc);
+@@ -112,7 +88,7 @@ static void mps_config_complete(struct mps_softc *sc, struct mps_command *cm);
+ static void mps_periodic(void *);
+ static int mps_reregister_events(struct mps_softc *sc);
+ static void mps_enqueue_request(struct mps_softc *sc, struct mps_command *cm);
+-
++static int mps_wait_db_ack(struct mps_softc *sc, int timeout, int sleep_flag);
+ SYSCTL_NODE(_hw, OID_AUTO, mps, CTLFLAG_RD, 0, "MPS Driver Parameters");
+ 
+ MALLOC_DEFINE(M_MPT2, "mps", "mpt2 driver memory");
+@@ -123,8 +99,32 @@ MALLOC_DEFINE(M_MPT2, "mps", "mpt2 driver memory");
+  */
+ static char mpt2_reset_magic[] = { 0x00, 0x0f, 0x04, 0x0b, 0x02, 0x07, 0x0d };
+ 
++/* Added this union to smoothly convert le64toh cm->cm_desc.Words.
++ * Compiler only support unint64_t to be passed as argument.
++ * Otherwise it will through below error
++ * "aggregate value used where an integer was expected"
++ */
++
++typedef union _reply_descriptor {
++        u64 word;
++        struct {
++                u32 low;
++                u32 high;
++        } u;
++}reply_descriptor,address_descriptor;
++
++/* 
++ * sleep_flag can be either CAN_SLEEP or NO_SLEEP.
++ * If this function is called from process context, it can sleep
++ * and there is no harm to sleep, in case if this fuction is called
++ * from Interrupt handler, we can not sleep and need NO_SLEEP flag set.
++ * based on sleep flags driver will call either msleep, pause or DELAY.
++ * msleep and pause are of same variant, but pause is used when mps_mtx
++ * is not hold by driver.
++ *
++ */
+ static int
+-mps_diag_reset(struct mps_softc *sc)
++mps_diag_reset(struct mps_softc *sc,int sleep_flag)
+ {
+ 	uint32_t reg;
+ 	int i, error, tries = 0;
+@@ -134,14 +134,25 @@ mps_diag_reset(struct mps_softc *sc)
+ 	/* Clear any pending interrupts */
+ 	mps_regwrite(sc, MPI2_HOST_INTERRUPT_STATUS_OFFSET, 0x0);
+ 
++	/*Force NO_SLEEP for threads prohibited to sleep
++ 	* e.a Thread from interrupt handler are prohibited to sleep.
++ 	*/	
++	if(curthread->td_pflags & TDP_NOSLEEPING)
++		sleep_flag = NO_SLEEP;
++ 
+ 	/* Push the magic sequence */
+ 	error = ETIMEDOUT;
+ 	while (tries++ < 20) {
+ 		for (i = 0; i < sizeof(mpt2_reset_magic); i++)
+ 			mps_regwrite(sc, MPI2_WRITE_SEQUENCE_OFFSET,
+ 			    mpt2_reset_magic[i]);
+-
+-		DELAY(100 * 1000);
++		/* wait 100 msec */
++		if (mtx_owned(&sc->mps_mtx) && sleep_flag == CAN_SLEEP)
++			msleep(&sc->msleep_fake_chan, &sc->mps_mtx, 0, "mpsdiag", hz/10);
++		else if (sleep_flag == CAN_SLEEP)
++			pause("mpsdiag", hz/10);
++		else
++			DELAY(100 * 1000);
+ 
+ 		reg = mps_regread(sc, MPI2_HOST_DIAGNOSTIC_OFFSET);
+ 		if (reg & MPI2_DIAG_DIAG_WRITE_ENABLE) {
+@@ -159,7 +170,13 @@ mps_diag_reset(struct mps_softc *sc)
+ 	/* Wait up to 300 seconds in 50ms intervals */
+ 	error = ETIMEDOUT;
+ 	for (i = 0; i < 60000; i++) {
+-		DELAY(50000);
++		/* wait 50 msec */
++		if (mtx_owned(&sc->mps_mtx) && sleep_flag == CAN_SLEEP)
++			msleep(&sc->msleep_fake_chan, &sc->mps_mtx, 0, "mpsdiag", hz/20);
++		else if (sleep_flag == CAN_SLEEP)
++			pause("mpsdiag", hz/20);
++		else
++			DELAY(50 * 1000);
+ 		reg = mps_regread(sc, MPI2_DOORBELL_OFFSET);
+ 		if ((reg & MPI2_IOC_STATE_MASK) != MPI2_IOC_STATE_RESET) {
+ 			error = 0;
+@@ -175,7 +192,7 @@ mps_diag_reset(struct mps_softc *sc)
+ }
+ 
+ static int
+-mps_message_unit_reset(struct mps_softc *sc)
++mps_message_unit_reset(struct mps_softc *sc, int sleep_flag)
+ {
+ 
+ 	mps_dprint(sc, MPS_TRACE, "%s\n", __func__);
+@@ -183,7 +200,12 @@ mps_message_unit_reset(struct mps_softc *sc)
+ 	mps_regwrite(sc, MPI2_DOORBELL_OFFSET,
+ 	    MPI2_FUNCTION_IOC_MESSAGE_UNIT_RESET <<
+ 	    MPI2_DOORBELL_FUNCTION_SHIFT);
+-	DELAY(50000);
++
++	if (mps_wait_db_ack(sc, 5, sleep_flag) != 0) {
++		mps_dprint(sc, MPS_FAULT, "Doorbell handshake failed : <%s>\n",
++				__func__);
++		return (ETIMEDOUT);
++	}
+ 
+ 	return (0);
+ }
+@@ -193,9 +215,12 @@ mps_transition_ready(struct mps_softc *sc)
+ {
+ 	uint32_t reg, state;
+ 	int error, tries = 0;
++	int sleep_flags;
+ 
+ 	mps_dprint(sc, MPS_TRACE, "%s\n", __func__);
+-
++	/* If we are in attach call, do not sleep */
++	sleep_flags = (sc->mps_flags & MPS_FLAGS_ATTACH_DONE)
++					? CAN_SLEEP:NO_SLEEP;
+ 	error = 0;
+ 	while (tries++ < 5) {
+ 		reg = mps_regread(sc, MPI2_DOORBELL_OFFSET);
+@@ -206,7 +231,7 @@ mps_transition_ready(struct mps_softc *sc)
+ 		 * resetting it.
+ 		 */
+ 		if (reg & MPI2_DOORBELL_USED) {
+-			mps_diag_reset(sc);
++			mps_diag_reset(sc, sleep_flags);
+ 			DELAY(50000);
+ 			continue;
+ 		}
+@@ -227,10 +252,10 @@ mps_transition_ready(struct mps_softc *sc)
+ 		} else if (state == MPI2_IOC_STATE_FAULT) {
+ 			mps_dprint(sc, MPS_INFO, "IOC in fault state 0x%x\n",
+ 			    state & MPI2_DOORBELL_FAULT_CODE_MASK);
+-			mps_diag_reset(sc);
++			mps_diag_reset(sc, sleep_flags);
+ 		} else if (state == MPI2_IOC_STATE_OPERATIONAL) {
+ 			/* Need to take ownership */
+-			mps_message_unit_reset(sc);
++			mps_message_unit_reset(sc, sleep_flags);
+ 		} else if (state == MPI2_IOC_STATE_RESET) {
+ 			/* Wait a bit, IOC might be in transition */
+ 			mps_dprint(sc, MPS_FAULT,
+@@ -310,7 +335,7 @@ mps_reinit(struct mps_softc *sc)
+ 	mps_printf(sc, "%s mask interrupts\n", __func__);
+ 	mps_mask_intr(sc);
+ 
+-	error = mps_diag_reset(sc);
++	error = mps_diag_reset(sc, CAN_SLEEP);
+ 	if (error != 0) {
+ 		panic("%s hard reset failed with error %d\n",
+ 		    __func__, error);
+@@ -368,19 +393,56 @@ mps_reinit(struct mps_softc *sc)
+ 	return 0;
+ }
+ 
+-/* Wait for the chip to ACK a word that we've put into its FIFO */
++/* Wait for the chip to ACK a word that we've put into its FIFO 
++ * Wait for <timeout> seconds. In single loop wait for busy loop
++ * for 500 microseconds.
++ * Total is [ 0.5 * (2000 * <timeout>) ] in miliseconds.
++ * */
+ static int
+-mps_wait_db_ack(struct mps_softc *sc)
++mps_wait_db_ack(struct mps_softc *sc, int timeout, int sleep_flag)
+ {
+-	int retry;
+ 
+-	for (retry = 0; retry < MPS_DB_MAX_WAIT; retry++) {
+-		if ((mps_regread(sc, MPI2_HOST_INTERRUPT_STATUS_OFFSET) &
+-		    MPI2_HIS_SYS2IOC_DB_STATUS) == 0)
+-			return (0);
+-		DELAY(2000);
+-	}
++	u32 cntdn, count;
++	u32 int_status;
++	u32 doorbell;
++
++	count = 0;
++	cntdn = (sleep_flag == CAN_SLEEP) ? 1000*timeout : 2000*timeout;
++	do {
++		int_status = mps_regread(sc, MPI2_HOST_INTERRUPT_STATUS_OFFSET);
++		if (!(int_status & MPI2_HIS_SYS2IOC_DB_STATUS)) {
++			mps_dprint(sc, MPS_INFO, 
++			"%s: successfull count(%d), timeout(%d)\n",
++			__func__, count, timeout);
++		return 0;
++		} else if (int_status & MPI2_HIS_IOC2SYS_DB_STATUS) {
++			doorbell = mps_regread(sc, MPI2_DOORBELL_OFFSET);
++			if ((doorbell & MPI2_IOC_STATE_MASK) ==
++				MPI2_IOC_STATE_FAULT) {
++				mps_dprint(sc, MPS_FAULT, 
++					"fault_state(0x%04x)!\n", doorbell);
++				return (EFAULT);
++			}
++		} else if (int_status == 0xFFFFFFFF)
++			goto out;
++
++		/* If it can sleep, sleep for 1 milisecond, else busy loop for 
++		* 0.5 milisecond */
++		if (mtx_owned(&sc->mps_mtx) && sleep_flag == CAN_SLEEP)
++			msleep(&sc->msleep_fake_chan, &sc->mps_mtx, 0, 
++			"mpsdba", hz/1000);
++		else if (sleep_flag == CAN_SLEEP)
++			pause("mpsdba", hz/1000);
++		else
++			DELAY(500);
++		count++;
++	} while (--cntdn);
++
++	out:
++	mps_dprint(sc, MPS_FAULT, "%s: failed due to timeout count(%d), "
++		"int_status(%x)!\n", __func__, count, int_status);
+ 	return (ETIMEDOUT);
++
+ }
+ 
+ /* Wait for the chip to signal that the next word in its FIFO can be fetched */
+@@ -406,6 +468,10 @@ mps_request_sync(struct mps_softc *sc, void *req, MPI2_DEFAULT_REPLY *reply,
+ 	uint32_t *data32;
+ 	uint16_t *data16;
+ 	int i, count, ioc_sz, residual;
++	int sleep_flags = CAN_SLEEP;
++	
++	if(curthread->td_pflags & TDP_NOSLEEPING)
++		sleep_flags = NO_SLEEP;
+ 
+ 	/* Step 1 */
+ 	mps_regwrite(sc, MPI2_HOST_INTERRUPT_STATUS_OFFSET, 0x0);
+@@ -430,7 +496,7 @@ mps_request_sync(struct mps_softc *sc, void *req, MPI2_DEFAULT_REPLY *reply,
+ 		return (ENXIO);
+ 	}
+ 	mps_regwrite(sc, MPI2_HOST_INTERRUPT_STATUS_OFFSET, 0x0);
+-	if (mps_wait_db_ack(sc) != 0) {
++	if (mps_wait_db_ack(sc, 5, sleep_flags) != 0) {
+ 		mps_dprint(sc, MPS_FAULT, "Doorbell handshake failed\n");
+ 		return (ENXIO);
+ 	}
+@@ -439,8 +505,8 @@ mps_request_sync(struct mps_softc *sc, void *req, MPI2_DEFAULT_REPLY *reply,
+ 	/* Clock out the message data synchronously in 32-bit dwords*/
+ 	data32 = (uint32_t *)req;
+ 	for (i = 0; i < count; i++) {
+-		mps_regwrite(sc, MPI2_DOORBELL_OFFSET, data32[i]);
+-		if (mps_wait_db_ack(sc) != 0) {
++		mps_regwrite(sc, MPI2_DOORBELL_OFFSET, htole32(data32[i]));
++		if (mps_wait_db_ack(sc, 5, sleep_flags) != 0) {
+ 			mps_dprint(sc, MPS_FAULT,
+ 			    "Timeout while writing doorbell\n");
+ 			return (ENXIO);
+@@ -525,7 +591,7 @@ mps_request_sync(struct mps_softc *sc, void *req, MPI2_DEFAULT_REPLY *reply,
+ static void
+ mps_enqueue_request(struct mps_softc *sc, struct mps_command *cm)
+ {
+-
++	reply_descriptor rd;
+ 	mps_dprint(sc, MPS_TRACE, "%s SMID %u cm %p ccb %p\n", __func__,
+ 	    cm->cm_desc.Default.SMID, cm, cm->cm_ccb);
+ 
+@@ -534,11 +600,14 @@ mps_enqueue_request(struct mps_softc *sc, struct mps_command *cm)
+ 
+ 	if (++sc->io_cmds_active > sc->io_cmds_highwater)
+ 		sc->io_cmds_highwater++;
+-
++	rd.u.low = cm->cm_desc.Words.Low;
++	rd.u.high = cm->cm_desc.Words.High;
++	rd.word = htole64(rd.word);
++	/* TODO-We may need to make below regwrite atomic */
+ 	mps_regwrite(sc, MPI2_REQUEST_DESCRIPTOR_POST_LOW_OFFSET,
+-	    cm->cm_desc.Words.Low);
++	    rd.u.low);
+ 	mps_regwrite(sc, MPI2_REQUEST_DESCRIPTOR_POST_HIGH_OFFSET,
+-	    cm->cm_desc.Words.High);
++	    rd.u.high);
+ }
+ 
+ /*
+@@ -622,21 +691,21 @@ mps_send_iocinit(struct mps_softc *sc)
+ 	 */
+ 	init.Function = MPI2_FUNCTION_IOC_INIT;
+ 	init.WhoInit = MPI2_WHOINIT_HOST_DRIVER;
+-	init.MsgVersion = MPI2_VERSION;
+-	init.HeaderVersion = MPI2_HEADER_VERSION;
+-	init.SystemRequestFrameSize = sc->facts->IOCRequestFrameSize;
+-	init.ReplyDescriptorPostQueueDepth = sc->pqdepth;
+-	init.ReplyFreeQueueDepth = sc->fqdepth;
++	init.MsgVersion = htole16(MPI2_VERSION);
++	init.HeaderVersion = htole16(MPI2_HEADER_VERSION);
++	init.SystemRequestFrameSize = htole16(sc->facts->IOCRequestFrameSize);
++	init.ReplyDescriptorPostQueueDepth = htole16(sc->pqdepth);
++	init.ReplyFreeQueueDepth = htole16(sc->fqdepth);
+ 	init.SenseBufferAddressHigh = 0;
+ 	init.SystemReplyAddressHigh = 0;
+ 	init.SystemRequestFrameBaseAddress.High = 0;
+-	init.SystemRequestFrameBaseAddress.Low = (uint32_t)sc->req_busaddr;
++	init.SystemRequestFrameBaseAddress.Low = htole32((uint32_t)sc->req_busaddr);
+ 	init.ReplyDescriptorPostQueueAddress.High = 0;
+-	init.ReplyDescriptorPostQueueAddress.Low = (uint32_t)sc->post_busaddr;
++	init.ReplyDescriptorPostQueueAddress.Low = htole32((uint32_t)sc->post_busaddr);
+ 	init.ReplyFreeQueueAddress.High = 0;
+-	init.ReplyFreeQueueAddress.Low = (uint32_t)sc->free_busaddr;
++	init.ReplyFreeQueueAddress.Low = htole32((uint32_t)sc->free_busaddr);
+ 	init.TimeStamp.High = 0;
+-	init.TimeStamp.Low = (uint32_t)time_uptime;
++	init.TimeStamp.Low = htole32((uint32_t)time_uptime);
+ 
+ 	error = mps_request_sync(sc, &init, &reply, req_sz, reply_sz, 5);
+ 	if ((reply.IOCStatus & MPI2_IOCSTATUS_MASK) != MPI2_IOCSTATUS_SUCCESS)
+@@ -830,6 +899,12 @@ mps_alloc_requests(struct mps_softc *sc)
+ 
+ 	sc->chains = malloc(sizeof(struct mps_chain) * sc->max_chains, M_MPT2,
+ 	    M_WAITOK | M_ZERO);
++	if(!sc->chains) {
++		device_printf(sc->mps_dev, 
++		"Cannot allocate chains memory %s %d\n",
++		 __func__, __LINE__);
++		return (ENOMEM);
++	}
+ 	for (i = 0; i < sc->max_chains; i++) {
+ 		chain = &sc->chains[i];
+ 		chain->chain = (MPI2_SGE_IO_UNION *)(sc->chain_frames +
+@@ -864,6 +939,11 @@ mps_alloc_requests(struct mps_softc *sc)
+ 	 */
+ 	sc->commands = malloc(sizeof(struct mps_command) * sc->num_reqs,
+ 	    M_MPT2, M_WAITOK | M_ZERO);
++	if(!sc->commands) {
++		device_printf(sc->mps_dev, "Cannot allocate memory %s %d\n",
++		 __func__, __LINE__);
++		return (ENOMEM);
++	}
+ 	for (i = 1; i < sc->num_reqs; i++) {
+ 		cm = &sc->commands[i];
+ 		cm->cm_req = sc->req_frames +
+@@ -1056,6 +1136,11 @@ mps_attach(struct mps_softc *sc)
+ 
+ 	sc->facts = malloc(sizeof(MPI2_IOC_FACTS_REPLY), M_MPT2,
+ 	    M_ZERO|M_NOWAIT);
++	if(!sc->facts) {
++		device_printf(sc->mps_dev, "Cannot allocate memory %s %d\n",
++		 __func__, __LINE__);
++		return (ENOMEM);
++	}
+ 	if ((error = mps_get_iocfacts(sc, sc->facts)) != 0)
+ 		return (error);
+ 
+@@ -1083,7 +1168,7 @@ mps_attach(struct mps_softc *sc)
+ 	 */
+ 	if ((sc->facts->IOCCapabilities &
+ 	    MPI2_IOCFACTS_CAPABILITY_EVENT_REPLAY) == 0) {
+-		mps_diag_reset(sc);
++		mps_diag_reset(sc, NO_SLEEP);
+ 		if ((error = mps_transition_ready(sc)) != 0)
+ 			return (error);
+ 	}
+@@ -1163,6 +1248,11 @@ mps_attach(struct mps_softc *sc)
+ 
+ 	sc->pfacts = malloc(sizeof(MPI2_PORT_FACTS_REPLY) *
+ 	    sc->facts->NumberOfPorts, M_MPT2, M_ZERO|M_WAITOK);
++	if(!sc->pfacts) {
++		device_printf(sc->mps_dev, "Cannot allocate memory %s %d\n",
++		 __func__, __LINE__);
++		return (ENOMEM);
++	}
+ 	for (i = 0; i < sc->facts->NumberOfPorts; i++) {
+ 		if ((error = mps_get_portfacts(sc, &sc->pfacts[i], i)) != 0) {
+ 			mps_printf(sc, "%s failed to get portfacts for port %d\n",
+@@ -1293,7 +1383,7 @@ mps_log_evt_handler(struct mps_softc *sc, uintptr_t data,
+ static int
+ mps_attach_log(struct mps_softc *sc)
+ {
+-	uint8_t events[16];
++	u32 events[MPI2_EVENT_NOTIFY_EVENTMASK_WORDS];
+ 
+ 	bzero(events, 16);
+ 	setbit(events, MPI2_EVENT_LOG_DATA);
+@@ -1441,6 +1531,64 @@ mps_complete_command(struct mps_command *cm)
+ 	}
+ }
+ 
++
++static void
++mps_sas_log_info(struct mps_softc *sc , u32 log_info)
++{
++	union loginfo_type {
++		u32     loginfo;
++		struct {
++			u32     subcode:16;
++			u32     code:8;
++			u32     originator:4;
++			u32     bus_type:4;
++		} dw;
++	};
++	union loginfo_type sas_loginfo;
++	char *originator_str = NULL;
++
++	sas_loginfo.loginfo = log_info;
++	if (sas_loginfo.dw.bus_type != 3 /*SAS*/)
++		return;
++
++	/* each nexus loss loginfo */
++	if (log_info == 0x31170000)
++		return;
++
++	/* eat the loginfos associated with task aborts */
++	if ((log_info == 30050000 || log_info ==
++	    0x31140000 || log_info == 0x31130000))
++		return;
++
++	switch (sas_loginfo.dw.originator) {
++	case 0:
++		originator_str = "IOP";
++		break;
++	case 1:
++		originator_str = "PL";
++		break;
++	case 2:
++		originator_str = "IR";
++		break;
++}
++
++	mps_dprint(sc, MPS_INFO, "log_info(0x%08x): originator(%s), "
++	"code(0x%02x), sub_code(0x%04x)\n", log_info,
++	originator_str, sas_loginfo.dw.code,
++	sas_loginfo.dw.subcode);
++}
++
++static void
++mps_display_reply_info(struct mps_softc *sc, uint8_t *reply)
++{
++	MPI2DefaultReply_t *mpi_reply;
++	u16 sc_status;
++
++	mpi_reply = (MPI2DefaultReply_t*)reply;
++	sc_status = le16toh(mpi_reply->IOCStatus);
++	if (sc_status & MPI2_IOCSTATUS_FLAG_LOG_INFO_AVAILABLE)
++		mps_sas_log_info(sc, le32toh(mpi_reply->IOCLogInfo));
++}
+ void
+ mps_intr(void *data)
+ {
+@@ -1508,7 +1656,7 @@ mps_intr_locked(void *data)
+ 		flags = desc->Default.ReplyFlags &
+ 		    MPI2_RPY_DESCRIPT_FLAGS_TYPE_MASK;
+ 		if ((flags == MPI2_RPY_DESCRIPT_FLAGS_UNUSED)
+-		 || (desc->Words.High == 0xffffffff))
++		 || (le32toh(desc->Words.High) == 0xffffffff))
+ 			break;
+ 
+ 		/* increment the replypostindex now, so that event handlers
+@@ -1523,7 +1671,7 @@ mps_intr_locked(void *data)
+ 
+ 		switch (flags) {
+ 		case MPI2_RPY_DESCRIPT_FLAGS_SCSI_IO_SUCCESS:
+-			cm = &sc->commands[desc->SCSIIOSuccess.SMID];
++			cm = &sc->commands[le16toh(desc->SCSIIOSuccess.SMID)];
+ 			cm->cm_reply = NULL;
+ 			break;
+ 		case MPI2_RPY_DESCRIPT_FLAGS_ADDRESS_REPLY:
+@@ -1559,9 +1707,10 @@ mps_intr_locked(void *data)
+ 				       sc->reply_frames, sc->fqdepth,
+ 				       sc->facts->ReplyFrameSize * 4);
+ 				printf("%s: baddr %#x,\n", __func__, baddr);
++				/* LSI-TODO. See Linux Code. Need Gracefull exit*/
+ 				panic("Reply address out of range");
+ 			}
+-			if (desc->AddressReply.SMID == 0) {
++			if (le16toh(desc->AddressReply.SMID) == 0) {
+ 				if (((MPI2_DEFAULT_REPLY *)reply)->Function ==
+ 				    MPI2_FUNCTION_DIAG_BUFFER_POST) {
+ 					/*
+@@ -1573,7 +1722,7 @@ mps_intr_locked(void *data)
+ 					 */
+ 					rel_rep =
+ 					    (MPI2_DIAG_RELEASE_REPLY *)reply;
+-					if (rel_rep->IOCStatus ==
++					if (le16toh(rel_rep->IOCStatus) ==
+ 					    MPI2_IOCSTATUS_DIAGNOSTIC_RELEASED)
+ 					    {
+ 						pBuffer =
+@@ -1589,10 +1738,10 @@ mps_intr_locked(void *data)
+ 					    (MPI2_EVENT_NOTIFICATION_REPLY *)
+ 					    reply);
+ 			} else {
+-				cm = &sc->commands[desc->AddressReply.SMID];
++				cm = &sc->commands[le16toh(desc->AddressReply.SMID)];
+ 				cm->cm_reply = reply;
+ 				cm->cm_reply_data =
+-				    desc->AddressReply.ReplyFrameAddress;
++				    le32toh(desc->AddressReply.ReplyFrameAddress);
+ 			}
+ 			break;
+ 		}
+@@ -1606,9 +1755,14 @@ mps_intr_locked(void *data)
+ 			cm = NULL;
+ 			break;
+ 		}
++		
+ 
+-		if (cm != NULL)
++		if (cm != NULL) {
++			// Print Error reply frame
++			if (cm->cm_reply)
++				mps_display_reply_info(sc,cm->cm_reply);
+ 			mps_complete_command(cm);
++		}
+ 
+ 		desc->Words.Low = 0xffffffff;
+ 		desc->Words.High = 0xffffffff;
+@@ -1631,7 +1785,7 @@ mps_dispatch_event(struct mps_softc *sc, uintptr_t data,
+ 	struct mps_event_handle *eh;
+ 	int event, handled = 0;
+ 
+-	event = reply->Event;
++	event = le16toh(reply->Event);
+ 	TAILQ_FOREACH(eh, &sc->event_list, eh_list) {
+ 		if (isset(eh->mask, event)) {
+ 			eh->callback(sc, data, reply);
+@@ -1640,7 +1794,7 @@ mps_dispatch_event(struct mps_softc *sc, uintptr_t data,
+ 	}
+ 
+ 	if (handled == 0)
+-		device_printf(sc->mps_dev, "Unhandled event 0x%x\n", event);
++		device_printf(sc->mps_dev, "Unhandled event 0x%x\n", le16toh(event));
+ 
+ 	/*
+ 	 * This is the only place that the event/reply should be freed.
+@@ -1671,13 +1825,18 @@ mps_reregister_events_complete(struct mps_softc *sc, struct mps_command *cm)
+  * suitable for the controller.
+  */
+ int
+-mps_register_events(struct mps_softc *sc, uint8_t *mask,
++mps_register_events(struct mps_softc *sc, u32 *mask,
+     mps_evt_callback_t *cb, void *data, struct mps_event_handle **handle)
+ {
+ 	struct mps_event_handle *eh;
+ 	int error = 0;
+ 
+ 	eh = malloc(sizeof(struct mps_event_handle), M_MPT2, M_WAITOK|M_ZERO);
++	if(!eh) {
++		device_printf(sc->mps_dev, "Cannot allocate memory %s %d\n",
++		 __func__, __LINE__);
++		return (ENOMEM);
++	}
+ 	eh->callback = cb;
+ 	eh->data = data;
+ 	TAILQ_INSERT_TAIL(&sc->event_list, eh, eh_list);
+@@ -1690,24 +1849,25 @@ mps_register_events(struct mps_softc *sc, uint8_t *mask,
+ 
+ int
+ mps_update_events(struct mps_softc *sc, struct mps_event_handle *handle,
+-    uint8_t *mask)
++    u32 *mask)
+ {
+ 	MPI2_EVENT_NOTIFICATION_REQUEST *evtreq;
+ 	MPI2_EVENT_NOTIFICATION_REPLY *reply;
+ 	struct mps_command *cm;
+-	struct mps_event_handle *eh;
+ 	int error, i;
+ 
+ 	mps_dprint(sc, MPS_TRACE, "%s\n", __func__);
+ 
+ 	if ((mask != NULL) && (handle != NULL))
+-		bcopy(mask, &handle->mask[0], 16);
+-	memset(sc->event_mask, 0xff, 16);
++		bcopy(mask, &handle->mask[0], sizeof(u32) * 
++				MPI2_EVENT_NOTIFY_EVENTMASK_WORDS);
++    
++	for (i = 0; i < MPI2_EVENT_NOTIFY_EVENTMASK_WORDS; i++)
++		sc->event_mask[i] = -1;
++
++	for (i = 0; i < MPI2_EVENT_NOTIFY_EVENTMASK_WORDS; i++)
++		sc->event_mask[i] &= ~handle->mask[i];
+ 
+-	TAILQ_FOREACH(eh, &sc->event_list, eh_list) {
+-		for (i = 0; i < 16; i++)
+-			sc->event_mask[i] &= ~eh->mask[i];
+-	}
+ 
+ 	if ((cm = mps_alloc_command(sc)) == NULL)
+ 		return (EBUSY);
+@@ -1719,10 +1879,13 @@ mps_update_events(struct mps_softc *sc, struct mps_event_handle *handle,
+ 	{
+ 		u_char fullmask[16];
+ 		memset(fullmask, 0x00, 16);
+-		bcopy(fullmask, (uint8_t *)&evtreq->EventMasks, 16);
++		bcopy(fullmask, &evtreq->EventMasks[0], sizeof(u32) * 
++				MPI2_EVENT_NOTIFY_EVENTMASK_WORDS);
+ 	}
+ #else
+-		bcopy(sc->event_mask, (uint8_t *)&evtreq->EventMasks, 16);
++        for (i = 0; i < MPI2_EVENT_NOTIFY_EVENTMASK_WORDS; i++)
++                evtreq->EventMasks[i] =
++                    htole32(sc->event_mask[i]);
+ #endif
+ 	cm->cm_desc.Default.RequestFlags = MPI2_REQ_DESCRIPT_FLAGS_DEFAULT_TYPE;
+ 	cm->cm_data = NULL;
+@@ -1751,10 +1914,11 @@ mps_reregister_events(struct mps_softc *sc)
+ 
+ 	/* first, reregister events */
+ 
+-	memset(sc->event_mask, 0xff, 16);
++    for (i = 0; i < MPI2_EVENT_NOTIFY_EVENTMASK_WORDS; i++)
++		sc->event_mask[i] = -1;
+ 
+ 	TAILQ_FOREACH(eh, &sc->event_list, eh_list) {
+-		for (i = 0; i < 16; i++)
++		for (i = 0; i < MPI2_EVENT_NOTIFY_EVENTMASK_WORDS; i++)
+ 			sc->event_mask[i] &= ~eh->mask[i];
+ 	}
+ 
+@@ -1768,10 +1932,13 @@ mps_reregister_events(struct mps_softc *sc)
+ 	{
+ 		u_char fullmask[16];
+ 		memset(fullmask, 0x00, 16);
+-		bcopy(fullmask, (uint8_t *)&evtreq->EventMasks, 16);
++		bcopy(fullmask, &evtreq->EventMasks[0], sizeof(u32) *
++			MPI2_EVENT_NOTIFY_EVENTMASK_WORDS);
+ 	}
+ #else
+-		bcopy(sc->event_mask, (uint8_t *)&evtreq->EventMasks, 16);
++        for (i = 0; i < MPI2_EVENT_NOTIFY_EVENTMASK_WORDS; i++)
++                evtreq->EventMasks[i] =
++                    htole32(sc->event_mask[i]);
+ #endif
+ 	cm->cm_desc.Default.RequestFlags = MPI2_REQ_DESCRIPT_FLAGS_DEFAULT_TYPE;
+ 	cm->cm_data = NULL;
+@@ -1783,13 +1950,12 @@ mps_reregister_events(struct mps_softc *sc)
+ 	return (error);
+ }
+ 
+-int
++void
+ mps_deregister_events(struct mps_softc *sc, struct mps_event_handle *handle)
+ {
+ 
+ 	TAILQ_REMOVE(&sc->event_list, handle, eh_list);
+ 	free(handle, M_MPT2);
+-	return (mps_update_events(sc, NULL, NULL));
+ }
+ 
+ /*
+@@ -1819,10 +1985,16 @@ mps_add_chain(struct mps_command *cm)
+ 	TAILQ_INSERT_TAIL(&cm->cm_chain_list, chain, chain_link);
+ 
+ 	sgc = (MPI2_SGE_CHAIN32 *)&cm->cm_sge->MpiChain;
+-	sgc->Length = space;
++	sgc->Length = htole16(space);
+ 	sgc->NextChainOffset = 0;
++	/* TODO Looks like bug in Setting sgc->Flags. 
++	 *	sgc->Flags = ( MPI2_SGE_FLAGS_CHAIN_ELEMENT | MPI2_SGE_FLAGS_64_BIT_ADDRESSING |
++	 *	            MPI2_SGE_FLAGS_SYSTEM_ADDRESS) << MPI2_SGE_FLAGS_SHIFT
++	 *	This is fine.. because we are not using simple element. In case of 
++	 *	MPI2_SGE_CHAIN32, we have seperate Length and Flags feild.
++ 	 */
+ 	sgc->Flags = MPI2_SGE_FLAGS_CHAIN_ELEMENT;
+-	sgc->Address = chain->chain_busaddr;
++	sgc->Address = htole32(chain->chain_busaddr);
+ 
+ 	cm->cm_sge = (MPI2_SGE_IO_UNION *)&chain->chain->MpiSimple;
+ 	cm->cm_sglsize = space;
+@@ -1842,6 +2014,7 @@ mps_push_sge(struct mps_command *cm, void *sgep, size_t len, int segsleft)
+ 	MPI2_SGE_SIMPLE64 *sge = sgep;
+ 	int error, type;
+ 	uint32_t saved_buf_len, saved_address_low, saved_address_high;
++	u32 sge_flags;
+ 
+ 	type = (tc->Flags & MPI2_SGE_FLAGS_ELEMENT_MASK);
+ 
+@@ -1910,6 +2083,11 @@ mps_push_sge(struct mps_command *cm, void *sgep, size_t len, int segsleft)
+ 		 * understanding the code.
+ 		 */
+ 		cm->cm_sglsize -= len;
++		/* Endian Safe code */
++		sge_flags = sge->FlagsLength;
++		sge->FlagsLength = htole32(sge_flags);
++		sge->Address.High = htole32(sge->Address.High);	
++		sge->Address.Low = 	htole32(sge->Address.Low);
+ 		bcopy(sgep, cm->cm_sge, len);
+ 		cm->cm_sge = (MPI2_SGE_IO_UNION *)((uintptr_t)cm->cm_sge + len);
+ 		return (mps_add_chain(cm));
+@@ -1960,6 +2138,11 @@ mps_push_sge(struct mps_command *cm, void *sgep, size_t len, int segsleft)
+ 			    MPI2_SGE_FLAGS_64_BIT_ADDRESSING) <<
+ 			    MPI2_SGE_FLAGS_SHIFT);
+ 			cm->cm_sglsize -= len;
++			/* Endian Safe code */
++			sge_flags = sge->FlagsLength;
++			sge->FlagsLength = htole32(sge_flags);
++			sge->Address.High = htole32(sge->Address.High);	
++			sge->Address.Low = 	htole32(sge->Address.Low);
+ 			bcopy(sgep, cm->cm_sge, len);
+ 			cm->cm_sge = (MPI2_SGE_IO_UNION *)((uintptr_t)cm->cm_sge
+ 			    + len);
+@@ -1985,6 +2168,11 @@ mps_push_sge(struct mps_command *cm, void *sgep, size_t len, int segsleft)
+ 	}
+ 
+ 	cm->cm_sglsize -= len;
++	/* Endian Safe code */
++	sge_flags = sge->FlagsLength;
++	sge->FlagsLength = htole32(sge_flags);
++	sge->Address.High = htole32(sge->Address.High);	
++	sge->Address.Low = 	htole32(sge->Address.Low);
+ 	bcopy(sgep, cm->cm_sge, len);
+ 	cm->cm_sge = (MPI2_SGE_IO_UNION *)((uintptr_t)cm->cm_sge + len);
+ 	return (0);
+@@ -2004,6 +2192,7 @@ mps_add_dmaseg(struct mps_command *cm, vm_paddr_t pa, size_t len, u_int flags,
+ 	 */
+ 	flags |= MPI2_SGE_FLAGS_SIMPLE_ELEMENT |
+ 	    MPI2_SGE_FLAGS_64_BIT_ADDRESSING;
++	/* Set Endian safe macro in mps_push_sge */
+ 	sge.FlagsLength = len | (flags << MPI2_SGE_FLAGS_SHIFT);
+ 	mps_from_u64(pa, &sge.Address);
+ 
+@@ -2114,11 +2303,11 @@ mps_map_command(struct mps_softc *sc, struct mps_command *cm)
+ 		/* Add a zero-length element as needed */
+ 		if (cm->cm_sge != NULL) {
+ 			sge = (MPI2_SGE_SIMPLE32 *)cm->cm_sge;
+-			sge->FlagsLength = (MPI2_SGE_FLAGS_LAST_ELEMENT |
++			sge->FlagsLength = htole32((MPI2_SGE_FLAGS_LAST_ELEMENT |
+ 			    MPI2_SGE_FLAGS_END_OF_BUFFER |
+ 			    MPI2_SGE_FLAGS_END_OF_LIST |
+ 			    MPI2_SGE_FLAGS_SIMPLE_ELEMENT) <<
+-			    MPI2_SGE_FLAGS_SHIFT;
++			    MPI2_SGE_FLAGS_SHIFT);
+ 			sge->Address = 0;
+ 		}
+ 		mps_enqueue_request(sc, cm);	
+@@ -2135,9 +2324,12 @@ mps_map_command(struct mps_softc *sc, struct mps_command *cm)
+ int
+ mps_wait_command(struct mps_softc *sc, struct mps_command *cm, int timeout)
+ {
+-	int error;
++	int error, rc;
+ 
+ 	mtx_assert(&sc->mps_mtx, MA_OWNED);
++	
++	if(sc->mps_flags & MPS_FLAGS_DIAGRESET) 
++		return  EBUSY;
+ 
+ 	cm->cm_complete = NULL;
+ 	cm->cm_flags |= MPS_CM_FLAGS_WAKEUP;
+@@ -2145,8 +2337,13 @@ mps_wait_command(struct mps_softc *sc, struct mps_command *cm, int timeout)
+ 	if ((error != 0) && (error != EINPROGRESS))
+ 		return (error);
+ 	error = msleep(cm, &sc->mps_mtx, 0, "mpswait", timeout*hz);
+-	if (error == EWOULDBLOCK)
++	if (error == EWOULDBLOCK) {
++		mps_dprint(sc, MPS_FAULT, "Calling Reinit from %s\n", __func__);
++		rc = mps_reinit(sc);
++		mps_dprint(sc, MPS_FAULT, "Reinit %s\n", 
++				(rc == 0) ? "success" : "failed");
+ 		error = ETIMEDOUT;
++	}
+ 	return (error);
+ }
+ 
+@@ -2157,7 +2354,7 @@ mps_wait_command(struct mps_softc *sc, struct mps_command *cm, int timeout)
+ int
+ mps_request_polled(struct mps_softc *sc, struct mps_command *cm)
+ {
+-	int error, timeout = 0;
++	int error, timeout = 0, rc;
+ 
+ 	error = 0;
+ 
+@@ -2167,6 +2364,7 @@ mps_request_polled(struct mps_softc *sc, struct mps_command *cm)
+ 
+ 	while ((cm->cm_flags & MPS_CM_FLAGS_COMPLETE) == 0) {
+ 		mps_intr_locked(sc);
++
+ 		DELAY(50 * 1000);
+ 		if (timeout++ > 1000) {
+ 			mps_dprint(sc, MPS_FAULT, "polling failed\n");
+@@ -2174,6 +2372,13 @@ mps_request_polled(struct mps_softc *sc, struct mps_command *cm)
+ 			break;
+ 		}
+ 	}
++	
++	if (error) {
++		mps_dprint(sc, MPS_FAULT, "Calling Reinit from %s\n", __func__);
++		rc = mps_reinit(sc);
++		mps_dprint(sc, MPS_FAULT, "Reinit %s\n", 
++				(rc == 0) ? "success" : "failed");
++	}
+ 
+ 	return (error);
+ }
+diff --git a/sys/dev/mps/mps_config.c b/sys/dev/mps/mps_config.c
+index da1f3fd..939872e 100644
+--- a/sys/dev/mps/mps_config.c
++++ b/sys/dev/mps/mps_config.c
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -680,6 +680,7 @@ int mps_config_set_dpm_pg0(struct mps_softc *sc, Mpi2ConfigReply_t *mpi_reply,
+ 	request->ExtPageType = MPI2_CONFIG_EXTPAGETYPE_DRIVER_MAPPING;
+ 	request->Header.PageNumber = 0;
+ 	request->Header.PageVersion = MPI2_DRIVERMAPPING0_PAGEVERSION;
++	/* We can remove below two lines ????*/
+ 	request->PageAddress = 1 << MPI2_DPM_PGAD_ENTRY_COUNT_SHIFT;
+ 	request->PageAddress |= htole16(entry_idx);
+ 	cm->cm_desc.Default.RequestFlags = MPI2_REQ_DESCRIPT_FLAGS_DEFAULT_TYPE;
+diff --git a/sys/dev/mps/mps_ioctl.h b/sys/dev/mps/mps_ioctl.h
+index cc28337..a52f80e 100644
+--- a/sys/dev/mps/mps_ioctl.h
++++ b/sys/dev/mps/mps_ioctl.h
+@@ -32,7 +32,7 @@
+  * $FreeBSD$
+  */
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+diff --git a/sys/dev/mps/mps_mapping.c b/sys/dev/mps/mps_mapping.c
+index e897dd3..870535e 100644
+--- a/sys/dev/mps/mps_mapping.c
++++ b/sys/dev/mps/mps_mapping.c
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+diff --git a/sys/dev/mps/mps_mapping.h b/sys/dev/mps/mps_mapping.h
+index 5e1877b..e188d8f 100644
+--- a/sys/dev/mps/mps_mapping.h
++++ b/sys/dev/mps/mps_mapping.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+diff --git a/sys/dev/mps/mps_sas.c b/sys/dev/mps/mps_sas.c
+index 65009bc..578093f 100644
+--- a/sys/dev/mps/mps_sas.c
++++ b/sys/dev/mps/mps_sas.c
+@@ -1,30 +1,6 @@
+ /*-
+  * Copyright (c) 2009 Yahoo! Inc.
+- * All rights reserved.
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- * 1. Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- * 2. Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in the
+- *    documentation and/or other materials provided with the distribution.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+- * SUCH DAMAGE.
+- */
+-/*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -302,8 +278,11 @@ mpssas_rescan_target(struct mps_softc *sc, struct mpssas_target *targ)
+ 		return;
+ 	}
+ 
+-	/* XXX Hardwired to scan the bus for now */
+-	ccb->ccb_h.func_code = XPT_SCAN_BUS;
++	if (targetid == CAM_TARGET_WILDCARD)
++		ccb->ccb_h.func_code = XPT_SCAN_BUS;
++	else
++		ccb->ccb_h.func_code = XPT_SCAN_TGT;     
++
+ 	mps_dprint(sc, MPS_TRACE, "%s targetid %u\n", __func__, targetid);
+ 	mpssas_rescan(sassc, ccb);
+ }
+@@ -488,16 +467,7 @@ mpssas_prepare_remove(struct mpssas_softc *sassc, uint16_t handle)
+ 
+ 	mps_dprint(sassc->sc, MPS_INFO, "%s\n", __func__);
+ 
+-	/*
+-	 * If this is a WD controller, determine if the disk should be exposed
+-	 * to the OS or not.  If disk should be exposed, return from this
+-	 * function without doing anything.
+-	 */
+ 	sc = sassc->sc;
+-	if ((sc->mps_flags & MPS_FLAGS_WD_AVAILABLE) && (sc->WD_hide_expose ==
+-	    MPS_WD_EXPOSE_ALWAYS)) {
+-		return;
+-	}
+ 
+ 	targ = mpssas_find_target_by_handle(sassc, 0, handle);
+ 	if (targ == NULL) {
+@@ -519,7 +489,7 @@ mpssas_prepare_remove(struct mpssas_softc *sassc, uint16_t handle)
+ 
+ 	req = (MPI2_SCSI_TASK_MANAGE_REQUEST *)cm->cm_req;
+ 	memset(req, 0, sizeof(*req));
+-	req->DevHandle = targ->handle;
++	req->DevHandle = htole16(targ->handle);
+ 	req->Function = MPI2_FUNCTION_SCSI_TASK_MGMT;
+ 	req->TaskType = MPI2_SCSITASKMGMT_TASKTYPE_TARGET_RESET;
+ 
+@@ -570,15 +540,15 @@ mpssas_remove_device(struct mps_softc *sc, struct mps_command *tm)
+ 		return;
+ 	}
+ 
+-	if (reply->IOCStatus != MPI2_IOCSTATUS_SUCCESS) {
++	if (le16toh(reply->IOCStatus) != MPI2_IOCSTATUS_SUCCESS) {
+ 		mps_printf(sc, "IOCStatus = 0x%x while resetting device 0x%x\n",
+-		   reply->IOCStatus, handle);
++		   le16toh(reply->IOCStatus), handle);
+ 		mpssas_free_tm(sc, tm);
+ 		return;
+ 	}
+ 
+ 	mps_dprint(sc, MPS_INFO, "Reset aborted %u commands\n",
+-	    reply->TerminationCount);
++	    le32toh(reply->TerminationCount));
+ 	mps_free_reply(sc, tm->cm_reply_data);
+ 	tm->cm_reply = NULL;	/* Ensures the the reply won't get re-freed */
+ 
+@@ -587,7 +557,7 @@ mpssas_remove_device(struct mps_softc *sc, struct mps_command *tm)
+ 	memset(req, 0, sizeof(*req));
+ 	req->Function = MPI2_FUNCTION_SAS_IO_UNIT_CONTROL;
+ 	req->Operation = MPI2_SAS_OP_REMOVE_DEVICE;
+-	req->DevHandle = handle;
++	req->DevHandle = htole16(handle);
+ 	tm->cm_data = NULL;
+ 	tm->cm_desc.Default.RequestFlags = MPI2_REQ_DESCRIPT_FLAGS_DEFAULT_TYPE;
+ 	tm->cm_complete = mpssas_remove_complete;
+@@ -613,6 +583,7 @@ mpssas_remove_complete(struct mps_softc *sc, struct mps_command *tm)
+ 	MPI2_SAS_IOUNIT_CONTROL_REPLY *reply;
+ 	uint16_t handle;
+ 	struct mpssas_target *targ;
++	struct mpssas_lun *lun;
+ 
+ 	mps_dprint(sc, MPS_INFO, "%s\n", __func__);
+ 
+@@ -641,7 +612,7 @@ mpssas_remove_complete(struct mps_softc *sc, struct mps_command *tm)
+ 	}
+ 
+ 	mps_printf(sc, "%s on handle 0x%04x, IOCStatus= 0x%x\n", __func__, 
+-	    handle, reply->IOCStatus);
++	    handle, le16toh(reply->IOCStatus));
+ 
+ 	/*
+ 	 * Don't clear target if remove fails because things will get confusing.
+@@ -649,7 +620,7 @@ mpssas_remove_complete(struct mps_softc *sc, struct mps_command *tm)
+ 	 * this target id if possible, and so we can assign the same target id
+ 	 * to this device if it comes back in the future.
+ 	 */
+-	if (reply->IOCStatus == MPI2_IOCSTATUS_SUCCESS) {
++	if (le16toh(reply->IOCStatus) == MPI2_IOCSTATUS_SUCCESS) {
+ 		targ = tm->cm_targ;
+ 		targ->handle = 0x0;
+ 		targ->encl_handle = 0x0;
+@@ -659,7 +630,14 @@ mpssas_remove_complete(struct mps_softc *sc, struct mps_command *tm)
+ 		targ->linkrate = 0x0;
+ 		targ->devinfo = 0x0;
+ 		targ->flags = 0x0;
++		
++		while(!SLIST_EMPTY(&targ->luns)) {
++			lun = SLIST_FIRST(&targ->luns);
++			SLIST_REMOVE_HEAD(&targ->luns, lun_link);
++			free(lun, M_MPT2);
++		}
+ 	}
++	
+ 
+ 	mpssas_free_tm(sc, tm);
+ }
+@@ -667,7 +645,7 @@ mpssas_remove_complete(struct mps_softc *sc, struct mps_command *tm)
+ static int
+ mpssas_register_events(struct mps_softc *sc)
+ {
+-	uint8_t events[16];
++	u32 events[MPI2_EVENT_NOTIFY_EVENTMASK_WORDS];
+ 
+ 	bzero(events, 16);
+ 	setbit(events, MPI2_EVENT_SAS_DEVICE_STATUS_CHANGE);
+@@ -701,8 +679,19 @@ mps_attach_sas(struct mps_softc *sc)
+ 	mps_dprint(sc, MPS_TRACE, "%s\n", __func__);
+ 
+ 	sassc = malloc(sizeof(struct mpssas_softc), M_MPT2, M_WAITOK|M_ZERO);
++	if(!sassc) {
++		device_printf(sc->mps_dev, "Cannot allocate memory %s %d\n",
++		__func__, __LINE__);
++		return (ENOMEM);
++	}
+ 	sassc->targets = malloc(sizeof(struct mpssas_target) *
+ 	    sc->facts->MaxTargets, M_MPT2, M_WAITOK|M_ZERO);
++	if(!sassc->targets) {
++		device_printf(sc->mps_dev, "Cannot allocate memory %s %d\n",
++		__func__, __LINE__);
++		free(sassc, M_MPT2);
++		return (ENOMEM);
++	}
+ 	sc->sassc = sassc;
+ 	sassc->sc = sc;
+ 
+@@ -790,6 +779,9 @@ int
+ mps_detach_sas(struct mps_softc *sc)
+ {
+ 	struct mpssas_softc *sassc;
++	struct mpssas_lun *lun, *lun_tmp;
++	struct mpssas_target *targ;
++	int i;
+ 
+ 	mps_dprint(sc, MPS_INFO, "%s\n", __func__);
+ 
+@@ -838,6 +830,12 @@ mps_detach_sas(struct mps_softc *sc)
+ 	if (sassc->devq != NULL)
+ 		cam_simq_free(sassc->devq);
+ 
++	for(i=0; i< sc->facts->MaxTargets ;i++) {
++		targ = &sassc->targets[i];
++		SLIST_FOREACH_SAFE(lun, &targ->luns, lun_link, lun_tmp) {
++			free(lun, M_MPT2);
++		}
++	}
+ 	free(sassc->targets, M_MPT2);
+ 	free(sassc, M_MPT2);
+ 	sc->sassc = NULL;
+@@ -919,7 +917,7 @@ mpssas_action(struct cam_sim *sim, union ccb *ccb)
+ 		cpi->hba_misc = PIM_NOBUSRESET;
+ 		cpi->hba_eng_cnt = 0;
+ 		cpi->max_target = sassc->sc->facts->MaxTargets - 1;
+-		cpi->max_lun = 8;
++		cpi->max_lun = 255;
+ 		cpi->initiator_id = 255;
+ 		strncpy(cpi->sim_vid, "FreeBSD", SIM_IDLEN);
+ 		strncpy(cpi->hba_vid, "LSILogic", HBA_IDLEN);
+@@ -953,7 +951,7 @@ mpssas_action(struct cam_sim *sim, union ccb *ccb)
+ 
+ 		targ = &sassc->targets[cts->ccb_h.target_id];
+ 		if (targ->handle == 0x0) {
+-			cts->ccb_h.status = CAM_TID_INVALID;
++			cts->ccb_h.status = CAM_SEL_TIMEOUT;
+ 			break;
+ 		}
+ 
+@@ -1185,8 +1183,8 @@ mpssas_logical_unit_reset_complete(struct mps_softc *sc, struct mps_command *tm)
+ 
+ 	mpssas_log_command(tm, 
+ 	    "logical unit reset status 0x%x code 0x%x count %u\n",
+-	    reply->IOCStatus, reply->ResponseCode,
+-	    reply->TerminationCount);
++	    le16toh(reply->IOCStatus), le32toh(reply->ResponseCode),
++	    le32toh(reply->TerminationCount));
+ 		
+ 	/* See if there are any outstanding commands for this LUN.
+ 	 * This could be made more efficient by using a per-LU data
+@@ -1273,8 +1271,8 @@ mpssas_target_reset_complete(struct mps_softc *sc, struct mps_command *tm)
+ 
+ 	mpssas_log_command(tm, 
+ 	    "target reset status 0x%x code 0x%x count %u\n",
+-	    reply->IOCStatus, reply->ResponseCode,
+-	    reply->TerminationCount);
++	    le16toh(reply->IOCStatus), le32toh(reply->ResponseCode),
++	    le32toh(reply->TerminationCount));
+ 
+ 	targ->flags &= ~MPSSAS_TARGET_INRESET;
+ 
+@@ -1320,7 +1318,7 @@ mpssas_send_reset(struct mps_softc *sc, struct mps_command *tm, uint8_t type)
+ 	}
+ 
+ 	req = (MPI2_SCSI_TASK_MANAGE_REQUEST *)tm->cm_req;
+-	req->DevHandle = target->handle;
++	req->DevHandle = htole16(target->handle);
+ 	req->Function = MPI2_FUNCTION_SCSI_TASK_MGMT;
+ 	req->TaskType = type;
+ 
+@@ -1383,7 +1381,7 @@ mpssas_abort_complete(struct mps_softc *sc, struct mps_command *tm)
+ 	if ((tm->cm_flags & MPS_CM_FLAGS_ERROR_MASK) != 0) {
+ 		mpssas_log_command(tm,
+ 		    "cm_flags = %#x for abort %p TaskMID %u!\n", 
+-		    tm->cm_flags, tm, req->TaskMID);
++		    tm->cm_flags, tm, le16toh(req->TaskMID));
+ 		mpssas_free_tm(sc, tm);
+ 		return;
+ 	}
+@@ -1391,7 +1389,7 @@ mpssas_abort_complete(struct mps_softc *sc, struct mps_command *tm)
+ 	if (reply == NULL) {
+ 		mpssas_log_command(tm,
+ 		    "NULL abort reply for tm %p TaskMID %u\n", 
+-		    tm, req->TaskMID);
++		    tm, le16toh(req->TaskMID));
+ 		if ((sc->mps_flags & MPS_FLAGS_DIAGRESET) != 0) {
+ 			/* this completion was due to a reset, just cleanup */
+ 			targ->tm = NULL;
+@@ -1406,9 +1404,9 @@ mpssas_abort_complete(struct mps_softc *sc, struct mps_command *tm)
+ 
+ 	mpssas_log_command(tm,
+ 	    "abort TaskMID %u status 0x%x code 0x%x count %u\n",
+-	    req->TaskMID,
+-	    reply->IOCStatus, reply->ResponseCode,
+-	    reply->TerminationCount);
++	    le16toh(req->TaskMID),
++	    le16toh(reply->IOCStatus), le32toh(reply->ResponseCode),
++	    le32toh(reply->TerminationCount));
+ 
+ 	cm = TAILQ_FIRST(&tm->cm_targ->timedout_commands);
+ 	if (cm == NULL) {
+@@ -1417,16 +1415,16 @@ mpssas_abort_complete(struct mps_softc *sc, struct mps_command *tm)
+ 		 */
+ 		mpssas_log_command(tm, 
+ 		    "finished recovery after aborting TaskMID %u\n",
+-		    req->TaskMID);
++		    le16toh(req->TaskMID));
+ 
+ 		targ->tm = NULL;
+ 		mpssas_free_tm(sc, tm);
+ 	}
+-	else if (req->TaskMID != cm->cm_desc.Default.SMID) {
++	else if (le16toh(req->TaskMID) != cm->cm_desc.Default.SMID) {
+ 		/* abort success, but we have more timedout commands to abort */
+ 		mpssas_log_command(tm, 
+ 		    "continuing recovery after aborting TaskMID %u\n",
+-		    req->TaskMID);
++		    le16toh(req->TaskMID));
+ 		
+ 		mpssas_send_abort(sc, tm, cm);
+ 	}
+@@ -1436,7 +1434,7 @@ mpssas_abort_complete(struct mps_softc *sc, struct mps_command *tm)
+ 		 */
+ 		mpssas_log_command(tm, 
+ 		    "abort failed for TaskMID %u tm %p\n",
+-		    req->TaskMID, tm);
++		    le16toh(req->TaskMID), tm);
+ 
+ 		mpssas_send_reset(sc, tm, 
+ 		    MPI2_SCSITASKMGMT_TASKTYPE_LOGICAL_UNIT_RESET);
+@@ -1460,14 +1458,14 @@ mpssas_send_abort(struct mps_softc *sc, struct mps_command *tm, struct mps_comma
+ 	}
+ 
+ 	req = (MPI2_SCSI_TASK_MANAGE_REQUEST *)tm->cm_req;
+-	req->DevHandle = targ->handle;
++	req->DevHandle = htole16(targ->handle);
+ 	req->Function = MPI2_FUNCTION_SCSI_TASK_MGMT;
+ 	req->TaskType = MPI2_SCSITASKMGMT_TASKTYPE_ABORT_TASK;
+ 
+ 	/* XXX Need to handle invalid LUNs */
+ 	MPS_SET_LUN(req->LUN, cm->cm_ccb->ccb_h.target_lun);
+ 
+-	req->TaskMID = cm->cm_desc.Default.SMID;
++	req->TaskMID = htole16(cm->cm_desc.Default.SMID);
+ 
+ 	tm->cm_data = NULL;
+ 	tm->cm_desc.HighPriority.RequestFlags = MPI2_REQ_DESCRIPT_FLAGS_HIGH_PRIORITY;
+@@ -1575,6 +1573,7 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 	struct mps_command *cm;
+ 	uint8_t i, lba_byte, *ref_tag_addr;
+ 	uint16_t eedp_flags;
++	uint32_t mpi_control;
+ 
+ 	sc = sassc->sc;
+ 	mtx_assert(&sc->mps_mtx, MA_OWNED);
+@@ -1585,7 +1584,7 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 	if (targ->handle == 0x0) {
+ 		mps_dprint(sc, MPS_TRACE, "%s NULL handle for target %u\n", 
+ 		    __func__, csio->ccb_h.target_id);
+-		csio->ccb_h.status = CAM_TID_INVALID;
++		csio->ccb_h.status = CAM_SEL_TIMEOUT;
+ 		xpt_done(ccb);
+ 		return;
+ 	}
+@@ -1631,10 +1630,10 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 
+ 	req = (MPI2_SCSI_IO_REQUEST *)cm->cm_req;
+ 	bzero(req, sizeof(*req));
+-	req->DevHandle = targ->handle;
++	req->DevHandle = htole16(targ->handle);
+ 	req->Function = MPI2_FUNCTION_SCSI_IO_REQUEST;
+ 	req->MsgFlags = 0;
+-	req->SenseBufferLowAddress = cm->cm_sense_busaddr;
++	req->SenseBufferLowAddress = htole32(cm->cm_sense_busaddr);
+ 	req->SenseBufferLength = MPS_SENSE_LEN;
+ 	req->SGLFlags = 0;
+ 	req->ChainOffset = 0;
+@@ -1643,27 +1642,29 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 	req->SGLOffset2= 0;
+ 	req->SGLOffset3= 0;
+ 	req->SkipCount = 0;
+-	req->DataLength = csio->dxfer_len;
++	req->DataLength = htole32(csio->dxfer_len);
+ 	req->BidirectionalDataLength = 0;
+-	req->IoFlags = csio->cdb_len;
++	req->IoFlags = htole16(csio->cdb_len);
+ 	req->EEDPFlags = 0;
+ 
+ 	/* Note: BiDirectional transfers are not supported */
+ 	switch (csio->ccb_h.flags & CAM_DIR_MASK) {
+ 	case CAM_DIR_IN:
+-		req->Control = MPI2_SCSIIO_CONTROL_READ;
++		mpi_control = MPI2_SCSIIO_CONTROL_READ;
+ 		cm->cm_flags |= MPS_CM_FLAGS_DATAIN;
+ 		break;
+ 	case CAM_DIR_OUT:
+-		req->Control = MPI2_SCSIIO_CONTROL_WRITE;
++		mpi_control = MPI2_SCSIIO_CONTROL_WRITE;
+ 		cm->cm_flags |= MPS_CM_FLAGS_DATAOUT;
+ 		break;
+ 	case CAM_DIR_NONE:
+ 	default:
+-		req->Control = MPI2_SCSIIO_CONTROL_NODATATRANSFER;
++		mpi_control = MPI2_SCSIIO_CONTROL_NODATATRANSFER;
+ 		break;
+ 	}
+-
++ 
++  if (csio->cdb_len == 32)
++                mpi_control |= 4 << MPI2_SCSIIO_CONTROL_ADDCDBLEN_SHIFT;
+ 	/*
+ 	 * It looks like the hardware doesn't require an explicit tag
+ 	 * number for each transaction.  SAM Task Management not supported
+@@ -1671,22 +1672,22 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 	 */
+ 	switch (csio->tag_action) {
+ 	case MSG_HEAD_OF_Q_TAG:
+-		req->Control |= MPI2_SCSIIO_CONTROL_HEADOFQ;
++		mpi_control |= MPI2_SCSIIO_CONTROL_HEADOFQ;
+ 		break;
+ 	case MSG_ORDERED_Q_TAG:
+-		req->Control |= MPI2_SCSIIO_CONTROL_ORDEREDQ;
++		mpi_control |= MPI2_SCSIIO_CONTROL_ORDEREDQ;
+ 		break;
+ 	case MSG_ACA_TASK:
+-		req->Control |= MPI2_SCSIIO_CONTROL_ACAQ;
++		mpi_control |= MPI2_SCSIIO_CONTROL_ACAQ;
+ 		break;
+ 	case CAM_TAG_ACTION_NONE:
+ 	case MSG_SIMPLE_Q_TAG:
+ 	default:
+-		req->Control |= MPI2_SCSIIO_CONTROL_SIMPLEQ;
++		mpi_control |= MPI2_SCSIIO_CONTROL_SIMPLEQ;
+ 		break;
+ 	}
+-	req->Control |= sc->mapping_table[csio->ccb_h.target_id].TLR_bits;
+-
++	mpi_control |= sc->mapping_table[csio->ccb_h.target_id].TLR_bits;
++	req->Control = htole32(mpi_control);
+ 	if (MPS_SET_LUN(req->LUN, csio->ccb_h.target_lun) != 0) {
+ 		mps_free_command(sc, cm);
+ 		ccb->ccb_h.status = CAM_LUN_INVALID;
+@@ -1698,7 +1699,7 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 		bcopy(csio->cdb_io.cdb_ptr, &req->CDB.CDB32[0], csio->cdb_len);
+ 	else
+ 		bcopy(csio->cdb_io.cdb_bytes, &req->CDB.CDB32[0],csio->cdb_len);
+-	req->IoFlags = csio->cdb_len;
++	req->IoFlags = htole16(csio->cdb_len);
+ 
+ 	/*
+ 	 * Check if EEDP is supported and enabled.  If it is then check if the
+@@ -1715,11 +1716,11 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 		}
+ 
+ 		if ((lun != NULL) && (lun->eedp_formatted)) {
+-			req->EEDPBlockSize = lun->eedp_block_size;
++			req->EEDPBlockSize = htole16(lun->eedp_block_size);
+ 			eedp_flags |= (MPI2_SCSIIO_EEDPFLAGS_INC_PRI_REFTAG |
+ 			    MPI2_SCSIIO_EEDPFLAGS_CHECK_REFTAG |
+ 			    MPI2_SCSIIO_EEDPFLAGS_CHECK_GUARD);
+-			req->EEDPFlags = eedp_flags;
++			req->EEDPFlags = htole16(eedp_flags);
+ 
+ 			/*
+ 			 * If CDB less than 32, fill in Primary Ref Tag with
+@@ -1738,6 +1739,8 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 					    req->CDB.CDB32[lba_byte + i];
+ 					ref_tag_addr++;
+ 				}
++				req->CDB.EEDP32.PrimaryReferenceTag = 
++					htole32(req->CDB.EEDP32.PrimaryReferenceTag);
+ 				req->CDB.EEDP32.PrimaryApplicationTagMask =
+ 				    0xFFFF;
+ 				req->CDB.CDB32[1] = (req->CDB.CDB32[1] & 0x1F) |
+@@ -1745,7 +1748,7 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 			} else {
+ 				eedp_flags |=
+ 				    MPI2_SCSIIO_EEDPFLAGS_INC_PRI_APPTAG;
+-				req->EEDPFlags = eedp_flags;
++				req->EEDPFlags = htole16(eedp_flags);
+ 				req->CDB.CDB32[10] = (req->CDB.CDB32[10] &
+ 				    0x1F) | 0x20;
+ 			}
+@@ -1757,7 +1760,7 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
+ 	cm->cm_sge = &req->SGL;
+ 	cm->cm_sglsize = (32 - 24) * 4;
+ 	cm->cm_desc.SCSIIO.RequestFlags = MPI2_REQ_DESCRIPT_FLAGS_SCSI_IO;
+-	cm->cm_desc.SCSIIO.DevHandle = targ->handle;
++	cm->cm_desc.SCSIIO.DevHandle = htole16(targ->handle);
+ 	cm->cm_complete = mpssas_scsiio_complete;
+ 	cm->cm_complete_data = ccb;
+ 	cm->cm_targ = targ;
+@@ -2017,7 +2020,7 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 		if (cm->cm_flags & MPS_CM_FLAGS_DATAIN)
+ 			dir = BUS_DMASYNC_POSTREAD;
+ 		else if (cm->cm_flags & MPS_CM_FLAGS_DATAOUT)
+-			dir = BUS_DMASYNC_POSTWRITE;;
++			dir = BUS_DMASYNC_POSTWRITE;
+ 		bus_dmamap_sync(sc->buffer_dmat, cm->cm_dmamap, dir);
+ 		bus_dmamap_unload(sc->buffer_dmat, cm->cm_dmamap);
+ 	}
+@@ -2033,8 +2036,8 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 			    "completed timedout cm %p ccb %p during recovery "
+ 			    "ioc %x scsi %x state %x xfer %u\n",
+ 			    cm, cm->cm_ccb,
+-			    rep->IOCStatus, rep->SCSIStatus, rep->SCSIState,
+-			    rep->TransferCount);
++			    le16toh(rep->IOCStatus), rep->SCSIStatus, rep->SCSIState,
++			    le32toh(rep->TransferCount));
+ 		else
+ 			mpssas_log_command(cm, 
+ 			    "completed timedout cm %p ccb %p during recovery\n",
+@@ -2045,8 +2048,8 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 			    "completed cm %p ccb %p during recovery "
+ 			    "ioc %x scsi %x state %x xfer %u\n",
+ 			    cm, cm->cm_ccb,
+-			    rep->IOCStatus, rep->SCSIStatus, rep->SCSIState,
+-			    rep->TransferCount);
++			    le16toh(rep->IOCStatus), rep->SCSIStatus, rep->SCSIState,
++			    le32toh(rep->TransferCount));
+ 		else
+ 			mpssas_log_command(cm, 
+ 			    "completed cm %p ccb %p during recovery\n",
+@@ -2126,8 +2129,8 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 	if (sc->mps_debug & MPS_TRACE)
+ 		mpssas_log_command(cm, 
+ 		    "ioc %x scsi %x state %x xfer %u\n",
+-		    rep->IOCStatus, rep->SCSIStatus, 
+-		    rep->SCSIState, rep->TransferCount);
++			le16toh(rep->IOCStatus), rep->SCSIStatus, rep->SCSIState,
++			le32toh(rep->TransferCount));
+ 
+ 	/*
+ 	 * If this is a Direct Drive I/O, reissue the I/O to the original IR
+@@ -2142,14 +2145,14 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 		return;
+ 	}
+ 
+-	switch (rep->IOCStatus & MPI2_IOCSTATUS_MASK) {
++	switch (le16toh(rep->IOCStatus) & MPI2_IOCSTATUS_MASK) {
+ 	case MPI2_IOCSTATUS_SCSI_DATA_UNDERRUN:
+-		csio->resid = cm->cm_length - rep->TransferCount;
++		csio->resid = cm->cm_length - le32toh(rep->TransferCount);
+ 		/* FALLTHROUGH */
+ 	case MPI2_IOCSTATUS_SUCCESS:
+ 	case MPI2_IOCSTATUS_SCSI_RECOVERED_ERROR:
+ 
+-		if ((rep->IOCStatus & MPI2_IOCSTATUS_MASK) ==
++		if ((le16toh(rep->IOCStatus) & MPI2_IOCSTATUS_MASK) ==
+ 		    MPI2_IOCSTATUS_SCSI_RECOVERED_ERROR)
+ 			mpssas_log_command(cm, "recovered error\n");
+ 
+@@ -2175,7 +2178,7 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 		 * TLR_bits for the target.
+ 		 */
+ 		if ((rep->SCSIState & MPI2_SCSI_STATE_RESPONSE_INFO_VALID) &&
+-		    ((rep->ResponseInfo & MPI2_SCSI_RI_MASK_REASONCODE) ==
++		    ((le32toh(rep->ResponseInfo) & MPI2_SCSI_RI_MASK_REASONCODE) ==
+ 		    MPS_SCSI_RI_INVALID_FRAME)) {
+ 			sc->mapping_table[csio->ccb_h.target_id].TLR_bits =
+ 			    (u8)MPI2_SCSIIO_CONTROL_NO_TLR;
+@@ -2203,7 +2206,7 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 		if (rep->SCSIState & MPI2_SCSI_STATE_AUTOSENSE_VALID) {
+ 			int sense_len, returned_sense_len;
+ 
+-			returned_sense_len = min(rep->SenseCount,
++			returned_sense_len = min(le32toh(rep->SenseCount),
+ 			    sizeof(struct scsi_sense_data));
+ 			if (returned_sense_len < ccb->csio.sense_len)
+ 				ccb->csio.sense_resid = ccb->csio.sense_len -
+@@ -2214,7 +2217,7 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 			sense_len = min(returned_sense_len,
+ 			    ccb->csio.sense_len - ccb->csio.sense_resid);
+ 			bzero(&ccb->csio.sense_data,
+-			      sizeof(&ccb->csio.sense_data));
++			      sizeof(ccb->csio.sense_data));
+ 			bcopy(cm->cm_sense, &ccb->csio.sense_data, sense_len);
+ 			ccb->ccb_h.status |= CAM_AUTOSNS_VALID;
+ 		}
+@@ -2297,8 +2300,8 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 		ccb->ccb_h.status = CAM_REQUEUE_REQ;
+ 		mpssas_log_command(cm, 
+ 		    "terminated ioc %x scsi %x state %x xfer %u\n",
+-		    rep->IOCStatus, rep->SCSIStatus, rep->SCSIState,
+-		    rep->TransferCount);
++			le16toh(rep->IOCStatus), rep->SCSIStatus, rep->SCSIState,
++			le32toh(rep->TransferCount));
+ 		break;
+ 	case MPI2_IOCSTATUS_INVALID_FUNCTION:
+ 	case MPI2_IOCSTATUS_INTERNAL_ERROR:
+@@ -2313,8 +2316,8 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 	default:
+ 		mpssas_log_command(cm, 
+ 		    "completed ioc %x scsi %x state %x xfer %u\n",
+-		    rep->IOCStatus, rep->SCSIStatus, rep->SCSIState,
+-		    rep->TransferCount);
++			le16toh(rep->IOCStatus), rep->SCSIStatus, rep->SCSIState,
++			le32toh(rep->TransferCount));
+ 		csio->resid = cm->cm_length;
+ 		ccb->ccb_h.status = CAM_REQ_CMP_ERR;
+ 		break;
+@@ -2338,6 +2341,7 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 	xpt_done(ccb);
+ }
+ 
++/* All Request reached here are Endian safe */
+ static void
+ mpssas_direct_drive_io(struct mpssas_softc *sassc, struct mps_command *cm,
+     union ccb *ccb) {
+@@ -2396,7 +2400,8 @@ mpssas_direct_drive_io(struct mpssas_softc *sassc, struct mps_command *cm,
+ 				stripe_unit = physLBA / sc->DD_num_phys_disks;
+ 				column = physLBA % sc->DD_num_phys_disks;
+ 				pIO_req->DevHandle =
+-				    sc->DD_column_map[column].dev_handle;
++				    htole16(sc->DD_column_map[column].dev_handle);
++				/* ???? Is this endian safe*/
+ 				cm->cm_desc.SCSIIO.DevHandle =
+ 				    pIO_req->DevHandle;
+ 
+@@ -2423,17 +2428,21 @@ mpssas_direct_drive_io(struct mpssas_softc *sassc, struct mps_command *cm,
+ 	}
+ 
+ 	/*
+-	 * Handle 10 or 16 byte CDBs.
++	 * Handle 10, 12 or 16 byte CDBs.
+ 	 */
+ 	if ((pIO_req->DevHandle == sc->DD_dev_handle) && ((CDB[0] == READ_10) ||
+ 	    (CDB[0] == WRITE_10) || (CDB[0] == READ_16) ||
+-	    (CDB[0] == WRITE_16))) {
++	    (CDB[0] == WRITE_16) || (CDB[0] == READ_12) ||
++	    (CDB[0] == WRITE_12))) {
+ 		/*
+ 		 * For 16-byte CDB's, verify that the upper 4 bytes of the CDB
+ 		 * are 0.  If not, this is accessing beyond 2TB so handle it in
+-		 * the else section.  10-byte CDB's are OK.
++		 * the else section.  10-byte and 12-byte CDB's are OK.
++		 * FreeBSD sends very rare 12 byte READ/WRITE, but driver is 
++		 * ready to accept 12byte CDB for Direct IOs.
+ 		 */
+-		if ((CDB[0] < READ_16) ||
++		if ((CDB[0] == READ_10 || CDB[0] == WRITE_10) ||
++		    (CDB[0] == READ_12 || CDB[0] == WRITE_12) ||
+ 		    !(CDB[2] | CDB[3] | CDB[4] | CDB[5])) {
+ 			/*
+ 			 * Get the transfer size in blocks.
+@@ -2444,7 +2453,10 @@ mpssas_direct_drive_io(struct mpssas_softc *sassc, struct mps_command *cm,
+ 			 * Get virtual LBA.  Point to correct lower 4 bytes of
+ 			 * LBA in the CDB depending on command.
+ 			 */
+-			lba_idx = (CDB[0] < READ_16) ? 2 : 6;
++			lba_idx = ((CDB[0] == READ_12) || 
++				(CDB[0] == WRITE_12) ||
++				(CDB[0] == READ_10) ||
++				(CDB[0] == WRITE_10))? 2 : 6;
+ 			virtLBA = ((uint64_t)CDB[lba_idx] << 24) |
+ 			    ((uint64_t)CDB[lba_idx + 1] << 16) |
+ 			    ((uint64_t)CDB[lba_idx + 2] << 8) |
+@@ -2477,8 +2489,8 @@ mpssas_direct_drive_io(struct mpssas_softc *sassc, struct mps_command *cm,
+ 					column = physLBA %
+ 					    sc->DD_num_phys_disks;
+ 					pIO_req->DevHandle =
+-					    sc->DD_column_map[column].
+-					    dev_handle;
++					    htole16(sc->DD_column_map[column].
++					    dev_handle);
+ 					cm->cm_desc.SCSIIO.DevHandle =
+ 					    pIO_req->DevHandle;
+ 
+@@ -2555,8 +2567,8 @@ mpssas_direct_drive_io(struct mpssas_softc *sassc, struct mps_command *cm,
+ 					column = physLBA %
+ 					    sc->DD_num_phys_disks;
+ 					pIO_req->DevHandle =
+-					    sc->DD_column_map[column].
+-					    dev_handle;
++					    htole16(sc->DD_column_map[column].
++					    dev_handle);
+ 					cm->cm_desc.SCSIIO.DevHandle =
+ 					    pIO_req->DevHandle;
+ 
+@@ -2633,10 +2645,10 @@ mpssas_smpio_complete(struct mps_softc *sc, struct mps_command *cm)
+ 	sasaddr = le32toh(req->SASAddress.Low);
+ 	sasaddr |= ((uint64_t)(le32toh(req->SASAddress.High))) << 32;
+ 
+-	if ((rpl->IOCStatus & MPI2_IOCSTATUS_MASK) != MPI2_IOCSTATUS_SUCCESS ||
++	if ((le16toh(rpl->IOCStatus) & MPI2_IOCSTATUS_MASK) != MPI2_IOCSTATUS_SUCCESS ||
+ 	    rpl->SASStatus != MPI2_SASSTATUS_SUCCESS) {
+ 		mps_dprint(sc, MPS_INFO, "%s: IOCStatus %04x SASStatus %02x\n",
+-		    __func__, rpl->IOCStatus, rpl->SASStatus);
++		    __func__, le16toh(rpl->IOCStatus), rpl->SASStatus);
+ 		ccb->ccb_h.status = CAM_REQ_CMP_ERR;
+ 		goto bailout;
+ 	}
+@@ -2749,7 +2761,7 @@ mpssas_send_smpcmd(struct mpssas_softc *sassc, union ccb *ccb, uint64_t sasaddr)
+ 	/* Allow the chip to use any route to this SAS address. */
+ 	req->PhysicalPort = 0xff;
+ 
+-	req->RequestDataLength = ccb->smpio.smp_request_len;
++	req->RequestDataLength = htole16(ccb->smpio.smp_request_len);
+ 	req->SGLFlags = 
+ 	    MPI2_SGLFLAGS_SYSTEM_ADDRESS_SPACE | MPI2_SGLFLAGS_SGL_TYPE_MPI;
+ 
+@@ -2774,7 +2786,7 @@ mpssas_send_smpcmd(struct mpssas_softc *sassc, union ccb *ccb, uint64_t sasaddr)
+ 	cm->cm_uio.uio_rw = UIO_WRITE;
+ 
+ 	cm->cm_iovec[0].iov_base = request;
+-	cm->cm_iovec[0].iov_len = req->RequestDataLength;
++	cm->cm_iovec[0].iov_len = le16toh(req->RequestDataLength);
+ 	cm->cm_iovec[1].iov_base = response;
+ 	cm->cm_iovec[1].iov_len = ccb->smpio.smp_response_len;
+ 
+@@ -2980,7 +2992,7 @@ mpssas_action_resetdev(struct mpssas_softc *sassc, union ccb *ccb)
+ 
+ 	targ = &sassc->targets[ccb->ccb_h.target_id];
+ 	req = (MPI2_SCSI_TASK_MANAGE_REQUEST *)tm->cm_req;
+-	req->DevHandle = targ->handle;
++	req->DevHandle = htole16(targ->handle);
+ 	req->Function = MPI2_FUNCTION_SCSI_TASK_MGMT;
+ 	req->TaskType = MPI2_SCSITASKMGMT_TASKTYPE_TARGET_RESET;
+ 
+@@ -2991,6 +3003,7 @@ mpssas_action_resetdev(struct mpssas_softc *sassc, union ccb *ccb)
+ 	tm->cm_desc.HighPriority.RequestFlags = MPI2_REQ_DESCRIPT_FLAGS_HIGH_PRIORITY;
+ 	tm->cm_complete = mpssas_resetdev_complete;
+ 	tm->cm_complete_data = ccb;
++	tm->cm_targ = targ;
+ 	mps_map_command(sc, tm);
+ }
+ 
+@@ -3024,9 +3037,9 @@ mpssas_resetdev_complete(struct mps_softc *sc, struct mps_command *tm)
+ 	}
+ 
+ 	printf("%s: IOCStatus = 0x%x ResponseCode = 0x%x\n", __func__,
+-	    resp->IOCStatus, resp->ResponseCode);
++	    le16toh(resp->IOCStatus), le32toh(resp->ResponseCode));
+ 
+-	if (resp->ResponseCode == MPI2_SCSITASKMGMT_RSP_TM_COMPLETE) {
++	if (le32toh(resp->ResponseCode) == MPI2_SCSITASKMGMT_RSP_TM_COMPLETE) {
+ 		ccb->ccb_h.status = CAM_REQ_CMP;
+ 		mpssas_announce_reset(sc, AC_SENT_BDR, tm->cm_targ->tid,
+ 		    CAM_LUN_WILDCARD);
+@@ -3131,6 +3144,17 @@ next_work:
+ 	mps_kproc_exit(0);
+ }
+ 
++/*
++ * This function will send READ_CAP_16 to find out EEDP protection mode.
++ * It will check inquiry data before sending READ_CAP_16.
++ * Callback for READ_CAP_16 is "mpssas_read_cap_done".
++ * This is insternal scsi command and we need to take care release of devq, if
++ * CAM_DEV_QFRZN is set. Driver needs to release devq if it has frozen any.
++ * xpt_release_devq is called from mpssas_read_cap_done.
++ *
++ * All other commands will be handled by periph layer and there it will 
++ * check for "CAM_DEV_QFRZN" and release of devq will be done.
++ */
+ static void
+ mpssas_rescan(struct mpssas_softc *sassc, union ccb *ccb)
+ {
+@@ -3264,6 +3288,8 @@ mpssas_check_eedp(struct mpssas_softc *sassc)
+ 	struct mpssas_target *target;
+ 	struct mpssas_lun *lun;
+ 	uint8_t	found_lun;
++	struct ccb_getdev cgd;
++	char path_str[64];
+ 
+ 	/*
+ 	 * Issue a READ CAPACITY 16 command to each LUN of each target.  This
+@@ -3277,19 +3303,10 @@ mpssas_check_eedp(struct mpssas_softc *sassc)
+ 
+ 		lunid = 0;
+ 		do {
+-			rcap_buf =
+-			    malloc(sizeof(struct scsi_read_capacity_eedp),
+-			    M_MPT2, M_NOWAIT | M_ZERO);
+-			if (rcap_buf == NULL) {
+-				mps_dprint(sc, MPS_FAULT, "Unable to alloc read "
+-				    "capacity buffer for EEDP support.\n");
+-				return;
+-			}
+ 			ccb = xpt_alloc_ccb_nowait();
+ 			if (ccb == NULL) {
+ 				mps_dprint(sc, MPS_FAULT, "Unable to alloc CCB "
+ 				    "for EEDP support.\n");
+-				free(rcap_buf, M_MPT2);
+ 				return;
+ 			}
+ 
+@@ -3297,7 +3314,6 @@ mpssas_check_eedp(struct mpssas_softc *sassc)
+ 			    pathid, targetid, lunid) != CAM_REQ_CMP) {
+ 				mps_dprint(sc, MPS_FAULT, "Unable to create "
+ 				    "path for EEDP support\n");
+-				free(rcap_buf, M_MPT2);
+ 				xpt_free_ccb(ccb);
+ 				return;
+ 			}
+@@ -3326,7 +3342,6 @@ mpssas_check_eedp(struct mpssas_softc *sassc)
+ 						mps_dprint(sc, MPS_FAULT,
+ 						    "Unable to alloc LUN for "
+ 						    "EEDP support.\n");
+-						free(rcap_buf, M_MPT2);
+ 						xpt_free_path(ccb->ccb_h.path);
+ 						xpt_free_ccb(ccb);
+ 						return;
+@@ -3336,12 +3351,51 @@ mpssas_check_eedp(struct mpssas_softc *sassc)
+ 					    lun_link);
+ 				}
+ 				lunid++;
++				/* Before Issuing READ CAPACITY 16, 
++				 * check Device type. 
++ 				 */
++				xpt_setup_ccb(&cgd.ccb_h, ccb->ccb_h.path, 
++					CAM_PRIORITY_NORMAL);
++				cgd.ccb_h.func_code = XPT_GDEV_TYPE;
++				xpt_action((union ccb *)&cgd);
++
++				/*
++				 * If this flag is set in the inquiry data, 
++				 * the device supports protection information,
++				 * and must support the 16 byte read
++				 * capacity command, otherwise continue without
++				 * sending read cap 16
++				 */
+ 
++				xpt_path_string(ccb->ccb_h.path, path_str, 
++					sizeof(path_str));
++
++				if ((cgd.inq_data.spc3_flags & 
++				SPC3_SID_PROTECT) == 0) {
++					xpt_free_path(ccb->ccb_h.path);
++					xpt_free_ccb(ccb);
++					continue;
++				}
++				
++				mps_dprint(sc, MPS_INFO,
++				"Sending read cap: path %s"
++				" handle %d\n", path_str, target->handle );
++			
+ 				/*
+ 				 * Issue a READ CAPACITY 16 command for the LUN.
+ 				 * The mpssas_read_cap_done function will load
+ 				 * the read cap info into the LUN struct.
+ 				 */
++				rcap_buf =
++					malloc(sizeof(struct scsi_read_capacity_eedp),
++					M_MPT2, M_NOWAIT| M_ZERO);
++				if (rcap_buf == NULL) {
++					mps_dprint(sc, MPS_FAULT, "Unable to alloc read "
++						"capacity buffer for EEDP support.\n");
++					xpt_free_path(ccb->ccb_h.path);
++					xpt_free_ccb(ccb);
++					return;
++				}
+ 				csio = &ccb->csio;
+ 				csio->ccb_h.func_code = XPT_SCSI_IO;
+ 				csio->ccb_h.flags = CAM_DIR_IN;
+@@ -3377,7 +3431,6 @@ mpssas_check_eedp(struct mpssas_softc *sassc)
+ 				ccb->ccb_h.ppriv_ptr1 = sassc;
+ 				xpt_action(ccb);
+ 			} else {
+-				free(rcap_buf, M_MPT2);
+ 				xpt_free_path(ccb->ccb_h.path);
+ 				xpt_free_ccb(ccb);
+ 			}
+@@ -3499,8 +3552,6 @@ mpssas_portenable_complete(struct mps_softc *sc, struct mps_command *cm)
+ {
+ 	MPI2_PORT_ENABLE_REPLY *reply;
+ 	struct mpssas_softc *sassc;
+-	struct mpssas_target *target;
+-	int i;
+ 
+ 	mps_dprint(sc, MPS_TRACE, "%s\n", __func__);
+ 	sassc = sc->sassc;
+@@ -3518,7 +3569,7 @@ mpssas_portenable_complete(struct mps_softc *sc, struct mps_command *cm)
+ 	reply = (MPI2_PORT_ENABLE_REPLY *)cm->cm_reply;
+ 	if (reply == NULL)
+ 		mps_dprint(sc, MPS_FAULT, "Portenable NULL reply\n");
+-	else if ((reply->IOCStatus & MPI2_IOCSTATUS_MASK) !=
++	else if (le16toh(reply->IOCStatus & MPI2_IOCSTATUS_MASK) !=
+ 	    MPI2_IOCSTATUS_SUCCESS)
+ 		mps_dprint(sc, MPS_FAULT, "Portenable failed\n");
+ 
+@@ -3537,23 +3588,6 @@ mpssas_portenable_complete(struct mps_softc *sc, struct mps_command *cm)
+ 	 * some info and a volume's will be 0.  Use that to remove disks.
+ 	 */
+ 	mps_wd_config_pages(sc);
+-	if (((sc->mps_flags & MPS_FLAGS_WD_AVAILABLE)
+-	  && (sc->WD_hide_expose == MPS_WD_HIDE_ALWAYS))
+-	 || (sc->WD_valid_config && (sc->WD_hide_expose ==
+-	    MPS_WD_HIDE_IF_VOLUME))) {
+-		for (i = 0; i < sassc->sc->facts->MaxTargets; i++) {
+-			target = &sassc->targets[i];
+-			if (target->devinfo) {
+-				target->devinfo = 0x0;
+-				target->encl_handle = 0x0;
+-				target->encl_slot = 0x0;
+-				target->handle = 0x0;
+-				target->tid = 0x0;
+-				target->linkrate = 0x0;
+-				target->flags = 0x0;
+-			}
+-		}
+-	}
+ 
+ 	/*
+ 	 * Done waiting for port enable to complete.  Decrement the refcount.
+@@ -3564,6 +3598,7 @@ mpssas_portenable_complete(struct mps_softc *sc, struct mps_command *cm)
+ 	 */
+ 	sc->wait_for_port_enable = 0;
+ 	sc->port_enable_complete = 1;
++	wakeup(&sc->port_enable_complete);
+ 	mpssas_startup_decrement(sassc);
+ 	xpt_release_simq(sassc->sim, 1);
+ }
+diff --git a/sys/dev/mps/mps_sas.h b/sys/dev/mps/mps_sas.h
+index 6653cc3..6857b98 100644
+--- a/sys/dev/mps/mps_sas.h
++++ b/sys/dev/mps/mps_sas.h
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+diff --git a/sys/dev/mps/mps_sas_lsi.c b/sys/dev/mps/mps_sas_lsi.c
+index 4181405..4763192 100644
+--- a/sys/dev/mps/mps_sas_lsi.c
++++ b/sys/dev/mps/mps_sas_lsi.c
+@@ -1,5 +1,5 @@
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -210,17 +210,17 @@ mpssas_fw_work(struct mps_softc *sc, struct mps_fw_event_work *fw_event)
+ 			switch (phy->PhyStatus & MPI2_EVENT_SAS_TOPO_RC_MASK) {
+ 			case MPI2_EVENT_SAS_TOPO_RC_TARG_ADDED:
+ 				if (mpssas_add_device(sc,
+-				    phy->AttachedDevHandle, phy->LinkRate)){
++				    le16toh(phy->AttachedDevHandle), phy->LinkRate)){
+ 					printf("%s: failed to add device with "
+ 					    "handle 0x%x\n", __func__,
+-					    phy->AttachedDevHandle);
+-					mpssas_prepare_remove(sassc, phy->
+-					    AttachedDevHandle);
++					    le16toh(phy->AttachedDevHandle));
++					mpssas_prepare_remove(sassc, le16toh(
++						phy->AttachedDevHandle));
+ 				}
+ 				break;
+ 			case MPI2_EVENT_SAS_TOPO_RC_TARG_NOT_RESPONDING:
+-				mpssas_prepare_remove(sassc, phy->
+-				    AttachedDevHandle);
++				mpssas_prepare_remove(sassc,le16toh( 
++					phy->AttachedDevHandle));
+ 				break;
+ 			case MPI2_EVENT_SAS_TOPO_RC_PHY_CHANGED:
+ 			case MPI2_EVENT_SAS_TOPO_RC_NO_CHANGE:
+@@ -304,7 +304,7 @@ mpssas_fw_work(struct mps_softc *sc, struct mps_fw_event_work *fw_event)
+ 						printf("%s: could not get ID "
+ 						    "for volume with handle "
+ 						    "0x%04x\n", __func__,
+-						    element->VolDevHandle);
++						    le16toh(element->VolDevHandle));
+ 						break;
+ 					}
+ 					
+@@ -329,8 +329,17 @@ mpssas_fw_work(struct mps_softc *sc, struct mps_fw_event_work *fw_event)
+ 				targ = mpssas_find_target_by_handle(sassc, 0, element->PhysDiskDevHandle);
+ 				if (targ == NULL) 
+ 					break;
+-
+-				targ->flags |= MPS_TARGET_FLAGS_RAID_COMPONENT;
++				
++				/* Set raid component flags only if it is not WD.
++				 * OR WrapDrive with WD_HIDE_ALWAYS/WD_HIDE_IF_VOLUME is set in NVRAM
++				 */
++				if((!sc->WD_available) ||
++				((sc->WD_available && 
++				(sc->WD_hide_expose == MPS_WD_HIDE_ALWAYS)) ||
++				(sc->WD_valid_config && (sc->WD_hide_expose ==
++				MPS_WD_HIDE_IF_VOLUME)))) {
++					targ->flags |= MPS_TARGET_FLAGS_RAID_COMPONENT;
++				}
+ 				mpssas_rescan_target(sc, targ);
+ 				
+ 				break;
+@@ -340,12 +349,12 @@ mpssas_fw_work(struct mps_softc *sc, struct mps_fw_event_work *fw_event)
+ 				 * Expose it to the OS.
+ 				 */
+ 				if (mpssas_add_device(sc,
+-				    element->PhysDiskDevHandle, 0)){
++				    le16toh(element->PhysDiskDevHandle), 0)){
+ 					printf("%s: failed to add device with "
+ 					    "handle 0x%x\n", __func__,
+-					    element->PhysDiskDevHandle);
+-					mpssas_prepare_remove(sassc, element->
+-					    PhysDiskDevHandle);
++					    le16toh(element->PhysDiskDevHandle));
++					mpssas_prepare_remove(sassc, le16toh(element->
++					    PhysDiskDevHandle));
+ 				}
+ 				break;
+ 			}
+@@ -368,25 +377,25 @@ mpssas_fw_work(struct mps_softc *sc, struct mps_fw_event_work *fw_event)
+ 		mps_dprint(sc, MPS_INFO, "Received IR Volume event:\n");
+ 		switch (event_data->ReasonCode) {
+ 		case MPI2_EVENT_IR_VOLUME_RC_SETTINGS_CHANGED:
+-			mps_dprint(sc, MPS_INFO, "   Volume Settings "
+-			    "changed from 0x%x to 0x%x for Volome with "
+-			    "handle 0x%x", event_data->PreviousValue,
+-			    event_data->NewValue,
+-			    event_data->VolDevHandle);
++  			mps_dprint(sc, MPS_INFO, "   Volume Settings "
++  			    "changed from 0x%x to 0x%x for Volome with "
++ 			    "handle 0x%x", le32toh(event_data->PreviousValue),
++ 			    le32toh(event_data->NewValue),
++ 			    le16toh(event_data->VolDevHandle));
+ 			break;
+ 		case MPI2_EVENT_IR_VOLUME_RC_STATUS_FLAGS_CHANGED:
+-			mps_dprint(sc, MPS_INFO, "   Volume Status "
+-			    "changed from 0x%x to 0x%x for Volome with "
+-			    "handle 0x%x", event_data->PreviousValue,
+-			    event_data->NewValue,
+-			    event_data->VolDevHandle);
++  			mps_dprint(sc, MPS_INFO, "   Volume Status "
++  			    "changed from 0x%x to 0x%x for Volome with "
++ 			    "handle 0x%x", le32toh(event_data->PreviousValue),
++ 			    le32toh(event_data->NewValue),
++ 			    le16toh(event_data->VolDevHandle));
+ 			break;
+ 		case MPI2_EVENT_IR_VOLUME_RC_STATE_CHANGED:
+-			mps_dprint(sc, MPS_INFO, "   Volume State "
+-			    "changed from 0x%x to 0x%x for Volome with "
+-			    "handle 0x%x", event_data->PreviousValue,
+-			    event_data->NewValue,
+-			    event_data->VolDevHandle);
++  			mps_dprint(sc, MPS_INFO, "   Volume State "
++  			    "changed from 0x%x to 0x%x for Volome with "
++ 			    "handle 0x%x", le32toh(event_data->PreviousValue),
++ 			    le32toh(event_data->NewValue),
++ 			    le16toh(event_data->VolDevHandle));
+ 				u32 state;
+ 				struct mpssas_target *targ;
+ 				state = le32toh(event_data->NewValue);
+@@ -434,31 +443,32 @@ mpssas_fw_work(struct mps_softc *sc, struct mps_fw_event_work *fw_event)
+ 		mps_dprint(sc, MPS_INFO, "Received IR Phys Disk event:\n");
+ 		switch (event_data->ReasonCode) {
+ 		case MPI2_EVENT_IR_PHYSDISK_RC_SETTINGS_CHANGED:
+-			mps_dprint(sc, MPS_INFO, "   Phys Disk Settings "
+-			    "changed from 0x%x to 0x%x for Phys Disk Number "
+-			    "%d and handle 0x%x at Enclosure handle 0x%x, Slot "
+-			    "%d\n", event_data->PreviousValue,
+-			    event_data->NewValue, event_data->PhysDiskNum,
+-			    event_data->PhysDiskDevHandle,
+-			    event_data->EnclosureHandle, event_data->Slot);
++  			mps_dprint(sc, MPS_INFO, "   Phys Disk Settings "
++  			    "changed from 0x%x to 0x%x for Phys Disk Number "
++  			    "%d and handle 0x%x at Enclosure handle 0x%x, Slot "
++ 			    "%d", le32toh(event_data->PreviousValue),
++ 			    le32toh(event_data->NewValue),
++ 				event_data->PhysDiskNum,
++ 			    le16toh(event_data->PhysDiskDevHandle),
++ 			    le16toh(event_data->EnclosureHandle), le16toh(event_data->Slot));
+ 			break;
+ 		case MPI2_EVENT_IR_PHYSDISK_RC_STATUS_FLAGS_CHANGED:
+-			mps_dprint(sc, MPS_INFO, "   Phys Disk Status changed "
+-			    "from 0x%x to 0x%x for Phys Disk Number %d and "
+-			    "handle 0x%x at Enclosure handle 0x%x, Slot %d\n",
+-			    event_data->PreviousValue, event_data->NewValue,
+-			    event_data->PhysDiskNum,
+-			    event_data->PhysDiskDevHandle,
+-			    event_data->EnclosureHandle, event_data->Slot);
++  			mps_dprint(sc, MPS_INFO, "   Phys Disk Status changed "
++  			    "from 0x%x to 0x%x for Phys Disk Number %d and "
++  			    "handle 0x%x at Enclosure handle 0x%x, Slot %d",
++ 				le32toh(event_data->PreviousValue),
++ 			    le32toh(event_data->NewValue), event_data->PhysDiskNum,
++ 			    le16toh(event_data->PhysDiskDevHandle),
++ 			    le16toh(event_data->EnclosureHandle), le16toh(event_data->Slot));
+ 			break;
+ 		case MPI2_EVENT_IR_PHYSDISK_RC_STATE_CHANGED:
+-			mps_dprint(sc, MPS_INFO, "   Phys Disk State changed "
+-			    "from 0x%x to 0x%x for Phys Disk Number %d and "
+-			    "handle 0x%x at Enclosure handle 0x%x, Slot %d\n",
+-			    event_data->PreviousValue, event_data->NewValue,
+-			    event_data->PhysDiskNum,
+-			    event_data->PhysDiskDevHandle,
+-			    event_data->EnclosureHandle, event_data->Slot);
++  			mps_dprint(sc, MPS_INFO, "   Phys Disk State changed "
++  			    "from 0x%x to 0x%x for Phys Disk Number %d and "
++  			    "handle 0x%x at Enclosure handle 0x%x, Slot %d",
++ 				le32toh(event_data->PreviousValue),
++ 			    le32toh(event_data->NewValue), event_data->PhysDiskNum,
++ 			    le16toh(event_data->PhysDiskDevHandle),
++ 			    le16toh(event_data->EnclosureHandle), le16toh(event_data->Slot));
+ 			switch (event_data->NewValue) {
+ 				case MPI2_RAID_PD_STATE_ONLINE:
+ 				case MPI2_RAID_PD_STATE_DEGRADED:
+@@ -468,10 +478,19 @@ mpssas_fw_work(struct mps_softc *sc, struct mps_fw_event_work *fw_event)
+ 					targ = mpssas_find_target_by_handle(sassc, 0, 
+ 							event_data->PhysDiskDevHandle);
+ 					if (targ) {
+-						targ->flags |= MPS_TARGET_FLAGS_RAID_COMPONENT;
+-						printf("%s %d: Found Target for handle 0x%x.  \n",
+-						__func__, __LINE__ , event_data->PhysDiskDevHandle);
+-					}
++						if(!sc->WD_available) {
++							targ->flags |= MPS_TARGET_FLAGS_RAID_COMPONENT;
++							printf("%s %d: Found Target for handle 0x%x.  \n",
++							__func__, __LINE__ , event_data->PhysDiskDevHandle);
++						} else if ((sc->WD_available && 
++							(sc->WD_hide_expose == MPS_WD_HIDE_ALWAYS)) ||
++        						(sc->WD_valid_config && (sc->WD_hide_expose ==
++        						MPS_WD_HIDE_IF_VOLUME))) {
++							targ->flags |= MPS_TARGET_FLAGS_RAID_COMPONENT;
++							printf("%s %d: WD: Found Target for handle 0x%x.  \n",
++							__func__, __LINE__ , event_data->PhysDiskDevHandle);
++						}
++ 					}  		
+ 				break;
+ 				case MPI2_RAID_PD_STATE_OFFLINE:
+ 				case MPI2_RAID_PD_STATE_NOT_CONFIGURED:
+@@ -503,7 +522,7 @@ mpssas_fw_work(struct mps_softc *sc, struct mps_fw_event_work *fw_event)
+ 		mps_dprint(sc, MPS_INFO, "   RAID Operation of %d is %d "
+ 		    "percent complete for Volume with handle 0x%x",
+ 		    event_data->RAIDOperation, event_data->PercentComplete,
+-		    event_data->VolDevHandle);
++		    le16toh(event_data->VolDevHandle));
+ 		break;
+ 	}
+ 	case MPI2_EVENT_LOG_ENTRY_ADDED:
+@@ -591,6 +610,7 @@ mpssas_add_device(struct mps_softc *sc, u16 handle, u8 linkrate){
+ 	unsigned int id;
+ 	int ret;
+ 	int error = 0;
++	struct mpssas_lun *lun;
+ 
+ 	sassc = sc->sassc;
+ 	mpssas_startup_increment(sassc);
+@@ -604,7 +624,7 @@ mpssas_add_device(struct mps_softc *sc, u16 handle, u8 linkrate){
+ 	device_info = le32toh(config_page.DeviceInfo);
+ 
+ 	if (((device_info & MPI2_SAS_DEVICE_INFO_SMP_TARGET) == 0)
+-	 && (config_page.ParentDevHandle != 0)) {
++	 && (le16toh(config_page.ParentDevHandle) != 0)) {
+ 		Mpi2ConfigReply_t tmp_mpi_reply;
+ 		Mpi2SasDevicePage0_t parent_config_page;
+ 
+@@ -668,7 +688,13 @@ mpssas_add_device(struct mps_softc *sc, u16 handle, u8 linkrate){
+ 	targ->flags = 0;
+ 	TAILQ_INIT(&targ->commands);
+ 	TAILQ_INIT(&targ->timedout_commands);
++	while(!SLIST_EMPTY(&targ->luns)) {
++		lun = SLIST_FIRST(&targ->luns);
++		SLIST_REMOVE_HEAD(&targ->luns, lun_link);
++		free(lun, M_MPT2);
++	}
+ 	SLIST_INIT(&targ->luns);
++
+ 	mps_describe_devinfo(targ->devinfo, devstring, 80);
+ 	mps_dprint(sc, MPS_INFO, "Found device <%s> <%s> <0x%04x> <%d/%d>\n", devstring,
+ 	    mps_describe_table(mps_linkrate_names, targ->linkrate),
+@@ -770,8 +796,10 @@ mpssas_get_sata_identify(struct mps_softc *sc, u16 handle,
+ 	if (!buffer)
+ 		return ENOMEM;
+ 
+-	if ((cm = mps_alloc_command(sc)) == NULL)
++	if ((cm = mps_alloc_command(sc)) == NULL) {
++		free(buffer, M_MPT2);
+ 		return (EBUSY);
++	}
+ 	mpi_request = (MPI2_SATA_PASSTHROUGH_REQUEST *)cm->cm_req;
+ 	bzero(mpi_request,sizeof(MPI2_SATA_PASSTHROUGH_REQUEST));
+ 	mpi_request->Function = MPI2_FUNCTION_SATA_PASSTHROUGH;
+@@ -802,7 +830,7 @@ mpssas_get_sata_identify(struct mps_softc *sc, u16 handle,
+ 	}
+ 	bcopy(buffer, id_buffer, sz);
+ 	bcopy(reply, mpi_reply, sizeof(Mpi2SataPassthroughReply_t));
+-	if ((reply->IOCStatus & MPI2_IOCSTATUS_MASK) !=
++	if ((le16toh(reply->IOCStatus) & MPI2_IOCSTATUS_MASK) !=
+ 	    MPI2_IOCSTATUS_SUCCESS) {
+ 		printf("%s: error reading SATA PASSTHRU; iocstatus = 0x%x\n",
+ 		    __func__, reply->IOCStatus);
+@@ -823,9 +851,11 @@ mpssas_volume_add(struct mps_softc *sc, u16 handle)
+ 	u64 wwid;
+ 	unsigned int id;
+ 	int error = 0;
++	struct mpssas_lun *lun;
+ 
+ 	sassc = sc->sassc;
+ 	mpssas_startup_increment(sassc);
++	/* wwid is endian safe */
+ 	mps_config_get_volume_wwid(sc, handle, &wwid);
+ 	if (!wwid) {
+ 		printf("%s: invalid WWID; cannot add volume to mapping table\n",
+@@ -849,6 +879,11 @@ mpssas_volume_add(struct mps_softc *sc, u16 handle)
+ 	targ->devname = wwid;
+ 	TAILQ_INIT(&targ->commands);
+ 	TAILQ_INIT(&targ->timedout_commands);
++	while(!SLIST_EMPTY(&targ->luns)) {
++		lun = SLIST_FIRST(&targ->luns);
++		SLIST_REMOVE_HEAD(&targ->luns, lun_link);
++		free(lun, M_MPT2);
++	}
+ 	SLIST_INIT(&targ->luns);
+ 	if ((sassc->flags & MPSSAS_IN_STARTUP) == 0)
+ 		mpssas_rescan_target(sc, targ);
+diff --git a/sys/dev/mps/mps_user.c b/sys/dev/mps/mps_user.c
+index f4e5e35..8896fb2 100644
+--- a/sys/dev/mps/mps_user.c
++++ b/sys/dev/mps/mps_user.c
+@@ -30,7 +30,7 @@
+  * LSI MPT-Fusion Host Adapter FreeBSD userland interface
+  */
+ /*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -701,6 +701,11 @@ mps_user_command(struct mps_softc *sc, struct mps_usr_command *cmd)
+ 
+ 	if (cmd->len > 0) {
+ 		buf = malloc(cmd->len, M_MPSUSER, M_WAITOK|M_ZERO);
++		if(!buf) {
++			mps_printf(sc, "Cannot allocate memory %s %d\n",
++			 __func__, __LINE__);
++			return (ENOMEM);
++    	}
+ 		cm->cm_data = buf;
+ 		cm->cm_length = cmd->len;
+ 	} else {
+@@ -946,7 +951,7 @@ mps_user_pass_thru(struct mps_softc *sc, mps_pass_thru_t *data)
+ 		 */
+ 		scsi_io_req->SenseBufferLength = (uint8_t)(data->RequestSize -
+ 		    64);
+-		scsi_io_req->SenseBufferLowAddress = cm->cm_sense_busaddr;
++		scsi_io_req->SenseBufferLowAddress = htole32(cm->cm_sense_busaddr);
+ 
+ 		/*
+ 		 * Set SGLOffset0 value.  This is the number of dwords that SGL
+@@ -995,7 +1000,7 @@ mps_user_pass_thru(struct mps_softc *sc, mps_pass_thru_t *data)
+ 		if (cm->cm_flags & MPS_CM_FLAGS_DATAIN)
+ 			dir = BUS_DMASYNC_POSTREAD;
+ 		else if (cm->cm_flags & MPS_CM_FLAGS_DATAOUT)
+-			dir = BUS_DMASYNC_POSTWRITE;;
++			dir = BUS_DMASYNC_POSTWRITE;
+ 		bus_dmamap_sync(sc->buffer_dmat, cm->cm_dmamap, dir);
+ 		bus_dmamap_unload(sc->buffer_dmat, cm->cm_dmamap);
+ 
+@@ -1033,7 +1038,7 @@ mps_user_pass_thru(struct mps_softc *sc, mps_pass_thru_t *data)
+ 			if (((MPI2_SCSI_IO_REPLY *)rpl)->SCSIState &
+ 			    MPI2_SCSI_STATE_AUTOSENSE_VALID) {
+ 				sense_len =
+-				    MIN(((MPI2_SCSI_IO_REPLY *)rpl)->SenseCount,
++				    MIN((le32toh(((MPI2_SCSI_IO_REPLY *)rpl)->SenseCount)),
+ 				    sizeof(struct scsi_sense_data));
+ 				mps_unlock(sc);
+ 				copyout(cm->cm_sense, cm->cm_req + 64, sense_len);
+@@ -2053,7 +2058,7 @@ mps_ioctl(struct cdev *dev, u_long cmd, void *arg, int flag,
+ 	struct mps_cfg_page_req *page_req;
+ 	struct mps_ext_cfg_page_req *ext_page_req;
+ 	void *mps_page;
+-	int error, reset_loop;
++	int error, msleep_ret;
+ 
+ 	mps_page = NULL;
+ 	sc = dev->si_drv1;
+@@ -2068,6 +2073,11 @@ mps_ioctl(struct cdev *dev, u_long cmd, void *arg, int flag,
+ 		break;
+ 	case MPSIO_READ_CFG_PAGE:
+ 		mps_page = malloc(page_req->len, M_MPSUSER, M_WAITOK | M_ZERO);
++		if(!mps_page) {
++			mps_printf(sc, "Cannot allocate memory %s %d\n",
++			 __func__, __LINE__);
++			return (ENOMEM);
++    	}
+ 		error = copyin(page_req->buf, mps_page,
+ 		    sizeof(MPI2_CONFIG_PAGE_HEADER));
+ 		if (error)
+@@ -2086,6 +2096,11 @@ mps_ioctl(struct cdev *dev, u_long cmd, void *arg, int flag,
+ 		break;
+ 	case MPSIO_READ_EXT_CFG_PAGE:
+ 		mps_page = malloc(ext_page_req->len, M_MPSUSER, M_WAITOK|M_ZERO);
++		if(!mps_page) {
++			mps_printf(sc, "Cannot allocate memory %s %d\n",
++			 __func__, __LINE__);
++			return (ENOMEM);
++	}
+ 		error = copyin(ext_page_req->buf, mps_page,
+ 		    sizeof(MPI2_CONFIG_EXTENDED_PAGE_HEADER));
+ 		if (error)
+@@ -2099,6 +2114,11 @@ mps_ioctl(struct cdev *dev, u_long cmd, void *arg, int flag,
+ 		break;
+ 	case MPSIO_WRITE_CFG_PAGE:
+ 		mps_page = malloc(page_req->len, M_MPSUSER, M_WAITOK|M_ZERO);
++		if(!mps_page) {
++			mps_printf(sc, "Cannot allocate memory %s %d\n",
++			 __func__, __LINE__);
++			return (ENOMEM);
++	}
+ 		error = copyin(page_req->buf, mps_page, page_req->len);
+ 		if (error)
+ 			break;
+@@ -2138,19 +2158,19 @@ mps_ioctl(struct cdev *dev, u_long cmd, void *arg, int flag,
+ 	case MPTIOCTL_RESET_ADAPTER:
+ 		mps_lock(sc);
+ 		sc->port_enable_complete = 0;
++		uint32_t reinit_start = time_uptime;
+ 		error = mps_reinit(sc);
++		/* Sleep for 300 second. */
++		msleep_ret = msleep(&sc->port_enable_complete, &sc->mps_mtx, PRIBIO,
++		       "mps_porten", 300 * hz);
+ 		mps_unlock(sc);
+-		/*
+-		 * Wait no more than 5 minutes for Port Enable to complete
+-		 */
+-		for (reset_loop = 0; (reset_loop < MPS_DIAG_RESET_TIMEOUT) &&
+-		    (!sc->port_enable_complete); reset_loop++) {
+-			DELAY(1000);
+-		}
+-		if (reset_loop == MPS_DIAG_RESET_TIMEOUT) {
++		if (msleep_ret)
+ 			printf("Port Enable did not complete after Diag "
+-			    "Reset.\n");
+-		}
++			    "Reset msleep error %d.\n", msleep_ret);
++		else
++			mps_dprint(sc, MPS_INFO,
++				"Hard Reset with Port Enable completed in %d seconds.\n",
++				 (uint32_t) (time_uptime - reinit_start));
+ 		break;
+ 	case MPTIOCTL_DIAG_ACTION:
+ 		/*
+diff --git a/sys/dev/mps/mpsvar.h b/sys/dev/mps/mpsvar.h
+index 6246c46..2acb75b 100644
+--- a/sys/dev/mps/mpsvar.h
++++ b/sys/dev/mps/mpsvar.h
+@@ -1,32 +1,6 @@
+ /*-
+  * Copyright (c) 2009 Yahoo! Inc.
+- * All rights reserved.
+- *
+- * Redistribution and use in source and binary forms, with or without
+- * modification, are permitted provided that the following conditions
+- * are met:
+- * 1. Redistributions of source code must retain the above copyright
+- *    notice, this list of conditions and the following disclaimer.
+- * 2. Redistributions in binary form must reproduce the above copyright
+- *    notice, this list of conditions and the following disclaimer in the
+- *    documentation and/or other materials provided with the distribution.
+- *
+- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+- * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+- * SUCH DAMAGE.
+- *
+- * $FreeBSD$
+- */
+-/*-
+- * Copyright (c) 2011 LSI Corp.
++ * Copyright (c) 2011, 2012 LSI Corp.
+  * All rights reserved.
+  *
+  * Redistribution and use in source and binary forms, with or without
+@@ -58,7 +32,7 @@
+ #ifndef _MPSVAR_H
+ #define _MPSVAR_H
+ 
+-#define MPS_DRIVER_VERSION	"13.00.00.00-fbsd"
++#define MPS_DRIVER_VERSION	"14.00.00.01-fbsd"
+ 
+ #define MPS_DB_MAX_WAIT		2500
+ 
+@@ -80,6 +54,8 @@
+ #define MPS_SCSI_RI_INVALID_FRAME	(0x00000002)
+ #define MPS_STRING_LENGTH               64
+ 
++#include <sys/endian.h>
++
+ /*
+  * host mapping related macro definitions
+  */
+@@ -276,7 +252,7 @@ struct mps_event_handle {
+ 	TAILQ_ENTRY(mps_event_handle)	eh_list;
+ 	mps_evt_callback_t		*callback;
+ 	void				*data;
+-	uint8_t				mask[16];
++	u32				mask[MPI2_EVENT_NOTIFY_EVENTMASK_WORDS];
+ };
+ 
+ struct mps_softc {
+@@ -333,7 +309,7 @@ struct mps_softc {
+ 	int				fqdepth;	/* Free queue */
+ 	int				pqdepth;	/* Post queue */
+ 
+-	uint8_t				event_mask[16];
++	u32             event_mask[MPI2_EVENT_NOTIFY_EVENTMASK_WORDS];
+ 	TAILQ_HEAD(, mps_event_handle)	event_list;
+ 	struct mps_event_handle		*mps_log_eh;
+ 
+@@ -422,8 +398,10 @@ struct mps_softc {
+ #define	MPS_DIAG_RESET_TIMEOUT	300000
+ 	uint8_t				wait_for_port_enable;
+ 	uint8_t				port_enable_complete;
++	uint8_t				msleep_fake_chan;
+ 
+ 	/* WD controller */
++	uint8_t             WD_available;
+ 	uint8_t				WD_valid_config;
+ 	uint8_t				WD_hide_expose;
+ 
+@@ -469,12 +447,15 @@ mps_regwrite(struct mps_softc *sc, uint32_t offset, uint32_t val)
+ 	bus_space_write_4(sc->mps_btag, sc->mps_bhandle, offset, val);
+ }
+ 
++/* free_queue must have Little Endian address 
++ * TODO- cm_reply_data is unwanted. We can remove it.
++ * */
+ static __inline void
+ mps_free_reply(struct mps_softc *sc, uint32_t busaddr)
+ {
+ 	if (++sc->replyfreeindex >= sc->fqdepth)
+ 		sc->replyfreeindex = 0;
+-	sc->free_queue[sc->replyfreeindex] = busaddr;
++	sc->free_queue[sc->replyfreeindex] = htole32(busaddr);
+ 	mps_regwrite(sc, MPI2_REPLY_FREE_HOST_INDEX_OFFSET, sc->replyfreeindex);
+ }
+ 
+@@ -640,6 +621,9 @@ do {								\
+ #define MPS_EVENTFIELD(sc, facts, attr, fmt)	\
+ 	mps_dprint_field((sc), MPS_EVENT, #attr ": " #fmt "\n", (facts)->attr)
+ 
++#define  CAN_SLEEP                      1
++#define  NO_SLEEP                       0
++
+ static __inline void
+ mps_from_u64(uint64_t data, U64 *mps)
+ {
+@@ -682,11 +666,11 @@ int mps_free(struct mps_softc *sc);
+ void mps_intr(void *);
+ void mps_intr_msi(void *);
+ void mps_intr_locked(void *);
+-int mps_register_events(struct mps_softc *, uint8_t *, mps_evt_callback_t *,
++int mps_register_events(struct mps_softc *, u32 *, mps_evt_callback_t *,
+     void *, struct mps_event_handle **);
+ int mps_restart(struct mps_softc *);
+-int mps_update_events(struct mps_softc *, struct mps_event_handle *, uint8_t *);
+-int mps_deregister_events(struct mps_softc *, struct mps_event_handle *);
++int mps_update_events(struct mps_softc *, struct mps_event_handle *, u32 *);
++void mps_deregister_events(struct mps_softc *, struct mps_event_handle *);
+ int mps_push_sge(struct mps_command *, void *, size_t, int);
+ int mps_add_dmaseg(struct mps_command *, vm_paddr_t, size_t, u_int, int);
+ int mps_attach_sas(struct mps_softc *sc);
+@@ -778,5 +762,21 @@ SYSCTL_DECL(_hw_mps);
+ #else
+ #define MPS_PRIORITY_XPT	5
+ #endif
++
++#if __FreeBSD_version < 800107
++// Prior to FreeBSD-8.0 scp3_flags was not defined.
++#define spc3_flags reserved
++
++#define SPC3_SID_PROTECT    0x01
++#define SPC3_SID_3PC        0x08
++#define SPC3_SID_TPGS_MASK  0x30
++#define SPC3_SID_TPGS_IMPLICIT  0x10
++#define SPC3_SID_TPGS_EXPLICIT  0x20
++#define SPC3_SID_ACC        0x40
++#define SPC3_SID_SCCS       0x80
++
++#define CAM_PRIORITY_NORMAL CAM_PRIORITY_NONE
++#endif
++
+ #endif
+ 

@@ -102,6 +102,7 @@
 -p1~~from-8-STABLE/mfiutil/0001-MFC-r233713.patch~
 -p1~~from-8-STABLE/mfiutil/0002-MFC-r235634.patch~
 -p1~~from-8-STABLE/mfiutil/0003-MFC-r237259-r237260-r237329.patch~
+-p1~~from-8-STABLE/mps/mps-from-8-STABLE.patch~
 -p1~~from-8-STABLE/usb-ids/0001-MFC-r238079-r238493-r238717-and-r242906.patch~
 -p1~~from-8-STABLE/virtio/0001-MFC-r227652-r228301-r234270-r234349.patch~
 ~~sfxge.tgz~
