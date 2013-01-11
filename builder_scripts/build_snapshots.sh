@@ -585,21 +585,22 @@ scp_files() {
 
 	# Rather than copy these twice, use ln to link to the latest one.
 
-	ssh snapshots@${RSYNCIP} "rm /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest.tgz"
-	ssh snapshots@${RSYNCIP} "rm /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest.tgz.sha256"
+	ssh snapshots@${RSYNCIP} "rm -f /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest.tgz"
+	ssh snapshots@${RSYNCIP} "rm -f /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest.tgz.sha256"
 
 	LATESTFILENAME="`ls $PFSENSEUPDATESDIR/*.tgz | grep Full | grep -v md5 | grep -v sha256 | tail -n1`"
+	LATESTFILENAME=`basename ${LATESTFILENAME}`
 	ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${LATESTFILENAME} \
 		/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest.tgz"
 	ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${LATESTFILENAME}.sha256 \
 		/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest.tgz.sha256"
 
-	for i in 512m 1g 2g 4g
+	for i in 512mb 1g 2g 4g
 	do
-		ssh snapshots@${RSYNCIP} "rm /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-${i}.img.gz"
-		ssh snapshots@${RSYNCIP} "rm /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-${i}.img.gz.sha256"
-		ssh snapshots@${RSYNCIP} "rm /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-vga-${i}.img.gz"
-		ssh snapshots@${RSYNCIP} "rm /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-vga-${i}.img.gz.sha256"
+		ssh snapshots@${RSYNCIP} "rm -f /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-${i}.img.gz"
+		ssh snapshots@${RSYNCIP} "rm -f /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-${i}.img.gz.sha256"
+		ssh snapshots@${RSYNCIP} "rm -f /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-vga-${i}.img.gz"
+		ssh snapshots@${RSYNCIP} "rm -f /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-vga-${i}.img.gz.sha256"
 
 		FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${i}-${ARCH}-nanobsd-upgrade-${DATESTRING}.img"
 		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${LATESTFILENAME} \
@@ -614,8 +615,6 @@ scp_files() {
 			/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-vga-${i}.img.gz.sha256"
 	done
 
-	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/latest* \
-		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version* \
 		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters
