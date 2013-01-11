@@ -215,7 +215,7 @@ while [ /bin/true ]; do
 	done
 	minsleepvalue=28800
 	maxsleepvalue=86400
-	update_status ">>> Sleeping for at least $minspeelvalue, at most $maxsleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
+	update_status ">>> Sleeping for at least $minsleepvalue, at most $maxsleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
 	update_status ">>> Freezing build process at `date`."
 	sleep $minsleepvalue
 	update_status ">>> Thawing build process and resuming checks for pending commits at `date`."
