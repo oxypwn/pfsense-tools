@@ -69,18 +69,18 @@ git_last_commit() {
 # in between sleeping for short durations.
 sleep_between_runs() {
 	COUNTER=0
-	while [ "$COUNTER" -lt "$sleepvalue" ]; do
+	while [ "$COUNTER" -lt "$maxsleepvalue" ]; do
 		sleep 60
 		git_last_commit
 		if [ "$LAST_COMMIT" != "$CURRENT_COMMIT" ]; then
 			update_status ">>> New commit: $CURRENT_AUTHOR - $CURRENT_COMMIT .. No longer sleepy."
-			COUNTER="`expr $sleepvalue + 60`"
+			COUNTER="`expr $maxsleepvalue + 60`"
 		fi
 		COUNTER="`expr $COUNTER + 60`"
 	done
-	if [ "$COUNTER" -eq "$sleepvalue" ]; then
+	if [ "$COUNTER" -eq "$maxsleepvalue" ]; then
 		update_status ">>> Sleep timer expired. Restarting build."
-		sleepvalue=0
+		maxsleepvalue=0
 		COUNTER=0
 	fi
 }
@@ -213,12 +213,16 @@ while [ /bin/true ]; do
 	do
 		update_status "$LINE"
 	done
-	sleepvalue=86400
-	update_status ">>> Sleeping for $sleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
+	minsleepvalue=28800
+	maxsleepvalue=86400
+	update_status ">>> Sleeping for at least $minspeelvalue, at most $maxsleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
+	update_status ">>> Freezing build process at `date`."
+	sleep $minsleepvalue
+	update_status ">>> Thawing build process and resuming checks for pending commits at `date`."
 	# Count some sheep or wait until a new commit turns up 
 	# for one days time.  We will wake up if a new commit
 	# is deteceted during sleepy time.
-	sleep_between_runs $sleepvalue
+	sleep_between_runs $maxsleepvalue
 	# If REBOOT_AFTER_SNAPSHOT_RUN is defined reboot
 	# the box after the run. 
 	if [ ! -z "${REBOOT_AFTER_SNAPSHOT_RUN:-}" ]; then
