@@ -603,15 +603,15 @@ scp_files() {
 		ssh snapshots@${RSYNCIP} "rm -f /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-vga-${i}.img.gz.sha256"
 
 		FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${i}-${ARCH}-nanobsd-upgrade-${DATESTRING}.img"
-		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${LATESTFILENAME} \
+		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${FILENAMEUPGRADE} \
 			/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-${i}.img.gz"
-		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${LATESTFILENAME}.sha256 \
+		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${FILENAMEUPGRADE}.sha256 \
 			/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-${i}.img.gz.sha256"
 
 		FILENAMEUPGRADE="${PRODUCT_NAME}-${PFSENSE_VERSION}-${i}-${ARCH}-nanobsd-vga-upgrade-${DATESTRING}.img"
-		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${LATESTFILENAME} \
+		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${FILENAMEUPGRADE} \
 			/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-vga-${i}.img.gz"
-		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${LATESTFILENAME}.sha256 \
+		ssh snapshots@${RSYNCIP} "ln -s /usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/updates/${FILENAMEUPGRADE}.sha256 \
 			/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters/latest-nanobsd-vga-${i}.img.gz.sha256"
 	done
 
