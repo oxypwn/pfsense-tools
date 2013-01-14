@@ -2,12 +2,13 @@
 #
 # openvpn.sh - load tun/tap driver and start OpenVPN daemon
 #
-# (C) Copyright 2005 - 2008 by Matthias Andree
+# (C) Copyright 2005 - 2008, 2010 by Matthias Andree
 # based on suggestions by Matthias Grimm and Dirk Gouders
 # with multi-instance contribution from Denis Shaposhnikov, Gleb Kozyrev
 # and Vasil Dimov
+# softrestart feature suggested by Nick Hibma
 #
-# $FreeBSD: ports/security/openvpn-devel/files/openvpn.sh.in,v 1.11 2010/03/27 00:14:45 dougb Exp $
+# $FreeBSD$
 # 
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -30,7 +31,7 @@
 # -----------------------------------------------------------------------------
 #
 # This script supports running multiple instances of openvpn.
-# To run additional instance link this script to something like
+# To run additional instances link this script to something like
 # % ln -s openvpn openvpn_foo
 # and define additional openvpn_foo_* variables in one of
 # /etc/rc.conf, /etc/rc.conf.local or /etc/rc.conf.d/openvpn_foo

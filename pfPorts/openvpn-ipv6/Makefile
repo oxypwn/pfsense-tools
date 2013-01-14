@@ -1,26 +1,25 @@
 # New ports collection makefile for:	openvpn
-# Date created:		2010-02-19
-# Whom:			Eric F Crist <ecrist@secure-computing.net>
+# Date created:		2002-06-23
+# Whom:			Matthias Andree <matthias.andree@gmx.de>
 #
-# $FreeBSD: ports/security/openvpn-devel/Makefile,v 1.57 2010/05/14 21:17:42 jpaetzel Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	openvpn
-PORTVERSION=	2.2.0
 DISTVERSION=	2.2.0
-
 CATEGORIES=	security net
 MASTER_SITES=	http://swupdate.openvpn.net/community/releases/
 
-MAINTAINER=	ecrist@secure-computing.net
+MAINTAINER=	mandree@FreeBSD.org
 COMMENT=	Secure IP/Ethernet tunnel daemon
 
 WRKSRC=		${WRKDIR}/${PORTNAME}-${DISTVERSION}${DISTVERSIONSUFFIX}
 
-CONFLICTS=	openvpn-[0-9]*
+CONFLICTS=	openvpn-devel-[0-9]* openvpn-2.0* openvpn-beta-[0-9]*
 
 GNU_CONFIGURE=	yes
 USE_OPENSSL=	yes
+USE_XZ=		yes
 CONFIGURE_ARGS=	--with-lzo-lib=${LOCALBASE}/lib \
 		--with-lzo-headers=${LOCALBASE}/include \
 		--enable-ipv6
@@ -34,7 +33,7 @@ OPTIONS=	PW_SAVE "Interactive passwords may be read from a file" on \
 #USE_RC_SUBR=	openvpn.sh
 USE_LDCONFIG=	${PREFIX}/lib
 
-#SUB_FILES=	pkg-message pkg-req
+#SUB_FILES=	pkg-message
 SUB_LIST+=	OSVERSION=${OSVERSION}
 
 .include <bsd.port.pre.mk>
