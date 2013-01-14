@@ -4,10 +4,7 @@ using an encrypted tunnel over the internet. It can operate over UDP or TCP,
 can use SSL or a pre-shared secret to authenticate peers, and in SSL mode, one
 server can handle many clients.
 
-This development port is updated frequently and is likely NOT STABLE.  This is
-an untested tar of the source tree.  We attempt to omit inoperable states, but
-there is a good chance this program will not run.
+WWW: http://openvpn.net/index.php/open-source.html
 
-DO NOT USE IN PRODUCTION WITHOUT CAUTION
-
-WWW: http://openvpn.net/
+- Matthias Andree
+mandree@FreeBSD.org
