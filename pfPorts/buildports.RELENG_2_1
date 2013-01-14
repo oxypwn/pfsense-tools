@@ -120,7 +120,7 @@ zmq							/usr/ports/devel/zmq						/usr/local/lib/libzmq.so.1
 php-zmq						/usr/ports/devel/php-zmq					/usr/local/lib/php/20090626/zmq.so
 php-xdebug					/usr/ports/devel/php-xdebug					/usr/local/lib/php/20090626/xdebug.so
 php5-suhosin					/usr/ports/security/php5-suhosin				/usr/local/lib/php/20090626/suhosin.so
-openvpn-ipv6				/usr/ports/security/openvpn-ipv6			/usr/local/sbin/openvpn
+openvpn				/usr/ports/security/openvpn			/usr/local/sbin/openvpn
 syslog-ng					/usr/ports/sysutils/syslog-ng				/usr/local/sbin/syslog-ng
 zip							/usr/ports/archivers/zip					/usr/local/bin/zip
 links						/usr/ports/www/links						/usr/local/bin/links
