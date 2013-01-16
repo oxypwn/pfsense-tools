@@ -437,7 +437,7 @@ clear_hostname_addresses(struct thread_data *thr)
 static void *
 merge_config(void *arg __unused) {
 	struct thread_list tmp_thread_list;
-	struct thread_data *thr, *tmpthr;
+	struct thread_data *thr, *tmpthr, *tmpthr2, *tmpthr3;
 	int foundexisting, error;
 
 	TAILQ_INIT(&tmp_thread_list);
@@ -453,9 +453,11 @@ merge_config(void *arg __unused) {
 
 		pthread_rwlock_wrlock(&main_lock);
 
-		while ((thr = TAILQ_FIRST(&thread_list)) != NULL) {
-			TAILQ_REMOVE(&thread_list, thr, next);
-			TAILQ_INSERT_TAIL(&tmp_thread_list, thr, next);
+		if (!TAILQ_EMPTY(&thread_list)) {
+			while ((thr = TAILQ_FIRST(&thread_list)) != NULL) {
+				TAILQ_REMOVE(&thread_list, thr, next);
+				TAILQ_INSERT_TAIL(&tmp_thread_list, thr, next);
+			}
 		}
 
 		if (parse_config(file)) {
@@ -464,10 +466,10 @@ merge_config(void *arg __unused) {
 		}
 
 		if (!TAILQ_EMPTY(&thread_list)) {
-			TAILQ_FOREACH(thr, &thread_list, next) {
+			TAILQ_FOREACH_SAFE(thr, &thread_list, next, tmpthr2) {
 				foundexisting = 0;
 
-				TAILQ_FOREACH(tmpthr, &tmp_thread_list, next) {
+				TAILQ_FOREACH_SAFE(tmpthr, &tmp_thread_list, next, tmpthr3) {
 					if (thr->type != tmpthr->type)
 						continue;
 					if (strlen(thr->hostname) != strlen(tmpthr->hostname))
@@ -475,18 +477,18 @@ merge_config(void *arg __unused) {
 					if (strncmp(thr->hostname, tmpthr->hostname, strlen(thr->hostname)))
 						continue;
 
-					if (strlen(thr->tablename) == strlen(tmpthr->tablename) && !strncmp(thr->tablename, tmpthr->tablename, strlen(thr->tablename))) {
-						struct table *a;
+					if (strlen(thr->tablename) != strlen(tmpthr->tablename) || strncmp(thr->tablename, tmpthr->tablename, strlen(thr->tablename)))
+						continue;
 
-						/* Do not forget existing addresses */
-						while ((a = TAILQ_FIRST(&tmpthr->rnh)) != NULL) {
-							TAILQ_REMOVE(&tmpthr->rnh, a, entry);
-							TAILQ_INSERT_TAIL(&thr->rnh, a, entry);
-						}
-					}
-					thr->thr_pid = tmpthr->thr_pid;
-					tmpthr->thr_pid = 0;
+					if (tmpthr->thr_pid == 0)
+						continue;
+					TAILQ_REMOVE(&thread_list, thr, next);
+					TAILQ_REMOVE(&tmp_thread_list, tmpthr, next);
+					TAILQ_INSERT_HEAD(&thread_list, tmpthr, next);
+					TAILQ_INSERT_HEAD(&tmp_thread_list, thr, next);
+					thr->thr_pid = 0;
 					foundexisting = 1;
+					break;
 				}
 
 				if (foundexisting == 0) {
@@ -552,7 +554,7 @@ clear_config(struct thread_list *thrlist)
 			free(thr->tablename);
 		free(thr);
 	}
-	pthread_rwlock_unlock(&main_lock);
+	pthread_mutex_unlock(&sig_mtx);
 }
 
 static void filterdns_usage(void) {
