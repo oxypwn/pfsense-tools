@@ -206,21 +206,13 @@ host_dns(struct thread_data *hostd)
 
 	res0 = NULL;
         error = getaddrinfo(hostd->hostname, NULL, NULL, &res0);
-        if (error == EAI_AGAIN) {
+        if (error) {
 		if (debug >= 1)
 			syslog(LOG_WARNING, "failed to resolve host %s will retry later again.", hostd->hostname);
 		if (res0 != NULL)
 			freeaddrinfo(res0);
-                return (0);
-	}
-        if (error) {
-		if (debug >= 1)
-                	syslog(LOG_WARNING, "host_dns: failed looking up \"%s\": %s", hostd->hostname,
-                    		gai_strerror(error));
-		if (res0 != NULL)
-			freeaddrinfo(res0);
                 return (-1);
-        }
+	}
 
         for (res = res0; res; res = res->ai_next) {
                 if (res->ai_family == AF_INET) {
@@ -331,7 +323,7 @@ pf_tableentry(struct thread_data *pfd, struct sockaddr *address, int action)
 				syslog(LOG_WARNING, "FAILED to delete address from table %s.", pfd->tablename);
 		} else {
 			if (debug >= 3)
-				syslog(LOG_WARNING, "\t DELETED %d addresses(%d) to table %s.", io.pfrio_nadd, address->sa_family, pfd->tablename);
+				syslog(LOG_WARNING, "\t DELETED %d addresses(%d) to table %s.", io.pfrio_ndel, address->sa_family, pfd->tablename);
 		}
 	} else if (action == ADD) {
 		if (ioctl(dev, DIOCRADDADDRS, &io)) {
@@ -367,8 +359,6 @@ void *check_hostname(void *arg)
                 }
 		tmp = strlen(p) + 1;
 		thrd->hostname[tmp] = '\0'; 
-		q = thrd->hostname + tmp + 1;
-		free(q);
         } else {
 		thrd->mask = 32;
 		thrd->mask6 = 128;
@@ -376,8 +366,6 @@ void *check_hostname(void *arg)
 
 	if (debug >= 2)
 		syslog(LOG_WARNING, "Found hostname %s with netmask %d.", thrd->hostname, thrd->mask);
-
-	//flush_table(thrd->tablename);
 
 	while ((ts.tv_sec = time(NULL)) < 0)
 		;
@@ -494,10 +482,14 @@ merge_config(void *arg __unused) {
 				if (foundexisting == 0) {
 					if (debug > 3)
 						syslog(LOG_ERR, "Creating a new thread for host %s!", thr->hostname);
+					pthread_mutex_init(&thr->mtx, NULL);
+					pthread_cond_init(&thr->cond, NULL);
 					error = pthread_create(&thr->thr_pid, &attr, check_hostname, thr);
 					if (error != 0) {
 						if (debug >= 1)
 							syslog(LOG_ERR, "Unable to create monitoring thread for host %s! It will not be monitored!", thr->hostname);
+						pthread_mutex_destroy(&thr->mtx);
+						pthread_cond_destroy(&thr->cond);
 					}
 					pthread_set_name_np(thr->thr_pid, thr->hostname);
 				}
@@ -552,6 +544,8 @@ clear_config(struct thread_list *thrlist)
 			free(thr->hostname);
 		if (thr->tablename)
 			free(thr->tablename);
+		pthread_mutex_destroy(&thr->mtx);
+		pthread_cond_destroy(&thr->cond);
 		free(thr);
 	}
 	pthread_mutex_unlock(&sig_mtx);
@@ -657,21 +651,26 @@ int main(int argc, char *argv[]) {
         if (sig_error == SIG_ERR)
                 err(EX_OSERR, "unable to set signal handler");
 
+	pthread_rwlock_init(&main_lock, NULL);
+
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	TAILQ_FOREACH(thr, &thread_list, next) {
+		pthread_mutex_init(&thr->mtx, NULL);
+		pthread_cond_init(&thr->cond, NULL);
 		error = pthread_create(&thr->thr_pid, &attr, check_hostname, thr);
 		if (error != 0) {
 			if (debug >= 1)
 				syslog(LOG_ERR, "Unable to create monitoring thread for host %s", thr->hostname);
+			pthread_mutex_destroy(&thr->mtx);
+			pthread_cond_destroy(&thr->cond);
 		}
 		pthread_set_name_np(thr->thr_pid, thr->hostname);
 	}
 
-	pthread_rwlock_init(&main_lock, NULL);
-	sig_mtx = PTHREAD_MUTEX_INITIALIZER;
-        sig_condvar = PTHREAD_COND_INITIALIZER;
+	pthread_mutex_init(&sig_mtx, NULL); 
+        pthread_cond_init(&sig_condvar, NULL);
 	error = pthread_create(&sig_thr, &attr, merge_config, NULL);
 	if (error != 0) {
 		if (debug >= 1)
