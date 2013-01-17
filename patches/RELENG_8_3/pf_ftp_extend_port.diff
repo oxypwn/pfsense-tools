@@ -1,0 +1,187 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index d5c715a..488444c 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -91,6 +91,7 @@ __FBSDID("$FreeBSD: src/sys/contrib/pf/net/pf.c,v 1.69.2.4.4.2 2012/11/17 08:25:
+ #include <sys/kthread.h>
+ #include <sys/lock.h>
+ #include <sys/sx.h>
++#include <sys/sbuf.h>
+ #else
+ #include <sys/rwlock.h>
+ #endif
+@@ -154,6 +155,7 @@ __FBSDID("$FreeBSD: src/sys/contrib/pf/net/pf.c,v 1.69.2.4.4.2 2012/11/17 08:25:
+ #include <security/mac/mac_framework.h>
+ 
+ extern int ip_optcopy(struct ip *, struct ip *);
++extern struct pf_ftp_port pf_ftp_ports;
+ extern int debug_pfugidhack;
+ #endif
+ 
+@@ -193,6 +195,10 @@ int ftp_proxy = 0;
+ SYSCTL_INT(_debug, OID_AUTO, pfftpproxy, CTLFLAG_RW, &ftp_proxy, 0,
+     "Enable/disable pf ftp protocol proxy");
+ 
++static int pf_sysctl_pfftpports(SYSCTL_HANDLER_ARGS);
++SYSCTL_PROC(_debug, OID_AUTO, pfftpports, CTLTYPE_STRING | CTLFLAG_RW,
++	NULL, 0, pf_sysctl_pfftpports, "A", "pf ftp proxy ports to mangle");
++
+ void			 pf_print_host(struct pf_addr *, u_int16_t, u_int8_t);
+ 
+ void			 pf_init_threshold(struct pf_threshold *, u_int32_t,
+@@ -548,6 +554,68 @@ RB_GENERATE(pf_state_tree_ext_gwy, pf_state,
+ RB_GENERATE(pf_state_tree_id, pf_state,
+     u.s.entry_id, pf_state_compare_id);
+ 
++static int
++pf_sysctl_pfftpports(SYSCTL_HANDLER_ARGS)
++{
++        struct sbuf *sb;
++	struct pf_ftp *fport, *fportmp;
++	struct pf_ftp_port npf_ftp_ports;
++        char *new_order, *elm, *parse;
++        int i = 0, err = 0, reqlen;
++
++        sb = sbuf_new(NULL, NULL, 500, SBUF_AUTOEXTEND);
++        if (sb == NULL)
++                return (EINVAL);
++
++	PF_LOCK();
++        TAILQ_FOREACH(fport, &pf_ftp_ports, entry) {
++                if (i > 0)
++                        sbuf_printf(sb, ", ");
++		sbuf_printf(sb, "%u", fport->port);
++                i++;
++        }
++	PF_UNLOCK();
++
++        sbuf_finish(sb);
++
++        err = SYSCTL_OUT(req, sbuf_data(sb), sbuf_len(sb) + 1);
++        sbuf_delete(sb);
++
++        if (err || !req->newptr)
++                return (err);
++
++	reqlen = req->newlen - req->newidx;
++
++        new_order = malloc(reqlen + 1, M_TEMP, M_WAITOK|M_ZERO);
++
++        err = SYSCTL_IN(req, new_order, reqlen);
++        if (err)
++                goto error;
++        new_order[reqlen] = '\0'; /* Just in case */
++        parse = new_order;
++
++	TAILQ_INIT(&npf_ftp_ports);
++        while ((elm = strsep(&parse, " \t,")) != NULL) {
++                if (*elm == '\0')
++                        continue;
++		fport = malloc(sizeof(struct pf_ftp), M_TEMP, M_WAITOK|M_ZERO);
++		fport->port = (u_int16_t)strtoul(elm, NULL, 10);
++		TAILQ_INSERT_TAIL(&npf_ftp_ports, fport, entry);
++        }
++
++	PF_LOCK();
++        TAILQ_FOREACH_SAFE(fport, &pf_ftp_ports, entry, fportmp) {
++                TAILQ_REMOVE(&pf_ftp_ports, fport, entry);
++		free(fport, M_TEMP);
++        }
++        TAILQ_CONCAT(&pf_ftp_ports, &npf_ftp_ports, entry);
++	PF_UNLOCK();
++
++error:
++        free(new_order, M_TEMP);
++        return (err);
++}
++
+ #ifdef __FreeBSD__
+ static int
+ #else
+@@ -7683,8 +7751,14 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
+ 			    m, off, h, &pd, &a, &ruleset, &ipintrq);
+ #endif
+ 		if (action == PF_PASS && s != NULL && !PACKET_LOOPED(pd.pf_mtag)) {
+-			if (ftp_proxy == 0 && (ntohs(th.th_dport) == 21 || ntohs(th.th_sport) == 21))
+-				pf_handle_ftp(kif, &pd, m, s, off, dir);
++			if (ftp_proxy == 0) {
++				struct pf_ftp *fport;
++
++				TAILQ_FOREACH(fport, &pf_ftp_ports, entry) {
++					if (ntohs(th.th_dport) == fport->port || ntohs(th.th_sport) == fport->port)
++						pf_handle_ftp(kif, &pd, m, s, off, dir);
++				}
++			}
+ 		}
+ 		break;
+ 	}
+diff --git a/sys/contrib/pf/net/pf_ioctl.c b/sys/contrib/pf/net/pf_ioctl.c
+index 60cb9b0..b02aba8 100644
+--- a/sys/contrib/pf/net/pf_ioctl.c
++++ b/sys/contrib/pf/net/pf_ioctl.c
+@@ -174,6 +174,7 @@ int			 pf_commit_rules(u_int32_t, int, char *);
+ 
+ struct pf_rule		 pf_default_rule;
+ #ifdef __FreeBSD__
++struct pf_ftp_port pf_ftp_ports;
+ struct sx		 pf_consistency_lock;
+ SX_SYSINIT(pf_consistency_lock, &pf_consistency_lock, "pf_statetbl_lock");
+ #else
+@@ -3901,6 +3902,8 @@ dehook_pf(void)
+ static int
+ pf_load(void)
+ {
++	struct pf_ftp *fport;
++
+ 	init_zone_var();
+ 	init_pf_mutex();
+ 	pf_dev = make_dev(&pf_cdevsw, 0, 0, 0, 0600, PF_NAME);
+@@ -3909,12 +3912,19 @@ pf_load(void)
+ 		destroy_pf_mutex();
+ 		return (ENOMEM);
+ 	}
++
++	TAILQ_INIT(&pf_ftp_ports);
++	fport = malloc(sizeof(struct pf_ftp), M_TEMP, M_ZERO|M_WAITOK);
++	fport->port = 21;
++	TAILQ_INSERT_TAIL(&pf_ftp_ports, fport, entry);
++
+ 	return (0);
+ }
+ 
+ static int
+ pf_unload(void)
+ {
++	struct pf_ftp *fport;
+ 	int error = 0;
+ 
+ 	PF_LOCK();
+@@ -3942,6 +3952,11 @@ pf_unload(void)
+ 	pf_osfp_cleanup();
+ 	cleanup_pf_zone();
+ 	PF_UNLOCK();
++	while (!TAILQ_EMPTY(&pf_ftp_ports)) {
++		fport = TAILQ_FIRST(&pf_ftp_ports);
++		TAILQ_REMOVE(&pf_ftp_ports, fport, entry);
++		free(fport, M_TEMP);
++	}
+ 	destroy_dev(pf_dev);
+ 	destroy_pf_mutex();
+ 	return error;
+diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
+index 1f2b89e..d60c514 100644
+--- a/sys/contrib/pf/net/pfvar.h
++++ b/sys/contrib/pf/net/pfvar.h
+@@ -192,6 +192,12 @@ struct pf_addr_wrap {
+ 
+ #ifdef _KERNEL
+ 
++struct pf_ftp {
++        u_int16_t port;
++        TAILQ_ENTRY(pf_ftp) entry;
++};
++TAILQ_HEAD(pf_ftp_port, pf_ftp); 
++
+ struct pfi_dynaddr {
+ 	TAILQ_ENTRY(pfi_dynaddr)	 entry;
+ 	struct pf_addr			 pfid_addr4;
