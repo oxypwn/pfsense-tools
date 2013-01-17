@@ -707,9 +707,10 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 {
 	ipfw_table_entry ent;
 	socklen_t size;
-	int mask = 0, table = 0, pipe = 0;
+	long mask = 0, table = 0, pipe = 0;
 	char *ip, *zone, *mac = NULL, *p;
-	int ip_len, zone_len, mac_len = 0, action = IP_FW_TABLE_ADD;
+	int ip_len, zone_len, mac_len = 0;
+	long action = IP_FW_TABLE_ADD;
 	int err;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "slls|lsl", &zone, &zone_len, &action, &table, &ip, &ip_len, &mask, &mac, &mac_len, &pipe) == FAILURE) {
@@ -730,19 +731,19 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 	}
 
 	if (mask)
-		ent.masklen = mask;
+		ent.masklen = (u_int8_t)mask;
 	else
 		ent.masklen = 32;
 	if (pipe)
-		ent.value = pipe;
+		ent.value = (u_int32_t)pipe;
 
 	if (mac_len > 0) {
 		if (ether_aton_r(mac, (struct ether_addr *)&ent.mac_addr) == NULL)
 			RETURN_FALSE;
 	}
 	size = sizeof(ent);
-	ent.tbl = table;
-	err = setsockopt(PFSENSE_G(ipfw), IPPROTO_IP, action, &ent, size);
+	ent.tbl = (u_int16_t)table;
+	err = setsockopt(PFSENSE_G(ipfw), IPPROTO_IP, (int)action, &ent, size);
 	if (err < 0 && err != EEXIST)
 		RETURN_FALSE;
 
@@ -753,7 +754,7 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 {
 	ipfw_table_entry ent;
 	socklen_t size;
-	int mask = 0, table;
+	long mask = 0, table = 0;
 	char *ip, *name;
 	int ip_len, name_len;
 
@@ -771,11 +772,11 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 	}
 
 	if (mask)
-		ent.masklen = mask;
+		ent.masklen = (u_int8_t)mask;
 	else
 		ent.masklen = 32;
 	size = sizeof(ent);
-	ent.tbl = table;
+	ent.tbl = (u_int16_t)table;
 	if (getsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW_TABLE_GET_ENTRY, &ent, &size) < 0)
 		RETURN_FALSE;
 
@@ -792,7 +793,8 @@ PHP_FUNCTION(pfSense_open_dhcpd)
 {
 	omapi_data *data;
 	char *key, *addr, *name;
-	int key_len, addr_len, name_len, port;
+	int key_len, addr_len, name_len;
+	long port;
 	dhcpctl_status status;
 	dhcpctl_handle auth = dhcpctl_null_handle, conn = dhcpctl_null_handle;
 
@@ -806,7 +808,7 @@ PHP_FUNCTION(pfSense_open_dhcpd)
 		RETURN_NULL();
 	}
 
-	status = dhcpctl_connect(&conn, addr, port, auth);
+	status = dhcpctl_connect(&conn, addr, (int)port, auth);
 	if (status != ISC_R_SUCCESS) {
 		//php_printf("Error occured during connecting: %s\n", isc_result_totext(status));
 		RETURN_NULL();
@@ -1381,7 +1383,7 @@ PHP_FUNCTION(pfSense_bridge_member_flags) {
 	int ifname_len, ifchld_len;
 	struct ifdrv drv;
 	struct ifbreq req;
-	int flags = 0;
+	long flags = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssl", &ifname, &ifname_len, &ifchld, &ifchld_len, &flags) == FAILURE) {
 		RETURN_NULL();
@@ -1399,9 +1401,9 @@ PHP_FUNCTION(pfSense_bridge_member_flags) {
 
 	if (flags < 0) {
 		flags = -flags;
-		req.ifbr_ifsflags &= ~flags;
+		req.ifbr_ifsflags &= ~(int)flags;
 	} else
-		req.ifbr_ifsflags |= flags;
+		req.ifbr_ifsflags |= (int)flags;
 
 	drv.ifd_cmd = BRDGSIFFLGS;
 	drv.ifd_data = &req;
@@ -1416,7 +1418,7 @@ PHP_FUNCTION(pfSense_interface_listget) {
 	struct ifaddrs *ifdata, *mb;
 	char *ifname;
 	int ifname_len;
-	int flags = 0;
+	long flags = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &flags) == FAILURE)
 		RETURN_NULL();
@@ -1637,7 +1639,7 @@ PHP_FUNCTION(pfSense_vlan_create) {
 	char *ifname = NULL;
 	char *parentifname = NULL;
 	int ifname_len, parent_len;
-	int tag; 
+	long tag; 
 	struct ifreq ifr;
 	struct vlanreq params;
 
@@ -1660,7 +1662,7 @@ PHP_FUNCTION(pfSense_vlan_create) {
 PHP_FUNCTION(pfSense_interface_mtu) {
 	char *ifname;
 	int ifname_len;
-	int mtu;
+	long mtu;
 	struct ifreq ifr;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &ifname, &ifname_len, &mtu) == FAILURE) {
@@ -1668,7 +1670,7 @@ PHP_FUNCTION(pfSense_interface_mtu) {
 	}
 	memset(&ifr, 0, sizeof(ifr));
 	strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
-	ifr.ifr_mtu = mtu;
+	ifr.ifr_mtu = (int) mtu;
 	if (ioctl(PFSENSE_G(s), SIOCSIFMTU, (caddr_t)&ifr) < 0)
 		RETURN_NULL();
 	RETURN_TRUE;
@@ -1677,7 +1679,8 @@ PHP_FUNCTION(pfSense_interface_mtu) {
 PHP_FUNCTION(pfSense_interface_flags) {
 	struct ifreq ifr;
 	char *ifname;
-	int flags, ifname_len, value;
+	int flags, ifname_len;
+	long value;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &ifname, &ifname_len, &value) == FAILURE) {
 		RETURN_NULL();
@@ -1691,9 +1694,9 @@ PHP_FUNCTION(pfSense_interface_flags) {
 	flags = (ifr.ifr_flags & 0xffff) | (ifr.ifr_flagshigh << 16);
 	if (value < 0) {
 		value = -value;
-		flags &= ~value;
+		flags &= ~(int)value;
 	} else
-		flags |= value; 
+		flags |= (int)value; 
 	ifr.ifr_flags = flags & 0xffff;
 	ifr.ifr_flagshigh = flags >> 16;
 	if (ioctl(PFSENSE_G(s), SIOCSIFFLAGS, (caddr_t)&ifr) < 0)
@@ -1704,7 +1707,8 @@ PHP_FUNCTION(pfSense_interface_flags) {
 PHP_FUNCTION(pfSense_interface_capabilities) {
 	struct ifreq ifr;
 	char *ifname;
-	int flags, ifname_len, value;
+	int flags, ifname_len;
+	long value;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &ifname, &ifname_len, &value) == FAILURE) {
 		RETURN_NULL();
@@ -1718,9 +1722,9 @@ PHP_FUNCTION(pfSense_interface_capabilities) {
 	flags = ifr.ifr_curcap;
 	if (value < 0) {
 		value = -value;
-		flags &= ~value;
+		flags &= ~(int)value;
 	} else
-		flags |= value; 
+		flags |= (int)value; 
 	flags &= ifr.ifr_reqcap;
 	ifr.ifr_reqcap = flags;
 	if (ioctl(PFSENSE_G(s), SIOCSIFCAP, (caddr_t)&ifr) < 0)
