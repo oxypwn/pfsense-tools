@@ -100,6 +100,7 @@ dnsrule		: ftype STRING STRING pipe command {
 					yyerror("Filterdns, could not allocate memory");
 					YYERROR;
 				}
+				thr->exit = 0;
 				thr->hostname = strdup($2);
 				free($2);
 				if ($1 == IPFW_TYPE) {
@@ -123,9 +124,6 @@ dnsrule		: ftype STRING STRING pipe command {
 					free($5);
 				} 
 				TAILQ_INIT(&thr->rnh); 
-				thr->cond = PTHREAD_COND_INITIALIZER;
-				thr->mtx = PTHREAD_MUTEX_INITIALIZER;
-
 				TAILQ_INSERT_TAIL(&thread_list, thr, next);
 			}
 		}

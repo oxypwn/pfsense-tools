@@ -372,12 +372,18 @@ void *check_hostname(void *arg)
 
 	pthread_mutex_lock(&thrd->mtx);
 	for (;;) {
-
+		
 		ts.tv_sec += interval;
 		ts.tv_sec += (interval % 30);
 		ts.tv_nsec = 0;
 
 		pthread_rwlock_rdlock(&main_lock);
+
+		if (thrd->exit) {
+			pthread_rwlock_unlock(&main_lock);
+			break;
+		}
+
 		howmuch = host_dns(thrd);	
 		if (debug >= 2)
 			syslog(LOG_WARNING, "\tFound %d entries for %s", howmuch, thrd->hostname);
@@ -398,8 +404,16 @@ void *check_hostname(void *arg)
 	}
 	pthread_mutex_unlock(&thrd->mtx);
 
-	filterdns_clean_table(thrd, 1);
-	//flush_table(thrd->tablename);
+	if (debug >= 4)
+		syslog(LOG_ERR, "Cleaning up hostname %s", thrd->hostname);
+	pthread_mutex_destroy(&thrd->mtx);
+	pthread_cond_destroy(&thrd->cond);
+	clear_hostname_addresses(thrd);
+	if (thrd->hostname)
+		free(thrd->hostname);
+	if (thrd->tablename)
+		free(thrd->tablename);
+	free(thrd);
 
 	return (NULL);
 }
@@ -534,19 +548,8 @@ clear_config(struct thread_list *thrlist)
 
 	pthread_mutex_lock(&sig_mtx);
 	while ((thr = TAILQ_FIRST(thrlist)) != NULL) {
-		if (debug >= 4)
-			syslog(LOG_ERR, "Cleaning up hostname %s", thr->hostname);
 		TAILQ_REMOVE(thrlist, thr, next);
-		if (thr->thr_pid != 0)
-			pthread_cancel(thr->thr_pid);
-		clear_hostname_addresses(thr);
-		if (thr->hostname)
-			free(thr->hostname);
-		if (thr->tablename)
-			free(thr->tablename);
-		pthread_mutex_destroy(&thr->mtx);
-		pthread_cond_destroy(&thr->cond);
-		free(thr);
+		thr->exit = 1;
 	}
 	pthread_mutex_unlock(&sig_mtx);
 }

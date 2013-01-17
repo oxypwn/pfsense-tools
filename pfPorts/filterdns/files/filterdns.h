@@ -61,6 +61,7 @@ struct thread_data {
 	pthread_t thr_pid;
 	pthread_cond_t cond;
 	pthread_mutex_t mtx;
+	int exit;
 };
 TAILQ_HEAD(thread_list, thread_data) thread_list;
 
