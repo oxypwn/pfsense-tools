@@ -550,6 +550,13 @@ clear_config(struct thread_list *thrlist)
 	while ((thr = TAILQ_FIRST(thrlist)) != NULL) {
 		TAILQ_REMOVE(thrlist, thr, next);
 		thr->exit = 1;
+		if (thr->thr_pid == 0) {
+			if (thr->hostname)
+				free(thr->hostname);
+			if (thr->tablename)
+				free(thr->tablename);
+			free(thr);
+		}
 	}
 	pthread_mutex_unlock(&sig_mtx);
 }
