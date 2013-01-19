@@ -399,8 +399,10 @@ void *check_hostname(void *arg)
 		if (thrd->exit == 1) {
 			pthread_rwlock_unlock(&main_lock);
 			break;
-		} else if (thrd->exit == 2)
+		} else if (thrd->exit == 2) {
 			tmp = 1;
+			thrd->exit = 0;
+		}
 
 		howmuch = host_dns(thrd, tmp);
 		if (debug >= 2)
