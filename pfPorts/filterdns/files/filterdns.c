@@ -65,7 +65,7 @@ static pthread_rwlock_t main_lock;
 
 static void pf_tableentry(struct thread_data *, struct sockaddr *, int);
 static void ipfw_tableentry(struct thread_data *, struct sockaddr *, int);
-static int host_dns(struct thread_data *);
+static int host_dns(struct thread_data *, int);
 static int filterdns_clean_table(struct thread_data *, int);
 static void clear_config(struct thread_list *);
 static void clear_hostname_addresses(struct thread_data *);
@@ -96,7 +96,7 @@ flush_table(char *tablename)
 #endif
 
 static int
-add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_data *thrdata)
+add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_data *thrdata, int forceupdate)
 {
 	struct table *ent, *tmp;
 	char buffer[INET6_ADDRSTRLEN] = { 0 };
@@ -111,6 +111,22 @@ add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_da
 					syslog(LOG_WARNING, "\t\tentry %s exists in table %s", inet_ntop(addr->sa_family, satosin6(addr)->sin6_addr.s6_addr, buffer, sizeof buffer), thrdata->tablename);
 			}
 			tmp->refcnt++;
+			if (forceupdate) {
+				if (thrdata->type == PF_TYPE) {
+					if (debug >= 2) {
+						if(addr->sa_family == AF_INET)
+							syslog(LOG_WARNING, "\tREFRESHING entry %s on table %s for host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+						if(addr->sa_family == AF_INET6)
+							syslog(LOG_WARNING, "\tREFRESHING entry %s on table %s for host %s", inet_ntop(addr->sa_family, addr->sa_data + 6, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+					}
+					pf_tableentry(thrdata, addr, ADD);
+				}
+				else if (thrdata->type == IPFW_TYPE) {
+					if (debug >= 2)	
+						syslog(LOG_WARNING, "\tadding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
+					ipfw_tableentry(thrdata, addr, ADD);
+				}
+			}
 			return (EEXIST);
 		}
 	}
@@ -198,7 +214,7 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 }
 
 static int
-host_dns(struct thread_data *hostd)
+host_dns(struct thread_data *hostd, int forceupdate)
 {
         struct addrinfo          *res0, *res;
         int                      error, cnt = 0;
@@ -218,13 +234,13 @@ host_dns(struct thread_data *hostd)
                 if (res->ai_family == AF_INET) {
 			if (debug > 9)
 				syslog(LOG_WARNING, "\t\tfound entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 2, buffer, sizeof buffer), hostd->tablename);
-			if (!add_table_entry(&hostd->rnh, res->ai_addr, hostd))
+			if (!add_table_entry(&hostd->rnh, res->ai_addr, hostd, forceupdate))
                 		cnt++;
 		}
 		if(res->ai_family == AF_INET6) {
 			if (debug > 9)
 				syslog(LOG_WARNING, "\t\tfound entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 6, buffer, sizeof buffer), hostd->tablename);
-			if (!add_table_entry(&hostd->rnh, res->ai_addr, hostd))
+			if (!add_table_entry(&hostd->rnh, res->ai_addr, hostd, forceupdate))
                 		cnt++;
                 }
         }
@@ -373,18 +389,20 @@ void *check_hostname(void *arg)
 	pthread_mutex_lock(&thrd->mtx);
 	for (;;) {
 		
+		tmp = 0;
 		ts.tv_sec += interval;
 		ts.tv_sec += (interval % 30);
 		ts.tv_nsec = 0;
 
 		pthread_rwlock_rdlock(&main_lock);
 
-		if (thrd->exit) {
+		if (thrd->exit == 1) {
 			pthread_rwlock_unlock(&main_lock);
 			break;
-		}
+		} else if (thrd->exit == 2)
+			tmp = 1;
 
-		howmuch = host_dns(thrd);	
+		howmuch = host_dns(thrd, tmp);
 		if (debug >= 2)
 			syslog(LOG_WARNING, "\tFound %d entries for %s", howmuch, thrd->hostname);
 
@@ -489,6 +507,7 @@ merge_config(void *arg __unused) {
 					TAILQ_INSERT_HEAD(&thread_list, tmpthr, next);
 					TAILQ_INSERT_HEAD(&tmp_thread_list, thr, next);
 					thr->thr_pid = 0;
+					tmpthr->exit = 2;
 					foundexisting = 1;
 					break;
 				}
@@ -546,7 +565,6 @@ clear_config(struct thread_list *thrlist)
 {
 	struct thread_data *thr;
 
-	pthread_mutex_lock(&sig_mtx);
 	while ((thr = TAILQ_FIRST(thrlist)) != NULL) {
 		TAILQ_REMOVE(thrlist, thr, next);
 		thr->exit = 1;
@@ -558,7 +576,6 @@ clear_config(struct thread_list *thrlist)
 			free(thr);
 		}
 	}
-	pthread_mutex_unlock(&sig_mtx);
 }
 
 static void filterdns_usage(void) {
