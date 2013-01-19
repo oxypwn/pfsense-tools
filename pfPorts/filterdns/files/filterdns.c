@@ -507,8 +507,11 @@ merge_config(void *arg __unused) {
 					TAILQ_REMOVE(&thread_list, thr, next);
 					TAILQ_REMOVE(&tmp_thread_list, tmpthr, next);
 					TAILQ_INSERT_HEAD(&thread_list, tmpthr, next);
-					TAILQ_INSERT_HEAD(&tmp_thread_list, thr, next);
-					thr->thr_pid = 0;
+					if (thr->hostname)
+						free(thr->hostname);
+					if (thr->tablename)
+						free(thr->tablename);
+					free(thr);
 					tmpthr->exit = 2;
 					foundexisting = 1;
 					break;
@@ -567,16 +570,12 @@ clear_config(struct thread_list *thrlist)
 {
 	struct thread_data *thr;
 
+	if (TAILQ_EMPTY(thrlist))
+		return;
+
 	while ((thr = TAILQ_FIRST(thrlist)) != NULL) {
 		TAILQ_REMOVE(thrlist, thr, next);
 		thr->exit = 1;
-		if (thr->thr_pid == 0) {
-			if (thr->hostname)
-				free(thr->hostname);
-			if (thr->tablename)
-				free(thr->tablename);
-			free(thr);
-		}
 	}
 }
 
