@@ -531,11 +531,11 @@ merge_config(void *arg __unused) {
 
 			}
 		}
-		pthread_rwlock_unlock(&main_lock);
-
 		if (debug > 3)
 			syslog(LOG_ERR, "Cleaning up previous hostnames");
 		clear_config(&tmp_thread_list);
+		pthread_rwlock_unlock(&main_lock);
+
 	}
 }
 
