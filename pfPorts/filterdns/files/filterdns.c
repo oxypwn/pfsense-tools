@@ -502,8 +502,6 @@ merge_config(void *arg __unused) {
 					if (strlen(thr->tablename) != strlen(tmpthr->tablename) || strncmp(thr->tablename, tmpthr->tablename, strlen(thr->tablename)))
 						continue;
 
-					if (tmpthr->thr_pid == 0)
-						continue;
 					TAILQ_REMOVE(&thread_list, thr, next);
 					TAILQ_REMOVE(&tmp_thread_list, tmpthr, next);
 					TAILQ_INSERT_HEAD(&thread_list, tmpthr, next);
