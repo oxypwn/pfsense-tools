@@ -594,7 +594,7 @@ int main(int argc, char *argv[]) {
 	file = NULL;
 	pidfile = NULL;
 
-	while ((ch = getopt(argc, argv, "c:d:fi:p:y:")) != -1) {
+	while ((ch = getopt(argc, argv, "c:d:fi:p:y:v")) != -1) {
 		switch (ch) {
 		case 'c':
 			file = optarg;
