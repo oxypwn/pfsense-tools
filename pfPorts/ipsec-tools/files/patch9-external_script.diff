@@ -1,6 +1,6 @@
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
---- ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y	2012-11-21 14:25:07.000000000 +0000
-+++ ./src/racoon/cfparse.y	2012-11-21 14:25:17.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y	2013-01-21 13:58:36.000000000 +0000
++++ ./src/racoon/cfparse.y	2013-01-21 13:58:58.000000000 +0000
 @@ -201,9 +201,11 @@
  %token LDAP_ATTR_USER LDAP_ATTR_ADDR LDAP_ATTR_MASK LDAP_ATTR_GROUP LDAP_ATTR_MEMBER
  	/* radius config */
@@ -43,7 +43,7 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
  	/* radius configuration */
  radcfg_statement
  	:	RADCFG {
-@@ -830,6 +846,15 @@
+@@ -830,6 +847,15 @@
  #endif
  		}
  		EOS
@@ -60,8 +60,8 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cfparse.y ./src/racoon/cfparse.y
  		{
  #ifdef ENABLE_HYBRID
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l ./src/racoon/cftoken.l
---- ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l	2012-11-21 14:25:07.000000000 +0000
-+++ ./src/racoon/cftoken.l	2012-11-21 14:25:17.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l	2013-01-21 13:58:36.000000000 +0000
++++ ./src/racoon/cftoken.l	2013-01-21 13:58:58.000000000 +0000
 @@ -132,7 +132,7 @@
  decstring	{digit}+
  hexstring	0x{hexdigit}+
@@ -93,8 +93,8 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/cftoken.l ./src/racoon/cftoken.l
  <S_CFG>none		{ YYD; return(CFG_NONE); }
  <S_CFG>radius		{ YYD; return(CFG_RADIUS); }
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_cfg.h ./src/racoon/isakmp_cfg.h
---- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_cfg.h	2012-11-21 14:25:07.000000000 +0000
-+++ ./src/racoon/isakmp_cfg.h	2012-11-21 14:25:17.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_cfg.h	2013-01-21 13:58:36.000000000 +0000
++++ ./src/racoon/isakmp_cfg.h	2013-01-21 13:58:58.000000000 +0000
 @@ -111,6 +111,7 @@
  #define ISAKMP_CFG_AUTH_RADIUS	1
  #define ISAKMP_CFG_AUTH_PAM	2
@@ -104,8 +104,8 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_cfg.h ./src/racoon/isakmp_cf
  /* For groupsource */
  #define ISAKMP_CFG_GROUP_SYSTEM	0
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_xauth.c
---- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c	2012-11-21 14:25:07.000000000 +0000
-+++ ./src/racoon/isakmp_xauth.c	2012-11-21 14:28:23.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c	2013-01-21 13:58:35.000000000 +0000
++++ ./src/racoon/isakmp_xauth.c	2013-01-21 13:59:56.000000000 +0000
 @@ -37,6 +37,7 @@
  #include <sys/param.h>
  #include <sys/socket.h>
@@ -208,9 +208,19 @@ diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.c ./src/racoon/isakmp_
  int
  xauth_login_system(usr, pwd)
  	char *usr;
+@@ -1276,6 +1350,9 @@
+ 	if ((pw = getpwnam(usr)) == NULL)
+ 		return -1;
+ 
++	if (strlen(usr) != strlen(pw->pw_name))
++		return -1;
++
+ #ifndef HAVE_SHADOW_H
+ 	syscryptpwd = pw->pw_passwd;
+ #endif
 diff -ur ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.h ./src/racoon/isakmp_xauth.h
---- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.h	2012-11-21 14:25:07.000000000 +0000
-+++ ./src/racoon/isakmp_xauth.h	2012-11-21 14:25:17.000000000 +0000
+--- ../ipsec-tools-0.8.0.old/src/racoon/isakmp_xauth.h	2013-01-21 13:58:35.000000000 +0000
++++ ./src/racoon/isakmp_xauth.h	2013-01-21 13:58:58.000000000 +0000
 @@ -120,6 +120,14 @@
  int xauth_login_pam(int, struct sockaddr *, char *, char *);
  #endif
