@@ -618,6 +618,11 @@ int main(int argc, char *argv[]) {
 		case 'y':
 			ipfwctx = optarg;
 			break;
+		case 'v':
+			printf("Version 1.1\n");
+			exit(0);
+			/* NOTREACHED */
+			break;
 		default:
 			fprintf(stderr, "Wrong option: %c given!\n", ch);
 			filterdns_usage();
