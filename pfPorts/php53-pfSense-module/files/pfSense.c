@@ -396,12 +396,12 @@ PHP_FUNCTION(pfSense_kill_srcstates)
 	char *ip1 = NULL, *ip2 = NULL;
 	int ip1_len = 0, ip2_len = 0;
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &ip1, &ip1_len, &ip2, &ip2_len) == FAILURE) {
-                RETURN_NULL();
-        }
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &ip1, &ip1_len, &ip2, &ip2_len) == FAILURE) {
+		RETURN_NULL();
+	}
 
-        if ((dev = open("/dev/pf", O_RDWR)) < 0)
-                RETURN_NULL();
+	if ((dev = open("/dev/pf", O_RDWR)) < 0)
+		RETURN_NULL();
 
 	killed = sources = dests = 0;
 
@@ -415,7 +415,7 @@ PHP_FUNCTION(pfSense_kill_srcstates)
 
 	if ((ret_ga = getaddrinfo(ip1, NULL, NULL, &res[0]))) {
 		php_printf("getaddrinfo: %s", gai_strerror(ret_ga));
-                RETURN_NULL();
+		RETURN_NULL();
 		/* NOTREACHED */
 	}
 	for (resp[0] = res[0]; resp[0]; resp[0] = resp[0]->ai_next) {
@@ -512,16 +512,16 @@ PHP_FUNCTION(pfSense_kill_states)
 	int killed, sources, dests;
 	int ret_ga;
 
-        int dev;
+	int dev;
 	char *ip1 = NULL, *ip2 = NULL;
 	int ip1_len = 0, ip2_len = 0;
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &ip1, &ip1_len, &ip2, &ip2_len) == FAILURE) {
-                RETURN_NULL();
-        }
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &ip1, &ip1_len, &ip2, &ip2_len) == FAILURE) {
+		RETURN_NULL();
+	}
 
-        if ((dev = open("/dev/pf", O_RDWR)) < 0)
-                RETURN_NULL();
+	if ((dev = open("/dev/pf", O_RDWR)) < 0)
+		RETURN_NULL();
 
 	killed = sources = dests = 0;
 
@@ -636,10 +636,10 @@ PHP_FUNCTION(pfSense_kill_states)
 static unsigned long long
 pfSense_align_uint64(const uint64_t *pll)
 {
-        uint64_t ret;
+	uint64_t ret;
 
-        bcopy (pll, &ret, sizeof(ret));
-        return ret;
+	bcopy (pll, &ret, sizeof(ret));
+	return ret;
 }
 
 PHP_FUNCTION(pfSense_pipe_action)
@@ -707,12 +707,13 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 {
 	ipfw_table_entry ent;
 	socklen_t size;
-	int mask = 0, table = 0, pipe = 0;
+	long mask = 0, table = 0, pipe = 0;
 	char *ip, *zone, *mac = NULL, *p;
-	int ip_len, zone_len, mac_len = 0, action = IP_FW_TABLE_ADD;
+	int ip_len, zone_len, mac_len = 0;
+	long action = IP_FW_TABLE_ADD;
 	int err;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "slls|lsl", &zone, &zone_len, &action, &table, &ip, &ip_len, &mask, &mac, &mac_len, &pipe) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "slls|l!sl", &zone, &zone_len, &action, &table, &ip, &ip_len, &mask, &mac, &mac_len, &pipe) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -730,19 +731,19 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 	}
 
 	if (mask)
-		ent.masklen = mask;
+		ent.masklen = (u_int8_t)mask;
 	else
 		ent.masklen = 32;
 	if (pipe)
-		ent.value = pipe;
+		ent.value = (u_int32_t)pipe;
 
 	if (mac_len > 0) {
 		if (ether_aton_r(mac, (struct ether_addr *)&ent.mac_addr) == NULL)
 			RETURN_FALSE;
 	}
 	size = sizeof(ent);
-	ent.tbl = table;
-	err = setsockopt(PFSENSE_G(ipfw), IPPROTO_IP, action, &ent, size);
+	ent.tbl = (u_int16_t)table;
+	err = setsockopt(PFSENSE_G(ipfw), IPPROTO_IP, (int)action, &ent, size);
 	if (err < 0 && err != EEXIST)
 		RETURN_FALSE;
 
@@ -753,7 +754,7 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 {
 	ipfw_table_entry ent;
 	socklen_t size;
-	int mask = 0, table;
+	long mask = 0, table = 0;
 	char *ip, *name;
 	int ip_len, name_len;
 
@@ -771,11 +772,11 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 	}
 
 	if (mask)
-		ent.masklen = mask;
+		ent.masklen = (u_int8_t)mask;
 	else
 		ent.masklen = 32;
 	size = sizeof(ent);
-	ent.tbl = table;
+	ent.tbl = (u_int16_t)table;
 	if (getsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW_TABLE_GET_ENTRY, &ent, &size) < 0)
 		RETURN_FALSE;
 
@@ -792,7 +793,8 @@ PHP_FUNCTION(pfSense_open_dhcpd)
 {
 	omapi_data *data;
 	char *key, *addr, *name;
-	int key_len, addr_len, name_len, port;
+	int key_len, addr_len, name_len;
+	long port;
 	dhcpctl_status status;
 	dhcpctl_handle auth = dhcpctl_null_handle, conn = dhcpctl_null_handle;
 
@@ -806,7 +808,7 @@ PHP_FUNCTION(pfSense_open_dhcpd)
 		RETURN_NULL();
 	}
 
-	status = dhcpctl_connect(&conn, addr, port, auth);
+	status = dhcpctl_connect(&conn, addr, (int)port, auth);
 	if (status != ISC_R_SUCCESS) {
 		//php_printf("Error occured during connecting: %s\n", isc_result_totext(status));
 		RETURN_NULL();
@@ -820,11 +822,11 @@ PHP_FUNCTION(pfSense_open_dhcpd)
 
 PHP_FUNCTION(pfSense_register_lease)
 {
-        dhcpctl_status status = ISC_R_SUCCESS;
-        dhcpctl_status status2 = ISC_R_SUCCESS;
-        dhcpctl_handle hp = NULL;
-        struct ether_addr *ds;
-        struct in_addr nds;
+	dhcpctl_status status = ISC_R_SUCCESS;
+	dhcpctl_status status2 = ISC_R_SUCCESS;
+	dhcpctl_handle hp = NULL;
+	struct ether_addr *ds;
+	struct in_addr nds;
 	char *mac, *ip, *name;
 	int mac_len, ip_len, name_len;
 	zval *res;
@@ -837,27 +839,27 @@ PHP_FUNCTION(pfSense_register_lease)
 	ZEND_FETCH_RESOURCE(conn, omapi_data *, &res, -1, PHP_PFSENSE_RES_NAME, pfSense_dhcpd);
 	ZEND_VERIFY_RESOURCE(conn);
 
-        if ((status = dhcpctl_new_object(&hp, conn->handle, "host")) != ISC_R_SUCCESS) {
+	if ((status = dhcpctl_new_object(&hp, conn->handle, "host")) != ISC_R_SUCCESS) {
 		//php_printf("1Error occured during connecting: %s\n", isc_result_totext(status));
 		RETURN_FALSE;
 	}
 
 	inet_aton(ip, &nds);
-        if ((status = dhcpctl_set_data_value(hp, (char *)&nds, sizeof(struct in_addr), "ip-address")) != ISC_R_SUCCESS) {
+	if ((status = dhcpctl_set_data_value(hp, (char *)&nds, sizeof(struct in_addr), "ip-address")) != ISC_R_SUCCESS) {
 		//php_printf("3Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
 
-        if ((status = dhcpctl_set_string_value(hp, name, "name")) != ISC_R_SUCCESS) {
+	if ((status = dhcpctl_set_string_value(hp, name, "name")) != ISC_R_SUCCESS) {
 		//php_printf("4Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
 
-        if (!(ds = ether_aton(mac)))
+	if (!(ds = ether_aton(mac)))
 		RETURN_FALSE;
-        if ((status = dhcpctl_set_data_value(hp, (u_char *)ds, sizeof(struct ether_addr), "hardware-address")) != ISC_R_SUCCESS) {
+	if ((status = dhcpctl_set_data_value(hp, (u_char *)ds, sizeof(struct ether_addr), "hardware-address")) != ISC_R_SUCCESS) {
 		//php_printf("2Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
@@ -870,7 +872,7 @@ PHP_FUNCTION(pfSense_register_lease)
 	}
 
 	//php_printf("Coonection handle %d\n", conn->handle);
-        if ((status = dhcpctl_open_object(hp, conn->handle, DHCPCTL_CREATE|DHCPCTL_EXCL)) != ISC_R_SUCCESS) {
+	if ((status = dhcpctl_open_object(hp, conn->handle, DHCPCTL_CREATE|DHCPCTL_EXCL)) != ISC_R_SUCCESS) {
 		//php_printf("5Error occured during connecting: %s\n", isc_result_totext(status));
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
@@ -880,74 +882,74 @@ PHP_FUNCTION(pfSense_register_lease)
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
-        if (status2 != ISC_R_SUCCESS) {
+	if (status2 != ISC_R_SUCCESS) {
 		//php_printf("7Error occured during connecting: %s\n", isc_result_totext(status2));
-                omapi_object_dereference(&hp,__FILE__,__LINE__);
-                RETURN_FALSE;
-        }
+		omapi_object_dereference(&hp,__FILE__,__LINE__);
+		RETURN_FALSE;
+	}
 
-        omapi_object_dereference(&hp,__FILE__,__LINE__);
+	omapi_object_dereference(&hp,__FILE__,__LINE__);
 
-        RETURN_TRUE;
+	RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_delete_lease)
 {
 	dhcpctl_status status;
-        dhcpctl_status status2;
-        dhcpctl_handle hp = NULL;
-        dhcpctl_data_string ds = NULL;
-        omapi_data_string_t *nds;
-        char *mac;
+	dhcpctl_status status2;
+	dhcpctl_handle hp = NULL;
+	dhcpctl_data_string ds = NULL;
+	omapi_data_string_t *nds;
+	char *mac;
 	int mac_len;
 	zval *res;
 	omapi_data *conn;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &mac, &mac_len) == FAILURE) {
-                RETURN_FALSE;
-        }
+		RETURN_FALSE;
+	}
 
 	ZEND_FETCH_RESOURCE(conn, omapi_data *, &res, -1, PHP_PFSENSE_RES_NAME, pfSense_dhcpd);
-        ZEND_VERIFY_RESOURCE(conn);
+	ZEND_VERIFY_RESOURCE(conn);
 
-        if ((status = dhcpctl_new_object(&hp, conn->handle, "host")))
+	if ((status = dhcpctl_new_object(&hp, conn->handle, "host")))
 		RETURN_FALSE;
 
-        if (mac) {
-                omapi_data_string_new(&ds, sizeof(struct ether_addr), __FILE__, __LINE__);
-                memcpy(ds->value,ether_aton(mac),sizeof(struct ether_addr));
-                if ((status = dhcpctl_set_value(hp, ds, "hardware-address"))) {
+	if (mac) {
+		omapi_data_string_new(&ds, sizeof(struct ether_addr), __FILE__, __LINE__);
+		memcpy(ds->value,ether_aton(mac),sizeof(struct ether_addr));
+		if ((status = dhcpctl_set_value(hp, ds, "hardware-address"))) {
 			omapi_object_dereference(&hp,__FILE__,__LINE__);
 			RETURN_FALSE;
 		}
-        } else
+	} else
 		RETURN_FALSE;
-        
-        if ((status = dhcpctl_open_object(hp, conn->handle, 0))) {
+
+	if ((status = dhcpctl_open_object(hp, conn->handle, 0))) {
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
-        if ((status = dhcpctl_wait_for_completion(hp, &status2))) {
+	if ((status = dhcpctl_wait_for_completion(hp, &status2))) {
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
-        if (status2) {
+	if (status2) {
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
-        if ((status = dhcpctl_object_remove(conn->handle, hp))) {
+	if ((status = dhcpctl_object_remove(conn->handle, hp))) {
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
-        if ((status = dhcpctl_wait_for_completion(hp, &status2))) {
+	if ((status = dhcpctl_wait_for_completion(hp, &status2))) {
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
-        if (status2) {
+	if (status2) {
 		omapi_object_dereference(&hp,__FILE__,__LINE__);
 		RETURN_FALSE;
 	}
-        omapi_object_dereference(&hp,__FILE__,__LINE__);
+	omapi_object_dereference(&hp,__FILE__,__LINE__);
 
 	RETURN_TRUE;
 }
@@ -981,8 +983,8 @@ PHP_FUNCTION(pfSense_ip_to_mac)
 	int st, found_entry = 0;
 	char outputbuf[128];
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &ip, &ip_len, &rifname, &ifname_len) == FAILURE)
-                RETURN_NULL();
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &ip, &ip_len, &rifname, &ifname_len) == FAILURE)
+		RETURN_NULL();
 
 	bzero(&addr, sizeof(addr));
 	if (!inet_pton(AF_INET, ip, &addr.sin_addr.s_addr))
@@ -1048,28 +1050,28 @@ PHP_FUNCTION(pfSense_ip_to_mac)
 PHP_FUNCTION(pfSense_getall_interface_addresses)
 {
 	struct ifaddrs *ifdata, *mb;
-        struct if_data *md;
+	struct if_data *md;
 	struct sockaddr_in *tmp;
-        char outputbuf[132];
-        char *ifname;
-        int ifname_len, s;
+	char outputbuf[132];
+	char *ifname;
+	int ifname_len, s;
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE)
-                RETURN_NULL();
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE)
+		RETURN_NULL();
 
 	getifaddrs(&ifdata);
-        if (ifdata == NULL)
-                RETURN_NULL();
+	if (ifdata == NULL)
+		RETURN_NULL();
 
 	array_init(return_value);
 
-        for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
+	for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
 		if (mb == NULL)
-                        continue;
+			continue;
 		if (ifname_len != strlen(mb->ifa_name))
-                        continue;
-                if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
-                        continue;
+			continue;
+		if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
+			continue;
 		if (mb->ifa_addr == NULL)
 			continue;
 
@@ -1100,244 +1102,244 @@ PHP_FUNCTION(pfSense_getall_interface_addresses)
 PHP_FUNCTION(pfSense_get_interface_addresses)
 {
 	struct ifaddrs *ifdata, *mb;
-        struct if_data *md;
+	struct if_data *md;
 	struct sockaddr_in *tmp;
-        struct sockaddr_dl *tmpdl;
+	struct sockaddr_dl *tmpdl;
 	struct ifreq ifr;
-        char outputbuf[128];
-        char *ifname;
-        int ifname_len, s, addresscnt = 0;
+	char outputbuf[128];
+	char *ifname;
+	int ifname_len, s, addresscnt = 0;
 	zval *caps;
 	zval *encaps;
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE)
-                RETURN_NULL();
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE)
+		RETURN_NULL();
 
 	getifaddrs(&ifdata);
-        if (ifdata == NULL)
-                RETURN_NULL();
+	if (ifdata == NULL)
+		RETURN_NULL();
 
 	array_init(return_value);
 
-        for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
+	for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
 		if (mb == NULL)
-                        continue;
+			continue;
 		if (ifname_len != strlen(mb->ifa_name))
-                        continue;
-                if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
-                        continue;
+			continue;
+		if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
+			continue;
 
-	if (mb->ifa_flags & IFF_UP)
-		add_assoc_string(return_value, "status", "up", 1);
-	else
-		add_assoc_string(return_value, "status", "down", 1);
-	if (mb->ifa_flags & IFF_LINK0)
-		add_assoc_long(return_value, "link0", 1);
-	if (mb->ifa_flags & IFF_LINK1)
-		add_assoc_long(return_value, "link1", 1);
-	if (mb->ifa_flags & IFF_LINK2)
-		add_assoc_long(return_value, "link2", 1);
-	if (mb->ifa_flags & IFF_MULTICAST)
-		add_assoc_long(return_value, "multicast", 1);
-	if (mb->ifa_flags & IFF_LOOPBACK)
-                add_assoc_long(return_value, "loopback", 1);
-	if (mb->ifa_flags & IFF_POINTOPOINT)
-                add_assoc_long(return_value, "pointtopoint", 1);
-	if (mb->ifa_flags & IFF_PROMISC)
-                add_assoc_long(return_value, "promisc", 1);
-	if (mb->ifa_flags & IFF_PPROMISC)
-                add_assoc_long(return_value, "permanentpromisc", 1);
-	if (mb->ifa_flags & IFF_OACTIVE)
-                add_assoc_long(return_value, "oactive", 1);
-	if (mb->ifa_flags & IFF_ALLMULTI)
-                add_assoc_long(return_value, "allmulti", 1);
-	if (mb->ifa_flags & IFF_SIMPLEX)
-                add_assoc_long(return_value, "simplex", 1);
-	if (mb->ifa_data != NULL) {
-		md = mb->ifa_data;
-		if (md->ifi_link_state == LINK_STATE_UP)
-                	add_assoc_long(return_value, "linkstateup", 1);
-		//add_assoc_long(return_value, "hwassistflag", md->ifi_hwassist);
-		add_assoc_long(return_value, "mtu", md->ifi_mtu);
-		switch (md->ifi_type) {
-		case IFT_IEEE80211:
-			add_assoc_string(return_value, "iftype", "wireless", 1);
-			break;
-		case IFT_ETHER:
-		case IFT_FASTETHER:
-		case IFT_FASTETHERFX:
-		case IFT_GIGABITETHERNET:
-			add_assoc_string(return_value, "iftype", "ether", 1);
-			break;
-		case IFT_L2VLAN:
-			add_assoc_string(return_value, "iftype", "vlan", 1);
-			break;
-		case IFT_BRIDGE:
-			add_assoc_string(return_value, "iftype", "bridge", 1);
-			break;
-		case IFT_TUNNEL:
-		case IFT_GIF:
-		case IFT_FAITH:
-		case IFT_ENC:
-		case IFT_PFLOG: 
-		case IFT_PFSYNC:
-			add_assoc_string(return_value, "iftype", "virtual", 1);
-			break;
-		case IFT_CARP:
-			add_assoc_string(return_value, "iftype", "carp", 1);
-			break;
-		default:
-			add_assoc_string(return_value, "iftype", "other", 1);
+		if (mb->ifa_flags & IFF_UP)
+			add_assoc_string(return_value, "status", "up", 1);
+		else
+			add_assoc_string(return_value, "status", "down", 1);
+		if (mb->ifa_flags & IFF_LINK0)
+			add_assoc_long(return_value, "link0", 1);
+		if (mb->ifa_flags & IFF_LINK1)
+			add_assoc_long(return_value, "link1", 1);
+		if (mb->ifa_flags & IFF_LINK2)
+			add_assoc_long(return_value, "link2", 1);
+		if (mb->ifa_flags & IFF_MULTICAST)
+			add_assoc_long(return_value, "multicast", 1);
+		if (mb->ifa_flags & IFF_LOOPBACK)
+			add_assoc_long(return_value, "loopback", 1);
+		if (mb->ifa_flags & IFF_POINTOPOINT)
+			add_assoc_long(return_value, "pointtopoint", 1);
+		if (mb->ifa_flags & IFF_PROMISC)
+			add_assoc_long(return_value, "promisc", 1);
+		if (mb->ifa_flags & IFF_PPROMISC)
+			add_assoc_long(return_value, "permanentpromisc", 1);
+		if (mb->ifa_flags & IFF_OACTIVE)
+			add_assoc_long(return_value, "oactive", 1);
+		if (mb->ifa_flags & IFF_ALLMULTI)
+			add_assoc_long(return_value, "allmulti", 1);
+		if (mb->ifa_flags & IFF_SIMPLEX)
+			add_assoc_long(return_value, "simplex", 1);
+		if (mb->ifa_data != NULL) {
+			md = mb->ifa_data;
+			if (md->ifi_link_state == LINK_STATE_UP)
+				add_assoc_long(return_value, "linkstateup", 1);
+			//add_assoc_long(return_value, "hwassistflag", md->ifi_hwassist);
+			add_assoc_long(return_value, "mtu", md->ifi_mtu);
+			switch (md->ifi_type) {
+			case IFT_IEEE80211:
+				add_assoc_string(return_value, "iftype", "wireless", 1);
+				break;
+			case IFT_ETHER:
+			case IFT_FASTETHER:
+			case IFT_FASTETHERFX:
+			case IFT_GIGABITETHERNET:
+				add_assoc_string(return_value, "iftype", "ether", 1);
+				break;
+			case IFT_L2VLAN:
+				add_assoc_string(return_value, "iftype", "vlan", 1);
+				break;
+			case IFT_BRIDGE:
+				add_assoc_string(return_value, "iftype", "bridge", 1);
+				break;
+			case IFT_TUNNEL:
+			case IFT_GIF:
+			case IFT_FAITH:
+			case IFT_ENC:
+			case IFT_PFLOG: 
+			case IFT_PFSYNC:
+				add_assoc_string(return_value, "iftype", "virtual", 1);
+				break;
+			case IFT_CARP:
+				add_assoc_string(return_value, "iftype", "carp", 1);
+				break;
+			default:
+				add_assoc_string(return_value, "iftype", "other", 1);
+			}
 		}
-	}
-	ALLOC_INIT_ZVAL(caps);
-	ALLOC_INIT_ZVAL(encaps);
-	array_init(caps);
-	array_init(encaps);
-	strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
-	if (ioctl(PFSENSE_G(s), SIOCGIFCAP, (caddr_t)&ifr) == 0) {
-		add_assoc_long(caps, "flags", ifr.ifr_reqcap);
-		if (ifr.ifr_reqcap & IFCAP_POLLING)
-			add_assoc_long(caps, "polling", 1);
-		if (ifr.ifr_reqcap & IFCAP_RXCSUM)
-			add_assoc_long(caps, "rxcsum", 1);
-		if (ifr.ifr_reqcap & IFCAP_TXCSUM)
-			add_assoc_long(caps, "txcsum", 1);
-		if (ifr.ifr_reqcap & IFCAP_VLAN_MTU)
-			add_assoc_long(caps, "vlanmtu", 1);
-		if (ifr.ifr_reqcap & IFCAP_JUMBO_MTU)
-			add_assoc_long(caps, "jumbomtu", 1);
-		if (ifr.ifr_reqcap & IFCAP_VLAN_HWTAGGING)
-			add_assoc_long(caps, "vlanhwtag", 1);
-		if (ifr.ifr_reqcap & IFCAP_VLAN_HWCSUM)
-               		add_assoc_long(caps, "vlanhwcsum", 1);
-		if (ifr.ifr_reqcap & IFCAP_TSO4)
-               		add_assoc_long(caps, "tso4", 1);
-		if (ifr.ifr_reqcap & IFCAP_TSO6)
-               		add_assoc_long(caps, "tso6", 1);
-		if (ifr.ifr_reqcap & IFCAP_LRO)
-               		add_assoc_long(caps, "lro", 1);
-		if (ifr.ifr_reqcap & IFCAP_WOL_UCAST)
-               		add_assoc_long(caps, "wolucast", 1);
-		if (ifr.ifr_reqcap & IFCAP_WOL_MCAST)
-               		add_assoc_long(caps, "wolmcast", 1);
-		if (ifr.ifr_reqcap & IFCAP_WOL_MAGIC)
-               		add_assoc_long(caps, "wolmagic", 1);
-		if (ifr.ifr_reqcap & IFCAP_TOE4)
-              		add_assoc_long(caps, "toe4", 1);
-		if (ifr.ifr_reqcap & IFCAP_TOE6)
-               		add_assoc_long(caps, "toe6", 1);
-		if (ifr.ifr_reqcap & IFCAP_VLAN_HWFILTER)
-               		add_assoc_long(caps, "vlanhwfilter", 1);
+		ALLOC_INIT_ZVAL(caps);
+		ALLOC_INIT_ZVAL(encaps);
+		array_init(caps);
+		array_init(encaps);
+		strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
+		if (ioctl(PFSENSE_G(s), SIOCGIFCAP, (caddr_t)&ifr) == 0) {
+			add_assoc_long(caps, "flags", ifr.ifr_reqcap);
+			if (ifr.ifr_reqcap & IFCAP_POLLING)
+				add_assoc_long(caps, "polling", 1);
+			if (ifr.ifr_reqcap & IFCAP_RXCSUM)
+				add_assoc_long(caps, "rxcsum", 1);
+			if (ifr.ifr_reqcap & IFCAP_TXCSUM)
+				add_assoc_long(caps, "txcsum", 1);
+			if (ifr.ifr_reqcap & IFCAP_VLAN_MTU)
+				add_assoc_long(caps, "vlanmtu", 1);
+			if (ifr.ifr_reqcap & IFCAP_JUMBO_MTU)
+				add_assoc_long(caps, "jumbomtu", 1);
+			if (ifr.ifr_reqcap & IFCAP_VLAN_HWTAGGING)
+				add_assoc_long(caps, "vlanhwtag", 1);
+			if (ifr.ifr_reqcap & IFCAP_VLAN_HWCSUM)
+				add_assoc_long(caps, "vlanhwcsum", 1);
+			if (ifr.ifr_reqcap & IFCAP_TSO4)
+				add_assoc_long(caps, "tso4", 1);
+			if (ifr.ifr_reqcap & IFCAP_TSO6)
+				add_assoc_long(caps, "tso6", 1);
+			if (ifr.ifr_reqcap & IFCAP_LRO)
+				add_assoc_long(caps, "lro", 1);
+			if (ifr.ifr_reqcap & IFCAP_WOL_UCAST)
+				add_assoc_long(caps, "wolucast", 1);
+			if (ifr.ifr_reqcap & IFCAP_WOL_MCAST)
+				add_assoc_long(caps, "wolmcast", 1);
+			if (ifr.ifr_reqcap & IFCAP_WOL_MAGIC)
+				add_assoc_long(caps, "wolmagic", 1);
+			if (ifr.ifr_reqcap & IFCAP_TOE4)
+				add_assoc_long(caps, "toe4", 1);
+			if (ifr.ifr_reqcap & IFCAP_TOE6)
+				add_assoc_long(caps, "toe6", 1);
+			if (ifr.ifr_reqcap & IFCAP_VLAN_HWFILTER)
+				add_assoc_long(caps, "vlanhwfilter", 1);
 #if 0
-		if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
-               		add_assoc_long(caps, "pollingnocount", 1);
+			if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
+				add_assoc_long(caps, "pollingnocount", 1);
 #endif
-		add_assoc_long(encaps, "flags", ifr.ifr_curcap);
-		if (ifr.ifr_curcap & IFCAP_POLLING)
-                	add_assoc_long(encaps, "polling", 1);
-                if (ifr.ifr_curcap & IFCAP_RXCSUM)
-                        add_assoc_long(encaps, "rxcsum", 1);
-                if (ifr.ifr_curcap & IFCAP_TXCSUM)
-                        add_assoc_long(encaps, "txcsum", 1);
-                if (ifr.ifr_curcap & IFCAP_VLAN_MTU)
-                        add_assoc_long(encaps, "vlanmtu", 1);
-                if (ifr.ifr_curcap & IFCAP_JUMBO_MTU)
-                        add_assoc_long(encaps, "jumbomtu", 1);
-                if (ifr.ifr_curcap & IFCAP_VLAN_HWTAGGING)
-                        add_assoc_long(encaps, "vlanhwtag", 1);
-                if (ifr.ifr_curcap & IFCAP_VLAN_HWCSUM)
-                        add_assoc_long(encaps, "vlanhwcsum", 1);
-                if (ifr.ifr_curcap & IFCAP_TSO4)
-                        add_assoc_long(encaps, "tso4", 1);
-                if (ifr.ifr_curcap & IFCAP_TSO6)
-                        add_assoc_long(encaps, "tso6", 1);
-                if (ifr.ifr_curcap & IFCAP_LRO)
-                        add_assoc_long(encaps, "lro", 1);
-                if (ifr.ifr_curcap & IFCAP_WOL_UCAST)
-                        add_assoc_long(encaps, "wolucast", 1);
-                if (ifr.ifr_curcap & IFCAP_WOL_MCAST)
-                        add_assoc_long(encaps, "wolmcast", 1);
-                if (ifr.ifr_curcap & IFCAP_WOL_MAGIC)
-                        add_assoc_long(encaps, "wolmagic", 1);
-                if (ifr.ifr_curcap & IFCAP_TOE4)
-                        add_assoc_long(encaps, "toe4", 1);
-                if (ifr.ifr_curcap & IFCAP_TOE6)
-                        add_assoc_long(encaps, "toe6", 1);
-                if (ifr.ifr_curcap & IFCAP_VLAN_HWFILTER)
-			add_assoc_long(encaps, "vlanhwfilter", 1);
+			add_assoc_long(encaps, "flags", ifr.ifr_curcap);
+			if (ifr.ifr_curcap & IFCAP_POLLING)
+				add_assoc_long(encaps, "polling", 1);
+			if (ifr.ifr_curcap & IFCAP_RXCSUM)
+				add_assoc_long(encaps, "rxcsum", 1);
+			if (ifr.ifr_curcap & IFCAP_TXCSUM)
+				add_assoc_long(encaps, "txcsum", 1);
+			if (ifr.ifr_curcap & IFCAP_VLAN_MTU)
+				add_assoc_long(encaps, "vlanmtu", 1);
+			if (ifr.ifr_curcap & IFCAP_JUMBO_MTU)
+				add_assoc_long(encaps, "jumbomtu", 1);
+			if (ifr.ifr_curcap & IFCAP_VLAN_HWTAGGING)
+				add_assoc_long(encaps, "vlanhwtag", 1);
+			if (ifr.ifr_curcap & IFCAP_VLAN_HWCSUM)
+				add_assoc_long(encaps, "vlanhwcsum", 1);
+			if (ifr.ifr_curcap & IFCAP_TSO4)
+				add_assoc_long(encaps, "tso4", 1);
+			if (ifr.ifr_curcap & IFCAP_TSO6)
+				add_assoc_long(encaps, "tso6", 1);
+			if (ifr.ifr_curcap & IFCAP_LRO)
+				add_assoc_long(encaps, "lro", 1);
+			if (ifr.ifr_curcap & IFCAP_WOL_UCAST)
+				add_assoc_long(encaps, "wolucast", 1);
+			if (ifr.ifr_curcap & IFCAP_WOL_MCAST)
+				add_assoc_long(encaps, "wolmcast", 1);
+			if (ifr.ifr_curcap & IFCAP_WOL_MAGIC)
+				add_assoc_long(encaps, "wolmagic", 1);
+			if (ifr.ifr_curcap & IFCAP_TOE4)
+				add_assoc_long(encaps, "toe4", 1);
+			if (ifr.ifr_curcap & IFCAP_TOE6)
+				add_assoc_long(encaps, "toe6", 1);
+			if (ifr.ifr_curcap & IFCAP_VLAN_HWFILTER)
+				add_assoc_long(encaps, "vlanhwfilter", 1);
 #if 0
-                if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
-                	add_assoc_long(caps, "pollingnocount", 1);
+			if (ifr.ifr_reqcap & IFCAP_POLLING_NOCOUNT)
+				add_assoc_long(caps, "pollingnocount", 1);
 #endif
-	}
-	add_assoc_zval(return_value, "caps", caps);
-	add_assoc_zval(return_value, "encaps", encaps);
-	if (mb->ifa_addr == NULL)
-		continue;
-	switch (mb->ifa_addr->sa_family) {
-	case AF_INET:
-		if (addresscnt > 0)
-			break;
-                bzero(outputbuf, sizeof outputbuf);
-                tmp = (struct sockaddr_in *)mb->ifa_addr;
-                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-		add_assoc_string(return_value, "ipaddr", outputbuf, 1);
-		addresscnt++;
-                tmp = (struct sockaddr_in *)mb->ifa_netmask;
-		unsigned char mask;
-		const unsigned char *byte = (unsigned char *)&tmp->sin_addr.s_addr;
-		int i = 0, n = sizeof(tmp->sin_addr.s_addr);
-		while (n--) {
-			mask = ((unsigned char)-1 >> 1) + 1;
-				do {
-					if (mask & byte[n])
-						i++;
-					mask >>= 1;
-				} while (mask);
 		}
-		add_assoc_long(return_value, "subnetbits", i);
+		add_assoc_zval(return_value, "caps", caps);
+		add_assoc_zval(return_value, "encaps", encaps);
+		if (mb->ifa_addr == NULL)
+			continue;
+		switch (mb->ifa_addr->sa_family) {
+		case AF_INET:
+			if (addresscnt > 0)
+				break;
+			bzero(outputbuf, sizeof outputbuf);
+			tmp = (struct sockaddr_in *)mb->ifa_addr;
+			inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
+			add_assoc_string(return_value, "ipaddr", outputbuf, 1);
+			addresscnt++;
+			tmp = (struct sockaddr_in *)mb->ifa_netmask;
+			unsigned char mask;
+			const unsigned char *byte = (unsigned char *)&tmp->sin_addr.s_addr;
+			int i = 0, n = sizeof(tmp->sin_addr.s_addr);
+			while (n--) {
+				mask = ((unsigned char)-1 >> 1) + 1;
+					do {
+						if (mask & byte[n])
+							i++;
+						mask >>= 1;
+					} while (mask);
+			}
+			add_assoc_long(return_value, "subnetbits", i);
 
-                bzero(outputbuf, sizeof outputbuf);
-                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-                add_assoc_string(return_value, "subnet", outputbuf, 1);
+			bzero(outputbuf, sizeof outputbuf);
+			inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
+			add_assoc_string(return_value, "subnet", outputbuf, 1);
 
-                if (mb->ifa_flags & IFF_BROADCAST) {
-                	bzero(outputbuf, sizeof outputbuf);
-                                tmp = (struct sockaddr_in *)mb->ifa_broadaddr;
-                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-                                add_assoc_string(return_value, "broadcast", outputbuf, 1);
-                        }
+			if (mb->ifa_flags & IFF_BROADCAST) {
+				bzero(outputbuf, sizeof outputbuf);
+				tmp = (struct sockaddr_in *)mb->ifa_broadaddr;
+				inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
+				add_assoc_string(return_value, "broadcast", outputbuf, 1);
+			}
 
 			if (mb->ifa_flags & IFF_POINTOPOINT) {
 				bzero(outputbuf, sizeof outputbuf);
-                                tmp = (struct sockaddr_in *)mb->ifa_dstaddr;
-                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
-                                add_assoc_string(return_value, "tunnel", outputbuf, 1);
+				tmp = (struct sockaddr_in *)mb->ifa_dstaddr;
+				inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
+				add_assoc_string(return_value, "tunnel", outputbuf, 1);
 			}
 
 		break;
 		case AF_LINK:
-                        tmpdl = (struct sockaddr_dl *)mb->ifa_addr;
-                        bzero(outputbuf, sizeof outputbuf);
-                        ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), outputbuf);
-                        add_assoc_string(return_value, "macaddr", outputbuf, 1);
-                        md = (struct if_data *)mb->ifa_data;
+			tmpdl = (struct sockaddr_dl *)mb->ifa_addr;
+			bzero(outputbuf, sizeof outputbuf);
+			ether_ntoa_r((struct ether_addr *)LLADDR(tmpdl), outputbuf);
+			add_assoc_string(return_value, "macaddr", outputbuf, 1);
+			md = (struct if_data *)mb->ifa_data;
 
 		break;
-               }
-        }
+		}
+	}
 	freeifaddrs(ifdata);
 }
 
 PHP_FUNCTION(pfSense_bridge_add_member) {
 	char *ifname, *ifchld;
-        int ifname_len, ifchld_len;
+	int ifname_len, ifchld_len;
 	struct ifdrv drv;
 	struct ifbreq req;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &ifchld, &ifchld_len) == FAILURE) {
-                RETURN_NULL();
+		RETURN_NULL();
 	}
 
 	memset(&drv, 0, sizeof(drv));
@@ -1355,12 +1357,12 @@ PHP_FUNCTION(pfSense_bridge_add_member) {
 
 PHP_FUNCTION(pfSense_bridge_del_member) {
 	char *ifname, *ifchld;
-        int ifname_len, ifchld_len;
+	int ifname_len, ifchld_len;
 	struct ifdrv drv;
 	struct ifbreq req;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &ifchld, &ifchld_len) == FAILURE) {
-                RETURN_NULL();
+		RETURN_NULL();
 	}
 
 	memset(&drv, 0, sizeof(drv));
@@ -1378,13 +1380,13 @@ PHP_FUNCTION(pfSense_bridge_del_member) {
 
 PHP_FUNCTION(pfSense_bridge_member_flags) {
 	char *ifname, *ifchld;
-        int ifname_len, ifchld_len;
+	int ifname_len, ifchld_len;
 	struct ifdrv drv;
 	struct ifbreq req;
-	int flags = 0;
+	long flags = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssl", &ifname, &ifname_len, &ifchld, &ifchld_len, &flags) == FAILURE) {
-                RETURN_NULL();
+		RETURN_NULL();
 	}
 
 	memset(&drv, 0, sizeof(drv));
@@ -1399,38 +1401,38 @@ PHP_FUNCTION(pfSense_bridge_member_flags) {
 
 	if (flags < 0) {
 		flags = -flags;
-		req.ifbr_ifsflags &= ~flags;
+		req.ifbr_ifsflags &= ~(int)flags;
 	} else
-		req.ifbr_ifsflags |= flags;
+		req.ifbr_ifsflags |= (int)flags;
 
 	drv.ifd_cmd = BRDGSIFFLGS;
 	drv.ifd_data = &req;
 	drv.ifd_len = sizeof(req);
 	if (ioctl(PFSENSE_G(s), SIOCSDRVSPEC, (caddr_t)&drv) < 0)
-                RETURN_FALSE;
+		RETURN_FALSE;
 
 	RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_interface_listget) {
 	struct ifaddrs *ifdata, *mb;
-        char *ifname;
+	char *ifname;
 	int ifname_len;
-	int flags = 0;
+	long flags = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|l", &flags) == FAILURE)
-                RETURN_NULL();
+		RETURN_NULL();
 
-        getifaddrs(&ifdata);
-        if (ifdata == NULL)
-                RETURN_NULL();
+	getifaddrs(&ifdata);
+	if (ifdata == NULL)
+		RETURN_NULL();
 
 	array_init(return_value);
 	ifname = NULL;
 	ifname_len = 0;
-        for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
-                if (mb == NULL)
-                        continue;
+	for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
+		if (mb == NULL)
+			continue;
 
 		if (flags != 0) {
 			if (mb->ifa_flags & IFF_UP && flags < 0)
@@ -1447,17 +1449,17 @@ PHP_FUNCTION(pfSense_interface_listget) {
 		add_next_index_string(return_value, mb->ifa_name, 1);
 	}
 
-        freeifaddrs(ifdata);
+	freeifaddrs(ifdata);
 }
 
 PHP_FUNCTION(pfSense_interface_create) {
 	char *ifname;
-        int ifname_len, len;
+	int ifname_len, len;
 	struct ifreq ifr;
 	struct vlanreq params;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
-                RETURN_NULL();
+		RETURN_NULL();
 	}
 
 	memset(&ifr, 0, sizeof(ifr));
@@ -1471,11 +1473,11 @@ PHP_FUNCTION(pfSense_interface_create) {
 
 PHP_FUNCTION(pfSense_interface_destroy) {
 	char *ifname;
-        int ifname_len;
+	int ifname_len;
 	struct ifreq ifr;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
-                RETURN_NULL();
+		RETURN_NULL();
 	}
 
 	memset(&ifr, 0, sizeof(ifr));
@@ -1489,7 +1491,7 @@ PHP_FUNCTION(pfSense_interface_destroy) {
 
 PHP_FUNCTION(pfSense_interface_setaddress) {
 	char *ifname, *ip, *p = NULL;
-        int ifname_len, ip_len;
+	int ifname_len, ip_len;
 	struct sockaddr_in *sin;
 	struct in_aliasreq ifra;
 
@@ -1530,28 +1532,28 @@ PHP_FUNCTION(pfSense_interface_setaddress) {
 }
 
 PHP_FUNCTION(pfSense_interface_deladdress) {
-        char *ifname, *ip = NULL;
-        int ifname_len, ip_len;
-        struct sockaddr_in *sin;
-        struct in_aliasreq ifra;
+	char *ifname, *ip = NULL;
+	int ifname_len, ip_len;
+	struct sockaddr_in *sin;
+	struct in_aliasreq ifra;
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &ip, &ip_len) == FAILURE) {
-                RETURN_NULL();
-        }
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &ip, &ip_len) == FAILURE) {
+		RETURN_NULL();
+	}
 
-        memset(&ifra, 0, sizeof(ifra));
-        strlcpy(ifra.ifra_name, ifname, sizeof(ifra.ifra_name));
-        sin =  &ifra.ifra_addr;
-        sin->sin_family = AF_INET;
-        sin->sin_len = sizeof(*sin);
-        if (inet_pton(AF_INET, ip, &sin->sin_addr) <= 0)
-                RETURN_FALSE;
+	memset(&ifra, 0, sizeof(ifra));
+	strlcpy(ifra.ifra_name, ifname, sizeof(ifra.ifra_name));
+	sin =  &ifra.ifra_addr;
+	sin->sin_family = AF_INET;
+	sin->sin_len = sizeof(*sin);
+	if (inet_pton(AF_INET, ip, &sin->sin_addr) <= 0)
+		RETURN_FALSE;
 
-        if (ioctl(PFSENSE_G(inets), SIOCDIFADDR, &ifra) < 0) {
-                array_init(return_value);
-                add_assoc_string(return_value, "error", "Could not delete interface address", 1);
-        } else
-                RETURN_TRUE;
+	if (ioctl(PFSENSE_G(inets), SIOCDIFADDR, &ifra) < 0) {
+		array_init(return_value);
+		add_assoc_string(return_value, "error", "Could not delete interface address", 1);
+	} else
+		RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_interface_rename) {
@@ -1560,7 +1562,7 @@ PHP_FUNCTION(pfSense_interface_rename) {
 	struct ifreq ifr;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
-                RETURN_NULL();
+		RETURN_NULL();
 	}
 
 	memset(&ifr, 0, sizeof(ifr));
@@ -1581,7 +1583,7 @@ PHP_FUNCTION(pfSense_ngctl_name) {
 		RETURN_NULL();
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
-                RETURN_NULL();
+		RETURN_NULL();
 	}
 
 	/* Send message */
@@ -1592,58 +1594,58 @@ PHP_FUNCTION(pfSense_ngctl_name) {
 }
 
 PHP_FUNCTION(pfSense_ngctl_attach) {
-        char *ifname, *newifname;
-        int ifname_len, newifname_len;
-        struct ngm_name name;
+	char *ifname, *newifname;
+	int ifname_len, newifname_len;
+	struct ngm_name name;
 
 	if (PFSENSE_G(csock) == -1)
 		RETURN_NULL();
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
-                RETURN_NULL();
-        }
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
+		RETURN_NULL();
+	}
 
-        snprintf(name.name, sizeof(name.name), "%s", newifname);
-        /* Send message */
-        if (NgSendMsg(PFSENSE_G(csock), ifname, NGM_GENERIC_COOKIE,
-            NGM_ETHER_ATTACH, &name, sizeof(name)) < 0)
-                RETURN_NULL();
+	snprintf(name.name, sizeof(name.name), "%s", newifname);
+	/* Send message */
+	if (NgSendMsg(PFSENSE_G(csock), ifname, NGM_GENERIC_COOKIE,
+		NGM_ETHER_ATTACH, &name, sizeof(name)) < 0)
+			RETURN_NULL();
 
-        RETURN_TRUE;
+	RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_ngctl_detach) {
-        char *ifname, *newifname;
-        int ifname_len, newifname_len;
-        struct ngm_name name;
+	char *ifname, *newifname;
+	int ifname_len, newifname_len;
+	struct ngm_name name;
 
 	if (PFSENSE_G(csock) == -1)
 		RETURN_NULL();
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
-                RETURN_NULL();
-        }
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &ifname, &ifname_len, &newifname, &newifname_len) == FAILURE) {
+		RETURN_NULL();
+	}
 
-        snprintf(name.name, sizeof(name.name), "%s", newifname);
-        /* Send message */
-        if (NgSendMsg(PFSENSE_G(csock), ifname, NGM_ETHER_COOKIE,
-            NGM_ETHER_DETACH, &name, sizeof(name)) < 0)
-                RETURN_NULL();
+	snprintf(name.name, sizeof(name.name), "%s", newifname);
+	/* Send message */
+	if (NgSendMsg(PFSENSE_G(csock), ifname, NGM_ETHER_COOKIE,
+		NGM_ETHER_DETACH, &name, sizeof(name)) < 0)
+			RETURN_NULL();
 
-        RETURN_TRUE;
+	RETURN_TRUE;
 }
 
 PHP_FUNCTION(pfSense_vlan_create) {
 	char *ifname = NULL;
 	char *parentifname = NULL;
 	int ifname_len, parent_len;
-	int tag; 
+	long tag; 
 	struct ifreq ifr;
 	struct vlanreq params;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ssl", &ifname, &ifname_len, &parentifname, &parent_len, &tag) == FAILURE) {
-                RETURN_NULL();
-        }
+		RETURN_NULL();
+	}
 
 	memset(&ifr, 0, sizeof(ifr));
 	memset(&params, 0, sizeof(params));
@@ -1660,15 +1662,15 @@ PHP_FUNCTION(pfSense_vlan_create) {
 PHP_FUNCTION(pfSense_interface_mtu) {
 	char *ifname;
 	int ifname_len;
-	int mtu;
+	long mtu;
 	struct ifreq ifr;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &ifname, &ifname_len, &mtu) == FAILURE) {
-                RETURN_NULL();
-        }
+		RETURN_NULL();
+	}
 	memset(&ifr, 0, sizeof(ifr));
 	strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
-	ifr.ifr_mtu = mtu;
+	ifr.ifr_mtu = (int) mtu;
 	if (ioctl(PFSENSE_G(s), SIOCSIFMTU, (caddr_t)&ifr) < 0)
 		RETURN_NULL();
 	RETURN_TRUE;
@@ -1677,11 +1679,12 @@ PHP_FUNCTION(pfSense_interface_mtu) {
 PHP_FUNCTION(pfSense_interface_flags) {
 	struct ifreq ifr;
 	char *ifname;
-	int flags, ifname_len, value;
+	int flags, ifname_len;
+	long value;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &ifname, &ifname_len, &value) == FAILURE) {
-                RETURN_NULL();
-        }
+		RETURN_NULL();
+	}
 
 	memset(&ifr, 0, sizeof(ifr));
 	strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
@@ -1691,9 +1694,9 @@ PHP_FUNCTION(pfSense_interface_flags) {
 	flags = (ifr.ifr_flags & 0xffff) | (ifr.ifr_flagshigh << 16);
 	if (value < 0) {
 		value = -value;
-		flags &= ~value;
+		flags &= ~(int)value;
 	} else
-		flags |= value; 
+		flags |= (int)value; 
 	ifr.ifr_flags = flags & 0xffff;
 	ifr.ifr_flagshigh = flags >> 16;
 	if (ioctl(PFSENSE_G(s), SIOCSIFFLAGS, (caddr_t)&ifr) < 0)
@@ -1704,11 +1707,12 @@ PHP_FUNCTION(pfSense_interface_flags) {
 PHP_FUNCTION(pfSense_interface_capabilities) {
 	struct ifreq ifr;
 	char *ifname;
-	int flags, ifname_len, value;
+	int flags, ifname_len;
+	long value;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl", &ifname, &ifname_len, &value) == FAILURE) {
-                RETURN_NULL();
-        }
+		RETURN_NULL();
+	}
 
 	memset(&ifr, 0, sizeof(ifr));
 	strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
@@ -1718,9 +1722,9 @@ PHP_FUNCTION(pfSense_interface_capabilities) {
 	flags = ifr.ifr_curcap;
 	if (value < 0) {
 		value = -value;
-		flags &= ~value;
+		flags &= ~(int)value;
 	} else
-		flags |= value; 
+		flags |= (int)value; 
 	flags &= ifr.ifr_reqcap;
 	ifr.ifr_reqcap = flags;
 	if (ioctl(PFSENSE_G(s), SIOCSIFCAP, (caddr_t)&ifr) < 0)
@@ -1733,47 +1737,47 @@ PHP_FUNCTION(pfSense_get_interface_info)
 {
 	struct ifaddrs *ifdata, *mb;
 	struct if_data *tmpd;
-        struct sockaddr_in *tmp;
-        struct sockaddr_dl *tmpdl;
+	struct sockaddr_in *tmp;
+	struct sockaddr_dl *tmpdl;
 	struct pfi_kif kif = { 0 };
 	int size = 1, found = 0;
-        char outputbuf[128];
-        char *ifname;
-        int ifname_len;
-        int i = 0, error = 0;
+	char outputbuf[128];
+	char *ifname;
+	int ifname_len;
+	int i = 0, error = 0;
 	int dev;
 	char *pf_status;
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
-                RETURN_NULL();
-        }
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
+		RETURN_NULL();
+	}
 
 	if ((dev = open("/dev/pf", O_RDWR)) < 0)
 		RETURN_NULL();
 
-        getifaddrs(&ifdata);
-        if (ifdata == NULL) {
+	getifaddrs(&ifdata);
+	if (ifdata == NULL) {
 		close(dev);
 		RETURN_NULL();
-        }
+	}
 
-        for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
-                if (mb == NULL)
-                        continue;
+	for(mb = ifdata; mb != NULL; mb = mb->ifa_next) {
+		if (mb == NULL)
+			continue;
 		if (ifname_len != strlen(mb->ifa_name))
-                        continue;
-                if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
-                        continue;
+			continue;
+		if (strncmp(ifname, mb->ifa_name, ifname_len) != 0)
+			continue;
 
 		if (found == 0)
 			array_init(return_value);
 
 		found = 1;
 
-                switch (mb->ifa_addr->sa_family) {
-                case AF_LINK:
+		switch (mb->ifa_addr->sa_family) {
+		case AF_LINK:
 
-                        tmpd = (struct if_data *)mb->ifa_data;
+			tmpd = (struct if_data *)mb->ifa_data;
 			add_assoc_long(return_value, "inerrs", tmpd->ifi_ierrors);
 			add_assoc_long(return_value, "outerrs", tmpd->ifi_oerrors);
 			add_assoc_long(return_value, "collisions", tmpd->ifi_collisions);
@@ -1782,10 +1786,10 @@ PHP_FUNCTION(pfSense_get_interface_info)
 			add_assoc_long(return_value, "unsuppproto", tmpd->ifi_noproto);
 			add_assoc_long(return_value, "mtu", tmpd->ifi_mtu);
 
-                        break;
-                }
-        }
-        freeifaddrs(ifdata);
+		break;
+		}
+	}
+	freeifaddrs(ifdata);
 
 	if (found == 0) {
 		close(dev);
@@ -1796,29 +1800,29 @@ PHP_FUNCTION(pfSense_get_interface_info)
 		error = 1;
 
 	if (error == 0) {
-                add_assoc_string(return_value, "interface", kif.pfik_name, 1);
+		add_assoc_string(return_value, "interface", kif.pfik_name, 1);
 
 #define PAF_INET 0
 #define PPF_IN 0
 #define PPF_OUT 1
-                add_assoc_long(return_value, "inpktspass", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_IN][PF_PASS]);
-                add_assoc_long(return_value, "outpktspass", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_OUT][PF_PASS]);
-                add_assoc_long(return_value, "inbytespass", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_IN][PF_PASS]);
-                add_assoc_long(return_value, "outbytespass", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_OUT][PF_PASS]);
+		add_assoc_long(return_value, "inpktspass", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_IN][PF_PASS]);
+		add_assoc_long(return_value, "outpktspass", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_OUT][PF_PASS]);
+		add_assoc_long(return_value, "inbytespass", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_IN][PF_PASS]);
+		add_assoc_long(return_value, "outbytespass", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_OUT][PF_PASS]);
 
-                add_assoc_long(return_value, "inpktsblock", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_IN][PF_DROP]);
-                add_assoc_long(return_value, "outpktsblock", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_OUT][PF_DROP]);
-                add_assoc_long(return_value, "inbytesblock", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_IN][PF_DROP]);
-                add_assoc_long(return_value, "outbytesblock", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_OUT][PF_DROP]);
+		add_assoc_long(return_value, "inpktsblock", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_IN][PF_DROP]);
+		add_assoc_long(return_value, "outpktsblock", (unsigned long long)kif.pfik_packets[PAF_INET][PPF_OUT][PF_DROP]);
+		add_assoc_long(return_value, "inbytesblock", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_IN][PF_DROP]);
+		add_assoc_long(return_value, "outbytesblock", (unsigned long long)kif.pfik_bytes[PAF_INET][PPF_OUT][PF_DROP]);
 
-                add_assoc_long(return_value, "inbytes", (unsigned long long)(kif.pfik_bytes[PAF_INET][PPF_IN][PF_DROP] + kif.pfik_bytes[PAF_INET][PPF_IN][PF_PASS]));
-                add_assoc_long(return_value, "outbytes", (unsigned long long)(kif.pfik_bytes[PAF_INET][PPF_OUT][PF_DROP] + kif.pfik_bytes[PAF_INET][PPF_OUT][PF_PASS]));
-                add_assoc_long(return_value, "inpkts", (unsigned long long)(kif.pfik_packets[PAF_INET][PPF_IN][PF_DROP] + kif.pfik_packets[PAF_INET][PPF_IN][PF_PASS]));
-                add_assoc_long(return_value, "outpkts", (unsigned long long)(kif.pfik_packets[PAF_INET][PPF_OUT][PF_DROP] + kif.pfik_packets[PAF_INET][PPF_OUT][PF_PASS]));
+		add_assoc_long(return_value, "inbytes", (unsigned long long)(kif.pfik_bytes[PAF_INET][PPF_IN][PF_DROP] + kif.pfik_bytes[PAF_INET][PPF_IN][PF_PASS]));
+		add_assoc_long(return_value, "outbytes", (unsigned long long)(kif.pfik_bytes[PAF_INET][PPF_OUT][PF_DROP] + kif.pfik_bytes[PAF_INET][PPF_OUT][PF_PASS]));
+		add_assoc_long(return_value, "inpkts", (unsigned long long)(kif.pfik_packets[PAF_INET][PPF_IN][PF_DROP] + kif.pfik_packets[PAF_INET][PPF_IN][PF_PASS]));
+		add_assoc_long(return_value, "outpkts", (unsigned long long)(kif.pfik_packets[PAF_INET][PPF_OUT][PF_DROP] + kif.pfik_packets[PAF_INET][PPF_OUT][PF_PASS]));
 #undef PPF_IN
 #undef PPF_OUT
 #undef PAF_INET
-        }
+	}
 	close(dev);
 }
 
@@ -1826,16 +1830,16 @@ PHP_FUNCTION(pfSense_get_interface_stats)
 {
 	struct ifmibdata ifmd;
 	struct if_data *tmpd;
-        char outputbuf[128];
-        char *ifname;
-        int ifname_len, error;
+	char outputbuf[128];
+	char *ifname;
+	int ifname_len, error;
 	int name[6];
 	size_t len;
 	unsigned int ifidx;
 
-        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
-                RETURN_NULL();
-        }
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &ifname, &ifname_len) == FAILURE) {
+		RETURN_NULL();
+	}
 
 	ifidx = if_nametoindex(ifname);
 	if (ifidx == 0)
@@ -1855,7 +1859,7 @@ PHP_FUNCTION(pfSense_get_interface_stats)
 	
 	tmpd = &ifmd.ifmd_data;
 
-        array_init(return_value);
+	array_init(return_value);
 	add_assoc_long(return_value, "inpkts", (long)tmpd->ifi_ipackets);
 	add_assoc_long(return_value, "inbytes", (long)tmpd->ifi_ibytes);
 	add_assoc_long(return_value, "outpkts", (long)tmpd->ifi_opackets);
@@ -1887,48 +1891,48 @@ PHP_FUNCTION(pfSense_get_pf_stats) {
 
 
 	bzero(&status, sizeof(status));
-        if (ioctl(dev, DIOCGETSTATUS, &status)) {
+	if (ioctl(dev, DIOCGETSTATUS, &status)) {
 		add_assoc_string(return_value, "error", strerror(errno), 1);
 	} else {
-                add_assoc_long(return_value, "rulesmatch", (unsigned long long)status.counters[PFRES_MATCH]);
-                add_assoc_long(return_value, "pullhdrfail", (unsigned long long)status.counters[PFRES_BADOFF]);
-                add_assoc_long(return_value, "fragments", (unsigned long long)status.counters[PFRES_FRAG]);
-                add_assoc_long(return_value, "shortpacket", (unsigned long long)status.counters[PFRES_SHORT]);
-                add_assoc_long(return_value, "normalizedrop", (unsigned long long)status.counters[PFRES_NORM]);
-                add_assoc_long(return_value, "nomemory", (unsigned long long)status.counters[PFRES_MEMORY]);
-                add_assoc_long(return_value, "badtimestamp", (unsigned long long)status.counters[PFRES_TS]);
-                add_assoc_long(return_value, "congestion", (unsigned long long)status.counters[PFRES_CONGEST]);
-                add_assoc_long(return_value, "ipoptions", (unsigned long long)status.counters[PFRES_IPOPTIONS]);
-                add_assoc_long(return_value, "protocksumbad", (unsigned long long)status.counters[PFRES_PROTCKSUM]);
-                add_assoc_long(return_value, "statesbad", (unsigned long long)status.counters[PFRES_BADSTATE]);
-                add_assoc_long(return_value, "stateinsertions", (unsigned long long)status.counters[PFRES_STATEINS]);
-                add_assoc_long(return_value, "maxstatesdrop", (unsigned long long)status.counters[PFRES_MAXSTATES]);
-                add_assoc_long(return_value, "srclimitdrop", (unsigned long long)status.counters[PFRES_SRCLIMIT]);
-                add_assoc_long(return_value, "synproxydrop", (unsigned long long)status.counters[PFRES_SYNPROXY]);
+		add_assoc_long(return_value, "rulesmatch", (unsigned long long)status.counters[PFRES_MATCH]);
+		add_assoc_long(return_value, "pullhdrfail", (unsigned long long)status.counters[PFRES_BADOFF]);
+		add_assoc_long(return_value, "fragments", (unsigned long long)status.counters[PFRES_FRAG]);
+		add_assoc_long(return_value, "shortpacket", (unsigned long long)status.counters[PFRES_SHORT]);
+		add_assoc_long(return_value, "normalizedrop", (unsigned long long)status.counters[PFRES_NORM]);
+		add_assoc_long(return_value, "nomemory", (unsigned long long)status.counters[PFRES_MEMORY]);
+		add_assoc_long(return_value, "badtimestamp", (unsigned long long)status.counters[PFRES_TS]);
+		add_assoc_long(return_value, "congestion", (unsigned long long)status.counters[PFRES_CONGEST]);
+		add_assoc_long(return_value, "ipoptions", (unsigned long long)status.counters[PFRES_IPOPTIONS]);
+		add_assoc_long(return_value, "protocksumbad", (unsigned long long)status.counters[PFRES_PROTCKSUM]);
+		add_assoc_long(return_value, "statesbad", (unsigned long long)status.counters[PFRES_BADSTATE]);
+		add_assoc_long(return_value, "stateinsertions", (unsigned long long)status.counters[PFRES_STATEINS]);
+		add_assoc_long(return_value, "maxstatesdrop", (unsigned long long)status.counters[PFRES_MAXSTATES]);
+		add_assoc_long(return_value, "srclimitdrop", (unsigned long long)status.counters[PFRES_SRCLIMIT]);
+		add_assoc_long(return_value, "synproxydrop", (unsigned long long)status.counters[PFRES_SYNPROXY]);
 
-                add_assoc_long(return_value, "maxstatesreached", (unsigned long long)status.lcounters[LCNT_STATES]);
-                add_assoc_long(return_value, "maxsrcstatesreached", (unsigned long long)status.lcounters[LCNT_SRCSTATES]);
-                add_assoc_long(return_value, "maxsrcnodesreached", (unsigned long long)status.lcounters[LCNT_SRCNODES]);
-                add_assoc_long(return_value, "maxsrcconnreached", (unsigned long long)status.lcounters[LCNT_SRCCONN]);
-                add_assoc_long(return_value, "maxsrcconnratereached", (unsigned long long)status.lcounters[LCNT_SRCCONNRATE]);
-                add_assoc_long(return_value, "overloadtable", (unsigned long long)status.lcounters[LCNT_OVERLOAD_TABLE]);
-                add_assoc_long(return_value, "overloadflush", (unsigned long long)status.lcounters[LCNT_OVERLOAD_FLUSH]);
+		add_assoc_long(return_value, "maxstatesreached", (unsigned long long)status.lcounters[LCNT_STATES]);
+		add_assoc_long(return_value, "maxsrcstatesreached", (unsigned long long)status.lcounters[LCNT_SRCSTATES]);
+		add_assoc_long(return_value, "maxsrcnodesreached", (unsigned long long)status.lcounters[LCNT_SRCNODES]);
+		add_assoc_long(return_value, "maxsrcconnreached", (unsigned long long)status.lcounters[LCNT_SRCCONN]);
+		add_assoc_long(return_value, "maxsrcconnratereached", (unsigned long long)status.lcounters[LCNT_SRCCONNRATE]);
+		add_assoc_long(return_value, "overloadtable", (unsigned long long)status.lcounters[LCNT_OVERLOAD_TABLE]);
+		add_assoc_long(return_value, "overloadflush", (unsigned long long)status.lcounters[LCNT_OVERLOAD_FLUSH]);
 
-                add_assoc_long(return_value, "statesearch", (unsigned long long)status.fcounters[FCNT_STATE_SEARCH]);
-                add_assoc_long(return_value, "stateinsert", (unsigned long long)status.fcounters[FCNT_STATE_INSERT]);
-                add_assoc_long(return_value, "stateremovals", (unsigned long long)status.fcounters[FCNT_STATE_REMOVALS]);
+		add_assoc_long(return_value, "statesearch", (unsigned long long)status.fcounters[FCNT_STATE_SEARCH]);
+		add_assoc_long(return_value, "stateinsert", (unsigned long long)status.fcounters[FCNT_STATE_INSERT]);
+		add_assoc_long(return_value, "stateremovals", (unsigned long long)status.fcounters[FCNT_STATE_REMOVALS]);
 
-                add_assoc_long(return_value, "srcnodessearch", (unsigned long long)status.scounters[SCNT_SRC_NODE_SEARCH]);
-                add_assoc_long(return_value, "srcnodesinsert", (unsigned long long)status.scounters[SCNT_SRC_NODE_INSERT]);
-                add_assoc_long(return_value, "srcnodesremovals", (unsigned long long)status.scounters[SCNT_SRC_NODE_REMOVALS]);
+		add_assoc_long(return_value, "srcnodessearch", (unsigned long long)status.scounters[SCNT_SRC_NODE_SEARCH]);
+		add_assoc_long(return_value, "srcnodesinsert", (unsigned long long)status.scounters[SCNT_SRC_NODE_INSERT]);
+		add_assoc_long(return_value, "srcnodesremovals", (unsigned long long)status.scounters[SCNT_SRC_NODE_REMOVALS]);
 
-                add_assoc_long(return_value, "stateid", (unsigned long long)status.stateid);
+		add_assoc_long(return_value, "stateid", (unsigned long long)status.stateid);
 
-                add_assoc_long(return_value, "running", status.running);
-                add_assoc_long(return_value, "states", status.states);
-                add_assoc_long(return_value, "srcnodes", status.src_nodes);
+		add_assoc_long(return_value, "running", status.running);
+		add_assoc_long(return_value, "states", status.states);
+		add_assoc_long(return_value, "srcnodes", status.src_nodes);
 
-                add_assoc_long(return_value, "hostid", ntohl(status.hostid));
+		add_assoc_long(return_value, "hostid", ntohl(status.hostid));
 		for (i = 0; i < PF_MD5_DIGEST_LENGTH; i++) {
 			buf[i + i] = hex[status.pf_chksum[i] >> 4];
 			buf[i + i + 1] = hex[status.pf_chksum[i] & 0x0f];
@@ -2108,21 +2112,21 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 	char			*path;
 	int			nw = 0, i, fd;
 	zend_bool		show_info = 0;
-	int			poll_timeout = 700;
+	long			poll_timeout = 700;
 
 	if (ZEND_NUM_ARGS() > 2) {
 		RETURN_NULL();
 	}
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|bl", &show_info, &poll_timeout) == FAILURE) {
 		php_printf("Maximum two parameter can be passed\n");
-                RETURN_NULL();
-        }
+			RETURN_NULL();
+	}
 
 	array_init(return_value);
 
 	bzero(&g, sizeof g);
 	glob("/dev/cua*", 0, NULL, &g);
-        glob("/dev/modem*", GLOB_APPEND, NULL, &g);
+	glob("/dev/modem*", GLOB_APPEND, NULL, &g);
 
 	if (g.gl_pathc > 0)
 	for (i = 0; g.gl_pathv[i] != NULL; i++) {
@@ -2202,11 +2206,11 @@ tryagain2:
 				/*
 				write(fd, "ATI3\r\n", strlen("ATI3\r\n"));
 				bzero(buf, sizeof buf);
-                		bzero(&pfd, sizeof pfd);
-                		pfd.fd = fd;
-                		pfd.events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI | POLLHUP;
+				bzero(&pfd, sizeof pfd);
+				pfd.fd = fd;
+				pfd.events = POLLIN | POLLRDNORM | POLLRDBAND | POLLPRI | POLLHUP;
 
-                		if (poll(&pfd, 1, 200) > 0) {
+				if (poll(&pfd, 1, 200) > 0) {
 					read(fd, buf, sizeof(buf));
 				buf[2047] = '\0';
 				if (show_info)
@@ -2245,149 +2249,149 @@ PHP_FUNCTION(pfSense_get_os_hw_data) {
 	}
 
 	mib[0] = CTL_HW;
-        mib[1] = HW_MODEL;
-        if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
-                data = malloc(len);
-                if (data != NULL) {
-                        if (!sysctl(mib, 2, data, &len, NULL, 0)) {
-                                add_assoc_string(return_value, "hwmodel", data, 1);
-                                free(data);
-                        }
+	mib[1] = HW_MODEL;
+	if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
+		data = malloc(len);
+		if (data != NULL) {
+			if (!sysctl(mib, 2, data, &len, NULL, 0)) {
+				add_assoc_string(return_value, "hwmodel", data, 1);
+				free(data);
+			}
 		}
-        }
+	}
 
 	mib[0] = CTL_HW;
-        mib[1] = HW_MACHINE_ARCH;
-        if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
-                data = malloc(len);
-                if (data != NULL) {
-                        if (!sysctl(mib, 2, data, &len, NULL, 0)) {
-                                add_assoc_string(return_value, "hwarch", data, 1);
-                                free(data);
-                        }
-                }
-        }
+	mib[1] = HW_MACHINE_ARCH;
+	if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
+		data = malloc(len);
+		if (data != NULL) {
+			if (!sysctl(mib, 2, data, &len, NULL, 0)) {
+				add_assoc_string(return_value, "hwarch", data, 1);
+				free(data);
+			}
+		}
+	}
 
 	mib[0] = CTL_HW;
-        mib[1] = HW_NCPU;
+	mib[1] = HW_NCPU;
 	len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
 		add_assoc_long(return_value, "ncpus", idata);
 
 	mib[0] = CTL_HW;
-        mib[1] = HW_PHYSMEM;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "physmem", idata);
+	mib[1] = HW_PHYSMEM;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "physmem", idata);
 
 	mib[0] = CTL_HW;
-        mib[1] = HW_USERMEM;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "usermem", idata);
+	mib[1] = HW_USERMEM;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "usermem", idata);
 
 	mib[0] = CTL_HW;
-        mib[1] = HW_REALMEM;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "realmem", idata);
+	mib[1] = HW_REALMEM;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "realmem", idata);
 }
 
 PHP_FUNCTION(pfSense_get_os_kern_data) {
-        int i, mib[4], idata;
-        size_t len;
-        char *data;
+	int i, mib[4], idata;
+	size_t len;
+	char *data;
 	struct timeval bootime;
 
 	array_init(return_value);
 
-        mib[0] = CTL_KERN;
-        mib[1] = KERN_HOSTUUID;
-        if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
-                data = malloc(len);
-                if (data != NULL) {
-                        if (!sysctl(mib, 2, data, &len, NULL, 0)) {
-                                add_assoc_string(return_value, "hostuuid", data, 1);
-                                free(data);
-                        }
-                }
-        }
-
-        mib[0] = CTL_KERN;
-        mib[1] = KERN_HOSTNAME;
-        if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
-                data = malloc(len);
-                if (data != NULL) {
-                        if (!sysctl(mib, 2, data, &len, NULL, 0)) {
-                                add_assoc_string(return_value, "hostname", data, 1);
-                                free(data);
-                        }
-                }
-        }
-
-        mib[0] = CTL_KERN;
-        mib[1] = KERN_OSRELEASE;
-        if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
-                data = malloc(len);
-                if (data != NULL) {
-                        if (!sysctl(mib, 2, data, &len, NULL, 0)) {
-                                add_assoc_string(return_value, "osrelease", data, 1);
-                                free(data);
-                        }
-                }
-        }
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_HOSTUUID;
+	if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
+		data = malloc(len);
+		if (data != NULL) {
+			if (!sysctl(mib, 2, data, &len, NULL, 0)) {
+				add_assoc_string(return_value, "hostuuid", data, 1);
+				free(data);
+			}
+		}
+	}
 
 	mib[0] = CTL_KERN;
-        mib[1] = KERN_VERSION;
-        if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
-                data = malloc(len);
-                if (data != NULL) {
-                        if (!sysctl(mib, 2, data, &len, NULL, 0)) {
-                                add_assoc_string(return_value, "oskernel_version", data, 1);
-                                free(data);
-                        }
-                }
-        }
-
-        mib[0] = CTL_KERN;
-        mib[1] = KERN_BOOTTIME;
-        len = sizeof(bootime);
-        if (!sysctl(mib, 2, &bootime, &len, NULL, 0))
-                add_assoc_string(return_value, "boottime", ctime(&bootime.tv_sec), 1);
-
-        mib[0] = CTL_KERN;
-        mib[1] = KERN_HOSTID;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "hostid", idata);
-
-        mib[0] = CTL_KERN;
-        mib[1] = KERN_OSRELDATE;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "osreleasedate", idata);
+	mib[1] = KERN_HOSTNAME;
+	if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
+		data = malloc(len);
+		if (data != NULL) {
+			if (!sysctl(mib, 2, data, &len, NULL, 0)) {
+				add_assoc_string(return_value, "hostname", data, 1);
+				free(data);
+			}
+		}
+	}
 
 	mib[0] = CTL_KERN;
-        mib[1] = KERN_OSREV;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "osrevision", idata);
+	mib[1] = KERN_OSRELEASE;
+	if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
+		data = malloc(len);
+		if (data != NULL) {
+			if (!sysctl(mib, 2, data, &len, NULL, 0)) {
+				add_assoc_string(return_value, "osrelease", data, 1);
+				free(data);
+			}
+		}
+	}
 
 	mib[0] = CTL_KERN;
-        mib[1] = KERN_SECURELVL;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "ossecurelevel", idata);
+	mib[1] = KERN_VERSION;
+	if (!sysctl(mib, 2, NULL, &len, NULL, 0)) {
+		data = malloc(len);
+		if (data != NULL) {
+			if (!sysctl(mib, 2, data, &len, NULL, 0)) {
+				add_assoc_string(return_value, "oskernel_version", data, 1);
+				free(data);
+			}
+		}
+	}
 
 	mib[0] = CTL_KERN;
-        mib[1] = KERN_OSRELDATE;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "osreleasedate", idata);
+	mib[1] = KERN_BOOTTIME;
+	len = sizeof(bootime);
+	if (!sysctl(mib, 2, &bootime, &len, NULL, 0))
+		add_assoc_string(return_value, "boottime", ctime(&bootime.tv_sec), 1);
 
 	mib[0] = CTL_KERN;
-        mib[1] = KERN_OSRELDATE;
-        len = sizeof(idata);
-        if (!sysctl(mib, 2, &idata, &len, NULL, 0))
-                add_assoc_long(return_value, "osreleasedate", idata);
+	mib[1] = KERN_HOSTID;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "hostid", idata);
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_OSRELDATE;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "osreleasedate", idata);
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_OSREV;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "osrevision", idata);
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_SECURELVL;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "ossecurelevel", idata);
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_OSRELDATE;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "osreleasedate", idata);
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_OSRELDATE;
+	len = sizeof(idata);
+	if (!sysctl(mib, 2, &idata, &len, NULL, 0))
+		add_assoc_long(return_value, "osreleasedate", idata);
 }
