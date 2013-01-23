@@ -705,7 +705,10 @@ PHP_FUNCTION(pfSense_pipe_action)
 
 PHP_FUNCTION(pfSense_ipfw_Tableaction)
 {
-	ipfw_table_entry ent;
+	struct {
+		char context[64]; /* IP_FW_CTX_MAXNAME */
+		ipfw_table_entry ent;
+	} option;
 	socklen_t size;
 	long mask = 0, table = 0, pipe = 0;
 	char *ip, *zone, *mac = NULL, *p;
@@ -717,33 +720,34 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 		RETURN_FALSE;
 	}
 
-	/* XXX: Use context data! */
+	memset(&option, 0, sizeof(option));
+	sprintf(option.context, "%s", zone);
 
-	memset(&ent, 0, sizeof(ent));
+
 	if (action != IP_FW_TABLE_DEL && action != IP_FW_TABLE_ADD && action != IP_FW_TABLE_ZERO_ENTRY_STATS)
 		RETURN_FALSE;
 
 	if (strchr(ip, ':')) {
-		if (!inet_pton(AF_INET6, ip, &ent.addr))
+		if (!inet_pton(AF_INET6, ip, &option.ent.addr))
 			RETURN_FALSE;
-	} else if (!inet_pton(AF_INET, ip, &ent.addr)) {
+	} else if (!inet_pton(AF_INET, ip, &option.ent.addr)) {
 		RETURN_FALSE;
 	}
 
 	if (mask)
-		ent.masklen = (u_int8_t)mask;
+		option.ent.masklen = (u_int8_t)mask;
 	else
-		ent.masklen = 32;
+		option.ent.masklen = 32;
 	if (pipe)
-		ent.value = (u_int32_t)pipe;
+		option.ent.value = (u_int32_t)pipe;
 
 	if (mac_len > 0) {
-		if (ether_aton_r(mac, (struct ether_addr *)&ent.mac_addr) == NULL)
+		if (ether_aton_r(mac, (struct ether_addr *)&option.ent.mac_addr) == NULL)
 			RETURN_FALSE;
 	}
-	size = sizeof(ent);
-	ent.tbl = (u_int16_t)table;
-	err = setsockopt(PFSENSE_G(ipfw), IPPROTO_IP, (int)action, &ent, size);
+	size = sizeof(option);
+	option.ent.tbl = (u_int16_t)table;
+	err = setsockopt(PFSENSE_G(ipfw), IPPROTO_IP, (int)action, &option, size);
 	if (err < 0 && err != EEXIST)
 		RETURN_FALSE;
 
@@ -752,7 +756,10 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 
 PHP_FUNCTION(pfSense_ipfw_getTablestats)
 {
-	ipfw_table_entry ent;
+	struct {
+		char context[64]; /* IP_FW_CTX_MAXNAME */
+		ipfw_table_entry ent;
+	} option;
 	socklen_t size;
 	long mask = 0, table = 0;
 	char *ip, *name;
@@ -762,29 +769,31 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 		RETURN_FALSE;
 	}
 
-	/* XXX: Use context data! */
+
+	memset(&option, 0, sizeof(option));
+	sprintf(option.context, "%s", name);
 
 	if (strchr(ip, ':')) {
-		if (!inet_pton(AF_INET6, ip, &ent.addr))
+		if (!inet_pton(AF_INET6, ip, &option.ent.addr))
 			RETURN_FALSE;
-	} else if (!inet_pton(AF_INET, ip, &ent.addr)) {
+	} else if (!inet_pton(AF_INET, ip, &option.ent.addr)) {
 		RETURN_FALSE;
 	}
 
 	if (mask)
-		ent.masklen = (u_int8_t)mask;
+		option.ent.masklen = (u_int8_t)mask;
 	else
-		ent.masklen = 32;
-	size = sizeof(ent);
-	ent.tbl = (u_int16_t)table;
-	if (getsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW_TABLE_GET_ENTRY, &ent, &size) < 0)
+		option.ent.masklen = 32;
+	size = sizeof(option);
+	option.ent.tbl = (u_int16_t)table;
+	if (getsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW_TABLE_GET_ENTRY, &option, &size) < 0)
 		RETURN_FALSE;
 
 	array_init(return_value);
-	add_assoc_long(return_value, "packets", pfSense_align_uint64(&ent.packets));
-	add_assoc_long(return_value, "bytes", pfSense_align_uint64(&ent.bytes));
-	add_assoc_long(return_value, "timestamp", ent.timestamp);
-	add_assoc_long(return_value, "dnpipe", ent.value);
+	add_assoc_long(return_value, "packets", pfSense_align_uint64(&option.ent.packets));
+	add_assoc_long(return_value, "bytes", pfSense_align_uint64(&option.ent.bytes));
+	add_assoc_long(return_value, "timestamp", option.ent.timestamp);
+	add_assoc_long(return_value, "dnpipe", option.ent.value);
 }
 #endif
 

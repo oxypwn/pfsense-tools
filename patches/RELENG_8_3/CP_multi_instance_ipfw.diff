@@ -1,5 +1,410 @@
+diff --git a/sbin/ipfw/dummynet.c b/sbin/ipfw/dummynet.c
+index d684dee..6eea777 100644
+--- a/sbin/ipfw/dummynet.c
++++ b/sbin/ipfw/dummynet.c
+@@ -387,7 +387,7 @@ ipfw_delete_pipe(int do_pipe, int i)
+ 	cmd.oid.subtype = (do_pipe == 1) ? DN_LINK :
+ 		( (do_pipe == 2) ? DN_FS : DN_SCH);
+ 	cmd.a[0] = i;
+-	i = do_cmd(IP_DUMMYNET3, &cmd, cmd.oid.len);
++	i = do_cmd(IP_DUMMYNET3, &cmd, cmd.oid.len, NULL);
+ 	if (i) {
+ 		i = 1;
+ 		warn("rule %u: setsockopt(IP_DUMMYNET_DEL)", i);
+@@ -1229,7 +1229,7 @@ end_mask:
+ 	    }
+ 	}
+ 
+-	i = do_cmd(IP_DUMMYNET3, base, (char *)buf - (char *)base);
++	i = do_cmd(IP_DUMMYNET3, base, (char *)buf - (char *)base, NULL);
+ 
+ 	if (i)
+ 		err(1, "setsockopt(%s)", "IP_DUMMYNET_CONFIGURE");
+@@ -1240,7 +1240,7 @@ dummynet_flush(void)
+ {
+ 	struct dn_id oid;
+ 	oid_fill(&oid, sizeof(oid), DN_CMD_FLUSH, DN_API_VERSION);
+-	do_cmd(IP_DUMMYNET3, &oid, oid.len);
++	do_cmd(IP_DUMMYNET3, &oid, oid.len, NULL);
+ }
+ 
+ /* Parse input for 'ipfw [pipe|sched|queue] show [range list]'
+@@ -1358,7 +1358,7 @@ dummynet_list(int ac, char *av[], int show_counters)
+ 	if (n > 0) {
+ 		buflen = 4*1024;
+ 	} else {
+-		ret = do_cmd(-IP_DUMMYNET3, oid, (uintptr_t)&l);
++		ret = do_cmd(-IP_DUMMYNET3, oid, 0, (socklen_t *)&l);
+ 		if (ret != 0 || oid->id <= sizeof(*oid))
+ 			goto done;
+ 		buflen = oid->id + max_size;
+@@ -1369,7 +1369,7 @@ dummynet_list(int ac, char *av[], int show_counters)
+ 		l = buflen;
+ 		x = safe_realloc(x, l);
+ 		bcopy(oid, x, oid->len);
+-		ret = do_cmd(-IP_DUMMYNET3, x, (uintptr_t)&l);
++		ret = do_cmd(-IP_DUMMYNET3, x, 0, (socklen_t *)&l);
+ 		if (ret != 0 || x->id <= sizeof(*oid))
+ 			goto done; /* no response */
+ 		if (l + max_size <= buflen)
+diff --git a/sbin/ipfw/ipfw2.c b/sbin/ipfw/ipfw2.c
+index adee94f..a6033a8 100644
+--- a/sbin/ipfw/ipfw2.c
++++ b/sbin/ipfw/ipfw2.c
+@@ -359,14 +359,38 @@ safe_realloc(void *ptr, size_t size)
+  * Selected options or negative -> getsockopt
+  */
+ int
+-do_cmd(int optname, void *optval, uintptr_t optlen)
++do_cmd(int optname, void *optval, uintptr_t optlen, socklen_t *opt)
+ {
+ 	static int s = -1;	/* the socket */
++	char *buf = NULL, *tmpbuf = NULL;
+ 	int i;
++	unsigned int toptlen;
+ 
+ 	if (co.test_only)
+ 		return 0;
+ 
++	if (opt != NULL)
++		toptlen = *opt;
++	else if (optlen)
++		toptlen = optlen;
++	else
++		toptlen = 0;
++	if (co.ctx) {
++		toptlen += IP_FW_CTX_MAXNAME; 
++	}
++	if (toptlen > 0) {
++		buf = calloc(1, toptlen);
++		if (buf == NULL)
++			err(10, "Cannot allocate memory for context %s", strerror(errno));
++	}
++	tmpbuf = buf;
++	if (co.ctx) {
++		sprintf(buf, "%s", co.ctx);
++		if (optval)
++			memcpy((void *)(buf + IP_FW_CTX_MAXNAME), optval, (toptlen - IP_FW_CTX_MAXNAME));
++	} else if (optval)
++		memcpy((void *)(buf), optval, toptlen);
++
+ 	if (s == -1)
+ 		s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+ 	if (s < 0)
+@@ -380,13 +404,25 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
+ 	    optname == IP_FW_NAT_GET_LOG ||
+ 	    optname == IP_FW_TABLE_GET_ENTRY ||
+ 	    optname == IP_FW_TABLE_ZERO_ENTRY_STATS) {
++
+ 		if (optname < 0)
+ 			optname = -optname;
+-		i = getsockopt(s, IPPROTO_IP, optname, optval,
+-			(socklen_t *)optlen);
++		i = getsockopt(s, IPPROTO_IP, optname, (void *)buf,
++			(socklen_t *)&toptlen);
++		if (co.ctx) {
++			if (optval)
++				memcpy(optval, (void *)(tmpbuf + IP_FW_CTX_MAXNAME), toptlen);
++		} else if (optval)
++			memcpy(optval, (void *)buf, toptlen);
++		if (opt)
++			*opt = toptlen;
+ 	} else {
+-		i = setsockopt(s, IPPROTO_IP, optname, optval, optlen);
++		i = setsockopt(s, IPPROTO_IP, optname, buf, (socklen_t)(toptlen));
+ 	}
++
++	if (tmpbuf)
++		free(tmpbuf);
++
+ 	return i;
+ }
+ 
+@@ -1662,7 +1698,7 @@ ipfw_sets_handler(char *av[])
+ 			nalloc = nalloc * 2 + 200;
+ 			nbytes = nalloc;
+ 		data = safe_calloc(1, nbytes);
+-		if (do_cmd(IP_FW_GET, data, (uintptr_t)&nbytes) < 0)
++		if (do_cmd(IP_FW_GET, data, 0, (socklen_t *)&nbytes) < 0)
+ 			err(EX_OSERR, "getsockopt(IP_FW_GET)");
+ 		}
+ 
+@@ -1692,7 +1728,7 @@ ipfw_sets_handler(char *av[])
+ 		if (!isdigit(*(av[1])) || new_set > RESVD_SET)
+ 			errx(EX_DATAERR, "invalid set number %s\n", av[1]);
+ 		masks[0] = (4 << 24) | (new_set << 16) | (rulenum);
+-		i = do_cmd(IP_FW_DEL, masks, sizeof(uint32_t));
++		i = do_cmd(IP_FW_DEL, masks, sizeof(uint32_t), NULL);
+ 	} else if (_substrcmp(*av, "move") == 0) {
+ 		av++;
+ 		if (av[0] && _substrcmp(*av, "rule") == 0) {
+@@ -1711,7 +1747,7 @@ ipfw_sets_handler(char *av[])
+ 		if (!isdigit(*(av[2])) || new_set > RESVD_SET)
+ 			errx(EX_DATAERR, "invalid dest. set %s\n", av[1]);
+ 		masks[0] = (cmd << 24) | (new_set << 16) | (rulenum);
+-		i = do_cmd(IP_FW_DEL, masks, sizeof(uint32_t));
++		i = do_cmd(IP_FW_DEL, masks, sizeof(uint32_t), NULL);
+ 	} else if (_substrcmp(*av, "disable") == 0 ||
+ 		   _substrcmp(*av, "enable") == 0 ) {
+ 		int which = _substrcmp(*av, "enable") == 0 ? 1 : 0;
+@@ -1739,7 +1775,7 @@ ipfw_sets_handler(char *av[])
+ 			errx(EX_DATAERR,
+ 			    "cannot enable and disable the same set\n");
+ 
+-		i = do_cmd(IP_FW_DEL, masks, sizeof(masks));
++		i = do_cmd(IP_FW_DEL, masks, sizeof(masks), NULL);
+ 		if (i)
+ 			warn("set enable/disable: setsockopt(IP_FW_DEL)");
+ 	} else
+@@ -1821,7 +1857,7 @@ ipfw_list(int ac, char *av[], int show_counters)
+ 		nalloc = nalloc * 2 + 200;
+ 		nbytes = nalloc;
+ 		data = safe_realloc(data, nbytes);
+-		if (do_cmd(ocmd, data, (uintptr_t)&nbytes) < 0)
++		if (do_cmd(ocmd, data, 0, (socklen_t *)&nbytes) < 0)
+ 			err(EX_OSERR, "getsockopt(IP_%s_GET)",
+ 				co.do_pipe ? "DUMMYNET" : "FW");
+ 	}
+@@ -2264,7 +2300,7 @@ ipfw_delete(char *av[])
+ 	while (*av && isdigit(**av)) {
+ 		i = atoi(*av); av++;
+ 		if (co.do_nat) {
+-			exitval = do_cmd(IP_FW_NAT_DEL, &i, sizeof i);
++			exitval = do_cmd(IP_FW_NAT_DEL, &i, sizeof i, NULL);
+ 			if (exitval) {
+ 				exitval = EX_UNAVAILABLE;
+ 				warn("rule %u not available", i);
+@@ -2277,7 +2313,7 @@ ipfw_delete(char *av[])
+ 				    ((co.use_set - 1) << 16);
+ 			else
+ 			rulenum =  (i & 0xffff) | (do_set << 24);
+-			i = do_cmd(IP_FW_DEL, &rulenum, sizeof rulenum);
++			i = do_cmd(IP_FW_DEL, &rulenum, sizeof rulenum, NULL);
+ 			if (i) {
+ 				exitval = EX_UNAVAILABLE;
+ 				warn("rule %u: setsockopt(IP_FW_DEL)",
+@@ -3677,7 +3713,7 @@ done:
+ 
+ 	rule->cmd_len = (uint32_t *)dst - (uint32_t *)(rule->cmd);
+ 	i = (char *)dst - (char *)rule;
+-	if (do_cmd(IP_FW_ADD, rule, (uintptr_t)&i) == -1)
++	if (do_cmd(IP_FW_ADD, rule, 0, (socklen_t *)&i) == -1)
+ 		err(EX_UNAVAILABLE, "getsockopt(%s)", "IP_FW_ADD");
+ 	if (!co.do_quiet)
+ 		show_ipfw(rule, 0, 0);
+@@ -3700,7 +3736,7 @@ ipfw_zero(int ac, char *av[], int optname /* 0 = IP_FW_ZERO, 1 = IP_FW_RESETLOG
+ 
+ 	if (!ac) {
+ 		/* clear all entries */
+-		if (do_cmd(optname, NULL, 0) < 0)
++		if (do_cmd(optname, NULL, 0, NULL) < 0)
+ 			err(EX_UNAVAILABLE, "setsockopt(IP_FW_%s)", name);
+ 		if (!co.do_quiet)
+ 			printf("%s.\n", optname == IP_FW_ZERO ?
+@@ -3721,7 +3757,7 @@ ipfw_zero(int ac, char *av[], int optname /* 0 = IP_FW_ZERO, 1 = IP_FW_RESETLOG
+ 				arg |= (1 << 24) | ((co.use_set - 1) << 16);
+ 			av++;
+ 			ac--;
+-			if (do_cmd(optname, &arg, sizeof(arg))) {
++			if (do_cmd(optname, &arg, sizeof(arg), NULL)) {
+ 				warn("rule %u: setsockopt(IP_FW_%s)",
+ 				    saved_arg, name);
+ 				failed = EX_UNAVAILABLE;
+@@ -3764,9 +3800,9 @@ ipfw_flush(int force)
+ 	/* `ipfw set N flush` - is the same that `ipfw delete set N` */
+ 	if (co.use_set) {
+ 		uint32_t arg = ((co.use_set - 1) & 0xffff) | (1 << 24);
+-		if (do_cmd(IP_FW_DEL, &arg, sizeof(arg)) < 0)
++		if (do_cmd(IP_FW_DEL, &arg, sizeof(arg), NULL) < 0)
+ 			err(EX_UNAVAILABLE, "setsockopt(IP_FW_DEL)");
+-	} else if (do_cmd(cmd, NULL, 0) < 0)
++	} else if (do_cmd(cmd, NULL, 0, NULL) < 0)
+ 		err(EX_UNAVAILABLE, "setsockopt(IP_%s_FLUSH)",
+ 		    co.do_pipe ? "DUMMYNET" : "FW");
+ 	if (!co.do_quiet)
+@@ -3866,16 +3902,16 @@ ipfw_table_handler(int ac, char *av[])
+ 		} else
+ 			ent.value = 0;
+ 		if (do_cmd(do_add ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL,
+-		    &ent, sizeof(ent)) < 0) {
++		    &ent, sizeof(ent), NULL) < 0) {
+ 			/* If running silent, don't bomb out on these errors. */
+ 			if (!(co.do_quiet && (errno == (do_add ? EEXIST : ESRCH))))
+ 				err(EX_OSERR, "setsockopt(IP_FW_TABLE_%s)",
+ 				    do_add ? "ADD" : "DEL");
+ 			/* In silent mode, react to a failed add by deleting */
+ 			if (do_add) {
+-				do_cmd(IP_FW_TABLE_DEL, &ent, sizeof(ent));
++				do_cmd(IP_FW_TABLE_DEL, &ent, sizeof(ent), NULL);
+ 				if (do_cmd(IP_FW_TABLE_ADD,
+-				    &ent, sizeof(ent)) < 0)
++				    &ent, sizeof(ent), NULL) < 0)
+ 					err(EX_OSERR,
+ 					    "setsockopt(IP_FW_TABLE_ADD)");
+ 			}
+@@ -3884,7 +3920,7 @@ ipfw_table_handler(int ac, char *av[])
+ 		a = is_all ? tables_max : (uint32_t)(ent.tbl + 1);
+ 		do {
+ 			if (do_cmd(IP_FW_TABLE_FLUSH, &ent.tbl,
+-			    sizeof(ent.tbl)) < 0)
++			    sizeof(ent.tbl), NULL) < 0)
+ 				err(EX_OSERR, "setsockopt(IP_FW_TABLE_FLUSH)");
+ 		} while (++ent.tbl < a);
+ 	} else if (_substrcmp(*av, "list") == 0) {
+@@ -3925,7 +3961,7 @@ ipfw_table_handler(int ac, char *av[])
+                         errx(EX_NOHOST, "hostname ``%s'' unknown", *av);
+                 ac--; av++;
+                 ent.value = 0;
+-		if (do_cmd(IP_FW_TABLE_ZERO_ENTRY_STATS, &ent, sizeof(ent)) < 0)
++		if (do_cmd(IP_FW_TABLE_ZERO_ENTRY_STATS, &ent, sizeof(ent), NULL) < 0)
+                 	err(EX_OSERR, "getsockopt(IP_FW_TABLE_ZERO_ENTRY_STATS)");
+ 	} else
+ 		errx(EX_USAGE, "invalid table command %s", *av);
+@@ -3937,7 +3973,7 @@ table_list_entry(ipfw_table_entry ent) {
+ 	char tbuf[128];
+ 
+         l = sizeof(ent);
+-        if (do_cmd(IP_FW_TABLE_GET_ENTRY, &ent, (uintptr_t)&l) < 0)
++        if (do_cmd(IP_FW_TABLE_GET_ENTRY, &ent, 0, (socklen_t *)&l) < 0)
+                 err(EX_OSERR, "getsockopt(IP_FW_TABLE_GET_ENTRY)");
+ 
+ 	strncpy(tbuf, inet_ntoa(*(struct in_addr *)
+@@ -3955,7 +3991,7 @@ table_list(ipfw_table_entry ent, int need_header)
+ 
+ 	a = ent.tbl;
+ 	l = sizeof(a);
+-	if (do_cmd(IP_FW_TABLE_GETSIZE, &a, (uintptr_t)&l) < 0)
++	if (do_cmd(IP_FW_TABLE_GETSIZE, &a, 0, (socklen_t *)&l) < 0)
+ 		err(EX_OSERR, "getsockopt(IP_FW_TABLE_GETSIZE)");
+ 
+ 	/* If a is zero we have nothing to do, the table is empty. */
+@@ -3965,7 +4001,7 @@ table_list(ipfw_table_entry ent, int need_header)
+ 	l = sizeof(*tbl) + a * sizeof(ipfw_table_entry);
+ 	tbl = safe_calloc(1, l);
+ 	tbl->tbl = ent.tbl;
+-	if (do_cmd(IP_FW_TABLE_LIST, tbl, (uintptr_t)&l) < 0)
++	if (do_cmd(IP_FW_TABLE_LIST, tbl, 0, (socklen_t *)&l) < 0)
+ 		err(EX_OSERR, "getsockopt(IP_FW_TABLE_LIST)");
+ 	if (tbl->cnt && need_header)
+ 		printf("---table(%d)---\n", tbl->tbl);
+@@ -3992,7 +4028,7 @@ table_list(ipfw_table_entry ent, int need_header)
+ 		
+ 		printf("%s/%u %s%s %llu %llu\n",
+ 			inet_ntoa(*(struct in_addr *)&tbl->ent[a].addr),
+-			tbl->ent[a].masklen, tmac_buf, tval_buf, tbl->ent[a].packets, tbl->ent[a].bytes);
++			tbl->ent[a].masklen, tmac_buf, tval_buf, (long long unsigned int)tbl->ent[a].packets, (long long unsigned int)tbl->ent[a].bytes);
+ 	}
+ 	free(tbl);
+ }
+diff --git a/sbin/ipfw/ipfw2.h b/sbin/ipfw/ipfw2.h
+index bbf2ce8..43481ec 100644
+--- a/sbin/ipfw/ipfw2.h
++++ b/sbin/ipfw/ipfw2.h
+@@ -29,6 +29,8 @@
+  * XXX The context is not restored after each line.
+  */
+ 
++#define	IP_FW_CTX_MAXNAME	64
++
+ struct cmdline_opts {
+ 	/* boolean options: */
+ 	int	do_value_as_ip;	/* show table value as IP */
+@@ -53,6 +55,7 @@ struct cmdline_opts {
+ 
+ 	int	use_set;	/* work with specified set number */
+ 		/* 0 means all sets, otherwise apply to set use_set - 1 */
++	char 	*ctx;
+ 
+ };
+ 
+@@ -224,7 +227,7 @@ int _substrcmp2(const char *str1, const char* str2, const char* str3);
+ int match_token(struct _s_x *table, char *string);
+ char const *match_value(struct _s_x *p, int value);
+ 
+-int do_cmd(int optname, void *optval, uintptr_t optlen);
++int do_cmd(int optname, void *optval, uintptr_t optlen, socklen_t *opt);
+ 
+ struct in6_addr;
+ void n2mask(struct in6_addr *mask, int n);
+diff --git a/sbin/ipfw/main.c b/sbin/ipfw/main.c
+index ff10b90..635150d 100644
+--- a/sbin/ipfw/main.c
++++ b/sbin/ipfw/main.c
+@@ -260,9 +260,8 @@ ipfw_main(int oldac, char **oldav)
+ 
+ 	/* Save arguments for final freeing of memory. */
+ 	save_av = av;
+-
+ 	optind = optreset = 1;	/* restart getopt() */
+-	while ((ch = getopt(ac, av, "abcdefhinNp:qs:STtv")) != -1)
++	while ((ch = getopt(ac, av, "abcdefhinNp:qs:STtvx:")) != -1)
+ 		switch (ch) {
+ 		case 'a':
+ 			do_acct = 1;
+@@ -334,6 +333,10 @@ ipfw_main(int oldac, char **oldav)
+ 			co.verbose = 1;
+ 			break;
+ 
++		case 'x':
++			co.ctx = optarg;
++			break;
++
+ 		default:
+ 			free(save_av);
+ 			return 1;
+@@ -388,6 +391,9 @@ ipfw_main(int oldac, char **oldav)
+ 	}
+ 	NEED1("missing command");
+ 
++	if (!co.ctx && !co.do_pipe)
++		err(11, "Context is mandatory");
++
+ 	/*
+ 	 * For pipes, queues and nats we normally say 'nat|pipe NN config'
+ 	 * but the code is easier to parse as 'nat|pipe config NN'
+@@ -457,7 +463,7 @@ ipfw_readfile(int ac, char *av[])
+ 	FILE	*f = NULL;
+ 	pid_t	preproc = 0;
+ 
+-	while ((c = getopt(ac, av, "cfNnp:qS")) != -1) {
++	while ((c = getopt(ac, av, "cfNnp:qSx:")) != -1) {
+ 		switch(c) {
+ 		case 'c':
+ 			co.do_compact = 1;
+@@ -507,6 +513,9 @@ ipfw_readfile(int ac, char *av[])
+ 		case 'S':
+ 			co.show_sets = 1;
+ 			break;
++                case 'x':
++                        co.ctx = optarg;
++                        break;
+ 
+ 		default:
+ 			errx(EX_USAGE, "bad arguments, for usage"
+diff --git a/sbin/ipfw/nat.c b/sbin/ipfw/nat.c
+index 4620fc4..ef3596b 100644
+--- a/sbin/ipfw/nat.c
++++ b/sbin/ipfw/nat.c
+@@ -898,7 +898,7 @@ ipfw_config_nat(int ac, char **av)
+ 		}
+ 	}
+ 
+-	i = do_cmd(IP_FW_NAT_CFG, buf, off);
++	i = do_cmd(IP_FW_NAT_CFG, buf, off, NULL);
+ 	if (i)
+ 		err(1, "setsockopt(%s)", "IP_FW_NAT_CFG");
+ 
+@@ -953,7 +953,7 @@ ipfw_show_nat(int ac, char **av)
+ 		nalloc = nalloc * 2;
+ 		nbytes = nalloc;
+ 		data = safe_realloc(data, nbytes);
+-		if (do_cmd(cmd, data, (uintptr_t)&nbytes) < 0)
++		if (do_cmd(cmd, data, 0, (socklen_t *)&nbytes) < 0)
+ 			err(EX_OSERR, "getsockopt(IP_FW_GET_%s)",
+ 			    (cmd == IP_FW_NAT_GET_LOG) ? "LOG" : "CONFIG");
+ 	}
 diff --git a/sys/net/if_var.h b/sys/net/if_var.h
-index 09b483a..ea745b4 100644
+index 7b5d010..119f0c5 100644
 --- a/sys/net/if_var.h
 +++ b/sys/net/if_var.h
 @@ -207,8 +207,9 @@ struct ifnet {
@@ -14,7 +419,7 @@ index 09b483a..ea745b4 100644
  
  typedef void if_init_f_t(void *);
 diff --git a/sys/netinet/in.h b/sys/netinet/in.h
-index 775fd31..b882d27 100644
+index f31c9ec..7933ea1 100644
 --- a/sys/netinet/in.h
 +++ b/sys/netinet/in.h
 @@ -497,6 +497,13 @@ __END_DECLS
@@ -32,7 +437,7 @@ index 775fd31..b882d27 100644
   * Defaults and limits for options
   */
 diff --git a/sys/netinet/ipfw/ip_fw2.c b/sys/netinet/ipfw/ip_fw2.c
-index c7975f7..a2b349f 100644
+index eddacb9..96da66a 100644
 --- a/sys/netinet/ipfw/ip_fw2.c
 +++ b/sys/netinet/ipfw/ip_fw2.c
 @@ -130,9 +130,8 @@ VNET_DEFINE(int, fw_verbose);
@@ -57,9 +462,9 @@ index c7975f7..a2b349f 100644
  
  #ifdef INET6
  SYSCTL_DECL(_net_inet6_ip6);
-@@ -834,6 +830,9 @@ ipfw_chk(struct ip_fw_args *args)
- 	if (oif && !(oif->if_flags & IFF_IPFW_FILTER))
- 		return (IP_FW_PASS);
+@@ -831,6 +827,9 @@ ipfw_chk(struct ip_fw_args *args)
+ 	 */
+ 	struct ifnet *oif = args->oif;
  
 +	if (V_ipfw_context.ctx[oif->if_context] == NULL)
 +		return (IP_FW_PASS);
@@ -67,7 +472,7 @@ index c7975f7..a2b349f 100644
  	int f_pos = 0;		/* index of current rule in the array */
  	int retval = 0;
  
-@@ -884,7 +883,7 @@ ipfw_chk(struct ip_fw_args *args)
+@@ -881,7 +880,7 @@ ipfw_chk(struct ip_fw_args *args)
  	 */
  	int dyn_dir = MATCH_UNKNOWN;
  	ipfw_dyn_rule *q = NULL;
@@ -76,7 +481,7 @@ index c7975f7..a2b349f 100644
  	struct table_entry *tblent = NULL;
  
  	/*
-@@ -2515,12 +2514,6 @@ ipfw_destroy(void)
+@@ -2512,12 +2511,6 @@ ipfw_destroy(void)
  static int
  vnet_ipfw_init(const void *unused)
  {
@@ -89,7 +494,7 @@ index c7975f7..a2b349f 100644
  	/* First set up some values that are compile time options */
  	V_autoinc_step = 100;	/* bounded to 1..1000 in add_rule() */
  	V_fw_deny_unknown_exthdrs = 1;
-@@ -2530,6 +2523,51 @@ vnet_ipfw_init(const void *unused)
+@@ -2527,6 +2520,51 @@ vnet_ipfw_init(const void *unused)
  #ifdef IPFIREWALL_VERBOSE_LIMIT
  	V_verbose_limit = IPFIREWALL_VERBOSE_LIMIT;
  #endif
@@ -141,7 +546,7 @@ index c7975f7..a2b349f 100644
  #ifdef IPFIREWALL_NAT
  	LIST_INIT(&chain->nat);
  #endif
-@@ -2547,9 +2585,17 @@ vnet_ipfw_init(const void *unused)
+@@ -2544,9 +2582,17 @@ vnet_ipfw_init(const void *unused)
  			"(support disabled)\n");
  		return (ENOSPC);
  	}
@@ -159,7 +564,7 @@ index c7975f7..a2b349f 100644
  	}
  
  	/* fill and insert the default rule */
-@@ -2562,29 +2608,6 @@ vnet_ipfw_init(const void *unused)
+@@ -2559,29 +2605,6 @@ vnet_ipfw_init(const void *unused)
  	chain->rules = chain->default_rule = chain->map[0] = rule;
  	chain->id = rule->id = 1;
  
@@ -189,7 +594,7 @@ index c7975f7..a2b349f 100644
  	return (error);
  }
  
-@@ -2594,11 +2617,12 @@ vnet_ipfw_init(const void *unused)
+@@ -2591,11 +2614,12 @@ vnet_ipfw_init(const void *unused)
  static int
  vnet_ipfw_uninit(const void *unused)
  {
@@ -205,7 +610,7 @@ index c7975f7..a2b349f 100644
  	/*
  	 * disconnect from ipv4, ipv6, layer2 and sockopt.
  	 * Then grab, release and grab again the WLOCK so we make
-@@ -2607,6 +2631,47 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2604,6 +2628,47 @@ vnet_ipfw_uninit(const void *unused)
  	(void)ipfw_attach_hooks(0 /* detach */);
  	V_ip_fw_chk_ptr = NULL;
  	V_ip_fw_ctl_ptr = NULL;
@@ -253,7 +658,7 @@ index c7975f7..a2b349f 100644
  	IPFW_UH_WLOCK(chain);
  	IPFW_UH_WUNLOCK(chain);
  	IPFW_UH_WLOCK(chain);
-@@ -2615,7 +2680,6 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2612,7 +2677,6 @@ vnet_ipfw_uninit(const void *unused)
  	IPFW_WUNLOCK(chain);
  	IPFW_WLOCK(chain);
  
@@ -261,7 +666,7 @@ index c7975f7..a2b349f 100644
  	ipfw_destroy_tables(chain);
  	reap = NULL;
  	for (i = 0; i < chain->n_rules; i++) {
-@@ -2630,7 +2694,9 @@ vnet_ipfw_uninit(const void *unused)
+@@ -2627,7 +2691,9 @@ vnet_ipfw_uninit(const void *unused)
  	if (reap != NULL)
  		ipfw_reap_rules(reap);
  	IPFW_LOCK_DESTROY(chain);
@@ -273,7 +678,7 @@ index c7975f7..a2b349f 100644
  }
  
 diff --git a/sys/netinet/ipfw/ip_fw_private.h b/sys/netinet/ipfw/ip_fw_private.h
-index 2d1e381..63d15e0 100644
+index 9fccf5f..b5a099e 100644
 --- a/sys/netinet/ipfw/ip_fw_private.h
 +++ b/sys/netinet/ipfw/ip_fw_private.h
 @@ -169,6 +169,7 @@ void ipfw_log(struct ip_fw *f, u_int hlen, struct ip_fw_args *args,
@@ -348,10 +753,10 @@ index 2d1e381..63d15e0 100644
  
  /*
 diff --git a/sys/netinet/ipfw/ip_fw_sockopt.c b/sys/netinet/ipfw/ip_fw_sockopt.c
-index e9fa478..b4cb105 100644
+index 343a899..41663aa 100644
 --- a/sys/netinet/ipfw/ip_fw_sockopt.c
 +++ b/sys/netinet/ipfw/ip_fw_sockopt.c
-@@ -67,6 +67,7 @@ __FBSDID("$FreeBSD: src/sys/netinet/ipfw/ip_fw_sockopt.c,v 1.14.2.9.2.1 2012/03/
+@@ -67,6 +67,7 @@ __FBSDID("$FreeBSD: src/sys/netinet/ipfw/ip_fw_sockopt.c,v 1.14.2.9.2.2 2012/11/
  #endif
  
  MALLOC_DEFINE(M_IPFW, "IpFw/IpAcct", "IpFw/IpAcct chain's");
@@ -359,10 +764,12 @@ index e9fa478..b4cb105 100644
  
  /*
   * static variables followed by global ones (none in this file)
-@@ -938,9 +939,14 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -937,10 +938,15 @@ ipfw_ctl(struct sockopt *sopt)
+ {
  #define	RULE_MAXSIZE	(256*sizeof(u_int32_t))
  	int error;
- 	size_t size;
+-	size_t size;
++	size_t size, toptsize;
 +	struct ifnet *ifp;
  	struct ip_fw *buf, *rule;
  	struct ip_fw_chain *chain;
@@ -374,7 +781,7 @@ index e9fa478..b4cb105 100644
  
  	error = priv_check(sopt->sopt_td, PRIV_NETINET_IPFW);
  	if (error)
-@@ -957,7 +963,209 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -957,7 +963,237 @@ ipfw_ctl(struct sockopt *sopt)
  			return (error);
  	}
  
@@ -578,14 +985,42 @@ index e9fa478..b4cb105 100644
 +		break;
 +	}
 +
++	if (TAILQ_EMPTY(&V_ip_fw_contexts))
++                return (ENOENT);
++	if (sopt->sopt_valsize < IP_FW_CTX_MAXNAME)
++		return EINVAL;
++
++	/* XXX: Gross hack in sight */
++        bzero(ctxname, sizeof ctxname);
++        toptsize = sopt->sopt_valsize;
++        sopt->sopt_valsize = IP_FW_CTX_MAXNAME;
++        error = sooptcopyin(sopt, ctxname, IP_FW_CTX_MAXNAME, IP_FW_CTX_MAXNAME);
++        sopt->sopt_valsize = toptsize;
++        if (error)
++                return error;
++
++	IPFW_CTX_RLOCK(V_ipfw_context);
++	TAILQ_FOREACH(tmpctx, &V_ip_fw_contexts, entry) {
++		if (strlen(ctxname) == strlen(tmpctx->ctxname) && !strcmp(tmpctx->ctxname, ctxname))
++			break;
++	}
++	if (tmpctx != NULL) {
++		V_layer3_chain = V_ipfw_context.ctx[tmpctx->contextid];
++		error = 0;
++	}
++	IPFW_CTX_RUNLOCK(V_ipfw_context);
 +	if (V_layer3_chain == NULL)
 +		return (ENOENT);
++
++        sopt->sopt_valsize -= IP_FW_CTX_MAXNAME;
++        sopt->sopt_val = ((char *)sopt->sopt_val) + IP_FW_CTX_MAXNAME;
++        /* XXX: End Gross hack */
 +
 +	chain = V_layer3_chain;
  	error = 0;
  
  	switch (sopt->sopt_name) {
-@@ -1256,6 +1464,36 @@ ipfw_ctl(struct sockopt *sopt)
+@@ -1256,6 +1492,36 @@ ipfw_ctl(struct sockopt *sopt)
  #undef RULE_MAXSIZE
  }
  
@@ -623,7 +1058,7 @@ index e9fa478..b4cb105 100644
  #define	RULE_MAXSIZE	(256*sizeof(u_int32_t))
  
 diff --git a/sys/netinet/raw_ip.c b/sys/netinet/raw_ip.c
-index 560cff3..85c2cfc 100644
+index 635f2e8..b75dd68 100644
 --- a/sys/netinet/raw_ip.c
 +++ b/sys/netinet/raw_ip.c
 @@ -556,6 +556,7 @@ rip_ctloutput(struct socket *so, struct sockopt *sopt)
