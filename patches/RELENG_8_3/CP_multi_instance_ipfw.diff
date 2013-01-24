@@ -322,7 +322,7 @@ index bbf2ce8..43481ec 100644
  char const *match_value(struct _s_x *p, int value);
  
 -int do_cmd(int optname, void *optval, uintptr_t optlen);
-+int do_cmd(int optname, void *optval, uintptr_t optlen, socklen_t *opt);
++int do_cmd(int optname, void *optval, uintptr_t optlen, uint *opt);
  
  struct in6_addr;
  void n2mask(struct in6_addr *mask, int n);
