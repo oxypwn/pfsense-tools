@@ -492,6 +492,8 @@ void *check_hostname(void *arg)
 	while ((ts.tv_sec = time(NULL)) < 0)
 		;
 
+	get_present_table_entries(thrd);
+
 	pthread_mutex_lock(&thrd->mtx);
 	for (;;) {
 		
@@ -499,8 +501,6 @@ void *check_hostname(void *arg)
 		ts.tv_sec += interval;
 		ts.tv_sec += (interval % 30);
 		ts.tv_nsec = 0;
-
-		get_present_table_entries(thrd);
 
 		pthread_rwlock_rdlock(&main_lock);
 
