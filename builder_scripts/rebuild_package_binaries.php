@@ -239,7 +239,7 @@ foreach($pkg['packages']['package'] as $pkg) {
 */
 			echo ">>> Processing {$build}\n";
 			if(!empty($build_options)) {
-				if(!isset($options['q'])) 
+				if(!isset($options['q']))
 					echo " BUILD_OPTIONS: {$build_options}\n";
 				$build_options = '"' . str_replace(';', '" "', $build_options) . '"';
 			}
@@ -249,10 +249,14 @@ foreach($pkg['packages']['package'] as $pkg) {
 				$command_to_run .= "if [ ! -L /usr/home ]; then\n";
 				$command_to_run .= "	 ln -s /home/ /usr/home\n";
 				$command_to_run .= "fi\n";
-				$command_to_run .= "cd {$build} && make clean depends package-recursive {$DESTDIR} NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}\n";
+				$command_to_run .= "cd {$build} && make NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean depends package-recursive {$DESTDIR} clean {$quiet_mode}\n";
 				chroot_command($options['l'], $command_to_run);
-			} else
-				`cd {$build} && make clean depends package-recursive {$DESTDIR} NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean {$quiet_mode}`;
+			} else {
+				$command_to_run = "cd {$build} && make NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes WITHOUT_X11=yes {$build_options} FORCE_PKG_REGISTER=yes clean depends package-recursive {$DESTDIR} clean {$quiet_mode}";
+				if(!isset($options['q']))
+					echo ">> Build Command: {$command_to_run}\n";
+				shell_exec($command_to_run);
+			}
 		}
 	}
 }
