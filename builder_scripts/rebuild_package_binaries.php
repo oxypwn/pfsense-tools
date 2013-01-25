@@ -176,7 +176,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	system("cp /etc/resolv.conf {$options['l']}/etc/");
 	system("cp -R /home/pfsense/tools {$options['l']}/home/pfsense/");
 	// Invoke csup and populate /usr/ports inside chroot
-	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l'], $quiet_mode);
+	//csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $options['l'], $quiet_mode);
 	echo ">>> Applying kernel patches and make includes...\n";
 	exec("rm -rf {$options['l']}/tmp/pf*");
 	$command_to_run = "#!/bin/sh\n";
