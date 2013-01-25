@@ -189,7 +189,7 @@ if(isset($options['j']) && $options['l'] <> "") {
 	// Invoke csup and populate /usr/ports on host (non-chroot)
 	$file_system_root = "/";
 	exec("rm -rf /tmp/pf*");
-	csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $quiet_mode);
+	//csup($csup_host, "/usr/share/examples/cvsup/ports-supfile", $quiet_mode);
 	echo ">>> Applying kernel patches...\n";
 	if($set_version)
 		exec("cd /home/pfsense/tools/builder_scripts && ./set_version.sh {$set_version}");
