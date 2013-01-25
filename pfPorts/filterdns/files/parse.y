@@ -124,6 +124,7 @@ dnsrule		: ftype STRING STRING pipe command {
 					free($5);
 				} 
 				TAILQ_INIT(&thr->rnh); 
+				TAILQ_INIT(&thr->static_rnh); 
 				TAILQ_INSERT_TAIL(&thread_list, thr, next);
 			}
 		}

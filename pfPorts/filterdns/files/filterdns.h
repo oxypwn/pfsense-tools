@@ -49,6 +49,7 @@ TAILQ_HEAD(table_entry, table);
 
 struct thread_data {
         struct table_entry rnh;
+	struct table_entry static_rnh;
 	int type;
         char *tablename;
         char *hostname;

@@ -96,11 +96,117 @@ flush_table(char *tablename)
 #endif
 
 static int
-add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_data *thrdata, int forceupdate)
+get_present_table_entries(struct thread_data *thr)
+{
+	struct pfioc_table io;
+	struct pfr_table *table;
+	struct pfr_addr *addr;
+	struct table *ent;
+	void *newinbuf;
+
+	memset(&io, 0, sizeof(io));
+	memset(&table, 0, sizeof(table));
+	table = &io.pfrio_table;
+
+	if (strlcpy(table->pfrt_name, thr->tablename, sizeof(table->pfrt_name)) >= sizeof(table->pfrt_name))
+		return (-1);
+
+	io.pfrio_buffer = newinbuf = NULL;
+	io.pfrio_esize = sizeof(struct pfr_addr);
+      
+	if (ioctl(dev, DIOCRGETADDRS, &io) < 0) {
+		if (debug >= 3)
+			syslog(LOG_WARNING, "\tCould not get number of entries from table %s", thr->tablename);
+		free(io.pfrio_buffer);
+		io.pfrio_buffer = NULL;
+		return (-1);
+	}
+	io.pfrio_buffer = calloc(1, io.pfrio_size * io.pfrio_esize);
+	if (io.pfrio_buffer == NULL)
+		return (-1);
+
+	if (debug >= 3)
+		syslog(LOG_WARNING, "\tTable %s has %u entries", thr->tablename, io.pfrio_size);
+
+	if (ioctl(dev, DIOCRGETADDRS, &io) < 0) {
+		if (debug >= 3)
+			syslog(LOG_WARNING, "\tCould not retrieve entries from table %s", thr->tablename);
+		free(io.pfrio_buffer);
+		io.pfrio_buffer = NULL;
+		return (-1);
+	}
+
+	if (debug >= 3)
+		syslog(LOG_WARNING, "\tFetched %s has %u entries", thr->tablename, io.pfrio_size);
+
+	addr = io.pfrio_buffer;
+	while (io.pfrio_size > 0) {
+		ent = calloc(1, sizeof(*ent));
+		if (ent == NULL) {
+			if (debug >= 3)
+				syslog(LOG_ERR, "\tCould not allocate one entry retrying");
+			continue;
+		}
+
+		if (addr->pfra_af == AF_INET)
+			ent->addr = calloc(1, sizeof(struct sockaddr_in));
+		else
+			ent->addr = calloc(1, sizeof(struct sockaddr_in6));
+		if (ent->addr == NULL) {
+			free(ent);
+			if (debug >= 3)
+				syslog(LOG_WARNING, "\tFailed to allocate new address entry for table %s.", thr->tablename);
+			continue;
+		}
+		if (addr->pfra_af == AF_INET) {
+			ent->addr->sa_len = sizeof(struct sockaddr_in);
+			ent->addr->sa_family = AF_INET;
+			((struct sockaddr_in *)ent->addr)->sin_addr = addr->pfra_ip4addr;
+		} else {
+			ent->addr->sa_len = sizeof(struct sockaddr_in6);
+			ent->addr->sa_family = AF_INET6;
+			((struct sockaddr_in6 *)ent->addr)->sin6_addr = addr->pfra_ip6addr;
+		}
+		TAILQ_INSERT_HEAD(&thr->static_rnh, ent, entry);
+		addr++;
+	}
+	free(io.pfrio_buffer);
+
+	return (io.pfrio_size);
+}
+
+static int
+need_to_monitor(struct thread_data *thr, struct sockaddr *addr)
+{
+	struct table *tmp;
+	char buffer[INET6_ADDRSTRLEN] = { 0 };
+
+	if (!TAILQ_EMPTY(&thr->static_rnh)) {
+		TAILQ_FOREACH(tmp, &thr->static_rnh, entry) {
+			if (tmp->addr->sa_family != addr->sa_family)
+				continue;
+			if (!memcmp(addr, tmp->addr, addr->sa_len)) {
+				if (debug >= 2) {
+					if (addr->sa_family == AF_INET)
+						syslog(LOG_WARNING, "\t\tentry %s is static on table %s", inet_ntop(addr->sa_family, &satosin(addr)->sin_addr.s_addr, buffer, sizeof buffer), thr->tablename);
+					else if (addr->sa_family == AF_INET6)
+						syslog(LOG_WARNING, "\t\tentry %s is static on table %s", inet_ntop(addr->sa_family, satosin6(addr)->sin6_addr.s6_addr, buffer, sizeof buffer), thr->tablename);
+				}
+				return (0);
+			}
+		}
+	}
+
+	return (1);
+}
+
+static int
+add_table_entry(struct thread_data *thrdata, struct sockaddr *addr, int forceupdate)
 {
 	struct table *ent, *tmp;
 	char buffer[INET6_ADDRSTRLEN] = { 0 };
-	TAILQ_FOREACH(tmp, rnh, entry) {
+
+	TAILQ_FOREACH(tmp, &thrdata->rnh, entry) {
 		if (tmp->addr->sa_family != addr->sa_family)
 			continue;
 		if (!memcmp(addr, tmp->addr, addr->sa_len)) {
@@ -146,7 +252,7 @@ add_table_entry(struct table_entry *rnh, struct sockaddr *addr, struct thread_da
 	}
 	memcpy(ent->addr, addr, addr->sa_len);;
 	ent->refcnt = 2;
-	TAILQ_INSERT_HEAD(rnh, ent, entry);
+	TAILQ_INSERT_HEAD(&thrdata->rnh, ent, entry);
 	if (thrdata->type == PF_TYPE) {
 		if (debug >= 2) {
 			if(addr->sa_family == AF_INET)
@@ -231,18 +337,18 @@ host_dns(struct thread_data *hostd, int forceupdate)
 	}
 
         for (res = res0; res; res = res->ai_next) {
+		if (!need_to_monitor(hostd, res->ai_addr))
+			continue;
                 if (res->ai_family == AF_INET) {
 			if (debug > 9)
 				syslog(LOG_WARNING, "\t\tfound entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 2, buffer, sizeof buffer), hostd->tablename);
-			if (!add_table_entry(&hostd->rnh, res->ai_addr, hostd, forceupdate))
-                		cnt++;
 		}
 		if(res->ai_family == AF_INET6) {
 			if (debug > 9)
 				syslog(LOG_WARNING, "\t\tfound entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 6, buffer, sizeof buffer), hostd->tablename);
-			if (!add_table_entry(&hostd->rnh, res->ai_addr, hostd, forceupdate))
-                		cnt++;
                 }
+		if (!add_table_entry(hostd, res->ai_addr, forceupdate))
+			cnt++;
         }
         freeaddrinfo(res0);
         return (cnt);
@@ -394,6 +500,8 @@ void *check_hostname(void *arg)
 		ts.tv_sec += (interval % 30);
 		ts.tv_nsec = 0;
 
+		get_present_table_entries(thrd);
+
 		pthread_rwlock_rdlock(&main_lock);
 
 		if (thrd->exit == 1) {
@@ -448,11 +556,22 @@ clear_hostname_addresses(struct thread_data *thr)
 
 	filterdns_clean_table(thr, 1);
 
-	while ((a = TAILQ_FIRST(&thr->rnh)) != NULL) {
-		TAILQ_REMOVE(&thr->rnh, a, entry);
-		if (a->addr)
-			free(a->addr);
-		free(a);
+	if (!TAILQ_EMPTY(&thr->static_rnh)) {
+		while ((a = TAILQ_FIRST(&thr->static_rnh)) != NULL) {
+			TAILQ_REMOVE(&thr->static_rnh, a, entry);
+			if (a->addr)
+				free(a->addr);
+			free(a);
+		}
+	}
+
+	if (!TAILQ_EMPTY(&thr->rnh)) {
+		while ((a = TAILQ_FIRST(&thr->rnh)) != NULL) {
+			TAILQ_REMOVE(&thr->rnh, a, entry);
+			if (a->addr)
+				free(a->addr);
+			free(a);
+		}
 	}
 }
 
