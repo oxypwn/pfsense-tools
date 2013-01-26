@@ -1,0 +1,181 @@
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/admin.c ./src/racoon/admin.c
+--- ../ipsec-tools-0.8.0.old/src/racoon/admin.c	2012-05-29 18:20:45.000000000 +0000
++++ ./src/racoon/admin.c	2012-05-29 18:20:52.000000000 +0000
+@@ -224,6 +224,19 @@
+ 		}
+ 		break;
+ 
++	case ADMIN_SHOW_USERS:
++		switch (com->ac_proto) {
++		case ADMIN_PROTO_ISAKMP:
++			buf = dumpph1();
++			if (buf == NULL)
++				l_ac_errno = ENOMEM;
++			break;
++		default:
++			l_ac_errno = ENOTSUP;
++			break;
++		}
++		break;
++
+ 	case ADMIN_SHOW_SA:
+ 		switch (com->ac_proto) {
+ 		case ADMIN_PROTO_ISAKMP:
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/admin.h ./src/racoon/admin.h
+--- ../ipsec-tools-0.8.0.old/src/racoon/admin.h	2012-05-29 18:20:46.000000000 +0000
++++ ./src/racoon/admin.h	2012-05-29 18:20:52.000000000 +0000
+@@ -77,6 +77,7 @@
+  */
+ #define ADMIN_SHOW_SA		0x0101
+ #define ADMIN_FLUSH_SA		0x0102
++#define	ADMIN_SHOW_USERS	0x0103
+ 
+ /*
+  * The admin_com_indexes follows, see below.
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/handler.c ./src/racoon/handler.c
+--- ../ipsec-tools-0.8.0.old/src/racoon/handler.c	2012-05-29 18:20:46.000000000 +0000
++++ ./src/racoon/handler.c	2012-05-29 18:23:48.000000000 +0000
+@@ -340,6 +340,15 @@
+ 		pd->etype = iph1->etype;
+ 		pd->created = iph1->created;
+ 		pd->ph2cnt = iph1->ph2cnt;
++#ifdef ENABLE_HYBRID
++		pd->msgid = iph1->msgid;
++		if (iph1->mode_cfg != NULL) {
++			if (iph1->mode_cfg->xauth.authdata.generic.usr != NULL)
++				memcpy(pd->user, iph1->mode_cfg->xauth.authdata.generic.usr, LOGINLEN);
++			else
++				memcpy(pd->user, iph1->mode_cfg->login, LOGINLEN);
++		}
++#endif
+ 		pd++;
+ 	}
+ 
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/handler.h ./src/racoon/handler.h
+--- ../ipsec-tools-0.8.0.old/src/racoon/handler.h	2012-05-29 18:20:45.000000000 +0000
++++ ./src/racoon/handler.h	2012-05-29 18:23:38.000000000 +0000
+@@ -453,6 +453,10 @@
+ 	u_int8_t etype;
+ 	time_t created;
+ 	int ph2cnt;
++#ifdef ENABLE_HYBRID
++	u_int32_t msgid;		/* message id */
++	char user[31];
++#endif
+ };
+ 
+ struct sockaddr;
+diff -ur ../ipsec-tools-0.8.0.old/src/racoon/racoonctl.c ./src/racoon/racoonctl.c
+--- ../ipsec-tools-0.8.0.old/src/racoon/racoonctl.c	2012-05-29 18:20:45.000000000 +0000
++++ ./src/racoon/racoonctl.c	2012-05-29 18:21:25.000000000 +0000
+@@ -93,6 +93,7 @@
+ static vchar_t *f_reload __P((int, char **));
+ static vchar_t *f_getsched __P((int, char **));
+ static vchar_t *f_getsa __P((int, char **));
++static vchar_t *f_loggedusrs __P((int, char **));
+ static vchar_t *f_getsacert __P((int, char **));
+ static vchar_t *f_flushsa __P((int, char **));
+ static vchar_t *f_deletesa __P((int, char **));
+@@ -131,6 +132,8 @@
+ #ifdef ENABLE_HYBRID
+ 	{ f_logoutusr,	"logout-user" },
+ 	{ f_logoutusr,	"lu" },
++	{ f_loggedusrs,	"show-users" },
++	{ f_loggedusrs,	"su" },
+ #endif
+ 	{ NULL, NULL },
+ };
+@@ -199,6 +202,7 @@
+ int evt_quit_event = 0;
+ 
+ void dump_isakmp_sa __P((char *, int));
++void dump_isakmp_users __P((char *, int));
+ void dump_internal __P((char *, int));
+ char *pindex_isakmp __P((isakmp_index *));
+ void print_schedule __P((caddr_t, int));
+@@ -220,6 +224,7 @@
+ "  %s [opts] vpn-disconnect vpn_gateway\n"
+ "  %s [opts] show-event\n"
+ "  %s [opts] logout-user login\n"
++"  %s [opts] show-users\n"
+ "\n"
+ "General options:\n"
+ "  -d		Debug: hexdump admin messages before sending\n"
+@@ -236,7 +241,7 @@
+ "    <family>: \"inet\" or \"inet6\"\n"
+ "    <ul_proto>: \"icmp\", \"tcp\", \"udp\", \"gre\" or \"any\"\n"
+ "\n",
+-		pname, pname, pname, pname, pname, pname, pname, pname, pname, pname,
++		pname, pname, pname, pname, pname, pname, pname, pname, pname, pname, pname,
+ 		ADMINSOCK_PATH);
+ }
+ 
+@@ -407,6 +412,15 @@
+ }
+ 
+ static vchar_t *
++f_loggedusrs(ac, av)
++	int ac;
++	char **av;
++{
++	return make_request(ADMIN_SHOW_USERS, ADMIN_PROTO_ISAKMP, 0);
++}
++
++
++static vchar_t *
+ f_getsa(ac, av)
+ 	int ac;
+ 	char **av;
+@@ -1018,6 +1032,42 @@
+ 	return -1;
+ }
+ 
++void
++dump_isakmp_users(char *buf, int len)
++{
++	struct ph1dump *pd;
++	struct tm *tm;
++	char tbuf[56];
++	char _addr3_[NI_MAXHOST], _addr4_[NI_MAXHOST];
++	caddr_t p = NULL;
++
++	if (len % sizeof(*pd))
++		printf("invalid length %d\n", len);
++
++	printf("User|Source|Destination|CreatedOn|SPI\n");
++
++	len /= sizeof(*pd);
++	pd = (struct ph1dump *)buf;
++
++	while (len-- > 0) {
++		/* created date */
++		if (pd->created) {
++			tm = localtime(&pd->created);
++			strftime(tbuf, sizeof(tbuf), "%Y-%m-%d %T", tm);
++		} else
++			tbuf[0] = '\0';
++		/* source address */
++		GETNAMEINFO((struct sockaddr *)&pd->local, _addr1_, _addr2_);
++		/* destination address */
++		GETNAMEINFO((struct sockaddr *)&pd->remote, _addr3_, _addr4_);
++
++		printf("%s|%s:%s|%s:%s|%s|%x\n", pd->user,_addr1_,_addr2_,_addr3_,_addr4_,tbuf,pd->msgid);
++		pd++;
++	}
++
++	return;
++}
++
+ /* %%% */
+ void
+ dump_isakmp_sa(buf, len)
+@@ -1469,6 +1519,9 @@
+ 		fwrite(buf, len, 1, stdout);
+ 		break;
+ 
++	case ADMIN_SHOW_USERS:
++		dump_isakmp_users(buf, len);
++		break;
+ 	case ADMIN_SHOW_SA:
+ 	   {
+ 		switch (com->ac_proto) {

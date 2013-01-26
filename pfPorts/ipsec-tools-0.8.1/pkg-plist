@@ -1,0 +1,18 @@
+sbin/plainrsa-gen
+sbin/racoon
+sbin/racoonctl
+sbin/setkey
+lib/libipsec.a
+lib/libipsec.la
+lib/libipsec.so
+lib/libipsec.so.0
+lib/libracoon.a
+lib/libracoon.la
+lib/libracoon.so
+lib/libracoon.so.0
+@dirrmtry etc/racoon
+@dirrm include/racoon
+@dirrm include/libipsec
+@cwd /
+@exec mkdir -p %%STATEDIR%%
+@dirrmtry %%STATEDIR%%
