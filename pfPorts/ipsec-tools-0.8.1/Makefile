@@ -28,7 +28,8 @@ GNU_CONFIGURE=	yes
 USE_LDCONFIG=	yes
 CONFIGURE_ARGS=	--enable-shared --sysconfdir=${PREFIX}/etc/racoon \
 		--localstatedir=${STATEDIR:S/\/racoon//} \
-		--with-pkgversion=freebsd-${PORTVERSION}
+		--with-pkgversion=freebsd-${PORTVERSION} \
+		--with-openssl=/usr/local
 
 STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
