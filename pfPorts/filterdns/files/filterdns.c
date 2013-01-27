@@ -102,16 +102,15 @@ get_present_table_entries(struct thread_data *thr)
 	struct pfr_table *table;
 	struct pfr_addr *addr;
 	struct table *ent;
-	void *newinbuf;
 
 	memset(&io, 0, sizeof(io));
-	memset(&table, 0, sizeof(table));
 	table = &io.pfrio_table;
+	memset(table, 0, sizeof(*table));
 
 	if (strlcpy(table->pfrt_name, thr->tablename, sizeof(table->pfrt_name)) >= sizeof(table->pfrt_name))
 		return (-1);
 
-	io.pfrio_buffer = newinbuf = NULL;
+	io.pfrio_buffer = NULL;
 	io.pfrio_esize = sizeof(struct pfr_addr);
       
 	if (ioctl(dev, DIOCRGETADDRS, &io) < 0) {
