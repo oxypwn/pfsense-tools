@@ -48,10 +48,10 @@ index d684dee..6eea777 100644
  			goto done; /* no response */
  		if (l + max_size <= buflen)
 diff --git a/sbin/ipfw/ipfw2.c b/sbin/ipfw/ipfw2.c
-index adee94f..a6033a8 100644
+index adee94f..617a62f 100644
 --- a/sbin/ipfw/ipfw2.c
 +++ b/sbin/ipfw/ipfw2.c
-@@ -359,14 +359,38 @@ safe_realloc(void *ptr, size_t size)
+@@ -359,14 +359,42 @@ safe_realloc(void *ptr, size_t size)
   * Selected options or negative -> getsockopt
   */
  int
@@ -72,7 +72,11 @@ index adee94f..a6033a8 100644
 +		toptlen = optlen;
 +	else
 +		toptlen = 0;
-+	if (co.ctx) {
++	if (optname < 0)
++		i = -optname;
++	else
++		i = optname;
++	if (co.ctx && i != IP_DUMMYNET3) {
 +		toptlen += IP_FW_CTX_MAXNAME; 
 +	}
 +	if (toptlen > 0) {
@@ -81,7 +85,7 @@ index adee94f..a6033a8 100644
 +			err(10, "Cannot allocate memory for context %s", strerror(errno));
 +	}
 +	tmpbuf = buf;
-+	if (co.ctx) {
++	if (co.ctx && i != IP_DUMMYNET3) {
 +		sprintf(buf, "%s", co.ctx);
 +		if (optval)
 +			memcpy((void *)(buf + IP_FW_CTX_MAXNAME), optval, (toptlen - IP_FW_CTX_MAXNAME));
@@ -91,7 +95,7 @@ index adee94f..a6033a8 100644
  	if (s == -1)
  		s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
  	if (s < 0)
-@@ -380,13 +404,25 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
+@@ -380,13 +408,25 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
  	    optname == IP_FW_NAT_GET_LOG ||
  	    optname == IP_FW_TABLE_GET_ENTRY ||
  	    optname == IP_FW_TABLE_ZERO_ENTRY_STATS) {
@@ -120,7 +124,7 @@ index adee94f..a6033a8 100644
  	return i;
  }
  
-@@ -1662,7 +1698,7 @@ ipfw_sets_handler(char *av[])
+@@ -1662,7 +1702,7 @@ ipfw_sets_handler(char *av[])
  			nalloc = nalloc * 2 + 200;
  			nbytes = nalloc;
  		data = safe_calloc(1, nbytes);
@@ -129,7 +133,7 @@ index adee94f..a6033a8 100644
  			err(EX_OSERR, "getsockopt(IP_FW_GET)");
  		}
  
-@@ -1692,7 +1728,7 @@ ipfw_sets_handler(char *av[])
+@@ -1692,7 +1732,7 @@ ipfw_sets_handler(char *av[])
  		if (!isdigit(*(av[1])) || new_set > RESVD_SET)
  			errx(EX_DATAERR, "invalid set number %s\n", av[1]);
  		masks[0] = (4 << 24) | (new_set << 16) | (rulenum);
@@ -138,7 +142,7 @@ index adee94f..a6033a8 100644
  	} else if (_substrcmp(*av, "move") == 0) {
  		av++;
  		if (av[0] && _substrcmp(*av, "rule") == 0) {
-@@ -1711,7 +1747,7 @@ ipfw_sets_handler(char *av[])
+@@ -1711,7 +1751,7 @@ ipfw_sets_handler(char *av[])
  		if (!isdigit(*(av[2])) || new_set > RESVD_SET)
  			errx(EX_DATAERR, "invalid dest. set %s\n", av[1]);
  		masks[0] = (cmd << 24) | (new_set << 16) | (rulenum);
@@ -147,7 +151,7 @@ index adee94f..a6033a8 100644
  	} else if (_substrcmp(*av, "disable") == 0 ||
  		   _substrcmp(*av, "enable") == 0 ) {
  		int which = _substrcmp(*av, "enable") == 0 ? 1 : 0;
-@@ -1739,7 +1775,7 @@ ipfw_sets_handler(char *av[])
+@@ -1739,7 +1779,7 @@ ipfw_sets_handler(char *av[])
  			errx(EX_DATAERR,
  			    "cannot enable and disable the same set\n");
  
@@ -156,7 +160,7 @@ index adee94f..a6033a8 100644
  		if (i)
  			warn("set enable/disable: setsockopt(IP_FW_DEL)");
  	} else
-@@ -1821,7 +1857,7 @@ ipfw_list(int ac, char *av[], int show_counters)
+@@ -1821,7 +1861,7 @@ ipfw_list(int ac, char *av[], int show_counters)
  		nalloc = nalloc * 2 + 200;
  		nbytes = nalloc;
  		data = safe_realloc(data, nbytes);
@@ -165,7 +169,7 @@ index adee94f..a6033a8 100644
  			err(EX_OSERR, "getsockopt(IP_%s_GET)",
  				co.do_pipe ? "DUMMYNET" : "FW");
  	}
-@@ -2264,7 +2300,7 @@ ipfw_delete(char *av[])
+@@ -2264,7 +2304,7 @@ ipfw_delete(char *av[])
  	while (*av && isdigit(**av)) {
  		i = atoi(*av); av++;
  		if (co.do_nat) {
@@ -174,7 +178,7 @@ index adee94f..a6033a8 100644
  			if (exitval) {
  				exitval = EX_UNAVAILABLE;
  				warn("rule %u not available", i);
-@@ -2277,7 +2313,7 @@ ipfw_delete(char *av[])
+@@ -2277,7 +2317,7 @@ ipfw_delete(char *av[])
  				    ((co.use_set - 1) << 16);
  			else
  			rulenum =  (i & 0xffff) | (do_set << 24);
@@ -183,7 +187,7 @@ index adee94f..a6033a8 100644
  			if (i) {
  				exitval = EX_UNAVAILABLE;
  				warn("rule %u: setsockopt(IP_FW_DEL)",
-@@ -3677,7 +3713,7 @@ done:
+@@ -3677,7 +3717,7 @@ done:
  
  	rule->cmd_len = (uint32_t *)dst - (uint32_t *)(rule->cmd);
  	i = (char *)dst - (char *)rule;
@@ -192,7 +196,7 @@ index adee94f..a6033a8 100644
  		err(EX_UNAVAILABLE, "getsockopt(%s)", "IP_FW_ADD");
  	if (!co.do_quiet)
  		show_ipfw(rule, 0, 0);
-@@ -3700,7 +3736,7 @@ ipfw_zero(int ac, char *av[], int optname /* 0 = IP_FW_ZERO, 1 = IP_FW_RESETLOG
+@@ -3700,7 +3740,7 @@ ipfw_zero(int ac, char *av[], int optname /* 0 = IP_FW_ZERO, 1 = IP_FW_RESETLOG
  
  	if (!ac) {
  		/* clear all entries */
@@ -201,7 +205,7 @@ index adee94f..a6033a8 100644
  			err(EX_UNAVAILABLE, "setsockopt(IP_FW_%s)", name);
  		if (!co.do_quiet)
  			printf("%s.\n", optname == IP_FW_ZERO ?
-@@ -3721,7 +3757,7 @@ ipfw_zero(int ac, char *av[], int optname /* 0 = IP_FW_ZERO, 1 = IP_FW_RESETLOG
+@@ -3721,7 +3761,7 @@ ipfw_zero(int ac, char *av[], int optname /* 0 = IP_FW_ZERO, 1 = IP_FW_RESETLOG
  				arg |= (1 << 24) | ((co.use_set - 1) << 16);
  			av++;
  			ac--;
@@ -210,7 +214,7 @@ index adee94f..a6033a8 100644
  				warn("rule %u: setsockopt(IP_FW_%s)",
  				    saved_arg, name);
  				failed = EX_UNAVAILABLE;
-@@ -3764,9 +3800,9 @@ ipfw_flush(int force)
+@@ -3764,9 +3804,9 @@ ipfw_flush(int force)
  	/* `ipfw set N flush` - is the same that `ipfw delete set N` */
  	if (co.use_set) {
  		uint32_t arg = ((co.use_set - 1) & 0xffff) | (1 << 24);
@@ -222,7 +226,7 @@ index adee94f..a6033a8 100644
  		err(EX_UNAVAILABLE, "setsockopt(IP_%s_FLUSH)",
  		    co.do_pipe ? "DUMMYNET" : "FW");
  	if (!co.do_quiet)
-@@ -3866,16 +3902,16 @@ ipfw_table_handler(int ac, char *av[])
+@@ -3866,16 +3906,16 @@ ipfw_table_handler(int ac, char *av[])
  		} else
  			ent.value = 0;
  		if (do_cmd(do_add ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL,
@@ -242,7 +246,7 @@ index adee94f..a6033a8 100644
  					err(EX_OSERR,
  					    "setsockopt(IP_FW_TABLE_ADD)");
  			}
-@@ -3884,7 +3920,7 @@ ipfw_table_handler(int ac, char *av[])
+@@ -3884,7 +3924,7 @@ ipfw_table_handler(int ac, char *av[])
  		a = is_all ? tables_max : (uint32_t)(ent.tbl + 1);
  		do {
  			if (do_cmd(IP_FW_TABLE_FLUSH, &ent.tbl,
@@ -251,7 +255,7 @@ index adee94f..a6033a8 100644
  				err(EX_OSERR, "setsockopt(IP_FW_TABLE_FLUSH)");
  		} while (++ent.tbl < a);
  	} else if (_substrcmp(*av, "list") == 0) {
-@@ -3925,7 +3961,7 @@ ipfw_table_handler(int ac, char *av[])
+@@ -3925,7 +3965,7 @@ ipfw_table_handler(int ac, char *av[])
                          errx(EX_NOHOST, "hostname ``%s'' unknown", *av);
                  ac--; av++;
                  ent.value = 0;
@@ -260,7 +264,7 @@ index adee94f..a6033a8 100644
                  	err(EX_OSERR, "getsockopt(IP_FW_TABLE_ZERO_ENTRY_STATS)");
  	} else
  		errx(EX_USAGE, "invalid table command %s", *av);
-@@ -3937,7 +3973,7 @@ table_list_entry(ipfw_table_entry ent) {
+@@ -3937,7 +3977,7 @@ table_list_entry(ipfw_table_entry ent) {
  	char tbuf[128];
  
          l = sizeof(ent);
@@ -269,7 +273,7 @@ index adee94f..a6033a8 100644
                  err(EX_OSERR, "getsockopt(IP_FW_TABLE_GET_ENTRY)");
  
  	strncpy(tbuf, inet_ntoa(*(struct in_addr *)
-@@ -3955,7 +3991,7 @@ table_list(ipfw_table_entry ent, int need_header)
+@@ -3955,7 +3995,7 @@ table_list(ipfw_table_entry ent, int need_header)
  
  	a = ent.tbl;
  	l = sizeof(a);
@@ -278,7 +282,7 @@ index adee94f..a6033a8 100644
  		err(EX_OSERR, "getsockopt(IP_FW_TABLE_GETSIZE)");
  
  	/* If a is zero we have nothing to do, the table is empty. */
-@@ -3965,7 +4001,7 @@ table_list(ipfw_table_entry ent, int need_header)
+@@ -3965,7 +4005,7 @@ table_list(ipfw_table_entry ent, int need_header)
  	l = sizeof(*tbl) + a * sizeof(ipfw_table_entry);
  	tbl = safe_calloc(1, l);
  	tbl->tbl = ent.tbl;
@@ -287,7 +291,7 @@ index adee94f..a6033a8 100644
  		err(EX_OSERR, "getsockopt(IP_FW_TABLE_LIST)");
  	if (tbl->cnt && need_header)
  		printf("---table(%d)---\n", tbl->tbl);
-@@ -3992,7 +4028,7 @@ table_list(ipfw_table_entry ent, int need_header)
+@@ -3992,7 +4032,7 @@ table_list(ipfw_table_entry ent, int need_header)
  		
  		printf("%s/%u %s%s %llu %llu\n",
  			inet_ntoa(*(struct in_addr *)&tbl->ent[a].addr),
@@ -297,7 +301,7 @@ index adee94f..a6033a8 100644
  	free(tbl);
  }
 diff --git a/sbin/ipfw/ipfw2.h b/sbin/ipfw/ipfw2.h
-index bbf2ce8..43481ec 100644
+index bbf2ce8..9ac3ae3 100644
 --- a/sbin/ipfw/ipfw2.h
 +++ b/sbin/ipfw/ipfw2.h
 @@ -29,6 +29,8 @@
