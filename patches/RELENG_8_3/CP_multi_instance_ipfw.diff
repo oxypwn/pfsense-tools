@@ -106,7 +106,7 @@ index adee94f..617a62f 100644
 -			(socklen_t *)optlen);
 +		i = getsockopt(s, IPPROTO_IP, optname, (void *)buf,
 +			(socklen_t *)&toptlen);
-+		if (co.ctx) {
++		if (co.ctx && optname != IP_DUMMYNET3) {
 +			if (optval)
 +				memcpy(optval, (void *)(tmpbuf + IP_FW_CTX_MAXNAME), toptlen);
 +		} else if (optval)
