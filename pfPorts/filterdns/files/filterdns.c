@@ -741,7 +741,7 @@ int main(int argc, char *argv[]) {
 			ipfwctx = optarg;
 			break;
 		case 'v':
-			printf("Version 1.1\n");
+			printf("Version 1.2\n");
 			exit(0);
 			/* NOTREACHED */
 			break;
