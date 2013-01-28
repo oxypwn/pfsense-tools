@@ -102,6 +102,7 @@ get_present_table_entries(struct thread_data *thr)
 	struct pfr_table *table;
 	struct pfr_addr *addr;
 	struct table *ent;
+	int i;
 
 	memset(&io, 0, sizeof(io));
 	table = &io.pfrio_table;
@@ -120,6 +121,8 @@ get_present_table_entries(struct thread_data *thr)
 		io.pfrio_buffer = NULL;
 		return (-1);
 	}
+	if (debug >= 3)
+		syslog(LOG_WARNING, "\tTable %s has %u entries", thr->tablename, io.pfrio_size);
 	io.pfrio_buffer = calloc(1, io.pfrio_size * io.pfrio_esize);
 	if (io.pfrio_buffer == NULL)
 		return (-1);
@@ -139,7 +142,7 @@ get_present_table_entries(struct thread_data *thr)
 		syslog(LOG_WARNING, "\tFetched %s has %u entries", thr->tablename, io.pfrio_size);
 
 	addr = io.pfrio_buffer;
-	while (io.pfrio_size > 0) {
+	for (i = 0; i < io.pfrio_size; i++) {
 		ent = calloc(1, sizeof(*ent));
 		if (ent == NULL) {
 			if (debug >= 3)
@@ -147,7 +150,7 @@ get_present_table_entries(struct thread_data *thr)
 			continue;
 		}
 
-		if (addr->pfra_af == AF_INET)
+		if (addr[i].pfra_af == AF_INET)
 			ent->addr = calloc(1, sizeof(struct sockaddr_in));
 		else
 			ent->addr = calloc(1, sizeof(struct sockaddr_in6));
@@ -157,20 +160,21 @@ get_present_table_entries(struct thread_data *thr)
 				syslog(LOG_WARNING, "\tFailed to allocate new address entry for table %s.", thr->tablename);
 			continue;
 		}
-		if (addr->pfra_af == AF_INET) {
+		if (addr[i].pfra_af == AF_INET) {
 			ent->addr->sa_len = sizeof(struct sockaddr_in);
 			ent->addr->sa_family = AF_INET;
-			((struct sockaddr_in *)ent->addr)->sin_addr = addr->pfra_ip4addr;
+			((struct sockaddr_in *)ent->addr)->sin_addr = addr[i].pfra_ip4addr;
 		} else {
 			ent->addr->sa_len = sizeof(struct sockaddr_in6);
 			ent->addr->sa_family = AF_INET6;
-			((struct sockaddr_in6 *)ent->addr)->sin6_addr = addr->pfra_ip6addr;
+			((struct sockaddr_in6 *)ent->addr)->sin6_addr = addr[i].pfra_ip6addr;
 		}
 		TAILQ_INSERT_HEAD(&thr->static_rnh, ent, entry);
-		addr++;
 	}
 	free(io.pfrio_buffer);
 
+	if (debug >=3)
+		syslog(LOG_WARNING, "\tTable fetcing finished");
 	return (io.pfrio_size);
 }
 
