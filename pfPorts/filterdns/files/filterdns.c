@@ -340,7 +340,7 @@ host_dns(struct thread_data *hostd, int forceupdate)
 	}
 
         for (res = res0; res; res = res->ai_next) {
-		if (!need_to_monitor(hostd, res->ai_addr))
+		if (hostd->type == PF_TYPE && !need_to_monitor(hostd, res->ai_addr))
 			continue;
                 if (res->ai_family == AF_INET) {
 			if (debug > 9)
@@ -495,7 +495,8 @@ void *check_hostname(void *arg)
 	while ((ts.tv_sec = time(NULL)) < 0)
 		;
 
-	get_present_table_entries(thrd);
+	if (thrd->type == PF_TYPE)
+		get_present_table_entries(thrd);
 
 	pthread_mutex_lock(&thrd->mtx);
 	for (;;) {
