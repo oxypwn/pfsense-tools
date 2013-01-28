@@ -279,6 +279,7 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 {
 	struct table *e, *tmp;
 	char buffer[INET6_ADDRSTRLEN] = { 0 };
+	int removed = 0;
 
 	if (TAILQ_EMPTY(&thrdata->rnh))
 		return (0);
@@ -300,11 +301,14 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 					syslog(LOG_WARNING, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
 				ipfw_tableentry(thrdata, e->addr, DELETE);
 			}
+			else if (thrdata->type == CMD_TYPE) {
+				removed++;
+			}
 			TAILQ_REMOVE(&thrdata->rnh, e, entry);
 			free(e->addr);
 			free(e);
 		} else if (debug >= 2) {
-			if (thrdata->type == PF_TYPE) {
+			if (thrdata->type == PF_TYPE || thrdata->type == CMD_TYPE) {
 				if (debug >= 2) {
 					if(e->addr->sa_family == AF_INET)
 						syslog(LOG_WARNING, "\tNOT clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), thrdata->tablename, thrdata->hostname);
@@ -319,7 +323,7 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 		}
 	}
 
-	return (0);
+	return (removed);
 }
 
 static int
@@ -466,7 +470,7 @@ void *check_hostname(void *arg)
 	struct thread_data *thrd = arg;
 	struct timespec ts;
         char *p, *q;
-	int howmuch, error1, tmp;
+	int howmuch, error1 = 0, tmp;
 
 	if (!thrd->hostname)
 		return (NULL);
@@ -520,13 +524,13 @@ void *check_hostname(void *arg)
 		if (debug >= 2)
 			syslog(LOG_WARNING, "\tFound %d entries for %s", howmuch, thrd->hostname);
 
-		if (howmuch > 0 && thrd->cmd != NULL) {
+		if (howmuch != -1)
+			error1 = filterdns_clean_table(thrd, 0);
+		if ((howmuch > 0 || error1 > 0) && thrd->cmd != NULL) {
 			error1 = system(thrd->cmd);
 			if (debug >= 2)
 				syslog(LOG_WARNING, "Ran command %s with exit status %d because a dns change on hostname %s was detected.", thrd->cmd, error1, thrd->hostname);
 		}
-		if (howmuch != -1)
-			filterdns_clean_table(thrd, 0);
 
 		pthread_rwlock_unlock(&main_lock);
 		/* Hack for sleeping a thread */
