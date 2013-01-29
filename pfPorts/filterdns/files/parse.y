@@ -145,6 +145,7 @@ dnsrule		: ftype STRING STRING pipe command {
 			thr->type = CMD_TYPE;
 			thr->cmd = strdup($3);
 			free($3);
+			thr->tablename = NULL;
 
 			TAILQ_INIT(&thr->rnh); 
 			TAILQ_INIT(&thr->static_rnh); 
