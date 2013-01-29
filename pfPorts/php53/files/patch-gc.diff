@@ -1,0 +1,11 @@
+--- Zend/zend_gc.c.orig	2013-01-29 20:57:30.000000000 +0100
++++ Zend/zend_gc.c	2013-01-29 20:58:27.000000000 +0100
+@@ -22,7 +22,7 @@
+ #include "zend.h"
+ #include "zend_API.h"
+ 
+-#define GC_ROOT_BUFFER_MAX_ENTRIES 10000
++#define GC_ROOT_BUFFER_MAX_ENTRIES 1000
+ 
+ #ifdef ZTS
+ ZEND_API int gc_globals_id;
