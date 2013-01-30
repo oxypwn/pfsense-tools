@@ -1,39 +1,47 @@
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index 5af59fe..88e97e9 100644
+index f46a854..e00826a 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
-@@ -1011,13 +1011,13 @@ pf_insert_src_node(struct pf_src_node **sn, struct pf_rule *rule,
- 		*sn = RB_FIND(pf_src_tree, &tree_src_tracking, &k);
- 	}
+@@ -555,10 +555,12 @@ pf_src_compare(struct pf_src_node *a, struct pf_src_node *b)
+ {
+ 	int	diff;
+ 
++#if 0
+ 	if (a->rule.ptr > b->rule.ptr)
+ 		return (1);
+ 	if (a->rule.ptr < b->rule.ptr)
+ 		return (-1);
++#endif
+ 	if ((diff = a->af - b->af) != 0)
+ 		return (diff);
+ 	switch (a->af) {
+@@ -1006,10 +1008,12 @@ pf_insert_src_node(struct pf_src_node **sn, struct pf_rule *rule,
  	if (*sn == NULL) {
--		if (!rule->max_src_nodes ||
--		    rule->src_nodes < rule->max_src_nodes)
--			(*sn) = pool_get(&pf_src_tree_pl, PR_NOWAIT);
--		else
--			pf_status.lcounters[LCNT_SRCNODES]++;
-+		if (rule->max_src_nodes &&
-+		    rule->src_nodes >= rule->max_src_nodes)
-+			return (-1);
-+		(*sn) = pool_get(&pf_src_tree_pl, PR_NOWAIT);
- 		if ((*sn) == NULL)
- 			return (-1);
-+		pf_status.lcounters[LCNT_SRCNODES]++;
- 		bzero(*sn, sizeof(struct pf_src_node));
+ 		k.af = af;
+ 		PF_ACPY(&k.addr, src, af);
++#if 0
+ 		if (rule->rule_flag & PFRULE_RULESRCTRACK ||
+ 		    rule->rpool.opts & PF_POOL_STICKYADDR)
+ 			k.rule.ptr = rule;
+ 		else
++#endif
+ 			k.rule.ptr = NULL;
+ 		pf_status.scounters[SCNT_SRC_NODE_SEARCH]++;
+ 		*sn = RB_FIND(pf_src_tree, &tree_src_tracking, &k);
+@@ -1029,10 +1033,12 @@ pf_insert_src_node(struct pf_src_node **sn, struct pf_rule *rule,
+ 		    rule->max_src_conn_rate.seconds);
  
- 		pf_init_threshold(&(*sn)->conn_rate,
-@@ -2786,8 +2786,10 @@ pf_map_addr(sa_family_t af, struct pf_rule *r, struct pf_addr *saddr,
- 		PF_AINC(&rpool->counter, af);
- 		break;
- 	}
--	if (*sn != NULL)
-+	if (*sn != NULL) {
- 		PF_ACPY(&(*sn)->raddr, naddr, af);
-+		(*sn)->kif = rpool->cur->kif;
-+	}
- 
- 	if (pf_status.debug >= PF_DEBUG_MISC &&
- 	    (rpool->opts & PF_POOL_TYPEMASK) != PF_POOL_NONE) {
-@@ -3406,6 +3408,7 @@ void
+ 		(*sn)->af = af;
++#if 0
+ 		if (rule->rule_flag & PFRULE_RULESRCTRACK ||
+ 		    rule->rpool.opts & PF_POOL_STICKYADDR)
+ 			(*sn)->rule.ptr = rule;
+ 		else
++#endif
+ 			(*sn)->rule.ptr = NULL;
+ 		PF_ACPY(&(*sn)->addr, src, af);
+ 		if (RB_INSERT(pf_src_tree,
+@@ -3410,6 +3416,7 @@ void
  pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
  {
  	struct pf_rule *r = s->rule.ptr;
@@ -41,7 +49,7 @@ index 5af59fe..88e97e9 100644
  
  	s->rt_kif = NULL;
  	if (!r->rt || r->rt == PF_FASTROUTE)
-@@ -3414,18 +3417,20 @@ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
+@@ -3418,18 +3425,20 @@ pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
  #ifdef INET
  	case AF_INET:
  		pf_map_addr(AF_INET, r, saddr, &s->rt_addr, NULL,
