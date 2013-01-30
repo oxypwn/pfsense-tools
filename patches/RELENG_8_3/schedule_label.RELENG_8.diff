@@ -1,11 +1,8 @@
-Index: contrib/pf/pfctl/parse.y
-===================================================================
-RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/parse.y,v
-retrieving revision 1.6
-diff -u -r1.6 parse.y
---- contrib/pf/pfctl/parse.y	16 Feb 2012 15:37:06 -0000	1.6
-+++ contrib/pf/pfctl/parse.y	16 Feb 2012 15:37:45 -0000
-@@ -208,6 +208,7 @@
+diff --git a/contrib/pf/pfctl/parse.y b/contrib/pf/pfctl/parse.y
+index 2aca173..4e47b1e 100644
+--- a/contrib/pf/pfctl/parse.y
++++ b/contrib/pf/pfctl/parse.y
+@@ -208,6 +208,7 @@ struct filter_opts {
  	int			 fragment;
  	int			 allowopts;
  	char			*label;
@@ -13,7 +10,7 @@ diff -u -r1.6 parse.y
  	struct node_qassign	 queues;
  	u_int16_t		 divert;
  	char			*tag;
-@@ -314,6 +315,7 @@
+@@ -314,6 +315,7 @@ int	 yylex(void);
  int	 atoul(char *, u_long *);
  int	 getservice(char *);
  int	 rule_label(struct pf_rule *, char *);
@@ -21,7 +18,7 @@ diff -u -r1.6 parse.y
  
  TAILQ_HEAD(symhead, sym)	 symhead = TAILQ_HEAD_INITIALIZER(symhead);
  struct sym {
-@@ -424,7 +426,7 @@
+@@ -424,7 +426,7 @@ typedef struct {
  %token	PASS BLOCK SCRUB RETURN IN OS OUT LOG QUICK ON FROM TO FLAGS
  %token	RETURNRST RETURNICMP RETURNICMP6 PROTO INET INET6 ALL ANY ICMPTYPE
  %token	ICMP6TYPE CODE KEEP MODULATE STATE PORT RDR NAT BINAT ARROW NODF
@@ -30,7 +27,7 @@ diff -u -r1.6 parse.y
  %token	NOROUTE URPFFAILED FRAGMENT USER GROUP MAXMSS MAXIMUM TTL TOS DSCP DROP TABLE
  %token	REASSEMBLE FRAGDROP FRAGCROP ANCHOR NATANCHOR RDRANCHOR BINATANCHOR
  %token	SET OPTIMIZATION TIMEOUT LIMIT LOGINTERFACE BLOCKPOLICY RANDOMID
-@@ -464,7 +466,7 @@
+@@ -464,7 +466,7 @@ typedef struct {
  %type	<v.gid>			gids gid_list gid_item
  %type	<v.route>		route
  %type	<v.redirection>		redirection redirpool
@@ -39,7 +36,7 @@ diff -u -r1.6 parse.y
  %type	<v.number>		divert
  %type	<v.keep_state>		keep
  %type	<v.state_opt>		state_opt_spec state_opt_list state_opt_item
-@@ -1808,6 +1810,9 @@
+@@ -1808,6 +1810,9 @@ pfrule		: action dir logquick interface route af proto fromto
  			if (rule_label(&r, $9.label))
  				YYERROR;
  			free($9.label);
@@ -49,7 +46,7 @@ diff -u -r1.6 parse.y
  			r.flags = $9.flags.b1;
  			r.flagset = $9.flags.b2;
  			if (($9.flags.b1 & $9.flags.b2) != $9.flags.b1) {
-@@ -2239,6 +2244,13 @@
+@@ -2239,6 +2244,13 @@ filter_opt	: USER uids {
  			}
  			filter_opts.label = $1;
  		}
@@ -63,7 +60,7 @@ diff -u -r1.6 parse.y
  		| qname	{
  			if (filter_opts.queues.qname) {
  				yyerror("queue cannot be redefined");
-@@ -3464,6 +3476,11 @@
+@@ -3464,6 +3476,11 @@ label		: LABEL STRING			{
  		}
  		;
  
@@ -75,7 +72,7 @@ diff -u -r1.6 parse.y
  qname		: QUEUE STRING				{
  			$$.qname = $2;
  		}
-@@ -4893,6 +4910,7 @@
+@@ -4893,6 +4910,7 @@ expand_rule(struct pf_rule *r,
  	int			 added = 0, error = 0;
  	char			 ifname[IF_NAMESIZE];
  	char			 label[PF_RULE_LABEL_SIZE];
@@ -83,7 +80,7 @@ diff -u -r1.6 parse.y
  	char			 tagname[PF_TAG_NAME_SIZE];
  	char			 match_tagname[PF_TAG_NAME_SIZE];
  	struct pf_pooladdr	*pa;
-@@ -4901,6 +4919,8 @@
+@@ -4901,6 +4919,8 @@ expand_rule(struct pf_rule *r,
  
  	if (strlcpy(label, r->label, sizeof(label)) >= sizeof(label))
  		errx(1, "expand_rule: strlcpy");
@@ -92,7 +89,7 @@ diff -u -r1.6 parse.y
  	if (strlcpy(tagname, r->tagname, sizeof(tagname)) >= sizeof(tagname))
  		errx(1, "expand_rule: strlcpy");
  	if (strlcpy(match_tagname, r->match_tagname, sizeof(match_tagname)) >=
-@@ -4952,6 +4972,9 @@
+@@ -4952,6 +4972,9 @@ expand_rule(struct pf_rule *r,
  		if (strlcpy(r->label, label, sizeof(r->label)) >=
  		    sizeof(r->label))
  			errx(1, "expand_rule: strlcpy");
@@ -102,7 +99,7 @@ diff -u -r1.6 parse.y
  		if (strlcpy(r->tagname, tagname, sizeof(r->tagname)) >=
  		    sizeof(r->tagname))
  			errx(1, "expand_rule: strlcpy");
-@@ -4960,6 +4983,8 @@
+@@ -4960,6 +4983,8 @@ expand_rule(struct pf_rule *r,
  			errx(1, "expand_rule: strlcpy");
  		expand_label(r->label, PF_RULE_LABEL_SIZE, r->ifname, r->af,
  		    src_host, src_port, dst_host, dst_port, proto->proto);
@@ -111,7 +108,7 @@ diff -u -r1.6 parse.y
  		expand_label(r->tagname, PF_TAG_NAME_SIZE, r->ifname, r->af,
  		    src_host, src_port, dst_host, dst_port, proto->proto);
  		expand_label(r->match_tagname, PF_TAG_NAME_SIZE, r->ifname,
-@@ -5223,6 +5248,7 @@
+@@ -5223,6 +5248,7 @@ lookup(char *s)
  		{ "rtable",		RTABLE},
  		{ "rule",		RULE},
  		{ "ruleset-optimization",	RULESET_OPTIMIZATION},
@@ -119,7 +116,7 @@ diff -u -r1.6 parse.y
  		{ "scrub",		SCRUB},
  		{ "set",		SET},
  		{ "skip",		SKIP},
-@@ -5726,6 +5752,20 @@
+@@ -5726,6 +5752,20 @@ rule_label(struct pf_rule *r, char *s)
  	return (0);
  }
  
@@ -140,22 +137,19 @@ diff -u -r1.6 parse.y
  u_int16_t
  parseicmpspec(char *w, sa_family_t af)
  {
-Index: contrib/pf/pfctl/pfctl.c
-===================================================================
-RCS file: /root/freebsd/repo/src/contrib/pf/pfctl/pfctl.c,v
-retrieving revision 1.2
-diff -u -r1.2 pfctl.c
---- contrib/pf/pfctl/pfctl.c	16 Feb 2012 15:33:09 -0000	1.2
-+++ contrib/pf/pfctl/pfctl.c	16 Feb 2012 15:38:46 -0000
-@@ -77,6 +77,7 @@
+diff --git a/contrib/pf/pfctl/pfctl.c b/contrib/pf/pfctl/pfctl.c
+index a1d8d7a..faff86c 100644
+--- a/contrib/pf/pfctl/pfctl.c
++++ b/contrib/pf/pfctl/pfctl.c
+@@ -76,6 +76,7 @@ int	 pfctl_clear_states(int, const char *, int);
+ void	 pfctl_addrprefix(char *, struct pf_addr *);
  int	 pfctl_kill_src_nodes(int, const char *, int);
  int	 pfctl_kill_states(int, const char *, int);
- int      pfctl_kill_ifstates(int, const char *, int);
-+int      pfctl_kill_schedule(int, const char *, int);
++int	 pfctl_kill_schedule(int, const char *, int);
  void	 pfctl_init_options(struct pfctl *);
  int	 pfctl_load_options(struct pfctl *);
  int	 pfctl_load_limit(struct pfctl *, unsigned int, unsigned int);
-@@ -115,6 +116,7 @@
+@@ -114,6 +115,7 @@ const char	*optiopt = NULL;
  char		*pf_device = "/dev/pf";
  char		*ifaceopt;
  char		*tableopt;
@@ -163,7 +157,7 @@ diff -u -r1.2 pfctl.c
  const char	*tblcmdopt;
  int		 src_node_killers;
  char		*src_node_kill[2];
-@@ -554,6 +556,25 @@
+@@ -551,6 +553,25 @@ pfctl_kill_src_nodes(int dev, const char *iface, int opts)
  }
  
  int
@@ -171,10 +165,10 @@ diff -u -r1.2 pfctl.c
 +{
 +	struct pfioc_schedule_kill psk;
 +
-+       memset(&psk, 0, sizeof(psk));
-+       if (sched != NULL && strlcpy(psk.schedule, sched,
-+           sizeof(psk.schedule)) >= sizeof(psk.schedule))
-+               errx(1, "invalid schedule label: %s", sched);
++	memset(&psk, 0, sizeof(psk));
++	if (sched != NULL && strlcpy(psk.schedule, sched,
++		sizeof(psk.schedule)) >= sizeof(psk.schedule))
++	errx(1, "invalid schedule label: %s", sched);
 +
 +	if (ioctl(dev, DIOCKILLSCHEDULE, &psk))
 +		err(1, "DIOCKILLSCHEDULE");
@@ -182,23 +176,23 @@ diff -u -r1.2 pfctl.c
 +	if ((opts & PF_OPT_QUIET) == 0)
 +		fprintf(stderr, "killed %d states from %s schedule label\n",
 +			psk.numberkilled, sched);
-+       return (0);
++	return (0);
 +}
 +
 +int
- pfctl_kill_ifstates(int dev, const char *iface, int opts)
+ pfctl_kill_states(int dev, const char *iface, int opts)
  {
-        struct pfioc_state_kill psk;
-@@ -2093,7 +2114,7 @@
+ 	struct pfioc_state_kill psk;
+@@ -1980,7 +2001,7 @@ main(int argc, char *argv[])
  		usage();
  
  	while ((ch = getopt(argc, argv,
--	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::Pp:rRs:t:T:vx:z")) != -1) {
-+	    "a:AdD:eqf:F:ghi:b:k:K:mnNOo::Pp:rRs:t:T:vx:y:z")) != -1) {
+-	    "a:AdD:eqf:F:ghi:k:K:mnNOo::Pp:rRs:t:T:vx:z")) != -1) {
++	    "a:AdD:eqf:F:ghi:k:K:mnNOo::Pp:rRs:t:T:vx:y:z")) != -1) {
  		switch (ch) {
  		case 'a':
  			anchoropt = optarg;
-@@ -2230,6 +2251,12 @@
+@@ -2107,6 +2128,12 @@ main(int argc, char *argv[])
  				opts |= PF_OPT_VERBOSE2;
  			opts |= PF_OPT_VERBOSE;
  			break;
@@ -211,26 +205,23 @@ diff -u -r1.2 pfctl.c
  		case 'x':
  			debugopt = pfctl_lookup_option(optarg, debugopt_list);
  			if (debugopt == NULL) {
-@@ -2434,6 +2461,9 @@
+@@ -2309,6 +2336,9 @@ main(int argc, char *argv[])
+ 	if (src_node_killers)
+ 		pfctl_kill_src_nodes(dev, ifaceopt, opts);
  
- 	if (if_kills)
- 		pfctl_kill_ifstates(dev, ifaceopt, opts);
-+	
 +	if (schedule)
 +		pfctl_kill_schedule(dev, schedule, opts);
- 
++
  	if (tblcmdopt != NULL) {
  		error = pfctl_command_tables(argc, argv, tableopt,
-Index: sys/contrib/pf/net/pf_ioctl.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
-retrieving revision 1.3
-diff -u -r1.3 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	16 Feb 2012 15:36:41 -0000	1.3
-+++ sys/contrib/pf/net/pf_ioctl.c	16 Feb 2012 15:37:45 -0000
-@@ -2054,6 +2054,29 @@
-                break;
-        }
+ 		    tblcmdopt, rulesopt, anchorname, opts);
+diff --git a/sys/contrib/pf/net/pf_ioctl.c b/sys/contrib/pf/net/pf_ioctl.c
+index f375701..8a1f8a4 100644
+--- a/sys/contrib/pf/net/pf_ioctl.c
++++ b/sys/contrib/pf/net/pf_ioctl.c
+@@ -2021,6 +2021,29 @@ pfioctl(dev_t dev, u_long cmd, caddr_t addr, int flags, struct proc *p)
+ 		break;
+ 	}
  
 +	case DIOCKILLSCHEDULE: {
 +               struct pf_state         *state, *nexts;
@@ -258,14 +249,11 @@ diff -u -r1.3 pf_ioctl.c
  	case DIOCADDSTATE: {
  		struct pfioc_state	*ps = (struct pfioc_state *)addr;
  		struct pf_state		*state;
-Index: sys/contrib/pf/net/pfvar.h
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.8
-diff -u -r1.8 pfvar.h
---- sys/contrib/pf/net/pfvar.h	16 Feb 2012 15:37:18 -0000	1.8
-+++ sys/contrib/pf/net/pfvar.h	16 Feb 2012 15:37:45 -0000
-@@ -594,6 +594,7 @@
+diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
+index 1329235..1717d1a 100644
+--- a/sys/contrib/pf/net/pfvar.h
++++ b/sys/contrib/pf/net/pfvar.h
+@@ -594,6 +594,7 @@ struct pf_rule {
  	union pf_rule_ptr	 skip[PF_SKIP_COUNT];
  #define PF_RULE_LABEL_SIZE	 64
  	char			 label[PF_RULE_LABEL_SIZE];
@@ -273,7 +261,7 @@ diff -u -r1.8 pfvar.h
  #define PF_QNAME_SIZE		 64
  	char			 ifname[IFNAMSIZ];
  	char			 qname[PF_QNAME_SIZE];
-@@ -1425,6 +1426,11 @@
+@@ -1425,6 +1426,11 @@ struct pfioc_state_kill {
  	char			psk_ifname[IFNAMSIZ];
  };
  
@@ -285,10 +273,10 @@ diff -u -r1.8 pfvar.h
  struct pfioc_states {
  	int	ps_len;
  	union {
-@@ -1614,6 +1620,7 @@
- #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
- #define DIOCGETNAMEDALTQ        _IOWR('D', 94, struct pfioc_ruleset)
- #define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)
+@@ -1613,6 +1619,7 @@ struct pf_ifspeed {
+ #endif
+ #define DIOCGETNAMEDALTQ	_IOWR('D', 94, struct pfioc_ruleset)
+ #define DIOCGETNAMEDTAG		_IOR('D', 95, u_int32_t)
 +#define DIOCKILLSCHEDULE	_IOWR('D', 96, struct pfioc_schedule_kill)
  
  #ifdef _KERNEL
