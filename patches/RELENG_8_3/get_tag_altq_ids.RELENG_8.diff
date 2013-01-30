@@ -1,11 +1,8 @@
-Index: sys/contrib/pf/net/pf_ioctl.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf_ioctl.c,v
-retrieving revision 1.2
-diff -u -r1.2 pf_ioctl.c
---- sys/contrib/pf/net/pf_ioctl.c	8 Nov 2009 19:23:17 -0000	1.2
-+++ sys/contrib/pf/net/pf_ioctl.c	9 Nov 2009 18:09:52 -0000
-@@ -1290,6 +1290,8 @@
+diff --git a/sys/contrib/pf/net/pf_ioctl.c b/sys/contrib/pf/net/pf_ioctl.c
+index 979a14f..f375701 100644
+--- a/sys/contrib/pf/net/pf_ioctl.c
++++ b/sys/contrib/pf/net/pf_ioctl.c
+@@ -1290,6 +1290,8 @@ pfioctl(dev_t dev, u_long cmd, caddr_t addr, int flags, struct proc *p)
  		case DIOCCLRRULECTRS:
  		case DIOCGETLIMIT:
  		case DIOCGETALTQS:
@@ -14,7 +11,7 @@ diff -u -r1.2 pf_ioctl.c
  		case DIOCGETALTQ:
  		case DIOCGETQSTATS:
  		case DIOCGETRULESETS:
-@@ -1338,6 +1340,8 @@
+@@ -1338,6 +1340,8 @@ pfioctl(dev_t dev, u_long cmd, caddr_t addr, int flags, struct proc *p)
  		case DIOCGETTIMEOUT:
  		case DIOCGETLIMIT:
  		case DIOCGETALTQS:
@@ -23,7 +20,7 @@ diff -u -r1.2 pf_ioctl.c
  		case DIOCGETALTQ:
  		case DIOCGETQSTATS:
  		case DIOCGETRULESETS:
-@@ -2495,6 +2499,16 @@
+@@ -2462,6 +2466,16 @@ pfioctl(dev_t dev, u_long cmd, caddr_t addr, int flags, struct proc *p)
  		break;
  	}
  
@@ -40,7 +37,7 @@ diff -u -r1.2 pf_ioctl.c
  	case DIOCGETALTQS: {
  		struct pfioc_altq	*pa = (struct pfioc_altq *)addr;
  		struct pf_altq		*altq;
-@@ -2574,6 +2588,16 @@
+@@ -2541,6 +2555,16 @@ pfioctl(dev_t dev, u_long cmd, caddr_t addr, int flags, struct proc *p)
  	}
  #endif /* ALTQ */
  
@@ -57,19 +54,16 @@ diff -u -r1.2 pf_ioctl.c
  	case DIOCBEGINADDRS: {
  		struct pfioc_pooladdr	*pp = (struct pfioc_pooladdr *)addr;
  
-Index: sys/contrib/pf/net/pfvar.h
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.4
-diff -u -r1.4 pfvar.h
---- sys/contrib/pf/net/pfvar.h	8 Nov 2009 20:48:39 -0000	1.4
-+++ sys/contrib/pf/net/pfvar.h	9 Nov 2009 18:09:05 -0000
-@@ -1605,6 +1605,8 @@
+diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
+index 071fd4e..f5bcfdc 100644
+--- a/sys/contrib/pf/net/pfvar.h
++++ b/sys/contrib/pf/net/pfvar.h
+@@ -1607,6 +1607,8 @@ struct pf_ifspeed {
+ };
  #define DIOCGIFSPEED	_IOWR('D', 92, struct pf_ifspeed)
  #endif
- #define DIOCKILLIFSTATES  	_IOWR('D', 93, struct pfioc_state_kill)
-+#define DIOCGETNAMEDALTQ        _IOWR('D', 94, struct pfioc_ruleset)
-+#define DIOCGETNAMEDTAG         _IOR('D', 95, u_int32_t)
++#define DIOCGETNAMEDALTQ	_IOWR('D', 94, struct pfioc_ruleset)
++#define DIOCGETNAMEDTAG		_IOR('D', 95, u_int32_t)
  
  #ifdef _KERNEL
  RB_HEAD(pf_src_tree, pf_src_node);
