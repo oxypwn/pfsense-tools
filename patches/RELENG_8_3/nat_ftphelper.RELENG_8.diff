@@ -1,11 +1,8 @@
-Index: sys/conf/files
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/conf/files,v
-retrieving revision 1.2
-diff -u -r1.2 files
---- sys/conf/files	18 Feb 2011 16:40:06 -0000	1.2
-+++ sys/conf/files	18 Feb 2011 16:43:32 -0000
-@@ -366,6 +366,8 @@
+diff --git a/sys/conf/files b/sys/conf/files
+index afc4b78..44f695a 100644
+--- a/sys/conf/files
++++ b/sys/conf/files
+@@ -356,6 +356,8 @@ contrib/pf/net/pf_subr.c	optional pf inet \
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
  contrib/pf/net/pf_table.c	optional pf inet \
  	compile-with "${NORMAL_C} -I$S/contrib/pf"
@@ -14,14 +11,11 @@ diff -u -r1.2 files
  contrib/pf/netinet/in4_cksum.c	optional pf inet
  crypto/blowfish/bf_ecb.c	optional ipsec 
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
-Index: sys/contrib/pf/net/pf.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.5
-diff -u -r1.5 pf.c
---- sys/contrib/pf/net/pf.c	18 Feb 2011 16:43:19 -0000	1.5
-+++ sys/contrib/pf/net/pf.c	18 Feb 2011 16:43:57 -0000
-@@ -187,6 +187,10 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index 5eee88b..8729f1e 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -187,6 +187,10 @@ struct pool		 pf_src_tree_pl, pf_rule_pl;
  struct pool		 pf_state_pl, pf_altq_pl, pf_pooladdr_pl;
  #endif
  
@@ -32,7 +26,7 @@ diff -u -r1.5 pf.c
  void			 pf_print_host(struct pf_addr *, u_int16_t, u_int8_t);
  
  void			 pf_init_threshold(struct pf_threshold *, u_int32_t,
-@@ -261,7 +265,7 @@
+@@ -261,7 +265,7 @@ int			 pf_test_fragment(struct pf_rule **, int,
  int			 pf_tcp_track_full(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
  			    struct pfi_kif *, struct mbuf *, int,
@@ -41,7 +35,7 @@ diff -u -r1.5 pf.c
  int			 pf_tcp_track_sloppy(struct pf_state_peer *,
  			    struct pf_state_peer *, struct pf_state **,
  			    struct pf_pdesc *, u_short *);
-@@ -307,8 +311,6 @@
+@@ -308,8 +312,6 @@ u_int16_t		 pf_get_mss(struct mbuf *, int, u_int16_t,
  			    sa_family_t);
  u_int16_t		 pf_calc_mss(struct pf_addr *, sa_family_t,
  				u_int16_t);
@@ -50,7 +44,7 @@ diff -u -r1.5 pf.c
  int			 pf_check_proto_cksum(struct mbuf *, int, int,
  			    u_int8_t, sa_family_t);
  int			 pf_addr_wrap_neq(struct pf_addr_wrap *,
-@@ -653,9 +655,9 @@
+@@ -654,9 +656,9 @@ pf_state_compare_lan_ext(struct pf_state *a, struct pf_state *b)
  #endif /* INET6 */
  	}
  
@@ -62,7 +56,7 @@ diff -u -r1.5 pf.c
  		return (diff);
  
  	return (0);
-@@ -725,9 +727,9 @@
+@@ -726,9 +728,9 @@ pf_state_compare_ext_gwy(struct pf_state *a, struct pf_state *b)
  #endif /* INET6 */
  	}
  
@@ -74,7 +68,7 @@ diff -u -r1.5 pf.c
  		return (diff);
  
  	return (0);
-@@ -4855,13 +4857,14 @@
+@@ -4860,13 +4862,14 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  int
  pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
  	struct pf_state **state, struct pfi_kif *kif, struct mbuf *m, int off,
@@ -92,7 +86,7 @@ diff -u -r1.5 pf.c
  
  	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
  		sws = src->wscale & PF_WSCALE_MASK;
-@@ -4946,11 +4949,48 @@
+@@ -4951,11 +4954,48 @@ pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
  			src->max_win = win;
  
  	} else {
@@ -144,7 +138,7 @@ diff -u -r1.5 pf.c
  			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
  			*copyback = 1;
  		}
-@@ -5310,6 +5350,54 @@
+@@ -5315,6 +5355,54 @@ pf_test_state_tcp(struct pf_state **state, int direction, struct pfi_kif *kif,
  		dst = &(*state)->src;
  	}
  
@@ -199,7 +193,7 @@ diff -u -r1.5 pf.c
  	if ((*state)->src.state == PF_TCPS_PROXY_SRC) {
  		if (direction != (*state)->direction) {
  			REASON_SET(reason, PFRES_SYNPROXY);
-@@ -5438,10 +5526,11 @@
+@@ -5443,10 +5531,11 @@ pf_test_state_tcp(struct pf_state **state, int direction, struct pfi_kif *kif,
  			return (PF_DROP);
  	} else {
  		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
@@ -212,7 +206,7 @@ diff -u -r1.5 pf.c
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7321,6 +7410,10 @@
+@@ -7380,6 +7469,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -223,12 +217,10 @@ diff -u -r1.5 pf.c
  		break;
  	}
  
-Index: sys/contrib/pf/net/pf_ftp.c
-===================================================================
-RCS file: sys/contrib/pf/net/pf_ftp.c
-diff -N sys/contrib/pf/net/pf_ftp.c
---- /dev/null	1 Jan 1970 00:00:00 -0000
-+++ sys/contrib/pf/net/pf_ftp.c	18 Feb 2011 16:43:32 -0000
+diff --git a/sys/contrib/pf/net/pf_ftp.c b/sys/contrib/pf/net/pf_ftp.c
+index e69de29..fe8a560 100644
+--- a/sys/contrib/pf/net/pf_ftp.c
++++ b/sys/contrib/pf/net/pf_ftp.c
 @@ -0,0 +1,750 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
@@ -326,8 +318,8 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +                s->rule.ptr->states--;                  \
 +        } while (0)
 +
-+#define BOUND_IFACE(k) 				\
-+        (k) != NULL ? (k) : pfi_all
++#define BOUND_IFACE(k)	pfi_all
++        
 +
 +void
 +pf_handle_ftp(struct pfi_kif *kif, struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state, int off, int dir) 
@@ -980,14 +972,11 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +
 +	return;
 +}
-Index: sys/contrib/pf/net/pfvar.h
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pfvar.h,v
-retrieving revision 1.5
-diff -u -r1.5 pfvar.h
---- sys/contrib/pf/net/pfvar.h	18 Feb 2011 16:42:17 -0000	1.5
-+++ sys/contrib/pf/net/pfvar.h	18 Feb 2011 16:43:43 -0000
-@@ -802,7 +802,10 @@
+diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
+index f5bcfdc..1329235 100644
+--- a/sys/contrib/pf/net/pfvar.h
++++ b/sys/contrib/pf/net/pfvar.h
+@@ -802,7 +802,10 @@ struct pf_state_peer {
  	u_int16_t	mss;		/* Maximum segment size option	*/
  	u_int8_t	tcp_est;	/* Did we reach TCPS_ESTABLISHED */
  	struct pf_state_scrub	*scrub;	/* state is scrubbed		*/
@@ -999,7 +988,7 @@ diff -u -r1.5 pfvar.h
  };
  
  TAILQ_HEAD(pf_state_queue, pf_state);
-@@ -832,6 +835,7 @@
+@@ -832,6 +835,7 @@ struct pf_state {
  #ifdef __FreeBSD__
  	u_int8_t	 local_flags;
  #define	PFSTATE_EXPIRING 	0x01
@@ -1007,7 +996,7 @@ diff -u -r1.5 pfvar.h
  #define PFSTATE_DIVERT_ALTQ     0x10
  #define PFSTATE_DIVERT_DNCOOKIE 0x20
  #define PFSTATE_DIVERT_ACTION   0x40
-@@ -1905,6 +1909,9 @@
+@@ -1904,6 +1908,9 @@ void			 pf_anchor_remove(struct pf_rule *);
  /* The fingerprint functions can be linked into userland programs (tcpdump) */
  int	pf_osfp_add(struct pf_osfp_ioctl *);
  #ifdef _KERNEL
@@ -1017,13 +1006,10 @@ diff -u -r1.5 pfvar.h
  struct pf_osfp_enlist *
  	pf_osfp_fingerprint(struct pf_pdesc *, struct mbuf *, int,
  	    const struct tcphdr *);
-Index: sys/modules/pf/Makefile
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/modules/pf/Makefile,v
-retrieving revision 1.1.1.1
-diff -u -r1.1.1.1 Makefile
---- sys/modules/pf/Makefile	18 Feb 2011 16:38:11 -0000	1.1.1.1
-+++ sys/modules/pf/Makefile	18 Feb 2011 16:43:32 -0000
+diff --git a/sys/modules/pf/Makefile b/sys/modules/pf/Makefile
+index 0ba1c3f..8f54559 100644
+--- a/sys/modules/pf/Makefile
++++ b/sys/modules/pf/Makefile
 @@ -7,7 +7,7 @@
  
  KMOD=	pf
