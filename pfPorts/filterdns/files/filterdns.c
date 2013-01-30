@@ -345,6 +345,11 @@ host_dns(struct thread_data *hostd, int forceupdate)
 	}
 
         for (res = res0; res; res = res->ai_next) {
+		if (res->ai_addr == NULL) {
+			if (debug >=4)
+				syslog(LOG_WARNING, "Skipping empty address for hostname %s", hostd->hostname);
+			continue;
+		}
 		if (hostd->type == PF_TYPE && !need_to_monitor(hostd, res->ai_addr))
 			continue;
                 if (res->ai_family == AF_INET) {
