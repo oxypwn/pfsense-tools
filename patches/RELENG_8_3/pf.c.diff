@@ -1,11 +1,8 @@
-Index: pf.c
-===================================================================
-RCS file: /root/freebsd/repo/src/sys/contrib/pf/net/pf.c,v
-retrieving revision 1.6
-diff -u -r1.6 pf.c
---- pf.c	8 Feb 2011 15:17:48 -0000	1.6
-+++ pf.c	8 Feb 2011 15:18:49 -0000
-@@ -7505,6 +7505,15 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index 8729f1e..cbec670 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -7556,6 +7556,15 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  		break;
  	}
  
@@ -19,9 +16,9 @@ diff -u -r1.6 pf.c
 +#endif
 +
  	default:
- 		action = pf_test_state_other(&s, dir, kif, &pd);
+ 		action = pf_test_state_other(&s, dir, kif, m, off, &pd);
  		if (action == PF_PASS) {
-@@ -8025,6 +8034,13 @@
+@@ -8084,6 +8093,13 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  		break;
  	}
  
