@@ -327,7 +327,7 @@ diff -N sys/contrib/pf/net/pf_ftp.c
 +        } while (0)
 +
 +#define BOUND_IFACE(k) 				\
-+        (k) != NULL ? (k) : pfi_all
++        pfi_all
 +
 +void
 +pf_handle_ftp(struct pfi_kif *kif, struct pf_pdesc *pd, struct mbuf *m, struct pf_state *state, int off, int dir) 
