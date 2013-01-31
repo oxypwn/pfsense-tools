@@ -59,7 +59,7 @@ index 7383677..15d90df 100644
  			ss = s;
  			(*more)++;
 -		}
-+		/* } *
++		/* } */
  		return (ss);
  	case PF_EXT_GWY:
 -		TAILQ_FOREACH(kif, &pfi_statehead, pfik_w_states) {
