@@ -30,6 +30,12 @@ echo vm.kmem_size_max=\"535544320\"  >> /mnt/boot/loader.conf
 
 echo kern.ipc.nmbclusters=\"0\" >> /mnt/boot/loader.conf
 
+# Hide usbus# from network interfaces list on pfSense >= 2.1
+VERSION=`head -n 1 /mnt/etc/version | cut -c 1-3`
+if [ "${VERSION}" != "1.2" -a "${VERSION}" != "2.0" ]; then
+	echo hw.usb.no_pf=\"1\" >> /mnt/boot/loader.conf
+fi
+
 cd /mnt && rm -rf cloop/ dist/ boot/mfsroot.gz
 
 rm -f /mnt/etc/motd
