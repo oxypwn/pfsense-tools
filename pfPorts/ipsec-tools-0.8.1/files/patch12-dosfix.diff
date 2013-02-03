@@ -1,0 +1,11 @@
+--- src/racoon/isakmp_inf.c	2012/08/29 12:01:56	1.47.2.1
++++ src/racoon/isakmp_inf.c	2013/01/24 06:48:27	1.47.2.2
+@@ -492,7 +492,7 @@ isakmp_info_recv_d(iph1, delete, msgid, 
+ 		"delete payload for protocol %s\n",
+ 		s_ipsecdoi_proto(delete->proto_id));
+ 
+-	if(!iph1->rmconf->weak_phase1_check && !encrypted) {
++	if((iph1 == NULL || !iph1->rmconf->weak_phase1_check) && !encrypted) {
+ 		plog(LLV_WARNING, LOCATION, iph1->remote,
+ 			"Ignoring unencrypted delete payload "
+ 			"(check the weak_phase1_check option)\n");

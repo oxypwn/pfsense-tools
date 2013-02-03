@@ -63,7 +63,7 @@ OPTIONS=	DEBUG		"enable Debug support" off \
 .if ${OSVERSION} < 900007
 EXTRA_PATCHES=	${FILESDIR}/patch8-utmp.diff
 .endif
-EXTRA_PATCHES+=${FILESDIR}/patch9-external_script.diff ${FILESDIR}/patch10-show_users.diff ${FILESDIR}/patch11-purge_sp_fix.diff ${FILESDIR}/ipsec-nat.diff
+EXTRA_PATCHES+=${FILESDIR}/patch9-external_script.diff ${FILESDIR}/patch10-show_users.diff ${FILESDIR}/patch11-purge_sp_fix.diff ${FILESDIR}/ipsec-nat.diff ${FILESDIR}/patch12-dosfix.diff
 
 .ifdef(WITH_DEBUG)
 CONFIGURE_ARGS+=	--enable-debug
