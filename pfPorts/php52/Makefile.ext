@@ -4,14 +4,16 @@ USE_PHP=	yes
 USE_PHPEXT=	yes
 PHP_MODNAME=	${PKGNAMESUFFIX:S/-//}
 DEFAULT_PHP_VER=52
-BROKEN_WITH_PHP=4 5
+IGNORE_WITH_PHP=4 5
 
 EXTSUBDIR=	${DISTNAME}/ext/${PHP_MODNAME}
 WRKSRC=		${WRKDIR}/${EXTSUBDIR}
 PATCHDIR=	${.CURDIR}/files
 PLIST=		${NONEXISTENT}
 
-EXTRACT_AFTER_ARGS?=	| ${TAR} -xf - ${EXTSUBDIR}
+#EXTRACT_AFTER_ARGS?=	| ${TAR} -xf - ${EXTSUBDIR}
+PATCH_WRKSRC=	${WRKDIR}/${DISTNAME}
+PATCH_DIST_STRIP+=	-p1
 
 .if ${PHP_MODNAME} == "bcmath"
 CONFIGURE_ARGS+=--enable-bcmath
@@ -92,7 +94,7 @@ USE_OPENSSL=	yes
 
 .if ${PHP_MODNAME} == "gd"
 LIB_DEPENDS=	freetype.9:${PORTSDIR}/print/freetype2 \
-		png.6:${PORTSDIR}/graphics/png \
+		png15:${PORTSDIR}/graphics/png \
 		jpeg.11:${PORTSDIR}/graphics/jpeg
 .	if !defined(WITHOUT_X11)
 USE_XORG=	xpm
@@ -192,7 +194,7 @@ CONFIGURE_ARGS+=--with-mhash=${LOCALBASE}
 .endif
 
 .if ${PHP_MODNAME} == "ming"
-LIB_DEPENDS+=	ming.4:${PORTSDIR}/graphics/ming
+LIB_DEPENDS+=	ming.5:${PORTSDIR}/graphics/ming
 
 CONFIGURE_ARGS+=--with-ming=${LOCALBASE}
 .endif
@@ -214,7 +216,6 @@ USE_MYSQL=	yes
 CONFIGURE_ARGS+=--with-mysqli=${LOCALBASE}/bin/mysql_config
 
 USE_MYSQL=	yes
-BROKEN_WITH_MYSQL=	323 40
 
 USE_PHP=	spl
 USE_PHP_BUILD=	yes
@@ -233,7 +234,7 @@ CONFIGURE_ARGS+=--with-oci8=${LOCALBASE}/oracle8-client
 .endif
 
 .if ${PHP_MODNAME} == "odbc"
-LIB_DEPENDS+=	odbc.1:${PORTSDIR}/databases/unixODBC
+LIB_DEPENDS+=	odbc.2:${PORTSDIR}/databases/unixODBC
 
 CONFIGURE_ARGS+=--with-unixODBC=${LOCALBASE}
 .endif
@@ -249,7 +250,7 @@ USE_OPENSSL=	yes
 CONFIGURE_ARGS+=--enable-pcntl
 .endif
 
-.if ${PHP_MODNAME} == "pcre"  	 
+.if ${PHP_MODNAME} == "pcre"
 OPTIONS=	BUNDLED_PCRE "Select if you use apache 2.0.x" off
 .endif
 
@@ -297,7 +298,7 @@ USE_PHP_BUILD=	yes
 .endif
 
 .if ${PHP_MODNAME} == "pdo_odbc"
-LIB_DEPENDS+=	odbc.1:${PORTSDIR}/databases/unixODBC
+LIB_DEPENDS+=	odbc.2:${PORTSDIR}/databases/unixODBC
 
 CONFIGURE_ARGS+=--with-pdo-odbc=unixODBC,${LOCALBASE}
 
@@ -316,7 +317,7 @@ USE_PHP_BUILD=	yes
 
 .if ${PHP_MODNAME} == "pdo_sqlite"
 .      if defined(WITH_SQLITE_PORT)
-USE_SQLITE=    yes
+USE_SQLITE=	yes
 CONFIGURE_ARGS+=--with-pdo-sqlite=${LOCALBASE}
 .      else
 CONFIGURE_ARGS+=--with-pdo-sqlite
@@ -378,7 +379,7 @@ CONFIGURE_ARGS+=--with-snmp=${LOCALBASE} \
 		--with-openssl-dir=${OPENSSLBASE} \
 		--enable-ucd-snmp-hack
 
-LIB_DEPENDS+=   netsnmp.20:${PORTSDIR}/net-mgmt/net-snmp
+LIB_DEPENDS+=	netsnmp.30:${PORTSDIR}/net-mgmt/net-snmp
 LDFLAGS+=	-L${OPENSSLLIB} -lcrypto -lssl
 USE_OPENSSL=	yes
 .endif
@@ -491,9 +492,9 @@ USE_PHP_BUILD=	yes
 
 .if ${PHP_MODNAME} == "xmlwriter"
 CONFIGURE_ARGS+=--enable-xmlwriter \
-                --with-libxml-dir=${LOCALBASE}
+		--with-libxml-dir=${LOCALBASE}
 
-USE_GNOME=      libxml2
+USE_GNOME=	libxml2
 .endif
 
 .if ${PHP_MODNAME} == "xsl"
@@ -526,7 +527,7 @@ USE_BDB=		40+
 WITH_BDB_HIGHEST=	yes
 .	endif
 .	if defined(WITH_GDBM)
-LIB_DEPENDS+=	gdbm.3:${PORTSDIR}/databases/gdbm
+LIB_DEPENDS+=	gdbm.4:${PORTSDIR}/databases/gdbm
 
 CONFIGURE_ARGS+=--with-gdbm=${LOCALBASE}
 .	endif
@@ -577,7 +578,7 @@ pre-configure:
 	/usr/bin/ar rcs liboci8.a *.o
 .endif
 
-.if ${PHP_MODNAME} == "pcre"  	 
+.if ${PHP_MODNAME} == "pcre"
 .	if defined(WITH_BUNDLED_PCRE)
 CONFIGURE_ARGS+=--with-pcre-regex=yes
 
@@ -588,7 +589,7 @@ LIB_DEPENDS+=	pcre.3:${PORTSDIR}/devel/pcre
 CONFIGURE_ARGS+=--with-pcre-regex=${LOCALBASE}
 .	endif
 
-post-extract:  	 
+post-extract:
 	@${MV} ${WRKSRC}/config0.m4 ${WRKSRC}/config.m4
 .endif
 

@@ -2,12 +2,12 @@
 # Date created:				17 Apr 2010
 # Whom:					Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/lang/php52/Makefile,v 1.18 2011/06/29 19:51:17 jlaffaye Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	php52
 PORTVERSION=	5.2.17
-PORTREVISION=	1
+PORTREVISION=	13
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
 MASTER_SITE_SUBDIR=	distributions
@@ -16,10 +16,19 @@ DISTNAME=	php-${PORTVERSION}
 MAINTAINER=	admin@lissyara.su
 COMMENT=	PHP Scripting Language
 
+DEPRECATED=		PHP 5.2 series is strongly discouraged for new \
+			installations, migrate now
+EXPIRATION_DATE=	2013-03-01
+
 LATEST_LINK=	${PKGNAMEPREFIX}${PORTNAME}${PKGNAMESUFFIX}
 
 USE_BZIP2=	yes
 MAKE_JOBS_SAFE=	yes
+
+# BACKPORTS patch for lang/php52 and all php52-extensions
+PATCHFILES=	php52-backports-security-20121114.patch
+PATCH_SITES+=	http://php52-backports.googlecode.com/files/
+
 .if !defined(PKGNAMESUFFIX)
 USE_AUTOTOOLS=	autoconf
 AUTOTOOLSFILES=	scripts/phpize.in
@@ -53,7 +62,7 @@ OPTIONS=	CLI "Build CLI version" on \
 		PATHINFO "Enable path-info-check support (CGI only)" on \
 		LINKTHR "Link thread lib (for threaded extensions)" on
 
-CONFLICTS=	php4-4* php5-5.3*
+CONFLICTS=	php53-5* php5-5*
 
 MAN1=		php-config.1 phpize.1
 
@@ -137,13 +146,9 @@ CONFIGURE_ARGS+=--disable-cgi
 
 .if defined(WITH_APACHE)
 PHP_SAPI+=	mod
-USE_APACHE=	1.3+
+USE_APACHE=	22+
 .include "${PORTSDIR}/Mk/bsd.apache.mk"
-.if ${APACHE_VERSION} > 13
 CONFIGURE_ARGS+=--with-apxs2=${APXS}
-.else
-CONFIGURE_ARGS+=--with-apxs=${APXS}
-.endif
 PKGMESSAGE=	${PKGDIR}/pkg-message.mod
 MODULENAME=	libphp5
 SHORTMODNAME=	php5
@@ -173,10 +178,8 @@ CONFIGURE_ENV+=	ac_cv_pthreads_lib="" \
 		pthreads_working="yes" \
 		lt_cv_path_SED="sed"
 
-MAKE_ENV+=	LDFLAGS="${LDFLAGS}"
-
 .if defined(WITH_LINKTHR)
-CONFIGURE_ENV+=        LIBS="${LIBS} ${PTHREAD_LIBS}"
+CONFIGURE_ENV+=	LIBS="${LIBS} ${PTHREAD_LIBS}"
 .endif
 
 .if defined(WITH_DEBUG)
