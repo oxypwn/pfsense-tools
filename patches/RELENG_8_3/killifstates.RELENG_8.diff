@@ -8,7 +8,7 @@ index 7383677..15d90df 100644
  
 -#define BOUND_IFACE(r, k) \
 -	((r)->rule_flag & PFRULE_IFBOUND) ? (k) : pfi_all
-+#define BOUND_IFACE(r, k)	pfi_all
++#define BOUND_IFACE(r, k)	k
 +	/* ((r)->rule_flag & PFRULE_IFBOUND) ? (k) : pfi_all */
  
  #define STATE_INC_COUNTERS(s)				\
