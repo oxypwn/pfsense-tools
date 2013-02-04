@@ -2,12 +2,12 @@
 # Date created:			17 Apr 2010
 # Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/devel/php52-pcre/Makefile,v 1.1 2010/04/23 15:09:07 dinoex Exp $
+# $FreeBSD$
 #
 
 CATEGORIES=	devel
 
-MASTERDIR=     ${.CURDIR}/../../lang/php52
+MASTERDIR=	${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-pcre
 

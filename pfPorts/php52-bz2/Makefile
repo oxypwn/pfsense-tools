@@ -2,12 +2,12 @@
 # Date created:			17 Apr 2010
 # Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/archivers/php52-bz2/Makefile,v 1.1 2010/04/23 15:16:12 dinoex Exp $
+# $FreeBSD$
 #
 
 CATEGORIES=	archivers
 
-MASTERDIR=     ${.CURDIR}/../../lang/php52
+MASTERDIR=	${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-bz2
 
