@@ -2,12 +2,13 @@
 # Date created:			17 Apr 2010
 # Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/net/php52-ldap/Makefile,v 1.1 2010/04/23 15:59:24 dinoex Exp $
+# $FreeBSD$
 #
 
+PORTREVISION=	1
 CATEGORIES=	net
 
-MASTERDIR=     ${.CURDIR}/../../lang/php52
+MASTERDIR=	${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-ldap
 

@@ -2,12 +2,12 @@
 # Date created:			17 Apr 2010
 # Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/textproc/php52-xml/Makefile,v 1.1 2010/04/23 22:30:46 dinoex Exp $
+# $FreeBSD$
 #
 
 CATEGORIES=	textproc
 
-MASTERDIR=     ${.CURDIR}/../../lang/php52
+MASTERDIR=	${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-xml
 

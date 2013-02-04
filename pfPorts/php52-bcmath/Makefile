@@ -2,12 +2,12 @@
 # Date created:			17 Apr 2010
 # Whom:				Alex Keda <admin@lissyara.su>
 #
-# $FreeBSD: ports/math/php52-bcmath/Makefile,v 1.1 2010/04/23 15:13:13 dinoex Exp $
+# $FreeBSD$
 #
 
 CATEGORIES=	math
 
-MASTERDIR=     ${.CURDIR}/../../lang/php52
+MASTERDIR=	${.CURDIR}/../../lang/php52
 
 PKGNAMESUFFIX=	-bcmath
 
