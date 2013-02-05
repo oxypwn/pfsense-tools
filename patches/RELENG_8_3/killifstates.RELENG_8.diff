@@ -1,5 +1,21 @@
+diff --git a/sys/contrib/pf/net/if_pfsync.c b/sys/contrib/pf/net/if_pfsync.c
+index a729afd..dfdc532 100644
+--- a/sys/contrib/pf/net/if_pfsync.c
++++ b/sys/contrib/pf/net/if_pfsync.c
+@@ -602,9 +602,9 @@ pfsync_input(struct mbuf *m, ...)
+ 				return;
+ 			}
+ 			for (st = RB_MIN(pf_state_tree_lan_ext,
+-			    &kif->pfik_lan_ext); st; st = nexts) {
++			    &pfi_all->pfik_lan_ext); st; st = nexts) {
+ 				nexts = RB_NEXT(pf_state_tree_lan_ext,
+-				    &kif->pfik_lan_ext, st);
++				    &pfi_all->pfik_lan_ext, st);
+ 				if (st->creatorid == creatorid) {
+ 					st->sync_flags |= PFSTATE_FROMSYNC;
+ 					pf_unlink_state(st);
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index 7383677..15d90df 100644
+index 7383677..38c7e6b 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
 @@ -360,8 +360,8 @@ struct pf_pool_limit pf_pool_limits[PF_LIMIT_MAX] = {
@@ -106,7 +122,7 @@ index 7383677..15d90df 100644
  		return (-1);
  	}
  
-@@ -976,14 +980,14 @@ pf_insert_state(struct pfi_kif *kif, struct pf_state *state)
+@@ -976,8 +980,8 @@ pf_insert_state(struct pfi_kif *kif, struct pf_state *state)
  				printf(" (from sync)");
  			printf("\n");
  		}
@@ -117,10 +133,15 @@ index 7383677..15d90df 100644
  		return (-1);
  	}
  	TAILQ_INSERT_TAIL(&state_list, state, u.s.entry_list);
- 	pf_status.fcounters[FCNT_STATE_INSERT]++;
- 	pf_status.states++;
--	pfi_kif_ref(kif, PFI_KIF_REF_STATE);
-+	pfi_kif_ref(pfi_all, PFI_KIF_REF_STATE);
+@@ -1213,9 +1217,9 @@ pf_unlink_state(struct pf_state *cur)
+ 		    TH_RST|TH_ACK, 0, 0, 0, 1, cur->tag, NULL, NULL);
+ 	}
+ 	RB_REMOVE(pf_state_tree_ext_gwy,
+-	    &cur->u.s.kif->pfik_ext_gwy, cur);
++	    &pfi_all->pfik_ext_gwy, cur);
+ 	RB_REMOVE(pf_state_tree_lan_ext,
+-	    &cur->u.s.kif->pfik_lan_ext, cur);
++	    &pfi_all->pfik_lan_ext, cur);
+ 	RB_REMOVE(pf_state_tree_id, &tree_id, cur);
  #if NPFSYNC
- 	pfsync_insert_state(state);
- #endif
+ 	if (cur->creatorid == pf_status.hostid)
