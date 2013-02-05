@@ -1,5 +1,5 @@
---- openssl.c.orig	2010-01-27 07:55:01.000000000 -0500
-+++ openssl.c	2010-06-30 15:30:11.000000000 -0400
+--- ext/openssl/openssl.c.orig	2010-01-27 07:55:01.000000000 -0500
++++ ext/openssl/openssl.c	2010-06-30 15:30:11.000000000 -0400
 @@ -15,6 +15,7 @@
     | Authors: Stig Venaas <venaas@php.net>                                |
     |          Wez Furlong <wez@thebrainroom.com>                          |
