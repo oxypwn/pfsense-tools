@@ -73,6 +73,7 @@ enum argtype {
 struct run {
         char    *command;
         char    *syslog;
+	int aggregate;
 };
 
 struct command {
@@ -100,69 +101,69 @@ static struct command first_level[] = {
 
 static struct command c_filter[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/etc/rc.filter_configure_sync", "Reloading filter" } },
+                { "/etc/rc.filter_configure_sync", "Reloading filter", 1 } },
         { RECONFIGURE, NON, "reconfigure", NULL,
-                { "/etc/rc.filter_configure_sync", "Reloading filter" } },
+                { "/etc/rc.filter_configure_sync", "Reloading filter", 1 } },
         { RESTART, NON, "restart", NULL,
-                { "/etc/rc.filter_configure_sync", "Reloading filter" } },
+                { "/etc/rc.filter_configure_sync", "Reloading filter", 1 } },
         { SYNC, NON, "sync", NULL,
-                { "/etc/rc.filter_synchronize", "Syncing firewall" } },
+                { "/etc/rc.filter_synchronize", "Syncing firewall", 1 } },
         { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_interface[] = {
         { ALL, STRING, "all", c_interface2 },
         { RELOAD, IFNAME, "reload", NULL,
-                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
+                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s", 1 } },
         { RECONFIGURE, IFNAME, "reconfigure", NULL,
-                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
+                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s", 1 } },
         { RESTART, IFNAME, "restart", NULL,
-                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s" } },
+                { "/etc/rc.interfaces_wan_configure %s", "Configuring interface %s", 1 } },
         { NEWIP, STRING, "newip", NULL,
-                { "/etc/rc.newwanip %s", "rc.newwanip starting %s" } },
+                { "/etc/rc.newwanip %s", "rc.newwanip starting %s", 0 } },
         { LINKUP, STRING, "linkup", c_interface2 },
         { SYNC, NON, "sync", NULL,
-                { "/etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc" } },
+                { "/etc/rc.filter_configure_xmlrpc", "Reloading filter_configure_xmlrpc", 1 } },
         { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_interface2[] = {
         { RELOAD, NON, "reload", NULL,
-                { "/etc/rc.reload_interfaces", "Reloading interfaces" } },
+                { "/etc/rc.reload_interfaces", "Reloading interfaces", 1 } },
 	{ START, IFNAME, "start", NULL,
-                { "/etc/rc.linkup start %s", "Linkup starting %s" } },
+                { "/etc/rc.linkup start %s", "Linkup starting %s", 0 } },
 	{ STOP, IFNAME, "stop", NULL,
-                { "/etc/rc.linkup stop %s", "Linkup starting %s" } },
+                { "/etc/rc.linkup stop %s", "Linkup starting %s", 0 } },
         { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_service2[] = {
         { ALL, NON, "all", NULL,
-                { "/etc/rc.reload_all", "Reloading all" } },
+                { "/etc/rc.reload_all", "Reloading all", 1 } },
         { DNSSERVER, NON, "dns", NULL,
-                { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf" } },
+                { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf", 1 } },
         { IPSECDNS, NON, "ipsecdns", NULL,
-                { "/etc/rc.newipsecdns", "Restarting ipsec tunnels" } },
+                { "/etc/rc.newipsecdns", "Restarting ipsec tunnels", 1 } },
         { OPENVPN, NON, "openvpn", NULL,
-                { "/etc/rc.openvpn", "Restarting OpenVPN tunnels/interfaces" } },
+                { "/etc/rc.openvpn", "Restarting OpenVPN tunnels/interfaces", 1 } },
         { DYNDNS, STRING, "dyndns", NULL,
-                { "/etc/rc.dyndns.update %s", "updating dyndns %s" } },
+                { "/etc/rc.dyndns.update %s", "updating dyndns %s", 1 } },
         { DYNDNSALL, NON, "dyndnsall", NULL,
-                { "/etc/rc.dyndns.update", "Updating all dyndns" } },
+                { "/etc/rc.dyndns.update", "Updating all dyndns", 1 } },
         { NTPD, NON, "ntpd", NULL,
-                { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", "Starting nptd" } },
+                { "/usr/bin/killall ntpd; /bin/sleep 3; /usr/local/sbin/ntpd -s -f /var/etc/ntpd.conf", "Starting nptd", 1 } },
         { PACKAGES, NON, "packages", NULL,
-                { "/etc/rc.start_packages", "Starting packages" } },
+                { "/etc/rc.start_packages", "Starting packages", 1 } },
         { SSHD, NON, "sshd", NULL,
-                { "/etc/sshd", "starting sshd" } },
+                { "/etc/sshd", "starting sshd", 1 } },
         { WEBGUI, NON, "webgui", NULL,
-                { "/etc/rc.restart_webgui", "webConfigurator restart in progress" } },
+                { "/etc/rc.restart_webgui", "webConfigurator restart in progress", 1 } },
         { NULLOPT, NON, "", NULL }
 };
 
 static struct command c_service_sync[] = {
 	{ VOUCHERS, NON, "vouchers", NULL,
-		{ "/etc/rc.savevoucher", "Synching vouchers" } },
+		{ "/etc/rc.savevoucher", "Synching vouchers", 1 } },
         { NULLOPT, NON, "", NULL }
 };
 

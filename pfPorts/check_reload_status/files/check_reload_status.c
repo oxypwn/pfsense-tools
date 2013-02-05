@@ -237,8 +237,15 @@ run_command_detailed(int fd, short event, void *arg) {
 		_exit(127); /* Protect in case execl errors out */
 		break;
 	default:
-		cmd->dontexec = 1;
-		timeout_add(&cmd->ev, &tv);
+		if (cmd->aggregate > 0) {
+			cmd->dontexec = 1;
+			timeout_add(&cmd->ev, &tv);
+		} else {
+			pthread_mutex_lock(&mtx);
+			TAILQ_REMOVE(&cmds, cmd, rq_link);
+			pthread_mutex_unlock(&mtx);
+			free(cmd);
+		}
 		break;
 	}
 }
@@ -259,14 +266,15 @@ run_command(struct command *cmd, char *argv) {
 
 	pthread_mutex_lock(&mtx);
 	TAILQ_FOREACH(tmpcmd, &cmds, rq_link) {
-		if (!strcmp(tmpcmd->command, command->command)) {
+		if (cmd->cmd.aggregate && !strcmp(tmpcmd->command, command->command)) {
 			command->aggregate += tmpcmd->aggregate;
 			if (command->aggregate > 1) {
 				pthread_mutex_unlock(&mtx);
 				free(command);
 				return;
 			}
-		}
+		} else
+			command->aggregate = 0;
 	}
 	TAILQ_INSERT_HEAD(&cmds, command, rq_link);
 	pthread_mutex_unlock(&mtx);
