@@ -273,9 +273,11 @@ run_command(struct command *cmd, char *argv) {
 				free(command);
 				return;
 			}
-		} else
-			command->aggregate = 0;
+		}
 	}
+	if (!cmd->cmd.aggregate)
+		command->aggregate = 0;
+
 	TAILQ_INSERT_HEAD(&cmds, command, rq_link);
 	pthread_mutex_unlock(&mtx);
 
