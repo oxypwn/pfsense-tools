@@ -1,4 +1,3 @@
-
 #ifndef _NF9_H
 # define _NF9_H
 
@@ -184,7 +183,7 @@ struct NF9_IPV4_DATA
    u_int16_t src_port, dst_port;
    u_int16_t src_index, dst_index;
    u_int8_t protocol, direction;
-};
+} __attribute__ ((packed));
 
 /*
  * Data Record for Internet Protocol version 6 (IPv6)
@@ -200,7 +199,7 @@ struct NF9_IPV6_DATA
    u_int16_t src_index, dst_index;
    u_int8_t protocol, direction;
 
-};
+} __attribute__ ((packed));
 
 /*Ethernet MTU is 1500, IPv6 header is 40 octets(no options) ,UDP header is 8 octets*/
 
