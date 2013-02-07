@@ -1,0 +1,14 @@
+diff --git a/contrib/pf/pfctl/pfctl.c b/contrib/pf/pfctl/pfctl.c
+index faff86c..47de8c6 100644
+--- a/contrib/pf/pfctl/pfctl.c
++++ b/contrib/pf/pfctl/pfctl.c
+@@ -1536,7 +1536,8 @@ pfctl_fopen(const char *name, const char *mode)
+ void
+ pfctl_init_options(struct pfctl *pf)
+ {
+-	int mib[2], mem;
++	int mib[2];
++	u_long mem;
+ 	size_t size;
+ 
+ 	pf->timeout[PFTM_TCP_FIRST_PACKET] = PFTM_TCP_FIRST_PACKET_VAL;
