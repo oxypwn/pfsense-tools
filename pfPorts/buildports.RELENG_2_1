@@ -214,7 +214,7 @@ clean_make_install() {
 		fi
 	fi
 
-	if ! script /tmp/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null 2>&1 1>/dev/null; then
+	if ! script /tmp/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes NOPORTDOCS=yes clean build install clean </dev/null 2>&1 1>/dev/null; then
 		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
 		echo "Failed to build. Error log in /tmp/$_PORTNAME."
 	else
