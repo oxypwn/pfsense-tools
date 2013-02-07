@@ -32,10 +32,11 @@ CFLAGS+=	-DHAVE_ALTQ=1 -DHAVE_SNPRINTF=1 -DHAVE_VSNPRINTF=1
 EXTRA_PATCHES+=	${FILESDIR}/extra-patch-cache.c \
 		${FILESDIR}/extra-patch-cache.h \
 		${FILESDIR}/extra-patch-config.h \
-		${FILESDIR}/extra-patch-engine.c \
 		${FILESDIR}/extra-patch-pftop.c \
 		${FILESDIR}/extra-patch-sf-gencode.c
 .endif
+
+EXTRA_PATCHES+=	${FILESDIR}/extra-patch-engine.c
 
 MAKE_ENV+=	__MAKE_CONF=/dev/null
 
