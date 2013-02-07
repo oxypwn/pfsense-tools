@@ -29,7 +29,7 @@
 
 Functions copied from util.c and modem.c of mpd5 source are protected by
 this copyright.
-They are Uulock, Uunlock, ExclusiveOpenDevice/ExclusiveCloseDevice and
+They are ExclusiveOpenDevice/ExclusiveCloseDevice and
 OpenSerialDevice.
 
 Copyright (c) 1995-1999 Whistle Communications, Inc. All rights reserved.
@@ -1476,93 +1476,18 @@ PHP_FUNCTION(pfSense_get_pf_stats) {
 #define MODEM_DEFAULT_SPEED              115200
 
 static int
-UuLock(const char *ttyname)
-{
-	//return 0;
-	int   fd, pid;
-	char  tbuf[sizeof(PATH_LOCKFILENAME) + MAX_FILENAME];
-	char  pid_buf[64];
-
-	snprintf(tbuf, sizeof(tbuf), PATH_LOCKFILENAME, ttyname);
-	if ((fd = open(tbuf, O_RDWR|O_CREAT|O_EXCL, 0664)) < 0) {
-		/* File is already locked; Check to see if the process
-		 * holding the lock still exists */
-		if ((fd = open(tbuf, O_RDWR, 0)) < 0)
-			return(-1);
-
-		if (read(fd, pid_buf, sizeof(pid_buf)) <= 0) {
-			(void)close(fd);
-			return(-1);
-		}
-
-		pid = atoi(pid_buf);
-
-		if (kill(pid, 0) == 0 || errno != ESRCH) {
-			(void)close(fd);  /* process is still running */
-			return(-1);
-		}
-
-		/* The process that locked the file isn't running, so we'll lock it */
-		if (lseek(fd, (off_t) 0, L_SET) < 0) {
-			(void)close(fd);
-			return(-1);
-		}
-	}
-
-	/* Finish the locking process */
-	sprintf(pid_buf, "%10u\n", (int) getpid());
-	if (write(fd, pid_buf, strlen(pid_buf)) != strlen(pid_buf)) {
-		(void)close(fd);
-		(void)unlink(tbuf);
-		return(-1);
-	}
-
-	(void)close(fd);
-	return(0);
-}
-
-static int
-UuUnlock(const char *ttyname)
-{
-	//return 0;
-	char  tbuf[sizeof(PATH_LOCKFILENAME) + MAX_FILENAME];
-
-	(void) sprintf(tbuf, PATH_LOCKFILENAME, ttyname);
-	return(unlink(tbuf));
-}
-
-static int
 ExclusiveOpenDevice(const char *pathname)
 {
-	int           fd, locked = 0;
+	int           fd;
 	const char    *ttyname = NULL;
 	time_t        startTime;
-
-	/* Lock device UUCP style, if it resides in /dev */
-	if (!strncmp(pathname, "/dev/", 5)) {
-		ttyname = pathname + 5;
-		if (UuLock(ttyname) < 0)
-			return(-1);
-		locked = 1;
-	}
 
 	/* Open it, but give up after so many interruptions */
 	for (startTime = time(NULL);
 	    (fd = open(pathname, O_RDWR, 0)) < 0
 	    && time(NULL) < startTime + MAX_OPEN_DELAY; )
-		if (errno != EINTR) {
-			if (locked)
-				UuUnlock(ttyname);
+		if (errno != EINTR)
 			return(-1);
-		}
-
-	/* Did we succeed? */
-	if (fd < 0) {
-		if (locked)
-			UuUnlock(ttyname);
-		return(-1);
-	}
-	//(void) fcntl(fd, F_SETFD, 1);
 
 	/* Done */
 	return(fd);
@@ -1585,12 +1510,6 @@ ExclusiveCloseDevice(int fd, const char *pathname)
 	/* Did we succeed? */
 	if ((rtn < 0) && (errno == EINTR))
 		return;
-
-	/* Remove lock */
-	if (!strncmp(pathname, "/dev/", 5)) {
-		ttyname = pathname + 5;
-		UuUnlock(ttyname);
-	}
 }
 
 PHP_FUNCTION(pfSense_sync) {
