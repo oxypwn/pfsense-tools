@@ -2629,9 +2629,11 @@ ova_repack_vbox_image() {
 	#  78   FreeBSD 64-Bit 
 	if [ "$BUILDPLATFORM" = "i386" ]; then
 		file_search_replace '"101"' '"42"' ${OVFPATH}/${PRODUCT_NAME}.ovf
+		file_search_replace 'FreeBSD XX-Bit' 'FreeBSD' ${OVFPATH}/${PRODUCT_NAME}.ovf
 	fi
 	if [ "$BUILDPLATFORM" = "amd64" ]; then
 		file_search_replace '"101"' '"78"' ${OVFPATH}/${PRODUCT_NAME}.ovf
+		file_search_replace 'FreeBSD XX-Bit' 'FreeBSD 64-Bit' ${OVFPATH}/${PRODUCT_NAME}.ovf
 	fi
 	file_search_replace DISKSECTIONPOPULATEDSIZE $POPULATEDSIZEBYTES ${OVFPATH}/${PRODUCT_NAME}.ovf
 	# 10737254400 = 10240MB = virtual box vmdk file size XXX grab this value from vbox creation

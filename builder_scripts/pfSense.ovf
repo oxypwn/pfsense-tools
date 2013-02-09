@@ -16,9 +16,9 @@
   <VirtualSystem ovf:id="pfSense">
     <Info>pfSense virtual machine</Info>
     <Name>pfSense</Name>
-    <OperatingSystemSection ovf:id="78" vmw:osType="FreeBSD 64-Bit">
-      <Info>FreeBSD 64-Bit</Info>
-      <Description>FreeBSD 64-Bit (pfSense)</Description>
+    <OperatingSystemSection ovf:id="101" vmw:osType="FreeBSD XX-Bit">
+      <Info>FreeBSD XX-Bit</Info>
+      <Description>FreeBSD XX-Bit (pfSense)</Description>
     </OperatingSystemSection>
     <VirtualHardwareSection>
       <Info>Virtual hardware requirements</Info>
