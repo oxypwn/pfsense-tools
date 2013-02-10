@@ -2704,19 +2704,31 @@ ova_prereq_check() {
 		fi
 		mkdir -p /var/db/ports/virtualbox-ose
 		cat <<EOF >/var/db/ports/virtualbox-ose/options
-_OPTIONS_READ=virtualbox-ose-4.0.8
-WITHOUT_QT4=true
-WITHOUT_DEBUG=true
-WITH_GUESTADDITIONS=false
-WITHOUT_DBUS=true
-WITHOUT_PULSEAUDIO=true
-WITHOUT_X11=true
-WITHOUT_VDE=true
-WITHOUT_VNC=true
-WITHOUT_WEBSERVICE=true
-WITHOUT_NLS=true
+# Options for virtualbox-ose-4.1.8_1
+_OPTIONS_READ=virtualbox-ose-4.1.8_1
+_FILE_COMPLETE_OPTIONS_LIST= QT4 DEBUG GUESTADDITIONS DBUS PULSEAUDIO X11 UDPTUNNEL VDE VNC WEBSERVICE NLS
+OPTIONS_FILE_UNSET+=QT4
+OPTIONS_FILE_UNSET+=DEBUG
+OPTIONS_FILE_UNSET+=GUESTADDITIONS
+OPTIONS_FILE_UNSET+=DBUS
+OPTIONS_FILE_UNSET+=PULSEAUDIO
+OPTIONS_FILE_UNSET+=X11
+OPTIONS_FILE_UNSET+=UDPTUNNEL
+OPTIONS_FILE_UNSET+=VDE
+OPTIONS_FILE_UNSET+=VNC
+OPTIONS_FILE_UNSET+=WEBSERVICE
+OPTIONS_FILE_UNSET+=NL
 EOF
 		echo ">>> Installing VirtualBOX from ports, one moment please..."
+		if [ "${FREEBSD_BRANCH}" = "RELENG_8_1" ]; then
+			/bin/rm -rf /usr/ports/emulators/virtualbox-ose.old
+			/bin/rm -rf /usr/ports/emulators/virtualbox-ose-kmod.old
+			/bin/mv /usr/ports/emulators/virtualbox-ose /usr/ports/emulators/virtualbox-ose.old
+			/bin/mv /usr/ports/emulators/virtualbox-ose-kmod /usr/ports/emulators/virtualbox-ose-kmod.old
+			/bin/cp -Rp ${pfSPORTS_BASE_DIR}/virtualbox-ose-freebsd81 /usr/ports/emulators/virtualbox-ose
+			/bin/cp -Rp ${pfSPORTS_BASE_DIR}/virtualbox-ose-kmod-freebsd81 /usr/ports/emulators/virtualbox-ose-kmod
+			( cd /usr/ports/emulators/virtualbox-ose-freebsd81 && make BATCH=yes install clean ) >/dev/null
+		fi
 		( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes install clean ) >/dev/null
 	fi
 

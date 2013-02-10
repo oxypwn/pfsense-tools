@@ -1,0 +1,11 @@
+--- configure.orig	2011-05-30 17:11:26.000000000 +0200
++++ configure	2011-06-06 10:01:12.000000000 +0200
+@@ -1920,7 +1920,7 @@
+         cat $ODIR.tmp_src.cc >> $LOG
+         echo "using the following command line:" >> $LOG
+         echo "$CXX -O -Wall -o $ODIR.tmp_out $ODIR.tmp_src.cc -I$p/include/$d $p/$b/lib$d.so" >> $LOG
+-        $CXX -O -Wall -o $ODIR.tmp_out $ODIR.tmp_src.cc -I$p/include/$d $p/$b/lib$d.so >> $LOG 2>&1
++        $CXX -O -Wall -o $ODIR.tmp_out $ODIR.tmp_src.cc -I$p/include/$d $p/$b/lib$d.so -pthread >> $LOG 2>&1
+         if [ $? -eq 0 ]; then
+           found=1
+           break
