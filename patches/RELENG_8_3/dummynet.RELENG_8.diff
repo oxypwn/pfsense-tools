@@ -1,8 +1,8 @@
 diff --git a/contrib/pf/pfctl/parse.y b/contrib/pf/pfctl/parse.y
-index 43a11a3..5c6adea 100644
+index c3ca101..265ad01 100644
 --- a/contrib/pf/pfctl/parse.y
 +++ b/contrib/pf/pfctl/parse.y
-@@ -32,6 +32,7 @@ __FBSDID("$FreeBSD: src/contrib/pf/pfctl/parse.y,v 1.9.2.2.6.1 2012/03/03 06:15:
+@@ -32,6 +32,7 @@ __FBSDID("$FreeBSD: src/contrib/pf/pfctl/parse.y,v 1.9.2.2.6.2 2012/11/17 08:24:
  
  #include <sys/types.h>
  #include <sys/socket.h>
@@ -126,7 +126,7 @@ index 43a11a3..5c6adea 100644
  		{ "drop-ovl",		FRAGDROP},
  		{ "dscp",		DSCP},
 diff --git a/contrib/pf/pfctl/pfctl_parser.c b/contrib/pf/pfctl/pfctl_parser.c
-index 8bc88f9..ec0a8d4 100644
+index 544926b..f71c541 100644
 --- a/contrib/pf/pfctl/pfctl_parser.c
 +++ b/contrib/pf/pfctl/pfctl_parser.c
 @@ -996,6 +996,14 @@ print_rule(struct pf_rule *r, const char *anchor_call, int verbose, int numeric)
@@ -145,10 +145,10 @@ index 8bc88f9..ec0a8d4 100644
  		printf(" queue(%s, %s)", r->qname, r->pqname);
  	else if (r->qname[0])
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index db64cd5..f01c1c0 100644
+index 38c7e6b..9cd1764 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
-@@ -135,6 +135,10 @@ __FBSDID("$FreeBSD: src/sys/contrib/pf/net/pf.c,v 1.69.2.4.4.1 2012/03/03 06:15:
+@@ -135,6 +135,10 @@ __FBSDID("$FreeBSD: src/sys/contrib/pf/net/pf.c,v 1.69.2.4.4.2 2012/11/17 08:25:
  #include <netinet/icmp6.h>
  #include <netinet6/nd6.h>
  #ifdef __FreeBSD__
@@ -310,7 +310,7 @@ index db64cd5..f01c1c0 100644
  		if (direction == PF_OUT &&				\
  		    (((*state)->rule.ptr->rt == PF_ROUTETO &&		\
  		    (*state)->rule.ptr->direction == PF_OUT) ||		\
-@@ -5974,7 +6106,7 @@ pf_test_state_icmp(struct pf_state **state, int direction, struct pfi_kif *kif,
+@@ -5978,7 +6110,7 @@ pf_test_state_icmp(struct pf_state **state, int direction, struct pfi_kif *kif,
  
  int
  pf_test_state_other(struct pf_state **state, int direction, struct pfi_kif *kif,
@@ -319,7 +319,7 @@ index db64cd5..f01c1c0 100644
  {
  	struct pf_state_peer	*src, *dst;
  	struct pf_state_cmp	 key;
-@@ -6952,9 +7084,13 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -6956,9 +7088,13 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  	struct pf_state		*s = NULL;
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_pdesc		 pd;
@@ -334,7 +334,7 @@ index db64cd5..f01c1c0 100644
  	PF_LOCK();
  #endif
  	if (!pf_status.running)
-@@ -7025,8 +7161,21 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7029,8 +7165,21 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  		goto done;
  	}
  
@@ -357,7 +357,7 @@ index db64cd5..f01c1c0 100644
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7064,6 +7213,11 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7068,6 +7217,11 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -369,7 +369,7 @@ index db64cd5..f01c1c0 100644
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7105,6 +7259,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7109,6 +7263,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -380,7 +380,7 @@ index db64cd5..f01c1c0 100644
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET)) {
  			log = action != PF_PASS;
-@@ -7178,7 +7336,7 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7182,7 +7340,7 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  	}
  
  	default:
@@ -389,7 +389,7 @@ index db64cd5..f01c1c0 100644
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -7225,6 +7383,55 @@ done:
+@@ -7229,6 +7387,55 @@ done:
  	}
  #endif /* ALTQ */
  
@@ -445,7 +445,7 @@ index db64cd5..f01c1c0 100644
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -7348,9 +7555,13 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7352,9 +7559,13 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  	struct pf_state		*s = NULL;
  	struct pf_ruleset	*ruleset = NULL;
  	struct pf_pdesc		 pd;
@@ -460,7 +460,7 @@ index db64cd5..f01c1c0 100644
  	PF_LOCK();
  #endif
  
-@@ -7418,9 +7629,22 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7422,9 +7633,22 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  		log = 1;
  		goto done;
  	}
@@ -484,7 +484,7 @@ index db64cd5..f01c1c0 100644
  		action = PF_DROP;
  		goto done;
  	}
-@@ -7526,6 +7750,11 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7530,6 +7754,11 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  		struct tcphdr	th;
  
  		pd.hdr.tcp = &th;
@@ -496,7 +496,7 @@ index db64cd5..f01c1c0 100644
  		if (!pf_pull_hdr(m, off, &th, sizeof(th),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7566,6 +7795,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7570,6 +7799,10 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  		struct udphdr	uh;
  
  		pd.hdr.udp = &uh;
@@ -507,7 +507,7 @@ index db64cd5..f01c1c0 100644
  		if (!pf_pull_hdr(m, off, &uh, sizeof(uh),
  		    &action, &reason, AF_INET6)) {
  			log = action != PF_PASS;
-@@ -7641,7 +7874,7 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7645,7 +7878,7 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0,
  	}
  
  	default:
@@ -516,7 +516,7 @@ index db64cd5..f01c1c0 100644
  		if (action == PF_PASS) {
  #if NPFSYNC
  			pfsync_update_state(s);
-@@ -7688,6 +7921,51 @@ done:
+@@ -7692,6 +7925,51 @@ done:
  	}
  #endif /* ALTQ */
  
@@ -568,7 +568,7 @@ index db64cd5..f01c1c0 100644
  	if (dir == PF_IN && action == PF_PASS && (pd.proto == IPPROTO_TCP ||
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
-@@ -7771,7 +8049,6 @@ done:
+@@ -7775,7 +8053,6 @@ done:
  			    tr->dst.neg);
  	}
  
@@ -577,7 +577,7 @@ index db64cd5..f01c1c0 100644
  		m_freem(*m0);
  		*m0 = NULL;
 diff --git a/sys/contrib/pf/net/pf_mtag.h b/sys/contrib/pf/net/pf_mtag.h
-index 75581ce..85a5322 100644
+index c97d9c8..9546137 100644
 --- a/sys/contrib/pf/net/pf_mtag.h
 +++ b/sys/contrib/pf/net/pf_mtag.h
 @@ -37,6 +37,8 @@
@@ -590,7 +590,7 @@ index 75581ce..85a5322 100644
  struct pf_mtag {
  	void		*hdr;		/* saved hdr pos in mbuf, for ECN */
 diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
-index 405e40b..6781f27 100644
+index 42a73aa..b8019e4 100644
 --- a/sys/contrib/pf/net/pfvar.h
 +++ b/sys/contrib/pf/net/pfvar.h
 @@ -632,6 +632,11 @@ struct pf_rule {
@@ -606,7 +606,7 @@ index 405e40b..6781f27 100644
  	u_int32_t		 nr;
  	u_int32_t		 prob;
 diff --git a/sys/netinet/ipfw/ip_dn_io.c b/sys/netinet/ipfw/ip_dn_io.c
-index 837f9bb..6ff24ea 100644
+index 0aa5e03..495a8b5 100644
 --- a/sys/netinet/ipfw/ip_dn_io.c
 +++ b/sys/netinet/ipfw/ip_dn_io.c
 @@ -641,6 +641,7 @@ dummynet_send(struct mbuf *m)
