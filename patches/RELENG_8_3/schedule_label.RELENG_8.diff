@@ -138,7 +138,7 @@ index 2aca173..4e47b1e 100644
  parseicmpspec(char *w, sa_family_t af)
  {
 diff --git a/contrib/pf/pfctl/pfctl.c b/contrib/pf/pfctl/pfctl.c
-index a1d8d7a..faff86c 100644
+index 2f26709..77c149d 100644
 --- a/contrib/pf/pfctl/pfctl.c
 +++ b/contrib/pf/pfctl/pfctl.c
 @@ -76,6 +76,7 @@ int	 pfctl_clear_states(int, const char *, int);
@@ -157,7 +157,7 @@ index a1d8d7a..faff86c 100644
  const char	*tblcmdopt;
  int		 src_node_killers;
  char		*src_node_kill[2];
-@@ -551,6 +553,25 @@ pfctl_kill_src_nodes(int dev, const char *iface, int opts)
+@@ -590,6 +592,25 @@ pfctl_kill_src_nodes(int dev, const char *iface, int opts)
  }
  
  int
@@ -183,16 +183,16 @@ index a1d8d7a..faff86c 100644
  pfctl_kill_states(int dev, const char *iface, int opts)
  {
  	struct pfioc_state_kill psk;
-@@ -1980,7 +2001,7 @@ main(int argc, char *argv[])
+@@ -2019,7 +2040,7 @@ main(int argc, char *argv[])
  		usage();
  
  	while ((ch = getopt(argc, argv,
--	    "a:AdD:eqf:F:ghi:k:K:mnNOo::Pp:rRs:t:T:vx:z")) != -1) {
-+	    "a:AdD:eqf:F:ghi:k:K:mnNOo::Pp:rRs:t:T:vx:y:z")) != -1) {
+-	    "a:AdD:eqf:F:gG:hi:k:K:mnNOo::Pp:rRs:t:T:vx:z")) != -1) {
++	    "a:AdD:eqf:F:gG:hi:k:K:mnNOo::Pp:rRs:t:T:vx:y:z")) != -1) {
  		switch (ch) {
  		case 'a':
  			anchoropt = optarg;
-@@ -2107,6 +2128,12 @@ main(int argc, char *argv[])
+@@ -2156,6 +2177,12 @@ main(int argc, char *argv[])
  				opts |= PF_OPT_VERBOSE2;
  			opts |= PF_OPT_VERBOSE;
  			break;
@@ -205,7 +205,7 @@ index a1d8d7a..faff86c 100644
  		case 'x':
  			debugopt = pfctl_lookup_option(optarg, debugopt_list);
  			if (debugopt == NULL) {
-@@ -2309,6 +2336,9 @@ main(int argc, char *argv[])
+@@ -2358,6 +2385,9 @@ main(int argc, char *argv[])
  	if (src_node_killers)
  		pfctl_kill_src_nodes(dev, ifaceopt, opts);
  
@@ -216,10 +216,10 @@ index a1d8d7a..faff86c 100644
  		error = pfctl_command_tables(argc, argv, tableopt,
  		    tblcmdopt, rulesopt, anchorname, opts);
 diff --git a/sys/contrib/pf/net/pf_ioctl.c b/sys/contrib/pf/net/pf_ioctl.c
-index f375701..8a1f8a4 100644
+index b0fbae0..719c03e 100644
 --- a/sys/contrib/pf/net/pf_ioctl.c
 +++ b/sys/contrib/pf/net/pf_ioctl.c
-@@ -2021,6 +2021,29 @@ pfioctl(dev_t dev, u_long cmd, caddr_t addr, int flags, struct proc *p)
+@@ -2031,6 +2031,29 @@ pfioctl(dev_t dev, u_long cmd, caddr_t addr, int flags, struct proc *p)
  		break;
  	}
  
