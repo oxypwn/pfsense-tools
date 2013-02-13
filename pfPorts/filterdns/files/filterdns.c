@@ -370,9 +370,41 @@ host_dns(struct thread_data *hostd, int forceupdate)
 static void
 ipfw_tableentry(struct thread_data *ipfwd, struct sockaddr *address, int action)
 {
-	ipfw_table_entry ent;
 	static int s = -1;
 
+#if __FreeBSD_version >= 803000
+#ifndef	IP_FW_CTX_MAXNAME
+#define	IP_FW_CTX_MAXNAME	64
+#endif
+	struct _entry {
+		char ctxname[IP_FW_CTX_MAXNAME];
+		ipfw_table_entry ent;
+	} entry;
+
+	if (s == -1)
+		s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+	if (s < 0)
+		return;
+	if (address->sa_family != AF_INET) /* XXX */
+		return;
+	bzero(&entry, sizeof(entry));
+	entry.ent.masklen = ipfwd->mask;
+	entry.ent.tbl = ipfwd->tablenr;
+	entry.ent.addr = satosin(address)->sin_addr.s_addr;
+	entry.ent.value = ipfwd->pipe; /* XXX */
+
+
+	if (ipfwctx != NULL) {
+		sprintf(entry.ctxname, "%s", ipfwctx);
+		setsockopt(s, IPPROTO_IP, action == ADD ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL, (void *)&entry, sizeof(entry));
+	}
+#else
+	ipfw_table_entry ent;
+
+	if (s == -1)
+		s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+	if (s < 0)
+		return;
 	if (address->sa_family != AF_INET) /* XXX */
 		return;
 	bzero(&ent, sizeof(ent));
@@ -380,18 +412,13 @@ ipfw_tableentry(struct thread_data *ipfwd, struct sockaddr *address, int action)
 	ent.tbl = ipfwd->tablenr;
 	ent.addr = satosin(address)->sin_addr.s_addr;
 	ent.value = ipfwd->pipe; /* XXX */
-
-	if (s == -1)
-		s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-	if (s < 0)
-		return;
-
 #ifndef IP_FW_CTX_SET
 #define	IP_FW_CTX_SET	92
 #endif
 	if (ipfwctx != NULL)
 		setsockopt(s, IPPROTO_IP, IP_FW_CTX_SET, (void *)ipfwctx, strlen(ipfwctx));
 	setsockopt(s, IPPROTO_IP, action == ADD ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL, (void *)&ent, sizeof(ent));
+#endif
 }
 
 static void
