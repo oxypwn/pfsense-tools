@@ -180,10 +180,6 @@ usr/share/doc/legal/intel_iwi/LICENSE
 usr/share/doc/legal/intel_wpi/LICENSE
 usr/sbin/cdcontrol
 sbin/camcontrol
-usr/local/sbin/unbound
-usr/local/lib/libunbound.so.3
-usr/local/sbin/unbound-checkconf
-usr/local/sbin/unbound-control
 usr/local/lib/libldns.so.1
 usr/local/lib/libevent-1.4.so.4
 usr/local/bin/ntp-wait
