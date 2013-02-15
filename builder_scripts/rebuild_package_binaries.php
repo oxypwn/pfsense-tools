@@ -73,7 +73,7 @@ function overlay_pfPort($port_path) {
 	$pfports = "/home/pfsense/tools/pfPorts";
 	// If a pfport exists, overlay that folder onto $port_path
 	$port_name = basename($port_path);
-	if (file_exists("{$pfports}/{$port_name}") && is_dir("{$pfports}/{$port_name}")) {
+	if (file_exists("{$pfports}/{$port_name}") && is_dir("{$pfports}/{$port_name}") && is_file("{$pfports}/{$port_name}/Makefile")) {
 		echo ">>> Overelaying pfPort {$port_name} onto {$port_path} ... ";
 		if (file_exists($port_path) && is_dir($port_path)) {
 			echo "Preserving old port in {$port_path}.orig ...";
