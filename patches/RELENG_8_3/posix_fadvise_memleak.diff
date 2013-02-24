@@ -1,0 +1,30 @@
+--- sys/kern/vfs_syscalls.c	(revision 234660)
++++ sys/kern/vfs_syscalls.c	(revision 234661)
+@@ -84,7 +84,7 @@
+ #include <vm/vm_page.h>
+ #include <vm/uma.h>
+ 
+-static MALLOC_DEFINE(M_FADVISE, "fadvise", "posix_fadvise(2) information");
++MALLOC_DEFINE(M_FADVISE, "fadvise", "posix_fadvise(2) information");
+ 
+ SDT_PROVIDER_DEFINE(vfs);
+ SDT_PROBE_DEFINE(vfs, , stat, mode, mode);
+--- sys/kern/kern_descrip.c	(revision 234660)
++++ sys/kern/kern_descrip.c	(revision 234661)
+@@ -91,6 +91,8 @@
+ 		     "file desc to leader structures");
+ static MALLOC_DEFINE(M_SIGIO, "sigio", "sigio structures");
+ 
++MALLOC_DECLARE(M_FADVISE);
++
+ static uma_zone_t file_zone;
+ 
+ 
+@@ -2361,6 +2363,7 @@
+ 		error = fo_close(fp, td);
+ 	atomic_subtract_int(&openfiles, 1);
+ 	crfree(fp->f_cred);
++	free(fp->f_advice, M_FADVISE);
+ 	uma_zfree(file_zone, fp);
+ 
+ 	return (error);
