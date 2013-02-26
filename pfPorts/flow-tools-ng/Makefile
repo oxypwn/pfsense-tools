@@ -2,7 +2,7 @@
 # Date created:				2000 Jul 25
 # Whom:					@BABOLO <.@babolo.ru>
 #
-# $FreeBSD: ports/net-mgmt/flow-tools-ng/Makefile,v 1.8 2010/09/03 10:02:53 pav Exp $
+# $FreeBSD$
 #
 
 PORTNAME=	flow-tools
