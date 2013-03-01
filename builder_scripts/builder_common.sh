@@ -3681,7 +3681,9 @@ install_pkg_install_ports() {
 	cp ${BUILDER_SCRIPTS}/install_tmp_pkgs_in_chroot.sh $PFSENSEBASEDIR/pkg.sh
 	chmod a+rx $PFSENSEBASEDIR/pkg.sh
 	# chroot into staging area and pkg_add all of the packages
+	/sbin/mount -t devfs devfs ${PFSENSEBASEDIR}/dev
 	chroot $PFSENSEBASEDIR /pkg.sh || true 2>&1 >/tmp/install_pkg_install_ports.txt
+	/sbin/umount ${PFSENSEBASEDIR}/dev
 	# Restore the previously backed up items
 	mv ${PFS_PKG_OLD}* ${PFS_PKG_ALL} || true 2>/dev/null
 	mv ${VAR_DB_PKG_TMP}/* ${VAR_DB_PKG} || true 2>/dev/null
