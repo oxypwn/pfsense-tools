@@ -2,7 +2,7 @@ This backport is specific to FreeBSD 8.3.
 
 This backported driver can be dropped as soon as we switch to a more 
 recent base FreeBSD. See notes above to see which included patch is
-present in upon a certain release/branch (as of 2012-12-04):
+present in upon a certain release/branch (as of 2013-03-10):
 
 ---------------------------------------
 > RELENG 8.3, >= RELENG 9.1, 10-CURRENT
@@ -154,3 +154,13 @@ Date:   Mon Dec 3 18:47:25 2012 +0000
       abort function and only wait the command being aborted not both.
       Thunderbolt cards don't seem to abort commands so the abort times
       out.
+
+Author: delphij <delphij@FreeBSD.org>
+Date:   Tue Mar 5 06:43:54 2013 +0000
+
+    MFC r247594:
+    
+    Fix a typo in mfi_stp_cmd() that would give wrong assignment.
+    
+    Submitted by:       Sascha Wildner <saw online de>
+    Obtained from:      DragonFly rev 0dc98fff2206d7bb78ce5e07ac34d6954e4bd96a
