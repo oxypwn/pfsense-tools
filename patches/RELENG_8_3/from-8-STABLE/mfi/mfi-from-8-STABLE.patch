@@ -12,7 +12,7 @@ index 94c5a5f..19d5b13 100644
  dev/mfi/mfi_cam.c		optional mfip scbus
  dev/mii/acphy.c			optional miibus | acphy
 diff --git a/sys/dev/mfi/mfi.c b/sys/dev/mfi/mfi.c
-index 55c6099..4429909 100644
+index 55c6099..7741b542 100644
 --- a/sys/dev/mfi/mfi.c
 +++ b/sys/dev/mfi/mfi.c
 @@ -53,6 +53,7 @@
@@ -2086,7 +2086,7 @@ index 55c6099..4429909 100644
 +			cm->cm_frame->stp.sgl.sg64[i].len =
 +			    ioc->mfi_sgl[i].iov_len;
 +		} else {
-+			cm->cm_frame->stp.sgl.sg32[i].len =
++			cm->cm_frame->stp.sgl.sg32[i].addr =
 +			    kern_sge[i].phys_addr;
 +			cm->cm_frame->stp.sgl.sg32[i].len =
 +			    ioc->mfi_sgl[i].iov_len;
@@ -5838,32 +5838,6 @@ index f55a800..00abfc5 100644
  #define MFI_MAXPHYS (128 * 1024)
  
  #ifdef MFI_DEBUG
-diff --git a/sys/dev/mps/mps_sas.c b/sys/dev/mps/mps_sas.c
-index 65009bc..01af9fb 100644
---- a/sys/dev/mps/mps_sas.c
-+++ b/sys/dev/mps/mps_sas.c
-@@ -2214,7 +2214,7 @@ mpssas_scsiio_complete(struct mps_softc *sc, struct mps_command *cm)
- 			sense_len = min(returned_sense_len,
- 			    ccb->csio.sense_len - ccb->csio.sense_resid);
- 			bzero(&ccb->csio.sense_data,
--			      sizeof(&ccb->csio.sense_data));
-+			      sizeof(ccb->csio.sense_data));
- 			bcopy(cm->cm_sense, &ccb->csio.sense_data, sense_len);
- 			ccb->ccb_h.status |= CAM_AUTOSNS_VALID;
- 		}
-diff --git a/sys/dev/mpt/mpt_cam.c b/sys/dev/mpt/mpt_cam.c
-index 2fc60fc..176670a 100644
---- a/sys/dev/mpt/mpt_cam.c
-+++ b/sys/dev/mpt/mpt_cam.c
-@@ -3179,7 +3179,7 @@ mpt_scsi_reply_frame_handler(struct mpt_softc *mpt, request_t *req,
- 		ccb->ccb_h.status |= CAM_AUTOSNS_VALID;
- 		ccb->csio.sense_resid =
- 		    ccb->csio.sense_len - le32toh(scsi_io_reply->SenseCount);
--		bzero(&ccb->csio.sense_data, sizeof(&ccb->csio.sense_data));
-+		bzero(&ccb->csio.sense_data, sizeof(ccb->csio.sense_data));
- 		bcopy(req->sense_vbuf, &ccb->csio.sense_data,
- 		    min(ccb->csio.sense_len,
- 		    le32toh(scsi_io_reply->SenseCount)));
 diff --git a/sys/kern/subr_firmware.c b/sys/kern/subr_firmware.c
 index 3f5e52b..44fb4b2 100644
 --- a/sys/kern/subr_firmware.c
