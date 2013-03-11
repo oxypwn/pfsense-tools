@@ -221,6 +221,31 @@ pfi_get_ifaces(int dev, const char *filter, struct pfi_kif *buf, int *size)
 	return (0);
 }
 
+/* returns prefixlen, obtained from sbin/ifconfig/af_inet6.c */
+static int
+prefix(void *val, int size)
+{
+	u_char *name = (u_char *)val;
+	int byte, bit, plen = 0;
+
+	for (byte = 0; byte < size; byte++, plen += 8)
+		if (name[byte] != 0xff)
+			break;
+	if (byte == size)
+		return (plen);
+	for (bit = 7; bit != 0; bit--, plen++)
+		if (!(name[byte] & (1 << bit)))
+			break;
+	for (; bit != 0; bit--)
+		if (name[byte] & (1 << bit))
+			return(0);
+	byte++;
+	for (; byte < size; byte++)
+		if (name[byte])
+			return(0);
+	return (plen);
+}
+
 PHP_MINIT_FUNCTION(pfSense_socket)
 {
 	int csock;
@@ -1061,6 +1086,7 @@ PHP_FUNCTION(pfSense_getall_interface_addresses)
 	struct ifaddrs *ifdata, *mb;
 	struct if_data *md;
 	struct sockaddr_in *tmp;
+	struct sockaddr_in6 *tmp6;
 	char outputbuf[132];
 	char *ifname;
 	int ifname_len, s;
@@ -1102,6 +1128,17 @@ PHP_FUNCTION(pfSense_getall_interface_addresses)
 					} while (mask);
 			}
 			snprintf(outputbuf + strlen(outputbuf), sizeof(outputbuf) - strlen(outputbuf), "/%d", i);
+			add_next_index_string(return_value, outputbuf, 1);
+			break;
+		case AF_INET6:
+			bzero(outputbuf, sizeof outputbuf);
+			tmp6 = (struct sockaddr_in6 *)mb->ifa_addr;
+			if (IN6_IS_ADDR_LINKLOCAL(&tmp6->sin6_addr) || IN6_IS_ADDR_SITELOCAL(&tmp6->sin6_addr))
+				continue;
+			inet_ntop(AF_INET6, (void *)&tmp6->sin6_addr, outputbuf, INET6_ADDRSTRLEN);
+			tmp6 = (struct sockaddr_in6 *)mb->ifa_netmask;
+			snprintf(outputbuf + strlen(outputbuf), sizeof(outputbuf) - strlen(outputbuf),
+				"/%d", prefix(&tmp6->sin6_addr, sizeof(struct in6_addr)));
 			add_next_index_string(return_value, outputbuf, 1);
 			break;
 		}
