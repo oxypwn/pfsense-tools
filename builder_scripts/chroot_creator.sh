@@ -114,9 +114,9 @@ if [ ! -d /home/pfsense ]; then
 	mkdir -p /home/pfsense/pfSenseGITREPO /usr/pfSensesrc
 	echo ">>> Grabbing pfSense tools..."
 	cd /home/pfsense && git clone \
-		git://github.com/bsdperimeter/pfsense-tools.git tools
+		git://github.com/pfsense/pfsense-tools.git tools
 	cd /home/pfsense && git clone \
-		git://github.com/bsdperimeter/freesbie2.git freesbie2
+		git://github.com/pfsense/freesbie2.git freesbie2
 	chmod a+rx /home/pfsense/tools/builder_scripts/*.sh
 else
 	echo ">>> Making sure git repos are in sync..."

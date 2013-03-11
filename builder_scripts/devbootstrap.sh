@@ -108,12 +108,12 @@ ln -s /home /usr/home
 
 # Checkout tools if needed
 if [ ! -d tools ]; then
-	cd /home/pfsense && git clone git://github.com/bsdperimeter/pfsense-tools.git tools
+	cd /home/pfsense && git clone git://github.com/pfsense/pfsense-tools.git tools
 fi
 
 # Checkout freesbie2 if needed
 if [ ! -d freesbie2 ]; then
-	cd /home/pfsense && git clone https://github.com/bsdperimeter/freesbie2.git freesbie2
+	cd /home/pfsense && git clone https://github.com/pfsense/freesbie2.git freesbie2
 fi
 
 # Ensure scripts have +x
