@@ -4,7 +4,9 @@ if [ -d /home/pfsense/pfSenseGITREPO/pfSenseGITREPO/.git ]; then
 	echo ">>>   Setting pfSense repo to git://github.com/pfsense/pfsense.git"
 	cd /home/pfsense/pfSenseGITREPO/pfSenseGITREPO/
 	git remote set-url origin git://github.com/pfsense/pfsense.git
-elif [ -d /home/pfsense/pfSenseGITREPO/.git ]; then
+fi
+
+if [ -d /home/pfsense/pfSenseGITREPO/.git ]; then
 	echo ">>>   Setting pfSense repo to git://github.com/pfsense/pfsense.git"
 	cd /home/pfsense/pfSenseGITREPO/
 	git remote set-url origin git://github.com/pfsense/pfsense.git
