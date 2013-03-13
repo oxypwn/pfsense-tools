@@ -13,7 +13,15 @@ product = {
 mountpoints = function(part_cap, ram_cap)
 
         --
-	-- Minidumps always activated require at least 64M of swap
+        -- First, calculate suggested swap size:
+        --
+        local swap = 2 * ram_cap
+        if ram_cap > (part_cap / 2) or part_cap < 4096 then
+                swap = ram_cap
+        end
+        swap = tostring(swap) .. "M"
+
+        --
         -- Now, based on the capacity of the partition,
         -- return an appropriate list of suggested mountpoints.
         --
@@ -24,7 +32,7 @@ mountpoints = function(part_cap, ram_cap)
 
         return {
                 { mountpoint = "/",     capstring = "*" },
-                { mountpoint = "swap",  capstring = "64M" },
+                { mountpoint = "swap",  capstring = swap },
         }
 
 end
