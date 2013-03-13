@@ -6,6 +6,3 @@ listens for IPv6 Router Advertisements with the Recursive DNS Server
 list and address(es) in a file in the same syntax as resolv.conf(5).
 
 WWW: http://hack.org/mc/hacks/radns/
-
-- Michael Cardell Widerkrantz
-mc@hack.org

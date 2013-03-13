@@ -6,21 +6,21 @@
 #
 
 PORTNAME=	radns
-PORTVERSION=	20110809
+PORTVERSION=	20110809.2
+DISTNAME=	${PORTNAME}-${PORTVERSION:S/./-/}
 CATEGORIES=	dns
 MASTER_SITES=	http://hack.org/mc/hacks/radns/
-DISTNAME=	${PORTNAME}-20110809
 
 MAINTAINER=	mc@hack.org
 COMMENT=	IPv6 DNS server address autoconfiguration client
 
+LICENSE=	ISCL
+
 USE_BZIP2=	yes
 USE_RC_SUBR=	radns
 
-LICENSE=	ISCL
-
-USERS=		nobody
-GROUPS=		nobody
+USERS=		radns
+GROUPS=		radns
 
 USE_RC_SUBR=	radns
 SUB_FILES=	pkg-message
@@ -33,10 +33,9 @@ post-install:
 .if !defined(NOPORTDOCS)
 	@${ECHO_MSG} "Installing additional documentation to ${DOCSDIR}"
 	@${MKDIR} ${DOCSDIR}
-	@${INSTALL_MAN} ${WRKSRC}/LICENSE ${DOCSDIR}
-	@${INSTALL_MAN} ${WRKSRC}/README ${DOCSDIR}
-	@${INSTALL_MAN} ${WRKSRC}/README.FreeBSD ${DOCSDIR}
-	@${INSTALL_MAN} ${WRKSRC}/NEWS ${DOCSDIR}
+.for i in ${PORTDOCS}
+	@${INSTALL_DATA} ${WRKSRC}/${i} ${DOCSDIR}
+.endfor
 
 .endif
 	@${CAT} ${PKGMESSAGE}
