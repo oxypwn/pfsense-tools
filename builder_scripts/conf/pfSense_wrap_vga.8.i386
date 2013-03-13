@@ -449,4 +449,5 @@ device         sc              # Syscons
 device		splash
 # END VGA
 
-options    PPS_SYNC
+options		PPS_SYNC
+options		TCP_SIGNATURE
