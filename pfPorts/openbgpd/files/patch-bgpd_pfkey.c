@@ -1,5 +1,6 @@
---- bgpd/pfkey.c.orig	2013-02-22 10:19:56.000000000 +0000
-+++ bgpd/pfkey.c	2013-02-22 10:20:40.000000000 +0000
+diff -ur bgpd.orig/pfkey.c bgpd/pfkey.c
+--- bgpd.orig/pfkey.c	2013-03-15 12:07:16.000000000 +0000
++++ bgpd/pfkey.c	2013-03-15 12:07:47.000000000 +0000
 @@ -1,4 +1,4 @@
 -/*	$OpenBSD: pfkey.c,v 1.37 2009/04/21 15:25:52 henning Exp $ */
 +/*	$OpenBSD: pfkey.c,v 1.40 2009/12/14 17:38:18 claudio Exp $ */
@@ -92,7 +93,31 @@
  		sdst.ss_len = sizeof(struct sockaddr);
  		break;
  	default:
-@@ -158,6 +148,7 @@
+@@ -135,7 +125,7 @@
+ 	smsg.sadb_msg_version = PF_KEY_V2;
+ 	smsg.sadb_msg_seq = ++sadb_msg_seq;
+ 	smsg.sadb_msg_pid = pid;
+-	smsg.sadb_msg_len = sizeof(smsg) / 8;
++	smsg.sadb_msg_len = PFKEY_UNIT64(sizeof(smsg));
+ 	smsg.sadb_msg_type = mtype;
+ 	smsg.sadb_msg_satype = satype;
+ 
+@@ -143,7 +133,7 @@
+ 	case SADB_GETSPI:
+ 		bzero(&sa_spirange, sizeof(sa_spirange));
+ 		sa_spirange.sadb_spirange_exttype = SADB_EXT_SPIRANGE;
+-		sa_spirange.sadb_spirange_len = sizeof(sa_spirange) / 8;
++		sa_spirange.sadb_spirange_len = PFKEY_UNIT64(sizeof(sa_spirange));
+ 		sa_spirange.sadb_spirange_min = 0x100;
+ 		sa_spirange.sadb_spirange_max = 0xffffffff;
+ 		sa_spirange.sadb_spirange_reserved = 0;
+@@ -153,11 +143,12 @@
+ 	case SADB_DELETE:
+ 		bzero(&sa, sizeof(sa));
+ 		sa.sadb_sa_exttype = SADB_EXT_SA;
+-		sa.sadb_sa_len = sizeof(sa) / 8;
++		sa.sadb_sa_len = PFKEY_UNIT64(sizeof(sa));
+ 		sa.sadb_sa_replay = 0;
  		sa.sadb_sa_spi = spi;
  		sa.sadb_sa_state = SADB_SASTATE_MATURE;
  		break;
@@ -100,7 +125,7 @@
  	case SADB_X_ADDFLOW:
  	case SADB_X_DELFLOW:
  		bzero(&sa_flowtype, sizeof(sa_flowtype));
-@@ -172,6 +163,7 @@
+@@ -172,35 +163,37 @@
  		sa_protocol.sadb_protocol_direction = 0;
  		sa_protocol.sadb_protocol_proto = 6;
  		break;
@@ -108,7 +133,36 @@
  	}
  
  	bzero(&sa_src, sizeof(sa_src));
-@@ -201,6 +193,7 @@
+ 	sa_src.sadb_address_exttype = SADB_EXT_ADDRESS_SRC;
+-	sa_src.sadb_address_len = (sizeof(sa_src) + ROUNDUP(ssrc.ss_len)) / 8;
++	sa_src.sadb_address_len = PFKEY_UNIT64(sizeof(sa_src) + ROUNDUP(ssrc.ss_len));
+ 
+ 	bzero(&sa_dst, sizeof(sa_dst));
+ 	sa_dst.sadb_address_exttype = SADB_EXT_ADDRESS_DST;
+-	sa_dst.sadb_address_len = (sizeof(sa_dst) + ROUNDUP(sdst.ss_len)) / 8;
++	sa_dst.sadb_address_len = PFKEY_UNIT64(sizeof(sa_dst) + ROUNDUP(sdst.ss_len));
+ 
+ 	sa.sadb_sa_auth = aalg;
+-	sa.sadb_sa_encrypt = SADB_X_EALG_AES; /* XXX */
++	sa.sadb_sa_encrypt = ealg; /* XXX */
+ 
+ 	switch (mtype) {
+ 	case SADB_ADD:
+ 	case SADB_UPDATE:
+ 		bzero(&sa_akey, sizeof(sa_akey));
+ 		sa_akey.sadb_key_exttype = SADB_EXT_KEY_AUTH;
+-		sa_akey.sadb_key_len = (sizeof(sa_akey) +
+-		    ((alen + 7) / 8) * 8) / 8;
++		sa_akey.sadb_key_len = PFKEY_UNIT64(sizeof(sa_akey) +
++		    (PFKEY_ALIGN8(alen)));
+ 		sa_akey.sadb_key_bits = 8 * alen;
+ 
+ 		bzero(&sa_ekey, sizeof(sa_ekey));
+ 		sa_ekey.sadb_key_exttype = SADB_EXT_KEY_ENCRYPT;
+-		sa_ekey.sadb_key_len = (sizeof(sa_ekey) +
+-		    ((elen + 7) / 8) * 8) / 8;
++		sa_ekey.sadb_key_len = PFKEY_UNIT64(sizeof(sa_ekey) +
++		    (PFKEY_ALIGN8(elen)));
  		sa_ekey.sadb_key_bits = 8 * elen;
  
  		break;
@@ -180,6 +234,32 @@
  	}
  
  	/* dest addr */
+@@ -380,7 +376,7 @@
+ 			iov[iov_cnt].iov_len = sizeof(sa_akey);
+ 			iov_cnt++;
+ 			iov[iov_cnt].iov_base = akey;
+-			iov[iov_cnt].iov_len = ((alen + 7) / 8) * 8;
++			iov[iov_cnt].iov_len = PFKEY_ALIGN8(alen);
+ 			smsg.sadb_msg_len += sa_akey.sadb_key_len;
+ 			iov_cnt++;
+ 		}
+@@ -390,14 +386,14 @@
+ 			iov[iov_cnt].iov_len = sizeof(sa_ekey);
+ 			iov_cnt++;
+ 			iov[iov_cnt].iov_base = ekey;
+-			iov[iov_cnt].iov_len = ((elen + 7) / 8) * 8;
++			iov[iov_cnt].iov_len = PFKEY_ALIGN8(elen);
+ 			smsg.sadb_msg_len += sa_ekey.sadb_key_len;
+ 			iov_cnt++;
+ 		}
+ 		break;
+ 	}
+ 
+-	len = smsg.sadb_msg_len * 8;
++	len = PFKEY_UNUNIT64(smsg.sadb_msg_len);
+ 	do {
+ 		n = writev(sd, iov, iov_cnt);
+ 	} while (n == -1 && (errno == EAGAIN || errno == EINTR));
 @@ -411,6 +407,33 @@
  }
  
@@ -214,7 +294,7 @@
  pfkey_reply(int sd, u_int32_t *spip)
  {
  	struct sadb_msg hdr, *msg;
-@@ -418,23 +441,13 @@
+@@ -418,27 +441,17 @@
  	struct sadb_sa *sa;
  	u_int8_t *data;
  	ssize_t len;
@@ -223,10 +303,7 @@
 -	for (;;) {
 -		if (recv(sd, &hdr, sizeof(hdr), MSG_PEEK) != sizeof(hdr)) {
 -			log_warn("pfkey peek");
-+	do {
-+		rv = pfkey_read(sd, &hdr);
-+		if (rv == -1)
- 			return (-1);
+-			return (-1);
 -		}
 -
 -		if (hdr.sadb_msg_seq == sadb_msg_seq &&
@@ -236,14 +313,103 @@
 -		/* not ours, discard */
 -		if (read(sd, &hdr, sizeof(hdr)) == -1) {
 -			log_warn("pfkey read");
--			return (-1);
++	do {
++		rv = pfkey_read(sd, &hdr);
++		if (rv == -1)
+ 			return (-1);
 -		}
 -	}
 +	} while (rv);
  
  	if (hdr.sadb_msg_errno != 0) {
  		errno = hdr.sadb_msg_errno;
-@@ -550,6 +563,7 @@
+-		if (errno == ESRCH)
++		if (errno == ESRCH || errno == EEXIST)
+ 			return (0);
+ 		else {
+ 			log_warn("pfkey");
+@@ -486,13 +499,8 @@
+ pfkey_sa_add(struct bgpd_addr *src, struct bgpd_addr *dst, u_int8_t keylen,
+     char *key, u_int32_t *spi)
+ {
+-	if (pfkey_send(fd, SADB_X_SATYPE_TCPSIGNATURE, SADB_GETSPI, 0,
+-	    src, dst, 0, 0, 0, NULL, 0, 0, NULL, 0, 0) < 0)
+-		return (-1);
+-	if (pfkey_reply(fd, spi) < 0)
+-		return (-1);
+-	if (pfkey_send(fd, SADB_X_SATYPE_TCPSIGNATURE, SADB_UPDATE, 0,
+-		src, dst, *spi, 0, keylen, key, 0, 0, NULL, 0, 0) < 0)
++	if (pfkey_send(fd, SADB_X_SATYPE_TCPSIGNATURE, SADB_ADD, 0,
++		src, dst, *spi, SADB_X_AALG_TCP_MD5, keylen, key, SADB_EALG_NONE, 0, NULL, 0, 0) < 0)
+ 		return (-1);
+ 	if (pfkey_reply(fd, NULL) < 0)
+ 		return (-1);
+@@ -503,7 +511,7 @@
+ pfkey_sa_remove(struct bgpd_addr *src, struct bgpd_addr *dst, u_int32_t *spi)
+ {
+ 	if (pfkey_send(fd, SADB_X_SATYPE_TCPSIGNATURE, SADB_DELETE, 0,
+-	    src, dst, *spi, 0, 0, NULL, 0, 0, NULL, 0, 0) < 0)
++	    src, dst, *spi, SADB_X_AALG_TCP_MD5, 0, NULL, 0, 0, NULL, 0, 0) < 0)
+ 		return (-1);
+ 	if (pfkey_reply(fd, NULL) < 0)
+ 		return (-1);
+@@ -511,37 +519,37 @@
+ 	return (0);
+ }
+ 
++#define TCP_SIG_SPI     0x1000
+ int
+ pfkey_md5sig_establish(struct peer *p)
+ {
+ 	sleep(1);
+ 
+-	if (!p->auth.spi_out)
+-		if (pfkey_sa_add(&p->auth.local_addr, &p->conf.remote_addr,
+-		    p->conf.auth.md5key_len, p->conf.auth.md5key,
+-		    &p->auth.spi_out) == -1)
+-			return (-1);
+-	if (!p->auth.spi_in)
+-		if (pfkey_sa_add(&p->conf.remote_addr, &p->auth.local_addr,
+-		    p->conf.auth.md5key_len, p->conf.auth.md5key,
+-		    &p->auth.spi_in) == -1)
+-			return (-1);
++	p->auth.spi_out = htonl(TCP_SIG_SPI);
++	if (pfkey_sa_add(&p->auth.local_addr, &p->conf.remote_addr,
++	    p->conf.auth.md5key_len, p->conf.auth.md5key,
++	    &p->auth.spi_out) == -1)
++		return (-1);
++	p->auth.spi_in = htonl(TCP_SIG_SPI);
++	if (pfkey_sa_add(&p->conf.remote_addr, &p->auth.local_addr,
++	    p->conf.auth.md5key_len, p->conf.auth.md5key,
++	    &p->auth.spi_out) == -1)
++		return (-1);
+ 
+ 	p->auth.established = 1;
+ 	return (0);
+ }
++#undef TCP_SIG_SPI
+ 
+ int
+ pfkey_md5sig_remove(struct peer *p)
+ {
+-	if (p->auth.spi_out)
+-		if (pfkey_sa_remove(&p->auth.local_addr, &p->conf.remote_addr,
+-		    &p->auth.spi_out) == -1)
+-			return (-1);
+-	if (p->auth.spi_in)
+-		if (pfkey_sa_remove(&p->conf.remote_addr, &p->auth.local_addr,
+-		    &p->auth.spi_in) == -1)
+-			return (-1);
++	if (pfkey_sa_remove(&p->auth.local_addr, &p->conf.remote_addr,
++	    NULL) == -1)
++		return (-1);
++	if (pfkey_sa_remove(&p->conf.remote_addr, &p->auth.local_addr,
++	    NULL) == -1)
++		return (-1);
+ 
+ 	p->auth.established = 0;
+ 	return (0);
+@@ -550,6 +558,7 @@
  int
  pfkey_ipsec_establish(struct peer *p)
  {
@@ -251,7 +417,7 @@
  	uint8_t satype = SADB_SATYPE_ESP;
  
  	switch (p->auth.method) {
-@@ -621,6 +635,9 @@
+@@ -621,6 +630,9 @@
  
  	p->auth.established = 1;
  	return (0);
@@ -261,7 +427,7 @@
  }
  
  int
-@@ -660,6 +677,7 @@
+@@ -660,6 +672,7 @@
  		break;
  	}
  
@@ -269,7 +435,7 @@
  	if (pfkey_flow(fd, satype, SADB_X_DELFLOW, IPSP_DIRECTION_OUT,
  	    &p->auth.local_addr, &p->conf.remote_addr, 0, BGP_PORT) < 0)
  		return (-1);
-@@ -681,6 +699,7 @@
+@@ -681,6 +694,7 @@
  	if (pfkey_flow(fd, satype, SADB_X_DELFLOW, IPSP_DIRECTION_IN,
  	    &p->conf.remote_addr, &p->auth.local_addr, BGP_PORT, 0) < 0)
  		return (-1);
@@ -277,7 +443,18 @@
  	if (pfkey_reply(fd, NULL) < 0)
  		return (-1);
  
-@@ -730,11 +749,9 @@
+@@ -715,9 +729,7 @@
+ int
+ pfkey_remove(struct peer *p)
+ {
+-	if (!p->auth.established)
+-		return (0);
+-	else if (p->auth.method == AUTH_MD5SIG)
++	if (p->auth.method == AUTH_MD5SIG)
+ 		return (pfkey_md5sig_remove(p));
+ 	else
+ 		return (pfkey_ipsec_remove(p));
+@@ -730,11 +742,9 @@
  		if (errno == EPROTONOSUPPORT) {
  			log_warnx("PF_KEY not available, disabling ipsec");
  			sysdep->no_pfkey = 1;
