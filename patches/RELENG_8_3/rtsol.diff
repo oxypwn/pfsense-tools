@@ -1,0 +1,69 @@
+diff -ur ../rtsold.old/rtsol.c ./rtsol.c
+--- ../rtsold.old/rtsol.c	2013-03-19 16:31:23.000000000 +0100
++++ ./rtsol.c	2013-03-19 16:34:35.000000000 +0100
+@@ -75,7 +75,7 @@
+ static struct sockaddr_in6 sin6_allrouters =
+ {sizeof(sin6_allrouters), AF_INET6};
+ 
+-static void call_script(char *, char *);
++static void call_script(char *, char *, u_char *);
+ static int safefile(const char *);
+ 
+ int
+@@ -351,8 +351,8 @@
+ 		warnmsg(LOG_DEBUG, __func__,
+ 		    "OtherConfigFlag on %s is turned on", ifi->ifname);
+ 		ifi->otherconfig = 1;
+-		call_script(otherconf_script, ifi->ifname);
+ 	}
++	call_script(otherconf_script, ifi->ifname, ntopbuf);
+ 
+ 	ifi->racnt++;
+ 
+@@ -369,7 +369,7 @@
+ }
+ 
+ static void
+-call_script(char *scriptpath, char *ifname)
++call_script(char *scriptpath, char *ifname, u_char *inetv6addr)
+ {
+ 	pid_t pid, wpid;
+ 
+@@ -397,12 +397,13 @@
+ 			    "script \"%s\" terminated", scriptpath);
+ 		}
+ 	} else {
+-		char *argv[3];
++		char *argv[4];
+ 		int fd;
+ 
+ 		argv[0] = scriptpath;
+ 		argv[1] = ifname;
+-		argv[2] = NULL;
++		argv[2] = inetv6addr;
++		argv[3] = NULL;
+ 
+ 		if (safefile(scriptpath)) {
+ 			warnmsg(LOG_ERR, __func__,
+diff -ur ../rtsold.old/rtsold.c ./rtsold.c
+--- ../rtsold.old/rtsold.c	2013-03-19 16:31:23.000000000 +0100
++++ ./rtsold.c	2013-03-19 16:32:09.000000000 +0100
+@@ -134,7 +134,7 @@
+ 		once = 1;
+ 		opts = "adDFO:";
+ 	} else
+-		opts = "adDfFm1O:";
++		opts = "adDfFm1O:p:";
+ 
+ 	while ((ch = getopt(argc, argv, opts)) != -1) {
+ 		switch (ch) {
+@@ -162,6 +162,9 @@
+ 		case 'O':
+ 			otherconf_script = optarg;
+ 			break;
++		case 'p':
++			pidfilename = optarg;
++			break;
+ 		default:
+ 			usage(argv0);
+ 			/*NOTREACHED*/
