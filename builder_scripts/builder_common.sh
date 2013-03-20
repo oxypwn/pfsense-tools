@@ -2727,7 +2727,7 @@ EOF
 			/bin/mv /usr/ports/emulators/virtualbox-ose-kmod /usr/ports/emulators/virtualbox-ose-kmod.old
 			/bin/cp -Rp ${BASE_DIR}/${TOOLS_DIR}/pfPorts/virtualbox-ose-freebsd81 /usr/ports/emulators/virtualbox-ose
 			/bin/cp -Rp ${BASE_DIR}/${TOOLS_DIR}/pfPorts/virtualbox-ose-kmod-freebsd81 /usr/ports/emulators/virtualbox-ose-kmod
-			( cd /usr/ports/emulators/virtualbox-ose-freebsd81 && make BATCH=yes install clean ) >/dev/null
+			( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes install clean ) >/dev/null
 		fi
 		( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes install clean ) >/dev/null
 	fi
