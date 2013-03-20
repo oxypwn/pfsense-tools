@@ -1,7 +1,6 @@
-diff --git a/device-bsd44.c b/device-bsd44.c
-index 8cd82e9..e21aa44 100644
---- device-bsd44.c
-+++ device-bsd44.c
+diff -ur ../radvd-1.9.1.old/device-bsd44.c ./device-bsd44.c
+--- ../radvd-1.9.1.old/device-bsd44.c	2013-03-20 12:06:55.000000000 +0000
++++ ./device-bsd44.c	2013-03-20 12:11:26.000000000 +0000
 @@ -17,8 +17,21 @@
  #include "radvd.h"
  #include "defaults.h"
@@ -24,7 +23,7 @@ index 8cd82e9..e21aa44 100644
  
  /*
   * this function gets the hardware type and address of an interface,
-@@ -136,6 +149,127 @@ ret:
+@@ -136,6 +149,130 @@
  	return -1;
  }
  
@@ -67,6 +66,9 @@ index 8cd82e9..e21aa44 100644
 +	{
 +		struct sockaddr_in6 *s6 = (struct sockaddr_in6 *)ifa->ifa_addr;
 +		struct sockaddr_in6 *mask = (struct sockaddr_in6 *)ifa->ifa_netmask;
++
++		if (strlen(ifa->ifa_name) != strlen(iface->Name))
++			continue;
 +
 +		if (strcmp(ifa->ifa_name, iface->Name) == 0)
 +			continue;	/* looking for !carp */
@@ -152,7 +154,17 @@ index 8cd82e9..e21aa44 100644
  /*
   * Saves the first link local address seen on the specified interface to iface->if_addr
   *
-@@ -228,3 +362,82 @@ set_interface_retranstimer(const char *iface, uint32_t rettimer)
+@@ -152,6 +289,9 @@
+ 
+ 	for (ifa = addresses; ifa != NULL; ifa = ifa->ifa_next)
+ 	{
++		if (strlen(ifa->ifa_name) != strlen(iface->Name))
++			continue;
++
+ 		if (strcmp(ifa->ifa_name, iface->Name) != 0)
+ 			continue;
+ 
+@@ -225,6 +365,85 @@
  	return -1;
  }
  
@@ -235,11 +247,13 @@ index 8cd82e9..e21aa44 100644
 +	return sock;
 +}
 +
-diff --git a/device-common.c b/device-common.c
-index 4bcc9c9..2b9c356 100644
---- device-common.c
-+++ device-common.c
-@@ -46,14 +46,14 @@ check_device(struct Interface *iface)
+ int
+ set_interface_curhlim(const char *iface, uint8_t hlim)
+ {
+diff -ur ../radvd-1.9.1.old/device-common.c ./device-common.c
+--- ../radvd-1.9.1.old/device-common.c	2013-03-20 12:06:55.000000000 +0000
++++ ./device-common.c	2013-03-20 12:06:59.000000000 +0000
+@@ -46,14 +46,14 @@
  		return (-1);
  	}
  
@@ -256,11 +270,10 @@ index 4bcc9c9..2b9c356 100644
  	{
  		flog(LOG_WARNING, "interface %s does not support broadcast",
  			iface->Name);
-diff --git a/gram.y b/gram.y
-index 43f3c29..096e073 100644
---- gram.y
-+++ gram.y
-@@ -33,7 +33,6 @@ static void cleanup(void);
+diff -ur ../radvd-1.9.1.old/gram.y ./gram.y
+--- ../radvd-1.9.1.old/gram.y	2013-03-20 12:06:55.000000000 +0000
++++ ./gram.y	2013-03-20 12:06:59.000000000 +0000
+@@ -33,7 +33,6 @@
  static void yyerror(char *msg);
  static int countbits(int b);
  static int count_mask(struct sockaddr_in6 *m);
@@ -268,7 +281,7 @@ index 43f3c29..096e073 100644
  
  #if 0 /* no longer necessary? */
  #ifndef HAVE_IN6_ADDR_S6_ADDR
-@@ -168,6 +167,10 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
+@@ -168,6 +167,10 @@
  				iface2 = iface2->next;
  			}
  
@@ -279,7 +292,7 @@ index 43f3c29..096e073 100644
  			if (check_device(iface) < 0) {
  				if (iface->IgnoreIfMissing) {
  					dlog(LOG_DEBUG, 4, "interface %s did not exist, ignoring the interface", iface->Name);
-@@ -180,6 +183,8 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
+@@ -180,6 +183,8 @@
  			if (setup_deviceinfo(iface) < 0)
  				if (!iface->IgnoreIfMissing)
  				ABORT;
@@ -288,7 +301,7 @@ index 43f3c29..096e073 100644
  			if (check_iface(iface) < 0)
  				if (!iface->IgnoreIfMissing)
  				ABORT;
-@@ -191,6 +196,7 @@ ifacedef	: ifacehead '{' ifaceparams  '}' ';'
+@@ -191,6 +196,7 @@
  				ABORT;
  
  			dlog(LOG_DEBUG, 4, "interface definition for %s is ok", iface->Name);
@@ -296,7 +309,7 @@ index 43f3c29..096e073 100644
  
  			iface->next = IfaceList;
  			IfaceList = iface;
-@@ -940,7 +946,6 @@ int count_mask(struct sockaddr_in6 *m)
+@@ -940,7 +946,6 @@
  	return count;
  }
  
@@ -304,11 +317,10 @@ index 43f3c29..096e073 100644
  struct in6_addr get_prefix6(struct in6_addr const *addr, struct in6_addr const *mask)
  {
  	struct in6_addr prefix = *addr;
-diff --git a/process.c b/process.c
-index cbc93d3..67b85cf 100644
---- process.c
-+++ process.c
-@@ -21,14 +21,12 @@ static void process_rs(struct Interface *, unsigned char *msg,
+diff -ur ../radvd-1.9.1.old/process.c ./process.c
+--- ../radvd-1.9.1.old/process.c	2013-03-20 12:06:55.000000000 +0000
++++ ./process.c	2013-03-20 12:07:31.000000000 +0000
+@@ -21,14 +21,12 @@
  		       int len, struct sockaddr_in6 *);
  static void process_ra(struct Interface *, unsigned char *msg, int len,
  	struct sockaddr_in6 *);
@@ -320,11 +332,11 @@ index cbc93d3..67b85cf 100644
  	struct sockaddr_in6 *addr, struct in6_pktinfo *pkt_info, int hoplimit)
  {
 -	struct Interface *iface;
-+	struct Interface *iface, *carp;
++	struct Interface *iface, *carp = NULL;
  	struct icmp6_hdr *icmph;
  	char addr_str[INET6_ADDRSTRLEN];
  
-@@ -104,8 +102,14 @@ process(struct Interface *ifacel, unsigned char *msg, int len,
+@@ -104,8 +102,14 @@
  		{
  			break;
  		}
@@ -339,7 +351,7 @@ index cbc93d3..67b85cf 100644
  	if (iface == NULL)
  	{
  		dlog(LOG_DEBUG, 2, "received packet from unknown interface: %d",
-@@ -473,7 +477,7 @@ process_ra(struct Interface *iface, unsigned char *msg, int len,
+@@ -473,7 +477,7 @@
  	}
  }
  
@@ -348,10 +360,9 @@ index cbc93d3..67b85cf 100644
  addr_match(struct in6_addr *a1, struct in6_addr *a2, int prefixlen)
  {
  	unsigned int pdw;
-diff --git a/radvd.c b/radvd.c
-index 111c21c..b3e27cd 100644
---- radvd.c
-+++ radvd.c
+diff -ur ../radvd-1.9.1.old/radvd.c ./radvd.c
+--- ../radvd-1.9.1.old/radvd.c	2013-03-20 12:06:55.000000000 +0000
++++ ./radvd.c	2013-03-20 12:06:59.000000000 +0000
 @@ -17,6 +17,7 @@
  #include "includes.h"
  #include "radvd.h"
@@ -360,7 +371,7 @@ index 111c21c..b3e27cd 100644
  
  #ifdef HAVE_NETLINK
  #include "netlink.h"
-@@ -387,8 +388,8 @@ void main_loop(void)
+@@ -374,8 +375,8 @@
  	fds[1].events = POLLIN;
  	fds[1].revents = 0;
  #else
@@ -371,7 +382,7 @@ index 111c21c..b3e27cd 100644
  	fds[1].revents = 0;
  #endif
  
-@@ -431,14 +432,17 @@ void main_loop(void)
+@@ -418,14 +419,17 @@
  						&rcv_addr, pkt_info, hoplimit);
  				}
  			}
@@ -391,11 +402,10 @@ index 111c21c..b3e27cd 100644
  		}
  		else if ( rc == 0 ) {
  			if (next)
-diff --git a/radvd.h b/radvd.h
-index d1304f4..f709b4e 100644
---- radvd.h
-+++ radvd.h
-@@ -66,6 +66,10 @@ struct Interface {
+diff -ur ../radvd-1.9.1.old/radvd.h ./radvd.h
+--- ../radvd-1.9.1.old/radvd.h	2013-03-20 12:06:55.000000000 +0000
++++ ./radvd.h	2013-03-20 12:06:59.000000000 +0000
+@@ -66,6 +66,10 @@
  	int			AdvSourceLLAddress;
  	int			UnicastOnly;
  
@@ -406,7 +416,7 @@ index d1304f4..f709b4e 100644
  	/* Mobile IPv6 extensions */
  	int			AdvIntervalOpt;
  	int			AdvHomeAgentInfo;
-@@ -86,6 +90,7 @@ struct Interface {
+@@ -86,6 +90,7 @@
  
  	/* Info whether this interface has failed in the past (and may need to be reinitialized) */
  	int			HasFailed;
@@ -414,7 +424,7 @@ index d1304f4..f709b4e 100644
  
  	struct Interface	*next;
  };
-@@ -179,6 +184,7 @@ struct HomeAgentInfo {
+@@ -179,6 +184,7 @@
  
  /* gram.y */
  int yyparse(void);
@@ -422,7 +432,7 @@ index d1304f4..f709b4e 100644
  
  /* scanner.l */
  int yylex(void);
-@@ -196,6 +202,7 @@ int expired(struct Interface const * iface);
+@@ -196,6 +202,7 @@
  
  /* device.c */
  int setup_deviceinfo(struct Interface *);
@@ -430,7 +440,7 @@ index d1304f4..f709b4e 100644
  int check_device(struct Interface *);
  int setup_linklocal_addr(struct Interface *);
  int setup_allrouters_membership(struct Interface *);
-@@ -206,6 +213,7 @@ int set_interface_linkmtu(const char *, uint32_t);
+@@ -206,6 +213,7 @@
  int set_interface_curhlim(const char *, uint8_t);
  int set_interface_reachtime(const char *, uint32_t);
  int set_interface_retranstimer(const char *, uint32_t);
@@ -438,7 +448,7 @@ index d1304f4..f709b4e 100644
  
  /* interface.c */
  void iface_init_defaults(struct Interface *);
-@@ -225,6 +233,8 @@ int send_ra_forall(struct Interface *iface, struct in6_addr *dest);
+@@ -225,6 +233,8 @@
  /* process.c */
  void process(struct Interface *, unsigned char *, int,
  	struct sockaddr_in6 *, struct in6_pktinfo *, int);
@@ -447,19 +457,17 @@ index d1304f4..f709b4e 100644
  
  /* recv.c */
  int recv_rs_ra(unsigned char *, struct sockaddr_in6 *, struct in6_pktinfo **, int *);
-diff --git a/rtsock.h b/rtsock.h
-new file mode 100644
-index 0000000..d7f7569
+diff -ur ../radvd-1.9.1.old/rtsock.h ./rtsock.h
 --- /dev/null
 +++ rtsock.h
 @@ -0,0 +1,20 @@
 +/*
 + *
 + *   Authors:
-+ *    Lars Fenneberg		<lf@elemental.net>	 
-+ *    Reuben Hawkins		<reubenhwk@gmail.com>
++ *    Lars Fenneberg           <lf@elemental.net>
++ *    Reuben Hawkins           <reubenhwk@gmail.com>
 + *
-+ *   This software is Copyright 1996,1997 by the above mentioned author(s), 
++ *   This software is Copyright 1996,1997 by the above mentioned author(s),
 + *   All Rights Reserved.
 + *
 + *   The license which is distributed with this software in the file COPYRIGHT
@@ -473,11 +481,10 @@ index 0000000..d7f7569
 +void process_rtsock_msg(int sock);
 +int rt_socket(void);
 +
-diff --git a/send.c b/send.c
-index 9e6a29c..6e771a0 100644
---- send.c
-+++ send.c
-@@ -133,6 +133,13 @@ send_ra(struct Interface *iface, struct in6_addr *dest)
+diff -ur ../radvd-1.9.1.old/send.c ./send.c
+--- ../radvd-1.9.1.old/send.c	2013-03-20 12:06:55.000000000 +0000
++++ ./send.c	2013-03-20 12:06:59.000000000 +0000
+@@ -134,6 +134,13 @@
  	size_t len = 0;
  	ssize_t err;
  
