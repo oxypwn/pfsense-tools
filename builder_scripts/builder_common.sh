@@ -2729,7 +2729,7 @@ EOF
 			/bin/cp -Rp ${BASE_DIR}/${TOOLS_DIR}/pfPorts/virtualbox-ose-kmod-freebsd81 /usr/ports/emulators/virtualbox-ose-kmod
 			( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes install clean ) >/dev/null
 		fi
-		( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes install clean ) >/dev/null
+		( cd /usr/ports/emulators/virtualbox-ose && make BATCH=yes WITHOUT_NLS=true install clean ) >/dev/null
 	fi
 
 	if [ ! -f /usr/local/bin/VBoxManage ]; then
