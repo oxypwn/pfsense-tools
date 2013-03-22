@@ -456,8 +456,8 @@ diff -urN ../snort-2.9.4.1.old/src/output-plugins/spo_pf.c ./src/output-plugins/
 +
 +	LIST_INIT(head);
 +
++	memset(cad, 0, WLMAX);
 +	while((ret = s2c_parse_line(cad, wfile)) != 0) {
-+		memset(cad, 0, WLMAX);
 +		if (ret == 1) {
 +			ipw = malloc(sizeof(struct ipwlist));
 +			if (ipw == NULL) {
