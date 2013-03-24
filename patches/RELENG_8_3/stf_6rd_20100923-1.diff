@@ -139,7 +139,7 @@ index e69de29..d97301f 100644
 +#undef N
 +}
 diff --git a/sys/net/if_stf.c b/sys/net/if_stf.c
-index 9ba3ec0..fcc0f6e 100644
+index 9ba3ec0..edb56e8 100644
 --- a/sys/net/if_stf.c
 +++ b/sys/net/if_stf.c
 @@ -3,6 +3,7 @@
@@ -997,7 +997,7 @@ index 9ba3ec0..fcc0f6e 100644
  	/*
  	 * Put the packet to the network layer input queue according to the
  	 * specified address family.
-@@ -787,46 +973,369 @@ in_stf_input(m, off)
+@@ -787,46 +973,371 @@ in_stf_input(m, off)
  
  /* ARGSUSED */
  static void
@@ -1069,7 +1069,7 @@ index 9ba3ec0..fcc0f6e 100644
 +stf_getin4addr_sin6(struct stf_softc *sc, struct sockaddr_in *sin,
 +		    struct ifaddr *ifa,
 +		    struct sockaddr_in6 *sin6)
- {
++{
 +	struct in6_ifaddr ia6;
 +	int i;
 +
@@ -1197,9 +1197,11 @@ index 9ba3ec0..fcc0f6e 100644
 +
 +		memcpy(&buf, &sin6->sin6_addr, sizeof(buf));
 +		if (sc->v4prefixlen == 0)
-+			loop = 32; /* Normal 6rd operation */
-+		loop = sc->v4prefixlen / 8;
-+		v4residue = sc->v4prefixlen % 8;
++			loop = 4; /* Normal 6rd operation */
++		else {
++			loop = sc->v4prefixlen / 8;
++			v4residue = sc->v4prefixlen % 8;
++		}
 +
 +		p += plen / 8;
 +		residue = plen % 8;
@@ -1266,7 +1268,7 @@ index 9ba3ec0..fcc0f6e 100644
 +
 +static int
 +stf_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
-+{
+ {
 +	struct stf_softc *sc_cur = ifp->if_softc;
 +	struct stf_softc *sc = NULL;
  	struct ifaddr *ifa;
