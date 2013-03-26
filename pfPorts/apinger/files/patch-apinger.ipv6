@@ -1,6 +1,6 @@
-diff -urN src/apinger.c src/apinger.c
---- src/apinger.c	2010-10-24 15:13:38.000000000 +0200
-+++ src/apinger.c	2010-10-24 15:01:15.000000000 +0200
+diff -ur ../apinger-0.6.1.old/src/apinger.c ./src/apinger.c
+--- ../apinger-0.6.1.old/src/apinger.c	2013-03-26 21:56:03.000000000 +0000
++++ ./src/apinger.c	2013-03-26 21:56:41.000000000 +0000
 @@ -702,9 +702,23 @@
  			r=inet_pton(AF_INET,tc->srcip,&srcaddr.addr4.sin_addr);
  			if (r){
@@ -59,9 +59,9 @@ diff -urN src/apinger.c src/apinger.c
  				}
  			}
  			pfd[i].revents=0;
-diff -urN src/apinger.h src/apinger.h
---- src/apinger.h	2010-10-24 15:13:38.000000000 +0200
-+++ src/apinger.h	2010-10-24 12:51:30.000000000 +0200
+diff -ur ../apinger-0.6.1.old/src/apinger.h ./src/apinger.h
+--- ../apinger-0.6.1.old/src/apinger.h	2013-03-26 21:56:03.000000000 +0000
++++ ./src/apinger.h	2013-03-26 21:56:41.000000000 +0000
 @@ -131,8 +131,8 @@
  void recv_icmp(struct target *t);
  void send_icmp_probe(struct target *t,int seq);
@@ -73,10 +73,20 @@ diff -urN src/apinger.h src/apinger.h
  void send_icmp6_probe(struct target *t,int seq);
  
  #ifdef FORKED_RECEIVER
-diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
---- src/icmp6.c	2002-12-19 09:34:16.000000000 +0100
-+++ src/icmp6.c	2010-10-24 15:15:50.000000000 +0200
-@@ -113,14 +113,14 @@
+diff -ur ../apinger-0.6.1.old/src/icmp6.c ./src/icmp6.c
+--- ../apinger-0.6.1.old/src/icmp6.c	2013-03-26 21:56:03.000000000 +0000
++++ ./src/icmp6.c	2013-03-26 21:57:27.000000000 +0000
+@@ -26,6 +26,9 @@
+ #ifdef HAVE_STDLIB_H
+ # include <stdlib.h>
+ #endif
++#ifdef HAVE_STRING_H
++# include <string.h>
++#endif
+ #ifdef HAVE_UNISTD_H
+ # include <unistd.h>
+ #endif
+@@ -113,14 +116,14 @@
  	memcpy(p+1,&ti,sizeof(ti));
  	size=sizeof(*p)+sizeof(ti);
  
@@ -93,7 +103,7 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
  int len,icmplen,datalen;
  char buf[1024];
  char abuf[100];
-@@ -134,6 +134,7 @@
+@@ -134,6 +137,7 @@
  struct iovec iov;
  struct msghdr msg;
  struct cmsghdr *c;
@@ -101,7 +111,7 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
  
  	iov.iov_base=buf;
  	iov.iov_len=1000;
-@@ -143,12 +144,13 @@
+@@ -143,12 +147,13 @@
  	msg.msg_iovlen=1;
  	msg.msg_control=ans_data;
  	msg.msg_controllen=sizeof(ans_data);
@@ -117,7 +127,7 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
  #endif
  	if (len<0){
  		if (errno==EAGAIN) return;
-@@ -170,7 +172,7 @@
+@@ -170,7 +175,7 @@
  #endif
  	if (time_recvp==NULL){
  #ifdef SIOCGSTAMP
@@ -126,7 +136,7 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
  			debug("Got timestamp from ioctl()");
  		}else
  #endif
-@@ -183,8 +185,11 @@
+@@ -183,8 +188,11 @@
  	icmplen=len;
  	icmp=(struct icmp6_hdr *)buf;
  	if (icmp->icmp6_type != ICMP6_ECHO_REPLY) return;
@@ -140,7 +150,7 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
  	name=inet_ntop(AF_INET6,&from.sin6_addr,abuf,100);
  	debug("Ping reply from %s",name);
  	datalen=icmplen-sizeof(*icmp);
-@@ -200,26 +205,29 @@
+@@ -200,33 +208,36 @@
  }
  
  
@@ -175,8 +185,6 @@ diff -urN work/apinger-0.6.1/src/icmp6.c apinger-0.6.1/src/icmp6.c
 +	return t->socket;
  }
  
- #else /*HAVE_IPV6*/
-@@ -233,8 +233,8 @@
  #else /*HAVE_IPV6*/
  #include "apinger.h"
  
