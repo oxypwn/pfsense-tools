@@ -1,0 +1,112 @@
+--- src/apinger.c.orig	2013-03-26 21:46:05.000000000 +0000
++++ src/apinger.c	2013-03-26 21:46:10.000000000 +0000
+@@ -463,8 +463,10 @@
+ 		thisid=gen_msgid(t,"off");
+ 		if (on==0)
+ 			logit("alarm canceled: %s(%s)  *** %s ***",t->description,t->name,a->name);
+-		else
++		else {
+ 			logit("alarm canceled (config reload): %s(%s)  *** %s ***",t->description,t->name,a->name);
++			return;
++		}
+ 	}
+ 
+ 	if (a->combine_interval>0){
+@@ -525,8 +527,10 @@
+ 
+ 	seq=++t->last_sent;
+ 	debug("Sending ping #%i to %s (%s)",seq,t->description,t->name);
++#if 0
+ 	strftime(buf,100,"%b %d %H:%M:%S",localtime(&t->next_probe.tv_sec));
+ 	debug("Next one scheduled for %s",buf);
++#endif
+ 	if (t->addr.addr.sa_family==AF_INET) send_icmp_probe(t,seq);
+ #ifdef HAVE_IPV6
+ 	else if (t->addr.addr.sa_family==AF_INET6) send_icmp6_probe(t,seq);
+@@ -878,9 +882,9 @@
+ 
+ void main_loop(void){
+ struct target *t;
+-struct timeval cur_time,next_status={0,0},tv,next_report={0,0},next_rrd_update={0,0};
++struct timeval cur_time,next_status={0,0},tv,next_report={0,0},next_rrd_update={0,0}, event_time;
+ struct pollfd pfd[1024];
+-int timeout;
++int timeout, timedelta;
+ int npfd=0;
+ int i;
+ char buf[100];	
+@@ -920,12 +924,22 @@
+ 					timersub(&cur_time,&operation_started,&tv);
+ 				}
+ 				downtime=tv.tv_sec*1000+tv.tv_usec/1000;
++				if (timedelta > 0)
++					downtime -= timedelta;
+ 				if ( downtime > a->p.val)
+ 					toggle_alarm(t,a,1);
+ 			}
+ 			if (scheduled_event(&(t->next_probe),&cur_time,t->config->interval)){
+ 				send_probe(t);
+ 			}
++		}
++		gettimeofday(&event_time,NULL);
++		if (reload_request){
++			reload_request=0;
++			logit("SIGHUP received, reloading configuration.");
++			reload_config();
++		}
++		for(t=targets;t;t=t->next){
+ 			for(aal=t->active_alarms;aal;aal=aal->next){
+ 				char *msgid;
+ 				char buf[100];
+@@ -950,6 +964,13 @@
+ 				status_request=0;
+ 			}
+ 		}
++		if (status_request){
++			status_request=0;
++			if (config->status_file){
++				logit("SIGUSR1 received, writting status.");
++				write_status();
++			}
++		}
+ 		if (config->rrd_interval){
+ 			if (scheduled_event(&next_rrd_update,&cur_time,config->rrd_interval)){
+ 				rrd_update();
+@@ -970,9 +991,18 @@
+ 			if (!timerisset(&next_probe) || timercmp(&next_report,&next_probe,<))
+ 				next_probe=next_report;
+ 		}
++
+ 		strftime(buf,100,"%b %d %H:%M:%S",localtime(&next_probe.tv_sec));
+ 		debug("Next event scheduled for %s",buf);
++
+ 		gettimeofday(&cur_time,NULL);
++		if (timercmp(&cur_time,&event_time,<)){
++			timedelta=0;
++		}
++		else{
++			timersub(&cur_time,&event_time,&tv);
++			timedelta=tv.tv_usec/1000+tv.tv_sec*1000;
++		}
+ 		if (timercmp(&next_probe,&cur_time,<)){
+ 			timeout=0;
+ 		}
+@@ -1000,18 +1030,6 @@
+ 			}
+ 			pfd[i].revents=0;
+ 		}
+-		if (status_request){
+-			status_request=0;
+-			if (config->status_file){
+-				logit("SIGUSR1 received, writting status.");
+-				write_status();
+-			}
+-		}
+-		if (reload_request){
+-			reload_request=0;
+-			logit("SIGHUP received, reloading configuration.");
+-			reload_config();
+-		}
+ 	}
+ 	while(delayed_reports!=NULL) make_delayed_reports();
+ 	free_targets();
