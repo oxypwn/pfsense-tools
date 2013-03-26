@@ -1,5 +1,5 @@
---- src/apinger.c.orig	2013-03-26 21:46:05.000000000 +0000
-+++ src/apinger.c	2013-03-26 21:46:10.000000000 +0000
+--- src/apinger.c.orig	2013-03-26 22:41:02.000000000 +0000
++++ src/apinger.c	2013-03-26 22:42:18.000000000 +0000
 @@ -463,8 +463,10 @@
  		thisid=gen_msgid(t,"off");
  		if (on==0)
@@ -23,7 +23,45 @@
  	if (t->addr.addr.sa_family==AF_INET) send_icmp_probe(t,seq);
  #ifdef HAVE_IPV6
  	else if (t->addr.addr.sa_family==AF_INET6) send_icmp6_probe(t,seq);
-@@ -878,9 +882,9 @@
+@@ -634,7 +638,7 @@
+ 	}
+ }
+ 
+-void configure_targets(void){
++void configure_targets(int reload){
+ struct target *t,*pt,*nt;
+ struct target_cfg *tc;
+ struct active_alarm_list *al,*nal;
+@@ -738,7 +742,8 @@
+ 		else
+ 			t->queue=NEW(char,l);
+ 		assert(t->queue!=NULL);
+-		memset(t->queue,0,l);
++		if (!reload)
++			memset(t->queue,0,l);
+ 		/* t->recently_lost=tc->avg_loss_samples; */
+ 		l=tc->avg_delay_samples;
+ 		if (t->rbuf)
+@@ -746,7 +751,8 @@
+ 		else
+ 			t->rbuf=NEW(double,l);
+ 		assert(t->rbuf!=NULL);
+-		memset(t->rbuf,0,l);
++		if (!reload)
++			memset(t->rbuf,0,l);
+ 	}
+ 
+ 	if (targets==NULL){
+@@ -794,7 +800,7 @@
+ 			toggle_alarm(t,a,-1);
+ 		}
+ 	r=load_config(config_file);
+-	if (r==0) configure_targets();
++	if (r==0) configure_targets(1);
+ }
+ 
+ void write_status(void){
+@@ -878,9 +884,9 @@
  
  void main_loop(void){
  struct target *t;
@@ -35,7 +73,16 @@
  int npfd=0;
  int i;
  char buf[100];	
-@@ -920,12 +924,22 @@
+@@ -889,7 +895,7 @@
+ struct active_alarm_list *aal;
+ struct alarm_cfg *a;
+ 
+-	configure_targets();
++	configure_targets(0);
+ 	memset(&pfd, '\0', sizeof pfd);
+ 
+ 	if (config->status_interval){
+@@ -920,12 +926,22 @@
  					timersub(&cur_time,&operation_started,&tv);
  				}
  				downtime=tv.tv_sec*1000+tv.tv_usec/1000;
@@ -58,7 +105,7 @@
  			for(aal=t->active_alarms;aal;aal=aal->next){
  				char *msgid;
  				char buf[100];
-@@ -950,6 +964,13 @@
+@@ -950,6 +966,13 @@
  				status_request=0;
  			}
  		}
@@ -72,7 +119,7 @@
  		if (config->rrd_interval){
  			if (scheduled_event(&next_rrd_update,&cur_time,config->rrd_interval)){
  				rrd_update();
-@@ -970,9 +991,18 @@
+@@ -970,9 +993,18 @@
  			if (!timerisset(&next_probe) || timercmp(&next_report,&next_probe,<))
  				next_probe=next_report;
  		}
@@ -91,7 +138,7 @@
  		if (timercmp(&next_probe,&cur_time,<)){
  			timeout=0;
  		}
-@@ -1000,18 +1030,6 @@
+@@ -1000,18 +1032,6 @@
  			}
  			pfd[i].revents=0;
  		}
