@@ -1,17 +1,5 @@
 --- src/apinger.c.orig	2013-03-26 22:41:02.000000000 +0000
 +++ src/apinger.c	2013-03-26 22:42:18.000000000 +0000
-@@ -463,8 +463,10 @@
- 		thisid=gen_msgid(t,"off");
- 		if (on==0)
- 			logit("alarm canceled: %s(%s)  *** %s ***",t->description,t->name,a->name);
--		else
-+		else {
- 			logit("alarm canceled (config reload): %s(%s)  *** %s ***",t->description,t->name,a->name);
-+			return;
-+		}
- 	}
- 
- 	if (a->combine_interval>0){
 @@ -525,8 +527,10 @@
  
  	seq=++t->last_sent;
