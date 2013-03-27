@@ -29,7 +29,7 @@ diff -ur ../src/syslog.c ./syslog.c
   
    const char *ErrSt = (Errno <= 0) ? NULL : (const char *)strerror( Errno ); 
  
-+  if (Log2Stderr < Serverity)
++  if (Log2Stderr > Serverity)
 +	return;
 +
    {
