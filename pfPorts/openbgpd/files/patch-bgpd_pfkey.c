@@ -401,10 +401,10 @@ diff -ur bgpd.orig/pfkey.c bgpd/pfkey.c
 -		    &p->auth.spi_in) == -1)
 -			return (-1);
 +	if (pfkey_sa_remove(&p->auth.local_addr, &p->conf.remote_addr,
-+	    NULL) == -1)
++	    &p->auth.spi_out) == -1)
 +		return (-1);
 +	if (pfkey_sa_remove(&p->conf.remote_addr, &p->auth.local_addr,
-+	    NULL) == -1)
++	    &p->auth.spi_in) == -1)
 +		return (-1);
  
  	p->auth.established = 0;
