@@ -530,14 +530,14 @@ cp_files() {
 }
 
 check_for_congestion() {
-	cd $BUILDERSCRIPTS
-	echo -n ">>> Waiting for Internet congestion to die down before rsync operations: $PINGTIME "
-	while [ "$PINGTIME" -gt "$PINGMAX" ]; do
-		PINGTIME=`ping -c1 $PINGIP | grep time | cut -d"=" -f4 | cut -d" " -f1 | cut -d"." -f1`
-		echo -n " $PINGTIME"
-		sleep 10
-	done
-	echo ""
+#	cd $BUILDERSCRIPTS
+#	echo -n ">>> Waiting for Internet congestion to die down before rsync operations: $PINGTIME "
+#	while [ "$PINGTIME" -gt "$PINGMAX" ]; do
+#		PINGTIME=`ping -c1 $PINGIP | grep time | cut -d"=" -f4 | cut -d" " -f1 | cut -d"." -f1`
+#		echo -n " $PINGTIME"
+#		sleep 10
+#	done
+#	echo ""
 }
 
 scp_files() {
