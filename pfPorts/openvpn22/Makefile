@@ -1,39 +1,49 @@
-# New ports collection makefile for:	openvpn
-# Date created:		2002-06-23
-# Whom:			Matthias Andree <matthias.andree@gmx.de>
-#
-# $FreeBSD$
-#
+# Created by: Matthias Andree <matthias.andree@gmx.de>
+# $FreeBSD: head/security/openvpn22/Makefile 310252 2013-01-11 23:09:37Z mandree $
 
 PORTNAME=	openvpn
-DISTVERSION=	2.2.0
+DISTVERSION=	2.2.2
+PORTREVISION=	1
 CATEGORIES=	security net
-MASTER_SITES=	http://swupdate.openvpn.net/community/releases/
+# MASTER_SITES points to hosts in distinct data centers,
+# so just one MASTER_SITES entry should be OK.
+MASTER_SITES=	http://swupdate.openvpn.net/community/releases/ \
+		${MASTER_SITE_LOCAL:S,$,mandree/,}
 
 MAINTAINER=	mandree@FreeBSD.org
 COMMENT=	Secure IP/Ethernet tunnel daemon
 
-WRKSRC=		${WRKDIR}/${PORTNAME}-${DISTVERSION}${DISTVERSIONSUFFIX}
+LICENSE=	GPLv2
 
-CONFLICTS=	openvpn-devel-[0-9]* openvpn-2.0* openvpn-beta-[0-9]*
+LATEST_LINK=	openvpn22
+CONFLICTS_INSTALL=	openvpn-devel-[0-9]* openvpn-2.[!2]* openvpn-beta-[0-9]*
 
 GNU_CONFIGURE=	yes
 USE_OPENSSL=	yes
 USE_XZ=		yes
 CONFIGURE_ARGS=	--with-lzo-lib=${LOCALBASE}/lib \
-		--with-lzo-headers=${LOCALBASE}/include \
-		--enable-ipv6
-INSTALL_TARGET=	install mandir=${MANPREFIX}/man
+		--with-lzo-headers=${LOCALBASE}/include
 
+OPTIONS_DEFAULT=PW_SAVE
+OPTIONS_DEFINE=	PW_SAVE PKCS11
+PW_SAVE_DESC=	Interactive passwords may be read from a file
+PKCS11_DESC=	Use security/pkcs11-helper
+
+.include <bsd.port.options.mk>
+
+.if ${PORT_OPTIONS:MDOCS}
+INSTALL_TARGET=	install
+.else
+INSTALL_TARGET=	install-exec install-man
+.endif
+
+INSTALL_TARGET+=	mandir=${MANPREFIX}/man
 MAN8=		openvpn.8
 
-OPTIONS=	PW_SAVE "Interactive passwords may be read from a file" on \
-		PKCS11  "Use security/pkcs11-helper" off
-
-#USE_RC_SUBR=	openvpn.sh
+USE_RC_SUBR=	openvpn
 USE_LDCONFIG=	${PREFIX}/lib
 
-#SUB_FILES=	pkg-message
+SUB_FILES=	pkg-message
 SUB_LIST+=	OSVERSION=${OSVERSION}
 
 .include <bsd.port.pre.mk>
@@ -42,58 +52,54 @@ SUB_LIST+=	OSVERSION=${OSVERSION}
 CFLAGS+=	-DLOG_OPENVPN=${LOG_OPENVPN}
 .endif
 
-pre-fetch:
+LIB_DEPENDS+=	lzo2:${PORTSDIR}/archivers/lzo2
+
+.if ${PORT_OPTIONS:MPW_SAVE}
+CONFIGURE_ARGS+=	--enable-password-save
+.else
+CONFIGURE_ARGS+=	--disable-password-save
+.endif
+
+.if ${PORT_OPTIONS:MPKCS11}
+LIB_DEPENDS+=	pkcs11-helper:${PORTSDIR}/security/pkcs11-helper
+.else
+CONFIGURE_ARGS+=	--disable-pkcs11
+.endif
+
+post-patch:
+	@${FIND} ${WRKSRC}/easy-rsa/?.0 -type f \
+	    -exec ${REINPLACE_CMD} -e 's;#!/bin/bash;#!/bin/sh;' \
+				   -e 's,source ./vars,. ./vars,' \{\} +
+	@${FIND} ${WRKSRC}/plugin -name Makefile \
+	    -exec ${REINPLACE_CMD} -e 's;gcc;${CC};g' '{}' +
+	@${FIND} ${WRKSRC} \( -name \*.orig -o -name \*.bak \) -delete
+
+pre-configure:
 .ifdef (LOG_OPENVPN)
 	@${ECHO} "Building with LOG_OPENVPN=${LOG_OPENVPN}"
 .else
 	@${ECHO} ""
 	@${ECHO} "You may use the following build options:"
 	@${ECHO} ""
-	@${ECHO} "      LOG_OPENVPN={Valid syslog facility}"
+	@${ECHO} "      LOG_OPENVPN={Valid syslog facility, default LOG_DAEMON}"
 	@${ECHO} "      EXAMPLE:  make LOG_OPENVPN=LOG_DAEMON"
 	@${ECHO} ""
 .endif
 
-# NOTE: there is no way to explicitly specify the LZO version to OpenVPN,
-# if LZO2 and LZO1 are installed, OpenVPN will pick LZO2.
-# So depend on LZO1 only if it's already there and LZO2 isn't.
-# PACKAGE_BUILDING will also force LZO2.
-.if exists(${LOCALBASE}/lib/liblzo2.so.2) || !exists(${LOCALBASE}/lib/liblzo.so.1) || defined(PACKAGE_BUILDING)
-LIB_DEPENDS+=	lzo2.2:${PORTSDIR}/archivers/lzo2
-.else
-LIB_DEPENDS+=	lzo.1:${PORTSDIR}/archivers/lzo
-.endif
-
-.if defined(WITH_PW_SAVE)
-CONFIGURE_ARGS+=	--enable-password-save
-.endif
-
-.if defined(WITH_PKCS11)
-LIB_DEPENDS+=	pkcs11-helper.1:${PORTSDIR}/security/pkcs11-helper
-.else
-CONFIGURE_ARGS+=	--disable-pkcs11
-.endif
-
-post-patch:
-	@${FIND} ${WRKSRC} -name \*.orig -delete
-	@${FIND} ${WRKSRC} -name \*.bak -delete
-
 post-build:
-	cd ${WRKSRC}/plugin/down-root && ${MAKE}
+	cd ${WRKSRC}/plugin/down-root && ${SETENV} ${MAKE_ENV} ${MAKE} ${MAKE_FLAGS} ${MAKEFILE} ${_MAKE_JOBS} ${MAKE_ARGS}
 	cd ${WRKSRC}/plugin/auth-pam && ${CC} ${CPPFLAGS} -I../.. -DDLOPEN_PAM=0 ${CFLAGS} -fPIC -shared -Wl,-soname,openvpn-auth-pam.so -o openvpn-auth-pam.so auth-pam.c pamdl.c -lc -lpam
 	@# self-tests here
 .if !defined(WITHOUT_CHECK)
-	cd ${WRKSRC} && ${MAKE} check
+	@${ECHO} ; ${ECHO} "### Note that you can skip these lengthy selftests with WITHOUT_CHECK=yes ###" ; ${ECHO}
+	cd ${WRKSRC} && ${SETENV} ${MAKE_ENV} ${MAKE} ${MAKE_FLAGS} ${MAKEFILE} ${_MAKE_JOBS} ${MAKE_ARGS} check
 .endif
-
-pre-install:
-	PKG_PREFIX=${PREFIX} ${SH} ${PKGREQ} ${PKGNAME} INSTALL
 
 post-install:
 	${MKDIR} ${PREFIX}/lib
 	${INSTALL_PROGRAM} ${WRKSRC}/plugin/down-root/openvpn-down-root.so ${PREFIX}/lib/
 	${INSTALL_PROGRAM} ${WRKSRC}/plugin/auth-pam/openvpn-auth-pam.so ${PREFIX}/lib/
-.if !defined(NOPORTDOCS)
+.if ${PORT_OPTIONS:MDOCS}
 	${MKDIR} ${DOCSDIR}
 	${INSTALL_DATA} ${WRKSRC}/plugin/down-root/README ${DOCSDIR}/README.openvpn-down-root
 	${INSTALL_DATA} ${WRKSRC}/plugin/auth-pam/README ${DOCSDIR}/README.openvpn-auth-pam
