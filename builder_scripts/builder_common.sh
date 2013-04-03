@@ -717,17 +717,19 @@ cust_overlay_host_binaries() {
 				NEEDLIB=`ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`
 				NEEDEDLIBS="$NEEDEDLIBS $NEEDLIB" 
 				mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
-				if [ /${TEMPFILE} -nt ${PFSENSEBASEDIR}/${TEMPFILE} ]; then
+				if [ ! -f ${PFSENSEBASEDIR}/${TEMPFILE}] || [ /${TEMPFILE} -nt ${PFSENSEBASEDIR}/${TEMPFILE} ]; then
 					cp /${TEMPFILE} ${PFSENSEBASEDIR}/${TEMPFILE}
 					chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				fi
 				for NEEDL in $NEEDLIB; do
 					if [ -f $NEEDL ]; then
-						if [ $NEEDL -nt ${PFSENSEBASEDIR}${NEEDL} ]; then
+						if [ ! -f ${PFSENSEBASEDIR}${NEEDL} ] || [ $NEEDL -nt ${PFSENSEBASEDIR}${NEEDL} ]; then
 							cp $NEEDL ${PFSENSEBASEDIR}${NEEDL}
 						fi
-						if [ -d "${CLONEDIR}" ] && [ $NEEDL -nt ${CLONEDIR}${NEEDL} ]; then
-							cp $NEEDL ${CLONEDIR}${NEEDL}
+						if [ -d "${CLONEDIR}" ]; then
+							if [ ! -f ${CLONEDIR}${NEEDL} ] || [ $NEEDL -nt ${CLONEDIR}${NEEDL} ]; then
+								cp $NEEDL ${CLONEDIR}${NEEDL}
+							fi
 						fi
 					fi
 				done
