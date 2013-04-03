@@ -717,7 +717,7 @@ cust_overlay_host_binaries() {
 				NEEDLIB=`ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`
 				NEEDEDLIBS="$NEEDEDLIBS $NEEDLIB" 
 				mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
-				if [ ! -f ${PFSENSEBASEDIR}/${TEMPFILE}] || [ /${TEMPFILE} -nt ${PFSENSEBASEDIR}/${TEMPFILE} ]; then
+				if [ ! -f ${PFSENSEBASEDIR}/${TEMPFILE} ] || [ /${TEMPFILE} -nt ${PFSENSEBASEDIR}/${TEMPFILE} ]; then
 					cp /${TEMPFILE} ${PFSENSEBASEDIR}/${TEMPFILE}
 					chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				fi
