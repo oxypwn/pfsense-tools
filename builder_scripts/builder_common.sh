@@ -721,9 +721,9 @@ cust_overlay_host_binaries() {
 				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				for NEEDL in $NEEDLIB; do
 					if [ -f $NEEDL ]; then
-						cp $NEEDL ${PFSENSEBASEDIR}${NEEDL}
+						cp -n $NEEDL ${PFSENSEBASEDIR}${NEEDL}
 						if [ -d "${CLONEDIR}" ]; then
-							cp $NEEDL ${CLONEDIR}${NEEDL}
+							cp -n $NEEDL ${CLONEDIR}${NEEDL}
 						fi
 					fi
 				done
