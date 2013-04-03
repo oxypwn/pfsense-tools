@@ -719,8 +719,8 @@ cust_overlay_host_binaries() {
 				mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
 				if [ /${TEMPFILE} -nt ${PFSENSEBASEDIR}/${TEMPFILE} ]; then
 					cp /${TEMPFILE} ${PFSENSEBASEDIR}/${TEMPFILE}
+					chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				fi
-				chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
 				for NEEDL in $NEEDLIB; do
 					if [ -f $NEEDL ]; then
 						if [ $NEEDL -nt ${PFSENSEBASEDIR}${NEEDL} ]; then
