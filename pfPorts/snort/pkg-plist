@@ -29,7 +29,7 @@ etc/snort/preproc_rules/preprocessor.rules-sample
 @exec if [ ! -f %D/etc/snort/preproc_rules/preprocessor.rules ] ; then cp -p %D/%F %B/preprocessor.rules; fi
 @unexec if cmp  -s %D/etc/snort/preproc_rules/sensitive-data.rules %D/etc/snort/preproc_rules/sensitive-data.rules; then rm -f %D/etc/snort/preproc_rules/sensitive-data.rules;fi
 etc/snort/preproc_rules/sensitive-data.rules-sample
-@exec if [ ! -f %D/etc/snort/preproc_rules/decoder.rules ] ; then cp -p %D/%F %B/; fi
+@exec if [ ! -f %D/etc/snort/preproc_rules/sensitive-data.rules ] ; then cp -p %D/%F %B/sensitive-data.rules; fi
 @dirrmtry etc/snort/preproc_rules
 @dirrmtry etc/snort
 %%DYNAMIC%%@dirrmtry include/snort/dynamic_preproc
