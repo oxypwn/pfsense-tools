@@ -753,9 +753,13 @@ cust_overlay_host_binaries() {
 	NEEDEDLIBS=`for LIB in ${NEEDEDLIBS} ; do echo $LIB ; done |sort -u`
 	for NEEDLIB in $NEEDEDLIBS; do
 		if [ -f $NEEDLIB ]; then
-			install $NEEDLIB ${PFSENSEBASEDIR}${NEEDLIB}
+			if [ ! -f ${PFSENSEBASEDIR}${NEEDLIB} ] || [ ${NEEDLIB} -nt ${PFSENSEBASEDIR}${NEEDLIB} ]; then
+				install ${NEEDLIB} ${PFSENSEBASEDIR}${NEEDLIB}
+			fi
 			if [ -d "${CLONEDIR}" ]; then
-				install $NEEDLIB ${CLONEDIR}${NEEDLIB} 2>/dev/null 
+				if [ ! -f ${CLONEDIR}${NEEDLIB} ] || [ ${NEEDLIB} -nt ${CLONEDIR}${NEEDLIB} ]; then
+					install ${NEEDLIB} ${CLONEDIR}${NEEDLIB} 2>/dev/null
+				fi
 			fi
 		fi
 	done
