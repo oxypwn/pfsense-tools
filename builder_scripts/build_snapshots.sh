@@ -34,8 +34,6 @@ fi
 
 # Local variables that are used by builder scripts
 MAKEOBJDIRPREFIXFINAL=/tmp/builder/
-PFSENSEOBJDIR=/usr/obj.${PRODUCT_NAME}
-MAKEOBJDIRPREFIX=/usr/obj.${PRODUCT_NAME}
 WEBDATAROOT=/usr/local/www/data
 WEBROOT=/usr/local/www
 SNAPSHOTSCRIPTSDIR=/root

@@ -3595,7 +3595,7 @@ enable_memory_disks() {
 	MD2=`mdconfig -l -u md2 | grep md2 | wc -l | awk '{ print $1 }'`
 	MD3=`mdconfig -l -u md3 | grep md3 | wc -l | awk '{ print $1 }'`
 	if [ "$MD1" -lt 1 ]; then
-		echo -n "/usr/obj.pfSense/ "
+		echo -n "${MAKEOBJDIRPREFIX} "
 		mdconfig -a -t swap -s 1700m -u 1
 		(newfs md1) | egrep -wi '(^>>>|error)'
 		mkdir -p $MAKEOBJDIRPREFIX
