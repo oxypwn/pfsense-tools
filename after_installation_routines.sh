@@ -18,6 +18,7 @@ touch /mnt/etc/rc.conf
 # Copy the current running systems config.xml to the target installation area.
 mkdir -p /mnt/cf/conf
 cp -r /cf/conf/* /mnt/cf/conf/
+touch /mnt/cf/conf/trigger_initial_wizard
 
 # Prevent the system from asking for these twice
 touch /mnt/root/.part_mount
