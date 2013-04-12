@@ -143,7 +143,7 @@ static struct command c_service2[] = {
         { DNSSERVER, NON, "dns", NULL,
                 { "/etc/rc.resolv_conf_generate", "Rewriting resolv.conf", 1 } },
         { IPSECDNS, NON, "ipsecdns", NULL,
-                { "/etc/rc.newipsecdns %s", "Restarting ipsec tunnels", 1 } },
+                { "/etc/rc.newipsecdns", "Restarting ipsec tunnels", 1 } },
         { OPENVPN, NON, "openvpn", NULL,
                 { "/etc/rc.openvpn %s", "Restarting OpenVPN tunnels/interfaces", 1 } },
         { DYNDNS, STRING, "dyndns", NULL,
