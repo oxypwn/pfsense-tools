@@ -1297,14 +1297,17 @@ cust_fixup_wrap() {
 }
 
 setup_tcshrc_prompt() {
-	if [ ! -n ${SKIP_TCSH_PROMPT} ]; then
-		echo 'set prompt="%{\033[0;1;33m%}[%{\033[0;1;37m%}`cat /etc/version`%{\033[0;1;33m%}]%{\033[0;1;33m%}%B[%{\033[0;1;37m%}%n%{\033[0;1;31m%}@%{\033[0;1;37m%}%M%{\033[0;1;33m%}]%{\033[0;1;32m%}%b%/%{\033[0;1;33m%}(%{\033[0;1;37m%}%h%{\033[0;1;33m%})%{\033[0;1;36m%}%{\033[0;1;31m%}:%{\033[0;40;37m%} "' > ${PFSENSEBASEDIR}/root/.tcshrc
+	# If .tcshrc already exists, don't overwrite it.
+	if [ ! -f ${PFSENSEBASEDIR}/root/.tcshrc ]; then
+		if [ ! -n ${SKIP_TCSH_PROMPT} ]; then
+			echo 'set prompt="%{\033[0;1;33m%}[%{\033[0;1;37m%}`cat /etc/version`%{\033[0;1;33m%}]%{\033[0;1;33m%}%B[%{\033[0;1;37m%}%n%{\033[0;1;31m%}@%{\033[0;1;37m%}%M%{\033[0;1;33m%}]%{\033[0;1;32m%}%b%/%{\033[0;1;33m%}(%{\033[0;1;37m%}%h%{\033[0;1;33m%})%{\033[0;1;36m%}%{\033[0;1;31m%}:%{\033[0;40;37m%} "' >> ${PFSENSEBASEDIR}/root/.tcshrc
+		fi
+		echo 'set autologout="0"' >> ${PFSENSEBASEDIR}/root/.tcshrc
+		echo 'set autolist set color set colorcat' >> ${PFSENSEBASEDIR}/root/.tcshrc
+		echo 'setenv CLICOLOR "true"' >> ${PFSENSEBASEDIR}/root/.tcshrc
+		echo 'setenv LSCOLORS "exfxcxdxbxegedabagacad"' >> ${PFSENSEBASEDIR}/root/.tcshrc
+		echo "alias installer /scripts/lua_installer" >> ${PFSENSEBASEDIR}/root/.tcshrc
 	fi
-	echo 'set autologout="0"' >> ${PFSENSEBASEDIR}/root/.tcshrc
-	echo 'set autolist set color set colorcat' >> ${PFSENSEBASEDIR}/root/.tcshrc
-	echo 'setenv CLICOLOR "true"' >> ${PFSENSEBASEDIR}/root/.tcshrc
-	echo 'setenv LSCOLORS "exfxcxdxbxegedabagacad"' >> ${PFSENSEBASEDIR}/root/.tcshrc
-	echo "alias installer /scripts/lua_installer" >> ${PFSENSEBASEDIR}/root/.tcshrc
 }
 
 # Creates a FreeBSD specific updater tarball
