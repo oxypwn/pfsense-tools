@@ -1,0 +1,1621 @@
+diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
+index 642f83e..ac38920 100644
+--- a/sys/contrib/pf/net/pf.c
++++ b/sys/contrib/pf/net/pf.c
+@@ -3533,11 +3533,23 @@ pf_calc_mss(struct pf_addr *addr, sa_family_t af, u_int16_t offer)
+ }
+ 
+ void
+-pf_set_rt_ifp(struct pf_state *s, struct pf_addr *saddr)
++pf_set_rt_ifp(struct mbuf *m, int direction, struct pf_state *s, struct pf_addr *saddr, struct pf_mtag *pf_tag, struct pfi_kif *kif)
+ {
+ 	struct pf_rule *r = s->rule.ptr;
+ 	struct pf_src_node *sn = NULL;
+ 
++	if (s && m->m_flags & M_IP_NEXTHOP && direction == PF_OUT) {
++		struct m_tag *fwd_tag;
++		struct ip_fwd_tag *ift;
++
++		if ((fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL)) != NULL) {
++			ift = (struct ip_fwd_tag *)(fwd_tag+1);
++			if (kif != NULL)
++				s->rt_kif = kif;
++			s->rt_addr.v4.s_addr = ift->sin.sin_addr.s_addr;
++			return;
++		}
++	}
+ 	s->rt_kif = NULL;
+ 	if (!r->rt || r->rt == PF_FASTROUTE)
+ 		return;
+@@ -3946,7 +3958,7 @@ cleanup:
+ 		s->creation = time_second;
+ 		s->expire = time_second;
+ 		s->timeout = PFTM_TCP_FIRST_PACKET;
+-		pf_set_rt_ifp(s, saddr);
++		pf_set_rt_ifp(m, direction, s, saddr, pd->pf_mtag, kif);
+ 		if (sn != NULL) {
+ 			s->src_node = sn;
+ 			s->src_node->states++;
+@@ -4336,7 +4348,7 @@ cleanup:
+ 		s->creation = time_second;
+ 		s->expire = time_second;
+ 		s->timeout = PFTM_UDP_FIRST_PACKET;
+-		pf_set_rt_ifp(s, saddr);
++		pf_set_rt_ifp(m, direction, s, saddr, pd->pf_mtag, kif);
+ 		if (sn != NULL) {
+ 			s->src_node = sn;
+ 			s->src_node->states++;
+@@ -4672,7 +4684,7 @@ cleanup:
+ 		s->creation = time_second;
+ 		s->expire = time_second;
+ 		s->timeout = PFTM_ICMP_FIRST_PACKET;
+-		pf_set_rt_ifp(s, saddr);
++		pf_set_rt_ifp(m, direction, s, saddr, pd->pf_mtag, kif);
+ 		if (sn != NULL) {
+ 			s->src_node = sn;
+ 			s->src_node->states++;
+@@ -4984,7 +4996,7 @@ cleanup:
+ 		s->creation = time_second;
+ 		s->expire = time_second;
+ 		s->timeout = PFTM_OTHER_FIRST_PACKET;
+-		pf_set_rt_ifp(s, saddr);
++		pf_set_rt_ifp(m, direction, s, saddr, pd->pf_mtag, kif);
+ 		if (sn != NULL) {
+ 			s->src_node = sn;
+ 			s->src_node->states++;
+@@ -6761,21 +6773,12 @@ void
+ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+     struct pf_state *s, struct pf_pdesc *pd)
+ {
+-	struct mbuf		*m0, *m1;
+-	struct route		 iproute;
+-	struct route		*ro = NULL;
+-	struct sockaddr_in	*dst;
++	struct mbuf		*m0;
++	struct sockaddr_in	dst;
+ 	struct ip		*ip;
+ 	struct ifnet		*ifp = NULL;
+ 	struct pf_addr		 naddr;
+ 	struct pf_src_node	*sn = NULL;
+-	int			 error = 0;
+-#ifdef __FreeBSD__
+-	int sw_csum;
+-#endif
+-#ifdef IPSEC
+-	struct m_tag		*mtag;
+-#endif /* IPSEC */
+ 
+ 	if (m == NULL || *m == NULL || r == NULL ||
+ 	    (dir != PF_IN && dir != PF_OUT) || oifp == NULL)
+@@ -6787,6 +6790,9 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 		goto bad;
+ 	}
+ 
++	if ((*m)->m_flags & M_IP_NEXTHOP && pd->pf_mtag->routed > 2)
++		return;
++
+ 	if (r->rt == PF_DUPTO) {
+ #ifdef __FreeBSD__
+ 		if ((m0 = m_dup(*m, M_DONTWAIT)) == NULL)
+@@ -6800,6 +6806,17 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 		m0 = *m;
+ 	}
+ 
++	if (pd->proto == IPPROTO_ICMP) {
++		switch (pd->hdr.icmp->icmp_type) {
++		case ICMP_UNREACH:
++		case ICMP_SOURCEQUENCH:
++		case ICMP_REDIRECT:
++		case ICMP_TIMXCEED:
++		case ICMP_PARAMPROB:
++			return;
++		}
++	}
++
+ 	if (m0->m_len < sizeof(struct ip)) {
+ 		DPFPRINTF(PF_DEBUG_URGENT,
+ 		    ("pf_route: m0->m_len < sizeof(struct ip)\n"));
+@@ -6807,107 +6824,105 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 	}
+ 
+ 	ip = mtod(m0, struct ip *);
++	if (m0->m_flags & M_MCAST)
++		return;
+ 
+-	if (IN_MULTICAST(ntohl(ip->ip_dst.s_addr)))
+-                return;
+-
+-	ro = &iproute;
+-	bzero((caddr_t)ro, sizeof(*ro));
+-	dst = satosin(&ro->ro_dst);
+-	dst->sin_family = AF_INET;
+-	dst->sin_len = sizeof(*dst);
+-	dst->sin_addr = ip->ip_dst;
++	if (TAILQ_EMPTY(&r->rpool.list)) {
++		DPFPRINTF(PF_DEBUG_URGENT,
++		    ("pf_route: TAILQ_EMPTY(&r->rpool.list)\n"));
++		goto bad;
++	}
+ 
+-	if (r->rt == PF_FASTROUTE) {
+-		in_rtalloc(ro, 0);
+-		if (ro->ro_rt == 0) {
+-			KMOD_IPSTAT_INC(ips_noroute);
+-			goto bad;
++	if (s == NULL) {
++		pf_map_addr(AF_INET, r, (struct pf_addr *)&ip->ip_src,
++		    &naddr, NULL, &sn);
++		if (PF_AZERO(&naddr, AF_INET))
++			return;
++		else {
++			dst.sin_family = AF_INET;
++			dst.sin_len = sizeof(dst);
++			dst.sin_addr.s_addr = naddr.v4.s_addr;
+ 		}
+-
+-		ifp = ro->ro_rt->rt_ifp;
+-		ro->ro_rt->rt_use++;
+-
+-		if (ro->ro_rt->rt_flags & RTF_GATEWAY)
+-			dst = satosin(ro->ro_rt->rt_gateway);
++		ifp = r->rpool.cur->kif ?
++		    r->rpool.cur->kif->pfik_ifp : NULL;
+ 	} else {
+-		if (TAILQ_EMPTY(&r->rpool.list)) {
+-			DPFPRINTF(PF_DEBUG_URGENT,
+-			    ("pf_route: TAILQ_EMPTY(&r->rpool.list)\n"));
+-			goto bad;
+-		}
+-		if (s == NULL) {
+-			pf_map_addr(AF_INET, r, (struct pf_addr *)&ip->ip_src,
+-			    &naddr, NULL, &sn);
+-			if (!PF_AZERO(&naddr, AF_INET))
+-				dst->sin_addr.s_addr = naddr.v4.s_addr;
+-			ifp = r->rpool.cur->kif ?
+-			    r->rpool.cur->kif->pfik_ifp : NULL;
+-		} else {
+-			if (!PF_AZERO(&s->rt_addr, AF_INET))
+-				dst->sin_addr.s_addr =
+-				    s->rt_addr.v4.s_addr;
+-			ifp = s->rt_kif ? s->rt_kif->pfik_ifp : NULL;
++		if (PF_AZERO(&s->rt_addr, AF_INET))
++			return;
++		else {
++			dst.sin_family = AF_INET;
++			dst.sin_len = sizeof(dst);
++			dst.sin_addr.s_addr = s->rt_addr.v4.s_addr;
+ 		}
++		ifp = s->rt_kif ? s->rt_kif->pfik_ifp : NULL;
+ 	}
++
+ 	if (ifp == NULL)
+ 		goto bad;
+-	else if (r->rt == PF_REPLYTO) {
+-		/* XXX: Copied from ifaof_ifpforaddr() since it mostly will not return NULL! */
+-		struct sockaddr_in inaddr;
+-		struct sockaddr *addr;
+-		struct ifaddr *ifa;
+-		char *cp, *cp2, *cp3;
+-		char *cplim;
+-
+-		inaddr.sin_addr = ip->ip_dst;
+-		inaddr.sin_family = AF_INET;
+-		inaddr.sin_len = sizeof(inaddr);
+-		inaddr.sin_port = 0;
+-		addr = (struct sockaddr *)&inaddr;
+-
+-		IF_ADDR_LOCK(ifp);
+-		TAILQ_FOREACH(ifa, &ifp->if_addrhead, ifa_link) {
+-			if (ifa->ifa_addr->sa_family != AF_INET)
+-				continue;
+-			if (ifa->ifa_netmask == 0) {
+-				if ((bcmp(addr, ifa->ifa_addr, addr->sa_len) == 0) ||
+-			    	    (ifa->ifa_dstaddr &&
+-				    (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0))) {
+-					IF_ADDR_UNLOCK(ifp);
+-					goto donelocal;
+-				}
+-				continue;
+-			}
+-			if (ifp->if_flags & IFF_POINTOPOINT) {
+-				if (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0) {
+-					IF_ADDR_UNLOCK(ifp);
+-					goto donelocal;
++	if (r->rt == PF_REPLYTO) {
++		if (!s || !(s->local_flags & PFSTATE_NOLOCALCHECK)) {
++			/* XXX: Copied from ifaof_ifpforaddr() since it mostly will not return NULL! */
++			struct sockaddr_in inaddr;
++			struct sockaddr *addr;
++			struct ifaddr *ifa;
++			char *cp, *cp2, *cp3;
++			char *cplim;
++
++			inaddr.sin_addr = ip->ip_dst;
++			inaddr.sin_family = AF_INET;
++			inaddr.sin_len = sizeof(inaddr);
++			inaddr.sin_port = 0;
++			addr = (struct sockaddr *)&inaddr;
++
++			IF_ADDR_LOCK(ifp);
++			TAILQ_FOREACH(ifa, &ifp->if_addrhead, ifa_link) {
++				if (ifa->ifa_addr->sa_family != AF_INET)
++					continue;
++				if (ifa->ifa_netmask == 0) {
++					if ((bcmp(addr, ifa->ifa_addr, addr->sa_len) == 0) ||
++					    (ifa->ifa_dstaddr &&
++					    (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0))) {
++						if (s) {
++							s->local_flags |= PFSTATE_NOLOCALCHECK;
++							dst.sin_addr.s_addr = s->rt_addr.v4.s_addr = ip->ip_dst.s_addr;
++						}
++						break;
++					}
++					continue;
+ 				}
+-			} else {
+-				cp = addr->sa_data;
+-				cp2 = ifa->ifa_addr->sa_data;
+-				cp3 = ifa->ifa_netmask->sa_data;
+-				cplim = ifa->ifa_netmask->sa_len + (char *)ifa->ifa_netmask;
+-				for (; cp3 < cplim; cp3++)
+-					if ((*cp++ ^ *cp2++) & *cp3)
++				if (ifp->if_flags & IFF_POINTOPOINT) {
++					if (bcmp(addr, ifa->ifa_dstaddr, addr->sa_len) == 0) {
++						if (s) {
++							s->local_flags |= PFSTATE_NOLOCALCHECK;
++							dst.sin_addr.s_addr = s->rt_addr.v4.s_addr = ip->ip_dst.s_addr;
++						}
+ 						break;
+-				if (cp3 == cplim) {
+-					IF_ADDR_UNLOCK(ifp);
+-					goto donelocal;
++					}
++				} else {
++					cp = addr->sa_data;
++					cp2 = ifa->ifa_addr->sa_data;
++					cp3 = ifa->ifa_netmask->sa_data;
++					cplim = ifa->ifa_netmask->sa_len + (char *)ifa->ifa_netmask;
++					for (; cp3 < cplim; cp3++)
++						if ((*cp++ ^ *cp2++) & *cp3)
++							break;
++					if (cp3 == cplim) {
++						if (s) {
++							s->local_flags |= PFSTATE_NOLOCALCHECK;
++							dst.sin_addr.s_addr = s->rt_addr.v4.s_addr = ip->ip_dst.s_addr;
++						}
++						break;
++					}
+ 				}
+ 			}
++			IF_ADDR_UNLOCK(ifp);
+ 		}
+-		IF_ADDR_UNLOCK(ifp);
+-	} else if (r->rt == PF_ROUTETO && r->direction == dir && in_localip(ip->ip_dst))
+-		goto donelocal;
++
++	}
+ 
+ 	if (oifp != ifp) {
+-		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
+-			goto donelocal;
+ 
+ 		if (s && r->rt == PF_ROUTETO && pd->nat_rule != NULL &&
+-		    r->direction == PF_OUT && r->direction == dir && pd->pf_mtag->routed < 2) {
++		    r->direction == PF_OUT && r->direction == dir) {
+ 			int off = ip->ip_hl << 2;
+ 			switch (pd->proto) {
+ 			case IPPROTO_TCP: {
+@@ -6925,205 +6940,48 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+                 		m_copyback(*m, off, sizeof(*uh), (caddr_t)uh);
+ 			}	break;
+ 			case IPPROTO_ICMP:
+-				/* XXX: If we want to do this for icmp is probably wrong!?! */
++				pf_change_a(&pd->src->v4.s_addr, pd->ip_sum,
++					s->lan.addr.v4.s_addr, 0);
++				pd->hdr.icmp->icmp_id = s->lan.port;
++				pd->hdr.icmp->icmp_cksum =
++					pf_cksum_fixup(pd->hdr.icmp->icmp_cksum,
++						pd->hdr.icmp->icmp_id, s->lan.port, 0);
++				m_copyback(*m, off, ICMP_MINLEN, (caddr_t)pd->hdr.icmp);
++				
+ 				break;
+ 			default:
+ 				pf_change_a(&pd->src->v4.s_addr,
+                                     pd->ip_sum, s->lan.addr.v4.s_addr, 0);
+ 				break;
+ 			}
+-		}
+-#ifdef __FreeBSD__
+-		PF_UNLOCK();
+-		if (pf_test(PF_OUT, ifp, &m0, NULL, NULL) != PF_PASS) {
+-			PF_LOCK();
+-			goto bad;
+-		} else if (m0 == NULL) {
+-			PF_LOCK();
+-			goto done;
+-		}
+-		PF_LOCK();
+-#else
+-		if (pf_test(PF_OUT, ifp, &m0, NULL) != PF_PASS)
+-			goto bad;
+-		else if (m0 == NULL)
+-			goto done;
+-#endif
+-		if (m0->m_len < sizeof(struct ip)) {
+-			DPFPRINTF(PF_DEBUG_URGENT,
+-			    ("pf_route: m0->m_len < sizeof(struct ip)\n"));
+-			goto bad;
+-		}
+-		ip = mtod(m0, struct ip *);
+-	}
+-
+-	if (ifp->if_flags & IFF_LOOPBACK)
+-		m0->m_flags |= M_SKIP_FIREWALL;
+-
+-#ifdef __FreeBSD__
+-	/* Copied from FreeBSD 5.1-CURRENT ip_output. */
+-	m0->m_pkthdr.csum_flags |= CSUM_IP;
+-	sw_csum = m0->m_pkthdr.csum_flags & ~ifp->if_hwassist;
+-	if (sw_csum & CSUM_DELAY_DATA) {
+-		/*
+-		 * XXX: in_delayed_cksum assumes HBO for ip->ip_len (at least)
+-		 */
+-		NTOHS(ip->ip_len);
+-		NTOHS(ip->ip_off);	 /* XXX: needed? */
+-		in_delayed_cksum(m0);
+-		HTONS(ip->ip_len);
+-		HTONS(ip->ip_off);
+-		sw_csum &= ~CSUM_DELAY_DATA;
+-	}
+-	m0->m_pkthdr.csum_flags &= ifp->if_hwassist;
+-
+-	if (ntohs(ip->ip_len) <= ifp->if_mtu ||
+-	    (m0->m_pkthdr.csum_flags & ifp->if_hwassist & CSUM_TSO) != 0 ||
+-	    (ifp->if_hwassist & CSUM_FRAGMENT &&
+-		((ip->ip_off & htons(IP_DF)) == 0))) {
+-		/*
+-		 * ip->ip_len = htons(ip->ip_len);
+-		 * ip->ip_off = htons(ip->ip_off);
+-		 */
+-		ip->ip_sum = 0;
+-		if (sw_csum & CSUM_DELAY_IP) {
+-			/* From KAME */
+-			if (ip->ip_v == IPVERSION &&
+-			    (ip->ip_hl << 2) == sizeof(*ip)) {
+-				ip->ip_sum = in_cksum_hdr(ip);
+-			} else {
+-				ip->ip_sum = in_cksum(m0, ip->ip_hl << 2);
+-			}
+-		}
+-		PF_UNLOCK();
+-		error = (*ifp->if_output)(ifp, m0, sintosa(dst), ro);
+-		PF_LOCK();
+-		goto done;
+-	}
+-
+-#else
+-	/* Copied from ip_output. */
+-#ifdef IPSEC
+-	/*
+-	 * If deferred crypto processing is needed, check that the
+-	 * interface supports it.
+-	 */
+-	if (V_ipipsec_in_use && (mtag = m_tag_find(m0, PACKET_TAG_IPSEC_OUT_CRYPTO_NEEDED, NULL))
+-	    != NULL && (ifp->if_capabilities & IFCAP_IPSEC) == 0) {
+-		/* Notify IPsec to do its own crypto. */
+-		ipsp_skipcrypto_unmark((struct tdb_ident *)(mtag + 1));
+-		goto bad;
+-	}
+-#endif /* IPSEC */
+-
+-	/* Catch routing changes wrt. hardware checksumming for TCP or UDP. */
+-	if (m0->m_pkthdr.csum_flags & M_TCPV4_CSUM_OUT) {
+-		if (!(ifp->if_capabilities & IFCAP_CSUM_TCPv4) ||
+-		    ifp->if_bridge != NULL) {
+-			in_delayed_cksum(m0);
+-			m0->m_pkthdr.csum_flags &= ~M_TCPV4_CSUM_OUT; /* Clear */
+-		}
+-	} else if (m0->m_pkthdr.csum_flags & M_UDPV4_CSUM_OUT) {
+-		if (!(ifp->if_capabilities & IFCAP_CSUM_UDPv4) ||
+-		    ifp->if_bridge != NULL) {
+-			in_delayed_cksum(m0);
+-			m0->m_pkthdr.csum_flags &= ~M_UDPV4_CSUM_OUT; /* Clear */
++			pf_unlink_state(s);
+ 		}
+ 	}
+ 
+-	if (ntohs(ip->ip_len) <= ifp->if_mtu) {
+-		if ((ifp->if_capabilities & IFCAP_CSUM_IPv4) &&
+-		    ifp->if_bridge == NULL) {
+-			m0->m_pkthdr.csum_flags |= M_IPV4_CSUM_OUT;
+-			KMOD_IPSTAT_INC(ips_outhwcsum);
+-		} else {
+-			ip->ip_sum = 0;
+-			ip->ip_sum = in_cksum(m0, ip->ip_hl << 2);
+-		}
+-		/* Update relevant hardware checksum stats for TCP/UDP */
+-		if (m0->m_pkthdr.csum_flags & M_TCPV4_CSUM_OUT)
+-			KMOD_TCPSTAT_INC(tcps_outhwcsum);
+-		else if (m0->m_pkthdr.csum_flags & M_UDPV4_CSUM_OUT)
+-			KMOD_UDPSTAT_INC(udps_outhwcsum);
+-		error = (*ifp->if_output)(ifp, m0, sintosa(dst), NULL);
+-		goto done;
+-	}
+-#endif
+-	/*
+-	 * Too large for interface; fragment if possible.
+-	 * Must be able to put at least 8 bytes per fragment.
+-	 */
+-	if (ip->ip_off & htons(IP_DF) || (m0->m_pkthdr.csum_flags & CSUM_TSO)) {
+-		KMOD_IPSTAT_INC(ips_cantfrag);
+-		if (r->rt != PF_DUPTO) {
+-#ifdef __FreeBSD__
+-			/* icmp_error() expects host byte ordering */
+-			NTOHS(ip->ip_len);
+-			NTOHS(ip->ip_off);
+-			PF_UNLOCK();
+-			icmp_error(m0, ICMP_UNREACH, ICMP_UNREACH_NEEDFRAG, 0,
+-			    ifp->if_mtu);
+-			PF_LOCK();
+-#else
+-			icmp_error(m0, ICMP_UNREACH, ICMP_UNREACH_NEEDFRAG, 0,
+-			    ifp->if_mtu);
+-#endif
+-			goto done;
+-		} else
+-			goto bad;
+-	}
+-
+-	m1 = m0;
+-#ifdef __FreeBSD__
+-	/*
+-	 * XXX: is cheaper + less error prone than own function
+-	 */
+-	NTOHS(ip->ip_len);
+-	NTOHS(ip->ip_off);
+-	error = ip_fragment(ip, &m0, ifp->if_mtu, ifp->if_hwassist, sw_csum);
+-#else
+-	error = ip_fragment(m0, ifp, ifp->if_mtu);
+-#endif
+-	if (error) {
+-#ifndef __FreeBSD__	/* ip_fragment does not do m_freem() on FreeBSD */
+-		m0 = NULL;
+-#endif
+-		goto bad;
+-	}
++	{
++                struct m_tag *fwd_tag;
++                struct ip_fwd_tag *ift;
+ 
+-	for (; m0; m0 = m1) {
+-		m1 = m0->m_nextpkt;
+-		m0->m_nextpkt = 0;
+-#ifdef __FreeBSD__
+-		if (error == 0) {
+-			PF_UNLOCK();
+-			error = (*ifp->if_output)(ifp, m0, sintosa(dst),
+-			    ro);
+-			PF_LOCK();
+-		} else
+-#else
+-		if (error == 0)
+-			error = (*ifp->if_output)(ifp, m0, sintosa(dst),
+-			    NULL);
++		if (m0->m_flags & M_IP_NEXTHOP)
++			fwd_tag = m_tag_find(m0, PACKET_TAG_IPFORWARD, NULL);
+ 		else
+-#endif
+-			m_freem(m0);
+-	}
++			fwd_tag = m_tag_get(PACKET_TAG_IPFORWARD, sizeof(struct ip_fwd_tag), M_NOWAIT);
++                if (fwd_tag == NULL) {
++			m0->m_flags &= ~M_IP_NEXTHOP;
++			goto bad;
++		}
++                ift = (struct ip_fwd_tag *)(fwd_tag+1);
++                bcopy(&dst, &ift->sin, sizeof(struct sockaddr_in));
++                ift->ifp = ifp;
++		if (!(m0->m_flags & M_IP_NEXTHOP))
++			m_tag_prepend(m0, fwd_tag);
++		m0->m_flags |= M_IP_NEXTHOP;
++        }
+ 
+-	if (error == 0)
+-		KMOD_IPSTAT_INC(ips_fragmented);
+-
+-done:
+-	if (r->rt != PF_DUPTO)
+-		*m = NULL;
+-donelocal:
+-	if (ro == &iproute && ro->ro_rt)
+-		RTFREE(ro->ro_rt);
+-	return;
++        return;
+ 
+ bad:
+-	m_freem(m0);
+-	goto done;
++        m_freem(m0);
+ }
+ #endif /* INET */
+ 
+@@ -8141,9 +7999,7 @@ continueprocessing:
+ 		m_freem(*m0);
+ 		*m0 = NULL;
+ 		action = PF_PASS;
+-	} else if (r->rt && (ifp == NULL || ifp->if_type != IFT_ENC) &&
+-		/* Check to avoid breaking ipfw forward rules needed on CP and proxies listening on loclhost*/
+-		!((m->m_flags & M_FASTFWD_OURS) || (pd.pf_mtag->flags & PF_TAG_TRANSLATE_LOCALHOST)))
++	} else if (r->rt && (inp == NULL || inp->inp_laddr.s_addr == INADDR_ANY))
+ 		/* pf_route can free the mbuf causing *m0 to become NULL */
+ 		pf_route(m0, r, dir, ifp, s, &pd);
+ 
+diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
+index e491ad2..d4c9098 100644
+--- a/sys/contrib/pf/net/pfvar.h
++++ b/sys/contrib/pf/net/pfvar.h
+@@ -858,7 +858,7 @@ struct pf_state {
+ #ifdef __FreeBSD__
+ 	u_int8_t	 local_flags;
+ #define	PFSTATE_EXPIRING 	0x01
+-#define	PFSTATE_FTPMSGSEEN	0x02
++#define	PFSTATE_NOLOCALCHECK	0x02
+ #define PFSTATE_DIVERT_ALTQ     0x10
+ #define PFSTATE_DIVERT_DNCOOKIE 0x20
+ #define PFSTATE_DIVERT_ACTION   0x40
+@@ -1944,7 +1944,7 @@ void			 pf_anchor_remove(struct pf_rule *);
+ int	pf_osfp_add(struct pf_osfp_ioctl *);
+ #ifdef _KERNEL
+ void	pf_handle_ftp(struct pfi_kif *, struct pf_pdesc *, struct mbuf *, struct pf_state *, int, int);
+-void	pf_set_rt_ifp(struct pf_state *, struct pf_addr *);
++void	pf_set_rt_ifp(struct mbuf *m, int, struct pf_state *, struct pf_addr *, struct pf_mtag *, struct pfi_kif *);
+ 
+ struct pf_osfp_enlist *
+ 	pf_osfp_fingerprint(struct pf_pdesc *, struct mbuf *, int,
+diff --git a/sys/netinet/ip_fastfwd.c b/sys/netinet/ip_fastfwd.c
+index 69019cb..93bd398 100644
+--- a/sys/netinet/ip_fastfwd.c
++++ b/sys/netinet/ip_fastfwd.c
+@@ -168,7 +168,7 @@ ip_fastforward(struct mbuf *m)
+ 	int error = 0;
+ 	int hlen, mtu;
+ #ifdef IPFIREWALL_FORWARD
+-	struct m_tag *fwd_tag;
++	struct m_tag *fwd_tag = NULL;
+ #endif
+ 
+ 	/*
+@@ -458,7 +458,8 @@ passin:
+ #ifndef IPFIREWALL_FORWARD
+ 	if (odest.s_addr != dest.s_addr) {
+ #else
+-	fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL);
++	if (m->m_flags & M_IP_NEXTHOP)
++		fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL);
+ 	if (odest.s_addr != dest.s_addr || fwd_tag != NULL) {
+ #endif /* IPFIREWALL_FORWARD */
+ 		/*
+@@ -485,8 +486,8 @@ forwardlocal:
+ 		 */
+ #ifdef IPFIREWALL_FORWARD
+ 		if (fwd_tag) {
+-			dest.s_addr = ((struct sockaddr_in *)
+-				    (fwd_tag + 1))->sin_addr.s_addr;
++			dest.s_addr = ((struct ip_fwd_tag *)
++				    (fwd_tag + 1))->sin.sin_addr.s_addr;
+ 			m_tag_delete(m, fwd_tag);
+ 		}
+ #endif /* IPFIREWALL_FORWARD */
+diff --git a/sys/netinet/ip_input.c b/sys/netinet/ip_input.c
+index 731d84f..cc2d8fb 100644
+--- a/sys/netinet/ip_input.c
++++ b/sys/netinet/ip_input.c
+@@ -101,12 +101,6 @@ SYSCTL_VNET_INT(_net_inet_ip, IPCTL_IPSEC_INUSE, ipsec_in_use, CTLFLAG_RW,
+     &VNET_NAME(ipipsec_in_use), 0,
+     "Enable IPSec processing of packets");
+ 
+-static VNET_DEFINE(int, ipsendredirects) = 1;	/* XXX */
+-#define	V_ipsendredirects	VNET(ipsendredirects)
+-SYSCTL_VNET_INT(_net_inet_ip, IPCTL_SENDREDIRECTS, redirect, CTLFLAG_RW,
+-    &VNET_NAME(ipsendredirects), 0,
+-    "Enable sending IP redirects");
+-
+ VNET_DEFINE(int, ip_defttl) = IPDEFTTL;
+ SYSCTL_VNET_INT(_net_inet_ip, IPCTL_DEFTTL, ttl, CTLFLAG_RW,
+     &VNET_NAME(ip_defttl), 0,
+@@ -118,12 +112,6 @@ SYSCTL_VNET_INT(_net_inet_ip, IPCTL_KEEPFAITH, keepfaith, CTLFLAG_RW,
+     &VNET_NAME(ip_keepfaith), 0,
+     "Enable packet capture for FAITH IPv4->IPv6 translater daemon");
+ 
+-static VNET_DEFINE(int, ip_sendsourcequench);
+-#define	V_ip_sendsourcequench	VNET(ip_sendsourcequench)
+-SYSCTL_VNET_INT(_net_inet_ip, OID_AUTO, sendsourcequench, CTLFLAG_RW,
+-    &VNET_NAME(ip_sendsourcequench), 0,
+-    "Enable the transmission of source quench packets");
+-
+ VNET_DEFINE(int, ip_do_randomid);
+ SYSCTL_VNET_INT(_net_inet_ip, OID_AUTO, random_id, CTLFLAG_RW,
+     &VNET_NAME(ip_do_randomid), 0,
+@@ -411,8 +399,9 @@ ip_input(struct mbuf *m)
+ 	struct ifnet *ifp;
+ 	int    checkif, hlen = 0;
+ 	u_short sum;
+-	int dchg = 0;				/* dest changed after fw */
+-	struct in_addr odst;			/* original dst address */
++#ifdef IPFIREWALL_FORWARD
++	struct m_tag *fwd_tag = NULL;
++#endif
+ 
+ 	M_ASSERTPKTHDR(m);
+ 
+@@ -536,14 +525,12 @@ tooshort:
+ 	if (!PFIL_HOOKED(&V_inet_pfil_hook))
+ 		goto passin;
+ 
+-	odst = ip->ip_dst;
+ 	if (pfil_run_hooks(&V_inet_pfil_hook, &m, ifp, PFIL_IN, NULL) != 0)
+ 		return;
+ 	if (m == NULL)			/* consumed by filter */
+ 		return;
+ 
+ 	ip = mtod(m, struct ip *);
+-	dchg = (odst.s_addr != ip->ip_dst.s_addr);
+ 	ifp = m->m_pkthdr.rcvif;
+ 
+ #ifdef IPFIREWALL_FORWARD
+@@ -551,15 +538,22 @@ tooshort:
+ 		m->m_flags &= ~M_FASTFWD_OURS;
+ 		goto ours;
+ 	}
+-#if 0
+-	if (m_tag_find(m, PACKET_TAG_IPFORWARD, NULL) != NULL) {
+-		/*
+-		 * Directly ship the packet on.  This allows forwarding
+-		 * packets originally destined to us to some other directly
+-		 * connected host.
+-		 */
+-		ip_forward(m, 1);
+-		return;
++#if 1
++	if (m->m_flags & M_IP_NEXTHOP) {
++		if ((fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL)) != NULL) {
++			if (m->m_flags & (M_BCAST|M_MCAST) || in_canforward(ip->ip_dst) == 0) {
++				IPSTAT_INC(ips_cantforward);
++				m_freem(m);
++				return;
++			}
++			/*
++			 * Directly ship the packet on.  This allows forwarding
++			 * packets originally destined to us to some other directly
++			 * connected host.
++			 */
++			ip_output(m, NULL, NULL, IP_FORWARDING, NULL, NULL);
++			return;
++		}
+ 	}
+ #endif
+ #endif /* IPFIREWALL_FORWARD */
+@@ -613,7 +607,7 @@ passin:
+ 	 */
+ 	checkif = V_ip_checkinterface && (V_ipforwarding == 0) && 
+ 	    ifp != NULL && ((ifp->if_flags & IFF_LOOPBACK) == 0) &&
+-	    ifp->if_carp == NULL && (dchg == 0);
++	    ifp->if_carp == NULL;
+ 
+ 	/*
+ 	 * Check for exact addresses in the hash bucket.
+@@ -736,7 +730,12 @@ passin:
+ 		if (V_ipipsec_in_use && ip_ipsec_fwd(m))
+ 			goto bad;
+ #endif /* IPSEC */
+-		ip_forward(m, dchg);
++		if (m->m_flags & (M_BCAST|M_MCAST) || in_canforward(ip->ip_dst) == 0) {
++			IPSTAT_INC(ips_cantforward);
++			m_freem(m);
++			return;
++		}
++		ip_output(m, NULL, NULL, IP_FORWARDING, NULL, NULL);
+ 	}
+ 	return;
+ 
+@@ -1384,254 +1383,6 @@ u_char inetctlerrmap[PRC_NCMDS] = {
+ 	ENOPROTOOPT,	ECONNREFUSED
+ };
+ 
+-/*
+- * Forward a packet.  If some error occurs return the sender
+- * an icmp packet.  Note we can't always generate a meaningful
+- * icmp message because icmp doesn't have a large enough repertoire
+- * of codes and types.
+- *
+- * If not forwarding, just drop the packet.  This could be confusing
+- * if ipforwarding was zero but some routing protocol was advancing
+- * us as a gateway to somewhere.  However, we must let the routing
+- * protocol deal with that.
+- *
+- * The srcrt parameter indicates whether the packet is being forwarded
+- * via a source route.
+- */
+-void
+-ip_forward(struct mbuf *m, int srcrt)
+-{
+-	struct ip *ip = mtod(m, struct ip *);
+-	struct in_ifaddr *ia;
+-	struct mbuf *mcopy;
+-	struct in_addr dest;
+-	struct route ro;
+-	int error, type = 0, code = 0, mtu = 0;
+-
+-	if (m->m_flags & (M_BCAST|M_MCAST) || in_canforward(ip->ip_dst) == 0) {
+-		IPSTAT_INC(ips_cantforward);
+-		m_freem(m);
+-		return;
+-	}
+-#ifdef IPSTEALTH
+-	if (!V_ipstealth) {
+-#endif
+-		if (ip->ip_ttl <= IPTTLDEC) {
+-			icmp_error(m, ICMP_TIMXCEED, ICMP_TIMXCEED_INTRANS,
+-			    0, 0);
+-			return;
+-		}
+-#ifdef IPSTEALTH
+-	}
+-#endif
+-
+-	ia = ip_rtaddr(ip->ip_dst, M_GETFIB(m));
+-#ifndef IPSEC
+-	/*
+-	 * 'ia' may be NULL if there is no route for this destination.
+-	 * In case of IPsec, Don't discard it just yet, but pass it to
+-	 * ip_output in case of outgoing IPsec policy.
+-	 */
+-	if (!srcrt && ia == NULL) {
+-		icmp_error(m, ICMP_UNREACH, ICMP_UNREACH_HOST, 0, 0);
+-		return;
+-	}
+-#endif
+-
+-	/*
+-	 * Save the IP header and at most 8 bytes of the payload,
+-	 * in case we need to generate an ICMP message to the src.
+-	 *
+-	 * XXX this can be optimized a lot by saving the data in a local
+-	 * buffer on the stack (72 bytes at most), and only allocating the
+-	 * mbuf if really necessary. The vast majority of the packets
+-	 * are forwarded without having to send an ICMP back (either
+-	 * because unnecessary, or because rate limited), so we are
+-	 * really we are wasting a lot of work here.
+-	 *
+-	 * We don't use m_copy() because it might return a reference
+-	 * to a shared cluster. Both this function and ip_output()
+-	 * assume exclusive access to the IP header in `m', so any
+-	 * data in a cluster may change before we reach icmp_error().
+-	 */
+-	MGETHDR(mcopy, M_DONTWAIT, m->m_type);
+-	if (mcopy != NULL && !m_dup_pkthdr(mcopy, m, M_DONTWAIT)) {
+-		/*
+-		 * It's probably ok if the pkthdr dup fails (because
+-		 * the deep copy of the tag chain failed), but for now
+-		 * be conservative and just discard the copy since
+-		 * code below may some day want the tags.
+-		 */
+-		m_free(mcopy);
+-		mcopy = NULL;
+-	}
+-	if (mcopy != NULL) {
+-		mcopy->m_len = min(ip->ip_len, M_TRAILINGSPACE(mcopy));
+-		mcopy->m_pkthdr.len = mcopy->m_len;
+-		m_copydata(m, 0, mcopy->m_len, mtod(mcopy, caddr_t));
+-	}
+-
+-#ifdef IPSTEALTH
+-	if (!V_ipstealth) {
+-#endif
+-		ip->ip_ttl -= IPTTLDEC;
+-#ifdef IPSTEALTH
+-	}
+-#endif
+-
+-	/*
+-	 * If forwarding packet using same interface that it came in on,
+-	 * perhaps should send a redirect to sender to shortcut a hop.
+-	 * Only send redirect if source is sending directly to us,
+-	 * and if packet was not source routed (or has any options).
+-	 * Also, don't send redirect if forwarding using a default route
+-	 * or a route modified by a redirect.
+-	 */
+-	dest.s_addr = 0;
+-	if (!srcrt && V_ipsendredirects &&
+-	    ia != NULL && ia->ia_ifp == m->m_pkthdr.rcvif) {
+-		struct sockaddr_in *sin;
+-		struct rtentry *rt;
+-
+-		bzero(&ro, sizeof(ro));
+-		sin = (struct sockaddr_in *)&ro.ro_dst;
+-		sin->sin_family = AF_INET;
+-		sin->sin_len = sizeof(*sin);
+-		sin->sin_addr = ip->ip_dst;
+-		in_rtalloc_ign(&ro, 0, M_GETFIB(m));
+-
+-		rt = ro.ro_rt;
+-
+-		if (rt && (rt->rt_flags & (RTF_DYNAMIC|RTF_MODIFIED)) == 0 &&
+-		    satosin(rt_key(rt))->sin_addr.s_addr != 0) {
+-#define	RTA(rt)	((struct in_ifaddr *)(rt->rt_ifa))
+-			u_long src = ntohl(ip->ip_src.s_addr);
+-
+-			if (RTA(rt) &&
+-			    (src & RTA(rt)->ia_subnetmask) == RTA(rt)->ia_subnet) {
+-				if (rt->rt_flags & RTF_GATEWAY)
+-					dest.s_addr = satosin(rt->rt_gateway)->sin_addr.s_addr;
+-				else
+-					dest.s_addr = ip->ip_dst.s_addr;
+-				/* Router requirements says to only send host redirects */
+-				type = ICMP_REDIRECT;
+-				code = ICMP_REDIRECT_HOST;
+-			}
+-		}
+-		if (rt)
+-			RTFREE(rt);
+-	}
+-
+-	/*
+-	 * Try to cache the route MTU from ip_output so we can consider it for
+-	 * the ICMP_UNREACH_NEEDFRAG "Next-Hop MTU" field described in RFC1191.
+-	 */
+-	bzero(&ro, sizeof(ro));
+-
+-	error = ip_output(m, NULL, &ro, IP_FORWARDING, NULL, NULL);
+-
+-	if (error == EMSGSIZE && ro.ro_rt)
+-		mtu = ro.ro_rt->rt_rmx.rmx_mtu;
+-	if (ro.ro_rt)
+-		RTFREE(ro.ro_rt);
+-
+-	if (error)
+-		IPSTAT_INC(ips_cantforward);
+-	else {
+-		IPSTAT_INC(ips_forward);
+-		if (type)
+-			IPSTAT_INC(ips_redirectsent);
+-		else {
+-			if (mcopy)
+-				m_freem(mcopy);
+-			if (ia != NULL)
+-				ifa_free(&ia->ia_ifa);
+-			return;
+-		}
+-	}
+-	if (mcopy == NULL) {
+-		if (ia != NULL)
+-			ifa_free(&ia->ia_ifa);
+-		return;
+-	}
+-
+-	switch (error) {
+-
+-	case 0:				/* forwarded, but need redirect */
+-		/* type, code set above */
+-		break;
+-
+-	case ENETUNREACH:
+-	case EHOSTUNREACH:
+-	case ENETDOWN:
+-	case EHOSTDOWN:
+-	default:
+-		type = ICMP_UNREACH;
+-		code = ICMP_UNREACH_HOST;
+-		break;
+-
+-	case EMSGSIZE:
+-		type = ICMP_UNREACH;
+-		code = ICMP_UNREACH_NEEDFRAG;
+-
+-#ifdef IPSEC
+-		/* 
+-		 * If IPsec is configured for this path,
+-		 * override any possibly mtu value set by ip_output.
+-		 */ 
+-		if (V_ipipsec_in_use)
+-			mtu = ip_ipsec_mtu(mcopy, mtu);
+-#endif /* IPSEC */
+-		/*
+-		 * If the MTU was set before make sure we are below the
+-		 * interface MTU.
+-		 * If the MTU wasn't set before use the interface mtu or
+-		 * fall back to the next smaller mtu step compared to the
+-		 * current packet size.
+-		 */
+-		if (mtu != 0) {
+-			if (ia != NULL)
+-				mtu = min(mtu, ia->ia_ifp->if_mtu);
+-		} else {
+-			if (ia != NULL)
+-				mtu = ia->ia_ifp->if_mtu;
+-			else
+-				mtu = ip_next_mtu(ip->ip_len, 0);
+-		}
+-		IPSTAT_INC(ips_cantfrag);
+-		break;
+-
+-	case ENOBUFS:
+-		/*
+-		 * A router should not generate ICMP_SOURCEQUENCH as
+-		 * required in RFC1812 Requirements for IP Version 4 Routers.
+-		 * Source quench could be a big problem under DoS attacks,
+-		 * or if the underlying interface is rate-limited.
+-		 * Those who need source quench packets may re-enable them
+-		 * via the net.inet.ip.sendsourcequench sysctl.
+-		 */
+-		if (V_ip_sendsourcequench == 0) {
+-			m_freem(mcopy);
+-			if (ia != NULL)
+-				ifa_free(&ia->ia_ifa);
+-			return;
+-		} else {
+-			type = ICMP_SOURCEQUENCH;
+-			code = 0;
+-		}
+-		break;
+-
+-	case EACCES:			/* ipfw denied packet */
+-		m_freem(mcopy);
+-		if (ia != NULL)
+-			ifa_free(&ia->ia_ifa);
+-		return;
+-	}
+-	if (ia != NULL)
+-		ifa_free(&ia->ia_ifa);
+-	icmp_error(mcopy, type, code, dest.s_addr, mtu);
+-}
+-
+ void
+ ip_savecontrol(struct inpcb *inp, struct mbuf **mp, struct ip *ip,
+     struct mbuf *m)
+diff --git a/sys/netinet/ip_options.c b/sys/netinet/ip_options.c
+index 58bf5c4..d25b874 100644
+--- a/sys/netinet/ip_options.c
++++ b/sys/netinet/ip_options.c
+@@ -359,7 +359,7 @@ dropit:
+ 		}
+ 	}
+ 	if (forward && V_ipforwarding) {
+-		ip_forward(m, 1);
++		ip_output(m, NULL, NULL, IP_FORWARDING, NULL, NULL);
+ 		return (1);
+ 	}
+ 	return (0);
+diff --git a/sys/netinet/ip_output.c b/sys/netinet/ip_output.c
+index 20de135..5ede7b8 100644
+--- a/sys/netinet/ip_output.c
++++ b/sys/netinet/ip_output.c
+@@ -70,6 +70,7 @@ __FBSDID("$FreeBSD: src/sys/netinet/ip_output.c,v 1.314.2.12.2.2 2012/11/17 08:2
+ #include <netinet/in_var.h>
+ #include <netinet/ip_var.h>
+ #include <netinet/ip_options.h>
++#include <netinet/ip_icmp.h>
+ #ifdef SCTP
+ #include <netinet/sctp.h>
+ #include <netinet/sctp_crc32.h>
+@@ -92,6 +93,18 @@ __FBSDID("$FreeBSD: src/sys/netinet/ip_output.c,v 1.314.2.12.2.2 2012/11/17 08:2
+ 
+ VNET_DEFINE(u_short, ip_id);
+ 
++static VNET_DEFINE(int, ipsendredirects) = 1;   /* XXX */
++#define V_ipsendredirects       VNET(ipsendredirects)
++SYSCTL_VNET_INT(_net_inet_ip, IPCTL_SENDREDIRECTS, redirect, CTLFLAG_RW,
++    &VNET_NAME(ipsendredirects), 0,
++    "Enable sending IP redirects");
++
++static VNET_DEFINE(int, ip_sendsourcequench);
++#define V_ip_sendsourcequench   VNET(ip_sendsourcequench)
++SYSCTL_VNET_INT(_net_inet_ip, OID_AUTO, sendsourcequench, CTLFLAG_RW,
++    &VNET_NAME(ip_sendsourcequench), 0,
++    "Enable the transmission of source quench packets");
++
+ #ifdef MBUF_STRESS_TEST
+ static int mbuf_frag_size = 0;
+ SYSCTL_INT(_net_inet_ip, OID_AUTO, mbuf_frag_size, CTLFLAG_RW,
+@@ -105,6 +118,64 @@ static void	ip_mloopback
+ extern int in_mcast_loop;
+ extern	struct protosw inetsw[];
+ 
++static void
++ip_output_error(struct mbuf *m, int error, struct in_ifaddr *ia, int mtu)
++{
++	int type = 0, code = 0;
++
++	if (error)
++		IPSTAT_INC(ips_cantforward);
++
++	if (m == NULL)
++		return;
++
++	switch (error) {
++	case 0:
++		return;
++
++	case ENETUNREACH:
++	case EHOSTUNREACH:
++	case ENETDOWN:
++	case EHOSTDOWN:
++	default:
++		type = ICMP_UNREACH;
++		code = ICMP_UNREACH_HOST;
++		break;
++
++	case EMSGSIZE:
++		type = ICMP_UNREACH;
++		code = ICMP_UNREACH_NEEDFRAG;
++#ifdef IPSEC
++		if (m != NULL)
++			mtu = ip_ipsec_mtu(m, mtu);
++#endif
++
++		if (mtu != 0) {
++			if (ia != NULL)
++				mtu = min(mtu, ia->ia_ifp->if_mtu);
++		} else {
++			if (ia != NULL)
++				mtu = ia->ia_ifp->if_mtu;
++#if 0
++			else
++				mtu = ip_next_mtu(ip->ip_len, 0);
++#endif
++		}
++		IPSTAT_INC(ips_cantfrag);
++		break;
++
++	case ENOBUFS:
++		if (V_ip_sendsourcequench > 0)
++			type = ICMP_SOURCEQUENCH;
++		break;
++
++	case EACCES:
++		return;
++	}
++
++	icmp_error(m, type, code, 0, mtu);
++}
++
+ /*
+  * IP output.  The packet in mbuf chain m contains a skeletal IP
+  * header (with len, off, ttl, proto, tos, src, dst).
+@@ -121,21 +192,25 @@ ip_output(struct mbuf *m, struct mbuf *opt, struct route *ro, int flags,
+ 	struct ifnet *ifp = NULL;	/* keep compiler happy */
+ 	struct mbuf *m0;
+ 	int hlen = sizeof (struct ip);
+-	int mtu;
++	int mtu = 0, finished = 0;
+ 	int len, error = 0;
+ 	int nortfree = 0;
+ 	struct sockaddr_in *dst = NULL;	/* keep compiler happy */
+ 	struct in_ifaddr *ia = NULL;
+-	int isbroadcast, sw_csum;
++	int isbroadcast = 0, sw_csum = 0;
+ 	struct route iproute;
+-	struct rtentry *rte;	/* cache for ro->ro_rt */
++	struct rtentry *rte = NULL;	/* cache for ro->ro_rt */
+ 	struct in_addr odst;
+ 	int no_route_but_check = 0;
+ #ifdef IPFIREWALL_FORWARD
+ 	struct m_tag *fwd_tag = NULL;
++	struct ip_fwd_tag *ift = NULL;
+ #endif
+ 	M_ASSERTPKTHDR(m);
+ 
++	if (flags & IP_FORWARDING)
++		IPSTAT_INC(ips_forward);
++
+ 	if (inp != NULL) {
+ 		INP_LOCK_ASSERT(inp);
+ 		M_SETFIB(m, inp->inp_inc.inc_fibnum);
+@@ -195,8 +270,34 @@ ip_output(struct mbuf *m, struct mbuf *opt, struct route *ro, int flags,
+ 		hlen = ip->ip_hl << 2;
+ 	}
+ 
+-	dst = (struct sockaddr_in *)&ro->ro_dst;
++#ifdef IPFIREWALL_FORWARD
++	if (m->m_flags & M_IP_NEXTHOP)
++		fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL);
+ again:
++	if (fwd_tag != NULL) {
++		dst = (struct sockaddr_in *)&ro->ro_dst;
++		ift = (struct ip_fwd_tag *)(fwd_tag+1);
++		if (ia != NULL)
++			ifa_free(&ia->ia_ifa);
++		ia = NULL;
++		bcopy(&ift->sin, dst, sizeof(struct sockaddr_in));
++		if (ift->ifp != NULL) {
++			ifp = ift->ifp;
++			if (sw_csum > 0)
++				IFP_TO_IA(ifp, ia);
++			ip->ip_src.s_addr = INADDR_ANY;
++		} else
++			ifp = NULL;
++		if (!nortfree && rte != NULL)
++			RTFREE(rte);
++		rte = ro->ro_rt = (struct rtentry *)NULL;
++		ro->ro_lle = (struct llentry *)NULL;
++	} else
++#else
++again:
++#endif
++		dst = (struct sockaddr_in *)&ro->ro_dst;
++
+ 	/*
+ 	 * If there is a cached route,
+ 	 * check that it is to the same destination
+@@ -216,7 +317,7 @@ again:
+ 		ro->ro_lle = (struct llentry *)NULL;
+ 	}
+ #ifdef IPFIREWALL_FORWARD
+-	if (rte == NULL && fwd_tag == NULL) {
++	if (!(m->m_flags & M_IP_NEXTHOP) && rte == NULL) {
+ #else
+ 	if (rte == NULL) {
+ #endif
+@@ -236,7 +337,7 @@ again:
+ 		    (ia = ifatoia(ifa_ifwithdstaddr(sintosa(dst)))) == NULL) {
+ 			IPSTAT_INC(ips_noroute);
+ 			error = ENETUNREACH;
+-			goto bad;
++			goto done;
+ 		}
+ 		ip->ip_dst.s_addr = INADDR_BROADCAST;
+ 		dst->sin_addr = ip->ip_dst;
+@@ -248,7 +349,7 @@ again:
+ 		    (ia = ifatoia(ifa_ifwithnet(sintosa(dst), 0))) == NULL) {
+ 			IPSTAT_INC(ips_noroute);
+ 			error = ENETUNREACH;
+-			goto bad;
++			goto done;
+ 		}
+ 		ifp = ia->ia_ifp;
+ 		ip->ip_ttl = 1;
+@@ -268,43 +369,39 @@ again:
+ 		 * as this is probably required in all cases for correct
+ 		 * operation (as it is for ARP).
+ 		 */
+-		if (rte == NULL) {
++		if (ifp == NULL) {
++			if (rte == NULL) {
+ #ifdef RADIX_MPATH
+-			rtalloc_mpath_fib(ro,
+-			    ntohl(ip->ip_src.s_addr ^ ip->ip_dst.s_addr),
+-			    inp ? inp->inp_inc.inc_fibnum : M_GETFIB(m));
++				rtalloc_mpath_fib(ro,
++				    ntohl(ip->ip_src.s_addr ^ ip->ip_dst.s_addr),
++				    inp ? inp->inp_inc.inc_fibnum : M_GETFIB(m));
+ #else
+-			in_rtalloc_ign(ro, 0,
+-			    inp ? inp->inp_inc.inc_fibnum : M_GETFIB(m));
+-#endif
+-			rte = ro->ro_rt;
+-		}
+-		if (rte == NULL ||
+-		    rte->rt_ifp == NULL ||
+-		    !RT_LINK_IS_UP(rte->rt_ifp)) {
+-#ifdef IPSEC
+-			/*
+-			 * There is no route for this packet, but it is
+-			 * possible that a matching SPD entry exists.
+-			 */
+-			mtu = 0; /* Silence GCC warning. */
++				in_rtalloc_ign(ro, 0,
++				    inp ? inp->inp_inc.inc_fibnum : M_GETFIB(m));
+ #endif
+-			no_route_but_check = 1;
+-			goto sendit;
++				rte = ro->ro_rt;
++			}
++			if (rte == NULL ||
++			    rte->rt_ifp == NULL ||
++			    !RT_LINK_IS_UP(rte->rt_ifp)) {
++				no_route_but_check = 1;
++				goto sendit;
+ 
+-			IPSTAT_INC(ips_noroute);
+-			error = EHOSTUNREACH;
+-			goto bad;
+-		}
+-		ia = ifatoia(rte->rt_ifa);
+-		ifa_ref(&ia->ia_ifa);
+-		ifp = rte->rt_ifp;
+-		rte->rt_rmx.rmx_pksent++;
+-		if (rte->rt_flags & RTF_GATEWAY)
+-			dst = (struct sockaddr_in *)rte->rt_gateway;
+-		if (rte->rt_flags & RTF_HOST)
+-			isbroadcast = (rte->rt_flags & RTF_BROADCAST);
+-		else
++				IPSTAT_INC(ips_noroute);
++				error = EHOSTUNREACH;
++				goto done;
++			}
++			ia = ifatoia(rte->rt_ifa);
++			ifa_ref(&ia->ia_ifa);
++			ifp = rte->rt_ifp;
++			rte->rt_rmx.rmx_pksent++;
++			if (rte->rt_flags & RTF_GATEWAY)
++				dst = (struct sockaddr_in *)rte->rt_gateway;
++			if (rte->rt_flags & RTF_HOST)
++				isbroadcast = (rte->rt_flags & RTF_BROADCAST);
++			else
++				isbroadcast = in_broadcast(dst->sin_addr, ifp);
++		} else
+ 			isbroadcast = in_broadcast(dst->sin_addr, ifp);
+ 	}
+ 	/*
+@@ -352,7 +449,7 @@ again:
+ 			if ((ifp->if_flags & IFF_MULTICAST) == 0) {
+ 				IPSTAT_INC(ips_noroute);
+ 				error = ENETUNREACH;
+-				goto bad;
++				goto done;
+ 			}
+ 		}
+ 		/*
+@@ -399,7 +496,7 @@ again:
+ 					imo = NULL;
+ 				if (ip_mforward &&
+ 				    ip_mforward(ip, ifp, m, imo) != 0) {
+-					m_freem(m);
++					finished = 1;
+ 					goto done;
+ 				}
+ 			}
+@@ -415,7 +512,6 @@ again:
+ 		 * the loopback interface.
+ 		 */
+ 		if (ip->ip_ttl == 0 || ifp->if_flags & IFF_LOOPBACK) {
+-			m_freem(m);
+ 			goto done;
+ 		}
+ 
+@@ -429,10 +525,29 @@ again:
+ 	if (ip->ip_src.s_addr == INADDR_ANY) {
+ 		/* Interface may have no addresses. */
+ 		if (ia != NULL) {
++			sw_csum = 1;
+ 			ip->ip_src = IA_SIN(ia)->sin_addr;
+ 		}
+ 	}
+ 
++	if (!(m->m_flags & M_IP_NEXTHOP) && V_ipsendredirects &&
++		ia != NULL && ia->ia_ifp == m->m_pkthdr.rcvif) {
++		if (rte != NULL && (rte->rt_flags & (RTF_DYNAMIC|RTF_MODIFIED)) == 0 &&
++			satosin(rt_key(rte))->sin_addr.s_addr != 0) {
++#define RTA(rt) ((struct in_ifaddr *)(rt->rt_ifa))
++			if (RTA(rte) &&
++				(ntohl(ip->ip_src.s_addr) && RTA(rte)->ia_subnetmask) == RTA(rte)->ia_subnet) {
++				if (rte->rt_flags & RTF_GATEWAY)
++					icmp_error(m, ICMP_REDIRECT, ICMP_REDIRECT_HOST, satosin(rte->rt_gateway)->sin_addr.s_addr, mtu);
++				else
++					icmp_error(m, ICMP_REDIRECT, ICMP_REDIRECT_HOST, ip->ip_dst.s_addr, mtu);
++
++				IPSTAT_INC(ips_redirectsent);
++			}
++#undef RTA
++		}
++	}
++
+ 	/*
+ 	 * Verify that we have any chance at all of being able to queue the
+ 	 * packet or packet fragments, unless ALTQ is enabled on the given
+@@ -450,7 +565,7 @@ again:
+ 		error = ENOBUFS;
+ 		IPSTAT_INC(ips_odropped);
+ 		ifp->if_snd.ifq_drops += (ip->ip_len / ifp->if_mtu + 1);
+-		goto bad;
++		goto done;
+ 	}
+ 
+ 	/*
+@@ -461,16 +576,16 @@ again:
+ 	if (isbroadcast) {
+ 		if ((ifp->if_flags & IFF_BROADCAST) == 0) {
+ 			error = EADDRNOTAVAIL;
+-			goto bad;
++			goto done;
+ 		}
+ 		if ((flags & IP_ALLOWBROADCAST) == 0) {
+ 			error = EACCES;
+-			goto bad;
++			goto done;
+ 		}
+ 		/* don't allow broadcast messages to be fragmented */
+ 		if (ip->ip_len > mtu) {
+ 			error = EMSGSIZE;
+-			goto bad;
++			goto done;
+ 		}
+ 		m->m_flags |= M_BCAST;
+ 	} else {
+@@ -482,7 +597,6 @@ sendit:
+ 	if (V_ipipsec_in_use) {
+ 		switch(ip_ipsec_output(&m, inp, &flags, &error, &ifp)) {
+ 		case 1:
+-			goto bad;
+ 		case -1:
+ 			goto done;
+ 		case 0:
+@@ -500,7 +614,7 @@ sendit:
+ 		if (no_route_but_check) {
+ 			IPSTAT_INC(ips_noroute);
+ 			error = EHOSTUNREACH;
+-			goto bad;
++			goto done;
+ 		}
+ 		goto passout;
+ 	}
+@@ -513,11 +627,6 @@ sendit:
+ 	error = pfil_run_hooks(&V_inet_pfil_hook, &m, ifp, PFIL_OUT, inp);
+ 	if (error != 0 || m == NULL)
+ 		goto done;
+-	if (no_route_but_check) {
+-		IPSTAT_INC(ips_noroute);
+-                error = EHOSTUNREACH;
+-                goto bad;
+-	}
+ 
+ 	ip = mtod(m, struct ip *);
+ 
+@@ -566,16 +675,21 @@ sendit:
+ 		error = netisr_queue(NETISR_IP, m);
+ 		goto done;
+ 	}
+-#if 0
++#if 1
+ 	/* Or forward to some other address? */
+-	fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL);
+-	if (fwd_tag) {
+-		dst = (struct sockaddr_in *)&ro->ro_dst;
+-		bcopy((fwd_tag+1), dst, sizeof(struct sockaddr_in));
+-		m->m_flags |= M_SKIP_FIREWALL;
++	if (m->m_flags & M_IP_NEXTHOP && (fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL)) != NULL) {
++		ift = (struct ip_fwd_tag *)(fwd_tag+1);
++		if (ift->ifp != ifp)
++			goto again;
++		else
++			bcopy(&ift->sin, dst, sizeof(struct sockaddr_in));
+ 		m_tag_delete(m, fwd_tag);
+-		goto again;
++	} else if (no_route_but_check) {
++		IPSTAT_INC(ips_noroute);
++		error = EHOSTUNREACH;
++		goto done;
+ 	}
++	m->m_flags &= ~M_IP_NEXTHOP;
+ #endif
+ #endif /* IPFIREWALL_FORWARD */
+ 
+@@ -586,7 +700,7 @@ passout:
+ 		if ((ifp->if_flags & IFF_LOOPBACK) == 0) {
+ 			IPSTAT_INC(ips_badaddr);
+ 			error = EADDRNOTAVAIL;
+-			goto bad;
++			goto done;
+ 		}
+ 	}
+ 
+@@ -642,6 +756,7 @@ passout:
+ 		m->m_flags &= ~(M_PROTOFLAGS);
+ 		error = (*ifp->if_output)(ifp, m,
+ 		    		(struct sockaddr *)dst, ro);
++		finished = 1;
+ 		goto done;
+ 	}
+ 
+@@ -649,7 +764,7 @@ passout:
+ 	if ((ip->ip_off & IP_DF) || (m->m_pkthdr.csum_flags & CSUM_TSO)) {
+ 		error = EMSGSIZE;
+ 		IPSTAT_INC(ips_cantfrag);
+-		goto bad;
++		goto done;
+ 	}
+ 
+ 	/*
+@@ -658,7 +773,7 @@ passout:
+ 	 */
+ 	error = ip_fragment(ip, &m, mtu, ifp->if_hwassist, sw_csum);
+ 	if (error)
+-		goto bad;
++		goto done;
+ 	for (; m; m = m0) {
+ 		m0 = m->m_nextpkt;
+ 		m->m_nextpkt = 0;
+@@ -673,26 +788,29 @@ passout:
+ 			 * to avoid confusing upper layers.
+ 			 */
+ 			m->m_flags &= ~(M_PROTOFLAGS);
+-
++			finished = 1;
+ 			error = (*ifp->if_output)(ifp, m,
+ 			    (struct sockaddr *)dst, ro);
+-		} else
+-			m_freem(m);
++		}
+ 	}
+ 
+ 	if (error == 0)
+ 		IPSTAT_INC(ips_fragmented);
+ 
+ done:
++	if (m != NULL) {
++		if (error != 0 && error != EACCES)
++			ip_output_error(m, error, ia, mtu);
++		if (finished == 0)
++			m_freem(m);
++	}
++
+ 	if (ro == &iproute && ro->ro_rt && !nortfree) {
+ 		RTFREE(ro->ro_rt);
+ 	}
+ 	if (ia != NULL)
+ 		ifa_free(&ia->ia_ifa);
+ 	return (error);
+-bad:
+-	m_freem(m);
+-	goto done;
+ }
+ 
+ /*
+diff --git a/sys/netinet/ip_var.h b/sys/netinet/ip_var.h
+index eb7b62d..8a8cef2 100644
+--- a/sys/netinet/ip_var.h
++++ b/sys/netinet/ip_var.h
+@@ -158,10 +158,18 @@ void	kmod_ipstat_dec(int statnum);
+ #define IP_ROUTETOIF		SO_DONTROUTE	/* 0x10 bypass routing tables */
+ #define IP_ALLOWBROADCAST	SO_BROADCAST	/* 0x20 can send broadcast packets */
+ 
++//struct ifnet;
++/* For PACKET_TAG_IPFORWARD */
++struct ip_fwd_tag {
++	struct sockaddr_in sin;
++	struct ifnet *ifp;
++};
++
+ /*
+  * mbuf flag used by ip_fastfwd
+  */
+ #define	M_FASTFWD_OURS		M_PROTO1	/* changed dst to local */
++#define	M_IP_NEXTHOP		M_PROTO2	/* explicit ip nexthop */
+ 
+ #ifdef __NO_STRICT_ALIGNMENT
+ #define IP_HDR_ALIGNED_P(ip)	1
+@@ -211,7 +219,6 @@ void	ip_drain(void);
+ void	ip_fini(void *xtp);
+ int	ip_fragment(struct ip *ip, struct mbuf **m_frag, int mtu,
+ 	    u_long if_hwassist_flags, int sw_csum);
+-void	ip_forward(struct mbuf *m, int srcrt);
+ void	ip_init(void);
+ #ifdef VIMAGE
+ void	ip_destroy(void);
+diff --git a/sys/netinet/ipfw/ip_fw_pfil.c b/sys/netinet/ipfw/ip_fw_pfil.c
+index 7294021..c8767bb 100644
+--- a/sys/netinet/ipfw/ip_fw_pfil.c
++++ b/sys/netinet/ipfw/ip_fw_pfil.c
+@@ -153,6 +153,7 @@ again:
+ #else
+ 	    {
+ 		struct m_tag *fwd_tag;
++		struct ip_fwd_tag *ift;
+ 
+ 		/* Incoming packets should not be tagged so we do not
+ 		 * m_tag_find. Outgoing packets may be tagged, so we
+@@ -164,17 +165,20 @@ again:
+ 			m_tag_unlink(*m0, fwd_tag);
+ 		} else {
+ 			fwd_tag = m_tag_get(PACKET_TAG_IPFORWARD,
+-				sizeof(struct sockaddr_in), M_NOWAIT);
++				sizeof(struct ip_fwd_tag), M_NOWAIT);
+ 			if (fwd_tag == NULL) {
+ 				ret = EACCES;
+ 				break; /* i.e. drop */
+ 			}
+ 		}
+-		bcopy(args.next_hop, (fwd_tag+1), sizeof(struct sockaddr_in));
++		ift = (struct ip_fwd_tag *)(fwd_tag+1);
++		bcopy(args.next_hop, &ift->sin, sizeof(struct sockaddr_in));
++		ift->ifp = NULL;
+ 		m_tag_prepend(*m0, fwd_tag);
+ 
+ 		if (in_localip(args.next_hop->sin_addr))
+ 			(*m0)->m_flags |= M_FASTFWD_OURS;
++		(*m0)->m_flags |= M_IP_NEXTHOP;
+ 	    }
+ #endif /* IPFIREWALL_FORWARD */
+ 		break;
+diff --git a/sys/netinet/tcp_input.c b/sys/netinet/tcp_input.c
+index 4bfbf6a..4e1b6f2 100644
+--- a/sys/netinet/tcp_input.c
++++ b/sys/netinet/tcp_input.c
+@@ -760,12 +760,10 @@ findpcb:
+ 	/*
+ 	 * Grab info from PACKET_TAG_IPFORWARD tag prepended to the chain.
+ 	 */
+-	fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL);
++	if (isipv6 == 0 && m->m_flags & M_IP_NEXTHOP && (fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL)) != NULL) {
++		struct ip_fwd_tag *next_hop;
+ 
+-	if (fwd_tag != NULL && isipv6 == 0) {	/* IPv6 support is not yet */
+-		struct sockaddr_in *next_hop;
+-
+-		next_hop = (struct sockaddr_in *)(fwd_tag+1);
++		next_hop = (struct ip_fwd_tag *)(fwd_tag+1);
+ 		/*
+ 		 * Transparently forwarded. Pretend to be the destination.
+ 		 * already got one like this?
+@@ -778,9 +776,9 @@ findpcb:
+ 			/* It's new.  Try to find the ambushing socket. */
+ 			inp = in_pcblookup_hash(&V_tcbinfo,
+ 						ip->ip_src, th->th_sport,
+-						next_hop->sin_addr,
+-						next_hop->sin_port ?
+-						    ntohs(next_hop->sin_port) :
++						next_hop->sin.sin_addr,
++						next_hop->sin.sin_port ?
++						    ntohs(next_hop->sin.sin_port) :
+ 						    th->th_dport,
+ 						INPLOOKUP_WILDCARD,
+ 						m->m_pkthdr.rcvif);
+@@ -805,6 +803,7 @@ findpcb:
+ 						INPLOOKUP_WILDCARD,
+ 						m->m_pkthdr.rcvif);
+ 	}
++	m->m_flags &= ~M_IP_NEXTHOP;
+ 
+ 	/*
+ 	 * If the INPCB does not exist then all data in the incoming
+@@ -1149,7 +1148,7 @@ relocked:
+ 				    "SYN|FIN segment ignored (based on "
+ 				    "sysctl setting)\n", s, __func__);
+ 			TCPSTAT_INC(tcps_badsyn);
+-                	goto dropunlock;
++			goto dropunlock;
+ 		}
+ 		/*
+ 		 * Segment's flags are (SYN) or (SYN|FIN).
+diff --git a/sys/netinet/udp_usrreq.c b/sys/netinet/udp_usrreq.c
+index dc663bd..078bb2d 100644
+--- a/sys/netinet/udp_usrreq.c
++++ b/sys/netinet/udp_usrreq.c
+@@ -450,21 +450,24 @@ udp_input(struct mbuf *m, int off)
+ 	/*
+ 	 * Grab info from PACKET_TAG_IPFORWARD tag prepended to the chain.
+ 	 */
+-	fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL);
+-	if (fwd_tag != NULL) {
+-		struct sockaddr_in *next_hop;
++	if (m->m_flags & M_IP_NEXTHOP) {
++		fwd_tag = m_tag_find(m, PACKET_TAG_IPFORWARD, NULL);
++		if (fwd_tag != NULL) {
++			struct ip_fwd_tag *next_hop;
+ 
+-		/*
+-		 * Do the hack.
+-		 */
+-		next_hop = (struct sockaddr_in *)(fwd_tag + 1);
+-		ip->ip_dst = next_hop->sin_addr;
+-		uh->uh_dport = ntohs(next_hop->sin_port);
++			/*
++			 * Do the hack.
++			 */
++			next_hop = (struct ip_fwd_tag *)(fwd_tag + 1);
++			ip->ip_dst = next_hop->sin.sin_addr;
++			uh->uh_dport = ntohs(next_hop->sin.sin_port);
+ 
+-		/*
+-		 * Remove the tag from the packet.  We don't need it anymore.
+-		 */
+-		m_tag_delete(m, fwd_tag);
++			/*
++			 * Remove the tag from the packet.  We don't need it anymore.
++			 */
++			m_tag_delete(m, fwd_tag);
++		}
++		m->m_flags &= ~M_IP_NEXTHOP;
+ 	}
+ #endif
+ 
