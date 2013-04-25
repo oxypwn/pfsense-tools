@@ -607,7 +607,7 @@ index 69019cb..93bd398 100644
  		}
  #endif /* IPFIREWALL_FORWARD */
 diff --git a/sys/netinet/ip_input.c b/sys/netinet/ip_input.c
-index 731d84f..cc2d8fb 100644
+index 731d84f..ef97152 100644
 --- a/sys/netinet/ip_input.c
 +++ b/sys/netinet/ip_input.c
 @@ -101,12 +101,6 @@ SYSCTL_VNET_INT(_net_inet_ip, IPCTL_IPSEC_INUSE, ipsec_in_use, CTLFLAG_RW,
@@ -663,7 +663,7 @@ index 731d84f..cc2d8fb 100644
  	ifp = m->m_pkthdr.rcvif;
  
  #ifdef IPFIREWALL_FORWARD
-@@ -551,15 +538,22 @@ tooshort:
+@@ -551,15 +538,33 @@ tooshort:
  		m->m_flags &= ~M_FASTFWD_OURS;
  		goto ours;
  	}
@@ -684,6 +684,17 @@ index 731d84f..cc2d8fb 100644
 +				m_freem(m);
 +				return;
 +			}
++#ifdef IPSTEALTH
++                        if (!V_ipstealth) {
++#endif
++                                if (ip->ip_ttl <= IPTTLDEC) {
++                                        icmp_error(m, ICMP_TIMXCEED, ICMP_TIMXCEED_INTRANS,
++                                            0, 0);
++                                        return;
++                                }
++#ifdef IPSTEALTH
++                        }
++#endif
 +			/*
 +			 * Directly ship the packet on.  This allows forwarding
 +			 * packets originally destined to us to some other directly
@@ -695,7 +706,7 @@ index 731d84f..cc2d8fb 100644
  	}
  #endif
  #endif /* IPFIREWALL_FORWARD */
-@@ -613,7 +607,7 @@ passin:
+@@ -613,7 +618,7 @@ passin:
  	 */
  	checkif = V_ip_checkinterface && (V_ipforwarding == 0) && 
  	    ifp != NULL && ((ifp->if_flags & IFF_LOOPBACK) == 0) &&
@@ -704,7 +715,7 @@ index 731d84f..cc2d8fb 100644
  
  	/*
  	 * Check for exact addresses in the hash bucket.
-@@ -736,7 +730,12 @@ passin:
+@@ -736,7 +741,23 @@ passin:
  		if (V_ipipsec_in_use && ip_ipsec_fwd(m))
  			goto bad;
  #endif /* IPSEC */
@@ -714,11 +725,22 @@ index 731d84f..cc2d8fb 100644
 +			m_freem(m);
 +			return;
 +		}
++#ifdef IPSTEALTH
++		if (!V_ipstealth) {
++#endif
++			if (ip->ip_ttl <= IPTTLDEC) {
++				icmp_error(m, ICMP_TIMXCEED, ICMP_TIMXCEED_INTRANS,
++				    0, 0);
++				return;
++			}
++#ifdef IPSTEALTH
++		}
++#endif
 +		ip_output(m, NULL, NULL, IP_FORWARDING, NULL, NULL);
  	}
  	return;
  
-@@ -1384,254 +1383,6 @@ u_char inetctlerrmap[PRC_NCMDS] = {
+@@ -1384,254 +1405,6 @@ u_char inetctlerrmap[PRC_NCMDS] = {
  	ENOPROTOOPT,	ECONNREFUSED
  };
  
