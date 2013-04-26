@@ -1517,10 +1517,10 @@ index eb7b62d..8a8cef2 100644
  #ifdef VIMAGE
  void	ip_destroy(void);
 diff --git a/sys/netinet/ipfw/ip_fw2.c b/sys/netinet/ipfw/ip_fw2.c
-index 96da66a..864f1ea 100644
+index 96da66a..3c2dbc8 100644
 --- a/sys/netinet/ipfw/ip_fw2.c
 +++ b/sys/netinet/ipfw/ip_fw2.c
-@@ -2250,12 +2250,12 @@ do {								\
+@@ -2250,12 +2250,13 @@ do {								\
  
  				    	sa = &(((ipfw_insn_sa *)cmd)->sa);
  					fwd_tag = m_tag_get(PACKET_TAG_IPFORWARD,
@@ -1531,7 +1531,8 @@ index 96da66a..864f1ea 100644
  					else {
 -                				bcopy(sa, (fwd_tag+1), sizeof(struct sockaddr_in));
 -                				m_tag_prepend(m, fwd_tag);
-+                				bcopy(sa, (fwd_tag+1), sizeof(struct ip_fwd_tag));
++						((struct ip_fwd_tag *)(fwd_tag+1))->ifp = NULL;
++                				bcopy(sa, ((struct ip_fwd_tag *)(fwd_tag+1))->sin, sizeof(sa));
 +                				m_tag_prepend(m, fwd_tag); m->m_flags |= M_IP_NEXTHOP;
   
  						if (in_localip(sa->sin_addr)) {
