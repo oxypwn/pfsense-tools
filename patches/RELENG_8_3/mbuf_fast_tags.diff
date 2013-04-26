@@ -1,5 +1,5 @@
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index ac38920..97814c9 100644
+index ac38920..b750a86 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
 @@ -2493,7 +2493,7 @@ pf_get_mtag(struct mbuf *m)
@@ -25,7 +25,7 @@ index ac38920..97814c9 100644
  			fwd_tag = m_tag_find(m0, PACKET_TAG_IPFORWARD, NULL);
  		else
 -			fwd_tag = m_tag_get(PACKET_TAG_IPFORWARD, sizeof(struct ip_fwd_tag), M_NOWAIT);
-+			fwd_tag = m_tag_fast_alloc(m0, MTAG_ABI_COMPAT, PACKET_TAG_IPFORWARD, M_NOWAIT);
++			fwd_tag = m_tag_fast_alloc(m0, MTAG_ABI_COMPAT, PACKET_TAG_IPFORWARD, sizeof(struct ip_fwd_tag), M_NOWAIT);
                  if (fwd_tag == NULL) {
  			m0->m_flags &= ~M_IP_NEXTHOP;
  			goto bad;
