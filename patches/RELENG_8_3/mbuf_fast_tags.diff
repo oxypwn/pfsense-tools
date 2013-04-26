@@ -54,7 +54,7 @@ index 9546137..4a3151f 100644
  			return (NULL);
  		bzero(mtag + 1, sizeof(struct pf_mtag));
 diff --git a/sys/kern/kern_mbuf.c b/sys/kern/kern_mbuf.c
-index 4982d9b..aaf6eda 100644
+index 4982d9b..4b97471 100644
 --- a/sys/kern/kern_mbuf.c
 +++ b/sys/kern/kern_mbuf.c
 @@ -408,6 +408,7 @@ mb_ctor_mbuf(void *mem, int size, void *arg, int how)
@@ -65,6 +65,22 @@ index 4982d9b..aaf6eda 100644
  #ifdef MAC
  		/* If the label init fails, fail the alloc */
  		error = mac_mbuf_init(m, how);
+@@ -633,6 +634,7 @@ mb_ctor_pack(void *mem, int size, void *arg, int how)
+ 		m->m_pkthdr.ether_vtag = 0;
+ 		m->m_pkthdr.flowid = 0;
+ 		SLIST_INIT(&m->m_pkthdr.tags);
++		INIT_TAG_CONTAINER(m);
+ #ifdef MAC
+ 		/* If the label init fails, fail the alloc */
+ 		error = mac_mbuf_init(m, how);
+@@ -653,6 +655,7 @@ m_pkthdr_init(struct mbuf *m, int how)
+ #endif
+ 	m->m_data = m->m_pktdat;
+ 	SLIST_INIT(&m->m_pkthdr.tags);
++	INIT_TAG_CONTAINER(m);
+ 	m->m_pkthdr.rcvif = NULL;
+ 	m->m_pkthdr.header = NULL;
+ 	m->m_pkthdr.len = 0;
 diff --git a/sys/kern/uipc_mbuf.c b/sys/kern/uipc_mbuf.c
 index 639355e..4ea5797 100644
 --- a/sys/kern/uipc_mbuf.c
@@ -537,7 +553,7 @@ index 9b4876e..4947a07 100644
  	if (mtag == NULL) {
  		DPRINTF(("%s: could not get packet tag\n", __func__));
 diff --git a/sys/sys/mbuf.h b/sys/sys/mbuf.h
-index 582c702..17dde45 100644
+index 582c702..17f9df6 100644
 --- a/sys/sys/mbuf.h
 +++ b/sys/sys/mbuf.h
 @@ -53,6 +53,10 @@
@@ -592,7 +608,15 @@ index 582c702..17dde45 100644
  
  /*
   * Initialize the list of tags associated with an mbuf.
-@@ -948,7 +965,8 @@ static __inline void
+@@ -924,6 +941,7 @@ m_tag_init(struct mbuf *m)
+ {
+ 
+ 	SLIST_INIT(&m->m_pkthdr.tags);
++	INIT_TAG_CONTAINER(m);
+ }
+ 
+ /*
+@@ -948,7 +966,8 @@ static __inline void
  m_tag_free(struct m_tag *t)
  {
  
