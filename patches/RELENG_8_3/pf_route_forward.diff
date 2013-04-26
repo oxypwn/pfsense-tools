@@ -1532,7 +1532,7 @@ index 96da66a..3c2dbc8 100644
 -                				bcopy(sa, (fwd_tag+1), sizeof(struct sockaddr_in));
 -                				m_tag_prepend(m, fwd_tag);
 +						((struct ip_fwd_tag *)(fwd_tag+1))->ifp = NULL;
-+                				bcopy(sa, ((struct ip_fwd_tag *)(fwd_tag+1))->sin, sizeof(sa));
++                				bcopy(sa, &((struct ip_fwd_tag *)(fwd_tag+1))->sin, sizeof(sa));
 +                				m_tag_prepend(m, fwd_tag); m->m_flags |= M_IP_NEXTHOP;
   
  						if (in_localip(sa->sin_addr)) {
