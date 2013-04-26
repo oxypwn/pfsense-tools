@@ -2,11 +2,11 @@
 # Date created:				25 Apr 2008
 # Whom:					Sergey Matveychuk <sem@FreeBSD.org>
 #
-# $FreeBSD$
+# $FreeBSD: head/dns/unbound/Makefile 315236 2013-03-25 16:03:53Z sem $
 #
 
 PORTNAME=	unbound
-PORTVERSION=	1.4.19
+PORTVERSION=	1.4.20
 PORTREVISION=	0
 CATEGORIES=	dns
 MASTER_SITES=	http://unbound.net/downloads/
@@ -50,7 +50,7 @@ OPTIONS_DEFAULT=THREADS
 
 LIBEVENT_DESC=	Enable whenever using many (10000) outgoing ports
 GOST_DESC=	Enable GOST support (requires OpenSSL from ports)
-ECDSA_DESC=	Enable ECDSA (elliptic curve) support (requires OpenSSL from ports)
+ECDSA_DESC=	Enable ECDSA (elliptic curve) support
 MUNIN_DESC=	Install Munin plugin
 
 .include <bsd.port.options.mk>
