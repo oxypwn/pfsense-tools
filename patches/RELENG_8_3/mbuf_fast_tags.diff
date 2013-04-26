@@ -410,7 +410,7 @@ index 495a8b5..2adcb53 100644
  	if (mtag == NULL)
  		return 1;		/* Cannot allocate packet header. */
 diff --git a/sys/netinet/ipfw/ip_fw2.c b/sys/netinet/ipfw/ip_fw2.c
-index 864f1ea..a9b8dcc 100644
+index 3c2dbc8..c141b76 100644
 --- a/sys/netinet/ipfw/ip_fw2.c
 +++ b/sys/netinet/ipfw/ip_fw2.c
 @@ -1816,7 +1816,7 @@ do {								\
