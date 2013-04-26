@@ -537,7 +537,7 @@ index 9b4876e..4947a07 100644
  	if (mtag == NULL) {
  		DPRINTF(("%s: could not get packet tag\n", __func__));
 diff --git a/sys/sys/mbuf.h b/sys/sys/mbuf.h
-index 582c702..6a5b15e 100644
+index 582c702..17dde45 100644
 --- a/sys/sys/mbuf.h
 +++ b/sys/sys/mbuf.h
 @@ -53,6 +53,10 @@
@@ -569,8 +569,8 @@ index 582c702..6a5b15e 100644
  	} PH_vt;
  	SLIST_HEAD(packet_tags, m_tag) tags; /* list of packet tags */
 +	u_char *tag_containerp;         /* points to the free part of tag_container */
-+	u_int8_t tag_container_size;    /* container free space */
 +	u_char tag_container[MTAGLEN];  /* tag container stores a few mtags (fast) */
++	u_int8_t tag_container_size;    /* container free space */
  };
  #define ether_vtag	PH_vt.vt_vtag
  
