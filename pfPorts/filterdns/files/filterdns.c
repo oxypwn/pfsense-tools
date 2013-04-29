@@ -506,7 +506,7 @@ void *check_hostname(void *arg)
 	struct thread_data *thrd = arg;
 	struct timespec ts;
         char *p, *q;
-	int howmuch, error1 = 0, tmp;
+	int howmuch, error1, tmp;
 
 	if (!thrd->hostname)
 		return (NULL);
@@ -542,6 +542,7 @@ void *check_hostname(void *arg)
 	for (;;) {
 		
 		tmp = 0;
+		error1 = 0;
 		ts.tv_sec += interval;
 		ts.tv_sec += (interval % 30);
 		ts.tv_nsec = 0;
