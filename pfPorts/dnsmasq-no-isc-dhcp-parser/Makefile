@@ -1,12 +1,8 @@
-# New ports collection makefile for:	dnsmasq
-# Date created:				1 June 2003
-# Whom:					Steven Honson
-#
+# Created by: Steven Honson
 # $FreeBSD$
-#
 
 PORTNAME=	dnsmasq
-DISTVERSION=	2.65
+DISTVERSION=	2.66
 PORTEPOCH=	1
 CATEGORIES=	dns ipv6
 MASTER_SITES=	http://www.thekelleys.org.uk/dnsmasq/ \
@@ -76,9 +72,6 @@ USE_RC_SUBR=	dnsmasq
 
 post-patch:
 	${REINPLACE_CMD} -e "s/lua5\.1/lua-5.1/" ${WRKSRC}/Makefile
-	# Simon forgot...
-	# see http://lists.thekelleys.org.uk/pipermail/dnsmasq-discuss/2012q3/006156.html
-	${REINPLACE_CMD} -e "s/2\.63rc6/2.63/" ${WRKSRC}/VERSION
 
 pre-configure:
 	@:
