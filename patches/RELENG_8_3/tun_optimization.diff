@@ -1,0 +1,82 @@
+diff --git a/sys/net/if_tun.c b/sys/net/if_tun.c
+index 1c49868..31d401d 100644
+--- a/sys/net/if_tun.c
++++ b/sys/net/if_tun.c
+@@ -330,15 +330,8 @@ tunstart(struct ifnet *ifp)
+ 	struct mbuf *m;
+ 
+ 	TUNDEBUG(ifp,"%s starting\n", ifp->if_xname);
+-	if (ALTQ_IS_ENABLED(&ifp->if_snd)) {
+-		IFQ_LOCK(&ifp->if_snd);
+-		IFQ_POLL_NOLOCK(&ifp->if_snd, m);
+-		if (m == NULL) {
+-			IFQ_UNLOCK(&ifp->if_snd);
+-			return;
+-		}
+-		IFQ_UNLOCK(&ifp->if_snd);
+-	}
++	if (IFQ_IS_EMPTY(&ifp->if_snd))
++		return;
+ 
+ 	mtx_lock(&tp->tun_mtx);
+ 	if (tp->tun_flags & TUN_RWAIT) {
+@@ -346,7 +339,8 @@ tunstart(struct ifnet *ifp)
+ 		wakeup(tp);
+ 	}
+ 	selwakeuppri(&tp->tun_rsel, PZERO + 1);
+-	KNOTE_LOCKED(&tp->tun_rsel.si_note, 0);
++	if (!KNLIST_EMPTY(&tp->tun_rsel.si_note))
++		KNOTE_LOCKED(&tp->tun_rsel.si_note, 0);
+ 	if (tp->tun_flags & TUN_ASYNC && tp->tun_sigio) {
+ 		mtx_unlock(&tp->tun_mtx);
+ 		pgsigio(&tp->tun_sigio, SIGIO, 0);
+@@ -595,9 +589,7 @@ tunoutput(struct ifnet *ifp, struct mbuf *m0, struct sockaddr *dst,
+ #endif
+ 
+ 	/* Could be unlocked read? */
+-	mtx_lock(&tp->tun_mtx);
+ 	cached_tun_flags = tp->tun_flags;
+-	mtx_unlock(&tp->tun_mtx);
+ 	if ((cached_tun_flags & TUN_READY) != TUN_READY) {
+ 		TUNDEBUG (ifp, "not ready 0%o\n", tp->tun_flags);
+ 		m_freem (m0);
+@@ -883,17 +875,14 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
+ 	mac_ifnet_create_mbuf(ifp, m);
+ #endif
+ 
+-	/* Could be unlocked read? */
+-	mtx_lock(&tp->tun_mtx);
++	/* XXX: unlocked read? */
+ 	if (tp->tun_flags & TUN_IFHEAD) {
+-		mtx_unlock(&tp->tun_mtx);
+ 		if (m->m_len < sizeof(family) &&
+ 		    (m = m_pullup(m, sizeof(family))) == NULL)
+ 			return (ENOBUFS);
+ 		family = ntohl(*mtod(m, u_int32_t *));
+ 		m_adj(m, sizeof(family));
+ 	} else {
+-		mtx_unlock(&tp->tun_mtx);
+ 		family = AF_INET;
+ 	}
+ 
+@@ -952,16 +941,13 @@ tunpoll(struct cdev *dev, int events, struct thread *td)
+ 	TUNDEBUG(ifp, "tunpoll\n");
+ 
+ 	if (events & (POLLIN | POLLRDNORM)) {
+-		IFQ_LOCK(&ifp->if_snd);
+-		IFQ_POLL_NOLOCK(&ifp->if_snd, m);
+-		if (m != NULL) {
+-			TUNDEBUG(ifp, "tunpoll q=%d\n", ifp->if_snd.ifq_len);
+-			revents |= events & (POLLIN | POLLRDNORM);
+-		} else {
++		if (IFQ_IS_EMPTY(&ifp->if_snd)) {
+ 			TUNDEBUG(ifp, "tunpoll waiting\n");
+ 			selrecord(td, &tp->tun_rsel);
++		} else {
++			TUNDEBUG(ifp, "tunpoll q=%d\n", ifp->if_snd.ifq_len);
++			revents |= events & (POLLIN | POLLRDNORM);
+ 		}
+-		IFQ_UNLOCK(&ifp->if_snd);
+ 	}
+ 	if (events & (POLLOUT | POLLWRNORM))
+ 		revents |= events & (POLLOUT | POLLWRNORM);
