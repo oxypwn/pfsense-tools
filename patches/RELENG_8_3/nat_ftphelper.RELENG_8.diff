@@ -218,10 +218,10 @@ index 93af7d4..be78e97 100644
  	}
  
 diff --git a/sys/contrib/pf/net/pf_ftp.c b/sys/contrib/pf/net/pf_ftp.c
-index e69de29..1942085 100644
+index e69de29..6a7496a 100644
 --- a/sys/contrib/pf/net/pf_ftp.c
 +++ b/sys/contrib/pf/net/pf_ftp.c
-@@ -0,0 +1,786 @@
+@@ -0,0 +1,772 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -318,7 +318,7 @@ index e69de29..1942085 100644
 +                s->rule.ptr->states--;                  \
 +        } while (0)
 +
-+#define BOUND_IFACE(k)	pfi_all
++#define BOUND_IFACE(k)	k
 +        
 +
 +void
@@ -374,11 +374,10 @@ index e69de29..1942085 100644
 +					PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
 +					s->ext.port = htons(oport);
 +					PF_ACPY(&s->lan.addr, &state->lan.addr, state->af);
-+					s->lan.port = htons(oport + 1);
++					s->lan.port = htons(20);
 +					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
 +					PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
 +					s->gwy.port = s->lan.port;
-+					s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
 +				} else {
 +					s->direction = PF_IN;
 +					PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
@@ -407,26 +406,14 @@ index e69de29..1942085 100644
 +						odelta = state->src.seqdiffoneway;
 +						NewFtpMessage(pd, state, m, off, oport, ftp_message_type);
 +					}
-+					if (nr != NULL) {
-+						s->direction = PF_IN;
-+						PF_ACPY(&s->lan.addr, &state->lan.addr, state->af);
-+						s->lan.port = htons(oport);
-+						PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
-+						s->gwy.port = htons(oport);
-+						PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
-+						s->ext.port = htons(oport + 1);
-+						s->ext.pad = FTP_CONTROL_PORT_NUMBER;
-+					} else {
-+						s->direction = PF_IN;
-+						PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
-+						s->ext.port = htons(oport);
-+						PF_ACPY(&s->lan.addr, &state->lan.addr, state->af);
-+						s->lan.port = htons(oport + 1);
-+						s->lan.pad = FTP_CONTROL_PORT_NUMBER;
-+						PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
-+						s->gwy.port = s->lan.port;
-+						s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
-+					}
++					s->direction = PF_IN;
++					PF_ACPY(&s->lan.addr, &state->lan.addr, state->af);
++					s->lan.port = htons(oport);
++					PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
++					s->gwy.port = htons(oport);
++					PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
++					s->ext.port = htons(oport + 1);
++					s->ext.pad = FTP_CONTROL_PORT_NUMBER;
 +				} else {
 +					s->direction = PF_OUT;
 +					PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
@@ -436,7 +423,6 @@ index e69de29..1942085 100644
 +					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
 +					PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
 +					s->gwy.port = s->lan.port;
-+					s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
 +				}
 +			} else
 +				return;
