@@ -30,7 +30,7 @@ index 1c49868..88e6db6 100644
 -	selwakeuppri(&tp->tun_rsel, PZERO + 1);
 -	KNOTE_LOCKED(&tp->tun_rsel.si_note, 0);
 -	if (tp->tun_flags & TUN_ASYNC && tp->tun_sigio) {
-+	if (!TAILQ_EMPTY(&tp->run_rsel.si_tdlist))
++	if (!TAILQ_EMPTY(&tp->tun_rsel.si_tdlist))
 +		selwakeuppri(&tp->tun_rsel, PZERO + 1);
 +	if (!KNLIST_EMPTY(&tp->tun_rsel.si_note)) {
 +		mtx_lock(&tp->tun_mtx);
