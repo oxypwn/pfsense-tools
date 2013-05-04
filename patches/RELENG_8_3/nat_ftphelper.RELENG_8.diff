@@ -12,7 +12,7 @@ index afc4b78..44f695a 100644
  crypto/blowfish/bf_ecb.c	optional ipsec 
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index 93af7d4..1e5d0b3 100644
+index 93af7d4..be78e97 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
 @@ -187,6 +187,10 @@ struct pool		 pf_src_tree_pl, pf_rule_pl;
@@ -146,11 +146,11 @@ index 93af7d4..1e5d0b3 100644
 +                if (direction == PF_IN) {
 +                        if ((*state)->ext.pad) { (*state)->ext.port = th->th_sport; (*state)->ext.pad = 0; }
 +                        if ((*state)->lan.pad || (*state)->gwy.pad) {
-+                        	(*state)->lan.port = (*state)->gwy.port = th->th_dport; (*state)->lan.pad = (*state)->gwy.pad = 0; }
++                        	(*state)->lan.port = (*state)->gwy.port = th->th_sport; (*state)->lan.pad = (*state)->gwy.pad = 0; }
 +                 } else {
 +                        if ((*state)->ext.pad) { (*state)->ext.port = th->th_dport; (*state)->ext.pad = 0; }
 +                        if ((*state)->lan.pad || (*state)->gwy.pad) {
-+                        	(*state)->lan.port = (*state)->gwy.port = th->th_sport; (*state)->lan.pad = (*state)->gwy.pad = 0; }
++                        	(*state)->lan.port = (*state)->gwy.port = th->th_dport; (*state)->lan.pad = (*state)->gwy.pad = 0; }
 +                }
 +                src->state = TCPS_SYN_SENT;
 +                dst->state = TCPS_CLOSED;
@@ -218,10 +218,10 @@ index 93af7d4..1e5d0b3 100644
  	}
  
 diff --git a/sys/contrib/pf/net/pf_ftp.c b/sys/contrib/pf/net/pf_ftp.c
-index e69de29..51ab2a5 100644
+index e69de29..1942085 100644
 --- a/sys/contrib/pf/net/pf_ftp.c
 +++ b/sys/contrib/pf/net/pf_ftp.c
-@@ -0,0 +1,790 @@
+@@ -0,0 +1,786 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -428,10 +428,6 @@ index e69de29..51ab2a5 100644
 +						s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
 +					}
 +				} else {
-+					if (ftp_message_type == FTP_227_REPLY && nr != NULL && nr->action == PF_NAT) {
-+						odelta = state->src.seqdiffoneway;
-+						NewFtpMessage(pd, state, m, off, oport, ftp_message_type);
-+					}
 +					s->direction = PF_OUT;
 +					PF_ACPY(&s->ext.addr, &state->ext.addr, state->af);
 +					s->ext.port = htons(oport);
