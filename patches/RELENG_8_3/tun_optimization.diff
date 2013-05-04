@@ -1,9 +1,12 @@
 diff --git a/sys/net/if_tun.c b/sys/net/if_tun.c
-index 1c49868..31d401d 100644
+index 1c49868..0e7fab1 100644
 --- a/sys/net/if_tun.c
 +++ b/sys/net/if_tun.c
-@@ -330,15 +330,8 @@ tunstart(struct ifnet *ifp)
- 	struct mbuf *m;
+@@ -327,18 +327,10 @@ static void
+ tunstart(struct ifnet *ifp)
+ {
+ 	struct tun_softc *tp = ifp->if_softc;
+-	struct mbuf *m;
  
  	TUNDEBUG(ifp,"%s starting\n", ifp->if_xname);
 -	if (ALTQ_IS_ENABLED(&ifp->if_snd)) {
@@ -20,7 +23,7 @@ index 1c49868..31d401d 100644
  
  	mtx_lock(&tp->tun_mtx);
  	if (tp->tun_flags & TUN_RWAIT) {
-@@ -346,7 +339,8 @@ tunstart(struct ifnet *ifp)
+@@ -346,7 +338,8 @@ tunstart(struct ifnet *ifp)
  		wakeup(tp);
  	}
  	selwakeuppri(&tp->tun_rsel, PZERO + 1);
@@ -30,7 +33,7 @@ index 1c49868..31d401d 100644
  	if (tp->tun_flags & TUN_ASYNC && tp->tun_sigio) {
  		mtx_unlock(&tp->tun_mtx);
  		pgsigio(&tp->tun_sigio, SIGIO, 0);
-@@ -595,9 +589,7 @@ tunoutput(struct ifnet *ifp, struct mbuf *m0, struct sockaddr *dst,
+@@ -595,9 +588,7 @@ tunoutput(struct ifnet *ifp, struct mbuf *m0, struct sockaddr *dst,
  #endif
  
  	/* Could be unlocked read? */
@@ -40,7 +43,7 @@ index 1c49868..31d401d 100644
  	if ((cached_tun_flags & TUN_READY) != TUN_READY) {
  		TUNDEBUG (ifp, "not ready 0%o\n", tp->tun_flags);
  		m_freem (m0);
-@@ -883,17 +875,14 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
+@@ -883,17 +874,14 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
  	mac_ifnet_create_mbuf(ifp, m);
  #endif
  
@@ -59,7 +62,12 @@ index 1c49868..31d401d 100644
  		family = AF_INET;
  	}
  
-@@ -952,16 +941,13 @@ tunpoll(struct cdev *dev, int events, struct thread *td)
+@@ -947,21 +935,17 @@ tunpoll(struct cdev *dev, int events, struct thread *td)
+ 	struct tun_softc *tp = dev->si_drv1;
+ 	struct ifnet	*ifp = TUN2IFP(tp);
+ 	int		revents = 0;
+-	struct mbuf	*m;
+ 
  	TUNDEBUG(ifp, "tunpoll\n");
  
  	if (events & (POLLIN | POLLRDNORM)) {
