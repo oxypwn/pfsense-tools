@@ -1,8 +1,25 @@
 diff --git a/sys/net/if_tun.c b/sys/net/if_tun.c
-index 1c49868..88e6db6 100644
+index 1c49868..5953dd0 100644
 --- a/sys/net/if_tun.c
 +++ b/sys/net/if_tun.c
-@@ -327,31 +327,22 @@ static void
+@@ -110,6 +110,7 @@ static struct mtx tunmtx;
+ static MALLOC_DEFINE(M_TUN, TUNNAME, "Tunnel Interface");
+ static int tundebug = 0;
+ static int tundclone = 1;
++static int tundispatch = 1;
+ static struct clonedevs *tunclones;
+ static TAILQ_HEAD(,tun_softc)	tunhead = TAILQ_HEAD_INITIALIZER(tunhead);
+ SYSCTL_INT(_debug, OID_AUTO, if_tun_debug, CTLFLAG_RW, &tundebug, 0, "");
+@@ -119,6 +120,8 @@ SYSCTL_NODE(_net_link, OID_AUTO, tun, CTLFLAG_RW, 0,
+     "IP tunnel software network interface.");
+ SYSCTL_INT(_net_link_tun, OID_AUTO, devfs_cloning, CTLFLAG_RW, &tundclone, 0,
+     "Enable legacy devfs interface creation.");
++SYSCTL_INT(_net_link_tun, OID_AUTO, tun_dispatching, CTLFLAG_RW, &tundispatch, 0,
++    "Queue rather than direct dispatch on write.");
+ 
+ TUNABLE_INT("net.link.tun.devfs_cloning", &tundclone);
+ 
+@@ -327,31 +330,24 @@ static void
  tunstart(struct ifnet *ifp)
  {
  	struct tun_softc *tp = ifp->if_softc;
@@ -22,15 +39,14 @@ index 1c49868..88e6db6 100644
 +		return;
  
 -	mtx_lock(&tp->tun_mtx);
--	if (tp->tun_flags & TUN_RWAIT) {
--		tp->tun_flags &= ~TUN_RWAIT;
-+	if (tp->tun_flags & TUN_RWAIT)
+ 	if (tp->tun_flags & TUN_RWAIT) {
+ 		tp->tun_flags &= ~TUN_RWAIT;
  		wakeup(tp);
--	}
+ 	}
 -	selwakeuppri(&tp->tun_rsel, PZERO + 1);
 -	KNOTE_LOCKED(&tp->tun_rsel.si_note, 0);
 -	if (tp->tun_flags & TUN_ASYNC && tp->tun_sigio) {
-+	if (!TAILQ_EMPTY(&tp->tun_rsel.si_tdlist))
++	if (!TAILQ_EMPTY(&tp->run_rsel.si_tdlist))
 +		selwakeuppri(&tp->tun_rsel, PZERO + 1);
 +	if (!KNLIST_EMPTY(&tp->tun_rsel.si_note)) {
 +		mtx_lock(&tp->tun_mtx);
@@ -44,7 +60,7 @@ index 1c49868..88e6db6 100644
  }
  
  /* XXX: should return an error code so it can fail. */
-@@ -595,9 +586,7 @@ tunoutput(struct ifnet *ifp, struct mbuf *m0, struct sockaddr *dst,
+@@ -595,9 +591,7 @@ tunoutput(struct ifnet *ifp, struct mbuf *m0, struct sockaddr *dst,
  #endif
  
  	/* Could be unlocked read? */
@@ -54,7 +70,7 @@ index 1c49868..88e6db6 100644
  	if ((cached_tun_flags & TUN_READY) != TUN_READY) {
  		TUNDEBUG (ifp, "not ready 0%o\n", tp->tun_flags);
  		m_freem (m0);
-@@ -806,13 +795,12 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
+@@ -806,13 +800,12 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
  	int		error=0, len;
  
  	TUNDEBUG (ifp, "read\n");
@@ -69,7 +85,7 @@ index 1c49868..88e6db6 100644
  	tp->tun_flags &= ~TUN_RWAIT;
  
  	do {
-@@ -825,6 +813,7 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
+@@ -825,6 +818,7 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
  			tp->tun_flags |= TUN_RWAIT;
  			error = mtx_sleep(tp, &tp->tun_mtx, PCATCH | (PZERO + 1),
  			    "tunread", 0);
@@ -77,7 +93,7 @@ index 1c49868..88e6db6 100644
  			if (error != 0) {
  				mtx_unlock(&tp->tun_mtx);
  				return (error);
-@@ -883,17 +872,14 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
+@@ -883,17 +877,14 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
  	mac_ifnet_create_mbuf(ifp, m);
  #endif
  
@@ -96,7 +112,19 @@ index 1c49868..88e6db6 100644
  		family = AF_INET;
  	}
  
-@@ -947,21 +933,17 @@ tunpoll(struct cdev *dev, int events, struct thread *td)
+@@ -931,7 +922,10 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
+ 	ifp->if_ipackets++;
+ 	CURVNET_SET(ifp->if_vnet);
+ 	M_SETFIB(m, ifp->if_fib);
+-	netisr_dispatch(isr, m);
++	if (tundispatch)
++		netisr_queue(isr, m);
++	else
++		netisr_dispatch(isr, m);
+ 	CURVNET_RESTORE();
+ 	return (0);
+ }
+@@ -947,21 +941,17 @@ tunpoll(struct cdev *dev, int events, struct thread *td)
  	struct tun_softc *tp = dev->si_drv1;
  	struct ifnet	*ifp = TUN2IFP(tp);
  	int		revents = 0;
