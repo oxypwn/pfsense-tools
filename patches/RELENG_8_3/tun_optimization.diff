@@ -1,8 +1,16 @@
 diff --git a/sys/net/if_tun.c b/sys/net/if_tun.c
-index 1c49868..e924147 100644
+index 1c49868..4fee9c9 100644
 --- a/sys/net/if_tun.c
 +++ b/sys/net/if_tun.c
-@@ -110,6 +110,7 @@ static struct mtx tunmtx;
+@@ -52,6 +52,7 @@
+ #include <net/vnet.h>
+ #ifdef INET
+ #include <netinet/in.h>
++#include <netinet/ip.h>
+ #endif
+ #include <net/bpf.h>
+ #include <net/if_tun.h>
+@@ -110,6 +111,7 @@ static struct mtx tunmtx;
  static MALLOC_DEFINE(M_TUN, TUNNAME, "Tunnel Interface");
  static int tundebug = 0;
  static int tundclone = 1;
@@ -10,7 +18,7 @@ index 1c49868..e924147 100644
  static struct clonedevs *tunclones;
  static TAILQ_HEAD(,tun_softc)	tunhead = TAILQ_HEAD_INITIALIZER(tunhead);
  SYSCTL_INT(_debug, OID_AUTO, if_tun_debug, CTLFLAG_RW, &tundebug, 0, "");
-@@ -119,6 +120,8 @@ SYSCTL_NODE(_net_link, OID_AUTO, tun, CTLFLAG_RW, 0,
+@@ -119,6 +121,8 @@ SYSCTL_NODE(_net_link, OID_AUTO, tun, CTLFLAG_RW, 0,
      "IP tunnel software network interface.");
  SYSCTL_INT(_net_link_tun, OID_AUTO, devfs_cloning, CTLFLAG_RW, &tundclone, 0,
      "Enable legacy devfs interface creation.");
@@ -19,7 +27,7 @@ index 1c49868..e924147 100644
  
  TUNABLE_INT("net.link.tun.devfs_cloning", &tundclone);
  
-@@ -327,31 +330,24 @@ static void
+@@ -327,31 +331,28 @@ static void
  tunstart(struct ifnet *ifp)
  {
  	struct tun_softc *tp = ifp->if_softc;
@@ -37,6 +45,8 @@ index 1c49868..e924147 100644
 -	}
 +	if (IFQ_IS_EMPTY(&ifp->if_snd))
 +		return;
++
++	ifp->if_drv_flags |= IFF_DRV_OACTIVE;
  
 -	mtx_lock(&tp->tun_mtx);
  	if (tp->tun_flags & TUN_RWAIT) {
@@ -57,10 +67,12 @@ index 1c49868..e924147 100644
  		pgsigio(&tp->tun_sigio, SIGIO, 0);
 -	} else
 -		mtx_unlock(&tp->tun_mtx);
++
++	ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
  }
  
  /* XXX: should return an error code so it can fail. */
-@@ -595,9 +591,7 @@ tunoutput(struct ifnet *ifp, struct mbuf *m0, struct sockaddr *dst,
+@@ -595,9 +596,7 @@ tunoutput(struct ifnet *ifp, struct mbuf *m0, struct sockaddr *dst,
  #endif
  
  	/* Could be unlocked read? */
@@ -70,7 +82,7 @@ index 1c49868..e924147 100644
  	if ((cached_tun_flags & TUN_READY) != TUN_READY) {
  		TUNDEBUG (ifp, "not ready 0%o\n", tp->tun_flags);
  		m_freem (m0);
-@@ -806,9 +800,7 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
+@@ -806,9 +805,7 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
  	int		error=0, len;
  
  	TUNDEBUG (ifp, "read\n");
@@ -80,7 +92,7 @@ index 1c49868..e924147 100644
  		TUNDEBUG (ifp, "not ready 0%o\n", tp->tun_flags);
  		return (EHOSTDOWN);
  	}
-@@ -819,19 +811,19 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
+@@ -819,19 +816,19 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
  		IFQ_DEQUEUE(&ifp->if_snd, m);
  		if (m == NULL) {
  			if (flag & O_NONBLOCK) {
@@ -103,7 +115,15 @@ index 1c49868..e924147 100644
  
  	while (m && uio->uio_resid > 0 && error == 0) {
  		len = min(uio->uio_resid, m->m_len);
-@@ -883,17 +875,14 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
+@@ -856,6 +853,7 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
+ 	struct tun_softc *tp = dev->si_drv1;
+ 	struct ifnet	*ifp = TUN2IFP(tp);
+ 	struct mbuf	*m;
++	struct ip	*ip;
+ 	uint32_t	family;
+ 	int 		isr;
+ 
+@@ -883,18 +881,26 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
  	mac_ifnet_create_mbuf(ifp, m);
  #endif
  
@@ -119,10 +139,23 @@ index 1c49868..e924147 100644
  		m_adj(m, sizeof(family));
  	} else {
 -		mtx_unlock(&tp->tun_mtx);
- 		family = AF_INET;
+-		family = AF_INET;
++		if (m->m_len < sizeof(struct ip) &&
++		    (m = m_pullup(m, sizeof(struct ip))) == NULL)
++			return (ENOBUFS);
++		ip = mtod(m, struct ip *);
++		if (ip->ip_v == IPVERSION)
++			family = AF_INET;
++		else if (ip->ip_v == AF_INET6)
++			family = AF_INET6;
++		else {
++			m_freem(m);
++			return (EINVAL);
++		}
  	}
  
-@@ -931,7 +920,10 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
+ 	BPF_MTAP2(ifp, &family, sizeof(family), m);
+@@ -931,7 +937,10 @@ tunwrite(struct cdev *dev, struct uio *uio, int flag)
  	ifp->if_ipackets++;
  	CURVNET_SET(ifp->if_vnet);
  	M_SETFIB(m, ifp->if_fib);
@@ -134,7 +167,7 @@ index 1c49868..e924147 100644
  	CURVNET_RESTORE();
  	return (0);
  }
-@@ -947,21 +939,17 @@ tunpoll(struct cdev *dev, int events, struct thread *td)
+@@ -947,21 +956,17 @@ tunpoll(struct cdev *dev, int events, struct thread *td)
  	struct tun_softc *tp = dev->si_drv1;
  	struct ifnet	*ifp = TUN2IFP(tp);
  	int		revents = 0;
