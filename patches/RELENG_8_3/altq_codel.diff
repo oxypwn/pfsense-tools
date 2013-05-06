@@ -369,7 +369,7 @@ index dea00ea..1aeb6be 100644
  		struct node_fairq_opts	fairq_opts;
  	}			 data;
 diff --git a/contrib/pf/pfctl/pfctl_qstats.c b/contrib/pf/pfctl/pfctl_qstats.c
-index b3e9441..8f49a62 100644
+index b3e9441..0f38252 100644
 --- a/contrib/pf/pfctl/pfctl_qstats.c
 +++ b/contrib/pf/pfctl/pfctl_qstats.c
 @@ -39,6 +39,7 @@ __FBSDID("$FreeBSD: src/contrib/pf/pfctl/pfctl_qstats.c,v 1.7.2.1.8.2 2012/11/17
@@ -451,6 +451,26 @@ index b3e9441..8f49a62 100644
  print_hfscstats(struct queue_stats cur)
  {
  	printf("  [ pkts: %10llu  bytes: %10llu  "
+@@ -432,7 +458,7 @@ update_avg(struct pf_altq_node *a)
+ 	u_int64_t		 b, p;
+ 	int			 n;
+ 
+-	if (a->altq.qid == 0)
++	if (a->altq.qid == 0 && a->altq.scheduler != ALTQT_CODEL)
+ 		return;
+ 
+ 	qs = &a->qstats;
+@@ -455,6 +481,10 @@ update_avg(struct pf_altq_node *a)
+ 		b = qs->data.fairq_stats.xmit_cnt.bytes;
+ 		p = qs->data.fairq_stats.xmit_cnt.packets;
+ 		break;
++	case ALTQT_CODEL:
++		b = qs->data.codel_stats.cl_xmitcnt.bytes;
++		p = qs->data.codel_stats.cl_xmitcnt.packets;
++		break;
+ 	default:
+ 		b = 0;
+ 		p = 0;
 diff --git a/sbin/pfctl/missing/altq/altq_cbq.h b/sbin/pfctl/missing/altq/altq_cbq.h
 index f4fa333..45509f0 100644
 --- a/sbin/pfctl/missing/altq/altq_cbq.h
