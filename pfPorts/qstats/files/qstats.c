@@ -44,6 +44,7 @@ __FBSDID("$FreeBSD: src/contrib/pf/pfctl/pfctl_qstats.c,v 1.8.2.1 2011/09/23 00:
 #include <altq/altq_priq.h>
 #include <altq/altq_hfsc.h>
 #include <altq/altq_fairq.h>
+#include <altq/altq_codel.h>
 
 int      pfctl_show_altq(int, const char *, int, int);
 
@@ -61,6 +62,7 @@ union class_stats {
 	struct priq_classstats	priq_stats;
 	struct hfsc_classstats	hfsc_stats;
 	struct fairq_classstats fairq_stats;
+	struct codel_ifstats	codel_stats;
 };
 
 #define AVGN_MAX	8
@@ -90,6 +92,7 @@ struct pf_altq_node	*pfctl_find_altq_node(struct pf_altq_node *,
 void			 pfctl_print_altq_node(int, const struct pf_altq_node *,
 			    unsigned, struct sbuf *);
 void			 print_cbqstats(struct queue_stats, struct sbuf *sb, int);
+void			 print_codelstats(struct queue_stats, struct sbuf *sb, int);
 void			 print_priqstats(struct queue_stats, struct sbuf *sb, int);
 void			 print_hfscstats(struct queue_stats, struct sbuf *sb, int);
 void			 print_fairqstats(struct queue_stats, struct sbuf *sb, int);
@@ -304,6 +307,9 @@ print_altq(const struct pf_altq *a, unsigned int level,
         case ALTQT_FAIRQ:
 		sbuf_printf(sb, "\t<scheduler>%s</scheduler>\n", "fairq");
                 break;
+        case ALTQT_CODEL:
+		sbuf_printf(sb, "\t<scheduler>%s</scheduler>\n", "codelq");
+                break;
         }
 
         if (bw != NULL && bw->bw_percent > 0) {
@@ -350,7 +356,7 @@ pfctl_update_qstats(int dev, struct pf_altq_node **root)
 			syslog(LOG_ERR, "Problem with DIOCGETALTQ");
 			return (-1);
 		}
-		if (pa.altq.qid > 0 &&
+		if ((pa.altq.qid > 0 || pa.altq.scheduler == ALTQT_CODEL) &&
 		    !(pa.altq.local_flags & PFALTQ_FLAG_IF_REMOVED)) {
 			pq.nr = nr;
 			pq.ticket = pa.ticket;
@@ -495,7 +501,7 @@ pfctl_print_altq_node(int dev, const struct pf_altq_node *node,
 void
 pfctl_print_altq_nodestat(int dev __unused, const struct pf_altq_node *a, struct sbuf *sb, int level)
 {
-	if (a->altq.qid == 0)
+	if (a->altq.qid == 0 && a->altq.scheduler != ALTQT_CODEL)
 		return;
 
 	if (a->altq.local_flags & PFALTQ_FLAG_IF_REMOVED)
@@ -513,6 +519,9 @@ pfctl_print_altq_nodestat(int dev __unused, const struct pf_altq_node *a, struct
 		break;
 	case ALTQT_FAIRQ:
 		print_fairqstats(a->qstats, sb, level);
+		break;
+	case ALTQT_CODEL:
+		print_codelstats(a->qstats, sb, level);
 		break;
 	}
 }
@@ -545,6 +554,26 @@ print_cbqstats(struct queue_stats cur, struct sbuf *sb, int level)
 	    rate2str((8 * cur.avg_bytes) / STAT_INTERVAL),
 		(8 * cur.avg_bytes) / STAT_INTERVAL
 		);
+}
+
+void
+print_codelstats(struct queue_stats cur, struct sbuf *sb, int level)
+{
+	printf("  [ pkts: %10llu  bytes: %10llu  "
+		"dropped pkts: %6llu bytes: %6llu ]\n",
+		(unsigned long long)cur.data.codel_stats.cl_xmitcnt.packets,
+		(unsigned long long)cur.data.codel_stats.cl_xmitcnt.bytes,
+		(unsigned long long)cur.data.codel_stats.cl_dropcnt.packets + cur.data.codel_stats.stats.drop_cnt.packets,
+		(unsigned long long)cur.data.codel_stats.cl_dropcnt.bytes  + cur.data.codel_stats.stats.drop_cnt.bytes);
+	printf("  [ qlength: %3d/%3d ]\n",
+		cur.data.codel_stats.qlength, cur.data.codel_stats.qlimit);
+
+	if (cur.avgn < 2)
+		return;
+
+	printf("  [ measured: %7.1f packets/s, %s/s ]\n",
+		cur.avg_packets / STAT_INTERVAL,
+		rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
 
 void
@@ -655,7 +684,7 @@ update_avg(struct pf_altq_node *a)
 	u_int64_t		 b, p;
 	int			 n;
 
-	if (a->altq.qid == 0)
+	if (a->altq.qid == 0 && a->altq.scheduler != ALTQT_CODEL)
 		return;
 
 	qs = &a->qstats;
@@ -677,6 +706,10 @@ update_avg(struct pf_altq_node *a)
 	case ALTQT_FAIRQ:
 		b = qs->data.fairq_stats.xmit_cnt.bytes;
 		p = qs->data.fairq_stats.xmit_cnt.packets;
+		break;
+	case ALTQT_CODEL:
+		b = qs->data.codel_stats.cl_xmitcnt.bytes;
+		p = qs->data.codel_stats.cl_xmitcnt.packets;
 		break;
 	default:
 		b = 0;
