@@ -559,19 +559,19 @@ print_cbqstats(struct queue_stats cur, struct sbuf *sb, int level)
 void
 print_codelstats(struct queue_stats cur, struct sbuf *sb, int level)
 {
-	printf("  [ pkts: %10llu  bytes: %10llu  "
-		"dropped pkts: %6llu bytes: %6llu ]\n",
+	sbuf_printf(sb, "<pkts>%llu</pkts><bytes>%llu</bytes>"
+		"<droppedpkts>%llu</droppedpkts><droppedbytes>%llu</droppedbytes>",
 		(unsigned long long)cur.data.codel_stats.cl_xmitcnt.packets,
 		(unsigned long long)cur.data.codel_stats.cl_xmitcnt.bytes,
 		(unsigned long long)cur.data.codel_stats.cl_dropcnt.packets + cur.data.codel_stats.stats.drop_cnt.packets,
 		(unsigned long long)cur.data.codel_stats.cl_dropcnt.bytes  + cur.data.codel_stats.stats.drop_cnt.bytes);
-	printf("  [ qlength: %3d/%3d ]\n",
+	sbuf_printf(sb, "<qlength>%d/%d</qlength>",
 		cur.data.codel_stats.qlength, cur.data.codel_stats.qlimit);
 
 	if (cur.avgn < 2)
 		return;
 
-	printf("  [ measured: %7.1f packets/s, %s/s ]\n",
+	sbuf_printf(sb, "<measured>%.1f</meadured><measuredspeed>%s</measuredspeed>",
 		cur.avg_packets / STAT_INTERVAL,
 		rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
