@@ -395,7 +395,7 @@ ipfw_tableentry(struct thread_data *ipfwd, struct sockaddr *address, int action)
 			s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
 		if (s < 0) {
 			error++;
-			return;
+			continue;
 		}
 		if (address->sa_family != AF_INET) /* XXX */
 			return (0);
