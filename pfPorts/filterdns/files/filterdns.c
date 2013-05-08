@@ -63,8 +63,8 @@ static pthread_mutex_t sig_mtx;
 static pthread_t sig_thr;
 static pthread_rwlock_t main_lock;
 
-static void pf_tableentry(struct thread_data *, struct sockaddr *, int);
-static void ipfw_tableentry(struct thread_data *, struct sockaddr *, int);
+static int pf_tableentry(struct thread_data *, struct sockaddr *, int);
+static int ipfw_tableentry(struct thread_data *, struct sockaddr *, int);
 static int host_dns(struct thread_data *, int);
 static int filterdns_clean_table(struct thread_data *, int);
 static void clear_config(struct thread_list *);
@@ -281,6 +281,7 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 	struct table *e, *tmp;
 	char buffer[INET6_ADDRSTRLEN] = { 0 };
 	int removed = 0;
+	int error;
 
 	if (TAILQ_EMPTY(&thrdata->rnh))
 		return (0);
@@ -288,6 +289,7 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 	TAILQ_FOREACH_SAFE(e, &thrdata->rnh, entry, tmp) {
 		e->refcnt--;
 		if (donotcheckrefcount || e->refcnt <= 0) {
+			error = 0;
 			if (thrdata->type == PF_TYPE) {
 				if (debug >= 2) {
 					if(e->addr->sa_family == AF_INET)
@@ -295,19 +297,22 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 					if(e->addr->sa_family == AF_INET6)
 						syslog(LOG_WARNING, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 6, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 				}
-				pf_tableentry(thrdata, e->addr, DELETE);
+				error = pf_tableentry(thrdata, e->addr, DELETE);
 			}
 			else if (thrdata->type == IPFW_TYPE) {
 				if (debug >= 2)
 					syslog(LOG_WARNING, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
-				ipfw_tableentry(thrdata, e->addr, DELETE);
+				error = ipfw_tableentry(thrdata, e->addr, DELETE);
 			}
-			else if (thrdata->type == CMD_TYPE) {
+			if (error == 0) {
+				TAILQ_REMOVE(&thrdata->rnh, e, entry);
+				free(e->addr);
+				free(e);
 				removed++;
+			} else {
+				if (debug >= 3)
+					syslog(LOG_ERR, "\t\tCOULD NOT clear entry %s from table %s on host %s will retry later", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 			}
-			TAILQ_REMOVE(&thrdata->rnh, e, entry);
-			free(e->addr);
-			free(e);
 		} else if (debug >= 2) {
 			if (thrdata->type == PF_TYPE || thrdata->type == CMD_TYPE) {
 				if (debug >= 2) {
@@ -367,10 +372,11 @@ host_dns(struct thread_data *hostd, int forceupdate)
         return (cnt);
 }
 
-static void
+static int
 ipfw_tableentry(struct thread_data *ipfwd, struct sockaddr *address, int action)
 {
 	static int s = -1;
+	int error, i = 3;
 
 #if __FreeBSD_version >= 803000
 #ifndef	IP_FW_CTX_MAXNAME
@@ -380,45 +386,66 @@ ipfw_tableentry(struct thread_data *ipfwd, struct sockaddr *address, int action)
 		char ctxname[IP_FW_CTX_MAXNAME];
 		ipfw_table_entry ent;
 	} entry;
+#endif
 
-	if (s == -1)
-		s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-	if (s < 0)
-		return;
-	if (address->sa_family != AF_INET) /* XXX */
-		return;
-	bzero(&entry, sizeof(entry));
-	entry.ent.masklen = ipfwd->mask;
-	entry.ent.tbl = ipfwd->tablenr;
-	entry.ent.addr = satosin(address)->sin_addr.s_addr;
-	entry.ent.value = ipfwd->pipe; /* XXX */
+	error = 0;
+	while (i-- > 0) {
+#if __FreeBSD_version >= 803000
+		if (s == -1)
+			s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+		if (s < 0) {
+			error++;
+			return;
+		}
+		if (address->sa_family != AF_INET) /* XXX */
+			return (0);
+		bzero(&entry, sizeof(entry));
+		entry.ent.masklen = ipfwd->mask;
+		entry.ent.tbl = ipfwd->tablenr;
+		entry.ent.addr = satosin(address)->sin_addr.s_addr;
+		entry.ent.value = ipfwd->pipe; /* XXX */
 
 
-	if (ipfwctx != NULL) {
-		sprintf(entry.ctxname, "%s", ipfwctx);
-		setsockopt(s, IPPROTO_IP, action == ADD ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL, (void *)&entry, sizeof(entry));
-	}
+		if (ipfwctx != NULL) {
+			sprintf(entry.ctxname, "%s", ipfwctx);
+			if (setsockopt(s, IPPROTO_IP, action == ADD ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL, (void *)&entry, sizeof(entry)) < 0) {
+				error++;
+				continue;
+			}
+		}
 #else
-	ipfw_table_entry ent;
+		ipfw_table_entry ent;
 
-	if (s == -1)
-		s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-	if (s < 0)
-		return;
-	if (address->sa_family != AF_INET) /* XXX */
-		return;
-	bzero(&ent, sizeof(ent));
-	ent.masklen = ipfwd->mask;
-	ent.tbl = ipfwd->tablenr;
-	ent.addr = satosin(address)->sin_addr.s_addr;
-	ent.value = ipfwd->pipe; /* XXX */
+		if (s == -1)
+			s = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+		if (s < 0) {
+			error++;
+			continue;
+		}
+		if (address->sa_family != AF_INET) /* XXX */
+			return (0);
+		bzero(&ent, sizeof(ent));
+		ent.masklen = ipfwd->mask;
+		ent.tbl = ipfwd->tablenr;
+		ent.addr = satosin(address)->sin_addr.s_addr;
+		ent.value = ipfwd->pipe; /* XXX */
 #ifndef IP_FW_CTX_SET
 #define	IP_FW_CTX_SET	92
 #endif
-	if (ipfwctx != NULL)
-		setsockopt(s, IPPROTO_IP, IP_FW_CTX_SET, (void *)ipfwctx, strlen(ipfwctx));
-	setsockopt(s, IPPROTO_IP, action == ADD ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL, (void *)&ent, sizeof(ent));
+		if (ipfwctx != NULL) {
+			if (setsockopt(s, IPPROTO_IP, IP_FW_CTX_SET, (void *)ipfwctx, strlen(ipfwctx)) < 0) {
+				error++;
+				continue;
+			}
+		}
+		if (setsockopt(s, IPPROTO_IP, action == ADD ? IP_FW_TABLE_ADD : IP_FW_TABLE_DEL, (void *)&ent, sizeof(ent)) < 0)
+			error++;
+		else
+			break;
 #endif
+	}
+
+	return (error);
 }
 
 static void
@@ -443,22 +470,23 @@ set_ipmask(struct in6_addr *h, int b)
         	h->__u6_addr.__u6_addr32[i] = h->__u6_addr.__u6_addr32[i] & m.addr32[i];
 }
 
-static void
+static int
 pf_tableentry(struct thread_data *pfd, struct sockaddr *address, int action)
 {
 	struct pfioc_table io;
 	struct pfr_table table;
 	struct pfr_addr addr;
+	int error, i = 3;
 
 	if (pfd->tablename == NULL)
-		return;
+		return (0);
 
 	bzero(&table, sizeof(table));
 	if (strlcpy(table.pfrt_name, pfd->tablename,
 		sizeof(table.pfrt_name)) >= sizeof(table.pfrt_name)) {
 		if (debug >= 1)
 			syslog(LOG_WARNING, "could not add address to table %s", pfd->tablename);
-		return;
+		return (0);
 	}
 	
 	bzero(&addr, sizeof(addr));
@@ -476,29 +504,38 @@ pf_tableentry(struct thread_data *pfd, struct sockaddr *address, int action)
 	if(debug >= 4)
 		syslog(LOG_WARNING, "setting subnet mask for family %i to %i", addr.pfra_af, addr.pfra_net);
 
-	bzero(&io, sizeof io);
-        io.pfrio_table = table;
-        io.pfrio_buffer = &addr;
-        io.pfrio_esize = sizeof(addr);
-        io.pfrio_size = 1;
+	error = 0;
+	while (i-- > 0) {
+		bzero(&io, sizeof io);
+		io.pfrio_table = table;
+		io.pfrio_buffer = &addr;
+		io.pfrio_esize = sizeof(addr);
+		io.pfrio_size = 1;
 
-	if (action == DELETE) {
-		 if (ioctl(dev, DIOCRDELADDRS, &io)) {
-			if (debug >= 3)
-				syslog(LOG_WARNING, "FAILED to delete address from table %s.", pfd->tablename);
-		} else {
-			if (debug >= 3)
-				syslog(LOG_WARNING, "\t DELETED %d addresses(%d) to table %s.", io.pfrio_ndel, address->sa_family, pfd->tablename);
-		}
-	} else if (action == ADD) {
-		if (ioctl(dev, DIOCRADDADDRS, &io)) {
-			if (debug >= 3)
-				syslog(LOG_WARNING, "FAILED to add address to table %s with errno %d.", pfd->tablename, errno);
-		} else {
-			if (debug >= 3)
-				syslog(LOG_WARNING, "\t ADDED %d addresses(%d) to table %s.", io.pfrio_nadd, address->sa_family, pfd->tablename);
+		if (action == DELETE) {
+			 if (ioctl(dev, DIOCRDELADDRS, &io)) {
+				if (debug >= 3)
+					syslog(LOG_WARNING, "FAILED to delete address from table %s.", pfd->tablename);
+				error++;
+			} else {
+				if (debug >= 3)
+					syslog(LOG_WARNING, "\t DELETED %d addresses(%d) to table %s.", io.pfrio_ndel, address->sa_family, pfd->tablename);
+				break;
+			}
+		} else if (action == ADD) {
+			if (ioctl(dev, DIOCRADDADDRS, &io)) {
+				if (debug >= 3)
+					syslog(LOG_WARNING, "FAILED to add address to table %s with errno %d.", pfd->tablename, errno);
+				error++;
+			} else {
+				if (debug >= 3)
+					syslog(LOG_WARNING, "\t ADDED %d addresses(%d) to table %s.", io.pfrio_nadd, address->sa_family, pfd->tablename);
+				break;
+			}
 		}
 	}
+
+	return (error);
 }
 
 void *check_hostname(void *arg)
