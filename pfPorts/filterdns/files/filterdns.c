@@ -288,7 +288,7 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 
 	TAILQ_FOREACH_SAFE(e, &thrdata->rnh, entry, tmp) {
 		e->refcnt--;
-		if (donotcheckrefcount || e->refcnt <= 0) {
+		if (donotcheckrefcount || (e->refcnt <= 0)) {
 			error = 0;
 			if (thrdata->type == PF_TYPE) {
 				if (debug >= 2) {
