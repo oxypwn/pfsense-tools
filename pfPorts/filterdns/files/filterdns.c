@@ -296,11 +296,13 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 				syslog(LOG_INFO, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 				error = ipfw_tableentry(thrdata, e->addr, DELETE);
 			}
+
 			if (error == 0) {
 				TAILQ_REMOVE(&thrdata->rnh, e, entry);
 				free(e->addr);
 				free(e);
-				removed++;
+				if (!donotcheckrefcount)
+					removed++;
 			} else {
 				syslog(LOG_ERR, "\t\tCOULD NOT clear entry %s from table %s on host %s will retry later", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 			}
@@ -318,6 +320,12 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 					syslog(LOG_WARNING, "\tNOT clearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 			}
 		}
+	}
+
+	if (removed > 0 && thrdata->cmd != NULL) {
+		system(thrdata->cmd);
+		if (debug >= 2)
+			syslog(LOG_WARNING, "Ran command %s with exit status %d because a dns change on hostname %s was detected.", thrdata->cmd, removed, thrdata->hostname);	
 	}
 
 	return (removed);
@@ -533,7 +541,7 @@ void *check_hostname(void *arg)
 	struct thread_data *thrd = arg;
 	struct timespec ts;
         char *p, *q;
-	int howmuch, error1, tmp;
+	int howmuch, tmp;
 
 	if (!thrd->hostname)
 		return (NULL);
@@ -569,7 +577,6 @@ void *check_hostname(void *arg)
 	for (;;) {
 		
 		tmp = 0;
-		error1 = 0;
 		ts.tv_sec += interval;
 		ts.tv_sec += (interval % 30);
 		ts.tv_nsec = 0;
@@ -588,12 +595,10 @@ void *check_hostname(void *arg)
 		if (debug >= 2)
 			syslog(LOG_WARNING, "\tFound %d entries for %s", howmuch, thrd->hostname);
 
-		if (howmuch != -1)
-			error1 = filterdns_clean_table(thrd, 0);
-		if ((howmuch > 0 || error1 > 0) && thrd->cmd != NULL) {
-			error1 = system(thrd->cmd);
-			if (debug >= 2)
-				syslog(LOG_WARNING, "Ran command %s with exit status %d because a dns change on hostname %s was detected.", thrd->cmd, error1, thrd->hostname);
+		if (howmuch != -1) {
+			howmuch = filterdns_clean_table(thrd, 0);
+			if (debug >= 4)
+				syslog(LOG_WARNING, "Cleared %d entries for host(%s) table (%s)", howmuch, thrd->hostname, TABLENAME(thrd->tablename));
 		}
 
 		pthread_rwlock_unlock(&main_lock);
@@ -726,8 +731,7 @@ merge_config(void *arg __unused) {
 					pthread_cond_init(&thr->cond, NULL);
 					error = pthread_create(&thr->thr_pid, &attr, check_hostname, thr);
 					if (error != 0) {
-						if (debug >= 1)
-							syslog(LOG_ERR, "Unable to create monitoring thread for host %s! It will not be monitored!", thr->hostname);
+						syslog(LOG_ERR, "Unable to create monitoring thread for host %s! It will not be monitored!", thr->hostname);
 						pthread_mutex_destroy(&thr->mtx);
 						pthread_cond_destroy(&thr->cond);
 					}
