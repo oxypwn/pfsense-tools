@@ -333,8 +333,7 @@ host_dns(struct thread_data *hostd, int forceupdate)
 	res0 = NULL;
         error = getaddrinfo(hostd->hostname, NULL, NULL, &res0);
         if (error) {
-		if (debug >= 1)
-			syslog(LOG_WARNING, "failed to resolve host %s will retry later again.", hostd->hostname);
+		syslog(LOG_WARNING, "failed to resolve host %s will retry later again.", hostd->hostname);
 		if (res0 != NULL)
 			freeaddrinfo(res0);
                 return (-1);
