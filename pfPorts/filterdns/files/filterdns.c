@@ -266,7 +266,7 @@ add_table_entry(struct thread_data *thrdata, struct sockaddr *addr, int forceupd
 		syslog(LOG_INFO, "\tadding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 		ipfw_tableentry(thrdata, addr, ADD);
 	}
-	
+
 	return (0);
 }
 
@@ -322,12 +322,6 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 		}
 	}
 
-	if (removed > 0 && thrdata->cmd != NULL) {
-		system(thrdata->cmd);
-		if (debug >= 2)
-			syslog(LOG_WARNING, "Ran command %s with exit status %d because a dns change on hostname %s was detected.", thrdata->cmd, removed, thrdata->hostname);	
-	}
-
 	return (removed);
 }
 
@@ -335,7 +329,7 @@ static int
 host_dns(struct thread_data *hostd, int forceupdate)
 {
         struct addrinfo          *res0, *res;
-        int                      error, cnt = 0;
+        int                      execcmd, error;
 	char buffer[INET6_ADDRSTRLEN];
 
 	res0 = NULL;
@@ -347,6 +341,7 @@ host_dns(struct thread_data *hostd, int forceupdate)
                 return (-1);
 	}
 
+	execcmd = 0;
         for (res = res0; res; res = res->ai_next) {
 		if (res->ai_addr == NULL) {
 			if (debug >=4)
@@ -364,10 +359,24 @@ host_dns(struct thread_data *hostd, int forceupdate)
 				syslog(LOG_WARNING, "\t\tfound entry %s for %s", inet_ntop(res->ai_family, res->ai_addr->sa_data + 6, buffer, sizeof buffer), TABLENAME(hostd->tablename));
                 }
 		if (!add_table_entry(hostd, res->ai_addr, forceupdate))
-			cnt++;
+			execcmd++;
         }
         freeaddrinfo(res0);
-        return (cnt);
+
+	error = filterdns_clean_table(hostd, 0);
+	if (error > 0) {
+		execcmd++;
+		if (debug >= 4)
+			syslog(LOG_WARNING, "Cleared %d entries for host(%s) table (%s)", error, hostd->hostname, TABLENAME(hostd->tablename));
+	}
+
+	if (execcmd > 0 && hostd->cmd != NULL) {
+		execcmd = system(hostd->cmd);
+		if (debug >= 2)
+			syslog(LOG_WARNING, "Ran command %s with exit status %d because a dns change on hostname %s was detected.", hostd->cmd, execcmd, hostd->hostname);	
+	}
+
+        return (0);
 }
 
 static int
@@ -541,7 +550,7 @@ void *check_hostname(void *arg)
 	struct thread_data *thrd = arg;
 	struct timespec ts;
         char *p, *q;
-	int howmuch, tmp;
+	int tmp;
 
 	if (!thrd->hostname)
 		return (NULL);
@@ -591,15 +600,7 @@ void *check_hostname(void *arg)
 			thrd->exit = 0;
 		}
 
-		howmuch = host_dns(thrd, tmp);
-		if (debug >= 2)
-			syslog(LOG_WARNING, "\tFound %d entries for %s", howmuch, thrd->hostname);
-
-		if (howmuch != -1) {
-			howmuch = filterdns_clean_table(thrd, 0);
-			if (debug >= 4)
-				syslog(LOG_WARNING, "Cleared %d entries for host(%s) table (%s)", howmuch, thrd->hostname, TABLENAME(thrd->tablename));
-		}
+		host_dns(thrd, tmp);
 
 		pthread_rwlock_unlock(&main_lock);
 		/* Hack for sleeping a thread */
