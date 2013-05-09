@@ -257,13 +257,13 @@ add_table_entry(struct thread_data *thrdata, struct sockaddr *addr, int forceupd
 	TAILQ_INSERT_HEAD(&thrdata->rnh, ent, entry);
 	if (thrdata->type == PF_TYPE) {
 		if(addr->sa_family == AF_INET)
-			syslog(LOG_INFO, "\tadding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
+			syslog(LOG_NOTICE, "\tadding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 		if(addr->sa_family == AF_INET6)
-			syslog(LOG_INFO, "\tadding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 6, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
+			syslog(LOG_NOTICE, "\tadding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 6, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 		pf_tableentry(thrdata, ent->addr, ADD);
 	}
 	else if (thrdata->type == IPFW_TYPE) {
-		syslog(LOG_INFO, "\tadding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
+		syslog(LOG_NOTICE, "\tadding entry %s to table %s on host %s", inet_ntop(addr->sa_family, addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 		ipfw_tableentry(thrdata, addr, ADD);
 	}
 
@@ -287,13 +287,13 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 			error = 0;
 			if (thrdata->type == PF_TYPE) {
 				if(e->addr->sa_family == AF_INET)
-					syslog(LOG_INFO, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
+					syslog(LOG_NOTICE, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 				if(e->addr->sa_family == AF_INET6)
-					syslog(LOG_INFO, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 6, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
+					syslog(LOG_NOTICE, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 6, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 				error = pf_tableentry(thrdata, e->addr, DELETE);
 			}
 			else if (thrdata->type == IPFW_TYPE) {
-				syslog(LOG_INFO, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
+				syslog(LOG_NOTICE, "\t\tclearing entry %s from table %s on host %s", inet_ntop(e->addr->sa_family, e->addr->sa_data + 2, buffer, sizeof buffer), TABLENAME(thrdata->tablename), thrdata->hostname);
 				error = ipfw_tableentry(thrdata, e->addr, DELETE);
 			}
 
