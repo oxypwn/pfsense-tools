@@ -571,7 +571,7 @@ print_codelstats(struct queue_stats cur, struct sbuf *sb, int level)
 	if (cur.avgn < 2)
 		return;
 
-	sbuf_printf(sb, "<measured>%.1f</meadured><measuredspeed>%s</measuredspeed>",
+	sbuf_printf(sb, "<measured>%.1f</measured><measuredspeed>%s</measuredspeed>",
 		cur.avg_packets / STAT_INTERVAL,
 		rate2str((8 * cur.avg_bytes) / STAT_INTERVAL));
 }
