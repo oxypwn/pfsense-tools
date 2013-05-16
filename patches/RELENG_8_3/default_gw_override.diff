@@ -1,0 +1,14 @@
+diff --git a/sys/netinet/ip_output.c b/sys/netinet/ip_output.c
+index 20de135..3e8f537 100644
+--- a/sys/netinet/ip_output.c
++++ b/sys/netinet/ip_output.c
+@@ -195,8 +195,8 @@ ip_output(struct mbuf *m, struct mbuf *opt, struct route *ro, int flags,
+ 		hlen = ip->ip_hl << 2;
+ 	}
+ 
+-	dst = (struct sockaddr_in *)&ro->ro_dst;
+ again:
++	dst = (struct sockaddr_in *)&ro->ro_dst;
+ 	/*
+ 	 * If there is a cached route,
+ 	 * check that it is to the same destination
