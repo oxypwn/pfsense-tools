@@ -2,7 +2,7 @@
 # $FreeBSD$
 
 PORTNAME=	php53
-PORTVERSION=	5.3.24
+PORTVERSION=	5.3.25
 PORTREVISION?=	0
 CATEGORIES?=	lang devel www
 MASTER_SITES=	${MASTER_SITE_PHP}
@@ -186,7 +186,7 @@ post-install:
 	@${INSTALL_DATA} ${WRKDIR}/php.conf ${PREFIX}/etc
 	@${TOUCH} ${PREFIX}/include/php/ext/php_config.h
 .if ${PORT_OPTIONS:MFPM}
-	@${CP} -n ${PREFIX}/etc/php-fpm.conf.default ${PREFIX}/etc/php-fpm.conf
+	@${CP} -n ${PREFIX}/etc/php-fpm.conf.default ${PREFIX}/etc/php-fpm.conf || ${TRUE}
 .endif
 .if ${PORT_OPTIONS:MAPACHE}
 	@${CAT} ${PKGMESSAGE}
