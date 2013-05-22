@@ -20,6 +20,8 @@ WHERE=		sbin
 PLIST_FILES=    ${WHERE}/${PORTNAME}
 CFLAGS+=	-I/usr/local/include -L/usr/local/lib 
 
+LIB_DEPENDS=   event:${PORTSDIR}/devel/libevent
+
 do-extract:
 	mkdir -p ${WRKSRC}
 
