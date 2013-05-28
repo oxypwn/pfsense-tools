@@ -2037,7 +2037,7 @@ ExclusiveOpenDevice(const char *pathname)
 
 	/* Open it, but give up after so many interruptions */
 	for (startTime = time(NULL);
-	    (fd = open(pathname, O_RDWR, 0)) < 0
+	    (fd = open(pathname, O_RDWR | O_NONBLOCK, 0)) < 0
 	    && time(NULL) < startTime + MAX_OPEN_DELAY; )
 		if (errno != EINTR)
 			return(-1);
