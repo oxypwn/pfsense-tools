@@ -6,7 +6,7 @@ index f46a854..e00826a 100644
  {
  	int	diff;
  
-+#if 0
++#if 1
  	if (a->rule.ptr > b->rule.ptr)
  		return (1);
  	if (a->rule.ptr < b->rule.ptr)
@@ -19,7 +19,7 @@ index f46a854..e00826a 100644
  	if (*sn == NULL) {
  		k.af = af;
  		PF_ACPY(&k.addr, src, af);
-+#if 0
++#if 1
  		if (rule->rule_flag & PFRULE_RULESRCTRACK ||
  		    rule->rpool.opts & PF_POOL_STICKYADDR)
  			k.rule.ptr = rule;
@@ -32,7 +32,7 @@ index f46a854..e00826a 100644
  		    rule->max_src_conn_rate.seconds);
  
  		(*sn)->af = af;
-+#if 0
++#if 1
  		if (rule->rule_flag & PFRULE_RULESRCTRACK ||
  		    rule->rpool.opts & PF_POOL_STICKYADDR)
  			(*sn)->rule.ptr = rule;
