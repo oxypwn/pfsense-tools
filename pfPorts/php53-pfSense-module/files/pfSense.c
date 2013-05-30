@@ -2059,12 +2059,16 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		if (show_info)
 			php_printf("Found modem device: %s\n", path);
 		/* Open & lock serial port */
-		if ((fd = open(pathname, O_RDWR | O_NONBLOCK, 0)) < 0)
+		if ((fd = open(path, O_RDWR | O_NONBLOCK, 0)) < 0) {
 			if (show_info)
 				php_printf("Could not open the device exlusively\n");
 			add_assoc_string(return_value, path, path, 1);
 			continue;
 		}
+
+		/* Set non-blocking I/O  */
+		if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+			goto errormodem;
 
 #if 0
 		/* Set serial port raw mode, baud rate, hardware flow control, etc. */
@@ -2130,7 +2134,7 @@ tryagain2:
 			buf[2047] = '\0';
 			if (show_info)
 				php_printf("\tRead %s\n", buf);
-			//if (strnstr(buf, "OK", sizeof(buf))) {
+			//if (strnstr(buf, "OK", sizeof(buf)))
 			if (nw > 0) {
 				/*
 				write(fd, "ATI3\r\n", strlen("ATI3\r\n"));
@@ -2154,7 +2158,7 @@ tryagain2:
 errormodem:
 		if (show_info)
 			php_printf("\tClosing device %s\n", path);
-		close(fd)
+		close(fd);
 	}
 }
 
