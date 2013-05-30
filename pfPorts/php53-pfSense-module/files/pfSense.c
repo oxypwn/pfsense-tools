@@ -2023,48 +2023,6 @@ PHP_FUNCTION(pfSense_get_pf_stats) {
 	}
 }
 
-#define PATH_LOCKFILENAME     "/var/spool/lock/LCK..%s"
-#define MAX_FILENAME              1000
-#define MAX_OPEN_DELAY    2
-#define MODEM_DEFAULT_SPEED              115200
-
-static int
-ExclusiveOpenDevice(const char *pathname)
-{
-	int           fd;
-	const char    *ttyname = NULL;
-	time_t        startTime;
-
-	/* Open it, but give up after so many interruptions */
-	for (startTime = time(NULL);
-	    (fd = open(pathname, O_RDWR | O_NONBLOCK, 0)) < 0
-	    && time(NULL) < startTime + MAX_OPEN_DELAY; )
-		if (errno != EINTR)
-			return(-1);
-
-	/* Done */
-	return(fd);
-}
-
-static void
-ExclusiveCloseDevice(int fd, const char *pathname)
-{
-	int           rtn = -1;
-	const char    *ttyname;
-	time_t        startTime;
-
-	/* Close file(s) */
-	for (startTime = time(NULL);
-	    time(NULL) < startTime + MAX_OPEN_DELAY &&
-	    (rtn = close(fd)) < 0; )
-		if (errno != EINTR)
-			break;
-
-	/* Did we succeed? */
-	if ((rtn < 0) && (errno == EINTR))
-		return;
-}
-
 PHP_FUNCTION(pfSense_sync) {
 	sync();
 }
@@ -2075,7 +2033,7 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 	glob_t			g;
 	char			buf[2048] = { 0 };
 	char			*path;
-	int			nw = 0, i, fd;
+	int			nw = 0, i, fd, retries;
 	zend_bool		show_info = 0;
 	long			poll_timeout = 700;
 
@@ -2101,17 +2059,14 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		if (show_info)
 			php_printf("Found modem device: %s\n", path);
 		/* Open & lock serial port */
-		if ((fd = ExclusiveOpenDevice(path)) < 0) {
+		if ((fd = open(pathname, O_RDWR | O_NONBLOCK, 0)) < 0)
 			if (show_info)
 				php_printf("Could not open the device exlusively\n");
 			add_assoc_string(return_value, path, path, 1);
 			continue;
 		}
 
-		/* Set non-blocking I/O  */
-		if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
-			goto errormodem;
-
+#if 0
 		/* Set serial port raw mode, baud rate, hardware flow control, etc. */
 		if (tcgetattr(fd, &attr) < 0)
 			goto errormodem;
@@ -2125,28 +2080,36 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		attr.c_oflag &= ~OPOST;
 		attr.c_lflag = 0;
 
+#define MODEM_DEFAULT_SPEED              115200
 		cfsetspeed(&attr, (speed_t) MODEM_DEFAULT_SPEED);
+#unset	MODEM_DEFAULT_SPEED
 
 		if (tcsetattr(fd, TCSANOW, &attr) < 0)
 			goto errormodem;
+#endif
 
 		/* OK */
-tryagain:
-		if ((nw = write(fd, "AT OK\r\n", strlen("AT OK\r\n"))) < 0) {
-			if (errno == EAGAIN) {
-				if (show_info)
-					php_printf("\tRetrying write\n");
-				goto tryagain;
-			}
+		retries = 0;
+		while (retries++ < 3) {
+			if ((nw = write(fd, "AT OK\r\n", strlen("AT OK\r\n"))) < 0) {
+				if (errno == EAGAIN) {
+					if (show_info)
+						php_printf("\tRetrying write\n");
+					continue;
+				}
 
-			if (show_info)
-				php_printf("\tError ocurred\n");
-			goto errormodem;
+				if (show_info)
+					php_printf("\tError ocurred\n");
+				goto errormodem;
+			}
 		}
+		if (retries >= 3)
+			goto errormodem;
 
 tryagain2:
 		if (show_info)
 			php_printf("\tTrying to read data\n");
+		retries = 0;
 		bzero(buf, sizeof buf);
 		bzero(&pfd, sizeof pfd);
 		pfd.fd = fd;
@@ -2156,7 +2119,8 @@ tryagain2:
 				if (errno == EAGAIN) {
 					if (show_info)
 						php_printf("\tTrying again after errno = EAGAIN\n");
-					goto tryagain2;
+					if (++retries < 3)
+						goto tryagain2;
 				}
 				if (show_info)
 					php_printf("\tError ocurred on 1st read\n");
@@ -2190,7 +2154,7 @@ tryagain2:
 errormodem:
 		if (show_info)
 			php_printf("\tClosing device %s\n", path);
-		ExclusiveCloseDevice(fd, path);
+		close(fd)
 	}
 }
 
