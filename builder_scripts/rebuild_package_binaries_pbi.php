@@ -55,6 +55,7 @@ $preq_txt = <<<EOF
 cd /usr/ports/devel/xdg-utils && make install clean
 cd /root
 if [ -d current ]; then
+	cd current
 	svn up
 else
 	svn co svn://svn.pcbsd.org/pcbsd/current
