@@ -60,9 +60,9 @@ if [ -d current ]; then
 else
 	svn co svn://svn.pcbsd.org/pcbsd/current
 fi
-cd current
-cd src-sh
-cd pbi-manager
+cd /root/current/src-sh/libsh
+make install 2>/dev/null
+cd /root/current/src-sh/pbi-manager
 ./install.sh 2>/dev/null
 EOF;
 
