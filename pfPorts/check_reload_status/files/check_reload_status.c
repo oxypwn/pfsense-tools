@@ -393,7 +393,8 @@ socket_accept_command(int fd, __unused short event, __unused void *arg)
 
 	if ((newfd = accept(fd, (struct sockaddr *)&sun, &len)) < 0) {
 		if (errno != EWOULDBLOCK && errno != EINTR)
-			syslog(LOG_NOTICE, "problems on accept");
+			syslog(LOG_ERR, "problems on accept");
+		return;
 	}
 	set_blockmode(newfd, O_NONBLOCK | FD_CLOEXEC);
 
