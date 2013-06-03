@@ -114,3 +114,5 @@
 -p1~~tun_optimization.diff~
 -p1~~altq_codel.diff~
 -p1~~default_gw_override.diff~
+~~tcp_mbuf_chain_limit.diff~
+~~xen_uart.diff~
