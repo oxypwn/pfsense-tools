@@ -77,7 +77,7 @@
 ~~ip_disable_FASTFWD.diff~
 ~~ip_divert_increase_buf.diff~
 ~~makefile.inc1.diff~
--p1~~stf_6rd_20100923-1.diff~
+-p1~~stf_6rd.diff~
 ~sys/contrib/pf/net~pfsync_state_timeout.diff~
 -p1~~pf_route-to-crash_fixes.diff~
 -p1~~pf_802.1p.diff~
