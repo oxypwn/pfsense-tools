@@ -264,7 +264,7 @@ index 614840c..0915b8d 100644
 +		tv.tv_usec = advskew * 1000000 / 256;
 +	}
 +
-+	if (carp_allow)
++	if (!carp_allow)
 +		goto resched;
  
  	ch.carp_version = CARP_VERSION;
