@@ -208,7 +208,7 @@ RELENG_9_0)
 ;;
 
 HEAD)
-	echo ">>> Setting builder environment to use HEAD/RELENG_8_3 ..."
+	echo ">>> Setting builder environment to use HEAD/RELENG_10_0 ..."
 	export FREEBSD_VERSION="10"
 	export FREEBSD_BRANCH="RELENG_10"
 	export SUPFILE="${BUILDER_TOOLS}/builder_scripts/RELENG_10_0-supfile"
@@ -216,8 +216,8 @@ HEAD)
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_10_0
 	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_10_0
-	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_10_0"	
-	export PFSPORTSFILE=buildports.RELENG_2_0
+	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2_1"	
+	export PFSPORTSFILE=buildports.RELENG_2_1
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
 	set_items
 ;;
