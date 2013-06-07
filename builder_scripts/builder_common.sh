@@ -832,8 +832,8 @@ cust_populate_installer_bits() {
 	chmod a+rx $PFSENSEBASEDIR/usr/sbin/cleargpt.sh
 	# Copy installer launcher scripts
 	cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
-	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
-		cp $BUILDER_TOOLS/installer/scripts/lua_installer_RELENG_2 $PFSENSEBASEDIR/scripts/lua_installer
+	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
+		cp $BUILDER_TOOLS/installer/scripts/lua_installer_RELENG_1_2 $PFSENSEBASEDIR/scripts/lua_installer
 	else
 		cp $BUILDER_TOOLS/installer/scripts/lua_installer $PFSENSEBASEDIR/scripts/lua_installer
 	fi
