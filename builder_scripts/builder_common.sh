@@ -843,7 +843,7 @@ cust_populate_installer_bits() {
 	cp $BUILDER_TOOLS/installer/scripts/lua_installer_full $PFSENSEBASEDIR/scripts/
 	chmod a+rx $PFSENSEBASEDIR/scripts/*
 	mkdir -p $PFSENSEBASEDIR/usr/local/bin/
-	cp $BUILDER_TOOLS/after_installation_routines.sh \
+	cp $BUILDER_TOOLS/installer/scripts/after_installation_routines.sh \
 		$PFSENSEBASEDIR/usr/local/bin/after_installation_routines.sh
 	chmod a+rx $PFSENSEBASEDIR/scripts/*
 }
