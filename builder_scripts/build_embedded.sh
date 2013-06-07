@@ -162,17 +162,13 @@ unset ROOTSIZE
 unset CONFSIZE
 
 FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-if [ "$FBSD_VERSION" = "8" ]; then
-	ROOTSIZE=${ROOTSIZE:-"470096"}  # Total number of sectors - 128 megabytes
-	CONFSIZE=${CONFSIZE:-"10240"}
-else
+if [ "$FBSD_VERSION" = "7" ]; then
 	ROOTSIZE=${ROOTSIZE:-"235048"}  # Total number of sectors - 236 megabytes (for 256 cards)
 	CONFSIZE=${CONFSIZE:-"10240"}
-fi
-if [ "$FBSD_VERSION" = "9" ]; then
+else
 	ROOTSIZE=${ROOTSIZE:-"470096"}  # Total number of sectors - 128 megabytes
 	CONFSIZE=${CONFSIZE:-"10240"}
-fi 
+fi
 
 SECTS=$((${ROOTSIZE} + ${CONFSIZE}))
 # Temp file and directory to be used later
@@ -208,18 +204,13 @@ echo "Writing files..."
 cd ${CLONEDIR}
 
 FBSD_VERSION=`/usr/bin/uname -r | /usr/bin/cut -d"." -f1`
-if [ "$FBSD_VERSION" = "9" ]; then
-	echo ">>> Using TAR to clone build_embedded.sh..."
-	mkdir -p ${TMPDIR}
-	( tar cf - * | ( cd /$TMPDIR; tar xfp - ) )
-fi
-if [ "$FBSD_VERSION" = "8" ]; then
-	echo ">>> Using TAR to clone build_embedded.sh..."
-	mkdir -p ${TMPDIR}
-	( tar cf - * | ( cd /$TMPDIR; tar xfp - ) )
-else
+if [ "$FBSD_VERSION" = "7" ]; then
 	echo ">>> Using CPIO to clone {$TMPDIR}..."
 	find . -print -depth | cpio -dump ${TMPDIR}
+else
+	echo ">>> Using TAR to clone build_embedded.sh..."
+	mkdir -p ${TMPDIR}
+	( tar cf - * | ( cd /$TMPDIR; tar xfp - ) )
 fi
 
 echo -n ">>> Creating md5 summary of files present..."

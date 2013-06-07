@@ -205,10 +205,7 @@ create_md5_summary_file
 setup_tcshrc_prompt
 
 # Setup serial port helper hints
-if [ "$FBSD_VERSION" = "8" ]; then
-	setup_serial_hints
-fi
-if [ "$FBSD_VERSION" = "9" ]; then
+if [ "$FBSD_VERSION" -gt "7" ]; then
 	setup_serial_hints
 fi
 
