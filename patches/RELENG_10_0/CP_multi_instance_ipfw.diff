@@ -336,7 +336,7 @@ index e0a879d..b149e41 100644
  	 */
  	struct ifnet *oif = args->oif;
  
-+	if (V_ip_fw_contexts.chain[oif->if_context] == NULL)
++	if (V_ip_fw_contexts.chain[oif->if_ispare[0]] == NULL)
 +		return (IP_FW_PASS);
 +
  	int f_pos = 0;		/* index of current rule in the array */
@@ -347,7 +347,7 @@ index e0a879d..b149e41 100644
  	int dyn_dir = MATCH_UNKNOWN;
  	ipfw_dyn_rule *q = NULL;
 -	struct ip_fw_chain *chain = &V_layer3_chain;
-+	struct ip_fw_chain *chain = V_ip_fw_contexts.chain[oif->if_context];
++	struct ip_fw_chain *chain = V_ip_fw_contexts.chain[oif->if_ispare[0]];
  	void *tblent = NULL;
  
  	/*
@@ -1108,7 +1108,7 @@ index 15d22b2..8ebd597 100644
 +				continue;
 +			if (!strcmp(tmpifl->ifname, ifp->if_xname)) {
 +				printf("Restoring context for interface %s to %d\n", ifp->if_xname, i);
-+				ifp->if_context = i;
++				ifp->if_ispare[0] = i;
 +				goto ifctxdone;
 +				break;
 +			}
