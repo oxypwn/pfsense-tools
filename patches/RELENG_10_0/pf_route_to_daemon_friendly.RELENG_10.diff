@@ -1,0 +1,17 @@
+diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
+index aeaaec6..c72970f 100644
+--- a/sys/netpfil/pf/pf.c
++++ b/sys/netpfil/pf/pf.c
+@@ -5555,6 +5555,12 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+ 	if (oifp != ifp) {
+ 		if (in_broadcast(ip->ip_dst, oifp)) /* XXX: LOCKING of address list?! */
+ 			goto donelocal;
++
++		if (s && r->rt == PF_ROUTETO && pd->nat_rule != NULL &&
++		    r->direction == PF_OUT && r->direction == dir && pd->pf_mtag->routed < 2) {
++			PACKET_UNDO_NAT(m0, pd, s, dir);
++		}
++
+ 		if (pf_test(PF_OUT, ifp, &m0, NULL) != PF_PASS)
+ 			goto bad;
+ 		else if (m0 == NULL)
