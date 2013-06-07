@@ -17,6 +17,7 @@
 ./etc/mail/mailer.conf
 ./etc/mail/aliases
 ./etc/mail
+./etc/newsyslog.conf
 ./etc/amd.map
 ./etc/pam.d/README
 ./etc/pam.d/ftpd
