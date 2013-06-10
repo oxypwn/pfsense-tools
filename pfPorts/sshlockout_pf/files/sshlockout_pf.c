@@ -218,7 +218,7 @@ main(int argc, char *argv[])
 	// attempted login but failed.
 	while (fgets(buf, (int)sizeof(buf), stdin) != NULL) 
 	{
-		printf(buf);
+		printf("%s", buf);
 		/* if this is not sshd or webConfigurator related, continue on without processing */
 		if (strstr(buf, "sshd") == NULL && strstr(buf, "webConfigurator") == NULL)
 			continue;
