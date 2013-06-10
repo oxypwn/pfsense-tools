@@ -1,0 +1,227 @@
+diff -r 71bbaf93d44e doc/authentication.html
+--- ./doc/authentication.html	Fri Feb 22 07:55:13 2013 +0000
++++ ./doc/authentication.html	Fri Feb 22 08:10:15 2013 +0000
+@@ -345,7 +345,43 @@
+ </div>
+ <br>
+ 
++<li> <b>Stripping NT domain name or Kerberos Realm from user name </b><br><br>
+ 
++(You need squidGuard version 1.5 or higher to use user name stripping.)<br>
++If the authentication is made with NTLM or Kerberos, it contains NT domain
++or Kerberos realm. The following tags exist :
++<br><br>
++<table border=0 cellpadding=2 cellspacing=2>
++<tr>
++<td valign=top>stripntdomain</td><td> Strip NT domain name component from
++      user names (/ or \ separated).
++</tr><tr>
++<td valign=top>striprealm</td><td> Strip Kerberos Realm component from
++      user names (@ separated).
++</tr><tr>
++</tr><tr>
++</tr>
++</table>
++
++<br><br>
++Example configuration:<br>
++<br>
++<div style=width:700px;overflow:auto>
++<table width="75%" cellpadding="0" cellspacing="0" style="background-color:
++#f2fff0; border: solid 1px #4455bb;">
++<tr>
++<td style="background-color: #223499; border-bottom: 1px solid #888;">
++<font size="-1" color=white>Stripping NT domain name or Kerberos Realm from user name </font>
++</td></tr>
++<tr>
++<td>
++<pre> stripntdomain true
++ striprealm true
++</pre>
++</td></tr>
++</table>
++</div>
++<br> 
+ 
+ 
+ 
+diff -r 71bbaf93d44e src/sg.h.in
+--- ./src/sg.h.in	Fri Feb 22 07:55:13 2013 +0000
++++ ./src/sg.h.in	Fri Feb 22 08:10:15 2013 +0000
+@@ -73,7 +73,7 @@
+ #define REQUEST_TYPE_REDIRECT   2
+ #define REQUEST_TYPE_PASS       3
+ 
+-#define MAX_BUF 4096
++#define MAX_BUF 12288
+ 
+ #define DEFAULT_LOGFILE "squidGuard.log"
+ #define WARNING_LOGFILE "squidGuard.log"
+@@ -82,6 +82,8 @@
+ #define DEFAULT_CONFIGFILE "@prefix@/squidGuard/squidGuard.conf"
+ #define DEFAULT_LOGDIR "@prefix@/squidGuard/log"
+ #define DEFAULT_DBHOME "@prefix@/squidGuard/db"
++#define DEFAULT_STRIPNTDOMAIN "false"
++#define DEFAULT_STRIPREALM "false" 
+ #define EXEC_PROGRAM "@prefix@/bin/squidGuard"
+ 
+ #ifdef ACCONFIG
+diff -r 71bbaf93d44e src/sg.l
+--- ./src/sg.l	Fri Feb 22 07:55:13 2013 +0000
++++ ./src/sg.l	Fri Feb 22 08:10:15 2013 +0000
+@@ -105,6 +105,8 @@
+ ^acl         return ACL;
+ ^dbhome                return DBHOME;
+ ^logdir                return LOGDIR;
++^stripntdomain return STRIPNTDOMAIN;
++^striprealm    return STRIPREALM; 
+ ^ldapcachetime return LDAPCACHETIME;
+ ^ldapprotover  return LDAPPROTOVER;
+ ^ldapbinddn    { BEGIN LDAPDN_STATE; return LDAPBINDDN; }
+diff -r 71bbaf93d44e src/sg.y.in
+--- ./src/sg.y.in	Fri Feb 22 07:55:13 2013 +0000
++++ ./src/sg.y.in	Fri Feb 22 08:10:15 2013 +0000
+@@ -94,6 +94,7 @@
+ %token WITHIN OUTSIDE ELSE LOGFILE ANONYMOUS VERBOSE CONTINIOUS SPORADIC
+ %token LDAPCACHETIME EXECUSERLIST EXECCMD LDAPPROTOVER
+ %token LDAPBINDDN LDAPBINDPASS MYSQLUSERNAME MYSQLPASSWORD DATABASE
++%token STRIPNTDOMAIN STRIPREALM
+ 
+ %type <string> WORD 
+ %type <string> EXECCMD
+@@ -116,6 +117,7 @@
+ %type <string> tval
+ %type <string> date
+ %type <string> ttime
++%type <string> STRIPNTDOMAIN STRIPREALM
+ %%
+ 
+ start: statements
+@@ -127,6 +129,12 @@
+ logdir:    LOGDIR WORD { sgSetting("logdir",$2); }
+          ;
+ 
++stripntdomain: STRIPNTDOMAIN WORD { sgSetting("stripntdomain",$2); }
++         ;
++
++striprealm: STRIPREALM WORD { sgSetting("striprealm",$2); }
++         ;
++ 
+ ldapcachetime: LDAPCACHETIME NUMBER { sgSetting("ldapcachetime",$2); }
+          ;
+ 
+@@ -352,6 +360,8 @@
+ 	     | destination_block
+              | dbhome
+ 	     | logdir
++             | stripntdomain
++             | striprealm 
+             | ldapprotover
+             | ldapbinddn
+             | ldapbindpass
+diff -r 71bbaf93d44e src/sgDiv.c
+--- ./src/sgDiv.c	Fri Feb 22 07:55:13 2013 +0000
++++ ./src/sgDiv.c	Fri Feb 22 08:10:15 2013 +0000
+@@ -223,11 +223,35 @@
+       break;
+     case 1: /* ident */
+       if(strcmp(p,"-")){
+-	strcpy(s->ident,p);
+-	for(p=s->ident; *p != '\0'; p++) /* convert ident to lowercase chars */
+-	  *p = tolower(*p);
+-      } else
+-	s->ident[0] = '\0';
++        char *stripntdomain = NULL, *striprealm = NULL;
++        HTUnEscape(p);
++        stripntdomain = sgSettingGetValue("stripntdomain");
++        if(stripntdomain == NULL)
++          stripntdomain = DEFAULT_STRIPNTDOMAIN;
++        striprealm = sgSettingGetValue("striprealm");
++        if(striprealm == NULL)
++          striprealm = DEFAULT_STRIPREALM;
++        if (strcmp(stripntdomain,"false")) {
++          char *u = strrchr(p, '\\');
++          if (!u)
++            u = strrchr(p, '/');
++          if (!u)
++            u = strrchr(p, '+');
++          if (u && u[1])
++            p = u + 1;
++        }
++        if (strcmp(striprealm,"false")) {
++          char *u = strchr(p, '@');
++          if (u != NULL) {
++            *u = '\0';
++          }
++        }
++        strcpy(s->ident,p);
++        for(p=s->ident; *p != '\0'; p++) /* convert ident to lowercase chars */
++          *p = tolower(*p);
++      } else {
++        s->ident[0] = '\0';
++      } 
+       break;
+     case 2: /* method */
+       strcpy(s->method,p);
+@@ -734,7 +758,7 @@
+       p++;
+       break;
+     case 'u': /* Requested URL */
+-      strcat(buf, req->orig);
++      strncat(buf, req->orig, 2048);
+       p++;
+       break;
+     default:
+diff -r 71bbaf93d44e src/sgDiv.c.in
+--- ./src/sgDiv.c.in	Fri Feb 22 07:55:13 2013 +0000
++++ ./src/sgDiv.c.in	Fri Feb 22 08:10:15 2013 +0000
+@@ -234,11 +234,35 @@
+       break;
+     case 1: /* ident */
+       if(strcmp(p,"-")){
+-	strcpy(s->ident,p);
+-	for(p=s->ident; *p != '\0'; p++) /* convert ident to lowercase chars */
+-	  *p = tolower(*p);
+-      } else
+-	s->ident[0] = '\0';
++        char *stripntdomain = NULL, *striprealm = NULL;
++        HTUnEscape(p);
++        stripntdomain = sgSettingGetValue("stripntdomain");
++        if(stripntdomain == NULL)
++          stripntdomain = DEFAULT_STRIPNTDOMAIN;
++        striprealm = sgSettingGetValue("striprealm");
++        if(striprealm == NULL)
++          striprealm = DEFAULT_STRIPREALM;
++        if (strcmp(stripntdomain,"false")) {
++          char *u = strrchr(p, '\\');
++          if (!u)
++            u = strrchr(p, '/');
++          if (!u)
++            u = strrchr(p, '+');
++          if (u && u[1])
++            p = u + 1;
++        }
++        if (strcmp(striprealm,"false")) {
++          char *u = strchr(p, '@');
++          if (u != NULL) {
++            *u = '\0';
++          }
++        }
++        strcpy(s->ident,p);
++        for(p=s->ident; *p != '\0'; p++) /* convert ident to lowercase chars */
++          *p = tolower(*p);
++      } else {
++        s->ident[0] = '\0';
++      } 
+       break;
+     case 2: /* method */
+       strcpy(s->method,p);
+@@ -745,7 +769,7 @@
+       p++;
+       break;
+     case 'u': /* Requested URL */
+-      strcat(buf, req->orig);
++      strncat(buf, req->orig, 2048);
+       p++;
+       break;
+     default:
