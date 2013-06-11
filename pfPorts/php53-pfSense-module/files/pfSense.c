@@ -758,9 +758,12 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 	xent->tbl = (u_int16_t)table;
 
 	if (strchr(ip, ':')) {
-		if (!inet_pton(AF_INET6, ip, &xent->k.addr6))
+		if (!inet_pton(AF_INET6, ip, &xent->k.addr6)) {
+			efree(op3);
 			RETURN_FALSE;
+		}
 	} else if (!inet_pton(AF_INET, ip, &xent->k.addr6)) {
+		efree(op3);
 		RETURN_FALSE;
 	}
 
@@ -773,16 +776,21 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 		xent->value = (u_int32_t)pipe;
 
 	if (mac_len > 0) {
-		if (ether_aton_r(mac, (struct ether_addr *)&xent->k.mix.mac) == NULL)
+		if (ether_aton_r(mac, (struct ether_addr *)&xent->k.mix.mac) == NULL) {
+			efree(op3);
 			RETURN_FALSE;
+		}
 		xent->masklen += ETHER_ADDR_LEN;
 	}
 
 	xent->type = IPFW_TABLE_MIX;
 	size = sizeof(*op3) + sizeof(*xent);
 	err = setsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW3, op3, size);
-	if (err < 0 && err != EEXIST)
+	if (err < 0 && err != EEXIST) {
+		efree(op3);
 		RETURN_FALSE;
+	}
+	efree(op3);
 
 	RETURN_TRUE;
 #else
