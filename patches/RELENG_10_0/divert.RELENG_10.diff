@@ -181,20 +181,8 @@ index e698035..b74d60d 100644
  DECLARE_MODULE(ipdivert, ipdivertmod, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY);
 -MODULE_DEPEND(ipdivert, ipfw, 2, 2, 2);
  MODULE_VERSION(ipdivert, 1);
-diff --git a/sys/netpfil/ipfw/ip_dummynet.c b/sys/netpfil/ipfw/ip_dummynet.c
-index 429f2f1..b68884f 100644
---- a/sys/netpfil/ipfw/ip_dummynet.c
-+++ b/sys/netpfil/ipfw/ip_dummynet.c
-@@ -2288,7 +2288,6 @@ static moduledata_t dummynet_mod = {
- #define	DN_SI_SUB	SI_SUB_PROTO_IFATTACHDOMAIN
- #define	DN_MODEV_ORD	(SI_ORDER_ANY - 128) /* after ipfw */
- DECLARE_MODULE(dummynet, dummynet_mod, DN_SI_SUB, DN_MODEV_ORD);
--MODULE_DEPEND(dummynet, ipfw, 2, 2, 2);
- MODULE_VERSION(dummynet, 3);
- 
- /*
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index d9dac20..6952dd4 100644
+index d9dac20..307d02b 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -89,6 +89,7 @@ __FBSDID("$FreeBSD$");
@@ -248,10 +236,12 @@ index d9dac20..6952dd4 100644
  	if (s && s->tag > 0 && pf_tag_packet(m, &pd, s->tag)) {
  		action = PF_DROP;
  		REASON_SET(&reason, PFRES_MEMORY);
-@@ -5991,6 +6012,30 @@ done:
+@@ -5991,8 +6012,35 @@ done:
  	}
  #endif /* ALTQ */
  
+-	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
+-		if (dir != r->direction && r->pdnpipe) {
 +	if (divflags & PFSTATE_DIVERT_TAG)
 +		pd.pf_mtag->tag = divertcookie;
 +	else if (divflags & PFSTATE_DIVERT_ALTQ)
@@ -276,10 +266,15 @@ index d9dac20..6952dd4 100644
 +		return (PF_PASS);
 +	}
 +
- 	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
- 		if (dir != r->direction && r->pdnpipe) {
++	if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
++	    ip_dn_io_ptr != NULL && loopedfrom != 1) {
++		if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
++			dnflow.rule.info = divertcookie;
++		} else if (dir != r->direction && r->pdnpipe) {
  			dnflow.rule.info = r->pdnpipe;
-@@ -6035,10 +6080,51 @@ done:
+ 		} else if (dir == r->direction) {
+ 			dnflow.rule.info = r->dnpipe;
+@@ -6035,10 +6083,51 @@ done:
  				PF_STATE_UNLOCK(s);
  			return (action);
  		}
@@ -333,7 +328,7 @@ index d9dac20..6952dd4 100644
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -6048,49 +6134,14 @@ continueprocessing:
+@@ -6048,49 +6137,14 @@ continueprocessing:
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
  	    s->nat_rule.ptr->action == PF_BINAT) &&
@@ -388,7 +383,7 @@ index d9dac20..6952dd4 100644
  	if (log) {
  		struct pf_rule *lr;
  
-@@ -6187,7 +6238,6 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6187,7 +6241,6 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  	struct pf_pdesc		 pd;
  	int			 off = 0, terminal = 0, dirndx, rh_cnt = 0;
  	int                      loopedfrom = 0;
@@ -396,7 +391,7 @@ index d9dac20..6952dd4 100644
  	struct ip_fw_args        dnflow;
  
  	M_ASSERTPKTHDR(m);
-@@ -6212,17 +6262,22 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6212,9 +6265,9 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  
  	PF_RULES_RLOCK();
  
@@ -409,12 +404,7 @@ index d9dac20..6952dd4 100644
  		pd.pf_mtag->flags |= PF_PACKET_LOOPED;
  		if (rr->info & IPFW_IS_DUMMYNET)
  			loopedfrom = 1;
-+		if (rr->info & IPFW_IS_DIVERT) {
-+			divertcookie = rr->rulenum;
-+			divflags = (u_int8_t)(divertcookie >> 8);
-+			divertcookie &= ~PFSTATE_DIVERT_MASK;
-+		}
- 		if (pd.pf_mtag->flags & PF_FASTFWD_OURS_PRESENT) {
+@@ -6222,7 +6275,7 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  			m->m_flags |= M_FASTFWD_OURS;
  			pd.pf_mtag->flags &= ~PF_FASTFWD_OURS_PRESENT;
  		}
