@@ -108,7 +108,7 @@ index 246eff2..b217cde 100644
  	u_int16_t		 divert_cookie;
  	u_int8_t		 log;
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 3e3005c..cd054ee 100644
+index e39f73d..6ea14ef 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -231,6 +231,8 @@ static int		 pf_state_key_attach(struct pf_state_key *,
@@ -129,7 +129,7 @@ index 3e3005c..cd054ee 100644
  static int		 pf_test_fragment(struct pf_rule **, int,
  			    struct pfi_kif *, struct mbuf *, void *,
  			    struct pf_pdesc *, struct pf_rule **,
-@@ -2813,6 +2815,21 @@ pf_addr_inc(struct pf_addr *addr, sa_family_t af)
+@@ -2833,6 +2835,21 @@ pf_addr_inc(struct pf_addr *addr, sa_family_t af)
  }
  #endif /* INET6 */
  
@@ -151,7 +151,7 @@ index 3e3005c..cd054ee 100644
  int
  pf_socket_lookup(int direction, struct pf_pdesc *pd, struct mbuf *m)
  {
-@@ -3092,6 +3109,7 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3112,6 +3129,7 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
  	sa_family_t		 af = pd->af;
  	struct pf_rule		*r, *a = NULL;
  	struct pf_ruleset	*ruleset = NULL;
@@ -159,7 +159,7 @@ index 3e3005c..cd054ee 100644
  	struct pf_src_node	*nsn = NULL;
  	struct tcphdr		*th = pd->hdr.tcp;
  	struct pf_state_key	*sk = NULL, *nk = NULL;
-@@ -3105,6 +3123,7 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3125,6 +3143,7 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
  	u_int16_t		 bproto_sum = 0, bip_sum = 0;
  	u_int8_t		 icmptype = 0, icmpcode = 0;
  	struct pf_anchor_stackframe	anchor_stack[PF_ANCHOR_STACKSIZE];
@@ -167,7 +167,7 @@ index 3e3005c..cd054ee 100644
  
  	PF_RULES_RASSERT();
  
-@@ -3363,10 +3382,20 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3383,10 +3402,20 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
  			if (r->rtableid >= 0)
  				rtableid = r->rtableid;
  			if (r->anchor == NULL) {
@@ -192,7 +192,7 @@ index 3e3005c..cd054ee 100644
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -3383,7 +3412,8 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3403,7 +3432,8 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
  	a = *am;
  	ruleset = *rsm;
  
@@ -202,7 +202,7 @@ index 3e3005c..cd054ee 100644
  
  	if (r->log || (nr != NULL && nr->log)) {
  		if (rewrite)
-@@ -3475,7 +3505,7 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3495,7 +3525,7 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
  		int action;
  		action = pf_create_state(r, nr, a, pd, nsn, nk, sk, m, off,
  		    sport, dport, &rewrite, kif, sm, tag, bproto_sum, bip_sum,
@@ -211,7 +211,7 @@ index 3e3005c..cd054ee 100644
  		if (action != PF_PASS)
  			return (action);
  	} else {
-@@ -3515,7 +3545,7 @@ pf_create_state(struct pf_rule *r, struct pf_rule *nr, struct pf_rule *a,
+@@ -3535,7 +3565,7 @@ pf_create_state(struct pf_rule *r, struct pf_rule *nr, struct pf_rule *a,
      struct pf_pdesc *pd, struct pf_src_node *nsn, struct pf_state_key *nk,
      struct pf_state_key *sk, struct mbuf *m, int off, u_int16_t sport,
      u_int16_t dport, int *rewrite, struct pfi_kif *kif, struct pf_state **sm,
@@ -220,7 +220,7 @@ index 3e3005c..cd054ee 100644
  {
  	struct pf_state		*s = NULL;
  	struct pf_src_node	*sn = NULL;
-@@ -3557,6 +3587,11 @@ pf_create_state(struct pf_rule *r, struct pf_rule *nr, struct pf_rule *a,
+@@ -3577,6 +3607,11 @@ pf_create_state(struct pf_rule *r, struct pf_rule *nr, struct pf_rule *a,
  		s->state_flags |= PFSTATE_SLOPPY;
  	s->log = r->log & PF_LOG_ALL;
  	s->sync_state = PFSYNC_S_NONE;
@@ -232,7 +232,7 @@ index 3e3005c..cd054ee 100644
  	if (nr != NULL)
  		s->log |= nr->log & PF_LOG_ALL;
  	switch (pd->proto) {
-@@ -3744,6 +3779,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -3764,6 +3799,7 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  	int			 asd = 0;
  	int			 match = 0;
  	struct pf_anchor_stackframe	anchor_stack[PF_ANCHOR_STACKSIZE];
@@ -240,7 +240,7 @@ index 3e3005c..cd054ee 100644
  
  	PF_RULES_RASSERT();
  
-@@ -3789,10 +3825,20 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -3809,10 +3845,20 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  			r = TAILQ_NEXT(r, entries);
  		else {
  			if (r->anchor == NULL) {
@@ -265,7 +265,7 @@ index 3e3005c..cd054ee 100644
  				if ((*rm)->quick)
  					break;
  				r = TAILQ_NEXT(r, entries);
-@@ -3809,7 +3855,16 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -3829,7 +3875,16 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  	a = *am;
  	ruleset = *rsm;
  
@@ -283,65 +283,80 @@ index 3e3005c..cd054ee 100644
  
  	if (r->log)
  		PFLOG_PACKET(kif, m, af, direction, reason, r, a, ruleset, pd,
-@@ -6136,9 +6191,13 @@ done:
+@@ -6126,6 +6181,12 @@ done:
+ 			pd.pf_mtag->qid = r->pqid;
+ 		else
+ 			pd.pf_mtag->qid = r->qid;
++		if (s) {
++			if ((pqid || (pd.tos & IPTOS_LOWDELAY)) && s->pqid)
++				pd.pf_mtag->qid = s->pqid;
++			else if (s->qid)
++				pd.pf_mtag->qid = s->qid;
++		}
+ 		/* add hints for ecn */
+ 		pd.pf_mtag->hdr = h;
+ 
+@@ -6156,8 +6217,12 @@ done:
  		return (PF_PASS);
  	}
  
--       	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
-+       	if (((s && s->dnpipe) || r->dnpipe) && ip_dn_io_ptr != NULL && loopedfrom != 1) {
+-	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
+-		if (dir != r->direction && r->pdnpipe) {
++	if (((s && s->dnpipe) || r->dnpipe) && ip_dn_io_ptr != NULL && loopedfrom != 1) {
++		if (dir != r->direction && s && s->pdnpipe) {
++			dnflow.rule.info = s->pdnpipe;
++		} else if (dir == r->direction && s && s->dnpipe) {
++			dnflow.rule.info = s->dnpipe;
++		} else if (dir != r->direction && r->pdnpipe) {
+ 			dnflow.rule.info = r->pdnpipe;
+ 		} else if (dir == r->direction) {
+ 			dnflow.rule.info = r->dnpipe;
+@@ -6166,6 +6231,9 @@ done:
  
--                        if (dir != r->direction && r->pdnpipe) {
-+			if (dir != r->direction && s && s->pdnpipe) {
-+				dnflow.rule.info = s->pdnpipe;
-+			} else if (dir == r->direction && s && s->dnpipe) {
-+				dnflow.rule.info = s->dnpipe;
-+                        } else if (dir != r->direction && r->pdnpipe) {
-                                 dnflow.rule.info = r->pdnpipe;
-                         } else if (dir == r->direction) {
-                                 dnflow.rule.info = r->dnpipe;
-@@ -6147,6 +6206,8 @@ done:
- 
- 			if (r->free_flags & PFRULE_DN_IS_PIPE)
- 				dnflow.rule.info |= IPFW_IS_PIPE;
-+			if (s && s->state_flags & PFRULE_DN_IS_PIPE)
-+				dnflow.rule.info |= IPFW_IS_PIPE;
-                         dnflow.f_id.addr_type = 4; /* IPv4 type */
-                         dnflow.f_id.proto = pd.proto;
- 			if (dir == PF_OUT && s != NULL && s->nat_rule.ptr != NULL &&
-@@ -6633,12 +6694,22 @@ done:
+ 		if (r->free_flags & PFRULE_DN_IS_PIPE)
+ 			dnflow.rule.info |= IPFW_IS_PIPE;
++		if (s && s->state_flags & PFRULE_DN_IS_PIPE)
++			dnflow.rule.info |= IPFW_IS_PIPE;
++
+ 		dnflow.f_id.addr_type = 4; /* IPv4 type */
+ 		dnflow.f_id.proto = pd.proto;
+ 		if (dir == PF_OUT && s != NULL && s->nat_rule.ptr != NULL &&
+@@ -6649,13 +6717,23 @@ done:
+ 			pd.pf_mtag->qid = r->pqid;
+ 		else
+ 			pd.pf_mtag->qid = r->qid;
++		if (s) {
++			if ((pd.tos & IPTOS_LOWDELAY) && s->pqid)
++				pd.pf_mtag->qid = s->pqid;
++			else if (s->qid)
++				pd.pf_mtag->qid = s->qid;
++		}
  		/* add hints for ecn */
  		pd.pf_mtag->hdr = h;
  	}
-+	if (s) {
-+		if ((pqid || (pd.tos & IPTOS_LOWDELAY)) && s->pqid)
-+			pd.pf_mtag->qid = s->pqid;
-+		else if (s->qid)
-+			pd.pf_mtag->qid = s->qid;
-+	}
  #endif /* ALTQ */
  
- #ifdef __FreeBSD__
 -	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
+-		if (dir != r->direction && r->pdnpipe) {
 +	if (((s && s->dnpipe) || r->dnpipe) && ip_dn_io_ptr != NULL && loopedfrom != 1) {
++		if (dir != r->direction && s && s->pdnpipe) {
++			dnflow.rule.info = s->pdnpipe;
++		} else if (dir == r->direction && s && s->dnpipe) {
++			dnflow.rule.info = s->dnpipe;
++		} else if (dir != r->direction && r->pdnpipe) {
+ 			dnflow.rule.info = r->pdnpipe;
+ 		} else if (dir == r->direction) {
+ 			dnflow.rule.info = r->dnpipe;
+@@ -6664,6 +6742,9 @@ done:
  
--                        if (dir != r->direction && r->pdnpipe) {
-+			if (dir != r->direction && s && s->pdnpipe) {
-+				dnflow.rule.info = s->pdnpipe;
-+			} else if (dir == r->direction && s && s->dnpipe) {
-+				dnflow.rule.info = s->dnpipe;
-+                        } else if (dir != r->direction && r->pdnpipe) {
-                                 dnflow.rule.info = r->pdnpipe;
-                         } else if (dir == r->direction) {
-                                 dnflow.rule.info = r->dnpipe;
-@@ -6647,6 +6718,8 @@ done:
- 
- 			if (r->free_flags & PFRULE_DN_IS_PIPE)
- 				dnflow.rule.info |= IPFW_IS_PIPE;
-+			if (s && s->state_flags & PFRULE_DN_IS_PIPE)
-+				dnflow.rule.info |= IPFW_IS_PIPE;
-                         dnflow.f_id.addr_type = 6; /* IPv4 type */
-                         dnflow.f_id.proto = pd.proto;
- 			dnflow.f_id.src_ip = 0;
+ 		if (r->free_flags & PFRULE_DN_IS_PIPE)
+ 			dnflow.rule.info |= IPFW_IS_PIPE;
++		if (s && s->state_flags & PFRULE_DN_IS_PIPE)
++			dnflow.rule.info |= IPFW_IS_PIPE;
++
+ 		dnflow.f_id.addr_type = 6; /* IPv4 type */
+ 		dnflow.f_id.proto = pd.proto;
+ 		dnflow.f_id.src_ip = 0;
 diff --git a/sys/netpfil/pf/pf_ruleset.c b/sys/netpfil/pf/pf_ruleset.c
 index 384e42b..2274359 100644
 --- a/sys/netpfil/pf/pf_ruleset.c
