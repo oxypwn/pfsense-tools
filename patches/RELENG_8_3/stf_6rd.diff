@@ -269,7 +269,7 @@ index e32956e..538ae34 100644
 -static int stf_route_cache = 1;
 -SYSCTL_INT(_net_link_stf, OID_AUTO, route_cache, CTLFLAG_RW,
 -    &stf_route_cache, 0, "Caching of IPv4 routes for 6to4 Output");
-+static VNET_DEFINE(int, stf_route_cache) = 1;
++static VNET_DEFINE(int, stf_route_cache) = 0;
 +#define V_stf_route_cache	VNET(stf_route_cache)
 +SYSCTL_VNET_INT(_net_link_stf, OID_AUTO, route_cache, CTLFLAG_RW,
 +    &VNET_NAME(stf_route_cache), 0,
