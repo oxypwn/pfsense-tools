@@ -165,7 +165,7 @@ index 9a4b486..c842ce0 100644
  			tag->m_tag_cookie = MTAG_IPFW_RULE;
  			tag->m_tag_id = 0;
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index eee1661..586e44c 100644
+index eee1661..d9dac20 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -87,6 +87,8 @@ __FBSDID("$FreeBSD$");
@@ -233,64 +233,64 @@ index eee1661..586e44c 100644
 +	struct pf_state_key *nk = (state)->key[pd->didx];
 +
 +	switch (pd->proto) {
-+		case IPPROTO_TCP: {
-+			struct tcphdr *th = pd->hdr.tcp;
++	case IPPROTO_TCP: {
++		struct tcphdr *th = pd->hdr.tcp;
 +
-+			if (direction == PF_OUT) {
-+				pf_change_ap(pd->src, &th->th_sport, pd->ip_sum,
-+					&th->th_sum, &nk->addr[pd->sidx],
-+					nk->port[pd->sidx], 0, pd->af);
-+			} else {
-+				pf_change_ap(pd->dst, &th->th_dport, pd->ip_sum,
-+					&th->th_sum, &nk->addr[pd->didx],
-+					nk->port[pd->didx], 0, pd->af);
-+			}
-+			m_copyback(m, off, sizeof(*th), (caddr_t)th);
++		if (direction == PF_OUT) {
++			pf_change_ap(pd->src, &th->th_sport, pd->ip_sum,
++				&th->th_sum, &nk->addr[pd->sidx],
++				nk->port[pd->sidx], 0, pd->af);
++		} else {
++			pf_change_ap(pd->dst, &th->th_dport, pd->ip_sum,
++				&th->th_sum, &nk->addr[pd->didx],
++				nk->port[pd->didx], 0, pd->af);
 +		}
-+			break;
-+		case IPPROTO_UDP: {
-+			struct udphdr *uh = pd->hdr.udp;
++		m_copyback(m, off, sizeof(*th), (caddr_t)th);
++	}
++		break;
++	case IPPROTO_UDP: {
++		struct udphdr *uh = pd->hdr.udp;
 +
-+			if (direction == PF_OUT) {
-+				pf_change_ap(pd->src, &uh->uh_sport, pd->ip_sum,
-+					&uh->uh_sum, &nk->addr[pd->sidx],
-+					nk->port[pd->sidx, 1, pd->af);
-+			} else {
-+				pf_change_ap(pd->dst, &uh->uh_dport, pd->ip_sum,
-+					&uh->uh_sum, &nk->addr[pd->didx],
-+					nk->port[pd->didx], 1, pd->af);
-+			}
-+			m_copyback(m, off, sizeof(*uh), (caddr_t)uh);
++		if (direction == PF_OUT) {
++			pf_change_ap(pd->src, &uh->uh_sport, pd->ip_sum,
++				&uh->uh_sum, &nk->addr[pd->sidx],
++				nk->port[pd->sidx, 1, pd->af);
++		} else {
++			pf_change_ap(pd->dst, &uh->uh_dport, pd->ip_sum,
++				&uh->uh_sum, &nk->addr[pd->didx],
++				nk->port[pd->didx], 1, pd->af);
 +		}
-+			break;
-+		case IPPROTO_ICMP:
-+			/* XXX: If we want to do this for icmp is probably wrong!?! */
-+			break;
-+		default:
-+			if (direction == PF_OUT) {
-+				switch (pd->af) {
-+				case AF_INET:
-+					pf_change_a(&pd->src->v4.s_addr,
-+						pd->ip_sum, nk->addr[pd->sidx)].v4.s_addr,
-+						0);
-+					break;
-+				case AF_INET6:
-+					PF_ACPY(pd->src, &nk->addr[pd->sidx], pd->af);
-+					break;
-+				}
-+			} else {
-+				switch (pd->af) {
-+				case AF_INET:
-+					pf_change_a(&pd->dst->v4.s_addr,
-+						pd->ip_sum, nk->addr[pd->didx].v4.s_addr,
-+						0);
-+					break;
-+				case AF_INET6:
-+					PF_ACPY(pd->dst, &nk->addr[pd->didx], pd->af);
-+					break;
-+				}
++		m_copyback(m, off, sizeof(*uh), (caddr_t)uh);
++	}
++		break;
++	case IPPROTO_ICMP:
++		/* XXX: If we want to do this for icmp is probably wrong!?! */
++		break;
++	default:
++		if (direction == PF_OUT) {
++			switch (pd->af) {
++			case AF_INET:
++				pf_change_a(&pd->src->v4.s_addr,
++					pd->ip_sum, nk->addr[pd->sidx)].v4.s_addr,
++					0);
++				break;
++			case AF_INET6:
++				PF_ACPY(pd->src, &nk->addr[pd->sidx], pd->af);
++				break;
 +			}
-+			break;
++		} else {
++			switch (pd->af) {
++			case AF_INET:
++				pf_change_a(&pd->dst->v4.s_addr,
++					pd->ip_sum, nk->addr[pd->didx].v4.s_addr,
++					0);
++				break;
++			case AF_INET6:
++				PF_ACPY(pd->dst, &nk->addr[pd->didx], pd->af);
++				break;
++			}
++		}
++		break;
 +	}
 +}
 +
