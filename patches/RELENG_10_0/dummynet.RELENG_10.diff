@@ -164,6 +164,18 @@ index 9a4b486..c842ce0 100644
  			ifp = pkt->ifp;
  			tag->m_tag_cookie = MTAG_IPFW_RULE;
  			tag->m_tag_id = 0;
+diff --git a/sys/netpfil/ipfw/ip_dummynet.c b/sys/netpfil/ipfw/ip_dummynet.c
+index 429f2f1..b68884f 100644
+--- a/sys/netpfil/ipfw/ip_dummynet.c
++++ b/sys/netpfil/ipfw/ip_dummynet.c
+@@ -2288,7 +2288,6 @@ static moduledata_t dummynet_mod = {
+ #define	DN_SI_SUB	SI_SUB_PROTO_IFATTACHDOMAIN
+ #define	DN_MODEV_ORD	(SI_ORDER_ANY - 128) /* after ipfw */
+ DECLARE_MODULE(dummynet, dummynet_mod, DN_SI_SUB, DN_MODEV_ORD);
+-MODULE_DEPEND(dummynet, ipfw, 2, 2, 2);
+ MODULE_VERSION(dummynet, 3);
+ 
+ /*
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
 index eee1661..d9dac20 100644
 --- a/sys/netpfil/pf/pf.c
