@@ -617,7 +617,7 @@ index b217cde..70c4809 100644
  void	pf_normalize_init(void);
  void	pf_normalize_cleanup(void);
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 10af07c..aeaaec6 100644
+index 4348ce2..1eddfc9 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -62,6 +62,8 @@ __FBSDID("$FreeBSD$");
@@ -629,7 +629,7 @@ index 10af07c..aeaaec6 100644
  #include <net/route.h>
  #include <net/radix_mpath.h>
  #include <net/vnet.h>
-@@ -2434,6 +2436,26 @@ pf_send_tcp(struct mbuf *replyto, const struct pf_rule *r, sa_family_t af,
+@@ -2454,6 +2456,26 @@ pf_send_tcp(struct mbuf *replyto, const struct pf_rule *r, sa_family_t af,
  	pf_send(pfse);
  }
  
@@ -656,7 +656,7 @@ index 10af07c..aeaaec6 100644
  static void
  pf_send_icmp(struct mbuf *m, u_int8_t type, u_int8_t code, sa_family_t af,
      struct pf_rule *r)
-@@ -2607,6 +2629,36 @@ pf_match_port(u_int8_t op, u_int16_t a1, u_int16_t a2, u_int16_t p)
+@@ -2627,6 +2649,36 @@ pf_match_port(u_int8_t op, u_int16_t a1, u_int16_t a2, u_int16_t p)
  	return (pf_match(op, a1, a2, p));
  }
  
@@ -693,7 +693,7 @@ index 10af07c..aeaaec6 100644
  static int
  pf_match_uid(u_int8_t op, uid_t a1, uid_t a2, uid_t u)
  {
-@@ -3367,6 +3419,10 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
+@@ -3387,6 +3439,10 @@ pf_test_rule(struct pf_rule **rm, struct pf_state **sm, int direction,
  		    !pf_match_gid(r->gid.op, r->gid.gid[0], r->gid.gid[1],
  		    pd->lookup.gid))
  			r = TAILQ_NEXT(r, entries);
@@ -704,7 +704,7 @@ index 10af07c..aeaaec6 100644
  		else if (r->prob &&
  		    r->prob <= arc4random())
  			r = TAILQ_NEXT(r, entries);
-@@ -3819,6 +3875,10 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -3839,6 +3895,10 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  		    pd->proto == IPPROTO_ICMPV6) &&
  		    (r->type || r->code))
  			r = TAILQ_NEXT(r, entries);
@@ -715,7 +715,7 @@ index 10af07c..aeaaec6 100644
  		else if (r->prob && r->prob <=
  		    (arc4random() % (UINT_MAX - 1) + 1))
  			r = TAILQ_NEXT(r, entries);
-@@ -6680,6 +6740,24 @@ done:
+@@ -6704,6 +6764,24 @@ done:
  	if (r->rtableid >= 0)
  		M_SETFIB(m, r->rtableid);
  
