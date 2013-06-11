@@ -194,7 +194,7 @@ index 429f2f1..b68884f 100644
  
  /*
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index 34d7269..d184aa4 100644
+index d9dac20..6952dd4 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -89,6 +89,7 @@ __FBSDID("$FreeBSD$");
@@ -205,9 +205,9 @@ index 34d7269..d184aa4 100644
  
  #ifdef INET6
  #include <netinet/ip6.h>
-@@ -429,6 +430,14 @@ do {									\
- 	}								\
- } while(0)
+@@ -313,6 +314,14 @@ VNET_DEFINE(struct pf_limit, pf_limits[PF_LIMIT_MAX]);
+ 
+ #define	PACKET_LOOPED(mtag)	((mtag)->flags & PF_PACKET_LOOPED)
  
 +#define	PF_DIVERT_MAXPACKETS_REACHED()			\
 +do {							\
@@ -220,17 +220,17 @@ index 34d7269..d184aa4 100644
  #define	STATE_LOOKUP(i, k, d, s, pd)					\
  	do {								\
  		(s) = pf_find_state((i), (k), (d));			\
-@@ -5740,7 +5749,8 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -5760,7 +5769,8 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  	struct pf_pdesc		 pd;
  	int			 off = 0, dirndx, pqid = 0;
  	int                      loopedfrom = 0;
--	struct m_tag *dn_tag;
-+	u_int16_t                divertcookie = 0;
+-	struct m_tag		*dn_tag;
++	u_int16_t		 divertcookie = 0;
 +	u_int8_t		 divflags = 0;
  	struct ip_fw_args        dnflow;
  
  	M_ASSERTPKTHDR(m);
-@@ -5945,6 +5955,17 @@ done:
+@@ -5965,6 +5975,17 @@ done:
  		    ("pf: dropping packet with ip options\n"));
  	}
  
@@ -248,7 +248,7 @@ index 34d7269..d184aa4 100644
  	if (s && s->tag > 0 && pf_tag_packet(m, &pd, s->tag)) {
  		action = PF_DROP;
  		REASON_SET(&reason, PFRES_MEMORY);
-@@ -5971,6 +5992,30 @@ done:
+@@ -5991,6 +6012,30 @@ done:
  	}
  #endif /* ALTQ */
  
@@ -266,26 +266,26 @@ index 34d7269..d184aa4 100644
 +		REASON_SET(&reason, PFRES_DIVERT);
 +		log = 1;
 +		DPFPRINTF(PF_DEBUG_MISC,
-+			("pf: changing action to with overload from divert.\n"));
++		    ("pf: changing action to with overload from divert.\n"));
 +		dlr = r;
 +		PFLOG_PACKET(kif, m, AF_INET, dir, reason, dlr, a,
-+			ruleset, &pd, (s == NULL));
++		    ruleset, &pd, (s == NULL));
 +		m_freem(*m0);
 +		*m0 = NULL;
 +		/* NOTE: Fake this to avoid divert giving errors to the application. */
 +		return (PF_PASS);
 +	}
 +
-        	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
- 
-                         if (dir != r->direction && r->pdnpipe) {
-@@ -6014,10 +6059,51 @@ done:
-                         	*m0 = NULL;
-                         	return (action);
- 			}
--        } else
+ 	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
+ 		if (dir != r->direction && r->pdnpipe) {
+ 			dnflow.rule.info = r->pdnpipe;
+@@ -6035,10 +6080,51 @@ done:
+ 				PF_STATE_UNLOCK(s);
+ 			return (action);
+ 		}
+-	} else
 -		pd.pf_mtag->flags &= ~PF_PACKET_LOOPED;
-+        }
++	}
  continueprocessing:
  
 +	if (action == PF_PASS && r->divert.port && ip_divert_ptr != NULL &&
@@ -293,10 +293,10 @@ index 34d7269..d184aa4 100644
 +		if (!r->spare1 ||
 +		    (s && s->packets[dir == PF_OUT] <= r->spare1)) {
 +			ipfwtag = m_tag_alloc(MTAG_IPFW_RULE, 0,
-+			    sizeof(struct ipfw_rule_ref), M_NOWAIT | M_ZERO);
++				sizeof(struct ipfw_rule_ref), M_NOWAIT | M_ZERO);
 +			if (ipfwtag != NULL) {
 +				((struct ipfw_rule_ref *)(ipfwtag+1))->info =
-+				    ntohs(r->divert.port);
++					ntohs(r->divert.port);
 +				((struct ipfw_rule_ref *)(ipfwtag+1))->rulenum = dir;
 +
 +				if (s)
@@ -310,7 +310,7 @@ index 34d7269..d184aa4 100644
 +						REASON_SET(&reason, PFRES_MEMORY);
 +						log = 1;
 +						DPFPRINTF(PF_DEBUG_MISC,
-+						    ("pf: failed to allocate tag\n"));
++						   ("pf: failed to allocate tag\n"));
 +					}
 +					pd.pf_mtag->flags |= PF_FASTFWD_OURS_PRESENT;
 +					m->m_flags &= ~M_FASTFWD_OURS;
@@ -333,7 +333,7 @@ index 34d7269..d184aa4 100644
  	/*
  	 * connections redirected to loopback should not match sockets
  	 * bound specifically to loopback due to security implications,
-@@ -6027,49 +6113,14 @@ continueprocessing:
+@@ -6048,49 +6134,14 @@ continueprocessing:
  	    pd.proto == IPPROTO_UDP) && s != NULL && s->nat_rule.ptr != NULL &&
  	    (s->nat_rule.ptr->action == PF_RDR ||
  	    s->nat_rule.ptr->action == PF_BINAT) &&
@@ -388,15 +388,15 @@ index 34d7269..d184aa4 100644
  	if (log) {
  		struct pf_rule *lr;
  
-@@ -6166,7 +6217,6 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6187,7 +6238,6 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  	struct pf_pdesc		 pd;
  	int			 off = 0, terminal = 0, dirndx, rh_cnt = 0;
  	int                      loopedfrom = 0;
--	struct m_tag *dn_tag;
+-	struct m_tag		*dn_tag;
  	struct ip_fw_args        dnflow;
  
  	M_ASSERTPKTHDR(m);
-@@ -6191,17 +6241,22 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
+@@ -6212,17 +6262,22 @@ pf_test6(int dir, struct ifnet *ifp, struct mbuf **m0, struct inpcb *inp)
  
  	PF_RULES_RLOCK();
  
