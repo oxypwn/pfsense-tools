@@ -1,8 +1,8 @@
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index d184aa4..3e3005c 100644
+index 6952dd4..e39f73d 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
-@@ -5332,6 +5332,12 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5352,6 +5352,12 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	ip = mtod(m0, struct ip *);
  
@@ -15,7 +15,7 @@ index d184aa4..3e3005c 100644
  	bzero(&dst, sizeof(dst));
  	dst.sin_family = AF_INET;
  	dst.sin_len = sizeof(dst);
-@@ -5379,8 +5385,59 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5399,8 +5405,59 @@ pf_route(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  	}
  	if (ifp == NULL)
  		goto bad;
@@ -75,7 +75,7 @@ index d184aa4..3e3005c 100644
  		if (pf_test(PF_OUT, ifp, &m0, NULL) != PF_PASS)
  			goto bad;
  		else if (m0 == NULL)
-@@ -5463,6 +5520,11 @@ done:
+@@ -5483,6 +5540,11 @@ done:
  		*m = NULL;
  	return;
  
@@ -87,7 +87,7 @@ index d184aa4..3e3005c 100644
  bad_locked:
  	if (s)
  		PF_STATE_UNLOCK(s);
-@@ -5513,6 +5575,9 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5533,6 +5595,9 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	ip6 = mtod(m0, struct ip6_hdr *);
  
@@ -97,7 +97,7 @@ index d184aa4..3e3005c 100644
  	bzero(&dst, sizeof(dst));
  	dst.sin6_family = AF_INET6;
  	dst.sin6_len = sizeof(dst);
-@@ -5551,6 +5616,56 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
+@@ -5571,6 +5636,56 @@ pf_route6(struct mbuf **m, struct pf_rule *r, int dir, struct ifnet *oifp,
  
  	if (ifp == NULL)
  		goto bad;
@@ -154,7 +154,7 @@ index d184aa4..3e3005c 100644
  
  	if (oifp != ifp) {
  		if (pf_test6(PF_OUT, ifp, &m0, NULL) != PF_PASS)
-@@ -5590,6 +5705,11 @@ done:
+@@ -5610,6 +5725,11 @@ done:
  		*m = NULL;
  	return;
  
