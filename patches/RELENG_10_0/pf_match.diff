@@ -108,7 +108,7 @@ index 246eff2..b217cde 100644
  	u_int16_t		 divert_cookie;
  	u_int8_t		 log;
 diff --git a/sys/netpfil/pf/pf.c b/sys/netpfil/pf/pf.c
-index e39f73d..6ea14ef 100644
+index 6c6fceb..61bd539 100644
 --- a/sys/netpfil/pf/pf.c
 +++ b/sys/netpfil/pf/pf.c
 @@ -231,6 +231,8 @@ static int		 pf_state_key_attach(struct pf_state_key *,
@@ -296,22 +296,23 @@ index e39f73d..6ea14ef 100644
  		/* add hints for ecn */
  		pd.pf_mtag->hdr = h;
  
-@@ -6156,8 +6217,12 @@ done:
+@@ -6156,10 +6217,14 @@ done:
  		return (PF_PASS);
  	}
  
--	if (r->dnpipe && ip_dn_io_ptr != NULL && loopedfrom != 1) {
--		if (dir != r->direction && r->pdnpipe) {
-+	if (((s && s->dnpipe) || r->dnpipe) && ip_dn_io_ptr != NULL && loopedfrom != 1) {
-+		if (dir != r->direction && s && s->pdnpipe) {
+-	if ((r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
++	if (((s && s->dnpipe) || r->dnpipe || (divflags & PFSTATE_DIVERT_DNCOOKIE)) &&
+ 	    ip_dn_io_ptr != NULL && loopedfrom != 1) {
+ 		if (divflags & PFSTATE_DIVERT_DNCOOKIE) {
+ 			dnflow.rule.info = divertcookie;
++		} else if (dir != r->direction && s && s->pdnpipe) {
 +			dnflow.rule.info = s->pdnpipe;
 +		} else if (dir == r->direction && s && s->dnpipe) {
 +			dnflow.rule.info = s->dnpipe;
-+		} else if (dir != r->direction && r->pdnpipe) {
+ 		} else if (dir != r->direction && r->pdnpipe) {
  			dnflow.rule.info = r->pdnpipe;
  		} else if (dir == r->direction) {
- 			dnflow.rule.info = r->dnpipe;
-@@ -6166,6 +6231,9 @@ done:
+@@ -6169,6 +6234,9 @@ done:
  
  		if (r->free_flags & PFRULE_DN_IS_PIPE)
  			dnflow.rule.info |= IPFW_IS_PIPE;
@@ -321,7 +322,7 @@ index e39f73d..6ea14ef 100644
  		dnflow.f_id.addr_type = 4; /* IPv4 type */
  		dnflow.f_id.proto = pd.proto;
  		if (dir == PF_OUT && s != NULL && s->nat_rule.ptr != NULL &&
-@@ -6649,13 +6717,23 @@ done:
+@@ -6647,13 +6715,23 @@ done:
  			pd.pf_mtag->qid = r->pqid;
  		else
  			pd.pf_mtag->qid = r->qid;
@@ -347,7 +348,7 @@ index e39f73d..6ea14ef 100644
  			dnflow.rule.info = r->pdnpipe;
  		} else if (dir == r->direction) {
  			dnflow.rule.info = r->dnpipe;
-@@ -6664,6 +6742,9 @@ done:
+@@ -6662,6 +6740,9 @@ done:
  
  		if (r->free_flags & PFRULE_DN_IS_PIPE)
  			dnflow.rule.info |= IPFW_IS_PIPE;
