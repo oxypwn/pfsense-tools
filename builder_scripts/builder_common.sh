@@ -714,7 +714,7 @@ cust_overlay_host_binaries() {
 					fi
 				done
 			else
-				cp /${TEMPFILE} ${PFSENSEBASEDIR}/$TEMPFILE
+				tar cf - /${TEMPFILE} | tar xpfC - ${PFSENSEBASEDIR}
 			fi
 		else
 			if [ -f ${CVS_CO_DIR}/${TEMPFILE} ]; then
