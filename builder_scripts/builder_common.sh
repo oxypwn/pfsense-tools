@@ -693,10 +693,10 @@ cust_overlay_host_binaries() {
 	for TEMPFILE in $FOUND_FILES; do
 		if [ -f /${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | egrep "(dynamically|shared)" | wc -l | awk '{ print $1 }'`
+			mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
 			if [ "$FILETYPE" -gt 0 ]; then
 				NEEDLIB=`ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`
 				NEEDEDLIBS="$NEEDEDLIBS $NEEDLIB" 
-				mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
 				if [ ! -f ${PFSENSEBASEDIR}/${TEMPFILE} ] || [ /${TEMPFILE} -nt ${PFSENSEBASEDIR}/${TEMPFILE} ]; then
 					cp /${TEMPFILE} ${PFSENSEBASEDIR}/${TEMPFILE}
 					chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
