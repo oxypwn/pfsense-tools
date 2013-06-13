@@ -204,8 +204,8 @@ clean_make_install() {
 
 	echo -n ">>> Building $_PORTNAME(${PKGNAME})..."
 	if [ "${CHECK_INSTALLED}" = "check_installed" ]; then
-		#if [ -d /var/db/pkg/${PKGNAME} ]; then
-		if ! pkg query %n ${PKGNAME}; then
+		pkg query %n ${PKGNAME}
+		if [ "$?" = "0" ]; then
 			if [ -z "$VERIFY" -o -f $VERIFY ]; then
 				echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
 				echo "already built.  Skipping."
