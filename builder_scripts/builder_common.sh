@@ -3733,7 +3733,7 @@ install_pkg_install_ports_build() {
 			if [ ${FREEBSD_VERSION} -gt 9 ]; then
 				if [ `pkg query %n $_BUILT_PKGNAME` ]; then
 					echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-					script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV WITHOUT_X11=yes NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/d ev/null || true 2>&1 >/dev/null
+					script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/d ev/null || true 2>&1 >/dev/null
 					if [ "$?" != "0" ]; then
 						echo
 						echo
@@ -3750,7 +3750,7 @@ install_pkg_install_ports_build() {
 			else
 				if [ `pkg_info -e $_BUILT_PKGNAME` ]; then
 					echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-					script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV WITHOUT_X11=yes NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
+					script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
 					if [ "$?" != "0" ]; then
 						echo
 						echo
@@ -3798,7 +3798,7 @@ install_pkg_install_ports_build() {
 		fi
 
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV WITHOUT_X11=yes NOPORTDOCS=yes NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes BATCH=yes FORCE_PKG_REGISTER=yes NO_LATEST_LINK=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN LATEST_LINK" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
 			echo
 			echo
