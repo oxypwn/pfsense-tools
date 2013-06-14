@@ -17,7 +17,6 @@ COMMENT=	KAME racoon IKE daemon, ipsec-tools version
 
 CONFLICTS=	racoon-[0-9]*
 
-USE_RC_SUBR=	racoon
 USE_OPENSSL=	yes
 USE_BZIP2=	yes
 
