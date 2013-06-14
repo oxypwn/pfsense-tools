@@ -1,12 +1,8 @@
-# New ports collection makefile for:	miniupnpd
-# Date created:		22 March 2007
-# Whom:			Daniel O'Connor <darius@dons.net.au>
-#
-# $FreeBSD: ports/net/miniupnpd/Makefile,v 1.19 2012/06/02 11:03:26 sperber Exp $
-#
+# Created by: Daniel O'Connor <darius@dons.net.au>
+# $FreeBSD: head/net/miniupnpd/Makefile 311883 2013-02-07 19:40:36Z jgh $
 
 PORTNAME=	miniupnpd
-PORTVERSION=	1.7.20120711
+PORTVERSION=	1.8
 PORTEPOCH=	1
 CATEGORIES=	net
 MASTER_SITES=	http://miniupnp.tuxfamily.org/files/ \
@@ -30,14 +26,18 @@ USE_RC_SUBR=	miniupnpd.sh
 OPTIONS=	PF_ENABLE_FILTER_RULES		"Enable pf generation of filter rules" on
 
 .include <bsd.port.options.mk>
-.if defined(WITH_PF_ENABLE_FILTER_RULES)
+.if ${PORT_OPTIONS:MWITH_PF_ENABLE_FILTER_RULES}
 EXTRA_PATCHES=	${PATCHDIR}/pf_enable_filter_rules.patch
 .endif
 
+post-patch-script:
+	@${REINPLACE_CMD} 's|CFLAGS ?= -pipe -Os|CFLAGS ?= -pipe|' \
+		${WRKSRC}/Makefile
+
 do-install:
-	@${INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin/miniupnpd
+	@${INSTALL_PROGRAM} ${WRKSRC}/miniupnpd ${PREFIX}/sbin
 	@${INSTALL_DATA} ${WRKDIR}/miniupnpd.conf.sample ${PREFIX}/etc/miniupnpd.conf.sample
-	@${INSTALL_MAN} ${WRKSRC}/miniupnpd.1 ${PREFIX}/man/man8/miniupnpd.8
+	@${INSTALL_MAN} ${WRKSRC}/miniupnpd.8 ${MAN8PREFIX}/man/man8/miniupnpd.8
 	@${CAT} ${PKGMESSAGE}
 
 .include <bsd.port.mk>

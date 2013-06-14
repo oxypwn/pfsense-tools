@@ -1,10 +1,5 @@
-# ex:ts=8
-# Ports collection makefile for:  apinger
-# Date created:                          Tue Jul 17, 2002
-# Whom:                                  Michael L. Hostbaek (mich@freebsdcluster.org)
-#
-# $FreeBSD: ports/net/apinger/Makefile,v 1.14 2008/07/16 15:25:51 mich Exp $
-#
+# Created by: Michael L. Hostbaek (mich@freebsdcluster.org)
+# $FreeBSD: head/net/apinger/Makefile 313460 2013-03-05 17:07:43Z miwi $
 
 PORTNAME=	apinger
 PORTVERSION=	0.6.1
@@ -17,11 +12,11 @@ MAINTAINER=	mich@FreeBSD.org
 COMMENT=	An IP device monitoring tool
 
 GNU_CONFIGURE=	yes
-WITH_IPV6=	yes
 
-OPTIONS=	IPV6 "With support for IPv6" on
+OPTIONS_DEFINE=	IPV6
+OPTIONS_DEFAULT=	IPV6
 
-.include <bsd.port.pre.mk>
+.include <bsd.port.options.mk>
 
 CONFIGURE_ARGS+= --enable-ipv6
 
@@ -40,7 +35,7 @@ post-install:
 	@${ECHO_MSG} "###############################################################################"
 .endif
 
-.if !defined(NOPORTDOCS)
+.if ${PORT_OPTIONS:MDOCS}
 	@${MKDIR} ${DOCSDIR}
 	${INSTALL_DATA} ${WRKSRC}/README ${DOCSDIR}/README
 	${INSTALL_DATA} ${WRKSRC}/NEWS ${DOCSDIR}/NEWS
