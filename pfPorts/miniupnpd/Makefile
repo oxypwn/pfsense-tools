@@ -21,9 +21,11 @@ MAKE_JOBS_UNSAFE=yes
 
 MAN8=		miniupnpd.8
 
-USE_RC_SUBR=	miniupnpd.sh
+USE_RC_SUBR=	miniupnpd
 
-OPTIONS=	PF_ENABLE_FILTER_RULES		"Enable pf generation of filter rules" on
+OPTIONS_DEFINE=	PF_ENABLE_FILTER_RULES
+OPTIONS_DEFAULT= PF_ENABLE_FILTER_RULES
+PF_ENABLE_FILTER_RULES_DESC=	Enable pf generation of filter rules
 
 .include <bsd.port.options.mk>
 .if ${PORT_OPTIONS:MWITH_PF_ENABLE_FILTER_RULES}
