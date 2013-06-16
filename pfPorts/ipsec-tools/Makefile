@@ -60,7 +60,7 @@ LDAP_DESC=	LDAP authentication (Xauth server)
 .if ${OSVERSION} < 900007
 EXTRA_PATCHES=	${FILESDIR}/patch8-utmp.diff
 .endif
-EXTRA_PATCHES+=${FILESDIR}/patch9-external_script.diff ${FILESDIR}/patch10-show_users.diff ${FILESDIR}/patch11-purge_sp_fix.diff ${FILESDIR}/ipsec-nat.diff
+EXTRA_PATCHES+=${FILESDIR}/patch10-show_users.diff ${FILESDIR}/patch11-purge_sp_fix.diff
 
 .if ${PORT_OPTIONS:MDEBUG}
 CONFIGURE_ARGS+=	--enable-debug
