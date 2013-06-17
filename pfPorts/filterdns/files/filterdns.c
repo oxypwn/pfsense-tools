@@ -32,6 +32,7 @@
 
 #include <net/if.h>
 #include <net/pfvar.h>
+#include <net/ethernet.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netinet/ip_fw.h>
