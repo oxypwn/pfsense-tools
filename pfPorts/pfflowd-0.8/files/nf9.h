@@ -251,6 +251,6 @@ extern u_int16_t NF9_IPV6_EGRESS[];
  */
 int resolve_interface( struct pf_addr *host , int af);
 
-int send_netflow_v9(const struct pfsync_state *, u_int , int *, int ,int ,struct timeval, int, int, int, int );
+int send_netflow_v9(const struct pfsync_state *, u_int , u_int *, int ,int ,struct timeval, int, int, int, int );
 
 #endif /* _NF9_H */

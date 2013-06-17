@@ -6,6 +6,7 @@
 #include <net/bpf.h>
 #include <net/pfvar.h>
 #include <net/if_pfsync.h>
+#include <net/route.h>
 #include <arpa/inet.h>
 #include <errno.h>
 #include <pcap.h>
@@ -128,6 +129,8 @@ static u_int8_t packet[NF9_MAX_PACKET_SIZE];
 
 static struct timeval last_refreshed;
 
+static int sprint_time(char* , int, int);
+
 static u_int64_t
   ntoh64(u_int64_t val)
 {
@@ -162,7 +165,7 @@ int print_ipv6(struct NF9_IPV6_DATA *data)
 	  data->direction, data->protocol, ntohs(data->src_index), ntohs(data->dst_index) );
 
 #ifdef NF9_ULL
-   syslog(LOG_DEBUG,"BYTES %llu PACKETS %llu", ntoh64(data->octets) ,ntoh64(data->packets) );
+   syslog(LOG_DEBUG,"BYTES %lu PACKETS %lu", ntoh64(data->octets) ,ntoh64(data->packets) );
 #else
    syslog(LOG_DEBUG,"BYTES %d PACKETS %d", ntohl(data->octets) ,ntohl(data->packets) );
 #endif /*NF9_UL*/
@@ -193,7 +196,7 @@ int print_ipv4(struct NF9_IPV4_DATA *data)
 
 #ifdef NF9_ULL
    
-   syslog(LOG_DEBUG,"BYTES %llu PACKETS %llu", ntoh64(data->octets) ,ntoh64(data->packets) );
+   syslog(LOG_DEBUG,"BYTES %lu PACKETS %lu", ntoh64(data->octets) ,ntoh64(data->packets) );
 #else
    syslog(LOG_DEBUG,"BYTES %d PACKETS %d", ntohl(data->octets) ,ntohl(data->packets) );
 #endif /*NF9_UL*/
@@ -208,7 +211,7 @@ int print_template( u_int16_t tpl[] )
    int i;
    int count = ntohs(tpl[1]);
 
-   syslog(LOG_DEBUG, "TID %hu COUNT %hu", ntohs(tpl[0]) , count );
+   syslog(LOG_DEBUG, "TID %hu COUNT %d", ntohs(tpl[0]) , count );
 
    for( i =1 ; i <= count ; i++)
      {
@@ -242,13 +245,13 @@ int print_packet(u_int8_t packet[], int verbose_flag)
      {
 	count = ntohs(hdr->count);
 
-	syslog(LOG_DEBUG, "<PACKET> VER %hu COUNT %hu", ntohs(hdr->version), count);
+	syslog(LOG_DEBUG, "<PACKET> VER %hu COUNT %d", ntohs(hdr->version), count);
 
-	syslog(LOG_DEBUG, "ID %lu UPTIME %lu msecs",ntohl(hdr->source_id), ntohl(hdr->uptime_ms));
+	syslog(LOG_DEBUG, "ID %u UPTIME %u msecs",ntohl(hdr->source_id), ntohl(hdr->uptime_ms));
 
         sprint_time(buf, sizeof(buf),ntohl(hdr->time_sec));
 
-	syslog(LOG_DEBUG, "EXPORT TIME %s SEQ %lu", buf, ntohl(hdr->export_sequence));
+	syslog(LOG_DEBUG, "EXPORT TIME %s SEQ %u", buf, ntohl(hdr->export_sequence));
 
 	offset = NF9_PACKET_HEADER_SIZE;
 
@@ -260,7 +263,7 @@ int print_packet(u_int8_t packet[], int verbose_flag)
 	     id = ntohs(fst->id);
 	     length =ntohs(fst->length);
 
-	     syslog(LOG_DEBUG, "<FLOWSET> TID %hu LEN %hu", id, length);
+	     syslog(LOG_DEBUG, "<FLOWSET> TID %d LEN %d", id, length);
 
 	     length -= NF9_FLOWSET_HEADER_SIZE;
 	     offset +=NF9_FLOWSET_HEADER_SIZE;
@@ -341,7 +344,8 @@ int print_packet(u_int8_t packet[], int verbose_flag)
    return 0;
 }
 
-int sprint_time(char* buf ,int n ,int sec)
+static int
+sprint_time(char* buf ,int n ,int sec)
 {
 
    time_t in = sec;
@@ -349,6 +353,8 @@ int sprint_time(char* buf ,int n ,int sec)
 
    localtime_r(&in, &out);
    strftime(buf, n, "%Y-%m-%dT%H:%M:%S", &out);
+
+   return (0);
 }
 
 static u_int32_t
@@ -455,7 +461,7 @@ int resolve_interface(struct pf_addr *host , int af)
 }
 
 int
-  send_netflow_v9(const struct pfsync_state *st, u_int n, int *flows_exp
+  send_netflow_v9(const struct pfsync_state *st, u_int n, u_int *flows_exp
 		  , int netflow_socket, int direction, struct timeval start_time, int verbose_flag
 		  , int refresh_minutes_interval, int refresh_packets_interval, int source_id)
 {
