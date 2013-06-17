@@ -69,7 +69,7 @@ static int refresh_packets_interval  = 1000;   /*Resend templates every refresh_
  * RFC 3954:5.1
  * "A 32-bit value that identifies the Exporter Observation Domain"
  */
-static source_id  = 0;                    /*The source id of export packets*/
+static int source_id  = 0;                    /*The source id of export packets*/
 #endif /*NF9*/
 
 /*
