@@ -136,7 +136,7 @@ _substrcmp2(const char *str1, const char* str2, const char* str3)
                 return 1;
  
         if (strcmp(str1, str3) != 0)
-                warnx("DEPRECATED: '%s' matched '%s'",
+                php_printf("DEPRECATED: '%s' matched '%s'",
                     str1, str3);
         return 0;
 }
