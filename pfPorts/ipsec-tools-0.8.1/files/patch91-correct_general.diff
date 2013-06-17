@@ -1,0 +1,87 @@
+diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/evt.c ./src/racoon/evt.c
+--- ../ipsec-tools-0.8.1.orig/src/racoon/evt.c	2013-06-17 14:56:54.000000000 -0500
++++ ./src/racoon/evt.c	2013-06-17 14:57:02.000000000 -0500
+@@ -297,7 +297,7 @@
+ 		return;
+ 
+ 	evtmsg_broadcast(&evt_listeners, e);
+-	evt_push(&e->evt.ec_ph1src, &e->evt.ec_ph1dst, type, optdata);
++	evt_push((struct sockaddr *)&e->evt.ec_ph1src, (struct sockaddr *)&e->evt.ec_ph1dst, type, optdata);
+ 
+ 	racoon_free(e);
+ }
+@@ -320,7 +320,7 @@
+ 
+ 	evtmsg_broadcast(&ph1->evt_listeners, e);
+ 	evtmsg_broadcast(&evt_listeners, e);
+-	evt_push(&e->evt.ec_ph1src, &e->evt.ec_ph1dst, type, optdata);
++	evt_push((struct sockaddr *)&e->evt.ec_ph1src, (struct sockaddr *)&e->evt.ec_ph1dst, type, optdata);
+ 
+ 	racoon_free(e);
+ }
+@@ -349,7 +349,7 @@
+ 	if (ph1)
+ 		evtmsg_broadcast(&ph1->evt_listeners, e);
+ 	evtmsg_broadcast(&evt_listeners, e);
+-	evt_push(&e->evt.ec_ph1src, &e->evt.ec_ph1dst, type, optdata);
++	evt_push((struct sockaddr *)&e->evt.ec_ph1src, (struct sockaddr *)&e->evt.ec_ph1dst, type, optdata);
+ 
+ 	racoon_free(e);
+ }
+diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/grabmyaddr.c ./src/racoon/grabmyaddr.c
+--- ../ipsec-tools-0.8.1.orig/src/racoon/grabmyaddr.c	2013-06-17 14:56:54.000000000 -0500
++++ ./src/racoon/grabmyaddr.c	2013-06-17 14:57:02.000000000 -0500
+@@ -741,12 +741,12 @@
+ 
+ 	switch (rtm->rtm_type) {
+ 	case RTM_NEWADDR:
+-		parse_addresses(ifa + 1, msg + ifa->ifam_msglen,
++		parse_addresses((caddr_t)(ifa + 1), msg + ifa->ifam_msglen,
+ 				ifa->ifam_addrs, &addr);
+ 		myaddr_open_all_configured((struct sockaddr *) &addr);
+ 		break;
+ 	case RTM_DELADDR:
+-		parse_addresses(ifa + 1, msg + ifa->ifam_msglen,
++		parse_addresses((caddr_t)(ifa + 1), msg + ifa->ifam_msglen,
+ 				ifa->ifam_addrs, &addr);
+ 		myaddr_close_all_open((struct sockaddr *) &addr);
+ 		break;
+diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/ipsec_doi.c ./src/racoon/ipsec_doi.c
+--- ../ipsec-tools-0.8.1.orig/src/racoon/ipsec_doi.c	2013-06-17 14:56:54.000000000 -0500
++++ ./src/racoon/ipsec_doi.c	2013-06-17 14:57:02.000000000 -0500
+@@ -1183,7 +1183,7 @@
+ 			"failed to get buffer.\n");
+ 		goto bad;
+ 	}
+-	memset(pair, 0, sizeof(pair));
++	memset(pair, 0, MAXPROPPAIRLEN * sizeof(*pair));
+ 
+ 	bp = (caddr_t)(sab + 1);
+ 	tlen = sa->l - sizeof(*sab);
+diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/isakmp.c ./src/racoon/isakmp.c
+--- ../ipsec-tools-0.8.1.orig/src/racoon/isakmp.c	2013-06-17 14:56:54.000000000 -0500
++++ ./src/racoon/isakmp.c	2013-06-17 14:57:02.000000000 -0500
+@@ -1128,10 +1128,7 @@
+ 
+ /* new negotiation of phase 1 for responder */
+ static int
+-isakmp_ph1begin_r(msg, remote, local, etype)
+-	vchar_t *msg;
+-	struct sockaddr *remote, *local;
+-	u_int8_t etype;
++isakmp_ph1begin_r(vchar_t *msg, struct sockaddr *remote, struct sockaddr *local, u_int8_t etype)
+ {
+ 	struct isakmp *isakmp = (struct isakmp *)msg->v;
+ 	struct ph1handle *iph1;
+diff -ur ../ipsec-tools-0.8.1.orig/src/racoon/racoonctl.c ./src/racoon/racoonctl.c
+--- ../ipsec-tools-0.8.1.orig/src/racoon/racoonctl.c	2013-06-17 14:56:54.000000000 -0500
++++ ./src/racoon/racoonctl.c	2013-06-17 14:57:02.000000000 -0500
+@@ -1504,7 +1504,7 @@
+ 		else if (evt_quit_event == ec->ec_type) {
+ 			switch (ec->ec_type) {
+ 			case EVT_PHASE1_MODE_CFG:
+-				print_cfg(ec, len);
++				print_cfg((caddr_t)ec, len);
+ 				break;
+ 			default:
+ 				print_evt(ec);
