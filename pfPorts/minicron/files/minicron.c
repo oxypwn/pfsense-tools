@@ -119,7 +119,7 @@ int main(int argc, char *argv[]) {
 			}
 			free(command);
 
-			return;
+			return (0);
 			/* NOTREACHED */
 			break;
 		case -1:
