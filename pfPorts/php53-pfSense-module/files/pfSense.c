@@ -90,6 +90,7 @@ IS ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <netinet/in.h>
 #include <netinet/in_var.h>
 #include <net/pfvar.h>
+#include <net/route.h>
 
 #include <netinet/ip_fw.h>
 #include <sys/ioctl.h>
@@ -331,9 +332,15 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	REGISTER_LONG_CONSTANT("IFBIF_PRIVATE", IFBIF_PRIVATE, CONST_PERSISTENT | CONST_CS);
 
 #ifdef IPFW_FUNCTIONS
+#if (__FreeBSD_version >= 1000000)
+	REGISTER_LONG_CONSTANT("IP_FW_TABLE_XADD", IP_FW_TABLE_XADD, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IP_FW_TABLE_XDEL", IP_FW_TABLE_XDEL, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IP_FW_TABLE_XZEROENTRY", IP_FW_TABLE_XZEROENTRY, CONST_PERSISTENT | CONST_CS);
+#else
 	REGISTER_LONG_CONSTANT("IP_FW_TABLE_ADD", IP_FW_TABLE_ADD, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IP_FW_TABLE_DEL", IP_FW_TABLE_DEL, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IP_FW_TABLE_ZERO_ENTRY_STATS", IP_FW_TABLE_ZERO_ENTRY_STATS, CONST_PERSISTENT | CONST_CS);
+#endif
 #endif
 
 	return SUCCESS;
@@ -507,7 +514,7 @@ PHP_FUNCTION(pfSense_kill_srcstates)
 				}
 
 				if (ioctl(dev, DIOCKILLSRCNODES, &psnk))
-					err(1, "DIOCKILLSRCNODES");
+					php_printf(1, "DIOCKILLSRCNODES");
 				killed += psnk.psnk_af;
 				/* fixup psnk.psnk_af */
 				psnk.psnk_af = resp[1]->ai_family;
@@ -1357,9 +1364,11 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 			case IFT_PFSYNC:
 				add_assoc_string(return_value, "iftype", "virtual", 1);
 				break;
+#if (__FreeBSD_version < 1000000)
 			case IFT_CARP:
 				add_assoc_string(return_value, "iftype", "carp", 1);
 				break;
+#endif
 			default:
 				add_assoc_string(return_value, "iftype", "other", 1);
 			}
@@ -2098,7 +2107,9 @@ PHP_FUNCTION(pfSense_get_pf_stats) {
 		add_assoc_long(return_value, "srcnodesinsert", (unsigned long long)status.scounters[SCNT_SRC_NODE_INSERT]);
 		add_assoc_long(return_value, "srcnodesremovals", (unsigned long long)status.scounters[SCNT_SRC_NODE_REMOVALS]);
 
+#if (__FreeBSD_version < 1000000)
 		add_assoc_long(return_value, "stateid", (unsigned long long)status.stateid);
+#endif
 
 		add_assoc_long(return_value, "running", status.running);
 		add_assoc_long(return_value, "states", status.states);

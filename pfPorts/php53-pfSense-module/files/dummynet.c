@@ -37,6 +37,7 @@
 #endif
 
 #include <net/if.h>
+#include <net/ethernet.h>
 #include <netinet/in.h>
 #include <netinet/ip_fw.h>
 #include <netinet/ip_dummynet.h>
@@ -159,9 +160,7 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
             optname == IP_FW_TABLE_GETSIZE ||
             optname == IP_FW_NAT_GET_CONFIG ||
             optname < 0 ||
-            optname == IP_FW_NAT_GET_LOG ||
-            optname == IP_FW_TABLE_GET_ENTRY ||
-            optname == IP_FW_TABLE_ZERO_ENTRY_STATS) {
+            optname == IP_FW_NAT_GET_LOG) {
                 if (optname < 0)
                         optname = -optname;
                 i = getsockopt(PFSENSE_G(ipfw), IPPROTO_IP, optname, optval,
