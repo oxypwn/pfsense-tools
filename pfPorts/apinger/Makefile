@@ -42,4 +42,4 @@ post-install:
 	${INSTALL_DATA} ${WRKSRC}/AUTHORS ${DOCSDIR}/AUTHORS
 .endif
 
-.include <bsd.port.post.mk>
+.include <bsd.port.mk>
