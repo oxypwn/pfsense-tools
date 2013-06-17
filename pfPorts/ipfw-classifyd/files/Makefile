@@ -14,7 +14,7 @@ OBJS=	classifyd.o hashtable.o protocols.o
 WARNS=		-Wsystem-headers -Werror -Wall -Wno-format-y2k -W \
 		-Wno-unused-parameter -Wstrict-prototypes \
 		-Wmissing-prototypes -Wpointer-arith -Wreturn-type \
-		-Wcast-qual -Wwrite-strings -Wswitch -Wshadow -Wcast-align \
+		-Wcast-qual -Wwrite-strings -Wswitch -Wshadow \
 		-Wunused-parameter -Wchar-subscripts -Winline \
 		-Wnested-externs -Wredundant-decls -Wno-pointer-sign	
 LDD=		-lpthread -lm -lutil
