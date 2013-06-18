@@ -3733,7 +3733,7 @@ install_pkg_install_ports_build() {
 			if [ ${FREEBSD_VERSION} -gt 9 ]; then
 				if [ `pkg query %n $_BUILT_PKGNAME` ]; then
 					echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-					script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/d ev/null || true 2>&1 >/dev/null
+					script /tmp/pfPort/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/d ev/null || true 2>&1 >/dev/null
 					if [ "$?" != "0" ]; then
 						echo
 						echo
