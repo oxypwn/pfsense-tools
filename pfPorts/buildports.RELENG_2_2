@@ -152,7 +152,8 @@ gogoc 				/usr/ports/net/gogoc				/usr/local/bin/gogoc
 radvd				/usr/ports/net/radvd				/usr/local/sbin/radvd
 ca_root_nss			/usr/ports/security/ca_root_nss			/usr/local/share/certs/ca-root-nss.crt
 bsnmp-ucd			/usr/ports/net-mgmt/bsnmp-ucd			/usr/local/lib/snmp_ucd.so
-bsnmp-regex			/usr/ports/net-mgmt/bsnmp-regex			/usr/local/lib/snmp_regex.so"
+bsnmp-regex			/usr/ports/net-mgmt/bsnmp-regex			/usr/local/lib/snmp_regex.so
+svnup				/usr/ports/net/svnup				/usr/local/bin/svnup"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:

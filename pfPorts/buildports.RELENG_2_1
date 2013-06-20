@@ -153,7 +153,8 @@ radvd				/usr/ports/net/radvd				/usr/local/sbin/radvd
 ca_root_nss			/usr/ports/security/ca_root_nss			/usr/local/share/certs/ca-root-nss.crt
 bsnmp-ucd			/usr/ports/net-mgmt/bsnmp-ucd			/usr/local/lib/snmp_ucd.so
 bsnmp-regex			/usr/ports/net-mgmt/bsnmp-regex			/usr/local/lib/snmp_regex.so
-ipfw_context			/usr/ports/net/ipfw_context			/usr/local/sbin/ipfw_context"
+ipfw_context			/usr/ports/net/ipfw_context			/usr/local/sbin/ipfw_context
+svnup				/usr/ports/net/svnup				/usr/local/bin/svnup"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
