@@ -591,17 +591,25 @@ void *check_hostname(void *arg)
 		ts.tv_sec += (interval % 30);
 		ts.tv_nsec = 0;
 
-		pthread_rwlock_rdlock(&main_lock);
-
-		if (thrd->exit == 1) {
-			pthread_rwlock_unlock(&main_lock);
-			break;
-		} else if (thrd->exit == 2) {
-			tmp = 1;
-			thrd->exit = 0;
+		if (dev < 0) {
+			dev = open("/dev/pf", O_RDWR);
+			if (dev < 0)
+				syslog(LOG_ERR, "firewall device could not be opened for operation...skipping this time");
 		}
 
-		host_dns(thrd, tmp);
+		if (dev > 0) {
+			pthread_rwlock_rdlock(&main_lock);
+
+			if (thrd->exit == 1) {
+				pthread_rwlock_unlock(&main_lock);
+				break;
+			} else if (thrd->exit == 2) {
+				tmp = 1;
+				thrd->exit = 0;
+			}
+
+			host_dns(thrd, tmp);
+		}
 
 		pthread_rwlock_unlock(&main_lock);
 		/* Hack for sleeping a thread */
