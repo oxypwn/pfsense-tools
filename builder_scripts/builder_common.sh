@@ -1680,19 +1680,6 @@ checkout_pfSense_git() {
 	echo "Done!"
 }
 
-# Invokes the rcs checkout routines
-checkout_pfSense() {
-	PREVIOUSDIR=`pwd`
-	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
-	rm -rf $CVS_CO_DIR
-	if [ -z "${USE_GIT:-}" ]; then
-		(cd $BASE_DIR && cvs -d ${BASE_DIR}/cvsroot co pfSense -r ${PFSENSETAG})
-	else
-		checkout_pfSense_git
-	fi
-	cd $PREVIOUSDIR
-}
-
 # Outputs various set variables aka env
 print_flags() {
 
