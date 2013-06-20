@@ -141,6 +141,15 @@ export pfSense_version=${pfSense_version:-"8"}
 export FREEBSD_VERSION=${FREEBSD_VERSION:-"8"}
 export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_3"}
 
+# This is used for using svnup for retrieving src instead of csup
+# export USE_SVNUP=yes
+
+# This is for specifying extra options to svnup
+# Especially useful for CURRENT on FreeBSD
+# export ${EXTRA_SVNUP_OPTIONS="-r $revision_in_svn"
+
+export SVNUP_TARGET=${SVNUP_TARGET:-release}
+
 # Define FreeBSD SUPFILE
 export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"} 
 

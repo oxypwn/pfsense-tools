@@ -3159,7 +3159,7 @@ ensure_source_directories_present() {
 		kill $$
 	fi
 	if [ ! -d $SRCDIR ]; then
-		echo ">>> Creating $SRCDIR ... We will need to csup the contents..."
+		echo ">>> Creating $SRCDIR ... We will need to fetch the contents..."
 		mkdir $SRCDIR
 		update_freebsd_sources_and_apply_patches
 	fi
@@ -3263,12 +3263,12 @@ install_required_builder_system_ports() {
 # Local binary						# Path to port
 	NEEDED_INSTALLED_PKGS="\
 /usr/local/bin/mkisofs				/usr/ports/sysutils/cdrtools
-/usr/local/bin/fastest_cvsup		/usr/ports/sysutils/fastest_cvsup
+/usr/local/bin/fastest_cvsup			/usr/ports/sysutils/fastest_cvsup
 /usr/local/lib/libpcre.so.1			/usr/ports/devel/pcre
-/usr/local/bin/curl					/usr/ports/ftp/curl
+/usr/local/bin/curl				/usr/ports/ftp/curl
 /usr/local/bin/rsync				/usr/ports/net/rsync
 /usr/local/bin/cpdup				/usr/ports/sysutils/cpdup
-/usr/local/bin/git					/usr/ports/devel/git
+/usr/local/bin/git				/usr/ports/devel/git
 /usr/local/bin/screen				/usr/ports/sysutils/screen
 "
 	oIFS=$IFS
@@ -3280,9 +3280,9 @@ install_required_builder_system_ports() {
 		PORT_LOCATION=`echo $PKG_STRING_T | awk '{ print $2 }'`
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
-			(cd $PORT_LOCATION && make -DBATCH deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} -DBATCH -DWITHOUT_GUI) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			(cd $PORT_LOCATION && make install -DWITHOUT_GUI -DFORCE_PKG_REGISTER -DBATCH) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make BATCH=yes deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} OPTIONS_UNSET=X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes ) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make OPTIONS_UNSET=X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes WITHOUT_GUI=yes install) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			echo "Done!"
 		fi
 	done
@@ -3309,14 +3309,16 @@ update_freebsd_sources_and_apply_patches() {
 		fi
 	fi
 
-	# If override is in place, use it otherwise
-	# locate fastest cvsup host
-	if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
-		echo ">>> Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
-		echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
-	else
-		echo ">>> Finding fastest CVSUp host... Please wait..."
-		fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+	if [ -z ${USE_SVNUP} ]; then
+		# If override is in place, use it otherwise
+		# locate fastest cvsup host
+		if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
+			echo ">>> Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
+			echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
+		else
+			echo ">>> Finding fastest CVSUp host... Please wait..."
+			fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+		fi
 	fi
 
 	echo ">>> Removing old patch rejects..."
@@ -3325,13 +3327,30 @@ update_freebsd_sources_and_apply_patches() {
 	find $SRCDIR -name "*.orig" | sed 's/.orig//g' | xargs rm -f
 	find $SRCDIR -name "*.orig" | xargs rm -f
 
-	# CVSUp freebsd version -- this MUST be after Loop through and remove files
 	BASENAMESUPFILE=`basename $SUPFILE`
 	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
-	(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
-		grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
-		| grep -v "error\." | grep -v "opensolaris" | \
-		grep -v "httpd-error"
+	if [ -z ${USE_SVNUP} ]; then
+		# CVSUp freebsd version -- this MUST be after Loop through and remove files
+		(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
+			grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+			| grep -v "error\." | grep -v "opensolaris" | \
+			grep -v "httpd-error"
+	else
+		# SVNup freebsd version -- which normally removes other files as well but leave the removal process for now
+		cp ${SUPFILE} /usr/local/etc
+		if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
+			(svnup $SVNUP_TARGET -l $SRCDIR -h ${OVERRIDE_FREEBSD_CVSUP_HOST} ${EXTRA_SVNUP_OPTIONS}) 2>&1 | \
+				grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+				| grep -v "error\." | grep -v "opensolaris" | \
+				grep -v "httpd-error"
+		else
+			(svnup $SVNUP_TARGET -l $SRCDIR ${EXTRA_SVNUP_OPTIONS}) 2>&1 | \
+				grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+				| grep -v "error\." | grep -v "opensolaris" | \
+				grep -v "httpd-error"
+		fi
+
+	fi
 	echo "Done!"
 
 	# Loop through and remove files
@@ -3474,9 +3493,6 @@ setup_deviso_specific_items() {
 		fi
 	fi
 
-	if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" = "" ]; then
-		OVERRIDE_FREEBSD_CVSUP_HOST=`fastest_cvsup -c tld -q`
-	fi
 	echo -n ">>> Setting up DevISO specific bits... Please wait (this will take a while!)..."
 	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
 	mkdir -p $DEVROOT
