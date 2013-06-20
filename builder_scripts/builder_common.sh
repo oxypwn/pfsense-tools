@@ -420,40 +420,6 @@ build_all_kernels() {
 	freesbie_make installkernel
 	ensure_kernel_exists $KERNEL_DESTDIR
 
-	# Build embedded dev kernel
-	#echo ">>> Building embedded dev kernel..."
-	#find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	#find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	#unset KERNCONF
-	#unset KERNEL_DESTDIR
-	#unset KERNELCONF
-	#export KERNCONF=pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}
-	#export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_Dev"
-	#export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	#fixup_kernel_options
-	#freesbie_make buildkernel
-	#echo ">>> Installing wrap Dev kernel..."
-	#freesbie_make installkernel
-	#ensure_kernel_exists $KERNEL_DESTDIR
-
-	# Build Developers kernel
-	#echo ">>> Building Developers kernel..."
-	#find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	#find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	#unset KERNCONF
-	#unset KERNEL_DESTDIR
-	#unset KERNELCONF
-	#export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	#export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
-	#export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
-	# Common fixup code
-	#fixup_kernel_options
-	#freesbie_make buildkernel
-	#echo ">>> Installing Developers kernel..."
-	#freesbie_make installkernel
-	#ensure_kernel_exists $KERNEL_DESTDIR
-
 	# Build SMP kernel
 	echo ">>> Building SMP kernel..."
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
@@ -555,6 +521,7 @@ recompile_pfPorts() {
 			CPUS=`expr $DCPUS '*' 2`
 			echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 			echo "WITHOUT_X11=yo" >> /etc/make.conf
+			echo "OPTIONS_UNSET=X11 DOCS EXAMPLES MAN" >> /etc/make.conf
 			MKCNF="pfPorts"
 		fi
 		if [ "$ARCH" = "mips" ]; then
@@ -3546,6 +3513,7 @@ setup_deviso_specific_items() {
 	mkdir -p $PFSENSEBASEDIR/home/pfsense/installer
 	mkdir -p $PFSENSEBASEDIR/usr/pfSensesrc
 	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
+	echo "OPTIONS_UNSET=X11 DOCS EXAMPLES MAN" >> /etc/make.conf
 	DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
 	CPUS=`expr $DCPUS '*' 2`
 	echo SUBTHREADS="${CPUS}" >> /etc/make.conf
