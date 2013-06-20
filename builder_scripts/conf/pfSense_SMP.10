@@ -5,10 +5,12 @@ options		KDB
 nooptions       KDB_TRACE 
 options		DDB                     # Support DDB.
 nooptions       GDB                     # Support remote GDB.
+nooptions       DEADLKRES
 nooptions	INVARIANTS
 nooptions	INVARIANT_SUPPORT
 nooptions	WITNESS
 nooptions	WITNESS_SKIPSPIN
+nooptions       MALLOC_DEBUG_MAXZONES
 
 nomakeoptions	DEBUG
 #makeoptions    DEBUG=-g                # Build kernel with gdb(1) debug symbols
