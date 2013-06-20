@@ -1779,52 +1779,36 @@ freesbie_make() {
 
 # This updates the pfSense sources from rcs.pfsense.org
 update_cvs_depot() {
-	if [ -z "${USE_GIT:-}" ]; then
-		local _cvsdate
-		echo ">>> Launching csup pfSense-supfile..."
-		(/usr/bin/csup -b $BASE_DIR/cvsroot pfSense-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		rm -rf pfSense
-		echo ">>> Updating ${BASE_DIR}/pfSense..."
-		rm -rf $BASE_DIR/pfSense
-		if [ -n "$PFSENSECVSDATETIME" ]; then
-			_cvsdate="-D $PFSENSECVSDATETIME"
-		fi
-		(cd ${BASE_DIR} && cvs -d $BASE_DIR/cvsroot co -r ${PFSENSETAG} $_cvsdate pfSense) \
-			| egrep -wi "(^\?|^M|^C|error|warning)"
-		(cd ${BUILDER_TOOLS}/ && cvs update -d) \
-			| egrep -wi "(^\?|^M|^C|error|warning)"
-	else
-		if [ ! -d "${GIT_REPO_DIR}" ]; then
-			echo ">>> Creating ${GIT_REPO_DIR}"
-			mkdir -p ${GIT_REPO_DIR}
-		fi
-		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
-			echo -n ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}..."
-			(cd ${GIT_REPO_DIR} && /usr/local/bin/git clone ${GIT_REPO} pfSenseGITREPO) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
-				if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO/conf.default" ]; then
-					echo
-					echo "!!!! An error occured while checking out pfSense"
-					echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
-					echo
-					print_error_pfS
-					kill $$
-				fi
-			else
+	if [ ! -d "${GIT_REPO_DIR}" ]; then
+		echo ">>> Creating ${GIT_REPO_DIR}"
+		mkdir -p ${GIT_REPO_DIR}
+	fi
+	if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
+		echo -n ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}..."
+		(cd ${GIT_REPO_DIR} && /usr/local/bin/git clone ${GIT_REPO} pfSenseGITREPO) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
+			if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO/conf.default" ]; then
 				echo
 				echo "!!!! An error occured while checking out pfSense"
-				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO"
+				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
 				echo
 				print_error_pfS
 				kill $$
 			fi
-			echo "Done!"
-		fi
-		checkout_pfSense_git
-		if [ $? != 0 ]; then
-			echo "Something went wrong while checking out GIT."
+		else
+			echo
+			echo "!!!! An error occured while checking out pfSense"
+			echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO"
+			echo
 			print_error_pfS
+			kill $$
 		fi
+		echo "Done!"
+	fi
+	checkout_pfSense_git
+	if [ $? != 0 ]; then
+		echo "Something went wrong while checking out GIT."
+		print_error_pfS
 	fi
 }
 
