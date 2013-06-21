@@ -3264,7 +3264,7 @@ install_required_builder_system_ports() {
 	NEEDED_INSTALLED_PKGS="\
 /usr/local/bin/mkisofs				/usr/ports/sysutils/cdrtools
 /usr/local/bin/fastest_cvsup			/usr/ports/sysutils/fastest_cvsup
-/usr/local/lib/libpcre.so.1			/usr/ports/devel/pcre
+/usr/local/lib/libpcre.so.3			/usr/ports/devel/pcre
 /usr/local/bin/curl				/usr/ports/ftp/curl
 /usr/local/bin/rsync				/usr/ports/net/rsync
 /usr/local/bin/cpdup				/usr/ports/sysutils/cpdup
