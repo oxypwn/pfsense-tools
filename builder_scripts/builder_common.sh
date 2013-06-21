@@ -603,36 +603,7 @@ cust_overlay_host_binaries() {
 		return
 	fi
 
-	# handle syslogd
-	PWD=`pwd`
-	# Note, (cd foo && make) does not seem to work.
-	# If you think you are cleaning this up then prepare
-	# to spend a fair amount of time figuring out why the built
-	# syslogd file doe snot reside in the correct directory to
-	# install from.  Just move along now, nothing to see here.
-	#echo "==> Building syslogd..."
-	#cd $SRCDIR/usr.sbin/syslogd
-	#(make clean) | egrep -wi '(^>>>|error)'
- 	#(make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-	#(make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
-	#echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
-	#if [ -f ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd ]; then
-	#	install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
-	#fi
-	#cd $PWD
-
-	# Handle clog
-	#echo "==> Building clog..."
-	#if [ -d $SRCDIR/usr.sbin/clog ]; then
-	#	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
-	#	(cd $SRCDIR/usr.sbin/clog && make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-	#	(cd $SRCDIR/usr.sbin/clog && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
-	#    echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-	#	if [ -f $SRCDIR/usr.sbin/clog/clog ]; then
-	#    	install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
-	#	fi
-	#fi
-	
+	# XXX: handle syslogd
 	install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
 	install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
 
