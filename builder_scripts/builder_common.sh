@@ -369,30 +369,6 @@ build_dev_kernel() {
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
 }
 
-# This routine builds a freebsd specific kernel (no pfSense options)
-build_freebsd_only_kernel() {
-	# Build Developers kernel
-	echo ">>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/FreeBSD.${FREEBSD_VERSION}"
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/freebsd"
-	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing FreeBSD kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/freebsd/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/freebsd/boot/device.hints
-	(cd $KERNEL_BUILD_PATH/freebsd/boot/ && tar czf $PFSENSEBASEDIR/kernels/FreeBSD.tgz .)
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/FreeBSD.tgz -C $PFSENSEBASEDIR/boot/)
-}
-
 # This routine builds all pfSense related kernels
 # during the build_iso.sh and build_deviso.sh routines
 build_all_kernels() {
@@ -702,24 +678,6 @@ check_for_zero_size_files() {
 	find $PFSENSEBASEDIR -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
 	find $KERNEL_BUILD_PATH/ -perm -+x -type f -size 0 -exec echo "WARNING: {} is 0 sized" >> $MAKEOBJDIRPREFIX/zero_sized_files.txt \;
 	cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
-}
-
-# Install custom BSDInstaller bits for FreeBSD
-# only installations (no pfSense bits)
-cust_populate_installer_bits_freebsd_only() {
-	# Add lua installer items
-	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
-	mkdir -p $PFSENSEBASEDIR/scripts/
-	# This is now ready for general consumption! \o/
-	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
-	cp -r $BUILDER_TOOLS/installer/conf \
-		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
-	# Copy installer launcher scripts
-	cp $BUILDER_TOOLS/installer/scripts/freebsd_installer $PFSENSEBASEDIR/scripts/
-	chmod a+rx $PFSENSEBASEDIR/scripts/*
-	rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
-	rm -f $CVS_CO_DIR/root/.hushlogin
-	rm -f $PFSENSEBASEDIR/root/.hushlogin
 }
 
 # Install custom BSDInstaller bits for pfSense
