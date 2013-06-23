@@ -3780,14 +3780,6 @@ buildworld() {
 	    echo "+++ NO_BUILDWORLD set, skipping build" | tee -a ${LOGFILE}
 	    return
 	fi
-	# Set SRC_CONF variable if it's not already set.
-	if [ -z "${SRC_CONF:-}" ]; then
-	    if [ -n "${MINIMAL:-}" ]; then
-		SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
-	    else
-		SRC_CONF=${LOCALDIR}/conf/make.conf
-	    fi
-	fi
 	echo ">>> Building world for ${ARCH} architecture..."
 	cd $SRCDIR
 	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
