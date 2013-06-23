@@ -1,6 +1,6 @@
-diff -Naur relayd.orig/carp.c relayd/carp.c
---- relayd.orig/carp.c	2010-06-10 08:50:20.370081718 +0200
-+++ relayd/carp.c	2010-06-10 08:50:24.487544459 +0200
+diff -ur relayd.orig/carp.c relayd/carp.c
+--- relayd.orig/carp.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/carp.c	2013-06-23 05:28:53.000000000 -0500
 @@ -19,6 +19,7 @@
  #include <sys/param.h>
  #include <sys/socket.h>
@@ -9,9 +9,9 @@ diff -Naur relayd.orig/carp.c relayd/carp.c
  
  #include <net/if.h>
  
-diff -Naur relayd.orig/check_tcp.c relayd/check_tcp.c
---- relayd.orig/check_tcp.c	2010-06-10 08:50:20.371085750 +0200
-+++ relayd/check_tcp.c	2010-06-10 08:50:24.488548211 +0200
+diff -ur relayd.orig/check_tcp.c relayd/check_tcp.c
+--- relayd.orig/check_tcp.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/check_tcp.c	2013-06-23 05:28:53.000000000 -0500
 @@ -31,7 +31,7 @@
  #include <stdlib.h>
  #include <errno.h>
@@ -69,9 +69,9 @@ diff -Naur relayd.orig/check_tcp.c relayd/check_tcp.c
  
  	if (strcmp(cte->table->conf.digest, digest)) {
  		log_warnx("check_http_digest: %s failed "
-diff -Naur relayd.orig/hce.c relayd/hce.c
---- relayd.orig/hce.c	2010-06-10 08:50:20.370081718 +0200
-+++ relayd/hce.c	2010-06-10 08:50:24.489552523 +0200
+diff -ur relayd.orig/hce.c relayd/hce.c
+--- relayd.orig/hce.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/hce.c	2013-06-23 05:28:53.000000000 -0500
 @@ -167,7 +167,7 @@
  	struct timeval	 tv;
  	struct table	*table;
@@ -92,9 +92,9 @@ diff -Naur relayd.orig/hce.c relayd/hce.c
  
  	host->last_up = host->up;
  
-diff -Naur relayd.orig/log.c relayd/log.c
---- relayd.orig/log.c	2010-06-10 08:50:20.370081718 +0200
-+++ relayd/log.c	2010-06-10 08:50:24.489552523 +0200
+diff -ur relayd.orig/log.c relayd/log.c
+--- relayd.orig/log.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/log.c	2013-06-23 05:28:53.000000000 -0500
 @@ -16,7 +16,11 @@
   * OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   */
@@ -107,9 +107,9 @@ diff -Naur relayd.orig/log.c relayd/log.c
  #include <sys/queue.h>
  #include <sys/socket.h>
  #include <sys/tree.h>
-diff -Naur relayd.orig/parse.y relayd/parse.y
---- relayd.orig/parse.y	2010-06-10 08:50:20.372089782 +0200
-+++ relayd/parse.y	2010-06-10 08:50:24.490556275 +0200
+diff -ur relayd.orig/parse.y relayd/parse.y
+--- relayd.orig/parse.y	2013-06-23 05:28:33.000000000 -0500
++++ relayd/parse.y	2013-06-23 05:28:53.000000000 -0500
 @@ -343,6 +343,7 @@
  			}
  			conf->sc_prefork_relay = $2;
@@ -170,9 +170,9 @@ diff -Naur relayd.orig/parse.y relayd/parse.y
  		return (0);
  	if (error) {
  		log_warnx("host_dns: could not parse \"%s\": %s", s,
-diff -Naur relayd.orig/pfe.c relayd/pfe.c
---- relayd.orig/pfe.c	2010-06-10 08:50:20.369077965 +0200
-+++ relayd/pfe.c	2010-06-10 08:50:24.491560307 +0200
+diff -ur relayd.orig/pfe.c relayd/pfe.c
+--- relayd.orig/pfe.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/pfe.c	2013-06-23 05:28:53.000000000 -0500
 @@ -17,6 +17,9 @@
   */
  
@@ -209,9 +209,9 @@ diff -Naur relayd.orig/pfe.c relayd/pfe.c
  	}
  }
  
-diff -Naur relayd.orig/pfe_filter.c relayd/pfe_filter.c
---- relayd.orig/pfe_filter.c	2010-06-10 08:50:20.370081718 +0200
-+++ relayd/pfe_filter.c	2010-06-10 08:51:10.599999014 +0200
+diff -ur relayd.orig/pfe_filter.c relayd/pfe_filter.c
+--- relayd.orig/pfe_filter.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/pfe_filter.c	2013-06-23 05:30:27.000000000 -0500
 @@ -97,6 +97,10 @@
  		    sizeof(tables[i].pfrt_name))
  			goto toolong;
@@ -269,9 +269,19 @@ diff -Naur relayd.orig/pfe_filter.c relayd/pfe_filter.c
  
  		if (rio.rule.proto == IPPROTO_TCP)
  			rio.rule.timeout[PFTM_TCP_ESTABLISHED] =
-diff -Naur relayd.orig/relay.c relayd/relay.c
---- relayd.orig/relay.c	2010-06-10 08:50:20.371085750 +0200
-+++ relayd/relay.c	2010-06-10 08:50:24.492564339 +0200
+@@ -480,7 +491,9 @@
+ 		    rdr->table->conf.flags & F_PORT) {
+ 			rio.rule.rpool.proxy_port[0] =
+ 			    ntohs(rdr->table->conf.port);
++#if __FreeBSD_version < 1000000
+ 			rio.rule.rpool.port_op = PF_OP_EQ;
++#endif
+ 		}
+ 		rio.rule.rpool.opts = PF_POOL_ROUNDROBIN;
+ 		if (rdr->conf.flags & F_STICKY)
+diff -ur relayd.orig/relay.c relayd/relay.c
+--- relayd.orig/relay.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/relay.c	2013-06-23 05:28:53.000000000 -0500
 @@ -16,7 +16,11 @@
   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   */
@@ -381,9 +391,9 @@ diff -Naur relayd.orig/relay.c relayd/relay.c
  		return -1;
  	if ((rlay->rl_ssl_key = relay_load_file(certfile,
  	    &rlay->rl_ssl_key_len)) == NULL)
-diff -Naur relayd.orig/relay_udp.c relayd/relay_udp.c
---- relayd.orig/relay_udp.c	2010-06-10 08:50:20.370081718 +0200
-+++ relayd/relay_udp.c	2010-06-10 08:50:24.493571444 +0200
+diff -ur relayd.orig/relay_udp.c relayd/relay_udp.c
+--- relayd.orig/relay_udp.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/relay_udp.c	2013-06-23 05:28:53.000000000 -0500
 @@ -16,7 +16,11 @@
   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   */
@@ -396,9 +406,9 @@ diff -Naur relayd.orig/relay_udp.c relayd/relay_udp.c
  #include <sys/queue.h>
  #include <sys/time.h>
  #include <sys/stat.h>
-diff -Naur relayd.orig/relayd.8 relayd/relayd.8
---- relayd.orig/relayd.8	2010-06-10 08:50:20.371085750 +0200
-+++ relayd/relayd.8	2010-06-10 08:50:24.493571444 +0200
+diff -ur relayd.orig/relayd.8 relayd/relayd.8
+--- relayd.orig/relayd.8	2013-06-23 05:28:33.000000000 -0500
++++ relayd/relayd.8	2013-06-23 05:28:53.000000000 -0500
 @@ -117,7 +117,7 @@
  .It Fl f Ar file
  Specify an alternative configuration file.
@@ -417,9 +427,9 @@ diff -Naur relayd.orig/relayd.8 relayd/relayd.8
  Default configuration file.
  .It /var/run/relayd.sock
  Unix-domain socket used for communication with
-diff -Naur relayd.orig/relayd.c relayd/relayd.c
---- relayd.orig/relayd.c	2010-06-10 08:50:20.370081718 +0200
-+++ relayd/relayd.c	2010-06-10 08:50:24.494572682 +0200
+diff -ur relayd.orig/relayd.c relayd/relayd.c
+--- relayd.orig/relayd.c	2013-06-23 05:28:33.000000000 -0500
++++ relayd/relayd.c	2013-06-23 05:28:53.000000000 -0500
 @@ -17,7 +17,12 @@
   * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
   */
@@ -577,9 +587,9 @@ diff -Naur relayd.orig/relayd.c relayd/relayd.c
  	if (bind(s, (struct sockaddr *)&bnd->bnd_ss,
  	    bnd->bnd_ss.ss_len) == -1)
  		goto fail;
-diff -Naur relayd.orig/relayd.conf.5 relayd/relayd.conf.5
---- relayd.orig/relayd.conf.5	2010-06-10 08:50:20.371085750 +0200
-+++ relayd/relayd.conf.5	2010-06-10 08:50:24.495576434 +0200
+diff -ur relayd.orig/relayd.conf.5 relayd/relayd.conf.5
+--- relayd.orig/relayd.conf.5	2013-06-23 05:28:33.000000000 -0500
++++ relayd/relayd.conf.5	2013-06-23 05:28:53.000000000 -0500
 @@ -78,7 +78,7 @@
  .Ic include
  keyword, for example:
@@ -698,9 +708,9 @@ diff -Naur relayd.orig/relayd.conf.5 relayd/relayd.conf.5
  .Xr ssl 8
  .Sh HISTORY
  The
-diff -Naur relayd.orig/relayd.h relayd/relayd.h
---- relayd.orig/relayd.h	2010-06-10 08:50:20.372089782 +0200
-+++ relayd/relayd.h	2010-06-10 08:50:24.496580466 +0200
+diff -ur relayd.orig/relayd.h relayd/relayd.h
+--- relayd.orig/relayd.h	2013-06-23 05:28:33.000000000 -0500
++++ relayd/relayd.h	2013-06-23 05:28:53.000000000 -0500
 @@ -19,10 +19,18 @@
   */
  
