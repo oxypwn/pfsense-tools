@@ -1427,7 +1427,6 @@ print_flags() {
 	printf "                     BASEDIR: %s\n" $BASEDIR	
 	printf "                Checkout dir: %s\n" $CVS_CO_DIR
 	printf "                 Custom root: %s\n" $CUSTOMROOT
-	printf "              CVS IP address: %s\n" $CVS_IP
 	printf "                 Updates dir: %s\n" $UPDATESDIR
 	printf "                pfS Base dir: %s\n" $PFSENSEBASEDIR
 	printf "               FreeSBIE path: %s\n" $FREESBIE_PATH
