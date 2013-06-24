@@ -42,14 +42,6 @@ index ffa524d..b96e81b 100644
  				case PF_STATE_OPT_SRCTRACK:
  					if (srctrack) {
  						yyerror("state option "
-@@ -2334,6 +2344,7 @@ pfrule		: action dir logquick interface route af proto fromto
- 				}
- 			}
- #endif
-+#endif
- 
- 			if ($9.dnpipe) {
-                                 r.dnpipe = $9.dnpipe;
 @@ -5452,6 +5463,7 @@ lookup(char *s)
  		{ "loginterface",	LOGINTERFACE},
  		{ "max",		MAXIMUM},
