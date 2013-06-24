@@ -318,5 +318,12 @@ export CUSTOM_CALL_SHELL_FUNCTION=${CUSTOM_CALL_SHELL_FUNCTION:-""}
 
 export BUILDER_AUTO_UPDATE_APPLY_PATCHES=${BUILDER_AUTO_UPDATE_APPLY_PATCHES:-"YES"}
 
+
+if [ -z "${NANO_WITH_VGA}" ]; then
+	export BUILD_KERNELS=${BUILD_KERNELS:"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"}
+else
+	export BUILD_KERNELS=${BUILD_KERNELS:"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"}
+fi
+
 # This needs to be at the very end of the file.
 IFS=$OIFS

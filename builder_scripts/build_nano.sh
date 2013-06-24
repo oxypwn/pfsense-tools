@@ -33,10 +33,9 @@
 . ./pfsense_local.sh
 
 # Read params
-while getopts c:g opt; do
+while getopts c opt; do
 	case "${opt}" in
-		c)	ALTCONFFILE="${OPTARG}";;
-		g)	USE_VGA="yes";;
+		c)      ALTCONFFILE="${OPTARG}";;
 	esac
 done
 
@@ -44,11 +43,6 @@ done
 # Specify a file with build parameters to override the default.
 [ -n "${ALTCONFFILE}" -a -r "${ALTCONFFILE}" ] \
 	&& . ${ALTCONFFILE}
-
-# Create a VGA image, set NANO_WITH_VGA after source alternative
-# config file to avoid it to be replaced
-[ "${USE_VGA}" = "yes" ] \
-	&& NANO_WITH_VGA="yes"
 
 # Suck in script helper functions
 . ./builder_common.sh
@@ -112,17 +106,12 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
-echo ">>> Building world and kernels for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+echo ">>> Building world for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 make_world
 
-# Build embedded kernel
-if [ "$ARCH" = "i386" -o "$ARCH" = "amd64" ]; then
-	if [ -z "${NANO_WITH_VGA}" ]; then
-		build_embedded_kernel
-	else
-		build_embedded_kernel_vga
-	fi
-fi
+# Build kernels
+echo ">>> Building kernel configs: $BUILD_KERNELS for FreeBSD: $FREEBSD_BRANCH ..."
+build_all_kernels
 
 if [ ! -z "${SPLIT_ARCH_BUILD:-}" ]; then
 	echo ">>> SPLIT_ARCH_BUILD defined.  Now run ./build_nano.sh"

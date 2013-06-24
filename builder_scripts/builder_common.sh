@@ -144,8 +144,14 @@ fixup_kernel_options() {
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 
 	# Cleanup self
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_$KERNCONF_buildkernel -exec rm {} \;
+	# If we have already installed kernels
+	# no need to build them again.
+	if [ "`find $MAKEOBJDIRPREFIX -name .done_$KERNCONF_installkernel | wc -l`" -gt 0 ]; then
+		export MAKE_CONF="${MAKE_CONF} NO_CLEAN=yes NO_KERNELCLEAN=yes"
+	fi
+	find $MAKEOBJDIRPREFIX -name .done_$KERNCONF_installkernel -exec rm {} \;
+
 	if [ -d "$KERNEL_DESTDIR/boot" ]; then
 		rm -rf $KERNEL_DESTDIR/boot/*
 	fi
@@ -232,130 +238,47 @@ fixup_kernel_options() {
 
 }
 
-# This routine builds nanobsd with VGA
-build_embedded_kernel_vga() {
-	# Build embedded kernel
-	echo ">>> Building embedded VGA kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_vga"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing embedded VGA kernel..."
-	freesbie_make installkernel
-	mkdir -p $KERNEL_BUILD_PATH/wrap_vga/boot/defaults
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap_vga/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap_vga/boot/device.hints
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/wrap_vga/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_vga.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap_vga.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-}
-
-# This routine builds the embedded kernel aka wrap
-build_embedded_kernel() {
-	# Build embedded kernel
-	echo ">>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing embedded kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap/boot/device.hints
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-}
-
 # This routine builds all pfSense related kernels
 # during the build_iso.sh and build_deviso.sh routines
 build_all_kernels() {
 
-	# If we have already installed kernels
-	# no need to build them again.
-	if [ "`find $MAKEOBJDIRPREFIX -name .done_installkernel | wc -l`" -gt 0 ]; then
-		export MAKE_CONF="${MAKE_CONF} NO_CLEAN=yes NO_KERNELCLEAN=yes"
-	fi
-
 	# Build embedded kernel
-	echo ">>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing wrap kernel..."
-	freesbie_make installkernel
-	ensure_kernel_exists $KERNEL_DESTDIR
+	for $BUILD_KERNEL in $BUILD_KERNELS; do
+		echo ">>> Building $BUILD_KERNEL kernel..."
+		unset KERNCONF
+		unset KERNEL_DESTDIR
+		unset KERNELCONF
+		export KERNCONF=$BUILD_KERNEL
+		export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/$BUILD_KERNEL"
+		export KERNELCONF="${TARGET_ARCH_CONF_DIR}/$BUILD_KERNEL"
 
-	# Build SMP kernel
-	echo ">>> Building SMP kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/SMP"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing SMP kernel..."
-	freesbie_make installkernel
-	ensure_kernel_exists $KERNEL_DESTDIR
+		# Common fixup code
+		fixup_kernel_options
+		freesbie_make buildkernel
+		echo ">>> Installing wrap kernel..."
+		freesbie_make installkernel
+		ensure_kernel_exists $KERNEL_DESTDIR
 
-	# Nuke symbols
-	echo -n ">>> Cleaning up .symbols..."
-	if [ -z "${PFSENSE_DEBUG:-}" ]; then
+		# Nuke symbols
+		echo -n ">>> Cleaning up .symbols..."
+		if [ -z "${PFSENSE_DEBUG:-}" ]; then
+			echo -n "."
+			find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm -f {} \;
+			echo -n "."
+			find $KERNEL_BUILD_PATH -name "*.symbols" -exec rm -f {} \;
+		fi
+
+		# Nuke old kernel if it exists
+		find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
+		echo "done."
+
+		echo -n ">>> Installing kernels to staging area..."
+		KERNEL_INSTALLER_NAME=`sed 's/pfSense_//g' $BUILD_KERNEL`
+		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_$KERNEL_INSTALLER_NAME.gz .)
 		echo -n "."
-		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm -f {} \;
-		echo -n "."
-		find $KERNEL_BUILD_PATH -name "*.symbols" -exec rm -f {} \;
-	fi
-
-	# Nuke old kernel if it exists
-	find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
-	echo "done."
-
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .)
-	echo -n "."
-	(cd $KERNEL_BUILD_PATH/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	echo -n "."
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz -C $PFSENSEBASEDIR/boot/)
-	echo ".done"
-
+		chflags -R noschg $PFSENSEBASEDIR/boot/
+		echo ".done"
+	done
 }
 
 # This routine rebuilds all pfPorts files which are generally
@@ -1583,6 +1506,7 @@ if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "              pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
 	printf "                    SRC_CONF: %s\n" $SRC_CONF
+	printf "               BUILD_KERNELS: %s\n" $BUILD_KERNELS
 	printf "CROSS_COMPILE_PORTS_BINARIES: %s\n" $CROSS_COMPILE_PORTS_BINARIES
 	printf "            SPLIT_ARCH_BUILD: %s\n" $SPLIT_ARCH_BUILD
 	printf "    UPDATES_TARBALL_FILENAME: %s\n" $UPDATES_TARBALL_FILENAME
