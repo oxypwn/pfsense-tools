@@ -64,7 +64,7 @@ get_pfsense_version() {
 }
 
 print_flags_menu() {
-	./print_builder_variables.sh
+	./scripts/print_builder_variables.sh
 }
 
 while [ /bin/true ]; do
