@@ -136,7 +136,7 @@ Choose the option you would like:" -1 -1 9 \
 		;;
 		"Sync GIT")
 		clear
-		./update_git_repos.sh
+		./scripts/update_git_repos.sh
 		;;
 		"Build pfPorts")
 		clear

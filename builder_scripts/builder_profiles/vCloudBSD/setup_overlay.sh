@@ -18,7 +18,7 @@ mkdir -p $SRCDIR
 if [ "$1" != "noupdate" ]; then
 	echo ">>> noupdate flag NOT passed. Cleaning and updating GIT repo"
 	./clean_build.sh
-	./update_git_repos.sh
+	./scripts/update_git_repos.sh
 	./apply_kernel_patches.sh
 fi
 ./build_freebsdisoonly.sh
