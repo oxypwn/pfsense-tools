@@ -422,7 +422,10 @@ cust_overlay_host_binaries() {
 	fi
 
 	# XXX: handle syslogd
-	install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+	if [ ! -f $PFSENSEBASEDIR/usr/sbin/syslogd ]; then
+		echo ">>> Syslogd is missing on staging area copying from host "
+		install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+	fi
 	install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
 
 	# Temporary hack for RELENG_1_2
