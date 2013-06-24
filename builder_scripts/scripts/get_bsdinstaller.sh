@@ -9,8 +9,15 @@ if [ ! -d "/usr/ports" ]; then
 	echo "Done!"
 fi
 
-CURRENTDIR=`pwd`
-[ -r "${CURRENTDIR}/pfsense_local.sh" ] && . ${CURRENTDIR}/pfsense_local.sh
+# Suck in local vars
+if [ -f ./pfsense_local.sh ]; then
+        . ./pfsense_local.sh
+elif [ -f ../pfsense_local.sh]; then
+        . ../pfsense_local.sh
+else
+        echo "You are calling this script from wrong location"
+        exit 1
+fi
 
 if [ -d $BASE_DIR/installer/CVS ]; then
 	rm -rf $BASE_DIR/installer

@@ -30,10 +30,24 @@
 #  set -x
 
 # Suck in local vars
-. ./pfsense_local.sh
+if [ -f ./pfsense_local.sh ]; then
+        . ./pfsense_local.sh
+elif [ -f ../pfsense_local.sh]; then
+        . ../pfsense_local.sh
+else
+        echo "You are calling this script from wrong location"
+        exit 1
+fi
 
 # Suck in script helper functions
-. ./builder_common.sh
+if [ -f ./builder_common.sh ]; then
+        . ./builder_common.sh
+elif [ -f ../builder_common.sh]; then
+        . ../builder_common.sh
+else
+        echo "You are calling this script from wrong location"
+        exit 1
+fi
 
 # This should be run first
 launch

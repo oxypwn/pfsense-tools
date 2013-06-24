@@ -2,7 +2,15 @@
 
 PREVIOUSDIR=`pwd`
 
-. ./pfsense_local.sh
+# Suck in local vars
+if [ -f ./pfsense_local.sh ]; then
+        . ./pfsense_local.sh
+elif [ -f ../pfsense_local.sh]; then
+        . ../pfsense_local.sh
+else
+        echo "You are calling this script from wrong location"
+        exit 1
+fi
 
 mkdir -p $BUILDER_TOOLS/builder_scripts/conf
 
