@@ -320,9 +320,9 @@ export BUILDER_AUTO_UPDATE_APPLY_PATCHES=${BUILDER_AUTO_UPDATE_APPLY_PATCHES:-"Y
 
 
 if [ -z "${NANO_WITH_VGA}" ]; then
-	export BUILD_KERNELS=${BUILD_KERNELS:"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"}
+	export BUILD_KERNELS=${BUILD_KERNELS:-"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"}
 else
-	export BUILD_KERNELS=${BUILD_KERNELS:"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"}
+	export BUILD_KERNELS=${BUILD_KERNELS:-"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"}
 fi
 
 # This needs to be at the very end of the file.
