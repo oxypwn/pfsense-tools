@@ -3016,18 +3016,10 @@ update_freebsd_sources_and_apply_patches() {
 	# No need to obtain sources or patch
 	# on subsequent build runs.
 
-	# Detect Subsequent runs if .done_buildworld exists
-	if [ -d $SRCDIR ]; then
-		if [ -d $MAKEOBJDIRPREFIX ]; then
-			COUNT=`find $MAKEOBJDIRPREFIX -name .done_buildworld | wc -l`
-			if [ "$COUNT" -gt 0 ]; then
-				echo ">>> Subsequent build detected, not updating src or applying patches..."
-				echo ">>> IF you would like to force the update of the sources then remove"
-				echo "    .done_buildworld from $MAKEOBJDIRPREFIX"
-				return
-			fi
-		fi
-	fi
+	if [ -n "${NO_BUILDWORLD:-}" ]; then
+            echo "+++ NO_BUILDWORLD set, skipping build"
+            return
+        fi
 
 	if [ -z ${USE_SVNUP} ]; then
 		# If override is in place, use it otherwise
