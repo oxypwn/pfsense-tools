@@ -27,21 +27,6 @@ index 78d7607..ad889ca 100644
  		{ "max",		MAXIMUM},
  		{ "max-mss",		MAXMSS},
  		{ "max-packets",	MAXPCKT},
-diff --git a/sbin/pfctl/pf_print_state.c b/sbin/pfctl/pf_print_state.c
-index d4a2c1d..f9dffbd 100644
---- a/sbin/pfctl/pf_print_state.c
-+++ b/sbin/pfctl/pf_print_state.c
-@@ -325,6 +325,10 @@ print_state(struct pfsync_state *s, int opts)
- 			printf(", anchor %u", ntohl(s->anchor));
- 		if (ntohl(s->rule) != -1)
- 			printf(", rule %u", ntohl(s->rule));
-+		if (s->pdnpipe)
-+			printf(", pdnpipe %u", s->pdnpipe);
-+		if (s->dnpipe)
-+			printf(", dnpipe %u", s->dnpipe);
- 		if (s->state_flags & PFSTATE_SLOPPY)
- 			printf(", sloppy");
- 		if (s->sync_flags & PFSYNC_FLAG_SRCNODE)
 diff --git a/sbin/pfctl/pfctl_parser.c b/sbin/pfctl/pfctl_parser.c
 index 6a226dc..4ad469c 100644
 --- a/sbin/pfctl/pfctl_parser.c
