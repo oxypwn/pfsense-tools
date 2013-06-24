@@ -122,8 +122,6 @@ if [ "$ARCH" = "i386" -o "$ARCH" = "amd64" ]; then
 	else
 		build_embedded_kernel_vga
 	fi
-elif [ "$ARCH" = "mips" ]; then
-	build_rspro_kernel	
 fi
 
 if [ ! -z "${SPLIT_ARCH_BUILD:-}" ]; then

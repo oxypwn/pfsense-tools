@@ -261,35 +261,6 @@ build_embedded_kernel_vga() {
 	echo "done."
 }
 
-# This routine builds the rspro kernel
-build_rspro_kernel() {
-	# Build embedded kernel
-	echo ">>> Building rspro kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=AR71XX
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/AR71XX"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/AR71XX"
-	cp $BUILDER_TOOLS/builder_scripts/conf/AR71XX* $SRCDIR/sys/mips/conf/
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing rspro kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/AR71XX.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/AR71XX/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_AR71XX.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_AR71XX.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-}
-
 # This routine builds the embedded kernel aka wrap
 build_embedded_kernel() {
 	# Build embedded kernel
@@ -315,33 +286,6 @@ build_embedded_kernel() {
 	chflags -R noschg $PFSENSEBASEDIR/boot/
 	ensure_kernel_exists $KERNEL_DESTDIR
 	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-}
-
-build_embedded_dev_kernel() {
-	# Build embedded Dev kernel
-	echo ">>> Building embedded dev kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_Dev"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing embedded kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap_Dev/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap_Dev/boot/device.hints
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/wrap_Dev/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz -C $PFSENSEBASEDIR/boot/)
 	echo "done."
 }
 
@@ -2602,19 +2546,6 @@ EOF
 	sysctl kern.geom.debugflags=16
 }
 
-create_ova_image_dev_addons_alias() {
-	cat <<EOF >>$PFSENSEBASEDIR/root/.tcshrc
-alias builder_scripts 'cd /home/pfsense/tools/builder_scripts'
-alias builder_profiles 'cd /home/pfsense/tools/builder_scripts/builder_profiles'
-alias build_iso.sh 'cd /home/pfsense/tools/builder_scripts && ./build_iso.sh'
-alias update_git_repos.sh 'cd /home/pfsense/tools/builder_scripts && ./update_git_repos.sh'
-alias clean_build.sh 'cd /home/pfsense/tools/builder_scripts && ./clean_build.sh'
-alias build_nano.sh 'cd /home/pfsense/tools/builder_scripts && ./build_nano.sh'
-alias apply_kernel_patches.sh 'cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh'
-EOF
-	
-}
-
 disable_lan_disable_dhcpd_enable_sshd() {
 	cat <<EOF >$PFSENSEBASEDIR/remove_lan.php
 #!/usr/local/bin/php -f
@@ -2664,14 +2595,6 @@ EOF
 	rm -rf $PFSENSEBASEDIR/conf/*
 	rm -rf $PFSENSEBASEDIR/tmp/*
 	rm $PFSENSEBASEDIR/remove_lan.php
-}
-
-create_ova_image_dev_addons() {
-	file_search_replace 1024 2048 ${OVFPATH}/${PRODUCT_NAME}.ovf
-	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
-	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.running.sh $PFSENSEBASEDIR/etc/rc.local.running
-	create_ova_image_dev_addons_alias
-	disable_lan_disable_dhcpd_enable_sshd
 }
 
 # called from create_ova_image
