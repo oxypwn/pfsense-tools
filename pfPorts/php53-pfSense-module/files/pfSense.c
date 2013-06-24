@@ -514,7 +514,7 @@ PHP_FUNCTION(pfSense_kill_srcstates)
 				}
 
 				if (ioctl(dev, DIOCKILLSRCNODES, &psnk))
-					php_printf(1, "DIOCKILLSRCNODES");
+					php_printf("DIOCKILLSRCNODES");
 				killed += psnk.psnk_af;
 				/* fixup psnk.psnk_af */
 				psnk.psnk_af = resp[1]->ai_family;
@@ -2223,7 +2223,7 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 
 #define MODEM_DEFAULT_SPEED              115200
 		cfsetspeed(&attr, (speed_t) MODEM_DEFAULT_SPEED);
-#unset	MODEM_DEFAULT_SPEED
+#undef	MODEM_DEFAULT_SPEED
 
 		if (tcsetattr(fd, TCSANOW, &attr) < 0)
 			goto errormodem;
