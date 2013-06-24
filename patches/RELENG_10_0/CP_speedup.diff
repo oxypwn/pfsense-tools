@@ -44,8 +44,8 @@ index 577d644..619b036 100644
 +		}
 +		if (do_setcmd3(IP_FW_TABLE_XLISTENTRY, &xent, xent.len) < 0) {
 +			/* If running silent, don't bomb out on these errors. */
-+			if (!(co.do_quiet)
-+				err(EX_OSERR, "setsockopt(IP_FW_TABLE_XLISTENTRY)",
++			if (!(co.do_quiet))
++				err(EX_OSERR, "setsockopt(IP_FW_TABLE_XLISTENTRY)");
 +		} else
 +			table_list_entry(&xent);
 +	} else if (_substrcmp(*av, "entryzerostats") == 0) {
@@ -62,18 +62,19 @@ index 577d644..619b036 100644
 +		}
 +		if (do_setcmd3(IP_FW_TABLE_XZEROENTRY, &xent, xent.len) < 0) {
 +			/* If running silent, don't bomb out on these errors. */
-+			if (!(co.do_quiet)
-+				err(EX_OSERR, "setsockopt(IP_FW_TABLE_XZEROENTRY)",
++			if (!(co.do_quiet))
++				err(EX_OSERR, "setsockopt(IP_FW_TABLE_XZEROENTRY)");
 +		}
  	} else
  		errx(EX_USAGE, "invalid table command %s", *av);
  }
-@@ -4310,6 +4355,67 @@ table_fill_xentry(char *arg, ipfw_table_xentry *xent)
+@@ -4310,6 +4355,68 @@ table_fill_xentry(char *arg, ipfw_table_xentry *xent)
  }
  
  static void
 +table_list_entry(ipfw_table_xentry *xent)
 +{
++	struct in6_addr *addr6;
 +	uint32_t tval;
 +	char tbuf[128];
 +
@@ -122,11 +123,11 @@ index 577d644..619b036 100644
 +
 +		if (co.do_value_as_ip) {
 +			tval = htonl(tval);
-+			printf("%s/%u %s %s %llu %llu %u\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac),
++			printf("%s/%u %s %s %d %d %u\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac),
 +			    inet_ntoa(*(struct in_addr *)&tval),
 +			    pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		} else
-+			printf("%s/%u %s %s %llu %llu %u\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac), tval,
++			printf("%s/%u %s %s %d %d %u\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac), tval,
 +			    pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		break;
 +	}

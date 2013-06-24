@@ -165,10 +165,10 @@ index 619b036..38828b2 100644
  
 +	if (optname != IP_FW3 && optname != IP_DUMMYNET3 && optname != -IP_DUMMYNET3) {
 +		memset(&op3, 0, sizeof op3);
-+		op3->ctxid = co.ctx;
-+		error = setsockopt(ipfw_socket, IPPROTO_IP, IP_FW3, &op3, sizeof(op3));
-+		if (error)
-+			errx(EX_OSEER, "setsockopt: choosing context");
++		op3.ctxid = co.ctx;
++		i = setsockopt(ipfw_socket, IPPROTO_IP, IP_FW3, &op3, sizeof(op3));
++		if (i)
++			errx(EX_OSERR, "setsockopt: choosing context");
 +	}
 +
  	if (optname == IP_FW_GET || optname == IP_DUMMYNET_GET ||
