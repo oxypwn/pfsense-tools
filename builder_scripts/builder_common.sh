@@ -243,7 +243,7 @@ fixup_kernel_options() {
 build_all_kernels() {
 
 	# Build embedded kernel
-	for $BUILD_KERNEL in $BUILD_KERNELS; do
+	for BUILD_KERNEL in $BUILD_KERNELS; do
 		echo ">>> Building $BUILD_KERNEL kernel..."
 		unset KERNCONF
 		unset KERNEL_DESTDIR
