@@ -1459,7 +1459,6 @@ print_flags() {
 	printf "                     ISOPATH: %s\n" $ISOPATH
 	printf "                     IMGPATH: %s\n" $IMGPATH
 	printf "                MEMSTICKPATH: %s\n" $MEMSTICKPATH
-	printf "                  KERNELCONF: %s\n" $KERNELCONF
 	printf "        TARGET_ARCH_CONF_DIR: %s\n" $TARGET_ARCH_CONF_DIR
 	printf "     FREESBIE_COMPLETED_MAIL: %s\n" $FREESBIE_COMPLETED_MAIL
 	printf "         FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
