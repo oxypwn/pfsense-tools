@@ -1030,33 +1030,6 @@ setup_tcshrc_prompt() {
 	fi
 }
 
-# Creates a FreeBSD specific updater tarball
-create_FreeBSD_system_update() {
-	VERSION="FreeBSD"
-	FILENAME=pfSense-Embedded-Update-${VERSION}.tgz
-	mkdir -p $UPDATESDIR
-
-	PREVIOUSDIR=`pwd`
-
-	cd ${CLONEDIR}
-	# Remove some fat and or conflicting
-	# freebsd files
-	rm -rf etc/
-	rm -rf var/
-	rm -rf usr/share/
-	echo "Creating ${UPDATESDIR}/${FILENAME} update file..."
-	tar czPf ${UPDATESDIR}/${FILENAME} .
-
-	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
-	#if [ -e /usr/local/sbin/gzsig ]; then
-	#	echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
-	#	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
-	#fi
-
-	cd $PREVIOUSDIR
-
-}
-
 # This routine will verify that PHP is sound and that it
 # can open and read config.xml and ensure the hostname
 test_php_install() {
