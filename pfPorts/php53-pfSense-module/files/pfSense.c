@@ -2165,7 +2165,7 @@ PHP_FUNCTION(pfSense_sync) {
 }
 
 PHP_FUNCTION(pfSense_get_modem_devices) {
-	struct termios		attr;
+	struct termios		attr, origattr;
 	struct pollfd		pfd;
 	glob_t			g;
 	char			buf[2048] = { 0 };
@@ -2207,11 +2207,11 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
 			goto errormodem;
 
-#if 0
 		/* Set serial port raw mode, baud rate, hardware flow control, etc. */
 		if (tcgetattr(fd, &attr) < 0)
 			goto errormodem;
 
+		origattr = attr;
 		cfmakeraw(&attr);
 
 		attr.c_cflag &= ~(CSIZE|PARENB|PARODD);
@@ -2227,7 +2227,6 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 
 		if (tcsetattr(fd, TCSANOW, &attr) < 0)
 			goto errormodem;
-#endif
 
 		/* OK */
 		retries = 0;
@@ -2247,10 +2246,10 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		if (retries >= 3)
 			goto errormodem;
 
+		retries = 0;
 tryagain2:
 		if (show_info)
 			php_printf("\tTrying to read data\n");
-		retries = 0;
 		bzero(buf, sizeof buf);
 		bzero(&pfd, sizeof pfd);
 		pfd.fd = fd;
@@ -2292,6 +2291,7 @@ tryagain2:
 		} else if (show_info)
 			php_printf("\ttimedout or interrupted: %d\n", nw);
 
+		tcsetattr(fd, TCSANOW, &origattr);
 errormodem:
 		if (show_info)
 			php_printf("\tClosing device %s\n", path);
