@@ -190,7 +190,7 @@ index 14b08f5..70ab5b2 100644
  		/* Longest field needs to be aligned by 4-byte boundary	*/
 +#ifndef ETHER_ADDR_LEN
 +#define ETHER_ADDR_LEN 6
-+endif
++#endif
 +		struct {
 +			struct in_addr addr;
 +			char mac[ETHER_ADDR_LEN];
