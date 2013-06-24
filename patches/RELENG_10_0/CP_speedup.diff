@@ -95,10 +95,10 @@ index 577d644..619b036 100644
 +
 +		if (co.do_value_as_ip) {
 +			tval = htonl(tval);
-+			printf("%s/%u %s %llu %llu %u\n", tbuf, xent->masklen,
++			printf("%s/%u %s %d %d %u\n", tbuf, xent->masklen,
 +			    inet_ntoa(*(struct in_addr *)&tval), pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		} else
-+			printf("%s/%u %u %llu %llu %u\n", tbuf, xent->masklen, tval,
++			printf("%s/%u %u %d %d %u\n", tbuf, xent->masklen, tval,
 +			    pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		break;
 +	case IPFW_TABLE_INTERFACE:
@@ -106,10 +106,10 @@ index 577d644..619b036 100644
 +		tval = xent->value;
 +		if (co.do_value_as_ip) {
 +			tval = htonl(tval);
-+			printf("%s %s %llu %llu %u\n", xent->k.iface, xent->masklen,
++			printf("%s %u %s %d %d %u\n", xent->k.iface, xent->masklen,
 +			    inet_ntoa(*(struct in_addr *)&tval), pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		} else
-+			printf("%s %u %llu %llu %u\n", xent->k.iface, xent->masklen, tval,
++			printf("%s %u %u %d %d %u\n", xent->k.iface, xent->masklen, tval,
 +			    pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +
 +		break;
@@ -123,11 +123,11 @@ index 577d644..619b036 100644
 +
 +		if (co.do_value_as_ip) {
 +			tval = htonl(tval);
-+			printf("%s/%u %s %s %d %d %u\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac),
++			printf("%s/%u %s %s %d %d %u\n", tbuf, xent->masklen, ether_ntoa((struct ether_addr *)xent->k.mix.mac),
 +			    inet_ntoa(*(struct in_addr *)&tval),
 +			    pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		} else
-+			printf("%s/%u %s %s %d %d %u\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac), tval,
++			printf("%s/%u %s %u %d %d %u\n", tbuf, xent->masklen, ether_ntoa((struct ether_addr *)xent->k.mix.mac), tval,
 +			    pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		break;
 +	}
@@ -153,10 +153,10 @@ index 577d644..619b036 100644
 +
 +			if (co.do_value_as_ip) {
 +				tval = htonl(tval);
-+				printf("%s/%u %s %s\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac),
++				printf("%s/%u %s %s\n", tbuf, xent->masklen, ether_ntoa((struct ether_addr *)xent->k.mix.mac),
 +				    inet_ntoa(*(struct in_addr *)&tval));
 +			} else
-+				printf("%s/%u %s %s\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac), tval);
++				printf("%s/%u %s %u\n", tbuf, xent->masklen, ether_ntoa((struct ether_addr *)xent->k.mix.mac), tval);
 +			break;
  		}
  
@@ -184,14 +184,18 @@ index 14b08f5..70ab5b2 100644
  
  typedef struct	_ipfw_table_entry {
  	in_addr_t	addr;		/* network address		*/
-@@ -617,9 +620,16 @@ typedef struct	_ipfw_table_xentry {
+@@ -617,9 +620,20 @@ typedef struct	_ipfw_table_xentry {
  	uint32_t	value;		/* value			*/
  	union {
  		/* Longest field needs to be aligned by 4-byte boundary	*/
++#ifndef ETHER_ADDR_LEN
++#define ETHER_ADDR_LEN 6
++endif
 +		struct {
 +			struct in_addr addr;
 +			char mac[ETHER_ADDR_LEN];
 +		} mix;
++#undef ETHER_ADDR_LEN
  		struct in6_addr	addr6;	/* IPv6 address 		*/
  		char	iface[IF_NAMESIZE];	/* interface name	*/
  	} k;

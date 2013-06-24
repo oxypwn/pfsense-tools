@@ -16,7 +16,7 @@ new file mode 100644
 index 0000000..ddd5eb7
 --- /dev/null
 +++ b/sbin/ipfw/context.c
-@@ -0,0 +1,130 @@
+@@ -0,0 +1,135 @@
 +/*
 + * Copyright (c) 2013 Ermal Lu‡i
 + *
@@ -39,14 +39,19 @@ index 0000000..ddd5eb7
 +#include <net/if_var.h>
 +
 +#include <netinet/in.h>
++#include <netinet/ip_fw.h>
 +
 +#include "ipfw2.h"
 +
 +#include <stdio.h>
++#include <stdlib.h>
 +#include <unistd.h>
++#include <sysexits.h>
 +#include <string.h>
 +#include <errno.h>
 +#include <err.h>
++
++extern int ipfw_socket;
 +
 +int
 +ipfw_context_handler(int ac, char **av)
@@ -66,14 +71,14 @@ index 0000000..ddd5eb7
 +	ac--;
 +	NEED1("bad arguments, for usage summary ``ipfw''");
 +
-+	if (!strncmp(*av, "create", strlen(*av))
++	if (!strncmp(*av, "create", strlen(*av)))
 +		action = IP_FW_CTX_ADD;
-+	else if (!strncmp(*av, "destroy", strlen(*av))
++	else if (!strncmp(*av, "destroy", strlen(*av)))
 +		action = IP_FW_CTX_DEL;
 +	else {
-+		if (!strncmp(*av, "madd", strlen(*av))
++		if (!strncmp(*av, "madd", strlen(*av)))
 +			action = IP_FW_CTX_ADDMEMBER;
-+		else if (!strncmp(*av, "mdel", strlen(*av))
++		else if (!strncmp(*av, "mdel", strlen(*av)))
 +			action = IP_FW_CTX_DELMEMBER;
 +		else
 +			errx(EX_DATAERR, "Wrong parameters passed");
@@ -110,7 +115,7 @@ index 0000000..ddd5eb7
 +		break;
 +	case IP_FW_CTX_ADDMEMBER:
 +	case IP_FW_CTX_DELMEMBER:
-+		len = sizeof(ip_fw3_opheader) + strlen(ifname) + 1);
++		len = sizeof(ip_fw3_opheader) + strlen(ifname) + 1;
 +		op3 = alloca(len);
 +		/* Zero reserved fields */
 +		memset(op3, 0, sizeof(ip_fw3_opheader));
@@ -137,7 +142,7 @@ index 0000000..ddd5eb7
 +		} while (nlen > len && !error);
 +
 +		if (!error)
-+			printf("Currently defined contextes and their members:\n%s\n", (op3 + 1));
++			printf("Currently defined contextes and their members:\n%s\n", (char *)(op3 + 1));
 +		else
 +			printf("Error is: %s", strerror(error));
 +
@@ -243,7 +248,7 @@ index 82a299b..aaed2fc 100644
  	co.do_pipe = 0;
  	co.use_set = 0;
 -	if (!strncmp(*av, "nat", strlen(*av)))
-+	if (!strncmp(*av, "zone", strlen(*av))
++	if (!strncmp(*av, "zone", strlen(*av)))
 +		return (ipfw_context_handler(ac, av));
 +	else if (!strncmp(*av, "nat", strlen(*av)))
   		co.do_nat = 1;
