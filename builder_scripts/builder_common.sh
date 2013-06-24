@@ -221,8 +221,8 @@ fixup_kernel_options() {
 	if [ -f $SRCDIR/sys/$ARCH/conf/GENERIC.hints ]; then
 		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints	$KERNEL_DESTDIR/boot/device.hints
 	fi
-	if [ -f $SRCDIR/sys/mips/conf/$KERNCONF.hints ]; then
-		cp $SRCDIR/sys/mips/conf/$KERNCONF.hints $KERNEL_DESTDIR/boot/device.hints
+	if [ -f $SRCDIR/sys/$ARCH/conf/$KERNCONF.hints ]; then
+		cp $SRCDIR/sys/$ARCH/conf/$KERNCONF.hints $KERNEL_DESTDIR/boot/device.hints
 	fi
 	# END NOTE.
 
