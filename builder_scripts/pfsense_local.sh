@@ -151,7 +151,7 @@ export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_3"}
 export SVNUP_TARGET=${SVNUP_TARGET:-release}
 
 # Define FreeBSD SUPFILE
-export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"} 
+export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/conf/csup/${FREEBSD_BRANCH}-supfile"} 
 
 # "UNBREAK TEXTMATE FORMATTING.  PLEASE LEAVE ME THANKS.
 
