@@ -163,7 +163,7 @@ fixup_kernel_options() {
 	mkdir -p $KERNEL_DESTDIR/boot/defaults
 
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
-	cp $BUILDER_TOOLS/builder_scripts/kernel/conf/$KERNCONF $KERNELCONF
+	cp $BUILDER_TOOLS/builder_scripts/conf/kernel/$KERNCONF $KERNELCONF
 	if [ ! -f "$KERNELCONF" ]; then
 		echo ">>> Could not find $KERNELCONF"
 		print_error_pfS
