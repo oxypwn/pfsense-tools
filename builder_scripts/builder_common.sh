@@ -1355,18 +1355,6 @@ clone_system_only()
 
 # Does the work of checking out the specific branch of pfSense
 checkout_pfSense_git() {
-	echo ">>> Using GIT to checkout ${PFSENSETAG}"
-	echo -n ">>> "
-
-	if [ "${PFSENSE_WITH_FULL_GIT_CHECKOUT}" != "" ]; then
-		echo ">>> Clearing ${GIT_REPO_DIR}/pfSenseGITREPO and ${GIT_REPO_DIR}/pfSense..."
-		if [ -d ${GIT_REPO_DIR}/pfSenseGITREPO ]; then
-			rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO
-		fi
-		if [ -d ${GIT_REPO_DIR}/pfSense ]; then
-			rm -rf ${GIT_REPO_DIR}/pfSense
-		fi
-	fi
 
 	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" = "MASTER" ] \
@@ -1515,6 +1503,20 @@ update_cvs_depot() {
 		echo ">>> Creating ${GIT_REPO_DIR}"
 		mkdir -p ${GIT_REPO_DIR}
 	fi
+
+	if [ "${PFSENSE_WITH_FULL_GIT_CHECKOUT}" != "" ]; then
+		echo ">>> Clearing ${GIT_REPO_DIR}/pfSenseGITREPO and ${GIT_REPO_DIR}/pfSense..."
+		if [ -d ${GIT_REPO_DIR}/pfSenseGITREPO ]; then
+			rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO
+		fi
+		if [ -d ${GIT_REPO_DIR}/pfSense ]; then
+			rm -rf ${GIT_REPO_DIR}/pfSense
+		fi
+	fi
+
+	echo ">>> Using GIT to checkout ${PFSENSETAG}"
+	echo -n ">>> "
+
 	if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
 		echo -n ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}..."
 		(cd ${GIT_REPO_DIR} && /usr/local/bin/git clone ${GIT_REPO} pfSenseGITREPO) 2>&1 | egrep -B3 -A3 -wi '(error)'
