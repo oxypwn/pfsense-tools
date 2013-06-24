@@ -218,7 +218,7 @@ Choose the option you would like:" -1 -1 9 \
 		;;
 		"Enable memory backing")
 		clear
-		./enable_memory_disks.sh
+		./scripts/enable_memory_disks.sh
 		;;
 		"Disable memory backing")
 		clear
