@@ -75,8 +75,8 @@ fi
 
 # Use embedded src.conf
 if [ -z "${SRC_CONF:-}" ]; then
-	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.embedded.$FREEBSD_VERSION"
-	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src/src.conf.embedded.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src/src.conf.embedded.$FREEBSD_VERSION.install"
 fi
 
 # This should be run first

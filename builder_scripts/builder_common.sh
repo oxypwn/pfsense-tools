@@ -163,7 +163,7 @@ fixup_kernel_options() {
 	mkdir -p $KERNEL_DESTDIR/boot/defaults
 
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
-	cp $BUILDER_TOOLS/builder_scripts/conf/$KERNCONF $KERNELCONF
+	cp $BUILDER_TOOLS/builder_scripts/kernel/conf/$KERNCONF $KERNELCONF
 	if [ ! -f "$KERNELCONF" ]; then
 		echo ">>> Could not find $KERNELCONF"
 		print_error_pfS
@@ -3513,9 +3513,9 @@ installworld() {
 	# Set SRC_CONF variable if it's not already set.
 	if [ -z "${SRC_CONF:-}" ]; then
 	    if [ -n "${MINIMAL:-}" ]; then
-			SRC_CONF=${LOCALDIR}/conf/src.conf.minimal
+			SRC_CONF=${LOCALDIR}/conf/src/src.conf.minimal
 	    else
-			SRC_CONF=${LOCALDIR}/conf/src.conf
+			SRC_CONF=${LOCALDIR}/conf/src/src.conf
 	    fi
 	fi
 	mkdir -p ${BASEDIR}
@@ -3535,14 +3535,6 @@ installworld() {
 
 # Imported from FreeSBIE
 buildkernel() {
-	# Set SRC_CONF variable if it's not already set.
-	if [ -z "${SRC_CONF:-}" ]; then
-	    if [ -n "${MINIMAL:-}" ]; then
-			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
-	    else
-			SRC_CONF=${LOCALDIR}/conf/make.conf.${FREEBSD_VERSION}
-	    fi
-	fi
 	if [ -n "${KERNELCONF:-}" ]; then
 	    export KERNCONFDIR=$(dirname ${KERNELCONF})
 	    export KERNCONF=$(basename ${KERNELCONF})
@@ -3574,13 +3566,6 @@ buildkernel() {
 installkernel() {
 	# Set SRC_CONF variable if it's not already set.
 	cd $SRCDIR
-	if [ -z "${SRC_CONF:-}" ]; then
-	    if [ -n "${MINIMAL:-}" ]; then
-			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
-	    else
-			SRC_CONF=${LOCALDIR}/conf/make.conf.${FREEBSD_VERSION}
-	    fi
-	fi
 	if [ -n "${KERNELCONF:-}" ]; then
 	    export KERNCONFDIR=$(dirname ${KERNELCONF})
 	    export KERNCONF=$(basename ${KERNELCONF})

@@ -57,8 +57,8 @@ fi
 
 # Define src.conf
 if [ -z "${SRC_CONF:-}" ]; then
-	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION"
-	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION.install"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION.install"
 fi
 
 # Add etcmfs and rootmfs to the EXTRAPLUGINS plugins used by freesbie2

@@ -80,8 +80,8 @@ else
 fi
 
 # Use embedded src.conf
-export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.embedded.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
+export SRC_CONF="${BUILDER_SCRIPTS}/conf/src/src.conf.embedded.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src/src.conf.embedded.$FREEBSD_VERSION.install"
 
 # nopacket is required for WRAP's
 export NANO_BOOT0CFG="-o nopacket -s 1 -m 3"
