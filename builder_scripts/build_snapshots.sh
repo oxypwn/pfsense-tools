@@ -233,12 +233,6 @@ build_ova() {
 	copy_staging_ova
 }
 
-build_deviso() {
-	cd $BUILDERSCRIPTS
-	./clean_build.sh
-	./build_deviso.sh
-}
-
 build_embedded() {
 	cd $BUILDERSCRIPTS 
 	rm -rf /usr/obj*

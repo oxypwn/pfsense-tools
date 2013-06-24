@@ -146,10 +146,6 @@ Choose the option you would like:" -1 -1 9 \
 		clear
 		./build_iso.sh
 		;;
-		"Build DevISO")
-		clear
-		./build_deviso.sh
-		;;
 		"Build NanoBSD")
 		clear
 		./build_nano.sh

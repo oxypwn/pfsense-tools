@@ -239,7 +239,6 @@ fixup_kernel_options() {
 }
 
 # This routine builds all pfSense related kernels
-# during the build_iso.sh and build_deviso.sh routines
 build_all_kernels() {
 
 	# Build embedded kernel
