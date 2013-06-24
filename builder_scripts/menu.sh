@@ -222,7 +222,7 @@ Choose the option you would like:" -1 -1 9 \
 		;;
 		"Disable memory backing")
 		clear
-		./disable_memory_disks.sh
+		./scripts/disable_memory_disks.sh
 		;;
 		"Update FreeBSD ports")
 		clear
