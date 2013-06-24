@@ -2642,8 +2642,8 @@ pfsense_install_custom_packages_exec() {
 
 		/bin/echo ${custom_package_list} > ${PFSTODIR}/tmp/pkgfile.lst
 
-		/bin/cp ${BUILDER_TOOLS}/builder_scripts/pfspkg_installer ${PFSTODIR}/tmp
-		/bin/chmod a+x ${PFSTODIR}/tmp/pfspkg_installer
+		/bin/cp ${BUILDER_TOOLS}/builder_scripts/scripts/pfspkg_installer ${PFSTODIR}/tmp
+		/bin/chmod a+x ${PFSTODIR}/tmp/scripts/pfspkg_installer
 
 		cp ${PFSTODIR}/usr/local/lib/php.ini /tmp/
 		if [ -f /tmp/php.ini ]; then
