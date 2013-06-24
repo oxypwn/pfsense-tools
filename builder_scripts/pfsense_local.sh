@@ -67,9 +67,6 @@ export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/${PFSENSE_DIR}}
 # be overlayed onto the image later in the process
 export CUSTOMROOT=${CUSTOMROOT:-${CVS_CO_DIR}}
 
-# This is the user that has access to the pfSense repo
-export CVS_USER=${CVS_USER:-sullrich}
-
 # pfSense repo IP address. Typically cvs.pfsense.org,
 # but somebody could use a ssh tunnel and specify
 # a different one
