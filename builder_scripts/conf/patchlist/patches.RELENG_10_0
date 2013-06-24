@@ -4,6 +4,7 @@
 ~~~/sys/contrib/altq/altq/altq_fairq.c~
 ~~~/sys/contrib/altq/altq/altq_codel.h~
 ~~~/sys/contrib/altq/altq/altq_codel.c~
+~~~/usr.sbin/syslogd/clog.h~
 -p1~~altq_max_queues.diff~
 -p1~~fairq.RELENG_10.diff~
 -p1~~dscp.RELENG_10.diff~
