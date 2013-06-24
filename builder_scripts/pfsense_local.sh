@@ -241,7 +241,7 @@ export ARCH=${ARCH:-"`uname -m`"}
 #export CROSS_COMPILE_PORTS_BINARIES="~sullrich/mips.tgz"
 
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
-export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"}
+export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION"}
 
 # " - UNBREAK TEXTMATE FORMATTING - PLEASE LEAVE.
 

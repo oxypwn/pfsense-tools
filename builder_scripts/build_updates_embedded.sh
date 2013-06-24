@@ -72,11 +72,11 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
 	if [ $FREEBSD_VERSION = "6" ]; then
-		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso ..."	
-		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso"
+		echo ">>> Using ${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso ..."	
+		export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso"
 	fi
-	echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.${FREEBSD_VERSION} ..."
-	export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.${FREEBSD_VERSION}"
+	echo ">>> Using ${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.${FREEBSD_VERSION} ..."
+	export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.${FREEBSD_VERSION}"
 fi
 
 cd $CVS_CO_DIR
