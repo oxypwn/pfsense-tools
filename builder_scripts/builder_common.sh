@@ -433,7 +433,7 @@ cust_overlay_host_binaries() {
 		FOUND_FILES=`cat ${CUSTOM_COPY_LIST:-}`
 	else
 		echo ">>> Using copy.list.${PFSENSETAG}..."
-		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
+		FOUND_FILES=`cat conf/copylist/copy.list.${PFSENSETAG}`
 	fi
 
 	if [ -f /tmp/pfPort/copy.list ]; then
