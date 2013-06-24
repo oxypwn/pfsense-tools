@@ -289,30 +289,6 @@ build_embedded_kernel() {
 	echo "done."
 }
 
-# This routine builds the developers kernel
-build_dev_kernel() {
-	# Build Developers kernel
-	echo ">>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
-	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing Developers kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/developers/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints
-	(cd $KERNEL_BUILD_PATH/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
-}
-
 # This routine builds all pfSense related kernels
 # during the build_iso.sh and build_deviso.sh routines
 build_all_kernels() {
