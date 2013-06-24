@@ -2870,7 +2870,7 @@ copy_config_xml_from_conf_default() {
 # the Ports directory sysutils/bsdinstaller, etc.
 rebuild_and_install_bsdinstaller() {
 	# Add BSDInstaller
-	${BUILDER_SCRIPTS}/get_bsdinstaller.sh
+	${BUILDER_SCRIPTS}/scripts/get_bsdinstaller.sh
 	${BUILDER_SCRIPTS}/scripts/rebuild_bsdinstaller.sh
 }
 

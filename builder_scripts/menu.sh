@@ -209,7 +209,7 @@ Choose the option you would like:" -1 -1 9 \
 		;;
 		"Rebuild BSDInstaller")
 		clear
-		./get_bsdinstaller.sh
+		./scripts/get_bsdinstaller.sh
 		./scripts/rebuild_bsdinstaller.sh
 		;;
 		"Reset builder")
