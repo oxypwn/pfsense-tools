@@ -38,7 +38,7 @@ index b96e81b..06abd7f 100644
  			if (check_rulestate(PFCTL_STATE_NAT))
  				YYERROR;
 -			if (disallow_urpf_failed($9, "\"urpf-failed\" is not "
-+			if ($9 && disallow_urpf_failed($9.host, "\"urpf-failed\" is not "
++			if (disallow_urpf_failed($9.host, "\"urpf-failed\" is not "
  			    "permitted as a binat destination"))
  				YYERROR;
  
@@ -52,7 +52,7 @@ index b96e81b..06abd7f 100644
 -				binat.af = $9->af;
 +			if (!binat.af && $8.host != NULL && $8.host->af)
 +				binat.af = $8.host->af;
-+			if (!binat.af && $9 && $9.host != NULL && $9.host->af)
++			if (!binat.af && $9.host != NULL && $9.host->af)
 +				binat.af = $9.host->af;
  
  			if (!binat.af && $13 != NULL && $13->host)
@@ -102,7 +102,7 @@ index b96e81b..06abd7f 100644
  			}
 -			if ($9 != NULL) {
 -				if ($9->next) {
-+			if ($9 != NULL && $9.host != NULL) {
++			if ($9.host != NULL) {
 +				if ($9.host->next) {
  					yyerror("multiple binat ip addresses");
  					YYERROR;
