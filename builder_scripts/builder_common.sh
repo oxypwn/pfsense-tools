@@ -1060,7 +1060,7 @@ test_php_install() {
 		chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup 2>/dev/null
 	fi
 
-	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
+	cp $BUILDER_SCRIPTS/scripts/test_php.php $PFSENSEBASEDIR/
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	HOSTNAME=`env SHELL=/bin/sh chroot $PFSENSEBASEDIR /test_php.php`
 	echo -n " $HOSTNAME "
