@@ -122,11 +122,11 @@ index 577d644..619b036 100644
 +
 +		if (co.do_value_as_ip) {
 +			tval = htonl(tval);
-+			printf("%s/%u %s %s %llu %llu %u\n", tbuf, xent->masklen, ether_ntoa(xent->mix.mac),
++			printf("%s/%u %s %s %llu %llu %u\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac),
 +			    inet_ntoa(*(struct in_addr *)&tval),
 +			    pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		} else
-+			printf("%s/%u %s %s %llu %llu %u\n", tbuf, xent->masklen, ether_ntoa(xent->mix.mac), tval,
++			printf("%s/%u %s %s %llu %llu %u\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac), tval,
 +			    pr_u64(&xent->packets, 0), pr_u64(&xent->bytes, 0), xent->timestamp);
 +		break;
 +	}
@@ -152,10 +152,10 @@ index 577d644..619b036 100644
 +
 +			if (co.do_value_as_ip) {
 +				tval = htonl(tval);
-+				printf("%s/%u %s %s\n", tbuf, xent->masklen, ether_ntoa(xent->mix.mac),
++				printf("%s/%u %s %s\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac),
 +				    inet_ntoa(*(struct in_addr *)&tval));
 +			} else
-+				printf("%s/%u %s %s\n", tbuf, xent->masklen, ether_ntoa(xent->mix.mac), tval);
++				printf("%s/%u %s %s\n", tbuf, xent->masklen, ether_ntoa(xent->k.mix.mac), tval);
 +			break;
  		}
  
