@@ -16,7 +16,7 @@ mkdir -p $SRCDIR
 
 # Start building
 ./clean_build.sh
-./scripts/update_git_repos.sh
+./update_git_repos.sh
 ./apply_kernel_patches.sh
 ./build_pfPorts.sh
 ./build_iso.sh

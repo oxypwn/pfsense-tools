@@ -121,7 +121,7 @@ if [ ! -d /home/pfsense ]; then
 else
 	echo ">>> Making sure git repos are in sync..."
 	cd /home/pfsense/tools/builder_scripts && \
-		./scripts/update_git_repos.sh >/dev/null
+		./update_git_repos.sh >/dev/null
 fi
 
 # Create the chroot and get it ready

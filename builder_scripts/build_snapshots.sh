@@ -175,7 +175,7 @@ install_pfsense_local_sh() {
 
 update_sources() {
 	cd $BUILDERSCRIPTS 
-	./scripts/update_git_repos.sh
+	./update_git_repos.sh
 }
 
 build_iso() {
