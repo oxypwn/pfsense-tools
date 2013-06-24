@@ -1443,9 +1443,6 @@ print_flags() {
 	printf "              Git Repository: %s\n" $GIT_REPO
 	printf "                  Git Branch: %s\n" $GIT_BRANCH
 	printf "               Custom Config: %s\n" $USE_CONFIG_XML
-	printf "                     ISOPATH: %s\n" $ISOPATH
-	printf "                     IMGPATH: %s\n" $IMGPATH
-	printf "                MEMSTICKPATH: %s\n" $MEMSTICKPATH
 	printf "        TARGET_ARCH_CONF_DIR: %s\n" $TARGET_ARCH_CONF_DIR
 	printf "     FREESBIE_COMPLETED_MAIL: %s\n" $FREESBIE_COMPLETED_MAIL
 	printf "         FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
@@ -1467,6 +1464,9 @@ fi
 	printf "               BUILD_KERNELS: %s\n" $BUILD_KERNELS
 	printf "CROSS_COMPILE_PORTS_BINARIES: %s\n" $CROSS_COMPILE_PORTS_BINARIES
 	printf "            SPLIT_ARCH_BUILD: %s\n" $SPLIT_ARCH_BUILD
+	printf "                     ISOPATH: %s\n" $ISOPATH
+	printf "                     IMGPATH: %s\n" $IMGPATH
+	printf "                MEMSTICKPATH: %s\n" $MEMSTICKPATH
 	printf "    UPDATES_TARBALL_FILENAME: %s\n" $UPDATES_TARBALL_FILENAME
 	printf "        PKG_INSTALL_PORTSPFS: %s\n" $PKG_INSTALL_PORTSPFS
 	printf "  CUSTOM_CALL_SHELL_FUNCTION: %s\n" $CUSTOM_CALL_SHELL_FUNCTION
