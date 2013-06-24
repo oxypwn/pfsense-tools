@@ -184,7 +184,7 @@ index 14b08f5..70ab5b2 100644
  
  typedef struct	_ipfw_table_entry {
  	in_addr_t	addr;		/* network address		*/
-@@ -617,9 +620,20 @@ typedef struct	_ipfw_table_xentry {
+@@ -617,9 +620,19 @@ typedef struct	_ipfw_table_xentry {
  	uint32_t	value;		/* value			*/
  	union {
  		/* Longest field needs to be aligned by 4-byte boundary	*/
@@ -195,7 +195,6 @@ index 14b08f5..70ab5b2 100644
 +			struct in_addr addr;
 +			char mac[ETHER_ADDR_LEN];
 +		} mix;
-+#undef ETHER_ADDR_LEN
  		struct in6_addr	addr6;	/* IPv6 address 		*/
  		char	iface[IF_NAMESIZE];	/* interface name	*/
  	} k;
