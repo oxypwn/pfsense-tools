@@ -3206,41 +3206,6 @@ ensure_healthy_installer() {
 	fi
 }
 
-# This copies the various pfSense git repos to the DevISO
-# staging area.
-setup_deviso_specific_items() {
-	if [ `mount | grep ${CLONEDIR} | wc -l` -gt 0 ]; then
-		MOUNTPOINT=`mount | grep ${CLONEDIR} | awk '{ print $3 }'`
-		echo ">>> Attempting umount of $MOUNTPOINT"
-		umount -f $MOUNTPOINT
-		if [ `mount | grep ${CLONEDIR} | wc -l` -gt 0 ]; then
-			echo ">>> ERROR! Could not umount $MOUNTPOINT"
-			print_error_pfS
-		fi
-	fi
-
-	echo -n ">>> Setting up DevISO specific bits... Please wait (this will take a while!)..."
-	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
-	mkdir -p $DEVROOT
-	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO
-	mkdir -p $PFSENSEBASEDIR/home/pfsense/installer
-	mkdir -p $PFSENSEBASEDIR/usr/pfSensesrc
-	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
-	echo "OPTIONS_UNSET=X11 DOCS EXAMPLES MAN" >> /etc/make.conf
-	DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
-	CPUS=`expr $DCPUS '*' 2`
-	echo SUBTHREADS="${CPUS}" >> /etc/make.conf
-	if [ "$ARCH" = "mips" ]; then
-		echo "WITHOUT_PERL_MALLOC=1" >> $PFSENSEBASEDIR/etc/make.conf
-		echo "TARGET_BIG_ENDIAN=yes" >> $PFSENSEBASEDIR/etc/make.conf
-	fi
-	echo -n "."
-	rm $PFSENSEBASEDIR/etc/resolv.conf
-	echo "Done!"
-	rm -rf $PFSENSEBASEDIR/var/db/pkg/*
-	touch $PFSENSEBASEDIR/pfSense_devISO
-}
-
 # Check to see if a forced pfPorts run has been requested.
 # If so, rebuild pfPorts.  set_version.sh uses this.
 check_for_forced_pfPorts_build() {
