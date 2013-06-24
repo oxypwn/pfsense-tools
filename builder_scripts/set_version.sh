@@ -200,7 +200,7 @@ RELENG_9_0)
 	export PFSENSE_VERSION=2.1-DEVELOPMENT
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_9_0
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_9_0
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_9_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_9_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_1
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
@@ -215,7 +215,7 @@ HEAD)
 	export PFSENSE_VERSION=2.2-DEVELOPMENT
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_10_0
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_10_0
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_10_0
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2_1"	
 	export PFSPORTSFILE=buildports.RELENG_2_1
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
@@ -230,7 +230,7 @@ RELENG_8_1)
 	export PFSENSE_VERSION=2.0-RELEASE
 	export PFSENSETAG=RELENG_2_0
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_1
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
@@ -245,7 +245,7 @@ RELENG_8_2)
 	export PFSENSE_VERSION=2.0-RELEASE
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_2
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_2
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
@@ -260,7 +260,7 @@ RELENG_8_3)
 	export PFSENSE_VERSION=2.1-BETA0
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_3
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_3
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_3
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2_1"	
 	export PFSPORTSFILE=buildports.RELENG_2_1
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
@@ -275,7 +275,7 @@ RELENG_1_2)
 	export PFSENSE_VERSION=1.2.3
 	export PFSENSETAG=RELENG_1_2
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7_2
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_7_2
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_7_2
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_1_2"	
 	export PFSPORTSFILE=buildports.RELENG_1_2
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-""}
@@ -290,7 +290,7 @@ RELENG_2_1)
 	export PFSENSE_VERSION=2.1-DEVELOPMENT
 	export PFSENSETAG=HEAD
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_3
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_3
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_3
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_2_1"	
 	export PFSPORTSFILE=buildports.RELENG_2_1
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
@@ -305,7 +305,7 @@ RELENG_2_0)
 	export PFSENSE_VERSION=2.0-RELEASE
 	export PFSENSETAG=RELENG_2_0
 	export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_8_1
-	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/patches.RELENG_8_1
+	export PFSPATCHFILE=${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.RELENG_8_1
 	export CUSTOM_COPY_LIST="${BUILDER_TOOLS}/builder_scripts/copy.list.RELENG_8_0"	
 	export PFSPORTSFILE=buildports.RELENG_2_0
 	export EXTRA_DEVICES=${EXTRA_DEVICES:-"siba_bwn,bwn,run"}
