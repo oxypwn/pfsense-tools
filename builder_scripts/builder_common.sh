@@ -591,8 +591,11 @@ cust_populate_installer_bits() {
 cust_populate_extra() {
 	mkdir -p ${CVS_CO_DIR}/lib
 
-	if [ -f /usr/lib/pam_unix.so ]; then
-		install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/
+	if [ ! -f ${PFSENSEBASEDIR}/usr/lib/pam_unix.so ]; then
+		echo ">>> pam_unix.so is missing copying from host "
+		if [ -f /usr/lib/pam_unix.so ]; then
+			install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/
+		fi
 	fi
 
 	STRUCTURE_TO_CREATE="root etc usr/local/pkg/parse_config var/run scripts conf usr/local/share/dfuibe_installer root usr/local/bin usr/local/sbin usr/local/lib usr/local/etc usr/local/lib/php/20060613 usr/local/lib/lighttpd"
