@@ -2871,7 +2871,7 @@ copy_config_xml_from_conf_default() {
 rebuild_and_install_bsdinstaller() {
 	# Add BSDInstaller
 	${BUILDER_SCRIPTS}/get_bsdinstaller.sh
-	${BUILDER_SCRIPTS}/rebuild_bsdinstaller.sh
+	${BUILDER_SCRIPTS}/scripts/rebuild_bsdinstaller.sh
 }
 
 # This routine ensures that the $SRCDIR has sources
