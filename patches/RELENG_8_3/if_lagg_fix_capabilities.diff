@@ -1,0 +1,12 @@
+Index: sys/net/if_lagg.c
+===================================================================
+--- sys/net/if_lagg.c	(revision 252159)
++++ sys/net/if_lagg.c	(working copy)
+@@ -970,6 +970,7 @@
+ 				sc->sc_proto = lagg_protos[i].ti_proto;
+ 				if (sc->sc_proto != LAGG_PROTO_NONE)
+ 					error = lagg_protos[i].ti_attach(sc);
++				lagg_capabilities(sc);
+ 				LAGG_WUNLOCK(sc);
+ 				return (error);
+ 			}
