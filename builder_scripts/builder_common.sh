@@ -426,7 +426,10 @@ cust_overlay_host_binaries() {
 		echo ">>> Syslogd is missing on staging area copying from host "
 		install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
 	fi
-	install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
+	if [ ! -f $PFSENSEBASEDIR/usr/sbin/clog ]; then
+		echo ">>> Clog is missing on staging area copying from host "
+		install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
+	fi
 
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
