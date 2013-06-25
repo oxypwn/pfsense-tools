@@ -254,7 +254,7 @@ build_all_kernels() {
 		# Common fixup code
 		fixup_kernel_options
 		freesbie_make buildkernel
-		echo ">>> Installing wrap kernel..."
+		echo ">>> Installing $BUILD_KERNEL kernel..."
 		freesbie_make installkernel
 		ensure_kernel_exists $KERNEL_DESTDIR
 
@@ -271,7 +271,7 @@ build_all_kernels() {
 		find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
 		echo "done."
 
-		echo -n ">>> Installing kernels to staging area..."
+		echo -n ">>> Installing kernel to staging area..."
 		KERNEL_INSTALLER_NAME=`echo ${BUILD_KERNEL} | sed 's/pfSense_//g'`
 		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_$KERNEL_INSTALLER_NAME.gz .)
 		echo -n "."
