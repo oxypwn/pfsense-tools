@@ -1,0 +1,59 @@
+This backport is specific to FreeBSD 8.3.
+
+This backported driver can be dropped as soon as we switch to a more 
+recent base FreeBSD. See notes above to see which included patch is
+present in upon a certain release/branch (as of 2013-06-25):
+
+---------------------------------------
+>= RELENG 8.4, > RELENG 9.1, 10-CURRENT
+---------------------------------------
+
+Author: emaste <emaste@FreeBSD.org>
+Date:   Tue Aug 21 00:05:44 2012 +0000
+
+    MFC r227652, r228301, r234270, r234349
+    
+      Sync Bryan Venteicher's virtio base, PCI front-end, and net/block/balloon
+      drivers from HEAD.
+
+commit 4b26dd2d945ab7b75b7abcee10e2d9b6147ce08f
+Author: bryanv <bryanv@FreeBSD.org>
+Date:   Thu Mar 7 06:53:25 2013 +0000
+
+    MFC r238072,r238360,r240430,r241469,r241470,r241495,r244136,r244200
+    
+    Sync VirtIO with HEAD.
+    
+     - r238072: Do not include <sys/types.h> in the local headers.
+     - r238360: Various VirtIO improvements
+     - r240430: No need to leak these into the includer's namespace.
+     - r241469: virtqueue: Fix non-indirect virtqueues
+     - r241470: Add Virtio SCSI driver
+     - r241495: Fix build with PAE enabled
+     - r244136: Remove duplicated lines
+     - r244200: Start taskqueues threads after attach cannot fail
+    
+    Approved by:	grehan (mentor)
+
+Author: bryanv <bryanv@FreeBSD.org>
+Date:   Fri Mar 8 02:40:07 2013 +0000
+
+    MFC r247829
+    
+        Only set the barrier flag if the feature was negotiated
+    
+    Approved by:	grehan (mentor)
+
+-----------------------------------------
+> RELENG 8.4, > RELENG 9.1, >= 10-CURRENT
+-----------------------------------------
+
+Author: bryanv <bryanv@FreeBSD.org>
+Date:   Tue Jun 25 04:44:42 2013 +0000
+
+    MFC r251769
+    
+      Fix setting of the Rx filters
+    
+      QEMU 1.4 made the descriptor requirement stricter - the size of buffer
+      descriptor must exactly match the number of MAC addresses provided.

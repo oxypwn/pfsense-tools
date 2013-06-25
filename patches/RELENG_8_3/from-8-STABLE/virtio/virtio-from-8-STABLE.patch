@@ -1,64 +1,38 @@
-From 1d0f20e01ba2e74f0d40a1e534bfd071228dc2ad Mon Sep 17 00:00:00 2001
-From: emaste <emaste@FreeBSD.org>
-Date: Tue, 21 Aug 2012 00:05:44 +0000
-Subject: [PATCH] MFC r227652, r228301, r234270, r234349
-
-  Sync Bryan Venteicher's virtio base, PCI front-end, and net/block/balloon
-  drivers from HEAD.
----
- sys/dev/virtio/balloon/virtio_balloon.c |  571 +++++++
- sys/dev/virtio/balloon/virtio_balloon.h |   64 +
- sys/dev/virtio/block/virtio_blk.c       | 1207 ++++++++++++++
- sys/dev/virtio/block/virtio_blk.h       |  119 ++
- sys/dev/virtio/network/if_vtnet.c       | 2749 +++++++++++++++++++++++++++++++
+ sys/dev/virtio/balloon/virtio_balloon.c |  570 +++++++
+ sys/dev/virtio/balloon/virtio_balloon.h |   62 +
+ sys/dev/virtio/block/virtio_blk.c       | 1238 ++++++++++++++
+ sys/dev/virtio/block/virtio_blk.h       |  117 ++
+ sys/dev/virtio/network/if_vtnet.c       | 2746 +++++++++++++++++++++++++++++++
  sys/dev/virtio/network/if_vtnetvar.h    |  241 +++
- sys/dev/virtio/network/virtio_net.h     |  161 ++
- sys/dev/virtio/pci/virtio_pci.c         | 1081 ++++++++++++
+ sys/dev/virtio/network/virtio_net.h     |  159 ++
+ sys/dev/virtio/pci/virtio_pci.c         | 1262 ++++++++++++++
  sys/dev/virtio/pci/virtio_pci.h         |   87 +
- sys/dev/virtio/virtio.c                 |  283 ++++
- sys/dev/virtio/virtio.h                 |  153 ++
+ sys/dev/virtio/scsi/virtio_scsi.c       | 2351 ++++++++++++++++++++++++++
+ sys/dev/virtio/scsi/virtio_scsi.h       |  152 ++
+ sys/dev/virtio/scsi/virtio_scsivar.h    |  221 +++
+ sys/dev/virtio/virtio.c                 |  277 ++++
+ sys/dev/virtio/virtio.h                 |  185 +++
  sys/dev/virtio/virtio_bus_if.m          |   92 ++
  sys/dev/virtio/virtio_if.m              |   43 +
- sys/dev/virtio/virtio_ring.h            |  166 ++
- sys/dev/virtio/virtqueue.c              |  809 +++++++++
- sys/dev/virtio/virtqueue.h              |   99 ++
+ sys/dev/virtio/virtio_ring.h            |  165 ++
+ sys/dev/virtio/virtqueue.c              |  803 +++++++++
+ sys/dev/virtio/virtqueue.h              |   93 ++
  sys/modules/Makefile                    |    3 +
  sys/modules/virtio/Makefile             |   28 +
  sys/modules/virtio/balloon/Makefile     |   36 +
  sys/modules/virtio/block/Makefile       |   36 +
  sys/modules/virtio/network/Makefile     |   36 +
  sys/modules/virtio/pci/Makefile         |   36 +
+ sys/modules/virtio/scsi/Makefile        |   36 +
  sys/modules/virtio/virtio/Makefile      |   38 +
- 23 files changed, 8138 insertions(+)
- create mode 100644 sys/dev/virtio/balloon/virtio_balloon.c
- create mode 100644 sys/dev/virtio/balloon/virtio_balloon.h
- create mode 100644 sys/dev/virtio/block/virtio_blk.c
- create mode 100644 sys/dev/virtio/block/virtio_blk.h
- create mode 100644 sys/dev/virtio/network/if_vtnet.c
- create mode 100644 sys/dev/virtio/network/if_vtnetvar.h
- create mode 100644 sys/dev/virtio/network/virtio_net.h
- create mode 100644 sys/dev/virtio/pci/virtio_pci.c
- create mode 100644 sys/dev/virtio/pci/virtio_pci.h
- create mode 100644 sys/dev/virtio/virtio.c
- create mode 100644 sys/dev/virtio/virtio.h
- create mode 100644 sys/dev/virtio/virtio_bus_if.m
- create mode 100644 sys/dev/virtio/virtio_if.m
- create mode 100644 sys/dev/virtio/virtio_ring.h
- create mode 100644 sys/dev/virtio/virtqueue.c
- create mode 100644 sys/dev/virtio/virtqueue.h
- create mode 100644 sys/modules/virtio/Makefile
- create mode 100644 sys/modules/virtio/balloon/Makefile
- create mode 100644 sys/modules/virtio/block/Makefile
- create mode 100644 sys/modules/virtio/network/Makefile
- create mode 100644 sys/modules/virtio/pci/Makefile
- create mode 100644 sys/modules/virtio/virtio/Makefile
+ 27 files changed, 11113 insertions(+)
 
 diff --git a/sys/dev/virtio/balloon/virtio_balloon.c b/sys/dev/virtio/balloon/virtio_balloon.c
 new file mode 100644
-index 0000000..d589a73
+index 0000000..9b45459
 --- /dev/null
 +++ b/sys/dev/virtio/balloon/virtio_balloon.c
-@@ -0,0 +1,571 @@
+@@ -0,0 +1,570 @@
 +/*-
 + * Copyright (c) 2011, Bryan Venteicher <bryanv@daemoninthecloset.org>
 + * All rights reserved.
@@ -473,7 +447,6 @@ index 0000000..d589a73
 +	 * interrupt handler will wake us up.
 +	 */
 +	VTBALLOON_LOCK(sc);
-+
 +	while ((c = virtqueue_dequeue(vq, NULL)) == NULL)
 +		msleep_spin(sc, VTBALLOON_MTX(sc), "vtbspf", 0);
 +	VTBALLOON_UNLOCK(sc);
@@ -632,10 +605,10 @@ index 0000000..d589a73
 +}
 diff --git a/sys/dev/virtio/balloon/virtio_balloon.h b/sys/dev/virtio/balloon/virtio_balloon.h
 new file mode 100644
-index 0000000..1a52733
+index 0000000..f143341
 --- /dev/null
 +++ b/sys/dev/virtio/balloon/virtio_balloon.h
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,62 @@
 +/*-
 + * This header is BSD licensed so anyone can use the definitions to implement
 + * compatible drivers/servers.
@@ -669,8 +642,6 @@ index 0000000..1a52733
 +#ifndef _VIRTIO_BALLOON_H
 +#define _VIRTIO_BALLOON_H
 +
-+#include <sys/types.h>
-+
 +/* Feature bits. */
 +#define VIRTIO_BALLOON_F_MUST_TELL_HOST	0x1 /* Tell before reclaiming pages */
 +#define VIRTIO_BALLOON_F_STATS_VQ	0x2 /* Memory stats virtqueue */
@@ -702,10 +673,10 @@ index 0000000..1a52733
 +#endif /* _VIRTIO_BALLOON_H */
 diff --git a/sys/dev/virtio/block/virtio_blk.c b/sys/dev/virtio/block/virtio_blk.c
 new file mode 100644
-index 0000000..d05fa7a
+index 0000000..21d7703
 --- /dev/null
 +++ b/sys/dev/virtio/block/virtio_blk.c
-@@ -0,0 +1,1207 @@
+@@ -0,0 +1,1238 @@
 +/*-
 + * Copyright (c) 2011, Bryan Venteicher <bryanv@daemoninthecloset.org>
 + * All rights reserved.
@@ -750,7 +721,6 @@ index 0000000..d05fa7a
 +#include <sys/taskqueue.h>
 +
 +#include <geom/geom_disk.h>
-+#include <vm/uma.h>
 +
 +#include <machine/bus.h>
 +#include <machine/resource.h>
@@ -781,6 +751,7 @@ index 0000000..d05fa7a
 +#define VTBLK_FLAG_DETACH	0x0004
 +#define VTBLK_FLAG_SUSPEND	0x0008
 +#define VTBLK_FLAG_DUMPING	0x0010
++#define VTBLK_FLAG_BARRIER	0x0020
 +
 +	struct virtqueue	*vtblk_vq;
 +	struct sglist		*vtblk_sglist;
@@ -790,7 +761,8 @@ index 0000000..d05fa7a
 +	TAILQ_HEAD(, vtblk_request)
 +				 vtblk_req_free;
 +	TAILQ_HEAD(, vtblk_request)
-+				vtblk_req_ready;
++				 vtblk_req_ready;
++	struct vtblk_request	*vtblk_req_ordered;
 +
 +	struct taskqueue	*vtblk_tq;
 +	struct task		 vtblk_intr_task;
@@ -827,7 +799,7 @@ index 0000000..d05fa7a
 +static int	vtblk_open(struct disk *);
 +static int	vtblk_close(struct disk *);
 +static int	vtblk_ioctl(struct disk *, u_long, void *, int,
-+	            struct thread *);
++		    struct thread *);
 +static int	vtblk_dump(void *, void *, vm_offset_t, off_t, size_t);
 +static void	vtblk_strategy(struct bio *);
 +
@@ -901,15 +873,13 @@ index 0000000..d05fa7a
 +				mtx_assert(VTBLK_MTX((_sc)), MA_NOTOWNED)
 +
 +#define VTBLK_DISK_NAME		"vtbd"
-+#define	VTBLK_QUIESCE_TIMEOUT	(30 * hz)
++#define VTBLK_QUIESCE_TIMEOUT	(30 * hz)
 +
 +/*
 + * Each block request uses at least two segments - one for the header
 + * and one for the status.
 + */
 +#define VTBLK_MIN_SEGMENTS	2
-+
-+static uma_zone_t vtblk_req_zone;
 +
 +static device_method_t vtblk_methods[] = {
 +	/* Device methods. */
@@ -944,19 +914,8 @@ index 0000000..d05fa7a
 +
 +	switch (type) {
 +	case MOD_LOAD:
-+		vtblk_req_zone = uma_zcreate("vtblk_request",
-+		    sizeof(struct vtblk_request),
-+		    NULL, NULL, NULL, NULL, 0, 0);
-+		break;
 +	case MOD_QUIESCE:
 +	case MOD_UNLOAD:
-+		if (uma_zone_get_cur(vtblk_req_zone) > 0)
-+			error = EBUSY;
-+		else if (type == MOD_UNLOAD) {
-+			uma_zdestroy(vtblk_req_zone);
-+			vtblk_req_zone = NULL;
-+		}
-+		break;
 +	case MOD_SHUTDOWN:
 +		break;
 +	default:
@@ -1000,9 +959,10 @@ index 0000000..d05fa7a
 +
 +	if (virtio_with_feature(dev, VIRTIO_RING_F_INDIRECT_DESC))
 +		sc->vtblk_flags |= VTBLK_FLAG_INDIRECT;
-+
 +	if (virtio_with_feature(dev, VIRTIO_BLK_F_RO))
 +		sc->vtblk_flags |= VTBLK_FLAG_READONLY;
++	if (virtio_with_feature(dev, VIRTIO_BLK_F_BARRIER))
++		sc->vtblk_flags |= VTBLK_FLAG_BARRIER;
 +
 +	/* Get local copy of config. */
 +	virtio_read_device_config(dev, 0, &blkcfg,
@@ -1024,7 +984,7 @@ index 0000000..d05fa7a
 +	}
 +
 +	sc->vtblk_max_nsegs = vtblk_maximum_segments(sc, &blkcfg);
-+        if (sc->vtblk_max_nsegs <= VTBLK_MIN_SEGMENTS) {
++	if (sc->vtblk_max_nsegs <= VTBLK_MIN_SEGMENTS) {
 +		error = EINVAL;
 +		device_printf(dev, "fewer than minimum number of segments "
 +		    "allowed: %d\n", sc->vtblk_max_nsegs);
@@ -1060,14 +1020,15 @@ index 0000000..d05fa7a
 +		device_printf(dev, "cannot allocate taskqueue\n");
 +		goto fail;
 +	}
-+	taskqueue_start_threads(&sc->vtblk_tq, 1, PI_DISK, "%s taskq",
-+	    device_get_nameunit(dev));
 +
 +	error = virtio_setup_intr(dev, INTR_TYPE_BIO | INTR_ENTROPY);
 +	if (error) {
 +		device_printf(dev, "cannot setup virtqueue interrupt\n");
 +		goto fail;
 +	}
++
++	taskqueue_start_threads(&sc->vtblk_tq, 1, PI_DISK, "%s taskq",
++	    device_get_nameunit(dev));
 +
 +	vtblk_create_disk(sc);
 +
@@ -1201,7 +1162,6 @@ index 0000000..d05fa7a
 +	int error;
 +
 +	dp = arg;
-+	error = 0;
 +
 +	if ((sc = dp->d_drv1) == NULL)
 +		return (ENXIO);
@@ -1247,7 +1207,7 @@ index 0000000..d05fa7a
 +		return;
 +	}
 +
-+#ifdef	INVARIANTS
++#ifdef INVARIANTS
 +	/*
 +	 * Prevent read/write buffers spanning too many segments from
 +	 * getting into the queue. This should only trip if d_maxsize
@@ -1255,13 +1215,13 @@ index 0000000..d05fa7a
 +	 */
 +	if (bp->bio_cmd == BIO_READ || bp->bio_cmd == BIO_WRITE) {
 +		int nsegs, max_nsegs;
-+		
++
 +		nsegs = sglist_count(bp->bio_data, bp->bio_bcount);
 +		max_nsegs = sc->vtblk_max_nsegs - VTBLK_MIN_SEGMENTS;
 +
 +		KASSERT(nsegs <= max_nsegs,
-+		    ("bio spanned too many segments: %d, max: %d",
-+		    nsegs, max_nsegs));
++		    ("bio %p spanned too many segments: %d, max: %d",
++		    bp, nsegs, max_nsegs));
 +	}
 +#endif
 +
@@ -1488,51 +1448,69 @@ index 0000000..d05fa7a
 +		    bp->bio_cmd);
 +	}
 +
-+	if (bp->bio_flags & BIO_ORDERED)
-+		req->vbr_hdr.type |= VIRTIO_BLK_T_BARRIER;
-+
 +	return (req);
 +}
 +
 +static int
 +vtblk_execute_request(struct vtblk_softc *sc, struct vtblk_request *req)
 +{
++	struct virtqueue *vq;
 +	struct sglist *sg;
 +	struct bio *bp;
-+	int readable, writable, error;
++	int ordered, readable, writable, error;
 +
++	vq = sc->vtblk_vq;
 +	sg = sc->vtblk_sglist;
 +	bp = req->vbr_bp;
++	ordered = 0;
 +	writable = 0;
 +
 +	VTBLK_LOCK_ASSERT(sc);
 +
++	/*
++	 * Wait until the ordered request completes before
++	 * executing subsequent requests.
++	 */
++	if (sc->vtblk_req_ordered != NULL)
++		return (EBUSY);
++
++	if (bp->bio_flags & BIO_ORDERED) {
++		if ((sc->vtblk_flags & VTBLK_FLAG_BARRIER) == 0) {
++			/*
++			 * This request will be executed once all
++			 * the in-flight requests are completed.
++			 */
++			if (!virtqueue_empty(vq))
++				return (EBUSY);
++			ordered = 1;
++		} else
++			req->vbr_hdr.type |= VIRTIO_BLK_T_BARRIER;
++	}
++
 +	sglist_reset(sg);
-+	error = sglist_append(sg, &req->vbr_hdr,
-+	    sizeof(struct virtio_blk_outhdr));
-+	KASSERT(error == 0, ("error adding header to sglist"));
-+	KASSERT(sg->sg_nseg == 1,
-+	    ("header spanned multiple segments: %d", sg->sg_nseg));
++
++	sglist_append(sg, &req->vbr_hdr, sizeof(struct virtio_blk_outhdr));
 +
 +	if (bp->bio_cmd == BIO_READ || bp->bio_cmd == BIO_WRITE) {
 +		error = sglist_append(sg, bp->bio_data, bp->bio_bcount);
-+		KASSERT(error == 0, ("error adding buffer to sglist"));
++		if (error || sg->sg_nseg == sg->sg_maxseg)
++			panic("%s: data buffer too big bio:%p error:%d",
++			    __FUNCTION__, bp, error);
 +
 +		/* BIO_READ means the host writes into our buffer. */
 +		if (bp->bio_cmd == BIO_READ)
-+			writable += sg->sg_nseg - 1;
++			writable = sg->sg_nseg - 1;
 +	}
 +
-+	error = sglist_append(sg, &req->vbr_ack, sizeof(uint8_t));
-+	KASSERT(error == 0, ("error adding ack to sglist"));
 +	writable++;
-+
-+	KASSERT(sg->sg_nseg >= VTBLK_MIN_SEGMENTS,
-+	    ("fewer than min segments: %d", sg->sg_nseg));
-+
++	sglist_append(sg, &req->vbr_ack, sizeof(uint8_t));
 +	readable = sg->sg_nseg - writable;
 +
-+	return (virtqueue_enqueue(sc->vtblk_vq, req, sg, readable, writable));
++	error = virtqueue_enqueue(vq, req, sg, readable, writable);
++	if (error == 0 && ordered)
++		sc->vtblk_req_ordered = req;
++
++	return (error);
 +}
 +
 +static int
@@ -1703,12 +1681,10 @@ index 0000000..d05fa7a
 +static int
 +vtblk_poll_request(struct vtblk_softc *sc, struct vtblk_request *req)
 +{
-+	device_t dev;
 +	struct virtqueue *vq;
 +	struct vtblk_request *r;
 +	int error;
 +
-+	dev = sc->vtblk_dev;
 +	vq = sc->vtblk_vq;
 +
 +	if (!virtqueue_empty(vq))
@@ -1721,12 +1697,12 @@ index 0000000..d05fa7a
 +	virtqueue_notify(vq);
 +
 +	r = virtqueue_poll(vq, NULL);
-+	KASSERT(r == req, ("unexpected request response"));
++	KASSERT(r == req, ("unexpected request response: %p/%p", r, req));
 +
 +	error = vtblk_request_error(req);
 +	if (error && bootverbose) {
-+		device_printf(dev, "vtblk_poll_request: IO error: %d\n",
-+		    error);
++		device_printf(sc->vtblk_dev,
++		    "%s: IO error: %d\n", __FUNCTION__, error);
 +	}
 +
 +	return (error);
@@ -1741,6 +1717,12 @@ index 0000000..d05fa7a
 +
 +	while ((req = virtqueue_dequeue(sc->vtblk_vq, NULL)) != NULL) {
 +		bp = req->vbr_bp;
++
++		if (sc->vtblk_req_ordered != NULL) {
++			/* This should be the only outstanding request. */
++			MPASS(sc->vtblk_req_ordered == req);
++			sc->vtblk_req_ordered = NULL;
++		}
 +
 +		error = vtblk_request_error(req);
 +		if (error)
@@ -1768,6 +1750,7 @@ index 0000000..d05fa7a
 +		vtblk_enqueue_request(sc, req);
 +	}
 +
++	sc->vtblk_req_ordered = NULL;
 +	KASSERT(virtqueue_empty(vq), ("virtqueue not empty"));
 +}
 +
@@ -1798,6 +1781,20 @@ index 0000000..d05fa7a
 +	vtblk_free_requests(sc);
 +}
 +
++#ifdef INVARIANTS
++static void
++vtblk_request_invariants(struct vtblk_request *req)
++{
++	int hdr_nsegs, ack_nsegs;
++
++	hdr_nsegs = sglist_count(&req->vbr_hdr, sizeof(req->vbr_hdr));
++	ack_nsegs = sglist_count(&req->vbr_ack, sizeof(req->vbr_ack));
++
++	KASSERT(hdr_nsegs == 1, ("request header crossed page boundary"));
++	KASSERT(ack_nsegs == 1, ("request ack crossed page boundary"));
++}
++#endif
++
 +static int
 +vtblk_alloc_requests(struct vtblk_softc *sc)
 +{
@@ -1815,9 +1812,13 @@ index 0000000..d05fa7a
 +		nreqs /= VTBLK_MIN_SEGMENTS;
 +
 +	for (i = 0; i < nreqs; i++) {
-+		req = uma_zalloc(vtblk_req_zone, M_NOWAIT);
++		req = malloc(sizeof(struct vtblk_request), M_DEVBUF, M_NOWAIT);
 +		if (req == NULL)
 +			return (ENOMEM);
++
++#ifdef INVARIANTS
++		vtblk_request_invariants(req);
++#endif
 +
 +		sc->vtblk_request_count++;
 +		vtblk_enqueue_request(sc, req);
@@ -1836,10 +1837,11 @@ index 0000000..d05fa7a
 +
 +	while ((req = vtblk_dequeue_request(sc)) != NULL) {
 +		sc->vtblk_request_count--;
-+		uma_zfree(vtblk_req_zone, req);
++		free(req, M_DEVBUF);
 +	}
 +
-+	KASSERT(sc->vtblk_request_count == 0, ("leaked requests"));
++	KASSERT(sc->vtblk_request_count == 0,
++	    ("leaked requests: %d", sc->vtblk_request_count));
 +}
 +
 +static struct vtblk_request *
@@ -1915,10 +1917,10 @@ index 0000000..d05fa7a
 +}
 diff --git a/sys/dev/virtio/block/virtio_blk.h b/sys/dev/virtio/block/virtio_blk.h
 new file mode 100644
-index 0000000..f26c649
+index 0000000..fdac9e5
 --- /dev/null
 +++ b/sys/dev/virtio/block/virtio_blk.h
-@@ -0,0 +1,119 @@
+@@ -0,0 +1,117 @@
 +/*-
 + * This header is BSD licensed so anyone can use the definitions to implement
 + * compatible drivers/servers.
@@ -1951,8 +1953,6 @@ index 0000000..f26c649
 +
 +#ifndef _VIRTIO_BLK_H
 +#define _VIRTIO_BLK_H
-+
-+#include <sys/types.h>
 +
 +/* Feature bits */
 +#define VIRTIO_BLK_F_BARRIER	0x0001	/* Does host support barriers? */
@@ -2040,10 +2040,10 @@ index 0000000..f26c649
 +#endif /* _VIRTIO_BLK_H */
 diff --git a/sys/dev/virtio/network/if_vtnet.c b/sys/dev/virtio/network/if_vtnet.c
 new file mode 100644
-index 0000000..64a82ac
+index 0000000..d6fcac6d
 --- /dev/null
 +++ b/sys/dev/virtio/network/if_vtnet.c
-@@ -0,0 +1,2749 @@
+@@ -0,0 +1,2746 @@
 +/*-
 + * Copyright (c) 2011, Bryan Venteicher <bryanv@daemoninthecloset.org>
 + * All rights reserved.
@@ -2485,17 +2485,16 @@ index 0000000..64a82ac
 +		ether_ifdetach(ifp);
 +		goto fail;
 +	}
-+	taskqueue_start_threads(&sc->vtnet_tq, 1, PI_NET, "%s taskq",
-+	    device_get_nameunit(dev));
 +
 +	error = virtio_setup_intr(dev, INTR_TYPE_NET);
 +	if (error) {
 +		device_printf(dev, "cannot setup virtqueue interrupts\n");
-+		taskqueue_free(sc->vtnet_tq);
-+		sc->vtnet_tq = NULL;
 +		ether_ifdetach(ifp);
 +		goto fail;
 +	}
++
++	taskqueue_start_threads(&sc->vtnet_tq, 1, PI_NET, "%s taskq",
++	    device_get_nameunit(dev));
 +
 +	/*
 +	 * Device defaults to promiscuous mode for backwards
@@ -2794,11 +2793,9 @@ index 0000000..64a82ac
 +static void
 +vtnet_update_link_status(struct vtnet_softc *sc)
 +{
-+	device_t dev;
 +	struct ifnet *ifp;
 +	int link;
 +
-+	dev = sc->vtnet_dev;
 +	ifp = sc->vtnet_ifp;
 +
 +	link = vtnet_is_link_up(sc);
@@ -4519,9 +4516,9 @@ index 0000000..64a82ac
 +	sglist_init(&sg, 4, segs);
 +	error |= sglist_append(&sg, &hdr, sizeof(struct virtio_net_ctrl_hdr));
 +	error |= sglist_append(&sg, &filter->vmf_unicast,
-+	    sizeof(struct vtnet_mac_table));
++	    sizeof(uint32_t) + filter->vmf_unicast.nentries * ETHER_ADDR_LEN);
 +	error |= sglist_append(&sg, &filter->vmf_multicast,
-+	    sizeof(struct vtnet_mac_table));
++	    sizeof(uint32_t) + filter->vmf_multicast.nentries * ETHER_ADDR_LEN);
 +	error |= sglist_append(&sg, &ack, sizeof(uint8_t));
 +	KASSERT(error == 0 && sg.sg_nseg == 4,
 +	    ("error adding MAC filtering message to sglist"));
@@ -5042,10 +5039,10 @@ index 0000000..184870e
 +#endif /* _IF_VTNETVAR_H */
 diff --git a/sys/dev/virtio/network/virtio_net.h b/sys/dev/virtio/network/virtio_net.h
 new file mode 100644
-index 0000000..058f29f
+index 0000000..15a73cc
 --- /dev/null
 +++ b/sys/dev/virtio/network/virtio_net.h
-@@ -0,0 +1,161 @@
+@@ -0,0 +1,159 @@
 +/*-
 + * This header is BSD licensed so anyone can use the definitions to implement
 + * compatible drivers/servers.
@@ -5078,8 +5075,6 @@ index 0000000..058f29f
 +
 +#ifndef _VIRTIO_NET_H
 +#define _VIRTIO_NET_H
-+
-+#include <sys/types.h>
 +
 +/* The feature bitmap for virtio net */
 +#define VIRTIO_NET_F_CSUM	0x00001 /* Host handles pkts w/ partial csum */
@@ -5209,10 +5204,10 @@ index 0000000..058f29f
 +#endif /* _VIRTIO_NET_H */
 diff --git a/sys/dev/virtio/pci/virtio_pci.c b/sys/dev/virtio/pci/virtio_pci.c
 new file mode 100644
-index 0000000..78341b4
+index 0000000..0f9ffc7
 --- /dev/null
 +++ b/sys/dev/virtio/pci/virtio_pci.c
-@@ -0,0 +1,1081 @@
+@@ -0,0 +1,1262 @@
 +/*-
 + * Copyright (c) 2011, Bryan Venteicher <bryanv@daemoninthecloset.org>
 + * All rights reserved.
@@ -5272,12 +5267,15 @@ index 0000000..78341b4
 +	struct resource			*vtpci_msix_res;
 +	uint64_t			 vtpci_features;
 +	uint32_t			 vtpci_flags;
-+#define VIRTIO_PCI_FLAG_NO_MSI		 0x0001
-+#define VIRTIO_PCI_FLAG_MSI		 0x0002
-+#define VIRTIO_PCI_FLAG_NO_MSIX		 0x0010
-+#define VIRTIO_PCI_FLAG_MSIX		 0x0020
-+#define VIRTIO_PCI_FLAG_SHARED_MSIX	 0x0040
++#define VTPCI_FLAG_NO_MSI		0x0001
++#define VTPCI_FLAG_NO_MSIX		0x0002
++#define VTPCI_FLAG_LEGACY		0x1000
++#define VTPCI_FLAG_MSI			0x2000
++#define VTPCI_FLAG_MSIX			0x4000
++#define VTPCI_FLAG_SHARED_MSIX		0x8000
++#define VTPCI_FLAG_ITYPE_MASK		0xF000
 +
++	/* This "bus" will only ever have one child. */
 +	device_t			 vtpci_child_dev;
 +	struct virtio_feature_desc	*vtpci_child_feat_desc;
 +
@@ -5295,7 +5293,8 @@ index 0000000..78341b4
 +	int				 vtpci_nvqs;
 +	struct vtpci_virtqueue {
 +		struct virtqueue *vq;
-+
++		/* Device did not provide a callback for this virtqueue. */
++		int		  no_intr;
 +		/* Index into vtpci_intr_res[] below. Unused, then -1. */
 +		int		  ires_idx;
 +	} vtpci_vqx[VIRTIO_MAX_VIRTQUEUES];
@@ -5345,23 +5344,38 @@ index 0000000..78341b4
 +		    uint64_t);
 +static void	vtpci_probe_and_attach_child(struct vtpci_softc *);
 +
-+static int	vtpci_alloc_interrupts(struct vtpci_softc *, int, int,
-+		    struct vq_alloc_info *);
-+static int	vtpci_alloc_intr_resources(struct vtpci_softc *, int,
-+		    struct vq_alloc_info *);
-+static int	vtpci_alloc_msi(struct vtpci_softc *);
-+static int	vtpci_alloc_msix(struct vtpci_softc *, int);
++static int 	vtpci_alloc_msix(struct vtpci_softc *, int);
++static int 	vtpci_alloc_msi(struct vtpci_softc *);
++static int 	vtpci_alloc_intr_msix_pervq(struct vtpci_softc *);
++static int 	vtpci_alloc_intr_msix_shared(struct vtpci_softc *);
++static int 	vtpci_alloc_intr_msi(struct vtpci_softc *);
++static int 	vtpci_alloc_intr_legacy(struct vtpci_softc *);
++static int	vtpci_alloc_intr_resources(struct vtpci_softc *);
++
++static int 	vtpci_setup_legacy_interrupt(struct vtpci_softc *,
++		    enum intr_type);
++static int 	vtpci_setup_msix_interrupts(struct vtpci_softc *,
++		    enum intr_type);
++static int 	vtpci_setup_interrupts(struct vtpci_softc *, enum intr_type);
++
 +static int	vtpci_register_msix_vector(struct vtpci_softc *, int, int);
++static int 	vtpci_set_host_msix_vectors(struct vtpci_softc *);
++static int 	vtpci_reinit_virtqueue(struct vtpci_softc *, int);
 +
 +static void	vtpci_free_interrupts(struct vtpci_softc *);
 +static void	vtpci_free_virtqueues(struct vtpci_softc *);
++static void 	vtpci_cleanup_setup_intr_attempt(struct vtpci_softc *);
 +static void	vtpci_release_child_resources(struct vtpci_softc *);
 +static void	vtpci_reset(struct vtpci_softc *);
++
++static void	vtpci_select_virtqueue(struct vtpci_softc *, int);
 +
 +static int	vtpci_legacy_intr(void *);
 +static int	vtpci_vq_shared_intr(void *);
 +static int	vtpci_vq_intr(void *);
 +static int	vtpci_config_intr(void *);
++
++#define vtpci_setup_msi_interrupt vtpci_setup_legacy_interrupt
 +
 +/*
 + * I/O port read/write wrappers.
@@ -5467,7 +5481,7 @@ index 0000000..78341b4
 +	}
 +
 +	if (pci_find_extcap(dev, PCIY_MSI, NULL) != 0)
-+		sc->vtpci_flags |= VIRTIO_PCI_FLAG_NO_MSI;
++		sc->vtpci_flags |= VTPCI_FLAG_NO_MSI;
 +
 +	if (pci_find_extcap(dev, PCIY_MSIX, NULL) == 0) {
 +		rid = PCIR_BAR(1);
@@ -5476,7 +5490,7 @@ index 0000000..78341b4
 +	}
 +
 +	if (sc->vtpci_msix_res == NULL)
-+		sc->vtpci_flags |= VIRTIO_PCI_FLAG_NO_MSIX;
++		sc->vtpci_flags |= VTPCI_FLAG_NO_MSIX;
 +
 +	vtpci_reset(sc);
 +
@@ -5587,6 +5601,16 @@ index 0000000..78341b4
 +
 +	switch (index) {
 +	case VIRTIO_IVAR_DEVTYPE:
++	case VIRTIO_IVAR_SUBDEVICE:
++		*result = pci_get_subdevice(dev);
++		break;
++	case VIRTIO_IVAR_VENDOR:
++		*result = pci_get_vendor(dev);
++		break;
++	case VIRTIO_IVAR_DEVICE:
++		*result = pci_get_device(dev);
++		break;
++	case VIRTIO_IVAR_SUBVENDOR:
 +		*result = pci_get_subdevice(dev);
 +		break;
 +	default:
@@ -5657,102 +5681,97 @@ index 0000000..78341b4
 +    struct vq_alloc_info *vq_info)
 +{
 +	struct vtpci_softc *sc;
++	struct virtqueue *vq;
 +	struct vtpci_virtqueue *vqx;
 +	struct vq_alloc_info *info;
-+	int queue, error;
-+	uint16_t vq_size;
++	int idx, error;
++	uint16_t size;
 +
 +	sc = device_get_softc(dev);
++	error = 0;
 +
-+	if (sc->vtpci_nvqs != 0 || nvqs <= 0 ||
-+	    nvqs > VIRTIO_MAX_VIRTQUEUES)
++	if (sc->vtpci_nvqs != 0)
++		return (EALREADY);
++	if (nvqs <= 0 || nvqs > VIRTIO_MAX_VIRTQUEUES)
 +		return (EINVAL);
 +
-+	error = vtpci_alloc_interrupts(sc, flags, nvqs, vq_info);
-+	if (error) {
-+		device_printf(dev, "cannot allocate interrupts\n");
-+		return (error);
-+	}
++	if (flags & VIRTIO_ALLOC_VQS_DISABLE_MSIX)
++		sc->vtpci_flags |= VTPCI_FLAG_NO_MSIX;
 +
-+	if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
-+		error = vtpci_register_msix_vector(sc,
-+		    VIRTIO_MSI_CONFIG_VECTOR, 0);
-+		if (error)
-+			return (error);
-+	}
++	for (idx = 0; idx < nvqs; idx++) {
++		vqx = &sc->vtpci_vqx[idx];
++		info = &vq_info[idx];
 +
-+	for (queue = 0; queue < nvqs; queue++) {
-+		vqx = &sc->vtpci_vqx[queue];
-+		info = &vq_info[queue];
++		vtpci_select_virtqueue(sc, idx);
++		size = vtpci_read_config_2(sc, VIRTIO_PCI_QUEUE_NUM);
 +
-+		vtpci_write_config_2(sc, VIRTIO_PCI_QUEUE_SEL, queue);
-+
-+		vq_size = vtpci_read_config_2(sc, VIRTIO_PCI_QUEUE_NUM);
-+		error = virtqueue_alloc(dev, queue, vq_size,
-+		    VIRTIO_PCI_VRING_ALIGN, 0xFFFFFFFFUL, info, &vqx->vq);
-+		if (error)
-+			return (error);
-+
-+		if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
-+			error = vtpci_register_msix_vector(sc,
-+			    VIRTIO_MSI_QUEUE_VECTOR, vqx->ires_idx);
-+			if (error)
-+				return (error);
++		error = virtqueue_alloc(dev, idx, size, VIRTIO_PCI_VRING_ALIGN,
++		    0xFFFFFFFFUL, info, &vq);
++		if (error) {
++			device_printf(dev,
++			    "cannot allocate virtqueue %d: %d\n", idx, error);
++			break;
 +		}
 +
 +		vtpci_write_config_4(sc, VIRTIO_PCI_QUEUE_PFN,
-+		    virtqueue_paddr(vqx->vq) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT);
++		    virtqueue_paddr(vq) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT);
 +
-+		*info->vqai_vq = vqx->vq;
++		vqx->vq = *info->vqai_vq = vq;
++		vqx->no_intr = info->vqai_intr == NULL;
++
 +		sc->vtpci_nvqs++;
 +	}
 +
-+	return (0);
++	return (error);
 +}
 +
 +static int
 +vtpci_setup_intr(device_t dev, enum intr_type type)
 +{
 +	struct vtpci_softc *sc;
-+	struct vtpci_intr_resource *ires;
-+	struct vtpci_virtqueue *vqx;
-+	int i, flags, error;
++	int attempt, error;
 +
 +	sc = device_get_softc(dev);
-+	flags = type | INTR_MPSAFE;
-+	ires = &sc->vtpci_intr_res[0];
 +
-+	if ((sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) == 0) {
-+		error = bus_setup_intr(dev, ires->irq, flags,
-+		    vtpci_legacy_intr, NULL, sc, &ires->intrhand);
++	for (attempt = 0; attempt < 5; attempt++) {
++		/*
++		 * Start with the most desirable interrupt configuration and
++		 * fallback towards less desirable ones.
++		 */
++		switch (attempt) {
++		case 0:
++			error = vtpci_alloc_intr_msix_pervq(sc);
++			break;
++		case 1:
++			error = vtpci_alloc_intr_msix_shared(sc);
++			break;
++		case 2:
++			error = vtpci_alloc_intr_msi(sc);
++			break;
++		case 3:
++			error = vtpci_alloc_intr_legacy(sc);
++			break;
++		default:
++			device_printf(dev,
++			    "exhausted all interrupt allocation attempts\n");
++			return (ENXIO);
++		}
 +
-+		return (error);
++		if (error == 0 && vtpci_setup_interrupts(sc, type) == 0)
++			break;
++
++		vtpci_cleanup_setup_intr_attempt(sc);
 +	}
 +
-+	error = bus_setup_intr(dev, ires->irq, flags, vtpci_config_intr,
-+	    NULL, sc, &ires->intrhand);
-+	if (error)
-+		return (error);
-+
-+	if (sc->vtpci_flags & VIRTIO_PCI_FLAG_SHARED_MSIX) {
-+		ires = &sc->vtpci_intr_res[1];
-+		error = bus_setup_intr(dev, ires->irq, flags,
-+		    vtpci_vq_shared_intr, NULL, sc, &ires->intrhand);
-+
-+		return (error);
-+	}
-+
-+	/* Setup an interrupt handler for each virtqueue. */
-+	for (i = 0; i < sc->vtpci_nvqs; i++) {
-+		vqx = &sc->vtpci_vqx[i];
-+		if (vqx->ires_idx < 1)
-+			continue;
-+
-+		ires = &sc->vtpci_intr_res[vqx->ires_idx];
-+		error = bus_setup_intr(dev, ires->irq, flags,
-+		    vtpci_vq_intr, NULL, vqx->vq, &ires->intrhand);
-+		if (error)
-+			return (error);
++	if (bootverbose) {
++		if (sc->vtpci_flags & VTPCI_FLAG_LEGACY)
++			device_printf(dev, "using legacy interrupt\n");
++		else if (sc->vtpci_flags & VTPCI_FLAG_MSI)
++			device_printf(dev, "using MSI interrupt\n");
++		else if (sc->vtpci_flags & VTPCI_FLAG_SHARED_MSIX)
++			device_printf(dev, "using shared MSIX interrupts\n");
++		else
++			device_printf(dev, "using per VQ MSIX interrupts\n");
 +	}
 +
 +	return (0);
@@ -5769,20 +5788,19 @@ index 0000000..78341b4
 +vtpci_reinit(device_t dev, uint64_t features)
 +{
 +	struct vtpci_softc *sc;
-+	struct vtpci_virtqueue *vqx;
-+	struct virtqueue *vq;
-+	int queue, error;
-+	uint16_t vq_size;
++	int idx, error;
 +
 +	sc = device_get_softc(dev);
 +
 +	/*
-+	 * Redrive the device initialization. This is a bit of an abuse
-+	 * of the specification, but both VirtualBox and QEMU/KVM seem
-+	 * to play nice. We do not allow the host device to change from
-+	 * what was originally negotiated beyond what the guest driver
-+	 * changed (MSIX state should not change, number of virtqueues
-+	 * and their size remain the same, etc).
++	 * Redrive the device initialization. This is a bit of an abuse of
++	 * the specification, but VirtualBox, QEMU/KVM, and BHyVe seem to
++	 * play nice.
++	 *
++	 * We do not allow the host device to change from what was originally
++	 * negotiated beyond what the guest driver changed. MSIX state should
++	 * not change, number of virtqueues and their size remain the same, etc.
++	 * This will need to be rethought when we want to support migration.
 +	 */
 +
 +	if (vtpci_get_status(dev) != VIRTIO_CONFIG_STATUS_RESET)
@@ -5797,34 +5815,16 @@ index 0000000..78341b4
 +
 +	vtpci_negotiate_features(dev, features);
 +
-+	if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
-+		error = vtpci_register_msix_vector(sc,
-+		    VIRTIO_MSI_CONFIG_VECTOR, 0);
++	for (idx = 0; idx < sc->vtpci_nvqs; idx++) {
++		error = vtpci_reinit_virtqueue(sc, idx);
 +		if (error)
 +			return (error);
 +	}
 +
-+	for (queue = 0; queue < sc->vtpci_nvqs; queue++) {
-+		vqx = &sc->vtpci_vqx[queue];
-+		vq = vqx->vq;
-+
-+		KASSERT(vq != NULL, ("vq %d not allocated", queue));
-+		vtpci_write_config_2(sc, VIRTIO_PCI_QUEUE_SEL, queue);
-+
-+		vq_size = vtpci_read_config_2(sc, VIRTIO_PCI_QUEUE_NUM);
-+		error = virtqueue_reinit(vq, vq_size);
++	if (sc->vtpci_flags & VTPCI_FLAG_MSIX) {
++		error = vtpci_set_host_msix_vectors(sc);
 +		if (error)
 +			return (error);
-+
-+		if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
-+			error = vtpci_register_msix_vector(sc,
-+			    VIRTIO_MSI_QUEUE_VECTOR, vqx->ires_idx);
-+			if (error)
-+				return (error);
-+		}
-+
-+		vtpci_write_config_4(sc, VIRTIO_PCI_QUEUE_PFN,
-+		    virtqueue_paddr(vqx->vq) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT);
 +	}
 +
 +	return (0);
@@ -5959,7 +5959,6 @@ index 0000000..78341b4
 +		vtpci_set_status(dev, VIRTIO_CONFIG_STATUS_FAILED);
 +		vtpci_reset(sc);
 +		vtpci_release_child_resources(sc);
-+
 +		/* Reset status for future attempt. */
 +		vtpci_set_status(dev, VIRTIO_CONFIG_STATUS_ACK);
 +	} else
@@ -5967,42 +5966,126 @@ index 0000000..78341b4
 +}
 +
 +static int
-+vtpci_alloc_interrupts(struct vtpci_softc *sc, int flags, int nvqs,
-+    struct vq_alloc_info *vq_info)
++vtpci_alloc_msix(struct vtpci_softc *sc, int nvectors)
 +{
-+	int i, nvectors, error;
++	device_t dev;
++	int nmsix, cnt, required;
 +
-+	/*
-+	 * Only allocate a vector for virtqueues that are actually
-+	 * expecting an interrupt.
-+	 */
-+	for (nvectors = 0, i = 0; i < nvqs; i++)
-+		if (vq_info[i].vqai_intr != NULL)
-+			nvectors++;
++	dev = sc->vtpci_dev;
 +
-+	if (vtpci_disable_msix != 0 ||
-+	    sc->vtpci_flags & VIRTIO_PCI_FLAG_NO_MSIX ||
-+	    flags & VIRTIO_ALLOC_VQS_DISABLE_MSIX ||
-+	    vtpci_alloc_msix(sc, nvectors) != 0) {
-+		/*
-+		 * Use MSI interrupts if available. Otherwise, we fallback
-+		 * to legacy interrupts.
-+		 */
-+		if ((sc->vtpci_flags & VIRTIO_PCI_FLAG_NO_MSI) == 0 &&
-+		    vtpci_alloc_msi(sc) == 0)
-+			sc->vtpci_flags |= VIRTIO_PCI_FLAG_MSI;
++	/* Allocate an additional vector for the config changes. */
++	required = nvectors + 1;
 +
-+		sc->vtpci_nintr_res = 1;
++	nmsix = pci_msix_count(dev);
++	if (nmsix < required)
++		return (1);
++
++	cnt = required;
++	if (pci_alloc_msix(dev, &cnt) == 0 && cnt >= required) {
++		sc->vtpci_nintr_res = required;
++		return (0);
 +	}
 +
-+	error = vtpci_alloc_intr_resources(sc, nvqs, vq_info);
++	pci_release_msi(dev);
 +
-+	return (error);
++	return (1);
 +}
 +
 +static int
-+vtpci_alloc_intr_resources(struct vtpci_softc *sc, int nvqs,
-+    struct vq_alloc_info *vq_info)
++vtpci_alloc_msi(struct vtpci_softc *sc)
++{
++	device_t dev;
++	int nmsi, cnt, required;
++
++	dev = sc->vtpci_dev;
++	required = 1;
++
++	nmsi = pci_msi_count(dev);
++	if (nmsi < required)
++		return (1);
++
++	cnt = required;
++	if (pci_alloc_msi(dev, &cnt) == 0 && cnt >= required) {
++		sc->vtpci_nintr_res = required;
++		return (0);
++	}
++
++	pci_release_msi(dev);
++
++	return (1);
++}
++
++static int
++vtpci_alloc_intr_msix_pervq(struct vtpci_softc *sc)
++{
++	int i, nvectors, error;
++
++	if (vtpci_disable_msix != 0 ||
++	    sc->vtpci_flags & VTPCI_FLAG_NO_MSIX)
++		return (ENOTSUP);
++
++	for (nvectors = 0, i = 0; i < sc->vtpci_nvqs; i++) {
++		if (sc->vtpci_vqx[i].no_intr == 0)
++			nvectors++;
++	}
++
++	error = vtpci_alloc_msix(sc, nvectors);
++	if (error)
++		return (error);
++
++	sc->vtpci_flags |= VTPCI_FLAG_MSIX;
++
++	return (0);
++}
++
++static int
++vtpci_alloc_intr_msix_shared(struct vtpci_softc *sc)
++{
++	int error;
++
++	if (vtpci_disable_msix != 0 ||
++	    sc->vtpci_flags & VTPCI_FLAG_NO_MSIX)
++		return (ENOTSUP);
++
++	error = vtpci_alloc_msix(sc, 1);
++	if (error)
++		return (error);
++
++	sc->vtpci_flags |= VTPCI_FLAG_MSIX | VTPCI_FLAG_SHARED_MSIX;
++
++	return (0);
++}
++
++static int
++vtpci_alloc_intr_msi(struct vtpci_softc *sc)
++{
++	int error;
++
++	/* Only BHyVe supports MSI. */
++	if (sc->vtpci_flags & VTPCI_FLAG_NO_MSI)
++		return (ENOTSUP);
++
++	error = vtpci_alloc_msi(sc);
++	if (error)
++		return (error);
++
++	sc->vtpci_flags |= VTPCI_FLAG_MSI;
++
++	return (0);
++}
++
++static int
++vtpci_alloc_intr_legacy(struct vtpci_softc *sc)
++{
++
++	sc->vtpci_flags |= VTPCI_FLAG_LEGACY;
++	sc->vtpci_nintr_res = 1;
++
++	return (0);
++}
++
++static int
++vtpci_alloc_intr_resources(struct vtpci_softc *sc)
 +{
 +	device_t dev;
 +	struct resource *irq;
@@ -6010,14 +6093,14 @@ index 0000000..78341b4
 +	int i, rid, flags, res_idx;
 +
 +	dev = sc->vtpci_dev;
-+	flags = RF_ACTIVE;
 +
-+	if ((sc->vtpci_flags &
-+	    (VIRTIO_PCI_FLAG_MSI | VIRTIO_PCI_FLAG_MSIX)) == 0) {
++	if (sc->vtpci_flags & VTPCI_FLAG_LEGACY) {
 +		rid = 0;
-+		flags |= RF_SHAREABLE;
-+	} else
++		flags = RF_ACTIVE | RF_SHAREABLE;
++	} else {
 +		rid = 1;
++		flags = RF_ACTIVE;
++	}
 +
 +	for (i = 0; i < sc->vtpci_nintr_res; i++) {
 +		irq = bus_alloc_resource_any(dev, SYS_RES_IRQ, &rid, flags);
@@ -6029,16 +6112,16 @@ index 0000000..78341b4
 +	}
 +
 +	/*
-+	 * Map the virtqueue into the correct index in vq_intr_res[]. Note the
-+	 * first index is reserved for configuration changes notifications.
++	 * Map the virtqueue into the correct index in vq_intr_res[]. The
++	 * first index is reserved for configuration changed notifications.
 +	 */
-+	for (i = 0, res_idx = 1; i < nvqs; i++) {
++	for (i = 0, res_idx = 1; i < sc->vtpci_nvqs; i++) {
 +		vqx = &sc->vtpci_vqx[i];
 +
-+		if (sc->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) {
-+			if (vq_info[i].vqai_intr == NULL)
++		if (sc->vtpci_flags & VTPCI_FLAG_MSIX) {
++			if (vqx->no_intr != 0)
 +				vqx->ires_idx = -1;
-+			else if (sc->vtpci_flags & VIRTIO_PCI_FLAG_SHARED_MSIX)
++			else if (sc->vtpci_flags & VTPCI_FLAG_SHARED_MSIX)
 +				vqx->ires_idx = res_idx;
 +			else
 +				vqx->ires_idx = res_idx++;
@@ -6050,106 +6133,176 @@ index 0000000..78341b4
 +}
 +
 +static int
-+vtpci_alloc_msi(struct vtpci_softc *sc)
++vtpci_setup_legacy_interrupt(struct vtpci_softc *sc, enum intr_type type)
 +{
 +	device_t dev;
-+	int nmsi, cnt;
++	struct vtpci_intr_resource *ires;
++	int error;
 +
 +	dev = sc->vtpci_dev;
-+	nmsi = pci_msi_count(dev);
 +
-+	if (nmsi < 1)
-+		return (1);
++	ires = &sc->vtpci_intr_res[0];
++	error = bus_setup_intr(dev, ires->irq, type, vtpci_legacy_intr, NULL,
++	    sc, &ires->intrhand);
 +
-+	cnt = 1;
-+	if (pci_alloc_msi(dev, &cnt) == 0 && cnt == 1)
-+		return (0);
-+
-+	return (1);
++	return (error);
 +}
 +
 +static int
-+vtpci_alloc_msix(struct vtpci_softc *sc, int nvectors)
++vtpci_setup_msix_interrupts(struct vtpci_softc *sc, enum intr_type type)
 +{
 +	device_t dev;
-+	int nmsix, cnt, required;
++	struct vtpci_intr_resource *ires;
++	struct vtpci_virtqueue *vqx;
++	int i, error;
 +
 +	dev = sc->vtpci_dev;
 +
-+	nmsix = pci_msix_count(dev);
-+	if (nmsix < 1)
-+		return (1);
++	/*
++	 * The first resource is used for configuration changed interrupts.
++	 */
++	ires = &sc->vtpci_intr_res[0];
++	error = bus_setup_intr(dev, ires->irq, type, vtpci_config_intr,
++	    NULL, sc, &ires->intrhand);
++	if (error)
++		return (error);
 +
-+	/* An additional vector is needed for the config changes. */
-+	required = nvectors + 1;
-+	if (nmsix >= required) {
-+		cnt = required;
-+		if (pci_alloc_msix(dev, &cnt) == 0 && cnt >= required)
-+			goto out;
++	if (sc->vtpci_flags & VTPCI_FLAG_SHARED_MSIX) {
++		ires = &sc->vtpci_intr_res[1];
 +
-+		pci_release_msi(dev);
-+	}
++		error = bus_setup_intr(dev, ires->irq, type,
++		    vtpci_vq_shared_intr, NULL, sc, &ires->intrhand);
++		if (error)
++			return (error);
++	} else {
++		/*
++		 * Each remaining resource is assigned to a specific virtqueue.
++		 */
++		for (i = 0; i < sc->vtpci_nvqs; i++) {
++			vqx = &sc->vtpci_vqx[i];
++			if (vqx->ires_idx < 1)
++				continue;
 +
-+	/* Attempt shared MSIX configuration. */
-+	required = 2;
-+	if (nmsix >= required) {
-+		cnt = required;
-+		if (pci_alloc_msix(dev, &cnt) == 0 && cnt >= required) {
-+			sc->vtpci_flags |= VIRTIO_PCI_FLAG_SHARED_MSIX;
-+			goto out;
++			ires = &sc->vtpci_intr_res[vqx->ires_idx];
++			error = bus_setup_intr(dev, ires->irq, type,
++			    vtpci_vq_intr, NULL, vqx->vq, &ires->intrhand);
++			if (error)
++				return (error);
 +		}
-+
-+		pci_release_msi(dev);
 +	}
 +
-+	return (1);
-+
-+out:
-+	sc->vtpci_nintr_res = required;
-+	sc->vtpci_flags |= VIRTIO_PCI_FLAG_MSIX;
-+
-+	if (bootverbose) {
-+		if (sc->vtpci_flags & VIRTIO_PCI_FLAG_SHARED_MSIX)
-+			device_printf(dev, "using shared virtqueue MSIX\n");
-+		else
-+			device_printf(dev, "using per virtqueue MSIX\n");
-+	}
++	error = vtpci_set_host_msix_vectors(sc);
++	if (error)
++		return (error);
 +
 +	return (0);
++}
++
++static int
++vtpci_setup_interrupts(struct vtpci_softc *sc, enum intr_type type)
++{
++	int error;
++
++	type |= INTR_MPSAFE;
++	KASSERT(sc->vtpci_flags & VTPCI_FLAG_ITYPE_MASK,
++	    ("no interrupt type selected: %#x", sc->vtpci_flags));
++
++	error = vtpci_alloc_intr_resources(sc);
++	if (error)
++		return (error);
++
++	if (sc->vtpci_flags & VTPCI_FLAG_LEGACY)
++		error = vtpci_setup_legacy_interrupt(sc, type);
++	else if (sc->vtpci_flags & VTPCI_FLAG_MSI)
++		error = vtpci_setup_msi_interrupt(sc, type);
++	else
++		error = vtpci_setup_msix_interrupts(sc, type);
++
++	return (error);
 +}
 +
 +static int
 +vtpci_register_msix_vector(struct vtpci_softc *sc, int offset, int res_idx)
 +{
 +	device_t dev;
-+	uint16_t vector;
++	uint16_t vector, rdvector;
 +
 +	dev = sc->vtpci_dev;
 +
-+	if (offset != VIRTIO_MSI_CONFIG_VECTOR &&
-+	    offset != VIRTIO_MSI_QUEUE_VECTOR)
-+		return (EINVAL);
-+
 +	if (res_idx != -1) {
-+		/* Map from rid to host vector. */
++		/* Map from guest rid to host vector. */
 +		vector = sc->vtpci_intr_res[res_idx].rid - 1;
 +	} else
 +		vector = VIRTIO_MSI_NO_VECTOR;
 +
-+	/* The first resource is special; make sure it is used correctly. */
++	/*
++	 * Assert the first resource is always used for the configuration
++	 * changed interrupts.
++	 */
 +	if (res_idx == 0) {
-+		KASSERT(vector == 0, ("unexpected config vector"));
-+		KASSERT(offset == VIRTIO_MSI_CONFIG_VECTOR,
-+		    ("unexpected config offset"));
-+	}
++		KASSERT(vector == 0 && offset == VIRTIO_MSI_CONFIG_VECTOR,
++		    ("bad first res use vector:%d offset:%d", vector, offset));
++	} else
++		KASSERT(offset == VIRTIO_MSI_QUEUE_VECTOR, ("bad offset"));
 +
 +	vtpci_write_config_2(sc, offset, vector);
 +
-+	if (vtpci_read_config_2(sc, offset) != vector) {
-+		device_printf(dev, "insufficient host resources for "
-+		    "MSIX interrupts\n");
++	/* Read vector to determine if the host had sufficient resources. */
++	rdvector = vtpci_read_config_2(sc, offset);
++	if (rdvector != vector) {
++		device_printf(dev,
++		    "insufficient host resources for MSIX interrupts\n");
 +		return (ENODEV);
 +	}
++
++	return (0);
++}
++
++static int
++vtpci_set_host_msix_vectors(struct vtpci_softc *sc)
++{
++	struct vtpci_virtqueue *vqx;
++	int idx, error;
++
++	error = vtpci_register_msix_vector(sc, VIRTIO_MSI_CONFIG_VECTOR, 0);
++	if (error)
++		return (error);
++
++	for (idx = 0; idx < sc->vtpci_nvqs; idx++) {
++		vqx = &sc->vtpci_vqx[idx];
++
++		vtpci_select_virtqueue(sc, idx);
++		error = vtpci_register_msix_vector(sc, VIRTIO_MSI_QUEUE_VECTOR,
++		    vqx->ires_idx);
++		if (error)
++			return (error);
++	}
++
++	return (0);
++}
++
++static int
++vtpci_reinit_virtqueue(struct vtpci_softc *sc, int idx)
++{
++	struct vtpci_virtqueue *vqx;
++	struct virtqueue *vq;
++	int error;
++	uint16_t size;
++
++	vqx = &sc->vtpci_vqx[idx];
++	vq = vqx->vq;
++
++	KASSERT(vq != NULL, ("vq %d not allocated", idx));
++
++	vtpci_select_virtqueue(sc, idx);
++	size = vtpci_read_config_2(sc, VIRTIO_PCI_QUEUE_NUM);
++
++	error = virtqueue_reinit(vq, size);
++	if (error)
++		return (error);
++
++	vtpci_write_config_4(sc, VIRTIO_PCI_QUEUE_PFN,
++	    virtqueue_paddr(vq) >> VIRTIO_PCI_QUEUE_ADDR_SHIFT);
 +
 +	return (0);
 +}
@@ -6162,15 +6315,8 @@ index 0000000..78341b4
 +	int i;
 +
 +	dev = sc->vtpci_dev;
-+	sc->vtpci_nintr_res = 0;
 +
-+	if (sc->vtpci_flags & (VIRTIO_PCI_FLAG_MSI | VIRTIO_PCI_FLAG_MSIX)) {
-+		pci_release_msi(dev);
-+		sc->vtpci_flags &= ~(VIRTIO_PCI_FLAG_MSI |
-+		    VIRTIO_PCI_FLAG_MSIX | VIRTIO_PCI_FLAG_SHARED_MSIX);
-+	}
-+
-+	for (i = 0; i < 1 + VIRTIO_MAX_VIRTQUEUES; i++) {
++	for (i = 0; i < sc->vtpci_nintr_res; i++) {
 +		ires = &sc->vtpci_intr_res[i];
 +
 +		if (ires->intrhand != NULL) {
@@ -6186,6 +6332,12 @@ index 0000000..78341b4
 +
 +		ires->rid = -1;
 +	}
++
++	if (sc->vtpci_flags & (VTPCI_FLAG_MSI | VTPCI_FLAG_MSIX))
++		pci_release_msi(dev);
++
++	sc->vtpci_nintr_res = 0;
++	sc->vtpci_flags &= ~VTPCI_FLAG_ITYPE_MASK;
 +}
 +
 +static void
@@ -6194,16 +6346,33 @@ index 0000000..78341b4
 +	struct vtpci_virtqueue *vqx;
 +	int i;
 +
-+	sc->vtpci_nvqs = 0;
-+
-+	for (i = 0; i < VIRTIO_MAX_VIRTQUEUES; i++) {
++	for (i = 0; i < sc->vtpci_nvqs; i++) {
 +		vqx = &sc->vtpci_vqx[i];
 +
-+		if (vqx->vq != NULL) {
-+			virtqueue_free(vqx->vq);
-+			vqx->vq = NULL;
++		virtqueue_free(vqx->vq);
++		vqx->vq = NULL;
++	}
++
++	sc->vtpci_nvqs = 0;
++}
++
++static void
++vtpci_cleanup_setup_intr_attempt(struct vtpci_softc *sc)
++{
++	int idx;
++
++	if (sc->vtpci_flags & VTPCI_FLAG_MSIX) {
++		vtpci_write_config_2(sc, VIRTIO_MSI_CONFIG_VECTOR,
++		    VIRTIO_MSI_NO_VECTOR);
++
++		for (idx = 0; idx < sc->vtpci_nvqs; idx++) {
++			vtpci_select_virtqueue(sc, idx);
++			vtpci_write_config_2(sc, VIRTIO_MSI_QUEUE_VECTOR,
++			    VIRTIO_MSI_NO_VECTOR);
 +		}
 +	}
++
++	vtpci_free_interrupts(sc);
 +}
 +
 +static void
@@ -6223,6 +6392,13 @@ index 0000000..78341b4
 +	 * the original, uninitialized state.
 +	 */
 +	vtpci_set_status(sc->vtpci_dev, VIRTIO_CONFIG_STATUS_RESET);
++}
++
++static void
++vtpci_select_virtqueue(struct vtpci_softc *sc, int idx)
++{
++
++	vtpci_write_config_2(sc, VIRTIO_PCI_QUEUE_SEL, idx);
 +}
 +
 +static int
@@ -6296,7 +6472,7 @@ index 0000000..78341b4
 +}
 diff --git a/sys/dev/virtio/pci/virtio_pci.h b/sys/dev/virtio/pci/virtio_pci.h
 new file mode 100644
-index 0000000..d8daa31
+index 0000000..485cf4f
 --- /dev/null
 +++ b/sys/dev/virtio/pci/virtio_pci.h
 @@ -0,0 +1,87 @@
@@ -6375,7 +6551,7 @@ index 0000000..d8daa31
 + * configuration space.
 + */
 +#define VIRTIO_PCI_CONFIG(sc) \
-+    (((sc)->vtpci_flags & VIRTIO_PCI_FLAG_MSIX) ? 24 : 20)
++    (((sc)->vtpci_flags & VTPCI_FLAG_MSIX) ? 24 : 20)
 +
 +/*
 + * How many bits to shift physical queue address written to QUEUE_PFN.
@@ -6387,12 +6563,2754 @@ index 0000000..d8daa31
 +#define VIRTIO_PCI_VRING_ALIGN	4096
 +
 +#endif /* _VIRTIO_PCI_H */
+diff --git a/sys/dev/virtio/scsi/virtio_scsi.c b/sys/dev/virtio/scsi/virtio_scsi.c
+new file mode 100644
+index 0000000..3d939d8
+--- /dev/null
++++ b/sys/dev/virtio/scsi/virtio_scsi.c
+@@ -0,0 +1,2351 @@
++/*-
++ * Copyright (c) 2012, Bryan Venteicher <bryanv@daemoninthecloset.org>
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice unmodified, this list of conditions, and the following
++ *    disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
++ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
++ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++/* Driver for VirtIO SCSI devices. */
++
++#include <sys/cdefs.h>
++__FBSDID("$FreeBSD$");
++
++#include <sys/param.h>
++#include <sys/systm.h>
++#include <sys/kernel.h>
++#include <sys/kthread.h>
++#include <sys/malloc.h>
++#include <sys/module.h>
++#include <sys/sglist.h>
++#include <sys/sysctl.h>
++#include <sys/lock.h>
++#include <sys/mutex.h>
++#include <sys/callout.h>
++#include <sys/taskqueue.h>
++#include <sys/queue.h>
++#include <sys/sbuf.h>
++
++#include <machine/stdarg.h>
++
++#include <machine/bus.h>
++#include <machine/resource.h>
++#include <sys/bus.h>
++#include <sys/rman.h>
++
++#include <cam/cam.h>
++#include <cam/cam_ccb.h>
++#include <cam/cam_sim.h>
++#include <cam/cam_periph.h>
++#include <cam/cam_xpt_sim.h>
++#include <cam/cam_debug.h>
++#include <cam/scsi/scsi_all.h>
++#include <cam/scsi/scsi_message.h>
++
++#include <dev/virtio/virtio.h>
++#include <dev/virtio/virtqueue.h>
++#include <dev/virtio/scsi/virtio_scsi.h>
++#include <dev/virtio/scsi/virtio_scsivar.h>
++
++#include "virtio_if.h"
++
++static int	vtscsi_modevent(module_t, int, void *);
++
++static int	vtscsi_probe(device_t);
++static int	vtscsi_attach(device_t);
++static int	vtscsi_detach(device_t);
++static int	vtscsi_suspend(device_t);
++static int	vtscsi_resume(device_t);
++
++static void	vtscsi_negotiate_features(struct vtscsi_softc *);
++static int	vtscsi_maximum_segments(struct vtscsi_softc *, int);
++static int	vtscsi_alloc_virtqueues(struct vtscsi_softc *);
++static void	vtscsi_write_device_config(struct vtscsi_softc *);
++static int	vtscsi_reinit(struct vtscsi_softc *);
++
++static int	vtscsi_alloc_cam(struct vtscsi_softc *);
++static int 	vtscsi_register_cam(struct vtscsi_softc *);
++static void	vtscsi_free_cam(struct vtscsi_softc *);
++static void	vtscsi_cam_async(void *, uint32_t, struct cam_path *, void *);
++static int	vtscsi_register_async(struct vtscsi_softc *);
++static void	vtscsi_deregister_async(struct vtscsi_softc *);
++static void	vtscsi_cam_action(struct cam_sim *, union ccb *);
++static void	vtscsi_cam_poll(struct cam_sim *);
++
++static void	vtscsi_cam_scsi_io(struct vtscsi_softc *, struct cam_sim *,
++		    union ccb *);
++static void 	vtscsi_cam_get_tran_settings(struct vtscsi_softc *,
++		    union ccb *);
++static void	vtscsi_cam_reset_bus(struct vtscsi_softc *, union ccb *);
++static void	vtscsi_cam_reset_dev(struct vtscsi_softc *, union ccb *);
++static void	vtscsi_cam_abort(struct vtscsi_softc *, union ccb *);
++static void	vtscsi_cam_path_inquiry(struct vtscsi_softc *,
++		    struct cam_sim *, union ccb *);
++
++static int 	vtscsi_sg_append_scsi_buf(struct vtscsi_softc *,
++		    struct sglist *, struct ccb_scsiio *);
++static int 	vtscsi_fill_scsi_cmd_sglist(struct vtscsi_softc *,
++		    struct vtscsi_request *, int *, int *);
++static int 	vtscsi_execute_scsi_cmd(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++static int 	vtscsi_start_scsi_cmd(struct vtscsi_softc *, union ccb *);
++static void	vtscsi_complete_abort_timedout_scsi_cmd(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++static int 	vtscsi_abort_timedout_scsi_cmd(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++static void	vtscsi_timedout_scsi_cmd(void *);
++static cam_status vtscsi_scsi_cmd_cam_status(struct virtio_scsi_cmd_resp *);
++static cam_status vtscsi_complete_scsi_cmd_response(struct vtscsi_softc *,
++		    struct ccb_scsiio *, struct virtio_scsi_cmd_resp *);
++static void 	vtscsi_complete_scsi_cmd(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++
++static void	vtscsi_poll_ctrl_req(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++static int 	vtscsi_execute_ctrl_req(struct vtscsi_softc *,
++		    struct vtscsi_request *, struct sglist *, int, int, int);
++static void 	vtscsi_complete_abort_task_cmd(struct vtscsi_softc *c,
++		    struct vtscsi_request *);
++static int 	vtscsi_execute_abort_task_cmd(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++static int 	vtscsi_execute_reset_dev_cmd(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++
++static void 	vtscsi_get_request_lun(uint8_t [], target_id_t *, lun_id_t *);
++static void	vtscsi_set_request_lun(struct ccb_hdr *, uint8_t []);
++static void	vtscsi_init_scsi_cmd_req(struct ccb_scsiio *,
++		    struct virtio_scsi_cmd_req *);
++static void	vtscsi_init_ctrl_tmf_req(struct ccb_hdr *, uint32_t,
++		    uintptr_t, struct virtio_scsi_ctrl_tmf_req *);
++
++static void 	vtscsi_freeze_simq(struct vtscsi_softc *, int);
++static int	vtscsi_thaw_simq(struct vtscsi_softc *, int);
++
++static void 	vtscsi_announce(struct vtscsi_softc *, uint32_t, target_id_t,
++		    lun_id_t);
++static void 	vtscsi_execute_rescan(struct vtscsi_softc *, target_id_t,
++		    lun_id_t);
++static void 	vtscsi_execute_rescan_bus(struct vtscsi_softc *);
++
++static void 	vtscsi_handle_event(struct vtscsi_softc *,
++		    struct virtio_scsi_event *);
++static int 	vtscsi_enqueue_event_buf(struct vtscsi_softc *,
++		    struct virtio_scsi_event *);
++static int	vtscsi_init_event_vq(struct vtscsi_softc *);
++static void 	vtscsi_reinit_event_vq(struct vtscsi_softc *);
++static void 	vtscsi_drain_event_vq(struct vtscsi_softc *);
++
++static void 	vtscsi_complete_vqs_locked(struct vtscsi_softc *);
++static void 	vtscsi_complete_vqs(struct vtscsi_softc *);
++static void 	vtscsi_drain_vqs(struct vtscsi_softc *);
++static void 	vtscsi_cancel_request(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++static void	vtscsi_drain_vq(struct vtscsi_softc *, struct virtqueue *);
++static void	vtscsi_stop(struct vtscsi_softc *);
++static int	vtscsi_reset_bus(struct vtscsi_softc *);
++
++static void 	vtscsi_init_request(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++static int	vtscsi_alloc_requests(struct vtscsi_softc *);
++static void	vtscsi_free_requests(struct vtscsi_softc *);
++static void	vtscsi_enqueue_request(struct vtscsi_softc *,
++		    struct vtscsi_request *);
++static struct vtscsi_request * vtscsi_dequeue_request(struct vtscsi_softc *);
++
++static void	vtscsi_complete_request(struct vtscsi_request *);
++static void 	vtscsi_complete_vq(struct vtscsi_softc *, struct virtqueue *);
++static void	vtscsi_control_vq_task(void *, int);
++static void	vtscsi_event_vq_task(void *, int);
++static void	vtscsi_request_vq_task(void *, int);
++
++static int	vtscsi_control_vq_intr(void *);
++static int	vtscsi_event_vq_intr(void *);
++static int	vtscsi_request_vq_intr(void *);
++static void 	vtscsi_disable_vqs_intr(struct vtscsi_softc *);
++static void 	vtscsi_enable_vqs_intr(struct vtscsi_softc *);
++
++static void 	vtscsi_get_tunables(struct vtscsi_softc *);
++static void 	vtscsi_add_sysctl(struct vtscsi_softc *);
++
++static void 	vtscsi_printf_req(struct vtscsi_request *, const char *,
++		    const char *, ...);
++
++/* Global tunables. */
++/*
++ * The current QEMU VirtIO SCSI implementation does not cancel in-flight
++ * IO during virtio_stop(). So in-flight requests still complete after the
++ * device reset. We would have to wait for all the in-flight IO to complete,
++ * which defeats the typical purpose of a bus reset. We could simulate the
++ * bus reset with either I_T_NEXUS_RESET of all the targets, or with
++ * LOGICAL_UNIT_RESET of all the LUNs (assuming there is space in the
++ * control virtqueue). But this isn't very useful if things really go off
++ * the rails, so default to disabled for now.
++ */
++static int vtscsi_bus_reset_disable = 1;
++TUNABLE_INT("hw.vtscsi.bus_reset_disable", &vtscsi_bus_reset_disable);
++
++static struct virtio_feature_desc vtscsi_feature_desc[] = {
++	{ VIRTIO_SCSI_F_INOUT,		"InOut"		},
++	{ VIRTIO_SCSI_F_HOTPLUG,	"Hotplug"	},
++
++	{ 0, NULL }
++};
++
++static device_method_t vtscsi_methods[] = {
++	/* Device methods. */
++	DEVMETHOD(device_probe,		vtscsi_probe),
++	DEVMETHOD(device_attach,	vtscsi_attach),
++	DEVMETHOD(device_detach,	vtscsi_detach),
++	DEVMETHOD(device_suspend,	vtscsi_suspend),
++	DEVMETHOD(device_resume,	vtscsi_resume),
++
++	DEVMETHOD_END
++};
++
++static driver_t vtscsi_driver = {
++	"vtscsi",
++	vtscsi_methods,
++	sizeof(struct vtscsi_softc)
++};
++static devclass_t vtscsi_devclass;
++
++DRIVER_MODULE(virtio_scsi, virtio_pci, vtscsi_driver, vtscsi_devclass,
++    vtscsi_modevent, 0);
++MODULE_VERSION(virtio_scsi, 1);
++MODULE_DEPEND(virtio_scsi, virtio, 1, 1, 1);
++MODULE_DEPEND(virtio_scsi, cam, 1, 1, 1);
++
++static int
++vtscsi_modevent(module_t mod, int type, void *unused)
++{
++	int error;
++
++	switch (type) {
++	case MOD_LOAD:
++	case MOD_QUIESCE:
++	case MOD_UNLOAD:
++	case MOD_SHUTDOWN:
++		error = 0;
++		break;
++	default:
++		error = EOPNOTSUPP;
++		break;
++	}
++
++	return (error);
++}
++
++static int
++vtscsi_probe(device_t dev)
++{
++
++	if (virtio_get_device_type(dev) != VIRTIO_ID_SCSI)
++		return (ENXIO);
++
++	device_set_desc(dev, "VirtIO SCSI Adapter");
++
++	return (BUS_PROBE_DEFAULT);
++}
++
++static int
++vtscsi_attach(device_t dev)
++{
++	struct vtscsi_softc *sc;
++	struct virtio_scsi_config scsicfg;
++	int error;
++
++	sc = device_get_softc(dev);
++	sc->vtscsi_dev = dev;
++
++	VTSCSI_LOCK_INIT(sc, device_get_nameunit(dev));
++	TAILQ_INIT(&sc->vtscsi_req_free);
++
++	vtscsi_get_tunables(sc);
++	vtscsi_add_sysctl(sc);
++
++	virtio_set_feature_desc(dev, vtscsi_feature_desc);
++	vtscsi_negotiate_features(sc);
++
++	if (virtio_with_feature(dev, VIRTIO_RING_F_INDIRECT_DESC))
++		sc->vtscsi_flags |= VTSCSI_FLAG_INDIRECT;
++	if (virtio_with_feature(dev, VIRTIO_SCSI_F_INOUT))
++		sc->vtscsi_flags |= VTSCSI_FLAG_BIDIRECTIONAL;
++	if (virtio_with_feature(dev, VIRTIO_SCSI_F_HOTPLUG))
++		sc->vtscsi_flags |= VTSCSI_FLAG_HOTPLUG;
++
++	virtio_read_device_config(dev, 0, &scsicfg,
++	    sizeof(struct virtio_scsi_config));
++
++	sc->vtscsi_max_channel = scsicfg.max_channel;
++	sc->vtscsi_max_target = scsicfg.max_target;
++	sc->vtscsi_max_lun = scsicfg.max_lun;
++	sc->vtscsi_event_buf_size = scsicfg.event_info_size;
++
++	vtscsi_write_device_config(sc);
++
++	sc->vtscsi_max_nsegs = vtscsi_maximum_segments(sc, scsicfg.seg_max);
++	sc->vtscsi_sglist = sglist_alloc(sc->vtscsi_max_nsegs, M_NOWAIT);
++	if (sc->vtscsi_sglist == NULL) {
++		error = ENOMEM;
++		device_printf(dev, "cannot allocate sglist\n");
++		goto fail;
++	}
++
++	error = vtscsi_alloc_virtqueues(sc);
++	if (error) {
++		device_printf(dev, "cannot allocate virtqueues\n");
++		goto fail;
++	}
++
++	error = vtscsi_init_event_vq(sc);
++	if (error) {
++		device_printf(dev, "cannot populate the eventvq\n");
++		goto fail;
++	}
++
++	error = vtscsi_alloc_requests(sc);
++	if (error) {
++		device_printf(dev, "cannot allocate requests\n");
++		goto fail;
++	}
++
++	error = vtscsi_alloc_cam(sc);
++	if (error) {
++		device_printf(dev, "cannot allocate CAM structures\n");
++		goto fail;
++	}
++
++	TASK_INIT(&sc->vtscsi_control_intr_task, 0,
++	    vtscsi_control_vq_task, sc);
++	TASK_INIT(&sc->vtscsi_event_intr_task, 0,
++	    vtscsi_event_vq_task, sc);
++	TASK_INIT(&sc->vtscsi_request_intr_task, 0,
++	    vtscsi_request_vq_task, sc);
++
++	sc->vtscsi_tq = taskqueue_create_fast("vtscsi_taskq", M_NOWAIT,
++	    taskqueue_thread_enqueue, &sc->vtscsi_tq);
++	if (sc->vtscsi_tq == NULL) {
++		error = ENOMEM;
++		device_printf(dev, "cannot allocate taskqueue\n");
++		goto fail;
++	}
++
++	error = virtio_setup_intr(dev, INTR_TYPE_CAM);
++	if (error) {
++		device_printf(dev, "cannot setup virtqueue interrupts\n");
++		goto fail;
++	}
++
++	taskqueue_start_threads(&sc->vtscsi_tq, 1, PI_DISK, "%s taskq",
++	    device_get_nameunit(dev));
++
++	vtscsi_enable_vqs_intr(sc);
++
++	/*
++	 * Register with CAM after interrupts are enabled so we will get
++	 * notified of the probe responses.
++	 */
++	error = vtscsi_register_cam(sc);
++	if (error) {
++		device_printf(dev, "cannot register with CAM\n");
++		goto fail;
++	}
++
++fail:
++	if (error)
++		vtscsi_detach(dev);
++
++	return (error);
++}
++
++static int
++vtscsi_detach(device_t dev)
++{
++	struct vtscsi_softc *sc;
++
++	sc = device_get_softc(dev);
++
++	VTSCSI_LOCK(sc);
++	sc->vtscsi_flags |= VTSCSI_FLAG_DETACH;
++	if (device_is_attached(dev))
++		vtscsi_stop(sc);
++	VTSCSI_UNLOCK(sc);
++
++	if (sc->vtscsi_tq != NULL) {
++		taskqueue_drain(sc->vtscsi_tq, &sc->vtscsi_control_intr_task);
++		taskqueue_drain(sc->vtscsi_tq, &sc->vtscsi_event_intr_task);
++		taskqueue_drain(sc->vtscsi_tq, &sc->vtscsi_request_intr_task);
++		taskqueue_free(sc->vtscsi_tq);
++		sc->vtscsi_tq = NULL;
++	}
++
++	vtscsi_complete_vqs(sc);
++	vtscsi_drain_vqs(sc);
++
++	vtscsi_free_cam(sc);
++	vtscsi_free_requests(sc);
++
++	if (sc->vtscsi_sglist != NULL) {
++		sglist_free(sc->vtscsi_sglist);
++		sc->vtscsi_sglist = NULL;
++	}
++
++	VTSCSI_LOCK_DESTROY(sc);
++
++	return (0);
++}
++
++static int
++vtscsi_suspend(device_t dev)
++{
++
++	return (0);
++}
++
++static int
++vtscsi_resume(device_t dev)
++{
++
++	return (0);
++}
++
++static void
++vtscsi_negotiate_features(struct vtscsi_softc *sc)
++{
++	device_t dev;
++	uint64_t features;
++
++	dev = sc->vtscsi_dev;
++	features = virtio_negotiate_features(dev, VTSCSI_FEATURES);
++	sc->vtscsi_features = features;
++}
++
++static int
++vtscsi_maximum_segments(struct vtscsi_softc *sc, int seg_max)
++{
++	int nsegs;
++
++	nsegs = VTSCSI_MIN_SEGMENTS;
++
++	if (seg_max > 0) {
++		nsegs += MIN(seg_max, MAXPHYS / PAGE_SIZE + 1);
++		if (sc->vtscsi_flags & VTSCSI_FLAG_INDIRECT)
++			nsegs = MIN(nsegs, VIRTIO_MAX_INDIRECT);
++	} else
++		nsegs += 1;
++
++	return (nsegs);
++}
++
++static int
++vtscsi_alloc_virtqueues(struct vtscsi_softc *sc)
++{
++	device_t dev;
++	struct vq_alloc_info vq_info[3];
++	int nvqs;
++
++	dev = sc->vtscsi_dev;
++	nvqs = 3;
++
++	VQ_ALLOC_INFO_INIT(&vq_info[0], 0, vtscsi_control_vq_intr, sc,
++	    &sc->vtscsi_control_vq, "%s control", device_get_nameunit(dev));
++
++	VQ_ALLOC_INFO_INIT(&vq_info[1], 0, vtscsi_event_vq_intr, sc,
++	    &sc->vtscsi_event_vq, "%s event", device_get_nameunit(dev));
++
++	VQ_ALLOC_INFO_INIT(&vq_info[2], sc->vtscsi_max_nsegs,
++	    vtscsi_request_vq_intr, sc, &sc->vtscsi_request_vq,
++	    "%s request", device_get_nameunit(dev));
++
++	return (virtio_alloc_virtqueues(dev, 0, nvqs, vq_info));
++}
++
++static void
++vtscsi_write_device_config(struct vtscsi_softc *sc)
++{
++
++	virtio_write_dev_config_4(sc->vtscsi_dev,
++	    offsetof(struct virtio_scsi_config, sense_size),
++	    VIRTIO_SCSI_SENSE_SIZE);
++
++	/*
++	 * This is the size in the virtio_scsi_cmd_req structure. Note
++	 * this value (32) is larger than the maximum CAM CDB size (16).
++	 */
++	virtio_write_dev_config_4(sc->vtscsi_dev,
++	    offsetof(struct virtio_scsi_config, cdb_size),
++	    VIRTIO_SCSI_CDB_SIZE);
++}
++
++static int
++vtscsi_reinit(struct vtscsi_softc *sc)
++{
++	device_t dev;
++	int error;
++
++	dev = sc->vtscsi_dev;
++
++	error = virtio_reinit(dev, sc->vtscsi_features);
++	if (error == 0) {
++		vtscsi_write_device_config(sc);
++		vtscsi_reinit_event_vq(sc);
++		virtio_reinit_complete(dev);
++
++		vtscsi_enable_vqs_intr(sc);
++	}
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "error=%d\n", error);
++
++	return (error);
++}
++
++static int
++vtscsi_alloc_cam(struct vtscsi_softc *sc)
++{
++	device_t dev;
++	struct cam_devq *devq;
++	int openings;
++
++	dev = sc->vtscsi_dev;
++	openings = sc->vtscsi_nrequests - VTSCSI_RESERVED_REQUESTS;
++
++	devq = cam_simq_alloc(openings);
++	if (devq == NULL) {
++		device_printf(dev, "cannot allocate SIM queue\n");
++		return (ENOMEM);
++	}
++
++	sc->vtscsi_sim = cam_sim_alloc(vtscsi_cam_action, vtscsi_cam_poll,
++	    "vtscsi", sc, device_get_unit(dev), VTSCSI_MTX(sc), 1,
++	    openings, devq);
++	if (sc->vtscsi_sim == NULL) {
++		cam_simq_free(devq);
++		device_printf(dev, "cannot allocate SIM\n");
++		return (ENOMEM);
++	}
++
++	return (0);
++}
++
++static int
++vtscsi_register_cam(struct vtscsi_softc *sc)
++{
++	device_t dev;
++	int registered, error;
++
++	dev = sc->vtscsi_dev;
++	registered = 0;
++
++	VTSCSI_LOCK(sc);
++
++	if (xpt_bus_register(sc->vtscsi_sim, dev, 0) != CAM_SUCCESS) {
++		error = ENOMEM;
++		device_printf(dev, "cannot register XPT bus\n");
++		goto fail;
++	}
++
++	registered = 1;
++
++	if (xpt_create_path(&sc->vtscsi_path, NULL,
++	    cam_sim_path(sc->vtscsi_sim), CAM_TARGET_WILDCARD,
++	    CAM_LUN_WILDCARD) != CAM_REQ_CMP) {
++		error = ENOMEM;
++		device_printf(dev, "cannot create bus path\n");
++		goto fail;
++	}
++
++	VTSCSI_UNLOCK(sc);
++
++	/*
++	 * The async register apparently needs to be done without
++	 * the lock held, otherwise it can recurse on the lock.
++	 */
++	if (vtscsi_register_async(sc) != CAM_REQ_CMP) {
++		error = EIO;
++		device_printf(dev, "cannot register async callback\n");
++		VTSCSI_LOCK(sc);
++		goto fail;
++	}
++
++	return (0);
++
++fail:
++	if (sc->vtscsi_path != NULL) {
++		xpt_free_path(sc->vtscsi_path);
++		sc->vtscsi_path = NULL;
++	}
++
++	if (registered != 0)
++		xpt_bus_deregister(cam_sim_path(sc->vtscsi_sim));
++
++	VTSCSI_UNLOCK(sc);
++
++	return (error);
++}
++
++static void
++vtscsi_free_cam(struct vtscsi_softc *sc)
++{
++
++	VTSCSI_LOCK(sc);
++
++	if (sc->vtscsi_path != NULL) {
++		vtscsi_deregister_async(sc);
++
++		xpt_free_path(sc->vtscsi_path);
++		sc->vtscsi_path = NULL;
++
++		xpt_bus_deregister(cam_sim_path(sc->vtscsi_sim));
++	}
++
++	if (sc->vtscsi_sim != NULL) {
++		cam_sim_free(sc->vtscsi_sim, 1);
++		sc->vtscsi_sim = NULL;
++	}
++
++	VTSCSI_UNLOCK(sc);
++}
++
++static void
++vtscsi_cam_async(void *cb_arg, uint32_t code, struct cam_path *path, void *arg)
++{
++	struct cam_sim *sim;
++	struct vtscsi_softc *sc;
++
++	sim = cb_arg;
++	sc = cam_sim_softc(sim);
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "code=%u\n", code);
++
++	/*
++	 * TODO Once QEMU supports event reporting, we should
++	 *      (un)subscribe to events here.
++	 */
++	switch (code) {
++	case AC_FOUND_DEVICE:
++		break;
++	case AC_LOST_DEVICE:
++		break;
++	}
++}
++
++static int
++vtscsi_register_async(struct vtscsi_softc *sc)
++{
++	struct ccb_setasync csa;
++
++	VTSCSI_LOCK_NOTOWNED(sc);
++
++	xpt_setup_ccb(&csa.ccb_h, sc->vtscsi_path, 5);
++	csa.ccb_h.func_code = XPT_SASYNC_CB;
++	csa.event_enable = AC_LOST_DEVICE | AC_FOUND_DEVICE;
++	csa.callback = vtscsi_cam_async;
++	csa.callback_arg = sc->vtscsi_sim;
++
++	xpt_action((union ccb *) &csa);
++
++	return (csa.ccb_h.status);
++}
++
++static void
++vtscsi_deregister_async(struct vtscsi_softc *sc)
++{
++	struct ccb_setasync csa;
++
++	xpt_setup_ccb(&csa.ccb_h, sc->vtscsi_path, 5);
++	csa.ccb_h.func_code = XPT_SASYNC_CB;
++	csa.event_enable = 0;
++	csa.callback = vtscsi_cam_async;
++	csa.callback_arg = sc->vtscsi_sim;
++
++	xpt_action((union ccb *) &csa);
++}
++
++static void
++vtscsi_cam_action(struct cam_sim *sim, union ccb *ccb)
++{
++	struct vtscsi_softc *sc;
++	struct ccb_hdr *ccbh;
++
++	sc = cam_sim_softc(sim);
++	ccbh = &ccb->ccb_h;
++
++	VTSCSI_LOCK_OWNED(sc);
++
++	if (sc->vtscsi_flags & VTSCSI_FLAG_DETACH) {
++		/*
++		 * The VTSCSI_MTX is briefly dropped between setting
++		 * VTSCSI_FLAG_DETACH and deregistering with CAM, so
++		 * drop any CCBs that come in during that window.
++		 */
++		ccbh->status = CAM_NO_HBA;
++		xpt_done(ccb);
++		return;
++	}
++
++	switch (ccbh->func_code) {
++	case XPT_SCSI_IO:
++		vtscsi_cam_scsi_io(sc, sim, ccb);
++		break;
++
++	case XPT_SET_TRAN_SETTINGS:
++		ccbh->status = CAM_FUNC_NOTAVAIL;
++		xpt_done(ccb);
++		break;
++
++	case XPT_GET_TRAN_SETTINGS:
++		vtscsi_cam_get_tran_settings(sc, ccb);
++		break;
++
++	case XPT_RESET_BUS:
++		vtscsi_cam_reset_bus(sc, ccb);
++		break;
++
++	case XPT_RESET_DEV:
++		vtscsi_cam_reset_dev(sc, ccb);
++		break;
++
++	case XPT_ABORT:
++		vtscsi_cam_abort(sc, ccb);
++		break;
++
++	case XPT_CALC_GEOMETRY:
++		cam_calc_geometry(&ccb->ccg, 1);
++		xpt_done(ccb);
++		break;
++
++	case XPT_PATH_INQ:
++		vtscsi_cam_path_inquiry(sc, sim, ccb);
++		break;
++
++	default:
++		vtscsi_dprintf(sc, VTSCSI_ERROR,
++		    "invalid ccb=%p func=%#x\n", ccb, ccbh->func_code);
++
++		ccbh->status = CAM_REQ_INVALID;
++		xpt_done(ccb);
++		break;
++	}
++}
++
++static void
++vtscsi_cam_poll(struct cam_sim *sim)
++{
++	struct vtscsi_softc *sc;
++
++	sc = cam_sim_softc(sim);
++
++	vtscsi_complete_vqs_locked(sc);
++}
++
++static void
++vtscsi_cam_scsi_io(struct vtscsi_softc *sc, struct cam_sim *sim,
++    union ccb *ccb)
++{
++	struct ccb_hdr *ccbh;
++	struct ccb_scsiio *csio;
++	int error;
++
++	ccbh = &ccb->ccb_h;
++	csio = &ccb->csio;
++
++	if (csio->cdb_len > VIRTIO_SCSI_CDB_SIZE) {
++		error = EINVAL;
++		ccbh->status = CAM_REQ_INVALID;
++		goto done;
++	}
++
++	error = vtscsi_start_scsi_cmd(sc, ccb);
++
++done:
++	if (error) {
++		vtscsi_dprintf(sc, VTSCSI_ERROR,
++		    "error=%d ccb=%p status=%#x\n", error, ccb, ccbh->status);
++		xpt_done(ccb);
++	}
++}
++
++static void
++vtscsi_cam_get_tran_settings(struct vtscsi_softc *sc, union ccb *ccb)
++{
++	struct ccb_trans_settings *cts;
++	struct ccb_trans_settings_scsi *scsi;
++
++	cts = &ccb->cts;
++	scsi = &cts->proto_specific.scsi;
++
++	cts->protocol = PROTO_SCSI;
++	cts->protocol_version = SCSI_REV_SPC3;
++	cts->transport = XPORT_SAS;
++	cts->transport_version = 0;
++
++	scsi->valid = CTS_SCSI_VALID_TQ;
++	scsi->flags = CTS_SCSI_FLAGS_TAG_ENB;
++
++	ccb->ccb_h.status = CAM_REQ_CMP;
++	xpt_done(ccb);
++}
++
++static void
++vtscsi_cam_reset_bus(struct vtscsi_softc *sc, union ccb *ccb)
++{
++	int error;
++
++	error = vtscsi_reset_bus(sc);
++	if (error == 0)
++		ccb->ccb_h.status = CAM_REQ_CMP;
++	else
++		ccb->ccb_h.status = CAM_REQ_CMP_ERR;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "error=%d ccb=%p status=%#x\n",
++	    error, ccb, ccb->ccb_h.status);
++
++	xpt_done(ccb);
++}
++
++static void
++vtscsi_cam_reset_dev(struct vtscsi_softc *sc, union ccb *ccb)
++{
++	struct ccb_hdr *ccbh;
++	struct vtscsi_request *req;
++	int error;
++
++	ccbh = &ccb->ccb_h;
++
++	req = vtscsi_dequeue_request(sc);
++	if (req == NULL) {
++		error = EAGAIN;
++		vtscsi_freeze_simq(sc, VTSCSI_REQUEST);
++		goto fail;
++	}
++
++	req->vsr_ccb = ccb;
++
++	error = vtscsi_execute_reset_dev_cmd(sc, req);
++	if (error == 0)
++		return;
++
++	vtscsi_enqueue_request(sc, req);
++
++fail:
++	vtscsi_dprintf(sc, VTSCSI_ERROR, "error=%d req=%p ccb=%p\n",
++	    error, req, ccb);
++
++	if (error == EAGAIN)
++		ccbh->status = CAM_RESRC_UNAVAIL;
++	else
++		ccbh->status = CAM_REQ_CMP_ERR;
++
++	xpt_done(ccb);
++}
++
++static void
++vtscsi_cam_abort(struct vtscsi_softc *sc, union ccb *ccb)
++{
++	struct vtscsi_request *req;
++	struct ccb_hdr *ccbh;
++	int error;
++
++	ccbh = &ccb->ccb_h;
++
++	req = vtscsi_dequeue_request(sc);
++	if (req == NULL) {
++		error = EAGAIN;
++		vtscsi_freeze_simq(sc, VTSCSI_REQUEST);
++		goto fail;
++	}
++
++	req->vsr_ccb = ccb;
++
++	error = vtscsi_execute_abort_task_cmd(sc, req);
++	if (error == 0)
++		return;
++
++	vtscsi_enqueue_request(sc, req);
++
++fail:
++	vtscsi_dprintf(sc, VTSCSI_ERROR, "error=%d req=%p ccb=%p\n",
++	    error, req, ccb);
++
++	if (error == EAGAIN)
++		ccbh->status = CAM_RESRC_UNAVAIL;
++	else
++		ccbh->status = CAM_REQ_CMP_ERR;
++
++	xpt_done(ccb);
++}
++
++static void
++vtscsi_cam_path_inquiry(struct vtscsi_softc *sc, struct cam_sim *sim,
++    union ccb *ccb)
++{
++	device_t dev;
++	struct ccb_pathinq *cpi;
++
++	dev = sc->vtscsi_dev;
++	cpi = &ccb->cpi;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "sim=%p ccb=%p\n", sim, ccb);
++
++	cpi->version_num = 1;
++	cpi->hba_inquiry = PI_TAG_ABLE;
++	cpi->target_sprt = 0;
++	cpi->hba_misc = PIM_SEQSCAN;
++	if (vtscsi_bus_reset_disable != 0)
++		cpi->hba_misc |= PIM_NOBUSRESET;
++	cpi->hba_eng_cnt = 0;
++
++	cpi->max_target = sc->vtscsi_max_target;
++	cpi->max_lun = sc->vtscsi_max_lun;
++	cpi->initiator_id = VTSCSI_INITIATOR_ID;
++
++	strncpy(cpi->sim_vid, "FreeBSD", SIM_IDLEN);
++	strncpy(cpi->hba_vid, "VirtIO", HBA_IDLEN);
++	strncpy(cpi->dev_name, cam_sim_name(sim), DEV_IDLEN);
++
++	cpi->unit_number = cam_sim_unit(sim);
++	cpi->bus_id = cam_sim_bus(sim);
++
++	cpi->base_transfer_speed = 300000;
++
++	cpi->protocol = PROTO_SCSI;
++	cpi->protocol_version = SCSI_REV_SPC3;
++	cpi->transport = XPORT_SAS;
++	cpi->transport_version = 0;
++
++	cpi->maxio = (sc->vtscsi_max_nsegs - VTSCSI_MIN_SEGMENTS - 1) *
++	    PAGE_SIZE;
++
++	ccb->ccb_h.status = CAM_REQ_CMP;
++	xpt_done(ccb);
++}
++
++static int
++vtscsi_sg_append_scsi_buf(struct vtscsi_softc *sc, struct sglist *sg,
++    struct ccb_scsiio *csio)
++{
++	struct ccb_hdr *ccbh;
++	struct bus_dma_segment *dseg;
++	int i, error;
++
++	ccbh = &csio->ccb_h;
++	error = 0;
++
++	if ((ccbh->flags & CAM_SCATTER_VALID) == 0) {
++
++		if ((ccbh->flags & CAM_DATA_PHYS) == 0)
++			error = sglist_append(sg,
++			    csio->data_ptr, csio->dxfer_len);
++		else
++			error = sglist_append_phys(sg,
++			    (vm_paddr_t)(vm_offset_t) csio->data_ptr,
++			    csio->dxfer_len);
++	} else {
++
++		for (i = 0; i < csio->sglist_cnt && error == 0; i++) {
++			dseg = &((struct bus_dma_segment *)csio->data_ptr)[i];
++
++			if ((ccbh->flags & CAM_SG_LIST_PHYS) == 0)
++				error = sglist_append(sg,
++				    (void *)(vm_offset_t) dseg->ds_addr,
++				    dseg->ds_len);
++			else
++				error = sglist_append_phys(sg,
++				    (vm_paddr_t) dseg->ds_addr, dseg->ds_len);
++		}
++	}
++
++	return (error);
++}
++
++static int
++vtscsi_fill_scsi_cmd_sglist(struct vtscsi_softc *sc, struct vtscsi_request *req,
++    int *readable, int *writable)
++{
++	struct sglist *sg;
++	struct ccb_hdr *ccbh;
++	struct ccb_scsiio *csio;
++	struct virtio_scsi_cmd_req *cmd_req;
++	struct virtio_scsi_cmd_resp *cmd_resp;
++	int error;
++
++	sg = sc->vtscsi_sglist;
++	csio = &req->vsr_ccb->csio;
++	ccbh = &csio->ccb_h;
++	cmd_req = &req->vsr_cmd_req;
++	cmd_resp = &req->vsr_cmd_resp;
++
++	sglist_reset(sg);
++
++	sglist_append(sg, cmd_req, sizeof(struct virtio_scsi_cmd_req));
++	if ((ccbh->flags & CAM_DIR_MASK) == CAM_DIR_OUT) {
++		error = vtscsi_sg_append_scsi_buf(sc, sg, csio);
++		/* At least one segment must be left for the response. */
++		if (error || sg->sg_nseg == sg->sg_maxseg)
++			goto fail;
++	}
++
++	*readable = sg->sg_nseg;
++
++	sglist_append(sg, cmd_resp, sizeof(struct virtio_scsi_cmd_resp));
++	if ((ccbh->flags & CAM_DIR_MASK) == CAM_DIR_IN) {
++		error = vtscsi_sg_append_scsi_buf(sc, sg, csio);
++		if (error)
++			goto fail;
++	}
++
++	*writable = sg->sg_nseg - *readable;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "req=%p ccb=%p readable=%d "
++	    "writable=%d\n", req, ccbh, *readable, *writable);
++
++	return (0);
++
++fail:
++	/*
++	 * This should never happen unless maxio was incorrectly set.
++	 */
++	vtscsi_set_ccb_status(ccbh, CAM_REQ_TOO_BIG, 0);
++
++	vtscsi_dprintf(sc, VTSCSI_ERROR, "error=%d req=%p ccb=%p "
++	    "nseg=%d maxseg=%d\n",
++	    error, req, ccbh, sg->sg_nseg, sg->sg_maxseg);
++
++	return (EFBIG);
++}
++
++static int
++vtscsi_execute_scsi_cmd(struct vtscsi_softc *sc, struct vtscsi_request *req)
++{
++	struct sglist *sg;
++	struct virtqueue *vq;
++	struct ccb_scsiio *csio;
++	struct ccb_hdr *ccbh;
++	struct virtio_scsi_cmd_req *cmd_req;
++	struct virtio_scsi_cmd_resp *cmd_resp;
++	int readable, writable, error;
++
++	sg = sc->vtscsi_sglist;
++	vq = sc->vtscsi_request_vq;
++	csio = &req->vsr_ccb->csio;
++	ccbh = &csio->ccb_h;
++	cmd_req = &req->vsr_cmd_req;
++	cmd_resp = &req->vsr_cmd_resp;
++
++	vtscsi_init_scsi_cmd_req(csio, cmd_req);
++
++	error = vtscsi_fill_scsi_cmd_sglist(sc, req, &readable, &writable);
++	if (error)
++		return (error);
++
++	req->vsr_complete = vtscsi_complete_scsi_cmd;
++	cmd_resp->response = -1;
++
++	error = virtqueue_enqueue(vq, req, sg, readable, writable);
++	if (error) {
++		vtscsi_dprintf(sc, VTSCSI_ERROR,
++		    "enqueue error=%d req=%p ccb=%p\n", error, req, ccbh);
++
++		ccbh->status = CAM_REQUEUE_REQ;
++		vtscsi_freeze_simq(sc, VTSCSI_REQUEST_VQ);
++		return (error);
++	}
++
++	ccbh->status |= CAM_SIM_QUEUED;
++	ccbh->ccbh_vtscsi_req = req;
++
++	virtqueue_notify(vq);
++
++	if (ccbh->timeout != CAM_TIME_INFINITY) {
++		req->vsr_flags |= VTSCSI_REQ_FLAG_TIMEOUT_SET;
++		callout_reset(&req->vsr_callout, ccbh->timeout * hz / 1000,
++		    vtscsi_timedout_scsi_cmd, req);
++	}
++
++	vtscsi_dprintf_req(req, VTSCSI_TRACE, "enqueued req=%p ccb=%p\n",
++	    req, ccbh);
++
++	return (0);
++}
++
++static int
++vtscsi_start_scsi_cmd(struct vtscsi_softc *sc, union ccb *ccb)
++{
++	struct vtscsi_request *req;
++	int error;
++
++	req = vtscsi_dequeue_request(sc);
++	if (req == NULL) {
++		ccb->ccb_h.status = CAM_REQUEUE_REQ;
++		vtscsi_freeze_simq(sc, VTSCSI_REQUEST);
++		return (ENOBUFS);
++	}
++
++	req->vsr_ccb = ccb;
++
++	error = vtscsi_execute_scsi_cmd(sc, req);
++	if (error)
++		vtscsi_enqueue_request(sc, req);
++
++	return (error);
++}
++
++static void
++vtscsi_complete_abort_timedout_scsi_cmd(struct vtscsi_softc *sc,
++    struct vtscsi_request *req)
++{
++	struct virtio_scsi_ctrl_tmf_resp *tmf_resp;
++	struct vtscsi_request *to_req;
++	uint8_t response;
++
++	tmf_resp = &req->vsr_tmf_resp;
++	response = tmf_resp->response;
++	to_req = req->vsr_timedout_req;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "req=%p to_req=%p response=%d\n",
++	    req, to_req, response);
++
++	vtscsi_enqueue_request(sc, req);
++
++	/*
++	 * The timedout request could have completed between when the
++	 * abort task was sent and when the host processed it.
++	 */
++	if (to_req->vsr_state != VTSCSI_REQ_STATE_TIMEDOUT)
++		return;
++
++	/* The timedout request was successfully aborted. */
++	if (response == VIRTIO_SCSI_S_FUNCTION_COMPLETE)
++		return;
++
++	/* Don't bother if the device is going away. */
++	if (sc->vtscsi_flags & VTSCSI_FLAG_DETACH)
++		return;
++
++	/* The timedout request will be aborted by the reset. */
++	if (sc->vtscsi_flags & VTSCSI_FLAG_RESET)
++		return;
++
++	vtscsi_reset_bus(sc);
++}
++
++static int
++vtscsi_abort_timedout_scsi_cmd(struct vtscsi_softc *sc,
++    struct vtscsi_request *to_req)
++{
++	struct sglist *sg;
++	struct ccb_hdr *to_ccbh;
++	struct vtscsi_request *req;
++	struct virtio_scsi_ctrl_tmf_req *tmf_req;
++	struct virtio_scsi_ctrl_tmf_resp *tmf_resp;
++	int error;
++
++	sg = sc->vtscsi_sglist;
++	to_ccbh = &to_req->vsr_ccb->ccb_h;
++
++	req = vtscsi_dequeue_request(sc);
++	if (req == NULL) {
++		error = ENOBUFS;
++		goto fail;
++	}
++
++	tmf_req = &req->vsr_tmf_req;
++	tmf_resp = &req->vsr_tmf_resp;
++
++	vtscsi_init_ctrl_tmf_req(to_ccbh, VIRTIO_SCSI_T_TMF_ABORT_TASK,
++	    (uintptr_t) to_ccbh, tmf_req);
++
++	sglist_reset(sg);
++	sglist_append(sg, tmf_req, sizeof(struct virtio_scsi_ctrl_tmf_req));
++	sglist_append(sg, tmf_resp, sizeof(struct virtio_scsi_ctrl_tmf_resp));
++
++	req->vsr_timedout_req = to_req;
++	req->vsr_complete = vtscsi_complete_abort_timedout_scsi_cmd;
++	tmf_resp->response = -1;
++
++	error = vtscsi_execute_ctrl_req(sc, req, sg, 1, 1,
++	    VTSCSI_EXECUTE_ASYNC);
++	if (error == 0)
++		return (0);
++
++	vtscsi_enqueue_request(sc, req);
++
++fail:
++	vtscsi_dprintf(sc, VTSCSI_ERROR, "error=%d req=%p "
++	    "timedout req=%p ccb=%p\n", error, req, to_req, to_ccbh);
++
++	return (error);
++}
++
++static void
++vtscsi_timedout_scsi_cmd(void *xreq)
++{
++	struct vtscsi_softc *sc;
++	struct vtscsi_request *to_req;
++
++	to_req = xreq;
++	sc = to_req->vsr_softc;
++
++	vtscsi_dprintf(sc, VTSCSI_INFO, "timedout req=%p ccb=%p state=%#x\n",
++	    to_req, to_req->vsr_ccb, to_req->vsr_state);
++
++	/* Don't bother if the device is going away. */
++	if (sc->vtscsi_flags & VTSCSI_FLAG_DETACH)
++		return;
++
++	/*
++	 * Bail if the request is not in use. We likely raced when
++	 * stopping the callout handler or it has already been aborted.
++	 */
++	if (to_req->vsr_state != VTSCSI_REQ_STATE_INUSE ||
++	    (to_req->vsr_flags & VTSCSI_REQ_FLAG_TIMEOUT_SET) == 0)
++		return;
++
++	/*
++	 * Complete the request queue in case the timedout request is
++	 * actually just pending.
++	 */
++	vtscsi_complete_vq(sc, sc->vtscsi_request_vq);
++	if (to_req->vsr_state == VTSCSI_REQ_STATE_FREE)
++		return;
++
++	sc->vtscsi_stats.scsi_cmd_timeouts++;
++	to_req->vsr_state = VTSCSI_REQ_STATE_TIMEDOUT;
++
++	if (vtscsi_abort_timedout_scsi_cmd(sc, to_req) == 0)
++		return;
++
++	vtscsi_dprintf(sc, VTSCSI_ERROR, "resetting bus\n");
++	vtscsi_reset_bus(sc);
++}
++
++static cam_status
++vtscsi_scsi_cmd_cam_status(struct virtio_scsi_cmd_resp *cmd_resp)
++{
++	cam_status status;
++
++	switch (cmd_resp->response) {
++	case VIRTIO_SCSI_S_OK:
++		status = CAM_REQ_CMP;
++		break;
++	case VIRTIO_SCSI_S_OVERRUN:
++		status = CAM_DATA_RUN_ERR;
++		break;
++	case VIRTIO_SCSI_S_ABORTED:
++		status = CAM_REQ_ABORTED;
++		break;
++	case VIRTIO_SCSI_S_BAD_TARGET:
++		status = CAM_TID_INVALID;
++		break;
++	case VIRTIO_SCSI_S_RESET:
++		status = CAM_SCSI_BUS_RESET;
++		break;
++	case VIRTIO_SCSI_S_BUSY:
++		status = CAM_SCSI_BUSY;
++		break;
++	case VIRTIO_SCSI_S_TRANSPORT_FAILURE:
++	case VIRTIO_SCSI_S_TARGET_FAILURE:
++	case VIRTIO_SCSI_S_NEXUS_FAILURE:
++		status = CAM_SCSI_IT_NEXUS_LOST;
++		break;
++	default: /* VIRTIO_SCSI_S_FAILURE */
++		status = CAM_REQ_CMP_ERR;
++		break;
++	}
++
++	return (status);
++}
++
++static cam_status
++vtscsi_complete_scsi_cmd_response(struct vtscsi_softc *sc,
++    struct ccb_scsiio *csio, struct virtio_scsi_cmd_resp *cmd_resp)
++{
++	cam_status status;
++
++	csio->scsi_status = cmd_resp->status;
++	csio->resid = cmd_resp->resid;
++
++	if (csio->scsi_status == SCSI_STATUS_OK)
++		status = CAM_REQ_CMP;
++	else
++		status = CAM_SCSI_STATUS_ERROR;
++
++	if (cmd_resp->sense_len > 0) {
++		status |= CAM_AUTOSNS_VALID;
++
++		if (cmd_resp->sense_len < csio->sense_len)
++			csio->sense_resid = csio->sense_len -
++			    cmd_resp->sense_len;
++		else
++			csio->sense_resid = 0;
++
++		bzero(&csio->sense_data, sizeof(csio->sense_data));
++		memcpy(cmd_resp->sense, &csio->sense_data,
++		    csio->sense_len - csio->sense_resid);
++	}
++
++	vtscsi_dprintf(sc, status == CAM_REQ_CMP ? VTSCSI_TRACE : VTSCSI_ERROR,
++	    "ccb=%p scsi_status=%#x resid=%u sense_resid=%u\n",
++	    csio, csio->scsi_status, csio->resid, csio->sense_resid);
++
++	return (status);
++}
++
++static void
++vtscsi_complete_scsi_cmd(struct vtscsi_softc *sc, struct vtscsi_request *req)
++{
++	struct ccb_hdr *ccbh;
++	struct ccb_scsiio *csio;
++	struct virtio_scsi_cmd_resp *cmd_resp;
++	cam_status status;
++
++	csio = &req->vsr_ccb->csio;
++	ccbh = &csio->ccb_h;
++	cmd_resp = &req->vsr_cmd_resp;
++
++	KASSERT(ccbh->ccbh_vtscsi_req == req,
++	    ("ccb %p req mismatch %p/%p", ccbh, ccbh->ccbh_vtscsi_req, req));
++
++	if (req->vsr_flags & VTSCSI_REQ_FLAG_TIMEOUT_SET)
++		callout_stop(&req->vsr_callout);
++
++	status = vtscsi_scsi_cmd_cam_status(cmd_resp);
++	if (status == CAM_REQ_ABORTED) {
++		if (req->vsr_state == VTSCSI_REQ_STATE_TIMEDOUT)
++			status = CAM_CMD_TIMEOUT;
++	} else if (status == CAM_REQ_CMP)
++		status = vtscsi_complete_scsi_cmd_response(sc, csio, cmd_resp);
++
++	if ((status & CAM_STATUS_MASK) != CAM_REQ_CMP) {
++		status |= CAM_DEV_QFRZN;
++		xpt_freeze_devq(ccbh->path, 1);
++	}
++
++	if (vtscsi_thaw_simq(sc, VTSCSI_REQUEST | VTSCSI_REQUEST_VQ) != 0)
++		status |= CAM_RELEASE_SIMQ;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "req=%p ccb=%p status=%#x\n",
++	    req, ccbh, status);
++
++	ccbh->status = status;
++	xpt_done(req->vsr_ccb);
++	vtscsi_enqueue_request(sc, req);
++}
++
++static void
++vtscsi_poll_ctrl_req(struct vtscsi_softc *sc, struct vtscsi_request *req)
++{
++
++	/* XXX We probably shouldn't poll forever. */
++	req->vsr_flags |= VTSCSI_REQ_FLAG_POLLED;
++	do
++		vtscsi_complete_vq(sc, sc->vtscsi_control_vq);
++	while ((req->vsr_flags & VTSCSI_REQ_FLAG_COMPLETE) == 0);
++
++	req->vsr_flags &= ~VTSCSI_REQ_FLAG_POLLED;
++}
++
++static int
++vtscsi_execute_ctrl_req(struct vtscsi_softc *sc, struct vtscsi_request *req,
++    struct sglist *sg, int readable, int writable, int flag)
++{
++	struct virtqueue *vq;
++	int error;
++
++	vq = sc->vtscsi_control_vq;
++
++	MPASS(flag == VTSCSI_EXECUTE_POLL || req->vsr_complete != NULL);
++
++	error = virtqueue_enqueue(vq, req, sg, readable, writable);
++	if (error) {
++		/*
++		 * Return EAGAIN when the virtqueue does not have enough
++		 * descriptors available.
++		 */
++		if (error == ENOSPC || error == EMSGSIZE)
++			error = EAGAIN;
++
++		return (error);
++	}
++
++	virtqueue_notify(vq);
++	if (flag == VTSCSI_EXECUTE_POLL)
++		vtscsi_poll_ctrl_req(sc, req);
++
++	return (0);
++}
++
++static void
++vtscsi_complete_abort_task_cmd(struct vtscsi_softc *sc,
++    struct vtscsi_request *req)
++{
++	union ccb *ccb;
++	struct ccb_hdr *ccbh;
++	struct virtio_scsi_ctrl_tmf_resp *tmf_resp;
++
++	ccb = req->vsr_ccb;
++	ccbh = &ccb->ccb_h;
++	tmf_resp = &req->vsr_tmf_resp;
++
++	switch (tmf_resp->response) {
++	case VIRTIO_SCSI_S_FUNCTION_COMPLETE:
++		ccbh->status = CAM_REQ_CMP;
++		break;
++	case VIRTIO_SCSI_S_FUNCTION_REJECTED:
++		ccbh->status = CAM_UA_ABORT;
++		break;
++	default:
++		ccbh->status = CAM_REQ_CMP_ERR;
++		break;
++	}
++
++	xpt_done(ccb);
++	vtscsi_enqueue_request(sc, req);
++}
++
++static int
++vtscsi_execute_abort_task_cmd(struct vtscsi_softc *sc,
++    struct vtscsi_request *req)
++{
++	struct sglist *sg;
++	struct ccb_abort *cab;
++	struct ccb_hdr *ccbh;
++	struct ccb_hdr *abort_ccbh;
++	struct vtscsi_request *abort_req;
++	struct virtio_scsi_ctrl_tmf_req *tmf_req;
++	struct virtio_scsi_ctrl_tmf_resp *tmf_resp;
++	int error;
++
++	sg = sc->vtscsi_sglist;
++	cab = &req->vsr_ccb->cab;
++	ccbh = &cab->ccb_h;
++	tmf_req = &req->vsr_tmf_req;
++	tmf_resp = &req->vsr_tmf_resp;
++
++	/* CCB header and request that's to be aborted. */
++	abort_ccbh = &cab->abort_ccb->ccb_h;
++	abort_req = abort_ccbh->ccbh_vtscsi_req;
++
++	if (abort_ccbh->func_code != XPT_SCSI_IO || abort_req == NULL) {
++		error = EINVAL;
++		goto fail;
++	}
++
++	/* Only attempt to abort requests that could be in-flight. */
++	if (abort_req->vsr_state != VTSCSI_REQ_STATE_INUSE) {
++		error = EALREADY;
++		goto fail;
++	}
++
++	abort_req->vsr_state = VTSCSI_REQ_STATE_ABORTED;
++	if (abort_req->vsr_flags & VTSCSI_REQ_FLAG_TIMEOUT_SET)
++		callout_stop(&abort_req->vsr_callout);
++
++	vtscsi_init_ctrl_tmf_req(ccbh, VIRTIO_SCSI_T_TMF_ABORT_TASK,
++	    (uintptr_t) abort_ccbh, tmf_req);
++
++	sglist_reset(sg);
++	sglist_append(sg, tmf_req, sizeof(struct virtio_scsi_ctrl_tmf_req));
++	sglist_append(sg, tmf_resp, sizeof(struct virtio_scsi_ctrl_tmf_resp));
++
++	req->vsr_complete = vtscsi_complete_abort_task_cmd;
++	tmf_resp->response = -1;
++
++	error = vtscsi_execute_ctrl_req(sc, req, sg, 1, 1,
++	    VTSCSI_EXECUTE_ASYNC);
++
++fail:
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "error=%d req=%p abort_ccb=%p "
++	    "abort_req=%p\n", error, req, abort_ccbh, abort_req);
++
++	return (error);
++}
++
++static void
++vtscsi_complete_reset_dev_cmd(struct vtscsi_softc *sc,
++    struct vtscsi_request *req)
++{
++	union ccb *ccb;
++	struct ccb_hdr *ccbh;
++	struct virtio_scsi_ctrl_tmf_resp *tmf_resp;
++
++	ccb = req->vsr_ccb;
++	ccbh = &ccb->ccb_h;
++	tmf_resp = &req->vsr_tmf_resp;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "req=%p ccb=%p response=%d\n",
++	    req, ccb, tmf_resp->response);
++
++	if (tmf_resp->response == VIRTIO_SCSI_S_FUNCTION_COMPLETE) {
++		ccbh->status = CAM_REQ_CMP;
++		vtscsi_announce(sc, AC_SENT_BDR, ccbh->target_id,
++		    ccbh->target_lun);
++	} else
++		ccbh->status = CAM_REQ_CMP_ERR;
++
++	xpt_done(ccb);
++	vtscsi_enqueue_request(sc, req);
++}
++
++static int
++vtscsi_execute_reset_dev_cmd(struct vtscsi_softc *sc,
++    struct vtscsi_request *req)
++{
++	struct sglist *sg;
++	struct ccb_resetdev *crd;
++	struct ccb_hdr *ccbh;
++	struct virtio_scsi_ctrl_tmf_req *tmf_req;
++	struct virtio_scsi_ctrl_tmf_resp *tmf_resp;
++	uint32_t subtype;
++	int error;
++
++	sg = sc->vtscsi_sglist;
++	crd = &req->vsr_ccb->crd;
++	ccbh = &crd->ccb_h;
++	tmf_req = &req->vsr_tmf_req;
++	tmf_resp = &req->vsr_tmf_resp;
++
++	if (ccbh->target_lun == CAM_LUN_WILDCARD)
++		subtype = VIRTIO_SCSI_T_TMF_I_T_NEXUS_RESET;
++	else
++		subtype = VIRTIO_SCSI_T_TMF_LOGICAL_UNIT_RESET;
++
++	vtscsi_init_ctrl_tmf_req(ccbh, subtype, 0, tmf_req);
++
++	sglist_reset(sg);
++	sglist_append(sg, tmf_req, sizeof(struct virtio_scsi_ctrl_tmf_req));
++	sglist_append(sg, tmf_resp, sizeof(struct virtio_scsi_ctrl_tmf_resp));
++
++	req->vsr_complete = vtscsi_complete_reset_dev_cmd;
++	tmf_resp->response = -1;
++
++	error = vtscsi_execute_ctrl_req(sc, req, sg, 1, 1,
++	    VTSCSI_EXECUTE_ASYNC);
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "error=%d req=%p ccb=%p\n",
++	    error, req, ccbh);
++
++	return (error);
++}
++
++static void
++vtscsi_get_request_lun(uint8_t lun[], target_id_t *target_id, lun_id_t *lun_id)
++{
++
++	*target_id = lun[1];
++	*lun_id = (lun[2] << 8) | lun[3];
++}
++
++static void
++vtscsi_set_request_lun(struct ccb_hdr *ccbh, uint8_t lun[])
++{
++
++	lun[0] = 1;
++	lun[1] = ccbh->target_id;
++	lun[2] = 0x40 | ((ccbh->target_lun >> 8) & 0x3F);
++	lun[3] = (ccbh->target_lun >> 8) & 0xFF;
++}
++
++static void
++vtscsi_init_scsi_cmd_req(struct ccb_scsiio *csio,
++    struct virtio_scsi_cmd_req *cmd_req)
++{
++	uint8_t attr;
++
++	switch (csio->tag_action) {
++	case MSG_HEAD_OF_Q_TAG:
++		attr = VIRTIO_SCSI_S_HEAD;
++		break;
++	case MSG_ORDERED_Q_TAG:
++		attr = VIRTIO_SCSI_S_ORDERED;
++		break;
++	case MSG_ACA_TASK:
++		attr = VIRTIO_SCSI_S_ACA;
++		break;
++	default: /* MSG_SIMPLE_Q_TAG */
++		attr = VIRTIO_SCSI_S_SIMPLE;
++		break;
++	}
++
++	vtscsi_set_request_lun(&csio->ccb_h, cmd_req->lun);
++	cmd_req->tag = (uintptr_t) csio;
++	cmd_req->task_attr = attr;
++
++	memcpy(cmd_req->cdb,
++	    csio->ccb_h.flags & CAM_CDB_POINTER ?
++	        csio->cdb_io.cdb_ptr : csio->cdb_io.cdb_bytes,
++	    csio->cdb_len);
++}
++
++static void
++vtscsi_init_ctrl_tmf_req(struct ccb_hdr *ccbh, uint32_t subtype,
++    uintptr_t tag, struct virtio_scsi_ctrl_tmf_req *tmf_req)
++{
++
++	vtscsi_set_request_lun(ccbh, tmf_req->lun);
++
++	tmf_req->type = VIRTIO_SCSI_T_TMF;
++	tmf_req->subtype = subtype;
++	tmf_req->tag = tag;
++}
++
++static void
++vtscsi_freeze_simq(struct vtscsi_softc *sc, int reason)
++{
++	int frozen;
++
++	frozen = sc->vtscsi_frozen;
++
++	if (reason & VTSCSI_REQUEST &&
++	    (sc->vtscsi_frozen & VTSCSI_FROZEN_NO_REQUESTS) == 0)
++		sc->vtscsi_frozen |= VTSCSI_FROZEN_NO_REQUESTS;
++
++	if (reason & VTSCSI_REQUEST_VQ &&
++	    (sc->vtscsi_frozen & VTSCSI_FROZEN_REQUEST_VQ_FULL) == 0)
++		sc->vtscsi_frozen |= VTSCSI_FROZEN_REQUEST_VQ_FULL;
++
++	/* Freeze the SIMQ if transitioned to frozen. */
++	if (frozen == 0 && sc->vtscsi_frozen != 0) {
++		vtscsi_dprintf(sc, VTSCSI_INFO, "SIMQ frozen\n");
++		xpt_freeze_simq(sc->vtscsi_sim, 1);
++	}
++}
++
++static int
++vtscsi_thaw_simq(struct vtscsi_softc *sc, int reason)
++{
++	int thawed;
++
++	if (sc->vtscsi_frozen == 0 || reason == 0)
++		return (0);
++
++	if (reason & VTSCSI_REQUEST &&
++	    sc->vtscsi_frozen & VTSCSI_FROZEN_NO_REQUESTS)
++		sc->vtscsi_frozen &= ~VTSCSI_FROZEN_NO_REQUESTS;
++
++	if (reason & VTSCSI_REQUEST_VQ &&
++	    sc->vtscsi_frozen & VTSCSI_FROZEN_REQUEST_VQ_FULL)
++		sc->vtscsi_frozen &= ~VTSCSI_FROZEN_REQUEST_VQ_FULL;
++
++	thawed = sc->vtscsi_frozen == 0;
++	if (thawed != 0)
++		vtscsi_dprintf(sc, VTSCSI_INFO, "SIMQ thawed\n");
++
++	return (thawed);
++}
++
++static void
++vtscsi_announce(struct vtscsi_softc *sc, uint32_t ac_code,
++    target_id_t target_id, lun_id_t lun_id)
++{
++	struct cam_path *path;
++
++	/* Use the wildcard path from our softc for bus announcements. */
++	if (target_id == CAM_TARGET_WILDCARD && lun_id == CAM_LUN_WILDCARD) {
++		xpt_async(ac_code, sc->vtscsi_path, NULL);
++		return;
++	}
++
++	if (xpt_create_path(&path, NULL, cam_sim_path(sc->vtscsi_sim),
++	    target_id, lun_id) != CAM_REQ_CMP) {
++		vtscsi_dprintf(sc, VTSCSI_ERROR, "cannot create path\n");
++		return;
++	}
++
++	xpt_async(ac_code, path, NULL);
++	xpt_free_path(path);
++}
++
++static void
++vtscsi_execute_rescan(struct vtscsi_softc *sc, target_id_t target_id,
++    lun_id_t lun_id)
++{
++	union ccb *ccb;
++	cam_status status;
++
++	ccb = xpt_alloc_ccb_nowait();
++	if (ccb == NULL) {
++		vtscsi_dprintf(sc, VTSCSI_ERROR, "cannot allocate CCB\n");
++		return;
++	}
++
++	status = xpt_create_path(&ccb->ccb_h.path, xpt_periph,
++	    cam_sim_path(sc->vtscsi_sim), target_id, lun_id);
++	if (status != CAM_REQ_CMP) {
++		xpt_free_ccb(ccb);
++		return;
++	}
++
++	xpt_rescan(ccb);
++}
++
++static void
++vtscsi_execute_rescan_bus(struct vtscsi_softc *sc)
++{
++
++	vtscsi_execute_rescan(sc, CAM_TARGET_WILDCARD, CAM_LUN_WILDCARD);
++}
++
++static void
++vtscsi_transport_reset_event(struct vtscsi_softc *sc,
++    struct virtio_scsi_event *event)
++{
++	target_id_t target_id;
++	lun_id_t lun_id;
++
++	vtscsi_get_request_lun(event->lun, &target_id, &lun_id);
++
++	switch (event->reason) {
++	case VIRTIO_SCSI_EVT_RESET_RESCAN:
++	case VIRTIO_SCSI_EVT_RESET_REMOVED:
++		vtscsi_execute_rescan(sc, target_id, lun_id);
++		break;
++	default:
++		device_printf(sc->vtscsi_dev,
++		    "unhandled transport event reason: %d\n", event->reason);
++		break;
++	}
++}
++
++static void
++vtscsi_handle_event(struct vtscsi_softc *sc, struct virtio_scsi_event *event)
++{
++	int error;
++
++	if ((event->event & VIRTIO_SCSI_T_EVENTS_MISSED) == 0) {
++		switch (event->event) {
++		case VIRTIO_SCSI_T_TRANSPORT_RESET:
++			vtscsi_transport_reset_event(sc, event);
++			break;
++		default:
++			device_printf(sc->vtscsi_dev,
++			    "unhandled event: %d\n", event->event);
++			break;
++		}
++	} else
++		vtscsi_execute_rescan_bus(sc);
++
++	/*
++	 * This should always be successful since the buffer
++	 * was just dequeued.
++	 */
++	error = vtscsi_enqueue_event_buf(sc, event);
++	KASSERT(error == 0,
++	    ("cannot requeue event buffer: %d", error));
++}
++
++static int
++vtscsi_enqueue_event_buf(struct vtscsi_softc *sc,
++    struct virtio_scsi_event *event)
++{
++	struct sglist *sg;
++	struct virtqueue *vq;
++	int size, error;
++
++	sg = sc->vtscsi_sglist;
++	vq = sc->vtscsi_event_vq;
++	size = sc->vtscsi_event_buf_size;
++
++	bzero(event, size);
++
++	sglist_reset(sg);
++	error = sglist_append(sg, event, size);
++	if (error)
++		return (error);
++
++	error = virtqueue_enqueue(vq, event, sg, 0, sg->sg_nseg);
++	if (error)
++		return (error);
++
++	virtqueue_notify(vq);
++
++	return (0);
++}
++
++static int
++vtscsi_init_event_vq(struct vtscsi_softc *sc)
++{
++	struct virtio_scsi_event *event;
++	int i, size, error;
++
++	/*
++	 * The first release of QEMU with VirtIO SCSI support would crash
++	 * when attempting to notify the event virtqueue. This was fixed
++	 * when hotplug support was added.
++	 */
++	if (sc->vtscsi_flags & VTSCSI_FLAG_HOTPLUG)
++		size = sc->vtscsi_event_buf_size;
++	else
++		size = 0;
++
++	if (size < sizeof(struct virtio_scsi_event))
++		return (0);
++
++	for (i = 0; i < VTSCSI_NUM_EVENT_BUFS; i++) {
++		event = &sc->vtscsi_event_bufs[i];
++
++		error = vtscsi_enqueue_event_buf(sc, event);
++		if (error)
++			break;
++	}
++
++	/*
++	 * Even just one buffer is enough. Missed events are
++	 * denoted with the VIRTIO_SCSI_T_EVENTS_MISSED flag.
++	 */
++	if (i > 0)
++		error = 0;
++
++	return (error);
++}
++
++static void
++vtscsi_reinit_event_vq(struct vtscsi_softc *sc)
++{
++	struct virtio_scsi_event *event;
++	int i, error;
++
++	if ((sc->vtscsi_flags & VTSCSI_FLAG_HOTPLUG) == 0 ||
++	    sc->vtscsi_event_buf_size < sizeof(struct virtio_scsi_event))
++		return;
++
++	for (i = 0; i < VTSCSI_NUM_EVENT_BUFS; i++) {
++		event = &sc->vtscsi_event_bufs[i];
++
++		error = vtscsi_enqueue_event_buf(sc, event);
++		if (error)
++			break;
++	}
++
++	KASSERT(i > 0, ("cannot reinit event vq: %d", error));
++}
++
++static void
++vtscsi_drain_event_vq(struct vtscsi_softc *sc)
++{
++	struct virtqueue *vq;
++	int last;
++
++	vq = sc->vtscsi_event_vq;
++	last = 0;
++
++	while (virtqueue_drain(vq, &last) != NULL)
++		;
++
++	KASSERT(virtqueue_empty(vq), ("eventvq not empty"));
++}
++
++static void
++vtscsi_complete_vqs_locked(struct vtscsi_softc *sc)
++{
++
++	VTSCSI_LOCK_OWNED(sc);
++
++	if (sc->vtscsi_request_vq != NULL)
++		vtscsi_complete_vq(sc, sc->vtscsi_request_vq);
++	if (sc->vtscsi_control_vq != NULL)
++		vtscsi_complete_vq(sc, sc->vtscsi_control_vq);
++}
++
++static void
++vtscsi_complete_vqs(struct vtscsi_softc *sc)
++{
++
++	VTSCSI_LOCK(sc);
++	vtscsi_complete_vqs_locked(sc);
++	VTSCSI_UNLOCK(sc);
++}
++
++static void
++vtscsi_cancel_request(struct vtscsi_softc *sc, struct vtscsi_request *req)
++{
++	union ccb *ccb;
++	int detach;
++
++	ccb = req->vsr_ccb;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "req=%p ccb=%p\n", req, ccb);
++
++	/*
++	 * The callout must be drained when detaching since the request is
++	 * about to be freed. The VTSCSI_MTX must not be held for this in
++	 * case the callout is pending because there is a deadlock potential.
++	 * Otherwise, the virtqueue is being drained because of a bus reset
++	 * so we only need to attempt to stop the callouts.
++	 */
++	detach = (sc->vtscsi_flags & VTSCSI_FLAG_DETACH) != 0;
++	if (detach != 0)
++		VTSCSI_LOCK_NOTOWNED(sc);
++	else
++		VTSCSI_LOCK_OWNED(sc);
++
++	if (req->vsr_flags & VTSCSI_REQ_FLAG_TIMEOUT_SET) {
++		if (detach != 0)
++			callout_drain(&req->vsr_callout);
++		else
++			callout_stop(&req->vsr_callout);
++	}
++
++	if (ccb != NULL) {
++		if (detach != 0) {
++			VTSCSI_LOCK(sc);
++			ccb->ccb_h.status = CAM_NO_HBA;
++		} else
++			ccb->ccb_h.status = CAM_REQUEUE_REQ;
++		xpt_done(ccb);
++		if (detach != 0)
++			VTSCSI_UNLOCK(sc);
++	}
++
++	vtscsi_enqueue_request(sc, req);
++}
++
++static void
++vtscsi_drain_vq(struct vtscsi_softc *sc, struct virtqueue *vq)
++{
++	struct vtscsi_request *req;
++	int last;
++
++	last = 0;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "vq=%p\n", vq);
++
++	while ((req = virtqueue_drain(vq, &last)) != NULL)
++		vtscsi_cancel_request(sc, req);
++
++	KASSERT(virtqueue_empty(vq), ("virtqueue not empty"));
++}
++
++static void
++vtscsi_drain_vqs(struct vtscsi_softc *sc)
++{
++
++	if (sc->vtscsi_control_vq != NULL)
++		vtscsi_drain_vq(sc, sc->vtscsi_control_vq);
++	if (sc->vtscsi_request_vq != NULL)
++		vtscsi_drain_vq(sc, sc->vtscsi_request_vq);
++	if (sc->vtscsi_event_vq != NULL)
++		vtscsi_drain_event_vq(sc);
++}
++
++static void
++vtscsi_stop(struct vtscsi_softc *sc)
++{
++
++	vtscsi_disable_vqs_intr(sc);
++	virtio_stop(sc->vtscsi_dev);
++}
++
++static int
++vtscsi_reset_bus(struct vtscsi_softc *sc)
++{
++	int error;
++
++	VTSCSI_LOCK_OWNED(sc);
++
++	if (vtscsi_bus_reset_disable != 0) {
++		device_printf(sc->vtscsi_dev, "bus reset disabled\n");
++		return (0);
++	}
++
++	sc->vtscsi_flags |= VTSCSI_FLAG_RESET;
++
++	/*
++	 * vtscsi_stop() will cause the in-flight requests to be canceled.
++	 * Those requests are then completed here so CAM will retry them
++	 * after the reset is complete.
++	 */
++	vtscsi_stop(sc);
++	vtscsi_complete_vqs_locked(sc);
++
++	/* Rid the virtqueues of any remaining requests. */
++	vtscsi_drain_vqs(sc);
++
++	/*
++	 * Any resource shortage that froze the SIMQ cannot persist across
++	 * a bus reset so ensure it gets thawed here.
++	 */
++	if (vtscsi_thaw_simq(sc, VTSCSI_REQUEST | VTSCSI_REQUEST_VQ) != 0)
++		xpt_release_simq(sc->vtscsi_sim, 0);
++
++	error = vtscsi_reinit(sc);
++	if (error) {
++		device_printf(sc->vtscsi_dev,
++		    "reinitialization failed, stopping device...\n");
++		vtscsi_stop(sc);
++	} else
++		vtscsi_announce(sc, AC_BUS_RESET, CAM_TARGET_WILDCARD,
++		    CAM_LUN_WILDCARD);
++
++	sc->vtscsi_flags &= ~VTSCSI_FLAG_RESET;
++
++	return (error);
++}
++
++static void
++vtscsi_init_request(struct vtscsi_softc *sc, struct vtscsi_request *req)
++{
++
++#ifdef INVARIANTS
++	int req_nsegs, resp_nsegs;
++
++	req_nsegs = sglist_count(&req->vsr_ureq, sizeof(req->vsr_ureq));
++	resp_nsegs = sglist_count(&req->vsr_uresp, sizeof(req->vsr_uresp));
++
++	KASSERT(req_nsegs == 1, ("request crossed page boundary"));
++	KASSERT(resp_nsegs == 1, ("response crossed page boundary"));
++#endif
++
++	req->vsr_softc = sc;
++	callout_init_mtx(&req->vsr_callout, VTSCSI_MTX(sc), 0);
++}
++
++static int
++vtscsi_alloc_requests(struct vtscsi_softc *sc)
++{
++	struct vtscsi_request *req;
++	int i, nreqs;
++
++	/*
++	 * Commands destined for either the request or control queues come
++	 * from the same SIM queue. Use the size of the request virtqueue
++	 * as it (should) be much more frequently used. Some additional
++	 * requests are allocated for internal (TMF) use.
++	 */
++	nreqs = virtqueue_size(sc->vtscsi_request_vq);
++	if ((sc->vtscsi_flags & VTSCSI_FLAG_INDIRECT) == 0)
++		nreqs /= VTSCSI_MIN_SEGMENTS;
++	nreqs += VTSCSI_RESERVED_REQUESTS;
++
++	for (i = 0; i < nreqs; i++) {
++		req = malloc(sizeof(struct vtscsi_request), M_DEVBUF,
++		    M_NOWAIT);
++		if (req == NULL)
++			return (ENOMEM);
++
++		vtscsi_init_request(sc, req);
++
++		sc->vtscsi_nrequests++;
++		vtscsi_enqueue_request(sc, req);
++	}
++
++	return (0);
++}
++
++static void
++vtscsi_free_requests(struct vtscsi_softc *sc)
++{
++	struct vtscsi_request *req;
++
++	while ((req = vtscsi_dequeue_request(sc)) != NULL) {
++		KASSERT(callout_active(&req->vsr_callout) == 0,
++		    ("request callout still active"));
++
++		sc->vtscsi_nrequests--;
++		free(req, M_DEVBUF);
++	}
++
++	KASSERT(sc->vtscsi_nrequests == 0, ("leaked requests: %d",
++	    sc->vtscsi_nrequests));
++}
++
++static void
++vtscsi_enqueue_request(struct vtscsi_softc *sc, struct vtscsi_request *req)
++{
++
++	KASSERT(req->vsr_softc == sc,
++	    ("non-matching request vsr_softc %p/%p", req->vsr_softc, sc));
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "req=%p\n", req);
++
++	/* A request is available so the SIMQ could be released. */
++	if (vtscsi_thaw_simq(sc, VTSCSI_REQUEST) != 0)
++		xpt_release_simq(sc->vtscsi_sim, 1);
++
++	req->vsr_ccb = NULL;
++	req->vsr_complete = NULL;
++	req->vsr_ptr0 = NULL;
++	req->vsr_state = VTSCSI_REQ_STATE_FREE;
++	req->vsr_flags = 0;
++
++	bzero(&req->vsr_ureq, sizeof(req->vsr_ureq));
++	bzero(&req->vsr_uresp, sizeof(req->vsr_uresp));
++
++	/*
++	 * We insert at the tail of the queue in order to make it
++	 * very unlikely a request will be reused if we race with
++	 * stopping its callout handler.
++	 */
++	TAILQ_INSERT_TAIL(&sc->vtscsi_req_free, req, vsr_link);
++}
++
++static struct vtscsi_request *
++vtscsi_dequeue_request(struct vtscsi_softc *sc)
++{
++	struct vtscsi_request *req;
++
++	req = TAILQ_FIRST(&sc->vtscsi_req_free);
++	if (req != NULL) {
++		req->vsr_state = VTSCSI_REQ_STATE_INUSE;
++		TAILQ_REMOVE(&sc->vtscsi_req_free, req, vsr_link);
++	} else
++		sc->vtscsi_stats.dequeue_no_requests++;
++
++	vtscsi_dprintf(sc, VTSCSI_TRACE, "req=%p\n", req);
++
++	return (req);
++}
++
++static void
++vtscsi_complete_request(struct vtscsi_request *req)
++{
++
++	if (req->vsr_flags & VTSCSI_REQ_FLAG_POLLED)
++		req->vsr_flags |= VTSCSI_REQ_FLAG_COMPLETE;
++
++	if (req->vsr_complete != NULL)
++		req->vsr_complete(req->vsr_softc, req);
++}
++
++static void
++vtscsi_complete_vq(struct vtscsi_softc *sc, struct virtqueue *vq)
++{
++	struct vtscsi_request *req;
++
++	VTSCSI_LOCK_OWNED(sc);
++
++	while ((req = virtqueue_dequeue(vq, NULL)) != NULL)
++		vtscsi_complete_request(req);
++}
++
++static void
++vtscsi_control_vq_task(void *arg, int pending)
++{
++	struct vtscsi_softc *sc;
++	struct virtqueue *vq;
++
++	sc = arg;
++	vq = sc->vtscsi_control_vq;
++
++	VTSCSI_LOCK(sc);
++
++	vtscsi_complete_vq(sc, sc->vtscsi_control_vq);
++
++	if (virtqueue_enable_intr(vq) != 0) {
++		virtqueue_disable_intr(vq);
++		VTSCSI_UNLOCK(sc);
++		taskqueue_enqueue_fast(sc->vtscsi_tq,
++		    &sc->vtscsi_control_intr_task);
++		return;
++	}
++
++	VTSCSI_UNLOCK(sc);
++}
++
++static void
++vtscsi_event_vq_task(void *arg, int pending)
++{
++	struct vtscsi_softc *sc;
++	struct virtqueue *vq;
++	struct virtio_scsi_event *event;
++
++	sc = arg;
++	vq = sc->vtscsi_event_vq;
++
++	VTSCSI_LOCK(sc);
++
++	while ((event = virtqueue_dequeue(vq, NULL)) != NULL)
++		vtscsi_handle_event(sc, event);
++
++	if (virtqueue_enable_intr(vq) != 0) {
++		virtqueue_disable_intr(vq);
++		VTSCSI_UNLOCK(sc);
++		taskqueue_enqueue_fast(sc->vtscsi_tq,
++		    &sc->vtscsi_control_intr_task);
++		return;
++	}
++
++	VTSCSI_UNLOCK(sc);
++}
++
++static void
++vtscsi_request_vq_task(void *arg, int pending)
++{
++	struct vtscsi_softc *sc;
++	struct virtqueue *vq;
++
++	sc = arg;
++	vq = sc->vtscsi_request_vq;
++
++	VTSCSI_LOCK(sc);
++
++	vtscsi_complete_vq(sc, sc->vtscsi_request_vq);
++
++	if (virtqueue_enable_intr(vq) != 0) {
++		virtqueue_disable_intr(vq);
++		VTSCSI_UNLOCK(sc);
++		taskqueue_enqueue_fast(sc->vtscsi_tq,
++		    &sc->vtscsi_request_intr_task);
++		return;
++	}
++
++	VTSCSI_UNLOCK(sc);
++}
++
++static int
++vtscsi_control_vq_intr(void *xsc)
++{
++	struct vtscsi_softc *sc;
++
++	sc = xsc;
++
++	virtqueue_disable_intr(sc->vtscsi_control_vq);
++	taskqueue_enqueue_fast(sc->vtscsi_tq,
++	    &sc->vtscsi_control_intr_task);
++
++	return (1);
++}
++
++static int
++vtscsi_event_vq_intr(void *xsc)
++{
++	struct vtscsi_softc *sc;
++
++	sc = xsc;
++
++	virtqueue_disable_intr(sc->vtscsi_event_vq);
++	taskqueue_enqueue_fast(sc->vtscsi_tq,
++	    &sc->vtscsi_event_intr_task);
++
++	return (1);
++}
++
++static int
++vtscsi_request_vq_intr(void *xsc)
++{
++	struct vtscsi_softc *sc;
++
++	sc = xsc;
++
++	virtqueue_disable_intr(sc->vtscsi_request_vq);
++	taskqueue_enqueue_fast(sc->vtscsi_tq,
++	    &sc->vtscsi_request_intr_task);
++
++	return (1);
++}
++
++static void
++vtscsi_disable_vqs_intr(struct vtscsi_softc *sc)
++{
++
++	virtqueue_disable_intr(sc->vtscsi_control_vq);
++	virtqueue_disable_intr(sc->vtscsi_event_vq);
++	virtqueue_disable_intr(sc->vtscsi_request_vq);
++}
++
++static void
++vtscsi_enable_vqs_intr(struct vtscsi_softc *sc)
++{
++
++	virtqueue_enable_intr(sc->vtscsi_control_vq);
++	virtqueue_enable_intr(sc->vtscsi_event_vq);
++	virtqueue_enable_intr(sc->vtscsi_request_vq);
++}
++
++static void
++vtscsi_get_tunables(struct vtscsi_softc *sc)
++{
++	char tmpstr[64];
++
++	TUNABLE_INT_FETCH("hw.vtscsi.debug_level", &sc->vtscsi_debug);
++
++	snprintf(tmpstr, sizeof(tmpstr), "dev.vtscsi.%d.debug_level",
++	    device_get_unit(sc->vtscsi_dev));
++	TUNABLE_INT_FETCH(tmpstr, &sc->vtscsi_debug);
++}
++
++static void
++vtscsi_add_sysctl(struct vtscsi_softc *sc)
++{
++	device_t dev;
++	struct vtscsi_statistics *stats;
++        struct sysctl_ctx_list *ctx;
++	struct sysctl_oid *tree;
++	struct sysctl_oid_list *child;
++
++	dev = sc->vtscsi_dev;
++	stats = &sc->vtscsi_stats;
++	ctx = device_get_sysctl_ctx(dev);
++	tree = device_get_sysctl_tree(dev);
++	child = SYSCTL_CHILDREN(tree);
++
++	SYSCTL_ADD_INT(ctx, child, OID_AUTO, "debug_level",
++	    CTLFLAG_RW, &sc->vtscsi_debug, 0,
++	    "Debug level");
++
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "scsi_cmd_timeouts",
++	    CTLFLAG_RD, &stats->scsi_cmd_timeouts,
++	    "SCSI command timeouts");
++	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "dequeue_no_requests",
++	    CTLFLAG_RD, &stats->dequeue_no_requests,
++	    "No available requests to dequeue");
++}
++
++static void
++vtscsi_printf_req(struct vtscsi_request *req, const char *func,
++    const char *fmt, ...)
++{
++	struct vtscsi_softc *sc;
++	union ccb *ccb;
++	struct sbuf sb;
++	va_list ap;
++	char str[192];
++	char path_str[64];
++
++	if (req == NULL)
++		return;
++
++	sc = req->vsr_softc;
++	ccb = req->vsr_ccb;
++
++	va_start(ap, fmt);
++	sbuf_new(&sb, str, sizeof(str), 0);
++
++	if (ccb == NULL) {
++		sbuf_printf(&sb, "(noperiph:%s%d:%u): ",
++		    cam_sim_name(sc->vtscsi_sim), cam_sim_unit(sc->vtscsi_sim),
++		    cam_sim_bus(sc->vtscsi_sim));
++	} else {
++		xpt_path_string(ccb->ccb_h.path, path_str, sizeof(path_str));
++		sbuf_cat(&sb, path_str);
++		if (ccb->ccb_h.func_code == XPT_SCSI_IO) {
++			scsi_command_string(&ccb->csio, &sb);
++			sbuf_printf(&sb, "length %d ", ccb->csio.dxfer_len);
++		}
++	}
++
++	sbuf_vprintf(&sb, fmt, ap);
++	va_end(ap);
++
++	sbuf_finish(&sb);
++	printf("%s: %s: %s", device_get_nameunit(sc->vtscsi_dev), func,
++	    sbuf_data(&sb));
++}
+diff --git a/sys/dev/virtio/scsi/virtio_scsi.h b/sys/dev/virtio/scsi/virtio_scsi.h
+new file mode 100644
+index 0000000..caf7aaf
+--- /dev/null
++++ b/sys/dev/virtio/scsi/virtio_scsi.h
+@@ -0,0 +1,152 @@
++/*-
++ * This header is BSD licensed so anyone can use the definitions to implement
++ * compatible drivers/servers.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice, this list of conditions and the following disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++ * ARE DISCLAIMED.  IN NO EVENT SHALL AUTHOR OR CONTRIBUTORS BE LIABLE
++ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++ * SUCH DAMAGE.
++ *
++ * $FreeBSD$
++ */
++
++#ifndef _VIRTIO_SCSI_H
++#define _VIRTIO_SCSI_H
++
++/* Feature bits */
++#define VIRTIO_SCSI_F_INOUT	0x0001	/* Single request can contain both
++					 * read and write buffers */
++#define VIRTIO_SCSI_F_HOTPLUG	0x0002	/* Host should enable hot plug/unplug
++					 * of new LUNs and targets.
++					 */
++
++#define VIRTIO_SCSI_CDB_SIZE	32
++#define VIRTIO_SCSI_SENSE_SIZE	96
++
++/* SCSI command request, followed by data-out */
++struct virtio_scsi_cmd_req {
++	uint8_t lun[8];		/* Logical Unit Number */
++	uint64_t tag;		/* Command identifier */
++	uint8_t task_attr;	/* Task attribute */
++	uint8_t prio;
++	uint8_t crn;
++	uint8_t cdb[VIRTIO_SCSI_CDB_SIZE];
++} __packed;
++
++/* Response, followed by sense data and data-in */
++struct virtio_scsi_cmd_resp {
++	uint32_t sense_len;		/* Sense data length */
++	uint32_t resid;			/* Residual bytes in data buffer */
++	uint16_t status_qualifier;	/* Status qualifier */
++	uint8_t status;			/* Command completion status */
++	uint8_t response;		/* Response values */
++	uint8_t sense[VIRTIO_SCSI_SENSE_SIZE];
++} __packed;
++
++/* Task Management Request */
++struct virtio_scsi_ctrl_tmf_req {
++	uint32_t type;
++	uint32_t subtype;
++	uint8_t lun[8];
++	uint64_t tag;
++} __packed;
++
++struct virtio_scsi_ctrl_tmf_resp {
++	uint8_t response;
++} __packed;
++
++/* Asynchronous notification query/subscription */
++struct virtio_scsi_ctrl_an_req {
++	uint32_t type;
++	uint8_t lun[8];
++	uint32_t event_requested;
++} __packed;
++
++struct virtio_scsi_ctrl_an_resp {
++	uint32_t event_actual;
++	uint8_t response;
++} __packed;
++
++struct virtio_scsi_event {
++	uint32_t event;
++	uint8_t lun[8];
++	uint32_t reason;
++} __packed;
++
++struct virtio_scsi_config {
++	uint32_t num_queues;
++	uint32_t seg_max;
++	uint32_t max_sectors;
++	uint32_t cmd_per_lun;
++	uint32_t event_info_size;
++	uint32_t sense_size;
++	uint32_t cdb_size;
++	uint16_t max_channel;
++	uint16_t max_target;
++	uint32_t max_lun;
++} __packed;
++
++/* Response codes */
++#define VIRTIO_SCSI_S_OK                       0
++#define VIRTIO_SCSI_S_FUNCTION_COMPLETE        0
++#define VIRTIO_SCSI_S_OVERRUN                  1
++#define VIRTIO_SCSI_S_ABORTED                  2
++#define VIRTIO_SCSI_S_BAD_TARGET               3
++#define VIRTIO_SCSI_S_RESET                    4
++#define VIRTIO_SCSI_S_BUSY                     5
++#define VIRTIO_SCSI_S_TRANSPORT_FAILURE        6
++#define VIRTIO_SCSI_S_TARGET_FAILURE           7
++#define VIRTIO_SCSI_S_NEXUS_FAILURE            8
++#define VIRTIO_SCSI_S_FAILURE                  9
++#define VIRTIO_SCSI_S_FUNCTION_SUCCEEDED       10
++#define VIRTIO_SCSI_S_FUNCTION_REJECTED        11
++#define VIRTIO_SCSI_S_INCORRECT_LUN            12
++
++/* Controlq type codes.  */
++#define VIRTIO_SCSI_T_TMF                      0
++#define VIRTIO_SCSI_T_AN_QUERY                 1
++#define VIRTIO_SCSI_T_AN_SUBSCRIBE             2
++
++/* Valid TMF subtypes.  */
++#define VIRTIO_SCSI_T_TMF_ABORT_TASK           0
++#define VIRTIO_SCSI_T_TMF_ABORT_TASK_SET       1
++#define VIRTIO_SCSI_T_TMF_CLEAR_ACA            2
++#define VIRTIO_SCSI_T_TMF_CLEAR_TASK_SET       3
++#define VIRTIO_SCSI_T_TMF_I_T_NEXUS_RESET      4
++#define VIRTIO_SCSI_T_TMF_LOGICAL_UNIT_RESET   5
++#define VIRTIO_SCSI_T_TMF_QUERY_TASK           6
++#define VIRTIO_SCSI_T_TMF_QUERY_TASK_SET       7
++
++/* Events.  */
++#define VIRTIO_SCSI_T_EVENTS_MISSED            0x80000000
++#define VIRTIO_SCSI_T_NO_EVENT                 0
++#define VIRTIO_SCSI_T_TRANSPORT_RESET          1
++#define VIRTIO_SCSI_T_ASYNC_NOTIFY             2
++
++/* Reasons of transport reset event */
++#define VIRTIO_SCSI_EVT_RESET_HARD             0
++#define VIRTIO_SCSI_EVT_RESET_RESCAN           1
++#define VIRTIO_SCSI_EVT_RESET_REMOVED          2
++
++#define VIRTIO_SCSI_S_SIMPLE                   0
++#define VIRTIO_SCSI_S_ORDERED                  1
++#define VIRTIO_SCSI_S_HEAD                     2
++#define VIRTIO_SCSI_S_ACA                      3
++
++#endif /* _VIRTIO_SCSI_H */
+diff --git a/sys/dev/virtio/scsi/virtio_scsivar.h b/sys/dev/virtio/scsi/virtio_scsivar.h
+new file mode 100644
+index 0000000..7afe32f
+--- /dev/null
++++ b/sys/dev/virtio/scsi/virtio_scsivar.h
+@@ -0,0 +1,221 @@
++/*-
++ * Copyright (c) 2012, Bryan Venteicher <bryanv@daemoninthecloset.org>
++ * All rights reserved.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions
++ * are met:
++ * 1. Redistributions of source code must retain the above copyright
++ *    notice unmodified, this list of conditions, and the following
++ *    disclaimer.
++ * 2. Redistributions in binary form must reproduce the above copyright
++ *    notice, this list of conditions and the following disclaimer in the
++ *    documentation and/or other materials provided with the distribution.
++ *
++ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
++ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
++ * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * $FreeBSD$
++ */
++
++#ifndef _VIRTIO_SCSIVAR_H
++#define _VIRTIO_SCSIVAR_H
++
++struct vtscsi_softc;
++struct vtscsi_request;
++
++typedef void vtscsi_request_cb_t(struct vtscsi_softc *,
++    struct vtscsi_request *);
++
++struct vtscsi_statistics {
++	unsigned long		scsi_cmd_timeouts;
++	unsigned long		dequeue_no_requests;
++};
++
++struct vtscsi_softc {
++	device_t		 vtscsi_dev;
++	struct mtx		 vtscsi_mtx;
++	uint64_t		 vtscsi_features;
++
++	uint16_t		 vtscsi_flags;
++#define VTSCSI_FLAG_INDIRECT		0x0001
++#define VTSCSI_FLAG_BIDIRECTIONAL	0x0002
++#define VTSCSI_FLAG_HOTPLUG		0x0004
++#define VTSCSI_FLAG_RESET		0x0008
++#define VTSCSI_FLAG_DETACH		0x0010
++
++	uint16_t		 vtscsi_frozen;
++#define VTSCSI_FROZEN_NO_REQUESTS	0x01
++#define VTSCSI_FROZEN_REQUEST_VQ_FULL	0x02
++
++	struct sglist		*vtscsi_sglist;
++
++	struct virtqueue	*vtscsi_control_vq;
++	struct virtqueue	*vtscsi_event_vq;
++	struct virtqueue	*vtscsi_request_vq;
++
++	struct taskqueue	*vtscsi_tq;
++	struct task		 vtscsi_control_intr_task;
++	struct task		 vtscsi_event_intr_task;
++	struct task		 vtscsi_request_intr_task;
++
++	struct cam_sim		*vtscsi_sim;
++	struct cam_path		*vtscsi_path;
++
++	int			 vtscsi_debug;
++	int			 vtscsi_nrequests;
++	int			 vtscsi_max_nsegs;
++	int			 vtscsi_event_buf_size;
++
++	TAILQ_HEAD(,vtscsi_request)
++				 vtscsi_req_free;
++
++	uint16_t		 vtscsi_max_channel;
++	uint16_t		 vtscsi_max_target;
++	uint32_t		 vtscsi_max_lun;
++
++#define VTSCSI_NUM_EVENT_BUFS	4
++	struct virtio_scsi_event
++				 vtscsi_event_bufs[VTSCSI_NUM_EVENT_BUFS];
++
++	struct vtscsi_statistics vtscsi_stats;
++};
++
++enum vtscsi_request_state {
++	VTSCSI_REQ_STATE_FREE,
++	VTSCSI_REQ_STATE_INUSE,
++	VTSCSI_REQ_STATE_ABORTED,
++	VTSCSI_REQ_STATE_TIMEDOUT
++};
++
++struct vtscsi_request {
++	struct vtscsi_softc			*vsr_softc;
++	union ccb				*vsr_ccb;
++	vtscsi_request_cb_t			*vsr_complete;
++
++	void					*vsr_ptr0;
++/* Request when aborting a timedout command. */
++#define vsr_timedout_req	vsr_ptr0
++
++	enum vtscsi_request_state		 vsr_state;
++
++	uint16_t				 vsr_flags;
++#define VTSCSI_REQ_FLAG_POLLED		0x01
++#define VTSCSI_REQ_FLAG_COMPLETE	0x02
++#define VTSCSI_REQ_FLAG_TIMEOUT_SET	0x04
++
++	union {
++		struct virtio_scsi_cmd_req	 cmd;
++		struct virtio_scsi_ctrl_tmf_req	 tmf;
++		struct virtio_scsi_ctrl_an_req	 an;
++	} vsr_ureq;
++#define vsr_cmd_req 	vsr_ureq.cmd
++#define vsr_tmf_req 	vsr_ureq.tmf
++#define vsr_an_req	vsr_ureq.an
++
++	/* Make request and response non-contiguous. */
++	uint32_t				 vsr_pad;
++
++	union {
++		struct virtio_scsi_cmd_resp	 cmd;
++		struct virtio_scsi_ctrl_tmf_resp tmf;
++		struct virtio_scsi_ctrl_an_resp	 an;
++	} vsr_uresp;
++#define vsr_cmd_resp	vsr_uresp.cmd
++#define vsr_tmf_resp	vsr_uresp.tmf
++#define vsr_an_resp	vsr_uresp.an
++
++	struct callout				 vsr_callout;
++
++	TAILQ_ENTRY(vtscsi_request)		 vsr_link;
++};
++
++/* Private field in the CCB header that points to our request. */
++#define ccbh_vtscsi_req	spriv_ptr0
++
++/* Features desired/implemented by this driver. */
++#define VTSCSI_FEATURES \
++    (VIRTIO_SCSI_F_HOTPLUG		| \
++     VIRTIO_RING_F_INDIRECT_DESC)
++
++#define VTSCSI_MTX(_sc)			&(_sc)->vtscsi_mtx
++#define VTSCSI_LOCK_INIT(_sc, _name) 	mtx_init(VTSCSI_MTX(_sc), _name, \
++					    "VTSCSI Lock", MTX_DEF)
++#define VTSCSI_LOCK(_sc)		mtx_lock(VTSCSI_MTX(_sc))
++#define VTSCSI_UNLOCK(_sc)		mtx_unlock(VTSCSI_MTX(_sc))
++#define VTSCSI_LOCK_OWNED(_sc)		mtx_assert(VTSCSI_MTX(_sc), MA_OWNED)
++#define VTSCSI_LOCK_NOTOWNED(_sc) 	mtx_assert(VTSCSI_MTX(_sc), MA_NOTOWNED)
++#define VTSCSI_LOCK_DESTROY(_sc)	mtx_destroy(VTSCSI_MTX(_sc))
++
++/*
++ * Reasons for either freezing or thawing the SIMQ.
++ *
++ * VirtIO SCSI is a bit unique in the sense that SCSI and TMF
++ * commands go over different queues. Both queues are fed by
++ * the same SIMQ, but we only freeze the SIMQ when the request
++ * (SCSI) virtqueue is full, not caring if the control (TMF)
++ * virtqueue unlikely gets full. However, both queues share the
++ * same pool of requests, so the completion of a TMF command
++ * could cause the SIMQ to be unfrozen.
++ */
++#define VTSCSI_REQUEST		0x01
++#define VTSCSI_REQUEST_VQ	0x02
++
++/* Debug trace levels. */
++#define VTSCSI_INFO	0x01
++#define VTSCSI_ERROR	0x02
++#define VTSCSI_TRACE	0x04
++
++#define vtscsi_dprintf(_sc, _level, _msg, _args ...) do { 		\
++	if ((_sc)->vtscsi_debug & (_level))				\
++		device_printf((_sc)->vtscsi_dev, "%s: "_msg,		\
++		    __FUNCTION__, ##_args);				\
++} while (0)
++
++#define vtscsi_dprintf_req(_req, _level, _msg, _args ...) do {		\
++	struct vtscsi_softc *__sc = (_req)->vsr_softc;			\
++	if ((__sc)->vtscsi_debug & (_level))				\
++		vtscsi_printf_req(_req, __FUNCTION__, _msg, ##_args);	\
++} while (0)
++
++/*
++ * Set the status field in a CCB, optionally clearing non CCB_STATUS_* flags.
++ */
++#define vtscsi_set_ccb_status(_ccbh, _status, _mask) do {		\
++	KASSERT(((_mask) & CAM_STATUS_MASK) == 0,			\
++	    ("%s:%d bad mask: 0x%x", __FUNCTION__, __LINE__, (_mask)));	\
++	(_ccbh)->status &= ~(CAM_STATUS_MASK | (_mask));		\
++	(_ccbh)->status |= (_status);					\
++} while (0)
++
++/*
++ * One segment each for the request and the response.
++ */
++#define VTSCSI_MIN_SEGMENTS	2
++
++/*
++ * Allocate additional requests for internal use such
++ * as TM commands (e.g. aborting timedout commands).
++ */
++#define VTSCSI_RESERVED_REQUESTS	10
++
++/*
++ * Specification doesn't say, use traditional SCSI default.
++ */
++#define VTSCSI_INITIATOR_ID	7
++
++/*
++ * How to wait (or not) for request completion.
++ */
++#define VTSCSI_EXECUTE_ASYNC	0
++#define VTSCSI_EXECUTE_POLL	1
++
++#endif /* _VIRTIO_SCSIVAR_H */
 diff --git a/sys/dev/virtio/virtio.c b/sys/dev/virtio/virtio.c
 new file mode 100644
-index 0000000..e385575
+index 0000000..6c6b0bc
 --- /dev/null
 +++ b/sys/dev/virtio/virtio.c
-@@ -0,0 +1,283 @@
+@@ -0,0 +1,277 @@
 +/*-
 + * Copyright (c) 2011, Bryan Venteicher <bryanv@daemoninthecloset.org>
 + * All rights reserved.
@@ -6453,6 +9371,7 @@ index 0000000..e385575
 +	{ VIRTIO_ID_ENTROPY,	"Entropy"	},
 +	{ VIRTIO_ID_BALLOON,	"Balloon"	},
 +	{ VIRTIO_ID_IOMEMORY,	"IOMemory"	},
++	{ VIRTIO_ID_SCSI,	"SCSI"		},
 +	{ VIRTIO_ID_9P,		"9P Transport"	},
 +
 +	{ 0, NULL }
@@ -6479,28 +9398,6 @@ index 0000000..e385575
 +	}
 +
 +	return (NULL);
-+}
-+
-+int
-+virtio_get_device_type(device_t dev)
-+{
-+	uintptr_t devtype;
-+
-+	devtype = -1;
-+
-+	BUS_READ_IVAR(device_get_parent(dev), dev,
-+	    VIRTIO_IVAR_DEVTYPE, &devtype);
-+
-+	return ((int) devtype);
-+}
-+
-+void
-+virtio_set_feature_desc(device_t dev,
-+    struct virtio_feature_desc *feature_desc)
-+{
-+
-+	BUS_WRITE_IVAR(device_get_parent(dev), dev,
-+	    VIRTIO_IVAR_FEATURE_DESC, (uintptr_t) feature_desc);
 +}
 +
 +void
@@ -6578,6 +9475,21 @@ index 0000000..e385575
 +/*
 + * VirtIO bus method wrappers.
 + */
++
++void
++virtio_read_ivar(device_t dev, int ivar, uintptr_t *val)
++{
++
++	*val = -1;
++	BUS_READ_IVAR(device_get_parent(dev), dev, ivar, val);
++}
++
++void
++virtio_write_ivar(device_t dev, int ivar, uintptr_t val)
++{
++
++	BUS_WRITE_IVAR(device_get_parent(dev), dev, ivar, val);
++}
 +
 +uint64_t
 +virtio_negotiate_features(device_t dev, uint64_t child_features)
@@ -6678,10 +9590,10 @@ index 0000000..e385575
 +MODULE_VERSION(virtio, 1);
 diff --git a/sys/dev/virtio/virtio.h b/sys/dev/virtio/virtio.h
 new file mode 100644
-index 0000000..00d2d5f
+index 0000000..4d069dd
 --- /dev/null
 +++ b/sys/dev/virtio/virtio.h
-@@ -0,0 +1,153 @@
+@@ -0,0 +1,185 @@
 +/*-
 + * This header is BSD licensed so anyone can use the definitions to implement
 + * compatible drivers/servers.
@@ -6715,8 +9627,6 @@ index 0000000..00d2d5f
 +#ifndef _VIRTIO_H_
 +#define _VIRTIO_H_
 +
-+#include <sys/types.h>
-+
 +struct vq_alloc_info;
 +
 +/* VirtIO device IDs. */
@@ -6726,6 +9636,7 @@ index 0000000..00d2d5f
 +#define VIRTIO_ID_ENTROPY	0x04
 +#define VIRTIO_ID_BALLOON	0x05
 +#define VIRTIO_ID_IOMEMORY	0x06
++#define VIRTIO_ID_SCSI		0x08
 +#define VIRTIO_ID_9P		0x09
 +
 +/* Status byte for guest to report progress. */
@@ -6777,6 +9688,10 @@ index 0000000..00d2d5f
 + */
 +#define VIRTIO_IVAR_DEVTYPE		1
 +#define VIRTIO_IVAR_FEATURE_DESC	2
++#define VIRTIO_IVAR_VENDOR		3
++#define VIRTIO_IVAR_DEVICE		4
++#define VIRTIO_IVAR_SUBVENDOR		5
++#define VIRTIO_IVAR_SUBDEVICE		6
 +
 +struct virtio_feature_desc {
 +	uint64_t	 vfd_val;
@@ -6784,15 +9699,14 @@ index 0000000..00d2d5f
 +};
 +
 +const char *virtio_device_name(uint16_t devid);
-+int	 virtio_get_device_type(device_t dev);
-+void	 virtio_set_feature_desc(device_t dev,
-+	     struct virtio_feature_desc *feature_desc);
 +void	 virtio_describe(device_t dev, const char *msg,
 +	     uint64_t features, struct virtio_feature_desc *feature_desc);
 +
 +/*
 + * VirtIO Bus Methods.
 + */
++void	 virtio_read_ivar(device_t dev, int ivar, uintptr_t *val);
++void	 virtio_write_ivar(device_t dev, int ivar, uintptr_t val);
 +uint64_t virtio_negotiate_features(device_t dev, uint64_t child_features);
 +int	 virtio_alloc_virtqueues(device_t dev, int flags, int nvqs,
 +	     struct vq_alloc_info *info);
@@ -6833,6 +9747,36 @@ index 0000000..00d2d5f
 +VIRTIO_RDWR_DEVICE_CONFIG(1, uint8_t);
 +VIRTIO_RDWR_DEVICE_CONFIG(2, uint16_t);
 +VIRTIO_RDWR_DEVICE_CONFIG(4, uint32_t);
++
++#undef VIRTIO_RDWR_DEVICE_CONFIG
++
++#define VIRTIO_READ_IVAR(name, ivar)					\
++static inline int							\
++__CONCAT(virtio_get_,name)(device_t dev)				\
++{									\
++	uintptr_t val;							\
++	virtio_read_ivar(dev, ivar, &val);				\
++	return ((int) val);						\
++}
++
++VIRTIO_READ_IVAR(device_type,	VIRTIO_IVAR_DEVTYPE);
++VIRTIO_READ_IVAR(vendor,	VIRTIO_IVAR_VENDOR);
++VIRTIO_READ_IVAR(device,	VIRTIO_IVAR_DEVICE);
++VIRTIO_READ_IVAR(subvendor,	VIRTIO_IVAR_SUBVENDOR);
++VIRTIO_READ_IVAR(subdevice,	VIRTIO_IVAR_SUBDEVICE);
++
++#undef VIRTIO_READ_IVAR
++
++#define VIRTIO_WRITE_IVAR(name, ivar)					\
++static inline void							\
++__CONCAT(virtio_set_,name)(device_t dev, void *val)			\
++{									\
++	virtio_write_ivar(dev, ivar, (uintptr_t) val);			\
++}
++
++VIRTIO_WRITE_IVAR(feature_desc,	VIRTIO_IVAR_FEATURE_DESC);
++
++#undef VIRTIO_WRITE_IVAR
 +
 +#endif /* _VIRTIO_H_ */
 diff --git a/sys/dev/virtio/virtio_bus_if.m b/sys/dev/virtio/virtio_bus_if.m
@@ -6984,10 +9928,10 @@ index 0000000..701678c
 +} DEFAULT virtio_default_config_change;
 diff --git a/sys/dev/virtio/virtio_ring.h b/sys/dev/virtio/virtio_ring.h
 new file mode 100644
-index 0000000..5258085
+index 0000000..8e902ab
 --- /dev/null
 +++ b/sys/dev/virtio/virtio_ring.h
-@@ -0,0 +1,166 @@
+@@ -0,0 +1,165 @@
 +/*-
 + * Copyright Rusty Russell IBM Corporation 2007.
 + *
@@ -7022,8 +9966,6 @@ index 0000000..5258085
 +
 +#ifndef VIRTIO_RING_H
 +#define	VIRTIO_RING_H
-+
-+#include <sys/types.h>
 +
 +/* This marks a buffer as continuing via the next field. */
 +#define VRING_DESC_F_NEXT       1
@@ -7112,8 +10054,8 @@ index 0000000..5258085
 + * We publish the used event index at the end of the available ring, and vice
 + * versa. They are at the end for backwards compatibility.
 + */
-+#define	vring_used_event(vr)	((vr)->avail->ring[(vr)->num])
-+#define	vring_avail_event(vr)	(*(uint16_t *)&(vr)->used->ring[(vr)->num])
++#define vring_used_event(vr)	((vr)->avail->ring[(vr)->num])
++#define vring_avail_event(vr)	(*(uint16_t *)&(vr)->used->ring[(vr)->num])
 +
 +static inline int
 +vring_size(unsigned int num, unsigned long align)
@@ -7121,10 +10063,11 @@ index 0000000..5258085
 +	int size;
 +
 +	size = num * sizeof(struct vring_desc);
-+	size += sizeof(struct vring_avail) + (num * sizeof(uint16_t));
++	size += sizeof(struct vring_avail) + (num * sizeof(uint16_t)) +
++	    sizeof(uint16_t);
 +	size = (size + align - 1) & ~(align - 1);
 +	size += sizeof(struct vring_used) +
-+	    (num * sizeof(struct vring_used_elem));
++	    (num * sizeof(struct vring_used_elem)) + sizeof(uint16_t);
 +	return (size);
 +}
 +
@@ -7156,10 +10099,10 @@ index 0000000..5258085
 +#endif /* VIRTIO_RING_H */
 diff --git a/sys/dev/virtio/virtqueue.c b/sys/dev/virtio/virtqueue.c
 new file mode 100644
-index 0000000..31f47d0
+index 0000000..7e02deb
 --- /dev/null
 +++ b/sys/dev/virtio/virtqueue.c
-@@ -0,0 +1,809 @@
+@@ -0,0 +1,803 @@
 +/*-
 + * Copyright (c) 2011, Bryan Venteicher <bryanv@daemoninthecloset.org>
 + * All rights reserved.
@@ -7289,6 +10232,7 @@ index 0000000..31f47d0
 +static int	vq_ring_use_indirect(struct virtqueue *, int);
 +static void	vq_ring_enqueue_indirect(struct virtqueue *, void *,
 +		    struct sglist *, int, int);
++static int 	vq_ring_enable_interrupt(struct virtqueue *, uint16_t);
 +static int	vq_ring_must_notify_host(struct virtqueue *);
 +static void	vq_ring_notify_host(struct virtqueue *);
 +static void	vq_ring_free_chain(struct virtqueue *, uint16_t);
@@ -7473,7 +10417,7 @@ index 0000000..31f47d0
 +	/* Warn if the virtqueue was not properly cleaned up. */
 +	if (vq->vq_free_cnt != vq->vq_nentries) {
 +		device_printf(vq->vq_dev,
-+		    "%s: warning, '%s' virtqueue not empty, "
++		    "%s: warning '%s' virtqueue not empty, "
 +		    "leaking %d entries\n", __func__, vq->vq_name,
 +		    vq->vq_nentries - vq->vq_free_cnt);
 +	}
@@ -7552,6 +10496,7 @@ index 0000000..31f47d0
 +void
 +virtqueue_notify(struct virtqueue *vq)
 +{
++
 +	/* Ensure updated avail->idx is visible to host. */
 +	mb();
 +
@@ -7590,58 +10535,22 @@ index 0000000..31f47d0
 +virtqueue_enable_intr(struct virtqueue *vq)
 +{
 +
-+	/*
-+	 * Enable interrupts, making sure we get the latest
-+	 * index of what's already been consumed.
-+	 */
-+	vq->vq_ring.avail->flags &= ~VRING_AVAIL_F_NO_INTERRUPT;
-+	if (vq->vq_flags & VIRTQUEUE_FLAG_EVENT_IDX)
-+		vring_used_event(&vq->vq_ring) = vq->vq_used_cons_idx;
-+       else
-+	       vq->vq_ring.avail->flags &= ~VRING_AVAIL_F_NO_INTERRUPT;
-+
-+	mb();
-+
-+	/*
-+	 * Additional items may have been consumed in the time between
-+	 * since we last checked and enabled interrupts above. Let our
-+	 * caller know so it processes the new entries.
-+	 */
-+	if (vq->vq_used_cons_idx != vq->vq_ring.used->idx)
-+		return (1);
-+
-+	return (0);
++	return (vq_ring_enable_interrupt(vq, 0));
 +}
 +
 +int
 +virtqueue_postpone_intr(struct virtqueue *vq)
 +{
-+	uint16_t ndesc;
++	uint16_t ndesc, avail_idx;
 +
 +	/*
-+	 * Postpone until at least half of the available descriptors
-+	 * have been consumed.
-+	 *
-+	 * XXX Adaptive factor? (Linux uses 3/4)
++	 * Request the next interrupt be postponed until at least half
++	 * of the available descriptors have been consumed.
 +	 */
-+	ndesc = (uint16_t)(vq->vq_ring.avail->idx - vq->vq_used_cons_idx) / 2;
++	avail_idx = vq->vq_ring.avail->idx;
++	ndesc = (uint16_t)(avail_idx - vq->vq_used_cons_idx) / 2;
 +
-+	if (vq->vq_flags & VIRTQUEUE_FLAG_EVENT_IDX)
-+		vring_used_event(&vq->vq_ring) = vq->vq_used_cons_idx + ndesc;
-+	else
-+		vq->vq_ring.avail->flags &= ~VRING_AVAIL_F_NO_INTERRUPT;
-+
-+	mb();
-+
-+	/*
-+	 * Enough items may have already been consumed to meet our
-+	 * threshold since we last checked. Let our caller know so
-+	 * it processes the new entries.
-+	 */
-+	if (virtqueue_nused(vq) > ndesc)
-+		return (1);
-+
-+	return (0);
++	return (vq_ring_enable_interrupt(vq, ndesc));
 +}
 +
 +void
@@ -7914,6 +10823,32 @@ index 0000000..31f47d0
 +}
 +
 +static int
++vq_ring_enable_interrupt(struct virtqueue *vq, uint16_t ndesc)
++{
++
++	/*
++	 * Enable interrupts, making sure we get the latest index of
++	 * what's already been consumed.
++	 */
++	if (vq->vq_flags & VIRTQUEUE_FLAG_EVENT_IDX)
++		vring_used_event(&vq->vq_ring) = vq->vq_used_cons_idx + ndesc;
++	else
++		vq->vq_ring.avail->flags &= ~VRING_AVAIL_F_NO_INTERRUPT;
++
++	mb();
++
++	/*
++	 * Enough items may have already been consumed to meet our threshold
++	 * since we last checked. Let our caller know so it processes the new
++	 * entries.
++	 */
++	if (virtqueue_nused(vq) > ndesc)
++		return (1);
++
++	return (0);
++}
++
++static int
 +vq_ring_must_notify_host(struct virtqueue *vq)
 +{
 +	uint16_t new_idx, prev_idx, event_idx;
@@ -7959,7 +10894,9 @@ index 0000000..31f47d0
 +			dxp->ndescs--;
 +		}
 +	}
-+	VQASSERT(vq, dxp->ndescs == 0, "failed to free entire desc chain");
++
++	VQASSERT(vq, dxp->ndescs == 0,
++	    "failed to free entire desc chain, remaining: %d", dxp->ndescs);
 +
 +	/*
 +	 * We must append the existing free chain, if any, to the end of
@@ -7971,10 +10908,10 @@ index 0000000..31f47d0
 +}
 diff --git a/sys/dev/virtio/virtqueue.h b/sys/dev/virtio/virtqueue.h
 new file mode 100644
-index 0000000..eab57b2
+index 0000000..0296b8c
 --- /dev/null
 +++ b/sys/dev/virtio/virtqueue.h
-@@ -0,0 +1,99 @@
+@@ -0,0 +1,93 @@
 +/*-
 + * Copyright (c) 2011, Bryan Venteicher <bryanv@daemoninthecloset.org>
 + * All rights reserved.
@@ -8006,19 +10943,13 @@ index 0000000..eab57b2
 +#ifndef _VIRTIO_VIRTQUEUE_H
 +#define _VIRTIO_VIRTQUEUE_H
 +
-+#include <sys/types.h>
-+
 +struct virtqueue;
 +struct sglist;
 +
 +/* Support for indirect buffer descriptors. */
 +#define VIRTIO_RING_F_INDIRECT_DESC	(1 << 28)
 +
-+/* The guest publishes the used index for which it expects an interrupt
-+ * at the end of the avail ring. Host should ignore the avail->flags field.
-+ * The host publishes the avail index for which it expects a kick
-+ * at the end of the used ring. Guest should ignore the used->flags field.
-+ */
++/* Support to suppress interrupt until specific index is reached. */
 +#define VIRTIO_RING_F_EVENT_IDX		(1 << 29)
 +
 +/* Device callback for a virtqueue interrupt. */
@@ -8104,7 +11035,7 @@ index d61f785..d3e22af 100644
  _wpi=		wpi
 diff --git a/sys/modules/virtio/Makefile b/sys/modules/virtio/Makefile
 new file mode 100644
-index 0000000..9c9457a
+index 0000000..12846b2
 --- /dev/null
 +++ b/sys/modules/virtio/Makefile
 @@ -0,0 +1,28 @@
@@ -8133,7 +11064,7 @@ index 0000000..9c9457a
 +# SUCH DAMAGE.
 +#
 +
-+SUBDIR=	virtio pci network block balloon
++SUBDIR=	virtio pci network block balloon scsi
 +
 +.include <bsd.subdir.mk>
 diff --git a/sys/modules/virtio/balloon/Makefile b/sys/modules/virtio/balloon/Makefile
@@ -8222,7 +11153,7 @@ index 0000000..5df9eab
 +.include <bsd.kmod.mk>
 diff --git a/sys/modules/virtio/network/Makefile b/sys/modules/virtio/network/Makefile
 new file mode 100644
-index 0000000..8463309
+index 0000000..8463309c
 --- /dev/null
 +++ b/sys/modules/virtio/network/Makefile
 @@ -0,0 +1,36 @@
@@ -8304,6 +11235,48 @@ index 0000000..a58d64c
 +	dev/virtio/virtio_bus_if.m dev/virtio/virtio_if.m
 +
 +.include <bsd.kmod.mk>
+diff --git a/sys/modules/virtio/scsi/Makefile b/sys/modules/virtio/scsi/Makefile
+new file mode 100644
+index 0000000..640912f
+--- /dev/null
++++ b/sys/modules/virtio/scsi/Makefile
+@@ -0,0 +1,36 @@
++#
++# $FreeBSD$
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions
++# are met:
++# 1. Redistributions of source code must retain the above copyright
++#    notice, this list of conditions and the following disclaimer.
++# 2. Redistributions in binary form must reproduce the above copyright
++#    notice, this list of conditions and the following disclaimer in the
++#    documentation and/or other materials provided with the distribution.
++#
++# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
++# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
++# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
++# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
++# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
++# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
++# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
++# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
++# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
++# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
++# SUCH DAMAGE.
++#
++
++.PATH: ${.CURDIR}/../../../dev/virtio/scsi
++
++KMOD=	virtio_scsi
++SRCS=	virtio_scsi.c
++SRCS+=	virtio_bus_if.h virtio_if.h
++SRCS+=	bus_if.h device_if.h opt_scsi.h opt_cam.h
++
++MFILES=	kern/bus_if.m kern/device_if.m \
++	dev/virtio/virtio_bus_if.m dev/virtio/virtio_if.m
++
++.include <bsd.kmod.mk>
 diff --git a/sys/modules/virtio/virtio/Makefile b/sys/modules/virtio/virtio/Makefile
 new file mode 100644
 index 0000000..e8973c0
@@ -8348,6 +11321,3 @@ index 0000000..e8973c0
 +	dev/virtio/virtio_bus_if.m dev/virtio/virtio_if.m
 +
 +.include <bsd.kmod.mk>
--- 
-1.7.9.5
-
