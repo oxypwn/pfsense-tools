@@ -1541,7 +1541,7 @@ make_world() {
 		fi
 	fi
 
-	$HOST_ARCHITECTURE=`uname -m`
+	HOST_ARCHITECTURE=`uname -m`
 	if [ "${HOST_ARCHITECTURE}" = "${ARCH}" ]; then
 		export MAKE_CONF="${MAKE_CONF} WITHOUT_CROSS_COMPILER=yes"
 	fi
