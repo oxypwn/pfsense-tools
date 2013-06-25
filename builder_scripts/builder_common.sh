@@ -258,6 +258,11 @@ build_all_kernels() {
 		# Common fixup code
 		fixup_kernel_options
 		freesbie_make buildkernel
+
+		if [ -n "${SRC_CONF_INSTALL:-}" ]; then
+			export SRC_CONF=$SRC_CONF_INSTALL
+		fi
+
 		echo ">>> Installing $BUILD_KERNEL kernel..."
 		freesbie_make installkernel
 		ensure_kernel_exists $KERNEL_DESTDIR
@@ -1605,6 +1610,10 @@ make_world() {
 	fi
 
 	# EDGE CASE #3 libc_p.a  #########################################
+
+	if [ -n "${SRC_CONF_INSTALL:-}" ]; then
+		export SRC_CONF=$SRC_CONF_INSTALL
+	fi
 
 	# Invoke FreeSBIE's installworld
 	freesbie_make installworld
