@@ -6,6 +6,6 @@
 
 # Set extra before pfsense_local.sh will do
 # Add comconsole to the list
-export EXTRAPLUGINS="comconsole buildmodules customroot"
+export EXTRAPLUGINS="comconsole customroot"
 
 sh -x ./build_iso.sh

@@ -90,7 +90,7 @@ export PFSBUILDERREQUIREDPORTS=${PFSBUILDERREQUIREDPORTS:-${BUILDER_SCRIPTS}/con
 export FREESBIE_LABEL=${FREESBIE_LABEL:-${PRODUCT_NAME}}
 
 # IMPORTANT NOTE: Maintain the order of EXTRAPLUGINS freesbie plugins!
-export EXTRAPLUGINS="${EXTRAPLUGINS:-"customroot customscripts pkginstall buildmodules"}"
+export EXTRAPLUGINS="${EXTRAPLUGINS:-"customroot customscripts pkginstall"}"
 
 # Items beyond this must be defined after MAKEOBJDIRPREFIX!
 

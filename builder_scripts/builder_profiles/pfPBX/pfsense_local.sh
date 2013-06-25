@@ -61,7 +61,7 @@ export PFSPKGFILE=${PFSPKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfPBX
 
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
-export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
+export EXTRA="${EXTRA:-"customroot customscripts"}"
 
 # Extra modules that we want (FreeBSD)
 export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
