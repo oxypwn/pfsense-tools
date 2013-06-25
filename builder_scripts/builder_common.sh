@@ -1558,6 +1558,11 @@ make_world() {
 		fi
 	fi
 
+	$HOST_ARCHITECTURE=`uname -m`
+	if [ "${HOST_ARCHITECTURE}" = "${ARCH}" ]; then
+		export MAKE_CONF="${MAKE_CONF} WITHOUT_CROSS_COMPILER=yes"
+	fi
+
 	# Check to see if we have installed to $PFSENSEBASEDIR
 	ISINSTALLED=0
 	if [ -d ${PFSENSEBASEDIR} ]; then
