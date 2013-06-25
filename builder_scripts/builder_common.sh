@@ -1546,8 +1546,7 @@ make_world() {
 		export MAKE_CONF="${MAKE_CONF} WITHOUT_CROSS_COMPILER=yes"
 	fi
 
-	export LOCAL_DIRS="${LOCAL_DIRS} tools/tools/ath/athstats tools/tools/crypto"
-	export MAKE_CONF="${MAKE_CONF} LOCAL_DIRS='${LOCAL_DIRS} tools/tools/ath/athstats tools/tools/crypto'"
+	export MAKE_CONF="${MAKE_CONF} LOCAL_DIRS='tools/tools/ath/athstats tools/tools/crypto'"
 
 	# Invoke FreeSBIE's buildworld
 	freesbie_make buildworld
