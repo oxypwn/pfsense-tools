@@ -1556,7 +1556,7 @@ make_world() {
 		fi
 	fi
 
-	export LOCAL_DIRS="${LOCAL_DIRS} $SRCDIR/tools/tools/ath/athstats $SRCDIR/tools/tools/crypto"
+	export LOCAL_DIRS="${LOCAL_DIRS} tools/tools/ath/athstats tools/tools/crypto"
 
 	# Invoke FreeSBIE's buildworld
 	freesbie_make buildworld
