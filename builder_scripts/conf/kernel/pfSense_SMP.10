@@ -83,7 +83,6 @@ device		run		# Ralink RT2700U/RT2800U/RT3000U USB 802.11agn
 options         UNIONFS                 # Union filesystem
 
 options         IPFIREWALL_DEFAULT_TO_ACCEPT
-options         IPFIREWALL_FORWARD
 options         IPFIREWALL_VERBOSE
 options         IPFIREWALL_VERBOSE_LIMIT
 

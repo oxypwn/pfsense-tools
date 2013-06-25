@@ -294,7 +294,6 @@ device          gre
 #options        DUMMYNET
 #options        IPDIVERT
 options         IPFIREWALL_DEFAULT_TO_ACCEPT
-options         IPFIREWALL_FORWARD
 options         IPFIREWALL_VERBOSE
 options         IPFIREWALL_VERBOSE_LIMIT
 device		vlan
