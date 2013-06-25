@@ -152,7 +152,7 @@ fixup_kernel_options() {
 	fi
 
 	if [ -n "${MODULES_OVERRIDE:-}" ]; then
-		export MAKE_CONF="${MAKE_CONF} MODULES_OVERRIDE=\"${MODULES_OVERRIDE}\""
+		export MAKE_ENV="${MAKE_ENV} MODULES_OVERRIDE=\"${MODULES_OVERRIDE}\""
 	fi
 
 	# Create area where kernels will be copied on LiveCD
