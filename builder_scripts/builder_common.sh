@@ -144,13 +144,13 @@ fixup_kernel_options() {
 	# Do not remove or move support to freesbie2/scripts/installkernel.sh
 
 	# Cleanup self
-	find $MAKEOBJDIRPREFIX -name .done_$KERNCONF_buildkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_${KERNCONF}_buildkernel -exec rm {} \;
 	# If we have already installed kernels
 	# no need to build them again.
-	if [ "`find $MAKEOBJDIRPREFIX -name .done_$KERNCONF_installkernel | wc -l`" -gt 0 ]; then
+	if [ "`find $MAKEOBJDIRPREFIX -name .done_${KERNCONF}_installkernel | wc -l`" -gt 0 ]; then
 		export MAKE_CONF="${MAKE_CONF} NO_CLEAN=yes NO_KERNELCLEAN=yes"
 	fi
-	find $MAKEOBJDIRPREFIX -name .done_$KERNCONF_installkernel -exec rm {} \;
+	find $MAKEOBJDIRPREFIX -name .done_${KERNCONF}_installkernel -exec rm {} \;
 
 	if [ -d "$KERNEL_DESTDIR/boot" ]; then
 		rm -rf $KERNEL_DESTDIR/boot/*
