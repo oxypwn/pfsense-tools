@@ -156,6 +156,10 @@ fixup_kernel_options() {
 		rm -rf $KERNEL_DESTDIR/boot/*
 	fi
 
+	if [ -n "${MODULES_OVERRIDE:-}" ]; then
+		export MAKE_CONF="${MAKE_CONF} MODULES_OVERRIDE=\"${MODULES_OVERRIDE}\""
+	fi
+
 	# Create area where kernels will be copied on LiveCD
 	mkdir -p $PFSENSEBASEDIR/kernels/
 	# Make sure directories exist
