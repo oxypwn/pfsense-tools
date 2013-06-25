@@ -272,7 +272,7 @@ build_all_kernels() {
 		echo "done."
 
 		echo -n ">>> Installing kernels to staging area..."
-		KERNEL_INSTALLER_NAME=`sed 's/pfSense_//g' $BUILD_KERNEL`
+		KERNEL_INSTALLER_NAME=`echo ${BUILD_KERNEL} | sed 's/pfSense_//g'`
 		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_$KERNEL_INSTALLER_NAME.gz .)
 		echo -n "."
 		chflags -R noschg $PFSENSEBASEDIR/boot/
