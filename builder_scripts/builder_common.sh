@@ -1546,17 +1546,8 @@ make_world() {
 		export MAKE_CONF="${MAKE_CONF} WITHOUT_CROSS_COMPILER=yes"
 	fi
 
-	# Check to see if we have installed to $PFSENSEBASEDIR
-	ISINSTALLED=0
-	if [ -d ${PFSENSEBASEDIR} ]; then
-		ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name init | wc -l`
-		if [ "$ISINSTALLED" -gt 0 ]; then
-			touch ${MAKEOBJDIRPREFIX}/.done_installworld
-			export NO_INSTALLWORLD=yo
-		fi
-	fi
-
 	export LOCAL_DIRS="${LOCAL_DIRS} tools/tools/ath/athstats tools/tools/crypto"
+	export MAKE_CONF="${MAKE_CONF} LOCAL_DIRS='${LOCAL_DIRS} tools/tools/ath/athstats tools/tools/crypto'"
 
 	# Invoke FreeSBIE's buildworld
 	freesbie_make buildworld
