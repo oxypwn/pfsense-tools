@@ -85,21 +85,6 @@ post_tweet() {
 	echo "Done!"
 }
 
-# This routine handles the athstats directory since it lives in
-# SRCDIR/tools/tools/ath/athstats and changes from various freebsd
-# versions which makes adding this to pfPorts difficult.
-handle_tools_stats_crypto() {
-	echo -n ">>> Building athstats..."
-	cd $SRCDIR/tools/tools/ath/athstats
-	(make clean && make && make install) | egrep -wi '(^>>>|error)'
-	echo "Done!" 	
-	echo -n ">>> Building tools/crytpo..."
-	cd $SRCDIR/tools/tools/crypto/
-	(make clean && make && make install) | egrep -wi '(^>>>|error)'
-	echo "Done!"
-
-}
-
 # This routine will output that something went wrong
 print_error_pfS() {
 	echo
@@ -366,9 +351,7 @@ recompile_pfPorts() {
 			fi
 		fi
 
-		handle_tools_stats_crypto
-
-		if [ "$1" = "" ] || [ "$1" = "athstats" ]; then
+		if [ "$1" = "" ]; then
 			touch /tmp/pfSense_do_not_build_pfPorts
 			echo "==> End of pfPorts..."
 		fi
@@ -1572,6 +1555,8 @@ make_world() {
 			export NO_INSTALLWORLD=yo
 		fi
 	fi
+
+	export LOCAL_DIRS="${LOCAL_DIRS} $SRCDIR/tools/tools/ath/athstats $SRCDIR/tools/tools/crypto"
 
 	# Invoke FreeSBIE's buildworld
 	freesbie_make buildworld
