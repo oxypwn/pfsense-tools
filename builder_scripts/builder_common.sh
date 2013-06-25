@@ -1600,12 +1600,12 @@ make_world() {
 	# EDGE CASE #2 yp.h ##############################################
 	# Ensure yp.h is built, this commonly has issues for some
 	# reason on subsequent build runs and results in file not found.
-	if [ ! -f $MAKEOBJDIRPREFIX/$SRCDIR/include/rpcsvc/yp.h ]; then
-		rm -rf $MAKEOBJDIRPREFIX/$SRCDIR/lib/libc
-		(cd $SRCDIR/lib/libc && env TARGET_ARCH=${ARCH} \
-			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
-			NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
-	fi
+	#if [ ! -f $MAKEOBJDIRPREFIX/$SRCDIR/include/rpcsvc/yp.h ]; then
+	#	rm -rf $MAKEOBJDIRPREFIX/$SRCDIR/lib/libc
+	#	(cd $SRCDIR/lib/libc && env TARGET_ARCH=${ARCH} \
+	#		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
+	#		NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
+	#fi
 
 	# EDGE CASE #3 libc_p.a  #########################################
 
