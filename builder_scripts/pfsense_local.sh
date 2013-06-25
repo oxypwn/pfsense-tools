@@ -86,6 +86,7 @@ export SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 export PFSPKGFILE=${PFSPKGFILE:-/tmp/pfspackages}
+export PFSBUILDERREQUIREDPORTS=${PFSBUILDERREQUIREDPORTS:-${BUILDER_SCRIPTS}/conf/pfPorts/builder_required_ports}
 export FREESBIE_LABEL=${FREESBIE_LABEL:-${PRODUCT_NAME}}
 
 # IMPORTANT NOTE: Maintain the order of EXTRAPLUGINS freesbie plugins!

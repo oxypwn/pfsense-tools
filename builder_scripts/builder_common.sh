@@ -2961,34 +2961,28 @@ install_required_builder_system_ports() {
 		(/usr/sbin/portsnap extract) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		echo "Done!"
 	fi
-# Local binary						# Path to port
-	NEEDED_INSTALLED_PKGS="\
-/usr/local/bin/mkisofs				/usr/ports/sysutils/cdrtools
-/usr/local/bin/fastest_cvsup			/usr/ports/sysutils/fastest_cvsup
-/usr/local/lib/libpcre.so.3			/usr/ports/devel/pcre
-/usr/local/bin/curl				/usr/ports/ftp/curl
-/usr/local/bin/rsync				/usr/ports/net/rsync
-/usr/local/bin/cpdup				/usr/ports/sysutils/cpdup
-/usr/local/bin/git				/usr/ports/devel/git
-/usr/local/bin/screen				/usr/ports/sysutils/screen
-"
-	oIFS=$IFS
+
+	OIFS=$IFS
 	IFS="
 "
-	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do			
-		PKG_STRING_T=`echo $PKG_STRING | sed "s/		/	/g"`
+
+	for PKG_STRING in `cat ${PFSBUILDERREQUIREDPORTS}`
+	do
+		PKG_STRING_T=`echo $PKG_STRING | sed "s/[ ]+/ /g"`
 		CHECK_ON_DISK=`echo $PKG_STRING_T | awk '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING_T | awk '{ print $2 }'`
+		echo " $PKG_STRING_T -  $CHECK_ON_DISK and $PORT_LOCATION!"
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
 			(cd $PORT_LOCATION && make BATCH=yes deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes ) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			(cd $PORT_LOCATION && make OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes WITHOUT_GUI=yes install) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes WITHOUT_GUI=yes clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			echo "Done!"
 		fi
 	done
 
-	IFS=$oIFS
+	IFS=$OIFS
 }
 
 # Updates FreeBSD sources and applies any custom
