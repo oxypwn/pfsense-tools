@@ -151,10 +151,6 @@ fixup_kernel_options() {
 		rm -rf $KERNEL_DESTDIR/boot/*
 	fi
 
-	if [ -n "${MODULES_OVERRIDE:-}" ]; then
-		export MAKE_ENV="${MAKE_ENV} MODULES_OVERRIDE=\"${MODULES_OVERRIDE}\""
-	fi
-
 	# Create area where kernels will be copied on LiveCD
 	mkdir -p $PFSENSEBASEDIR/kernels/
 	# Make sure directories exist
@@ -252,14 +248,21 @@ build_all_kernels() {
 
 		# Common fixup code
 		fixup_kernel_options
-		freesbie_make buildkernel
+		export SRC_CONF=${SRC_CONF}
+		#freesbie_make buildkernel
+		buildkernel
 
+		OSRC_CONF=${SRC_CONF}
 		if [ -n "${SRC_CONF_INSTALL:-}" ]; then
 			export SRC_CONF=$SRC_CONF_INSTALL
 		fi
 
 		echo ">>> Installing $BUILD_KERNEL kernel..."
-		freesbie_make installkernel
+		#freesbie_make installkernel
+		installkernel
+
+		SRC_CONF=${OSRC_CONF}
+
 		ensure_kernel_exists $KERNEL_DESTDIR
 
 		# Nuke symbols
@@ -276,7 +279,7 @@ build_all_kernels() {
 		echo "done."
 
 		echo -n ">>> Installing kernel to staging area..."
-		KERNEL_INSTALLER_NAME=`echo ${BUILD_KERNEL} | sed 's/pfSense_\(.*\)\.\([0-9]*\)/\1/g'`
+		KERNEL_INSTALLER_NAME=`echo ${BUILD_KERNEL} | sed 's/pfSense_\(.*\)\.\([0-9]*\)\(.*\)/\1/g'`
 		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_$KERNEL_INSTALLER_NAME.gz .)
 		echo -n "."
 		chflags -R noschg $PFSENSEBASEDIR/boot/
@@ -1606,12 +1609,15 @@ make_world() {
 
 	# EDGE CASE #3 libc_p.a  #########################################
 
+	OSRC_CONF=${SRC_CONF}
 	if [ -n "${SRC_CONF_INSTALL:-}" ]; then
 		export SRC_CONF=$SRC_CONF_INSTALL
 	fi
 
 	# Invoke FreeSBIE's installworld
 	freesbie_make installworld
+
+	SRC_CONF=${OSRC_CONF}
 
 	# Ensure home directory exists
 	mkdir -p $PFSENSEBASEDIR/home
@@ -3481,9 +3487,18 @@ buildworld() {
 	    echo "+++ NO_BUILDWORLD set, skipping build" | tee -a ${LOGFILE}
 	    return
 	fi
+
+	# Set LOGFILE. If it's a tmp file, schedule for deletion
+	if [ -z "${LOGFILE}" ]; then
+		LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
+	fi
+
+	if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
+		export MAKE_CONF="${MAKE_CONF} MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
+	fi
 	echo ">>> Building world for ${ARCH} architecture..."
 	cd $SRCDIR
-	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} TARGET=${ARCH} NO_CLEAN=yes"
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} buildworld" > /tmp/freesbie_buildworld_cmd.txt
 	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} buildworld || print_error_pfS;) | egrep '^>>>'
 	cd $BUILDER_SCRIPTS
@@ -3491,24 +3506,25 @@ buildworld() {
 
 # Imported from FreeSBIE
 installworld() {
+
+	if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
+		export MAKE_CONF="${MAKE_CONF} MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
+	fi
+
+	# Set LOGFILE. If it's a tmp file, schedule for deletion
+	if [ -z "${LOGFILE}" ]; then
+		LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
+	fi
+
 	echo ">>> Installing world for ${ARCH} architecture..."
 	cd $SRCDIR
 	# Set SRC_CONF variable if it's not already set.
-	if [ -z "${SRC_CONF:-}" ]; then
-	    if [ -n "${MINIMAL:-}" ]; then
-			SRC_CONF=${LOCALDIR}/conf/src/src.conf.minimal
-	    else
-			SRC_CONF=${LOCALDIR}/conf/src/src.conf
-	    fi
-	fi
 	mkdir -p ${BASEDIR}
 	cd ${SRCDIR}
-	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR} TARGET=${ARCH}"
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installworld" > /tmp/freesbie_installworld_cmd.txt
 	# make installworld
 	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installworld || print_error_pfS;) | egrep '^>>>'
-	makeargs="${MAKEOPT:-} SRCCONF=${SRC_CONF} MODULES_OVERRIDE=${MODULES_OVERRIDE:-} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
-	set +e
 	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} distribution"  > /tmp/freesbie_installworld_distribution_cmd.txt
 	# make distribution
 	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} distribution || print_error_pfS;) | egrep '^>>>'
@@ -3525,22 +3541,16 @@ buildkernel() {
 	    export KERNCONFDIR=${LOCALDIR}/conf/${ARCH}
 	    export KERNCONF="FREESBIE"
 	fi
-	if [ -z "${WITH_DTRACE:-}" ]; then
-		DTRACE=""
-	else
-		DTRACE=" WITH_CTF=1"
-	fi
 	SRCCONFBASENAME=`basename ${SRC_CONF}`
 	echo ">>> KERNCONFDIR: ${KERNCONFDIR}"
 	echo ">>> ARCH:        ${ARCH}"
 	echo ">>> SRC_CONF:    ${SRCCONFBASENAME}"
-	if [ "$DTRACE" != "" ]; then
-		echo ">>> DTRACE:      ${DTRACE}"
-	fi
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} MODULES_OVERRIDE=${MODULES_OVERRIDE:-} TARGET_ARCH=${ARCH} ${DTRACE}"
-	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make $makeargs buildkernel" > /tmp/freesbie_buildkernel_cmd.txt
+
+	LOGFILE="/tmp/kernel.${KERNCONF}.log"
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
+	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make $makeargs buildkernel KERNCONF=${KERNCONF} NO_KERNELCLEAN=yo" > /tmp/freesbie_buildkernel_cmd.txt
 	cd $SRCDIR
-	(env $MAKE_CONF script -aq $LOGFILE make $makeargs buildkernel NO_KERNELCLEAN=yo || print_error_pfS;) | egrep '^>>>'
+	(env $MAKE_CONF script -q $LOGFILE make $makeargs buildkernel KERNCONF=${KERNCONF} NO_KERNELCLEAN=yo || print_error_pfS;) | egrep '^>>>'
 	cd $BUILDER_SCRIPTS
 
 }
@@ -3548,7 +3558,6 @@ buildkernel() {
 # Imported from FreeSBIE
 installkernel() {
 	# Set SRC_CONF variable if it's not already set.
-	cd $SRCDIR
 	if [ -n "${KERNELCONF:-}" ]; then
 	    export KERNCONFDIR=$(dirname ${KERNELCONF})
 	    export KERNCONF=$(basename ${KERNELCONF})
@@ -3557,15 +3566,11 @@ installkernel() {
 	    export KERNCONF="FREESBIE"
 	fi
 	mkdir -p ${BASEDIR}/boot
-	cd ${SRCDIR}
-	if [ -z "${WITH_DTRACE:-}" ]; then
-		DTRACE=""
-	else
-		DTRACE=" WITH_CTF=1"
-	fi
+	LOGFILE="/tmp/kernel.${KERNCONF}.log"
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${KERNEL_DESTDIR}"
-	echo ">>> FreeSBIe2 is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
-	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel || print_error_pfS;) | egrep '^>>>'
+	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
+	cd ${SRCDIR}
+	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel KERNCONF=${KERNCONF} || print_error_pfS;) | egrep '^>>>'
 	echo ">>> Executing cd $KERNEL_DESTDIR/boot/kernel"
 	gzip -f9 $KERNEL_DESTDIR/boot/kernel/kernel
 	cd $BUILDER_SCRIPTS
