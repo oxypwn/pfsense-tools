@@ -109,6 +109,13 @@ version=`cat $CVS_CO_DIR/etc/version`
 echo ">>> Building world for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 make_world
 
+if [ -n "${NANO_WITH_VGA}" ]; then
+        _VGA="_vga"
+        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}}
+else
+        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap.${FREEBSD_VERSION}.${ARCH}}
+fi
+
 # Build kernels
 echo ">>> Building kernel configs: $BUILD_KERNELS for FreeBSD: $FREEBSD_BRANCH ..."
 build_all_kernels
@@ -204,10 +211,6 @@ if [ "${DATESTRING}" = "" ]; then
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-fi
-
-if [ -n "${NANO_WITH_VGA}" ]; then
-	_VGA="_vga"
 fi
 
 gzip -f $MAKEOBJDIRPREFIXFINAL/nanobsd${_VGA}.full.img

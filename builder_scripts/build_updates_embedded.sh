@@ -59,6 +59,13 @@ update_cvs_depot
 # Use pfSense_wrap.6 as kernel configuration file
 export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.${FREEBSD_VERSION}"
 
+if [ -n "${NANO_WITH_VGA}" ]; then
+        _VGA="_vga"
+        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}}
+else
+        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap.${FREEBSD_VERSION}.${ARCH}}
+fi
+
 # Calculate versions
 export version_kernel=`cat $CVS_CO_DIR/etc/version_kernel`
 version_base=`cat $CVS_CO_DIR/etc/version_base`

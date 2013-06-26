@@ -89,6 +89,7 @@ make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
 echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_SMP.${FREEBSD_VERSION}}
 build_all_kernels
 
 # Nuke the boot directory
