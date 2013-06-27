@@ -242,9 +242,11 @@ build_all_kernels() {
 		unset KERNCONF
 		unset KERNEL_DESTDIR
 		unset KERNELCONF
+		unset KERNEL_NAME
 		export KERNCONF=$BUILD_KERNEL
 		export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/$BUILD_KERNEL"
 		export KERNELCONF="${TARGET_ARCH_CONF_DIR}/$BUILD_KERNEL"
+		export KERNEL_NAME=`echo ${BUILD_KERNEL} | sed -e 's/pfSense_//; s/\.[0-9].*$//'`
 
 		# Common fixup code
 		fixup_kernel_options
@@ -279,7 +281,7 @@ build_all_kernels() {
 		echo "done."
 
 		echo -n ">>> Installing kernel to staging area..."
-		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_$BUILD_KERNEL.gz .)
+		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz .)
 		echo -n "."
 
 		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_$DEFAULT_KERNEL.gz -C $PFSENSEBASEDIR/boot/)
