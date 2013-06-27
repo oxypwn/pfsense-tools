@@ -284,9 +284,11 @@ build_all_kernels() {
 		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz .)
 		echo -n "."
 
-		(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_$DEFAULT_KERNEL.gz -C $PFSENSEBASEDIR/boot/)
+		if [ "${BUILD_KERNEL}" = "${DEFAULT_KERNEL}" ]; then
+			(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz -C $PFSENSEBASEDIR/boot/)
 
-		chflags -R noschg $PFSENSEBASEDIR/boot/
+			chflags -R noschg $PFSENSEBASEDIR/boot/
+		fi
 		echo ".done"
 	done
 }
