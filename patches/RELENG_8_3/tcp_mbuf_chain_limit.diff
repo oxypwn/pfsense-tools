@@ -73,9 +73,9 @@
 -			TCPSTAT_INC(tcps_sndpack);
 -			TCPSTAT_ADD(tcps_sndbyte, len);
 -		}
- 		MGETHDR(m, M_DONTWAIT, MT_DATA);
- 		if (m == NULL) {
- 			SOCKBUF_UNLOCK(&so->so_snd);
+ #ifdef notyet
+		if ((m = m_copypack(so->so_snd.sb_mb, off,
+		    (int)len, max_linkhdr + hdrlen)) == 0) {
 @@ -847,7 +838,8 @@
  			    mtod(m, caddr_t) + hdrlen);
  			m->m_len += len;
