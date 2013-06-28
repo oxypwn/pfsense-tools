@@ -286,6 +286,8 @@ build_nano() {
 	fi
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
+	# Unset the default kernel variable since it will be picked up by the script itself
+	unset $DEFAULT_KERNEL
 	./build_nano.sh
 }
 
@@ -295,6 +297,8 @@ rebuild_nano() {
 		return
 	fi
 	cd $BUILDERSCRIPTS
+	# Unset the default kernel variable since it will be picked up by the script itself
+	unset $DEFAULT_KERNEL
 	./build_resized_nano.sh $1
 }
 
