@@ -285,6 +285,12 @@ build_all_kernels() {
 		echo -n "."
 
 		if [ "${BUILD_KERNEL}" = "${DEFAULT_KERNEL}" ]; then
+			# If something is missing complain
+			if [ ! -f $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz ]; then
+				echo "The kernel archive($PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz) to install as default does not exist"
+				print_error_pfS
+			fi
+				
 			(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz -C $PFSENSEBASEDIR/boot/)
 
 			chflags -R noschg $PFSENSEBASEDIR/boot/
