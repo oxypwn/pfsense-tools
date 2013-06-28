@@ -32,6 +32,7 @@
 
 #include <net/if.h>
 #include <net/pfvar.h>
+#include <net/ethernet.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netinet/ip_fw.h>
@@ -271,6 +272,47 @@ add_table_entry(struct thread_data *thrdata, struct sockaddr *addr, int forceupd
 }
 
 static int
+filterdns_check_sameip_diff_hostname(struct thread_data *thread, struct table *ip)
+{
+	struct thread_data *thr;
+	struct table *e;
+
+	if (TAILQ_EMPTY(&thread_list))
+		return (0);
+	if (thread->tablename == NULL)
+		return (0);
+
+	TAILQ_FOREACH(thr, &thread_list, next) {
+		/* Same thread! */
+		if (thr->thr_pid == thread->thr_pid)
+			continue;
+#if 0
+		if (!strncmp(thr->hostname, thread->hostname, strlen(thr->hostname)))
+			continue;
+		if (strlen(thr->hostname) != strlen(thread->hostname))
+			continue;
+#endif
+		if (thr->tablename == NULL)
+			continue;
+		if (strlen(thr->tablename) != strlen(thread->tablename))
+			continue;
+		if (strncmp(thr->tablename, thread->tablename, strlen(thr->tablename)))
+			continue;
+
+		TAILQ_FOREACH(e, &thread->rnh, entry) {
+			if (e->addr->sa_family != ip->addr->sa_family)
+				continue;
+			if (!memcmp(ip->addr, e->addr, ip->addr->sa_len)) {
+				syslog(LOG_INFO, "Different hostnames(%s - %s) resolve to same ip address", thread->hostname, thr->hostname);
+				return (EEXIST);
+			}
+		}
+	}
+
+	return (0);
+}
+
+static int
 filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 {
 	struct table *e, *tmp;
@@ -284,6 +326,10 @@ filterdns_clean_table(struct thread_data *thrdata, int donotcheckrefcount)
 	TAILQ_FOREACH_SAFE(e, &thrdata->rnh, entry, tmp) {
 		e->refcnt--;
 		if (donotcheckrefcount || (e->refcnt <= 0)) {
+			/* If 2 dns names have same ip do not do any operation */
+			if (filterdns_check_sameip_diff_hostname(thrdata, e) == EEXIST)
+				continue;
+
 			error = 0;
 			if (thrdata->type == PF_TYPE) {
 				if(e->addr->sa_family == AF_INET)
@@ -590,17 +636,25 @@ void *check_hostname(void *arg)
 		ts.tv_sec += (interval % 30);
 		ts.tv_nsec = 0;
 
-		pthread_rwlock_rdlock(&main_lock);
-
-		if (thrd->exit == 1) {
-			pthread_rwlock_unlock(&main_lock);
-			break;
-		} else if (thrd->exit == 2) {
-			tmp = 1;
-			thrd->exit = 0;
+		if (dev < 0) {
+			dev = open("/dev/pf", O_RDWR);
+			if (dev < 0)
+				syslog(LOG_ERR, "firewall device could not be opened for operation...skipping this time");
 		}
 
-		host_dns(thrd, tmp);
+		if (dev > 0) {
+			pthread_rwlock_rdlock(&main_lock);
+
+			if (thrd->exit == 1) {
+				pthread_rwlock_unlock(&main_lock);
+				break;
+			} else if (thrd->exit == 2) {
+				tmp = 1;
+				thrd->exit = 0;
+			}
+
+			host_dns(thrd, tmp);
+		}
 
 		pthread_rwlock_unlock(&main_lock);
 		/* Hack for sleeping a thread */

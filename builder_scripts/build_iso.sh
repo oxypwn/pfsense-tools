@@ -48,8 +48,8 @@ fi
 
 # Define src.conf
 if [ -z "${SRC_CONF:-}" ]; then
-	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION"
-	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION.install"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION.install"
 fi
 
 # Add etcmfs and rootmfs to the EXTRAPLUGINS plugins used by freesbie2
@@ -59,9 +59,11 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION ..."
-	export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"
+	echo ">>> Using ${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION ..."
+	export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION"
 fi
+
+export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_SMP.8}
 
 # This should be run first
 launch
@@ -110,11 +112,11 @@ echo ">>> Preparing object directory..."
 freesbie_make obj
 
 # Build world, kernel and install
-echo ">>> Building world and kernels for ISO... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+echo ">>> Building world for ISO... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 make_world
 
-# Build SMP, Embedded (wrap) and Developers edition kernels
-echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+# Build kernels
+echo ">>> Building kernel configs: $BUILD_KERNELS for FreeBSD: $FREEBSD_BRANCH ..."
 build_all_kernels
 
 # Check for freesbie builder issues
@@ -205,10 +207,7 @@ create_md5_summary_file
 setup_tcshrc_prompt
 
 # Setup serial port helper hints
-if [ "$FBSD_VERSION" = "8" ]; then
-	setup_serial_hints
-fi
-if [ "$FBSD_VERSION" = "9" ]; then
+if [ "$FBSD_VERSION" -gt "7" ]; then
 	setup_serial_hints
 fi
 

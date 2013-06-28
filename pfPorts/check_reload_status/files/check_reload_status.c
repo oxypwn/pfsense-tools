@@ -257,7 +257,7 @@ run_command(struct command *cmd, char *argv) {
 
 	command = calloc(1, sizeof(*command));
 	if (command == NULL) {
-		syslog(LOG_ERR, "Calloc failure for command %s", cmd);
+		syslog(LOG_ERR, "Calloc failure for command %s", argv);
 		return;
 	}
 
@@ -283,7 +283,7 @@ run_command(struct command *cmd, char *argv) {
 
 	switch (cmd->type) {
 	case NON:
-		syslog(LOG_NOTICE, cmd->cmd.syslog);
+		syslog(LOG_NOTICE, "%s", cmd->cmd.syslog);
 		break;
 	case COMPOUND: /* XXX: Should never happen. */
 		syslog(LOG_ERR, "trying to execute COMPOUND entry!!! Please report it.");
@@ -513,7 +513,7 @@ int main(void) {
         if (listen(fd, 30) == -1) {
                 printf("control_listen: listen");
 		close(fd);
-                return;
+                return (-1);
         }
 
 	/* 0666 */
@@ -530,7 +530,7 @@ int main(void) {
 	event_add(&ev, NULL);
 	event_dispatch();
 
-	return;
+	return (0);
 error:
 	syslog(LOG_NOTICE, "check_reload_status is stopping.");
 

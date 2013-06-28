@@ -44,7 +44,7 @@ export SKIP_RSYNC=yo
 sh -x ./build_updates.sh
 
 # Build developer ISO
-sh -x ./build_deviso.sh
+sh -x ./build_iso.sh
 
 # Build embedded image
 sh -x ./build_embedded.sh

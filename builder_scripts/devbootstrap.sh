@@ -45,10 +45,6 @@ echo ">>> Starting the pfSense builder setup in 15 seconds..."
 DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
 CPUS=`expr $DCPUS '*' 2`
 echo ">>> Detected CPUs * 2: $CPUS"
-
-echo WITHOUT_X11="yo" > /etc/make.conf
-echo BATCH="yo" >> /etc/make.conf
-echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 echo clear_tmp_enable="YES" >> /etc/rc.conf
 
 echo ""
@@ -134,7 +130,7 @@ cd /home/pfsense/tools/pfPorts && ./buildports.RELENG_2_0
 
 # Tidy up installer
 /bin/rm -rf /home/pfsense/installer
-cd /home/pfsense/tools/builder_scripts && ./get_bsdinstaller.sh ; ./rebuild_bsdinstaller.sh
+cd /home/pfsense/tools/builder_scripts && ./scripts/get_bsdinstaller.sh ; ./scripts/rebuild_bsdinstaller.sh
 
 # We should be done!
 echo ">>> Environment is complete. Building ISO..."

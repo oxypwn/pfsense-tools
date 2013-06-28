@@ -64,7 +64,7 @@ get_pfsense_version() {
 }
 
 print_flags_menu() {
-	./print_builder_variables.sh
+	./scripts/print_builder_variables.sh
 }
 
 while [ /bin/true ]; do
@@ -146,10 +146,6 @@ Choose the option you would like:" -1 -1 9 \
 		clear
 		./build_iso.sh
 		;;
-		"Build DevISO")
-		clear
-		./build_deviso.sh
-		;;
 		"Build NanoBSD")
 		clear
 		./build_nano.sh
@@ -213,8 +209,8 @@ Choose the option you would like:" -1 -1 9 \
 		;;
 		"Rebuild BSDInstaller")
 		clear
-		./get_bsdinstaller.sh
-		./rebuild_bsdinstaller.sh
+		./scripts/get_bsdinstaller.sh
+		./scripts/rebuild_bsdinstaller.sh
 		;;
 		"Reset builder")
 		clear
@@ -222,11 +218,11 @@ Choose the option you would like:" -1 -1 9 \
 		;;
 		"Enable memory backing")
 		clear
-		./enable_memory_disks.sh
+		./scripts/enable_memory_disks.sh
 		;;
 		"Disable memory backing")
 		clear
-		./disable_memory_disks.sh
+		./scripts/disable_memory_disks.sh
 		;;
 		"Update FreeBSD ports")
 		clear

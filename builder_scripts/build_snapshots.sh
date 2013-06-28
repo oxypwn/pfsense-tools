@@ -233,12 +233,6 @@ build_ova() {
 	copy_staging_ova
 }
 
-build_deviso() {
-	cd $BUILDERSCRIPTS
-	./clean_build.sh
-	./build_deviso.sh
-}
-
 build_embedded() {
 	cd $BUILDERSCRIPTS 
 	rm -rf /usr/obj*
@@ -292,11 +286,7 @@ build_nano() {
 	fi
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
-	if [ -z "${NANO_WITH_VGA}" ]; then
-		./build_nano.sh
-	else
-		./build_nano.sh -g
-	fi
+	./build_nano.sh
 }
 
 rebuild_nano() {
@@ -382,6 +372,8 @@ dobuilds() {
 	copy_to_staging_iso_updates
 	# Build nanobsd
 	donanobuilds
+	# Unset the default kernel variable since it will be picked up by the script itself
+	unset $DEFAULT_KERNEL
 	# Do the NanoBSD+VGA builds too
 	export NANO_WITH_VGA=yes
 	donanobuilds

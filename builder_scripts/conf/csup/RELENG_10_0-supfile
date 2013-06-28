@@ -1,0 +1,7 @@
+*default base=/var/db
+*default prefix=/usr/pfSensesrc
+*default release=cvs
+*default delete use-rel-suffix
+*default compress
+date=2107.06.24.00.00.00
+src-all

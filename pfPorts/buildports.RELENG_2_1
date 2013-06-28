@@ -17,7 +17,7 @@ fi
 PFPORTSDIR=`dirname $0`
 
 # Individual logs here
-mkdir -p /tmp/pfPort
+mkdir -p /tmp/pfPort/buildlogs
 
 BUILD_ONEPORT=""
 MAKEJ_PORTS=""
@@ -153,7 +153,8 @@ radvd				/usr/ports/net/radvd				/usr/local/sbin/radvd
 ca_root_nss			/usr/ports/security/ca_root_nss			/usr/local/share/certs/ca-root-nss.crt
 bsnmp-ucd			/usr/ports/net-mgmt/bsnmp-ucd			/usr/local/lib/snmp_ucd.so
 bsnmp-regex			/usr/ports/net-mgmt/bsnmp-regex			/usr/local/lib/snmp_regex.so
-ipfw_context			/usr/ports/net/ipfw_context			/usr/local/sbin/ipfw_context"
+ipfw_context			/usr/ports/net/ipfw_context			/usr/local/sbin/ipfw_context
+svnup				/usr/ports/net/svnup				/usr/local/bin/svnup"
 
 clean_make_install() {
 	# Architecture, supported ARCH values are:
@@ -213,11 +214,11 @@ clean_make_install() {
 		fi
 	fi
 
-	if ! script /tmp/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes NOPORTDOCS=yes clean build install clean </dev/null 2>&1 1>/dev/null; then
+	if ! script /tmp/pfPort/buildlogs/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} WITHOUT_X11=yes BATCH=yes FORCE_PKG_REGISTER=yes NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes NOPORTDOCS=yes OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" clean build install clean </dev/null 2>&1 1>/dev/null; then
 		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
-		echo "Failed to build. Error log in /tmp/$_PORTNAME."
+		echo "Failed to build. Error log in /tmp/pfPort/buildlogs/$_PORTNAME."
 	else
-		mv /tmp/$_PORTNAME /tmp/pfPort/$PKGNAME
+		mv /tmp/pfPort/buildlogs/$_PORTNAME /tmp/pfPort/$PKGNAME
 		echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
 		echo "Done."
 	fi

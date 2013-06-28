@@ -17,7 +17,7 @@ fi
 PFPORTSDIR=`dirname $0`
 
 # Individual logs here
-mkdir -p /tmp/pfPort
+mkdir -p /tmp/pfPort/buildlogs
 
 BUILD_ONEPORT=""
 MAKEJ_PORTS=""
@@ -76,7 +76,7 @@ miniupnpd					/usr/ports/net/miniupnpd					/usr/local/sbin/miniupnpd
 mpd4						/usr/ports/net/mpd4							/usr/local/sbin/mpd4
 mpd5						/usr/ports/net/mpd5							/usr/local/sbin/mpd5
 olsrd						/usr/ports/net/olsrd						/usr/local/sbin/olsrd
-pftop						/usr/ports/sysutils/pftop					/usr/local/sbin/pftop
+pftop-2.0					/usr/ports/sysutils/pftop-2.0					/usr/local/sbin/pftop
 libevent					/usr/ports/devel/libevent					/usr/local/lib/libevent.so
 relayd						/usr/ports/net/relayd						/usr/local/sbin/relayd
 fping						/usr/ports/net/fping						/usr/local/sbin/fping
@@ -207,11 +207,11 @@ clean_make_install() {
 		fi
 	fi
 
-	if ! script /tmp/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes clean build install clean </dev/null 2>&1 1>/dev/null; then
+	if ! script /tmp/pfPort/buildlogs/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes NOPORTDOCS=yes OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" clean build install clean </dev/null 2>&1 1>/dev/null; then
 		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
-		echo "Failed to build. Error log in /tmp/$_PORTNAME."
+		echo "Failed to build. Error log in /tmp/pfPort/buildlogs/$_PORTNAME."
 	else
-		mv /tmp/$_PORTNAME /tmp/pfPort/$PKGNAME
+		mv /tmp/pfPort/buildlogs/$_PORTNAME /tmp/pfPort/$PKGNAME
 		echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
 		echo "Done."
 	fi

@@ -1,0 +1,68 @@
+diff --git a/sbin/ifconfig/ifpfsync.c b/sbin/ifconfig/ifpfsync.c
+index 0af89e2..2b55f95 100644
+--- a/sbin/ifconfig/ifpfsync.c
++++ b/sbin/ifconfig/ifpfsync.c
+@@ -203,7 +203,8 @@ pfsync_status(int s)
+ 	if (preq.pfsyncr_syncdev[0] != '\0' ||
+ 	    preq.pfsyncr_syncpeer.s_addr != INADDR_PFSYNC_GROUP) {
+ 		printf("maxupd: %d ", preq.pfsyncr_maxupdates);
+-		printf("defer: %s\n", preq.pfsyncr_defer ? "on" : "off");
++		printf("defer: %s\n", (preq.pfsyncr_defer & PFSYNCF_DEFER) ? "on" : "off");
++		printf("syncok: %d\n", (preq.pfsyncr_defer & PFSYNCF_OK) ? 1 : 0);
+ 	}
+ }
+ 
+diff --git a/sys/net/if_pfsync.h b/sys/net/if_pfsync.h
+index 29d4b23..570f9bd 100644
+--- a/sys/net/if_pfsync.h
++++ b/sys/net/if_pfsync.h
+@@ -246,6 +246,9 @@ struct pfsyncreq {
+ 	char		 pfsyncr_syncdev[IFNAMSIZ];
+ 	struct in_addr	 pfsyncr_syncpeer;
+ 	int		 pfsyncr_maxupdates;
++#define PFSYNCF_OK              0x00000001
++#define PFSYNCF_DEFER           0x00000002
++#define PFSYNCF_PUSH            0x00000004
+ 	int		 pfsyncr_defer;
+ };
+ 
+diff --git a/sys/netpfil/pf/if_pfsync.c b/sys/netpfil/pf/if_pfsync.c
+index 5c44757..1c76342 100644
+--- a/sys/netpfil/pf/if_pfsync.c
++++ b/sys/netpfil/pf/if_pfsync.c
+@@ -185,9 +185,6 @@ struct pfsync_softc {
+ 	struct ip_moptions	sc_imo;
+ 	struct in_addr		sc_sync_peer;
+ 	uint32_t		sc_flags;
+-#define	PFSYNCF_OK		0x00000001
+-#define	PFSYNCF_DEFER		0x00000002
+-#define	PFSYNCF_PUSH		0x00000004
+ 	uint8_t			sc_maxupdates;
+ 	struct ip		sc_template;
+ 	struct callout		sc_tmo;
+@@ -1299,8 +1296,7 @@ pfsyncioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
+ 		}
+ 		pfsyncr.pfsyncr_syncpeer = sc->sc_sync_peer;
+ 		pfsyncr.pfsyncr_maxupdates = sc->sc_maxupdates;
+-		pfsyncr.pfsyncr_defer = (PFSYNCF_DEFER ==
+-		    (sc->sc_flags & PFSYNCF_DEFER));
++		pfsyncr.pfsyncr_defer = sc->sc_flags;
+ 		PFSYNC_UNLOCK(sc);
+ 		return (copyout(&pfsyncr, ifr->ifr_data, sizeof(pfsyncr)));
+ 
+@@ -1619,6 +1615,7 @@ pfsync_sendout(int schedswi)
+ 	sc->sc_ifp->if_obytes += m->m_pkthdr.len;
+ 	sc->sc_len = PFSYNC_MINPKT;
+ 
++	/* XXX: SHould not drop voluntarily update packets! */
+ 	if (!_IF_QFULL(&sc->sc_ifp->if_snd))
+ 		_IF_ENQUEUE(&sc->sc_ifp->if_snd, m);
+ 	else {
+@@ -1741,6 +1738,7 @@ pfsync_defer_tmo(void *arg)
+ 		free(pd, M_PFSYNC);
+ 	PFSYNC_UNLOCK(sc);
+ 
++	m->m_flags |= M_SKIP_FIREWALL;
+ 	ip_output(m, NULL, NULL, 0, NULL, NULL);
+ 
+ 	pf_release_state(st);

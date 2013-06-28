@@ -1,6 +1,6 @@
 --- common/packet.c	2011-12-19 13:56:21.000000000 +0000
 +++ common/packet.c	2011-12-19 13:58:06.000000000 +0000
-@@ -293,8 +293,8 @@
+@@ -308,8 +308,8 @@
  	  ++ip_packets_bad_checksum;
  	  if (ip_packets_seen > 4 &&
  	      (ip_packets_seen / ip_packets_bad_checksum) < 2) {

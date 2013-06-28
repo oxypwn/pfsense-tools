@@ -33,10 +33,9 @@
 . ./pfsense_local.sh
 
 # Read params
-while getopts c:g opt; do
+while getopts c opt; do
 	case "${opt}" in
-		c)	ALTCONFFILE="${OPTARG}";;
-		g)	USE_VGA="yes";;
+		c)      ALTCONFFILE="${OPTARG}";;
 	esac
 done
 
@@ -44,11 +43,6 @@ done
 # Specify a file with build parameters to override the default.
 [ -n "${ALTCONFFILE}" -a -r "${ALTCONFFILE}" ] \
 	&& . ${ALTCONFFILE}
-
-# Create a VGA image, set NANO_WITH_VGA after source alternative
-# config file to avoid it to be replaced
-[ "${USE_VGA}" = "yes" ] \
-	&& NANO_WITH_VGA="yes"
 
 # Suck in script helper functions
 . ./builder_common.sh
@@ -75,14 +69,14 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION ..."
-	export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"
+	echo ">>> Using ${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION ..."
+	export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION"
 fi
 
 # Use embedded src.conf
 if [ -z "${SRC_CONF:-}" ]; then
-	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.embedded.$FREEBSD_VERSION"
-	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.embedded.$FREEBSD_VERSION.install"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src/src.conf.embedded.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src/src.conf.embedded.$FREEBSD_VERSION.install"
 fi
 
 # This should be run first
@@ -112,19 +106,19 @@ version_base=`cat $CVS_CO_DIR/etc/version_base`
 version=`cat $CVS_CO_DIR/etc/version`
 
 # Build if needed and install world and kernel
-echo ">>> Building world and kernels for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+echo ">>> Building world for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 make_world
 
-# Build embedded kernel
-if [ "$ARCH" = "i386" -o "$ARCH" = "amd64" ]; then
-	if [ -z "${NANO_WITH_VGA}" ]; then
-		build_embedded_kernel
-	else
-		build_embedded_kernel_vga
-	fi
-elif [ "$ARCH" = "mips" ]; then
-	build_rspro_kernel	
+if [ -n "${NANO_WITH_VGA}" ]; then
+        _VGA="_vga"
+        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}}
+else
+        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap.${FREEBSD_VERSION}.${ARCH}}
 fi
+
+# Build kernels
+echo ">>> Building kernel configs: $BUILD_KERNELS for FreeBSD: $FREEBSD_BRANCH ..."
+build_all_kernels
 
 if [ ! -z "${SPLIT_ARCH_BUILD:-}" ]; then
 	echo ">>> SPLIT_ARCH_BUILD defined.  Now run ./build_nano.sh"
@@ -217,10 +211,6 @@ if [ "${DATESTRING}" = "" ]; then
 	else
 		DATESTRING=`date "+%Y%m%d-%H%M"`
 	fi
-fi
-
-if [ -n "${NANO_WITH_VGA}" ]; then
-	_VGA="_vga"
 fi
 
 gzip -f $MAKEOBJDIRPREFIXFINAL/nanobsd${_VGA}.full.img

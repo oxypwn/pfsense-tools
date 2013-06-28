@@ -90,6 +90,7 @@ IS ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <netinet/in.h>
 #include <netinet/in_var.h>
 #include <net/pfvar.h>
+#include <net/route.h>
 
 #include <netinet/ip_fw.h>
 #include <sys/ioctl.h>
@@ -331,9 +332,15 @@ PHP_MINIT_FUNCTION(pfSense_socket)
 	REGISTER_LONG_CONSTANT("IFBIF_PRIVATE", IFBIF_PRIVATE, CONST_PERSISTENT | CONST_CS);
 
 #ifdef IPFW_FUNCTIONS
+#if (__FreeBSD_version >= 1000000)
+	REGISTER_LONG_CONSTANT("IP_FW_TABLE_XADD", IP_FW_TABLE_XADD, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IP_FW_TABLE_XDEL", IP_FW_TABLE_XDEL, CONST_PERSISTENT | CONST_CS);
+	REGISTER_LONG_CONSTANT("IP_FW_TABLE_XZEROENTRY", IP_FW_TABLE_XZEROENTRY, CONST_PERSISTENT | CONST_CS);
+#else
 	REGISTER_LONG_CONSTANT("IP_FW_TABLE_ADD", IP_FW_TABLE_ADD, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IP_FW_TABLE_DEL", IP_FW_TABLE_DEL, CONST_PERSISTENT | CONST_CS);
 	REGISTER_LONG_CONSTANT("IP_FW_TABLE_ZERO_ENTRY_STATS", IP_FW_TABLE_ZERO_ENTRY_STATS, CONST_PERSISTENT | CONST_CS);
+#endif
 #endif
 
 	return SUCCESS;
@@ -507,7 +514,7 @@ PHP_FUNCTION(pfSense_kill_srcstates)
 				}
 
 				if (ioctl(dev, DIOCKILLSRCNODES, &psnk))
-					err(1, "DIOCKILLSRCNODES");
+					php_printf("DIOCKILLSRCNODES");
 				killed += psnk.psnk_af;
 				/* fixup psnk.psnk_af */
 				psnk.psnk_af = resp[1]->ai_family;
@@ -730,6 +737,70 @@ PHP_FUNCTION(pfSense_pipe_action)
 
 PHP_FUNCTION(pfSense_ipfw_Tableaction)
 {
+#if (__FreeBSD_version >= 1000000)
+	ip_fw3_opheader *op3;
+	ipfw_table_xentry *xent;
+	socklen_t size;
+	long mask = 0, table = 0, pipe = 0, zone = 0;
+	char *ip, *mac = NULL, *p;
+	int ip_len, mac_len = 0;
+	long action = IP_FW_TABLE_ADD;
+	int err;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "llls|l!sl", &zone, &action, &table, &ip, &ip_len, &mask, &mac, &mac_len, &pipe) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	if (action != IP_FW_TABLE_XDEL && action != IP_FW_TABLE_XADD && action != IP_FW_TABLE_XZEROENTRY)
+		RETURN_FALSE;
+
+	if ((op3 = emalloc(sizeof(*op3) + sizeof(*xent))) == NULL)
+		RETURN_FALSE;
+
+	memset(op3, 0, sizeof(*op3));
+	op3->ctxid = (uint16_t)zone;
+	op3->opcode = action;
+	xent = (ipfw_table_xentry *)(op3 + 1);
+	memset(xent, 0, sizeof(*xent));
+	xent->tbl = (u_int16_t)table;
+
+	if (strchr(ip, ':')) {
+		if (!inet_pton(AF_INET6, ip, &xent->k.addr6)) {
+			efree(op3);
+			RETURN_FALSE;
+		}
+	} else if (!inet_pton(AF_INET, ip, &xent->k.addr6)) {
+		efree(op3);
+		RETURN_FALSE;
+	}
+
+	if (mask)
+		xent->masklen = (u_int8_t)mask;
+	else
+		xent->masklen = 32;
+
+	if (pipe)
+		xent->value = (u_int32_t)pipe;
+
+	if (mac_len > 0) {
+		if (ether_aton_r(mac, (struct ether_addr *)&xent->k.mix.mac) == NULL) {
+			efree(op3);
+			RETURN_FALSE;
+		}
+		xent->masklen += ETHER_ADDR_LEN;
+	}
+
+	xent->type = IPFW_TABLE_MIX;
+	size = sizeof(*op3) + sizeof(*xent);
+	err = setsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW3, op3, size);
+	if (err < 0 && err != EEXIST) {
+		efree(op3);
+		RETURN_FALSE;
+	}
+	efree(op3);
+
+	RETURN_TRUE;
+#else
 	struct {
 		char context[64]; /* IP_FW_CTX_MAXNAME */
 		ipfw_table_entry ent;
@@ -777,10 +848,71 @@ PHP_FUNCTION(pfSense_ipfw_Tableaction)
 		RETURN_FALSE;
 
 	RETURN_TRUE;
+#endif
 }
 
 PHP_FUNCTION(pfSense_ipfw_getTablestats)
 {
+#if (__FreeBSD_version >= 1000000)
+	ip_fw3_opheader *op3;
+	ipfw_table_xentry *xent;
+	socklen_t size;
+	long mask = 0, table = 0, zone = 0;
+	char *ip, *mac = NULL, *p;
+	int ip_len, mac_len = 0;
+	long action = IP_FW_TABLE_ADD;
+	int err;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "llls!s|l", &zone, &action, &table, &ip, &ip_len, &mac, &mac_len, &mask) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	if (action != IP_FW_TABLE_XLISTENTRY)
+		RETURN_FALSE;
+
+	if ((op3 = emalloc(sizeof(*op3) + sizeof(*xent))) == NULL)
+		RETURN_FALSE;
+
+	memset(op3, 0, sizeof(*op3));
+	op3->ctxid = (uint16_t)zone;
+	op3->opcode = IP_FW_TABLE_XLISTENTRY;
+	xent = (ipfw_table_xentry *)(op3 + 1);
+	memset(xent, 0, sizeof(*xent));
+	xent->tbl = (u_int16_t)table;
+
+	if (strchr(ip, ':')) {
+		if (!inet_pton(AF_INET6, ip, &xent->k.addr6))
+			RETURN_FALSE;
+	} else if (!inet_pton(AF_INET, ip, &xent->k.addr6)) {
+		RETURN_FALSE;
+	}
+
+	if (mask)
+		xent->masklen = (u_int8_t)mask;
+	else
+		xent->masklen = 32;
+
+	if (mac_len > 0) {
+		if (ether_aton_r(mac, (struct ether_addr *)&xent->k.mix.mac) == NULL)
+			RETURN_FALSE;
+		xent->masklen += ETHER_ADDR_LEN;
+	}
+
+	xent->type = IPFW_TABLE_MIX;
+	size = sizeof(*op3) + sizeof(*xent);
+	if (getsockopt(PFSENSE_G(ipfw), IPPROTO_IP, IP_FW3, op3, &size) < 0) {
+		efree(op3);
+		RETURN_FALSE;
+	}
+
+	array_init(return_value);
+	add_assoc_long(return_value, "packets", pfSense_align_uint64(&xent->packets));
+	add_assoc_long(return_value, "bytes", pfSense_align_uint64(&xent->bytes));
+	add_assoc_long(return_value, "timestamp", xent->timestamp);
+	add_assoc_long(return_value, "dnpipe", xent->value);
+
+	efree(op3);
+#else
 	struct {
 		char context[64]; /* IP_FW_CTX_MAXNAME */
 		ipfw_table_entry ent;
@@ -819,6 +951,7 @@ PHP_FUNCTION(pfSense_ipfw_getTablestats)
 	add_assoc_long(return_value, "bytes", pfSense_align_uint64(&option.ent.bytes));
 	add_assoc_long(return_value, "timestamp", option.ent.timestamp);
 	add_assoc_long(return_value, "dnpipe", option.ent.value);
+#endif
 }
 #endif
 
@@ -1231,9 +1364,11 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 			case IFT_PFSYNC:
 				add_assoc_string(return_value, "iftype", "virtual", 1);
 				break;
+#if (__FreeBSD_version < 1000000)
 			case IFT_CARP:
 				add_assoc_string(return_value, "iftype", "carp", 1);
 				break;
+#endif
 			default:
 				add_assoc_string(return_value, "iftype", "other", 1);
 			}
@@ -1972,7 +2107,9 @@ PHP_FUNCTION(pfSense_get_pf_stats) {
 		add_assoc_long(return_value, "srcnodesinsert", (unsigned long long)status.scounters[SCNT_SRC_NODE_INSERT]);
 		add_assoc_long(return_value, "srcnodesremovals", (unsigned long long)status.scounters[SCNT_SRC_NODE_REMOVALS]);
 
+#if (__FreeBSD_version < 1000000)
 		add_assoc_long(return_value, "stateid", (unsigned long long)status.stateid);
+#endif
 
 		add_assoc_long(return_value, "running", status.running);
 		add_assoc_long(return_value, "states", status.states);
@@ -2028,7 +2165,7 @@ PHP_FUNCTION(pfSense_sync) {
 }
 
 PHP_FUNCTION(pfSense_get_modem_devices) {
-	struct termios		attr;
+	struct termios		attr, origattr;
 	struct pollfd		pfd;
 	glob_t			g;
 	char			buf[2048] = { 0 };
@@ -2070,11 +2207,11 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
 			goto errormodem;
 
-#if 0
 		/* Set serial port raw mode, baud rate, hardware flow control, etc. */
 		if (tcgetattr(fd, &attr) < 0)
 			goto errormodem;
 
+		origattr = attr;
 		cfmakeraw(&attr);
 
 		attr.c_cflag &= ~(CSIZE|PARENB|PARODD);
@@ -2086,11 +2223,10 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 
 #define MODEM_DEFAULT_SPEED              115200
 		cfsetspeed(&attr, (speed_t) MODEM_DEFAULT_SPEED);
-#unset	MODEM_DEFAULT_SPEED
+#undef	MODEM_DEFAULT_SPEED
 
 		if (tcsetattr(fd, TCSANOW, &attr) < 0)
 			goto errormodem;
-#endif
 
 		/* OK */
 		retries = 0;
@@ -2110,10 +2246,10 @@ PHP_FUNCTION(pfSense_get_modem_devices) {
 		if (retries >= 3)
 			goto errormodem;
 
+		retries = 0;
 tryagain2:
 		if (show_info)
 			php_printf("\tTrying to read data\n");
-		retries = 0;
 		bzero(buf, sizeof buf);
 		bzero(&pfd, sizeof pfd);
 		pfd.fd = fd;
@@ -2155,6 +2291,7 @@ tryagain2:
 		} else if (show_info)
 			php_printf("\ttimedout or interrupted: %d\n", nw);
 
+		tcsetattr(fd, TCSANOW, &origattr);
 errormodem:
 		if (show_info)
 			php_printf("\tClosing device %s\n", path);

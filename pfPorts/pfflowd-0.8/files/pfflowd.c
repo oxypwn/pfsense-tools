@@ -69,7 +69,7 @@ static int refresh_packets_interval  = 1000;   /*Resend templates every refresh_
  * RFC 3954:5.1
  * "A 32-bit value that identifies the Exporter Observation Domain"
  */
-static source_id  = 0;                    /*The source id of export packets*/
+static int source_id  = 0;                    /*The source id of export packets*/
 #endif /*NF9*/
 
 /*
@@ -134,7 +134,7 @@ static void
    fprintf(stderr, "Usage: %s [options] [bpf_program]\n", PROGNAME);
 #ifdef NF9
    fprintf(stderr, "NF9 compile options :");
-   fprintf(stderr, " %d Bits Counters",NF9_COUNTER_SIZE * 8);
+   fprintf(stderr, " %lu Bits Counters",NF9_COUNTER_SIZE * 8);
 # ifdef NF9_IPV6
    fprintf(stderr,", Internet Protocol Version 6");
 # endif /*NF9_IPV6*/
@@ -342,7 +342,7 @@ static void
 }
 
 static int
-  send_netflow_v1(const struct pfsync_state *st, u_int n, int *flows_exp)
+  send_netflow_v1(const struct pfsync_state *st, u_int n, u_int *flows_exp)
 {
    char now_s[64];
    int i, j, offset, num_packets, err;
@@ -589,7 +589,7 @@ static int
 }
 
 static int
-  send_netflow_v5(const struct pfsync_state *st, u_int n, int *flows_exp)
+  send_netflow_v5(const struct pfsync_state *st, u_int n, u_int *flows_exp)
 {
 
    char now_s[64];
@@ -837,7 +837,7 @@ static int
 }
 
 static void
-  send_flow(const struct pfsync_state *st, u_int n, int *flows_exp)
+  send_flow(const struct pfsync_state *st, u_int n, u_int *flows_exp)
 {
    int r = 0;
 

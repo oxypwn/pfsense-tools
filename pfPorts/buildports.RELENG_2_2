@@ -1,0 +1,322 @@
+#!/bin/sh
+
+#set -e
+#set -x
+#set -u
+
+# Keep track of build failures
+rm -f /tmp/pfPort_build_failures
+touch /tmp/pfPort_build_failures
+
+# Keep track of items already built (dependencies)
+rm -f /tmp/pfPort_alreadybuilt
+if [ ! -f /tmp/pfPort_alreadybuilt ]; then
+	touch /tmp/pfPort_alreadybuilt
+fi
+
+PFPORTSDIR=`dirname $0`
+
+# Individual logs here
+mkdir -p /tmp/pfPort/buildlogs
+
+BUILD_ONEPORT=""
+MAKEJ_PORTS=""
+CHECK_INSTALLED=""
+
+while getopts P:J:c o; do
+	case "${o}" in
+		P)	BUILD_ONEPORT="${OPTARG}"
+			echo ">>> Building a single port: '${BUILD_ONEPORT}'"
+			;;
+		J)	MAKEJ_PORTS="${OPTARG}"
+			echo ">>> Setting MAKEJ_PORTS (-j) to '${MAKEJ_PORTS}'"
+			;;
+		c)	CHECK_INSTALLED="check_installed"
+			;;
+	esac
+done
+
+if [ -f ./pfsense-build.conf ]; then
+	if [ `grep -c '^export REMOVE_PHP=true' pfsense-build.conf` -gt 0 ]; then
+		echo ">>> Removing previous PHP environment..."
+		find /usr/local/include /usr/local/man/ /usr/local/bin /usr/local/sbin /usr/local/lib /usr/local/etc -name "*php*" -exec rm -rf {} \; 2>/dev/null
+		find /usr/local -name extensions.ini -exec rm {} \;
+		rm -rf /var/db/pkg/php*
+		sed -e '/php/d' -e '/pecl/d' /tmp/pfPort_alreadybuilt > /tmp/pfPort_alreadybuilt_REMOVE_PHP
+		mv /tmp/pfPort_alreadybuilt_REMOVE_PHP /tmp/pfPort_alreadybuilt
+	fi
+fi
+if [ -f pfsense_local.sh ]; then
+	MAKEJ_PORTS=`grep MAKEJ_PORTS pfsense_local.sh | cut -d'"' -f2`
+elif [ -f ../builder_scripts/pfsense_local.sh ]; then
+	MAKEJ_PORTS=`grep MAKEJ_PORTS ../builder_scripts/pfsense_local.sh | cut -d'"' -f2`
+fi
+
+# Port name			Path to port					Verify install filename
+PORTSTOBUILD="
+openssl				/usr/ports/security/openssl			/usr/local/bin/openssl
+pfflowd-0.8			/usr/ports/net/pfflowd-0.8			/usr/local/sbin/pfflowd
+ipsec-tools			/usr/ports/security/ipsec-tools-0.8.1			/usr/local/sbin/racoon
+ipfw-classifyd			/usr/ports/net/ipfw-classifyd			/usr/local/sbin/ipfw-classifyd
+dhcpleases			/usr/ports/sysutils/dhcpleases			/usr/local/sbin/dhcpleases
+dhcpleases6			/usr/ports/sysutils/dhcpleases6			/usr/local/sbin/dhcpleases6
+filterdns			/usr/ports/net/filterdns			/usr/local/sbin/filterdns
+apinger				/usr/ports/net/apinger				/usr/local/sbin/apinger
+rrdtool				/usr/ports/databases/rrdtool			/usr/local/bin/rrdtool
+cpdup				/usr/ports/sysutils/cpdup			/usr/local/bin/cpdup
+cpustats			/usr/ports/sysutils/cpustats			/usr/local/sbin/cpustats
+beep				/usr/ports/audio/beep				/usr/local/bin/beep
+choparp				/usr/ports/net-mgmt/choparp			/usr/local/sbin/choparp
+dnsmasq-no-isc-dhcp-parser	/usr/ports/dns/dnsmasq-no-isc-dhcp-parser	/usr/local/sbin/dnsmasq
+expiretable			/usr/ports/security/expiretable			/usr/local/sbin/expiretable
+ifstated			/usr/ports/net/ifstated				/usr/local/sbin/ifstated
+igmpproxy			/usr/ports/net/igmpproxy			/usr/local/sbin/igmpproxy
+isc-dhcp42-server		/usr/ports/net/isc-dhcp42-server		/usr/local/sbin/dhcpd
+isc-dhcp42-client		/usr/ports/net/isc-dhcp42-client		/usr/local/sbin/dhclient
+isc-dhcp42-relay		/usr/ports/net/isc-dhcp42-relay			/usr/local/sbin/dhcrelay
+lighttpd			/usr/ports/www/lighttpd				/usr/local/sbin/lighttpd
+miniupnpd			/usr/ports/net/miniupnpd			/usr/local/sbin/miniupnpd
+mpd4				/usr/ports/net/mpd4				/usr/local/sbin/mpd4
+mpd5				/usr/ports/net/mpd5				/usr/local/sbin/mpd5
+pftop				/usr/ports/sysutils/pftop			/usr/local/sbin/pftop
+libevent			/usr/ports/devel/libevent			/usr/local/lib/libevent.so
+relayd				/usr/ports/net/relayd				/usr/local/sbin/relayd
+fping				/usr/ports/net/fping				/usr/local/sbin/fping
+minicron			/usr/ports/sysutils/minicron			/usr/local/bin/minicron
+php53				/usr/ports/lang/php53				/usr/local/bin/php
+pecl-APC			/usr/ports/www/pecl-APC				/usr/local/lib/php/20090626/apc.so
+php53-bcmath			/usr/ports/math/php53-bcmath			/usr/local/lib/php/20090626/bcmath.so
+php53-bz2			/usr/ports/archivers/php53-bz2			/usr/local/lib/php/20090626/bz2.so
+php53-ctype			/usr/ports/textproc/php53-ctype			/usr/local/lib/php/20090626/ctype.so
+php53-curl			/usr/ports/ftp/php53-curl			/usr/local/lib/php/20090626/curl.so
+php53-gettext			/usr/ports/devel/php53-gettext			/usr/local/lib/php/20090626/gettext.so
+php53-hash			/usr/ports/security/php53-hash			/usr/local/lib/php/20090626/hash.so
+php53-ldap			/usr/ports/net/php53-ldap			/usr/local/lib/php/20090626/ldap.so
+php53-mbstring			/usr/ports/converters/php53-mbstring		/usr/local/lib/php/20090626/mbstring.so
+php53-mcrypt			/usr/ports/security/php53-mcrypt		/usr/local/lib/php/20090626/mcrypt.so
+php53-mysql			/usr/ports/databases/php53-mysql		/usr/local/lib/php/20090626/mysql.so
+php53-openssl			/usr/ports/security/php53-openssl		/usr/local/lib/php/20090626/openssl.so
+php53-pcntl			/usr/ports/devel/php53-pcntl			/usr/local/lib/php/20090626/pcntl.so
+php53-posix			/usr/ports/sysutils/php53-posix			/usr/local/lib/php/20090626/posix.so
+php53-pdo			/usr/ports/databases/php53-pdo			/usr/local/lib/php/20090626/pdo.so
+php53-pdo_sqlite		/usr/ports/databases/php53-pdo_sqlite		/usr/local/lib/php/20090626/pdo_sqlite.so
+pecl-radius			/usr/ports/net/pecl-radius			/usr/local/lib/php/20090626/radius.so
+php53-pfSense-module		/usr/ports/devel/php53-pfSense-module		/usr/local/lib/php/20090626/pfSense.so
+php53-readline			/usr/ports/devel/php53-readline			/usr/local/lib/php/20090626/readline.so
+php53-session			/usr/ports/www/php53-session			/usr/local/lib/php/20090626/session.so
+php53-simplexml			/usr/ports/textproc/php53-simplexml		/usr/local/lib/php/20090626/simplexml.so
+php53-sockets			/usr/ports/net/php53-sockets			/usr/local/lib/php/20090626/sockets.so
+php53-shmop			/usr/ports/devel/php53-shmop			/usr/local/lib/php/20090626/shmop.so
+php53-sysvmsg			/usr/ports/devel/php53-sysvmsg			/usr/local/lib/php/20090626/sysvmsg.so
+php53-sysvsem			/usr/ports/devel/php53-sysvsem			/usr/local/lib/php/20090626/sysvsem.so
+php53-sysvshm			/usr/ports/devel/php53-sysvshm			/usr/local/lib/php/20090626/sysvshm.so
+php53-sqlite			/usr/ports/databases/php53-sqlite		/usr/local/lib/php/20090626/pdo_sqlite.so
+php53-tokenizer			/usr/ports/devel/php53-tokenizer		/usr/local/lib/php/20090626/tokenizer.so
+php53-xml			/usr/ports/textproc/php53-xml			/usr/local/lib/php/20090626/xml.so
+php53-zlib			/usr/ports/archivers/php53-zlib			/usr/local/lib/php/20090626/zlib.so
+php53-xmlreader			/usr/ports/textproc/php53-xmlreader		/usr/local/lib/php/20090626/xmlreader.so
+php53-xmlwriter			/usr/ports/textproc/php53-xmlwriter		/usr/local/lib/php/20090626/xmlwriter.so
+pecl-inclued			/usr/ports/devel/pecl-inclued			/usr/local/lib/php/20090626/inclued.so
+zmq				/usr/ports/devel/zmq				/usr/local/lib/libzmq.so.1
+php-zmq				/usr/ports/devel/php-zmq			/usr/local/lib/php/20090626/zmq.so
+php-xdebug			/usr/ports/devel/php-xdebug			/usr/local/lib/php/20090626/xdebug.so
+php5-suhosin			/usr/ports/security/php5-suhosin		/usr/local/lib/php/20090626/suhosin.so
+openvpn				/usr/ports/security/openvpn			/usr/local/sbin/openvpn
+syslog-ng			/usr/ports/sysutils/syslog-ng			/usr/local/sbin/syslog-ng
+zip				/usr/ports/archivers/zip			/usr/local/bin/zip
+links				/usr/ports/www/links				/usr/local/bin/links
+elinks				/usr/ports/www/elinks				/usr/local/bin/elinks
+ntp				/usr/ports/net/ntp				/usr/local/bin/ntpd
+php53-json			/usr/ports/devel/php53-json			/usr/local/lib/php/20090626/json.so
+rate				/usr/ports/net-mgmt/rate			/usr/local/bin/rate
+wol				/usr/ports/net/wol				/usr/local/bin/wol
+dhcp6				/usr/ports/net/dhcp6				/usr/local/sbin/dhcp6c
+3gstat_um175			/usr/ports/comms/3gstat_um175			/usr/local/bin/3gstat
+wrapalixresetbutton		/usr/ports/sysutils/wrapalixresetbutton		/usr/local/sbin/alixresetbtn
+b43-fwcutter			/usr/ports/sysutils/b43-fwcutter		/usr/local/bin/b43-fwcutter
+bwi-firmware-kmod		/usr/ports/net/bwi-firmware-kmod		/boot/modules/bwi_v3_ucode.ko
+voucher				/usr/ports/sysutils/voucher			/usr/local/bin/voucher
+gzsig				/usr/ports/sysutils/gzsig			/usr/local/sbin/gzsig
+ssh_tunnel_shell		/usr/ports/sysutils/ssh_tunnel_shell		/usr/local/sbin/ssh_tunnel_shell
+sshlockout_pf			/usr/ports/sysutils/sshlockout_pf		/usr/local/sbin/sshlockout_pf
+smartmontools			/usr/ports/sysutils/smartmontools		/usr/local/sbin/smartctl
+check_reload_status		/usr/ports/sysutils/check_reload_status		/usr/local/sbin/check_reload_status
+ataidle				/usr/ports/sysutils/ataidle			/usr/local/sbin/ataidle
+syslogd				/usr/ports/sysutils/syslogd			/usr/sbin/syslogd
+clog				/usr/ports/sysutils/clog			/usr/sbin/clog
+pecl-ssh2			/usr/ports/security/pecl-ssh2			/usr/local/lib/php/20090626/ssh2.so
+autoconf-wrapper		/usr/ports/devel/autoconf-wrapper		/usr/local/bin/autoconf-wrapper
+rsync				/usr/ports/net/rsync				/usr/local/bin/rsync
+qstats				/usr/ports/sysutils/qstats			/usr/local/sbin/qstats
+gogoc 				/usr/ports/net/gogoc				/usr/local/bin/gogoc
+radvd				/usr/ports/net/radvd				/usr/local/sbin/radvd
+ca_root_nss			/usr/ports/security/ca_root_nss			/usr/local/share/certs/ca-root-nss.crt
+bsnmp-ucd			/usr/ports/net-mgmt/bsnmp-ucd			/usr/local/lib/snmp_ucd.so
+bsnmp-regex			/usr/ports/net-mgmt/bsnmp-regex			/usr/local/lib/snmp_regex.so
+svnup				/usr/ports/net/svnup				/usr/local/bin/svnup"
+
+clean_make_install() {
+	# Architecture, supported ARCH values are:
+	#  Tier 1: i386, AMD64, and PC98
+	#  Tier 2: ARM, PowerPC, ia64, Sparc64 and sun4v
+	#  Tier 3: MIPS and S/390
+	#  Tier 4: None at the moment
+	#  Source: http:/www.freebsd.org/doc/en/articles/committers-guide/archs.html
+	# Default is i386
+	local PORTA
+	local VERIFY
+	local _PORTNAME
+	local PKGNAME
+	local _PKGNAME
+	local BUILDLIST
+
+	PORTA=$1
+	VERIFY=""
+	if [ $# -gt 1 ]; then
+		VERIFY="$2"
+	fi
+
+	_PORTNAME=`basename $PORTA`
+	PKGNAME=`make -C $PORTA -V PKGNAME`
+
+	# Check to see if item is already built
+	if [ `grep -c "$PKGNAME" /tmp/pfPort_alreadybuilt` -gt 0 ]; then
+		if [ -z "$VERIFY" -o -f $VERIFY ]; then
+			echo ">>> $_PORTNAME(${PKGNAME})...already built on this run.  Skipping."
+			return;
+		fi
+	fi
+
+	# Complete dependency chain first
+	BUILDLIST=`cd $PORTA && make build-depends-list 2>/dev/null`
+	for BUILD in $BUILDLIST; do
+		# Check to see if item is already built
+		local _PKGNAME=`make -C $PORTA -V PKGNAME`
+		if [ `grep -c "$_PKGNAME" /tmp/pfPort_alreadybuilt` -gt 0 ]; then
+			echo "    Dependency $BUILD of $PORTA already built on this run.  Skipping."
+		else
+			echo "    Building dependency $BUILD of $PORTA"
+			clean_build_install_clean $BUILD
+		fi
+	done
+	unset BUILD
+	unset BUILDLIST
+
+	echo -n ">>> Building $_PORTNAME(${PKGNAME})..."
+	if [ "${CHECK_INSTALLED}" = "check_installed" ]; then
+		pkg query %n ${PKGNAME}
+		if [ "$?" = "0" ]; then
+			if [ -z "$VERIFY" -o -f $VERIFY ]; then
+				echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
+				echo "already built.  Skipping."
+				return
+			fi
+		fi
+	fi
+
+	if ! script /tmp/pfPort/buildlogs/$_PORTNAME make -C $PORTA TARGET_ARCH=${ARCH} ${MAKEJ_PORTS} BATCH=yes FORCE_PKG_REGISTER=yes OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" clean build install clean 2>&1 1>/dev/null; then
+		echo ">>> Building $_PORTNAME(${PKGNAME})...ERROR!" >> /tmp/pfPort_build_failures
+		echo "Failed to build. Error log in /tmp/pfPort/buildlogs/$_PORTNAME."
+	else
+		mv /tmp/pfPort/buildlogs/$_PORTNAME /tmp/pfPort/$PKGNAME
+		echo "$PKGNAME" >> /tmp/pfPort_alreadybuilt
+		echo "Done."
+	fi
+
+}
+
+clean_build_install_clean() {
+	local PORTPATH
+	local VERIFYPORT
+	local PORTNAME
+
+	PORTPATH=$1
+	VERIFYPORT=""
+	if [ $# -gt 1 ]; then
+		VERIFYPORT="$2"
+	fi
+	PORTNAME=`basename $PORTPATH`
+
+	if [ ! -d $PORTPATH ]; then
+		mkdir -p $PORTPATH
+	fi
+
+	if [ -d ${PFPORTSDIR}/$PORTNAME ]; then
+		echo ">>> Overlaying pfPorts ${PFPORTSDIR}/$PORTNAME to ${PORTPATH} and building..."
+		if [ ! -f ${PFPORTSDIR}/$PORTNAME/useports ]; then
+			rm -rf $PORTPATH
+			mkdir -p $PORTPATH
+		fi
+		rm -rf ${PFPORTSDIR}/$PORTNAME/work 2>/dev/null
+		cp -R ${PFPORTSDIR}/$PORTNAME/* $PORTPATH/
+	fi
+	clean_make_install $PORTPATH $VERIFYPORT
+}
+
+# Change the for seperator to use C/R instead of whitespace
+oIFS=$IFS
+IFS="
+"
+
+for PORT in $PORTSTOBUILD; do
+	PORT_T=`echo $PORT | sed "s/            /       /g"`
+	PORT_NAME=`echo $PORT_T | awk '{ print $1 }'`
+	if [ "$BUILD_ONEPORT" != "" ]; then
+		if [ "$PORT_NAME" != "$BUILD_ONEPORT" ]; then
+			continue;
+		fi
+	fi
+	PORT_LOCATION=`echo $PORT_T | awk '{ print $2 }'`
+	PORT_VERIFY_INSTALL_FILE=`echo $PORT_T | awk '{ print $3 }'`
+	MIPS_DO_NOT_BUILD="beep
+"
+	for DONOTBUILD in $MIPS_DO_NOT_BUILD; do
+		if [ "$PORT_NAME" = "$DONOTBUILD" ]; then
+			if [ "$ARCH" = "mips" ]; then
+				echo ">>> Skipping $PORT_NAME on MIPS platform..."
+				continue;
+			fi
+			if [ "$ARCH" = "amd64" ]; then
+				echo ">>> Skipping $PORT_NAME on AMD64 platform..."
+				continue;
+			fi
+			if [ "$ARCH" = "powerpc" ]; then
+				echo ">>> Skipping $PORT_NAME on POWERPC platform..."
+				continue;
+			fi
+		fi
+	done
+
+	PORTSUFFIX=`echo $PORT_LOCATION | cut -d'/' -f4-5`
+	if [ "$PORTSUFFIX" != "" ]; then
+		# Return the seperator back to its original value
+		IFS=$oIFS
+		clean_build_install_clean $PORT_LOCATION $PORT_VERIFY_INSTALL_FILE
+		# Change the for seperator to use C/R instead of whitespace
+		oIFS=$IFS
+		IFS="
+"
+	else
+		echo ">>> Could not Locate PORTSUFFIX for $PORT_LOCATION"
+	fi
+	# If the file is not found, log it.
+	if [ ! -f $PORT_VERIFY_INSTALL_FILE ]; then
+		echo ">>> File not found $PORT - $PORT_VERIFY_INSTALL_FILE" >> /tmp/pfPort_build_failures
+	fi
+	# Change the for seperator to use C/R instead of whitespace
+	oIFS=$IFS
+	IFS="
+"
+done
+# Change the for seperator to use C/R instead of whitespace
+IFS="
+"
+
+echo ">>> Ports with failures: `cat /tmp/pfPort_build_failures | wc -l`"
+cat /tmp/pfPort_build_failures
+echo
+
+sleep 1
+
+# Restore
+IFS=$oIFS

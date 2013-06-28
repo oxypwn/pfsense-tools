@@ -1,8 +1,5 @@
-# New ports collection makefile for:	ipsec-tools
-# Date created:		20 dec 2004
-# Whom:			vanhu
-#
-# $FreeBSD: ports/security/ipsec-tools/Makefile,v 1.33 2012/11/17 06:01:05 svnexp Exp $
+# Created by: vanhu
+# $FreeBSD: head/security/ipsec-tools/Makefile 316683 2013-04-27 18:25:24Z mva $
 
 # TODO: - libipsec issue ?
 #       - cleanup...
@@ -34,22 +31,23 @@ STATEDIR=	/var/db/racoon
 SUB_LIST+=	STATEDIR=${STATEDIR}
 PLIST_SUB+=	STATEDIR=${STATEDIR}
 
-OPTIONS=	DEBUG		"enable Debug support" off \
-		IPV6		"enable IPV6 support" on \
-		ADMINPORT	"enable Admin port" on \
-		STATS		"enable Statistics logging function" off \
-		DPD		"enable Dead Peer Detection" on \
-		NATT		"enable NAT-Traversal (kernel-patch required)" on \
-		NATTF		"require NAT-Traversal (fail without kernel-patch)" off \
-		FRAG		"enable IKE fragmentation payload support" on \
-		HYBRID		"enable Hybrid, Xauth and Mode-cfg support" on \
-		PAM		"enable PAM authentication (Xauth server)" off \
-		RADIUS		"enable Radius authentication (Xauth server)" off \
-		LDAP		"enable LDAP authentication (Xauth server)" off \
-		GSSAPI		"enable GSS-API authentication" off \
-		SAUNSPEC	"enable Unspecified SA mode" on \
-		RC5		"enable RC5 encryption (patented)" off \
-		IDEA		"enable IDEA encryption (patented)" off
+OPTIONS_DEFINE=	DEBUG IPV6 ADMINPORT STATS DPD NATT NATTF FRAG HYBRID PAM \
+		RADIUS LDAP GSSAPI SAUNSPEC RC5 IDEA DOCS
+OPTIONS_DEFAULT=	IPV6 ADMINPORT DPD NATT FRAG HYBRID SAUNSPEC
+
+ADMINPORT_DESC=	Enable Admin port
+STATS_DESC=	Statistics logging function
+DPD_DESC=	Dead Peer Detection
+NATT_DESC=	NAT-Traversal (kernel-patch required)
+NATTF_DESC=	require NAT-Traversal (fail without kernel-patch)
+FRAG_DESC=	IKE fragmentation payload support
+HYBRID_DESC=	Hybrid, Xauth and Mode-cfg support
+SAUNSPEC_DESC=	Unspecified SA mode
+RC5_DESC=	RC5 encryption (patented)
+IDEA_DESC=	IDEA encryption (patented)
+PAM_DESC=	PAM authentication (Xauth server)
+RADIUS_DESC=	Radius authentication (Xauth server)
+LDAP_DESC=	LDAP authentication (Xauth server)
 
 #MAN3=		ipsec_set_policy.3 ipsec_strerror.3
 #MAN5=		racoon.conf.5
@@ -62,40 +60,40 @@ OPTIONS=	DEBUG		"enable Debug support" off \
 .if ${OSVERSION} < 900007
 EXTRA_PATCHES=	${FILESDIR}/patch8-utmp.diff
 .endif
-EXTRA_PATCHES+=${FILESDIR}/patch9-external_script.diff ${FILESDIR}/patch10-show_users.diff ${FILESDIR}/patch11-purge_sp_fix.diff ${FILESDIR}/ipsec-nat.diff
+EXTRA_PATCHES+=${FILESDIR}/patch10-show_users.diff
 
-.ifdef(WITH_DEBUG)
+.if ${PORT_OPTIONS:MDEBUG}
 CONFIGURE_ARGS+=	--enable-debug
 .else
 CONFIGURE_ARGS+=	--disable-debug
 .endif
 
-.ifdef(WITH_IPV6)
+.if ${PORT_OPTIONS:MIPV6}
 CONFIGURE_ARGS+=	--enable-ipv6
 .else
 CONFIGURE_ARGS+=	--disable-ipv6
 .endif
 
-.ifdef(WITH_ADMINPORT)
+.if ${PORT_OPTIONS:MADMINPORT}
 CONFIGURE_ARGS+=	--enable-adminport
 .else
 CONFIGURE_ARGS+=	--disable-adminport
 .endif
 
-.ifdef(WITH_STATS)
+.if ${PORT_OPTIONS:MSTATS}
 CONFIGURE_ARGS+=	--enable-stats
 .else
 CONFIGURE_ARGS+=	--disable-stats
 .endif
 
-.ifdef(WITH_DPD)
+.if ${PORT_OPTIONS:MDPD}
 CONFIGURE_ARGS+=	--enable-dpd
 .else
 CONFIGURE_ARGS+=	--disable-dpd
 .endif
 
-.ifdef(WITH_NATT)
-.	ifdef(WITH_NATTF)
+.if ${PORT_OPTIONS:MNATT}
+.	if ${PORT_OPTIONS:MNATTF}
 CONFIGURE_ARGS+=	--enable-natt=yes
 .	else
 CONFIGURE_ARGS+=	--enable-natt=kernel
@@ -104,26 +102,26 @@ CONFIGURE_ARGS+=	--enable-natt=kernel
 CONFIGURE_ARGS+=	--disable-natt
 .endif
 
-.ifdef(WITH_FRAG)
+.if ${PORT_OPTIONS:MFRAG}
 CONFIGURE_ARGS+=	--enable-frag
 .else
 CONFIGURE_ARGS+=	--disable-frag
 .endif
 
-.ifdef(WITH_HYBRID)
+.if ${PORT_OPTIONS:MHYBRID}
 CONFIGURE_ARGS+=	--enable-hybrid
 .else
 CONFIGURE_ARGS+=	--disable-hybrid
 .endif
 
-.ifdef(WITH_PAM)
+.if ${PORT_OPTIONS:MPAM}
 CONFIGURE_ARGS+=	--with-libpam
 .else
 CONFIGURE_ARGS+=	--without-libpam
 .endif
 
-.ifdef(WITH_GSSAPI)
-USE_ICONV=	yes
+.if ${PORT_OPTIONS:MGSSAPI}
+USES+=		iconv
 CFLAGS+=	-I${LOCALBASE}/include
 LDFLAGS+=	-L${LOCALBASE}/lib
 CONFIGURE_ARGS+=	--enable-gssapi
@@ -131,39 +129,39 @@ CONFIGURE_ARGS+=	--enable-gssapi
 CONFIGURE_ARGS+=	--disable-gssapi
 .endif
 
-.ifdef(WITH_RADIUS)
+.if ${PORT_OPTIONS:MRADIUS}
 CONFIGURE_ARGS+=	--with-libradius
 .else
 CONFIGURE_ARGS+=	--without-libradius
 .endif
 
-.ifdef(WITH_LDAP)
+.if ${PORT_OPTIONS:MLDAP}
 USE_OPENLDAP=	YES
 CONFIGURE_ARGS+=	--with-libldap=${LOCALBASE}
 .else
 CONFIGURE_ARGS+=	--without-libldap
 .endif
 
-.ifdef(WITH_SAUNSPEC)
+.if ${PORT_OPTIONS:MSAUNSPEC}
 CONFIGURE_ARGS+=	--enable-samode-unspec
 .else
 CONFIGURE_ARGS+=	--disable-samode-unspec
 .endif
 
-.ifdef(WITH_RC5)
+.if ${PORT_OPTIONS:MRC5}
 CONFIGURE_ARGS+=	--enable-rc5
 .else
 CONFIGURE_ARGS+=	--disable-rc5
 .endif
 
-.ifdef(WITH_IDEA)
+.if ${PORT_OPTIONS:MIDEA}
 CONFIGURE_ARGS+=	--enable-idea
 .else
 CONFIGURE_ARGS+=	--disable-idea
 .endif
 
 .if ${OSVERSION} < 800000
-.ifdef(WITH_NATT)
+.if ${PORT_OPTIONS:MNATT}
 pre-configure:
 	@${ECHO_MSG} "===> -------------------------------------------------------------------------"
 	@${ECHO_MSG} "===> ATTENTION: You need a kernel patch to enable NAT-Traversal functionality!"
@@ -183,7 +181,7 @@ post-install:
 	@${MKDIR} ${EXAMPLESDIR}
 	@${RM} -f ${WRKSRC}/src/racoon/samples/*.in
 	@${CP} -r ${WRKSRC}/src/racoon/samples/* ${EXAMPLESDIR}
-.if !defined(NOPORTDOCS)
+.if ${PORT_OPTIONS:MOCS}
 	@${MKDIR} ${DOCSDIR}
 	@${INSTALL_DATA} ${WRKSRC}/src/racoon/doc/* ${DOCSDIR}
 .endif

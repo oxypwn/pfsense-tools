@@ -61,7 +61,7 @@ export PFSPKGFILE=${PFSPKGFILE:-$PWD/conf/packages}
 export FREESBIE_LABEL=pfPBX
 
 # IMPORTANT NOTE: Maintain the order of EXTRA freesbie plugins!
-export EXTRA="${EXTRA:-"customroot customscripts buildmodules"}"
+export EXTRA="${EXTRA:-"customroot customscripts"}"
 
 # Extra modules that we want (FreeBSD)
 export BUILDMODULES="ipfw netgraph acpi ndis if_ndis padlock ipfw dummynet fdescfs cpufreq"
@@ -93,7 +93,7 @@ export PFSENSETAG=${PFSENSETAG:-RELENG_1}
 
 # Patch directory and patch file that lists patches to apply
 export PFSPATCHDIR=${BUILDER_TOOLS}/patches/RELENG_7
-export PFSPATCHFILE=${BUILDER_SCRIPTS}/patches.RELENG_2_0
+export PFSPATCHFILE=${BUILDER_SCRIPTS}/conf/patchlist/patches.RELENG_2_0
 
 export MAKEJ_WORLD=${MAKEJ_WORLD:-"-j4"}
 export MAKEJ_KERNEL=${MAKEJ_KERNEL:-""}

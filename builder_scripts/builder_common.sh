@@ -146,6 +146,7 @@ fixup_kernel_options() {
 	# Cleanup self
 	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
 	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
+
 	if [ -d "$KERNEL_DESTDIR/boot" ]; then
 		rm -rf $KERNEL_DESTDIR/boot/*
 	fi
@@ -157,7 +158,7 @@ fixup_kernel_options() {
 	mkdir -p $KERNEL_DESTDIR/boot/defaults
 
 	# Copy pfSense kernel configuration files over to $SRCDIR/sys/$ARCH/conf
-	cp $BUILDER_TOOLS/builder_scripts/conf/$KERNCONF $KERNELCONF
+	cp $BUILDER_TOOLS/builder_scripts/conf/kernel/$KERNCONF $KERNELCONF
 	if [ ! -f "$KERNELCONF" ]; then
 		echo ">>> Could not find $KERNELCONF"
 		print_error_pfS
@@ -221,8 +222,8 @@ fixup_kernel_options() {
 	if [ -f $SRCDIR/sys/$ARCH/conf/GENERIC.hints ]; then
 		cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints	$KERNEL_DESTDIR/boot/device.hints
 	fi
-	if [ -f $SRCDIR/sys/mips/conf/$KERNCONF.hints ]; then
-		cp $SRCDIR/sys/mips/conf/$KERNCONF.hints $KERNEL_DESTDIR/boot/device.hints
+	if [ -f $SRCDIR/sys/$ARCH/conf/$KERNCONF.hints ]; then
+		cp $SRCDIR/sys/$ARCH/conf/$KERNCONF.hints $KERNEL_DESTDIR/boot/device.hints
 	fi
 	# END NOTE.
 
@@ -232,291 +233,79 @@ fixup_kernel_options() {
 
 }
 
-# This routine builds nanobsd with VGA
-build_embedded_kernel_vga() {
-	# Build embedded kernel
-	echo ">>> Building embedded VGA kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_vga"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing embedded VGA kernel..."
-	freesbie_make installkernel
-	mkdir -p $KERNEL_BUILD_PATH/wrap_vga/boot/defaults
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap_vga/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap_vga/boot/device.hints
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/wrap_vga/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_vga.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap_vga.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-}
-
-# This routine builds the rspro kernel
-build_rspro_kernel() {
-	# Build embedded kernel
-	echo ">>> Building rspro kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=AR71XX
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/AR71XX"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/AR71XX"
-	cp $BUILDER_TOOLS/builder_scripts/conf/AR71XX* $SRCDIR/sys/mips/conf/
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing rspro kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/AR71XX/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/AR71XX.hints $KERNEL_BUILD_PATH/AR71XX/boot/device.hints
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/AR71XX/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_AR71XX.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_AR71XX.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-}
-
-# This routine builds the embedded kernel aka wrap
-build_embedded_kernel() {
-	# Build embedded kernel
-	echo ">>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing embedded kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap/boot/device.hints
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-}
-
-build_embedded_dev_kernel() {
-	# Build embedded Dev kernel
-	echo ">>> Building embedded dev kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_Dev"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing embedded kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/wrap_Dev/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/wrap_Dev/boot/device.hints
-	echo -n ">>> Installing kernels to LiveCD area..."
-	(cd $KERNEL_BUILD_PATH/wrap_Dev/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz -C $PFSENSEBASEDIR/boot/)
-	echo "done."
-}
-
-# This routine builds the developers kernel
-build_dev_kernel() {
-	# Build Developers kernel
-	echo ">>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
-	export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing Developers kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/developers/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/developers/boot/device.hints
-	(cd $KERNEL_BUILD_PATH/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_Dev.gz -C $PFSENSEBASEDIR/boot/)
-}
-
-# This routine builds a freebsd specific kernel (no pfSense options)
-build_freebsd_only_kernel() {
-	# Build Developers kernel
-	echo ">>> Building Developers kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/FreeBSD.${FREEBSD_VERSION}"
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/freebsd"
-	export KERNCONF=FreeBSD.${FREEBSD_VERSION}
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing FreeBSD kernel..."
-	freesbie_make installkernel
-	cp $SRCDIR/sys/boot/forth/loader.conf $KERNEL_BUILD_PATH/freebsd/boot/defaults/
-	cp $SRCDIR/sys/$ARCH/conf/GENERIC.hints $KERNEL_BUILD_PATH/freebsd/boot/device.hints
-	(cd $KERNEL_BUILD_PATH/freebsd/boot/ && tar czf $PFSENSEBASEDIR/kernels/FreeBSD.tgz .)
-	ensure_kernel_exists $KERNEL_DESTDIR
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/FreeBSD.tgz -C $PFSENSEBASEDIR/boot/)
-}
-
 # This routine builds all pfSense related kernels
-# during the build_iso.sh and build_deviso.sh routines
 build_all_kernels() {
 
-	# If we have already installed kernels
-	# no need to build them again.
-	if [ "`find $MAKEOBJDIRPREFIX -name .done_installkernel | wc -l`" -gt 0 ]; then
-		NO_BUILDKERNEL=yo
-	fi
-
-	# Build uniprocessor kernel
-	#echo ">>> Building uniprocessor kernel..."
-	#find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	#find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	#unset KERNCONF
-	#unset KERNEL_DESTDIR
-	#unset KERNELCONF
-	#export KERNCONF=pfSense.${FREEBSD_VERSION}
-	#export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/uniprocessor"
-	#export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense.${FREEBSD_VERSION}"
-	# Common fixup code
-	#fixup_kernel_options
-	#freesbie_make buildkernel
-	#echo ">>> Installing uniprocessor kernel..."
-	#freesbie_make installkernel
-	#ensure_kernel_exists $KERNEL_DESTDIR
-
 	# Build embedded kernel
-	echo ">>> Building embedded kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_wrap.${FREEBSD_VERSION}.${ARCH}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing wrap kernel..."
-	freesbie_make installkernel
-	ensure_kernel_exists $KERNEL_DESTDIR
+	for BUILD_KERNEL in $BUILD_KERNELS; do
+		echo ">>> Building $BUILD_KERNEL kernel..."
+		unset KERNCONF
+		unset KERNEL_DESTDIR
+		unset KERNELCONF
+		unset KERNEL_NAME
+		export KERNCONF=$BUILD_KERNEL
+		export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/$BUILD_KERNEL"
+		export KERNELCONF="${TARGET_ARCH_CONF_DIR}/$BUILD_KERNEL"
 
-	# Build embedded dev kernel
-	#echo ">>> Building embedded dev kernel..."
-	#find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	#find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	#unset KERNCONF
-	#unset KERNEL_DESTDIR
-	#unset KERNELCONF
-	#export KERNCONF=pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}
-	#export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/wrap_Dev"
-	#export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_wrap_Dev.${FREEBSD_VERSION}.${ARCH}"
-	# Common fixup code
-	#fixup_kernel_options
-	#freesbie_make buildkernel
-	#echo ">>> Installing wrap Dev kernel..."
-	#freesbie_make installkernel
-	#ensure_kernel_exists $KERNEL_DESTDIR
+		# Common fixup code
+		fixup_kernel_options
+		export SRC_CONF=${SRC_CONF}
+		#freesbie_make buildkernel
+		buildkernel
 
-	# Build Developers kernel
-	#echo ">>> Building Developers kernel..."
-	#find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	#find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	#unset KERNCONF
-	#unset KERNEL_DESTDIR
-	#unset KERNELCONF
-	#export KERNCONF=pfSense_Dev.${FREEBSD_VERSION}
-	#export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/developers"
-	#export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_Dev.${FREEBSD_VERSION}"
-	# Common fixup code
-	#fixup_kernel_options
-	#freesbie_make buildkernel
-	#echo ">>> Installing Developers kernel..."
-	#freesbie_make installkernel
-	#ensure_kernel_exists $KERNEL_DESTDIR
+		OSRC_CONF=${SRC_CONF}
+		if [ -n "${SRC_CONF_INSTALL:-}" ]; then
+			export SRC_CONF=$SRC_CONF_INSTALL
+		fi
 
-	# Build SMP kernel
-	echo ">>> Building SMP kernel..."
-	find $MAKEOBJDIRPREFIX -name .done_buildkernel -exec rm {} \;
-	find $MAKEOBJDIRPREFIX -name .done_installkernel -exec rm {} \;
-	unset KERNCONF
-	unset KERNEL_DESTDIR
-	unset KERNELCONF
-	export KERNCONF=pfSense_SMP.${FREEBSD_VERSION}
-	export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/SMP"
-	export KERNELCONF="${TARGET_ARCH_CONF_DIR}/pfSense_SMP.${FREEBSD_VERSION}"
-	# Common fixup code
-	fixup_kernel_options
-	freesbie_make buildkernel
-	echo ">>> Installing SMP kernel..."
-	freesbie_make installkernel
-	ensure_kernel_exists $KERNEL_DESTDIR
+		echo ">>> Installing $BUILD_KERNEL kernel..."
+		#freesbie_make installkernel
+		installkernel
 
-	# Nuke symbols
-	echo -n ">>> Cleaning up .symbols..."
-	if [ -z "${PFSENSE_DEBUG:-}" ]; then
+		SRC_CONF=${OSRC_CONF}
+
+		ensure_kernel_exists $KERNEL_DESTDIR
+
+		# Nuke symbols
+		echo -n ">>> Cleaning up .symbols..."
+		if [ -z "${PFSENSE_DEBUG:-}" ]; then
+			echo -n "."
+			find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm -f {} \;
+			echo -n "."
+			find $KERNEL_BUILD_PATH -name "*.symbols" -exec rm -f {} \;
+		fi
+
+		# Nuke old kernel if it exists
+		find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
+		echo "done."
+
+		# Use kernel INSTALL_NAME if it exists
+		KERNEL_INSTALL_NAME=`/usr/bin/sed -e '/INSTALL_NAME/!d; s/^.*INSTALL_NAME[[:blank:]]*//' \
+			${KERNELCONF} | /usr/bin/head -n 1`
+
+		if [ -z "${KERNEL_INSTALL_NAME}" ]; then
+			export KERNEL_NAME=`echo ${BUILD_KERNEL} | sed -e 's/pfSense_//; s/\.[0-9].*$//'`
+		else
+			export KERNEL_NAME=${KERNEL_INSTALL_NAME}
+		fi
+
+		echo -n ">>> Installing kernel to staging area..."
+		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz .)
 		echo -n "."
-		find $PFSENSEBASEDIR/ -name "*.symbols" -exec rm -f {} \;
-		echo -n "."
-		find $KERNEL_BUILD_PATH -name "*.symbols" -exec rm -f {} \;
-	fi
 
-	# Nuke old kernel if it exists
-	find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
-	echo "done."
+		if [ "${BUILD_KERNEL}" = "${DEFAULT_KERNEL}" ]; then
+			# If something is missing complain
+			if [ ! -f $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz ]; then
+				echo "The kernel archive($PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz) to install as default does not exist"
+				print_error_pfS
+			fi
+				
+			(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz -C $PFSENSEBASEDIR/boot/)
 
-	#echo -n ">>> Installing kernels to LiveCD area..."
-	#(cd $KERNEL_BUILD_PATH/uniprocessor/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_uniprocessor.gz .)
-	echo -n "."
-	(cd $KERNEL_BUILD_PATH/wrap/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap.gz .)
-	#echo -n "."
-	#(cd $KERNEL_BUILD_PATH/wrap_Dev/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_wrap_Dev.gz .)
-	#echo -n "."
-	#(cd $KERNEL_BUILD_PATH/developers/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_Dev.gz .)
-	echo -n "."
-	(cd $KERNEL_BUILD_PATH/SMP/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_SMP.gz .)
-	echo -n "."
-	chflags -R noschg $PFSENSEBASEDIR/boot/
-	echo -n "."
-	(cd $PFSENSEBASEDIR/boot/ && tar xzf $PFSENSEBASEDIR/kernels/kernel_SMP.gz -C $PFSENSEBASEDIR/boot/)
-	echo ".done"
-
+			chflags -R noschg $PFSENSEBASEDIR/boot/
+		fi
+		echo ".done"
+	done
 }
 
 # This routine rebuilds all pfPorts files which are generally
@@ -578,6 +367,7 @@ recompile_pfPorts() {
 			CPUS=`expr $DCPUS '*' 2`
 			echo SUBTHREADS="${CPUS}" >> /etc/make.conf
 			echo "WITHOUT_X11=yo" >> /etc/make.conf
+			echo "OPTIONS_UNSET=X11 DOCS EXAMPLES MAN" >> /etc/make.conf
 			MKCNF="pfPorts"
 		fi
 		if [ "$ARCH" = "mips" ]; then
@@ -659,38 +449,15 @@ cust_overlay_host_binaries() {
 		return
 	fi
 
-	# handle syslogd
-	PWD=`pwd`
-	# Note, (cd foo && make) does not seem to work.
-	# If you think you are cleaning this up then prepare
-	# to spend a fair amount of time figuring out why the built
-	# syslogd file doe snot reside in the correct directory to
-	# install from.  Just move along now, nothing to see here.
-	#echo "==> Building syslogd..."
-	#cd $SRCDIR/usr.sbin/syslogd
-	#(make clean) | egrep -wi '(^>>>|error)'
- 	#(make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-	#(make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
-	#echo "==> Installing syslogd to $PFSENSEBASEDIR/usr/sbin/..."
-	#if [ -f ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd ]; then
-	#	install ${MAKEOBJDIRPREFIX}${SRCDIR}/usr.sbin/syslogd/syslogd $PFSENSEBASEDIR/usr/sbin/
-	#fi
-	#cd $PWD
-
-	# Handle clog
-	#echo "==> Building clog..."
-	#if [ -d $SRCDIR/usr.sbin/clog ]; then
-	#	(cd $SRCDIR/usr.sbin/clog && make clean) | egrep -wi '(^>>>|error)'
-	#	(cd $SRCDIR/usr.sbin/clog && make ARCH=$ARCH) | egrep -wi '(^>>>|error)'
-	#	(cd $SRCDIR/usr.sbin/clog && make install DESTDIR=$PFSENSEBASEDIR) | egrep -wi '(^>>>|error)'
-	#    echo "==> Installing clog to $PFSENSEBASEDIR/usr/sbin/..."
-	#	if [ -f $SRCDIR/usr.sbin/clog/clog ]; then
-	#    	install $SRCDIR/usr.sbin/clog/clog $PFSENSEBASEDIR/usr/sbin/
-	#	fi
-	#fi
-	
-	install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
-	install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
+	# XXX: handle syslogd
+	if [ ! -f $PFSENSEBASEDIR/usr/sbin/syslogd ]; then
+		echo ">>> Syslogd is missing on staging area copying from host "
+		install /usr/sbin/syslogd $PFSENSEBASEDIR/usr/sbin/
+	fi
+	if [ ! -f $PFSENSEBASEDIR/usr/sbin/clog ]; then
+		echo ">>> Clog is missing on staging area copying from host "
+		install /usr/sbin/clog $PFSENSEBASEDIR/usr/sbin/
+	fi
 
 	# Temporary hack for RELENG_1_2
 	mkdir -p ${PFSENSEBASEDIR}/usr/local/lib/php/extensions/no-debug-non-zts-20020429/
@@ -700,7 +467,7 @@ cust_overlay_host_binaries() {
 		FOUND_FILES=`cat ${CUSTOM_COPY_LIST:-}`
 	else
 		echo ">>> Using copy.list.${PFSENSETAG}..."
-		FOUND_FILES=`cat copy.list.${PFSENSETAG}`
+		FOUND_FILES=`cat conf/copylist/copy.list.${PFSENSETAG}`
 	fi
 
 	if [ -f /tmp/pfPort/copy.list ]; then
@@ -716,10 +483,10 @@ cust_overlay_host_binaries() {
 	for TEMPFILE in $FOUND_FILES; do
 		if [ -f /${TEMPFILE} ]; then
 			FILETYPE=`file /$TEMPFILE | egrep "(dynamically|shared)" | wc -l | awk '{ print $1 }'`
+			mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
 			if [ "$FILETYPE" -gt 0 ]; then
 				NEEDLIB=`ldd /${TEMPFILE} | grep "=>" | awk '{ print $3 }'`
 				NEEDEDLIBS="$NEEDEDLIBS $NEEDLIB" 
-				mkdir -p `dirname ${PFSENSEBASEDIR}/${TEMPFILE}`
 				if [ ! -f ${PFSENSEBASEDIR}/${TEMPFILE} ] || [ /${TEMPFILE} -nt ${PFSENSEBASEDIR}/${TEMPFILE} ]; then
 					cp /${TEMPFILE} ${PFSENSEBASEDIR}/${TEMPFILE}
 					chmod a+rx ${PFSENSEBASEDIR}/${TEMPFILE}
@@ -789,24 +556,6 @@ check_for_zero_size_files() {
 	cat $MAKEOBJDIRPREFIX/zero_sized_files.txt
 }
 
-# Install custom BSDInstaller bits for FreeBSD
-# only installations (no pfSense bits)
-cust_populate_installer_bits_freebsd_only() {
-	# Add lua installer items
-	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/
-	mkdir -p $PFSENSEBASEDIR/scripts/
-	# This is now ready for general consumption! \o/
-	mkdir -p $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/conf/
-	cp -r $BUILDER_TOOLS/installer/conf \
-		$PFSENSEBASEDIR/usr/local/share/dfuibe_lua/
-	# Copy installer launcher scripts
-	cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
-	chmod a+rx $PFSENSEBASEDIR/scripts/*
-	rm -f $PFSENSEBASEDIR/usr/local/share/dfuibe_lua/install/599_after_installation_tasks.lua
-	rm -f $CVS_CO_DIR/root/.hushlogin
-	rm -f $PFSENSEBASEDIR/root/.hushlogin
-}
-
 # Install custom BSDInstaller bits for pfSense
 cust_populate_installer_bits() {
 	# Add lua installer items
@@ -854,19 +603,19 @@ cust_populate_installer_bits() {
 		$PFSENSEBASEDIR/usr/sbin/
 	chmod a+rx $PFSENSEBASEDIR/usr/sbin/cleargpt.sh
 	# Copy installer launcher scripts
-	cp $BUILDER_TOOLS/pfi $PFSENSEBASEDIR/scripts/
-	if [ "${PFSENSETAG}" = "RELENG_2_0" ]; then
-		cp $BUILDER_TOOLS/lua_installer_RELENG_2 $PFSENSEBASEDIR/scripts/lua_installer
+	cp $BUILDER_TOOLS/installer/scripts/pfi $PFSENSEBASEDIR/scripts/
+	if [ "${PFSENSETAG}" = "RELENG_1_2" ]; then
+		cp $BUILDER_TOOLS/installer/scripts/lua_installer_RELENG_1_2 $PFSENSEBASEDIR/scripts/lua_installer
 	else
-		cp $BUILDER_TOOLS/lua_installer $PFSENSEBASEDIR/scripts/lua_installer
+		cp $BUILDER_TOOLS/installer/scripts/lua_installer $PFSENSEBASEDIR/scripts/lua_installer
 	fi
-	cp $BUILDER_TOOLS/freebsd_installer $PFSENSEBASEDIR/scripts/
-	cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
-	cp $BUILDER_TOOLS/lua_installer_rescue $PFSENSEBASEDIR/scripts/
-	cp $BUILDER_TOOLS/lua_installer_full $PFSENSEBASEDIR/scripts/
+	cp $BUILDER_TOOLS/installer/scripts/freebsd_installer $PFSENSEBASEDIR/scripts/
+	cp $BUILDER_TOOLS/installer/scripts/lua_installer_rescue $PFSENSEBASEDIR/scripts/
+	cp $BUILDER_TOOLS/installer/scripts/lua_installer_rescue $PFSENSEBASEDIR/scripts/
+	cp $BUILDER_TOOLS/installer/scripts/lua_installer_full $PFSENSEBASEDIR/scripts/
 	chmod a+rx $PFSENSEBASEDIR/scripts/*
 	mkdir -p $PFSENSEBASEDIR/usr/local/bin/
-	cp $BUILDER_TOOLS/after_installation_routines.sh \
+	cp $BUILDER_TOOLS/installer/scripts/after_installation_routines.sh \
 		$PFSENSEBASEDIR/usr/local/bin/after_installation_routines.sh
 	chmod a+rx $PFSENSEBASEDIR/scripts/*
 }
@@ -874,22 +623,13 @@ cust_populate_installer_bits() {
 # Copies all extra files to the CVS staging
 # area and ISO staging area (as needed)
 cust_populate_extra() {
-	# Make devd
-	echo -n ">>> Making devd... "
-	( cd ${SRCDIR}/sbin/devd && make clean >/tmp/make_devd_clean.out 2>&1 )
-	( cd ${SRCDIR}/sbin/devd && make >/tmp/make_devd_all.out 2>&1 )
-	if ( cd ${SRCDIR}/sbin/devd && make install DESTDIR=${PFSENSEBASEDIR} >/tmp/make_devd_install.out 2>&1 ); then
-		echo "Done."
-	else
-		echo "Failed!"
-	fi
-
-	rm -f /tmp/make_devd_*.out
-
 	mkdir -p ${CVS_CO_DIR}/lib
 
-	if [ -f /usr/lib/pam_unix.so ]; then
-		install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/
+	if [ ! -f ${PFSENSEBASEDIR}/usr/lib/pam_unix.so ]; then
+		echo ">>> pam_unix.so is missing copying from host "
+		if [ -f /usr/lib/pam_unix.so ]; then
+			install -s /usr/lib/pam_unix.so ${PFSENSEBASEDIR}/usr/lib/
+		fi
 	fi
 
 	STRUCTURE_TO_CREATE="root etc usr/local/pkg/parse_config var/run scripts conf usr/local/share/dfuibe_installer root usr/local/bin usr/local/sbin usr/local/lib usr/local/etc usr/local/lib/php/20060613 usr/local/lib/lighttpd"
@@ -1313,33 +1053,6 @@ setup_tcshrc_prompt() {
 	fi
 }
 
-# Creates a FreeBSD specific updater tarball
-create_FreeBSD_system_update() {
-	VERSION="FreeBSD"
-	FILENAME=pfSense-Embedded-Update-${VERSION}.tgz
-	mkdir -p $UPDATESDIR
-
-	PREVIOUSDIR=`pwd`
-
-	cd ${CLONEDIR}
-	# Remove some fat and or conflicting
-	# freebsd files
-	rm -rf etc/
-	rm -rf var/
-	rm -rf usr/share/
-	echo "Creating ${UPDATESDIR}/${FILENAME} update file..."
-	tar czPf ${UPDATESDIR}/${FILENAME} .
-
-	echo "Signing ${UPDATESDIR}/${FILENAME} update file..."
-	#if [ -e /usr/local/sbin/gzsig ]; then
-	#	echo ">>> Executing command: gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}"
-	#	gzsig sign ~/.ssh/id_dsa ${UPDATESDIR}/${FILENAME}
-	#fi
-
-	cd $PREVIOUSDIR
-
-}
-
 # This routine will verify that PHP is sound and that it
 # can open and read config.xml and ensure the hostname
 test_php_install() {
@@ -1371,7 +1084,7 @@ test_php_install() {
 		chroot $PFSENSEBASEDIR /etc/rc.php_ini_setup 2>/dev/null
 	fi
 
-	cp $BUILDER_SCRIPTS/test_php.php $PFSENSEBASEDIR/
+	cp $BUILDER_SCRIPTS/scripts/test_php.php $PFSENSEBASEDIR/
 	chmod a+rx $PFSENSEBASEDIR/test_php.php
 	HOSTNAME=`env SHELL=/bin/sh chroot $PFSENSEBASEDIR /test_php.php`
 	echo -n " $HOSTNAME "
@@ -1666,18 +1379,6 @@ clone_system_only()
 
 # Does the work of checking out the specific branch of pfSense
 checkout_pfSense_git() {
-	echo ">>> Using GIT to checkout ${PFSENSETAG}"
-	echo -n ">>> "
-
-	if [ "${PFSENSE_WITH_FULL_GIT_CHECKOUT}" != "" ]; then
-		echo ">>> Clearing ${GIT_REPO_DIR}/pfSenseGITREPO and ${GIT_REPO_DIR}/pfSense..."
-		if [ -d ${GIT_REPO_DIR}/pfSenseGITREPO ]; then
-			rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO
-		fi
-		if [ -d ${GIT_REPO_DIR}/pfSense ]; then
-			rm -rf ${GIT_REPO_DIR}/pfSense
-		fi
-	fi
 
 	mkdir -p ${GIT_REPO_DIR}/pfSenseGITREPO
 	if [ "${PFSENSETAG}" = "MASTER" ] \
@@ -1736,19 +1437,6 @@ checkout_pfSense_git() {
 	echo "Done!"
 }
 
-# Invokes the rcs checkout routines
-checkout_pfSense() {
-	PREVIOUSDIR=`pwd`
-	echo ">>> Checking out pfSense version ${PFSENSETAG}..."
-	rm -rf $CVS_CO_DIR
-	if [ -z "${USE_GIT:-}" ]; then
-		(cd $BASE_DIR && cvs -d ${BASE_DIR}/cvsroot co pfSense -r ${PFSENSETAG})
-	else
-		checkout_pfSense_git
-	fi
-	cd $PREVIOUSDIR
-}
-
 # Outputs various set variables aka env
 print_flags() {
 
@@ -1758,13 +1446,11 @@ print_flags() {
 	printf "            MAKEOBJDIRPREFIX: %s\n" $MAKEOBJDIRPREFIX
 	printf "           pfSense build dir: %s\n" $SRCDIR
 	printf "             pfSense version: %s\n" $PFSENSE_VERSION
-	printf "                    CVS User: %s\n" $CVS_USER
 	printf "                   Verbosity: %s\n" $BE_VERBOSE
 	printf "                    BASE_DIR: %s\n" $BASE_DIR
 	printf "                     BASEDIR: %s\n" $BASEDIR	
 	printf "                Checkout dir: %s\n" $CVS_CO_DIR
 	printf "                 Custom root: %s\n" $CUSTOMROOT
-	printf "              CVS IP address: %s\n" $CVS_IP
 	printf "                 Updates dir: %s\n" $UPDATESDIR
 	printf "                pfS Base dir: %s\n" $PFSENSEBASEDIR
 	printf "               FreeSBIE path: %s\n" $FREESBIE_PATH
@@ -1780,10 +1466,6 @@ print_flags() {
 	printf "              Git Repository: %s\n" $GIT_REPO
 	printf "                  Git Branch: %s\n" $GIT_BRANCH
 	printf "               Custom Config: %s\n" $USE_CONFIG_XML
-	printf "                     ISOPATH: %s\n" $ISOPATH
-	printf "                     IMGPATH: %s\n" $IMGPATH
-	printf "                MEMSTICKPATH: %s\n" $MEMSTICKPATH
-	printf "                  KERNELCONF: %s\n" $KERNELCONF
 	printf "        TARGET_ARCH_CONF_DIR: %s\n" $TARGET_ARCH_CONF_DIR
 	printf "     FREESBIE_COMPLETED_MAIL: %s\n" $FREESBIE_COMPLETED_MAIL
 	printf "         FREESBIE_ERROR_MAIL: %s\n" $FREESBIE_ERROR_MAIL
@@ -1802,8 +1484,12 @@ if [ -n "$PFSENSECVSDATETIME" ]; then
 	printf "              pfSense TSTAMP: %s\n" "-D \"$PFSENSECVSDATETIME\""
 fi
 	printf "                    SRC_CONF: %s\n" $SRC_CONF
+	printf "               BUILD_KERNELS: %s\n" $BUILD_KERNELS
 	printf "CROSS_COMPILE_PORTS_BINARIES: %s\n" $CROSS_COMPILE_PORTS_BINARIES
 	printf "            SPLIT_ARCH_BUILD: %s\n" $SPLIT_ARCH_BUILD
+	printf "                     ISOPATH: %s\n" $ISOPATH
+	printf "                     IMGPATH: %s\n" $IMGPATH
+	printf "                MEMSTICKPATH: %s\n" $MEMSTICKPATH
 	printf "    UPDATES_TARBALL_FILENAME: %s\n" $UPDATES_TARBALL_FILENAME
 	printf "        PKG_INSTALL_PORTSPFS: %s\n" $PKG_INSTALL_PORTSPFS
 	printf "  CUSTOM_CALL_SHELL_FUNCTION: %s\n" $CUSTOM_CALL_SHELL_FUNCTION
@@ -1835,52 +1521,50 @@ freesbie_make() {
 
 # This updates the pfSense sources from rcs.pfsense.org
 update_cvs_depot() {
-	if [ -z "${USE_GIT:-}" ]; then
-		local _cvsdate
-		echo ">>> Launching csup pfSense-supfile..."
-		(/usr/bin/csup -b $BASE_DIR/cvsroot pfSense-supfile) 2>&1 | egrep -B3 -A3 -wi '(error)'
-		rm -rf pfSense
-		echo ">>> Updating ${BASE_DIR}/pfSense..."
-		rm -rf $BASE_DIR/pfSense
-		if [ -n "$PFSENSECVSDATETIME" ]; then
-			_cvsdate="-D $PFSENSECVSDATETIME"
+	if [ ! -d "${GIT_REPO_DIR}" ]; then
+		echo ">>> Creating ${GIT_REPO_DIR}"
+		mkdir -p ${GIT_REPO_DIR}
+	fi
+
+	if [ "${PFSENSE_WITH_FULL_GIT_CHECKOUT}" != "" ]; then
+		echo ">>> Clearing ${GIT_REPO_DIR}/pfSenseGITREPO and ${GIT_REPO_DIR}/pfSense..."
+		if [ -d ${GIT_REPO_DIR}/pfSenseGITREPO ]; then
+			rm -rf ${GIT_REPO_DIR}/pfSenseGITREPO
 		fi
-		(cd ${BASE_DIR} && cvs -d $BASE_DIR/cvsroot co -r ${PFSENSETAG} $_cvsdate pfSense) \
-			| egrep -wi "(^\?|^M|^C|error|warning)"
-		(cd ${BUILDER_TOOLS}/ && cvs update -d) \
-			| egrep -wi "(^\?|^M|^C|error|warning)"
-	else
-		if [ ! -d "${GIT_REPO_DIR}" ]; then
-			echo ">>> Creating ${GIT_REPO_DIR}"
-			mkdir -p ${GIT_REPO_DIR}
+		if [ -d ${GIT_REPO_DIR}/pfSense ]; then
+			rm -rf ${GIT_REPO_DIR}/pfSense
 		fi
-		if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
-			echo -n ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}..."
-			(cd ${GIT_REPO_DIR} && /usr/local/bin/git clone ${GIT_REPO} pfSenseGITREPO) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
-				if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO/conf.default" ]; then
-					echo
-					echo "!!!! An error occured while checking out pfSense"
-					echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
-					echo
-					print_error_pfS
-					kill $$
-				fi
-			else
+	fi
+
+	echo ">>> Using GIT to checkout ${PFSENSETAG}"
+	echo -n ">>> "
+
+	if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
+		echo -n ">>> Cloning ${GIT_REPO} / ${PFSENSETAG}..."
+		(cd ${GIT_REPO_DIR} && /usr/local/bin/git clone ${GIT_REPO} pfSenseGITREPO) 2>&1 | egrep -B3 -A3 -wi '(error)'
+		if [ -d "${GIT_REPO_DIR}/pfSenseGITREPO" ]; then
+			if [ ! -d "${GIT_REPO_DIR}/pfSenseGITREPO/conf.default" ]; then
 				echo
 				echo "!!!! An error occured while checking out pfSense"
-				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO"
+				echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO/conf.default"
 				echo
 				print_error_pfS
 				kill $$
 			fi
-			echo "Done!"
-		fi
-		checkout_pfSense_git
-		if [ $? != 0 ]; then
-			echo "Something went wrong while checking out GIT."
+		else
+			echo
+			echo "!!!! An error occured while checking out pfSense"
+			echo "     Could not locate ${GIT_REPO_DIR}/pfSenseGITREPO"
+			echo
 			print_error_pfS
+			kill $$
 		fi
+		echo "Done!"
+	fi
+	checkout_pfSense_git
+	if [ $? != 0 ]; then
+		echo "Something went wrong while checking out GIT."
+		print_error_pfS
 	fi
 }
 
@@ -1898,18 +1582,13 @@ make_world() {
 		ISINSTALLED=`find ${MAKEOBJDIRPREFIX}/ -name init | wc -l`
 		if [ "$ISINSTALLED" -gt 0 ]; then
 			touch ${MAKEOBJDIRPREFIX}/.done_buildworld
-			export NO_BUILDWORLD=yo
+			export MAKE_CONF="${MAKE_CONF} NO_CLEAN=yes NO_KERNELCLEAN=yes"
 		fi
 	fi
 
-	# Check to see if we have installed to $PFSENSEBASEDIR
-	ISINSTALLED=0
-	if [ -d ${PFSENSEBASEDIR} ]; then
-		ISINSTALLED=`find ${PFSENSEBASEDIR}/ -name init | wc -l`
-		if [ "$ISINSTALLED" -gt 0 ]; then
-			touch ${MAKEOBJDIRPREFIX}/.done_installworld
-			export NO_INSTALLWORLD=yo
-		fi
+	HOST_ARCHITECTURE=`uname -m`
+	if [ "${HOST_ARCHITECTURE}" = "${ARCH}" ]; then
+		export MAKE_CONF="${MAKE_CONF} WITHOUT_CROSS_COMPILER=yes"
 	fi
 
 	# Invoke FreeSBIE's buildworld
@@ -1942,17 +1621,24 @@ make_world() {
 	# EDGE CASE #2 yp.h ##############################################
 	# Ensure yp.h is built, this commonly has issues for some
 	# reason on subsequent build runs and results in file not found.
-	if [ ! -f $MAKEOBJDIRPREFIX/$SRCDIR/include/rpcsvc/yp.h ]; then
-		rm -rf $MAKEOBJDIRPREFIX/$SRCDIR/lib/libc
-		(cd $SRCDIR/lib/libc && env TARGET_ARCH=${ARCH} \
-			MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
-			NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
-	fi
+	#if [ ! -f $MAKEOBJDIRPREFIX/$SRCDIR/include/rpcsvc/yp.h ]; then
+	#	rm -rf $MAKEOBJDIRPREFIX/$SRCDIR/lib/libc
+	#	(cd $SRCDIR/lib/libc && env TARGET_ARCH=${ARCH} \
+	#		MAKEOBJDIRPREFIX=$MAKEOBJDIRPREFIX make $MAKEJ_WORLD \
+	#		NO_CLEAN=yo) 2>&1 | egrep -wi '(warning|error)'
+	#fi
 
 	# EDGE CASE #3 libc_p.a  #########################################
 
+	OSRC_CONF=${SRC_CONF}
+	if [ -n "${SRC_CONF_INSTALL:-}" ]; then
+		export SRC_CONF=$SRC_CONF_INSTALL
+	fi
+
 	# Invoke FreeSBIE's installworld
 	freesbie_make installworld
+
+	SRC_CONF=${OSRC_CONF}
 
 	# Ensure home directory exists
 	mkdir -p $PFSENSEBASEDIR/home
@@ -2700,7 +2386,7 @@ ova_setup_ovf_file() {
 	fi
 		
 	if [ ! -f ${OVFPATH}/${PRODUCT_NAME}.ovf ]; then
-		cp ${BUILDER_SCRIPTS}/pfSense.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
+		cp ${BUILDER_SCRIPTS}/conf/ovf/pfSense.ovf ${OVFPATH}/${PRODUCT_NAME}.ovf
 		file_search_replace PFSENSE_VERSION $PFSENSE_VERSION ${OVFPATH}/${PRODUCT_NAME}.ovf
 	fi
 }
@@ -2757,19 +2443,6 @@ EOF
 	sysctl kern.geom.debugflags=16
 }
 
-create_ova_image_dev_addons_alias() {
-	cat <<EOF >>$PFSENSEBASEDIR/root/.tcshrc
-alias builder_scripts 'cd /home/pfsense/tools/builder_scripts'
-alias builder_profiles 'cd /home/pfsense/tools/builder_scripts/builder_profiles'
-alias build_iso.sh 'cd /home/pfsense/tools/builder_scripts && ./build_iso.sh'
-alias update_git_repos.sh 'cd /home/pfsense/tools/builder_scripts && ./update_git_repos.sh'
-alias clean_build.sh 'cd /home/pfsense/tools/builder_scripts && ./clean_build.sh'
-alias build_nano.sh 'cd /home/pfsense/tools/builder_scripts && ./build_nano.sh'
-alias apply_kernel_patches.sh 'cd /home/pfsense/tools/builder_scripts && ./apply_kernel_patches.sh'
-EOF
-	
-}
-
 disable_lan_disable_dhcpd_enable_sshd() {
 	cat <<EOF >$PFSENSEBASEDIR/remove_lan.php
 #!/usr/local/bin/php -f
@@ -2819,14 +2492,6 @@ EOF
 	rm -rf $PFSENSEBASEDIR/conf/*
 	rm -rf $PFSENSEBASEDIR/tmp/*
 	rm $PFSENSEBASEDIR/remove_lan.php
-}
-
-create_ova_image_dev_addons() {
-	file_search_replace 1024 2048 ${OVFPATH}/${PRODUCT_NAME}.ovf
-	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.sh $PFSENSEBASEDIR/etc/rc.local
-	cp $BUILDER_TOOLS/builder_scripts/devbootstrap.running.sh $PFSENSEBASEDIR/etc/rc.local.running
-	create_ova_image_dev_addons_alias
-	disable_lan_disable_dhcpd_enable_sshd
 }
 
 # called from create_ova_image
@@ -3002,7 +2667,7 @@ pfsense_install_custom_packages_exec() {
 
 		/bin/echo ${custom_package_list} > ${PFSTODIR}/tmp/pkgfile.lst
 
-		/bin/cp ${BUILDER_TOOLS}/builder_scripts/pfspkg_installer ${PFSTODIR}/tmp
+		/bin/cp ${BUILDER_TOOLS}/builder_scripts/scripts/pfspkg_installer ${PFSTODIR}/tmp
 		/bin/chmod a+x ${PFSTODIR}/tmp/pfspkg_installer
 
 		cp ${PFSTODIR}/usr/local/lib/php.ini /tmp/
@@ -3230,8 +2895,8 @@ copy_config_xml_from_conf_default() {
 # the Ports directory sysutils/bsdinstaller, etc.
 rebuild_and_install_bsdinstaller() {
 	# Add BSDInstaller
-	${BUILDER_SCRIPTS}/get_bsdinstaller.sh
-	${BUILDER_SCRIPTS}/rebuild_bsdinstaller.sh
+	${BUILDER_SCRIPTS}/scripts/get_bsdinstaller.sh
+	${BUILDER_SCRIPTS}/scripts/rebuild_bsdinstaller.sh
 }
 
 # This routine ensures that the $SRCDIR has sources
@@ -3244,7 +2909,7 @@ ensure_source_directories_present() {
 		kill $$
 	fi
 	if [ ! -d $SRCDIR ]; then
-		echo ">>> Creating $SRCDIR ... We will need to csup the contents..."
+		echo ">>> Creating $SRCDIR ... We will need to fetch the contents..."
 		mkdir $SRCDIR
 		update_freebsd_sources_and_apply_patches
 	fi
@@ -3345,34 +3010,27 @@ install_required_builder_system_ports() {
 		(/usr/sbin/portsnap extract) 2>&1 | egrep -B3 -A3 -wi '(error)'
 		echo "Done!"
 	fi
-# Local binary						# Path to port
-	NEEDED_INSTALLED_PKGS="\
-/usr/local/bin/mkisofs				/usr/ports/sysutils/cdrtools
-/usr/local/bin/fastest_cvsup		/usr/ports/sysutils/fastest_cvsup
-/usr/local/lib/libpcre.so.1			/usr/ports/devel/pcre
-/usr/local/bin/curl					/usr/ports/ftp/curl
-/usr/local/bin/rsync				/usr/ports/net/rsync
-/usr/local/bin/cpdup				/usr/ports/sysutils/cpdup
-/usr/local/bin/git					/usr/ports/devel/git
-/usr/local/bin/screen				/usr/ports/sysutils/screen
-"
-	oIFS=$IFS
+
+	OIFS=$IFS
 	IFS="
 "
-	for PKG_STRING in $NEEDED_INSTALLED_PKGS; do			
-		PKG_STRING_T=`echo $PKG_STRING | sed "s/		/	/g"`
+
+	for PKG_STRING in `cat ${PFSBUILDERREQUIREDPORTS}`
+	do
+		PKG_STRING_T=`echo $PKG_STRING | sed "s/[ ]+/ /g"`
 		CHECK_ON_DISK=`echo $PKG_STRING_T | awk '{ print $1 }'`
 		PORT_LOCATION=`echo $PKG_STRING_T | awk '{ print $2 }'`
 		if [ ! -f "$CHECK_ON_DISK" ]; then
 			echo -n ">>> Building $PORT_LOCATION ..."
-			(cd $PORT_LOCATION && make -DBATCH deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} -DBATCH -DWITHOUT_GUI) 2>&1 | egrep -B3 -A3 -wi '(error)'
-			(cd $PORT_LOCATION && make install -DWITHOUT_GUI -DFORCE_PKG_REGISTER -DBATCH) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make BATCH=yes deinstall clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make ${MAKEJ_PORTS} OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes ) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes WITHOUT_GUI=yes install) 2>&1 | egrep -B3 -A3 -wi '(error)'
+			(cd $PORT_LOCATION && make OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes WITHOUT_GUI=yes clean) 2>&1 | egrep -B3 -A3 -wi '(error)'
 			echo "Done!"
 		fi
 	done
 
-	IFS=$oIFS
+	IFS=$OIFS
 }
 
 # Updates FreeBSD sources and applies any custom
@@ -3381,27 +3039,21 @@ update_freebsd_sources_and_apply_patches() {
 	# No need to obtain sources or patch
 	# on subsequent build runs.
 
-	# Detect Subsequent runs if .done_buildworld exists
-	if [ -d $SRCDIR ]; then
-		if [ -d $MAKEOBJDIRPREFIX ]; then
-			COUNT=`find $MAKEOBJDIRPREFIX -name .done_buildworld | wc -l`
-			if [ "$COUNT" -gt 0 ]; then
-				echo ">>> Subsequent build detected, not updating src or applying patches..."
-				echo ">>> IF you would like to force the update of the sources then remove"
-				echo "    .done_buildworld from $MAKEOBJDIRPREFIX"
-				return
-			fi
-		fi
-	fi
+	if [ -n "${NO_BUILDWORLD:-}" ]; then
+            echo "+++ NO_BUILDWORLD set, skipping build"
+            return
+        fi
 
-	# If override is in place, use it otherwise
-	# locate fastest cvsup host
-	if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
-		echo ">>> Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
-		echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
-	else
-		echo ">>> Finding fastest CVSUp host... Please wait..."
-		fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+	if [ -z ${USE_SVNUP} ]; then
+		# If override is in place, use it otherwise
+		# locate fastest cvsup host
+		if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
+			echo ">>> Setting CVSUp host to ${OVERRIDE_FREEBSD_CVSUP_HOST}"
+			echo $OVERRIDE_FREEBSD_CVSUP_HOST > /var/db/fastest_cvsup
+		else
+			echo ">>> Finding fastest CVSUp host... Please wait..."
+			fastest_cvsup -c tld -q > /var/db/fastest_cvsup
+		fi
 	fi
 
 	echo ">>> Removing old patch rejects..."
@@ -3410,13 +3062,30 @@ update_freebsd_sources_and_apply_patches() {
 	find $SRCDIR -name "*.orig" | sed 's/.orig//g' | xargs rm -f
 	find $SRCDIR -name "*.orig" | xargs rm -f
 
-	# CVSUp freebsd version -- this MUST be after Loop through and remove files
 	BASENAMESUPFILE=`basename $SUPFILE`
 	echo -n ">>> Obtaining FreeBSD sources ${BASENAMESUPFILE}..."
-	(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
-		grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
-		| grep -v "error\." | grep -v "opensolaris" | \
-		grep -v "httpd-error"
+	if [ -z ${USE_SVNUP} ]; then
+		# CVSUp freebsd version -- this MUST be after Loop through and remove files
+		(csup -b $SRCDIR -h `cat /var/db/fastest_cvsup` ${SUPFILE}) 2>&1 | \
+			grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+			| grep -v "error\." | grep -v "opensolaris" | \
+			grep -v "httpd-error"
+	else
+		# SVNup freebsd version -- which normally removes other files as well but leave the removal process for now
+		cp ${SUPFILE} /usr/local/etc
+		if [ ! -z ${OVERRIDE_FREEBSD_CVSUP_HOST:-} ]; then
+			(svnup $SVNUP_TARGET -l $SRCDIR -h ${OVERRIDE_FREEBSD_CVSUP_HOST} ${EXTRA_SVNUP_OPTIONS}) 2>&1 | \
+				grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+				| grep -v "error\." | grep -v "opensolaris" | \
+				grep -v "httpd-error"
+		else
+			(svnup $SVNUP_TARGET -l $SRCDIR ${EXTRA_SVNUP_OPTIONS}) 2>&1 | \
+				grep -v '(\-Werror|ignored|error\.[a-z])' | egrep -wi "(^>>>|error)" \
+				| grep -v "error\." | grep -v "opensolaris" | \
+				grep -v "httpd-error"
+		fi
+
+	fi
 	echo "Done!"
 
 	# Loop through and remove files
@@ -3546,43 +3215,6 @@ ensure_healthy_installer() {
 	fi
 }
 
-# This copies the various pfSense git repos to the DevISO
-# staging area.
-setup_deviso_specific_items() {
-	if [ `mount | grep ${CLONEDIR} | wc -l` -gt 0 ]; then
-		MOUNTPOINT=`mount | grep ${CLONEDIR} | awk '{ print $3 }'`
-		echo ">>> Attempting umount of $MOUNTPOINT"
-		umount -f $MOUNTPOINT
-		if [ `mount | grep ${CLONEDIR} | wc -l` -gt 0 ]; then
-			echo ">>> ERROR! Could not umount $MOUNTPOINT"
-			print_error_pfS
-		fi
-	fi
-
-	if [ "$OVERRIDE_FREEBSD_CVSUP_HOST" = "" ]; then
-		OVERRIDE_FREEBSD_CVSUP_HOST=`fastest_cvsup -c tld -q`
-	fi
-	echo -n ">>> Setting up DevISO specific bits... Please wait (this will take a while!)..."
-	DEVROOT="$PFSENSEBASEDIR/home/pfsense"
-	mkdir -p $DEVROOT
-	mkdir -p $PFSENSEBASEDIR/home/pfsense/pfSenseGITREPO
-	mkdir -p $PFSENSEBASEDIR/home/pfsense/installer
-	mkdir -p $PFSENSEBASEDIR/usr/pfSensesrc
-	echo "WITHOUT_X11=yo" >> $PFSENSEBASEDIR/etc/make.conf
-	DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
-	CPUS=`expr $DCPUS '*' 2`
-	echo SUBTHREADS="${CPUS}" >> /etc/make.conf
-	if [ "$ARCH" = "mips" ]; then
-		echo "WITHOUT_PERL_MALLOC=1" >> $PFSENSEBASEDIR/etc/make.conf
-		echo "TARGET_BIG_ENDIAN=yes" >> $PFSENSEBASEDIR/etc/make.conf
-	fi
-	echo -n "."
-	rm $PFSENSEBASEDIR/etc/resolv.conf
-	echo "Done!"
-	rm -rf $PFSENSEBASEDIR/var/db/pkg/*
-	touch $PFSENSEBASEDIR/pfSense_devISO
-}
-
 # Check to see if a forced pfPorts run has been requested.
 # If so, rebuild pfPorts.  set_version.sh uses this.
 check_for_forced_pfPorts_build() {
@@ -3696,7 +3328,7 @@ install_pkg_install_ports() {
 	echo "done."
 	/bin/echo -n ">>> Installing built ports (packages) in chroot (${PFSENSEBASEDIR})..."
 	mv ${VAR_DB_PKG}/* ${VAR_DB_PKG_TMP} || true 2>/dev/null
-	cp ${BUILDER_SCRIPTS}/install_tmp_pkgs_in_chroot.sh $PFSENSEBASEDIR/pkg.sh
+	cp ${BUILDER_SCRIPTS}/scripts/install_tmp_pkgs_in_chroot.sh $PFSENSEBASEDIR/pkg.sh
 	chmod a+rx $PFSENSEBASEDIR/pkg.sh
 	# chroot into staging area and pkg_add all of the packages
 	/sbin/mount -t devfs devfs ${PFSENSEBASEDIR}/dev
@@ -3753,21 +3385,40 @@ install_pkg_install_ports_build() {
                                 echo "Done!"
                         fi
                         _BUILT_PKGNAME="`make -C $EXTRAPORT -V PKGNAME`"
-                        if [ `pkg_info -e $_BUILT_PKGNAME` ]; then
-				echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
-                                script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes NOPORTDOCS=yes BATCH=yes FORCE_PKG_REGISTER=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
-                                if [ "$?" != "0" ]; then
-                                        echo
-                                        echo
-                                        echo "!!! Something went wrong while building ${EXTRAPORT}"
-                                        echo "    Press RETURN/ENTER to view the log from this build."
-                                        read inputline
-                                        more /tmp/pfPorts/${PORTNAME}.txt
-                                else
-                                        echo "Done!"
-                                fi
+			if [ ${FREEBSD_VERSION} -gt 9 ]; then
+				if [ `pkg query %n $_BUILT_PKGNAME` ]; then
+					echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
+					script /tmp/pfPort/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/d ev/null || true 2>&1 >/dev/null
+					if [ "$?" != "0" ]; then
+						echo
+						echo
+						echo "!!! Something went wrong while building ${EXTRAPORT}"
+						echo "    Press RETURN/ENTER to view the log from this build."
+						read inputline
+						more /tmp/pfPorts/${PORTNAME}.txt
+					else
+						echo "Done!"
+					fi
+				else
+					echo ">>> Port ${EXTRAPORT}($_BUILT_PKGNAME) as build dependency of ($PORTNAME)...already installed...skipping."
+				fi
 			else
-				echo ">>> Port ${EXTRAPORT}($_BUILT_PKGNAME) as build dependency of ($PORTNAME)...already installed...skipping."
+				if [ `pkg_info -e $_BUILT_PKGNAME` ]; then
+					echo -n ">>> Building port $_PORTNAME($_BUILT_PKGNAME) as build dependency of ($PORTNAME)..."
+					script /tmp/pfPorts/${PORTNAME}.txt make -C $EXTRAPORT $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
+					if [ "$?" != "0" ]; then
+						echo
+						echo
+						echo "!!! Something went wrong while building ${EXTRAPORT}"
+						echo "    Press RETURN/ENTER to view the log from this build."
+						read inputline
+						more /tmp/pfPorts/${PORTNAME}.txt
+					else
+						echo "Done!"
+					fi
+				else
+					echo ">>> Port ${EXTRAPORT}($_BUILT_PKGNAME) as build dependency of ($PORTNAME)...already installed...skipping."
+				fi
                         fi
                 done
                         
@@ -3802,7 +3453,7 @@ install_pkg_install_ports_build() {
 		fi
 
 		MAKEJ_PORTS=`cat $BUILDER_SCRIPTS/pfsense_local.sh | grep MAKEJ_PORTS | cut -d'"' -f2`
-		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV NOPORTDOCS=yes NO_INSTALL_MANPAGES=yes NOPORTEXAMPLES=yes BATCH=yes FORCE_PKG_REGISTER=yes NO_LATEST_LINK=yes clean install clean </dev/null 2>&1 1>/dev/null || true 2>&1 >/dev/null
+		script /tmp/pfPorts/${PORTNAME}.txt make -C $PORTDIRPFSA $MAKEJ_PORTS $PKG_INSTALL_PFSMAKEENV OPTIONS_UNSET="X11 DOCS EXAMPLES MAN LATEST_LINK" BATCH=yes FORCE_PKG_REGISTER=yes clean install clean 2>&1 1>/dev/null || true 2>&1 >/dev/null
 		if [ "$?" != "0" ]; then
 			echo
 			echo
@@ -3812,7 +3463,11 @@ install_pkg_install_ports_build() {
 			more /tmp/pfPorts/${PORTNAME}.txt
 		fi
 
-		script -a /tmp/pfPorts/${PORTNAME}.txt pkg_create -b $BUILT_PKGNAME $PFS_PKG_ALL/${BUILT_PKGNAME}.tbz
+		if [ ${FREEBSD_VERSION} -gt 9 ]; then
+			script -a /tmp/pfPorts/${PORTNAME}.txt pkg create $BUILT_PKGNAME -f tbz -o $PFS_PKG_ALL
+		else
+			script -a /tmp/pfPorts/${PORTNAME}.txt pkg_create -b $BUILT_PKGNAME $PFS_PKG_ALL/${BUILT_PKGNAME}.tbz
+		fi
 		if [ "$?" != "0" ]; then
 			echo
 			echo
@@ -3853,59 +3508,53 @@ buildworld() {
 	    echo "+++ NO_BUILDWORLD set, skipping build" | tee -a ${LOGFILE}
 	    return
 	fi
-	# Set SRC_CONF variable if it's not already set.
-	if [ -z "${SRC_CONF:-}" ]; then
-	    if [ -n "${MINIMAL:-}" ]; then
-		SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
-	    else
-		SRC_CONF=${LOCALDIR}/conf/make.conf
-	    fi
+
+	# Set LOGFILE. If it's a tmp file, schedule for deletion
+	if [ -z "${LOGFILE}" ]; then
+		LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
+	fi
+
+	if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
+		export MAKE_CONF="${MAKE_CONF} MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
 	fi
 	echo ">>> Building world for ${ARCH} architecture..."
 	cd $SRCDIR
-	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
-	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld" > /tmp/freesbie_buildworld_cmd.txt
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} buildworld || print_error_pfS;) | egrep '^>>>'
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} TARGET=${ARCH} NO_CLEAN=yes"
+	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} buildworld" > /tmp/freesbie_buildworld_cmd.txt
+	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} buildworld || print_error_pfS;) | egrep '^>>>'
 	cd $BUILDER_SCRIPTS
 }
 
 # Imported from FreeSBIE
 installworld() {
+
+	if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
+		export MAKE_CONF="${MAKE_CONF} MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
+	fi
+
+	# Set LOGFILE. If it's a tmp file, schedule for deletion
+	if [ -z "${LOGFILE}" ]; then
+		LOGFILE=$(mktemp -q /tmp/freesbie.XXXXXX)
+	fi
+
 	echo ">>> Installing world for ${ARCH} architecture..."
 	cd $SRCDIR
 	# Set SRC_CONF variable if it's not already set.
-	if [ -z "${SRC_CONF:-}" ]; then
-	    if [ -n "${MINIMAL:-}" ]; then
-			SRC_CONF=${LOCALDIR}/conf/src.conf.minimal
-	    else
-			SRC_CONF=${LOCALDIR}/conf/src.conf
-	    fi
-	fi
 	mkdir -p ${BASEDIR}
 	cd ${SRCDIR}
-	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
-	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld" > /tmp/freesbie_installworld_cmd.txt
+	makeargs="${MAKEOPT:-} ${MAKEJ_WORLD:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR} TARGET=${ARCH}"
+	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installworld" > /tmp/freesbie_installworld_cmd.txt
 	# make installworld
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installworld || print_error_pfS;) | egrep '^>>>'
-	makeargs="${MAKEOPT:-} SRCCONF=${SRC_CONF} MODULES_OVERRIDE=${MODULES_OVERRIDE:-} TARGET_ARCH=${ARCH} DESTDIR=${BASEDIR}"
-	set +e
-	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution"  > /tmp/freesbie_installworld_distribution_cmd.txt
+	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installworld || print_error_pfS;) | egrep '^>>>'
+	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} distribution"  > /tmp/freesbie_installworld_distribution_cmd.txt
 	# make distribution
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} distribution || print_error_pfS;) | egrep '^>>>'
+	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} distribution || print_error_pfS;) | egrep '^>>>'
 	set -e
 	cd $BUILDER_SCRIPTS
 }
 
 # Imported from FreeSBIE
 buildkernel() {
-	# Set SRC_CONF variable if it's not already set.
-	if [ -z "${SRC_CONF:-}" ]; then
-	    if [ -n "${MINIMAL:-}" ]; then
-			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
-	    else
-			SRC_CONF=${LOCALDIR}/conf/make.conf.${FREEBSD_VERSION}
-	    fi
-	fi
 	if [ -n "${KERNELCONF:-}" ]; then
 	    export KERNCONFDIR=$(dirname ${KERNELCONF})
 	    export KERNCONF=$(basename ${KERNELCONF})
@@ -3913,22 +3562,16 @@ buildkernel() {
 	    export KERNCONFDIR=${LOCALDIR}/conf/${ARCH}
 	    export KERNCONF="FREESBIE"
 	fi
-	if [ -z "${WITH_DTRACE:-}" ]; then
-		DTRACE=""
-	else
-		DTRACE=" WITH_CTF=1"
-	fi
 	SRCCONFBASENAME=`basename ${SRC_CONF}`
 	echo ">>> KERNCONFDIR: ${KERNCONFDIR}"
 	echo ">>> ARCH:        ${ARCH}"
 	echo ">>> SRC_CONF:    ${SRCCONFBASENAME}"
-	if [ "$DTRACE" != "" ]; then
-		echo ">>> DTRACE:      ${DTRACE}"
-	fi
-	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} MODULES_OVERRIDE=${MODULES_OVERRIDE:-} TARGET_ARCH=${ARCH} ${DTRACE}"
-	echo ">>> Builder is running the command: env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel" > /tmp/freesbie_buildkernel_cmd.txt
+
+	LOGFILE="/tmp/kernel.${KERNCONF}.log"
+	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH}"
+	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make $makeargs buildkernel KERNCONF=${KERNCONF} NO_KERNELCLEAN=yo" > /tmp/freesbie_buildkernel_cmd.txt
 	cd $SRCDIR
-	(env $MAKE_ENV script -aq $LOGFILE make $makeargs buildkernel NO_KERNELCLEAN=yo || print_error_pfS;) | egrep '^>>>'
+	(env $MAKE_CONF script -q $LOGFILE make $makeargs buildkernel KERNCONF=${KERNCONF} NO_KERNELCLEAN=yo || print_error_pfS;) | egrep '^>>>'
 	cd $BUILDER_SCRIPTS
 
 }
@@ -3936,14 +3579,6 @@ buildkernel() {
 # Imported from FreeSBIE
 installkernel() {
 	# Set SRC_CONF variable if it's not already set.
-	cd $SRCDIR
-	if [ -z "${SRC_CONF:-}" ]; then
-	    if [ -n "${MINIMAL:-}" ]; then
-			SRC_CONF=${LOCALDIR}/conf/make.conf.minimal
-	    else
-			SRC_CONF=${LOCALDIR}/conf/make.conf.${FREEBSD_VERSION}
-	    fi
-	fi
 	if [ -n "${KERNELCONF:-}" ]; then
 	    export KERNCONFDIR=$(dirname ${KERNELCONF})
 	    export KERNCONF=$(basename ${KERNELCONF})
@@ -3952,15 +3587,11 @@ installkernel() {
 	    export KERNCONF="FREESBIE"
 	fi
 	mkdir -p ${BASEDIR}/boot
-	cd ${SRCDIR}
-	if [ -z "${WITH_DTRACE:-}" ]; then
-		DTRACE=""
-	else
-		DTRACE=" WITH_CTF=1"
-	fi
+	LOGFILE="/tmp/kernel.${KERNCONF}.log"
 	makeargs="${MAKEOPT:-} ${MAKEJ_KERNEL:-} SRCCONF=${SRC_CONF} TARGET_ARCH=${ARCH} DESTDIR=${KERNEL_DESTDIR}"
-	echo ">>> FreeSBIe2 is running the command: env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
-	(env $MAKE_ENV script -aq $LOGFILE make ${makeargs:-} installkernel || print_error_pfS;) | egrep '^>>>'
+	echo ">>> Builder is running the command: env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel ${DTRACE}"  > /tmp/freesbie_installkernel_cmd.txt
+	cd ${SRCDIR}
+	(env $MAKE_CONF script -aq $LOGFILE make ${makeargs:-} installkernel KERNCONF=${KERNCONF} || print_error_pfS;) | egrep '^>>>'
 	echo ">>> Executing cd $KERNEL_DESTDIR/boot/kernel"
 	gzip -f9 $KERNEL_DESTDIR/boot/kernel/kernel
 	cd $BUILDER_SCRIPTS
@@ -4009,11 +3640,11 @@ launch() {
 	fi
 
 	# Some variables can be passed to make only as environment, not as parameters.
-	# usage: env $MAKE_ENV make $makeargs
-	MAKE_ENV=${MAKE_ENV:-}
+	# usage: env $MAKE_CONF make $makeargs
+	MAKE_CONF=${MAKE_CONF:-}
 
 	if [ ! -z ${MAKEOBJDIRPREFIX:-} ]; then
-	    MAKE_ENV="$MAKE_ENV MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
+	    MAKE_CONF="$MAKE_CONF MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}"
 	fi
 
 }

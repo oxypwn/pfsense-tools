@@ -5,8 +5,6 @@ TOOLSDIR=/home/pfsense/tools/builder_scripts/
 
 # Copy pfsense-build.conf into TOOLSDIR
 cp pfsense-build.conf	$TOOLSDIR
-cp remove.list  		$TOOLSDIR
-cp copy.list			$TOOLSDIR
 
 # cd $TOOLSDIR and read in pfsense_local.sh
 cd $TOOLSDIR

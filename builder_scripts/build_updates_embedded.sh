@@ -57,14 +57,13 @@ rm -rf $CVS_CO_DIR
 update_cvs_depot
 
 # Use pfSense_wrap.6 as kernel configuration file
-if [ $FREEBSD_VERSION = "7" ]; then
-	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.7"
-fi
-if [ $FREEBSD_VERSION = "8" ]; then
-	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.8"
-fi
-if [ $FREEBSD_VERSION = "9" ]; then
-	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.9"
+export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.developer.${FREEBSD_VERSION}"
+
+if [ -n "${NANO_WITH_VGA}" ]; then
+        _VGA="_vga"
+        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}}
+else
+        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap.${FREEBSD_VERSION}.${ARCH}}
 fi
 
 # Calculate versions
@@ -80,21 +79,11 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
 	if [ $FREEBSD_VERSION = "6" ]; then
-		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso ..."	
-		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso"
+		echo ">>> Using ${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso ..."	
+		export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso"
 	fi
-	if [ $FREEBSD_VERSION = "7" ]; then
-		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.7 ..."
-		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.7"
-	fi
-	if [ $FREEBSD_VERSION = "8" ]; then
-		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.8 ..."
-		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.8"
-	fi
-	if [ $FREEBSD_VERSION = "9" ]; then
-		echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.9 ..."
-		export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.9"
-	fi
+	echo ">>> Using ${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.${FREEBSD_VERSION} ..."
+	export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.${FREEBSD_VERSION}"
 fi
 
 cd $CVS_CO_DIR

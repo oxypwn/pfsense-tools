@@ -58,8 +58,8 @@ if [ -d $CVS_CO_DIR ]; then
 fi
 
 # Use normal src.conf
-export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION"
-export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION.install"
+export SRC_CONF="${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION"
+export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION.install"
 
 # Add etcmfs and rootmfs to the EXTRAPLUGINS plugins used by freesbie2
 export EXTRAPLUGINS="${EXTRAPLUGINS:-} rootmfs etcmfs"
@@ -68,8 +68,8 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION ..."
-	export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"
+	echo ">>> Using ${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION ..."
+	export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION"
 fi
 
 # Clean up items that should be cleaned each run
@@ -89,6 +89,7 @@ make_world
 
 # Build SMP, Embedded (wrap) and Developers edition kernels
 echo ">>> Building all extra kernels... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
+export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_SMP.${FREEBSD_VERSION}}
 build_all_kernels
 
 # Nuke the boot directory

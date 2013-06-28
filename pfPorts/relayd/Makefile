@@ -35,11 +35,13 @@ SUB_FILES+=	pkg-install
 SUB_LIST+=	RUSER=${RUSER} \
 		RGROUP=${RGROUP}
 
-OPTIONS=	LIBEVENT_STATIC "Build with static libevent" On
+OPTIONS_DEFINE=	LIBEVENT_STATIC
+OPTIONS_DEFAULT=	LIBEVENT_STATIC
+LIBEVENT_STATIC_DESC=	Build with static libevent
 
 .include <bsd.port.pre.mk>
 
-.if defined(WITH_LIBEVENT_STATIC)
+.if ${PORT_OPTIONS:MLIBEVENT_STATIC}
 BUILD_DEPENDS=	${LOCALBASE}/lib/libevent.a:${PORTSDIR}/devel/libevent
 MAKE_ARGS+=	LIBEVENT=${LOCALBASE}/lib/libevent.a
 .else

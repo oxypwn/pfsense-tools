@@ -67,14 +67,6 @@ export CVS_CO_DIR=${CVS_CO_DIR:-${BASE_DIR}/${PFSENSE_DIR}}
 # be overlayed onto the image later in the process
 export CUSTOMROOT=${CUSTOMROOT:-${CVS_CO_DIR}}
 
-# This is the user that has access to the pfSense repo
-export CVS_USER=${CVS_USER:-sullrich}
-
-# pfSense repo IP address. Typically cvs.pfsense.org,
-# but somebody could use a ssh tunnel and specify
-# a different one
-export CVS_IP=${CVS_IP:-cvs.pfsense.org}
-
 # This is where updates will be stored once they are created.
 export UPDATESDIR=${UPDATESDIR:-$MAKEOBJDIRPREFIXFINAL/updates}
 
@@ -94,10 +86,11 @@ export SRCDIR=${SRCDIR:-/usr/pfSensesrc/src}
 export BASEDIR=${PFSENSEBASEDIR:-/usr/local/pfsense-fs}
 export CLONEDIR=${PFSENSEISODIR:-/usr/local/pfsense-clone}
 export PFSPKGFILE=${PFSPKGFILE:-/tmp/pfspackages}
+export PFSBUILDERREQUIREDPORTS=${PFSBUILDERREQUIREDPORTS:-${BUILDER_SCRIPTS}/conf/pfPorts/builder_required_ports}
 export FREESBIE_LABEL=${FREESBIE_LABEL:-${PRODUCT_NAME}}
 
 # IMPORTANT NOTE: Maintain the order of EXTRAPLUGINS freesbie plugins!
-export EXTRAPLUGINS="${EXTRAPLUGINS:-"customroot customscripts pkginstall buildmodules"}"
+export EXTRAPLUGINS="${EXTRAPLUGINS:-"customroot customscripts pkginstall"}"
 
 # Items beyond this must be defined after MAKEOBJDIRPREFIX!
 
@@ -141,8 +134,17 @@ export pfSense_version=${pfSense_version:-"8"}
 export FREEBSD_VERSION=${FREEBSD_VERSION:-"8"}
 export FREEBSD_BRANCH=${FREEBSD_BRANCH:-"RELENG_8_3"}
 
+# This is used for using svnup for retrieving src instead of csup
+# export USE_SVNUP=yes
+
+# This is for specifying extra options to svnup
+# Especially useful for CURRENT on FreeBSD
+# export ${EXTRA_SVNUP_OPTIONS="-r $revision_in_svn"
+
+export SVNUP_TARGET=${SVNUP_TARGET:-release}
+
 # Define FreeBSD SUPFILE
-export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/${FREEBSD_BRANCH}-supfile"} 
+export SUPFILE=${SUPFILE:-"${BUILDER_TOOLS}/builder_scripts/conf/csup/${FREEBSD_BRANCH}-supfile"} 
 
 # "UNBREAK TEXTMATE FORMATTING.  PLEASE LEAVE ME THANKS.
 
@@ -154,7 +156,7 @@ export PFSENSETAG=${PFSENSETAG:-HEAD}
 
 # Patch directory and patch file that lists patches to apply
 export PFSPATCHDIR=${PFSPATCHDIR:-${BUILDER_TOOLS}/patches/${FREEBSD_BRANCH}}
-export PFSPATCHFILE=${PFSPATCHFILE:-${BUILDER_TOOLS}/builder_scripts/patches.${PFSENSETAG}}
+export PFSPATCHFILE=${PFSPATCHFILE:-${BUILDER_TOOLS}/builder_scripts/conf/patchlist/patches.${PFSENSETAG}}
 
 # Path to kernel files being built
 export KERNEL_BUILD_PATH=${KERNEL_BUILD_PATH:-"/tmp/kernels"}
@@ -232,7 +234,7 @@ export ARCH=${ARCH:-"`uname -m`"}
 #export CROSS_COMPILE_PORTS_BINARIES="~sullrich/mips.tgz"
 
 # Custom Copy and Remove lists that override base remove.list.* and copy.list.*
-export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"}
+export CUSTOM_REMOVE_LIST=${CUSTOM_REMOVE_LIST:-"${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION"}
 
 # " - UNBREAK TEXTMATE FORMATTING - PLEASE LEAVE.
 
@@ -308,6 +310,12 @@ export UPDATES_TARBALL_FILENAME=${UPDATES_TARBALL_FILENAME:-"${UPDATESDIR}/${PRO
 export CUSTOM_CALL_SHELL_FUNCTION=${CUSTOM_CALL_SHELL_FUNCTION:-""}
 
 export BUILDER_AUTO_UPDATE_APPLY_PATCHES=${BUILDER_AUTO_UPDATE_APPLY_PATCHES:-"YES"}
+
+if [ -z "${NANO_WITH_VGA}" ]; then
+	export BUILD_KERNELS=${BUILD_KERNELS:-"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap.${FREEBSD_VERSION}.${ARCH}"}
+else
+	export BUILD_KERNELS=${BUILD_KERNELS:-"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap_vga.${FREEBSD_VERSION}.${ARCH}"}
+fi
 
 # This needs to be at the very end of the file.
 IFS=$OIFS

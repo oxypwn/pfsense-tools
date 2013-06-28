@@ -179,11 +179,11 @@ main(int argc, char *argv[])
 	pthread_t GC;
 	int attempts;
 
-	attempts = atoi(argv[1]);
-	if (argc > 2) {
+	if (argc != 2) {
 		fprintf(stderr, "Invalid attempts count %d.  Use a numeric value from 1-9999\n", attempts);
 		exit(3);
 	}
+	attempts = atoi(argv[1]);
 
 	// Set MAXATTEMPTS to the first argv argument
 	MAXATTEMPTS = attempts;
@@ -218,7 +218,7 @@ main(int argc, char *argv[])
 	// attempted login but failed.
 	while (fgets(buf, (int)sizeof(buf), stdin) != NULL) 
 	{
-		printf(buf);
+		printf("%s", buf);
 		/* if this is not sshd or webConfigurator related, continue on without processing */
 		if (strstr(buf, "sshd") == NULL && strstr(buf, "webConfigurator") == NULL)
 			continue;

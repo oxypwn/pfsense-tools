@@ -57,8 +57,8 @@ fi
 
 # Define src.conf
 if [ -z "${SRC_CONF:-}" ]; then
-	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION"
-	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src.conf.$FREEBSD_VERSION.install"
+	export SRC_CONF="${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION"
+	export SRC_CONF_INSTALL="${BUILDER_SCRIPTS}/conf/src/src.conf.$FREEBSD_VERSION.install"
 fi
 
 # Add etcmfs and rootmfs to the EXTRAPLUGINS plugins used by freesbie2
@@ -68,9 +68,11 @@ if [ ! -z "${CUSTOM_REMOVE_LIST:-}" ]; then
 	echo ">>> Using ${CUSTOM_REMOVE_LIST:-} ..."
 	export PRUNE_LIST="${CUSTOM_REMOVE_LIST:-}"
 else
-	echo ">>> Using ${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION ..."
-	export PRUNE_LIST="${BUILDER_SCRIPTS}/remove.list.iso.$FREEBSD_VERSION"
+	echo ">>> Using ${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION ..."
+	export PRUNE_LIST="${BUILDER_SCRIPTS}/conf/rmlist/remove.list.iso.$FREEBSD_VERSION"
 fi
+
+export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_SMP.${FREEBSD_VERSION}}
 
 # This should be run first
 launch
@@ -210,10 +212,7 @@ if [ "$1" = "" ]; then
 	setup_tcshrc_prompt
 
 	# Setup serial port helper hints
-	if [ "$FBSD_VERSION" = "8" ]; then
-		setup_serial_hints
-	fi
-	if [ "$FBSD_VERSION" = "9" ]; then
+	if [ "$FBSD_VERSION" -gt "7" ]; then
 		setup_serial_hints
 	fi
 
