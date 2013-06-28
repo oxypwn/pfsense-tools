@@ -246,7 +246,6 @@ build_all_kernels() {
 		export KERNCONF=$BUILD_KERNEL
 		export KERNEL_DESTDIR="$KERNEL_BUILD_PATH/$BUILD_KERNEL"
 		export KERNELCONF="${TARGET_ARCH_CONF_DIR}/$BUILD_KERNEL"
-		export KERNEL_NAME=`echo ${BUILD_KERNEL} | sed -e 's/pfSense_//; s/\.[0-9].*$//'`
 
 		# Common fixup code
 		fixup_kernel_options
@@ -279,6 +278,16 @@ build_all_kernels() {
 		# Nuke old kernel if it exists
 		find $KERNEL_BUILD_PATH -name kernel.old -exec rm -rf {} \; 2>/dev/null
 		echo "done."
+
+		# Use kernel INSTALL_NAME if it exists
+		KERNEL_INSTALL_NAME=`/usr/bin/sed -e '/INSTALL_NAME/!d; s/^.*INSTALL_NAME[[:blank:]]*//' \
+			${KERNELCONF} | /usr/bin/head -n 1`
+
+		if [ -z "${KERNEL_INSTALL_NAME}" ]; then
+			export KERNEL_NAME=`echo ${BUILD_KERNEL} | sed -e 's/pfSense_//; s/\.[0-9].*$//'`
+		else
+			export KERNEL_NAME=${KERNEL_INSTALL_NAME}
+		fi
 
 		echo -n ">>> Installing kernel to staging area..."
 		(cd $KERNEL_BUILD_PATH/$BUILD_KERNEL/boot/ && tar czf $PFSENSEBASEDIR/kernels/kernel_${KERNEL_NAME}.gz .)
