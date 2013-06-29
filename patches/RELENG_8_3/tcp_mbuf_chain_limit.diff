@@ -1,0 +1,117 @@
+--- sys/kern/uipc_mbuf.c	(revision 223824)
++++ sys/kern/uipc_mbuf.c	(working copy)
+@@ -525,12 +525,14 @@
+  * only their reference counts are incremented.
+  */
+ struct mbuf *
+-m_copym(struct mbuf *m, int off0, int len, int wait)
++m_copy_nbufs(struct mbuf *m, int off0, int len, int wait, long * outlen,
++    int nbufmax)
+ {
+ 	struct mbuf *n, **np;
+ 	int off = off0;
+ 	struct mbuf *top;
+ 	int copyhdr = 0;
++	int len_orig = len;
+ 
+ 	KASSERT(off >= 0, ("m_copym, negative off %d", off));
+ 	KASSERT(len >= 0, ("m_copym, negative len %d", len));
+@@ -546,7 +548,7 @@
+ 	}
+ 	np = &top;
+ 	top = 0;
+-	while (len > 0) {
++	while (len > 0 && nbufmax-- > 0) {
+ 		if (m == NULL) {
+ 			KASSERT(len == M_COPYALL, 
+ 			    ("m_copym, length > size of mbuf chain"));
+@@ -584,6 +586,9 @@
+ 	if (top == NULL)
+ 		mbstat.m_mcfail++;	/* XXX: No consistency. */
+ 
++	if (outlen)
++		*outlen = len_orig - len;
++
+ 	return (top);
+ nospace:
+ 	m_freem(top);
+@@ -591,6 +596,13 @@
+ 	return (NULL);
+ }
+ 
++struct mbuf *
++m_copym(struct mbuf *m, int off0, int len, int wait)
++{
++
++	return (m_copy_nbufs(m, off0, len, wait, NULL, INT_MAX));
++}
++
+ /*
+  * Returns mbuf chain with new head for the prepending case.
+  * Copies from mbuf (chain) n from off for len to mbuf (chain) m
+--- sys/netinet/tcp_output.c	(revision 228872)
++++ sys/netinet/tcp_output.c	(working copy)
+@@ -183,6 +183,7 @@
+ 	int sack_rxmit, sack_bytes_rxmt;
+ 	struct sackhole *p;
+ 	int tso;
++	int max_mbuf_chain_len = 16;	/* XXX Set this based on interface? */
+ 	struct tcpopt to;
+ #if 0
+ 	int maxburst = TCP_MAXBURST;
+@@ -806,16 +807,6 @@
+ 		struct mbuf *mb;
+ 		u_int moff;
+ 
+-		if ((tp->t_flags & TF_FORCEDATA) && len == 1)
+-			TCPSTAT_INC(tcps_sndprobe);
+-		else if (SEQ_LT(tp->snd_nxt, tp->snd_max) || sack_rxmit) {
+-			tp->t_sndrexmitpack++;
+-			TCPSTAT_INC(tcps_sndrexmitpack);
+-			TCPSTAT_ADD(tcps_sndrexmitbyte, len);
+-		} else {
+-			TCPSTAT_INC(tcps_sndpack);
+-			TCPSTAT_ADD(tcps_sndbyte, len);
+-		}
+ #ifdef notyet
+		if ((m = m_copypack(so->so_snd.sb_mb, off,
+		    (int)len, max_linkhdr + hdrlen)) == 0) {
+@@ -847,7 +838,8 @@
+ 			    mtod(m, caddr_t) + hdrlen);
+ 			m->m_len += len;
+ 		} else {
+-			m->m_next = m_copy(mb, moff, (int)len);
++			m->m_next = m_copy_nbufs(mb, moff, len, M_DONTWAIT,
++			    &len, max_mbuf_chain_len);
+ 			if (m->m_next == NULL) {
+ 				SOCKBUF_UNLOCK(&so->so_snd);
+ 				(void) m_free(m);
+@@ -856,6 +848,18 @@
+ 			}
+ 		}
+ 
++		/* Update stats here as m_copy_nbufs may have adjusted len. */
++		if ((tp->t_flags & TF_FORCEDATA) && len == 1)
++			TCPSTAT_INC(tcps_sndprobe);
++		else if (SEQ_LT(tp->snd_nxt, tp->snd_max) || sack_rxmit) {
++			tp->t_sndrexmitpack++;
++			TCPSTAT_INC(tcps_sndrexmitpack);
++			TCPSTAT_ADD(tcps_sndrexmitbyte, len);
++		} else {
++			TCPSTAT_INC(tcps_sndpack);
++			TCPSTAT_ADD(tcps_sndbyte, len);
++		}
++
+ 		/*
+ 		 * If we're sending everything we've got, set PUSH.
+ 		 * (This will keep happy those implementations which only
+--- sys/sys/mbuf.h	(revision 223824)
++++ sys/sys/mbuf.h	(working copy)
+@@ -849,6 +849,7 @@
+ 		    int, int, int, int);
+ struct mbuf	*m_copypacket(struct mbuf *, int);
+ void		 m_copy_pkthdr(struct mbuf *, struct mbuf *);
++struct mbuf	*m_copy_nbufs(struct mbuf *, int, int, int, long *, int);
+ struct mbuf	*m_copyup(struct mbuf *n, int len, int dstoff);
+ struct mbuf	*m_defrag(struct mbuf *, int);
+ void		 m_demote(struct mbuf *, int);

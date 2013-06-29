@@ -119,3 +119,5 @@
 -p1~~pcireg.h.diff~
 -p1~~from-8-STABLE/e1000/0007-MFC-240680.patch~
 -p1~~from-8-STABLE/e1000/0008-MFC-247430.patch~
+~~tcp_mbuf_chain_limit.diff~
+~~xen_uart.diff~
