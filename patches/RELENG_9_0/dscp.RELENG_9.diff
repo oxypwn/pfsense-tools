@@ -102,10 +102,10 @@ diff -u -r1.2 parse.y
 +                        else if (!strcmp($2, "af43"))
 +                                $$ = DSCP_AF43;
 +                        else if ($2[0] == '0' && $2[1] == 'x')
-+                                $$ = strtoul($2, NULL, 16);
++                                $$ = strtoul($2, NULL, 16) * 4;
 +                        else
-+                                $$ = strtoul($2, NULL, 10);
-+                        if (!$$ || $$ > 184) {
++                                $$ = strtoul($2, NULL, 10) * 4;
++                        if (!$$ || $$ > 255) {
 +                                yyerror("illegal dscp value %s", $2);
 +                                free($2);
 +                                YYERROR;
