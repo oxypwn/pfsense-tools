@@ -110,9 +110,9 @@ echo ">>> Building world for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 make_world
 
 if [ -n "${NANO_WITH_VGA}" ]; then
-        _VGA="_vga"
-        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}}
-	export BUILD_KERNELS=${BUILD_KERNELS:-"pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}"}
+	_VGA="_vga"
+	export DEFAULT_KERNEL="pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}"
+	export BUILD_KERNELS="pfSense_SMP.${FREEBSD_VERSION} pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}"
 else
         export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap.${FREEBSD_VERSION}.${ARCH}}
 fi
