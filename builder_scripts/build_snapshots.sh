@@ -311,16 +311,6 @@ donanobuilds() {
 		echo ">>> DO_NOT_BUILD_NANOBSD is set, skipping."
 		return
 	fi
-
-	OLD_BUILD_KERNELS="${BUILD_KERNELS}"
-	OLD_DEFAULT_KERNEL="${DEFAULT_KERNEL}"
-	unset BUILD_KERNELS
-	unset DEFAULT_KERNEL
-
-	[ "${1}" = "vga" ] \
-		&& export NANO_WITH_VGA=yes \
-		|| unset NANO_WITH_VGA
-
 	# Build nanobsd
 	build_nano
 	copy_to_staging_nanobsd
@@ -357,9 +347,6 @@ donanobuilds() {
 #		rebuild_nano 16g
 #		copy_to_staging_nanobsd
 #	fi
-
-	BUILD_KERNELS="${OLD_BUILD_KERNELS}"
-	DEFAULT_KERNEL="${OLD_DEFAULT_KERNEL}"
 }
 
 dobuilds() {
@@ -385,8 +372,11 @@ dobuilds() {
 	copy_to_staging_iso_updates
 	# Build nanobsd
 	donanobuilds
+	# Unset the default kernel variable since it will be picked up by the script itself
+	unset DEFAULT_KERNEL
 	# Do the NanoBSD+VGA builds too
-	donanobuilds vga
+	export NANO_WITH_VGA=yes
+	donanobuilds
 	# build ova
 	build_ova
 }
