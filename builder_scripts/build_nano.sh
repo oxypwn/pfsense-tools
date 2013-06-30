@@ -109,12 +109,11 @@ version=`cat $CVS_CO_DIR/etc/version`
 echo ">>> Building world for Embedded... $FREEBSD_VERSION  $FREEBSD_BRANCH ..."
 make_world
 
-if [ -n "${NANO_WITH_VGA}" ]; then
-        _VGA="_vga"
-        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}}
-else
-        export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap.${FREEBSD_VERSION}.${ARCH}}
-fi
+[ -n "${NANO_WITH_VGA}" ] \
+	&& _VGA="_vga" \
+	|| _VGA=""
+
+export DEFAULT_KERNEL=${DEFAULT_KERNEL:-pfSense_wrap${_VGA}.${FREEBSD_VERSION}.${ARCH}}
 
 # Build kernels
 echo ">>> Building kernel configs: $BUILD_KERNELS for FreeBSD: $FREEBSD_BRANCH ..."
