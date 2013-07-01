@@ -32,6 +32,13 @@ if [ ! -f ./pfsense-build.conf ]; then
 	exit 1
 fi
 
+# Read params
+while getopts c opt; do
+        case "${opt}" in
+                u)      export NO_UPLOAD="yes";;
+        esac
+done
+
 # Local variables that are used by builder scripts
 MAKEOBJDIRPREFIXFINAL=/tmp/builder/
 WEBDATAROOT=/usr/local/www/data
@@ -645,7 +652,9 @@ build_loop_operations() {
 	# Do the builds
 	dobuilds
 	# SCP files to snapshot web hosting area
-	scp_files
+	if [ -z "${NO_UPLOAD}" ]; then
+		scp_files
+	fi
 	# Alert the world that we have some snapshots ready.
 	post_tweet "Snapshots for FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}-${PFSENSETAG} have been copied http://snapshots.pfsense.org/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/"
 }
