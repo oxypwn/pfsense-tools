@@ -36,6 +36,7 @@
 while getopts c opt; do
 	case "${opt}" in
 		c)      ALTCONFFILE="${OPTARG}";;
+		g)      USE_VGA="yes";;
 	esac
 done
 
@@ -43,6 +44,11 @@ done
 # Specify a file with build parameters to override the default.
 [ -n "${ALTCONFFILE}" -a -r "${ALTCONFFILE}" ] \
 	&& . ${ALTCONFFILE}
+
+# Create a VGA image, set NANO_WITH_VGA after source alternative
+# config file to avoid it to be replaced
+[ "${USE_VGA}" = "yes" ] \
+	&& NANO_WITH_VGA="yes"
 
 # Suck in script helper functions
 . ./builder_common.sh
