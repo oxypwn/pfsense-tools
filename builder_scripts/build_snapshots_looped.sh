@@ -27,11 +27,15 @@
 # Handle command line arguments
 while test "$1" != "" ; do
 	case $1 in
-		--noports|-n)
+	--noports|-n)
 		echo "$2"
 		NO_PORTS=yo
 		shift
-	;;
+		;;
+	--noupload|-u)
+		export NO_UPLOAD=yes
+		shift
+		;;
 	esac
 	shift
 done
@@ -209,7 +213,11 @@ while [ /bin/true ]; do
 	# contents to the while loop so we can record the 
 	# script progress in real time to the public facing
 	# snapshot server (snapshots.pfsense.org).
-	sh ./build_snapshots.sh | while read LINE 
+	if [ -z "${NO_UPLOAD}" ]; then
+		sh ./build_snapshots.sh | while read LINE 
+	else
+		sh ./build_snapshots.sh -u | while read LINE 
+	fi
 	do
 		update_status "$LINE"
 	done
