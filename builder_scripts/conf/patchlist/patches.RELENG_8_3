@@ -116,8 +116,5 @@
 -p1~~default_gw_override.diff~
 ~~if_lagg_fix_capabilities.diff~
 ~~if_fxp.diff~
--p1~~pcireg.h.diff~
--p1~~from-8-STABLE/e1000/0007-MFC-240680.patch~
--p1~~from-8-STABLE/e1000/0008-MFC-247430.patch~
 ~~tcp_mbuf_chain_limit.diff~
 ~~xen_uart.diff~
