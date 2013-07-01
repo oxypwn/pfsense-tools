@@ -215,12 +215,15 @@ while [ /bin/true ]; do
 	# snapshot server (snapshots.pfsense.org).
 	if [ -z "${NO_UPLOAD}" ]; then
 		sh ./build_snapshots.sh | while read LINE 
+		do
+			update_status "$LINE"
+		done
 	else
 		sh ./build_snapshots.sh -u | while read LINE 
+		do
+			update_status "$LINE"
+		done
 	fi
-	do
-		update_status "$LINE"
-	done
 	minsleepvalue=28800
 	maxsleepvalue=86400
 	update_status ">>> Sleeping for at least $minsleepvalue, at most $maxsleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
