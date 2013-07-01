@@ -374,6 +374,7 @@ dobuilds() {
 	donanobuilds
 	# Unset the default kernel variable since it will be picked up by the script itself
 	unset DEFAULT_KERNEL
+	unset BUILD_KERNELS
 	# Do the NanoBSD+VGA builds too
 	export NANO_WITH_VGA=yes
 	donanobuilds
