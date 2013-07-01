@@ -24,6 +24,8 @@
 #
 # Crank up error reporting, debugging.
 
+NO_UPLOAD=""
+
 # Handle command line arguments
 while test "$1" != "" ; do
 	case $1 in
@@ -33,7 +35,7 @@ while test "$1" != "" ; do
 		shift
 		;;
 	--noupload|-u)
-		export NO_UPLOAD=yes
+		NO_UPLOAD="-u"
 		shift
 		;;
 	esac
@@ -213,17 +215,10 @@ while [ /bin/true ]; do
 	# contents to the while loop so we can record the 
 	# script progress in real time to the public facing
 	# snapshot server (snapshots.pfsense.org).
-	if [ -z "${NO_UPLOAD}" ]; then
-		sh ./build_snapshots.sh | while read LINE 
-		do
-			update_status "$LINE"
-		done
-	else
-		sh ./build_snapshots.sh -u | while read LINE 
-		do
-			update_status "$LINE"
-		done
-	fi
+	sh ./build_snapshots.sh ${NO_UPLOAD} | while read LINE
+	do
+		update_status "$LINE"
+	done
 	minsleepvalue=28800
 	maxsleepvalue=86400
 	update_status ">>> Sleeping for at least $minsleepvalue, at most $maxsleepvalue in between snapshot builder runs.  Last known commit $LAST_COMMIT"
