@@ -286,7 +286,11 @@ build_nano() {
 	fi
 	cd $BUILDERSCRIPTS
 	./clean_build.sh
-	./build_nano.sh
+	if [ -z "${NANO_WITH_VGA}" ]; then
+		./build_nano.sh
+	else
+		./build_nano.sh -g
+	fi
 }
 
 rebuild_nano() {
