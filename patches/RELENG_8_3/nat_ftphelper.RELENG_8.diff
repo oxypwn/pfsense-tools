@@ -1,5 +1,5 @@
 diff --git a/sys/conf/files b/sys/conf/files
-index afc4b78..44f695a 100644
+index baa9331..e93f44b 100644
 --- a/sys/conf/files
 +++ b/sys/conf/files
 @@ -356,6 +356,8 @@ contrib/pf/net/pf_subr.c	optional pf inet \
@@ -12,7 +12,7 @@ index afc4b78..44f695a 100644
  crypto/blowfish/bf_ecb.c	optional ipsec 
  crypto/blowfish/bf_skey.c	optional crypto | ipsec 
 diff --git a/sys/contrib/pf/net/pf.c b/sys/contrib/pf/net/pf.c
-index 93af7d4..be78e97 100644
+index 1a07ae1..67de21a 100644
 --- a/sys/contrib/pf/net/pf.c
 +++ b/sys/contrib/pf/net/pf.c
 @@ -187,6 +187,10 @@ struct pool		 pf_src_tree_pl, pf_rule_pl;
@@ -68,7 +68,48 @@ index 93af7d4..be78e97 100644
  		return (diff);
  
  	return (0);
-@@ -4860,13 +4862,14 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
+@@ -1057,11 +1059,10 @@ pf_insert_src_node(struct pf_src_node **sn, struct pf_rule *rule,
+ 	return (0);
+ }
+ 
+-int
+-pf_insert_state(struct pfi_kif *kif, struct pf_state *state)
++static __inline int
++pf_insert_tree_state(struct pf_state *state)
+ {
+-	/* Thou MUST NOT insert multiple duplicate keys */
+-	state->u.s.kif = kif;
++
+ 	if (RB_INSERT(pf_state_tree_lan_ext, &pfi_all->pfik_lan_ext, state)) {
+ 		if (pf_status.debug >= PF_DEBUG_MISC) {
+ 			printf("pf: state insert failed: tree_lan_ext");
+@@ -1100,6 +1101,16 @@ pf_insert_state(struct pfi_kif *kif, struct pf_state *state)
+ 		RB_REMOVE(pf_state_tree_lan_ext, &pfi_all->pfik_lan_ext, state);
+ 		return (-1);
+ 	}
++}
++
++int
++pf_insert_state(struct pfi_kif *kif, struct pf_state *state)
++{
++	/* Thou MUST NOT insert multiple duplicate keys */
++	state->u.s.kif = kif;
++
++	if (pf_insert_tree_state(state) < 0)
++		return (-1);
+ 
+ 	if (state->id == 0 && state->creatorid == 0) {
+ 		state->id = htobe64(pf_status.stateid++);
+@@ -1130,6 +1141,8 @@ pf_insert_state(struct pfi_kif *kif, struct pf_state *state)
+ 	pf_status.states++;
+ 	pfi_kif_ref(kif, PFI_KIF_REF_STATE);
+ #if NPFSYNC
++	if (state->src.state != TCPS_LISTEN &&
++	    state->dst.state != TCPS_LISTEN)
+ 	pfsync_insert_state(state);
+ #endif
+ 	return (0);
+@@ -4860,13 +4873,14 @@ pf_test_fragment(struct pf_rule **rm, int direction, struct pfi_kif *kif,
  int
  pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
  	struct pf_state **state, struct pfi_kif *kif, struct mbuf *m, int off,
@@ -86,7 +127,7 @@ index 93af7d4..be78e97 100644
  
  	if (src->wscale && dst->wscale && !(th->th_flags & TH_SYN)) {
  		sws = src->wscale & PF_WSCALE_MASK;
-@@ -4951,11 +4954,48 @@ pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
+@@ -4951,11 +4965,48 @@ pf_tcp_track_full(struct pf_state_peer *src, struct pf_state_peer *dst,
  			src->max_win = win;
  
  	} else {
@@ -138,11 +179,13 @@ index 93af7d4..be78e97 100644
  			pf_change_a(&th->th_ack, &th->th_sum, htonl(ack), 0);
  			*copyback = 1;
  		}
-@@ -5315,6 +5355,54 @@ pf_test_state_tcp(struct pf_state **state, int direction, struct pfi_kif *kif,
+@@ -5315,6 +5366,67 @@ pf_test_state_tcp(struct pf_state **state, int direction, struct pfi_kif *kif,
  		dst = &(*state)->src;
  	}
  
 +	if (src->state == TCPS_LISTEN || dst->state == TCPS_LISTEN) {
++		RB_REMOVE(pf_state_tree_lan_ext, &pfi_all->pfik_lan_ext, state);
++		RB_REMOVE(pf_state_tree_ext_gwy, &pfi_all->pfik_ext_gwy, state);
 +                if (direction == PF_IN) {
 +                        if ((*state)->ext.pad) { (*state)->ext.port = th->th_sport; (*state)->ext.pad = 0; }
 +                        if ((*state)->lan.pad || (*state)->gwy.pad) {
@@ -154,6 +197,14 @@ index 93af7d4..be78e97 100644
 +                }
 +                src->state = TCPS_SYN_SENT;
 +                dst->state = TCPS_CLOSED;
++		if (pf_insert_tree_state(*state) < 0) {
++			pf_normalize_tcp_cleanup(*state);
++			pf_src_tree_remove_state(*state);
++			STATE_DEC_COUNTERS(s);
++			pool_put(&pf_state_pl, *state);
++			return (PF_DROP);
++		}
++
 +                (*state)->src.seqlo = ntohl(th->th_seq);
 +                (*state)->src.seqhi = (*state)->src.seqlo + pd->tot_len - off - (th->th_off << 2) + 1;
 +                if ((th->th_flags & (TH_SYN|TH_ACK)) == TH_SYN &&
@@ -187,13 +238,16 @@ index 93af7d4..be78e97 100644
 +                if (th->th_flags & TH_FIN)
 +                        (*state)->src.seqhi++;
 +
++#if NPFSYNC
++		pfsync_insert_state(*state);
++#endif
 +		goto tcpnatpas;
 +        }
 +
  	if ((*state)->src.state == PF_TCPS_PROXY_SRC) {
  		if (direction != (*state)->direction) {
  			REASON_SET(reason, PFRES_SYNPROXY);
-@@ -5443,10 +5531,11 @@ pf_test_state_tcp(struct pf_state **state, int direction, struct pfi_kif *kif,
+@@ -5443,10 +5555,11 @@ pf_test_state_tcp(struct pf_state **state, int direction, struct pfi_kif *kif,
  			return (PF_DROP);
  	} else {
  		if (pf_tcp_track_full(src, dst, state, kif, m, off, pd, reason,
@@ -206,7 +260,7 @@ index 93af7d4..be78e97 100644
  	/* translate source/destination address, if necessary */
  	if (STATE_TRANSLATE(*state)) {
  		if (direction == PF_OUT)
-@@ -7380,6 +7469,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
+@@ -7380,6 +7493,10 @@ pf_test(int dir, struct ifnet *ifp, struct mbuf **m0,
  			action = pf_test_tcp(&r, &s, dir, kif,
  			    m, off, h, &pd, &a, &ruleset, &ipintrq);
  #endif
@@ -218,10 +272,11 @@ index 93af7d4..be78e97 100644
  	}
  
 diff --git a/sys/contrib/pf/net/pf_ftp.c b/sys/contrib/pf/net/pf_ftp.c
-index e69de29..6a7496a 100644
---- a/sys/contrib/pf/net/pf_ftp.c
+new file mode 100644
+index 0000000..6a7496a
+--- /dev/null
 +++ b/sys/contrib/pf/net/pf_ftp.c
-@@ -0,0 +1,772 @@
+@@ -0,0 +1,774 @@
 +/*-
 + * Copyright (c) 2001 Charles Mott <cm@linktel.net>
 + * Copyright (c) 2009 Ermal Luçi 
@@ -378,6 +433,7 @@ index e69de29..6a7496a 100644
 +					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
 +					PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
 +					s->gwy.port = s->lan.port;
++					s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
 +				} else {
 +					s->direction = PF_IN;
 +					PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
@@ -423,6 +479,7 @@ index e69de29..6a7496a 100644
 +					s->lan.pad = FTP_CONTROL_PORT_NUMBER;
 +					PF_ACPY(&s->gwy.addr, &state->gwy.addr, state->af);
 +					s->gwy.port = s->lan.port;
++					s->gwy.pad = FTP_CONTROL_PORT_NUMBER;
 +				}
 +			} else
 +				return;
@@ -995,7 +1052,7 @@ index e69de29..6a7496a 100644
 +	return;
 +}
 diff --git a/sys/contrib/pf/net/pfvar.h b/sys/contrib/pf/net/pfvar.h
-index f5bcfdc..1329235 100644
+index a478663..dad4bcf 100644
 --- a/sys/contrib/pf/net/pfvar.h
 +++ b/sys/contrib/pf/net/pfvar.h
 @@ -802,7 +802,10 @@ struct pf_state_peer {
@@ -1029,7 +1086,7 @@ index f5bcfdc..1329235 100644
  	pf_osfp_fingerprint(struct pf_pdesc *, struct mbuf *, int,
  	    const struct tcphdr *);
 diff --git a/sys/modules/pf/Makefile b/sys/modules/pf/Makefile
-index 0ba1c3f..8f54559 100644
+index 78aa564..a26dce6 100644
 --- a/sys/modules/pf/Makefile
 +++ b/sys/modules/pf/Makefile
 @@ -7,7 +7,7 @@
