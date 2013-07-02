@@ -83,10 +83,11 @@ index 1a07ae1..67de21a 100644
  	if (RB_INSERT(pf_state_tree_lan_ext, &pfi_all->pfik_lan_ext, state)) {
  		if (pf_status.debug >= PF_DEBUG_MISC) {
  			printf("pf: state insert failed: tree_lan_ext");
-@@ -1100,6 +1101,16 @@ pf_insert_state(struct pfi_kif *kif, struct pf_state *state)
+@@ -1100,6 +1101,17 @@ pf_insert_state(struct pfi_kif *kif, struct pf_state *state)
  		RB_REMOVE(pf_state_tree_lan_ext, &pfi_all->pfik_lan_ext, state);
  		return (-1);
  	}
++	return (0);
 +}
 +
 +int
@@ -239,7 +240,7 @@ index 1a07ae1..67de21a 100644
 +                        (*state)->src.seqhi++;
 +
 +#if NPFSYNC
-+		pfsync_insert_state(*state);
++		pfsync_insert_state((*state));
 +#endif
 +		goto tcpnatpas;
 +        }
