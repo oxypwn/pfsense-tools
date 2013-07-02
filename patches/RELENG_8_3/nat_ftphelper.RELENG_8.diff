@@ -184,8 +184,8 @@ index 1a07ae1..67de21a 100644
  	}
  
 +	if (src->state == TCPS_LISTEN || dst->state == TCPS_LISTEN) {
-+		RB_REMOVE(pf_state_tree_lan_ext, &pfi_all->pfik_lan_ext, state);
-+		RB_REMOVE(pf_state_tree_ext_gwy, &pfi_all->pfik_ext_gwy, state);
++		RB_REMOVE(pf_state_tree_lan_ext, &pfi_all->pfik_lan_ext, (*state));
++		RB_REMOVE(pf_state_tree_ext_gwy, &pfi_all->pfik_ext_gwy, (*state));
 +                if (direction == PF_IN) {
 +                        if ((*state)->ext.pad) { (*state)->ext.port = th->th_sport; (*state)->ext.pad = 0; }
 +                        if ((*state)->lan.pad || (*state)->gwy.pad) {
@@ -200,8 +200,8 @@ index 1a07ae1..67de21a 100644
 +		if (pf_insert_tree_state(*state) < 0) {
 +			pf_normalize_tcp_cleanup(*state);
 +			pf_src_tree_remove_state(*state);
-+			STATE_DEC_COUNTERS(s);
-+			pool_put(&pf_state_pl, *state);
++			STATE_DEC_COUNTERS((*state));
++			pool_put(&pf_state_pl, (*state));
 +			return (PF_DROP);
 +		}
 +
