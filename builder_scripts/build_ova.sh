@@ -39,6 +39,9 @@
 
 export MODULES_OVERRIDE="i2c ipmi acpi ndis ipfw ipdivert dummynet fdescfs cpufreq"
 
+# Try copying the ovf file in place before we test if it exists.
+ova_setup_ovf_file
+
 if [ ! -f ${OVFFILE} ] && [ ! -f ${OVFPATH}/${PRODUCT_NAME}.ovf ]; then
 	echo "Please create a copy of pfSense.ovf to $OVFPATH/$PRODUCT_NAME.ovf"
 	echo "This will make sure that the output is correct during OVA build"
