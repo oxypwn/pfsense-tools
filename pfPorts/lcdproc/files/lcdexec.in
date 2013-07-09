@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $FreeBSD: ports/sysutils/lcdproc/files/lcdexec.in,v 1.2 2010/03/27 00:14:57 dougb Exp $
+# $FreeBSD: head/sysutils/lcdproc/files/lcdexec.in 300897 2012-07-14 14:29:18Z beat $
 #
 # PROVIDE: lcdexec
 # REQUIRE: LCDd
@@ -12,7 +12,7 @@
 . /etc/rc.subr
 
 name="lcdexec"
-rcvar=`set_rcvar`
+rcvar=lcdexec_enable
 
 load_rc_config $name
 

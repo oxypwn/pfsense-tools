@@ -21,6 +21,7 @@ USES=		pkgconfig
 
 CONFIGURE_ARGS=	--enable-drivers="${LCDPROC_DRIVERS}" \
 		--disable-dependency-tracking \
+		--disable-libusb-1-0 \
 		--disable-doxygen
 
 SUB_FILES=	pkg-message
@@ -42,7 +43,6 @@ ACLOCAL_ARGS=
 
 LCDPROC_DRIVERS=bayrad \
 		CFontz \
-		CFontz633 \
 		CFontzPacket \
 		CwLnx \
 		curses \
@@ -125,7 +125,7 @@ LIB_DEPENDS+=		serdisp:${PORTSDIR}/devel/serdisplib
 CFLAGS+=		-I${LOCALBASE}/include
 LDFLAGS+=		-L${LOCALBASE}/lib
 CPPFLAGS+=		-I${LOCALBASE}/include
- .endif
+.endif
 
 post-patch:
 	@${REINPLACE_CMD} -e 's!server/drivers!${PREFIX}/lib/lcdproc!' ${WRKSRC}/LCDd.conf
