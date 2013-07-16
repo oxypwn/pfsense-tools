@@ -27,7 +27,7 @@ BUILD_DEPENDS=	yasm:${PORTSDIR}/devel/yasm \
 		gtar:${PORTSDIR}/archivers/gtar
 LIB_DEPENDS=	png15:${PORTSDIR}/graphics/png \
 		xslt.2:${PORTSDIR}/textproc/libxslt \
-		curl.6:${PORTSDIR}/ftp/curl
+		curl:${PORTSDIR}/ftp/curl
 RUN_DEPENDS=	/boot/modules/vboxdrv.ko:${PORTSDIR}/emulators/virtualbox-ose-kmod
 
 LICENSE=	GPLv2
