@@ -11,17 +11,18 @@
 export BUILD_CONF=./pfsense-build.conf
 
 # Ensure file exists
-if [ ! -f ${BUILD_CONF} ]; then
+if [ -f ${BUILD_CONF} ]; then
+	. ${BUILD_CONF}
+elif [ -f ../${BUILD_CONF} ]; then
+	. ../${BUILD_CONF}
+else
 	echo
 	echo "You must first run ./set_version.sh !"
 	echo "See http://devwiki.pfsense.org/DevelopersBootStrapAndDevIso for more information."
 	echo
 	echo "You can also run ./menu.sh which will assist with the available options"
 	echo
-fi
-
-if [ -f ${BUILD_CONF} ]; then
-	. ${BUILD_CONF}
+	exit 1
 fi
 
 OIFS=$IFS
