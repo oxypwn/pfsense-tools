@@ -5,7 +5,7 @@ PREVIOUSDIR=`pwd`
 # Suck in local vars
 if [ -f ./pfsense_local.sh ]; then
         . ./pfsense_local.sh
-elif [ -f ../pfsense_local.sh]; then
+elif [ -f ../pfsense_local.sh ]; then
         . ../pfsense_local.sh
 else
         echo "You are calling this script from wrong location"
