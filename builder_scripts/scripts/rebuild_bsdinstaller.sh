@@ -23,6 +23,7 @@ if [ -f /etc/make.conf ]; then
 	DCPUS=`sysctl kern.smp.cpus | cut -d' ' -f2`
 	CPUS=`expr $DCPUS '*' 2`
 	echo SUBTHREADS="${CPUS}" >> /etc/make.conf
+	echo BATCH="YES" >> /etc/make.conf
 	MKCNF="pfPorts"
 fi
 
