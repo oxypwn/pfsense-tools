@@ -620,6 +620,7 @@ scp_files() {
 	check_for_congestion
 	rsync $RSYNC_COPY_ARGUMENTS $STAGINGAREA/version* \
 		snapshots@${RSYNCIP}:/usr/local/www/snapshots/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/.updaters
+	echo ">>> Finished copying files."
 	set -e
 }
 
@@ -656,6 +657,7 @@ build_loop_operations() {
 		scp_files
 	fi
 	# Alert the world that we have some snapshots ready.
+	echo ">>> Builder run is complete."
 	post_tweet "Snapshots for FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}-${PFSENSETAG} have been copied http://snapshots.pfsense.org/FreeBSD_${FREEBSD_BRANCH}/${ARCH}/${PRODUCT_NAME}_${PFSENSETAG}/"
 }
 
