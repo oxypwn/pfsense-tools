@@ -272,8 +272,11 @@ run_command(struct command *cmd, char *argv) {
 				pthread_mutex_unlock(&mtx);
 				free(command);
 				/* Rexec the command so the event is not lost. */
-				if (tmpcmd->dontexec)
+				if (tmpcmd->dontexec) {
 					tmpcmd->dontexec = 0;
+					tv.tv_sec = 5;
+					timeout_add(&tmpcmd->ev, &tv);
+				}
 				return;
 			}
 		}
