@@ -271,6 +271,9 @@ run_command(struct command *cmd, char *argv) {
 			if (command->aggregate > 1) {
 				pthread_mutex_unlock(&mtx);
 				free(command);
+				/* Rexec the command so the event is not lost. */
+				if (tmpcmd->dontexec)
+					tmpcmd->dontexec = 0;
 				return;
 			}
 		}
