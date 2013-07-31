@@ -1,0 +1,13 @@
+--- sys/netinet/udp_usrreq.c.orig	2013-07-31 08:44:27.000000000 +0000
++++ sys/netinet/udp_usrreq.c	2013-07-31 08:48:08.000000000 +0000
+@@ -625,6 +625,10 @@
+ 		goto badunlocked;
+ 	}
+ 	up = intoudpcb(inp);
++	if (up == NULL) { 
++		INP_RUNLOCK(inp); 
++		goto badunlocked; 
++	}
+ 	if (up->u_tun_func == NULL) {
+ 		udp_append(inp, ip, m, iphlen + sizeof(struct udphdr), &udp_in);
+ 	} else {
