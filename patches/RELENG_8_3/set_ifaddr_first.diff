@@ -1,0 +1,87 @@
+diff --git a/sbin/ifconfig/ifconfig.c b/sbin/ifconfig/ifconfig.c
+index 7254cae..cb32bec 100644
+--- a/sbin/ifconfig/ifconfig.c
++++ b/sbin/ifconfig/ifconfig.c
+@@ -589,6 +589,23 @@ top:
+ 	return(0);
+ }
+ 
++static void
++setaddrfirst(const char *addr, int dummy __unused, int s,
++    const struct afswtch *afp)
++{
++
++	if (afp == NULL)
++		err(2, "No address family");
++	if (afp->af_getaddr == NULL)
++		err(2, "No appropriate functions from address family");
++	afp->af_getaddr(addr, ADDR);
++
++	strncpy(afp->af_addreq, name, sizeof ifr.ifr_name);
++	printf("Interface name: %s, socket %d, addr %s\n", name, s, addr);
++	if (ioctl(s, SIOCORDERIFADDR, afp->af_addreq) < 0)
++                err(1, "SIOCORDERIFADDR");
++}
++
+ /*ARGSUSED*/
+ static void
+ setifaddr(const char *addr, int param, int s, const struct afswtch *afp)
+@@ -1152,6 +1169,7 @@ static struct cmd basic_cmds[] = {
+ 	DEF_CMD("noicmp",	IFF_LINK1,	setifflags),
+ 	DEF_CMD_ARG("mtu",			setifmtu),
+ 	DEF_CMD_ARG("name",			setifname),
++	DEF_CMD_ARG("setfirst",			setaddrfirst),
+ };
+ 
+ static __constructor void
+diff --git a/sys/netinet/in.c b/sys/netinet/in.c
+index b659500..d2947f3 100644
+--- a/sys/netinet/in.c
++++ b/sys/netinet/in.c
+@@ -250,6 +250,7 @@ in_control(struct socket *so, u_long cmd, caddr_t data, struct ifnet *ifp,
+ 	 * in_lifaddr_ioctl() and ifp->if_ioctl().
+ 	 */
+ 	switch (cmd) {
++	case SIOCORDERIFADDR:
+ 	case SIOCAIFADDR:
+ 	case SIOCDIFADDR:
+ 	case SIOCGIFADDR:
+@@ -300,6 +301,7 @@ in_control(struct socket *so, u_long cmd, caddr_t data, struct ifnet *ifp,
+ 	 * Security checks before we get involved in any work.
+ 	 */
+ 	switch (cmd) {
++	case SIOCORDERIFADDR:
+ 	case SIOCAIFADDR:
+ 	case SIOCSIFADDR:
+ 	case SIOCSIFBRDADDR:
+@@ -431,6 +433,19 @@ in_control(struct socket *so, u_long cmd, caddr_t data, struct ifnet *ifp,
+ 		}
+ 		break;
+ 
++	case SIOCORDERIFADDR:
++		if (ia != NULL) {
++			IF_ADDR_LOCK(ifp);
++			TAILQ_REMOVE(&ifp->if_addrhead, &ia->ia_ifa, ifa_link);
++			TAILQ_INSERT_AFTER(&ifp->if_addrhead, TAILQ_FIRST(&ifp->if_addrhead), &ia->ia_ifa, ifa_link);
++			IF_ADDR_UNLOCK(ifp);
++			goto out;
++		} else {
++			error = EINVAL;
++			goto out;
++		}
++		break;
++
+ 	case SIOCSIFBRDADDR:
+ 	case SIOCGIFADDR:
+ 	case SIOCGIFNETMASK:
+diff --git a/sys/sys/sockio.h b/sys/sys/sockio.h
+index 8922699..b5c0436 100644
+--- a/sys/sys/sockio.h
++++ b/sys/sys/sockio.h
+@@ -127,5 +127,6 @@
+ #define	SIOCGIFGROUP	_IOWR('i', 136, struct ifgroupreq) /* get ifgroups */
+ #define	SIOCDIFGROUP	 _IOW('i', 137, struct ifgroupreq) /* delete ifgroup */
+ #define	SIOCGIFGMEMB	_IOWR('i', 138, struct ifgroupreq) /* get members */
++#define	SIOCORDERIFADDR	_IOWR('i', 139, struct ifaliasreq) /* reorder interface */
+ 
+ #endif /* !_SYS_SOCKIO_H_ */
