@@ -1,0 +1,26 @@
+--- srcold/conf.c	2013-08-02 12:41:58.000000000 +0000
++++ src/conf.c	2013-08-02 12:43:29.000000000 +0000
+@@ -150,6 +150,10 @@
+ 	ret=yyparse();
+ 	fclose(yyin);
+ 	if (ret==0){
++		if (config!=NULL) {
++			free_config();
++			config=NULL;
++		}
+ 		for(a=cur_config.alarms;a;a=a->next){
+ 			if (a->mailto==NULL)
+ 				a->mailto=cur_config.alarm_defaults.mailto;
+@@ -195,12 +199,6 @@
+ 					t->alarms=cur_config.target_defaults.alarms;
+ 			}
+ 		}
+-		if (config!=NULL){
+-			struct pool_item *pool=config->pool;
+-			pool_clear(&pool);
+-			config=NULL;
+-		}
+-	
+ 		config=PNEW(cur_config.pool,struct config,1);
+ 		memcpy(config,&cur_config,sizeof(struct config));
+ 	}
