@@ -1,0 +1,72 @@
+diff -ur srcold/apinger.c src/apinger.c
+--- srcold/apinger.c	2013-08-02 12:59:55.000000000 +0000
++++ src/apinger.c	2013-08-02 13:15:42.000000000 +0000
+@@ -463,8 +463,12 @@
+ 		thisid=gen_msgid(t,"off");
+ 		if (on==0)
+ 			logit("alarm canceled: %s(%s)  *** %s ***",t->description,t->name,a->name);
+-		else
++		else {
+ 			logit("alarm canceled (config reload): %s(%s)  *** %s ***",t->description,t->name,a->name);
++			free(lastid);
++			free(thisid);
++			return;
++		}
+ 	}
+ 
+ 	if (a->combine_interval>0){
+@@ -648,14 +652,14 @@
+ 	pt=NULL;
+ 	for(t=targets;t;t=nt){
+ 		for(tc=config->targets;tc;tc=tc->next)
+-			if (strcmp(tc->name,t->name)==0)
++			if (strlen(tc->name) == strlen(t->name) && strcmp(tc->name,t->name)==0)
+ 				break;
+ 		nt=t->next;
+ 		if (tc==NULL){
+-			if (pt==NULL)
+-				targets=t;
+-			else
++			if (pt!=NULL) {
+ 				pt->next=nt;
++				pt = nt;
++			}
+ 			for(al=t->active_alarms;al;al=nal){
+ 				nal=al->next;
+ 				free(al);
+@@ -674,7 +678,7 @@
+ 	/* Update target configuration */
+ 	for(tc=config->targets;tc;tc=tc->next){
+ 		for(t=targets;t;t=t->next)
+-			if (!strcmp(t->name,tc->name))
++			if (strlen(tc->name) == strlen(t->name) && !strcmp(t->name,tc->name))
+ 				break;
+ 		if (t==NULL) { /* new target */
+ 			memset(&addr,0,sizeof(addr));
+diff -ur srcold/conf.c src/conf.c
+--- srcold/conf.c	2013-08-02 12:59:55.000000000 +0000
++++ src/conf.c	2013-08-02 13:56:31.000000000 +0000
+@@ -142,6 +142,10 @@
+ struct alarm_list *al;	
+ int ret;
+ 
++	if (config!=NULL) {
++		free_config();
++		config=NULL;
++	}
+ 	yyin=fopen(filename,"r");
+ 	if (yyin==NULL) return -1;
+ 	yydebug=0;
+@@ -195,12 +199,6 @@
+ 					t->alarms=cur_config.target_defaults.alarms;
+ 			}
+ 		}
+-		if (config!=NULL){
+-			struct pool_item *pool=config->pool;
+-			pool_clear(&pool);
+-			config=NULL;
+-		}
+-	
+ 		config=PNEW(cur_config.pool,struct config,1);
+ 		memcpy(config,&cur_config,sizeof(struct config));
+ 	}
