@@ -1,0 +1,117 @@
+Only in src: .deps
+Only in src: Makefile
+diff -ur srcold/apinger.c src/apinger.c
+--- srcold/apinger.c	2013-08-06 08:52:45.000000000 +0000
++++ src/apinger.c	2013-08-06 10:33:34.000000000 +0000
+@@ -491,8 +491,8 @@
+ 			tdr->next=dr;
+ 	}
+ 	else make_reports(t,a,on,thisid,lastid);
+-	free(thisid);
+-	free(lastid);
++	if (thisid) free(thisid);
++	if (lastid) free(lastid);
+ }
+ 
+ /* if a time came for the next event schedule next one in given interval and return 1 */
+@@ -642,7 +642,8 @@
+ void configure_targets(int reload){
+ struct target *t,*pt,*nt;
+ struct target_cfg *tc;
+-struct active_alarm_list *al,*nal;
++struct active_alarm_list *aal,*naal;
++struct alarm_cfg *a, *na;
+ union addr addr, srcaddr;
+ int r;
+ int l;
+@@ -651,7 +652,7 @@
+ 	pt=NULL;
+ 	for(t=targets;t;t=nt){
+ 		for(tc=config->targets;tc;tc=tc->next)
+-			if (strcmp(tc->name,t->name)==0)
++			if (strlen(tc->name) == strlen(t->name) && strcmp(tc->name,t->name)==0)
+ 				break;
+ 		nt=t->next;
+ 		if (tc==NULL){
+@@ -659,9 +660,10 @@
+ 				targets=t;
+ 			else
+ 				pt->next=nt;
+-			for(al=t->active_alarms;al;al=nal){
+-				nal=al->next;
+-				free(al);
++			for(aal=t->active_alarms;aal;aal=naal){
++				naal=aal->next;
++				toggle_alarm(t,aal->alarm,-1);
++				free(aal);
+ 			}
+ 			if (t->socket)
+ 				close(t->socket);
+@@ -671,13 +673,27 @@
+ 			free(t->description);
+ 			free(t);
+ 		}
+-		else pt=t;
++		else {
++			pt=t;
++
++			for(aal=t->active_alarms;aal;aal=naal){
++				naal = aal->next;
++				for (a=config->alarms;a;a=na){
++					na = a->next;
++					if (aal->alarm->type == a->type && !strcmp(aal->alarm->name, a->name)) {
++						debug("Sticking to alrm %s since its still active", a->name);
++						aal->alarm = a;
++						break;
++					}
++				}
++			}
++		}
+ 	}
+ 
+ 	/* Update target configuration */
+ 	for(tc=config->targets;tc;tc=tc->next){
+ 		for(t=targets;t;t=t->next)
+-			if (!strcmp(t->name,tc->name))
++			if (strlen(t->name) == strlen(tc->name) && !strcmp(t->name,tc->name))
+ 				break;
+ 		if (t==NULL) { /* new target */
+ 			memset(&addr,0,sizeof(addr));
+@@ -794,14 +810,7 @@
+ int r;
+ 
+ 	while(delayed_reports!=NULL) make_delayed_reports();
+-	for(t=targets;t;t=t->next)
+-		for(al=t->active_alarms;al;al=an){
+-			an=al->next;
+-			a=al->alarm;
+-			toggle_alarm(t,a,-1);
+-		}
+ 	r=load_config(config_file);
+-	if (r==0) configure_targets(1);
+ }
+ 
+ void write_status(void){
+diff -ur srcold/conf.c src/conf.c
+--- srcold/conf.c	2013-08-06 08:52:45.000000000 +0000
++++ src/conf.c	2013-08-06 10:00:31.000000000 +0000
+@@ -196,6 +196,8 @@
+ 			}
+ 		}
+ 		if (config!=NULL){
++			configure_targets(1);
++
+ 			struct pool_item *pool=config->pool;
+ 			pool_clear(&pool);
+ 			config=NULL;
+diff -ur srcold/conf.h src/conf.h
+--- srcold/conf.h	2013-08-06 08:52:45.000000000 +0000
++++ src/conf.h	2013-08-06 09:59:24.000000000 +0000
+@@ -113,6 +113,7 @@
+ struct alarm_list *alarm2list(const char *aname,struct alarm_list *list);
+ 
+ int load_config(const char *filename);
++void configure_targets(int);
+ void free_config(void);
+ 
+ #endif
