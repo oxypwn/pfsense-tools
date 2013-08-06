@@ -22,7 +22,6 @@ else
 	echo
 	echo "You can also run ./menu.sh which will assist with the available options"
 	echo
-	exit 1
 fi
 
 OIFS=$IFS
