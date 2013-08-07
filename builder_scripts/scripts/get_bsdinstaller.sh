@@ -28,7 +28,7 @@ echo -n ">>> Updating BSDInstaller collection..."
 if [ -d $BASE_DIR/installer ]; then
 	cd $BASE_DIR/installer && git reset --hard ; git fetch ; git rebase origin 
 else
-	cd $BASE_DIR && git clone https://github.com/pfsense/bsdinstaller.git installer
+	cd $BASE_DIR && git clone git://github.com/pfsense/bsdinstaller.git installer
 fi
 
 ln -s ${BUILDER_TOOLS}/builder_scripts/installer ${BASE_DIR}/installer/ 2>/dev/null
