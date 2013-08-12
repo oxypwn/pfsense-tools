@@ -13,7 +13,7 @@
  			logit("Target \"%s\": Lost packet count mismatch (%i(recently_lost) != %i(really_lost))!",t->name,t->recently_lost,really_lost);
  			logit("Target \"%s\": Received packets buffer: %s %s\n",t->name,buf2,buf1);
 -			err=1;
-+			t->recently_lost = really_lost = 0;
++			//t->recently_lost = really_lost = 0;
  		}
  		free(buf1);
  		free(buf2);

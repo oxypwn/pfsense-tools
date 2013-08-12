@@ -1,34 +1,155 @@
+Only in src: .deps
+Only in src: Makefile
 diff -ur srcold/apinger.c src/apinger.c
---- srcold/apinger.c	2013-08-06 18:50:54.000000000 +0000
-+++ src/apinger.c	2013-08-06 18:52:09.000000000 +0000
-@@ -491,8 +491,8 @@
+--- srcold/apinger.c	2013-08-12 10:00:27.000000000 +0000
++++ src/apinger.c	2013-08-12 10:02:56.000000000 +0000
+@@ -81,17 +81,12 @@
+ }
+ 
+ static char msgid_buf[1024];
+-static char hostnamebuf[256]="-";
+ 
+-char *gen_msgid(struct target *t,char *suff){
+-struct timeval cur_time;
++char *gen_msgid(struct target *t,char *suff, struct timeval *cur_time){
+ 	
+-	gettimeofday(&cur_time,NULL);
+-	
+-	gethostname(hostnamebuf,sizeof(hostnamebuf));
+ 	sprintf(msgid_buf,"<%p.%li.%s@%s>",
+-				t,(long int)(cur_time.tv_usec/1000+cur_time.tv_sec*1000),
+-				suff,hostnamebuf);
++				t,(long int)(cur_time->tv_usec/1000+cur_time->tv_sec*1000),
++				suff, t->description);
+ 	return strdup(msgid_buf);
+ }
+ 
+@@ -103,7 +98,7 @@
+ 	al=NEW(struct active_alarm_list,1);
+ 	al->next=t->active_alarms;
+ 	al->alarm=a;
+-	al->msgid=gen_msgid(t,"on");
++	al->msgid=gen_msgid(t,"on", &cur_time);
+ 	al->num_repeats=0;
+ 	if (a->repeat_interval){
+ 		tv.tv_sec=a->repeat_interval/1000;
+@@ -240,7 +235,7 @@
+ 			values[n]="";
+ 			break;
+ 		}
+-		l+=strlen(values[n])-1;
++		l+=strlen(values[n])+1;
+ 		n++;
+ 	}
+ 	values[n]=NULL;
+@@ -253,6 +248,7 @@
+ 		macros_buf_l=l;
+ 	}
+ 	assert(macros_buf!=NULL);
++	memset(macros_buf, 0, macros_buf_l);
+ 	p=macros_buf;
+ 	n=0;
+ 	for(i=0;i<sl;i++){
+@@ -262,6 +258,7 @@
+ 		}
+ 		strcpy(p,values[n]);
+ 		p+=strlen(values[n]);
++		*p++= ' ';
+ 		n++;
+ 		i++;
+ 	}
+@@ -454,7 +451,7 @@
+ }
+ 
+ void toggle_alarm(struct target *t,struct alarm_cfg *a,int on){
+-char *thisid=NULL,*lastid=NULL;
++char *thisid=NULL;
+ struct delayed_report *dr,*tdr;
+ 
+ 	if (on>0){
+@@ -462,8 +459,7 @@
+ 		thisid=alarm_on(t,a);
+ 	}
+ 	else{
+-		lastid=alarm_off(t,a);
+-		thisid=gen_msgid(t,"off");
++		thisid=alarm_off(t,a);
+ 		if (on==0)
+ 			logit("alarm canceled: %s(%s)  *** %s ***",t->description,t->name,a->name);
+ 		else
+@@ -480,8 +476,7 @@
+ 		dr->t=*t;
+ 		dr->a=a;
+ 		dr->msgid=strdup(thisid);
+-		if (lastid) dr->lastmsgid=strdup(lastid);
+-		else dr->lastmsgid=NULL;
++		dr->lastmsgid=NULL;
+ 		dr->on=on;
+ 		gettimeofday(&dr->timestamp,NULL);
+ 		dr->next=NULL;
+@@ -490,9 +485,8 @@
+ 		else
  			tdr->next=dr;
  	}
- 	else make_reports(t,a,on,thisid,lastid);
+-	else make_reports(t,a,on,thisid,lastid);
 -	free(thisid);
 -	free(lastid);
++	else make_reports(t,a,on,thisid,NULL);
 +	if (thisid) free(thisid);
-+	if (lastid) free(lastid);
  }
  
  /* if a time came for the next event schedule next one in given interval and return 1 */
-@@ -582,6 +582,7 @@
- 	t->last_received_tv=time_recv;
- 	timersub(&time_recv,&ti->timestamp,&tv);
- 	delay=tv.tv_sec*1000.0+((double)tv.tv_usec)/1000.0;
+@@ -550,11 +544,14 @@
+ 			debug("Recently lost packets: %i",t->recently_lost);
+ 	}
+ 
++	if (t->recently_lost < 0)
++		t->recently_lost = 0;
++
+ 	t->upsent++;
+ }
+ 
+ 
+-void analyze_reply(struct timeval time_recv,int icmp_seq,struct trace_info *ti){
++void analyze_reply(struct timeval *time_recv,int icmp_seq,struct trace_info *ti, int timedelta){
+ struct target *t;
+ struct timeval tv;
+ double delay,avg_delay,avg_loss;
+@@ -579,24 +576,25 @@
+ 	}
+ 	previous_received=t->last_received;
+ 	if (ti->seq>t->last_received) t->last_received=ti->seq;
+-	t->last_received_tv=time_recv;
+-	timersub(&time_recv,&ti->timestamp,&tv);
+-	delay=tv.tv_sec*1000.0+((double)tv.tv_usec)/1000.0;
+-	debug("#%i from %s(%s) delay: %4.3fms",ti->seq,t->description,t->name,delay);
+-	if (t->received>t->config->avg_delay_samples)
+-		tmp=t->rbuf[t->received%t->config->avg_delay_samples];
+-	else
+-		tmp=0;
++	t->last_received_tv=*time_recv;
++	timersub(time_recv,&ti->timestamp,&tv);
++	delay=tv.tv_sec*1000+tv.tv_usec/1000 - timedelta;
 +	if (delay < 0) delay = 0;
- 	debug("#%i from %s(%s) delay: %4.3fms",ti->seq,t->description,t->name,delay);
- 	if (t->received>t->config->avg_delay_samples)
- 		tmp=t->rbuf[t->received%t->config->avg_delay_samples];
-@@ -589,6 +590,7 @@
- 		tmp=0;
++	tmp=t->rbuf[t->received%t->config->avg_delay_samples];
  	t->rbuf[t->received%t->config->avg_delay_samples]=delay;
  	t->delay_sum+=delay-tmp;
++	debug("#%i from %s(%s) delay: %4.3fms/%4.3fms/%4.3fms received = %d ",ti->seq,t->description,t->name,delay,tmp,t->delay_sum, t->received);
 +	if (t->delay_sum < 0) t->delay_sum = 0;
  	t->received++;
  
  	avg_delay=AVG_DELAY(t);
-@@ -642,7 +644,8 @@
+ 	debug("(avg: %4.3fms)",avg_delay);
+ 
+ 	i=ti->seq%(t->config->avg_loss_delay_samples+t->config->avg_loss_samples);
++#if 0
+ 	if (!t->queue[i] && ti->seq<=t->last_sent-t->config->avg_loss_delay_samples)
+ 		t->recently_lost--;
++#endif
+ 	t->queue[i]=1;
+ 	
+ 	if (AVG_LOSS_KNOWN(t)){
+@@ -642,26 +640,33 @@
  void configure_targets(int reload){
  struct target *t,*pt,*nt;
  struct target_cfg *tc;
@@ -36,18 +157,25 @@ diff -ur srcold/apinger.c src/apinger.c
 +struct active_alarm_list *aal,*naal;
 +struct alarm_cfg *a, *na;
  union addr addr, srcaddr;
++double *tmprbuf;
  int r;
  int l;
-@@ -651,7 +654,7 @@
++char *tmpqueue;
+ 
+ 	/* delete all not configured targets */
  	pt=NULL;
  	for(t=targets;t;t=nt){
- 		for(tc=config->targets;tc;tc=tc->next)
+-		for(tc=config->targets;tc;tc=tc->next)
 -			if (strcmp(tc->name,t->name)==0)
++		for(tc=config->targets;tc;tc=tc->next) {
++			if (strlen(tc->srcip) != strlen(t->config->srcip) || strcmp(tc->srcip, t->config->srcip))
++				continue;
 +			if (strlen(tc->name) == strlen(t->name) && strcmp(tc->name,t->name)==0)
  				break;
++		}
  		nt=t->next;
  		if (tc==NULL){
-@@ -659,9 +662,10 @@
+ 			if (pt==NULL)
  				targets=t;
  			else
  				pt->next=nt;
@@ -61,7 +189,7 @@ diff -ur srcold/apinger.c src/apinger.c
  			}
  			if (t->socket)
  				close(t->socket);
-@@ -671,13 +675,27 @@
+@@ -671,14 +676,31 @@
  			free(t->description);
  			free(t);
  		}
@@ -85,13 +213,75 @@ diff -ur srcold/apinger.c src/apinger.c
  
  	/* Update target configuration */
  	for(tc=config->targets;tc;tc=tc->next){
- 		for(t=targets;t;t=t->next)
+-		for(t=targets;t;t=t->next)
 -			if (!strcmp(t->name,tc->name))
++		for(t=targets;t;t=t->next) {
++			if (strlen(tc->srcip) != strlen(t->config->srcip) || strcmp(tc->srcip, t->config->srcip))
++				continue;
 +			if (strlen(t->name) == strlen(tc->name) && !strcmp(t->name,tc->name))
  				break;
++		}
  		if (t==NULL) { /* new target */
  			memset(&addr,0,sizeof(addr));
-@@ -794,14 +812,7 @@
+ 			r=inet_pton(AF_INET,tc->name,&addr.addr4.sin_addr);
+@@ -726,34 +748,41 @@
+ #endif
+ 			}
+ 			t=NEW(struct target,1);
+-			memset(t,0,sizeof(struct target));
++			//memset(t,0,sizeof(struct target));
+ 			t->name=strdup(tc->name);
+ 			t->description=strdup(tc->description);
+ 			t->addr=addr;
+ 			t->ifaddr=srcaddr;
+ 			t->next=targets;
++			targets=t;
+ 			if(t->addr.addr.sa_family==AF_INET) make_icmp_socket(t);
+ 			if(t->addr.addr.sa_family==AF_INET6) make_icmp6_socket(t);
+-			targets=t;
+ 		}
+-		t->config=tc;
+ 		l=tc->avg_loss_delay_samples+tc->avg_loss_samples;
+-		if (t->queue)
+-			t->queue=(char *)realloc(t->queue,l);
+-		else
++		if (t->queue) {
++			tmpqueue = t->queue;
++			t->queue=NEW(char, l);
++			assert(t->queue != NULL);
++			memcpy(t->queue, tmpqueue, (t->config->avg_loss_delay_samples+t->config->avg_loss_samples));
++			free(tmpqueue);
++		} else {
+ 			t->queue=NEW(char,l);
+-		assert(t->queue!=NULL);
+-		if (!reload)
+-			memset(t->queue,0,l);
++			assert(t->queue!=NULL);
++		}
++	
+ 		/* t->recently_lost=tc->avg_loss_samples; */
+ 		l=tc->avg_delay_samples;
+-		if (t->rbuf)
+-			t->rbuf=(double *)realloc(t->rbuf,l);
+-		else
++		if (t->rbuf) {
++			tmprbuf = t->rbuf;
+ 			t->rbuf=NEW(double,l);
+-		assert(t->rbuf!=NULL);
+-		if (!reload)
+-			memset(t->rbuf,0,l);
++			assert(t->rbuf!= NULL);
++			memcpy(t->rbuf, tmprbuf, t->config->avg_delay_samples);
++			free(tmprbuf);
++		} else {
++			t->rbuf=NEW(double,l);
++			assert(t->rbuf!=NULL);
++		}
++		t->config=tc;
+ 	}
+ 
+ 	if (targets==NULL){
+@@ -794,14 +823,7 @@
  int r;
  
  	while(delayed_reports!=NULL) make_delayed_reports();
@@ -106,9 +296,125 @@ diff -ur srcold/apinger.c src/apinger.c
  }
  
  void write_status(void){
+@@ -810,8 +832,10 @@
+ struct active_alarm_list *al;
+ struct alarm_cfg *a;
+ time_t tm;
++#if 0
+ int i,qp,really_lost;
+ char *buf1,*buf2;
++#endif
+ 
+ 	if (config->status_file==NULL) return;
+ 	
+@@ -838,6 +862,7 @@
+ 		}
+ 		else fprintf(f,"none");
+ 
++#if 0
+ 		buf1=NEW(char,t->config->avg_loss_delay_samples+1);
+ 		buf2=NEW(char,t->config->avg_loss_samples+1);
+ 		i=t->last_sent%(t->config->avg_loss_delay_samples+t->config->avg_loss_samples);
+@@ -877,7 +902,8 @@
+ 		}
+ 		free(buf1);
+ 		free(buf2);
+-		
++#endif
++
+ 		fprintf(f,"\n");
+ 	}
+ 	fclose(f);
+@@ -957,7 +983,7 @@
+ 				aal->num_repeats++;
+ 				debug("Repeating reports...");
+ 				sprintf(buf,"%i",aal->num_repeats);
+-				msgid=gen_msgid(t,buf);
++				msgid=gen_msgid(t,buf, &event_time);
+ 				make_reports(t,a,1,msgid,aal->msgid);
+ 				free(msgid);
+ 			}
+@@ -997,8 +1023,10 @@
+ 				next_probe=next_report;
+ 		}
+ 
++#if 0
+ 		strftime(buf,100,"%b %d %H:%M:%S",localtime(&next_probe.tv_sec));
+ 		debug("Next event scheduled for %s",buf);
++#endif
+ 
+ 		gettimeofday(&cur_time,NULL);
+ 		if (timercmp(&cur_time,&event_time,<)){
+@@ -1016,19 +1044,21 @@
+ 			timeout=tv.tv_usec/1000+tv.tv_sec*1000;
+ 		}
+ 		debug("Polling, timeout: %5.3fs",((double)timeout)/1000);
+-		poll(pfd,npfd,timeout);
++		if (poll(pfd,npfd,timeout) < 0)
++			continue;
++		gettimeofday(&cur_time,NULL);
+ 		for(i=0;i<npfd;i++){
+ 			if (!pfd[i].revents&POLLIN) continue;
+ 			for(t=targets;t;t=t->next){
+ 				if (t->addr.addr.sa_family==AF_INET) {
+ 					if (t->socket == pfd[i].fd) {
+-						recv_icmp(t);
++						recv_icmp(t, &cur_time, timedelta);
+ 						break;
+ 					}
+ 				}
+-				if (t->addr.addr.sa_family==AF_INET6) {
++				else if (t->addr.addr.sa_family==AF_INET6) {
+ 					if (t->socket == pfd[i].fd) {
+-						recv_icmp6(t);
++						recv_icmp6(t, &cur_time, timedelta);
+ 						break;
+ 					}
+ 				}
+diff -ur srcold/apinger.h src/apinger.h
+--- srcold/apinger.h	2013-08-12 10:00:27.000000000 +0000
++++ src/apinger.h	2013-08-12 10:00:34.000000000 +0000
+@@ -128,17 +128,14 @@
+ extern struct timeval next_probe;
+ 
+ int make_icmp_socket(struct target *t);
+-void recv_icmp(struct target *t);
++void recv_icmp(struct target *t, struct timeval *, int);
+ void send_icmp_probe(struct target *t,int seq);
+ 
+ int make_icmp6_socket(struct target *t);
+-void recv_icmp6(struct target *t);
++void recv_icmp6(struct target *t, struct timeval *, int);
+ void send_icmp6_probe(struct target *t,int seq);
+ 
+-#ifdef FORKED_RECEIVER
+-void pipe_reply(struct timeval time_recv,int seq,struct trace_info *ti);
+-#endif
+-void analyze_reply(struct timeval time_recv,int seq,struct trace_info *ti);
++void analyze_reply(struct timeval *time_recv,int seq,struct trace_info *ti, int);
+ void main_loop(void);
+ 
+ const char * subst_macros(const char *string,struct target *t,struct alarm_cfg *a,int on);
+@@ -149,6 +146,6 @@
+ extern volatile int status_request;
+ extern volatile int sigpipe_received;
+ 
+-#define NEW(type,size) ((type *)malloc(sizeof(type)*size))
++#define NEW(type,size) ((type *)calloc(1,sizeof(type)*size))
+ 
+ #endif
 diff -ur srcold/conf.c src/conf.c
---- srcold/conf.c	2013-08-06 18:50:54.000000000 +0000
-+++ src/conf.c	2013-08-06 18:51:19.000000000 +0000
+--- srcold/conf.c	2013-08-12 10:00:27.000000000 +0000
++++ src/conf.c	2013-08-12 10:00:34.000000000 +0000
+@@ -41,7 +41,7 @@
+ struct pool_item *pi;
+ char *p;
+ 
+-	p=(char *)malloc(size+sizeof(struct pool_item));
++	p=(char *)calloc(1,size+sizeof(struct pool_item));
+ 	assert(p!=NULL);
+ 	pi=(struct pool_item *)p;
+ 	p+=sizeof(struct pool_item);
 @@ -196,6 +196,8 @@
  			}
  		}
@@ -119,8 +425,8 @@ diff -ur srcold/conf.c src/conf.c
  			pool_clear(&pool);
  			config=NULL;
 diff -ur srcold/conf.h src/conf.h
---- srcold/conf.h	2013-08-06 18:50:54.000000000 +0000
-+++ src/conf.h	2013-08-06 18:51:19.000000000 +0000
+--- srcold/conf.h	2013-08-12 10:00:27.000000000 +0000
++++ src/conf.h	2013-08-12 10:00:34.000000000 +0000
 @@ -113,6 +113,7 @@
  struct alarm_list *alarm2list(const char *aname,struct alarm_list *list);
  
@@ -129,3 +435,237 @@ diff -ur srcold/conf.h src/conf.h
  void free_config(void);
  
  #endif
+diff -ur srcold/icmp.c src/icmp.c
+--- srcold/icmp.c	2013-08-12 10:00:27.000000000 +0000
++++ src/icmp.c	2013-08-12 10:00:34.000000000 +0000
+@@ -155,67 +155,34 @@
+ 			(struct sockaddr *)&t->addr.addr4,sizeof(t->addr.addr4));
+ 	if (ret<0){
+ 		if (config->debug) myperror("sendto");
++		switch (errno) {
++		case EBADF:
++		case ENOTSOCK:
++			if (t->socket)
++				close(t->socket);
++			make_icmp_socket(t);
++			break;
++		}
+ 	}
+ }
+ 
+-void recv_icmp(struct target *t){
++void recv_icmp(struct target *t, struct timeval *time_recv, int timedelta){
+ int len,hlen,icmplen,datalen;
+ char buf[1024];
+ struct sockaddr_in from;
+ struct icmp *icmp;
+ struct ip *ip;
+-struct timeval time_recv;
+-struct timeval *time_recvp=NULL;
+-#ifdef HAVE_RECVMSG
+-char ans_data[4096];
+-struct iovec iov;
+-struct msghdr msg;
+-struct cmsghdr *c;
+-reloophack:
+-
+-	iov.iov_base=buf;
+-	iov.iov_len=1000;
+-	msg.msg_name=&from;
+-	msg.msg_namelen=sizeof(from);
+-	msg.msg_iov=&iov;
+-	msg.msg_iovlen=1;
+-	msg.msg_control=ans_data;
+-	msg.msg_controllen=sizeof(ans_data);
+-	len=recvmsg(t->socket, &msg, MSG_DONTWAIT);
+-#else
+ socklen_t sl;
+ reloophack:
+ 
+ 	sl=sizeof(from);
+ 	len=recvfrom(t->socket,buf,1024,MSG_DONTWAIT,(struct sockaddr *)&from,&sl);
+-#endif
+ 	if (len<0){
+ 		if (errno==EAGAIN) return;
+ 		myperror("recvfrom");
+ 		return;
+ 	}
+ 	if (len==0) return;
+-#if defined(HAVE_RECVMSG) && defined(SO_TIMESTAMP)
+-	debug("checking CMSG...");
+-	for (c = CMSG_FIRSTHDR(&msg); c; c = CMSG_NXTHDR(&msg, c)) {
+-		debug("CMSG level: %i type: %i",c->cmsg_level,c->cmsg_type);
+-		if (c->cmsg_level != SOL_SOCKET || c->cmsg_type != SCM_TIMESTAMP)
+-			continue;
+-		if (c->cmsg_len < CMSG_LEN(sizeof(struct timeval)))
+-			continue;
+-		time_recvp = (struct timeval*)CMSG_DATA(c);
+-		debug("Got timestampt from CMSG");
+-	}
+-#endif
+-	if (time_recvp==NULL){
+-#ifdef SIOCGSTAMP
+-		if (!ioctl(t->socket, SIOCGSTAMP, &time_recv)){
+-			debug("Got timestampt from ioctl()");
+-		}else
+-#endif
+-			gettimeofday(&time_recv,NULL);
+-		time_recvp=&time_recv;
+-	}
+ 	ip=(struct ip *)buf;
+ 	hlen=ip->ip_hl*4;
+ 	if (len<hlen+8 || ip->ip_hl<5) {
+@@ -233,17 +200,15 @@
+ 		goto reloophack;	
+ 		return;
+ 	}
++#if 0
+ 	debug("Ping reply from %s",inet_ntoa(from.sin_addr));
++#endif
+ 	datalen=icmplen-sizeof(*icmp);
+ 	if (datalen!=sizeof(struct trace_info)){
+ 		debug("Packet data truncated.");
+ 		return;
+ 	}
+-#ifdef FORKED_RECEIVER
+-	pipe_reply(*time_recvp,icmp->icmp_seq,(struct trace_info*)(icmp+1));
+-#else
+-	analyze_reply(*time_recvp,icmp->icmp_seq,(struct trace_info*)(icmp+1));
+-#endif
++	analyze_reply(time_recv,icmp->icmp_seq,(struct trace_info*)(icmp+1), timedelta);
+ }
+ 
+ int make_icmp_socket(struct target *t){
+@@ -252,13 +217,6 @@
+ 	t->socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+ 	if (t->socket < 0)
+ 		myperror("socket");
+-#ifdef SO_TIMESTAMP
+-	else {
+-		on=1;
+-		if (setsockopt(t->socket, SOL_SOCKET, SO_TIMESTAMP, &on, sizeof(on)))
+-			myperror("setsockopt(SO_TIMESTAMP)");
+-	}
+-#endif
+ 
+ 	if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr4, sizeof(t->ifaddr.addr4)) < 0)
+ 			myperror("bind socket");
+diff -ur srcold/icmp6.c src/icmp6.c
+--- srcold/icmp6.c	2013-08-12 10:00:27.000000000 +0000
++++ src/icmp6.c	2013-08-12 10:00:34.000000000 +0000
+@@ -120,71 +120,35 @@
+ 			(struct sockaddr *)&t->addr.addr6,sizeof(t->addr.addr6));
+ 	if (ret<0){
+ 		if (config->debug) myperror("sendto");
++		switch (errno) {
++                case EBADF:
++                case ENOTSOCK:
++                        if (t->socket)
++                                close(t->socket);
++                        make_icmp6_socket(t);
++                        break;
++                }
+ 	}
+ }
+ 
+-void recv_icmp6(struct target *t){
++void recv_icmp6(struct target *t, struct timeval *time_recv, int timedelta){
+ int len,icmplen,datalen;
+ char buf[1024];
+ char abuf[100];
+ const char *name;
+ struct sockaddr_in6 from;
+ struct icmp6_hdr *icmp;
+-struct timeval time_recv;
+-struct timeval *time_recvp=NULL;
+-#ifdef HAVE_RECVMSG
+-char ans_data[4096];
+-struct iovec iov;
+-struct msghdr msg;
+-struct cmsghdr *c;
+-reloophack6:
+-
+-	iov.iov_base=buf;
+-	iov.iov_len=1000;
+-	msg.msg_name=&from;
+-	msg.msg_namelen=sizeof(from);
+-	msg.msg_iov=&iov;
+-	msg.msg_iovlen=1;
+-	msg.msg_control=ans_data;
+-	msg.msg_controllen=sizeof(ans_data);
+-	len=recvmsg(t->socket, &msg, MSG_DONTWAIT);
+-#else
+ socklen_t sl;
+ reloophack6:
+ 
+ 	sl=sizeof(from);
+ 	len=recvfrom(t->socket,buf,1024,0,(struct sockaddr *)&from,&sl);
+-#endif
+ 	if (len<0){
+ 		if (errno==EAGAIN) return;
+ 		myperror("recvfrom");
+ 		return;
+ 	}
+ 	if (len==0) return;
+-#if defined(HAVE_RECVMSG) && defined(SO_TIMESTAMP)
+-	debug("checking CMSG...");
+-	for (c = CMSG_FIRSTHDR(&msg); c; c = CMSG_NXTHDR(&msg, c)) {
+-		debug("CMSG level: %i type: %i",c->cmsg_level,c->cmsg_type);
+-		if (c->cmsg_level != SOL_SOCKET || c->cmsg_type != SO_TIMESTAMP)
+-			continue;
+-		if (c->cmsg_len < CMSG_LEN(sizeof(struct timeval)))
+-			continue;
+-		time_recvp = (struct timeval*)CMSG_DATA(c);
+-		debug("Got timestamp from CMSG");
+-	}
+-#endif
+-	if (time_recvp==NULL){
+-#ifdef SIOCGSTAMP
+-		if (!ioctl(t->socket, SIOCGSTAMP, &time_recv)){
+-			debug("Got timestamp from ioctl()");
+-		}else
+-#endif
+-		{
+-			gettimeofday(&time_recv,NULL);
+-			debug("Got timestamp from gettimeofday()");
+-		}
+-		time_recvp=&time_recv;
+-	}
+ 	icmplen=len;
+ 	icmp=(struct icmp6_hdr *)buf;
+ 	if (icmp->icmp6_type != ICMP6_ECHO_REPLY) return;
+@@ -193,18 +157,16 @@
+ 		goto reloophack6;
+ 		return;	
+ 	}
++#if 0
+ 	name=inet_ntop(AF_INET6,&from.sin6_addr,abuf,100);
+ 	debug("Ping reply from %s",name);
++#endif
+ 	datalen=icmplen-sizeof(*icmp);
+ 	if (datalen!=sizeof(struct trace_info)){
+ 		debug("Packet data truncated.");
+ 		return;
+ 	}
+-#ifdef FORKED_RECEIVER
+-	pipe_reply(*time_recvp,icmp->icmp6_seq,(struct trace_info*)(icmp+1));
+-#else
+-	analyze_reply(*time_recvp,icmp->icmp6_seq,(struct trace_info*)(icmp+1));
+-#endif
++	analyze_reply(time_recv,icmp->icmp6_seq,(struct trace_info*)(icmp+1), timedelta);
+ }
+ 
+ 
+@@ -220,12 +182,6 @@
+ 		if (setsockopt(t->socket, SOL_RAW, IPV6_CHECKSUM, &opt, sizeof(int)))
+ 			myperror("setsockopt(IPV6_CHECKSUM)");
+ #endif
+-#ifdef SO_TIMESTAMP
+-		opt=1;
+-		if (setsockopt(t->socket, SOL_SOCKET, SO_TIMESTAMP, &opt, sizeof(opt)))
+-			myperror("setsockopt(SO_TIMESTAMP)");
+-#endif
+-		/*install_filter6();*/
+ 	}
+ 	if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr6, sizeof(t->ifaddr.addr6)) < 0)
+ 		myperror("bind socket");
