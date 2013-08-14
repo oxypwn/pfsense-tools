@@ -1,6 +1,6 @@
 diff -ur srcold/apinger.c src/apinger.c
---- srcold/apinger.c	2013-08-14 17:12:29.000000000 +0000
-+++ src/apinger.c	2013-08-14 17:13:32.000000000 +0000
+--- srcold/apinger.c	2013-08-14 17:20:51.000000000 +0000
++++ src/apinger.c	2013-08-14 17:20:55.000000000 +0000
 @@ -61,7 +61,7 @@
  	char *msgid;
  	char *lastmsgid;
@@ -555,8 +555,8 @@ diff -ur srcold/apinger.c src/apinger.c
  					}
  				}
 diff -ur srcold/apinger.h src/apinger.h
---- srcold/apinger.h	2013-08-14 17:12:29.000000000 +0000
-+++ src/apinger.h	2013-08-14 17:12:42.000000000 +0000
+--- srcold/apinger.h	2013-08-14 17:20:51.000000000 +0000
++++ src/apinger.h	2013-08-14 17:20:55.000000000 +0000
 @@ -128,17 +128,14 @@
  extern struct timeval next_probe;
  
@@ -587,8 +587,8 @@ diff -ur srcold/apinger.h src/apinger.h
  
  #endif
 diff -ur srcold/conf.c src/conf.c
---- srcold/conf.c	2013-08-14 17:12:29.000000000 +0000
-+++ src/conf.c	2013-08-14 17:12:42.000000000 +0000
+--- srcold/conf.c	2013-08-14 17:20:51.000000000 +0000
++++ src/conf.c	2013-08-14 17:20:55.000000000 +0000
 @@ -41,7 +41,7 @@
  struct pool_item *pi;
  char *p;
@@ -608,8 +608,8 @@ diff -ur srcold/conf.c src/conf.c
  			pool_clear(&pool);
  			config=NULL;
 diff -ur srcold/conf.h src/conf.h
---- srcold/conf.h	2013-08-14 17:12:29.000000000 +0000
-+++ src/conf.h	2013-08-14 17:12:42.000000000 +0000
+--- srcold/conf.h	2013-08-14 17:20:51.000000000 +0000
++++ src/conf.h	2013-08-14 17:20:55.000000000 +0000
 @@ -113,6 +113,7 @@
  struct alarm_list *alarm2list(const char *aname,struct alarm_list *list);
  
@@ -619,8 +619,8 @@ diff -ur srcold/conf.h src/conf.h
  
  #endif
 diff -ur srcold/icmp.c src/icmp.c
---- srcold/icmp.c	2013-08-14 17:12:29.000000000 +0000
-+++ src/icmp.c	2013-08-14 17:12:42.000000000 +0000
+--- srcold/icmp.c	2013-08-14 17:20:51.000000000 +0000
++++ src/icmp.c	2013-08-14 17:29:49.000000000 +0000
 @@ -155,67 +155,34 @@
  			(struct sockaddr *)&t->addr.addr4,sizeof(t->addr.addr4));
  	if (ret<0){
@@ -719,10 +719,11 @@ diff -ur srcold/icmp.c src/icmp.c
  }
  
  int make_icmp_socket(struct target *t){
-@@ -252,13 +217,6 @@
+@@ -251,17 +216,9 @@
+ 
  	t->socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
  	if (t->socket < 0)
- 		myperror("socket");
+-		myperror("socket");
 -#ifdef SO_TIMESTAMP
 -	else {
 -		on=1;
@@ -730,12 +731,18 @@ diff -ur srcold/icmp.c src/icmp.c
 -			myperror("setsockopt(SO_TIMESTAMP)");
 -	}
 -#endif
+-
+-	if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr4, sizeof(t->ifaddr.addr4)) < 0)
+-			myperror("bind socket");
++		logit("Could not create socket on address(%s) for monitoring address %s(%s) with error %m", t->config->srcip, t->name, t->description);
++	else if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr4, sizeof(t->ifaddr.addr4)) < 0)
++		logit("Could not bind socket on address(%s) for monitoring address %s(%s) with error %m", t->config->srcip, t->name, t->description);
  
- 	if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr4, sizeof(t->ifaddr.addr4)) < 0)
- 			myperror("bind socket");
+ 	return t->socket;
+ }
 diff -ur srcold/icmp6.c src/icmp6.c
---- srcold/icmp6.c	2013-08-14 17:12:29.000000000 +0000
-+++ src/icmp6.c	2013-08-14 17:12:42.000000000 +0000
+--- srcold/icmp6.c	2013-08-14 17:20:51.000000000 +0000
++++ src/icmp6.c	2013-08-14 17:29:31.000000000 +0000
 @@ -120,71 +120,35 @@
  			(struct sockaddr *)&t->addr.addr6,sizeof(t->addr.addr6));
  	if (ret<0){
@@ -839,7 +846,15 @@ diff -ur srcold/icmp6.c src/icmp6.c
  }
  
  
-@@ -220,12 +182,6 @@
+@@ -213,22 +175,16 @@
+ 
+ 	t->socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+ 	if (t->socket <0)
+-		myperror("socket");
++		logit("Could not create socket on address(%s) for monitoring address %s(%s) with error %m", t->config->srcip, t->name, t->description);
+ 	else {
+ 		opt=2;
+ #if defined(SOL_RAW) && defined(IPV6_CHECKSUM)
  		if (setsockopt(t->socket, SOL_RAW, IPV6_CHECKSUM, &opt, sizeof(int)))
  			myperror("setsockopt(IPV6_CHECKSUM)");
  #endif
@@ -849,6 +864,11 @@ diff -ur srcold/icmp6.c src/icmp6.c
 -			myperror("setsockopt(SO_TIMESTAMP)");
 -#endif
 -		/*install_filter6();*/
++		if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr6, sizeof(t->ifaddr.addr6)) < 0)
++			logit("Could not bind socket on address(%s) for monitoring address %s(%s) with error %m", t->config->srcip, t->name, t->description);
  	}
- 	if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr6, sizeof(t->ifaddr.addr6)) < 0)
- 		myperror("bind socket");
+-	if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr6, sizeof(t->ifaddr.addr6)) < 0)
+-		myperror("bind socket");
+ 
+ 	return t->socket;
+ }
