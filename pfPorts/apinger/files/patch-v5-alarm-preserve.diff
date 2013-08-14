@@ -1,6 +1,6 @@
 diff -ur srcold/apinger.c src/apinger.c
---- srcold/apinger.c	2013-08-14 17:04:25.000000000 +0000
-+++ src/apinger.c	2013-08-14 17:04:59.000000000 +0000
+--- srcold/apinger.c	2013-08-14 17:12:29.000000000 +0000
++++ src/apinger.c	2013-08-14 17:13:32.000000000 +0000
 @@ -61,7 +61,7 @@
  	char *msgid;
  	char *lastmsgid;
@@ -513,7 +513,7 @@ diff -ur srcold/apinger.c src/apinger.c
  			status_request=0;
  			if (config->status_file){
 -				logit("SIGUSR1 received, writting status.");
-+				logit("SIGUSR1 received, writing status.");
++				debug("SIGUSR1 received, writing status.");
  				write_status();
  			}
  			signal(SIGUSR1, signal_handler);
@@ -555,8 +555,8 @@ diff -ur srcold/apinger.c src/apinger.c
  					}
  				}
 diff -ur srcold/apinger.h src/apinger.h
---- srcold/apinger.h	2013-08-14 17:04:25.000000000 +0000
-+++ src/apinger.h	2013-08-14 17:04:35.000000000 +0000
+--- srcold/apinger.h	2013-08-14 17:12:29.000000000 +0000
++++ src/apinger.h	2013-08-14 17:12:42.000000000 +0000
 @@ -128,17 +128,14 @@
  extern struct timeval next_probe;
  
@@ -587,8 +587,8 @@ diff -ur srcold/apinger.h src/apinger.h
  
  #endif
 diff -ur srcold/conf.c src/conf.c
---- srcold/conf.c	2013-08-14 17:04:25.000000000 +0000
-+++ src/conf.c	2013-08-14 17:04:35.000000000 +0000
+--- srcold/conf.c	2013-08-14 17:12:29.000000000 +0000
++++ src/conf.c	2013-08-14 17:12:42.000000000 +0000
 @@ -41,7 +41,7 @@
  struct pool_item *pi;
  char *p;
@@ -608,8 +608,8 @@ diff -ur srcold/conf.c src/conf.c
  			pool_clear(&pool);
  			config=NULL;
 diff -ur srcold/conf.h src/conf.h
---- srcold/conf.h	2013-08-14 17:04:25.000000000 +0000
-+++ src/conf.h	2013-08-14 17:04:35.000000000 +0000
+--- srcold/conf.h	2013-08-14 17:12:29.000000000 +0000
++++ src/conf.h	2013-08-14 17:12:42.000000000 +0000
 @@ -113,6 +113,7 @@
  struct alarm_list *alarm2list(const char *aname,struct alarm_list *list);
  
@@ -619,8 +619,8 @@ diff -ur srcold/conf.h src/conf.h
  
  #endif
 diff -ur srcold/icmp.c src/icmp.c
---- srcold/icmp.c	2013-08-14 17:04:25.000000000 +0000
-+++ src/icmp.c	2013-08-14 17:04:35.000000000 +0000
+--- srcold/icmp.c	2013-08-14 17:12:29.000000000 +0000
++++ src/icmp.c	2013-08-14 17:12:42.000000000 +0000
 @@ -155,67 +155,34 @@
  			(struct sockaddr *)&t->addr.addr4,sizeof(t->addr.addr4));
  	if (ret<0){
@@ -734,8 +734,8 @@ diff -ur srcold/icmp.c src/icmp.c
  	if (bind(t->socket, (struct sockaddr *)&t->ifaddr.addr4, sizeof(t->ifaddr.addr4)) < 0)
  			myperror("bind socket");
 diff -ur srcold/icmp6.c src/icmp6.c
---- srcold/icmp6.c	2013-08-14 17:04:25.000000000 +0000
-+++ src/icmp6.c	2013-08-14 17:04:35.000000000 +0000
+--- srcold/icmp6.c	2013-08-14 17:12:29.000000000 +0000
++++ src/icmp6.c	2013-08-14 17:12:42.000000000 +0000
 @@ -120,71 +120,35 @@
  			(struct sockaddr *)&t->addr.addr6,sizeof(t->addr.addr6));
  	if (ret<0){
