@@ -449,7 +449,7 @@ index e0a879d..9b4e57b 100644
 +int
 +ipfw_context_init(int index)
 +{
-+	struct ip_fw_chin *chain;
++	struct ip_fw_chain *chain;
 +	struct ip_fw *rule = NULL;
 +	int error;
 +
