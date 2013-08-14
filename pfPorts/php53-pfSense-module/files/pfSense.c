@@ -1266,8 +1266,6 @@ PHP_FUNCTION(pfSense_getall_interface_addresses)
 		case AF_INET6:
 			bzero(outputbuf, sizeof outputbuf);
 			tmp6 = (struct sockaddr_in6 *)mb->ifa_addr;
-			if (IN6_IS_ADDR_LINKLOCAL(&tmp6->sin6_addr) || IN6_IS_ADDR_SITELOCAL(&tmp6->sin6_addr))
-				continue;
 			inet_ntop(AF_INET6, (void *)&tmp6->sin6_addr, outputbuf, INET6_ADDRSTRLEN);
 			tmp6 = (struct sockaddr_in6 *)mb->ifa_netmask;
 			snprintf(outputbuf + strlen(outputbuf), sizeof(outputbuf) - strlen(outputbuf),
@@ -1283,11 +1281,12 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 	struct ifaddrs *ifdata, *mb;
 	struct if_data *md;
 	struct sockaddr_in *tmp;
+	struct sockaddr_in6 *tmp6;
 	struct sockaddr_dl *tmpdl;
 	struct ifreq ifr;
 	char outputbuf[128];
 	char *ifname;
-	int ifname_len, s, addresscnt = 0;
+	int ifname_len, s, addresscnt = 0, addresscnt6 = 0;
 	zval *caps;
 	zval *encaps;
 
@@ -1494,11 +1493,31 @@ PHP_FUNCTION(pfSense_get_interface_addresses)
 
 			if (mb->ifa_flags & IFF_POINTOPOINT) {
 				bzero(outputbuf, sizeof outputbuf);
-				tmp = (struct sockaddr_in *)mb->ifa_dstaddr;
-				inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
+				tmp6 = (struct sockaddr_in6 *)mb->ifa_dstaddr;
+				inet_ntop(AF_INET, (void *)&tmp6->sin6_addr, outputbuf, 128);
 				add_assoc_string(return_value, "tunnel", outputbuf, 1);
 			}
 
+		break;
+		case AF_INET6:
+			if (addresscnt6 > 0)
+                                break;
+                        bzero(outputbuf, sizeof outputbuf);
+                        tmp6 = (struct sockaddr_in6 *)mb->ifa_addr;
+			if (IN6_IS_ADDR_LINKLOCAL(&tmp6->sin6_addr))
+				break;
+                        inet_ntop(AF_INET6, (void *)&tmp6->sin6_addr, outputbuf, 128);
+                        add_assoc_string(return_value, "ipaddr6", outputbuf, 1);
+                        addresscnt6++;
+                        tmp6 = (struct sockaddr_in6 *)mb->ifa_netmask;
+                        add_assoc_long(return_value, "subnetbits6", prefix(&tmp6->sin6_addr, sizeof(struct in6_addr)));
+                
+                        if (mb->ifa_flags & IFF_POINTOPOINT) {
+                                bzero(outputbuf, sizeof outputbuf);
+                                tmp = (struct sockaddr_in *)mb->ifa_dstaddr;
+                                inet_ntop(AF_INET, (void *)&tmp->sin_addr, outputbuf, 128);
+                                add_assoc_string(return_value, "tunnel6", outputbuf, 1);
+                        }
 		break;
 		case AF_LINK:
 			tmpdl = (struct sockaddr_dl *)mb->ifa_addr;
