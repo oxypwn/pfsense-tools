@@ -923,3 +923,8 @@
 
 ./usr/sbin/ntpd
 ./usr/sbin/ntpdate
+./usr/sbin/ntpdc
+./usr/sbin/ntptrace
+./usr/sbin/ntptime
+./usr/sbin/ntp-keygen
+./usr/bin/ntpq
