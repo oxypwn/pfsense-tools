@@ -922,3 +922,4 @@
 ./usr/local/www/fred.png
 
 ./usr/sbin/ntpd
+./usr/sbin/ntpdate
