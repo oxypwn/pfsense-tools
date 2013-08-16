@@ -956,3 +956,5 @@
 ./usr/local/www/index.html
 ./usr/local/www/dfuife.cgi
 ./usr/local/www/fred.png
+
+./usr/sbin/ntpd
