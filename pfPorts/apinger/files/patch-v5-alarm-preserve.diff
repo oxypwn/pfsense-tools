@@ -1,6 +1,6 @@
 diff -ur srcold/apinger.c src/apinger.c
---- srcold/apinger.c	2013-08-15 08:01:29.000000000 +0000
-+++ src/apinger.c	2013-08-15 08:01:54.000000000 +0000
+--- srcold/apinger.c	2013-08-16 08:55:07.000000000 +0000
++++ src/apinger.c	2013-08-16 08:55:15.000000000 +0000
 @@ -58,10 +58,8 @@
  
  struct delayed_report {
@@ -196,7 +196,7 @@ diff -ur srcold/apinger.c src/apinger.c
 -			}
 -		}
 -	}
--
+ 
 -	names=NEW(char,names_len+1);
 -	names[0]='\000';
 -	descriptions=NEW(char,descriptions_len+1);
@@ -240,14 +240,14 @@ diff -ur srcold/apinger.c src/apinger.c
 -		}
 -		else pdr=dr;
 -	}
++	wdr = delayed_reports;
  
 -	target.name=names;
 -	target.description=descriptions;
-+	wdr = delayed_reports;
- 
--	make_reports(&target,alarm,on,msgid,references);
 +	make_reports(wdr->t, wdr->a, wdr->on);
  
+-	make_reports(&target,alarm,on,msgid,references);
+-
 -	free(msgid);
 -	free(names);
 -	free(descriptions);
@@ -360,7 +360,7 @@ diff -ur srcold/apinger.c src/apinger.c
  	t->queue[i]=1;
  	
  	if (AVG_LOSS_KNOWN(t)){
-@@ -639,10 +512,11 @@
+@@ -639,10 +512,12 @@
  	}
  }
  
@@ -369,12 +369,13 @@ diff -ur srcold/apinger.c src/apinger.c
  struct target *t,*pt,*nt;
  struct target_cfg *tc;
 -struct active_alarm_list *al,*nal;
++struct delayed_report *dr, *pdr, *ndr;
 +struct active_alarm_list *aal,*naal;
 +struct alarm_cfg *a, *na;
  union addr addr, srcaddr;
  int r;
  int l;
-@@ -650,35 +524,56 @@
+@@ -650,35 +525,84 @@
  	/* delete all not configured targets */
  	pt=NULL;
  	for(t=targets;t;t=nt){
@@ -402,6 +403,22 @@ diff -ur srcold/apinger.c src/apinger.c
  			}
  			if (t->socket)
  				close(t->socket);
++
++			if (delayed_reports != NULL) {
++				pdr = NULL;
++				for (dr = delayed_reports; dr != NULL; dr = ndr) {
++					ndr = dr->next;
++					if (dr->t == t) {
++						if (pdr == NULL)
++							delayed_reports = ndr;
++						else
++							pdr->next = ndr;
++						free(dr);
++					} else
++						pdr = dr;
++				}
++			}
++
  			free(t->queue);
  			free(t->rbuf);
 +			debug("Releasing target %s(%s)", t->name, t->description);
@@ -424,6 +441,18 @@ diff -ur srcold/apinger.c src/apinger.c
 +					}
 +				}
 +			}
++			if (delayed_reports != NULL) {
++				for (dr = delayed_reports; dr != NULL; dr = dr->next) {
++					if (dr->t == t) {
++						for (a=cfg->alarms;a;a=a->next) {
++							if (dr->a->type == a->type && !strcmp(dr->a->name, a->name)) {
++								debug("Updating delayed report for target(%s) and alarm(%s)", t->name, a->name);
++								dr->a = a;
++							}
++						}
++					}
++				}
++			}
 +		}
  	}
  
@@ -441,7 +470,7 @@ diff -ur srcold/apinger.c src/apinger.c
  		if (t==NULL) { /* new target */
  			memset(&addr,0,sizeof(addr));
  			r=inet_pton(AF_INET,tc->name,&addr.addr4.sin_addr);
-@@ -726,34 +621,51 @@
+@@ -726,34 +650,51 @@
  #endif
  			}
  			t=NEW(struct target,1);
@@ -508,7 +537,7 @@ diff -ur srcold/apinger.c src/apinger.c
  	}
  
  	if (targets==NULL){
-@@ -761,7 +673,7 @@
+@@ -761,7 +702,7 @@
  		exit(1);
  	}
  	gettimeofday(&operation_started,NULL);
@@ -517,22 +546,30 @@ diff -ur srcold/apinger.c src/apinger.c
  		rrd_create();
  }
  
-@@ -794,14 +706,7 @@
- int r;
+@@ -788,20 +729,8 @@
  
- 	while(delayed_reports!=NULL) make_delayed_reports();
+ 
+ void reload_config(void){
+-struct target *t;
+-struct active_alarm_list *al,*an;
+-struct alarm_cfg *a;
+-int r;
+-
+-	while(delayed_reports!=NULL) make_delayed_reports();
 -	for(t=targets;t;t=t->next)
 -		for(al=t->active_alarms;al;al=an){
 -			an=al->next;
 -			a=al->alarm;
 -			toggle_alarm(t,a,-1);
 -		}
- 	r=load_config(config_file);
+-	r=load_config(config_file);
 -	if (r==0) configure_targets(1);
++	if (load_config(config_file))
++                logit("Couldn't read config (\"%s\").",config_file);
  }
  
  void write_status(void){
-@@ -810,8 +715,10 @@
+@@ -810,8 +739,10 @@
  struct active_alarm_list *al;
  struct alarm_cfg *a;
  time_t tm;
@@ -543,7 +580,7 @@ diff -ur srcold/apinger.c src/apinger.c
  
  	if (config->status_file==NULL) return;
  	
-@@ -838,6 +745,7 @@
+@@ -838,6 +769,7 @@
  		}
  		else fprintf(f,"none");
  
@@ -551,7 +588,7 @@ diff -ur srcold/apinger.c src/apinger.c
  		buf1=NEW(char,t->config->avg_loss_delay_samples+1);
  		buf2=NEW(char,t->config->avg_loss_samples+1);
  		i=t->last_sent%(t->config->avg_loss_delay_samples+t->config->avg_loss_samples);
-@@ -877,7 +785,8 @@
+@@ -877,7 +809,8 @@
  		}
  		free(buf1);
  		free(buf2);
@@ -561,7 +598,7 @@ diff -ur srcold/apinger.c src/apinger.c
  		fprintf(f,"\n");
  	}
  	fclose(f);
-@@ -896,7 +805,7 @@
+@@ -896,7 +829,7 @@
  struct active_alarm_list *aal;
  struct alarm_cfg *a;
  
@@ -570,7 +607,7 @@ diff -ur srcold/apinger.c src/apinger.c
  	memset(&pfd, '\0', sizeof pfd);
  
  	if (config->status_interval){
-@@ -945,8 +854,6 @@
+@@ -945,8 +878,6 @@
  		}
  		for(t=targets;t;t=t->next){
  			for(aal=t->active_alarms;aal;aal=aal->next){
@@ -579,7 +616,7 @@ diff -ur srcold/apinger.c src/apinger.c
  				a=aal->alarm;
  				if (a->repeat_interval<=0)
  					continue;
-@@ -956,10 +863,7 @@
+@@ -956,10 +887,7 @@
  					continue;
  				aal->num_repeats++;
  				debug("Repeating reports...");
@@ -591,7 +628,7 @@ diff -ur srcold/apinger.c src/apinger.c
  			}
  		}
  		if (config->status_interval){
-@@ -971,7 +875,7 @@
+@@ -971,7 +899,7 @@
  		if (status_request){
  			status_request=0;
  			if (config->status_file){
@@ -600,7 +637,7 @@ diff -ur srcold/apinger.c src/apinger.c
  				write_status();
  			}
  			signal(SIGUSR1, signal_handler);
-@@ -997,8 +901,10 @@
+@@ -997,8 +925,10 @@
  				next_probe=next_report;
  		}
  
@@ -611,7 +648,7 @@ diff -ur srcold/apinger.c src/apinger.c
  
  		gettimeofday(&cur_time,NULL);
  		if (timercmp(&cur_time,&event_time,<)){
-@@ -1016,19 +922,21 @@
+@@ -1016,19 +946,21 @@
  			timeout=tv.tv_usec/1000+tv.tv_sec*1000;
  		}
  		debug("Polling, timeout: %5.3fs",((double)timeout)/1000);
@@ -638,8 +675,8 @@ diff -ur srcold/apinger.c src/apinger.c
  					}
  				}
 diff -ur srcold/apinger.h src/apinger.h
---- srcold/apinger.h	2013-08-15 08:01:29.000000000 +0000
-+++ src/apinger.h	2013-08-15 08:01:33.000000000 +0000
+--- srcold/apinger.h	2013-08-16 08:55:07.000000000 +0000
++++ src/apinger.h	2013-08-16 08:55:15.000000000 +0000
 @@ -58,7 +58,6 @@
  struct active_alarm_list {
  	struct alarm_cfg *alarm;
@@ -678,8 +715,8 @@ diff -ur srcold/apinger.h src/apinger.h
  
  #endif
 diff -ur srcold/conf.c src/conf.c
---- srcold/conf.c	2013-08-15 08:01:29.000000000 +0000
-+++ src/conf.c	2013-08-15 08:01:33.000000000 +0000
+--- srcold/conf.c	2013-08-16 08:55:07.000000000 +0000
++++ src/conf.c	2013-08-16 08:55:15.000000000 +0000
 @@ -41,7 +41,7 @@
  struct pool_item *pi;
  char *p;
@@ -699,8 +736,8 @@ diff -ur srcold/conf.c src/conf.c
  			pool_clear(&pool);
  			config=NULL;
 diff -ur srcold/conf.h src/conf.h
---- srcold/conf.h	2013-08-15 08:01:29.000000000 +0000
-+++ src/conf.h	2013-08-15 08:01:33.000000000 +0000
+--- srcold/conf.h	2013-08-16 08:55:07.000000000 +0000
++++ src/conf.h	2013-08-16 08:55:15.000000000 +0000
 @@ -113,6 +113,7 @@
  struct alarm_list *alarm2list(const char *aname,struct alarm_list *list);
  
@@ -710,8 +747,8 @@ diff -ur srcold/conf.h src/conf.h
  
  #endif
 diff -ur srcold/icmp.c src/icmp.c
---- srcold/icmp.c	2013-08-15 08:01:29.000000000 +0000
-+++ src/icmp.c	2013-08-15 08:01:33.000000000 +0000
+--- srcold/icmp.c	2013-08-16 08:55:07.000000000 +0000
++++ src/icmp.c	2013-08-16 08:55:15.000000000 +0000
 @@ -155,67 +155,34 @@
  			(struct sockaddr *)&t->addr.addr4,sizeof(t->addr.addr4));
  	if (ret<0){
@@ -832,8 +869,8 @@ diff -ur srcold/icmp.c src/icmp.c
  	return t->socket;
  }
 diff -ur srcold/icmp6.c src/icmp6.c
---- srcold/icmp6.c	2013-08-15 08:01:29.000000000 +0000
-+++ src/icmp6.c	2013-08-15 08:01:33.000000000 +0000
+--- srcold/icmp6.c	2013-08-16 08:55:07.000000000 +0000
++++ src/icmp6.c	2013-08-16 08:55:15.000000000 +0000
 @@ -120,71 +120,35 @@
  			(struct sockaddr *)&t->addr.addr6,sizeof(t->addr.addr6));
  	if (ret<0){
@@ -962,4 +999,19 @@ diff -ur srcold/icmp6.c src/icmp6.c
 -		myperror("bind socket");
  
  	return t->socket;
+ }
+diff -ur srcold/rrd.c src/rrd.c
+--- srcold/rrd.c	2013-08-16 08:55:07.000000000 +0000
++++ src/rrd.c	2013-08-16 08:55:27.000000000 +0000
+@@ -87,8 +87,9 @@
+ 	va_start(args, format);
+ 	if (foreground && config->debug){
+ 		vfprintf(stderr, format, args);
+-	}
+-	ret=vfprintf(rrdtool_pipe,format,args);
++		ret = 1;
++	} else
++		ret=vfprintf(rrdtool_pipe,format,args);
+ 	va_end(args);
+ 	return ret;
  }
